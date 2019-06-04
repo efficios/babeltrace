@@ -22,27 +22,27 @@
  */
 
 #define BT_LOG_TAG "EVENT"
-#include <babeltrace/lib-logging-internal.h>
+#include <babeltrace2/lib-logging-internal.h>
 
-#include <babeltrace/assert-pre-internal.h>
-#include <babeltrace/trace-ir/field-internal.h>
-#include <babeltrace/trace-ir/field-class-internal.h>
-#include <babeltrace/trace-ir/event-const.h>
-#include <babeltrace/trace-ir/event-internal.h>
-#include <babeltrace/trace-ir/event-class.h>
-#include <babeltrace/trace-ir/event-class-internal.h>
-#include <babeltrace/trace-ir/stream-class.h>
-#include <babeltrace/trace-ir/stream-class-const.h>
-#include <babeltrace/trace-ir/stream-class-internal.h>
-#include <babeltrace/trace-ir/stream-internal.h>
-#include <babeltrace/trace-ir/packet.h>
-#include <babeltrace/trace-ir/packet-internal.h>
-#include <babeltrace/trace-ir/trace.h>
-#include <babeltrace/trace-ir/trace-internal.h>
-#include <babeltrace/trace-ir/packet-internal.h>
-#include <babeltrace/trace-ir/attributes-internal.h>
-#include <babeltrace/assert-internal.h>
-#include <babeltrace/compiler-internal.h>
+#include <babeltrace2/assert-pre-internal.h>
+#include <babeltrace2/trace-ir/field-internal.h>
+#include <babeltrace2/trace-ir/field-class-internal.h>
+#include <babeltrace2/trace-ir/event-const.h>
+#include <babeltrace2/trace-ir/event-internal.h>
+#include <babeltrace2/trace-ir/event-class.h>
+#include <babeltrace2/trace-ir/event-class-internal.h>
+#include <babeltrace2/trace-ir/stream-class.h>
+#include <babeltrace2/trace-ir/stream-class-const.h>
+#include <babeltrace2/trace-ir/stream-class-internal.h>
+#include <babeltrace2/trace-ir/stream-internal.h>
+#include <babeltrace2/trace-ir/packet.h>
+#include <babeltrace2/trace-ir/packet-internal.h>
+#include <babeltrace2/trace-ir/trace.h>
+#include <babeltrace2/trace-ir/trace-internal.h>
+#include <babeltrace2/trace-ir/packet-internal.h>
+#include <babeltrace2/trace-ir/attributes-internal.h>
+#include <babeltrace2/assert-internal.h>
+#include <babeltrace2/compiler-internal.h>
 #include <inttypes.h>
 
 BT_HIDDEN

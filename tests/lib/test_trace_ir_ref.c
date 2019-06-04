@@ -20,10 +20,10 @@
  */
 
 #include "tap/tap.h"
-#include <babeltrace/babeltrace.h>
-#include <babeltrace/object-internal.h>
-#include <babeltrace/compat/stdlib-internal.h>
-#include <babeltrace/assert-internal.h>
+#include <babeltrace2/babeltrace.h>
+#include <babeltrace2/object-internal.h>
+#include <babeltrace2/compat/stdlib-internal.h>
+#include <babeltrace2/assert-internal.h>
 #include "common.h"
 
 #define NR_TESTS 37

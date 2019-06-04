@@ -29,14 +29,14 @@
 #include <stdbool.h>
 #include <glib.h>
 #include <inttypes.h>
-#include <babeltrace/compat/mman-internal.h>
-#include <babeltrace/endian-internal.h>
-#include <babeltrace/babeltrace.h>
-#include <babeltrace/common-internal.h>
+#include <babeltrace2/compat/mman-internal.h>
+#include <babeltrace2/endian-internal.h>
+#include <babeltrace2/babeltrace.h>
+#include <babeltrace2/common-internal.h>
 #include "file.h"
 #include "metadata.h"
 #include "../common/msg-iter/msg-iter.h"
-#include <babeltrace/assert-internal.h>
+#include <babeltrace2/assert-internal.h>
 #include "data-stream-file.h"
 #include <string.h>
 

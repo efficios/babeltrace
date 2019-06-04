@@ -280,22 +280,22 @@ library (`logging` directory).
 
 The logging API headers are:
 
-`<babeltrace/logging.h>`::
+`<babeltrace2/logging.h>`::
     Public header which a library user can use to control and read
     libbabeltrace2's current log level.
 
-`<babeltrace/logging-internal.h>`::
+`<babeltrace2/logging-internal.h>`::
     Internal, generic logging API which you can use in any Babeltrace
     subproject. This is the translation of `zf_log.h`.
 
-`<babeltrace/lib-logging-internal.h>`::
+`<babeltrace2/lib-logging-internal.h>`::
     Specific internal header to use within the library. This header
     defines `BT_LOG_OUTPUT_LEVEL` to a custom, library-wide hidden
     symbol which is the library's current log level before including
-    `<babeltrace/logging-internal.h>`.
+    `<babeltrace2/logging-internal.h>`.
 
-Do not include `<babeltrace/logging-internal.h>` or
-`<babeltrace/lib-logging-internal.h>` in a header which contains logging
+Do not include `<babeltrace2/logging-internal.h>` or
+`<babeltrace2/lib-logging-internal.h>` in a header which contains logging
 statements: this header could be included in source files which define a
 different <<choose-a-tag,tag>>, for example. See
 <<logging-instrument-header, Instrument a C header file>>.
@@ -355,10 +355,10 @@ get the configured minimal log level.
 `_bt_log_global_output_lvl` symbol. In practice, we never use this
 symbol, and always make sure that `BT_LOG_OUTPUT_LEVEL` is defined to a
 module-wise or subproject-wise hidden symbol before including
-`<babeltrace/logging-internal.h>`. In the library,
-`<babeltrace/lib-logging-internal.h>` does this job: just include this
+`<babeltrace2/logging-internal.h>`. In the library,
+`<babeltrace2/lib-logging-internal.h>` does this job: just include this
 header which defines `BT_LOG_OUTPUT_LEVEL` to the appropriate symbol
-before it includes `<babeltrace/logging-internal.h>`. In plugins, for
+before it includes `<babeltrace2/logging-internal.h>`. In plugins, for
 example, there is one log level per component class, which makes log
 filtering easier during execution.
 +
@@ -593,7 +593,7 @@ Follow those steps to make your module loggable:
  */
 
 #define BT_LOG_OUTPUT_LEVEL my_module_log_level
-#include <babeltrace/logging-internal.h>
+#include <babeltrace2/logging-internal.h>
 
 BT_LOG_INIT_LOG_LEVEL(my_module_log_level, "BABELTRACE_MY_MODULE_LOG_LEVEL");
 ----
@@ -639,7 +639,7 @@ the environment variable and sets the log level symbol accordingly.
  */
 
 #define BT_LOG_OUTPUT_LEVEL my_module_log_level
-#include <babeltrace/logging-internal.h>
+#include <babeltrace2/logging-internal.h>
 
 BT_LOG_LEVEL_EXTERN_SYMBOL(my_module_log_level);
 

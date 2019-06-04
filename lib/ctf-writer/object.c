@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/ctf-writer/object-internal.h>
+#include <babeltrace2/ctf-writer/object-internal.h>
 
 void *bt_ctf_object_get_ref(void *obj)
 {

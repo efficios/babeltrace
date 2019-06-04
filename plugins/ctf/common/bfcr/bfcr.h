@@ -29,8 +29,8 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <stdio.h>
-#include <babeltrace/babeltrace.h>
-#include <babeltrace/babeltrace-internal.h>
+#include <babeltrace2/babeltrace.h>
+#include <babeltrace2/babeltrace-internal.h>
 
 #include "../metadata/ctf-meta.h"
 

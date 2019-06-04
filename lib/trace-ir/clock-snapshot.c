@@ -21,19 +21,19 @@
  */
 
 #define BT_LOG_TAG "CLOCK-SNAPSHOT"
-#include <babeltrace/lib-logging-internal.h>
+#include <babeltrace2/lib-logging-internal.h>
 
-#include <babeltrace/assert-pre-internal.h>
-#include <babeltrace/compat/uuid-internal.h>
-#include <babeltrace/trace-ir/clock-class-internal.h>
-#include <babeltrace/trace-ir/clock-snapshot-internal.h>
-#include <babeltrace/trace-ir/clock-snapshot-const.h>
-#include <babeltrace/compiler-internal.h>
-#include <babeltrace/types.h>
-#include <babeltrace/compat/string-internal.h>
+#include <babeltrace2/assert-pre-internal.h>
+#include <babeltrace2/compat/uuid-internal.h>
+#include <babeltrace2/trace-ir/clock-class-internal.h>
+#include <babeltrace2/trace-ir/clock-snapshot-internal.h>
+#include <babeltrace2/trace-ir/clock-snapshot-const.h>
+#include <babeltrace2/compiler-internal.h>
+#include <babeltrace2/types.h>
+#include <babeltrace2/compat/string-internal.h>
 #include <inttypes.h>
-#include <babeltrace/object-internal.h>
-#include <babeltrace/assert-internal.h>
+#include <babeltrace2/object-internal.h>
+#include <babeltrace2/assert-internal.h>
 
 BT_HIDDEN
 void bt_clock_snapshot_destroy(struct bt_clock_snapshot *clock_snapshot)

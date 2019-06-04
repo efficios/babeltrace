@@ -30,10 +30,10 @@
 
 #include <stdbool.h>
 
-#include <babeltrace/assert-internal.h>
-#include <babeltrace/babeltrace.h>
+#include <babeltrace2/assert-internal.h>
+#include <babeltrace2/babeltrace.h>
 /* For bt_property_availability */
-#include <babeltrace/property.h>
+#include <babeltrace2/property.h>
 
 #include "debug-info.h"
 #include "trace-ir-data-copy.h"

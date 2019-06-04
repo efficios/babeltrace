@@ -24,8 +24,8 @@
 
 #include <glib.h>
 
-#include <babeltrace/assert-internal.h>
-#include <babeltrace/babeltrace.h>
+#include <babeltrace2/assert-internal.h>
+#include <babeltrace2/babeltrace.h>
 
 #include "debug-info.h"
 

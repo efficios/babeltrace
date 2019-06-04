@@ -38,7 +38,7 @@ int bt_uuid_dummy_symbol;
 
 #include <rpc.h>
 #include <stdlib.h>
-#include <babeltrace/compat/uuid-internal.h>
+#include <babeltrace2/compat/uuid-internal.h>
 
 /* MinGW does not provide byteswap - implement our own version. */
 static

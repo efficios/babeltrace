@@ -24,8 +24,8 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <string.h>
-#include <babeltrace/assert-internal.h>
-#include <babeltrace/babeltrace.h>
+#include <babeltrace2/assert-internal.h>
+#include <babeltrace2/babeltrace.h>
 #include <popt.h>
 #include <glib.h>
 

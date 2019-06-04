@@ -23,7 +23,7 @@
  */
 
 %{
-#include <babeltrace/logging.h>
+#include <babeltrace2/logging.h>
 %}
 
 /* Log levels */

@@ -28,12 +28,12 @@
 #include <string.h>
 #include <ctype.h>
 #include <stdio.h>
-#include <babeltrace/assert-internal.h>
-#include <babeltrace/common-internal.h>
-#include <babeltrace/babeltrace.h>
-#include <babeltrace/value-internal.h>
-#include <babeltrace/compat/utc-internal.h>
-#include <babeltrace/compat/stdio-internal.h>
+#include <babeltrace2/assert-internal.h>
+#include <babeltrace2/common-internal.h>
+#include <babeltrace2/babeltrace.h>
+#include <babeltrace2/value-internal.h>
+#include <babeltrace2/compat/utc-internal.h>
+#include <babeltrace2/compat/stdio-internal.h>
 #include <glib.h>
 
 #define NSEC_PER_USEC 1000UL

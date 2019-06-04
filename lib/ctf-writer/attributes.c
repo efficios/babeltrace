@@ -26,15 +26,15 @@
  */
 
 #define BT_LOG_TAG "CTF-WRITER-ATTRS"
-#include <babeltrace/lib-logging-internal.h>
+#include <babeltrace2/lib-logging-internal.h>
 
-#include <babeltrace/assert-internal.h>
-#include <babeltrace/babeltrace-internal.h>
-#include <babeltrace/compat/string-internal.h>
-#include <babeltrace/ctf-writer/object.h>
-#include <babeltrace/ctf-writer/values-internal.h>
-#include <babeltrace/ctf-writer/values-internal.h>
-#include <babeltrace/ctf-writer/values-internal.h>
+#include <babeltrace2/assert-internal.h>
+#include <babeltrace2/babeltrace-internal.h>
+#include <babeltrace2/compat/string-internal.h>
+#include <babeltrace2/ctf-writer/object.h>
+#include <babeltrace2/ctf-writer/values-internal.h>
+#include <babeltrace2/ctf-writer/values-internal.h>
+#include <babeltrace2/ctf-writer/values-internal.h>
 #include <inttypes.h>
 
 #define BT_CTF_ATTR_NAME_INDEX		0

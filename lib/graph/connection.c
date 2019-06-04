@@ -22,18 +22,18 @@
  */
 
 #define BT_LOG_TAG "CONNECTION"
-#include <babeltrace/lib-logging-internal.h>
+#include <babeltrace2/lib-logging-internal.h>
 
-#include <babeltrace/assert-internal.h>
-#include <babeltrace/assert-pre-internal.h>
-#include <babeltrace/graph/message-iterator-internal.h>
-#include <babeltrace/graph/component-internal.h>
-#include <babeltrace/graph/connection-internal.h>
-#include <babeltrace/graph/connection-const.h>
-#include <babeltrace/graph/graph-internal.h>
-#include <babeltrace/graph/port-internal.h>
-#include <babeltrace/object-internal.h>
-#include <babeltrace/compiler-internal.h>
+#include <babeltrace2/assert-internal.h>
+#include <babeltrace2/assert-pre-internal.h>
+#include <babeltrace2/graph/message-iterator-internal.h>
+#include <babeltrace2/graph/component-internal.h>
+#include <babeltrace2/graph/connection-internal.h>
+#include <babeltrace2/graph/connection-const.h>
+#include <babeltrace2/graph/graph-internal.h>
+#include <babeltrace2/graph/port-internal.h>
+#include <babeltrace2/object-internal.h>
+#include <babeltrace2/compiler-internal.h>
 #include <stdlib.h>
 #include <glib.h>
 

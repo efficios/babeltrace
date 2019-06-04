@@ -22,28 +22,28 @@
  */
 
 #define BT_LOG_TAG "GRAPH"
-#include <babeltrace/lib-logging-internal.h>
+#include <babeltrace2/lib-logging-internal.h>
 
-#include <babeltrace/assert-internal.h>
-#include <babeltrace/assert-pre-internal.h>
-#include <babeltrace/graph/component-internal.h>
-#include <babeltrace/graph/graph.h>
-#include <babeltrace/graph/graph-const.h>
-#include <babeltrace/graph/graph-internal.h>
-#include <babeltrace/graph/connection-internal.h>
-#include <babeltrace/graph/component-sink-internal.h>
-#include <babeltrace/graph/component-source-const.h>
-#include <babeltrace/graph/component-filter-const.h>
-#include <babeltrace/graph/port-const.h>
-#include <babeltrace/graph/message-internal.h>
-#include <babeltrace/graph/message-event-internal.h>
-#include <babeltrace/graph/message-packet-internal.h>
-#include <babeltrace/compiler-internal.h>
-#include <babeltrace/common-internal.h>
-#include <babeltrace/types.h>
-#include <babeltrace/value.h>
-#include <babeltrace/value-const.h>
-#include <babeltrace/value-internal.h>
+#include <babeltrace2/assert-internal.h>
+#include <babeltrace2/assert-pre-internal.h>
+#include <babeltrace2/graph/component-internal.h>
+#include <babeltrace2/graph/graph.h>
+#include <babeltrace2/graph/graph-const.h>
+#include <babeltrace2/graph/graph-internal.h>
+#include <babeltrace2/graph/connection-internal.h>
+#include <babeltrace2/graph/component-sink-internal.h>
+#include <babeltrace2/graph/component-source-const.h>
+#include <babeltrace2/graph/component-filter-const.h>
+#include <babeltrace2/graph/port-const.h>
+#include <babeltrace2/graph/message-internal.h>
+#include <babeltrace2/graph/message-event-internal.h>
+#include <babeltrace2/graph/message-packet-internal.h>
+#include <babeltrace2/compiler-internal.h>
+#include <babeltrace2/common-internal.h>
+#include <babeltrace2/types.h>
+#include <babeltrace2/value.h>
+#include <babeltrace2/value-const.h>
+#include <babeltrace2/value-internal.h>
 #include <unistd.h>
 #include <glib.h>
 

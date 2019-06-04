@@ -4,8 +4,8 @@
  * See LICENSE.
  */
 
-#include <babeltrace/babeltrace-internal.h>
-#include <babeltrace/common-internal.h>
+#include <babeltrace2/babeltrace-internal.h>
+#include <babeltrace2/common-internal.h>
 #include <pthread.h>
 #include <assert.h>
 
@@ -289,7 +289,7 @@ extern unsigned long pthread_getsequence_np(pthread_t *);
 		#undef __STRICT_ANSI__
 	#endif
 #endif
-#include <babeltrace/assert-internal.h>
+#include <babeltrace2/assert-internal.h>
 #include <ctype.h>
 #include <string.h>
 #include <time.h>
@@ -300,8 +300,8 @@ extern unsigned long pthread_getsequence_np(pthread_t *);
 
 #define BT_LOG_OUTPUT_LEVEL dummy
 
-#include <babeltrace/logging-internal.h>
-#include <babeltrace/logging.h>
+#include <babeltrace2/logging-internal.h>
+#include <babeltrace2/logging.h>
 
 #if defined(_WIN32) || defined(_WIN64)
 	#include <windows.h>

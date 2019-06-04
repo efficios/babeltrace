@@ -21,11 +21,11 @@
  */
 
 #include <stdlib.h>
-#include <babeltrace/logging.h>
-#include <babeltrace/version.h>
+#include <babeltrace2/logging.h>
+#include <babeltrace2/version.h>
 
 #define BT_LOG_TAG "LIB"
-#include <babeltrace/lib-logging-internal.h>
+#include <babeltrace2/lib-logging-internal.h>
 
 #ifdef BT_DEV_MODE
 /*

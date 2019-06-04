@@ -37,8 +37,8 @@
 #include <glib.h>
 #include <errno.h>
 #include <inttypes.h>
-#include <babeltrace/list-internal.h>
-#include <babeltrace/assert-internal.h>
+#include <babeltrace2/list-internal.h>
+#include <babeltrace2/assert-internal.h>
 #include "scanner.h"
 #include "parser.h"
 #include "ast.h"

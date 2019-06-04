@@ -35,8 +35,8 @@
 #include <unistd.h>
 #include <glib.h>
 
-#include <babeltrace/assert-internal.h>
-#include <babeltrace/fd-cache-internal.h>
+#include <babeltrace2/assert-internal.h>
+#include <babeltrace2/fd-cache-internal.h>
 
 struct file_key {
 	uint64_t dev;

@@ -23,12 +23,12 @@
 #define BT_LOG_TAG "PLUGIN-CTF-FS-SINK-TRACE"
 #include "logging.h"
 
-#include <babeltrace/babeltrace.h>
+#include <babeltrace2/babeltrace.h>
 #include <stdio.h>
 #include <stdbool.h>
 #include <glib.h>
-#include <babeltrace/assert-internal.h>
-#include <babeltrace/ctfser-internal.h>
+#include <babeltrace2/assert-internal.h>
+#include <babeltrace2/ctfser-internal.h>
 
 #include "translate-trace-ir-to-ctf-ir.h"
 #include "translate-ctf-ir-to-tsdl.h"

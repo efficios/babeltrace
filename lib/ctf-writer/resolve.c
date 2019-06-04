@@ -29,18 +29,18 @@
  */
 
 #define BT_LOG_TAG "CTF-WRITER-RESOLVE"
-#include <babeltrace/lib-logging-internal.h>
+#include <babeltrace2/lib-logging-internal.h>
 
-#include <babeltrace/assert-internal.h>
-#include <babeltrace/babeltrace-internal.h>
-#include <babeltrace/ctf-writer/field-path-internal.h>
-#include <babeltrace/ctf-writer/field-types.h>
-#include <babeltrace/ctf-writer/resolve-internal.h>
-#include <babeltrace/ctf-writer/stream-class.h>
-#include <babeltrace/ctf-writer/utils-internal.h>
-#include <babeltrace/ctf-writer/object.h>
-#include <babeltrace/types.h>
-#include <babeltrace/ctf-writer/values-internal.h>
+#include <babeltrace2/assert-internal.h>
+#include <babeltrace2/babeltrace-internal.h>
+#include <babeltrace2/ctf-writer/field-path-internal.h>
+#include <babeltrace2/ctf-writer/field-types.h>
+#include <babeltrace2/ctf-writer/resolve-internal.h>
+#include <babeltrace2/ctf-writer/stream-class.h>
+#include <babeltrace2/ctf-writer/utils-internal.h>
+#include <babeltrace2/ctf-writer/object.h>
+#include <babeltrace2/types.h>
+#include <babeltrace2/ctf-writer/values-internal.h>
 #include <glib.h>
 #include <inttypes.h>
 #include <limits.h>

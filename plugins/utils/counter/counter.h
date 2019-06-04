@@ -24,7 +24,7 @@
  */
 
 #include <glib.h>
-#include <babeltrace/babeltrace.h>
+#include <babeltrace2/babeltrace.h>
 #include <stdbool.h>
 #include <stdint.h>
 

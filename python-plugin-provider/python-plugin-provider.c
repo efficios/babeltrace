@@ -26,12 +26,12 @@
 
 #define BT_LOG_TAG "PLUGIN-PY"
 
-#include <babeltrace/babeltrace-internal.h>
-#include <babeltrace/compiler-internal.h>
-#include <babeltrace/plugin/plugin-const.h>
-#include <babeltrace/plugin/plugin-internal.h>
-#include <babeltrace/graph/component-class.h>
-#include <babeltrace/graph/component-class-internal.h>
+#include <babeltrace2/babeltrace-internal.h>
+#include <babeltrace2/compiler-internal.h>
+#include <babeltrace2/plugin/plugin-const.h>
+#include <babeltrace2/plugin/plugin-internal.h>
+#include <babeltrace2/graph/component-class.h>
+#include <babeltrace2/graph/component-class-internal.h>
 #include <stdlib.h>
 #include <signal.h>
 #include <Python.h>

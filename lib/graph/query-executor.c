@@ -21,19 +21,19 @@
  */
 
 #define BT_LOG_TAG "QUERY-EXECUTOR"
-#include <babeltrace/lib-logging-internal.h>
+#include <babeltrace2/lib-logging-internal.h>
 
-#include <babeltrace/assert-internal.h>
-#include <babeltrace/assert-pre-internal.h>
-#include <babeltrace/graph/query-executor-const.h>
-#include <babeltrace/graph/query-executor.h>
-#include <babeltrace/graph/query-executor-internal.h>
-#include <babeltrace/graph/component-class.h>
-#include <babeltrace/graph/component-class-internal.h>
-#include <babeltrace/value.h>
-#include <babeltrace/value-const.h>
-#include <babeltrace/object-internal.h>
-#include <babeltrace/compiler-internal.h>
+#include <babeltrace2/assert-internal.h>
+#include <babeltrace2/assert-pre-internal.h>
+#include <babeltrace2/graph/query-executor-const.h>
+#include <babeltrace2/graph/query-executor.h>
+#include <babeltrace2/graph/query-executor-internal.h>
+#include <babeltrace2/graph/component-class.h>
+#include <babeltrace2/graph/component-class-internal.h>
+#include <babeltrace2/value.h>
+#include <babeltrace2/value-const.h>
+#include <babeltrace2/object-internal.h>
+#include <babeltrace2/compiler-internal.h>
 
 static
 void bt_query_executor_destroy(struct bt_object *obj)

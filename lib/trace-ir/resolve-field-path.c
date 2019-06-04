@@ -21,14 +21,14 @@
  */
 
 #define BT_LOG_TAG "RESOLVE-FIELD-PATH"
-#include <babeltrace/lib-logging-internal.h>
+#include <babeltrace2/lib-logging-internal.h>
 
-#include <babeltrace/assert-pre-internal.h>
-#include <babeltrace/assert-internal.h>
-#include <babeltrace/trace-ir/field-class-internal.h>
-#include <babeltrace/trace-ir/field-path-internal.h>
-#include <babeltrace/trace-ir/field-path-const.h>
-#include <babeltrace/trace-ir/resolve-field-path-internal.h>
+#include <babeltrace2/assert-pre-internal.h>
+#include <babeltrace2/assert-internal.h>
+#include <babeltrace2/trace-ir/field-class-internal.h>
+#include <babeltrace2/trace-ir/field-path-internal.h>
+#include <babeltrace2/trace-ir/field-path-const.h>
+#include <babeltrace2/trace-ir/resolve-field-path-internal.h>
 #include <limits.h>
 #include <stdint.h>
 #include <inttypes.h>

@@ -36,14 +36,14 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <ctype.h>
-#include <babeltrace/assert-internal.h>
+#include <babeltrace2/assert-internal.h>
 #include <glib.h>
 #include <inttypes.h>
 #include <errno.h>
-#include <babeltrace/common-internal.h>
-#include <babeltrace/compat/uuid-internal.h>
-#include <babeltrace/endian-internal.h>
-#include <babeltrace/babeltrace.h>
+#include <babeltrace2/common-internal.h>
+#include <babeltrace2/compat/uuid-internal.h>
+#include <babeltrace2/endian-internal.h>
+#include <babeltrace2/babeltrace.h>
 
 #include "scanner.h"
 #include "parser.h"

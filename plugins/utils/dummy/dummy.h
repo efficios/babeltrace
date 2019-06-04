@@ -24,8 +24,8 @@
  */
 
 #include <glib.h>
-#include <babeltrace/babeltrace.h>
-#include <babeltrace/babeltrace-internal.h>
+#include <babeltrace2/babeltrace.h>
+#include <babeltrace2/babeltrace-internal.h>
 #include <stdbool.h>
 
 struct dummy {

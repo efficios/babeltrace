@@ -28,9 +28,9 @@
 #include "logging.h"
 
 #include <stdlib.h>
-#include <babeltrace/list-internal.h>
-#include <babeltrace/babeltrace-internal.h>
-#include <babeltrace/align-internal.h>
+#include <babeltrace2/list-internal.h>
+#include <babeltrace2/babeltrace-internal.h>
+#include <babeltrace2/align-internal.h>
 
 #define OBJSTACK_ALIGN			8	/* Object stack alignment */
 #define OBJSTACK_INIT_LEN		128

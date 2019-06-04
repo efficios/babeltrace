@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/babeltrace.h>
+#include <babeltrace2/babeltrace.h>
 #include "dummy/dummy.h"
 #include "counter/counter.h"
 #include "muxer/muxer.h"

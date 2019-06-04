@@ -26,7 +26,7 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/babeltrace-internal.h>
+#include <babeltrace2/babeltrace-internal.h>
 #include "trace-ir-mapping.h"
 
 /*

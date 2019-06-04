@@ -28,8 +28,8 @@
  */
 
 #include <stdint.h>
-#include <babeltrace/babeltrace.h>
-#include <babeltrace/babeltrace-internal.h>
+#include <babeltrace2/babeltrace.h>
+#include <babeltrace2/babeltrace-internal.h>
 
 #define VPID_FIELD_NAME		"vpid"
 #define IP_FIELD_NAME		"ip"

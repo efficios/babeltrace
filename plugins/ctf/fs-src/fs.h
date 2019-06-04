@@ -29,8 +29,8 @@
  */
 
 #include <stdbool.h>
-#include <babeltrace/babeltrace-internal.h>
-#include <babeltrace/babeltrace.h>
+#include <babeltrace2/babeltrace-internal.h>
+#include <babeltrace2/babeltrace.h>
 #include "data-stream-file.h"
 #include "metadata.h"
 #include "../common/metadata/decoder.h"

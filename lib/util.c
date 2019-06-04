@@ -21,15 +21,15 @@
  */
 
 #define BT_LOG_TAG "UTIL"
-#include <babeltrace/lib-logging-internal.h>
+#include <babeltrace2/lib-logging-internal.h>
 
-#include <babeltrace/assert-pre-internal.h>
+#include <babeltrace2/assert-pre-internal.h>
 #include <stdlib.h>
 #include <string.h>
 #include <string.h>
 #include <inttypes.h>
-#include <babeltrace/util.h>
-#include <babeltrace/trace-ir/utils-internal.h>
+#include <babeltrace2/util.h>
+#include <babeltrace2/trace-ir/utils-internal.h>
 
 bt_util_status bt_util_clock_cycles_to_ns_from_origin(uint64_t cycles,
 		uint64_t frequency, int64_t offset_seconds,

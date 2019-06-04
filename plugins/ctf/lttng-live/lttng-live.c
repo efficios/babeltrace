@@ -35,10 +35,10 @@
 #include <inttypes.h>
 #include <unistd.h>
 
-#include <babeltrace/assert-internal.h>
-#include <babeltrace/babeltrace.h>
-#include <babeltrace/compiler-internal.h>
-#include <babeltrace/types.h>
+#include <babeltrace2/assert-internal.h>
+#include <babeltrace2/babeltrace.h>
+#include <babeltrace2/compiler-internal.h>
+#include <babeltrace2/types.h>
 #include <plugins-common.h>
 
 #include "data-stream.h"

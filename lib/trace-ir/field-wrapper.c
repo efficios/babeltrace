@@ -21,12 +21,12 @@
  */
 
 #define BT_LOG_TAG "FIELD-WRAPPER"
-#include <babeltrace/lib-logging-internal.h>
+#include <babeltrace2/lib-logging-internal.h>
 
-#include <babeltrace/trace-ir/field-wrapper-internal.h>
-#include <babeltrace/trace-ir/field-internal.h>
-#include <babeltrace/object-pool-internal.h>
-#include <babeltrace/object-internal.h>
+#include <babeltrace2/trace-ir/field-wrapper-internal.h>
+#include <babeltrace2/trace-ir/field-internal.h>
+#include <babeltrace2/object-pool-internal.h>
+#include <babeltrace2/object-internal.h>
 #include <glib.h>
 
 BT_HIDDEN

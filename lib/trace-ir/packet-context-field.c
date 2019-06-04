@@ -21,13 +21,13 @@
  */
 
 #define BT_LOG_TAG "PACKET-CONTEXT-FIELD"
-#include <babeltrace/lib-logging-internal.h>
+#include <babeltrace2/lib-logging-internal.h>
 
-#include <babeltrace/assert-pre-internal.h>
-#include <babeltrace/trace-ir/packet-context-field.h>
-#include <babeltrace/trace-ir/stream-class-internal.h>
-#include <babeltrace/trace-ir/field-internal.h>
-#include <babeltrace/trace-ir/field-wrapper-internal.h>
+#include <babeltrace2/assert-pre-internal.h>
+#include <babeltrace2/trace-ir/packet-context-field.h>
+#include <babeltrace2/trace-ir/stream-class-internal.h>
+#include <babeltrace2/trace-ir/field-internal.h>
+#include <babeltrace2/trace-ir/field-wrapper-internal.h>
 #include <glib.h>
 
 struct bt_field *bt_packet_context_field_borrow_field(

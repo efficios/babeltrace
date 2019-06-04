@@ -21,12 +21,12 @@
  */
 
 #define BT_LOG_TAG "CTF-WRITER-FIELD-WRAPPER"
-#include <babeltrace/lib-logging-internal.h>
+#include <babeltrace2/lib-logging-internal.h>
 
-#include <babeltrace/ctf-writer/field-wrapper-internal.h>
-#include <babeltrace/ctf-writer/fields-internal.h>
-#include <babeltrace/object-pool-internal.h>
-#include <babeltrace/ctf-writer/object-internal.h>
+#include <babeltrace2/ctf-writer/field-wrapper-internal.h>
+#include <babeltrace2/ctf-writer/fields-internal.h>
+#include <babeltrace2/object-pool-internal.h>
+#include <babeltrace2/ctf-writer/object-internal.h>
 #include <glib.h>
 
 BT_HIDDEN

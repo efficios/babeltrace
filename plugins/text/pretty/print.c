@@ -23,11 +23,11 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/babeltrace.h>
-#include <babeltrace/bitfield-internal.h>
-#include <babeltrace/common-internal.h>
-#include <babeltrace/compat/time-internal.h>
-#include <babeltrace/assert-internal.h>
+#include <babeltrace2/babeltrace.h>
+#include <babeltrace2/bitfield-internal.h>
+#include <babeltrace2/common-internal.h>
+#include <babeltrace2/compat/time-internal.h>
+#include <babeltrace2/assert-internal.h>
 #include <inttypes.h>
 #include <ctype.h>
 #include "pretty.h"

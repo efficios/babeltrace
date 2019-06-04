@@ -25,7 +25,7 @@
 
 #include <stdlib.h>
 #include <stdint.h>
-#include <babeltrace/value.h>
+#include <babeltrace2/value.h>
 #include <glib.h>
 #include "babeltrace2-cfg.h"
 

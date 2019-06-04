@@ -22,8 +22,8 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/common-internal.h>
-#include <babeltrace/babeltrace.h>
+#include <babeltrace2/common-internal.h>
+#include <babeltrace2/babeltrace.h>
 #include <glib.h>
 #include "babeltrace2-cfg.h"
 

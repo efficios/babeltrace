@@ -42,7 +42,7 @@
 
 #include <glib.h>
 
-#include <babeltrace/common-internal.h>
+#include <babeltrace2/common-internal.h>
 
 #include "bin-info.h"
 #include "crc32.h"

@@ -28,10 +28,10 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdbool.h>
-#include <babeltrace/value.h>
-#include <babeltrace/object-internal.h>
-#include <babeltrace/compiler-internal.h>
-#include <babeltrace/graph/component-class.h>
+#include <babeltrace2/value.h>
+#include <babeltrace2/object-internal.h>
+#include <babeltrace2/compiler-internal.h>
+#include <babeltrace2/graph/component-class.h>
 #include <glib.h>
 
 enum bt_config_command {

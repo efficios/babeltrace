@@ -32,9 +32,9 @@
 #include <glib.h>
 #include <plugins-common.h>
 
-#include <babeltrace/assert-internal.h>
-#include <babeltrace/common-internal.h>
-#include <babeltrace/fd-cache-internal.h>
+#include <babeltrace2/assert-internal.h>
+#include <babeltrace2/common-internal.h>
+#include <babeltrace2/fd-cache-internal.h>
 
 #include "bin-info.h"
 #include "debug-info.h"

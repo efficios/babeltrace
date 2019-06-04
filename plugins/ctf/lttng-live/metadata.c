@@ -32,8 +32,8 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <glib.h>
-#include <babeltrace/compat/memstream-internal.h>
-#include <babeltrace/babeltrace.h>
+#include <babeltrace2/compat/memstream-internal.h>
+#include <babeltrace2/babeltrace.h>
 
 #include "metadata.h"
 #include "../common/metadata/decoder.h"

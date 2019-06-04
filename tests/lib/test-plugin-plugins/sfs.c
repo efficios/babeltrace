@@ -15,8 +15,8 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include <babeltrace/babeltrace.h>
-#include <babeltrace/assert-internal.h>
+#include <babeltrace2/babeltrace.h>
+#include <babeltrace2/assert-internal.h>
 
 static bt_self_component_status sink_consume(
 		bt_self_component_sink *self_comp)

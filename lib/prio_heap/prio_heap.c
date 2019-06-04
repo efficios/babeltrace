@@ -23,9 +23,9 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/prio-heap-internal.h>
-#include <babeltrace/babeltrace-internal.h>
-#include <babeltrace/assert-internal.h>
+#include <babeltrace2/prio-heap-internal.h>
+#include <babeltrace2/babeltrace-internal.h>
+#include <babeltrace2/assert-internal.h>
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>

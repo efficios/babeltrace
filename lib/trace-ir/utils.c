@@ -22,10 +22,10 @@
  */
 
 #define BT_LOG_TAG "TRACE-IR-UTILS"
-#include <babeltrace/lib-logging-internal.h>
+#include <babeltrace2/lib-logging-internal.h>
 
 #include <stdlib.h>
 #include <glib.h>
-#include <babeltrace/trace-ir/field-class-internal.h>
-#include <babeltrace/trace-ir/clock-class.h>
-#include <babeltrace/assert-internal.h>
+#include <babeltrace2/trace-ir/field-class-internal.h>
+#include <babeltrace2/trace-ir/clock-class.h>
+#include <babeltrace2/assert-internal.h>

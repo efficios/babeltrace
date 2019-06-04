@@ -22,22 +22,22 @@
  */
 
 #define BT_LOG_TAG "CTF-WRITER-VALUES"
-#include <babeltrace/lib-logging-internal.h>
+#include <babeltrace2/lib-logging-internal.h>
 
 #include <stdlib.h>
 #include <string.h>
 #include <string.h>
 #include <inttypes.h>
-#include <babeltrace/compiler-internal.h>
-#include <babeltrace/common-internal.h>
-#include <babeltrace/ctf-writer/object.h>
-#include <babeltrace/ctf-writer/values-internal.h>
-#include <babeltrace/compat/glib-internal.h>
-#include <babeltrace/types.h>
-#include <babeltrace/ctf-writer/object-internal.h>
-#include <babeltrace/ctf-writer/values-internal.h>
-#include <babeltrace/assert-internal.h>
-#include <babeltrace/assert-pre-internal.h>
+#include <babeltrace2/compiler-internal.h>
+#include <babeltrace2/common-internal.h>
+#include <babeltrace2/ctf-writer/object.h>
+#include <babeltrace2/ctf-writer/values-internal.h>
+#include <babeltrace2/compat/glib-internal.h>
+#include <babeltrace2/types.h>
+#include <babeltrace2/ctf-writer/object-internal.h>
+#include <babeltrace2/ctf-writer/values-internal.h>
+#include <babeltrace2/assert-internal.h>
+#include <babeltrace2/assert-pre-internal.h>
 
 #define BT_CTF_VALUE_FROM_CONCRETE(_concrete) ((struct bt_ctf_value *) (_concrete))
 #define BT_CTF_VALUE_TO_BOOL(_base) ((struct bt_ctf_value_bool *) (_base))

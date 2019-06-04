@@ -24,22 +24,22 @@
  */
 
 #define BT_LOG_TAG "PLUGIN-SO"
-#include <babeltrace/lib-logging-internal.h>
+#include <babeltrace2/lib-logging-internal.h>
 
-#include <babeltrace/assert-internal.h>
-#include <babeltrace/assert-pre-internal.h>
-#include <babeltrace/compiler-internal.h>
-#include <babeltrace/plugin/plugin-internal.h>
-#include <babeltrace/plugin/plugin-so-internal.h>
-#include <babeltrace/plugin/plugin-dev.h>
-#include <babeltrace/plugin/plugin-internal.h>
-#include <babeltrace/graph/component-class-internal.h>
-#include <babeltrace/graph/component-class.h>
-#include <babeltrace/graph/component-class-source.h>
-#include <babeltrace/graph/component-class-filter.h>
-#include <babeltrace/graph/component-class-sink.h>
-#include <babeltrace/types.h>
-#include <babeltrace/list-internal.h>
+#include <babeltrace2/assert-internal.h>
+#include <babeltrace2/assert-pre-internal.h>
+#include <babeltrace2/compiler-internal.h>
+#include <babeltrace2/plugin/plugin-internal.h>
+#include <babeltrace2/plugin/plugin-so-internal.h>
+#include <babeltrace2/plugin/plugin-dev.h>
+#include <babeltrace2/plugin/plugin-internal.h>
+#include <babeltrace2/graph/component-class-internal.h>
+#include <babeltrace2/graph/component-class.h>
+#include <babeltrace2/graph/component-class-source.h>
+#include <babeltrace2/graph/component-class-filter.h>
+#include <babeltrace2/graph/component-class-sink.h>
+#include <babeltrace2/types.h>
+#include <babeltrace2/list-internal.h>
 #include <string.h>
 #include <stdlib.h>
 #include <glib.h>

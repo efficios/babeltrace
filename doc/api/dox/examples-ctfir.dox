@@ -23,7 +23,7 @@ This page contains usage examples of the \ref ctfirfieldtypes API.
 
 @code{.c}
 #include <assert.h>
-#include <babeltrace/ctf-ir/field-types.h>
+#include <babeltrace2/ctf-ir/field-types.h>
 
 struct bt_field_type *create_int_field_type(void)
 {
@@ -40,7 +40,7 @@ struct bt_field_type *create_int_field_type(void)
 
 @code{.c}
 #include <assert.h>
-#include <babeltrace/ctf-ir/field-types.h>
+#include <babeltrace2/ctf-ir/field-types.h>
 
 struct bt_field_type *create_int_field_type(void)
 {
@@ -65,7 +65,7 @@ struct bt_field_type *create_int_field_type(void)
 
 @code{.c}
 #include <assert.h>
-#include <babeltrace/ctf-ir/field-types.h>
+#include <babeltrace2/ctf-ir/field-types.h>
 
 struct bt_field_type *create_int_field_type(
         struct bt_clock_class *clock_class)
@@ -96,7 +96,7 @@ struct bt_field_type *create_int_field_type(
 
 @code{.c}
 #include <assert.h>
-#include <babeltrace/ctf-ir/field-types.h>
+#include <babeltrace2/ctf-ir/field-types.h>
 
 struct bt_field_type *create_float_field_type(void)
 {
@@ -113,7 +113,7 @@ struct bt_field_type *create_float_field_type(void)
 
 @code{.c}
 #include <assert.h>
-#include <babeltrace/ctf-ir/field-types.h>
+#include <babeltrace2/ctf-ir/field-types.h>
 
 struct bt_field_type *create_float_field_type(void)
 {

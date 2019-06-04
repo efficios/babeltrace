@@ -24,7 +24,7 @@
  */
 
 #define BT_LOG_OUTPUT_LEVEL bt_plugin_lttng_utils_debug_info_log_level
-#include <babeltrace/logging-internal.h>
+#include <babeltrace2/logging-internal.h>
 
 BT_LOG_LEVEL_EXTERN_SYMBOL(bt_plugin_lttng_utils_debug_info_log_level);
 

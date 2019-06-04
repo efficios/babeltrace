@@ -23,19 +23,19 @@
  */
 
 #define BT_LOG_TAG "CTF-WRITER-FIELDS"
-#include <babeltrace/lib-logging-internal.h>
+#include <babeltrace2/lib-logging-internal.h>
 
-#include <babeltrace/assert-pre-internal.h>
-#include <babeltrace/align-internal.h>
-#include <babeltrace/assert-internal.h>
-#include <babeltrace/compat/fcntl-internal.h>
-#include <babeltrace/compiler-internal.h>
-#include <babeltrace/ctf-writer/field-types-internal.h>
-#include <babeltrace/ctf-writer/fields-internal.h>
-#include <babeltrace/endian-internal.h>
-#include <babeltrace/ctf-writer/object-internal.h>
-#include <babeltrace/ctf-writer/object.h>
-#include <babeltrace/ctfser-internal.h>
+#include <babeltrace2/assert-pre-internal.h>
+#include <babeltrace2/align-internal.h>
+#include <babeltrace2/assert-internal.h>
+#include <babeltrace2/compat/fcntl-internal.h>
+#include <babeltrace2/compiler-internal.h>
+#include <babeltrace2/ctf-writer/field-types-internal.h>
+#include <babeltrace2/ctf-writer/fields-internal.h>
+#include <babeltrace2/endian-internal.h>
+#include <babeltrace2/ctf-writer/object-internal.h>
+#include <babeltrace2/ctf-writer/object.h>
+#include <babeltrace2/ctfser-internal.h>
 #include <float.h>
 #include <inttypes.h>
 #include <inttypes.h>

@@ -26,7 +26,7 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/babeltrace.h>
+#include <babeltrace2/babeltrace.h>
 #include "debug-info/debug-info.h"
 
 #ifndef BT_BUILT_IN_PLUGINS

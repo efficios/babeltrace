@@ -22,17 +22,17 @@
  */
 
 #define BT_LOG_TAG "COMP-SINK"
-#include <babeltrace/lib-logging-internal.h>
+#include <babeltrace2/lib-logging-internal.h>
 
-#include <babeltrace/assert-internal.h>
-#include <babeltrace/assert-pre-internal.h>
-#include <babeltrace/compiler-internal.h>
-#include <babeltrace/value.h>
-#include <babeltrace/graph/self-component-sink.h>
-#include <babeltrace/graph/component-sink-const.h>
-#include <babeltrace/graph/component-sink-internal.h>
-#include <babeltrace/graph/component-internal.h>
-#include <babeltrace/graph/graph.h>
+#include <babeltrace2/assert-internal.h>
+#include <babeltrace2/assert-pre-internal.h>
+#include <babeltrace2/compiler-internal.h>
+#include <babeltrace2/value.h>
+#include <babeltrace2/graph/self-component-sink.h>
+#include <babeltrace2/graph/component-sink-const.h>
+#include <babeltrace2/graph/component-sink-internal.h>
+#include <babeltrace2/graph/component-internal.h>
+#include <babeltrace2/graph/graph.h>
 
 BT_HIDDEN
 void bt_component_sink_destroy(struct bt_component *component)

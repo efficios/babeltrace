@@ -27,11 +27,11 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdbool.h>
-#include <babeltrace/assert-internal.h>
+#include <babeltrace2/assert-internal.h>
 #include <glib.h>
-#include <babeltrace/compat/uuid-internal.h>
-#include <babeltrace/compat/memstream-internal.h>
-#include <babeltrace/babeltrace.h>
+#include <babeltrace2/compat/uuid-internal.h>
+#include <babeltrace2/compat/memstream-internal.h>
+#include <babeltrace2/babeltrace.h>
 
 #include "fs.h"
 #include "file.h"

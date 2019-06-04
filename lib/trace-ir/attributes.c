@@ -22,18 +22,18 @@
  */
 
 #define BT_LOG_TAG "ATTRS"
-#include <babeltrace/lib-logging-internal.h>
+#include <babeltrace2/lib-logging-internal.h>
 
-#include <babeltrace/babeltrace-internal.h>
-#include <babeltrace/value.h>
-#include <babeltrace/assert-pre-internal.h>
-#include <babeltrace/object-internal.h>
-#include <babeltrace/value-const.h>
-#include <babeltrace/value-internal.h>
-#include <babeltrace/trace-ir/attributes-internal.h>
+#include <babeltrace2/babeltrace-internal.h>
+#include <babeltrace2/value.h>
+#include <babeltrace2/assert-pre-internal.h>
+#include <babeltrace2/object-internal.h>
+#include <babeltrace2/value-const.h>
+#include <babeltrace2/value-internal.h>
+#include <babeltrace2/trace-ir/attributes-internal.h>
 #include <inttypes.h>
-#include <babeltrace/compat/string-internal.h>
-#include <babeltrace/assert-internal.h>
+#include <babeltrace2/compat/string-internal.h>
+#include <babeltrace2/assert-internal.h>
 
 #define BT_ATTR_NAME_INDEX		0
 #define BT_ATTR_VALUE_INDEX		1

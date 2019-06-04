@@ -21,22 +21,22 @@
  */
 
 #define BT_LOG_TAG "MSG-DISCARDED-ITEMS"
-#include <babeltrace/lib-logging-internal.h>
+#include <babeltrace2/lib-logging-internal.h>
 
-#include <babeltrace/assert-pre-internal.h>
-#include <babeltrace/object-internal.h>
-#include <babeltrace/compiler-internal.h>
-#include <babeltrace/trace-ir/clock-class.h>
-#include <babeltrace/trace-ir/clock-snapshot-internal.h>
-#include <babeltrace/trace-ir/stream-class-internal.h>
-#include <babeltrace/trace-ir/stream-internal.h>
-#include <babeltrace/property-internal.h>
-#include <babeltrace/graph/message-internal.h>
-#include <babeltrace/graph/message-discarded-items-internal.h>
-#include <babeltrace/graph/message-discarded-events.h>
-#include <babeltrace/graph/message-discarded-events-const.h>
-#include <babeltrace/graph/message-discarded-packets.h>
-#include <babeltrace/graph/message-discarded-packets-const.h>
+#include <babeltrace2/assert-pre-internal.h>
+#include <babeltrace2/object-internal.h>
+#include <babeltrace2/compiler-internal.h>
+#include <babeltrace2/trace-ir/clock-class.h>
+#include <babeltrace2/trace-ir/clock-snapshot-internal.h>
+#include <babeltrace2/trace-ir/stream-class-internal.h>
+#include <babeltrace2/trace-ir/stream-internal.h>
+#include <babeltrace2/property-internal.h>
+#include <babeltrace2/graph/message-internal.h>
+#include <babeltrace2/graph/message-discarded-items-internal.h>
+#include <babeltrace2/graph/message-discarded-events.h>
+#include <babeltrace2/graph/message-discarded-events-const.h>
+#include <babeltrace2/graph/message-discarded-packets.h>
+#include <babeltrace2/graph/message-discarded-packets-const.h>
 
 static
 void destroy_discarded_items_message(struct bt_object *obj)

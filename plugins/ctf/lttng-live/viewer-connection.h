@@ -26,12 +26,12 @@
 #include <stdio.h>
 #include <glib.h>
 
-#include <babeltrace/babeltrace-internal.h>
-#include <babeltrace/compat/socket-internal.h>
+#include <babeltrace2/babeltrace-internal.h>
+#include <babeltrace2/compat/socket-internal.h>
 
 //TODO: this should not be used by plugins. Should copy code into plugin
 //instead.
-#include <babeltrace/object-internal.h>
+#include <babeltrace2/object-internal.h>
 
 #define LTTNG_DEFAULT_NETWORK_VIEWER_PORT	5344
 

@@ -26,14 +26,14 @@
 #define BT_LOG_TAG "PLUGIN-TEXT-PRETTY-SINK"
 #include "logging.h"
 
-#include <babeltrace/babeltrace.h>
-#include <babeltrace/compiler-internal.h>
-#include <babeltrace/common-internal.h>
+#include <babeltrace2/babeltrace.h>
+#include <babeltrace2/compiler-internal.h>
+#include <babeltrace2/common-internal.h>
 #include <plugins-common.h>
 #include <stdio.h>
 #include <stdbool.h>
 #include <glib.h>
-#include <babeltrace/assert-internal.h>
+#include <babeltrace2/assert-internal.h>
 
 #include "pretty.h"
 

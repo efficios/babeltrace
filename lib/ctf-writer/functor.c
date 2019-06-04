@@ -27,8 +27,8 @@
  */
 
 #include <glib.h>
-#include <babeltrace/ctf-writer/functor-internal.h>
-#include <babeltrace/ctf-writer/utils-internal.h>
+#include <babeltrace2/ctf-writer/functor-internal.h>
+#include <babeltrace2/ctf-writer/utils-internal.h>
 
 BT_HIDDEN
 void value_exists(gpointer element, gpointer search_query)

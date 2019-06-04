@@ -22,11 +22,11 @@
  */
 
 #define BT_LOG_TAG "OBJECT-POOL"
-#include <babeltrace/lib-logging-internal.h>
+#include <babeltrace2/lib-logging-internal.h>
 
 #include <stdint.h>
-#include <babeltrace/assert-internal.h>
-#include <babeltrace/ctf-writer/object-pool-internal.h>
+#include <babeltrace2/assert-internal.h>
+#include <babeltrace2/ctf-writer/object-pool-internal.h>
 
 int bt_ctf_object_pool_initialize(struct bt_ctf_object_pool *pool,
 		bt_ctf_object_pool_new_object_func new_object_func,

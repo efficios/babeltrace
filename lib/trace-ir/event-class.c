@@ -22,28 +22,28 @@
  */
 
 #define BT_LOG_TAG "EVENT-CLASS"
-#include <babeltrace/lib-logging-internal.h>
+#include <babeltrace2/lib-logging-internal.h>
 
-#include <babeltrace/assert-pre-internal.h>
-#include <babeltrace/trace-ir/clock-snapshot-internal.h>
-#include <babeltrace/trace-ir/field-internal.h>
-#include <babeltrace/trace-ir/field-class.h>
-#include <babeltrace/trace-ir/field-class-internal.h>
-#include <babeltrace/trace-ir/event-class.h>
-#include <babeltrace/trace-ir/event-class-const.h>
-#include <babeltrace/trace-ir/event-class-internal.h>
-#include <babeltrace/trace-ir/event-internal.h>
-#include <babeltrace/trace-ir/stream-class.h>
-#include <babeltrace/trace-ir/stream-class-internal.h>
-#include <babeltrace/trace-ir/trace-internal.h>
-#include <babeltrace/trace-ir/utils-internal.h>
-#include <babeltrace/trace-ir/resolve-field-path-internal.h>
-#include <babeltrace/trace-ir/attributes-internal.h>
-#include <babeltrace/compiler-internal.h>
-#include <babeltrace/endian-internal.h>
-#include <babeltrace/types.h>
-#include <babeltrace/value-internal.h>
-#include <babeltrace/assert-internal.h>
+#include <babeltrace2/assert-pre-internal.h>
+#include <babeltrace2/trace-ir/clock-snapshot-internal.h>
+#include <babeltrace2/trace-ir/field-internal.h>
+#include <babeltrace2/trace-ir/field-class.h>
+#include <babeltrace2/trace-ir/field-class-internal.h>
+#include <babeltrace2/trace-ir/event-class.h>
+#include <babeltrace2/trace-ir/event-class-const.h>
+#include <babeltrace2/trace-ir/event-class-internal.h>
+#include <babeltrace2/trace-ir/event-internal.h>
+#include <babeltrace2/trace-ir/stream-class.h>
+#include <babeltrace2/trace-ir/stream-class-internal.h>
+#include <babeltrace2/trace-ir/trace-internal.h>
+#include <babeltrace2/trace-ir/utils-internal.h>
+#include <babeltrace2/trace-ir/resolve-field-path-internal.h>
+#include <babeltrace2/trace-ir/attributes-internal.h>
+#include <babeltrace2/compiler-internal.h>
+#include <babeltrace2/endian-internal.h>
+#include <babeltrace2/types.h>
+#include <babeltrace2/value-internal.h>
+#include <babeltrace2/assert-internal.h>
 #include <inttypes.h>
 #include <stdlib.h>
 

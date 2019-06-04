@@ -32,10 +32,10 @@
 #include <stdbool.h>
 #include <glib.h>
 #include <inttypes.h>
-#include <babeltrace/compat/mman-internal.h>
-#include <babeltrace/babeltrace.h>
+#include <babeltrace2/compat/mman-internal.h>
+#include <babeltrace2/babeltrace.h>
 #include "../common/msg-iter/msg-iter.h"
-#include <babeltrace/assert-internal.h>
+#include <babeltrace2/assert-internal.h>
 
 #include "data-stream.h"
 

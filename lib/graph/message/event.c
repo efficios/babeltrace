@@ -22,23 +22,23 @@
  */
 
 #define BT_LOG_TAG "MSG-EVENT"
-#include <babeltrace/lib-logging-internal.h>
+#include <babeltrace2/lib-logging-internal.h>
 
-#include <babeltrace/assert-internal.h>
-#include <babeltrace/assert-pre-internal.h>
-#include <babeltrace/compiler-internal.h>
-#include <babeltrace/object-internal.h>
-#include <babeltrace/trace-ir/event.h>
-#include <babeltrace/trace-ir/event-internal.h>
-#include <babeltrace/trace-ir/event-class-internal.h>
-#include <babeltrace/trace-ir/stream-class-internal.h>
-#include <babeltrace/trace-ir/trace.h>
-#include <babeltrace/trace-ir/clock-snapshot-internal.h>
-#include <babeltrace/graph/graph-internal.h>
-#include <babeltrace/graph/message-event-const.h>
-#include <babeltrace/graph/message-event.h>
-#include <babeltrace/graph/message-event-internal.h>
-#include <babeltrace/types.h>
+#include <babeltrace2/assert-internal.h>
+#include <babeltrace2/assert-pre-internal.h>
+#include <babeltrace2/compiler-internal.h>
+#include <babeltrace2/object-internal.h>
+#include <babeltrace2/trace-ir/event.h>
+#include <babeltrace2/trace-ir/event-internal.h>
+#include <babeltrace2/trace-ir/event-class-internal.h>
+#include <babeltrace2/trace-ir/stream-class-internal.h>
+#include <babeltrace2/trace-ir/trace.h>
+#include <babeltrace2/trace-ir/clock-snapshot-internal.h>
+#include <babeltrace2/graph/graph-internal.h>
+#include <babeltrace2/graph/message-event-const.h>
+#include <babeltrace2/graph/message-event.h>
+#include <babeltrace2/graph/message-event-internal.h>
+#include <babeltrace2/types.h>
 #include <stdbool.h>
 #include <inttypes.h>
 

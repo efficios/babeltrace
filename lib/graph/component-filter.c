@@ -22,18 +22,18 @@
  */
 
 #define BT_LOG_TAG "COMP-FILTER"
-#include <babeltrace/lib-logging-internal.h>
+#include <babeltrace2/lib-logging-internal.h>
 
-#include <babeltrace/assert-internal.h>
-#include <babeltrace/assert-pre-internal.h>
-#include <babeltrace/compiler-internal.h>
-#include <babeltrace/value.h>
-#include <babeltrace/graph/self-component-filter.h>
-#include <babeltrace/graph/component-filter-const.h>
-#include <babeltrace/graph/component-filter-internal.h>
-#include <babeltrace/graph/component-internal.h>
-#include <babeltrace/graph/component-class-internal.h>
-#include <babeltrace/graph/graph.h>
+#include <babeltrace2/assert-internal.h>
+#include <babeltrace2/assert-pre-internal.h>
+#include <babeltrace2/compiler-internal.h>
+#include <babeltrace2/value.h>
+#include <babeltrace2/graph/self-component-filter.h>
+#include <babeltrace2/graph/component-filter-const.h>
+#include <babeltrace2/graph/component-filter-internal.h>
+#include <babeltrace2/graph/component-internal.h>
+#include <babeltrace2/graph/component-class-internal.h>
+#include <babeltrace2/graph/graph.h>
 
 BT_HIDDEN
 void bt_component_filter_destroy(struct bt_component *component)

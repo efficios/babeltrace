@@ -27,13 +27,13 @@
  */
 
 #define BT_LOG_TAG "CTF-WRITER-UTILS"
-#include <babeltrace/lib-logging-internal.h>
+#include <babeltrace2/lib-logging-internal.h>
 
-#include <babeltrace/assert-internal.h>
-#include <babeltrace/ctf-writer/clock-class-internal.h>
-#include <babeltrace/ctf-writer/field-types-internal.h>
-#include <babeltrace/ctf-writer/utils.h>
-#include <babeltrace/ctf-writer/object.h>
+#include <babeltrace2/assert-internal.h>
+#include <babeltrace2/ctf-writer/clock-class-internal.h>
+#include <babeltrace2/ctf-writer/field-types-internal.h>
+#include <babeltrace2/ctf-writer/utils.h>
+#include <babeltrace2/ctf-writer/object.h>
 #include <glib.h>
 #include <stdlib.h>
 

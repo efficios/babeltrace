@@ -26,8 +26,8 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/ctf-writer/visitor-internal.h>
-#include <babeltrace/ctf-writer/object.h>
+#include <babeltrace2/ctf-writer/visitor-internal.h>
+#include <babeltrace2/ctf-writer/object.h>
 
 BT_HIDDEN
 int bt_ctf_visitor_helper(struct bt_ctf_visitor_object *root,
