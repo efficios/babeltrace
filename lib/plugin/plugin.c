@@ -46,7 +46,7 @@
 #include <ftw.h>
 #include <pthread.h>
 
-#define PYTHON_PLUGIN_PROVIDER_FILENAME	"libbabeltrace-python-plugin-provider." G_MODULE_SUFFIX
+#define PYTHON_PLUGIN_PROVIDER_FILENAME	"libbabeltrace2-python-plugin-provider." G_MODULE_SUFFIX
 #define PYTHON_PLUGIN_PROVIDER_SYM_NAME	bt_plugin_python_create_all_from_file
 #define PYTHON_PLUGIN_PROVIDER_SYM_NAME_STR	TOSTRING(PYTHON_PLUGIN_PROVIDER_SYM_NAME)
 

@@ -225,7 +225,7 @@ image::doc/contributing-images/bt-ref13.png[]
 == Valgrind
 
 To use Valgrind on an application (for example, the CLI or a test) which
-loads libbabeltrace, use:
+loads libbabeltrace2, use:
 
     $ G_SLICE=always-malloc G_DEBUG=gc-friendly PYTHONMALLOC=malloc \
       BABELTRACE_NO_DLCLOSE=1 valgrind --leak-check=full \
@@ -236,7 +236,7 @@ loads libbabeltrace, use:
 the Python plugin provider (Valgrind will probably show a lot of errors
 which originate from Python interpreter anyway).
 
-`BABELTRACE_NO_DLCLOSE=1` makes libbabeltrace not close the shared
+`BABELTRACE_NO_DLCLOSE=1` makes libbabeltrace2 not close the shared
 libraries (plugins) which it loads. This is needed to see the
 appropriate backtrace when Valgrind shows errors.
 
@@ -282,7 +282,7 @@ The logging API headers are:
 
 `<babeltrace/logging.h>`::
     Public header which a library user can use to control and read
-    libbabeltrace's current log level.
+    libbabeltrace2's current log level.
 
 `<babeltrace/logging-internal.h>`::
     Internal, generic logging API which you can use in any Babeltrace
@@ -362,7 +362,7 @@ before it includes `<babeltrace/logging-internal.h>`. In plugins, for
 example, there is one log level per component class, which makes log
 filtering easier during execution.
 +
-In libbabeltrace, the user can set the current run-time log level with
+In libbabeltrace2, the user can set the current run-time log level with
 the `bt_logging_set_global_level()` function, for example:
 +
 --
@@ -654,7 +654,7 @@ log level symbol.
   of your module's object in your module's root `Makefile.am`.
 
 . Add the log level initializing environment variable name to the
-  `log_level_env_var_names` array in `cli/babeltrace.c`.
+  `log_level_env_var_names` array in `cli/babeltrace2.c`.
 
 
 [[logging-instrument-source]]

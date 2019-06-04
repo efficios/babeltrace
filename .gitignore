@@ -87,8 +87,8 @@ config/
 core
 stamp-h1
 __pycache__
-babeltrace.pc
-babeltrace-ctf.pc
+/babeltrace2.pc
+/babeltrace2-ctf.pc
 TAGS
 cscope*
 doc/api/Doxyfile

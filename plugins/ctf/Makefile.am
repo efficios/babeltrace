@@ -16,15 +16,15 @@ babeltrace_plugin_ctf_la_LDFLAGS = \
 	-avoid-version -module
 
 babeltrace_plugin_ctf_la_LIBADD = \
-	common/libbabeltrace-plugin-ctf-common.la \
-	fs-sink/libbabeltrace-plugin-ctf-fs-sink.la \
-	fs-src/libbabeltrace-plugin-ctf-fs-src.la \
-	lttng-live/libbabeltrace-plugin-ctf-lttng-live.la
+	common/libbabeltrace2-plugin-ctf-common.la \
+	fs-sink/libbabeltrace2-plugin-ctf-fs-sink.la \
+	fs-src/libbabeltrace2-plugin-ctf-fs-src.la \
+	lttng-live/libbabeltrace2-plugin-ctf-lttng-live.la
 
 if !ENABLE_BUILT_IN_PLUGINS
 babeltrace_plugin_ctf_la_LIBADD += \
-	$(top_builddir)/lib/libbabeltrace.la \
-	$(top_builddir)/logging/libbabeltrace-logging.la \
-	$(top_builddir)/common/libbabeltrace-common.la \
-	$(top_builddir)/ctfser/libbabeltrace-ctfser.la
+	$(top_builddir)/lib/libbabeltrace2.la \
+	$(top_builddir)/logging/libbabeltrace2-logging.la \
+	$(top_builddir)/common/libbabeltrace2-common.la \
+	$(top_builddir)/ctfser/libbabeltrace2-ctfser.la
 endif

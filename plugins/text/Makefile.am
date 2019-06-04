@@ -11,13 +11,13 @@ babeltrace_plugin_text_la_LDFLAGS = \
 	-avoid-version -module
 
 babeltrace_plugin_text_la_LIBADD = \
-	pretty/libbabeltrace-plugin-text-pretty-cc.la \
-	dmesg/libbabeltrace-plugin-text-dmesg-cc.la
+	pretty/libbabeltrace2-plugin-text-pretty-cc.la \
+	dmesg/libbabeltrace2-plugin-text-dmesg-cc.la
 
 if !ENABLE_BUILT_IN_PLUGINS
 babeltrace_plugin_text_la_LIBADD += \
-	$(top_builddir)/lib/libbabeltrace.la \
-	$(top_builddir)/common/libbabeltrace-common.la \
-	$(top_builddir)/logging/libbabeltrace-logging.la \
+	$(top_builddir)/lib/libbabeltrace2.la \
+	$(top_builddir)/common/libbabeltrace2-common.la \
+	$(top_builddir)/logging/libbabeltrace2-logging.la \
 	$(top_builddir)/compat/libcompat.la
 endif

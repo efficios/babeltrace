@@ -4,11 +4,11 @@ libdir=@libdir@
 includedir=@includedir@
 
 Name: Babeltrace
-Description: libbabeltrace provides a reader for trace files, reading mainly the 
+Description: libbabeltrace2 provides a reader for trace files, reading mainly the
 Common Trace Format (CTF).
 Version: @PACKAGE_VERSION@
 Requires:
 Requires.private: uuid popt
-Libs: -L${libdir} -lbabeltrace
-Cflags: -I${includedir} 
+Libs: -L${libdir} -lbabeltrace2
+Cflags: -I${includedir}
 
