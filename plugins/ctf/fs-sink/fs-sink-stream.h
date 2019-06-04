@@ -46,39 +46,126 @@ struct fs_sink_stream {
 
 	struct fs_sink_ctf_stream_class *sc;
 
+	/* Current packet's state */
 	struct {
+		/*
+		 * True if we're, for this stream, within an opened
+		 * packet (got a packet beginning message, but no
+		 * packet end message yet).
+		 */
 		bool is_open;
+
+		/*
+		 * Current beginning default clock snapshot for the
+		 * current packet (`UINT64_C(-1)` if not set).
+		 */
 		uint64_t beginning_cs;
+
+		/*
+		 * Current end default clock snapshot for the current
+		 * packet (`UINT64_C(-1)` if not set).
+		 */
 		uint64_t end_cs;
+
+		/*
+		 * Current packet's content size (bits) for the current
+		 * packet.
+		 */
 		uint64_t content_size;
+
+		/*
+		 * Current packet's total size (bits) for the current
+		 * packet.
+		 */
 		uint64_t total_size;
+
+		/*
+		 * Discarded events (free running) counter for the
+		 * current packet.
+		 */
 		uint64_t discarded_events_counter;
+
+		/* Sequence number (free running) of the current packet */
 		uint64_t seq_num;
+
+		/*
+		 * Offset of the packet context structure within the
+		 * current packet (bits).
+		 */
 		uint64_t context_offset_bits;
 
 		/* Owned by this */
 		const bt_packet *packet;
 	} packet_state;
 
+	/* Previous packet's state */
 	struct {
+		/* End default clock snapshot (`UINT64_C(-1)` if not set) */
 		uint64_t end_cs;
+
+		/* Discarded events (free running) counter */
 		uint64_t discarded_events_counter;
+
+		/* Sequence number (free running) */
 		uint64_t seq_num;
 	} prev_packet_state;
 
+	/* State to handle discarded events */
 	struct {
+		/*
+		 * True if we're in the time range given by a previously
+		 * received discarded events message. In this case,
+		 * `beginning_cs` and `end_cs` below contain the
+		 * beginning and end clock snapshots for this range.
+		 *
+		 * This is used to validate that, when receiving a
+		 * packet end message, the current discarded events time
+		 * range matches what's expected for CTF 1.8, that is:
+		 *
+		 * * Its beginning time is the previous packet's end
+		 *   time (or the current packet's beginning time if
+		 *   this is the first packet).
+		 *
+		 * * Its end time is the current packet's end time.
+		 */
 		bool in_range;
+
+		/*
+		 * Beginning and end times of the time range given by a
+		 * previously received discarded events message.
+		 */
 		uint64_t beginning_cs;
 		uint64_t end_cs;
 	} discarded_events_state;
 
+	/* State to handle discarded packets */
 	struct {
+		/*
+		 * True if we're in the time range given by a previously
+		 * received discarded packets message. In this case,
+		 * `beginning_cs` and `end_cs` below contain the
+		 * beginning and end clock snapshots for this range.
+		 *
+		 * This is used to validate that, when receiving a
+		 * packet beginning message, the current discarded
+		 * packets time range matches what's expected for CTF
+		 * 1.8, that is:
+		 *
+		 * * Its beginning time is the previous packet's end
+		 *   time.
+		 *
+		 * * Its end time is the current packet's beginning
+		 *   time.
+		 */
 		bool in_range;
+
+		/*
+		 * Beginning and end times of the time range given by a
+		 * previously received discarded packets message.
+		 */
 		uint64_t beginning_cs;
 		uint64_t end_cs;
 	} discarded_packets_state;
-
-	bool in_discarded_events_range;
 };
 
 BT_HIDDEN

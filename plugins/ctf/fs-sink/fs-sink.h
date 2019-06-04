@@ -37,9 +37,24 @@ struct fs_sink_comp {
 	/* Base output directory path */
 	GString *output_dir_path;
 
+	/*
+	 * True if the component assumes that it will only write a
+	 * single CTF trace (which can contain one or more data
+	 * streams). This makes the component write the stream files
+	 * directly in the output directory (`output_dir_path` above).
+	 */
 	bool assume_single_trace;
+
+	/* True to completely ignore discarded events messages */
 	bool ignore_discarded_events;
+
+	/* True to completely ignore discarded packets messages */
 	bool ignore_discarded_packets;
+
+	/*
+	 * True to make the component quiet (nothing printed to the
+	 * standard output).
+	 */
 	bool quiet;
 
 	/*
