@@ -326,17 +326,38 @@ bt_self_component_status handle_packet_beginning_msg(
 		BT_ASSERT(cs);
 	}
 
+	/*
+	 * If we previously received a discarded events message with
+	 * a time range, make sure that its beginning time matches what's
+	 * expected for CTF 1.8, that is:
+	 *
+	 * * Its beginning time is the previous packet's end
+	 *   time (or the current packet's beginning time if
+	 *   this is the first packet).
+	 *
+	 * We check this here instead of in handle_packet_end_msg()
+	 * because we want to catch any incompatible message as early as
+	 * possible to report the error.
+	 *
+	 * Validation of the discarded events message's end time is
+	 * performed in handle_packet_end_msg().
+	 */
 	if (stream->discarded_events_state.in_range) {
 		uint64_t expected_cs;
 
+		/*
+		 * `stream->discarded_events_state.in_range` is only set
+		 * when the stream class's discarded events have a time
+		 * range.
+		 *
+		 * It is required that the packet beginning and end
+		 * messages for this stream class have times when
+		 * discarded events have a time range.
+		 */
 		BT_ASSERT(stream->sc->discarded_events_has_ts);
 		BT_ASSERT(stream->sc->packets_have_ts_begin);
 		BT_ASSERT(stream->sc->packets_have_ts_end);
 
-		/*
-		 * Make sure that the current discarded events range's
-		 * beginning time matches what's expected for CTF 1.8.
-		 */
 		if (stream->prev_packet_state.end_cs == UINT64_C(-1)) {
 			/* We're opening the first packet */
 			expected_cs = bt_clock_snapshot_get_value(cs);
@@ -364,17 +385,36 @@ bt_self_component_status handle_packet_beginning_msg(
 		}
 	}
 
+	/*
+	 * If we previously received a discarded packets message with a
+	 * time range, make sure that its beginning and end times match
+	 * what's expected for CTF 1.8, that is:
+	 *
+	 * * Its beginning time is the previous packet's end time.
+	 *
+	 * * Its end time is the current packet's beginning time.
+	 */
 	if (stream->discarded_packets_state.in_range) {
 		uint64_t expected_end_cs;
 
+		/*
+		 * `stream->discarded_packets_state.in_range` is only
+		 * set when the stream class's discarded packets have a
+		 * time range.
+		 *
+		 * It is required that the packet beginning and end
+		 * messages for this stream class have times when
+		 * discarded packets have a time range.
+		 */
 		BT_ASSERT(stream->sc->discarded_packets_has_ts);
 		BT_ASSERT(stream->sc->packets_have_ts_begin);
 		BT_ASSERT(stream->sc->packets_have_ts_end);
 
 		/*
-		 * Make sure that the current discarded packets range's
-		 * beginning and end times match what's expected for CTF
-		 * 1.8.
+		 * It is not supported to have a discarded packets
+		 * message _before_ the first packet: we cannot validate
+		 * that its beginning time is compatible with CTF 1.8 in
+		 * this case.
 		 */
 		if (stream->prev_packet_state.end_cs == UINT64_C(-1)) {
 			BT_LOGE("Incompatible discarded packets message "
@@ -431,9 +471,13 @@ bt_self_component_status handle_packet_beginning_msg(
 		}
 	}
 
-	if (stream->sc->discarded_packets_has_ts) {
-		stream->discarded_packets_state.in_range = false;
-	}
+	/*
+	 * We're not in a discarded packets time range anymore since we
+	 * require that the discarded packets time ranges go from one
+	 * packet's end time to the next packet's beginning time, and
+	 * we're handling a packet beginning message here.
+	 */
+	stream->discarded_packets_state.in_range = false;
 
 	ret = fs_sink_stream_open_packet(stream, cs, ir_packet);
 	if (ret) {
@@ -469,17 +513,32 @@ bt_self_component_status handle_packet_end_msg(
 		BT_ASSERT(cs);
 	}
 
+	/*
+	 * If we previously received a discarded events message with
+	 * a time range, make sure that its end time matches what's
+	 * expected for CTF 1.8, that is:
+	 *
+	 * * Its end time is the current packet's end time.
+	 *
+	 * Validation of the discarded events message's beginning time
+	 * is performed in handle_packet_beginning_msg().
+	 */
 	if (stream->discarded_events_state.in_range) {
 		uint64_t expected_cs;
 
+		/*
+		 * `stream->discarded_events_state.in_range` is only set
+		 * when the stream class's discarded events have a time
+		 * range.
+		 *
+		 * It is required that the packet beginning and end
+		 * messages for this stream class have times when
+		 * discarded events have a time range.
+		 */
 		BT_ASSERT(stream->sc->discarded_events_has_ts);
 		BT_ASSERT(stream->sc->packets_have_ts_begin);
 		BT_ASSERT(stream->sc->packets_have_ts_end);
 
-		/*
-		 * Make sure that the current discarded events range's
-		 * end time matches what's expected for CTF 1.8.
-		 */
 		expected_cs = bt_clock_snapshot_get_value(cs);
 
 		if (stream->discarded_events_state.end_cs != expected_cs) {
@@ -507,9 +566,13 @@ bt_self_component_status handle_packet_end_msg(
 		goto end;
 	}
 
-	if (stream->sc->discarded_events_has_ts) {
-		stream->discarded_events_state.in_range = false;
-	}
+	/*
+	 * We're not in a discarded events time range anymore since we
+	 * require that the discarded events time ranges go from one
+	 * packet's end time to the next packet's end time, and we're
+	 * handling a packet end message here.
+	 */
+	stream->discarded_events_state.in_range = false;
 
 end:
 	return status;
@@ -660,6 +723,14 @@ bt_self_component_status handle_discarded_events_msg(
 		goto end;
 	}
 
+	/*
+	 * If we're currently in an opened packet (got a packet
+	 * beginning message, but no packet end message yet), we do not
+	 * support having a discarded events message with a time range
+	 * because we require that the discarded events message's time
+	 * range go from a packet's end time to the next packet's end
+	 * time.
+	 */
 	if (stream->packet_state.is_open &&
 			stream->sc->discarded_events_has_ts) {
 		BT_LOGE("Unsupported discarded events message with "
@@ -676,11 +747,18 @@ bt_self_component_status handle_discarded_events_msg(
 	}
 
 	if (stream->sc->discarded_events_has_ts) {
+		/*
+		 * Make the stream's state be in the time range of a
+		 * discarded events message since we have the message's
+		 * time range (`stream->sc->discarded_events_has_ts`).
+		 */
 		stream->discarded_events_state.in_range = true;
 
 		/*
 		 * The clock snapshot values will be validated when
-		 * handling the next "packet beginning" message.
+		 * handling the next packet beginning and end messages
+		 * (next calls to handle_packet_beginning_msg() and
+		 * handle_packet_end_msg()).
 		 */
 		cs = bt_message_discarded_events_borrow_beginning_default_clock_snapshot_const(
 			msg);
@@ -695,6 +773,11 @@ bt_self_component_status handle_discarded_events_msg(
 
 	avail = bt_message_discarded_events_get_count(msg, &count);
 	if (avail != BT_PROPERTY_AVAILABILITY_AVAILABLE) {
+		/*
+		 * There's no specific count of discarded events: set it
+		 * to 1 so that we know that we at least discarded
+		 * something.
+		 */
 		count = 1;
 	}
 
@@ -747,14 +830,24 @@ bt_self_component_status handle_discarded_packets_msg(
 		goto end;
 	}
 
+	/*
+	 * Discarded packets messages are guaranteed to occur between
+	 * packets.
+	 */
 	BT_ASSERT(!stream->packet_state.is_open);
 
 	if (stream->sc->discarded_packets_has_ts) {
+		/*
+		 * Make the stream's state be in the time range of a
+		 * discarded packets message since we have the message's
+		 * time range (`stream->sc->discarded_packets_has_ts`).
+		 */
 		stream->discarded_packets_state.in_range = true;
 
 		/*
 		 * The clock snapshot values will be validated when
-		 * handling the next "packet beginning" message.
+		 * handling the next packet beginning message (next call
+		 * to handle_packet_beginning_msg()).
 		 */
 		cs = bt_message_discarded_packets_borrow_beginning_default_clock_snapshot_const(
 			msg);
@@ -770,6 +863,11 @@ bt_self_component_status handle_discarded_packets_msg(
 
 	avail = bt_message_discarded_packets_get_count(msg, &count);
 	if (avail != BT_PROPERTY_AVAILABILITY_AVAILABLE) {
+		/*
+		 * There's no specific count of discarded packets: set
+		 * it to 1 so that we know that we at least discarded
+		 * something.
+		 */
 		count = 1;
 	}
 
