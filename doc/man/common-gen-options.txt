@@ -1,6 +1,6 @@
 General options
 ~~~~~~~~~~~~~~~
-See man:babeltrace(1) for more details.
+See man:babeltrace2(1) for more details.
 
 nlopt:-d, nlopt:--debug::
     Turn the debugging mode on.

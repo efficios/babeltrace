@@ -7,8 +7,8 @@ include::common-common-compat-env.txt[]
 
 `BABELTRACE_LOGGING_GLOBAL_LEVEL`::
     Babeltrace library's global log level. The available values are the
-    same as for the manopt:babeltrace(1):--log-level option of
-    man:babeltrace(1)
+    same as for the manopt:babeltrace2(1):--log-level option of
+    man:babeltrace2(1)
 
 `BABELTRACE_NO_DLCLOSE`::
     Set to `1` to make the Babeltrace library leave any dynamically

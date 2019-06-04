@@ -1,4 +1,4 @@
-babeltrace-plugin-lttng-utils(7)
+babeltrace2-plugin-lttng-utils(7)
 ================================
 :manpagetype: plugin
 :revdate: 5 October 2017
@@ -6,7 +6,7 @@ babeltrace-plugin-lttng-utils(7)
 
 NAME
 ----
-babeltrace-plugin-lttng-utils - Babeltrace's LTTng utilities plugin
+babeltrace2-plugin-lttng-utils - Babeltrace's LTTng utilities plugin
 
 
 DESCRIPTION
@@ -14,9 +14,9 @@ DESCRIPTION
 The Babeltrace `lttng-utils` plugin contains utilities that apply to
 LTTng traces. You can use the compcls:source.ctf.fs and
 compcls:source.ctf.lttng-live components to read LTTng traces (see
-man:babeltrace-plugin-ctf(7)).
+man:babeltrace2-plugin-ctf(7)).
 
-See man:babeltrace-intro(7) to learn more about the Babeltrace
+See man:babeltrace2-intro(7) to learn more about the Babeltrace
 project and its core concepts.
 
 
@@ -26,7 +26,7 @@ compcls:filter.lttng-utils.debug-info::
     Receives notifications from its input port and creates new,
     equivalent notifications with additionnal debugging information.
 +
-See man:babeltrace-filter.lttng-utils.debug-info(7).
+See man:babeltrace2-filter.lttng-utils.debug-info(7).
 
 
 include::common-footer.txt[]
@@ -34,5 +34,5 @@ include::common-footer.txt[]
 
 SEE ALSO
 --------
-man:babeltrace-filter.lttng-utils.debug-info(7),
-man:babeltrace-intro(7)
+man:babeltrace2-filter.lttng-utils.debug-info(7),
+man:babeltrace2-intro(7)

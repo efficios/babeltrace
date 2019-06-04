@@ -1,4 +1,4 @@
-babeltrace-query(1)
+babeltrace2-query(1)
 ===================
 :manpagetype: command
 :revdate: 5 October 2017
@@ -6,13 +6,13 @@ babeltrace-query(1)
 
 NAME
 ----
-babeltrace-query - Query object from a component class
+babeltrace2-query - Query object from a component class
 
 
 SYNOPSIS
 --------
 [verse]
-*babeltrace query* ['GENERAL OPTIONS'] [opt:--omit-home-plugin-path]
+*babeltrace2 query* ['GENERAL OPTIONS'] [opt:--omit-home-plugin-path]
                  [opt:--omit-system-plugin-path]
                  [opt:--plugin-path='PATH'[:__PATH__]...]
                  [opt:--params='PARAMS'] 'TYPE.PLUGIN.COMPCLS' 'OBJECT'
@@ -24,7 +24,7 @@ The `query` command queries the object named 'OBJECT' from the component
 class 'COMPCLS' of the type 'TYPE' found in the Babeltrace plugin
 'PLUGIN' and prints the results.
 
-See man:babeltrace-intro(7) to learn more about the Babeltrace
+See man:babeltrace2-intro(7) to learn more about the Babeltrace
 project and its core concepts.
 
 The available values for 'TYPE' are:
@@ -41,7 +41,7 @@ The available values for 'TYPE' are:
     Sink component class.
 
 The exact object names and the parameters that a given component class
-expects are described in its documentation. man:babeltrace-help(1) can
+expects are described in its documentation. man:babeltrace2-help(1) can
 generally provide this information.
 
 You can use the opt:--params='PARAMS' option to pass parameters to the
@@ -83,7 +83,7 @@ EXAMPLES
 ====
 [role="term"]
 ----
-$ babeltrace query src.ctf.lttng-live sessions \
+$ babeltrace2 query src.ctf.lttng-live sessions \
                    --params='url="net://RHOST/host/TGTHOST"'
 ----
 ====
@@ -92,7 +92,7 @@ $ babeltrace query src.ctf.lttng-live sessions \
 ====
 [role="term"]
 ----
-$ babeltrace query src.ctf.fs metadata-info \
+$ babeltrace2 query src.ctf.fs metadata-info \
                    --params='path="/path/to/trace"'
 ----
 ====
@@ -101,7 +101,7 @@ $ babeltrace query src.ctf.fs metadata-info \
 ====
 [role="term"]
 ----
-$ babeltrace query src.ctf.fs trace-info \
+$ babeltrace2 query src.ctf.fs trace-info \
                    --params='path="/path/to/trace"'
 ----
 ====
@@ -110,7 +110,7 @@ $ babeltrace query src.ctf.fs trace-info \
 ====
 [role="term"]
 ----
-$ babeltrace query sink.my-plugin.my-sink some-object
+$ babeltrace2 query sink.my-plugin.my-sink some-object
 ----
 ====
 
@@ -124,5 +124,5 @@ include::common-cmd-footer.txt[]
 
 SEE ALSO
 --------
-man:babeltrace(1),
-man:babeltrace-intro(7)
+man:babeltrace2(1),
+man:babeltrace2-intro(7)

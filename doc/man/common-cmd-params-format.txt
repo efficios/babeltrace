@@ -41,7 +41,7 @@ You may put whitespaces around the individual `=` (assignment) and `,`
 Example:
 
 ----
-babeltrace ... --params='many=null, fresh=yes, condition=false,
+babeltrace2 ... --params='many=null, fresh=yes, condition=false,
                          squirrel=-782329, play=+23, observe=3.14,
                          simple=beef, needs-quotes="some string",
                          escape.chars-are:allowed="a \" quote",

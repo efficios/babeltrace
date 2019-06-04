@@ -1,4 +1,4 @@
-babeltrace-source.ctf.fs(7)
+babeltrace2-source.ctf.fs(7)
 ===========================
 :manpagetype: component class
 :revdate: 5 October 2017
@@ -6,14 +6,14 @@ babeltrace-source.ctf.fs(7)
 
 NAME
 ----
-babeltrace-source.ctf.fs - Babeltrace's file system CTF source
+babeltrace2-source.ctf.fs - Babeltrace's file system CTF source
 component class
 
 
 DESCRIPTION
 -----------
 The Babeltrace compcls:source.ctf.fs component class, provided by the
-man:babeltrace-plugin-ctf(7) plugin, once instantiated, opens one or
+man:babeltrace2-plugin-ctf(7) plugin, once instantiated, opens one or
 more http://diamon.org/ctf/[CTF] traces on the file system and emits the
 notifications of their data streams on its output ports.
 
@@ -245,8 +245,8 @@ include::common-common-compat-env.txt[]
 
 `BABELTRACE_SRC_CTF_FS_LOG_LEVEL`::
     Component class's log level. The available values are the
-    same as for the manopt:babeltrace(1):--log-level option of
-    man:babeltrace(1).
+    same as for the manopt:babeltrace2(1):--log-level option of
+    man:babeltrace2(1).
 
 
 include::common-footer.txt[]
@@ -254,5 +254,5 @@ include::common-footer.txt[]
 
 SEE ALSO
 --------
-man:babeltrace-plugin-ctf(7),
-man:babeltrace-intro(7)
+man:babeltrace2-plugin-ctf(7),
+man:babeltrace2-intro(7)

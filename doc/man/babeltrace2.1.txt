@@ -1,4 +1,4 @@
-babeltrace(1)
+babeltrace2(1)
 =============
 :manpagetype: program
 :revdate: 5 October 2017
@@ -6,26 +6,26 @@ babeltrace(1)
 
 NAME
 ----
-babeltrace - Convert or process one or more traces, and more
+babeltrace2 - Convert or process one or more traces, and more
 
 
 SYNOPSIS
 --------
 [verse]
-*babeltrace* [opt:--debug | opt:--verbose | opt:--log-level='LVL'] ['<<commands,CMD>>'] ['CMD ARGS']
+*babeltrace2* [opt:--debug | opt:--verbose | opt:--log-level='LVL'] ['<<commands,CMD>>'] ['CMD ARGS']
 
 
 DESCRIPTION
 -----------
-`babeltrace` is an open-source trace converter and processor. The tool
+`babeltrace2` is an open-source trace converter and processor. The tool
 can convert from one trace format to another, possibly with one or more
 filters in the conversion path, and perform other operations depending
 on the command 'CMD'.
 
-See man:babeltrace-intro(7) to learn more about the Babeltrace
+See man:babeltrace2-intro(7) to learn more about the Babeltrace
 project and its core concepts.
 
-Most of the `babeltrace` commands load Babeltrace plugins to perform
+Most of the `babeltrace2` commands load Babeltrace plugins to perform
 their operation. The search path for Babeltrace plugins is, in this
 order:
 
@@ -35,11 +35,11 @@ order:
 . The colon-separated list of directories in the specific command's
   nlopt:--plugin-path option.
 
-. `$HOME/.local/lib/babeltrace/plugins`
+. `$HOME/.local/lib/babeltrace2/plugins`
 
 . +{system_plugin_path}+
 
-You can use the man:babeltrace-list-plugins(1) command to dynamically
+You can use the man:babeltrace2-list-plugins(1) command to dynamically
 list the available plugins and what they offer. See <<plugins,PLUGINS>>
 for a list of plugins shipped with Babeltrace.
 
@@ -116,22 +116,22 @@ COMMANDS
 --------
 The following commands also have their own nlopt:--help option.
 
-man:babeltrace-convert(1)::
+man:babeltrace2-convert(1)::
     Build a trace conversion graph and run it.
 +
 This is the default command: you don't need to explicitly
 specify this command name to use it.
 
-man:babeltrace-help(1)::
+man:babeltrace2-help(1)::
     Get help for a specific plugin or plugin's component class.
 
-man:babeltrace-list-plugins(1)::
+man:babeltrace2-list-plugins(1)::
     List the available Babeltrace plugins and their component classes.
 
-man:babeltrace-query(1)::
+man:babeltrace2-query(1)::
     Query an object from a component class.
 
-man:babeltrace-run(1)::
+man:babeltrace2-run(1)::
     Build a trace processing graph and run it.
 
 
@@ -140,34 +140,34 @@ PLUGINS
 -------
 The following plugins are provided by the Babeltrace project itself:
 
-man:babeltrace-plugin-ctf(7)::
+man:babeltrace2-plugin-ctf(7)::
     CTF trace input (from the file system and from the LTTng-live
     protocol) and output to the file system.
 +
-* man:babeltrace-sink.ctf.fs(7)
-* man:babeltrace-source.ctf.fs(7)
-* man:babeltrace-source.ctf.lttng-live(7)
+* man:babeltrace2-sink.ctf.fs(7)
+* man:babeltrace2-source.ctf.fs(7)
+* man:babeltrace2-source.ctf.lttng-live(7)
 
 ifeval::[{enable_debug_info} == 1]
-man:babeltrace-plugin-lttng-utils(7)::
+man:babeltrace2-plugin-lttng-utils(7)::
     Processing graph utilities for LTTng traces.
 +
-* man:babeltrace-filter.lttng-utils.debug-info(7)
+* man:babeltrace2-filter.lttng-utils.debug-info(7)
 endif::[]
 
-man:babeltrace-plugin-text(7)::
+man:babeltrace2-plugin-text(7)::
     Text input and output.
 +
-* man:babeltrace-sink.text.pretty(7)
-* man:babeltrace-source.text.dmesg(7)
+* man:babeltrace2-sink.text.pretty(7)
+* man:babeltrace2-source.text.dmesg(7)
 
-man:babeltrace-plugin-utils(7)::
+man:babeltrace2-plugin-utils(7)::
     Processing graph utilities.
 +
-* man:babeltrace-filter.utils.muxer(7)
-* man:babeltrace-filter.utils.trimmer(7)
-* man:babeltrace-sink.utils.counter(7)
-* man:babeltrace-sink.utils.dummy(7)
+* man:babeltrace2-filter.utils.muxer(7)
+* man:babeltrace2-filter.utils.trimmer(7)
+* man:babeltrace2-sink.utils.counter(7)
+* man:babeltrace2-sink.utils.dummy(7)
 
 
 include::common-cli-env.txt[]
@@ -179,9 +179,9 @@ include::common-cmd-footer.txt[]
 
 SEE ALSO
 --------
-man:babeltrace-convert(1),
-man:babeltrace-help(1),
-man:babeltrace-list-plugins(1),
-man:babeltrace-query(1),
-man:babeltrace-run(1),
-man:babeltrace-intro(7)
+man:babeltrace2-convert(1),
+man:babeltrace2-help(1),
+man:babeltrace2-list-plugins(1),
+man:babeltrace2-query(1),
+man:babeltrace2-run(1),
+man:babeltrace2-intro(7)
