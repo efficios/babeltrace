@@ -70,7 +70,7 @@ class StreamClassTestCase(unittest.TestCase):
         sc = self._tc.create_stream_class(assigns_automatic_stream_id=True)
         self.assertTrue(sc.assigns_automatic_stream_id)
 
-        with self.assertRaises(bt2.CreationError):
+        with self.assertRaises(ValueError):
             self._trace.create_stream(sc, id=123)
 
     def test_no_automatic_stream_ids(self):
@@ -84,7 +84,7 @@ class StreamClassTestCase(unittest.TestCase):
         sc = self._tc.create_stream_class(assigns_automatic_stream_id=False)
         self.assertFalse(sc.assigns_automatic_stream_id)
 
-        with self.assertRaises(bt2.CreationError):
+        with self.assertRaises(ValueError):
             self._trace.create_stream(sc)
 
     def test_automatic_event_class_ids(self):
@@ -98,7 +98,7 @@ class StreamClassTestCase(unittest.TestCase):
         sc = self._tc.create_stream_class(assigns_automatic_event_class_id=True)
         self.assertTrue(sc.assigns_automatic_event_class_id)
 
-        with self.assertRaises(bt2.CreationError):
+        with self.assertRaises(ValueError):
             sc.create_event_class(id=123)
 
     def test_no_automatic_event_class_ids(self):
@@ -112,7 +112,7 @@ class StreamClassTestCase(unittest.TestCase):
         sc = self._tc.create_stream_class(assigns_automatic_event_class_id=False)
         self.assertFalse(sc.assigns_automatic_event_class_id)
 
-        with self.assertRaises(bt2.CreationError):
+        with self.assertRaises(ValueError):
             sc.create_event_class()
 
     def test_packets_have_default_beginning_clock_snapshot(self):
