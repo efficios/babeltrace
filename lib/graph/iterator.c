@@ -83,9 +83,8 @@
 		(_iter)->state == BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_STATE_LAST_SEEKING_RETURNED_ERROR, \
 		"Message iterator is in the wrong state: %!+i", _iter)
 
-BT_ASSERT_PRE_FUNC
 static inline
-void _set_self_comp_port_input_msg_iterator_state(
+void set_self_comp_port_input_msg_iterator_state(
 		struct bt_self_component_port_input_message_iterator *iterator,
 		enum bt_self_component_port_input_message_iterator_state state)
 {
@@ -94,12 +93,6 @@ void _set_self_comp_port_input_msg_iterator_state(
 		bt_self_component_port_input_message_iterator_state_string(state));
 	iterator->state = state;
 }
-
-#ifdef BT_DEV_MODE
-# define set_self_comp_port_input_msg_iterator_state _set_self_comp_port_input_msg_iterator_state
-#else
-# define set_self_comp_port_input_msg_iterator_state(_a, _b) ((void) _a); ((void) _b);
-#endif
 
 static
 void destroy_base_message_iterator(struct bt_object *obj)
@@ -567,7 +560,6 @@ bt_self_component_port_input_message_iterator_next(
 		goto end;
 	}
 
-#ifdef BT_DEV_MODE
 	/*
 	 * There is no way that this iterator could have been finalized
 	 * during its "next" method, as the only way to do this is to
@@ -579,7 +571,6 @@ bt_self_component_port_input_message_iterator_next(
 	 */
 	BT_ASSERT(iterator->state ==
 		BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_STATE_ACTIVE);
-#endif
 
 	switch (status) {
 	case BT_MESSAGE_ITERATOR_STATUS_OK:
@@ -885,9 +876,8 @@ bt_bool bt_self_component_port_input_message_iterator_can_seek_beginning(
 	return can;
 }
 
-BT_ASSERT_PRE_FUNC
 static inline
-void _set_iterator_state_after_seeking(
+void set_iterator_state_after_seeking(
 		struct bt_self_component_port_input_message_iterator *iterator,
 		enum bt_message_iterator_status status)
 {
@@ -914,12 +904,6 @@ void _set_iterator_state_after_seeking(
 
 	set_self_comp_port_input_msg_iterator_state(iterator, new_state);
 }
-
-#ifdef BT_DEV_MODE
-# define set_iterator_state_after_seeking	_set_iterator_state_after_seeking
-#else
-# define set_iterator_state_after_seeking(_iter, _status) ((void) _iter); ((void) _status);
-#endif
 
 enum bt_message_iterator_status
 bt_self_component_port_input_message_iterator_seek_beginning(
@@ -1191,14 +1175,12 @@ enum bt_message_iterator_status find_message_ge_ns_from_origin(
 		BT_LOGD("User method returned: status=%s",
 			bt_message_iterator_status_string(status));
 
-#ifdef BT_DEV_MODE
 		/*
 		 * The user's "next" method must not do any action which
 		 * would change the iterator's state.
 		 */
 		BT_ASSERT(iterator->state ==
 			BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_STATE_ACTIVE);
-#endif
 
 		switch (status) {
 		case BT_MESSAGE_ITERATOR_STATUS_OK:
