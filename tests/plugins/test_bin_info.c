@@ -224,7 +224,10 @@ void test_bin_info_build_id(const char *bin_info_dir)
 	}
 
 	ret = bt_fd_cache_init(&fdc);
-	BT_ASSERT(ret == 0);
+	if (ret != 0) {
+		diag("Failed to initialize FD cache");
+		exit(EXIT_FAILURE);
+	}
 
 	bin = bin_info_create(&fdc, bin_path, SO_LOW_ADDR, SO_MEMSZ, true,
 			      data_dir, NULL);
@@ -275,7 +278,10 @@ void test_bin_info_debug_link(const char *bin_info_dir)
 	}
 
 	ret = bt_fd_cache_init(&fdc);
-	BT_ASSERT(ret == 0);
+	if (ret != 0) {
+		diag("Failed to initialize FD cache");
+		exit(EXIT_FAILURE);
+	}
 
 	bin = bin_info_create(&fdc, bin_path, SO_LOW_ADDR, SO_MEMSZ, true,
 			      data_dir, NULL);
@@ -322,7 +328,10 @@ void test_bin_info_elf(const char *bin_info_dir)
 	}
 
 	ret = bt_fd_cache_init(&fdc);
-	BT_ASSERT(ret == 0);
+	if (ret != 0) {
+		diag("Failed to initialize FD cache");
+		exit(EXIT_FAILURE);
+	}
 
 	bin = bin_info_create(&fdc, bin_path, SO_LOW_ADDR, SO_MEMSZ, true,
 			      data_dir, NULL);
@@ -367,7 +376,10 @@ void test_bin_info_bundled(const char *bin_info_dir)
 	}
 
 	ret = bt_fd_cache_init(&fdc);
-	BT_ASSERT(ret == 0);
+	if (ret != 0) {
+		diag("Failed to initialize FD cache");
+		exit(EXIT_FAILURE);
+	}
 
 	bin = bin_info_create(&fdc, bin_path, SO_LOW_ADDR, SO_MEMSZ, true,
 			      data_dir, NULL);
