@@ -74,19 +74,11 @@ class CreationError(Error):
     '''Raised when object creation fails due to memory issues.'''
 
 
-class Frozen(Error):
-    pass
-
-
 class InvalidQueryObject(Error):
     pass
 
 
 class InvalidQueryParams(Error):
-    pass
-
-
-class UnsupportedFeature(Exception):
     pass
 
 
@@ -106,23 +98,11 @@ class IncompleteUserClass(Error):
     pass
 
 
-class CannotConsumeGraph(Error):
-    pass
-
-
 class GraphCanceled(Exception):
     pass
 
 
 class QueryExecutorCanceled(Exception):
-    pass
-
-
-class MessageIteratorCanceled(Exception):
-    pass
-
-
-class ConnectionEnded(Exception):
     pass
 
 
