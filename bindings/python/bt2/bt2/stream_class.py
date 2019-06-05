@@ -61,12 +61,12 @@ class StreamClass(object._SharedObject, collections.abc.Mapping):
                            payload_field_class=None):
         if self.assigns_automatic_event_class_id:
             if id is not None:
-                raise bt2.CreationError('id provided, but stream class assigns automatic event class ids')
+                raise ValueError('id provided, but stream class assigns automatic event class ids')
 
             ec_ptr = native_bt.event_class_create(self._ptr)
         else:
             if id is None:
-                raise bt2.CreationError('id not provided, but stream class does not assign automatic event class ids')
+                raise ValueError('id not provided, but stream class does not assign automatic event class ids')
 
             utils._check_uint64(id)
             ec_ptr = native_bt.event_class_create_with_id(self._ptr, id)

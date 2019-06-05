@@ -79,12 +79,12 @@ class Trace(object._SharedObject, collections.abc.Mapping):
 
         if stream_class.assigns_automatic_stream_id:
             if id is not None:
-                raise bt2.CreationError("id provided, but stream class assigns automatic stream ids")
+                raise ValueError("id provided, but stream class assigns automatic stream ids")
 
             stream_ptr = native_bt.stream_create(stream_class._ptr, self._ptr)
         else:
             if id is None:
-                raise bt2.CreationError("id not provided, but stream class does not assign automatic stream ids")
+                raise ValueError("id not provided, but stream class does not assign automatic stream ids")
 
             utils._check_uint64(id)
             stream_ptr = native_bt.stream_create_with_id(stream_class._ptr, self._ptr, id)

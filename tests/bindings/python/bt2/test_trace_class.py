@@ -45,7 +45,7 @@ class TraceClassTestCase(unittest.TestCase):
         tc = run_in_component_init(f)
         self.assertTrue(tc.assigns_automatic_stream_class_id)
 
-        with self.assertRaises(bt2.CreationError):
+        with self.assertRaises(ValueError):
             sc1 = tc.create_stream_class(23)
 
     def test_no_assigns_automatic_stream_class_id(self):
@@ -66,7 +66,7 @@ class TraceClassTestCase(unittest.TestCase):
         self.assertFalse(tc.assigns_automatic_stream_class_id)
 
         # In this mode, it is required to pass an explicit id.
-        with self.assertRaises(bt2.CreationError):
+        with self.assertRaises(ValueError):
             tc.create_stream_class()
 
     def test_env_get(self):
