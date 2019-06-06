@@ -32,18 +32,18 @@ import bt2
 
 class _Event(object._UniqueObject):
     @property
-    def event_class(self):
+    def cls(self):
         event_class_ptr = native_bt.event_borrow_class(self._ptr)
         assert event_class_ptr is not None
         return bt2.event_class._EventClass._create_from_ptr_and_get_ref(event_class_ptr)
 
     @property
     def name(self):
-        return self.event_class.name
+        return self.cls.name
 
     @property
     def id(self):
-        return self.event_class.id
+        return self.cls.id
 
     @property
     def packet(self):

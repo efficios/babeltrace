@@ -27,7 +27,7 @@ class UserComponentTestCase(unittest.TestCase):
     def test_class(self):
         class MySink(bt2._UserSinkComponent):
             def __init__(comp_self, params):
-                self.assertEqual(comp_self.component_class, MySink)
+                self.assertEqual(comp_self.cls, MySink)
 
             def _consume(self):
                 pass
@@ -88,7 +88,7 @@ class GenericComponentTestCase(unittest.TestCase):
                 pass
 
         comp = self._create_comp(MySink)
-        self.assertEqual(comp.component_class, MySink)
+        self.assertEqual(comp.cls, MySink)
 
     def test_addr(self):
         class MySink(bt2._UserSinkComponent):

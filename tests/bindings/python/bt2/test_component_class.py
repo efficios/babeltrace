@@ -288,7 +288,7 @@ class GenericComponentClassTestCase(unittest.TestCase):
         self._py_comp_cls = MySink
         graph = bt2.Graph()
         comp = graph.add_component(MySink, 'salut')
-        self._comp_cls = comp.component_class
+        self._comp_cls = comp.cls
         self.assertTrue(issubclass(type(self._comp_cls),
                                    bt2.component._GenericComponentClass))
 

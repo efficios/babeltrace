@@ -185,7 +185,7 @@ class _Component:
         return name
 
     @property
-    def component_class(self):
+    def cls(self):
         cc_ptr = self._borrow_component_class_ptr(self._ptr)
         assert cc_ptr is not None
         return _create_component_class_from_ptr_and_get_ref(cc_ptr, self._comp_cls_type)
@@ -576,7 +576,7 @@ class _UserComponent(metaclass=_UserComponentType):
         return name
 
     @property
-    def component_class(self):
+    def cls(self):
         comp_ptr = self._as_not_self_specific_component_ptr(self._ptr)
         cc_ptr = self._borrow_component_class_ptr(comp_ptr)
         return _create_component_class_from_ptr_and_get_ref(cc_ptr, self._comp_cls_type)

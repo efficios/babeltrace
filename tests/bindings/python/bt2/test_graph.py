@@ -56,7 +56,7 @@ class GraphTestCase(unittest.TestCase):
 
         comp = self._graph.add_component(MySink, 'salut')
         assert comp
-        comp2 = self._graph.add_component(comp.component_class, 'salut2')
+        comp2 = self._graph.add_component(comp.cls, 'salut2')
         self.assertEqual(comp2.name, 'salut2')
 
     def test_add_component_params(self):
@@ -234,7 +234,7 @@ class GraphTestCase(unittest.TestCase):
                     self.assertIsInstance(msg, bt2.message._PacketBeginningMessage)
                 elif comp_self._at >= 2 and comp_self._at <= 6:
                     self.assertIsInstance(msg, bt2.message._EventMessage)
-                    self.assertEqual(msg.event.event_class.name, 'salut')
+                    self.assertEqual(msg.event.cls.name, 'salut')
                 elif comp_self._at == 7:
                     self.assertIsInstance(msg, bt2.message._PacketEndMessage)
                 elif comp_self._at == 8:

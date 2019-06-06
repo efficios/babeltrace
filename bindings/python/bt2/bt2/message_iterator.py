@@ -152,7 +152,7 @@ class _UserMessageIterator(_MessageIterator):
     def _create_event_message(self, event_class, packet, default_clock_snapshot=None):
         utils._check_type(event_class, bt2.event_class._EventClass)
         utils._check_type(packet, bt2.packet._Packet)
-        self._validate_default_clock_snapshot(packet.stream.stream_class, default_clock_snapshot)
+        self._validate_default_clock_snapshot(packet.stream.cls, default_clock_snapshot)
 
         if default_clock_snapshot is not None:
             utils._check_uint64(default_clock_snapshot)
@@ -188,7 +188,7 @@ class _UserMessageIterator(_MessageIterator):
 
     def _create_stream_activity_beginning_message(self, stream, default_clock_snapshot=None):
         utils._check_type(stream, bt2.stream._Stream)
-        self._validate_default_clock_snapshot(stream.stream_class, default_clock_snapshot)
+        self._validate_default_clock_snapshot(stream.cls, default_clock_snapshot)
 
         ptr = native_bt.message_stream_activity_beginning_create(self._ptr, stream._ptr)
 
@@ -205,7 +205,7 @@ class _UserMessageIterator(_MessageIterator):
 
     def _create_stream_activity_end_message(self, stream, default_clock_snapshot=None):
         utils._check_type(stream, bt2.stream._Stream)
-        self._validate_default_clock_snapshot(stream.stream_class, default_clock_snapshot)
+        self._validate_default_clock_snapshot(stream.cls, default_clock_snapshot)
 
         ptr = native_bt.message_stream_activity_end_create(self._ptr, stream._ptr)
 
@@ -232,7 +232,7 @@ class _UserMessageIterator(_MessageIterator):
     def _create_packet_beginning_message(self, packet, default_clock_snapshot=None):
         utils._check_type(packet, bt2.packet._Packet)
 
-        if packet.stream.stream_class.packets_have_beginning_default_clock_snapshot:
+        if packet.stream.cls.packets_have_beginning_default_clock_snapshot:
             if default_clock_snapshot is None:
                 raise ValueError("packet beginning messages in this stream must have a default clock snapshots")
 
@@ -253,7 +253,7 @@ class _UserMessageIterator(_MessageIterator):
     def _create_packet_end_message(self, packet, default_clock_snapshot=None):
         utils._check_type(packet, bt2.packet._Packet)
 
-        if packet.stream.stream_class.packets_have_end_default_clock_snapshot:
+        if packet.stream.cls.packets_have_end_default_clock_snapshot:
             if default_clock_snapshot is None:
                 raise ValueError("packet end messages in this stream must have a default clock snapshots")
 
@@ -276,10 +276,10 @@ class _UserMessageIterator(_MessageIterator):
                                          end_clock_snapshot=None):
         utils._check_type(stream, bt2.stream._Stream)
 
-        if not stream.stream_class.supports_discarded_events:
+        if not stream.cls.supports_discarded_events:
             raise ValueError('stream class does not support discarded events')
 
-        if stream.stream_class.discarded_events_have_default_clock_snapshots:
+        if stream.cls.discarded_events_have_default_clock_snapshots:
             if beg_clock_snapshot is None or end_clock_snapshot is None:
                 raise ValueError('discarded events have default clock snapshots for this stream class')
 
@@ -307,10 +307,10 @@ class _UserMessageIterator(_MessageIterator):
     def _create_discarded_packets_message(self, stream, count=None, beg_clock_snapshot=None, end_clock_snapshot=None):
         utils._check_type(stream, bt2.stream._Stream)
 
-        if not stream.stream_class.supports_discarded_packets:
+        if not stream.cls.supports_discarded_packets:
             raise ValueError('stream class does not support discarded packets')
 
-        if stream.stream_class.discarded_packets_have_default_clock_snapshots:
+        if stream.cls.discarded_packets_have_default_clock_snapshots:
             if beg_clock_snapshot is None or end_clock_snapshot is None:
                 raise ValueError('discarded packets have default clock snapshots for this stream class')
 

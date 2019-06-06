@@ -31,7 +31,7 @@ class _Stream(bt2.object._SharedObject):
     _put_ref = staticmethod(native_bt.stream_put_ref)
 
     @property
-    def stream_class(self):
+    def cls(self):
         stream_class_ptr = native_bt.stream_borrow_class(self._ptr)
         assert stream_class_ptr is not None
         return bt2.stream_class._StreamClass._create_from_ptr_and_get_ref(stream_class_ptr)

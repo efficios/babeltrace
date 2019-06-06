@@ -60,7 +60,7 @@ class _EventMessage(_Message, _MessageWithDefaultClockSnapshot):
 
     @property
     def default_clock_snapshot(self):
-        self._check_has_default_clock_class(self.event.packet.stream.stream_class.default_clock_class)
+        self._check_has_default_clock_class(self.event.packet.stream.cls.default_clock_class)
         return self._get_default_clock_snapshot(self._borrow_default_clock_snapshot_ptr)
 
     @property
@@ -74,7 +74,7 @@ class _EventMessage(_Message, _MessageWithDefaultClockSnapshot):
 class _PacketMessage(_Message, _MessageWithDefaultClockSnapshot):
     @property
     def default_clock_snapshot(self):
-        self._check_has_default_clock_class(self.packet.stream.stream_class.default_clock_class)
+        self._check_has_default_clock_class(self.packet.stream.cls.default_clock_class)
         return self._get_default_clock_snapshot(self._borrow_default_clock_snapshot_ptr)
 
     @property
@@ -113,7 +113,7 @@ class _StreamEndMessage(_StreamMessage):
 class _StreamActivityMessage(_Message):
     @property
     def default_clock_snapshot(self):
-        self._check_has_default_clock_class(self.stream.stream_class.default_clock_class)
+        self._check_has_default_clock_class(self.stream.cls.default_clock_class)
         status, snapshot_ptr = self._borrow_default_clock_snapshot_ptr(self._ptr)
 
         if status == native_bt.MESSAGE_STREAM_ACTIVITY_CLOCK_SNAPSHOT_STATE_KNOWN:
@@ -207,7 +207,7 @@ class _DiscardedEventsMessage(_DiscardedMessage):
 
     @property
     def _has_default_clock_snapshots(self):
-        return self.stream.stream_class.discarded_events_have_default_clock_snapshots
+        return self.stream.cls.discarded_events_have_default_clock_snapshots
 
 
 class _DiscardedPacketsMessage(_DiscardedMessage):
@@ -219,7 +219,7 @@ class _DiscardedPacketsMessage(_DiscardedMessage):
 
     @property
     def _has_default_clock_snapshots(self):
-        return self.stream.stream_class.discarded_packets_have_default_clock_snapshots
+        return self.stream.cls.discarded_packets_have_default_clock_snapshots
 
 
 _MESSAGE_TYPE_TO_CLS = {
