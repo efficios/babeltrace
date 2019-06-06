@@ -70,7 +70,7 @@ struct bt_message *create_discarded_items_message(
 	struct bt_message_discarded_items *message;
 	struct bt_stream_class *stream_class;
 	bool has_support;
-	bool has_default_clock_snapshots;
+	bool need_cs;
 
 	BT_ASSERT_PRE_NON_NULL(self_msg_iter, "Message iterator");
 	BT_ASSERT_PRE_NON_NULL(stream, "Stream");
@@ -79,22 +79,28 @@ struct bt_message *create_discarded_items_message(
 
 	if (type == BT_MESSAGE_TYPE_DISCARDED_EVENTS) {
 		has_support = stream_class->supports_discarded_events;
-		has_default_clock_snapshots =
-			stream_class->discarded_events_have_default_clock_snapshots;
+		need_cs = stream_class->discarded_events_have_default_clock_snapshots;
 	} else {
 		has_support = stream_class->supports_discarded_packets;
-		has_default_clock_snapshots =
-			stream_class->discarded_packets_have_default_clock_snapshots;
+		need_cs = stream_class->discarded_packets_have_default_clock_snapshots;
 	}
 
 	BT_ASSERT_PRE(has_support,
 		"Stream class does not support discarded events or packets: "
 		"type=%s, %![stream-]+s, %![sc-]+S",
 		bt_message_type_string(type), stream, stream_class);
-	BT_ASSERT_PRE((with_cs && has_default_clock_snapshots) ||
-		(!with_cs && !has_default_clock_snapshots),
+	BT_ASSERT_PRE(need_cs ? with_cs : true,
 		"Unexpected stream class configuration when creating "
-		"a discarded events or packets message: "
+		"a discarded events or discarded packets message: "
+		"default clock snapshots are needed, but none was provided: "
+		"type=%s, %![stream-]+s, %![sc-]+S, with-cs=%d, "
+		"cs-begin-val=%" PRIu64 ", cs-end-val=%" PRIu64,
+		bt_message_type_string(type), stream, stream_class,
+		with_cs, beginning_raw_value, end_raw_value);
+	BT_ASSERT_PRE(!need_cs ? !with_cs : true,
+		"Unexpected stream class configuration when creating "
+		"a discarded events or discarded packets message: "
+		"no default clock snapshots are needed, but two were provided: "
 		"type=%s, %![stream-]+s, %![sc-]+S, with-cs=%d, "
 		"cs-begin-val=%" PRIu64 ", cs-end-val=%" PRIu64,
 		bt_message_type_string(type), stream, stream_class,
