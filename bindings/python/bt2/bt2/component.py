@@ -639,7 +639,7 @@ class _UserComponent(metaclass=_UserComponentType):
         if tc_ptr is None:
             raise bt2.CreationError('could not create trace class')
 
-        tc = bt2.TraceClass._create_from_ptr(tc_ptr)
+        tc = bt2._TraceClass._create_from_ptr(tc_ptr)
 
         if env is not None:
             for key, value in env.items():

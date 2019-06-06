@@ -30,11 +30,11 @@ import functools
 
 
 def _trace_destruction_listener_from_native(user_listener, trace_ptr):
-    trace = bt2.trace.Trace._create_from_ptr_and_get_ref(trace_ptr)
+    trace = bt2.trace._Trace._create_from_ptr_and_get_ref(trace_ptr)
     user_listener(trace)
 
 
-class Trace(object._SharedObject, collections.abc.Mapping):
+class _Trace(object._SharedObject, collections.abc.Mapping):
     _get_ref = staticmethod(native_bt.trace_get_ref)
     _put_ref = staticmethod(native_bt.trace_put_ref)
 
@@ -75,7 +75,7 @@ class Trace(object._SharedObject, collections.abc.Mapping):
     _name = property(fset=_name)
 
     def create_stream(self, stream_class, id=None, name=None):
-        utils._check_type(stream_class, bt2.stream_class.StreamClass)
+        utils._check_type(stream_class, bt2.stream_class._StreamClass)
 
         if stream_class.assigns_automatic_stream_id:
             if id is not None:

@@ -22,12 +22,13 @@
 
 from bt2 import native_bt, object, utils
 import bt2.field_class
+import bt2.event_class
 import collections.abc
 import bt2.stream
 import bt2
 
 
-class StreamClass(object._SharedObject, collections.abc.Mapping):
+class _StreamClass(object._SharedObject, collections.abc.Mapping):
     _get_ref = staticmethod(native_bt.stream_class_get_ref)
     _put_ref = staticmethod(native_bt.stream_class_put_ref)
 
@@ -38,7 +39,7 @@ class StreamClass(object._SharedObject, collections.abc.Mapping):
         if ec_ptr is None:
             raise KeyError(key)
 
-        return bt2.EventClass._create_from_ptr_and_get_ref(ec_ptr)
+        return bt2.event_class._EventClass._create_from_ptr_and_get_ref(ec_ptr)
 
     def __len__(self):
         count = native_bt.stream_class_get_event_class_count(self._ptr)
@@ -70,7 +71,7 @@ class StreamClass(object._SharedObject, collections.abc.Mapping):
             utils._check_uint64(id)
             ec_ptr = native_bt.event_class_create_with_id(self._ptr, id)
 
-        event_class = bt2.event_class.EventClass._create_from_ptr(ec_ptr)
+        event_class = bt2.event_class._EventClass._create_from_ptr(ec_ptr)
 
         if name is not None:
             event_class._name = name
@@ -94,7 +95,7 @@ class StreamClass(object._SharedObject, collections.abc.Mapping):
         tc_ptr = native_bt.stream_class_borrow_trace_class_const(self._ptr)
 
         if tc_ptr is not None:
-            return bt2.TraceClass._create_from_ptr_and_get_ref(tc_ptr)
+            return bt2._TraceClass._create_from_ptr_and_get_ref(tc_ptr)
 
     @property
     def name(self):

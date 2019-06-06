@@ -22,6 +22,7 @@
 
 from bt2 import native_bt, object, utils
 import bt2.clock_class
+import bt2.event_class
 import bt2.packet
 import bt2.stream
 import bt2.field
@@ -34,7 +35,7 @@ class _Event(object._UniqueObject):
     def event_class(self):
         event_class_ptr = native_bt.event_borrow_class(self._ptr)
         assert event_class_ptr is not None
-        return bt2.EventClass._create_from_ptr_and_get_ref(event_class_ptr)
+        return bt2.event_class._EventClass._create_from_ptr_and_get_ref(event_class_ptr)
 
     @property
     def name(self):

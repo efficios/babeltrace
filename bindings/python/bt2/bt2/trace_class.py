@@ -22,10 +22,11 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-__all__ = ['TraceClass']
+__all__ = ['_TraceClass']
 
 import bt2
 from bt2 import native_bt, utils, object
+import bt2.stream_class
 import uuid as uuidp
 import collections.abc
 import functools
@@ -95,11 +96,11 @@ class _StreamClassIterator(collections.abc.Iterator):
 
 
 def _trace_class_destruction_listener_from_native(user_listener, trace_class_ptr):
-    trace_class = bt2.trace_class.TraceClass._create_from_ptr_and_get_ref(trace_class_ptr)
+    trace_class = bt2.trace_class._TraceClass._create_from_ptr_and_get_ref(trace_class_ptr)
     user_listener(trace_class)
 
 
-class TraceClass(object._SharedObject, collections.abc.Mapping):
+class _TraceClass(object._SharedObject, collections.abc.Mapping):
     _get_ref = staticmethod(native_bt.trace_class_get_ref)
     _put_ref = staticmethod(native_bt.trace_class_put_ref)
 
@@ -125,7 +126,7 @@ class TraceClass(object._SharedObject, collections.abc.Mapping):
         if trace_ptr is None:
             raise bt2.CreationError('cannot create trace class object')
 
-        trace = bt2.trace.Trace._create_from_ptr(trace_ptr)
+        trace = bt2.trace._Trace._create_from_ptr(trace_ptr)
 
         if name is not None:
             trace._name = name
@@ -148,7 +149,7 @@ class TraceClass(object._SharedObject, collections.abc.Mapping):
         if sc_ptr is None:
             raise KeyError(key)
 
-        return bt2.StreamClass._create_from_ptr_and_get_ref(sc_ptr)
+        return bt2.stream_class._StreamClass._create_from_ptr_and_get_ref(sc_ptr)
 
     def __iter__(self):
         for idx in range(len(self)):
@@ -190,7 +191,7 @@ class TraceClass(object._SharedObject, collections.abc.Mapping):
             utils._check_uint64(id)
             sc_ptr = native_bt.stream_class_create_with_id(self._ptr, id)
 
-        sc = bt2.stream_class.StreamClass._create_from_ptr(sc_ptr)
+        sc = bt2.stream_class._StreamClass._create_from_ptr(sc_ptr)
 
         if name is not None:
             sc._name = name
