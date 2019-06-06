@@ -44,7 +44,6 @@
 # define DEFAULT_LOG_LEVEL	BT_LOG_NONE
 #endif /* BT_DEV_MODE */
 
-BT_HIDDEN
 int bt_lib_log_level = DEFAULT_LOG_LEVEL;
 
 enum bt_logging_level bt_logging_get_minimal_level(void)

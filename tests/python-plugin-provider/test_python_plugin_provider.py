@@ -3,7 +3,6 @@ import bt2
 import os
 
 
-@unittest.skip('depends on Python bindings, which are broken')
 class PythonPluginProviderTestCase(unittest.TestCase):
     def test_python_plugin_provider(self):
         path = os.environ['PYTHON_PLUGIN_PROVIDER_TEST_PLUGIN_PATH']
