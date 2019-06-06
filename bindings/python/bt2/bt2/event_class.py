@@ -45,7 +45,7 @@ class EventClassLogLevel:
     DEBUG = native_bt.EVENT_CLASS_LOG_LEVEL_DEBUG
 
 
-class EventClass(object._SharedObject):
+class _EventClass(object._SharedObject):
     _get_ref = staticmethod(native_bt.event_class_get_ref)
     _put_ref = staticmethod(native_bt.event_class_put_ref)
 
@@ -54,7 +54,7 @@ class EventClass(object._SharedObject):
         sc_ptr = native_bt.event_class_borrow_stream_class(self._ptr)
 
         if sc_ptr is not None:
-            return bt2.stream_class.StreamClass._create_from_ptr_and_get_ref(sc_ptr)
+            return bt2.stream_class._StreamClass._create_from_ptr_and_get_ref(sc_ptr)
 
     @property
     def name(self):

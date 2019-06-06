@@ -34,7 +34,7 @@ class _Stream(bt2.object._SharedObject):
     def stream_class(self):
         stream_class_ptr = native_bt.stream_borrow_class(self._ptr)
         assert stream_class_ptr is not None
-        return bt2.stream_class.StreamClass._create_from_ptr_and_get_ref(stream_class_ptr)
+        return bt2.stream_class._StreamClass._create_from_ptr_and_get_ref(stream_class_ptr)
 
     @property
     def name(self):

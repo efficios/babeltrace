@@ -150,7 +150,7 @@ class _UserMessageIterator(_MessageIterator):
                 'stream class has no default clock class, default_clock_snapshot should be None')
 
     def _create_event_message(self, event_class, packet, default_clock_snapshot=None):
-        utils._check_type(event_class, bt2.event_class.EventClass)
+        utils._check_type(event_class, bt2.event_class._EventClass)
         utils._check_type(packet, bt2.packet._Packet)
         self._validate_default_clock_snapshot(packet.stream.stream_class, default_clock_snapshot)
 
