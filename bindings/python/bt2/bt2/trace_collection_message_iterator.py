@@ -34,11 +34,11 @@ _ComponentAndSpec = namedtuple('_ComponentAndSpec', ['comp', 'spec'])
 
 
 class ComponentSpec:
-    def __init__(self, plugin_name, component_class_name, params=None):
+    def __init__(self, plugin_name, class_name, params=None):
         utils._check_str(plugin_name)
-        utils._check_str(component_class_name)
+        utils._check_str(class_name)
         self._plugin_name = plugin_name
-        self._component_class_name = component_class_name
+        self._class_name = class_name
 
         if type(params) is str:
             self._params = bt2.create_value({'paths': [params]})
@@ -50,8 +50,8 @@ class ComponentSpec:
         return self._plugin_name
 
     @property
-    def component_class_name(self):
-        return self._component_class_name
+    def class_name(self):
+        return self._class_name
 
     @property
     def params(self):
@@ -135,7 +135,7 @@ class TraceCollectionMessageIterator(bt2.message_iterator._MessageIterator):
         # contains the stream intersection range for each exposed
         # trace
         query_exec = bt2.QueryExecutor()
-        trace_info_res = query_exec.query(src_comp_and_spec.comp.component_class,
+        trace_info_res = query_exec.query(src_comp_and_spec.comp.cls,
                                           'trace-info', params)
         begin = None
         end = None
@@ -197,7 +197,7 @@ class TraceCollectionMessageIterator(bt2.message_iterator._MessageIterator):
 
     def _get_unique_comp_name(self, comp_spec):
         name = '{}-{}'.format(comp_spec.plugin_name,
-                              comp_spec.component_class_name)
+                              comp_spec.class_name)
         comps_and_specs = itertools.chain(self._src_comps_and_specs,
                                           self._flt_comps_and_specs)
 
@@ -218,13 +218,13 @@ class TraceCollectionMessageIterator(bt2.message_iterator._MessageIterator):
         else:
             comp_classes = plugin.filter_component_classes
 
-        if comp_spec.component_class_name not in comp_classes:
+        if comp_spec.class_name not in comp_classes:
             cc_type = 'source' if comp_cls_type == _CompClsType.SOURCE else 'filter'
             raise bt2.Error('no such {} component class in "{}" plugin: {}'.format(cc_type,
                                                                                    comp_spec.plugin_name,
-                                                                                   comp_spec.component_class_name))
+                                                                                   comp_spec.class_name))
 
-        comp_cls = comp_classes[comp_spec.component_class_name]
+        comp_cls = comp_classes[comp_spec.class_name]
         name = self._get_unique_comp_name(comp_spec)
         comp = self._graph.add_component(comp_cls, name, comp_spec.params)
         return comp

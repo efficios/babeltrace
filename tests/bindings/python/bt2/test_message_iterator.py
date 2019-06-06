@@ -167,6 +167,6 @@ class OutputPortMessageIteratorTestCase(unittest.TestCase):
                 self.assertIsInstance(msg, bt2.message._StreamEndMessage)
             else:
                 self.assertIsInstance(msg, bt2.message._EventMessage)
-                self.assertEqual(msg.event.event_class.name, 'salut')
+                self.assertEqual(msg.event.cls.name, 'salut')
                 field = msg.event.payload_field['my_int']
                 self.assertEqual(field, at * 3)

@@ -110,7 +110,7 @@ class EventTestCase(unittest.TestCase):
 
     def test_attr_event_class(self):
         msg = self._create_test_event_message()
-        self.assertEqual(msg.event.event_class.addr, self.event_class.addr)
+        self.assertEqual(msg.event.cls.addr, self.event_class.addr)
 
     def test_attr_name(self):
         msg = self._create_test_event_message()
