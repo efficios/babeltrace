@@ -18,6 +18,10 @@ class TraceTestCase(unittest.TestCase):
         with self.assertRaises(TypeError):
             self._tc(name=17)
 
+    def test_attr_trace_class(self):
+        trace = self._tc(name='my name')
+        self.assertEqual(trace.cls.addr, self._tc.addr)
+
     def test_len(self):
         trace = self._tc()
         sc = self._tc.create_stream_class()
