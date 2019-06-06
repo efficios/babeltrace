@@ -23,11 +23,12 @@ import re
 test_ctf_traces_path = os.environ['TEST_CTF_TRACES_PATH']
 
 
-# Key to streams by their being timestamp.  Used to get the list of streams in
-# a predictable order.
-
-def sort_by_begin(stream):
-    return stream['range-ns']['begin']
+# Key to sort streams in a predictable order.
+def sort_predictably(stream):
+    if 'range-ns' in stream:
+        return stream['range-ns']['begin']
+    else:
+        return stream['paths'][0]
 
 
 class QueryTraceInfoClockOffsetTestCase(unittest.TestCase):
@@ -45,7 +46,7 @@ class QueryTraceInfoClockOffsetTestCase(unittest.TestCase):
         self.assertEqual(trace['intersection-range-ns']['begin'], 13515309000000070 + offset)
         self.assertEqual(trace['intersection-range-ns']['end'], 13515309000000100 + offset)
 
-        streams = sorted(trace['streams'], key=sort_by_begin)
+        streams = sorted(trace['streams'], key=sort_predictably)
         self.assertEqual(streams[0]['range-ns']['begin'], 13515309000000000 + offset)
         self.assertEqual(streams[0]['range-ns']['end'], 13515309000000100 + offset)
         self.assertEqual(streams[1]['range-ns']['begin'], 13515309000000070 + offset)
@@ -144,7 +145,7 @@ class QueryTraceInfoPortNameTestCase(unittest.TestCase):
         )
         self.assertEqual(len(res), 1)
         trace = res[0]
-        streams = sorted(trace["streams"], key=sort_by_begin)
+        streams = sorted(trace["streams"], key=sort_predictably)
         self.assertEqual(len(streams), 2)
         self.assertRegexpMatches(
             str(streams[0]["port-name"]),
@@ -163,12 +164,39 @@ class QueryTraceInfoPortNameTestCase(unittest.TestCase):
         )
         self.assertEqual(len(res), 1)
         trace = res[0]
-        streams = sorted(trace["streams"], key=sort_by_begin)
+        streams = sorted(trace["streams"], key=sort_predictably)
         self.assertEqual(len(streams), 1)
         self.assertRegexpMatches(
             str(streams[0]["port-name"]),
             r"^2a6422d0-6cee-11e0-8c08-cb07d7b3a564 \| .*/tests/ctf-traces/succeed/succeed1/dummystream$",
         )
+
+
+class QueryTraceInfoRangeTestCase(unittest.TestCase):
+    def setUp(self):
+        ctf = bt2.find_plugin("ctf")
+        self._fs = ctf.source_component_classes["fs"]
+
+        self._executor = bt2.QueryExecutor()
+
+    def test_trace_no_range(self):
+        # This trace has no `timestamp_begin` and `timestamp_end` in its packet
+        # context. The `trace-info` query should omit the `range-ns` fields in
+        # the `trace` and `stream` data structures.
+
+        res = self._executor.query(
+            self._fs,
+            "trace-info",
+            {"paths": [os.path.join(test_ctf_traces_path, "succeed", "succeed1")]},
+        )
+
+        self.assertEqual(len(res), 1)
+        trace = res[0]
+        streams = trace["streams"]
+        self.assertEqual(len(streams), 1)
+
+        self.assertRaises(KeyError, lambda: trace['range-ns'])
+        self.assertRaises(KeyError, lambda: streams[0]['range-ns'])
 
 
 if __name__ == '__main__':

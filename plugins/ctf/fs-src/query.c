@@ -313,13 +313,18 @@ int populate_stream_info(struct ctf_fs_ds_file_group *group,
 
 	stream_range->begin_ns = first_ds_index_entry->timestamp_begin_ns;
 	stream_range->end_ns = last_ds_index_entry->timestamp_end_ns;
-	stream_range->set = true;
 
-	if (stream_range->set) {
-		ret = add_range(group_info, stream_range, "range-ns");
-		if (ret) {
-			goto end;
-		}
+	/*
+	 * If any of the begin and end timestamps is not set it means that
+	 * packets don't include `timestamp_begin` _and_ `timestamp_end` fields
+	 * in their packet context so we can't set the range.
+	 */
+	stream_range->set = stream_range->begin_ns != UINT64_C(-1) &&
+		stream_range->end_ns != UINT64_C(-1);
+
+	ret = add_range(group_info, stream_range, "range-ns");
+	if (ret) {
+		goto end;
 	}
 
 	status = bt_value_map_insert_entry(group_info, "paths",

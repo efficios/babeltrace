@@ -155,10 +155,6 @@ struct ctf_fs_ds_file_group {
 	 * been skipped. Moreover, the index's fields may not all be available
 	 * depending on the producer (e.g. timestamp_begin/end are not
 	 * mandatory).
-	 *
-	 * FIXME In such cases (missing fields), the indexing is aborted as
-	 * no the index entries don't have a concept of fields being present
-	 * or not.
 	 */
 	struct ctf_fs_ds_index *index;
 };
