@@ -87,7 +87,7 @@ struct bt_message *create_packet_message(
 	struct bt_message_packet *message = NULL;
 	struct bt_stream *stream;
 	struct bt_stream_class *stream_class;
-	bool packet_has_default_clock_snapshot;
+	bool need_cs;
 
 	BT_ASSERT(msg_iter);
 	BT_ASSERT_PRE_NON_NULL(packet, "Packet");
@@ -97,21 +97,26 @@ struct bt_message *create_packet_message(
 	BT_ASSERT(stream_class);
 
 	if (pool == &msg_iter->graph->packet_begin_msg_pool) {
-		packet_has_default_clock_snapshot =
-			stream_class->packets_have_beginning_default_clock_snapshot;
+		need_cs = stream_class->packets_have_beginning_default_clock_snapshot;
 	} else {
-		packet_has_default_clock_snapshot =
-			stream_class->packets_have_end_default_clock_snapshot;
+		need_cs = stream_class->packets_have_end_default_clock_snapshot;
 	}
 
 	/*
 	 * `packet_has_default_clock_snapshot` implies that the stream
 	 * class has a default clock class (precondition).
 	 */
-	BT_ASSERT_PRE((with_cs && packet_has_default_clock_snapshot) ||
-		(!with_cs && !packet_has_default_clock_snapshot),
+	BT_ASSERT_PRE(need_cs ? with_cs : true,
 		"Unexpected stream class configuration when creating "
-		"a packet beginning or end message: ",
+		"a packet beginning or end message: "
+		"a default clock snapshot is needed, but none was provided: "
+		"%![stream-]+s, %![sc-]+S, with-cs=%d, "
+		"cs-val=%" PRIu64,
+		stream, stream_class, with_cs, raw_value);
+	BT_ASSERT_PRE(!need_cs ? !with_cs : true,
+		"Unexpected stream class configuration when creating "
+		"a packet beginning or end message: "
+		"no default clock snapshot is needed, but one was provided: "
 		"%![stream-]+s, %![sc-]+S, with-cs=%d, "
 		"cs-val=%" PRIu64,
 		stream, stream_class, with_cs, raw_value);
