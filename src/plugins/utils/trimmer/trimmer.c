@@ -175,6 +175,99 @@ void trimmer_finalize(bt_self_component_filter *self_comp)
 }
 
 /*
+ * Compile regex in `pattern`, and try to match `string`.  If there's a match,
+ * return true and set `*match_info` to the list of matches.  The list of
+ * matches must be freed by the caller. If there's no match, return false and
+ * set `*match_info` to NULL;
+ */
+static
+bool compile_and_match(const char *pattern, const char *string, GMatchInfo **match_info) {
+	bool matches = false;
+	GError *regex_error = NULL;
+	GRegex *regex;
+
+	regex = g_regex_new(pattern, 0, 0, &regex_error);
+	if (!regex) {
+		goto end;
+	}
+
+	matches = g_regex_match(regex, string, 0, match_info);
+	if (!matches) {
+		/*
+		 * g_regex_match allocates `*match_info` even if it returns
+		 * FALSE.  If there's no match, we have no use for it, so free
+		 * it immediatly and don't return it to the caller.
+		 */
+		g_match_info_unref(*match_info);
+		*match_info = NULL;
+	}
+
+	g_regex_unref(regex);
+
+end:
+
+	if (regex_error) {
+		g_error_free(regex_error);
+	}
+
+	return matches;
+}
+
+/*
+ * Convert the captured text in match number `match_num` in `match_info`
+ * to an unsigned integer.
+ */
+static
+guint64 match_to_uint(const GMatchInfo *match_info, gint match_num) {
+	gchar *text, *endptr;
+	guint64 result;
+
+	text = g_match_info_fetch(match_info, match_num);
+	BT_ASSERT(text);
+
+	/*
+	 * Because the input is carefully sanitized with regexes by the caller,
+	 * we assume that g_ascii_strtoull cannot fail.
+	 */
+	errno = 0;
+	result = g_ascii_strtoull(text, &endptr, 10);
+	BT_ASSERT(endptr > text);
+	BT_ASSERT(errno == 0);
+
+	g_free(text);
+
+	return result;
+}
+
+/*
+ * When parsing the nanoseconds part, .512 means .512000000, not .000000512.
+ * This function is like match_to_uint, but multiplies the parsed number to get
+ * the expected result.
+ */
+static
+guint64 match_to_uint_ns(const GMatchInfo *match_info, gint match_num) {
+	guint64 nanoseconds;
+	gboolean ret;
+	gint start_pos, end_pos, power;
+	static int pow10[] = {
+		1, 10, 100, 1000, 10000, 100000, 1000000, 10000000, 100000000,
+	};
+
+	nanoseconds = match_to_uint(match_info, match_num);
+
+	/* Multiply by 10 as many times as there are omitted digits. */
+	ret = g_match_info_fetch_pos(match_info, match_num, &start_pos, &end_pos);
+	BT_ASSERT(ret);
+
+	power = 9 - (end_pos - start_pos);
+	BT_ASSERT(power >= 0 && power <= 8);
+
+	nanoseconds *= pow10[power];
+
+	return nanoseconds;
+}
+
+/*
  * Sets the time (in ns from origin) of a trimmer bound from date and
  * time components.
  *
@@ -236,98 +329,104 @@ static
 int set_bound_from_str(struct trimmer_comp *trimmer_comp,
 		const char *str, struct trimmer_bound *bound, bool is_gmt)
 {
+/* Matches YYYY-MM-DD */
+#define DATE_RE "([0-9]{4})-([0-9]{2})-([0-9]{2})"
+
+/* Matches HH:MM[:SS[.NS]] */
+#define TIME_RE "([0-9]{2}):([0-9]{2})(?::([0-9]{2})(?:\\.([0-9]{1,9}))?)?"
+
+/* Matches [-]SS[.NS] */
+#define S_NS_RE "^(-?)([0-9]+)(?:\\.([0-9]{1,9}))?$"
+
+	GMatchInfo *match_info;
 	int ret = 0;
-	int s_ret;
-	unsigned int year, month, day, hour, minute, second, ns;
-	char dummy;
 
-	/* Try `YYYY-MM-DD hh:mm:ss.ns` format */
-	s_ret = sscanf(str, "%u-%u-%u %u:%u:%u.%u%c", &year, &month, &day,
-		&hour, &minute, &second, &ns, &dummy);
-	if (s_ret == 7) {
-		ret = set_bound_ns_from_origin(bound, year, month, day,
-			hour, minute, second, ns, is_gmt);
+	/* Try `YYYY-MM-DD hh:mm[:ss[.ns]]` format */
+	if (compile_and_match("^" DATE_RE " " TIME_RE "$", str, &match_info)) {
+		unsigned int year = 0, month = 0, day = 0, hours = 0, minutes = 0, seconds = 0, nanoseconds = 0;
+		gint match_count = g_match_info_get_match_count(match_info);
+
+		BT_ASSERT(match_count >= 6 && match_count <= 8);
+
+		year = match_to_uint(match_info, 1);
+		month = match_to_uint(match_info, 2);
+		day = match_to_uint(match_info, 3);
+		hours = match_to_uint(match_info, 4);
+		minutes = match_to_uint(match_info, 5);
+
+		if (match_count >= 7) {
+			seconds = match_to_uint(match_info, 6);
+		}
+
+		if (match_count >= 8) {
+			nanoseconds = match_to_uint_ns(match_info, 7);
+		}
+
+		set_bound_ns_from_origin(bound, year, month, day, hours, minutes, seconds, nanoseconds, is_gmt);
+
 		goto end;
 	}
 
-	/* Try `YYYY-MM-DD hh:mm:ss` format */
-	s_ret = sscanf(str, "%u-%u-%u %u:%u:%u%c", &year, &month, &day,
-		&hour, &minute, &second, &dummy);
-	if (s_ret == 6) {
-		ret = set_bound_ns_from_origin(bound, year, month, day,
-			hour, minute, second, 0, is_gmt);
+	if (compile_and_match("^" DATE_RE "$", str, &match_info)) {
+		unsigned int year = 0, month = 0, day = 0;
+
+		BT_ASSERT(g_match_info_get_match_count(match_info) == 4);
+
+		year = match_to_uint(match_info, 1);
+		month = match_to_uint(match_info, 2);
+		day = match_to_uint(match_info, 3);
+
+		set_bound_ns_from_origin(bound, year, month, day, 0, 0, 0, 0, is_gmt);
+
 		goto end;
 	}
 
-	/* Try `YYYY-MM-DD hh:mm` format */
-	s_ret = sscanf(str, "%u-%u-%u %u:%u%c", &year, &month, &day,
-		&hour, &minute, &dummy);
-	if (s_ret == 5) {
-		ret = set_bound_ns_from_origin(bound, year, month, day,
-			hour, minute, 0, 0, is_gmt);
+	/* Try `hh:mm[:ss[.ns]]` format */
+	if (compile_and_match("^" TIME_RE "$", str, &match_info)) {
+		gint match_count = g_match_info_get_match_count(match_info);
+		BT_ASSERT(match_count >= 3 && match_count <= 5);
+		bound->time.hour = match_to_uint(match_info, 1);
+		bound->time.minute = match_to_uint(match_info, 2);
+
+		if (match_count >= 4) {
+			bound->time.second = match_to_uint(match_info, 3);
+		}
+
+		if (match_count >= 5) {
+			bound->time.ns = match_to_uint_ns(match_info, 4);
+		}
+
 		goto end;
 	}
 
-	/* Try `YYYY-MM-DD` format */
-	s_ret = sscanf(str, "%u-%u-%u%c", &year, &month, &day, &dummy);
-	if (s_ret == 3) {
-		ret = set_bound_ns_from_origin(bound, year, month, day,
-			0, 0, 0, 0, is_gmt);
-		goto end;
-	}
+	/* Try `[-]s[.ns]` format */
+	if (compile_and_match("^" S_NS_RE "$", str, &match_info)) {
+		gboolean is_neg, fetch_pos_ret;
+		gint start_pos, end_pos, match_count;
+		guint64 seconds, nanoseconds = 0;
 
-	/* Try `hh:mm:ss.ns` format */
-	s_ret = sscanf(str, "%u:%u:%u.%u%c", &hour, &minute, &second, &ns,
-		&dummy);
-	if (s_ret == 4) {
-		bound->time.hour = hour;
-		bound->time.minute = minute;
-		bound->time.second = second;
-		bound->time.ns = ns;
-		goto end;
-	}
+		match_count = g_match_info_get_match_count(match_info);
+		BT_ASSERT(match_count >= 3 && match_count <= 4);
 
-	/* Try `hh:mm:ss` format */
-	s_ret = sscanf(str, "%u:%u:%u%c", &hour, &minute, &second, &dummy);
-	if (s_ret == 3) {
-		bound->time.hour = hour;
-		bound->time.minute = minute;
-		bound->time.second = second;
-		bound->time.ns = 0;
-		goto end;
-	}
+		/* Check for presence of negation sign. */
+		fetch_pos_ret = g_match_info_fetch_pos(match_info, 1, &start_pos, &end_pos);
+		BT_ASSERT(fetch_pos_ret);
+		is_neg = (end_pos - start_pos) > 0;
 
-	/* Try `-s.ns` format */
-	s_ret = sscanf(str, "-%u.%u%c", &second, &ns, &dummy);
-	if (s_ret == 2) {
-		bound->ns_from_origin = -((int64_t) second) * NS_PER_S;
-		bound->ns_from_origin -= (int64_t) ns;
+		seconds = match_to_uint(match_info, 2);
+
+		if (match_count >= 4) {
+			nanoseconds = match_to_uint_ns(match_info, 3);
+		}
+
+		bound->ns_from_origin = seconds * NS_PER_S + nanoseconds;
+
+		if (is_neg) {
+			bound->ns_from_origin = -bound->ns_from_origin;
+		}
+
 		bound->is_set = true;
-		goto end;
-	}
 
-	/* Try `s.ns` format */
-	s_ret = sscanf(str, "%u.%u%c", &second, &ns, &dummy);
-	if (s_ret == 2) {
-		bound->ns_from_origin = ((int64_t) second) * NS_PER_S;
-		bound->ns_from_origin += (int64_t) ns;
-		bound->is_set = true;
-		goto end;
-	}
-
-	/* Try `-s` format */
-	s_ret = sscanf(str, "-%u%c", &second, &dummy);
-	if (s_ret == 1) {
-		bound->ns_from_origin = -((int64_t) second) * NS_PER_S;
-		bound->is_set = true;
-		goto end;
-	}
-
-	/* Try `s` format */
-	s_ret = sscanf(str, "%u%c", &second, &dummy);
-	if (s_ret == 1) {
-		bound->ns_from_origin = (int64_t) second * NS_PER_S;
-		bound->is_set = true;
 		goto end;
 	}
 
