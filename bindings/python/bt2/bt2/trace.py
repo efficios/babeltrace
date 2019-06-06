@@ -25,6 +25,7 @@ import bt2.field_class
 import collections.abc
 import bt2.value
 import bt2.stream
+import bt2.trace_class
 import bt2
 import functools
 
@@ -62,6 +63,12 @@ class _Trace(object._SharedObject, collections.abc.Mapping):
             assert id >= 0
 
             yield id
+
+    @property
+    def cls(self):
+        trace_class_ptr = native_bt.trace_borrow_class(self._ptr)
+        assert trace_class_ptr is not None
+        return bt2.trace_class._TraceClass._create_from_ptr_and_get_ref(trace_class_ptr)
 
     @property
     def name(self):
