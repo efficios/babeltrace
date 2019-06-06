@@ -23,7 +23,6 @@
 from bt2 import native_bt, object, utils
 import bt2.field_class
 import collections.abc
-import bt2.ctf_writer
 import bt2.stream
 import bt2
 
@@ -196,21 +195,6 @@ class StreamClass(object._SharedObject, collections.abc.Mapping):
         utils._check_int64(id)
         ret = native_bt.stream_class_set_id(self._ptr, id)
         utils._handle_ret(ret, "cannot set stream class object's ID")
-
-    @property
-    def clock(self):
-        clock_ptr = native_bt.stream_class_get_clock(self._ptr)
-
-        if clock_ptr is None:
-            return
-
-        return bt2.ctf_writer.CtfWriterClock._create_from_ptr(clock_ptr)
-
-    @clock.setter
-    def clock(self, clock):
-        utils._check_type(clock, bt2.ctf_writer.CtfWriterClock)
-        ret = native_bt.stream_class_set_clock(self._ptr, clock._ptr)
-        utils._handle_ret(ret, "cannot set stream class object's CTF writer clock object")
 
     @property
     def packet_context_field_class(self):
