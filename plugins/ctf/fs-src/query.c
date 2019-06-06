@@ -415,6 +415,12 @@ int populate_trace_info(const struct ctf_fs_trace *trace, bt_value *trace_info)
 			goto end;
 		}
 
+		status = bt_value_array_append_element(file_groups, group_info);
+		bt_value_put_ref(group_info);
+		if (status != BT_VALUE_STATUS_OK) {
+			goto end;
+		}
+
 		if (group_range.set) {
 			trace_range.begin_ns = min(trace_range.begin_ns,
 					group_range.begin_ns);
@@ -427,13 +433,6 @@ int populate_trace_info(const struct ctf_fs_trace *trace, bt_value *trace_info)
 			trace_intersection.end_ns = min(trace_intersection.end_ns,
 					group_range.end_ns);
 			trace_intersection.set = true;
-			status = bt_value_array_append_element(
-				file_groups,
-				group_info);
-			bt_value_put_ref(group_info);
-			if (status != BT_VALUE_STATUS_OK) {
-				goto end;
-			}
 		}
 	}
 
