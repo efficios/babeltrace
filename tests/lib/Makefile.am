@@ -4,8 +4,6 @@ AM_CPPFLAGS += -I$(top_srcdir)/tests/utils
 
 LIBTAP=$(top_builddir)/tests/utils/tap/libtap.la
 
-dist_check_SCRIPTS = ctf-writer/test_auto_populate.py
-
 libtestcommon_la_SOURCES = common.c common.h
 noinst_LTLIBRARIES = libtestcommon.la
 
