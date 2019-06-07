@@ -26,7 +26,7 @@
  */
 
 #define BT_LOG_TAG "CTF-WRITER-FIELD-PATH"
-#include <babeltrace2/lib-logging-internal.h>
+#include "logging.h"
 
 #include <babeltrace2/assert-internal.h>
 #include <babeltrace2/ctf-writer/field-path-internal.h>

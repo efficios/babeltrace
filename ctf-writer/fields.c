@@ -23,9 +23,9 @@
  */
 
 #define BT_LOG_TAG "CTF-WRITER-FIELDS"
-#include <babeltrace2/lib-logging-internal.h>
+#include "logging.h"
 
-#include <babeltrace2/assert-pre-internal.h>
+#include <babeltrace2/ctf-writer/assert-pre-internal.h>
 #include <babeltrace2/align-internal.h>
 #include <babeltrace2/assert-internal.h>
 #include <babeltrace2/compat/fcntl-internal.h>
@@ -41,8 +41,8 @@
 #include <inttypes.h>
 #include <stdlib.h>
 
-#define BT_ASSERT_PRE_CTF_FIELD_IS_INT_OR_ENUM(_field, _name)		\
-	BT_ASSERT_PRE((_field)->type->id == BT_CTF_FIELD_TYPE_ID_INTEGER || \
+#define BT_CTF_ASSERT_PRE_CTF_FIELD_IS_INT_OR_ENUM(_field, _name)		\
+	BT_CTF_ASSERT_PRE((_field)->type->id == BT_CTF_FIELD_TYPE_ID_INTEGER || \
 		(_field)->type->id == BT_CTF_FIELD_TYPE_ID_ENUM,	\
 		_name " is not an integer or an enumeration field: "	\
 		"field-addr=%p", (_field))
@@ -52,7 +52,7 @@ struct bt_ctf_field_common *bt_ctf_field_common_copy(struct bt_ctf_field_common 
 {
 	struct bt_ctf_field_common *copy = NULL;
 
-	BT_ASSERT_PRE_NON_NULL(field, "Field");
+	BT_CTF_ASSERT_PRE_NON_NULL(field, "Field");
 	BT_ASSERT(field_type_common_has_known_id(field->type));
 	BT_ASSERT(field->methods->copy);
 	copy = field->methods->copy(field);
@@ -287,7 +287,7 @@ int bt_ctf_field_common_structure_validate_recursive(struct bt_ctf_field_common 
 			this_ret = bt_ctf_field_type_common_structure_borrow_field_by_index(
 				field->type, &name, NULL, i);
 			BT_ASSERT(this_ret == 0);
-			BT_ASSERT_PRE_MSG("Invalid structure field's field: "
+			BT_CTF_ASSERT_PRE_MSG("Invalid structure field's field: "
 				"struct-field-addr=%p, field-name=\"%s\", "
 				"index=%" PRId64 ", field-addr=%p",
 				field, name, i, structure->fields->pdata[i]);
@@ -330,8 +330,8 @@ int bt_ctf_field_common_array_validate_recursive(struct bt_ctf_field_common *fie
 	for (i = 0; i < array->elements->len; i++) {
 		ret = bt_ctf_field_common_validate_recursive((void *) array->elements->pdata[i]);
 		if (ret) {
-			BT_ASSERT_PRE_MSG("Invalid array field's element field: "
-				"array-field-addr=%p, " PRId64 ", "
+			BT_CTF_ASSERT_PRE_MSG("Invalid array field's element field: "
+				"array-field-addr=%p, %" PRId64 ", "
 				"elem-field-addr=%p",
 				field, i, array->elements->pdata[i]);
 			goto end;
@@ -345,7 +345,7 @@ end:
 BT_HIDDEN
 int bt_ctf_field_common_sequence_validate_recursive(struct bt_ctf_field_common *field)
 {
-	size_t i;
+	int64_t i;
 	int ret = 0;
 	struct bt_ctf_field_common_sequence *sequence = BT_CTF_FROM_COMMON(field);
 
@@ -355,8 +355,8 @@ int bt_ctf_field_common_sequence_validate_recursive(struct bt_ctf_field_common *
 		ret = bt_ctf_field_common_validate_recursive(
 			(void *) sequence->elements->pdata[i]);
 		if (ret) {
-			BT_ASSERT_PRE_MSG("Invalid sequence field's element field: "
-				"seq-field-addr=%p, " PRId64 ", "
+			BT_CTF_ASSERT_PRE_MSG("Invalid sequence field's element field: "
+				"seq-field-addr=%p, %" PRId64 ", "
 				"elem-field-addr=%p",
 				field, i, sequence->elements->pdata[i]);
 			goto end;
@@ -864,7 +864,7 @@ int bt_ctf_field_serialize_recursive(struct bt_ctf_field *field,
 	bt_ctf_field_serialize_recursive_func serialize_func;
 
 	BT_ASSERT(ctfser);
-	BT_ASSERT_PRE_NON_NULL(field, "Field");
+	BT_CTF_ASSERT_PRE_NON_NULL(field, "Field");
 	BT_ASSERT(field_common->spec.writer.serialize_func);
 	serialize_func = field_common->spec.writer.serialize_func;
 	return serialize_func(field_common, ctfser,
@@ -883,7 +883,7 @@ int bt_ctf_field_integer_serialize(struct bt_ctf_field_common *field,
 		BT_CTF_FROM_COMMON(field);
 	enum bt_ctf_byte_order byte_order;
 
-	BT_ASSERT_PRE_CTF_FIELD_COMMON_IS_SET(field, "Integer field");
+	BT_CTF_ASSERT_PRE_CTF_FIELD_COMMON_IS_SET(field, "Integer field");
 	BT_LOGV("Serializing CTF writer integer field: addr=%p, native-bo=%s",
 		field,
 		bt_ctf_byte_order_string(native_byte_order));
@@ -940,7 +940,7 @@ int bt_ctf_field_floating_point_serialize(struct bt_ctf_field_common *field,
 	struct bt_ctf_field_common_floating_point *flt_field = BT_CTF_FROM_COMMON(field);
 	enum bt_ctf_byte_order byte_order;
 
-	BT_ASSERT_PRE_CTF_FIELD_COMMON_IS_SET(field, "Floating point number field");
+	BT_CTF_ASSERT_PRE_CTF_FIELD_COMMON_IS_SET(field, "Floating point number field");
 	BT_LOGV("Serializing floating point number field: "
 		"addr=%p, native-bo=%s", field,
 		bt_ctf_byte_order_string(native_byte_order));
@@ -1123,7 +1123,7 @@ int bt_ctf_field_string_serialize(struct bt_ctf_field_common *field,
 	int ret;
 	struct bt_ctf_field_common_string *string = BT_CTF_FROM_COMMON(field);
 
-	BT_ASSERT_PRE_CTF_FIELD_COMMON_IS_SET(field, "String field");
+	BT_CTF_ASSERT_PRE_CTF_FIELD_COMMON_IS_SET(field, "String field");
 	BT_LOGV("Serializing string field: addr=%p, native-bo=%s",
 		field, bt_ctf_byte_order_string((int) native_byte_order));
 	ret = bt_ctfser_write_string(ctfser, (const char *) string->buf->data);
@@ -1141,9 +1141,9 @@ struct bt_ctf_field *bt_ctf_field_create(struct bt_ctf_field_type *type)
 	struct bt_ctf_field *field = NULL;
 	enum bt_ctf_field_type_id type_id;
 
-	BT_ASSERT_PRE_NON_NULL(type, "Field type");
+	BT_CTF_ASSERT_PRE_NON_NULL(type, "Field type");
 	BT_ASSERT(field_type_common_has_known_id((void *) type));
-	BT_ASSERT_PRE(bt_ctf_field_type_common_validate((void *) type) == 0,
+	BT_CTF_ASSERT_PRE(bt_ctf_field_type_common_validate((void *) type) == 0,
 		"Field type is invalid: ft-addr=%p", type);
 	type_id = bt_ctf_field_type_get_type_id(type);
 	field = field_create_funcs[type_id](type);
@@ -1166,7 +1166,7 @@ enum bt_ctf_field_type_id bt_ctf_field_get_type_id(struct bt_ctf_field *field)
 {
 	struct bt_ctf_field_common *field_common = (void *) field;
 
-	BT_ASSERT_PRE_NON_NULL(field, "Field");
+	BT_CTF_ASSERT_PRE_NON_NULL(field, "Field");
 	return (int) field_common->type->id;
 }
 
@@ -1177,9 +1177,9 @@ int bt_ctf_field_sequence_set_length(struct bt_ctf_field *field,
 	struct bt_ctf_field_common *common_length_field = (void *) length_field;
 	uint64_t length;
 
-	BT_ASSERT_PRE_NON_NULL(length_field, "Length field");
-	BT_ASSERT_PRE_CTF_FIELD_COMMON_IS_SET((void *) length_field, "Length field");
-	BT_ASSERT_PRE(common_length_field->type->id == BT_CTF_FIELD_TYPE_ID_INTEGER ||
+	BT_CTF_ASSERT_PRE_NON_NULL(length_field, "Length field");
+	BT_CTF_ASSERT_PRE_CTF_FIELD_COMMON_IS_SET((void *) length_field, "Length field");
+	BT_CTF_ASSERT_PRE(common_length_field->type->id == BT_CTF_FIELD_TYPE_ID_INTEGER ||
 			common_length_field->type->id == BT_CTF_FIELD_TYPE_ID_ENUM,
 		"Length field must be an integer or enumeration field: field-addr=%p",
 		length_field);
@@ -1237,20 +1237,20 @@ struct bt_ctf_field *bt_ctf_field_variant_get_field(struct bt_ctf_field *field,
 	uint64_t tag_uval;
 	int ret;
 
-	BT_ASSERT_PRE_NON_NULL(field, "Variant field");
-	BT_ASSERT_PRE_NON_NULL(tag_field, "Tag field");
-	BT_ASSERT_PRE_CTF_FIELD_COMMON_IS_SET((void *) tag_field, "Tag field");
-	BT_ASSERT_PRE_CTF_FIELD_COMMON_HAS_TYPE_ID(
+	BT_CTF_ASSERT_PRE_NON_NULL(field, "Variant field");
+	BT_CTF_ASSERT_PRE_NON_NULL(tag_field, "Tag field");
+	BT_CTF_ASSERT_PRE_CTF_FIELD_COMMON_IS_SET((void *) tag_field, "Tag field");
+	BT_CTF_ASSERT_PRE_CTF_FIELD_COMMON_HAS_TYPE_ID(
 		(struct bt_ctf_field_common *) tag_field,
 		BT_CTF_FIELD_TYPE_ID_ENUM, "Tag field");
-	BT_ASSERT_PRE_CTF_FIELD_COMMON_HAS_TYPE_ID(
+	BT_CTF_ASSERT_PRE_CTF_FIELD_COMMON_HAS_TYPE_ID(
 		(struct bt_ctf_field_common *) field,
 		BT_CTF_FIELD_TYPE_ID_VARIANT, "Field");
-	BT_ASSERT_PRE(
+	BT_CTF_ASSERT_PRE(
 		bt_ctf_field_common_validate_recursive((void *) tag_field) == 0,
 		"Tag field is invalid: field-addr=%p", tag_field);
 	variant_ft = BT_CTF_FROM_COMMON(variant_field->common.common.type);
-	BT_ASSERT_PRE(bt_ctf_field_type_common_compare(
+	BT_CTF_ASSERT_PRE(bt_ctf_field_type_common_compare(
 		BT_CTF_TO_COMMON(variant_ft->tag_ft), enum_field->common.type) == 0,
 		"Unexpected tag field's type: expected-ft-addr=%p, "
 		"tag-ft-addr=%p", variant_ft->tag_ft,
@@ -1298,8 +1298,8 @@ struct bt_ctf_field *bt_ctf_field_enumeration_borrow_container(
 {
 	struct bt_ctf_field_enumeration *enumeration = (void *) field;
 
-	BT_ASSERT_PRE_NON_NULL(field, "Enumeration field");
-	BT_ASSERT_PRE_CTF_FIELD_COMMON_HAS_TYPE_ID((struct bt_ctf_field_common *) field,
+	BT_CTF_ASSERT_PRE_NON_NULL(field, "Enumeration field");
+	BT_CTF_ASSERT_PRE_CTF_FIELD_COMMON_HAS_TYPE_ID((struct bt_ctf_field_common *) field,
 		BT_CTF_FIELD_TYPE_ID_ENUM, "Field");
 	BT_ASSERT(enumeration->container);
 	return (void *) enumeration->container;
@@ -1316,12 +1316,12 @@ int bt_ctf_field_integer_signed_get_value(struct bt_ctf_field *field,
 {
 	struct bt_ctf_field_common_integer *integer = (void *) field;
 
-	BT_ASSERT_PRE_NON_NULL(field, "Integer field");
-	BT_ASSERT_PRE_NON_NULL(value, "Value");
-	BT_ASSERT_PRE_CTF_FIELD_COMMON_IS_SET(BT_CTF_TO_COMMON(integer), "Integer field");
-	BT_ASSERT_PRE_CTF_FIELD_COMMON_HAS_TYPE_ID(BT_CTF_TO_COMMON(integer),
+	BT_CTF_ASSERT_PRE_NON_NULL(field, "Integer field");
+	BT_CTF_ASSERT_PRE_NON_NULL(value, "Value");
+	BT_CTF_ASSERT_PRE_CTF_FIELD_COMMON_IS_SET(BT_CTF_TO_COMMON(integer), "Integer field");
+	BT_CTF_ASSERT_PRE_CTF_FIELD_COMMON_HAS_TYPE_ID(BT_CTF_TO_COMMON(integer),
 		BT_CTF_FIELD_TYPE_ID_INTEGER, "Field");
-	BT_ASSERT_PRE(bt_ctf_field_type_common_integer_is_signed(
+	BT_CTF_ASSERT_PRE(bt_ctf_field_type_common_integer_is_signed(
 		integer->common.type),
 		"Field's type is unsigned: field-addr=%p", field);
 	*value = integer->payload.signd;
@@ -1335,15 +1335,15 @@ int bt_ctf_field_integer_signed_set_value(struct bt_ctf_field *field,
 	struct bt_ctf_field_common_integer *integer = (void *) field;
 	struct bt_ctf_field_type_common_integer *integer_type;
 
-	BT_ASSERT_PRE_NON_NULL(field, "Integer field");
-	BT_ASSERT_PRE_CTF_FIELD_COMMON_HOT(BT_CTF_TO_COMMON(integer), "Integer field");
-	BT_ASSERT_PRE_CTF_FIELD_COMMON_HAS_TYPE_ID(BT_CTF_TO_COMMON(integer),
+	BT_CTF_ASSERT_PRE_NON_NULL(field, "Integer field");
+	BT_CTF_ASSERT_PRE_CTF_FIELD_COMMON_HOT(BT_CTF_TO_COMMON(integer), "Integer field");
+	BT_CTF_ASSERT_PRE_CTF_FIELD_COMMON_HAS_TYPE_ID(BT_CTF_TO_COMMON(integer),
 		BT_CTF_FIELD_TYPE_ID_INTEGER, "Field");
 	integer_type = BT_CTF_FROM_COMMON(integer->common.type);
-	BT_ASSERT_PRE(
+	BT_CTF_ASSERT_PRE(
 		bt_ctf_field_type_common_integer_is_signed(integer->common.type),
 		"Field's type is unsigned: field-addr=%p", field);
-	BT_ASSERT_PRE(value_is_in_range_signed(integer_type->size, value),
+	BT_CTF_ASSERT_PRE(value_is_in_range_signed(integer_type->size, value),
 		"Value is out of bounds: value=%" PRId64 ", field-addr=%p",
 		value, field);
 	integer->payload.signd = value;
@@ -1356,12 +1356,12 @@ int bt_ctf_field_integer_unsigned_get_value(struct bt_ctf_field *field,
 {
 	struct bt_ctf_field_common_integer *integer = (void *) field;
 
-	BT_ASSERT_PRE_NON_NULL(field, "Integer field");
-	BT_ASSERT_PRE_NON_NULL(value, "Value");
-	BT_ASSERT_PRE_CTF_FIELD_COMMON_IS_SET(BT_CTF_TO_COMMON(integer), "Integer field");
-	BT_ASSERT_PRE_CTF_FIELD_COMMON_HAS_TYPE_ID(BT_CTF_TO_COMMON(integer),
+	BT_CTF_ASSERT_PRE_NON_NULL(field, "Integer field");
+	BT_CTF_ASSERT_PRE_NON_NULL(value, "Value");
+	BT_CTF_ASSERT_PRE_CTF_FIELD_COMMON_IS_SET(BT_CTF_TO_COMMON(integer), "Integer field");
+	BT_CTF_ASSERT_PRE_CTF_FIELD_COMMON_HAS_TYPE_ID(BT_CTF_TO_COMMON(integer),
 		BT_CTF_FIELD_TYPE_ID_INTEGER, "Field");
-	BT_ASSERT_PRE(
+	BT_CTF_ASSERT_PRE(
 		!bt_ctf_field_type_common_integer_is_signed(integer->common.type),
 		"Field's type is signed: field-addr=%p", field);
 	*value = integer->payload.unsignd;
@@ -1374,15 +1374,15 @@ int bt_ctf_field_integer_unsigned_set_value(struct bt_ctf_field *field,
 	struct bt_ctf_field_common_integer *integer = (void *) field;
 	struct bt_ctf_field_type_common_integer *integer_type;
 
-	BT_ASSERT_PRE_NON_NULL(field, "Integer field");
-	BT_ASSERT_PRE_CTF_FIELD_COMMON_HOT(BT_CTF_TO_COMMON(integer), "Integer field");
-	BT_ASSERT_PRE_CTF_FIELD_COMMON_HAS_TYPE_ID(BT_CTF_TO_COMMON(integer),
+	BT_CTF_ASSERT_PRE_NON_NULL(field, "Integer field");
+	BT_CTF_ASSERT_PRE_CTF_FIELD_COMMON_HOT(BT_CTF_TO_COMMON(integer), "Integer field");
+	BT_CTF_ASSERT_PRE_CTF_FIELD_COMMON_HAS_TYPE_ID(BT_CTF_TO_COMMON(integer),
 		BT_CTF_FIELD_TYPE_ID_INTEGER, "Field");
 	integer_type = BT_CTF_FROM_COMMON(integer->common.type);
-	BT_ASSERT_PRE(
+	BT_CTF_ASSERT_PRE(
 		!bt_ctf_field_type_common_integer_is_signed(integer->common.type),
 		"Field's type is signed: field-addr=%p", field);
-	BT_ASSERT_PRE(value_is_in_range_unsigned(integer_type->size, value),
+	BT_CTF_ASSERT_PRE(value_is_in_range_unsigned(integer_type->size, value),
 		"Value is out of bounds: value=%" PRIu64 ", field-addr=%p",
 		value, field);
 	integer->payload.unsignd = value;
@@ -1793,7 +1793,7 @@ void bt_ctf_field_variant_reset_recursive(struct bt_ctf_field_common *field)
 	bt_ctf_field_common_variant_reset_recursive((void *) field);
 }
 
-BT_ASSERT_PRE_FUNC
+BT_CTF_ASSERT_PRE_FUNC
 static inline bool field_to_set_has_expected_type(
 		struct bt_ctf_field_common *struct_field,
 		const char *name, struct bt_ctf_field_common *value)
@@ -1806,7 +1806,7 @@ static inline bool field_to_set_has_expected_type(
 			struct_field->type, name);
 
 	if (bt_ctf_field_type_common_compare(expected_field_type, value->type)) {
-		BT_ASSERT_PRE_MSG("Value field's type is different from the expected field type: "
+		BT_CTF_ASSERT_PRE_MSG("Value field's type is different from the expected field type: "
 			"value-ft-addr=%p, expected-ft-addr=%p", value->type,
 			expected_field_type);
 		ret = false;
@@ -1831,12 +1831,12 @@ int bt_ctf_field_structure_set_field_by_name(struct bt_ctf_field *field,
 	GHashTable *field_name_to_index;
 	struct bt_ctf_field_type_common_structure *structure_ft;
 
-	BT_ASSERT_PRE_NON_NULL(field, "Parent field");
-	BT_ASSERT_PRE_NON_NULL(name, "Field name");
-	BT_ASSERT_PRE_NON_NULL(value, "Value field");
-	BT_ASSERT_PRE_CTF_FIELD_COMMON_HAS_TYPE_ID(common_field,
+	BT_CTF_ASSERT_PRE_NON_NULL(field, "Parent field");
+	BT_CTF_ASSERT_PRE_NON_NULL(name, "Field name");
+	BT_CTF_ASSERT_PRE_NON_NULL(value, "Value field");
+	BT_CTF_ASSERT_PRE_CTF_FIELD_COMMON_HAS_TYPE_ID(common_field,
 		BT_CTF_FIELD_TYPE_ID_STRUCT, "Parent field");
-	BT_ASSERT_PRE(field_to_set_has_expected_type(common_field,
+	BT_CTF_ASSERT_PRE(field_to_set_has_expected_type(common_field,
 		name, common_value),
 		"Value field's type is different from the expected field type.");
 	field_quark = g_quark_from_string(name);

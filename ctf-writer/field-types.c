@@ -23,9 +23,9 @@
  */
 
 #define BT_LOG_TAG "CTF-WRITER-FIELD-TYPES"
-#include <babeltrace2/lib-logging-internal.h>
+#include "logging.h"
 
-#include <babeltrace2/assert-pre-internal.h>
+#include <babeltrace2/ctf-writer/assert-pre-internal.h>
 #include <babeltrace2/assert-internal.h>
 #include <babeltrace2/compiler-internal.h>
 #include <babeltrace2/ctf-writer/clock-class-internal.h>
@@ -621,8 +621,8 @@ bt_ctf_field_type_common_enumeration_find_mappings_type(
 {
 	struct bt_ctf_field_type_enumeration_mapping_iterator *iter = NULL;
 
-	BT_ASSERT_PRE_NON_NULL(ft, "Field type");
-	BT_ASSERT_PRE_CTF_FT_COMMON_HAS_ID(ft, BT_CTF_FIELD_TYPE_ID_ENUM,
+	BT_CTF_ASSERT_PRE_NON_NULL(ft, "Field type");
+	BT_CTF_ASSERT_PRE_CTF_FT_COMMON_HAS_ID(ft, BT_CTF_FIELD_TYPE_ID_ENUM,
 		"Field type");
 	iter = g_new0(struct bt_ctf_field_type_enumeration_mapping_iterator, 1);
 	if (!iter) {
@@ -697,7 +697,7 @@ int bt_ctf_field_type_enumeration_mapping_iterator_next(
 	struct bt_ctf_field_type_common_enumeration *enum_ft = iter->enumeration_ft;
 	int i, ret = 0, len;
 
-	BT_ASSERT_PRE_NON_NULL(iter, "Enumeration field type mapping iterator");
+	BT_CTF_ASSERT_PRE_NON_NULL(iter, "Enumeration field type mapping iterator");
 	len = enum_ft->entries->len;
 	for (i = iter->index + 1; i < len; i++) {
 		struct bt_ctf_enumeration_mapping *mapping =
@@ -814,8 +814,8 @@ int bt_ctf_field_type_enumeration_mapping_iterator_signed_get(
 		const char **mapping_name, int64_t *range_begin,
 		int64_t *range_end)
 {
-	BT_ASSERT_PRE_NON_NULL(iter, "Enumeration field type mapping iterator");
-	BT_ASSERT_PRE(iter->index != -1,
+	BT_CTF_ASSERT_PRE_NON_NULL(iter, "Enumeration field type mapping iterator");
+	BT_CTF_ASSERT_PRE(iter->index != -1,
 		"Invalid enumeration field type mapping iterator access: "
 		"addr=%p, position=-1", iter);
 	return bt_ctf_field_type_common_enumeration_signed_get_mapping_by_index(
@@ -829,8 +829,8 @@ int bt_ctf_field_type_enumeration_mapping_iterator_unsigned_get(
 		const char **mapping_name, uint64_t *range_begin,
 		uint64_t *range_end)
 {
-	BT_ASSERT_PRE_NON_NULL(iter, "Enumeration field type mapping iterator");
-	BT_ASSERT_PRE(iter->index != -1,
+	BT_CTF_ASSERT_PRE_NON_NULL(iter, "Enumeration field type mapping iterator");
+	BT_CTF_ASSERT_PRE(iter->index != -1,
 		"Invalid enumeration field type mapping iterator access: "
 		"addr=%p, position=-1", iter);
 	return bt_ctf_field_type_common_enumeration_unsigned_get_mapping_by_index(
@@ -1123,8 +1123,8 @@ int bt_ctf_field_type_common_integer_get_size(struct bt_ctf_field_type_common *f
 {
 	struct bt_ctf_field_type_common_integer *int_ft = BT_CTF_FROM_COMMON(ft);
 
-	BT_ASSERT_PRE_NON_NULL(ft, "Field type");
-	BT_ASSERT_PRE_CTF_FT_COMMON_HAS_ID(ft, BT_CTF_FIELD_TYPE_ID_INTEGER,
+	BT_CTF_ASSERT_PRE_NON_NULL(ft, "Field type");
+	BT_CTF_ASSERT_PRE_CTF_FT_COMMON_HAS_ID(ft, BT_CTF_FIELD_TYPE_ID_INTEGER,
 		"Field type");
 	return (int) int_ft->size;
 }
@@ -1134,8 +1134,8 @@ bt_bool bt_ctf_field_type_common_integer_is_signed(struct bt_ctf_field_type_comm
 {
 	struct bt_ctf_field_type_common_integer *int_ft = BT_CTF_FROM_COMMON(ft);
 
-	BT_ASSERT_PRE_NON_NULL(ft, "Field type");
-	BT_ASSERT_PRE_CTF_FT_COMMON_HAS_ID(ft, BT_CTF_FIELD_TYPE_ID_INTEGER,
+	BT_CTF_ASSERT_PRE_NON_NULL(ft, "Field type");
+	BT_CTF_ASSERT_PRE_CTF_FT_COMMON_HAS_ID(ft, BT_CTF_FIELD_TYPE_ID_INTEGER,
 		"Field type");
 	return int_ft->is_signed;
 }
@@ -1225,8 +1225,8 @@ enum bt_ctf_integer_base bt_ctf_field_type_common_integer_get_base(
 {
 	struct bt_ctf_field_type_common_integer *int_ft = BT_CTF_FROM_COMMON(ft);
 
-	BT_ASSERT_PRE_NON_NULL(ft, "Field type");
-	BT_ASSERT_PRE_CTF_FT_COMMON_HAS_ID(ft, BT_CTF_FIELD_TYPE_ID_INTEGER,
+	BT_CTF_ASSERT_PRE_NON_NULL(ft, "Field type");
+	BT_CTF_ASSERT_PRE_CTF_FT_COMMON_HAS_ID(ft, BT_CTF_FIELD_TYPE_ID_INTEGER,
 		"Field type");
 	return int_ft->base;
 }
@@ -1288,8 +1288,8 @@ enum bt_ctf_string_encoding bt_ctf_field_type_common_integer_get_encoding(
 {
 	struct bt_ctf_field_type_common_integer *int_ft = BT_CTF_FROM_COMMON(ft);
 
-	BT_ASSERT_PRE_NON_NULL(ft, "Field type");
-	BT_ASSERT_PRE_CTF_FT_COMMON_HAS_ID(ft, BT_CTF_FIELD_TYPE_ID_INTEGER,
+	BT_CTF_ASSERT_PRE_NON_NULL(ft, "Field type");
+	BT_CTF_ASSERT_PRE_CTF_FT_COMMON_HAS_ID(ft, BT_CTF_FIELD_TYPE_ID_INTEGER,
 		"Field type");
 	return int_ft->encoding;
 }
@@ -1345,8 +1345,8 @@ struct bt_ctf_clock_class *bt_ctf_field_type_common_integer_borrow_mapped_clock_
 {
 	struct bt_ctf_field_type_common_integer *int_ft = BT_CTF_FROM_COMMON(ft);
 
-	BT_ASSERT_PRE_NON_NULL(ft, "Field type");
-	BT_ASSERT_PRE_CTF_FT_COMMON_HAS_ID(ft, BT_CTF_FIELD_TYPE_ID_INTEGER,
+	BT_CTF_ASSERT_PRE_NON_NULL(ft, "Field type");
+	BT_CTF_ASSERT_PRE_CTF_FT_COMMON_HAS_ID(ft, BT_CTF_FIELD_TYPE_ID_INTEGER,
 		"Field type");
 	return int_ft->mapped_clock_class;
 }
@@ -1427,8 +1427,8 @@ int bt_ctf_field_type_common_enumeration_signed_get_mapping_by_index(
 	int ret = 0;
 	struct bt_ctf_enumeration_mapping *mapping;
 
-	BT_ASSERT_PRE_NON_NULL(ft, "Field type");
-	BT_ASSERT_PRE_CTF_FT_COMMON_HAS_ID(ft,
+	BT_CTF_ASSERT_PRE_NON_NULL(ft, "Field type");
+	BT_CTF_ASSERT_PRE_CTF_FT_COMMON_HAS_ID(ft,
 		BT_CTF_FIELD_TYPE_ID_ENUM, "Field type");
 	mapping = bt_ctf_field_type_common_enumeration_get_mapping_by_index(ft,
 		index);
@@ -1464,8 +1464,8 @@ int bt_ctf_field_type_common_enumeration_unsigned_get_mapping_by_index(
 	int ret = 0;
 	struct bt_ctf_enumeration_mapping *mapping;
 
-	BT_ASSERT_PRE_NON_NULL(ft, "Field type");
-	BT_ASSERT_PRE_CTF_FT_COMMON_HAS_ID(ft, BT_CTF_FIELD_TYPE_ID_ENUM, "Field type");
+	BT_CTF_ASSERT_PRE_NON_NULL(ft, "Field type");
+	BT_CTF_ASSERT_PRE_CTF_FT_COMMON_HAS_ID(ft, BT_CTF_FIELD_TYPE_ID_ENUM, "Field type");
 	mapping = bt_ctf_field_type_common_enumeration_get_mapping_by_index(
 		ft, index);
 	if (!mapping) {
@@ -1498,8 +1498,8 @@ bt_ctf_field_type_common_enumeration_borrow_container_field_type(
 {
 	struct bt_ctf_field_type_common_enumeration *enum_ft = BT_CTF_FROM_COMMON(ft);
 
-	BT_ASSERT_PRE_NON_NULL(ft, "Field type");
-	BT_ASSERT_PRE_CTF_FT_COMMON_HAS_ID(ft, BT_CTF_FIELD_TYPE_ID_ENUM, "Field type");
+	BT_CTF_ASSERT_PRE_NON_NULL(ft, "Field type");
+	BT_CTF_ASSERT_PRE_CTF_FT_COMMON_HAS_ID(ft, BT_CTF_FIELD_TYPE_ID_ENUM, "Field type");
 	return BT_CTF_TO_COMMON(enum_ft->container_ft);
 }
 
@@ -1689,8 +1689,8 @@ int64_t bt_ctf_field_type_common_enumeration_get_mapping_count(
 {
 	struct bt_ctf_field_type_common_enumeration *enum_ft = BT_CTF_FROM_COMMON(ft);
 
-	BT_ASSERT_PRE_NON_NULL(ft, "Field type");
-	BT_ASSERT_PRE_CTF_FT_COMMON_HAS_ID(ft, BT_CTF_FIELD_TYPE_ID_ENUM, "Field type");
+	BT_CTF_ASSERT_PRE_NON_NULL(ft, "Field type");
+	BT_CTF_ASSERT_PRE_CTF_FT_COMMON_HAS_ID(ft, BT_CTF_FIELD_TYPE_ID_ENUM, "Field type");
 	return (int64_t) enum_ft->entries->len;
 }
 
@@ -1700,8 +1700,8 @@ int bt_ctf_field_type_common_floating_point_get_exponent_digits(
 {
 	struct bt_ctf_field_type_common_floating_point *flt_ft = BT_CTF_FROM_COMMON(ft);
 
-	BT_ASSERT_PRE_NON_NULL(ft, "Field type");
-	BT_ASSERT_PRE_CTF_FT_COMMON_HAS_ID(ft, BT_CTF_FIELD_TYPE_ID_FLOAT,
+	BT_CTF_ASSERT_PRE_NON_NULL(ft, "Field type");
+	BT_CTF_ASSERT_PRE_CTF_FT_COMMON_HAS_ID(ft, BT_CTF_FIELD_TYPE_ID_FLOAT,
 		"Field type");
 	return (int) flt_ft->exp_dig;
 }
@@ -1759,8 +1759,8 @@ int bt_ctf_field_type_common_floating_point_get_mantissa_digits(
 {
 	struct bt_ctf_field_type_common_floating_point *flt_ft = BT_CTF_FROM_COMMON(ft);
 
-	BT_ASSERT_PRE_NON_NULL(ft, "Field type");
-	BT_ASSERT_PRE_CTF_FT_COMMON_HAS_ID(ft, BT_CTF_FIELD_TYPE_ID_FLOAT,
+	BT_CTF_ASSERT_PRE_NON_NULL(ft, "Field type");
+	BT_CTF_ASSERT_PRE_CTF_FT_COMMON_HAS_ID(ft, BT_CTF_FIELD_TYPE_ID_FLOAT,
 		"Field type");
 	return (int) flt_ft->mant_dig;
 }
@@ -1910,8 +1910,8 @@ int64_t bt_ctf_field_type_common_structure_get_field_count(
 {
 	struct bt_ctf_field_type_common_structure *struct_ft = BT_CTF_FROM_COMMON(ft);
 
-	BT_ASSERT_PRE_NON_NULL(ft, "Field type");
-	BT_ASSERT_PRE_CTF_FT_COMMON_HAS_ID(ft, BT_CTF_FIELD_TYPE_ID_STRUCT,
+	BT_CTF_ASSERT_PRE_NON_NULL(ft, "Field type");
+	BT_CTF_ASSERT_PRE_CTF_FT_COMMON_HAS_ID(ft, BT_CTF_FIELD_TYPE_ID_STRUCT,
 		"Field type");
 	return (int64_t) struct_ft->fields->len;
 }
@@ -1925,10 +1925,10 @@ int bt_ctf_field_type_common_structure_borrow_field_by_index(
 	struct bt_ctf_field_type_common_structure *struct_ft = BT_CTF_FROM_COMMON(ft);
 	struct bt_ctf_field_type_common_structure_field *field;
 
-	BT_ASSERT_PRE_NON_NULL(ft, "Field type");
-	BT_ASSERT_PRE_CTF_FT_COMMON_HAS_ID(ft, BT_CTF_FIELD_TYPE_ID_STRUCT,
+	BT_CTF_ASSERT_PRE_NON_NULL(ft, "Field type");
+	BT_CTF_ASSERT_PRE_CTF_FT_COMMON_HAS_ID(ft, BT_CTF_FIELD_TYPE_ID_STRUCT,
 		"Field type");
-	BT_ASSERT_PRE(index < struct_ft->fields->len,
+	BT_CTF_ASSERT_PRE(index < struct_ft->fields->len,
 		"Index is out of bounds: index=%" PRIu64 ", "
 		"count=%u, ft-addr=%p",
 		index, struct_ft->fields->len, ft);
@@ -1957,9 +1957,9 @@ bt_ctf_field_type_common_structure_borrow_field_type_by_name(
 	struct bt_ctf_field_type_common_structure *struct_ft = BT_CTF_FROM_COMMON(ft);
 	struct bt_ctf_field_type_common *field_type = NULL;
 
-	BT_ASSERT_PRE_NON_NULL(ft, "Field type");
-	BT_ASSERT_PRE_NON_NULL(name, "Name");
-	BT_ASSERT_PRE_CTF_FT_COMMON_HAS_ID(ft, BT_CTF_FIELD_TYPE_ID_STRUCT,
+	BT_CTF_ASSERT_PRE_NON_NULL(ft, "Field type");
+	BT_CTF_ASSERT_PRE_NON_NULL(name, "Name");
+	BT_CTF_ASSERT_PRE_CTF_FT_COMMON_HAS_ID(ft, BT_CTF_FIELD_TYPE_ID_STRUCT,
 		"Field type");
 	name_quark = g_quark_try_string(name);
 	if (!name_quark) {
@@ -1992,8 +1992,8 @@ bt_ctf_field_type_common_variant_borrow_tag_field_type(
 	struct bt_ctf_field_type_common_variant *var_ft = BT_CTF_FROM_COMMON(ft);
 	struct bt_ctf_field_type_common *tag_ft = NULL;
 
-	BT_ASSERT_PRE_NON_NULL(ft, "Field type");
-	BT_ASSERT_PRE_CTF_FT_COMMON_HAS_ID(ft, BT_CTF_FIELD_TYPE_ID_VARIANT,
+	BT_CTF_ASSERT_PRE_NON_NULL(ft, "Field type");
+	BT_CTF_ASSERT_PRE_CTF_FT_COMMON_HAS_ID(ft, BT_CTF_FIELD_TYPE_ID_VARIANT,
 		"Field type");
 
 	if (!var_ft->tag_ft) {
@@ -2015,8 +2015,8 @@ const char *bt_ctf_field_type_common_variant_get_tag_name(
 	struct bt_ctf_field_type_common_variant *var_ft = BT_CTF_FROM_COMMON(ft);
 	const char *tag_name = NULL;
 
-	BT_ASSERT_PRE_NON_NULL(ft, "Field type");
-	BT_ASSERT_PRE_CTF_FT_COMMON_HAS_ID(ft, BT_CTF_FIELD_TYPE_ID_VARIANT,
+	BT_CTF_ASSERT_PRE_NON_NULL(ft, "Field type");
+	BT_CTF_ASSERT_PRE_CTF_FT_COMMON_HAS_ID(ft, BT_CTF_FIELD_TYPE_ID_VARIANT,
 		"Field type");
 
 	if (var_ft->tag_name->len == 0) {
@@ -2174,9 +2174,9 @@ bt_ctf_field_type_common_variant_borrow_field_type_by_name(
 	struct bt_ctf_field_type_common_variant *var_ft = BT_CTF_FROM_COMMON(ft);
 	struct bt_ctf_field_type_common *field_type = NULL;
 
-	BT_ASSERT_PRE_NON_NULL(ft, "Field type");
-	BT_ASSERT_PRE_NON_NULL(field_name, "Name");
-	BT_ASSERT_PRE_CTF_FT_COMMON_HAS_ID(ft, BT_CTF_FIELD_TYPE_ID_VARIANT,
+	BT_CTF_ASSERT_PRE_NON_NULL(ft, "Field type");
+	BT_CTF_ASSERT_PRE_NON_NULL(field_name, "Name");
+	BT_CTF_ASSERT_PRE_CTF_FT_COMMON_HAS_ID(ft, BT_CTF_FIELD_TYPE_ID_VARIANT,
 		"Field type");
 	name_quark = g_quark_try_string(field_name);
 	if (!name_quark) {
@@ -2207,8 +2207,8 @@ int64_t bt_ctf_field_type_common_variant_get_field_count(
 {
 	struct bt_ctf_field_type_common_variant *var_ft = BT_CTF_FROM_COMMON(ft);
 
-	BT_ASSERT_PRE_NON_NULL(ft, "Variant field type");
-	BT_ASSERT_PRE_CTF_FT_COMMON_HAS_ID(ft, BT_CTF_FIELD_TYPE_ID_VARIANT,
+	BT_CTF_ASSERT_PRE_NON_NULL(ft, "Variant field type");
+	BT_CTF_ASSERT_PRE_CTF_FT_COMMON_HAS_ID(ft, BT_CTF_FIELD_TYPE_ID_VARIANT,
 		"Field type");
 	return (int64_t) var_ft->choices->len;
 }
@@ -2222,10 +2222,10 @@ int bt_ctf_field_type_common_variant_borrow_field_by_index(
 	struct bt_ctf_field_type_common_variant *var_ft = BT_CTF_FROM_COMMON(ft);
 	struct bt_ctf_field_type_common_variant_choice *choice;
 
-	BT_ASSERT_PRE_NON_NULL(ft, "Field type");
-	BT_ASSERT_PRE_CTF_FT_COMMON_HAS_ID(ft, BT_CTF_FIELD_TYPE_ID_VARIANT,
+	BT_CTF_ASSERT_PRE_NON_NULL(ft, "Field type");
+	BT_CTF_ASSERT_PRE_CTF_FT_COMMON_HAS_ID(ft, BT_CTF_FIELD_TYPE_ID_VARIANT,
 		"Field type");
-	BT_ASSERT_PRE(index < var_ft->choices->len,
+	BT_CTF_ASSERT_PRE(index < var_ft->choices->len,
 		"Index is out of bounds: index=%" PRIu64 ", "
 		"count=%u, ft-addr=%p",
 		index, var_ft->choices->len, ft);
@@ -2307,8 +2307,8 @@ bt_ctf_field_type_common_array_borrow_element_field_type(
 {
 	struct bt_ctf_field_type_common_array *array_ft = BT_CTF_FROM_COMMON(ft);
 
-	BT_ASSERT_PRE_NON_NULL(ft, "Field type");
-	BT_ASSERT_PRE_CTF_FT_COMMON_HAS_ID(ft, BT_CTF_FIELD_TYPE_ID_ARRAY,
+	BT_CTF_ASSERT_PRE_NON_NULL(ft, "Field type");
+	BT_CTF_ASSERT_PRE_CTF_FT_COMMON_HAS_ID(ft, BT_CTF_FIELD_TYPE_ID_ARRAY,
 		"Field type");
 	BT_ASSERT(array_ft && array_ft->element_ft);
 	return array_ft->element_ft;
@@ -2359,8 +2359,8 @@ int64_t bt_ctf_field_type_common_array_get_length(struct bt_ctf_field_type_commo
 {
 	struct bt_ctf_field_type_common_array *array_ft = BT_CTF_FROM_COMMON(ft);
 
-	BT_ASSERT_PRE_NON_NULL(ft, "Field type");
-	BT_ASSERT_PRE_CTF_FT_COMMON_HAS_ID(ft, BT_CTF_FIELD_TYPE_ID_ARRAY,
+	BT_CTF_ASSERT_PRE_NON_NULL(ft, "Field type");
+	BT_CTF_ASSERT_PRE_CTF_FT_COMMON_HAS_ID(ft, BT_CTF_FIELD_TYPE_ID_ARRAY,
 		"Field type");
 	return (int64_t) array_ft->length;
 }
@@ -2371,8 +2371,8 @@ struct bt_ctf_field_type_common *bt_ctf_field_type_common_sequence_borrow_elemen
 {
 	struct bt_ctf_field_type_common_sequence *seq_ft = BT_CTF_FROM_COMMON(ft);
 
-	BT_ASSERT_PRE_NON_NULL(ft, "Field type");
-	BT_ASSERT_PRE_CTF_FT_COMMON_HAS_ID(ft, BT_CTF_FIELD_TYPE_ID_SEQUENCE,
+	BT_CTF_ASSERT_PRE_NON_NULL(ft, "Field type");
+	BT_CTF_ASSERT_PRE_CTF_FT_COMMON_HAS_ID(ft, BT_CTF_FIELD_TYPE_ID_SEQUENCE,
 		"Field type");
 	return seq_ft->element_ft;
 }
@@ -2424,8 +2424,8 @@ const char *bt_ctf_field_type_common_sequence_get_length_field_name(
 {
 	struct bt_ctf_field_type_common_sequence *seq_ft = BT_CTF_FROM_COMMON(ft);
 
-	BT_ASSERT_PRE_NON_NULL(ft, "Field type");
-	BT_ASSERT_PRE_CTF_FT_COMMON_HAS_ID(ft, BT_CTF_FIELD_TYPE_ID_SEQUENCE,
+	BT_CTF_ASSERT_PRE_NON_NULL(ft, "Field type");
+	BT_CTF_ASSERT_PRE_CTF_FT_COMMON_HAS_ID(ft, BT_CTF_FIELD_TYPE_ID_SEQUENCE,
 		"Field type");
 	return seq_ft->length_field_name ?
 		seq_ft->length_field_name->str : NULL;
@@ -2437,8 +2437,8 @@ enum bt_ctf_string_encoding bt_ctf_field_type_common_string_get_encoding(
 {
 	struct bt_ctf_field_type_common_string *string_ft = BT_CTF_FROM_COMMON(ft);
 
-	BT_ASSERT_PRE_NON_NULL(ft, "Field type");
-	BT_ASSERT_PRE_CTF_FT_COMMON_HAS_ID(ft, BT_CTF_FIELD_TYPE_ID_STRING,
+	BT_CTF_ASSERT_PRE_NON_NULL(ft, "Field type");
+	BT_CTF_ASSERT_PRE_CTF_FT_COMMON_HAS_ID(ft, BT_CTF_FIELD_TYPE_ID_STRING,
 		"Field type");
 	return string_ft->encoding;
 }
@@ -2486,7 +2486,7 @@ int bt_ctf_field_type_common_get_alignment(struct bt_ctf_field_type_common *ft)
 	int ret;
 	enum bt_ctf_field_type_id type_id;
 
-	BT_ASSERT_PRE_NON_NULL(ft, "Field type");
+	BT_CTF_ASSERT_PRE_NON_NULL(ft, "Field type");
 
 	if (ft->frozen) {
 		ret = (int) ft->alignment;
@@ -2630,7 +2630,7 @@ enum bt_ctf_byte_order bt_ctf_field_type_common_get_byte_order(
 {
 	enum bt_ctf_byte_order ret = BT_CTF_BYTE_ORDER_UNKNOWN;
 
-	BT_ASSERT_PRE_NON_NULL(ft, "Field type");
+	BT_CTF_ASSERT_PRE_NON_NULL(ft, "Field type");
 
 	switch (ft->id) {
 	case BT_CTF_FIELD_TYPE_ID_INTEGER:
@@ -2718,7 +2718,7 @@ BT_HIDDEN
 enum bt_ctf_field_type_id bt_ctf_field_type_common_get_type_id(
 		struct bt_ctf_field_type_common *ft)
 {
-	BT_ASSERT_PRE_NON_NULL(ft, "Field type");
+	BT_CTF_ASSERT_PRE_NON_NULL(ft, "Field type");
 	return ft->id;
 }
 
@@ -2813,7 +2813,7 @@ struct bt_ctf_field_type_common *bt_ctf_field_type_common_copy(
 {
 	struct bt_ctf_field_type_common *ft_copy = NULL;
 
-	BT_ASSERT_PRE_NON_NULL(ft, "Field type");
+	BT_CTF_ASSERT_PRE_NON_NULL(ft, "Field type");
 	BT_ASSERT(ft->methods->copy);
 	ft_copy = ft->methods->copy(ft);
 	if (!ft_copy) {
@@ -2836,9 +2836,9 @@ int bt_ctf_field_type_common_structure_get_field_name_index(
 	GQuark name_quark;
 	struct bt_ctf_field_type_common_structure *struct_ft = BT_CTF_FROM_COMMON(ft);
 
-	BT_ASSERT_PRE_NON_NULL(ft, "Field type");
-	BT_ASSERT_PRE_NON_NULL(name, "Name");
-	BT_ASSERT_PRE_CTF_FT_COMMON_HAS_ID(ft, BT_CTF_FIELD_TYPE_ID_STRUCT,
+	BT_CTF_ASSERT_PRE_NON_NULL(ft, "Field type");
+	BT_CTF_ASSERT_PRE_NON_NULL(name, "Name");
+	BT_CTF_ASSERT_PRE_CTF_FT_COMMON_HAS_ID(ft, BT_CTF_FIELD_TYPE_ID_STRUCT,
 		"Field type");
 
 	name_quark = g_quark_try_string(name);
@@ -2875,9 +2875,9 @@ int bt_ctf_field_type_common_variant_get_field_name_index(
 	GQuark name_quark;
 	struct bt_ctf_field_type_common_variant *var_ft = BT_CTF_FROM_COMMON(ft);
 
-	BT_ASSERT_PRE_NON_NULL(ft, "Field type");
-	BT_ASSERT_PRE_NON_NULL(name, "Name");
-	BT_ASSERT_PRE_CTF_FT_COMMON_HAS_ID(ft, BT_CTF_FIELD_TYPE_ID_VARIANT,
+	BT_CTF_ASSERT_PRE_NON_NULL(ft, "Field type");
+	BT_CTF_ASSERT_PRE_NON_NULL(name, "Name");
+	BT_CTF_ASSERT_PRE_CTF_FT_COMMON_HAS_ID(ft, BT_CTF_FIELD_TYPE_ID_VARIANT,
 		"Field type");
 	name_quark = g_quark_try_string(name);
 	if (!name_quark) {
@@ -3699,8 +3699,8 @@ int bt_ctf_field_type_common_compare(struct bt_ctf_field_type_common *ft_a,
 {
 	int ret = 1;
 
-	BT_ASSERT_PRE_NON_NULL(ft_a, "Field type A");
-	BT_ASSERT_PRE_NON_NULL(ft_b, "Field type B");
+	BT_CTF_ASSERT_PRE_NON_NULL(ft_a, "Field type A");
+	BT_CTF_ASSERT_PRE_NON_NULL(ft_b, "Field type B");
 
 	if (ft_a == ft_b) {
 		/* Same reference: equal (even if both are NULL) */
@@ -3848,8 +3848,8 @@ struct bt_ctf_field_path *bt_ctf_field_type_common_variant_borrow_tag_field_path
 {
 	struct bt_ctf_field_type_common_variant *var_ft = BT_CTF_FROM_COMMON(ft);
 
-	BT_ASSERT_PRE_NON_NULL(ft, "Field type");
-	BT_ASSERT_PRE_CTF_FT_COMMON_HAS_ID(ft, BT_CTF_FIELD_TYPE_ID_VARIANT,
+	BT_CTF_ASSERT_PRE_NON_NULL(ft, "Field type");
+	BT_CTF_ASSERT_PRE_CTF_FT_COMMON_HAS_ID(ft, BT_CTF_FIELD_TYPE_ID_VARIANT,
 		"Field type");
 	return var_ft->tag_field_path;
 }
@@ -3860,8 +3860,8 @@ struct bt_ctf_field_path *bt_ctf_field_type_common_sequence_borrow_length_field_
 {
 	struct bt_ctf_field_type_common_sequence *seq_ft = BT_CTF_FROM_COMMON(ft);
 
-	BT_ASSERT_PRE_NON_NULL(ft, "Field type");
-	BT_ASSERT_PRE_CTF_FT_COMMON_HAS_ID(ft, BT_CTF_FIELD_TYPE_ID_SEQUENCE,
+	BT_CTF_ASSERT_PRE_NON_NULL(ft, "Field type");
+	BT_CTF_ASSERT_PRE_CTF_FT_COMMON_HAS_ID(ft, BT_CTF_FIELD_TYPE_ID_SEQUENCE,
 		"Field type");
 	return seq_ft->length_field_path;
 }
@@ -4947,14 +4947,14 @@ struct bt_ctf_field_type *bt_ctf_field_type_variant_get_field_type_from_tag(
 	struct bt_ctf_field_type_common_variant *var_ft = (void *) ft;
 	struct bt_ctf_field_type *ret_ft = NULL;
 
-	BT_ASSERT_PRE_NON_NULL(ft, "Field type");
-	BT_ASSERT_PRE_CTF_FT_COMMON_HAS_ID(ft, BT_CTF_FIELD_TYPE_ID_VARIANT,
+	BT_CTF_ASSERT_PRE_NON_NULL(ft, "Field type");
+	BT_CTF_ASSERT_PRE_CTF_FT_COMMON_HAS_ID(ft, BT_CTF_FIELD_TYPE_ID_VARIANT,
 		"Field type");
-	BT_ASSERT_PRE_NON_NULL(tag_field, "Tag field");
-	BT_ASSERT_PRE_CTF_FIELD_COMMON_HAS_TYPE_ID(
+	BT_CTF_ASSERT_PRE_NON_NULL(tag_field, "Tag field");
+	BT_CTF_ASSERT_PRE_CTF_FIELD_COMMON_HAS_TYPE_ID(
 		(struct bt_ctf_field_common *) tag_field,
 		BT_CTF_FIELD_TYPE_ID_ENUM, "Tag field");
-	BT_ASSERT_PRE_CTF_FIELD_COMMON_IS_SET((struct bt_ctf_field_common *) tag_field,
+	BT_CTF_ASSERT_PRE_CTF_FIELD_COMMON_IS_SET((struct bt_ctf_field_common *) tag_field,
 		"Tag field");
 
 	container = bt_ctf_field_enumeration_borrow_container(tag_field);
@@ -4979,7 +4979,7 @@ struct bt_ctf_field_type *bt_ctf_field_type_variant_get_field_type_from_tag(
 	}
 
 	if (choice_index < 0) {
-		BT_LIB_LOGW("Cannot find variant field type's field: "
+		BT_LOGW("Cannot find variant field type's field: "
 			"var-ft-addr=%p, tag-field-addr=%p", ft, tag_field);
 		goto end;
 	}

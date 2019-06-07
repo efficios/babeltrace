@@ -92,7 +92,7 @@ static inline
 const char *bt_ctf_event_class_common_get_name(
 		struct bt_ctf_event_class_common *event_class)
 {
-	BT_ASSERT_PRE_NON_NULL(event_class, "Event class");
+	BT_CTF_ASSERT_PRE_NON_NULL(event_class, "Event class");
 	BT_ASSERT(event_class->name);
 	return event_class->name->str;
 }
@@ -101,7 +101,7 @@ static inline
 int64_t bt_ctf_event_class_common_get_id(
 		struct bt_ctf_event_class_common *event_class)
 {
-	BT_ASSERT_PRE_NON_NULL(event_class, "Event class");
+	BT_CTF_ASSERT_PRE_NON_NULL(event_class, "Event class");
 	return event_class->id;
 }
 
@@ -151,7 +151,7 @@ static inline
 int bt_ctf_event_class_common_get_log_level(
 		struct bt_ctf_event_class_common *event_class)
 {
-	BT_ASSERT_PRE_NON_NULL(event_class, "Event class");
+	BT_CTF_ASSERT_PRE_NON_NULL(event_class, "Event class");
 	return event_class->log_level;
 }
 
@@ -221,7 +221,7 @@ const char *bt_ctf_event_class_common_get_emf_uri(
 {
 	const char *emf_uri = NULL;
 
-	BT_ASSERT_PRE_NON_NULL(event_class, "Event class");
+	BT_CTF_ASSERT_PRE_NON_NULL(event_class, "Event class");
 
 	if (event_class->emf_uri->len > 0) {
 		emf_uri = event_class->emf_uri->str;
@@ -282,7 +282,7 @@ struct bt_ctf_field_type_common *bt_ctf_event_class_common_borrow_context_field_
 {
 	struct bt_ctf_field_type_common *context_ft = NULL;
 
-	BT_ASSERT_PRE_NON_NULL(event_class, "Event class");
+	BT_CTF_ASSERT_PRE_NON_NULL(event_class, "Event class");
 
 	if (!event_class->context_field_type) {
 		BT_LOGV("Event class has no context field type: "
@@ -350,7 +350,7 @@ static inline
 struct bt_ctf_field_type_common *bt_ctf_event_class_common_borrow_payload_field_type(
 		struct bt_ctf_event_class_common *event_class)
 {
-	BT_ASSERT_PRE_NON_NULL(event_class, "Event class");
+	BT_CTF_ASSERT_PRE_NON_NULL(event_class, "Event class");
 	return event_class->payload_field_type;
 }
 

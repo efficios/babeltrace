@@ -22,7 +22,7 @@
  */
 
 #define BT_LOG_TAG "OBJECT-POOL"
-#include <babeltrace2/lib-logging-internal.h>
+#include "logging.h"
 
 #include <stdint.h>
 #include <babeltrace2/assert-internal.h>
@@ -49,7 +49,7 @@ int bt_ctf_object_pool_initialize(struct bt_ctf_object_pool *pool,
 	pool->funcs.destroy_object = destroy_object_func;
 	pool->data = data;
 	pool->size = 0;
-	BT_LIB_LOGD("Initialized object pool: %!+o", pool);
+	BT_LOGD("Initialized object pool.");
 	goto end;
 
 error:
@@ -68,7 +68,7 @@ void bt_ctf_object_pool_finalize(struct bt_ctf_object_pool *pool)
 	uint64_t i;
 
 	BT_ASSERT(pool);
-	BT_LIB_LOGD("Finalizing object pool: %!+o", pool);
+	BT_LOGD("Finalizing object pool.");
 
 	if (pool->objects) {
 		for (i = 0; i < pool->size; i++) {

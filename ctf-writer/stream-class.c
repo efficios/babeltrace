@@ -22,9 +22,9 @@
  */
 
 #define BT_LOG_TAG "CTF-WRITER-STREAM-CLASS"
-#include <babeltrace2/lib-logging-internal.h>
+#include "logging.h"
 
-#include <babeltrace2/assert-pre-internal.h>
+#include <babeltrace2/ctf-writer/assert-pre-internal.h>
 #include <babeltrace2/align-internal.h>
 #include <babeltrace2/assert-internal.h>
 #include <babeltrace2/compiler-internal.h>

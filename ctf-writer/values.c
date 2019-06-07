@@ -22,7 +22,7 @@
  */
 
 #define BT_LOG_TAG "CTF-WRITER-VALUES"
-#include <babeltrace2/lib-logging-internal.h>
+#include "logging.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -37,7 +37,7 @@
 #include <babeltrace2/ctf-writer/object-internal.h>
 #include <babeltrace2/ctf-writer/values-internal.h>
 #include <babeltrace2/assert-internal.h>
-#include <babeltrace2/assert-pre-internal.h>
+#include <babeltrace2/ctf-writer/assert-pre-internal.h>
 
 #define BT_CTF_VALUE_FROM_CONCRETE(_concrete) ((struct bt_ctf_value *) (_concrete))
 #define BT_CTF_VALUE_TO_BOOL(_base) ((struct bt_ctf_value_bool *) (_base))
@@ -47,18 +47,15 @@
 #define BT_CTF_VALUE_TO_ARRAY(_base) ((struct bt_ctf_value_array *) (_base))
 #define BT_CTF_VALUE_TO_MAP(_base) ((struct bt_ctf_value_map *) (_base))
 
-#define BT_ASSERT_PRE_VALUE_IS_TYPE(_value, _type)			\
-	BT_ASSERT_PRE(((struct bt_ctf_value *) (_value))->type == (_type),	\
-		"Value has the wrong type ID: expected-type=%d, "	\
-		"%![value-]+v", (_type),	\
-		(_value))
+#define BT_CTF_ASSERT_PRE_VALUE_IS_TYPE(_value, _type)			\
+	BT_CTF_ASSERT_PRE(((struct bt_ctf_value *) (_value))->type == (_type),	\
+		"Value has the wrong type ID: expected-type=%d", (_type))
 
-#define BT_ASSERT_PRE_VALUE_HOT(_value, _name)				\
-	BT_ASSERT_PRE_HOT(((struct bt_ctf_value *) (_value)), (_name),	\
-		": %!+v", (_value))
+#define BT_CTF_ASSERT_PRE_VALUE_HOT(_value, _name)				\
+	BT_CTF_ASSERT_PRE_HOT(((struct bt_ctf_value *) (_value)), (_name), "")
 
-#define BT_ASSERT_PRE_VALUE_INDEX_IN_BOUNDS(_index, _count)		\
-	BT_ASSERT_PRE((_index) < (_count),				\
+#define BT_CTF_ASSERT_PRE_VALUE_INDEX_IN_BOUNDS(_index, _count)		\
+	BT_CTF_ASSERT_PRE((_index) < (_count),				\
 		"Index is out of bound: "				\
 		"index=%" PRIu64 ", count=%u", (_index), (_count));
 
@@ -584,7 +581,7 @@ end:
 BT_HIDDEN
 enum bt_ctf_value_type bt_ctf_value_get_type(const struct bt_ctf_value *object)
 {
-	BT_ASSERT_PRE_NON_NULL(object, "Value object");
+	BT_CTF_ASSERT_PRE_NON_NULL(object, "Value object");
 	return object->type;
 }
 
@@ -779,17 +776,17 @@ end:
 BT_HIDDEN
 bt_bool bt_ctf_value_bool_get(const struct bt_ctf_value *bool_obj)
 {
-	BT_ASSERT_PRE_NON_NULL(bool_obj, "Value object");
-	BT_ASSERT_PRE_VALUE_IS_TYPE(bool_obj, BT_CTF_VALUE_TYPE_BOOL);
+	BT_CTF_ASSERT_PRE_NON_NULL(bool_obj, "Value object");
+	BT_CTF_ASSERT_PRE_VALUE_IS_TYPE(bool_obj, BT_CTF_VALUE_TYPE_BOOL);
 	return BT_CTF_VALUE_TO_BOOL(bool_obj)->value;
 }
 
 BT_HIDDEN
 void bt_ctf_private_value_bool_set(struct bt_ctf_private_value *bool_obj, bt_bool val)
 {
-	BT_ASSERT_PRE_NON_NULL(bool_obj, "Value object");
-	BT_ASSERT_PRE_VALUE_IS_TYPE(bool_obj, BT_CTF_VALUE_TYPE_BOOL);
-	BT_ASSERT_PRE_VALUE_HOT(bool_obj, "Value object");
+	BT_CTF_ASSERT_PRE_NON_NULL(bool_obj, "Value object");
+	BT_CTF_ASSERT_PRE_VALUE_IS_TYPE(bool_obj, BT_CTF_VALUE_TYPE_BOOL);
+	BT_CTF_ASSERT_PRE_VALUE_HOT(bool_obj, "Value object");
 	BT_CTF_VALUE_TO_BOOL(bool_obj)->value = val;
 	BT_LOGV("Set boolean value's raw value: value-addr=%p, value=%d",
 		bool_obj, val);
@@ -798,8 +795,8 @@ void bt_ctf_private_value_bool_set(struct bt_ctf_private_value *bool_obj, bt_boo
 BT_HIDDEN
 int64_t bt_ctf_value_integer_get(const struct bt_ctf_value *integer_obj)
 {
-	BT_ASSERT_PRE_NON_NULL(integer_obj, "Value object");
-	BT_ASSERT_PRE_VALUE_IS_TYPE(integer_obj, BT_CTF_VALUE_TYPE_INTEGER);
+	BT_CTF_ASSERT_PRE_NON_NULL(integer_obj, "Value object");
+	BT_CTF_ASSERT_PRE_VALUE_IS_TYPE(integer_obj, BT_CTF_VALUE_TYPE_INTEGER);
 	return BT_CTF_VALUE_TO_INTEGER(integer_obj)->value;
 }
 
@@ -807,9 +804,9 @@ BT_HIDDEN
 void bt_ctf_private_value_integer_set(struct bt_ctf_private_value *integer_obj,
 		int64_t val)
 {
-	BT_ASSERT_PRE_NON_NULL(integer_obj, "Value object");
-	BT_ASSERT_PRE_VALUE_IS_TYPE(integer_obj, BT_CTF_VALUE_TYPE_INTEGER);
-	BT_ASSERT_PRE_VALUE_HOT(integer_obj, "Value object");
+	BT_CTF_ASSERT_PRE_NON_NULL(integer_obj, "Value object");
+	BT_CTF_ASSERT_PRE_VALUE_IS_TYPE(integer_obj, BT_CTF_VALUE_TYPE_INTEGER);
+	BT_CTF_ASSERT_PRE_VALUE_HOT(integer_obj, "Value object");
 	BT_CTF_VALUE_TO_INTEGER(integer_obj)->value = val;
 	BT_LOGV("Set integer value's raw value: value-addr=%p, value=%" PRId64,
 		integer_obj, val);
@@ -818,17 +815,17 @@ void bt_ctf_private_value_integer_set(struct bt_ctf_private_value *integer_obj,
 BT_HIDDEN
 double bt_ctf_value_real_get(const struct bt_ctf_value *real_obj)
 {
-	BT_ASSERT_PRE_NON_NULL(real_obj, "Value object");
-	BT_ASSERT_PRE_VALUE_IS_TYPE(real_obj, BT_CTF_VALUE_TYPE_REAL);
+	BT_CTF_ASSERT_PRE_NON_NULL(real_obj, "Value object");
+	BT_CTF_ASSERT_PRE_VALUE_IS_TYPE(real_obj, BT_CTF_VALUE_TYPE_REAL);
 	return BT_CTF_VALUE_TO_REAL(real_obj)->value;
 }
 
 BT_HIDDEN
 void bt_ctf_private_value_real_set(struct bt_ctf_private_value *real_obj, double val)
 {
-	BT_ASSERT_PRE_NON_NULL(real_obj, "Value object");
-	BT_ASSERT_PRE_VALUE_IS_TYPE(real_obj, BT_CTF_VALUE_TYPE_REAL);
-	BT_ASSERT_PRE_VALUE_HOT(real_obj, "Value object");
+	BT_CTF_ASSERT_PRE_NON_NULL(real_obj, "Value object");
+	BT_CTF_ASSERT_PRE_VALUE_IS_TYPE(real_obj, BT_CTF_VALUE_TYPE_REAL);
+	BT_CTF_ASSERT_PRE_VALUE_HOT(real_obj, "Value object");
 	BT_CTF_VALUE_TO_REAL(real_obj)->value = val;
 	BT_LOGV("Set real number value's raw value: value-addr=%p, value=%f",
 		real_obj, val);
@@ -837,8 +834,8 @@ void bt_ctf_private_value_real_set(struct bt_ctf_private_value *real_obj, double
 BT_HIDDEN
 const char *bt_ctf_value_string_get(const struct bt_ctf_value *string_obj)
 {
-	BT_ASSERT_PRE_NON_NULL(string_obj, "Value object");
-	BT_ASSERT_PRE_VALUE_IS_TYPE(string_obj, BT_CTF_VALUE_TYPE_STRING);
+	BT_CTF_ASSERT_PRE_NON_NULL(string_obj, "Value object");
+	BT_CTF_ASSERT_PRE_VALUE_IS_TYPE(string_obj, BT_CTF_VALUE_TYPE_STRING);
 	return BT_CTF_VALUE_TO_STRING(string_obj)->gstr->str;
 }
 
@@ -846,9 +843,9 @@ BT_HIDDEN
 enum bt_ctf_value_status bt_ctf_private_value_string_set(
 		struct bt_ctf_private_value *string_obj, const char *val)
 {
-	BT_ASSERT_PRE_NON_NULL(string_obj, "Value object");
-	BT_ASSERT_PRE_VALUE_IS_TYPE(string_obj, BT_CTF_VALUE_TYPE_STRING);
-	BT_ASSERT_PRE_VALUE_HOT(string_obj, "Value object");
+	BT_CTF_ASSERT_PRE_NON_NULL(string_obj, "Value object");
+	BT_CTF_ASSERT_PRE_VALUE_IS_TYPE(string_obj, BT_CTF_VALUE_TYPE_STRING);
+	BT_CTF_ASSERT_PRE_VALUE_HOT(string_obj, "Value object");
 	g_string_assign(BT_CTF_VALUE_TO_STRING(string_obj)->gstr, val);
 	BT_LOGV("Set string value's raw value: value-addr=%p, raw-value-addr=%p",
 		string_obj, val);
@@ -858,8 +855,8 @@ enum bt_ctf_value_status bt_ctf_private_value_string_set(
 BT_HIDDEN
 uint64_t bt_ctf_value_array_get_size(const struct bt_ctf_value *array_obj)
 {
-	BT_ASSERT_PRE_NON_NULL(array_obj, "Value object");
-	BT_ASSERT_PRE_VALUE_IS_TYPE(array_obj, BT_CTF_VALUE_TYPE_ARRAY);
+	BT_CTF_ASSERT_PRE_NON_NULL(array_obj, "Value object");
+	BT_CTF_ASSERT_PRE_VALUE_IS_TYPE(array_obj, BT_CTF_VALUE_TYPE_ARRAY);
 	return (uint64_t) BT_CTF_VALUE_TO_ARRAY(array_obj)->garray->len;
 }
 
@@ -871,9 +868,9 @@ struct bt_ctf_value *bt_ctf_value_array_borrow_element_by_index(
 	struct bt_ctf_value_array *typed_array_obj =
 		BT_CTF_VALUE_TO_ARRAY(array_obj);
 
-	BT_ASSERT_PRE_NON_NULL(array_obj, "Value object");
-	BT_ASSERT_PRE_VALUE_IS_TYPE(array_obj, BT_CTF_VALUE_TYPE_ARRAY);
-	BT_ASSERT_PRE_VALUE_INDEX_IN_BOUNDS(index,
+	BT_CTF_ASSERT_PRE_NON_NULL(array_obj, "Value object");
+	BT_CTF_ASSERT_PRE_VALUE_IS_TYPE(array_obj, BT_CTF_VALUE_TYPE_ARRAY);
+	BT_CTF_ASSERT_PRE_VALUE_INDEX_IN_BOUNDS(index,
 		typed_array_obj->garray->len);
 	return g_ptr_array_index(typed_array_obj->garray, index);
 }
@@ -895,10 +892,10 @@ enum bt_ctf_value_status bt_ctf_private_value_array_append_element(
 	struct bt_ctf_value_array *typed_array_obj =
 		BT_CTF_VALUE_TO_ARRAY(array_obj);
 
-	BT_ASSERT_PRE_NON_NULL(array_obj, "Array value object");
-	BT_ASSERT_PRE_NON_NULL(element_obj, "Element value object");
-	BT_ASSERT_PRE_VALUE_IS_TYPE(array_obj, BT_CTF_VALUE_TYPE_ARRAY);
-	BT_ASSERT_PRE_VALUE_HOT(array_obj, "Array value object");
+	BT_CTF_ASSERT_PRE_NON_NULL(array_obj, "Array value object");
+	BT_CTF_ASSERT_PRE_NON_NULL(element_obj, "Element value object");
+	BT_CTF_ASSERT_PRE_VALUE_IS_TYPE(array_obj, BT_CTF_VALUE_TYPE_ARRAY);
+	BT_CTF_ASSERT_PRE_VALUE_HOT(array_obj, "Array value object");
 	g_ptr_array_add(typed_array_obj->garray, element_obj);
 	bt_ctf_object_get_ref(element_obj);
 	BT_LOGV("Appended element to array value: array-value-addr=%p, "
@@ -999,11 +996,11 @@ enum bt_ctf_value_status bt_ctf_private_value_array_set_element_by_index(
 	struct bt_ctf_value_array *typed_array_obj =
 		BT_CTF_VALUE_TO_ARRAY(array_obj);
 
-	BT_ASSERT_PRE_NON_NULL(array_obj, "Array value object");
-	BT_ASSERT_PRE_NON_NULL(element_obj, "Element value object");
-	BT_ASSERT_PRE_VALUE_IS_TYPE(array_obj, BT_CTF_VALUE_TYPE_ARRAY);
-	BT_ASSERT_PRE_VALUE_HOT(array_obj, "Array value object");
-	BT_ASSERT_PRE_VALUE_INDEX_IN_BOUNDS(index,
+	BT_CTF_ASSERT_PRE_NON_NULL(array_obj, "Array value object");
+	BT_CTF_ASSERT_PRE_NON_NULL(element_obj, "Element value object");
+	BT_CTF_ASSERT_PRE_VALUE_IS_TYPE(array_obj, BT_CTF_VALUE_TYPE_ARRAY);
+	BT_CTF_ASSERT_PRE_VALUE_HOT(array_obj, "Array value object");
+	BT_CTF_ASSERT_PRE_VALUE_INDEX_IN_BOUNDS(index,
 		typed_array_obj->garray->len);
 	bt_ctf_object_put_ref(g_ptr_array_index(typed_array_obj->garray, index));
 	g_ptr_array_index(typed_array_obj->garray, index) = element_obj;
@@ -1017,8 +1014,8 @@ enum bt_ctf_value_status bt_ctf_private_value_array_set_element_by_index(
 BT_HIDDEN
 uint64_t bt_ctf_value_map_get_size(const struct bt_ctf_value *map_obj)
 {
-	BT_ASSERT_PRE_NON_NULL(map_obj, "Value object");
-	BT_ASSERT_PRE_VALUE_IS_TYPE(map_obj, BT_CTF_VALUE_TYPE_MAP);
+	BT_CTF_ASSERT_PRE_NON_NULL(map_obj, "Value object");
+	BT_CTF_ASSERT_PRE_VALUE_IS_TYPE(map_obj, BT_CTF_VALUE_TYPE_MAP);
 	return (uint64_t) g_hash_table_size(BT_CTF_VALUE_TO_MAP(map_obj)->ght);
 }
 
@@ -1026,9 +1023,9 @@ BT_HIDDEN
 struct bt_ctf_value *bt_ctf_value_map_borrow_entry_value(const struct bt_ctf_value *map_obj,
 		const char *key)
 {
-	BT_ASSERT_PRE_NON_NULL(map_obj, "Value object");
-	BT_ASSERT_PRE_NON_NULL(key, "Key");
-	BT_ASSERT_PRE_VALUE_IS_TYPE(map_obj, BT_CTF_VALUE_TYPE_MAP);
+	BT_CTF_ASSERT_PRE_NON_NULL(map_obj, "Value object");
+	BT_CTF_ASSERT_PRE_NON_NULL(key, "Key");
+	BT_CTF_ASSERT_PRE_VALUE_IS_TYPE(map_obj, BT_CTF_VALUE_TYPE_MAP);
 	return g_hash_table_lookup(BT_CTF_VALUE_TO_MAP(map_obj)->ght,
 		GUINT_TO_POINTER(g_quark_from_string(key)));
 }
@@ -1043,9 +1040,9 @@ struct bt_ctf_private_value *bt_ctf_private_value_map_borrow_entry_value(
 BT_HIDDEN
 bt_bool bt_ctf_value_map_has_entry(const struct bt_ctf_value *map_obj, const char *key)
 {
-	BT_ASSERT_PRE_NON_NULL(map_obj, "Value object");
-	BT_ASSERT_PRE_NON_NULL(key, "Key");
-	BT_ASSERT_PRE_VALUE_IS_TYPE(map_obj, BT_CTF_VALUE_TYPE_MAP);
+	BT_CTF_ASSERT_PRE_NON_NULL(map_obj, "Value object");
+	BT_CTF_ASSERT_PRE_NON_NULL(key, "Key");
+	BT_CTF_ASSERT_PRE_VALUE_IS_TYPE(map_obj, BT_CTF_VALUE_TYPE_MAP);
 	return bt_g_hash_table_contains(BT_CTF_VALUE_TO_MAP(map_obj)->ght,
 		GUINT_TO_POINTER(g_quark_from_string(key)));
 }
@@ -1055,11 +1052,11 @@ enum bt_ctf_value_status bt_ctf_private_value_map_insert_entry(
 		struct bt_ctf_private_value *map_obj,
 		const char *key, struct bt_ctf_value *element_obj)
 {
-	BT_ASSERT_PRE_NON_NULL(map_obj, "Map value object");
-	BT_ASSERT_PRE_NON_NULL(key, "Key");
-	BT_ASSERT_PRE_NON_NULL(element_obj, "Element value object");
-	BT_ASSERT_PRE_VALUE_IS_TYPE(map_obj, BT_CTF_VALUE_TYPE_MAP);
-	BT_ASSERT_PRE_VALUE_HOT(map_obj, "Map value object");
+	BT_CTF_ASSERT_PRE_NON_NULL(map_obj, "Map value object");
+	BT_CTF_ASSERT_PRE_NON_NULL(key, "Key");
+	BT_CTF_ASSERT_PRE_NON_NULL(element_obj, "Element value object");
+	BT_CTF_ASSERT_PRE_VALUE_IS_TYPE(map_obj, BT_CTF_VALUE_TYPE_MAP);
+	BT_CTF_ASSERT_PRE_VALUE_HOT(map_obj, "Map value object");
 	g_hash_table_insert(BT_CTF_VALUE_TO_MAP(map_obj)->ght,
 		GUINT_TO_POINTER(g_quark_from_string(key)), element_obj);
 	bt_ctf_object_get_ref(element_obj);
@@ -1163,9 +1160,9 @@ enum bt_ctf_value_status bt_ctf_value_map_foreach_entry(const struct bt_ctf_valu
 	GHashTableIter iter;
 	struct bt_ctf_value_map *typed_map_obj = BT_CTF_VALUE_TO_MAP(map_obj);
 
-	BT_ASSERT_PRE_NON_NULL(map_obj, "Value object");
-	BT_ASSERT_PRE_NON_NULL(cb, "Callback");
-	BT_ASSERT_PRE_VALUE_IS_TYPE(map_obj, BT_CTF_VALUE_TYPE_MAP);
+	BT_CTF_ASSERT_PRE_NON_NULL(map_obj, "Value object");
+	BT_CTF_ASSERT_PRE_NON_NULL(cb, "Callback");
+	BT_CTF_ASSERT_PRE_VALUE_IS_TYPE(map_obj, BT_CTF_VALUE_TYPE_MAP);
 	g_hash_table_iter_init(&iter, typed_map_obj->ght);
 
 	while (g_hash_table_iter_next(&iter, &key, &element_obj)) {
@@ -1250,12 +1247,12 @@ enum bt_ctf_value_status bt_ctf_value_map_extend(
 		.status = BT_CTF_VALUE_STATUS_OK,
 	};
 
-	BT_ASSERT_PRE_NON_NULL(base_map_obj, "Base value object");
-	BT_ASSERT_PRE_NON_NULL(extension_obj, "Extension value object");
-	BT_ASSERT_PRE_NON_NULL(extended_map_obj,
+	BT_CTF_ASSERT_PRE_NON_NULL(base_map_obj, "Base value object");
+	BT_CTF_ASSERT_PRE_NON_NULL(extension_obj, "Extension value object");
+	BT_CTF_ASSERT_PRE_NON_NULL(extended_map_obj,
 		"Extended value object (output)");
-	BT_ASSERT_PRE_VALUE_IS_TYPE(base_map_obj, BT_CTF_VALUE_TYPE_MAP);
-	BT_ASSERT_PRE_VALUE_IS_TYPE(extension_obj, BT_CTF_VALUE_TYPE_MAP);
+	BT_CTF_ASSERT_PRE_VALUE_IS_TYPE(base_map_obj, BT_CTF_VALUE_TYPE_MAP);
+	BT_CTF_ASSERT_PRE_VALUE_IS_TYPE(extension_obj, BT_CTF_VALUE_TYPE_MAP);
 	BT_LOGD("Extending map value: base-value-addr=%p, extension-value-addr=%p",
 		base_map_obj, extension_obj);
 	*extended_map_obj = NULL;
@@ -1307,8 +1304,8 @@ enum bt_ctf_value_status bt_ctf_value_copy(struct bt_ctf_private_value **copy_ob
 {
 	enum bt_ctf_value_status status = BT_CTF_VALUE_STATUS_OK;
 
-	BT_ASSERT_PRE_NON_NULL(object, "Value object");
-	BT_ASSERT_PRE_NON_NULL(copy_obj, "Value object copy (output)");
+	BT_CTF_ASSERT_PRE_NON_NULL(object, "Value object");
+	BT_CTF_ASSERT_PRE_NON_NULL(copy_obj, "Value object copy (output)");
 	BT_LOGD("Copying value object: addr=%p", object);
 	*copy_obj = copy_funcs[object->type](object);
 	if (*copy_obj) {
@@ -1329,8 +1326,8 @@ bt_bool bt_ctf_value_compare(const struct bt_ctf_value *object_a,
 {
 	bt_bool ret = BT_FALSE;
 
-	BT_ASSERT_PRE_NON_NULL(object_a, "Value object A");
-	BT_ASSERT_PRE_NON_NULL(object_b, "Value object B");
+	BT_CTF_ASSERT_PRE_NON_NULL(object_a, "Value object A");
+	BT_CTF_ASSERT_PRE_NON_NULL(object_b, "Value object B");
 
 	if (object_a->type != object_b->type) {
 		BT_LOGV("Values are different: type mismatch: "

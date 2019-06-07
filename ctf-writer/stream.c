@@ -22,9 +22,9 @@
  */
 
 #define BT_LOG_TAG "CTF-WRITER-STREAM"
-#include <babeltrace2/lib-logging-internal.h>
+#include "logging.h"
 
-#include <babeltrace2/assert-pre-internal.h>
+#include <babeltrace2/ctf-writer/assert-pre-internal.h>
 #include <babeltrace2/align-internal.h>
 #include <babeltrace2/assert-internal.h>
 #include <babeltrace2/compiler-internal.h>
@@ -1423,7 +1423,7 @@ int bt_ctf_stream_append_event(struct bt_ctf_stream *stream,
 
 	/* Make sure the various scopes of the event are set */
 	BT_LOGV_STR("Validating event to append.");
-	BT_ASSERT_PRE(bt_ctf_event_common_validate(BT_CTF_TO_COMMON(event)) == 0,
+	BT_CTF_ASSERT_PRE(bt_ctf_event_common_validate(BT_CTF_TO_COMMON(event)) == 0,
 		"Invalid event: event-addr=%p", event);
 
 	/* Save the new event and freeze it */

@@ -34,37 +34,6 @@
 #include <babeltrace2/value.h>
 #include <babeltrace2/version.h>
 
-/* Legacy API (for CTF writer) */
-#include <babeltrace2/ctf/events.h>
-
-/* CTF writer API */
-#include <babeltrace2/ctf-writer/clock-class.h>
-#include <babeltrace2/ctf-writer/clock.h>
-#include <babeltrace2/ctf-writer/event-fields.h>
-#include <babeltrace2/ctf-writer/event-types.h>
-#include <babeltrace2/ctf-writer/event.h>
-#include <babeltrace2/ctf-writer/field-types.h>
-#include <babeltrace2/ctf-writer/fields.h>
-#include <babeltrace2/ctf-writer/object.h>
-#include <babeltrace2/ctf-writer/stream-class.h>
-#include <babeltrace2/ctf-writer/stream.h>
-#include <babeltrace2/ctf-writer/trace.h>
-#include <babeltrace2/ctf-writer/utils.h>
-#include <babeltrace2/ctf-writer/visitor.h>
-#include <babeltrace2/ctf-writer/writer.h>
-
-/* Legacy API (for CTF writer) */
-#include <babeltrace2/ctf-ir/clock.h>
-#include <babeltrace2/ctf-ir/event-fields.h>
-#include <babeltrace2/ctf-ir/event-types.h>
-#include <babeltrace2/ctf-ir/event.h>
-#include <babeltrace2/ctf-ir/field-types.h>
-#include <babeltrace2/ctf-ir/fields.h>
-#include <babeltrace2/ctf-ir/stream-class.h>
-#include <babeltrace2/ctf-ir/stream.h>
-#include <babeltrace2/ctf-ir/trace.h>
-#include <babeltrace2/ctf-ir/utils.h>
-
 /* Trace IR API */
 #include <babeltrace2/trace-ir/clock-class-const.h>
 #include <babeltrace2/trace-ir/clock-class.h>
