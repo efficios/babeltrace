@@ -814,7 +814,6 @@ AS_IF([test "x$enable_python_bindings" = xyes],
   [
 	AC_CONFIG_FILES([tests/bindings/python/bt2/test_python_bt2], [chmod +x tests/bindings/python/bt2/test_python_bt2])
 	AC_CONFIG_FILES([tests/utils/test_python_bt2_env], [chmod +x tests/utils/test_python_bt2_env])
-	AC_CONFIG_FILES([tests/bindings/python/babeltrace/test_python_babeltrace], [chmod +x tests/bindings/python/babeltrace/test_python_babeltrace])
   ]
 )
 
