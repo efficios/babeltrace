@@ -6,9 +6,6 @@ EXTRA_DIST = $(srcdir)/ctf-traces \
 	     bindings/python/bt2/.coveragerc
 
 dist_check_SCRIPTS = \
-	bindings/python/babeltrace/test_ctf_writer_empty_packet.py \
-	bindings/python/babeltrace/test_ctf_writer_no_packet_context.py \
-	bindings/python/babeltrace/test_ctf_writer.py \
 	bindings/python/bt2/test_clock_class_priority_map.py \
 	bindings/python/bt2/test_clock_class.py \
 	bindings/python/bt2/test_component_class.py \
@@ -38,8 +35,7 @@ dist_check_SCRIPTS = \
 TESTS_BINDINGS =
 
 if ENABLE_PYTHON_BINDINGS
-TESTS_BINDINGS += bindings/python/bt2/test_python_bt2 \
-	bindings/python/babeltrace/test_python_babeltrace
+TESTS_BINDINGS += bindings/python/bt2/test_python_bt2
 endif
 
 TESTS_CLI = \
