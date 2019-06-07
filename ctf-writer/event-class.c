@@ -22,9 +22,9 @@
  */
 
 #define BT_LOG_TAG "CTF-WRITER-EVENT-CLASS"
-#include <babeltrace2/lib-logging-internal.h>
+#include "logging.h"
 
-#include <babeltrace2/assert-pre-internal.h>
+#include <babeltrace2/ctf-writer/assert-pre-internal.h>
 #include <babeltrace2/assert-internal.h>
 #include <babeltrace2/compiler-internal.h>
 #include <babeltrace2/ctf-writer/attributes-internal.h>
@@ -268,7 +268,7 @@ int bt_ctf_event_class_set_emf_uri(struct bt_ctf_event_class *event_class,
 struct bt_ctf_stream_class *bt_ctf_event_class_get_stream_class(
 		struct bt_ctf_event_class *event_class)
 {
-	BT_ASSERT_PRE_NON_NULL(event_class, "Event class");
+	BT_CTF_ASSERT_PRE_NON_NULL(event_class, "Event class");
 	return bt_ctf_object_get_ref(bt_ctf_event_class_common_borrow_stream_class(
 		BT_CTF_TO_COMMON(event_class)));
 }

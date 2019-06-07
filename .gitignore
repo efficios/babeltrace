@@ -88,7 +88,7 @@ core
 stamp-h1
 __pycache__
 /babeltrace2.pc
-/babeltrace2-ctf.pc
+/babeltrace2-ctf-writer.pc
 TAGS
 cscope*
 doc/api/Doxyfile

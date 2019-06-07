@@ -29,7 +29,7 @@
  */
 
 #include <babeltrace2/assert-internal.h>
-#include <babeltrace2/assert-pre-internal.h>
+#include <babeltrace2/ctf-writer/assert-pre-internal.h>
 #include <babeltrace2/babeltrace-internal.h>
 #include <babeltrace2/ctf-writer/stream-internal.h>
 #include <babeltrace2/ctf-writer/stream.h>
@@ -67,7 +67,7 @@ struct bt_ctf_stream_class_common *bt_ctf_stream_common_borrow_class(
 static inline
 const char *bt_ctf_stream_common_get_name(struct bt_ctf_stream_common *stream)
 {
-	BT_ASSERT_PRE_NON_NULL(stream, "Stream");
+	BT_CTF_ASSERT_PRE_NON_NULL(stream, "Stream");
 	return stream->name ? stream->name->str : NULL;
 }
 
@@ -76,7 +76,7 @@ int64_t bt_ctf_stream_common_get_id(struct bt_ctf_stream_common *stream)
 {
 	int64_t ret;
 
-	BT_ASSERT_PRE_NON_NULL(stream, "Stream");
+	BT_CTF_ASSERT_PRE_NON_NULL(stream, "Stream");
 	ret = stream->id;
 	if (ret < 0) {
 		BT_LOGV("Stream's ID is not set: addr=%p, name=\"%s\"",

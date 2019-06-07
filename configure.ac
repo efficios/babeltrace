@@ -732,6 +732,7 @@ AC_CONFIG_FILES([
 	bindings/python/bt2/bt2/__init__.py
 	common/Makefile
 	ctfser/Makefile
+	ctf-writer/Makefile
 	compat/Makefile
 	cli/Makefile
 	doc/Makefile
@@ -749,7 +750,6 @@ AC_CONFIG_FILES([
 	lib/graph/Makefile
 	lib/graph/message/Makefile
 	lib/trace-ir/Makefile
-	lib/ctf-writer/Makefile
 	include/Makefile
 	logging/Makefile
 	bindings/Makefile
@@ -782,7 +782,7 @@ AC_CONFIG_FILES([
 	plugins/lttng-utils/Makefile
 	plugins/lttng-utils/debug-info/Makefile
 	babeltrace2.pc
-	babeltrace2-ctf.pc
+	babeltrace2-ctf-writer.pc
 ])
 
 AC_CONFIG_FILES([tests/cli/test_intersection], [chmod +x tests/cli/test_intersection])

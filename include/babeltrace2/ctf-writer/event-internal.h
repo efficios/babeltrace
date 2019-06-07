@@ -29,7 +29,7 @@
  */
 
 #include <babeltrace2/assert-internal.h>
-#include <babeltrace2/assert-pre-internal.h>
+#include <babeltrace2/ctf-writer/assert-pre-internal.h>
 #include <babeltrace2/babeltrace-internal.h>
 #include <babeltrace2/ctf-writer/event-class-internal.h>
 #include <babeltrace2/ctf-writer/event-internal.h>
@@ -74,8 +74,8 @@ void _bt_ctf_event_common_set_is_frozen(struct bt_ctf_event_common *event,
 # define bt_ctf_event_common_set_is_frozen(_event, _is_frozen)
 #endif
 
-#define BT_ASSERT_PRE_EVENT_COMMON_HOT(_event, _name)			\
-	BT_ASSERT_PRE_HOT((_event), (_name), ": event-addr=%p", (_event))
+#define BT_CTF_ASSERT_PRE_EVENT_COMMON_HOT(_event, _name)			\
+	BT_CTF_ASSERT_PRE_HOT((_event), (_name), ": event-addr=%p", (_event))
 
 static inline
 struct bt_ctf_event_class_common *bt_ctf_event_common_borrow_class(
@@ -111,7 +111,7 @@ struct bt_ctf_field_common *bt_ctf_event_common_borrow_payload(
 {
 	struct bt_ctf_field_common *payload = NULL;
 
-	BT_ASSERT_PRE_NON_NULL(event, "Event");
+	BT_CTF_ASSERT_PRE_NON_NULL(event, "Event");
 
 	if (!event->payload_field) {
 		BT_LOGV("Event has no current payload field: addr=%p, "
@@ -133,7 +133,7 @@ struct bt_ctf_field_common *bt_ctf_event_common_borrow_header(
 {
 	struct bt_ctf_field_common *header = NULL;
 
-	BT_ASSERT_PRE_NON_NULL(event, "Event");
+	BT_CTF_ASSERT_PRE_NON_NULL(event, "Event");
 
 	if (!event->header_field) {
 		BT_LOGV("Event has no current header field: addr=%p, "
@@ -155,7 +155,7 @@ struct bt_ctf_field_common *bt_ctf_event_common_borrow_context(
 {
 	struct bt_ctf_field_common *context = NULL;
 
-	BT_ASSERT_PRE_NON_NULL(event, "Event");
+	BT_CTF_ASSERT_PRE_NON_NULL(event, "Event");
 
 	if (!event->context_field) {
 		BT_LOGV("Event has no current context field: addr=%p, "
@@ -177,7 +177,7 @@ struct bt_ctf_field_common *bt_ctf_event_common_borrow_stream_event_context(
 {
 	struct bt_ctf_field_common *stream_event_context = NULL;
 
-	BT_ASSERT_PRE_NON_NULL(event, "Event");
+	BT_CTF_ASSERT_PRE_NON_NULL(event, "Event");
 
 	if (!event->stream_event_context_field) {
 		BT_LOGV("Event has no current stream event context field: addr=%p, "

@@ -21,7 +21,7 @@
  */
 
 #define BT_LOG_TAG "CTF-WRITER-FIELD-WRAPPER"
-#include <babeltrace2/lib-logging-internal.h>
+#include "logging.h"
 
 #include <babeltrace2/ctf-writer/field-wrapper-internal.h>
 #include <babeltrace2/ctf-writer/fields-internal.h>
@@ -69,8 +69,7 @@ struct bt_ctf_field_wrapper *bt_ctf_field_wrapper_create(
 	BT_ASSERT(ft);
 	field_wrapper = bt_ctf_object_pool_create_object(pool);
 	if (!field_wrapper) {
-		BT_LIB_LOGE("Cannot allocate one field wrapper from field wrapper pool: "
-			"%![pool-]+o", pool);
+		BT_LOGE("Cannot allocate one field wrapper");
 		goto error;
 	}
 

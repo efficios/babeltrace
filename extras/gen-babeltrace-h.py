@@ -45,6 +45,9 @@ def _c_includes_from_sections(sections):
     src = ''
 
     for section in sections:
+        if 'ctf' in section.title.lower():
+            continue
+
         src += '/* {} */\n'.format(section.title)
 
         for filename in sorted(section.filenames):

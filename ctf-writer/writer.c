@@ -27,7 +27,7 @@
  */
 
 #define BT_LOG_TAG "CTF-WRITER"
-#include <babeltrace2/lib-logging-internal.h>
+#include "logging.h"
 
 #include <babeltrace2/assert-internal.h>
 #include <babeltrace2/compat/uuid-internal.h>

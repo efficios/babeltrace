@@ -235,6 +235,7 @@ noinst_HEADERS = \
 	babeltrace2/plugin/python-plugin-provider-internal.h \
 	babeltrace2/assert-internal.h \
 	babeltrace2/value-internal.h \
+	babeltrace2/ctf-writer/assert-pre-internal.h \
 	babeltrace2/ctf-writer/attributes-internal.h \
 	babeltrace2/ctf-writer/clock-class-internal.h \
 	babeltrace2/ctf-writer/clock-internal.h \

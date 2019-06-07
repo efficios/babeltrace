@@ -27,9 +27,9 @@
  */
 
 #define BT_LOG_TAG "CTF-WRITER-CLOCK-CLASS"
-#include <babeltrace2/lib-logging-internal.h>
+#include "logging.h"
 
-#include <babeltrace2/assert-pre-internal.h>
+#include <babeltrace2/ctf-writer/assert-pre-internal.h>
 #include <babeltrace2/compat/uuid-internal.h>
 #include <babeltrace2/ctf-writer/clock-class-internal.h>
 #include <babeltrace2/ctf-writer/utils.h>

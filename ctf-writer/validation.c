@@ -25,9 +25,9 @@
  */
 
 #define BT_LOG_TAG "CTF-WRITER-VALIDATION"
-#include <babeltrace2/lib-logging-internal.h>
+#include "logging.h"
 
-#include <babeltrace2/assert-pre-internal.h>
+#include <babeltrace2/ctf-writer/assert-pre-internal.h>
 #include <babeltrace2/babeltrace-internal.h>
 #include <babeltrace2/ctf-writer/event-class-internal.h>
 #include <babeltrace2/ctf-writer/field-types-internal.h>

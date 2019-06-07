@@ -31,7 +31,7 @@
 #include <stdint.h>
 #include <stddef.h>
 
-#include <babeltrace2/assert-pre-internal.h>
+#include <babeltrace2/ctf-writer/assert-pre-internal.h>
 #include <babeltrace2/babeltrace-internal.h>
 #include <babeltrace2/ctf-writer/clock-class-internal.h>
 #include <babeltrace2/ctf-writer/field-types.h>
@@ -39,13 +39,13 @@
 #include <babeltrace2/ctf-writer/object-internal.h>
 #include <babeltrace2/types.h>
 
-#define BT_ASSERT_PRE_CTF_FT_COMMON_HAS_ID(_ft, _type_id, _name)	\
-	BT_ASSERT_PRE(((struct bt_ctf_field_type_common *) (_ft))->id == (_type_id), \
+#define BT_CTF_ASSERT_PRE_CTF_FT_COMMON_HAS_ID(_ft, _type_id, _name)	\
+	BT_CTF_ASSERT_PRE(((struct bt_ctf_field_type_common *) (_ft))->id == (_type_id), \
 		_name " has the wrong type ID: expected-type-id=%s, "	\
 		"ft-addr=%p", bt_ctf_field_type_id_string(_type_id), (_ft))
 
-#define BT_ASSERT_PRE_CTF_FT_HOT(_ft, _name)				\
-	BT_ASSERT_PRE_HOT((_ft), (_name), ": ft-addr=%p", (_ft))
+#define BT_CTF_ASSERT_PRE_CTF_FT_HOT(_ft, _name)				\
+	BT_CTF_ASSERT_PRE_HOT((_ft), (_name), ": ft-addr=%p", (_ft))
 
 #define BT_CTF_FIELD_TYPE_COMMON_STRUCTURE_FIELD_AT_INDEX(_ft, _index)	\
 	(&g_array_index(((struct bt_ctf_field_type_common_structure *) (_ft))->fields, \

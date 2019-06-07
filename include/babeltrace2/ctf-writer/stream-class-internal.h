@@ -101,7 +101,7 @@ static inline
 const char *bt_ctf_stream_class_common_get_name(
 		struct bt_ctf_stream_class_common *stream_class)
 {
-	BT_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
+	BT_CTF_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
 	return stream_class->name->len > 0 ? stream_class->name->str : NULL;
 }
 
@@ -111,7 +111,7 @@ int64_t bt_ctf_stream_class_common_get_id(
 {
 	int64_t ret;
 
-	BT_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
+	BT_CTF_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
 
 	if (!stream_class->id_set) {
 		BT_LOGV("Stream class's ID is not set: addr=%p, name=\"%s\"",
@@ -289,8 +289,8 @@ static inline
 struct bt_ctf_event_class_common *bt_ctf_stream_class_common_borrow_event_class_by_index(
 		struct bt_ctf_stream_class_common *stream_class, uint64_t index)
 {
-	BT_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
-	BT_ASSERT_PRE(index < stream_class->event_classes->len,
+	BT_CTF_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
+	BT_CTF_ASSERT_PRE(index < stream_class->event_classes->len,
 		"Index is out of bounds: index=%" PRIu64 ", "
 		"count=%u",
 		index, stream_class->event_classes->len);
@@ -303,8 +303,8 @@ struct bt_ctf_event_class_common *bt_ctf_stream_class_common_borrow_event_class_
 {
 	int64_t id_key = (int64_t) id;
 
-	BT_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
-	BT_ASSERT_PRE(id_key >= 0,
+	BT_CTF_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
+	BT_CTF_ASSERT_PRE(id_key >= 0,
 		"Invalid event class ID: %" PRIu64, id);
 	return g_hash_table_lookup(stream_class->event_classes_ht,
 			&id_key);
@@ -315,7 +315,7 @@ struct bt_ctf_field_type_common *
 bt_ctf_stream_class_common_borrow_packet_context_field_type(
 		struct bt_ctf_stream_class_common *stream_class)
 {
-	BT_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
+	BT_CTF_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
 	return stream_class->packet_context_field_type;
 }
 
@@ -378,7 +378,7 @@ bt_ctf_stream_class_common_borrow_event_header_field_type(
 {
 	struct bt_ctf_field_type_common *ret = NULL;
 
-	BT_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
+	BT_CTF_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
 
 	if (!stream_class->event_header_field_type) {
 		BT_LOGV("Stream class has no event header field type: "
@@ -454,7 +454,7 @@ bt_ctf_stream_class_common_borrow_event_context_field_type(
 {
 	struct bt_ctf_field_type_common *ret = NULL;
 
-	BT_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
+	BT_CTF_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
 
 	if (!stream_class->event_context_field_type) {
 		goto end;

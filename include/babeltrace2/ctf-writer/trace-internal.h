@@ -28,7 +28,7 @@
  * http://www.efficios.com/ctf
  */
 
-#include <babeltrace2/assert-pre-internal.h>
+#include <babeltrace2/ctf-writer/assert-pre-internal.h>
 #include <babeltrace2/babeltrace-internal.h>
 #include <babeltrace2/compat/uuid-internal.h>
 #include <babeltrace2/ctf-writer/attributes-internal.h>
@@ -79,7 +79,7 @@ void bt_ctf_trace_common_finalize(struct bt_ctf_trace_common *trace);
 static inline
 const char *bt_ctf_trace_common_get_name(struct bt_ctf_trace_common *trace)
 {
-	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
+	BT_CTF_ASSERT_PRE_NON_NULL(trace, "Trace");
 	return trace->name ? trace->name->str : NULL;
 }
 
@@ -89,7 +89,7 @@ int bt_ctf_trace_common_set_name(struct bt_ctf_trace_common *trace, const char *
 static inline
 const unsigned char *bt_ctf_trace_common_get_uuid(struct bt_ctf_trace_common *trace)
 {
-	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
+	BT_CTF_ASSERT_PRE_NON_NULL(trace, "Trace");
 	return trace->uuid_set ? trace->uuid : NULL;
 }
 
@@ -114,7 +114,7 @@ int64_t bt_ctf_trace_common_get_environment_field_count(
 {
 	int64_t ret;
 
-	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
+	BT_CTF_ASSERT_PRE_NON_NULL(trace, "Trace");
 	ret = bt_ctf_attributes_get_count(trace->environment);
 	BT_ASSERT(ret >= 0);
 	return ret;
@@ -125,7 +125,7 @@ const char *
 bt_ctf_trace_common_get_environment_field_name_by_index(
 		struct bt_ctf_trace_common *trace, uint64_t index)
 {
-	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
+	BT_CTF_ASSERT_PRE_NON_NULL(trace, "Trace");
 	return bt_ctf_attributes_get_field_name(trace->environment, index);
 }
 
@@ -134,7 +134,7 @@ struct bt_ctf_private_value *
 bt_ctf_trace_common_borrow_environment_field_value_by_index(
 		struct bt_ctf_trace_common *trace, uint64_t index)
 {
-	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
+	BT_CTF_ASSERT_PRE_NON_NULL(trace, "Trace");
 	return bt_ctf_attributes_borrow_field_value(trace->environment, index);
 }
 
@@ -143,8 +143,8 @@ struct bt_ctf_private_value *
 bt_ctf_trace_common_borrow_environment_field_value_by_name(
 		struct bt_ctf_trace_common *trace, const char *name)
 {
-	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
-	BT_ASSERT_PRE_NON_NULL(name, "Name");
+	BT_CTF_ASSERT_PRE_NON_NULL(trace, "Trace");
+	BT_CTF_ASSERT_PRE_NON_NULL(name, "Name");
 	return bt_ctf_attributes_borrow_field_value_by_name(trace->environment,
 		name);
 }
@@ -156,7 +156,7 @@ int bt_ctf_trace_common_add_clock_class(struct bt_ctf_trace_common *trace,
 static inline
 int64_t bt_ctf_trace_common_get_clock_class_count(struct bt_ctf_trace_common *trace)
 {
-	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
+	BT_CTF_ASSERT_PRE_NON_NULL(trace, "Trace");
 	return trace->clock_classes->len;
 }
 
@@ -164,8 +164,8 @@ static inline
 struct bt_ctf_clock_class *bt_ctf_trace_common_borrow_clock_class_by_index(
 		struct bt_ctf_trace_common *trace, uint64_t index)
 {
-	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
-	BT_ASSERT_PRE(index < trace->clock_classes->len,
+	BT_CTF_ASSERT_PRE_NON_NULL(trace, "Trace");
+	BT_CTF_ASSERT_PRE(index < trace->clock_classes->len,
 		"Index is out of bounds: index=%" PRIu64 ", "
 		"count=%u",
 		index, trace->clock_classes->len);
@@ -175,7 +175,7 @@ struct bt_ctf_clock_class *bt_ctf_trace_common_borrow_clock_class_by_index(
 static inline
 int64_t bt_ctf_trace_common_get_stream_count(struct bt_ctf_trace_common *trace)
 {
-	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
+	BT_CTF_ASSERT_PRE_NON_NULL(trace, "Trace");
 	return (int64_t) trace->streams->len;
 }
 
@@ -184,8 +184,8 @@ struct bt_ctf_stream_common *bt_ctf_trace_common_borrow_stream_by_index(
 		struct bt_ctf_trace_common *trace,
 		uint64_t index)
 {
-	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
-	BT_ASSERT_PRE(index < trace->streams->len,
+	BT_CTF_ASSERT_PRE_NON_NULL(trace, "Trace");
+	BT_CTF_ASSERT_PRE(index < trace->streams->len,
 		"Index is out of bounds: index=%" PRIu64 ", "
 		"count=%u",
 		index, trace->streams->len);
@@ -195,7 +195,7 @@ struct bt_ctf_stream_common *bt_ctf_trace_common_borrow_stream_by_index(
 static inline
 int64_t bt_ctf_trace_common_get_stream_class_count(struct bt_ctf_trace_common *trace)
 {
-	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
+	BT_CTF_ASSERT_PRE_NON_NULL(trace, "Trace");
 	return (int64_t) trace->stream_classes->len;
 }
 
@@ -203,8 +203,8 @@ static inline
 struct bt_ctf_stream_class_common *bt_ctf_trace_common_borrow_stream_class_by_index(
 		struct bt_ctf_trace_common *trace, uint64_t index)
 {
-	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
-	BT_ASSERT_PRE(index < trace->stream_classes->len,
+	BT_CTF_ASSERT_PRE_NON_NULL(trace, "Trace");
+	BT_CTF_ASSERT_PRE(index < trace->stream_classes->len,
 		"Index is out of bounds: index=%" PRIu64 ", "
 		"count=%u",
 		index, trace->stream_classes->len);
@@ -219,8 +219,8 @@ struct bt_ctf_stream_class_common *bt_ctf_trace_common_borrow_stream_class_by_id
 	struct bt_ctf_stream_class_common *stream_class = NULL;
 	int64_t id = (int64_t) id_param;
 
-	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
-	BT_ASSERT_PRE(id >= 0,
+	BT_CTF_ASSERT_PRE_NON_NULL(trace, "Trace");
+	BT_CTF_ASSERT_PRE(id >= 0,
 		"Invalid stream class ID: %" PRIu64, id_param);
 
 	for (i = 0; i < trace->stream_classes->len; i++) {
@@ -247,8 +247,8 @@ struct bt_ctf_clock_class *bt_ctf_trace_common_borrow_clock_class_by_name(
 	size_t i;
 	struct bt_ctf_clock_class *clock_class = NULL;
 
-	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
-	BT_ASSERT_PRE_NON_NULL(name, "Name");
+	BT_CTF_ASSERT_PRE_NON_NULL(trace, "Trace");
+	BT_CTF_ASSERT_PRE_NON_NULL(name, "Name");
 
 	for (i = 0; i < trace->clock_classes->len; i++) {
 		struct bt_ctf_clock_class *cur_clk =
@@ -273,7 +273,7 @@ static inline
 enum bt_ctf_byte_order bt_ctf_trace_common_get_native_byte_order(
 		struct bt_ctf_trace_common *trace)
 {
-	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
+	BT_CTF_ASSERT_PRE_NON_NULL(trace, "Trace");
 	return trace->native_byte_order;
 }
 
@@ -285,7 +285,7 @@ static inline
 struct bt_ctf_field_type_common *bt_ctf_trace_common_borrow_packet_header_field_type(
 		struct bt_ctf_trace_common *trace)
 {
-	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
+	BT_CTF_ASSERT_PRE_NON_NULL(trace, "Trace");
 	return trace->packet_header_field_type;
 }
 
