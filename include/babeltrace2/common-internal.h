@@ -76,14 +76,14 @@ bool bt_common_is_setuid_setgid(void);
 
 /*
  * Returns the system-wide plugin path, e.g.
- * `/usr/lib/babeltrace/plugins`. Do not free the return value.
+ * `/usr/lib/babeltrace2/plugins`. Do not free the return value.
  */
 BT_HIDDEN
 const char *bt_common_get_system_plugin_path(void);
 
 /*
  * Returns the user plugin path, e.g.
- * `/home/user/.local/lib/babeltrace/plugins`. You need to free the
+ * `/home/user/.local/lib/babeltrace2/plugins`. You need to free the
  * return value.
  */
 BT_HIDDEN
