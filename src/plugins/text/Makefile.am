@@ -1,4 +1,4 @@
-SUBDIRS = pretty dmesg
+SUBDIRS = pretty dmesg details
 
 plugindir = "$(PLUGINSDIR)"
 plugin_LTLIBRARIES = babeltrace-plugin-text.la
@@ -10,7 +10,8 @@ babeltrace_plugin_text_la_LDFLAGS = \
 
 babeltrace_plugin_text_la_LIBADD = \
 	pretty/libbabeltrace2-plugin-text-pretty-cc.la \
-	dmesg/libbabeltrace2-plugin-text-dmesg-cc.la
+	dmesg/libbabeltrace2-plugin-text-dmesg-cc.la \
+	details/libbabeltrace2-plugin-text-details-cc.la
 
 if !ENABLE_BUILT_IN_PLUGINS
 babeltrace_plugin_text_la_LIBADD += \

@@ -771,6 +771,7 @@ AC_CONFIG_FILES([
 	src/plugins/text/dmesg/Makefile
 	src/plugins/text/Makefile
 	src/plugins/text/pretty/Makefile
+	src/plugins/text/details/Makefile
 	src/plugins/utils/counter/Makefile
 	src/plugins/utils/dummy/Makefile
 	src/plugins/utils/Makefile

@@ -23,6 +23,7 @@
 #include <babeltrace2/babeltrace.h>
 #include "pretty/pretty.h"
 #include "dmesg/dmesg.h"
+#include "details/details.h"
 
 #ifndef BT_BUILT_IN_PLUGINS
 BT_PLUGIN_MODULE();
@@ -56,3 +57,12 @@ BT_PLUGIN_SOURCE_COMPONENT_CLASS_MESSAGE_ITERATOR_SEEK_BEGINNING_METHOD(dmesg,
 	dmesg_msg_iter_seek_beginning);
 BT_PLUGIN_SOURCE_COMPONENT_CLASS_MESSAGE_ITERATOR_CAN_SEEK_BEGINNING_METHOD(dmesg,
 	dmesg_msg_iter_can_seek_beginning);
+
+/* details sink */
+BT_PLUGIN_SINK_COMPONENT_CLASS(details, details_consume);
+BT_PLUGIN_SINK_COMPONENT_CLASS_INIT_METHOD(details, details_init);
+BT_PLUGIN_SINK_COMPONENT_CLASS_FINALIZE_METHOD(details, details_finalize);
+BT_PLUGIN_SINK_COMPONENT_CLASS_GRAPH_IS_CONFIGURED_METHOD(details,
+	details_graph_is_configured);
+BT_PLUGIN_SINK_COMPONENT_CLASS_DESCRIPTION(details,
+	"Print messages with details.");
