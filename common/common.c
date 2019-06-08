@@ -47,9 +47,9 @@
 #include <pwd.h>
 #endif
 
-#define SYSTEM_PLUGIN_PATH	INSTALL_LIBDIR "/babeltrace/plugins"
+#define SYSTEM_PLUGIN_PATH	INSTALL_LIBDIR "/babeltrace2/plugins"
 #define HOME_ENV_VAR		"HOME"
-#define HOME_PLUGIN_SUBPATH	"/.local/lib/babeltrace/plugins"
+#define HOME_PLUGIN_SUBPATH	"/.local/lib/babeltrace2/plugins"
 
 static const char *bt_common_color_code_reset = "";
 static const char *bt_common_color_code_bold = "";

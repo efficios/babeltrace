@@ -1895,7 +1895,7 @@ void print_help_usage(FILE *fp)
 	fprintf(fp, "Options:\n");
 	fprintf(fp, "\n");
 	fprintf(fp, "      --omit-home-plugin-path       Omit home plugins from plugin search path\n");
-	fprintf(fp, "                                    (~/.local/lib/babeltrace/plugins)\n");
+	fprintf(fp, "                                    (~/.local/lib/babeltrace2/plugins)\n");
 	fprintf(fp, "      --omit-system-plugin-path     Omit system plugins from plugin search path\n");
 	fprintf(fp, "      --plugin-path=PATH[:PATH]...  Add PATH to the list of paths from which\n");
 	fprintf(fp, "                                    dynamic plugins can be loaded\n");
@@ -2056,7 +2056,7 @@ void print_query_usage(FILE *fp)
 	fprintf(fp, "Options:\n");
 	fprintf(fp, "\n");
 	fprintf(fp, "      --omit-home-plugin-path       Omit home plugins from plugin search path\n");
-	fprintf(fp, "                                    (~/.local/lib/babeltrace/plugins)\n");
+	fprintf(fp, "                                    (~/.local/lib/babeltrace2/plugins)\n");
 	fprintf(fp, "      --omit-system-plugin-path     Omit system plugins from plugin search path\n");
 	fprintf(fp, "  -p, --params=PARAMS               Set the query parameters to PARAMS\n");
 	fprintf(fp, "                                    (see the expected format of PARAMS below)\n");
@@ -2249,7 +2249,7 @@ void print_list_plugins_usage(FILE *fp)
 	fprintf(fp, "Options:\n");
 	fprintf(fp, "\n");
 	fprintf(fp, "      --omit-home-plugin-path       Omit home plugins from plugin search path\n");
-	fprintf(fp, "                                    (~/.local/lib/babeltrace/plugins)\n");
+	fprintf(fp, "                                    (~/.local/lib/babeltrace2/plugins)\n");
 	fprintf(fp, "      --omit-system-plugin-path     Omit system plugins from plugin search path\n");
 	fprintf(fp, "      --plugin-path=PATH[:PATH]...  Add PATH to the list of paths from which\n");
 	fprintf(fp, "                                    dynamic plugins can be loaded\n");
@@ -2401,7 +2401,7 @@ void print_run_usage(FILE *fp)
 	fprintf(fp, "                                    to NAME (must be unique amongst all the\n");
 	fprintf(fp, "                                    names of the created components)\n");
 	fprintf(fp, "      --omit-home-plugin-path       Omit home plugins from plugin search path\n");
-	fprintf(fp, "                                    (~/.local/lib/babeltrace/plugins)\n");
+	fprintf(fp, "                                    (~/.local/lib/babeltrace2/plugins)\n");
 	fprintf(fp, "      --omit-system-plugin-path     Omit system plugins from plugin search path\n");
 	fprintf(fp, "  -p, --params=PARAMS               Add initialization parameters PARAMS to the\n");
 	fprintf(fp, "                                    current component (see the expected format\n");
@@ -2829,7 +2829,7 @@ void print_convert_usage(FILE *fp)
 	fprintf(fp, "                                    to NAME (must be unique amongst all the\n");
 	fprintf(fp, "                                    names of the created components)\n");
 	fprintf(fp, "      --omit-home-plugin-path       Omit home plugins from plugin search path\n");
-	fprintf(fp, "                                    (~/.local/lib/babeltrace/plugins)\n");
+	fprintf(fp, "                                    (~/.local/lib/babeltrace2/plugins)\n");
 	fprintf(fp, "      --omit-system-plugin-path     Omit system plugins from plugin search path\n");
 	fprintf(fp, "  -p, --params=PARAMS               Add initialization parameters PARAMS to the\n");
 	fprintf(fp, "                                    current component (see the expected format\n");

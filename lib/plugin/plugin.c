@@ -195,10 +195,10 @@ const struct bt_plugin *bt_plugin_find(const char *plugin_name)
 	 *
 	 * 1. BABELTRACE_PLUGIN_PATH environment variable
 	 *    (colon-separated list of directories)
-	 * 2. ~/.local/lib/babeltrace/plugins
+	 * 2. ~/.local/lib/babeltrace2/plugins
 	 * 3. Default system directory for Babeltrace plugins, usually
-	 *    /usr/lib/babeltrace/plugins or
-	 *    /usr/local/lib/babeltrace/plugins if installed
+	 *    /usr/lib/babeltrace2/plugins or
+	 *    /usr/local/lib/babeltrace2/plugins if installed
 	 *    locally
 	 * 4. Built-in plugins (static)
 	 *
