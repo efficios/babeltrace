@@ -564,12 +564,6 @@ struct ctf_fs_ds_index *build_index_from_stream_file(
 			goto error;
 		}
 
-		current_packet_offset_bytes += current_packet_size_bytes;
-		BT_LOGD("Seeking to next packet: current-packet-offset=%jd, "
-			"next-packet-offset=%jd",
-			current_packet_offset_bytes - current_packet_size_bytes,
-			current_packet_offset_bytes);
-
 		index_entry = g_new0(struct ctf_fs_ds_index_entry, 1);
 		if (!index_entry) {
 			BT_LOGE_STR("Failed to allocate a new index entry.");
@@ -584,6 +578,12 @@ struct ctf_fs_ds_index *build_index_from_stream_file(
 		}
 
 		g_ptr_array_add(index->entries, index_entry);
+
+		current_packet_offset_bytes += current_packet_size_bytes;
+		BT_LOGD("Seeking to next packet: current-packet-offset=%jd, "
+			"next-packet-offset=%jd",
+			current_packet_offset_bytes - current_packet_size_bytes,
+			current_packet_offset_bytes);
 
 	} while (iter_status == BT_MSG_ITER_STATUS_OK);
 
