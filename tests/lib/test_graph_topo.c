@@ -18,7 +18,7 @@
  */
 
 #include <babeltrace2/babeltrace.h>
-#include <babeltrace2/assert-internal.h>
+#include "common/assert.h"
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>

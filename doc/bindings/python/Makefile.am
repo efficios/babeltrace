@@ -9,9 +9,9 @@ EXTRA_DIST = $(srcdir)/source
 
 all-local: $(SPHINX_HTML_TARGET) $(SPHINX_DIRHTML_TARGET)
 
-PYTHON_BT2_BUILD_LIB_DIR = $(abs_top_builddir)/bindings/python/bt2/build/build_lib
+PYTHON_BT2_BUILD_LIB_DIR = $(abs_top_builddir)/src/bindings/python/bt2/build/build_lib
 PP = $(PYTHON_BT2_BUILD_LIB_DIR)
-LLP = $(abs_top_builddir)/lib/.libs
+LLP = $(abs_top_builddir)/src/lib/.libs
 SPHINXBUILD = PYTHONPATH="$(PP)" LD_LIBRARY_PATH="$(LLP)" $(PYTHON) -m sphinx
 SPHINX_SRC = $(wildcard $(SPHINX_SOURCE_DIR)/*.rst)
 

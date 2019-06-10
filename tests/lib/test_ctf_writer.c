@@ -32,12 +32,12 @@
 #include <babeltrace2/value.h>
 #include <glib.h>
 #include <unistd.h>
-#include <babeltrace2/compat/stdlib-internal.h>
+#include "compat/stdlib.h"
 #include <stdio.h>
-#include <babeltrace2/compat/limits-internal.h>
-#include <babeltrace2/compat/stdio-internal.h>
+#include "compat/limits.h"
+#include "compat/stdio.h"
 #include <string.h>
-#include <babeltrace2/assert-internal.h>
+#include "common/assert.h"
 #include <fcntl.h>
 #include "tap/tap.h"
 #include <math.h>

@@ -1,4 +1,4 @@
-AM_CPPFLAGS += -I$(top_srcdir)/tests/utils -I$(top_srcdir)/plugins
+AM_CPPFLAGS += -I$(top_srcdir)/tests/utils -I$(top_srcdir)/src/plugins
 
 LIBTAP=$(top_builddir)/tests/utils/tap/libtap.la
 
@@ -16,19 +16,19 @@ if ENABLE_DEBUG_INFO
 noinst_PROGRAMS += test_dwarf test_bin_info
 
 test_dwarf_LDADD = \
-	$(top_builddir)/plugins/lttng-utils/debug-info/libdebug-info.la \
-	$(top_builddir)/fd-cache/libbabeltrace2-fd-cache.la \
-	$(top_builddir)/logging/libbabeltrace2-logging.la \
-	$(top_builddir)/common/libbabeltrace2-common.la \
+	$(top_builddir)/src/plugins/lttng-utils/debug-info/libdebug-info.la \
+	$(top_builddir)/src/fd-cache/libbabeltrace2-fd-cache.la \
+	$(top_builddir)/src/logging/libbabeltrace2-logging.la \
+	$(top_builddir)/src/common/libbabeltrace2-common.la \
 	$(ELFUTILS_LIBS) \
 	$(LIBTAP)
 test_dwarf_SOURCES = test_dwarf.c
 
 test_bin_info_LDADD = \
-	$(top_builddir)/plugins/lttng-utils/debug-info/libdebug-info.la \
-	$(top_builddir)/fd-cache/libbabeltrace2-fd-cache.la \
-	$(top_builddir)/logging/libbabeltrace2-logging.la \
-	$(top_builddir)/common/libbabeltrace2-common.la \
+	$(top_builddir)/src/plugins/lttng-utils/debug-info/libdebug-info.la \
+	$(top_builddir)/src/fd-cache/libbabeltrace2-fd-cache.la \
+	$(top_builddir)/src/logging/libbabeltrace2-logging.la \
+	$(top_builddir)/src/common/libbabeltrace2-common.la \
 	$(ELFUTILS_LIBS) \
 	$(LIBTAP)
 test_bin_info_SOURCES = test_bin_info.c

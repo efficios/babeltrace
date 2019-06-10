@@ -43,7 +43,7 @@ m4_define([bt_lib_version], bt_lib_version_current[:]bt_lib_version_revision[:]b
 
 AC_SUBST([BABELTRACE_LIBRARY_VERSION], bt_lib_version)
 
-AC_CONFIG_HEADERS([include/config.h])
+AC_CONFIG_HEADERS([src/common/config.h])
 AC_CONFIG_AUX_DIR([config])
 AC_CONFIG_MACRO_DIR([m4])
 AC_REQUIRE_AUX_FILE([tap-driver.sh])
@@ -684,7 +684,7 @@ AM_CFLAGS="-Wall -Wformat -Werror=implicit-function-declaration $PTHREAD_CFLAGS 
 AC_SUBST(AM_CFLAGS)
 
 # Set global CPPFLAGS in AM_CPPFLAGS
-AM_CPPFLAGS="-I\$(top_builddir)/include -I\$(top_srcdir)/include -include config.h"
+AM_CPPFLAGS="-I\$(top_srcdir)/include -I\$(top_builddir)/src -I\$(top_srcdir)/src -include common/config.h"
 AC_SUBST(AM_CPPFLAGS)
 
 # Add glib to global link libs
@@ -725,64 +725,65 @@ program_transform_name="s&babeltrace2\.bin&babeltrace2&;s&babeltrace2-log\.bin&b
 AC_SUBST(program_transform_name)
 
 AC_CONFIG_FILES([
-	Makefile
-	bindings/python/Makefile
-	bindings/python/bt2/Makefile
-	bindings/python/bt2/setup.py
-	bindings/python/bt2/bt2/__init__.py
-	common/Makefile
-	ctfser/Makefile
-	ctf-writer/Makefile
-	compat/Makefile
-	cli/Makefile
-	doc/Makefile
-	doc/api/Makefile
 	doc/api/Doxyfile
+	doc/api/Makefile
 	doc/bindings/Makefile
 	doc/bindings/python/Makefile
 	doc/contributing-images/Makefile
-  doc/man/Makefile
-  doc/man/asciidoc-attrs.conf
-	fd-cache/Makefile
-	lib/Makefile
-	lib/prio_heap/Makefile
-	lib/plugin/Makefile
-	lib/graph/Makefile
-	lib/graph/message/Makefile
-	lib/trace-ir/Makefile
+	doc/Makefile
+	doc/man/asciidoc-attrs.conf
+	doc/man/Makefile
 	include/Makefile
-	logging/Makefile
-	bindings/Makefile
-	tests/Makefile
+	Makefile
+	src/babeltrace2-ctf-writer.pc
+	src/babeltrace2.pc
+	src/bindings/Makefile
+	src/bindings/python/bt2/bt2/__init__.py
+	src/bindings/python/bt2/Makefile
+	src/bindings/python/bt2/setup.py
+	src/bindings/python/Makefile
+	src/cli/Makefile
+	src/common/Makefile
+	src/compat/Makefile
+	src/ctfser/Makefile
+	src/ctf-writer/Makefile
+	src/fd-cache/Makefile
+	src/lib/graph/Makefile
+	src/lib/graph/message/Makefile
+	src/lib/Makefile
+	src/lib/plugin/Makefile
+	src/lib/prio-heap/Makefile
+	src/lib/trace-ir/Makefile
+	src/logging/Makefile
+	src/Makefile
+	src/plugins/ctf/common/bfcr/Makefile
+	src/plugins/ctf/common/Makefile
+	src/plugins/ctf/common/metadata/Makefile
+	src/plugins/ctf/common/msg-iter/Makefile
+	src/plugins/ctf/common/utils/Makefile
+	src/plugins/ctf/fs-sink/Makefile
+	src/plugins/ctf/fs-src/Makefile
+	src/plugins/ctf/lttng-live/Makefile
+	src/plugins/ctf/Makefile
+	src/plugins/lttng-utils/debug-info/Makefile
+	src/plugins/lttng-utils/Makefile
+	src/plugins/Makefile
+	src/plugins/text/dmesg/Makefile
+	src/plugins/text/Makefile
+	src/plugins/text/pretty/Makefile
+	src/plugins/utils/counter/Makefile
+	src/plugins/utils/dummy/Makefile
+	src/plugins/utils/Makefile
+	src/plugins/utils/muxer/Makefile
+	src/plugins/utils/trimmer/Makefile
+	src/python-plugin-provider/Makefile
 	tests/lib/Makefile
 	tests/lib/test-plugin-plugins/Makefile
+	tests/Makefile
+	tests/plugins/Makefile
 	tests/utils/common.sh
 	tests/utils/Makefile
 	tests/utils/tap/Makefile
-	tests/plugins/Makefile
-	plugins/Makefile
-	plugins/ctf/Makefile
-	plugins/ctf/common/Makefile
-	plugins/ctf/common/bfcr/Makefile
-	plugins/ctf/common/metadata/Makefile
-	plugins/ctf/common/msg-iter/Makefile
-	plugins/ctf/common/utils/Makefile
-	plugins/ctf/fs-src/Makefile
-	plugins/ctf/fs-sink/Makefile
-	plugins/ctf/lttng-live/Makefile
-	plugins/text/Makefile
-	plugins/text/dmesg/Makefile
-	plugins/text/pretty/Makefile
-	plugins/utils/Makefile
-	plugins/utils/dummy/Makefile
-	plugins/utils/counter/Makefile
-	plugins/utils/trimmer/Makefile
-	plugins/utils/muxer/Makefile
-	python-plugin-provider/Makefile
-	plugins/lttng-utils/Makefile
-	plugins/lttng-utils/debug-info/Makefile
-	babeltrace2.pc
-	babeltrace2-ctf-writer.pc
 ])
 
 AC_CONFIG_FILES([tests/cli/test_intersection], [chmod +x tests/cli/test_intersection])

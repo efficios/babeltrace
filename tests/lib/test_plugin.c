@@ -19,7 +19,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
-#include <babeltrace2/assert-internal.h>
+#include "common/assert.h"
 #include <glib.h>
 #include "tap/tap.h"
 #include "common.h"

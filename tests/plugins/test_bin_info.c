@@ -27,8 +27,8 @@
 #include <inttypes.h>
 #include <glib.h>
 
-#include <babeltrace2/babeltrace-internal.h>
-#include <babeltrace2/assert-internal.h>
+#include "common/babeltrace.h"
+#include "common/assert.h"
 #include <lttng-utils/debug-info/bin-info.h>
 
 #include "tap/tap.h"
