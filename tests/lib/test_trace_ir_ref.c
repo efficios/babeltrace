@@ -21,9 +21,9 @@
 
 #include "tap/tap.h"
 #include <babeltrace2/babeltrace.h>
-#include <babeltrace2/object-internal.h>
-#include <babeltrace2/compat/stdlib-internal.h>
-#include <babeltrace2/assert-internal.h>
+#include "lib/object.h"
+#include "compat/stdlib.h"
+#include "common/assert.h"
 #include <babeltrace2/ctf-writer/writer.h>
 #include <babeltrace2/ctf-writer/clock.h>
 #include <babeltrace2/ctf-writer/clock-class.h>

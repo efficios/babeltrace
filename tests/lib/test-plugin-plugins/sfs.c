@@ -16,7 +16,7 @@
  */
 
 #include <babeltrace2/babeltrace.h>
-#include <babeltrace2/assert-internal.h>
+#include "common/assert.h"
 
 static bt_self_component_status sink_consume(
 		bt_self_component_sink *self_comp)

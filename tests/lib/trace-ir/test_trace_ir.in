@@ -20,15 +20,15 @@
 NO_SH_TAP=1
 . "@abs_top_builddir@/tests/utils/common.sh"
 
-PYTHON_BUILD_DIR="${BT_BUILD_PATH}/bindings/python/bt2/build/build_lib"
+PYTHON_BUILD_DIR="${BT_BUILD_PATH}/src/bindings/python/bt2/build/build_lib"
 TESTS_UTILS_PYTHON_DIR="${BT_SRC_PATH}/tests/utils/python"
 TESTRUNNER_PY="${BT_SRC_PATH}/tests/utils/python/testrunner.py"
 THIS_DIR="${BT_SRC_PATH}/tests/lib/trace-ir"
 
 if [ "x${MSYSTEM}" != "x" ]; then
-	export PATH="${BT_BUILD_PATH}/lib/.libs:${PATH}"
+	export PATH="${BT_BUILD_PATH}/src/lib/.libs:${PATH}"
 else
-	export LD_LIBRARY_PATH="${BT_BUILD_PATH}/lib/.libs:${LD_LIBRARY_PATH}"
+	export LD_LIBRARY_PATH="${BT_BUILD_PATH}/src/lib/.libs:${LD_LIBRARY_PATH}"
 fi
 
 PYTHONPATH="${PYTHON_BUILD_DIR}:${TESTS_UTILS_PYTHON_DIR}" \

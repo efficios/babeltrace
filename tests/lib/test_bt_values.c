@@ -21,7 +21,7 @@
  */
 
 #include <babeltrace2/babeltrace.h>
-#include <babeltrace2/assert-internal.h>
+#include "common/assert.h"
 #include <string.h>
 #include "tap/tap.h"
 
