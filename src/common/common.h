@@ -312,6 +312,22 @@ BT_HIDDEN
 size_t bt_common_get_page_size(void);
 
 /*
+ * Adds the digit separator `sep` as many times as needed to form groups
+ * of `digits_per_group` digits within `str`. `str` must have enough
+ * room to accomodate the new separators, that is:
+ *
+ *     strlen(str) + (strlen(str) / digits_per_group) + 1
+ *
+ * Example: with `str` `1983198398213`, `digits_per_group` 3, and `sep`
+ * `,`, `str` becomes `1,983,198,398,213`.
+ *
+ * `strlen(str)` must not be 0. `digits_per_group` must not be 0. `sep`
+ * must not be `\0`.
+ */
+BT_HIDDEN
+void bt_common_sep_digits(char *str, unsigned int digits_per_group, char sep);
+
+/*
  * Wraps read() function to handle EINTR and partial reads.
  * On success, it returns `count` received as parameter. On error, it returns a
  * value smaller than the requested `count`.
@@ -643,4 +659,5 @@ enum bt_self_message_iterator_status bt_common_message_iterator_status_to_self(
 {
 	return (int) status;
 }
+
 #endif /* BABELTRACE_COMMON_INTERNAL_H */
