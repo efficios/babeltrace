@@ -43,8 +43,11 @@
 /tests/plugins/test_dwarf_powerpc64le-linux-gnu
 /tests/plugins/test_dwarf_x86_64-linux-gnu
 /tests/plugins/test_dwarf
-/tests/plugins/ctf/test_ctf_plugin
+/tests/plugins/src.ctf.fs/query/test_query
+/tests/plugins/src.ctf.fs/succeed/test_succeed
+/tests/plugins/src.ctf.fs/succeed/gen-trace-*
 /tests/utils/common.sh
+/tests/utils/diff.sh
 *.o
 *.a
 *.la

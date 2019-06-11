@@ -20,6 +20,6 @@ NO_SH_TAP=1
 . "@abs_top_builddir@/tests/utils/common.sh"
 
 TESTRUNNER_PY="$BT_SRC_PATH/tests/utils/python/testrunner.py"
-THIS_DIR="$BT_SRC_PATH/tests/plugins/ctf"
+THIS_DIR="$BT_SRC_PATH/tests/plugins/src.ctf.fs/query"
 
 exec "$BT_BUILD_PATH/tests/utils/test_python_bt2_env" python3 "$TESTRUNNER_PY" "$THIS_DIR"

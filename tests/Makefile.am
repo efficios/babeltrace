@@ -63,11 +63,12 @@ if ENABLE_PYTHON_BINDINGS
 TESTS_LIB += lib/trace-ir/test_trace_ir
 endif
 
-TESTS_PLUGINS =
+TESTS_PLUGINS = \
+	plugins/src.ctf.fs/succeed/test_succeed
 
 if !ENABLE_BUILT_IN_PLUGINS
 if ENABLE_PYTHON_BINDINGS
-TESTS_PLUGINS += plugins/ctf/test_ctf_plugin
+TESTS_PLUGINS += plugins/src.ctf.fs/query/test_query
 
 if ENABLE_DEBUG_INFO
 TESTS_PLUGINS += plugins/test_lttng_utils_debug_info
