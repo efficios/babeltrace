@@ -1567,3 +1567,106 @@ void bt_common_custom_snprintf(char *buf, size_t buf_size,
 		priv_data, fmt, &args);
 	va_end(args);
 }
+
+BT_HIDDEN
+void bt_common_sep_digits(char *str, unsigned int digits_per_group, char sep)
+{
+	const char *rd;
+	char *wr;
+	uint64_t i = 0;
+	uint64_t orig_len;
+	uint64_t sep_count;
+	uint64_t new_len;
+
+	BT_ASSERT(digits_per_group > 0);
+	BT_ASSERT(sep != '\0');
+
+	/* Compute new length of `str` */
+	orig_len = strlen(str);
+	BT_ASSERT(orig_len > 0);
+	sep_count = (orig_len - 1) / digits_per_group;
+	new_len = strlen(str) + sep_count;
+
+	/*
+	 * Do the work in place. Have the reading pointer `rd` start at
+	 * the end of the original string, and the writing pointer `wr`
+	 * start at the end of the new string, making sure to also put a
+	 * null character there.
+	 */
+	rd = str + orig_len - 1;
+	wr = str + new_len;
+	*wr = '\0';
+	wr--;
+
+	/*
+	 * Here's what the process looks like (3 digits per group):
+	 *
+	 *     Source:      12345678
+	 *                         ^
+	 *     Destination: 12345678#8
+	 *                           ^
+	 *
+	 *     Source:      12345678
+	 *                        ^
+	 *     Destination: 1234567878
+	 *                          ^
+	 *
+	 *     Source:      12345678
+	 *                       ^
+	 *     Destination: 1234567678
+	 *                         ^
+	 *
+	 *     Source:      12345678
+	 *                      ^
+	 *     Destination: 123456,678
+	 *                        ^
+	 *
+	 *     Source:      12345678
+	 *                      ^
+	 *     Destination: 123455,678
+	 *                       ^
+	 *
+	 *     Source:      12345678
+	 *                     ^
+	 *     Destination: 123445,678
+	 *                      ^
+	 *
+	 *     Source:      12345678
+	 *                    ^
+	 *     Destination: 123345,678
+	 *                     ^
+	 *
+	 *     Source:      12345678
+	 *                   ^
+	 *     Destination: 12,345,678
+	 *                    ^
+	 *
+	 *     Source:      12345678
+	 *                   ^
+	 *     Destination: 12,345,678
+	 *                   ^
+	 *
+	 *     Source:      12345678
+	 *                  ^
+	 *     Destination: 12,345,678
+	 *                  ^
+	 */
+	while (rd != str - 1) {
+		if (i == digits_per_group) {
+			/*
+			 * Time to append the separator: decrement `wr`,
+			 * but keep `rd` as is.
+			 */
+			i = 0;
+			*wr = sep;
+			wr--;
+			continue;
+		}
+
+		/* Copy read-side character to write-side character */
+		*wr = *rd;
+		wr--;
+		rd--;
+		i++;
+	}
+}
