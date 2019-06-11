@@ -1,10 +1,10 @@
+SUBDIRS = src.ctf.fs
 AM_CPPFLAGS += -I$(top_srcdir)/tests/utils -I$(top_srcdir)/src/plugins
 
 LIBTAP=$(top_builddir)/tests/utils/tap/libtap.la
 
 dist_check_SCRIPTS = \
-	test_lttng_utils_debug_info.py\
-	ctf/test_query_trace_info.py
+	test_lttng_utils_debug_info.py
 
 noinst_PROGRAMS =
 

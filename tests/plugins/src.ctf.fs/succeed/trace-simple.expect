@@ -1,0 +1,218 @@
+Trace class:
+  Stream class (ID 0):
+    Packets have beginning default clock snapshot: Yes
+    Packets have end default clock snapshot: Yes
+    Supports discarded events: Yes
+    Discarded events have default clock snapshots: Yes
+    Supports discarded packets: No
+    Discarded packets have default clock snapshots: No
+    Default clock class:
+      Name: default
+      Frequency (Hz): 1,000,000,000
+      Precision (cycles): 1
+      Offset (s): 0
+      Offset (cycles): 0
+      Origin is Unix epoch: No
+    Event class `ev` (ID 0):
+      Payload field class: Structure (2 members):
+        first: Signed integer (8-bit, Base 10)
+        second: String
+
+{Trace 0, Stream class ID 0, Stream ID 0}
+Stream beginning:
+  Trace:
+    Stream (ID 0, Class ID 0)
+
+[Unknown]
+{Trace 0, Stream class ID 0, Stream ID 0}
+Stream activity beginning
+
+[0 cycles, 0 ns from origin]
+{Trace 0, Stream class ID 0, Stream ID 0}
+Packet beginning:
+
+[3600 cycles, 3600 ns from origin]
+{Trace 0, Stream class ID 0, Stream ID 0}
+Event `ev` (Class ID 0):
+  Payload:
+    first: -23
+    second: saluuuut
+
+[8600 cycles, 8600 ns from origin]
+{Trace 0, Stream class ID 0, Stream ID 0}
+Event `ev` (Class ID 0):
+  Payload:
+    first: -22
+    second: saluuuut
+
+[13,600 cycles, 13,600 ns from origin]
+{Trace 0, Stream class ID 0, Stream ID 0}
+Event `ev` (Class ID 0):
+  Payload:
+    first: -21
+    second: saluuuut
+
+[18,600 cycles, 18,600 ns from origin]
+{Trace 0, Stream class ID 0, Stream ID 0}
+Event `ev` (Class ID 0):
+  Payload:
+    first: -20
+    second: saluuuut
+
+[23,600 cycles, 23,600 ns from origin]
+{Trace 0, Stream class ID 0, Stream ID 0}
+Event `ev` (Class ID 0):
+  Payload:
+    first: -19
+    second: saluuuut
+
+[28,600 cycles, 28,600 ns from origin]
+{Trace 0, Stream class ID 0, Stream ID 0}
+Event `ev` (Class ID 0):
+  Payload:
+    first: -18
+    second: saluuuut
+
+[33,600 cycles, 33,600 ns from origin]
+{Trace 0, Stream class ID 0, Stream ID 0}
+Event `ev` (Class ID 0):
+  Payload:
+    first: -17
+    second: saluuuut
+
+[38,600 cycles, 38,600 ns from origin]
+{Trace 0, Stream class ID 0, Stream ID 0}
+Event `ev` (Class ID 0):
+  Payload:
+    first: -16
+    second: saluuuut
+
+[43,600 cycles, 43,600 ns from origin]
+{Trace 0, Stream class ID 0, Stream ID 0}
+Event `ev` (Class ID 0):
+  Payload:
+    first: -15
+    second: saluuuut
+
+[48,600 cycles, 48,600 ns from origin]
+{Trace 0, Stream class ID 0, Stream ID 0}
+Event `ev` (Class ID 0):
+  Payload:
+    first: -14
+    second: saluuuut
+
+[53,600 cycles, 53,600 ns from origin]
+{Trace 0, Stream class ID 0, Stream ID 0}
+Event `ev` (Class ID 0):
+  Payload:
+    first: -13
+    second: saluuuut
+
+[58,600 cycles, 58,600 ns from origin]
+{Trace 0, Stream class ID 0, Stream ID 0}
+Event `ev` (Class ID 0):
+  Payload:
+    first: -12
+    second: saluuuut
+
+[63,600 cycles, 63,600 ns from origin]
+{Trace 0, Stream class ID 0, Stream ID 0}
+Event `ev` (Class ID 0):
+  Payload:
+    first: -11
+    second: saluuuut
+
+[68,600 cycles, 68,600 ns from origin]
+{Trace 0, Stream class ID 0, Stream ID 0}
+Event `ev` (Class ID 0):
+  Payload:
+    first: -10
+    second: saluuuut
+
+[73,600 cycles, 73,600 ns from origin]
+{Trace 0, Stream class ID 0, Stream ID 0}
+Event `ev` (Class ID 0):
+  Payload:
+    first: -9
+    second: saluuuut
+
+[78,600 cycles, 78,600 ns from origin]
+{Trace 0, Stream class ID 0, Stream ID 0}
+Event `ev` (Class ID 0):
+  Payload:
+    first: -8
+    second: saluuuut
+
+[83,600 cycles, 83,600 ns from origin]
+{Trace 0, Stream class ID 0, Stream ID 0}
+Event `ev` (Class ID 0):
+  Payload:
+    first: -7
+    second: saluuuut
+
+[88,600 cycles, 88,600 ns from origin]
+{Trace 0, Stream class ID 0, Stream ID 0}
+Event `ev` (Class ID 0):
+  Payload:
+    first: -6
+    second: saluuuut
+
+[93,600 cycles, 93,600 ns from origin]
+{Trace 0, Stream class ID 0, Stream ID 0}
+Event `ev` (Class ID 0):
+  Payload:
+    first: -5
+    second: saluuuut
+
+[98,600 cycles, 98,600 ns from origin]
+{Trace 0, Stream class ID 0, Stream ID 0}
+Event `ev` (Class ID 0):
+  Payload:
+    first: -4
+    second: saluuuut
+
+[103,600 cycles, 103,600 ns from origin]
+{Trace 0, Stream class ID 0, Stream ID 0}
+Event `ev` (Class ID 0):
+  Payload:
+    first: -3
+    second: saluuuut
+
+[108,600 cycles, 108,600 ns from origin]
+{Trace 0, Stream class ID 0, Stream ID 0}
+Event `ev` (Class ID 0):
+  Payload:
+    first: -2
+    second: saluuuut
+
+[113,600 cycles, 113,600 ns from origin]
+{Trace 0, Stream class ID 0, Stream ID 0}
+Event `ev` (Class ID 0):
+  Payload:
+    first: -1
+    second: saluuuut
+
+[118,600 cycles, 118,600 ns from origin]
+{Trace 0, Stream class ID 0, Stream ID 0}
+Event `ev` (Class ID 0):
+  Payload:
+    first: 0
+    second: saluuuut
+
+[123,600 cycles, 123,600 ns from origin]
+{Trace 0, Stream class ID 0, Stream ID 0}
+Event `ev` (Class ID 0):
+  Payload:
+    first: 1
+    second: saluuuut
+
+[123,600 cycles, 123,600 ns from origin]
+{Trace 0, Stream class ID 0, Stream ID 0}
+Packet end
+
+[Unknown]
+{Trace 0, Stream class ID 0, Stream ID 0}
+Stream activity end
+
+{Trace 0, Stream class ID 0, Stream ID 0}
+Stream end

@@ -783,7 +783,10 @@ AC_CONFIG_FILES([
 	tests/lib/test-plugin-plugins/Makefile
 	tests/Makefile
 	tests/plugins/Makefile
+	tests/plugins/src.ctf.fs/Makefile
+	tests/plugins/src.ctf.fs/succeed/Makefile
 	tests/utils/common.sh
+	tests/utils/diff.sh
 	tests/utils/Makefile
 	tests/utils/tap/Makefile
 ])
@@ -798,7 +801,8 @@ AC_CONFIG_FILES([tests/cli/test_trimmer], [chmod +x tests/cli/test_trimmer])
 AC_CONFIG_FILES([tests/ctf-writer/test_ctf_writer], [chmod +x tests/ctf-writer/test_ctf_writer])
 AC_CONFIG_FILES([tests/lib/test_plugin_complete], [chmod +x tests/lib/test_plugin_complete])
 AC_CONFIG_FILES([tests/lib/trace-ir/test_trace_ir], [chmod +x tests/lib/trace-ir/test_trace_ir])
-AC_CONFIG_FILES([tests/plugins/ctf/test_ctf_plugin], [chmod +x tests/plugins/ctf/test_ctf_plugin])
+AC_CONFIG_FILES([tests/plugins/src.ctf.fs/query/test_query], [chmod +x tests/plugins/src.ctf.fs/query/test_query])
+AC_CONFIG_FILES([tests/plugins/src.ctf.fs/succeed/test_succeed], [chmod +x tests/plugins/src.ctf.fs/succeed/test_succeed])
 AC_CONFIG_FILES([tests/plugins/test_utils_muxer_complete], [chmod +x tests/plugins/test_utils_muxer_complete])
 AC_CONFIG_FILES([tests/plugins/test_lttng_utils_debug_info], [chmod +x tests/plugins/test_lttng_utils_debug_info])
 AC_CONFIG_FILES([tests/plugins/test_dwarf_i386-linux-gnu], [chmod +x tests/plugins/test_dwarf_i386-linux-gnu])
