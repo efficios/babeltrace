@@ -233,7 +233,7 @@ struct fs_sink_stream *borrow_stream(struct fs_sink_comp *fs_sink,
 	struct fs_sink_stream *stream = NULL;
 
 	trace = g_hash_table_lookup(fs_sink->traces, ir_trace);
-	if (unlikely(!trace)) {
+	if (G_UNLIKELY(!trace)) {
 		if (fs_sink->assume_single_trace &&
 				g_hash_table_size(fs_sink->traces) > 0) {
 			BT_LOGE("Single trace mode, but getting more than one trace: "
@@ -249,7 +249,7 @@ struct fs_sink_stream *borrow_stream(struct fs_sink_comp *fs_sink,
 	}
 
 	stream = g_hash_table_lookup(trace->streams, ir_stream);
-	if (unlikely(!stream)) {
+	if (G_UNLIKELY(!stream)) {
 		stream = fs_sink_stream_create(trace, ir_stream);
 		if (!stream) {
 			goto end;
@@ -273,7 +273,7 @@ bt_self_component_status handle_event_msg(struct fs_sink_comp *fs_sink,
 	const bt_clock_snapshot *cs = NULL;
 
 	stream = borrow_stream(fs_sink, ir_stream);
-	if (unlikely(!stream)) {
+	if (G_UNLIKELY(!stream)) {
 		status = BT_SELF_COMPONENT_STATUS_ERROR;
 		goto end;
 	}
@@ -293,7 +293,7 @@ bt_self_component_status handle_event_msg(struct fs_sink_comp *fs_sink,
 	}
 
 	ret = fs_sink_stream_write_event(stream, cs, ir_event, ec);
-	if (unlikely(ret)) {
+	if (G_UNLIKELY(ret)) {
 		status = BT_SELF_COMPONENT_STATUS_ERROR;
 		goto end;
 	}
@@ -315,7 +315,7 @@ bt_self_component_status handle_packet_beginning_msg(
 	const bt_clock_snapshot *cs = NULL;
 
 	stream = borrow_stream(fs_sink, ir_stream);
-	if (unlikely(!stream)) {
+	if (G_UNLIKELY(!stream)) {
 		status = BT_SELF_COMPONENT_STATUS_ERROR;
 		goto end;
 	}
@@ -502,7 +502,7 @@ bt_self_component_status handle_packet_end_msg(
 	const bt_clock_snapshot *cs = NULL;
 
 	stream = borrow_stream(fs_sink, ir_stream);
-	if (unlikely(!stream)) {
+	if (G_UNLIKELY(!stream)) {
 		status = BT_SELF_COMPONENT_STATUS_ERROR;
 		goto end;
 	}

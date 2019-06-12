@@ -25,6 +25,7 @@
  */
 
 #include <babeltrace2/graph/port-const.h>
+#include "common/macros.h"
 
 struct bt_port {
 	struct bt_object base;

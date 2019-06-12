@@ -24,7 +24,7 @@
 #include "logging.h"
 
 #include <babeltrace2/babeltrace.h>
-#include "common/babeltrace.h"
+#include "common/macros.h"
 #include "common/common.h"
 #include "common/assert.h"
 #include <stdio.h>
@@ -1095,7 +1095,7 @@ int try_translate_event_class_trace_ir_to_ctf_ir(
 
 	/* Check in hash table first */
 	*out_ec = g_hash_table_lookup(sc->event_classes_from_ir, ir_ec);
-	if (likely(*out_ec)) {
+	if (G_LIKELY(*out_ec)) {
 		goto end;
 	}
 

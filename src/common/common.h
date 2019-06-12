@@ -24,19 +24,24 @@
  * SOFTWARE.
  */
 
-#include <stdbool.h>
-#include "common/assert.h"
-#include "common/babeltrace.h"
-#include <babeltrace2/trace-ir/field-class-const.h>
-#include <babeltrace2/trace-ir/field-path-const.h>
-#include <babeltrace2/trace-ir/event-class-const.h>
-#include <babeltrace2/graph/self-message-iterator.h>
-#include <babeltrace2/value.h>
+#include <errno.h>
+#include <glib.h>
 #include <inttypes.h>
 #include <stdarg.h>
+#include <stdbool.h>
 #include <stdint.h>
+#include <stdlib.h>
 #include <unistd.h>
-#include <glib.h>
+
+#include <babeltrace2/graph/self-message-iterator.h>
+#include <babeltrace2/trace-ir/event-class-const.h>
+#include <babeltrace2/trace-ir/field-class-const.h>
+#include <babeltrace2/trace-ir/field-path-const.h>
+#include <babeltrace2/value.h>
+
+#include "common/assert.h"
+#include "common/macros.h"
+#include "common/safe.h"
 
 #define BT_COMMON_COLOR_RESET              "\033[0m"
 #define BT_COMMON_COLOR_BOLD               "\033[1m"

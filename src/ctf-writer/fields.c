@@ -908,7 +908,7 @@ int bt_ctf_field_integer_serialize(struct bt_ctf_field_common *field,
 				LITTLE_ENDIAN : BIG_ENDIAN);
 	}
 
-	if (unlikely(ret)) {
+	if (G_UNLIKELY(ret)) {
 		BT_LOGE("Cannot serialize integer field: ret=%d", ret);
 		goto end;
 	}
@@ -966,7 +966,7 @@ int bt_ctf_field_floating_point_serialize(struct bt_ctf_field_common *field,
 		abort();
 	}
 
-	if (unlikely(ret)) {
+	if (G_UNLIKELY(ret)) {
 		BT_LOGE("Cannot serialize floating point number field: "
 			"ret=%d", ret);
 		goto end;
@@ -989,7 +989,7 @@ int bt_ctf_field_structure_serialize_recursive(struct bt_ctf_field_common *field
 		field, bt_ctf_byte_order_string(native_byte_order));
 	ret = bt_ctfser_align_offset_in_current_packet(ctfser,
 		field->type->alignment);
-	if (unlikely(ret)) {
+	if (G_UNLIKELY(ret)) {
 		BT_LOGE("Cannot align offset before serializing structure field: "
 			"ret=%d", ret);
 		goto end;
@@ -1005,7 +1005,7 @@ int bt_ctf_field_structure_serialize_recursive(struct bt_ctf_field_common *field
 			bt_ctfser_get_offset_in_current_packet_bits(ctfser),
 			member, i);
 
-		if (unlikely(!member)) {
+		if (G_UNLIKELY(!member)) {
 			ret = bt_ctf_field_type_common_structure_borrow_field_by_index(
 				field->type, &field_name, NULL, i);
 			BT_ASSERT(ret == 0);
@@ -1019,7 +1019,7 @@ int bt_ctf_field_structure_serialize_recursive(struct bt_ctf_field_common *field
 
 		ret = bt_ctf_field_serialize_recursive((void *) member, ctfser,
 			native_byte_order);
-		if (unlikely(ret)) {
+		if (G_UNLIKELY(ret)) {
 			ret = bt_ctf_field_type_common_structure_borrow_field_by_index(
 				field->type, &field_name, NULL, i);
 			BT_ASSERT(ret == 0);
@@ -1071,7 +1071,7 @@ int bt_ctf_field_array_serialize_recursive(struct bt_ctf_field_common *field,
 			elem_field, i);
 		ret = bt_ctf_field_serialize_recursive(
 			(void *) elem_field, ctfser, native_byte_order);
-		if (unlikely(ret)) {
+		if (G_UNLIKELY(ret)) {
 			BT_LOGW("Cannot serialize array field's element field: "
 				"array-field-addr=%p, field-addr=%p, "
 				"index=%" PRId64, field, elem_field, i);
@@ -1105,7 +1105,7 @@ int bt_ctf_field_sequence_serialize_recursive(struct bt_ctf_field_common *field,
 			elem_field, i);
 		ret = bt_ctf_field_serialize_recursive(
 			(void *) elem_field, ctfser, native_byte_order);
-		if (unlikely(ret)) {
+		if (G_UNLIKELY(ret)) {
 			BT_LOGW("Cannot serialize sequence field's element field: "
 				"sequence-field-addr=%p, field-addr=%p, "
 				"index=%" PRId64, field, elem_field, i);
@@ -1129,7 +1129,7 @@ int bt_ctf_field_string_serialize(struct bt_ctf_field_common *field,
 	BT_LOGV("Serializing string field: addr=%p, native-bo=%s",
 		field, bt_ctf_byte_order_string((int) native_byte_order));
 	ret = bt_ctfser_write_string(ctfser, (const char *) string->buf->data);
-	if (unlikely(ret)) {
+	if (G_UNLIKELY(ret)) {
 		BT_LOGE("Cannot serialize string field: ret=%d", ret);
 		goto end;
 	}

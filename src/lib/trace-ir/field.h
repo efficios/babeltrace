@@ -27,7 +27,7 @@
 #include "lib/assert-pre.h"
 #include "common/common.h"
 #include "lib/object.h"
-#include "common/babeltrace.h"
+#include "common/macros.h"
 #include <babeltrace2/types.h>
 #include <stdint.h>
 #include <string.h>

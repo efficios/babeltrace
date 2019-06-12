@@ -29,7 +29,7 @@
 
 #include <stdlib.h>
 #include "common/list.h"
-#include "common/babeltrace.h"
+#include "common/macros.h"
 #include "common/align.h"
 
 #define OBJSTACK_ALIGN			8	/* Object stack alignment */

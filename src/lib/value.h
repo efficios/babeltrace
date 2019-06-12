@@ -28,6 +28,7 @@
 #include <babeltrace2/value-const.h>
 #include <babeltrace2/types.h>
 #include <glib.h>
+#include "common/macros.h"
 
 struct bt_value {
 	struct bt_object base;

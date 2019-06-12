@@ -29,7 +29,7 @@
 
 #include <stdint.h>
 #include <babeltrace2/babeltrace.h>
-#include "common/babeltrace.h"
+#include "common/macros.h"
 
 #define VPID_FIELD_NAME		"vpid"
 #define IP_FIELD_NAME		"ip"

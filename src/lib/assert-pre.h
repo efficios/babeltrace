@@ -43,7 +43,7 @@
 
 #include <stdlib.h>
 #include <inttypes.h>
-#include "common/babeltrace.h"
+#include "common/macros.h"
 
 #ifdef BT_DEV_MODE
 /*
@@ -100,7 +100,7 @@
 # define BT_ASSERT_PRE_MSG	BT_LIB_LOGF
 #else
 # define BT_ASSERT_PRE(_cond, _fmt, ...)	((void) sizeof((void) (_cond), 0))
-# define BT_ASSERT_PRE_FUNC	BT_UNUSED
+# define BT_ASSERT_PRE_FUNC	__attribute__((unused))
 # define BT_ASSERT_PRE_MSG(_fmt, ...)
 #endif /* BT_DEV_MODE */
 

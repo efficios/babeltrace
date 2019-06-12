@@ -23,7 +23,7 @@
  * SOFTWARE.
  */
 
-#include "common/babeltrace.h"
+#include "common/macros.h"
 #include <stdarg.h>
 
 #ifndef BT_LOG_TAG

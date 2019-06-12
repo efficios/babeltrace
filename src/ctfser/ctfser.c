@@ -37,7 +37,7 @@
 #include <stdio.h>
 #include <wchar.h>
 #include <stdbool.h>
-#include "common/babeltrace.h"
+#include "common/macros.h"
 #include "common/common.h"
 #include "ctfser/ctfser.h"
 #include "compat/unistd.h"

@@ -30,7 +30,7 @@
 #include <babeltrace2/trace-ir/field.h>
 #include <babeltrace2/trace-ir/stream.h>
 #include "lib/object.h"
-#include "common/babeltrace.h"
+#include "common/macros.h"
 #include "lib/property.h"
 
 #include "field-wrapper.h"

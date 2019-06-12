@@ -20,6 +20,8 @@
 
 #include <babeltrace2/babeltrace.h>
 
+#include "common/macros.h"
+
 /* A CTF metadata decoder object */
 struct ctf_metadata_decoder;
 

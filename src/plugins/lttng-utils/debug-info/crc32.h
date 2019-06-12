@@ -37,7 +37,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <unistd.h>
-#include "common/babeltrace.h"
+#include "common/macros.h"
 
 /**
  * Compute a 32-bit cyclic redundancy checksum for a given file.

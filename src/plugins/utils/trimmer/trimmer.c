@@ -632,7 +632,7 @@ int get_msg_ns_from_origin(const bt_message *msg, int64_t *ns_from_origin,
 		clock_class =
 			bt_message_event_borrow_stream_class_default_clock_class_const(
 				msg);
-		if (unlikely(!clock_class)) {
+		if (G_UNLIKELY(!clock_class)) {
 			goto error;
 		}
 
@@ -643,7 +643,7 @@ int get_msg_ns_from_origin(const bt_message *msg, int64_t *ns_from_origin,
 		clock_class =
 			bt_message_packet_beginning_borrow_stream_class_default_clock_class_const(
 				msg);
-		if (unlikely(!clock_class)) {
+		if (G_UNLIKELY(!clock_class)) {
 			goto error;
 		}
 
@@ -654,7 +654,7 @@ int get_msg_ns_from_origin(const bt_message *msg, int64_t *ns_from_origin,
 		clock_class =
 			bt_message_packet_end_borrow_stream_class_default_clock_class_const(
 				msg);
-		if (unlikely(!clock_class)) {
+		if (G_UNLIKELY(!clock_class)) {
 			goto error;
 		}
 
@@ -665,7 +665,7 @@ int get_msg_ns_from_origin(const bt_message *msg, int64_t *ns_from_origin,
 		clock_class =
 			bt_message_discarded_events_borrow_stream_class_default_clock_class_const(
 				msg);
-		if (unlikely(!clock_class)) {
+		if (G_UNLIKELY(!clock_class)) {
 			goto error;
 		}
 
@@ -676,7 +676,7 @@ int get_msg_ns_from_origin(const bt_message *msg, int64_t *ns_from_origin,
 		clock_class =
 			bt_message_discarded_packets_borrow_stream_class_default_clock_class_const(
 				msg);
-		if (unlikely(!clock_class)) {
+		if (G_UNLIKELY(!clock_class)) {
 			goto error;
 		}
 
@@ -687,7 +687,7 @@ int get_msg_ns_from_origin(const bt_message *msg, int64_t *ns_from_origin,
 		clock_class =
 			bt_message_stream_activity_beginning_borrow_stream_class_default_clock_class_const(
 				msg);
-		if (unlikely(!clock_class)) {
+		if (G_UNLIKELY(!clock_class)) {
 			goto error;
 		}
 
@@ -705,7 +705,7 @@ int get_msg_ns_from_origin(const bt_message *msg, int64_t *ns_from_origin,
 		clock_class =
 			bt_message_stream_activity_end_borrow_stream_class_default_clock_class_const(
 				msg);
-		if (unlikely(!clock_class)) {
+		if (G_UNLIKELY(!clock_class)) {
 			goto error;
 		}
 
@@ -733,7 +733,7 @@ int get_msg_ns_from_origin(const bt_message *msg, int64_t *ns_from_origin,
 
 	ret = bt_clock_snapshot_get_ns_from_origin(clock_snapshot,
 		ns_from_origin);
-	if (unlikely(ret)) {
+	if (G_UNLIKELY(ret)) {
 		goto error;
 	}
 
@@ -1318,14 +1318,14 @@ bt_self_message_iterator_status handle_message_with_stream_state(
 
 	switch (msg_type) {
 	case BT_MESSAGE_TYPE_EVENT:
-		if (unlikely(!trimmer_it->end.is_infinite &&
+		if (G_UNLIKELY(!trimmer_it->end.is_infinite &&
 				ns_from_origin > trimmer_it->end.ns_from_origin)) {
 			status = end_iterator_streams(trimmer_it);
 			*reached_end = true;
 			break;
 		}
 
-		if (unlikely(!sstate->inited)) {
+		if (G_UNLIKELY(!sstate->inited)) {
 			status = ensure_stream_state_is_inited(trimmer_it,
 				sstate, NULL);
 			if (status != BT_SELF_MESSAGE_ITERATOR_STATUS_OK) {
@@ -1333,7 +1333,7 @@ bt_self_message_iterator_status handle_message_with_stream_state(
 			}
 		}
 
-		if (unlikely(!sstate->cur_packet)) {
+		if (G_UNLIKELY(!sstate->cur_packet)) {
 			const bt_event *event =
 				bt_message_event_borrow_event_const(msg);
 			const bt_packet *packet = bt_event_borrow_packet_const(
@@ -1351,14 +1351,14 @@ bt_self_message_iterator_status handle_message_with_stream_state(
 		msg = NULL;
 		break;
 	case BT_MESSAGE_TYPE_PACKET_BEGINNING:
-		if (unlikely(!trimmer_it->end.is_infinite &&
+		if (G_UNLIKELY(!trimmer_it->end.is_infinite &&
 				ns_from_origin > trimmer_it->end.ns_from_origin)) {
 			status = end_iterator_streams(trimmer_it);
 			*reached_end = true;
 			break;
 		}
 
-		if (unlikely(!sstate->inited)) {
+		if (G_UNLIKELY(!sstate->inited)) {
 			status = ensure_stream_state_is_inited(trimmer_it,
 				sstate, NULL);
 			if (status != BT_SELF_MESSAGE_ITERATOR_STATUS_OK) {
@@ -1376,14 +1376,14 @@ bt_self_message_iterator_status handle_message_with_stream_state(
 	case BT_MESSAGE_TYPE_PACKET_END:
 		sstate->stream_act_end_ns_from_origin = ns_from_origin;
 
-		if (unlikely(!trimmer_it->end.is_infinite &&
+		if (G_UNLIKELY(!trimmer_it->end.is_infinite &&
 				ns_from_origin > trimmer_it->end.ns_from_origin)) {
 			status = end_iterator_streams(trimmer_it);
 			*reached_end = true;
 			break;
 		}
 
-		if (unlikely(!sstate->inited)) {
+		if (G_UNLIKELY(!sstate->inited)) {
 			status = ensure_stream_state_is_inited(trimmer_it,
 				sstate, NULL);
 			if (status != BT_SELF_MESSAGE_ITERATOR_STATUS_OK) {
@@ -1391,7 +1391,7 @@ bt_self_message_iterator_status handle_message_with_stream_state(
 			}
 		}
 
-		if (unlikely(!sstate->cur_packet)) {
+		if (G_UNLIKELY(!sstate->cur_packet)) {
 			const bt_packet *packet =
 				bt_message_packet_end_borrow_packet_const(msg);
 
@@ -1501,7 +1501,7 @@ bt_self_message_iterator_status handle_message_with_stream_state(
 			BT_MESSAGE_MOVE_REF(msg, new_msg);
 		}
 
-		if (unlikely(!sstate->inited)) {
+		if (G_UNLIKELY(!sstate->inited)) {
 			status = ensure_stream_state_is_inited(trimmer_it,
 				sstate, NULL);
 			if (status != BT_SELF_MESSAGE_ITERATOR_STATUS_OK) {
@@ -1702,11 +1702,11 @@ bt_self_message_iterator_status handle_message(
 		break;
 	}
 
-	if (likely(stream)) {
+	if (G_LIKELY(stream)) {
 		/* Find stream state */
 		sstate = g_hash_table_lookup(trimmer_it->stream_states,
 			stream);
-		if (unlikely(!sstate)) {
+		if (G_UNLIKELY(!sstate)) {
 			/* No stream state yet: create one now */
 			const bt_stream_class *sc;
 
@@ -1808,12 +1808,12 @@ bt_self_message_iterator_status handle_message(
 
 	/* Retrieve the message's time */
 	ret = get_msg_ns_from_origin(msg, &ns_from_origin, &skip);
-	if (unlikely(ret)) {
+	if (G_UNLIKELY(ret)) {
 		status = BT_SELF_MESSAGE_ITERATOR_STATUS_ERROR;
 		goto end;
 	}
 
-	if (likely(sstate)) {
+	if (G_LIKELY(sstate)) {
 		/* Message associated to a stream */
 		status = handle_message_with_stream_state(trimmer_it, msg,
 			sstate, ns_from_origin, reached_end);
@@ -1828,7 +1828,7 @@ bt_self_message_iterator_status handle_message(
 		 * Message not associated to a stream (message iterator
 		 * inactivity).
 		 */
-		if (unlikely(ns_from_origin > trimmer_it->end.ns_from_origin)) {
+		if (G_UNLIKELY(ns_from_origin > trimmer_it->end.ns_from_origin)) {
 			BT_MESSAGE_PUT_REF_AND_RESET(msg);
 			status = end_iterator_streams(trimmer_it);
 			*reached_end = true;
@@ -1902,7 +1902,7 @@ bt_self_message_iterator_status state_trim(struct trimmer_iterator *trimmer_it,
 	while (g_queue_is_empty(trimmer_it->output_messages)) {
 		status = (int) bt_self_component_port_input_message_iterator_next(
 			trimmer_it->upstream_iter, &my_msgs, &my_count);
-		if (unlikely(status != BT_SELF_MESSAGE_ITERATOR_STATUS_OK)) {
+		if (G_UNLIKELY(status != BT_SELF_MESSAGE_ITERATOR_STATUS_OK)) {
 			if (status == BT_SELF_MESSAGE_ITERATOR_STATUS_END) {
 				status = end_iterator_streams(trimmer_it);
 				if (status != BT_SELF_MESSAGE_ITERATOR_STATUS_OK) {
@@ -1930,13 +1930,13 @@ bt_self_message_iterator_status state_trim(struct trimmer_iterator *trimmer_it,
 			 */
 			my_msgs[i] = NULL;
 
-			if (unlikely(status !=
+			if (G_UNLIKELY(status !=
 					BT_SELF_MESSAGE_ITERATOR_STATUS_OK)) {
 				put_messages(my_msgs, my_count);
 				goto end;
 			}
 
-			if (unlikely(reached_end)) {
+			if (G_UNLIKELY(reached_end)) {
 				/*
 				 * This message's time was passed the
 				 * trimming time range's end time: we
@@ -1982,7 +1982,7 @@ bt_self_message_iterator_status trimmer_msg_iter_next(
 
 	BT_ASSERT(trimmer_it);
 
-	if (likely(trimmer_it->state == TRIMMER_ITERATOR_STATE_TRIM)) {
+	if (G_LIKELY(trimmer_it->state == TRIMMER_ITERATOR_STATE_TRIM)) {
 		status = state_trim(trimmer_it, msgs, capacity, count);
 		if (status != BT_SELF_MESSAGE_ITERATOR_STATUS_OK) {
 			goto end;

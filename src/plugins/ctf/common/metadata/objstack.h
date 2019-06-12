@@ -27,6 +27,8 @@
  * SOFTWARE.
  */
 
+#include "common/macros.h"
+
 struct objstack;
 
 BT_HIDDEN

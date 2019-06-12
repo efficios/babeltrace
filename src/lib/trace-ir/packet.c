@@ -220,13 +220,13 @@ struct bt_packet *bt_packet_create(const struct bt_stream *c_stream)
 
 	BT_ASSERT_PRE_NON_NULL(stream, "Stream");
 	packet = bt_object_pool_create_object(&stream->packet_pool);
-	if (unlikely(!packet)) {
+	if (G_UNLIKELY(!packet)) {
 		BT_LIB_LOGE("Cannot allocate one packet from stream's packet pool: "
 			"%![stream-]+s", stream);
 		goto end;
 	}
 
-	if (likely(!packet->stream)) {
+	if (G_LIKELY(!packet->stream)) {
 		packet->stream = stream;
 		bt_object_get_no_null_check_no_parent_check(
 			&packet->stream->base);

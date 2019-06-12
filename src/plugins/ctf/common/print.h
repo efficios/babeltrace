@@ -26,7 +26,7 @@
  */
 
 #include <stdio.h>
-#include "common/babeltrace.h"
+#include "common/macros.h"
 
 #define PERR(fmt, ...)							\
 	do {								\

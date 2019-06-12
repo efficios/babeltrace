@@ -23,7 +23,7 @@
  * SOFTWARE.
  */
 
-#include "common/babeltrace.h"
+#include "common/macros.h"
 #include <babeltrace2/babeltrace.h>
 
 #include "fs-sink-ctf-meta.h"

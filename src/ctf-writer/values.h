@@ -24,7 +24,9 @@
  * SOFTWARE.
  */
 
-#include "common/babeltrace.h"
+#include <babeltrace2/types.h>
+
+#include "common/macros.h"
 
 struct bt_ctf_value;
 struct bt_ctf_private_value;

@@ -38,7 +38,7 @@
 #include <babeltrace2/ctf-writer/fields.h>
 #include <babeltrace2/types.h>
 
-#include "common/babeltrace.h"
+#include "common/macros.h"
 #include "common/common.h"
 #include "ctfser/ctfser.h"
 
@@ -393,7 +393,7 @@ int bt_ctf_field_common_sequence_set_length(struct bt_ctf_field_common *field,
 		length);
 	BT_CTF_ASSERT_PRE_CTF_FIELD_COMMON_HOT(field, "Sequence field");
 
-	if (unlikely(length > sequence->elements->len)) {
+	if (G_UNLIKELY(length > sequence->elements->len)) {
 		/* Make more room */
 		struct bt_ctf_field_type_common_sequence *sequence_ft;
 		uint64_t cur_len = sequence->elements->len;
@@ -656,7 +656,7 @@ int bt_ctf_field_common_string_append_len(struct bt_ctf_field_common *field,
 
 	new_size = string_field->size + length;
 
-	if (unlikely(new_size + 1 > string_field->buf->len)) {
+	if (G_UNLIKELY(new_size + 1 > string_field->buf->len)) {
 		g_array_set_size(string_field->buf, new_size + 1);
 	}
 

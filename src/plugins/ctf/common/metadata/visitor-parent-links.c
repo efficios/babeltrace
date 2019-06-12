@@ -35,7 +35,7 @@
 #include <glib.h>
 #include <inttypes.h>
 #include <errno.h>
-#include "common/babeltrace.h"
+#include "common/macros.h"
 #include "common/list.h"
 #include "scanner.h"
 #include "parser.h"

@@ -24,7 +24,7 @@
 #include "logging.h"
 
 #include <babeltrace2/babeltrace.h>
-#include "common/babeltrace.h"
+#include "common/macros.h"
 #include <stdio.h>
 #include <stdbool.h>
 #include <string.h>

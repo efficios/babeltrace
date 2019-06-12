@@ -19,6 +19,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#include <stdio.h>
 #include "tap/tap.h"
 #include <babeltrace2/babeltrace.h>
 #include "lib/object.h"

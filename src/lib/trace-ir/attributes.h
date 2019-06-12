@@ -29,7 +29,7 @@ extern "C" {
 #endif
 
 #include <stdint.h>
-#include "common/babeltrace.h"
+#include "common/macros.h"
 #include <babeltrace2/value.h>
 
 BT_HIDDEN

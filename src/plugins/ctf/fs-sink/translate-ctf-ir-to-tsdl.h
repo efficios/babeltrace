@@ -25,6 +25,7 @@
 
 #include <glib.h>
 
+#include "common/macros.h"
 #include "fs-sink-ctf-meta.h"
 
 BT_HIDDEN

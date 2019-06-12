@@ -34,7 +34,7 @@
 #include <babeltrace2/ctf-writer/field-types.h>
 #include <babeltrace2/types.h>
 
-#include "common/babeltrace.h"
+#include "common/macros.h"
 
 #include "assert-pre.h"
 #include "clock-class.h"

@@ -25,7 +25,7 @@
 
 #include <stdio.h>
 #include <glib.h>
-#include "common/babeltrace.h"
+#include "common/macros.h"
 #include <babeltrace2/babeltrace.h>
 
 #define CTF_FS_METADATA_FILENAME	"metadata"

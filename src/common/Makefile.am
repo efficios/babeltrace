@@ -12,9 +12,10 @@ libbabeltrace2_common_la_SOURCES = \
 
 noinst_HEADERS = \
 	align.h \
-	babeltrace.h \
 	list.h \
+	macros.h \
 	mmap-align.h \
+	safe.h \
 	version.h \
 	version.i
 

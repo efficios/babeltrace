@@ -23,7 +23,7 @@
  * SOFTWARE.
  */
 
-#include "common/babeltrace.h"
+#include "common/macros.h"
 #include "lib/object.h"
 #include <stdbool.h>
 #include <stdint.h>

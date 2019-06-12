@@ -30,7 +30,7 @@
 #include "metadata.h"
 #include "../common/metadata/decoder.h"
 #include "common/common.h"
-#include "common/babeltrace.h"
+#include "common/macros.h"
 #include <babeltrace2/babeltrace.h>
 #include "fs.h"
 
@@ -427,15 +427,15 @@ int populate_trace_info(const struct ctf_fs_trace *trace, bt_value *trace_info)
 		}
 
 		if (group_range.set) {
-			trace_range.begin_ns = min(trace_range.begin_ns,
+			trace_range.begin_ns = MIN(trace_range.begin_ns,
 					group_range.begin_ns);
-			trace_range.end_ns = max(trace_range.end_ns,
+			trace_range.end_ns = MAX(trace_range.end_ns,
 					group_range.end_ns);
 			trace_range.set = true;
 
-			trace_intersection.begin_ns = max(trace_intersection.begin_ns,
+			trace_intersection.begin_ns = MAX(trace_intersection.begin_ns,
 					group_range.begin_ns);
-			trace_intersection.end_ns = min(trace_intersection.end_ns,
+			trace_intersection.end_ns = MIN(trace_intersection.end_ns,
 					group_range.end_ns);
 			trace_intersection.set = true;
 		}

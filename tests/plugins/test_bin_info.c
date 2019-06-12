@@ -27,7 +27,7 @@
 #include <inttypes.h>
 #include <glib.h>
 
-#include "common/babeltrace.h"
+#include "common/macros.h"
 #include "common/assert.h"
 #include <lttng-utils/debug-info/bin-info.h>
 

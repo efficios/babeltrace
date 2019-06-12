@@ -25,7 +25,7 @@
  * SOFTWARE.
  */
 
-#include "common/babeltrace.h"
+#include "common/macros.h"
 #include "lib/object-pool.h"
 #include "compat/uuid.h"
 #include <babeltrace2/types.h>

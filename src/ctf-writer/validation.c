@@ -29,7 +29,7 @@
 
 #include <babeltrace2/ctf-writer/object.h>
 
-#include "common/babeltrace.h"
+#include "common/macros.h"
 
 #include "assert-pre.h"
 #include "event-class.h"

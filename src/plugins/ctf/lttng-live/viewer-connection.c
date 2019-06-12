@@ -373,7 +373,7 @@ int list_update_session(bt_value *results,
 			}
 			val = bt_value_signed_integer_get(btval);
 			/* max */
-			val = max_t(int64_t, clients, val);
+			val = bt_max_t(int64_t, clients, val);
 			bt_value_signed_integer_set(btval, val);
 		}
 
@@ -1050,9 +1050,9 @@ ssize_t lttng_live_get_one_metadata_packet(struct lttng_live_trace *trace,
 		goto error;
 	}
 
-	data = zmalloc(len);
+	data = calloc(1, len);
 	if (!data) {
-		BT_LOGE("relay data zmalloc: %s", strerror(errno));
+		BT_LOGE("relay data calloc: %s", strerror(errno));
 		goto error;
 	}
 	ret_len = lttng_live_recv(viewer_connection, data, len);

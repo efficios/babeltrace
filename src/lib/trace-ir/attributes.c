@@ -24,7 +24,7 @@
 #define BT_LOG_TAG "ATTRS"
 #include "lib/lib-logging.h"
 
-#include "common/babeltrace.h"
+#include "common/macros.h"
 #include <babeltrace2/value.h>
 #include "lib/assert-pre.h"
 #include "lib/object.h"

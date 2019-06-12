@@ -25,7 +25,9 @@
  */
 
 #include <assert.h>
-#include "common/babeltrace.h"
+#include <glib.h>
+
+#include "common/macros.h"
 
 #ifdef BT_DEBUG_MODE
 
@@ -41,7 +43,7 @@ extern void bt_common_assert_failed(const char *file, int line,
 	do {                                                                   \
 		if (!(_cond)) {                                                \
 			bt_common_assert_failed(__FILE__, __LINE__, __func__,  \
-				TOSTRING(_cond));                              \
+				G_STRINGIFY(_cond));                           \
 		}                                                              \
 	} while (0)
 
@@ -61,7 +63,7 @@ extern void bt_common_assert_failed(const char *file, int line,
  * In-depth explanation: https://stackoverflow.com/questions/37411809/how-to-elegantly-fix-this-unused-variable-warning/37412551#37412551
  */
 # define BT_ASSERT(_cond)	((void) sizeof((void) (_cond), 0))
-# define BT_ASSERT_FUNC		BT_UNUSED
+# define BT_ASSERT_FUNC		__attribute__((unused))
 #endif /* BT_DEBUG_MODE */
 
 #endif /* BABELTRACE_ASSERT_INTERNAL_H */

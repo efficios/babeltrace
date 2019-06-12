@@ -30,7 +30,7 @@
 #endif
 
 #include "lib/assert-pre.h"
-#include "common/babeltrace.h"
+#include "common/macros.h"
 #include <babeltrace2/value.h>
 #include <babeltrace2/trace-ir/stream-class.h>
 #include <babeltrace2/trace-ir/stream.h>
@@ -80,7 +80,7 @@ void _bt_event_set_is_frozen(const struct bt_event *event, bool is_frozen);
 # define bt_event_set_is_frozen(_event, _is_frozen)
 #endif
 
-BT_UNUSED
+__attribute__((unused))
 static inline
 void _bt_event_reset_dev_mode(struct bt_event *event)
 {
@@ -186,13 +186,13 @@ struct bt_event *bt_event_create(struct bt_event_class *event_class,
 
 	BT_ASSERT(event_class);
 	event = bt_object_pool_create_object(&event_class->event_pool);
-	if (unlikely(!event)) {
+	if (G_UNLIKELY(!event)) {
 		BT_LIB_LOGE("Cannot allocate one event from event class's event pool: "
 			"%![ec-]+E", event_class);
 		goto end;
 	}
 
-	if (likely(!event->class)) {
+	if (G_LIKELY(!event->class)) {
 		event->class = event_class;
 		bt_object_get_no_null_check(&event_class->base);
 	}

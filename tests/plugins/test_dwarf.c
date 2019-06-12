@@ -21,6 +21,7 @@
  */
 
 #include <fcntl.h>
+#include <glib.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>

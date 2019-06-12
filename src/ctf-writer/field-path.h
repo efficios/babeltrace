@@ -28,6 +28,7 @@
 
 #include "common/common.h"
 #include "common/assert.h"
+#include "common/macros.h"
 #include <babeltrace2/ctf-writer/field-types.h>
 #include <glib.h>
 

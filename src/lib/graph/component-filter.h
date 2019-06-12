@@ -24,7 +24,7 @@
  * SOFTWARE.
  */
 
-#include "common/babeltrace.h"
+#include "common/macros.h"
 #include <babeltrace2/graph/component-filter-const.h>
 
 #include "component-class.h"

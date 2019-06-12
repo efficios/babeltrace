@@ -28,7 +28,7 @@
  */
 
 #include <babeltrace2/ctf-writer/field-types.h>
-#include "common/babeltrace.h"
+#include "common/macros.h"
 #include <glib.h>
 
 #include "field-types.h"

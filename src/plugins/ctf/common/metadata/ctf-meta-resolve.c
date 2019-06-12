@@ -17,7 +17,7 @@
 #include "logging.h"
 
 #include <babeltrace2/babeltrace.h>
-#include "common/babeltrace.h"
+#include "common/macros.h"
 #include "common/assert.h"
 #include "common/common.h"
 #include <glib.h>

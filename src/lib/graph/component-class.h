@@ -31,7 +31,7 @@
 #include <babeltrace2/graph/component-class-source.h>
 #include <babeltrace2/graph/component-class-filter.h>
 #include <babeltrace2/graph/component-class-sink.h>
-#include "common/babeltrace.h"
+#include "common/macros.h"
 #include "lib/object.h"
 #include "common/list.h"
 #include <babeltrace2/types.h>

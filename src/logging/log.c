@@ -4,7 +4,7 @@
  * See LICENSE.
  */
 
-#include "common/babeltrace.h"
+#include "common/macros.h"
 #include "common/common.h"
 #include <pthread.h>
 #include "common/assert.h"

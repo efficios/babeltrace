@@ -24,7 +24,7 @@
 
 void *bt_ctf_object_get_ref(void *obj)
 {
-	if (unlikely(!obj)) {
+	if (G_UNLIKELY(!obj)) {
 		goto end;
 	}
 
@@ -36,7 +36,7 @@ end:
 
 void bt_ctf_object_put_ref(void *obj)
 {
-	if (unlikely(!obj)) {
+	if (G_UNLIKELY(!obj)) {
 		return;
 	}
 

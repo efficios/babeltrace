@@ -28,7 +28,7 @@
  * http://www.efficios.com/ctf
  */
 
-#include "common/babeltrace.h"
+#include "common/macros.h"
 #include "compat/uuid.h"
 #include <babeltrace2/ctf-writer/field-types.h>
 #include <babeltrace2/ctf-writer/fields.h>

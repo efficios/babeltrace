@@ -22,6 +22,7 @@
  * SOFTWARE.
  */
 
+#include <string.h>
 #include "utils.h"
 
 BT_HIDDEN
