@@ -23,6 +23,7 @@
  * SOFTWARE.
  */
 
+#include "common/macros.h"
 #include "lib/object-pool.h"
 #include "lib/object.h"
 

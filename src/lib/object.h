@@ -24,7 +24,7 @@
  * SOFTWARE.
  */
 
-#include "common/babeltrace.h"
+#include "common/macros.h"
 #include "common/assert.h"
 #include <stdbool.h>
 
@@ -281,7 +281,7 @@ void bt_object_get_no_null_check(const void *c_obj)
 	BT_ASSERT(obj);
 	BT_ASSERT(obj->is_shared);
 
-	if (unlikely(obj->parent && bt_object_get_ref_count(obj) == 0)) {
+	if (G_UNLIKELY(obj->parent && bt_object_get_ref_count(obj) == 0)) {
 #ifdef BT_LOGV
 		BT_LOGV("Incrementing object's parent's reference count: "
 			"addr=%p, parent-addr=%p", obj, obj->parent);
@@ -329,7 +329,7 @@ void bt_object_get_ref(const void *ptr)
 {
 	struct bt_object *obj = (void *) ptr;
 
-	if (unlikely(!obj)) {
+	if (G_UNLIKELY(!obj)) {
 		return;
 	}
 
@@ -345,7 +345,7 @@ void bt_object_put_ref(const void *ptr)
 {
 	struct bt_object *obj = (void *) ptr;
 
-	if (unlikely(!obj)) {
+	if (G_UNLIKELY(!obj)) {
 		return;
 	}
 

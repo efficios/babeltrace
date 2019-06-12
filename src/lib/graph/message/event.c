@@ -108,7 +108,7 @@ struct bt_message *create_event_message(
 		event_class, stream_class, with_cs, raw_value);
 	BT_LIB_LOGD("Creating event message object: %![ec-]+E", event_class);
 	event = bt_event_create(event_class, packet);
-	if (unlikely(!event)) {
+	if (G_UNLIKELY(!event)) {
 		BT_LIB_LOGE("Cannot create event from event class: "
 			"%![ec-]+E", event_class);
 		goto error;
@@ -131,7 +131,7 @@ struct bt_message *create_event_message(
 	 */
 	message = (void *) bt_message_create_from_pool(
 		&msg_iter->graph->event_msg_pool, msg_iter->graph);
-	if (unlikely(!message)) {
+	if (G_UNLIKELY(!message)) {
 		/* bt_message_create_from_pool() logs errors */
 		goto error;
 	}
@@ -210,7 +210,7 @@ void bt_message_event_recycle(struct bt_message *msg)
 
 	BT_ASSERT(event_msg);
 
-	if (unlikely(!msg->graph)) {
+	if (G_UNLIKELY(!msg->graph)) {
 		bt_message_event_destroy(msg);
 		return;
 	}

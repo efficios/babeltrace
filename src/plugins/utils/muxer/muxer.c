@@ -23,7 +23,7 @@
 #define BT_LOG_TAG "PLUGIN-UTILS-MUXER-FLT"
 #include "logging.h"
 
-#include "common/babeltrace.h"
+#include "common/macros.h"
 #include "compat/uuid.h"
 #include <babeltrace2/babeltrace.h>
 #include "lib/value.h"
@@ -516,7 +516,7 @@ int get_msg_ts_ns(struct muxer_comp *muxer_comp,
 		"last-returned-ts=%" PRId64,
 		muxer_msg_iter, msg, last_returned_ts_ns);
 
-	if (unlikely(muxer_msg_iter->clock_class_expectation ==
+	if (G_UNLIKELY(muxer_msg_iter->clock_class_expectation ==
 			MUXER_MSG_ITER_CLOCK_CLASS_EXPECTATION_NONE)) {
 		*ts_ns = last_returned_ts_ns;
 		goto end;
@@ -524,20 +524,20 @@ int get_msg_ts_ns(struct muxer_comp *muxer_comp,
 
 	msg_type = bt_message_get_type(msg);
 
-	if (unlikely(msg_type == BT_MESSAGE_TYPE_PACKET_BEGINNING)) {
+	if (G_UNLIKELY(msg_type == BT_MESSAGE_TYPE_PACKET_BEGINNING)) {
 		stream_class = bt_stream_borrow_class_const(
 			bt_packet_borrow_stream_const(
 				bt_message_packet_beginning_borrow_packet_const(
 					msg)));
-	} else if (unlikely(msg_type == BT_MESSAGE_TYPE_PACKET_END)) {
+	} else if (G_UNLIKELY(msg_type == BT_MESSAGE_TYPE_PACKET_END)) {
 		stream_class = bt_stream_borrow_class_const(
 			bt_packet_borrow_stream_const(
 				bt_message_packet_end_borrow_packet_const(
 					msg)));
-	} else if (unlikely(msg_type == BT_MESSAGE_TYPE_DISCARDED_EVENTS)) {
+	} else if (G_UNLIKELY(msg_type == BT_MESSAGE_TYPE_DISCARDED_EVENTS)) {
 		stream_class = bt_stream_borrow_class_const(
 			bt_message_discarded_events_borrow_stream_const(msg));
-	} else if (unlikely(msg_type == BT_MESSAGE_TYPE_DISCARDED_PACKETS)) {
+	} else if (G_UNLIKELY(msg_type == BT_MESSAGE_TYPE_DISCARDED_PACKETS)) {
 		stream_class = bt_stream_borrow_class_const(
 			bt_message_discarded_packets_borrow_stream_const(msg));
 	}
@@ -915,7 +915,7 @@ muxer_msg_iter_youngest_upstream_msg_iter(
 		msg = g_queue_peek_head(cur_muxer_upstream_msg_iter->msgs);
 		BT_ASSERT(msg);
 
-		if (unlikely(bt_message_get_type(msg) ==
+		if (G_UNLIKELY(bt_message_get_type(msg) ==
 				BT_MESSAGE_TYPE_STREAM_BEGINNING)) {
 			ret = validate_new_stream_clock_class(
 				muxer_msg_iter, muxer_comp,
@@ -929,7 +929,7 @@ muxer_msg_iter_youngest_upstream_msg_iter(
 				status = BT_SELF_MESSAGE_ITERATOR_STATUS_ERROR;
 				goto end;
 			}
-		} else if (unlikely(bt_message_get_type(msg) ==
+		} else if (G_UNLIKELY(bt_message_get_type(msg) ==
 				BT_MESSAGE_TYPE_MESSAGE_ITERATOR_INACTIVITY)) {
 			const bt_clock_snapshot *cs;
 
@@ -1042,7 +1042,7 @@ bt_self_message_iterator_status validate_muxer_upstream_msg_iters(
 		 * Move this muxer upstream message iterator to the
 		 * array of ended iterators if it's ended.
 		 */
-		if (unlikely(is_ended)) {
+		if (G_UNLIKELY(is_ended)) {
 			BT_LOGV("Muxer's upstream message iterator wrapper: ended or canceled: "
 				"muxer-msg-iter-addr=%p, "
 				"muxer-upstream-msg-iter-wrap-addr=%p",

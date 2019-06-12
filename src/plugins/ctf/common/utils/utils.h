@@ -26,6 +26,6 @@
  */
 
 #include <babeltrace2/babeltrace.h>
-#include "common/babeltrace.h"
+#include "common/macros.h"
 
 #endif /* CTF_UTILS_H */

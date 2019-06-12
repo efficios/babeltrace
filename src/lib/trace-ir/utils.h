@@ -23,7 +23,7 @@
  * SOFTWARE.
  */
 
-#include "common/babeltrace.h"
+#include "common/macros.h"
 #include <babeltrace2/trace-ir/field-class.h>
 #include <stdint.h>
 

@@ -23,7 +23,7 @@
  * SOFTWARE.
  */
 
-#include "common/babeltrace.h"
+#include "common/macros.h"
 #include "common/assert.h"
 #include <errno.h>
 #include <stdlib.h>
@@ -70,14 +70,14 @@ int heap_grow(struct ptr_heap *heap, size_t new_len)
 {
 	void **new_ptrs;
 
-	if (likely(heap->alloc_len >= new_len))
+	if (G_LIKELY(heap->alloc_len >= new_len))
 		return 0;
 
-	heap->alloc_len = max_t(size_t, new_len, heap->alloc_len << 1);
+	heap->alloc_len = bt_max_t(size_t, new_len, heap->alloc_len << 1);
 	new_ptrs = calloc(heap->alloc_len, sizeof(void *));
-	if (unlikely(!new_ptrs))
+	if (G_UNLIKELY(!new_ptrs))
 		return -ENOMEM;
-	if (likely(heap->ptrs))
+	if (G_LIKELY(heap->ptrs))
 		memcpy(new_ptrs, heap->ptrs, heap->len * sizeof(void *));
 	free(heap->ptrs);
 	heap->ptrs = new_ptrs;
@@ -90,7 +90,7 @@ int heap_set_len(struct ptr_heap *heap, size_t new_len)
 	int ret;
 
 	ret = heap_grow(heap, new_len);
-	if (unlikely(ret))
+	if (G_UNLIKELY(ret))
 		return ret;
 	heap->len = new_len;
 	return 0;
@@ -107,7 +107,7 @@ int bt_heap_init(struct ptr_heap *heap, size_t alloc_len,
 	 * Minimum size allocated is 1 entry to ensure memory allocation
 	 * never fails within bt_heap_replace_max.
 	 */
-	return heap_grow(heap, max_t(size_t, 1, alloc_len));
+	return heap_grow(heap, bt_max_t(size_t, 1, alloc_len));
 }
 
 void bt_heap_free(struct ptr_heap *heap)
@@ -131,7 +131,7 @@ static void heapify(struct ptr_heap *heap, size_t i)
 			largest = i;
 		if (r < heap->len && heap->gt(ptrs[r], ptrs[largest]))
 			largest = r;
-		if (unlikely(largest == i))
+		if (G_UNLIKELY(largest == i))
 			break;
 		tmp = ptrs[i];
 		ptrs[i] = ptrs[largest];
@@ -145,7 +145,7 @@ void *bt_heap_replace_max(struct ptr_heap *heap, void *p)
 {
 	void *res;
 
-	if (unlikely(!heap->len)) {
+	if (G_UNLIKELY(!heap->len)) {
 		(void) heap_set_len(heap, 1);
 		heap->ptrs[0] = p;
 		check_heap(heap);
@@ -166,7 +166,7 @@ int bt_heap_insert(struct ptr_heap *heap, void *p)
 	int ret;
 
 	ret = heap_set_len(heap, heap->len + 1);
-	if (unlikely(ret))
+	if (G_UNLIKELY(ret))
 		return ret;
 	ptrs = heap->ptrs;
 	pos = heap->len - 1;
@@ -200,11 +200,11 @@ void *bt_heap_cherrypick(struct ptr_heap *heap, void *p)
 	size_t pos, len = heap->len;
 
 	for (pos = 0; pos < len; pos++)
-		if (unlikely(heap->ptrs[pos] == p))
+		if (G_UNLIKELY(heap->ptrs[pos] == p))
 			goto found;
 	return NULL;
 found:
-	if (unlikely(heap->len == 1)) {
+	if (G_UNLIKELY(heap->len == 1)) {
 		(void) heap_set_len(heap, 0);
 		check_heap(heap);
 		return heap->ptrs[0];

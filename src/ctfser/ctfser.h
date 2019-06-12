@@ -41,6 +41,7 @@
 #include "common/mmap-align.h"
 #include <babeltrace2/types.h>
 #include "common/assert.h"
+#include "common/macros.h"
 #include "compat/bitfield.h"
 #include <glib.h>
 
@@ -140,13 +141,13 @@ bool _bt_ctfser_has_space_left(struct bt_ctfser *ctfser, uint64_t size_bits)
 {
 	bool has_space_left = true;
 
-	if (unlikely((ctfser->offset_in_cur_packet_bits + size_bits >
+	if (G_UNLIKELY((ctfser->offset_in_cur_packet_bits + size_bits >
 			_bt_ctfser_cur_packet_size_bits(ctfser)))) {
 		has_space_left = false;
 		goto end;
 	}
 
-	if (unlikely(size_bits > UINT64_MAX - ctfser->offset_in_cur_packet_bits)) {
+	if (G_UNLIKELY(size_bits > UINT64_MAX - ctfser->offset_in_cur_packet_bits)) {
 		has_space_left = false;
 		goto end;
 	}
@@ -177,9 +178,9 @@ int bt_ctfser_align_offset_in_current_packet(struct bt_ctfser *ctfser,
 	align_size_bits = ALIGN(ctfser->offset_in_cur_packet_bits,
 			alignment_bits) - ctfser->offset_in_cur_packet_bits;
 
-	if (unlikely(!_bt_ctfser_has_space_left(ctfser, align_size_bits))) {
+	if (G_UNLIKELY(!_bt_ctfser_has_space_left(ctfser, align_size_bits))) {
 		ret = _bt_ctfser_increase_cur_packet_size(ctfser);
-		if (unlikely(ret)) {
+		if (G_UNLIKELY(ret)) {
 			goto end;
 		}
 	}
@@ -328,20 +329,20 @@ int bt_ctfser_write_byte_aligned_unsigned_int(struct bt_ctfser *ctfser,
 
 	BT_ASSERT(alignment_bits % 8 == 0);
 	ret = bt_ctfser_align_offset_in_current_packet(ctfser, alignment_bits);
-	if (unlikely(ret)) {
+	if (G_UNLIKELY(ret)) {
 		goto end;
 	}
 
-	if (unlikely(!_bt_ctfser_has_space_left(ctfser, size_bits))) {
+	if (G_UNLIKELY(!_bt_ctfser_has_space_left(ctfser, size_bits))) {
 		ret = _bt_ctfser_increase_cur_packet_size(ctfser);
-		if (unlikely(ret)) {
+		if (G_UNLIKELY(ret)) {
 			goto end;
 		}
 	}
 
 	ret = _bt_ctfser_write_byte_aligned_unsigned_int_no_align(ctfser, value,
 		size_bits, byte_order);
-	if (unlikely(ret)) {
+	if (G_UNLIKELY(ret)) {
 		goto end;
 	}
 
@@ -363,20 +364,20 @@ int bt_ctfser_write_byte_aligned_signed_int(struct bt_ctfser *ctfser,
 
 	BT_ASSERT(alignment_bits % 8 == 0);
 	ret = bt_ctfser_align_offset_in_current_packet(ctfser, alignment_bits);
-	if (unlikely(ret)) {
+	if (G_UNLIKELY(ret)) {
 		goto end;
 	}
 
-	if (unlikely(!_bt_ctfser_has_space_left(ctfser, size_bits))) {
+	if (G_UNLIKELY(!_bt_ctfser_has_space_left(ctfser, size_bits))) {
 		ret = _bt_ctfser_increase_cur_packet_size(ctfser);
-		if (unlikely(ret)) {
+		if (G_UNLIKELY(ret)) {
 			goto end;
 		}
 	}
 
 	ret = _bt_ctfser_write_byte_aligned_signed_int_no_align(ctfser, value,
 		size_bits, byte_order);
-	if (unlikely(ret)) {
+	if (G_UNLIKELY(ret)) {
 		goto end;
 	}
 
@@ -396,13 +397,13 @@ int bt_ctfser_write_unsigned_int(struct bt_ctfser *ctfser, uint64_t value,
 	int ret = 0;
 
 	ret = bt_ctfser_align_offset_in_current_packet(ctfser, alignment_bits);
-	if (unlikely(ret)) {
+	if (G_UNLIKELY(ret)) {
 		goto end;
 	}
 
-	if (unlikely(!_bt_ctfser_has_space_left(ctfser, size_bits))) {
+	if (G_UNLIKELY(!_bt_ctfser_has_space_left(ctfser, size_bits))) {
 		ret = _bt_ctfser_increase_cur_packet_size(ctfser);
-		if (unlikely(ret)) {
+		if (G_UNLIKELY(ret)) {
 			goto end;
 		}
 	}
@@ -441,13 +442,13 @@ int bt_ctfser_write_signed_int(struct bt_ctfser *ctfser, int64_t value,
 	int ret = 0;
 
 	ret = bt_ctfser_align_offset_in_current_packet(ctfser, alignment_bits);
-	if (unlikely(ret)) {
+	if (G_UNLIKELY(ret)) {
 		goto end;
 	}
 
-	if (unlikely(!_bt_ctfser_has_space_left(ctfser, size_bits))) {
+	if (G_UNLIKELY(!_bt_ctfser_has_space_left(ctfser, size_bits))) {
 		ret = _bt_ctfser_increase_cur_packet_size(ctfser);
-		if (unlikely(ret)) {
+		if (G_UNLIKELY(ret)) {
 			goto end;
 		}
 	}
@@ -521,14 +522,14 @@ int bt_ctfser_write_string(struct bt_ctfser *ctfser, const char *value)
 	const char *at = value;
 
 	ret = bt_ctfser_align_offset_in_current_packet(ctfser, 8);
-	if (unlikely(ret)) {
+	if (G_UNLIKELY(ret)) {
 		goto end;
 	}
 
 	while (true) {
-		if (unlikely(!_bt_ctfser_has_space_left(ctfser, 8))) {
+		if (G_UNLIKELY(!_bt_ctfser_has_space_left(ctfser, 8))) {
 			ret = _bt_ctfser_increase_cur_packet_size(ctfser);
-			if (unlikely(ret)) {
+			if (G_UNLIKELY(ret)) {
 				goto end;
 			}
 		}
@@ -536,7 +537,7 @@ int bt_ctfser_write_string(struct bt_ctfser *ctfser, const char *value)
 		memcpy(_bt_ctfser_get_addr(ctfser), at, sizeof(*at));
 		_bt_ctfser_incr_offset(ctfser, 8);
 
-		if (unlikely(*at == '\0')) {
+		if (G_UNLIKELY(*at == '\0')) {
 			break;
 		}
 

@@ -82,7 +82,7 @@ struct bt_clock_snapshot *bt_clock_snapshot_create(
 		goto error;
 	}
 
-	if (likely(!clock_snapshot->clock_class)) {
+	if (G_LIKELY(!clock_snapshot->clock_class)) {
 		clock_snapshot->clock_class = clock_class;
 		bt_object_get_no_null_check(clock_class);
 	}

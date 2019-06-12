@@ -28,7 +28,7 @@
  * SOFTWARE.
  */
 
-#include "common/babeltrace.h"
+#include "common/macros.h"
 
 struct bt_fd_cache_handle {
 	int fd;

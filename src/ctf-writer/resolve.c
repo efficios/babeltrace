@@ -41,7 +41,7 @@
 #include <babeltrace2/ctf-writer/stream-class.h>
 #include <babeltrace2/types.h>
 
-#include "common/babeltrace.h"
+#include "common/macros.h"
 #include "common/assert.h"
 
 #include "field-path.h"

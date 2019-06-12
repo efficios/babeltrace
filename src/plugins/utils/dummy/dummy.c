@@ -21,7 +21,7 @@
  */
 
 #include <babeltrace2/babeltrace.h>
-#include "common/babeltrace.h"
+#include "common/macros.h"
 #include "plugins/plugins-common.h"
 #include "common/assert.h"
 #include "dummy.h"
@@ -120,7 +120,7 @@ bt_self_component_status dummy_consume(
 		bt_self_component_sink_as_self_component(component));
 	BT_ASSERT(dummy);
 
-	if (unlikely(!dummy->msg_iter)) {
+	if (G_UNLIKELY(!dummy->msg_iter)) {
 		ret = BT_SELF_COMPONENT_STATUS_END;
 		goto end;
 	}

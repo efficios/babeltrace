@@ -246,7 +246,7 @@ void bt_message_packet_beginning_recycle(struct bt_message *msg)
 {
 	BT_ASSERT(msg);
 
-	if (unlikely(!msg->graph)) {
+	if (G_UNLIKELY(!msg->graph)) {
 		bt_message_packet_destroy(msg);
 		return;
 	}
@@ -259,7 +259,7 @@ void bt_message_packet_end_recycle(struct bt_message *msg)
 {
 	BT_ASSERT(msg);
 
-	if (unlikely(!msg->graph)) {
+	if (G_UNLIKELY(!msg->graph)) {
 		bt_message_packet_destroy(msg);
 		return;
 	}

@@ -50,7 +50,7 @@
 #define LIBTOOL_PLUGIN_SUFFIX		".la"
 #define LIBTOOL_PLUGIN_SUFFIX_LEN	sizeof(LIBTOOL_PLUGIN_SUFFIX)
 
-#define PLUGIN_SUFFIX_LEN	max_t(size_t, sizeof(NATIVE_PLUGIN_SUFFIX), \
+#define PLUGIN_SUFFIX_LEN	bt_max_t(size_t, sizeof(NATIVE_PLUGIN_SUFFIX), \
 					sizeof(LIBTOOL_PLUGIN_SUFFIX))
 
 BT_PLUGIN_MODULE();

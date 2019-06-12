@@ -666,7 +666,7 @@ enum bt_field_status bt_field_string_append_with_length(struct bt_field *field,
 
 	new_length = length + string_field->length;
 
-	if (unlikely(new_length + 1 > string_field->buf->len)) {
+	if (G_UNLIKELY(new_length + 1 > string_field->buf->len)) {
 		g_array_set_size(string_field->buf, new_length + 1);
 	}
 
@@ -708,7 +708,7 @@ enum bt_field_status bt_field_dynamic_array_set_length(struct bt_field *field,
 		BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY, "Field");
 	BT_ASSERT_PRE_FIELD_HOT(field, "Field");
 
-	if (unlikely(length > array_field->fields->len)) {
+	if (G_UNLIKELY(length > array_field->fields->len)) {
 		/* Make more room */
 		struct bt_field_class_array *array_fc;
 		uint64_t cur_len = array_field->fields->len;

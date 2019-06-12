@@ -28,6 +28,7 @@
 
 #include <babeltrace2/babeltrace.h>
 
+#include "common/macros.h"
 #include "trace-ir-mapping.h"
 
 BT_HIDDEN

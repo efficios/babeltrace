@@ -24,7 +24,7 @@
 #include "logging.h"
 
 #include <babeltrace2/babeltrace.h>
-#include "common/babeltrace.h"
+#include "common/macros.h"
 #include "common/common.h"
 #include "plugins/plugins-common.h"
 #include "common/assert.h"
@@ -236,7 +236,7 @@ bt_self_component_status counter_consume(
 			bt_self_component_sink_as_self_component(comp));
 	BT_ASSERT(counter);
 
-	if (unlikely(!counter->msg_iter)) {
+	if (G_UNLIKELY(!counter->msg_iter)) {
 		try_print_last(counter);
 		ret = BT_SELF_COMPONENT_STATUS_END;
 		goto end;

@@ -29,6 +29,8 @@
 #define BT_LOG_TAG "COMPAT-MMAN"
 #include "logging.h"
 
+#include "common/macros.h"
+
 #ifdef __APPLE__
 /*
  * On macOS, we need a dummy symbol so that the linker won't

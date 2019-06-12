@@ -16,7 +16,7 @@
  */
 
 #include <babeltrace2/babeltrace.h>
-#include "common/babeltrace.h"
+#include "common/macros.h"
 
 #include "ctf-meta.h"
 

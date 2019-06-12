@@ -251,7 +251,7 @@ int write_array_field_elements(struct fs_sink_stream *stream,
 			bt_field_array_borrow_element_field_by_index_const(
 				field, i);
 		ret = write_field(stream, fc->elem_fc, elem_field);
-		if (unlikely(ret)) {
+		if (G_UNLIKELY(ret)) {
 			goto end;
 		}
 	}
@@ -270,7 +270,7 @@ int write_sequence_field(struct fs_sink_stream *stream,
 	if (fc->length_is_before) {
 		ret = bt_ctfser_write_unsigned_int(&stream->ctfser,
 			bt_field_array_get_length(field), 8, 32, BYTE_ORDER);
-		if (unlikely(ret)) {
+		if (G_UNLIKELY(ret)) {
 			goto end;
 		}
 	}
@@ -289,10 +289,10 @@ int write_struct_field(struct fs_sink_stream *stream,
 	int ret = 0;
 	uint64_t i;
 
-	if (likely(align_struct)) {
+	if (G_LIKELY(align_struct)) {
 		ret = bt_ctfser_align_offset_in_current_packet(&stream->ctfser,
 			fc->base.alignment);
-		if (unlikely(ret)) {
+		if (G_UNLIKELY(ret)) {
 			goto end;
 		}
 	}
@@ -306,7 +306,7 @@ int write_struct_field(struct fs_sink_stream *stream,
 				fc, i)->fc;
 
 		ret = write_field(stream, member_fc, memb_field);
-		if (unlikely(ret)) {
+		if (G_UNLIKELY(ret)) {
 			goto end;
 		}
 	}
@@ -327,7 +327,7 @@ int write_variant_field(struct fs_sink_stream *stream,
 	if (fc->tag_is_before) {
 		ret = bt_ctfser_write_unsigned_int(&stream->ctfser,
 			opt_index, 8, 16, BYTE_ORDER);
-		if (unlikely(ret)) {
+		if (G_UNLIKELY(ret)) {
 			goto end;
 		}
 	}
@@ -385,7 +385,7 @@ int write_event_header(struct fs_sink_stream *stream,
 	/* Event class ID */
 	ret = bt_ctfser_write_byte_aligned_unsigned_int(&stream->ctfser,
 		bt_event_class_get_id(ec->ir_ec), 8, 64, BYTE_ORDER);
-	if (unlikely(ret)) {
+	if (G_UNLIKELY(ret)) {
 		goto end;
 	}
 
@@ -394,7 +394,7 @@ int write_event_header(struct fs_sink_stream *stream,
 		BT_ASSERT(cs);
 		ret = bt_ctfser_write_byte_aligned_unsigned_int(&stream->ctfser,
 			bt_clock_snapshot_get_value(cs), 8, 64, BYTE_ORDER);
-		if (unlikely(ret)) {
+		if (G_UNLIKELY(ret)) {
 			goto end;
 		}
 	}
@@ -413,7 +413,7 @@ int fs_sink_stream_write_event(struct fs_sink_stream *stream,
 
 	/* Header */
 	ret = write_event_header(stream, cs, ec);
-	if (unlikely(ret)) {
+	if (G_UNLIKELY(ret)) {
 		goto end;
 	}
 
@@ -424,7 +424,7 @@ int fs_sink_stream_write_event(struct fs_sink_stream *stream,
 		ret = write_struct_field(stream,
 			(void *) stream->sc->event_common_context_fc,
 			field, true);
-		if (unlikely(ret)) {
+		if (G_UNLIKELY(ret)) {
 			goto end;
 		}
 	}
@@ -435,7 +435,7 @@ int fs_sink_stream_write_event(struct fs_sink_stream *stream,
 		BT_ASSERT(field);
 		ret = write_struct_field(stream, (void *) ec->spec_context_fc,
 			field, true);
-		if (unlikely(ret)) {
+		if (G_UNLIKELY(ret)) {
 			goto end;
 		}
 	}
@@ -446,7 +446,7 @@ int fs_sink_stream_write_event(struct fs_sink_stream *stream,
 		BT_ASSERT(field);
 		ret = write_struct_field(stream, (void *) ec->payload_fc,
 			field, true);
-		if (unlikely(ret)) {
+		if (G_UNLIKELY(ret)) {
 			goto end;
 		}
 	}

@@ -9,10 +9,12 @@
 #ifndef BABELTRACE_LOGGING_INTERNAL_H
 #define BABELTRACE_LOGGING_INTERNAL_H
 
+#include <errno.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include <babeltrace2/logging.h>
-#include "common/babeltrace.h"
+#include "common/macros.h"
 
 /* To detect incompatible changes you can define BT_LOG_VERSION_REQUIRED to be
  * the current value of BT_LOG_VERSION before including this file (or via

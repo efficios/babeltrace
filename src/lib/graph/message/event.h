@@ -28,6 +28,7 @@
 #include <babeltrace2/trace-ir/event-class.h>
 #include <babeltrace2/trace-ir/event.h>
 #include "common/assert.h"
+#include "common/macros.h"
 
 #include "message.h"
 

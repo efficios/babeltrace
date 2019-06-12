@@ -25,7 +25,7 @@
 
 #include <glib.h>
 #include <babeltrace2/babeltrace.h>
-#include "common/babeltrace.h"
+#include "common/macros.h"
 #include <stdbool.h>
 
 struct dummy {

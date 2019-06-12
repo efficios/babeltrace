@@ -20,6 +20,8 @@
  * SOFTWARE.
  */
 
+#include <stdio.h>
+
 #include "common/assert.h"
 #include "common/common.h"
 

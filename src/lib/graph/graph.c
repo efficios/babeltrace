@@ -609,7 +609,7 @@ enum bt_graph_status consume_sink_node(struct bt_graph *graph, GList *node)
 
 	sink = node->data;
 	status = consume_graph_sink(sink);
-	if (unlikely(status != BT_GRAPH_STATUS_END)) {
+	if (G_UNLIKELY(status != BT_GRAPH_STATUS_END)) {
 		g_queue_push_tail_link(graph->sinks_to_consume, node);
 		goto end;
 	}
@@ -672,7 +672,7 @@ enum bt_graph_status consume_no_check(struct bt_graph *graph)
 		"Graph has no sink component: %!+g", graph);
 	BT_LIB_LOGV("Making next sink consume: %![graph-]+g", graph);
 
-	if (unlikely(g_queue_is_empty(graph->sinks_to_consume))) {
+	if (G_UNLIKELY(g_queue_is_empty(graph->sinks_to_consume))) {
 		BT_LOGV_STR("Graph's sink queue is empty: end of graph.");
 		status = BT_GRAPH_STATUS_END;
 		goto end;
@@ -699,7 +699,7 @@ enum bt_graph_status bt_graph_consume(struct bt_graph *graph)
 		"Graph is in a faulty state: %!+g", graph);
 	bt_graph_set_can_consume(graph, false);
 	status = bt_graph_configure(graph);
-	if (unlikely(status)) {
+	if (G_UNLIKELY(status)) {
 		/* bt_graph_configure() logs errors */
 		goto end;
 	}
@@ -723,7 +723,7 @@ enum bt_graph_status bt_graph_run(struct bt_graph *graph)
 		"Graph is in a faulty state: %!+g", graph);
 	bt_graph_set_can_consume(graph, false);
 	status = bt_graph_configure(graph);
-	if (unlikely(status)) {
+	if (G_UNLIKELY(status)) {
 		/* bt_graph_configure() logs errors */
 		goto end;
 	}
@@ -737,7 +737,7 @@ enum bt_graph_status bt_graph_run(struct bt_graph *graph)
 		 * signal handler, this is not a warning nor an error,
 		 * it was intentional: log with a DEBUG level only.
 		 */
-		if (unlikely(graph->canceled)) {
+		if (G_UNLIKELY(graph->canceled)) {
 			BT_LIB_LOGD("Stopping the graph: graph is canceled: "
 				"%!+g", graph);
 			status = BT_GRAPH_STATUS_CANCELED;
@@ -745,7 +745,7 @@ enum bt_graph_status bt_graph_run(struct bt_graph *graph)
 		}
 
 		status = consume_no_check(graph);
-		if (unlikely(status == BT_GRAPH_STATUS_AGAIN)) {
+		if (G_UNLIKELY(status == BT_GRAPH_STATUS_AGAIN)) {
 			/*
 			 * If AGAIN is received and there are multiple
 			 * sinks, go ahead and consume from the next

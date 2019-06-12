@@ -28,7 +28,7 @@
  */
 
 #include <stdbool.h>
-#include "common/babeltrace.h"
+#include "common/macros.h"
 #include <babeltrace2/babeltrace.h>
 
 BT_HIDDEN

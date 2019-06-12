@@ -25,8 +25,10 @@
  * SOFTWARE.
  */
 
+#include <glib.h>
+#include <stdio.h>
 #include <stdbool.h>
-#include "common/babeltrace.h"
+#include "common/macros.h"
 #include <babeltrace2/babeltrace.h>
 
 enum pretty_default {

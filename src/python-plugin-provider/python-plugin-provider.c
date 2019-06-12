@@ -26,7 +26,7 @@
 
 #define BT_LOG_TAG "PLUGIN-PY"
 
-#include "common/babeltrace.h"
+#include "common/macros.h"
 #include "compat/compiler.h"
 #include <babeltrace2/plugin/plugin-const.h>
 #include "lib/plugin/plugin.h"

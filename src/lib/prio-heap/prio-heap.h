@@ -27,7 +27,7 @@
  */
 
 #include <unistd.h>
-#include "common/babeltrace.h"
+#include "common/macros.h"
 
 struct ptr_heap {
 	size_t len, alloc_len;
@@ -54,7 +54,7 @@ void check_heap(const struct ptr_heap *heap)
 static inline void *bt_heap_maximum(const struct ptr_heap *heap)
 {
 	check_heap(heap);
-	return likely(heap->len) ? heap->ptrs[0] : NULL;
+	return G_LIKELY(heap->len) ? heap->ptrs[0] : NULL;
 }
 
 /**

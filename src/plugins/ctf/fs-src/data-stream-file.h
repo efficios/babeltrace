@@ -26,7 +26,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <glib.h>
-#include "common/babeltrace.h"
+#include "common/macros.h"
 #include <babeltrace2/babeltrace.h>
 
 #include "../common/msg-iter/msg-iter.h"

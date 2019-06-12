@@ -26,7 +26,7 @@
  */
 
 #include <glib.h>
-#include "common/babeltrace.h"
+#include "common/macros.h"
 
 BT_HIDDEN
 void value_exists(gpointer element, gpointer search_query);

@@ -27,6 +27,7 @@
 #include <babeltrace2/babeltrace.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include "common/macros.h"
 
 struct counter {
 	bt_self_component_port_input_message_iterator *msg_iter;

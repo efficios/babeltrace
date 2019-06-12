@@ -30,6 +30,7 @@
 #include "common/assert.h"
 #include <inttypes.h>
 #include <ctype.h>
+#include <string.h>
 #include "pretty.h"
 
 #define NSEC_PER_SEC 1000000000LL

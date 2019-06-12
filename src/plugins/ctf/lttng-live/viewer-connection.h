@@ -26,7 +26,7 @@
 #include <stdio.h>
 #include <glib.h>
 
-#include "common/babeltrace.h"
+#include "common/macros.h"
 #include "compat/socket.h"
 
 //TODO: this should not be used by plugins. Should copy code into plugin

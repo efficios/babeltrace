@@ -20,7 +20,9 @@
  * SOFTWARE.
  */
 
+#include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <babeltrace2/babeltrace.h>
 #include "common/common.h"
 #include "babeltrace2-cfg.h"

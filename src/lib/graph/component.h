@@ -24,7 +24,7 @@
  * SOFTWARE.
  */
 
-#include "common/babeltrace.h"
+#include "common/macros.h"
 #include <babeltrace2/graph/component-const.h>
 #include "lib/object.h"
 #include <babeltrace2/types.h>

@@ -29,7 +29,7 @@
 #include <babeltrace2/trace-ir/stream-class.h>
 #include "lib/object.h"
 #include "lib/object-pool.h"
-#include "common/babeltrace.h"
+#include "common/macros.h"
 #include <glib.h>
 #include <inttypes.h>
 

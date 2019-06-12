@@ -26,7 +26,7 @@
 
 #include <babeltrace2/graph/graph.h>
 #include <babeltrace2/graph/message-const.h>
-#include "common/babeltrace.h"
+#include "common/macros.h"
 #include "lib/object.h"
 #include "lib/object-pool.h"
 #include "common/assert.h"
@@ -215,7 +215,7 @@ enum bt_graph_status bt_graph_configure(struct bt_graph *graph)
 
 	BT_ASSERT(graph->config_state != BT_GRAPH_CONFIGURATION_STATE_FAULTY);
 
-	if (likely(graph->config_state ==
+	if (G_LIKELY(graph->config_state ==
 			BT_GRAPH_CONFIGURATION_STATE_CONFIGURED)) {
 		goto end;
 	}

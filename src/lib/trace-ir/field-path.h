@@ -29,6 +29,7 @@
 #include "lib/object.h"
 #include <babeltrace2/trace-ir/field-path-const.h>
 #include "common/assert.h"
+#include "common/macros.h"
 #include <glib.h>
 
 struct bt_field_path_item {

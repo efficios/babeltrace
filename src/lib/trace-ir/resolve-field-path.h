@@ -26,6 +26,7 @@
  * http://www.efficios.com/ctf
  */
 
+#include "common/macros.h"
 #include "lib/object.h"
 #include <babeltrace2/trace-ir/field-class-const.h>
 #include <babeltrace2/trace-ir/field-path-const.h>

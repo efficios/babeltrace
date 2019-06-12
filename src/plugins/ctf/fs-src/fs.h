@@ -29,7 +29,7 @@
  */
 
 #include <stdbool.h>
-#include "common/babeltrace.h"
+#include "common/macros.h"
 #include <babeltrace2/babeltrace.h>
 #include "data-stream-file.h"
 #include "metadata.h"

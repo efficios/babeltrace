@@ -27,6 +27,7 @@
 #include <glib.h>
 #include <gmodule.h>
 #include <babeltrace2/types.h>
+#include "common/macros.h"
 
 struct bt_plugin;
 struct bt_component_class;

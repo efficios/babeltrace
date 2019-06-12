@@ -27,7 +27,7 @@
 #include "lib/assert-pre.h"
 #include <babeltrace2/trace-ir/clock-class.h>
 #include <babeltrace2/trace-ir/field-class.h>
-#include "common/babeltrace.h"
+#include "common/macros.h"
 #include "lib/object.h"
 #include <babeltrace2/types.h>
 #include <stdint.h>

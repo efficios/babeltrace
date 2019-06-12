@@ -24,7 +24,7 @@
  * SOFTWARE.
  */
 
-#include "common/babeltrace.h"
+#include "common/macros.h"
 #include "lib/object.h"
 #include "common/assert.h"
 #include <babeltrace2/graph/graph.h>
@@ -73,7 +73,7 @@ struct bt_message *bt_message_create_from_pool(
 {
 	struct bt_message *msg = bt_object_pool_create_object(pool);
 
-	if (unlikely(!msg)) {
+	if (G_UNLIKELY(!msg)) {
 #ifdef BT_LIB_LOGE
 		BT_LIB_LOGE("Cannot allocate one message from message pool: "
 			"%![pool-]+o, %![graph-]+g", pool, graph);
@@ -81,7 +81,7 @@ struct bt_message *bt_message_create_from_pool(
 		goto error;
 	}
 
-	if (likely(!msg->graph)) {
+	if (G_LIKELY(!msg->graph)) {
 		msg->graph = graph;
 	}
 

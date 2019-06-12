@@ -31,7 +31,7 @@
 
 #include <stdbool.h>
 
-#include "common/babeltrace.h"
+#include "common/macros.h"
 #include <babeltrace2/babeltrace.h>
 
 #include "../common/metadata/decoder.h"

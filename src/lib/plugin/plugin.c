@@ -28,7 +28,7 @@
 
 #include "common/assert.h"
 #include "lib/assert-pre.h"
-#include "common/babeltrace.h"
+#include "common/macros.h"
 #include "compat/compiler.h"
 #include "common/common.h"
 #include <babeltrace2/plugin/plugin-const.h>
@@ -49,7 +49,7 @@
 
 #define PYTHON_PLUGIN_PROVIDER_FILENAME	"libbabeltrace2-python-plugin-provider." G_MODULE_SUFFIX
 #define PYTHON_PLUGIN_PROVIDER_SYM_NAME	bt_plugin_python_create_all_from_file
-#define PYTHON_PLUGIN_PROVIDER_SYM_NAME_STR	TOSTRING(PYTHON_PLUGIN_PROVIDER_SYM_NAME)
+#define PYTHON_PLUGIN_PROVIDER_SYM_NAME_STR	G_STRINGIFY(PYTHON_PLUGIN_PROVIDER_SYM_NAME)
 
 #define APPEND_ALL_FROM_DIR_NFDOPEN_MAX	8
 

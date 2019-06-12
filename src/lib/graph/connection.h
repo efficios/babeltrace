@@ -28,6 +28,7 @@
 #include <babeltrace2/graph/message-iterator-const.h>
 #include "lib/object.h"
 #include "common/assert.h"
+#include "common/macros.h"
 #include <stdbool.h>
 
 #include "message/iterator.h"

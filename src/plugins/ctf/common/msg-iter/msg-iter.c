@@ -535,7 +535,7 @@ enum bt_msg_iter_status buf_ensure_available_bits(
 {
 	enum bt_msg_iter_status status = BT_MSG_ITER_STATUS_OK;
 
-	if (unlikely(buf_available_bits(notit) == 0)) {
+	if (G_UNLIKELY(buf_available_bits(notit) == 0)) {
 		/*
 		 * This _cannot_ return BT_MSG_ITER_STATUS_OK
 		 * _and_ no bits.
@@ -1043,14 +1043,14 @@ enum bt_msg_iter_status read_event_header_begin_state(struct bt_msg_iter *notit)
 
 	/* Check if we have some content left */
 	if (notit->cur_exp_packet_content_size >= 0) {
-		if (unlikely(packet_at(notit) ==
+		if (G_UNLIKELY(packet_at(notit) ==
 				notit->cur_exp_packet_content_size)) {
 			/* No more events! */
 			BT_LOGV("Reached end of packet: notit-addr=%p, "
 				"cur=%zu", notit, packet_at(notit));
 			notit->state = STATE_EMIT_MSG_PACKET_END_MULTI;
 			goto end;
-		} else if (unlikely(packet_at(notit) >
+		} else if (G_UNLIKELY(packet_at(notit) >
 				notit->cur_exp_packet_content_size)) {
 			/* That's not supposed to happen */
 			BT_LOGV("Before decoding event header field: cursor is passed the packet's content: "
@@ -1898,7 +1898,7 @@ enum bt_bfcr_status bfcr_unsigned_int_cb(uint64_t value,
 		"fc-type=%d, fc-in-ir=%d, value=%" PRIu64,
 		notit, notit->bfcr, fc, fc->type, fc->in_ir, value);
 
-	if (likely(int_fc->meaning == CTF_FIELD_CLASS_MEANING_NONE)) {
+	if (G_LIKELY(int_fc->meaning == CTF_FIELD_CLASS_MEANING_NONE)) {
 		goto update_def_clock;
 	}
 
@@ -1944,16 +1944,16 @@ enum bt_bfcr_status bfcr_unsigned_int_cb(uint64_t value,
 	}
 
 update_def_clock:
-	if (unlikely(int_fc->mapped_clock_class)) {
+	if (G_UNLIKELY(int_fc->mapped_clock_class)) {
 		update_default_clock(notit, value, int_fc->base.size);
 	}
 
-	if (unlikely(int_fc->storing_index >= 0)) {
+	if (G_UNLIKELY(int_fc->storing_index >= 0)) {
 		g_array_index(notit->stored_values, uint64_t,
 			(uint64_t) int_fc->storing_index) = value;
 	}
 
-	if (unlikely(!fc->in_ir)) {
+	if (G_UNLIKELY(!fc->in_ir)) {
 		goto end;
 	}
 
@@ -1990,7 +1990,7 @@ enum bt_bfcr_status bfcr_unsigned_int_char_cb(uint64_t value,
 	BT_ASSERT(!int_fc->mapped_clock_class);
 	BT_ASSERT(int_fc->storing_index < 0);
 
-	if (unlikely(!fc->in_ir)) {
+	if (G_UNLIKELY(!fc->in_ir)) {
 		goto end;
 	}
 
@@ -2037,12 +2037,12 @@ enum bt_bfcr_status bfcr_signed_int_cb(int64_t value,
 		notit, notit->bfcr, fc, fc->type, fc->in_ir, value);
 	BT_ASSERT(int_fc->meaning == CTF_FIELD_CLASS_MEANING_NONE);
 
-	if (unlikely(int_fc->storing_index >= 0)) {
+	if (G_UNLIKELY(int_fc->storing_index >= 0)) {
 		g_array_index(notit->stored_values, uint64_t,
 			(uint64_t) int_fc->storing_index) = (uint64_t) value;
 	}
 
-	if (unlikely(!fc->in_ir)) {
+	if (G_UNLIKELY(!fc->in_ir)) {
 		goto end;
 	}
 
@@ -2073,7 +2073,7 @@ enum bt_bfcr_status bfcr_floating_point_cb(double value,
 		"fc-type=%d, fc-in-ir=%d, value=%f",
 		notit, notit->bfcr, fc, fc->type, fc->in_ir, value);
 
-	if (unlikely(!fc->in_ir)) {
+	if (G_UNLIKELY(!fc->in_ir)) {
 		goto end;
 	}
 
@@ -2102,7 +2102,7 @@ enum bt_bfcr_status bfcr_string_begin_cb(
 		"fc-type=%d, fc-in-ir=%d",
 		notit, notit->bfcr, fc, fc->type, fc->in_ir);
 
-	if (unlikely(!fc->in_ir)) {
+	if (G_UNLIKELY(!fc->in_ir)) {
 		goto end;
 	}
 
@@ -2140,7 +2140,7 @@ enum bt_bfcr_status bfcr_string_cb(const char *value,
 		notit, notit->bfcr, fc, fc->type, fc->in_ir,
 		len);
 
-	if (unlikely(!fc->in_ir)) {
+	if (G_UNLIKELY(!fc->in_ir)) {
 		goto end;
 	}
 
@@ -2172,7 +2172,7 @@ enum bt_bfcr_status bfcr_string_end_cb(
 		"fc-type=%d, fc-in-ir=%d",
 		notit, notit->bfcr, fc, fc->type, fc->in_ir);
 
-	if (unlikely(!fc->in_ir)) {
+	if (G_UNLIKELY(!fc->in_ir)) {
 		goto end;
 	}
 
@@ -2788,10 +2788,10 @@ enum bt_msg_iter_status bt_msg_iter_get_next_message(
 
 	while (true) {
 		status = handle_state(notit);
-		if (unlikely(status == BT_MSG_ITER_STATUS_AGAIN)) {
+		if (G_UNLIKELY(status == BT_MSG_ITER_STATUS_AGAIN)) {
 			BT_LOGV_STR("Medium returned BT_MSG_ITER_STATUS_AGAIN.");
 			goto end;
-		} else if (unlikely(status != BT_MSG_ITER_STATUS_OK)) {
+		} else if (G_UNLIKELY(status != BT_MSG_ITER_STATUS_OK)) {
 			BT_LOGW("Cannot handle state: notit-addr=%p, state=%s",
 				notit, state_string(notit->state));
 			goto end;
@@ -2906,10 +2906,10 @@ enum bt_msg_iter_status read_packet_header_context_fields(
 
 	while (true) {
 		status = handle_state(notit);
-		if (unlikely(status == BT_MSG_ITER_STATUS_AGAIN)) {
+		if (G_UNLIKELY(status == BT_MSG_ITER_STATUS_AGAIN)) {
 			BT_LOGV_STR("Medium returned BT_MSG_ITER_STATUS_AGAIN.");
 			goto end;
-		} else if (unlikely(status != BT_MSG_ITER_STATUS_OK)) {
+		} else if (G_UNLIKELY(status != BT_MSG_ITER_STATUS_OK)) {
 			BT_LOGW("Cannot handle state: notit-addr=%p, state=%s",
 				notit, state_string(notit->state));
 			goto end;

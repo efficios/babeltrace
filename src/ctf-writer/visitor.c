@@ -28,7 +28,7 @@
 
 #include <babeltrace2/ctf-writer/object.h>
 
-#include "common/babeltrace.h"
+#include "common/macros.h"
 
 #include "visitor.h"
 

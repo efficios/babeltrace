@@ -25,6 +25,7 @@
 #include <glib.h>
 
 #include "common/assert.h"
+#include "common/macros.h"
 #include <babeltrace2/babeltrace.h>
 
 #include "debug-info.h"

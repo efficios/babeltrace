@@ -32,7 +32,7 @@
 #include <stdlib.h>
 #include <dwarf.h>
 #include <elfutils/libdw.h>
-#include "common/babeltrace.h"
+#include "common/macros.h"
 
 /*
  * bt_dwarf is a wrapper over libdw providing a nicer, higher-level

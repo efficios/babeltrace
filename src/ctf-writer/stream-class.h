@@ -29,7 +29,7 @@
  */
 
 #include "common/assert.h"
-#include "common/babeltrace.h"
+#include "common/macros.h"
 #include "common/common.h"
 #include <babeltrace2/ctf-writer/field-types.h>
 #include <babeltrace2/ctf-writer/visitor.h>

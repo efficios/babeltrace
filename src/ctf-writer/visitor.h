@@ -25,8 +25,9 @@
  * SOFTWARE.
  */
 
+#include <stdlib.h>
 #include <babeltrace2/ctf-writer/visitor.h>
-#include "common/babeltrace.h"
+#include "common/macros.h"
 
 typedef void *(*bt_ctf_child_accessor)(void *object, int index);
 typedef int64_t (*bt_ctf_child_count_accessor)(void *object);
