@@ -1791,8 +1791,6 @@ void bt_msg_iter_reset(struct bt_msg_iter *notit)
 	bt_msg_iter_reset_for_next_stream_file(notit);
 	notit->cur_stream_class_id = -1;
 	notit->cur_data_stream_id = -1;
-	notit->emit_stream_begin_msg = true;
-	notit->emit_stream_end_msg = true;
 	notit->snapshots.discarded_events = UINT64_C(-1);
 	notit->snapshots.packets = UINT64_C(-1);
 	notit->prev_packet_snapshots.discarded_events = UINT64_C(-1);
