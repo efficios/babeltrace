@@ -340,6 +340,10 @@ BT_HIDDEN
 void bt_msg_iter_set_emit_stream_end_message(struct bt_msg_iter *notit,
 		bool val);
 
+BT_HIDDEN
+void bt_msg_iter_set_dry_run(struct bt_msg_iter *notit,
+		bool val);
+
 static inline
 const char *bt_msg_iter_medium_status_string(
 		enum bt_msg_iter_medium_status status)
