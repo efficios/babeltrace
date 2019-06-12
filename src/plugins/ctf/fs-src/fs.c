@@ -46,6 +46,13 @@
 #include "../common/msg-iter/msg-iter.h"
 #include "query.h"
 
+struct tracer_info {
+	const char *name;
+	int64_t major;
+	int64_t minor;
+	int64_t patch;
+};
+
 static
 int msg_iter_data_set_current_ds_file(struct ctf_fs_msg_iter_data *msg_iter_data)
 {
@@ -1692,6 +1699,83 @@ int merge_traces_with_same_uuid(struct ctf_fs_component *ctf_fs)
 
 	BT_ASSERT(num_traces == traces->len);
 
+end:
+	return ret;
+}
+
+/*
+ * Extract the tracer information necessary to compare versions.
+ * Returns 0 on success, and -1 if the extraction is not successful because the
+ * necessary fields are absents in the trace metadata.
+ */
+static
+int extract_tracer_info(struct ctf_fs_trace *trace,
+		struct tracer_info *current_tracer_info) __attribute__((unused));
+static
+int extract_tracer_info(struct ctf_fs_trace *trace,
+		struct tracer_info *current_tracer_info)
+{
+	int ret = 0;
+	struct ctf_trace_class_env_entry *entry;
+
+	/* Clear the current_tracer_info struct */
+	memset(current_tracer_info, 0, sizeof(*current_tracer_info));
+
+	/*
+	 * To compare 2 tracer versions, at least the tracer name and it's
+	 * major version are needed. If one of these is missing, consider it an
+	 * extraction failure.
+	 */
+	entry = ctf_trace_class_borrow_env_entry_by_name(
+		trace->metadata->tc, "tracer_name");
+	if (!entry || entry->type != CTF_TRACE_CLASS_ENV_ENTRY_TYPE_STR) {
+		goto missing_bare_minimum;
+	}
+
+	/* Set tracer name. */
+	current_tracer_info->name = entry->value.str->str;
+
+	entry = ctf_trace_class_borrow_env_entry_by_name(
+		trace->metadata->tc, "tracer_major");
+	if (!entry || entry->type != CTF_TRACE_CLASS_ENV_ENTRY_TYPE_INT) {
+		goto missing_bare_minimum;
+	}
+
+	/* Set major version number. */
+	current_tracer_info->major = entry->value.i;
+
+	entry = ctf_trace_class_borrow_env_entry_by_name(
+		trace->metadata->tc, "tracer_minor");
+	if (!entry || entry->type != CTF_TRACE_CLASS_ENV_ENTRY_TYPE_INT) {
+		goto end;
+	}
+
+	/* Set minor version number. */
+	current_tracer_info->minor = entry->value.i;
+
+	entry = ctf_trace_class_borrow_env_entry_by_name(
+		trace->metadata->tc, "tracer_patch");
+	if (!entry) {
+		/*
+		 * If `tracer_patch` doesn't exist `tracer_patchlevel` might.
+		 * For example, `lttng-modules` uses entry name
+		 * `tracer_patchlevel`.
+		 */
+		entry = ctf_trace_class_borrow_env_entry_by_name(
+			trace->metadata->tc, "tracer_patchlevel");
+	}
+
+	if (!entry || entry->type != CTF_TRACE_CLASS_ENV_ENTRY_TYPE_INT) {
+		goto end;
+	}
+
+	/* Set patch version number. */
+	current_tracer_info->patch = entry->value.i;
+
+	goto end;
+
+missing_bare_minimum:
+	ret = -1;
 end:
 	return ret;
 }
