@@ -133,6 +133,12 @@ struct bt_msg_iter {
 	/* True to emit a stream end message. */
 	bool emit_stream_end_msg;
 
+	/*
+	 * True if library objects are unavailable during the decoding and
+	 * should not be created/used.
+	 */
+	bool dry_run;
+
 	/* True to set the stream */
 	bool set_stream;
 
@@ -977,7 +983,7 @@ enum bt_msg_iter_status read_packet_context_begin_state(
 
 	BT_ASSERT(!notit->packet_context_field);
 
-	if (packet_context_fc->in_ir) {
+	if (packet_context_fc->in_ir && !notit->dry_run) {
 		/*
 		 * Create free packet context field from stream class.
 		 * This field is going to be moved to the packet once we
@@ -1296,6 +1302,10 @@ enum bt_msg_iter_status after_event_header_state(
 		goto end;
 	}
 
+	if (G_UNLIKELY(notit->dry_run)) {
+		goto next_state;
+	}
+
 	status = set_current_event_message(notit);
 	if (status != BT_MSG_ITER_STATUS_OK) {
 		goto end;
@@ -1304,6 +1314,8 @@ enum bt_msg_iter_status after_event_header_state(
 	notit->event = bt_message_event_borrow_event(
 		notit->event_msg);
 	BT_ASSERT(notit->event);
+
+next_state:
 	notit->state = STATE_DSCOPE_EVENT_COMMON_CONTEXT_BEGIN;
 
 end:
@@ -1323,7 +1335,7 @@ enum bt_msg_iter_status read_event_common_context_begin_state(
 		goto end;
 	}
 
-	if (event_common_context_fc->in_ir) {
+	if (event_common_context_fc->in_ir && !notit->dry_run) {
 		BT_ASSERT(!notit->dscopes.event_common_context);
 		notit->dscopes.event_common_context =
 			bt_event_borrow_common_context_field(
@@ -1376,7 +1388,7 @@ enum bt_msg_iter_status read_event_spec_context_begin_state(
 		goto end;
 	}
 
-	if (event_spec_context_fc->in_ir) {
+	if (event_spec_context_fc->in_ir && !notit->dry_run) {
 		BT_ASSERT(!notit->dscopes.event_spec_context);
 		notit->dscopes.event_spec_context =
 			bt_event_borrow_specific_context_field(
@@ -1432,7 +1444,7 @@ enum bt_msg_iter_status read_event_payload_begin_state(
 		goto end;
 	}
 
-	if (event_payload_fc->in_ir) {
+	if (event_payload_fc->in_ir && !notit->dry_run) {
 		BT_ASSERT(!notit->dscopes.event_payload);
 		notit->dscopes.event_payload =
 			bt_event_borrow_payload_field(
@@ -1958,7 +1970,7 @@ update_def_clock:
 			(uint64_t) int_fc->storing_index) = value;
 	}
 
-	if (G_UNLIKELY(!fc->in_ir)) {
+	if (G_UNLIKELY(!fc->in_ir || notit->dry_run)) {
 		goto end;
 	}
 
@@ -1995,7 +2007,7 @@ enum bt_bfcr_status bfcr_unsigned_int_char_cb(uint64_t value,
 	BT_ASSERT(!int_fc->mapped_clock_class);
 	BT_ASSERT(int_fc->storing_index < 0);
 
-	if (G_UNLIKELY(!fc->in_ir)) {
+	if (G_UNLIKELY(!fc->in_ir || notit->dry_run)) {
 		goto end;
 	}
 
@@ -2047,7 +2059,7 @@ enum bt_bfcr_status bfcr_signed_int_cb(int64_t value,
 			(uint64_t) int_fc->storing_index) = (uint64_t) value;
 	}
 
-	if (G_UNLIKELY(!fc->in_ir)) {
+	if (G_UNLIKELY(!fc->in_ir || notit->dry_run)) {
 		goto end;
 	}
 
@@ -2078,7 +2090,7 @@ enum bt_bfcr_status bfcr_floating_point_cb(double value,
 		"fc-type=%d, fc-in-ir=%d, value=%f",
 		notit, notit->bfcr, fc, fc->type, fc->in_ir, value);
 
-	if (G_UNLIKELY(!fc->in_ir)) {
+	if (G_UNLIKELY(!fc->in_ir || notit->dry_run)) {
 		goto end;
 	}
 
@@ -2106,7 +2118,7 @@ enum bt_bfcr_status bfcr_string_begin_cb(
 		"fc-type=%d, fc-in-ir=%d",
 		notit, notit->bfcr, fc, fc->type, fc->in_ir);
 
-	if (G_UNLIKELY(!fc->in_ir)) {
+	if (G_UNLIKELY(!fc->in_ir || notit->dry_run)) {
 		goto end;
 	}
 
@@ -2143,7 +2155,7 @@ enum bt_bfcr_status bfcr_string_cb(const char *value,
 		notit, notit->bfcr, fc, fc->type, fc->in_ir,
 		len);
 
-	if (G_UNLIKELY(!fc->in_ir)) {
+	if (G_UNLIKELY(!fc->in_ir || notit->dry_run)) {
 		goto end;
 	}
 
@@ -2175,7 +2187,7 @@ enum bt_bfcr_status bfcr_string_end_cb(
 		"fc-type=%d, fc-in-ir=%d",
 		notit, notit->bfcr, fc, fc->type, fc->in_ir);
 
-	if (G_UNLIKELY(!fc->in_ir)) {
+	if (G_UNLIKELY(!fc->in_ir || notit->dry_run)) {
 		goto end;
 	}
 
@@ -2200,7 +2212,7 @@ enum bt_bfcr_status bfcr_compound_begin_cb(
 		"fc-type=%d, fc-in-ir=%d",
 		notit, notit->bfcr, fc, fc->type, fc->in_ir);
 
-	if (!fc->in_ir) {
+	if (G_UNLIKELY(!fc->in_ir || notit->dry_run)) {
 		goto end;
 	}
 
@@ -2250,7 +2262,7 @@ enum bt_bfcr_status bfcr_compound_end_cb(
 		"fc-type=%d, fc-in-ir=%d",
 		notit, notit->bfcr, fc, fc->type, fc->in_ir);
 
-	if (!fc->in_ir) {
+	if (G_UNLIKELY(!fc->in_ir || notit->dry_run)) {
 		goto end;
 	}
 
@@ -2298,6 +2310,11 @@ int64_t bfcr_get_sequence_length_cb(struct ctf_field_class *fc, void *data)
 
 	length = (uint64_t) g_array_index(notit->stored_values, uint64_t,
 		seq_fc->stored_length_index);
+
+	if (G_UNLIKELY(notit->dry_run)){
+		goto end;
+	}
+
 	seq_field = stack_top(notit->stack)->base;
 	BT_ASSERT(seq_field);
 
@@ -2319,6 +2336,7 @@ int64_t bfcr_get_sequence_length_cb(struct ctf_field_class *fc, void *data)
 		}
 	}
 
+end:
 	return length;
 }
 
@@ -2381,7 +2399,7 @@ struct ctf_field_class *bfcr_borrow_variant_selected_field_class_cb(
 	selected_option = ctf_field_class_variant_borrow_option_by_index(
 		var_fc, (uint64_t) option_index);
 
-	if (selected_option->fc->in_ir) {
+	if (selected_option->fc->in_ir && !notit->dry_run) {
 		bt_field *var_field = stack_top(notit->stack)->base;
 
 		ret = bt_field_variant_select_option_field_by_index(
@@ -2986,4 +3004,11 @@ void bt_msg_iter_set_emit_stream_end_message(struct bt_msg_iter *notit,
 		bool val)
 {
 	notit->emit_stream_end_msg = val;
+}
+
+BT_HIDDEN
+void bt_msg_iter_set_dry_run(struct bt_msg_iter *notit,
+		bool val)
+{
+	notit->dry_run = val;
 }
