@@ -2,14 +2,11 @@ SUBDIRS =
 
 AM_CPPFLAGS += -I$(top_srcdir)/tests/utils
 
-LIBTAP=$(top_builddir)/tests/utils/tap/libtap.la
+COMMON_TEST_LDADD = \
+	$(top_builddir)/tests/utils/tap/libtap.la \
+	$(top_builddir)/tests/utils/libtestcommon.la
 
-libtestcommon_la_SOURCES = common.c common.h
-noinst_LTLIBRARIES = libtestcommon.la
-
-COMMON_TEST_LDADD = $(LIBTAP) $(builddir)/libtestcommon.la
-
-test_bitfield_LDADD = $(LIBTAP) $(builddir)/libtestcommon.la
+test_bitfield_LDADD = $(COMMON_TEST_LDADD)
 
 test_ctf_writer_LDADD = \
 	$(COMMON_TEST_LDADD) \
