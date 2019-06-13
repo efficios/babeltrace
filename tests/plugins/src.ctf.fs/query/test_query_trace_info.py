@@ -20,7 +20,7 @@ import os
 import re
 
 
-test_ctf_traces_path = os.environ['TEST_CTF_TRACES_PATH']
+test_ctf_traces_path = os.environ['BT_CTF_TRACES_PATH']
 
 
 # Key to sort streams in a predictable order.
@@ -149,11 +149,11 @@ class QueryTraceInfoPortNameTestCase(unittest.TestCase):
         self.assertEqual(len(streams), 2)
         self.assertRegexpMatches(
             str(streams[0]["port-name"]),
-            r"^7afe8fbe-79b8-4f6a-bbc7-d0c782e7ddaf \| 0 \| .*/tests/ctf-traces/intersection/3eventsintersect/test_stream_0$",
+            r"^7afe8fbe-79b8-4f6a-bbc7-d0c782e7ddaf \| 0 \| .*/tests/data/ctf-traces/intersection/3eventsintersect/test_stream_0$",
         )
         self.assertRegexpMatches(
             str(streams[1]["port-name"]),
-            r"^7afe8fbe-79b8-4f6a-bbc7-d0c782e7ddaf \| 0 \| .*/tests/ctf-traces/intersection/3eventsintersect/test_stream_1$",
+            r"^7afe8fbe-79b8-4f6a-bbc7-d0c782e7ddaf \| 0 \| .*/tests/data/ctf-traces/intersection/3eventsintersect/test_stream_1$",
         )
 
     def test_trace_uuid_no_stream_class_id_no_stream_id(self):
@@ -168,7 +168,7 @@ class QueryTraceInfoPortNameTestCase(unittest.TestCase):
         self.assertEqual(len(streams), 1)
         self.assertRegexpMatches(
             str(streams[0]["port-name"]),
-            r"^2a6422d0-6cee-11e0-8c08-cb07d7b3a564 \| .*/tests/ctf-traces/succeed/succeed1/dummystream$",
+            r"^2a6422d0-6cee-11e0-8c08-cb07d7b3a564 \| .*/tests/data/ctf-traces/succeed/succeed1/dummystream$",
         )
 
 

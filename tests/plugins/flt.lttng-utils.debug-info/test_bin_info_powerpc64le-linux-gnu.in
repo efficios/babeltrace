@@ -23,7 +23,7 @@ NO_SH_TAP=1
 
 curdir="$(cd -P "$(dirname "$0")" >/dev/null && pwd)"
 
-debug_info_data="${BT_SRC_PATH}/tests/debug-info-data/powerpc64le-linux-gnu"
+debug_info_data="${BT_DEBUG_INFO_PATH}/powerpc64le-linux-gnu"
 
 "${curdir}/test_bin_info" \
 	--foo-addr=0x2e7c \

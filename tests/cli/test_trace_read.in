@@ -17,8 +17,8 @@
 
 . "@abs_top_builddir@/tests/utils/common.sh"
 
-SUCCESS_TRACES=(${BT_CTF_TRACES}/succeed/*)
-FAIL_TRACES=(${BT_CTF_TRACES}/fail/*)
+SUCCESS_TRACES=(${BT_CTF_TRACES_PATH}/succeed/*)
+FAIL_TRACES=(${BT_CTF_TRACES_PATH}/fail/*)
 
 NUM_TESTS=$((${#SUCCESS_TRACES[@]} + ${#FAIL_TRACES[@]}))
 

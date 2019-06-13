@@ -7,9 +7,9 @@ import os
 @unittest.skip('depends on Python bindings, which are broken')
 class LttngUtilsDebugInfoTestCase(unittest.TestCase):
     def test_debug_info(self):
-        debug_info_data_dir = os.environ['DEBUG_INFO_DATA_DIR']
-        trace_path = os.path.join(debug_info_data_dir, 'trace')
-        target_prefix = os.path.join(debug_info_data_dir, '..', '..')
+        debug_info_data_path = os.environ['BT_DEBUG_INFO_PATH']
+        trace_path = os.path.join(debug_info_data_path, 'trace')
+        target_prefix = os.path.join(debug_info_data_path, '..', '..')
         src = bt2.ComponentSpec('ctf', 'fs', trace_path)
         flt = bt2.ComponentSpec('lttng-utils', 'debug-info', {
             'target-prefix': target_prefix,

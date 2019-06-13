@@ -25,9 +25,9 @@
 . "@abs_top_builddir@/tests/utils/diff.sh"
 
 this_dir_relative="tests/plugins/src.ctf.fs/succeed"
-this_dir_src="$BT_SRC_PATH/$this_dir_relative"
+this_dir_src="$BT_SRC_PATH/tests/data/plugins/src.ctf.fs/succeed"
 this_dir_build="$BT_BUILD_PATH/$this_dir_relative"
-succeed_trace_dir="$BT_CTF_TRACES/succeed"
+succeed_trace_dir="$BT_CTF_TRACES_PATH/succeed"
 
 test_ctf_common_details_args="-p with-trace-name=no,with-stream-name=no"
 

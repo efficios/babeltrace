@@ -5,8 +5,8 @@ import os
 import os.path
 
 
-_TEST_CTF_TRACES_PATH = os.environ['TEST_CTF_TRACES_PATH']
-_3EVENTS_INTERSECT_TRACE_PATH = os.path.join(_TEST_CTF_TRACES_PATH,
+_BT_CTF_TRACES_PATH = os.environ['BT_CTF_TRACES_PATH']
+_3EVENTS_INTERSECT_TRACE_PATH = os.path.join(_BT_CTF_TRACES_PATH,
                                              'intersection',
                                              '3eventsintersect')
 

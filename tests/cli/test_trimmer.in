@@ -17,7 +17,7 @@
 
 . "@abs_top_builddir@/tests/utils/common.sh"
 
-TRACE_PATH="${BT_CTF_TRACES}/succeed/wk-heartbeat-u/"
+TRACE_PATH="${BT_CTF_TRACES_PATH}/succeed/wk-heartbeat-u/"
 
 NUM_TESTS=40
 
