@@ -26,7 +26,6 @@
 #include <babeltrace2/babeltrace.h>
 #include "common/macros.h"
 #include "common/common.h"
-#include "plugins/plugins-common.h"
 #include "common/assert.h"
 #include <inttypes.h>
 #include <stdint.h>
@@ -139,7 +138,7 @@ BT_HIDDEN
 bt_self_component_status counter_init(
 		bt_self_component_sink *component,
 		const bt_value *params,
-		UNUSED_VAR void *init_method_data)
+		__attribute__((unused)) void *init_method_data)
 {
 	bt_self_component_status ret;
 	struct counter *counter = g_new0(struct counter, 1);

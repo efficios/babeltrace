@@ -39,7 +39,6 @@
 #include <babeltrace2/babeltrace.h>
 #include "compat/compiler.h"
 #include <babeltrace2/types.h>
-#include "plugins/plugins-common.h"
 
 #include "data-stream.h"
 #include "metadata.h"
@@ -1564,7 +1563,7 @@ end:
 BT_HIDDEN
 bt_self_component_status lttng_live_component_init(
 		bt_self_component_source *self_comp,
-		const bt_value *params, UNUSED_VAR void *init_method_data)
+		const bt_value *params, __attribute__((unused)) void *init_method_data)
 {
 	struct lttng_live_component *lttng_live;
 	bt_self_component_status ret = BT_SELF_COMPONENT_STATUS_OK;

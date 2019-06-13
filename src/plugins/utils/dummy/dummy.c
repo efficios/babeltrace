@@ -22,7 +22,6 @@
 
 #include <babeltrace2/babeltrace.h>
 #include "common/macros.h"
-#include "plugins/plugins-common.h"
 #include "common/assert.h"
 #include "dummy.h"
 
@@ -52,7 +51,7 @@ BT_HIDDEN
 bt_self_component_status dummy_init(
 		bt_self_component_sink *component,
 		const bt_value *params,
-		UNUSED_VAR void *init_method_data)
+		__attribute__((unused)) void *init_method_data)
 {
 	bt_self_component_status ret;
 	struct dummy *dummy = g_new0(struct dummy, 1);

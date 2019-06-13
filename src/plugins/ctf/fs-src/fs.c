@@ -28,7 +28,6 @@
 #include "common/common.h"
 #include <babeltrace2/babeltrace.h>
 #include "compat/uuid.h"
-#include "plugins/plugins-common.h"
 #include <glib.h>
 #include "common/assert.h"
 #include <inttypes.h>
@@ -1928,7 +1927,7 @@ end:
 BT_HIDDEN
 bt_self_component_status ctf_fs_init(
 		bt_self_component_source *self_comp,
-		const bt_value *params, UNUSED_VAR void *init_method_data)
+		const bt_value *params, __attribute__((unused)) void *init_method_data)
 {
 	struct ctf_fs_component *ctf_fs;
 	bt_self_component_status ret = BT_SELF_COMPONENT_STATUS_OK;
