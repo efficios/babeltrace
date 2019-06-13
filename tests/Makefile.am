@@ -71,21 +71,21 @@ if ENABLE_PYTHON_BINDINGS
 TESTS_PLUGINS += plugins/src.ctf.fs/query/test_query
 
 if ENABLE_DEBUG_INFO
-TESTS_PLUGINS += plugins/test_lttng_utils_debug_info
+TESTS_PLUGINS += plugins/flt.lttng-utils.debug-info/test_lttng_utils_debug_info
 endif
 endif
 endif
 
 if ENABLE_DEBUG_INFO
 TESTS_PLUGINS += \
-	plugins/test_dwarf_i386-linux-gnu \
-	plugins/test_dwarf_powerpc-linux-gnu \
-	plugins/test_dwarf_powerpc64le-linux-gnu \
-	plugins/test_dwarf_x86_64-linux-gnu \
-	plugins/test_bin_info_i386-linux-gnu \
-	plugins/test_bin_info_powerpc-linux-gnu \
-	plugins/test_bin_info_powerpc64le-linux-gnu \
-	plugins/test_bin_info_x86_64-linux-gnu
+	plugins/flt.lttng-utils.debug-info/test_dwarf_i386-linux-gnu \
+	plugins/flt.lttng-utils.debug-info/test_dwarf_powerpc-linux-gnu \
+	plugins/flt.lttng-utils.debug-info/test_dwarf_powerpc64le-linux-gnu \
+	plugins/flt.lttng-utils.debug-info/test_dwarf_x86_64-linux-gnu \
+	plugins/flt.lttng-utils.debug-info/test_bin_info_i386-linux-gnu \
+	plugins/flt.lttng-utils.debug-info/test_bin_info_powerpc-linux-gnu \
+	plugins/flt.lttng-utils.debug-info/test_bin_info_powerpc64le-linux-gnu \
+	plugins/flt.lttng-utils.debug-info/test_bin_info_x86_64-linux-gnu
 endif
 
 TESTS_PYTHON_PLUGIN_PROVIDER =
