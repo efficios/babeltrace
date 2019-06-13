@@ -30,7 +30,6 @@
 #include "lib/graph/component.h"
 #include "lib/graph/message/iterator.h"
 #include "lib/graph/connection.h"
-#include "plugins/plugins-common.h"
 #include <glib.h>
 #include <stdbool.h>
 #include <inttypes.h>

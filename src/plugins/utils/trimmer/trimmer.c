@@ -28,7 +28,6 @@
 #include "compat/time.h"
 #include <babeltrace2/babeltrace.h>
 #include "common/common.h"
-#include "plugins/plugins-common.h"
 #include "common/assert.h"
 #include <stdint.h>
 #include <inttypes.h>

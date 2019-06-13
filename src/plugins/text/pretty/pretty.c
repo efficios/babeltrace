@@ -29,7 +29,6 @@
 #include <babeltrace2/babeltrace.h>
 #include "compat/compiler.h"
 #include "common/common.h"
-#include "plugins/plugins-common.h"
 #include <stdio.h>
 #include <stdbool.h>
 #include <glib.h>
@@ -645,7 +644,7 @@ BT_HIDDEN
 bt_self_component_status pretty_init(
 		bt_self_component_sink *comp,
 		const bt_value *params,
-		UNUSED_VAR void *init_method_data)
+		__attribute__((unused)) void *init_method_data)
 {
 	bt_self_component_status ret;
 	struct pretty_component *pretty = create_pretty();

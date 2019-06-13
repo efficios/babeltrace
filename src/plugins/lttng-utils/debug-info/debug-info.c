@@ -30,7 +30,6 @@
 #include "logging.h"
 
 #include <glib.h>
-#include "plugins/plugins-common.h"
 
 #include "common/assert.h"
 #include "common/common.h"
@@ -1757,7 +1756,7 @@ int init_from_params(struct debug_info_component *debug_info_component,
 BT_HIDDEN
 bt_self_component_status debug_info_comp_init(
 		bt_self_component_filter *self_comp,
-		const bt_value *params, UNUSED_VAR void *init_method_data)
+		const bt_value *params, __attribute__((unused)) void *init_method_data)
 {
 	int ret;
 	struct debug_info_component *debug_info_comp;
