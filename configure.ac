@@ -803,7 +803,6 @@ AC_CONFIG_FILES([tests/lib/test_plugin_complete], [chmod +x tests/lib/test_plugi
 AC_CONFIG_FILES([tests/lib/trace-ir/test_trace_ir], [chmod +x tests/lib/trace-ir/test_trace_ir])
 AC_CONFIG_FILES([tests/plugins/src.ctf.fs/query/test_query], [chmod +x tests/plugins/src.ctf.fs/query/test_query])
 AC_CONFIG_FILES([tests/plugins/src.ctf.fs/succeed/test_succeed], [chmod +x tests/plugins/src.ctf.fs/succeed/test_succeed])
-AC_CONFIG_FILES([tests/plugins/test_utils_muxer_complete], [chmod +x tests/plugins/test_utils_muxer_complete])
 AC_CONFIG_FILES([tests/plugins/test_lttng_utils_debug_info], [chmod +x tests/plugins/test_lttng_utils_debug_info])
 AC_CONFIG_FILES([tests/plugins/test_dwarf_i386-linux-gnu], [chmod +x tests/plugins/test_dwarf_i386-linux-gnu])
 AC_CONFIG_FILES([tests/plugins/test_dwarf_powerpc-linux-gnu], [chmod +x tests/plugins/test_dwarf_powerpc-linux-gnu])

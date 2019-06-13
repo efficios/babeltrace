@@ -30,8 +30,6 @@
 /tests/lib/test_graph_topo
 /tests/lib/trace-ir/test_trace_ir
 /tests/lib/ctf-writer/test_ctf_writer
-/tests/plugins/test-utils-muxer
-/tests/plugins/test_utils_muxer_complete
 /tests/plugins/test_lttng_utils_debug_info
 /tests/plugins/test_bin_info_i386-linux-gnu
 /tests/plugins/test_bin_info_powerpc-linux-gnu
