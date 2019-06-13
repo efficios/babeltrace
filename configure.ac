@@ -777,6 +777,7 @@ AC_CONFIG_FILES([
 	src/plugins/utils/muxer/Makefile
 	src/plugins/utils/trimmer/Makefile
 	src/python-plugin-provider/Makefile
+	tests/ctf-writer/Makefile
 	tests/lib/Makefile
 	tests/lib/test-plugin-plugins/Makefile
 	tests/Makefile
@@ -793,7 +794,7 @@ AC_CONFIG_FILES([tests/cli/test_packet_seq_num], [chmod +x tests/cli/test_packet
 AC_CONFIG_FILES([tests/cli/test_trace_copy], [chmod +x tests/cli/test_trace_copy])
 AC_CONFIG_FILES([tests/cli/test_trace_read], [chmod +x tests/cli/test_trace_read])
 AC_CONFIG_FILES([tests/cli/test_trimmer], [chmod +x tests/cli/test_trimmer])
-AC_CONFIG_FILES([tests/lib/test_ctf_writer_complete], [chmod +x tests/lib/test_ctf_writer_complete])
+AC_CONFIG_FILES([tests/ctf-writer/test_ctf_writer], [chmod +x tests/ctf-writer/test_ctf_writer])
 AC_CONFIG_FILES([tests/lib/test_plugin_complete], [chmod +x tests/lib/test_plugin_complete])
 AC_CONFIG_FILES([tests/lib/trace-ir/test_trace_ir], [chmod +x tests/lib/trace-ir/test_trace_ir])
 AC_CONFIG_FILES([tests/plugins/ctf/test_ctf_plugin], [chmod +x tests/plugins/ctf/test_ctf_plugin])
