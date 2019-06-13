@@ -1,4 +1,4 @@
-SUBDIRS = utils lib plugins
+SUBDIRS = utils lib ctf-writer plugins
 
 # Directories added to EXTRA_DIST will be recursively copied to the distribution.
 EXTRA_DIST = $(srcdir)/ctf-traces \
@@ -49,9 +49,11 @@ TESTS_CLI = \
 TESTS_LIB = \
 	lib/test_bitfield \
 	lib/test_bt_values \
-	lib/test_ctf_writer_complete \
 	lib/test_graph_topo \
 	lib/test_trace_ir_ref
+
+TESTS_CTF_WRITER = \
+	ctf-writer/test_ctf_writer
 
 if !ENABLE_BUILT_IN_PLUGINS
 TESTS_LIB += lib/test_plugin_complete
@@ -94,7 +96,7 @@ endif
 LOG_DRIVER_FLAGS = '--merge'
 LOG_DRIVER = env AM_TAP_AWK='$(AWK)' $(SHELL) $(top_srcdir)/config/tap-driver.sh
 
-TESTS = $(TESTS_BINDINGS) $(TESTS_CLI) $(TESTS_LIB) \
+TESTS = $(TESTS_BINDINGS) $(TESTS_CLI) $(TESTS_CTF_WRITER) $(TESTS_LIB) \
 	$(TESTS_PLUGINS) $(TESTS_PYTHON_PLUGIN_PROVIDER)
 
 define check_target
@@ -104,6 +106,7 @@ endef
 
 $(eval $(call check_target,bindings,$(TESTS_BINDINGS)))
 $(eval $(call check_target,cli,$(TESTS_CLI)))
+$(eval $(call check_target,ctf-writer,$(TESTS_CTF_WRITER)))
 $(eval $(call check_target,lib,$(TESTS_LIB)))
 $(eval $(call check_target,plugins,$(TESTS_PLUGINS)))
 $(eval $(call check_target,python-plugin-provider,$(TESTS_PYTHON_PLUGIN_PROVIDER)))
