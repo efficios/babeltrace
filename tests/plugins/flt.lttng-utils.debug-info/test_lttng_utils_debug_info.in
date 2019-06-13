@@ -25,7 +25,7 @@ TESTS_UTILS_PYTHON_DIR="${BT_SRC_PATH}/tests/utils/python"
 TESTRUNNER_PY="${BT_SRC_PATH}/tests/utils/python/testrunner.py"
 THIS_DIR="${BT_SRC_PATH}/tests/plugins"
 export BABELTRACE_PLUGIN_PATH="${BT_BUILD_PATH}/src/plugins/utils:${BT_BUILD_PATH}/src/plugins/ctf:${BT_BUILD_PATH}/src/plugins/lttng-utils"
-export DEBUG_INFO_DATA_DIR="${BT_SRC_PATH}/tests/debug-info-data"
+export BT_DEBUG_INFO_PATH
 
 if [ "x${MSYSTEM}" != "x" ]; then
 	export PATH="${BT_BUILD_PATH}/src/lib/.libs:${PATH}"

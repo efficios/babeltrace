@@ -1,8 +1,7 @@
 SUBDIRS = utils lib ctf-writer plugins
 
 # Directories added to EXTRA_DIST will be recursively copied to the distribution.
-EXTRA_DIST = $(srcdir)/ctf-traces \
-	     $(srcdir)/debug-info-data \
+EXTRA_DIST = $(srcdir)/data \
 	     bindings/python/bt2/.coveragerc
 
 dist_check_SCRIPTS = \

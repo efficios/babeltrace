@@ -30,7 +30,8 @@ NO_SH_TAP=1
 export BABELTRACE_PYTHON_BT2_NO_TRACEBACK=1
 export TEST_PLUGIN_PLUGINS_PATH="${BT_BUILD_PATH}/src/plugins"
 export BABELTRACE_PLUGIN_PATH="${BT_BUILD_PATH}/src/plugins/ctf:${BT_BUILD_PATH}/src/plugins/utils:${BT_BUILD_PATH}/src/plugins/text"
-export TEST_CTF_TRACES_PATH="${BT_SRC_PATH}/tests/ctf-traces"
+export BT_CTF_TRACES_PATH
+
 PYTHON_BUILD_DIR="${BT_BUILD_PATH}/src/bindings/python/bt2/build/build_lib"
 TESTS_UTILS_PYTHON_DIR="${BT_SRC_PATH}/tests/utils/python"
 export PYTHONPATH="${PYTHON_BUILD_DIR}:${TESTS_UTILS_PYTHON_DIR}"

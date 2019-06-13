@@ -4,7 +4,8 @@ BT_SRC_PATH="@abs_top_srcdir@"
 BT_BUILD_PATH="@abs_top_builddir@"
 
 BT_BIN="${BT_BUILD_PATH}/src/cli/babeltrace2@EXEEXT@"
-BT_CTF_TRACES="${BT_SRC_PATH}/tests/ctf-traces"
+BT_CTF_TRACES_PATH="${BT_SRC_PATH}/tests/data/ctf-traces"
+BT_DEBUG_INFO_PATH="${BT_SRC_PATH}/tests/data/debug-info"
 
 if [ "x${NO_SH_TAP}" = x ]; then
     . "${BT_SRC_PATH}/tests/utils/tap/tap.sh"
