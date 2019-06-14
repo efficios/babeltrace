@@ -81,19 +81,19 @@
  *   #define BT_LOG_LEVEL BT_LOG_VERBOSE
  *   #include "logging.h"
  *
- * If both BT_LOG_DEF_LEVEL and BT_LOG_LEVEL are undefined, then BT_LOG_INFO
- * will be used for release builds (NDEBUG is defined) and BT_LOG_DEBUG
- * otherwise (NDEBUG is not defined).
+ * If both BT_LOG_DEF_LEVEL and BT_LOG_LEVEL are undefined, then
+ * BT_LOG_INFO will be used for release builds (BT_DEBUG_MODE is NOT
+ * defined) and BT_LOG_DEBUG otherwise (BT_DEBUG_MODE is defined).
  */
 #if defined(BT_LOG_LEVEL)
 	#define _BT_LOG_LEVEL BT_LOG_LEVEL
 #elif defined(BT_LOG_DEF_LEVEL)
 	#define _BT_LOG_LEVEL BT_LOG_DEF_LEVEL
 #else
-	#ifdef NDEBUG
-		#define _BT_LOG_LEVEL BT_LOG_INFO
-	#else
+	#ifdef BT_DEBUG_MODE
 		#define _BT_LOG_LEVEL BT_LOG_DEBUG
+	#else
+		#define _BT_LOG_LEVEL BT_LOG_INFO
 	#endif
 #endif
 
@@ -243,18 +243,19 @@
  *   #include "logging.h"
  *
  * If both BT_LOG_DEF_SRCLOC and BT_LOG_SRCLOC are undefined, then
- * BT_LOG_SRCLOC_NONE will be used for release builds (NDEBUG is defined) and
- * BT_LOG_SRCLOC_LONG otherwise (NDEBUG is not defined).
+ * BT_LOG_SRCLOC_NONE will be used for release builds (BT_DEBUG_MODE is
+ * NOT defined) and BT_LOG_SRCLOC_LONG otherwise (BT_DEBUG_MODE is
+ * defined).
  */
 #if defined(BT_LOG_SRCLOC)
 	#define _BT_LOG_SRCLOC BT_LOG_SRCLOC
 #elif defined(BT_LOG_DEF_SRCLOC)
 	#define _BT_LOG_SRCLOC BT_LOG_DEF_SRCLOC
 #else
-	#ifdef NDEBUG
-		#define _BT_LOG_SRCLOC BT_LOG_SRCLOC_NONE
-	#else
+	#ifdef BT_DEBUG_MODE
 		#define _BT_LOG_SRCLOC BT_LOG_SRCLOC_LONG
+	#else
+		#define _BT_LOG_SRCLOC BT_LOG_SRCLOC_NONE
 	#endif
 #endif
 #if BT_LOG_SRCLOC_LONG == _BT_LOG_SRCLOC
@@ -291,18 +292,18 @@
  *   #include "logging.h"
  *
  * If both BT_LOG_DEF_CENSORING and BT_LOG_CENSORING are undefined, then
- * BT_LOG_CENSORED will be used for release builds (NDEBUG is defined) and
- * BT_LOG_UNCENSORED otherwise (NDEBUG is not defined).
+ * BT_LOG_CENSORED will be used for release builds (BT_DEBUG_MODE is NOT
+ * defined) and BT_LOG_UNCENSORED otherwise (BT_DEBUG_MODE is defined).
  */
 #if defined(BT_LOG_CENSORING)
 	#define _BT_LOG_CENSORING BT_LOG_CENSORING
 #elif defined(BT_LOG_DEF_CENSORING)
 	#define _BT_LOG_CENSORING BT_LOG_DEF_CENSORING
 #else
-	#ifdef NDEBUG
-		#define _BT_LOG_CENSORING BT_LOG_CENSORED
-	#else
+	#ifdef BT_DEBUG_MODE
 		#define _BT_LOG_CENSORING BT_LOG_UNCENSORED
+	#else
+		#define _BT_LOG_CENSORING BT_LOG_CENSORED
 	#endif
 #endif
 
@@ -513,8 +514,8 @@ void bt_log_set_output_level(const int lvl);
  * log message. Default value is BT_LOG_PUT_STD and other flags could be used to
  * alter its behavior. See bt_log_set_output_v() for more details.
  *
- * Note about BT_LOG_PUT_SRC: it will be added only in debug builds (NDEBUG is
- * not defined).
+ * Note about BT_LOG_PUT_SRC: it will be added only in debug builds
+ * (BT_DEBUG_MODE is defined).
  */
 enum
 {
