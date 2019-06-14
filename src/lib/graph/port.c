@@ -44,7 +44,7 @@ void destroy_port(struct bt_object *obj)
 {
 	struct bt_port *port = (void *) obj;
 
-	BT_LIB_LOGD("Destroying port: %!+p", port);
+	BT_LIB_LOGI("Destroying port: %!+p", port);
 
 	if (port->name) {
 		g_string_free(port->name, TRUE);
@@ -70,7 +70,7 @@ struct bt_port *bt_port_create(struct bt_component *parent_component,
 		goto end;
 	}
 
-	BT_LIB_LOGD("Creating port for component: %![comp-]+c, port-type=%s, "
+	BT_LIB_LOGI("Creating port for component: %![comp-]+c, port-type=%s, "
 		"port-name=\"%s\"", parent_component, bt_port_type_string(type),
 		name);
 	bt_object_init_shared_with_parent(&port->base, destroy_port);
@@ -84,7 +84,7 @@ struct bt_port *bt_port_create(struct bt_component *parent_component,
 	port->type = type;
 	port->user_data = user_data;
 	bt_object_set_parent(&port->base, &parent_component->base);
-	BT_LIB_LOGD("Created port for component: "
+	BT_LIB_LOGI("Created port for component: "
 		"%![comp-]+c, %![port-]+p", parent_component, port);
 
 end:
@@ -134,7 +134,7 @@ void bt_port_set_connection(struct bt_port *port,
 	 * connection exists.
 	 */
 	port->connection = connection;
-	BT_LIB_LOGV("Set port's connection: %![port-]+p, %![conn-]+x", port,
+	BT_LIB_LOGI("Set port's connection: %![port-]+p, %![conn-]+x", port,
 		connection);
 }
 

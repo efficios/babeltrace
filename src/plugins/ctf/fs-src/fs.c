@@ -456,7 +456,7 @@ int create_one_port_for_trace(struct ctf_fs_component *ctf_fs,
 		goto error;
 	}
 
-	BT_LOGD("Creating one port named `%s`", port_name);
+	BT_LOGI("Creating one port named `%s`", port_name);
 
 	/* Create output port for this file */
 	port_data = g_new0(struct ctf_fs_port_data, 1);
@@ -880,13 +880,13 @@ int create_ds_file_groups(struct ctf_fs_trace *ctf_fs_trace)
 
 		if (!strcmp(basename, CTF_FS_METADATA_FILENAME)) {
 			/* Ignore the metadata stream. */
-			BT_LOGD("Ignoring metadata file `%s" G_DIR_SEPARATOR_S "%s`",
+			BT_LOGI("Ignoring metadata file `%s" G_DIR_SEPARATOR_S "%s`",
 				ctf_fs_trace->path->str, basename);
 			continue;
 		}
 
 		if (basename[0] == '.') {
-			BT_LOGD("Ignoring hidden file `%s" G_DIR_SEPARATOR_S "%s`",
+			BT_LOGI("Ignoring hidden file `%s" G_DIR_SEPARATOR_S "%s`",
 				ctf_fs_trace->path->str, basename);
 			continue;
 		}
@@ -903,7 +903,7 @@ int create_ds_file_groups(struct ctf_fs_trace *ctf_fs_trace)
 		g_string_append_printf(file->path, "%s" G_DIR_SEPARATOR_S "%s",
 				ctf_fs_trace->path->str, basename);
 		if (!g_file_test(file->path->str, G_FILE_TEST_IS_REGULAR)) {
-			BT_LOGD("Ignoring non-regular file `%s`",
+			BT_LOGI("Ignoring non-regular file `%s`",
 				file->path->str);
 			ctf_fs_file_destroy(file);
 			file = NULL;
@@ -918,7 +918,7 @@ int create_ds_file_groups(struct ctf_fs_trace *ctf_fs_trace)
 
 		if (file->size == 0) {
 			/* Skip empty stream. */
-			BT_LOGD("Ignoring empty file `%s`", file->path->str);
+			BT_LOGI("Ignoring empty file `%s`", file->path->str);
 			ctf_fs_file_destroy(file);
 			continue;
 		}
@@ -1159,7 +1159,7 @@ int ctf_fs_find_traces(GList **trace_paths, const char *start_path)
 	dir = g_dir_open(start_path, 0, &error);
 	if (!dir) {
 		if (error->code == G_FILE_ERROR_ACCES) {
-			BT_LOGD("Cannot open directory `%s`: %s (code %d): continuing",
+			BT_LOGI("Cannot open directory `%s`: %s (code %d): continuing",
 				start_path, error->message, error->code);
 			goto end;
 		}

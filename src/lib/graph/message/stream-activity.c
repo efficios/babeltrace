@@ -176,7 +176,7 @@ void set_stream_activity_message_default_clock_snapshot(
 		value_cycles);
 	stream_act_msg->default_cs_state =
 		BT_MESSAGE_STREAM_ACTIVITY_CLOCK_SNAPSHOT_STATE_KNOWN;
-	BT_LIB_LOGV("Set stream activity message's default clock snapshot: "
+	BT_LIB_LOGD("Set stream activity message's default clock snapshot: "
 		"%![msg-]+n, value=%" PRIu64, msg, value_cycles);
 }
 
@@ -246,7 +246,7 @@ void set_stream_activity_message_default_clock_snapshot_state(
 		msg,
 		bt_message_stream_activity_clock_snapshot_state_string(state));
 	stream_act_msg->default_cs_state = state;
-	BT_LIB_LOGV("Set stream activity message's default clock snapshot state: "
+	BT_LIB_LOGD("Set stream activity message's default clock snapshot state: "
 		"%![msg-]+n, state=%s", msg,
 		bt_message_stream_activity_clock_snapshot_state_string(state));
 }

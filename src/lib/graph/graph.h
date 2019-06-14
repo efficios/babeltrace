@@ -292,8 +292,8 @@ static inline
 void bt_graph_make_faulty(struct bt_graph *graph)
 {
 	graph->config_state = BT_GRAPH_CONFIGURATION_STATE_FAULTY;
-#ifdef BT_LIB_LOGD
-	BT_LIB_LOGD("Set graph's state to faulty: %![graph-]+g", graph);
+#ifdef BT_LIB_LOGI
+	BT_LIB_LOGI("Set graph's state to faulty: %![graph-]+g", graph);
 #endif
 }
 

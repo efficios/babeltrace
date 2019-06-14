@@ -214,7 +214,7 @@ enum bt_stream_status bt_stream_set_name(struct bt_stream *stream,
 	BT_ASSERT_PRE_STREAM_HOT(stream);
 	g_string_assign(stream->name.str, name);
 	stream->name.value = stream->name.str->str;
-	BT_LIB_LOGV("Set stream's name: %!+s", stream);
+	BT_LIB_LOGD("Set stream's name: %!+s", stream);
 	return BT_STREAM_STATUS_OK;
 }
 

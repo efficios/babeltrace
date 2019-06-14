@@ -85,7 +85,7 @@ int ctf_fs_file_open(struct ctf_fs_file *file, const char *mode)
 	int ret = 0;
 	struct stat stat;
 
-	BT_LOGD("Opening file \"%s\" with mode \"%s\"", file->path->str, mode);
+	BT_LOGI("Opening file \"%s\" with mode \"%s\"", file->path->str, mode);
 	file->fp = fopen(file->path->str, mode);
 	if (!file->fp) {
 		BT_LOGE("Cannot open file \"%s\" with mode \"%s\": %s",
@@ -93,7 +93,7 @@ int ctf_fs_file_open(struct ctf_fs_file *file, const char *mode)
 		goto error;
 	}
 
-	BT_LOGD("Opened file: %p", file->fp);
+	BT_LOGI("Opened file: %p", file->fp);
 
 	if (fstat(fileno(file->fp), &stat)) {
 		BT_LOGE("Cannot get file information: %s", strerror(errno));
@@ -101,7 +101,7 @@ int ctf_fs_file_open(struct ctf_fs_file *file, const char *mode)
 	}
 
 	file->size = stat.st_size;
-	BT_LOGD("File is %jd bytes", (intmax_t) file->size);
+	BT_LOGI("File is %jd bytes", (intmax_t) file->size);
 	goto end;
 
 error:

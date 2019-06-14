@@ -73,7 +73,7 @@ void init_python_plugin_provider(void) {
 		return;
 	}
 
-	BT_LOGD_STR("Loading Python plugin provider module.");
+	BT_LOGI_STR("Loading Python plugin provider module.");
 	python_plugin_provider_module =
 		g_module_open(PYTHON_PLUGIN_PROVIDER_FILENAME, 0);
 	if (!python_plugin_provider_module) {
@@ -99,7 +99,7 @@ void init_python_plugin_provider(void) {
 __attribute__((destructor)) static
 void fini_python_plugin_provider(void) {
 	if (python_plugin_provider_module) {
-		BT_LOGD("Unloading Python plugin provider module.");
+		BT_LOGI("Unloading Python plugin provider module.");
 
 		if (!g_module_close(python_plugin_provider_module)) {
 			BT_LOGE("Failed to close the Python plugin provider module: %s.",
@@ -136,7 +136,7 @@ const struct bt_plugin_set *bt_plugin_find_all_from_file(const char *path)
 	struct bt_plugin_set *plugin_set = NULL;
 
 	BT_ASSERT_PRE_NON_NULL(path, "Path");
-	BT_LOGD("Creating plugins from file: path=\"%s\"", path);
+	BT_LOGI("Creating plugins from file: path=\"%s\"", path);
 
 	/* Try shared object plugins */
 	plugin_set = bt_plugin_so_create_all_from_file(path);
@@ -155,12 +155,12 @@ const struct bt_plugin_set *bt_plugin_find_all_from_file(const char *path)
 
 end:
 	if (plugin_set) {
-		BT_LOGD("Created %u plugins from file: "
+		BT_LOGI("Created %u plugins from file: "
 			"path=\"%s\", count=%u, plugin-set-addr=%p",
 			plugin_set->plugins->len, path,
 			plugin_set->plugins->len, plugin_set);
 	} else {
-		BT_LOGD("Found no plugins in file: path=\"%s\"", path);
+		BT_LOGI("Found no plugins in file: path=\"%s\"", path);
 	}
 
 	return plugin_set;
@@ -183,7 +183,7 @@ const struct bt_plugin *bt_plugin_find(const char *plugin_name)
 	size_t i, j;
 
 	BT_ASSERT_PRE_NON_NULL(plugin_name, "Name");
-	BT_LOGD("Finding named plugin in standard directories and built-in plugins: "
+	BT_LOGI("Finding named plugin in standard directories and built-in plugins: "
 		"name=\"%s\"", plugin_name);
 	dirs = g_ptr_array_new_with_free_func((GDestroyNotify) destroy_gstring);
 	if (!dirs) {
@@ -250,7 +250,7 @@ const struct bt_plugin *bt_plugin_find(const char *plugin_name)
 		 * bt_plugin_find_all_from_dir() would log a warning.
 		 */
 		if (!g_file_test(dir->str, G_FILE_TEST_IS_DIR)) {
-			BT_LOGV("Skipping nonexistent directory path: "
+			BT_LOGI("Skipping nonexistent directory path: "
 				"path=\"%s\"", dir->str);
 			continue;
 		}
@@ -258,7 +258,7 @@ const struct bt_plugin *bt_plugin_find(const char *plugin_name)
 		/* bt_plugin_find_all_from_dir() logs details/errors */
 		plugin_set = bt_plugin_find_all_from_dir(dir->str, BT_FALSE);
 		if (!plugin_set) {
-			BT_LOGD("No plugins found in directory: path=\"%s\"",
+			BT_LOGI("No plugins found in directory: path=\"%s\"",
 				dir->str);
 			continue;
 		}
@@ -269,7 +269,7 @@ const struct bt_plugin *bt_plugin_find(const char *plugin_name)
 
 			if (strcmp(bt_plugin_get_name(candidate_plugin),
 					plugin_name) == 0) {
-				BT_LOGD("Plugin found in directory: name=\"%s\", path=\"%s\"",
+				BT_LOGI("Plugin found in directory: name=\"%s\", path=\"%s\"",
 					plugin_name, dir->str);
 				plugin = candidate_plugin;
 				bt_object_get_no_null_check(plugin);
@@ -277,7 +277,7 @@ const struct bt_plugin *bt_plugin_find(const char *plugin_name)
 			}
 		}
 
-		BT_LOGD("Plugin not found in directory: name=\"%s\", path=\"%s\"",
+		BT_LOGI("Plugin not found in directory: name=\"%s\", path=\"%s\"",
 			plugin_name, dir->str);
 	}
 
@@ -290,7 +290,7 @@ const struct bt_plugin *bt_plugin_find(const char *plugin_name)
 
 			if (strcmp(bt_plugin_get_name(candidate_plugin),
 					plugin_name) == 0) {
-				BT_LOGD("Plugin found in built-in plugins: "
+				BT_LOGI("Plugin found in built-in plugins: "
 					"name=\"%s\"", plugin_name);
 				plugin = candidate_plugin;
 				bt_object_get_no_null_check(plugin);
@@ -308,10 +308,10 @@ end:
 	}
 
 	if (plugin) {
-		BT_LIB_LOGD("Found plugin in standard directories and built-in plugins: "
+		BT_LIB_LOGI("Found plugin in standard directories and built-in plugins: "
 			"%!+l", plugin);
 	} else {
-		BT_LOGD("No plugin found in standard directories and built-in plugins: "
+		BT_LOGI("No plugin found in standard directories and built-in plugins: "
 			"name=\"%s\"", plugin_name);
 	}
 
@@ -345,7 +345,7 @@ int nftw_append_all_from_dir(const char *file, const struct stat *sb, int flag,
 
 		if (name[0] == '.') {
 			/* Skip hidden files */
-			BT_LOGV("Skipping hidden file: path=\"%s\"", file);
+			BT_LOGI("Skipping hidden file: path=\"%s\"", file);
 			goto end;
 		}
 
@@ -358,7 +358,7 @@ int nftw_append_all_from_dir(const char *file, const struct stat *sb, int flag,
 				struct bt_plugin *plugin =
 					g_ptr_array_index(plugins_from_file->plugins, j);
 
-				BT_LIB_LOGD("Adding plugin to plugin set: "
+				BT_LIB_LOGI("Adding plugin to plugin set: "
 					"plugin-path=\"%s\", %![plugin-]+l",
 					file, plugin);
 				bt_plugin_set_add_plugin(
@@ -376,7 +376,7 @@ int nftw_append_all_from_dir(const char *file, const struct stat *sb, int flag,
 		break;
 	case FTW_NS:
 		/* Continue to next file / directory. */
-		BT_LOGD("Cannot get file information: continuing: path=\"%s\"", file);
+		BT_LOGI("Cannot get file information: continuing: path=\"%s\"", file);
 		break;
 	}
 
@@ -415,7 +415,7 @@ const struct bt_plugin_set *bt_plugin_find_all_from_dir(const char *path,
 	struct bt_plugin_set *plugin_set;
 	enum bt_plugin_status status;
 
-	BT_LOGD("Creating all plugins in directory: path=\"%s\", recurse=%d",
+	BT_LOGI("Creating all plugins in directory: path=\"%s\", recurse=%d",
 		path, recurse);
 	plugin_set = bt_plugin_set_create();
 	if (!plugin_set) {
@@ -433,7 +433,7 @@ const struct bt_plugin_set *bt_plugin_find_all_from_dir(const char *path,
 		goto error;
 	}
 
-	BT_LOGD("Created %u plugins from directory: count=%u, path=\"%s\"",
+	BT_LOGI("Created %u plugins from directory: count=%u, path=\"%s\"",
 		plugin_set->plugins->len, plugin_set->plugins->len, path);
 	goto end;
 
@@ -485,7 +485,7 @@ enum bt_property_availability bt_plugin_get_version(const struct bt_plugin *plug
 	BT_ASSERT_PRE_NON_NULL(plugin, "Plugin");
 
 	if (!plugin->info.version_set) {
-		BT_LIB_LOGV("Plugin's version is not set: %!+l", plugin);
+		BT_LIB_LOGD("Plugin's version is not set: %!+l", plugin);
 		avail = BT_PROPERTY_AVAILABILITY_NOT_AVAILABLE;
 		goto end;
 	}

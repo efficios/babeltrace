@@ -142,7 +142,7 @@ int parse_url(struct live_viewer_connection *viewer_connection)
 		lttng_live_url_parts.session_name = NULL;
 	}
 
-	BT_LOGD("Connecting to hostname : %s, port : %d, "
+	BT_LOGI("Connecting to hostname : %s, port : %d, "
 			"target hostname : %s, session name : %s, "
 			"proto : %s",
 			viewer_connection->relay_hostname->str,
@@ -204,9 +204,9 @@ int lttng_live_handshake(struct live_viewer_connection *viewer_connection)
 	}
 	BT_ASSERT(ret_len == sizeof(connect));
 
-	BT_LOGD("Received viewer session ID : %" PRIu64,
+	BT_LOGI("Received viewer session ID : %" PRIu64,
 			(uint64_t) be64toh(connect.viewer_session_id));
-	BT_LOGD("Relayd version : %u.%u", be32toh(connect.major),
+	BT_LOGI("Relayd version : %u.%u", be32toh(connect.major),
 			be32toh(connect.minor));
 
 	if (LTTNG_LIVE_MAJOR != be32toh(connect.major)) {
@@ -690,7 +690,7 @@ int lttng_live_query_session_ids(struct lttng_live_msg_iter *lttng_live_msg_iter
 		lsession.session_name[LTTNG_VIEWER_NAME_MAX - 1] = '\0';
 		session_id = be64toh(lsession.id);
 
-		BT_LOGD("Adding session %" PRIu64 " hostname: %s session_name: %s",
+		BT_LOGI("Adding session %" PRIu64 " hostname: %s session_name: %s",
 			session_id, lsession.hostname, lsession.session_name);
 
 		if ((strncmp(lsession.session_name,
@@ -770,7 +770,7 @@ int receive_streams(struct lttng_live_session *session,
 	struct live_viewer_connection *viewer_connection =
 			lttng_live_msg_iter->viewer_connection;
 
-	BT_LOGD("Getting %" PRIu32 " new streams:", stream_count);
+	BT_LOGI("Getting %" PRIu32 " new streams:", stream_count);
 	for (i = 0; i < stream_count; i++) {
 		struct lttng_viewer_stream stream;
 		struct lttng_live_stream_iterator *live_stream;
@@ -793,7 +793,7 @@ int receive_streams(struct lttng_live_session *session,
 		ctf_trace_id = be64toh(stream.ctf_trace_id);
 
 		if (stream.metadata_flag) {
-			BT_LOGD("    metadata stream %" PRIu64 " : %s/%s",
+			BT_LOGI("    metadata stream %" PRIu64 " : %s/%s",
 					stream_id, stream.path_name,
 					stream.channel_name);
 			if (lttng_live_metadata_create_stream(session,
@@ -805,7 +805,7 @@ int receive_streams(struct lttng_live_session *session,
 			}
 			session->lazy_stream_msg_init = true;
 		} else {
-			BT_LOGD("    stream %" PRIu64 " : %s/%s",
+			BT_LOGI("    stream %" PRIu64 " : %s/%s",
 					stream_id, stream.path_name,
 					stream.channel_name);
 			live_stream = lttng_live_stream_iterator_create(session,
@@ -1488,11 +1488,11 @@ struct live_viewer_connection *live_viewer_connection_create(
 		goto error;
 	}
 
-	BT_LOGD("Establishing connection to url \"%s\"...", url);
+	BT_LOGI("Establishing connection to url \"%s\"...", url);
 	if (lttng_live_connect_viewer(viewer_connection)) {
 		goto error_report;
 	}
-	BT_LOGD("Connection to url \"%s\" is established", url);
+	BT_LOGI("Connection to url \"%s\" is established", url);
 	return viewer_connection;
 
 error_report:
@@ -1506,7 +1506,7 @@ BT_HIDDEN
 void live_viewer_connection_destroy(
 		struct live_viewer_connection *viewer_connection)
 {
-	BT_LOGD("Closing connection to url \"%s\"", viewer_connection->url->str);
+	BT_LOGI("Closing connection to url \"%s\"", viewer_connection->url->str);
 	lttng_live_disconnect_viewer(viewer_connection);
 	g_string_free(viewer_connection->url, true);
 	if (viewer_connection->relay_hostname) {

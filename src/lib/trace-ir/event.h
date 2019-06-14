@@ -174,7 +174,7 @@ void bt_event_set_packet(struct bt_event *event, struct bt_packet *packet)
 	BT_ASSERT(!event->packet);
 	event->packet = packet;
 	bt_object_get_no_null_check_no_parent_check(&event->packet->base);
-	BT_LIB_LOGV("Set event's packet: %![event-]+e, %![packet-]+a",
+	BT_LIB_LOGD("Set event's packet: %![event-]+e, %![packet-]+a",
 		event, packet);
 }
 

@@ -66,7 +66,7 @@ bool ctf_metadata_decoder_is_packetized(FILE *fp, int *byte_order)
 
 	len = fread(&magic, sizeof(magic), 1, fp);
 	if (len != 1) {
-		BT_LOGD_STR("Cannot reade first metadata packet header: assuming the stream is not packetized.");
+		BT_LOGI_STR("Cannot read first metadata packet header: assuming the stream is not packetized.");
 		goto end;
 	}
 
@@ -108,15 +108,15 @@ int decode_packet(struct ctf_metadata_decoder *mdec, FILE *in_fp, FILE *out_fp,
 			".");
 		goto error;
 	}
-	BT_LOGV("Decoding metadata packet: mdec-addr=%p, offset=%ld",
+	BT_LOGD("Decoding metadata packet: mdec-addr=%p, offset=%ld",
 		mdec, offset);
 	readlen = fread(&header, sizeof(header), 1, in_fp);
 	if (feof(in_fp) != 0) {
-		BT_LOGV("Reached end of file: offset=%ld", ftell(in_fp));
+		BT_LOGI("Reached end of file: offset=%ld", ftell(in_fp));
 		goto end;
 	}
 	if (readlen < 1) {
-		BT_LOGV("Cannot decode metadata packet: offset=%ld", offset);
+		BT_LOGE("Cannot decode metadata packet: offset=%ld", offset);
 		goto error;
 	}
 
@@ -418,7 +418,7 @@ enum ctf_metadata_decoder_status ctf_metadata_decoder_decode(
 	BT_ASSERT(mdec);
 
 	if (ctf_metadata_decoder_is_packetized(fp, &mdec->bo)) {
-		BT_LOGD("Metadata stream is packetized: mdec-addr=%p", mdec);
+		BT_LOGI("Metadata stream is packetized: mdec-addr=%p", mdec);
 		ret = ctf_metadata_decoder_packetized_file_stream_to_buf_with_mdec(
 			mdec, fp, &buf, mdec->bo);
 		if (ret) {
@@ -447,7 +447,7 @@ enum ctf_metadata_decoder_status ctf_metadata_decoder_decode(
 		ssize_t nr_items;
 		const long init_pos = ftell(fp);
 
-		BT_LOGD("Metadata stream is plain text: mdec-addr=%p", mdec);
+		BT_LOGI("Metadata stream is plain text: mdec-addr=%p", mdec);
 
 		if (init_pos < 0) {
 			BT_LOGE_ERRNO("Failed to get current file position", ".");
@@ -462,7 +462,7 @@ enum ctf_metadata_decoder_status ctf_metadata_decoder_decode(
 				"mdec-addr=%p", mdec);
 		}
 
-		BT_LOGD("Found metadata stream version in signature: version=%u.%u", major, minor);
+		BT_LOGI("Found metadata stream version in signature: version=%u.%u", major, minor);
 
 		if (!is_version_valid(major, minor)) {
 			BT_LOGE("Invalid metadata version found in plain text signature: "

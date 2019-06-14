@@ -82,7 +82,7 @@ bt_stream *medop_borrow_stream(bt_stream_class *stream_class,
 	if (!lttng_live_stream->stream) {
 		uint64_t stream_class_id = bt_stream_class_get_id(stream_class);
 
-		BT_LOGD("Creating stream %s (ID: %" PRIu64 ") out of stream "
+		BT_LOGI("Creating stream %s (ID: %" PRIu64 ") out of stream "
 			"class %" PRId64, lttng_live_stream->name->str,
 			stream_id, stream_class_id);
 

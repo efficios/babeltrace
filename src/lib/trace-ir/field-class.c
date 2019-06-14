@@ -159,7 +159,7 @@ void bt_field_class_integer_set_field_value_range(
 		"at least one of the current mapping ranges contains values "
 		"which are outside this range: %!+F, size=%" PRIu64, fc, size);
 	int_fc->range = size;
-	BT_LIB_LOGV("Set integer field class's field value range: %!+F", fc);
+	BT_LIB_LOGD("Set integer field class's field value range: %!+F", fc);
 }
 
 enum bt_field_class_integer_preferred_display_base
@@ -182,7 +182,7 @@ void bt_field_class_integer_set_preferred_display_base(
 	BT_ASSERT_PRE_FC_IS_INT(fc, "Field class");
 	BT_ASSERT_PRE_FC_HOT(fc, "Field class");
 	int_fc->base = base;
-	BT_LIB_LOGV("Set integer field class's preferred display base: %!+F", fc);
+	BT_LIB_LOGD("Set integer field class's preferred display base: %!+F", fc);
 }
 
 static
@@ -502,7 +502,7 @@ enum bt_field_class_status add_mapping_to_enumeration_field_class(
 		mapping->ranges->len - 1);
 	range->lower.u = lower;
 	range->upper.u = upper;
-	BT_LIB_LOGV("Added mapping to enumeration field class: "
+	BT_LIB_LOGD("Added mapping to enumeration field class: "
 		"%![fc-]+F, label=\"%s\", lower-unsigned=%" PRIu64 ", "
 		"upper-unsigned=%" PRIu64, fc, label, lower, upper);
 
@@ -610,7 +610,7 @@ void bt_field_class_real_set_is_single_precision(struct bt_field_class *fc,
 	BT_ASSERT_PRE_FC_HAS_ID(fc, BT_FIELD_CLASS_TYPE_REAL, "Field class");
 	BT_ASSERT_PRE_FC_HOT(fc, "Field class");
 	real_fc->is_single_precision = (bool) is_single_precision;
-	BT_LIB_LOGV("Set real field class's \"is single precision\" property: "
+	BT_LIB_LOGD("Set real field class's \"is single precision\" property: "
 		"%!+F", fc);
 }
 

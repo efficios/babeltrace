@@ -142,7 +142,7 @@ int field_class_stack_push(field_class_stack *stack, struct ctf_field_class *fc)
 		goto end;
 	}
 
-	BT_LOGV("Pushing field class on context's stack: "
+	BT_LOGD("Pushing field class on context's stack: "
 		"fc-addr=%p, stack-size-before=%u", fc, stack->len);
 	frame->fc = fc;
 	g_ptr_array_add(stack, frame);
@@ -216,7 +216,7 @@ void field_class_stack_pop(field_class_stack *stack)
 		 * This will call the frame's destructor and free it, as
 		 * well as put its contained field class.
 		 */
-		BT_LOGV("Popping context's stack: stack-size-before=%u",
+		BT_LOGD("Popping context's stack: stack-size-before=%u",
 			stack->len);
 		g_ptr_array_set_size(stack, stack->len - 1);
 	}
@@ -272,7 +272,7 @@ enum ctf_scope get_root_scope_from_absolute_pathstr(const char *pathstr)
 		if (strncmp(pathstr, absolute_path_prefixes[scope],
 				strlen(absolute_path_prefixes[scope]))) {
 			/* Prefix does not match: try the next one */
-			BT_LOGV("Prefix does not match: trying the next one: "
+			BT_LOGD("Prefix does not match: trying the next one: "
 				"path=\"%s\", path-prefix=\"%s\", scope=%s",
 				pathstr, absolute_path_prefixes[scope],
 				ctf_scope_string(scope));
@@ -281,7 +281,7 @@ enum ctf_scope get_root_scope_from_absolute_pathstr(const char *pathstr)
 
 		/* Found it! */
 		ret = scope;
-		BT_LOGV("Found root scope from absolute path: "
+		BT_LOGD("Found root scope from absolute path: "
 			"path=\"%s\", scope=%s", pathstr,
 			ctf_scope_string(scope));
 		goto end;
@@ -391,7 +391,7 @@ int ptokens_to_field_path(GList *ptokens, struct ctf_field_path *field_path,
 		struct ctf_field_class *child_fc;
 		const char *ft_name = ptoken_get_string(cur_ptoken);
 
-		BT_LOGV("Current path token: token=\"%s\"", ft_name);
+		BT_LOGD("Current path token: token=\"%s\"", ft_name);
 
 		/* Find to which index corresponds the current path token */
 		if (fc->type == CTF_FIELD_CLASS_TYPE_ARRAY ||
@@ -406,7 +406,7 @@ int ptokens_to_field_path(GList *ptokens, struct ctf_field_path *field_path,
 				 * Error: field name does not exist or
 				 * wrong current class.
 				 */
-				BT_LOGV("Cannot get index of field class: "
+				BT_LOGD("Cannot get index of field class: "
 					"field-name=\"%s\", "
 					"src-index=%" PRId64 ", "
 					"child-index=%" PRId64 ", "
@@ -417,7 +417,7 @@ int ptokens_to_field_path(GList *ptokens, struct ctf_field_path *field_path,
 				goto end;
 			} else if (child_index > src_index &&
 					!first_level_done) {
-				BT_LOGV("Child field class is located after source field class: "
+				BT_LOGD("Child field class is located after source field class: "
 					"field-name=\"%s\", "
 					"src-index=%" PRId64 ", "
 					"child-index=%" PRId64 ", "
@@ -571,7 +571,7 @@ int relative_ptokens_to_field_path(GList *ptokens,
 		int64_t cur_index = field_class_stack_at(ctx->field_class_stack,
 			parent_pos_in_stack)->index;
 
-		BT_LOGV("Locating target field class from current parent field class: "
+		BT_LOGD("Locating target field class from current parent field class: "
 			"parent-pos=%" PRId64 ", parent-fc-addr=%p, "
 			"cur-index=%" PRId64,
 			parent_pos_in_stack, parent_class, cur_index);
@@ -581,7 +581,7 @@ int relative_ptokens_to_field_path(GList *ptokens,
 			parent_class, cur_index);
 		if (ret) {
 			/* Not found... yet */
-			BT_LOGV_STR("Not found at this point.");
+			BT_LOGD_STR("Not found at this point.");
 			ctf_field_path_clear(&tail_field_path);
 		} else {
 			/* Found: stitch tail field path to head field path */
@@ -655,7 +655,7 @@ int pathstr_to_field_path(const char *pathstr,
 	if (root_scope == -1) {
 		/* Relative path: start with current root scope */
 		field_path->root = ctx->root_scope;
-		BT_LOGV("Detected relative path: starting with current root scope: "
+		BT_LOGD("Detected relative path: starting with current root scope: "
 			"scope=%s", ctf_scope_string(field_path->root));
 		ret = relative_ptokens_to_field_path(ptokens, field_path, ctx);
 		if (ret) {
@@ -668,7 +668,7 @@ int pathstr_to_field_path(const char *pathstr,
 	} else {
 		/* Absolute path: use found root scope */
 		field_path->root = root_scope;
-		BT_LOGV("Detected absolute path: using root scope: "
+		BT_LOGD("Detected absolute path: using root scope: "
 			"scope=%s", ctf_scope_string(field_path->root));
 		ret = absolute_ptokens_to_field_path(ptokens, field_path, ctx);
 		if (ret) {
@@ -684,7 +684,7 @@ int pathstr_to_field_path(const char *pathstr,
 		const char *field_path_pretty_str =
 			field_path_pretty ? field_path_pretty->str : NULL;
 
-		BT_LOGV("Found field path: path=\"%s\", field-path=\"%s\"",
+		BT_LOGD("Found field path: path=\"%s\", field-path=\"%s\"",
 			pathstr, field_path_pretty_str);
 
 		if (field_path_pretty) {
@@ -777,7 +777,7 @@ int64_t get_field_paths_lca_index(struct ctf_field_path *field_path1,
 		const char *field_path2_pretty_str =
 			field_path2_pretty ? field_path2_pretty->str : NULL;
 
-		BT_LOGV("Finding lowest common ancestor (LCA) between two field paths: "
+		BT_LOGD("Finding lowest common ancestor (LCA) between two field paths: "
 			"field-path-1=\"%s\", field-path-2=\"%s\"",
 			field_path1_pretty_str, field_path2_pretty_str);
 
@@ -829,7 +829,7 @@ int64_t get_field_paths_lca_index(struct ctf_field_path *field_path1,
 		lca_index++;
 	}
 
-	BT_LOGV("Found LCA: lca-index=%" PRId64, lca_index);
+	BT_LOGD("Found LCA: lca-index=%" PRId64, lca_index);
 	return lca_index;
 }
 
@@ -1123,7 +1123,7 @@ int resolve_field_class(struct ctf_field_class *fc, struct resolve_context *ctx)
 						(int64_t) i;
 			}
 
-			BT_LOGV("Resolving field class's child field class: "
+			BT_LOGD("Resolving field class's child field class: "
 				"parent-fc-addr=%p, child-fc-addr=%p, "
 				"index=%" PRIu64 ", count=%" PRIu64,
 				fc, child_fc, i, field_count);

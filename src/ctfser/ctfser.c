@@ -63,7 +63,7 @@ int _bt_ctfser_increase_cur_packet_size(struct bt_ctfser *ctfser)
 	int ret;
 
 	BT_ASSERT(ctfser);
-	BT_LOGV("Increasing stream file's current packet size: "
+	BT_LOGD("Increasing stream file's current packet size: "
 		"path=\"%s\", fd=%d, "
 		"offset-in-cur-packet-bits=%" PRIu64 ", "
 		"cur-packet-size-bytes=%" PRIu64,
@@ -97,7 +97,7 @@ int _bt_ctfser_increase_cur_packet_size(struct bt_ctfser *ctfser)
 		goto end;
 	}
 
-	BT_LOGV("Increased packet size: "
+	BT_LOGD("Increased packet size: "
 		"path=\"%s\", fd=%d, "
 		"offset-in-cur-packet-bits=%" PRIu64 ", "
 		"new-packet-size-bytes=%" PRIu64,
@@ -194,7 +194,7 @@ int bt_ctfser_open_packet(struct bt_ctfser *ctfser)
 {
 	int ret = 0;
 
-	BT_LOGV("Opening packet: path=\"%s\", fd=%d, "
+	BT_LOGD("Opening packet: path=\"%s\", fd=%d, "
 		"prev-packet-size-bytes=%" PRIu64,
 		ctfser->path->str, ctfser->fd,
 		ctfser->prev_packet_size_bytes);
@@ -244,7 +244,7 @@ int bt_ctfser_open_packet(struct bt_ctfser *ctfser)
 		goto end;
 	}
 
-	BT_LOGV("Opened packet: path=\"%s\", fd=%d, "
+	BT_LOGD("Opened packet: path=\"%s\", fd=%d, "
 		"cur-packet-size-bytes=%" PRIu64,
 		ctfser->path->str, ctfser->fd,
 		ctfser->cur_packet_size_bytes);
@@ -257,7 +257,7 @@ BT_HIDDEN
 void bt_ctfser_close_current_packet(struct bt_ctfser *ctfser,
 		uint64_t packet_size_bytes)
 {
-	BT_LOGV("Closing packet: path=\"%s\", fd=%d, "
+	BT_LOGD("Closing packet: path=\"%s\", fd=%d, "
 		"offset-in-cur-packet-bits=%" PRIu64
 		"cur-packet-size-bytes=%" PRIu64,
 		ctfser->path->str, ctfser->fd,
@@ -273,7 +273,7 @@ void bt_ctfser_close_current_packet(struct bt_ctfser *ctfser,
 	 */
 	ctfser->prev_packet_size_bytes = packet_size_bytes;
 	ctfser->stream_size_bytes += packet_size_bytes;
-	BT_LOGV("Closed packet: path=\"%s\", fd=%d, "
+	BT_LOGD("Closed packet: path=\"%s\", fd=%d, "
 		"stream-file-size-bytes=%" PRIu64,
 		ctfser->path->str, ctfser->fd,
 		ctfser->stream_size_bytes);

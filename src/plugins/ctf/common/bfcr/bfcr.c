@@ -1174,7 +1174,7 @@ struct bt_bfcr *bt_bfcr_create(struct bt_bfcr_cbs cbs, void *data)
 {
 	struct bt_bfcr *bfcr;
 
-	BT_LOGD_STR("Creating binary class reader (BFCR).");
+	BT_LOGD_STR("Creating binary field class reader (BFCR).");
 	bfcr = g_new0(struct bt_bfcr, 1);
 	if (!bfcr) {
 		BT_LOGE_STR("Failed to allocate one binary class reader.");

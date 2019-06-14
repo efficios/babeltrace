@@ -128,7 +128,7 @@ void bt_plugin_so_shared_lib_handle_destroy(struct bt_object *obj)
 	const char *path = shared_lib_handle->path ?
 		shared_lib_handle->path->str : NULL;
 
-	BT_LOGD("Destroying shared library handle: addr=%p, path=\"%s\"",
+	BT_LOGI("Destroying shared library handle: addr=%p, path=\"%s\"",
 		shared_lib_handle, path);
 
 	if (shared_lib_handle->init_called && shared_lib_handle->exit) {
@@ -149,7 +149,7 @@ void bt_plugin_so_shared_lib_handle_destroy(struct bt_object *obj)
 
 		if (!var || strcmp(var, "1") != 0) {
 #endif
-			BT_LOGD("Closing GModule: path=\"%s\"", path);
+			BT_LOGI("Closing GModule: path=\"%s\"", path);
 
 			if (!g_module_close(shared_lib_handle->module)) {
 				BT_LOGE("Cannot close GModule: %s: path=\"%s\"",
@@ -159,7 +159,7 @@ void bt_plugin_so_shared_lib_handle_destroy(struct bt_object *obj)
 			shared_lib_handle->module = NULL;
 #ifndef NDEBUG
 		} else {
-			BT_LOGD("Not closing GModule because `BABELTRACE_NO_DLCLOSE=1`: "
+			BT_LOGI("Not closing GModule because `BABELTRACE_NO_DLCLOSE=1`: "
 				"path=\"%s\"", path);
 		}
 #endif
@@ -179,7 +179,7 @@ struct bt_plugin_so_shared_lib_handle *bt_plugin_so_shared_lib_handle_create(
 {
 	struct bt_plugin_so_shared_lib_handle *shared_lib_handle = NULL;
 
-	BT_LOGD("Creating shared library handle: path=\"%s\"", path);
+	BT_LOGI("Creating shared library handle: path=\"%s\"", path);
 	shared_lib_handle = g_new0(struct bt_plugin_so_shared_lib_handle, 1);
 	if (!shared_lib_handle) {
 		BT_LOGE_STR("Failed to allocate one shared library handle.");
@@ -202,13 +202,13 @@ struct bt_plugin_so_shared_lib_handle *bt_plugin_so_shared_lib_handle_create(
 	shared_lib_handle->module = g_module_open(path, G_MODULE_BIND_LOCAL);
 	if (!shared_lib_handle->module) {
 		/*
-		 * DEBUG-level logging because we're only _trying_ to
+		 * INFO-level logging because we're only _trying_ to
 		 * open this file as a Babeltrace plugin: if it's not,
 		 * it's not an error. And because this can be tried
-		 * during bt_plugin_find_all_from_dir(), it's not even
-		 * a warning.
+		 * during bt_plugin_find_all_from_dir(), it's not even a
+		 * warning.
 		 */
-		BT_LOGD("Cannot open GModule: %s: path=\"%s\"",
+		BT_LOGI("Cannot open GModule: %s: path=\"%s\"",
 			g_module_error(), path);
 		goto error;
 	}
@@ -220,7 +220,7 @@ error:
 
 end:
 	if (shared_lib_handle) {
-		BT_LOGD("Created shared library handle: path=\"%s\", addr=%p",
+		BT_LOGI("Created shared library handle: path=\"%s\", addr=%p",
 			path, shared_lib_handle);
 	}
 
@@ -341,7 +341,7 @@ enum bt_plugin_status bt_plugin_so_init(
 	size_t i;
 	int ret;
 
-	BT_LOGD("Initializing plugin object from descriptors found in sections: "
+	BT_LOGI("Initializing plugin object from descriptors found in sections: "
 		"plugin-addr=%p, plugin-path=\"%s\", "
 		"attrs-begin-addr=%p, attrs-end-addr=%p, "
 		"cc-descr-begin-addr=%p, cc-descr-end-addr=%p, "
@@ -749,7 +749,7 @@ enum bt_plugin_status bt_plugin_so_init(
 		struct bt_component_class_filter *flt_comp_class = NULL;
 		struct bt_component_class_sink *sink_comp_class = NULL;
 
-		BT_LOGD("Creating and setting properties of plugin's component class: "
+		BT_LOGI("Creating and setting properties of plugin's component class: "
 			"plugin-path=\"%s\", plugin-name=\"%s\", "
 			"comp-class-name=\"%s\", comp-class-type=%s",
 			spec->shared_lib_handle->path ?
@@ -1295,7 +1295,7 @@ struct bt_plugin_set *bt_plugin_so_create_all_from_sections(
 	cc_descriptors_count = count_non_null_items_in_section(cc_descriptors_begin, cc_descriptors_end);
 	cc_descr_attrs_count =  count_non_null_items_in_section(cc_descr_attrs_begin, cc_descr_attrs_end);
 
-	BT_LOGD("Creating all SO plugins from sections: "
+	BT_LOGI("Creating all SO plugins from sections: "
 		"plugin-path=\"%s\", "
 		"descr-begin-addr=%p, descr-end-addr=%p, "
 		"attrs-begin-addr=%p, attrs-end-addr=%p, "
@@ -1326,20 +1326,20 @@ struct bt_plugin_set *bt_plugin_so_create_all_from_sections(
 			continue;
 		}
 
-		BT_LOGD("Creating plugin object for plugin: "
+		BT_LOGI("Creating plugin object for plugin: "
 			"name=\"%s\", abi-major=%d, abi-minor=%d",
 			descriptor->name, descriptor->major, descriptor->minor);
 
 		if (descriptor->major > __BT_PLUGIN_VERSION_MAJOR) {
 			/*
-			 * DEBUG-level logging because we're only
+			 * INFO-level logging because we're only
 			 * _trying_ to open this file as a compatible
 			 * Babeltrace plugin: if it's not, it's not an
 			 * error. And because this can be tried during
-			 * bt_plugin_find_all_from_dir(), it's not
-			 * even a warning.
+			 * bt_plugin_find_all_from_dir(), it's not even
+			 * a warning.
 			 */
-			BT_LOGD("Unknown ABI major version: abi-major=%d",
+			BT_LOGI("Unknown ABI major version: abi-major=%d",
 				descriptor->major);
 			goto error;
 		}
@@ -1437,23 +1437,17 @@ struct bt_plugin_set *bt_plugin_so_create_all_from_file(const char *path)
 	bt_bool is_libtool_wrapper = BT_FALSE, is_shared_object = BT_FALSE;
 	struct bt_plugin_so_shared_lib_handle *shared_lib_handle = NULL;
 
-	if (!path) {
-		BT_LOGW_STR("Invalid parameter: path is NULL.");
-		goto end;
-	}
-
-	BT_LOGD("Creating all SO plugins from file: path=\"%s\"", path);
+	BT_ASSERT(path);
 	path_len = strlen(path);
-	if (path_len <= PLUGIN_SUFFIX_LEN) {
-		BT_LOGW("Invalid parameter: path length is too short: "
-			"path-length=%zu", path_len);
-		goto end;
-	}
-
+	BT_ASSERT_PRE(path_len > PLUGIN_SUFFIX_LEN,
+		"Path length is too short: path-length=%zu, min-length=%zu",
+		path_len, PLUGIN_SUFFIX_LEN);
+	BT_LOGI("Trying to create all SO plugins from file: path=\"%s\"", path);
 	path_len++;
+
 	/*
-	 * Check if the file ends with a known plugin file type suffix (i.e. .so
-	 * or .la on Linux).
+	 * Check if the file ends with a known plugin file type suffix
+	 * (i.e. .so or .la on Linux).
 	 */
 	is_libtool_wrapper = !strncmp(LIBTOOL_PLUGIN_SUFFIX,
 		path + path_len - LIBTOOL_PLUGIN_SUFFIX_LEN,
@@ -1463,12 +1457,13 @@ struct bt_plugin_set *bt_plugin_so_create_all_from_file(const char *path)
 		NATIVE_PLUGIN_SUFFIX_LEN);
 	if (!is_shared_object && !is_libtool_wrapper) {
 		/* Name indicates this is not a plugin file; not an error */
-		BT_LOGV("File is not a SO plugin file: path=\"%s\"", path);
+		BT_LOGI("File is not a SO plugin file: path=\"%s\"", path);
 		goto end;
 	}
 
 	shared_lib_handle = bt_plugin_so_shared_lib_handle_create(path);
 	if (!shared_lib_handle) {
+		/* bt_plugin_so_shared_lib_handle_create() logs more details */
 		BT_LOGD_STR("Cannot create shared library handle.");
 		goto end;
 	}
@@ -1477,7 +1472,7 @@ struct bt_plugin_set *bt_plugin_so_create_all_from_file(const char *path)
 			(gpointer *) &get_begin_section_plugin_descriptors)) {
 		descriptors_begin = get_begin_section_plugin_descriptors();
 	} else {
-		BT_LOGD("Cannot resolve plugin symbol: path=\"%s\", "
+		BT_LOGI("Cannot resolve plugin symbol: path=\"%s\", "
 			"symbol=\"%s\"", path,
 			"__bt_get_begin_section_plugin_descriptors");
 		goto end;
@@ -1487,7 +1482,7 @@ struct bt_plugin_set *bt_plugin_so_create_all_from_file(const char *path)
 			(gpointer *) &get_end_section_plugin_descriptors)) {
 		descriptors_end = get_end_section_plugin_descriptors();
 	} else {
-		BT_LOGD("Cannot resolve plugin symbol: path=\"%s\", "
+		BT_LOGI("Cannot resolve plugin symbol: path=\"%s\", "
 			"symbol=\"%s\"", path,
 			"__bt_get_end_section_plugin_descriptors");
 		goto end;
@@ -1497,7 +1492,7 @@ struct bt_plugin_set *bt_plugin_so_create_all_from_file(const char *path)
 			(gpointer *) &get_begin_section_plugin_descriptor_attributes)) {
 		 attrs_begin = get_begin_section_plugin_descriptor_attributes();
 	} else {
-		BT_LOGD("Cannot resolve plugin symbol: path=\"%s\", "
+		BT_LOGI("Cannot resolve plugin symbol: path=\"%s\", "
 			"symbol=\"%s\"", path,
 			"__bt_get_begin_section_plugin_descriptor_attributes");
 	}
@@ -1506,13 +1501,13 @@ struct bt_plugin_set *bt_plugin_so_create_all_from_file(const char *path)
 			(gpointer *) &get_end_section_plugin_descriptor_attributes)) {
 		attrs_end = get_end_section_plugin_descriptor_attributes();
 	} else {
-		BT_LOGD("Cannot resolve plugin symbol: path=\"%s\", "
+		BT_LOGI("Cannot resolve plugin symbol: path=\"%s\", "
 			"symbol=\"%s\"", path,
 			"__bt_get_end_section_plugin_descriptor_attributes");
 	}
 
 	if ((!!attrs_begin - !!attrs_end) != 0) {
-		BT_LOGD("Found section start or end symbol, but not both: "
+		BT_LOGI("Found section start or end symbol, but not both: "
 			"path=\"%s\", symbol-start=\"%s\", "
 			"symbol-end=\"%s\", symbol-start-addr=%p, "
 			"symbol-end-addr=%p",
@@ -1526,7 +1521,7 @@ struct bt_plugin_set *bt_plugin_so_create_all_from_file(const char *path)
 			(gpointer *) &get_begin_section_component_class_descriptors)) {
 		cc_descriptors_begin = get_begin_section_component_class_descriptors();
 	} else {
-		BT_LOGD("Cannot resolve plugin symbol: path=\"%s\", "
+		BT_LOGI("Cannot resolve plugin symbol: path=\"%s\", "
 			"symbol=\"%s\"", path,
 			"__bt_get_begin_section_component_class_descriptors");
 	}
@@ -1535,13 +1530,13 @@ struct bt_plugin_set *bt_plugin_so_create_all_from_file(const char *path)
 			(gpointer *) &get_end_section_component_class_descriptors)) {
 		cc_descriptors_end = get_end_section_component_class_descriptors();
 	} else {
-		BT_LOGD("Cannot resolve plugin symbol: path=\"%s\", "
+		BT_LOGI("Cannot resolve plugin symbol: path=\"%s\", "
 			"symbol=\"%s\"", path,
 			"__bt_get_end_section_component_class_descriptors");
 	}
 
 	if ((!!cc_descriptors_begin - !!cc_descriptors_end) != 0) {
-		BT_LOGD("Found section start or end symbol, but not both: "
+		BT_LOGI("Found section start or end symbol, but not both: "
 			"path=\"%s\", symbol-start=\"%s\", "
 			"symbol-end=\"%s\", symbol-start-addr=%p, "
 			"symbol-end-addr=%p",
@@ -1555,7 +1550,7 @@ struct bt_plugin_set *bt_plugin_so_create_all_from_file(const char *path)
 			(gpointer *) &get_begin_section_component_class_descriptor_attributes)) {
 		cc_descr_attrs_begin = get_begin_section_component_class_descriptor_attributes();
 	} else {
-		BT_LOGD("Cannot resolve plugin symbol: path=\"%s\", "
+		BT_LOGI("Cannot resolve plugin symbol: path=\"%s\", "
 			"symbol=\"%s\"", path,
 			"__bt_get_begin_section_component_class_descriptor_attributes");
 	}
@@ -1564,13 +1559,13 @@ struct bt_plugin_set *bt_plugin_so_create_all_from_file(const char *path)
 			(gpointer *) &get_end_section_component_class_descriptor_attributes)) {
 		cc_descr_attrs_end = get_end_section_component_class_descriptor_attributes();
 	} else {
-		BT_LOGD("Cannot resolve plugin symbol: path=\"%s\", "
+		BT_LOGI("Cannot resolve plugin symbol: path=\"%s\", "
 			"symbol=\"%s\"", path,
 			"__bt_get_end_section_component_class_descriptor_attributes");
 	}
 
 	if ((!!cc_descr_attrs_begin - !!cc_descr_attrs_end) != 0) {
-		BT_LOGD("Found section start or end symbol, but not both: "
+		BT_LOGI("Found section start or end symbol, but not both: "
 			"path=\"%s\", symbol-start=\"%s\", "
 			"symbol-end=\"%s\", symbol-start-addr=%p, "
 			"symbol-end-addr=%p",
@@ -1598,7 +1593,7 @@ void plugin_comp_class_destroy_listener(struct bt_component_class *comp_class,
 {
 	bt_list_del(&comp_class->node);
 	BT_OBJECT_PUT_REF_AND_RESET(comp_class->so_handle);
-	BT_LOGV("Component class destroyed: removed entry from list: "
+	BT_LOGD("Component class destroyed: removed entry from list: "
 		"comp-cls-addr=%p", comp_class);
 }
 

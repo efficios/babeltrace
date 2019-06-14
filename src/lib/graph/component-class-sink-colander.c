@@ -48,12 +48,7 @@ enum bt_self_component_status colander_init(
 	struct bt_component_class_sink_colander_data *user_provided_data =
 		init_method_data;
 
-	if (!init_method_data) {
-		BT_LOGW_STR("Component initialization method data is NULL.");
-		status = BT_SELF_COMPONENT_STATUS_ERROR;
-		goto end;
-	}
-
+	BT_ASSERT(init_method_data);
 	colander_data = g_new0(
 		struct bt_component_class_sink_colander_priv_data, 1);
 	if (!colander_data) {
@@ -136,14 +131,7 @@ enum bt_self_component_status colander_consume(
 	bt_message_array_const msgs;
 
 	BT_ASSERT(colander_data);
-
-	if (!colander_data->msg_iter) {
-		BT_LIB_LOGW("Trying to consume without an "
-			"upstream message iterator: %![comp-]+c",
-			self_comp);
-		goto end;
-	}
-
+	BT_ASSERT(colander_data->msg_iter);
 	msg_iter_status =
 		bt_self_component_port_input_message_iterator_next(
 			colander_data->msg_iter, &msgs,
