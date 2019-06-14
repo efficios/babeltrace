@@ -49,18 +49,34 @@ def _check_type(o, expected_type):
                                                            expected_type))
 
 
-def _is_int64(v):
-    _check_int(v)
+def _is_in_int64_range(v):
+    assert(isinstance(v, int))
     return v >= -(2**63) and v <= (2**63 - 1)
 
 
-def _is_uint64(v):
-    _check_int(v)
+def _is_int64(v):
+    if not isinstance(v, int):
+        return False
+
+    return _is_in_int64_range(v)
+
+
+def _is_in_uint64_range(v):
+    assert(isinstance(v, int))
     return v >= 0 and v <= (2**64 - 1)
 
 
+def _is_uint64(v):
+    if not isinstance(v, int):
+        return False
+
+    return _is_in_uint64_range(v)
+
+
 def _check_int64(v, msg=None):
-    if not _is_int64(v):
+    _check_int(v)
+
+    if not _is_in_int64_range(v):
         if msg is None:
             msg = 'expecting a signed 64-bit integral value'
 
@@ -69,7 +85,9 @@ def _check_int64(v, msg=None):
 
 
 def _check_uint64(v, msg=None):
-    if not _is_uint64(v):
+    _check_int(v)
+
+    if not _is_in_uint64_range(v):
         if msg is None:
             msg = 'expecting an unsigned 64-bit integral value'
 

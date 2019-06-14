@@ -62,6 +62,8 @@ from bt2.trace_collection_message_iterator import *
 from bt2.value import *
 from bt2.value import _Value
 from bt2.value import _IntegerValue
+from bt2.clock_snapshot import _UnknownClockSnapshot
+from bt2.clock_snapshot import _InfiniteClockSnapshot
 
 
 class Error(Exception):
