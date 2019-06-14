@@ -386,8 +386,8 @@ AC_ARG_VAR([PLUGINSDIR], [built-in plugins install directory [LIBDIR/babeltrace2
 AS_IF([test "x$PLUGINSDIR" = x], [PLUGINSDIR='$(libdir)/babeltrace2/plugins'])
 
 # BABELTRACE_MINIMAL_LOG_LEVEL:
-AC_ARG_VAR([BABELTRACE_MINIMAL_LOG_LEVEL], [Minimal log level for Babeltrace program, library, and plugins (VERBOSE, DEBUG, INFO, WARN, ERROR (default), FATAL, or NONE)])
-AS_IF([test "x$BABELTRACE_MINIMAL_LOG_LEVEL" = x], [BABELTRACE_MINIMAL_LOG_LEVEL="VERBOSE"])
+AC_ARG_VAR([BABELTRACE_MINIMAL_LOG_LEVEL], [Minimal log level for Babeltrace program, library, and plugins (VERBOSE, DEBUG (default), INFO, WARN, ERROR, FATAL, or NONE)])
+AS_IF([test "x$BABELTRACE_MINIMAL_LOG_LEVEL" = x], [BABELTRACE_MINIMAL_LOG_LEVEL="DEBUG"])
 AS_IF([test "$BABELTRACE_MINIMAL_LOG_LEVEL" != "VERBOSE" && \
        test "$BABELTRACE_MINIMAL_LOG_LEVEL" != "DEBUG" && \
        test "$BABELTRACE_MINIMAL_LOG_LEVEL" != "INFO" && \
