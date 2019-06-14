@@ -2851,9 +2851,8 @@ end:
 }
 
 static
-enum bt_msg_iter_status decode_until_state(
-		struct bt_msg_iter *notit, enum state target_state_1,
-		enum state target_state_2)
+enum bt_msg_iter_status decode_until_state( struct bt_msg_iter *notit,
+		enum state target_state_1, enum state target_state_2)
 {
 	enum bt_msg_iter_status status = BT_MSG_ITER_STATUS_OK;
 
@@ -2992,6 +2991,42 @@ enum bt_msg_iter_status bt_msg_iter_seek(struct bt_msg_iter *notit,
 
 end:
 	return ret;
+}
+
+static
+enum bt_msg_iter_status clock_snapshot_at_msg_iter_state(
+		struct bt_msg_iter *notit, enum state target_state_1,
+		enum state target_state_2, uint64_t *clock_snapshot)
+{
+	enum bt_msg_iter_status status = BT_MSG_ITER_STATUS_OK;
+
+	BT_ASSERT(notit);
+	BT_ASSERT(clock_snapshot);
+	status = decode_until_state(notit, target_state_1, target_state_2);
+	if (status != BT_MSG_ITER_STATUS_OK) {
+		goto end;
+	}
+
+	*clock_snapshot = notit->default_clock_snapshot;
+end:
+	return status;
+}
+
+BT_HIDDEN
+enum bt_msg_iter_status bt_msg_iter_curr_packet_first_event_clock_snapshot(
+		struct bt_msg_iter *notit, uint64_t *first_clock_snapshot)
+{
+	return clock_snapshot_at_msg_iter_state(notit,
+		STATE_AFTER_EVENT_HEADER, -1, first_clock_snapshot);
+}
+
+BT_HIDDEN
+enum bt_msg_iter_status bt_msg_iter_curr_packet_last_event_clock_snapshot(
+		struct bt_msg_iter *notit, uint64_t *last_clock_snapshot)
+{
+	return clock_snapshot_at_msg_iter_state(notit,
+		STATE_EMIT_MSG_PACKET_END_SINGLE,
+		STATE_EMIT_MSG_PACKET_END_MULTI, last_clock_snapshot);
 }
 
 BT_HIDDEN

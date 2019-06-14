@@ -309,6 +309,14 @@ enum bt_msg_iter_status bt_msg_iter_get_packet_properties(
 		struct bt_msg_iter_packet_properties *props);
 
 BT_HIDDEN
+enum bt_msg_iter_status bt_msg_iter_curr_packet_first_event_clock_snapshot(
+		struct bt_msg_iter *notit, uint64_t *first_event_cs);
+
+BT_HIDDEN
+enum bt_msg_iter_status bt_msg_iter_curr_packet_last_event_clock_snapshot(
+		struct bt_msg_iter *notit, uint64_t *last_event_cs);
+
+BT_HIDDEN
 void bt_msg_iter_set_medops_data(struct bt_msg_iter *notit,
 		void *medops_data);
 
