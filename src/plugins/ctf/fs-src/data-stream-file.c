@@ -284,7 +284,8 @@ int convert_cycles_to_ns(struct ctf_clock_class *clock_class,
 
 static
 struct ctf_fs_ds_index *build_index_from_idx_file(
-		struct ctf_fs_ds_file *ds_file)
+		struct ctf_fs_ds_file *ds_file,
+		struct ctf_fs_ds_file_info *file_info)
 {
 	int ret;
 	gchar *directory = NULL;
@@ -402,6 +403,9 @@ struct ctf_fs_ds_index *build_index_from_idx_file(
 		if (!index_entry) {
 			goto error;
 		}
+
+		/* Set path to stream file. */
+		index_entry->path = file_info->path->str;
 
 		/* Convert size in bits to bytes. */
 		packet_size /= CHAR_BIT;
@@ -521,7 +525,8 @@ end:
 
 static
 struct ctf_fs_ds_index *build_index_from_stream_file(
-		struct ctf_fs_ds_file *ds_file)
+		struct ctf_fs_ds_file *ds_file,
+		struct ctf_fs_ds_file_info *file_info)
 {
 	int ret;
 	struct ctf_fs_ds_index *index = NULL;
@@ -587,6 +592,9 @@ struct ctf_fs_ds_index *build_index_from_stream_file(
 			BT_COMP_LOGE_STR("Failed to allocate a new index entry.");
 			goto error;
 		}
+
+		/* Set path to stream file. */
+		index_entry->path = file_info->path->str;
 
 		ret = init_index_entry(index_entry, ds_file, &props,
 			current_packet_size_bytes, current_packet_offset_bytes);
@@ -672,18 +680,19 @@ end:
 
 BT_HIDDEN
 struct ctf_fs_ds_index *ctf_fs_ds_file_build_index(
-		struct ctf_fs_ds_file *ds_file)
+		struct ctf_fs_ds_file *ds_file,
+		struct ctf_fs_ds_file_info *file_info)
 {
 	struct ctf_fs_ds_index *index;
 
-	index = build_index_from_idx_file(ds_file);
+	index = build_index_from_idx_file(ds_file, file_info);
 	if (index) {
 		goto end;
 	}
 
 	BT_COMP_LOGI("Failed to build index from .index file; "
 		"falling back to stream indexing.");
-	index = build_index_from_stream_file(ds_file);
+	index = build_index_from_stream_file(ds_file, file_info);
 end:
 	return index;
 }
