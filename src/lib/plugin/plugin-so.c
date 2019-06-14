@@ -138,7 +138,7 @@ void bt_plugin_so_shared_lib_handle_destroy(struct bt_object *obj)
 	}
 
 	if (shared_lib_handle->module) {
-#ifndef NDEBUG
+#ifndef BT_DEBUG_MODE
 		/*
 		 * Valgrind shows incomplete stack traces when
 		 * dynamically loaded libraries are closed before it
@@ -157,7 +157,7 @@ void bt_plugin_so_shared_lib_handle_destroy(struct bt_object *obj)
 			}
 
 			shared_lib_handle->module = NULL;
-#ifndef NDEBUG
+#ifndef BT_DEBUG_MODE
 		} else {
 			BT_LOGI("Not closing GModule because `BABELTRACE_NO_DLCLOSE=1`: "
 				"path=\"%s\"", path);

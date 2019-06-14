@@ -35,11 +35,11 @@
 # define DEFAULT_LOG_LEVEL	BT_LOG_FATAL
 #else
 /*
- * In non-developer mode, use NONE by default: we don't to print logging
+ * In non-developer mode, use NONE by default: we don't print logging
  * statements for any executable which links with the library. The
- * executable should call bt_logging_set_global_level() or the
- * executable's user should set the BABELTRACE_LOGGING_GLOBAL_LEVEL
- * environment variable.
+ * executable must call bt_logging_set_global_level() or the
+ * executable's user must set the BABELTRACE_LOGGING_GLOBAL_LEVEL
+ * environment variable to enable logging.
  */
 # define DEFAULT_LOG_LEVEL	BT_LOG_NONE
 #endif /* BT_DEV_MODE */
