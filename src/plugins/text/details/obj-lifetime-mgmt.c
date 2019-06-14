@@ -20,9 +20,6 @@
  * SOFTWARE.
  */
 
-#define BT_LOG_TAG "PLUGIN-TEXT-DETAILS-SINK-OBJ-LIFETIME-MGMT"
-#include "logging.h"
-
 #include <babeltrace2/babeltrace.h>
 
 #include "common/common.h"

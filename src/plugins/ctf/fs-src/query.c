@@ -34,7 +34,7 @@
 #include <babeltrace2/babeltrace.h>
 #include "fs.h"
 
-#define BT_LOG_TAG "PLUGIN-CTF-FS-QUERY-SRC"
+#define BT_LOG_TAG "PLUGIN/SRC.CTF.FS/QUERY"
 #include "logging.h"
 
 #define METADATA_TEXT_SIG	"/* CTF 1.8"

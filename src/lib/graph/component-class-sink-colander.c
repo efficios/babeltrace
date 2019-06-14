@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-#define BT_LOG_TAG "COLANDER"
+#define BT_LOG_TAG "LIB/COLANDER"
 #include "lib/lib-logging.h"
 
 #include "common/assert.h"

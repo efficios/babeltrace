@@ -13,7 +13,7 @@
  * all copies or substantial portions of the Software.
  */
 
-#define BT_LOG_TAG "PLUGIN-CTF-METADATA-META-RESOLVE"
+#define BT_LOG_TAG "PLUGIN/CTF/META/RESOLVE"
 #include "logging.h"
 
 #include <babeltrace2/babeltrace.h>

@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-#define BT_LOG_TAG "RESOLVE-FIELD-PATH"
+#define BT_LOG_TAG "LIB/RESOLVE-FIELD-PATH"
 #include "lib/lib-logging.h"
 
 #include "lib/assert-pre.h"

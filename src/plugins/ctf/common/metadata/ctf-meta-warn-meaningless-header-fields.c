@@ -12,7 +12,7 @@
  * all copies or substantial portions of the Software.
  */
 
-#define BT_LOG_TAG "PLUGIN-CTF-METADATA-META-WARN-MEANINGLESS-HEADER-FIELDS"
+#define BT_LOG_TAG "PLUGIN/CTF/META/WARN-MEANINGLESS-HEADER-FIELDS"
 #include "logging.h"
 
 #include <babeltrace2/babeltrace.h>

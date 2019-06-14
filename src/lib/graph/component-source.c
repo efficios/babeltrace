@@ -21,7 +21,7 @@
  * SOFTWARE.
  */
 
-#define BT_LOG_TAG "COMP-SOURCE"
+#define BT_LOG_TAG "LIB/COMPONENT-SOURCE"
 #include "lib/lib-logging.h"
 
 #include "common/assert.h"

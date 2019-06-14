@@ -26,7 +26,7 @@
  * SOFTWARE.
  */
 
-#define BT_LOG_TAG "COMPAT-MMAN"
+#define BT_LOG_TAG "COMPAT/MMAN"
 #include "logging.h"
 
 #include "common/macros.h"

@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-#define BT_LOG_TAG "MSG-MESSAGE-ITERATOR-INACTIVITY"
+#define BT_LOG_TAG "LIB/MSG-MSG-ITER-INACTIVITY"
 #include "lib/lib-logging.h"
 
 #include "lib/assert-pre.h"

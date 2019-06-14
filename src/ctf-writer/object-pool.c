@@ -21,7 +21,7 @@
  * SOFTWARE.
  */
 
-#define BT_LOG_TAG "OBJECT-POOL"
+#define BT_LOG_TAG "CTF-WRITER/OBJECT-POOL"
 #include "logging.h"
 
 #include <stdint.h>

@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-#define BT_LOG_TAG "CTF-WRITER-FIELD-WRAPPER"
+#define BT_LOG_TAG "CTF-WRITER/FIELD-WRAPPER"
 #include "logging.h"
 
 #include <glib.h>

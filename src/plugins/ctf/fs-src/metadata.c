@@ -38,7 +38,7 @@
 #include "metadata.h"
 #include "../common/metadata/decoder.h"
 
-#define BT_LOG_TAG "PLUGIN-CTF-FS-METADATA-SRC"
+#define BT_LOG_TAG "PLUGIN/SRC.CTF.FS/META"
 #include "logging.h"
 
 BT_HIDDEN

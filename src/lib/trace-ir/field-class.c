@@ -21,7 +21,7 @@
  * SOFTWARE.
  */
 
-#define BT_LOG_TAG "FIELD-CLASSES"
+#define BT_LOG_TAG "LIB/FIELD-CLASS"
 #include "lib/lib-logging.h"
 
 #include "lib/assert-pre.h"

@@ -21,7 +21,7 @@
  * SOFTWARE.
  */
 
-#define BT_LOG_TAG "MSG-PACKET"
+#define BT_LOG_TAG "LIB/MSG-PACKET"
 #include "lib/lib-logging.h"
 
 #include "compat/compiler.h"

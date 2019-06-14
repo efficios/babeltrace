@@ -27,7 +27,7 @@
 #include <glib.h>
 #include "file.h"
 
-#define BT_LOG_TAG "PLUGIN-CTF-FS-FILE-SRC"
+#define BT_LOG_TAG "PLUGIN/SRC.CTF.FS/FILE"
 #include "logging.h"
 
 BT_HIDDEN

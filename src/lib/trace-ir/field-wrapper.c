@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-#define BT_LOG_TAG "FIELD-WRAPPER"
+#define BT_LOG_TAG "LIB/FIELD-WRAPPER"
 #include "lib/lib-logging.h"
 
 #include "lib/object-pool.h"

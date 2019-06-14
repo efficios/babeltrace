@@ -29,7 +29,7 @@
 %module native_bt
 
 %{
-#define BT_LOG_TAG "PY-NATIVE"
+#define BT_LOG_TAG "BT2-PY"
 #include "logging.h"
 
 #include <babeltrace2/babeltrace.h>

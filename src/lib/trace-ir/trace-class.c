@@ -21,7 +21,7 @@
  * SOFTWARE.
  */
 
-#define BT_LOG_TAG "TRACE"
+#define BT_LOG_TAG "LIB/TRACE"
 #include "lib/lib-logging.h"
 
 #include "lib/assert-pre.h"

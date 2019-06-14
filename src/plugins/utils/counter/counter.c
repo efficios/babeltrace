@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-#define BT_LOG_TAG "PLUGIN-UTILS-COUNTER-FLT"
+#define BT_LOG_TAG "PLUGIN/FLT.UTILS.COUNTER"
 #include "logging.h"
 
 #include <babeltrace2/babeltrace.h>

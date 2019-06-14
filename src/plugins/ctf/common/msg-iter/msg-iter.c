@@ -23,7 +23,7 @@
  * SOFTWARE.
  */
 
-#define BT_LOG_TAG "PLUGIN-CTF-MSG-ITER"
+#define BT_LOG_TAG "PLUGIN/CTF/MSG-ITER"
 #include "logging.h"
 
 #include <stdint.h>

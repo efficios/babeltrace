@@ -21,7 +21,7 @@
  * SOFTWARE.
  */
 
-#define BT_LOG_TAG "CONNECTION"
+#define BT_LOG_TAG "LIB/CONNECTION"
 #include "lib/lib-logging.h"
 
 #include "common/assert.h"

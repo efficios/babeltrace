@@ -21,7 +21,7 @@
  * SOFTWARE.
  */
 
-#define BT_LOG_TAG "CTF-WRITER-TRACE"
+#define BT_LOG_TAG "CTF-WRITER/TRACE"
 #include "logging.h"
 
 #include <inttypes.h>

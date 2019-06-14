@@ -21,7 +21,7 @@
  * SOFTWARE.
  */
 
-#define BT_LOG_TAG "PLUGIN-CTF-LTTNG-LIVE-SRC-VIEWER"
+#define BT_LOG_TAG "PLUGIN/SRC.CTF.LTTNG-LIVE/VIEWER"
 #include "logging.h"
 
 #include <stdio.h>

@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-#define BT_LOG_TAG "PLUGIN-CTF-FS-SINK-TRACE"
+#define BT_LOG_TAG "PLUGIN/SINK.CTF.FS/TRACE"
 #include "logging.h"
 
 #include <babeltrace2/babeltrace.h>

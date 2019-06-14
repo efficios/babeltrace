@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-#define BT_LOG_TAG "PACKET-CONTEXT-FIELD"
+#define BT_LOG_TAG "LIB/PACKET-CONTEXT-FIELD"
 #include "lib/lib-logging.h"
 
 #include "lib/assert-pre.h"

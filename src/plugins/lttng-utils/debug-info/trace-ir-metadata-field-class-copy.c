@@ -24,7 +24,7 @@
  * SOFTWARE.
  */
 
-#define BT_LOG_TAG "PLUGIN-LTTNG-UTILS-DEBUG-INFO-TRACE-IR-METADATA-FC-COPY"
+#define BT_LOG_TAG "PLUGIN/FLT.LTTNG-UTILS.DEBUG-INFO/TRACE-IR-META-FC-COPY"
 #include "logging.h"
 
 #include "common/assert.h"

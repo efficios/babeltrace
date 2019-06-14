@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-#define BT_LOG_TAG "OBJECT-POOL"
+#define BT_LOG_TAG "LIB/OBJECT-POOL"
 #include "lib/lib-logging.h"
 
 #include <stdint.h>

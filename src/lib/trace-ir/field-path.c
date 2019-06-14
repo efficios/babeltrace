@@ -21,7 +21,7 @@
  * SOFTWARE.
  */
 
-#define BT_LOG_TAG "FIELD-PATH"
+#define BT_LOG_TAG "LIB/FIELD-PATH"
 #include "lib/lib-logging.h"
 
 #include "lib/assert-pre.h"

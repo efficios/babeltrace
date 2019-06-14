@@ -24,7 +24,7 @@
  * SOFTWARE.
  */
 
-#define BT_LOG_TAG "PLUGIN-CTF-METADATA-SEMANTIC-VALIDATOR-VISITOR"
+#define BT_LOG_TAG "PLUGIN/CTF/META/SEMANTIC-VALIDATOR-VISITOR"
 #include "logging.h"
 
 #include <stdio.h>

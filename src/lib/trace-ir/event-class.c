@@ -21,7 +21,7 @@
  * SOFTWARE.
  */
 
-#define BT_LOG_TAG "EVENT-CLASS"
+#define BT_LOG_TAG "LIB/EVENT-CLASS"
 #include "lib/lib-logging.h"
 
 #include "lib/assert-pre.h"

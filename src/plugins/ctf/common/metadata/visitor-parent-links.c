@@ -24,7 +24,7 @@
  * SOFTWARE.
  */
 
-#define BT_LOG_TAG "PLUGIN-CTF-METADATA-PARENT-LINKS-VISITOR"
+#define BT_LOG_TAG "PLUGIN/CTF/META/PARENT-LINKS-VISITOR"
 #include "logging.h"
 
 #include <stdio.h>

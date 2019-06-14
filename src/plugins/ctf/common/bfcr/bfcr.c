@@ -23,7 +23,7 @@
  * SOFTWARE.
  */
 
-#define BT_LOG_TAG "PLUGIN-CTF-BFCR"
+#define BT_LOG_TAG "PLUGIN/CTF/BFCR"
 #include "logging.h"
 
 #include <stdlib.h>

@@ -21,7 +21,7 @@
  * SOFTWARE.
  */
 
-#define BT_LOG_TAG "MSG-ITER"
+#define BT_LOG_TAG "LIB/MSG-ITER"
 #include "lib/lib-logging.h"
 
 #include "compat/compiler.h"

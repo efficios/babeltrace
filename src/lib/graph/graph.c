@@ -21,7 +21,7 @@
  * SOFTWARE.
  */
 
-#define BT_LOG_TAG "GRAPH"
+#define BT_LOG_TAG "LIB/GRAPH"
 #include "lib/lib-logging.h"
 
 #include "common/assert.h"

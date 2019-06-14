@@ -21,7 +21,7 @@
  * SOFTWARE.
  */
 
-#define BT_LOG_TAG "CTF-WRITER-STREAM-CLASS"
+#define BT_LOG_TAG "CTF-WRITER/STREAM-CLASS"
 #include "logging.h"
 
 #include <inttypes.h>

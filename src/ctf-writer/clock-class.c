@@ -26,7 +26,7 @@
  * SOFTWARE.
  */
 
-#define BT_LOG_TAG "CTF-WRITER-CLOCK-CLASS"
+#define BT_LOG_TAG "CTF-WRITER/CLOCK-CLASS"
 #include "logging.h"
 
 #include "compat/uuid.h"

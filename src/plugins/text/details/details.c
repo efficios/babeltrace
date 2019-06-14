@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-#define BT_LOG_TAG "PLUGIN-TEXT-DETAILS-SINK"
+#define BT_LOG_TAG "PLUGIN/SINK.TEXT.DETAILS"
 #include "logging.h"
 
 #include <babeltrace2/babeltrace.h>
