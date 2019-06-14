@@ -31,10 +31,14 @@
 #include "lib/object.h"
 #include <babeltrace2/types.h>
 #include "common/assert.h"
-#include "lib/lib-logging.h"
 #include <glib.h>
 
 #include "plugin-so.h"
+
+/* Protection: this file uses BT_LIB_LOG*() macros directly */
+#ifndef BABELTRACE_LIB_LOGGING_INTERNAL_H
+# error Please include "lib/lib-logging.h" before including this file.
+#endif
 
 enum bt_plugin_type {
 	BT_PLUGIN_TYPE_SO = 0,
