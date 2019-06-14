@@ -25,20 +25,18 @@
  */
 
 /*
- * The macros in this header use macros defined in
- * <logging/log.h>. We don't want this header to
- * automatically include <logging/log.h> because you
- * need to manually define BT_LOG_TAG before including
- * <logging/log.h> and it is unexpected that you
- * also need to define it before including this header.
+ * The macros in this header use macros defined in "logging/log.h". We
+ * don't want this header to automatically include "logging/log.h"
+ * because you need to manually define BT_LOG_TAG before including
+ * "logging/log.h" and it is unexpected that you also need to define it
+ * before including this header.
  *
- * This is a reminder that in order to use
- * <ctf-writer/assert-pre.h>, you also need to use logging
- * explicitly.
+ * This is a reminder that in order to use "ctf-writer/assert-pre.h",
+ * you also need to use logging explicitly.
  */
 
 #ifndef BABELTRACE_LOGGING_INTERNAL_H
-# error Include <logging/log.h> before this header.
+# error Include "logging/log.h" before this header.
 #endif
 
 #include <stdlib.h>
