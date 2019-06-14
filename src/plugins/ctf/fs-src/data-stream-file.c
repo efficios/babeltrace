@@ -495,6 +495,8 @@ int init_index_entry(struct ctf_fs_ds_index_entry *entry,
 	entry->packet_size = packet_size;
 
 	if (props->snapshots.beginning_clock != UINT64_C(-1)) {
+		entry->timestamp_begin = props->snapshots.beginning_clock;
+
 		/* Convert the packet's bound to nanoseconds since Epoch. */
 		ret = convert_cycles_to_ns(sc->default_clock_class,
 					   props->snapshots.beginning_clock,
@@ -504,10 +506,14 @@ int init_index_entry(struct ctf_fs_ds_index_entry *entry,
 			goto end;
 		}
 	} else {
+		entry->timestamp_begin = UINT64_C(-1);
 		entry->timestamp_begin_ns = UINT64_C(-1);
 	}
 
 	if (props->snapshots.end_clock != UINT64_C(-1)) {
+		entry->timestamp_end = props->snapshots.end_clock;
+
+		/* Convert the packet's bound to nanoseconds since Epoch. */
 		ret = convert_cycles_to_ns(sc->default_clock_class,
 					   props->snapshots.end_clock,
 					   &entry->timestamp_end_ns);
@@ -516,6 +522,7 @@ int init_index_entry(struct ctf_fs_ds_index_entry *entry,
 			goto end;
 		}
 	} else {
+		entry->timestamp_end = UINT64_C(-1);
 		entry->timestamp_end_ns = UINT64_C(-1);
 	}
 
