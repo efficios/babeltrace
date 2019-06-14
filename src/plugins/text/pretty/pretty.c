@@ -140,9 +140,6 @@ bt_self_component_status handle_message(
 			ret = BT_SELF_COMPONENT_STATUS_ERROR;
 		}
 		break;
-	case BT_MESSAGE_TYPE_MESSAGE_ITERATOR_INACTIVITY:
-		BT_LOGD_STR("Message iterator inactivity message.");
-		break;
 	case BT_MESSAGE_TYPE_DISCARDED_EVENTS:
 	case BT_MESSAGE_TYPE_DISCARDED_PACKETS:
 		if (pretty_print_discarded_items(pretty, message)) {
