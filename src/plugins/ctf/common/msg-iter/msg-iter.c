@@ -2851,21 +2851,25 @@ end:
 }
 
 static
-enum bt_msg_iter_status read_packet_header_context_fields(
-		struct bt_msg_iter *notit)
+enum bt_msg_iter_status decode_until_state(
+		struct bt_msg_iter *notit, enum state target_state_1,
+		enum state target_state_2)
 {
-	int ret;
 	enum bt_msg_iter_status status = BT_MSG_ITER_STATUS_OK;
 
 	BT_ASSERT(notit);
 	notit->set_stream = false;
 
-	if (notit->state == STATE_EMIT_MSG_PACKET_BEGINNING) {
-		/* We're already there */
-		goto end;
-	}
+	do {
+		/*
+		 * Check if we reached the state at which we want to stop
+		 * decoding.
+		 */
+		if (notit->state == target_state_1 ||
+				notit->state == target_state_2) {
+			goto end;
+		}
 
-	while (true) {
 		status = handle_state(notit);
 		if (G_UNLIKELY(status == BT_MSG_ITER_STATUS_AGAIN)) {
 			BT_COMP_LOGD_STR("Medium returned BT_MSG_ITER_STATUS_AGAIN.");
@@ -2877,12 +2881,6 @@ enum bt_msg_iter_status read_packet_header_context_fields(
 		}
 
 		switch (notit->state) {
-		case STATE_EMIT_MSG_PACKET_BEGINNING:
-			/*
-			 * Packet header and context fields are
-			 * potentially decoded (or they don't exist).
-			 */
-			goto end;
 		case STATE_INIT:
 		case STATE_SWITCH_PACKET:
 		case STATE_DSCOPE_TRACE_PACKET_HEADER_BEGIN:
@@ -2897,25 +2895,56 @@ enum bt_msg_iter_status read_packet_header_context_fields(
 		case STATE_EMIT_MSG_DISCARDED_EVENTS:
 		case STATE_CHECK_EMIT_MSG_DISCARDED_PACKETS:
 		case STATE_EMIT_MSG_DISCARDED_PACKETS:
-			/* Non-emitting state: continue */
+		case STATE_EMIT_MSG_PACKET_BEGINNING:
+		case STATE_DSCOPE_EVENT_HEADER_BEGIN:
+		case STATE_DSCOPE_EVENT_HEADER_CONTINUE:
+		case STATE_AFTER_EVENT_HEADER:
+		case STATE_DSCOPE_EVENT_COMMON_CONTEXT_BEGIN:
+		case STATE_DSCOPE_EVENT_COMMON_CONTEXT_CONTINUE:
+		case STATE_DSCOPE_EVENT_SPEC_CONTEXT_BEGIN:
+		case STATE_DSCOPE_EVENT_SPEC_CONTEXT_CONTINUE:
+		case STATE_DSCOPE_EVENT_PAYLOAD_BEGIN:
+		case STATE_DSCOPE_EVENT_PAYLOAD_CONTINUE:
+		case STATE_EMIT_MSG_EVENT:
+		case STATE_SKIP_PACKET_PADDING:
+		case STATE_EMIT_MSG_PACKET_END_MULTI:
+		case STATE_EMIT_MSG_PACKET_END_SINGLE:
+		case STATE_CHECK_EMIT_MSG_STREAM_END:
+		case STATE_EMIT_MSG_STREAM_END:
 			break;
+		case STATE_DONE:
+			/* fall-through */
 		default:
-			/*
-			 * We should never get past the
-			 * STATE_EMIT_MSG_PACKET_BEGINNING state.
-			 */
+			/* We should never get to the STATE_DONE state. */
 			BT_COMP_LOGF("Unexpected state: notit-addr=%p, state=%s",
 				notit, state_string(notit->state));
 			abort();
 		}
-	}
+	} while (true);
 
 end:
+	return status;
+}
+
+static
+enum bt_msg_iter_status read_packet_header_context_fields(
+		struct bt_msg_iter *notit)
+{
+	int ret;
+	enum bt_msg_iter_status status = BT_MSG_ITER_STATUS_OK;
+
+	status = decode_until_state(notit, STATE_EMIT_MSG_PACKET_BEGINNING, -1);
+	if (status != BT_MSG_ITER_STATUS_OK) {
+		goto end;
+	}
+
 	ret = set_current_packet_content_sizes(notit);
 	if (ret) {
 		status = BT_MSG_ITER_STATUS_ERROR;
+		goto end;
 	}
 
+end:
 	return status;
 }
 
