@@ -1671,14 +1671,209 @@ end:
 	return ret;
 }
 
+enum target_event {
+	FIRST_EVENT,
+	LAST_EVENT,
+};
+
+static
+int decode_clock_snapshot_after_event(struct ctf_fs_trace *ctf_fs_trace,
+	struct ctf_clock_class *default_cc,
+	struct ctf_fs_ds_index_entry *index_entry,
+	enum target_event target_event, uint64_t *cs, int64_t *ts_ns)
+{
+	enum bt_msg_iter_status iter_status = BT_MSG_ITER_STATUS_OK;
+	struct ctf_fs_ds_file *ds_file = NULL;
+	struct bt_msg_iter *msg_iter = NULL;
+	bt_logging_level log_level = ctf_fs_trace->log_level;
+	bt_self_component *self_comp = ctf_fs_trace->self_comp;
+	int ret = 0;
+
+	BT_ASSERT(ctf_fs_trace);
+	BT_ASSERT(ctf_fs_trace->metadata);
+	BT_ASSERT(ctf_fs_trace->metadata->tc);
+
+	msg_iter = bt_msg_iter_create(ctf_fs_trace->metadata->tc,
+		bt_common_get_page_size(log_level) * 8, ctf_fs_ds_file_medops,
+		NULL, log_level, self_comp);
+	if (!msg_iter) {
+		/* bt_msg_iter_create() logs errors. */
+		ret = -1;
+		goto end;
+	}
+
+	BT_ASSERT(index_entry);
+	BT_ASSERT(index_entry->path);
+
+	ds_file = ctf_fs_ds_file_create(ctf_fs_trace, NULL, msg_iter,
+		NULL, index_entry->path, log_level);
+	if (!ds_file) {
+		BT_LOGE_STR("Failed to create a ctf_fs_ds_file");
+		ret = -1;
+		goto end;
+	}
+
+	/*
+	 * Turn on dry run mode to prevent the creation and usage of Babeltrace
+	 * library objects (bt_field, bt_message_*, etc.).
+	 */
+	bt_msg_iter_set_dry_run(msg_iter, true);
+
+	/* Seek to the beginning of the target packet. */
+	iter_status = bt_msg_iter_seek(ds_file->msg_iter, index_entry->offset);
+	if (iter_status) {
+		/* bt_msg_iter_seek() logs errors. */
+		ret = -1;
+		goto end;
+	}
+
+	switch (target_event) {
+	case FIRST_EVENT:
+		/*
+		 * Start to decode the packet until we reach the end of
+		 * the first event. To extract the first event's clock
+		 * snapshot.
+		 */
+		iter_status = bt_msg_iter_curr_packet_first_event_clock_snapshot(
+			ds_file->msg_iter, cs);
+		break;
+	case LAST_EVENT:
+		/* Decode the packet to extract the last event's clock snapshot. */
+		iter_status = bt_msg_iter_curr_packet_last_event_clock_snapshot(
+			ds_file->msg_iter, cs);
+		break;
+	default:
+		abort();
+	}
+	if (iter_status) {
+		ret = -1;
+		goto end;
+	}
+
+	/* Convert clock snapshot to timestamp. */
+	ret = bt_util_clock_cycles_to_ns_from_origin(*cs,
+		default_cc->frequency, default_cc->offset_seconds,
+		default_cc->offset_cycles, ts_ns);
+	if (ret) {
+		BT_LOGE_STR("Failed to convert clock snapshot to timestamp");
+		goto end;
+	}
+
+end:
+	if (ds_file) {
+		ctf_fs_ds_file_destroy(ds_file);
+	}
+	if (msg_iter) {
+		bt_msg_iter_destroy(msg_iter);
+	}
+
+	return ret;
+}
+
+static
+int decode_packet_last_event_timestamp(struct ctf_fs_trace *ctf_fs_trace,
+	struct ctf_clock_class *default_cc,
+	struct ctf_fs_ds_index_entry *index_entry, uint64_t *cs, int64_t *ts_ns)
+{
+	return decode_clock_snapshot_after_event(ctf_fs_trace, default_cc,
+		index_entry, LAST_EVENT, cs, ts_ns);
+}
+
+/*
+ * Fix up packet index entries for lttng's "event-after-packet" bug.
+ * Some buggy lttng tracer versions may emit events with a timestamp that is
+ * larger (after) than the timestamp_end of the their packets.
+ *
+ * To fix up this erroneous data we do the following:
+ *  1. If it's not the stream file's last packet: set the packet index entry's
+ *	end time to the next packet's beginning time.
+ *  2. If it's the stream file's last packet, set the packet index entry's end
+ *	time to the packet's last event's time, if any, or to the packet's
+ *  	beginning time otherwise.
+ *
+ * Known buggy tracer versions:
+ *  - before lttng-ust 2.11.0
+ *  - before lttng-module 2.11.0
+ *  - before lttng-module 2.10.10
+ *  - before lttng-module 2.9.13
+ */
+static
+int fix_index_lttng_event_after_packet_bug(struct ctf_fs_trace *trace)
+{
+	int ret = 0;
+	guint ds_file_group_i;
+	GPtrArray *ds_file_groups = trace->ds_file_groups;
+	bt_logging_level log_level = trace->log_level;
+
+	for (ds_file_group_i = 0; ds_file_group_i < ds_file_groups->len;
+			ds_file_group_i++) {
+		guint entry_i;
+		struct ctf_clock_class *default_cc;
+		struct ctf_fs_ds_index_entry *last_entry;
+		struct ctf_fs_ds_index *index;
+
+		struct ctf_fs_ds_file_group *ds_file_group =
+			g_ptr_array_index(ds_file_groups, ds_file_group_i);
+
+		BT_ASSERT(ds_file_group);
+		index = ds_file_group->index;
+
+		BT_ASSERT(index);
+		BT_ASSERT(index->entries);
+		BT_ASSERT(index->entries->len > 0);
+
+		/*
+		 * Iterate over all entries but the last one. The last one is
+		 * fixed differently after.
+		 */
+		for (entry_i = 0; entry_i < index->entries->len - 1;
+				entry_i++) {
+			struct ctf_fs_ds_index_entry *curr_entry, *next_entry;
+
+			curr_entry = g_ptr_array_index(index->entries, entry_i);
+			next_entry = g_ptr_array_index(index->entries, entry_i + 1);
+
+			/*
+			 * 1. Set the current index entry `end` timestamp to
+			 * the next index entry `begin` timestamp.
+			 */
+			curr_entry->timestamp_end = next_entry->timestamp_begin;
+			curr_entry->timestamp_end_ns = next_entry->timestamp_begin_ns;
+		}
+
+		/*
+		 * 2. Fix the last entry by decoding the last event of the last
+		 * packet.
+		 */
+		last_entry = g_ptr_array_index(index->entries,
+			index->entries->len - 1);
+		BT_ASSERT(last_entry);
+
+		BT_ASSERT(ds_file_group->sc->default_clock_class);
+		default_cc = ds_file_group->sc->default_clock_class;
+
+		/*
+		 * Decode packet to read the timestamp of the last event of the
+		 * entry.
+		 */
+		ret = decode_packet_last_event_timestamp(trace, default_cc,
+			last_entry, &last_entry->timestamp_end,
+			&last_entry->timestamp_end_ns);
+		if (ret) {
+			BT_LOGE_STR("Failed to decode stream's last packet to get its last event's clock snapshot.");
+			goto end;
+		}
+	}
+
+end:
+	return ret;
+}
+
 /*
  * Extract the tracer information necessary to compare versions.
  * Returns 0 on success, and -1 if the extraction is not successful because the
  * necessary fields are absents in the trace metadata.
  */
-static
-int extract_tracer_info(struct ctf_fs_trace *trace,
-		struct tracer_info *current_tracer_info) __attribute__((unused));
 static
 int extract_tracer_info(struct ctf_fs_trace *trace,
 		struct tracer_info *current_tracer_info)
@@ -1748,12 +1943,102 @@ end:
 	return ret;
 }
 
+static
+bool is_tracer_affected_by_lttng_event_after_packet_bug(
+		struct tracer_info *curr_tracer_info)
+{
+	bool is_affected = false;
+
+	if (strcmp(curr_tracer_info->name, "lttng-ust") == 0) {
+		if (curr_tracer_info->major < 2) {
+			is_affected = true;
+		} else if (curr_tracer_info->major == 2) {
+			/* fixed in lttng-ust 2.11.0 */
+			if (curr_tracer_info->minor < 11) {
+				is_affected = true;
+			}
+		}
+	} else if (strcmp(curr_tracer_info->name, "lttng-modules") == 0) {
+		if (curr_tracer_info->major < 2) {
+			is_affected = true;
+		} else if (curr_tracer_info->major == 2) {
+			/* fixed in lttng-modules 2.11.0 */
+			if (curr_tracer_info->minor == 10) {
+				/* fixed in lttng-modules 2.10.10 */
+				if (curr_tracer_info->patch < 10) {
+					is_affected = true;
+				}
+			} else if (curr_tracer_info->minor == 9) {
+				/* fixed in lttng-modules 2.9.13 */
+				if (curr_tracer_info->patch < 13) {
+					is_affected = true;
+				}
+			} else if (curr_tracer_info->minor < 9) {
+				is_affected = true;
+			}
+		}
+	}
+
+	return is_affected;
+}
+
+/*
+ * Looks for trace produced by known buggy tracers and fix up the index
+ * produced earlier.
+ */
+static
+int fix_packet_index_tracer_bugs(struct ctf_fs_component *ctf_fs)
+{
+	int ret = 0;
+	guint trace_i;
+	struct tracer_info current_tracer_info;
+	GPtrArray *traces = ctf_fs->traces;
+	bt_logging_level log_level = ctf_fs->log_level;
+
+	/*
+	 * Iterate over all the traces of this component and check for
+	 * possible indexing bugs.
+	 */
+	for (trace_i = 0; trace_i < traces->len; trace_i++) {
+		struct ctf_fs_trace *trace = g_ptr_array_index(traces,
+			trace_i);
+
+		ret = extract_tracer_info(trace, &current_tracer_info);
+		if (ret) {
+			/*
+			 * A trace may not have all the necessary environment
+			 * entries to do the tracer version comparison.
+			 * At least, the tracer name and major version number
+			 * are needed. Failing to extract these entries is not
+			 * an error.
+			 */
+			ret = 0;
+			BT_LOGI_STR("Cannot extract tracer information necessary to compare with buggy versions.");
+			continue;
+		}
+
+		/* Check if the trace may be affected by old tracer bugs. */
+		if (is_tracer_affected_by_lttng_event_after_packet_bug(
+				&current_tracer_info)) {
+			BT_LOGI_STR("Trace may be affected by LTTng tracer packet timestamp bug. Fixing up.");
+			ret = fix_index_lttng_event_after_packet_bug(trace);
+			if (ret) {
+				BT_LOGE_STR("Failed to fix LTTng event-after-packet bug.");
+				goto end;
+			}
+		}
+	}
+end:
+	return ret;
+}
+
 int ctf_fs_component_create_ctf_fs_traces(bt_self_component_source *self_comp,
 		struct ctf_fs_component *ctf_fs,
 		const bt_value *paths_value)
 {
 	int ret = 0;
 	uint64_t i;
+	bt_logging_level log_level = ctf_fs->log_level;
 
 	for (i = 0; i < bt_value_array_get_length(paths_value); i++) {
 		const bt_value *path_value = bt_value_array_borrow_element_by_index_const(paths_value, i);
@@ -1767,7 +2052,14 @@ int ctf_fs_component_create_ctf_fs_traces(bt_self_component_source *self_comp,
 	}
 
 	ret = merge_traces_with_same_uuid(ctf_fs);
+	if (ret) {
+		BT_LOGE_STR("Failed to merge traces with the same UUID.");
+	}
 
+	ret = fix_packet_index_tracer_bugs(ctf_fs);
+	if (ret) {
+		BT_LOGE_STR("Failed to fix packet index tracer bugs.");
+	}
 end:
 	return ret;
 }
