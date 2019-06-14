@@ -43,10 +43,12 @@ int bt_mman_dummy_symbol;
 #ifdef __MINGW32__
 
 #include <errno.h>
+#include <glib.h>
 #include <io.h>
 #include <pthread.h>
 #include <stdlib.h>
 #include <windows.h>
+
 #include "compat/mman.h"
 
 struct mmap_mapping {
