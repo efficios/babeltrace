@@ -109,7 +109,8 @@ bt_component_class_message_iterator_next_method_status ctf_fs_ds_file_next(
 
 BT_HIDDEN
 struct ctf_fs_ds_index *ctf_fs_ds_file_build_index(
-		struct ctf_fs_ds_file *ds_file);
+		struct ctf_fs_ds_file *ds_file,
+		struct ctf_fs_ds_file_info *ds_file_info);
 
 BT_HIDDEN
 struct ctf_fs_ds_index *ctf_fs_ds_index_create(bt_logging_level log_level,

@@ -697,36 +697,6 @@ void ds_file_group_insert_ds_index_entry_sorted(
 	array_insert(ds_file_group->index->entries, entry, i);
 }
 
-/*
- * Create a new ds_file_info using the provided path, begin_ns and index, then
- * add it to ds_file_group's list of ds_file_infos.
- */
-
-static
-int ctf_fs_ds_file_group_add_ds_file_info(
-		struct ctf_fs_ds_file_group *ds_file_group,
-		const char *path, int64_t begin_ns)
-{
-	struct ctf_fs_ds_file_info *ds_file_info;
-	int ret = 0;
-
-	ds_file_info = ctf_fs_ds_file_info_create(path, begin_ns);
-	if (!ds_file_info) {
-		goto error;
-	}
-
-	ds_file_group_insert_ds_file_info_sorted(ds_file_group, ds_file_info);
-
-	ds_file_info = NULL;
-	goto end;
-
-error:
-	ctf_fs_ds_file_info_destroy(ds_file_info);
-	ret = -1;
-end:
-	return ret;
-}
-
 static
 int add_ds_file_to_ds_file_group(struct ctf_fs_trace *ctf_fs_trace,
 		const char *path)
@@ -738,6 +708,7 @@ int add_ds_file_to_ds_file_group(struct ctf_fs_trace *ctf_fs_trace,
 	int ret;
 	size_t i;
 	struct ctf_fs_ds_file *ds_file = NULL;
+	struct ctf_fs_ds_file_info *ds_file_info = NULL;
 	struct ctf_fs_ds_index *index = NULL;
 	struct bt_msg_iter *msg_iter = NULL;
 	struct ctf_stream_class *sc = NULL;
@@ -785,7 +756,12 @@ int add_ds_file_to_ds_file_group(struct ctf_fs_trace *ctf_fs_trace,
 		}
 	}
 
-	index = ctf_fs_ds_file_build_index(ds_file);
+	ds_file_info = ctf_fs_ds_file_info_create(path, begin_ns);
+	if (!ds_file_info) {
+		goto error;
+	}
+
+	index = ctf_fs_ds_file_build_index(ds_file, ds_file_info);
 	if (!index) {
 		BT_COMP_LOGW("Failed to index CTF stream file \'%s\'",
 			ds_file->file->path->str);
@@ -817,11 +793,7 @@ int add_ds_file_to_ds_file_group(struct ctf_fs_trace *ctf_fs_trace,
 			goto error;
 		}
 
-		ret = ctf_fs_ds_file_group_add_ds_file_info(ds_file_group,
-			path, begin_ns);
-		if (ret) {
-			goto error;
-		}
+		ds_file_group_insert_ds_file_info_sorted(ds_file_group, ds_file_info);
 
 		add_group = true;
 		goto end;
@@ -856,11 +828,7 @@ int add_ds_file_to_ds_file_group(struct ctf_fs_trace *ctf_fs_trace,
 		add_group = true;
 	}
 
-	ret = ctf_fs_ds_file_group_add_ds_file_info(ds_file_group, path,
-		begin_ns);
-	if (ret) {
-		goto error;
-	}
+	ds_file_group_insert_ds_file_info_sorted(ds_file_group, ds_file_info);
 
 	goto end;
 
