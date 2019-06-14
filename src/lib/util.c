@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-#define BT_LOG_TAG "UTIL"
+#define BT_LOG_TAG "LIB/UTIL"
 #include "lib/lib-logging.h"
 
 #include "lib/assert-pre.h"

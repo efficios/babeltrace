@@ -21,7 +21,7 @@
  * SOFTWARE.
  */
 
-#define BT_LOG_TAG "COMP-SINK"
+#define BT_LOG_TAG "LIB/COMPONENT-SINK"
 #include "lib/lib-logging.h"
 
 #include "common/assert.h"

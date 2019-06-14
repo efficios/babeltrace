@@ -27,7 +27,7 @@
  * SOFTWARE.
  */
 
-#define BT_LOG_TAG "CTF-WRITER-CLOCK"
+#define BT_LOG_TAG "CTF-WRITER/CLOCK"
 #include "logging.h"
 
 #include "common/assert.h"

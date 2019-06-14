@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-#define BT_LOG_TAG "PLUGIN-CTF-UTILS"
+#define BT_LOG_TAG "PLUGIN/CTF/UTILS"
 #include "logging.h"
 
 #include "utils.h"

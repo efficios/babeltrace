@@ -12,7 +12,7 @@
  * all copies or substantial portions of the Software.
  */
 
-#define BT_LOG_TAG "PLUGIN-CTF-METADATA-META-UPDATE-VALUE-STORING-INDEXES"
+#define BT_LOG_TAG "PLUGIN/CTF/META/UPDATE-VALUE-STORING-INDEXES"
 #include "logging.h"
 
 #include <babeltrace2/babeltrace.h>

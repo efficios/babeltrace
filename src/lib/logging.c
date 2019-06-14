@@ -24,7 +24,7 @@
 #include <babeltrace2/logging.h>
 #include <babeltrace2/version.h>
 
-#define BT_LOG_TAG "LIB"
+#define BT_LOG_TAG "LIB/LOGGING"
 #include "lib/lib-logging.h"
 
 #ifdef BT_DEV_MODE

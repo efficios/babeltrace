@@ -21,7 +21,7 @@
  * SOFTWARE.
  */
 
-#define BT_LOG_TAG "ATTRS"
+#define BT_LOG_TAG "LIB/ATTRS"
 #include "lib/lib-logging.h"
 
 #include "common/macros.h"

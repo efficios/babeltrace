@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-#define BT_LOG_TAG "COMPAT-UUID"
+#define BT_LOG_TAG "COMPAT/UUID"
 #include "logging.h"
 
 #ifdef __APPLE__

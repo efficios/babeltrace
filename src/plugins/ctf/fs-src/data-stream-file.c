@@ -40,7 +40,7 @@
 #include "data-stream-file.h"
 #include <string.h>
 
-#define BT_LOG_TAG "PLUGIN-CTF-FS-SRC-DS"
+#define BT_LOG_TAG "PLUGIN/SRC.CTF.FS/DS"
 #include "logging.h"
 
 static inline

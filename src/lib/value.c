@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-#define BT_LOG_TAG "VALUES"
+#define BT_LOG_TAG "LIB/VALUE"
 #include "lib/lib-logging.h"
 
 #include <stdlib.h>

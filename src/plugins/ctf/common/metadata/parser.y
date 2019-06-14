@@ -25,7 +25,7 @@
  * SOFTWARE.
  */
 
-#define BT_LOG_TAG "PLUGIN-CTF-METADATA-PARSER"
+#define BT_LOG_TAG "PLUGIN/CTF/META/PARSER"
 #include "logging.h"
 
 #include <stdio.h>

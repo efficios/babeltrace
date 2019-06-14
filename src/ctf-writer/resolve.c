@@ -28,7 +28,7 @@
  * SOFTWARE.
  */
 
-#define BT_LOG_TAG "CTF-WRITER-RESOLVE"
+#define BT_LOG_TAG "CTF-WRITER/RESOLVE"
 #include "logging.h"
 
 #include <glib.h>

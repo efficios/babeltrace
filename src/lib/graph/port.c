@@ -21,7 +21,7 @@
  * SOFTWARE.
  */
 
-#define BT_LOG_TAG "PORT"
+#define BT_LOG_TAG "LIB/PORT"
 #include "lib/lib-logging.h"
 
 #include "common/assert.h"

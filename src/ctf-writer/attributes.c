@@ -25,7 +25,7 @@
  * SOFTWARE.
  */
 
-#define BT_LOG_TAG "CTF-WRITER-ATTRS"
+#define BT_LOG_TAG "CTF-WRITER/ATTRS"
 #include "logging.h"
 
 #include "common/assert.h"

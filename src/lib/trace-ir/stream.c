@@ -21,7 +21,7 @@
  * SOFTWARE.
  */
 
-#define BT_LOG_TAG "STREAM"
+#define BT_LOG_TAG "LIB/STREAM"
 #include "lib/lib-logging.h"
 
 #include "lib/assert-pre.h"

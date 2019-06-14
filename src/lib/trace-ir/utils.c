@@ -21,7 +21,7 @@
  * SOFTWARE.
  */
 
-#define BT_LOG_TAG "TRACE-IR-UTILS"
+#define BT_LOG_TAG "LIB/TRACE-IR-UTILS"
 #include "lib/lib-logging.h"
 
 #include <stdlib.h>

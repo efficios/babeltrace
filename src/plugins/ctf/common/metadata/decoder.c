@@ -12,7 +12,7 @@
  * all copies or substantial portions of the Software.
  */
 
-#define BT_LOG_TAG "PLUGIN-CTF-METADATA-DECODER"
+#define BT_LOG_TAG "PLUGIN/CTF/META/DECODER"
 #include "logging.h"
 
 #include <stdio.h>

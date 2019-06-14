@@ -24,7 +24,7 @@
  * SOFTWARE.
  */
 
-#define BT_LOG_TAG "PLUGIN-PY"
+#define BT_LOG_TAG "LIB/PLUGIN-PY"
 
 #include "lib/lib-logging.h"
 #include "common/macros.h"

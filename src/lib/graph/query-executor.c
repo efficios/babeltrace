@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-#define BT_LOG_TAG "QUERY-EXECUTOR"
+#define BT_LOG_TAG "LIB/QUERY-EXECUTOR"
 #include "lib/lib-logging.h"
 
 #include "common/assert.h"

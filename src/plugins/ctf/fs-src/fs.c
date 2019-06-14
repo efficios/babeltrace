@@ -41,7 +41,7 @@
 #include "../common/utils/utils.h"
 #include "query.h"
 
-#define BT_LOG_TAG "PLUGIN-CTF-FS-SRC"
+#define BT_LOG_TAG "PLUGIN/SRC.CTF.FS"
 #include "logging.h"
 
 static

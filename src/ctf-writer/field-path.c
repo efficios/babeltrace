@@ -25,7 +25,7 @@
  * SOFTWARE.
  */
 
-#define BT_LOG_TAG "CTF-WRITER-FIELD-PATH"
+#define BT_LOG_TAG "CTF-WRITER/FIELD-PATH"
 #include "logging.h"
 
 #include <glib.h>

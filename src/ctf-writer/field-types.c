@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-#define BT_LOG_TAG "CTF-WRITER-FIELD-TYPES"
+#define BT_LOG_TAG "CTF-WRITER/FIELD-TYPES"
 #include "logging.h"
 
 #include <float.h>

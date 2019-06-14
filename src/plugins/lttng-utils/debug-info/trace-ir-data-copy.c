@@ -23,7 +23,7 @@
  * SOFTWARE.
  */
 
-#define BT_LOG_TAG "PLUGIN-LTTNG-UTILS-DEBUG-INFO-TRACE-IR-DATA-COPY"
+#define BT_LOG_TAG "PLUGIN/FLT.LTTNG-UTILS.DEBUG-INFO/TRACE-IR-DATA-COPY"
 #include "logging.h"
 
 #include <inttypes.h>

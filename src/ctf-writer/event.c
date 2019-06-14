@@ -21,7 +21,7 @@
  * SOFTWARE.
  */
 
-#define BT_LOG_TAG "CTF-WRITER-EVENT"
+#define BT_LOG_TAG "CTF-WRITER/EVENT"
 #include "logging.h"
 
 #include <inttypes.h>

@@ -25,7 +25,7 @@
  * SOFTWARE.
  */
 
-#define BT_LOG_TAG "PLUGIN-LTTNG-UTILS-DEBUG-INFO-TRACE-IR-MAPPING"
+#define BT_LOG_TAG "PLUGIN/FLT.LTTNG-UTILS.DEBUG-INFO/TRACE-IR-MAPPING"
 #include "logging.h"
 
 #include <stdbool.h>

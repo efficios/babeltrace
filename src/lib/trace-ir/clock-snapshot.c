@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-#define BT_LOG_TAG "CLOCK-SNAPSHOT"
+#define BT_LOG_TAG "LIB/CLOCK-SNAPSHOT"
 #include "lib/lib-logging.h"
 
 #include "lib/assert-pre.h"

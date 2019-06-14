@@ -21,7 +21,7 @@
  * SOFTWARE.
  */
 
-#define BT_LOG_TAG "PLUGIN-UTILS-TRIMMER-FLT"
+#define BT_LOG_TAG "PLUGIN/FLT.UTILS.TRIMMER"
 #include "logging.h"
 
 #include "compat/utc.h"

@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-#define BT_LOG_TAG "PLUGIN-UTILS-MUXER-FLT"
+#define BT_LOG_TAG "PLUGIN/FLT.UTILS.MUXER"
 #include "logging.h"
 
 #include "common/macros.h"

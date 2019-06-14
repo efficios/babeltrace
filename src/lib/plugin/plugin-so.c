@@ -23,7 +23,7 @@
  * SOFTWARE.
  */
 
-#define BT_LOG_TAG "PLUGIN-SO"
+#define BT_LOG_TAG "LIB/PLUGIN-SO"
 #include "lib/lib-logging.h"
 
 #include "common/assert.h"

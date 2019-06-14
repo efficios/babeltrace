@@ -21,7 +21,7 @@
  * SOFTWARE.
  */
 
-#define BT_LOG_TAG "PLUGIN-TEXT-DMESG-SRC"
+#define BT_LOG_TAG "PLUGIN/SRC.TEXT.DMESG"
 #include "logging.h"
 
 #include <stdbool.h>

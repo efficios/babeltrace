@@ -24,7 +24,7 @@
  * SOFTWARE.
  */
 
-#define BT_LOG_TAG "CTF-WRITER-VALIDATION"
+#define BT_LOG_TAG "CTF-WRITER/VALIDATION"
 #include "logging.h"
 
 #include <babeltrace2/ctf-writer/object.h>

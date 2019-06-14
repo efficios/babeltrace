@@ -21,7 +21,7 @@
  * SOFTWARE.
  */
 
-#define BT_LOG_TAG "MSG"
+#define BT_LOG_TAG "LIB/MSG"
 #include "lib/lib-logging.h"
 
 #include "common/assert.h"

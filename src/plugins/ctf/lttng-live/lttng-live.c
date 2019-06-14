@@ -28,7 +28,7 @@
  * SOFTWARE.
  */
 
-#define BT_LOG_TAG "PLUGIN-CTF-LTTNG-LIVE-SRC"
+#define BT_LOG_TAG "PLUGIN/SRC.CTF.LTTNG-LIVE"
 #include "logging.h"
 
 #include <glib.h>

@@ -21,7 +21,7 @@
  * SOFTWARE.
  */
 
-#define BT_LOG_TAG "COMP-CLASS"
+#define BT_LOG_TAG "LIB/COMPONENT-CLASS"
 #include "lib/lib-logging.h"
 
 #include "common/assert.h"

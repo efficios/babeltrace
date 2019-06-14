@@ -23,7 +23,7 @@
  * SOFTWARE.
  */
 
-#define BT_LOG_TAG "PLUGIN-TEXT-PRETTY-SINK"
+#define BT_LOG_TAG "PLUGIN/SINK.TEXT.PRETTY"
 #include "logging.h"
 
 #include <babeltrace2/babeltrace.h>

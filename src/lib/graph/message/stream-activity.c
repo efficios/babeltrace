@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-#define BT_LOG_TAG "MSG-STREAM-ACTIVITY"
+#define BT_LOG_TAG "LIB/MSG-STREAM-ACTIVITY"
 #include "lib/lib-logging.h"
 
 #include "lib/assert-pre.h"

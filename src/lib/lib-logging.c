@@ -20,7 +20,11 @@
  * SOFTWARE.
  */
 
-#define BT_LOG_TAG "LIB-LOGGING"
+/*
+ * This is just to satisfy the preprocessor check in "lib/logging.h":
+ * this file does not log anything.
+ */
+#define BT_LOG_TAG ""
 
 #include <stdarg.h>
 #include <stdio.h>

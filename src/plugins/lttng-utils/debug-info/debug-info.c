@@ -26,7 +26,7 @@
  * SOFTWARE.
  */
 
-#define BT_LOG_TAG "PLUGIN-CTF-LTTNG-UTILS-DEBUG-INFO-FLT"
+#define BT_LOG_TAG "PLUGIN/FLT.LTTNG-UTILS.DEBUG-INFO"
 #include "logging.h"
 
 #include <glib.h>

@@ -24,7 +24,7 @@
  * SOFTWARE.
  */
 
-#define BT_LOG_TAG "PLUGIN-CTF-METADATA-OBJSTACK"
+#define BT_LOG_TAG "PLUGIN/CTF/META/OBJSTACK"
 #include "logging.h"
 
 #include <stdlib.h>
