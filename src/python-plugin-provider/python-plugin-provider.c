@@ -402,14 +402,15 @@ bt_plugin_set *bt_plugin_python_create_all_from_file(const char *path)
 		goto error;
 	}
 
-	BT_LOGD("Creating all Python plugins from file: path=\"%s\"", path);
+	BT_LOGI("Trying to create all Python plugins from file: path=\"%s\"",
+		path);
 	path_len = strlen(path);
 
 	/* File name ends with `.py` */
 	if (strncmp(path + path_len - PYTHON_PLUGIN_FILE_EXT_LEN,
 			PYTHON_PLUGIN_FILE_EXT,
 			PYTHON_PLUGIN_FILE_EXT_LEN) != 0) {
-		BT_LOGD("Skipping non-Python file: path=\"%s\"", path);
+		BT_LOGI("Skipping non-Python file: path=\"%s\"", path);
 		goto error;
 	}
 
@@ -422,7 +423,7 @@ bt_plugin_set *bt_plugin_python_create_all_from_file(const char *path)
 
 	if (strncmp(basename, PYTHON_PLUGIN_FILE_PREFIX,
 			PYTHON_PLUGIN_FILE_PREFIX_LEN) != 0) {
-		BT_LOGD("Skipping Python file not starting with `%s`: "
+		BT_LOGI("Skipping Python file not starting with `%s`: "
 			"path=\"%s\"", PYTHON_PLUGIN_FILE_PREFIX, path);
 		goto error;
 	}

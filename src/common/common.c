@@ -169,8 +169,8 @@ char *bt_common_get_home_plugin_path(void)
 	length = strlen(home_dir) + strlen(HOME_PLUGIN_SUBPATH) + 1;
 
 	if (length >= PATH_MAX) {
-		BT_LOGW("Home directory path is too long: length=%zu",
-			length);
+		BT_LOGW("Home directory path is too long: "
+			"length=%zu, max-length=%u", length, PATH_MAX);
 		goto end;
 	}
 

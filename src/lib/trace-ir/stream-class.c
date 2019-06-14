@@ -214,7 +214,7 @@ enum bt_stream_class_status bt_stream_class_set_name(
 	BT_ASSERT_PRE_STREAM_CLASS_HOT(stream_class);
 	g_string_assign(stream_class->name.str, name);
 	stream_class->name.value = stream_class->name.str->str;
-	BT_LIB_LOGV("Set stream class's name: %!+S", stream_class);
+	BT_LIB_LOGD("Set stream class's name: %!+S", stream_class);
 	return BT_STREAM_CLASS_STATUS_OK;
 }
 
@@ -328,7 +328,7 @@ enum bt_stream_class_status bt_stream_class_set_packet_context_field_class(
 	stream_class->packet_context_fc = field_class;
 	bt_object_get_no_null_check(stream_class->packet_context_fc);
 	bt_field_class_freeze(field_class);
-	BT_LIB_LOGV("Set stream class's packet context field class: %!+S",
+	BT_LIB_LOGD("Set stream class's packet context field class: %!+S",
 		stream_class);
 
 end:
@@ -388,7 +388,7 @@ bt_stream_class_set_event_common_context_field_class(
 	stream_class->event_common_context_fc = field_class;
 	bt_object_get_no_null_check(stream_class->event_common_context_fc);
 	bt_field_class_freeze(field_class);
-	BT_LIB_LOGV("Set stream class's event common context field class: %!+S",
+	BT_LIB_LOGD("Set stream class's event common context field class: %!+S",
 		stream_class);
 
 end:
@@ -415,7 +415,7 @@ enum bt_stream_class_status bt_stream_class_set_default_clock_class(
 	stream_class->default_clock_class = clock_class;
 	bt_object_get_no_null_check(stream_class->default_clock_class);
 	bt_clock_class_freeze(clock_class);
-	BT_LIB_LOGV("Set stream class's default clock class: %!+S",
+	BT_LIB_LOGD("Set stream class's default clock class: %!+S",
 		stream_class);
 	return BT_STREAM_CLASS_STATUS_OK;
 }
@@ -448,7 +448,7 @@ void bt_stream_class_set_assigns_automatic_event_class_id(
 	BT_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
 	BT_ASSERT_PRE_STREAM_CLASS_HOT(stream_class);
 	stream_class->assigns_automatic_event_class_id = (bool) value;
-	BT_LIB_LOGV("Set stream class's automatic event class ID "
+	BT_LIB_LOGD("Set stream class's automatic event class ID "
 		"assignment property: %!+S", stream_class);
 }
 
@@ -468,7 +468,7 @@ void bt_stream_class_set_packets_have_beginning_default_clock_snapshot(
 		"Stream class has no default clock class: %!+S", stream_class);
 	stream_class->packets_have_beginning_default_clock_snapshot =
 		(bool) value;
-	BT_LIB_LOGV("Set stream class's \"packets have default beginning "
+	BT_LIB_LOGD("Set stream class's \"packets have default beginning "
 		"clock snapshot\" property: %!+S", stream_class);
 }
 
@@ -488,7 +488,7 @@ void bt_stream_class_set_packets_have_end_default_clock_snapshot(
 		"Stream class has no default clock class: %!+S", stream_class);
 	stream_class->packets_have_end_default_clock_snapshot =
 		(bool) value;
-	BT_LIB_LOGV("Set stream class's \"packets have default end "
+	BT_LIB_LOGD("Set stream class's \"packets have default end "
 		"clock snapshot\" property: %!+S", stream_class);
 }
 
@@ -517,7 +517,7 @@ void bt_stream_class_set_supports_discarded_events(
 		(bool) supports_discarded_events;
 	stream_class->discarded_events_have_default_clock_snapshots =
 		(bool) with_default_clock_snapshots;
-	BT_LIB_LOGV("Set stream class's discarded events support property: "
+	BT_LIB_LOGD("Set stream class's discarded events support property: "
 		"%!+S", stream_class);
 }
 
@@ -553,7 +553,7 @@ void bt_stream_class_set_supports_discarded_packets(
 		(bool) supports_discarded_packets;
 	stream_class->discarded_packets_have_default_clock_snapshots =
 		(bool) with_default_clock_snapshots;
-	BT_LIB_LOGV("Set stream class's discarded packets support property: "
+	BT_LIB_LOGD("Set stream class's discarded packets support property: "
 		"%!+S", stream_class);
 }
 
@@ -578,7 +578,7 @@ void bt_stream_class_set_assigns_automatic_stream_id(
 	BT_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
 	BT_ASSERT_PRE_STREAM_CLASS_HOT(stream_class);
 	stream_class->assigns_automatic_stream_id = (bool) value;
-	BT_LIB_LOGV("Set stream class's automatic stream ID "
+	BT_LIB_LOGD("Set stream class's automatic stream ID "
 		"assignment property: %!+S", stream_class);
 }
 

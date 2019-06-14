@@ -75,7 +75,7 @@ void destroy_trace_class(struct bt_object *obj)
 	 */
 	if (tc->destruction_listeners) {
 		uint64_t i;
-		BT_LIB_LOGV("Calling trace class destruction listener(s): %!+T", tc);
+		BT_LIB_LOGD("Calling trace class destruction listener(s): %!+T", tc);
 
 		/*
 		* The trace class' reference count is 0 if we're here. Increment
@@ -195,7 +195,7 @@ enum bt_trace_class_status bt_trace_class_set_name(
 	BT_ASSERT_PRE_TRACE_CLASS_HOT(tc);
 	g_string_assign(tc->name.str, name);
 	tc->name.value = tc->name.str->str;
-	BT_LIB_LOGV("Set trace class's name: %!+T", tc);
+	BT_LIB_LOGD("Set trace class's name: %!+T", tc);
 	return BT_TRACE_CLASS_STATUS_OK;
 }
 
@@ -212,7 +212,7 @@ void bt_trace_class_set_uuid(struct bt_trace_class *tc, bt_uuid uuid)
 	BT_ASSERT_PRE_TRACE_CLASS_HOT(tc);
 	memcpy(tc->uuid.uuid, uuid, BABELTRACE_UUID_LEN);
 	tc->uuid.value = tc->uuid.uuid;
-	BT_LIB_LOGV("Set trace class's UUID: %!+T", tc);
+	BT_LIB_LOGD("Set trace class's UUID: %!+T", tc);
 }
 
 enum bt_trace_class_status bt_trace_class_add_destruction_listener(
@@ -251,7 +251,7 @@ enum bt_trace_class_status bt_trace_class_add_destruction_listener(
 		*listener_id = i;
 	}
 
-	BT_LIB_LOGV("Added trace class destruction listener: %![tc-]+T, "
+	BT_LIB_LOGD("Added trace class destruction listener: %![tc-]+T, "
 			"listener-id=%" PRIu64, tc, i);
 	return BT_TRACE_CLASS_STATUS_OK;
 }
@@ -283,7 +283,7 @@ enum bt_trace_class_status bt_trace_class_remove_destruction_listener(
 
 	elem->func = NULL;
 	elem->data = NULL;
-	BT_LIB_LOGV("Removed trace class destruction listener: "
+	BT_LIB_LOGD("Removed trace class destruction listener: "
 		"%![tc-]+T, listener-id=%" PRIu64,
 		tc, listener_id);
 	return BT_TRACE_CLASS_STATUS_OK;
@@ -320,7 +320,7 @@ enum bt_trace_class_status set_environment_entry(struct bt_trace_class *tc,
 			"%![tc-]+T, entry-name=\"%s\"", tc, name);
 	} else {
 		bt_value_freeze(value);
-		BT_LIB_LOGV("Set trace class's environment entry: "
+		BT_LIB_LOGD("Set trace class's environment entry: "
 			"%![tc-]+T, entry-name=\"%s\"", tc, name);
 	}
 
@@ -477,7 +477,7 @@ void bt_trace_class_set_assigns_automatic_stream_class_id(struct bt_trace_class 
 	BT_ASSERT_PRE_NON_NULL(tc, "Trace class");
 	BT_ASSERT_PRE_TRACE_CLASS_HOT(tc);
 	tc->assigns_automatic_stream_class_id = (bool) value;
-	BT_LIB_LOGV("Set trace class's automatic stream class ID "
+	BT_LIB_LOGD("Set trace class's automatic stream class ID "
 		"assignment property: %!+T", tc);
 }
 

@@ -187,7 +187,7 @@ struct debug_info_source *debug_info_source_create_from_bin(
 		/* Lookup source location */
 		ret = bin_info_lookup_source_location(bin, ip, &src_loc);
 		if (ret) {
-			BT_LOGD("Failed to lookup source location: ret=%d", ret);
+			BT_LOGI("Failed to lookup source location: ret=%d", ret);
 		}
 	}
 
@@ -195,7 +195,7 @@ struct debug_info_source *debug_info_source_create_from_bin(
 		debug_info_src->line_no =
 			g_strdup_printf("%"PRId64, src_loc->line_no);
 		if (!debug_info_src->line_no) {
-			BT_LOGD("Error occured when setting line_no field.");
+			BT_LOGE("Error occured when setting line_no field.");
 			goto error;
 		}
 
@@ -567,7 +567,7 @@ void debug_info_destroy(struct debug_info *debug_info)
 	status = bt_trace_remove_destruction_listener(debug_info->input_trace,
 			debug_info->destruction_listener_id);
 	if (status != BT_TRACE_STATUS_OK) {
-		BT_LOGD("Trace destruction listener removal failed.");
+		BT_LOGE("Trace destruction listener removal failed.");
 	}
 
 	g_free(debug_info);
@@ -1762,7 +1762,7 @@ bt_self_component_status debug_info_comp_init(
 	struct debug_info_component *debug_info_comp;
 	bt_self_component_status status = BT_SELF_COMPONENT_STATUS_OK;
 
-	BT_LOGD("Initializing debug_info component: "
+	BT_LOGI("Initializing debug_info component: "
 		"comp-addr=%p, params-addr=%p", self_comp, params);
 
 	debug_info_comp = g_new0(struct debug_info_component, 1);
@@ -1817,7 +1817,7 @@ void debug_info_comp_finalize(bt_self_component_filter *self_comp)
 		bt_self_component_get_data(
 				bt_self_component_filter_as_self_component(
 					self_comp));
-	BT_LOGD("Finalizing debug_info self_component: comp-addr=%p",
+	BT_LOGI("Finalizing debug_info self_component: comp-addr=%p",
 		self_comp);
 
 	destroy_debug_info_comp(debug_info);

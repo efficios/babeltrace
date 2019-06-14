@@ -169,13 +169,13 @@ struct bt_fd_cache_handle *bt_fd_cache_get_handle(struct bt_fd_cache *fdc,
 
 		fd_internal = g_new0(struct fd_handle_internal, 1);
 		if (!fd_internal) {
-			BT_LOGE("Failed to allocate fd internal handle");
+			BT_LOGE_STR("Failed to allocate internal FD handle.");
 			goto error;
 		}
 
 		file_key = g_new0(struct file_key, 1);
 		if (!fd_internal) {
-			BT_LOGE("Failed to allocate file key");
+			BT_LOGE_STR("Failed to allocate file key.");
 			goto error;
 		}
 
@@ -233,7 +233,7 @@ void bt_fd_cache_put_handle(struct bt_fd_cache *fdc,
 
 		close_ret = close(fd_internal->fd_handle.fd);
 		if (close_ret == -1) {
-			BT_LOGW_ERRNO("Failed to close file descriptor",
+			BT_LOGE_ERRNO("Failed to close file descriptor",
 				": fd=%d", fd_internal->fd_handle.fd);
 		}
 		ret = g_hash_table_remove(fdc->cache, fd_internal->key);

@@ -97,7 +97,7 @@ static
 void set_signal_handler(void)
 {
 	if (!SetConsoleCtrlHandler(signal_handler, TRUE)) {
-		BT_LOGE("Failed to set the ctrl+c handler.");
+		BT_LOGE("Failed to set the Ctrl+C handler.");
 	}
 }
 
@@ -209,7 +209,7 @@ int query(const bt_component_class *comp_cls, const char *obj,
 			const uint64_t sleep_time_us = 100000;
 
 			/* Wait 100 ms and retry */
-			BT_LOGV("Got BT_QUERY_EXECUTOR_STATUS_AGAIN: sleeping: "
+			BT_LOGD("Got BT_QUERY_EXECUTOR_STATUS_AGAIN: sleeping: "
 				"time-us=%" PRIu64, sleep_time_us);
 
 			if (usleep(sleep_time_us)) {
@@ -270,7 +270,7 @@ const bt_plugin *find_plugin(const char *name)
 	const bt_plugin *plugin = NULL;
 
 	BT_ASSERT(name);
-	BT_LOGD("Finding plugin: name=\"%s\"", name);
+	BT_LOGI("Finding plugin: name=\"%s\"", name);
 
 	for (i = 0; i < loaded_plugins->len; i++) {
 		plugin = g_ptr_array_index(loaded_plugins, i);
@@ -282,12 +282,11 @@ const bt_plugin *find_plugin(const char *name)
 		plugin = NULL;
 	}
 
-	if (BT_LOG_ON_DEBUG) {
-		if (plugin) {
-			BT_LOGD("Found plugin: plugin-addr=%p", plugin);
-		} else {
-			BT_LOGD("Cannot find plugin.");
-		}
+	if (plugin) {
+		BT_LOGI("Found plugin: name=\"%s\", plugin-addr=%p",
+			name, plugin);
+	} else {
+		BT_LOGI("Cannot find plugin: name=\"%s\"", name);
 	}
 
 	bt_plugin_get_ref(plugin);
@@ -305,7 +304,7 @@ const void *find_component_class_from_plugin(const char *plugin_name,
 	const void *comp_class = NULL;
 	const bt_plugin *plugin;
 
-	BT_LOGD("Finding component class: plugin-name=\"%s\", "
+	BT_LOGI("Finding component class: plugin-name=\"%s\", "
 		"comp-cls-name=\"%s\"", plugin_name, comp_class_name);
 
 	plugin = find_plugin(plugin_name);
@@ -318,13 +317,13 @@ const void *find_component_class_from_plugin(const char *plugin_name,
 	BT_PLUGIN_PUT_REF_AND_RESET(plugin);
 
 end:
-	if (BT_LOG_ON_DEBUG) {
-		if (comp_class) {
-			BT_LOGD("Found component class: comp-cls-addr=%p",
-				comp_class);
-		} else {
-			BT_LOGD("Cannot find source component class.");
-		}
+	if (comp_class) {
+		BT_LOGI("Found component class: plugin-name=\"%s\", "
+			"comp-cls-name=\"%s\"", plugin_name, comp_class_name);
+	} else {
+		BT_LOGI("Cannot find source component class: "
+			"plugin-name=\"%s\", comp-cls-name=\"%s\"",
+			plugin_name, comp_class_name);
 	}
 
 	return comp_class;
@@ -735,9 +734,9 @@ void print_cfg(struct bt_config *cfg)
 		return;
 	}
 
-	BT_LOGI_STR("Configuration:");
-	fprintf(stderr, "  Debug mode: %s\n", cfg->debug ? "yes" : "no");
-	fprintf(stderr, "  Verbose mode: %s\n", cfg->verbose ? "yes" : "no");
+	BT_LOGI_STR("CLI configuration:");
+	BT_LOGI("  Debug mode: %s\n", cfg->debug ? "yes" : "no");
+	BT_LOGI("  Verbose mode: %s\n", cfg->verbose ? "yes" : "no");
 
 	switch (cfg->command) {
 	case BT_CONFIG_COMMAND_RUN:
@@ -810,7 +809,7 @@ int load_dynamic_plugins(const bt_value *plugin_paths)
 		goto end;
 	}
 
-	BT_LOGI("Loading dynamic plugins.");
+	BT_LOGI_STR("Loading dynamic plugins.");
 
 	for (i = 0; i < nr_paths; i++) {
 		const bt_value *plugin_path_value = NULL;
@@ -828,15 +827,15 @@ int load_dynamic_plugins(const bt_value *plugin_paths)
 		 * directory.
 		 */
 		if (!g_file_test(plugin_path, G_FILE_TEST_IS_DIR)) {
-			BT_LOGV("Skipping nonexistent directory path: "
+			BT_LOGI("Skipping nonexistent directory path: "
 				"path=\"%s\"", plugin_path);
 			continue;
 		}
 
 		plugin_set = bt_plugin_find_all_from_dir(plugin_path, false);
 		if (!plugin_set) {
-			BT_LOGD("Unable to load dynamic plugins: path=\"%s\"",
-				plugin_path);
+			BT_LOGI("Unable to load dynamic plugins from directory: "
+				"path=\"%s\"", plugin_path);
 			continue;
 		}
 
@@ -1735,7 +1734,7 @@ int cmd_run_ctx_connect_upstream_port_to_downstream_component(
 
 		/* Skip port if it's already connected. */
 		if (bt_port_is_connected(downstream_port)) {
-			BT_LOGD("Skipping downstream port: already connected: "
+			BT_LOGI("Skipping downstream port: already connected: "
 				"port-addr=%p, port-name=\"%s\"",
 				downstream_port,
 				bt_port_get_name(downstream_port));
@@ -2297,14 +2296,14 @@ int set_stream_intersections(struct cmd_run_ctx *ctx,
 				stream_infos, stream_idx);
 			if (!stream_info || !bt_value_is_map(stream_info)) {
 				ret = -1;
-				BT_LOGD_STR("Cannot retrieve stream informations from trace in query result.");
+				BT_LOGE_STR("Cannot retrieve stream informations from trace in query result.");
 				goto error;
 			}
 
 			port_name = bt_value_map_borrow_entry_value_const(stream_info, "port-name");
 			if (!port_name || !bt_value_is_string(port_name)) {
 				ret = -1;
-				BT_LOGD_STR("Cannot retrieve port name in query result.");
+				BT_LOGE_STR("Cannot retrieve port name in query result.");
 				goto error;
 			}
 

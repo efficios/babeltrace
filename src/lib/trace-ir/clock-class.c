@@ -144,7 +144,7 @@ enum bt_clock_class_status bt_clock_class_set_name(
 	BT_ASSERT_PRE_CLOCK_CLASS_HOT(clock_class);
 	g_string_assign(clock_class->name.str, name);
 	clock_class->name.value = clock_class->name.str->str;
-	BT_LIB_LOGV("Set clock class's name: %!+K", clock_class);
+	BT_LIB_LOGD("Set clock class's name: %!+K", clock_class);
 	return BT_CLOCK_CLASS_STATUS_OK;
 }
 
@@ -163,7 +163,7 @@ enum bt_clock_class_status bt_clock_class_set_description(
 	BT_ASSERT_PRE_CLOCK_CLASS_HOT(clock_class);
 	g_string_assign(clock_class->description.str, descr);
 	clock_class->description.value = clock_class->description.str->str;
-	BT_LIB_LOGV("Set clock class's description: %!+K",
+	BT_LIB_LOGD("Set clock class's description: %!+K",
 		clock_class);
 	return BT_CLOCK_CLASS_STATUS_OK;
 }
@@ -187,7 +187,7 @@ void bt_clock_class_set_frequency(struct bt_clock_class *clock_class,
 		"%![cc-]+K, new-freq=%" PRIu64, clock_class, frequency);
 	clock_class->frequency = frequency;
 	set_base_offset(clock_class);
-	BT_LIB_LOGV("Set clock class's frequency: %!+K", clock_class);
+	BT_LIB_LOGD("Set clock class's frequency: %!+K", clock_class);
 }
 
 uint64_t bt_clock_class_get_precision(const struct bt_clock_class *clock_class)
@@ -205,7 +205,7 @@ void bt_clock_class_set_precision(struct bt_clock_class *clock_class,
 		"Invalid precision: %![cc-]+K, new-precision=%" PRIu64,
 		clock_class, precision);
 	clock_class->precision = precision;
-	BT_LIB_LOGV("Set clock class's precision: %!+K", clock_class);
+	BT_LIB_LOGD("Set clock class's precision: %!+K", clock_class);
 }
 
 void bt_clock_class_get_offset(const struct bt_clock_class *clock_class,
@@ -229,7 +229,7 @@ void bt_clock_class_set_offset(struct bt_clock_class *clock_class,
 	clock_class->offset_seconds = seconds;
 	clock_class->offset_cycles = cycles;
 	set_base_offset(clock_class);
-	BT_LIB_LOGV("Set clock class's offset: %!+K", clock_class);
+	BT_LIB_LOGD("Set clock class's offset: %!+K", clock_class);
 }
 
 bt_bool bt_clock_class_origin_is_unix_epoch(const struct bt_clock_class *clock_class)
@@ -244,7 +244,7 @@ void bt_clock_class_set_origin_is_unix_epoch(struct bt_clock_class *clock_class,
 	BT_ASSERT_PRE_NON_NULL(clock_class, "Clock class");
 	BT_ASSERT_PRE_CLOCK_CLASS_HOT(clock_class);
 	clock_class->origin_is_unix_epoch = (bool) origin_is_unix_epoch;
-	BT_LIB_LOGV("Set clock class's origin is Unix epoch property: %!+K",
+	BT_LIB_LOGD("Set clock class's origin is Unix epoch property: %!+K",
 		clock_class);
 }
 
@@ -262,7 +262,7 @@ void bt_clock_class_set_uuid(struct bt_clock_class *clock_class,
 	BT_ASSERT_PRE_CLOCK_CLASS_HOT(clock_class);
 	memcpy(clock_class->uuid.uuid, uuid, BABELTRACE_UUID_LEN);
 	clock_class->uuid.value = clock_class->uuid.uuid;
-	BT_LIB_LOGV("Set clock class's UUID: %!+K", clock_class);
+	BT_LIB_LOGD("Set clock class's UUID: %!+K", clock_class);
 }
 
 BT_HIDDEN
@@ -289,7 +289,7 @@ enum bt_clock_class_status bt_clock_class_cycles_to_ns_from_origin(
 	ret = bt_util_ns_from_origin_clock_class(clock_class, cycles, ns);
 	if (ret) {
 		ret = BT_CLOCK_CLASS_STATUS_OVERFLOW;
-		BT_LIB_LOGW("Cannot convert cycles to nanoseconds "
+		BT_LIB_LOGD("Cannot convert cycles to nanoseconds "
 			"from origin for given clock class: "
 			"value overflows the signed 64-bit integer range: "
 			"%![cc-]+K, cycles=%" PRIu64,

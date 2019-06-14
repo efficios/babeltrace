@@ -124,7 +124,7 @@ void bt_plugin_destroy(struct bt_object *obj)
 
 	BT_ASSERT(obj);
 	plugin = container_of(obj, struct bt_plugin, base);
-	BT_LIB_LOGD("Destroying plugin object: %!+l", plugin);
+	BT_LIB_LOGI("Destroying plugin object: %!+l", plugin);
 
 	if (plugin->destroy_spec_data) {
 		plugin->destroy_spec_data(plugin);
@@ -277,7 +277,7 @@ void bt_plugin_set_path(struct bt_plugin *plugin, const char *path)
 	BT_ASSERT(path);
 	g_string_assign(plugin->info.path, path);
 	plugin->info.path_set = BT_TRUE;
-	BT_LIB_LOGV("Set plugin's path: %![plugin-]+l, path=\"%s\"",
+	BT_LIB_LOGD("Set plugin's path: %![plugin-]+l, path=\"%s\"",
 		plugin, path);
 }
 
@@ -288,7 +288,7 @@ void bt_plugin_set_name(struct bt_plugin *plugin, const char *name)
 	BT_ASSERT(name);
 	g_string_assign(plugin->info.name, name);
 	plugin->info.name_set = BT_TRUE;
-	BT_LIB_LOGV("Set plugin's name: %![plugin-]+l, name=\"%s\"",
+	BT_LIB_LOGD("Set plugin's name: %![plugin-]+l, name=\"%s\"",
 		plugin, name);
 }
 
@@ -300,7 +300,7 @@ void bt_plugin_set_description(struct bt_plugin *plugin,
 	BT_ASSERT(description);
 	g_string_assign(plugin->info.description, description);
 	plugin->info.description_set = BT_TRUE;
-	BT_LIB_LOGV("Set plugin's description: %![plugin-]+l", plugin);
+	BT_LIB_LOGD("Set plugin's description: %![plugin-]+l", plugin);
 }
 
 static inline
@@ -310,7 +310,7 @@ void bt_plugin_set_author(struct bt_plugin *plugin, const char *author)
 	BT_ASSERT(author);
 	g_string_assign(plugin->info.author, author);
 	plugin->info.author_set = BT_TRUE;
-	BT_LIB_LOGV("Set plugin's author: %![plugin-]+l, author=\"%s\"",
+	BT_LIB_LOGD("Set plugin's author: %![plugin-]+l, author=\"%s\"",
 		plugin, author);
 }
 
@@ -321,7 +321,7 @@ void bt_plugin_set_license(struct bt_plugin *plugin, const char *license)
 	BT_ASSERT(license);
 	g_string_assign(plugin->info.license, license);
 	plugin->info.license_set = BT_TRUE;
-	BT_LIB_LOGV("Set plugin's path: %![plugin-]+l, license=\"%s\"",
+	BT_LIB_LOGD("Set plugin's path: %![plugin-]+l, license=\"%s\"",
 		plugin, license);
 }
 
@@ -339,7 +339,7 @@ void bt_plugin_set_version(struct bt_plugin *plugin, unsigned int major,
 	}
 
 	plugin->info.version_set = BT_TRUE;
-	BT_LIB_LOGV("Set plugin's version: %![plugin-]+l, "
+	BT_LIB_LOGD("Set plugin's version: %![plugin-]+l, "
 		"major=%u, minor=%u, patch=%u, extra=\"%s\"",
 		plugin, major, minor, patch, extra);
 }
@@ -435,7 +435,7 @@ void bt_plugin_set_add_plugin(struct bt_plugin_set *plugin_set,
 	BT_ASSERT(plugin);
 	bt_object_get_ref(plugin);
 	g_ptr_array_add(plugin_set->plugins, plugin);
-	BT_LIB_LOGV("Added plugin to plugin set: "
+	BT_LIB_LOGD("Added plugin to plugin set: "
 		"plugin-set-addr=%p, %![plugin-]+l",
 		plugin_set, plugin);
 }

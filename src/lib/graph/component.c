@@ -100,7 +100,7 @@ void finalize_component(struct bt_component *comp)
 	}
 
 	if (method) {
-		BT_LIB_LOGD("Calling user's finalization method: "
+		BT_LIB_LOGI("Calling user's component finalization method: "
 			"%![comp-]+c", comp);
 		method(comp);
 	}
@@ -128,7 +128,7 @@ void destroy_component(struct bt_object *obj)
 	 */
 	obj->ref_count++;
 	component = container_of(obj, struct bt_component, base);
-	BT_LIB_LOGD("Destroying component: %![comp-]+c, %![graph-]+g",
+	BT_LIB_LOGI("Destroying component: %![comp-]+c, %![graph-]+g",
 		component, bt_component_borrow_graph(component));
 
 	/* Call destroy listeners in reverse registration order */
@@ -214,7 +214,7 @@ enum bt_self_component_status add_port(
 
 	// TODO: Validate that the name is not already used.
 
-	BT_LIB_LOGD("Adding port to component: %![comp-]+c, "
+	BT_LIB_LOGI("Adding port to component: %![comp-]+c, "
 		"port-type=%s, port-name=\"%s\"", component,
 		bt_port_type_string(port_type), name);
 
@@ -248,7 +248,7 @@ enum bt_self_component_status add_port(
 		}
 	}
 
-	BT_LIB_LOGD("Created and added port to component: "
+	BT_LIB_LOGI("Created and added port to component: "
 		"%![comp-]+c, %![port-]+p", component, new_port);
 
 	*port = new_port;
@@ -292,7 +292,7 @@ int bt_component_create(struct bt_component_class *component_class,
 	BT_ASSERT(component_class);
 	BT_ASSERT(name);
 	type = bt_component_class_get_type(component_class);
-	BT_LIB_LOGD("Creating empty component from component class: %![cc-]+C, "
+	BT_LIB_LOGI("Creating empty component from component class: %![cc-]+C, "
 		"comp-name=\"%s\"", component_class, name);
 	component = component_create_funcs[type](component_class);
 	if (!component) {
@@ -336,7 +336,7 @@ int bt_component_create(struct bt_component_class *component_class,
 		goto end;
 	}
 
-	BT_LIB_LOGD("Created empty component from component class: "
+	BT_LIB_LOGI("Created empty component from component class: "
 		"%![cc-]+C, %![comp-]+c", component_class, component);
 	BT_OBJECT_MOVE_REF(*user_component, component);
 
@@ -373,7 +373,7 @@ void bt_self_component_set_data(struct bt_self_component *self_comp,
 
 	BT_ASSERT_PRE_NON_NULL(component, "Component");
 	component->user_data = data;
-	BT_LIB_LOGV("Set component's user data: %!+c", component);
+	BT_LIB_LOGD("Set component's user data: %!+c", component);
 }
 
 BT_HIDDEN
@@ -645,7 +645,7 @@ void bt_component_add_destroy_listener(struct bt_component *component,
 	listener.func = func;
 	listener.data = data;
 	g_array_append_val(component->destroy_listeners, listener);
-	BT_LIB_LOGV("Added destroy listener: %![comp-]+c, "
+	BT_LIB_LOGD("Added destroy listener: %![comp-]+c, "
 		"func-addr=%p, data-addr=%p",
 		component, func, data);
 }
@@ -667,7 +667,7 @@ void bt_component_remove_destroy_listener(struct bt_component *component,
 		if (listener->func == func && listener->data == data) {
 			g_array_remove_index(component->destroy_listeners, i);
 			i--;
-			BT_LIB_LOGV("Removed destroy listener: %![comp-]+c, "
+			BT_LIB_LOGD("Removed destroy listener: %![comp-]+c, "
 				"func-addr=%p, data-addr=%p",
 				component, func, data);
 		}

@@ -44,7 +44,7 @@ void destroy_connection(struct bt_object *obj)
 	struct bt_connection *connection = container_of(obj,
 			struct bt_connection, base);
 
-	BT_LIB_LOGD("Destroying connection: %!+x", connection);
+	BT_LIB_LOGI("Destroying connection: %!+x", connection);
 
 	/*
 	 * Make sure that each message iterator which was created for
@@ -120,7 +120,7 @@ struct bt_connection *bt_connection_create(struct bt_graph *graph,
 {
 	struct bt_connection *connection = NULL;
 
-	BT_LIB_LOGD("Creating connection: "
+	BT_LIB_LOGI("Creating connection: "
 		"%![graph-]+g, %![up-port-]+p, %![down-port-]+p",
 		graph, upstream_port, downstream_port);
 	connection = g_new0(struct bt_connection, 1);
@@ -149,7 +149,7 @@ struct bt_connection *bt_connection_create(struct bt_graph *graph,
 		downstream_port);
 	bt_port_set_connection(downstream_port, connection);
 	bt_object_set_parent(&connection->base, &graph->base);
-	BT_LIB_LOGD("Created connection: %!+x", connection);
+	BT_LIB_LOGI("Created connection: %!+x", connection);
 
 end:
 	return connection;
@@ -162,7 +162,7 @@ void bt_connection_end(struct bt_connection *conn, bool try_remove_from_graph)
 	struct bt_port *upstream_port = conn->upstream_port;
 	size_t i;
 
-	BT_LIB_LOGD("Ending connection: %!+x, try-remove-from-graph=%d",
+	BT_LIB_LOGI("Ending connection: %!+x, try-remove-from-graph=%d",
 		conn, try_remove_from_graph);
 
 	/*
@@ -247,7 +247,7 @@ void bt_connection_remove_iterator(struct bt_connection *conn,
 		struct bt_self_component_port_input_message_iterator *iterator)
 {
 	g_ptr_array_remove(conn->iterators, iterator);
-	BT_LIB_LOGV("Removed message iterator from connection: "
+	BT_LIB_LOGD("Removed message iterator from connection: "
 		"%![conn-]+x, %![iter-]+i", conn, iterator);
 	try_remove_connection_from_graph(conn);
 }

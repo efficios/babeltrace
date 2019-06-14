@@ -157,7 +157,7 @@ void copy_field_content(const bt_field *in_field, bt_field *out_field)
 	out_fc_type = bt_field_get_class_type(out_field);
 	BT_ASSERT(in_fc_type == out_fc_type);
 
-	BT_LOGD("Copying content of field: in-f-addr=%p, out-f-addr=%p",
+	BT_LOGV("Copying content of field: in-f-addr=%p, out-f-addr=%p",
 			in_field, out_field);
 	switch (in_fc_type) {
 	case BT_FIELD_CLASS_TYPE_UNSIGNED_INTEGER:
@@ -282,6 +282,6 @@ void copy_field_content(const bt_field *in_field, bt_field *out_field)
 	default:
 		abort();
 	}
-	BT_LOGD("Copied content of field: in-f-addr=%p, out-f-addr=%p",
+	BT_LOGV("Copied content of field: in-f-addr=%p, out-f-addr=%p",
 			in_field, out_field);
 }

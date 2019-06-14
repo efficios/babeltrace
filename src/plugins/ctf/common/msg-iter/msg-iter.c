@@ -458,12 +458,12 @@ enum bt_msg_iter_status request_medium_bytes(
 	size_t buffer_sz = 0;
 	enum bt_msg_iter_medium_status m_status;
 
-	BT_LOGV("Calling user function (request bytes): notit-addr=%p, "
+	BT_LOGD("Calling user function (request bytes): notit-addr=%p, "
 		"request-size=%zu", notit, notit->medium.max_request_sz);
 	m_status = notit->medium.medops.request_bytes(
 		notit->medium.max_request_sz, &buffer_addr,
 		&buffer_sz, notit->medium.data);
-	BT_LOGV("User function returned: status=%s, buf-addr=%p, buf-size=%zu",
+	BT_LOGD("User function returned: status=%s, buf-addr=%p, buf-size=%zu",
 		bt_msg_iter_medium_status_string(m_status),
 		buffer_addr, buffer_sz);
 	if (m_status == BT_MSG_ITER_MEDIUM_STATUS_OK) {
@@ -482,11 +482,11 @@ enum bt_msg_iter_status request_medium_bytes(
 		/* New medium buffer address */
 		notit->buf.addr = buffer_addr;
 
-		BT_LOGV("User function returned new bytes: "
+		BT_LOGD("User function returned new bytes: "
 			"packet-offset=%zu, cur=%zu, size=%zu, addr=%p",
 			notit->buf.packet_offset, notit->buf.at,
 			notit->buf.sz, notit->buf.addr);
-		BT_LOGV_MEM(buffer_addr, buffer_sz, "Returned bytes at %p:",
+		BT_LOGD_MEM(buffer_addr, buffer_sz, "Returned bytes at %p:",
 			buffer_addr);
 	} else if (m_status == BT_MSG_ITER_MEDIUM_STATUS_EOF) {
 		/*
@@ -705,7 +705,7 @@ enum bt_msg_iter_status read_packet_header_begin_state(
 	notit->cur_stream_class_id = -1;
 	notit->cur_event_class_id = -1;
 	notit->cur_data_stream_id = -1;
-	BT_LOGV("Decoding packet header field:"
+	BT_LOGD("Decoding packet header field:"
 		"notit-addr=%p, trace-class-addr=%p, fc-addr=%p",
 		notit, notit->meta.tc, packet_header_fc);
 	ret = read_dscope_begin_state(notit, packet_header_fc,
@@ -784,7 +784,7 @@ enum bt_msg_iter_status set_current_stream_class(struct bt_msg_iter *notit)
 		notit->meta.sc = new_stream_class;
 	}
 
-	BT_LOGV("Set current stream class: "
+	BT_LOGD("Set current stream class: "
 		"notit-addr=%p, stream-class-addr=%p, "
 		"stream-class-id=%" PRId64,
 		notit, notit->meta.sc, notit->meta.sc->id);
@@ -799,7 +799,7 @@ enum bt_msg_iter_status set_current_stream(struct bt_msg_iter *notit)
 	enum bt_msg_iter_status status = BT_MSG_ITER_STATUS_OK;
 	bt_stream *stream = NULL;
 
-	BT_LOGV("Calling user function (get stream): notit-addr=%p, "
+	BT_LOGD("Calling user function (get stream): notit-addr=%p, "
 		"stream-class-addr=%p, stream-class-id=%" PRId64,
 		notit, notit->meta.sc,
 		notit->meta.sc->id);
@@ -807,7 +807,7 @@ enum bt_msg_iter_status set_current_stream(struct bt_msg_iter *notit)
 		notit->meta.sc->ir_sc, notit->cur_data_stream_id,
 		notit->medium.data);
 	bt_stream_get_ref(stream);
-	BT_LOGV("User function returned: stream-addr=%p", stream);
+	BT_LOGD("User function returned: stream-addr=%p", stream);
 	if (!stream) {
 		BT_LOGW_STR("User function failed to return a stream object "
 			"for the given stream class.");
@@ -835,9 +835,9 @@ enum bt_msg_iter_status set_current_packet(struct bt_msg_iter *notit)
 	enum bt_msg_iter_status status = BT_MSG_ITER_STATUS_OK;
 	bt_packet *packet = NULL;
 
-	BT_LOGV("Creating packet for packet message: "
+	BT_LOGD("Creating packet for packet message: "
 		"notit-addr=%p", notit);
-	BT_LOGV("Creating packet from stream: "
+	BT_LOGD("Creating packet from stream: "
 		"notit-addr=%p, stream-addr=%p, "
 		"stream-class-addr=%p, "
 		"stream-class-id=%" PRId64,
@@ -895,7 +895,7 @@ enum bt_msg_iter_status read_packet_context_begin_state(
 	BT_ASSERT(notit->meta.sc);
 	packet_context_fc = notit->meta.sc->packet_context_fc;
 	if (!packet_context_fc) {
-		BT_LOGV("No packet packet context field class in stream class: continuing: "
+		BT_LOGD("No packet packet context field class in stream class: continuing: "
 			"notit-addr=%p, stream-class-addr=%p, "
 			"stream-class-id=%" PRId64,
 			notit, notit->meta.sc,
@@ -931,7 +931,7 @@ enum bt_msg_iter_status read_packet_context_begin_state(
 		BT_ASSERT(notit->dscopes.stream_packet_context);
 	}
 
-	BT_LOGV("Decoding packet context field: "
+	BT_LOGD("Decoding packet context field: "
 		"notit-addr=%p, stream-class-addr=%p, "
 		"stream-class-id=%" PRId64 ", fc-addr=%p",
 		notit, notit->meta.sc,
@@ -997,7 +997,7 @@ enum bt_msg_iter_status set_current_packet_content_sizes(
 		goto end;
 	}
 
-	BT_LOGV("Set current packet and content sizes: "
+	BT_LOGD("Set current packet and content sizes: "
 		"notit-addr=%p, packet-size=%" PRIu64 ", content-size=%" PRIu64,
 		notit, notit->cur_exp_packet_total_size,
 		notit->cur_exp_packet_content_size);
@@ -1046,14 +1046,14 @@ enum bt_msg_iter_status read_event_header_begin_state(struct bt_msg_iter *notit)
 		if (G_UNLIKELY(packet_at(notit) ==
 				notit->cur_exp_packet_content_size)) {
 			/* No more events! */
-			BT_LOGV("Reached end of packet: notit-addr=%p, "
+			BT_LOGD("Reached end of packet: notit-addr=%p, "
 				"cur=%zu", notit, packet_at(notit));
 			notit->state = STATE_EMIT_MSG_PACKET_END_MULTI;
 			goto end;
 		} else if (G_UNLIKELY(packet_at(notit) >
 				notit->cur_exp_packet_content_size)) {
 			/* That's not supposed to happen */
-			BT_LOGV("Before decoding event header field: cursor is passed the packet's content: "
+			BT_LOGD("Before decoding event header field: cursor is passed the packet's content: "
 				"notit-addr=%p, content-size=%" PRId64 ", "
 				"cur=%zu", notit,
 				notit->cur_exp_packet_content_size,
@@ -1087,7 +1087,7 @@ enum bt_msg_iter_status read_event_header_begin_state(struct bt_msg_iter *notit)
 		goto end;
 	}
 
-	BT_LOGV("Decoding event header field: "
+	BT_LOGD("Decoding event header field: "
 		"notit-addr=%p, stream-class-addr=%p, "
 		"stream-class-id=%" PRId64 ", "
 		"fc-addr=%p",
@@ -1156,7 +1156,7 @@ enum bt_msg_iter_status set_current_event_class(struct bt_msg_iter *notit)
 	}
 
 	notit->meta.ec = new_event_class;
-	BT_LOGV("Set current event class: "
+	BT_LOGD("Set current event class: "
 		"notit-addr=%p, event-class-addr=%p, "
 		"event-class-id=%" PRId64 ", "
 		"event-class-name=\"%s\"",
@@ -1176,7 +1176,7 @@ enum bt_msg_iter_status set_current_event_message(
 
 	BT_ASSERT(notit->meta.ec);
 	BT_ASSERT(notit->packet);
-	BT_LOGV("Creating event message from event class and packet: "
+	BT_LOGD("Creating event message from event class and packet: "
 		"notit-addr=%p, ec-addr=%p, ec-name=\"%s\", packet-addr=%p",
 		notit, notit->meta.ec,
 		notit->meta.ec->name->str,
@@ -1417,7 +1417,7 @@ enum bt_msg_iter_status skip_packet_padding_state(struct bt_msg_iter *notit)
 	} else {
 		size_t bits_to_consume;
 
-		BT_LOGV("Trying to skip %zu bits of padding: notit-addr=%p, size=%zu",
+		BT_LOGD("Trying to skip %zu bits of padding: notit-addr=%p, size=%zu",
 			bits_to_skip, notit, bits_to_skip);
 		status = buf_ensure_available_bits(notit);
 		if (status != BT_MSG_ITER_STATUS_OK) {
@@ -1425,7 +1425,7 @@ enum bt_msg_iter_status skip_packet_padding_state(struct bt_msg_iter *notit)
 		}
 
 		bits_to_consume = MIN(buf_available_bits(notit), bits_to_skip);
-		BT_LOGV("Skipping %zu bits of padding: notit-addr=%p, size=%zu",
+		BT_LOGD("Skipping %zu bits of padding: notit-addr=%p, size=%zu",
 			bits_to_consume, notit, bits_to_consume);
 		buf_consume_bits(notit, bits_to_consume);
 		bits_to_skip = notit->cur_exp_packet_total_size -
@@ -1668,7 +1668,7 @@ enum bt_msg_iter_status handle_state(struct bt_msg_iter *notit)
 	case STATE_DONE:
 		break;
 	default:
-		BT_LOGD("Unknown CTF plugin message iterator state: "
+		BT_LOGF("Unknown CTF plugin message iterator state: "
 			"notit-addr=%p, state=%d", notit, notit->state);
 		abort();
 	}
@@ -1748,7 +1748,7 @@ int bt_msg_iter_switch_packet(struct bt_msg_iter *notit)
 		notit->cur_packet_offset += notit->cur_exp_packet_total_size;
 	}
 
-	BT_LOGV("Switching packet: notit-addr=%p, cur=%zu, "
+	BT_LOGD("Switching packet: notit-addr=%p, cur=%zu, "
 		"packet-offset=%" PRId64, notit, notit->buf.at,
 		notit->cur_packet_offset);
 	stack_clear(notit->stack);
@@ -1777,7 +1777,7 @@ int bt_msg_iter_switch_packet(struct bt_msg_iter *notit)
 		notit->buf.sz -= consumed_bytes;
 		notit->buf.at = 0;
 		notit->buf.packet_offset = 0;
-		BT_LOGV("Adjusted buffer: addr=%p, size=%zu",
+		BT_LOGD("Adjusted buffer: addr=%p, size=%zu",
 			notit->buf.addr, notit->buf.sz);
 	}
 
@@ -2784,12 +2784,12 @@ enum bt_msg_iter_status bt_msg_iter_get_next_message(
 	BT_ASSERT(message);
 	notit->msg_iter = msg_iter;
 	notit->set_stream = true;
-	BT_LOGV("Getting next message: notit-addr=%p", notit);
+	BT_LOGD("Getting next message: notit-addr=%p", notit);
 
 	while (true) {
 		status = handle_state(notit);
 		if (G_UNLIKELY(status == BT_MSG_ITER_STATUS_AGAIN)) {
-			BT_LOGV_STR("Medium returned BT_MSG_ITER_STATUS_AGAIN.");
+			BT_LOGD_STR("Medium returned BT_MSG_ITER_STATUS_AGAIN.");
 			goto end;
 		} else if (G_UNLIKELY(status != BT_MSG_ITER_STATUS_OK)) {
 			BT_LOGW("Cannot handle state: notit-addr=%p, state=%s",
@@ -2907,7 +2907,7 @@ enum bt_msg_iter_status read_packet_header_context_fields(
 	while (true) {
 		status = handle_state(notit);
 		if (G_UNLIKELY(status == BT_MSG_ITER_STATUS_AGAIN)) {
-			BT_LOGV_STR("Medium returned BT_MSG_ITER_STATUS_AGAIN.");
+			BT_LOGD_STR("Medium returned BT_MSG_ITER_STATUS_AGAIN.");
 			goto end;
 		} else if (G_UNLIKELY(status != BT_MSG_ITER_STATUS_OK)) {
 			BT_LOGW("Cannot handle state: notit-addr=%p, state=%s",

@@ -63,7 +63,7 @@ int bin_info_init(void)
 	int ret = 0;
 
 	if (elf_version(EV_CURRENT) == EV_NONE) {
-		BT_LOGD("ELF library initialization failed: %s.",
+		BT_LOGI("ELF library initialization failed: %s.",
 			elf_errmsg(-1));
 		ret = -1;
 	}
@@ -163,7 +163,7 @@ int bin_info_set_elf_file(struct bin_info *bin)
 
 	elf_handle = bt_fd_cache_get_handle(bin->fd_cache, bin->elf_path);
 	if (!elf_handle) {
-		BT_LOGD("Failed to open %s", bin->elf_path);
+		BT_LOGI("Failed to open %s", bin->elf_path);
 		goto error;
 	}
 	bin->elf_handle = elf_handle;
@@ -378,7 +378,7 @@ int bin_info_set_build_id(struct bin_info *bin, uint8_t *build_id,
 	 */
 	bin->file_build_id_matches = is_build_id_matching(bin);
 	if (!bin->file_build_id_matches) {
-		BT_LOGD_STR("Supplied Build ID does not match Build ID of the "
+		BT_LOGI_STR("Supplied Build ID does not match Build ID of the "
 				"binary or library found on the file system.");
 		goto error;
 	}
@@ -1115,7 +1115,7 @@ int bin_info_lookup_function_name(struct bin_info *bin,
 	if (!bin->dwarf_info && !bin->is_elf_only) {
 		ret = bin_info_set_dwarf_info(bin);
 		if (ret) {
-			BT_LOGD_STR("Failed to set bin dwarf info, falling "
+			BT_LOGI_STR("Failed to set bin dwarf info, falling "
 					"back to ELF lookup.");
 			/* Failed to set DWARF info, fallback to ELF. */
 			bin->is_elf_only = true;
@@ -1138,14 +1138,14 @@ int bin_info_lookup_function_name(struct bin_info *bin,
 		ret = bin_info_lookup_elf_function_name(bin, addr,
 				&_func_name);
 		if (ret) {
-			BT_LOGD("Failed to lookup function name (ELF): "
+			BT_LOGI("Failed to lookup function name (ELF): "
 				"ret=%d", ret);
 		}
 	} else {
 		ret = bin_info_lookup_dwarf_function_name(bin, addr,
 				&_func_name);
 		if (ret) {
-			BT_LOGD("Failed to lookup function name (DWARF): "
+			BT_LOGI("Failed to lookup function name (DWARF): "
 				"ret=%d", ret);
 		}
 	}

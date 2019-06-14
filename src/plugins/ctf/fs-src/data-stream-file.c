@@ -287,11 +287,11 @@ struct ctf_fs_ds_index *build_index_from_idx_file(
 	struct ctf_stream_class *sc;
 	struct bt_msg_iter_packet_properties props;
 
-	BT_LOGD("Building index from .idx file of stream file %s",
+	BT_LOGI("Building index from .idx file of stream file %s",
 			ds_file->file->path->str);
 	ret = bt_msg_iter_get_packet_properties(ds_file->msg_iter, &props);
 	if (ret) {
-		BT_LOGD_STR("Cannot read first packet's header and context fields.");
+		BT_LOGI_STR("Cannot read first packet's header and context fields.");
 		goto error;
 	}
 
@@ -299,7 +299,7 @@ struct ctf_fs_ds_index *build_index_from_idx_file(
 		props.stream_class_id);
 	BT_ASSERT(sc);
 	if (!sc->default_clock_class) {
-		BT_LOGD_STR("Cannot find stream class's default clock class.");
+		BT_LOGI_STR("Cannot find stream class's default clock class.");
 		goto error;
 	}
 
@@ -413,14 +413,14 @@ struct ctf_fs_ds_index *build_index_from_idx_file(
 				index_entry->timestamp_begin,
 				&index_entry->timestamp_begin_ns);
 		if (ret) {
-			BT_LOGD_STR("Failed to convert raw timestamp to nanoseconds since Epoch during index parsing");
+			BT_LOGI_STR("Failed to convert raw timestamp to nanoseconds since Epoch during index parsing");
 			goto error;
 		}
 		ret = convert_cycles_to_ns(sc->default_clock_class,
 				index_entry->timestamp_end,
 				&index_entry->timestamp_end_ns);
 		if (ret) {
-			BT_LOGD_STR("Failed to convert raw timestamp to nanoseconds since Epoch during LTTng trace index parsing");
+			BT_LOGI_STR("Failed to convert raw timestamp to nanoseconds since Epoch during LTTng trace index parsing");
 			goto error;
 		}
 
@@ -478,7 +478,7 @@ int init_index_entry(struct ctf_fs_ds_index_entry *entry,
 					   props->snapshots.beginning_clock,
 					   &entry->timestamp_begin_ns);
 		if (ret) {
-			BT_LOGD_STR("Failed to convert raw timestamp to nanoseconds since Epoch.");
+			BT_LOGI_STR("Failed to convert raw timestamp to nanoseconds since Epoch.");
 			goto end;
 		}
 	} else {
@@ -490,7 +490,7 @@ int init_index_entry(struct ctf_fs_ds_index_entry *entry,
 					   props->snapshots.end_clock,
 					   &entry->timestamp_end_ns);
 		if (ret) {
-			BT_LOGD_STR("Failed to convert raw timestamp to nanoseconds since Epoch.");
+			BT_LOGI_STR("Failed to convert raw timestamp to nanoseconds since Epoch.");
 			goto end;
 		}
 	} else {
@@ -510,7 +510,7 @@ struct ctf_fs_ds_index *build_index_from_stream_file(
 	enum bt_msg_iter_status iter_status = BT_MSG_ITER_STATUS_OK;
 	off_t current_packet_offset_bytes = 0;
 
-	BT_LOGD("Indexing stream file %s", ds_file->file->path->str);
+	BT_LOGI("Indexing stream file %s", ds_file->file->path->str);
 
 	index = ctf_fs_ds_index_create();
 	if (!index) {
@@ -660,7 +660,7 @@ struct ctf_fs_ds_index *ctf_fs_ds_file_build_index(
 		goto end;
 	}
 
-	BT_LOGD("Failed to build index from .index file; "
+	BT_LOGI("Failed to build index from .index file; "
 		"falling back to stream indexing.");
 	index = build_index_from_stream_file(ds_file);
 end:

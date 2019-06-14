@@ -77,7 +77,7 @@ void destroy_trace(struct bt_object *obj)
 	 */
 	if (trace->destruction_listeners) {
 		uint64_t i;
-		BT_LIB_LOGV("Calling trace destruction listener(s): %!+t", trace);
+		BT_LIB_LOGD("Calling trace destruction listener(s): %!+t", trace);
 
 		/*
 		* The trace's reference count is 0 if we're here. Increment
@@ -198,7 +198,7 @@ enum bt_trace_status bt_trace_set_name(struct bt_trace *trace, const char *name)
 	BT_ASSERT_PRE_TRACE_HOT(trace);
 	g_string_assign(trace->name.str, name);
 	trace->name.value = trace->name.str->str;
-	BT_LIB_LOGV("Set trace's name: %!+t", trace);
+	BT_LIB_LOGD("Set trace's name: %!+t", trace);
 	return BT_TRACE_STATUS_OK;
 }
 
@@ -286,7 +286,7 @@ enum bt_trace_status bt_trace_add_destruction_listener(
 		*listener_id = i;
 	}
 
-	BT_LIB_LOGV("Added destruction listener: " "%![trace-]+t, "
+	BT_LIB_LOGD("Added destruction listener: " "%![trace-]+t, "
 			"listener-id=%" PRIu64, trace, i);
 	return BT_TRACE_STATUS_OK;
 }
@@ -318,7 +318,7 @@ enum bt_trace_status bt_trace_remove_destruction_listener(
 
 	elem->func = NULL;
 	elem->data = NULL;
-	BT_LIB_LOGV("Removed \"trace destruction listener: "
+	BT_LIB_LOGD("Removed \"trace destruction listener: "
 		"%![trace-]+t, listener-id=%" PRIu64,
 		trace, listener_id);
 	return BT_TRACE_STATUS_OK;

@@ -41,7 +41,7 @@ void bt_message_message_iterator_inactivity_destroy(struct bt_object *obj)
 			(struct bt_message_message_iterator_inactivity *) obj;
 
 	BT_LIB_LOGD("Destroying message iterator inactivity message: %!+n",
-			message);
+		message);
 
 	if (message->default_cs) {
 		bt_clock_snapshot_recycle(message->default_cs);
@@ -69,7 +69,7 @@ struct bt_message *bt_message_message_iterator_inactivity_create(
 	message = g_new0(struct bt_message_message_iterator_inactivity, 1);
 	if (!message) {
 		BT_LOGE_STR("Failed to allocate one message iterator "
-				"inactivity message.");
+			"inactivity message.");
 		goto error;
 	}
 	bt_message_init(&message->parent,
@@ -84,7 +84,7 @@ struct bt_message *bt_message_message_iterator_inactivity_create(
 	bt_clock_snapshot_set_raw_value(message->default_cs, value_cycles);
 
 	BT_LIB_LOGD("Created message iterator inactivity message object: %!+n",
-			ret_msg);
+		ret_msg);
 	goto end;
 
 error:

@@ -130,7 +130,7 @@ void bt_self_component_port_input_message_iterator_destroy(struct bt_object *obj
 	 */
 	obj->ref_count++;
 	iterator = (void *) obj;
-	BT_LIB_LOGD("Destroying self component input port message iterator object: "
+	BT_LIB_LOGI("Destroying self component input port message iterator object: "
 		"%!+i", iterator);
 	bt_self_component_port_input_message_iterator_try_finalize(iterator);
 
@@ -240,7 +240,7 @@ void bt_self_component_port_input_message_iterator_set_connection(
 {
 	BT_ASSERT(iterator);
 	iterator->connection = connection;
-	BT_LIB_LOGV("Set message iterator's connection: "
+	BT_LIB_LOGI("Set message iterator's connection: "
 		"%![iter-]+i, %![conn-]+x", iterator, connection);
 }
 
@@ -293,7 +293,7 @@ bt_self_component_port_input_message_iterator_create_initial(
 	BT_ASSERT(upstream_comp);
 	BT_ASSERT(upstream_port);
 	BT_ASSERT(bt_port_is_connected(upstream_port));
-	BT_LIB_LOGD("Creating initial message iterator on self component input port: "
+	BT_LIB_LOGI("Creating initial message iterator on self component input port: "
 		"%![up-comp-]+c, %![up-port-]+p", upstream_comp, upstream_port);
 	BT_ASSERT(bt_component_get_class_type(upstream_comp) ==
 		BT_COMPONENT_CLASS_TYPE_SOURCE ||
@@ -393,7 +393,7 @@ bt_self_component_port_input_message_iterator_create_initial(
 				can_seek_beginning_true;
 	}
 
-	BT_LIB_LOGD("Created initial message iterator on self component input port: "
+	BT_LIB_LOGI("Created initial message iterator on self component input port: "
 		"%![up-port-]+p, %![up-comp-]+c, %![iter-]+i",
 		upstream_port, upstream_comp, iterator);
 
@@ -491,7 +491,7 @@ bt_self_component_port_input_message_iterator_create(
 	set_self_comp_port_input_msg_iterator_state(iterator,
 		BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_STATE_ACTIVE);
 	g_ptr_array_add(port->connection->iterators, iterator);
-	BT_LIB_LOGD("Created message iterator on self component input port: "
+	BT_LIB_LOGI("Created message iterator on self component input port: "
 		"%![up-port-]+p, %![up-comp-]+c, %![iter-]+i",
 		upstream_port, upstream_comp, iterator);
 
@@ -517,7 +517,7 @@ void bt_self_message_iterator_set_data(
 
 	BT_ASSERT_PRE_NON_NULL(iterator, "Message iterator");
 	iterator->user_data = data;
-	BT_LIB_LOGV("Set message iterator's user data: "
+	BT_LIB_LOGD("Set message iterator's user data: "
 		"%!+i, user-data-addr=%p", iterator, data);
 }
 
@@ -543,7 +543,8 @@ bt_self_component_port_input_message_iterator_next(
 		"Graph is not configured: %!+g",
 		bt_component_borrow_graph(iterator->upstream_component));
 	BT_LIB_LOGD("Getting next self component input port "
-		"message iterator's messages: %!+i", iterator);
+		"message iterator's messages: %!+i, batch-size=%u",
+		iterator, MSG_BATCH_SIZE);
 
 	/*
 	 * Call the user's "next" method to get the next messages
@@ -551,11 +552,12 @@ bt_self_component_port_input_message_iterator_next(
 	 */
 	BT_ASSERT(iterator->methods.next);
 	BT_LOGD_STR("Calling user's \"next\" method.");
+	*user_count = 0;
 	status = iterator->methods.next(iterator,
 		(void *) iterator->base.msgs->pdata, MSG_BATCH_SIZE,
 		user_count);
-	BT_LOGD("User method returned: status=%s",
-		bt_message_iterator_status_string(status));
+	BT_LOGD("User method returned: status=%s, msg-count=%" PRIu64,
+		bt_message_iterator_status_string(status), *user_count);
 	if (status < 0) {
 		BT_LOGW_STR("User method failed.");
 		goto end;
@@ -678,7 +680,7 @@ void bt_port_output_message_iterator_destroy(struct bt_object *obj)
 {
 	struct bt_port_output_message_iterator *iterator = (void *) obj;
 
-	BT_LIB_LOGD("Destroying output port message iterator object: %!+i",
+	BT_LIB_LOGI("Destroying output port message iterator object: %!+i",
 		iterator);
 	BT_LOGD_STR("Putting graph.");
 	BT_OBJECT_PUT_REF_AND_RESET(iterator->graph);
@@ -714,7 +716,7 @@ bt_port_output_message_iterator_create(struct bt_graph *graph,
 		"Graph already has a sink component: %![graph-]+g");
 
 	/* Create message iterator */
-	BT_LIB_LOGD("Creating message iterator on output port: "
+	BT_LIB_LOGI("Creating message iterator on output port: "
 		"%![port-]+p, %![comp-]+c", output_port, output_port_comp);
 	iterator = g_new0(struct bt_port_output_message_iterator, 1);
 	if (!iterator) {

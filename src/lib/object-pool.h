@@ -122,8 +122,8 @@ void *bt_object_pool_create_object(struct bt_object_pool *pool)
 	}
 
 	/* Pool is empty: create a brand new object */
-#ifdef BT_LOGV
-	BT_LOGV("Pool is empty: allocating new object: pool-addr=%p",
+#ifdef BT_LOGD
+	BT_LOGD("Pool is empty: allocating new object: pool-addr=%p",
 		pool);
 #endif
 
@@ -158,8 +158,8 @@ void bt_object_pool_recycle_object(struct bt_object_pool *pool, void *obj)
 
 	if (pool->size == pool->objects->len) {
 		/* Backing array is full: make place for recycled object */
-#ifdef BT_LOGV
-		BT_LOGV("Object pool is full: increasing object pool capacity: "
+#ifdef BT_LOGD
+		BT_LOGD("Object pool is full: increasing object pool capacity: "
 			"pool-addr=%p, old-pool-cap=%u, new-pool-cap=%u",
 			pool, pool->objects->len, pool->objects->len + 1);
 #endif

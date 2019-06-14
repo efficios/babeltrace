@@ -348,7 +348,7 @@ ssize_t bt_common_read(int fd, void *buf, size_t count)
 		if (ret < 0) {
 			if (errno == EINTR) {
 #ifdef BT_LOGD_STR
-				BT_LOGD_STR("read() call interrupted. Retrying...");
+				BT_LOGD_STR("read() call interrupted; retrying...");
 #endif
 				/* retry operation */
 				continue;

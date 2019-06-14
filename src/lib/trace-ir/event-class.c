@@ -201,7 +201,7 @@ enum bt_event_class_status bt_event_class_set_name(
 	BT_ASSERT_PRE_EVENT_CLASS_HOT(event_class);
 	g_string_assign(event_class->name.str, name);
 	event_class->name.value = event_class->name.str->str;
-	BT_LIB_LOGV("Set event class's name: %!+E", event_class);
+	BT_LIB_LOGD("Set event class's name: %!+E", event_class);
 	return BT_EVENT_CLASS_STATUS_OK;
 }
 
@@ -230,7 +230,7 @@ void bt_event_class_set_log_level(
 	BT_ASSERT_PRE_EVENT_CLASS_HOT(event_class);
 	bt_property_uint_set(&event_class->log_level,
 		(uint64_t) log_level);
-	BT_LIB_LOGV("Set event class's log level: %!+E", event_class);
+	BT_LIB_LOGD("Set event class's log level: %!+E", event_class);
 }
 
 const char *bt_event_class_get_emf_uri(const struct bt_event_class *event_class)
@@ -248,7 +248,7 @@ enum bt_event_class_status bt_event_class_set_emf_uri(
 	BT_ASSERT_PRE_EVENT_CLASS_HOT(event_class);
 	g_string_assign(event_class->emf_uri.str, emf_uri);
 	event_class->emf_uri.value = event_class->emf_uri.str->str;
-	BT_LIB_LOGV("Set event class's EMF URI: %!+E", event_class);
+	BT_LIB_LOGD("Set event class's EMF URI: %!+E", event_class);
 	return BT_EVENT_CLASS_STATUS_OK;
 }
 
@@ -324,7 +324,7 @@ enum bt_event_class_status bt_event_class_set_specific_context_field_class(
 	event_class->specific_context_fc = field_class;
 	bt_object_get_no_null_check(event_class->specific_context_fc);
 	bt_field_class_freeze(field_class);
-	BT_LIB_LOGV("Set event class's specific context field class: %!+E",
+	BT_LIB_LOGD("Set event class's specific context field class: %!+E",
 		event_class);
 
 end:
@@ -388,7 +388,7 @@ enum bt_event_class_status bt_event_class_set_payload_field_class(
 	event_class->payload_fc = field_class;
 	bt_object_get_no_null_check(event_class->payload_fc);
 	bt_field_class_freeze(field_class);
-	BT_LIB_LOGV("Set event class's payload field class: %!+E", event_class);
+	BT_LIB_LOGD("Set event class's payload field class: %!+E", event_class);
 
 end:
 	return ret;

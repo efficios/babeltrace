@@ -148,7 +148,7 @@ enum bt_query_executor_status bt_query_executor_cancel(
 {
 	BT_ASSERT_PRE_NON_NULL(query_exec, "Query executor");
 	query_exec->canceled = BT_TRUE;
-	BT_LOGV("Canceled query executor: addr=%p", query_exec);
+	BT_LOGI("Canceled query executor: addr=%p", query_exec);
 	return BT_QUERY_EXECUTOR_STATUS_OK;
 }
 

@@ -619,7 +619,7 @@ int live_get_msg_ts_ns(struct lttng_live_stream_iterator *stream_iter,
 	BT_ASSERT(msg);
 	BT_ASSERT(ts_ns);
 
-	BT_LOGV("Getting message's timestamp: iter-data-addr=%p, msg-addr=%p, "
+	BT_LOGD("Getting message's timestamp: iter-data-addr=%p, msg-addr=%p, "
 		"last-msg-ts=%" PRId64, lttng_live_msg_iter, msg,
 		last_msg_ts_ns);
 
@@ -702,7 +702,7 @@ int live_get_msg_ts_ns(struct lttng_live_stream_iterator *stream_iter,
 		break;
 	default:
 		/* All the other messages have a higher priority */
-		BT_LOGV_STR("Message has no timestamp: using the last message timestamp.");
+		BT_LOGD_STR("Message has no timestamp: using the last message timestamp.");
 		*ts_ns = last_msg_ts_ns;
 		goto end;
 	}
@@ -720,7 +720,7 @@ int live_get_msg_ts_ns(struct lttng_live_stream_iterator *stream_iter,
 	goto end;
 
 no_clock_snapshot:
-	BT_LOGV_STR("Message's default clock snapshot is missing: "
+	BT_LOGD_STR("Message's default clock snapshot is missing: "
 		"using the last message timestamp.");
 	*ts_ns = last_msg_ts_ns;
 	goto end;
@@ -730,7 +730,7 @@ error:
 
 end:
 	if (ret == 0) {
-		BT_LOGV("Found message's timestamp: "
+		BT_LOGD("Found message's timestamp: "
 			"iter-data-addr=%p, msg-addr=%p, "
 			"last-msg-ts=%" PRId64 ", ts=%" PRId64,
 			lttng_live_msg_iter, msg, last_msg_ts_ns, *ts_ns);
