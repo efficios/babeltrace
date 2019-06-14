@@ -179,7 +179,7 @@ struct bt_component_class_sink *bt_component_class_sink_colander_get(void)
 
 end:
 	bt_object_get_ref(colander_comp_cls);
-	return (void *) colander_comp_cls;
+	return colander_comp_cls;
 }
 
 __attribute__((destructor)) static
