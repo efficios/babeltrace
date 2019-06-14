@@ -164,8 +164,8 @@ class AllMessagesTestCase(unittest.TestCase):
                 self.assertEqual(msg.stream.addr, self._stream.addr)
             elif i == 1:
                 self.assertIsInstance(msg, bt2.message._StreamActivityBeginningMessage)
-                with self.assertRaises(bt2.NonexistentClockSnapshot):
-                    msg.default_clock_snapshot
+                self.assertIsInstance(msg.default_clock_snapshot,
+                                      bt2._UnknownClockSnapshot)
             elif i == 2:
                 self.assertIsInstance(msg, bt2.message._PacketBeginningMessage)
                 self.assertEqual(msg.packet.addr, self._packet.addr)
@@ -198,11 +198,228 @@ class AllMessagesTestCase(unittest.TestCase):
             elif i == 7:
                 self.assertIsInstance(msg, bt2.message._StreamActivityEndMessage)
                 self.assertEqual(msg.stream.addr, self._stream.addr)
-                with self.assertRaises(bt2.NonexistentClockSnapshot):
-                    msg.default_clock_snapshot
+                self.assertIsInstance(msg.default_clock_snapshot,
+                                      bt2._UnknownClockSnapshot)
             elif i == 8:
                 self.assertIsInstance(msg, bt2.message._StreamEndMessage)
                 self.assertEqual(msg.stream.addr, self._stream.addr)
             else:
                 raise Exception
 
+
+class StreamActivityMessagesTestCase(unittest.TestCase):
+    def _test_create_msg(self, with_cc, test_create_beginning_func, test_create_end_func):
+        class MyIter(bt2._UserMessageIterator):
+            def __init__(self, self_port_output):
+                self._at = 0
+
+            def __next__(self):
+                if self._at == 0:
+                    msg = self._create_stream_beginning_message(self._component._stream)
+                elif self._at == 1:
+                    msg = test_create_beginning_func(self, self._component._stream)
+                elif self._at == 2:
+                    msg = test_create_end_func(self, self._component._stream)
+                elif self._at == 3:
+                    msg = self._create_stream_end_message(self._component._stream)
+                elif self._at >= 4:
+                    raise bt2.Stop
+
+                self._at += 1
+                return msg
+
+        class MySrc(bt2._UserSourceComponent, message_iterator_class=MyIter):
+            def __init__(self, params):
+                self._add_output_port('out')
+                tc = self._create_trace_class()
+
+                if with_cc:
+                    cc = self._create_clock_class()
+                    sc = tc.create_stream_class(default_clock_class=cc)
+                else:
+                    sc = tc.create_stream_class()
+
+                # Create payload field class
+                trace = tc()
+                self._stream = trace.create_stream(sc)
+
+        graph = bt2.Graph()
+        src_comp = graph.add_component(MySrc, 'src')
+        msg_iter = graph.create_output_port_message_iterator(src_comp.output_ports['out'])
+
+        for msg in msg_iter:
+            pass
+
+    def test_create_beginning_with_cc_with_known_default_cs(self):
+        def create_beginning(msg_iter, stream):
+            msg = msg_iter._create_stream_activity_beginning_message(stream, 172)
+            self.assertEqual(msg.default_clock_snapshot.value, 172)
+            return msg
+
+        def create_end(msg_iter, stream):
+            return msg_iter._create_stream_activity_end_message(stream, 199)
+
+        self._test_create_msg(True, create_beginning, create_end)
+
+    def test_create_end_with_cc_with_known_default_cs(self):
+        def create_beginning(msg_iter, stream):
+            return msg_iter._create_stream_activity_beginning_message(stream, 172)
+
+        def create_end(msg_iter, stream):
+            msg = msg_iter._create_stream_activity_end_message(stream, 199)
+            self.assertEqual(msg.default_clock_snapshot.value, 199)
+            return msg
+
+        self._test_create_msg(True, create_beginning, create_end)
+
+    def test_create_beginning_with_cc_with_unknown_default_cs(self):
+        def create_beginning(msg_iter, stream):
+            msg = msg_iter._create_stream_activity_beginning_message(stream,
+                                                                     msg_iter._unknown_clock_snapshot)
+            self.assertIsInstance(msg.default_clock_snapshot,
+                                  bt2._UnknownClockSnapshot)
+            return msg
+
+        def create_end(msg_iter, stream):
+            return msg_iter._create_stream_activity_end_message(stream, 199)
+
+        self._test_create_msg(True, create_beginning, create_end)
+
+    def test_create_end_with_cc_with_unknown_default_cs(self):
+        def create_beginning(msg_iter, stream):
+            return msg_iter._create_stream_activity_beginning_message(stream, 172)
+
+        def create_end(msg_iter, stream):
+            msg = msg_iter._create_stream_activity_end_message(stream,
+                                                               msg_iter._unknown_clock_snapshot)
+            self.assertIsInstance(msg.default_clock_snapshot,
+                                  bt2._UnknownClockSnapshot)
+            return msg
+
+        self._test_create_msg(True, create_beginning, create_end)
+
+    def test_create_beginning_with_cc_with_infinite_default_cs(self):
+        def create_beginning(msg_iter, stream):
+            msg = msg_iter._create_stream_activity_beginning_message(stream,
+                                                                     msg_iter._infinite_clock_snapshot)
+            self.assertIsInstance(msg.default_clock_snapshot,
+                                  bt2._InfiniteClockSnapshot)
+            return msg
+
+        def create_end(msg_iter, stream):
+            return msg_iter._create_stream_activity_end_message(stream, 199)
+
+        self._test_create_msg(True, create_beginning, create_end)
+
+    def test_create_end_with_cc_with_infinite_default_cs(self):
+        def create_beginning(msg_iter, stream):
+            return msg_iter._create_stream_activity_beginning_message(stream, 172)
+
+        def create_end(msg_iter, stream):
+            msg = msg_iter._create_stream_activity_end_message(stream,
+                                                               msg_iter._infinite_clock_snapshot)
+            self.assertIsInstance(msg.default_clock_snapshot,
+                                  bt2._InfiniteClockSnapshot)
+            return msg
+
+        self._test_create_msg(True, create_beginning, create_end)
+
+    def test_create_beginning_without_cc_with_known_default_cs(self):
+        def create_beginning(msg_iter, stream):
+            with self.assertRaises(ValueError):
+                msg_iter._create_stream_activity_beginning_message(stream, 172)
+
+            return msg_iter._create_stream_activity_beginning_message(stream)
+
+        def create_end(msg_iter, stream):
+            return msg_iter._create_stream_activity_end_message(stream)
+
+        self._test_create_msg(False, create_beginning, create_end)
+
+    def test_create_end_without_cc_with_known_default_cs(self):
+        def create_beginning(msg_iter, stream):
+            return msg_iter._create_stream_activity_beginning_message(stream)
+
+        def create_end(msg_iter, stream):
+            with self.assertRaises(ValueError):
+                msg_iter._create_stream_activity_end_message(stream, 199)
+
+            return msg_iter._create_stream_activity_end_message(stream)
+
+        self._test_create_msg(False, create_beginning, create_end)
+
+    def test_create_beginning_without_cc_with_unknown_default_cs(self):
+        def create_beginning(msg_iter, stream):
+            msg = msg_iter._create_stream_activity_beginning_message(stream,
+                                                                     msg_iter._unknown_clock_snapshot)
+            self.assertIsInstance(msg.default_clock_snapshot,
+                                  bt2._UnknownClockSnapshot)
+            return msg
+
+        def create_end(msg_iter, stream):
+            return msg_iter._create_stream_activity_end_message(stream)
+
+        self._test_create_msg(False, create_beginning, create_end)
+
+    def test_create_end_without_cc_with_unknown_default_cs(self):
+        def create_beginning(msg_iter, stream):
+            return msg_iter._create_stream_activity_beginning_message(stream)
+
+        def create_end(msg_iter, stream):
+            msg = msg_iter._create_stream_activity_end_message(stream,
+                                                               msg_iter._unknown_clock_snapshot)
+            self.assertIsInstance(msg.default_clock_snapshot,
+                                  bt2._UnknownClockSnapshot)
+            return msg
+
+        self._test_create_msg(False, create_beginning, create_end)
+
+    def test_create_beginning_without_cc_with_infinite_default_cs(self):
+        def create_beginning(msg_iter, stream):
+            msg = msg_iter._create_stream_activity_beginning_message(stream,
+                                                                     msg_iter._infinite_clock_snapshot)
+            self.assertIsInstance(msg.default_clock_snapshot,
+                                  bt2._InfiniteClockSnapshot)
+            return msg
+
+        def create_end(msg_iter, stream):
+            return msg_iter._create_stream_activity_end_message(stream)
+
+        self._test_create_msg(False, create_beginning, create_end)
+
+    def test_create_end_without_cc_with_infinite_default_cs(self):
+        def create_beginning(msg_iter, stream):
+            return msg_iter._create_stream_activity_beginning_message(stream)
+
+        def create_end(msg_iter, stream):
+            msg = msg_iter._create_stream_activity_end_message(stream,
+                                                               msg_iter._infinite_clock_snapshot)
+            self.assertIsInstance(msg.default_clock_snapshot,
+                                  bt2._InfiniteClockSnapshot)
+            return msg
+
+        self._test_create_msg(False, create_beginning, create_end)
+
+    def test_create_beginning_default_cs_wrong_type(self):
+        def create_beginning(msg_iter, stream):
+            with self.assertRaises(TypeError):
+                msg_iter._create_stream_activity_beginning_message(stream, 'infinite')
+
+            return msg_iter._create_stream_activity_beginning_message(stream)
+
+        def create_end(msg_iter, stream):
+            return msg_iter._create_stream_activity_end_message(stream)
+
+        self._test_create_msg(False, create_beginning, create_end)
+
+    def test_create_end_without_default_cs_wrong_type(self):
+        def create_beginning(msg_iter, stream):
+            return msg_iter._create_stream_activity_beginning_message(stream)
+
+        def create_end(msg_iter, stream):
+            with self.assertRaises(TypeError):
+                msg_iter._create_stream_activity_end_message(stream, 'unknown')
+
+            return msg_iter._create_stream_activity_end_message(stream)
+
+        self._test_create_msg(False, create_beginning, create_end)
