@@ -190,4 +190,6 @@ int bt_lib_log_level;
 void bt_lib_log(const char *func, const char *file, unsigned line,
 		int lvl, const char *tag, const char *fmt, ...);
 
+#define BT_LIB_LOG_SUPPORTED
+
 #endif /* BABELTRACE_LIB_LOGGING_INTERNAL_H */

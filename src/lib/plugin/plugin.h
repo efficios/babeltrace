@@ -36,7 +36,7 @@
 #include "plugin-so.h"
 
 /* Protection: this file uses BT_LIB_LOG*() macros directly */
-#ifndef BABELTRACE_LIB_LOGGING_INTERNAL_H
+#ifndef BT_LIB_LOG_SUPPORTED
 # error Please include "lib/lib-logging.h" before including this file.
 #endif
 
