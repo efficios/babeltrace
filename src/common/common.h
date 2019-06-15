@@ -37,6 +37,8 @@
 #include <babeltrace2/trace-ir/event-class-const.h>
 #include <babeltrace2/trace-ir/field-class-const.h>
 #include <babeltrace2/trace-ir/field-path-const.h>
+#include <babeltrace2/graph/self-component.h>
+#include <babeltrace2/graph/message-iterator-const.h>
 #include <babeltrace2/logging.h>
 #include <babeltrace2/value.h>
 
@@ -589,6 +591,48 @@ const char *bt_common_logging_level_string(
 		return "(unknown)";
 	}
 };
+
+static inline
+const char *bt_self_component_status_string(
+		enum bt_self_component_status status)
+{
+	switch (status) {
+	case BT_SELF_COMPONENT_STATUS_OK:
+		return "BT_SELF_COMPONENT_STATUS_OK";
+	case BT_SELF_COMPONENT_STATUS_END:
+		return "BT_SELF_COMPONENT_STATUS_END";
+	case BT_SELF_COMPONENT_STATUS_AGAIN:
+		return "BT_SELF_COMPONENT_STATUS_AGAIN";
+	case BT_SELF_COMPONENT_STATUS_REFUSE_PORT_CONNECTION:
+		return "BT_SELF_COMPONENT_STATUS_REFUSE_PORT_CONNECTION";
+	case BT_SELF_COMPONENT_STATUS_ERROR:
+		return "BT_SELF_COMPONENT_STATUS_ERROR";
+	case BT_SELF_COMPONENT_STATUS_NOMEM:
+		return "BT_SELF_COMPONENT_STATUS_NOMEM";
+	default:
+		return "(unknown)";
+	}
+}
+
+static inline
+const char *bt_message_iterator_status_string(
+		enum bt_message_iterator_status status)
+{
+	switch (status) {
+	case BT_MESSAGE_ITERATOR_STATUS_AGAIN:
+		return "BT_MESSAGE_ITERATOR_STATUS_AGAIN";
+	case BT_MESSAGE_ITERATOR_STATUS_END:
+		return "BT_MESSAGE_ITERATOR_STATUS_END";
+	case BT_MESSAGE_ITERATOR_STATUS_OK:
+		return "BT_MESSAGE_ITERATOR_STATUS_OK";
+	case BT_MESSAGE_ITERATOR_STATUS_ERROR:
+		return "BT_MESSAGE_ITERATOR_STATUS_ERROR";
+	case BT_MESSAGE_ITERATOR_STATUS_NOMEM:
+		return "BT_MESSAGE_ITERATOR_STATUS_NOMEM";
+	default:
+		return "(unknown)";
+	}
+}
 
 #define NS_PER_S_I	INT64_C(1000000000)
 #define NS_PER_S_U	UINT64_C(1000000000)
