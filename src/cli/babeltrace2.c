@@ -2390,23 +2390,25 @@ int cmd_run_ctx_create_components_from_config_components(
 			goto error;
 		}
 
+		BT_ASSERT(cfg_comp->log_level >= BT_LOG_VERBOSE);
+
 		switch (cfg_comp->type) {
 		case BT_COMPONENT_CLASS_TYPE_SOURCE:
 			ret = bt_graph_add_source_component(ctx->graph,
 				comp_cls, cfg_comp->instance_name->str,
-				cfg_comp->params, ctx->cfg->log_level,
+				cfg_comp->params, cfg_comp->log_level,
 				(void *) &comp);
 			break;
 		case BT_COMPONENT_CLASS_TYPE_FILTER:
 			ret = bt_graph_add_filter_component(ctx->graph,
 				comp_cls, cfg_comp->instance_name->str,
-				cfg_comp->params, ctx->cfg->log_level,
+				cfg_comp->params, cfg_comp->log_level,
 				(void *) &comp);
 			break;
 		case BT_COMPONENT_CLASS_TYPE_SINK:
 			ret = bt_graph_add_sink_component(ctx->graph,
 				comp_cls, cfg_comp->instance_name->str,
-				cfg_comp->params, ctx->cfg->log_level,
+				cfg_comp->params, cfg_comp->log_level,
 				(void *) &comp);
 			break;
 		default:
