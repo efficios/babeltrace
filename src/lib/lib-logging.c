@@ -76,6 +76,8 @@
 #include "trace-ir/trace-class.h"
 #include "trace-ir/trace.h"
 #include "trace-ir/utils.h"
+#include "error.h"
+#include "assert-pre.h"
 
 #define LIB_LOGGING_BUF_SIZE	(4096 * 4)
 
@@ -1281,6 +1283,66 @@ static inline void format_plugin(char **buf_ch, bool extended,
 	}
 }
 
+static inline void format_error_cause(char **buf_ch, bool extended,
+		const char *prefix, const struct bt_error_cause *cause)
+{
+	const struct bt_error_cause_component_class_id *comp_class_id = NULL;
+
+	BUF_APPEND(", %sactor-type=%s, %smodule-name=\"%s\"",
+		PRFIELD(bt_error_cause_actor_type_string(cause->actor_type)),
+		PRFIELD_GSTRING(cause->module_name));
+
+	if (!extended) {
+		return;
+	}
+
+	BUF_APPEND(", %spartial-msg=\"%.32s\"",
+		PRFIELD_GSTRING(cause->message));
+
+	switch (cause->actor_type) {
+	case BT_ERROR_CAUSE_ACTOR_TYPE_COMPONENT:
+	{
+		const struct bt_error_cause_component_actor *spec_cause =
+			(const void *) cause;
+
+		BUF_APPEND(", %scomp-name=\"%s\"",
+			PRFIELD_GSTRING(spec_cause->comp_name));
+		comp_class_id = &spec_cause->comp_class_id;
+		break;
+	}
+	case BT_ERROR_CAUSE_ACTOR_TYPE_COMPONENT_CLASS:
+	{
+		const struct bt_error_cause_component_class_actor *spec_cause =
+			(const void *) cause;
+
+		comp_class_id = &spec_cause->comp_class_id;
+		break;
+	}
+	case BT_ERROR_CAUSE_ACTOR_TYPE_MESSAGE_ITERATOR:
+	{
+		const struct bt_error_cause_message_iterator_actor *spec_cause =
+			(const void *) cause;
+
+		BUF_APPEND(", %scomp-name=\"%s\", %scomp-out-port-name=\"%s\"",
+			PRFIELD_GSTRING(spec_cause->comp_name),
+			PRFIELD_GSTRING(spec_cause->output_port_name));
+		comp_class_id = &spec_cause->comp_class_id;
+		break;
+	}
+	default:
+		break;
+	}
+
+	if (comp_class_id) {
+		BUF_APPEND(", %scomp-cls-type=%s, %scomp-cls-name=\"%s\", "
+			"%splugin-name=\"%s\"",
+			PRFIELD(bt_component_class_type_string(
+				comp_class_id->type)),
+			PRFIELD_GSTRING(comp_class_id->name),
+			PRFIELD_GSTRING(comp_class_id->plugin_name));
+	}
+}
+
 static inline void handle_conversion_specifier_bt(void *priv_data,
 		char **buf_ch, size_t avail_size,
 		const char **out_fmt_ch, va_list *args)
@@ -1401,6 +1463,9 @@ static inline void handle_conversion_specifier_bt(void *priv_data,
 		break;
 	case 'O':
 		format_object(buf_ch, extended, prefix, obj);
+		break;
+	case 'r':
+		format_error_cause(buf_ch, extended, prefix, obj);
 		break;
 	default:
 		abort();
