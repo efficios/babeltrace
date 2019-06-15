@@ -184,36 +184,38 @@ extern bt_graph *bt_graph_create(void);
 extern bt_graph_status bt_graph_add_source_component(bt_graph *graph,
 		const bt_component_class_source *component_class,
 		const char *name, const bt_value *params,
-		const bt_component_source **OUT);
+		bt_logging_level log_level, const bt_component_source **OUT);
 
 extern bt_graph_status bt_graph_add_source_component_with_init_method_data(
 		bt_graph *graph,
 		const bt_component_class_source *component_class,
 		const char *name, const bt_value *params,
-		void *init_method_data,
+		void *init_method_data, bt_logging_level log_level,
 		const bt_component_source **OUT);
 
 extern bt_graph_status bt_graph_add_filter_component(bt_graph *graph,
 		const bt_component_class_filter *component_class,
 		const char *name, const bt_value *params,
+		bt_logging_level log_level,
 		const bt_component_filter **OUT);
 
 extern bt_graph_status bt_graph_add_filter_component_with_init_method_data(
 		bt_graph *graph,
 		const bt_component_class_filter *component_class,
 		const char *name, const bt_value *params,
-		void *init_method_data,
+		void *init_method_data, bt_logging_level log_level,
 		const bt_component_filter **OUT);
 
 extern bt_graph_status bt_graph_add_sink_component(
 		bt_graph *graph, const bt_component_class_sink *component_class,
 		const char *name, const bt_value *params,
+		bt_logging_level log_level,
 		const bt_component_sink **OUT);
 
 extern bt_graph_status bt_graph_add_sink_component_with_init_method_data(
 		bt_graph *graph, const bt_component_class_sink *component_class,
 		const char *name, const bt_value *params,
-		void *init_method_data,
+		void *init_method_data, bt_logging_level log_level,
 		const bt_component_sink **OUT);
 
 extern bt_graph_status bt_graph_connect_ports(bt_graph *graph,
@@ -326,7 +328,7 @@ port_added_listener(
 		status = BT_GRAPH_LISTENER_STATUS_ERROR;
 		goto end;
 	}
-	
+
 	BT_ASSERT(py_res == Py_None);
 	status = BT_GRAPH_LISTENER_STATUS_OK;
 
@@ -512,7 +514,7 @@ ports_connected_listener(
 		status = BT_GRAPH_LISTENER_STATUS_NOMEM;
 		goto end;
 	}
-	
+
 	py_downstream_component_ptr = SWIG_NewPointerObj(SWIG_as_voidptr(downstream_component),
 		downstream_component_swig_type, 0);
 	if (!py_downstream_component_ptr) {
@@ -540,7 +542,7 @@ ports_connected_listener(
 		status = BT_GRAPH_LISTENER_STATUS_ERROR;
 		goto end;
 	}
-	
+
 	BT_ASSERT(py_res == Py_None);
 	status = BT_GRAPH_LISTENER_STATUS_OK;
 

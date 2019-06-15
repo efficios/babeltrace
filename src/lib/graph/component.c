@@ -24,6 +24,7 @@
 #define BT_LOG_TAG "LIB/COMPONENT"
 #include "lib/lib-logging.h"
 
+#include "common/common.h"
 #include "common/assert.h"
 #include "lib/assert-pre.h"
 #include <babeltrace2/graph/self-component.h>
@@ -282,7 +283,8 @@ uint64_t bt_component_get_output_port_count(const struct bt_component *comp)
 
 BT_HIDDEN
 int bt_component_create(struct bt_component_class *component_class,
-		const char *name, struct bt_component **user_component)
+		const char *name, bt_logging_level log_level,
+		struct bt_component **user_component)
 {
 	int ret = 0;
 	struct bt_component *component = NULL;
@@ -293,7 +295,8 @@ int bt_component_create(struct bt_component_class *component_class,
 	BT_ASSERT(name);
 	type = bt_component_class_get_type(component_class);
 	BT_LIB_LOGI("Creating empty component from component class: %![cc-]+C, "
-		"comp-name=\"%s\"", component_class, name);
+		"comp-name=\"%s\", log-level=%s", component_class, name,
+		bt_common_logging_level_string(log_level));
 	component = component_create_funcs[type](component_class);
 	if (!component) {
 		BT_LOGE_STR("Cannot create specific component object.");
@@ -312,6 +315,7 @@ int bt_component_create(struct bt_component_class *component_class,
 		goto end;
 	}
 
+	component->log_level = log_level;
 	component->input_ports = g_ptr_array_new_with_free_func(
 		(GDestroyNotify) bt_object_try_spec_release);
 	if (!component->input_ports) {
@@ -672,6 +676,13 @@ void bt_component_remove_destroy_listener(struct bt_component *component,
 				component, func, data);
 		}
 	}
+}
+
+bt_logging_level bt_component_get_logging_level(
+		const struct bt_component *component)
+{
+	BT_ASSERT_PRE_NON_NULL(component, "Component");
+	return component->log_level;
 }
 
 void bt_component_get_ref(const struct bt_component *component)

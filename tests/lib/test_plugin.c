@@ -195,7 +195,7 @@ static void test_sfs(const char *plugin_dir)
 	graph = bt_graph_create();
 	BT_ASSERT(graph);
 	graph_ret = bt_graph_add_sink_component(graph, sink_comp_class,
-		"the-sink", NULL, &sink_component);
+		"the-sink", NULL, BT_LOGGING_LEVEL_NONE, &sink_component);
 	ok(graph_ret == BT_GRAPH_STATUS_OK && sink_component,
 		"bt_graph_add_sink_component() still works after the plugin object is destroyed");
 	BT_COMPONENT_SINK_PUT_REF_AND_RESET(sink_component);

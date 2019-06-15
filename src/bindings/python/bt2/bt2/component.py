@@ -185,6 +185,11 @@ class _Component:
         return name
 
     @property
+    def logging_level(self):
+        ptr = self._as_component_ptr(self._ptr)
+        return native_bt.component_get_logging_level(ptr)
+
+    @property
     def cls(self):
         cc_ptr = self._borrow_component_class_ptr(self._ptr)
         assert cc_ptr is not None
@@ -574,6 +579,12 @@ class _UserComponent(metaclass=_UserComponentType):
         name = native_bt.component_get_name(ptr)
         assert name is not None
         return name
+
+    @property
+    def logging_level(self):
+        ptr = self._as_not_self_specific_component_ptr(self._ptr)
+        ptr = self._as_component_ptr(ptr)
+        return native_bt.component_get_logging_level(ptr)
 
     @property
     def cls(self):

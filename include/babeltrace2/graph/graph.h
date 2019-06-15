@@ -36,6 +36,9 @@
 /* For bt_graph_status */
 #include <babeltrace2/graph/graph-const.h>
 
+/* For bt_logging_level */
+#include <babeltrace2/logging.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -102,36 +105,38 @@ extern bt_graph *bt_graph_create(void);
 extern bt_graph_status bt_graph_add_source_component(bt_graph *graph,
 		const bt_component_class_source *component_class,
 		const char *name, const bt_value *params,
-		const bt_component_source **component);
+		bt_logging_level log_level, const bt_component_source **component);
 
 extern bt_graph_status bt_graph_add_source_component_with_init_method_data(
 		bt_graph *graph,
 		const bt_component_class_source *component_class,
 		const char *name, const bt_value *params,
-		void *init_method_data,
+		void *init_method_data, bt_logging_level log_level,
 		const bt_component_source **component);
 
 extern bt_graph_status bt_graph_add_filter_component(bt_graph *graph,
 		const bt_component_class_filter *component_class,
 		const char *name, const bt_value *params,
+		bt_logging_level log_level,
 		const bt_component_filter **component);
 
 extern bt_graph_status bt_graph_add_filter_component_with_init_method_data(
 		bt_graph *graph,
 		const bt_component_class_filter *component_class,
 		const char *name, const bt_value *params,
-		void *init_method_data,
+		void *init_method_data, bt_logging_level log_level,
 		const bt_component_filter **component);
 
 extern bt_graph_status bt_graph_add_sink_component(
 		bt_graph *graph, const bt_component_class_sink *component_class,
 		const char *name, const bt_value *params,
+		bt_logging_level log_level,
 		const bt_component_sink **component);
 
 extern bt_graph_status bt_graph_add_sink_component_with_init_method_data(
 		bt_graph *graph, const bt_component_class_sink *component_class,
 		const char *name, const bt_value *params,
-		void *init_method_data,
+		void *init_method_data, bt_logging_level log_level,
 		const bt_component_sink **component);
 
 extern bt_graph_status bt_graph_connect_ports(bt_graph *graph,

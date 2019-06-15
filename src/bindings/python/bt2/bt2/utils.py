@@ -21,6 +21,7 @@
 # THE SOFTWARE.
 
 import bt2
+import bt2.logging
 
 
 def _check_bool(o):
@@ -125,3 +126,20 @@ def _handle_ret(ret, msg=None):
 def _handle_ptr(ptr, msg=None):
     if ptr is None:
         _raise_bt2_error(msg)
+
+
+def _check_log_level(log_level):
+    _check_int(log_level)
+
+    log_levels = (
+        bt2.logging.LoggingLevel.VERBOSE,
+        bt2.logging.LoggingLevel.DEBUG,
+        bt2.logging.LoggingLevel.INFO,
+        bt2.logging.LoggingLevel.WARN,
+        bt2.logging.LoggingLevel.ERROR,
+        bt2.logging.LoggingLevel.FATAL,
+        bt2.logging.LoggingLevel.NONE,
+    )
+
+    if log_level not in log_levels:
+        raise ValueError("'{}' is not a valid logging level".format(log_level))

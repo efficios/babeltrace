@@ -1269,7 +1269,8 @@ enum bt_graph_status add_component_with_init_method_data(
 		struct bt_component_class *comp_cls,
 		comp_init_method_t init_method,
 		const char *name, const struct bt_value *params,
-		void *init_method_data, struct bt_component **user_component)
+		void *init_method_data, bt_logging_level log_level,
+		struct bt_component **user_component)
 {
 	enum bt_graph_status graph_status = BT_GRAPH_STATUS_OK;
 	enum bt_self_component_status comp_status;
@@ -1292,9 +1293,11 @@ enum bt_graph_status add_component_with_init_method_data(
 	init_can_consume = graph->can_consume;
 	bt_graph_set_can_consume(graph, false);
 	BT_LIB_LOGI("Adding component to graph: "
-		"%![graph-]+g, %![cc-]+C, name=\"%s\", %![params-]+v, "
-		"init-method-data-addr=%p",
-		graph, comp_cls, name, params, init_method_data);
+		"%![graph-]+g, %![cc-]+C, name=\"%s\", log-level=%s, "
+		"%![params-]+v, init-method-data-addr=%p",
+		graph, comp_cls, name,
+		bt_common_logging_level_string(log_level), params,
+		init_method_data);
 
 	if (!params) {
 		new_params = bt_value_map_create();
@@ -1307,7 +1310,7 @@ enum bt_graph_status add_component_with_init_method_data(
 		params = new_params;
 	}
 
-	ret = bt_component_create(comp_cls, name, &component);
+	ret = bt_component_create(comp_cls, name, log_level, &component);
 	if (ret) {
 		BT_LOGE("Cannot create empty component object: ret=%d",
 			ret);
@@ -1360,9 +1363,11 @@ enum bt_graph_status add_component_with_init_method_data(
 	BT_LOGD_STR("Freezing component class.");
 	bt_component_class_freeze(comp_cls);
 	BT_LIB_LOGI("Added component to graph: "
-		"%![graph-]+g, %![cc-]+C, name=\"%s\", %![params-]+v, "
-		"init-method-data-addr=%p, %![comp-]+c",
-		graph, comp_cls, name, params, init_method_data, component);
+		"%![graph-]+g, %![cc-]+C, name=\"%s\", log-level=%s, "
+		"%![params-]+v, init-method-data-addr=%p, %![comp-]+c",
+		graph, comp_cls, name,
+		bt_common_logging_level_string(log_level), params,
+		init_method_data, component);
 
 	if (user_component) {
 		/* Move reference to user */
@@ -1387,23 +1392,24 @@ bt_graph_add_source_component_with_init_method_data(
 		struct bt_graph *graph,
 		const struct bt_component_class_source *comp_cls,
 		const char *name, const struct bt_value *params,
-		void *init_method_data,
+		void *init_method_data, bt_logging_level log_level,
 		const struct bt_component_source **component)
 {
 	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
 	return add_component_with_init_method_data(graph,
 		(void *) comp_cls, (comp_init_method_t) comp_cls->methods.init,
-		name, params, init_method_data, (void *) component);
+		name, params, init_method_data, log_level, (void *) component);
 }
 
 enum bt_graph_status bt_graph_add_source_component(
 		struct bt_graph *graph,
 		const struct bt_component_class_source *comp_cls,
 		const char *name, const struct bt_value *params,
+		bt_logging_level log_level,
 		const struct bt_component_source **component)
 {
 	return bt_graph_add_source_component_with_init_method_data(
-		graph, comp_cls, name, params, NULL, component);
+		graph, comp_cls, name, params, NULL, log_level, component);
 }
 
 enum bt_graph_status
@@ -1411,23 +1417,24 @@ bt_graph_add_filter_component_with_init_method_data(
 		struct bt_graph *graph,
 		const struct bt_component_class_filter *comp_cls,
 		const char *name, const struct bt_value *params,
-		void *init_method_data,
+		void *init_method_data, bt_logging_level log_level,
 		const struct bt_component_filter **component)
 {
 	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
 	return add_component_with_init_method_data(graph,
 		(void *) comp_cls, (comp_init_method_t) comp_cls->methods.init,
-		name, params, init_method_data, (void *) component);
+		name, params, init_method_data, log_level, (void *) component);
 }
 
 enum bt_graph_status bt_graph_add_filter_component(
 		struct bt_graph *graph,
 		const struct bt_component_class_filter *comp_cls,
 		const char *name, const struct bt_value *params,
+		bt_logging_level log_level,
 		const struct bt_component_filter **component)
 {
 	return bt_graph_add_filter_component_with_init_method_data(
-		graph, comp_cls, name, params, NULL, component);
+		graph, comp_cls, name, params, NULL, log_level, component);
 }
 
 enum bt_graph_status
@@ -1435,23 +1442,24 @@ bt_graph_add_sink_component_with_init_method_data(
 		struct bt_graph *graph,
 		const struct bt_component_class_sink *comp_cls,
 		const char *name, const struct bt_value *params,
-		void *init_method_data,
+		void *init_method_data, bt_logging_level log_level,
 		const struct bt_component_sink **component)
 {
 	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
 	return add_component_with_init_method_data(graph,
 		(void *) comp_cls, (comp_init_method_t) comp_cls->methods.init,
-		name, params, init_method_data, (void *) component);
+		name, params, init_method_data, log_level, (void *) component);
 }
 
 enum bt_graph_status bt_graph_add_sink_component(
 		struct bt_graph *graph,
 		const struct bt_component_class_sink *comp_cls,
 		const char *name, const struct bt_value *params,
+		bt_logging_level log_level,
 		const struct bt_component_sink **component)
 {
 	return bt_graph_add_sink_component_with_init_method_data(
-		graph, comp_cls, name, params, NULL, component);
+		graph, comp_cls, name, params, NULL, log_level, component);
 }
 
 BT_HIDDEN

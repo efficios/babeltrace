@@ -1782,7 +1782,8 @@ int cmd_run_ctx_connect_upstream_port_to_downstream_component(
 			ctx->connect_ports = false;
 			graph_status = bt_graph_add_filter_component(
 				ctx->graph, trimmer_class, trimmer_name,
-				trimmer_params, &trimmer);
+				trimmer_params, ctx->cfg->log_level,
+				&trimmer);
 			free(trimmer_name);
 			if (graph_status != BT_GRAPH_STATUS_OK) {
 				goto error;
@@ -2394,19 +2395,19 @@ int cmd_run_ctx_create_components_from_config_components(
 		case BT_COMPONENT_CLASS_TYPE_SOURCE:
 			ret = bt_graph_add_source_component(ctx->graph,
 				comp_cls, cfg_comp->instance_name->str,
-				cfg_comp->params,
+				cfg_comp->params, ctx->cfg->log_level,
 				(void *) &comp);
 			break;
 		case BT_COMPONENT_CLASS_TYPE_FILTER:
 			ret = bt_graph_add_filter_component(ctx->graph,
 				comp_cls, cfg_comp->instance_name->str,
-				cfg_comp->params,
+				cfg_comp->params, ctx->cfg->log_level,
 				(void *) &comp);
 			break;
 		case BT_COMPONENT_CLASS_TYPE_SINK:
 			ret = bt_graph_add_sink_component(ctx->graph,
 				comp_cls, cfg_comp->instance_name->str,
-				cfg_comp->params,
+				cfg_comp->params, ctx->cfg->log_level,
 				(void *) &comp);
 			break;
 		default:
