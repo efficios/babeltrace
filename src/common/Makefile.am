@@ -6,9 +6,7 @@ libbabeltrace2_common_la_SOURCES = \
 	assert.h \
 	assert.c \
 	common.c \
-	common.h \
-	logging.c \
-	logging.h
+	common.h
 
 noinst_HEADERS = \
 	align.h \

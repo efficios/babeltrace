@@ -26,8 +26,9 @@
  * SOFTWARE.
  */
 
+#define BT_LOG_OUTPUT_LEVEL (mapping->log_level)
 #define BT_LOG_TAG "COMPAT/MMAN"
-#include "logging.h"
+#include "logging/log.h"
 
 #include "common/macros.h"
 
@@ -52,6 +53,8 @@ int bt_mman_dummy_symbol;
 #include "compat/mman.h"
 
 struct mmap_mapping {
+	int log_level;
+
 	/* The duplicated handle. */
 	HANDLE file_handle;
 	/* Handle returned by CreateFileMapping. */
@@ -102,13 +105,18 @@ void addr_clean(void *addr)
 {
 	/* Cleanup of handles should never fail. */
 	if (!UnmapViewOfFile(addr)) {
-		BT_LOGF_STR("Failed to unmap mmap mapping.");
+		/*
+		 * FIXME: We don't have access to the mapping's log
+		 * level here, so force a FATAL level.
+		 */
+		BT_LOG_WRITE_CUR_LVL(BT_LOG_FATAL, BT_LOG_FATAL, BT_LOG_TAG,
+			"Failed to unmap mmap mapping.");
 		abort();
 	}
 }
 
 static
-void mmap_lock(void)
+void mmap_lock(int log_level)
 {
 	if (pthread_mutex_lock(&mmap_mutex)) {
 		BT_LOGF_STR("Failed to acquire mmap_mutex.");
@@ -117,7 +125,7 @@ void mmap_lock(void)
 }
 
 static
-void mmap_unlock(void)
+void mmap_unlock(int log_level)
 {
 	if (pthread_mutex_unlock(&mmap_mutex)) {
 		BT_LOGF_STR("Failed to release mmap_mutex.");
@@ -163,7 +171,7 @@ DWORD map_prot_flags(int prot, DWORD *dwDesiredAccess)
 
 BT_HIDDEN
 void *bt_mmap(void *addr, size_t length, int prot, int flags, int fd,
-		off_t offset)
+		off_t offset, int log_level)
 {
 	struct mmap_mapping *mapping = NULL;
 	void *mapping_addr;
@@ -191,9 +199,10 @@ void *bt_mmap(void *addr, size_t length, int prot, int flags, int fd,
 	}
 
 	/* Allocate the mapping struct. */
-	mapping = mapping_create();
+	mapping = mapping_create(log_level);
 	if (!mapping) {
-		BT_LOGE_STR("Failed to allocate mmap mapping.");
+		BT_LOG_WRITE_CUR_LVL(BT_LOG_ERROR, log_level, BT_LOG_TAG,
+			"Failed to allocate mmap mapping.");
 		_set_errno(ENOMEM);
 		goto error;
 	}
@@ -233,7 +242,7 @@ void *bt_mmap(void *addr, size_t length, int prot, int flags, int fd,
 		goto error;
 	}
 
-	mmap_lock();
+	mmap_lock(log_level);
 
 	/* If we have never done any mappings, allocate the hashtable. */
 	if (!mmap_mappings) {
@@ -250,12 +259,12 @@ void *bt_mmap(void *addr, size_t length, int prot, int flags, int fd,
 	/* Add the new mapping to the hashtable. */
 	g_hash_table_insert(mmap_mappings, mapping_addr, mapping);
 
-	mmap_unlock();
+	mmap_unlock(log_level);
 
 	return mapping_addr;
 
 error_mutex_unlock:
-	mmap_unlock();
+	mmap_unlock(log_level);
 error:
 	mapping_clean(mapping);
 	return MAP_FAILED;
@@ -265,8 +274,12 @@ BT_HIDDEN
 int bt_munmap(void *addr, size_t length)
 {
 	int ret = 0;
+	struct mmap_mapping *mapping = addr;
+	int log_level;
 
-	mmap_lock();
+	BT_ASSERT(mapping);
+	log_level = mapping->log_level;
+	mmap_lock(log_level);
 
 	/* Check if the mapping exists in the hashtable. */
 	if (g_hash_table_lookup(mmap_mappings, addr) == NULL) {
@@ -282,7 +295,7 @@ int bt_munmap(void *addr, size_t length)
 	}
 
 end:
-	mmap_unlock();
+	mmap_unlock(log_level);
 	return ret;
 }
 

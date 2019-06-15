@@ -26,8 +26,9 @@
  * SOFTWARE.
  */
 
+#define BT_LOG_OUTPUT_LEVEL (fdc->log_level)
 #define BT_LOG_TAG "FD-CACHE"
-#include "logging.h"
+#include "logging/log.h"
 
 #include <fcntl.h>
 #include <sys/stat.h>
@@ -102,10 +103,11 @@ void file_key_destroy(gpointer data)
 }
 
 BT_HIDDEN
-int bt_fd_cache_init(struct bt_fd_cache *fdc)
+int bt_fd_cache_init(struct bt_fd_cache *fdc, int log_level)
 {
 	int ret = 0;
 
+	fdc->log_level = log_level;
 	fdc->cache = g_hash_table_new_full(file_key_hash, file_key_equal,
 		file_key_destroy, (GDestroyNotify) fd_cache_handle_internal_destroy);
 	if (!fdc->cache) {

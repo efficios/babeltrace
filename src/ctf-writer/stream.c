@@ -1026,7 +1026,8 @@ append_ids:
 		goto end;
 	}
 
-	ret = bt_ctfser_init(&stream->ctfser, file_path);
+	ret = bt_ctfser_init(&stream->ctfser, file_path,
+		BT_LOG_OUTPUT_LEVEL);
 	g_free(file_path);
 	if (ret) {
 		/* bt_ctfser_init() logs errors */

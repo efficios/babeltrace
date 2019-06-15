@@ -20,8 +20,9 @@
  * SOFTWARE.
  */
 
+#define BT_LOG_OUTPUT_LEVEL (ctfser->log_level)
 #define BT_LOG_TAG "CTFSER"
-#include "logging.h"
+#include "logging/log.h"
 
 #include <unistd.h>
 #include <string.h>
@@ -44,9 +45,9 @@
 #include "compat/fcntl.h"
 
 static inline
-uint64_t get_packet_size_increment_bytes(void)
+uint64_t get_packet_size_increment_bytes(struct bt_ctfser *ctfser)
 {
-	return bt_common_get_page_size() * 8;
+	return bt_common_get_page_size(ctfser->log_level) * 8;
 }
 
 static inline
@@ -54,7 +55,7 @@ void mmap_align_ctfser(struct bt_ctfser *ctfser)
 {
 	ctfser->base_mma = mmap_align(ctfser->cur_packet_size_bytes,
 		PROT_READ | PROT_WRITE,
-		MAP_SHARED, ctfser->fd, ctfser->mmap_offset);
+		MAP_SHARED, ctfser->fd, ctfser->mmap_offset, ctfser->log_level);
 }
 
 BT_HIDDEN
@@ -77,7 +78,8 @@ int _bt_ctfser_increase_cur_packet_size(struct bt_ctfser *ctfser)
 		goto end;
 	}
 
-	ctfser->cur_packet_size_bytes += get_packet_size_increment_bytes();
+	ctfser->cur_packet_size_bytes += get_packet_size_increment_bytes(
+		ctfser);
 
 	do {
 		ret = bt_posix_fallocate(ctfser->fd, ctfser->mmap_offset,
@@ -110,7 +112,7 @@ end:
 }
 
 BT_HIDDEN
-int bt_ctfser_init(struct bt_ctfser *ctfser, const char *path)
+int bt_ctfser_init(struct bt_ctfser *ctfser, const char *path, int log_level)
 {
 	int ret = 0;
 
@@ -118,6 +120,7 @@ int bt_ctfser_init(struct bt_ctfser *ctfser, const char *path)
 	memset(ctfser, 0, sizeof(*ctfser));
 	ctfser->fd = open(path, O_RDWR | O_CREAT | O_TRUNC,
 		S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP);
+	ctfser->log_level = log_level;
 	if (ctfser->fd < 0) {
 		BT_LOGW_ERRNO("Failed to open stream file for writing",
 			": path=\"%s\", ret=%d",
@@ -220,7 +223,8 @@ int bt_ctfser_open_packet(struct bt_ctfser *ctfser)
 	ctfser->prev_packet_size_bytes = 0;
 
 	/* Make initial space for the current packet */
-	ctfser->cur_packet_size_bytes = get_packet_size_increment_bytes();
+	ctfser->cur_packet_size_bytes = get_packet_size_increment_bytes(
+		ctfser);
 
 	do {
 		ret = bt_posix_fallocate(ctfser->fd, ctfser->mmap_offset,

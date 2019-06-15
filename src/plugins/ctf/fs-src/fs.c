@@ -260,7 +260,7 @@ bt_self_message_iterator_status ctf_fs_iterator_init(
 	msg_iter_data->pc_msg_iter = self_msg_iter;
 	msg_iter_data->msg_iter = bt_msg_iter_create(
 		port_data->ds_file_group->ctf_fs_trace->metadata->tc,
-		bt_common_get_page_size() * 8,
+		bt_common_get_page_size(BT_LOG_OUTPUT_LEVEL) * 8,
 		ctf_fs_ds_file_medops, NULL);
 	if (!msg_iter_data->msg_iter) {
 		BT_LOGE_STR("Cannot create a CTF message iterator.");
@@ -721,7 +721,8 @@ int add_ds_file_to_ds_file_group(struct ctf_fs_trace *ctf_fs_trace,
 	struct bt_msg_iter_packet_properties props;
 
 	msg_iter = bt_msg_iter_create(ctf_fs_trace->metadata->tc,
-		bt_common_get_page_size() * 8, ctf_fs_ds_file_medops, NULL);
+		bt_common_get_page_size(BT_LOG_OUTPUT_LEVEL) * 8,
+		ctf_fs_ds_file_medops, NULL);
 	if (!msg_iter) {
 		BT_LOGE_STR("Cannot create a CTF message iterator.");
 		goto error;

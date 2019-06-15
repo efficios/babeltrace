@@ -214,7 +214,7 @@ const struct bt_plugin *bt_plugin_find(const char *plugin_name)
 		}
 	}
 
-	home_plugin_dir = bt_common_get_home_plugin_path();
+	home_plugin_dir = bt_common_get_home_plugin_path(BT_LOG_OUTPUT_LEVEL);
 	if (home_plugin_dir) {
 		GString *home_plugin_dir_str =
 			g_string_new(home_plugin_dir);

@@ -22,8 +22,9 @@
  * SOFTWARE.
  */
 
+#define BT_LOG_OUTPUT_LEVEL log_level
 #define BT_LOG_TAG "COMMON"
-#include "logging.h"
+#include "logging/log.h"
 
 #include <unistd.h>
 #include <string.h>
@@ -116,7 +117,7 @@ bool bt_common_is_setuid_setgid(void)
 #endif /* __MINGW32__ */
 
 static
-char *bt_secure_getenv(const char *name)
+char *bt_secure_getenv(const char *name, int log_level)
 {
 	if (bt_common_is_setuid_setgid()) {
 		BT_LOGD("Disregarding environment variable for setuid/setgid binary: "
@@ -128,18 +129,18 @@ char *bt_secure_getenv(const char *name)
 
 #ifdef __MINGW32__
 static
-const char *bt_get_home_dir(void)
+const char *bt_get_home_dir(int log_level)
 {
 	return g_get_home_dir();
 }
 #else /* __MINGW32__ */
 static
-const char *bt_get_home_dir(void)
+const char *bt_get_home_dir(int log_level)
 {
 	char *val = NULL;
 	struct passwd *pwd;
 
-	val = bt_secure_getenv(HOME_ENV_VAR);
+	val = bt_secure_getenv(HOME_ENV_VAR, log_level);
 	if (val) {
 		goto end;
 	}
@@ -155,13 +156,13 @@ end:
 #endif /* __MINGW32__ */
 
 BT_HIDDEN
-char *bt_common_get_home_plugin_path(void)
+char *bt_common_get_home_plugin_path(int log_level)
 {
 	char *path = NULL;
 	const char *home_dir;
 	size_t length;
 
-	home_dir = bt_get_home_dir();
+	home_dir = bt_get_home_dir(log_level);
 	if (!home_dir) {
 		goto end;
 	}
@@ -1238,7 +1239,7 @@ end:
 #endif
 
 BT_HIDDEN
-size_t bt_common_get_page_size(void)
+size_t bt_common_get_page_size(int log_level)
 {
 	int page_size;
 
