@@ -20,8 +20,9 @@
  * SOFTWARE.
  */
 
+#define BT_LOG_OUTPUT_LEVEL (muxer_comp->log_level)
 #define BT_LOG_TAG "PLUGIN/FLT.UTILS.MUXER"
-#include "logging.h"
+#include "logging/log.h"
 
 #include "common/macros.h"
 #include "compat/uuid.h"
@@ -46,9 +47,12 @@ struct muxer_comp {
 	size_t available_input_ports;
 	bool initializing_muxer_msg_iter;
 	bool assume_absolute_clock_classes;
+	bt_logging_level log_level;
 };
 
 struct muxer_upstream_msg_iter {
+	struct muxer_comp *muxer_comp;
+
 	/* Owned by this, NULL if ended */
 	bt_self_component_port_input_message_iterator *msg_iter;
 
@@ -65,6 +69,8 @@ enum muxer_msg_iter_clock_class_expectation {
 };
 
 struct muxer_msg_iter {
+	struct muxer_comp *muxer_comp;
+
 	/*
 	 * Array of struct muxer_upstream_msg_iter * (owned by this).
 	 *
@@ -112,10 +118,13 @@ static
 void destroy_muxer_upstream_msg_iter(
 		struct muxer_upstream_msg_iter *muxer_upstream_msg_iter)
 {
+	struct muxer_comp *muxer_comp;
+
 	if (!muxer_upstream_msg_iter) {
 		return;
 	}
 
+	muxer_comp = muxer_upstream_msg_iter->muxer_comp;
 	BT_LOGD("Destroying muxer's upstream message iterator wrapper: "
 		"addr=%p, msg-iter-addr=%p, queue-len=%u",
 		muxer_upstream_msg_iter,
@@ -139,12 +148,14 @@ int muxer_msg_iter_add_upstream_msg_iter(struct muxer_msg_iter *muxer_msg_iter,
 	int ret = 0;
 	struct muxer_upstream_msg_iter *muxer_upstream_msg_iter =
 		g_new0(struct muxer_upstream_msg_iter, 1);
+	struct muxer_comp *muxer_comp = muxer_msg_iter->muxer_comp;
 
 	if (!muxer_upstream_msg_iter) {
 		BT_LOGE_STR("Failed to allocate one muxer's upstream message iterator wrapper.");
 		goto error;
 	}
 
+	muxer_upstream_msg_iter->muxer_comp = muxer_comp;
 	muxer_upstream_msg_iter->msg_iter = self_msg_iter;
 	bt_self_component_port_input_message_iterator_get_ref(muxer_upstream_msg_iter->msg_iter);
 	muxer_upstream_msg_iter->msgs = g_queue_new();
@@ -231,7 +242,7 @@ void destroy_muxer_comp(struct muxer_comp *muxer_comp)
 }
 
 static
-bt_value *get_default_params(void)
+bt_value *get_default_params(struct muxer_comp *muxer_comp)
 {
 	bt_value *params;
 	int ret;
@@ -268,7 +279,7 @@ int configure_muxer_comp(struct muxer_comp *muxer_comp,
 	int ret = 0;
 	bt_bool bool_val;
 
-	default_params = get_default_params();
+	default_params = get_default_params(muxer_comp);
 	if (!default_params) {
 		BT_LOGE("Cannot get default parameters: "
 			"muxer-comp-addr=%p", muxer_comp);
@@ -320,15 +331,21 @@ bt_self_component_status muxer_init(
 	int ret;
 	bt_self_component_status status = BT_SELF_COMPONENT_STATUS_OK;
 	struct muxer_comp *muxer_comp = g_new0(struct muxer_comp, 1);
+	bt_logging_level log_level = bt_component_get_logging_level(
+		bt_self_component_as_component(
+			bt_self_component_filter_as_self_component(self_comp)));
 
-	BT_LOGI("Initializing muxer component: "
+	BT_LOG_WRITE_CUR_LVL(BT_LOG_INFO, log_level, BT_LOG_TAG,
+		"Initializing muxer component: "
 		"comp-addr=%p, params-addr=%p", self_comp, params);
 
 	if (!muxer_comp) {
-		BT_LOGE_STR("Failed to allocate one muxer component.");
+		BT_LOG_WRITE_CUR_LVL(BT_LOG_ERROR, log_level, BT_LOG_TAG,
+			"Failed to allocate one muxer component.");
 		goto error;
 	}
 
+	muxer_comp->log_level = log_level;
 	ret = configure_muxer_comp(muxer_comp, params);
 	if (ret) {
 		BT_LOGE("Cannot configure muxer component: "
@@ -392,7 +409,8 @@ void muxer_finalize(bt_self_component_filter *self_comp)
 
 static
 bt_self_component_port_input_message_iterator *
-create_msg_iter_on_input_port(bt_self_component_port_input *self_port)
+create_msg_iter_on_input_port(struct muxer_comp *muxer_comp,
+		bt_self_component_port_input *self_port)
 {
 	const bt_port *port = bt_self_component_port_as_port(
 		bt_self_component_port_input_as_self_component_port(
@@ -428,6 +446,8 @@ bt_self_message_iterator_status muxer_upstream_msg_iter_next(
 		struct muxer_upstream_msg_iter *muxer_upstream_msg_iter,
 		bool *is_ended)
 {
+	struct muxer_comp *muxer_comp =
+		muxer_upstream_msg_iter->muxer_comp;
 	bt_self_message_iterator_status status;
 	bt_message_iterator_status input_port_iter_status;
 	bt_message_array_const msgs;
@@ -970,6 +990,8 @@ bt_self_message_iterator_status validate_muxer_upstream_msg_iter(
 	struct muxer_upstream_msg_iter *muxer_upstream_msg_iter,
 	bool *is_ended)
 {
+	struct muxer_comp *muxer_comp =
+		muxer_upstream_msg_iter->muxer_comp;
 	bt_self_message_iterator_status status =
 		BT_SELF_MESSAGE_ITERATOR_STATUS_OK;
 
@@ -998,6 +1020,7 @@ static
 bt_self_message_iterator_status validate_muxer_upstream_msg_iters(
 		struct muxer_msg_iter *muxer_msg_iter)
 {
+	struct muxer_comp *muxer_comp = muxer_msg_iter->muxer_comp;
 	bt_self_message_iterator_status status =
 		BT_SELF_MESSAGE_ITERATOR_STATUS_OK;
 	size_t i;
@@ -1173,10 +1196,13 @@ bt_self_message_iterator_status muxer_msg_iter_do_next(
 static
 void destroy_muxer_msg_iter(struct muxer_msg_iter *muxer_msg_iter)
 {
+	struct muxer_comp *muxer_comp;
+
 	if (!muxer_msg_iter) {
 		return;
 	}
 
+	muxer_comp = muxer_msg_iter->muxer_comp;
 	BT_LOGD("Destroying muxer component's message iterator: "
 		"muxer-msg-iter-addr=%p", muxer_msg_iter);
 
@@ -1231,7 +1257,8 @@ int muxer_msg_iter_init_upstream_iterators(struct muxer_comp *muxer_comp,
 			continue;
 		}
 
-		upstream_msg_iter = create_msg_iter_on_input_port(self_port);
+		upstream_msg_iter = create_msg_iter_on_input_port(muxer_comp,
+			self_port);
 		if (!upstream_msg_iter) {
 			/* create_msg_iter_on_input_port() logs errors */
 			BT_ASSERT(!upstream_msg_iter);
@@ -1291,6 +1318,7 @@ bt_self_message_iterator_status muxer_msg_iter_init(
 		goto error;
 	}
 
+	muxer_msg_iter->muxer_comp = muxer_comp;
 	muxer_msg_iter->last_returned_ts_ns = INT64_MIN;
 	muxer_msg_iter->active_muxer_upstream_msg_iters =
 		g_ptr_array_new_with_free_func(
@@ -1405,6 +1433,8 @@ bt_self_component_status muxer_input_port_connected(
 		const bt_port_output *other_port)
 {
 	bt_self_component_status status;
+	struct muxer_comp *muxer_comp = bt_self_component_get_data(
+		bt_self_component_filter_as_self_component(self_comp));
 
 	status = add_available_input_port(self_comp);
 	if (status) {
