@@ -79,6 +79,31 @@ class GraphTestCase(unittest.TestCase):
         with self.assertRaises(TypeError):
             self._graph.add_component(int, 'salut')
 
+    def test_add_component_invalid_logging_level_type(self):
+        class MySink(bt2._UserSinkComponent):
+            def _consume(self):
+                pass
+
+        with self.assertRaises(TypeError):
+            self._graph.add_component(MySink, 'salut', logging_level='yo')
+
+    def test_add_component_invalid_logging_level_value(self):
+        class MySink(bt2._UserSinkComponent):
+            def _consume(self):
+                pass
+
+        with self.assertRaises(ValueError):
+            self._graph.add_component(MySink, 'salut', logging_level=12345)
+
+    def test_add_component_logging_level(self):
+        class MySink(bt2._UserSinkComponent):
+            def _consume(self):
+                pass
+
+        comp = self._graph.add_component(MySink, 'salut',
+                                         logging_level=bt2.LoggingLevel.DEBUG)
+        self.assertEqual(comp.logging_level, bt2.LoggingLevel.DEBUG)
+
     def test_connect_ports(self):
         class MyIter(bt2._UserMessageIterator):
             def __next__(self):
