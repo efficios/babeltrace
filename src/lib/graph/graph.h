@@ -30,6 +30,7 @@
 #include "lib/object.h"
 #include "lib/object-pool.h"
 #include "common/assert.h"
+#include "common/common.h"
 #include <stdlib.h>
 #include <glib.h>
 

@@ -141,26 +141,4 @@ BT_HIDDEN
 void bt_component_remove_destroy_listener(struct bt_component *component,
 		bt_component_destroy_listener_func func, void *data);
 
-static inline
-const char *bt_self_component_status_string(
-		enum bt_self_component_status status)
-{
-	switch (status) {
-	case BT_SELF_COMPONENT_STATUS_OK:
-		return "BT_SELF_COMPONENT_STATUS_OK";
-	case BT_SELF_COMPONENT_STATUS_END:
-		return "BT_SELF_COMPONENT_STATUS_END";
-	case BT_SELF_COMPONENT_STATUS_AGAIN:
-		return "BT_SELF_COMPONENT_STATUS_AGAIN";
-	case BT_SELF_COMPONENT_STATUS_REFUSE_PORT_CONNECTION:
-		return "BT_SELF_COMPONENT_STATUS_REFUSE_PORT_CONNECTION";
-	case BT_SELF_COMPONENT_STATUS_ERROR:
-		return "BT_SELF_COMPONENT_STATUS_ERROR";
-	case BT_SELF_COMPONENT_STATUS_NOMEM:
-		return "BT_SELF_COMPONENT_STATUS_NOMEM";
-	default:
-		return "(unknown)";
-	}
-}
-
 #endif /* BABELTRACE_GRAPH_COMPONENT_INTERNAL_H */

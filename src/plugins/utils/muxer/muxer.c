@@ -26,10 +26,6 @@
 #include "common/macros.h"
 #include "compat/uuid.h"
 #include <babeltrace2/babeltrace.h>
-#include "lib/value.h"
-#include "lib/graph/component.h"
-#include "lib/graph/message/iterator.h"
-#include "lib/graph/connection.h"
 #include <glib.h>
 #include <stdbool.h>
 #include <inttypes.h>

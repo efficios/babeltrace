@@ -138,26 +138,6 @@ void bt_self_component_port_input_message_iterator_set_connection(
 		struct bt_connection *connection);
 
 static inline
-const char *bt_message_iterator_status_string(
-		enum bt_message_iterator_status status)
-{
-	switch (status) {
-	case BT_MESSAGE_ITERATOR_STATUS_AGAIN:
-		return "BT_MESSAGE_ITERATOR_STATUS_AGAIN";
-	case BT_MESSAGE_ITERATOR_STATUS_END:
-		return "BT_MESSAGE_ITERATOR_STATUS_END";
-	case BT_MESSAGE_ITERATOR_STATUS_OK:
-		return "BT_MESSAGE_ITERATOR_STATUS_OK";
-	case BT_MESSAGE_ITERATOR_STATUS_ERROR:
-		return "BT_MESSAGE_ITERATOR_STATUS_ERROR";
-	case BT_MESSAGE_ITERATOR_STATUS_NOMEM:
-		return "BT_MESSAGE_ITERATOR_STATUS_NOMEM";
-	default:
-		return "(unknown)";
-	}
-};
-
-static inline
 const char *bt_self_component_port_input_message_iterator_state_string(
 		enum bt_self_component_port_input_message_iterator_state state)
 {
