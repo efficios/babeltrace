@@ -6,13 +6,13 @@ import bt2
 
 class UserComponentTestCase(unittest.TestCase):
     @staticmethod
-    def _create_comp(comp_cls, name=None):
+    def _create_comp(comp_cls, name=None, log_level=bt2.LoggingLevel.NONE):
         graph = bt2.Graph()
 
         if name is None:
             name = 'comp'
 
-        return graph.add_component(comp_cls, name)
+        return graph.add_component(comp_cls, name, logging_level=log_level)
 
     def test_name(self):
         class MySink(bt2._UserSinkComponent):
@@ -23,6 +23,16 @@ class UserComponentTestCase(unittest.TestCase):
                 pass
 
         comp = self._create_comp(MySink, 'yaes')
+
+    def test_logging_level(self):
+        class MySink(bt2._UserSinkComponent):
+            def __init__(comp_self, params):
+                self.assertEqual(comp_self.logging_level, bt2.LoggingLevel.INFO)
+
+            def _consume(self):
+                pass
+
+        comp = self._create_comp(MySink, 'yaes', bt2.LoggingLevel.INFO)
 
     def test_class(self):
         class MySink(bt2._UserSinkComponent):
@@ -66,13 +76,13 @@ class UserComponentTestCase(unittest.TestCase):
 
 class GenericComponentTestCase(unittest.TestCase):
     @staticmethod
-    def _create_comp(comp_cls, name=None):
+    def _create_comp(comp_cls, name=None, log_level=bt2.LoggingLevel.NONE):
         graph = bt2.Graph()
 
         if name is None:
             name = 'comp'
 
-        return graph.add_component(comp_cls, name)
+        return graph.add_component(comp_cls, name, logging_level=log_level)
 
     def test_name(self):
         class MySink(bt2._UserSinkComponent):
@@ -81,6 +91,14 @@ class GenericComponentTestCase(unittest.TestCase):
 
         comp = self._create_comp(MySink, 'yaes')
         self.assertEqual(comp.name, 'yaes')
+
+    def test_logging_level(self):
+        class MySink(bt2._UserSinkComponent):
+            def _consume(self):
+                pass
+
+        comp = self._create_comp(MySink, 'yaes', bt2.LoggingLevel.WARN)
+        self.assertEqual(comp.logging_level, bt2.LoggingLevel.WARN)
 
     def test_class(self):
         class MySink(bt2._UserSinkComponent):
