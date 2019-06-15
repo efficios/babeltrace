@@ -53,6 +53,22 @@ class QueryExecutorTestCase(unittest.TestCase):
         self.assertEqual(query_params, None)
         del query_params
 
+    def test_query_logging_level(self):
+        class MySink(bt2._UserSinkComponent):
+            def _consume(self):
+                pass
+
+            @classmethod
+            def _query(cls, query_exec, obj, params, log_level):
+                nonlocal query_log_level
+                query_log_level = log_level
+
+        query_log_level = None
+        res = bt2.QueryExecutor().query(MySink, 'obj', None,
+                                        bt2.LoggingLevel.INFO)
+        self.assertEqual(query_log_level, bt2.LoggingLevel.INFO)
+        del query_log_level
+
     def test_query_gen_error(self):
         class MySink(bt2._UserSinkComponent):
             def _consume(self):
@@ -76,6 +92,30 @@ class QueryExecutorTestCase(unittest.TestCase):
 
         with self.assertRaises(bt2.InvalidQueryObject):
             res = bt2.QueryExecutor().query(MySink, 'obj', [17, 23])
+
+    def test_query_logging_level_invalid_type(self):
+        class MySink(bt2._UserSinkComponent):
+            def _consume(self):
+                pass
+
+            @classmethod
+            def _query(cls, query_exec, obj, params, log_level):
+                pass
+
+        with self.assertRaises(TypeError):
+            res = bt2.QueryExecutor().query(MySink, 'obj', [17, 23], 'yeah')
+
+    def test_query_logging_level_invalid_value(self):
+        class MySink(bt2._UserSinkComponent):
+            def _consume(self):
+                pass
+
+            @classmethod
+            def _query(cls, query_exec, obj, params, log_level):
+                pass
+
+        with self.assertRaises(ValueError):
+            res = bt2.QueryExecutor().query(MySink, 'obj', [17, 23], 12345)
 
     def test_query_invalid_params(self):
         class MySink(bt2._UserSinkComponent):
