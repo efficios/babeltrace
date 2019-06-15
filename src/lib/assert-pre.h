@@ -35,7 +35,7 @@
  * need to use logging explicitly.
  */
 
-#ifndef BABELTRACE_LIB_LOGGING_INTERNAL_H
+#ifndef BT_LIB_LOG_SUPPORTED
 # error Include "lib/lib-logging.h" before this header.
 #endif
 

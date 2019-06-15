@@ -139,4 +139,6 @@
 #define BT_COMP_LOGV_MEM(_data_ptr, _data_sz, _fmt, ...) \
 	BT_COMP_LOG_MEM(BT_LOG_VERBOSE, (BT_COMP_LOG_SELF_COMP), (_data_ptr), (_data_sz), _fmt, ##__VA_ARGS__)
 
+#define BT_COMP_LOG_SUPPORTED
+
 #endif /* BABELTRACE_PLUGINS_COMP_LOGGING_H */

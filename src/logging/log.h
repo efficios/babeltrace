@@ -1143,6 +1143,8 @@ end:
 		_level_sym = bt_log_get_level_from_env(_env_var);	\
 	}
 
+#define BT_LOG_SUPPORTED
+
 #ifdef __cplusplus
 }
 #endif
