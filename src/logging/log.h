@@ -15,6 +15,7 @@
 #include <string.h>
 #include <babeltrace2/logging.h>
 #include "common/macros.h"
+#include "common/assert.h"
 
 /* To detect incompatible changes you can define BT_LOG_VERSION_REQUIRED to be
  * the current value of BT_LOG_VERSION before including this file (or via
@@ -999,6 +1000,97 @@ void bt_log_out_stderr_callback(const bt_log_message *const msg, void *arg);
  */
 #define BT_LOG_STDERR (&_bt_log_stderr_spec)
 
+/*
+ * Returns the equivalent letter of the log level `level`.
+ *
+ * `level` must be a valid log level.
+ */
+static inline
+char bt_log_get_letter_from_level(int level)
+{
+	char letter;
+
+	switch (level) {
+	case BT_LOG_VERBOSE:
+		letter = 'V';
+		break;
+	case BT_LOG_DEBUG:
+		letter = 'D';
+		break;
+	case BT_LOG_INFO:
+		letter = 'I';
+		break;
+	case BT_LOG_WARN:
+		letter = 'W';
+		break;
+	case BT_LOG_ERROR:
+		letter = 'E';
+		break;
+	case BT_LOG_FATAL:
+		letter = 'F';
+		break;
+	case BT_LOG_NONE:
+		letter = 'N';
+		break;
+	default:
+		abort();
+	}
+
+	return letter;
+}
+
+/*
+ * Returns the log level for the string `str`, or -1 if `str` is not a
+ * valid log level string.
+ */
+static inline
+int bt_log_get_level_from_string(const char *str)
+{
+	int level = -1;
+
+	BT_ASSERT(str);
+
+	if (strcmp(str, "VERBOSE") == 0 ||
+			strcmp(str, "V") == 0) {
+		level = BT_LOG_VERBOSE;
+	} else if (strcmp(str, "DEBUG") == 0 ||
+			strcmp(str, "D") == 0) {
+		level = BT_LOG_DEBUG;
+	} else if (strcmp(str, "INFO") == 0 ||
+			strcmp(str, "I") == 0) {
+		level = BT_LOG_INFO;
+	} else if (strcmp(str, "WARN") == 0 ||
+			strcmp(str, "WARNING") == 0 ||
+			strcmp(str, "W") == 0) {
+		level = BT_LOG_WARN;
+	} else if (strcmp(str, "ERROR") == 0 ||
+			strcmp(str, "E") == 0) {
+		level = BT_LOG_ERROR;
+	} else if (strcmp(str, "FATAL") == 0 ||
+			strcmp(str, "F") == 0) {
+		level = BT_LOG_FATAL;
+	} else if (strcmp(str, "NONE") == 0 ||
+			strcmp(str, "N") == 0) {
+		level = BT_LOG_NONE;
+	} else {
+		/* FIXME: Should we warn here? How? */
+	}
+
+	return level;
+}
+
+/*
+ * Returns the log level for the letter `letter`, or -1 if `letter` is
+ * not a valid log level string.
+ */
+static inline
+int bt_log_get_level_from_letter(char letter)
+{
+	char str[] = {letter, '\0'};
+
+	return bt_log_get_level_from_string(str);
+}
+
 static inline
 int bt_log_get_level_from_env(const char *var)
 {
@@ -1009,30 +1101,10 @@ int bt_log_get_level_from_env(const char *var)
 		goto end;
 	}
 
-	if (strcmp(varval, "VERBOSE") == 0 ||
-			strcmp(varval, "V") == 0) {
-		level = BT_LOG_VERBOSE;
-	} else if (strcmp(varval, "DEBUG") == 0 ||
-			strcmp(varval, "D") == 0) {
-		level = BT_LOG_DEBUG;
-	} else if (strcmp(varval, "INFO") == 0 ||
-			strcmp(varval, "I") == 0) {
-		level = BT_LOG_INFO;
-	} else if (strcmp(varval, "WARN") == 0 ||
-			strcmp(varval, "WARNING") == 0 ||
-			strcmp(varval, "W") == 0) {
-		level = BT_LOG_WARN;
-	} else if (strcmp(varval, "ERROR") == 0 ||
-			strcmp(varval, "E") == 0) {
-		level = BT_LOG_ERROR;
-	} else if (strcmp(varval, "FATAL") == 0 ||
-			strcmp(varval, "F") == 0) {
-		level = BT_LOG_FATAL;
-	} else if (strcmp(varval, "NONE") == 0 ||
-			strcmp(varval, "N") == 0) {
+	level = bt_log_get_level_from_string(varval);
+	if (level < 0) {
+		/* FIXME: Should we warn here? How? */
 		level = BT_LOG_NONE;
-	} else {
-		/* Should we warn here? How? */
 	}
 
 end:
