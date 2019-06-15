@@ -25,10 +25,10 @@
  */
 
 /*
- * The macros in this header use macros defined in "lib/lib-logging.h".
+ * The macros in this header use macros defined in "lib/logging.h".
  * We don't want this header to automatically include
- * "lib/lib-logging.h" because you need to manually define BT_LOG_TAG
- * before including "lib/lib-logging.h" and it is unexpected that you
+ * "lib/logging.h" because you need to manually define BT_LOG_TAG
+ * before including "lib/logging.h" and it is unexpected that you
  * also need to define it before including this header.
  *
  * This is a reminder that in order to use "lib/assert-pre.h", you also
@@ -36,7 +36,7 @@
  */
 
 #ifndef BT_LIB_LOG_SUPPORTED
-# error Include "lib/lib-logging.h" before this header.
+# error Include "lib/logging.h" before this header.
 #endif
 
 #include <stdlib.h>

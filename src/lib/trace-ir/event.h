@@ -26,7 +26,7 @@
 
 /* Protection: this file uses BT_LIB_LOG*() macros directly */
 #ifndef BT_LIB_LOG_SUPPORTED
-# error Please include "lib/lib-logging.h" before including this file.
+# error Please include "lib/logging.h" before including this file.
 #endif
 
 #include "lib/assert-pre.h"

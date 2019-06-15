@@ -22,7 +22,7 @@
  */
 
 #define BT_LOG_TAG "LIB/COMPONENT"
-#include "lib/lib-logging.h"
+#include "lib/logging.h"
 
 #include "common/common.h"
 #include "common/assert.h"

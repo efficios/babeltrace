@@ -21,7 +21,7 @@
  */
 
 #define BT_LOG_TAG "LIB/QUERY-EXECUTOR"
-#include "lib/lib-logging.h"
+#include "lib/logging.h"
 
 #include "common/assert.h"
 #include "common/common.h"

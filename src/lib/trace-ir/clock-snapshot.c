@@ -21,7 +21,7 @@
  */
 
 #define BT_LOG_TAG "LIB/CLOCK-SNAPSHOT"
-#include "lib/lib-logging.h"
+#include "lib/logging.h"
 
 #include "lib/assert-pre.h"
 #include "compat/uuid.h"

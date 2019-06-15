@@ -22,7 +22,7 @@
  */
 
 #define BT_LOG_TAG "LIB/MSG-PACKET"
-#include "lib/lib-logging.h"
+#include "lib/logging.h"
 
 #include "compat/compiler.h"
 #include <babeltrace2/trace-ir/packet.h>

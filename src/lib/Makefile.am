@@ -6,7 +6,7 @@ libbabeltrace2_la_SOURCES = \
 	assert-pre.h \
 	babeltrace2.c \
 	lib-logging.c \
-	lib-logging.h \
+	logging.h \
 	logging.c \
 	object.h \
 	object-pool.c \

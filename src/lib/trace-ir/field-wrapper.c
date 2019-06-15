@@ -21,7 +21,7 @@
  */
 
 #define BT_LOG_TAG "LIB/FIELD-WRAPPER"
-#include "lib/lib-logging.h"
+#include "lib/logging.h"
 
 #include "lib/object-pool.h"
 #include "lib/object.h"

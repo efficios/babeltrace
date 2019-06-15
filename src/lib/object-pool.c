@@ -21,7 +21,7 @@
  */
 
 #define BT_LOG_TAG "LIB/OBJECT-POOL"
-#include "lib/lib-logging.h"
+#include "lib/logging.h"
 
 #include <stdint.h>
 #include "common/assert.h"

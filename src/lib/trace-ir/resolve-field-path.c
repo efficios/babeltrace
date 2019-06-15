@@ -21,7 +21,7 @@
  */
 
 #define BT_LOG_TAG "LIB/RESOLVE-FIELD-PATH"
-#include "lib/lib-logging.h"
+#include "lib/logging.h"
 
 #include "lib/assert-pre.h"
 #include "common/assert.h"

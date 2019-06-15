@@ -59,7 +59,7 @@
 #include "graph/message/stream-activity.h"
 #include "graph/message/stream.h"
 #include "graph/port.h"
-#include "lib-logging.h"
+#include "logging.h"
 #include "plugin/plugin.h"
 #include "plugin/plugin-so.h"
 #include "trace-ir/clock-class.h"

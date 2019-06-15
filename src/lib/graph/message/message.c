@@ -22,7 +22,7 @@
  */
 
 #define BT_LOG_TAG "LIB/MSG"
-#include "lib/lib-logging.h"
+#include "lib/logging.h"
 
 #include "common/assert.h"
 #include "lib/assert-pre.h"
