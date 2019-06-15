@@ -122,6 +122,7 @@ typedef bt_query_status (*bt_component_class_source_query_method)(
 		bt_self_component_class_source *comp_class,
 		const bt_query_executor *query_executor,
 		const char *object, const bt_value *params,
+		bt_logging_level log_level,
 		const bt_value **result);
 
 typedef bt_self_component_status
@@ -260,6 +261,7 @@ typedef bt_query_status
 		bt_self_component_class_filter *comp_class,
 		const bt_query_executor *query_executor,
 		const char *object, const bt_value *params,
+		bt_logging_level log_level,
 		const bt_value **result);
 
 typedef bt_self_component_status
@@ -385,6 +387,7 @@ typedef bt_query_status
 		bt_self_component_class_sink *comp_class,
 		const bt_query_executor *query_executor,
 		const char *object, const bt_value *params,
+		bt_logging_level log_level,
 		const bt_value **result);
 
 typedef bt_self_component_status
@@ -1223,6 +1226,7 @@ bt_py3_component_class_query(
 		const bt_component_class *component_class,
 		const bt_query_executor *query_executor,
 		const char *object, const bt_value *params,
+		bt_logging_level log_level,
 		const bt_value **result)
 {
 	PyObject *py_cls = NULL;
@@ -1261,8 +1265,8 @@ bt_py3_component_class_query(
 	}
 
 	py_results_addr = PyObject_CallMethod(py_cls,
-		"_query_from_native", "(OOO)", py_query_exec_ptr,
-		py_object, py_params_ptr);
+		"_query_from_native", "(OOOi)", py_query_exec_ptr,
+		py_object, py_params_ptr, (int) log_level);
 
 	if (!py_results_addr) {
 		BT_LOGE("Failed to call Python class's _query_from_native() method: "
@@ -1299,11 +1303,12 @@ bt_py3_component_class_source_query(
 		bt_self_component_class_source *self_component_class_source,
 		const bt_query_executor *query_executor,
 		const char *object, const bt_value *params,
+		bt_logging_level log_level,
 		const bt_value **result)
 {
 	const bt_component_class_source *component_class_source = bt_self_component_class_source_as_component_class_source(self_component_class_source);
 	const bt_component_class *component_class = bt_component_class_source_as_component_class_const(component_class_source);
-	return bt_py3_component_class_query(component_class, query_executor, object, params, result);
+	return bt_py3_component_class_query(component_class, query_executor, object, params, log_level, result);
 }
 
 static bt_query_status
@@ -1311,11 +1316,12 @@ bt_py3_component_class_filter_query(
 		bt_self_component_class_filter *self_component_class_filter,
 		const bt_query_executor *query_executor,
 		const char *object, const bt_value *params,
+		bt_logging_level log_level,
 		const bt_value **result)
 {
 	const bt_component_class_filter *component_class_filter = bt_self_component_class_filter_as_component_class_filter(self_component_class_filter);
 	const bt_component_class *component_class = bt_component_class_filter_as_component_class_const(component_class_filter);
-	return bt_py3_component_class_query(component_class, query_executor, object, params, result);
+	return bt_py3_component_class_query(component_class, query_executor, object, params, log_level, result);
 }
 
 static bt_query_status
@@ -1323,11 +1329,12 @@ bt_py3_component_class_sink_query(
 		bt_self_component_class_sink *self_component_class_sink,
 		const bt_query_executor *query_executor,
 		const char *object, const bt_value *params,
+		bt_logging_level log_level,
 		const bt_value **result)
 {
 	const bt_component_class_sink *component_class_sink = bt_self_component_class_sink_as_component_class_sink(self_component_class_sink);
 	const bt_component_class *component_class = bt_component_class_sink_as_component_class_const(component_class_sink);
-	return bt_py3_component_class_query(component_class, query_executor, object, params, result);
+	return bt_py3_component_class_query(component_class, query_executor, object, params, log_level, result);
 }
 
 static bt_self_message_iterator_status

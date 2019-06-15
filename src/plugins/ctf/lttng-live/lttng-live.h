@@ -248,6 +248,7 @@ bt_query_status lttng_live_query(
 		bt_self_component_class_source *comp_class,
 		const bt_query_executor *query_exec,
 		const char *object, const bt_value *params,
+		bt_logging_level log_level,
 		const bt_value **result);
 
 void lttng_live_component_finalize(bt_self_component_source *component);

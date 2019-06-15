@@ -1444,6 +1444,7 @@ BT_HIDDEN
 bt_query_status lttng_live_query(bt_self_component_class_source *comp_class,
 		const bt_query_executor *query_exec,
 		const char *object, const bt_value *params,
+		__attribute__((unused)) bt_logging_level log_level,
 		const bt_value **result)
 {
 	bt_query_status status = BT_QUERY_STATUS_OK;

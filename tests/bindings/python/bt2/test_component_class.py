@@ -175,7 +175,7 @@ class UserComponentClassTestCase(unittest.TestCase):
                 pass
 
             @classmethod
-            def _query(cls, query_exec, obj, params):
+            def _query(cls, query_exec, obj, params, log_level):
                 raise ValueError
 
         with self.assertRaises(bt2.Error):
@@ -187,7 +187,7 @@ class UserComponentClassTestCase(unittest.TestCase):
                 pass
 
             @classmethod
-            def _query(cls, query_exec, obj, params):
+            def _query(cls, query_exec, obj, params, log_level):
                 return ...
 
         with self.assertRaises(bt2.Error):
@@ -199,7 +199,7 @@ class UserComponentClassTestCase(unittest.TestCase):
                 pass
 
             @classmethod
-            def _query(cls, query_exec, obj, params):
+            def _query(cls, query_exec, obj, params, log_level):
                 nonlocal query_params
                 query_params = params
                 return None
@@ -217,7 +217,7 @@ class UserComponentClassTestCase(unittest.TestCase):
                 pass
 
             @classmethod
-            def _query(cls, query_exec, obj, params):
+            def _query(cls, query_exec, obj, params, log_level):
                 nonlocal query_params
                 query_params = params
                 return 17.5
@@ -235,7 +235,7 @@ class UserComponentClassTestCase(unittest.TestCase):
                 pass
 
             @classmethod
-            def _query(cls, query_exec, obj, params):
+            def _query(cls, query_exec, obj, params, log_level):
                 nonlocal query_params
                 query_params = params
                 return {
@@ -282,7 +282,7 @@ class GenericComponentClassTestCase(unittest.TestCase):
                 pass
 
             @classmethod
-            def _query(cls, query_exec, obj, params):
+            def _query(cls, query_exec, obj, params, log_level):
                 return [obj, params, 23]
 
         self._py_comp_cls = MySink

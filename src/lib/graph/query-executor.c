@@ -24,6 +24,7 @@
 #include "lib/lib-logging.h"
 
 #include "common/assert.h"
+#include "common/common.h"
 #include "lib/assert-pre.h"
 #include <babeltrace2/graph/query-executor-const.h>
 #include <babeltrace2/graph/query-executor.h>
@@ -69,10 +70,11 @@ enum bt_query_executor_status bt_query_executor_query(
 		struct bt_query_executor *query_exec,
 		const struct bt_component_class *comp_cls,
 		const char *object, const struct bt_value *params,
+		bt_logging_level log_level,
 		const struct bt_value **user_result)
 {
 	typedef enum bt_query_status (*method_t)(void *, const void *,
-		const void *, const void *, const void *);
+		const void *, const void *, bt_logging_level, const void *);
 
 	enum bt_query_status status;
 	enum bt_query_executor_status exec_status;
@@ -123,11 +125,13 @@ enum bt_query_executor_status bt_query_executor_query(
 	}
 
 	BT_LIB_LOGD("Calling user's query method: "
-		"query-exec-addr=%p, %![cc-]+C, object=\"%s\", %![params-]+v",
-		query_exec, comp_cls, object, params);
+		"query-exec-addr=%p, %![cc-]+C, object=\"%s\", %![params-]+v, "
+		"log-level=%s",
+		query_exec, comp_cls, object, params,
+		bt_common_logging_level_string(log_level));
 	*user_result = NULL;
 	status = method((void *) comp_cls, query_exec, object, params,
-		user_result);
+		log_level, user_result);
 	BT_LIB_LOGD("User method returned: status=%s, %![res-]+v",
 		bt_query_status_string(status), *user_result);
 	BT_ASSERT_PRE(status != BT_QUERY_STATUS_OK || *user_result,

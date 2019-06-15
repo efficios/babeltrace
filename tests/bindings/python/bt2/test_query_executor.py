@@ -11,7 +11,7 @@ class QueryExecutorTestCase(unittest.TestCase):
                 pass
 
             @classmethod
-            def _query(cls, query_exec, obj, params):
+            def _query(cls, query_exec, obj, params, log_level):
                 nonlocal query_params
                 query_params = params
                 return {
@@ -44,7 +44,7 @@ class QueryExecutorTestCase(unittest.TestCase):
                 pass
 
             @classmethod
-            def _query(cls, query_exec, obj, params):
+            def _query(cls, query_exec, obj, params, log_level):
                 nonlocal query_params
                 query_params = params
 
@@ -59,7 +59,7 @@ class QueryExecutorTestCase(unittest.TestCase):
                 pass
 
             @classmethod
-            def _query(cls, query_exec, obj, params):
+            def _query(cls, query_exec, obj, params, log_level):
                 raise ValueError
 
         with self.assertRaises(bt2.Error):
@@ -71,7 +71,7 @@ class QueryExecutorTestCase(unittest.TestCase):
                 pass
 
             @classmethod
-            def _query(cls, query_exec, obj, params):
+            def _query(cls, query_exec, obj, params, log_level):
                 raise bt2.InvalidQueryObject
 
         with self.assertRaises(bt2.InvalidQueryObject):
@@ -83,7 +83,7 @@ class QueryExecutorTestCase(unittest.TestCase):
                 pass
 
             @classmethod
-            def _query(cls, query_exec, obj, params):
+            def _query(cls, query_exec, obj, params, log_level):
                 raise bt2.InvalidQueryParams
 
         with self.assertRaises(bt2.InvalidQueryParams):
@@ -95,7 +95,7 @@ class QueryExecutorTestCase(unittest.TestCase):
                 pass
 
             @classmethod
-            def _query(cls, query_exec, obj, params):
+            def _query(cls, query_exec, obj, params, log_level):
                 raise bt2.TryAgain
 
         with self.assertRaises(bt2.TryAgain):
@@ -113,7 +113,7 @@ class QueryExecutorTestCase(unittest.TestCase):
                 pass
 
             @classmethod
-            def _query(cls, query_exec, obj, params):
+            def _query(cls, query_exec, obj, params, log_level):
                 raise bt2.TryAgain
 
         query_exec = bt2.QueryExecutor()

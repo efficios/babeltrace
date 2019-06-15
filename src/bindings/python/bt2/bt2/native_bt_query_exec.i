@@ -55,7 +55,7 @@ bt_query_executor_status bt_query_executor_query(
 		bt_query_executor *query_executor,
 		const bt_component_class *component_class,
 		const char *object, const bt_value *params,
-		const bt_value **OUT);
+		bt_logging_level logging_level, const bt_value **OUT);
 
 extern
 bt_query_executor_status bt_query_executor_cancel(

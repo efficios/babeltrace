@@ -22,6 +22,7 @@
 
 from bt2 import native_bt, object, utils
 import bt2.component
+import bt2.logging
 import bt2
 
 
@@ -59,7 +60,8 @@ class QueryExecutor(object._SharedObject):
         assert(is_canceled >= 0)
         return is_canceled > 0
 
-    def query(self, component_class, object, params=None):
+    def query(self, component_class, object, params=None,
+              logging_level=bt2.logging.LoggingLevel.NONE):
         if self.is_canceled:
             raise bt2.QueryExecutorCanceled
 
@@ -84,10 +86,12 @@ class QueryExecutor(object._SharedObject):
             params = bt2.create_value(params)
             params_ptr = params._ptr
 
+        utils._check_log_level(logging_level)
         cc_ptr = component_class._component_class_ptr()
 
         status, result_ptr = native_bt.query_executor_query(self._ptr, cc_ptr,
-                                                            object, params_ptr)
+                                                            object, params_ptr,
+                                                            logging_level)
         self._handle_status(status, 'cannot query component class')
         assert(result_ptr)
         return bt2.value._create_from_ptr(result_ptr)

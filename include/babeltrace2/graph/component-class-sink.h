@@ -43,6 +43,9 @@
  */
 #include <babeltrace2/types.h>
 
+/* For bt_logging_level */
+#include <babeltrace2/logging.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -59,6 +62,7 @@ typedef bt_query_status
 		bt_self_component_class_sink *comp_class,
 		const bt_query_executor *query_executor,
 		const char *object, const bt_value *params,
+		bt_logging_level logging_level,
 		const bt_value **result);
 
 typedef bt_self_component_status
