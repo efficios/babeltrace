@@ -167,9 +167,9 @@ void destroy_the_query_executor(void)
 }
 
 static
-int query(const bt_component_class *comp_cls, const char *obj,
-		const bt_value *params, const bt_value **user_result,
-		const char **fail_reason)
+int query(struct bt_config *cfg, const bt_component_class *comp_cls,
+		const char *obj, const bt_value *params,
+		const bt_value **user_result, const char **fail_reason)
 {
 	const bt_value *result = NULL;
 	bt_query_executor_status status;
@@ -195,7 +195,7 @@ int query(const bt_component_class *comp_cls, const char *obj,
 
 	while (true) {
 		status = bt_query_executor_query(the_query_executor,
-			comp_cls, obj, params, &result);
+			comp_cls, obj, params, cfg->log_level, &result);
 		switch (status) {
 		case BT_QUERY_EXECUTOR_STATUS_OK:
 			goto ok;
@@ -964,7 +964,7 @@ int cmd_query(struct bt_config *cfg)
 		goto end;
 	}
 
-	ret = query(comp_cls, cfg->cmd_data.query.object->str,
+	ret = query(cfg, comp_cls, cfg->cmd_data.query.object->str,
 		cfg->cmd_data.query.cfg_component->params,
 		&results, &fail_reason);
 	if (ret) {
@@ -1260,7 +1260,7 @@ int cmd_print_lttng_live_sessions(struct bt_config *cfg)
 		goto error;
 	}
 
-	ret = query(comp_cls, "sessions", params,
+	ret = query(cfg, comp_cls, "sessions", params,
 		    &results, &fail_reason);
 	if (ret) {
 		goto failed;
@@ -1414,7 +1414,7 @@ int cmd_print_ctf_metadata(struct bt_config *cfg)
 		goto end;
 	}
 
-	ret = query(comp_cls, "metadata-info",
+	ret = query(cfg, comp_cls, "metadata-info",
 		params, &results, &fail_reason);
 	if (ret) {
 		goto failed;
@@ -2173,7 +2173,7 @@ int set_stream_intersections(struct cmd_run_ctx *ctx,
 	const bt_component_class *comp_cls =
 		bt_component_class_source_as_component_class_const(src_comp_cls);
 
-	ret = query(comp_cls, "trace-info",
+	ret = query(ctx->cfg, comp_cls, "trace-info",
 		cfg_comp->params, &query_result,
 		&fail_reason);
 	if (ret) {

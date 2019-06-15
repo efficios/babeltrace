@@ -57,6 +57,7 @@ static bt_query_status flt_query_method(
 		bt_self_component_class_filter *component_class,
 		const bt_query_executor *query_exec,
 		const char *object, const bt_value *params,
+		__attribute__((unused)) bt_logging_level log_level,
 		const bt_value **result)
 {
 	bt_value *res = bt_value_array_create();

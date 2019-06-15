@@ -197,6 +197,7 @@ bt_query_status ctf_fs_query(
 		bt_self_component_class_source *comp_class,
 		const bt_query_executor *query_exec,
 		const char *object, const bt_value *params,
+		bt_logging_level log_level,
 		const bt_value **result);
 
 BT_HIDDEN

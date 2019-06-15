@@ -177,7 +177,7 @@ static void test_sfs(const char *plugin_dir)
 	BT_ASSERT(params);
 	ret = bt_query_executor_query(query_exec,
 		bt_component_class_filter_as_component_class_const(filter_comp_class),
-		"get-something", params, &results);
+		"get-something", params, BT_LOGGING_LEVEL_NONE, &results);
 	ok(ret == 0 && results, "bt_query_executor_query() succeeds");
 	BT_ASSERT(bt_value_is_array(results) && bt_value_array_get_size(results) == 2);
 	object = bt_value_array_borrow_element_by_index_const(results, 0);

@@ -29,6 +29,9 @@
 /* For bt_query_executor, bt_component_class, bt_value */
 #include <babeltrace2/types.h>
 
+/* For bt_logging_level */
+#include <babeltrace2/logging.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -41,7 +44,7 @@ bt_query_executor_status bt_query_executor_query(
 		bt_query_executor *query_executor,
 		const bt_component_class *component_class,
 		const char *object, const bt_value *params,
-		const bt_value **result);
+		bt_logging_level logging_level, const bt_value **result);
 
 extern
 bt_query_executor_status bt_query_executor_cancel(

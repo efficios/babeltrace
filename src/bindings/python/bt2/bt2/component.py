@@ -524,7 +524,7 @@ class _UserComponentType(type):
     def addr(cls):
         return int(cls._cc_ptr)
 
-    def _query_from_native(cls, query_exec_ptr, obj, params_ptr):
+    def _query_from_native(cls, query_exec_ptr, obj, params_ptr, log_level):
         # this can raise, in which case the native call to
         # bt_component_class_query() returns NULL
         if params_ptr is not None:
@@ -536,7 +536,7 @@ class _UserComponentType(type):
             query_exec_ptr)
 
         # this can raise, but the native side checks the exception
-        results = cls._query(query_exec, obj, params)
+        results = cls._query(query_exec, obj, params, log_level)
 
         # this can raise, but the native side checks the exception
         results = bt2.create_value(results)
