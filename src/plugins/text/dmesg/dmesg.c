@@ -21,9 +21,10 @@
  * SOFTWARE.
  */
 
+#define BT_COMP_LOG_SELF_COMP (dmesg_comp->self_comp)
 #define BT_LOG_OUTPUT_LEVEL (dmesg_comp->log_level)
 #define BT_LOG_TAG "PLUGIN/SRC.TEXT.DMESG"
-#include "logging/log.h"
+#include "plugins/comp-logging.h"
 
 #include <stdbool.h>
 #include <string.h>
@@ -73,7 +74,8 @@ struct dmesg_component {
 		bt_bool no_timestamp;
 	} params;
 
-	bt_self_component_source *self_comp;
+	bt_self_component_source *self_comp_src;
+	bt_self_component *self_comp;
 	bt_trace_class *trace_class;
 	bt_stream_class *stream_class;
 	bt_event_class *event_class;
@@ -93,20 +95,20 @@ bt_field_class *create_event_payload_fc(struct dmesg_component *dmesg_comp,
 
 	root_fc = bt_field_class_structure_create(trace_class);
 	if (!root_fc) {
-		BT_LOGE_STR("Cannot create an empty structure field class object.");
+		BT_COMP_LOGE_STR("Cannot create an empty structure field class object.");
 		goto error;
 	}
 
 	fc = bt_field_class_string_create(trace_class);
 	if (!fc) {
-		BT_LOGE_STR("Cannot create a string field class object.");
+		BT_COMP_LOGE_STR("Cannot create a string field class object.");
 		goto error;
 	}
 
 	ret = bt_field_class_structure_append_member(root_fc,
 		"str", fc);
 	if (ret) {
-		BT_LOGE("Cannot add `str` member to structure field class: "
+		BT_COMP_LOGE("Cannot add `str` member to structure field class: "
 			"ret=%d", ret);
 		goto error;
 	}
@@ -127,27 +129,24 @@ int create_meta(struct dmesg_component *dmesg_comp, bool has_ts)
 	bt_field_class *fc = NULL;
 	int ret = 0;
 
-	dmesg_comp->trace_class = bt_trace_class_create(
-		bt_self_component_source_as_self_component(
-			dmesg_comp->self_comp));
+	dmesg_comp->trace_class = bt_trace_class_create(dmesg_comp->self_comp);
 	if (!dmesg_comp->trace_class) {
-		BT_LOGE_STR("Cannot create an empty trace class object.");
+		BT_COMP_LOGE_STR("Cannot create an empty trace class object.");
 		goto error;
 	}
 
 	dmesg_comp->stream_class = bt_stream_class_create(
 		dmesg_comp->trace_class);
 	if (!dmesg_comp->stream_class) {
-		BT_LOGE_STR("Cannot create a stream class object.");
+		BT_COMP_LOGE_STR("Cannot create a stream class object.");
 		goto error;
 	}
 
 	if (has_ts) {
 		dmesg_comp->clock_class = bt_clock_class_create(
-				bt_self_component_source_as_self_component(
-					dmesg_comp->self_comp));
+			dmesg_comp->self_comp);
 		if (!dmesg_comp->clock_class) {
-			BT_LOGE_STR("Cannot create clock class.");
+			BT_COMP_LOGE_STR("Cannot create clock class.");
 			goto error;
 		}
 
@@ -161,7 +160,7 @@ int create_meta(struct dmesg_component *dmesg_comp, bool has_ts)
 		ret = bt_stream_class_set_default_clock_class(
 			dmesg_comp->stream_class, dmesg_comp->clock_class);
 		if (ret) {
-			BT_LOGE_STR("Cannot set stream class's default clock class.");
+			BT_COMP_LOGE_STR("Cannot set stream class's default clock class.");
 			goto error;
 		}
 
@@ -174,25 +173,25 @@ int create_meta(struct dmesg_component *dmesg_comp, bool has_ts)
 	dmesg_comp->event_class = bt_event_class_create(
 		dmesg_comp->stream_class);
 	if (!dmesg_comp->event_class) {
-		BT_LOGE_STR("Cannot create an event class object.");
+		BT_COMP_LOGE_STR("Cannot create an event class object.");
 		goto error;
 	}
 
 	ret = bt_event_class_set_name(dmesg_comp->event_class, "string");
 	if (ret) {
-		BT_LOGE_STR("Cannot set event class's name.");
+		BT_COMP_LOGE_STR("Cannot set event class's name.");
 		goto error;
 	}
 
 	fc = create_event_payload_fc(dmesg_comp, dmesg_comp->trace_class);
 	if (!fc) {
-		BT_LOGE_STR("Cannot create event payload field class.");
+		BT_COMP_LOGE_STR("Cannot create event payload field class.");
 		goto error;
 	}
 
 	ret = bt_event_class_set_payload_field_class(dmesg_comp->event_class, fc);
 	if (ret) {
-		BT_LOGE_STR("Cannot set event class's event payload field class.");
+		BT_COMP_LOGE_STR("Cannot set event class's event payload field class.");
 		goto error;
 	}
 
@@ -219,7 +218,7 @@ int handle_params(struct dmesg_component *dmesg_comp,
 		"no-extract-timestamp");
 	if (no_timestamp) {
 		if (!bt_value_is_bool(no_timestamp)) {
-			BT_LOGE("Expecting a boolean value for the `no-extract-timestamp` parameter: "
+			BT_COMP_LOGE("Expecting a boolean value for the `no-extract-timestamp` parameter: "
 				"type=%s",
 				bt_common_value_type_string(
 					bt_value_get_type(no_timestamp)));
@@ -233,12 +232,12 @@ int handle_params(struct dmesg_component *dmesg_comp,
 	path = bt_value_map_borrow_entry_value_const(params, "path");
 	if (path) {
 		if (dmesg_comp->params.read_from_stdin) {
-			BT_LOGE_STR("Cannot specify both `read-from-stdin` and `path` parameters.");
+			BT_COMP_LOGE_STR("Cannot specify both `read-from-stdin` and `path` parameters.");
 			goto error;
 		}
 
 		if (!bt_value_is_string(path)) {
-			BT_LOGE("Expecting a string value for the `path` parameter: "
+			BT_COMP_LOGE("Expecting a string value for the `path` parameter: "
 				"type=%s",
 				bt_common_value_type_string(
 					bt_value_get_type(path)));
@@ -269,7 +268,7 @@ int create_packet_and_stream_and_trace(struct dmesg_component *dmesg_comp)
 
 	dmesg_comp->trace = bt_trace_create(dmesg_comp->trace_class);
 	if (!dmesg_comp->trace) {
-		BT_LOGE_STR("Cannot create trace object.");
+		BT_COMP_LOGE_STR("Cannot create trace object.");
 		goto error;
 	}
 
@@ -288,7 +287,7 @@ int create_packet_and_stream_and_trace(struct dmesg_component *dmesg_comp)
 	if (trace_name) {
 		ret = bt_trace_set_name(dmesg_comp->trace, trace_name);
 		if (ret) {
-			BT_LOGE("Cannot set trace's name: name=\"%s\"",
+			BT_COMP_LOGE("Cannot set trace's name: name=\"%s\"",
 				trace_name);
 			goto error;
 		}
@@ -297,13 +296,13 @@ int create_packet_and_stream_and_trace(struct dmesg_component *dmesg_comp)
 	dmesg_comp->stream = bt_stream_create(dmesg_comp->stream_class,
 		dmesg_comp->trace);
 	if (!dmesg_comp->stream) {
-		BT_LOGE_STR("Cannot create stream object.");
+		BT_COMP_LOGE_STR("Cannot create stream object.");
 		goto error;
 	}
 
 	dmesg_comp->packet = bt_packet_create(dmesg_comp->stream);
 	if (!dmesg_comp->packet) {
-		BT_LOGE_STR("Cannot create packet object.");
+		BT_COMP_LOGE_STR("Cannot create packet object.");
 		goto error;
 	}
 
@@ -333,14 +332,14 @@ int try_create_meta_stream_packet(struct dmesg_component *dmesg_comp,
 
 	ret = create_meta(dmesg_comp, has_ts);
 	if (ret) {
-		BT_LOGE("Cannot create metadata objects: dmesg-comp-addr=%p",
+		BT_COMP_LOGE("Cannot create metadata objects: dmesg-comp-addr=%p",
 			dmesg_comp);
 		goto error;
 	}
 
 	ret = create_packet_and_stream_and_trace(dmesg_comp);
 	if (ret) {
-		BT_LOGE("Cannot create packet and stream objects: "
+		BT_COMP_LOGE("Cannot create packet and stream objects: "
 			"dmesg-comp-addr=%p", dmesg_comp);
 		goto error;
 	}
@@ -385,63 +384,60 @@ bt_self_component_status create_port(
 
 BT_HIDDEN
 bt_self_component_status dmesg_init(
-		bt_self_component_source *self_comp,
+		bt_self_component_source *self_comp_src,
 		bt_value *params, void *init_method_data)
 {
 	int ret = 0;
 	struct dmesg_component *dmesg_comp = g_new0(struct dmesg_component, 1);
 	bt_self_component_status status = BT_SELF_COMPONENT_STATUS_OK;
-	const bt_component *comp = bt_self_component_as_component(
-		bt_self_component_source_as_self_component(self_comp));
+	bt_self_component *self_comp =
+		bt_self_component_source_as_self_component(self_comp_src);
+	const bt_component *comp = bt_self_component_as_component(self_comp);
 	bt_logging_level log_level = bt_component_get_logging_level(comp);
 
 	if (!dmesg_comp) {
 		/* Implicit log level is not available here */
-		BT_LOG_WRITE_CUR_LVL(BT_LOG_ERROR, log_level, BT_LOG_TAG,
+		BT_COMP_LOG_CUR_LVL(BT_LOG_ERROR, log_level, self_comp,
 			"Failed to allocate one dmesg component structure.");
 		goto error;
 	}
 
 	dmesg_comp->log_level = log_level;
 	dmesg_comp->self_comp = self_comp;
+	dmesg_comp->self_comp_src = self_comp_src;
 	dmesg_comp->params.path = g_string_new(NULL);
 	if (!dmesg_comp->params.path) {
-		BT_LOGE_STR("Failed to allocate a GString.");
+		BT_COMP_LOGE_STR("Failed to allocate a GString.");
 		goto error;
 	}
 
 	ret = handle_params(dmesg_comp, params);
 	if (ret) {
-		BT_LOGE("Invalid parameters: comp-addr=%p", self_comp);
+		BT_COMP_LOGE("Invalid parameters: comp-addr=%p", self_comp);
 		goto error;
 	}
 
 	if (!dmesg_comp->params.read_from_stdin &&
 			!g_file_test(dmesg_comp->params.path->str,
 			G_FILE_TEST_IS_REGULAR)) {
-		BT_LOGE("Input path is not a regular file: "
+		BT_COMP_LOGE("Input path is not a regular file: "
 			"comp-addr=%p, path=\"%s\"", self_comp,
 			dmesg_comp->params.path->str);
 		goto error;
 	}
 
-	status = create_port(self_comp);
+	status = create_port(self_comp_src);
 	if (status != BT_SELF_COMPONENT_STATUS_OK) {
 		goto error;
 	}
 
-	bt_self_component_set_data(
-		bt_self_component_source_as_self_component(self_comp),
-		dmesg_comp);
-	BT_LOGI("`src.text.dmesg` component initialized: name=\"%s\"",
-		bt_component_get_name(comp));
+	bt_self_component_set_data(self_comp, dmesg_comp);
+	BT_COMP_LOGI_STR("Component initialized.");
 	goto end;
 
 error:
 	destroy_dmesg_component(dmesg_comp);
-	bt_self_component_set_data(
-		bt_self_component_source_as_self_component(self_comp),
-		NULL);
+	bt_self_component_set_data(self_comp, NULL);
 
 	if (status >= 0) {
 		status = BT_SELF_COMPONENT_STATUS_ERROR;
@@ -545,7 +541,7 @@ skip_ts:
 	}
 
 	if (!msg) {
-		BT_LOGE_STR("Cannot create event message.");
+		BT_COMP_LOGE_STR("Cannot create event message.");
 		goto error;
 	}
 
@@ -574,7 +570,7 @@ int fill_event_payload_from_line(struct dmesg_component *dmesg_comp,
 	str_field = bt_field_structure_borrow_member_field_by_index(
 		ep_field, 0);
 	if (!str_field) {
-		BT_LOGE_STR("Cannot borrow `timestamp` field from event payload structure field.");
+		BT_COMP_LOGE_STR("Cannot borrow `timestamp` field from event payload structure field.");
 		goto error;
 	}
 
@@ -586,13 +582,13 @@ int fill_event_payload_from_line(struct dmesg_component *dmesg_comp,
 
 	ret = bt_field_string_clear(str_field);
 	if (ret) {
-		BT_LOGE_STR("Cannot clear string field object.");
+		BT_COMP_LOGE_STR("Cannot clear string field object.");
 		goto error;
 	}
 
 	ret = bt_field_string_append_with_length(str_field, line, len);
 	if (ret) {
-		BT_LOGE("Cannot append value to string field object: "
+		BT_COMP_LOGE("Cannot append value to string field object: "
 			"len=%zu", len);
 		goto error;
 	}
@@ -619,7 +615,7 @@ bt_message *create_msg_from_line(
 	msg = create_init_event_msg_from_line(dmesg_msg_iter,
 		line, &new_start);
 	if (!msg) {
-		BT_LOGE_STR("Cannot create and initialize event message from line.");
+		BT_COMP_LOGE_STR("Cannot create and initialize event message from line.");
 		goto error;
 	}
 
@@ -627,7 +623,7 @@ bt_message *create_msg_from_line(
 	BT_ASSERT(event);
 	ret = fill_event_payload_from_line(dmesg_comp, new_start, event);
 	if (ret) {
-		BT_LOGE("Cannot fill event payload field from line: "
+		BT_COMP_LOGE("Cannot fill event payload field from line: "
 			"ret=%d", ret);
 		goto error;
 	}
@@ -652,7 +648,7 @@ void destroy_dmesg_msg_iter(struct dmesg_msg_iter *dmesg_msg_iter)
 
 	if (dmesg_msg_iter->fp && dmesg_msg_iter->fp != stdin) {
 		if (fclose(dmesg_msg_iter->fp)) {
-			BT_LOGE_ERRNO("Cannot close input file", ".");
+			BT_COMP_LOGE_ERRNO("Cannot close input file", ".");
 		}
 	}
 
@@ -677,7 +673,7 @@ bt_self_message_iterator_status dmesg_msg_iter_init(
 		BT_SELF_MESSAGE_ITERATOR_STATUS_OK;
 
 	if (!dmesg_msg_iter) {
-		BT_LOGE_STR("Failed to allocate on dmesg message iterator structure.");
+		BT_COMP_LOGE_STR("Failed to allocate on dmesg message iterator structure.");
 		goto error;
 	}
 
@@ -690,7 +686,7 @@ bt_self_message_iterator_status dmesg_msg_iter_init(
 	} else {
 		dmesg_msg_iter->fp = fopen(dmesg_comp->params.path->str, "r");
 		if (!dmesg_msg_iter->fp) {
-			BT_LOGE_ERRNO("Cannot open input file in read mode", ": path=\"%s\"",
+			BT_COMP_LOGE_ERRNO("Cannot open input file in read mode", ": path=\"%s\"",
 				dmesg_comp->params.path->str);
 			goto error;
 		}
@@ -791,7 +787,7 @@ bt_self_message_iterator_status dmesg_msg_iter_next_one(
 	dmesg_msg_iter->tmp_event_msg = create_msg_from_line(
 		dmesg_msg_iter, dmesg_msg_iter->linebuf);
 	if (!dmesg_msg_iter->tmp_event_msg) {
-		BT_LOGE("Cannot create event message from line: "
+		BT_COMP_LOGE("Cannot create event message from line: "
 			"dmesg-comp-addr=%p, line=\"%s\"", dmesg_comp,
 			dmesg_msg_iter->linebuf);
 		goto end;
@@ -859,7 +855,7 @@ handle_state:
 	}
 
 	if (!*msg) {
-		BT_LOGE("Cannot create message: dmesg-comp-addr=%p",
+		BT_COMP_LOGE("Cannot create message: dmesg-comp-addr=%p",
 			dmesg_comp);
 		status = BT_SELF_MESSAGE_ITERATOR_STATUS_ERROR;
 	}
