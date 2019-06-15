@@ -21,9 +21,10 @@
  * SOFTWARE.
  */
 
+#define BT_COMP_LOG_SELF_COMP (trimmer_comp->self_comp)
 #define BT_LOG_OUTPUT_LEVEL (trimmer_comp->log_level)
 #define BT_LOG_TAG "PLUGIN/FLT.UTILS.TRIMMER"
-#include "logging/log.h"
+#include "plugins/comp-logging.h"
 
 #include "compat/utc.h"
 #include "compat/time.h"
@@ -72,6 +73,7 @@ struct trimmer_comp {
 	struct trimmer_bound begin, end;
 	bool is_gmt;
 	bt_logging_level log_level;
+	bt_self_component *self_comp;
 };
 
 enum trimmer_iterator_state {
@@ -338,7 +340,7 @@ int set_bound_from_str(struct trimmer_comp *trimmer_comp,
 		goto end;
 	}
 
-	BT_LOGE("Invalid date/time format: param=\"%s\"", str);
+	BT_COMP_LOGE("Invalid date/time format: param=\"%s\"", str);
 	ret = -1;
 
 end:
@@ -372,7 +374,7 @@ int set_bound_from_param(struct trimmer_comp *trimmer_comp,
 	} else if (bt_value_is_string(param)) {
 		arg = bt_value_string_get(param);
 	} else {
-		BT_LOGE("`%s` parameter must be an integer or a string value.",
+		BT_COMP_LOGE("`%s` parameter must be an integer or a string value.",
 			param_name);
 		ret = -1;
 		goto end;
@@ -395,7 +397,7 @@ int validate_trimmer_bounds(struct trimmer_comp *trimmer_comp,
 
 	if (!begin->is_infinite && !end->is_infinite &&
 			begin->ns_from_origin > end->ns_from_origin) {
-		BT_LOGE("Trimming time range's beginning time is greater than end time: "
+		BT_COMP_LOGE("Trimming time range's beginning time is greater than end time: "
 			"begin-ns-from-origin=%" PRId64 ", "
 			"end-ns-from-origin=%" PRId64,
 			begin->ns_from_origin,
@@ -405,7 +407,7 @@ int validate_trimmer_bounds(struct trimmer_comp *trimmer_comp,
 	}
 
 	if (!begin->is_infinite && begin->ns_from_origin == INT64_MIN) {
-		BT_LOGE("Invalid trimming time range's beginning time: "
+		BT_COMP_LOGE("Invalid trimming time range's beginning time: "
 			"ns-from-origin=%" PRId64,
 			begin->ns_from_origin);
 		ret = -1;
@@ -413,7 +415,7 @@ int validate_trimmer_bounds(struct trimmer_comp *trimmer_comp,
 	}
 
 	if (!end->is_infinite && end->ns_from_origin == INT64_MIN) {
-		BT_LOGE("Invalid trimming time range's end time: "
+		BT_COMP_LOGE("Invalid trimming time range's end time: "
 			"ns-from-origin=%" PRId64,
 			end->ns_from_origin);
 		ret = -1;
@@ -473,29 +475,30 @@ end:
 	return ret;
 }
 
-bt_self_component_status trimmer_init(bt_self_component_filter *self_comp,
+bt_self_component_status trimmer_init(bt_self_component_filter *self_comp_flt,
 		const bt_value *params, void *init_data)
 {
 	int ret;
 	bt_self_component_status status;
 	struct trimmer_comp *trimmer_comp = create_trimmer_comp();
-
+	bt_self_component *self_comp =
+		bt_self_component_filter_as_self_component(self_comp_flt);
 	if (!trimmer_comp) {
 		status = BT_SELF_COMPONENT_STATUS_NOMEM;
 		goto error;
 	}
 
 	trimmer_comp->log_level = bt_component_get_logging_level(
-		bt_self_component_as_component(
-			bt_self_component_filter_as_self_component(self_comp)));
+		bt_self_component_as_component(self_comp));
+	trimmer_comp->self_comp = self_comp;
 	status = bt_self_component_filter_add_input_port(
-		self_comp, in_port_name, NULL, NULL);
+		self_comp_flt, in_port_name, NULL, NULL);
 	if (status != BT_SELF_COMPONENT_STATUS_OK) {
 		goto error;
 	}
 
 	status = bt_self_component_filter_add_output_port(
-		self_comp, "out", NULL, NULL);
+		self_comp_flt, "out", NULL, NULL);
 	if (status != BT_SELF_COMPONENT_STATUS_OK) {
 		goto error;
 	}
@@ -506,9 +509,7 @@ bt_self_component_status trimmer_init(bt_self_component_filter *self_comp,
 		goto error;
 	}
 
-	bt_self_component_set_data(
-		bt_self_component_filter_as_self_component(self_comp),
-		trimmer_comp);
+	bt_self_component_set_data(self_comp, trimmer_comp);
 	goto end;
 
 error:
@@ -786,7 +787,7 @@ int set_trimmer_iterator_bound(struct trimmer_iterator *trimmer_it,
 	}
 
 	if (errno) {
-		BT_LOGE_ERRNO("Cannot convert timestamp to date and time",
+		BT_COMP_LOGE_ERRNO("Cannot convert timestamp to date and time",
 			"ts=%" PRId64, (int64_t) time_seconds);
 		ret = -1;
 		goto end;
@@ -896,7 +897,7 @@ bt_self_message_iterator_status state_seek_initially(
 	if (trimmer_it->begin.is_infinite) {
 		if (!bt_self_component_port_input_message_iterator_can_seek_beginning(
 				trimmer_it->upstream_iter)) {
-			BT_LOGE_STR("Cannot make upstream message iterator initially seek its beginning.");
+			BT_COMP_LOGE_STR("Cannot make upstream message iterator initially seek its beginning.");
 			status = BT_SELF_MESSAGE_ITERATOR_STATUS_ERROR;
 			goto end;
 		}
@@ -907,7 +908,7 @@ bt_self_message_iterator_status state_seek_initially(
 		if (!bt_self_component_port_input_message_iterator_can_seek_ns_from_origin(
 				trimmer_it->upstream_iter,
 				trimmer_it->begin.ns_from_origin)) {
-			BT_LOGE("Cannot make upstream message iterator initially seek: "
+			BT_COMP_LOGE("Cannot make upstream message iterator initially seek: "
 				"seek-ns-from-origin=%" PRId64,
 				trimmer_it->begin.ns_from_origin);
 			status = BT_SELF_MESSAGE_ITERATOR_STATUS_ERROR;
@@ -1731,7 +1732,7 @@ bt_self_message_iterator_status handle_message(
 			 */
 			sc = bt_stream_borrow_class_const(stream);
 			if (!bt_stream_class_borrow_default_clock_class_const(sc)) {
-				BT_LOGE("Unsupported stream: stream class does "
+				BT_COMP_LOGE("Unsupported stream: stream class does "
 					"not have a default clock class: "
 					"stream-addr=%p, "
 					"stream-id=%" PRIu64 ", "
@@ -1751,7 +1752,7 @@ bt_self_message_iterator_status handle_message(
 			 */
 			if (!bt_stream_class_packets_have_beginning_default_clock_snapshot(
 					sc)) {
-				BT_LOGE("Unsupported stream: packets have "
+				BT_COMP_LOGE("Unsupported stream: packets have "
 					"no beginning clock snapshot: "
 					"stream-addr=%p, "
 					"stream-id=%" PRIu64 ", "
@@ -1764,7 +1765,7 @@ bt_self_message_iterator_status handle_message(
 
 			if (!bt_stream_class_packets_have_end_default_clock_snapshot(
 					sc)) {
-				BT_LOGE("Unsupported stream: packets have "
+				BT_COMP_LOGE("Unsupported stream: packets have "
 					"no end clock snapshot: "
 					"stream-addr=%p, "
 					"stream-id=%" PRIu64 ", "
@@ -1777,7 +1778,7 @@ bt_self_message_iterator_status handle_message(
 
 			if (bt_stream_class_supports_discarded_events(sc) &&
 					!bt_stream_class_discarded_events_have_default_clock_snapshots(sc)) {
-				BT_LOGE("Unsupported stream: discarded events "
+				BT_COMP_LOGE("Unsupported stream: discarded events "
 					"have no clock snapshots: "
 					"stream-addr=%p, "
 					"stream-id=%" PRIu64 ", "
@@ -1790,7 +1791,7 @@ bt_self_message_iterator_status handle_message(
 
 			if (bt_stream_class_supports_discarded_packets(sc) &&
 					!bt_stream_class_discarded_packets_have_default_clock_snapshots(sc)) {
-				BT_LOGE("Unsupported stream: discarded packets "
+				BT_COMP_LOGE("Unsupported stream: discarded packets "
 					"have no clock snapshots: "
 					"stream-addr=%p, "
 					"stream-id=%" PRIu64 ", "
