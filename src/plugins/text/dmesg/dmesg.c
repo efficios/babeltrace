@@ -21,17 +21,17 @@
  * SOFTWARE.
  */
 
+#define BT_LOG_OUTPUT_LEVEL (dmesg_comp->log_level)
 #define BT_LOG_TAG "PLUGIN/SRC.TEXT.DMESG"
-#include "logging.h"
+#include "logging/log.h"
 
 #include <stdbool.h>
 #include <string.h>
 #include <ctype.h>
 #include <stdio.h>
-#include "common/assert.h"
 #include "common/common.h"
+#include "common/assert.h"
 #include <babeltrace2/babeltrace.h>
-#include "lib/value.h"
 #include "compat/utc.h"
 #include "compat/stdio.h"
 #include <glib.h>
@@ -65,6 +65,8 @@ struct dmesg_msg_iter {
 };
 
 struct dmesg_component {
+	bt_logging_level log_level;
+
 	struct {
 		GString *path;
 		bt_bool read_from_stdin;
@@ -82,7 +84,8 @@ struct dmesg_component {
 };
 
 static
-bt_field_class *create_event_payload_fc(bt_trace_class *trace_class)
+bt_field_class *create_event_payload_fc(struct dmesg_component *dmesg_comp,
+		bt_trace_class *trace_class)
 {
 	bt_field_class *root_fc = NULL;
 	bt_field_class *fc = NULL;
@@ -181,7 +184,7 @@ int create_meta(struct dmesg_component *dmesg_comp, bool has_ts)
 		goto error;
 	}
 
-	fc = create_event_payload_fc(dmesg_comp->trace_class);
+	fc = create_event_payload_fc(dmesg_comp, dmesg_comp->trace_class);
 	if (!fc) {
 		BT_LOGE_STR("Cannot create event payload field class.");
 		goto error;
@@ -388,12 +391,18 @@ bt_self_component_status dmesg_init(
 	int ret = 0;
 	struct dmesg_component *dmesg_comp = g_new0(struct dmesg_component, 1);
 	bt_self_component_status status = BT_SELF_COMPONENT_STATUS_OK;
+	const bt_component *comp = bt_self_component_as_component(
+		bt_self_component_source_as_self_component(self_comp));
+	bt_logging_level log_level = bt_component_get_logging_level(comp);
 
 	if (!dmesg_comp) {
-		BT_LOGE_STR("Failed to allocate one dmesg component structure.");
+		/* Implicit log level is not available here */
+		BT_LOG_WRITE_CUR_LVL(BT_LOG_ERROR, log_level, BT_LOG_TAG,
+			"Failed to allocate one dmesg component structure.");
 		goto error;
 	}
 
+	dmesg_comp->log_level = log_level;
 	dmesg_comp->self_comp = self_comp;
 	dmesg_comp->params.path = g_string_new(NULL);
 	if (!dmesg_comp->params.path) {
@@ -424,6 +433,8 @@ bt_self_component_status dmesg_init(
 	bt_self_component_set_data(
 		bt_self_component_source_as_self_component(self_comp),
 		dmesg_comp);
+	BT_LOGI("`src.text.dmesg` component initialized: name=\"%s\"",
+		bt_component_get_name(comp));
 	goto end;
 
 error:
@@ -550,8 +561,8 @@ end:
 }
 
 static
-int fill_event_payload_from_line(const char *line,
-		bt_event *event)
+int fill_event_payload_from_line(struct dmesg_component *dmesg_comp,
+		const char *line, bt_event *event)
 {
 	bt_field *ep_field = NULL;
 	bt_field *str_field = NULL;
@@ -599,6 +610,7 @@ static
 bt_message *create_msg_from_line(
 		struct dmesg_msg_iter *dmesg_msg_iter, const char *line)
 {
+	struct dmesg_component *dmesg_comp = dmesg_msg_iter->dmesg_comp;
 	bt_event *event = NULL;
 	bt_message *msg = NULL;
 	const char *new_start;
@@ -613,7 +625,7 @@ bt_message *create_msg_from_line(
 
 	event = bt_message_event_borrow_event(msg);
 	BT_ASSERT(event);
-	ret = fill_event_payload_from_line(new_start, event);
+	ret = fill_event_payload_from_line(dmesg_comp, new_start, event);
 	if (ret) {
 		BT_LOGE("Cannot fill event payload field from line: "
 			"ret=%d", ret);
@@ -632,6 +644,8 @@ end:
 static
 void destroy_dmesg_msg_iter(struct dmesg_msg_iter *dmesg_msg_iter)
 {
+	struct dmesg_component *dmesg_comp = dmesg_msg_iter->dmesg_comp;
+
 	if (!dmesg_msg_iter) {
 		return;
 	}
@@ -655,7 +669,8 @@ bt_self_message_iterator_status dmesg_msg_iter_init(
 		bt_self_component_source *self_comp,
 		bt_self_component_port_output *self_port)
 {
-	struct dmesg_component *dmesg_comp;
+	struct dmesg_component *dmesg_comp = bt_self_component_get_data(
+		bt_self_component_source_as_self_component(self_comp));
 	struct dmesg_msg_iter *dmesg_msg_iter =
 		g_new0(struct dmesg_msg_iter, 1);
 	bt_self_message_iterator_status status =
@@ -666,8 +681,6 @@ bt_self_message_iterator_status dmesg_msg_iter_init(
 		goto error;
 	}
 
-	dmesg_comp = bt_self_component_get_data(
-		bt_self_component_source_as_self_component(self_comp));
 	BT_ASSERT(dmesg_comp);
 	dmesg_msg_iter->dmesg_comp = dmesg_comp;
 	dmesg_msg_iter->pc_msg_iter = self_msg_iter;
