@@ -93,7 +93,7 @@ const char *bt_common_get_system_plugin_path(void);
  * return value.
  */
 BT_HIDDEN
-char *bt_common_get_home_plugin_path(void);
+char *bt_common_get_home_plugin_path(int log_level);
 
 /*
  * Appends the list of directories in `paths` to the array `dirs`.
@@ -310,7 +310,7 @@ void bt_common_custom_snprintf(char *buf, size_t buf_size,
  * Returns the system page size.
  */
 BT_HIDDEN
-size_t bt_common_get_page_size(void);
+size_t bt_common_get_page_size(int log_level);
 
 /*
  * Adds the digit separator `sep` as many times as needed to form groups
@@ -334,7 +334,7 @@ void bt_common_sep_digits(char *str, unsigned int digits_per_group, char sep);
  * value smaller than the requested `count`.
  */
 static inline
-ssize_t bt_common_read(int fd, void *buf, size_t count)
+ssize_t bt_common_read(int fd, void *buf, size_t count, int log_level)
 {
 	size_t i = 0;
 	ssize_t ret;
@@ -348,15 +348,18 @@ ssize_t bt_common_read(int fd, void *buf, size_t count)
 		ret = read(fd, buf + i, count - i);
 		if (ret < 0) {
 			if (errno == EINTR) {
-#ifdef BT_LOGD_STR
-				BT_LOGD_STR("read() call interrupted; retrying...");
+#ifdef BT_LOG_WRITE_CUR_LVL
+				BT_LOG_WRITE_CUR_LVL(BT_LOG_DEBUG, log_level,
+					BT_LOG_TAG,
+					"read() call interrupted; retrying...");
 #endif
 				/* retry operation */
 				continue;
 			} else {
-#ifdef BT_LOGE_ERRNO
-				BT_LOGE_ERRNO("Error while reading", ": fd=%d",
-					fd);
+#ifdef BT_LOG_WRITE_ERRNO_CUR_LVL
+				BT_LOG_WRITE_ERRNO_CUR_LVL(BT_LOG_ERROR,
+					log_level, BT_LOG_TAG,
+					"Error while reading", ": fd=%d", fd);
 #endif
 				goto end;
 			}

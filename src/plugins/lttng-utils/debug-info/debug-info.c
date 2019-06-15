@@ -1995,7 +1995,8 @@ bt_self_message_iterator_status debug_info_msg_iter_init(
 		goto error;
 	}
 
-	ret = bt_fd_cache_init(&debug_info_msg_iter->fd_cache);
+	ret = bt_fd_cache_init(&debug_info_msg_iter->fd_cache,
+		BT_LOG_OUTPUT_LEVEL);
 	if (ret) {
 		status = BT_SELF_MESSAGE_ITERATOR_STATUS_NOMEM;
 		goto error;

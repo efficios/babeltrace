@@ -72,6 +72,9 @@ struct bt_ctfser {
 
 	/* Stream file's path (for debugging) */
 	GString *path;
+
+	/* Serializer's log level */
+	int log_level;
 };
 
 /*
@@ -80,7 +83,8 @@ struct bt_ctfser {
  * This function opens the file `path` for writing.
  */
 BT_HIDDEN
-int bt_ctfser_init(struct bt_ctfser *ctfser, const char *path);
+int bt_ctfser_init(struct bt_ctfser *ctfser, const char *path,
+		int log_level);
 
 /*
  * Finalizes a CTF serializer.

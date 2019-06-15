@@ -222,7 +222,8 @@ enum bt_msg_iter_medium_status medop_seek(enum bt_msg_iter_seek_whence whence,
 	if (ds_file->mmap_addr && (offset < ds_file->mmap_offset ||
 			offset >= ds_file->mmap_offset + ds_file->mmap_len)) {
 		int unmap_ret;
-		off_t offset_in_mapping = offset % bt_common_get_page_size();
+		off_t offset_in_mapping = offset %
+			bt_common_get_page_size(BT_LOG_OUTPUT_LEVEL);
 
 		BT_LOGD("Medium seek request cannot be accomodated by the current "
 				"file mapping: offset=%jd, mmap-offset=%jd, "
@@ -608,7 +609,7 @@ struct ctf_fs_ds_file *ctf_fs_ds_file_create(
 		bt_stream *stream, const char *path)
 {
 	int ret;
-	const size_t page_size = bt_common_get_page_size();
+	const size_t page_size = bt_common_get_page_size(BT_LOG_OUTPUT_LEVEL);
 	struct ctf_fs_ds_file *ds_file = g_new0(struct ctf_fs_ds_file, 1);
 
 	if (!ds_file) {

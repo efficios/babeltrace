@@ -168,7 +168,7 @@ struct fs_sink_stream *fs_sink_stream_create(struct fs_sink_trace *trace,
 
 	set_stream_file_name(stream);
 	g_string_append_printf(path, "/%s", stream->file_name->str);
-	ret = bt_ctfser_init(&stream->ctfser, path->str);
+	ret = bt_ctfser_init(&stream->ctfser, path->str, BT_LOG_OUTPUT_LEVEL);
 	if (ret) {
 		goto error;
 	}

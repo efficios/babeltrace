@@ -21,6 +21,10 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#define BT_LOG_OUTPUT_LEVEL BT_LOG_WARN
+#define BT_LOG_TAG "TEST/BIN-INFO"
+#include "logging/log.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -223,7 +227,7 @@ void test_bin_info_build_id(const char *bin_info_dir)
 		exit(EXIT_FAILURE);
 	}
 
-	ret = bt_fd_cache_init(&fdc);
+	ret = bt_fd_cache_init(&fdc, BT_LOG_OUTPUT_LEVEL);
 	if (ret != 0) {
 		diag("Failed to initialize FD cache");
 		exit(EXIT_FAILURE);
@@ -277,7 +281,7 @@ void test_bin_info_debug_link(const char *bin_info_dir)
 		exit(EXIT_FAILURE);
 	}
 
-	ret = bt_fd_cache_init(&fdc);
+	ret = bt_fd_cache_init(&fdc, BT_LOG_OUTPUT_LEVEL);
 	if (ret != 0) {
 		diag("Failed to initialize FD cache");
 		exit(EXIT_FAILURE);
@@ -327,7 +331,7 @@ void test_bin_info_elf(const char *bin_info_dir)
 		exit(EXIT_FAILURE);
 	}
 
-	ret = bt_fd_cache_init(&fdc);
+	ret = bt_fd_cache_init(&fdc, BT_LOG_OUTPUT_LEVEL);
 	if (ret != 0) {
 		diag("Failed to initialize FD cache");
 		exit(EXIT_FAILURE);
@@ -375,7 +379,7 @@ void test_bin_info_bundled(const char *bin_info_dir)
 		exit(EXIT_FAILURE);
 	}
 
-	ret = bt_fd_cache_init(&fdc);
+	ret = bt_fd_cache_init(&fdc, BT_LOG_OUTPUT_LEVEL);
 	if (ret != 0) {
 		diag("Failed to initialize FD cache");
 		exit(EXIT_FAILURE);

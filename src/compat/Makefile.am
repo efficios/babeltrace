@@ -1,8 +1,6 @@
 noinst_LTLIBRARIES = libcompat.la
 
 libcompat_la_SOURCES = \
-	logging.c \
-	logging.h \
 	mman.c \
 	mman.h \
 	uuid.c \

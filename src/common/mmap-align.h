@@ -72,13 +72,13 @@ off_t get_page_aligned_offset(off_t offset, size_t page_size)
 
 static inline
 struct mmap_align *mmap_align(size_t length, int prot,
-		int flags, int fd, off_t offset)
+		int flags, int fd, off_t offset, int log_level)
 {
 	struct mmap_align *mma;
 	off_t page_aligned_offset;	/* mmap offset, aligned to floor */
 	size_t page_size;
 
-	page_size = bt_common_get_page_size();
+	page_size = bt_common_get_page_size(log_level);
 
 	mma = malloc(sizeof(*mma));
 	if (!mma)

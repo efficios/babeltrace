@@ -22,9 +22,6 @@
  * SOFTWARE.
  */
 
-#define BT_LOG_TAG "COMPAT/UUID"
-#include "logging.h"
-
 #ifdef __APPLE__
 /*
  * On macOS, we need a dummy symbol so that the linker won't

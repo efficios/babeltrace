@@ -35,6 +35,7 @@ struct bt_fd_cache_handle {
 };
 
 struct bt_fd_cache {
+	int log_level;
 	GHashTable *cache;
 };
 
@@ -45,7 +46,7 @@ int bt_fd_cache_handle_get_fd(struct bt_fd_cache_handle *handle)
 }
 
 BT_HIDDEN
-int bt_fd_cache_init(struct bt_fd_cache *fdc);
+int bt_fd_cache_init(struct bt_fd_cache *fdc, int log_level);
 
 BT_HIDDEN
 void bt_fd_cache_fini(struct bt_fd_cache *fdc);

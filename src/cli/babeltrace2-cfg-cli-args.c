@@ -1553,8 +1553,8 @@ int append_home_and_system_plugin_paths(bt_value *plugin_paths,
 		if (bt_common_is_setuid_setgid()) {
 			BT_LOGI_STR("Skipping non-system plugin paths for setuid/setgid binary.");
 		} else {
-			char *home_plugin_dir =
-				bt_common_get_home_plugin_path();
+			char *home_plugin_dir = bt_common_get_home_plugin_path(
+				BT_LOG_OUTPUT_LEVEL);
 
 			if (home_plugin_dir) {
 				ret = bt_config_append_plugin_paths(
