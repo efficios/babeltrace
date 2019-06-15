@@ -3,6 +3,9 @@ babeltrace2includedir = "$(includedir)/babeltrace2"
 babeltrace2include_HEADERS = \
 	babeltrace2/babeltrace.h \
 	babeltrace2/func-status.h \
+	babeltrace2/current-thread.h \
+	babeltrace2/error-cause-const.h \
+	babeltrace2/error-const.h \
 	babeltrace2/logging.h \
 	babeltrace2/property.h \
 	babeltrace2/types.h \

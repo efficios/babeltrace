@@ -26,6 +26,9 @@
  */
 
 /* Core API */
+#include <babeltrace2/current-thread.h>
+#include <babeltrace2/error-cause-const.h>
+#include <babeltrace2/error-const.h>
 #include <babeltrace2/logging.h>
 #include <babeltrace2/property.h>
 #include <babeltrace2/types.h>

@@ -701,6 +701,10 @@ The available format specifiers are:
 |Plugin
 |`const struct bt_plugin *`
 
+|`r`
+|Error cause
+|`const struct bt_error_cause *`
+
 |`o`
 |Object pool
 |`+struct bt_object_pool *+`
