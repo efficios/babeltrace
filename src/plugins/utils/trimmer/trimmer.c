@@ -21,8 +21,9 @@
  * SOFTWARE.
  */
 
+#define BT_LOG_OUTPUT_LEVEL (trimmer_comp->log_level)
 #define BT_LOG_TAG "PLUGIN/FLT.UTILS.TRIMMER"
-#include "logging.h"
+#include "logging/log.h"
 
 #include "compat/utc.h"
 #include "compat/time.h"
@@ -70,6 +71,7 @@ struct trimmer_bound {
 struct trimmer_comp {
 	struct trimmer_bound begin, end;
 	bool is_gmt;
+	bt_logging_level log_level;
 };
 
 enum trimmer_iterator_state {
@@ -238,8 +240,8 @@ end:
  * TODO: Check overflows.
  */
 static
-int set_bound_from_str(const char *str, struct trimmer_bound *bound,
-		bool is_gmt)
+int set_bound_from_str(struct trimmer_comp *trimmer_comp,
+		const char *str, struct trimmer_bound *bound, bool is_gmt)
 {
 	int ret = 0;
 	int s_ret;
@@ -350,7 +352,8 @@ end:
  * Returns a negative value if anything goes wrong.
  */
 static
-int set_bound_from_param(const char *param_name, const bt_value *param,
+int set_bound_from_param(struct trimmer_comp *trimmer_comp,
+		const char *param_name, const bt_value *param,
 		struct trimmer_bound *bound, bool is_gmt)
 {
 	int ret;
@@ -375,15 +378,15 @@ int set_bound_from_param(const char *param_name, const bt_value *param,
 		goto end;
 	}
 
-	ret = set_bound_from_str(arg, bound, is_gmt);
+	ret = set_bound_from_str(trimmer_comp, arg, bound, is_gmt);
 
 end:
 	return ret;
 }
 
 static
-int validate_trimmer_bounds(struct trimmer_bound *begin,
-		struct trimmer_bound *end)
+int validate_trimmer_bounds(struct trimmer_comp *trimmer_comp,
+		struct trimmer_bound *begin, struct trimmer_bound *end)
 {
 	int ret = 0;
 
@@ -436,7 +439,7 @@ int init_trimmer_comp_from_params(struct trimmer_comp *trimmer_comp,
 
         value = bt_value_map_borrow_entry_value_const(params, "begin");
 	if (value) {
-		if (set_bound_from_param("begin", value,
+		if (set_bound_from_param(trimmer_comp, "begin", value,
 				&trimmer_comp->begin, trimmer_comp->is_gmt)) {
 			/* set_bound_from_param() logs errors */
 			ret = BT_SELF_COMPONENT_STATUS_ERROR;
@@ -449,7 +452,7 @@ int init_trimmer_comp_from_params(struct trimmer_comp *trimmer_comp,
 
         value = bt_value_map_borrow_entry_value_const(params, "end");
 	if (value) {
-		if (set_bound_from_param("end", value,
+		if (set_bound_from_param(trimmer_comp, "end", value,
 				&trimmer_comp->end, trimmer_comp->is_gmt)) {
 			/* set_bound_from_param() logs errors */
 			ret = BT_SELF_COMPONENT_STATUS_ERROR;
@@ -463,8 +466,8 @@ int init_trimmer_comp_from_params(struct trimmer_comp *trimmer_comp,
 end:
 	if (trimmer_comp->begin.is_set && trimmer_comp->end.is_set) {
 		/* validate_trimmer_bounds() logs errors */
-		ret = validate_trimmer_bounds(&trimmer_comp->begin,
-			&trimmer_comp->end);
+		ret = validate_trimmer_bounds(trimmer_comp,
+			&trimmer_comp->begin, &trimmer_comp->end);
 	}
 
 	return ret;
@@ -482,6 +485,9 @@ bt_self_component_status trimmer_init(bt_self_component_filter *self_comp,
 		goto error;
 	}
 
+	trimmer_comp->log_level = bt_component_get_logging_level(
+		bt_self_component_as_component(
+			bt_self_component_filter_as_self_component(self_comp)));
 	status = bt_self_component_filter_add_input_port(
 		self_comp, in_port_name, NULL, NULL);
 	if (status != BT_SELF_COMPONENT_STATUS_OK) {
@@ -760,9 +766,11 @@ void put_messages(bt_message_array_const msgs, uint64_t count)
 }
 
 static inline
-int set_trimmer_iterator_bound(struct trimmer_bound *bound,
-		int64_t ns_from_origin, bool is_gmt)
+int set_trimmer_iterator_bound(struct trimmer_iterator *trimmer_it,
+		struct trimmer_bound *bound, int64_t ns_from_origin,
+		bool is_gmt)
 {
+	struct trimmer_comp *trimmer_comp = trimmer_it->trimmer_comp;
 	struct tm tm;
 	time_t time_seconds = (time_t) (ns_from_origin / NS_PER_S);
 	int ret = 0;
@@ -843,7 +851,7 @@ bt_self_message_iterator_status state_set_trimmer_iterator_bounds(
 found:
 	if (!trimmer_it->begin.is_set) {
 		BT_ASSERT(!trimmer_it->begin.is_infinite);
-		ret = set_trimmer_iterator_bound(&trimmer_it->begin,
+		ret = set_trimmer_iterator_bound(trimmer_it, &trimmer_it->begin,
 			ns_from_origin, trimmer_comp->is_gmt);
 		if (ret) {
 			goto error;
@@ -852,15 +860,15 @@ found:
 
 	if (!trimmer_it->end.is_set) {
 		BT_ASSERT(!trimmer_it->end.is_infinite);
-		ret = set_trimmer_iterator_bound(&trimmer_it->end,
+		ret = set_trimmer_iterator_bound(trimmer_it, &trimmer_it->end,
 			ns_from_origin, trimmer_comp->is_gmt);
 		if (ret) {
 			goto error;
 		}
 	}
 
-	ret = validate_trimmer_bounds(&trimmer_it->begin,
-		&trimmer_it->end);
+	ret = validate_trimmer_bounds(trimmer_it->trimmer_comp,
+		&trimmer_it->begin, &trimmer_it->end);
 	if (ret) {
 		goto error;
 	}
@@ -879,6 +887,7 @@ static
 bt_self_message_iterator_status state_seek_initially(
 		struct trimmer_iterator *trimmer_it)
 {
+	struct trimmer_comp *trimmer_comp = trimmer_it->trimmer_comp;
 	bt_self_message_iterator_status status =
 		BT_SELF_MESSAGE_ITERATOR_STATUS_OK;
 
@@ -1664,6 +1673,7 @@ bt_self_message_iterator_status handle_message(
 	bool skip;
 	int ret;
 	struct trimmer_iterator_stream_state *sstate = NULL;
+	struct trimmer_comp *trimmer_comp = trimmer_it->trimmer_comp;
 
 	/* Find message's associated stream */
 	switch (bt_message_get_type(msg)) {
