@@ -37,6 +37,7 @@
 #include <babeltrace2/trace-ir/event-class-const.h>
 #include <babeltrace2/trace-ir/field-class-const.h>
 #include <babeltrace2/trace-ir/field-path-const.h>
+#include <babeltrace2/logging.h>
 #include <babeltrace2/value.h>
 
 #include "common/assert.h"
@@ -557,6 +558,30 @@ const char *bt_common_self_message_iterator_status_string(
 		return "BT_SELF_MESSAGE_ITERATOR_STATUS_ERROR";
 	case BT_SELF_MESSAGE_ITERATOR_STATUS_NOMEM:
 		return "BT_SELF_MESSAGE_ITERATOR_STATUS_NOMEM";
+	default:
+		return "(unknown)";
+	}
+};
+
+static inline
+const char *bt_common_logging_level_string(
+		enum bt_logging_level level)
+{
+	switch (level) {
+	case BT_LOGGING_LEVEL_VERBOSE:
+		return "BT_LOGGING_LEVEL_VERBOSE";
+	case BT_LOGGING_LEVEL_DEBUG:
+		return "BT_LOGGING_LEVEL_DEBUG";
+	case BT_LOGGING_LEVEL_INFO:
+		return "BT_LOGGING_LEVEL_INFO";
+	case BT_LOGGING_LEVEL_WARN:
+		return "BT_LOGGING_LEVEL_WARN";
+	case BT_LOGGING_LEVEL_ERROR:
+		return "BT_LOGGING_LEVEL_ERROR";
+	case BT_LOGGING_LEVEL_FATAL:
+		return "BT_LOGGING_LEVEL_FATAL";
+	case BT_LOGGING_LEVEL_NONE:
+		return "BT_LOGGING_LEVEL_NONE";
 	default:
 		return "(unknown)";
 	}
