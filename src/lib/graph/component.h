@@ -28,6 +28,7 @@
 #include <babeltrace2/graph/component-const.h>
 #include "lib/object.h"
 #include <babeltrace2/types.h>
+#include <babeltrace2/logging.h>
 #include "common/assert.h"
 #include <glib.h>
 #include <stdio.h>
@@ -49,6 +50,7 @@ struct bt_component {
 	struct bt_object base;
 	struct bt_component_class *class;
 	GString *name;
+	bt_logging_level log_level;
 
 	/*
 	 * Internal destroy function specific to a source, filter, or
@@ -78,7 +80,8 @@ struct bt_graph *bt_component_borrow_graph(struct bt_component *comp)
 
 BT_HIDDEN
 int bt_component_create(struct bt_component_class *component_class,
-		const char *name, struct bt_component **component);
+		const char *name, bt_logging_level log_level,
+		struct bt_component **component);
 
 BT_HIDDEN
 enum bt_self_component_status bt_component_accept_port_connection(

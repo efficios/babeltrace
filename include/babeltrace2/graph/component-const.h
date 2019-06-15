@@ -33,6 +33,9 @@
  */
 #include <babeltrace2/types.h>
 
+/* For bt_logging_level */
+#include <babeltrace2/logging.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -44,6 +47,9 @@ extern "C" {
  * @returns		Returns a pointer to the component's name
  */
 extern const char *bt_component_get_name(const bt_component *component);
+
+extern bt_logging_level bt_component_get_logging_level(
+		const bt_component *component);
 
 /**
  * Get component's class.

@@ -86,6 +86,9 @@
 
 extern const char *bt_component_get_name(const bt_component *component);
 
+extern bt_logging_level bt_component_get_logging_level(
+		const bt_component *component);
+
 extern const bt_component_class *bt_component_borrow_class_const(
 		const bt_component *component);
 

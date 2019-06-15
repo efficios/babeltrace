@@ -34,11 +34,14 @@ _ComponentAndSpec = namedtuple('_ComponentAndSpec', ['comp', 'spec'])
 
 
 class ComponentSpec:
-    def __init__(self, plugin_name, class_name, params=None):
+    def __init__(self, plugin_name, class_name, params=None,
+                 logging_level=bt2.logging.LoggingLevel.NONE):
         utils._check_str(plugin_name)
         utils._check_str(class_name)
+        utils._check_log_level(logging_level)
         self._plugin_name = plugin_name
         self._class_name = class_name
+        self._logging_level = logging_level
 
         if type(params) is str:
             self._params = bt2.create_value({'paths': [params]})
@@ -52,6 +55,10 @@ class ComponentSpec:
     @property
     def class_name(self):
         return self._class_name
+
+    @property
+    def logging_level(self):
+        return self._logging_level
 
     @property
     def params(self):
@@ -226,7 +233,8 @@ class TraceCollectionMessageIterator(bt2.message_iterator._MessageIterator):
 
         comp_cls = comp_classes[comp_spec.class_name]
         name = self._get_unique_comp_name(comp_spec)
-        comp = self._graph.add_component(comp_cls, name, comp_spec.params)
+        comp = self._graph.add_component(comp_cls, name, comp_spec.params,
+                                         comp_spec.logging_level)
         return comp
 
     def _get_free_muxer_input_port(self):

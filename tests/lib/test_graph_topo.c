@@ -527,7 +527,7 @@ const bt_component_source *create_src(bt_graph *graph)
 	int ret;
 
 	ret = bt_graph_add_source_component(graph, src_comp_class,
-		"src-comp", NULL, &comp);
+		"src-comp", NULL, BT_LOGGING_LEVEL_NONE, &comp);
 	BT_ASSERT(ret == 0);
 	return comp;
 }
@@ -539,7 +539,7 @@ const bt_component_sink *create_sink(bt_graph *graph)
 	int ret;
 
 	ret = bt_graph_add_sink_component(graph, sink_comp_class,
-		"sink-comp", NULL, &comp);
+		"sink-comp", NULL, BT_LOGGING_LEVEL_NONE, &comp);
 	BT_ASSERT(ret == 0);
 	return comp;
 }

@@ -471,7 +471,7 @@ static void test_example_scenario_in_graph(void)
 	BT_ASSERT(ret == 0);
 	graph = bt_graph_create();
 	ret = bt_graph_add_source_component(graph, comp_cls, "src-comp",
-		NULL, NULL);
+		NULL, BT_LOGGING_LEVEL_NONE, NULL);
 	BT_ASSERT(ret == 0);
 	bt_graph_put_ref(graph);
 	bt_component_class_source_put_ref(comp_cls);

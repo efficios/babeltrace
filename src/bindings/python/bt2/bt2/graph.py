@@ -25,6 +25,7 @@ import bt2.connection
 import bt2.component
 import functools
 import bt2.port
+import bt2.logging
 import bt2
 
 
@@ -76,7 +77,8 @@ class Graph(object._SharedObject):
         elif status < 0:
             raise bt2.Error(gen_error_msg)
 
-    def add_component(self, component_class, name, params=None):
+    def add_component(self, component_class, name, params=None,
+                      logging_level=bt2.logging.LoggingLevel.NONE):
         if isinstance(component_class, bt2.component._GenericSourceComponentClass):
             cc_ptr = component_class._ptr
             add_fn = native_bt.graph_add_source_component
@@ -106,11 +108,13 @@ class Graph(object._SharedObject):
                 component_class.__class__.__name__))
 
         utils._check_str(name)
+        utils._check_log_level(logging_level)
         params = bt2.create_value(params)
 
         params_ptr = params._ptr if params is not None else None
 
-        status, comp_ptr = add_fn(self._ptr, cc_ptr, name, params_ptr)
+        status, comp_ptr = add_fn(self._ptr, cc_ptr, name,
+                                  params_ptr, logging_level)
         self._handle_status(status, 'cannot add component to graph')
         assert comp_ptr
         return bt2.component._create_component_from_ptr(comp_ptr, cc_type)

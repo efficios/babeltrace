@@ -1055,8 +1055,9 @@ static inline void format_component(char **buf_ch, bool extended,
 {
 	char tmp_prefix[TMP_PREFIX_LEN];
 
-	BUF_APPEND(", %sname=\"%s\"",
-		PRFIELD_GSTRING(component->name));
+	BUF_APPEND(", %sname=\"%s\", %slog-level=%s",
+		PRFIELD_GSTRING(component->name),
+		PRFIELD(bt_common_logging_level_string(component->log_level)));
 
 	if (component->class) {
 		SET_TMP_PREFIX("class-");

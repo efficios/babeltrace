@@ -745,12 +745,19 @@ bt_port_output_message_iterator_create(struct bt_graph *graph,
 	colander_data.msgs = (void *) iterator->base.msgs->pdata;
 	colander_data.count_addr = &iterator->count;
 
-	/* Hope that nobody uses this very unique name */
+	/*
+	 * Hope that nobody uses this very unique name.
+	 *
+	 * We pass `BT_LOGGING_LEVEL_NONE` but the colander component
+	 * class module does not use this level anyway since it belongs
+	 * to the library.
+	 */
 	graph_status =
 		bt_graph_add_sink_component_with_init_method_data(
 			(void *) graph, colander_comp_cls,
 			"colander-36ac3409-b1a8-4d60-ab1f-4fdf341a8fb1",
-			NULL, &colander_data, (void *) &iterator->colander);
+			NULL, &colander_data, BT_LOGGING_LEVEL_NONE,
+			(void *) &iterator->colander);
 	if (graph_status != BT_GRAPH_STATUS_OK) {
 		BT_LIB_LOGW("Cannot add colander sink component to graph: "
 			"%1[graph-]+g, status=%s", graph,
