@@ -23,15 +23,13 @@
  * SOFTWARE.
  */
 
-#define BT_LOG_TAG "PLUGIN/SINK.TEXT.PRETTY"
-#include "logging.h"
-
 #include <babeltrace2/babeltrace.h>
 #include "compat/compiler.h"
 #include "common/common.h"
 #include <stdio.h>
 #include <stdbool.h>
 #include <glib.h>
+#include <string.h>
 #include "common/assert.h"
 
 #include "pretty.h"
