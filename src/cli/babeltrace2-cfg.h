@@ -50,6 +50,7 @@ struct bt_config_component {
 	GString *comp_cls_name;
 	bt_value *params;
 	GString *instance_name;
+	int log_level;
 };
 
 struct bt_config_connection {

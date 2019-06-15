@@ -58,6 +58,7 @@
 	} while (0)
 
 static bool is_first_error = true;
+static const int cli_default_log_level = BT_LOG_WARN;
 
 /* INI-style parsing FSM states */
 enum ini_parsing_fsm_state {
@@ -878,7 +879,8 @@ end:
 static
 struct bt_config_component *bt_config_component_create(
 		bt_component_class_type type,
-		const char *plugin_name, const char *comp_cls_name)
+		const char *plugin_name, const char *comp_cls_name,
+		int init_log_level)
 {
 	struct bt_config_component *cfg_component = NULL;
 
@@ -909,6 +911,8 @@ struct bt_config_component *bt_config_component_create(
 		goto error;
 	}
 
+	cfg_component->log_level = init_log_level;
+
 	/* Start with empty parameters */
 	cfg_component->params = bt_value_map_create();
 	if (!cfg_component->params) {
@@ -930,7 +934,8 @@ end:
  * option's argument.
  */
 static
-struct bt_config_component *bt_config_component_from_arg(const char *arg)
+struct bt_config_component *bt_config_component_from_arg(const char *arg,
+		int init_log_level)
 {
 	struct bt_config_component *cfg_comp = NULL;
 	char *name = NULL;
@@ -943,7 +948,8 @@ struct bt_config_component *bt_config_component_from_arg(const char *arg)
 		goto error;
 	}
 
-	cfg_comp = bt_config_component_create(type, plugin_name, comp_cls_name);
+	cfg_comp = bt_config_component_create(type, plugin_name, comp_cls_name,
+		init_log_level);
 	if (!cfg_comp) {
 		goto error;
 	}
@@ -1422,6 +1428,7 @@ enum {
 	OPT_HELP,
 	OPT_INPUT_FORMAT,
 	OPT_LIST,
+	OPT_LOG_LEVEL,
 	OPT_NAME,
 	OPT_NAMES,
 	OPT_NO_DELTA,
@@ -1697,7 +1704,8 @@ end:
 
 static
 struct bt_config *bt_config_help_create(
-		const bt_value *initial_plugin_paths)
+		const bt_value *initial_plugin_paths,
+		int default_log_level)
 {
 	struct bt_config *cfg;
 
@@ -1709,7 +1717,7 @@ struct bt_config *bt_config_help_create(
 	}
 
 	cfg->cmd_data.help.cfg_component =
-		bt_config_component_create(-1, NULL, NULL);
+		bt_config_component_create(-1, NULL, NULL, default_log_level);
 	if (!cfg->cmd_data.help.cfg_component) {
 		goto error;
 	}
@@ -1926,7 +1934,7 @@ static
 struct bt_config *bt_config_help_from_args(int argc, const char *argv[],
 		int *retcode, bool force_omit_system_plugin_path,
 		bool force_omit_home_plugin_path,
-		const bt_value *initial_plugin_paths)
+		const bt_value *initial_plugin_paths, int default_log_level)
 {
 	poptContext pc = NULL;
 	char *arg = NULL;
@@ -1937,7 +1945,7 @@ struct bt_config *bt_config_help_from_args(int argc, const char *argv[],
 	char *plugin_name = NULL, *comp_cls_name = NULL;
 
 	*retcode = 0;
-	cfg = bt_config_help_create(initial_plugin_paths);
+	cfg = bt_config_help_create(initial_plugin_paths, default_log_level);
 	if (!cfg) {
 		goto error;
 	}
@@ -2088,7 +2096,8 @@ static
 struct bt_config *bt_config_query_from_args(int argc, const char *argv[],
 		int *retcode, bool force_omit_system_plugin_path,
 		bool force_omit_home_plugin_path,
-		const bt_value *initial_plugin_paths)
+		const bt_value *initial_plugin_paths,
+		int default_log_level)
 {
 	poptContext pc = NULL;
 	char *arg = NULL;
@@ -2180,7 +2189,8 @@ struct bt_config *bt_config_query_from_args(int argc, const char *argv[],
 	leftover = poptGetArg(pc);
 	if (leftover) {
 		cfg->cmd_data.query.cfg_component =
-			bt_config_component_from_arg(leftover);
+			bt_config_component_from_arg(leftover,
+				default_log_level);
 		if (!cfg->cmd_data.query.cfg_component) {
 			printf_err("Invalid format for component class specification:\n    %s\n",
 				leftover);
@@ -2397,6 +2407,8 @@ void print_run_usage(FILE *fp)
 	fprintf(fp, "                                    specify the name with --name)\n");
 	fprintf(fp, "  -x, --connect=CONNECTION          Connect two created components (see the\n");
 	fprintf(fp, "                                    expected format of CONNECTION below)\n");
+	fprintf(fp, "  -l, --log-level=LVL               Set the log level of the current component to LVL\n");
+	fprintf(fp, "                                    (`N`, `V`, `D`, `I`, `W`, `E`, or `F`)\n");
 	fprintf(fp, "  -n, --name=NAME                   Set the name of the current component\n");
 	fprintf(fp, "                                    to NAME (must be unique amongst all the\n");
 	fprintf(fp, "                                    names of the created components)\n");
@@ -2464,7 +2476,7 @@ static
 struct bt_config *bt_config_run_from_args(int argc, const char *argv[],
 		int *retcode, bool force_omit_system_plugin_path,
 		bool force_omit_home_plugin_path,
-		const bt_value *initial_plugin_paths)
+		const bt_value *initial_plugin_paths, int default_log_level)
 {
 	poptContext pc = NULL;
 	char *arg = NULL;
@@ -2484,6 +2496,7 @@ struct bt_config *bt_config_run_from_args(int argc, const char *argv[],
 		{ "component", 'c', POPT_ARG_STRING, NULL, OPT_COMPONENT, NULL, NULL },
 		{ "connect", 'x', POPT_ARG_STRING, NULL, OPT_CONNECT, NULL, NULL },
 		{ "help", 'h', POPT_ARG_NONE, NULL, OPT_HELP, NULL, NULL },
+		{ "log-level", 'l', POPT_ARG_STRING, NULL, OPT_LOG_LEVEL, NULL, NULL },
 		{ "name", 'n', POPT_ARG_STRING, NULL, OPT_NAME, NULL, NULL },
 		{ "omit-home-plugin-path", '\0', POPT_ARG_NONE, NULL, OPT_OMIT_HOME_PLUGIN_PATH, NULL, NULL },
 		{ "omit-system-plugin-path", '\0', POPT_ARG_NONE, NULL, OPT_OMIT_SYSTEM_PLUGIN_PATH, NULL, NULL },
@@ -2573,7 +2586,8 @@ struct bt_config *bt_config_run_from_args(int argc, const char *argv[],
 				}
 			}
 
-			cur_cfg_comp = bt_config_component_from_arg(arg);
+			cur_cfg_comp = bt_config_component_from_arg(arg,
+				default_log_level);
 			if (!cur_cfg_comp) {
 				printf_err("Invalid format for --component option's argument:\n    %s\n",
 					arg);
@@ -2644,6 +2658,21 @@ struct bt_config *bt_config_run_from_args(int argc, const char *argv[],
 			}
 
 			g_string_assign(cur_cfg_comp->instance_name, arg);
+			break;
+		case OPT_LOG_LEVEL:
+			if (!cur_cfg_comp) {
+				printf_err("Cannot set the log level of unavailable component:\n    %s\n",
+					arg);
+				goto error;
+			}
+
+			cur_cfg_comp->log_level =
+				bt_log_get_level_from_string(arg);
+			if (cur_cfg_comp->log_level < 0) {
+				printf_err("Invalid argument for --log-level option:\n    %s\n",
+					arg);
+				goto error;
+			}
 			break;
 		case OPT_BASE_PARAMS:
 		{
@@ -2767,7 +2796,7 @@ static
 struct bt_config *bt_config_run_from_args_array(const bt_value *run_args,
 		int *retcode, bool force_omit_system_plugin_path,
 		bool force_omit_home_plugin_path,
-		const bt_value *initial_plugin_paths)
+		const bt_value *initial_plugin_paths, int default_log_level)
 {
 	struct bt_config *cfg = NULL;
 	const char **argv;
@@ -2801,7 +2830,7 @@ struct bt_config *bt_config_run_from_args_array(const bt_value *run_args,
 
 	cfg = bt_config_run_from_args(argc, argv, retcode,
 		force_omit_system_plugin_path, force_omit_home_plugin_path,
-		initial_plugin_paths);
+		initial_plugin_paths, default_log_level);
 
 end:
 	free(argv);
@@ -2825,6 +2854,8 @@ void print_convert_usage(FILE *fp)
 	fprintf(fp, "                                    conversion graph, and optionally name it\n");
 	fprintf(fp, "                                    NAME (you can also specify the name with\n");
 	fprintf(fp, "                                    --name)\n");
+	fprintf(fp, "  -l, --log-level=LVL               Set the log level of the current component to LVL\n");
+	fprintf(fp, "                                    (`N`, `V`, `D`, `I`, `W`, `E`, or `F`)\n");
 	fprintf(fp, "      --name=NAME                   Set the name of the current component\n");
 	fprintf(fp, "                                    to NAME (must be unique amongst all the\n");
 	fprintf(fp, "                                    names of the created components)\n");
@@ -2965,6 +2996,7 @@ struct poptOption convert_long_options[] = {
 	{ "fields", 'f', POPT_ARG_STRING, NULL, OPT_FIELDS, NULL, NULL },
 	{ "help", 'h', POPT_ARG_NONE, NULL, OPT_HELP, NULL, NULL },
 	{ "input-format", 'i', POPT_ARG_STRING, NULL, OPT_INPUT_FORMAT, NULL, NULL },
+	{ "log-level", 'l', POPT_ARG_STRING, NULL, OPT_LOG_LEVEL, NULL, NULL },
 	{ "name", '\0', POPT_ARG_STRING, NULL, OPT_NAME, NULL, NULL },
 	{ "names", 'n', POPT_ARG_STRING, NULL, OPT_NAMES, NULL, NULL },
 	{ "debug-info", '\0', POPT_ARG_NONE, NULL, OPT_DEBUG_INFO, NULL, NULL },
@@ -3715,7 +3747,7 @@ static
 struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 		int *retcode, bool force_omit_system_plugin_path,
 		bool force_omit_home_plugin_path,
-		const bt_value *initial_plugin_paths, int *log_level)
+		const bt_value *initial_plugin_paths, int *default_log_level)
 {
 	poptContext pc = NULL;
 	char *arg = NULL;
@@ -3994,6 +4026,24 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 			}
 
 			g_string_assign(cur_name, arg);
+			break;
+		case OPT_LOG_LEVEL:
+			if (cur_name_prefix->len == 0) {
+				printf_err("No current component to assign a log level to:\n    %s\n",
+					arg);
+				goto error;
+			}
+
+			if (bt_value_array_append_string_element(run_args, "--log-level")) {
+				print_err_oom();
+				goto error;
+			}
+
+			if (bt_value_array_append_string_element(run_args, arg)) {
+				print_err_oom();
+				goto error;
+			}
+
 			break;
 		case OPT_OMIT_HOME_PLUGIN_PATH:
 			force_omit_home_plugin_path = true;
@@ -4371,13 +4421,15 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 			stream_intersection_mode = true;
 			break;
 		case OPT_VERBOSE:
-			if (*log_level != BT_LOG_VERBOSE &&
-					*log_level != BT_LOG_DEBUG) {
-				*log_level = BT_LOG_INFO;
+			if (*default_log_level != BT_LOG_VERBOSE &&
+					*default_log_level != BT_LOG_DEBUG) {
+				*default_log_level = BT_LOG_INFO;
 			}
 			break;
 		case OPT_DEBUG:
-			*log_level = BT_LOG_VERBOSE;
+			*default_log_level = BT_LOG_VERBOSE;
+			break;
+		default:
 			break;
 		}
 
@@ -4398,7 +4450,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 	 * the INFO log level, which is why we compare to `BT_LOG_INFO`
 	 * here.
 	 */
-	if (*log_level == BT_LOG_INFO) {
+	if (*default_log_level == BT_LOG_INFO) {
 		append_implicit_component_param(&implicit_text_args,
 			"verbose", "yes");
 	}
@@ -4802,10 +4854,18 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 		goto end;
 	}
 
+	/*
+	 * If the log level is still unset at this point, set it to
+	 * the program's default.
+	 */
+	if (*default_log_level < 0) {
+		*default_log_level = cli_default_log_level;
+	}
+
 	cfg = bt_config_run_from_args_array(run_args, retcode,
-					    force_omit_system_plugin_path,
-					    force_omit_home_plugin_path,
-					    initial_plugin_paths);
+		force_omit_system_plugin_path,
+		force_omit_home_plugin_path,
+		initial_plugin_paths, *default_log_level);
 	if (!cfg) {
 		goto error;
 	}
@@ -4864,7 +4924,7 @@ void print_gen_usage(FILE *fp)
 	fprintf(fp, "\n");
 	fprintf(fp, "  -d, --debug          Enable debug mode (same as --log-level=V)\n");
 	fprintf(fp, "  -h, --help           Show this help and quit\n");
-	fprintf(fp, "  -l, --log-level=LVL  Set all log levels to LVL (`N`, `V`, `D`,\n");
+	fprintf(fp, "  -l, --log-level=LVL  Set the default log level to LVL (`N`, `V`, `D`,\n");
 	fprintf(fp, "                       `I`, `W` (default), `E`, or `F`)\n");
 	fprintf(fp, "  -v, --verbose        Enable verbose mode (same as --log-level=I)\n");
 	fprintf(fp, "  -V, --version        Show version and quit\n");
@@ -4890,7 +4950,7 @@ struct bt_config *bt_config_cli_args_create(int argc, const char *argv[],
 	const char **command_argv = NULL;
 	int command_argc = -1;
 	const char *command_name = NULL;
-	int log_level = -1;
+	int default_log_level = -1;
 
 	enum command_type {
 		COMMAND_TYPE_NONE = -1,
@@ -4926,11 +4986,11 @@ struct bt_config *bt_config_cli_args_create(int argc, const char *argv[],
 
 		if (strcmp(cur_arg, "-d") == 0 ||
 				strcmp(cur_arg, "--debug") == 0) {
-			log_level = BT_LOG_VERBOSE;
+			default_log_level = BT_LOG_VERBOSE;
 		} else if (strcmp(cur_arg, "-v") == 0 ||
 				strcmp(cur_arg, "--verbose") == 0) {
-			if (log_level != BT_LOG_VERBOSE &&
-					log_level != BT_LOG_DEBUG) {
+			if (default_log_level != BT_LOG_VERBOSE &&
+					default_log_level != BT_LOG_DEBUG) {
 				/*
 				 * Legacy: do not override a previous
 				 * --debug because --verbose and --debug
@@ -4938,7 +4998,7 @@ struct bt_config *bt_config_cli_args_create(int argc, const char *argv[],
 				 * case we want the lowest log level to
 				 * apply, VERBOSE).
 				 */
-				log_level = BT_LOG_INFO;
+				default_log_level = BT_LOG_INFO;
 			}
 		} else if (strcmp(cur_arg, "--log-level") == 0 ||
 				strcmp(cur_arg, "-l") == 0) {
@@ -4948,8 +5008,9 @@ struct bt_config *bt_config_cli_args_create(int argc, const char *argv[],
 				goto end;
 			}
 
-			log_level = bt_log_get_level_from_string(next_arg);
-			if (log_level < 0) {
+			default_log_level =
+				bt_log_get_level_from_string(next_arg);
+			if (default_log_level < 0) {
 				printf_err("Invalid argument for --log-level option:\n    %s\n",
 					next_arg);
 				*retcode = 1;
@@ -4960,8 +5021,8 @@ struct bt_config *bt_config_cli_args_create(int argc, const char *argv[],
 		} else if (strncmp(cur_arg, "--log-level=", 12) == 0) {
 			const char *arg = &cur_arg[12];
 
-			log_level = bt_log_get_level_from_string(arg);
-			if (log_level < 0) {
+			default_log_level = bt_log_get_level_from_string(arg);
+			if (default_log_level < 0) {
 				printf_err("Invalid argument for --log-level option:\n    %s\n",
 					arg);
 				*retcode = 1;
@@ -4970,8 +5031,8 @@ struct bt_config *bt_config_cli_args_create(int argc, const char *argv[],
 		} else if (strncmp(cur_arg, "-l", 2) == 0) {
 			const char *arg = &cur_arg[2];
 
-			log_level = bt_log_get_level_from_string(arg);
-			if (log_level < 0) {
+			default_log_level = bt_log_get_level_from_string(arg);
+			if (default_log_level < 0) {
 				printf_err("Invalid argument for --log-level option:\n    %s\n",
 					arg);
 				*retcode = 1;
@@ -5032,17 +5093,28 @@ struct bt_config *bt_config_cli_args_create(int argc, const char *argv[],
 	BT_ASSERT(command_argv);
 	BT_ASSERT(command_argc >= 0);
 
+	/*
+	 * The convert command can set its own default log level for
+	 * backward compatibility reasons. It only does so if there's no
+	 * log level yet, so do not force one for this command.
+	 */
+	if (command_type != COMMAND_TYPE_CONVERT && default_log_level < 0) {
+		/* Default log level */
+		default_log_level = cli_default_log_level;
+	}
+
 	switch (command_type) {
 	case COMMAND_TYPE_RUN:
 		config = bt_config_run_from_args(command_argc, command_argv,
 			retcode, force_omit_system_plugin_path,
-			force_omit_home_plugin_path, initial_plugin_paths);
+			force_omit_home_plugin_path, initial_plugin_paths,
+			default_log_level);
 		break;
 	case COMMAND_TYPE_CONVERT:
 		config = bt_config_convert_from_args(command_argc, command_argv,
 			retcode, force_omit_system_plugin_path,
 			force_omit_home_plugin_path,
-			initial_plugin_paths, &log_level);
+			initial_plugin_paths, &default_log_level);
 		break;
 	case COMMAND_TYPE_LIST_PLUGINS:
 		config = bt_config_list_plugins_from_args(command_argc,
@@ -5052,24 +5124,22 @@ struct bt_config *bt_config_cli_args_create(int argc, const char *argv[],
 	case COMMAND_TYPE_HELP:
 		config = bt_config_help_from_args(command_argc,
 			command_argv, retcode, force_omit_system_plugin_path,
-			force_omit_home_plugin_path, initial_plugin_paths);
+			force_omit_home_plugin_path, initial_plugin_paths,
+			default_log_level);
 		break;
 	case COMMAND_TYPE_QUERY:
 		config = bt_config_query_from_args(command_argc,
 			command_argv, retcode, force_omit_system_plugin_path,
-			force_omit_home_plugin_path, initial_plugin_paths);
+			force_omit_home_plugin_path, initial_plugin_paths,
+			default_log_level);
 		break;
 	default:
 		abort();
 	}
 
 	if (config) {
-		if (log_level < 0) {
-			/* Default log level */
-			log_level = BT_LOG_WARN;
-		}
-
-		config->log_level = log_level;
+		BT_ASSERT(default_log_level >= BT_LOG_VERBOSE);
+		config->log_level = default_log_level;
 		config->command_name = command_name;
 	}
 

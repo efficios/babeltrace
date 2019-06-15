@@ -71,7 +71,7 @@ comment() {
 @BABELTRACE_BUILD_WITH_MINGW_TRUE@output_path="C://output/path"
 @BABELTRACE_BUILD_WITH_MINGW_FALSE@output_path="/output/path"
 
-plan_tests 76
+plan_tests 77
 
 test_bt_convert_run_args 'path leftover' "$path_to_trace" "--component source.ctf.fs --name source-ctf-fs --params 'paths=[\"$path_to_trace\"]' --component sink.text.pretty --name pretty --component filter.utils.muxer --name muxer --connect source-ctf-fs:muxer --connect muxer:pretty"
 test_bt_convert_run_args 'path leftovers' "$path_to_trace ${path_to_trace}2 ${path_to_trace}3" "--component source.ctf.fs --name source-ctf-fs --params 'paths=[\"$path_to_trace\", \"${path_to_trace}2\", \"${path_to_trace}3\"]' --component sink.text.pretty --name pretty --component filter.utils.muxer --name muxer --connect source-ctf-fs:muxer --connect muxer:pretty"
@@ -117,6 +117,7 @@ test_bt_convert_run_args 'path leftover + user sink + -o text' "$path_to_trace -
 test_bt_convert_run_args 'path leftover + -o dummy' "$path_to_trace -o dummy" "--component source.ctf.fs --name source-ctf-fs --params 'paths=[\"$path_to_trace\"]' --component sink.utils.dummy --name dummy --component filter.utils.muxer --name muxer --connect source-ctf-fs:muxer --connect muxer:dummy"
 test_bt_convert_run_args 'path leftover + -o dummy + --clock-seconds' "$path_to_trace -o dummy --clock-seconds" "--component source.ctf.fs --name source-ctf-fs --params 'paths=[\"$path_to_trace\"]' --component sink.text.pretty --name pretty --params clock-seconds=yes --component sink.utils.dummy --name dummy --component filter.utils.muxer --name muxer --connect source-ctf-fs:muxer --connect muxer:pretty --connect muxer:dummy"
 test_bt_convert_run_args 'path leftover + -o ctf + --output' "$path_to_trace -o ctf --output $output_path" "--component source.ctf.fs --name source-ctf-fs --params 'paths=[\"$path_to_trace\"]' --component sink.ctf.fs --name sink-ctf-fs --params 'path=\"$output_path\"' --component filter.utils.muxer --name muxer --connect source-ctf-fs:muxer --connect muxer:sink-ctf-fs"
+test_bt_convert_run_args 'path leftover + user sink with log level' "$path_to_trace -c sink.mein.sink -lW" "--component sink.mein.sink --log-level W --name sink.mein.sink --component source.ctf.fs --name source-ctf-fs --params 'paths=[\"$path_to_trace\"]' --component filter.utils.muxer --name muxer --connect source-ctf-fs:muxer --connect 'muxer:sink\.mein\.sink'"
 
 test_bt_convert_fails 'bad --component format (plugin only)' '--component salut'
 test_bt_convert_fails 'bad --component format (name and plugin only)' '--component name:salut'
