@@ -660,6 +660,8 @@ bt_log_spec;
  *
  * See BT_LOG_OUTPUT_LEVEL for details.
  */
+#define BT_LOG_ON_CUR_LVL(lvl, cur_lvl) \
+		(BT_LOG_ENABLED((lvl)) && (lvl) >= (cur_lvl))
 #define BT_LOG_ON(lvl) \
 		(BT_LOG_ENABLED((lvl)) && (lvl) >= _BT_LOG_OUTPUT_LEVEL)
 #define BT_LOG_ON_VERBOSE   BT_LOG_ON(BT_LOG_VERBOSE)
@@ -786,6 +788,9 @@ void _bt_log_write_mem_aux(
  * - BT_LOG_WRITE_MEM_AUX(&log_instance, level, tag, data_ptr, data_sz,
  *                        "format string", args, ...)
  *
+ * Explicit log level, current log level, and tag:
+ * - BT_LOG_WRITE_CUR_LVL(level, cur_level, tag, "format string", args, ...)
+ *
  * Format string follows printf() conventions. Both data_ptr and data_sz could
  * be 0. Tag can be 0 as well. Most compilers will verify that type of arguments
  * match format specifiers in format string.
@@ -797,6 +802,11 @@ void _bt_log_write_mem_aux(
 	#define BT_LOG_WRITE(lvl, tag, ...) \
 			do { \
 				if (BT_LOG_ON(lvl)) \
+					_bt_log_write(lvl, tag, __VA_ARGS__); \
+			} _BT_LOG_ONCE
+	#define BT_LOG_WRITE_CUR_LVL(lvl, cur_lvl, tag, ...) \
+			do { \
+				if (BT_LOG_ON_CUR_LVL((lvl), (cur_lvl))) \
 					_bt_log_write(lvl, tag, __VA_ARGS__); \
 			} _BT_LOG_ONCE
 	#define BT_LOG_WRITE_MEM(lvl, tag, d, d_sz, ...) \
@@ -821,6 +831,12 @@ void _bt_log_write_mem_aux(
 					_bt_log_write_d(_BT_LOG_SRCLOC_FUNCTION, __FILE__, __LINE__, \
 							lvl, tag, __VA_ARGS__); \
 			} _BT_LOG_ONCE
+	#define BT_LOG_WRITE_CUR_LVL(lvl, cur_lvl, tag, ...) \
+			do { \
+				if (BT_LOG_ON_CUR_LVL((lvl), (cur_lvl))) \
+					_bt_log_write_d(_BT_LOG_SRCLOC_FUNCTION, __FILE__, __LINE__, \
+							lvl, tag, __VA_ARGS__); \
+			} _BT_LOG_ONCE
 	#define BT_LOG_WRITE_MEM(lvl, tag, d, d_sz, ...) \
 			do { \
 				if (BT_LOG_ON(lvl)) \
@@ -841,11 +857,16 @@ void _bt_log_write_mem_aux(
 			} _BT_LOG_ONCE
 #endif
 
-#define BT_LOG_WRITE_ERRNO(lvl, tag, _msg, _fmt, args...) \
+#define BT_LOG_WRITE_ERRNO_CUR_LVL(lvl, cur_lvl, tag, _msg, _fmt, args...) \
 		do { \
 			const char *error_str; \
 			error_str = g_strerror(errno); \
-			BT_LOG_WRITE(lvl, tag, _msg ": %s" _fmt, error_str, ## args); \
+			BT_LOG_WRITE_CUR_LVL(lvl, cur_lvl, tag, _msg ": %s" _fmt, error_str, ## args); \
+		} _BT_LOG_ONCE
+
+#define BT_LOG_WRITE_ERRNO(lvl, tag, _msg, _fmt, args...) \
+		do { \
+			BT_LOG_WRITE_ERRNO_CUR_LVL(lvl, _BT_LOG_OUTPUT_LEVEL, tag, _msg, _fmt, ## args); \
 		} _BT_LOG_ONCE
 
 static _BT_LOG_INLINE void _bt_log_unused(const int dummy, ...) {(void)dummy;}
