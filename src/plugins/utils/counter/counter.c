@@ -20,8 +20,9 @@
  * SOFTWARE.
  */
 
+#define BT_LOG_OUTPUT_LEVEL (counter->log_level)
 #define BT_LOG_TAG "PLUGIN/FLT.UTILS.COUNTER"
-#include "logging.h"
+#include "logging/log.h"
 
 #include <babeltrace2/babeltrace.h>
 #include "common/macros.h"
@@ -150,6 +151,9 @@ bt_self_component_status counter_init(
 		goto error;
 	}
 
+	counter->log_level = bt_component_get_logging_level(
+		bt_self_component_as_component(
+			bt_self_component_sink_as_self_component(component)));
 	ret = bt_self_component_sink_add_input_port(component,
 		"in", NULL, NULL);
 	if (ret != BT_SELF_COMPONENT_STATUS_OK) {
