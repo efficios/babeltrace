@@ -3715,7 +3715,7 @@ static
 struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 		int *retcode, bool force_omit_system_plugin_path,
 		bool force_omit_home_plugin_path,
-		const bt_value *initial_plugin_paths, char *log_level)
+		const bt_value *initial_plugin_paths, int *log_level)
 {
 	poptContext pc = NULL;
 	char *arg = NULL;
@@ -4371,12 +4371,13 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 			stream_intersection_mode = true;
 			break;
 		case OPT_VERBOSE:
-			if (*log_level != 'V' && *log_level != 'D') {
-				*log_level = 'I';
+			if (*log_level != BT_LOG_VERBOSE &&
+					*log_level != BT_LOG_DEBUG) {
+				*log_level = BT_LOG_INFO;
 			}
 			break;
 		case OPT_DEBUG:
-			*log_level = 'V';
+			*log_level = BT_LOG_VERBOSE;
 			break;
 		}
 
@@ -4394,9 +4395,10 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 	/*
 	 * Legacy behaviour: --verbose used to make the `text` output
 	 * format print more information. --verbose is now equivalent to
-	 * the INFO log level, which is why we compare to 'I' here.
+	 * the INFO log level, which is why we compare to `BT_LOG_INFO`
+	 * here.
 	 */
-	if (*log_level == 'I') {
+	if (*log_level == BT_LOG_INFO) {
 		append_implicit_component_param(&implicit_text_args,
 			"verbose", "yes");
 	}
@@ -4878,38 +4880,6 @@ void print_gen_usage(FILE *fp)
 	fprintf(fp, "Use `babeltrace2 COMMAND --help` to show the help of COMMAND.\n");
 }
 
-static
-char log_level_from_arg(const char *arg)
-{
-	char level = 'U';
-
-	if (strcmp(arg, "VERBOSE") == 0 ||
-			strcmp(arg, "V") == 0) {
-		level = 'V';
-	} else if (strcmp(arg, "DEBUG") == 0 ||
-			strcmp(arg, "D") == 0) {
-		level = 'D';
-	} else if (strcmp(arg, "INFO") == 0 ||
-			strcmp(arg, "I") == 0) {
-		level = 'I';
-	} else if (strcmp(arg, "WARN") == 0 ||
-			strcmp(arg, "WARNING") == 0 ||
-			strcmp(arg, "W") == 0) {
-		level = 'W';
-	} else if (strcmp(arg, "ERROR") == 0 ||
-			strcmp(arg, "E") == 0) {
-		level = 'E';
-	} else if (strcmp(arg, "FATAL") == 0 ||
-			strcmp(arg, "F") == 0) {
-		level = 'F';
-	} else if (strcmp(arg, "NONE") == 0 ||
-			strcmp(arg, "N") == 0) {
-		level = 'N';
-	}
-
-	return level;
-}
-
 struct bt_config *bt_config_cli_args_create(int argc, const char *argv[],
 		int *retcode, bool force_omit_system_plugin_path,
 		bool force_omit_home_plugin_path,
@@ -4920,7 +4890,7 @@ struct bt_config *bt_config_cli_args_create(int argc, const char *argv[],
 	const char **command_argv = NULL;
 	int command_argc = -1;
 	const char *command_name = NULL;
-	char log_level = 'U';
+	int log_level = -1;
 
 	enum command_type {
 		COMMAND_TYPE_NONE = -1,
@@ -4956,10 +4926,11 @@ struct bt_config *bt_config_cli_args_create(int argc, const char *argv[],
 
 		if (strcmp(cur_arg, "-d") == 0 ||
 				strcmp(cur_arg, "--debug") == 0) {
-			log_level = 'V';
+			log_level = BT_LOG_VERBOSE;
 		} else if (strcmp(cur_arg, "-v") == 0 ||
 				strcmp(cur_arg, "--verbose") == 0) {
-			if (log_level != 'V' && log_level != 'D') {
+			if (log_level != BT_LOG_VERBOSE &&
+					log_level != BT_LOG_DEBUG) {
 				/*
 				 * Legacy: do not override a previous
 				 * --debug because --verbose and --debug
@@ -4967,7 +4938,7 @@ struct bt_config *bt_config_cli_args_create(int argc, const char *argv[],
 				 * case we want the lowest log level to
 				 * apply, VERBOSE).
 				 */
-				log_level = 'I';
+				log_level = BT_LOG_INFO;
 			}
 		} else if (strcmp(cur_arg, "--log-level") == 0 ||
 				strcmp(cur_arg, "-l") == 0) {
@@ -4977,8 +4948,8 @@ struct bt_config *bt_config_cli_args_create(int argc, const char *argv[],
 				goto end;
 			}
 
-			log_level = log_level_from_arg(next_arg);
-			if (log_level == 'U') {
+			log_level = bt_log_get_level_from_string(next_arg);
+			if (log_level < 0) {
 				printf_err("Invalid argument for --log-level option:\n    %s\n",
 					next_arg);
 				*retcode = 1;
@@ -4989,8 +4960,8 @@ struct bt_config *bt_config_cli_args_create(int argc, const char *argv[],
 		} else if (strncmp(cur_arg, "--log-level=", 12) == 0) {
 			const char *arg = &cur_arg[12];
 
-			log_level = log_level_from_arg(arg);
-			if (log_level == 'U') {
+			log_level = bt_log_get_level_from_string(arg);
+			if (log_level < 0) {
 				printf_err("Invalid argument for --log-level option:\n    %s\n",
 					arg);
 				*retcode = 1;
@@ -4999,8 +4970,8 @@ struct bt_config *bt_config_cli_args_create(int argc, const char *argv[],
 		} else if (strncmp(cur_arg, "-l", 2) == 0) {
 			const char *arg = &cur_arg[2];
 
-			log_level = log_level_from_arg(arg);
-			if (log_level == 'U') {
+			log_level = bt_log_get_level_from_string(arg);
+			if (log_level < 0) {
 				printf_err("Invalid argument for --log-level option:\n    %s\n",
 					arg);
 				*retcode = 1;
@@ -5093,8 +5064,9 @@ struct bt_config *bt_config_cli_args_create(int argc, const char *argv[],
 	}
 
 	if (config) {
-		if (log_level == 'U') {
-			log_level = 'W';
+		if (log_level < 0) {
+			/* Default log level */
+			log_level = BT_LOG_WARN;
 		}
 
 		config->log_level = log_level;
