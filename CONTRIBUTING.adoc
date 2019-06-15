@@ -1,42 +1,50 @@
-= Babeltrace's contributor's guide
+// Render with Asciidoctor
+
+= Babeltrace contributor's guide
 Jérémie Galarneau, Philippe Proulx
-v0.1, 6 September 2017
+v0.2, 19 June 2019
 :toc:
 :toclevels: 5
 
 
 This is a partial contributor's guide for the
 http://diamon.org/babeltrace[Babeltrace] project. If you have any
-questions that are not answered in this guide, please post them
-on https://lists.lttng.org/cgi-bin/mailman/listinfo/lttng-dev[Babeltrace's mailing list].
+questions that are not answered by this guide, please post them on
+https://lists.lttng.org/cgi-bin/mailman/listinfo/lttng-dev[Babeltrace's
+mailing list].
 
 
-== Object reference counting and lifetime
+== Babeltrace library
+
+=== Object reference counting and lifetime
 
 This section covers the rationale behind the design of Babeltrace's
-object lifetime management.
+object lifetime management. This applies to the Babeltrace library, as
+well as to the CTF writer library (although the public reference
+counting functions are not named the same way).
 
-Starting from Babeltrace 2.x, all publicly exposed objects inherit a
+Starting from Babeltrace 2.0, all publicly exposed objects inherit a
 common base: `bt_object`. This base provides a number of facilities to
 all objects, chief amongst which are lifetime management functions.
 
-The reference count of all public objects is controlled by invoking the
-`bt_get()` and `bt_put()` functions which respectively increment and
-decrement an object's reference count.
+The lifetime of some public objects is managed by reference counting. In
+this case, the API offers the `+bt_*_get_ref()+` and `+bt_*_put_ref()+`
+functions which respectively increment and decrement an object's
+reference count.
 
 As far as lifetime management in concerned, Babeltrace makes a clear
 distinction between regular objects, which have a single parent, and
 root objects, which don't.
 
 
-=== The problem
+==== The problem
 
 Let us consider a problematic case to illustrate the need for this
 distinction.
 
-A user of the CTF Writer library declares a trace, which *has* a
-stream class (the declaration of a stream) and that stream class, in
-turn, *has* an event class (the declaration of an event).
+A user of the Babeltrace library creates a trace class, which _has_ a
+stream class (the class of a stream) and that stream class, in turn,
+_has_ an event class (the class of an event).
 
 Nothing prevents this user from releasing his reference on any one of
 these objects in any order. However, all objects in the
@@ -44,14 +52,14 @@ __trace--stream class--event class__ hierarchy can be retrieved
 from any other.
 
 For instance, the user could discard his reference on both the event
-class and the stream class, only keeping a reference on the trace. From
-this trace reference, stream classes can be enumerated, providing the
-user with a new reference to the stream class he discarded earlier.
-event classes can also be enumerated from stream classes, providing the
-user with references to the individual event classes.
+class and the stream class, only keeping a reference on the trace class.
+From this trace class reference, stream classes can be enumerated,
+providing the user with a new reference to the stream class he discarded
+earlier. Event classes can also be enumerated from stream classes,
+providing the user with references to the individual event classes.
 
 Conversely, the user could also hold a reference to an event class and
-retrieve its parent stream class. The trace, in turn, can then be
+retrieve its parent stream class. The trace class, in turn, can then be
 retrieved from the stream class.
 
 This example illustrates what could be interpreted as a circular
@@ -65,15 +73,15 @@ Nonetheless, the API must offer the guarantee that holding a node to any
 node of the graph keeps all other reachable nodes alive.
 
 
-=== The solution
+==== The solution
 
 The scheme employed in Babeltrace to break this cycle consists in the
-"children" holding *reverse component references* to their parents. That
+"children" holding _reverse component references_ to their parents. That
 is, in the context of the trace IR, that event classes hold a reference
 to their parent stream class and stream classes hold a reference to
-their parent trace.
+their parent trace class.
 
-On the other hand, parents hold *claiming aggregation references* to
+On the other hand, parents hold _claiming aggregation references_ to
 their children. A claiming aggregation reference means that the object
 being referenced should not be deleted as long as the reference still
 exists. In this respect, it can be said that parents truly hold the
@@ -82,32 +90,32 @@ Conversely, the reference counting mechanism is leveraged by children to
 notify parents that no other child indirectly exposes the parent.
 
 When a parented object's reference count reaches zero, it invokes
-`bt_put()` on its parent and does **not** free itself. However, from
-that point, the object depends on its parent to signal the moment when
-it can be safely reclaimed.
+`+bt_*_put_ref()+` on its parent and does _not_ free itself. However,
+from that point, the object depends on its parent to signal the moment
+when it can be safely reclaimed.
 
-The invocation of `bt_put()` by the last children holding a reference to
-its parent might trigger a cascade of `bt_put()` from child to parent.
-Eventually, a **root** object is reached. At that point, if this
-orphaned object's reference count reaches zero, the object invokes the
-destructor method defined by everyone of its children as part of their
-base `struct bt_object`. The key point here is that the cascade of
-destructor will necessarily originate from the root and propagate in
-preorder to the children. These children will propagate the destruction
-to their own children before reclaiming their own memory. This ensures
-that a node's pointer to its parent is *always* valid since the parent
-has the responsibility of tearing-down their children before cleaning
-themselves up.
+The invocation of `+bt_*_put_ref()+` by the last children holding a
+reference to its parent might trigger a cascade of `+bt_*_put_ref()+`
+from child to parent. Eventually, a **root** object is reached. At that
+point, if this orphaned object's reference count reaches zero, the
+object invokes the destructor method defined by everyone of its children
+as part of their base `struct bt_object`. The key point here is that the
+cascade of destructor will necessarily originate from the root and
+propagate in preorder to the children. These children will propagate the
+destruction to their own children before reclaiming their own memory.
+This ensures that a node's pointer to its parent is _always_ valid since
+the parent has the responsibility of tearing-down their children before
+cleaning themselves up.
 
-Assuming a reference to an object is *acquired* by calling `bt_get()`
-while its reference count is zero, the object acquires, in turn, a
-reference on its parent using `bt_get()`. At that point, the child can
-be thought of as having converted its weak reference to its parent into
-a regular reference. That is why this reference is referred to as a
-*claiming* aggregation reference.
+Assuming a reference to an object is _acquired_ by calling
+`+bt_*_get_ref()+` while its reference count is zero, the object
+acquires, in turn, a reference on its parent using `+bt_*_get_ref()+`.
+At that point, the child can be thought of as having converted its weak
+reference to its parent into a regular reference. That is why this
+reference is referred to as a _claiming_ aggregation reference.
 
 
-=== Caveats
+==== Caveats
 
 This scheme imposes a number of strict rules defining the relation
 between objects:
@@ -117,64 +125,65 @@ between objects:
   parent or children.
 
 
-=== Example
+==== Example
 
-The initial situation is rather simple: **User A** is holding a
-reference to a trace, **TC1**. As per the rules previously enounced,
-stream classes **SC1** and **SC2** don't hold a reference to **TC1**
-since their own reference counts are zero. The same holds true for
-**EC1**, **EC2** and **EC3** with respect to **SC1** and **SC2**.
+The initial situation is rather simple: **User{nbsp}A** is holding a
+reference to a trace class, **TC1**. As per the rules previously
+enounced, stream classes **SC1** and **SC2** don't hold a reference to
+**TC1** since their own reference counts are zero. The same holds true
+for **EC1**, **EC2** and **EC3** with respect to **SC1** and **SC2**.
 
 image::doc/contributing-images/bt-ref01.png[]
 
-In this second step, we can see that **User A** has acquired a reference
-on **SC2** through the trace, **TC1**.
+In this second step, we can see that **User{nbsp}A** has acquired a
+reference on **SC2** through the trace class, **TC1**.
 
 The stream class's reference count transitions from zero to one,
 triggering the acquisition of a strong reference on **TC1** from
 **SC2**.
 
-Hence, at this point, the trace's ownership is shared by **User A** and
-**SC2**.
+Hence, at this point, the trace class's ownership is shared by
+**User{nbsp}A** and **SC2**.
 
 image::doc/contributing-images/bt-ref02.png[]
 
-Next, **User A** acquires a reference on the **EC3** event class through
-its parent stream class, **SC2**. Again, the transition of an object's
-reference count from 0 to 1 triggers the acquisition of a reference on
-its parent.
+Next, **User{nbsp}A** acquires a reference on the **EC3** event class
+through its parent stream class, **SC2**. Again, the transition of an
+object's reference count from 0 to 1 triggers the acquisition of a
+reference on its parent.
 
-Note that SC2's reference count was incremented to 2. The trace's
+Note that SC2's reference count was incremented to 2. The trace class's
 reference count remains unchanged.
 
 image::doc/contributing-images/bt-ref03.png[]
 
-**User A** decides to drop its reference on **SC2**. **SC2**'s reference
-count returns back to 1, everything else remaining unchanged.
+**User{nbsp}A** decides to drop its reference on **SC2**. **SC2**'s
+reference count returns back to 1, everything else remaining unchanged.
 
 image::doc/contributing-images/bt-ref04.png[]
 
-**User A** can then decide to drop its reference on the trace. This
-results in a reversal of the initial situation: **User A** now owns an
-event, **EC3**, which is keeping everything else alive and reachable.
+**User{nbsp}A** can then decide to drop its reference on the trace
+class. This results in a reversal of the initial situation:
+**User{nbsp}A** now owns an event, **EC3**, which is keeping everything
+else alive and reachable.
 
 image::doc/contributing-images/bt-ref05.png[]
 
-If another object, **User B**, enters the picture and acquires a
+If another object, **User{nbsp}B**, enters the picture and acquires a
 reference on the **SC1** stream class, we see that **SC1**'s reference
 count transitioned from 0 to 1, triggering the acquisition of a
 reference on **TC1**.
 
 image::doc/contributing-images/bt-ref06.png[]
 
-**User B** hands off a reference to **EC1**, acquired through **SC1**,
-to another object, **User C**. The acquisition of a reference on
-**EC1**, which transitions from 0 to 1, triggers the acquisition of a
-reference on its parent, **SC1**.
+**User{nbsp}B** hands off a reference to **EC1**, acquired through
+**SC1**, to another object, **User{nbsp}C**. The acquisition of a
+reference on **EC1**, which transitions from 0 to 1, triggers the
+acquisition of a reference on its parent, **SC1**.
 
 image::doc/contributing-images/bt-ref07.png[]
 
-At some point, **User A** releases its reference on **EC3**. Since
+At some point, **User{nbsp}A** releases its reference on **EC3**. Since
 **EC3**'s reference count transitions to zero, it releases its reference
 on **SC2**. **SC2**'s reference count, in turn, reaches zero and it
 releases its reference to **TC1**.
@@ -183,18 +192,19 @@ releases its reference to **TC1**.
 
 image::doc/contributing-images/bt-ref08.png[]
 
-**User B** releases its reference on **SC1**. **User C** becomes the
-sole owner of the whole hierarchy through his ownership of **EC1**.
+**User{nbsp}B** releases its reference on **SC1**. **User{nbsp}C**
+becomes the sole owner of the whole hierarchy through his ownership of
+**EC1**.
 
 image::doc/contributing-images/bt-ref09.png[]
 
-Finally, **User C** releases his ownership of **EC1**, triggering the
-release of the whole hierarchy. Let's walk through the reclamation of
-the whole graph.
+Finally, **User{nbsp}C** releases his ownership of **EC1**, triggering
+the release of the whole hierarchy. Let's walk through the reclamation
+of the whole graph.
 
-Mirroring what happened when **User A** released its last reference on
-**EC3**, the release of **EC1** by **User C** causes its reference count
-to fall to zero.
+Mirroring what happened when **User{nbsp}A** released its last reference
+on **EC3**, the release of **EC1** by **User{nbsp}C** causes its
+reference count to fall to zero.
 
 This transition to zero causes **EC1** to release its reference on
 **SC1**. **SC1**'s reference count reaching zero causes it to release
@@ -213,32 +223,13 @@ reclaimed.
 image::doc/contributing-images/bt-ref11.png[]
 
 The stream classes having destroyed their children, are then reclaimed
-by the trace.
+by the trace class.
 
 image::doc/contributing-images/bt-ref12.png[]
 
 Finally, the stream classes having been reclaimed, **TC1** is reclaimed.
 
 image::doc/contributing-images/bt-ref13.png[]
-
-
-== Valgrind
-
-To use Valgrind on an application (for example, the CLI or a test) which
-loads libbabeltrace2, use:
-
-    $ G_SLICE=always-malloc G_DEBUG=gc-friendly PYTHONMALLOC=malloc \
-      BABELTRACE_NO_DLCLOSE=1 valgrind --leak-check=full \
-      --suppressions=/path/to/babeltrace/extras/valgrind/popt.supp app
-
-`G_SLICE=always-malloc` and `G_DEBUG=gc-friendly` is for GLib and
-`PYTHONMALLOC=malloc` is for the Python interpreter, if it is used by
-the Python plugin provider (Valgrind will probably show a lot of errors
-which originate from Python interpreter anyway).
-
-`BABELTRACE_NO_DLCLOSE=1` makes libbabeltrace2 not close the shared
-libraries (plugins) which it loads. This is needed to see the
-appropriate backtrace when Valgrind shows errors.
 
 
 == Logging
@@ -248,79 +239,130 @@ information about a running software.
 
 Babeltrace is a complex software with many layers. When a Babeltrace
 graph fails to run, what caused the failure? It could be caused by any
-component, any notification iterator, and any deeply nested validation
-of a CTR IR object, for example. With the appropriate logging statements
-manually placed in the source code, we can find the cause of a bug
-faster.
+component, any message iterator, and any deeply nested validation of a
+CTF IR object (within the `ctf` plugin), for example. With the
+appropriate logging statements manually placed in the source code, we
+can find the cause of a bug faster.
 
-While <<log-level,care must be taken>> when placing _INFO_ to _FATAL_
-logging statements, you should liberally instrument your Babeltrace
-module with _DEBUG_ and _VERBOSE_ logging statements to help future you
-and other developers understand what's happening at run-time.
+While <<choose-a-log-level,care must be taken>> when placing _DEBUG_ to
+_FATAL_ logging statements, you should liberally instrument your
+Babeltrace module with _VERBOSE_ logging statements to help future you
+and other developers understand what's happening at run time.
 
 
 === Logging API
 
 The Babeltrace logging API is internal: it is not exposed to the users
-of the library, only to their developers. The only thing that a library
+of the library; only to their developers. The only thing that a library
 user can control is the current log level of the library itself with
 `bt_logging_set_global_level()` and the initial library's log level with
-the `BABELTRACE_LOGGING_GLOBAL_LEVEL` environment variable.
+the `LIBBABELTRACE2_INIT_LOG_LEVEL` environment variable.
 
 This API is based on https://github.com/wonder-mice/zf_log[zf_log], a
 lightweight, yet featureful, MIT-licensed core logging library for C and
-$$C++$$. The zf_log source files were modified to have the `BT_` and
-`bt_` prefixes, and other small changes, like color support.
+pass:[C++]. The zf_log source files were modified to have the `BT_` and
+`bt_` prefixes, and other small changes, like color support and using
+the project's `BT_DEBUG_MODE` definition instead of the standard
+`NDEBUG`.
 
 The logging functions are implemented in the logging convenience
-library (`logging` directory).
+library (`src/logging` directory).
 
 
+[[logging-headers]]
 ==== Headers
 
 The logging API headers are:
 
 `<babeltrace2/logging.h>`::
-    Public header which a library user can use to control and read
+    Public header which a library user can use to set and get
     libbabeltrace2's current log level.
 
-`<logging/log.h>`::
+`"logging/log.h"`::
     Internal, generic logging API which you can use in any Babeltrace
-    subproject. This is the translation of `zf_log.h`.
+    module. This is the translation of `zf_log.h`.
++
+This header offers the <<gen-logging-statements,generic logging
+statement macros>>.
 
-`<lib/lib-logging.h>`::
-    Specific internal header to use within the library. This header
-    defines `BT_LOG_OUTPUT_LEVEL` to a custom, library-wide hidden
-    symbol which is the library's current log level before including
-    `<logging/log.h>`.
+`"lib/logging.h"`::
+    Specific internal header to use within the library.
++
+This header defines `BT_LOG_OUTPUT_LEVEL` to a custom, library-wide
+hidden symbol which is the library's current log level before including
+`"logging/log.h"`.
++
+This header offers the <<lib-logging-statements,library-specific logging
+statement macros>>.
 
-Do not include `<logging/log.h>` or
-`<lib/lib-logging.h>` in a header which contains logging
-statements: this header could be included in source files which define a
-different <<choose-a-tag,tag>>, for example. See
-<<logging-instrument-header, Instrument a C header file>>.
+`"plugins/comp-logging.h"`::
+    Specific internal header to use within a component class.
++
+This header offers the <<comp-logging-statements,component-specific
+logging statement macros>>.
 
 
+[[log-levels]]
 ==== Log levels
 
-The API offers the following log levels:
+The internal logging API offers the following log levels, in ascending
+order of severity:
 
-* _VERBOSE_
-* _DEBUG_
-* _INFO_
-* _WARN_
-* _ERROR_
-* _FATAL_
+[options="header,autowidth",cols="4"]
+|===
+|Log level name
+|Log level short name
+|Internal API enumerator
+|Public API enumerator
 
-See <<log-level,how to decide which one to use>> below.
+|_VERBOSE_
+|`V`
+|`BT_LOG_VERBOSE`
+|`BT_LOGGING_LEVEL_VERBOSE`
 
-There are two important log level variables:
+|_DEBUG_
+|`D`
+|`BT_LOG_DEBUG`
+|`BT_LOGGING_LEVEL_DEBUG`
+
+|_INFO_
+|`I`
+|`BT_LOG_INFO`
+|`BT_LOGGING_LEVEL_INFO`
+
+|_WARN_
+|`W`
+|`BT_LOG_WARN`
+|`BT_LOGGING_LEVEL_WARN`
+
+|_ERROR_
+|`E`
+|`BT_LOG_ERROR`
+|`BT_LOGGING_LEVEL_ERROR`
+
+|_FATAL_
+|`F`
+|`BT_LOG_FATAL`
+|`BT_LOGGING_LEVEL_FATAL`
+
+|_NONE_
+|`N`
+|`BT_LOG_NONE`
+|`BT_LOGGING_LEVEL_NONE`
+|===
+
+The short name is accepted by the log level environment variables and by
+the CLI's `--log-level` options.
+
+See <<choose-a-log-level,how to decide which one to use>> below.
+
+There are two important log level expressions:
 
 [[build-time-log-level]]Build-time, minimal log level::
-    The minimal log level, or build-time log level, is set at build
-    time and determines the minimal log level which can be executed.
-    This applies to all the subprojects and modules (CLI, library,
-    plugins, etc.).
+    The minimal log level, or build-time log level, is set at build time
+    and determines the minimal log level of the logging statements which
+    can be executed. This applies to all the modules (CLI, library,
+    plugins, bindings, etc.).
 +
 All the logging statements with a level below this level are **not built
 at all**. All the logging statements with a level equal to or greater
@@ -336,31 +378,29 @@ $ BABELTRACE_MINIMAL_LOG_LEVEL=WARN ./configure
 ----
 --
 +
-The default build-time log level is `VERBOSE`. For optimal performance,
-set it to `NONE`, which effectively disables all logging in all the
-Babeltrace subprojects.
+The default build-time log level is `DEBUG`. For optimal performance,
+set it to `INFO`, which effectively disables all fast path logging in
+all the Babeltrace modules.
 +
 The library's public API provides `bt_logging_get_minimal_level()` to
 get the configured minimal log level.
 
 [[run-time-log-level]]Run-time, dynamic log level::
-    The dynamic log level is set at run-time and determines the current,
-    active log level. All the logging statements with a level below this
-    level are not executed, but they evaluate the condition. All the
-    logging statements with a level equal to or greater than this level
-    are executed, provided that their level is also
-    <<build-time-log-level,enabled at build time>>.
+    The dynamic log level is set at run time and determines the current,
+    _active_ log level. All the logging statements with a level below
+    this level are not executed, **but they still evaluate the
+    condition**. All the logging statements with a level equal to or
+    greater than this level are executed, provided that their level is
+    also <<build-time-log-level,enabled at build time>>.
 +
 `zf_log` has a concept of a global run-time log level which uses the
 `_bt_log_global_output_lvl` symbol. In practice, we never use this
 symbol, and always make sure that `BT_LOG_OUTPUT_LEVEL` is defined to a
-module-wise or subproject-wise hidden symbol before including
-`<logging/log.h>`. In the library,
-`<lib/lib-logging.h>` does this job: just include this
-header which defines `BT_LOG_OUTPUT_LEVEL` to the appropriate symbol
-before it includes `<logging/log.h>`. In plugins, for
-example, there is one log level per component class, which makes log
-filtering easier during execution.
+module-wise expression before including `"logging/log.h"`.
++
+In the library, `"lib/logging.h"` defines its own
+`BT_LOG_OUTPUT_LEVEL` to the library's log level symbol before it
+includes `"logging/log.h"` itself.
 +
 In libbabeltrace2, the user can set the current run-time log level with
 the `bt_logging_set_global_level()` function, for example:
@@ -373,104 +413,422 @@ bt_logging_set_global_level(BT_LOGGING_LEVEL_INFO);
 --
 +
 The library's initial run-time log level is defined by the
-`BABELTRACE_LOGGING_GLOBAL_LEVEL` environment variable (`VERBOSE`, `DEBUG`,
-`INFO`, `WARN`, `ERROR`, `FATAL`, or `NONE`), or set to _NONE_ if this
-environment variable is undefined.
+`LIBBABELTRACE2_INIT_LOG_LEVEL` environment variable, or set to _NONE_
+if this environment variable is undefined.
 +
-Other subprojects have their own way of setting their run-time log
-level. For example, the CLI uses the `BABELTRACE_CLI_LOG_LEVEL`
-environment variable, and the `filter.utils.muxer` component class
-initializes its log level thanks to the
-`BABELTRACE_PLUGIN_UTILS_MUXER_FLT_LOG_LEVEL` environment variable
-(also _NONE_ by default).
+Other modules have their own way of setting their run-time log level.
 +
-Make sure that there is a documented way to initialize or modify the
-log level of your subproject or module, and that it's set to _NONE_
-by default.
+For example, the CLI uses the `BABELTRACE_CLI_LOG_LEVEL` environment
+variable, as well as its global `--log-level` option:
++
+----
+$ babeltrace2 --log-level=I ...
+----
++
+The components use their own log level (as returned by
+`bt_component_get_logging_level()`). With the CLI, you can set a
+specific component's log level with its own, position-dependent
+`--log-level` option:
++
+----
+$ babeltrace2 /path/to/trace -c sink.ctf.fs --log-level=D
+----
++
+Code which is common to the whole project, for example `src/common`
+and `src/compat`, use function parameters to get its run-time log
+level, for example:
++
+[source,c]
+----
+BT_HIDDEN
+char *bt_common_get_home_plugin_path(int log_level);
+----
++
+Typically, when a logging-enabled module calls such a function, it
+passes its own log level expression directly (`BT_LOG_OUTPUT_LEVEL`):
++
+[source,c]
+----
+path = bt_common_get_home_plugin_path(BT_LOG_OUTPUT_LEVEL);
+----
++
+Otherwise, just pass `BT_LOG_NONE`:
++
+----
+path = bt_common_get_home_plugin_path(BT_LOG_NONE);
+----
 
 
-[[logging-statements]]
-==== Logging statement macros
+[[gen-logging-statements]]
+==== Generic logging statement macros
 
-The Babeltrace logging statement macros work just like `printf()` and
-contain their log level in their name:
+The Babeltrace logging statement macros work just like `printf()`
+(except the `+BT_LOG*_STR()+` ones) and contain their <<log-levels,log
+level>> (short name) in their name.
 
-`BT_LOGV("format string", ...)`::
-    Standard verbose logging statement.
+Each of the following macros evaluate the
+<<build-time-log-level,build-time log level>> definition and
+<<run-time-log-level,run-time log level>> expression (as defined by
+`BT_LOG_OUTPUT_LEVEL`) to log conditionally.
 
-`BT_LOGD("format string", ...)`::
-    Standard debug logging statement.
+See <<logging-instrument-c-file-gen,Instrument a C source file
+(generic)>> and <<logging-instrument-h-file-gen,Instrument a C header
+file (generic)>> to learn how to be able to use the following macros.
 
-`BT_LOGI("format string", ...)`::
-    Standard info logging statement.
+`+BT_LOGV("format string", ...)+`::
+    Generic verbose logging statement.
 
-`BT_LOGW("format string", ...)`::
-    Standard warning logging statement.
+`+BT_LOGD("format string", ...)+`::
+    Generic debug logging statement.
 
-`BT_LOGE("format string", ...)`::
-    Standard error logging statement.
+`+BT_LOGI("format string", ...)+`::
+    Generic info logging statement.
 
-`BT_LOGF("format string", ...)`::
-    Standard fatal logging statement.
+`+BT_LOGW("format string", ...)+`::
+    Generic warning logging statement.
 
-`BT_LOGV_MEM(data_ptr, data_size, "format string", ...)`::
-    Memory verbose logging statement.
+`+BT_LOGE("format string", ...)+`::
+    Generic error logging statement.
 
-`BT_LOGD_MEM(data_ptr, data_size, "format string", ...)`::
-    Memory debug logging statement.
+`+BT_LOGF("format string", ...)+`::
+    Generic fatal logging statement.
 
-`BT_LOGI_MEM(data_ptr, data_size, "format string", ...)`::
-    Memory info logging statement.
+`+BT_LOGV_STR("preformatted string")+`::
+    Generic preformatted string verbose logging statement.
 
-`BT_LOGW_MEM(data_ptr, data_size, "format string", ...)`::
-    Memory warning logging statement.
+`+BT_LOGD_STR("preformatted string")+`::
+    Generic preformatted string debug logging statement.
 
-`BT_LOGE_MEM(data_ptr, data_size, "format string", ...)`::
-    Memory error logging statement.
+`+BT_LOGI_STR("preformatted string")+`::
+    Generic preformatted string info logging statement.
 
-`BT_LOGF_MEM(data_ptr, data_size, "format string", ...)`::
-    Memory fatal logging statement.
+`+BT_LOGW_STR("preformatted string")+`::
+    Generic preformatted string warning logging statement.
 
-`BT_LOGV_ERRNO("initial message", "format string", ...)`::
-	`errno` string verbose logging statement.
+`+BT_LOGE_STR("preformatted string")+`::
+    Generic preformatted string error logging statement.
 
-`BT_LOGD_ERRNO("initial message", "format string", ...)`::
-	`errno` string debug logging statement.
+`+BT_LOGF_STR("preformatted string")+`::
+    Generic preformatted string fatal logging statement.
 
-`BT_LOGI_ERRNO("initial message", "format string", ...)`::
-	`errno` string info logging statement.
+`+BT_LOGV_MEM(data_ptr, data_size, "format string", ...)+`::
+    Generic memory verbose logging statement.
 
-`BT_LOGW_ERRNO("initial message", "format string", ...)`::
-	`errno` string warning logging statement.
+`+BT_LOGD_MEM(data_ptr, data_size, "format string", ...)+`::
+    Generic memory debug logging statement.
 
-`BT_LOGE_ERRNO("initial message", "format string", ...)`::
-	`errno` string error logging statement.
+`+BT_LOGI_MEM(data_ptr, data_size, "format string", ...)+`::
+    Generic memory info logging statement.
 
-`BT_LOGF_ERRNO("initial message", "format string", ...)`::
-	`errno` string fatal logging statement.
+`+BT_LOGW_MEM(data_ptr, data_size, "format string", ...)+`::
+    Generic memory warning logging statement.
 
-`BT_LOGV_STR("preformatted string")`::
-    Preformatted string verbose logging statement.
+`+BT_LOGE_MEM(data_ptr, data_size, "format string", ...)+`::
+    Generic memory error logging statement.
 
-`BT_LOGD_STR("preformatted string")`::
-    Preformatted string debug logging statement.
+`+BT_LOGF_MEM(data_ptr, data_size, "format string", ...)+`::
+    Generic memory fatal logging statement.
 
-`BT_LOGI_STR("preformatted string")`::
-    Preformatted string info logging statement.
+`+BT_LOGV_ERRNO("initial message", "format string", ...)+`::
+	Generic `errno` string verbose logging statement.
 
-`BT_LOGW_STR("preformatted string")`::
-    Preformatted string warning logging statement.
+`+BT_LOGD_ERRNO("initial message", "format string", ...)+`::
+	Generic `errno` string debug logging statement.
 
-`BT_LOGE_STR("preformatted string")`::
-    Preformatted string error logging statement.
+`+BT_LOGI_ERRNO("initial message", "format string", ...)+`::
+	Generic `errno` string info logging statement.
 
-`BT_LOGF_STR("preformatted string")`::
-    Preformatted string fatal logging statement.
+`+BT_LOGW_ERRNO("initial message", "format string", ...)+`::
+	Generic `errno` string warning logging statement.
+
+`+BT_LOGE_ERRNO("initial message", "format string", ...)+`::
+	Generic `errno` string error logging statement.
+
+`+BT_LOGF_ERRNO("initial message", "format string", ...)+`::
+	Generic `errno` string fatal logging statement.
+
+
+[[lib-logging-statements]]
+==== Library-specific logging statement macros
+
+The Babeltrace library contains an internal logging API based on the
+generic logging framework. You can use it to log known Babeltrace
+objects without having to manually log each member.
+
+See <<logging-instrument-c-file-lib,Instrument a library C source file>>
+and <<logging-instrument-h-file-lib,Instrument a library C header file>> to
+learn how to be able to use the following macros.
+
+The library logging statement macros are named `+BT_LIB_LOG*()+` instead
+of `+BT_LOG*()+`:
+
+`+BT_LIB_LOGV("format string", ...)+`::
+    Library verbose logging statement.
+
+`+BT_LIB_LOGD("format string", ...)+`::
+    Library debug logging statement.
+
+`+BT_LIB_LOGI("format string", ...)+`::
+    Library info logging statement.
+
+`+BT_LIB_LOGW("format string", ...)+`::
+    Library warning logging statement.
+
+`+BT_LIB_LOGE("format string", ...)+`::
+    Library error logging statement.
+
+`+BT_LIB_LOGF("format string", ...)+`::
+    Library fatal logging statement.
+
+The macros above accept the typical `printf()` conversion specifiers
+with the following limitations:
+
+* The `+*+` width specifier is not accepted.
+* The `+*+` precision specifier is not accepted.
+* The `j` and `t` length modifiers are not accepted.
+* The `n` format specifier is not accepted.
+* The format specifiers defined in `<inttypes.h>` are not accepted,
+  except for `PRId64`, `PRIu64`, `PRIx64`, `PRIX64`, `PRIo64`, and
+  `PRIi64`.
+
+The Babeltrace library custom conversion specifier is accepted. Its
+syntax is either `%!u` to format a UUID (`bt_uuid` type), or:
+
+. Introductory `%!` sequence.
+
+. **Optional**: `[` followed by a custom prefix for the printed fields
+  of this specifier, followed by `]`. The standard form is to end this
+  prefix with `-` so that, for example, with the prefix `tc-`, the
+  complete field name becomes `tc-addr`.
+
+. **Optional**: `pass:[+]` to print extended object members. This
+  depends on the provided format specifier.
+
+. Format specifier (see below).
+
+The available format specifiers are:
+
+[options="header,autowidth",cols="3"]
+|===
+|Specifier
+|Object
+|Expected C type
+
+|`F`
+|Trace IR field class
+|`+struct bt_field_class *+`
+
+|`f`
+|Trace IR field
+|`+struct bt_field *+`
+
+|`P`
+|Trace IR field path
+|`+struct bt_field_path *+`
+
+|`E`
+|Trace IR event class
+|`+struct bt_event_class *+`
+
+|`e`
+|Trace IR event
+|`+struct bt_event *+`
+
+|`S`
+|Trace IR stream class.
+|`+struct bt_stream_class *+`
+
+|`s`
+|Trace IR stream
+|`+struct bt_stream *+`
+
+|`a`
+|Trace IR packet
+|`+struct bt_packet *+`
+
+|`T`
+|Trace IR trace class
+|`+struct bt_trace_class *+`
+
+|`t`
+|Trace IR trace
+|`+struct bt_trace *+`
+
+|`K`
+|Trace IR clock class
+|`+struct bt_clock_class *+`
+
+|`k`
+|Trace IR clock snapshot
+|`+struct bt_clock_snapshot *+`
+
+|`v`
+|Value object
+|`+struct bt_value *+`
+
+|`n`
+|Message
+|`+struct bt_message *+`
+
+|`i`
+|Message iterator
+|`struct bt_message_iterator *`
+
+|`C`
+|Component class
+|`struct bt_component_class *`
+
+|`c`
+|Component
+|`+struct bt_component *+`
+
+|`p`
+|Port
+|`+struct bt_port *+`
+
+|`x`
+|Connection
+|`+struct bt_connection *+`
+
+|`g`
+|Graph
+|`+struct bt_graph *+`
+
+|`l`
+|Plugin
+|`const struct bt_plugin *`
+
+|`o`
+|Object pool
+|`+struct bt_object_pool *+`
+
+|`O`
+|Object
+|`+struct bt_object *+`
+|===
+
+Conversion specifier examples:
+
+* `%!f`
+* `%![my-event-]+e`
+* `%!t`
+* `%!+F`
+
+The ``, `` string (comma and space) is printed between individual
+fields, but **not after the last one**. Therefore, you must put this
+separator in the format string between two conversion specifiers, for
+example:
+
+[source,c]
+----
+BT_LIB_LOGW("Message: count=%u, %!E, %!+K", count, event_class, clock_class);
+----
+
+Example with a custom prefix:
+
+[source,c]
+----
+BT_LIB_LOGI("Some message: %![ec-a-]e, %![ec-b-]+e", ec_a, ec_b);
+----
+
+It is safe to pass `NULL` as any Babeltrace object parameter: the macros
+only print its null address.
+
+WARNING: Build-time `printf()` format checks are disabled for the
+`+BT_LIB_LOG*()+` macros because there are custom conversion specifiers,
+so make sure to test your logging statements.
+
+
+[[comp-logging-statements]]
+==== Component-specific logging statement macros
+
+There are available logging macros for components. They prepend a prefix
+including the component's name to the logging message.
+
+See <<logging-instrument-c-file-compcls,Instrument a component class C
+source file>> and <<logging-instrument-h-file-compcls,Instrument a
+component class C header file>> to learn how to be able to use the
+following macros.
+
+The component logging statement macros are named `+BT_COMP_LOG*()+`
+instead of `+BT_LOG*()+`:
+
+`+BT_COMP_LOGV("format string", ...)+`::
+    Component verbose logging statement.
+
+`+BT_COMP_LOGD("format string", ...)+`::
+    Component debug logging statement.
+
+`+BT_COMP_LOGI("format string", ...)+`::
+    Component info logging statement.
+
+`+BT_COMP_LOGW("format string", ...)+`::
+    Component warning logging statement.
+
+`+BT_COMP_LOGE("format string", ...)+`::
+    Component error logging statement.
+
+`+BT_COMP_LOGF("format string", ...)+`::
+    Component fatal logging statement.
+
+`+BT_COMP_LOGV_STR("preformatted string")+`::
+    Component preformatted string verbose logging statement.
+
+`+BT_COMP_LOGD_STR("preformatted string")+`::
+    Component preformatted string debug logging statement.
+
+`+BT_COMP_LOGI_STR("preformatted string")+`::
+    Component preformatted string info logging statement.
+
+`+BT_COMP_LOGW_STR("preformatted string")+`::
+    Component preformatted string warning logging statement.
+
+`+BT_COMP_LOGE_STR("preformatted string")+`::
+    Component preformatted string error logging statement.
+
+`+BT_COMP_LOGF_STR("preformatted string")+`::
+    Component preformatted string fatal logging statement.
+
+`+BT_COMP_LOGV_ERRNO("initial message", "format string", ...)+`::
+    Component `errno` string verbose logging statement.
+
+`+BT_COMP_LOGD_ERRNO("initial message", "format string", ...)+`::
+    Component `errno` string debug logging statement.
+
+`+BT_COMP_LOGI_ERRNO("initial message", "format string", ...)+`::
+    Component `errno` string info logging statement.
+
+`+BT_COMP_LOGW_ERRNO("initial message", "format string", ...)+`::
+    Component `errno` string warning logging statement.
+
+`+BT_COMP_LOGE_ERRNO("initial message", "format string", ...)+`::
+    Component `errno` string error logging statement.
+
+`+BT_COMP_LOGF_ERRNO("initial message", "format string", ...)+`::
+    Component `errno` string fatal logging statement.
+
+`+BT_COMP_LOGV_MEM(data_ptr, data_size, "format string", ...)+`::
+    Component memory verbose logging statement.
+
+`+BT_COMP_LOGD_MEM(data_ptr, data_size, "format string", ...)+`::
+    Component memory debug logging statement.
+
+`+BT_COMP_LOGI_MEM(data_ptr, data_size, "format string", ...)+`::
+    Component memory info logging statement.
+
+`+BT_COMP_LOGW_MEM(data_ptr, data_size, "format string", ...)+`::
+    Component memory warning logging statement.
+
+`+BT_COMP_LOGE_MEM(data_ptr, data_size, "format string", ...)+`::
+    Component memory error logging statement.
+
+`+BT_COMP_LOGF_MEM(data_ptr, data_size, "format string", ...)+`::
+    Component memory fatal logging statement.
 
 
 ==== Conditional logging
 
-`BT_LOG_IF(cond, statement)`::
+`+BT_LOG_IF(cond, statement)+`::
     Execute `statement` only if `cond` is true.
 +
 Example:
@@ -491,8 +849,8 @@ To check the <<build-time-log-level,build-time log level>>:
 #endif
 ----
 
-This tests if the _DEBUG_ level was enabled at build-time. This means
-that the current, <<run-time-log-level,dynamic log level>> _could_ be
+This tests if the _DEBUG_ level was enabled at build time. This means
+that the current, <<run-time-log-level,run-time log level>> _could_ be
 _DEBUG_, but it could also be higher. The rule of thumb is to use only
 logging statements at the same level in a `BT_LOG_ENABLED_*` conditional
 block.
@@ -516,7 +874,7 @@ if (BT_LOG_ON_DEBUG) {
 ----
 
 This tests if the _DEBUG_ log level is dynamically turned on
-(implies that it's also enabled at build-time). This check could have a
+(implies that it's also enabled at build time). This check could have a
 noticeable impact on performance.
 
 The available definitions for run-time conditions are:
@@ -528,8 +886,8 @@ The available definitions for run-time conditions are:
 * `BT_LOG_ON_ERROR`
 * `BT_LOG_ON_FATAL`
 
-Those macros check the subproject-specific or module-specific log level
-symbol (defined by `BT_LOG_OUTPUT_LEVEL`).
+Those macros check the module-specific log level symbol (defined by
+`BT_LOG_OUTPUT_LEVEL`).
 
 Never, ever write code which would be executed only to compute the
 fields of a logging statement outside a conditional logging scope,
@@ -559,146 +917,77 @@ BT_LOGD("Bla bla: number=%d", get_number_of_event_classes_with_property_x(...));
 ----
 
 
-[[how-to]]
-=== Instrument a module
+=== Guides
 
-Follow those steps to make your module loggable:
-
-. In your module's root directory, create a `logging.c` file with
-  this content:
-+
---
-[source,c]
-----
-/*
- * Copyright (c) 2017 EfficiOS Inc. <http://efficios.com/>
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- */
-
-#define BT_LOG_OUTPUT_LEVEL my_module_log_level
-#include "logging/log.h"
-
-BT_LOG_INIT_LOG_LEVEL(my_module_log_level, "BABELTRACE_MY_MODULE_LOG_LEVEL");
-----
---
-+
-Replace `my_module_log_level` with the name of the symbol which holds
-the log level for your module (should be unique amongst all the log level
-symbols of the project). Replace `BABELTRACE_MY_MODULE_LOG_LEVEL` with
-the name of the environment variable from which to initialize your
-module's log level at construction time. `BT_LOG_INIT_LOG_LEVEL()`
-defines both the hidden log level symbol and a constructor which reads
-the environment variable and sets the log level symbol accordingly.
-
-. In your module's root directory, create a `logging.h` file with
-  this content:
-+
---
-[source,c]
-----
-#ifndef BABELTRACE_MY_MODULE_LOGGING_H
-#define BABELTRACE_MY_MODULE_LOGGING_H
-
-/*
- * Copyright (c) 2017 EfficiOS Inc. <http://efficios.com/>
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- */
-
-#define BT_LOG_OUTPUT_LEVEL my_module_log_level
-#include "logging/log.h"
-
-BT_LOG_LEVEL_EXTERN_SYMBOL(my_module_log_level);
-
-#endif /* BABELTRACE_MY_MODULE_LOGGING_H */
-----
---
-+
-Replace `my_module_log_level` with the name of your module's
-log level symbol.
-
-. Include the `logging.c` and `logging.h` in the `_SOURCES` variable
-  of your module's object in your module's root `Makefile.am`.
-
-. Add the log level initializing environment variable name to the
-  `log_level_env_var_names` array in `cli/babeltrace2.c`.
-
-
-[[logging-instrument-source]]
-==== Instrument a C source file
+[[logging-instrument-c-file-gen]]
+==== Instrument a C source file (generic)
 
 To instrument a C source file (`.c`):
 
 . At the top of the file, before the first `#include` line (if any),
-  define your file's tag name and include the local `logging.h`:
+  define your file's <<choose-a-logging-tag,logging tag>> name:
 +
 --
 [source,c]
 ----
-#define BT_LOG_TAG "MY-MODULE-MY-FILE"
-#include "logging.h"
+#define BT_LOG_TAG "SUBSYS/MY-MODULE/MY-FILE"
 ----
 --
+
+. Below the line above, define the source file's log level expression,
+  `BT_LOG_OUTPUT_LEVEL`. This expression is evaluated for each
+  <<gen-logging-statements,logging statement>> to know the current
+  <<run-time-log-level,run-time log level>>.
 +
-A logging tag name is a namespace for a specific source file. Its name
-is part of every log message generated by the statements of the file. A
-logging tag name _must_ be only uppercase letters, digits, and the
-hyphen (`-`) character. See <<choose-a-tag,Choose a tag>> for
-a list of standard tags.
+Examples:
++
+[source,c]
+----
+/* Global log level variable */
+#define BT_LOG_OUTPUT_LEVEL module_global_log_level
+----
++
+[source,c]
+----
+/* Local log level variable; must exist where you use BT_LOG*() */
+#define BT_LOG_OUTPUT_LEVEL log_level
+----
++
+[source,c]
+----
+/* Object's log level; `obj` must exist where you use BT_LOG*() */
+#define BT_LOG_OUTPUT_LEVEL (obj->log_level)
+----
 
-. Use the <<logging-statements,logging statement macros>> in the file's
-  functions to instrument it.
+. Include `"logging/log.h"`:
++
+[source,c]
+----
+#include "logging/log.h"
+----
+
+. In the file, instrument your code with the
+  <<gen-logging-statements,generic logging statement macros>>.
 
 
-[[logging-instrument-header]]
-==== Instrument a C header file
+[[logging-instrument-h-file-gen]]
+==== Instrument a C header file (generic)
 
 To instrument a C header file (`.h`), if you have `static inline`
 functions in it:
 
-. Do not include any logging header.
-. Use the <<logging-statements,logging statement macros>> in the file's
-  functions to instrument it, making each of them conditional to the
-  existence of the macro you're using:
+. Do not include `"logging/log.h"`!
+
+. Do one of:
+
+.. In the file, instrument your code with the
+   <<gen-logging-statements,generic logging statement macros>>, making
+   each of them conditional to the existence of the macro you're using:
 +
---
 [source,c]
 ----
 static inline
-void some_function(void)
+int some_function(int x)
 {
     /* ... */
 
@@ -715,54 +1004,242 @@ void some_function(void)
     /* ... */
 }
 ----
---
 +
 The C source files which include this header file determine if logging
-is enabled or not for them (if the source file is instrumented itself),
-and the tag of the included header's logging statement is the same as
-the including C source file.
+is enabled or not for them, and if so, what is their
+<<choose-a-logging-tag,logging tag>> and <<run-time-log-level,run-time
+log level>> expression.
+
+.. Require that logging be enabled:
++
+[source,c]
+----
+/* Protection: this file uses BT_LOG*() macros directly */
+#ifndef BT_LOG_SUPPORTED
+# error Please include "logging/log.h" before including this file.
+#endif
+----
++
+Then, in the file, instrument your code with the
+<<gen-logging-statements,generic logging statement macros>>.
 
 
-[[choose-a-tag]]
-=== Choose a tag
+[[logging-instrument-c-file-lib]]
+==== Instrument a library C source file
 
-For plugins, the format of the tag name for a given source file _must_
-be:
+To instrument a library C source file (`.c`):
+
+. At the top of the file, before the first `#include` line (if any),
+  define your file's <<choose-a-logging-tag,logging tag>> name (this
+  tag must start with `LIB/`):
++
+--
+[source,c]
+----
+#define BT_LOG_TAG "LIB/THE-FILE"
+----
+--
+
+. Include `"lib/logging.h"`:
++
+[source,c]
+----
+#include "lib/logging.h"
+----
+
+. In the file, instrument your code with the
+  <<lib-logging-statements,library logging statement macros>> or with
+  the <<gen-logging-statements,generic logging statement macros>>.
+
+
+[[logging-instrument-h-file-lib]]
+==== Instrument a library C header file
+
+To instrument a library C header file (`.h`), if you have `static
+inline` functions in it:
+
+. Do not include `"lib/logging.h"`!
+
+. Require that library logging be enabled:
++
+[source,c]
+----
+/* Protection: this file uses BT_LIB_LOG*() macros directly */
+#ifndef BT_LIB_LOG_SUPPORTED
+# error Please include "lib/logging.h" before including this file.
+#endif
+----
+
+. In the file, instrument your code with the
+  <<lib-logging-statements,library logging statement macros>> or with
+  the <<gen-logging-statements,generic logging statement macros>>.
+
+
+[[logging-instrument-c-file-compcls]]
+==== Instrument a component class C source file
+
+To instrument a component class C source file (`.c`):
+
+. At the top of the file, before the first `#include` line (if any),
+  define your file's <<choose-a-logging-tag,logging tag>> name (this tag
+  must start with `PLUGIN/` followed by the component class identifier):
++
+--
+[source,c]
+----
+#define BT_LOG_TAG "PLUGIN/SRC.MY-PLUGIN.MY-SRC"
+----
+--
+
+. Below the line above, define the source file's log level expression,
+  `BT_LOG_OUTPUT_LEVEL`. This expression is evaluated for each
+  <<comp-logging-statements,logging statement>> to know the current
+  <<run-time-log-level,run-time log level>>.
++
+For a component class file, it is usually a member of a local component
+private structure variable:
++
+[source,c]
+----
+#define BT_LOG_OUTPUT_LEVEL (my_comp->log_level)
+----
+
+. Below the line above, define `BT_COMP_LOG_SELF_COMP` to an expression
+  which, evaluated in the context of the
+  <<comp-logging-statements,logging statements>>, evaluates to the self
+  component address (`+bt_self_component *+`) of the component.
++
+This is usually a member of a local component private structure
+variable:
++
+[source,c]
+----
+#define BT_COMP_LOG_SELF_COMP (my_comp->self_comp)
+----
+
+. Include `"plugins/comp-logging.h"`:
++
+[source,c]
+----
+#include "plugins/comp-logging.h"
+----
+
+. In the component initialization method, make sure to set the
+  component private structure's log level member to the initial
+  component's log level:
++
+[source,c]
+----
+struct my_comp {
+    bt_logging_level log_level;
+    /* ... */
+};
+
+BT_HIDDEN
+bt_self_component_status my_comp_init(
+        bt_self_component_source *self_comp_src,
+        bt_value *params, void *init_method_data)
+{
+    struct my_comp *my_comp = g_new0(struct my_comp, 1);
+    bt_self_component *self_comp =
+        bt_self_component_source_as_self_component(self_comp_src);
+    const bt_component *comp = bt_self_component_as_component(self_comp);
+
+    BT_ASSERT(my_comp);
+    my_comp->log_level = bt_component_get_logging_level(comp);
+
+    /* ... */
+}
+----
+
+. In the file, instrument your code with the
+  <<comp-logging-statements,component logging statement macros>>.
+
+
+[[logging-instrument-h-file-compcls]]
+==== Instrument a component class C header file
+
+To instrument a component class C header file (`.h`), if you have
+`static inline` functions in it:
+
+. Do not include `"plugins/comp-logging.h"`!
+
+. Require that component logging be enabled:
++
+[source,c]
+----
+/* Protection: this file uses BT_COMP_LOG*() macros directly */
+#ifndef BT_COMP_LOG_SUPPORTED
+# error Please include "plugins/comp-logging.h" before including this file.
+#endif
+----
+
+. In the file, instrument your code with the
+  <<comp-logging-statements,component logging statement macros>>.
+
+
+[[choose-a-logging-tag]]
+==== Choose a logging tag
+
+Each logging-enabled C source file must define `BT_LOG_TAG` to a logging
+tag. A logging tag is a namespace to identify the logging messages of
+this specific source file.
+
+In general, a logging tag name _must_ be only uppercase letters, digits,
+and the `-`, `.`, and `/` characters.
+
+Use `/` to show the subsystem to source file hierarchy.
+
+For the Babeltrace library, start with `LIB/`.
+
+For the CTF writer library, start with `CTF-WRITER/`.
+
+For component classes, use:
 
 [verse]
-PLUGIN-__PNAME__-__CCNAME__-__CCTYPE__[-__FILE__]
+`PLUGIN/__CCTYPE__.__PNAME__.__CCNAME__[/__FILE__]`
 
-__PNAME__::
-    Plugin's name.
+With:
 
-__CCNAME__::
-    Component class's name.
-
-__CCTYPE__::
+`__CCTYPE__`::
     Component class's type (`SRC`, `FLT`, or `SINK`).
 
-__FILE__::
+`__PNAME__`::
+    Plugin's name.
+
+`__CCNAME__`::
+    Component class's name.
+
+`__FILE__`::
     Additional information to specify the source file name or module.
 
-Examples:
+For plugins (files common to many component classes), use:
 
-* `PLUGIN-CTF-LTTNG-LIVE-SRC`
-* `PLUGIN-CTF-LTTNG-LIVE-SRC-VIEWER`
-* `PLUGIN-UTILS-MUXER-FLT`
+[verse]
+`PLUGIN/__PNAME__[/__FILE__]`
+
+With:
+
+`__PNAME__`::
+    Plugin's name.
+
+`__FILE__`::
+    Additional information to specify the source file name or module.
 
 
-[[log-level]]
-=== Choose a log level
+[[choose-a-log-level]]
+==== Choose a log level
 
 Choosing the appropriate level for your logging statement is very
 important.
 
-[options="header,autowidth",cols="default,default,asciidoc,default"]
+[options="header,autowidth",cols="1,2,3a,4"]
 |===
-|Log level |Description |Use cases |Impact on performance
+|Log level |Description |Use cases |Expected impact on performance
 
 |_FATAL_
-|The program, library, or plugin cannot continue to work in this
+|
+The program, library, or plugin cannot continue to work in this
 condition: it must be terminated immediately.
 
 A _FATAL_-level logging statement should always be followed by
@@ -771,10 +1248,13 @@ A _FATAL_-level logging statement should always be followed by
 * Unexpected return values from system calls.
 * Logic error in internal code, for example an unexpected value in a
   `switch` statement.
+* Failed assertion (within `BT_ASSERT()`).
+* Unsatisfied library precondition (within `BT_ASSERT_PRE()`).
 |Almost none: should be executed in production.
 
 |_ERROR_
-|An important error which is somewhat not fatal, that is, the program,
+|
+An important error which is somewhat not fatal, that is, the program,
 library, or plugin can continue to work after this, but you judge that
 it should be reported to the user.
 
@@ -782,6 +1262,8 @@ Usually, the program cannot recover from such an error, but it can at
 least exit cleanly.
 |
 * Memory allocation errors.
+* Wrong component initialization parameters.
+* Corrupted, unrecoverable trace data.
 * Failed to perform an operation which should work considering the
   implementation and the satisfied preconditions. For example, the
   failure to create an empty object (no parameters): most probably
@@ -790,79 +1272,100 @@ least exit cleanly.
 |Almost none: should be executed in production.
 
 |_WARN_
-|A logic error which still allows the execution to continue.
+|
+An error which still allows the execution to continue, but you judge
+that it should be reported to the user.
 
 _WARN_-level logging statements are for any error or weird action that
-is directly or indirectly caused by the user. For example, not having
-enough memory is considered beyond the user's control, so we always
-log memory errors with an _ERROR_ level (not _FATAL_ because we usually
-don't abort in this condition).
-
-Almost all the library's errors are logged as warnings because they are
-caused by the user.
+is directly or indirectly caused by the user, often through some bad
+input data. For example, not having enough memory is considered beyond
+the user's control, so we always log memory errors with an _ERROR_ level
+(not _FATAL_ because we usually don't abort in this condition).
 |
-* Not honoring a public function's preconditions (NULL parameters,
-  index out of bounds, etc.).
-* Adding an invalid event class to a stream class which is already
-  part of a trace.
-+
-For example, the caller tries to set a property of a frozen stream
-class.
+* Missing data within something that is expected to have it, but there's
+  an alternative.
+* Invalid file, but recoverable/fixable.
 |Almost none: can be executed in production.
 
 |_INFO_
-|Any useful information which a non-developer user would understand.
 |
-* Successful loading of a plugin (with name, version, etc.).
+Any useful information which a non-developer user would possibly
+understand.
+
+Anything logged with this level must _not_ happen repetitively on the
+fast path, that is, nothing related to each message, for example. This
+level is used for sporadic and one-shot events.
+|
+* CLI or component configuration report.
+* Successful plugin, component, or message iterator initialization.
+* In the library: anything related to plugins, graphs, component
+  classes, components, message iterators, connections, and ports which
+  is not on the fast path.
 * Successful connection to or disconnection from another system.
 * An _optional_ subsystem cannot be loaded.
-|Very little: can be executed in production if
-_INFO_ level information is desired.
+* An _optional_ field/datum cannot be found.
+|
+Very little: can be executed in production if _INFO_ level information
+is desired.
 
 |_DEBUG_
-|Something that only Babeltrace developers would be interested into.
 |
-* High-level function entry/exit.
-* Object creation, destruction, copying, and freezing.
-* The result of some computation/validation which does not
-  occur in a tight loop.
-|Noticeable, but not as much as the _VERBOSE_ level: not executed in
-production.
+Something that only Babeltrace developers would be interested into,
+which can occur on the fast path, but not more often than once per
+message.
+
+The _DEBUG_ level is the default <<build-time-log-level,build-time log
+level>> as, since it's not _too_ verbose, the performance is similar to
+an _INFO_ build.
+|
+* Object construction and destruction.
+* Object recycling (except fields).
+* Object copying (except fields and values).
+* Object freezing (whatever the type, as freezing only occurs in
+  developer mode).
+* Object cancellation.
+* Calling user methods and logging the result.
+* Setting object properties (except fields and values).
+|
+Noticeable, but not as much as the _VERBOSE_ level: could be executed
+in production if you're going to need a thorough log for support
+tickets without having to rebuild the project.
 
 |_VERBOSE_
-|Low-level debugging context information. More appropriate for tracing
-in general.
+|
+Low-level debugging context information (anything that does not fit the
+other log levels). More appropriate for tracing in general.
 |
 * Reference count change.
-* Status of each iteration of a loop.
-* State machine's state change.
-* Data structure lookup/modification.
-* List of ELF sections found in a plugin.
+* Fast path, low level state machine's state change.
 * Get or set an object's property.
 * Object comparison's intermediate results.
 |Huge: not executed in production.
 |===
 
-Make sure not to use a _WARN_ (or higher) log level when the condition
-leading to the logging statement can occur under normal circumstances.
-For example, a public function to get some object or property from an
-object by name or key that fails to find the value is not a warning: the
-user could legitimately use this function to check if the name/key
-exists in the object. In this case, use the _VERBOSE_ level (or do not
-log at all). If a numeric index is out of bounds, however, this
-qualifies for a _WARN_ level: such API functions have documented
-preconditions that the index must be in bounds (the user can always
-check with a count or size function).
+[IMPORTANT]
+--
+Make sure not to use a _WARN_ (or higher) log level when the
+condition leading to the logging statement can occur under normal
+circumstances.
+
+For example, a public function to get some object or
+property from an object by name or key that fails to find the value is
+not a warning scenario: the user could legitimately use this function to
+check if the name/key exists in the object. In this case, use the
+_VERBOSE_ level (or do not log at all).
+--
 
 
 [[message]]
-=== Write an appropriate message
+==== Write an appropriate message
 
 Follow those rules when you write a logging statement's message:
 
-* Use an english sentence which starts with a capital letter. Start the
-  sentence with the appropriate verb tense depending on the context. For
-  example:
+* Use an English sentence which starts with a capital letter.
+
+* Start the sentence with the appropriate verb tense depending on the
+  context. For example:
 +
 --
 ** Beginning of operation (present continuous): _Creating ..._,
@@ -878,11 +1381,11 @@ or _Failed to_ followed by a verb if it's appropriate.
 * Do not include the log level in the message itself. For example,
   do not start the message with _Error while_ or _Warning:_.
 
-* Do not put newlines, tabs, or other special characters in the
-  message, unless you want to log a string with such characters. Note
-  that multiline log messages can be hard to parse, analyze, and filter,
-  however, so prefer multiple `BT_LOG*()` statements over a single
-  statement with newlines.
+* Do not put newlines, tabs, or other special characters in the message,
+  unless you want to log a string with such characters. Note that
+  multiline logging messages can be hard to parse, analyze, and filter,
+  however, so prefer multiple logging statements over a single statement
+  with newlines.
 
 * **If there are fields that your logging statement must record**,
   follow the message with `:` followed by a space, then with the list of
@@ -890,20 +1393,21 @@ or _Failed to_ followed by a verb if it's appropriate.
   sentence with a period.
 
 The statement's fields _must_ be a comma-separated list of
-+__name__=__value__+ tokens. Keep +__name__+ as simple as possible
-(lowercase if possible). If +__value__+ is a non-alphanumeric string,
-put it between double quotes. Always use the `PRId64` and `PRIu64`
-specifiers when logging `int64_t` and `uint64_t` values.
+`__name__=__value__` tokens. Keep `__name__` as simple as possible; use
+kebab case if possible. If `__value__` is a non-alphanumeric string, put
+it between double quotes (`"%s"` specifier). Always use the `PRId64` and
+`PRIu64` specifiers to log an `int64_t` or an `uint64_t` value. Use `%d`
+to log a boolean value.
 
 Example:
 
-    "Cannot add event class to stream class: stream-class-addr=%p, "
-    "stream-class-name=\"%s\", stream-class-id=%" PRId64 ", "
-    "event-class-addr=%p, event-class-name=\"%s\", event-class-id=%" PRId64
+    "Cannot read stream data for indexing: path=\"%s\", name=\"%s\", "
+    "stream-id=%" PRIu64 ", stream-fd=%d, "
+    "index=%" PRIu64 ", status=%s, is-mapped=%d"
 
-By following a standard format for the statement fields, it is easier
-to use tools like https://www.elastic.co/products/logstash[Logstash]
-to split fields and analyze logs.
+By following a standard format for the statement fields, it is easier to
+use tools like https://www.elastic.co/products/logstash[Logstash] or
+even https://www.splunk.com/[Splunk] to split fields and analyze logs.
 
 Prefer the following suffixes in field names:
 
@@ -913,8 +1417,9 @@ Prefer the following suffixes in field names:
 
 |`-addr` |Memory address |`%p`
 |`-fd` |File descriptor |`%d`
-|`-fp` |File stream (`FILE *`) |`%p`
-|`-id` |Object's ID |`%" PRId64 "` or `%" PRIu64 "`
+|`-fp` |File stream (`+FILE *+`) |`%p`
+|`-id` |Object's ID |`%" PRIu64 "`
+|`-index` |Index |`%" PRIu64 "`
 |`-name` |Object's name |`\"%s\"`
 |===
 
@@ -922,9 +1427,9 @@ Prefer the following suffixes in field names:
 === Output
 
 The log is printed to the standard error stream. A log line contains the
-time, the process and thread IDs, the <<log-level,log level>>, the
-<<choose-a-tag,tag>>, the source's function name, file name and
-line number, and the <<message,message>>.
+time, the process and thread IDs, the <<log-levels,log level>>, the
+<<choose-a-logging-tag,logging tag>>, the source's function name, file
+name and line number, and the <<message,message>>.
 
 When Babeltrace supports terminal color codes (depends on the
 `BABELTRACE_TERM_COLOR` environment variable's value and what the
@@ -934,11 +1439,35 @@ _FATAL_-level lines are red.
 
 Log line example:
 
-    05-11 00:58:03.691 23402 23402 D VALUES bt_value_destroy@values.c:498 Destroying value: addr=0xb9c3eb0
+----
+05-11 00:58:03.691 23402 23402 D VALUES bt_value_destroy@values.c:498 Destroying value: addr=0xb9c3eb0
+----
 
-You can easily filter the log with `grep` or `ag`. For example, to
-keep only the _WARN_-level log messages that the `VALUES` module
+You can easily filter the log with `grep` or `ag`. For example, to keep
+only the _DEBUG_-level logging messages that the `FIELD-CLASS` module
 generates:
 
-    $ export BABELTRACE_LOGGING_GLOBAL_LEVEL=VERBOSE
-    $ ./test_ctf_writer_complete 2>&1 | ag 'W VALUES'
+----
+$ babeltrace2 --log-level=D /path/to/trace |& ag 'D FIELD-CLASS'
+----
+
+
+== Valgrind
+
+To use Valgrind on an application (for example, the CLI or a test) which
+loads libbabeltrace2, use:
+
+----
+$ G_SLICE=always-malloc G_DEBUG=gc-friendly PYTHONMALLOC=malloc \
+  BABELTRACE_NO_DLCLOSE=1 valgrind --leak-check=full \
+  --suppressions=/path/to/babeltrace/extras/valgrind/popt.supp app
+----
+
+`G_SLICE=always-malloc` and `G_DEBUG=gc-friendly` is for GLib and
+`PYTHONMALLOC=malloc` is for the Python interpreter, if it is used by
+the Python plugin provider (Valgrind will probably show a lot of errors
+which originate from the Python interpreter anyway).
+
+`BABELTRACE_NO_DLCLOSE=1` makes libbabeltrace2 not close the shared
+libraries (plugins) which it loads. You need this to see the appropriate
+backtrace when Valgrind shows errors.
