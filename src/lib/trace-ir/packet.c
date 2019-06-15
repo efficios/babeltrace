@@ -21,7 +21,7 @@
  */
 
 #define BT_LOG_TAG "LIB/PACKET"
-#include "lib/lib-logging.h"
+#include "lib/logging.h"
 
 #include "lib/assert-pre.h"
 #include <babeltrace2/trace-ir/packet-const.h>

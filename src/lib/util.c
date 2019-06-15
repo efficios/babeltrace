@@ -21,7 +21,7 @@
  */
 
 #define BT_LOG_TAG "LIB/UTIL"
-#include "lib/lib-logging.h"
+#include "lib/logging.h"
 
 #include "lib/assert-pre.h"
 #include <stdlib.h>

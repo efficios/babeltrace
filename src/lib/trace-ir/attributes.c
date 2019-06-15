@@ -22,7 +22,7 @@
  */
 
 #define BT_LOG_TAG "LIB/ATTRS"
-#include "lib/lib-logging.h"
+#include "lib/logging.h"
 
 #include "common/macros.h"
 #include <babeltrace2/value.h>

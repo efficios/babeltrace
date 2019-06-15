@@ -21,7 +21,7 @@
  */
 
 #define BT_LOG_TAG "LIB/VALUE"
-#include "lib/lib-logging.h"
+#include "lib/logging.h"
 
 #include <stdlib.h>
 #include <string.h>

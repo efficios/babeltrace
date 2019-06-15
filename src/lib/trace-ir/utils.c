@@ -22,7 +22,7 @@
  */
 
 #define BT_LOG_TAG "LIB/TRACE-IR-UTILS"
-#include "lib/lib-logging.h"
+#include "lib/logging.h"
 
 #include <stdlib.h>
 #include <glib.h>

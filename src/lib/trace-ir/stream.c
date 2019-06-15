@@ -22,7 +22,7 @@
  */
 
 #define BT_LOG_TAG "LIB/STREAM"
-#include "lib/lib-logging.h"
+#include "lib/logging.h"
 
 #include "lib/assert-pre.h"
 #include <babeltrace2/trace-ir/stream-const.h>

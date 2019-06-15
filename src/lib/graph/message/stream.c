@@ -22,7 +22,7 @@
  */
 
 #define BT_LOG_TAG "LIB/MSG-STREAM"
-#include "lib/lib-logging.h"
+#include "lib/logging.h"
 
 #include "lib/assert-pre.h"
 #include "compat/compiler.h"

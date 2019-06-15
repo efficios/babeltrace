@@ -22,7 +22,7 @@
  */
 
 #define BT_LOG_TAG "LIB/MSG-ITER"
-#include "lib/lib-logging.h"
+#include "lib/logging.h"
 
 #include "compat/compiler.h"
 #include "lib/trace-ir/clock-class.h"
