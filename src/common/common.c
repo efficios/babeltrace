@@ -116,6 +116,13 @@ bool bt_common_is_setuid_setgid(void)
 }
 #endif /* __MINGW32__ */
 
+#ifdef __MINGW32__
+static
+const char *bt_get_home_dir(int log_level)
+{
+	return g_get_home_dir();
+}
+#else /* __MINGW32__ */
 static
 char *bt_secure_getenv(const char *name, int log_level)
 {
@@ -127,13 +134,6 @@ char *bt_secure_getenv(const char *name, int log_level)
 	return getenv(name);
 }
 
-#ifdef __MINGW32__
-static
-const char *bt_get_home_dir(int log_level)
-{
-	return g_get_home_dir();
-}
-#else /* __MINGW32__ */
 static
 const char *bt_get_home_dir(int log_level)
 {
@@ -1088,6 +1088,38 @@ end_of_pattern:
 	return p[-1] == '*' && at_end_of_pattern(p, pattern, pattern_len);
 }
 
+#ifdef __MINGW32__
+BT_HIDDEN
+GString *bt_common_normalize_path(const char *path, const char *wd)
+{
+	char *tmp;
+	GString *norm_path = NULL;
+
+	BT_ASSERT(path);
+
+	tmp = _fullpath(NULL, path, PATH_MAX);
+	if (!tmp) {
+		goto error;
+	}
+
+	norm_path = g_string_new(tmp);
+	if (!norm_path) {
+		goto error;
+	}
+
+	goto end;
+error:
+	if (norm_path) {
+		g_string_free(norm_path, TRUE);
+		norm_path = NULL;
+	}
+end:
+	if (tmp) {
+		free(tmp);
+	}
+	return norm_path;
+}
+#else
 static
 void append_path_parts(const char *path, GPtrArray *parts)
 {
@@ -1121,38 +1153,6 @@ void destroy_gstring(void *gstring)
 	(void) g_string_free(gstring, TRUE);
 }
 
-#ifdef __MINGW32__
-BT_HIDDEN
-GString *bt_common_normalize_path(const char *path, const char *wd)
-{
-	char *tmp;
-	GString *norm_path = NULL;
-
-	BT_ASSERT(path);
-
-	tmp = _fullpath(NULL, path, PATH_MAX);
-	if (!tmp) {
-		goto error;
-	}
-
-	norm_path = g_string_new(tmp);
-	if (!norm_path) {
-		goto error;
-	}
-
-	goto end;
-error:
-	if (norm_path) {
-		g_string_free(norm_path, TRUE);
-		norm_path = NULL;
-	}
-end:
-	if (tmp) {
-		free(tmp);
-	}
-	return norm_path;
-}
-#else
 BT_HIDDEN
 GString *bt_common_normalize_path(const char *path, const char *wd)
 {
