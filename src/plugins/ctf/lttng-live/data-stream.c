@@ -152,7 +152,7 @@ enum lttng_live_iterator_status lttng_live_lazy_msg_init(
 						trace->metadata->decoder);
 			stream_iter->msg_iter = bt_msg_iter_create(ctf_tc,
 					lttng_live->max_query_size, medops,
-					stream_iter);
+					stream_iter, BT_LOG_OUTPUT_LEVEL);
 			if (!stream_iter->msg_iter) {
 				goto error;
 			}
@@ -206,7 +206,7 @@ struct lttng_live_stream_iterator *lttng_live_stream_iterator_create(
 		BT_ASSERT(!stream_iter->msg_iter);
 		stream_iter->msg_iter = bt_msg_iter_create(ctf_tc,
 				lttng_live->max_query_size, medops,
-				stream_iter);
+				stream_iter, BT_LOG_OUTPUT_LEVEL);
 		if (!stream_iter->msg_iter) {
 			goto error;
 		}
