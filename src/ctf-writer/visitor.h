@@ -26,6 +26,7 @@
  */
 
 #include <stdlib.h>
+#include <stdint.h>
 #include <babeltrace2/ctf-writer/visitor.h>
 #include "common/macros.h"
 
