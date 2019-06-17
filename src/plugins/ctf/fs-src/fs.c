@@ -38,7 +38,6 @@
 #include "file.h"
 #include "../common/metadata/decoder.h"
 #include "../common/msg-iter/msg-iter.h"
-#include "../common/utils/utils.h"
 #include "query.h"
 
 #define BT_LOG_TAG "PLUGIN/SRC.CTF.FS"

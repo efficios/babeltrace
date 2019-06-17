@@ -760,7 +760,6 @@ AC_CONFIG_FILES([
 	src/plugins/ctf/common/Makefile
 	src/plugins/ctf/common/metadata/Makefile
 	src/plugins/ctf/common/msg-iter/Makefile
-	src/plugins/ctf/common/utils/Makefile
 	src/plugins/ctf/fs-sink/Makefile
 	src/plugins/ctf/fs-src/Makefile
 	src/plugins/ctf/lttng-live/Makefile
