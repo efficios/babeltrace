@@ -146,7 +146,7 @@ class _StreamActivityMessage(_Message):
             self._set_default_clock_snapshot_state(self._ptr, native_bt.MESSAGE_STREAM_ACTIVITY_CLOCK_SNAPSHOT_STATE_INFINITE)
         else:
             assert utils._is_uint64(value)
-            self._set_default_clock_snapshot_ptr(self._ptr, value)
+            self._set_default_clock_snapshot(self._ptr, value)
 
     _default_clock_snapshot = property(fset=_default_clock_snapshot)
 
@@ -159,14 +159,14 @@ class _StreamActivityMessage(_Message):
 
 class _StreamActivityBeginningMessage(_StreamActivityMessage):
     _borrow_default_clock_snapshot_ptr = staticmethod(native_bt.message_stream_activity_beginning_borrow_default_clock_snapshot_const)
-    _set_default_clock_snapshot_ptr = staticmethod(native_bt.message_stream_activity_beginning_set_default_clock_snapshot)
+    _set_default_clock_snapshot = staticmethod(native_bt.message_stream_activity_beginning_set_default_clock_snapshot)
     _set_default_clock_snapshot_state = staticmethod(native_bt.message_stream_activity_beginning_set_default_clock_snapshot_state)
     _borrow_stream_ptr = staticmethod(native_bt.message_stream_activity_beginning_borrow_stream)
 
 
 class _StreamActivityEndMessage(_StreamActivityMessage):
     _borrow_default_clock_snapshot_ptr = staticmethod(native_bt.message_stream_activity_end_borrow_default_clock_snapshot_const)
-    _set_default_clock_snapshot_ptr = staticmethod(native_bt.message_stream_activity_end_set_default_clock_snapshot)
+    _set_default_clock_snapshot = staticmethod(native_bt.message_stream_activity_end_set_default_clock_snapshot)
     _set_default_clock_snapshot_state = staticmethod(native_bt.message_stream_activity_end_set_default_clock_snapshot_state)
     _borrow_stream_ptr = staticmethod(native_bt.message_stream_activity_end_borrow_stream)
 
