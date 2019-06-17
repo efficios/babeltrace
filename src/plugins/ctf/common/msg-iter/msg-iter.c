@@ -23,8 +23,9 @@
  * SOFTWARE.
  */
 
+#define BT_LOG_OUTPUT_LEVEL (notit->log_level)
 #define BT_LOG_TAG "PLUGIN/CTF/MSG-ITER"
-#include "logging.h"
+#include "logging/log.h"
 
 #include <stdint.h>
 #include <inttypes.h>
@@ -62,8 +63,12 @@ struct stack_entry {
 	size_t index;
 };
 
+struct bt_msg_iter;
+
 /* Visit stack */
 struct stack {
+	struct bt_msg_iter *notit;
+
 	/* Entries (struct stack_entry) */
 	GArray *entries;
 
@@ -244,6 +249,9 @@ struct bt_msg_iter {
 
 	/* Stored values (for sequence lengths, variant tags) */
 	GArray *stored_values;
+
+	/* Iterator's current log level */
+	bt_logging_level log_level;
 };
 
 static inline
@@ -325,6 +333,7 @@ struct stack *stack_new(struct bt_msg_iter *notit)
 		goto error;
 	}
 
+	stack->notit = notit;
 	stack->entries = g_array_new(FALSE, TRUE, sizeof(struct stack_entry));
 	if (!stack->entries) {
 		BT_LOGE_STR("Failed to allocate a GArray.");
@@ -345,7 +354,10 @@ end:
 static
 void stack_destroy(struct stack *stack)
 {
+	struct bt_msg_iter *notit;
+
 	BT_ASSERT(stack);
+	notit = stack->notit;
 	BT_LOGD("Destroying stack: addr=%p", stack);
 
 	if (stack->entries) {
@@ -359,8 +371,10 @@ static
 void stack_push(struct stack *stack, bt_field *base)
 {
 	struct stack_entry *entry;
+	struct bt_msg_iter *notit;
 
 	BT_ASSERT(stack);
+	notit = stack->notit;
 	BT_ASSERT(base);
 	BT_LOGV("Pushing base field on stack: stack-addr=%p, "
 		"stack-size-before=%zu, stack-size-after=%zu",
@@ -386,8 +400,11 @@ unsigned int stack_size(struct stack *stack)
 static
 void stack_pop(struct stack *stack)
 {
+	struct bt_msg_iter *notit;
+
 	BT_ASSERT(stack);
 	BT_ASSERT(stack_size(stack));
+	notit = stack->notit;
 	BT_LOGV("Popping from stack: "
 		"stack-addr=%p, stack-size-before=%zu, stack-size-after=%zu",
 		stack, stack->size, stack->size - 1);
@@ -2683,7 +2700,8 @@ void create_msg_discarded_packets(struct bt_msg_iter *notit,
 BT_HIDDEN
 struct bt_msg_iter *bt_msg_iter_create(struct ctf_trace_class *tc,
 		size_t max_request_sz,
-		struct bt_msg_iter_medium_ops medops, void *data)
+		struct bt_msg_iter_medium_ops medops, void *data,
+		bt_logging_level log_level)
 {
 	struct bt_msg_iter *notit = NULL;
 	struct bt_bfcr_cbs cbs = {
@@ -2706,14 +2724,18 @@ struct bt_msg_iter *bt_msg_iter_create(struct ctf_trace_class *tc,
 	BT_ASSERT(tc);
 	BT_ASSERT(medops.request_bytes);
 	BT_ASSERT(medops.borrow_stream);
-	BT_LOGD("Creating CTF plugin message iterator: "
+	BT_LOG_WRITE_CUR_LVL(BT_LOG_DEBUG, log_level, BT_LOG_TAG,
+		"Creating CTF plugin message iterator: "
 		"trace-addr=%p, max-request-size=%zu, "
-		"data=%p", tc, max_request_sz, data);
+		"data=%p, log-level=%s", tc, max_request_sz, data,
+		bt_common_logging_level_string(log_level));
 	notit = g_new0(struct bt_msg_iter, 1);
 	if (!notit) {
-		BT_LOGE_STR("Failed to allocate one CTF plugin message iterator.");
+		BT_LOG_WRITE_CUR_LVL(BT_LOG_ERROR, log_level, BT_LOG_TAG,
+			"Failed to allocate one CTF plugin message iterator.");
 		goto end;
 	}
+	notit->log_level = log_level;
 	notit->meta.tc = tc;
 	notit->medium.medops = medops;
 	notit->medium.max_request_sz = max_request_sz;
@@ -2727,7 +2749,7 @@ struct bt_msg_iter *bt_msg_iter_create(struct ctf_trace_class *tc,
 		goto error;
 	}
 
-	notit->bfcr = bt_bfcr_create(cbs, notit, BT_LOG_OUTPUT_LEVEL);
+	notit->bfcr = bt_bfcr_create(cbs, notit, log_level);
 	if (!notit->bfcr) {
 		BT_LOGE_STR("Failed to create binary class reader (BFCR).");
 		goto error;
@@ -2736,8 +2758,9 @@ struct bt_msg_iter *bt_msg_iter_create(struct ctf_trace_class *tc,
 	bt_msg_iter_reset(notit);
 	BT_LOGD("Created CTF plugin message iterator: "
 		"trace-addr=%p, max-request-size=%zu, "
-		"data=%p, notit-addr=%p",
-		tc, max_request_sz, data, notit);
+		"data=%p, notit-addr=%p, log-level=%s",
+		tc, max_request_sz, data, notit,
+		bt_common_logging_level_string(log_level));
 	notit->cur_packet_offset = 0;
 
 end:
