@@ -32,6 +32,7 @@
 #include <babeltrace2/types.h>
 #include "common/assert.h"
 #include <stdbool.h>
+#include <compat/uuid.h>
 
 struct bt_port;
 struct bt_graph;
@@ -112,6 +113,40 @@ struct bt_self_component_port_input_message_iterator {
 	} methods;
 
 	enum bt_self_component_port_input_message_iterator_state state;
+
+	/*
+	 * Timestamp of the last received message (or INT64_MIN in the
+	 * beginning, or after a seek to beginning).
+	 */
+	int64_t last_ns_from_origin;
+
+	struct {
+		enum {
+			/* We haven't recorded clock properties yet. */
+			CLOCK_EXPECTATION_UNSET,
+
+			/* Expect to have no clock. */
+			CLOCK_EXPECTATION_NONE,
+
+			/* Clock with origin_is_unix_epoch true.*/
+			CLOCK_EXPECTATION_ORIGIN_UNIX,
+
+			/* Clock with origin_is_unix_epoch false, with a UUID.*/
+			CLOCK_EXPECTATION_ORIGIN_OTHER_UUID,
+
+			/* Clock with origin_is_unix_epoch false, without a UUID.*/
+			CLOCK_EXPECTATION_ORIGIN_OTHER_NO_UUID,
+		} type;
+
+		/*
+		 * Expected UUID of the clock, if `type`is CLOCK_EXPECTATION_ORIGIN_OTHER_UUID.
+		 *
+		 * If the clock's origin is the unix epoch, the UUID is
+		 * irrelevant (as the clock will be correlatable with other
+		 * clocks having the same origin).
+		 */
+		uint8_t uuid[BABELTRACE_UUID_LEN];
+	} clock_expectation;
 
 	/*
 	 * Data necessary for auto seek (the seek-to-beginning then fast-forward
