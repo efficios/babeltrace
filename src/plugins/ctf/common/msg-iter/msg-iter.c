@@ -2727,7 +2727,7 @@ struct bt_msg_iter *bt_msg_iter_create(struct ctf_trace_class *tc,
 		goto error;
 	}
 
-	notit->bfcr = bt_bfcr_create(cbs, notit);
+	notit->bfcr = bt_bfcr_create(cbs, notit, BT_LOG_OUTPUT_LEVEL);
 	if (!notit->bfcr) {
 		BT_LOGE_STR("Failed to create binary class reader (BFCR).");
 		goto error;

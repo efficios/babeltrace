@@ -23,8 +23,9 @@
  * SOFTWARE.
  */
 
+#define BT_LOG_OUTPUT_LEVEL (bfcr->log_level)
 #define BT_LOG_TAG "PLUGIN/CTF/BFCR"
-#include "logging.h"
+#include "logging/log.h"
 
 #include <stdlib.h>
 #include <stdint.h>
@@ -68,8 +69,12 @@ struct stack_entry {
 	int64_t index;
 };
 
+struct bt_bfcr;
+
 /* Visit stack */
 struct stack {
+	struct bt_bfcr *bfcr;
+
 	/* Entries (struct stack_entry) */
 	GArray *entries;
 
@@ -89,7 +94,9 @@ enum bfcr_state {
 
 /* Binary class reader */
 struct bt_bfcr {
-	/* Bisit stack */
+	bt_logging_level log_level;
+
+	/* BFCR stack */
 	struct stack *stack;
 
 	/* Current basic field class */
@@ -178,7 +185,7 @@ const char *bfcr_state_string(enum bfcr_state state)
 }
 
 static
-struct stack *stack_new(void)
+struct stack *stack_new(struct bt_bfcr *bfcr)
 {
 	struct stack *stack = NULL;
 
@@ -188,6 +195,7 @@ struct stack *stack_new(void)
 		goto error;
 	}
 
+	stack->bfcr = bfcr;
 	stack->entries = g_array_new(FALSE, TRUE, sizeof(struct stack_entry));
 	if (!stack->entries) {
 		BT_LOGE_STR("Failed to allocate a GArray.");
@@ -205,10 +213,13 @@ error:
 static
 void stack_destroy(struct stack *stack)
 {
+	struct bt_bfcr *bfcr;
+
 	if (!stack) {
 		return;
 	}
 
+	bfcr = stack->bfcr;
 	BT_LOGD("Destroying stack: addr=%p", stack);
 
 	if (stack->entries) {
@@ -223,9 +234,11 @@ int stack_push(struct stack *stack, struct ctf_field_class *base_class,
 	size_t base_len)
 {
 	struct stack_entry *entry;
+	struct bt_bfcr *bfcr;
 
 	BT_ASSERT(stack);
 	BT_ASSERT(base_class);
+	bfcr = stack->bfcr;
 	BT_LOGV("Pushing field class on stack: stack-addr=%p, "
 		"fc-addr=%p, fc-type=%d, base-length=%zu, "
 		"stack-size-before=%zu, stack-size-after=%zu",
@@ -312,8 +325,11 @@ unsigned int stack_size(struct stack *stack)
 static
 void stack_pop(struct stack *stack)
 {
+	struct bt_bfcr *bfcr;
+
 	BT_ASSERT(stack);
 	BT_ASSERT(stack_size(stack));
+	bfcr = stack->bfcr;
 	BT_LOGV("Popping from stack: "
 		"stack-addr=%p, stack-size-before=%u, stack-size-after=%u",
 		stack, stack->entries->len, stack->entries->len - 1);
@@ -444,7 +460,7 @@ void stitch_set_from_remaining_buf(struct bt_bfcr *bfcr)
 }
 
 static inline
-void read_unsigned_bitfield(const uint8_t *buf, size_t at,
+void read_unsigned_bitfield(struct bt_bfcr *bfcr, const uint8_t *buf, size_t at,
 		unsigned int field_size, enum ctf_byte_order bo,
 		uint64_t *v)
 {
@@ -464,7 +480,7 @@ void read_unsigned_bitfield(const uint8_t *buf, size_t at,
 }
 
 static inline
-void read_signed_bitfield(const uint8_t *buf, size_t at,
+void read_signed_bitfield(struct bt_bfcr *bfcr, const uint8_t *buf, size_t at,
 		unsigned int field_size, enum ctf_byte_order bo, int64_t *v)
 {
 	switch (bo) {
@@ -556,7 +572,7 @@ enum bt_bfcr_status read_basic_float_and_call_cb(struct bt_bfcr *bfcr,
 			float f;
 		} f32;
 
-		read_unsigned_bitfield(buf, at, field_size, bo, &v);
+		read_unsigned_bitfield(bfcr, buf, at, field_size, bo, &v);
 		f32.u = (uint32_t) v;
 		dblval = (double) f32.f;
 		break;
@@ -568,7 +584,7 @@ enum bt_bfcr_status read_basic_float_and_call_cb(struct bt_bfcr *bfcr,
 			double d;
 		} f64;
 
-		read_unsigned_bitfield(buf, at, field_size, bo, &f64.u);
+		read_unsigned_bitfield(bfcr, buf, at, field_size, bo, &f64.u);
 		dblval = f64.d;
 		break;
 	}
@@ -617,7 +633,7 @@ enum bt_bfcr_status read_basic_int_and_call_cb(struct bt_bfcr *bfcr,
 	if (fc->is_signed) {
 		int64_t v;
 
-		read_signed_bitfield(buf, at, field_size, bo, &v);
+		read_signed_bitfield(bfcr, buf, at, field_size, bo, &v);
 
 		if (bfcr->user.cbs.classes.signed_int) {
 			BT_LOGV("Calling user function (signed integer).");
@@ -634,7 +650,7 @@ enum bt_bfcr_status read_basic_int_and_call_cb(struct bt_bfcr *bfcr,
 	} else {
 		uint64_t v;
 
-		read_unsigned_bitfield(buf, at, field_size, bo, &v);
+		read_unsigned_bitfield(bfcr, buf, at, field_size, bo, &v);
 
 		if (bfcr->user.cbs.classes.unsigned_int) {
 			BT_LOGV("Calling user function (unsigned integer).");
@@ -1170,18 +1186,22 @@ enum bt_bfcr_status handle_state(struct bt_bfcr *bfcr)
 }
 
 BT_HIDDEN
-struct bt_bfcr *bt_bfcr_create(struct bt_bfcr_cbs cbs, void *data)
+struct bt_bfcr *bt_bfcr_create(struct bt_bfcr_cbs cbs, void *data,
+		bt_logging_level log_level)
 {
 	struct bt_bfcr *bfcr;
 
-	BT_LOGD_STR("Creating binary field class reader (BFCR).");
+	BT_LOG_WRITE_CUR_LVL(BT_LOG_DEBUG, log_level, BT_LOG_TAG,
+		"Creating binary field class reader (BFCR).");
 	bfcr = g_new0(struct bt_bfcr, 1);
 	if (!bfcr) {
-		BT_LOGE_STR("Failed to allocate one binary class reader.");
+		BT_LOG_WRITE_CUR_LVL(BT_LOG_ERROR, log_level, BT_LOG_TAG,
+			"Failed to allocate one binary class reader.");
 		goto end;
 	}
 
-	bfcr->stack = stack_new();
+	bfcr->log_level = log_level;
+	bfcr->stack = stack_new(bfcr);
 	if (!bfcr->stack) {
 		BT_LOGE_STR("Cannot create BFCR's stack.");
 		bt_bfcr_destroy(bfcr);
