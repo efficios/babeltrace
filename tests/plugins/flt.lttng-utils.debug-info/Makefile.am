@@ -3,6 +3,15 @@ AM_CPPFLAGS += -I$(top_srcdir)/tests/utils -I$(top_srcdir)/src/plugins
 LIBTAP=$(top_builddir)/tests/utils/tap/libtap.la
 
 dist_check_SCRIPTS = \
+	test_bin_info_i386-linux-gnu \
+	test_bin_info_powerpc64le-linux-gnu \
+	test_bin_info_powerpc-linux-gnu \
+	test_bin_info_x86_64-linux-gnu \
+	test_dwarf_i386-linux-gnu \
+	test_dwarf_powerpc64le-linux-gnu \
+	test_dwarf_powerpc-linux-gnu \
+	test_dwarf_x86_64-linux-gnu \
+	test_lttng_utils_debug_info \
 	test_lttng_utils_debug_info.py
 
 noinst_PROGRAMS =

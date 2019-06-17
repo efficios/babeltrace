@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (C) - 2017 Julien Desfossez <jdesfossez@efficios.com>
+# Copyright (C) 2017 Julien Desfossez <jdesfossez@efficios.com>
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License, version 2 only, as
@@ -15,7 +15,16 @@
 # this program; if not, write to the Free Software Foundation, Inc., 51
 # Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-. "@abs_top_builddir@/tests/utils/common.sh"
+SH_TAP=1
+
+if [ "x${BT_TESTS_SRCDIR:-}" != "x" ]; then
+	UTILSSH="$BT_TESTS_SRCDIR/utils/utils.sh"
+else
+	UTILSSH="$(dirname "$0")/../utils/utils.sh"
+fi
+
+# shellcheck source=../utils/utils.sh
+source "$UTILSSH"
 
 TRACE_PATH="${BT_CTF_TRACES_PATH}/succeed/wk-heartbeat-u/"
 
@@ -41,7 +50,7 @@ function expect_success()
 	local msg="$1"
 	shift
 
-	"${BT_BIN}" "${TRACE_PATH}" "$@" 2>/dev/null > "${tmp_out}"
+	"${BT_TESTS_BT2_BIN}" "${TRACE_PATH}" "$@" 2>/dev/null > "${tmp_out}"
 	ok $? "trimmer: ${msg}: exit status"
 	num_events=$(wc -l < "${tmp_out}")
 	# Use bash parameter expansion to strip spaces added by BSD 'wc' on macOs and Solaris

@@ -1,7 +1,6 @@
 #!/bin/bash
 #
-# Copyright (C) 2015 Antoine Busque <abusque@efficios.com>
-# Copyright (C) 2019 Michael Jeanson <mjeanson@efficios.com>
+# Copyright (C) 2017 - Philippe Proulx <pproulx@efficios.com>
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -19,10 +18,19 @@
 #
 
 NO_SH_TAP=1
-. "@abs_top_builddir@/tests/utils/common.sh"
+. "/home/mjeanson/Git/lttng/babeltrace/master/tests/utils/common.sh"
 
-curdir="$(cd -P "$(dirname "$0")" >/dev/null && pwd)"
+PYTHON_BUILD_DIR="${BT_BUILD_PATH}/src/bindings/python/bt2/build/build_lib"
+TESTS_UTILS_PYTHON_DIR="${BT_SRC_PATH}/tests/utils/python"
+TESTRUNNER_PY="${BT_SRC_PATH}/tests/utils/python/testrunner.py"
+THIS_DIR="${BT_SRC_PATH}/tests/lib/trace-ir"
 
-debug_info_data="${BT_DEBUG_INFO_PATH}/powerpc-linux-gnu"
+if [ "x${MSYSTEM}" != "x" ]; then
+	export PATH="${BT_BUILD_PATH}/src/lib/.libs:${PATH}"
+else
+	export LD_LIBRARY_PATH="${BT_BUILD_PATH}/src/lib/.libs:${LD_LIBRARY_PATH}"
+fi
 
-"${curdir}/test_dwarf" "$debug_info_data"
+PYTHONPATH="${PYTHON_BUILD_DIR}:${TESTS_UTILS_PYTHON_DIR}" \
+	"/usr/bin/python3" "${TESTRUNNER_PY}" "${THIS_DIR}"
+exit $?

@@ -49,6 +49,11 @@ if __name__ == '__main__':
     failfast = args.failfast
 
     tests = loader.discover(start_dir, pattern)
+
+    if tests.countTestCases() < 1:
+        print("No tests matching '%s' found in '%s'" % (pattern, start_dir))
+        sys.exit(1)
+
     runner = TAPTestRunner(failfast=failfast)
     runner.set_stream(True)
     runner.set_format('{method_name}')

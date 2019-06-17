@@ -27,9 +27,11 @@ test_trace_ir_ref_SOURCES = test_trace_ir_ref.c
 test_graph_topo_SOURCES = test_graph_topo.c
 
 if !ENABLE_BUILT_IN_PLUGINS
-noinst_PROGRAMS += test_plugin
-test_plugin_LDADD = $(COMMON_TEST_LDADD) \
+noinst_PROGRAMS += plugin
+plugin_LDADD = $(COMMON_TEST_LDADD) \
 	$(top_builddir)/src/lib/libbabeltrace2.la
-test_plugin_SOURCES = test_plugin.c
+plugin_SOURCES = plugin.c
 SUBDIRS += test-plugin-plugins
 endif
+
+dist_check_SCRIPTS = test_plugin

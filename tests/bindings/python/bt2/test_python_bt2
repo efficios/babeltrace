@@ -17,18 +17,13 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
 
-. "@abs_top_builddir@/tests/utils/common.sh"
-
-export PYTHON_PLUGIN_PROVIDER_TEST_PLUGIN_PATH="${BT_SRC_PATH}/tests/python-plugin-provider/bt_plugin_test_python_plugin_provider.py"
-
-PYTHON_BUILD_DIR="${BT_BUILD_PATH}/src/bindings/python/bt2/build/build_lib"
-TESTS_UTILS_PYTHON_DIR="${BT_SRC_PATH}/tests/utils/python"
-export PYTHONPATH="${PYTHON_BUILD_DIR}:${TESTS_UTILS_PYTHON_DIR}"
-
-if [ "x${MSYSTEM}" != "x" ]; then
-	export PATH="${BT_BUILD_PATH}/src/lib/.libs:${BT_BUILD_PATH}/src/python-plugin-provider/.libs:${PATH}"
+if [ "x${BT_TESTS_SRCDIR:-}" != "x" ]; then
+	UTILSSH="$BT_TESTS_SRCDIR/utils/utils.sh"
 else
-	export LD_LIBRARY_PATH="${BT_BUILD_PATH}/src/lib/.libs:${BT_BUILD_PATH}/src/python-plugin-provider/.libs:${LD_LIBRARY_PATH}"
+	UTILSSH="$(dirname "$0")/../../../utils/utils.sh"
 fi
 
-exec "$*"
+# shellcheck source=../../../utils/utils.sh
+source "$UTILSSH"
+
+run_python_bt2_test "${BT_TESTS_SRCDIR}/bindings/python/bt2"

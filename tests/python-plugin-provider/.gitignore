@@ -1,4 +1,2 @@
 htmlcov
 .coverage
-test_python_plugin_provider
-test_python_plugin_provider_env

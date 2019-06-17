@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (C) - 2019 Simon Marchi <simon.marchi@efficios.com>
+# Copyright (C) 2019 Simon Marchi <simon.marchi@efficios.com>
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License, version 2 only, as
@@ -15,8 +15,16 @@
 # this program; if not, write to the Free Software Foundation, Inc., 51
 # Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-. "@abs_top_builddir@/tests/utils/common.sh"
+SH_TAP=1
 
+if [ "x${BT_TESTS_SRCDIR:-}" != "x" ]; then
+	UTILSSH="$BT_TESTS_SRCDIR/utils/utils.sh"
+else
+	UTILSSH="$(dirname "$0")/../utils/utils.sh"
+fi
+
+# shellcheck source=../utils/utils.sh
+source "$UTILSSH"
 
 NUM_TESTS=3
 
@@ -25,12 +33,14 @@ plan_tests $NUM_TESTS
 tmp_metadata=$(mktemp)
 
 # Test a valid trace directory.
-"${BT_BIN}" -o ctf-metadata "${BT_CTF_TRACES_PATH}/succeed/wk-heartbeat-u" > "$tmp_metadata"
+"${BT_TESTS_BT2_BIN}" -o ctf-metadata "${BT_CTF_TRACES_PATH}/succeed/wk-heartbeat-u" > "$tmp_metadata"
 ok $? "Run babeltrace -o ctf-metadata with a valid trace directory, correct exit status"
 
-cmp -s "$tmp_metadata" "${BT_SRC_PATH}/tests/data/cli/test_output_ctf_metadata.ref"
+cmp -s "$tmp_metadata" "${BT_TESTS_DATADIR}/cli/test_output_ctf_metadata.ref"
 ok $? "Run babeltrace -o ctf-metadata with a valid trace directory, correct output"
 
 # Test an invalid trace directory.
-"${BT_BIN}" -o ctf-metadata "${BT_CTF_TRACES_PATH}" &> /dev/null
+"${BT_TESTS_BT2_BIN}" -o ctf-metadata "${BT_CTF_TRACES_PATH}" >/dev/null 2>&1
 isnt $? 0 "Run babeltrace -o ctf-metadata with an invalid trace directory, expecting failure"
+
+rm -f "$tmp_metadata"

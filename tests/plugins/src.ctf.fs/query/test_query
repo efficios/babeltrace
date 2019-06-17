@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (C) 2017 Philippe Proulx <pproulx@efficios.com>
+# Copyright (C) 2019 Simon Marchi <simon.marchi@efficios.com>
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -15,13 +15,14 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-#
 
-NO_SH_TAP=1
-. "@abs_top_builddir@/tests/utils/common.sh"
+if [ "x${BT_TESTS_SRCDIR:-}" != "x" ]; then
+	UTILSSH="$BT_TESTS_SRCDIR/utils/utils.sh"
+else
+	UTILSSH="$(dirname "$0")/../../../utils/utils.sh"
+fi
 
-curdir="$(cd -P "$(dirname "$0")" >/dev/null && pwd)"
+# shellcheck source=../../../utils/utils.sh
+source "$UTILSSH"
 
-plugin_dir="${curdir}/test-plugin-plugins/.libs"
-
-"${curdir}/test_plugin" "$plugin_dir"
+run_python_bt2_test "${BT_TESTS_SRCDIR}/plugins/src.ctf.fs/query"
