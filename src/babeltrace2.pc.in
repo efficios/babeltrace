@@ -3,12 +3,10 @@ exec_prefix=@exec_prefix@
 libdir=@libdir@
 includedir=@includedir@
 
-Name: Babeltrace
-Description: libbabeltrace2 provides a reader for trace files, reading mainly the
-Common Trace Format (CTF).
+Name: Babeltrace 2
+Description: Babeltrace 2 library to support plugins and create trace processing graphs
 Version: @PACKAGE_VERSION@
-Requires:
-Requires.private: uuid popt
 Libs: -L${libdir} -lbabeltrace2
+Libs.private: @UUID_LIBS@
 Cflags: -I${includedir}
-
+Cflags.private: @UUID_CFLAGS@
