@@ -234,7 +234,7 @@ void test_bin_info_build_id(const char *bin_info_dir)
 	}
 
 	bin = bin_info_create(&fdc, bin_path, SO_LOW_ADDR, SO_MEMSZ, true,
-			      data_dir, NULL);
+			      data_dir, NULL, BT_LOG_OUTPUT_LEVEL);
 	ok(bin != NULL, "bin_info_create successful (%s)", bin_path);
 
 	/* Test setting invalid build_id */
@@ -288,7 +288,7 @@ void test_bin_info_debug_link(const char *bin_info_dir)
 	}
 
 	bin = bin_info_create(&fdc, bin_path, SO_LOW_ADDR, SO_MEMSZ, true,
-			      data_dir, NULL);
+			      data_dir, NULL, BT_LOG_OUTPUT_LEVEL);
 	ok(bin != NULL, "bin_info_create successful (%s)", bin_path);
 
 	/* Test setting debug link */
@@ -338,7 +338,7 @@ void test_bin_info_elf(const char *bin_info_dir)
 	}
 
 	bin = bin_info_create(&fdc, bin_path, SO_LOW_ADDR, SO_MEMSZ, true,
-			      data_dir, NULL);
+			      data_dir, NULL, BT_LOG_OUTPUT_LEVEL);
 	ok(bin != NULL, "bin_info_create successful (%s)", bin_path);
 
 	/* Test bin_info_has_address */
@@ -386,7 +386,7 @@ void test_bin_info_bundled(const char *bin_info_dir)
 	}
 
 	bin = bin_info_create(&fdc, bin_path, SO_LOW_ADDR, SO_MEMSZ, true,
-			      data_dir, NULL);
+			      data_dir, NULL, BT_LOG_OUTPUT_LEVEL);
 	ok(bin != NULL, "bin_info_create successful (%s)", bin_path);
 
 	/* Test bin_info_has_address */
@@ -439,7 +439,7 @@ int main(int argc, char **argv)
 
 	plan_tests(NR_TESTS);
 
-	ret = bin_info_init();
+	ret = bin_info_init(BT_LOG_OUTPUT_LEVEL);
 	ok(ret == 0, "bin_info_init successful");
 
 	test_bin_info_elf(opt_debug_info_dir);

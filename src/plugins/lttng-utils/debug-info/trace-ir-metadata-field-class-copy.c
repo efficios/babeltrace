@@ -24,8 +24,9 @@
  * SOFTWARE.
  */
 
+#define BT_LOG_OUTPUT_LEVEL (md_maps->log_level)
 #define BT_LOG_TAG "PLUGIN/FLT.LTTNG-UTILS.DEBUG-INFO/TRACE-IR-META-FC-COPY"
-#include "logging.h"
+#include "logging/log.h"
 
 #include "common/assert.h"
 #include "common/common.h"
@@ -41,8 +42,8 @@
  * structures ultimately leading to a field class.
  */
 static
-const bt_field_class *walk_field_path(const bt_field_path *fp,
-		const bt_field_class *fc)
+const bt_field_class *walk_field_path(struct trace_ir_metadata_maps *md_maps,
+		const bt_field_path *fp, const bt_field_class *fc)
 {
 	uint64_t i, fp_item_count;
 	const bt_field_class *curr_fc;
@@ -117,16 +118,20 @@ const bt_field_class *resolve_field_path_to_field_class(const bt_field_path *fp,
 
 	switch (fp_scope) {
 	case BT_SCOPE_PACKET_CONTEXT:
-		fc = walk_field_path(fp, fc_resolving_ctx->packet_context);
+		fc = walk_field_path(md_maps, fp,
+			fc_resolving_ctx->packet_context);
 		break;
 	case BT_SCOPE_EVENT_COMMON_CONTEXT:
-		fc = walk_field_path(fp, fc_resolving_ctx->event_common_context);
+		fc = walk_field_path(md_maps, fp,
+			fc_resolving_ctx->event_common_context);
 		break;
 	case BT_SCOPE_EVENT_SPECIFIC_CONTEXT:
-		fc = walk_field_path(fp, fc_resolving_ctx->event_specific_context);
+		fc = walk_field_path(md_maps, fp,
+			fc_resolving_ctx->event_specific_context);
 		break;
 	case BT_SCOPE_EVENT_PAYLOAD:
-		fc = walk_field_path(fp, fc_resolving_ctx->event_payload);
+		fc = walk_field_path(md_maps, fp,
+			fc_resolving_ctx->event_payload);
 		break;
 	default:
 		abort();

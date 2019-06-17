@@ -33,7 +33,8 @@
 
 BT_HIDDEN
 int copy_trace_class_content(const bt_trace_class *in_trace_class,
-		bt_trace_class *out_trace_class);
+		bt_trace_class *out_trace_class,
+		bt_logging_level log_level);
 
 BT_HIDDEN
 int copy_stream_class_content(struct trace_ir_maps *trace_ir_maps,

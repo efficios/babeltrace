@@ -26,9 +26,11 @@
  * SOFTWARE.
  */
 
+#define BT_LOG_OUTPUT_LEVEL (bin->log_level)
 #define BT_LOG_TAG "PLUGIN/FLT.LTTNG-UTILS.DEBUG-INFO/BIN-INFO"
-#include "logging.h"
+#include "logging/log.h"
 
+#include <babeltrace2/logging.h>
 #include <dwarf.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -58,12 +60,13 @@
 #define BUILD_ID_NOTE_NAME "GNU"
 
 BT_HIDDEN
-int bin_info_init(void)
+int bin_info_init(bt_logging_level log_level)
 {
 	int ret = 0;
 
 	if (elf_version(EV_CURRENT) == EV_NONE) {
-		BT_LOGI("ELF library initialization failed: %s.",
+		BT_LOG_WRITE_CUR_LVL(BT_LOG_INFO, log_level, BT_LOG_TAG,
+			"ELF library initialization failed: %s.",
 			elf_errmsg(-1));
 		ret = -1;
 	}
@@ -74,7 +77,8 @@ int bin_info_init(void)
 BT_HIDDEN
 struct bin_info *bin_info_create(struct bt_fd_cache *fdc, const char *path,
 		uint64_t low_addr, uint64_t memsz, bool is_pic,
-		const char *debug_info_dir, const char *target_prefix)
+		const char *debug_info_dir, const char *target_prefix,
+		bt_logging_level log_level)
 {
 	struct bin_info *bin = NULL;
 
@@ -89,6 +93,7 @@ struct bin_info *bin_info_create(struct bt_fd_cache *fdc, const char *path,
 		goto error;
 	}
 
+	bin->log_level = log_level;
 	if (target_prefix) {
 		bin->elf_path = g_build_filename(target_prefix,	path, NULL);
 	} else {

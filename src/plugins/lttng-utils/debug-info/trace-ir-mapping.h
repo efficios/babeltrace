@@ -43,6 +43,7 @@ struct field_class_resolving_context {
 };
 
 struct trace_ir_metadata_maps {
+	bt_logging_level log_level;
 	const bt_trace_class *input_trace_class;
 	bt_trace_class *output_trace_class;
 
@@ -85,6 +86,7 @@ struct trace_ir_metadata_maps {
 };
 
 struct trace_ir_data_maps {
+	bt_logging_level log_level;
 	const bt_trace *input_trace;
 	bt_trace *output_trace;
 
@@ -106,6 +108,8 @@ struct trace_ir_data_maps {
 };
 
 struct trace_ir_maps {
+	bt_logging_level log_level;
+
 	/*
 	 * input trace -> trace_ir_data_maps.
 	 * input trace: weak reference. Owned by an upstream component.
@@ -127,7 +131,7 @@ struct trace_ir_maps {
 
 BT_HIDDEN
 struct trace_ir_maps *trace_ir_maps_create(bt_self_component *self_comp,
-		const char *debug_info_field_name);
+		const char *debug_info_field_name, bt_logging_level log_level);
 
 BT_HIDDEN
 void trace_ir_maps_clear(struct trace_ir_maps *maps);
