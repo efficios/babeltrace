@@ -20,9 +20,10 @@
  * SOFTWARE.
  */
 
+#define BT_COMP_LOG_SELF_COMP (counter->self_comp)
 #define BT_LOG_OUTPUT_LEVEL (counter->log_level)
 #define BT_LOG_TAG "PLUGIN/FLT.UTILS.COUNTER"
-#include "logging/log.h"
+#include "plugins/comp-logging.h"
 
 #include <babeltrace2/babeltrace.h>
 #include "common/macros.h"
@@ -151,9 +152,10 @@ bt_self_component_status counter_init(
 		goto error;
 	}
 
+	counter->self_comp =
+		bt_self_component_sink_as_self_component(component);
 	counter->log_level = bt_component_get_logging_level(
-		bt_self_component_as_component(
-			bt_self_component_sink_as_self_component(component)));
+		bt_self_component_as_component(counter->self_comp));
 	ret = bt_self_component_sink_add_input_port(component,
 		"in", NULL, NULL);
 	if (ret != BT_SELF_COMPONENT_STATUS_OK) {
@@ -165,7 +167,7 @@ bt_self_component_status counter_init(
 	step = bt_value_map_borrow_entry_value_const(params, "step");
 	if (step) {
 		if (!bt_value_is_unsigned_integer(step)) {
-			BT_LOGE("`step` parameter: expecting an unsigned integer value: "
+			BT_COMP_LOGE("`step` parameter: expecting an unsigned integer value: "
 				"type=%s", bt_common_value_type_string(
 					bt_value_get_type(step)));
 			goto error;
@@ -177,7 +179,7 @@ bt_self_component_status counter_init(
 	hide_zero = bt_value_map_borrow_entry_value_const(params, "hide-zero");
 	if (hide_zero) {
 		if (!bt_value_is_bool(hide_zero)) {
-			BT_LOGE("`hide-zero` parameter: expecting a boolean value: "
+			BT_COMP_LOGE("`hide-zero` parameter: expecting a boolean value: "
 				"type=%s", bt_common_value_type_string(
 					bt_value_get_type(hide_zero)));
 			goto error;
