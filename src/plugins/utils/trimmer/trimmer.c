@@ -131,12 +131,6 @@ struct trimmer_iterator {
 
 struct trimmer_iterator_stream_state {
 	/*
-	 * True if both stream beginning and initial stream activity
-	 * beginning messages were pushed for this stream.
-	 */
-	bool inited;
-
-	/*
 	 * True if the last pushed message for this stream was a stream
 	 * activity end message.
 	 */
@@ -153,9 +147,6 @@ struct trimmer_iterator_stream_state {
 
 	/* Owned by this (`NULL` initially and between packets) */
 	const bt_packet *cur_packet;
-
-	/* Owned by this */
-	const bt_message *stream_beginning_msg;
 };
 
 static
@@ -549,7 +540,6 @@ void destroy_trimmer_iterator_stream_state(
 {
 	BT_ASSERT(sstate);
 	BT_PACKET_PUT_REF_AND_RESET(sstate->cur_packet);
-	BT_MESSAGE_PUT_REF_AND_RESET(sstate->stream_beginning_msg);
 	g_free(sstate);
 }
 
@@ -1155,150 +1145,6 @@ end:
 }
 
 /*
- * Makes sure to initialize a stream state, pushing the appropriate
- * initial messages.
- *
- * `stream_act_beginning_msg` is an initial stream activity beginning
- * message to potentially use, depending on its clock snapshot state.
- * This function consumes `stream_act_beginning_msg` unconditionally.
- */
-static inline
-bt_self_message_iterator_status ensure_stream_state_is_inited(
-		struct trimmer_iterator *trimmer_it,
-		struct trimmer_iterator_stream_state *sstate,
-		const bt_message *stream_act_beginning_msg)
-{
-	bt_self_message_iterator_status status =
-		BT_SELF_MESSAGE_ITERATOR_STATUS_OK;
-	bt_message *new_msg = NULL;
-	const bt_clock_class *clock_class =
-		bt_stream_class_borrow_default_clock_class_const(
-			bt_stream_borrow_class_const(sstate->stream));
-
-	BT_ASSERT(!sstate->inited);
-
-	if (!sstate->stream_beginning_msg) {
-		/* No initial stream beginning message: create one */
-		sstate->stream_beginning_msg =
-			bt_message_stream_beginning_create(
-				trimmer_it->self_msg_iter, sstate->stream);
-		if (!sstate->stream_beginning_msg) {
-			status = BT_SELF_MESSAGE_ITERATOR_STATUS_NOMEM;
-			goto end;
-		}
-	}
-
-	/* Push initial stream beginning message */
-	BT_ASSERT(sstate->stream_beginning_msg);
-	push_message(trimmer_it, sstate->stream_beginning_msg);
-	sstate->stream_beginning_msg = NULL;
-
-	if (stream_act_beginning_msg) {
-		/*
-		 * Initial stream activity beginning message exists: if
-		 * its time is -inf, then create and push a new one
-		 * having the trimming range's beginning time. Otherwise
-		 * push it as is (known and unknown).
-		 */
-		const bt_clock_snapshot *cs;
-		bt_message_stream_activity_clock_snapshot_state sa_cs_state;
-
-		sa_cs_state = bt_message_stream_activity_beginning_borrow_default_clock_snapshot_const(
-			stream_act_beginning_msg, &cs);
-		if (sa_cs_state == BT_MESSAGE_STREAM_ACTIVITY_CLOCK_SNAPSHOT_STATE_INFINITE &&
-				!trimmer_it->begin.is_infinite) {
-			/*
-			 * -inf time: use trimming range's beginning
-			 * time (which is not -inf).
-			 */
-			status = create_stream_beginning_activity_message(
-				trimmer_it, sstate->stream, clock_class,
-				&new_msg);
-			if (status != BT_SELF_MESSAGE_ITERATOR_STATUS_OK) {
-				goto end;
-			}
-
-			push_message(trimmer_it, new_msg);
-			new_msg = NULL;
-		} else {
-			/* Known/unknown: push as is */
-			push_message(trimmer_it, stream_act_beginning_msg);
-			stream_act_beginning_msg = NULL;
-		}
-	} else {
-		BT_ASSERT(!trimmer_it->begin.is_infinite);
-
-		/*
-		 * No stream beginning activity message: create and push
-		 * a new message.
-	 	 */
-		status = create_stream_beginning_activity_message(
-			trimmer_it, sstate->stream, clock_class, &new_msg);
-		if (status != BT_SELF_MESSAGE_ITERATOR_STATUS_OK) {
-			goto end;
-		}
-
-		push_message(trimmer_it, new_msg);
-		new_msg = NULL;
-	}
-
-	sstate->inited = true;
-
-end:
-	bt_message_put_ref(new_msg);
-	bt_message_put_ref(stream_act_beginning_msg);
-	return status;
-}
-
-static inline
-bt_self_message_iterator_status ensure_cur_packet_exists(
-	struct trimmer_iterator *trimmer_it,
-	struct trimmer_iterator_stream_state *sstate,
-	const bt_packet *packet)
-{
-	bt_self_message_iterator_status status =
-		BT_SELF_MESSAGE_ITERATOR_STATUS_OK;
-	int ret;
-	const bt_clock_class *clock_class =
-		bt_stream_class_borrow_default_clock_class_const(
-			bt_stream_borrow_class_const(sstate->stream));
-	bt_message *msg = NULL;
-	uint64_t raw_value;
-
-	BT_ASSERT(!trimmer_it->begin.is_infinite);
-	BT_ASSERT(!sstate->cur_packet);
-
-	/*
-	 * Create and push an initial packet beginning message,
-	 * making its time the trimming range's beginning time.
-	 */
-	ret = clock_raw_value_from_ns_from_origin(clock_class,
-		trimmer_it->begin.ns_from_origin, &raw_value);
-	if (ret) {
-		status = BT_SELF_MESSAGE_ITERATOR_STATUS_ERROR;
-		goto end;
-	}
-
-	msg = bt_message_packet_beginning_create_with_default_clock_snapshot(
-		trimmer_it->self_msg_iter, packet, raw_value);
-	if (!msg) {
-		status = BT_SELF_MESSAGE_ITERATOR_STATUS_NOMEM;
-		goto end;
-	}
-
-	push_message(trimmer_it, msg);
-	msg = NULL;
-
-	/* Set packet as this stream's current packet */
-	sstate->cur_packet = packet;
-	bt_packet_get_ref(sstate->cur_packet);
-
-end:
-	bt_message_put_ref(msg);
-	return status;
-}
-
-/*
  * Handles a message which is associated to a given stream state. This
  * _could_ make the iterator's output message queue grow; this could
  * also consume the message without pushing anything to this queue, only
@@ -1334,27 +1180,6 @@ bt_self_message_iterator_status handle_message_with_stream_state(
 			break;
 		}
 
-		if (G_UNLIKELY(!sstate->inited)) {
-			status = ensure_stream_state_is_inited(trimmer_it,
-				sstate, NULL);
-			if (status != BT_SELF_MESSAGE_ITERATOR_STATUS_OK) {
-				goto end;
-			}
-		}
-
-		if (G_UNLIKELY(!sstate->cur_packet)) {
-			const bt_event *event =
-				bt_message_event_borrow_event_const(msg);
-			const bt_packet *packet = bt_event_borrow_packet_const(
-				event);
-
-			status = ensure_cur_packet_exists(trimmer_it, sstate,
-				packet);
-			if (status != BT_SELF_MESSAGE_ITERATOR_STATUS_OK) {
-				goto end;
-			}
-		}
-
 		BT_ASSERT(sstate->cur_packet);
 		push_message(trimmer_it, msg);
 		msg = NULL;
@@ -1365,14 +1190,6 @@ bt_self_message_iterator_status handle_message_with_stream_state(
 			status = end_iterator_streams(trimmer_it);
 			*reached_end = true;
 			break;
-		}
-
-		if (G_UNLIKELY(!sstate->inited)) {
-			status = ensure_stream_state_is_inited(trimmer_it,
-				sstate, NULL);
-			if (status != BT_SELF_MESSAGE_ITERATOR_STATUS_OK) {
-				goto end;
-			}
 		}
 
 		BT_ASSERT(!sstate->cur_packet);
@@ -1390,25 +1207,6 @@ bt_self_message_iterator_status handle_message_with_stream_state(
 			status = end_iterator_streams(trimmer_it);
 			*reached_end = true;
 			break;
-		}
-
-		if (G_UNLIKELY(!sstate->inited)) {
-			status = ensure_stream_state_is_inited(trimmer_it,
-				sstate, NULL);
-			if (status != BT_SELF_MESSAGE_ITERATOR_STATUS_OK) {
-				goto end;
-			}
-		}
-
-		if (G_UNLIKELY(!sstate->cur_packet)) {
-			const bt_packet *packet =
-				bt_message_packet_end_borrow_packet_const(msg);
-
-			status = ensure_cur_packet_exists(trimmer_it, sstate,
-				packet);
-			if (status != BT_SELF_MESSAGE_ITERATOR_STATUS_OK) {
-				goto end;
-			}
 		}
 
 		BT_ASSERT(sstate->cur_packet);
@@ -1510,14 +1308,6 @@ bt_self_message_iterator_status handle_message_with_stream_state(
 			BT_MESSAGE_MOVE_REF(msg, new_msg);
 		}
 
-		if (G_UNLIKELY(!sstate->inited)) {
-			status = ensure_stream_state_is_inited(trimmer_it,
-				sstate, NULL);
-			if (status != BT_SELF_MESSAGE_ITERATOR_STATUS_OK) {
-				goto end;
-			}
-		}
-
 		push_message(trimmer_it, msg);
 		msg = NULL;
 		break;
@@ -1537,18 +1327,8 @@ bt_self_message_iterator_status handle_message_with_stream_state(
 			break;
 		}
 
-		if (!sstate->inited) {
-			status = ensure_stream_state_is_inited(trimmer_it,
-				sstate, msg);
-			msg = NULL;
-			if (status != BT_SELF_MESSAGE_ITERATOR_STATUS_OK) {
-				goto end;
-			}
-		} else {
-			push_message(trimmer_it, msg);
-			msg = NULL;
-		}
-
+		push_message(trimmer_it, msg);
+		msg = NULL;
 		break;
 	case BT_MESSAGE_TYPE_STREAM_ACTIVITY_END:
 		if (trimmer_it->end.is_infinite) {
@@ -1558,12 +1338,10 @@ bt_self_message_iterator_status handle_message_with_stream_state(
 		}
 
 		if (ns_from_origin == INT64_MIN) {
-			/* Unknown: push as is if stream state is inited */
-			if (sstate->inited) {
-				push_message(trimmer_it, msg);
-				msg = NULL;
-				sstate->last_msg_is_stream_activity_end = true;
-			}
+			/* Unknown: consider it to be in the trimmer window. */
+			push_message(trimmer_it, msg);
+			msg = NULL;
+			sstate->last_msg_is_stream_activity_end = true;
 		} else if (ns_from_origin == INT64_MAX) {
 			/* Infinite: use trimming range's end time */
 			sstate->stream_act_end_ns_from_origin =
@@ -1578,21 +1356,6 @@ bt_self_message_iterator_status handle_message_with_stream_state(
 				break;
 			}
 
-			if (!sstate->inited) {
-				/*
-				 * First message for this stream is a
-				 * stream activity end: we can't deduce
-				 * anything about the stream activity
-				 * beginning's time, and using this
-				 * message's time would make a useless
-				 * pair of stream activity beginning/end
-				 * with the same time. Just skip this
-				 * message and wait for something
-				 * useful.
-				 */
-				break;
-			}
-
 			push_message(trimmer_it, msg);
 			msg = NULL;
 			sstate->last_msg_is_stream_activity_end = true;
@@ -1601,45 +1364,34 @@ bt_self_message_iterator_status handle_message_with_stream_state(
 
 		break;
 	case BT_MESSAGE_TYPE_STREAM_BEGINNING:
-		/*
-		 * We don't know what follows at this point, so just
-		 * keep this message until we know what to do with it
-		 * (it will be used in ensure_stream_state_is_inited()).
-		 */
-		BT_ASSERT(!sstate->inited);
-		BT_MESSAGE_MOVE_REF(sstate->stream_beginning_msg, msg);
+		push_message(trimmer_it,  msg);
+		msg = NULL;
 		break;
 	case BT_MESSAGE_TYPE_STREAM_END:
-		if (sstate->inited) {
-			/*
-			 * This is the end of an inited stream: end this
-			 * stream if its stream activity end message
-			 * time is not the trimming range's end time
-			 * (which means the final stream activity end
-			 * message had an infinite time). end_stream()
-			 * will generate its own stream end message.
-			 */
-			if (trimmer_it->end.is_infinite) {
-				push_message(trimmer_it, msg);
-				msg = NULL;
-				g_hash_table_remove(trimmer_it->stream_states,
-					sstate->stream);
-			} else if (sstate->stream_act_end_ns_from_origin <
-					trimmer_it->end.ns_from_origin) {
-				status = end_stream(trimmer_it, sstate);
-				if (status != BT_SELF_MESSAGE_ITERATOR_STATUS_OK) {
-					goto end;
-				}
+		/*
+		 * This is the end of a stream: end this
+		 * stream if its stream activity end message
+		 * time is not the trimming range's end time
+		 * (which means the final stream activity end
+		 * message had an infinite time). end_stream()
+		 * will generate its own stream end message.
+		 */
+		if (trimmer_it->end.is_infinite) {
+			push_message(trimmer_it, msg);
+			msg = NULL;
 
-				/* We won't need this stream state again */
-				g_hash_table_remove(trimmer_it->stream_states,
-					sstate->stream);
+			/* We won't need this stream state again */
+			g_hash_table_remove(trimmer_it->stream_states, sstate->stream);
+		} else if (sstate->stream_act_end_ns_from_origin <
+				trimmer_it->end.ns_from_origin) {
+			status = end_stream(trimmer_it, sstate);
+			if (status != BT_SELF_MESSAGE_ITERATOR_STATUS_OK) {
+				goto end;
 			}
-		} else {
-			/* We dont't need this stream state anymore */
+
+			/* We won't need this stream state again */
 			g_hash_table_remove(trimmer_it->stream_states, sstate->stream);
 		}
-
 		break;
 	default:
 		break;
