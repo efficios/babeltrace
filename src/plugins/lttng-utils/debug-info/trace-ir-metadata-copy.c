@@ -24,8 +24,9 @@
  * SOFTWARE.
  */
 
+#define BT_LOG_OUTPUT_LEVEL log_level
 #define BT_LOG_TAG "PLUGIN/FLT.LTTNG-UTILS.DEBUG-INFO/TRACE-IR-META-COPY"
-#include "logging.h"
+#include "logging/log.h"
 
 #include <inttypes.h>
 #include <stdint.h>
@@ -38,7 +39,7 @@
 
 BT_HIDDEN
 int copy_trace_class_content(const bt_trace_class *in_trace_class,
-		bt_trace_class *out_trace_class)
+		bt_trace_class *out_trace_class, bt_logging_level log_level)
 {
 	int ret = 0;
 	uint64_t i, env_field_count;
@@ -110,7 +111,7 @@ error:
 
 static
 int copy_clock_class_content(const bt_clock_class *in_clock_class,
-		bt_clock_class *out_clock_class)
+		bt_clock_class *out_clock_class, bt_logging_level log_level)
 {
 	bt_clock_class_status status;
 	const char *clock_class_name, *clock_class_description;
@@ -190,6 +191,7 @@ bt_clock_class *create_new_mapped_clock_class(
 {
 	bt_clock_class *out_clock_class;
 	int ret;
+	bt_logging_level log_level = md_maps->log_level;
 
 	BT_LOGD("Creating new mapped clock class: in-cc-addr=%p",
 			in_clock_class);
@@ -205,7 +207,8 @@ bt_clock_class *create_new_mapped_clock_class(
 		goto end;
 	}
 	/* If not, create a new one and add it to the mapping. */
-	ret = copy_clock_class_content(in_clock_class, out_clock_class);
+	ret = copy_clock_class_content(in_clock_class, out_clock_class,
+		log_level);
 	if (ret) {
 		BT_LOGE_STR("Cannot copy clock class");
 		goto end;
@@ -233,6 +236,7 @@ int copy_stream_class_content(struct trace_ir_maps *ir_maps,
 	bt_stream_class_status status;
 	const char *in_name;
 	int ret = 0;
+	bt_logging_level log_level = ir_maps->log_level;
 
 	BT_LOGD("Copying content of stream class: in-sc-addr=%p, out-sc-addr=%p",
 			in_stream_class, out_stream_class);
@@ -374,11 +378,12 @@ int copy_event_class_content(struct trace_ir_maps *ir_maps,
 	struct trace_ir_metadata_maps *md_maps;
 	const char *in_event_class_name, *in_emf_uri;
 	bt_property_availability prop_avail;
-	bt_event_class_log_level log_level;
+	bt_event_class_log_level ec_log_level;
 	bt_event_class_status status;
 	bt_field_class *out_specific_context_fc, *out_payload_fc;
 	const bt_field_class *in_event_specific_context, *in_event_payload;
 	int ret = 0;
+	bt_logging_level log_level = ir_maps->log_level;
 
 	BT_LOGD("Copying content of event class: in-ec-addr=%p, out-ec-addr=%p",
 			in_event_class, out_event_class);
@@ -396,10 +401,11 @@ int copy_event_class_content(struct trace_ir_maps *ir_maps,
 	}
 
 	/* Copy event class loglevel. */
-	prop_avail = bt_event_class_get_log_level(in_event_class, &log_level);
+	prop_avail = bt_event_class_get_log_level(in_event_class,
+		&ec_log_level);
 	if (prop_avail == BT_PROPERTY_AVAILABILITY_AVAILABLE) {
 		bt_event_class_set_log_level(out_event_class,
-				log_level);
+				ec_log_level);
 	}
 
 	/* Copy event class emf uri. */
@@ -499,6 +505,7 @@ int copy_event_common_context_field_class_content(
 	bt_field_class *debug_field_class = NULL, *bin_field_class = NULL,
 		       *func_field_class = NULL, *src_field_class = NULL;
 	int ret = 0;
+	bt_logging_level log_level = md_maps->log_level;
 
 	BT_LOGD("Copying content of event common context field class: "
 		"in-fc-addr=%p, out-fc-addr=%p", in_field_class, out_field_class);

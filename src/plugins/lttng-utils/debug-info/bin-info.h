@@ -27,6 +27,7 @@
  * SOFTWARE.
  */
 
+#include <babeltrace2/logging.h>
 #include <stdint.h>
 #include <stdbool.h>
 #include <gelf.h>
@@ -41,6 +42,8 @@
 #define BUILD_ID_PREFIX_DIR_LEN 2
 
 struct bin_info {
+	bt_logging_level log_level;
+
 	/* Base virtual memory address. */
 	uint64_t low_addr;
 	/* Upper bound of exec address space. */
@@ -90,7 +93,7 @@ struct source_location {
  * @returns		0 on success, -1 on failure
  */
 BT_HIDDEN
-int bin_info_init(void);
+int bin_info_init(bt_logging_level log_level);
 
 /**
  * Instantiate a structure representing an ELF executable, possibly
@@ -110,7 +113,8 @@ int bin_info_init(void);
 BT_HIDDEN
 struct bin_info *bin_info_create(struct bt_fd_cache *fdc, const char *path,
 		uint64_t low_addr, uint64_t memsz, bool is_pic,
-		const char *debug_info_dir, const char *target_prefix);
+		const char *debug_info_dir, const char *target_prefix,
+		bt_logging_level log_level);
 
 /**
  * Destroy the given bin_info instance

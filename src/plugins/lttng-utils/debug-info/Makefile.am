@@ -12,8 +12,6 @@ libdebug_info_la_SOURCES = \
 	debug-info.h \
 	dwarf.c \
 	dwarf.h \
-	logging.c \
-	logging.h \
 	trace-ir-data-copy.c \
 	trace-ir-data-copy.h \
 	trace-ir-mapping.c \

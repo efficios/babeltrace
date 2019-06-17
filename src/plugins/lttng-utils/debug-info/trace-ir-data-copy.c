@@ -23,8 +23,9 @@
  * SOFTWARE.
  */
 
+#define BT_LOG_OUTPUT_LEVEL log_level
 #define BT_LOG_TAG "PLUGIN/FLT.LTTNG-UTILS.DEBUG-INFO/TRACE-IR-DATA-COPY"
-#include "logging.h"
+#include "logging/log.h"
 
 #include <inttypes.h>
 #include <stdint.h>
@@ -34,7 +35,8 @@
 #include "trace-ir-data-copy.h"
 
 BT_HIDDEN
-void copy_trace_content(const bt_trace *in_trace, bt_trace *out_trace)
+void copy_trace_content(const bt_trace *in_trace, bt_trace *out_trace,
+		bt_logging_level log_level)
 {
 	bt_trace_status status;
 	const char *trace_name;
@@ -60,7 +62,8 @@ end:
 }
 
 BT_HIDDEN
-void copy_stream_content(const bt_stream *in_stream, bt_stream *out_stream)
+void copy_stream_content(const bt_stream *in_stream, bt_stream *out_stream,
+		bt_logging_level log_level)
 {
 	const char *stream_name;
 	bt_stream_status status;
@@ -85,7 +88,8 @@ end:
 }
 
 BT_HIDDEN
-void copy_packet_content(const bt_packet *in_packet, bt_packet *out_packet)
+void copy_packet_content(const bt_packet *in_packet, bt_packet *out_packet,
+		bt_logging_level log_level)
 {
 	const bt_field *in_context_field;
 	bt_field *out_context_field;
@@ -98,7 +102,8 @@ void copy_packet_content(const bt_packet *in_packet, bt_packet *out_packet)
 	if (in_context_field) {
 		out_context_field = bt_packet_borrow_context_field(out_packet);
 		BT_ASSERT(out_context_field);
-		copy_field_content(in_context_field, out_context_field);
+		copy_field_content(in_context_field, out_context_field,
+			log_level);
 	}
 
 	BT_LOGD("Copied content of packet: in-p-addr=%p, out-p-addr=%p",
@@ -107,7 +112,8 @@ void copy_packet_content(const bt_packet *in_packet, bt_packet *out_packet)
 }
 
 BT_HIDDEN
-void copy_event_content(const bt_event *in_event, bt_event *out_event)
+void copy_event_content(const bt_event *in_event, bt_event *out_event,
+		bt_logging_level log_level)
 {
 	const bt_field *in_common_ctx_field, *in_specific_ctx_field,
 	      *in_payload_field;
@@ -123,7 +129,7 @@ void copy_event_content(const bt_event *in_event, bt_event *out_event)
 			bt_event_borrow_common_context_field(out_event);
 		BT_ASSERT(out_common_ctx_field);
 		copy_field_content(in_common_ctx_field,
-				out_common_ctx_field);
+				out_common_ctx_field, log_level);
 	}
 
 	in_specific_ctx_field =
@@ -133,7 +139,7 @@ void copy_event_content(const bt_event *in_event, bt_event *out_event)
 			bt_event_borrow_specific_context_field(out_event);
 		BT_ASSERT(out_specific_ctx_field);
 		copy_field_content(in_specific_ctx_field,
-				out_specific_ctx_field);
+				out_specific_ctx_field, log_level);
 	}
 
 	in_payload_field = bt_event_borrow_payload_field_const(in_event);
@@ -141,7 +147,7 @@ void copy_event_content(const bt_event *in_event, bt_event *out_event)
 		out_payload_field = bt_event_borrow_payload_field(out_event);
 		BT_ASSERT(out_payload_field);
 		copy_field_content(in_payload_field,
-				out_payload_field);
+				out_payload_field, log_level);
 	}
 
 	BT_LOGD("Copied content of event: in-e-addr=%p, out-e-addr=%p",
@@ -149,7 +155,8 @@ void copy_event_content(const bt_event *in_event, bt_event *out_event)
 }
 
 BT_HIDDEN
-void copy_field_content(const bt_field *in_field, bt_field *out_field)
+void copy_field_content(const bt_field *in_field, bt_field *out_field,
+		bt_logging_level log_level)
 {
 	bt_field_class_type in_fc_type, out_fc_type;
 
@@ -218,7 +225,7 @@ void copy_field_content(const bt_field *in_field, bt_field *out_field)
 						out_field, in_member_name);
 
 			copy_field_content(in_member_field,
-					out_member_field);
+					out_member_field, log_level);
 		}
 		break;
 	}
@@ -250,7 +257,8 @@ void copy_field_content(const bt_field *in_field, bt_field *out_field)
 			out_element_field =
 				bt_field_array_borrow_element_field_by_index(
 						out_field, i);
-			copy_field_content(in_element_field, out_element_field);
+			copy_field_content(in_element_field, out_element_field,
+				log_level);
 		}
 		break;
 	}
@@ -275,7 +283,8 @@ void copy_field_content(const bt_field *in_field, bt_field *out_field)
 		in_option_field = bt_field_variant_borrow_selected_option_field_const(in_field);
 		out_option_field = bt_field_variant_borrow_selected_option_field(out_field);
 
-		copy_field_content(in_option_field, out_option_field);
+		copy_field_content(in_option_field, out_option_field,
+			log_level);
 
 		break;
 	}
