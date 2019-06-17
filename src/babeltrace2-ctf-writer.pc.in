@@ -3,11 +3,10 @@ exec_prefix=@exec_prefix@
 libdir=@libdir@
 includedir=@includedir@
 
-Name: Babeltrace CTF parser
-Description: libbabeltrace2-ctf provides the specific bits necessary to write a Common Trace Format (CTF) trace.
+Name: Babeltrace 2 CTF writer
+Description: Common Trace Format (CTF) writer library from Babeltrace 2
 Version: @PACKAGE_VERSION@
-Requires:
-Requires.private: uuid popt
 Libs: -L${libdir} -lbabeltrace2-ctf-writer
+Libs.private: @UUID_LIBS@
 Cflags: -I${includedir}
-
+Cflags.private: @UUID_CFLAGS@
