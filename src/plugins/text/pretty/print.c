@@ -60,22 +60,26 @@ static
 void print_name_equal(struct pretty_component *pretty, const char *name)
 {
 	if (pretty->use_colors) {
-		bt_common_g_string_append_printf(pretty->string, "%s%s%s = ", COLOR_NAME,
-			name, COLOR_RST);
+		g_string_append(pretty->string, COLOR_NAME);
+		g_string_append(pretty->string, name);
+		g_string_append(pretty->string, COLOR_RST);
 	} else {
-		bt_common_g_string_append_printf(pretty->string, "%s = ", name);
+		g_string_append(pretty->string, name);
 	}
+	g_string_append(pretty->string, " = ");
 }
 
 static
 void print_field_name_equal(struct pretty_component *pretty, const char *name)
 {
 	if (pretty->use_colors) {
-		bt_common_g_string_append_printf(pretty->string, "%s%s%s = ",
-			COLOR_FIELD_NAME, name, COLOR_RST);
+		g_string_append(pretty->string, COLOR_FIELD_NAME);
+		g_string_append(pretty->string, name);
+		g_string_append(pretty->string, COLOR_RST);
 	} else {
-		bt_common_g_string_append_printf(pretty->string, "%s = ", name);
-	}
+		g_string_append(pretty->string, name);
+}
+	g_string_append(pretty->string, " = ");
 }
 
 static
