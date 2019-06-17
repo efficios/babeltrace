@@ -49,6 +49,7 @@ struct counter {
 	uint64_t step;
 	bool hide_zero;
 	bt_logging_level log_level;
+	bt_self_component *self_comp;
 };
 
 BT_HIDDEN
