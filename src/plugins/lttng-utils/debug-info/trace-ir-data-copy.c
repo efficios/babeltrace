@@ -23,9 +23,10 @@
  * SOFTWARE.
  */
 
+#define BT_COMP_LOG_SELF_COMP self_comp
 #define BT_LOG_OUTPUT_LEVEL log_level
 #define BT_LOG_TAG "PLUGIN/FLT.LTTNG-UTILS.DEBUG-INFO/TRACE-IR-DATA-COPY"
-#include "logging/log.h"
+#include "plugins/comp-logging.h"
 
 #include <inttypes.h>
 #include <stdint.h>
@@ -36,12 +37,12 @@
 
 BT_HIDDEN
 void copy_trace_content(const bt_trace *in_trace, bt_trace *out_trace,
-		bt_logging_level log_level)
+		bt_logging_level log_level, bt_self_component *self_comp)
 {
 	bt_trace_status status;
 	const char *trace_name;
 
-	BT_LOGD("Copying content of trace: in-t-addr=%p, out-t-addr=%p",
+	BT_COMP_LOGD("Copying content of trace: in-t-addr=%p, out-t-addr=%p",
 			in_trace, out_trace);
 
 	trace_name = bt_trace_get_name(in_trace);
@@ -49,13 +50,13 @@ void copy_trace_content(const bt_trace *in_trace, bt_trace *out_trace,
 	if (trace_name) {
 		status = bt_trace_set_name(out_trace, trace_name);
 		if (status != BT_TRACE_STATUS_OK) {
-			BT_LOGE("Cannot set trace's name: trace-addr=%p, name=\"%s\"",
+			BT_COMP_LOGE("Cannot set trace's name: trace-addr=%p, name=\"%s\"",
 					out_trace, trace_name);
 			goto end;
 		}
 	}
 
-	BT_LOGD("Copied content of trace: in-t-addr=%p, out-t-addr=%p",
+	BT_COMP_LOGD("Copied content of trace: in-t-addr=%p, out-t-addr=%p",
 			in_trace, out_trace);
 end:
 	return;
@@ -63,25 +64,25 @@ end:
 
 BT_HIDDEN
 void copy_stream_content(const bt_stream *in_stream, bt_stream *out_stream,
-		bt_logging_level log_level)
+		bt_logging_level log_level, bt_self_component *self_comp)
 {
 	const char *stream_name;
 	bt_stream_status status;
 
-	BT_LOGD("Copying content of stream: in-s-addr=%p, out-s-addr=%p",
+	BT_COMP_LOGD("Copying content of stream: in-s-addr=%p, out-s-addr=%p",
 			in_stream, out_stream);
 
 	stream_name = bt_stream_get_name(in_stream);
 	if (stream_name) {
 		status = bt_stream_set_name(out_stream, stream_name);
 		if (status != BT_STREAM_STATUS_OK) {
-			BT_LOGE("Cannot set stream's name: stream-addr=%p, "
+			BT_COMP_LOGE("Cannot set stream's name: stream-addr=%p, "
 				"name=%s", out_stream, stream_name);
 			goto end;
 		}
 	}
 
-	BT_LOGD("Copied content of stream: in-s-addr=%p, out-s-addr=%p",
+	BT_COMP_LOGD("Copied content of stream: in-s-addr=%p, out-s-addr=%p",
 			in_stream, out_stream);
 end:
 	return;
@@ -89,12 +90,12 @@ end:
 
 BT_HIDDEN
 void copy_packet_content(const bt_packet *in_packet, bt_packet *out_packet,
-		bt_logging_level log_level)
+		bt_logging_level log_level, bt_self_component *self_comp)
 {
 	const bt_field *in_context_field;
 	bt_field *out_context_field;
 
-	BT_LOGD("Copying content of packet: in-p-addr=%p, out-p-addr=%p",
+	BT_COMP_LOGD("Copying content of packet: in-p-addr=%p, out-p-addr=%p",
 			in_packet, out_packet);
 
 	/* Copy context field. */
@@ -103,24 +104,24 @@ void copy_packet_content(const bt_packet *in_packet, bt_packet *out_packet,
 		out_context_field = bt_packet_borrow_context_field(out_packet);
 		BT_ASSERT(out_context_field);
 		copy_field_content(in_context_field, out_context_field,
-			log_level);
+			log_level, self_comp);
 	}
 
-	BT_LOGD("Copied content of packet: in-p-addr=%p, out-p-addr=%p",
+	BT_COMP_LOGD("Copied content of packet: in-p-addr=%p, out-p-addr=%p",
 			in_packet, out_packet);
 	return;
 }
 
 BT_HIDDEN
 void copy_event_content(const bt_event *in_event, bt_event *out_event,
-		bt_logging_level log_level)
+		bt_logging_level log_level, bt_self_component *self_comp)
 {
 	const bt_field *in_common_ctx_field, *in_specific_ctx_field,
 	      *in_payload_field;
 	bt_field *out_common_ctx_field, *out_specific_ctx_field,
 		 *out_payload_field;
 
-	BT_LOGD("Copying content of event: in-e-addr=%p, out-e-addr=%p",
+	BT_COMP_LOGD("Copying content of event: in-e-addr=%p, out-e-addr=%p",
 			in_event, out_event);
 	in_common_ctx_field =
 		bt_event_borrow_common_context_field_const(in_event);
@@ -129,7 +130,7 @@ void copy_event_content(const bt_event *in_event, bt_event *out_event,
 			bt_event_borrow_common_context_field(out_event);
 		BT_ASSERT(out_common_ctx_field);
 		copy_field_content(in_common_ctx_field,
-				out_common_ctx_field, log_level);
+			out_common_ctx_field, log_level, self_comp);
 	}
 
 	in_specific_ctx_field =
@@ -139,7 +140,7 @@ void copy_event_content(const bt_event *in_event, bt_event *out_event,
 			bt_event_borrow_specific_context_field(out_event);
 		BT_ASSERT(out_specific_ctx_field);
 		copy_field_content(in_specific_ctx_field,
-				out_specific_ctx_field, log_level);
+			out_specific_ctx_field, log_level, self_comp);
 	}
 
 	in_payload_field = bt_event_borrow_payload_field_const(in_event);
@@ -147,16 +148,16 @@ void copy_event_content(const bt_event *in_event, bt_event *out_event,
 		out_payload_field = bt_event_borrow_payload_field(out_event);
 		BT_ASSERT(out_payload_field);
 		copy_field_content(in_payload_field,
-				out_payload_field, log_level);
+			out_payload_field, log_level, self_comp);
 	}
 
-	BT_LOGD("Copied content of event: in-e-addr=%p, out-e-addr=%p",
+	BT_COMP_LOGD("Copied content of event: in-e-addr=%p, out-e-addr=%p",
 			in_event, out_event);
 }
 
 BT_HIDDEN
 void copy_field_content(const bt_field *in_field, bt_field *out_field,
-		bt_logging_level log_level)
+		bt_logging_level log_level, bt_self_component *self_comp)
 {
 	bt_field_class_type in_fc_type, out_fc_type;
 
@@ -164,7 +165,7 @@ void copy_field_content(const bt_field *in_field, bt_field *out_field,
 	out_fc_type = bt_field_get_class_type(out_field);
 	BT_ASSERT(in_fc_type == out_fc_type);
 
-	BT_LOGV("Copying content of field: in-f-addr=%p, out-f-addr=%p",
+	BT_COMP_LOGV("Copying content of field: in-f-addr=%p, out-f-addr=%p",
 			in_field, out_field);
 	switch (in_fc_type) {
 	case BT_FIELD_CLASS_TYPE_UNSIGNED_INTEGER:
@@ -186,7 +187,7 @@ void copy_field_content(const bt_field *in_field, bt_field *out_field,
 		const char *str = bt_field_string_get_value(in_field);
 		bt_field_status status = bt_field_string_set_value(out_field, str);
 		if (status != BT_FIELD_STATUS_OK) {
-			BT_LOGE("Cannot set string field's value: "
+			BT_COMP_LOGE("Cannot set string field's value: "
 				"str-field-addr=%p, str=%s" PRId64,
 				out_field, str);
 		}
@@ -225,7 +226,7 @@ void copy_field_content(const bt_field *in_field, bt_field *out_field,
 						out_field, in_member_name);
 
 			copy_field_content(in_member_field,
-					out_member_field, log_level);
+				out_member_field, log_level, self_comp);
 		}
 		break;
 	}
@@ -244,7 +245,7 @@ void copy_field_content(const bt_field *in_field, bt_field *out_field,
 			status = bt_field_dynamic_array_set_length(out_field,
 					array_len);
 			if (status != BT_FIELD_STATUS_OK) {
-				BT_LOGE("Cannot set dynamic array field's "
+				BT_COMP_LOGE("Cannot set dynamic array field's "
 					"length field: field-addr=%p, "
 					"length=%" PRIu64, out_field, array_len);
 			}
@@ -258,7 +259,7 @@ void copy_field_content(const bt_field *in_field, bt_field *out_field,
 				bt_field_array_borrow_element_field_by_index(
 						out_field, i);
 			copy_field_content(in_element_field, out_element_field,
-				log_level);
+				log_level, self_comp);
 		}
 		break;
 	}
@@ -275,7 +276,7 @@ void copy_field_content(const bt_field *in_field, bt_field *out_field,
 		status = bt_field_variant_select_option_field(out_field,
 				in_selected_option_idx);
 		if (status != BT_FIELD_STATUS_OK) {
-			BT_LOGE("Cannot select variant field's option field: "
+			BT_COMP_LOGE("Cannot select variant field's option field: "
 				"var-field-addr=%p, opt-index=%" PRId64,
 				out_field, in_selected_option_idx);
 		}
@@ -284,13 +285,13 @@ void copy_field_content(const bt_field *in_field, bt_field *out_field,
 		out_option_field = bt_field_variant_borrow_selected_option_field(out_field);
 
 		copy_field_content(in_option_field, out_option_field,
-			log_level);
+			log_level, self_comp);
 
 		break;
 	}
 	default:
 		abort();
 	}
-	BT_LOGV("Copied content of field: in-f-addr=%p, out-f-addr=%p",
+	BT_COMP_LOGV("Copied content of field: in-f-addr=%p, out-f-addr=%p",
 			in_field, out_field);
 }

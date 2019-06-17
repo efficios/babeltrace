@@ -24,9 +24,10 @@
  * SOFTWARE.
  */
 
+#define BT_COMP_LOG_SELF_COMP (md_maps->self_comp)
 #define BT_LOG_OUTPUT_LEVEL (md_maps->log_level)
 #define BT_LOG_TAG "PLUGIN/FLT.LTTNG-UTILS.DEBUG-INFO/TRACE-IR-META-FC-COPY"
-#include "logging/log.h"
+#include "plugins/comp-logging.h"
 
 #include "common/assert.h"
 #include "common/common.h"
@@ -49,7 +50,7 @@ const bt_field_class *walk_field_path(struct trace_ir_metadata_maps *md_maps,
 	const bt_field_class *curr_fc;
 
 	BT_ASSERT(bt_field_class_get_type(fc) == BT_FIELD_CLASS_TYPE_STRUCTURE);
-	BT_LOGD("Walking field path on field class: fp-addr=%p, fc-addr=%p",
+	BT_COMP_LOGD("Walking field path on field class: fp-addr=%p, fc-addr=%p",
 			fp, fc);
 
 	fp_item_count = bt_field_path_get_item_count(fp);
@@ -111,7 +112,7 @@ const bt_field_class *resolve_field_path_to_field_class(const bt_field_path *fp,
 	const bt_field_class *fc;
 	bt_scope fp_scope;
 
-	BT_LOGD("Resolving field path: fp-addr=%p", fp);
+	BT_COMP_LOGD("Resolving field path: fp-addr=%p", fp);
 
 	fc_resolving_ctx = md_maps->fc_resolving_ctx;
 	fp_scope = bt_field_path_get_root_scope(fp);
@@ -156,13 +157,13 @@ int field_class_unsigned_integer_copy(
 		const bt_field_class *in_field_class,
 		bt_field_class *out_field_class)
 {
-	BT_LOGD("Copying content of unsigned integer field class: "
+	BT_COMP_LOGD("Copying content of unsigned integer field class: "
 			"in-fc-addr=%p, out-fc-addr=%p",
 			in_field_class, out_field_class);
 
 	field_class_integer_set_props(in_field_class, out_field_class);
 
-	BT_LOGD("Copied content of unsigned integer field class: "
+	BT_COMP_LOGD("Copied content of unsigned integer field class: "
 			"in-fc-addr=%p, out-fc-addr=%p",
 			in_field_class, out_field_class);
 	return 0;
@@ -174,13 +175,13 @@ int field_class_signed_integer_copy(
 		const bt_field_class *in_field_class,
 		bt_field_class *out_field_class)
 {
-	BT_LOGD("Copying content of signed integer field class: "
+	BT_COMP_LOGD("Copying content of signed integer field class: "
 			"in-fc-addr=%p, out-fc-addr=%p",
 			in_field_class, out_field_class);
 
 	field_class_integer_set_props(in_field_class, out_field_class);
 
-	BT_LOGD("Copied content of signed integer field class: "
+	BT_COMP_LOGD("Copied content of signed integer field class: "
 			"in-fc-addr=%p, out-fc-addr=%p",
 			in_field_class, out_field_class);
 	return 0;
@@ -195,7 +196,7 @@ int field_class_unsigned_enumeration_copy(
 	uint64_t i, enum_mapping_count;
 	int ret = 0;
 
-	BT_LOGD("Copying content of unsigned enumeration field class: "
+	BT_COMP_LOGD("Copying content of unsigned enumeration field class: "
 			"in-fc-addr=%p, out-fc-addr=%p",
 			in_field_class, out_field_class);
 
@@ -231,7 +232,7 @@ int field_class_unsigned_enumeration_copy(
 			bt_field_class_unsigned_enumeration_mapping_get_range_by_index(
 					u_mapping, range_index, &lower, &upper);
 
-			BT_LOGD("Copying range in enumeration field class: "
+			BT_COMP_LOGD("Copying range in enumeration field class: "
 					"label=%s, lower=%"PRId64", upper=%"PRId64,
 					label, lower, upper);
 
@@ -240,7 +241,7 @@ int field_class_unsigned_enumeration_copy(
 					out_field_class, label, lower, upper);
 
 			if (status != BT_FIELD_CLASS_STATUS_OK) {
-				BT_LOGE_STR("Failed to add range to unsigned "
+				BT_COMP_LOGE_STR("Failed to add range to unsigned "
 						"enumeration.");
 				BT_FIELD_CLASS_PUT_REF_AND_RESET(out_field_class);
 				ret = -1;
@@ -249,7 +250,7 @@ int field_class_unsigned_enumeration_copy(
 		}
 	}
 
-	BT_LOGD("Copied content of unsigned enumeration field class: "
+	BT_COMP_LOGD("Copied content of unsigned enumeration field class: "
 			"in-fc-addr=%p, out-fc-addr=%p",
 			in_field_class, out_field_class);
 
@@ -266,7 +267,7 @@ int field_class_signed_enumeration_copy(
 	uint64_t i, enum_mapping_count;
 	int ret = 0;
 
-	BT_LOGD("Copying content of signed enumeration field class: "
+	BT_COMP_LOGD("Copying content of signed enumeration field class: "
 			"in-fc-addr=%p, out-fc-addr=%p",
 			in_field_class, out_field_class);
 
@@ -303,7 +304,7 @@ int field_class_signed_enumeration_copy(
 			bt_field_class_signed_enumeration_mapping_get_range_by_index(
 					i_mapping, range_index, &lower, &upper);
 
-			BT_LOGD("Copying range in enumeration field class: "
+			BT_COMP_LOGD("Copying range in enumeration field class: "
 					"label=%s, lower=%"PRId64", upper=%"PRId64,
 					label, lower, upper);
 
@@ -311,7 +312,7 @@ int field_class_signed_enumeration_copy(
 			status = bt_field_class_signed_enumeration_map_range(
 					out_field_class, label, lower, upper);
 			if (status != BT_FIELD_CLASS_STATUS_OK) {
-				BT_LOGE_STR("Failed to add range to signed "
+				BT_COMP_LOGE_STR("Failed to add range to signed "
 						"enumeration.");
 				BT_FIELD_CLASS_PUT_REF_AND_RESET(out_field_class);
 				ret = -1;
@@ -320,7 +321,7 @@ int field_class_signed_enumeration_copy(
 		}
 	}
 
-	BT_LOGD("Copied content of signed enumeration field class: "
+	BT_COMP_LOGD("Copied content of signed enumeration field class: "
 			"in-fc-addr=%p, out-fc-addr=%p",
 			in_field_class, out_field_class);
 
@@ -334,14 +335,14 @@ int field_class_real_copy(
 		const bt_field_class *in_field_class,
 		bt_field_class *out_field_class)
 {
-	BT_LOGD("Copying content of real field class: "
+	BT_COMP_LOGD("Copying content of real field class: "
 			"in-fc-addr=%p, out-fc-addr=%p",
 			in_field_class, out_field_class);
 
 	bt_field_class_real_set_is_single_precision(out_field_class,
 			bt_field_class_real_is_single_precision(in_field_class));
 
-	BT_LOGD("Copied content real field class: in-fc-addr=%p, "
+	BT_COMP_LOGD("Copied content real field class: in-fc-addr=%p, "
 			"out-fc-addr=%p", in_field_class, out_field_class);
 
 	return 0;
@@ -357,7 +358,7 @@ int field_class_structure_copy(
 	bt_field_class_status status;
 	int ret = 0;
 
-	BT_LOGD("Copying content of structure field class: "
+	BT_COMP_LOGD("Copying content of structure field class: "
 			"in-fc-addr=%p, out-fc-addr=%p",
 			in_field_class, out_field_class);
 	/* Get the number of member in that struct. */
@@ -376,7 +377,7 @@ int field_class_structure_copy(
 		member_fc = bt_field_class_structure_member_borrow_field_class_const(
 			member);
 		member_name = bt_field_class_structure_member_get_name(member);
-		BT_LOGD("Copying structure field class's field: "
+		BT_COMP_LOGD("Copying structure field class's field: "
 			"index=%" PRId64 ", "
 			"member-fc-addr=%p, field-name=\"%s\"",
 			i, member_fc, member_name);
@@ -384,7 +385,7 @@ int field_class_structure_copy(
 		out_member_field_class = create_field_class_copy(md_maps,
 				member_fc);
 		if (!out_member_field_class) {
-			BT_LOGE("Cannot copy structure field class's field: "
+			BT_COMP_LOGE("Cannot copy structure field class's field: "
 				"index=%" PRId64 ", "
 				"field-fc-addr=%p, field-name=\"%s\"",
 				i, member_fc, member_name);
@@ -400,7 +401,7 @@ int field_class_structure_copy(
 		status = bt_field_class_structure_append_member(out_field_class,
 				member_name, out_member_field_class);
 		if (status != BT_FIELD_CLASS_STATUS_OK) {
-			BT_LOGE("Cannot append structure field class's field: "
+			BT_COMP_LOGE("Cannot append structure field class's field: "
 				"index=%" PRId64 ", "
 				"field-fc-addr=%p, field-name=\"%s\"",
 				i, member_fc, member_name);
@@ -410,7 +411,7 @@ int field_class_structure_copy(
 		}
 	}
 
-	BT_LOGD("Copied structure field class: original-fc-addr=%p, copy-fc-addr=%p",
+	BT_COMP_LOGD("Copied structure field class: original-fc-addr=%p, copy-fc-addr=%p",
 		in_field_class, out_field_class);
 
 error:
@@ -429,7 +430,7 @@ int field_class_variant_copy(
 	const bt_field_class *tag_fc;
 	int ret = 0;
 
-	BT_LOGD("Copying content of variant field class: "
+	BT_COMP_LOGD("Copying content of variant field class: "
 			"in-fc-addr=%p, out-fc-addr=%p",
 			in_field_class, out_field_class);
 
@@ -442,7 +443,7 @@ int field_class_variant_copy(
 		out_tag_field_class = g_hash_table_lookup(
 				md_maps->field_class_map, tag_fc);
 		if (!out_tag_field_class) {
-			BT_LOGE_STR("Cannot find the tag field class.");
+			BT_COMP_LOGE_STR("Cannot find the tag field class.");
 			ret = -1;
 			goto error;
 		}
@@ -467,14 +468,14 @@ int field_class_variant_copy(
 		out_option_field_class = create_field_class_copy_internal(
 				md_maps, option_fc);
 		if (!out_option_field_class) {
-			BT_LOGE_STR("Cannot copy field class.");
+			BT_COMP_LOGE_STR("Cannot copy field class.");
 			ret = -1;
 			goto error;
 		}
 		ret = copy_field_class_content_internal(md_maps, option_fc,
 				out_option_field_class);
 		if (ret) {
-			BT_LOGE_STR("Error copying content of option variant "
+			BT_COMP_LOGE_STR("Error copying content of option variant "
 					"field class'");
 			goto error;
 		}
@@ -483,14 +484,14 @@ int field_class_variant_copy(
 				out_field_class, option_name,
 				out_option_field_class);
 		if (status != BT_FIELD_CLASS_STATUS_OK) {
-			BT_LOGE_STR("Cannot append option to variant field class'");
+			BT_COMP_LOGE_STR("Cannot append option to variant field class'");
 			BT_FIELD_CLASS_PUT_REF_AND_RESET(out_tag_field_class);
 			ret = -1;
 			goto error;
 		}
 	}
 
-	BT_LOGD("Copied content of variant field class: in-fc-addr=%p, "
+	BT_COMP_LOGD("Copied content of variant field class: in-fc-addr=%p, "
 		"out-fc-addr=%p", in_field_class, out_field_class);
 
 error:
@@ -503,13 +504,13 @@ int field_class_static_array_copy(
 		const bt_field_class *in_field_class,
 		bt_field_class *out_field_class)
 {
-	BT_LOGD("Copying content of static array field class: in-fc-addr=%p, "
+	BT_COMP_LOGD("Copying content of static array field class: in-fc-addr=%p, "
 			"out-fc-addr=%p", in_field_class, out_field_class);
 	/*
 	 * There is no content to copy. Keep this function call anyway for
 	 * logging purposes.
 	 */
-	BT_LOGD("Copied content of static array field class: in-fc-addr=%p, "
+	BT_COMP_LOGD("Copied content of static array field class: in-fc-addr=%p, "
 			"out-fc-addr=%p", in_field_class, out_field_class);
 
 	return 0;
@@ -527,7 +528,7 @@ int field_class_dynamic_array_copy(
 	bt_field_class *out_len_field_class;
 	int ret = 0;
 
-	BT_LOGD("Copying content of dynamic array field class: "
+	BT_COMP_LOGD("Copying content of dynamic array field class: "
 			"in-fc-addr=%p, out-fc-addr=%p",
 			in_field_class, out_field_class);
 
@@ -535,14 +536,14 @@ int field_class_dynamic_array_copy(
 			in_field_class);
 
 	if (len_fp) {
-		BT_LOGD("Copying dynamic array length field class using "
+		BT_COMP_LOGD("Copying dynamic array length field class using "
 				"field path: in-len-fp=%p", len_fp);
 		len_fc = resolve_field_path_to_field_class(
 				len_fp, md_maps);
 		out_len_field_class = g_hash_table_lookup(
 				md_maps->field_class_map, len_fc);
 		if (!out_len_field_class) {
-			BT_LOGE_STR("Cannot find the output matching length"
+			BT_COMP_LOGE_STR("Cannot find the output matching length"
 					"field class.");
 			ret = -1;
 			goto error;
@@ -551,7 +552,7 @@ int field_class_dynamic_array_copy(
 		status = bt_field_class_dynamic_array_set_length_field_class(
 				out_field_class, out_len_field_class);
 		if (status != BT_FIELD_CLASS_STATUS_OK) {
-			BT_LOGE_STR("Cannot set dynamic array field class' "
+			BT_COMP_LOGE_STR("Cannot set dynamic array field class' "
 					"length field class.");
 			BT_FIELD_CLASS_PUT_REF_AND_RESET(out_len_field_class);
 			ret = -1;
@@ -559,7 +560,7 @@ int field_class_dynamic_array_copy(
 		}
 	}
 
-	BT_LOGD("Copied dynamic array field class: in-fc-addr=%p, "
+	BT_COMP_LOGD("Copied dynamic array field class: in-fc-addr=%p, "
 			"out-fc-addr=%p", in_field_class, out_field_class);
 
 error:
@@ -571,13 +572,13 @@ int field_class_string_copy(struct trace_ir_metadata_maps *md_maps,
 		const bt_field_class *in_field_class,
 		bt_field_class *out_field_class)
 {
-	BT_LOGD("Copying content of string field class: in-fc-addr=%p, "
+	BT_COMP_LOGD("Copying content of string field class: in-fc-addr=%p, "
 			"out-fc-addr=%p", in_field_class, out_field_class);
 	/*
 	 * There is no content to copy. Keep this function call anyway for
 	 * logging purposes.
 	 */
-	BT_LOGD("Copied content of string field class: in-fc-addr=%p, "
+	BT_COMP_LOGD("Copied content of string field class: in-fc-addr=%p, "
 			"out-fc-addr=%p", in_field_class, out_field_class);
 
 	return 0;
@@ -591,7 +592,7 @@ bt_field_class *copy_field_class_array_element(struct trace_ir_metadata_maps *md
 	bt_field_class *out_elem_fc =
 		create_field_class_copy_internal(md_maps, in_elem_fc);
 	if (!out_elem_fc) {
-		BT_LOGE("Error creating output elem field class "
+		BT_COMP_LOGE("Error creating output elem field class "
 				"from input elem field class for static array: "
 				"in-fc-addr=%p", in_elem_fc);
 		goto error;
@@ -599,7 +600,7 @@ bt_field_class *copy_field_class_array_element(struct trace_ir_metadata_maps *md
 
 	ret = copy_field_class_content_internal(md_maps, in_elem_fc, out_elem_fc);
 	if (ret) {
-		BT_LOGE("Error creating output elem field class "
+		BT_COMP_LOGE("Error creating output elem field class "
 				"from input elem field class for static array: "
 				"in-fc-addr=%p", in_elem_fc);
 		BT_FIELD_CLASS_PUT_REF_AND_RESET(out_elem_fc);
@@ -616,7 +617,7 @@ bt_field_class *create_field_class_copy_internal(struct trace_ir_metadata_maps *
 {
 	bt_field_class *out_field_class = NULL;
 
-	BT_LOGD("Creating bare field class based on field class: in-fc-addr=%p",
+	BT_COMP_LOGD("Creating bare field class based on field class: in-fc-addr=%p",
 			in_field_class);
 
 	switch(bt_field_class_get_type(in_field_class)) {
@@ -704,10 +705,10 @@ bt_field_class *create_field_class_copy_internal(struct trace_ir_metadata_maps *
 
 error:
 	if(out_field_class){
-		BT_LOGD("Created bare field class based on field class: in-fc-addr=%p, "
+		BT_COMP_LOGD("Created bare field class based on field class: in-fc-addr=%p, "
 				"out-fc-addr=%p", in_field_class, out_field_class);
 	} else {
-		BT_LOGE("Error creating output field class from input field "
+		BT_COMP_LOGE("Error creating output field class from input field "
 			"class: in-fc-addr=%p", in_field_class);
 	}
 
