@@ -34,8 +34,6 @@
 
 #include "pretty.h"
 
-GQuark stream_packet_context_quarks[STREAM_PACKET_CONTEXT_QUARKS_LEN];
-
 static
 const char *plugin_options[] = {
 	"color",
@@ -609,25 +607,6 @@ void set_use_colors(struct pretty_component *pretty)
 	}
 }
 
-static
-void init_stream_packet_context_quarks(void)
-{
-	stream_packet_context_quarks[Q_TIMESTAMP_BEGIN] =
-		g_quark_from_string("timestamp_begin");
-	stream_packet_context_quarks[Q_TIMESTAMP_BEGIN] =
-		g_quark_from_string("timestamp_begin");
-	stream_packet_context_quarks[Q_TIMESTAMP_END] =
-		g_quark_from_string("timestamp_end");
-	stream_packet_context_quarks[Q_EVENTS_DISCARDED] =
-		g_quark_from_string("events_discarded");
-	stream_packet_context_quarks[Q_CONTENT_SIZE] =
-		g_quark_from_string("content_size");
-	stream_packet_context_quarks[Q_PACKET_SIZE] =
-		g_quark_from_string("packet_size");
-	stream_packet_context_quarks[Q_PACKET_SEQ_NUM] =
-		g_quark_from_string("packet_seq_num");
-}
-
 BT_HIDDEN
 bt_component_class_init_method_status pretty_init(
 		bt_self_component_sink *comp, const bt_value *params,
@@ -665,7 +644,6 @@ bt_component_class_init_method_status pretty_init(
 	set_use_colors(pretty);
 	bt_self_component_set_data(
 		bt_self_component_sink_as_self_component(comp), pretty);
-	init_stream_packet_context_quarks();
 
 end:
 	return ret;

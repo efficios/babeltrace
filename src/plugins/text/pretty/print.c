@@ -53,8 +53,7 @@ struct timestamp {
 
 static
 int print_field(struct pretty_component *pretty,
-		const bt_field *field, bool print_names,
-		GQuark *filters_fields, int filter_array_len);
+		const bt_field *field, bool print_names);
 
 static
 void print_name_equal(struct pretty_component *pretty, const char *name)
@@ -750,30 +749,10 @@ end:
 }
 
 static
-int filter_field_name(struct pretty_component *pretty, const char *field_name,
-		GQuark *filter_fields, int filter_array_len)
-{
-	int i;
-	GQuark field_quark = g_quark_try_string(field_name);
-
-	if (!field_quark || pretty->options.verbose) {
-		return 1;
-	}
-
-	for (i = 0; i < filter_array_len; i++) {
-		if (field_quark == filter_fields[i]) {
-			return 0;
-		}
-	}
-	return 1;
-}
-
-static
 int print_struct_field(struct pretty_component *pretty,
 		const bt_field *_struct,
 		const bt_field_class *struct_class,
-		uint64_t i, bool print_names, uint64_t *nr_printed_fields,
-		GQuark *filter_fields, int filter_array_len)
+		uint64_t i, bool print_names, uint64_t *nr_printed_fields)
 {
 	int ret = 0;
 	const char *field_name;
@@ -790,12 +769,6 @@ int print_struct_field(struct pretty_component *pretty,
 		struct_class, i);
 	field_name = bt_field_class_structure_member_get_name(member);
 
-	if (filter_fields && !filter_field_name(pretty, field_name,
-				filter_fields, filter_array_len)) {
-		ret = 0;
-		goto end;
-	}
-
 	if (*nr_printed_fields > 0) {
 		g_string_append(pretty->string, ", ");
 	} else {
@@ -804,7 +777,7 @@ int print_struct_field(struct pretty_component *pretty,
 	if (print_names) {
 		print_field_name_equal(pretty, field_name);
 	}
-	ret = print_field(pretty, field, print_names, NULL, 0);
+	ret = print_field(pretty, field, print_names);
 	*nr_printed_fields += 1;
 
 end:
@@ -813,8 +786,7 @@ end:
 
 static
 int print_struct(struct pretty_component *pretty,
-		const bt_field *_struct, bool print_names,
-		GQuark *filter_fields, int filter_array_len)
+		const bt_field *_struct, bool print_names)
 {
 	int ret = 0;
 	const bt_field_class *struct_class = NULL;
@@ -833,8 +805,7 @@ int print_struct(struct pretty_component *pretty,
 	nr_printed_fields = 0;
 	for (i = 0; i < nr_fields; i++) {
 		ret = print_struct_field(pretty, _struct, struct_class, i,
-				print_names, &nr_printed_fields, filter_fields,
-				filter_array_len);
+				print_names, &nr_printed_fields);
 		if (ret != 0) {
 			goto end;
 		}
@@ -863,7 +834,7 @@ int print_array_field(struct pretty_component *pretty,
 
 	field = bt_field_array_borrow_element_field_by_index_const(array, i);
 	BT_ASSERT(field);
-	return print_field(pretty, field, print_names, NULL, 0);
+	return print_field(pretty, field, print_names);
 }
 
 static
@@ -913,7 +884,7 @@ int print_sequence_field(struct pretty_component *pretty,
 
 	field = bt_field_array_borrow_element_field_by_index_const(seq, i);
 	BT_ASSERT(field);
-	return print_field(pretty, field, print_names, NULL, 0);
+	return print_field(pretty, field, print_names);
 }
 
 static
@@ -956,7 +927,7 @@ int print_variant(struct pretty_component *pretty,
 		// TODO: find tag's name using field path
 		// print_field_name_equal(pretty, tag_choice);
 	}
-	ret = print_field(pretty, field, print_names, NULL, 0);
+	ret = print_field(pretty, field, print_names);
 	if (ret != 0) {
 		goto end;
 	}
@@ -969,8 +940,7 @@ end:
 
 static
 int print_field(struct pretty_component *pretty,
-		const bt_field *field, bool print_names,
-		GQuark *filter_fields, int filter_array_len)
+		const bt_field *field, bool print_names)
 {
 	bt_field_class_type class_id;
 
@@ -1015,8 +985,7 @@ int print_field(struct pretty_component *pretty,
 		return 0;
 	}
 	case BT_FIELD_CLASS_TYPE_STRUCTURE:
-		return print_struct(pretty, field, print_names, filter_fields,
-				filter_array_len);
+		return print_struct(pretty, field, print_names);
 	case BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR:
 	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_SELECTOR:
 	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_SELECTOR:
@@ -1056,9 +1025,7 @@ int print_stream_packet_context(struct pretty_component *pretty,
 		print_name_equal(pretty, "stream.packet.context");
 	}
 	ret = print_field(pretty, main_field,
-			pretty->options.print_context_field_names,
-			stream_packet_context_quarks,
-			STREAM_PACKET_CONTEXT_QUARKS_LEN);
+			pretty->options.print_context_field_names);
 
 end:
 	return ret;
@@ -1083,7 +1050,7 @@ int print_stream_event_context(struct pretty_component *pretty,
 		print_name_equal(pretty, "stream.event.context");
 	}
 	ret = print_field(pretty, main_field,
-			pretty->options.print_context_field_names, NULL, 0);
+			pretty->options.print_context_field_names);
 
 end:
 	return ret;
@@ -1108,7 +1075,7 @@ int print_event_context(struct pretty_component *pretty,
 		print_name_equal(pretty, "event.context");
 	}
 	ret = print_field(pretty, main_field,
-			pretty->options.print_context_field_names, NULL, 0);
+			pretty->options.print_context_field_names);
 
 end:
 	return ret;
@@ -1133,7 +1100,7 @@ int print_event_payload(struct pretty_component *pretty,
 		print_name_equal(pretty, "event.fields");
 	}
 	ret = print_field(pretty, main_field,
-			pretty->options.print_payload_field_names, NULL, 0);
+			pretty->options.print_payload_field_names);
 
 end:
 	return ret;
