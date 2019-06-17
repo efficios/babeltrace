@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (C) - 2017 Philippe Proulx <pproulx@efficios.com>
+# Copyright (C) 2017 Philippe Proulx <pproulx@efficios.com>
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License, version 2 only, as
@@ -15,7 +15,18 @@
 # this program; if not, write to the Free Software Foundation, Inc., 51
 # Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-. "@abs_top_builddir@/tests/utils/common.sh"
+SH_TAP=1
+
+if [ "x${BT_TESTS_SRCDIR:-}" != "x" ]; then
+	UTILSSH="$BT_TESTS_SRCDIR/utils/utils.sh"
+else
+	UTILSSH="$(dirname "$0")/../utils/utils.sh"
+fi
+
+# shellcheck source=../utils/utils.sh
+source "$UTILSSH"
+
+test_head_comment=0
 
 test_bt_convert_run_args() {
 	local what="$1"
@@ -23,7 +34,7 @@ test_bt_convert_run_args() {
 	local expected_run_args="$3"
 
 	# execute convert command
-	local run_args="$("$BT_BIN" convert --run-args $convert_args)"
+	local run_args="$("$BT_TESTS_BT2_BIN" convert --run-args $convert_args)"
 
 	# check result
 	if [ "$test_head_comment" = 1 ]; then
@@ -45,7 +56,7 @@ test_bt_convert_fails() {
 	local convert_args="$2"
 
 	# execute convert command
-	"$BT_BIN" convert --run-args $convert_args >/dev/null 2>&1
+	"$BT_TESTS_BT2_BIN" convert --run-args $convert_args >/dev/null 2>&1
 
 	local status=$?
 
@@ -66,10 +77,13 @@ comment() {
 	echo "### $1 ###"
 }
 
-@BABELTRACE_BUILD_WITH_MINGW_TRUE@path_to_trace="C://path/to/trace"
-@BABELTRACE_BUILD_WITH_MINGW_FALSE@path_to_trace="/path/to/trace"
-@BABELTRACE_BUILD_WITH_MINGW_TRUE@output_path="C://output/path"
-@BABELTRACE_BUILD_WITH_MINGW_FALSE@output_path="/output/path"
+if [ "x${MSYSTEM:-}" != "x" ]; then
+	path_to_trace="C://path/to/trace"
+	output_path="C://output/path"
+else
+	path_to_trace="/path/to/trace"
+	output_path="/output/path"
+fi
 
 plan_tests 77
 

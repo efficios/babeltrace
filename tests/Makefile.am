@@ -21,6 +21,7 @@ dist_check_SCRIPTS = \
 	bindings/python/bt2/test_packet.py \
 	bindings/python/bt2/test_plugin.py \
 	bindings/python/bt2/test_port.py \
+	bindings/python/bt2/test_python_bt2 \
 	bindings/python/bt2/test_query_executor.py \
 	bindings/python/bt2/test_stream_class.py \
 	bindings/python/bt2/test_stream.py \
@@ -28,7 +29,15 @@ dist_check_SCRIPTS = \
 	bindings/python/bt2/test_trace.py \
 	bindings/python/bt2/test_value.py \
 	bindings/python/bt2/utils.py \
+	cli/test_convert_args \
+	cli/test_intersection \
+	cli/test_output_ctf_metadata \
+	cli/test_packet_seq_num \
+	cli/test_trace_copy \
+	cli/test_trace_read \
+	cli/test_trimmer \
 	python-plugin-provider/bt_plugin_test_python_plugin_provider.py \
+	python-plugin-provider/test_python_plugin_provider \
 	python-plugin-provider/test_python_plugin_provider.py
 
 TESTS_BINDINGS =
@@ -55,11 +64,7 @@ TESTS_CTF_WRITER = \
 	ctf-writer/test_ctf_writer
 
 if !ENABLE_BUILT_IN_PLUGINS
-TESTS_LIB += lib/test_plugin_complete
-endif
-
-if ENABLE_PYTHON_BINDINGS
-TESTS_LIB += lib/trace-ir/test_trace_ir
+TESTS_LIB += lib/test_plugin
 endif
 
 TESTS_PLUGINS = \
@@ -93,8 +98,15 @@ if ENABLE_PYTHON_PLUGINS
 TESTS_PYTHON_PLUGIN_PROVIDER += python-plugin-provider/test_python_plugin_provider
 endif
 
-LOG_DRIVER_FLAGS = '--merge'
-LOG_DRIVER = env AM_TAP_AWK='$(AWK)' $(SHELL) $(top_srcdir)/config/tap-driver.sh
+LOG_DRIVER_FLAGS = --merge --comments
+LOG_DRIVER = env AM_TAP_AWK='$(AWK)' \
+	     BT_TESTS_SRCDIR='$(abs_top_srcdir)/tests' \
+	     BT_TESTS_BUILDDIR='$(abs_top_builddir)/tests' \
+	     BT_TESTS_AWK_BIN="$(AWK)" \
+	     BT_TESTS_GREP_BIN="$(GREP)" \
+	     BT_TESTS_PYTHON_BIN="$(PYTHON)" \
+	     BT_TESTS_SED_BIN="$(SED)" \
+	     $(SHELL) $(top_srcdir)/config/tap-driver.sh
 
 TESTS = $(TESTS_BINDINGS) $(TESTS_CLI) $(TESTS_CTF_WRITER) $(TESTS_LIB) \
 	$(TESTS_PLUGINS) $(TESTS_PYTHON_PLUGIN_PROVIDER)

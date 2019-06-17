@@ -22,7 +22,7 @@ import bt2.plugin
 import os
 
 
-_TEST_PLUGIN_PLUGINS_PATH = os.environ['TEST_PLUGIN_PLUGINS_PATH']
+_TEST_PLUGIN_PLUGINS_PATH = os.environ['BT_PLUGINS_PATH']
 
 
 class PluginSetTestCase(unittest.TestCase):

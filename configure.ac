@@ -782,45 +782,9 @@ AC_CONFIG_FILES([
 	tests/plugins/src.ctf.fs/Makefile
 	tests/plugins/src.ctf.fs/succeed/Makefile
 	tests/plugins/flt.lttng-utils.debug-info/Makefile
-	tests/utils/common.sh
-	tests/utils/diff.sh
 	tests/utils/Makefile
 	tests/utils/tap/Makefile
 ])
-
-AC_CONFIG_FILES([tests/cli/test_intersection], [chmod +x tests/cli/test_intersection])
-AC_CONFIG_FILES([tests/cli/test_convert_args], [chmod +x tests/cli/test_convert_args])
-AC_CONFIG_FILES([tests/cli/test_output_ctf_metadata], [chmod +x tests/cli/test_output_ctf_metadata])
-AC_CONFIG_FILES([tests/cli/test_packet_seq_num], [chmod +x tests/cli/test_packet_seq_num])
-AC_CONFIG_FILES([tests/cli/test_trace_copy], [chmod +x tests/cli/test_trace_copy])
-AC_CONFIG_FILES([tests/cli/test_trace_read], [chmod +x tests/cli/test_trace_read])
-AC_CONFIG_FILES([tests/cli/test_trimmer], [chmod +x tests/cli/test_trimmer])
-AC_CONFIG_FILES([tests/ctf-writer/test_ctf_writer], [chmod +x tests/ctf-writer/test_ctf_writer])
-AC_CONFIG_FILES([tests/lib/test_plugin_complete], [chmod +x tests/lib/test_plugin_complete])
-AC_CONFIG_FILES([tests/lib/trace-ir/test_trace_ir], [chmod +x tests/lib/trace-ir/test_trace_ir])
-AC_CONFIG_FILES([tests/plugins/src.ctf.fs/query/test_query], [chmod +x tests/plugins/src.ctf.fs/query/test_query])
-AC_CONFIG_FILES([tests/plugins/src.ctf.fs/succeed/test_succeed], [chmod +x tests/plugins/src.ctf.fs/succeed/test_succeed])
-AC_CONFIG_FILES([tests/plugins/flt.lttng-utils.debug-info/test_lttng_utils_debug_info], [chmod +x tests/plugins/flt.lttng-utils.debug-info/test_lttng_utils_debug_info])
-AC_CONFIG_FILES([tests/plugins/flt.lttng-utils.debug-info/test_dwarf_i386-linux-gnu], [chmod +x tests/plugins/flt.lttng-utils.debug-info/test_dwarf_i386-linux-gnu])
-AC_CONFIG_FILES([tests/plugins/flt.lttng-utils.debug-info/test_dwarf_powerpc-linux-gnu], [chmod +x tests/plugins/flt.lttng-utils.debug-info/test_dwarf_powerpc-linux-gnu])
-AC_CONFIG_FILES([tests/plugins/flt.lttng-utils.debug-info/test_dwarf_powerpc64le-linux-gnu], [chmod +x tests/plugins/flt.lttng-utils.debug-info/test_dwarf_powerpc64le-linux-gnu])
-AC_CONFIG_FILES([tests/plugins/flt.lttng-utils.debug-info/test_dwarf_x86_64-linux-gnu], [chmod +x tests/plugins/flt.lttng-utils.debug-info/test_dwarf_x86_64-linux-gnu])
-AC_CONFIG_FILES([tests/plugins/flt.lttng-utils.debug-info/test_bin_info_i386-linux-gnu], [chmod +x tests/plugins/flt.lttng-utils.debug-info/test_bin_info_i386-linux-gnu])
-AC_CONFIG_FILES([tests/plugins/flt.lttng-utils.debug-info/test_bin_info_powerpc-linux-gnu], [chmod +x tests/plugins/flt.lttng-utils.debug-info/test_bin_info_powerpc-linux-gnu])
-AC_CONFIG_FILES([tests/plugins/flt.lttng-utils.debug-info/test_bin_info_powerpc64le-linux-gnu], [chmod +x tests/plugins/flt.lttng-utils.debug-info/test_bin_info_powerpc64le-linux-gnu])
-AC_CONFIG_FILES([tests/plugins/flt.lttng-utils.debug-info/test_bin_info_x86_64-linux-gnu], [chmod +x tests/plugins/flt.lttng-utils.debug-info/test_bin_info_x86_64-linux-gnu])
-
-AS_IF([test "x$enable_python_bindings" = xyes],
-  [
-	AC_CONFIG_FILES([tests/bindings/python/bt2/test_python_bt2], [chmod +x tests/bindings/python/bt2/test_python_bt2])
-	AC_CONFIG_FILES([tests/utils/test_python_bt2_env], [chmod +x tests/utils/test_python_bt2_env])
-  ]
-)
-
-AS_IF([test "x$enable_python_plugins" = "xyes"],
-  [AC_CONFIG_FILES([tests/python-plugin-provider/test_python_plugin_provider], [chmod +x tests/python-plugin-provider/test_python_plugin_provider])]
-  [AC_CONFIG_FILES([tests/python-plugin-provider/test_python_plugin_provider_env], [chmod +x tests/python-plugin-provider/test_python_plugin_provider_env])]
-)
 
 AC_OUTPUT
 

@@ -1,7 +1,6 @@
 #!/bin/bash
 #
-# Copyright (C) 2015 Antoine Busque <abusque@efficios.com>
-# Copyright (C) 2019 Michael Jeanson <mjeanson@efficios.com>
+# Copyright (C) 2017 Philippe Proulx <pproulx@efficios.com>
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -18,19 +17,15 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
 
-NO_SH_TAP=1
-. "@abs_top_builddir@/tests/utils/common.sh"
+if [ "x${BT_TESTS_SRCDIR:-}" != "x" ]; then
+	UTILSSH="$BT_TESTS_SRCDIR/utils/utils.sh"
+else
+	UTILSSH="$(dirname "$0")/../../utils/utils.sh"
+fi
 
-curdir="$(cd -P "$(dirname "$0")" >/dev/null && pwd)"
+# shellcheck source=../../utils/utils.sh
+source "$UTILSSH"
 
-debug_info_data="${BT_DEBUG_INFO_PATH}/i386-linux-gnu"
+export BT_DEBUG_INFO_PATH
 
-"${curdir}/test_bin_info" \
-	--foo-addr=0x1c8d \
-	--printf-offset=0xda \
-	--printf-lineno=36 \
-	--tp-offset=0x12 \
-	--tp-lineno=35 \
-	--debug-link-crc=0xdeead493 \
-	--debug-info-dir "$debug_info_data" \
-	--build-id cdd98cdd87f7fe64c13b6daad553987eafd40cbb
+run_python_bt2_test "${BT_TESTS_SRCDIR}/plugins/flt.lttng-utils.debug-info" "test_lttng_utils_debug_info.py"
