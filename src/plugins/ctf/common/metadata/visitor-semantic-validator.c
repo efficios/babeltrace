@@ -24,8 +24,9 @@
  * SOFTWARE.
  */
 
+#define BT_LOG_OUTPUT_LEVEL log_level
 #define BT_LOG_TAG "PLUGIN/CTF/META/SEMANTIC-VALIDATOR-VISITOR"
-#include "logging.h"
+#include "logging/log.h"
 
 #include <stdio.h>
 #include <unistd.h>
@@ -39,15 +40,18 @@
 #include "scanner.h"
 #include "parser.h"
 #include "ast.h"
+#include "logging.h"
 
 #define _bt_list_first_entry(ptr, type, member)	\
 	bt_list_entry((ptr)->next, type, member)
 
 static
-int _ctf_visitor_semantic_check(int depth, struct ctf_node *node);
+int _ctf_visitor_semantic_check(int depth, struct ctf_node *node,
+		bt_logging_level log_level);
 
 static
-int ctf_visitor_unary_expression(int depth, struct ctf_node *node)
+int ctf_visitor_unary_expression(int depth, struct ctf_node *node,
+		bt_logging_level log_level)
 {
 	struct ctf_node *iter;
 	int is_ctf_exp = 0, is_ctf_exp_left = 0;
@@ -217,7 +221,8 @@ errperm:
 }
 
 static
-int ctf_visitor_field_class_specifier_list(int depth, struct ctf_node *node)
+int ctf_visitor_field_class_specifier_list(int depth, struct ctf_node *node,
+		bt_logging_level log_level)
 {
 	switch (node->parent->type) {
 	case NODE_CTF_EXPRESSION:
@@ -259,7 +264,8 @@ errinval:
 }
 
 static
-int ctf_visitor_field_class_specifier(int depth, struct ctf_node *node)
+int ctf_visitor_field_class_specifier(int depth, struct ctf_node *node,
+		bt_logging_level log_level)
 {
 	switch (node->parent->type) {
 	case NODE_TYPE_SPECIFIER_LIST:
@@ -301,7 +307,8 @@ errinval:
 }
 
 static
-int ctf_visitor_field_class_declarator(int depth, struct ctf_node *node)
+int ctf_visitor_field_class_declarator(int depth, struct ctf_node *node,
+		bt_logging_level log_level)
 {
 	int ret = 0;
 	struct ctf_node *iter;
@@ -382,7 +389,7 @@ int ctf_visitor_field_class_declarator(int depth, struct ctf_node *node)
 
 	bt_list_for_each_entry(iter, &node->u.field_class_declarator.pointers,
 				siblings) {
-		ret = _ctf_visitor_semantic_check(depth + 1, iter);
+		ret = _ctf_visitor_semantic_check(depth + 1, iter, log_level);
 		if (ret)
 			return ret;
 	}
@@ -394,7 +401,8 @@ int ctf_visitor_field_class_declarator(int depth, struct ctf_node *node)
 	{
 		if (node->u.field_class_declarator.u.nested.field_class_declarator) {
 			ret = _ctf_visitor_semantic_check(depth + 1,
-				node->u.field_class_declarator.u.nested.field_class_declarator);
+				node->u.field_class_declarator.u.nested.field_class_declarator,
+				log_level);
 			if (ret)
 				return ret;
 		}
@@ -407,7 +415,8 @@ int ctf_visitor_field_class_declarator(int depth, struct ctf_node *node)
 						node_type(iter));
 					return -EINVAL;
 				}
-				ret = _ctf_visitor_semantic_check(depth + 1, iter);
+				ret = _ctf_visitor_semantic_check(depth + 1,
+					iter, log_level);
 				if (ret)
 					return ret;
 			}
@@ -420,7 +429,8 @@ int ctf_visitor_field_class_declarator(int depth, struct ctf_node *node)
 		}
 		if (node->u.field_class_declarator.bitfield_len) {
 			ret = _ctf_visitor_semantic_check(depth + 1,
-				node->u.field_class_declarator.bitfield_len);
+				node->u.field_class_declarator.bitfield_len,
+				log_level);
 			if (ret)
 				return ret;
 		}
@@ -450,7 +460,8 @@ errperm:
 }
 
 static
-int _ctf_visitor_semantic_check(int depth, struct ctf_node *node)
+int _ctf_visitor_semantic_check(int depth, struct ctf_node *node,
+		bt_logging_level log_level)
 {
 	int ret = 0;
 	struct ctf_node *iter;
@@ -461,22 +472,26 @@ int _ctf_visitor_semantic_check(int depth, struct ctf_node *node)
 	switch (node->type) {
 	case NODE_ROOT:
 		bt_list_for_each_entry(iter, &node->u.root.declaration_list, siblings) {
-			ret = _ctf_visitor_semantic_check(depth + 1, iter);
+			ret = _ctf_visitor_semantic_check(depth + 1, iter,
+				log_level);
 			if (ret)
 				return ret;
 		}
 		bt_list_for_each_entry(iter, &node->u.root.trace, siblings) {
-			ret = _ctf_visitor_semantic_check(depth + 1, iter);
+			ret = _ctf_visitor_semantic_check(depth + 1, iter,
+				log_level);
 			if (ret)
 				return ret;
 		}
 		bt_list_for_each_entry(iter, &node->u.root.stream, siblings) {
-			ret = _ctf_visitor_semantic_check(depth + 1, iter);
+			ret = _ctf_visitor_semantic_check(depth + 1, iter,
+				log_level);
 			if (ret)
 				return ret;
 		}
 		bt_list_for_each_entry(iter, &node->u.root.event, siblings) {
-			ret = _ctf_visitor_semantic_check(depth + 1, iter);
+			ret = _ctf_visitor_semantic_check(depth + 1, iter,
+				log_level);
 			if (ret)
 				return ret;
 		}
@@ -491,7 +506,8 @@ int _ctf_visitor_semantic_check(int depth, struct ctf_node *node)
 		}
 
 		bt_list_for_each_entry(iter, &node->u.event.declaration_list, siblings) {
-			ret = _ctf_visitor_semantic_check(depth + 1, iter);
+			ret = _ctf_visitor_semantic_check(depth + 1, iter,
+				log_level);
 			if (ret)
 				return ret;
 		}
@@ -505,7 +521,8 @@ int _ctf_visitor_semantic_check(int depth, struct ctf_node *node)
 		}
 
 		bt_list_for_each_entry(iter, &node->u.stream.declaration_list, siblings) {
-			ret = _ctf_visitor_semantic_check(depth + 1, iter);
+			ret = _ctf_visitor_semantic_check(depth + 1, iter,
+				log_level);
 			if (ret)
 				return ret;
 		}
@@ -519,7 +536,8 @@ int _ctf_visitor_semantic_check(int depth, struct ctf_node *node)
 		}
 
 		bt_list_for_each_entry(iter, &node->u.env.declaration_list, siblings) {
-			ret = _ctf_visitor_semantic_check(depth + 1, iter);
+			ret = _ctf_visitor_semantic_check(depth + 1, iter,
+				log_level);
 			if (ret)
 				return ret;
 		}
@@ -533,7 +551,8 @@ int _ctf_visitor_semantic_check(int depth, struct ctf_node *node)
 		}
 
 		bt_list_for_each_entry(iter, &node->u.trace.declaration_list, siblings) {
-			ret = _ctf_visitor_semantic_check(depth + 1, iter);
+			ret = _ctf_visitor_semantic_check(depth + 1, iter,
+				log_level);
 			if (ret)
 				return ret;
 		}
@@ -547,7 +566,8 @@ int _ctf_visitor_semantic_check(int depth, struct ctf_node *node)
 		}
 
 		bt_list_for_each_entry(iter, &node->u.clock.declaration_list, siblings) {
-			ret = _ctf_visitor_semantic_check(depth + 1, iter);
+			ret = _ctf_visitor_semantic_check(depth + 1, iter,
+				log_level);
 			if (ret)
 				return ret;
 		}
@@ -561,7 +581,8 @@ int _ctf_visitor_semantic_check(int depth, struct ctf_node *node)
 		}
 
 		bt_list_for_each_entry(iter, &node->u.callsite.declaration_list, siblings) {
-			ret = _ctf_visitor_semantic_check(depth + 1, iter);
+			ret = _ctf_visitor_semantic_check(depth + 1, iter,
+				log_level);
 			if (ret)
 				return ret;
 		}
@@ -602,19 +623,21 @@ int _ctf_visitor_semantic_check(int depth, struct ctf_node *node)
 
 		depth++;
 		bt_list_for_each_entry(iter, &node->u.ctf_expression.left, siblings) {
-			ret = _ctf_visitor_semantic_check(depth + 1, iter);
+			ret = _ctf_visitor_semantic_check(depth + 1, iter,
+				log_level);
 			if (ret)
 				return ret;
 		}
 		bt_list_for_each_entry(iter, &node->u.ctf_expression.right, siblings) {
-			ret = _ctf_visitor_semantic_check(depth + 1, iter);
+			ret = _ctf_visitor_semantic_check(depth + 1, iter,
+				log_level);
 			if (ret)
 				return ret;
 		}
 		depth--;
 		break;
 	case NODE_UNARY_EXPRESSION:
-		return ctf_visitor_unary_expression(depth, node);
+		return ctf_visitor_unary_expression(depth, node, log_level);
 
 	case NODE_TYPEDEF:
 		switch (node->parent->type) {
@@ -651,11 +674,13 @@ int _ctf_visitor_semantic_check(int depth, struct ctf_node *node)
 
 		depth++;
 		ret = _ctf_visitor_semantic_check(depth + 1,
-			node->u.field_class_def.field_class_specifier_list);
+			node->u.field_class_def.field_class_specifier_list,
+			log_level);
 		if (ret)
 			return ret;
 		bt_list_for_each_entry(iter, &node->u.field_class_def.field_class_declarators, siblings) {
-			ret = _ctf_visitor_semantic_check(depth + 1, iter);
+			ret = _ctf_visitor_semantic_check(depth + 1, iter,
+				log_level);
 			if (ret)
 				return ret;
 		}
@@ -674,12 +699,14 @@ int _ctf_visitor_semantic_check(int depth, struct ctf_node *node)
 
 		depth++;
 		ret = _ctf_visitor_semantic_check(depth + 1,
-			node->u.field_class_alias_target.field_class_specifier_list);
+			node->u.field_class_alias_target.field_class_specifier_list,
+			log_level);
 		if (ret)
 			return ret;
 		nr_declarators = 0;
 		bt_list_for_each_entry(iter, &node->u.field_class_alias_target.field_class_declarators, siblings) {
-			ret = _ctf_visitor_semantic_check(depth + 1, iter);
+			ret = _ctf_visitor_semantic_check(depth + 1, iter,
+				log_level);
 			if (ret)
 				return ret;
 			nr_declarators++;
@@ -706,12 +733,14 @@ int _ctf_visitor_semantic_check(int depth, struct ctf_node *node)
 
 		depth++;
 		ret = _ctf_visitor_semantic_check(depth + 1,
-			node->u.field_class_alias_name.field_class_specifier_list);
+			node->u.field_class_alias_name.field_class_specifier_list,
+			log_level);
 		if (ret)
 			return ret;
 		nr_declarators = 0;
 		bt_list_for_each_entry(iter, &node->u.field_class_alias_name.field_class_declarators, siblings) {
-			ret = _ctf_visitor_semantic_check(depth + 1, iter);
+			ret = _ctf_visitor_semantic_check(depth + 1, iter,
+				log_level);
 			if (ret)
 				return ret;
 			nr_declarators++;
@@ -758,21 +787,25 @@ int _ctf_visitor_semantic_check(int depth, struct ctf_node *node)
 			goto errinval;
 		}
 
-		ret = _ctf_visitor_semantic_check(depth + 1, node->u.field_class_alias.target);
+		ret = _ctf_visitor_semantic_check(depth + 1,
+			node->u.field_class_alias.target, log_level);
 		if (ret)
 			return ret;
-		ret = _ctf_visitor_semantic_check(depth + 1, node->u.field_class_alias.alias);
+		ret = _ctf_visitor_semantic_check(depth + 1,
+			node->u.field_class_alias.alias, log_level);
 		if (ret)
 			return ret;
 		break;
 
 	case NODE_TYPE_SPECIFIER_LIST:
-		ret = ctf_visitor_field_class_specifier_list(depth, node);
+		ret = ctf_visitor_field_class_specifier_list(depth, node,
+			log_level);
 		if (ret)
 			return ret;
 		break;
 	case NODE_TYPE_SPECIFIER:
-		ret = ctf_visitor_field_class_specifier(depth, node);
+		ret = ctf_visitor_field_class_specifier(depth, node,
+			log_level);
 		if (ret)
 			return ret;
 		break;
@@ -785,7 +818,8 @@ int _ctf_visitor_semantic_check(int depth, struct ctf_node *node)
 		}
 		break;
 	case NODE_TYPE_DECLARATOR:
-		ret = ctf_visitor_field_class_declarator(depth, node);
+		ret = ctf_visitor_field_class_declarator(depth, node,
+			log_level);
 		if (ret)
 			return ret;
 		break;
@@ -801,7 +835,8 @@ int _ctf_visitor_semantic_check(int depth, struct ctf_node *node)
 			goto errperm;
 		}
 		bt_list_for_each_entry(iter, &node->u.floating_point.expressions, siblings) {
-			ret = _ctf_visitor_semantic_check(depth + 1, iter);
+			ret = _ctf_visitor_semantic_check(depth + 1, iter,
+				log_level);
 			if (ret)
 				return ret;
 		}
@@ -816,7 +851,8 @@ int _ctf_visitor_semantic_check(int depth, struct ctf_node *node)
 		}
 
 		bt_list_for_each_entry(iter, &node->u.integer.expressions, siblings) {
-			ret = _ctf_visitor_semantic_check(depth + 1, iter);
+			ret = _ctf_visitor_semantic_check(depth + 1, iter,
+				log_level);
 			if (ret)
 				return ret;
 		}
@@ -833,7 +869,8 @@ int _ctf_visitor_semantic_check(int depth, struct ctf_node *node)
 		}
 
 		bt_list_for_each_entry(iter, &node->u.string.expressions, siblings) {
-			ret = _ctf_visitor_semantic_check(depth + 1, iter);
+			ret = _ctf_visitor_semantic_check(depth + 1, iter,
+				log_level);
 			if (ret)
 				return ret;
 		}
@@ -881,7 +918,8 @@ int _ctf_visitor_semantic_check(int depth, struct ctf_node *node)
 		}
 
 		bt_list_for_each_entry(iter, &node->u.enumerator.values, siblings) {
-			ret = _ctf_visitor_semantic_check(depth + 1, iter);
+			ret = _ctf_visitor_semantic_check(depth + 1, iter,
+				log_level);
 			if (ret)
 				return ret;
 		}
@@ -898,12 +936,14 @@ int _ctf_visitor_semantic_check(int depth, struct ctf_node *node)
 		}
 
 		depth++;
-		ret = _ctf_visitor_semantic_check(depth + 1, node->u._enum.container_field_class);
+		ret = _ctf_visitor_semantic_check(depth + 1,
+			node->u._enum.container_field_class, log_level);
 		if (ret)
 			return ret;
 
 		bt_list_for_each_entry(iter, &node->u._enum.enumerator_list, siblings) {
-			ret = _ctf_visitor_semantic_check(depth + 1, iter);
+			ret = _ctf_visitor_semantic_check(depth + 1, iter,
+				log_level);
 			if (ret)
 				return ret;
 		}
@@ -918,11 +958,13 @@ int _ctf_visitor_semantic_check(int depth, struct ctf_node *node)
 			goto errinval;
 		}
 		ret = _ctf_visitor_semantic_check(depth + 1,
-			node->u.struct_or_variant_declaration.field_class_specifier_list);
+			node->u.struct_or_variant_declaration.field_class_specifier_list,
+			log_level);
 		if (ret)
 			return ret;
 		bt_list_for_each_entry(iter, &node->u.struct_or_variant_declaration.field_class_declarators, siblings) {
-			ret = _ctf_visitor_semantic_check(depth + 1, iter);
+			ret = _ctf_visitor_semantic_check(depth + 1, iter,
+				log_level);
 			if (ret)
 				return ret;
 		}
@@ -938,7 +980,8 @@ int _ctf_visitor_semantic_check(int depth, struct ctf_node *node)
 			goto errperm;
 		}
 		bt_list_for_each_entry(iter, &node->u.variant.declaration_list, siblings) {
-			ret = _ctf_visitor_semantic_check(depth + 1, iter);
+			ret = _ctf_visitor_semantic_check(depth + 1, iter,
+				log_level);
 			if (ret)
 				return ret;
 		}
@@ -955,7 +998,8 @@ int _ctf_visitor_semantic_check(int depth, struct ctf_node *node)
 			goto errperm;
 		}
 		bt_list_for_each_entry(iter, &node->u._struct.declaration_list, siblings) {
-			ret = _ctf_visitor_semantic_check(depth + 1, iter);
+			ret = _ctf_visitor_semantic_check(depth + 1, iter,
+				log_level);
 			if (ret)
 				return ret;
 		}
@@ -982,7 +1026,8 @@ errperm:
 	return -EPERM;		/* Structure not allowed */
 }
 
-int ctf_visitor_semantic_check(int depth, struct ctf_node *node)
+int ctf_visitor_semantic_check(int depth, struct ctf_node *node,
+		bt_logging_level log_level)
 {
 	int ret = 0;
 
@@ -991,7 +1036,7 @@ int ctf_visitor_semantic_check(int depth, struct ctf_node *node)
 	 * take the safe route and recreate them at each validation, just in
 	 * case the structure has changed.
 	 */
-	ret = ctf_visitor_parent_links(depth, node);
+	ret = ctf_visitor_parent_links(depth, node, log_level);
 	if (ret) {
 		_BT_LOGE_LINENO(node->lineno,
 			"Cannot create parent links in metadata's AST: "
@@ -999,7 +1044,7 @@ int ctf_visitor_semantic_check(int depth, struct ctf_node *node)
 		goto end;
 	}
 
-	ret = _ctf_visitor_semantic_check(depth, node);
+	ret = _ctf_visitor_semantic_check(depth, node, log_level);
 	if (ret) {
 		_BT_LOGE_LINENO(node->lineno,
 			"Cannot check metadata's AST semantics: "

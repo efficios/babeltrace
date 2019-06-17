@@ -13,8 +13,9 @@
  * all copies or substantial portions of the Software.
  */
 
+#define BT_LOG_OUTPUT_LEVEL (ctx->log_level)
 #define BT_LOG_TAG "PLUGIN/CTF/META/RESOLVE"
-#include "logging.h"
+#include "logging/log.h"
 
 #include <babeltrace2/babeltrace.h>
 #include "common/macros.h"
@@ -50,6 +51,7 @@ struct field_class_stack_frame {
  * The current context of the resolving engine.
  */
 struct resolve_context {
+	bt_logging_level log_level;
 	struct ctf_trace_class *tc;
 	struct ctf_stream_class *sc;
 	struct ctf_event_class *ec;
@@ -124,7 +126,8 @@ void field_class_stack_destroy(field_class_stack *stack)
  * Pushes a field class onto a class stack.
  */
 static
-int field_class_stack_push(field_class_stack *stack, struct ctf_field_class *fc)
+int field_class_stack_push(field_class_stack *stack, struct ctf_field_class *fc,
+		struct resolve_context *ctx)
 {
 	int ret = 0;
 	struct field_class_stack_frame *frame = NULL;
@@ -209,7 +212,8 @@ end:
  * Removes the top frame of `stack`.
  */
 static
-void field_class_stack_pop(field_class_stack *stack)
+void field_class_stack_pop(field_class_stack *stack,
+		struct resolve_context *ctx)
 {
 	if (!field_class_stack_empty(stack)) {
 		/*
@@ -254,7 +258,8 @@ struct ctf_field_class *borrow_class_from_ctx(struct resolve_context *ctx,
  * is found to be relative.
  */
 static
-enum ctf_scope get_root_scope_from_absolute_pathstr(const char *pathstr)
+enum ctf_scope get_root_scope_from_absolute_pathstr(const char *pathstr,
+		struct resolve_context *ctx)
 {
 	enum ctf_scope scope;
 	enum ctf_scope ret = -1;
@@ -331,7 +336,7 @@ const char *ptoken_get_string(GList *ptoken)
  * strings.
  */
 static
-GList *pathstr_to_ptokens(const char *pathstr)
+GList *pathstr_to_ptokens(const char *pathstr, struct resolve_context *ctx)
 {
 	const char *at = pathstr;
 	const char *last = at;
@@ -379,7 +384,8 @@ error:
  */
 static
 int ptokens_to_field_path(GList *ptokens, struct ctf_field_path *field_path,
-		struct ctf_field_class *fc, int64_t src_index)
+		struct ctf_field_class *fc, int64_t src_index,
+		struct resolve_context *ctx)
 {
 	int ret = 0;
 	GList *cur_ptoken = ptokens;
@@ -540,7 +546,7 @@ int absolute_ptokens_to_field_path(GList *ptokens,
 	}
 
 	/* Locate target */
-	ret = ptokens_to_field_path(cur_ptoken, field_path, fc, INT64_MAX);
+	ret = ptokens_to_field_path(cur_ptoken, field_path, fc, INT64_MAX, ctx);
 
 end:
 	return ret;
@@ -578,7 +584,7 @@ int relative_ptokens_to_field_path(GList *ptokens,
 
 		/* Locate target from current parent class */
 		ret = ptokens_to_field_path(ptokens, &tail_field_path,
-			parent_class, cur_index);
+			parent_class, cur_index, ctx);
 		if (ret) {
 			/* Not found... yet */
 			BT_LOGD_STR("Not found at this point.");
@@ -641,7 +647,7 @@ int pathstr_to_field_path(const char *pathstr,
 	GList *ptokens = NULL;
 
 	/* Convert path string to path tokens */
-	ptokens = pathstr_to_ptokens(pathstr);
+	ptokens = pathstr_to_ptokens(pathstr, ctx);
 	if (!ptokens) {
 		BT_LOGE("Cannot convert path string to path tokens: "
 			"path=\"%s\"", pathstr);
@@ -650,7 +656,7 @@ int pathstr_to_field_path(const char *pathstr,
 	}
 
 	/* Absolute or relative path? */
-	root_scope = get_root_scope_from_absolute_pathstr(pathstr);
+	root_scope = get_root_scope_from_absolute_pathstr(pathstr, ctx);
 
 	if (root_scope == -1) {
 		/* Relative path: start with current root scope */
@@ -762,7 +768,8 @@ void get_ctx_stack_field_path(struct resolve_context *ctx,
  * objects having the same root scope.
  */
 int64_t get_field_paths_lca_index(struct ctf_field_path *field_path1,
-		struct ctf_field_path *field_path2)
+		struct ctf_field_path *field_path2,
+		struct resolve_context *ctx)
 {
 	int64_t lca_index = 0;
 	uint64_t field_path1_len, field_path2_len;
@@ -880,7 +887,7 @@ int validate_target_field_path(struct ctf_field_path *target_field_path,
 		 * paths.
 		 */
 		lca_index = get_field_paths_lca_index(target_field_path,
-			&ctx_field_path);
+			&ctx_field_path, ctx);
 		if (lca_index < 0) {
 			BT_LOGE_STR("Cannot get least common ancestor.");
 			ret = -1;
@@ -1099,7 +1106,7 @@ int resolve_field_class(struct ctf_field_class *fc, struct resolve_context *ctx)
 		uint64_t field_count =
 			ctf_field_class_compound_get_field_class_count(fc);
 
-		ret = field_class_stack_push(ctx->field_class_stack, fc);
+		ret = field_class_stack_push(ctx->field_class_stack, fc, ctx);
 		if (ret) {
 			BT_LOGE("Cannot push field class on context's stack: "
 				"fc-addr=%p", fc);
@@ -1133,7 +1140,7 @@ int resolve_field_class(struct ctf_field_class *fc, struct resolve_context *ctx)
 			}
 		}
 
-		field_class_stack_pop(ctx->field_class_stack);
+		field_class_stack_pop(ctx->field_class_stack, ctx);
 		break;
 	}
 	default:
@@ -1259,11 +1266,13 @@ end:
 }
 
 BT_HIDDEN
-int ctf_trace_class_resolve_field_classes(struct ctf_trace_class *tc)
+int ctf_trace_class_resolve_field_classes(struct ctf_trace_class *tc,
+		bt_logging_level log_level)
 {
 	int ret = 0;
 	uint64_t i;
-	struct resolve_context ctx = {
+	struct resolve_context local_ctx = {
+		.log_level = log_level,
 		.tc = tc,
 		.sc = NULL,
 		.ec = NULL,
@@ -1278,18 +1287,19 @@ int ctf_trace_class_resolve_field_classes(struct ctf_trace_class *tc)
 		.root_scope = CTF_SCOPE_PACKET_HEADER,
 		.cur_fc = NULL,
 	};
+	struct resolve_context *ctx = &local_ctx;
 
 	/* Initialize class stack */
-	ctx.field_class_stack = field_class_stack_create();
-	if (!ctx.field_class_stack) {
+	ctx->field_class_stack = field_class_stack_create();
+	if (!ctx->field_class_stack) {
 		BT_LOGE_STR("Cannot create field class stack.");
 		ret = -1;
 		goto end;
 	}
 
 	if (!tc->is_translated) {
-		ctx.scopes.packet_header = tc->packet_header_fc;
-		ret = resolve_root_class(CTF_SCOPE_PACKET_HEADER, &ctx);
+		ctx->scopes.packet_header = tc->packet_header_fc;
+		ret = resolve_root_class(CTF_SCOPE_PACKET_HEADER, ctx);
 		if (ret) {
 			BT_LOGE("Cannot resolve packet header field class: "
 				"ret=%d", ret);
@@ -1297,12 +1307,12 @@ int ctf_trace_class_resolve_field_classes(struct ctf_trace_class *tc)
 		}
 	}
 
-	ctx.scopes.packet_header = tc->packet_header_fc;
+	ctx->scopes.packet_header = tc->packet_header_fc;
 
 	for (i = 0; i < tc->stream_classes->len; i++) {
 		struct ctf_stream_class *sc = tc->stream_classes->pdata[i];
 
-		ret = resolve_stream_class_field_classes(&ctx, sc);
+		ret = resolve_stream_class_field_classes(ctx, sc);
 		if (ret) {
 			BT_LOGE("Cannot resolve stream class's field classes: "
 				"sc-id=%" PRIu64, sc->id);
@@ -1311,6 +1321,6 @@ int ctf_trace_class_resolve_field_classes(struct ctf_trace_class *tc)
 	}
 
 end:
-	field_class_stack_destroy(ctx.field_class_stack);
+	field_class_stack_destroy(ctx->field_class_stack);
 	return ret;
 }

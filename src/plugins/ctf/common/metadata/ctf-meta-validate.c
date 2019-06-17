@@ -12,8 +12,9 @@
  * all copies or substantial portions of the Software.
  */
 
+#define BT_LOG_OUTPUT_LEVEL log_level
 #define BT_LOG_TAG "PLUGIN/CTF/META/VALIDATE"
-#include "logging.h"
+#include "logging/log.h"
 
 #include <babeltrace2/babeltrace.h>
 #include "common/macros.h"
@@ -26,7 +27,8 @@
 #include "ctf-meta-visitors.h"
 
 static
-int validate_stream_class(struct ctf_stream_class *sc)
+int validate_stream_class(struct ctf_stream_class *sc,
+		bt_logging_level log_level)
 {
 	int ret = 0;
 	struct ctf_field_class_int *int_fc;
@@ -186,7 +188,8 @@ end:
 }
 
 BT_HIDDEN
-int ctf_trace_class_validate(struct ctf_trace_class *ctf_tc)
+int ctf_trace_class_validate(struct ctf_trace_class *ctf_tc,
+		bt_logging_level log_level)
 {
 	int ret = 0;
 	struct ctf_field_class_int *int_fc;
@@ -332,7 +335,7 @@ int ctf_trace_class_validate(struct ctf_trace_class *ctf_tc)
 		struct ctf_stream_class *sc =
 			ctf_tc->stream_classes->pdata[i];
 
-		ret = validate_stream_class(sc);
+		ret = validate_stream_class(sc, log_level);
 		if (ret) {
 			BT_LOGE("Invalid stream class: sc-id=%" PRIu64, sc->id);
 			goto invalid;

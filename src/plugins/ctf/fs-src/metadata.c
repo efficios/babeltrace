@@ -95,6 +95,7 @@ int ctf_fs_metadata_set_trace_class(
 	int ret = 0;
 	struct ctf_fs_file *file = NULL;
 	struct ctf_metadata_decoder_config decoder_config = {
+		.log_level = BT_LOG_OUTPUT_LEVEL,
 		.clock_class_offset_s = config ? config->clock_class_offset_s : 0,
 		.clock_class_offset_ns = config ? config->clock_class_offset_ns : 0,
 	};

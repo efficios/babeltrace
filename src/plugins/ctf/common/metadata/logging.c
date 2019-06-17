@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-#define BT_LOG_OUTPUT_LEVEL metadata_log_level
+#define BT_LOG_OUTPUT_LEVEL ctf_plugin_metadata_log_level
 #include "logging/log.h"
 
-BT_LOG_INIT_LOG_LEVEL(metadata_log_level, "BABELTRACE_PLUGIN_CTF_METADATA_LOG_LEVEL");
+BT_LOG_INIT_LOG_LEVEL(ctf_plugin_metadata_log_level, "BABELTRACE_PLUGIN_CTF_METADATA_LOG_LEVEL");

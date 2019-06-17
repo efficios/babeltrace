@@ -23,10 +23,13 @@
  * SOFTWARE.
  */
 
-#define BT_LOG_OUTPUT_LEVEL metadata_log_level
 #include "logging/log.h"
 
-BT_LOG_LEVEL_EXTERN_SYMBOL(metadata_log_level);
+/*
+ * This global log level is for the generated lexer and parser: we can't
+ * use a contextual log level for their "tracing", so they rely on this.
+ */
+BT_LOG_LEVEL_EXTERN_SYMBOL(ctf_plugin_metadata_log_level);
 
 #define _BT_LOGV_LINENO(_lineno, _msg, args...) \
 	BT_LOGV("At line %u in metadata stream: " _msg, _lineno, ## args)
