@@ -99,11 +99,12 @@ bt_query_status metadata_info_query(
 	}
 
 	is_packetized = ctf_metadata_decoder_is_packetized(metadata_fp,
-		&bo);
+		&bo, BT_LOG_OUTPUT_LEVEL);
 
 	if (is_packetized) {
 		ret = ctf_metadata_decoder_packetized_file_stream_to_buf(
-			metadata_fp, &metadata_text, bo);
+			metadata_fp, &metadata_text, bo,
+			BT_LOG_OUTPUT_LEVEL);
 		if (ret) {
 			BT_LOGE("Cannot decode packetized metadata file: path=\"%s\"",
 				path);

@@ -36,6 +36,7 @@ enum ctf_metadata_decoder_status {
 
 /* Decoding configuration */
 struct ctf_metadata_decoder_config {
+	bt_logging_level log_level;
 	int64_t clock_class_offset_s;
 	int64_t clock_class_offset_ns;
 };
@@ -102,7 +103,8 @@ struct ctf_trace_class *ctf_metadata_decoder_borrow_ctf_trace_class(
  * if so, sets `*byte_order` to the byte order of the first packet.
  */
 BT_HIDDEN
-bool ctf_metadata_decoder_is_packetized(FILE *fp, int *byte_order);
+bool ctf_metadata_decoder_is_packetized(FILE *fp, int *byte_order,
+		bt_logging_level log_level);
 
 /*
  * Decodes a packetized metadata file stream to a NULL-terminated
@@ -110,6 +112,7 @@ bool ctf_metadata_decoder_is_packetized(FILE *fp, int *byte_order);
  */
 BT_HIDDEN
 int ctf_metadata_decoder_packetized_file_stream_to_buf(
-		FILE *fp, char **buf, int byte_order);
+		FILE *fp, char **buf, int byte_order,
+		bt_logging_level log_level);
 
 #endif /* _METADATA_DECODER_H */

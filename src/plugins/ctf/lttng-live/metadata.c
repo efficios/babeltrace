@@ -269,6 +269,11 @@ int lttng_live_metadata_create_stream(struct lttng_live_session *session,
 	struct lttng_live_metadata *metadata = NULL;
 	struct lttng_live_trace *trace;
 	const char *match;
+	struct ctf_metadata_decoder_config cfg = {
+		.log_level = BT_LOG_OUTPUT_LEVEL,
+		.clock_class_offset_s = 0,
+		.clock_class_offset_ns = 0,
+	};
 
 	metadata = g_new0(struct lttng_live_metadata, 1);
 	if (!metadata) {
@@ -282,7 +287,7 @@ int lttng_live_metadata_create_stream(struct lttng_live_session *session,
 	}
 
 	metadata->decoder = ctf_metadata_decoder_create(
-				lttng_live->self_comp, NULL);
+				lttng_live->self_comp, &cfg);
 	if (!metadata->decoder) {
 		goto error;
 	}

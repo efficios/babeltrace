@@ -12,8 +12,9 @@
  * all copies or substantial portions of the Software.
  */
 
+#define BT_LOG_OUTPUT_LEVEL log_level
 #define BT_LOG_TAG "PLUGIN/CTF/META/UPDATE-DEF-CC"
-#include "logging.h"
+#include "logging/log.h"
 
 #include <babeltrace2/babeltrace.h>
 #include "common/macros.h"
@@ -27,7 +28,8 @@
 
 static inline
 int find_mapped_clock_class(struct ctf_field_class *fc,
-		struct ctf_clock_class **clock_class)
+		struct ctf_clock_class **clock_class,
+		bt_logging_level log_level)
 {
 	int ret = 0;
 	uint64_t i;
@@ -69,7 +71,7 @@ int find_mapped_clock_class(struct ctf_field_class *fc,
 					struct_fc, i);
 
 			ret = find_mapped_clock_class(named_fc->fc,
-				clock_class);
+				clock_class, log_level);
 			if (ret) {
 				goto end;
 			}
@@ -87,7 +89,7 @@ int find_mapped_clock_class(struct ctf_field_class *fc,
 					var_fc, i);
 
 			ret = find_mapped_clock_class(named_fc->fc,
-				clock_class);
+				clock_class, log_level);
 			if (ret) {
 				goto end;
 			}
@@ -100,7 +102,8 @@ int find_mapped_clock_class(struct ctf_field_class *fc,
 	{
 		struct ctf_field_class_array_base *array_fc = (void *) fc;
 
-		ret = find_mapped_clock_class(array_fc->elem_fc, clock_class);
+		ret = find_mapped_clock_class(array_fc->elem_fc, clock_class,
+			log_level);
 		if (ret) {
 			goto end;
 		}
@@ -117,7 +120,8 @@ end:
 
 static inline
 int update_stream_class_default_clock_class(
-		struct ctf_stream_class *stream_class)
+		struct ctf_stream_class *stream_class,
+		bt_logging_level log_level)
 {
 	int ret = 0;
 	struct ctf_clock_class *clock_class =
@@ -125,19 +129,19 @@ int update_stream_class_default_clock_class(
 	uint64_t i;
 
 	ret = find_mapped_clock_class(stream_class->packet_context_fc,
-		&clock_class);
+		&clock_class, log_level);
 	if (ret) {
 		goto end;
 	}
 
 	ret = find_mapped_clock_class(stream_class->event_header_fc,
-		&clock_class);
+		&clock_class, log_level);
 	if (ret) {
 		goto end;
 	}
 
 	ret = find_mapped_clock_class(stream_class->event_common_context_fc,
-		&clock_class);
+		&clock_class, log_level);
 	if (ret) {
 		goto end;
 	}
@@ -147,13 +151,13 @@ int update_stream_class_default_clock_class(
 			stream_class->event_classes->pdata[i];
 
 		ret = find_mapped_clock_class(event_class->spec_context_fc,
-			&clock_class);
+			&clock_class, log_level);
 		if (ret) {
 			goto end;
 		}
 
 		ret = find_mapped_clock_class(event_class->payload_fc,
-			&clock_class);
+			&clock_class, log_level);
 		if (ret) {
 			goto end;
 		}
@@ -168,13 +172,15 @@ end:
 }
 
 BT_HIDDEN
-int ctf_trace_class_update_default_clock_classes(struct ctf_trace_class *ctf_tc)
+int ctf_trace_class_update_default_clock_classes(struct ctf_trace_class *ctf_tc,
+		bt_logging_level log_level)
 {
 	uint64_t i;
 	int ret = 0;
 	struct ctf_clock_class *clock_class = NULL;
 
-	ret = find_mapped_clock_class(ctf_tc->packet_header_fc, &clock_class);
+	ret = find_mapped_clock_class(ctf_tc->packet_header_fc, &clock_class,
+		log_level);
 	if (ret) {
 		goto end;
 	}
@@ -189,7 +195,7 @@ int ctf_trace_class_update_default_clock_classes(struct ctf_trace_class *ctf_tc)
 			ctf_tc->stream_classes->pdata[i];
 
 		ret = update_stream_class_default_clock_class(
-			ctf_tc->stream_classes->pdata[i]);
+			ctf_tc->stream_classes->pdata[i], log_level);
 		if (ret) {
 			BT_LOGE("Stream class contains more than one "
 				"clock class: stream-class-id=%" PRIu64,

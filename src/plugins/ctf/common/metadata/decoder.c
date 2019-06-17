@@ -12,8 +12,9 @@
  * all copies or substantial portions of the Software.
  */
 
+#define BT_LOG_OUTPUT_LEVEL (mdec->config.log_level)
 #define BT_LOG_TAG "PLUGIN/CTF/META/DECODER"
-#include "logging.h"
+#include "logging/log.h"
 
 #include <stdio.h>
 #include <stdbool.h>
@@ -58,7 +59,8 @@ struct packet_header {
 } __attribute__((__packed__));
 
 BT_HIDDEN
-bool ctf_metadata_decoder_is_packetized(FILE *fp, int *byte_order)
+bool ctf_metadata_decoder_is_packetized(FILE *fp, int *byte_order,
+		bt_logging_level log_level)
 {
 	uint32_t magic;
 	size_t len;
@@ -66,7 +68,8 @@ bool ctf_metadata_decoder_is_packetized(FILE *fp, int *byte_order)
 
 	len = fread(&magic, sizeof(magic), 1, fp);
 	if (len != 1) {
-		BT_LOGI_STR("Cannot read first metadata packet header: assuming the stream is not packetized.");
+		BT_LOG_WRITE_CUR_LVL(BT_LOG_INFO, log_level, BT_LOG_TAG,
+			"Cannot read first metadata packet header: assuming the stream is not packetized.");
 		goto end;
 	}
 
@@ -264,7 +267,7 @@ end:
 static
 int ctf_metadata_decoder_packetized_file_stream_to_buf_with_mdec(
 		struct ctf_metadata_decoder *mdec, FILE *fp,
-		char **buf, int byte_order)
+		char **buf, int byte_order, bt_logging_level log_level)
 {
 	FILE *out_fp;
 	size_t size;
@@ -274,7 +277,8 @@ int ctf_metadata_decoder_packetized_file_stream_to_buf_with_mdec(
 
 	out_fp = bt_open_memstream(buf, &size);
 	if (out_fp == NULL) {
-		BT_LOGE("Cannot open memory stream: %s: mdec-addr=%p",
+		BT_LOG_WRITE_CUR_LVL(BT_LOG_ERROR, log_level, BT_LOG_TAG,
+			"Cannot open memory stream: %s: mdec-addr=%p",
 			strerror(errno), mdec);
 		goto error;
 	}
@@ -286,7 +290,8 @@ int ctf_metadata_decoder_packetized_file_stream_to_buf_with_mdec(
 
 		tret = decode_packet(mdec, fp, out_fp, byte_order);
 		if (tret) {
-			BT_LOGE("Cannot decode packet: index=%zu, mdec-addr=%p",
+			BT_LOG_WRITE_CUR_LVL(BT_LOG_ERROR, log_level, BT_LOG_TAG,
+				"Cannot decode packet: index=%zu, mdec-addr=%p",
 				packet_index, mdec);
 			goto error;
 		}
@@ -297,7 +302,8 @@ int ctf_metadata_decoder_packetized_file_stream_to_buf_with_mdec(
 	/* Make sure the whole string ends with a null character */
 	tret = fputc('\0', out_fp);
 	if (tret == EOF) {
-		BT_LOGE("Cannot append '\\0' to the decoded metadata buffer: "
+		BT_LOG_WRITE_CUR_LVL(BT_LOG_ERROR, log_level, BT_LOG_TAG,
+			"Cannot append '\\0' to the decoded metadata buffer: "
 			"mdec-addr=%p", mdec);
 		goto error;
 	}
@@ -312,8 +318,8 @@ int ctf_metadata_decoder_packetized_file_stream_to_buf_with_mdec(
 	 */
 	out_fp = NULL;
 	if (ret < 0) {
-		BT_LOGE("Cannot close memory stream: %s: mdec-addr=%p",
-			strerror(errno), mdec);
+		BT_LOG_WRITE_ERRNO_CUR_LVL(BT_LOG_ERROR, log_level, BT_LOG_TAG,
+			"Cannot close memory stream", ": mdec-addr=%p", mdec);
 		goto error;
 	}
 
@@ -324,7 +330,8 @@ error:
 
 	if (out_fp) {
 		if (bt_close_memstream(buf, &size, out_fp)) {
-			BT_LOGE("Cannot close memory stream: %s: mdec-addr=%p",
+			BT_LOG_WRITE_CUR_LVL(BT_LOG_ERROR, log_level, BT_LOG_TAG,
+				"Cannot close memory stream: %s: mdec-addr=%p",
 				strerror(errno), mdec);
 		}
 	}
@@ -340,10 +347,11 @@ end:
 
 BT_HIDDEN
 int ctf_metadata_decoder_packetized_file_stream_to_buf(
-		FILE *fp, char **buf, int byte_order)
+		FILE *fp, char **buf, int byte_order,
+		bt_logging_level log_level)
 {
 	return ctf_metadata_decoder_packetized_file_stream_to_buf_with_mdec(
-		NULL, fp, buf, byte_order);
+		NULL, fp, buf, byte_order, log_level);
 }
 
 BT_HIDDEN
@@ -417,10 +425,11 @@ enum ctf_metadata_decoder_status ctf_metadata_decoder_decode(
 
 	BT_ASSERT(mdec);
 
-	if (ctf_metadata_decoder_is_packetized(fp, &mdec->bo)) {
+	if (ctf_metadata_decoder_is_packetized(fp, &mdec->bo,
+			BT_LOG_OUTPUT_LEVEL)) {
 		BT_LOGI("Metadata stream is packetized: mdec-addr=%p", mdec);
 		ret = ctf_metadata_decoder_packetized_file_stream_to_buf_with_mdec(
-			mdec, fp, &buf, mdec->bo);
+			mdec, fp, &buf, mdec->bo, BT_LOG_OUTPUT_LEVEL);
 		if (ret) {
 			BT_LOGE("Cannot decode packetized metadata packets to metadata text: "
 				"mdec-addr=%p, ret=%d", mdec, ret);
@@ -502,7 +511,8 @@ enum ctf_metadata_decoder_status ctf_metadata_decoder_decode(
 		goto end;
 	}
 
-	ret = ctf_visitor_semantic_check(0, &scanner->ast->root);
+	ret = ctf_visitor_semantic_check(0, &scanner->ast->root,
+		mdec->config.log_level);
 	if (ret) {
 		BT_LOGE("Validation of the metadata semantics failed: "
 			"mdec-addr=%p", mdec);

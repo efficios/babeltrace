@@ -336,9 +336,11 @@ int ctf_visitor_generate_ir_visit_node(struct ctf_visitor_generate_ir *visitor,
 		struct ctf_node *node);
 
 BT_HIDDEN
-int ctf_visitor_semantic_check(int depth, struct ctf_node *node);
+int ctf_visitor_semantic_check(int depth, struct ctf_node *node,
+		bt_logging_level log_level);
 
 BT_HIDDEN
-int ctf_visitor_parent_links(int depth, struct ctf_node *node);
+int ctf_visitor_parent_links(int depth, struct ctf_node *node,
+		bt_logging_level log_level);
 
 #endif /* _CTF_AST_H */

@@ -27,8 +27,9 @@
  * SOFTWARE.
  */
 
+#define BT_LOG_OUTPUT_LEVEL (ctx->log_level)
 #define BT_LOG_TAG "PLUGIN/CTF/META/IR-VISITOR"
-#include "logging.h"
+#include "logging/log.h"
 
 #include <stdio.h>
 #include <unistd.h>
@@ -45,6 +46,7 @@
 #include "compat/endian.h"
 #include <babeltrace2/babeltrace.h>
 
+#include "logging.h"
 #include "scanner.h"
 #include "parser.h"
 #include "ast.h"
@@ -193,6 +195,7 @@ struct ctx_decl_scope {
  * Visitor context (private).
  */
 struct ctx {
+	bt_logging_level log_level;
 	bt_self_component_source *self_comp;
 	/* Trace IR trace class being filled (owned by this) */
 	bt_trace_class *trace_class;
@@ -225,7 +228,8 @@ struct ctf_visitor_generate_ir;
  * @returns		New declaration scope, or NULL on error
  */
 static
-struct ctx_decl_scope *ctx_decl_scope_create(struct ctx_decl_scope *par_scope)
+struct ctx_decl_scope *ctx_decl_scope_create(struct ctx *ctx,
+		struct ctx_decl_scope *par_scope)
 {
 	struct ctx_decl_scope *scope;
 
@@ -272,7 +276,7 @@ end:
  * @returns		Associated GQuark, or 0 on error
  */
 static
-GQuark get_prefixed_named_quark(char prefix, const char *name)
+GQuark get_prefixed_named_quark(struct ctx *ctx, char prefix, const char *name)
 {
 	GQuark qname = 0;
 
@@ -306,8 +310,8 @@ end:
  */
 static
 struct ctf_field_class *ctx_decl_scope_lookup_prefix_alias(
-		struct ctx_decl_scope *scope, char prefix, const char *name,
-		int levels, bool copy)
+		struct ctx *ctx, struct ctx_decl_scope *scope, char prefix,
+		const char *name, int levels, bool copy)
 {
 	GQuark qname = 0;
 	int cur_levels = 0;
@@ -316,7 +320,7 @@ struct ctf_field_class *ctx_decl_scope_lookup_prefix_alias(
 
 	BT_ASSERT(scope);
 	BT_ASSERT(name);
-	qname = get_prefixed_named_quark(prefix, name);
+	qname = get_prefixed_named_quark(ctx, prefix, name);
 	if (!qname) {
 		goto end;
 	}
@@ -357,11 +361,11 @@ end:
  *			or NULL if not found
  */
 static
-struct ctf_field_class *ctx_decl_scope_lookup_alias(
+struct ctf_field_class *ctx_decl_scope_lookup_alias(struct ctx *ctx,
 		struct ctx_decl_scope *scope, const char *name, int levels,
 		bool copy)
 {
-	return ctx_decl_scope_lookup_prefix_alias(scope, _PREFIX_ALIAS,
+	return ctx_decl_scope_lookup_prefix_alias(ctx, scope, _PREFIX_ALIAS,
 		name, levels, copy);
 }
 
@@ -376,12 +380,12 @@ struct ctf_field_class *ctx_decl_scope_lookup_alias(
  *			or NULL if not found
  */
 static
-struct ctf_field_class_enum *ctx_decl_scope_lookup_enum(
+struct ctf_field_class_enum *ctx_decl_scope_lookup_enum(struct ctx *ctx,
 		struct ctx_decl_scope *scope, const char *name, int levels,
 		bool copy)
 {
-	return (void *) ctx_decl_scope_lookup_prefix_alias(scope, _PREFIX_ENUM,
-		name, levels, copy);
+	return (void *) ctx_decl_scope_lookup_prefix_alias(ctx, scope,
+		_PREFIX_ENUM, name, levels, copy);
 }
 
 /**
@@ -395,11 +399,11 @@ struct ctf_field_class_enum *ctx_decl_scope_lookup_enum(
  *			or NULL if not found
  */
 static
-struct ctf_field_class_struct *ctx_decl_scope_lookup_struct(
+struct ctf_field_class_struct *ctx_decl_scope_lookup_struct(struct ctx *ctx,
 		struct ctx_decl_scope *scope, const char *name, int levels,
 		bool copy)
 {
-	return (void *) ctx_decl_scope_lookup_prefix_alias(scope,
+	return (void *) ctx_decl_scope_lookup_prefix_alias(ctx, scope,
 		_PREFIX_STRUCT, name, levels, copy);
 }
 
@@ -414,11 +418,11 @@ struct ctf_field_class_struct *ctx_decl_scope_lookup_struct(
  *			or NULL if not found
  */
 static
-struct ctf_field_class_variant *ctx_decl_scope_lookup_variant(
+struct ctf_field_class_variant *ctx_decl_scope_lookup_variant(struct ctx *ctx,
 		struct ctx_decl_scope *scope, const char *name, int levels,
 		bool copy)
 {
-	return (void *) ctx_decl_scope_lookup_prefix_alias(scope,
+	return (void *) ctx_decl_scope_lookup_prefix_alias(ctx, scope,
 		_PREFIX_VARIANT, name, levels, copy);
 }
 
@@ -432,8 +436,9 @@ struct ctf_field_class_variant *ctx_decl_scope_lookup_variant(
  * @returns		0 if registration went okay, negative value otherwise
  */
 static
-int ctx_decl_scope_register_prefix_alias(struct ctx_decl_scope *scope,
-		char prefix, const char *name, struct ctf_field_class *decl)
+int ctx_decl_scope_register_prefix_alias(struct ctx *ctx,
+		struct ctx_decl_scope *scope, char prefix, const char *name,
+		struct ctf_field_class *decl)
 {
 	int ret = 0;
 	GQuark qname = 0;
@@ -441,14 +446,14 @@ int ctx_decl_scope_register_prefix_alias(struct ctx_decl_scope *scope,
 	BT_ASSERT(scope);
 	BT_ASSERT(name);
 	BT_ASSERT(decl);
-	qname = get_prefixed_named_quark(prefix, name);
+	qname = get_prefixed_named_quark(ctx, prefix, name);
 	if (!qname) {
 		ret = -ENOMEM;
 		goto end;
 	}
 
 	/* Make sure alias does not exist in local scope */
-	if (ctx_decl_scope_lookup_prefix_alias(scope, prefix, name, 1,
+	if (ctx_decl_scope_lookup_prefix_alias(ctx, scope, prefix, name, 1,
 			false)) {
 		ret = -EEXIST;
 		goto end;
@@ -471,10 +476,10 @@ end:
  * @returns	0 if registration went okay, negative value otherwise
  */
 static
-int ctx_decl_scope_register_alias(struct ctx_decl_scope *scope,
+int ctx_decl_scope_register_alias(struct ctx *ctx, struct ctx_decl_scope *scope,
 		const char *name, struct ctf_field_class *decl)
 {
-	return ctx_decl_scope_register_prefix_alias(scope, _PREFIX_ALIAS,
+	return ctx_decl_scope_register_prefix_alias(ctx, scope, _PREFIX_ALIAS,
 		name, (void *) decl);
 }
 
@@ -487,10 +492,10 @@ int ctx_decl_scope_register_alias(struct ctx_decl_scope *scope,
  * @returns	0 if registration went okay, negative value otherwise
  */
 static
-int ctx_decl_scope_register_enum(struct ctx_decl_scope *scope,
+int ctx_decl_scope_register_enum(struct ctx *ctx, struct ctx_decl_scope *scope,
 		const char *name, struct ctf_field_class_enum *decl)
 {
-	return ctx_decl_scope_register_prefix_alias(scope, _PREFIX_ENUM,
+	return ctx_decl_scope_register_prefix_alias(ctx, scope, _PREFIX_ENUM,
 		name, (void *) decl);
 }
 
@@ -503,10 +508,11 @@ int ctx_decl_scope_register_enum(struct ctx_decl_scope *scope,
  * @returns	0 if registration went okay, negative value otherwise
  */
 static
-int ctx_decl_scope_register_struct(struct ctx_decl_scope *scope,
-		const char *name, struct ctf_field_class_struct *decl)
+int ctx_decl_scope_register_struct(struct ctx *ctx,
+		struct ctx_decl_scope *scope, const char *name,
+		struct ctf_field_class_struct *decl)
 {
-	return ctx_decl_scope_register_prefix_alias(scope, _PREFIX_STRUCT,
+	return ctx_decl_scope_register_prefix_alias(ctx, scope, _PREFIX_STRUCT,
 		name, (void *) decl);
 }
 
@@ -519,10 +525,11 @@ int ctx_decl_scope_register_struct(struct ctx_decl_scope *scope,
  * @returns	0 if registration went okay, negative value otherwise
  */
 static
-int ctx_decl_scope_register_variant(struct ctx_decl_scope *scope,
-		const char *name, struct ctf_field_class_variant *decl)
+int ctx_decl_scope_register_variant(struct ctx *ctx,
+		struct ctx_decl_scope *scope, const char *name,
+		struct ctf_field_class_variant *decl)
 {
-	return ctx_decl_scope_register_prefix_alias(scope, _PREFIX_VARIANT,
+	return ctx_decl_scope_register_prefix_alias(ctx, scope, _PREFIX_VARIANT,
 		name, (void *) decl);
 }
 
@@ -580,9 +587,13 @@ struct ctx *ctx_create(bt_self_component_source *self_comp,
 
 	ctx = g_new0(struct ctx, 1);
 	if (!ctx) {
-		BT_LOGE_STR("Failed to allocate one visitor context.");
+		BT_LOG_WRITE_CUR_LVL(BT_LOG_ERROR, decoder_config->log_level,
+			BT_LOG_TAG,
+			"Failed to allocate one visitor context.");
 		goto error;
 	}
+
+	ctx->log_level = decoder_config->log_level;
 
 	if (self_comp) {
 		ctx->trace_class = bt_trace_class_create(
@@ -601,7 +612,7 @@ struct ctx *ctx_create(bt_self_component_source *self_comp,
 	}
 
 	/* Root declaration scope */
-	ctx->current_scope = ctx_decl_scope_create(NULL);
+	ctx->current_scope = ctx_decl_scope_create(ctx, NULL);
 	if (!ctx->current_scope) {
 		BT_LOGE_STR("Cannot create declaration scope.");
 		goto error;
@@ -632,7 +643,7 @@ int ctx_push_scope(struct ctx *ctx)
 	struct ctx_decl_scope *new_scope;
 
 	BT_ASSERT(ctx);
-	new_scope = ctx_decl_scope_create(ctx->current_scope);
+	new_scope = ctx_decl_scope_create(ctx, ctx->current_scope);
 	if (!new_scope) {
 		BT_LOGE_STR("Cannot create declaration scope.");
 		ret = -ENOMEM;
@@ -669,7 +680,7 @@ int visit_field_class_specifier_list(struct ctx *ctx, struct ctf_node *ts_list,
 		struct ctf_field_class **decl);
 
 static
-char *remove_underscores_from_field_ref(const char *field_ref)
+char *remove_underscores_from_field_ref(struct ctx *ctx, const char *field_ref)
 {
 	const char *in_ch;
 	char *out_ch;
@@ -874,7 +885,8 @@ int is_unary_unsigned(struct bt_list_head *head)
 }
 
 static
-int get_unary_unsigned(struct bt_list_head *head, uint64_t *value)
+int get_unary_unsigned(struct ctx *ctx, struct bt_list_head *head,
+		uint64_t *value)
 {
 	int i = 0;
 	int ret = 0;
@@ -966,7 +978,8 @@ end:
 }
 
 static
-int get_unary_uuid(struct bt_list_head *head, unsigned char *uuid)
+int get_unary_uuid(struct ctx *ctx, struct bt_list_head *head,
+		unsigned char *uuid)
 {
 	int i = 0;
 	int ret = 0;
@@ -999,7 +1012,7 @@ end:
 }
 
 static
-int get_boolean(struct ctf_node *unary_expr)
+int get_boolean(struct ctx *ctx, struct ctf_node *unary_expr)
 {
 	int ret = 0;
 
@@ -1047,7 +1060,8 @@ end:
 }
 
 static
-enum ctf_byte_order byte_order_from_unary_expr(struct ctf_node *unary_expr)
+enum ctf_byte_order byte_order_from_unary_expr(struct ctx *ctx,
+		struct ctf_node *unary_expr)
 {
 	const char *str;
 	enum ctf_byte_order bo = -1;
@@ -1082,7 +1096,7 @@ static
 enum ctf_byte_order get_real_byte_order(struct ctx *ctx,
 		struct ctf_node *uexpr)
 {
-	enum ctf_byte_order bo = byte_order_from_unary_expr(uexpr);
+	enum ctf_byte_order bo = byte_order_from_unary_expr(ctx, uexpr);
 
 	if (bo == CTF_BYTE_ORDER_DEFAULT) {
 		bo = ctx->ctf_tc->default_byte_order;
@@ -1329,7 +1343,8 @@ int visit_field_class_declarator(struct ctx *ctx,
 			qalias = create_class_alias_identifier(ctx,
 				cls_specifier_list, node_field_class_declarator);
 			nested_decl =
-				ctx_decl_scope_lookup_alias(ctx->current_scope,
+				ctx_decl_scope_lookup_alias(ctx,
+					ctx->current_scope,
 					g_quark_to_string(qalias), -1, true);
 			if (!nested_decl) {
 				_BT_LOGE_NODE(node_field_class_declarator,
@@ -1479,7 +1494,7 @@ int visit_field_class_declarator(struct ctx *ctx,
 				decl = (void *) array_decl;
 			} else {
 				char *length_name_no_underscore =
-					remove_underscores_from_field_ref(
+					remove_underscores_from_field_ref(ctx,
 						length_name);
 				if (!length_name_no_underscore) {
 					/*
@@ -1686,7 +1701,7 @@ int visit_field_class_def(struct ctx *ctx, struct ctf_node *cls_specifier_list,
 			}
 		}
 
-		ret = ctx_decl_scope_register_alias(ctx->current_scope,
+		ret = ctx_decl_scope_register_alias(ctx, ctx->current_scope,
 			g_quark_to_string(qidentifier), class_decl);
 		if (ret) {
 			_BT_LOGE_NODE(iter,
@@ -1760,7 +1775,7 @@ int visit_field_class_alias(struct ctx *ctx, struct ctf_node *target,
 		struct ctf_node, siblings);
 	qalias = create_class_alias_identifier(ctx,
 		alias->u.field_class_alias_name.field_class_specifier_list, node);
-	ret = ctx_decl_scope_register_alias(ctx->current_scope,
+	ret = ctx_decl_scope_register_alias(ctx, ctx->current_scope,
 		g_quark_to_string(qalias), class_decl);
 	if (ret) {
 		_BT_LOGE_NODE(node,
@@ -1895,7 +1910,7 @@ int visit_struct_decl(struct ctx *ctx, const char *name,
 			goto error;
 		}
 
-		*struct_decl = ctx_decl_scope_lookup_struct(ctx->current_scope,
+		*struct_decl = ctx_decl_scope_lookup_struct(ctx, ctx->current_scope,
 			name, -1, true);
 		if (!*struct_decl) {
 			BT_LOGE("Cannot find structure field class: name=\"struct %s\"",
@@ -1908,7 +1923,7 @@ int visit_struct_decl(struct ctx *ctx, const char *name,
 		uint64_t min_align_value = 0;
 
 		if (name) {
-			if (ctx_decl_scope_lookup_struct(
+			if (ctx_decl_scope_lookup_struct(ctx,
 					ctx->current_scope, name, 1, false)) {
 				BT_LOGE("Structure field class already declared in local scope: "
 					"name=\"struct %s\"", name);
@@ -1918,7 +1933,8 @@ int visit_struct_decl(struct ctx *ctx, const char *name,
 		}
 
 		if (!bt_list_empty(min_align)) {
-			ret = get_unary_unsigned(min_align, &min_align_value);
+			ret = get_unary_unsigned(ctx, min_align,
+				&min_align_value);
 			if (ret) {
 				BT_LOGE("Unexpected unary expression for structure field class's `align` attribute: "
 					"ret=%d", ret);
@@ -1950,8 +1966,8 @@ int visit_struct_decl(struct ctx *ctx, const char *name,
 		ctx_pop_scope(ctx);
 
 		if (name) {
-			ret = ctx_decl_scope_register_struct(ctx->current_scope,
-				name, *struct_decl);
+			ret = ctx_decl_scope_register_struct(ctx,
+				ctx->current_scope, name, *struct_decl);
 			if (ret) {
 				BT_LOGE("Cannot register structure field class in declaration scope: "
 					"name=\"struct %s\", ret=%d", name, ret);
@@ -1988,7 +2004,7 @@ int visit_variant_decl(struct ctx *ctx, const char *name,
 		}
 
 		untagged_variant_decl =
-			ctx_decl_scope_lookup_variant(ctx->current_scope,
+			ctx_decl_scope_lookup_variant(ctx, ctx->current_scope,
 				name, -1, true);
 		if (!untagged_variant_decl) {
 			BT_LOGE("Cannot find variant field class: name=\"variant %s\"",
@@ -2000,8 +2016,8 @@ int visit_variant_decl(struct ctx *ctx, const char *name,
 		struct ctf_node *entry_node;
 
 		if (name) {
-			if (ctx_decl_scope_lookup_variant(ctx->current_scope,
-					name, 1, false)) {
+			if (ctx_decl_scope_lookup_variant(ctx,
+					ctx->current_scope, name, 1, false)) {
 				BT_LOGE("Variant field class already declared in local scope: "
 					"name=\"variant %s\"", name);
 				ret = -EINVAL;
@@ -2028,7 +2044,7 @@ int visit_variant_decl(struct ctx *ctx, const char *name,
 		ctx_pop_scope(ctx);
 
 		if (name) {
-			ret = ctx_decl_scope_register_variant(
+			ret = ctx_decl_scope_register_variant(ctx,
 				ctx->current_scope, name,
 				untagged_variant_decl);
 			if (ret) {
@@ -2052,7 +2068,7 @@ int visit_variant_decl(struct ctx *ctx, const char *name,
 		 * else owns it. Set its tag now.
 		 */
 		char *tag_no_underscore =
-			remove_underscores_from_field_ref(tag);
+			remove_underscores_from_field_ref(ctx, tag);
 
 		if (!tag_no_underscore) {
 			/* remove_underscores_from_field_ref() logs errors */
@@ -2210,7 +2226,7 @@ int visit_enum_decl(struct ctx *ctx, const char *name,
 			goto error;
 		}
 
-		*enum_decl = ctx_decl_scope_lookup_enum(ctx->current_scope,
+		*enum_decl = ctx_decl_scope_lookup_enum(ctx, ctx->current_scope,
 			name, -1, true);
 		if (!*enum_decl) {
 			BT_LOGE("Cannot find enumeration field class: "
@@ -2226,7 +2242,7 @@ int visit_enum_decl(struct ctx *ctx, const char *name,
 		};
 
 		if (name) {
-			if (ctx_decl_scope_lookup_enum(ctx->current_scope,
+			if (ctx_decl_scope_lookup_enum(ctx, ctx->current_scope,
 					name, 1, false)) {
 				BT_LOGE("Enumeration field class already declared in local scope: "
 					"name=\"enum %s\"", name);
@@ -2236,7 +2252,7 @@ int visit_enum_decl(struct ctx *ctx, const char *name,
 		}
 
 		if (!container_cls) {
-			integer_decl = (void *) ctx_decl_scope_lookup_alias(
+			integer_decl = (void *) ctx_decl_scope_lookup_alias(ctx,
 				ctx->current_scope, "int", -1, true);
 			if (!integer_decl) {
 				BT_LOGE_STR("Cannot find implicit `int` field class alias for enumeration field class.");
@@ -2283,8 +2299,8 @@ int visit_enum_decl(struct ctx *ctx, const char *name,
 		}
 
 		if (name) {
-			ret = ctx_decl_scope_register_enum(ctx->current_scope,
-				name, *enum_decl);
+			ret = ctx_decl_scope_register_enum(ctx,
+				ctx->current_scope, name, *enum_decl);
 			if (ret) {
 				BT_LOGE("Cannot register enumeration field class in declaration scope: "
 					"ret=%d", ret);
@@ -2322,8 +2338,8 @@ int visit_field_class_specifier(struct ctx *ctx,
 		goto error;
 	}
 
-	*decl = ctx_decl_scope_lookup_alias(ctx->current_scope, str->str, -1,
-		true);
+	*decl = ctx_decl_scope_lookup_alias(ctx, ctx->current_scope, str->str,
+		-1, true);
 	if (!*decl) {
 		_BT_LOGE_NODE(cls_specifier_list,
 			"Cannot find field class alias: name=\"%s\"", str->str);
@@ -2388,7 +2404,7 @@ int visit_integer_decl(struct ctx *ctx,
 				goto error;
 			}
 
-			signedness = get_boolean(right);
+			signedness = get_boolean(ctx, right);
 			if (signedness < 0) {
 				_BT_LOGE_NODE(right,
 					"Invalid boolean value for integer field class's `signed` attribute: "
@@ -3177,7 +3193,8 @@ int visit_event_decl_entry(struct ctx *ctx, struct ctf_node *node,
 				goto error;
 			}
 
-			ret = get_unary_unsigned(&node->u.ctf_expression.right,
+			ret = get_unary_unsigned(ctx,
+				&node->u.ctf_expression.right,
 				(uint64_t *) &id);
 			/* Only read "id" if get_unary_unsigned() succeeded. */
 			if (ret || (!ret && id < 0)) {
@@ -3197,8 +3214,8 @@ int visit_event_decl_entry(struct ctx *ctx, struct ctf_node *node,
 				goto error;
 			}
 
-			ret = get_unary_unsigned(&node->u.ctf_expression.right,
-				stream_id);
+			ret = get_unary_unsigned(ctx,
+				&node->u.ctf_expression.right, stream_id);
 
 			/*
 			 * Only read "stream_id" if get_unary_unsigned()
@@ -3265,8 +3282,8 @@ int visit_event_decl_entry(struct ctx *ctx, struct ctf_node *node,
 				goto error;
 			}
 
-			ret = get_unary_unsigned(&node->u.ctf_expression.right,
-				&loglevel_value);
+			ret = get_unary_unsigned(ctx,
+				&node->u.ctf_expression.right, &loglevel_value);
 			if (ret) {
 				_BT_LOGE_NODE(node,
 					"Unexpected unary expression for event class's `loglevel` attribute.");
@@ -3730,7 +3747,8 @@ int visit_stream_decl_entry(struct ctx *ctx, struct ctf_node *node,
 				goto error;
 			}
 
-			ret = get_unary_unsigned(&node->u.ctf_expression.right,
+			ret = get_unary_unsigned(ctx,
+				&node->u.ctf_expression.right,
 				(uint64_t *) &id);
 
 			/* Only read "id" if get_unary_unsigned() succeeded. */
@@ -4002,8 +4020,8 @@ int visit_trace_decl_entry(struct ctx *ctx, struct ctf_node *node, int *set)
 				goto error;
 			}
 
-			ret = get_unary_unsigned(&node->u.ctf_expression.right,
-				&val);
+			ret = get_unary_unsigned(ctx,
+				&node->u.ctf_expression.right, &val);
 			if (ret) {
 				_BT_LOGE_NODE(node,
 					"Unexpected unary expression for trace's `major` attribute.");
@@ -4026,8 +4044,8 @@ int visit_trace_decl_entry(struct ctx *ctx, struct ctf_node *node, int *set)
 				goto error;
 			}
 
-			ret = get_unary_unsigned(&node->u.ctf_expression.right,
-				&val);
+			ret = get_unary_unsigned(ctx,
+				&node->u.ctf_expression.right, &val);
 			if (ret) {
 				_BT_LOGE_NODE(node,
 					"Unexpected unary expression for trace's `minor` attribute.");
@@ -4050,7 +4068,8 @@ int visit_trace_decl_entry(struct ctx *ctx, struct ctf_node *node, int *set)
 				goto error;
 			}
 
-			ret = get_unary_uuid(&node->u.ctf_expression.right,
+			ret = get_unary_uuid(ctx,
+				&node->u.ctf_expression.right,
 				ctx->ctf_tc->uuid);
 			if (ret) {
 				_BT_LOGE_NODE(node,
@@ -4243,7 +4262,7 @@ int visit_env(struct ctx *ctx, struct ctf_node *node)
 			int64_t v;
 
 			if (is_unary_unsigned(right_head)) {
-				ret = get_unary_unsigned(right_head,
+				ret = get_unary_unsigned(ctx, right_head,
 					(uint64_t *) &v);
 			} else {
 				ret = get_unary_signed(right_head, &v);
@@ -4313,7 +4332,8 @@ int set_trace_byte_order(struct ctx *ctx, struct ctf_node *trace_node)
 				right_node = _BT_LIST_FIRST_ENTRY(
 					&node->u.ctf_expression.right,
 					struct ctf_node, siblings);
-				bo = byte_order_from_unary_expr(right_node);
+				bo = byte_order_from_unary_expr(ctx,
+					right_node);
 				if (bo == -1) {
 					_BT_LOGE_NODE(node,
 						"Invalid `byte_order` attribute in trace (`trace` block): "
@@ -4403,7 +4423,8 @@ int visit_clock_decl_entry(struct ctx *ctx, struct ctf_node *entry_node,
 			goto error;
 		}
 
-		ret = get_unary_uuid(&entry_node->u.ctf_expression.right, uuid);
+		ret = get_unary_uuid(ctx, &entry_node->u.ctf_expression.right,
+			uuid);
 		if (ret) {
 			_BT_LOGE_NODE(entry_node,
 				"Invalid clock class's `uuid` attribute.");
@@ -4444,7 +4465,7 @@ int visit_clock_decl_entry(struct ctx *ctx, struct ctf_node *entry_node,
 			goto error;
 		}
 
-		ret = get_unary_unsigned(
+		ret = get_unary_unsigned(ctx,
 			&entry_node->u.ctf_expression.right, &freq);
 		if (ret) {
 			_BT_LOGE_NODE(entry_node,
@@ -4473,7 +4494,7 @@ int visit_clock_decl_entry(struct ctx *ctx, struct ctf_node *entry_node,
 			goto error;
 		}
 
-		ret = get_unary_unsigned(
+		ret = get_unary_unsigned(ctx,
 			&entry_node->u.ctf_expression.right, &precision);
 		if (ret) {
 			_BT_LOGE_NODE(entry_node,
@@ -4509,7 +4530,7 @@ int visit_clock_decl_entry(struct ctx *ctx, struct ctf_node *entry_node,
 			goto error;
 		}
 
-		ret = get_unary_unsigned(
+		ret = get_unary_unsigned(ctx,
 			&entry_node->u.ctf_expression.right, offset_cycles);
 		if (ret) {
 			_BT_LOGE_NODE(entry_node,
@@ -4532,7 +4553,7 @@ int visit_clock_decl_entry(struct ctx *ctx, struct ctf_node *entry_node,
 		right = _BT_LIST_FIRST_ENTRY(
 			&entry_node->u.ctf_expression.right,
 			struct ctf_node, siblings);
-		ret = get_boolean(right);
+		ret = get_boolean(ctx, right);
 		if (ret < 0) {
 			_BT_LOGE_NODE(entry_node,
 				"Unexpected unary expression for clock class's `absolute` attribute.");
@@ -5005,7 +5026,8 @@ int ctf_visitor_generate_ir_visit_node(struct ctf_visitor_generate_ir *visitor,
 	}
 
 	/* Update default clock classes */
-	ret = ctf_trace_class_update_default_clock_classes(ctx->ctf_tc);
+	ret = ctf_trace_class_update_default_clock_classes(ctx->ctf_tc,
+		ctx->log_level);
 	if (ret) {
 		ret = -EINVAL;
 		goto end;
@@ -5033,7 +5055,8 @@ int ctf_visitor_generate_ir_visit_node(struct ctf_visitor_generate_ir *visitor,
 	}
 
 	/* Resolve sequence lengths and variant tags */
-	ret = ctf_trace_class_resolve_field_classes(ctx->ctf_tc);
+	ret = ctf_trace_class_resolve_field_classes(ctx->ctf_tc,
+		ctx->log_level);
 	if (ret) {
 		ret = -EINVAL;
 		goto end;
@@ -5062,7 +5085,8 @@ int ctf_visitor_generate_ir_visit_node(struct ctf_visitor_generate_ir *visitor,
 	}
 
 	/* Validate what we have so far */
-	ret = ctf_trace_class_validate(ctx->ctf_tc);
+	ret = ctf_trace_class_validate(ctx->ctf_tc,
+		ctx->log_level);
 	if (ret) {
 		ret = -EINVAL;
 		goto end;
@@ -5073,7 +5097,8 @@ int ctf_visitor_generate_ir_visit_node(struct ctf_visitor_generate_ir *visitor,
 	 * itself in the packet header and in event header field
 	 * classes, warn about it because they are never translated.
 	 */
-	ctf_trace_class_warn_meaningless_header_fields(ctx->ctf_tc);
+	ctf_trace_class_warn_meaningless_header_fields(ctx->ctf_tc,
+		ctx->log_level);
 
 	if (ctx->trace_class) {
 		/* Copy new CTF metadata -> new IR metadata */

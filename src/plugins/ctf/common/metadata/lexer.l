@@ -25,6 +25,7 @@
  * SOFTWARE.
  */
 
+#define BT_LOG_OUTPUT_LEVEL ctf_plugin_metadata_log_level
 #define BT_LOG_TAG "PLUGIN-CTF-METADATA-LEXER"
 #include "logging.h"
 
