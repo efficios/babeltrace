@@ -26,9 +26,10 @@
  * SOFTWARE.
  */
 
+#define BT_COMP_LOG_SELF_COMP self_comp
 #define BT_LOG_OUTPUT_LEVEL log_level
 #define BT_LOG_TAG "PLUGIN/FLT.LTTNG-UTILS.DEBUG-INFO"
-#include "logging/log.h"
+#include "plugins/comp-logging.h"
 
 #include <glib.h>
 
@@ -57,6 +58,7 @@
 
 struct debug_info_component {
 	bt_logging_level log_level;
+	bt_self_component *self_comp;
 	gchar *arg_debug_dir;
 	gchar *arg_debug_info_field_name;
 	gchar *arg_target_prefix;
@@ -114,6 +116,7 @@ struct proc_debug_info_sources {
 
 struct debug_info {
 	bt_logging_level log_level;
+	bt_self_component *self_comp;
 	struct debug_info_component *comp;
 	const bt_trace *input_trace;
 	uint64_t destruction_listener_id;
@@ -148,7 +151,7 @@ int debug_info_init(struct debug_info *info)
 	info->q_lib_load = g_quark_from_string("lttng_ust_lib:load");
 	info->q_lib_unload = g_quark_from_string("lttng_ust_lib:unload");
 
-	return bin_info_init(info->log_level);
+	return bin_info_init(info->log_level, info->self_comp);
 }
 
 static
@@ -168,7 +171,8 @@ void debug_info_source_destroy(struct debug_info_source *debug_info_src)
 
 static
 struct debug_info_source *debug_info_source_create_from_bin(
-		struct bin_info *bin, uint64_t ip)
+		struct bin_info *bin, uint64_t ip,
+		bt_self_component *self_comp)
 {
 	int ret;
 	struct debug_info_source *debug_info_src = NULL;
@@ -192,7 +196,7 @@ struct debug_info_source *debug_info_source_create_from_bin(
 		/* Lookup source location */
 		ret = bin_info_lookup_source_location(bin, ip, &src_loc);
 		if (ret) {
-			BT_LOGI("Failed to lookup source location: ret=%d", ret);
+			BT_COMP_LOGI("Failed to lookup source location: ret=%d", ret);
 		}
 	}
 
@@ -200,7 +204,7 @@ struct debug_info_source *debug_info_source_create_from_bin(
 		debug_info_src->line_no =
 			g_strdup_printf("%"PRId64, src_loc->line_no);
 		if (!debug_info_src->line_no) {
-			BT_LOGE("Error occured when setting line_no field.");
+			BT_COMP_LOGE("Error occured when setting line_no field.");
 			goto error;
 		}
 
@@ -484,7 +488,8 @@ struct debug_info_source *proc_debug_info_sources_get_entry(
 		 * a caching policy), and entries should be prunned when
 		 * libraries are unmapped.
 		 */
-		debug_info_src = debug_info_source_create_from_bin(bin, ip);
+		debug_info_src = debug_info_source_create_from_bin(bin, ip,
+			debug_info->self_comp);
 		if (debug_info_src) {
 			g_hash_table_insert(
 					proc_dbg_info_src->ip_to_debug_info_src,
@@ -537,6 +542,7 @@ struct debug_info *debug_info_create(struct debug_info_component *comp,
 	}
 
 	debug_info->log_level = comp->log_level;
+	debug_info->self_comp = comp->self_comp;
 	debug_info->vpid_to_proc_dbg_info_src = g_hash_table_new_full(
 			g_int64_hash, g_int64_equal, (GDestroyNotify) g_free,
 			(GDestroyNotify) proc_debug_info_sources_destroy);
@@ -564,12 +570,14 @@ static
 void debug_info_destroy(struct debug_info *debug_info)
 {
 	bt_logging_level log_level;
+	bt_self_component *self_comp;
 	bt_trace_status status;
 	if (!debug_info) {
 		goto end;
 	}
 
 	log_level = debug_info->log_level;
+	self_comp = debug_info->self_comp;
 
 	if (debug_info->vpid_to_proc_dbg_info_src) {
 		g_hash_table_destroy(debug_info->vpid_to_proc_dbg_info_src);
@@ -578,7 +586,7 @@ void debug_info_destroy(struct debug_info *debug_info)
 	status = bt_trace_remove_destruction_listener(debug_info->input_trace,
 			debug_info->destruction_listener_id);
 	if (status != BT_TRACE_STATUS_OK) {
-		BT_LOGE("Trace destruction listener removal failed.");
+		BT_COMP_LOGE("Trace destruction listener removal failed.");
 	}
 
 	g_free(debug_info);
@@ -765,7 +773,7 @@ void handle_bin_info_event(struct debug_info *debug_info,
 	bin = bin_info_create(debug_info->fd_cache, path, baddr, memsz, is_pic,
 		debug_info->comp->arg_debug_dir,
 		debug_info->comp->arg_target_prefix,
-		debug_info->log_level);
+		debug_info->log_level, debug_info->self_comp);
 	if (!bin) {
 		goto end;
 	}
@@ -939,7 +947,7 @@ void destroy_debug_info_comp(struct debug_info_component *debug_info)
 static
 void fill_debug_info_bin_field(struct debug_info_source *dbg_info_src,
 		bool full_path, bt_field *curr_field,
-		bt_logging_level log_level)
+		bt_logging_level log_level, bt_self_component *self_comp)
 {
 	bt_field_status status;
 
@@ -955,21 +963,21 @@ void fill_debug_info_bin_field(struct debug_info_source *dbg_info_src,
 					dbg_info_src->short_bin_path);
 		}
 		if (status != BT_FIELD_STATUS_OK) {
-			BT_LOGE("Cannot set path component of \"bin\" "
+			BT_COMP_LOGE("Cannot set path component of \"bin\" "
 				"curr_field field's value: str-fc-addr=%p",
 				curr_field);
 		}
 
 		status = bt_field_string_append(curr_field, dbg_info_src->bin_loc);
 		if (status != BT_FIELD_STATUS_OK) {
-			BT_LOGE("Cannot set bin location component of \"bin\" "
+			BT_COMP_LOGE("Cannot set bin location component of \"bin\" "
 				"curr_field field's value: str-fc-addr=%p",
 				curr_field);
 		}
 	} else {
 		status = bt_field_string_set_value(curr_field, "");
 		if (status != BT_FIELD_STATUS_OK) {
-			BT_LOGE("Cannot set \"bin\" curr_field field's value: "
+			BT_COMP_LOGE("Cannot set \"bin\" curr_field field's value: "
 				"str-fc-addr=%p", curr_field);
 		}
 	}
@@ -977,7 +985,8 @@ void fill_debug_info_bin_field(struct debug_info_source *dbg_info_src,
 
 static
 void fill_debug_info_func_field(struct debug_info_source *dbg_info_src,
-		bt_field *curr_field, bt_logging_level log_level)
+		bt_field *curr_field, bt_logging_level log_level,
+		bt_self_component *self_comp)
 {
 	bt_field_status status;
 
@@ -990,7 +999,7 @@ void fill_debug_info_func_field(struct debug_info_source *dbg_info_src,
 		status = bt_field_string_set_value(curr_field, "");
 	}
 	if (status != BT_FIELD_STATUS_OK) {
-		BT_LOGE("Cannot set \"func\" curr_field field's value: "
+		BT_COMP_LOGE("Cannot set \"func\" curr_field field's value: "
 			"str-fc-addr=%p", curr_field);
 	}
 }
@@ -998,7 +1007,8 @@ void fill_debug_info_func_field(struct debug_info_source *dbg_info_src,
 static
 void fill_debug_info_src_field(struct debug_info_source *dbg_info_src,
 		bool full_path, bt_field *curr_field,
-		bt_logging_level log_level)
+		bt_logging_level log_level,
+		bt_self_component *self_comp)
 {
 	bt_field_status status;
 
@@ -1014,28 +1024,28 @@ void fill_debug_info_src_field(struct debug_info_source *dbg_info_src,
 					dbg_info_src->short_src_path);
 		}
 		if (status != BT_FIELD_STATUS_OK) {
-			BT_LOGE("Cannot set path component of \"src\" "
+			BT_COMP_LOGE("Cannot set path component of \"src\" "
 				"curr_field field's value: str-fc-addr=%p",
 				curr_field);
 		}
 
 		status = bt_field_string_append(curr_field, ":");
 		if (status != BT_FIELD_STATUS_OK) {
-			BT_LOGE("Cannot set colon component of \"src\" "
+			BT_COMP_LOGE("Cannot set colon component of \"src\" "
 				"curr_field field's value: str-fc-addr=%p",
 				curr_field);
 		}
 
 		status = bt_field_string_append(curr_field, dbg_info_src->line_no);
 		if (status != BT_FIELD_STATUS_OK) {
-			BT_LOGE("Cannot set line number component of \"src\" "
+			BT_COMP_LOGE("Cannot set line number component of \"src\" "
 				"curr_field field's value: str-fc-addr=%p",
 				curr_field);
 		}
 	} else {
 		status = bt_field_string_set_value(curr_field, "");
 		if (status != BT_FIELD_STATUS_OK) {
-			BT_LOGE("Cannot set \"src\" curr_field field's value: "
+			BT_COMP_LOGE("Cannot set \"src\" curr_field field's value: "
 				"str-fc-addr=%p", curr_field);
 		}
 	}
@@ -1043,7 +1053,7 @@ void fill_debug_info_src_field(struct debug_info_source *dbg_info_src,
 
 static
 void fill_debug_info_field_empty(bt_field *debug_info_field,
-		bt_logging_level log_level)
+	bt_logging_level log_level, bt_self_component *self_comp)
 {
 	bt_field_status status;
 	bt_field *bin_field, *func_field, *src_field;
@@ -1067,19 +1077,19 @@ void fill_debug_info_field_empty(bt_field *debug_info_field,
 
 	status = bt_field_string_set_value(bin_field, "");
 	if (status != BT_FIELD_STATUS_OK) {
-		BT_LOGE("Cannot set \"bin\" bin_field field's value: "
+		BT_COMP_LOGE("Cannot set \"bin\" bin_field field's value: "
 			"str-fc-addr=%p", bin_field);
 	}
 
 	status = bt_field_string_set_value(func_field, "");
 	if (status != BT_FIELD_STATUS_OK) {
-		BT_LOGE("Cannot set \"func\" func_field field's value: "
+		BT_COMP_LOGE("Cannot set \"func\" func_field field's value: "
 			"str-fc-addr=%p", func_field);
 	}
 
 	status = bt_field_string_set_value(src_field, "");
 	if (status != BT_FIELD_STATUS_OK) {
-		BT_LOGE("Cannot set \"src\" src_field field's value: "
+		BT_COMP_LOGE("Cannot set \"src\" src_field field's value: "
 			"str-fc-addr=%p", src_field);
 	}
 }
@@ -1103,16 +1113,16 @@ void fill_debug_info_field(struct debug_info *debug_info, int64_t vpid,
 		debug_info->comp->arg_full_path,
 		bt_field_structure_borrow_member_field_by_name(
 			debug_info_field, "bin"),
-		debug_info->log_level);
+		debug_info->log_level, debug_info->self_comp);
 	fill_debug_info_func_field(dbg_info_src,
 		bt_field_structure_borrow_member_field_by_name(
 			debug_info_field, "func"),
-		debug_info->log_level);
+		debug_info->log_level, debug_info->self_comp);
 	fill_debug_info_src_field(dbg_info_src,
 		debug_info->comp->arg_full_path,
 		bt_field_structure_borrow_member_field_by_name(
 			debug_info_field, "src"),
-		debug_info->log_level);
+		debug_info->log_level, debug_info->self_comp);
 }
 
 static
@@ -1128,6 +1138,7 @@ void fill_debug_info_event_if_needed(struct debug_info_msg_iter *debug_it,
 	gchar *debug_info_field_name =
 		debug_it->debug_info_component->arg_debug_info_field_name;
 	bt_logging_level log_level = debug_it->log_level;
+	bt_self_component *self_comp = debug_it->self_comp;
 
 	in_common_ctx_field = bt_event_borrow_common_context_field_const(
 			in_event);
@@ -1181,9 +1192,10 @@ void fill_debug_info_event_if_needed(struct debug_info_msg_iter *debug_it,
 		 */
 		fill_debug_info_field(debug_info, vpid, ip, out_debug_info_field);
 	} else {
-		BT_LOGD("No debug information for this trace. Setting debug "
+		BT_COMP_LOGD("No debug information for this trace. Setting debug "
 			"info fields to empty strings.");
-		fill_debug_info_field_empty(out_debug_info_field, log_level);
+		fill_debug_info_field_empty(out_debug_info_field,
+			log_level, self_comp);
 	}
 end:
 	return;
@@ -1232,6 +1244,7 @@ bt_message *handle_event_message(struct debug_info_msg_iter *debug_it,
 	bt_packet *out_packet;
 	bt_event *out_event;
 	bt_logging_level log_level = debug_it->log_level;
+	bt_self_component *self_comp = debug_it->self_comp;
 
 	bt_message *out_message = NULL;
 
@@ -1274,14 +1287,14 @@ bt_message *handle_event_message(struct debug_info_msg_iter *debug_it,
 	}
 
 	if (!out_message) {
-		BT_LOGE("Error creating output event message.");
+		BT_COMP_LOGE("Error creating output event message.");
 		goto error;
 	}
 
 	out_event = bt_message_event_borrow_event(out_message);
 
 	/* Copy the original fields to the output event. */
-	copy_event_content(in_event, out_event, log_level);
+	copy_event_content(in_event, out_event, log_level, self_comp);
 
 	/*
 	 * Try to set the debug-info fields based on debug information that is
@@ -1301,6 +1314,7 @@ bt_message *handle_stream_begin_message(struct debug_info_msg_iter *debug_it,
 	bt_message *out_message;
 	bt_stream *out_stream;
 	bt_logging_level log_level = debug_it->log_level;
+	bt_self_component *self_comp = debug_it->self_comp;
 
 	in_stream = bt_message_stream_beginning_borrow_stream_const(in_message);
 	BT_ASSERT(in_stream);
@@ -1317,7 +1331,7 @@ bt_message *handle_stream_begin_message(struct debug_info_msg_iter *debug_it,
 	out_message = bt_message_stream_beginning_create(
 			debug_it->input_iterator, out_stream);
 	if (!out_message) {
-		BT_LOGE("Error creating output stream beginning message: "
+		BT_COMP_LOGE("Error creating output stream beginning message: "
 			"out-s-addr=%p", out_stream);
 	}
 error:
@@ -1332,6 +1346,7 @@ bt_message *handle_stream_end_message(struct debug_info_msg_iter *debug_it,
 	bt_message *out_message = NULL;
 	bt_stream *out_stream;
 	bt_logging_level log_level = debug_it->log_level;
+	bt_self_component *self_comp = debug_it->self_comp;
 
 	in_stream = bt_message_stream_end_borrow_stream_const(in_message);
 	BT_ASSERT(in_stream);
@@ -1344,7 +1359,7 @@ bt_message *handle_stream_end_message(struct debug_info_msg_iter *debug_it,
 	out_message = bt_message_stream_end_create(debug_it->input_iterator,
 			out_stream);
 	if (!out_message) {
-		BT_LOGE("Error creating output stream end message: out-s-addr=%p",
+		BT_COMP_LOGE("Error creating output stream end message: out-s-addr=%p",
 				out_stream);
 	}
 
@@ -1363,6 +1378,7 @@ bt_message *handle_packet_begin_message(struct debug_info_msg_iter *debug_it,
 	bt_message *out_message = NULL;
 	bt_packet *out_packet;
 	bt_logging_level log_level = debug_it->log_level;
+	bt_self_component *self_comp = debug_it->self_comp;
 
 	const bt_packet *in_packet =
 		bt_message_packet_beginning_borrow_packet_const(in_message);
@@ -1395,7 +1411,7 @@ bt_message *handle_packet_begin_message(struct debug_info_msg_iter *debug_it,
 				debug_it->input_iterator, out_packet);
 	}
 	if (!out_message) {
-		BT_LOGE("Error creating output packet beginning message: "
+		BT_COMP_LOGE("Error creating output packet beginning message: "
 			"out-p-addr=%p", out_packet);
 	}
 
@@ -1412,6 +1428,7 @@ bt_message *handle_packet_end_message(struct debug_info_msg_iter *debug_it,
 	bt_message *out_message = NULL;
 	bt_packet *out_packet;
 	bt_logging_level log_level = debug_it->log_level;
+	bt_self_component *self_comp = debug_it->self_comp;
 
 	in_packet = bt_message_packet_end_borrow_packet_const(in_message);
 	BT_ASSERT(in_packet);
@@ -1438,7 +1455,7 @@ bt_message *handle_packet_end_message(struct debug_info_msg_iter *debug_it,
 	}
 
 	if (!out_message) {
-		BT_LOGE("Error creating output packet end message: "
+		BT_COMP_LOGE("Error creating output packet end message: "
 			"out-p-addr=%p", out_packet);
 	}
 
@@ -1471,6 +1488,7 @@ bt_message *handle_stream_act_begin_message(struct debug_info_msg_iter *debug_it
 	uint64_t cs_value;
 	bt_message_stream_activity_clock_snapshot_state cs_state;
 	bt_logging_level log_level = debug_it->log_level;
+	bt_self_component *self_comp = debug_it->self_comp;
 
 	const bt_stream *in_stream =
 		bt_message_stream_activity_beginning_borrow_stream_const(
@@ -1484,7 +1502,7 @@ bt_message *handle_stream_act_begin_message(struct debug_info_msg_iter *debug_it
 	out_message = bt_message_stream_activity_beginning_create(
 			debug_it->input_iterator, out_stream);
 	if (!out_message) {
-		BT_LOGE("Error creating output stream activity beginning "
+		BT_COMP_LOGE("Error creating output stream activity beginning "
 			"message: out-s-addr=%p", out_stream);
 		goto error;
 	}
@@ -1523,6 +1541,7 @@ bt_message *handle_stream_act_end_message(struct debug_info_msg_iter *debug_it,
 	uint64_t cs_value;
 	bt_message_stream_activity_clock_snapshot_state cs_state;
 	bt_logging_level log_level = debug_it->log_level;
+	bt_self_component *self_comp = debug_it->self_comp;
 
 	in_stream = bt_message_stream_activity_end_borrow_stream_const(
 			in_message);
@@ -1535,7 +1554,7 @@ bt_message *handle_stream_act_end_message(struct debug_info_msg_iter *debug_it,
 	out_message = bt_message_stream_activity_end_create(
 			debug_it->input_iterator, out_stream);
 	if (!out_message) {
-		BT_LOGE("Error creating output stream activity end message: "
+		BT_COMP_LOGE("Error creating output stream activity end message: "
 			"out-s-addr=%p", out_stream);
 		goto error;
 	}
@@ -1574,6 +1593,7 @@ bt_message *handle_discarded_events_message(struct debug_info_msg_iter *debug_it
 	bt_message *out_message = NULL;
 	bt_stream *out_stream;
 	bt_logging_level log_level = debug_it->log_level;
+	bt_self_component *self_comp = debug_it->self_comp;
 
 	in_stream = bt_message_discarded_events_borrow_stream_const(
 			in_message);
@@ -1606,7 +1626,7 @@ bt_message *handle_discarded_events_message(struct debug_info_msg_iter *debug_it
 				debug_it->input_iterator, out_stream);
 	}
 	if (!out_message) {
-		BT_LOGE("Error creating output discarded events message: "
+		BT_COMP_LOGE("Error creating output discarded events message: "
 			"out-s-addr=%p", out_stream);
 		goto error;
 	}
@@ -1635,6 +1655,7 @@ bt_message *handle_discarded_packets_message(struct debug_info_msg_iter *debug_i
 	bt_message *out_message = NULL;
 	bt_stream *out_stream;
 	bt_logging_level log_level = debug_it->log_level;
+	bt_self_component *self_comp = debug_it->self_comp;
 
 	in_stream = bt_message_discarded_packets_borrow_stream_const(
 			in_message);
@@ -1667,7 +1688,7 @@ bt_message *handle_discarded_packets_message(struct debug_info_msg_iter *debug_i
 				debug_it->input_iterator, out_stream);
 	}
 	if (!out_message) {
-		BT_LOGE("Error creating output discarded packet message: "
+		BT_COMP_LOGE("Error creating output discarded packet message: "
 			"out-s-addr=%p", out_stream);
 		goto error;
 	}
@@ -1786,37 +1807,38 @@ int init_from_params(struct debug_info_component *debug_info_component,
 
 BT_HIDDEN
 bt_self_component_status debug_info_comp_init(
-		bt_self_component_filter *self_comp,
+		bt_self_component_filter *self_comp_flt,
 		const bt_value *params, __attribute__((unused)) void *init_method_data)
 {
 	int ret;
 	struct debug_info_component *debug_info_comp;
 	bt_self_component_status status = BT_SELF_COMPONENT_STATUS_OK;
+	bt_self_component *self_comp =
+		bt_self_component_filter_as_self_component(self_comp_flt);
 	bt_logging_level log_level = bt_component_get_logging_level(
-		bt_self_component_as_component(
-			bt_self_component_filter_as_self_component(self_comp)));
+		bt_self_component_as_component(self_comp));
 
-	BT_LOGI("Initializing debug_info component: "
+
+	BT_COMP_LOGI("Initializing debug_info component: "
 		"comp-addr=%p, params-addr=%p", self_comp, params);
 
 	debug_info_comp = g_new0(struct debug_info_component, 1);
 	if (!debug_info_comp) {
-		BT_LOGE_STR("Failed to allocate one debug_info component.");
+		BT_COMP_LOGE_STR("Failed to allocate one debug_info component.");
 		goto error;
 	}
 
 	debug_info_comp->log_level = log_level;
-	bt_self_component_set_data(
-		bt_self_component_filter_as_self_component(self_comp),
-		debug_info_comp);
+	debug_info_comp->self_comp = self_comp;
+	bt_self_component_set_data(self_comp, debug_info_comp);
 
-	status = bt_self_component_filter_add_input_port(self_comp, "in",
+	status = bt_self_component_filter_add_input_port(self_comp_flt, "in",
 			NULL, NULL);
 	if (status != BT_SELF_COMPONENT_STATUS_OK) {
 		goto error;
 	}
 
-	status = bt_self_component_filter_add_output_port(self_comp, "out",
+	status = bt_self_component_filter_add_output_port(self_comp_flt, "out",
 			NULL, NULL);
 	if (status != BT_SELF_COMPONENT_STATUS_OK) {
 		goto error;
@@ -1824,7 +1846,7 @@ bt_self_component_status debug_info_comp_init(
 
 	ret = init_from_params(debug_info_comp, params);
 	if (ret) {
-		BT_LOGE("Cannot configure debug_info component: "
+		BT_COMP_LOGE("Cannot configure debug_info component: "
 			"debug_info-comp-addr=%p, params-addr=%p",
 			debug_info_comp, params);
 		goto error;
@@ -1834,9 +1856,7 @@ bt_self_component_status debug_info_comp_init(
 
 error:
 	destroy_debug_info_comp(debug_info_comp);
-	bt_self_component_set_data(
-		bt_self_component_filter_as_self_component(self_comp),
-		NULL);
+	bt_self_component_set_data(self_comp, NULL);
 
 	if (status == BT_SELF_COMPONENT_STATUS_OK) {
 		status = BT_SELF_COMPONENT_STATUS_ERROR;
@@ -1846,15 +1866,16 @@ end:
 }
 
 BT_HIDDEN
-void debug_info_comp_finalize(bt_self_component_filter *self_comp)
+void debug_info_comp_finalize(bt_self_component_filter *self_comp_flt)
 {
 	struct debug_info_component *debug_info =
 		bt_self_component_get_data(
 				bt_self_component_filter_as_self_component(
-					self_comp));
+					self_comp_flt));
 	bt_logging_level log_level = debug_info->log_level;
+	bt_self_component *self_comp = debug_info->self_comp;
 
-	BT_LOGI("Finalizing debug_info self_component: comp-addr=%p",
+	BT_COMP_LOGI("Finalizing debug_info self_component: comp-addr=%p",
 		self_comp);
 
 	destroy_debug_info_comp(debug_info);
@@ -1970,7 +1991,7 @@ end:
 BT_HIDDEN
 bt_self_message_iterator_status debug_info_msg_iter_init(
 		bt_self_message_iterator *self_msg_iter,
-		bt_self_component_filter *self_comp,
+		bt_self_component_filter *self_comp_flt,
 		bt_self_component_port_output *self_port)
 {
 	bt_self_message_iterator_status status = BT_SELF_MESSAGE_ITERATOR_STATUS_OK;
@@ -1979,13 +2000,14 @@ bt_self_message_iterator_status debug_info_msg_iter_init(
 	struct debug_info_msg_iter *debug_info_msg_iter = NULL;
 	gchar *debug_info_field_name;
 	int ret;
+	bt_self_component *self_comp =
+		bt_self_component_filter_as_self_component(self_comp_flt);
 	bt_logging_level log_level = bt_component_get_logging_level(
-		bt_self_component_as_component(
-			bt_self_component_filter_as_self_component(self_comp)));
+		bt_self_component_as_component(self_comp));
 
 	/* Borrow the upstream input port. */
 	input_port = bt_self_component_filter_borrow_input_port_by_name(
-		self_comp, "in");
+		self_comp_flt, "in");
 	if (!input_port) {
 		status = BT_SELF_MESSAGE_ITERATOR_STATUS_ERROR;
 		goto error;
@@ -1998,6 +2020,7 @@ bt_self_message_iterator_status debug_info_msg_iter_init(
 	}
 
 	debug_info_msg_iter->log_level = log_level;
+	debug_info_msg_iter->self_comp = self_comp;
 
 	/* Create an iterator on the upstream component. */
 	upstream_iterator = bt_self_component_port_input_message_iterator_create(
@@ -2019,18 +2042,13 @@ bt_self_message_iterator_status debug_info_msg_iter_init(
 		goto error;
 	}
 
-	debug_info_msg_iter->self_comp =
-		bt_self_component_filter_as_self_component(self_comp);
-
-	debug_info_msg_iter->debug_info_component = bt_self_component_get_data(
-		bt_self_component_filter_as_self_component(
-			self_comp));
+	debug_info_msg_iter->debug_info_component =
+		bt_self_component_get_data(self_comp);
 
 	debug_info_field_name =
 		debug_info_msg_iter->debug_info_component->arg_debug_info_field_name;
 
-	debug_info_msg_iter->ir_maps = trace_ir_maps_create(
-		bt_self_component_filter_as_self_component(self_comp),
+	debug_info_msg_iter->ir_maps = trace_ir_maps_create(self_comp,
 		debug_info_field_name, log_level);
 	if (!debug_info_msg_iter->ir_maps) {
 		status = BT_SELF_MESSAGE_ITERATOR_STATUS_NOMEM;

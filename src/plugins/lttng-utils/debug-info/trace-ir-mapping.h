@@ -44,6 +44,7 @@ struct field_class_resolving_context {
 
 struct trace_ir_metadata_maps {
 	bt_logging_level log_level;
+	bt_self_component *self_comp;
 	const bt_trace_class *input_trace_class;
 	bt_trace_class *output_trace_class;
 
@@ -87,6 +88,7 @@ struct trace_ir_metadata_maps {
 
 struct trace_ir_data_maps {
 	bt_logging_level log_level;
+	bt_self_component *self_comp;
 	const bt_trace *input_trace;
 	bt_trace *output_trace;
 

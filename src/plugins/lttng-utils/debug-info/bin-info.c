@@ -26,9 +26,10 @@
  * SOFTWARE.
  */
 
+#define BT_COMP_LOG_SELF_COMP (bin->self_comp)
 #define BT_LOG_OUTPUT_LEVEL (bin->log_level)
 #define BT_LOG_TAG "PLUGIN/FLT.LTTNG-UTILS.DEBUG-INFO/BIN-INFO"
-#include "logging/log.h"
+#include "plugins/comp-logging.h"
 
 #include <babeltrace2/logging.h>
 #include <dwarf.h>
@@ -60,12 +61,12 @@
 #define BUILD_ID_NOTE_NAME "GNU"
 
 BT_HIDDEN
-int bin_info_init(bt_logging_level log_level)
+int bin_info_init(bt_logging_level log_level, bt_self_component *self_comp)
 {
 	int ret = 0;
 
 	if (elf_version(EV_CURRENT) == EV_NONE) {
-		BT_LOG_WRITE_CUR_LVL(BT_LOG_INFO, log_level, BT_LOG_TAG,
+		BT_COMP_LOG_CUR_LVL(BT_LOG_INFO, log_level, self_comp,
 			"ELF library initialization failed: %s.",
 			elf_errmsg(-1));
 		ret = -1;
@@ -78,7 +79,7 @@ BT_HIDDEN
 struct bin_info *bin_info_create(struct bt_fd_cache *fdc, const char *path,
 		uint64_t low_addr, uint64_t memsz, bool is_pic,
 		const char *debug_info_dir, const char *target_prefix,
-		bt_logging_level log_level)
+		bt_logging_level log_level, bt_self_component *self_comp)
 {
 	struct bin_info *bin = NULL;
 
@@ -94,6 +95,7 @@ struct bin_info *bin_info_create(struct bt_fd_cache *fdc, const char *path,
 	}
 
 	bin->log_level = log_level;
+	bin->self_comp = self_comp;
 	if (target_prefix) {
 		bin->elf_path = g_build_filename(target_prefix,	path, NULL);
 	} else {
@@ -168,7 +170,7 @@ int bin_info_set_elf_file(struct bin_info *bin)
 
 	elf_handle = bt_fd_cache_get_handle(bin->fd_cache, bin->elf_path);
 	if (!elf_handle) {
-		BT_LOGI("Failed to open %s", bin->elf_path);
+		BT_COMP_LOGI("Failed to open %s", bin->elf_path);
 		goto error;
 	}
 	bin->elf_handle = elf_handle;
@@ -176,14 +178,14 @@ int bin_info_set_elf_file(struct bin_info *bin)
 	elf_file = elf_begin(bt_fd_cache_handle_get_fd(bin->elf_handle),
 		ELF_C_READ, NULL);
 	if (!elf_file) {
-		BT_LOGE("elf_begin failed: %s", elf_errmsg(-1));
+		BT_COMP_LOGE("elf_begin failed: %s", elf_errmsg(-1));
 		goto error;
 	}
 
 	bin->elf_file = elf_file;
 
 	if (elf_kind(elf_file) != ELF_K_ELF) {
-		BT_LOGE("Error: %s is not an ELF object", bin->elf_path);
+		BT_COMP_LOGE("Error: %s is not an ELF object", bin->elf_path);
 		goto error;
 	}
 
@@ -383,7 +385,7 @@ int bin_info_set_build_id(struct bin_info *bin, uint8_t *build_id,
 	 */
 	bin->file_build_id_matches = is_build_id_matching(bin);
 	if (!bin->file_build_id_matches) {
-		BT_LOGI_STR("Supplied Build ID does not match Build ID of the "
+		BT_COMP_LOGI_STR("Supplied Build ID does not match Build ID of the "
 				"binary or library found on the file system.");
 		goto error;
 	}
@@ -1120,7 +1122,7 @@ int bin_info_lookup_function_name(struct bin_info *bin,
 	if (!bin->dwarf_info && !bin->is_elf_only) {
 		ret = bin_info_set_dwarf_info(bin);
 		if (ret) {
-			BT_LOGI_STR("Failed to set bin dwarf info, falling "
+			BT_COMP_LOGI_STR("Failed to set bin dwarf info, falling "
 					"back to ELF lookup.");
 			/* Failed to set DWARF info, fallback to ELF. */
 			bin->is_elf_only = true;
@@ -1143,14 +1145,14 @@ int bin_info_lookup_function_name(struct bin_info *bin,
 		ret = bin_info_lookup_elf_function_name(bin, addr,
 				&_func_name);
 		if (ret) {
-			BT_LOGI("Failed to lookup function name (ELF): "
+			BT_COMP_LOGI("Failed to lookup function name (ELF): "
 				"ret=%d", ret);
 		}
 	} else {
 		ret = bin_info_lookup_dwarf_function_name(bin, addr,
 				&_func_name);
 		if (ret) {
-			BT_LOGI("Failed to lookup function name (DWARF): "
+			BT_COMP_LOGI("Failed to lookup function name (DWARF): "
 				"ret=%d", ret);
 		}
 	}

@@ -27,7 +27,7 @@
  * SOFTWARE.
  */
 
-#include <babeltrace2/logging.h>
+#include <babeltrace2/babeltrace.h>
 #include <stdint.h>
 #include <stdbool.h>
 #include <gelf.h>
@@ -43,6 +43,9 @@
 
 struct bin_info {
 	bt_logging_level log_level;
+
+	/* Used for logging; can be `NULL` */
+	bt_self_component *self_comp;
 
 	/* Base virtual memory address. */
 	uint64_t low_addr;
@@ -93,7 +96,8 @@ struct source_location {
  * @returns		0 on success, -1 on failure
  */
 BT_HIDDEN
-int bin_info_init(bt_logging_level log_level);
+int bin_info_init(bt_logging_level log_level,
+		bt_self_component *self_comp);
 
 /**
  * Instantiate a structure representing an ELF executable, possibly
@@ -114,7 +118,7 @@ BT_HIDDEN
 struct bin_info *bin_info_create(struct bt_fd_cache *fdc, const char *path,
 		uint64_t low_addr, uint64_t memsz, bool is_pic,
 		const char *debug_info_dir, const char *target_prefix,
-		bt_logging_level log_level);
+		bt_logging_level log_level, bt_self_component *self_comp);
 
 /**
  * Destroy the given bin_info instance

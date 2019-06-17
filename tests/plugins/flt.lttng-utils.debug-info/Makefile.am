@@ -28,6 +28,7 @@ test_bin_info_LDADD = \
 	$(top_builddir)/src/fd-cache/libbabeltrace2-fd-cache.la \
 	$(top_builddir)/src/logging/libbabeltrace2-logging.la \
 	$(top_builddir)/src/common/libbabeltrace2-common.la \
+	$(top_builddir)/src/lib/libbabeltrace2.la \
 	$(ELFUTILS_LIBS) \
 	$(LIBTAP)
 test_bin_info_SOURCES = test_bin_info.c
