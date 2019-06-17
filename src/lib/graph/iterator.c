@@ -144,14 +144,14 @@ void bt_self_component_port_input_message_iterator_destroy(struct bt_object *obj
 		iterator->connection = NULL;
 	}
 
-	if (iterator->auto_seek_msgs) {
-		while (!g_queue_is_empty(iterator->auto_seek_msgs)) {
+	if (iterator->auto_seek.msgs) {
+		while (!g_queue_is_empty(iterator->auto_seek.msgs)) {
 			bt_object_put_no_null_check(
-				g_queue_pop_tail(iterator->auto_seek_msgs));
+				g_queue_pop_tail(iterator->auto_seek.msgs));
 		}
 
-		g_queue_free(iterator->auto_seek_msgs);
-		iterator->auto_seek_msgs = NULL;
+		g_queue_free(iterator->auto_seek.msgs);
+		iterator->auto_seek.msgs = NULL;
 	}
 
 	destroy_base_message_iterator(obj);
@@ -316,8 +316,8 @@ bt_self_component_port_input_message_iterator_create_initial(
 		goto end;
 	}
 
-	iterator->auto_seek_msgs = g_queue_new();
-	if (!iterator->auto_seek_msgs) {
+	iterator->auto_seek.msgs = g_queue_new();
+	if (!iterator->auto_seek.msgs) {
 		BT_LOGE_STR("Failed to allocate a GQueue.");
 		ret = -1;
 		goto end;
@@ -1141,7 +1141,7 @@ skip_msg:
 	goto end;
 
 push_msg:
-	g_queue_push_tail(iterator->auto_seek_msgs, (void *) msg);
+	g_queue_push_tail(iterator->auto_seek.msgs, (void *) msg);
 	msg = NULL;
 
 end:
@@ -1210,7 +1210,7 @@ enum bt_message_iterator_status find_message_ge_ns_from_origin(
 
 		for (i = 0; i < user_count; i++) {
 			if (got_first) {
-				g_queue_push_tail(iterator->auto_seek_msgs,
+				g_queue_push_tail(iterator->auto_seek.msgs,
 					(void *) messages[i]);
 				messages[i] = NULL;
 				continue;
@@ -1244,22 +1244,22 @@ enum bt_self_message_iterator_status post_auto_seek_next(
 		bt_message_array_const msgs, uint64_t capacity,
 		uint64_t *count)
 {
-	BT_ASSERT(!g_queue_is_empty(iterator->auto_seek_msgs));
+	BT_ASSERT(!g_queue_is_empty(iterator->auto_seek.msgs));
 	*count = 0;
 
 	/*
 	 * Move auto-seek messages to the output array (which is this
 	 * iterator's base message array).
 	 */
-	while (capacity > 0 && !g_queue_is_empty(iterator->auto_seek_msgs)) {
-		msgs[*count] = g_queue_pop_head(iterator->auto_seek_msgs);
+	while (capacity > 0 && !g_queue_is_empty(iterator->auto_seek.msgs)) {
+		msgs[*count] = g_queue_pop_head(iterator->auto_seek.msgs);
 		capacity--;
 		(*count)++;
 	}
 
 	BT_ASSERT(*count > 0);
 
-	if (g_queue_is_empty(iterator->auto_seek_msgs)) {
+	if (g_queue_is_empty(iterator->auto_seek.msgs)) {
 		/* No more auto-seek messages */
 		switch (iterator->upstream_component->class->type) {
 		case BT_COMPONENT_CLASS_TYPE_SOURCE:
@@ -1360,9 +1360,9 @@ bt_self_component_port_input_message_iterator_seek_ns_from_origin(
 		 * this point in the batch to this iterator's auto-seek
 		 * message queue.
 		 */
-		while (!g_queue_is_empty(iterator->auto_seek_msgs)) {
+		while (!g_queue_is_empty(iterator->auto_seek.msgs)) {
 			bt_object_put_no_null_check(
-				g_queue_pop_tail(iterator->auto_seek_msgs));
+				g_queue_pop_tail(iterator->auto_seek.msgs));
 		}
 
 		status = find_message_ge_ns_from_origin(iterator,
@@ -1376,7 +1376,7 @@ bt_self_component_port_input_message_iterator_seek_ns_from_origin(
 			 * method with a custom, temporary "next" method
 			 * which returns them.
 			 */
-			if (!g_queue_is_empty(iterator->auto_seek_msgs)) {
+			if (!g_queue_is_empty(iterator->auto_seek.msgs)) {
 				iterator->methods.next =
 					(bt_self_component_port_input_message_iterator_next_method)
 						post_auto_seek_next;

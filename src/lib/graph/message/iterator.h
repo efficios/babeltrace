@@ -112,7 +112,27 @@ struct bt_self_component_port_input_message_iterator {
 	} methods;
 
 	enum bt_self_component_port_input_message_iterator_state state;
-	GQueue *auto_seek_msgs;
+
+	/*
+	 * Data necessary for auto seek (the seek-to-beginning then fast-forward
+	 * seek strategy).
+	 */
+	struct {
+		/*
+		 * Queue of `const bt_message *` (owned by this queue).
+		 *
+		 * When fast-forwarding, we get the messages from upstream in
+		 * batches. Once we have found the first message with timestamp
+		 * greater or equal to the seek time, we put it and all of the
+		 * following message of the batch in this queue.  They will be
+		 * sent on the next "next" call on this iterator.
+		 *
+		 * The messages are in chronological order (i.e. the first to
+		 * send is the first of the queue).
+		 */
+		GQueue *msgs;
+	} auto_seek;
+
 	void *user_data;
 };
 
