@@ -3,8 +3,6 @@ SUBDIRS = common \
 	fs-sink \
 	lttng-live
 
-noinst_HEADERS = print.h
-
 plugindir = "$(PLUGINSDIR)"
 plugin_LTLIBRARIES = babeltrace-plugin-ctf.la
 
