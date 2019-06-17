@@ -239,14 +239,14 @@ class _UserMessageIterator(_MessageIterator):
 
         if packet.stream.cls.packets_have_beginning_default_clock_snapshot:
             if default_clock_snapshot is None:
-                raise ValueError("packet beginning messages in this stream must have a default clock snapshots")
+                raise ValueError("packet beginning messages in this stream must have a default clock snapshot")
 
             utils._check_uint64(default_clock_snapshot)
             ptr = native_bt.message_packet_beginning_create_with_default_clock_snapshot(
                 self._ptr, packet._ptr, default_clock_snapshot)
         else:
             if default_clock_snapshot is not None:
-                raise ValueError("packet beginning messages in this stream must not have a default clock snapshots")
+                raise ValueError("packet beginning messages in this stream must not have a default clock snapshot")
 
             ptr = native_bt.message_packet_beginning_create(self._ptr, packet._ptr)
 
@@ -260,14 +260,14 @@ class _UserMessageIterator(_MessageIterator):
 
         if packet.stream.cls.packets_have_end_default_clock_snapshot:
             if default_clock_snapshot is None:
-                raise ValueError("packet end messages in this stream must have a default clock snapshots")
+                raise ValueError("packet end messages in this stream must have a default clock snapshot")
 
             utils._check_uint64(default_clock_snapshot)
             ptr = native_bt.message_packet_end_create_with_default_clock_snapshot(
                 self._ptr, packet._ptr, default_clock_snapshot)
         else:
             if default_clock_snapshot is not None:
-                raise ValueError("packet end messages in this stream must not have a default clock snapshots")
+                raise ValueError("packet end messages in this stream must not have a default clock snapshot")
 
             ptr = native_bt.message_packet_end_create(self._ptr, packet._ptr)
 
