@@ -44,7 +44,8 @@ function expect_success()
 	"${BT_BIN}" "${TRACE_PATH}" "$@" 2>/dev/null > "${tmp_out}"
 	ok $? "trimmer: ${msg}: exit status"
 	num_events=$(wc -l < "${tmp_out}")
-	is "${num_events}" "${expected_num_events}" "trimmer: ${msg}: number of events (${expected_num_events})"
+	# Use bash parameter expansion to strip spaces added by BSD 'wc' on macOs and Solaris
+	is "${num_events// /}" "${expected_num_events}" "trimmer: ${msg}: number of events (${expected_num_events})"
 }
 
 expect_success 18 "--begin, GMT relative timestamps" \
