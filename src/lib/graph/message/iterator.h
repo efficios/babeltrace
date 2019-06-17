@@ -131,6 +131,14 @@ struct bt_self_component_port_input_message_iterator {
 		 * send is the first of the queue).
 		 */
 		GQueue *msgs;
+
+		/*
+		 * After auto-seeking, we replace the iterator's `next` callback
+		 * with our own, which returns the contents of the `msgs` queue.
+		 * This field is where we save the original callback, so we can
+		 * restore it.
+		 */
+		void *original_next_callback;
 	} auto_seek;
 
 	void *user_data;

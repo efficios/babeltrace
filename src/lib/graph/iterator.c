@@ -1260,31 +1260,10 @@ enum bt_self_message_iterator_status post_auto_seek_next(
 	BT_ASSERT(*count > 0);
 
 	if (g_queue_is_empty(iterator->auto_seek.msgs)) {
-		/* No more auto-seek messages */
-		switch (iterator->upstream_component->class->type) {
-		case BT_COMPONENT_CLASS_TYPE_SOURCE:
-		{
-			struct bt_component_class_source *src_comp_cls =
-				(void *) iterator->upstream_component->class;
-
-			iterator->methods.next =
-				(bt_self_component_port_input_message_iterator_next_method)
-					src_comp_cls->methods.msg_iter_next;
-			break;
-		}
-		case BT_COMPONENT_CLASS_TYPE_FILTER:
-		{
-			struct bt_component_class_filter *flt_comp_cls =
-				(void *) iterator->upstream_component->class;
-
-			iterator->methods.next =
-				(bt_self_component_port_input_message_iterator_next_method)
-					flt_comp_cls->methods.msg_iter_next;
-			break;
-		}
-		default:
-			abort();
-		}
+		/* No more auto-seek messages, restore user's next callback. */
+		BT_ASSERT(iterator->auto_seek.original_next_callback);
+		iterator->methods.next = iterator->auto_seek.original_next_callback;
+		iterator->auto_seek.original_next_callback = NULL;
 	}
 
 	return BT_SELF_MESSAGE_ITERATOR_STATUS_OK;
@@ -1377,6 +1356,9 @@ bt_self_component_port_input_message_iterator_seek_ns_from_origin(
 			 * which returns them.
 			 */
 			if (!g_queue_is_empty(iterator->auto_seek.msgs)) {
+				BT_ASSERT(!iterator->auto_seek.original_next_callback);
+				iterator->auto_seek.original_next_callback = iterator->methods.next;
+
 				iterator->methods.next =
 					(bt_self_component_port_input_message_iterator_next_method)
 						post_auto_seek_next;
