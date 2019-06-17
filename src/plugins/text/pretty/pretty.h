@@ -92,19 +92,6 @@ struct pretty_component {
 	bool negative_timestamp_warning_done;
 };
 
-enum stream_packet_context_quarks_enum {
-	Q_TIMESTAMP_BEGIN,
-	Q_TIMESTAMP_END,
-	Q_EVENTS_DISCARDED,
-	Q_CONTENT_SIZE,
-	Q_PACKET_SIZE,
-	Q_PACKET_SEQ_NUM,
-	STREAM_PACKET_CONTEXT_QUARKS_LEN, /* Always the last one of this enum. */
-};
-
-extern
-GQuark stream_packet_context_quarks[STREAM_PACKET_CONTEXT_QUARKS_LEN];
-
 BT_HIDDEN
 bt_component_class_init_method_status pretty_init(
 		bt_self_component_sink *component, const bt_value *params,
