@@ -552,7 +552,8 @@ int print_integer(struct pretty_component *pretty,
 		bt_common_g_string_append(pretty->string, "0b");
 		_bt_safe_lshift(v.u, 64 - len);
 		for (bitnr = 0; bitnr < len; bitnr++) {
-			bt_common_g_string_append_printf(pretty->string, "%u", (v.u & (1ULL << 63)) ? 1 : 0);
+			bt_common_g_string_append_c(pretty->string,
+						(v.u & (1ULL << 63)) ? '1' : '0');
 			_bt_safe_lshift(v.u, 1);
 		}
 		break;
