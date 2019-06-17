@@ -277,7 +277,8 @@ struct bt_bfcr_cbs {
  * @returns		New binary class reader on success, or \c NULL on error
  */
 BT_HIDDEN
-struct bt_bfcr *bt_bfcr_create(struct bt_bfcr_cbs cbs, void *data);
+struct bt_bfcr *bt_bfcr_create(struct bt_bfcr_cbs cbs, void *data,
+		bt_logging_level log_level);
 
 /**
  * Destroys a CTF binary class reader, freeing all internal resources.
