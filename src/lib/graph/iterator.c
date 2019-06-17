@@ -323,6 +323,8 @@ bt_self_component_port_input_message_iterator_create_initial(
 		goto end;
 	}
 
+	iterator->last_ns_from_origin = INT64_MIN;
+
 	iterator->auto_seek.msgs = g_queue_new();
 	if (!iterator->auto_seek.msgs) {
 		BT_LOGE_STR("Failed to allocate a GQueue.");
@@ -528,6 +530,289 @@ void bt_self_message_iterator_set_data(
 		"%!+i, user-data-addr=%p", iterator, data);
 }
 
+/*
+ * Validate that the default clock snapshot in `msg` doesn't make us go back in
+ * time.
+ */
+
+BT_ASSERT_PRE_FUNC
+static
+bool clock_snapshots_are_monotonic_one(
+		struct bt_self_component_port_input_message_iterator *iterator,
+		const bt_message *msg)
+{
+	const struct bt_clock_snapshot *clock_snapshot = NULL;
+	bt_message_type message_type = bt_message_get_type(msg);
+	int64_t ns_from_origin;
+	enum bt_clock_snapshot_status clock_snapshot_status;
+
+	/*
+	 * The default is true: if we can't figure out the clock snapshot
+	 * (or there is none), assume it is fine.
+	 */
+	bool result = true;
+
+	switch (message_type) {
+	case BT_MESSAGE_TYPE_EVENT:
+	{
+		struct bt_message_event *event_msg = (struct bt_message_event *) msg;
+		clock_snapshot = event_msg->default_cs;
+		break;
+	}
+	case BT_MESSAGE_TYPE_MESSAGE_ITERATOR_INACTIVITY:
+	{
+		struct bt_message_message_iterator_inactivity *inactivity_msg =
+			(struct bt_message_message_iterator_inactivity *) msg;
+		clock_snapshot = inactivity_msg->default_cs;
+		break;
+	}
+	case BT_MESSAGE_TYPE_PACKET_BEGINNING:
+	case BT_MESSAGE_TYPE_PACKET_END:
+	{
+		struct bt_message_packet *packet_msg = (struct bt_message_packet *) msg;
+		clock_snapshot = packet_msg->default_cs;
+		break;
+	}
+	case BT_MESSAGE_TYPE_STREAM_ACTIVITY_BEGINNING:
+	case BT_MESSAGE_TYPE_STREAM_ACTIVITY_END:
+	{
+		struct bt_message_stream_activity *str_act_msg =
+			(struct bt_message_stream_activity *) msg;
+
+		if (str_act_msg->default_cs_state == BT_MESSAGE_STREAM_ACTIVITY_CLOCK_SNAPSHOT_STATE_KNOWN) {
+			clock_snapshot = str_act_msg->default_cs;
+		}
+		break;
+	}
+	case BT_MESSAGE_TYPE_STREAM_BEGINNING:
+	case BT_MESSAGE_TYPE_STREAM_END:
+		/* These messages don't have clock snapshots. */
+		goto end;
+	case BT_MESSAGE_TYPE_DISCARDED_EVENTS:
+	case BT_MESSAGE_TYPE_DISCARDED_PACKETS:
+	{
+		struct bt_message_discarded_items *discarded_msg =
+			(struct bt_message_discarded_items *) msg;
+
+		clock_snapshot = discarded_msg->default_begin_cs;
+		break;
+	}
+	}
+
+	if (!clock_snapshot) {
+		goto end;
+	}
+
+	clock_snapshot_status = bt_clock_snapshot_get_ns_from_origin(clock_snapshot, &ns_from_origin);
+	if (clock_snapshot_status != BT_CLOCK_SNAPSHOT_STATUS_OK) {
+		goto end;
+	}
+
+	result = ns_from_origin >= iterator->last_ns_from_origin;
+	iterator->last_ns_from_origin = ns_from_origin;
+end:
+	return result;
+}
+
+BT_ASSERT_PRE_FUNC
+static
+bool clock_snapshots_are_monotonic(
+		struct bt_self_component_port_input_message_iterator *iterator,
+		bt_message_array_const msgs, uint64_t msg_count)
+{
+	uint64_t i;
+	bool result;
+
+	for (i = 0; i < msg_count; i++) {
+		if (!clock_snapshots_are_monotonic_one(iterator, msgs[i])) {
+			result = false;
+			goto end;
+		}
+	}
+
+	result = true;
+
+end:
+	return result;
+}
+
+/*
+ * When a new stream begins, verify that the clock class tied to this
+ * stream is compatible with what we've seen before.
+ */
+
+BT_ASSERT_PRE_FUNC
+static
+bool clock_classes_are_compatible_one(struct bt_self_component_port_input_message_iterator *iterator,
+		const struct bt_message *msg)
+{
+	enum bt_message_type message_type = bt_message_get_type(msg);
+	bool result;
+
+	if (message_type == BT_MESSAGE_TYPE_STREAM_BEGINNING) {
+		const struct bt_message_stream *stream_msg = (struct bt_message_stream *) msg;
+		const struct bt_clock_class *clock_class = stream_msg->stream->class->default_clock_class;
+		bt_uuid clock_class_uuid = NULL;
+
+		if (clock_class) {
+			clock_class_uuid = bt_clock_class_get_uuid(clock_class);
+		}
+
+		switch (iterator->clock_expectation.type) {
+		case CLOCK_EXPECTATION_UNSET:
+			/*
+			 * This is the first time we see a message with a clock
+			 * snapshot: record the properties of that clock, against
+			 * which we'll compare the clock properties of the following
+			 * messages.
+			 */
+
+			if (!clock_class) {
+				iterator->clock_expectation.type = CLOCK_EXPECTATION_NONE;
+			} else if (bt_clock_class_origin_is_unix_epoch(clock_class)) {
+				iterator->clock_expectation.type = CLOCK_EXPECTATION_ORIGIN_UNIX;
+			} else if (clock_class_uuid) {
+				iterator->clock_expectation.type = CLOCK_EXPECTATION_ORIGIN_OTHER_UUID;
+				memcpy(iterator->clock_expectation.uuid, clock_class_uuid, BABELTRACE_UUID_LEN);
+			} else {
+				iterator->clock_expectation.type = CLOCK_EXPECTATION_ORIGIN_OTHER_NO_UUID;
+			}
+			break;
+
+		case CLOCK_EXPECTATION_NONE:
+			if (clock_class) {
+				BT_ASSERT_PRE_MSG("Expecting no clock class, got one: %![cc-]+K",
+					clock_class);
+				result = false;
+				goto end;
+			}
+
+			break;
+
+		case CLOCK_EXPECTATION_ORIGIN_UNIX:
+			if (!clock_class) {
+				BT_ASSERT_PRE_MSG("Expecting a clock class, got none.");
+				result = false;
+				goto end;
+			}
+
+			if (!bt_clock_class_origin_is_unix_epoch(clock_class)) {
+				BT_ASSERT_PRE_MSG("Expecting a clock class with Unix epoch origin: %![cc-]+K",
+					clock_class);
+				result = false;
+				goto end;
+			}
+			break;
+
+		case CLOCK_EXPECTATION_ORIGIN_OTHER_UUID:
+			if (!clock_class) {
+				BT_ASSERT_PRE_MSG("Expecting a clock class, got none.");
+				result = false;
+				goto end;
+			}
+
+			if (bt_clock_class_origin_is_unix_epoch(clock_class)) {
+				BT_ASSERT_PRE_MSG("Expecting a clock class without Unix epoch origin: %![cc-]+K",
+					clock_class);
+				result = false;
+				goto end;
+			}
+
+			if (!clock_class_uuid) {
+				BT_ASSERT_PRE_MSG("Expecting a clock class with UUID: %![cc-]+K",
+					clock_class);
+				result = false;
+				goto end;
+			}
+
+			if (bt_uuid_compare(iterator->clock_expectation.uuid, clock_class_uuid)) {
+				BT_ASSERT_PRE_MSG("Expecting a clock class with UUID, got one "
+					"with a different UUID: %![cc-]+K, expected-uuid=%!u",
+					clock_class, iterator->clock_expectation.uuid);
+				result = false;
+				goto end;
+			}
+			break;
+
+		case CLOCK_EXPECTATION_ORIGIN_OTHER_NO_UUID:
+			if (!clock_class) {
+				BT_ASSERT_PRE_MSG("Expecting a clock class, got none.");
+				result = false;
+				goto end;
+			}
+
+			if (bt_clock_class_origin_is_unix_epoch(clock_class)) {
+				BT_ASSERT_PRE_MSG("Expecting a clock class without Unix epoch origin: %![cc-]+K",
+					clock_class);
+				result = false;
+				goto end;
+			}
+
+			if (clock_class_uuid) {
+				BT_ASSERT_PRE_MSG("Expecting a clock class without UUID: %![cc-]+K",
+					clock_class);
+				result = false;
+				goto end;
+			}
+			break;
+		}
+	}
+
+	result = true;
+
+end:
+	return result;
+}
+
+BT_ASSERT_PRE_FUNC
+static
+bool clock_classes_are_compatible(
+		struct bt_self_component_port_input_message_iterator *iterator,
+		bt_message_array_const msgs, uint64_t msg_count)
+{
+	uint64_t i;
+	bool result;
+
+	for (i = 0; i < msg_count; i++) {
+		if (!clock_classes_are_compatible_one(iterator, msgs[i])) {
+			result = false;
+			goto end;
+		}
+	}
+
+	result = true;
+
+end:
+	return result;
+}
+
+/*
+ * Call the `next` method of the iterator.  Do some validation on the returned
+ * messages.
+ */
+
+static
+bt_message_iterator_status call_iterator_next_method(
+		struct bt_self_component_port_input_message_iterator *iterator,
+		bt_message_array_const msgs, uint64_t capacity, uint64_t *user_count)
+{
+	bt_message_iterator_status status;
+
+	BT_ASSERT(iterator->methods.next);
+	BT_LOGD_STR("Calling user's \"next\" method.");
+
+	status = iterator->methods.next(iterator, msgs, capacity, user_count);
+
+	if (status == BT_MESSAGE_ITERATOR_STATUS_OK) {
+		BT_ASSERT_PRE(clock_classes_are_compatible(iterator, msgs, *user_count),
+			"Clocks are not compatible");
+		BT_ASSERT_PRE(clock_snapshots_are_monotonic(iterator, msgs, *user_count),
+			"Clock snapshots are not monotonic");
+	}
+
+	return status;
+}
+
 enum bt_message_iterator_status
 bt_self_component_port_input_message_iterator_next(
 		struct bt_self_component_port_input_message_iterator *iterator,
@@ -557,10 +842,8 @@ bt_self_component_port_input_message_iterator_next(
 	 * Call the user's "next" method to get the next messages
 	 * and status.
 	 */
-	BT_ASSERT(iterator->methods.next);
-	BT_LOGD_STR("Calling user's \"next\" method.");
 	*user_count = 0;
-	status = iterator->methods.next(iterator,
+	status = call_iterator_next_method(iterator,
 		(void *) iterator->base.msgs->pdata, MSG_BATCH_SIZE,
 		user_count);
 	BT_LOGD("User method returned: status=%s, msg-count=%" PRIu64,
@@ -922,6 +1205,14 @@ void set_iterator_state_after_seeking(
 	set_self_comp_port_input_msg_iterator_state(iterator, new_state);
 }
 
+static
+void reset_iterator_expectations(
+		struct bt_self_component_port_input_message_iterator *iterator)
+{
+	iterator->last_ns_from_origin = INT64_MIN;
+	iterator->clock_expectation.type = CLOCK_EXPECTATION_UNSET;
+}
+
 enum bt_message_iterator_status
 bt_self_component_port_input_message_iterator_seek_beginning(
 		struct bt_self_component_port_input_message_iterator *iterator)
@@ -939,6 +1230,13 @@ bt_self_component_port_input_message_iterator_seek_beginning(
 		bt_self_component_port_input_message_iterator_can_seek_beginning(
 			iterator),
 		"Message iterator cannot seek beginning: %!+i", iterator);
+
+	/*
+	 * We are seeking, reset our expectations about how the following
+	 * messages should look like.
+	 */
+	reset_iterator_expectations(iterator);
+
 	BT_LIB_LOGD("Calling user's \"seek beginning\" method: %!+i", iterator);
 	set_self_comp_port_input_msg_iterator_state(iterator,
 		BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_STATE_SEEKING);
@@ -1358,8 +1656,7 @@ enum bt_message_iterator_status find_message_ge_ns_from_origin(
 		 * Call the user's "next" method to get the next
 		 * messages and status.
 		 */
-		BT_LOGD_STR("Calling user's \"next\" method.");
-		status = iterator->methods.next(iterator,
+		status = call_iterator_next_method(iterator,
 			&messages[0], MSG_BATCH_SIZE, &user_count);
 		BT_LOGD("User method returned: status=%s",
 			bt_message_iterator_status_string(status));
@@ -1492,6 +1789,12 @@ bt_self_component_port_input_message_iterator_seek_ns_from_origin(
 		"ns-from-origin=%" PRId64, iterator, ns_from_origin);
 	set_self_comp_port_input_msg_iterator_state(iterator,
 		BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_STATE_SEEKING);
+
+	/*
+	 * We are seeking, reset our expectations about how the following
+	 * messages should look like.
+	 */
+	reset_iterator_expectations(iterator);
 
 	if (iterator->methods.seek_ns_from_origin) {
 		/* The iterator knows how to seek to a particular time, let it handle this. */
@@ -1662,6 +1965,12 @@ bt_self_component_port_input_message_iterator_seek_ns_from_origin(
 			abort();
 		}
 	}
+
+	/*
+	 * The following messages returned by the next method (including
+	 * post_auto_seek_next) must be after (or at) `ns_from_origin`.
+	 */
+	iterator->last_ns_from_origin = ns_from_origin;
 
 end:
 	if (stream_states) {
