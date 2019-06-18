@@ -4,8 +4,6 @@ libbabeltrace2_plugin_ctf_fs_sink_la_LIBADD =
 libbabeltrace2_plugin_ctf_fs_sink_la_SOURCES = \
 	fs-sink.c \
 	fs-sink.h \
-	logging.c \
-	logging.h \
 	fs-sink-ctf-meta.h \
 	translate-trace-ir-to-ctf-ir.c \
 	translate-trace-ir-to-ctf-ir.h \

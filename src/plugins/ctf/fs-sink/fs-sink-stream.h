@@ -35,6 +35,7 @@
 struct fs_sink_trace;
 
 struct fs_sink_stream {
+	bt_logging_level log_level;
 	struct fs_sink_trace *trace;
 	struct bt_ctfser ctfser;
 

@@ -20,8 +20,9 @@
  * SOFTWARE.
  */
 
+#define BT_LOG_OUTPUT_LEVEL (trace->log_level)
 #define BT_LOG_TAG "PLUGIN/SINK.CTF.FS/TRACE"
-#include "logging.h"
+#include "logging/log.h"
 
 #include <babeltrace2/babeltrace.h>
 #include <stdio.h>
@@ -137,7 +138,8 @@ GString *make_unique_trace_path(const char *path)
  */
 
 static
-int lttng_validate_datetime(const char *datetime)
+int lttng_validate_datetime(const struct fs_sink_trace *trace,
+		const char *datetime)
 {
 	GTimeVal tv;
 	int ret = -1;
@@ -160,7 +162,8 @@ end:
 }
 
 static
-int append_lttng_trace_path_ust_uid(GString *path, const bt_trace_class *tc)
+int append_lttng_trace_path_ust_uid(const struct fs_sink_trace *trace,
+		GString *path, const bt_trace_class *tc)
 {
 	const bt_value *v;
 	int ret;
@@ -194,7 +197,8 @@ end:
 }
 
 static
-int append_lttng_trace_path_ust_pid(GString *path, const bt_trace_class *tc)
+int append_lttng_trace_path_ust_pid(const struct fs_sink_trace *trace,
+		GString *path, const bt_trace_class *tc)
 {
 	const bt_value *v;
 	const char *datetime;
@@ -224,7 +228,7 @@ int append_lttng_trace_path_ust_pid(GString *path, const bt_trace_class *tc)
 
 	datetime = bt_value_string_get(v);
 
-	if (lttng_validate_datetime(datetime)) {
+	if (lttng_validate_datetime(trace, datetime)) {
 		goto error;
 	}
 
@@ -320,7 +324,7 @@ GString *make_lttng_trace_path_rel(const struct fs_sink_trace *trace)
 
 	datetime = bt_value_string_get(v);
 
-	if (lttng_validate_datetime(datetime)) {
+	if (lttng_validate_datetime(trace, datetime)) {
 		goto error;
 	}
 
@@ -348,11 +352,11 @@ GString *make_lttng_trace_path_rel(const struct fs_sink_trace *trace)
 		g_string_append_printf(path, G_DIR_SEPARATOR_S "%s", tracer_buffering_scheme);
 
 		if (g_str_equal(tracer_buffering_scheme, "uid")) {
-			if (append_lttng_trace_path_ust_uid(path, tc)) {
+			if (append_lttng_trace_path_ust_uid(trace, path, tc)) {
 				goto error;
 			}
 		} else if (g_str_equal(tracer_buffering_scheme, "pid")){
-			if (append_lttng_trace_path_ust_pid(path, tc)) {
+			if (append_lttng_trace_path_ust_pid(trace, path, tc)) {
 				goto error;
 			}
 		} else {
@@ -567,11 +571,13 @@ struct fs_sink_trace *fs_sink_trace_create(struct fs_sink_comp *fs_sink,
 		goto end;
 	}
 
+	trace->log_level = fs_sink->log_level;
 	trace->fs_sink = fs_sink;
 	trace->ir_trace = ir_trace;
 	trace->ir_trace_destruction_listener_id = UINT64_C(-1);
 	trace->tc = translate_trace_class_trace_ir_to_ctf_ir(
-		bt_trace_borrow_class_const(ir_trace));
+		bt_trace_borrow_class_const(ir_trace),
+		fs_sink->log_level);
 	if (!trace->tc) {
 		goto error;
 	}

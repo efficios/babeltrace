@@ -20,8 +20,9 @@
  * SOFTWARE.
  */
 
+#define BT_LOG_OUTPUT_LEVEL (ctx->log_level)
 #define BT_LOG_TAG "PLUGIN/SINK.CTF.FS/TRANSLATE-TRACE-IR-TO-CTF-IR"
-#include "logging.h"
+#include "logging/log.h"
 
 #include <babeltrace2/babeltrace.h>
 #include "common/macros.h"
@@ -46,6 +47,8 @@ struct field_path_elem {
 };
 
 struct ctx {
+	bt_logging_level log_level;
+
 	/* Weak */
 	struct fs_sink_ctf_stream_class *cur_sc;
 
@@ -1027,12 +1030,13 @@ end:
 }
 
 static inline
-void ctx_init(struct ctx *ctx)
+void ctx_init(struct ctx *ctx, bt_logging_level log_level)
 {
 	memset(ctx, 0, sizeof(struct ctx));
 	ctx->cur_path = g_array_new(FALSE, TRUE,
 		sizeof(struct field_path_elem));
 	BT_ASSERT(ctx->cur_path);
+	ctx->log_level = log_level;
 }
 
 static inline
@@ -1047,7 +1051,8 @@ void ctx_fini(struct ctx *ctx)
 static
 int translate_event_class(struct fs_sink_ctf_stream_class *sc,
 		const bt_event_class *ir_ec,
-		struct fs_sink_ctf_event_class **out_ec)
+		struct fs_sink_ctf_event_class **out_ec,
+		bt_logging_level log_level)
 {
 	int ret = 0;
 	struct ctx ctx;
@@ -1056,7 +1061,7 @@ int translate_event_class(struct fs_sink_ctf_stream_class *sc,
 	BT_ASSERT(sc);
 	BT_ASSERT(ir_ec);
 
-	ctx_init(&ctx);
+	ctx_init(&ctx, log_level);
 	ec = fs_sink_ctf_event_class_create(sc, ir_ec);
 	BT_ASSERT(ec);
 	ctx.cur_sc = sc;
@@ -1086,7 +1091,8 @@ BT_HIDDEN
 int try_translate_event_class_trace_ir_to_ctf_ir(
 		struct fs_sink_ctf_stream_class *sc,
 		const bt_event_class *ir_ec,
-		struct fs_sink_ctf_event_class **out_ec)
+		struct fs_sink_ctf_event_class **out_ec,
+		bt_logging_level log_level)
 {
 	int ret = 0;
 
@@ -1099,7 +1105,7 @@ int try_translate_event_class_trace_ir_to_ctf_ir(
 		goto end;
 	}
 
-	ret = translate_event_class(sc, ir_ec, out_ec);
+	ret = translate_event_class(sc, ir_ec, out_ec, log_level);
 
 end:
 	return ret;
@@ -1150,14 +1156,15 @@ void make_unique_default_clock_class_name(struct fs_sink_ctf_stream_class *sc)
 static
 int translate_stream_class(struct fs_sink_ctf_trace_class *tc,
 		const bt_stream_class *ir_sc,
-		struct fs_sink_ctf_stream_class **out_sc)
+		struct fs_sink_ctf_stream_class **out_sc,
+		bt_logging_level log_level)
 {
 	int ret = 0;
 	struct ctx ctx;
 
 	BT_ASSERT(tc);
 	BT_ASSERT(ir_sc);
-	ctx_init(&ctx);
+	ctx_init(&ctx, log_level);
 	*out_sc = fs_sink_ctf_stream_class_create(tc, ir_sc);
 	BT_ASSERT(*out_sc);
 
@@ -1224,7 +1231,8 @@ BT_HIDDEN
 int try_translate_stream_class_trace_ir_to_ctf_ir(
 		struct fs_sink_ctf_trace_class *tc,
 		const bt_stream_class *ir_sc,
-		struct fs_sink_ctf_stream_class **out_sc)
+		struct fs_sink_ctf_stream_class **out_sc,
+		bt_logging_level log_level)
 {
 	int ret = 0;
 	uint64_t i;
@@ -1240,7 +1248,7 @@ int try_translate_stream_class_trace_ir_to_ctf_ir(
 		}
 	}
 
-	ret = translate_stream_class(tc, ir_sc, out_sc);
+	ret = translate_stream_class(tc, ir_sc, out_sc, log_level);
 
 end:
 	return ret;
@@ -1248,7 +1256,7 @@ end:
 
 BT_HIDDEN
 struct fs_sink_ctf_trace_class *translate_trace_class_trace_ir_to_ctf_ir(
-		const bt_trace_class *ir_tc)
+		const bt_trace_class *ir_tc, bt_logging_level log_level)
 {
 	uint64_t count;
 	uint64_t i;
@@ -1264,7 +1272,9 @@ struct fs_sink_ctf_trace_class *translate_trace_class_trace_ir_to_ctf_ir(
 			ir_tc, i, &name, &val);
 
 		if (!fs_sink_ctf_ist_valid_identifier(name)) {
-			BT_LOGE("Unsupported trace class's environment entry name: "
+			BT_LOG_WRITE_CUR_LVL(BT_LOG_ERROR, log_level,
+				BT_LOG_TAG,
+				"Unsupported trace class's environment entry name: "
 				"name=\"%s\"", name);
 			goto end;
 		}
@@ -1274,7 +1284,9 @@ struct fs_sink_ctf_trace_class *translate_trace_class_trace_ir_to_ctf_ir(
 		case BT_VALUE_TYPE_STRING:
 			break;
 		default:
-			BT_LOGE("Unsupported trace class's environment entry value type: "
+			BT_LOG_WRITE_CUR_LVL(BT_LOG_ERROR, log_level,
+				BT_LOG_TAG,
+				"Unsupported trace class's environment entry value type: "
 				"type=%s",
 				bt_common_value_type_string(
 					bt_value_get_type(val)));

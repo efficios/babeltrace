@@ -20,8 +20,9 @@
  * SOFTWARE.
  */
 
+#define BT_LOG_OUTPUT_LEVEL (stream->log_level)
 #define BT_LOG_TAG "PLUGIN/SINK.CTF.FS/STREAM"
-#include "logging.h"
+#include "logging/log.h"
 
 #include <babeltrace2/babeltrace.h>
 #include <stdio.h>
@@ -153,6 +154,7 @@ struct fs_sink_stream *fs_sink_stream_create(struct fs_sink_trace *trace,
 		goto end;
 	}
 
+	stream->log_level = trace->log_level;
 	stream->trace = trace;
 	stream->ir_stream = ir_stream;
 	stream->packet_state.beginning_cs = UINT64_C(-1);
@@ -161,14 +163,16 @@ struct fs_sink_stream *fs_sink_stream_create(struct fs_sink_trace *trace,
 	stream->prev_packet_state.discarded_events_counter = UINT64_C(-1);
 	stream->prev_packet_state.seq_num = UINT64_C(-1);
 	ret = try_translate_stream_class_trace_ir_to_ctf_ir(trace->tc,
-		bt_stream_borrow_class_const(ir_stream), &stream->sc);
+		bt_stream_borrow_class_const(ir_stream), &stream->sc,
+		stream->log_level);
 	if (ret) {
 		goto error;
 	}
 
 	set_stream_file_name(stream);
 	g_string_append_printf(path, "/%s", stream->file_name->str);
-	ret = bt_ctfser_init(&stream->ctfser, path->str, BT_LOG_OUTPUT_LEVEL);
+	ret = bt_ctfser_init(&stream->ctfser, path->str,
+		stream->log_level);
 	if (ret) {
 		goto error;
 	}

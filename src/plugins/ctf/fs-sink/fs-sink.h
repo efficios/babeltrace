@@ -29,6 +29,7 @@
 #include <glib.h>
 
 struct fs_sink_comp {
+	bt_logging_level log_level;
 	bt_self_component_sink *self_comp;
 
 	/* Owned by this */
