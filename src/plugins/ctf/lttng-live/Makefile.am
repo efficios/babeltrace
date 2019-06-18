@@ -7,9 +7,7 @@ libbabeltrace2_plugin_ctf_lttng_live_la_SOURCES = \
 		metadata.h \
 		viewer-connection.c \
 		viewer-connection.h \
-		lttng-viewer-abi.h \
-		logging.c \
-		logging.h
+		lttng-viewer-abi.h
 
 if BABELTRACE_BUILD_WITH_MINGW
 libbabeltrace2_plugin_ctf_lttng_live_la_LIBADD = -lws2_32

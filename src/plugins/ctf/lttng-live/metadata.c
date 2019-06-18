@@ -24,8 +24,9 @@
  * SOFTWARE.
  */
 
+#define BT_LOG_OUTPUT_LEVEL log_level
 #define BT_LOG_TAG "PLUGIN/SRC.CTF.LTTNG-LIVE/META"
-#include "logging.h"
+#include "logging/log.h"
 
 #include <stdio.h>
 #include <stdint.h>
@@ -55,7 +56,8 @@ struct packet_header {
 
 
 static
-bool stream_classes_all_have_default_clock_class(bt_trace_class *tc)
+bool stream_classes_all_have_default_clock_class(bt_trace_class *tc,
+		bt_logging_level log_level)
 {
 	uint64_t i, sc_count;
 	const bt_clock_class *cc = NULL;
@@ -124,6 +126,7 @@ enum lttng_live_iterator_status lttng_live_metadata_update(
 	enum ctf_metadata_decoder_status decoder_status;
 	enum lttng_live_iterator_status status =
 		LTTNG_LIVE_ITERATOR_STATUS_OK;
+	bt_logging_level log_level = trace->log_level;
 
 	/* No metadata stream yet. */
 	if (!metadata) {
@@ -223,7 +226,7 @@ enum lttng_live_iterator_status lttng_live_metadata_update(
 						metadata->decoder);
 			trace->trace = bt_trace_create(trace->trace_class);
 			if (!stream_classes_all_have_default_clock_class(
-					trace->trace_class)) {
+					trace->trace_class, log_level)) {
 				/* Error logged in function. */
 				goto error;
 			}
@@ -270,7 +273,7 @@ int lttng_live_metadata_create_stream(struct lttng_live_session *session,
 	struct lttng_live_trace *trace;
 	const char *match;
 	struct ctf_metadata_decoder_config cfg = {
-		.log_level = BT_LOG_OUTPUT_LEVEL,
+		.log_level = session->log_level,
 		.clock_class_offset_s = 0,
 		.clock_class_offset_ns = 0,
 	};
@@ -279,6 +282,7 @@ int lttng_live_metadata_create_stream(struct lttng_live_session *session,
 	if (!metadata) {
 		return -1;
 	}
+	metadata->log_level = session->log_level;
 	metadata->stream_id = stream_id;
 
 	match = strstr(trace_name, session->session_name->str);
