@@ -278,7 +278,7 @@ struct bt_bfcr_cbs {
  */
 BT_HIDDEN
 struct bt_bfcr *bt_bfcr_create(struct bt_bfcr_cbs cbs, void *data,
-		bt_logging_level log_level);
+		bt_logging_level log_level, bt_self_component *self_comp);
 
 /**
  * Destroys a CTF binary class reader, freeing all internal resources.
