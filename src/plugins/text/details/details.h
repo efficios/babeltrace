@@ -75,6 +75,7 @@ struct details_trace {
 /* A `sink.text.details` component */
 struct details_comp {
 	bt_logging_level log_level;
+	bt_self_component *self_comp;
 
 	/* Component's configuration */
 	struct {

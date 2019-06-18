@@ -20,9 +20,10 @@
  * SOFTWARE.
  */
 
+#define BT_COMP_LOG_SELF_COMP (details_comp->self_comp)
 #define BT_LOG_OUTPUT_LEVEL (details_comp->log_level)
 #define BT_LOG_TAG "PLUGIN/SINK.TEXT.DETAILS"
-#include "logging/log.h"
+#include "plugins/comp-logging.h"
 
 #include <babeltrace2/babeltrace.h>
 
@@ -33,7 +34,7 @@
 
 #define LOG_WRONG_PARAM_TYPE(_name, _value, _exp_type)			\
 	do {								\
-		BT_LOGE("Wrong `%s` parameter type: type=%s, "		\
+		BT_COMP_LOGE("Wrong `%s` parameter type: type=%s, "	\
 			"expected-type=%s",				\
 			(_name), bt_common_value_type_string(		\
 				bt_value_get_type(_value)),		\
@@ -195,6 +196,7 @@ struct details_comp *create_details_comp(
 
 	details_comp->log_level = bt_component_get_logging_level(
 		bt_self_component_as_component(self_comp));
+	details_comp->self_comp = self_comp;
 	details_comp->meta = g_hash_table_new_full(g_direct_hash,
 		g_direct_equal, NULL,
 		(GDestroyNotify) details_destroy_details_trace_class_meta);
@@ -288,7 +290,7 @@ int configure_details_comp(struct details_comp *details_comp,
 		} else if (strcmp(str, "always") == 0) {
 			details_comp->cfg.with_color = true;
 		} else {
-			BT_LOGE("Invalid `%s` parameter: unknown value "
+			BT_COMP_LOGE("Invalid `%s` parameter: unknown value "
 				"(expecting `never`, `auto`, or `always`): "
 				"value=\"%s\"", color_param_name, str);
 			goto error;
@@ -368,20 +370,20 @@ static
 void log_configuration(bt_self_component_sink *comp,
 		struct details_comp *details_comp)
 {
-	BT_LOGI("Configuration for `sink.text.details` component `%s`:",
+	BT_COMP_LOGI("Configuration for `sink.text.details` component `%s`:",
 		bt_component_get_name(bt_self_component_as_component(
 			bt_self_component_sink_as_self_component(comp))));
-	BT_LOGI("  Colorize output: %d", details_comp->cfg.with_color);
-	BT_LOGI("  Compact: %d", details_comp->cfg.compact);
-	BT_LOGI("  With metadata: %d", details_comp->cfg.with_meta);
-	BT_LOGI("  With time: %d", details_comp->cfg.with_time);
-	BT_LOGI("  With trace class name: %d",
+	BT_COMP_LOGI("  Colorize output: %d", details_comp->cfg.with_color);
+	BT_COMP_LOGI("  Compact: %d", details_comp->cfg.compact);
+	BT_COMP_LOGI("  With metadata: %d", details_comp->cfg.with_meta);
+	BT_COMP_LOGI("  With time: %d", details_comp->cfg.with_time);
+	BT_COMP_LOGI("  With trace class name: %d",
 		details_comp->cfg.with_trace_class_name);
-	BT_LOGI("  With trace name: %d", details_comp->cfg.with_trace_name);
-	BT_LOGI("  With stream class name: %d",
+	BT_COMP_LOGI("  With trace name: %d", details_comp->cfg.with_trace_name);
+	BT_COMP_LOGI("  With stream class name: %d",
 		details_comp->cfg.with_stream_class_name);
-	BT_LOGI("  With stream name: %d", details_comp->cfg.with_stream_name);
-	BT_LOGI("  With UUID: %d", details_comp->cfg.with_uuid);
+	BT_COMP_LOGI("  With stream name: %d", details_comp->cfg.with_stream_name);
+	BT_COMP_LOGI("  With UUID: %d", details_comp->cfg.with_uuid);
 }
 
 BT_HIDDEN
@@ -405,7 +407,7 @@ bt_self_component_status details_init(bt_self_component_sink *comp,
 	}
 
 	if (configure_details_comp(details_comp, params)) {
-		BT_LOGE_STR("Failed to configure component.");
+		BT_COMP_LOGE_STR("Failed to configure component.");
 		goto error;
 	}
 
@@ -441,7 +443,7 @@ bt_self_component_status details_graph_is_configured(
 		in_port_name);
 	if (!bt_port_is_connected(bt_port_input_as_port_const(
 			bt_self_component_port_input_as_port_input(in_port)))) {
-		BT_LOGE("Single input port is not connected: "
+		BT_COMP_LOGE("Single input port is not connected: "
 			"port-name=\"%s\"", in_port_name);
 		status = BT_SELF_COMPONENT_STATUS_ERROR;
 		goto end;
