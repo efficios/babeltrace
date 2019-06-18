@@ -35,6 +35,7 @@
 struct fs_sink_comp;
 
 struct fs_sink_trace {
+	bt_logging_level log_level;
 	struct fs_sink_comp *fs_sink;
 
 	/* Owned by this */

@@ -20,9 +20,6 @@
  * SOFTWARE.
  */
 
-#define BT_LOG_TAG "PLUGIN/SINK.CTF.FS/TRANSLATE-CTF-IR-TO-TSDL"
-#include "logging.h"
-
 #include <babeltrace2/babeltrace.h>
 #include "common/macros.h"
 #include <stdio.h>

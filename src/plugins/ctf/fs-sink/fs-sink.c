@@ -20,8 +20,9 @@
  * SOFTWARE.
  */
 
+#define BT_LOG_OUTPUT_LEVEL (fs_sink->log_level)
 #define BT_LOG_TAG "PLUGIN/SINK.CTF.FS"
-#include "logging.h"
+#include "logging/log.h"
 
 #include <babeltrace2/babeltrace.h>
 #include <stdio.h>
@@ -163,21 +164,27 @@ end:
 
 BT_HIDDEN
 bt_self_component_status ctf_fs_sink_init(
-		bt_self_component_sink *self_comp, const bt_value *params,
+		bt_self_component_sink *self_comp_sink, const bt_value *params,
 		void *init_method_data)
 {
 	bt_self_component_status status = BT_SELF_COMPONENT_STATUS_OK;
 	struct fs_sink_comp *fs_sink = NULL;
+	bt_self_component *self_comp =
+		bt_self_component_sink_as_self_component(self_comp_sink);
+	bt_logging_level log_level = bt_component_get_logging_level(
+		bt_self_component_as_component(self_comp));
 
 	fs_sink = g_new0(struct fs_sink_comp, 1);
 	if (!fs_sink) {
-		BT_LOGE_STR("Failed to allocate one CTF FS sink structure.");
+		BT_LOG_WRITE_CUR_LVL(BT_LOG_ERROR, log_level, BT_LOG_TAG,
+			"Failed to allocate one CTF FS sink structure.");
 		status = BT_SELF_COMPONENT_STATUS_NOMEM;
 		goto end;
 	}
 
+	fs_sink->log_level = log_level;
 	fs_sink->output_dir_path = g_string_new(NULL);
-	fs_sink->self_comp = self_comp;
+	fs_sink->self_comp = self_comp_sink;
 	status = configure_component(fs_sink, params);
 	if (status != BT_SELF_COMPONENT_STATUS_OK) {
 		/* configure_component() logs errors */
@@ -207,14 +214,13 @@ bt_self_component_status ctf_fs_sink_init(
 		goto end;
 	}
 
-	status = bt_self_component_sink_add_input_port(self_comp, in_port_name,
-		NULL, NULL);
+	status = bt_self_component_sink_add_input_port(self_comp_sink,
+		in_port_name, NULL, NULL);
 	if (status != BT_SELF_COMPONENT_STATUS_OK) {
 		goto end;
 	}
 
-	bt_self_component_set_data(
-		bt_self_component_sink_as_self_component(self_comp), fs_sink);
+	bt_self_component_set_data(self_comp, fs_sink);
 
 end:
 	if (status != BT_SELF_COMPONENT_STATUS_OK) {
@@ -279,7 +285,8 @@ bt_self_component_status handle_event_msg(struct fs_sink_comp *fs_sink,
 	}
 
 	ret = try_translate_event_class_trace_ir_to_ctf_ir(stream->sc,
-		bt_event_borrow_class_const(ir_event), &ec);
+		bt_event_borrow_class_const(ir_event), &ec,
+		fs_sink->log_level);
 	if (ret) {
 		status = BT_SELF_COMPONENT_STATUS_ERROR;
 		goto end;
