@@ -23,9 +23,10 @@
  * SOFTWARE.
  */
 
+#define BT_COMP_LOG_SELF_COMP (bfcr->self_comp)
 #define BT_LOG_OUTPUT_LEVEL (bfcr->log_level)
 #define BT_LOG_TAG "PLUGIN/CTF/BFCR"
-#include "logging/log.h"
+#include "plugins/comp-logging.h"
 
 #include <stdlib.h>
 #include <stdint.h>
@@ -95,6 +96,9 @@ enum bfcr_state {
 /* Binary class reader */
 struct bt_bfcr {
 	bt_logging_level log_level;
+
+	/* Weak */
+	bt_self_component *self_comp;
 
 	/* BFCR stack */
 	struct stack *stack;
@@ -191,18 +195,18 @@ struct stack *stack_new(struct bt_bfcr *bfcr)
 
 	stack = g_new0(struct stack, 1);
 	if (!stack) {
-		BT_LOGE_STR("Failed to allocate one stack.");
+		BT_COMP_LOGE_STR("Failed to allocate one stack.");
 		goto error;
 	}
 
 	stack->bfcr = bfcr;
 	stack->entries = g_array_new(FALSE, TRUE, sizeof(struct stack_entry));
 	if (!stack->entries) {
-		BT_LOGE_STR("Failed to allocate a GArray.");
+		BT_COMP_LOGE_STR("Failed to allocate a GArray.");
 		goto error;
 	}
 
-	BT_LOGD("Created stack: addr=%p", stack);
+	BT_COMP_LOGD("Created stack: addr=%p", stack);
 	return stack;
 
 error:
@@ -220,7 +224,7 @@ void stack_destroy(struct stack *stack)
 	}
 
 	bfcr = stack->bfcr;
-	BT_LOGD("Destroying stack: addr=%p", stack);
+	BT_COMP_LOGD("Destroying stack: addr=%p", stack);
 
 	if (stack->entries) {
 		g_array_free(stack->entries, TRUE);
@@ -239,7 +243,7 @@ int stack_push(struct stack *stack, struct ctf_field_class *base_class,
 	BT_ASSERT(stack);
 	BT_ASSERT(base_class);
 	bfcr = stack->bfcr;
-	BT_LOGV("Pushing field class on stack: stack-addr=%p, "
+	BT_COMP_LOGV("Pushing field class on stack: stack-addr=%p, "
 		"fc-addr=%p, fc-type=%d, base-length=%zu, "
 		"stack-size-before=%zu, stack-size-after=%zu",
 		stack, base_class, base_class->type,
@@ -302,7 +306,7 @@ int stack_push_with_len(struct bt_bfcr *bfcr, struct ctf_field_class *base_class
 	int64_t length = get_compound_field_class_length(bfcr, base_class);
 
 	if (length < 0) {
-		BT_LOGW("Cannot get compound field class's field count: "
+		BT_COMP_LOGW("Cannot get compound field class's field count: "
 			"bfcr-addr=%p, fc-addr=%p, fc-type=%d",
 			bfcr, base_class, base_class->type);
 		ret = BT_BFCR_STATUS_ERROR;
@@ -330,7 +334,7 @@ void stack_pop(struct stack *stack)
 	BT_ASSERT(stack);
 	BT_ASSERT(stack_size(stack));
 	bfcr = stack->bfcr;
-	BT_LOGV("Popping from stack: "
+	BT_COMP_LOGV("Popping from stack: "
 		"stack-addr=%p, stack-size-before=%u, stack-size-after=%u",
 		stack, stack->entries->len, stack->entries->len - 1);
 	stack->size--;
@@ -367,7 +371,7 @@ size_t available_bits(struct bt_bfcr *bfcr)
 static inline
 void consume_bits(struct bt_bfcr *bfcr, size_t incr)
 {
-	BT_LOGV("Advancing cursor: bfcr-addr=%p, cur-before=%zu, cur-after=%zu",
+	BT_COMP_LOGV("Advancing cursor: bfcr-addr=%p, cur-before=%zu, cur-after=%zu",
 		bfcr, bfcr->buf.at, bfcr->buf.at + incr);
 	bfcr->buf.at += incr;
 }
@@ -475,7 +479,7 @@ void read_unsigned_bitfield(struct bt_bfcr *bfcr, const uint8_t *buf, size_t at,
 		abort();
 	}
 
-	BT_LOGV("Read unsigned bit array: cur=%zu, size=%u, "
+	BT_COMP_LOGV("Read unsigned bit array: cur=%zu, size=%u, "
 		"bo=%d, val=%" PRIu64, at, field_size, bo, *v);
 }
 
@@ -494,7 +498,7 @@ void read_signed_bitfield(struct bt_bfcr *bfcr, const uint8_t *buf, size_t at,
 		abort();
 	}
 
-	BT_LOGV("Read signed bit array: cur=%zu, size=%u, "
+	BT_COMP_LOGV("Read signed bit array: cur=%zu, size=%u, "
 		"bo=%d, val=%" PRId64, at, field_size, bo, *v);
 }
 
@@ -540,7 +544,7 @@ enum bt_bfcr_status validate_contiguous_bo(struct bt_bfcr *bfcr,
 
 end:
 	if (status < 0) {
-		BT_LOGW("Cannot read bit array: two different byte orders not at a byte boundary: "
+		BT_COMP_LOGW("Cannot read bit array: two different byte orders not at a byte boundary: "
 			"bfcr-addr=%p, last-bo=%d, next-bo=%d",
 			bfcr, bfcr->last_bo, next_bo);
 	}
@@ -593,17 +597,17 @@ enum bt_bfcr_status read_basic_float_and_call_cb(struct bt_bfcr *bfcr,
 		abort();
 	}
 
-	BT_LOGV("Read floating point number value: bfcr=%p, cur=%zu, val=%f",
+	BT_COMP_LOGV("Read floating point number value: bfcr=%p, cur=%zu, val=%f",
 		bfcr, at, dblval);
 
 	if (bfcr->user.cbs.classes.floating_point) {
-		BT_LOGV("Calling user function (floating point number).");
+		BT_COMP_LOGV("Calling user function (floating point number).");
 		status = bfcr->user.cbs.classes.floating_point(dblval,
 			bfcr->cur_basic_field_class, bfcr->user.data);
-		BT_LOGV("User function returned: status=%s",
+		BT_COMP_LOGV("User function returned: status=%s",
 			bt_bfcr_status_string(status));
 		if (status != BT_BFCR_STATUS_OK) {
-			BT_LOGW("User function failed: bfcr-addr=%p, status=%s",
+			BT_COMP_LOGW("User function failed: bfcr-addr=%p, status=%s",
 				bfcr, bt_bfcr_status_string(status));
 		}
 	}
@@ -636,13 +640,13 @@ enum bt_bfcr_status read_basic_int_and_call_cb(struct bt_bfcr *bfcr,
 		read_signed_bitfield(bfcr, buf, at, field_size, bo, &v);
 
 		if (bfcr->user.cbs.classes.signed_int) {
-			BT_LOGV("Calling user function (signed integer).");
+			BT_COMP_LOGV("Calling user function (signed integer).");
 			status = bfcr->user.cbs.classes.signed_int(v,
 				bfcr->cur_basic_field_class, bfcr->user.data);
-			BT_LOGV("User function returned: status=%s",
+			BT_COMP_LOGV("User function returned: status=%s",
 				bt_bfcr_status_string(status));
 			if (status != BT_BFCR_STATUS_OK) {
-				BT_LOGW("User function failed: "
+				BT_COMP_LOGW("User function failed: "
 					"bfcr-addr=%p, status=%s",
 					bfcr, bt_bfcr_status_string(status));
 			}
@@ -653,13 +657,13 @@ enum bt_bfcr_status read_basic_int_and_call_cb(struct bt_bfcr *bfcr,
 		read_unsigned_bitfield(bfcr, buf, at, field_size, bo, &v);
 
 		if (bfcr->user.cbs.classes.unsigned_int) {
-			BT_LOGV("Calling user function (unsigned integer).");
+			BT_COMP_LOGV("Calling user function (unsigned integer).");
 			status = bfcr->user.cbs.classes.unsigned_int(v,
 				bfcr->cur_basic_field_class, bfcr->user.data);
-			BT_LOGV("User function returned: status=%s",
+			BT_COMP_LOGV("User function returned: status=%s",
 				bt_bfcr_status_string(status));
 			if (status != BT_BFCR_STATUS_OK) {
-				BT_LOGW("User function failed: "
+				BT_COMP_LOGW("User function failed: "
 					"bfcr-addr=%p, status=%s",
 					bfcr, bt_bfcr_status_string(status));
 			}
@@ -680,14 +684,14 @@ enum bt_bfcr_status read_bit_array_class_and_call_continue(struct bt_bfcr *bfcr,
 		(void *) bfcr->cur_basic_field_class;
 
 	if (!at_least_one_bit_left(bfcr)) {
-		BT_LOGV("Reached end of data: bfcr-addr=%p", bfcr);
+		BT_COMP_LOGV("Reached end of data: bfcr-addr=%p", bfcr);
 		status = BT_BFCR_STATUS_EOF;
 		goto end;
 	}
 
 	available = available_bits(bfcr);
 	needed_bits = fc->size - bfcr->stitch.at;
-	BT_LOGV("Continuing basic field decoding: "
+	BT_COMP_LOGV("Continuing basic field decoding: "
 		"bfcr-addr=%p, field-size=%u, needed-size=%zu, "
 		"available-size=%zu",
 		bfcr, fc->size, needed_bits, available);
@@ -697,7 +701,7 @@ enum bt_bfcr_status read_bit_array_class_and_call_continue(struct bt_bfcr *bfcr,
 		status = read_basic_and_call_cb(bfcr, bfcr->stitch.buf,
 			bfcr->stitch.offset);
 		if (status != BT_BFCR_STATUS_OK) {
-			BT_LOGW("Cannot read basic field: "
+			BT_COMP_LOGW("Cannot read basic field: "
 				"bfcr-addr=%p, fc-addr=%p, status=%s",
 				bfcr, bfcr->cur_basic_field_class,
 				bt_bfcr_status_string(status));
@@ -717,7 +721,7 @@ enum bt_bfcr_status read_bit_array_class_and_call_continue(struct bt_bfcr *bfcr,
 	}
 
 	/* We are here; it means we don't have enough data to decode this */
-	BT_LOGV_STR("Not enough data to read the next basic field: appending to stitch buffer.");
+	BT_COMP_LOGV_STR("Not enough data to read the next basic field: appending to stitch buffer.");
 	stitch_append_from_remaining_buf(bfcr);
 	status = BT_BFCR_STATUS_EOF;
 
@@ -735,7 +739,7 @@ enum bt_bfcr_status read_bit_array_class_and_call_begin(struct bt_bfcr *bfcr,
 		(void *) bfcr->cur_basic_field_class;
 
 	if (!at_least_one_bit_left(bfcr)) {
-		BT_LOGV("Reached end of data: bfcr-addr=%p", bfcr);
+		BT_COMP_LOGV("Reached end of data: bfcr-addr=%p", bfcr);
 		status = BT_BFCR_STATUS_EOF;
 		goto end;
 	}
@@ -754,7 +758,7 @@ enum bt_bfcr_status read_bit_array_class_and_call_begin(struct bt_bfcr *bfcr,
 		status = read_basic_and_call_cb(bfcr, bfcr->buf.addr,
 			buf_at_from_addr(bfcr));
 		if (status != BT_BFCR_STATUS_OK) {
-			BT_LOGW("Cannot read basic field: "
+			BT_COMP_LOGW("Cannot read basic field: "
 				"bfcr-addr=%p, fc-addr=%p, status=%s",
 				bfcr, bfcr->cur_basic_field_class,
 				bt_bfcr_status_string(status));
@@ -777,7 +781,7 @@ enum bt_bfcr_status read_bit_array_class_and_call_begin(struct bt_bfcr *bfcr,
 	}
 
 	/* We are here; it means we don't have enough data to decode this */
-	BT_LOGV_STR("Not enough data to read the next basic field: setting stitch buffer.");
+	BT_COMP_LOGV_STR("Not enough data to read the next basic field: setting stitch buffer.");
 	stitch_set_from_remaining_buf(bfcr);
 	bfcr->state = BFCR_STATE_READ_BASIC_CONTINUE;
 	status = BT_BFCR_STATUS_EOF;
@@ -828,7 +832,7 @@ enum bt_bfcr_status read_basic_string_class_and_call(
 	enum bt_bfcr_status status = BT_BFCR_STATUS_OK;
 
 	if (!at_least_one_bit_left(bfcr)) {
-		BT_LOGV("Reached end of data: bfcr-addr=%p", bfcr);
+		BT_COMP_LOGV("Reached end of data: bfcr-addr=%p", bfcr);
 		status = BT_BFCR_STATUS_EOF;
 		goto end;
 	}
@@ -841,13 +845,13 @@ enum bt_bfcr_status read_basic_string_class_and_call(
 	result = memchr(first_chr, '\0', available_bytes);
 
 	if (begin && bfcr->user.cbs.classes.string_begin) {
-		BT_LOGV("Calling user function (string, beginning).");
+		BT_COMP_LOGV("Calling user function (string, beginning).");
 		status = bfcr->user.cbs.classes.string_begin(
 			bfcr->cur_basic_field_class, bfcr->user.data);
-		BT_LOGV("User function returned: status=%s",
+		BT_COMP_LOGV("User function returned: status=%s",
 			bt_bfcr_status_string(status));
 		if (status != BT_BFCR_STATUS_OK) {
-			BT_LOGW("User function failed: bfcr-addr=%p, status=%s",
+			BT_COMP_LOGW("User function failed: bfcr-addr=%p, status=%s",
 				bfcr, bt_bfcr_status_string(status));
 			goto end;
 		}
@@ -856,15 +860,15 @@ enum bt_bfcr_status read_basic_string_class_and_call(
 	if (!result) {
 		/* No null character yet */
 		if (bfcr->user.cbs.classes.string) {
-			BT_LOGV("Calling user function (substring).");
+			BT_COMP_LOGV("Calling user function (substring).");
 			status = bfcr->user.cbs.classes.string(
 				(const char *) first_chr,
 				available_bytes, bfcr->cur_basic_field_class,
 				bfcr->user.data);
-			BT_LOGV("User function returned: status=%s",
+			BT_COMP_LOGV("User function returned: status=%s",
 				bt_bfcr_status_string(status));
 			if (status != BT_BFCR_STATUS_OK) {
-				BT_LOGW("User function failed: "
+				BT_COMP_LOGW("User function failed: "
 					"bfcr-addr=%p, status=%s",
 					bfcr, bt_bfcr_status_string(status));
 				goto end;
@@ -879,15 +883,15 @@ enum bt_bfcr_status read_basic_string_class_and_call(
 		size_t result_len = (size_t) (result - first_chr);
 
 		if (bfcr->user.cbs.classes.string && result_len) {
-			BT_LOGV("Calling user function (substring).");
+			BT_COMP_LOGV("Calling user function (substring).");
 			status = bfcr->user.cbs.classes.string(
 				(const char *) first_chr,
 				result_len, bfcr->cur_basic_field_class,
 				bfcr->user.data);
-			BT_LOGV("User function returned: status=%s",
+			BT_COMP_LOGV("User function returned: status=%s",
 				bt_bfcr_status_string(status));
 			if (status != BT_BFCR_STATUS_OK) {
-				BT_LOGW("User function failed: "
+				BT_COMP_LOGW("User function failed: "
 					"bfcr-addr=%p, status=%s",
 					bfcr, bt_bfcr_status_string(status));
 				goto end;
@@ -895,13 +899,13 @@ enum bt_bfcr_status read_basic_string_class_and_call(
 		}
 
 		if (bfcr->user.cbs.classes.string_end) {
-			BT_LOGV("Calling user function (string, end).");
+			BT_COMP_LOGV("Calling user function (string, end).");
 			status = bfcr->user.cbs.classes.string_end(
 				bfcr->cur_basic_field_class, bfcr->user.data);
-			BT_LOGV("User function returned: status=%s",
+			BT_COMP_LOGV("User function returned: status=%s",
 				bt_bfcr_status_string(status));
 			if (status != BT_BFCR_STATUS_OK) {
-				BT_LOGW("User function failed: "
+				BT_COMP_LOGW("User function failed: "
 					"bfcr-addr=%p, status=%s",
 					bfcr, bt_bfcr_status_string(status));
 				goto end;
@@ -1027,7 +1031,7 @@ enum bt_bfcr_status align_class_state(struct bt_bfcr *bfcr,
 		goto end;
 	} else {
 		/* No: need more data */
-		BT_LOGV("Reached end of data when aligning: bfcr-addr=%p", bfcr);
+		BT_COMP_LOGV("Reached end of data when aligning: bfcr-addr=%p", bfcr);
 		status = BT_BFCR_STATUS_EOF;
 	}
 
@@ -1052,13 +1056,13 @@ enum bt_bfcr_status next_field_state(struct bt_bfcr *bfcr)
 	/* Are we done with this base class? */
 	while (top->index == top->base_len) {
 		if (bfcr->user.cbs.classes.compound_end) {
-			BT_LOGV("Calling user function (compound, end).");
+			BT_COMP_LOGV("Calling user function (compound, end).");
 			status = bfcr->user.cbs.classes.compound_end(
 				top->base_class, bfcr->user.data);
-			BT_LOGV("User function returned: status=%s",
+			BT_COMP_LOGV("User function returned: status=%s",
 				bt_bfcr_status_string(status));
 			if (status != BT_BFCR_STATUS_OK) {
-				BT_LOGW("User function failed: bfcr-addr=%p, status=%s",
+				BT_COMP_LOGW("User function failed: bfcr-addr=%p, status=%s",
 					bfcr, bt_bfcr_status_string(status));
 				goto end;
 			}
@@ -1102,7 +1106,7 @@ enum bt_bfcr_status next_field_state(struct bt_bfcr *bfcr)
 	}
 
 	if (!next_field_class) {
-		BT_LOGW("Cannot get the field class of the next field: "
+		BT_COMP_LOGW("Cannot get the field class of the next field: "
 			"bfcr-addr=%p, base-fc-addr=%p, base-fc-type=%d, "
 			"index=%" PRId64,
 			bfcr, top->base_class, top->base_class->type,
@@ -1113,13 +1117,13 @@ enum bt_bfcr_status next_field_state(struct bt_bfcr *bfcr)
 
 	if (next_field_class->is_compound) {
 		if (bfcr->user.cbs.classes.compound_begin) {
-			BT_LOGV("Calling user function (compound, begin).");
+			BT_COMP_LOGV("Calling user function (compound, begin).");
 			status = bfcr->user.cbs.classes.compound_begin(
 				next_field_class, bfcr->user.data);
-			BT_LOGV("User function returned: status=%s",
+			BT_COMP_LOGV("User function returned: status=%s",
 				bt_bfcr_status_string(status));
 			if (status != BT_BFCR_STATUS_OK) {
-				BT_LOGW("User function failed: bfcr-addr=%p, status=%s",
+				BT_COMP_LOGW("User function failed: bfcr-addr=%p, status=%s",
 					bfcr, bt_bfcr_status_string(status));
 				goto end;
 			}
@@ -1136,7 +1140,7 @@ enum bt_bfcr_status next_field_state(struct bt_bfcr *bfcr)
 		bfcr->state = BFCR_STATE_ALIGN_COMPOUND;
 	} else {
 		/* Replace current basic field class */
-		BT_LOGV("Replacing current basic field class: "
+		BT_COMP_LOGV("Replacing current basic field class: "
 			"bfcr-addr=%p, cur-basic-fc-addr=%p, "
 			"next-basic-fc-addr=%p",
 			bfcr, bfcr->cur_basic_field_class, next_field_class);
@@ -1155,7 +1159,7 @@ enum bt_bfcr_status handle_state(struct bt_bfcr *bfcr)
 {
 	enum bt_bfcr_status status = BT_BFCR_STATUS_OK;
 
-	BT_LOGV("Handling state: bfcr-addr=%p, state=%s",
+	BT_COMP_LOGV("Handling state: bfcr-addr=%p, state=%s",
 		bfcr, bfcr_state_string(bfcr->state));
 
 	switch (bfcr->state) {
@@ -1180,30 +1184,31 @@ enum bt_bfcr_status handle_state(struct bt_bfcr *bfcr)
 		break;
 	}
 
-	BT_LOGV("Handled state: bfcr-addr=%p, status=%s",
+	BT_COMP_LOGV("Handled state: bfcr-addr=%p, status=%s",
 		bfcr, bt_bfcr_status_string(status));
 	return status;
 }
 
 BT_HIDDEN
 struct bt_bfcr *bt_bfcr_create(struct bt_bfcr_cbs cbs, void *data,
-		bt_logging_level log_level)
+		bt_logging_level log_level, bt_self_component *self_comp)
 {
 	struct bt_bfcr *bfcr;
 
-	BT_LOG_WRITE_CUR_LVL(BT_LOG_DEBUG, log_level, BT_LOG_TAG,
+	BT_COMP_LOG_CUR_LVL(BT_LOG_DEBUG, log_level, self_comp,
 		"Creating binary field class reader (BFCR).");
 	bfcr = g_new0(struct bt_bfcr, 1);
 	if (!bfcr) {
-		BT_LOG_WRITE_CUR_LVL(BT_LOG_ERROR, log_level, BT_LOG_TAG,
+		BT_COMP_LOG_CUR_LVL(BT_LOG_ERROR, log_level, self_comp,
 			"Failed to allocate one binary class reader.");
 		goto end;
 	}
 
 	bfcr->log_level = log_level;
+	bfcr->self_comp = self_comp;
 	bfcr->stack = stack_new(bfcr);
 	if (!bfcr->stack) {
-		BT_LOGE_STR("Cannot create BFCR's stack.");
+		BT_COMP_LOGE_STR("Cannot create BFCR's stack.");
 		bt_bfcr_destroy(bfcr);
 		bfcr = NULL;
 		goto end;
@@ -1212,7 +1217,7 @@ struct bt_bfcr *bt_bfcr_create(struct bt_bfcr_cbs cbs, void *data,
 	bfcr->state = BFCR_STATE_NEXT_FIELD;
 	bfcr->user.cbs = cbs;
 	bfcr->user.data = data;
-	BT_LOGD("Created BFCR: addr=%p", bfcr);
+	BT_COMP_LOGD("Created BFCR: addr=%p", bfcr);
 
 end:
 	return bfcr;
@@ -1225,14 +1230,14 @@ void bt_bfcr_destroy(struct bt_bfcr *bfcr)
 		stack_destroy(bfcr->stack);
 	}
 
-	BT_LOGD("Destroying BFCR: addr=%p", bfcr);
+	BT_COMP_LOGD("Destroying BFCR: addr=%p", bfcr);
 	g_free(bfcr);
 }
 
 static
 void reset(struct bt_bfcr *bfcr)
 {
-	BT_LOGD("Resetting BFCR: addr=%p", bfcr);
+	BT_COMP_LOGD("Resetting BFCR: addr=%p", bfcr);
 	stack_clear(bfcr->stack);
 	stitch_reset(bfcr);
 	bfcr->buf.addr = NULL;
@@ -1242,7 +1247,7 @@ void reset(struct bt_bfcr *bfcr)
 static
 void update_packet_offset(struct bt_bfcr *bfcr)
 {
-	BT_LOGV("Updating packet offset for next call: "
+	BT_COMP_LOGV("Updating packet offset for next call: "
 		"bfcr-addr=%p, cur-packet-offset=%zu, next-packet-offset=%zu",
 		bfcr, bfcr->buf.packet_offset,
 		bfcr->buf.packet_offset + bfcr->buf.at);
@@ -1266,7 +1271,7 @@ size_t bt_bfcr_start(struct bt_bfcr *bfcr,
 	bfcr->buf.sz = BYTES_TO_BITS(sz) - offset;
 	*status = BT_BFCR_STATUS_OK;
 
-	BT_LOGV("Starting decoding: bfcr-addr=%p, fc-addr=%p, "
+	BT_COMP_LOGV("Starting decoding: bfcr-addr=%p, fc-addr=%p, "
 		"buf-addr=%p, buf-size=%zu, offset=%zu, "
 		"packet-offset=%zu",
 		bfcr, cls, buf, sz, offset, packet_offset);
@@ -1277,13 +1282,13 @@ size_t bt_bfcr_start(struct bt_bfcr *bfcr,
 		int stack_ret;
 
 		if (bfcr->user.cbs.classes.compound_begin) {
-			BT_LOGV("Calling user function (compound, begin).");
+			BT_COMP_LOGV("Calling user function (compound, begin).");
 			*status = bfcr->user.cbs.classes.compound_begin(
 				cls, bfcr->user.data);
-			BT_LOGV("User function returned: status=%s",
+			BT_COMP_LOGV("User function returned: status=%s",
 				bt_bfcr_status_string(*status));
 			if (*status != BT_BFCR_STATUS_OK) {
-				BT_LOGW("User function failed: bfcr-addr=%p, status=%s",
+				BT_COMP_LOGW("User function failed: bfcr-addr=%p, status=%s",
 					bfcr, bt_bfcr_status_string(*status));
 				goto end;
 			}
@@ -1304,7 +1309,7 @@ size_t bt_bfcr_start(struct bt_bfcr *bfcr,
 	}
 
 	/* Run the machine! */
-	BT_LOGV_STR("Running the state machine.");
+	BT_COMP_LOGV_STR("Running the state machine.");
 
 	while (true) {
 		*status = handle_state(bfcr);
@@ -1335,11 +1340,11 @@ size_t bt_bfcr_continue(struct bt_bfcr *bfcr, const uint8_t *buf, size_t sz,
 	bfcr->buf.sz = BYTES_TO_BITS(sz);
 	*status = BT_BFCR_STATUS_OK;
 
-	BT_LOGV("Continuing decoding: bfcr-addr=%p, buf-addr=%p, buf-size=%zu",
+	BT_COMP_LOGV("Continuing decoding: bfcr-addr=%p, buf-addr=%p, buf-size=%zu",
 		bfcr, buf, sz);
 
 	/* Continue running the machine */
-	BT_LOGV_STR("Running the state machine.");
+	BT_COMP_LOGV_STR("Running the state machine.");
 
 	while (true) {
 		*status = handle_state(bfcr);
