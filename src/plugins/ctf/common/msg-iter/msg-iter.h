@@ -253,7 +253,8 @@ struct bt_msg_iter;
 BT_HIDDEN
 struct bt_msg_iter *bt_msg_iter_create(struct ctf_trace_class *tc,
 	size_t max_request_sz, struct bt_msg_iter_medium_ops medops,
-	void *medops_data, bt_logging_level log_level);
+	void *medops_data, bt_logging_level log_level,
+	bt_self_component *self_comp);
 
 /**
  * Destroys a CTF message iterator, freeing all internal resources.
