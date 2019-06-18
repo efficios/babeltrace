@@ -64,6 +64,8 @@ enum lttng_live_stream_state {
 
 /* Iterator over a live stream. */
 struct lttng_live_stream_iterator {
+	bt_logging_level log_level;
+
 	/* Owned by this. */
 	bt_stream *stream;
 
@@ -119,6 +121,8 @@ struct lttng_live_stream_iterator {
 };
 
 struct lttng_live_metadata {
+	bt_logging_level log_level;
+
 	/* Weak reference. */
 	struct lttng_live_trace *trace;
 
@@ -130,6 +134,8 @@ struct lttng_live_metadata {
 };
 
 struct lttng_live_trace {
+	bt_logging_level log_level;
+
 	/* Back reference to session. */
 	struct lttng_live_session *session;
 
@@ -154,6 +160,8 @@ struct lttng_live_trace {
 };
 
 struct lttng_live_session {
+	bt_logging_level log_level;
+
 	/* Weak reference. */
 	struct lttng_live_msg_iter *lttng_live_msg_iter;
 
@@ -184,6 +192,8 @@ enum session_not_found_action {
  * A component instance is an iterator on a single session.
  */
 struct lttng_live_component {
+	bt_logging_level log_level;
+
 	/* Weak reference. */
 	bt_self_component_source *self_comp;
 
@@ -202,6 +212,8 @@ struct lttng_live_component {
 };
 
 struct lttng_live_msg_iter {
+	bt_logging_level log_level;
+
 	/* Weak reference. */
 	struct lttng_live_component *lttng_live_comp;
 

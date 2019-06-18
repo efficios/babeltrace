@@ -23,8 +23,9 @@
  * SOFTWARE.
  */
 
+#define BT_LOG_OUTPUT_LEVEL log_level
 #define BT_LOG_TAG "PLUGIN/SRC.CTF.LTTNG-LIVE/DS"
-#include "logging.h"
+#include "logging/log.h"
 
 #include <stdio.h>
 #include <stdint.h>
@@ -78,6 +79,7 @@ bt_stream *medop_borrow_stream(bt_stream_class *stream_class,
 		int64_t stream_id, void *data)
 {
 	struct lttng_live_stream_iterator *lttng_live_stream = data;
+	bt_logging_level log_level = lttng_live_stream->log_level;
 
 	if (!lttng_live_stream->stream) {
 		uint64_t stream_class_id = bt_stream_class_get_id(stream_class);
@@ -128,6 +130,7 @@ enum lttng_live_iterator_status lttng_live_lazy_msg_init(
 	struct lttng_live_component *lttng_live =
 		session->lttng_live_msg_iter->lttng_live_comp;
 	uint64_t trace_idx, stream_iter_idx;
+	bt_logging_level log_level = session->log_level;
 
 	if (!session->lazy_stream_msg_init) {
 		return LTTNG_LIVE_ITERATOR_STATUS_OK;
@@ -152,7 +155,7 @@ enum lttng_live_iterator_status lttng_live_lazy_msg_init(
 						trace->metadata->decoder);
 			stream_iter->msg_iter = bt_msg_iter_create(ctf_tc,
 					lttng_live->max_query_size, medops,
-					stream_iter, BT_LOG_OUTPUT_LEVEL);
+					stream_iter, log_level);
 			if (!stream_iter->msg_iter) {
 				goto error;
 			}
@@ -176,10 +179,12 @@ struct lttng_live_stream_iterator *lttng_live_stream_iterator_create(
 	struct lttng_live_stream_iterator *stream_iter;
 	struct lttng_live_component *lttng_live;
 	struct lttng_live_trace *trace;
+	bt_logging_level log_level;
 
 	BT_ASSERT(session);
 	BT_ASSERT(session->lttng_live_msg_iter);
 	BT_ASSERT(session->lttng_live_msg_iter->lttng_live_comp);
+	log_level = session->log_level;
 
 	lttng_live = session->lttng_live_msg_iter->lttng_live_comp;
 
@@ -188,6 +193,7 @@ struct lttng_live_stream_iterator *lttng_live_stream_iterator_create(
 		goto error;
 	}
 
+	stream_iter->log_level = log_level;
 	trace = lttng_live_borrow_trace(session, ctf_trace_id);
 	if (!trace) {
 		goto error;
@@ -206,7 +212,7 @@ struct lttng_live_stream_iterator *lttng_live_stream_iterator_create(
 		BT_ASSERT(!stream_iter->msg_iter);
 		stream_iter->msg_iter = bt_msg_iter_create(ctf_tc,
 				lttng_live->max_query_size, medops,
-				stream_iter, BT_LOG_OUTPUT_LEVEL);
+				stream_iter, log_level);
 		if (!stream_iter->msg_iter) {
 			goto error;
 		}

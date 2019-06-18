@@ -21,8 +21,9 @@
  * SOFTWARE.
  */
 
+#define BT_LOG_OUTPUT_LEVEL (viewer_connection->log_level)
 #define BT_LOG_TAG "PLUGIN/SRC.CTF.LTTNG-LIVE/VIEWER"
-#include "logging.h"
+#include "logging/log.h"
 
 #include <stdio.h>
 #include <stdint.h>
@@ -304,7 +305,7 @@ void connection_release(bt_object *obj)
 static
 int list_update_session(bt_value *results,
 		const struct lttng_viewer_session *session,
-		bool *_found)
+		bool *_found, struct live_viewer_connection *viewer_connection)
 {
 	int ret = 0;
 	bt_value *map = NULL;
@@ -389,7 +390,8 @@ end:
 static
 int list_append_session(bt_value *results,
 		GString *base_url,
-		const struct lttng_viewer_session *session)
+		const struct lttng_viewer_session *session,
+		struct live_viewer_connection *viewer_connection)
 {
 	int ret = 0;
 	bt_value_status ret_status;
@@ -401,7 +403,7 @@ int list_append_session(bt_value *results,
 	 * If the session already exists, add the stream count to it,
 	 * and do max of client counts.
 	 */
-	ret = list_update_session(results, session, &found);
+	ret = list_update_session(results, session, &found, viewer_connection);
 	if (ret || found) {
 		goto end;
 	}
@@ -625,7 +627,7 @@ bt_query_status live_viewer_connection_list_sessions(
 		lsession.hostname[LTTNG_VIEWER_HOST_NAME_MAX - 1] = '\0';
 		lsession.session_name[LTTNG_VIEWER_NAME_MAX - 1] = '\0';
 		if (list_append_session(result, viewer_connection->url,
-				&lsession)) {
+				&lsession, viewer_connection)) {
 			status = BT_QUERY_STATUS_ERROR;
 			goto error;
 		}
@@ -1478,6 +1480,7 @@ struct live_viewer_connection *live_viewer_connection_create(
 		goto error;
 	}
 
+	viewer_connection->log_level = lttng_live_msg_iter->log_level;
 	bt_object_init_shared(&viewer_connection->obj, connection_release);
 	viewer_connection->control_sock = BT_INVALID_SOCKET;
 	viewer_connection->port = -1;
