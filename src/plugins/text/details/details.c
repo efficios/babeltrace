@@ -20,8 +20,9 @@
  * SOFTWARE.
  */
 
+#define BT_LOG_OUTPUT_LEVEL (details_comp->log_level)
 #define BT_LOG_TAG "PLUGIN/SINK.TEXT.DETAILS"
-#include "logging.h"
+#include "logging/log.h"
 
 #include <babeltrace2/babeltrace.h>
 
@@ -181,14 +182,19 @@ end:
 }
 
 static
-struct details_comp *create_details_comp(void)
+struct details_comp *create_details_comp(
+		bt_self_component_sink *self_comp_sink)
 {
 	struct details_comp *details_comp = g_new0(struct details_comp, 1);
+	bt_self_component *self_comp =
+		bt_self_component_sink_as_self_component(self_comp_sink);
 
 	if (!details_comp) {
 		goto error;
 	}
 
+	details_comp->log_level = bt_component_get_logging_level(
+		bt_self_component_as_component(self_comp));
 	details_comp->meta = g_hash_table_new_full(g_direct_hash,
 		g_direct_equal, NULL,
 		(GDestroyNotify) details_destroy_details_trace_class_meta);
@@ -392,7 +398,7 @@ bt_self_component_status details_init(bt_self_component_sink *comp,
 		goto error;
 	}
 
-	details_comp = create_details_comp();
+	details_comp = create_details_comp(comp);
 	if (!details_comp) {
 		status = BT_SELF_COMPONENT_STATUS_NOMEM;
 		goto error;
