@@ -23,7 +23,7 @@
 #include "ctf-meta-visitors.h"
 
 struct ctx {
-	bt_self_component_source *self_comp;
+	bt_self_component *self_comp;
 	bt_trace_class *ir_tc;
 	bt_stream_class *ir_sc;
 	struct ctf_trace_class *tc;
@@ -571,9 +571,7 @@ int ctf_trace_class_to_ir(struct ctx *ctx)
 	for (i = 0; i < ctx->tc->clock_classes->len; i++) {
 		struct ctf_clock_class *cc = ctx->tc->clock_classes->pdata[i];
 
-		cc->ir_cc = bt_clock_class_create(
-				bt_self_component_source_as_self_component(
-					ctx->self_comp));
+		cc->ir_cc = bt_clock_class_create(ctx->self_comp);
 		ctf_clock_class_to_ir(cc->ir_cc, cc);
 	}
 
@@ -587,7 +585,7 @@ end:
 }
 
 BT_HIDDEN
-int ctf_trace_class_translate(bt_self_component_source *self_comp,
+int ctf_trace_class_translate(bt_self_component *self_comp,
 		bt_trace_class *ir_tc, struct ctf_trace_class *tc)
 {
 	int ret = 0;

@@ -37,6 +37,10 @@ enum ctf_metadata_decoder_status {
 /* Decoding configuration */
 struct ctf_metadata_decoder_config {
 	bt_logging_level log_level;
+
+	/* Weak */
+	bt_self_component *self_comp;
+
 	int64_t clock_class_offset_s;
 	int64_t clock_class_offset_ns;
 };
@@ -48,7 +52,6 @@ struct ctf_metadata_decoder_config {
  */
 BT_HIDDEN
 struct ctf_metadata_decoder *ctf_metadata_decoder_create(
-		bt_self_component_source *self_comp,
 		const struct ctf_metadata_decoder_config *config);
 
 /*
@@ -104,7 +107,8 @@ struct ctf_trace_class *ctf_metadata_decoder_borrow_ctf_trace_class(
  */
 BT_HIDDEN
 bool ctf_metadata_decoder_is_packetized(FILE *fp, int *byte_order,
-		bt_logging_level log_level);
+		bt_logging_level log_level,
+		bt_self_component *self_comp);
 
 /*
  * Decodes a packetized metadata file stream to a NULL-terminated
@@ -113,6 +117,7 @@ bool ctf_metadata_decoder_is_packetized(FILE *fp, int *byte_order,
 BT_HIDDEN
 int ctf_metadata_decoder_packetized_file_stream_to_buf(
 		FILE *fp, char **buf, int byte_order,
-		bt_logging_level log_level);
+		bt_logging_level log_level,
+		bt_self_component *self_comp);
 
 #endif /* _METADATA_DECODER_H */

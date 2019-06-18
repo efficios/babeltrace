@@ -316,9 +316,10 @@ struct ctf_ast {
 
 const char *node_type(struct ctf_node *node);
 
+struct meta_log_config;
+
 BT_HIDDEN
 struct ctf_visitor_generate_ir *ctf_visitor_generate_ir_create(
-		bt_self_component_source *self_comp,
 		const struct ctf_metadata_decoder_config *config);
 
 void ctf_visitor_generate_ir_destroy(struct ctf_visitor_generate_ir *visitor);
@@ -337,10 +338,10 @@ int ctf_visitor_generate_ir_visit_node(struct ctf_visitor_generate_ir *visitor,
 
 BT_HIDDEN
 int ctf_visitor_semantic_check(int depth, struct ctf_node *node,
-		bt_logging_level log_level);
+		struct meta_log_config *log_cfg);
 
 BT_HIDDEN
 int ctf_visitor_parent_links(int depth, struct ctf_node *node,
-		bt_logging_level log_level);
+		struct meta_log_config *log_cfg);
 
 #endif /* _CTF_AST_H */
