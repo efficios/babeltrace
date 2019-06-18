@@ -274,6 +274,9 @@ int lttng_live_metadata_create_stream(struct lttng_live_session *session,
 	const char *match;
 	struct ctf_metadata_decoder_config cfg = {
 		.log_level = session->log_level,
+		.self_comp =
+			bt_self_component_source_as_self_component(
+				lttng_live->self_comp),
 		.clock_class_offset_s = 0,
 		.clock_class_offset_ns = 0,
 	};
@@ -290,8 +293,7 @@ int lttng_live_metadata_create_stream(struct lttng_live_session *session,
 		goto error;
 	}
 
-	metadata->decoder = ctf_metadata_decoder_create(
-				lttng_live->self_comp, &cfg);
+	metadata->decoder = ctf_metadata_decoder_create(&cfg);
 	if (!metadata->decoder) {
 		goto error;
 	}
