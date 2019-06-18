@@ -20,9 +20,10 @@
  * SOFTWARE.
  */
 
+#define BT_COMP_LOG_SELF_COMP (stream->trace->fs_sink->self_comp)
 #define BT_LOG_OUTPUT_LEVEL (stream->log_level)
 #define BT_LOG_TAG "PLUGIN/SINK.CTF.FS/STREAM"
-#include "logging/log.h"
+#include "plugins/comp-logging.h"
 
 #include <babeltrace2/babeltrace.h>
 #include <stdio.h>
@@ -32,6 +33,7 @@
 #include "ctfser/ctfser.h"
 #include "compat/endian.h"
 
+#include "fs-sink.h"
 #include "fs-sink-trace.h"
 #include "fs-sink-stream.h"
 #include "translate-trace-ir-to-ctf-ir.h"
@@ -162,9 +164,9 @@ struct fs_sink_stream *fs_sink_stream_create(struct fs_sink_trace *trace,
 	stream->prev_packet_state.end_cs = UINT64_C(-1);
 	stream->prev_packet_state.discarded_events_counter = UINT64_C(-1);
 	stream->prev_packet_state.seq_num = UINT64_C(-1);
-	ret = try_translate_stream_class_trace_ir_to_ctf_ir(trace->tc,
-		bt_stream_borrow_class_const(ir_stream), &stream->sc,
-		stream->log_level);
+	ret = try_translate_stream_class_trace_ir_to_ctf_ir(trace->fs_sink,
+		trace->tc, bt_stream_borrow_class_const(ir_stream),
+		&stream->sc);
 	if (ret) {
 		goto error;
 	}
@@ -559,7 +561,7 @@ int fs_sink_stream_open_packet(struct fs_sink_stream *stream,
 	ret = bt_ctfser_write_byte_aligned_unsigned_int(&stream->ctfser,
 		UINT64_C(0xc1fc1fc1), 8, 32, BYTE_ORDER);
 	if (ret) {
-		BT_LOGE("Error writing packet header magic: stream-file-name=%s",
+		BT_COMP_LOGE("Error writing packet header magic: stream-file-name=%s",
 			stream->file_name->str);
 		goto end;
 	}
@@ -569,7 +571,7 @@ int fs_sink_stream_open_packet(struct fs_sink_stream *stream,
 		ret = bt_ctfser_write_byte_aligned_unsigned_int(&stream->ctfser,
 			(uint64_t) stream->sc->tc->uuid[i], 8, 8, BYTE_ORDER);
 		if (ret) {
-			BT_LOGE("Error writing packet header UUID: stream-file-name=%s",
+			BT_COMP_LOGE("Error writing packet header UUID: stream-file-name=%s",
 				stream->file_name->str);
 			goto end;
 		}
@@ -579,7 +581,7 @@ int fs_sink_stream_open_packet(struct fs_sink_stream *stream,
 	ret = bt_ctfser_write_byte_aligned_unsigned_int(&stream->ctfser,
 		bt_stream_class_get_id(stream->sc->ir_sc), 8, 64, BYTE_ORDER);
 	if (ret) {
-		BT_LOGE("Error writing packet header stream class id: "
+		BT_COMP_LOGE("Error writing packet header stream class id: "
 			"stream-file-name=%s, stream-class-id=%"PRIu64,
 			stream->file_name->str,
 			bt_stream_class_get_id(stream->sc->ir_sc));
@@ -590,7 +592,7 @@ int fs_sink_stream_open_packet(struct fs_sink_stream *stream,
 	ret = bt_ctfser_write_byte_aligned_unsigned_int(&stream->ctfser,
 		bt_stream_get_id(stream->ir_stream), 8, 64, BYTE_ORDER);
 	if (ret) {
-		BT_LOGE("Error writing packet header stream id: "
+		BT_COMP_LOGE("Error writing packet header stream id: "
 			"stream-file-name=%s, stream-id=%"PRIu64,
 			stream->file_name->str,
 			bt_stream_get_id(stream->ir_stream));

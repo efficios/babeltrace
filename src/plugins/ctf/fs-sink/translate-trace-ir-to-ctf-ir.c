@@ -20,9 +20,10 @@
  * SOFTWARE.
  */
 
+#define BT_COMP_LOG_SELF_COMP (ctx->self_comp)
 #define BT_LOG_OUTPUT_LEVEL (ctx->log_level)
 #define BT_LOG_TAG "PLUGIN/SINK.CTF.FS/TRANSLATE-TRACE-IR-TO-CTF-IR"
-#include "logging/log.h"
+#include "plugins/comp-logging.h"
 
 #include <babeltrace2/babeltrace.h>
 #include "common/macros.h"
@@ -33,6 +34,7 @@
 #include <string.h>
 #include <glib.h>
 
+#include "fs-sink.h"
 #include "fs-sink-ctf-meta.h"
 
 struct field_path_elem {
@@ -48,6 +50,7 @@ struct field_path_elem {
 
 struct ctx {
 	bt_logging_level log_level;
+	bt_self_component *self_comp;
 
 	/* Weak */
 	struct fs_sink_ctf_stream_class *cur_sc;
@@ -117,7 +120,7 @@ int cur_path_stack_push(struct ctx *ctx,
 					is_reserved_member_name(ir_name, "timestamp_end") ||
 					is_reserved_member_name(ir_name, "events_discarded") ||
 					is_reserved_member_name(ir_name, "packet_seq_num")) {
-				BT_LOGE("Unsupported reserved TSDL structure field class member "
+				BT_COMP_LOGE("Unsupported reserved TSDL structure field class member "
 					"or variant field class option name: name=\"%s\"",
 					ir_name);
 				ret = -1;
@@ -127,7 +130,7 @@ int cur_path_stack_push(struct ctx *ctx,
 
 		ret = fs_sink_ctf_protect_name(field_path_elem->name);
 		if (ret) {
-			BT_LOGE("Unsupported non-TSDL structure field class member "
+			BT_COMP_LOGE("Unsupported non-TSDL structure field class member "
 				"or variant field class option name: name=\"%s\"",
 				ir_name);
 			goto end;
@@ -551,14 +554,14 @@ int translate_structure_field_class_members(struct ctx *ctx,
 		ret = cur_path_stack_push(ctx, i, name, memb_ir_fc,
 			(void *) struct_fc);
 		if (ret) {
-			BT_LOGE("Cannot translate structure field class member: "
+			BT_COMP_LOGE("Cannot translate structure field class member: "
 				"name=\"%s\"", name);
 			goto end;
 		}
 
 		ret = translate_field_class(ctx);
 		if (ret) {
-			BT_LOGE("Cannot translate structure field class member: "
+			BT_COMP_LOGE("Cannot translate structure field class member: "
 				"name=\"%s\"", name);
 			goto end;
 		}
@@ -624,14 +627,14 @@ int translate_variant_field_class(struct ctx *ctx)
 			opt);
 		ret = cur_path_stack_push(ctx, i, name, opt_ir_fc, (void *) fc);
 		if (ret) {
-			BT_LOGE("Cannot translate variant field class option: "
+			BT_COMP_LOGE("Cannot translate variant field class option: "
 				"name=\"%s\"", name);
 			goto end;
 		}
 
 		ret = translate_field_class(ctx);
 		if (ret) {
-			BT_LOGE("Cannot translate variant field class option: "
+			BT_COMP_LOGE("Cannot translate variant field class option: "
 				"name=\"%s\"", name);
 			goto end;
 		}
@@ -660,13 +663,13 @@ int translate_static_array_field_class(struct ctx *ctx)
 	ret = cur_path_stack_push(ctx, UINT64_C(-1), NULL, elem_ir_fc,
 		(void *) fc);
 	if (ret) {
-		BT_LOGE_STR("Cannot translate static array field class element.");
+		BT_COMP_LOGE_STR("Cannot translate static array field class element.");
 		goto end;
 	}
 
 	ret = translate_field_class(ctx);
 	if (ret) {
-		BT_LOGE_STR("Cannot translate static array field class element.");
+		BT_COMP_LOGE_STR("Cannot translate static array field class element.");
 		goto end;
 	}
 
@@ -701,13 +704,13 @@ int translate_dynamic_array_field_class(struct ctx *ctx)
 	ret = cur_path_stack_push(ctx, UINT64_C(-1), NULL, elem_ir_fc,
 		(void *) fc);
 	if (ret) {
-		BT_LOGE_STR("Cannot translate dynamic array field class element.");
+		BT_COMP_LOGE_STR("Cannot translate dynamic array field class element.");
 		goto end;
 	}
 
 	ret = translate_field_class(ctx);
 	if (ret) {
-		BT_LOGE_STR("Cannot translate dynamic array field class element.");
+		BT_COMP_LOGE_STR("Cannot translate dynamic array field class element.");
 		goto end;
 	}
 
@@ -1008,14 +1011,14 @@ int translate_scope_field_class(struct ctx *ctx, bt_scope scope,
 	BT_ASSERT(ctx->cur_path->len == 0);
 	ret = cur_path_stack_push(ctx, UINT64_C(-1), NULL, ir_fc, NULL);
 	if (ret) {
-		BT_LOGE("Cannot translate scope structure field class: "
+		BT_COMP_LOGE("Cannot translate scope structure field class: "
 			"scope=%d", scope);
 		goto end;
 	}
 
 	ret = translate_structure_field_class_members(ctx, (void *) *fc, ir_fc);
 	if (ret) {
-		BT_LOGE("Cannot translate scope structure field class: "
+		BT_COMP_LOGE("Cannot translate scope structure field class: "
 			"scope=%d", scope);
 		goto end;
 	}
@@ -1030,13 +1033,14 @@ end:
 }
 
 static inline
-void ctx_init(struct ctx *ctx, bt_logging_level log_level)
+void ctx_init(struct ctx *ctx, struct fs_sink_comp *fs_sink)
 {
 	memset(ctx, 0, sizeof(struct ctx));
 	ctx->cur_path = g_array_new(FALSE, TRUE,
 		sizeof(struct field_path_elem));
 	BT_ASSERT(ctx->cur_path);
-	ctx->log_level = log_level;
+	ctx->log_level = fs_sink->log_level;
+	ctx->self_comp = fs_sink->self_comp;
 }
 
 static inline
@@ -1049,10 +1053,10 @@ void ctx_fini(struct ctx *ctx)
 }
 
 static
-int translate_event_class(struct fs_sink_ctf_stream_class *sc,
+int translate_event_class(struct fs_sink_comp *fs_sink,
+		struct fs_sink_ctf_stream_class *sc,
 		const bt_event_class *ir_ec,
-		struct fs_sink_ctf_event_class **out_ec,
-		bt_logging_level log_level)
+		struct fs_sink_ctf_event_class **out_ec)
 {
 	int ret = 0;
 	struct ctx ctx;
@@ -1061,7 +1065,7 @@ int translate_event_class(struct fs_sink_ctf_stream_class *sc,
 	BT_ASSERT(sc);
 	BT_ASSERT(ir_ec);
 
-	ctx_init(&ctx, log_level);
+	ctx_init(&ctx, fs_sink);
 	ec = fs_sink_ctf_event_class_create(sc, ir_ec);
 	BT_ASSERT(ec);
 	ctx.cur_sc = sc;
@@ -1089,10 +1093,10 @@ end:
 
 BT_HIDDEN
 int try_translate_event_class_trace_ir_to_ctf_ir(
+		struct fs_sink_comp *fs_sink,
 		struct fs_sink_ctf_stream_class *sc,
 		const bt_event_class *ir_ec,
-		struct fs_sink_ctf_event_class **out_ec,
-		bt_logging_level log_level)
+		struct fs_sink_ctf_event_class **out_ec)
 {
 	int ret = 0;
 
@@ -1105,7 +1109,7 @@ int try_translate_event_class_trace_ir_to_ctf_ir(
 		goto end;
 	}
 
-	ret = translate_event_class(sc, ir_ec, out_ec, log_level);
+	ret = translate_event_class(fs_sink, sc, ir_ec, out_ec);
 
 end:
 	return ret;
@@ -1154,17 +1158,17 @@ void make_unique_default_clock_class_name(struct fs_sink_ctf_stream_class *sc)
 }
 
 static
-int translate_stream_class(struct fs_sink_ctf_trace_class *tc,
+int translate_stream_class(struct fs_sink_comp *fs_sink,
+		struct fs_sink_ctf_trace_class *tc,
 		const bt_stream_class *ir_sc,
-		struct fs_sink_ctf_stream_class **out_sc,
-		bt_logging_level log_level)
+		struct fs_sink_ctf_stream_class **out_sc)
 {
 	int ret = 0;
 	struct ctx ctx;
 
 	BT_ASSERT(tc);
 	BT_ASSERT(ir_sc);
-	ctx_init(&ctx, log_level);
+	ctx_init(&ctx, fs_sink);
 	*out_sc = fs_sink_ctf_stream_class_create(tc, ir_sc);
 	BT_ASSERT(*out_sc);
 
@@ -1229,10 +1233,10 @@ end:
 
 BT_HIDDEN
 int try_translate_stream_class_trace_ir_to_ctf_ir(
+		struct fs_sink_comp *fs_sink,
 		struct fs_sink_ctf_trace_class *tc,
 		const bt_stream_class *ir_sc,
-		struct fs_sink_ctf_stream_class **out_sc,
-		bt_logging_level log_level)
+		struct fs_sink_ctf_stream_class **out_sc)
 {
 	int ret = 0;
 	uint64_t i;
@@ -1248,7 +1252,7 @@ int try_translate_stream_class_trace_ir_to_ctf_ir(
 		}
 	}
 
-	ret = translate_stream_class(tc, ir_sc, out_sc, log_level);
+	ret = translate_stream_class(fs_sink, tc, ir_sc, out_sc);
 
 end:
 	return ret;
@@ -1256,7 +1260,7 @@ end:
 
 BT_HIDDEN
 struct fs_sink_ctf_trace_class *translate_trace_class_trace_ir_to_ctf_ir(
-		const bt_trace_class *ir_tc, bt_logging_level log_level)
+		struct fs_sink_comp *fs_sink, const bt_trace_class *ir_tc)
 {
 	uint64_t count;
 	uint64_t i;
@@ -1272,8 +1276,8 @@ struct fs_sink_ctf_trace_class *translate_trace_class_trace_ir_to_ctf_ir(
 			ir_tc, i, &name, &val);
 
 		if (!fs_sink_ctf_ist_valid_identifier(name)) {
-			BT_LOG_WRITE_CUR_LVL(BT_LOG_ERROR, log_level,
-				BT_LOG_TAG,
+			BT_COMP_LOG_CUR_LVL(BT_LOG_ERROR, fs_sink->log_level,
+				fs_sink->self_comp,
 				"Unsupported trace class's environment entry name: "
 				"name=\"%s\"", name);
 			goto end;
@@ -1284,8 +1288,8 @@ struct fs_sink_ctf_trace_class *translate_trace_class_trace_ir_to_ctf_ir(
 		case BT_VALUE_TYPE_STRING:
 			break;
 		default:
-			BT_LOG_WRITE_CUR_LVL(BT_LOG_ERROR, log_level,
-				BT_LOG_TAG,
+			BT_COMP_LOG_CUR_LVL(BT_LOG_ERROR, fs_sink->log_level,
+				fs_sink->self_comp,
 				"Unsupported trace class's environment entry value type: "
 				"type=%s",
 				bt_common_value_type_string(

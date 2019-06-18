@@ -30,7 +30,7 @@
 
 struct fs_sink_comp {
 	bt_logging_level log_level;
-	bt_self_component_sink *self_comp;
+	bt_self_component *self_comp;
 
 	/* Owned by this */
 	bt_self_component_port_input_message_iterator *upstream_iter;
