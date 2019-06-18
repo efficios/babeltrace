@@ -5,5 +5,4 @@ libbabeltrace2_plugin_text_details_cc_la_SOURCES = \
 	details.c details.h \
 	write.c write.h \
 	obj-lifetime-mgmt.c obj-lifetime-mgmt.h \
-	colors.h \
-	logging.c logging.h
+	colors.h
