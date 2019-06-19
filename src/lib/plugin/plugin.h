@@ -351,6 +351,11 @@ int bt_plugin_add_component_class(
 		abort();
 	}
 
+	/* Set component class's original plugin name */
+	BT_ASSERT(comp_class->plugin_name);
+	BT_ASSERT(plugin->info.name);
+	g_string_assign(comp_class->plugin_name, plugin->info.name->str);
+
 	/* Add new component class */
 	bt_object_get_ref(comp_class);
 	g_ptr_array_add(comp_classes, comp_class);

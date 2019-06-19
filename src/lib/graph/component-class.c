@@ -83,6 +83,11 @@ void destroy_component_class(struct bt_object *obj)
 		class->help = NULL;
 	}
 
+	if (class->plugin_name) {
+		g_string_free(class->plugin_name, TRUE);
+		class->plugin_name = NULL;
+	}
+
 	if (class->destroy_listeners) {
 		g_array_free(class->destroy_listeners, TRUE);
 		class->destroy_listeners = NULL;
@@ -113,6 +118,12 @@ int bt_component_class_init(struct bt_component_class *class,
 
 	class->help = g_string_new(NULL);
 	if (!class->help) {
+		BT_LOGE_STR("Failed to allocate a GString.");
+		goto error;
+	}
+
+	class->plugin_name = g_string_new(NULL);
+	if (!class->plugin_name) {
 		BT_LOGE_STR("Failed to allocate a GString.");
 		goto error;
 	}
