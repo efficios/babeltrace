@@ -489,7 +489,7 @@ bt_query_status trace_info_query(
 		goto error;
 	}
 
-	ctf_fs = ctf_fs_component_create(log_level);
+	ctf_fs = ctf_fs_component_create(log_level, NULL);
 	if (!ctf_fs) {
 		goto error;
 	}

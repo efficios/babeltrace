@@ -25,9 +25,10 @@
  * SOFTWARE.
  */
 
+#define BT_COMP_LOG_SELF_COMP self_comp
 #define BT_LOG_OUTPUT_LEVEL log_level
 #define BT_LOG_TAG "PLUGIN/SRC.CTF.FS"
-#include "logging/log.h"
+#include "plugins/comp-logging.h"
 
 #include "common/common.h"
 #include <babeltrace2/babeltrace.h>
@@ -240,7 +241,7 @@ void ctf_fs_iterator_finalize(bt_self_message_iterator *it)
 BT_HIDDEN
 bt_self_message_iterator_status ctf_fs_iterator_init(
 		bt_self_message_iterator *self_msg_iter,
-		bt_self_component_source *self_comp,
+		bt_self_component_source *self_comp_src,
 		bt_self_component_port_output *self_port)
 {
 	struct ctf_fs_port_data *port_data;
@@ -248,12 +249,14 @@ bt_self_message_iterator_status ctf_fs_iterator_init(
 	bt_self_message_iterator_status ret =
 		BT_SELF_MESSAGE_ITERATOR_STATUS_OK;
 	bt_logging_level log_level;
+	bt_self_component *self_comp;
 
 	port_data = bt_self_component_port_get_data(
 		bt_self_component_port_output_as_self_component_port(
 			self_port));
 	BT_ASSERT(port_data);
 	log_level = port_data->ctf_fs->log_level;
+	self_comp = port_data->ctf_fs->self_comp;
 	msg_iter_data = g_new0(struct ctf_fs_msg_iter_data, 1);
 	if (!msg_iter_data) {
 		ret = BT_SELF_MESSAGE_ITERATOR_STATUS_NOMEM;
@@ -261,13 +264,15 @@ bt_self_message_iterator_status ctf_fs_iterator_init(
 	}
 
 	msg_iter_data->log_level = log_level;
+	msg_iter_data->self_comp = self_comp;
 	msg_iter_data->pc_msg_iter = self_msg_iter;
 	msg_iter_data->msg_iter = bt_msg_iter_create(
 		port_data->ds_file_group->ctf_fs_trace->metadata->tc,
 		bt_common_get_page_size(msg_iter_data->log_level) * 8,
-		ctf_fs_ds_file_medops, NULL, msg_iter_data->log_level, NULL);
+		ctf_fs_ds_file_medops, NULL, msg_iter_data->log_level,
+		self_comp);
 	if (!msg_iter_data->msg_iter) {
-		BT_LOGE_STR("Cannot create a CTF message iterator.");
+		BT_COMP_LOGE_STR("Cannot create a CTF message iterator.");
 		ret = BT_SELF_MESSAGE_ITERATOR_STATUS_NOMEM;
 		goto error;
 	}
@@ -364,7 +369,8 @@ void ctf_fs_trace_destroy_notifier(void *data)
 	ctf_fs_trace_destroy(trace);
 }
 
-struct ctf_fs_component *ctf_fs_component_create(bt_logging_level log_level)
+struct ctf_fs_component *ctf_fs_component_create(bt_logging_level log_level,
+		bt_self_component *self_comp)
 {
 	struct ctf_fs_component *ctf_fs;
 
@@ -374,6 +380,7 @@ struct ctf_fs_component *ctf_fs_component_create(bt_logging_level log_level)
 	}
 
 	ctf_fs->log_level = log_level;
+	ctf_fs->self_comp = self_comp;
 	ctf_fs->port_data =
 		g_ptr_array_new_with_free_func(port_data_destroy_notifier);
 	if (!ctf_fs->port_data) {
@@ -456,13 +463,14 @@ int create_one_port_for_trace(struct ctf_fs_component *ctf_fs,
 	struct ctf_fs_port_data *port_data = NULL;
 	gchar *port_name;
 	bt_logging_level log_level = ctf_fs->log_level;
+	bt_self_component *self_comp = ctf_fs->self_comp;
 
 	port_name = ctf_fs_make_port_name(ds_file_group);
 	if (!port_name) {
 		goto error;
 	}
 
-	BT_LOGI("Creating one port named `%s`", port_name);
+	BT_COMP_LOGI("Creating one port named `%s`", port_name);
 
 	/* Create output port for this file */
 	port_data = g_new0(struct ctf_fs_port_data, 1);
@@ -473,7 +481,7 @@ int create_one_port_for_trace(struct ctf_fs_component *ctf_fs,
 	port_data->ctf_fs = ctf_fs;
 	port_data->ds_file_group = ds_file_group;
 	ret = bt_self_component_source_add_output_port(
-		ctf_fs->self_comp, port_name, port_data, NULL);
+		ctf_fs->self_comp_src, port_name, port_data, NULL);
 	if (ret) {
 		goto error;
 	}
@@ -501,6 +509,7 @@ int create_ports_for_trace(struct ctf_fs_component *ctf_fs,
 	int ret = 0;
 	size_t i;
 	bt_logging_level log_level = ctf_fs_trace->log_level;
+	bt_self_component *self_comp = ctf_fs_trace->self_comp;
 
 	/* Create one output port for each stream file group */
 	for (i = 0; i < ctf_fs_trace->ds_file_groups->len; i++) {
@@ -510,7 +519,7 @@ int create_ports_for_trace(struct ctf_fs_component *ctf_fs,
 		ret = create_one_port_for_trace(ctf_fs, ctf_fs_trace,
 			ds_file_group);
 		if (ret) {
-			BT_LOGE("Cannot create output port.");
+			BT_COMP_LOGE("Cannot create output port.");
 			goto end;
 		}
 	}
@@ -727,12 +736,13 @@ int add_ds_file_to_ds_file_group(struct ctf_fs_trace *ctf_fs_trace,
 	struct ctf_stream_class *sc = NULL;
 	struct bt_msg_iter_packet_properties props;
 	bt_logging_level log_level = ctf_fs_trace->log_level;
+	bt_self_component *self_comp = ctf_fs_trace->self_comp;
 
 	msg_iter = bt_msg_iter_create(ctf_fs_trace->metadata->tc,
 		bt_common_get_page_size(log_level) * 8,
-		ctf_fs_ds_file_medops, NULL, log_level, NULL);
+		ctf_fs_ds_file_medops, NULL, log_level, self_comp);
 	if (!msg_iter) {
-		BT_LOGE_STR("Cannot create a CTF message iterator.");
+		BT_COMP_LOGE_STR("Cannot create a CTF message iterator.");
 		goto error;
 	}
 
@@ -744,7 +754,7 @@ int add_ds_file_to_ds_file_group(struct ctf_fs_trace *ctf_fs_trace,
 
 	ret = bt_msg_iter_get_packet_properties(ds_file->msg_iter, &props);
 	if (ret) {
-		BT_LOGE("Cannot get stream file's first packet's header and context fields (`%s`).",
+		BT_COMP_LOGE("Cannot get stream file's first packet's header and context fields (`%s`).",
 			path);
 		goto error;
 	}
@@ -762,7 +772,7 @@ int add_ds_file_to_ds_file_group(struct ctf_fs_trace *ctf_fs_trace,
 			sc->default_clock_class->offset_seconds,
 			sc->default_clock_class->offset_cycles, &begin_ns);
 		if (ret) {
-			BT_LOGE("Cannot convert clock cycles to nanoseconds from origin (`%s`).",
+			BT_COMP_LOGE("Cannot convert clock cycles to nanoseconds from origin (`%s`).",
 				path);
 			goto error;
 		}
@@ -770,7 +780,7 @@ int add_ds_file_to_ds_file_group(struct ctf_fs_trace *ctf_fs_trace,
 
 	index = ctf_fs_ds_file_build_index(ds_file);
 	if (!index) {
-		BT_LOGW("Failed to index CTF stream file \'%s\'",
+		BT_COMP_LOGW("Failed to index CTF stream file \'%s\'",
 			ds_file->file->path->str);
 	}
 
@@ -875,11 +885,12 @@ int create_ds_file_groups(struct ctf_fs_trace *ctf_fs_trace)
 	GError *error = NULL;
 	GDir *dir = NULL;
 	bt_logging_level log_level = ctf_fs_trace->log_level;
+	bt_self_component *self_comp = ctf_fs_trace->self_comp;
 
 	/* Check each file in the path directory, except specific ones */
 	dir = g_dir_open(ctf_fs_trace->path->str, 0, &error);
 	if (!dir) {
-		BT_LOGE("Cannot open directory `%s`: %s (code %d)",
+		BT_COMP_LOGE("Cannot open directory `%s`: %s (code %d)",
 			ctf_fs_trace->path->str, error->message,
 			error->code);
 		goto error;
@@ -890,21 +901,21 @@ int create_ds_file_groups(struct ctf_fs_trace *ctf_fs_trace)
 
 		if (!strcmp(basename, CTF_FS_METADATA_FILENAME)) {
 			/* Ignore the metadata stream. */
-			BT_LOGI("Ignoring metadata file `%s" G_DIR_SEPARATOR_S "%s`",
+			BT_COMP_LOGI("Ignoring metadata file `%s" G_DIR_SEPARATOR_S "%s`",
 				ctf_fs_trace->path->str, basename);
 			continue;
 		}
 
 		if (basename[0] == '.') {
-			BT_LOGI("Ignoring hidden file `%s" G_DIR_SEPARATOR_S "%s`",
+			BT_COMP_LOGI("Ignoring hidden file `%s" G_DIR_SEPARATOR_S "%s`",
 				ctf_fs_trace->path->str, basename);
 			continue;
 		}
 
 		/* Create the file. */
-		file = ctf_fs_file_create(log_level);
+		file = ctf_fs_file_create(log_level, self_comp);
 		if (!file) {
-			BT_LOGE("Cannot create stream file object for file `%s" G_DIR_SEPARATOR_S "%s`",
+			BT_COMP_LOGE("Cannot create stream file object for file `%s" G_DIR_SEPARATOR_S "%s`",
 				ctf_fs_trace->path->str, basename);
 			goto error;
 		}
@@ -913,7 +924,7 @@ int create_ds_file_groups(struct ctf_fs_trace *ctf_fs_trace)
 		g_string_append_printf(file->path, "%s" G_DIR_SEPARATOR_S "%s",
 				ctf_fs_trace->path->str, basename);
 		if (!g_file_test(file->path->str, G_FILE_TEST_IS_REGULAR)) {
-			BT_LOGI("Ignoring non-regular file `%s`",
+			BT_COMP_LOGI("Ignoring non-regular file `%s`",
 				file->path->str);
 			ctf_fs_file_destroy(file);
 			file = NULL;
@@ -922,13 +933,13 @@ int create_ds_file_groups(struct ctf_fs_trace *ctf_fs_trace)
 
 		ret = ctf_fs_file_open(file, "rb");
 		if (ret) {
-			BT_LOGE("Cannot open stream file `%s`", file->path->str);
+			BT_COMP_LOGE("Cannot open stream file `%s`", file->path->str);
 			goto error;
 		}
 
 		if (file->size == 0) {
 			/* Skip empty stream. */
-			BT_LOGI("Ignoring empty file `%s`", file->path->str);
+			BT_COMP_LOGI("Ignoring empty file `%s`", file->path->str);
 			ctf_fs_file_destroy(file);
 			continue;
 		}
@@ -936,7 +947,7 @@ int create_ds_file_groups(struct ctf_fs_trace *ctf_fs_trace)
 		ret = add_ds_file_to_ds_file_group(ctf_fs_trace,
 			file->path->str);
 		if (ret) {
-			BT_LOGE("Cannot add stream file `%s` to stream file group",
+			BT_COMP_LOGE("Cannot add stream file `%s` to stream file group",
 				file->path->str);
 			ctf_fs_file_destroy(file);
 			goto error;
@@ -965,7 +976,7 @@ end:
 
 static
 int set_trace_name(bt_trace *trace, const char *name_suffix,
-		bt_logging_level log_level)
+		bt_logging_level log_level, bt_self_component *self_comp)
 {
 	int ret = 0;
 	const bt_trace_class *tc = bt_trace_borrow_class_const(trace);
@@ -974,7 +985,7 @@ int set_trace_name(bt_trace *trace, const char *name_suffix,
 
 	name = g_string_new(NULL);
 	if (!name) {
-		BT_LOGE_STR("Failed to allocate a GString.");
+		BT_COMP_LOGE_STR("Failed to allocate a GString.");
 		ret = -1;
 		goto end;
 	}
@@ -1013,7 +1024,7 @@ end:
 }
 
 static
-struct ctf_fs_trace *ctf_fs_trace_create(bt_self_component_source *self_comp,
+struct ctf_fs_trace *ctf_fs_trace_create(bt_self_component *self_comp,
 		const char *path, const char *name,
 		struct ctf_fs_metadata_config *metadata_config,
 		bt_logging_level log_level)
@@ -1027,6 +1038,7 @@ struct ctf_fs_trace *ctf_fs_trace_create(bt_self_component_source *self_comp,
 	}
 
 	ctf_fs_trace->log_level = log_level;
+	ctf_fs_trace->self_comp = self_comp;
 	ctf_fs_trace->path = g_string_new(path);
 	if (!ctf_fs_trace->path) {
 		goto error;
@@ -1049,8 +1061,8 @@ struct ctf_fs_trace *ctf_fs_trace_create(bt_self_component_source *self_comp,
 		goto error;
 	}
 
-	ret = ctf_fs_metadata_set_trace_class(self_comp,
-		ctf_fs_trace, metadata_config);
+	ret = ctf_fs_metadata_set_trace_class(self_comp, ctf_fs_trace,
+		metadata_config);
 	if (ret) {
 		goto error;
 	}
@@ -1064,7 +1076,8 @@ struct ctf_fs_trace *ctf_fs_trace_create(bt_self_component_source *self_comp,
 	}
 
 	if (ctf_fs_trace->trace) {
-		ret = set_trace_name(ctf_fs_trace->trace, name, log_level);
+		ret = set_trace_name(ctf_fs_trace->trace, name, log_level,
+			self_comp);
 		if (ret) {
 			goto error;
 		}
@@ -1110,21 +1123,21 @@ end:
 
 static
 int add_trace_path(GList **trace_paths, const char *path,
-		bt_logging_level log_level)
+		bt_logging_level log_level, bt_self_component *self_comp)
 {
 	GString *norm_path = NULL;
 	int ret = 0;
 
 	norm_path = bt_common_normalize_path(path, NULL);
 	if (!norm_path) {
-		BT_LOGE("Failed to normalize path `%s`.", path);
+		BT_COMP_LOGE("Failed to normalize path `%s`.", path);
 		ret = -1;
 		goto end;
 	}
 
 	// FIXME: Remove or ifdef for __MINGW32__
 	if (strcmp(norm_path->str, "/") == 0) {
-		BT_LOGE("Opening a trace in `/` is not supported.");
+		BT_COMP_LOGE("Opening a trace in `/` is not supported.");
 		ret = -1;
 		goto end;
 	}
@@ -1143,7 +1156,7 @@ end:
 
 static
 int ctf_fs_find_traces(GList **trace_paths, const char *start_path,
-		bt_logging_level log_level)
+		bt_logging_level log_level, bt_self_component *self_comp)
 {
 	int ret;
 	GError *error = NULL;
@@ -1161,7 +1174,8 @@ int ctf_fs_find_traces(GList **trace_paths, const char *start_path,
 		 * Stop recursion: a CTF trace cannot contain another
 		 * CTF trace.
 		 */
-		ret = add_trace_path(trace_paths, start_path, log_level);
+		ret = add_trace_path(trace_paths, start_path, log_level,
+			self_comp);
 		goto end;
 	}
 
@@ -1174,12 +1188,12 @@ int ctf_fs_find_traces(GList **trace_paths, const char *start_path,
 	dir = g_dir_open(start_path, 0, &error);
 	if (!dir) {
 		if (error->code == G_FILE_ERROR_ACCES) {
-			BT_LOGI("Cannot open directory `%s`: %s (code %d): continuing",
+			BT_COMP_LOGI("Cannot open directory `%s`: %s (code %d): continuing",
 				start_path, error->message, error->code);
 			goto end;
 		}
 
-		BT_LOGE("Cannot open directory `%s`: %s (code %d)",
+		BT_COMP_LOGE("Cannot open directory `%s`: %s (code %d)",
 			start_path, error->message, error->code);
 		ret = -1;
 		goto end;
@@ -1195,7 +1209,7 @@ int ctf_fs_find_traces(GList **trace_paths, const char *start_path,
 
 		g_string_printf(sub_path, "%s" G_DIR_SEPARATOR_S "%s", start_path, basename);
 		ret = ctf_fs_find_traces(trace_paths, sub_path->str,
-			log_level);
+			log_level, self_comp);
 		g_string_free(sub_path, TRUE);
 		if (ret) {
 			goto end;
@@ -1270,7 +1284,7 @@ GList *ctf_fs_create_trace_names(GList *trace_paths, const char *base_path) {
 /* Helper for ctf_fs_component_create_ctf_fs_traces, to handle a single path/root. */
 
 static
-int ctf_fs_component_create_ctf_fs_traces_one_root(bt_self_component_source *self_comp,
+int ctf_fs_component_create_ctf_fs_traces_one_root(
 		struct ctf_fs_component *ctf_fs,
 		const char *path_param)
 {
@@ -1282,28 +1296,30 @@ int ctf_fs_component_create_ctf_fs_traces_one_root(bt_self_component_source *sel
 	GList *tp_node;
 	GList *tn_node;
 	bt_logging_level log_level = ctf_fs->log_level;
+	bt_self_component *self_comp = ctf_fs->self_comp;
 
 	norm_path = bt_common_normalize_path(path_param, NULL);
 	if (!norm_path) {
-		BT_LOGE("Failed to normalize path: `%s`.",
+		BT_COMP_LOGE("Failed to normalize path: `%s`.",
 			path_param);
 		goto error;
 	}
 
-	ret = ctf_fs_find_traces(&trace_paths, norm_path->str, log_level);
+	ret = ctf_fs_find_traces(&trace_paths, norm_path->str, log_level,
+		self_comp);
 	if (ret) {
 		goto error;
 	}
 
 	if (!trace_paths) {
-		BT_LOGE("No CTF traces recursively found in `%s`.",
+		BT_COMP_LOGE("No CTF traces recursively found in `%s`.",
 			path_param);
 		goto error;
 	}
 
 	trace_names = ctf_fs_create_trace_names(trace_paths, norm_path->str);
 	if (!trace_names) {
-		BT_LOGE("Cannot create trace names from trace paths.");
+		BT_COMP_LOGE("Cannot create trace names from trace paths.");
 		goto error;
 	}
 
@@ -1318,7 +1334,7 @@ int ctf_fs_component_create_ctf_fs_traces_one_root(bt_self_component_source *sel
 				&ctf_fs->metadata_config,
 				log_level);
 		if (!ctf_fs_trace) {
-			BT_LOGE("Cannot create trace for `%s`.",
+			BT_COMP_LOGE("Cannot create trace for `%s`.",
 				trace_path->str);
 			goto error;
 		}
@@ -1510,7 +1526,8 @@ int merge_matching_ctf_fs_ds_file_groups(
 				dest_trace->metadata->tc, src_group->sc->id);
 			BT_ASSERT(sc);
 
-			index = ctf_fs_ds_index_create(dest_trace->log_level);
+			index = ctf_fs_ds_index_create(dest_trace->log_level,
+				dest_trace->self_comp);
 			if (!index) {
 				ret = -1;
 				goto end;
@@ -1682,7 +1699,8 @@ int ctf_fs_component_create_ctf_fs_traces(bt_self_component_source *self_comp,
 		const bt_value *path_value = bt_value_array_borrow_element_by_index_const(paths_value, i);
 		const char *path = bt_value_string_get(path_value);
 
-		ret = ctf_fs_component_create_ctf_fs_traces_one_root(self_comp, ctf_fs, path);
+		ret = ctf_fs_component_create_ctf_fs_traces_one_root(ctf_fs,
+			path);
 		if (ret) {
 			goto end;
 		}
@@ -1728,6 +1746,7 @@ int create_streams_for_trace(struct ctf_fs_trace *ctf_fs_trace)
 	GString *name = NULL;
 	guint i;
 	bt_logging_level log_level = ctf_fs_trace->log_level;
+	bt_self_component *self_comp = ctf_fs_trace->self_comp;
 
 	for (i = 0; i < ctf_fs_trace->ds_file_groups->len; i++) {
 		struct ctf_fs_ds_file_group *ds_file_group =
@@ -1760,7 +1779,7 @@ int create_streams_for_trace(struct ctf_fs_trace *ctf_fs_trace)
 		}
 
 		if (!ds_file_group->stream) {
-			BT_LOGE("Cannot create stream for DS file group: "
+			BT_COMP_LOGE("Cannot create stream for DS file group: "
 				"addr=%p, stream-name=\"%s\"",
 				ds_file_group, name->str);
 			goto error;
@@ -1769,7 +1788,7 @@ int create_streams_for_trace(struct ctf_fs_trace *ctf_fs_trace)
 		ret = bt_stream_set_name(ds_file_group->stream,
 			name->str);
 		if (ret) {
-			BT_LOGE("Cannot set stream's name: "
+			BT_COMP_LOGE("Cannot set stream's name: "
 				"addr=%p, stream-name=\"%s\"",
 				ds_file_group->stream, name->str);
 			goto error;
@@ -1806,15 +1825,16 @@ bool validate_paths_parameter(struct ctf_fs_component *ctf_fs,
 	bt_value_type type;
 	uint64_t i;
 	bt_logging_level log_level = ctf_fs->log_level;
+	bt_self_component *self_comp = ctf_fs->self_comp;
 
 	if (!paths) {
-		BT_LOGE("missing \"paths\" parameter");
+		BT_COMP_LOGE("missing \"paths\" parameter");
 		goto error;
 	}
 
 	type = bt_value_get_type(paths);
 	if (type != BT_VALUE_TYPE_ARRAY) {
-		BT_LOGE("`paths` parameter: expecting array value: type=%s",
+		BT_COMP_LOGE("`paths` parameter: expecting array value: type=%s",
 			bt_common_value_type_string(type));
 		goto error;
 	}
@@ -1825,7 +1845,7 @@ bool validate_paths_parameter(struct ctf_fs_component *ctf_fs,
 		elem = bt_value_array_borrow_element_by_index_const(paths, i);
 		type = bt_value_get_type(elem);
 		if (type != BT_VALUE_TYPE_STRING) {
-			BT_LOGE("`paths` parameter: expecting string value: index=%" PRIu64 ", type=%s",
+			BT_COMP_LOGE("`paths` parameter: expecting string value: index=%" PRIu64 ", type=%s",
 				i, bt_common_value_type_string(type));
 			goto error;
 		}
@@ -1846,6 +1866,7 @@ bool read_src_fs_parameters(const bt_value *params,
 	bool ret;
 	const bt_value *value;
 	bt_logging_level log_level = ctf_fs->log_level;
+	bt_self_component *self_comp = ctf_fs->self_comp;
 
 	/* paths parameter */
 	*paths = bt_value_map_borrow_entry_value_const(params, "paths");
@@ -1858,7 +1879,7 @@ bool read_src_fs_parameters(const bt_value *params,
 		"clock-class-offset-s");
 	if (value) {
 		if (!bt_value_is_signed_integer(value)) {
-			BT_LOGE("clock-class-offset-s must be an integer");
+			BT_COMP_LOGE("clock-class-offset-s must be an integer");
 			goto error;
 		}
 		ctf_fs->metadata_config.clock_class_offset_s =
@@ -1870,7 +1891,7 @@ bool read_src_fs_parameters(const bt_value *params,
 		"clock-class-offset-ns");
 	if (value) {
 		if (!bt_value_is_signed_integer(value)) {
-			BT_LOGE("clock-class-offset-ns must be an integer");
+			BT_COMP_LOGE("clock-class-offset-ns must be an integer");
 			goto error;
 		}
 		ctf_fs->metadata_config.clock_class_offset_ns =
@@ -1900,7 +1921,7 @@ struct ctf_fs_component *ctf_fs_create(
 		bt_self_component_source_as_self_component(self_comp_src);
 
 	ctf_fs = ctf_fs_component_create(bt_component_get_logging_level(
-		bt_self_component_as_component(self_comp)));
+		bt_self_component_as_component(self_comp)), self_comp);
 	if (!ctf_fs) {
 		goto error;
 	}
@@ -1910,13 +1931,8 @@ struct ctf_fs_component *ctf_fs_create(
 	}
 
 	bt_self_component_set_data(self_comp, ctf_fs);
-
-	/*
-	 * We don't need to get a new reference here because as long as
-	 * our private ctf_fs_component object exists, the containing
-	 * private component should also exist.
-	 */
-	ctf_fs->self_comp = self_comp_src;
+	ctf_fs->self_comp = self_comp;
+	ctf_fs->self_comp_src = self_comp_src;
 
 	if (ctf_fs_component_create_ctf_fs_traces(self_comp_src, ctf_fs, paths_value)) {
 		goto error;

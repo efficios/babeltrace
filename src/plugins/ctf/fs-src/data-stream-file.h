@@ -51,6 +51,9 @@ struct ctf_fs_ds_file {
 	bt_logging_level log_level;
 
 	/* Weak */
+	bt_self_component *self_comp;
+
+	/* Weak */
 	struct ctf_fs_metadata *metadata;
 
 	/* Weak */
@@ -109,7 +112,8 @@ struct ctf_fs_ds_index *ctf_fs_ds_file_build_index(
 		struct ctf_fs_ds_file *ds_file);
 
 BT_HIDDEN
-struct ctf_fs_ds_index *ctf_fs_ds_index_create(bt_logging_level log_level);
+struct ctf_fs_ds_index *ctf_fs_ds_index_create(bt_logging_level log_level,
+		bt_self_component *self_comp);
 
 BT_HIDDEN
 void ctf_fs_ds_index_destroy(struct ctf_fs_ds_index *index);
