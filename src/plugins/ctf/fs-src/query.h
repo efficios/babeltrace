@@ -31,11 +31,13 @@
 BT_HIDDEN
 bt_query_status metadata_info_query(
 		bt_self_component_class_source *comp_class,
-		const bt_value *params, const bt_value **result);
+		const bt_value *params,
+		bt_logging_level log_level, const bt_value **result);
 
 BT_HIDDEN
 bt_query_status trace_info_query(
 		bt_self_component_class_source *comp_class,
-		const bt_value *params, const bt_value **result);
+		const bt_value *params, bt_logging_level log_level,
+		const bt_value **result);
 
 #endif /* BABELTRACE_PLUGIN_CTF_FS_QUERY_H */

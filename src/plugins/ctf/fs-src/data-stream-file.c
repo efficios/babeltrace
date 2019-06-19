@@ -22,6 +22,10 @@
  * SOFTWARE.
  */
 
+#define BT_LOG_OUTPUT_LEVEL (ds_file->log_level)
+#define BT_LOG_TAG "PLUGIN/SRC.CTF.FS/DS"
+#include "logging/log.h"
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdint.h>
@@ -39,9 +43,6 @@
 #include "common/assert.h"
 #include "data-stream-file.h"
 #include <string.h>
-
-#define BT_LOG_TAG "PLUGIN/SRC.CTF.FS/DS"
-#include "logging.h"
 
 static inline
 size_t remaining_mmap_bytes(struct ctf_fs_ds_file *ds_file)
@@ -223,7 +224,7 @@ enum bt_msg_iter_medium_status medop_seek(enum bt_msg_iter_seek_whence whence,
 			offset >= ds_file->mmap_offset + ds_file->mmap_len)) {
 		int unmap_ret;
 		off_t offset_in_mapping = offset %
-			bt_common_get_page_size(BT_LOG_OUTPUT_LEVEL);
+			bt_common_get_page_size(ds_file->log_level);
 
 		BT_LOGD("Medium seek request cannot be accomodated by the current "
 				"file mapping: offset=%jd, mmap-offset=%jd, "
@@ -367,7 +368,7 @@ struct ctf_fs_ds_index *build_index_from_idx_file(
 		goto error;
 	}
 
-	index = ctf_fs_ds_index_create();
+	index = ctf_fs_ds_index_create(ds_file->log_level);
 	if (!index) {
 		goto error;
 	}
@@ -513,7 +514,7 @@ struct ctf_fs_ds_index *build_index_from_stream_file(
 
 	BT_LOGI("Indexing stream file %s", ds_file->file->path->str);
 
-	index = ctf_fs_ds_index_create();
+	index = ctf_fs_ds_index_create(ds_file->log_level);
 	if (!index) {
 		goto error;
 	}
@@ -606,18 +607,20 @@ struct ctf_fs_ds_file *ctf_fs_ds_file_create(
 		struct ctf_fs_trace *ctf_fs_trace,
 		bt_self_message_iterator *pc_msg_iter,
 		struct bt_msg_iter *msg_iter,
-		bt_stream *stream, const char *path)
+		bt_stream *stream, const char *path,
+		bt_logging_level log_level)
 {
 	int ret;
-	const size_t page_size = bt_common_get_page_size(BT_LOG_OUTPUT_LEVEL);
+	const size_t page_size = bt_common_get_page_size(log_level);
 	struct ctf_fs_ds_file *ds_file = g_new0(struct ctf_fs_ds_file, 1);
 
 	if (!ds_file) {
 		goto error;
 	}
 
+	ds_file->log_level = log_level;
 	ds_file->pc_msg_iter = pc_msg_iter;
-	ds_file->file = ctf_fs_file_create();
+	ds_file->file = ctf_fs_file_create(log_level);
 	if (!ds_file->file) {
 		goto error;
 	}
@@ -669,18 +672,20 @@ end:
 }
 
 BT_HIDDEN
-struct ctf_fs_ds_index *ctf_fs_ds_index_create()
+struct ctf_fs_ds_index *ctf_fs_ds_index_create(bt_logging_level log_level)
 {
 	struct ctf_fs_ds_index *index = g_new0(struct ctf_fs_ds_index, 1);
 
 	if (!index) {
-		BT_LOGE_STR("Failed to allocate index");
+		BT_LOG_WRITE_CUR_LVL(BT_LOG_ERROR, log_level, BT_LOG_TAG,
+			"Failed to allocate index");
 		goto error;
 	}
 
 	index->entries = g_ptr_array_new_with_free_func((GDestroyNotify) g_free);
 	if (!index->entries) {
-		BT_LOGE("Failed to allocate index entries.");
+		BT_LOG_WRITE_CUR_LVL(BT_LOG_ERROR, log_level, BT_LOG_TAG,
+			"Failed to allocate index entries.");
 		goto error;
 	}
 
