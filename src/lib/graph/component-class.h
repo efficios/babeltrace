@@ -54,6 +54,7 @@ struct bt_component_class {
 	GString *name;
 	GString *description;
 	GString *help;
+	GString *plugin_name;
 
 	/* Array of struct bt_component_class_destroy_listener */
 	GArray *destroy_listeners;
