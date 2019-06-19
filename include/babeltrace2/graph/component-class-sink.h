@@ -66,12 +66,6 @@ typedef bt_query_status
 		const bt_value **result);
 
 typedef bt_self_component_status
-(*bt_component_class_sink_accept_input_port_connection_method)(
-		bt_self_component_sink *self_component,
-		bt_self_component_port_input *self_port,
-		const bt_port_output *other_port);
-
-typedef bt_self_component_status
 (*bt_component_class_sink_input_port_connected_method)(
 		bt_self_component_sink *self_component,
 		bt_self_component_port_input *self_port,
@@ -103,11 +97,6 @@ extern bt_component_class_status bt_component_class_sink_set_init_method(
 extern bt_component_class_status bt_component_class_sink_set_finalize_method(
 		bt_component_class_sink *comp_class,
 		bt_component_class_sink_finalize_method method);
-
-extern bt_component_class_status
-bt_component_class_sink_set_accept_input_port_connection_method(
-		bt_component_class_sink *comp_class,
-		bt_component_class_sink_accept_input_port_connection_method method);
 
 extern bt_component_class_status
 bt_component_class_sink_set_input_port_connected_method(

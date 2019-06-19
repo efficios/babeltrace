@@ -180,17 +180,15 @@ enum __bt_plugin_component_class_descriptor_attribute_type {
 	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_INIT_METHOD					= 2,
 	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_FINALIZE_METHOD				= 3,
 	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_QUERY_METHOD				= 4,
-	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_ACCEPT_INPUT_PORT_CONNECTION_METHOD		= 5,
-	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_ACCEPT_OUTPUT_PORT_CONNECTION_METHOD	= 6,
-	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_INPUT_PORT_CONNECTED_METHOD			= 7,
-	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_OUTPUT_PORT_CONNECTED_METHOD		= 8,
-	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_GRAPH_IS_CONFIGURED_METHOD			= 9,
-	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_MSG_ITER_INIT_METHOD			= 10,
-	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_MSG_ITER_FINALIZE_METHOD			= 11,
-	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_MSG_ITER_SEEK_NS_FROM_ORIGIN_METHOD		= 12,
-	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_MSG_ITER_SEEK_BEGINNING_METHOD		= 13,
-	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_MSG_ITER_CAN_SEEK_NS_FROM_ORIGIN_METHOD	= 14,
-	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_MSG_ITER_CAN_SEEK_BEGINNING_METHOD		= 15,
+	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_INPUT_PORT_CONNECTED_METHOD			= 5,
+	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_OUTPUT_PORT_CONNECTED_METHOD		= 6,
+	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_GRAPH_IS_CONFIGURED_METHOD			= 7,
+	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_MSG_ITER_INIT_METHOD			= 8,
+	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_MSG_ITER_FINALIZE_METHOD			= 9,
+	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_MSG_ITER_SEEK_NS_FROM_ORIGIN_METHOD		= 10,
+	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_MSG_ITER_SEEK_BEGINNING_METHOD		= 11,
+	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_MSG_ITER_CAN_SEEK_NS_FROM_ORIGIN_METHOD	= 12,
+	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_MSG_ITER_CAN_SEEK_BEGINNING_METHOD		= 13,
 };
 
 /* Component class attribute (internal use) */
@@ -229,14 +227,6 @@ struct __bt_plugin_component_class_descriptor_attribute {
 		bt_component_class_source_query_method source_query_method;
 		bt_component_class_filter_query_method filter_query_method;
 		bt_component_class_sink_query_method sink_query_method;
-
-		/* BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_ACCEPT_INPUT_PORT_CONNECTION_METHOD */
-		bt_component_class_filter_accept_input_port_connection_method filter_accept_input_port_connection_method;
-		bt_component_class_sink_accept_input_port_connection_method sink_accept_input_port_connection_method;
-
-		/* BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_ACCEPT_OUTPUT_PORT_CONNECTION_METHOD */
-		bt_component_class_source_accept_output_port_connection_method source_accept_output_port_connection_method;
-		bt_component_class_filter_accept_output_port_connection_method filter_accept_output_port_connection_method;
 
 		/* BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_INPUT_PORT_CONNECTED_METHOD */
 		bt_component_class_filter_input_port_connected_method filter_input_port_connected_method;
@@ -777,54 +767,6 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
 	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(sink_query_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_QUERY_METHOD, _id, _comp_class_id, sink, _x)
 
 /*
- * Defines an accept input port connection method attribute attached to
- * a specific filter component class descriptor.
- *
- * _id:            Plugin descriptor ID (C identifier).
- * _comp_class_id: Component class descriptor ID (C identifier).
- * _x:             Accept port connection method
- *                 (bt_component_class_filter_accept_input_port_connection_method).
- */
-#define BT_PLUGIN_FILTER_COMPONENT_CLASS_ACCEPT_INPUT_PORT_CONNECTION_METHOD_WITH_ID(_id, _comp_class_id, _x) \
-	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(filter_accept_input_port_connection_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_ACCEPT_INPUT_PORT_CONNECTION_METHOD, _id, _comp_class_id, filter, _x)
-
-/*
- * Defines an accept input port connection method attribute attached to
- * a specific sink component class descriptor.
- *
- * _id:            Plugin descriptor ID (C identifier).
- * _comp_class_id: Component class descriptor ID (C identifier).
- * _x:             Accept port connection method
- *                 (bt_component_class_sink_accept_input_port_connection_method).
- */
-#define BT_PLUGIN_SINK_COMPONENT_CLASS_ACCEPT_INPUT_PORT_CONNECTION_METHOD_WITH_ID(_id, _comp_class_id, _x) \
-	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(sink_accept_input_port_connection_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_ACCEPT_INPUT_PORT_CONNECTION_METHOD, _id, _comp_class_id, sink, _x)
-
-/*
- * Defines an accept output port connection method attribute attached to
- * a specific source component class descriptor.
- *
- * _id:            Plugin descriptor ID (C identifier).
- * _comp_class_id: Component class descriptor ID (C identifier).
- * _x:             Accept port connection method
- *                 (bt_component_class_source_accept_output_port_connection_method).
- */
-#define BT_PLUGIN_SOURCE_COMPONENT_CLASS_ACCEPT_OUTPUT_PORT_CONNECTION_METHOD_WITH_ID(_id, _comp_class_id, _x) \
-	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(source_accept_output_port_connection_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_ACCEPT_OUTPUT_PORT_CONNECTION_METHOD, _id, _comp_class_id, source, _x)
-
-/*
- * Defines an accept output port connection method attribute attached to
- * a specific filter component class descriptor.
- *
- * _id:            Plugin descriptor ID (C identifier).
- * _comp_class_id: Component class descriptor ID (C identifier).
- * _x:             Accept port connection method
- *                 (bt_component_class_filter_accept_output_port_connection_method).
- */
-#define BT_PLUGIN_FILTER_COMPONENT_CLASS_ACCEPT_OUTPUT_PORT_CONNECTION_METHOD_WITH_ID(_id, _comp_class_id, _x) \
-	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(filter_accept_output_port_connection_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_ACCEPT_OUTPUT_PORT_CONNECTION_METHOD, _id, _comp_class_id, filter, _x)
-
-/*
  * Defines an input port connected method attribute attached to a
  * specific filter component class descriptor.
  *
@@ -1279,54 +1221,6 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
  */
 #define BT_PLUGIN_SINK_COMPONENT_CLASS_QUERY_METHOD(_name, _x) \
 	BT_PLUGIN_SINK_COMPONENT_CLASS_QUERY_METHOD_WITH_ID(auto, _name, _x)
-
-/*
- * Defines an accept input port connection method attribute attached to
- * a filter component class descriptor which is attached to the
- * automatic plugin descriptor.
- *
- * _name: Component class name (C identifier).
- * _x:    Accept port connection method
- *        (bt_component_class_filter_accept_input_port_connection_method).
- */
-#define BT_PLUGIN_FILTER_COMPONENT_CLASS_ACCEPT_INPUT_PORT_CONNECTION_METHOD(_name, _x) \
-	BT_PLUGIN_FILTER_COMPONENT_CLASS_ACCEPT_INPUT_PORT_CONNECTION_METHOD_WITH_ID(auto, _name, _x)
-
-/*
- * Defines an accept input port connection method attribute attached to
- * a sink component class descriptor which is attached to the automatic
- * plugin descriptor.
- *
- * _name: Component class name (C identifier).
- * _x:    Accept port connection method
- *        (bt_component_class_sink_accept_input_port_connection_method).
- */
-#define BT_PLUGIN_SINK_COMPONENT_CLASS_ACCEPT_INPUT_PORT_CONNECTION_METHOD(_name, _x) \
-	BT_PLUGIN_SINK_COMPONENT_CLASS_ACCEPT_INPUT_PORT_CONNECTION_METHOD_WITH_ID(auto, _name, _x)
-
-/*
- * Defines an accept output port connection method attribute attached to
- * a source component class descriptor which is attached to the
- * automatic plugin descriptor.
- *
- * _name: Component class name (C identifier).
- * _x:    Accept port connection method
- *        (bt_component_class_source_accept_output_port_connection_method).
- */
-#define BT_PLUGIN_SOURCE_COMPONENT_CLASS_ACCEPT_OUTPUT_PORT_CONNECTION_METHOD(_name, _x) \
-	BT_PLUGIN_SOURCE_COMPONENT_CLASS_ACCEPT_OUTPUT_PORT_CONNECTION_METHOD_WITH_ID(auto, _name, _x)
-
-/*
- * Defines an accept output port connection method attribute attached to
- * a filter component class descriptor which is attached to the
- * automatic plugin descriptor.
- *
- * _name: Component class name (C identifier).
- * _x:    Accept port connection method
- *        (bt_component_class_filter_accept_output_port_connection_method).
- */
-#define BT_PLUGIN_FILTER_COMPONENT_CLASS_ACCEPT_OUTPUT_PORT_CONNECTION_METHOD(_name, _x) \
-	BT_PLUGIN_FILTER_COMPONENT_CLASS_ACCEPT_OUTPUT_PORT_CONNECTION_METHOD_WITH_ID(auto, _name, _x)
 
 /*
  * Defines an input port connected method attribute attached to a filter

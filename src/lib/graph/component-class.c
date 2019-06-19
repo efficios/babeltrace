@@ -373,62 +373,6 @@ bt_component_class_sink_set_query_method(
 }
 
 enum bt_component_class_status
-bt_component_class_filter_set_accept_input_port_connection_method(
-		struct bt_component_class_filter *comp_cls,
-		bt_component_class_filter_accept_input_port_connection_method method)
-{
-	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
-	BT_ASSERT_PRE_NON_NULL(method, "Method");
-	BT_ASSERT_PRE_COMP_CLS_HOT(comp_cls);
-	comp_cls->methods.accept_input_port_connection = method;
-	BT_LIB_LOGD("Set filter component class's \"accept input port connection\" method"
-		": %!+C", comp_cls);
-	return BT_COMPONENT_CLASS_STATUS_OK;
-}
-
-enum bt_component_class_status
-bt_component_class_sink_set_accept_input_port_connection_method(
-		struct bt_component_class_sink *comp_cls,
-		bt_component_class_sink_accept_input_port_connection_method method)
-{
-	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
-	BT_ASSERT_PRE_NON_NULL(method, "Method");
-	BT_ASSERT_PRE_COMP_CLS_HOT(comp_cls);
-	comp_cls->methods.accept_input_port_connection = method;
-	BT_LIB_LOGD("Set sink component class's \"accept input port connection\" method"
-		": %!+C", comp_cls);
-	return BT_COMPONENT_CLASS_STATUS_OK;
-}
-
-enum bt_component_class_status
-bt_component_class_source_set_accept_output_port_connection_method(
-		struct bt_component_class_source *comp_cls,
-		bt_component_class_source_accept_output_port_connection_method method)
-{
-	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
-	BT_ASSERT_PRE_NON_NULL(method, "Method");
-	BT_ASSERT_PRE_COMP_CLS_HOT(comp_cls);
-	comp_cls->methods.accept_output_port_connection = method;
-	BT_LIB_LOGD("Set source component class's \"accept output port connection\" method"
-		": %!+C", comp_cls);
-	return BT_COMPONENT_CLASS_STATUS_OK;
-}
-
-enum bt_component_class_status
-bt_component_class_filter_set_accept_output_port_connection_method(
-		struct bt_component_class_filter *comp_cls,
-		bt_component_class_filter_accept_output_port_connection_method method)
-{
-	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
-	BT_ASSERT_PRE_NON_NULL(method, "Method");
-	BT_ASSERT_PRE_COMP_CLS_HOT(comp_cls);
-	comp_cls->methods.accept_output_port_connection = method;
-	BT_LIB_LOGD("Set filter component class's \"accept output port connection\" method"
-		": %!+C", comp_cls);
-	return BT_COMPONENT_CLASS_STATUS_OK;
-}
-
-enum bt_component_class_status
 bt_component_class_filter_set_input_port_connected_method(
 		struct bt_component_class_filter *comp_cls,
 		bt_component_class_filter_input_port_connected_method method)

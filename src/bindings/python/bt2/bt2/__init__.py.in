@@ -90,10 +90,6 @@ class Stop(StopIteration):
     pass
 
 
-class PortConnectionRefused(Exception):
-    pass
-
-
 class IncompleteUserClass(Error):
     pass
 

@@ -1809,24 +1809,6 @@ int cmd_run_ctx_connect_upstream_port_to_downstream_component(
 			BT_LOGI_STR("Graph was canceled by user.");
 			status = BT_GRAPH_STATUS_OK;
 			break;
-		case BT_GRAPH_STATUS_COMPONENT_REFUSES_PORT_CONNECTION:
-			BT_LOGE("A component refused a connection to one of its ports: "
-				"upstream-comp-addr=%p, upstream-comp-name=\"%s\", "
-				"upstream-port-addr=%p, upstream-port-name=\"%s\", "
-				"downstream-comp-addr=%p, downstream-comp-name=\"%s\", "
-				"downstream-port-addr=%p, downstream-port-name=\"%s\", "
-				"conn-arg=\"%s\"",
-				upstream_comp, bt_component_get_name(upstream_comp),
-				upstream_port, bt_port_get_name(upstream_port),
-				downstream_comp, cfg_conn->downstream_comp_name->str,
-				downstream_port, downstream_port_name,
-				cfg_conn->arg->str);
-			fprintf(stderr,
-				"A component refused a connection to one of its ports (`%s` to `%s`): %s\n",
-				bt_port_get_name(upstream_port),
-				downstream_port_name,
-				cfg_conn->arg->str);
-			break;
 		default:
 			BT_LOGE("Cannot create connection: graph refuses to connect ports: "
 				"upstream-comp-addr=%p, upstream-comp-name=\"%s\", "
@@ -2574,8 +2556,6 @@ const char *bt_graph_status_str(bt_graph_status status)
 		return "BT_GRAPH_STATUS_END";
 	case BT_GRAPH_STATUS_AGAIN:
 		return "BT_GRAPH_STATUS_AGAIN";
-	case BT_GRAPH_STATUS_COMPONENT_REFUSES_PORT_CONNECTION:
-		return "BT_GRAPH_STATUS_COMPONENT_REFUSES_PORT_CONNECTION";
 	case BT_GRAPH_STATUS_CANCELED:
 		return "BT_GRAPH_STATUS_CANCELED";
 	case BT_GRAPH_STATUS_ERROR:

@@ -183,8 +183,6 @@ const char *bt_graph_status_string(enum bt_graph_status status)
 		return "BT_GRAPH_STATUS_OK";
 	case BT_GRAPH_STATUS_ERROR:
 		return "BT_GRAPH_STATUS_ERROR";
-	case BT_GRAPH_STATUS_COMPONENT_REFUSES_PORT_CONNECTION:
-		return "BT_GRAPH_STATUS_COMPONENT_REFUSES_PORT_CONNECTION";
 	case BT_GRAPH_STATUS_NOMEM:
 		return "BT_GRAPH_STATUS_NOMEM";
 	default:

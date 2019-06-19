@@ -84,11 +84,6 @@ int bt_component_create(struct bt_component_class *component_class,
 		struct bt_component **component);
 
 BT_HIDDEN
-enum bt_self_component_status bt_component_accept_port_connection(
-		struct bt_component *component, struct bt_port *self_port,
-		struct bt_port *other_port);
-
-BT_HIDDEN
 enum bt_self_component_status bt_component_port_connected(
 		struct bt_component *comp,
 		struct bt_port *self_port, struct bt_port *other_port);
