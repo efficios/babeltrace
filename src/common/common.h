@@ -32,6 +32,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <string.h>
 
 #include <babeltrace2/babeltrace.h>
 
@@ -719,5 +720,12 @@ int bt_common_clock_value_from_ns_from_origin(
 end:
 	return ret;
 }
+
+/*
+ * bt_g_string_append_printf cannot be inlined because it expects a
+ * variadic argument list.
+ */
+BT_HIDDEN
+int bt_common_g_string_append_printf(GString *str, const char *fmt, ...);
 
 #endif /* BABELTRACE_COMMON_INTERNAL_H */
