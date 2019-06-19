@@ -46,6 +46,7 @@ struct lttng_live_component;
 
 struct live_viewer_connection {
 	bt_logging_level log_level;
+	bt_self_component *self_comp;
 	bt_object obj;
 
 	GString *url;
