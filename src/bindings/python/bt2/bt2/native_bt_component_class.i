@@ -126,12 +126,6 @@ typedef bt_query_status (*bt_component_class_source_query_method)(
 		const bt_value **result);
 
 typedef bt_self_component_status
-(*bt_component_class_source_accept_output_port_connection_method)(
-		bt_self_component_source *self_component,
-		bt_self_component_port_output *self_port,
-		const bt_port_input *other_port);
-
-typedef bt_self_component_status
 (*bt_component_class_source_output_port_connected_method)(
 		bt_self_component_source *self_component,
 		bt_self_component_port_output *self_port,
@@ -154,11 +148,6 @@ extern bt_component_class_status
 bt_component_class_source_set_finalize_method(
 		bt_component_class_source *comp_class,
 		bt_component_class_source_finalize_method method);
-
-extern bt_component_class_status
-bt_component_class_source_set_accept_output_port_connection_method(
-		bt_component_class_source *comp_class,
-		bt_component_class_source_accept_output_port_connection_method method);
 
 extern bt_component_class_status
 bt_component_class_source_set_output_port_connected_method(
@@ -265,18 +254,6 @@ typedef bt_query_status
 		const bt_value **result);
 
 typedef bt_self_component_status
-(*bt_component_class_filter_accept_input_port_connection_method)(
-		bt_self_component_filter *self_component,
-		bt_self_component_port_input *self_port,
-		const bt_port_output *other_port);
-
-typedef bt_self_component_status
-(*bt_component_class_filter_accept_output_port_connection_method)(
-		bt_self_component_filter *self_component,
-		bt_self_component_port_output *self_port,
-		const bt_port_input *other_port);
-
-typedef bt_self_component_status
 (*bt_component_class_filter_input_port_connected_method)(
 		bt_self_component_filter *self_component,
 		bt_self_component_port_input *self_port,
@@ -305,16 +282,6 @@ extern bt_component_class_status
 bt_component_class_filter_set_finalize_method(
 		bt_component_class_filter *comp_class,
 		bt_component_class_filter_finalize_method method);
-
-extern bt_component_class_status
-bt_component_class_filter_set_accept_input_port_connection_method(
-		bt_component_class_filter *comp_class,
-		bt_component_class_filter_accept_input_port_connection_method method);
-
-extern bt_component_class_status
-bt_component_class_filter_set_accept_output_port_connection_method(
-		bt_component_class_filter *comp_class,
-		bt_component_class_filter_accept_output_port_connection_method method);
 
 extern bt_component_class_status
 bt_component_class_filter_set_input_port_connected_method(
@@ -391,12 +358,6 @@ typedef bt_query_status
 		const bt_value **result);
 
 typedef bt_self_component_status
-(*bt_component_class_sink_accept_input_port_connection_method)(
-		bt_self_component_sink *self_component,
-		bt_self_component_port_input *self_port,
-		const bt_port_output *other_port);
-
-typedef bt_self_component_status
 (*bt_component_class_sink_input_port_connected_method)(
 		bt_self_component_sink *self_component,
 		bt_self_component_port_input *self_port,
@@ -424,11 +385,6 @@ extern bt_component_class_status bt_component_class_sink_set_init_method(
 extern bt_component_class_status bt_component_class_sink_set_finalize_method(
 		bt_component_class_sink *comp_class,
 		bt_component_class_sink_finalize_method method);
-
-extern bt_component_class_status
-bt_component_class_sink_set_accept_input_port_connection_method(
-		bt_component_class_sink *comp_class,
-		bt_component_class_sink_accept_input_port_connection_method method);
 
 extern bt_component_class_status
 bt_component_class_sink_set_input_port_connected_method(
@@ -522,7 +478,6 @@ static PyObject *py_mod_bt2 = NULL;
 static PyObject *py_mod_bt2_exc_error_type = NULL;
 static PyObject *py_mod_bt2_exc_try_again_type = NULL;
 static PyObject *py_mod_bt2_exc_stop_type = NULL;
-static PyObject *py_mod_bt2_exc_port_connection_refused_type = NULL;
 static PyObject *py_mod_bt2_exc_msg_iter_canceled_type = NULL;
 static PyObject *py_mod_bt2_exc_invalid_query_object_type = NULL;
 static PyObject *py_mod_bt2_exc_invalid_query_params_type = NULL;
@@ -548,9 +503,6 @@ static void bt_py3_cc_init_from_bt2(void)
 	py_mod_bt2_exc_stop_type =
 		PyObject_GetAttrString(py_mod_bt2, "Stop");
 	BT_ASSERT(py_mod_bt2_exc_stop_type);
-	py_mod_bt2_exc_port_connection_refused_type =
-		PyObject_GetAttrString(py_mod_bt2, "PortConnectionRefused");
-	BT_ASSERT(py_mod_bt2_exc_port_connection_refused_type);
 	py_mod_bt2_exc_invalid_query_object_type =
 		PyObject_GetAttrString(py_mod_bt2, "InvalidQueryObject");
 	BT_ASSERT(py_mod_bt2_exc_invalid_query_object_type);
@@ -578,7 +530,6 @@ static void bt_py3_cc_exit_handler(void)
 	Py_XDECREF(py_mod_bt2_exc_error_type);
 	Py_XDECREF(py_mod_bt2_exc_try_again_type);
 	Py_XDECREF(py_mod_bt2_exc_stop_type);
-	Py_XDECREF(py_mod_bt2_exc_port_connection_refused_type);
 	Py_XDECREF(py_mod_bt2_exc_msg_iter_canceled_type);
 	Py_XDECREF(py_mod_bt2_exc_invalid_query_object_type);
 	Py_XDECREF(py_mod_bt2_exc_invalid_query_params_type);
@@ -619,9 +570,9 @@ void bt2_py_loge_exception(void)
 
 	/*
 	* traceback can be NULL, when we fail to call a Python function from the
-	* native code (there is not Python stack at that point).  E.g.:
+	* native code (there is no Python stack at that point).  E.g.:
 	*
-	*   TypeError: _accept_port_connection_from_native() takes 3 positional arguments but 4 were given
+	*   TypeError: _query_from_native() takes 5 positional arguments but 8 were given
 	*/
 
 
@@ -695,9 +646,6 @@ static bt_self_component_status bt_py3_exc_to_self_component_status(void)
 	} else if (PyErr_GivenExceptionMatches(exc,
 			py_mod_bt2_exc_stop_type)) {
 		status = BT_SELF_COMPONENT_STATUS_END;
-	} else if (PyErr_GivenExceptionMatches(exc,
-			py_mod_bt2_exc_port_connection_refused_type)) {
-		status = BT_SELF_COMPONENT_STATUS_REFUSE_PORT_CONNECTION;
 	} else {
 		bt2_py_loge_exception();
 		status = BT_SELF_COMPONENT_STATUS_ERROR;
@@ -940,147 +888,6 @@ bt_py3_component_class_sink_finalize(bt_self_component_sink *self_component_sink
 {
 	bt_self_component *self_component = bt_self_component_sink_as_self_component(self_component_sink);
 	bt_py3_component_class_finalize(self_component);
-}
-
-static bt_self_component_status
-bt_py3_component_class_accept_port_connection(
-		bt_self_component *self_component,
-		bt_self_component_port *self_component_port,
-		bt_port_type self_component_port_type,
-		const bt_port *other_port)
-{
-	enum bt_self_component_status status;
-	PyObject *py_comp = NULL;
-	PyObject *py_self_port_ptr = NULL;
-	PyObject *py_other_port_ptr = NULL;
-	PyObject *py_method_result = NULL;
-
-	py_comp = bt_self_component_get_data(self_component);
-	BT_ASSERT(py_comp);
-
-	swig_type_info *self_component_port_swig_type = NULL;
-	swig_type_info *other_port_swig_type = NULL;
-	switch (self_component_port_type) {
-	case BT_PORT_TYPE_INPUT:
-		self_component_port_swig_type = SWIGTYPE_p_bt_self_component_port_input;
-		other_port_swig_type = SWIGTYPE_p_bt_port_output;
-		break;
-	case BT_PORT_TYPE_OUTPUT:
-		self_component_port_swig_type = SWIGTYPE_p_bt_self_component_port_output;
-		other_port_swig_type = SWIGTYPE_p_bt_port_input;
-		break;
-	}
-	BT_ASSERT(self_component_port_swig_type != NULL);
-	BT_ASSERT(other_port_swig_type != NULL);
-
-	py_self_port_ptr = SWIG_NewPointerObj(SWIG_as_voidptr(self_component_port),
-		self_component_port_swig_type, 0);
-	if (!py_self_port_ptr) {
-		BT_LOGE_STR("Failed to create a SWIG pointer object.");
-		goto error;
-	}
-
-	py_other_port_ptr = SWIG_NewPointerObj(SWIG_as_voidptr(other_port),
-		other_port_swig_type, 0);
-	if (!py_other_port_ptr) {
-		BT_LOGE_STR("Failed to create a SWIG pointer object.");
-		goto error;
-	}
-
-	py_method_result = PyObject_CallMethod(py_comp,
-		"_accept_port_connection_from_native", "(OiO)", py_self_port_ptr,
-		self_component_port_type, py_other_port_ptr);
-
-	status = bt_py3_exc_to_self_component_status();
-	if (!py_method_result && status == BT_SELF_COMPONENT_STATUS_OK) {
-		/* Pretty sure this should never happen, but just in case */
-		BT_LOGE("User's _accept_port_connection() method failed without raising an exception: "
-			"status=%d", status);
-		goto error;
-	}
-
-	if (status == BT_SELF_COMPONENT_STATUS_REFUSE_PORT_CONNECTION) {
-		/*
-		 * Looks like the user method raised
-		 * PortConnectionRefused: accept this like if it
-		 * returned False.
-		 */
-		goto end;
-	} else if (status != BT_SELF_COMPONENT_STATUS_OK) {
-		BT_LOGE("User's _accept_port_connection() raised an unexpected exception: "
-			"status=%d", status);
-		goto error;
-	}
-
-	BT_ASSERT(PyBool_Check(py_method_result));
-
-	if (py_method_result == Py_True) {
-		status = BT_SELF_COMPONENT_STATUS_OK;
-	} else {
-		status = BT_SELF_COMPONENT_STATUS_REFUSE_PORT_CONNECTION;
-	}
-
-	goto end;
-
-error:
-	status = BT_SELF_COMPONENT_STATUS_ERROR;
-
-	/*
-	 * Clear any exception: we're returning a bad status anyway. If
-	 * this call originated from Python, then the user gets an
-	 * appropriate error.
-	 */
-	PyErr_Clear();
-
-end:
-	Py_XDECREF(py_self_port_ptr);
-	Py_XDECREF(py_other_port_ptr);
-	Py_XDECREF(py_method_result);
-	return status;
-}
-
-static bt_self_component_status
-bt_py3_component_class_source_accept_output_port_connection(bt_self_component_source *self_component_source,
-	 bt_self_component_port_output *self_component_port_output,
-	 const bt_port_input *other_port_input)
-{
-	bt_self_component *self_component = bt_self_component_source_as_self_component(self_component_source);
-	bt_self_component_port *self_component_port = bt_self_component_port_output_as_self_component_port(self_component_port_output);
-	const bt_port *other_port = bt_port_input_as_port_const(other_port_input);
-	return bt_py3_component_class_accept_port_connection(self_component, self_component_port, BT_PORT_TYPE_OUTPUT, other_port);
-}
-
-static bt_self_component_status
-bt_py3_component_class_filter_accept_input_port_connection(bt_self_component_filter *self_component_filter,
-		bt_self_component_port_input *self_component_port_input,
-		const bt_port_output *other_port_output)
-{
-	bt_self_component *self_component = bt_self_component_filter_as_self_component(self_component_filter);
-	bt_self_component_port *self_component_port = bt_self_component_port_input_as_self_component_port(self_component_port_input);
-	const bt_port *other_port = bt_port_output_as_port_const(other_port_output);
-	return bt_py3_component_class_accept_port_connection(self_component, self_component_port, BT_PORT_TYPE_INPUT, other_port);
-}
-
-static bt_self_component_status
-bt_py3_component_class_filter_accept_output_port_connection(bt_self_component_filter *self_component_filter,
-		bt_self_component_port_output *self_component_port_output,
-		const bt_port_input *other_port_input)
-{
-	bt_self_component *self_component = bt_self_component_filter_as_self_component(self_component_filter);
-	bt_self_component_port *self_component_port = bt_self_component_port_output_as_self_component_port(self_component_port_output);
-	const bt_port *other_port = bt_port_input_as_port_const(other_port_input);
-	return bt_py3_component_class_accept_port_connection(self_component, self_component_port, BT_PORT_TYPE_OUTPUT, other_port);
-}
-
-static bt_self_component_status
-bt_py3_component_class_sink_accept_input_port_connection(bt_self_component_sink *self_component_sink,
-		bt_self_component_port_input *self_component_port_input,
-		const bt_port_output *other_port_output)
-{
-	bt_self_component *self_component = bt_self_component_sink_as_self_component(self_component_sink);
-	bt_self_component_port *self_component_port = bt_self_component_port_input_as_self_component_port(self_component_port_input);
-	const bt_port *other_port = bt_port_output_as_port_const(other_port_output);
-	return bt_py3_component_class_accept_port_connection(self_component, self_component_port, BT_PORT_TYPE_INPUT, other_port);
 }
 
 static bt_self_component_status
@@ -1632,9 +1439,6 @@ bt_component_class_source *bt_py3_component_class_source_create(
 	BT_ASSERT(ret == 0);
 	ret = bt_component_class_source_set_finalize_method (component_class_source, bt_py3_component_class_source_finalize);
 	BT_ASSERT(ret == 0);
-	ret = bt_component_class_source_set_accept_output_port_connection_method(component_class_source,
-		bt_py3_component_class_source_accept_output_port_connection);
-	BT_ASSERT(ret == 0);
 	ret = bt_component_class_source_set_output_port_connected_method(component_class_source,
 		bt_py3_component_class_source_output_port_connected);
 	BT_ASSERT(ret == 0);
@@ -1680,12 +1484,6 @@ bt_component_class_filter *bt_py3_component_class_filter_create(
 	ret = bt_component_class_filter_set_init_method(component_class_filter, bt_py3_component_class_filter_init);
 	BT_ASSERT(ret == 0);
 	ret = bt_component_class_filter_set_finalize_method (component_class_filter, bt_py3_component_class_filter_finalize);
-	BT_ASSERT(ret == 0);
-	ret = bt_component_class_filter_set_accept_input_port_connection_method(component_class_filter,
-		bt_py3_component_class_filter_accept_input_port_connection);
-	BT_ASSERT(ret == 0);
-	ret = bt_component_class_filter_set_accept_output_port_connection_method(component_class_filter,
-		bt_py3_component_class_filter_accept_output_port_connection);
 	BT_ASSERT(ret == 0);
 	ret = bt_component_class_filter_set_input_port_connected_method(component_class_filter,
 		bt_py3_component_class_filter_input_port_connected);
@@ -1735,9 +1533,6 @@ bt_component_class_sink *bt_py3_component_class_sink_create(
 	ret = bt_component_class_sink_set_init_method(component_class_sink, bt_py3_component_class_sink_init);
 	BT_ASSERT(ret == 0);
 	ret = bt_component_class_sink_set_finalize_method(component_class_sink, bt_py3_component_class_sink_finalize);
-	BT_ASSERT(ret == 0);
-	ret = bt_component_class_sink_set_accept_input_port_connection_method(component_class_sink,
-		bt_py3_component_class_sink_accept_input_port_connection);
 	BT_ASSERT(ret == 0);
 	ret = bt_component_class_sink_set_input_port_connected_method(component_class_sink,
 		bt_py3_component_class_sink_input_port_connected);

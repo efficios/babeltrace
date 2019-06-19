@@ -295,7 +295,6 @@ enum bt_plugin_status bt_plugin_so_init(
 				bt_component_class_source_init_method init;
 				bt_component_class_source_finalize_method finalize;
 				bt_component_class_source_query_method query;
-				bt_component_class_source_accept_output_port_connection_method accept_output_port_connection;
 				bt_component_class_source_output_port_connected_method output_port_connected;
 				bt_component_class_source_message_iterator_init_method msg_iter_init;
 				bt_component_class_source_message_iterator_finalize_method msg_iter_finalize;
@@ -309,8 +308,6 @@ enum bt_plugin_status bt_plugin_so_init(
 				bt_component_class_filter_init_method init;
 				bt_component_class_filter_finalize_method finalize;
 				bt_component_class_filter_query_method query;
-				bt_component_class_filter_accept_input_port_connection_method accept_input_port_connection;
-				bt_component_class_filter_accept_output_port_connection_method accept_output_port_connection;
 				bt_component_class_filter_input_port_connected_method input_port_connected;
 				bt_component_class_filter_output_port_connected_method output_port_connected;
 				bt_component_class_filter_message_iterator_init_method msg_iter_init;
@@ -325,7 +322,6 @@ enum bt_plugin_status bt_plugin_so_init(
 				bt_component_class_sink_init_method init;
 				bt_component_class_sink_finalize_method finalize;
 				bt_component_class_sink_query_method query;
-				bt_component_class_sink_accept_input_port_connection_method accept_input_port_connection;
 				bt_component_class_sink_input_port_connected_method input_port_connected;
 				bt_component_class_sink_graph_is_configured_method graph_is_configured;
 			} sink;
@@ -536,34 +532,6 @@ enum bt_plugin_status bt_plugin_so_init(
 				case BT_COMPONENT_CLASS_TYPE_SINK:
 					cc_full_descr->methods.sink.query =
 						cur_cc_descr_attr->value.sink_query_method;
-					break;
-				default:
-					abort();
-				}
-				break;
-			case BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_ACCEPT_INPUT_PORT_CONNECTION_METHOD:
-				switch (cc_type) {
-				case BT_COMPONENT_CLASS_TYPE_FILTER:
-					cc_full_descr->methods.filter.accept_input_port_connection =
-						cur_cc_descr_attr->value.filter_accept_input_port_connection_method;
-					break;
-				case BT_COMPONENT_CLASS_TYPE_SINK:
-					cc_full_descr->methods.sink.accept_input_port_connection =
-						cur_cc_descr_attr->value.sink_accept_input_port_connection_method;
-					break;
-				default:
-					abort();
-				}
-				break;
-			case BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_ACCEPT_OUTPUT_PORT_CONNECTION_METHOD:
-				switch (cc_type) {
-				case BT_COMPONENT_CLASS_TYPE_SOURCE:
-					cc_full_descr->methods.source.accept_output_port_connection =
-						cur_cc_descr_attr->value.source_accept_output_port_connection_method;
-					break;
-				case BT_COMPONENT_CLASS_TYPE_FILTER:
-					cc_full_descr->methods.filter.accept_output_port_connection =
-						cur_cc_descr_attr->value.filter_accept_output_port_connection_method;
 					break;
 				default:
 					abort();
@@ -868,18 +836,6 @@ enum bt_plugin_status bt_plugin_so_init(
 				}
 			}
 
-			if (cc_full_descr->methods.source.accept_output_port_connection) {
-				ret = bt_component_class_source_set_accept_output_port_connection_method(
-					src_comp_class,
-					cc_full_descr->methods.source.accept_output_port_connection);
-				if (ret) {
-					BT_LOGE_STR("Cannot set source component class's \"accept input output connection\" method.");
-					status = BT_PLUGIN_STATUS_ERROR;
-					BT_OBJECT_PUT_REF_AND_RESET(src_comp_class);
-					goto end;
-				}
-			}
-
 			if (cc_full_descr->methods.source.output_port_connected) {
 				ret = bt_component_class_source_set_output_port_connected_method(
 					src_comp_class,
@@ -996,30 +952,6 @@ enum bt_plugin_status bt_plugin_so_init(
 					cc_full_descr->methods.filter.query);
 				if (ret) {
 					BT_LOGE_STR("Cannot set filter component class's query method.");
-					status = BT_PLUGIN_STATUS_ERROR;
-					BT_OBJECT_PUT_REF_AND_RESET(flt_comp_class);
-					goto end;
-				}
-			}
-
-			if (cc_full_descr->methods.filter.accept_input_port_connection) {
-				ret = bt_component_class_filter_set_accept_input_port_connection_method(
-					flt_comp_class,
-					cc_full_descr->methods.filter.accept_input_port_connection);
-				if (ret) {
-					BT_LOGE_STR("Cannot set filter component class's \"accept input port connection\" method.");
-					status = BT_PLUGIN_STATUS_ERROR;
-					BT_OBJECT_PUT_REF_AND_RESET(flt_comp_class);
-					goto end;
-				}
-			}
-
-			if (cc_full_descr->methods.filter.accept_output_port_connection) {
-				ret = bt_component_class_filter_set_accept_output_port_connection_method(
-					flt_comp_class,
-					cc_full_descr->methods.filter.accept_output_port_connection);
-				if (ret) {
-					BT_LOGE_STR("Cannot set filter component class's \"accept input output connection\" method.");
 					status = BT_PLUGIN_STATUS_ERROR;
 					BT_OBJECT_PUT_REF_AND_RESET(flt_comp_class);
 					goto end;
@@ -1154,18 +1086,6 @@ enum bt_plugin_status bt_plugin_so_init(
 					cc_full_descr->methods.sink.query);
 				if (ret) {
 					BT_LOGE_STR("Cannot set sink component class's query method.");
-					status = BT_PLUGIN_STATUS_ERROR;
-					BT_OBJECT_PUT_REF_AND_RESET(sink_comp_class);
-					goto end;
-				}
-			}
-
-			if (cc_full_descr->methods.sink.accept_input_port_connection) {
-				ret = bt_component_class_sink_set_accept_input_port_connection_method(
-					sink_comp_class,
-					cc_full_descr->methods.sink.accept_input_port_connection);
-				if (ret) {
-					BT_LOGE_STR("Cannot set sink component class's \"accept input port connection\" method.");
 					status = BT_PLUGIN_STATUS_ERROR;
 					BT_OBJECT_PUT_REF_AND_RESET(sink_comp_class);
 					goto end;

@@ -75,7 +75,6 @@ struct bt_component_class_source {
 		bt_component_class_source_message_iterator_can_seek_ns_from_origin_method msg_iter_can_seek_ns_from_origin;
 		bt_component_class_source_message_iterator_can_seek_beginning_method msg_iter_can_seek_beginning;
 		bt_component_class_source_query_method query;
-		bt_component_class_source_accept_output_port_connection_method accept_output_port_connection;
 		bt_component_class_source_output_port_connected_method output_port_connected;
 	} methods;
 };
@@ -86,7 +85,6 @@ struct bt_component_class_sink {
 		bt_component_class_sink_init_method init;
 		bt_component_class_sink_finalize_method finalize;
 		bt_component_class_sink_query_method query;
-		bt_component_class_sink_accept_input_port_connection_method accept_input_port_connection;
 		bt_component_class_sink_input_port_connected_method input_port_connected;
 		bt_component_class_sink_graph_is_configured_method graph_is_configured;
 		bt_component_class_sink_consume_method consume;
@@ -106,8 +104,6 @@ struct bt_component_class_filter {
 		bt_component_class_filter_message_iterator_can_seek_ns_from_origin_method msg_iter_can_seek_ns_from_origin;
 		bt_component_class_filter_message_iterator_can_seek_beginning_method msg_iter_can_seek_beginning;
 		bt_component_class_filter_query_method query;
-		bt_component_class_filter_accept_input_port_connection_method accept_input_port_connection;
-		bt_component_class_filter_accept_output_port_connection_method accept_output_port_connection;
 		bt_component_class_filter_input_port_connected_method input_port_connected;
 		bt_component_class_filter_output_port_connected_method output_port_connected;
 	} methods;

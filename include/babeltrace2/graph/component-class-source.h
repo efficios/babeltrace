@@ -104,12 +104,6 @@ typedef bt_query_status (*bt_component_class_source_query_method)(
 		const bt_value **result);
 
 typedef bt_self_component_status
-(*bt_component_class_source_accept_output_port_connection_method)(
-		bt_self_component_source *self_component,
-		bt_self_component_port_output *self_port,
-		const bt_port_input *other_port);
-
-typedef bt_self_component_status
 (*bt_component_class_source_output_port_connected_method)(
 		bt_self_component_source *self_component,
 		bt_self_component_port_output *self_port,
@@ -136,11 +130,6 @@ extern bt_component_class_status
 bt_component_class_source_set_finalize_method(
 		bt_component_class_source *comp_class,
 		bt_component_class_source_finalize_method method);
-
-extern bt_component_class_status
-bt_component_class_source_set_accept_output_port_connection_method(
-		bt_component_class_source *comp_class,
-		bt_component_class_source_accept_output_port_connection_method method);
 
 extern bt_component_class_status
 bt_component_class_source_set_output_port_connected_method(

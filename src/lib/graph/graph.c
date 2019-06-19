@@ -435,45 +435,6 @@ enum bt_graph_status bt_graph_connect_ports(
 	downstream_component = bt_port_borrow_component_inline(
 		(void *) downstream_port);
 
-	/*
-	 * At this point the ports are not connected yet. Both
-	 * components need to accept an eventual connection to their
-	 * port by the other port before we continue.
-	 */
-	BT_LIB_LOGD("Asking upstream component to accept the connection: "
-		"%![comp-]+c", upstream_component);
-	component_status = bt_component_accept_port_connection(
-		upstream_component, (void *) upstream_port,
-		(void *) downstream_port);
-	if (component_status != BT_SELF_COMPONENT_STATUS_OK) {
-		if (component_status == BT_SELF_COMPONENT_STATUS_REFUSE_PORT_CONNECTION) {
-			BT_LOGD_STR("Upstream component refused the connection.");
-		} else {
-			BT_LOGW("Cannot ask upstream component to accept the connection: "
-				"status=%s", bt_self_component_status_string(component_status));
-		}
-
-		status = (int) component_status;
-		goto end;
-	}
-
-	BT_LIB_LOGD("Asking downstream component to accept the connection: "
-		"%![comp-]+c", downstream_component);
-	component_status = bt_component_accept_port_connection(
-		downstream_component, (void *) downstream_port,
-		(void *) upstream_port);
-	if (component_status != BT_SELF_COMPONENT_STATUS_OK) {
-		if (component_status == BT_SELF_COMPONENT_STATUS_REFUSE_PORT_CONNECTION) {
-			BT_LOGD_STR("Downstream component refused the connection.");
-		} else {
-			BT_LOGW("Cannot ask downstream component to accept the connection: "
-				"status=%s", bt_self_component_status_string(component_status));
-		}
-
-		status = (int) component_status;
-		goto end;
-	}
-
 	BT_LOGD_STR("Creating connection.");
 	connection = bt_connection_create(graph, (void *) upstream_port,
 		(void *) downstream_port);

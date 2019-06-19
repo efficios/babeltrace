@@ -66,9 +66,7 @@ class Graph(object._SharedObject):
         super().__init__(ptr)
 
     def _handle_status(self, status, gen_error_msg):
-        if status == native_bt.GRAPH_STATUS_COMPONENT_REFUSES_PORT_CONNECTION:
-            raise bt2.PortConnectionRefused
-        elif status == native_bt.GRAPH_STATUS_CANCELED:
+        if status == native_bt.GRAPH_STATUS_CANCELED:
             raise bt2.GraphCanceled
         elif status == native_bt.GRAPH_STATUS_END:
             raise bt2.Stop
