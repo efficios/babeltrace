@@ -38,7 +38,7 @@
  * In non-developer mode, use NONE by default: we don't print logging
  * statements for any executable which links with the library. The
  * executable must call bt_logging_set_global_level() or the
- * executable's user must set the BABELTRACE_LOGGING_GLOBAL_LEVEL
+ * executable's user must set the `LIBBABELTRACE2_INIT_LOG_LEVEL`
  * environment variable to enable logging.
  */
 # define DEFAULT_LOG_LEVEL	BT_LOG_NONE
@@ -79,7 +79,7 @@ void __attribute__((constructor)) bt_logging_ctor(void)
 		"";
 
 	bt_logging_set_global_level(
-		bt_log_get_level_from_env("BABELTRACE_LOGGING_GLOBAL_LEVEL"));
+		bt_log_get_level_from_env("LIBBABELTRACE2_INIT_LOG_LEVEL"));
 	BT_LOGI("Babeltrace %d.%d.%d%s library loaded: "
 		"major=%d, minor=%d, patch=%d, extra=\"%s\"",
 		bt_version_get_major(), bt_version_get_minor(),

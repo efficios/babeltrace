@@ -2755,7 +2755,7 @@ void set_auto_log_levels(struct bt_config *cfg)
 	 *                is less verbose than VERBOSE in the internal
 	 *                logging framework)
 	 */
-	if (!getenv("BABELTRACE_LOGGING_GLOBAL_LEVEL")) {
+	if (!getenv("LIBBABELTRACE2_INIT_LOG_LEVEL")) {
 		if (cfg->verbose) {
 			bt_logging_set_global_level(BT_LOG_INFO);
 		} else if (cfg->debug) {
