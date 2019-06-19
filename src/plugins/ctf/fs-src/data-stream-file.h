@@ -48,6 +48,8 @@ struct ctf_fs_ds_file_info {
 struct ctf_fs_metadata;
 
 struct ctf_fs_ds_file {
+	bt_logging_level log_level;
+
 	/* Weak */
 	struct ctf_fs_metadata *metadata;
 
@@ -91,7 +93,8 @@ struct ctf_fs_ds_file *ctf_fs_ds_file_create(
 		struct ctf_fs_trace *ctf_fs_trace,
 		bt_self_message_iterator *pc_msg_iter,
 		struct bt_msg_iter *msg_iter,
-		bt_stream *stream, const char *path);
+		bt_stream *stream, const char *path,
+		bt_logging_level log_level);
 
 BT_HIDDEN
 void ctf_fs_ds_file_destroy(struct ctf_fs_ds_file *stream);
@@ -106,7 +109,7 @@ struct ctf_fs_ds_index *ctf_fs_ds_file_build_index(
 		struct ctf_fs_ds_file *ds_file);
 
 BT_HIDDEN
-struct ctf_fs_ds_index *ctf_fs_ds_index_create();
+struct ctf_fs_ds_index *ctf_fs_ds_index_create(bt_logging_level log_level);
 
 BT_HIDDEN
 void ctf_fs_ds_index_destroy(struct ctf_fs_ds_index *index);

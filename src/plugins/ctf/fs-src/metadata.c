@@ -23,6 +23,10 @@
  * SOFTWARE.
  */
 
+#define BT_LOG_OUTPUT_LEVEL log_level
+#define BT_LOG_TAG "PLUGIN/SRC.CTF.FS/META"
+#include "logging/log.h"
+
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -37,9 +41,6 @@
 #include "file.h"
 #include "metadata.h"
 #include "../common/metadata/decoder.h"
-
-#define BT_LOG_TAG "PLUGIN/SRC.CTF.FS/META"
-#include "logging.h"
 
 BT_HIDDEN
 FILE *ctf_fs_metadata_open_file(const char *trace_path)
@@ -59,9 +60,10 @@ end:
 	return fp;
 }
 
-static struct ctf_fs_file *get_file(const char *trace_path)
+static struct ctf_fs_file *get_file(const char *trace_path,
+		bt_logging_level log_level)
 {
-	struct ctf_fs_file *file = ctf_fs_file_create();
+	struct ctf_fs_file *file = ctf_fs_file_create(log_level);
 
 	if (!file) {
 		goto error;
@@ -95,13 +97,14 @@ int ctf_fs_metadata_set_trace_class(
 	int ret = 0;
 	struct ctf_fs_file *file = NULL;
 	struct ctf_metadata_decoder_config decoder_config = {
-		.log_level = BT_LOG_OUTPUT_LEVEL,
+		.log_level = ctf_fs_trace->log_level,
 		.self_comp = bt_self_component_source_as_self_component(self_comp),
 		.clock_class_offset_s = config ? config->clock_class_offset_s : 0,
 		.clock_class_offset_ns = config ? config->clock_class_offset_ns : 0,
 	};
+	bt_logging_level log_level = ctf_fs_trace->log_level;
 
-	file = get_file(ctf_fs_trace->path->str);
+	file = get_file(ctf_fs_trace->path->str, log_level);
 	if (!file) {
 		BT_LOGE("Cannot create metadata file object");
 		ret = -1;

@@ -24,6 +24,10 @@
  * SOFTWARE.
  */
 
+#define BT_LOG_OUTPUT_LEVEL log_level
+#define BT_LOG_TAG "PLUGIN/SRC.CTF.FS/QUERY"
+#include "logging/log.h"
+
 #include "query.h"
 #include <stdbool.h>
 #include "common/assert.h"
@@ -33,9 +37,6 @@
 #include "common/macros.h"
 #include <babeltrace2/babeltrace.h>
 #include "fs.h"
-
-#define BT_LOG_TAG "PLUGIN/SRC.CTF.FS/QUERY"
-#include "logging.h"
 
 #define METADATA_TEXT_SIG	"/* CTF 1.8"
 
@@ -48,7 +49,7 @@ struct range {
 BT_HIDDEN
 bt_query_status metadata_info_query(
 		bt_self_component_class_source *comp_class,
-		const bt_value *params,
+		const bt_value *params, bt_logging_level log_level,
 		const bt_value **user_result)
 {
 	bt_query_status status = BT_QUERY_STATUS_OK;
@@ -99,12 +100,11 @@ bt_query_status metadata_info_query(
 	}
 
 	is_packetized = ctf_metadata_decoder_is_packetized(metadata_fp,
-		&bo, BT_LOG_OUTPUT_LEVEL, NULL);
+		&bo, log_level, NULL);
 
 	if (is_packetized) {
 		ret = ctf_metadata_decoder_packetized_file_stream_to_buf(
-			metadata_fp, &metadata_text, bo,
-			BT_LOG_OUTPUT_LEVEL, NULL);
+			metadata_fp, &metadata_text, bo, log_level, NULL);
 		if (ret) {
 			BT_LOGE("Cannot decode packetized metadata file: path=\"%s\"",
 				path);
@@ -471,7 +471,7 @@ end:
 BT_HIDDEN
 bt_query_status trace_info_query(
 		bt_self_component_class_source *comp_class,
-		const bt_value *params,
+		const bt_value *params, bt_logging_level log_level,
 		const bt_value **user_result)
 {
 	struct ctf_fs_component *ctf_fs = NULL;
@@ -489,7 +489,7 @@ bt_query_status trace_info_query(
 		goto error;
 	}
 
-	ctf_fs = ctf_fs_component_create();
+	ctf_fs = ctf_fs_component_create(log_level);
 	if (!ctf_fs) {
 		goto error;
 	}

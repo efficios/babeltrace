@@ -11,6 +11,4 @@ libbabeltrace2_plugin_ctf_fs_src_la_SOURCES = \
 	metadata.c \
 	metadata.h \
 	query.h \
-	query.c \
-	logging.h \
-	logging.c
+	query.c

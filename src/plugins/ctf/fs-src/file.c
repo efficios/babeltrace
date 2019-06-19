@@ -20,15 +20,16 @@
  * SOFTWARE.
  */
 
+#define BT_LOG_OUTPUT_LEVEL (file->log_level)
+#define BT_LOG_TAG "PLUGIN/SRC.CTF.FS/FILE"
+#include "logging/log.h"
+
 #include <stdio.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
 #include <glib.h>
 #include "file.h"
-
-#define BT_LOG_TAG "PLUGIN/SRC.CTF.FS/FILE"
-#include "logging.h"
 
 BT_HIDDEN
 void ctf_fs_file_destroy(struct ctf_fs_file *file)
@@ -56,7 +57,7 @@ void ctf_fs_file_destroy(struct ctf_fs_file *file)
 }
 
 BT_HIDDEN
-struct ctf_fs_file *ctf_fs_file_create(void)
+struct ctf_fs_file *ctf_fs_file_create(bt_logging_level log_level)
 {
 	struct ctf_fs_file *file = g_new0(struct ctf_fs_file, 1);
 
@@ -64,6 +65,7 @@ struct ctf_fs_file *ctf_fs_file_create(void)
 		goto error;
 	}
 
+	file->log_level = log_level;
 	file->path = g_string_new(NULL);
 	if (!file->path) {
 		goto error;
