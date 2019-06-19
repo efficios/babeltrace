@@ -728,4 +728,43 @@ end:
 BT_HIDDEN
 int bt_common_g_string_append_printf(GString *str, const char *fmt, ...);
 
+static inline
+void bt_common_g_string_append(GString *str, const char *s)
+{
+	gsize len, allocated_len, s_len;
+
+	/* str->len excludes \0. */
+	len = str->len;
+	/* Exclude \0. */
+	allocated_len = str->allocated_len - 1;
+	s_len = strlen(s);
+	if (G_UNLIKELY(allocated_len < len + s_len)) {
+		/* Resize. */
+		g_string_set_size(str, len + s_len);
+	} else {
+		str->len = len + s_len;
+	}
+	memcpy(str->str + len, s, s_len + 1);
+}
+
+static inline
+void bt_common_g_string_append_c(GString *str, char c)
+{
+	gsize len, allocated_len, s_len;
+
+	/* str->len excludes \0. */
+	len = str->len;
+	/* Exclude \0. */
+	allocated_len = str->allocated_len - 1;
+	s_len = 1;
+	if (G_UNLIKELY(allocated_len < len + s_len)) {
+		/* Resize. */
+		g_string_set_size(str, len + s_len);
+	} else {
+		str->len = len + s_len;
+	}
+	str->str[len] = c;
+	str->str[len + 1] = '\0';
+}
+
 #endif /* BABELTRACE_COMMON_INTERNAL_H */
