@@ -144,6 +144,19 @@ int bt_ctfser_fini(struct bt_ctfser *ctfser)
 		goto free_path;
 	}
 
+	if (ctfser->base_mma) {
+		/* Unmap old base */
+		ret = munmap_align(ctfser->base_mma);
+		if (ret) {
+			BT_LOGE_ERRNO("Failed to unmap stream file",
+				": ret=%d, size-bytes=%" PRIu64,
+				ret, ctfser->stream_size_bytes);
+			goto end;
+		}
+
+		ctfser->base_mma = NULL;
+	}
+
 	/*
 	 * Truncate the stream file's size to the minimum required to
 	 * fit the last packet as we might have grown it too much during
@@ -160,18 +173,6 @@ int bt_ctfser_fini(struct bt_ctfser *ctfser)
 		goto end;
 	}
 
-	if (ctfser->base_mma) {
-		/* Unmap old base */
-		ret = munmap_align(ctfser->base_mma);
-		if (ret) {
-			BT_LOGE_ERRNO("Failed to unmap stream file",
-				": ret=%d, size-bytes=%" PRIu64,
-				ret, ctfser->stream_size_bytes);
-			goto end;
-		}
-
-		ctfser->base_mma = NULL;
-	}
 
 	ret = close(ctfser->fd);
 	if (ret) {
