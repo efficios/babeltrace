@@ -485,10 +485,28 @@ enum bt_plugin_status bt_plugin_create_append_all_from_dir(
 	int nftw_flags = FTW_PHYS;
 	int ret;
 	enum bt_plugin_status status;
+	struct stat sb;
 
 	BT_ASSERT(plugin_set);
 	BT_ASSERT(path);
 	BT_ASSERT(strlen(path) < PATH_MAX);
+
+	/*
+	 * Make sure that path exists and is accessible.
+	 * This is necessary since Cygwin implementation of nftw() is not POSIX
+	 * compliant. Cygwin nftw() implementation does not fail on non-existent
+	 * path with ENOENT. Instead, it flags the directory as FTW_NS. FTW_NS during
+	 * nftw_append_all_from_dir is not treated as an error since we are
+	 * traversing the tree for plugin discovery.
+	 */
+	if (stat(path, &sb)) {
+		BT_LOGW_ERRNO("Cannot open directory",
+			": path=\"%s\", recurse=%d",
+			path, recurse);
+		status = BT_PLUGIN_STATUS_ERROR;
+		goto end;
+	}
+
 	pthread_mutex_lock(&append_all_from_dir_info.lock);
 	append_all_from_dir_info.plugin_set = plugin_set;
 	append_all_from_dir_info.recurse = recurse;
