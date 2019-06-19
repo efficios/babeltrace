@@ -22,9 +22,10 @@
  * SOFTWARE.
  */
 
+#define BT_COMP_LOG_SELF_COMP (ds_file->self_comp)
 #define BT_LOG_OUTPUT_LEVEL (ds_file->log_level)
 #define BT_LOG_TAG "PLUGIN/SRC.CTF.FS/DS"
-#include "logging/log.h"
+#include "plugins/comp-logging.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -60,7 +61,7 @@ int ds_file_munmap(struct ctf_fs_ds_file *ds_file)
 	}
 
 	if (bt_munmap(ds_file->mmap_addr, ds_file->mmap_len)) {
-		BT_LOGE_ERRNO("Cannot memory-unmap file",
+		BT_COMP_LOGE_ERRNO("Cannot memory-unmap file",
 			": address=%p, size=%zu, file_path=\"%s\", file=%p",
 			ds_file->mmap_addr, ds_file->mmap_len,
 			ds_file->file ? ds_file->file->path->str : "NULL",
@@ -109,7 +110,7 @@ enum bt_msg_iter_medium_status ds_file_mmap_next(
 			PROT_READ, MAP_PRIVATE, fileno(ds_file->file->fp),
 			ds_file->mmap_offset);
 	if (ds_file->mmap_addr == MAP_FAILED) {
-		BT_LOGE("Cannot memory-map address (size %zu) of file \"%s\" (%p) at offset %jd: %s",
+		BT_COMP_LOGE("Cannot memory-map address (size %zu) of file \"%s\" (%p) at offset %jd: %s",
 				ds_file->mmap_len, ds_file->file->path->str,
 				ds_file->file->fp, (intmax_t) ds_file->mmap_offset,
 				strerror(errno));
@@ -141,7 +142,7 @@ enum bt_msg_iter_medium_status medop_request_bytes(
 	if (remaining_mmap_bytes(ds_file) == 0) {
 		/* Are we at the end of the file? */
 		if (ds_file->mmap_offset >= ds_file->file->size) {
-			BT_LOGD("Reached end of file \"%s\" (%p)",
+			BT_COMP_LOGD("Reached end of file \"%s\" (%p)",
 				ds_file->file->path->str, ds_file->file->fp);
 			status = BT_MSG_ITER_MEDIUM_STATUS_EOF;
 			goto end;
@@ -154,7 +155,7 @@ enum bt_msg_iter_medium_status medop_request_bytes(
 		case BT_MSG_ITER_MEDIUM_STATUS_EOF:
 			goto end;
 		default:
-			BT_LOGE("Cannot memory-map next region of file \"%s\" (%p)",
+			BT_COMP_LOGE("Cannot memory-map next region of file \"%s\" (%p)",
 					ds_file->file->path->str,
 					ds_file->file->fp);
 			goto error;
@@ -209,7 +210,7 @@ enum bt_msg_iter_medium_status medop_seek(enum bt_msg_iter_seek_whence whence,
 
 	if (whence != BT_MSG_ITER_SEEK_WHENCE_SET ||
 		offset < 0 || offset > file_size) {
-		BT_LOGE("Invalid medium seek request: whence=%d, offset=%jd, "
+		BT_COMP_LOGE("Invalid medium seek request: whence=%d, offset=%jd, "
 				"file-size=%jd", (int) whence, offset,
 				file_size);
 		ret = BT_MSG_ITER_MEDIUM_STATUS_INVAL;
@@ -226,7 +227,7 @@ enum bt_msg_iter_medium_status medop_seek(enum bt_msg_iter_seek_whence whence,
 		off_t offset_in_mapping = offset %
 			bt_common_get_page_size(ds_file->log_level);
 
-		BT_LOGD("Medium seek request cannot be accomodated by the current "
+		BT_COMP_LOGD("Medium seek request cannot be accomodated by the current "
 				"file mapping: offset=%jd, mmap-offset=%jd, "
 				"mmap-len=%zu", offset, ds_file->mmap_offset,
 				ds_file->mmap_len);
@@ -289,11 +290,11 @@ struct ctf_fs_ds_index *build_index_from_idx_file(
 	struct ctf_stream_class *sc;
 	struct bt_msg_iter_packet_properties props;
 
-	BT_LOGI("Building index from .idx file of stream file %s",
+	BT_COMP_LOGI("Building index from .idx file of stream file %s",
 			ds_file->file->path->str);
 	ret = bt_msg_iter_get_packet_properties(ds_file->msg_iter, &props);
 	if (ret) {
-		BT_LOGI_STR("Cannot read first packet's header and context fields.");
+		BT_COMP_LOGI_STR("Cannot read first packet's header and context fields.");
 		goto error;
 	}
 
@@ -301,28 +302,28 @@ struct ctf_fs_ds_index *build_index_from_idx_file(
 		props.stream_class_id);
 	BT_ASSERT(sc);
 	if (!sc->default_clock_class) {
-		BT_LOGI_STR("Cannot find stream class's default clock class.");
+		BT_COMP_LOGI_STR("Cannot find stream class's default clock class.");
 		goto error;
 	}
 
 	/* Look for index file in relative path index/name.idx. */
 	basename = g_path_get_basename(ds_file->file->path->str);
 	if (!basename) {
-		BT_LOGE("Cannot get the basename of datastream file %s",
+		BT_COMP_LOGE("Cannot get the basename of datastream file %s",
 				ds_file->file->path->str);
 		goto error;
 	}
 
 	directory = g_path_get_dirname(ds_file->file->path->str);
 	if (!directory) {
-		BT_LOGE("Cannot get dirname of datastream file %s",
+		BT_COMP_LOGE("Cannot get dirname of datastream file %s",
 				ds_file->file->path->str);
 		goto error;
 	}
 
 	index_basename = g_string_new(basename);
 	if (!index_basename) {
-		BT_LOGE_STR("Cannot allocate index file basename string");
+		BT_COMP_LOGE_STR("Cannot allocate index file basename string");
 		goto error;
 	}
 
@@ -331,7 +332,7 @@ struct ctf_fs_ds_index *build_index_from_idx_file(
 			index_basename->str, NULL);
 	mapped_file = g_mapped_file_new(index_file_path, FALSE, NULL);
 	if (!mapped_file) {
-		BT_LOGD("Cannot create new mapped file %s",
+		BT_COMP_LOGD("Cannot create new mapped file %s",
 				index_file_path);
 		goto error;
 	}
@@ -343,7 +344,7 @@ struct ctf_fs_ds_index *build_index_from_idx_file(
 	 */
 	filesize = g_mapped_file_get_length(mapped_file);
 	if (filesize < sizeof(*header)) {
-		BT_LOGW("Invalid LTTng trace index file: "
+		BT_COMP_LOGW("Invalid LTTng trace index file: "
 			"file size (%zu bytes) < header size (%zu bytes)",
 			filesize, sizeof(*header));
 		goto error;
@@ -354,21 +355,21 @@ struct ctf_fs_ds_index *build_index_from_idx_file(
 
 	file_pos = g_mapped_file_get_contents(mapped_file) + sizeof(*header);
 	if (be32toh(header->magic) != CTF_INDEX_MAGIC) {
-		BT_LOGW_STR("Invalid LTTng trace index: \"magic\" field validation failed");
+		BT_COMP_LOGW_STR("Invalid LTTng trace index: \"magic\" field validation failed");
 		goto error;
 	}
 
 	file_index_entry_size = be32toh(header->packet_index_len);
 	file_entry_count = (filesize - sizeof(*header)) / file_index_entry_size;
 	if ((filesize - sizeof(*header)) % file_index_entry_size) {
-		BT_LOGW("Invalid LTTng trace index: the index's size after the header "
+		BT_COMP_LOGW("Invalid LTTng trace index: the index's size after the header "
 			"(%zu bytes) is not a multiple of the index entry size "
 			"(%zu bytes)", (filesize - sizeof(*header)),
 			sizeof(*header));
 		goto error;
 	}
 
-	index = ctf_fs_ds_index_create(ds_file->log_level);
+	index = ctf_fs_ds_index_create(ds_file->log_level, ds_file->self_comp);
 	if (!index) {
 		goto error;
 	}
@@ -379,7 +380,7 @@ struct ctf_fs_ds_index *build_index_from_idx_file(
 		uint64_t packet_size = be64toh(file_index->packet_size);
 
 		if (packet_size % CHAR_BIT) {
-			BT_LOGW("Invalid packet size encountered in LTTng trace index file");
+			BT_COMP_LOGW("Invalid packet size encountered in LTTng trace index file");
 			goto error;
 		}
 
@@ -394,7 +395,7 @@ struct ctf_fs_ds_index *build_index_from_idx_file(
 
 		index_entry->offset = be64toh(file_index->offset);
 		if (i != 0 && index_entry->offset < (index_entry - 1)->offset) {
-			BT_LOGW("Invalid, non-monotonic, packet offset encountered in LTTng trace index file: "
+			BT_COMP_LOGW("Invalid, non-monotonic, packet offset encountered in LTTng trace index file: "
 				"previous offset=%" PRIu64 ", current offset=%" PRIu64,
 				(index_entry - 1)->offset, index_entry->offset);
 			goto error;
@@ -403,7 +404,7 @@ struct ctf_fs_ds_index *build_index_from_idx_file(
 		index_entry->timestamp_begin = be64toh(file_index->timestamp_begin);
 		index_entry->timestamp_end = be64toh(file_index->timestamp_end);
 		if (index_entry->timestamp_end < index_entry->timestamp_begin) {
-			BT_LOGW("Invalid packet time bounds encountered in LTTng trace index file (begin > end): "
+			BT_COMP_LOGW("Invalid packet time bounds encountered in LTTng trace index file (begin > end): "
 				"timestamp_begin=%" PRIu64 "timestamp_end=%" PRIu64,
 				index_entry->timestamp_begin,
 				index_entry->timestamp_end);
@@ -415,14 +416,14 @@ struct ctf_fs_ds_index *build_index_from_idx_file(
 				index_entry->timestamp_begin,
 				&index_entry->timestamp_begin_ns);
 		if (ret) {
-			BT_LOGI_STR("Failed to convert raw timestamp to nanoseconds since Epoch during index parsing");
+			BT_COMP_LOGI_STR("Failed to convert raw timestamp to nanoseconds since Epoch during index parsing");
 			goto error;
 		}
 		ret = convert_cycles_to_ns(sc->default_clock_class,
 				index_entry->timestamp_end,
 				&index_entry->timestamp_end_ns);
 		if (ret) {
-			BT_LOGI_STR("Failed to convert raw timestamp to nanoseconds since Epoch during LTTng trace index parsing");
+			BT_COMP_LOGI_STR("Failed to convert raw timestamp to nanoseconds since Epoch during LTTng trace index parsing");
 			goto error;
 		}
 
@@ -434,7 +435,7 @@ struct ctf_fs_ds_index *build_index_from_idx_file(
 
 	/* Validate that the index addresses the complete stream. */
 	if (ds_file->file->size != total_packets_size) {
-		BT_LOGW("Invalid LTTng trace index file; indexed size != stream file size: "
+		BT_COMP_LOGW("Invalid LTTng trace index file; indexed size != stream file size: "
 			"file-size=%" PRIu64 ", total-packets-size=%" PRIu64,
 			ds_file->file->size, total_packets_size);
 		goto error;
@@ -480,7 +481,7 @@ int init_index_entry(struct ctf_fs_ds_index_entry *entry,
 					   props->snapshots.beginning_clock,
 					   &entry->timestamp_begin_ns);
 		if (ret) {
-			BT_LOGI_STR("Failed to convert raw timestamp to nanoseconds since Epoch.");
+			BT_COMP_LOGI_STR("Failed to convert raw timestamp to nanoseconds since Epoch.");
 			goto end;
 		}
 	} else {
@@ -492,7 +493,7 @@ int init_index_entry(struct ctf_fs_ds_index_entry *entry,
 					   props->snapshots.end_clock,
 					   &entry->timestamp_end_ns);
 		if (ret) {
-			BT_LOGI_STR("Failed to convert raw timestamp to nanoseconds since Epoch.");
+			BT_COMP_LOGI_STR("Failed to convert raw timestamp to nanoseconds since Epoch.");
 			goto end;
 		}
 	} else {
@@ -512,9 +513,9 @@ struct ctf_fs_ds_index *build_index_from_stream_file(
 	enum bt_msg_iter_status iter_status = BT_MSG_ITER_STATUS_OK;
 	off_t current_packet_offset_bytes = 0;
 
-	BT_LOGI("Indexing stream file %s", ds_file->file->path->str);
+	BT_COMP_LOGI("Indexing stream file %s", ds_file->file->path->str);
 
-	index = ctf_fs_ds_index_create(ds_file->log_level);
+	index = ctf_fs_ds_index_create(ds_file->log_level, ds_file->self_comp);
 	if (!index) {
 		goto error;
 	}
@@ -525,10 +526,10 @@ struct ctf_fs_ds_index *build_index_from_stream_file(
 		struct bt_msg_iter_packet_properties props;
 
 		if (current_packet_offset_bytes < 0) {
-			BT_LOGE_STR("Cannot get the current packet's offset.");
+			BT_COMP_LOGE_STR("Cannot get the current packet's offset.");
 			goto error;
 		} else if (current_packet_offset_bytes > ds_file->file->size) {
-			BT_LOGE_STR("Unexpected current packet's offset (larger than file).");
+			BT_COMP_LOGE_STR("Unexpected current packet's offset (larger than file).");
 			goto error;
 		} else if (current_packet_offset_bytes == ds_file->file->size) {
 			/* No more data */
@@ -556,7 +557,7 @@ struct ctf_fs_ds_index *build_index_from_stream_file(
 
 		if (current_packet_offset_bytes + current_packet_size_bytes >
 				ds_file->file->size) {
-			BT_LOGW("Invalid packet size reported in file: stream=\"%s\", "
+			BT_COMP_LOGW("Invalid packet size reported in file: stream=\"%s\", "
 					"packet-offset=%jd, packet-size-bytes=%jd, "
 					"file-size=%jd",
 					ds_file->file->path->str,
@@ -568,7 +569,7 @@ struct ctf_fs_ds_index *build_index_from_stream_file(
 
 		index_entry = g_new0(struct ctf_fs_ds_index_entry, 1);
 		if (!index_entry) {
-			BT_LOGE_STR("Failed to allocate a new index entry.");
+			BT_COMP_LOGE_STR("Failed to allocate a new index entry.");
 			goto error;
 		}
 
@@ -582,7 +583,7 @@ struct ctf_fs_ds_index *build_index_from_stream_file(
 		g_ptr_array_add(index->entries, index_entry);
 
 		current_packet_offset_bytes += current_packet_size_bytes;
-		BT_LOGD("Seeking to next packet: current-packet-offset=%jd, "
+		BT_COMP_LOGD("Seeking to next packet: current-packet-offset=%jd, "
 			"next-packet-offset=%jd",
 			current_packet_offset_bytes - current_packet_size_bytes,
 			current_packet_offset_bytes);
@@ -619,8 +620,9 @@ struct ctf_fs_ds_file *ctf_fs_ds_file_create(
 	}
 
 	ds_file->log_level = log_level;
+	ds_file->self_comp = ctf_fs_trace->self_comp;
 	ds_file->pc_msg_iter = pc_msg_iter;
-	ds_file->file = ctf_fs_file_create(log_level);
+	ds_file->file = ctf_fs_file_create(log_level, ds_file->self_comp);
 	if (!ds_file->file) {
 		goto error;
 	}
@@ -664,7 +666,7 @@ struct ctf_fs_ds_index *ctf_fs_ds_file_build_index(
 		goto end;
 	}
 
-	BT_LOGI("Failed to build index from .index file; "
+	BT_COMP_LOGI("Failed to build index from .index file; "
 		"falling back to stream indexing.");
 	index = build_index_from_stream_file(ds_file);
 end:
@@ -672,19 +674,20 @@ end:
 }
 
 BT_HIDDEN
-struct ctf_fs_ds_index *ctf_fs_ds_index_create(bt_logging_level log_level)
+struct ctf_fs_ds_index *ctf_fs_ds_index_create(bt_logging_level log_level,
+		bt_self_component *self_comp)
 {
 	struct ctf_fs_ds_index *index = g_new0(struct ctf_fs_ds_index, 1);
 
 	if (!index) {
-		BT_LOG_WRITE_CUR_LVL(BT_LOG_ERROR, log_level, BT_LOG_TAG,
+		BT_COMP_LOG_CUR_LVL(BT_LOG_ERROR, log_level, self_comp,
 			"Failed to allocate index");
 		goto error;
 	}
 
 	index->entries = g_ptr_array_new_with_free_func((GDestroyNotify) g_free);
 	if (!index->entries) {
-		BT_LOG_WRITE_CUR_LVL(BT_LOG_ERROR, log_level, BT_LOG_TAG,
+		BT_COMP_LOG_CUR_LVL(BT_LOG_ERROR, log_level, self_comp,
 			"Failed to allocate index entries.");
 		goto error;
 	}

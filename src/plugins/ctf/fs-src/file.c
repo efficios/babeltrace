@@ -20,9 +20,10 @@
  * SOFTWARE.
  */
 
+#define BT_COMP_LOG_SELF_COMP (file->self_comp)
 #define BT_LOG_OUTPUT_LEVEL (file->log_level)
 #define BT_LOG_TAG "PLUGIN/SRC.CTF.FS/FILE"
-#include "logging/log.h"
+#include "plugins/comp-logging.h"
 
 #include <stdio.h>
 #include <sys/types.h>
@@ -39,11 +40,11 @@ void ctf_fs_file_destroy(struct ctf_fs_file *file)
 	}
 
 	if (file->fp) {
-		BT_LOGD("Closing file \"%s\" (%p)",
+		BT_COMP_LOGD("Closing file \"%s\" (%p)",
 				file->path ? file->path->str : NULL, file->fp);
 
 		if (fclose(file->fp)) {
-			BT_LOGE("Cannot close file \"%s\": %s",
+			BT_COMP_LOGE("Cannot close file \"%s\": %s",
 					file->path ? file->path->str : "NULL",
 					strerror(errno));
 		}
@@ -57,7 +58,8 @@ void ctf_fs_file_destroy(struct ctf_fs_file *file)
 }
 
 BT_HIDDEN
-struct ctf_fs_file *ctf_fs_file_create(bt_logging_level log_level)
+struct ctf_fs_file *ctf_fs_file_create(bt_logging_level log_level,
+		bt_self_component *self_comp)
 {
 	struct ctf_fs_file *file = g_new0(struct ctf_fs_file, 1);
 
@@ -66,6 +68,7 @@ struct ctf_fs_file *ctf_fs_file_create(bt_logging_level log_level)
 	}
 
 	file->log_level = log_level;
+	file->self_comp = self_comp;
 	file->path = g_string_new(NULL);
 	if (!file->path) {
 		goto error;
@@ -87,23 +90,23 @@ int ctf_fs_file_open(struct ctf_fs_file *file, const char *mode)
 	int ret = 0;
 	struct stat stat;
 
-	BT_LOGI("Opening file \"%s\" with mode \"%s\"", file->path->str, mode);
+	BT_COMP_LOGI("Opening file \"%s\" with mode \"%s\"", file->path->str, mode);
 	file->fp = fopen(file->path->str, mode);
 	if (!file->fp) {
-		BT_LOGE("Cannot open file \"%s\" with mode \"%s\": %s",
+		BT_COMP_LOGE("Cannot open file \"%s\" with mode \"%s\": %s",
 			file->path->str, mode, strerror(errno));
 		goto error;
 	}
 
-	BT_LOGI("Opened file: %p", file->fp);
+	BT_COMP_LOGI("Opened file: %p", file->fp);
 
 	if (fstat(fileno(file->fp), &stat)) {
-		BT_LOGE("Cannot get file information: %s", strerror(errno));
+		BT_COMP_LOGE("Cannot get file information: %s", strerror(errno));
 		goto error;
 	}
 
 	file->size = stat.st_size;
-	BT_LOGI("File is %jd bytes", (intmax_t) file->size);
+	BT_COMP_LOGI("File is %jd bytes", (intmax_t) file->size);
 	goto end;
 
 error:
@@ -111,7 +114,7 @@ error:
 
 	if (file->fp) {
 		if (fclose(file->fp)) {
-			BT_LOGE("Cannot close file \"%s\": %s", file->path->str,
+			BT_COMP_LOGE("Cannot close file \"%s\": %s", file->path->str,
 				strerror(errno));
 		}
 	}

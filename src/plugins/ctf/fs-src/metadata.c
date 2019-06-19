@@ -23,9 +23,10 @@
  * SOFTWARE.
  */
 
+#define BT_COMP_LOG_SELF_COMP self_comp
 #define BT_LOG_OUTPUT_LEVEL log_level
 #define BT_LOG_TAG "PLUGIN/SRC.CTF.FS/META"
-#include "logging/log.h"
+#include "plugins/comp-logging.h"
 
 #include <stdio.h>
 #include <stdint.h>
@@ -61,9 +62,9 @@ end:
 }
 
 static struct ctf_fs_file *get_file(const char *trace_path,
-		bt_logging_level log_level)
+		bt_logging_level log_level, bt_self_component *self_comp)
 {
-	struct ctf_fs_file *file = ctf_fs_file_create(log_level);
+	struct ctf_fs_file *file = ctf_fs_file_create(log_level, self_comp);
 
 	if (!file) {
 		goto error;
@@ -90,7 +91,7 @@ end:
 
 BT_HIDDEN
 int ctf_fs_metadata_set_trace_class(
-		bt_self_component_source *self_comp,
+		bt_self_component *self_comp,
 		struct ctf_fs_trace *ctf_fs_trace,
 		struct ctf_fs_metadata_config *config)
 {
@@ -98,15 +99,15 @@ int ctf_fs_metadata_set_trace_class(
 	struct ctf_fs_file *file = NULL;
 	struct ctf_metadata_decoder_config decoder_config = {
 		.log_level = ctf_fs_trace->log_level,
-		.self_comp = bt_self_component_source_as_self_component(self_comp),
+		.self_comp = self_comp,
 		.clock_class_offset_s = config ? config->clock_class_offset_s : 0,
 		.clock_class_offset_ns = config ? config->clock_class_offset_ns : 0,
 	};
 	bt_logging_level log_level = ctf_fs_trace->log_level;
 
-	file = get_file(ctf_fs_trace->path->str, log_level);
+	file = get_file(ctf_fs_trace->path->str, log_level, self_comp);
 	if (!file) {
-		BT_LOGE("Cannot create metadata file object");
+		BT_COMP_LOGE("Cannot create metadata file object");
 		ret = -1;
 		goto end;
 	}
@@ -114,7 +115,7 @@ int ctf_fs_metadata_set_trace_class(
 	ctf_fs_trace->metadata->decoder = ctf_metadata_decoder_create(
 		&decoder_config);
 	if (!ctf_fs_trace->metadata->decoder) {
-		BT_LOGE("Cannot create metadata decoder object");
+		BT_COMP_LOGE("Cannot create metadata decoder object");
 		ret = -1;
 		goto end;
 	}
@@ -122,7 +123,7 @@ int ctf_fs_metadata_set_trace_class(
 	ret = ctf_metadata_decoder_decode(ctf_fs_trace->metadata->decoder,
 		file->fp);
 	if (ret) {
-		BT_LOGE("Cannot decode metadata file");
+		BT_COMP_LOGE("Cannot decode metadata file");
 		goto end;
 	}
 
