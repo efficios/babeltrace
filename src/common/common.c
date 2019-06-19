@@ -1822,3 +1822,35 @@ end:
 	return ret;
 }
 #endif /* __MINGW32__ */
+
+BT_HIDDEN
+int bt_common_g_string_append_printf(GString *str, const char *fmt, ...)
+{
+	va_list ap;
+	gsize len, allocated_len, available_len;
+	int print_len;
+
+	/* str->len excludes \0. */
+	len = str->len;
+	/* Explicitly exclude \0. */
+	allocated_len = str->allocated_len - 1;
+	available_len = allocated_len - len;
+
+	str->len = allocated_len;
+	va_start(ap, fmt);
+	print_len = vsnprintf(str->str + len, available_len + 1, fmt, ap);
+	va_end(ap);
+	if (print_len < 0) {
+		return print_len;
+	}
+	if (G_UNLIKELY(available_len < print_len)) {
+		/* Resize. */
+		g_string_set_size(str, len + print_len);
+		va_start(ap, fmt);
+		print_len = vsprintf(str->str + len, fmt, ap);
+		va_end(ap);
+	} else {
+		str->len = len + print_len;
+	}
+	return print_len;
+}
