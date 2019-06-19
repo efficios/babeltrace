@@ -44,6 +44,12 @@
 # define DEFAULT_LOG_LEVEL	BT_LOG_NONE
 #endif /* BT_DEV_MODE */
 
+/*
+ * This is exported because even though the Python plugin provider is a
+ * different shared object for packaging purposes, it's still considered
+ * part of the library and therefore needs the library's run-time log
+ * level.
+ */
 int bt_lib_log_level = DEFAULT_LOG_LEVEL;
 
 enum bt_logging_level bt_logging_get_minimal_level(void)
