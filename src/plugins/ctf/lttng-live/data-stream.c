@@ -23,9 +23,10 @@
  * SOFTWARE.
  */
 
+#define BT_COMP_LOG_SELF_COMP self_comp
 #define BT_LOG_OUTPUT_LEVEL log_level
 #define BT_LOG_TAG "PLUGIN/SRC.CTF.LTTNG-LIVE/DS"
-#include "logging/log.h"
+#include "plugins/comp-logging.h"
 
 #include <stdio.h>
 #include <stdint.h>
@@ -80,11 +81,12 @@ bt_stream *medop_borrow_stream(bt_stream_class *stream_class,
 {
 	struct lttng_live_stream_iterator *lttng_live_stream = data;
 	bt_logging_level log_level = lttng_live_stream->log_level;
+	bt_self_component *self_comp = lttng_live_stream->self_comp;
 
 	if (!lttng_live_stream->stream) {
 		uint64_t stream_class_id = bt_stream_class_get_id(stream_class);
 
-		BT_LOGI("Creating stream %s (ID: %" PRIu64 ") out of stream "
+		BT_COMP_LOGI("Creating stream %s (ID: %" PRIu64 ") out of stream "
 			"class %" PRId64, lttng_live_stream->name->str,
 			stream_id, stream_class_id);
 
@@ -105,7 +107,7 @@ bt_stream *medop_borrow_stream(bt_stream_class *stream_class,
 		}
 
 		if (!lttng_live_stream->stream) {
-			BT_LOGE("Cannot create stream %s (stream class ID "
+			BT_COMP_LOGE("Cannot create stream %s (stream class ID "
 				"%" PRId64 ", stream ID %" PRIu64 ")",
 				lttng_live_stream->name->str,
 				stream_class_id, stream_id);
@@ -131,6 +133,7 @@ enum lttng_live_iterator_status lttng_live_lazy_msg_init(
 		session->lttng_live_msg_iter->lttng_live_comp;
 	uint64_t trace_idx, stream_iter_idx;
 	bt_logging_level log_level = session->log_level;
+	bt_self_component *self_comp = session->self_comp;
 
 	if (!session->lazy_stream_msg_init) {
 		return LTTNG_LIVE_ITERATOR_STATUS_OK;
@@ -155,7 +158,7 @@ enum lttng_live_iterator_status lttng_live_lazy_msg_init(
 						trace->metadata->decoder);
 			stream_iter->msg_iter = bt_msg_iter_create(ctf_tc,
 					lttng_live->max_query_size, medops,
-					stream_iter, log_level, NULL);
+					stream_iter, log_level, self_comp);
 			if (!stream_iter->msg_iter) {
 				goto error;
 			}
@@ -180,11 +183,13 @@ struct lttng_live_stream_iterator *lttng_live_stream_iterator_create(
 	struct lttng_live_component *lttng_live;
 	struct lttng_live_trace *trace;
 	bt_logging_level log_level;
+	bt_self_component *self_comp;
 
 	BT_ASSERT(session);
 	BT_ASSERT(session->lttng_live_msg_iter);
 	BT_ASSERT(session->lttng_live_msg_iter->lttng_live_comp);
 	log_level = session->log_level;
+	self_comp = session->self_comp;
 
 	lttng_live = session->lttng_live_msg_iter->lttng_live_comp;
 
@@ -194,6 +199,7 @@ struct lttng_live_stream_iterator *lttng_live_stream_iterator_create(
 	}
 
 	stream_iter->log_level = log_level;
+	stream_iter->self_comp = self_comp;
 	trace = lttng_live_borrow_trace(session, ctf_trace_id);
 	if (!trace) {
 		goto error;
@@ -212,7 +218,7 @@ struct lttng_live_stream_iterator *lttng_live_stream_iterator_create(
 		BT_ASSERT(!stream_iter->msg_iter);
 		stream_iter->msg_iter = bt_msg_iter_create(ctf_tc,
 				lttng_live->max_query_size, medops,
-				stream_iter, log_level, NULL);
+				stream_iter, log_level, self_comp);
 		if (!stream_iter->msg_iter) {
 			goto error;
 		}

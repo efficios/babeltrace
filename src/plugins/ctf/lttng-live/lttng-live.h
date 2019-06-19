@@ -65,6 +65,7 @@ enum lttng_live_stream_state {
 /* Iterator over a live stream. */
 struct lttng_live_stream_iterator {
 	bt_logging_level log_level;
+	bt_self_component *self_comp;
 
 	/* Owned by this. */
 	bt_stream *stream;
@@ -122,6 +123,7 @@ struct lttng_live_stream_iterator {
 
 struct lttng_live_metadata {
 	bt_logging_level log_level;
+	bt_self_component *self_comp;
 
 	/* Weak reference. */
 	struct lttng_live_trace *trace;
@@ -135,6 +137,7 @@ struct lttng_live_metadata {
 
 struct lttng_live_trace {
 	bt_logging_level log_level;
+	bt_self_component *self_comp;
 
 	/* Back reference to session. */
 	struct lttng_live_session *session;
@@ -161,6 +164,7 @@ struct lttng_live_trace {
 
 struct lttng_live_session {
 	bt_logging_level log_level;
+	bt_self_component *self_comp;
 
 	/* Weak reference. */
 	struct lttng_live_msg_iter *lttng_live_msg_iter;
@@ -195,7 +199,7 @@ struct lttng_live_component {
 	bt_logging_level log_level;
 
 	/* Weak reference. */
-	bt_self_component_source *self_comp;
+	bt_self_component *self_comp;
 
 	struct {
 		GString *url;
@@ -213,6 +217,7 @@ struct lttng_live_component {
 
 struct lttng_live_msg_iter {
 	bt_logging_level log_level;
+	bt_self_component *self_comp;
 
 	/* Weak reference. */
 	struct lttng_live_component *lttng_live_comp;

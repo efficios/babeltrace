@@ -24,9 +24,10 @@
  * SOFTWARE.
  */
 
+#define BT_COMP_LOG_SELF_COMP self_comp
 #define BT_LOG_OUTPUT_LEVEL log_level
 #define BT_LOG_TAG "PLUGIN/SRC.CTF.LTTNG-LIVE/META"
-#include "logging/log.h"
+#include "plugins/comp-logging.h"
 
 #include <stdio.h>
 #include <stdint.h>
@@ -57,7 +58,8 @@ struct packet_header {
 
 static
 bool stream_classes_all_have_default_clock_class(bt_trace_class *tc,
-		bt_logging_level log_level)
+		bt_logging_level log_level,
+		bt_self_component *self_comp)
 {
 	uint64_t i, sc_count;
 	const bt_clock_class *cc = NULL;
@@ -73,7 +75,7 @@ bool stream_classes_all_have_default_clock_class(bt_trace_class *tc,
 		cc = bt_stream_class_borrow_default_clock_class_const(sc);
 		if (!cc) {
 			ret = false;
-			BT_LOGE("Stream class doesn't have a default clock class: "
+			BT_COMP_LOGE("Stream class doesn't have a default clock class: "
 				"sc-id=%" PRIu64 ", sc-name=\"%s\"",
 				bt_stream_class_get_id(sc),
 				bt_stream_class_get_name(sc));
@@ -127,6 +129,7 @@ enum lttng_live_iterator_status lttng_live_metadata_update(
 	enum lttng_live_iterator_status status =
 		LTTNG_LIVE_ITERATOR_STATUS_OK;
 	bt_logging_level log_level = trace->log_level;
+	bt_self_component *self_comp = trace->self_comp;
 
 	/* No metadata stream yet. */
 	if (!metadata) {
@@ -150,7 +153,7 @@ enum lttng_live_iterator_status lttng_live_metadata_update(
 	/* Open for writing */
 	fp = bt_open_memstream(&metadata_buf, &size);
 	if (!fp) {
-		BT_LOGE("Metadata open_memstream: %s", strerror(errno));
+		BT_COMP_LOGE("Metadata open_memstream: %s", strerror(errno));
 		goto error;
 	}
 
@@ -192,7 +195,7 @@ enum lttng_live_iterator_status lttng_live_metadata_update(
 	}
 
 	if (bt_close_memstream(&metadata_buf, &size, fp)) {
-		BT_LOGE("bt_close_memstream: %s", strerror(errno));
+		BT_COMP_LOGE("bt_close_memstream: %s", strerror(errno));
 	}
 	ret = 0;
 	fp = NULL;
@@ -208,7 +211,7 @@ enum lttng_live_iterator_status lttng_live_metadata_update(
 
 	fp = bt_fmemopen(metadata_buf, len_read, "rb");
 	if (!fp) {
-		BT_LOGE("Cannot memory-open metadata buffer: %s",
+		BT_COMP_LOGE("Cannot memory-open metadata buffer: %s",
 			strerror(errno));
 		goto error;
 	}
@@ -226,7 +229,8 @@ enum lttng_live_iterator_status lttng_live_metadata_update(
 						metadata->decoder);
 			trace->trace = bt_trace_create(trace->trace_class);
 			if (!stream_classes_all_have_default_clock_class(
-					trace->trace_class, log_level)) {
+					trace->trace_class, log_level,
+					self_comp)) {
 				/* Error logged in function. */
 				goto error;
 			}
@@ -254,7 +258,7 @@ end:
 
 		closeret = fclose(fp);
 		if (closeret) {
-			BT_LOGE("Error on fclose");
+			BT_COMP_LOGE("Error on fclose");
 		}
 	}
 	free(metadata_buf);
@@ -263,20 +267,15 @@ end:
 
 BT_HIDDEN
 int lttng_live_metadata_create_stream(struct lttng_live_session *session,
-		uint64_t ctf_trace_id,
-		uint64_t stream_id,
+		uint64_t ctf_trace_id, uint64_t stream_id,
 		const char *trace_name)
 {
-	struct lttng_live_component *lttng_live =
-		session->lttng_live_msg_iter->lttng_live_comp;
 	struct lttng_live_metadata *metadata = NULL;
 	struct lttng_live_trace *trace;
 	const char *match;
 	struct ctf_metadata_decoder_config cfg = {
 		.log_level = session->log_level,
-		.self_comp =
-			bt_self_component_source_as_self_component(
-				lttng_live->self_comp),
+		.self_comp = session->self_comp,
 		.clock_class_offset_s = 0,
 		.clock_class_offset_ns = 0,
 	};
@@ -286,6 +285,7 @@ int lttng_live_metadata_create_stream(struct lttng_live_session *session,
 		return -1;
 	}
 	metadata->log_level = session->log_level;
+	metadata->self_comp = session->self_comp;
 	metadata->stream_id = stream_id;
 
 	match = strstr(trace_name, session->session_name->str);

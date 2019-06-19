@@ -28,9 +28,10 @@
  * SOFTWARE.
  */
 
+#define BT_COMP_LOG_SELF_COMP self_comp
 #define BT_LOG_OUTPUT_LEVEL log_level
 #define BT_LOG_TAG "PLUGIN/SRC.CTF.LTTNG-LIVE"
-#include "logging/log.h"
+#include "plugins/comp-logging.h"
 
 #include <glib.h>
 #include <inttypes.h>
@@ -52,7 +53,7 @@
 #define SESS_NOT_FOUND_ACTION_FAIL_STR	    "fail"
 #define SESS_NOT_FOUND_ACTION_END_STR	    "end"
 
-#define print_dbg(fmt, ...)	BT_LOGD(fmt, ## __VA_ARGS__)
+#define print_dbg(fmt, ...)	BT_COMP_LOGD(fmt, ## __VA_ARGS__)
 
 static
 const char *print_live_iterator_status(enum lttng_live_iterator_status status)
@@ -100,7 +101,7 @@ const char *print_state(struct lttng_live_stream_iterator *s)
 
 #define print_stream_state(live_stream_iter) \
 	do { \
-		BT_LOGD("stream state %s last_inact_ts %" PRId64  \
+		BT_COMP_LOGD("stream state %s last_inact_ts %" PRId64  \
 			", curr_inact_ts %" PRId64, \
 			print_state(live_stream_iter), \
 			live_stream_iter->last_inactivity_ts, \
@@ -118,10 +119,7 @@ bool lttng_live_graph_is_canceled(struct lttng_live_component *lttng_live)
 		goto end;
 	}
 
-	component = bt_component_source_as_component_const(
-		bt_self_component_source_as_component_source(
-		lttng_live->self_comp));
-
+	component = bt_self_component_as_component(lttng_live->self_comp);
 	ret = bt_component_graph_is_canceled(component);
 
 end:
@@ -152,8 +150,9 @@ static
 void lttng_live_destroy_trace(struct lttng_live_trace *trace)
 {
 	bt_logging_level log_level = trace->log_level;
+	bt_self_component *self_comp = trace->self_comp;
 
-	BT_LOGD("Destroy lttng_live_trace");
+	BT_COMP_LOGD("Destroy lttng_live_trace");
 
 	BT_ASSERT(trace->stream_iterators);
 	g_ptr_array_free(trace->stream_iterators, TRUE);
@@ -171,12 +170,14 @@ struct lttng_live_trace *lttng_live_create_trace(struct lttng_live_session *sess
 {
 	struct lttng_live_trace *trace = NULL;
 	bt_logging_level log_level = session->log_level;
+	bt_self_component *self_comp = session->self_comp;
 
 	trace = g_new0(struct lttng_live_trace, 1);
 	if (!trace) {
 		goto error;
 	}
 	trace->log_level = session->log_level;
+	trace->self_comp = session->self_comp;
 	trace->session = session;
 	trace->id = trace_id;
 	trace->trace_class = NULL;
@@ -187,7 +188,7 @@ struct lttng_live_trace *lttng_live_create_trace(struct lttng_live_session *sess
 	trace->new_metadata_needed = true;
 	g_ptr_array_add(session->traces, trace);
 
-	BT_LOGI("Create trace");
+	BT_COMP_LOGI("Create trace");
 	goto end;
 error:
 	g_free(trace);
@@ -222,6 +223,7 @@ int lttng_live_add_session(struct lttng_live_msg_iter *lttng_live_msg_iter,
 	int ret = 0;
 	struct lttng_live_session *session;
 	bt_logging_level log_level = lttng_live_msg_iter->log_level;
+	bt_self_component *self_comp = lttng_live_msg_iter->self_comp;
 
 	session = g_new0(struct lttng_live_session, 1);
 	if (!session) {
@@ -229,6 +231,7 @@ int lttng_live_add_session(struct lttng_live_msg_iter *lttng_live_msg_iter,
 	}
 
 	session->log_level = lttng_live_msg_iter->log_level;
+	session->self_comp = lttng_live_msg_iter->self_comp;
 	session->id = session_id;
 	session->traces = g_ptr_array_new_with_free_func(
 			(GDestroyNotify) lttng_live_destroy_trace);
@@ -241,12 +244,12 @@ int lttng_live_add_session(struct lttng_live_msg_iter *lttng_live_msg_iter,
 	session->session_name = g_string_new(session_name);
 	BT_ASSERT(session->session_name);
 
-	BT_LOGI("Reading from session: %" PRIu64 " hostname: %s session_name: %s",
+	BT_COMP_LOGI("Reading from session: %" PRIu64 " hostname: %s session_name: %s",
 		session->id, hostname, session_name);
 	g_ptr_array_add(lttng_live_msg_iter->sessions, session);
 	goto end;
 error:
-	BT_LOGE("Error adding session");
+	BT_COMP_LOGE("Error adding session");
 	g_free(session);
 	ret = -1;
 end:
@@ -258,20 +261,22 @@ void lttng_live_destroy_session(struct lttng_live_session *session)
 {
 	struct lttng_live_component *live_comp;
 	bt_logging_level log_level;
+	bt_self_component *self_comp;
 
 	if (!session) {
 		goto end;
 	}
 
 	log_level = session->log_level;
-	BT_LOGD("Destroy lttng live session");
+	self_comp = session->self_comp;
+	BT_COMP_LOGD("Destroy lttng live session");
 	if (session->id != -1ULL) {
 		if (lttng_live_detach_session(session)) {
 			live_comp = session->lttng_live_msg_iter->lttng_live_comp;
 			if (session->lttng_live_msg_iter &&
 					!lttng_live_graph_is_canceled(live_comp)) {
 				/* Old relayd cannot detach sessions. */
-				BT_LOGD("Unable to detach lttng live session %" PRIu64,
+				BT_COMP_LOGD("Unable to detach lttng live session %" PRIu64,
 					session->id);
 			}
 		}
@@ -336,6 +341,7 @@ enum lttng_live_iterator_status lttng_live_iterator_next_check_stream_state(
 		struct lttng_live_stream_iterator *lttng_live_stream)
 {
 	bt_logging_level log_level = lttng_live_stream->log_level;
+	bt_self_component *self_comp = lttng_live_stream->self_comp;
 
 	switch (lttng_live_stream->state) {
 	case LTTNG_LIVE_STREAM_QUIESCENT:
@@ -343,11 +349,11 @@ enum lttng_live_iterator_status lttng_live_iterator_next_check_stream_state(
 		break;
 	case LTTNG_LIVE_STREAM_ACTIVE_NO_DATA:
 		/* Invalid state. */
-		BT_LOGF("Unexpected stream state \"ACTIVE_NO_DATA\"");
+		BT_COMP_LOGF("Unexpected stream state \"ACTIVE_NO_DATA\"");
 		abort();
 	case LTTNG_LIVE_STREAM_QUIESCENT_NO_DATA:
 		/* Invalid state. */
-		BT_LOGF("Unexpected stream state \"QUIESCENT_NO_DATA\"");
+		BT_COMP_LOGF("Unexpected stream state \"QUIESCENT_NO_DATA\"");
 		abort();
 	case LTTNG_LIVE_STREAM_EOF:
 		break;
@@ -369,6 +375,7 @@ enum lttng_live_iterator_status lttng_live_iterator_next_handle_one_no_data_stre
 		struct lttng_live_stream_iterator *lttng_live_stream)
 {
 	bt_logging_level log_level = lttng_live_msg_iter->log_level;
+	bt_self_component *self_comp = lttng_live_msg_iter->self_comp;
 	enum lttng_live_iterator_status ret =
 			LTTNG_LIVE_ITERATOR_STATUS_OK;
 	struct packet_index index;
@@ -628,11 +635,12 @@ int live_get_msg_ts_ns(struct lttng_live_stream_iterator *stream_iter,
 	int ret = 0;
 	bt_message_stream_activity_clock_snapshot_state sa_cs_state;
 	bt_logging_level log_level = lttng_live_msg_iter->log_level;
+	bt_self_component *self_comp = lttng_live_msg_iter->self_comp;
 
 	BT_ASSERT(msg);
 	BT_ASSERT(ts_ns);
 
-	BT_LOGD("Getting message's timestamp: iter-data-addr=%p, msg-addr=%p, "
+	BT_COMP_LOGD("Getting message's timestamp: iter-data-addr=%p, msg-addr=%p, "
 		"last-msg-ts=%" PRId64, lttng_live_msg_iter, msg,
 		last_msg_ts_ns);
 
@@ -715,7 +723,7 @@ int live_get_msg_ts_ns(struct lttng_live_stream_iterator *stream_iter,
 		break;
 	default:
 		/* All the other messages have a higher priority */
-		BT_LOGD_STR("Message has no timestamp: using the last message timestamp.");
+		BT_COMP_LOGD_STR("Message has no timestamp: using the last message timestamp.");
 		*ts_ns = last_msg_ts_ns;
 		goto end;
 	}
@@ -725,7 +733,7 @@ int live_get_msg_ts_ns(struct lttng_live_stream_iterator *stream_iter,
 
 	ret = bt_clock_snapshot_get_ns_from_origin(clock_snapshot, ts_ns);
 	if (ret) {
-		BT_LOGE("Cannot get nanoseconds from Epoch of clock snapshot: "
+		BT_COMP_LOGE("Cannot get nanoseconds from Epoch of clock snapshot: "
 			"clock-snapshot-addr=%p", clock_snapshot);
 		goto error;
 	}
@@ -733,7 +741,7 @@ int live_get_msg_ts_ns(struct lttng_live_stream_iterator *stream_iter,
 	goto end;
 
 no_clock_snapshot:
-	BT_LOGD_STR("Message's default clock snapshot is missing: "
+	BT_COMP_LOGD_STR("Message's default clock snapshot is missing: "
 		"using the last message timestamp.");
 	*ts_ns = last_msg_ts_ns;
 	goto end;
@@ -743,7 +751,7 @@ error:
 
 end:
 	if (ret == 0) {
-		BT_LOGD("Found message's timestamp: "
+		BT_COMP_LOGD("Found message's timestamp: "
 			"iter-data-addr=%p, msg-addr=%p, "
 			"last-msg-ts=%" PRId64 ", ts=%" PRId64,
 			lttng_live_msg_iter, msg, last_msg_ts_ns, *ts_ns);
@@ -762,6 +770,7 @@ enum lttng_live_iterator_status lttng_live_iterator_next_handle_one_active_data_
 	enum bt_msg_iter_status status;
 	uint64_t session_idx, trace_idx;
 	bt_logging_level log_level = lttng_live_msg_iter->log_level;
+	bt_self_component *self_comp = lttng_live_msg_iter->self_comp;
 
 	for (session_idx = 0; session_idx < lttng_live_msg_iter->sessions->len;
 			session_idx++) {
@@ -810,7 +819,7 @@ enum lttng_live_iterator_status lttng_live_iterator_next_handle_one_active_data_
 	case BT_MSG_ITER_STATUS_ERROR:
 	default:
 		ret = LTTNG_LIVE_ITERATOR_STATUS_ERROR;
-		BT_LOGW("CTF msg iterator return an error or failed msg_iter=%p",
+		BT_COMP_LOGW("CTF msg iterator return an error or failed msg_iter=%p",
 			lttng_live_stream->msg_iter);
 		break;
 	}
@@ -874,6 +883,7 @@ enum lttng_live_iterator_status lttng_live_iterator_next_on_stream(
 		bt_message **curr_msg)
 {
 	bt_logging_level log_level = lttng_live_msg_iter->log_level;
+	bt_self_component *self_comp = lttng_live_msg_iter->self_comp;
 	enum lttng_live_iterator_status live_status;
 
 retry:
@@ -922,6 +932,7 @@ enum lttng_live_iterator_status next_stream_iterator_for_trace(
 	int64_t curr_candidate_msg_ts = INT64_MAX;
 	uint64_t stream_iter_idx;
 	bt_logging_level log_level = lttng_live_msg_iter->log_level;
+	bt_self_component *self_comp = lttng_live_msg_iter->self_comp;
 
 	BT_ASSERT(live_trace);
 	BT_ASSERT(live_trace->stream_iterators);
@@ -948,7 +959,7 @@ enum lttng_live_iterator_status next_stream_iterator_for_trace(
 			stream_iter_status = lttng_live_iterator_next_on_stream(
 					lttng_live_msg_iter, stream_iter, &msg);
 
-			BT_LOGD("live stream iterator returned status :%s",
+			BT_COMP_LOGD("live stream iterator returned status :%s",
 					print_live_iterator_status(stream_iter_status));
 			if (stream_iter_status == LTTNG_LIVE_ITERATOR_STATUS_END) {
 				stream_iter_is_ended = true;
@@ -983,7 +994,7 @@ enum lttng_live_iterator_status next_stream_iterator_for_trace(
 				 * We received a message in the past. To ensure
 				 * monotonicity, we can't send it forward.
 				 */
-				BT_LOGE("Message's timestamp is less than "
+				BT_COMP_LOGE("Message's timestamp is less than "
 					"lttng-live's message iterator's last "
 					"returned timestamp: "
 					"lttng-live-msg-iter-addr=%p, ts=%" PRId64 ", "
@@ -1336,6 +1347,7 @@ bt_self_message_iterator_status lttng_live_msg_iter_init(
 
 	lttng_live = bt_self_component_get_data(self_comp);
 	log_level = lttng_live->log_level;
+	self_comp = lttng_live->self_comp;
 
 	/* There can be only one downstream iterator at the same time. */
 	BT_ASSERT(!lttng_live->has_msg_iter);
@@ -1348,6 +1360,7 @@ bt_self_message_iterator_status lttng_live_msg_iter_init(
 	}
 
 	lttng_live_msg_iter->log_level = lttng_live->log_level;
+	lttng_live_msg_iter->self_comp = lttng_live->self_comp;
 	lttng_live_msg_iter->lttng_live_comp = lttng_live;
 	lttng_live_msg_iter->self_msg_iter = self_msg_it;
 
@@ -1370,7 +1383,7 @@ bt_self_message_iterator_status lttng_live_msg_iter_init(
 	if (lttng_live_msg_iter->sessions->len == 0) {
 		switch (lttng_live->params.sess_not_found_act) {
 		case SESSION_NOT_FOUND_ACTION_CONTINUE:
-			BT_LOGI("Unable to connect to the requested live viewer "
+			BT_COMP_LOGI("Unable to connect to the requested live viewer "
 				"session. Keep trying to connect because of "
 				"%s=\"%s\" component parameter: url=\"%s\"",
 				SESS_NOT_FOUND_ACTION_PARAM,
@@ -1378,7 +1391,7 @@ bt_self_message_iterator_status lttng_live_msg_iter_init(
 				lttng_live->params.url->str);
 			break;
 		case SESSION_NOT_FOUND_ACTION_FAIL:
-			BT_LOGE("Unable to connect to the requested live viewer "
+			BT_COMP_LOGE("Unable to connect to the requested live viewer "
 				"session. Fail the message iterator"
 				"initialization because of %s=\"%s\" "
 				"component parameter: url =\"%s\"",
@@ -1387,7 +1400,7 @@ bt_self_message_iterator_status lttng_live_msg_iter_init(
 				lttng_live->params.url->str);
 			goto error;
 		case SESSION_NOT_FOUND_ACTION_END:
-			BT_LOGI("Unable to connect to the requested live viewer "
+			BT_COMP_LOGI("Unable to connect to the requested live viewer "
 				"session. End gracefully at the first _next() "
 				"call because of %s=\"%s\" component parameter: "
 				"url=\"%s\"", SESS_NOT_FOUND_ACTION_PARAM,
@@ -1415,16 +1428,17 @@ bt_query_status lttng_live_query_list_sessions(const bt_value *params,
 	const bt_value *url_value = NULL;
 	const char *url;
 	struct live_viewer_connection *viewer_connection = NULL;
+	bt_self_component *self_comp = NULL;
 
 	url_value = bt_value_map_borrow_entry_value_const(params, URL_PARAM);
 	if (!url_value) {
-		BT_LOGW("Mandatory `%s` parameter missing", URL_PARAM);
+		BT_COMP_LOGW("Mandatory `%s` parameter missing", URL_PARAM);
 		status = BT_QUERY_STATUS_INVALID_PARAMS;
 		goto error;
 	}
 
 	if (!bt_value_is_string(url_value)) {
-		BT_LOGW("`%s` parameter is required to be a string value",
+		BT_COMP_LOGW("`%s` parameter is required to be a string value",
 			URL_PARAM);
 		status = BT_QUERY_STATUS_INVALID_PARAMS;
 		goto error;
@@ -1466,12 +1480,13 @@ bt_query_status lttng_live_query(bt_self_component_class_source *comp_class,
 		bt_logging_level log_level, const bt_value **result)
 {
 	bt_query_status status = BT_QUERY_STATUS_OK;
+	bt_self_component *self_comp = NULL;
 
 	if (strcmp(object, "sessions") == 0) {
 		status = lttng_live_query_list_sessions(params, result,
 			log_level);
 	} else {
-		BT_LOGW("Unknown query object `%s`", object);
+		BT_COMP_LOGW("Unknown query object `%s`", object);
 		status = BT_QUERY_STATUS_INVALID_OBJECT;
 		goto end;
 	}
@@ -1525,7 +1540,7 @@ enum session_not_found_action parse_session_not_found_action_param(
 }
 
 struct lttng_live_component *lttng_live_component_create(const bt_value *params,
-		bt_logging_level log_level)
+		bt_logging_level log_level, bt_self_component *self_comp)
 {
 	struct lttng_live_component *lttng_live;
 	const bt_value *value = NULL;
@@ -1536,12 +1551,13 @@ struct lttng_live_component *lttng_live_component_create(const bt_value *params,
 		goto end;
 	}
 	lttng_live->log_level = log_level;
+	lttng_live->self_comp = self_comp;
 	lttng_live->max_query_size = MAX_QUERY_SIZE;
 	lttng_live->has_msg_iter = false;
 
 	value = bt_value_map_borrow_entry_value_const(params, URL_PARAM);
 	if (!value || !bt_value_is_string(value)) {
-		BT_LOGW("Mandatory `%s` parameter missing or not a string",
+		BT_COMP_LOGW("Mandatory `%s` parameter missing or not a string",
 			URL_PARAM);
 		goto error;
 	}
@@ -1558,13 +1574,13 @@ struct lttng_live_component *lttng_live_component_create(const bt_value *params,
 		lttng_live->params.sess_not_found_act =
 			parse_session_not_found_action_param(value);
 		if (lttng_live->params.sess_not_found_act == -1) {
-			BT_LOGE("Unexpected value for `%s` parameter: "
+			BT_COMP_LOGE("Unexpected value for `%s` parameter: "
 				"value=\"%s\"", SESS_NOT_FOUND_ACTION_PARAM,
 				bt_value_string_get(value));
 			goto error;
 		}
 	} else {
-		BT_LOGW("Optional `%s` parameter is missing or "
+		BT_COMP_LOGW("Optional `%s` parameter is missing or "
 			"not a string value. Defaulting to %s=\"%s\".",
 			SESS_NOT_FOUND_ACTION_PARAM,
 			SESS_NOT_FOUND_ACTION_PARAM,
@@ -1594,21 +1610,19 @@ bt_self_component_status lttng_live_component_init(
 	bt_logging_level log_level = bt_component_get_logging_level(
 		bt_self_component_as_component(self_comp));
 
-	lttng_live = lttng_live_component_create(params, log_level);
+	lttng_live = lttng_live_component_create(params, log_level, self_comp);
 	if (!lttng_live) {
 		ret = BT_SELF_COMPONENT_STATUS_NOMEM;
 		goto error;
 	}
-	lttng_live->self_comp = self_comp_src;
 
 	if (lttng_live_graph_is_canceled(lttng_live)) {
 		ret = BT_SELF_COMPONENT_STATUS_END;
 		goto error;
 	}
 
-	ret = bt_self_component_source_add_output_port(
-				lttng_live->self_comp, "out",
-				NULL, NULL);
+	ret = bt_self_component_source_add_output_port(self_comp_src, "out",
+		NULL, NULL);
 	if (ret != BT_SELF_COMPONENT_STATUS_OK) {
 		goto error;
 	}

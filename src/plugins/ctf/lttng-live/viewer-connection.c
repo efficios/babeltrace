@@ -21,9 +21,10 @@
  * SOFTWARE.
  */
 
+#define BT_COMP_LOG_SELF_COMP (viewer_connection->self_comp)
 #define BT_LOG_OUTPUT_LEVEL (viewer_connection->log_level)
 #define BT_LOG_TAG "PLUGIN/SRC.CTF.LTTNG-LIVE/VIEWER"
-#include "logging/log.h"
+#include "plugins/comp-logging.h"
 
 #include <stdio.h>
 #include <stdint.h>
@@ -119,7 +120,7 @@ int parse_url(struct live_viewer_connection *viewer_connection)
 	lttng_live_url_parts = bt_common_parse_lttng_live_url(path,
 			error_buf, sizeof(error_buf));
 	if (!lttng_live_url_parts.proto) {
-		BT_LOGW("Invalid LTTng live URL format: %s", error_buf);
+		BT_COMP_LOGW("Invalid LTTng live URL format: %s", error_buf);
 		goto end;
 	}
 
@@ -143,7 +144,7 @@ int parse_url(struct live_viewer_connection *viewer_connection)
 		lttng_live_url_parts.session_name = NULL;
 	}
 
-	BT_LOGI("Connecting to hostname : %s, port : %d, "
+	BT_COMP_LOGI("Connecting to hostname : %s, port : %d, "
 			"target hostname : %s, session name : %s, "
 			"proto : %s",
 			viewer_connection->relay_hostname->str,
@@ -188,7 +189,7 @@ int lttng_live_handshake(struct live_viewer_connection *viewer_connection)
 	memcpy(cmd_buf + sizeof(cmd), &connect, sizeof(connect));
 	ret_len = lttng_live_send(viewer_connection, &cmd_buf, cmd_buf_len);
 	if (ret_len == BT_SOCKET_ERROR) {
-		BT_LOGE("Error sending version: %s", bt_socket_errormsg());
+		BT_COMP_LOGE("Error sending version: %s", bt_socket_errormsg());
 		goto error;
 	}
 
@@ -196,22 +197,22 @@ int lttng_live_handshake(struct live_viewer_connection *viewer_connection)
 
 	ret_len = lttng_live_recv(viewer_connection, &connect, sizeof(connect));
 	if (ret_len == 0) {
-		BT_LOGI("Remote side has closed connection");
+		BT_COMP_LOGI("Remote side has closed connection");
 		goto error;
 	}
 	if (ret_len == BT_SOCKET_ERROR) {
-		BT_LOGE("Error receiving version: %s", bt_socket_errormsg());
+		BT_COMP_LOGE("Error receiving version: %s", bt_socket_errormsg());
 		goto error;
 	}
 	BT_ASSERT(ret_len == sizeof(connect));
 
-	BT_LOGI("Received viewer session ID : %" PRIu64,
+	BT_COMP_LOGI("Received viewer session ID : %" PRIu64,
 			(uint64_t) be64toh(connect.viewer_session_id));
-	BT_LOGI("Relayd version : %u.%u", be32toh(connect.major),
+	BT_COMP_LOGI("Relayd version : %u.%u", be32toh(connect.major),
 			be32toh(connect.minor));
 
 	if (LTTNG_LIVE_MAJOR != be32toh(connect.major)) {
-		BT_LOGE("Incompatible lttng-relayd protocol");
+		BT_COMP_LOGE("Incompatible lttng-relayd protocol");
 		goto error;
 	}
 	/* Use the smallest protocol version implemented. */
@@ -225,7 +226,7 @@ int lttng_live_handshake(struct live_viewer_connection *viewer_connection)
 	return ret;
 
 error:
-	BT_LOGE("Unable to establish connection");
+	BT_COMP_LOGE("Unable to establish connection");
 	return -1;
 }
 
@@ -242,13 +243,13 @@ int lttng_live_connect_viewer(struct live_viewer_connection *viewer_connection)
 
 	host = gethostbyname(viewer_connection->relay_hostname->str);
 	if (!host) {
-		BT_LOGE("Cannot lookup hostname %s",
+		BT_COMP_LOGE("Cannot lookup hostname %s",
 			viewer_connection->relay_hostname->str);
 		goto error;
 	}
 
 	if ((viewer_connection->control_sock = socket(AF_INET, SOCK_STREAM, 0)) == BT_INVALID_SOCKET) {
-		BT_LOGE("Socket creation failed: %s", bt_socket_errormsg());
+		BT_COMP_LOGE("Socket creation failed: %s", bt_socket_errormsg());
 		goto error;
 	}
 
@@ -259,7 +260,7 @@ int lttng_live_connect_viewer(struct live_viewer_connection *viewer_connection)
 
 	if (connect(viewer_connection->control_sock, (struct sockaddr *) &server_addr,
 				sizeof(struct sockaddr)) == BT_SOCKET_ERROR) {
-		BT_LOGE("Connection failed: %s", bt_socket_errormsg());
+		BT_COMP_LOGE("Connection failed: %s", bt_socket_errormsg());
 		goto error;
 	}
 	if (lttng_live_handshake(viewer_connection)) {
@@ -273,7 +274,7 @@ int lttng_live_connect_viewer(struct live_viewer_connection *viewer_connection)
 error:
 	if (viewer_connection->control_sock != BT_INVALID_SOCKET) {
 		if (bt_socket_close(viewer_connection->control_sock) == BT_SOCKET_ERROR) {
-			BT_LOGE("Close: %s", bt_socket_errormsg());
+			BT_COMP_LOGE("Close: %s", bt_socket_errormsg());
 		}
 	}
 	viewer_connection->control_sock = BT_INVALID_SOCKET;
@@ -288,7 +289,7 @@ void lttng_live_disconnect_viewer(
 		return;
 	}
 	if (bt_socket_close(viewer_connection->control_sock) == BT_SOCKET_ERROR) {
-		BT_LOGE("Close: %s", bt_socket_errormsg());
+		BT_COMP_LOGE("Close: %s", bt_socket_errormsg());
 		viewer_connection->control_sock = BT_INVALID_SOCKET;
 	}
 }
@@ -317,7 +318,7 @@ int list_update_session(bt_value *results,
 
 	len = bt_value_array_get_size(results);
 	if (len < 0) {
-		BT_LOGE_STR("Error getting size of array.");
+		BT_COMP_LOGE_STR("Error getting size of array.");
 		ret = -1;
 		goto end;
 	}
@@ -327,19 +328,19 @@ int list_update_session(bt_value *results,
 
 		map = bt_value_array_borrow_element_by_index(results, (size_t) i);
 		if (!map) {
-			BT_LOGE_STR("Error borrowing map.");
+			BT_COMP_LOGE_STR("Error borrowing map.");
 			ret = -1;
 			goto end;
 		}
 		hostname = bt_value_map_borrow_entry_value(map, "target-hostname");
 		if (!hostname) {
-			BT_LOGE_STR("Error borrowing \"target-hostname\" entry.");
+			BT_COMP_LOGE_STR("Error borrowing \"target-hostname\" entry.");
 			ret = -1;
 			goto end;
 		}
 		session_name = bt_value_map_borrow_entry_value(map, "session-name");
 		if (!session_name) {
-			BT_LOGE_STR("Error borrowing \"session-name\" entry.");
+			BT_COMP_LOGE_STR("Error borrowing \"session-name\" entry.");
 			ret = -1;
 			goto end;
 		}
@@ -357,7 +358,7 @@ int list_update_session(bt_value *results,
 
 			btval = bt_value_map_borrow_entry_value(map, "stream-count");
 			if (!btval) {
-				BT_LOGE_STR("Error borrowing \"stream-count\" entry.");
+				BT_COMP_LOGE_STR("Error borrowing \"stream-count\" entry.");
 				ret = -1;
 				goto end;
 			}
@@ -368,7 +369,7 @@ int list_update_session(bt_value *results,
 
 			btval = bt_value_map_borrow_entry_value(map, "client-count");
 			if (!btval) {
-				BT_LOGE_STR("Error borrowing \"client-count\" entry.");
+				BT_COMP_LOGE_STR("Error borrowing \"client-count\" entry.");
 				ret = -1;
 				goto end;
 			}
@@ -410,13 +411,13 @@ int list_append_session(bt_value *results,
 
 	map = bt_value_map_create();
 	if (!map) {
-		BT_LOGE_STR("Error creating map value.");
+		BT_COMP_LOGE_STR("Error creating map value.");
 		ret = -1;
 		goto end;
 	}
 
 	if (base_url->len < 1) {
-		BT_LOGE_STR("Error: base_url length smaller than 1.");
+		BT_COMP_LOGE_STR("Error: base_url length smaller than 1.");
 		ret = -1;
 		goto end;
 	}
@@ -432,7 +433,7 @@ int list_append_session(bt_value *results,
 
 	ret_status = bt_value_map_insert_string_entry(map, "url", url->str);
 	if (ret_status != BT_VALUE_STATUS_OK) {
-		BT_LOGE_STR("Error inserting \"url\" entry.");
+		BT_COMP_LOGE_STR("Error inserting \"url\" entry.");
 		ret = -1;
 		goto end;
 	}
@@ -444,7 +445,7 @@ int list_append_session(bt_value *results,
 	ret_status = bt_value_map_insert_string_entry(map, "target-hostname",
 		session->hostname);
 	if (ret_status != BT_VALUE_STATUS_OK) {
-		BT_LOGE_STR("Error inserting \"target-hostname\" entry.");
+		BT_COMP_LOGE_STR("Error inserting \"target-hostname\" entry.");
 		ret = -1;
 		goto end;
 	}
@@ -456,7 +457,7 @@ int list_append_session(bt_value *results,
 	ret_status = bt_value_map_insert_string_entry(map, "session-name",
 		session->session_name);
 	if (ret_status != BT_VALUE_STATUS_OK) {
-		BT_LOGE_STR("Error inserting \"session-name\" entry.");
+		BT_COMP_LOGE_STR("Error inserting \"session-name\" entry.");
 		ret = -1;
 		goto end;
 	}
@@ -471,7 +472,7 @@ int list_append_session(bt_value *results,
 		ret_status = bt_value_map_insert_signed_integer_entry(
 			map, "timer-us", live_timer);
 		if (ret_status != BT_VALUE_STATUS_OK) {
-			BT_LOGE_STR("Error inserting \"timer-us\" entry.");
+			BT_COMP_LOGE_STR("Error inserting \"timer-us\" entry.");
 			ret = -1;
 			goto end;
 		}
@@ -487,7 +488,7 @@ int list_append_session(bt_value *results,
 		ret_status = bt_value_map_insert_signed_integer_entry(map,
 			"stream-count", streams);
 		if (ret_status != BT_VALUE_STATUS_OK) {
-			BT_LOGE_STR("Error inserting \"stream-count\" entry.");
+			BT_COMP_LOGE_STR("Error inserting \"stream-count\" entry.");
 			ret = -1;
 			goto end;
 		}
@@ -503,7 +504,7 @@ int list_append_session(bt_value *results,
 		ret_status = bt_value_map_insert_signed_integer_entry(map,
 			"client-count", clients);
 		if (ret_status != BT_VALUE_STATUS_OK) {
-			BT_LOGE_STR("Error inserting \"client-count\" entry.");
+			BT_COMP_LOGE_STR("Error inserting \"client-count\" entry.");
 			ret = -1;
 			goto end;
 		}
@@ -511,7 +512,7 @@ int list_append_session(bt_value *results,
 
 	ret_status = bt_value_array_append_element(results, map);
 	if (ret_status != BT_VALUE_STATUS_OK) {
-		BT_LOGE_STR("Error appending map to results.");
+		BT_COMP_LOGE_STR("Error appending map to results.");
 		ret = -1;
 	}
 
@@ -577,7 +578,7 @@ bt_query_status live_viewer_connection_list_sessions(
 
 	result = bt_value_array_create();
 	if (!result) {
-		BT_LOGE("Error creating array");
+		BT_COMP_LOGE("Error creating array");
 		status = BT_QUERY_STATUS_NOMEM;
 		goto error;
 	}
@@ -588,7 +589,7 @@ bt_query_status live_viewer_connection_list_sessions(
 
 	ret_len = lttng_live_send(viewer_connection, &cmd, sizeof(cmd));
 	if (ret_len == BT_SOCKET_ERROR) {
-		BT_LOGE("Error sending cmd: %s", bt_socket_errormsg());
+		BT_COMP_LOGE("Error sending cmd: %s", bt_socket_errormsg());
 		status = BT_QUERY_STATUS_ERROR;
 		goto error;
 	}
@@ -596,12 +597,12 @@ bt_query_status live_viewer_connection_list_sessions(
 
 	ret_len = lttng_live_recv(viewer_connection, &list, sizeof(list));
 	if (ret_len == 0) {
-		BT_LOGI("Remote side has closed connection");
+		BT_COMP_LOGI("Remote side has closed connection");
 		status = BT_QUERY_STATUS_ERROR;
 		goto error;
 	}
 	if (ret_len == BT_SOCKET_ERROR) {
-		BT_LOGE("Error receiving session list: %s", bt_socket_errormsg());
+		BT_COMP_LOGE("Error receiving session list: %s", bt_socket_errormsg());
 		status = BT_QUERY_STATUS_ERROR;
 		goto error;
 	}
@@ -614,12 +615,12 @@ bt_query_status live_viewer_connection_list_sessions(
 		ret_len = lttng_live_recv(viewer_connection, &lsession,
 			sizeof(lsession));
 		if (ret_len == 0) {
-			BT_LOGI("Remote side has closed connection");
+			BT_COMP_LOGI("Remote side has closed connection");
 			status = BT_QUERY_STATUS_ERROR;
 			goto error;
 		}
 		if (ret_len == BT_SOCKET_ERROR) {
-			BT_LOGE("Error receiving session: %s", bt_socket_errormsg());
+			BT_COMP_LOGE("Error receiving session: %s", bt_socket_errormsg());
 			status = BT_QUERY_STATUS_ERROR;
 			goto error;
 		}
@@ -659,18 +660,18 @@ int lttng_live_query_session_ids(struct lttng_live_msg_iter *lttng_live_msg_iter
 
 	ret_len = lttng_live_send(viewer_connection, &cmd, sizeof(cmd));
 	if (ret_len == BT_SOCKET_ERROR) {
-		BT_LOGE("Error sending cmd: %s", bt_socket_errormsg());
+		BT_COMP_LOGE("Error sending cmd: %s", bt_socket_errormsg());
 		goto error;
 	}
 	BT_ASSERT(ret_len == sizeof(cmd));
 
 	ret_len = lttng_live_recv(viewer_connection, &list, sizeof(list));
 	if (ret_len == 0) {
-		BT_LOGI("Remote side has closed connection");
+		BT_COMP_LOGI("Remote side has closed connection");
 		goto error;
 	}
 	if (ret_len == BT_SOCKET_ERROR) {
-		BT_LOGE("Error receiving session list: %s", bt_socket_errormsg());
+		BT_COMP_LOGE("Error receiving session list: %s", bt_socket_errormsg());
 		goto error;
 	}
 	BT_ASSERT(ret_len == sizeof(list));
@@ -680,11 +681,11 @@ int lttng_live_query_session_ids(struct lttng_live_msg_iter *lttng_live_msg_iter
 		ret_len = lttng_live_recv(viewer_connection,
 				&lsession, sizeof(lsession));
 		if (ret_len == 0) {
-			BT_LOGI("Remote side has closed connection");
+			BT_COMP_LOGI("Remote side has closed connection");
 			goto error;
 		}
 		if (ret_len == BT_SOCKET_ERROR) {
-			BT_LOGE("Error receiving session: %s", bt_socket_errormsg());
+			BT_COMP_LOGE("Error receiving session: %s", bt_socket_errormsg());
 			goto error;
 		}
 		BT_ASSERT(ret_len == sizeof(lsession));
@@ -692,7 +693,7 @@ int lttng_live_query_session_ids(struct lttng_live_msg_iter *lttng_live_msg_iter
 		lsession.session_name[LTTNG_VIEWER_NAME_MAX - 1] = '\0';
 		session_id = be64toh(lsession.id);
 
-		BT_LOGI("Adding session %" PRIu64 " hostname: %s session_name: %s",
+		BT_COMP_LOGI("Adding session %" PRIu64 " hostname: %s session_name: %s",
 			session_id, lsession.hostname, lsession.session_name);
 
 		if ((strncmp(lsession.session_name,
@@ -711,7 +712,7 @@ int lttng_live_query_session_ids(struct lttng_live_msg_iter *lttng_live_msg_iter
 	return 0;
 
 error:
-	BT_LOGE("Unable to query session ids");
+	BT_COMP_LOGE("Unable to query session ids");
 	return -1;
 }
 
@@ -731,24 +732,24 @@ int lttng_live_create_viewer_session(
 
 	ret_len = lttng_live_send(viewer_connection, &cmd, sizeof(cmd));
 	if (ret_len == BT_SOCKET_ERROR) {
-		BT_LOGE("Error sending cmd: %s", bt_socket_errormsg());
+		BT_COMP_LOGE("Error sending cmd: %s", bt_socket_errormsg());
 		goto error;
 	}
 	BT_ASSERT(ret_len == sizeof(cmd));
 
 	ret_len = lttng_live_recv(viewer_connection, &resp, sizeof(resp));
 	if (ret_len == 0) {
-		BT_LOGI("Remote side has closed connection");
+		BT_COMP_LOGI("Remote side has closed connection");
 		goto error;
 	}
 	if (ret_len == BT_SOCKET_ERROR) {
-		BT_LOGE("Error receiving create session reply: %s", bt_socket_errormsg());
+		BT_COMP_LOGE("Error receiving create session reply: %s", bt_socket_errormsg());
 		goto error;
 	}
 	BT_ASSERT(ret_len == sizeof(resp));
 
 	if (be32toh(resp.status) != LTTNG_VIEWER_CREATE_SESSION_OK) {
-		BT_LOGE("Error creating viewer session");
+		BT_COMP_LOGE("Error creating viewer session");
 		goto error;
 	}
 	if (lttng_live_query_session_ids(lttng_live_msg_iter)) {
@@ -772,7 +773,7 @@ int receive_streams(struct lttng_live_session *session,
 	struct live_viewer_connection *viewer_connection =
 			lttng_live_msg_iter->viewer_connection;
 
-	BT_LOGI("Getting %" PRIu32 " new streams:", stream_count);
+	BT_COMP_LOGI("Getting %" PRIu32 " new streams:", stream_count);
 	for (i = 0; i < stream_count; i++) {
 		struct lttng_viewer_stream stream;
 		struct lttng_live_stream_iterator *live_stream;
@@ -781,11 +782,11 @@ int receive_streams(struct lttng_live_session *session,
 
 		ret_len = lttng_live_recv(viewer_connection, &stream, sizeof(stream));
 		if (ret_len == 0) {
-			BT_LOGI("Remote side has closed connection");
+			BT_COMP_LOGI("Remote side has closed connection");
 			goto error;
 		}
 		if (ret_len == BT_SOCKET_ERROR) {
-			BT_LOGE("Error receiving stream");
+			BT_COMP_LOGE("Error receiving stream");
 			goto error;
 		}
 		BT_ASSERT(ret_len == sizeof(stream));
@@ -795,25 +796,25 @@ int receive_streams(struct lttng_live_session *session,
 		ctf_trace_id = be64toh(stream.ctf_trace_id);
 
 		if (stream.metadata_flag) {
-			BT_LOGI("    metadata stream %" PRIu64 " : %s/%s",
+			BT_COMP_LOGI("    metadata stream %" PRIu64 " : %s/%s",
 					stream_id, stream.path_name,
 					stream.channel_name);
 			if (lttng_live_metadata_create_stream(session,
 					ctf_trace_id, stream_id,
 					stream.path_name)) {
-				BT_LOGE("Error creating metadata stream");
+				BT_COMP_LOGE("Error creating metadata stream");
 
 				goto error;
 			}
 			session->lazy_stream_msg_init = true;
 		} else {
-			BT_LOGI("    stream %" PRIu64 " : %s/%s",
+			BT_COMP_LOGI("    stream %" PRIu64 " : %s/%s",
 					stream_id, stream.path_name,
 					stream.channel_name);
 			live_stream = lttng_live_stream_iterator_create(session,
 				ctf_trace_id, stream_id);
 			if (!live_stream) {
-				BT_LOGE("Error creating streamn");
+				BT_COMP_LOGE("Error creating streamn");
 				goto error;
 			}
 		}
@@ -858,18 +859,18 @@ int lttng_live_attach_session(struct lttng_live_session *session)
 	memcpy(cmd_buf + sizeof(cmd), &rq, sizeof(rq));
 	ret_len = lttng_live_send(viewer_connection, &cmd_buf, cmd_buf_len);
 	if (ret_len == BT_SOCKET_ERROR) {
-		BT_LOGE("Error sending attach request: %s", bt_socket_errormsg());
+		BT_COMP_LOGE("Error sending attach request: %s", bt_socket_errormsg());
 		goto error;
 	}
 
 	BT_ASSERT(ret_len == cmd_buf_len);
 	ret_len = lttng_live_recv(viewer_connection, &rp, sizeof(rp));
 	if (ret_len == 0) {
-		BT_LOGI("Remote side has closed connection");
+		BT_COMP_LOGI("Remote side has closed connection");
 		goto error;
 	}
 	if (ret_len == BT_SOCKET_ERROR) {
-		BT_LOGE("Error receiving attach response: %s", bt_socket_errormsg());
+		BT_COMP_LOGE("Error receiving attach response: %s", bt_socket_errormsg());
 		goto error;
 	}
 	BT_ASSERT(ret_len == sizeof(rp));
@@ -879,19 +880,19 @@ int lttng_live_attach_session(struct lttng_live_session *session)
 	case LTTNG_VIEWER_ATTACH_OK:
 		break;
 	case LTTNG_VIEWER_ATTACH_UNK:
-		BT_LOGW("Session id %" PRIu64 " is unknown", session_id);
+		BT_COMP_LOGW("Session id %" PRIu64 " is unknown", session_id);
 		goto error;
 	case LTTNG_VIEWER_ATTACH_ALREADY:
-		BT_LOGW("There is already a viewer attached to this session");
+		BT_COMP_LOGW("There is already a viewer attached to this session");
 		goto error;
 	case LTTNG_VIEWER_ATTACH_NOT_LIVE:
-		BT_LOGW("Not a live session");
+		BT_COMP_LOGW("Not a live session");
 		goto error;
 	case LTTNG_VIEWER_ATTACH_SEEK_ERR:
-		BT_LOGE("Wrong seek parameter");
+		BT_COMP_LOGE("Wrong seek parameter");
 		goto error;
 	default:
-		BT_LOGE("Unknown attach return code %u", be32toh(rp.status));
+		BT_COMP_LOGE("Unknown attach return code %u", be32toh(rp.status));
 		goto error;
 	}
 
@@ -943,18 +944,18 @@ int lttng_live_detach_session(struct lttng_live_session *session)
 	memcpy(cmd_buf + sizeof(cmd), &rq, sizeof(rq));
 	ret_len = lttng_live_send(viewer_connection, &cmd_buf, cmd_buf_len);
 	if (ret_len == BT_SOCKET_ERROR) {
-		BT_LOGE("Error sending detach request: %s", bt_socket_errormsg());
+		BT_COMP_LOGE("Error sending detach request: %s", bt_socket_errormsg());
 		goto error;
 	}
 
 	BT_ASSERT(ret_len == cmd_buf_len);
 	ret_len = lttng_live_recv(viewer_connection, &rp, sizeof(rp));
 	if (ret_len == 0) {
-		BT_LOGI("Remote side has closed connection");
+		BT_COMP_LOGI("Remote side has closed connection");
 		goto error;
 	}
 	if (ret_len == BT_SOCKET_ERROR) {
-		BT_LOGE("Error receiving detach response: %s", bt_socket_errormsg());
+		BT_COMP_LOGE("Error receiving detach response: %s", bt_socket_errormsg());
 		goto error;
 	}
 	BT_ASSERT(ret_len == sizeof(rp));
@@ -963,13 +964,13 @@ int lttng_live_detach_session(struct lttng_live_session *session)
 	case LTTNG_VIEWER_DETACH_SESSION_OK:
 		break;
 	case LTTNG_VIEWER_DETACH_SESSION_UNK:
-		BT_LOGW("Session id %" PRIu64 " is unknown", session_id);
+		BT_COMP_LOGW("Session id %" PRIu64 " is unknown", session_id);
 		goto error;
 	case LTTNG_VIEWER_DETACH_SESSION_ERR:
-		BT_LOGW("Error detaching session id %" PRIu64 "", session_id);
+		BT_COMP_LOGW("Error detaching session id %" PRIu64 "", session_id);
 		goto error;
 	default:
-		BT_LOGE("Unknown detach return code %u", be32toh(rp.status));
+		BT_COMP_LOGE("Unknown detach return code %u", be32toh(rp.status));
 		goto error;
 	}
 
@@ -1014,56 +1015,56 @@ ssize_t lttng_live_get_one_metadata_packet(struct lttng_live_trace *trace,
 	memcpy(cmd_buf + sizeof(cmd), &rq, sizeof(rq));
 	ret_len = lttng_live_send(viewer_connection, &cmd_buf, cmd_buf_len);
 	if (ret_len == BT_SOCKET_ERROR) {
-		BT_LOGE("Error sending get_metadata request: %s", bt_socket_errormsg());
+		BT_COMP_LOGE("Error sending get_metadata request: %s", bt_socket_errormsg());
 		goto error;
 	}
 
 	BT_ASSERT(ret_len == cmd_buf_len);
 	ret_len = lttng_live_recv(viewer_connection, &rp, sizeof(rp));
 	if (ret_len == 0) {
-		BT_LOGI("Remote side has closed connection");
+		BT_COMP_LOGI("Remote side has closed connection");
 		goto error;
 	}
 	if (ret_len == BT_SOCKET_ERROR) {
-		BT_LOGE("Error receiving get_metadata response: %s", bt_socket_errormsg());
+		BT_COMP_LOGE("Error receiving get_metadata response: %s", bt_socket_errormsg());
 		goto error;
 	}
 	BT_ASSERT(ret_len == sizeof(rp));
 
 	switch (be32toh(rp.status)) {
 		case LTTNG_VIEWER_METADATA_OK:
-			BT_LOGD("get_metadata : OK");
+			BT_COMP_LOGD("get_metadata : OK");
 			break;
 		case LTTNG_VIEWER_NO_NEW_METADATA:
-			BT_LOGD("get_metadata : NO NEW");
+			BT_COMP_LOGD("get_metadata : NO NEW");
 			ret = 0;
 			goto end;
 		case LTTNG_VIEWER_METADATA_ERR:
-			BT_LOGD("get_metadata : ERR");
+			BT_COMP_LOGD("get_metadata : ERR");
 			goto error;
 		default:
-			BT_LOGD("get_metadata : UNKNOWN");
+			BT_COMP_LOGD("get_metadata : UNKNOWN");
 			goto error;
 	}
 
 	len = be64toh(rp.len);
-	BT_LOGD("Writing %" PRIu64" bytes to metadata", len);
+	BT_COMP_LOGD("Writing %" PRIu64" bytes to metadata", len);
 	if (len <= 0) {
 		goto error;
 	}
 
 	data = calloc(1, len);
 	if (!data) {
-		BT_LOGE("relay data calloc: %s", strerror(errno));
+		BT_COMP_LOGE("relay data calloc: %s", strerror(errno));
 		goto error;
 	}
 	ret_len = lttng_live_recv(viewer_connection, data, len);
 	if (ret_len == 0) {
-		BT_LOGI("Remote side has closed connection");
+		BT_COMP_LOGI("Remote side has closed connection");
 		goto error_free_data;
 	}
 	if (ret_len == BT_SOCKET_ERROR) {
-		BT_LOGE("Error receiving trace packet: %s", bt_socket_errormsg());
+		BT_COMP_LOGE("Error receiving trace packet: %s", bt_socket_errormsg());
 		goto error_free_data;
 	}
 	BT_ASSERT(ret_len == len);
@@ -1072,7 +1073,7 @@ ssize_t lttng_live_get_one_metadata_packet(struct lttng_live_trace *trace,
 		ret_len = fwrite(data, 1, len, fp);
 	} while (ret_len < 0 && errno == EINTR);
 	if (ret_len < 0) {
-		BT_LOGE("Writing in the metadata fp");
+		BT_COMP_LOGE("Writing in the metadata fp");
 		goto error_free_data;
 	}
 	BT_ASSERT(ret_len == len);
@@ -1143,7 +1144,7 @@ enum lttng_live_iterator_status lttng_live_get_next_index(
 	memcpy(cmd_buf + sizeof(cmd), &rq, sizeof(rq));
 	ret_len = lttng_live_send(viewer_connection, &cmd_buf, cmd_buf_len);
 	if (ret_len == BT_SOCKET_ERROR) {
-		BT_LOGE("Error sending get_next_index request: %s",
+		BT_COMP_LOGE("Error sending get_next_index request: %s",
 				bt_socket_errormsg());
 		goto error;
 	}
@@ -1151,11 +1152,11 @@ enum lttng_live_iterator_status lttng_live_get_next_index(
 	BT_ASSERT(ret_len == cmd_buf_len);
 	ret_len = lttng_live_recv(viewer_connection, &rp, sizeof(rp));
 	if (ret_len == 0) {
-		BT_LOGI("Remote side has closed connection");
+		BT_COMP_LOGI("Remote side has closed connection");
 		goto error;
 	}
 	if (ret_len == BT_SOCKET_ERROR) {
-		BT_LOGE("Error receiving get_next_index response: %s",
+		BT_COMP_LOGE("Error receiving get_next_index response: %s",
 				bt_socket_errormsg());
 		goto error;
 	}
@@ -1169,7 +1170,7 @@ enum lttng_live_iterator_status lttng_live_get_next_index(
 	{
 		uint64_t ctf_stream_class_id;
 
-		BT_LOGD("get_next_index: inactive");
+		BT_COMP_LOGD("get_next_index: inactive");
 		memset(index, 0, sizeof(struct packet_index));
 		index->ts_cycles.timestamp_end = be64toh(rp.timestamp_end);
 		stream->current_inactivity_ts = index->ts_cycles.timestamp_end;
@@ -1187,7 +1188,7 @@ enum lttng_live_iterator_status lttng_live_get_next_index(
 	{
 		uint64_t ctf_stream_class_id;
 
-		BT_LOGD("get_next_index: OK");
+		BT_COMP_LOGD("get_next_index: OK");
 		lttng_index_to_packet_index(&rp, index);
 		ctf_stream_class_id = be64toh(rp.stream_id);
 		if (stream->ctf_stream_class_id != -1ULL) {
@@ -1200,35 +1201,35 @@ enum lttng_live_iterator_status lttng_live_get_next_index(
 		stream->state = LTTNG_LIVE_STREAM_ACTIVE_DATA;
 
 		if (flags & LTTNG_VIEWER_FLAG_NEW_METADATA) {
-			BT_LOGD("get_next_index: new metadata needed");
+			BT_COMP_LOGD("get_next_index: new metadata needed");
 			trace->new_metadata_needed = true;
 		}
 		if (flags & LTTNG_VIEWER_FLAG_NEW_STREAM) {
-			BT_LOGD("get_next_index: new streams needed");
+			BT_COMP_LOGD("get_next_index: new streams needed");
 			lttng_live_need_new_streams(lttng_live_msg_iter);
 		}
 		break;
 	}
 	case LTTNG_VIEWER_INDEX_RETRY:
-		BT_LOGD("get_next_index: retry");
+		BT_COMP_LOGD("get_next_index: retry");
 		memset(index, 0, sizeof(struct packet_index));
 		retstatus = LTTNG_LIVE_ITERATOR_STATUS_AGAIN;
 		stream->state = LTTNG_LIVE_STREAM_ACTIVE_NO_DATA;
 		goto end;
 	case LTTNG_VIEWER_INDEX_HUP:
-		BT_LOGD("get_next_index: stream hung up");
+		BT_COMP_LOGD("get_next_index: stream hung up");
 		memset(index, 0, sizeof(struct packet_index));
 		index->offset = EOF;
 		retstatus = LTTNG_LIVE_ITERATOR_STATUS_END;
 		stream->state = LTTNG_LIVE_STREAM_EOF;
 		break;
 	case LTTNG_VIEWER_INDEX_ERR:
-		BT_LOGE("get_next_index: error");
+		BT_COMP_LOGE("get_next_index: error");
 		memset(index, 0, sizeof(struct packet_index));
 		stream->state = LTTNG_LIVE_STREAM_ACTIVE_NO_DATA;
 		goto error;
 	default:
-		BT_LOGE("get_next_index: unknown value");
+		BT_COMP_LOGE("get_next_index: unknown value");
 		memset(index, 0, sizeof(struct packet_index));
 		stream->state = LTTNG_LIVE_STREAM_ACTIVE_NO_DATA;
 		goto error;
@@ -1265,7 +1266,7 @@ enum bt_msg_iter_medium_status lttng_live_get_stream_bytes(
 	struct lttng_live_component *lttng_live =
 		lttng_live_msg_iter->lttng_live_comp;
 
-	BT_LOGD("lttng_live_get_stream_bytes: offset=%" PRIu64 ", req_len=%" PRIu64,
+	BT_COMP_LOGD("lttng_live_get_stream_bytes: offset=%" PRIu64 ", req_len=%" PRIu64,
 			offset, req_len);
 	cmd.cmd = htobe32(LTTNG_VIEWER_GET_PACKET);
 	cmd.data_size = htobe64((uint64_t) sizeof(rq));
@@ -1285,22 +1286,22 @@ enum bt_msg_iter_medium_status lttng_live_get_stream_bytes(
 	memcpy(cmd_buf + sizeof(cmd), &rq, sizeof(rq));
 	ret_len = lttng_live_send(viewer_connection, &cmd_buf, cmd_buf_len);
 	if (ret_len == BT_SOCKET_ERROR) {
-		BT_LOGE("Error sending get_data request: %s", bt_socket_errormsg());
+		BT_COMP_LOGE("Error sending get_data request: %s", bt_socket_errormsg());
 		goto error;
 	}
 
 	BT_ASSERT(ret_len == cmd_buf_len);
 	ret_len = lttng_live_recv(viewer_connection, &rp, sizeof(rp));
 	if (ret_len == 0) {
-		BT_LOGI("Remote side has closed connection");
+		BT_COMP_LOGI("Remote side has closed connection");
 		goto error;
 	}
 	if (ret_len == BT_SOCKET_ERROR) {
-		BT_LOGE("Error receiving get_data response: %s", bt_socket_errormsg());
+		BT_COMP_LOGE("Error receiving get_data response: %s", bt_socket_errormsg());
 		goto error;
 	}
 	if (ret_len != sizeof(rp)) {
-		BT_LOGE("get_data_packet: expected %zu"
+		BT_COMP_LOGE("get_data_packet: expected %zu"
 				", received %zd", sizeof(rp),
 				ret_len);
 		goto error;
@@ -1312,20 +1313,20 @@ enum bt_msg_iter_medium_status lttng_live_get_stream_bytes(
 	switch (status) {
 	case LTTNG_VIEWER_GET_PACKET_OK:
 		req_len = be32toh(rp.len);
-		BT_LOGD("get_data_packet: Ok, packet size : %" PRIu64 "", req_len);
+		BT_COMP_LOGD("get_data_packet: Ok, packet size : %" PRIu64 "", req_len);
 		break;
 	case LTTNG_VIEWER_GET_PACKET_RETRY:
 		/* Unimplemented by relay daemon */
-		BT_LOGD("get_data_packet: retry");
+		BT_COMP_LOGD("get_data_packet: retry");
 		retstatus = BT_MSG_ITER_MEDIUM_STATUS_AGAIN;
 		goto end;
 	case LTTNG_VIEWER_GET_PACKET_ERR:
 		if (flags & LTTNG_VIEWER_FLAG_NEW_METADATA) {
-			BT_LOGD("get_data_packet: new metadata needed, try again later");
+			BT_COMP_LOGD("get_data_packet: new metadata needed, try again later");
 			trace->new_metadata_needed = true;
 		}
 		if (flags & LTTNG_VIEWER_FLAG_NEW_STREAM) {
-			BT_LOGD("get_data_packet: new streams needed, try again later");
+			BT_COMP_LOGD("get_data_packet: new streams needed, try again later");
 			lttng_live_need_new_streams(lttng_live_msg_iter);
 		}
 		if (flags & (LTTNG_VIEWER_FLAG_NEW_METADATA
@@ -1333,13 +1334,13 @@ enum bt_msg_iter_medium_status lttng_live_get_stream_bytes(
 			retstatus = BT_MSG_ITER_MEDIUM_STATUS_AGAIN;
 			goto end;
 		}
-		BT_LOGE("get_data_packet: error");
+		BT_COMP_LOGE("get_data_packet: error");
 		goto error;
 	case LTTNG_VIEWER_GET_PACKET_EOF:
 		retstatus = BT_MSG_ITER_MEDIUM_STATUS_EOF;
 		goto end;
 	default:
-		BT_LOGE("get_data_packet: unknown");
+		BT_COMP_LOGE("get_data_packet: unknown");
 		goto error;
 	}
 
@@ -1349,11 +1350,11 @@ enum bt_msg_iter_medium_status lttng_live_get_stream_bytes(
 
 	ret_len = lttng_live_recv(viewer_connection, buf, req_len);
 	if (ret_len == 0) {
-		BT_LOGI("Remote side has closed connection");
+		BT_COMP_LOGI("Remote side has closed connection");
 		goto error;
 	}
 	if (ret_len == BT_SOCKET_ERROR) {
-		BT_LOGE("Error receiving trace packet: %s", bt_socket_errormsg());
+		BT_COMP_LOGE("Error receiving trace packet: %s", bt_socket_errormsg());
 		goto error;
 	}
 	BT_ASSERT(ret_len == req_len);
@@ -1413,7 +1414,7 @@ enum lttng_live_iterator_status lttng_live_get_new_streams(
 	memcpy(cmd_buf + sizeof(cmd), &rq, sizeof(rq));
 	ret_len = lttng_live_send(viewer_connection, &cmd_buf, cmd_buf_len);
 	if (ret_len == BT_SOCKET_ERROR) {
-		BT_LOGE("Error sending get_new_streams request: %s",
+		BT_COMP_LOGE("Error sending get_new_streams request: %s",
 				bt_socket_errormsg());
 		goto error;
 	}
@@ -1421,11 +1422,11 @@ enum lttng_live_iterator_status lttng_live_get_new_streams(
 	BT_ASSERT(ret_len == cmd_buf_len);
 	ret_len = lttng_live_recv(viewer_connection, &rp, sizeof(rp));
 	if (ret_len == 0) {
-		BT_LOGI("Remote side has closed connection");
+		BT_COMP_LOGI("Remote side has closed connection");
 		goto error;
 	}
 	if (ret_len == BT_SOCKET_ERROR) {
-		BT_LOGE("Error receiving get_new_streams response");
+		BT_COMP_LOGE("Error receiving get_new_streams response");
 		goto error;
 	}
 	BT_ASSERT(ret_len == sizeof(rp));
@@ -1445,10 +1446,10 @@ enum lttng_live_iterator_status lttng_live_get_new_streams(
 		status = LTTNG_LIVE_ITERATOR_STATUS_END;
 		goto end;
 	case LTTNG_VIEWER_NEW_STREAMS_ERR:
-		BT_LOGE("get_new_streams error");
+		BT_COMP_LOGE("get_new_streams error");
 		goto error;
 	default:
-		BT_LOGE("Unknown return code %u", be32toh(rp.status));
+		BT_COMP_LOGE("Unknown return code %u", be32toh(rp.status));
 		goto error;
 	}
 
@@ -1481,6 +1482,7 @@ struct live_viewer_connection *live_viewer_connection_create(
 	}
 
 	viewer_connection->log_level = lttng_live_msg_iter->log_level;
+	viewer_connection->self_comp = lttng_live_msg_iter->self_comp;
 	bt_object_init_shared(&viewer_connection->obj, connection_release);
 	viewer_connection->control_sock = BT_INVALID_SOCKET;
 	viewer_connection->port = -1;
@@ -1491,15 +1493,15 @@ struct live_viewer_connection *live_viewer_connection_create(
 		goto error;
 	}
 
-	BT_LOGI("Establishing connection to url \"%s\"...", url);
+	BT_COMP_LOGI("Establishing connection to url \"%s\"...", url);
 	if (lttng_live_connect_viewer(viewer_connection)) {
 		goto error_report;
 	}
-	BT_LOGI("Connection to url \"%s\" is established", url);
+	BT_COMP_LOGI("Connection to url \"%s\" is established", url);
 	return viewer_connection;
 
 error_report:
-	BT_LOGW("Failure to establish connection to url \"%s\"", url);
+	BT_COMP_LOGW("Failure to establish connection to url \"%s\"", url);
 error:
 	g_free(viewer_connection);
 	return NULL;
@@ -1509,7 +1511,7 @@ BT_HIDDEN
 void live_viewer_connection_destroy(
 		struct live_viewer_connection *viewer_connection)
 {
-	BT_LOGI("Closing connection to url \"%s\"", viewer_connection->url->str);
+	BT_COMP_LOGI("Closing connection to url \"%s\"", viewer_connection->url->str);
 	lttng_live_disconnect_viewer(viewer_connection);
 	g_string_free(viewer_connection->url, true);
 	if (viewer_connection->relay_hostname) {
