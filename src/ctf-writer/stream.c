@@ -211,7 +211,7 @@ int set_packet_header_magic(struct bt_ctf_stream *stream)
 
 	if (!magic_field) {
 		/* No magic field found. Not an error, skip. */
-		BT_LOGV("No field named `magic` in packet header: skipping: "
+		BT_LOGT("No field named `magic` in packet header: skipping: "
 			"stream-addr=%p, stream-name=\"%s\"",
 			stream, bt_ctf_stream_get_name(stream));
 		goto end;
@@ -226,7 +226,7 @@ int set_packet_header_magic(struct bt_ctf_stream *stream)
 			stream, bt_ctf_stream_get_name(stream),
 			magic_field, (uint64_t) magic_value);
 	} else {
-		BT_LOGV("Set packet header field's `magic` field's value: "
+		BT_LOGT("Set packet header field's `magic` field's value: "
 			"stream-addr=%p, stream-name=\"%s\", field-addr=%p, value=%" PRIu64,
 			stream, bt_ctf_stream_get_name(stream),
 			magic_field, (uint64_t) magic_value);
@@ -249,7 +249,7 @@ int set_packet_header_uuid(struct bt_ctf_stream *stream)
 
 	if (!uuid_field) {
 		/* No uuid field found. Not an error, skip. */
-		BT_LOGV("No field named `uuid` in packet header: skipping: "
+		BT_LOGT("No field named `uuid` in packet header: skipping: "
 			"stream-addr=%p, stream-name=\"%s\"",
 			stream, bt_ctf_stream_get_name(stream));
 		goto end;
@@ -275,7 +275,7 @@ int set_packet_header_uuid(struct bt_ctf_stream *stream)
 		}
 	}
 
-	BT_LOGV("Set packet header field's `uuid` field's value: "
+	BT_LOGT("Set packet header field's `uuid` field's value: "
 		"stream-addr=%p, stream-name=\"%s\", field-addr=%p",
 		stream, bt_ctf_stream_get_name(stream), uuid_field);
 
@@ -295,7 +295,7 @@ int set_packet_header_stream_id(struct bt_ctf_stream *stream)
 
 	if (!stream_id_field) {
 		/* No stream_id field found. Not an error, skip. */
-		BT_LOGV("No field named `stream_id` in packet header: skipping: "
+		BT_LOGT("No field named `stream_id` in packet header: skipping: "
 			"stream-addr=%p, stream-name=\"%s\"",
 			stream, bt_ctf_stream_get_name(stream));
 		goto end;
@@ -310,7 +310,7 @@ int set_packet_header_stream_id(struct bt_ctf_stream *stream)
 			stream, bt_ctf_stream_get_name(stream),
 			stream_id_field, (uint64_t) stream_id);
 	} else {
-		BT_LOGV("Set packet header field's `stream_id` field's value: "
+		BT_LOGT("Set packet header field's `stream_id` field's value: "
 			"stream-addr=%p, stream-name=\"%s\", field-addr=%p, value=%" PRIu64,
 			stream, bt_ctf_stream_get_name(stream),
 			stream_id_field, (uint64_t) stream_id);
@@ -354,7 +354,7 @@ int auto_populate_packet_header(struct bt_ctf_stream *stream)
 		goto end;
 	}
 
-	BT_LOGV("Automatically populated stream's packet header's known fields: "
+	BT_LOGT("Automatically populated stream's packet header's known fields: "
 		"stream-addr=%p, stream-name=\"%s\"",
 		stream, bt_ctf_stream_get_name(stream));
 
@@ -377,7 +377,7 @@ int set_packet_context_packet_size(struct bt_ctf_stream *stream,
 			stream, bt_ctf_stream_get_name(stream),
 			field, packet_size_bits);
 	} else {
-		BT_LOGV("Set packet context field's `packet_size` field's value: "
+		BT_LOGT("Set packet context field's `packet_size` field's value: "
 			"stream-addr=%p, stream-name=\"%s\", field-addr=%p, value=%" PRIu64,
 			stream, bt_ctf_stream_get_name(stream),
 			field, packet_size_bits);
@@ -399,7 +399,7 @@ int set_packet_context_content_size(struct bt_ctf_stream *stream,
 
 	if (!field) {
 		/* No content size field found. Not an error, skip. */
-		BT_LOGV("No field named `content_size` in packet context: skipping: "
+		BT_LOGT("No field named `content_size` in packet context: skipping: "
 			"stream-addr=%p, stream-name=\"%s\"",
 			stream, bt_ctf_stream_get_name(stream));
 		goto end;
@@ -412,7 +412,7 @@ int set_packet_context_content_size(struct bt_ctf_stream *stream,
 			stream, bt_ctf_stream_get_name(stream),
 			field, content_size_bits);
 	} else {
-		BT_LOGV("Set packet context field's `content_size` field's value: "
+		BT_LOGT("Set packet context field's `content_size` field's value: "
 			"stream-addr=%p, stream-name=\"%s\", field-addr=%p, value=%" PRIu64,
 			stream, bt_ctf_stream_get_name(stream),
 			field, content_size_bits);
@@ -434,7 +434,7 @@ int set_packet_context_events_discarded(struct bt_ctf_stream *stream)
 
 	if (!field) {
 		/* No discarded events count field found. Not an error, skip. */
-		BT_LOGV("No field named `events_discarded` in packet context: skipping: "
+		BT_LOGT("No field named `events_discarded` in packet context: skipping: "
 			"stream-addr=%p, stream-name=\"%s\"",
 			stream, bt_ctf_stream_get_name(stream));
 		goto end;
@@ -479,7 +479,7 @@ int set_packet_context_events_discarded(struct bt_ctf_stream *stream)
 				stream, bt_ctf_stream_get_name(stream),
 				field, stream->discarded_events);
 		} else {
-			BT_LOGV("Set packet context field's `events_discarded` field's value: "
+			BT_LOGT("Set packet context field's `events_discarded` field's value: "
 				"stream-addr=%p, stream-name=\"%s\", field-addr=%p, value=%" PRIu64,
 				stream, bt_ctf_stream_get_name(stream),
 				field, stream->discarded_events);
@@ -499,7 +499,7 @@ void update_clock_value(uint64_t *val, uint64_t new_val,
 	const uint64_t mask = pow2 - 1;
 	uint64_t val_masked;
 
-#ifdef BT_LOG_ENABLED_VERBOSE
+#ifdef BT_LOG_ENABLED_TRACE
 	uint64_t old_val = *val;
 #endif
 
@@ -519,7 +519,7 @@ void update_clock_value(uint64_t *val, uint64_t new_val,
 	*val |= new_val;
 
 end:
-	BT_LOGV("Updated clock value: old-val=%" PRIu64 ", new-val=%" PRIu64,
+	BT_LOGT("Updated clock value: old-val=%" PRIu64 ", new-val=%" PRIu64,
 		old_val, *val);
 	return;
 }
@@ -936,7 +936,7 @@ int auto_populate_packet_context(struct bt_ctf_stream *stream, bool set_ts,
 		goto end;
 	}
 
-	BT_LOGV("Automatically populated stream's packet context's known fields: "
+	BT_LOGT("Automatically populated stream's packet context's known fields: "
 		"stream-addr=%p, stream-name=\"%s\"",
 		stream, bt_ctf_stream_get_name(stream));
 
@@ -1249,7 +1249,7 @@ void bt_ctf_stream_append_discarded_events(struct bt_ctf_stream *stream,
 		goto end;
 	}
 
-	BT_LOGV("Appending discarded events to stream: "
+	BT_LOGT("Appending discarded events to stream: "
 		"stream-addr=%p, stream-name=\"%s\", append-count=%" PRIu64,
 		stream, bt_ctf_stream_get_name(stream), event_count);
 
@@ -1280,7 +1280,7 @@ void bt_ctf_stream_append_discarded_events(struct bt_ctf_stream *stream,
 	}
 
 	stream->discarded_events = new_count;
-	BT_LOGV("Appended discarded events to stream: "
+	BT_LOGT("Appended discarded events to stream: "
 		"stream-addr=%p, stream-name=\"%s\", append-count=%" PRIu64,
 		stream, bt_ctf_stream_get_name(stream), event_count);
 
@@ -1311,7 +1311,7 @@ static int auto_populate_event_header(struct bt_ctf_stream *stream,
 		goto end;
 	}
 
-	BT_LOGV("Automatically populating event's header field: "
+	BT_LOGT("Automatically populating event's header field: "
 		"stream-addr=%p, stream-name=\"%s\", event-addr=%p",
 		stream, bt_ctf_stream_get_name(stream), event);
 
@@ -1367,7 +1367,7 @@ static int auto_populate_event_header(struct bt_ctf_stream *stream,
 		}
 	}
 
-	BT_LOGV("Automatically populated event's header field: "
+	BT_LOGT("Automatically populated event's header field: "
 		"stream-addr=%p, stream-name=\"%s\", event-addr=%p",
 		stream, bt_ctf_stream_get_name(stream), event);
 
@@ -1395,7 +1395,7 @@ int bt_ctf_stream_append_event(struct bt_ctf_stream *stream,
 		goto end;
 	}
 
-	BT_LOGV("Appending event to stream: "
+	BT_LOGT("Appending event to stream: "
 		"stream-addr=%p, stream-name=\"%s\", event-addr=%p, "
 		"event-class-name=\"%s\", event-class-id=%" PRId64,
 		stream, bt_ctf_stream_get_name(stream), event,
@@ -1418,7 +1418,7 @@ int bt_ctf_stream_append_event(struct bt_ctf_stream *stream,
 	}
 
 	bt_ctf_object_set_parent(&event->common.base, &stream->common.base);
-	BT_LOGV_STR("Automatically populating the header of the event to append.");
+	BT_LOGT_STR("Automatically populating the header of the event to append.");
 	ret = auto_populate_event_header(stream, event);
 	if (ret) {
 		/* auto_populate_event_header() reports errors */
@@ -1426,12 +1426,12 @@ int bt_ctf_stream_append_event(struct bt_ctf_stream *stream,
 	}
 
 	/* Make sure the various scopes of the event are set */
-	BT_LOGV_STR("Validating event to append.");
+	BT_LOGT_STR("Validating event to append.");
 	BT_CTF_ASSERT_PRE(bt_ctf_event_common_validate(BT_CTF_TO_COMMON(event)) == 0,
 		"Invalid event: event-addr=%p", event);
 
 	/* Save the new event and freeze it */
-	BT_LOGV_STR("Freezing the event to append.");
+	BT_LOGT_STR("Freezing the event to append.");
 	bt_ctf_event_common_set_is_frozen(BT_CTF_TO_COMMON(event), true);
 	g_ptr_array_add(stream->events, event);
 
@@ -1441,9 +1441,9 @@ int bt_ctf_stream_append_event(struct bt_ctf_stream *stream,
 	 * class share the same lifetime guarantees and the reference is no
 	 * longer needed.
 	 */
-	BT_LOGV_STR("Putting the event's class.");
+	BT_LOGT_STR("Putting the event's class.");
 	bt_ctf_object_put_ref(event->common.class);
-	BT_LOGV("Appended event to stream: "
+	BT_LOGT("Appended event to stream: "
 		"stream-addr=%p, stream-name=\"%s\", event-addr=%p, "
 		"event-class-name=\"%s\", event-class-id=%" PRId64,
 		stream, bt_ctf_stream_get_name(stream), event,
@@ -1509,7 +1509,7 @@ int bt_ctf_stream_set_packet_context(struct bt_ctf_stream *stream,
 	bt_ctf_object_put_ref(field_type);
 	bt_ctf_object_put_ref(stream->packet_context);
 	stream->packet_context = bt_ctf_object_get_ref(field);
-	BT_LOGV("Set stream's packet context field: "
+	BT_LOGT("Set stream's packet context field: "
 		"stream-addr=%p, stream-name=\"%s\", "
 		"packet-context-field-addr=%p",
 		stream, bt_ctf_stream_get_name(stream), field);
@@ -1583,7 +1583,7 @@ int bt_ctf_stream_set_packet_header(struct bt_ctf_stream *stream,
 skip_validation:
 	bt_ctf_object_put_ref(stream->packet_header);
 	stream->packet_header = bt_ctf_object_get_ref(field);
-	BT_LOGV("Set stream's packet header field: "
+	BT_LOGT("Set stream's packet header field: "
 		"stream-addr=%p, stream-name=\"%s\", "
 		"packet-header-field-addr=%p",
 		stream, bt_ctf_stream_get_name(stream), field);
@@ -1645,7 +1645,7 @@ int bt_ctf_stream_flush(struct bt_ctf_stream *stream)
 		}
 	}
 
-	BT_LOGV("Flushing stream's current packet: stream-addr=%p, "
+	BT_LOGT("Flushing stream's current packet: stream-addr=%p, "
 		"stream-name=\"%s\", packet-index=%u", stream,
 		bt_ctf_stream_get_name(stream), stream->flushed_packet_count);
 	trace = BT_CTF_FROM_COMMON(bt_ctf_stream_class_common_borrow_trace(
@@ -1676,7 +1676,7 @@ int bt_ctf_stream_flush(struct bt_ctf_stream *stream)
 	}
 
 	if (stream->packet_header) {
-		BT_LOGV_STR("Serializing packet header field (initial).");
+		BT_LOGT_STR("Serializing packet header field (initial).");
 		ret = bt_ctf_field_serialize_recursive(stream->packet_header,
 			&stream->ctfser, native_byte_order);
 		if (ret) {
@@ -1693,7 +1693,7 @@ int bt_ctf_stream_flush(struct bt_ctf_stream *stream)
 				&stream->ctfser);
 
 		/* Write packet context */
-		BT_LOGV_STR("Serializing packet context field (initial).");
+		BT_LOGT_STR("Serializing packet context field (initial).");
 		ret = bt_ctf_field_serialize_recursive(stream->packet_context,
 			&stream->ctfser, native_byte_order);
 		if (ret) {
@@ -1703,7 +1703,7 @@ int bt_ctf_stream_flush(struct bt_ctf_stream *stream)
 		}
 	}
 
-	BT_LOGV("Serializing events: count=%u", stream->events->len);
+	BT_LOGT("Serializing events: count=%u", stream->events->len);
 
 	for (i = 0; i < stream->events->len; i++) {
 		struct bt_ctf_event *event = g_ptr_array_index(
@@ -1712,7 +1712,7 @@ int bt_ctf_stream_flush(struct bt_ctf_stream *stream)
 			BT_CTF_FROM_COMMON(bt_ctf_event_common_borrow_class(
 				BT_CTF_TO_COMMON(event)));
 
-		BT_LOGV("Serializing event: index=%zu, event-addr=%p, "
+		BT_LOGT("Serializing event: index=%zu, event-addr=%p, "
 			"event-class-name=\"%s\", event-class-id=%" PRId64 ", "
 			"ser-offset=%" PRIu64,
 			i, event, bt_ctf_event_class_get_name(event_class),
@@ -1722,7 +1722,7 @@ int bt_ctf_stream_flush(struct bt_ctf_stream *stream)
 
 		/* Write event header */
 		if (event->common.header_field) {
-			BT_LOGV_STR("Serializing event's header field.");
+			BT_LOGT_STR("Serializing event's header field.");
 			ret = bt_ctf_field_serialize_recursive(
 				(void *) event->common.header_field->field,
 				&stream->ctfser, native_byte_order);
@@ -1736,7 +1736,7 @@ int bt_ctf_stream_flush(struct bt_ctf_stream *stream)
 
 		/* Write stream event context */
 		if (event->common.stream_event_context_field) {
-			BT_LOGV_STR("Serializing event's stream event context field.");
+			BT_LOGT_STR("Serializing event's stream event context field.");
 			ret = bt_ctf_field_serialize_recursive(
 				(void *) event->common.stream_event_context_field,
 				&stream->ctfser, native_byte_order);
@@ -1813,7 +1813,7 @@ int bt_ctf_stream_flush(struct bt_ctf_stream *stream)
 			goto end;
 		}
 
-		BT_LOGV("Rewriting (serializing) packet context field.");
+		BT_LOGT("Rewriting (serializing) packet context field.");
 		ret = bt_ctf_field_serialize_recursive(stream->packet_context,
 			&stream->ctfser, native_byte_order);
 		if (ret) {
@@ -1838,7 +1838,7 @@ end:
 	}
 
 	if (ret == 0) {
-		BT_LOGV("Flushed stream's current packet: "
+		BT_LOGT("Flushed stream's current packet: "
 			"content-size=%" PRIu64 ", packet-size=%" PRIu64,
 			content_size_bits, packet_size_bits);
 	}
@@ -1884,7 +1884,7 @@ int _set_structure_field_integer(struct bt_ctf_field *structure, char *name,
 	integer = bt_ctf_field_structure_get_field_by_name(structure, name);
 	if (!integer) {
 		/* Field not found, not an error. */
-		BT_LOGV("Field not found: struct-field-addr=%p, "
+		BT_LOGT("Field not found: struct-field-addr=%p, "
 			"name=\"%s\", force=%d", structure, name, force);
 		goto end;
 	}
@@ -1892,7 +1892,7 @@ int _set_structure_field_integer(struct bt_ctf_field *structure, char *name,
 	/* Make sure the payload has not already been set. */
 	if (!force && bt_ctf_field_is_set_recursive(integer)) {
 		/* Payload already set, not an error */
-		BT_LOGV("Field's payload is already set: struct-field-addr=%p, "
+		BT_LOGT("Field's payload is already set: struct-field-addr=%p, "
 			"name=\"%s\", force=%d", structure, name, force);
 		goto end;
 	}

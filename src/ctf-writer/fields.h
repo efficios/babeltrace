@@ -443,7 +443,7 @@ struct bt_ctf_field_common *bt_ctf_field_common_structure_borrow_field_by_name(
 	if (!g_hash_table_lookup_extended(field_name_to_index,
 			GUINT_TO_POINTER(field_quark),
 			NULL, (gpointer *) &index)) {
-		BT_LOGV("Invalid parameter: no such field in structure field's type: "
+		BT_LOGT("Invalid parameter: no such field in structure field's type: "
 			"struct-field-addr=%p, struct-ft-addr=%p, name=\"%s\"",
 			field, field->type, name);
 		goto error;

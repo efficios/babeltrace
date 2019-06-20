@@ -353,7 +353,7 @@ int bt_ctf_event_class_add_field(struct bt_ctf_event_class *event_class,
 	ret = bt_ctf_field_type_structure_add_field(
 		(void *) event_class->common.payload_field_type,
 		(void *) type, name);
-	BT_LOGV("Added field to event class's payload field type: "
+	BT_LOGT("Added field to event class's payload field type: "
 		"event-class-addr=%p, event-class-name=\"%s\", "
 		"event-class-id=%" PRId64 ", field-name=\"%s\", ft-addr=%p",
 		event_class, bt_ctf_event_class_get_name(event_class),
@@ -374,7 +374,7 @@ int64_t bt_ctf_event_class_get_payload_type_field_count(
 	}
 
 	if (!event_class->common.payload_field_type) {
-		BT_LOGV("Event class has no payload field type: "
+		BT_LOGT("Event class has no payload field type: "
 			"addr=%p, name=\"%s\", id=%" PRId64,
 			event_class, bt_ctf_event_class_get_name(event_class),
 			bt_ctf_event_class_get_id(event_class));
@@ -405,7 +405,7 @@ int bt_ctf_event_class_get_payload_type_field_by_index(
 	}
 
 	if (!event_class->common.payload_field_type) {
-		BT_LOGV("Event class has no payload field type: "
+		BT_LOGT("Event class has no payload field type: "
 			"addr=%p, name=\"%s\", id=%" PRId64 ", index=%" PRIu64,
 			event_class, bt_ctf_event_class_get_name(event_class),
 			bt_ctf_event_class_get_id(event_class), index);
@@ -439,7 +439,7 @@ bt_ctf_event_class_get_payload_type_field_type_by_name(
 	}
 
 	if (!event_class->common.payload_field_type) {
-		BT_LOGV("Event class has no payload field type: "
+		BT_LOGT("Event class has no payload field type: "
 			"addr=%p, name=\"%s\", id=%" PRId64,
 			event_class, bt_ctf_event_class_get_name(event_class),
 			bt_ctf_event_class_get_id(event_class));
@@ -559,7 +559,7 @@ struct bt_ctf_field_type *bt_ctf_event_class_get_field_by_name(
 	}
 
 	if (!event_class->common.payload_field_type) {
-		BT_LOGV("Event class has no payload field type: "
+		BT_LOGT("Event class has no payload field type: "
 			"addr=%p, name=\"%s\", id=%" PRId64,
 			event_class,
 			bt_ctf_event_class_get_name(event_class),

@@ -333,7 +333,7 @@ bt_bool bt_ctf_value_bool_compare(const struct bt_ctf_value *object_a,
 {
 	if (BT_CTF_VALUE_TO_BOOL(object_a)->value !=
 			BT_CTF_VALUE_TO_BOOL(object_b)->value) {
-		BT_LOGV("Boolean value objects are different: "
+		BT_LOGT("Boolean value objects are different: "
 			"bool-a-val=%d, bool-b-val=%d",
 			BT_CTF_VALUE_TO_BOOL(object_a)->value,
 			BT_CTF_VALUE_TO_BOOL(object_b)->value);
@@ -349,7 +349,7 @@ bt_bool bt_ctf_value_integer_compare(const struct bt_ctf_value *object_a,
 {
 	if (BT_CTF_VALUE_TO_INTEGER(object_a)->value !=
 			BT_CTF_VALUE_TO_INTEGER(object_b)->value) {
-		BT_LOGV("Integer value objects are different: "
+		BT_LOGT("Integer value objects are different: "
 			"int-a-val=%" PRId64 ", int-b-val=%" PRId64,
 			BT_CTF_VALUE_TO_INTEGER(object_a)->value,
 			BT_CTF_VALUE_TO_INTEGER(object_b)->value);
@@ -365,7 +365,7 @@ bt_bool bt_ctf_value_real_compare(const struct bt_ctf_value *object_a,
 {
 	if (BT_CTF_VALUE_TO_REAL(object_a)->value !=
 			BT_CTF_VALUE_TO_REAL(object_b)->value) {
-		BT_LOGV("Real number value objects are different: "
+		BT_LOGT("Real number value objects are different: "
 			"real-a-val=%f, real-b-val=%f",
 			BT_CTF_VALUE_TO_REAL(object_a)->value,
 			BT_CTF_VALUE_TO_REAL(object_b)->value);
@@ -381,7 +381,7 @@ bt_bool bt_ctf_value_string_compare(const struct bt_ctf_value *object_a,
 {
 	if (strcmp(BT_CTF_VALUE_TO_STRING(object_a)->gstr->str,
 			BT_CTF_VALUE_TO_STRING(object_b)->gstr->str) != 0) {
-		BT_LOGV("String value objects are different: "
+		BT_LOGT("String value objects are different: "
 			"string-a-val=\"%s\", string-b-val=\"%s\"",
 			BT_CTF_VALUE_TO_STRING(object_a)->gstr->str,
 			BT_CTF_VALUE_TO_STRING(object_b)->gstr->str);
@@ -402,7 +402,7 @@ bt_bool bt_ctf_value_array_compare(const struct bt_ctf_value *object_a,
 
 	if (bt_ctf_value_array_get_size(object_a) !=
 			bt_ctf_value_array_get_size(object_b)) {
-		BT_LOGV("Array values are different: size mismatch "
+		BT_LOGT("Array values are different: size mismatch "
 			"value-a-addr=%p, value-b-addr=%p, "
 			"value-a-size=%" PRId64 ", value-b-size=%" PRId64,
 			object_a, object_b,
@@ -422,7 +422,7 @@ bt_bool bt_ctf_value_array_compare(const struct bt_ctf_value *object_a,
 			object_b, i);
 
 		if (!bt_ctf_value_compare(element_obj_a, element_obj_b)) {
-			BT_LOGV("Array values's elements are different: "
+			BT_LOGT("Array values's elements are different: "
 				"value-a-addr=%p, value-b-addr=%p, index=%d",
 				element_obj_a, element_obj_b, i);
 			ret = BT_FALSE;
@@ -445,7 +445,7 @@ bt_bool bt_ctf_value_map_compare(const struct bt_ctf_value *object_a,
 
 	if (bt_ctf_value_map_get_size(object_a) !=
 			bt_ctf_value_map_get_size(object_b)) {
-		BT_LOGV("Map values are different: size mismatch "
+		BT_LOGT("Map values are different: size mismatch "
 			"value-a-addr=%p, value-b-addr=%p, "
 			"value-a-size=%" PRId64 ", value-b-size=%" PRId64,
 			object_a, object_b,
@@ -465,7 +465,7 @@ bt_bool bt_ctf_value_map_compare(const struct bt_ctf_value *object_a,
 			key_str);
 
 		if (!bt_ctf_value_compare(element_obj_a, element_obj_b)) {
-			BT_LOGV("Map values's elements are different: "
+			BT_LOGT("Map values's elements are different: "
 				"value-a-addr=%p, value-b-addr=%p, key=\"%s\"",
 				element_obj_a, element_obj_b, key_str);
 			ret = BT_FALSE;
@@ -789,7 +789,7 @@ void bt_ctf_private_value_bool_set(struct bt_ctf_private_value *bool_obj, bt_boo
 	BT_CTF_ASSERT_PRE_VALUE_IS_TYPE(bool_obj, BT_CTF_VALUE_TYPE_BOOL);
 	BT_CTF_ASSERT_PRE_VALUE_HOT(bool_obj, "Value object");
 	BT_CTF_VALUE_TO_BOOL(bool_obj)->value = val;
-	BT_LOGV("Set boolean value's raw value: value-addr=%p, value=%d",
+	BT_LOGT("Set boolean value's raw value: value-addr=%p, value=%d",
 		bool_obj, val);
 }
 
@@ -809,7 +809,7 @@ void bt_ctf_private_value_integer_set(struct bt_ctf_private_value *integer_obj,
 	BT_CTF_ASSERT_PRE_VALUE_IS_TYPE(integer_obj, BT_CTF_VALUE_TYPE_INTEGER);
 	BT_CTF_ASSERT_PRE_VALUE_HOT(integer_obj, "Value object");
 	BT_CTF_VALUE_TO_INTEGER(integer_obj)->value = val;
-	BT_LOGV("Set integer value's raw value: value-addr=%p, value=%" PRId64,
+	BT_LOGT("Set integer value's raw value: value-addr=%p, value=%" PRId64,
 		integer_obj, val);
 }
 
@@ -828,7 +828,7 @@ void bt_ctf_private_value_real_set(struct bt_ctf_private_value *real_obj, double
 	BT_CTF_ASSERT_PRE_VALUE_IS_TYPE(real_obj, BT_CTF_VALUE_TYPE_REAL);
 	BT_CTF_ASSERT_PRE_VALUE_HOT(real_obj, "Value object");
 	BT_CTF_VALUE_TO_REAL(real_obj)->value = val;
-	BT_LOGV("Set real number value's raw value: value-addr=%p, value=%f",
+	BT_LOGT("Set real number value's raw value: value-addr=%p, value=%f",
 		real_obj, val);
 }
 
@@ -848,7 +848,7 @@ enum bt_ctf_value_status bt_ctf_private_value_string_set(
 	BT_CTF_ASSERT_PRE_VALUE_IS_TYPE(string_obj, BT_CTF_VALUE_TYPE_STRING);
 	BT_CTF_ASSERT_PRE_VALUE_HOT(string_obj, "Value object");
 	g_string_assign(BT_CTF_VALUE_TO_STRING(string_obj)->gstr, val);
-	BT_LOGV("Set string value's raw value: value-addr=%p, raw-value-addr=%p",
+	BT_LOGT("Set string value's raw value: value-addr=%p, raw-value-addr=%p",
 		string_obj, val);
 	return BT_CTF_VALUE_STATUS_OK;
 }
@@ -899,7 +899,7 @@ enum bt_ctf_value_status bt_ctf_private_value_array_append_element(
 	BT_CTF_ASSERT_PRE_VALUE_HOT(array_obj, "Array value object");
 	g_ptr_array_add(typed_array_obj->garray, element_obj);
 	bt_ctf_object_get_ref(element_obj);
-	BT_LOGV("Appended element to array value: array-value-addr=%p, "
+	BT_LOGT("Appended element to array value: array-value-addr=%p, "
 		"element-value-addr=%p, new-size=%u",
 		array_obj, element_obj, typed_array_obj->garray->len);
 	return BT_CTF_VALUE_STATUS_OK;
@@ -1006,7 +1006,7 @@ enum bt_ctf_value_status bt_ctf_private_value_array_set_element_by_index(
 	bt_ctf_object_put_ref(g_ptr_array_index(typed_array_obj->garray, index));
 	g_ptr_array_index(typed_array_obj->garray, index) = element_obj;
 	bt_ctf_object_get_ref(element_obj);
-	BT_LOGV("Set array value's element: array-value-addr=%p, "
+	BT_LOGT("Set array value's element: array-value-addr=%p, "
 		"index=%" PRIu64 ", element-value-addr=%p",
 		array_obj, index, element_obj);
 	return BT_CTF_VALUE_STATUS_OK;
@@ -1061,7 +1061,7 @@ enum bt_ctf_value_status bt_ctf_private_value_map_insert_entry(
 	g_hash_table_insert(BT_CTF_VALUE_TO_MAP(map_obj)->ght,
 		GUINT_TO_POINTER(g_quark_from_string(key)), element_obj);
 	bt_ctf_object_get_ref(element_obj);
-	BT_LOGV("Inserted value into map value: map-value-addr=%p, "
+	BT_LOGT("Inserted value into map value: map-value-addr=%p, "
 		"key=\"%s\", element-value-addr=%p",
 		map_obj, key, element_obj);
 	return BT_CTF_VALUE_STATUS_OK;
@@ -1170,7 +1170,7 @@ enum bt_ctf_value_status bt_ctf_value_map_foreach_entry(const struct bt_ctf_valu
 		const char *key_str = g_quark_to_string(GPOINTER_TO_UINT(key));
 
 		if (!cb(key_str, element_obj, data)) {
-			BT_LOGV("User canceled the loop: key=\"%s\", "
+			BT_LOGT("User canceled the loop: key=\"%s\", "
 				"value-addr=%p, data=%p",
 				key_str, element_obj, data);
 			ret = BT_CTF_VALUE_STATUS_CANCELED;
@@ -1331,7 +1331,7 @@ bt_bool bt_ctf_value_compare(const struct bt_ctf_value *object_a,
 	BT_CTF_ASSERT_PRE_NON_NULL(object_b, "Value object B");
 
 	if (object_a->type != object_b->type) {
-		BT_LOGV("Values are different: type mismatch: "
+		BT_LOGT("Values are different: type mismatch: "
 			"value-a-addr=%p, value-b-addr=%p, "
 			"value-a-type=%d, value-b-type=%d",
 			object_a, object_b, object_a->type, object_b->type);

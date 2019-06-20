@@ -886,7 +886,7 @@ int bt_ctf_field_integer_serialize(struct bt_ctf_field_common *field,
 	enum bt_ctf_byte_order byte_order;
 
 	BT_CTF_ASSERT_PRE_CTF_FIELD_COMMON_IS_SET(field, "Integer field");
-	BT_LOGV("Serializing CTF writer integer field: addr=%p, native-bo=%s",
+	BT_LOGT("Serializing CTF writer integer field: addr=%p, native-bo=%s",
 		field,
 		bt_ctf_byte_order_string(native_byte_order));
 	byte_order = int_type->user_byte_order;
@@ -924,9 +924,9 @@ int bt_ctf_field_enumeration_serialize_recursive(
 {
 	struct bt_ctf_field_enumeration *enumeration = (void *) field;
 
-	BT_LOGV("Serializing enumeration field: addr=%p, native-bo=%s",
+	BT_LOGT("Serializing enumeration field: addr=%p, native-bo=%s",
 		field, bt_ctf_byte_order_string(native_byte_order));
-	BT_LOGV_STR("Serializing enumeration field's payload field.");
+	BT_LOGT_STR("Serializing enumeration field's payload field.");
 	return bt_ctf_field_serialize_recursive(
 		(void *) enumeration->container, ctfser, native_byte_order);
 }
@@ -943,7 +943,7 @@ int bt_ctf_field_floating_point_serialize(struct bt_ctf_field_common *field,
 	enum bt_ctf_byte_order byte_order;
 
 	BT_CTF_ASSERT_PRE_CTF_FIELD_COMMON_IS_SET(field, "Floating point number field");
-	BT_LOGV("Serializing floating point number field: "
+	BT_LOGT("Serializing floating point number field: "
 		"addr=%p, native-bo=%s", field,
 		bt_ctf_byte_order_string(native_byte_order));
 
@@ -985,7 +985,7 @@ int bt_ctf_field_structure_serialize_recursive(struct bt_ctf_field_common *field
 	int ret;
 	struct bt_ctf_field_common_structure *structure = BT_CTF_FROM_COMMON(field);
 
-	BT_LOGV("Serializing structure field: addr=%p, native-bo=%s",
+	BT_LOGT("Serializing structure field: addr=%p, native-bo=%s",
 		field, bt_ctf_byte_order_string(native_byte_order));
 	ret = bt_ctfser_align_offset_in_current_packet(ctfser,
 		field->type->alignment);
@@ -1000,7 +1000,7 @@ int bt_ctf_field_structure_serialize_recursive(struct bt_ctf_field_common *field
 			structure->fields, i);
 		const char *field_name = NULL;
 
-		BT_LOGV("Serializing structure field's field: ser-offset=%" PRIu64 ", "
+		BT_LOGT("Serializing structure field's field: ser-offset=%" PRIu64 ", "
 			"field-addr=%p, index=%" PRIu64,
 			bt_ctfser_get_offset_in_current_packet_bits(ctfser),
 			member, i);
@@ -1042,9 +1042,9 @@ int bt_ctf_field_variant_serialize_recursive(struct bt_ctf_field_common *field,
 {
 	struct bt_ctf_field_common_variant *variant = BT_CTF_FROM_COMMON(field);
 
-	BT_LOGV("Serializing variant field: addr=%p, native-bo=%s",
+	BT_LOGT("Serializing variant field: addr=%p, native-bo=%s",
 		field, bt_ctf_byte_order_string(native_byte_order));
-	BT_LOGV_STR("Serializing variant field's payload field.");
+	BT_LOGT_STR("Serializing variant field's payload field.");
 	return bt_ctf_field_serialize_recursive(
 		(void *) variant->current_field, ctfser, native_byte_order);
 }
@@ -1058,14 +1058,14 @@ int bt_ctf_field_array_serialize_recursive(struct bt_ctf_field_common *field,
 	int ret = 0;
 	struct bt_ctf_field_common_array *array = BT_CTF_FROM_COMMON(field);
 
-	BT_LOGV("Serializing array field: addr=%p, native-bo=%s",
+	BT_LOGT("Serializing array field: addr=%p, native-bo=%s",
 		field, bt_ctf_byte_order_string(native_byte_order));
 
 	for (i = 0; i < array->elements->len; i++) {
 		struct bt_ctf_field_common *elem_field =
 			g_ptr_array_index(array->elements, i);
 
-		BT_LOGV("Serializing array field's element field: "
+		BT_LOGT("Serializing array field's element field: "
 			"ser-offset=%" PRIu64 ", field-addr=%p, index=%" PRId64,
 			bt_ctfser_get_offset_in_current_packet_bits(ctfser),
 			elem_field, i);
@@ -1092,14 +1092,14 @@ int bt_ctf_field_sequence_serialize_recursive(struct bt_ctf_field_common *field,
 	int ret = 0;
 	struct bt_ctf_field_common_sequence *sequence = BT_CTF_FROM_COMMON(field);
 
-	BT_LOGV("Serializing sequence field: addr=%p, native-bo=%s",
+	BT_LOGT("Serializing sequence field: addr=%p, native-bo=%s",
 		field, bt_ctf_byte_order_string(native_byte_order));
 
 	for (i = 0; i < sequence->elements->len; i++) {
 		struct bt_ctf_field_common *elem_field =
 			g_ptr_array_index(sequence->elements, i);
 
-		BT_LOGV("Serializing sequence field's element field: "
+		BT_LOGT("Serializing sequence field's element field: "
 			"ser-offset=%" PRIu64 ", field-addr=%p, index=%" PRId64,
 			bt_ctfser_get_offset_in_current_packet_bits(ctfser),
 			elem_field, i);
@@ -1126,7 +1126,7 @@ int bt_ctf_field_string_serialize(struct bt_ctf_field_common *field,
 	struct bt_ctf_field_common_string *string = BT_CTF_FROM_COMMON(field);
 
 	BT_CTF_ASSERT_PRE_CTF_FIELD_COMMON_IS_SET(field, "String field");
-	BT_LOGV("Serializing string field: addr=%p, native-bo=%s",
+	BT_LOGT("Serializing string field: addr=%p, native-bo=%s",
 		field, bt_ctf_byte_order_string((int) native_byte_order));
 	ret = bt_ctfser_write_string(ctfser, (const char *) string->buf->data);
 	if (G_UNLIKELY(ret)) {
@@ -1847,7 +1847,7 @@ int bt_ctf_field_structure_set_field_by_name(struct bt_ctf_field *field,
 	if (!g_hash_table_lookup_extended(field_name_to_index,
 			GUINT_TO_POINTER(field_quark), NULL,
 			(gpointer *) &index)) {
-		BT_LOGV("Invalid parameter: no such field in structure field's type: "
+		BT_LOGT("Invalid parameter: no such field in structure field's type: "
 			"struct-field-addr=%p, struct-ft-addr=%p, "
 			"field-ft-addr=%p, name=\"%s\"",
 			field, common_field->type, common_value->type, name);

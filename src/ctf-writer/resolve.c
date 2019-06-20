@@ -166,7 +166,7 @@ int type_stack_push(type_stack *stack, struct bt_ctf_field_type_common *type)
 		goto end;
 	}
 
-	BT_LOGV("Pushing field type on context's stack: "
+	BT_LOGT("Pushing field type on context's stack: "
 		"ft-addr=%p, stack-size-before=%u", type, stack->len);
 	frame->type = bt_ctf_object_get_ref(type);
 	g_ptr_array_add(stack, frame);
@@ -244,7 +244,7 @@ void type_stack_pop(type_stack *stack)
 		 * This will call the frame's destructor and free it, as
 		 * well as put its contained field type.
 		 */
-		BT_LOGV("Popping context's stack: stack-size-before=%u",
+		BT_LOGT("Popping context's stack: stack-size-before=%u",
 			stack->len);
 		g_ptr_array_set_size(stack, stack->len - 1);
 	}
@@ -288,7 +288,7 @@ enum bt_ctf_scope get_root_scope_from_absolute_pathstr(const char *pathstr)
 		if (strncmp(pathstr, absolute_path_prefixes[scope],
 				strlen(absolute_path_prefixes[scope]))) {
 			/* Prefix does not match: try the next one */
-			BT_LOGV("Prefix does not match: trying the next one: "
+			BT_LOGT("Prefix does not match: trying the next one: "
 				"path=\"%s\", path-prefix=\"%s\", scope=%s",
 				pathstr, absolute_path_prefixes[scope],
 				bt_ctf_scope_string(scope));
@@ -297,7 +297,7 @@ enum bt_ctf_scope get_root_scope_from_absolute_pathstr(const char *pathstr)
 
 		/* Found it! */
 		ret = scope;
-		BT_LOGV("Found root scope from absolute path: "
+		BT_LOGT("Found root scope from absolute path: "
 			"path=\"%s\", scope=%s", pathstr,
 			bt_ctf_scope_string(scope));
 		goto end;
@@ -415,7 +415,7 @@ int ptokens_to_field_path(GList *ptokens, struct bt_ctf_field_path *field_path,
 		enum bt_ctf_field_type_id type_id =
 			bt_ctf_field_type_common_get_type_id(type);
 
-		BT_LOGV("Current path token: token=\"%s\"", field_name);
+		BT_LOGT("Current path token: token=\"%s\"", field_name);
 
 		/* Find to which index corresponds the current path token */
 		if (type_id == BT_CTF_FIELD_TYPE_ID_ARRAY ||
@@ -541,7 +541,7 @@ int relative_ptokens_to_field_path(GList *ptokens,
 		int cur_index = type_stack_at(ctx->type_stack,
 			parent_pos_in_stack)->index;
 
-		BT_LOGV("Locating target field type from current parent field type: "
+		BT_LOGT("Locating target field type from current parent field type: "
 			"parent-pos=%d, parent-ft-addr=%p, cur-index=%d",
 			parent_pos_in_stack, parent_type, cur_index);
 
@@ -550,7 +550,7 @@ int relative_ptokens_to_field_path(GList *ptokens,
 			parent_type, cur_index);
 		if (ret) {
 			/* Not found... yet */
-			BT_LOGV_STR("Not found at this point.");
+			BT_LOGT_STR("Not found at this point.");
 			bt_ctf_field_path_clear(tail_field_path);
 		} else {
 			/* Found: stitch tail field path to head field path */
@@ -595,7 +595,7 @@ int relative_ptokens_to_field_path(GList *ptokens,
 			struct bt_ctf_field_type_common *root_type;
 			bt_ctf_field_path_clear(field_path);
 
-			BT_LOGV("Looking into potential root scope: scope=%s",
+			BT_LOGT("Looking into potential root scope: scope=%s",
 				bt_ctf_scope_string(field_path->root));
 			root_type = get_type_from_ctx(ctx, field_path->root);
 			if (!root_type) {
@@ -608,13 +608,13 @@ int relative_ptokens_to_field_path(GList *ptokens,
 				root_type, INT_MAX);
 			if (ret) {
 				/* Not found yet */
-				BT_LOGV_STR("Not found in this scope.");
+				BT_LOGT_STR("Not found in this scope.");
 				field_path->root--;
 				continue;
 			}
 
 			/* Found */
-			BT_LOGV_STR("Found in this scope.");
+			BT_LOGT_STR("Found in this scope.");
 			break;
 		}
 	}
@@ -662,7 +662,7 @@ struct bt_ctf_field_path *pathstr_to_field_path(const char *pathstr,
 	if (root_scope == BT_CTF_SCOPE_UNKNOWN) {
 		/* Relative path: start with current root scope */
 		field_path->root = ctx->root_scope;
-		BT_LOGV("Detected relative path: starting with current root scope: "
+		BT_LOGT("Detected relative path: starting with current root scope: "
 			"scope=%s", bt_ctf_scope_string(field_path->root));
 		ret = relative_ptokens_to_field_path(ptokens, field_path, ctx);
 		if (ret) {
@@ -680,7 +680,7 @@ struct bt_ctf_field_path *pathstr_to_field_path(const char *pathstr,
 	} else {
 		/* Absolute path: use found root scope */
 		field_path->root = root_scope;
-		BT_LOGV("Detected absolute path: using root scope: "
+		BT_LOGT("Detected absolute path: using root scope: "
 			"scope=%s", bt_ctf_scope_string(field_path->root));
 		ret = absolute_ptokens_to_field_path(ptokens, field_path, ctx);
 		if (ret) {
@@ -697,7 +697,7 @@ struct bt_ctf_field_path *pathstr_to_field_path(const char *pathstr,
 		const char *field_path_pretty_str =
 			field_path_pretty ? field_path_pretty->str : NULL;
 
-		BT_LOGV("Found field path: path=\"%s\", field-path=\"%s\"",
+		BT_LOGT("Found field path: path=\"%s\", field-path=\"%s\"",
 			pathstr, field_path_pretty_str);
 
 		if (field_path_pretty) {
@@ -812,7 +812,7 @@ int get_field_paths_lca_index(struct bt_ctf_field_path *field_path1,
 	int lca_index = 0;
 	int field_path1_len, field_path2_len;
 
-	if (BT_LOG_ON_VERBOSE) {
+	if (BT_LOG_ON_TRACE) {
 		GString *field_path1_pretty =
 			bt_ctf_field_path_string(field_path1);
 		GString *field_path2_pretty =
@@ -822,7 +822,7 @@ int get_field_paths_lca_index(struct bt_ctf_field_path *field_path1,
 		const char *field_path2_pretty_str =
 			field_path2_pretty ? field_path2_pretty->str : NULL;
 
-		BT_LOGV("Finding lowest common ancestor (LCA) between two field paths: "
+		BT_LOGT("Finding lowest common ancestor (LCA) between two field paths: "
 			"field-path-1=\"%s\", field-path-2=\"%s\"",
 			field_path1_pretty_str, field_path2_pretty_str);
 
@@ -873,7 +873,7 @@ int get_field_paths_lca_index(struct bt_ctf_field_path *field_path1,
 		lca_index++;
 	}
 
-	BT_LOGV("Found LCA: lca-index=%d", lca_index);
+	BT_LOGT("Found LCA: lca-index=%d", lca_index);
 	return lca_index;
 }
 
@@ -1193,7 +1193,7 @@ int resolve_type(struct bt_ctf_field_type_common *type, struct resolve_context *
 					f_index;
 			}
 
-			BT_LOGV("Resolving field type's child field type: "
+			BT_LOGT("Resolving field type's child field type: "
 				"parent-ft-addr=%p, child-ft-addr=%p, "
 				"index=%" PRId64 ", count=%" PRId64,
 				type, child_type, f_index, field_count);
@@ -1255,7 +1255,7 @@ int bt_ctf_resolve_types(
 		.root_scope = BT_CTF_SCOPE_UNKNOWN,
 	};
 
-	BT_LOGV("Resolving field types: "
+	BT_LOGT("Resolving field types: "
 		"packet-header-ft-addr=%p, "
 		"packet-context-ft-addr=%p, "
 		"event-header-ft-addr=%p, "
@@ -1333,7 +1333,7 @@ int bt_ctf_resolve_types(
 		}
 	}
 
-	BT_LOGV_STR("Resolved field types.");
+	BT_LOGT_STR("Resolved field types.");
 
 end:
 	type_stack_destroy(ctx.type_stack);

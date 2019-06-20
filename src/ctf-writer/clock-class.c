@@ -89,7 +89,7 @@ int bt_ctf_clock_class_set_name(struct bt_ctf_clock_class *clock_class,
 		}
 	}
 
-	BT_LOGV("Set clock class's name: addr=%p, name=\"%s\"",
+	BT_LOGT("Set clock class's name: addr=%p, name=\"%s\"",
 		clock_class, name);
 
 end:
@@ -215,7 +215,7 @@ int bt_ctf_clock_class_set_description(struct bt_ctf_clock_class *clock_class,
 
 	clock_class->description = g_string_new(desc);
 	ret = clock_class->description ? 0 : -1;
-	BT_LOGV("Set clock class's description: addr=%p, "
+	BT_LOGT("Set clock class's description: addr=%p, "
 		"name=\"%s\", desc=\"%s\"",
 		clock_class, bt_ctf_clock_class_get_name(clock_class), desc);
 end:
@@ -266,7 +266,7 @@ int bt_ctf_clock_class_set_frequency(struct bt_ctf_clock_class *clock_class,
 	}
 
 	clock_class->frequency = freq;
-	BT_LOGV("Set clock class's frequency: addr=%p, name=\"%s\", freq=%" PRIu64,
+	BT_LOGT("Set clock class's frequency: addr=%p, name=\"%s\", freq=%" PRIu64,
 		clock_class, bt_ctf_clock_class_get_name(clock_class), freq);
 end:
 	return ret;
@@ -310,7 +310,7 @@ int bt_ctf_clock_class_set_precision(struct bt_ctf_clock_class *clock_class,
 	}
 
 	clock_class->precision = precision;
-	BT_LOGV("Set clock class's precision: addr=%p, name=\"%s\", precision=%" PRIu64,
+	BT_LOGT("Set clock class's precision: addr=%p, name=\"%s\", precision=%" PRIu64,
 		clock_class, bt_ctf_clock_class_get_name(clock_class),
 		precision);
 end:
@@ -357,7 +357,7 @@ int bt_ctf_clock_class_set_offset_s(struct bt_ctf_clock_class *clock_class,
 	}
 
 	clock_class->offset_s = offset_s;
-	BT_LOGV("Set clock class's offset (seconds): "
+	BT_LOGT("Set clock class's offset (seconds): "
 		"addr=%p, name=\"%s\", offset-s=%" PRId64,
 		clock_class, bt_ctf_clock_class_get_name(clock_class),
 		offset_s);
@@ -405,7 +405,7 @@ int bt_ctf_clock_class_set_offset_cycles(struct bt_ctf_clock_class *clock_class,
 	}
 
 	clock_class->offset = offset;
-	BT_LOGV("Set clock class's offset (cycles): addr=%p, name=\"%s\", offset-cycles=%" PRId64,
+	BT_LOGT("Set clock class's offset (cycles): addr=%p, name=\"%s\", offset-cycles=%" PRId64,
 		clock_class, bt_ctf_clock_class_get_name(clock_class), offset);
 end:
 	return ret;
@@ -446,7 +446,7 @@ int bt_ctf_clock_class_set_is_absolute(struct bt_ctf_clock_class *clock_class,
 	}
 
 	clock_class->absolute = !!is_absolute;
-	BT_LOGV("Set clock class's absolute flag: addr=%p, name=\"%s\", is-absolute=%d",
+	BT_LOGT("Set clock class's absolute flag: addr=%p, name=\"%s\", is-absolute=%d",
 		clock_class, bt_ctf_clock_class_get_name(clock_class),
 		is_absolute);
 end:
@@ -466,7 +466,7 @@ const unsigned char *bt_ctf_clock_class_get_uuid(
 	}
 
 	if (!clock_class->uuid_set) {
-		BT_LOGV("Clock class's UUID is not set: addr=%p, name=\"%s\"",
+		BT_LOGT("Clock class's UUID is not set: addr=%p, name=\"%s\"",
 			clock_class, bt_ctf_clock_class_get_name(clock_class));
 		ret = NULL;
 		goto end;
@@ -501,7 +501,7 @@ int bt_ctf_clock_class_set_uuid(struct bt_ctf_clock_class *clock_class,
 
 	memcpy(clock_class->uuid, uuid, BABELTRACE_UUID_LEN);
 	clock_class->uuid_set = 1;
-	BT_LOGV("Set clock class's UUID: addr=%p, name=\"%s\", "
+	BT_LOGT("Set clock class's UUID: addr=%p, name=\"%s\", "
 		"uuid=\"%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x\"",
 		clock_class, bt_ctf_clock_class_get_name(clock_class),
 		(unsigned int) uuid[0],
@@ -566,7 +566,7 @@ int bt_ctf_clock_class_compare(struct bt_ctf_clock_class *clock_class_a,
 
 	/* Name */
 	if (strcmp(clock_class_a->name->str, clock_class_b->name->str) != 0) {
-		BT_LOGV("Clock classes differ: different names: "
+		BT_LOGT("Clock classes differ: different names: "
 			"cc-a-name=\"%s\", cc-b-name=\"%s\"",
 			clock_class_a->name->str,
 			clock_class_b->name->str);
@@ -576,14 +576,14 @@ int bt_ctf_clock_class_compare(struct bt_ctf_clock_class *clock_class_a,
 	/* Description */
 	if (clock_class_a->description) {
 		if (!clock_class_b->description) {
-			BT_LOGV_STR("Clock classes differ: clock class A has a "
+			BT_LOGT_STR("Clock classes differ: clock class A has a "
 				"description, but clock class B does not.");
 			goto end;
 		}
 
 		if (strcmp(clock_class_a->name->str, clock_class_b->name->str)
 				!= 0) {
-			BT_LOGV("Clock classes differ: different descriptions: "
+			BT_LOGT("Clock classes differ: different descriptions: "
 				"cc-a-descr=\"%s\", cc-b-descr=\"%s\"",
 				clock_class_a->description->str,
 				clock_class_b->description->str);
@@ -591,7 +591,7 @@ int bt_ctf_clock_class_compare(struct bt_ctf_clock_class *clock_class_a,
 		}
 	} else {
 		if (clock_class_b->description) {
-			BT_LOGV_STR("Clock classes differ: clock class A has "
+			BT_LOGT_STR("Clock classes differ: clock class A has "
 				"no description, but clock class B has one.");
 			goto end;
 		}
@@ -599,7 +599,7 @@ int bt_ctf_clock_class_compare(struct bt_ctf_clock_class *clock_class_a,
 
 	/* Frequency */
 	if (clock_class_a->frequency != clock_class_b->frequency) {
-		BT_LOGV("Clock classes differ: different frequencies: "
+		BT_LOGT("Clock classes differ: different frequencies: "
 			"cc-a-freq=%" PRIu64 ", cc-b-freq=%" PRIu64,
 			clock_class_a->frequency,
 			clock_class_b->frequency);
@@ -608,7 +608,7 @@ int bt_ctf_clock_class_compare(struct bt_ctf_clock_class *clock_class_a,
 
 	/* Precision */
 	if (clock_class_a->precision != clock_class_b->precision) {
-		BT_LOGV("Clock classes differ: different precisions: "
+		BT_LOGT("Clock classes differ: different precisions: "
 			"cc-a-freq=%" PRIu64 ", cc-b-freq=%" PRIu64,
 			clock_class_a->precision,
 			clock_class_b->precision);
@@ -617,7 +617,7 @@ int bt_ctf_clock_class_compare(struct bt_ctf_clock_class *clock_class_a,
 
 	/* Offset (seconds) */
 	if (clock_class_a->offset_s != clock_class_b->offset_s) {
-		BT_LOGV("Clock classes differ: different offsets (seconds): "
+		BT_LOGT("Clock classes differ: different offsets (seconds): "
 			"cc-a-offset-s=%" PRId64 ", cc-b-offset-s=%" PRId64,
 			clock_class_a->offset_s,
 			clock_class_b->offset_s);
@@ -626,7 +626,7 @@ int bt_ctf_clock_class_compare(struct bt_ctf_clock_class *clock_class_a,
 
 	/* Offset (cycles) */
 	if (clock_class_a->offset != clock_class_b->offset) {
-		BT_LOGV("Clock classes differ: different offsets (cycles): "
+		BT_LOGT("Clock classes differ: different offsets (cycles): "
 			"cc-a-offset-s=%" PRId64 ", cc-b-offset-s=%" PRId64,
 			clock_class_a->offset,
 			clock_class_b->offset);
@@ -636,14 +636,14 @@ int bt_ctf_clock_class_compare(struct bt_ctf_clock_class *clock_class_a,
 	/* UUIDs */
 	if (clock_class_a->uuid_set) {
 		if (!clock_class_b->uuid_set) {
-			BT_LOGV_STR("Clock classes differ: clock class A has a "
+			BT_LOGT_STR("Clock classes differ: clock class A has a "
 				"UUID, but clock class B does not.");
 			goto end;
 		}
 
 		if (memcmp(clock_class_a->uuid, clock_class_b->uuid,
 				BABELTRACE_UUID_LEN) != 0) {
-			BT_LOGV("Clock classes differ: different UUIDs: "
+			BT_LOGT("Clock classes differ: different UUIDs: "
 				"cc-a-uuid=\"%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x\", "
 				"cc-b-uuid=\"%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x\"",
 				(unsigned int) clock_class_a->uuid[0],
@@ -682,7 +682,7 @@ int bt_ctf_clock_class_compare(struct bt_ctf_clock_class *clock_class_a,
 		}
 	} else {
 		if (clock_class_b->uuid_set) {
-			BT_LOGV_STR("Clock classes differ: clock class A has "
+			BT_LOGT_STR("Clock classes differ: clock class A has "
 				"no UUID, but clock class B has one.");
 			goto end;
 		}
@@ -690,7 +690,7 @@ int bt_ctf_clock_class_compare(struct bt_ctf_clock_class *clock_class_a,
 
 	/* Absolute */
 	if (!!clock_class_a->absolute != !!clock_class_b->absolute) {
-		BT_LOGV("Clock classes differ: one is absolute, the other "
+		BT_LOGT("Clock classes differ: one is absolute, the other "
 			"is not: cc-a-is-absolute=%d, cc-b-is-absolute=%d",
 			!!clock_class_a->absolute,
 			!!clock_class_b->absolute);

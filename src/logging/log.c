@@ -553,7 +553,7 @@ static INSTRUMENTED_CONST buffer_cb g_buffer_cb = buffer_callback;
 	{
 		switch (lvl)
 		{
-		case BT_LOG_VERBOSE:
+		case BT_LOG_TRACE:
 			return ANDROID_LOG_VERBOSE;
 		case BT_LOG_DEBUG:
 			return ANDROID_LOG_DEBUG;
@@ -596,7 +596,7 @@ static INSTRUMENTED_CONST buffer_cb g_buffer_cb = buffer_callback;
 	{
 		switch (lvl)
 		{
-		case BT_LOG_VERBOSE:
+		case BT_LOG_TRACE:
 			return 7; /* ASL_LEVEL_DEBUG / kCFLogLevelDebug */;
 		case BT_LOG_DEBUG:
 			return 7; /* ASL_LEVEL_DEBUG / kCFLogLevelDebug */;
@@ -702,8 +702,8 @@ static char lvl_char(const int lvl)
 {
 	switch (lvl)
 	{
-	case BT_LOG_VERBOSE:
-		return 'V';
+	case BT_LOG_TRACE:
+		return 'T';
 	case BT_LOG_DEBUG:
 		return 'D';
 	case BT_LOG_INFO:

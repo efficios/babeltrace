@@ -492,7 +492,7 @@ enum ctf_metadata_decoder_status ctf_metadata_decoder_decode(
 		}
 	}
 
-	if (BT_LOG_ON_VERBOSE) {
+	if (BT_LOG_ON_TRACE) {
 		yydebug = 1;
 	}
 

@@ -48,13 +48,13 @@
  *   Example: app started, user logged in.
  * - BT_LOG_DEBUG - minimal set of events that could help to reconstruct the
  *   execution path. Usually disabled in release builds.
- * - BT_LOG_VERBOSE - all other events. Usually disabled in release builds.
+ * - BT_LOG_TRACE - all other events. Usually disabled in release builds.
  *
  * *Ideally*, log file of debugged, well tested, production ready application
  * should be empty or very small. Choosing a right log level is as important as
  * providing short and self descriptive log message.
  */
-#define BT_LOG_VERBOSE BT_LOGGING_LEVEL_VERBOSE
+#define BT_LOG_TRACE   BT_LOGGING_LEVEL_TRACE
 #define BT_LOG_DEBUG   BT_LOGGING_LEVEL_DEBUG
 #define BT_LOG_INFO    BT_LOGGING_LEVEL_INFO
 #define BT_LOG_WARN    BT_LOGGING_LEVEL_WARN
@@ -79,7 +79,7 @@
  * And when necessary to override it with BT_LOG_LEVEL in .c/.cpp/.m files
  * before including bt_log.h:
  *
- *   #define BT_LOG_LEVEL BT_LOG_VERBOSE
+ *   #define BT_LOG_LEVEL BT_LOG_TRACE
  *   #include "logging.h"
  *
  * If both BT_LOG_DEF_LEVEL and BT_LOG_LEVEL are undefined, then
@@ -640,7 +640,7 @@ bt_log_spec;
  * See BT_LOG_LEVEL for details.
  */
 #define BT_LOG_ENABLED(lvl)     ((lvl) >= _BT_LOG_LEVEL)
-#define BT_LOG_ENABLED_VERBOSE  BT_LOG_ENABLED(BT_LOG_VERBOSE)
+#define BT_LOG_ENABLED_TRACE    BT_LOG_ENABLED(BT_LOG_TRACE)
 #define BT_LOG_ENABLED_DEBUG    BT_LOG_ENABLED(BT_LOG_DEBUG)
 #define BT_LOG_ENABLED_INFO     BT_LOG_ENABLED(BT_LOG_INFO)
 #define BT_LOG_ENABLED_WARN     BT_LOG_ENABLED(BT_LOG_WARN)
@@ -664,7 +664,7 @@ bt_log_spec;
 		(BT_LOG_ENABLED((lvl)) && (lvl) >= (cur_lvl))
 #define BT_LOG_ON(lvl) \
 		(BT_LOG_ENABLED((lvl)) && (lvl) >= _BT_LOG_OUTPUT_LEVEL)
-#define BT_LOG_ON_VERBOSE   BT_LOG_ON(BT_LOG_VERBOSE)
+#define BT_LOG_ON_TRACE     BT_LOG_ON(BT_LOG_TRACE)
 #define BT_LOG_ON_DEBUG     BT_LOG_ON(BT_LOG_DEBUG)
 #define BT_LOG_ON_INFO      BT_LOG_ON(BT_LOG_INFO)
 #define BT_LOG_ON_WARN      BT_LOG_ON(BT_LOG_WARN)
@@ -734,7 +734,7 @@ void _bt_log_write_mem_aux(
 #endif
 
 /* Message logging macros:
- * - BT_LOGV("format string", args, ...)
+ * - BT_LOGT("format string", args, ...)
  * - BT_LOGD("format string", args, ...)
  * - BT_LOGI("format string", args, ...)
  * - BT_LOGW("format string", args, ...)
@@ -742,7 +742,7 @@ void _bt_log_write_mem_aux(
  * - BT_LOGF("format string", args, ...)
  *
  * Message and error string (errno) logging macros:
- * - BT_LOGV_ERRNO("initial message", "format string", args, ...)
+ * - BT_LOGT_ERRNO("initial message", "format string", args, ...)
  * - BT_LOGD_ERRNO("initial message", "format string", args, ...)
  * - BT_LOGI_ERRNO("initial message", "format string", args, ...)
  * - BT_LOGW_ERRNO("initial message", "format string", args, ...)
@@ -750,7 +750,7 @@ void _bt_log_write_mem_aux(
  * - BT_LOGF_ERRNO("initial message", "format string", args, ...)
  *
  * Memory logging macros:
- * - BT_LOGV_MEM(data_ptr, data_sz, "format string", args, ...)
+ * - BT_LOGT_MEM(data_ptr, data_sz, "format string", args, ...)
  * - BT_LOGD_MEM(data_ptr, data_sz, "format string", args, ...)
  * - BT_LOGI_MEM(data_ptr, data_sz, "format string", args, ...)
  * - BT_LOGW_MEM(data_ptr, data_sz, "format string", args, ...)
@@ -758,7 +758,7 @@ void _bt_log_write_mem_aux(
  * - BT_LOGF_MEM(data_ptr, data_sz, "format string", args, ...)
  *
  * Auxiliary logging macros:
- * - BT_LOGV_AUX(&log_instance, "format string", args, ...)
+ * - BT_LOGT_AUX(&log_instance, "format string", args, ...)
  * - BT_LOGD_AUX(&log_instance, "format string", args, ...)
  * - BT_LOGI_AUX(&log_instance, "format string", args, ...)
  * - BT_LOGW_AUX(&log_instance, "format string", args, ...)
@@ -766,7 +766,7 @@ void _bt_log_write_mem_aux(
  * - BT_LOGF_AUX(&log_instance, "format string", args, ...)
  *
  * Auxiliary memory logging macros:
- * - BT_LOGV_MEM_AUX(&log_instance, data_ptr, data_sz, "format string", args, ...)
+ * - BT_LOGT_MEM_AUX(&log_instance, data_ptr, data_sz, "format string", args, ...)
  * - BT_LOGD_MEM_AUX(&log_instance, data_ptr, data_sz, "format string", args, ...)
  * - BT_LOGI_MEM_AUX(&log_instance, data_ptr, data_sz, "format string", args, ...)
  * - BT_LOGW_MEM_AUX(&log_instance, data_ptr, data_sz, "format string", args, ...)
@@ -774,7 +774,7 @@ void _bt_log_write_mem_aux(
  * - BT_LOGF_MEM_AUX(&log_instance, data_ptr, data_sz, "format string", args, ...)
  *
  * Preformatted string logging macros:
- * - BT_LOGV_STR("preformatted string");
+ * - BT_LOGT_STR("preformatted string");
  * - BT_LOGD_STR("preformatted string");
  * - BT_LOGI_STR("preformatted string");
  * - BT_LOGW_STR("preformatted string");
@@ -874,22 +874,22 @@ static _BT_LOG_INLINE void _bt_log_unused(const int dummy, ...) {(void)dummy;}
 #define _BT_LOG_UNUSED(...) \
 		do { _BT_LOG_NEVER _bt_log_unused(0, __VA_ARGS__); } _BT_LOG_ONCE
 
-#if BT_LOG_ENABLED_VERBOSE
-	#define BT_LOGV(...) \
-			BT_LOG_WRITE(BT_LOG_VERBOSE, _BT_LOG_TAG, __VA_ARGS__)
-	#define BT_LOGV_ERRNO(...) \
-			BT_LOG_WRITE_ERRNO(BT_LOG_VERBOSE, _BT_LOG_TAG, __VA_ARGS__)
-	#define BT_LOGV_AUX(log, ...) \
-			BT_LOG_WRITE_AUX(log, BT_LOG_VERBOSE, _BT_LOG_TAG, __VA_ARGS__)
-	#define BT_LOGV_MEM(d, d_sz, ...) \
-			BT_LOG_WRITE_MEM(BT_LOG_VERBOSE, _BT_LOG_TAG, d, d_sz, __VA_ARGS__)
-	#define BT_LOGV_MEM_AUX(log, d, d_sz, ...) \
-			BT_LOG_WRITE_MEM(log, BT_LOG_VERBOSE, _BT_LOG_TAG, d, d_sz, __VA_ARGS__)
+#if BT_LOG_ENABLED_TRACE
+	#define BT_LOGT(...) \
+			BT_LOG_WRITE(BT_LOG_TRACE, _BT_LOG_TAG, __VA_ARGS__)
+	#define BT_LOGT_ERRNO(...) \
+			BT_LOG_WRITE_ERRNO(BT_LOG_TRACE, _BT_LOG_TAG, __VA_ARGS__)
+	#define BT_LOGT_AUX(log, ...) \
+			BT_LOG_WRITE_AUX(log, BT_LOG_TRACE, _BT_LOG_TAG, __VA_ARGS__)
+	#define BT_LOGT_MEM(d, d_sz, ...) \
+			BT_LOG_WRITE_MEM(BT_LOG_TRACE, _BT_LOG_TAG, d, d_sz, __VA_ARGS__)
+	#define BT_LOGT_MEM_AUX(log, d, d_sz, ...) \
+			BT_LOG_WRITE_MEM(log, BT_LOG_TRACE, _BT_LOG_TAG, d, d_sz, __VA_ARGS__)
 #else
-	#define BT_LOGV(...) _BT_LOG_UNUSED(__VA_ARGS__)
-	#define BT_LOGV_AUX(...) _BT_LOG_UNUSED(__VA_ARGS__)
-	#define BT_LOGV_MEM(...) _BT_LOG_UNUSED(__VA_ARGS__)
-	#define BT_LOGV_MEM_AUX(...) _BT_LOG_UNUSED(__VA_ARGS__)
+	#define BT_LOGT(...) _BT_LOG_UNUSED(__VA_ARGS__)
+	#define BT_LOGT_AUX(...) _BT_LOG_UNUSED(__VA_ARGS__)
+	#define BT_LOGT_MEM(...) _BT_LOG_UNUSED(__VA_ARGS__)
+	#define BT_LOGT_MEM_AUX(...) _BT_LOG_UNUSED(__VA_ARGS__)
 #endif
 
 #if BT_LOG_ENABLED_DEBUG
@@ -982,7 +982,7 @@ static _BT_LOG_INLINE void _bt_log_unused(const int dummy, ...) {(void)dummy;}
 	#define BT_LOGF_MEM_AUX(...) _BT_LOG_UNUSED(__VA_ARGS__)
 #endif
 
-#define BT_LOGV_STR(s) BT_LOGV("%s", (s))
+#define BT_LOGT_STR(s) BT_LOGT("%s", (s))
 #define BT_LOGD_STR(s) BT_LOGD("%s", (s))
 #define BT_LOGI_STR(s) BT_LOGI("%s", (s))
 #define BT_LOGW_STR(s) BT_LOGW("%s", (s))
@@ -1032,8 +1032,8 @@ char bt_log_get_letter_from_level(int level)
 	char letter;
 
 	switch (level) {
-	case BT_LOG_VERBOSE:
-		letter = 'V';
+	case BT_LOG_TRACE:
+		letter = 'T';
 		break;
 	case BT_LOG_DEBUG:
 		letter = 'D';
@@ -1071,9 +1071,9 @@ int bt_log_get_level_from_string(const char *str)
 
 	BT_ASSERT(str);
 
-	if (strcmp(str, "VERBOSE") == 0 ||
-			strcmp(str, "V") == 0) {
-		level = BT_LOG_VERBOSE;
+	if (strcmp(str, "TRACE") == 0 ||
+			strcmp(str, "T") == 0) {
+		level = BT_LOG_TRACE;
 	} else if (strcmp(str, "DEBUG") == 0 ||
 			strcmp(str, "D") == 0) {
 		level = BT_LOG_DEBUG;

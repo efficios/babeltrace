@@ -688,7 +688,7 @@ int pathstr_to_field_path(const char *pathstr,
 		}
 	}
 
-	if (BT_LOG_ON_VERBOSE && ret == 0) {
+	if (BT_LOG_ON_TRACE && ret == 0) {
 		GString *field_path_pretty = ctf_field_path_string(field_path);
 		const char *field_path_pretty_str =
 			field_path_pretty ? field_path_pretty->str : NULL;
@@ -777,7 +777,7 @@ int64_t get_field_paths_lca_index(struct ctf_field_path *field_path1,
 	int64_t lca_index = 0;
 	uint64_t field_path1_len, field_path2_len;
 
-	if (BT_LOG_ON_VERBOSE) {
+	if (BT_LOG_ON_TRACE) {
 		GString *field_path1_pretty =
 			ctf_field_path_string(field_path1);
 		GString *field_path2_pretty =

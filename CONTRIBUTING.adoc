@@ -246,7 +246,7 @@ can find the cause of a bug faster.
 
 While <<choose-a-log-level,care must be taken>> when placing _DEBUG_ to
 _FATAL_ logging statements, you should liberally instrument your
-Babeltrace module with _VERBOSE_ logging statements to help future you
+Babeltrace module with _TRACE_ logging statements to help future you
 and other developers understand what's happening at run time.
 
 
@@ -315,10 +315,10 @@ order of severity:
 |Internal API enumerator
 |Public API enumerator
 
-|_VERBOSE_
-|`V`
-|`BT_LOG_VERBOSE`
-|`BT_LOGGING_LEVEL_VERBOSE`
+|_TRACE_
+|`T`
+|`BT_LOG_TRACE`
+|`BT_LOGGING_LEVEL_TRACE`
 
 |_DEBUG_
 |`D`
@@ -475,8 +475,8 @@ See <<logging-instrument-c-file-gen,Instrument a C source file
 (generic)>> and <<logging-instrument-h-file-gen,Instrument a C header
 file (generic)>> to learn how to be able to use the following macros.
 
-`+BT_LOGV("format string", ...)+`::
-    Generic verbose logging statement.
+`+BT_LOGT("format string", ...)+`::
+    Generic trace logging statement.
 
 `+BT_LOGD("format string", ...)+`::
     Generic debug logging statement.
@@ -493,8 +493,8 @@ file (generic)>> to learn how to be able to use the following macros.
 `+BT_LOGF("format string", ...)+`::
     Generic fatal logging statement.
 
-`+BT_LOGV_STR("preformatted string")+`::
-    Generic preformatted string verbose logging statement.
+`+BT_LOGT_STR("preformatted string")+`::
+    Generic preformatted string trace logging statement.
 
 `+BT_LOGD_STR("preformatted string")+`::
     Generic preformatted string debug logging statement.
@@ -511,8 +511,8 @@ file (generic)>> to learn how to be able to use the following macros.
 `+BT_LOGF_STR("preformatted string")+`::
     Generic preformatted string fatal logging statement.
 
-`+BT_LOGV_MEM(data_ptr, data_size, "format string", ...)+`::
-    Generic memory verbose logging statement.
+`+BT_LOGT_MEM(data_ptr, data_size, "format string", ...)+`::
+    Generic memory trace logging statement.
 
 `+BT_LOGD_MEM(data_ptr, data_size, "format string", ...)+`::
     Generic memory debug logging statement.
@@ -529,8 +529,8 @@ file (generic)>> to learn how to be able to use the following macros.
 `+BT_LOGF_MEM(data_ptr, data_size, "format string", ...)+`::
     Generic memory fatal logging statement.
 
-`+BT_LOGV_ERRNO("initial message", "format string", ...)+`::
-	Generic `errno` string verbose logging statement.
+`+BT_LOGT_ERRNO("initial message", "format string", ...)+`::
+	Generic `errno` string trace logging statement.
 
 `+BT_LOGD_ERRNO("initial message", "format string", ...)+`::
 	Generic `errno` string debug logging statement.
@@ -562,8 +562,8 @@ learn how to be able to use the following macros.
 The library logging statement macros are named `+BT_LIB_LOG*()+` instead
 of `+BT_LOG*()+`:
 
-`+BT_LIB_LOGV("format string", ...)+`::
-    Library verbose logging statement.
+`+BT_LIB_LOGT("format string", ...)+`::
+    Library trace logging statement.
 
 `+BT_LIB_LOGD("format string", ...)+`::
     Library debug logging statement.
@@ -753,8 +753,8 @@ following macros.
 The component logging statement macros are named `+BT_COMP_LOG*()+`
 instead of `+BT_LOG*()+`:
 
-`+BT_COMP_LOGV("format string", ...)+`::
-    Component verbose logging statement.
+`+BT_COMP_LOGT("format string", ...)+`::
+    Component trace logging statement.
 
 `+BT_COMP_LOGD("format string", ...)+`::
     Component debug logging statement.
@@ -771,8 +771,8 @@ instead of `+BT_LOG*()+`:
 `+BT_COMP_LOGF("format string", ...)+`::
     Component fatal logging statement.
 
-`+BT_COMP_LOGV_STR("preformatted string")+`::
-    Component preformatted string verbose logging statement.
+`+BT_COMP_LOGT_STR("preformatted string")+`::
+    Component preformatted string trace logging statement.
 
 `+BT_COMP_LOGD_STR("preformatted string")+`::
     Component preformatted string debug logging statement.
@@ -789,8 +789,8 @@ instead of `+BT_LOG*()+`:
 `+BT_COMP_LOGF_STR("preformatted string")+`::
     Component preformatted string fatal logging statement.
 
-`+BT_COMP_LOGV_ERRNO("initial message", "format string", ...)+`::
-    Component `errno` string verbose logging statement.
+`+BT_COMP_LOGT_ERRNO("initial message", "format string", ...)+`::
+    Component `errno` string trace logging statement.
 
 `+BT_COMP_LOGD_ERRNO("initial message", "format string", ...)+`::
     Component `errno` string debug logging statement.
@@ -807,8 +807,8 @@ instead of `+BT_LOG*()+`:
 `+BT_COMP_LOGF_ERRNO("initial message", "format string", ...)+`::
     Component `errno` string fatal logging statement.
 
-`+BT_COMP_LOGV_MEM(data_ptr, data_size, "format string", ...)+`::
-    Component memory verbose logging statement.
+`+BT_COMP_LOGT_MEM(data_ptr, data_size, "format string", ...)+`::
+    Component memory trace logging statement.
 
 `+BT_COMP_LOGD_MEM(data_ptr, data_size, "format string", ...)+`::
     Component memory debug logging statement.
@@ -857,7 +857,7 @@ block.
 
 The available definitions for build-time conditions are:
 
-* `BT_LOG_ENABLED_VERBOSE`
+* `BT_LOG_ENABLED_TRACE`
 * `BT_LOG_ENABLED_DEBUG`
 * `BT_LOG_ENABLED_INFO`
 * `BT_LOG_ENABLED_WARN`
@@ -879,7 +879,7 @@ noticeable impact on performance.
 
 The available definitions for run-time conditions are:
 
-* `BT_LOG_ON_VERBOSE`
+* `BT_LOG_ON_TRACE`
 * `BT_LOG_ON_DEBUG`
 * `BT_LOG_ON_INFO`
 * `BT_LOG_ON_WARN`
@@ -991,8 +991,8 @@ int some_function(int x)
 {
     /* ... */
 
-#ifdef BT_LOGV
-    BT_LOGV(...);
+#ifdef BT_LOGT
+    BT_LOGT(...);
 #endif
 
     /* ... */
@@ -1327,11 +1327,11 @@ an _INFO_ build.
 * Calling user methods and logging the result.
 * Setting object properties (except fields and values).
 |
-Noticeable, but not as much as the _VERBOSE_ level: could be executed
+Noticeable, but not as much as the _TRACE_ level: could be executed
 in production if you're going to need a thorough log for support
 tickets without having to rebuild the project.
 
-|_VERBOSE_
+|_TRACE_
 |
 Low-level debugging context information (anything that does not fit the
 other log levels). More appropriate for tracing in general.
@@ -1353,7 +1353,7 @@ For example, a public function to get some object or
 property from an object by name or key that fails to find the value is
 not a warning scenario: the user could legitimately use this function to
 check if the name/key exists in the object. In this case, use the
-_VERBOSE_ level (or do not log at all).
+_TRACE_ level (or do not log at all).
 --
 
 

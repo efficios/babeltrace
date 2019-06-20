@@ -49,7 +49,7 @@ OPTIONS
 opt:-d, opt:--debug::
     Turn the debugging mode on.
 +
-This is equivalent to opt:--log-level=`VERBOSE`.
+This is equivalent to opt:--log-level=`TRACE`.
 
 opt:-l 'LVL', opt:--log-level='LVL'::
     Set the log level of all known Babeltrace loggers to 'LVL'. You
@@ -91,10 +91,10 @@ The available values for 'LVL' are:
 `DEBUG`::
 `D`::
     Debugging information, with a higher level of details than the
-    `VERBOSE` level. This level should :not: be enabled in production.
+    `TRACE` level. This level should :not: be enabled in production.
 
-`VERBOSE`::
-`V`::
+`TRACE`::
+`T`::
     Low-level debugging context information. This level should :not: be
     enabled in production.
 --

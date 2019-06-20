@@ -25,7 +25,7 @@ import bt2
 
 
 class LoggingLevel:
-    VERBOSE = native_bt.LOGGING_LEVEL_VERBOSE
+    TRACE = native_bt.LOGGING_LEVEL_TRACE
     DEBUG = native_bt.LOGGING_LEVEL_DEBUG
     INFO = native_bt.LOGGING_LEVEL_INFO
     WARN = native_bt.LOGGING_LEVEL_WARN
@@ -44,7 +44,7 @@ def get_global_logging_level():
 
 def set_global_logging_level(level):
     levels = (
-        LoggingLevel.VERBOSE,
+        LoggingLevel.TRACE,
         LoggingLevel.DEBUG,
         LoggingLevel.INFO,
         LoggingLevel.WARN,

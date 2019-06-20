@@ -4421,13 +4421,13 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 			stream_intersection_mode = true;
 			break;
 		case OPT_VERBOSE:
-			if (*default_log_level != BT_LOG_VERBOSE &&
+			if (*default_log_level != BT_LOG_TRACE &&
 					*default_log_level != BT_LOG_DEBUG) {
 				*default_log_level = BT_LOG_INFO;
 			}
 			break;
 		case OPT_DEBUG:
-			*default_log_level = BT_LOG_VERBOSE;
+			*default_log_level = BT_LOG_TRACE;
 			break;
 		default:
 			break;
@@ -4986,17 +4986,17 @@ struct bt_config *bt_config_cli_args_create(int argc, const char *argv[],
 
 		if (strcmp(cur_arg, "-d") == 0 ||
 				strcmp(cur_arg, "--debug") == 0) {
-			default_log_level = BT_LOG_VERBOSE;
+			default_log_level = BT_LOG_TRACE;
 		} else if (strcmp(cur_arg, "-v") == 0 ||
 				strcmp(cur_arg, "--verbose") == 0) {
-			if (default_log_level != BT_LOG_VERBOSE &&
+			if (default_log_level != BT_LOG_TRACE &&
 					default_log_level != BT_LOG_DEBUG) {
 				/*
 				 * Legacy: do not override a previous
 				 * --debug because --verbose and --debug
 				 * can be specified together (in this
 				 * case we want the lowest log level to
-				 * apply, VERBOSE).
+				 * apply, TRACE).
 				 */
 				default_log_level = BT_LOG_INFO;
 			}
@@ -5138,7 +5138,7 @@ struct bt_config *bt_config_cli_args_create(int argc, const char *argv[],
 	}
 
 	if (config) {
-		BT_ASSERT(default_log_level >= BT_LOG_VERBOSE);
+		BT_ASSERT(default_log_level >= BT_LOG_TRACE);
 		config->log_level = default_log_level;
 		config->command_name = command_name;
 	}
