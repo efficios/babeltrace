@@ -198,71 +198,33 @@ class _UserMessageIterator(_MessageIterator):
 
         return bt2.message._MessageIteratorInactivityMessage(ptr)
 
-    _unknown_clock_snapshot = bt2.message._StreamActivityMessageUnknownClockSnapshot()
-    _infinite_clock_snapshot = bt2.message._StreamActivityMessageInfiniteClockSnapshot()
-
-    @staticmethod
-    def _bt_validate_stream_activity_message_default_clock_snapshot(stream, default_cs):
-        isinst_infinite = isinstance(default_cs, bt2.message._StreamActivityMessageInfiniteClockSnapshot)
-        isinst_unknown = isinstance(default_cs, bt2.message._StreamActivityMessageUnknownClockSnapshot)
-
-        if utils._is_uint64(default_cs):
-            pass
-        elif isinst_infinite or isinst_unknown:
-            if default_cs is not _UserMessageIterator._unknown_clock_snapshot and default_cs is not _UserMessageIterator._infinite_clock_snapshot:
-                raise ValueError('unexpected value for default clock snapshot')
-        else:
-            raise TypeError("unexpected type '{}' for default clock snapshot".format(default_cs.__class__.__name__))
-
-        if stream.cls.default_clock_class is None:
-            if utils._is_uint64(default_cs):
-                raise ValueError('stream activity messages in this stream cannot have a known default clock snapshot')
-
-    def _create_stream_beginning_message(self, stream):
+    def _create_stream_beginning_message(self, stream, default_clock_snapshot=None):
         utils._check_type(stream, bt2.stream._Stream)
 
         ptr = native_bt.message_stream_beginning_create(self._bt_ptr, stream._ptr)
         if ptr is None:
             raise bt2.CreationError('cannot create stream beginning message object')
 
-        return bt2.message._StreamBeginningMessage(ptr)
+        msg = bt2.message._StreamBeginningMessage(ptr)
 
-    def _create_stream_activity_beginning_message(self, stream,
-                                                  default_clock_snapshot=_unknown_clock_snapshot):
-        utils._check_type(stream, bt2.stream._Stream)
-        self._bt_validate_stream_activity_message_default_clock_snapshot(stream, default_clock_snapshot)
-        ptr = native_bt.message_stream_activity_beginning_create(self._bt_ptr, stream._ptr)
+        if default_clock_snapshot is not None:
+            msg._default_clock_snapshot = default_clock_snapshot
 
-        if ptr is None:
-            raise bt2.CreationError(
-                'cannot create stream activity beginning message object')
-
-        msg = bt2.message._StreamActivityBeginningMessage(ptr)
-        msg._default_clock_snapshot = default_clock_snapshot
         return msg
 
-    def _create_stream_activity_end_message(self, stream,
-                                            default_clock_snapshot=_unknown_clock_snapshot):
-        utils._check_type(stream, bt2.stream._Stream)
-        self._bt_validate_stream_activity_message_default_clock_snapshot(stream, default_clock_snapshot)
-        ptr = native_bt.message_stream_activity_end_create(self._bt_ptr, stream._ptr)
-
-        if ptr is None:
-            raise bt2.CreationError(
-                'cannot create stream activity end message object')
-
-        msg = bt2.message._StreamActivityEndMessage(ptr)
-        msg._default_clock_snapshot = default_clock_snapshot
-        return msg
-
-    def _create_stream_end_message(self, stream):
+    def _create_stream_end_message(self, stream, default_clock_snapshot=None):
         utils._check_type(stream, bt2.stream._Stream)
 
         ptr = native_bt.message_stream_end_create(self._bt_ptr, stream._ptr)
         if ptr is None:
             raise bt2.CreationError('cannot create stream end message object')
 
-        return bt2.message._StreamEndMessage(ptr)
+        msg = bt2.message._StreamEndMessage(ptr)
+
+        if default_clock_snapshot is not None:
+            msg._default_clock_snapshot = default_clock_snapshot
+
+        return msg
 
     def _create_packet_beginning_message(self, packet, default_clock_snapshot=None):
         utils._check_type(packet, bt2.packet._Packet)

@@ -93,6 +93,12 @@ TESTS_PLUGINS += \
 	plugins/flt.lttng-utils.debug-info/test_bin_info_x86_64-linux-gnu
 endif
 
+if ENABLE_PYTHON_PLUGINS
+if ENABLE_PYTHON_BINDINGS
+TESTS_PLUGINS += plugins/flt.utils.trimmer/test_trimming_wrapper
+endif
+endif
+
 TESTS_PYTHON_PLUGIN_PROVIDER =
 
 if ENABLE_PYTHON_PLUGINS

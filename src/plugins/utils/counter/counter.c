@@ -53,8 +53,6 @@ uint64_t get_total_count(struct counter *counter)
 	return counter->count.event +
 		counter->count.stream_begin +
 		counter->count.stream_end +
-		counter->count.stream_activity_begin +
-		counter->count.stream_activity_end +
 		counter->count.packet_begin +
 		counter->count.packet_end +
 		counter->count.disc_events +
@@ -71,8 +69,6 @@ void print_count(struct counter *counter)
 	PRINTF_COUNT("Event", event);
 	PRINTF_COUNT("Stream beginning", stream_begin);
 	PRINTF_COUNT("Stream end", stream_end);
-	PRINTF_COUNT("Stream activity beginning", stream_activity_begin);
-	PRINTF_COUNT("Stream activity end", stream_activity_end);
 	PRINTF_COUNT("Packet beginning", packet_begin);
 	PRINTF_COUNT("Packet end", packet_end);
 	PRINTF_COUNT("Discarded event", disc_events);
@@ -297,12 +293,6 @@ bt_component_class_sink_consume_method_status counter_consume(
 				break;
 			case BT_MESSAGE_TYPE_STREAM_END:
 				counter->count.stream_end++;
-				break;
-			case BT_MESSAGE_TYPE_STREAM_ACTIVITY_BEGINNING:
-				counter->count.stream_activity_begin++;
-				break;
-			case BT_MESSAGE_TYPE_STREAM_ACTIVITY_END:
-				counter->count.stream_activity_end++;
 				break;
 			case BT_MESSAGE_TYPE_DISCARDED_EVENTS:
 				counter->count.disc_events++;

@@ -134,7 +134,6 @@ class UserMessageIteratorTestCase(unittest.TestCase):
 
                 self._msgs = [
                     self._create_stream_beginning_message(stream),
-                    self._create_stream_activity_beginning_message(stream),
                     self._create_packet_beginning_message(packet),
                     event_message,
                     event_message,
@@ -155,9 +154,10 @@ class UserMessageIteratorTestCase(unittest.TestCase):
         it = graph.create_output_port_message_iterator(src.output_ports['out'])
 
         # Skip beginning messages.
-        next(it)
-        next(it)
-        next(it)
+        msg = next(it)
+        self.assertIsInstance(msg, bt2.message._StreamBeginningMessage)
+        msg = next(it)
+        self.assertIsInstance(msg, bt2.message._PacketBeginningMessage)
 
         msg_ev1 = next(it)
         msg_ev2 = next(it)
@@ -182,12 +182,10 @@ class UserMessageIteratorTestCase(unittest.TestCase):
 
                 self._msgs = [
                     self._create_stream_beginning_message(stream),
-                    self._create_stream_activity_beginning_message(stream),
                     self._create_packet_beginning_message(packet),
                     self._create_event_message(ec, packet),
                     self._create_event_message(ec, packet),
                     self._create_packet_end_message(packet),
-                    self._create_stream_activity_end_message(stream),
                     self._create_stream_end_message(stream),
                 ]
                 self._at = 0
@@ -274,7 +272,7 @@ class UserMessageIteratorTestCase(unittest.TestCase):
         msg = next(it)
         self.assertIsInstance(msg, bt2.message._StreamBeginningMessage)
         msg = next(it)
-        self.assertIsInstance(msg, bt2.message._StreamActivityBeginningMessage)
+        self.assertIsInstance(msg, bt2.message._PacketBeginningMessage)
 
         it.seek_beginning()
 

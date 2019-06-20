@@ -97,13 +97,9 @@
 #include <babeltrace2/graph/message-packet-beginning.h>
 #include <babeltrace2/graph/message-packet-end-const.h>
 #include <babeltrace2/graph/message-packet-end.h>
-#include <babeltrace2/graph/message-stream-activity-beginning-const.h>
-#include <babeltrace2/graph/message-stream-activity-beginning.h>
-#include <babeltrace2/graph/message-stream-activity-const.h>
-#include <babeltrace2/graph/message-stream-activity-end-const.h>
-#include <babeltrace2/graph/message-stream-activity-end.h>
 #include <babeltrace2/graph/message-stream-beginning-const.h>
 #include <babeltrace2/graph/message-stream-beginning.h>
+#include <babeltrace2/graph/message-stream-const.h>
 #include <babeltrace2/graph/message-stream-end-const.h>
 #include <babeltrace2/graph/message-stream-end.h>
 #include <babeltrace2/graph/port-const.h>

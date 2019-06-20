@@ -55,11 +55,9 @@ struct dmesg_msg_iter {
 
 	enum {
 		STATE_EMIT_STREAM_BEGINNING,
-		STATE_EMIT_STREAM_ACTIVITY_BEGINNING,
 		STATE_EMIT_PACKET_BEGINNING,
 		STATE_EMIT_EVENT,
 		STATE_EMIT_PACKET_END,
-		STATE_EMIT_STREAM_ACTIVITY_END,
 		STATE_EMIT_STREAM_END,
 		STATE_DONE,
 	} state;
@@ -750,7 +748,6 @@ bt_component_class_message_iterator_next_method_status dmesg_msg_iter_next_one(
 
 	if (dmesg_msg_iter->tmp_event_msg ||
 			dmesg_msg_iter->state == STATE_EMIT_PACKET_END ||
-			dmesg_msg_iter->state == STATE_EMIT_STREAM_ACTIVITY_END ||
 			dmesg_msg_iter->state == STATE_EMIT_STREAM_END) {
 		goto handle_state;
 	}
@@ -814,12 +811,6 @@ handle_state:
 		BT_ASSERT(dmesg_msg_iter->tmp_event_msg);
 		*msg = bt_message_stream_beginning_create(
 			dmesg_msg_iter->pc_msg_iter, dmesg_comp->stream);
-		dmesg_msg_iter->state = STATE_EMIT_STREAM_ACTIVITY_BEGINNING;
-		break;
-	case STATE_EMIT_STREAM_ACTIVITY_BEGINNING:
-		BT_ASSERT(dmesg_msg_iter->tmp_event_msg);
-		*msg = bt_message_stream_activity_beginning_create(
-			dmesg_msg_iter->pc_msg_iter, dmesg_comp->stream);
 		dmesg_msg_iter->state = STATE_EMIT_PACKET_BEGINNING;
 		break;
 	case STATE_EMIT_PACKET_BEGINNING:
@@ -851,11 +842,6 @@ handle_state:
 				dmesg_msg_iter->pc_msg_iter, dmesg_comp->packet);
 		}
 
-		dmesg_msg_iter->state = STATE_EMIT_STREAM_ACTIVITY_END;
-		break;
-	case STATE_EMIT_STREAM_ACTIVITY_END:
-		*msg = bt_message_stream_activity_end_create(
-			dmesg_msg_iter->pc_msg_iter, dmesg_comp->stream);
 		dmesg_msg_iter->state = STATE_EMIT_STREAM_END;
 		break;
 	case STATE_EMIT_STREAM_END:

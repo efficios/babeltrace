@@ -49,9 +49,6 @@
 #include <babeltrace2/graph/message-packet-beginning.h>
 #include <babeltrace2/graph/message-packet-beginning-const.h>
 #include <babeltrace2/graph/message-packet-end-const.h>
-#include <babeltrace2/graph/message-stream-activity-beginning.h>
-#include <babeltrace2/graph/message-stream-activity-beginning-const.h>
-#include <babeltrace2/graph/message-stream-activity-end-const.h>
 #include <babeltrace2/graph/message-stream-beginning.h>
 #include <babeltrace2/graph/message-stream-beginning-const.h>
 #include <babeltrace2/graph/message-stream-end-const.h>
@@ -80,7 +77,6 @@
 #include "message/message-iterator-inactivity.h"
 #include "message/stream.h"
 #include "message/packet.h"
-#include "message/stream-activity.h"
 #include "lib/func-status.h"
 
 /*
@@ -589,21 +585,17 @@ bool clock_snapshots_are_monotonic_one(
 		clock_snapshot = packet_msg->default_cs;
 		break;
 	}
-	case BT_MESSAGE_TYPE_STREAM_ACTIVITY_BEGINNING:
-	case BT_MESSAGE_TYPE_STREAM_ACTIVITY_END:
-	{
-		struct bt_message_stream_activity *str_act_msg =
-			(struct bt_message_stream_activity *) msg;
-
-		if (str_act_msg->default_cs_state == BT_MESSAGE_STREAM_ACTIVITY_CLOCK_SNAPSHOT_STATE_KNOWN) {
-			clock_snapshot = str_act_msg->default_cs;
-		}
-		break;
-	}
 	case BT_MESSAGE_TYPE_STREAM_BEGINNING:
 	case BT_MESSAGE_TYPE_STREAM_END:
-		/* These messages don't have clock snapshots. */
-		goto end;
+	{
+		struct bt_message_stream *stream_msg = (struct bt_message_stream *) msg;
+		if (stream_msg->default_cs_state != BT_MESSAGE_STREAM_CLOCK_SNAPSHOT_STATE_KNOWN) {
+			goto end;
+		}
+
+		clock_snapshot = stream_msg->default_cs;
+		break;
+	}
 	case BT_MESSAGE_TYPE_DISCARDED_EVENTS:
 	case BT_MESSAGE_TYPE_DISCARDED_PACKETS:
 	{
@@ -1297,20 +1289,18 @@ struct auto_seek_stream_state {
 	 * Value representing which step of this timeline we are at.
 	 *
 	 *      time --->
-	 *   [SB]  1  [SAB]  2  [PB]  3  [PE]  2  [SAE]  1  [SE]
+	 *   [SB]  1  [PB]  2  [PE]  1  [SE]
 	 *
 	 * At each point in the timeline, the messages we need to replicate are:
 	 *
 	 *   1: Stream beginning
-	 *   2: Stream beginning, stream activity beginning
-	 *   3: Stream beginning, stream activity beginning, packet beginning
+	 *   2: Stream beginning, packet beginning
 	 *
 	 * Before "Stream beginning" and after "Stream end", we don't need to
 	 * replicate anything as the stream doesn't exist.
 	 */
 	enum {
 		AUTO_SEEK_STREAM_STATE_STREAM_BEGAN,
-		AUTO_SEEK_STREAM_STATE_STREAM_ACTIVITY_BEGAN,
 		AUTO_SEEK_STREAM_STATE_PACKET_BEGAN,
 	} state;
 
@@ -1320,6 +1310,9 @@ struct auto_seek_stream_state {
 	 * alive by the time we use it.
 	 */
 	struct bt_packet *packet;
+
+	/* Have we see a message with a clock snapshot yet? */
+	bool seen_clock_snapshot;
 };
 
 static
@@ -1472,63 +1465,20 @@ int auto_seek_handle_message(
 			goto skip_msg;
 		}
 	}
-	case BT_MESSAGE_TYPE_STREAM_ACTIVITY_BEGINNING:
-	{
-		const struct bt_message_stream_activity *stream_act_msg =
-			(const void *) msg;
-
-		switch (stream_act_msg->default_cs_state) {
-		case BT_MESSAGE_STREAM_ACTIVITY_CLOCK_SNAPSHOT_STATE_UNKNOWN:
-		case BT_MESSAGE_STREAM_ACTIVITY_CLOCK_SNAPSHOT_STATE_INFINITE:
-			/*
-			 * -inf is always less than any requested time,
-			 * and we can't assume any specific time for an
-			 * unknown clock snapshot, so skip this.
-			 */
-			goto skip_msg;
-		case BT_MESSAGE_STREAM_ACTIVITY_CLOCK_SNAPSHOT_STATE_KNOWN:
-			clk_snapshot = stream_act_msg->default_cs;
-			BT_ASSERT(clk_snapshot);
-			break;
-		default:
-			abort();
-		}
-
-		break;
-	}
-	case BT_MESSAGE_TYPE_STREAM_ACTIVITY_END:
-	{
-		const struct bt_message_stream_activity *stream_act_msg =
-			(const void *) msg;
-
-		switch (stream_act_msg->default_cs_state) {
-		case BT_MESSAGE_STREAM_ACTIVITY_CLOCK_SNAPSHOT_STATE_UNKNOWN:
-			/*
-			 * We can't assume any specific time for an
-			 * unknown clock snapshot, so skip this.
-			 */
-			goto skip_msg;
-		case BT_MESSAGE_STREAM_ACTIVITY_CLOCK_SNAPSHOT_STATE_INFINITE:
-			/*
-			 * +inf is always greater than any requested
-			 * time.
-			 */
-			*got_first = true;
-			goto push_msg;
-		case BT_MESSAGE_STREAM_ACTIVITY_CLOCK_SNAPSHOT_STATE_KNOWN:
-			clk_snapshot = stream_act_msg->default_cs;
-			BT_ASSERT(clk_snapshot);
-			break;
-		default:
-			abort();
-		}
-
-		break;
-	}
 	case BT_MESSAGE_TYPE_STREAM_BEGINNING:
 	case BT_MESSAGE_TYPE_STREAM_END:
-		/* Ignore */
-		goto skip_msg;
+	{
+		struct bt_message_stream *stream_msg =
+			(struct bt_message_stream *) msg;
+
+		if (stream_msg->default_cs_state != BT_MESSAGE_STREAM_CLOCK_SNAPSHOT_STATE_KNOWN) {
+			/* Ignore */
+			goto skip_msg;
+		}
+
+		clk_snapshot = stream_msg->default_cs;
+		break;
+	}
 	default:
 		abort();
 	}
@@ -1563,23 +1513,12 @@ skip_msg:
 
 		stream_state->state = AUTO_SEEK_STREAM_STATE_STREAM_BEGAN;
 
+		if (stream_msg->default_cs_state == BT_MESSAGE_STREAM_CLOCK_SNAPSHOT_STATE_KNOWN) {
+			stream_state->seen_clock_snapshot = true;
+		}
+
 		BT_ASSERT(!bt_g_hash_table_contains(stream_states, stream_msg->stream));
 		g_hash_table_insert(stream_states, stream_msg->stream, stream_state);
-		break;
-	}
-	case BT_MESSAGE_TYPE_STREAM_ACTIVITY_BEGINNING:
-	{
-		const struct bt_message_stream_activity *stream_act_msg =
-			(const void *) msg;
-		struct auto_seek_stream_state *stream_state;
-
-		/* Update stream's state: stream activity began. */
-		stream_state = g_hash_table_lookup(stream_states, stream_act_msg->stream);
-		BT_ASSERT(stream_state);
-
-		BT_ASSERT(stream_state->state == AUTO_SEEK_STREAM_STATE_STREAM_BEGAN);
-		stream_state->state = AUTO_SEEK_STREAM_STATE_STREAM_ACTIVITY_BEGAN;
-		BT_ASSERT(!stream_state->packet);
 		break;
 	}
 	case BT_MESSAGE_TYPE_PACKET_BEGINNING:
@@ -1592,10 +1531,29 @@ skip_msg:
 		stream_state = g_hash_table_lookup(stream_states, packet_msg->packet->stream);
 		BT_ASSERT(stream_state);
 
-		BT_ASSERT(stream_state->state == AUTO_SEEK_STREAM_STATE_STREAM_ACTIVITY_BEGAN);
+		BT_ASSERT(stream_state->state == AUTO_SEEK_STREAM_STATE_STREAM_BEGAN);
 		stream_state->state = AUTO_SEEK_STREAM_STATE_PACKET_BEGAN;
 		BT_ASSERT(!stream_state->packet);
 		stream_state->packet = packet_msg->packet;
+
+		if (packet_msg->packet->stream->class->packets_have_beginning_default_clock_snapshot) {
+			stream_state->seen_clock_snapshot = true;
+		}
+
+		break;
+	}
+	case BT_MESSAGE_TYPE_EVENT:
+	{
+		const struct bt_message_event *event_msg = (const void *) msg;
+		struct auto_seek_stream_state *stream_state;
+
+		stream_state = g_hash_table_lookup(stream_states,
+			event_msg->event->packet->stream);
+		BT_ASSERT(stream_state);
+
+		// HELPME: are we sure that event messages have clock snapshots at this point?
+		stream_state->seen_clock_snapshot = true;
+
 		break;
 	}
 	case BT_MESSAGE_TYPE_PACKET_END:
@@ -1609,24 +1567,14 @@ skip_msg:
 		BT_ASSERT(stream_state);
 
 		BT_ASSERT(stream_state->state == AUTO_SEEK_STREAM_STATE_PACKET_BEGAN);
-		stream_state->state = AUTO_SEEK_STREAM_STATE_STREAM_ACTIVITY_BEGAN;
+		stream_state->state = AUTO_SEEK_STREAM_STATE_STREAM_BEGAN;
 		BT_ASSERT(stream_state->packet);
 		stream_state->packet = NULL;
-		break;
-	}
-	case BT_MESSAGE_TYPE_STREAM_ACTIVITY_END:
-	{
-		const struct bt_message_stream_activity *stream_act_msg =
-			(const void *) msg;
-		struct auto_seek_stream_state *stream_state;
 
-		/* Update stream's state: stream activity ended. */
-		stream_state = g_hash_table_lookup(stream_states, stream_act_msg->stream);
-		BT_ASSERT(stream_state);
+		if (packet_msg->packet->stream->class->packets_have_end_default_clock_snapshot) {
+			stream_state->seen_clock_snapshot = true;
+		}
 
-		BT_ASSERT(stream_state->state == AUTO_SEEK_STREAM_STATE_STREAM_ACTIVITY_BEGAN);
-		stream_state->state = AUTO_SEEK_STREAM_STATE_STREAM_BEGAN;
-		BT_ASSERT(!stream_state->packet);
 		break;
 	}
 	case BT_MESSAGE_TYPE_STREAM_END:
@@ -1641,6 +1589,23 @@ skip_msg:
 
 		/* Update stream's state: this stream doesn't exist anymore. */
 		g_hash_table_remove(stream_states, stream_msg->stream);
+		break;
+	}
+	case BT_MESSAGE_TYPE_DISCARDED_EVENTS:
+	case BT_MESSAGE_TYPE_DISCARDED_PACKETS:
+	{
+		const struct bt_message_discarded_items *discarded_msg =
+			(const void *) msg;
+		struct auto_seek_stream_state *stream_state;
+
+		stream_state = g_hash_table_lookup(stream_states, discarded_msg->stream);
+		BT_ASSERT(stream_state);
+
+		if ((msg->type == BT_MESSAGE_TYPE_DISCARDED_EVENTS && discarded_msg->stream->class->discarded_events_have_default_clock_snapshots) ||
+			(msg->type == BT_MESSAGE_TYPE_DISCARDED_PACKETS && discarded_msg->stream->class->discarded_packets_have_default_clock_snapshots)) {
+			stream_state->seen_clock_snapshot = true;
+		}
+
 		break;
 	}
 	default:
@@ -1934,23 +1899,48 @@ bt_self_component_port_input_message_iterator_seek_ns_from_origin(
 				bt_message *msg;
 				const bt_clock_class *clock_class = bt_stream_class_borrow_default_clock_class_const(
 					bt_stream_borrow_class_const(stream));
-				uint64_t raw_value;
+				/* Initialize to silence maybe-uninitialized warning. */
+				uint64_t raw_value = 0;
 
-				if (clock_raw_value_from_ns_from_origin(clock_class, ns_from_origin, &raw_value) != 0) {
-					BT_LIB_LOGW_APPEND_CAUSE(
-						"Could not convert nanoseconds from origin to clock value: "
-						"ns-from-origin=%" PRId64 ", %![cc-]+K",
-						ns_from_origin, clock_class);
-					status = BT_FUNC_STATUS_ERROR;
-					goto end;
+				/*
+				 * If we haven't seen a message with a clock snapshot, we don't know if our seek time is within
+				 * the clock's range, so it wouldn't be safe to try to convert ns_from_origin to a clock value.
+				 *
+				 * Also, it would be a bit of a lie to generate a stream begin message with the seek time as its
+				 * clock snapshot, because we don't really know if the stream existed at that time.  If we have
+				 * seen a message with a clock snapshot in our seeking, then we are sure that the
+				 * seek time is not below the clock range, and we know the stream was active at that
+				 * time (and that we cut it short).
+				 */
+				if (stream_state->seen_clock_snapshot) {
+					if (clock_raw_value_from_ns_from_origin(clock_class, ns_from_origin, &raw_value) != 0) {
+						BT_LIB_LOGW("Could not convert nanoseconds from origin to clock value: ns-from-origin=%" PRId64 ", %![cc-]+K",
+							ns_from_origin, clock_class);
+						status = BT_FUNC_STATUS_ERROR;
+						goto end;
+					}
 				}
 
 				switch (stream_state->state) {
 				case AUTO_SEEK_STREAM_STATE_PACKET_BEGAN:
 					BT_ASSERT(stream_state->packet);
 					BT_LIB_LOGD("Creating packet message: %![packet-]+a", stream_state->packet);
-					msg = bt_message_packet_beginning_create_with_default_clock_snapshot(
-						(bt_self_message_iterator *) iterator, stream_state->packet, raw_value);
+
+					if (stream->class->packets_have_beginning_default_clock_snapshot) {
+						/*
+						 * If we are in the PACKET_BEGAN state, it means we have seen a "packet beginning"
+						 * message.  If "packet beginning" packets have clock snapshots, then we must have
+						 * seen a clock snapshot.
+						 */
+						BT_ASSERT(stream_state->seen_clock_snapshot);
+
+						msg = bt_message_packet_beginning_create_with_default_clock_snapshot(
+							(bt_self_message_iterator *) iterator, stream_state->packet, raw_value);
+					} else {
+						msg = bt_message_packet_beginning_create((bt_self_message_iterator *) iterator,
+								stream_state->packet);
+					}
+
 					if (!msg) {
 						status = BT_FUNC_STATUS_MEMORY_ERROR;
 						goto end;
@@ -1959,25 +1949,17 @@ bt_self_component_port_input_message_iterator_seek_ns_from_origin(
 					g_queue_push_head(iterator->auto_seek.msgs, msg);
 					msg = NULL;
 					/* fall-thru */
-				case AUTO_SEEK_STREAM_STATE_STREAM_ACTIVITY_BEGAN:
-					msg = bt_message_stream_activity_beginning_create(
-						(bt_self_message_iterator *) iterator, stream);
-					if (!msg) {
-						status = BT_FUNC_STATUS_MEMORY_ERROR;
-						goto end;
-					}
 
-					bt_message_stream_activity_beginning_set_default_clock_snapshot(msg, raw_value);
-
-					g_queue_push_head(iterator->auto_seek.msgs, msg);
-					msg = NULL;
-					/* fall-thru */
 				case AUTO_SEEK_STREAM_STATE_STREAM_BEGAN:
 					msg = bt_message_stream_beginning_create(
 						(bt_self_message_iterator *) iterator, stream);
 					if (!msg) {
 						status = BT_FUNC_STATUS_MEMORY_ERROR;
 						goto end;
+					}
+
+					if (stream_state->seen_clock_snapshot) {
+						bt_message_stream_beginning_set_default_clock_snapshot(msg, raw_value);
 					}
 
 					g_queue_push_head(iterator->auto_seek.msgs, msg);

@@ -16,10 +16,6 @@ Stream beginning:
     UUID: 2a6422d0-6cee-11e0-8c08-cb07d7b3a564
     Stream (ID 0, Class ID 0)
 
-[Unknown]
-{Trace 0, Stream class ID 0, Stream ID 0}
-Stream activity beginning
-
 {Trace 0, Stream class ID 0, Stream ID 0}
 Packet beginning:
 
@@ -35,10 +31,6 @@ Event `string` (Class ID 0):
 
 {Trace 0, Stream class ID 0, Stream ID 0}
 Packet end
-
-[Unknown]
-{Trace 0, Stream class ID 0, Stream ID 0}
-Stream activity end
 
 {Trace 0, Stream class ID 0, Stream ID 0}
 Stream end

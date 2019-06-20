@@ -1503,110 +1503,6 @@ bt_message *handle_msg_iterator_inactivity(struct debug_info_msg_iter *debug_it,
 }
 
 static
-bt_message *handle_stream_act_begin_message(struct debug_info_msg_iter *debug_it,
-		const bt_message *in_message)
-{
-	const bt_clock_snapshot *cs;
-	const bt_clock_class *default_cc;
-	bt_message *out_message = NULL;
-	bt_stream *out_stream;
-	uint64_t cs_value;
-	bt_message_stream_activity_clock_snapshot_state cs_state;
-	bt_logging_level log_level = debug_it->log_level;
-	bt_self_component *self_comp = debug_it->self_comp;
-
-	const bt_stream *in_stream =
-		bt_message_stream_activity_beginning_borrow_stream_const(
-			in_message);
-	BT_ASSERT(in_stream);
-
-	out_stream = trace_ir_mapping_borrow_mapped_stream(debug_it->ir_maps,
-			in_stream);
-	BT_ASSERT(out_stream);
-
-	out_message = bt_message_stream_activity_beginning_create(
-			debug_it->input_iterator, out_stream);
-	if (!out_message) {
-		BT_COMP_LOGE("Error creating output stream activity beginning "
-			"message: out-s-addr=%p", out_stream);
-		goto error;
-	}
-
-	default_cc = bt_stream_class_borrow_default_clock_class_const(
-			bt_stream_borrow_class_const(in_stream));
-	if (default_cc) {
-		/* Borrow clock snapshot. */
-		cs_state =
-			bt_message_stream_activity_beginning_borrow_default_clock_snapshot_const(
-					in_message, &cs);
-
-		if (cs_state == BT_MESSAGE_STREAM_ACTIVITY_CLOCK_SNAPSHOT_STATE_KNOWN) {
-			cs_value = bt_clock_snapshot_get_value(cs);
-			bt_message_stream_activity_beginning_set_default_clock_snapshot(
-					out_message, cs_value);
-		} else {
-			bt_message_stream_activity_beginning_set_default_clock_snapshot_state(
-					out_message, cs_state);
-		}
-	}
-
-error:
-	return out_message;
-}
-
-static
-bt_message *handle_stream_act_end_message(struct debug_info_msg_iter *debug_it,
-		const bt_message *in_message)
-{
-	const bt_clock_snapshot *cs;
-	const bt_clock_class *default_cc;
-	const bt_stream *in_stream;
-	bt_message *out_message;
-	bt_stream *out_stream;
-	uint64_t cs_value;
-	bt_message_stream_activity_clock_snapshot_state cs_state;
-	bt_logging_level log_level = debug_it->log_level;
-	bt_self_component *self_comp = debug_it->self_comp;
-
-	in_stream = bt_message_stream_activity_end_borrow_stream_const(
-			in_message);
-	BT_ASSERT(in_stream);
-
-	out_stream = trace_ir_mapping_borrow_mapped_stream(debug_it->ir_maps,
-		in_stream);
-	BT_ASSERT(out_stream);
-
-	out_message = bt_message_stream_activity_end_create(
-			debug_it->input_iterator, out_stream);
-	if (!out_message) {
-		BT_COMP_LOGE("Error creating output stream activity end message: "
-			"out-s-addr=%p", out_stream);
-		goto error;
-	}
-
-	default_cc = bt_stream_class_borrow_default_clock_class_const(
-			bt_stream_borrow_class_const(in_stream));
-
-	if (default_cc) {
-		cs_state =
-			bt_message_stream_activity_end_borrow_default_clock_snapshot_const(
-					in_message, &cs);
-
-		if (cs_state == BT_MESSAGE_STREAM_ACTIVITY_CLOCK_SNAPSHOT_STATE_KNOWN ) {
-			cs_value = bt_clock_snapshot_get_value(cs);
-			bt_message_stream_activity_end_set_default_clock_snapshot(
-					out_message, cs_value);
-		} else {
-			bt_message_stream_activity_end_set_default_clock_snapshot_state(
-					out_message, cs_state);
-		}
-	}
-
-error:
-	return out_message;
-}
-
-static
 bt_message *handle_discarded_events_message(struct debug_info_msg_iter *debug_it,
 		const bt_message *in_message)
 {
@@ -1758,14 +1654,6 @@ const bt_message *handle_message(struct debug_info_msg_iter *debug_it,
 		break;
 	case BT_MESSAGE_TYPE_MESSAGE_ITERATOR_INACTIVITY:
 		out_message = handle_msg_iterator_inactivity(debug_it,
-				in_message);
-		break;
-	case BT_MESSAGE_TYPE_STREAM_ACTIVITY_BEGINNING:
-		out_message = handle_stream_act_begin_message(debug_it,
-				in_message);
-		break;
-	case BT_MESSAGE_TYPE_STREAM_ACTIVITY_END:
-		out_message = handle_stream_act_end_message(debug_it,
 				in_message);
 		break;
 	case BT_MESSAGE_TYPE_DISCARDED_EVENTS:

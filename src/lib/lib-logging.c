@@ -56,7 +56,6 @@
 #include "graph/message/message.h"
 #include "graph/message/message-iterator-inactivity.h"
 #include "graph/message/packet.h"
-#include "graph/message/stream-activity.h"
 #include "graph/message/stream.h"
 #include "graph/port.h"
 #include "plugin/plugin.h"
@@ -925,28 +924,14 @@ static inline void format_message(char **buf_ch, bool extended,
 				msg_stream->stream);
 		}
 
-		break;
-	}
-	case BT_MESSAGE_TYPE_STREAM_ACTIVITY_BEGINNING:
-	case BT_MESSAGE_TYPE_STREAM_ACTIVITY_END:
-	{
-		const struct bt_message_stream_activity *msg_stream_activity =
-			(const void *) msg;
-
-		if (msg_stream_activity->stream) {
-			SET_TMP_PREFIX("stream-");
-			format_stream(buf_ch, true, tmp_prefix,
-				msg_stream_activity->stream);
-		}
-
 		BUF_APPEND(", %sdefault-cs-state=%s",
-			PRFIELD(bt_message_stream_activity_clock_snapshot_state_string(
-				msg_stream_activity->default_cs_state)));
+			PRFIELD(bt_message_stream_clock_snapshot_state_string(
+				msg_stream->default_cs_state)));
 
-		if (msg_stream_activity->default_cs) {
+		if (msg_stream->default_cs_state == BT_MESSAGE_STREAM_CLOCK_SNAPSHOT_STATE_KNOWN) {
 			SET_TMP_PREFIX("default-cs-");
 			format_clock_snapshot(buf_ch, true, tmp_prefix,
-				msg_stream_activity->default_cs);
+				msg_stream->default_cs);
 		}
 
 		break;

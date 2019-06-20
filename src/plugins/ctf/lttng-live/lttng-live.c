@@ -633,7 +633,6 @@ int live_get_msg_ts_ns(struct lttng_live_stream_iterator *stream_iter,
 	const bt_clock_class *clock_class = NULL;
 	const bt_clock_snapshot *clock_snapshot = NULL;
 	int ret = 0;
-	bt_message_stream_activity_clock_snapshot_state sa_cs_state;
 	bt_logging_level log_level = lttng_live_msg_iter->log_level;
 	bt_self_component *self_comp = lttng_live_msg_iter->self_comp;
 
@@ -690,32 +689,6 @@ int live_get_msg_ts_ns(struct lttng_live_stream_iterator *stream_iter,
 		clock_snapshot = bt_message_discarded_packets_borrow_beginning_default_clock_snapshot_const(
 			msg);
 		break;
-	case BT_MESSAGE_TYPE_STREAM_ACTIVITY_BEGINNING:
-		clock_class =
-			bt_message_stream_activity_beginning_borrow_stream_class_default_clock_class_const(
-			msg);
-		BT_ASSERT(clock_class);
-
-		sa_cs_state = bt_message_stream_activity_beginning_borrow_default_clock_snapshot_const(
-			msg, &clock_snapshot);
-		if (sa_cs_state != BT_MESSAGE_STREAM_ACTIVITY_CLOCK_SNAPSHOT_STATE_KNOWN) {
-			goto no_clock_snapshot;
-		}
-
-		break;
-	case BT_MESSAGE_TYPE_STREAM_ACTIVITY_END:
-		clock_class =
-			bt_message_stream_activity_end_borrow_stream_class_default_clock_class_const(
-			msg);
-		BT_ASSERT(clock_class);
-
-		sa_cs_state = bt_message_stream_activity_end_borrow_default_clock_snapshot_const(
-			msg, &clock_snapshot);
-		if (sa_cs_state != BT_MESSAGE_STREAM_ACTIVITY_CLOCK_SNAPSHOT_STATE_KNOWN) {
-			goto no_clock_snapshot;
-		}
-
-		break;
 	case BT_MESSAGE_TYPE_MESSAGE_ITERATOR_INACTIVITY:
 		clock_snapshot =
 			bt_message_message_iterator_inactivity_borrow_default_clock_snapshot_const(
@@ -738,12 +711,6 @@ int live_get_msg_ts_ns(struct lttng_live_stream_iterator *stream_iter,
 		goto error;
 	}
 
-	goto end;
-
-no_clock_snapshot:
-	BT_COMP_LOGD_STR("Message's default clock snapshot is missing: "
-		"using the last message timestamp.");
-	*ts_ns = last_msg_ts_ns;
 	goto end;
 
 error:

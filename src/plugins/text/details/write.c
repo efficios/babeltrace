@@ -1769,12 +1769,26 @@ int write_stream_beginning_message(struct details_write_ctx *ctx,
 		bt_message_stream_beginning_borrow_stream_const(msg);
 	const bt_trace *trace = bt_stream_borrow_trace_const(stream);
 	const bt_stream_class *sc = bt_stream_borrow_class_const(stream);
+	const bt_clock_class *cc = bt_stream_class_borrow_default_clock_class_const(sc);
 	const bt_trace_class *tc = bt_stream_class_borrow_trace_class_const(sc);
 	const char *name;
 
 	ret = try_write_meta(ctx, tc, sc, NULL);
 	if (ret) {
 		goto end;
+	}
+
+	/* Write time */
+	if (cc) {
+		const bt_clock_snapshot *cs;
+		bt_message_stream_clock_snapshot_state cs_state =
+			bt_message_stream_beginning_borrow_default_clock_snapshot_const(msg, &cs);
+
+		if (cs_state == BT_MESSAGE_STREAM_CLOCK_SNAPSHOT_STATE_KNOWN) {
+			write_time(ctx, cs);
+		} else {
+			write_time_str(ctx, "Unknown");
+		}
 	}
 
 	/* Write follow tag for message */
@@ -1822,6 +1836,23 @@ int write_stream_end_message(struct details_write_ctx *ctx,
 	int ret = 0;
 	const bt_stream *stream =
 		bt_message_stream_end_borrow_stream_const(msg);
+	const bt_stream_class *sc =
+		bt_stream_borrow_class_const(stream);
+	const bt_clock_class *cc =
+		bt_stream_class_borrow_default_clock_class_const(sc);
+
+	/* Write time */
+	if (cc) {
+		const bt_clock_snapshot *cs;
+		bt_message_stream_clock_snapshot_state cs_state =
+			bt_message_stream_end_borrow_default_clock_snapshot_const(msg, &cs);
+
+		if (cs_state == BT_MESSAGE_STREAM_CLOCK_SNAPSHOT_STATE_KNOWN) {
+			write_time(ctx, cs);
+		} else {
+			write_time_str(ctx, "Unknown");
+		}
+	}
 
 	/* Write follow tag for message */
 	ret = write_message_follow_tag(ctx, stream);
@@ -1831,88 +1862,6 @@ int write_stream_end_message(struct details_write_ctx *ctx,
 
 	/* Write stream properties */
 	write_obj_type_name(ctx, "Stream end\n");
-
-end:
-	return ret;
-}
-
-static
-int write_stream_activity_beginning_message(struct details_write_ctx *ctx,
-		const bt_message *msg)
-{
-	int ret = 0;
-	const bt_stream *stream =
-		bt_message_stream_activity_beginning_borrow_stream_const(msg);
-	bt_message_stream_activity_clock_snapshot_state cs_state;
-	const bt_clock_snapshot *cs = NULL;
-
-	/* Write time */
-	cs_state = bt_message_stream_activity_beginning_borrow_default_clock_snapshot_const(
-		msg, &cs);
-	switch (cs_state) {
-	case BT_MESSAGE_STREAM_ACTIVITY_CLOCK_SNAPSHOT_STATE_KNOWN:
-		BT_ASSERT(cs);
-		write_time(ctx, cs);
-		break;
-	case BT_MESSAGE_STREAM_ACTIVITY_CLOCK_SNAPSHOT_STATE_UNKNOWN:
-		write_time_str(ctx, "Unknown");
-		break;
-	case BT_MESSAGE_STREAM_ACTIVITY_CLOCK_SNAPSHOT_STATE_INFINITE:
-		write_time_str(ctx, "-Infinity");
-		break;
-	default:
-		abort();
-	}
-
-	/* Write follow tag for message */
-	ret = write_message_follow_tag(ctx, stream);
-	if (ret) {
-		goto end;
-	}
-
-	write_obj_type_name(ctx, "Stream activity beginning");
-	write_nl(ctx);
-
-end:
-	return ret;
-}
-
-static
-int write_stream_activity_end_message(struct details_write_ctx *ctx,
-		const bt_message *msg)
-{
-	int ret = 0;
-	const bt_stream *stream =
-		bt_message_stream_activity_end_borrow_stream_const(msg);
-	bt_message_stream_activity_clock_snapshot_state cs_state;
-	const bt_clock_snapshot *cs = NULL;
-
-	/* Write time */
-	cs_state = bt_message_stream_activity_end_borrow_default_clock_snapshot_const(
-		msg, &cs);
-	switch (cs_state) {
-	case BT_MESSAGE_STREAM_ACTIVITY_CLOCK_SNAPSHOT_STATE_KNOWN:
-		BT_ASSERT(cs);
-		write_time(ctx, cs);
-		break;
-	case BT_MESSAGE_STREAM_ACTIVITY_CLOCK_SNAPSHOT_STATE_UNKNOWN:
-		write_time_str(ctx, "Unknown");
-		break;
-	case BT_MESSAGE_STREAM_ACTIVITY_CLOCK_SNAPSHOT_STATE_INFINITE:
-		write_time_str(ctx, "+Infinity");
-		break;
-	default:
-		abort();
-	}
-
-	/* Write follow tag for message */
-	ret = write_message_follow_tag(ctx, stream);
-	if (ret) {
-		goto end;
-	}
-
-	write_obj_type_name(ctx, "Stream activity end");
-	write_nl(ctx);
 
 end:
 	return ret;
@@ -2159,12 +2108,6 @@ int details_write_message(struct details_comp *details_comp,
 		break;
 	case BT_MESSAGE_TYPE_PACKET_END:
 		ret = write_packet_end_message(&ctx, msg);
-		break;
-	case BT_MESSAGE_TYPE_STREAM_ACTIVITY_BEGINNING:
-		ret = write_stream_activity_beginning_message(&ctx, msg);
-		break;
-	case BT_MESSAGE_TYPE_STREAM_ACTIVITY_END:
-		ret = write_stream_activity_end_message(&ctx, msg);
 		break;
 	case BT_MESSAGE_TYPE_DISCARDED_EVENTS:
 		ret = write_discarded_events_message(&ctx, msg);

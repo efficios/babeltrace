@@ -88,7 +88,6 @@ enum state {
 	STATE_AFTER_STREAM_PACKET_CONTEXT,
 	STATE_CHECK_EMIT_MSG_STREAM_BEGINNING,
 	STATE_EMIT_MSG_STREAM_BEGINNING,
-	STATE_EMIT_MSG_STREAM_ACTIVITY_BEGINNING,
 	STATE_CHECK_EMIT_MSG_DISCARDED_EVENTS,
 	STATE_CHECK_EMIT_MSG_DISCARDED_PACKETS,
 	STATE_EMIT_MSG_DISCARDED_EVENTS,
@@ -107,8 +106,7 @@ enum state {
 	STATE_SKIP_PACKET_PADDING,
 	STATE_EMIT_MSG_PACKET_END_MULTI,
 	STATE_EMIT_MSG_PACKET_END_SINGLE,
-	STATE_CHECK_EMIT_MSG_STREAM_ACTIVITY_END,
-	STATE_EMIT_MSG_STREAM_ACTIVITY_END,
+	STATE_CHECK_EMIT_MSG_STREAM_END,
 	STATE_EMIT_MSG_STREAM_END,
 	STATE_DONE,
 };
@@ -128,13 +126,10 @@ struct bt_msg_iter {
 	/* Current message iterator to create messages (weak) */
 	bt_self_message_iterator *msg_iter;
 
-	/*
-	 * True to emit stream beginning and stream activity beginning
-	 * messages.
-	 */
+	/* True to emit a stream beginning message. */
 	bool emit_stream_begin_msg;
 
-	/* True to emit stream end and stream activity end messages */
+	/* True to emit a stream end message. */
 	bool emit_stream_end_msg;
 
 	/* True to set the stream */
@@ -278,8 +273,6 @@ const char *state_string(enum state state)
 		return "STATE_AFTER_STREAM_PACKET_CONTEXT";
 	case STATE_EMIT_MSG_STREAM_BEGINNING:
 		return "STATE_EMIT_MSG_STREAM_BEGINNING";
-	case STATE_EMIT_MSG_STREAM_ACTIVITY_BEGINNING:
-		return "STATE_EMIT_MSG_STREAM_ACTIVITY_BEGINNING";
 	case STATE_EMIT_MSG_PACKET_BEGINNING:
 		return "STATE_EMIT_MSG_PACKET_BEGINNING";
 	case STATE_EMIT_MSG_DISCARDED_EVENTS:
@@ -312,8 +305,6 @@ const char *state_string(enum state state)
 		return "STATE_EMIT_MSG_PACKET_END_MULTI";
 	case STATE_EMIT_MSG_PACKET_END_SINGLE:
 		return "STATE_EMIT_MSG_PACKET_END_SINGLE";
-	case STATE_EMIT_MSG_STREAM_ACTIVITY_END:
-		return "STATE_EMIT_MSG_STREAM_ACTIVITY_END";
 	case STATE_EMIT_MSG_STREAM_END:
 		return "STATE_EMIT_MSG_STREAM_END";
 	case STATE_DONE:
@@ -710,7 +701,7 @@ enum bt_msg_iter_status read_packet_header_begin_state(
 		break;
 	case BT_MSG_ITER_STATUS_EOF:
 		ret = BT_MSG_ITER_STATUS_OK;
-		notit->state = STATE_CHECK_EMIT_MSG_STREAM_ACTIVITY_END;
+		notit->state = STATE_CHECK_EMIT_MSG_STREAM_END;
 		goto end;
 	default:
 		goto end;
@@ -1570,11 +1561,11 @@ end:
 }
 
 static
-enum bt_msg_iter_status check_emit_msg_stream_activity_end(
+enum bt_msg_iter_status check_emit_msg_stream_end(
 		struct bt_msg_iter *notit)
 {
 	if (notit->emit_stream_end_msg) {
-		notit->state = STATE_EMIT_MSG_STREAM_ACTIVITY_END;
+		notit->state = STATE_EMIT_MSG_STREAM_END;
 	} else {
 		notit->state = STATE_DONE;
 	}
@@ -1618,9 +1609,6 @@ enum bt_msg_iter_status handle_state(struct bt_msg_iter *notit)
 		status = check_emit_msg_stream_beginning_state(notit);
 		break;
 	case STATE_EMIT_MSG_STREAM_BEGINNING:
-		notit->state = STATE_EMIT_MSG_STREAM_ACTIVITY_BEGINNING;
-		break;
-	case STATE_EMIT_MSG_STREAM_ACTIVITY_BEGINNING:
 		notit->state = STATE_CHECK_EMIT_MSG_DISCARDED_EVENTS;
 		break;
 	case STATE_CHECK_EMIT_MSG_DISCARDED_EVENTS:
@@ -1675,13 +1663,10 @@ enum bt_msg_iter_status handle_state(struct bt_msg_iter *notit)
 		notit->state = STATE_SKIP_PACKET_PADDING;
 		break;
 	case STATE_EMIT_MSG_PACKET_END_SINGLE:
-		notit->state = STATE_CHECK_EMIT_MSG_STREAM_ACTIVITY_END;
+		notit->state = STATE_CHECK_EMIT_MSG_STREAM_END;
 		break;
-	case STATE_CHECK_EMIT_MSG_STREAM_ACTIVITY_END:
-		status = check_emit_msg_stream_activity_end(notit);
-		break;
-	case STATE_EMIT_MSG_STREAM_ACTIVITY_END:
-		notit->state = STATE_EMIT_MSG_STREAM_END;
+	case STATE_CHECK_EMIT_MSG_STREAM_END:
+		status = check_emit_msg_stream_end(notit);
 		break;
 	case STATE_EMIT_MSG_STREAM_END:
 		notit->state = STATE_DONE;
@@ -2438,52 +2423,6 @@ void create_msg_stream_beginning(struct bt_msg_iter *notit,
 }
 
 static
-void create_msg_stream_activity_beginning(struct bt_msg_iter *notit,
-		bt_message **message)
-{
-	bt_message *ret = NULL;
-
-	BT_ASSERT(notit->stream);
-	BT_ASSERT(notit->msg_iter);
-	ret = bt_message_stream_activity_beginning_create(notit->msg_iter,
-		notit->stream);
-	if (!ret) {
-		BT_COMP_LOGE("Cannot create stream activity beginning message: "
-			"notit-addr=%p, stream-addr=%p",
-			notit, notit->stream);
-		return;
-	}
-
-	*message = ret;
-}
-
-static
-void create_msg_stream_activity_end(struct bt_msg_iter *notit,
-		bt_message **message)
-{
-	bt_message *ret = NULL;
-
-	if (!notit->stream) {
-		BT_COMP_LOGE("Cannot create stream for stream message: "
-			"notit-addr=%p", notit);
-		return;
-	}
-
-	BT_ASSERT(notit->stream);
-	BT_ASSERT(notit->msg_iter);
-	ret = bt_message_stream_activity_end_create(notit->msg_iter,
-		notit->stream);
-	if (!ret) {
-		BT_COMP_LOGE("Cannot create stream activity end message: "
-			"notit-addr=%p, stream-addr=%p",
-			notit, notit->stream);
-		return;
-	}
-
-	*message = ret;
-}
-
-static
 void create_msg_stream_end(struct bt_msg_iter *notit, bt_message **message)
 {
 	bt_message *ret;
@@ -2863,24 +2802,6 @@ enum bt_msg_iter_status bt_msg_iter_get_next_message(
 			}
 
 			goto end;
-		case STATE_EMIT_MSG_STREAM_ACTIVITY_BEGINNING:
-			/* create_msg_stream_activity_beginning() logs errors */
-			create_msg_stream_activity_beginning(notit, message);
-
-			if (!*message) {
-				status = BT_MSG_ITER_STATUS_ERROR;
-			}
-
-			goto end;
-		case STATE_EMIT_MSG_STREAM_ACTIVITY_END:
-			/* create_msg_stream_activity_end() logs errors */
-			create_msg_stream_activity_end(notit, message);
-
-			if (!*message) {
-				status = BT_MSG_ITER_STATUS_ERROR;
-			}
-
-			goto end;
 		case STATE_EMIT_MSG_STREAM_BEGINNING:
 			/* create_msg_stream_beginning() logs errors */
 			create_msg_stream_beginning(notit, message);
@@ -2954,7 +2875,6 @@ enum bt_msg_iter_status read_packet_header_context_fields(
 		case STATE_AFTER_STREAM_PACKET_CONTEXT:
 		case STATE_CHECK_EMIT_MSG_STREAM_BEGINNING:
 		case STATE_EMIT_MSG_STREAM_BEGINNING:
-		case STATE_EMIT_MSG_STREAM_ACTIVITY_BEGINNING:
 		case STATE_CHECK_EMIT_MSG_DISCARDED_EVENTS:
 		case STATE_EMIT_MSG_DISCARDED_EVENTS:
 		case STATE_CHECK_EMIT_MSG_DISCARDED_PACKETS:
