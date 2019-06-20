@@ -4878,6 +4878,14 @@ error:
 	BT_OBJECT_PUT_REF_AND_RESET(cfg);
 
 end:
+	/*
+	 * If the log level is still unset at this point, set it to
+	 * the program's default.
+	 */
+	if (*default_log_level < 0) {
+		*default_log_level = cli_default_log_level;
+	}
+
 	if (pc) {
 		poptFreeContext(pc);
 	}
