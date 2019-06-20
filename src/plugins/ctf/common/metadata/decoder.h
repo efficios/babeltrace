@@ -115,9 +115,16 @@ bool ctf_metadata_decoder_is_packetized(FILE *fp, int *byte_order,
  * text buffer using the given byte order.
  */
 BT_HIDDEN
-int ctf_metadata_decoder_packetized_file_stream_to_buf(
-		FILE *fp, char **buf, int byte_order,
-		bt_logging_level log_level,
+int ctf_metadata_decoder_packetized_file_stream_to_buf(FILE *fp,
+		char **buf, int byte_order, bool *is_uuid_set,
+		uint8_t *uuid, bt_logging_level log_level,
 		bt_self_component *self_comp);
+
+static inline
+bool ctf_metadata_decoder_is_packet_version_valid(unsigned int major,
+		unsigned int minor)
+{
+	return major == 1 && minor == 8;
+}
 
 #endif /* _METADATA_DECODER_H */
