@@ -110,8 +110,8 @@ void *bt_ctf_object_pool_create_object(struct bt_ctf_object_pool *pool)
 
 	BT_ASSERT(pool);
 
-#ifdef BT_LOGV
-	BT_LOGV("Creating object from pool: pool-addr=%p, pool-size=%zu, pool-cap=%u",
+#ifdef BT_LOGT
+	BT_LOGT("Creating object from pool: pool-addr=%p, pool-size=%zu, pool-cap=%u",
 		pool, pool->size, pool->objects->len);
 #endif
 
@@ -124,16 +124,16 @@ void *bt_ctf_object_pool_create_object(struct bt_ctf_object_pool *pool)
 	}
 
 	/* Pool is empty: create a brand new object */
-#ifdef BT_LOGV
-	BT_LOGV("Pool is empty: allocating new object: pool-addr=%p",
+#ifdef BT_LOGT
+	BT_LOGT("Pool is empty: allocating new object: pool-addr=%p",
 		pool);
 #endif
 
 	obj = pool->funcs.new_object(pool->data);
 
 end:
-#ifdef BT_LOGV
-	BT_LOGV("Created one object from pool: pool-addr=%p, obj-addr=%p",
+#ifdef BT_LOGT
+	BT_LOGT("Created one object from pool: pool-addr=%p, obj-addr=%p",
 		pool, obj);
 #endif
 
@@ -153,15 +153,15 @@ void bt_ctf_object_pool_recycle_object(struct bt_ctf_object_pool *pool, void *ob
 	BT_ASSERT(pool);
 	BT_ASSERT(obj);
 
-#ifdef BT_LOGV
-	BT_LOGV("Recycling object: pool-addr=%p, pool-size=%zu, pool-cap=%u, obj-addr=%p",
+#ifdef BT_LOGT
+	BT_LOGT("Recycling object: pool-addr=%p, pool-size=%zu, pool-cap=%u, obj-addr=%p",
 		pool, pool->size, pool->objects->len, obj);
 #endif
 
 	if (pool->size == pool->objects->len) {
 		/* Backing array is full: make place for recycled object */
-#ifdef BT_LOGV
-		BT_LOGV("Object pool is full: increasing object pool capacity: "
+#ifdef BT_LOGT
+		BT_LOGT("Object pool is full: increasing object pool capacity: "
 			"pool-addr=%p, old-pool-cap=%u, new-pool-cap=%u",
 			pool, pool->objects->len, pool->objects->len + 1);
 #endif
@@ -175,8 +175,8 @@ void bt_ctf_object_pool_recycle_object(struct bt_ctf_object_pool *pool, void *ob
 	pool->objects->pdata[pool->size] = obj;
 	pool->size++;
 
-#ifdef BT_LOGV
-	BT_LOGV("Recycled object: pool-addr=%p, pool-size=%zu, pool-cap=%u, obj-addr=%p",
+#ifdef BT_LOGT
+	BT_LOGT("Recycled object: pool-addr=%p, pool-size=%zu, pool-cap=%u, obj-addr=%p",
 		pool, pool->size, pool->objects->len, obj);
 #endif
 }

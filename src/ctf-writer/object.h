@@ -122,8 +122,8 @@ void bt_ctf_object_set_parent(struct bt_ctf_object *child, struct bt_ctf_object 
 	BT_ASSERT(child);
 	BT_ASSERT(child->is_shared);
 
-#ifdef BT_LOGV
-	BT_LOGV("Setting object's parent: addr=%p, parent-addr=%p",
+#ifdef BT_LOGT
+	BT_LOGT("Setting object's parent: addr=%p, parent-addr=%p",
 		child, parent);
 #endif
 
@@ -169,8 +169,8 @@ void bt_ctf_object_with_parent_release_func(struct bt_ctf_object *obj)
 		 */
 		struct bt_ctf_object *parent = obj->parent;
 
-#ifdef BT_LOGV
-		BT_LOGV("Releasing parented object: addr=%p, ref-count=%llu, "
+#ifdef BT_LOGT
+		BT_LOGT("Releasing parented object: addr=%p, ref-count=%llu, "
 			"parent-addr=%p, parent-ref-count=%llu",
 			obj, obj->ref_count,
 			parent, parent->ref_count);
@@ -255,8 +255,8 @@ void *bt_ctf_object_get_no_null_check_no_parent_check(struct bt_ctf_object *obj)
 	BT_ASSERT(obj);
 	BT_ASSERT(obj->is_shared);
 
-#ifdef BT_LOGV
-	BT_LOGV("Incrementing object's reference count: %llu -> %llu: "
+#ifdef BT_LOGT
+	BT_LOGT("Incrementing object's reference count: %llu -> %llu: "
 		"addr=%p, cur-count=%llu, new-count=%llu",
 		obj->ref_count, obj->ref_count + 1,
 		obj, obj->ref_count, obj->ref_count + 1);
@@ -273,16 +273,16 @@ void *bt_ctf_object_get_no_null_check(struct bt_ctf_object *obj)
 	BT_ASSERT(obj->is_shared);
 
 	if (G_UNLIKELY(obj->parent && bt_ctf_object_get_ref_count(obj) == 0)) {
-#ifdef BT_LOGV
-		BT_LOGV("Incrementing object's parent's reference count: "
+#ifdef BT_LOGT
+		BT_LOGT("Incrementing object's parent's reference count: "
 			"addr=%p, parent-addr=%p", obj, obj->parent);
 #endif
 
 		bt_ctf_object_get_no_null_check(obj->parent);
 	}
 
-#ifdef BT_LOGV
-	BT_LOGV("Incrementing object's reference count: %llu -> %llu: "
+#ifdef BT_LOGT
+	BT_LOGT("Incrementing object's reference count: %llu -> %llu: "
 		"addr=%p, cur-count=%llu, new-count=%llu",
 		obj->ref_count, obj->ref_count + 1,
 		obj, obj->ref_count, obj->ref_count + 1);
@@ -299,8 +299,8 @@ void bt_ctf_object_put_no_null_check(struct bt_ctf_object *obj)
 	BT_ASSERT(obj->is_shared);
 	BT_ASSERT(obj->ref_count > 0);
 
-#ifdef BT_LOGV
-	BT_LOGV("Decrementing object's reference count: %llu -> %llu: "
+#ifdef BT_LOGT
+	BT_LOGT("Decrementing object's reference count: %llu -> %llu: "
 		"addr=%p, cur-count=%llu, new-count=%llu",
 		obj->ref_count, obj->ref_count - 1,
 		obj, obj->ref_count, obj->ref_count - 1);

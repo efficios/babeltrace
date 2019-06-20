@@ -43,8 +43,8 @@ struct meta_log_config {
 	bt_self_component *self_comp;
 };
 
-#define _BT_LOGV_LINENO(_lineno, _msg, args...) \
-	BT_LOGV("At line %u in metadata stream: " _msg, _lineno, ## args)
+#define _BT_LOGT_LINENO(_lineno, _msg, args...) \
+	BT_LOGT("At line %u in metadata stream: " _msg, _lineno, ## args)
 
 #define _BT_LOGW_LINENO(_lineno, _msg, args...) \
 	BT_LOGW("At line %u in metadata stream: " _msg, _lineno, ## args)
@@ -52,8 +52,8 @@ struct meta_log_config {
 #define _BT_LOGE_LINENO(_lineno, _msg, args...) \
 	BT_LOGE("At line %u in metadata stream: " _msg, _lineno, ## args)
 
-#define _BT_COMP_LOGV_LINENO(_lineno, _msg, args...) \
-	BT_COMP_LOGV("At line %u in metadata stream: " _msg, _lineno, ## args)
+#define _BT_COMP_LOGT_LINENO(_lineno, _msg, args...) \
+	BT_COMP_LOGT("At line %u in metadata stream: " _msg, _lineno, ## args)
 
 #define _BT_COMP_LOGW_LINENO(_lineno, _msg, args...) \
 	BT_COMP_LOGW("At line %u in metadata stream: " _msg, _lineno, ## args)

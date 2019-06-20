@@ -323,7 +323,7 @@ int bt_ctf_stream_class_common_add_event_class(
 	/* Only set an event ID if none was explicitly set before */
 	*event_id = bt_ctf_event_class_common_get_id(event_class);
 	if (*event_id < 0) {
-		BT_LOGV("Event class has no ID: automatically setting it: "
+		BT_LOGT("Event class has no ID: automatically setting it: "
 			"id=%" PRId64, stream_class->next_event_id);
 
 		if (bt_ctf_event_class_common_set_id(event_class,
@@ -439,7 +439,7 @@ int bt_ctf_stream_class_common_visit(struct bt_ctf_stream_class_common *stream_c
 	ret = bt_ctf_visitor_helper(&obj, get_event_class_count,
 			get_event_class,
 			visit_event_class, visitor, data);
-	BT_LOGV("bt_ctf_visitor_helper() returned: ret=%d", ret);
+	BT_LOGT("bt_ctf_visitor_helper() returned: ret=%d", ret);
 
 end:
 	return ret;
@@ -785,7 +785,7 @@ int try_map_clock_class(struct bt_ctf_stream_class *stream_class,
 		ret = bt_ctf_field_type_common_structure_replace_field(
 			(void *) parent_ft, field_name, (void *) ft_copy);
 		bt_ctf_object_put_ref(ft_copy);
-		BT_LOGV("Automatically mapped field type to stream class's clock class: "
+		BT_LOGT("Automatically mapped field type to stream class's clock class: "
 			"stream-class-addr=%p, stream-class-name=\"%s\", "
 			"stream-class-id=%" PRId64 ", ft-addr=%p, "
 			"ft-copy-addr=%p",
@@ -855,7 +855,7 @@ struct bt_ctf_clock *bt_ctf_stream_class_get_clock(
 	}
 
 	if (!stream_class->clock) {
-		BT_LOGV("Stream class has no clock: "
+		BT_LOGT("Stream class has no clock: "
 			"addr=%p, name=\"%s\", id=%" PRId64,
 			stream_class,
 			bt_ctf_stream_class_get_name(stream_class),
@@ -896,7 +896,7 @@ int bt_ctf_stream_class_set_clock(
 	/* Replace the current clock of this stream class. */
 	bt_ctf_object_put_ref(stream_class->clock);
 	stream_class->clock = bt_ctf_object_get_ref(clock);
-	BT_LOGV("Set stream class's clock: "
+	BT_LOGT("Set stream class's clock: "
 		"addr=%p, name=\"%s\", id=%" PRId64 ", "
 		"clock-addr=%p, clock-name=\"%s\"",
 		stream_class,

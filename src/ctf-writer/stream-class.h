@@ -115,7 +115,7 @@ int64_t bt_ctf_stream_class_common_get_id(
 	BT_CTF_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
 
 	if (!stream_class->id_set) {
-		BT_LOGV("Stream class's ID is not set: addr=%p, name=\"%s\"",
+		BT_LOGT("Stream class's ID is not set: addr=%p, name=\"%s\"",
 			stream_class,
 			bt_ctf_stream_class_common_get_name(stream_class));
 		ret = (int64_t) -1;
@@ -193,7 +193,7 @@ int bt_ctf_stream_class_common_set_name(struct bt_ctf_stream_class_common *strea
 		g_string_assign(stream_class->name, name);
 	}
 
-	BT_LOGV("Set stream class's name: "
+	BT_LOGT("Set stream class's name: "
 		"addr=%p, name=\"%s\", id=%" PRId64,
 		stream_class, bt_ctf_stream_class_common_get_name(stream_class),
 		bt_ctf_stream_class_common_get_id(stream_class));
@@ -208,7 +208,7 @@ void _bt_ctf_stream_class_common_set_id(
 	BT_ASSERT(stream_class);
 	stream_class->id = id;
 	stream_class->id_set = 1;
-	BT_LOGV("Set stream class's ID (internal): "
+	BT_LOGT("Set stream class's ID (internal): "
 		"addr=%p, name=\"%s\", id=%" PRId64,
 		stream_class, bt_ctf_stream_class_common_get_name(stream_class),
 		bt_ctf_stream_class_common_get_id(stream_class));
@@ -259,7 +259,7 @@ int bt_ctf_stream_class_common_set_id(struct bt_ctf_stream_class_common *stream_
 
 	ret = bt_ctf_stream_class_common_set_id_no_check(stream_class, id);
 	if (ret == 0) {
-		BT_LOGV("Set stream class's ID: "
+		BT_LOGT("Set stream class's ID: "
 			"addr=%p, name=\"%s\", id=%" PRId64,
 			stream_class,
 			bt_ctf_stream_class_common_get_name(stream_class),
@@ -361,7 +361,7 @@ int bt_ctf_stream_class_common_set_packet_context_field_type(
 	bt_ctf_object_put_ref(stream_class->packet_context_field_type);
 	stream_class->packet_context_field_type = packet_context_type;
 	bt_ctf_object_get_ref(stream_class->packet_context_field_type);
-	BT_LOGV("Set stream class's packet context field type: "
+	BT_LOGT("Set stream class's packet context field type: "
 		"addr=%p, name=\"%s\", id=%" PRId64 ", "
 		"packet-context-ft-addr=%p",
 		stream_class, bt_ctf_stream_class_common_get_name(stream_class),
@@ -382,7 +382,7 @@ bt_ctf_stream_class_common_borrow_event_header_field_type(
 	BT_CTF_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
 
 	if (!stream_class->event_header_field_type) {
-		BT_LOGV("Stream class has no event header field type: "
+		BT_LOGT("Stream class has no event header field type: "
 			"addr=%p, name=\"%s\", id=%" PRId64,
 			stream_class,
 			bt_ctf_stream_class_common_get_name(stream_class),
@@ -438,7 +438,7 @@ int bt_ctf_stream_class_common_set_event_header_field_type(
 	bt_ctf_object_put_ref(stream_class->event_header_field_type);
 	stream_class->event_header_field_type = event_header_type;
 	bt_ctf_object_get_ref(stream_class->event_header_field_type);
-	BT_LOGV("Set stream class's event header field type: "
+	BT_LOGT("Set stream class's event header field type: "
 		"addr=%p, name=\"%s\", id=%" PRId64 ", "
 		"event-header-ft-addr=%p",
 		stream_class, bt_ctf_stream_class_common_get_name(stream_class),
@@ -508,7 +508,7 @@ int bt_ctf_stream_class_common_set_event_context_field_type(
 	bt_ctf_object_put_ref(stream_class->event_context_field_type);
 	stream_class->event_context_field_type = event_context_type;
 	bt_ctf_object_get_ref(stream_class->event_context_field_type);
-	BT_LOGV("Set stream class's event context field type: "
+	BT_LOGT("Set stream class's event context field type: "
 		"addr=%p, name=\"%s\", id=%" PRId64 ", "
 		"event-context-ft-addr=%p",
 		stream_class, bt_ctf_stream_class_common_get_name(stream_class),

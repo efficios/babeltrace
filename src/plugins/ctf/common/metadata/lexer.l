@@ -143,7 +143,7 @@ _Imaginary			setstring(yyextra, yylval, yytext); return CTF_IMAGINARY;
 0{OCTALDIGIT}*{INTEGER_SUFFIX}?	PARSE_INTEGER_LITERAL(8); return CTF_INTEGER_LITERAL;
 0[xX]{HEXDIGIT}+{INTEGER_SUFFIX}?	PARSE_INTEGER_LITERAL(16); return CTF_INTEGER_LITERAL;
 
-{IDENTIFIER}			BT_LOGV("Got identifier: id=\"%s\"", yytext); setstring(yyextra, yylval, yytext); if (is_type(yyextra, yytext)) return ID_TYPE; else return IDENTIFIER;
+{IDENTIFIER}			BT_LOGT("Got identifier: id=\"%s\"", yytext); setstring(yyextra, yylval, yytext); if (is_type(yyextra, yytext)) return ID_TYPE; else return IDENTIFIER;
 [ \t\r\n]			; /* ignore */
 .				_BT_LOGE_LINENO(yylineno, "Invalid character: char=\"%c\", val=0x%02x", isprint(yytext[0]) ? yytext[0] : '\0', yytext[0]); return CTF_ERROR;
 %%

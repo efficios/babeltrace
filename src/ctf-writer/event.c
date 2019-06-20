@@ -719,7 +719,7 @@ int bt_ctf_event_serialize(struct bt_ctf_event *event,
 	BT_ASSERT(event);
 	BT_ASSERT(ctfser);
 
-	BT_LOGV_STR("Serializing event's context field.");
+	BT_LOGT_STR("Serializing event's context field.");
 	if (event->common.context_field) {
 		ret = bt_ctf_field_serialize_recursive(
 			(void *) event->common.context_field, ctfser,
@@ -735,7 +735,7 @@ int bt_ctf_event_serialize(struct bt_ctf_event *event,
 		}
 	}
 
-	BT_LOGV_STR("Serializing event's payload field.");
+	BT_LOGT_STR("Serializing event's payload field.");
 	if (event->common.payload_field) {
 		ret = bt_ctf_field_serialize_recursive(
 			(void *) event->common.payload_field, ctfser,
@@ -791,7 +791,7 @@ int bt_ctf_event_set_header(struct bt_ctf_event *event,
 
 	bt_ctf_object_put_ref(event->common.header_field->field);
 	event->common.header_field->field = bt_ctf_object_get_ref(header);
-	BT_LOGV("Set event's header field: event-addr=%p, "
+	BT_LOGT("Set event's header field: event-addr=%p, "
 		"event-class-name=\"%s\", event-class-id=%" PRId64 ", "
 		"header-field-addr=%p",
 		event, bt_ctf_event_class_common_get_name(event->common.class),
@@ -825,7 +825,7 @@ int bt_ctf_event_common_set_payload(struct bt_ctf_event *event,
 
 	bt_ctf_object_put_ref(event->common.payload_field);
 	event->common.payload_field = bt_ctf_object_get_ref(payload);
-	BT_LOGV("Set event's payload field: event-addr=%p, "
+	BT_LOGT("Set event's payload field: event-addr=%p, "
 		"event-class-name=\"%s\", event-class-id=%" PRId64 ", "
 		"payload-field-addr=%p",
 		event, bt_ctf_event_class_common_get_name(event->common.class),
@@ -858,7 +858,7 @@ int bt_ctf_event_set_context(struct bt_ctf_event *event,
 
 	bt_ctf_object_put_ref(event->common.context_field);
 	event->common.context_field = bt_ctf_object_get_ref(context);
-	BT_LOGV("Set event's context field: event-addr=%p, "
+	BT_LOGT("Set event's context field: event-addr=%p, "
 		"event-class-name=\"%s\", event-class-id=%" PRId64 ", "
 		"context-field-addr=%p",
 		event, bt_ctf_event_class_common_get_name(event->common.class),
@@ -893,7 +893,7 @@ int bt_ctf_event_set_stream_event_context(struct bt_ctf_event *event,
 
 	bt_ctf_object_put_ref(event->common.stream_event_context_field);
 	event->common.stream_event_context_field = bt_ctf_object_get_ref(stream_event_context);
-	BT_LOGV("Set event's stream event context field: event-addr=%p, "
+	BT_LOGT("Set event's stream event context field: event-addr=%p, "
 		"event-class-name=\"%s\", event-class-id=%" PRId64 ", "
 		"stream-event-context-field-addr=%p",
 		event, bt_ctf_event_class_common_get_name(event->common.class),

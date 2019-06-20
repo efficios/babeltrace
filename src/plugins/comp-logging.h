@@ -100,8 +100,8 @@
 	BT_COMP_LOG(BT_LOG_INFO, (BT_COMP_LOG_SELF_COMP), _fmt, ##__VA_ARGS__)
 #define BT_COMP_LOGD(_fmt, ...) \
 	BT_COMP_LOG(BT_LOG_DEBUG, (BT_COMP_LOG_SELF_COMP), _fmt, ##__VA_ARGS__)
-#define BT_COMP_LOGV(_fmt, ...) \
-	BT_COMP_LOG(BT_LOG_VERBOSE, (BT_COMP_LOG_SELF_COMP), _fmt, ##__VA_ARGS__)
+#define BT_COMP_LOGT(_fmt, ...) \
+	BT_COMP_LOG(BT_LOG_TRACE, (BT_COMP_LOG_SELF_COMP), _fmt, ##__VA_ARGS__)
 #define BT_COMP_LOGF_STR(_str) \
 	BT_COMP_LOG(BT_LOG_FATAL, (BT_COMP_LOG_SELF_COMP), "%s", (_str))
 #define BT_COMP_LOGE_STR(_str) \
@@ -112,8 +112,8 @@
 	BT_COMP_LOG(BT_LOG_INFO, (BT_COMP_LOG_SELF_COMP), "%s", (_str))
 #define BT_COMP_LOGD_STR(_str) \
 	BT_COMP_LOG(BT_LOG_DEBUG, (BT_COMP_LOG_SELF_COMP), "%s", (_str))
-#define BT_COMP_LOGV_STR(_str) \
-	BT_COMP_LOG(BT_LOG_VERBOSE, (BT_COMP_LOG_SELF_COMP), "%s", (_str))
+#define BT_COMP_LOGT_STR(_str) \
+	BT_COMP_LOG(BT_LOG_TRACE, (BT_COMP_LOG_SELF_COMP), "%s", (_str))
 #define BT_COMP_LOGF_ERRNO(_msg, _fmt, ...) \
 	BT_COMP_LOG_ERRNO(BT_LOG_FATAL, (BT_COMP_LOG_SELF_COMP), _msg, _fmt, ##__VA_ARGS__)
 #define BT_COMP_LOGE_ERRNO(_msg, _fmt, ...) \
@@ -124,8 +124,8 @@
 	BT_COMP_LOG_ERRNO(BT_LOG_INFO, (BT_COMP_LOG_SELF_COMP), _msg, _fmt, ##__VA_ARGS__)
 #define BT_COMP_LOGD_ERRNO(_msg, _fmt, ...) \
 	BT_COMP_LOG_ERRNO(BT_LOG_DEBUG, (BT_COMP_LOG_SELF_COMP), _msg, _fmt, ##__VA_ARGS__)
-#define BT_COMP_LOGV_ERRNO(_msg, _fmt, ...) \
-	BT_COMP_LOG_ERRNO(BT_LOG_VERBOSE, (BT_COMP_LOG_SELF_COMP), _msg, _fmt, ##__VA_ARGS__)
+#define BT_COMP_LOGT_ERRNO(_msg, _fmt, ...) \
+	BT_COMP_LOG_ERRNO(BT_LOG_TRACE, (BT_COMP_LOG_SELF_COMP), _msg, _fmt, ##__VA_ARGS__)
 #define BT_COMP_LOGF_MEM(_data_ptr, _data_sz, _fmt, ...) \
 	BT_COMP_LOG_MEM(BT_LOG_FATAL, (BT_COMP_LOG_SELF_COMP), (_data_ptr), (_data_sz), _fmt, ##__VA_ARGS__)
 #define BT_COMP_LOGE_MEM(_data_ptr, _data_sz, _fmt, ...) \
@@ -136,8 +136,8 @@
 	BT_COMP_LOG_MEM(BT_LOG_INFO, (BT_COMP_LOG_SELF_COMP), (_data_ptr), (_data_sz), _fmt, ##__VA_ARGS__)
 #define BT_COMP_LOGD_MEM(_data_ptr, _data_sz, _fmt, ...) \
 	BT_COMP_LOG_MEM(BT_LOG_DEBUG, (BT_COMP_LOG_SELF_COMP), (_data_ptr), (_data_sz), _fmt, ##__VA_ARGS__)
-#define BT_COMP_LOGV_MEM(_data_ptr, _data_sz, _fmt, ...) \
-	BT_COMP_LOG_MEM(BT_LOG_VERBOSE, (BT_COMP_LOG_SELF_COMP), (_data_ptr), (_data_sz), _fmt, ##__VA_ARGS__)
+#define BT_COMP_LOGT_MEM(_data_ptr, _data_sz, _fmt, ...) \
+	BT_COMP_LOG_MEM(BT_LOG_TRACE, (BT_COMP_LOG_SELF_COMP), (_data_ptr), (_data_sz), _fmt, ##__VA_ARGS__)
 
 #define BT_COMP_LOG_SUPPORTED
 

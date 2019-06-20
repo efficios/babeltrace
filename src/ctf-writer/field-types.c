@@ -467,7 +467,7 @@ void check_ranges_overlap(gpointer element, gpointer query)
 		mapping->string == overlap_query->mapping_name;
 
 	if (overlap_query->overlaps) {
-		BT_LOGV("Overlapping enumeration field type mappings: "
+		BT_LOGT("Overlapping enumeration field type mappings: "
 			"mapping-name=\"%s\", "
 			"mapping-a-range-start=%" PRId64 ", "
 			"mapping-a-range-end=%" PRId64 ", "
@@ -575,7 +575,7 @@ int add_structure_variant_member(GArray *members,
 	g_hash_table_insert(field_name_to_index,
 		GUINT_TO_POINTER(name_quark),
 		GUINT_TO_POINTER(members->len - 1));
-	BT_LOGV("Added structure/variant field type member: member-ft-addr=%p, "
+	BT_LOGT("Added structure/variant field type member: member-ft-addr=%p, "
 		"member-name=\"%s\"", field_type, field_name);
 
 end:
@@ -852,7 +852,7 @@ void bt_ctf_field_type_common_enumeration_set_range_overlap(
 	int64_t i, j, len;
 	int is_signed;
 
-	BT_LOGV("Setting enumeration field type's overlap flag: addr=%p",
+	BT_LOGT("Setting enumeration field type's overlap flag: addr=%p",
 		ft);
 	len = ft->entries->len;
 	is_signed = bt_ctf_field_type_common_integer_is_signed(
@@ -888,9 +888,9 @@ void bt_ctf_field_type_common_enumeration_set_range_overlap(
 
 end:
 	if (ft->has_overlapping_ranges) {
-		BT_LOGV_STR("Enumeration field type has overlapping ranges.");
+		BT_LOGT_STR("Enumeration field type has overlapping ranges.");
 	} else {
-		BT_LOGV_STR("Enumeration field type has no overlapping ranges.");
+		BT_LOGT_STR("Enumeration field type has no overlapping ranges.");
 	}
 }
 
@@ -1113,7 +1113,7 @@ int bt_ctf_field_type_common_validate(struct bt_ctf_field_type_common *ft)
 
 	if (ret == 0 && ft->frozen) {
 		/* Field type is valid */
-		BT_LOGV("Marking field type as valid: addr=%p", ft);
+		BT_LOGT("Marking field type as valid: addr=%p", ft);
 		ft->valid = 1;
 	}
 
@@ -1172,7 +1172,7 @@ int bt_ctf_field_type_common_integer_set_is_signed(struct bt_ctf_field_type_comm
 	}
 
 	int_ft->is_signed = !!is_signed;
-	BT_LOGV("Set integer field type's signedness: addr=%p, is-signed=%d",
+	BT_LOGT("Set integer field type's signedness: addr=%p, is-signed=%d",
 		ft, is_signed);
 
 end:
@@ -1215,7 +1215,7 @@ int bt_ctf_field_type_common_integer_set_size(struct bt_ctf_field_type_common *f
 	}
 
 	int_ft->size = size;
-	BT_LOGV("Set integer field type's size: addr=%p, size=%u",
+	BT_LOGT("Set integer field type's size: addr=%p, size=%u",
 		ft, size);
 
 end:
@@ -1278,7 +1278,7 @@ int bt_ctf_field_type_common_integer_set_base(struct bt_ctf_field_type_common *f
 		ret = -1;
 	}
 
-	BT_LOGV("Set integer field type's base: addr=%p, base=%s",
+	BT_LOGT("Set integer field type's base: addr=%p, base=%s",
 		ft, bt_ctf_integer_base_string(base));
 
 end:
@@ -1335,7 +1335,7 @@ int bt_ctf_field_type_common_integer_set_encoding(struct bt_ctf_field_type_commo
 	}
 
 	int_ft->encoding = encoding;
-	BT_LOGV("Set integer field type's encoding: addr=%p, encoding=%s",
+	BT_LOGT("Set integer field type's encoding: addr=%p, encoding=%s",
 		ft, bt_ctf_string_encoding_string(encoding));
 
 end:
@@ -1386,7 +1386,7 @@ int bt_ctf_field_type_common_integer_set_mapped_clock_class_no_check_frozen(
 
 	bt_ctf_object_put_ref(int_ft->mapped_clock_class);
 	int_ft->mapped_clock_class = bt_ctf_object_get_ref(clock_class);
-	BT_LOGV("Set integer field type's mapped clock class: ft-addr=%p, "
+	BT_LOGT("Set integer field type's mapped clock class: ft-addr=%p, "
 		"clock-class-addr=%p, clock-class-name=\"%s\"",
 		ft, clock_class, bt_ctf_clock_class_get_name(clock_class));
 
@@ -1584,7 +1584,7 @@ int bt_ctf_field_type_common_enumeration_signed_add_mapping(
 	g_ptr_array_add(enum_ft->entries, mapping);
 	g_ptr_array_sort(enum_ft->entries,
 		(GCompareFunc) compare_enumeration_mappings_signed);
-	BT_LOGV("Added mapping to signed enumeration field type: addr=%p, "
+	BT_LOGT("Added mapping to signed enumeration field type: addr=%p, "
 		"name=\"%s\", range-start=%" PRId64 ", "
 		"range-end=%" PRId64,
 		ft, string, range_start, range_end);
@@ -1674,7 +1674,7 @@ int bt_ctf_field_type_common_enumeration_unsigned_add_mapping(
 	g_ptr_array_add(enum_ft->entries, mapping);
 	g_ptr_array_sort(enum_ft->entries,
 		(GCompareFunc) compare_enumeration_mappings_unsigned);
-	BT_LOGV("Added mapping to unsigned enumeration field type: addr=%p, "
+	BT_LOGT("Added mapping to unsigned enumeration field type: addr=%p, "
 		"name=\"%s\", range-start=%" PRIu64 ", "
 		"range-end=%" PRIu64,
 		ft, string, range_start, range_end);
@@ -1749,7 +1749,7 @@ int bt_ctf_field_type_common_floating_point_set_exponent_digits(
 	}
 
 	flt_ft->exp_dig = exponent_digits;
-	BT_LOGV("Set floating point number field type's exponent size: addr=%p, "
+	BT_LOGT("Set floating point number field type's exponent size: addr=%p, "
 		"exp-size=%u", ft, exponent_digits);
 
 end:
@@ -1806,7 +1806,7 @@ int bt_ctf_field_type_common_floating_point_set_mantissa_digits(
 	}
 
 	flt_ft->mant_dig = mantissa_digits;
-	BT_LOGV("Set floating point number field type's mantissa size: addr=%p, "
+	BT_LOGT("Set floating point number field type's mantissa size: addr=%p, "
 		"mant-size=%u", ft, mantissa_digits);
 
 end:
@@ -1899,7 +1899,7 @@ int bt_ctf_field_type_common_structure_add_field(struct bt_ctf_field_type_common
 		goto end;
 	}
 
-	BT_LOGV("Added structure field type field: struct-ft-addr=%p, "
+	BT_LOGT("Added structure field type field: struct-ft-addr=%p, "
 		"field-ft-addr=%p, field-name=\"%s\"", ft,
 		field_type, field_name);
 
@@ -1966,7 +1966,7 @@ bt_ctf_field_type_common_structure_borrow_field_type_by_name(
 		"Field type");
 	name_quark = g_quark_try_string(name);
 	if (!name_quark) {
-		BT_LOGV("No such structure field type field name: "
+		BT_LOGT("No such structure field type field name: "
 			"ft-addr=%p, field-name=\"%s\"",
 			ft, name);
 		goto end;
@@ -1974,7 +1974,7 @@ bt_ctf_field_type_common_structure_borrow_field_type_by_name(
 
 	if (!g_hash_table_lookup_extended(struct_ft->field_name_to_index,
 			GUINT_TO_POINTER(name_quark), NULL, (gpointer *) &index)) {
-		BT_LOGV("No such structure field type field name: "
+		BT_LOGT("No such structure field type field name: "
 			"ft-addr=%p, field-name=\"%s\"",
 			ft, name);
 		goto end;
@@ -2000,7 +2000,7 @@ bt_ctf_field_type_common_variant_borrow_tag_field_type(
 		"Field type");
 
 	if (!var_ft->tag_ft) {
-		BT_LOGV("Variant field type has no tag field type: "
+		BT_LOGT("Variant field type has no tag field type: "
 			"addr=%p", ft);
 		goto end;
 	}
@@ -2023,7 +2023,7 @@ const char *bt_ctf_field_type_common_variant_get_tag_name(
 		"Field type");
 
 	if (var_ft->tag_name->len == 0) {
-		BT_LOGV("Variant field type has no tag field name: "
+		BT_LOGT("Variant field type has no tag field name: "
 			"addr=%p", ft);
 		goto end;
 	}
@@ -2070,7 +2070,7 @@ int bt_ctf_field_type_common_variant_set_tag_name(
 	}
 
 	g_string_assign(var_ft->tag_name, name);
-	BT_LOGV("Set variant field type's tag field name: addr=%p, "
+	BT_LOGT("Set variant field type's tag field name: addr=%p, "
 		"tag-field-name=\"%s\"", ft, name);
 
 end:
@@ -2157,7 +2157,7 @@ int bt_ctf_field_type_common_variant_add_field(struct bt_ctf_field_type_common *
 		goto end;
 	}
 
-	BT_LOGV("Added variant field type field: variant-ft-addr=%p, "
+	BT_LOGT("Added variant field type field: variant-ft-addr=%p, "
 		"field-ft-addr=%p, field-name=\"%s\"", ft,
 		field_type, field_name);
 
@@ -2183,7 +2183,7 @@ bt_ctf_field_type_common_variant_borrow_field_type_by_name(
 		"Field type");
 	name_quark = g_quark_try_string(field_name);
 	if (!name_quark) {
-		BT_LOGV("No such variant field type field name: "
+		BT_LOGT("No such variant field type field name: "
 			"ft-addr=%p, field-name=\"%s\"",
 			ft, field_name);
 		goto end;
@@ -2191,7 +2191,7 @@ bt_ctf_field_type_common_variant_borrow_field_type_by_name(
 
 	if (!g_hash_table_lookup_extended(var_ft->choice_name_to_index,
 			GUINT_TO_POINTER(name_quark), NULL, (gpointer *) &index)) {
-		BT_LOGV("No such variant field type field name: "
+		BT_LOGT("No such variant field type field name: "
 			"ft-addr=%p, field-name=\"%s\"",
 			ft, field_name);
 		goto end;
@@ -2350,7 +2350,7 @@ int bt_ctf_field_type_common_array_set_element_field_type(
 	}
 
 	array_ft->element_ft = bt_ctf_object_get_ref(element_ft);
-	BT_LOGV("Set array field type's element field type: array-ft-addr=%p, "
+	BT_LOGT("Set array field type's element field type: array-ft-addr=%p, "
 		"element-ft-addr=%p", ft, element_ft);
 
 end:
@@ -2414,7 +2414,7 @@ int bt_ctf_field_type_common_sequence_set_element_field_type(
 
 	seq_ft->element_ft = element_ft;
 	bt_ctf_object_get_ref(seq_ft->element_ft);
-	BT_LOGV("Set sequence field type's element field type: sequence-ft-addr=%p, "
+	BT_LOGT("Set sequence field type's element field type: sequence-ft-addr=%p, "
 		"element-ft-addr=%p", ft, element_ft);
 
 end:
@@ -2476,7 +2476,7 @@ int bt_ctf_field_type_common_string_set_encoding(struct bt_ctf_field_type_common
 	}
 
 	string_ft->encoding = encoding;
-	BT_LOGV("Set string field type's encoding: addr=%p, encoding=%s",
+	BT_LOGT("Set string field type's encoding: addr=%p, encoding=%s",
 		ft, bt_ctf_string_encoding_string(encoding));
 
 end:
@@ -2620,7 +2620,7 @@ int bt_ctf_field_type_common_set_alignment(struct bt_ctf_field_type_common *ft,
 
 	ft->alignment = alignment;
 	ret = 0;
-	BT_LOGV("Set field type's alignment: addr=%p, align=%u",
+	BT_LOGT("Set field type's alignment: addr=%p, align=%u",
 		ft, alignment);
 
 end:
@@ -2710,7 +2710,7 @@ int bt_ctf_field_type_common_set_byte_order(struct bt_ctf_field_type_common *ft,
 		ft->methods->set_byte_order(ft, byte_order);
 	}
 
-	BT_LOGV("Set field type's byte order: addr=%p, bo=%s",
+	BT_LOGT("Set field type's byte order: addr=%p, bo=%s",
 		ft, bt_ctf_byte_order_string(byte_order));
 
 end:
@@ -2846,7 +2846,7 @@ int bt_ctf_field_type_common_structure_get_field_name_index(
 
 	name_quark = g_quark_try_string(name);
 	if (!name_quark) {
-		BT_LOGV("No such structure field type field name: "
+		BT_LOGT("No such structure field type field name: "
 			"ft-addr=%p, field-name=\"%s\"",
 			ft, name);
 		ret = -1;
@@ -2856,7 +2856,7 @@ int bt_ctf_field_type_common_structure_get_field_name_index(
 	if (!g_hash_table_lookup_extended(struct_ft->field_name_to_index,
 			GUINT_TO_POINTER(name_quark),
 			NULL, (gpointer *) &index)) {
-		BT_LOGV("No such structure field type field name: "
+		BT_LOGT("No such structure field type field name: "
 			"ft-addr=%p, field-name=\"%s\"",
 			ft, name);
 		ret = -1;
@@ -2884,7 +2884,7 @@ int bt_ctf_field_type_common_variant_get_field_name_index(
 		"Field type");
 	name_quark = g_quark_try_string(name);
 	if (!name_quark) {
-		BT_LOGV("No such variant field type field name: "
+		BT_LOGT("No such variant field type field name: "
 			"ft-addr=%p, field-name=\"%s\"",
 			ft, name);
 		ret = -1;
@@ -2894,7 +2894,7 @@ int bt_ctf_field_type_common_variant_get_field_name_index(
 	if (!g_hash_table_lookup_extended(var_ft->choice_name_to_index,
 			GUINT_TO_POINTER(name_quark),
 			NULL, (gpointer *) &index)) {
-		BT_LOGV("No such variant field type field name: "
+		BT_LOGT("No such variant field type field name: "
 			"ft-addr=%p, field-name=\"%s\"",
 			ft, name);
 		ret = -1;
@@ -2930,7 +2930,7 @@ int bt_ctf_field_type_common_sequence_set_length_field_path(
 
 	bt_ctf_object_get_ref(path);
 	BT_CTF_OBJECT_MOVE_REF(seq_ft->length_field_path, path);
-	BT_LOGV("Set sequence field type's length field path: ft-addr=%p, "
+	BT_LOGT("Set sequence field type's length field path: ft-addr=%p, "
 		"field-path-addr=%p", ft, path);
 
 end:
@@ -2961,7 +2961,7 @@ int bt_ctf_field_type_common_variant_set_tag_field_path(
 
 	bt_ctf_object_get_ref(path);
 	BT_CTF_OBJECT_MOVE_REF(var_ft->tag_field_path, path);
-	BT_LOGV("Set variant field type's tag field path: ft-addr=%p, "
+	BT_LOGT("Set variant field type's tag field path: ft-addr=%p, "
 		"field-path-addr=%p", ft, path);
 
 end:
@@ -2998,7 +2998,7 @@ int bt_ctf_field_type_common_variant_set_tag_field_type(
 
 	bt_ctf_object_put_ref(var_ft->tag_ft);
 	var_ft->tag_ft = bt_ctf_object_get_ref(tag_ft);
-	BT_LOGV("Set variant field type's tag field type: variant-ft-addr=%p, "
+	BT_LOGT("Set variant field type's tag field type: variant-ft-addr=%p, "
 		"tag-ft-addr=%p", ft, tag_ft);
 
 end:
@@ -3251,7 +3251,7 @@ int bt_ctf_field_type_common_integer_compare(struct bt_ctf_field_type_common *ft
 
 	/* Length */
 	if (int_ft_a->size != int_ft_b->size) {
-		BT_LOGV("Integer field types differ: different sizes: "
+		BT_LOGT("Integer field types differ: different sizes: "
 			"ft-a-size=%u, ft-b-size=%u",
 			int_ft_a->size, int_ft_b->size);
 		goto end;
@@ -3259,7 +3259,7 @@ int bt_ctf_field_type_common_integer_compare(struct bt_ctf_field_type_common *ft
 
 	/* Byte order */
 	if (int_ft_a->user_byte_order != int_ft_b->user_byte_order) {
-		BT_LOGV("Integer field types differ: different byte orders: "
+		BT_LOGT("Integer field types differ: different byte orders: "
 			"ft-a-bo=%s, ft-b-bo=%s",
 			bt_ctf_byte_order_string(int_ft_a->user_byte_order),
 			bt_ctf_byte_order_string(int_ft_b->user_byte_order));
@@ -3268,7 +3268,7 @@ int bt_ctf_field_type_common_integer_compare(struct bt_ctf_field_type_common *ft
 
 	/* Signedness */
 	if (int_ft_a->is_signed != int_ft_b->is_signed) {
-		BT_LOGV("Integer field types differ: different signedness: "
+		BT_LOGT("Integer field types differ: different signedness: "
 			"ft-a-is-signed=%d, ft-b-is-signed=%d",
 			int_ft_a->is_signed,
 			int_ft_b->is_signed);
@@ -3277,7 +3277,7 @@ int bt_ctf_field_type_common_integer_compare(struct bt_ctf_field_type_common *ft
 
 	/* Base */
 	if (int_ft_a->base != int_ft_b->base) {
-		BT_LOGV("Integer field types differ: different bases: "
+		BT_LOGT("Integer field types differ: different bases: "
 			"ft-a-base=%s, ft-b-base=%s",
 			bt_ctf_integer_base_string(int_ft_a->base),
 			bt_ctf_integer_base_string(int_ft_b->base));
@@ -3286,7 +3286,7 @@ int bt_ctf_field_type_common_integer_compare(struct bt_ctf_field_type_common *ft
 
 	/* Encoding */
 	if (int_ft_a->encoding != int_ft_b->encoding) {
-		BT_LOGV("Integer field types differ: different encodings: "
+		BT_LOGT("Integer field types differ: different encodings: "
 			"ft-a-encoding=%s, ft-b-encoding=%s",
 			bt_ctf_string_encoding_string(int_ft_a->encoding),
 			bt_ctf_string_encoding_string(int_ft_b->encoding));
@@ -3296,7 +3296,7 @@ int bt_ctf_field_type_common_integer_compare(struct bt_ctf_field_type_common *ft
 	/* Mapped clock class */
 	if (int_ft_a->mapped_clock_class) {
 		if (!int_ft_b->mapped_clock_class) {
-			BT_LOGV_STR("Integer field types differ: field type A "
+			BT_LOGT_STR("Integer field types differ: field type A "
 				"has a mapped clock class, but field type B "
 				"does not.");
 			goto end;
@@ -3304,12 +3304,12 @@ int bt_ctf_field_type_common_integer_compare(struct bt_ctf_field_type_common *ft
 
 		if (bt_ctf_clock_class_compare(int_ft_a->mapped_clock_class,
 				int_ft_b->mapped_clock_class) != 0) {
-			BT_LOGV_STR("Integer field types differ: different "
+			BT_LOGT_STR("Integer field types differ: different "
 				"mapped clock classes.");
 		}
 	} else {
 		if (int_ft_b->mapped_clock_class) {
-			BT_LOGV_STR("Integer field types differ: field type A "
+			BT_LOGT_STR("Integer field types differ: field type A "
 				"has no description, but field type B has one.");
 			goto end;
 		}
@@ -3335,7 +3335,7 @@ int bt_ctf_field_type_common_floating_point_compare(
 
 	/* Byte order */
 	if (flt_ft_a->user_byte_order != flt_ft_b->user_byte_order) {
-		BT_LOGV("Floating point number field types differ: different byte orders: "
+		BT_LOGT("Floating point number field types differ: different byte orders: "
 			"ft-a-bo=%s, ft-b-bo=%s",
 			bt_ctf_byte_order_string(flt_ft_a->user_byte_order),
 			bt_ctf_byte_order_string(flt_ft_b->user_byte_order));
@@ -3344,7 +3344,7 @@ int bt_ctf_field_type_common_floating_point_compare(
 
 	/* Exponent length */
 	if (flt_ft_a->exp_dig != flt_ft_b->exp_dig) {
-		BT_LOGV("Floating point number field types differ: different exponent sizes: "
+		BT_LOGT("Floating point number field types differ: different exponent sizes: "
 			"ft-a-exp-size=%u, ft-b-exp-size=%u",
 			flt_ft_a->exp_dig, flt_ft_b->exp_dig);
 		goto end;
@@ -3352,7 +3352,7 @@ int bt_ctf_field_type_common_floating_point_compare(
 
 	/* Mantissa length */
 	if (flt_ft_a->mant_dig != flt_ft_b->mant_dig) {
-		BT_LOGV("Floating point number field types differ: different mantissa sizes: "
+		BT_LOGT("Floating point number field types differ: different mantissa sizes: "
 			"ft-a-mant-size=%u, ft-b-mant-size=%u",
 			flt_ft_a->mant_dig, flt_ft_b->mant_dig);
 		goto end;
@@ -3373,7 +3373,7 @@ int compare_enumeration_mappings(struct bt_ctf_enumeration_mapping *mapping_a,
 
 	/* Label */
 	if (mapping_a->string != mapping_b->string) {
-		BT_LOGV("Enumeration field type mappings differ: different names: "
+		BT_LOGT("Enumeration field type mappings differ: different names: "
 			"mapping-a-name=\"%s\", mapping-b-name=\"%s\"",
 			g_quark_to_string(mapping_a->string),
 			g_quark_to_string(mapping_b->string));
@@ -3383,7 +3383,7 @@ int compare_enumeration_mappings(struct bt_ctf_enumeration_mapping *mapping_a,
 	/* Range start */
 	if (mapping_a->range_start._unsigned !=
 			mapping_b->range_start._unsigned) {
-		BT_LOGV("Enumeration field type mappings differ: different starts of range: "
+		BT_LOGT("Enumeration field type mappings differ: different starts of range: "
 			"mapping-a-range-start-unsigned=%" PRIu64 ", "
 			"mapping-b-range-start-unsigned=%" PRIu64,
 			mapping_a->range_start._unsigned,
@@ -3394,7 +3394,7 @@ int compare_enumeration_mappings(struct bt_ctf_enumeration_mapping *mapping_a,
 	/* Range end */
 	if (mapping_a->range_end._unsigned !=
 			mapping_b->range_end._unsigned) {
-		BT_LOGV("Enumeration field type mappings differ: different ends of range: "
+		BT_LOGT("Enumeration field type mappings differ: different ends of range: "
 			"mapping-a-range-end-unsigned=%" PRIu64 ", "
 			"mapping-b-range-end-unsigned=%" PRIu64,
 			mapping_a->range_end._unsigned,
@@ -3426,7 +3426,7 @@ int bt_ctf_field_type_common_enumeration_compare_recursive(
 		BT_CTF_TO_COMMON(enum_ft_a->container_ft),
 		BT_CTF_TO_COMMON(enum_ft_b->container_ft));
 	if (ret) {
-		BT_LOGV("Enumeration field types differ: different container field types: "
+		BT_LOGT("Enumeration field types differ: different container field types: "
 			"ft-a-container-ft-addr=%p, ft-b-container-ft-addr=%p",
 			enum_ft_a->container_ft, enum_ft_b->container_ft);
 		goto end;
@@ -3446,7 +3446,7 @@ int bt_ctf_field_type_common_enumeration_compare_recursive(
 			g_ptr_array_index(enum_ft_b->entries, i);
 
 		if (compare_enumeration_mappings(mapping_a, mapping_b)) {
-			BT_LOGV("Enumeration field types differ: different mappings: "
+			BT_LOGT("Enumeration field types differ: different mappings: "
 				"ft-a-mapping-addr=%p, ft-b-mapping-addr=%p, "
 				"ft-a-mapping-name=\"%s\", ft-b-mapping-name=\"%s\"",
 				mapping_a, mapping_b,
@@ -3473,7 +3473,7 @@ int bt_ctf_field_type_common_string_compare(struct bt_ctf_field_type_common *ft_
 
 	/* Encoding */
 	if (string_ft_a->encoding != string_ft_b->encoding) {
-		BT_LOGV("String field types differ: different encodings: "
+		BT_LOGT("String field types differ: different encodings: "
 			"ft-a-encoding=%s, ft-b-encoding=%s",
 			bt_ctf_string_encoding_string(string_ft_a->encoding),
 			bt_ctf_string_encoding_string(string_ft_b->encoding));
@@ -3497,7 +3497,7 @@ int compare_structure_variant_members(
 
 	/* Label */
 	if (member_a_name != member_b_name) {
-		BT_LOGV("Structure/variant field type fields differ: different names: "
+		BT_LOGT("Structure/variant field type fields differ: different names: "
 			"field-a-name=%s, field-b-name=%s",
 			g_quark_to_string(member_a_name),
 			g_quark_to_string(member_b_name));
@@ -3507,7 +3507,7 @@ int compare_structure_variant_members(
 	/* Type */
 	ret = bt_ctf_field_type_common_compare(member_a_ft, member_b_ft);
 	if (ret == 1) {
-		BT_LOGV("Structure/variant field type fields differ: different field types: "
+		BT_LOGT("Structure/variant field type fields differ: different field types: "
 			"field-name=\"%s\", field-a-ft-addr=%p, field-b-ft-addr=%p",
 			g_quark_to_string(member_a_name),
 			member_a_ft, member_b_ft);
@@ -3532,7 +3532,7 @@ int bt_ctf_field_type_common_structure_compare_recursive(
 	/* Alignment */
 	if (bt_ctf_field_type_common_get_alignment(ft_a) !=
 			bt_ctf_field_type_common_get_alignment(ft_b)) {
-		BT_LOGV("Structure field types differ: different alignments: "
+		BT_LOGT("Structure field types differ: different alignments: "
 			"ft-a-align=%u, ft-b-align=%u",
 			bt_ctf_field_type_common_get_alignment(ft_a),
 			bt_ctf_field_type_common_get_alignment(ft_b));
@@ -3541,7 +3541,7 @@ int bt_ctf_field_type_common_structure_compare_recursive(
 
 	/* Fields */
 	if (struct_ft_a->fields->len != struct_ft_b->fields->len) {
-		BT_LOGV("Structure field types differ: different field counts: "
+		BT_LOGT("Structure field types differ: different field counts: "
 			"ft-a-field-count=%u, ft-b-field-count=%u",
 			struct_ft_a->fields->len, struct_ft_b->fields->len);
 		goto end;
@@ -3559,7 +3559,7 @@ int bt_ctf_field_type_common_structure_compare_recursive(
 			field_b->type, field_a->name, field_b->name);
 		if (ret) {
 			/* compare_structure_variant_members() logs what differs */
-			BT_LOGV_STR("Structure field types differ: different fields.");
+			BT_LOGT_STR("Structure field types differ: different fields.");
 			goto end;
 		}
 	}
@@ -3583,7 +3583,7 @@ int bt_ctf_field_type_common_variant_compare_recursive(
 
 	/* Tag name */
 	if (strcmp(var_ft_a->tag_name->str, var_ft_b->tag_name->str)) {
-		BT_LOGV("Variant field types differ: different tag field names: "
+		BT_LOGT("Variant field types differ: different tag field names: "
 			"ft-a-tag-field-name=\"%s\", ft-b-tag-field-name=\"%s\"",
 			var_ft_a->tag_name->str, var_ft_b->tag_name->str);
 		goto end;
@@ -3593,7 +3593,7 @@ int bt_ctf_field_type_common_variant_compare_recursive(
 	ret = bt_ctf_field_type_common_compare(BT_CTF_TO_COMMON(var_ft_a->tag_ft),
 		BT_CTF_TO_COMMON(var_ft_b->tag_ft));
 	if (ret) {
-		BT_LOGV("Variant field types differ: different tag field types: "
+		BT_LOGT("Variant field types differ: different tag field types: "
 			"ft-a-tag-ft-addr=%p, ft-b-tag-ft-addr=%p",
 			var_ft_a->tag_ft, var_ft_b->tag_ft);
 		goto end;
@@ -3603,7 +3603,7 @@ int bt_ctf_field_type_common_variant_compare_recursive(
 
 	/* Fields */
 	if (var_ft_a->choices->len != var_ft_b->choices->len) {
-		BT_LOGV("Variant field types differ: different field counts: "
+		BT_LOGT("Variant field types differ: different field counts: "
 			"ft-a-field-count=%u, ft-b-field-count=%u",
 			var_ft_a->choices->len, var_ft_b->choices->len);
 		goto end;
@@ -3621,7 +3621,7 @@ int bt_ctf_field_type_common_variant_compare_recursive(
 			choice_b->type, choice_a->name, choice_b->name);
 		if (ret) {
 			/* compare_structure_variant_members() logs what differs */
-			BT_LOGV_STR("Variant field types differ: different fields.");
+			BT_LOGT_STR("Variant field types differ: different fields.");
 			goto end;
 		}
 	}
@@ -3644,7 +3644,7 @@ int bt_ctf_field_type_common_array_compare_recursive(
 
 	/* Length */
 	if (array_ft_a->length != array_ft_b->length) {
-		BT_LOGV("Structure field types differ: different lengths: "
+		BT_LOGT("Structure field types differ: different lengths: "
 			"ft-a-length=%u, ft-b-length=%u",
 			array_ft_a->length, array_ft_b->length);
 		goto end;
@@ -3654,7 +3654,7 @@ int bt_ctf_field_type_common_array_compare_recursive(
 	ret = bt_ctf_field_type_common_compare(array_ft_a->element_ft,
 		array_ft_b->element_ft);
 	if (ret == 1) {
-		BT_LOGV("Array field types differ: different element field types: "
+		BT_LOGT("Array field types differ: different element field types: "
 			"ft-a-element-ft-addr=%p, ft-b-element-ft-addr=%p",
 			array_ft_a->element_ft, array_ft_b->element_ft);
 	}
@@ -3675,7 +3675,7 @@ int bt_ctf_field_type_common_sequence_compare_recursive(
 	/* Length name */
 	if (strcmp(seq_ft_a->length_field_name->str,
 			seq_ft_b->length_field_name->str)) {
-		BT_LOGV("Sequence field types differ: different length field names: "
+		BT_LOGT("Sequence field types differ: different length field names: "
 			"ft-a-length-field-name=\"%s\", "
 			"ft-b-length-field-name=\"%s\"",
 			seq_ft_a->length_field_name->str,
@@ -3687,7 +3687,7 @@ int bt_ctf_field_type_common_sequence_compare_recursive(
 	ret = bt_ctf_field_type_common_compare(seq_ft_a->element_ft,
 			seq_ft_b->element_ft);
 	if (ret == 1) {
-		BT_LOGV("Sequence field types differ: different element field types: "
+		BT_LOGT("Sequence field types differ: different element field types: "
 			"ft-a-element-ft-addr=%p, ft-b-element-ft-addr=%p",
 			seq_ft_a->element_ft, seq_ft_b->element_ft);
 	}
@@ -3725,7 +3725,7 @@ int bt_ctf_field_type_common_compare(struct bt_ctf_field_type_common *ft_a,
 
 	if (ft_a->id != ft_b->id) {
 		/* Different type IDs */
-		BT_LOGV("Field types differ: different IDs: "
+		BT_LOGT("Field types differ: different IDs: "
 			"ft-a-addr=%p, ft-b-addr=%p, "
 			"ft-a-id=%s, ft-b-id=%s",
 			ft_a, ft_b,
@@ -3743,7 +3743,7 @@ int bt_ctf_field_type_common_compare(struct bt_ctf_field_type_common *ft_a,
 	BT_ASSERT(ft_a->methods->compare);
 	ret = ft_a->methods->compare(ft_a, ft_b);
 	if (ret == 1) {
-		BT_LOGV("Field types differ: ft-a-addr=%p, ft-b-addr=%p",
+		BT_LOGT("Field types differ: ft-a-addr=%p, ft-b-addr=%p",
 			ft_a, ft_b);
 	}
 
@@ -3896,7 +3896,7 @@ int bt_ctf_field_type_common_validate_single_clock_class(
 			/* Move reference to output parameter */
 			*expected_clock_class = bt_ctf_object_get_ref(mapped_clock_class);
 			mapped_clock_class = NULL;
-			BT_LOGV("Setting expected clock class: "
+			BT_LOGT("Setting expected clock class: "
 				"expected-clock-class-addr=%p",
 				*expected_clock_class);
 		} else {

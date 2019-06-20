@@ -920,7 +920,7 @@ muxer_msg_iter_youngest_upstream_msg_iter(
 
 		if (!cur_muxer_upstream_msg_iter->msg_iter) {
 			/* This upstream message iterator is ended */
-			BT_COMP_LOGV("Skipping ended upstream message iterator: "
+			BT_COMP_LOGT("Skipping ended upstream message iterator: "
 				"muxer-upstream-msg-iter-wrap-addr=%p",
 				cur_muxer_upstream_msg_iter);
 			continue;
@@ -1404,7 +1404,7 @@ bt_self_message_iterator_status muxer_msg_iter_next(
 	BT_ASSERT(self_comp);
 	muxer_comp = bt_self_component_get_data(self_comp);
 	BT_ASSERT(muxer_comp);
-	BT_COMP_LOGV("Muxer component's message iterator's \"next\" method called: "
+	BT_COMP_LOGT("Muxer component's message iterator's \"next\" method called: "
 		"comp-addr=%p, muxer-comp-addr=%p, muxer-msg-iter-addr=%p, "
 		"msg-iter-addr=%p",
 		self_comp, muxer_comp, muxer_msg_iter, self_msg_iter);
@@ -1418,7 +1418,7 @@ bt_self_message_iterator_status muxer_msg_iter_next(
 			self_comp, muxer_comp, muxer_msg_iter, self_msg_iter,
 			bt_common_self_message_iterator_status_string(status));
 	} else {
-		BT_COMP_LOGV("Returning from muxer component's message iterator's \"next\" method: "
+		BT_COMP_LOGT("Returning from muxer component's message iterator's \"next\" method: "
 			"status=%s",
 			bt_common_self_message_iterator_status_string(status));
 	}

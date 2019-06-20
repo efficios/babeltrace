@@ -45,9 +45,9 @@
 #include "ast.h"
 #include "objstack.h"
 
-#if BT_LOG_ENABLED_VERBOSE
+#if BT_LOG_ENABLED_TRACE
 # define YYDEBUG 1
-# define YYFPRINTF(_stream, _fmt, args...) BT_LOGV(_fmt, ## args)
+# define YYFPRINTF(_stream, _fmt, args...) BT_LOGT(_fmt, ## args)
 #else
 # define YYDEBUG 0
 #endif
@@ -318,7 +318,7 @@ static void push_scope(struct ctf_scanner *scanner)
 {
 	struct ctf_scanner_scope *ns;
 
-	BT_LOGV("Pushing scope: scanner-addr=%p", scanner);
+	BT_LOGT("Pushing scope: scanner-addr=%p", scanner);
 	ns = malloc(sizeof(struct ctf_scanner_scope));
 	init_scope(ns, scanner->cs);
 	scanner->cs = ns;
@@ -328,7 +328,7 @@ static void pop_scope(struct ctf_scanner *scanner)
 {
 	struct ctf_scanner_scope *os;
 
-	BT_LOGV("Popping scope: scanner-addr=%p", scanner);
+	BT_LOGT("Popping scope: scanner-addr=%p", scanner);
 	os = scanner->cs;
 	scanner->cs = os->parent;
 	finalize_scope(os);
@@ -340,7 +340,7 @@ static int lookup_type(struct ctf_scanner_scope *s, const char *id)
 	int ret;
 
 	ret = GPOINTER_TO_INT(g_hash_table_lookup(s->classes, id));
-	BT_LOGV("Looked up type: scanner-addr=%p, id=\"%s\", ret=%d",
+	BT_LOGT("Looked up type: scanner-addr=%p, id=\"%s\", ret=%d",
 		s, id, ret);
 	return ret;
 }
@@ -357,14 +357,14 @@ int is_type(struct ctf_scanner *scanner, const char *id)
 			break;
 		}
 	}
-	BT_LOGV("Found if ID is type: scanner-addr=%p, id=\"%s\", ret=%d",
+	BT_LOGT("Found if ID is type: scanner-addr=%p, id=\"%s\", ret=%d",
 		scanner, id, ret);
 	return ret;
 }
 
 static void add_type(struct ctf_scanner *scanner, char *id)
 {
-	BT_LOGV("Adding type: scanner-addr=%p, id=\"%s\"",
+	BT_LOGT("Adding type: scanner-addr=%p, id=\"%s\"",
 		scanner, id);
 	if (lookup_type(scanner->cs, id))
 		return;

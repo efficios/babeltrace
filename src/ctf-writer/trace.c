@@ -172,7 +172,7 @@ int bt_ctf_trace_common_set_name(struct bt_ctf_trace_common *trace, const char *
 		goto end;
 	}
 
-	BT_LOGV("Set trace's name: addr=%p, name=\"%s\"", trace, name);
+	BT_LOGT("Set trace's name: addr=%p, name=\"%s\"", trace, name);
 
 end:
 	return ret;
@@ -206,7 +206,7 @@ int bt_ctf_trace_common_set_uuid(struct bt_ctf_trace_common *trace,
 
 	memcpy(trace->uuid, uuid, BABELTRACE_UUID_LEN);
 	trace->uuid_set = BT_TRUE;
-	BT_LOGV("Set trace's UUID: addr=%p, name=\"%s\", "
+	BT_LOGT("Set trace's UUID: addr=%p, name=\"%s\", "
 		"uuid=\"%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x\"",
 		trace, bt_ctf_trace_common_get_name(trace),
 		(unsigned int) uuid[0],
@@ -307,7 +307,7 @@ int bt_ctf_trace_common_set_environment_field(struct bt_ctf_trace_common *trace,
 			"env-name=\"%s\"",
 			trace, bt_ctf_trace_common_get_name(trace), name);
 	} else {
-		BT_LOGV("Set environment field's value: "
+		BT_LOGT("Set environment field's value: "
 			"trace-addr=%p, trace-name=\"%s\", "
 			"env-name=\"%s\", value-addr=%p",
 			trace, bt_ctf_trace_common_get_name(trace), name, value);
@@ -406,11 +406,11 @@ int bt_ctf_trace_common_add_clock_class(struct bt_ctf_trace_common *trace,
 	g_ptr_array_add(trace->clock_classes, clock_class);
 
 	if (trace->frozen) {
-		BT_LOGV_STR("Freezing added clock class because trace is frozen.");
+		BT_LOGT_STR("Freezing added clock class because trace is frozen.");
 		bt_ctf_clock_class_freeze(clock_class);
 	}
 
-	BT_LOGV("Added clock class to trace: "
+	BT_LOGT("Added clock class to trace: "
 		"trace-addr=%p, trace-name=\"%s\", "
 		"clock-class-addr=%p, clock-class-name=\"%s\"",
 		trace, bt_ctf_trace_common_get_name(trace),
@@ -1323,7 +1323,7 @@ int bt_ctf_trace_common_set_native_byte_order(struct bt_ctf_trace_common *trace,
 	}
 
 	trace->native_byte_order = byte_order;
-	BT_LOGV("Set trace's native byte order: "
+	BT_LOGT("Set trace's native byte order: "
 		"addr=%p, name=\"%s\", bo=%s",
 		trace, bt_ctf_trace_common_get_name(trace),
 		bt_ctf_byte_order_string(byte_order));
@@ -1366,7 +1366,7 @@ int bt_ctf_trace_common_set_packet_header_field_type(struct bt_ctf_trace_common 
 
 	bt_ctf_object_put_ref(trace->packet_header_field_type);
 	trace->packet_header_field_type = bt_ctf_object_get_ref(packet_header_type);
-	BT_LOGV("Set trace's packet header field type: "
+	BT_LOGT("Set trace's packet header field type: "
 		"addr=%p, name=\"%s\", packet-context-ft-addr=%p",
 		trace, bt_ctf_trace_common_get_name(trace), packet_header_type);
 end:
@@ -1414,7 +1414,7 @@ int bt_ctf_trace_visit(struct bt_ctf_trace *trace,
 		goto end;
 	}
 
-	BT_LOGV("Visiting trace: addr=%p, name=\"%s\"",
+	BT_LOGT("Visiting trace: addr=%p, name=\"%s\"",
 		trace, bt_ctf_trace_get_name(trace));
 	ret = bt_ctf_visitor_helper(&obj, get_stream_class_count,
 			get_stream_class, visit_stream_class, visitor, data);

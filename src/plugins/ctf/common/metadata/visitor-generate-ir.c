@@ -172,8 +172,8 @@ enum loglevel {
 #define _BT_COMP_LOGW_NODE(_node, _msg, args...)				\
 	_BT_COMP_LOGW_LINENO((_node)->lineno, _msg, ## args)
 
-#define _BT_COMP_LOGV_NODE(_node, _msg, args...)				\
-	_BT_COMP_LOGV_LINENO((_node)->lineno, _msg, ## args)
+#define _BT_COMP_LOGT_NODE(_node, _msg, args...)				\
+	_BT_COMP_LOGT_LINENO((_node)->lineno, _msg, ## args)
 
 /*
  * Declaration scope of a visitor context. This represents a TSDL

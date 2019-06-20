@@ -115,7 +115,7 @@ struct bt_ctf_field_common *bt_ctf_event_common_borrow_payload(
 	BT_CTF_ASSERT_PRE_NON_NULL(event, "Event");
 
 	if (!event->payload_field) {
-		BT_LOGV("Event has no current payload field: addr=%p, "
+		BT_LOGT("Event has no current payload field: addr=%p, "
 			"event-class-name=\"%s\", event-class-id=%" PRId64,
 			event, bt_ctf_event_class_common_get_name(event->class),
 			bt_ctf_event_class_common_get_id(event->class));
@@ -137,7 +137,7 @@ struct bt_ctf_field_common *bt_ctf_event_common_borrow_header(
 	BT_CTF_ASSERT_PRE_NON_NULL(event, "Event");
 
 	if (!event->header_field) {
-		BT_LOGV("Event has no current header field: addr=%p, "
+		BT_LOGT("Event has no current header field: addr=%p, "
 			"event-class-name=\"%s\", event-class-id=%" PRId64,
 			event, bt_ctf_event_class_common_get_name(event->class),
 			bt_ctf_event_class_common_get_id(event->class));
@@ -159,7 +159,7 @@ struct bt_ctf_field_common *bt_ctf_event_common_borrow_context(
 	BT_CTF_ASSERT_PRE_NON_NULL(event, "Event");
 
 	if (!event->context_field) {
-		BT_LOGV("Event has no current context field: addr=%p, "
+		BT_LOGT("Event has no current context field: addr=%p, "
 			"event-class-name=\"%s\", event-class-id=%" PRId64,
 			event, bt_ctf_event_class_common_get_name(event->class),
 			bt_ctf_event_class_common_get_id(event->class));
@@ -181,7 +181,7 @@ struct bt_ctf_field_common *bt_ctf_event_common_borrow_stream_event_context(
 	BT_CTF_ASSERT_PRE_NON_NULL(event, "Event");
 
 	if (!event->stream_event_context_field) {
-		BT_LOGV("Event has no current stream event context field: addr=%p, "
+		BT_LOGT("Event has no current stream event context field: addr=%p, "
 			"event-class-name=\"%s\", event-class-id=%" PRId64,
 			event, bt_ctf_event_class_common_get_name(event->class),
 			bt_ctf_event_class_common_get_id(event->class));

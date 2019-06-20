@@ -62,7 +62,7 @@ current global log level and the minimal log level are not executed.
 */
 typedef enum bt_logging_level {
 	/// Additional, low-level debugging context information.
-	BT_LOGGING_LEVEL_VERBOSE	= 1,
+	BT_LOGGING_LEVEL_TRACE		= 1,
 
 	/**
 	Debugging information, only useful when searching for the

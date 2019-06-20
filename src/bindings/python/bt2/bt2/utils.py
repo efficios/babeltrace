@@ -132,7 +132,7 @@ def _check_log_level(log_level):
     _check_int(log_level)
 
     log_levels = (
-        bt2.logging.LoggingLevel.VERBOSE,
+        bt2.logging.LoggingLevel.TRACE,
         bt2.logging.LoggingLevel.DEBUG,
         bt2.logging.LoggingLevel.INFO,
         bt2.logging.LoggingLevel.WARN,

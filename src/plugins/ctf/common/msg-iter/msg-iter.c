@@ -380,7 +380,7 @@ void stack_push(struct stack *stack, bt_field *base)
 	BT_ASSERT(stack);
 	notit = stack->notit;
 	BT_ASSERT(base);
-	BT_COMP_LOGV("Pushing base field on stack: stack-addr=%p, "
+	BT_COMP_LOGT("Pushing base field on stack: stack-addr=%p, "
 		"stack-size-before=%zu, stack-size-after=%zu",
 		stack, stack->size, stack->size + 1);
 
@@ -409,7 +409,7 @@ void stack_pop(struct stack *stack)
 	BT_ASSERT(stack);
 	BT_ASSERT(stack_size(stack));
 	notit = stack->notit;
-	BT_COMP_LOGV("Popping from stack: "
+	BT_COMP_LOGT("Popping from stack: "
 		"stack-addr=%p, stack-size-before=%zu, stack-size-after=%zu",
 		stack, stack->size, stack->size - 1);
 	stack->size--;
@@ -466,7 +466,7 @@ size_t packet_at(struct bt_msg_iter *notit)
 static inline
 void buf_consume_bits(struct bt_msg_iter *notit, size_t incr)
 {
-	BT_COMP_LOGV("Advancing cursor: notit-addr=%p, cur-before=%zu, cur-after=%zu",
+	BT_COMP_LOGT("Advancing cursor: notit-addr=%p, cur-before=%zu, cur-after=%zu",
 		notit, notit->buf.at, notit->buf.at + incr);
 	notit->buf.at += incr;
 }
@@ -579,21 +579,21 @@ enum bt_msg_iter_status read_dscope_begin_state(
 	size_t consumed_bits;
 
 	notit->cur_dscope_field = dscope_field;
-	BT_COMP_LOGV("Starting BFCR: notit-addr=%p, bfcr-addr=%p, fc-addr=%p",
+	BT_COMP_LOGT("Starting BFCR: notit-addr=%p, bfcr-addr=%p, fc-addr=%p",
 		notit, notit->bfcr, dscope_fc);
 	consumed_bits = bt_bfcr_start(notit->bfcr, dscope_fc,
 		notit->buf.addr, notit->buf.at, packet_at(notit),
 		notit->buf.sz, &bfcr_status);
-	BT_COMP_LOGV("BFCR consumed bits: size=%zu", consumed_bits);
+	BT_COMP_LOGT("BFCR consumed bits: size=%zu", consumed_bits);
 
 	switch (bfcr_status) {
 	case BT_BFCR_STATUS_OK:
 		/* Field class was read completely */
-		BT_COMP_LOGV_STR("Field was completely decoded.");
+		BT_COMP_LOGT_STR("Field was completely decoded.");
 		notit->state = done_state;
 		break;
 	case BT_BFCR_STATUS_EOF:
-		BT_COMP_LOGV_STR("BFCR needs more data to decode field completely.");
+		BT_COMP_LOGT_STR("BFCR needs more data to decode field completely.");
 		notit->state = continue_state;
 		break;
 	default:
@@ -619,7 +619,7 @@ enum bt_msg_iter_status read_dscope_continue_state(
 	enum bt_bfcr_status bfcr_status;
 	size_t consumed_bits;
 
-	BT_COMP_LOGV("Continuing BFCR: notit-addr=%p, bfcr-addr=%p",
+	BT_COMP_LOGT("Continuing BFCR: notit-addr=%p, bfcr-addr=%p",
 		notit, notit->bfcr);
 
 	status = buf_ensure_available_bits(notit);
@@ -629,7 +629,7 @@ enum bt_msg_iter_status read_dscope_continue_state(
 				"msg-addr=%p, status=%s",
 				notit, bt_msg_iter_status_string(status));
 		} else {
-			BT_COMP_LOGV("Cannot ensure that buffer has at least one byte: "
+			BT_COMP_LOGT("Cannot ensure that buffer has at least one byte: "
 				"msg-addr=%p, status=%s",
 				notit, bt_msg_iter_status_string(status));
 		}
@@ -639,17 +639,17 @@ enum bt_msg_iter_status read_dscope_continue_state(
 
 	consumed_bits = bt_bfcr_continue(notit->bfcr, notit->buf.addr,
 		notit->buf.sz, &bfcr_status);
-	BT_COMP_LOGV("BFCR consumed bits: size=%zu", consumed_bits);
+	BT_COMP_LOGT("BFCR consumed bits: size=%zu", consumed_bits);
 
 	switch (bfcr_status) {
 	case BT_BFCR_STATUS_OK:
 		/* Type was read completely. */
-		BT_COMP_LOGV_STR("Field was completely decoded.");
+		BT_COMP_LOGT_STR("Field was completely decoded.");
 		notit->state = done_state;
 		break;
 	case BT_BFCR_STATUS_EOF:
 		/* Stay in this continue state. */
-		BT_COMP_LOGV_STR("BFCR needs more data to decode field completely.");
+		BT_COMP_LOGT_STR("BFCR needs more data to decode field completely.");
 		break;
 	default:
 		BT_COMP_LOGW("BFCR failed to continue: notit-addr=%p, bfcr-addr=%p, "
@@ -1281,7 +1281,7 @@ enum bt_msg_iter_status read_event_common_context_begin_state(
 		BT_ASSERT(notit->dscopes.event_common_context);
 	}
 
-	BT_COMP_LOGV("Decoding event common context field: "
+	BT_COMP_LOGT("Decoding event common context field: "
 		"notit-addr=%p, stream-class-addr=%p, "
 		"stream-class-id=%" PRId64 ", "
 		"fc-addr=%p",
@@ -1334,7 +1334,7 @@ enum bt_msg_iter_status read_event_spec_context_begin_state(
 		BT_ASSERT(notit->dscopes.event_spec_context);
 	}
 
-	BT_COMP_LOGV("Decoding event specific context field: "
+	BT_COMP_LOGT("Decoding event specific context field: "
 		"notit-addr=%p, event-class-addr=%p, "
 		"event-class-name=\"%s\", event-class-id=%" PRId64 ", "
 		"fc-addr=%p",
@@ -1390,7 +1390,7 @@ enum bt_msg_iter_status read_event_payload_begin_state(
 		BT_ASSERT(notit->dscopes.event_payload);
 	}
 
-	BT_COMP_LOGV("Decoding event payload field: "
+	BT_COMP_LOGT("Decoding event payload field: "
 		"notit-addr=%p, event-class-addr=%p, "
 		"event-class-name=\"%s\", event-class-id=%" PRId64 ", "
 		"fc-addr=%p",
@@ -1588,7 +1588,7 @@ enum bt_msg_iter_status handle_state(struct bt_msg_iter *notit)
 	enum bt_msg_iter_status status = BT_MSG_ITER_STATUS_OK;
 	const enum state state = notit->state;
 
-	BT_COMP_LOGV("Handling state: notit-addr=%p, state=%s",
+	BT_COMP_LOGT("Handling state: notit-addr=%p, state=%s",
 		notit, state_string(state));
 
 	// TODO: optimalize!
@@ -1694,7 +1694,7 @@ enum bt_msg_iter_status handle_state(struct bt_msg_iter *notit)
 		abort();
 	}
 
-	BT_COMP_LOGV("Handled state: notit-addr=%p, status=%s, "
+	BT_COMP_LOGT("Handled state: notit-addr=%p, status=%s, "
 		"prev-state=%s, cur-state=%s",
 		notit, bt_msg_iter_status_string(status),
 		state_string(state), state_string(notit->state));
@@ -1901,7 +1901,7 @@ void update_default_clock(struct bt_msg_iter *notit, uint64_t new_val,
 	notit->default_clock_snapshot |= new_val;
 
 end:
-	BT_COMP_LOGV("Updated default clock's value from integer field's value: "
+	BT_COMP_LOGT("Updated default clock's value from integer field's value: "
 		"value=%" PRIu64, notit->default_clock_snapshot);
 }
 
@@ -1914,7 +1914,7 @@ enum bt_bfcr_status bfcr_unsigned_int_cb(uint64_t value,
 	bt_field *field = NULL;
 	struct ctf_field_class_int *int_fc = (void *) fc;
 
-	BT_COMP_LOGV("Unsigned integer function called from BFCR: "
+	BT_COMP_LOGT("Unsigned integer function called from BFCR: "
 		"notit-addr=%p, bfcr-addr=%p, fc-addr=%p, "
 		"fc-type=%d, fc-in-ir=%d, value=%" PRIu64,
 		notit, notit->bfcr, fc, fc->type, fc->in_ir, value);
@@ -2003,7 +2003,7 @@ enum bt_bfcr_status bfcr_unsigned_int_char_cb(uint64_t value,
 	struct ctf_field_class_int *int_fc = (void *) fc;
 	char str[2] = {'\0', '\0'};
 
-	BT_COMP_LOGV("Unsigned integer character function called from BFCR: "
+	BT_COMP_LOGT("Unsigned integer character function called from BFCR: "
 		"notit-addr=%p, bfcr-addr=%p, fc-addr=%p, "
 		"fc-type=%d, fc-in-ir=%d, value=%" PRIu64,
 		notit, notit->bfcr, fc, fc->type, fc->in_ir, value);
@@ -2052,7 +2052,7 @@ enum bt_bfcr_status bfcr_signed_int_cb(int64_t value,
 	struct bt_msg_iter *notit = data;
 	struct ctf_field_class_int *int_fc = (void *) fc;
 
-	BT_COMP_LOGV("Signed integer function called from BFCR: "
+	BT_COMP_LOGT("Signed integer function called from BFCR: "
 		"notit-addr=%p, bfcr-addr=%p, fc-addr=%p, "
 		"fc-type=%d, fc-in-ir=%d, value=%" PRId64,
 		notit, notit->bfcr, fc, fc->type, fc->in_ir, value);
@@ -2089,7 +2089,7 @@ enum bt_bfcr_status bfcr_floating_point_cb(double value,
 	bt_field *field = NULL;
 	struct bt_msg_iter *notit = data;
 
-	BT_COMP_LOGV("Floating point number function called from BFCR: "
+	BT_COMP_LOGT("Floating point number function called from BFCR: "
 		"notit-addr=%p, bfcr-addr=%p, fc-addr=%p, "
 		"fc-type=%d, fc-in-ir=%d, value=%f",
 		notit, notit->bfcr, fc, fc->type, fc->in_ir, value);
@@ -2118,7 +2118,7 @@ enum bt_bfcr_status bfcr_string_begin_cb(
 	struct bt_msg_iter *notit = data;
 	int ret;
 
-	BT_COMP_LOGV("String (beginning) function called from BFCR: "
+	BT_COMP_LOGT("String (beginning) function called from BFCR: "
 		"notit-addr=%p, bfcr-addr=%p, fc-addr=%p, "
 		"fc-type=%d, fc-in-ir=%d",
 		notit, notit->bfcr, fc, fc->type, fc->in_ir);
@@ -2155,7 +2155,7 @@ enum bt_bfcr_status bfcr_string_cb(const char *value,
 	struct bt_msg_iter *notit = data;
 	int ret;
 
-	BT_COMP_LOGV("String (substring) function called from BFCR: "
+	BT_COMP_LOGT("String (substring) function called from BFCR: "
 		"notit-addr=%p, bfcr-addr=%p, fc-addr=%p, "
 		"fc-type=%d, fc-in-ir=%d, string-length=%zu",
 		notit, notit->bfcr, fc, fc->type, fc->in_ir,
@@ -2188,7 +2188,7 @@ enum bt_bfcr_status bfcr_string_end_cb(
 {
 	struct bt_msg_iter *notit = data;
 
-	BT_COMP_LOGV("String (end) function called from BFCR: "
+	BT_COMP_LOGT("String (end) function called from BFCR: "
 		"notit-addr=%p, bfcr-addr=%p, fc-addr=%p, "
 		"fc-type=%d, fc-in-ir=%d",
 		notit, notit->bfcr, fc, fc->type, fc->in_ir);
@@ -2213,7 +2213,7 @@ enum bt_bfcr_status bfcr_compound_begin_cb(
 	struct bt_msg_iter *notit = data;
 	bt_field *field;
 
-	BT_COMP_LOGV("Compound (beginning) function called from BFCR: "
+	BT_COMP_LOGT("Compound (beginning) function called from BFCR: "
 		"notit-addr=%p, bfcr-addr=%p, fc-addr=%p, "
 		"fc-type=%d, fc-in-ir=%d",
 		notit, notit->bfcr, fc, fc->type, fc->in_ir);
@@ -2266,7 +2266,7 @@ enum bt_bfcr_status bfcr_compound_end_cb(
 {
 	struct bt_msg_iter *notit = data;
 
-	BT_COMP_LOGV("Compound (end) function called from BFCR: "
+	BT_COMP_LOGT("Compound (end) function called from BFCR: "
 		"notit-addr=%p, bfcr-addr=%p, fc-addr=%p, "
 		"fc-type=%d, fc-in-ir=%d",
 		notit, notit->bfcr, fc, fc->type, fc->in_ir);

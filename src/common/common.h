@@ -573,8 +573,8 @@ const char *bt_common_logging_level_string(
 		enum bt_logging_level level)
 {
 	switch (level) {
-	case BT_LOGGING_LEVEL_VERBOSE:
-		return "BT_LOGGING_LEVEL_VERBOSE";
+	case BT_LOGGING_LEVEL_TRACE:
+		return "BT_LOGGING_LEVEL_TRACE";
 	case BT_LOGGING_LEVEL_DEBUG:
 		return "BT_LOGGING_LEVEL_DEBUG";
 	case BT_LOGGING_LEVEL_INFO:

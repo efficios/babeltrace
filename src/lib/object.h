@@ -33,10 +33,10 @@
  * for internal reference counting. Until we make this header generic
  * for the whole project, make it possible to disable logging in this
  * file by defining `BT_OBJECT_DONT_LOG` because it's possible that the
- * BT_LOGV() statements here won't find the log level
+ * BT_LOGT() statements here won't find the log level
  * (`BT_LOG_OUTPUT_LEVEL`).
  */
-#if defined(BT_LOGV) && !defined(BT_OBJECT_DONT_LOG)
+#if defined(BT_LOGT) && !defined(BT_OBJECT_DONT_LOG)
 # define _BT_OBJECT_LOGGING_ENABLED
 #endif
 
@@ -139,7 +139,7 @@ void bt_object_set_parent(struct bt_object *child, struct bt_object *parent)
 	BT_ASSERT(child->is_shared);
 
 #ifdef _BT_OBJECT_LOGGING_ENABLED
-	BT_LOGV("Setting object's parent: addr=%p, parent-addr=%p",
+	BT_LOGT("Setting object's parent: addr=%p, parent-addr=%p",
 		child, parent);
 #endif
 
@@ -186,7 +186,7 @@ void bt_object_with_parent_release_func(struct bt_object *obj)
 		struct bt_object *parent = obj->parent;
 
 #ifdef _BT_OBJECT_LOGGING_ENABLED
-		BT_LOGV("Releasing parented object: addr=%p, ref-count=%llu, "
+		BT_LOGT("Releasing parented object: addr=%p, ref-count=%llu, "
 			"parent-addr=%p, parent-ref-count=%llu",
 			obj, obj->ref_count,
 			parent, parent->ref_count);
@@ -276,7 +276,7 @@ void bt_object_get_no_null_check_no_parent_check(const struct bt_object *c_obj)
 	BT_ASSERT(obj->is_shared);
 
 #ifdef _BT_OBJECT_LOGGING_ENABLED
-	BT_LOGV("Incrementing object's reference count: %llu -> %llu: "
+	BT_LOGT("Incrementing object's reference count: %llu -> %llu: "
 		"addr=%p, cur-count=%llu, new-count=%llu",
 		obj->ref_count, obj->ref_count + 1,
 		obj, obj->ref_count, obj->ref_count + 1);
@@ -295,7 +295,7 @@ void bt_object_get_no_null_check(const void *c_obj)
 
 	if (G_UNLIKELY(obj->parent && bt_object_get_ref_count(obj) == 0)) {
 #ifdef _BT_OBJECT_LOGGING_ENABLED
-		BT_LOGV("Incrementing object's parent's reference count: "
+		BT_LOGT("Incrementing object's parent's reference count: "
 			"addr=%p, parent-addr=%p", obj, obj->parent);
 #endif
 
@@ -303,7 +303,7 @@ void bt_object_get_no_null_check(const void *c_obj)
 	}
 
 #ifdef _BT_OBJECT_LOGGING_ENABLED
-	BT_LOGV("Incrementing object's reference count: %llu -> %llu: "
+	BT_LOGT("Incrementing object's reference count: %llu -> %llu: "
 		"addr=%p, cur-count=%llu, new-count=%llu",
 		obj->ref_count, obj->ref_count + 1,
 		obj, obj->ref_count, obj->ref_count + 1);
@@ -322,7 +322,7 @@ void bt_object_put_no_null_check(const void *c_obj)
 	BT_ASSERT(obj->ref_count > 0);
 
 #ifdef _BT_OBJECT_LOGGING_ENABLED
-	BT_LOGV("Decrementing object's reference count: %llu -> %llu: "
+	BT_LOGT("Decrementing object's reference count: %llu -> %llu: "
 		"addr=%p, cur-count=%llu, new-count=%llu",
 		obj->ref_count, obj->ref_count - 1,
 		obj, obj->ref_count, obj->ref_count - 1);

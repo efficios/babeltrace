@@ -2374,7 +2374,7 @@ int cmd_run_ctx_create_components_from_config_components(
 			goto error;
 		}
 
-		BT_ASSERT(cfg_comp->log_level >= BT_LOG_VERBOSE);
+		BT_ASSERT(cfg_comp->log_level >= BT_LOG_TRACE);
 
 		switch (cfg_comp->type) {
 		case BT_COMPONENT_CLASS_TYPE_SOURCE:
@@ -2646,7 +2646,7 @@ int cmd_run(struct bt_config *cfg)
 		printf("%s", bt_common_color_reset());
 		fflush(stdout);
 		fprintf(stderr, "%s", bt_common_color_reset());
-		BT_LOGV("bt_graph_run() returned: status=%s",
+		BT_LOGT("bt_graph_run() returned: status=%s",
 			bt_graph_status_str(graph_status));
 
 		switch (graph_status) {
@@ -2662,7 +2662,7 @@ int cmd_run(struct bt_config *cfg)
 			}
 
 			if (cfg->cmd_data.run.retry_duration_us > 0) {
-				BT_LOGV("Got BT_GRAPH_STATUS_AGAIN: sleeping: "
+				BT_LOGT("Got BT_GRAPH_STATUS_AGAIN: sleeping: "
 					"time-us=%" PRIu64,
 					cfg->cmd_data.run.retry_duration_us);
 
@@ -2739,7 +2739,7 @@ void set_auto_log_levels(struct bt_config *cfg)
 	 */
 	if (getenv("BABELTRACE_DEBUG") &&
 			strcmp(getenv("BABELTRACE_DEBUG"), "1") == 0) {
-		cfg->log_level = BT_LOG_VERBOSE;
+		cfg->log_level = BT_LOG_TRACE;
 	} else if (getenv("BABELTRACE_VERBOSE") &&
 			strcmp(getenv("BABELTRACE_VERBOSE"), "1") == 0) {
 		cfg->log_level = BT_LOG_INFO;
@@ -2751,15 +2751,15 @@ void set_auto_log_levels(struct bt_config *cfg)
 	 * --verbose. So:
 	 *
 	 *     --verbose: INFO log level
-	 *     --debug:   VERBOSE log level (includes DEBUG, which is
-	 *                is less verbose than VERBOSE in the internal
+	 *     --debug:   TRACE log level (includes DEBUG, which is
+	 *                is less verbose than TRACE in the internal
 	 *                logging framework)
 	 */
 	if (!getenv("LIBBABELTRACE2_INIT_LOG_LEVEL")) {
 		if (cfg->verbose) {
 			bt_logging_set_global_level(BT_LOG_INFO);
 		} else if (cfg->debug) {
-			bt_logging_set_global_level(BT_LOG_VERBOSE);
+			bt_logging_set_global_level(BT_LOG_TRACE);
 		} else {
 			/*
 			 * Set library's default log level if not
@@ -2773,7 +2773,7 @@ void set_auto_log_levels(struct bt_config *cfg)
 		if (cfg->verbose) {
 			bt_cli_log_level = BT_LOG_INFO;
 		} else if (cfg->debug) {
-			bt_cli_log_level = BT_LOG_VERBOSE;
+			bt_cli_log_level = BT_LOG_TRACE;
 		} else {
 			/*
 			 * Set CLI's default log level if not explicitly
@@ -2788,9 +2788,9 @@ void set_auto_log_levels(struct bt_config *cfg)
 	while (*env_var_name) {
 		if (!getenv(*env_var_name)) {
 			if (cfg->verbose) {
-				g_setenv(*env_var_name, "I", 1);
+				g_setenv(*env_var_name, "INFO", 1);
 			} else if (cfg->debug) {
-				g_setenv(*env_var_name, "V", 1);
+				g_setenv(*env_var_name, "TRACE", 1);
 			} else {
 				char val[2] = { 0 };
 

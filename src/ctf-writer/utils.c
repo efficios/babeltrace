@@ -89,7 +89,7 @@ bt_bool bt_ctf_identifier_is_valid(const char *identifier)
 	char *save_ptr, *token;
 
 	if (!identifier) {
-		BT_LOGV_STR("Invalid parameter: input string is NULL.");
+		BT_LOGT_STR("Invalid parameter: input string is NULL.");
 		is_valid = BT_FALSE;
 		goto end;
 	}

@@ -80,7 +80,7 @@ int64_t bt_ctf_stream_common_get_id(struct bt_ctf_stream_common *stream)
 	BT_CTF_ASSERT_PRE_NON_NULL(stream, "Stream");
 	ret = stream->id;
 	if (ret < 0) {
-		BT_LOGV("Stream's ID is not set: addr=%p, name=\"%s\"",
+		BT_LOGT("Stream's ID is not set: addr=%p, name=\"%s\"",
 			stream, bt_ctf_stream_common_get_name(stream));
 	}
 

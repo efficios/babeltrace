@@ -60,7 +60,7 @@ int validate_event_class_types(struct bt_ctf_private_value *environment,
 {
 	int ret = 0;
 
-	BT_LOGV("Validating event class field types: "
+	BT_LOGT("Validating event class field types: "
 		"packet-header-ft-addr=%p, "
 		"packet-context-ft-addr=%p, "
 		"event-header-ft-addr=%p, "
@@ -122,7 +122,7 @@ int validate_stream_class_types(struct bt_ctf_private_value *environment,
 {
 	int ret = 0;
 
-	BT_LOGV("Validating stream class field types: "
+	BT_LOGT("Validating stream class field types: "
 		"packet-header-ft-addr=%p, "
 		"packet-context-ft-addr=%p, "
 		"event-header-ft-addr=%p, "
@@ -187,7 +187,7 @@ int validate_trace_types(struct bt_ctf_private_value *environment,
 {
 	int ret = 0;
 
-	BT_LOGV("Validating event class field types: "
+	BT_LOGT("Validating event class field types: "
 		"packet-header-ft-addr=%p", packet_header_type);
 
 	/* Resolve sequence type lengths and variant type tags first */
@@ -280,7 +280,7 @@ int bt_ctf_validate_class_types(struct bt_ctf_private_value *environment,
 	int contains_seq_var;
 	int valid_ret;
 
-	BT_LOGV("Validating field types: "
+	BT_LOGT("Validating field types: "
 		"packet-header-ft-addr=%p, "
 		"packet-context-ft-addr=%p, "
 		"event-header-ft-addr=%p, "
@@ -337,7 +337,7 @@ int bt_ctf_validate_class_types(struct bt_ctf_private_value *environment,
 				goto skip_packet_header_type_copy;
 			}
 
-			BT_LOGV_STR("Copying packet header field type because it contains at least one sequence or variant field type.");
+			BT_LOGT_STR("Copying packet header field type because it contains at least one sequence or variant field type.");
 			packet_header_type_copy =
 				copy_field_type_func(packet_header_type);
 			if (!packet_header_type_copy) {
@@ -388,7 +388,7 @@ skip_packet_header_type_copy:
 				goto skip_packet_context_type_copy;
 			}
 
-			BT_LOGV_STR("Copying packet context field type because it contains at least one sequence or variant field type.");
+			BT_LOGT_STR("Copying packet context field type because it contains at least one sequence or variant field type.");
 			packet_context_type_copy =
 				copy_field_type_func(packet_context_type);
 			if (!packet_context_type_copy) {
@@ -419,7 +419,7 @@ skip_packet_context_type_copy:
 				goto skip_event_header_type_copy;
 			}
 
-			BT_LOGV_STR("Copying event header field type because it contains at least one sequence or variant field type.");
+			BT_LOGT_STR("Copying event header field type because it contains at least one sequence or variant field type.");
 			event_header_type_copy =
 				copy_field_type_func(event_header_type);
 			if (!event_header_type_copy) {
@@ -451,7 +451,7 @@ skip_event_header_type_copy:
 				goto skip_stream_event_ctx_type_copy;
 			}
 
-			BT_LOGV_STR("Copying stream event context field type because it contains at least one sequence or variant field type.");
+			BT_LOGT_STR("Copying stream event context field type because it contains at least one sequence or variant field type.");
 			stream_event_ctx_type_copy =
 				copy_field_type_func(stream_event_ctx_type);
 			if (!stream_event_ctx_type_copy) {
@@ -513,7 +513,7 @@ sc_validation_done:
 				goto skip_event_context_type_copy;
 			}
 
-			BT_LOGV_STR("Copying event context field type because it contains at least one sequence or variant field type.");
+			BT_LOGT_STR("Copying event context field type because it contains at least one sequence or variant field type.");
 			event_context_type_copy =
 				copy_field_type_func(event_context_type);
 			if (!event_context_type_copy) {
@@ -544,7 +544,7 @@ skip_event_context_type_copy:
 				goto skip_event_payload_type_copy;
 			}
 
-			BT_LOGV_STR("Copying event payload field type because it contains at least one sequence or variant field type.");
+			BT_LOGT_STR("Copying event payload field type because it contains at least one sequence or variant field type.");
 			event_payload_type_copy =
 				copy_field_type_func(event_payload_type);
 			if (!event_payload_type_copy) {
