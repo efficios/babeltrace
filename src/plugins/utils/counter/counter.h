@@ -35,8 +35,6 @@ struct counter {
 		uint64_t event;
 		uint64_t stream_begin;
 		uint64_t stream_end;
-		uint64_t stream_activity_begin;
-		uint64_t stream_activity_end;
 		uint64_t packet_begin;
 		uint64_t packet_end;
 		uint64_t disc_events;

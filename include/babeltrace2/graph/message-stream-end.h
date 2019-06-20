@@ -39,6 +39,10 @@ bt_message *bt_message_stream_end_create(
 extern bt_stream *bt_message_stream_end_borrow_stream(
 		bt_message *message);
 
+extern
+void bt_message_stream_end_set_default_clock_snapshot(
+		bt_message *message, uint64_t raw_value);
+
 #ifdef __cplusplus
 }
 #endif

@@ -538,7 +538,6 @@ int get_msg_ts_ns(struct muxer_comp *muxer_comp,
 {
 	const bt_clock_snapshot *clock_snapshot = NULL;
 	int ret = 0;
-	bt_message_stream_activity_clock_snapshot_state sa_cs_state;
 	const bt_stream_class *stream_class = NULL;
 	bt_message_type msg_type;
 
@@ -618,26 +617,6 @@ int get_msg_ts_ns(struct muxer_comp *muxer_comp,
 			clock_snapshot = bt_message_discarded_packets_borrow_beginning_default_clock_snapshot_const(
 				msg);
 		} else {
-			goto no_clock_snapshot;
-		}
-
-		break;
-	case BT_MESSAGE_TYPE_STREAM_ACTIVITY_BEGINNING:
-		BT_ASSERT(bt_message_stream_activity_beginning_borrow_stream_class_default_clock_class_const(
-				msg));
-		sa_cs_state = bt_message_stream_activity_beginning_borrow_default_clock_snapshot_const(
-			msg, &clock_snapshot);
-		if (sa_cs_state != BT_MESSAGE_STREAM_ACTIVITY_CLOCK_SNAPSHOT_STATE_KNOWN) {
-			goto no_clock_snapshot;
-		}
-
-		break;
-	case BT_MESSAGE_TYPE_STREAM_ACTIVITY_END:
-		BT_ASSERT(bt_message_stream_activity_end_borrow_stream_class_default_clock_class_const(
-				msg));
-		sa_cs_state = bt_message_stream_activity_end_borrow_default_clock_snapshot_const(
-			msg, &clock_snapshot);
-		if (sa_cs_state != BT_MESSAGE_STREAM_ACTIVITY_CLOCK_SNAPSHOT_STATE_KNOWN) {
 			goto no_clock_snapshot;
 		}
 

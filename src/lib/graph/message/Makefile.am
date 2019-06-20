@@ -12,7 +12,5 @@ libgraph_message_la_SOURCES = \
 	message-iterator-inactivity.h \
 	packet.c \
 	packet.h \
-	stream-activity.c \
-	stream-activity.h \
 	stream.c \
 	stream.h

@@ -111,7 +111,7 @@ class TraceCollectionMessageIteratorTestCase(unittest.TestCase):
         specs = [bt2.ComponentSpec('ctf', 'fs', _3EVENTS_INTERSECT_TRACE_PATH)]
         msg_iter = bt2.TraceCollectionMessageIterator(specs)
         msgs = list(msg_iter)
-        self.assertEqual(len(msgs), 32)
+        self.assertEqual(len(msgs), 28)
         hist = _count_msgs_by_type(msgs)
         self.assertEqual(hist[bt2.message._EventMessage], 8)
 
@@ -120,7 +120,7 @@ class TraceCollectionMessageIteratorTestCase(unittest.TestCase):
         spec = bt2.ComponentSpec('ctf', 'fs', _3EVENTS_INTERSECT_TRACE_PATH)
         msg_iter = bt2.TraceCollectionMessageIterator(spec)
         msgs = list(msg_iter)
-        self.assertEqual(len(msgs), 32)
+        self.assertEqual(len(msgs), 28)
         hist = _count_msgs_by_type(msgs)
         self.assertEqual(hist[bt2.message._EventMessage], 8)
 
@@ -137,7 +137,7 @@ class TraceCollectionMessageIteratorTestCase(unittest.TestCase):
         specs = [bt2.ComponentSpec('ctf', 'fs', _3EVENTS_INTERSECT_TRACE_PATH)]
         msg_iter = bt2.TraceCollectionMessageIterator(specs, stream_intersection_mode=True)
         msgs = list(msg_iter)
-        self.assertEqual(len(msgs), 19)
+        self.assertEqual(len(msgs), 15)
         hist = _count_msgs_by_type(msgs)
         self.assertEqual(hist[bt2.message._EventMessage], 3)
 
@@ -152,7 +152,7 @@ class TraceCollectionMessageIteratorTestCase(unittest.TestCase):
         specs = [spec, spec]
         msg_iter = bt2.TraceCollectionMessageIterator(specs)
         msgs = list(msg_iter)
-        self.assertEqual(len(msgs), 64)
+        self.assertEqual(len(msgs), 56)
         hist = _count_msgs_by_type(msgs)
         self.assertEqual(hist[bt2.message._EventMessage], 16)
 

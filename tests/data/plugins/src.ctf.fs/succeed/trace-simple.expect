@@ -18,14 +18,11 @@ Trace class:
         first: Signed integer (8-bit, Base 10)
         second: String
 
+[Unknown]
 {Trace 0, Stream class ID 0, Stream ID 0}
 Stream beginning:
   Trace:
     Stream (ID 0, Class ID 0)
-
-[Unknown]
-{Trace 0, Stream class ID 0, Stream ID 0}
-Stream activity beginning
 
 [0 cycles, 0 ns from origin]
 {Trace 0, Stream class ID 0, Stream ID 0}
@@ -211,8 +208,5 @@ Event `ev` (Class ID 0):
 Packet end
 
 [Unknown]
-{Trace 0, Stream class ID 0, Stream ID 0}
-Stream activity end
-
 {Trace 0, Stream class ID 0, Stream ID 0}
 Stream end

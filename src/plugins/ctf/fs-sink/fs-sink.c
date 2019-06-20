@@ -972,11 +972,6 @@ bt_component_class_sink_consume_method_status ctf_fs_sink_consume(
 				status = handle_stream_end_msg(
 					fs_sink, msg);
 				break;
-			case BT_MESSAGE_TYPE_STREAM_ACTIVITY_BEGINNING:
-			case BT_MESSAGE_TYPE_STREAM_ACTIVITY_END:
-				/* Not supported by CTF 1.8 */
-				BT_COMP_LOGD_STR("Ignoring stream activity message.");
-				break;
 			case BT_MESSAGE_TYPE_DISCARDED_EVENTS:
 				status = handle_discarded_events_msg(
 					fs_sink, msg);

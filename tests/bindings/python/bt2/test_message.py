@@ -27,51 +27,50 @@ class AllMessagesTestCase(unittest.TestCase):
         class MyIter(bt2._UserMessageIterator):
             def __init__(self, self_port_output):
                 self._at = 0
+                self._with_stream_msgs_clock_snapshots = self_port_output.user_data.get('with_stream_msgs_clock_snapshots', False)
 
             def __next__(self):
                 if test_obj._clock_class:
                     if self._at == 0:
-                        msg = self._create_stream_beginning_message(test_obj._stream)
+                        if self._with_stream_msgs_clock_snapshots:
+                            msg = self._create_stream_beginning_message(test_obj._stream, default_clock_snapshot=self._at)
+                        else:
+                            msg = self._create_stream_beginning_message(test_obj._stream)
                     elif self._at == 1:
-                        msg = self._create_stream_activity_beginning_message(test_obj._stream, default_clock_snapshot=self._at)
-                    elif self._at == 2:
                         msg = self._create_packet_beginning_message(test_obj._packet, self._at)
-                    elif self._at == 3:
+                    elif self._at == 2:
                         msg = self._create_event_message(test_obj._event_class, test_obj._packet, self._at)
-                    elif self._at == 4:
+                    elif self._at == 3:
                         msg = self._create_message_iterator_inactivity_message(test_obj._clock_class, self._at)
-                    elif self._at == 5:
+                    elif self._at == 4:
                         msg = self._create_discarded_events_message(test_obj._stream, 890, self._at, self._at)
-                    elif self._at == 6:
+                    elif self._at == 5:
                         msg = self._create_packet_end_message(test_obj._packet, self._at)
-                    elif self._at == 7:
+                    elif self._at == 6:
                         msg = self._create_discarded_packets_message(test_obj._stream, 678, self._at, self._at)
-                    elif self._at == 8:
-                        msg = self._create_stream_activity_end_message(test_obj._stream, default_clock_snapshot=self._at)
-                    elif self._at == 9:
-                        msg = self._create_stream_end_message(test_obj._stream)
-                    elif self._at >= 10:
+                    elif self._at == 7:
+                        if self._with_stream_msgs_clock_snapshots:
+                            msg = self._create_stream_end_message(test_obj._stream, default_clock_snapshot=self._at)
+                        else:
+                            msg = self._create_stream_end_message(test_obj._stream)
+                    elif self._at >= 8:
                         raise bt2.Stop
                 else:
                     if self._at == 0:
                         msg = self._create_stream_beginning_message(test_obj._stream)
                     elif self._at == 1:
-                        msg = self._create_stream_activity_beginning_message(test_obj._stream)
-                    elif self._at == 2:
                         msg = self._create_packet_beginning_message(test_obj._packet)
-                    elif self._at == 3:
+                    elif self._at == 2:
                         msg = self._create_event_message(test_obj._event_class, test_obj._packet)
-                    elif self._at == 4:
+                    elif self._at == 3:
                         msg = self._create_discarded_events_message(test_obj._stream, 890)
-                    elif self._at == 5:
+                    elif self._at == 4:
                         msg = self._create_packet_end_message(test_obj._packet)
-                    elif self._at == 6:
+                    elif self._at == 5:
                         msg = self._create_discarded_packets_message(test_obj._stream, 678)
-                    elif self._at == 7:
-                        msg = self._create_stream_activity_end_message(test_obj._stream)
-                    elif self._at == 8:
+                    elif self._at == 6:
                         msg = self._create_stream_end_message(test_obj._stream)
-                    elif self._at >= 9:
+                    elif self._at >= 7:
                         raise bt2.Stop
 
                 self._at += 1
@@ -79,7 +78,7 @@ class AllMessagesTestCase(unittest.TestCase):
 
         class MySrc(bt2._UserSourceComponent, message_iterator_class=MyIter):
             def __init__(self, params):
-                self._add_output_port('out')
+                self._add_output_port('out', params)
 
                 with_cc = bool(params['with_cc'])
                 tc = self._create_trace_class()
@@ -129,45 +128,40 @@ class AllMessagesTestCase(unittest.TestCase):
             if i == 0:
                 self.assertIsInstance(msg, bt2.message._StreamBeginningMessage)
                 self.assertEqual(msg.stream.addr, self._stream.addr)
+                self.assertIsInstance(msg.default_clock_snapshot, bt2.clock_snapshot._UnknownClockSnapshot)
             elif i == 1:
-                self.assertIsInstance(msg, bt2.message._StreamActivityBeginningMessage)
-                self.assertEqual(msg.default_clock_snapshot.value, i)
-            elif i == 2:
                 self.assertIsInstance(msg, bt2.message._PacketBeginningMessage)
                 self.assertEqual(msg.packet.addr, self._packet.addr)
                 self.assertEqual(msg.default_clock_snapshot.value, i)
-            elif i == 3:
+            elif i == 2:
                 self.assertIsInstance(msg, bt2.message._EventMessage)
                 self.assertEqual(msg.event.cls.addr, self._event_class.addr)
                 self.assertEqual(msg.default_clock_snapshot.value, i)
-            elif i == 4:
+            elif i == 3:
                 self.assertIsInstance(msg, bt2.message._MessageIteratorInactivityMessage)
                 self.assertEqual(msg.default_clock_snapshot.value, i)
-            elif i == 5:
+            elif i == 4:
                 self.assertIsInstance(msg, bt2.message._DiscardedEventsMessage)
                 self.assertEqual(msg.stream.addr, self._stream.addr)
                 self.assertEqual(msg.count, 890)
                 self.assertEqual(msg.stream.cls.default_clock_class.addr, self._clock_class.addr)
                 self.assertEqual(msg.beginning_default_clock_snapshot.value, i)
                 self.assertEqual(msg.end_default_clock_snapshot.value, i)
-            elif i == 6:
+            elif i == 5:
                 self.assertIsInstance(msg, bt2.message._PacketEndMessage)
                 self.assertEqual(msg.packet.addr, self._packet.addr)
                 self.assertEqual(msg.default_clock_snapshot.value, i)
-            elif i == 7:
+            elif i == 6:
                 self.assertIsInstance(msg, bt2.message._DiscardedPacketsMessage)
                 self.assertEqual(msg.stream.addr, self._stream.addr)
                 self.assertEqual(msg.count, 678)
                 self.assertEqual(msg.stream.cls.default_clock_class.addr, self._clock_class.addr)
                 self.assertEqual(msg.beginning_default_clock_snapshot.value, i)
                 self.assertEqual(msg.end_default_clock_snapshot.value, i)
-            elif i == 8:
-                self.assertIsInstance(msg, bt2.message._StreamActivityEndMessage)
-                self.assertEqual(msg.stream.addr, self._stream.addr)
-                self.assertEqual(msg.default_clock_snapshot.value, i)
-            elif i == 9:
+            elif i == 7:
                 self.assertIsInstance(msg, bt2.message._StreamEndMessage)
                 self.assertEqual(msg.stream.addr, self._stream.addr)
+                self.assertIsInstance(msg.default_clock_snapshot, bt2.clock_snapshot._UnknownClockSnapshot)
             else:
                 raise Exception
 
@@ -180,19 +174,17 @@ class AllMessagesTestCase(unittest.TestCase):
             if i == 0:
                 self.assertIsInstance(msg, bt2.message._StreamBeginningMessage)
                 self.assertEqual(msg.stream.addr, self._stream.addr)
+                with self.assertRaises(bt2.NonexistentClockSnapshot):
+                    msg.default_clock_snapshot
             elif i == 1:
-                self.assertIsInstance(msg, bt2.message._StreamActivityBeginningMessage)
-                self.assertIsInstance(msg.default_clock_snapshot,
-                                      bt2._UnknownClockSnapshot)
-            elif i == 2:
                 self.assertIsInstance(msg, bt2.message._PacketBeginningMessage)
                 self.assertEqual(msg.packet.addr, self._packet.addr)
-            elif i == 3:
+            elif i == 2:
                 self.assertIsInstance(msg, bt2.message._EventMessage)
                 self.assertEqual(msg.event.cls.addr, self._event_class.addr)
                 with self.assertRaises(bt2.NonexistentClockSnapshot):
                     msg.default_clock_snapshot
-            elif i == 4:
+            elif i == 3:
                 self.assertIsInstance(msg, bt2.message._DiscardedEventsMessage)
                 self.assertEqual(msg.stream.addr, self._stream.addr)
                 self.assertEqual(msg.count, 890)
@@ -201,10 +193,10 @@ class AllMessagesTestCase(unittest.TestCase):
                     msg.beginning_default_clock_snapshot
                 with self.assertRaises(bt2.NonexistentClockSnapshot):
                     msg.end_default_clock_snapshot
-            elif i == 5:
+            elif i == 4:
                 self.assertIsInstance(msg, bt2.message._PacketEndMessage)
                 self.assertEqual(msg.packet.addr, self._packet.addr)
-            elif i == 6:
+            elif i == 5:
                 self.assertIsInstance(msg, bt2.message._DiscardedPacketsMessage)
                 self.assertEqual(msg.stream.addr, self._stream.addr)
                 self.assertEqual(msg.count, 678)
@@ -213,231 +205,28 @@ class AllMessagesTestCase(unittest.TestCase):
                     msg.beginning_default_clock_snapshot
                 with self.assertRaises(bt2.NonexistentClockSnapshot):
                     msg.end_default_clock_snapshot
-            elif i == 7:
-                self.assertIsInstance(msg, bt2.message._StreamActivityEndMessage)
-                self.assertEqual(msg.stream.addr, self._stream.addr)
-                self.assertIsInstance(msg.default_clock_snapshot,
-                                      bt2._UnknownClockSnapshot)
-            elif i == 8:
+            elif i == 6:
                 self.assertIsInstance(msg, bt2.message._StreamEndMessage)
                 self.assertEqual(msg.stream.addr, self._stream.addr)
+                with self.assertRaises(bt2.NonexistentClockSnapshot):
+                    msg.default_clock_snapshot
             else:
                 raise Exception
 
+    def test_msg_stream_with_clock_snapshots(self):
+        params = {
+            'with_cc': True,
+            'with_stream_msgs_clock_snapshots': True,
+        }
 
-class StreamActivityMessagesTestCase(unittest.TestCase):
-    def _test_create_msg(self, with_cc, test_create_beginning_func, test_create_end_func):
-        class MyIter(bt2._UserMessageIterator):
-            def __init__(self, self_port_output):
-                self._at = 0
+        self._src_comp = self._graph.add_component(self._src, 'my_source', params)
+        self._msg_iter = self._graph.create_output_port_message_iterator(self._src_comp.output_ports['out'])
+        msgs = list(self._msg_iter)
 
-            def __next__(self):
-                if self._at == 0:
-                    msg = self._create_stream_beginning_message(self._component._stream)
-                elif self._at == 1:
-                    msg = test_create_beginning_func(self, self._component._stream)
-                elif self._at == 2:
-                    msg = test_create_end_func(self, self._component._stream)
-                elif self._at == 3:
-                    msg = self._create_stream_end_message(self._component._stream)
-                elif self._at >= 4:
-                    raise bt2.Stop
+        msg_stream_beg = msgs[0]
+        self.assertIsInstance(msg_stream_beg, bt2.message._StreamBeginningMessage)
+        self.assertEqual(msg_stream_beg.default_clock_snapshot.value, 0)
 
-                self._at += 1
-                return msg
-
-        class MySrc(bt2._UserSourceComponent, message_iterator_class=MyIter):
-            def __init__(self, params):
-                self._add_output_port('out')
-                tc = self._create_trace_class()
-
-                if with_cc:
-                    cc = self._create_clock_class()
-                    sc = tc.create_stream_class(default_clock_class=cc)
-                else:
-                    sc = tc.create_stream_class()
-
-                # Create payload field class
-                trace = tc()
-                self._stream = trace.create_stream(sc)
-
-        graph = bt2.Graph()
-        src_comp = graph.add_component(MySrc, 'src')
-        msg_iter = graph.create_output_port_message_iterator(src_comp.output_ports['out'])
-
-        for msg in msg_iter:
-            pass
-
-    def test_create_beginning_with_cc_with_known_default_cs(self):
-        def create_beginning(msg_iter, stream):
-            msg = msg_iter._create_stream_activity_beginning_message(stream, 172)
-            self.assertEqual(msg.default_clock_snapshot.value, 172)
-            return msg
-
-        def create_end(msg_iter, stream):
-            return msg_iter._create_stream_activity_end_message(stream, 199)
-
-        self._test_create_msg(True, create_beginning, create_end)
-
-    def test_create_end_with_cc_with_known_default_cs(self):
-        def create_beginning(msg_iter, stream):
-            return msg_iter._create_stream_activity_beginning_message(stream, 172)
-
-        def create_end(msg_iter, stream):
-            msg = msg_iter._create_stream_activity_end_message(stream, 199)
-            self.assertEqual(msg.default_clock_snapshot.value, 199)
-            return msg
-
-        self._test_create_msg(True, create_beginning, create_end)
-
-    def test_create_beginning_with_cc_with_unknown_default_cs(self):
-        def create_beginning(msg_iter, stream):
-            msg = msg_iter._create_stream_activity_beginning_message(stream,
-                                                                     msg_iter._unknown_clock_snapshot)
-            self.assertIsInstance(msg.default_clock_snapshot,
-                                  bt2._UnknownClockSnapshot)
-            return msg
-
-        def create_end(msg_iter, stream):
-            return msg_iter._create_stream_activity_end_message(stream, 199)
-
-        self._test_create_msg(True, create_beginning, create_end)
-
-    def test_create_end_with_cc_with_unknown_default_cs(self):
-        def create_beginning(msg_iter, stream):
-            return msg_iter._create_stream_activity_beginning_message(stream, 172)
-
-        def create_end(msg_iter, stream):
-            msg = msg_iter._create_stream_activity_end_message(stream,
-                                                               msg_iter._unknown_clock_snapshot)
-            self.assertIsInstance(msg.default_clock_snapshot,
-                                  bt2._UnknownClockSnapshot)
-            return msg
-
-        self._test_create_msg(True, create_beginning, create_end)
-
-    def test_create_beginning_with_cc_with_infinite_default_cs(self):
-        def create_beginning(msg_iter, stream):
-            msg = msg_iter._create_stream_activity_beginning_message(stream,
-                                                                     msg_iter._infinite_clock_snapshot)
-            self.assertIsInstance(msg.default_clock_snapshot,
-                                  bt2._InfiniteClockSnapshot)
-            return msg
-
-        def create_end(msg_iter, stream):
-            return msg_iter._create_stream_activity_end_message(stream, 199)
-
-        self._test_create_msg(True, create_beginning, create_end)
-
-    def test_create_end_with_cc_with_infinite_default_cs(self):
-        def create_beginning(msg_iter, stream):
-            return msg_iter._create_stream_activity_beginning_message(stream, 172)
-
-        def create_end(msg_iter, stream):
-            msg = msg_iter._create_stream_activity_end_message(stream,
-                                                               msg_iter._infinite_clock_snapshot)
-            self.assertIsInstance(msg.default_clock_snapshot,
-                                  bt2._InfiniteClockSnapshot)
-            return msg
-
-        self._test_create_msg(True, create_beginning, create_end)
-
-    def test_create_beginning_without_cc_with_known_default_cs(self):
-        def create_beginning(msg_iter, stream):
-            with self.assertRaises(ValueError):
-                msg_iter._create_stream_activity_beginning_message(stream, 172)
-
-            return msg_iter._create_stream_activity_beginning_message(stream)
-
-        def create_end(msg_iter, stream):
-            return msg_iter._create_stream_activity_end_message(stream)
-
-        self._test_create_msg(False, create_beginning, create_end)
-
-    def test_create_end_without_cc_with_known_default_cs(self):
-        def create_beginning(msg_iter, stream):
-            return msg_iter._create_stream_activity_beginning_message(stream)
-
-        def create_end(msg_iter, stream):
-            with self.assertRaises(ValueError):
-                msg_iter._create_stream_activity_end_message(stream, 199)
-
-            return msg_iter._create_stream_activity_end_message(stream)
-
-        self._test_create_msg(False, create_beginning, create_end)
-
-    def test_create_beginning_without_cc_with_unknown_default_cs(self):
-        def create_beginning(msg_iter, stream):
-            msg = msg_iter._create_stream_activity_beginning_message(stream,
-                                                                     msg_iter._unknown_clock_snapshot)
-            self.assertIsInstance(msg.default_clock_snapshot,
-                                  bt2._UnknownClockSnapshot)
-            return msg
-
-        def create_end(msg_iter, stream):
-            return msg_iter._create_stream_activity_end_message(stream)
-
-        self._test_create_msg(False, create_beginning, create_end)
-
-    def test_create_end_without_cc_with_unknown_default_cs(self):
-        def create_beginning(msg_iter, stream):
-            return msg_iter._create_stream_activity_beginning_message(stream)
-
-        def create_end(msg_iter, stream):
-            msg = msg_iter._create_stream_activity_end_message(stream,
-                                                               msg_iter._unknown_clock_snapshot)
-            self.assertIsInstance(msg.default_clock_snapshot,
-                                  bt2._UnknownClockSnapshot)
-            return msg
-
-        self._test_create_msg(False, create_beginning, create_end)
-
-    def test_create_beginning_without_cc_with_infinite_default_cs(self):
-        def create_beginning(msg_iter, stream):
-            msg = msg_iter._create_stream_activity_beginning_message(stream,
-                                                                     msg_iter._infinite_clock_snapshot)
-            self.assertIsInstance(msg.default_clock_snapshot,
-                                  bt2._InfiniteClockSnapshot)
-            return msg
-
-        def create_end(msg_iter, stream):
-            return msg_iter._create_stream_activity_end_message(stream)
-
-        self._test_create_msg(False, create_beginning, create_end)
-
-    def test_create_end_without_cc_with_infinite_default_cs(self):
-        def create_beginning(msg_iter, stream):
-            return msg_iter._create_stream_activity_beginning_message(stream)
-
-        def create_end(msg_iter, stream):
-            msg = msg_iter._create_stream_activity_end_message(stream,
-                                                               msg_iter._infinite_clock_snapshot)
-            self.assertIsInstance(msg.default_clock_snapshot,
-                                  bt2._InfiniteClockSnapshot)
-            return msg
-
-        self._test_create_msg(False, create_beginning, create_end)
-
-    def test_create_beginning_default_cs_wrong_type(self):
-        def create_beginning(msg_iter, stream):
-            with self.assertRaises(TypeError):
-                msg_iter._create_stream_activity_beginning_message(stream, 'infinite')
-
-            return msg_iter._create_stream_activity_beginning_message(stream)
-
-        def create_end(msg_iter, stream):
-            return msg_iter._create_stream_activity_end_message(stream)
-
-        self._test_create_msg(False, create_beginning, create_end)
-
-    def test_create_end_without_default_cs_wrong_type(self):
-        def create_beginning(msg_iter, stream):
-            return msg_iter._create_stream_activity_beginning_message(stream)
-
-        def create_end(msg_iter, stream):
-            with self.assertRaises(TypeError):
-                msg_iter._create_stream_activity_end_message(stream, 'unknown')
-
-            return msg_iter._create_stream_activity_end_message(stream)
-
-        self._test_create_msg(False, create_beginning, create_end)
+        msg_stream_end = msgs[7]
+        self.assertIsInstance(msg_stream_end, bt2.message._StreamEndMessage)
+        self.assertEqual(msg_stream_end.default_clock_snapshot.value, 7)

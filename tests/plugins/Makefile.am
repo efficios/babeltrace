@@ -1,4 +1,5 @@
 SUBDIRS = \
-	src.ctf.fs \
 	sink.ctf.fs \
-	flt.lttng-utils.debug-info
+	src.ctf.fs \
+	flt.lttng-utils.debug-info \
+	flt.utils.trimmer
