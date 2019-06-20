@@ -22,6 +22,7 @@ libctf_ast_la_SOURCES = \
 	scanner.h \
 	scanner-symbols.h \
 	decoder.c \
+	decoder-packetized-file-stream-to-buf.c \
 	decoder.h \
 	logging.c \
 	logging.h \
