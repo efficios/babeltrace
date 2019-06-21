@@ -52,7 +52,8 @@ struct bt_message *new_packet_message(struct bt_graph *graph,
 
 	message = g_new0(struct bt_message_packet, 1);
 	if (!message) {
-		BT_LOGE_STR("Failed to allocate one packet message.");
+		BT_LIB_LOGE_APPEND_CAUSE(
+			"Failed to allocate one packet message.");
 		goto error;
 	}
 

@@ -113,7 +113,8 @@ struct bt_message *create_discarded_items_message(
 		with_cs, beginning_raw_value, end_raw_value);
 	message = g_new0(struct bt_message_discarded_items, 1);
 	if (!message) {
-		BT_LOGE_STR("Failed to allocate one discarded items message.");
+		BT_LIB_LOGE_APPEND_CAUSE(
+			"Failed to allocate one discarded items message.");
 		goto error;
 	}
 

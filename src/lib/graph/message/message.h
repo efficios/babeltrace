@@ -24,6 +24,11 @@
  * SOFTWARE.
  */
 
+/* Protection: this file uses BT_LIB_LOG*() macros directly */
+#ifndef BT_LIB_LOG_SUPPORTED
+# error Please include "lib/logging.h" before including this file.
+#endif
+
 #include "common/macros.h"
 #include "lib/object.h"
 #include "common/assert.h"
@@ -79,7 +84,8 @@ struct bt_message *bt_message_create_from_pool(
 	struct bt_message *msg = bt_object_pool_create_object(pool);
 
 	if (G_UNLIKELY(!msg)) {
-		BT_LIB_LOGE("Cannot allocate one message from message pool: "
+		BT_LIB_LOGE_APPEND_CAUSE(
+			"Cannot allocate one message from message pool: "
 			"%![pool-]+o, %![graph-]+g", pool, graph);
 		goto error;
 	}

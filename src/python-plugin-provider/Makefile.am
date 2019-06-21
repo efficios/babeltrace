@@ -20,6 +20,7 @@ if !ENABLE_BUILT_IN_PLUGINS
 libbabeltrace2_python_plugin_provider_la_LIBADD += \
 	$(top_builddir)/src/logging/libbabeltrace2-logging.la \
 	$(top_builddir)/src/common/libbabeltrace2-common.la \
+	$(top_builddir)/src/py-common/libbabeltrace2-py-common.la \
 	$(top_builddir)/src/lib/libbabeltrace2.la
 endif
 endif # ENABLE_PYTHON_PLUGINS

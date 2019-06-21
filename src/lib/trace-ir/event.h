@@ -187,7 +187,8 @@ struct bt_event *bt_event_create(struct bt_event_class *event_class,
 	BT_ASSERT(event_class);
 	event = bt_object_pool_create_object(&event_class->event_pool);
 	if (G_UNLIKELY(!event)) {
-		BT_LIB_LOGE("Cannot allocate one event from event class's event pool: "
+		BT_LIB_LOGE_APPEND_CAUSE(
+			"Cannot allocate one event from event class's event pool: "
 			"%![ec-]+E", event_class);
 		goto end;
 	}

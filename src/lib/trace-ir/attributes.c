@@ -60,7 +60,7 @@ struct bt_value *bt_attributes_create(void)
 	BT_LOGD_STR("Creating attributes object.");
 	attr_obj = bt_value_array_create();
 	if (!attr_obj) {
-		BT_LOGE_STR("Failed to create array value.");
+		BT_LIB_LOGE_APPEND_CAUSE("Failed to create array value.");
 	} else {
 		BT_LOGD("Created attributes object: addr=%p",
 			attr_obj);
@@ -90,23 +90,14 @@ const char *bt_attributes_get_field_name(const struct bt_value *attr_obj,
 	const struct bt_value *attr_field_obj = NULL;
 	const struct bt_value *attr_field_name_obj = NULL;
 
-	if (!attr_obj) {
-		BT_LOGW_STR("Invalid parameter: attributes object is NULL.");
-		goto end;
-	}
-
-	if (index >= bt_value_array_get_size(attr_obj)) {
-		BT_LOGW("Invalid parameter: index is out of bounds: "
-			"index=%" PRIu64 ", count=%" PRId64,
-			index, bt_value_array_get_size(attr_obj));
-		goto end;
-	}
-
+	BT_ASSERT(attr_obj);
+	BT_ASSERT(index < bt_value_array_get_size(attr_obj));
 	attr_field_obj = bt_value_array_borrow_element_by_index_const(
 		attr_obj, index);
 	if (!attr_field_obj) {
-		BT_LOGE("Cannot get attributes object's array value's element by index: "
-			"value-addr=%p, index=%" PRIu64, attr_obj, index);
+		BT_LIB_LOGE_APPEND_CAUSE(
+			"Cannot borrow attributes object's array value's element by index: "
+			"%![value-]+v, index=%" PRIu64, attr_obj, index);
 		goto end;
 	}
 
@@ -114,8 +105,9 @@ const char *bt_attributes_get_field_name(const struct bt_value *attr_obj,
 		bt_value_array_borrow_element_by_index_const(attr_field_obj,
 			BT_ATTR_NAME_INDEX);
 	if (!attr_field_name_obj) {
-		BT_LOGE("Cannot get attribute array value's element by index: "
-			"value-addr=%p, index=%" PRIu64, attr_field_obj,
+		BT_LIB_LOGE_APPEND_CAUSE(
+			"Cannot get attribute array value's element by index: "
+			"%![value-]+v, index=%" PRIu64, attr_field_obj,
 			(uint64_t) BT_ATTR_NAME_INDEX);
 		goto end;
 	}
@@ -133,31 +125,23 @@ struct bt_value *bt_attributes_borrow_field_value(
 	struct bt_value *value_obj = NULL;
 	struct bt_value *attr_field_obj = NULL;
 
-	if (!attr_obj) {
-		BT_LOGW_STR("Invalid parameter: attributes object is NULL.");
-		goto end;
-	}
-
-	if (index >= bt_value_array_get_size(attr_obj)) {
-		BT_LOGW("Invalid parameter: index is out of bounds: "
-			"index=%" PRIu64 ", count=%" PRId64,
-			index, bt_value_array_get_size(attr_obj));
-		goto end;
-	}
-
+	BT_ASSERT(attr_obj);
+	BT_ASSERT(index < bt_value_array_get_size(attr_obj));
 	attr_field_obj =
 		bt_value_array_borrow_element_by_index(attr_obj, index);
 	if (!attr_field_obj) {
-		BT_LOGE("Cannot get attributes object's array value's element by index: "
-			"value-addr=%p, index=%" PRIu64, attr_obj, index);
+		BT_LIB_LOGE_APPEND_CAUSE(
+			"Cannot get attributes object's array value's element by index: "
+			"%![value-]+v, index=%" PRIu64, attr_obj, index);
 		goto end;
 	}
 
 	value_obj = bt_value_array_borrow_element_by_index(
 		attr_field_obj, BT_ATTR_VALUE_INDEX);
 	if (!value_obj) {
-		BT_LOGE("Cannot get attribute array value's element by index: "
-			"value-addr=%p, index=%" PRIu64, attr_field_obj,
+		BT_LIB_LOGE_APPEND_CAUSE(
+			"Cannot get attribute array value's element by index: "
+			"%![value-]+v, index=%" PRIu64, attr_field_obj,
 			(uint64_t) BT_ATTR_VALUE_INDEX);
 	}
 
@@ -176,7 +160,8 @@ struct bt_value *bt_attributes_borrow_field_by_name(
 
 	attr_size = bt_value_array_get_size(attr_obj);
 	if (attr_size < 0) {
-		BT_LOGE("Cannot get array value's size: value-addr=%p",
+		BT_LIB_LOGE_APPEND_CAUSE(
+			"Cannot get array value's size: %![value-]+v",
 			attr_obj);
 		goto error;
 	}
@@ -187,8 +172,9 @@ struct bt_value *bt_attributes_borrow_field_by_name(
 		value_obj = bt_value_array_borrow_element_by_index(
 			attr_obj, i);
 		if (!value_obj) {
-			BT_LOGE("Cannot get attributes object's array value's element by index: "
-				"value-addr=%p, index=%" PRIu64, attr_obj, i);
+			BT_LIB_LOGE_APPEND_CAUSE(
+				"Cannot get attributes object's array value's element by index: "
+				"%![value-]+v, index=%" PRIu64, attr_obj, i);
 			goto error;
 		}
 
@@ -196,8 +182,9 @@ struct bt_value *bt_attributes_borrow_field_by_name(
 			bt_value_array_borrow_element_by_index(
 				value_obj, BT_ATTR_NAME_INDEX);
 		if (!attr_field_name_obj) {
-			BT_LOGE("Cannot get attribute array value's element by index: "
-				"value-addr=%p, index=%" PRIu64,
+			BT_LIB_LOGE_APPEND_CAUSE(
+				"Cannot get attribute array value's element by index: "
+				"%![value-]+v, index=%" PRIu64,
 				value_obj, (int64_t) BT_ATTR_NAME_INDEX);
 			goto error;
 		}
@@ -225,14 +212,9 @@ int bt_attributes_set_field_value(struct bt_value *attr_obj,
 	int ret = 0;
 	struct bt_value *attr_field_obj = NULL;
 
-	if (!attr_obj || !name || !value_obj) {
-		BT_LOGW("Invalid parameter: attributes object, name, or value object is NULL: "
-			"attr-value-addr=%p, name-addr=%p, value-addr=%p",
-			attr_obj, name, value_obj);
-		ret = -1;
-		goto end;
-	}
-
+	BT_ASSERT(attr_obj);
+	BT_ASSERT(name);
+	BT_ASSERT(value_obj);
 	attr_field_obj = bt_attributes_borrow_field_by_name(attr_obj, name);
 	if (attr_field_obj) {
 		ret = bt_value_array_set_element_by_index(
@@ -244,7 +226,7 @@ int bt_attributes_set_field_value(struct bt_value *attr_obj,
 
 	attr_field_obj = bt_value_array_create();
 	if (!attr_field_obj) {
-		BT_LOGE_STR("Failed to create empty array value.");
+		BT_LIB_LOGE_APPEND_CAUSE("Failed to create empty array value.");
 		ret = -1;
 		goto end;
 	}
@@ -254,7 +236,8 @@ int bt_attributes_set_field_value(struct bt_value *attr_obj,
 	ret |= bt_value_array_append_element(attr_field_obj,
 		value_obj);
 	if (ret) {
-		BT_LOGE("Cannot append elements to array value: addr=%p",
+		BT_LIB_LOGE_APPEND_CAUSE(
+			"Cannot append elements to array value: %!+v",
 			attr_field_obj);
 		goto end;
 	}
@@ -262,8 +245,9 @@ int bt_attributes_set_field_value(struct bt_value *attr_obj,
 	ret = bt_value_array_append_element(attr_obj,
 		attr_field_obj);
 	if (ret) {
-		BT_LOGE("Cannot append element to array value: "
-			"array-value-addr=%p, element-value-addr=%p",
+		BT_LIB_LOGE_APPEND_CAUSE(
+			"Cannot append element to array value: "
+			"%![array-value-]+v, %![element-value-]+v",
 			attr_obj, attr_field_obj);
 	}
 
@@ -279,12 +263,8 @@ struct bt_value *bt_attributes_borrow_field_value_by_name(
 	struct bt_value *value_obj = NULL;
 	struct bt_value *attr_field_obj = NULL;
 
-	if (!attr_obj || !name) {
-		BT_LOGW("Invalid parameter: attributes object or name is NULL: "
-			"value-addr=%p, name-addr=%p", attr_obj, name);
-		goto end;
-	}
-
+	BT_ASSERT(attr_obj);
+	BT_ASSERT(name);
 	attr_field_obj = bt_attributes_borrow_field_by_name(attr_obj, name);
 	if (!attr_field_obj) {
 		BT_LOGD("Cannot find attributes object's field by name: "
@@ -295,8 +275,9 @@ struct bt_value *bt_attributes_borrow_field_value_by_name(
 	value_obj = bt_value_array_borrow_element_by_index(
 		attr_field_obj, BT_ATTR_VALUE_INDEX);
 	if (!value_obj) {
-		BT_LOGE("Cannot get attribute array value's element by index: "
-			"value-addr=%p, index=%" PRIu64, attr_field_obj,
+		BT_LIB_LOGE_APPEND_CAUSE(
+			"Cannot get attribute array value's element by index: "
+			"%![value-]+v, index=%" PRIu64, attr_field_obj,
 			(uint64_t) BT_ATTR_VALUE_INDEX);
 	}
 
@@ -311,12 +292,7 @@ int bt_attributes_freeze(const struct bt_value *attr_obj)
 	int64_t count;
 	int ret = 0;
 
-	if (!attr_obj) {
-		BT_LOGW_STR("Invalid parameter: attributes object is NULL.");
-		ret = -1;
-		goto end;
-	}
-
+	BT_ASSERT(attr_obj);
 	BT_LOGD("Freezing attributes object: value-addr=%p", attr_obj);
 	count = bt_value_array_get_size(attr_obj);
 	BT_ASSERT(count >= 0);
@@ -332,8 +308,9 @@ int bt_attributes_freeze(const struct bt_value *attr_obj)
 		obj = bt_attributes_borrow_field_value(
 			(void *) attr_obj, i);
 		if (!obj) {
-			BT_LOGE("Cannot get attributes object's field value by index: "
-				"value-addr=%p, index=%" PRIu64,
+			BT_LIB_LOGE_APPEND_CAUSE(
+				"Cannot get attributes object's field value by index: "
+				"%![value-]+v, index=%" PRIu64,
 				attr_obj, i);
 			ret = -1;
 			goto end;

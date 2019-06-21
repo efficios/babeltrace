@@ -86,7 +86,7 @@ struct bt_event *bt_event_new(struct bt_event_class *event_class)
 	BT_ASSERT(event_class);
 	event = g_new0(struct bt_event, 1);
 	if (!event) {
-		BT_LOGE_STR("Failed to allocate one event.");
+		BT_LIB_LOGE_APPEND_CAUSE("Failed to allocate one event.");
 		goto error;
 	}
 

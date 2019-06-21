@@ -211,7 +211,7 @@ struct bt_field *bt_field_create(struct bt_field_class *fc)
 	BT_ASSERT(bt_field_class_has_known_type(fc));
 	field = field_create_funcs[fc->type](fc);
 	if (!field) {
-		BT_LIB_LOGE("Cannot create field object from field class: "
+		BT_LIB_LOGE_APPEND_CAUSE("Cannot create field object from field class: "
 			"%![fc-]+F", fc);
 		goto end;
 	}
@@ -240,7 +240,8 @@ struct bt_field *create_integer_field(struct bt_field_class *fc)
 	BT_LIB_LOGD("Creating integer field object: %![fc-]+F", fc);
 	int_field = g_new0(struct bt_field_integer, 1);
 	if (!int_field) {
-		BT_LOGE_STR("Failed to allocate one integer field.");
+		BT_LIB_LOGE_APPEND_CAUSE(
+			"Failed to allocate one integer field.");
 		goto end;
 	}
 
@@ -259,7 +260,7 @@ struct bt_field *create_real_field(struct bt_field_class *fc)
 	BT_LIB_LOGD("Creating real field object: %![fc-]+F", fc);
 	real_field = g_new0(struct bt_field_real, 1);
 	if (!real_field) {
-		BT_LOGE_STR("Failed to allocate one real field.");
+		BT_LIB_LOGE_APPEND_CAUSE("Failed to allocate one real field.");
 		goto end;
 	}
 
@@ -278,7 +279,8 @@ struct bt_field *create_string_field(struct bt_field_class *fc)
 	BT_LIB_LOGD("Creating string field object: %![fc-]+F", fc);
 	string_field = g_new0(struct bt_field_string, 1);
 	if (!string_field) {
-		BT_LOGE_STR("Failed to allocate one string field.");
+		BT_LIB_LOGE_APPEND_CAUSE(
+			"Failed to allocate one string field.");
 		goto end;
 	}
 
@@ -286,7 +288,7 @@ struct bt_field *create_string_field(struct bt_field_class *fc)
 	string_field->buf = g_array_sized_new(FALSE, FALSE,
 		sizeof(char), 1);
 	if (!string_field->buf) {
-		BT_LOGE_STR("Failed to allocate a GArray.");
+		BT_LIB_LOGE_APPEND_CAUSE("Failed to allocate a GArray.");
 		BT_OBJECT_PUT_REF_AND_RESET(string_field);
 		goto end;
 	}
@@ -309,7 +311,7 @@ int create_fields_from_named_field_classes(
 	*fields = g_ptr_array_new_with_free_func(
 		(GDestroyNotify) bt_field_destroy);
 	if (!*fields) {
-		BT_LOGE_STR("Failed to allocate a GPtrArray.");
+		BT_LIB_LOGE_APPEND_CAUSE("Failed to allocate a GPtrArray.");
 		ret = -1;
 		goto end;
 	}
@@ -323,7 +325,8 @@ int create_fields_from_named_field_classes(
 
 		field = bt_field_create(named_fc->fc);
 		if (!field) {
-			BT_LIB_LOGE("Failed to create structure member or variant option field: "
+			BT_LIB_LOGE_APPEND_CAUSE(
+				"Failed to create structure member or variant option field: "
 				"name=\"%s\", %![fc-]+F",
 				named_fc->name->str, named_fc->fc);
 			ret = -1;
@@ -345,7 +348,8 @@ struct bt_field *create_structure_field(struct bt_field_class *fc)
 	BT_LIB_LOGD("Creating structure field object: %![fc-]+F", fc);
 	struct_field = g_new0(struct bt_field_structure, 1);
 	if (!struct_field) {
-		BT_LOGE_STR("Failed to allocate one structure field.");
+		BT_LIB_LOGE_APPEND_CAUSE(
+			"Failed to allocate one structure field.");
 		goto end;
 	}
 
@@ -353,8 +357,8 @@ struct bt_field *create_structure_field(struct bt_field_class *fc)
 
 	if (create_fields_from_named_field_classes((void *) fc,
 			&struct_field->fields)) {
-		BT_LIB_LOGE("Cannot create structure member fields: "
-			"%![fc-]+F", fc);
+		BT_LIB_LOGE_APPEND_CAUSE(
+			"Cannot create structure member fields: %![fc-]+F", fc);
 		BT_OBJECT_PUT_REF_AND_RESET(struct_field);
 		goto end;
 	}
@@ -373,7 +377,8 @@ struct bt_field *create_variant_field(struct bt_field_class *fc)
 	BT_LIB_LOGD("Creating variant field object: %![fc-]+F", fc);
 	var_field = g_new0(struct bt_field_variant, 1);
 	if (!var_field) {
-		BT_LOGE_STR("Failed to allocate one variant field.");
+		BT_LIB_LOGE_APPEND_CAUSE(
+			"Failed to allocate one variant field.");
 		goto end;
 	}
 
@@ -381,7 +386,7 @@ struct bt_field *create_variant_field(struct bt_field_class *fc)
 
 	if (create_fields_from_named_field_classes((void *) fc,
 			&var_field->fields)) {
-		BT_LIB_LOGE("Cannot create variant member fields: "
+		BT_LIB_LOGE_APPEND_CAUSE("Cannot create variant member fields: "
 			"%![fc-]+F", fc);
 		BT_OBJECT_PUT_REF_AND_RESET(var_field);
 		goto end;
@@ -404,7 +409,7 @@ int init_array_field_fields(struct bt_field_array *array_field)
 	array_fc = (void *) array_field->common.class;
 	array_field->fields = g_ptr_array_sized_new(array_field->length);
 	if (!array_field->fields) {
-		BT_LOGE_STR("Failed to allocate a GPtrArray.");
+		BT_LIB_LOGE_APPEND_CAUSE("Failed to allocate a GPtrArray.");
 		ret = -1;
 		goto end;
 	}
@@ -417,7 +422,8 @@ int init_array_field_fields(struct bt_field_array *array_field)
 		array_field->fields->pdata[i] = bt_field_create(
 			array_fc->element_fc);
 		if (!array_field->fields->pdata[i]) {
-			BT_LIB_LOGE("Cannot create array field's element field: "
+			BT_LIB_LOGE_APPEND_CAUSE(
+				"Cannot create array field's element field: "
 				"index=%" PRIu64 ", %![fc-]+F", i, array_fc);
 			ret = -1;
 			goto end;
@@ -437,7 +443,8 @@ struct bt_field *create_static_array_field(struct bt_field_class *fc)
 	BT_LIB_LOGD("Creating static array field object: %![fc-]+F", fc);
 	array_field = g_new0(struct bt_field_array, 1);
 	if (!array_field) {
-		BT_LOGE_STR("Failed to allocate one static array field.");
+		BT_LIB_LOGE_APPEND_CAUSE(
+			"Failed to allocate one static array field.");
 		goto end;
 	}
 
@@ -445,7 +452,7 @@ struct bt_field *create_static_array_field(struct bt_field_class *fc)
 	array_field->length = array_fc->length;
 
 	if (init_array_field_fields(array_field)) {
-		BT_LIB_LOGE("Cannot create static array fields: "
+		BT_LIB_LOGE_APPEND_CAUSE("Cannot create static array fields: "
 			"%![fc-]+F", fc);
 		BT_OBJECT_PUT_REF_AND_RESET(array_field);
 		goto end;
@@ -465,14 +472,15 @@ struct bt_field *create_dynamic_array_field(struct bt_field_class *fc)
 	BT_LIB_LOGD("Creating dynamic array field object: %![fc-]+F", fc);
 	array_field = g_new0(struct bt_field_array, 1);
 	if (!array_field) {
-		BT_LOGE_STR("Failed to allocate one dynamic array field.");
+		BT_LIB_LOGE_APPEND_CAUSE(
+			"Failed to allocate one dynamic array field.");
 		goto end;
 	}
 
 	init_field((void *) array_field, fc, &array_field_methods);
 
 	if (init_array_field_fields(array_field)) {
-		BT_LIB_LOGE("Cannot create dynamic array fields: "
+		BT_LIB_LOGE_APPEND_CAUSE("Cannot create dynamic array fields: "
 			"%![fc-]+F", fc);
 		BT_OBJECT_PUT_REF_AND_RESET(array_field);
 		goto end;
@@ -725,7 +733,8 @@ enum bt_field_dynamic_array_set_length_status bt_field_dynamic_array_set_length(
 				array_fc->element_fc);
 
 			if (!elem_field) {
-				BT_LIB_LOGE("Cannot create element field for "
+				BT_LIB_LOGE_APPEND_CAUSE(
+					"Cannot create element field for "
 					"dynamic array field: "
 					"index=%" PRIu64 ", "
 					"%![array-field-]+f", i, field);

@@ -33,6 +33,7 @@
 #include "common/common.h"
 #include <babeltrace2/plugin/plugin-const.h>
 #include <babeltrace2/graph/component-class-const.h>
+#include <babeltrace2/current-thread.h>
 #include "lib/graph/component-class.h"
 #include <babeltrace2/types.h>
 #include <glib.h>
@@ -64,7 +65,7 @@ int (*bt_plugin_python_create_all_from_file_sym)(
 	bt_plugin_python_create_all_from_file;
 
 static
-void init_python_plugin_provider(void)
+enum bt_plugin_status init_python_plugin_provider(void)
 {
 }
 #else /* BT_BUILT_IN_PYTHON_PLUGIN_SUPPORT */
@@ -76,9 +77,11 @@ int (*bt_plugin_python_create_all_from_file_sym)(
 		 struct bt_plugin_set **plugin_set_out);
 
 static
-void init_python_plugin_provider(void) {
+int init_python_plugin_provider(void) {
+	int status = BT_FUNC_STATUS_OK;
+
 	if (bt_plugin_python_create_all_from_file_sym != NULL) {
-		return;
+		goto end;
 	}
 
 	BT_LOGI_STR("Loading Python plugin provider module.");
@@ -92,7 +95,7 @@ void init_python_plugin_provider(void) {
 		 */
 		BT_LOGI("Cannot open `%s`: %s: continuing without Python plugin support.",
 			PYTHON_PLUGIN_PROVIDER_FILENAME, g_module_error());
-		return;
+		goto end;
 	}
 
 	if (!g_module_symbol(python_plugin_provider_module,
@@ -103,17 +106,22 @@ void init_python_plugin_provider(void) {
 		 * plugin provider shared object, we expect this symbol
 		 * to exist.
 		 */
-		BT_LOGE("Cannot find the Python plugin provider loading symbol: "
+		BT_LIB_LOGE_APPEND_CAUSE(
+			"Cannot find the Python plugin provider loading symbol: "
 			"%s: continuing without Python plugin support: "
 			"file=\"%s\", symbol=\"%s\"",
 			g_module_error(),
 			PYTHON_PLUGIN_PROVIDER_FILENAME,
 			PYTHON_PLUGIN_PROVIDER_SYM_NAME_STR);
-		return;
+		status = BT_FUNC_STATUS_ERROR;
+		goto end;
 	}
 
 	BT_LOGI("Loaded Python plugin provider module: addr=%p",
 		python_plugin_provider_module);
+
+end:
+	return status;
 }
 
 __attribute__((destructor)) static
@@ -122,6 +130,10 @@ void fini_python_plugin_provider(void) {
 		BT_LOGI("Unloading Python plugin provider module.");
 
 		if (!g_module_close(python_plugin_provider_module)) {
+			/*
+			 * This occurs when the library is finalized: do
+			 * NOT append an error cause.
+			 */
 			BT_LOGE("Failed to close the Python plugin provider module: %s.",
 				g_module_error());
 		}
@@ -180,8 +192,17 @@ enum bt_plugin_find_all_from_file_status bt_plugin_find_all_from_file(
 	BT_ASSERT(!*plugin_set_out);
 
 	/* Try Python plugins if support is available */
-	init_python_plugin_provider();
+	status = init_python_plugin_provider();
+	if (status < 0) {
+		/* init_python_plugin_provider() logs errors */
+		goto end;
+	}
+
+	BT_ASSERT(status == BT_FUNC_STATUS_OK);
+	status = BT_FUNC_STATUS_NOT_FOUND;
+
 	if (bt_plugin_python_create_all_from_file_sym) {
+		/* Python plugin provider exists */
 		status = bt_plugin_python_create_all_from_file_sym(path,
 			fail_on_load_error, (void *) plugin_set_out);
 		if (status == BT_FUNC_STATUS_OK) {
@@ -189,6 +210,11 @@ enum bt_plugin_find_all_from_file_status bt_plugin_find_all_from_file(
 			BT_ASSERT((*plugin_set_out)->plugins->len > 0);
 			goto end;
 		} else if (status < 0) {
+			/*
+			 * bt_plugin_python_create_all_from_file_sym()
+			 * handles `fail_on_load_error` itself, so this
+			 * is a "real" error.
+			 */
 			BT_ASSERT(!*plugin_set_out);
 			goto end;
 		}
@@ -235,7 +261,7 @@ enum bt_plugin_find_status bt_plugin_find(const char *plugin_name,
 		"name=\"%s\"", plugin_name);
 	dirs = g_ptr_array_new_with_free_func((GDestroyNotify) destroy_gstring);
 	if (!dirs) {
-		BT_LOGE_STR("Failed to allocate a GPtrArray.");
+		BT_LIB_LOGE_APPEND_CAUSE("Failed to allocate a GPtrArray.");
 		status = BT_FUNC_STATUS_MEMORY_ERROR;
 		goto end;
 	}
@@ -258,7 +284,8 @@ enum bt_plugin_find_status bt_plugin_find(const char *plugin_name,
 	if (envvar) {
 		ret = bt_common_append_plugin_path_dirs(envvar, dirs);
 		if (ret) {
-			BT_LOGE_STR("Failed to append plugin path to array of directories.");
+			BT_LIB_LOGE_APPEND_CAUSE(
+				"Failed to append plugin path to array of directories.");
 			status = BT_FUNC_STATUS_MEMORY_ERROR;
 			goto end;
 		}
@@ -269,7 +296,7 @@ enum bt_plugin_find_status bt_plugin_find(const char *plugin_name,
 		GString *home_plugin_dir_str = g_string_new(home_plugin_dir);
 
 		if (!home_plugin_dir_str) {
-			BT_LOGE_STR("Failed to allocate a GString.");
+			BT_LIB_LOGE_APPEND_CAUSE("Failed to allocate a GString.");
 			status = BT_FUNC_STATUS_MEMORY_ERROR;
 			goto end;
 		}
@@ -283,7 +310,7 @@ enum bt_plugin_find_status bt_plugin_find(const char *plugin_name,
 			g_string_new(system_plugin_dir);
 
 		if (!system_plugin_dir_str) {
-			BT_LOGE_STR("Failed to allocate a GString.");
+			BT_LIB_LOGE_APPEND_CAUSE("Failed to allocate a GString.");
 			status = BT_FUNC_STATUS_MEMORY_ERROR;
 			goto end;
 		}
@@ -501,6 +528,10 @@ int bt_plugin_create_append_all_from_dir(struct bt_plugin_set *plugin_set,
 		BT_LOGW_ERRNO("Cannot open directory",
 			": path=\"%s\", recurse=%d",
 			path, recurse);
+		(void) BT_CURRENT_THREAD_ERROR_APPEND_CAUSE_FROM_UNKNOWN(
+			"Babeltrace library",
+			"Cannot open directory: path=\"%s\", recurse=%d",
+			path, recurse);
 		status = BT_FUNC_STATUS_ERROR;
 		goto end;
 	}
@@ -516,7 +547,7 @@ int bt_plugin_create_append_all_from_dir(struct bt_plugin_set *plugin_set,
 	status = append_all_from_dir_info.status;
 	pthread_mutex_unlock(&append_all_from_dir_info.lock);
 	if (ret) {
-		BT_LOGW_ERRNO("Failed to walk directory",
+		BT_LIB_LOGW_APPEND_CAUSE("Failed to walk directory",
 			": path=\"%s\", recurse=%d",
 			path, recurse);
 		status = BT_FUNC_STATUS_ERROR;
@@ -548,7 +579,7 @@ enum bt_plugin_find_all_from_dir_status bt_plugin_find_all_from_dir(
 		path, recurse);
 	*plugin_set_out = bt_plugin_set_create();
 	if (!*plugin_set_out) {
-		BT_LOGE_STR("Cannot create empty plugin set.");
+		BT_LIB_LOGE_APPEND_CAUSE("Cannot create empty plugin set.");
 		status = BT_FUNC_STATUS_MEMORY_ERROR;
 		goto error;
 	}
@@ -564,7 +595,8 @@ enum bt_plugin_find_all_from_dir_status bt_plugin_find_all_from_dir(
 		 * bt_plugin_create_append_all_from_dir() handles
 		 * `fail_on_load_error`, so this is a "real" error.
 		 */
-		BT_LOGW("Cannot append plugins found in directory: "
+		BT_LIB_LOGE_APPEND_CAUSE(
+			"Cannot append plugins found in directory: "
 			"path=\"%s\", status=%s",
 			path, bt_common_func_status_string(status));
 		goto error;

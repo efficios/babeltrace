@@ -23,6 +23,11 @@
  * SOFTWARE.
  */
 
+/* Protection: this file uses BT_LIB_LOG*() macros directly */
+#ifndef BT_LIB_LOG_SUPPORTED
+# error Please include "lib/logging.h" before including this file.
+#endif
+
 #include <stdint.h>
 #include <glib.h>
 #include "common/assert.h"
@@ -50,7 +55,7 @@ int bt_clock_snapshot_set_initialize(struct bt_clock_snapshot_set *cs_set)
 
 	cs_set->clock_snapshots = g_ptr_array_sized_new(1);
 	if (!cs_set->clock_snapshots) {
-		BT_LOGE_STR("Failed to allocate one GPtrArray.");
+		BT_LIB_LOGE_APPEND_CAUSE("Failed to allocate one GPtrArray.");
 		ret = -1;
 		goto end;
 	}
@@ -132,7 +137,8 @@ int bt_clock_snapshot_set_set_clock_snapshot(struct bt_clock_snapshot_set *cs_se
 	if (!clock_snapshot) {
 		clock_snapshot = bt_clock_snapshot_create(cc);
 		if (!clock_snapshot) {
-			BT_LIB_LOGE("Cannot create a clock snapshot from a clock class: "
+			BT_LIB_LOGE_APPEND_CAUSE(
+				"Cannot create a clock snapshot from a clock class: "
 				"%![cc-]+K", cc);
 			ret = -1;
 			goto end;

@@ -114,14 +114,14 @@ struct bt_stream *create_stream_with_id(struct bt_stream_class *stream_class,
 		trace, id);
 	stream = g_new0(struct bt_stream, 1);
 	if (!stream) {
-		BT_LOGE_STR("Failed to allocate one stream.");
+		BT_LIB_LOGE_APPEND_CAUSE("Failed to allocate one stream.");
 		goto error;
 	}
 
 	bt_object_init_shared_with_parent(&stream->base, destroy_stream);
 	stream->name.str = g_string_new(NULL);
 	if (!stream->name.str) {
-		BT_LOGE_STR("Failed to allocate a GString.");
+		BT_LIB_LOGE_APPEND_CAUSE("Failed to allocate a GString.");
 		goto error;
 	}
 
@@ -131,7 +131,8 @@ struct bt_stream *create_stream_with_id(struct bt_stream_class *stream_class,
 		(bt_object_pool_destroy_object_func) bt_stream_free_packet,
 		stream);
 	if (ret) {
-		BT_LOGE("Failed to initialize packet pool: ret=%d", ret);
+		BT_LIB_LOGE_APPEND_CAUSE(
+			"Failed to initialize packet pool: ret=%d", ret);
 		goto error;
 	}
 

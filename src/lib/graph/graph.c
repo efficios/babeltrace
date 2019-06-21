@@ -78,7 +78,8 @@ struct bt_graph_listener_ports_connected {
 	do {								\
 		_listeners = g_array_new(FALSE, TRUE, sizeof(_type));	\
 		if (!(_listeners)) {					\
-			BT_LOGE_STR("Failed to allocate one GArray.");	\
+			BT_LIB_LOGE_APPEND_CAUSE(			\
+				"Failed to allocate one GArray.");	\
 		}							\
 	} while (0)
 
@@ -264,7 +265,7 @@ struct bt_graph *bt_graph_create(void)
 	BT_LOGI_STR("Creating graph object.");
 	graph = g_new0(struct bt_graph, 1);
 	if (!graph) {
-		BT_LOGE_STR("Failed to allocate one graph.");
+		BT_LIB_LOGE_APPEND_CAUSE("Failed to allocate one graph.");
 		goto end;
 	}
 
@@ -272,18 +273,18 @@ struct bt_graph *bt_graph_create(void)
 	graph->connections = g_ptr_array_new_with_free_func(
 		(GDestroyNotify) bt_object_try_spec_release);
 	if (!graph->connections) {
-		BT_LOGE_STR("Failed to allocate one GPtrArray.");
+		BT_LIB_LOGE_APPEND_CAUSE("Failed to allocate one GPtrArray.");
 		goto error;
 	}
 	graph->components = g_ptr_array_new_with_free_func(
 		(GDestroyNotify) bt_object_try_spec_release);
 	if (!graph->components) {
-		BT_LOGE_STR("Failed to allocate one GPtrArray.");
+		BT_LIB_LOGE_APPEND_CAUSE("Failed to allocate one GPtrArray.");
 		goto error;
 	}
 	graph->sinks_to_consume = g_queue_new();
 	if (!graph->sinks_to_consume) {
-		BT_LOGE_STR("Failed to allocate one GQueue.");
+		BT_LIB_LOGE_APPEND_CAUSE("Failed to allocate one GQueue.");
 		goto error;
 	}
 
@@ -357,7 +358,8 @@ struct bt_graph *bt_graph_create(void)
 		(bt_object_pool_destroy_object_func) destroy_message_event,
 		graph);
 	if (ret) {
-		BT_LOGE("Failed to initialize event message pool: ret=%d",
+		BT_LIB_LOGE_APPEND_CAUSE(
+			"Failed to initialize event message pool: ret=%d",
 			ret);
 		goto error;
 	}
@@ -367,7 +369,8 @@ struct bt_graph *bt_graph_create(void)
 		(bt_object_pool_destroy_object_func) destroy_message_packet_begin,
 		graph);
 	if (ret) {
-		BT_LOGE("Failed to initialize packet beginning message pool: ret=%d",
+		BT_LIB_LOGE_APPEND_CAUSE(
+			"Failed to initialize packet beginning message pool: ret=%d",
 			ret);
 		goto error;
 	}
@@ -377,7 +380,8 @@ struct bt_graph *bt_graph_create(void)
 		(bt_object_pool_destroy_object_func) destroy_message_packet_end,
 		graph);
 	if (ret) {
-		BT_LOGE("Failed to initialize packet end message pool: ret=%d",
+		BT_LIB_LOGE_APPEND_CAUSE(
+			"Failed to initialize packet end message pool: ret=%d",
 			ret);
 		goto error;
 	}
@@ -441,7 +445,7 @@ enum bt_graph_connect_ports_status bt_graph_connect_ports(
 	connection = bt_connection_create(graph, (void *) upstream_port,
 		(void *) downstream_port);
 	if (!connection) {
-		BT_LOGW("Cannot create connection object.");
+		BT_LIB_LOGE_APPEND_CAUSE("Cannot create connection object.");
 		status = BT_FUNC_STATUS_MEMORY_ERROR;
 		goto end;
 	}
@@ -462,12 +466,17 @@ enum bt_graph_connect_ports_status bt_graph_connect_ports(
 	port_connected_status = bt_component_port_connected(upstream_component,
 		(void *) upstream_port, (void *) downstream_port);
 	if (port_connected_status != BT_FUNC_STATUS_OK) {
-		BT_LIB_LOGW("Error while notifying upstream component that its port is connected: "
-			"status=%s, %![graph-]+g, %![up-comp-]+c, "
-			"%![down-comp-]+c, %![up-port-]+p, %![down-port-]+p",
-			bt_common_func_status_string(port_connected_status),
-			graph, upstream_component, downstream_component,
-			upstream_port, downstream_port);
+		if (port_connected_status < 0) {
+			BT_LIB_LOGW_APPEND_CAUSE(
+				"Upstream component's \"port connected\" method failed: "
+				"status=%s, %![graph-]+g, %![up-comp-]+c, "
+				"%![down-comp-]+c, %![up-port-]+p, %![down-port-]+p",
+				bt_common_func_status_string(
+					port_connected_status),
+				graph, upstream_component, downstream_component,
+				upstream_port, downstream_port);
+		}
+
 		bt_connection_end(connection, true);
 		status = (int) port_connected_status;
 		goto end;
@@ -480,12 +489,17 @@ enum bt_graph_connect_ports_status bt_graph_connect_ports(
 	port_connected_status = bt_component_port_connected(downstream_component,
 		(void *) downstream_port, (void *) upstream_port);
 	if (port_connected_status != BT_FUNC_STATUS_OK) {
-		BT_LIB_LOGW("Error while notifying downstream component that its port is connected: "
-			"status=%s, %![graph-]+g, %![up-comp-]+c, "
-			"%![down-comp-]+c, %![up-port-]+p, %![down-port-]+p",
-			bt_common_func_status_string(port_connected_status),
-			graph, upstream_component, downstream_component,
-			upstream_port, downstream_port);
+		if (port_connected_status < 0) {
+			BT_LIB_LOGW_APPEND_CAUSE(
+				"Downstream component's \"port connected\" method failed: "
+				"status=%s, %![graph-]+g, %![up-comp-]+c, "
+				"%![down-comp-]+c, %![up-port-]+p, %![down-port-]+p",
+				bt_common_func_status_string(
+					port_connected_status),
+				graph, upstream_component, downstream_component,
+				upstream_port, downstream_port);
+		}
+
 		bt_connection_end(connection, true);
 		status = (int) port_connected_status;
 		goto end;
@@ -499,6 +513,16 @@ enum bt_graph_connect_ports_status bt_graph_connect_ports(
 	BT_LOGD_STR("Notifying graph's user that new component ports are connected.");
 	listener_status = bt_graph_notify_ports_connected(graph, upstream_port, downstream_port);
 	if (listener_status != BT_FUNC_STATUS_OK) {
+		if (listener_status < 0) {
+			BT_LIB_LOGW_APPEND_CAUSE(
+				"Graph \"ports connected\" listener failed: "
+				"status=%d, %![graph-]+g, %![up-comp-]+c, "
+				"%![down-comp-]+c, %![up-port-]+p, %![down-port-]+p",
+				listener_status, graph,
+				upstream_component, downstream_component,
+				upstream_port, downstream_port);
+		}
+
 		status = (int) listener_status;
 		goto end;
 	}
@@ -547,8 +571,15 @@ int consume_graph_sink(struct bt_component_sink *comp)
 		consume_status == BT_FUNC_STATUS_MEMORY_ERROR,
 		"Invalid component status returned by consuming method: "
 		"status=%s", bt_common_func_status_string(consume_status));
-	if (consume_status < 0) {
-		BT_LOGW_STR("Consume method failed.");
+	if (consume_status) {
+		if (consume_status < 0) {
+			BT_LIB_LOGW_APPEND_CAUSE(
+				"Component's \"consume\" method failed: "
+				"status=%s, %![comp-]+c",
+				bt_common_func_status_string(consume_status),
+				comp);
+		}
+
 		goto end;
 	}
 
@@ -1264,7 +1295,8 @@ int add_component_with_init_method_data(
 	if (!params) {
 		new_params = bt_value_map_create();
 		if (!new_params) {
-			BT_LOGE_STR("Cannot create empty map value object.");
+			BT_LIB_LOGE_APPEND_CAUSE(
+				"Cannot create empty map value object.");
 			status = BT_FUNC_STATUS_MEMORY_ERROR;
 			goto end;
 		}
@@ -1274,7 +1306,8 @@ int add_component_with_init_method_data(
 
 	ret = bt_component_create(comp_cls, name, log_level, &component);
 	if (ret) {
-		BT_LOGE("Cannot create empty component object: ret=%d",
+		BT_LIB_LOGE_APPEND_CAUSE(
+			"Cannot create empty component object: ret=%d",
 			ret);
 		status = BT_FUNC_STATUS_MEMORY_ERROR;
 		goto end;
@@ -1295,8 +1328,14 @@ int add_component_with_init_method_data(
 		BT_LOGD("User method returned: status=%s",
 			bt_common_func_status_string(init_status));
 		if (init_status != BT_FUNC_STATUS_OK) {
-			BT_LIB_LOGW("Component initialization method failed: "
-				"%!+c", component);
+			if (init_status < 0) {
+				BT_LIB_LOGW_APPEND_CAUSE(
+					"Component initialization method failed: "
+					"status=%s, %![comp-]+c",
+					bt_common_func_status_string(init_status),
+					component);
+			}
+
 			status = init_status;
 			bt_component_set_graph(component, NULL);
 			g_ptr_array_remove_fast(graph->components, component);
@@ -1449,7 +1488,8 @@ int bt_graph_remove_unconnected_component(struct bt_graph *graph,
 		BT_ASSERT(port);
 
 		if (bt_port_is_connected(port)) {
-			BT_LIB_LOGW("Cannot remove component from graph: "
+			BT_LIB_LOGW_APPEND_CAUSE(
+				"Cannot remove component from graph: "
 				"an input port is connected: "
 				"%![graph-]+g, %![comp-]+c, %![port-]+p",
 				graph, component, port);
@@ -1466,7 +1506,8 @@ int bt_graph_remove_unconnected_component(struct bt_graph *graph,
 		BT_ASSERT(port);
 
 		if (bt_port_is_connected(port)) {
-			BT_LIB_LOGW("Cannot remove component from graph: "
+			BT_LIB_LOGW_APPEND_CAUSE(
+				"Cannot remove component from graph: "
 				"an output port is connected: "
 				"%![graph-]+g, %![comp-]+c, %![port-]+p",
 				graph, component, port);

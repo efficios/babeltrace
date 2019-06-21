@@ -126,7 +126,7 @@ struct bt_connection *bt_connection_create(struct bt_graph *graph,
 		graph, upstream_port, downstream_port);
 	connection = g_new0(struct bt_connection, 1);
 	if (!connection) {
-		BT_LOGE_STR("Failed to allocate one connection.");
+		BT_LIB_LOGE_APPEND_CAUSE("Failed to allocate one connection.");
 		goto end;
 	}
 
@@ -136,7 +136,7 @@ struct bt_connection *bt_connection_create(struct bt_graph *graph,
 		parent_is_owner);
 	connection->iterators = g_ptr_array_new();
 	if (!connection->iterators) {
-		BT_LOGE_STR("Failed to allocate a GPtrArray.");
+		BT_LIB_LOGE_APPEND_CAUSE("Failed to allocate a GPtrArray.");
 		BT_OBJECT_PUT_REF_AND_RESET(connection);
 		goto end;
 	}

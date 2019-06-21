@@ -224,7 +224,7 @@ enum bt_self_component_add_port_status add_port(
 
 	new_port = bt_port_create(component, port_type, name, user_data);
 	if (!new_port) {
-		BT_LOGE_STR("Cannot create port object.");
+		BT_LIB_LOGE_APPEND_CAUSE("Cannot create port object.");
 		status = BT_FUNC_STATUS_MEMORY_ERROR;
 		goto error;
 	}
@@ -302,7 +302,8 @@ int bt_component_create(struct bt_component_class *component_class,
 		bt_common_logging_level_string(log_level));
 	component = component_create_funcs[type](component_class);
 	if (!component) {
-		BT_LOGE_STR("Cannot create specific component object.");
+		BT_LIB_LOGE_APPEND_CAUSE(
+			"Cannot create specific component object.");
 		ret = -1;
 		goto end;
 	}
@@ -313,7 +314,7 @@ int bt_component_create(struct bt_component_class *component_class,
 	component->destroy = component_destroy_funcs[type];
 	component->name = g_string_new(name);
 	if (!component->name) {
-		BT_LOGE_STR("Failed to allocate one GString.");
+		BT_LIB_LOGE_APPEND_CAUSE("Failed to allocate one GString.");
 		ret = -1;
 		goto end;
 	}
@@ -322,7 +323,7 @@ int bt_component_create(struct bt_component_class *component_class,
 	component->input_ports = g_ptr_array_new_with_free_func(
 		(GDestroyNotify) bt_object_try_spec_release);
 	if (!component->input_ports) {
-		BT_LOGE_STR("Failed to allocate one GPtrArray.");
+		BT_LIB_LOGE_APPEND_CAUSE("Failed to allocate one GPtrArray.");
 		ret = -1;
 		goto end;
 	}
@@ -330,7 +331,7 @@ int bt_component_create(struct bt_component_class *component_class,
 	component->output_ports = g_ptr_array_new_with_free_func(
 		(GDestroyNotify) bt_object_try_spec_release);
 	if (!component->output_ports) {
-		BT_LOGE_STR("Failed to allocate one GPtrArray.");
+		BT_LIB_LOGE_APPEND_CAUSE("Failed to allocate one GPtrArray.");
 		ret = -1;
 		goto end;
 	}
@@ -338,7 +339,7 @@ int bt_component_create(struct bt_component_class *component_class,
 	component->destroy_listeners = g_array_new(FALSE, TRUE,
 		sizeof(struct bt_component_destroy_listener));
 	if (!component->destroy_listeners) {
-		BT_LOGE_STR("Failed to allocate one GArray.");
+		BT_LIB_LOGE_APPEND_CAUSE("Failed to allocate one GArray.");
 		ret = -1;
 		goto end;
 	}

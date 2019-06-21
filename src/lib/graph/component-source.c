@@ -50,7 +50,8 @@ struct bt_component *bt_component_source_create(
 
 	source = g_new0(struct bt_component_source, 1);
 	if (!source) {
-		BT_LOGE_STR("Failed to allocate one source component.");
+		BT_LIB_LOGE_APPEND_CAUSE(
+			"Failed to allocate one source component.");
 		goto end;
 	}
 

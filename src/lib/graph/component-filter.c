@@ -50,7 +50,8 @@ struct bt_component *bt_component_filter_create(
 
 	filter = g_new0(struct bt_component_filter, 1);
 	if (!filter) {
-		BT_LOGE_STR("Failed to allocate one filter component.");
+		BT_LIB_LOGE_APPEND_CAUSE(
+			"Failed to allocate one filter component.");
 		goto end;
 	}
 

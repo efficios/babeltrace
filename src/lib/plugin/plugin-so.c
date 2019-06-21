@@ -139,6 +139,11 @@ void bt_plugin_so_shared_lib_handle_destroy(struct bt_object *obj)
 			BT_LOGI("Closing GModule: path=\"%s\"", path);
 
 			if (!g_module_close(shared_lib_handle->module)) {
+				/*
+				 * Just log here: we're in a destructor,
+				 * so we cannot append an error cause
+				 * (there's no returned status).
+				 */
 				BT_LOGE("Cannot close GModule: %s: path=\"%s\"",
 					g_module_error(), path);
 			}
@@ -171,7 +176,7 @@ int bt_plugin_so_shared_lib_handle_create(
 	BT_LOGI("Creating shared library handle: path=\"%s\"", path);
 	*shared_lib_handle = g_new0(struct bt_plugin_so_shared_lib_handle, 1);
 	if (!*shared_lib_handle) {
-		BT_LOGE_STR("Failed to allocate one shared library handle.");
+		BT_LIB_LOGE_APPEND_CAUSE("Failed to allocate one shared library handle.");
 		status = BT_FUNC_STATUS_MEMORY_ERROR;
 		goto end;
 	}
@@ -185,7 +190,7 @@ int bt_plugin_so_shared_lib_handle_create(
 
 	(*shared_lib_handle)->path = g_string_new(path);
 	if (!(*shared_lib_handle)->path) {
-		BT_LOGE_STR("Failed to allocate a GString.");
+		BT_LIB_LOGE_APPEND_CAUSE("Failed to allocate a GString.");
 		status = BT_FUNC_STATUS_MEMORY_ERROR;
 		goto end;
 	}
@@ -342,7 +347,7 @@ int bt_plugin_so_init(struct bt_plugin *plugin,
 	comp_class_full_descriptors = g_array_new(FALSE, TRUE,
 		sizeof(struct comp_class_full_descriptor));
 	if (!comp_class_full_descriptors) {
-		BT_LOGE_STR("Failed to allocate a GArray.");
+		BT_LIB_LOGE_APPEND_CAUSE("Failed to allocate a GArray.");
 		status = BT_FUNC_STATUS_MEMORY_ERROR;
 		goto end;
 	}
@@ -391,22 +396,28 @@ int bt_plugin_so_init(struct bt_plugin *plugin,
 				cur_attr->value.version.extra);
 			break;
 		default:
-			BT_LOG_WRITE(fail_on_load_error ?
-				BT_LOG_WARN : BT_LOG_INFO, BT_LOG_TAG,
-				"%s plugin descriptor attribute: "
-				"plugin-path=\"%s\", plugin-name=\"%s\", "
-				"attr-type-name=\"%s\", attr-type-id=%d",
-				fail_on_load_error ? "Unknown" :
-					"Ignoring unknown",
-				spec->shared_lib_handle->path ?
-					spec->shared_lib_handle->path->str :
-					NULL,
-				descriptor->name, cur_attr->type_name,
-				cur_attr->type);
-
 			if (fail_on_load_error) {
+				BT_LIB_LOGW_APPEND_CAUSE(
+					"Unknown plugin descriptor attribute: "
+					"plugin-path=\"%s\", plugin-name=\"%s\", "
+					"attr-type-name=\"%s\", attr-type-id=%d",
+					spec->shared_lib_handle->path ?
+						spec->shared_lib_handle->path->str :
+						NULL,
+					descriptor->name, cur_attr->type_name,
+					cur_attr->type);
 				status = BT_FUNC_STATUS_LOADING_ERROR;
 				goto end;
+			} else {
+				BT_LIB_LOGI(
+					"Ignoring unknown plugin descriptor attribute: "
+					"plugin-path=\"%s\", plugin-name=\"%s\", "
+					"attr-type-name=\"%s\", attr-type-id=%d",
+					spec->shared_lib_handle->path ?
+						spec->shared_lib_handle->path->str :
+						NULL,
+					descriptor->name, cur_attr->type_name,
+					cur_attr->type);
 			}
 
 			break;
@@ -654,30 +665,44 @@ int bt_plugin_so_init(struct bt_plugin *plugin,
 				}
 				break;
 			default:
-				BT_LOG_WRITE(fail_on_load_error ?
-					BT_LOG_WARN : BT_LOG_INFO, BT_LOG_TAG,
-					"%s component class descriptor attribute: "
-					"plugin-path=\"%s\", "
-					"plugin-name=\"%s\", "
-					"comp-class-name=\"%s\", "
-					"comp-class-type=%s, "
-					"attr-type-name=\"%s\", "
-					"attr-type-id=%d",
-					fail_on_load_error ? "Unknown" :
-						"Ignoring unknown",
-					spec->shared_lib_handle->path ?
-						spec->shared_lib_handle->path->str :
-						NULL,
-					descriptor->name,
-					cur_cc_descr_attr->comp_class_descriptor->name,
-					bt_component_class_type_string(
-						cur_cc_descr_attr->comp_class_descriptor->type),
-					cur_cc_descr_attr->type_name,
-					cur_cc_descr_attr->type);
-
 				if (fail_on_load_error) {
+					BT_LIB_LOGW_APPEND_CAUSE(
+						"Unknown component class descriptor attribute: "
+						"plugin-path=\"%s\", "
+						"plugin-name=\"%s\", "
+						"comp-class-name=\"%s\", "
+						"comp-class-type=%s, "
+						"attr-type-name=\"%s\", "
+						"attr-type-id=%d",
+						spec->shared_lib_handle->path ?
+							spec->shared_lib_handle->path->str :
+							NULL,
+						descriptor->name,
+						cur_cc_descr_attr->comp_class_descriptor->name,
+						bt_component_class_type_string(
+							cur_cc_descr_attr->comp_class_descriptor->type),
+						cur_cc_descr_attr->type_name,
+						cur_cc_descr_attr->type);
 					status = BT_FUNC_STATUS_LOADING_ERROR;
 					goto end;
+				} else {
+					BT_LIB_LOGI(
+						"Ignoring unknown component class descriptor attribute: "
+						"plugin-path=\"%s\", "
+						"plugin-name=\"%s\", "
+						"comp-class-name=\"%s\", "
+						"comp-class-type=%s, "
+						"attr-type-name=\"%s\", "
+						"attr-type-id=%d",
+						spec->shared_lib_handle->path ?
+							spec->shared_lib_handle->path->str :
+							NULL,
+						descriptor->name,
+						cur_cc_descr_attr->comp_class_descriptor->name,
+						bt_component_class_type_string(
+							cur_cc_descr_attr->comp_class_descriptor->type),
+						cur_cc_descr_attr->type_name,
+						cur_cc_descr_attr->type);
 				}
 
 				break;
@@ -695,16 +720,22 @@ int bt_plugin_so_init(struct bt_plugin *plugin,
 			bt_common_func_status_string(init_status));
 
 		if (init_status < 0) {
-			BT_LOG_WRITE(fail_on_load_error ?
-				BT_LOG_WARN : BT_LOG_INFO, BT_LOG_TAG,
-				"User's plugin initialization function failed: "
-				"status=%s",
-				bt_common_func_status_string(init_status));
-
 			if (fail_on_load_error) {
+				BT_LIB_LOGW_APPEND_CAUSE(
+					"User's plugin initialization function failed: "
+					"status=%s",
+					bt_common_func_status_string(init_status));
 				status = init_status;
 				goto end;
+			} else {
+				BT_LIB_LOGI(
+					"User's plugin initialization function failed: "
+					"status=%s",
+					bt_common_func_status_string(init_status));
+				status = BT_FUNC_STATUS_NOT_FOUND;
 			}
+
+			goto end;
 		}
 	}
 
@@ -754,30 +785,37 @@ int bt_plugin_so_init(struct bt_plugin *plugin,
 				sink_comp_class);
 			break;
 		default:
-			BT_LOG_WRITE(fail_on_load_error ?
-				BT_LOG_WARN : BT_LOG_INFO, BT_LOG_TAG,
-				"%s component class type: "
-				"plugin-path=\"%s\", plugin-name=\"%s\", "
-				"comp-class-name=\"%s\", comp-class-type=%d",
-				fail_on_load_error ? "Unknown" :
-					"Ignoring unknown",
-				spec->shared_lib_handle->path->str ?
-					spec->shared_lib_handle->path->str :
-					NULL,
-				descriptor->name,
-				cc_full_descr->descriptor->name,
-				cc_full_descr->descriptor->type);
-
 			if (fail_on_load_error) {
+				BT_LIB_LOGW_APPEND_CAUSE(
+					"Unknown component class type: "
+					"plugin-path=\"%s\", plugin-name=\"%s\", "
+					"comp-class-name=\"%s\", comp-class-type=%d",
+					spec->shared_lib_handle->path->str ?
+						spec->shared_lib_handle->path->str :
+						NULL,
+					descriptor->name,
+					cc_full_descr->descriptor->name,
+					cc_full_descr->descriptor->type);
 				status = BT_FUNC_STATUS_LOADING_ERROR;
 				goto end;
+			} else {
+				BT_LIB_LOGI(
+					"Ignoring unknown component class type: "
+					"plugin-path=\"%s\", plugin-name=\"%s\", "
+					"comp-class-name=\"%s\", comp-class-type=%d",
+					spec->shared_lib_handle->path->str ?
+						spec->shared_lib_handle->path->str :
+						NULL,
+					descriptor->name,
+					cc_full_descr->descriptor->name,
+					cc_full_descr->descriptor->type);
+				continue;
 			}
-
-			continue;
 		}
 
 		if (!comp_class) {
-			BT_LOGE_STR("Cannot create component class.");
+			BT_LIB_LOGE_APPEND_CAUSE(
+				"Cannot create component class.");
 			status = BT_FUNC_STATUS_MEMORY_ERROR;
 			goto end;
 		}
@@ -786,7 +824,8 @@ int bt_plugin_so_init(struct bt_plugin *plugin,
 			ret = bt_component_class_set_description(
 				comp_class, cc_full_descr->description);
 			if (ret) {
-				BT_LOGE_STR("Cannot set component class's description.");
+				BT_LIB_LOGE_APPEND_CAUSE(
+					"Cannot set component class's description.");
 				status = BT_FUNC_STATUS_MEMORY_ERROR;
 				BT_OBJECT_PUT_REF_AND_RESET(comp_class);
 				goto end;
@@ -797,7 +836,8 @@ int bt_plugin_so_init(struct bt_plugin *plugin,
 			ret = bt_component_class_set_help(comp_class,
 				cc_full_descr->help);
 			if (ret) {
-				BT_LOGE_STR("Cannot set component class's help string.");
+				BT_LIB_LOGE_APPEND_CAUSE(
+					"Cannot set component class's help string.");
 				status = BT_FUNC_STATUS_MEMORY_ERROR;
 				BT_OBJECT_PUT_REF_AND_RESET(comp_class);
 				goto end;
@@ -811,7 +851,8 @@ int bt_plugin_so_init(struct bt_plugin *plugin,
 					src_comp_class,
 					cc_full_descr->methods.source.init);
 				if (ret) {
-					BT_LOGE_STR("Cannot set source component class's initialization method.");
+					BT_LIB_LOGE_APPEND_CAUSE(
+						"Cannot set source component class's initialization method.");
 					status = BT_FUNC_STATUS_MEMORY_ERROR;
 					BT_OBJECT_PUT_REF_AND_RESET(src_comp_class);
 					goto end;
@@ -823,7 +864,8 @@ int bt_plugin_so_init(struct bt_plugin *plugin,
 					src_comp_class,
 					cc_full_descr->methods.source.finalize);
 				if (ret) {
-					BT_LOGE_STR("Cannot set source component class's finalization method.");
+					BT_LIB_LOGE_APPEND_CAUSE(
+						"Cannot set source component class's finalization method.");
 					status = BT_FUNC_STATUS_MEMORY_ERROR;
 					BT_OBJECT_PUT_REF_AND_RESET(src_comp_class);
 					goto end;
@@ -835,7 +877,8 @@ int bt_plugin_so_init(struct bt_plugin *plugin,
 					src_comp_class,
 					cc_full_descr->methods.source.query);
 				if (ret) {
-					BT_LOGE_STR("Cannot set source component class's query method.");
+					BT_LIB_LOGE_APPEND_CAUSE(
+						"Cannot set source component class's query method.");
 					status = BT_FUNC_STATUS_MEMORY_ERROR;
 					BT_OBJECT_PUT_REF_AND_RESET(src_comp_class);
 					goto end;
@@ -847,7 +890,8 @@ int bt_plugin_so_init(struct bt_plugin *plugin,
 					src_comp_class,
 					cc_full_descr->methods.source.output_port_connected);
 				if (ret) {
-					BT_LOGE_STR("Cannot set source component class's \"output port connected\" method.");
+					BT_LIB_LOGE_APPEND_CAUSE(
+						"Cannot set source component class's \"output port connected\" method.");
 					status = BT_FUNC_STATUS_MEMORY_ERROR;
 					BT_OBJECT_PUT_REF_AND_RESET(src_comp_class);
 					goto end;
@@ -859,7 +903,8 @@ int bt_plugin_so_init(struct bt_plugin *plugin,
 					src_comp_class,
 					cc_full_descr->methods.source.msg_iter_init);
 				if (ret) {
-					BT_LOGE_STR("Cannot set source component class's message iterator initialization method.");
+					BT_LIB_LOGE_APPEND_CAUSE(
+						"Cannot set source component class's message iterator initialization method.");
 					status = BT_FUNC_STATUS_MEMORY_ERROR;
 					BT_OBJECT_PUT_REF_AND_RESET(src_comp_class);
 					goto end;
@@ -871,7 +916,8 @@ int bt_plugin_so_init(struct bt_plugin *plugin,
 					src_comp_class,
 					cc_full_descr->methods.source.msg_iter_finalize);
 				if (ret) {
-					BT_LOGE_STR("Cannot set source component class's message iterator finalization method.");
+					BT_LIB_LOGE_APPEND_CAUSE(
+						"Cannot set source component class's message iterator finalization method.");
 					status = BT_FUNC_STATUS_MEMORY_ERROR;
 					BT_OBJECT_PUT_REF_AND_RESET(src_comp_class);
 					goto end;
@@ -883,7 +929,8 @@ int bt_plugin_so_init(struct bt_plugin *plugin,
 					src_comp_class,
 					cc_full_descr->methods.source.msg_iter_seek_ns_from_origin);
 				if (ret) {
-					BT_LOGE_STR("Cannot set source component class's message iterator \"seek nanoseconds from origin\" method.");
+					BT_LIB_LOGE_APPEND_CAUSE(
+						"Cannot set source component class's message iterator \"seek nanoseconds from origin\" method.");
 					status = BT_FUNC_STATUS_MEMORY_ERROR;
 					BT_OBJECT_PUT_REF_AND_RESET(src_comp_class);
 					goto end;
@@ -895,7 +942,8 @@ int bt_plugin_so_init(struct bt_plugin *plugin,
 					src_comp_class,
 					cc_full_descr->methods.source.msg_iter_seek_beginning);
 				if (ret) {
-					BT_LOGE_STR("Cannot set source component class's message iterator \"seek beginning\" method.");
+					BT_LIB_LOGE_APPEND_CAUSE(
+						"Cannot set source component class's message iterator \"seek beginning\" method.");
 					status = BT_FUNC_STATUS_MEMORY_ERROR;
 					BT_OBJECT_PUT_REF_AND_RESET(src_comp_class);
 					goto end;
@@ -907,7 +955,8 @@ int bt_plugin_so_init(struct bt_plugin *plugin,
 					src_comp_class,
 					cc_full_descr->methods.source.msg_iter_can_seek_ns_from_origin);
 				if (ret) {
-					BT_LOGE_STR("Cannot set source component class's message iterator \"can seek nanoseconds from origin\" method.");
+					BT_LIB_LOGE_APPEND_CAUSE(
+						"Cannot set source component class's message iterator \"can seek nanoseconds from origin\" method.");
 					status = BT_FUNC_STATUS_MEMORY_ERROR;
 					BT_OBJECT_PUT_REF_AND_RESET(src_comp_class);
 					goto end;
@@ -919,7 +968,8 @@ int bt_plugin_so_init(struct bt_plugin *plugin,
 					src_comp_class,
 					cc_full_descr->methods.source.msg_iter_can_seek_beginning);
 				if (ret) {
-					BT_LOGE_STR("Cannot set source component class's message iterator \"can seek beginning\" method.");
+					BT_LIB_LOGE_APPEND_CAUSE(
+						"Cannot set source component class's message iterator \"can seek beginning\" method.");
 					status = BT_FUNC_STATUS_MEMORY_ERROR;
 					BT_OBJECT_PUT_REF_AND_RESET(src_comp_class);
 					goto end;
@@ -933,7 +983,8 @@ int bt_plugin_so_init(struct bt_plugin *plugin,
 					flt_comp_class,
 					cc_full_descr->methods.filter.init);
 				if (ret) {
-					BT_LOGE_STR("Cannot set filter component class's initialization method.");
+					BT_LIB_LOGE_APPEND_CAUSE(
+						"Cannot set filter component class's initialization method.");
 					status = BT_FUNC_STATUS_MEMORY_ERROR;
 					BT_OBJECT_PUT_REF_AND_RESET(flt_comp_class);
 					goto end;
@@ -945,7 +996,8 @@ int bt_plugin_so_init(struct bt_plugin *plugin,
 					flt_comp_class,
 					cc_full_descr->methods.filter.finalize);
 				if (ret) {
-					BT_LOGE_STR("Cannot set filter component class's finalization method.");
+					BT_LIB_LOGE_APPEND_CAUSE(
+						"Cannot set filter component class's finalization method.");
 					status = BT_FUNC_STATUS_MEMORY_ERROR;
 					BT_OBJECT_PUT_REF_AND_RESET(flt_comp_class);
 					goto end;
@@ -957,7 +1009,8 @@ int bt_plugin_so_init(struct bt_plugin *plugin,
 					flt_comp_class,
 					cc_full_descr->methods.filter.query);
 				if (ret) {
-					BT_LOGE_STR("Cannot set filter component class's query method.");
+					BT_LIB_LOGE_APPEND_CAUSE(
+						"Cannot set filter component class's query method.");
 					status = BT_FUNC_STATUS_MEMORY_ERROR;
 					BT_OBJECT_PUT_REF_AND_RESET(flt_comp_class);
 					goto end;
@@ -969,7 +1022,8 @@ int bt_plugin_so_init(struct bt_plugin *plugin,
 					flt_comp_class,
 					cc_full_descr->methods.filter.input_port_connected);
 				if (ret) {
-					BT_LOGE_STR("Cannot set filter component class's \"input port connected\" method.");
+					BT_LIB_LOGE_APPEND_CAUSE(
+						"Cannot set filter component class's \"input port connected\" method.");
 					status = BT_FUNC_STATUS_MEMORY_ERROR;
 					BT_OBJECT_PUT_REF_AND_RESET(flt_comp_class);
 					goto end;
@@ -981,7 +1035,8 @@ int bt_plugin_so_init(struct bt_plugin *plugin,
 					flt_comp_class,
 					cc_full_descr->methods.filter.output_port_connected);
 				if (ret) {
-					BT_LOGE_STR("Cannot set filter component class's \"output port connected\" method.");
+					BT_LIB_LOGE_APPEND_CAUSE(
+						"Cannot set filter component class's \"output port connected\" method.");
 					status = BT_FUNC_STATUS_MEMORY_ERROR;
 					BT_OBJECT_PUT_REF_AND_RESET(flt_comp_class);
 					goto end;
@@ -993,7 +1048,8 @@ int bt_plugin_so_init(struct bt_plugin *plugin,
 					flt_comp_class,
 					cc_full_descr->methods.filter.msg_iter_init);
 				if (ret) {
-					BT_LOGE_STR("Cannot set filter component class's message iterator initialization method.");
+					BT_LIB_LOGE_APPEND_CAUSE(
+						"Cannot set filter component class's message iterator initialization method.");
 					status = BT_FUNC_STATUS_MEMORY_ERROR;
 					BT_OBJECT_PUT_REF_AND_RESET(flt_comp_class);
 					goto end;
@@ -1005,7 +1061,8 @@ int bt_plugin_so_init(struct bt_plugin *plugin,
 					flt_comp_class,
 					cc_full_descr->methods.filter.msg_iter_finalize);
 				if (ret) {
-					BT_LOGE_STR("Cannot set filter component class's message iterator finalization method.");
+					BT_LIB_LOGE_APPEND_CAUSE(
+						"Cannot set filter component class's message iterator finalization method.");
 					status = BT_FUNC_STATUS_MEMORY_ERROR;
 					BT_OBJECT_PUT_REF_AND_RESET(flt_comp_class);
 					goto end;
@@ -1017,7 +1074,8 @@ int bt_plugin_so_init(struct bt_plugin *plugin,
 					flt_comp_class,
 					cc_full_descr->methods.filter.msg_iter_seek_ns_from_origin);
 				if (ret) {
-					BT_LOGE_STR("Cannot set filter component class's message iterator \"seek nanoseconds from origin\" method.");
+					BT_LIB_LOGE_APPEND_CAUSE(
+						"Cannot set filter component class's message iterator \"seek nanoseconds from origin\" method.");
 					status = BT_FUNC_STATUS_MEMORY_ERROR;
 					BT_OBJECT_PUT_REF_AND_RESET(flt_comp_class);
 					goto end;
@@ -1029,7 +1087,8 @@ int bt_plugin_so_init(struct bt_plugin *plugin,
 					flt_comp_class,
 					cc_full_descr->methods.filter.msg_iter_seek_beginning);
 				if (ret) {
-					BT_LOGE_STR("Cannot set filter component class's message iterator \"seek beginning\" method.");
+					BT_LIB_LOGE_APPEND_CAUSE(
+						"Cannot set filter component class's message iterator \"seek beginning\" method.");
 					status = BT_FUNC_STATUS_MEMORY_ERROR;
 					BT_OBJECT_PUT_REF_AND_RESET(flt_comp_class);
 					goto end;
@@ -1041,7 +1100,8 @@ int bt_plugin_so_init(struct bt_plugin *plugin,
 					flt_comp_class,
 					cc_full_descr->methods.filter.msg_iter_can_seek_ns_from_origin);
 				if (ret) {
-					BT_LOGE_STR("Cannot set filter component class's message iterator \"can seek nanoseconds from origin\" method.");
+					BT_LIB_LOGE_APPEND_CAUSE(
+						"Cannot set filter component class's message iterator \"can seek nanoseconds from origin\" method.");
 					status = BT_FUNC_STATUS_MEMORY_ERROR;
 					BT_OBJECT_PUT_REF_AND_RESET(flt_comp_class);
 					goto end;
@@ -1053,7 +1113,8 @@ int bt_plugin_so_init(struct bt_plugin *plugin,
 					flt_comp_class,
 					cc_full_descr->methods.filter.msg_iter_can_seek_beginning);
 				if (ret) {
-					BT_LOGE_STR("Cannot set filter component class's message iterator \"can seek beginning\" method.");
+					BT_LIB_LOGE_APPEND_CAUSE(
+						"Cannot set filter component class's message iterator \"can seek beginning\" method.");
 					status = BT_FUNC_STATUS_MEMORY_ERROR;
 					BT_OBJECT_PUT_REF_AND_RESET(flt_comp_class);
 					goto end;
@@ -1067,7 +1128,8 @@ int bt_plugin_so_init(struct bt_plugin *plugin,
 					sink_comp_class,
 					cc_full_descr->methods.sink.init);
 				if (ret) {
-					BT_LOGE_STR("Cannot set sink component class's initialization method.");
+					BT_LIB_LOGE_APPEND_CAUSE(
+						"Cannot set sink component class's initialization method.");
 					status = BT_FUNC_STATUS_MEMORY_ERROR;
 					BT_OBJECT_PUT_REF_AND_RESET(sink_comp_class);
 					goto end;
@@ -1079,7 +1141,8 @@ int bt_plugin_so_init(struct bt_plugin *plugin,
 					sink_comp_class,
 					cc_full_descr->methods.sink.finalize);
 				if (ret) {
-					BT_LOGE_STR("Cannot set sink component class's finalization method.");
+					BT_LIB_LOGE_APPEND_CAUSE(
+						"Cannot set sink component class's finalization method.");
 					status = BT_FUNC_STATUS_MEMORY_ERROR;
 					BT_OBJECT_PUT_REF_AND_RESET(sink_comp_class);
 					goto end;
@@ -1091,7 +1154,8 @@ int bt_plugin_so_init(struct bt_plugin *plugin,
 					sink_comp_class,
 					cc_full_descr->methods.sink.query);
 				if (ret) {
-					BT_LOGE_STR("Cannot set sink component class's query method.");
+					BT_LIB_LOGE_APPEND_CAUSE(
+						"Cannot set sink component class's query method.");
 					status = BT_FUNC_STATUS_MEMORY_ERROR;
 					BT_OBJECT_PUT_REF_AND_RESET(sink_comp_class);
 					goto end;
@@ -1103,7 +1167,8 @@ int bt_plugin_so_init(struct bt_plugin *plugin,
 					sink_comp_class,
 					cc_full_descr->methods.sink.input_port_connected);
 				if (ret) {
-					BT_LOGE_STR("Cannot set sink component class's \"input port connected\" method.");
+					BT_LIB_LOGE_APPEND_CAUSE(
+						"Cannot set sink component class's \"input port connected\" method.");
 					status = BT_FUNC_STATUS_MEMORY_ERROR;
 					BT_OBJECT_PUT_REF_AND_RESET(sink_comp_class);
 					goto end;
@@ -1115,7 +1180,8 @@ int bt_plugin_so_init(struct bt_plugin *plugin,
 					sink_comp_class,
 					cc_full_descr->methods.sink.graph_is_configured);
 				if (ret) {
-					BT_LOGE_STR("Cannot set sink component class's \"graph is configured\" method.");
+					BT_LIB_LOGE_APPEND_CAUSE(
+						"Cannot set sink component class's \"graph is configured\" method.");
 					status = BT_FUNC_STATUS_MEMORY_ERROR;
 					BT_OBJECT_PUT_REF_AND_RESET(sink_comp_class);
 					goto end;
@@ -1139,7 +1205,8 @@ int bt_plugin_so_init(struct bt_plugin *plugin,
 			(void *) comp_class);
 		BT_OBJECT_PUT_REF_AND_RESET(comp_class);
 		if (status < 0) {
-			BT_LOGE("Cannot add component class to plugin.");
+			BT_LIB_LOGE_APPEND_CAUSE(
+				"Cannot add component class to plugin.");
 			goto end;
 		}
 	}
@@ -1164,7 +1231,8 @@ struct bt_plugin *bt_plugin_so_create_empty(
 	plugin->destroy_spec_data = bt_plugin_so_destroy_spec_data;
 	plugin->spec_data = g_new0(struct bt_plugin_so_spec_data, 1);
 	if (!plugin->spec_data) {
-		BT_LOGE_STR("Failed to allocate one SO plugin specific data structure.");
+		BT_LIB_LOGE_APPEND_CAUSE(
+			"Failed to allocate one SO plugin specific data structure.");
 		goto error;
 	}
 
@@ -1241,7 +1309,7 @@ int bt_plugin_so_create_all_from_sections(
 		cc_descriptors_count, cc_descr_attrs_count);
 	*plugin_set_out = bt_plugin_set_create();
 	if (!*plugin_set_out) {
-		BT_LOGE_STR("Cannot create empty plugin set.");
+		BT_LIB_LOGE_APPEND_CAUSE("Cannot create empty plugin set.");
 		status = BT_FUNC_STATUS_MEMORY_ERROR;
 		goto error;
 	}
@@ -1260,22 +1328,24 @@ int bt_plugin_so_create_all_from_sections(
 			descriptor->name, descriptor->major, descriptor->minor);
 
 		if (descriptor->major > __BT_PLUGIN_VERSION_MAJOR) {
-			BT_LOG_WRITE(fail_on_load_error ? BT_LOG_WARN :
-				BT_LOG_INFO, BT_LOG_TAG,
-				"Unknown ABI major version: abi-major=%d",
-					descriptor->major);
-
 			if (fail_on_load_error) {
+				BT_LIB_LOGW_APPEND_CAUSE(
+					"Unknown ABI major version: abi-major=%d",
+						descriptor->major);
 				status = BT_FUNC_STATUS_LOADING_ERROR;
 				goto error;
 			} else {
+				BT_LIB_LOGI(
+					"Unknown ABI major version: abi-major=%d",
+						descriptor->major);
 				continue;
 			}
 		}
 
 		plugin = bt_plugin_so_create_empty(shared_lib_handle);
 		if (!plugin) {
-			BT_LOGE_STR("Cannot create empty shared library handle.");
+			BT_LIB_LOGE_APPEND_CAUSE(
+				"Cannot create empty shared library handle.");
 			status = BT_FUNC_STATUS_MEMORY_ERROR;
 			goto error;
 		}
@@ -1299,7 +1369,8 @@ int bt_plugin_so_create_all_from_sections(
 			 * `fail_on_load_error`, so this is a "real"
 			 * error.
 			 */
-			BT_LOGW_STR("Cannot initialize SO plugin object from sections.");
+			BT_LIB_LOGW_APPEND_CAUSE(
+				"Cannot initialize SO plugin object from sections.");
 			BT_OBJECT_PUT_REF_AND_RESET(plugin);
 			goto error;
 		}
@@ -1418,7 +1489,8 @@ int bt_plugin_so_create_all_from_file(const char *path,
 	if (status != BT_FUNC_STATUS_OK) {
 		/* bt_plugin_so_shared_lib_handle_create() logs more details */
 		BT_ASSERT(!shared_lib_handle);
-		BT_LOGE_STR("Cannot create shared library handle.");
+		BT_LIB_LOGE_APPEND_CAUSE(
+			"Cannot create shared library handle.");
 		goto end;
 	}
 
@@ -1447,13 +1519,20 @@ int bt_plugin_so_create_all_from_file(const char *path,
 			(gpointer *) &get_end_section_plugin_descriptors)) {
 		descriptors_end = get_end_section_plugin_descriptors();
 	} else {
-		BT_LOG_WRITE(fail_on_load_error ? BT_LOG_WARN : BT_LOG_INFO,
-			BT_LOG_TAG,
-			"Cannot resolve plugin symbol: path=\"%s\", "
-			"symbol=\"%s\"", path,
-			"__bt_get_end_section_plugin_descriptors");
-		status = fail_on_load_error ? BT_FUNC_STATUS_LOADING_ERROR :
-			BT_FUNC_STATUS_NOT_FOUND;
+		if (fail_on_load_error) {
+			BT_LIB_LOGW_APPEND_CAUSE(
+				"Cannot resolve plugin symbol: path=\"%s\", "
+				"symbol=\"%s\"", path,
+				"__bt_get_end_section_plugin_descriptors");
+			status = BT_FUNC_STATUS_LOADING_ERROR;
+		} else {
+			BT_LIB_LOGI(
+				"Cannot resolve plugin symbol: path=\"%s\", "
+				"symbol=\"%s\"", path,
+				"__bt_get_end_section_plugin_descriptors");
+			status = BT_FUNC_STATUS_NOT_FOUND;
+		}
+
 		goto end;
 	}
 
@@ -1476,17 +1555,28 @@ int bt_plugin_so_create_all_from_file(const char *path,
 	}
 
 	if ((!!attrs_begin - !!attrs_end) != 0) {
-		BT_LOG_WRITE(fail_on_load_error ? BT_LOG_WARN : BT_LOG_INFO,
-			BT_LOG_TAG,
-			"Found section start or end symbol, but not both: "
-			"path=\"%s\", symbol-start=\"%s\", "
-			"symbol-end=\"%s\", symbol-start-addr=%p, "
-			"symbol-end-addr=%p",
-			path, "__bt_get_begin_section_plugin_descriptor_attributes",
-			"__bt_get_end_section_plugin_descriptor_attributes",
-			attrs_begin, attrs_end);
-		status = fail_on_load_error ? BT_FUNC_STATUS_LOADING_ERROR :
-			BT_FUNC_STATUS_NOT_FOUND;
+		if (fail_on_load_error) {
+			BT_LIB_LOGW_APPEND_CAUSE(
+				"Found section start or end symbol, but not both: "
+				"path=\"%s\", symbol-start=\"%s\", "
+				"symbol-end=\"%s\", symbol-start-addr=%p, "
+				"symbol-end-addr=%p",
+				path, "__bt_get_begin_section_plugin_descriptor_attributes",
+				"__bt_get_end_section_plugin_descriptor_attributes",
+				attrs_begin, attrs_end);
+			status = BT_FUNC_STATUS_LOADING_ERROR;
+		} else {
+			BT_LIB_LOGI(
+				"Found section start or end symbol, but not both: "
+				"path=\"%s\", symbol-start=\"%s\", "
+				"symbol-end=\"%s\", symbol-start-addr=%p, "
+				"symbol-end-addr=%p",
+				path, "__bt_get_begin_section_plugin_descriptor_attributes",
+				"__bt_get_end_section_plugin_descriptor_attributes",
+				attrs_begin, attrs_end);
+			status = BT_FUNC_STATUS_NOT_FOUND;
+		}
+
 		goto end;
 	}
 
@@ -1509,17 +1599,28 @@ int bt_plugin_so_create_all_from_file(const char *path,
 	}
 
 	if ((!!cc_descriptors_begin - !!cc_descriptors_end) != 0) {
-		BT_LOG_WRITE(fail_on_load_error ? BT_LOG_WARN : BT_LOG_INFO,
-			BT_LOG_TAG,
-			"Found section start or end symbol, but not both: "
-			"path=\"%s\", symbol-start=\"%s\", "
-			"symbol-end=\"%s\", symbol-start-addr=%p, "
-			"symbol-end-addr=%p",
-			path, "__bt_get_begin_section_component_class_descriptors",
-			"__bt_get_end_section_component_class_descriptors",
-			cc_descriptors_begin, cc_descriptors_end);
-		status = fail_on_load_error ? BT_FUNC_STATUS_LOADING_ERROR :
-			BT_FUNC_STATUS_NOT_FOUND;
+		if (fail_on_load_error) {
+			BT_LIB_LOGW_APPEND_CAUSE(
+				"Found section start or end symbol, but not both: "
+				"path=\"%s\", symbol-start=\"%s\", "
+				"symbol-end=\"%s\", symbol-start-addr=%p, "
+				"symbol-end-addr=%p",
+				path, "__bt_get_begin_section_component_class_descriptors",
+				"__bt_get_end_section_component_class_descriptors",
+				cc_descriptors_begin, cc_descriptors_end);
+			status = BT_FUNC_STATUS_LOADING_ERROR;
+		} else {
+			BT_LIB_LOGI(
+				"Found section start or end symbol, but not both: "
+				"path=\"%s\", symbol-start=\"%s\", "
+				"symbol-end=\"%s\", symbol-start-addr=%p, "
+				"symbol-end-addr=%p",
+				path, "__bt_get_begin_section_component_class_descriptors",
+				"__bt_get_end_section_component_class_descriptors",
+				cc_descriptors_begin, cc_descriptors_end);
+			status = BT_FUNC_STATUS_NOT_FOUND;
+		}
+
 		goto end;
 	}
 
@@ -1542,17 +1643,28 @@ int bt_plugin_so_create_all_from_file(const char *path,
 	}
 
 	if ((!!cc_descr_attrs_begin - !!cc_descr_attrs_end) != 0) {
-		BT_LOG_WRITE(fail_on_load_error ? BT_LOG_WARN : BT_LOG_INFO,
-			BT_LOG_TAG,
-			"Found section start or end symbol, but not both: "
-			"path=\"%s\", symbol-start=\"%s\", "
-			"symbol-end=\"%s\", symbol-start-addr=%p, "
-			"symbol-end-addr=%p",
-			path, "__bt_get_begin_section_component_class_descriptor_attributes",
-			"__bt_get_end_section_component_class_descriptor_attributes",
-			cc_descr_attrs_begin, cc_descr_attrs_end);
-		status = fail_on_load_error ? BT_FUNC_STATUS_LOADING_ERROR :
-			BT_FUNC_STATUS_NOT_FOUND;
+		if (fail_on_load_error) {
+			BT_LIB_LOGW_APPEND_CAUSE(
+				"Found section start or end symbol, but not both: "
+				"path=\"%s\", symbol-start=\"%s\", "
+				"symbol-end=\"%s\", symbol-start-addr=%p, "
+				"symbol-end-addr=%p",
+				path, "__bt_get_begin_section_component_class_descriptor_attributes",
+				"__bt_get_end_section_component_class_descriptor_attributes",
+				cc_descr_attrs_begin, cc_descr_attrs_end);
+			status = BT_FUNC_STATUS_LOADING_ERROR;
+		} else {
+			BT_LIB_LOGI(
+				"Found section start or end symbol, but not both: "
+				"path=\"%s\", symbol-start=\"%s\", "
+				"symbol-end=\"%s\", symbol-start-addr=%p, "
+				"symbol-end-addr=%p",
+				path, "__bt_get_begin_section_component_class_descriptor_attributes",
+				"__bt_get_end_section_component_class_descriptor_attributes",
+				cc_descr_attrs_begin, cc_descr_attrs_end);
+			status = BT_FUNC_STATUS_NOT_FOUND;
+		}
+
 		goto end;
 	}
 
