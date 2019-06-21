@@ -549,7 +549,7 @@ class _UserComponentType(type):
 
         return results_addr
 
-    def _query(cls, query_executor, obj, params):
+    def _query(cls, query_executor, obj, params, log_level):
         raise NotImplementedError
 
     def _component_class_ptr(self):
