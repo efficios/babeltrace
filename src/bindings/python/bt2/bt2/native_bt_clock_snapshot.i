@@ -22,19 +22,4 @@
  * THE SOFTWARE.
  */
 
-/* From clock-snapshot-const.h */
-
-typedef enum bt_clock_snapshot_status {
-	BT_CLOCK_SNAPSHOT_STATUS_OK = 0,
-	BT_CLOCK_SNAPSHOT_STATUS_OVERFLOW = -75,
-} bt_clock_snapshot_status;
-
-extern const bt_clock_class *bt_clock_snapshot_borrow_clock_class_const(
-		const bt_clock_snapshot *clock_snapshot);
-
-extern uint64_t bt_clock_snapshot_get_value(
-		const bt_clock_snapshot *clock_snapshot);
-
-extern bt_clock_snapshot_status bt_clock_snapshot_get_ns_from_origin(
-		const bt_clock_snapshot *clock_snapshot,
-		int64_t *OUT);
+%include <babeltrace2/trace-ir/clock-snapshot-const.h>

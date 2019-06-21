@@ -24,13 +24,13 @@
 
 /* Output argument typemap for connection output (always appends) */
 %typemap(in, numinputs=0)
-	(const bt_connection **BTOUTCONN)
+	(const bt_connection **)
 	(bt_connection *temp_conn = NULL) {
 	$1 = &temp_conn;
 }
 
 %typemap(argout)
-	(const bt_connection **BTOUTCONN) {
+	(const bt_connection **) {
 	if (*$1) {
 		/* SWIG_Python_AppendOutput() steals the created object */
 		$result = SWIG_Python_AppendOutput($result,
@@ -45,24 +45,24 @@
 
 /* Output argument typemap for component output (always appends) */
 %typemap(in, numinputs=0)
-	(const bt_component_source **OUT)
+	(const bt_component_source **)
 	(bt_component_source *temp_comp = NULL) {
 	$1 = &temp_comp;
 }
 
 %typemap(in, numinputs=0)
-	(const bt_component_filter **OUT)
+	(const bt_component_filter **)
 	(bt_component_filter *temp_comp = NULL) {
 	$1 = &temp_comp;
 }
 
 %typemap(in, numinputs=0)
-	(const bt_component_sink **OUT)
+	(const bt_component_sink **)
 	(bt_component_sink *temp_comp = NULL) {
 	$1 = &temp_comp;
 }
 
-%typemap(argout) (const bt_component_source **OUT) {
+%typemap(argout) (const bt_component_source **) {
 	if (*$1) {
 		/* SWIG_Python_AppendOutput() steals the created object */
 		$result = SWIG_Python_AppendOutput($result,
@@ -75,7 +75,7 @@
 	}
 }
 
-%typemap(argout) (const bt_component_filter **OUT) {
+%typemap(argout) (const bt_component_filter **) {
 	if (*$1) {
 		/* SWIG_Python_AppendOutput() steals the created object */
 		$result = SWIG_Python_AppendOutput($result,
@@ -88,7 +88,7 @@
 	}
 }
 
-%typemap(argout) (const bt_component_sink **OUT) {
+%typemap(argout) (const bt_component_sink **) {
 	if (*$1) {
 		/* SWIG_Python_AppendOutput() steals the created object */
 		$result = SWIG_Python_AppendOutput($result,
@@ -101,184 +101,8 @@
 	}
 }
 
-/* From graph-const.h */
-
-typedef enum bt_graph_status {
-	BT_GRAPH_STATUS_OK = 0,
-	BT_GRAPH_STATUS_END = 1,
-	BT_GRAPH_STATUS_AGAIN = 11,
-	BT_GRAPH_STATUS_CANCELED = 125,
-	BT_GRAPH_STATUS_ERROR = -1,
-	BT_GRAPH_STATUS_NOMEM = -12,
-} bt_graph_status;
-
-extern bt_bool bt_graph_is_canceled(const bt_graph *graph);
-
-extern void bt_graph_get_ref(const bt_graph *graph);
-
-extern void bt_graph_put_ref(const bt_graph *graph);
-
-/* From graph.h */
-
-typedef enum bt_graph_listener_status {
-	BT_GRAPH_LISTENER_STATUS_OK = 0,
-	BT_GRAPH_LISTENER_STATUS_ERROR = -1,
-	BT_GRAPH_LISTENER_STATUS_NOMEM = -12,
-} bt_graph_listener_status;
-
-
-typedef bt_graph_listener_status
-(*bt_graph_filter_component_input_port_added_listener_func)(
-		const bt_component_filter *component,
-		const bt_port_input *port, void *data);
-
-typedef bt_graph_listener_status
-(*bt_graph_sink_component_input_port_added_listener_func)(
-		const bt_component_sink *component,
-		const bt_port_input *port, void *data);
-
-typedef bt_graph_listener_status
-(*bt_graph_source_component_output_port_added_listener_func)(
-		const bt_component_source *component,
-		const bt_port_output *port, void *data);
-
-typedef bt_graph_listener_status
-(*bt_graph_filter_component_output_port_added_listener_func)(
-		const bt_component_filter *component,
-		const bt_port_output *port, void *data);
-
-typedef bt_graph_listener_status
-(*bt_graph_source_filter_component_ports_connected_listener_func)(
-		const bt_component_source *source_component,
-		const bt_component_filter *filter_component,
-		const bt_port_output *upstream_port,
-		const bt_port_input *downstream_port, void *data);
-
-typedef bt_graph_listener_status
-(*bt_graph_source_sink_component_ports_connected_listener_func)(
-		const bt_component_source *source_component,
-		const bt_component_sink *sink_component,
-		const bt_port_output *upstream_port,
-		const bt_port_input *downstream_port, void *data);
-
-typedef bt_graph_listener_status
-(*bt_graph_filter_filter_component_ports_connected_listener_func)(
-		const bt_component_filter *filter_component_upstream,
-		const bt_component_filter *filter_component_downstream,
-		const bt_port_output *upstream_port,
-		const bt_port_input *downstream_port,
-		void *data);
-
-typedef bt_graph_listener_status
-(*bt_graph_filter_sink_component_ports_connected_listener_func)(
-		const bt_component_filter *filter_component,
-		const bt_component_sink *sink_component,
-		const bt_port_output *upstream_port,
-		const bt_port_input *downstream_port, void *data);
-
-typedef void (* bt_graph_listener_removed_func)(void *data);
-
-extern bt_graph *bt_graph_create(void);
-
-extern bt_graph_status bt_graph_add_source_component(bt_graph *graph,
-		const bt_component_class_source *component_class,
-		const char *name, const bt_value *params,
-		bt_logging_level log_level, const bt_component_source **OUT);
-
-extern bt_graph_status bt_graph_add_source_component_with_init_method_data(
-		bt_graph *graph,
-		const bt_component_class_source *component_class,
-		const char *name, const bt_value *params,
-		void *init_method_data, bt_logging_level log_level,
-		const bt_component_source **OUT);
-
-extern bt_graph_status bt_graph_add_filter_component(bt_graph *graph,
-		const bt_component_class_filter *component_class,
-		const char *name, const bt_value *params,
-		bt_logging_level log_level,
-		const bt_component_filter **OUT);
-
-extern bt_graph_status bt_graph_add_filter_component_with_init_method_data(
-		bt_graph *graph,
-		const bt_component_class_filter *component_class,
-		const char *name, const bt_value *params,
-		void *init_method_data, bt_logging_level log_level,
-		const bt_component_filter **OUT);
-
-extern bt_graph_status bt_graph_add_sink_component(
-		bt_graph *graph, const bt_component_class_sink *component_class,
-		const char *name, const bt_value *params,
-		bt_logging_level log_level,
-		const bt_component_sink **OUT);
-
-extern bt_graph_status bt_graph_add_sink_component_with_init_method_data(
-		bt_graph *graph, const bt_component_class_sink *component_class,
-		const char *name, const bt_value *params,
-		void *init_method_data, bt_logging_level log_level,
-		const bt_component_sink **OUT);
-
-extern bt_graph_status bt_graph_connect_ports(bt_graph *graph,
-		const bt_port_output *upstream,
-		const bt_port_input *downstream,
-		const bt_connection **BTOUTCONN);
-
-extern bt_graph_status bt_graph_run(bt_graph *graph);
-
-extern bt_graph_status bt_graph_consume(bt_graph *graph);
-
-extern bt_graph_status bt_graph_add_filter_component_input_port_added_listener(
-		bt_graph *graph,
-		bt_graph_filter_component_input_port_added_listener_func listener,
-		bt_graph_listener_removed_func listener_removed, void *data,
-		int *listener_id);
-
-extern bt_graph_status bt_graph_add_sink_component_input_port_added_listener(
-		bt_graph *graph,
-		bt_graph_sink_component_input_port_added_listener_func listener,
-		bt_graph_listener_removed_func listener_removed, void *data,
-		int *listener_id);
-
-extern bt_graph_status bt_graph_add_source_component_output_port_added_listener(
-		bt_graph *graph,
-		bt_graph_source_component_output_port_added_listener_func listener,
-		bt_graph_listener_removed_func listener_removed, void *data,
-		int *listener_id);
-
-extern bt_graph_status bt_graph_add_filter_component_output_port_added_listener(
-		bt_graph *graph,
-		bt_graph_filter_component_output_port_added_listener_func listener,
-		bt_graph_listener_removed_func listener_removed, void *data,
-		int *listener_id);
-
-extern bt_graph_status
-bt_graph_add_source_filter_component_ports_connected_listener(
-		bt_graph *graph,
-		bt_graph_source_filter_component_ports_connected_listener_func listener,
-		bt_graph_listener_removed_func listener_removed, void *data,
-		int *listener_id);
-
-extern bt_graph_status
-bt_graph_add_filter_filter_component_ports_connected_listener(
-		bt_graph *graph,
-		bt_graph_filter_filter_component_ports_connected_listener_func listener,
-		bt_graph_listener_removed_func listener_removed, void *data,
-		int *listener_id);
-
-extern bt_graph_status
-bt_graph_add_source_sink_component_ports_connected_listener(
-		bt_graph *graph,
-		bt_graph_source_sink_component_ports_connected_listener_func listener,
-		bt_graph_listener_removed_func listener_removed, void *data,
-		int *listener_id);
-
-extern bt_graph_status
-bt_graph_add_filter_sink_component_ports_connected_listener(
-		bt_graph *graph,
-		bt_graph_filter_sink_component_ports_connected_listener_func listener,
-		bt_graph_listener_removed_func listener_removed, void *data,
-		int *listener_id);
-
-extern bt_graph_status bt_graph_cancel(bt_graph *graph);
+%include <babeltrace2/graph/graph-const.h>
+%include <babeltrace2/graph/graph.h>
 
 /* Helper functions for Python */
 

@@ -27,90 +27,23 @@
  * The pointer saved as the port's user data is directly the PyObject *.
  *
  * As per the CPython calling convention, we need to return a new reference to
- * the returned object, which will be transferred to the caller.  The following
- * typedef allows us to apply the typemap.
+ * the returned object, which will be transferred to the caller.
  */
-%{
-typedef void *PY_SELF_PORT_USER_DATA;
-%}
 
-%typemap(out) PY_SELF_PORT_USER_DATA {
+%typemap(out) void * {
 	Py_INCREF($1);
 	$result = $1;
 }
 
-/* From port-const.h */
+%include <babeltrace2/graph/port-const.h>
+%include <babeltrace2/graph/port-output-const.h>
+%include <babeltrace2/graph/port-input-const.h>
+%include <babeltrace2/graph/self-component-port.h>
+%include <babeltrace2/graph/self-component-port-output.h>
+%include <babeltrace2/graph/self-component-port-input.h>
 
-typedef enum bt_port_type {
-	BT_PORT_TYPE_INPUT = 0,
-	BT_PORT_TYPE_OUTPUT = 1,
-} bt_port_type;
-
-extern const char *bt_port_get_name(const bt_port *port);
-
-extern bt_port_type bt_port_get_type(const bt_port *port);
-
-extern const bt_connection *bt_port_borrow_connection_const(
-		const bt_port *port);
-
-extern const bt_component *bt_port_borrow_component_const(
-		const bt_port *port);
-
-extern bt_bool bt_port_is_connected(const bt_port *port);
-
-bt_bool bt_port_is_input(const bt_port *port);
-
-bt_bool bt_port_is_output(const bt_port *port);
-
-extern void bt_port_get_ref(const bt_port *port);
-
-extern void bt_port_put_ref(const bt_port *port);
-
-/* From port-output-const.h */
-
-const bt_port *bt_port_output_as_port_const(const bt_port_output *port_output);
-
-extern void bt_port_output_get_ref(const bt_port_output *port_output);
-
-extern void bt_port_output_put_ref(const bt_port_output *port_output);
-
-/* From port-input-const.h */
-
-const bt_port *bt_port_input_as_port_const(const bt_port_input *port_input);
-
-extern void bt_port_input_get_ref(const bt_port_input *port_input);
-
-extern void bt_port_input_put_ref(const bt_port_input *port_input);
-
-/* From self-component-port.h */
-
-typedef enum bt_self_component_port_status {
-	BT_SELF_PORT_STATUS_OK = 0,
-} bt_self_component_port_status;
-
-const bt_port *bt_self_component_port_as_port(
-		bt_self_component_port *self_port);
-
-extern bt_self_component *bt_self_component_port_borrow_component(
-		bt_self_component_port *self_port);
-
-extern PY_SELF_PORT_USER_DATA bt_self_component_port_get_data(
-		const bt_self_component_port *self_port);
-
-/* From self-component-port-output.h */
-
-bt_self_component_port *
-bt_self_component_port_output_as_self_component_port(
-		bt_self_component_port_output *self_component_port);
-
-const bt_port_output *bt_self_component_port_output_as_port_output(
-		bt_self_component_port_output *self_component_port);
-
-/* From self-component-port-input.h */
-
-bt_self_component_port *
-bt_self_component_port_input_as_self_component_port(
-		bt_self_component_port_input *self_component_port);
-
-const bt_port_input *bt_self_component_port_input_as_port_input(
-		const bt_self_component_port_input *self_component_port);
+/*
+ * Clear this typemap, since it is a bit broad and could apply to something we
+ * don't want.
+ */
+%clear void *;

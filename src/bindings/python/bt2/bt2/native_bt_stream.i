@@ -22,39 +22,5 @@
  * THE SOFTWARE.
  */
 
-/* From stream-const.h */
-
-typedef enum bt_stream_status {
-	BT_STREAM_STATUS_OK = 0,
-	BT_STREAM_STATUS_NOMEM = -12,
-} bt_stream_status;
-
-extern const bt_stream_class *bt_stream_borrow_class_const(
-		const bt_stream *stream);
-
-extern const bt_trace *bt_stream_borrow_trace_const(
-		const bt_stream *stream);
-
-extern const char *bt_stream_get_name(const bt_stream *stream);
-
-extern uint64_t bt_stream_get_id(const bt_stream *stream);
-
-extern void bt_stream_get_ref(const bt_stream *stream);
-
-extern void bt_stream_put_ref(const bt_stream *stream);
-
-/* From stream.h */
-
-extern bt_stream *bt_stream_create(bt_stream_class *stream_class,
-		bt_trace *trace);
-
-extern bt_stream *bt_stream_create_with_id(
-		bt_stream_class *stream_class,
-		bt_trace *trace, uint64_t id);
-
-extern bt_trace *bt_stream_borrow_trace(bt_stream *stream);
-
-extern bt_stream_class *bt_stream_borrow_class(bt_stream *stream);
-
-extern bt_stream_status bt_stream_set_name(bt_stream *stream,
-		const char *name);
+%include <babeltrace2/trace-ir/stream-const.h>
+%include <babeltrace2/trace-ir/stream.h>

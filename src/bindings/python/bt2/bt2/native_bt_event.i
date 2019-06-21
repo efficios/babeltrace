@@ -22,43 +22,5 @@
  * THE SOFTWARE.
  */
 
-/* From event-const.h */
-
-typedef enum bt_event_status {
-	BT_EVENT_STATUS_OK = 0,
-	BT_EVENT_STATUS_NOMEM = -12,
-} bt_event_status;
-
-extern const bt_event_class *bt_event_borrow_class_const(
-		const bt_event *event);
-
-extern const bt_packet *bt_event_borrow_packet_const(
-		const bt_event *event);
-
-extern const bt_stream *bt_event_borrow_stream_const(
-		const bt_event *event);
-
-extern const bt_field *bt_event_borrow_common_context_field_const(
-		const bt_event *event);
-
-extern const bt_field *bt_event_borrow_specific_context_field_const(
-		const bt_event *event);
-
-extern const bt_field *bt_event_borrow_payload_field_const(
-		const bt_event *event);
-
-/* From event.h */
-
-extern bt_event_class *bt_event_borrow_class(bt_event *event);
-
-extern bt_packet *bt_event_borrow_packet(bt_event *event);
-
-extern bt_stream *bt_event_borrow_stream(bt_event *event);
-
-extern bt_field *
-bt_event_borrow_common_context_field(bt_event *event);
-
-extern bt_field *
-bt_event_borrow_specific_context_field(bt_event *event);
-
-extern bt_field *bt_event_borrow_payload_field(bt_event *event);
+%include <babeltrace2/trace-ir/event-const.h>
+%include <babeltrace2/trace-ir/event.h>
