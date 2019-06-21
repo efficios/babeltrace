@@ -23,18 +23,33 @@
 from tap import TAPTestRunner
 import unittest
 import sys
+import argparse
 
 
 if __name__ == '__main__':
+    argparser = argparse.ArgumentParser()
+    argparser.add_argument('-f', '--failfast',
+                           help='Stop on first fail or error',
+                           action='store_true')
+    argparser.add_argument('start_dir',
+                           help='Base directory where to search for tests',
+                           type=str)
+    argparser.add_argument('pattern',
+                           help='Glob-style pattern of tests to run',
+                           type=str,
+                           nargs='?',
+                           default='test*.py')
+
+    args = argparser.parse_args()
+
     loader = unittest.TestLoader()
 
-    if len(sys.argv) >= 3:
-        pattern = sys.argv[2]
-    else:
-        pattern = 'test*.py'
+    start_dir = args.start_dir
+    pattern = args.pattern
+    failfast = args.failfast
 
-    tests = loader.discover(sys.argv[1], pattern)
-    runner = TAPTestRunner()
+    tests = loader.discover(start_dir, pattern)
+    runner = TAPTestRunner(failfast=failfast)
     runner.set_stream(True)
     runner.set_format('{method_name}')
     sys.exit(0 if runner.run(tests).wasSuccessful() else 1)
