@@ -1,0 +1,65 @@
+Trace class:
+  Stream class (ID 0):
+    Supports packets: Yes
+    Packets have beginning default clock snapshot: Yes
+    Packets have end default clock snapshot: Yes
+    Supports discarded events: Yes
+    Discarded events have default clock snapshots: Yes
+    Supports discarded packets: No
+    Default clock class:
+      Name: default
+      Frequency (Hz): 1,000,000,000
+      Precision (cycles): 0
+      Offset (s): 1,434,072,888
+      Offset (cycles): 0
+      Origin is Unix epoch: No
+    Event class `simple_uint32` (ID 0):
+      Log level: Critical
+      Payload field class: Structure (1 member):
+        value: Unsigned integer (32-bit, Base 10)
+
+[Unknown]
+{Trace 0, Stream class ID 0, Stream ID 0}
+Stream beginning:
+  Trace:
+    UUID: 437748de-9435-11e9-8353-5254007c6857
+    Environment (6 entries):
+      barectf_gen_date: 2019-06-21T11:00:09.758481
+      domain: bare
+      tracer_major: 2
+      tracer_minor: 3
+      tracer_name: barectf
+      tracer_patch: 0
+    Stream (ID 0, Class ID 0)
+
+[1,048,932,916,574,076 cycles, 1,435,121,820,916,574,076 ns from origin]
+{Trace 0, Stream class ID 0, Stream ID 0}
+Packet beginning:
+
+[1,048,932,916,580,091 cycles, 1,435,121,820,916,580,091 ns from origin]
+{Trace 0, Stream class ID 0, Stream ID 0}
+Event `simple_uint32` (Class ID 0):
+  Payload:
+    value: 0
+
+[1,048,932,916,584,407 cycles, 1,435,121,820,916,584,407 ns from origin]
+{Trace 0, Stream class ID 0, Stream ID 0}
+Packet end
+
+[1,048,932,916,605,259 cycles, 1,435,121,820,916,605,259 ns from origin]
+{Trace 0, Stream class ID 0, Stream ID 0}
+Packet beginning:
+
+[1,048,932,916,605,259 cycles, 1,435,121,820,916,605,259 ns from origin]
+{Trace 0, Stream class ID 0, Stream ID 0}
+Event `simple_uint32` (Class ID 0):
+  Payload:
+    value: 1500
+
+[1,048,932,916,609,657 cycles, 1,435,121,820,916,609,657 ns from origin]
+{Trace 0, Stream class ID 0, Stream ID 0}
+Packet end
+
+[Unknown]
+{Trace 0, Stream class ID 0, Stream ID 0}
+Stream end
