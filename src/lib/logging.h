@@ -57,12 +57,44 @@ int bt_lib_log_level;
 /*
  * Log statement, specialized for the Babeltrace library.
  *
- * Use one of the BT_LIB_LOGF*() macros above instead of calling this
+ * This function does NOT check that logging is enabled for level `lvl`:
+ * you must check it manually with BT_LOG_ON().
+ *
+ * Use one of the BT_LIB_LOG*() macros above instead of calling this
  * function directly.
  */
-
 void bt_lib_log(const char *func, const char *file, unsigned line,
 		int lvl, const char *tag, const char *fmt, ...);
+
+#define BT_LIB_LOG_AND_APPEND(_lvl, _fmt, ...)				\
+	do {								\
+		bt_lib_maybe_log_and_append_cause(			\
+			_BT_LOG_SRCLOC_FUNCTION, __FILE__,		\
+			__LINE__, _lvl, _BT_LOG_TAG,			\
+			(_fmt), ##__VA_ARGS__);				\
+	} while (0)
+
+/* See `CONTRIBUTING.adoc` for usage */
+#define BT_LIB_LOGE_APPEND_CAUSE(_fmt, ...)				\
+	BT_LIB_LOG_AND_APPEND(BT_LOG_ERROR, _fmt, ##__VA_ARGS__)
+#define BT_LIB_LOGW_APPEND_CAUSE(_fmt, ...)				\
+	BT_LIB_LOG_AND_APPEND(BT_LOG_WARN, _fmt, ##__VA_ARGS__)
+
+/*
+ * Like bt_lib_log(), but also appends a cause to the current thread's
+ * error object.
+ *
+ * Note that, unlike bt_lib_log(), this function does check that logging
+ * is enabled for level `lvl` before logging. This is to ensure that,
+ * even though logging is disabled, the function still appends an error
+ * cause, as the error reporting system does not rely on logging.
+ *
+ * Use one of the BT_LIB_LOG*_APPEND_CAUSE() macros above instead of
+ * calling this function directly.
+ */
+void bt_lib_maybe_log_and_append_cause(const char *func, const char *file,
+		unsigned line, int lvl, const char *tag,
+		const char *fmt, ...);
 
 #define BT_LIB_LOG_SUPPORTED
 
