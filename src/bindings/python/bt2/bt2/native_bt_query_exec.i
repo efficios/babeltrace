@@ -22,41 +22,5 @@
  * THE SOFTWARE.
  */
 
-/* From query-executor-const.h */
-
-typedef enum bt_query_executor_status {
-	BT_QUERY_EXECUTOR_STATUS_OK = 0,
-	BT_QUERY_EXECUTOR_STATUS_AGAIN = 11,
-	BT_QUERY_EXECUTOR_STATUS_UNSUPPORTED = 95,
-	BT_QUERY_EXECUTOR_STATUS_CANCELED = 125,
-	BT_QUERY_EXECUTOR_STATUS_ERROR = -1,
-	BT_QUERY_EXECUTOR_STATUS_NOMEM = -12,
-	BT_QUERY_EXECUTOR_STATUS_INVALID_OBJECT = -23,
-	BT_QUERY_EXECUTOR_STATUS_INVALID_PARAMS = -24,
-} bt_query_executor_status;
-
-extern
-bt_bool bt_query_executor_is_canceled(
-		const bt_query_executor *query_executor);
-
-extern void bt_query_executor_get_ref(
-		const bt_query_executor *query_executor);
-
-extern void bt_query_executor_put_ref(
-		const bt_query_executor *query_executor);
-
-/* From query-executor.h */
-
-extern
-bt_query_executor *bt_query_executor_create(void);
-
-extern
-bt_query_executor_status bt_query_executor_query(
-		bt_query_executor *query_executor,
-		const bt_component_class *component_class,
-		const char *object, const bt_value *params,
-		bt_logging_level logging_level, const bt_value **OUT);
-
-extern
-bt_query_executor_status bt_query_executor_cancel(
-		bt_query_executor *query_executor);
+%include <babeltrace2/graph/query-executor-const.h>
+%include <babeltrace2/graph/query-executor.h>

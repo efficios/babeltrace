@@ -61,11 +61,11 @@ typedef int bt_bool;
  * functions on which we apply this typemap don't guarantee that the value of
  * `temp_value` will be unchanged or valid.
  */
-%typemap(in, numinputs=0) (const char **OUT) (char *temp_value = (void *) 1) {
+%typemap(in, numinputs=0) (const char **) (char *temp_value = (void *) 1) {
 	$1 = &temp_value;
 }
 
-%typemap(argout) (const char **OUT) {
+%typemap(argout) (const char **) {
 	if (*$1) {
 		/* SWIG_Python_AppendOutput() steals the created object */
 		$result = SWIG_Python_AppendOutput($result, SWIG_Python_str_FromChar(*$1));
@@ -77,11 +77,11 @@ typedef int bt_bool;
 }
 
 /* Output argument typemap for value output (always appends) */
-%typemap(in, numinputs=0) (bt_value **OUT) (struct bt_value *temp_value = NULL) {
+%typemap(in, numinputs=0) (bt_value **) (struct bt_value *temp_value = NULL) {
 	$1 = &temp_value;
 }
 
-%typemap(argout) (bt_value **OUT) {
+%typemap(argout) (bt_value **) {
 	if (*$1) {
 		/* SWIG_Python_AppendOutput() steals the created object */
 		$result = SWIG_Python_AppendOutput($result,
@@ -95,30 +95,30 @@ typedef int bt_bool;
 }
 
 /* Output argument typemap for initialized uint64_t output parameter (always appends) */
-%typemap(in, numinputs=0) (uint64_t *OUT) (uint64_t temp) {
+%typemap(in, numinputs=0) (uint64_t *) (uint64_t temp) {
 	$1 = &temp;
 }
 
-%typemap(argout) uint64_t *OUT {
+%typemap(argout) uint64_t * {
 	$result = SWIG_Python_AppendOutput(resultobj,
 			SWIG_From_unsigned_SS_long_SS_long((*$1)));
 }
 
 /* Output argument typemap for initialized int64_t output parameter (always appends) */
-%typemap(in, numinputs=0) (int64_t *OUT) (int64_t temp) {
+%typemap(in, numinputs=0) (int64_t *) (int64_t temp) {
 	$1 = &temp;
 }
 
-%typemap(argout) (int64_t *OUT) {
+%typemap(argout) (int64_t *) {
 	$result = SWIG_Python_AppendOutput(resultobj, SWIG_From_long_SS_long((*$1)));
 }
 
 /* Output argument typemap for initialized unsigned int output parameter (always appends) */
-%typemap(in, numinputs=0) (unsigned int *OUT) (unsigned int temp) {
+%typemap(in, numinputs=0) (unsigned int *) (unsigned int temp) {
 	$1 = &temp;
 }
 
-%typemap(argout) (unsigned int *OUT) {
+%typemap(argout) (unsigned int *) {
 	$result = SWIG_Python_AppendOutput(resultobj,
 			SWIG_From_unsigned_SS_long_SS_long((uint64_t) (*$1)));
 }
@@ -179,12 +179,7 @@ typedef int bt_bool;
 	$result = $1;
 }
 
-/* From property.h */
-
-typedef enum bt_property_availability {
-	BT_PROPERTY_AVAILABILITY_AVAILABLE,
-	BT_PROPERTY_AVAILABILITY_NOT_AVAILABLE,
-} bt_property_availability;
+%include <babeltrace2/property.h>
 
 /* Per-module interface files */
 %include "native_bt_clock_class.i"

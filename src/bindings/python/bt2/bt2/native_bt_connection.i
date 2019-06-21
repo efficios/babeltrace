@@ -22,14 +22,4 @@
  * THE SOFTWARE.
  */
 
-/* From connection-const.h */
-
-extern const bt_port_input *bt_connection_borrow_downstream_port_const(
-		const bt_connection *connection);
-
-extern const bt_port_output *bt_connection_borrow_upstream_port_const(
-		const bt_connection *connection);
-
-extern void bt_connection_get_ref(const bt_connection *connection);
-
-extern void bt_connection_put_ref(const bt_connection *connection);
+%include <babeltrace2/graph/connection-const.h>
