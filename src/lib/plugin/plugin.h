@@ -175,7 +175,7 @@ struct bt_plugin *bt_plugin_create_empty(enum bt_plugin_type type)
 
 	plugin = g_new0(struct bt_plugin, 1);
 	if (!plugin) {
-		BT_LOGE_STR("Failed to allocate one plugin.");
+		BT_LIB_LOGE_APPEND_CAUSE("Failed to allocate one plugin.");
 		goto error;
 	}
 
@@ -187,7 +187,7 @@ struct bt_plugin *bt_plugin_create_empty(enum bt_plugin_type type)
 		g_ptr_array_new_with_free_func(
 			(GDestroyNotify) bt_object_put_ref);
 	if (!plugin->src_comp_classes) {
-		BT_LOGE_STR("Failed to allocate a GPtrArray.");
+		BT_LIB_LOGE_APPEND_CAUSE("Failed to allocate a GPtrArray.");
 		goto error;
 	}
 
@@ -195,7 +195,7 @@ struct bt_plugin *bt_plugin_create_empty(enum bt_plugin_type type)
 		g_ptr_array_new_with_free_func(
 			(GDestroyNotify) bt_object_put_ref);
 	if (!plugin->flt_comp_classes) {
-		BT_LOGE_STR("Failed to allocate a GPtrArray.");
+		BT_LIB_LOGE_APPEND_CAUSE("Failed to allocate a GPtrArray.");
 		goto error;
 	}
 
@@ -203,44 +203,44 @@ struct bt_plugin *bt_plugin_create_empty(enum bt_plugin_type type)
 		g_ptr_array_new_with_free_func(
 			(GDestroyNotify) bt_object_put_ref);
 	if (!plugin->sink_comp_classes) {
-		BT_LOGE_STR("Failed to allocate a GPtrArray.");
+		BT_LIB_LOGE_APPEND_CAUSE("Failed to allocate a GPtrArray.");
 		goto error;
 	}
 
 	/* Create empty info */
 	plugin->info.name = g_string_new(NULL);
 	if (!plugin->info.name) {
-		BT_LOGE_STR("Failed to allocate a GString.");
+		BT_LIB_LOGE_APPEND_CAUSE("Failed to allocate a GString.");
 		goto error;
 	}
 
 	plugin->info.path = g_string_new(NULL);
 	if (!plugin->info.path) {
-		BT_LOGE_STR("Failed to allocate a GString.");
+		BT_LIB_LOGE_APPEND_CAUSE("Failed to allocate a GString.");
 		goto error;
 	}
 
 	plugin->info.description = g_string_new(NULL);
 	if (!plugin->info.description) {
-		BT_LOGE_STR("Failed to allocate a GString.");
+		BT_LIB_LOGE_APPEND_CAUSE("Failed to allocate a GString.");
 		goto error;
 	}
 
 	plugin->info.author = g_string_new(NULL);
 	if (!plugin->info.author) {
-		BT_LOGE_STR("Failed to allocate a GString.");
+		BT_LIB_LOGE_APPEND_CAUSE("Failed to allocate a GString.");
 		goto error;
 	}
 
 	plugin->info.license = g_string_new(NULL);
 	if (!plugin->info.license) {
-		BT_LOGE_STR("Failed to allocate a GString.");
+		BT_LIB_LOGE_APPEND_CAUSE("Failed to allocate a GString.");
 		goto error;
 	}
 
 	plugin->info.version.extra = g_string_new(NULL);
 	if (!plugin->info.version.extra) {
-		BT_LOGE_STR("Failed to allocate a GString.");
+		BT_LIB_LOGE_APPEND_CAUSE("Failed to allocate a GString.");
 		goto error;
 	}
 
@@ -405,7 +405,7 @@ struct bt_plugin_set *bt_plugin_set_create(void)
 	plugin_set->plugins = g_ptr_array_new_with_free_func(
 		(GDestroyNotify) bt_object_put_ref);
 	if (!plugin_set->plugins) {
-		BT_LOGE_STR("Failed to allocate a GPtrArray.");
+		BT_LIB_LOGE_APPEND_CAUSE("Failed to allocate a GPtrArray.");
 		BT_OBJECT_PUT_REF_AND_RESET(plugin_set);
 		goto end;
 	}

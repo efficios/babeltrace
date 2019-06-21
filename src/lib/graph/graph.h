@@ -24,6 +24,11 @@
  * SOFTWARE.
  */
 
+/* Protection: this file uses BT_LIB_LOG*() macros directly */
+#ifndef BT_LIB_LOG_SUPPORTED
+# error Please include "lib/logging.h" before including this file.
+#endif
+
 #include <babeltrace2/graph/graph.h>
 #include <babeltrace2/graph/message-const.h>
 #include "common/macros.h"
@@ -246,13 +251,18 @@ int bt_graph_configure(struct bt_graph *graph)
 				comp_status == BT_FUNC_STATUS_MEMORY_ERROR,
 				"Unexpected returned status: status=%s",
 				bt_common_func_status_string(comp_status));
-
 			if (comp_status != BT_FUNC_STATUS_OK) {
-				status = BT_FUNC_STATUS_ERROR;
-				BT_LIB_LOGW("User's \"graph is configured\" method failed: "
-					"%![comp-]+c, status=%s",
-					comp, bt_common_func_status_string(
-						comp_status));
+				comp_status = BT_FUNC_STATUS_ERROR;
+				if (comp_status < 0) {
+					BT_LIB_LOGW_APPEND_CAUSE(
+						"Component's \"graph is configured\" method failed: "
+						"%![comp-]+c, status=%s",
+						comp,
+						bt_common_func_status_string(
+							comp_status));
+				}
+
+				status = comp_status;
 				goto end;
 			}
 		}

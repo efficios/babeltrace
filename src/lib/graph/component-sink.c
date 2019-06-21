@@ -49,7 +49,8 @@ struct bt_component *bt_component_sink_create(
 
 	sink = g_new0(struct bt_component_sink, 1);
 	if (!sink) {
-		BT_LOGE_STR("Failed to allocate one sink component.");
+		BT_LIB_LOGE_APPEND_CAUSE(
+			"Failed to allocate one sink component.");
 		goto end;
 	}
 

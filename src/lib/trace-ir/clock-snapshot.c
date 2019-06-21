@@ -55,7 +55,8 @@ struct bt_clock_snapshot *bt_clock_snapshot_new(
 		clock_class);
 	ret = g_new0(struct bt_clock_snapshot, 1);
 	if (!ret) {
-		BT_LOGE_STR("Failed to allocate one clock snapshot.");
+		BT_LIB_LOGE_APPEND_CAUSE(
+			"Failed to allocate one clock snapshot.");
 		goto end;
 	}
 
@@ -78,7 +79,8 @@ struct bt_clock_snapshot *bt_clock_snapshot_create(
 	BT_ASSERT(clock_class);
 	clock_snapshot = bt_object_pool_create_object(&clock_class->cs_pool);
 	if (!clock_snapshot) {
-		BT_LIB_LOGE("Cannot allocate one clock snapshot from clock class's clock snapshot pool: "
+		BT_LIB_LOGE_APPEND_CAUSE(
+			"Cannot allocate one clock snapshot from clock class's clock snapshot pool: "
 			"%![cc-]+K", clock_class);
 		goto error;
 	}

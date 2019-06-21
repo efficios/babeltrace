@@ -53,7 +53,8 @@ enum bt_component_class_init_method_status colander_init(
 	colander_data = g_new0(
 		struct bt_component_class_sink_colander_priv_data, 1);
 	if (!colander_data) {
-		BT_LOGE_STR("Failed to allocate colander data.");
+		BT_LIB_LOGE_APPEND_CAUSE(
+			"Failed to allocate colander sink data.");
 		status = BT_FUNC_STATUS_MEMORY_ERROR;
 		goto end;
 	}
@@ -63,7 +64,8 @@ enum bt_component_class_init_method_status colander_init(
 	status = bt_self_component_sink_add_input_port(self_comp, "in",
 		NULL, NULL);
 	if (status != BT_FUNC_STATUS_OK) {
-		BT_LOGE_STR("Cannot add input port.");
+		BT_LIB_LOGE_APPEND_CAUSE(
+			"Cannot add input port to colander sink.");
 		goto end;
 	}
 
@@ -111,7 +113,7 @@ colander_graph_is_configured(
 		bt_self_component_port_input_message_iterator_create(
 			self_port);
 	if (!colander_data->msg_iter) {
-		BT_LIB_LOGE("Cannot create message iterator on "
+		BT_LIB_LOGE_APPEND_CAUSE("Cannot create message iterator on "
 			"self component input port: %![port-]+p",
 			self_port);
 		status = BT_FUNC_STATUS_MEMORY_ERROR;
@@ -169,7 +171,8 @@ struct bt_component_class_sink *bt_component_class_sink_colander_get(void)
 	colander_comp_cls = bt_component_class_sink_create("colander",
 		colander_consume);
 	if (!colander_comp_cls) {
-		BT_LOGE_STR("Cannot create sink colander component class.");
+		BT_LIB_LOGE_APPEND_CAUSE(
+			"Cannot create sink colander component class.");
 		goto end;
 	}
 

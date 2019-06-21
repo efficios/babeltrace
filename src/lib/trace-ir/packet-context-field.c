@@ -70,7 +70,8 @@ struct bt_packet_context_field *bt_packet_context_field_create(
 		&stream_class->packet_context_field_pool,
 		(void *) stream_class->packet_context_fc);
 	if (!field_wrapper) {
-		BT_LIB_LOGE("Cannot allocate one packet context field from stream class: "
+		BT_LIB_LOGE_APPEND_CAUSE(
+			"Cannot allocate one packet context field from stream class: "
 			"%![sc-]+S", stream_class);
 		goto error;
 	}

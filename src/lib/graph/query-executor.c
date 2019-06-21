@@ -56,7 +56,8 @@ struct bt_query_executor *bt_query_executor_create(void)
 	BT_LOGD_STR("Creating query executor.");
 	query_exec = g_new0(struct bt_query_executor, 1);
 	if (!query_exec) {
-		BT_LOGE_STR("Failed to allocate one query executor.");
+		BT_LIB_LOGE_APPEND_CAUSE(
+			"Failed to allocate one query executor.");
 		goto end;
 	}
 

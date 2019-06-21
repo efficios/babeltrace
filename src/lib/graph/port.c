@@ -66,7 +66,7 @@ struct bt_port *bt_port_create(struct bt_component *parent_component,
 	BT_ASSERT(strlen(name) > 0);
 	port = g_new0(struct bt_port, 1);
 	if (!port) {
-		BT_LOGE_STR("Failed to allocate one port.");
+		BT_LIB_LOGE_APPEND_CAUSE("Failed to allocate one port.");
 		goto end;
 	}
 
@@ -76,7 +76,7 @@ struct bt_port *bt_port_create(struct bt_component *parent_component,
 	bt_object_init_shared_with_parent(&port->base, destroy_port);
 	port->name = g_string_new(name);
 	if (!port->name) {
-		BT_LOGE_STR("Failed to allocate one GString.");
+		BT_LIB_LOGE_APPEND_CAUSE("Failed to allocate one GString.");
 		BT_OBJECT_PUT_REF_AND_RESET(port);
 		goto end;
 	}

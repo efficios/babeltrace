@@ -122,7 +122,7 @@ struct bt_event_class *create_event_class_with_id(
 		stream_class, id);
 	event_class = g_new0(struct bt_event_class, 1);
 	if (!event_class) {
-		BT_LOGE_STR("Failed to allocate one event class.");
+		BT_LIB_LOGE_APPEND_CAUSE("Failed to allocate one event class.");
 		goto error;
 	}
 
@@ -133,14 +133,14 @@ struct bt_event_class *create_event_class_with_id(
 			BT_PROPERTY_AVAILABILITY_NOT_AVAILABLE, 0);
 	event_class->name.str = g_string_new(NULL);
 	if (!event_class->name.str) {
-		BT_LOGE_STR("Failed to allocate a GString.");
+		BT_LIB_LOGE_APPEND_CAUSE("Failed to allocate a GString.");
 		ret = -1;
 		goto end;
 	}
 
 	event_class->emf_uri.str = g_string_new(NULL);
 	if (!event_class->emf_uri.str) {
-		BT_LOGE_STR("Failed to allocate a GString.");
+		BT_LIB_LOGE_APPEND_CAUSE("Failed to allocate a GString.");
 		ret = -1;
 		goto end;
 	}
@@ -150,7 +150,8 @@ struct bt_event_class *create_event_class_with_id(
 		(bt_object_pool_destroy_object_func) free_event,
 		event_class);
 	if (ret) {
-		BT_LOGE("Failed to initialize event pool: ret=%d",
+		BT_LIB_LOGE_APPEND_CAUSE(
+			"Failed to initialize event pool: ret=%d",
 			ret);
 		goto error;
 	}

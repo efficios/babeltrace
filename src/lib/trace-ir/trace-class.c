@@ -139,7 +139,7 @@ struct bt_trace_class *bt_trace_class_create(bt_self_component *self_comp)
 	BT_LOGD_STR("Creating default trace class object.");
 	tc = g_new0(struct bt_trace_class, 1);
 	if (!tc) {
-		BT_LOGE_STR("Failed to allocate one trace class.");
+		BT_LIB_LOGE_APPEND_CAUSE("Failed to allocate one trace class.");
 		goto error;
 	}
 
@@ -148,26 +148,26 @@ struct bt_trace_class *bt_trace_class_create(bt_self_component *self_comp)
 	tc->stream_classes = g_ptr_array_new_with_free_func(
 		(GDestroyNotify) bt_object_try_spec_release);
 	if (!tc->stream_classes) {
-		BT_LOGE_STR("Failed to allocate one GPtrArray.");
+		BT_LIB_LOGE_APPEND_CAUSE("Failed to allocate one GPtrArray.");
 		goto error;
 	}
 
 	tc->name.str = g_string_new(NULL);
 	if (!tc->name.str) {
-		BT_LOGE_STR("Failed to allocate one GString.");
+		BT_LIB_LOGE_APPEND_CAUSE("Failed to allocate one GString.");
 		goto error;
 	}
 
 	tc->environment = bt_attributes_create();
 	if (!tc->environment) {
-		BT_LOGE_STR("Cannot create empty attributes object.");
+		BT_LIB_LOGE_APPEND_CAUSE("Cannot create empty attributes object.");
 		goto error;
 	}
 
 	tc->destruction_listeners = g_array_new(FALSE, TRUE,
 		sizeof(struct bt_trace_class_destruction_listener_elem));
 	if (!tc->destruction_listeners) {
-		BT_LOGE_STR("Failed to allocate one GArray.");
+		BT_LIB_LOGE_APPEND_CAUSE("Failed to allocate one GArray.");
 		goto error;
 	}
 
@@ -318,7 +318,8 @@ enum bt_trace_class_set_environment_entry_status set_environment_entry(
 		value);
 	if (ret) {
 		ret = BT_FUNC_STATUS_MEMORY_ERROR;
-		BT_LIB_LOGE("Cannot set trace class's environment entry: "
+		BT_LIB_LOGE_APPEND_CAUSE(
+			"Cannot set trace class's environment entry: "
 			"%![tc-]+T, entry-name=\"%s\"", tc, name);
 	} else {
 		bt_value_freeze(value);
@@ -340,7 +341,8 @@ bt_trace_class_set_environment_entry_string(
 	BT_ASSERT_PRE_NON_NULL(value, "Value");
 	value_obj = bt_value_string_create_init(value);
 	if (!value_obj) {
-		BT_LOGE_STR("Cannot create a string value object.");
+		BT_LIB_LOGE_APPEND_CAUSE(
+			"Cannot create a string value object.");
 		ret = -1;
 		goto end;
 	}
@@ -363,7 +365,8 @@ bt_trace_class_set_environment_entry_integer(
 	BT_ASSERT_PRE_NON_NULL(name, "Name");
 	value_obj = bt_value_signed_integer_create_init(value);
 	if (!value_obj) {
-		BT_LOGE_STR("Cannot create an integer value object.");
+		BT_LIB_LOGE_APPEND_CAUSE(
+			"Cannot create an integer value object.");
 		ret = BT_FUNC_STATUS_MEMORY_ERROR;
 		goto end;
 	}

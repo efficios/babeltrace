@@ -178,7 +178,7 @@ struct bt_value *bt_value_array_copy(const struct bt_value *array_obj)
 	typed_array_obj = BT_VALUE_TO_ARRAY(array_obj);
 	copy_obj = bt_value_array_create();
 	if (!copy_obj) {
-		BT_LOGE_STR("Cannot create empty array value.");
+		BT_LIB_LOGE_APPEND_CAUSE("Cannot create empty array value.");
 		goto end;
 	}
 
@@ -193,7 +193,8 @@ struct bt_value *bt_value_array_copy(const struct bt_value *array_obj)
 			"index=%d", element_obj, i);
 		ret = bt_value_copy(element_obj, &element_obj_copy);
 		if (ret) {
-			BT_LOGE("Cannot copy array value's element: "
+			BT_LIB_LOGE_APPEND_CAUSE(
+				"Cannot copy array value's element: "
 				"array-addr=%p, index=%d",
 				array_obj, i);
 			BT_OBJECT_PUT_REF_AND_RESET(copy_obj);
@@ -205,7 +206,8 @@ struct bt_value *bt_value_array_copy(const struct bt_value *array_obj)
 			(void *) element_obj_copy);
 		BT_OBJECT_PUT_REF_AND_RESET(element_obj_copy);
 		if (ret) {
-			BT_LOGE("Cannot append to array value: addr=%p",
+			BT_LIB_LOGE_APPEND_CAUSE(
+				"Cannot append to array value: addr=%p",
 				array_obj);
 			BT_OBJECT_PUT_REF_AND_RESET(copy_obj);
 			goto end;
@@ -246,7 +248,8 @@ struct bt_value *bt_value_map_copy(const struct bt_value *map_obj)
 			"key=\"%s\"", element_obj, key_str);
 		ret = bt_value_copy(element_obj, &element_obj_copy);
 		if (ret) {
-			BT_LOGE("Cannot copy map value's element: "
+			BT_LIB_LOGE_APPEND_CAUSE(
+				"Cannot copy map value's element: "
 				"map-addr=%p, key=\"%s\"",
 				map_obj, key_str);
 			BT_OBJECT_PUT_REF_AND_RESET(copy_obj);
@@ -258,7 +261,8 @@ struct bt_value *bt_value_map_copy(const struct bt_value *map_obj)
 			(void *) element_obj_copy);
 		BT_OBJECT_PUT_REF_AND_RESET(element_obj_copy);
 		if (ret) {
-			BT_LOGE("Cannot insert into map value: addr=%p, key=\"%s\"",
+			BT_LIB_LOGE_APPEND_CAUSE(
+				"Cannot insert into map value: addr=%p, key=\"%s\"",
 				map_obj, key_str);
 			BT_OBJECT_PUT_REF_AND_RESET(copy_obj);
 			goto end;
@@ -581,7 +585,8 @@ struct bt_value *bt_value_bool_create_init(bt_bool val)
 	BT_LOGD("Creating boolean value object: val=%d", val);
 	bool_obj = g_new0(struct bt_value_bool, 1);
 	if (!bool_obj) {
-		BT_LOGE_STR("Failed to allocate one boolean value object.");
+		BT_LIB_LOGE_APPEND_CAUSE(
+			"Failed to allocate one boolean value object.");
 		goto end;
 	}
 
@@ -617,7 +622,8 @@ struct bt_value *bt_value_integer_create_init(enum bt_value_type type,
 
 	integer_obj = g_new0(struct bt_value_integer, 1);
 	if (!integer_obj) {
-		BT_LOGE_STR("Failed to allocate one integer value object.");
+		BT_LIB_LOGE_APPEND_CAUSE(
+			"Failed to allocate one integer value object.");
 		goto end;
 	}
 
@@ -660,7 +666,8 @@ struct bt_value *bt_value_real_create_init(double val)
 	BT_LOGD("Creating real number value object: val=%f", val);
 	real_obj = g_new0(struct bt_value_real, 1);
 	if (!real_obj) {
-		BT_LOGE_STR("Failed to allocate one real number value object.");
+		BT_LIB_LOGE_APPEND_CAUSE(
+			"Failed to allocate one real number value object.");
 		goto end;
 	}
 
@@ -682,22 +689,20 @@ struct bt_value *bt_value_string_create_init(const char *val)
 {
 	struct bt_value_string *string_obj = NULL;
 
-	if (!val) {
-		BT_LOGW_STR("Invalid parameter: value is NULL.");
-		goto end;
-	}
-
+	BT_ASSERT_PRE_NON_NULL(val, "Value");
 	BT_LOGD("Creating string value object: val-len=%zu", strlen(val));
 	string_obj = g_new0(struct bt_value_string, 1);
 	if (!string_obj) {
-		BT_LOGE_STR("Failed to allocate one string object.");
+		BT_LIB_LOGE_APPEND_CAUSE(
+			"Failed to allocate one string object.");
 		goto end;
 	}
 
 	string_obj->base = bt_value_create_base(BT_VALUE_TYPE_STRING);
 	string_obj->gstr = g_string_new(val);
 	if (!string_obj->gstr) {
-		BT_LOGE_STR("Failed to allocate a GString.");
+		BT_LIB_LOGE_APPEND_CAUSE(
+			"Failed to allocate a GString.");
 		g_free(string_obj);
 		string_obj = NULL;
 		goto end;
@@ -722,7 +727,8 @@ struct bt_value *bt_value_array_create(void)
 	BT_LOGD_STR("Creating empty array value object.");
 	array_obj = g_new0(struct bt_value_array, 1);
 	if (!array_obj) {
-		BT_LOGE_STR("Failed to allocate one array object.");
+		BT_LIB_LOGE_APPEND_CAUSE(
+			"Failed to allocate one array object.");
 		goto end;
 	}
 
@@ -730,7 +736,7 @@ struct bt_value *bt_value_array_create(void)
 	array_obj->garray = bt_g_ptr_array_new_full(0,
 		(GDestroyNotify) bt_object_put_ref);
 	if (!array_obj->garray) {
-		BT_LOGE_STR("Failed to allocate a GPtrArray.");
+		BT_LIB_LOGE_APPEND_CAUSE("Failed to allocate a GPtrArray.");
 		g_free(array_obj);
 		array_obj = NULL;
 		goto end;
@@ -750,7 +756,7 @@ struct bt_value *bt_value_map_create(void)
 	BT_LOGD_STR("Creating empty map value object.");
 	map_obj = g_new0(struct bt_value_map, 1);
 	if (!map_obj) {
-		BT_LOGE_STR("Failed to allocate one map object.");
+		BT_LIB_LOGE_APPEND_CAUSE("Failed to allocate one map object.");
 		goto end;
 	}
 
@@ -758,7 +764,7 @@ struct bt_value *bt_value_map_create(void)
 	map_obj->ght = g_hash_table_new_full(g_direct_hash, g_direct_equal,
 		NULL, (GDestroyNotify) bt_object_put_ref);
 	if (!map_obj->ght) {
-		BT_LOGE_STR("Failed to allocate a GHashTable.");
+		BT_LIB_LOGE_APPEND_CAUSE("Failed to allocate a GHashTable.");
 		g_free(map_obj);
 		map_obj = NULL;
 		goto end;
@@ -1229,7 +1235,7 @@ bt_bool extend_map_element(const char *key,
 	extend_data->status = bt_value_copy(extension_obj_elem,
 		&extension_obj_elem_copy);
 	if (extend_data->status) {
-		BT_LOGE("Cannot copy map element: addr=%p",
+		BT_LIB_LOGE_APPEND_CAUSE("Cannot copy map element: %!+v",
 			extension_obj_elem);
 		goto error;
 	}
@@ -1241,8 +1247,9 @@ bt_bool extend_map_element(const char *key,
 		extend_data->extended_obj, key,
 		(void *) extension_obj_elem_copy);
 	if (extend_data->status) {
-		BT_LOGE("Cannot replace value in extended value: key=\"%s\", "
-			"extended-value-addr=%p, element-value-addr=%p",
+		BT_LIB_LOGE_APPEND_CAUSE(
+			"Cannot replace value in extended value: key=\"%s\", "
+			"%![extended-value-]+v, %![element-value-]+v",
 			key, extend_data->extended_obj,
 			extension_obj_elem_copy);
 		goto error;
@@ -1282,7 +1289,8 @@ enum bt_value_map_extend_status bt_value_map_extend(
 	/* Create copy of base map object to start with */
 	extend_data.status = bt_value_copy(base_map_obj, extended_map_obj);
 	if (extend_data.status) {
-		BT_LOGE("Cannot copy base value: base-value-addr=%p",
+		BT_LIB_LOGE_APPEND_CAUSE(
+			"Cannot copy base value: %![base-value-]+v",
 			base_map_obj);
 		goto error;
 	}
@@ -1297,14 +1305,16 @@ enum bt_value_map_extend_status bt_value_map_extend(
 
 	if (bt_value_map_foreach_entry_const(extension_obj, extend_map_element,
 			&extend_data)) {
-		BT_LOGE("Cannot iterate on the extension object's elements: "
-			"extension-value-addr=%p", extension_obj);
+		BT_LIB_LOGE_APPEND_CAUSE(
+			"Cannot iterate on the extension object's elements: "
+			"%![extension-value-]+v", extension_obj);
 		goto error;
 	}
 
 	if (extend_data.status) {
-		BT_LOGE("Failed to successfully iterate on the extension object's elements: "
-			"extension-value-addr=%p", extension_obj);
+		BT_LIB_LOGE_APPEND_CAUSE(
+			"Failed to successfully iterate on the extension object's elements: "
+			"%![extension-value-]+v", extension_obj);
 		goto error;
 	}
 
@@ -1335,7 +1345,7 @@ enum bt_value_copy_status bt_value_copy(const struct bt_value *object,
 	} else {
 		status = BT_FUNC_STATUS_MEMORY_ERROR;
 		*copy_obj = NULL;
-		BT_LOGE_STR("Failed to copy value object.");
+		BT_LIB_LOGE_APPEND_CAUSE("Failed to copy value object.");
 	}
 
 	return status;

@@ -72,7 +72,8 @@ struct bt_message *create_stream_activity_message(
 		bt_message_type_string(type), stream, stream_class);
 	message = g_new0(struct bt_message_stream_activity, 1);
 	if (!message) {
-		BT_LOGE_STR("Failed to allocate one stream activity message.");
+		BT_LIB_LOGE_APPEND_CAUSE(
+			"Failed to allocate one stream activity message.");
 		goto error;
 	}
 

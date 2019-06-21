@@ -142,7 +142,7 @@ struct bt_trace *bt_trace_create(struct bt_trace_class *tc)
 	BT_LIB_LOGD("Creating trace object: %![tc-]+T", tc);
 	trace = g_new0(struct bt_trace, 1);
 	if (!trace) {
-		BT_LOGE_STR("Failed to allocate one trace.");
+		BT_LIB_LOGE_APPEND_CAUSE("Failed to allocate one trace.");
 		goto error;
 	}
 
@@ -150,27 +150,27 @@ struct bt_trace *bt_trace_create(struct bt_trace_class *tc)
 	trace->streams = g_ptr_array_new_with_free_func(
 		(GDestroyNotify) bt_object_try_spec_release);
 	if (!trace->streams) {
-		BT_LOGE_STR("Failed to allocate one GPtrArray.");
+		BT_LIB_LOGE_APPEND_CAUSE("Failed to allocate one GPtrArray.");
 		goto error;
 	}
 
 	trace->stream_classes_stream_count = g_hash_table_new(g_direct_hash,
 		g_direct_equal);
 	if (!trace->stream_classes_stream_count) {
-		BT_LOGE_STR("Failed to allocate one GHashTable.");
+		BT_LIB_LOGE_APPEND_CAUSE("Failed to allocate one GHashTable.");
 		goto error;
 	}
 
 	trace->name.str = g_string_new(NULL);
 	if (!trace->name.str) {
-		BT_LOGE_STR("Failed to allocate one GString.");
+		BT_LIB_LOGE_APPEND_CAUSE("Failed to allocate one GString.");
 		goto error;
 	}
 
 	trace->destruction_listeners = g_array_new(FALSE, TRUE,
 		sizeof(struct bt_trace_destruction_listener_elem));
 	if (!trace->destruction_listeners) {
-		BT_LOGE_STR("Failed to allocate one GArray.");
+		BT_LIB_LOGE_APPEND_CAUSE("Failed to allocate one GArray.");
 		goto error;
 	}
 

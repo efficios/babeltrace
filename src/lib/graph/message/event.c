@@ -62,7 +62,8 @@ struct bt_message *bt_message_event_new(
 
 	message = g_new0(struct bt_message_event, 1);
 	if (!message) {
-		BT_LOGE_STR("Failed to allocate one event message.");
+		BT_LIB_LOGE_APPEND_CAUSE(
+			"Failed to allocate one event message.");
 		goto error;
 	}
 
@@ -110,7 +111,8 @@ struct bt_message *create_event_message(
 	BT_LIB_LOGD("Creating event message object: %![ec-]+E", event_class);
 	event = bt_event_create(event_class, packet);
 	if (G_UNLIKELY(!event)) {
-		BT_LIB_LOGE("Cannot create event from event class: "
+		BT_LIB_LOGE_APPEND_CAUSE(
+			"Cannot create event from event class: "
 			"%![ec-]+E", event_class);
 		goto error;
 	}

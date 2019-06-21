@@ -182,7 +182,8 @@ struct bt_packet *bt_packet_new(struct bt_stream *stream)
 	BT_LIB_LOGD("Creating packet object: %![stream-]+s", stream);
 	packet = g_new0(struct bt_packet, 1);
 	if (!packet) {
-		BT_LOGE_STR("Failed to allocate one packet object.");
+		BT_LIB_LOGE_APPEND_CAUSE(
+			"Failed to allocate one packet object.");
 		goto error;
 	}
 
@@ -199,7 +200,8 @@ struct bt_packet *bt_packet_new(struct bt_stream *stream)
 			&stream->class->packet_context_field_pool,
 			stream->class->packet_context_fc);
 		if (!packet->context_field) {
-			BT_LOGE_STR("Cannot create packet context field wrapper.");
+			BT_LIB_LOGE_APPEND_CAUSE(
+				"Cannot create packet context field wrapper.");
 			goto error;
 		}
 	}
@@ -222,7 +224,8 @@ struct bt_packet *bt_packet_create(const struct bt_stream *c_stream)
 	BT_ASSERT_PRE_NON_NULL(stream, "Stream");
 	packet = bt_object_pool_create_object(&stream->packet_pool);
 	if (G_UNLIKELY(!packet)) {
-		BT_LIB_LOGE("Cannot allocate one packet from stream's packet pool: "
+		BT_LIB_LOGE_APPEND_CAUSE(
+			"Cannot allocate one packet from stream's packet pool: "
 			"%![stream-]+s", stream);
 		goto end;
 	}

@@ -68,7 +68,8 @@ struct bt_message *bt_message_message_iterator_inactivity_create(
 		default_clock_class, value_cycles);
 	message = g_new0(struct bt_message_message_iterator_inactivity, 1);
 	if (!message) {
-		BT_LOGE_STR("Failed to allocate one message iterator "
+		BT_LIB_LOGE_APPEND_CAUSE(
+			"Failed to allocate one message iterator "
 			"inactivity message.");
 		goto error;
 	}

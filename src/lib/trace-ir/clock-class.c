@@ -90,20 +90,20 @@ struct bt_clock_class *bt_clock_class_create(bt_self_component *self_comp)
 
 	clock_class = g_new0(struct bt_clock_class, 1);
 	if (!clock_class) {
-		BT_LOGE_STR("Failed to allocate one clock class.");
+		BT_LIB_LOGE_APPEND_CAUSE("Failed to allocate one clock class.");
 		goto error;
 	}
 
 	bt_object_init_shared(&clock_class->base, destroy_clock_class);
 	clock_class->name.str = g_string_new(NULL);
 	if (!clock_class->name.str) {
-		BT_LOGE_STR("Failed to allocate a GString.");
+		BT_LIB_LOGE_APPEND_CAUSE("Failed to allocate a GString.");
 		goto error;
 	}
 
 	clock_class->description.str = g_string_new(NULL);
 	if (!clock_class->description.str) {
-		BT_LOGE_STR("Failed to allocate a GString.");
+		BT_LIB_LOGE_APPEND_CAUSE("Failed to allocate a GString.");
 		goto error;
 	}
 
@@ -116,7 +116,8 @@ struct bt_clock_class *bt_clock_class_create(bt_self_component *self_comp)
 			free_clock_snapshot,
 		clock_class);
 	if (ret) {
-		BT_LOGE("Failed to initialize clock snapshot pool: ret=%d",
+		BT_LIB_LOGE_APPEND_CAUSE(
+			"Failed to initialize clock snapshot pool: ret=%d",
 			ret);
 		goto error;
 	}

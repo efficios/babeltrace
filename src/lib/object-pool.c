@@ -41,7 +41,7 @@ int bt_object_pool_initialize(struct bt_object_pool *pool,
 		pool, data);
 	pool->objects = g_ptr_array_new();
 	if (!pool->objects) {
-		BT_LOGE_STR("Failed to allocate a GPtrArray.");
+		BT_LIB_LOGE_APPEND_CAUSE("Failed to allocate a GPtrArray.");
 		goto error;
 	}
 

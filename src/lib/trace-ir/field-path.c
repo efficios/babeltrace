@@ -57,7 +57,7 @@ struct bt_field_path *bt_field_path_create(void)
 
 	field_path = g_new0(struct bt_field_path, 1);
 	if (!field_path) {
-		BT_LOGE_STR("Failed to allocate one field path.");
+		BT_LIB_LOGE_APPEND_CAUSE("Failed to allocate one field path.");
 		goto error;
 	}
 
@@ -65,7 +65,7 @@ struct bt_field_path *bt_field_path_create(void)
 	field_path->items = g_array_new(FALSE, FALSE,
 		sizeof(struct bt_field_path_item));
 	if (!field_path->items) {
-		BT_LOGE_STR("Failed to allocate a GArray.");
+		BT_LIB_LOGE_APPEND_CAUSE("Failed to allocate a GArray.");
 		goto error;
 	}
 

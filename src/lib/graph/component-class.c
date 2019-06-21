@@ -106,32 +106,32 @@ int bt_component_class_init(struct bt_component_class *class,
 	class->type = type;
 	class->name = g_string_new(name);
 	if (!class->name) {
-		BT_LOGE_STR("Failed to allocate a GString.");
+		BT_LIB_LOGE_APPEND_CAUSE("Failed to allocate a GString.");
 		goto error;
 	}
 
 	class->description = g_string_new(NULL);
 	if (!class->description) {
-		BT_LOGE_STR("Failed to allocate a GString.");
+		BT_LIB_LOGE_APPEND_CAUSE("Failed to allocate a GString.");
 		goto error;
 	}
 
 	class->help = g_string_new(NULL);
 	if (!class->help) {
-		BT_LOGE_STR("Failed to allocate a GString.");
+		BT_LIB_LOGE_APPEND_CAUSE("Failed to allocate a GString.");
 		goto error;
 	}
 
 	class->plugin_name = g_string_new(NULL);
 	if (!class->plugin_name) {
-		BT_LOGE_STR("Failed to allocate a GString.");
+		BT_LIB_LOGE_APPEND_CAUSE("Failed to allocate a GString.");
 		goto error;
 	}
 
 	class->destroy_listeners = g_array_new(FALSE, TRUE,
 		sizeof(struct bt_component_class_destroy_listener));
 	if (!class->destroy_listeners) {
-		BT_LOGE_STR("Failed to allocate a GArray.");
+		BT_LIB_LOGE_APPEND_CAUSE("Failed to allocate a GArray.");
 		goto error;
 	}
 
@@ -159,7 +159,8 @@ struct bt_component_class_source *bt_component_class_source_create(
 		name, method);
 	source_class = g_new0(struct bt_component_class_source, 1);
 	if (!source_class) {
-		BT_LOGE_STR("Failed to allocate one source component class.");
+		BT_LIB_LOGE_APPEND_CAUSE(
+			"Failed to allocate one source component class.");
 		goto end;
 	}
 
@@ -197,7 +198,8 @@ struct bt_component_class_filter *bt_component_class_filter_create(
 		name, method);
 	filter_class = g_new0(struct bt_component_class_filter, 1);
 	if (!filter_class) {
-		BT_LOGE_STR("Failed to allocate one filter component class.");
+		BT_LIB_LOGE_APPEND_CAUSE(
+			"Failed to allocate one filter component class.");
 		goto end;
 	}
 
@@ -234,7 +236,8 @@ struct bt_component_class_sink *bt_component_class_sink_create(
 		name, method);
 	sink_class = g_new0(struct bt_component_class_sink, 1);
 	if (!sink_class) {
-		BT_LOGE_STR("Failed to allocate one sink component class.");
+		BT_LIB_LOGE_APPEND_CAUSE(
+			"Failed to allocate one sink component class.");
 		goto end;
 	}
 

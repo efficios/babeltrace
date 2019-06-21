@@ -192,7 +192,7 @@ void bt_self_component_port_input_message_iterator_try_finalize(
 			"%!+i", iterator);
 		goto end;
 	case BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_STATE_FINALIZING:
-		/* Already finalized */
+		/* Finalizing */
 		BT_LIB_LOGF("Message iterator is already being finalized: "
 			"%!+i", iterator);
 		abort();
@@ -267,7 +267,7 @@ int init_message_iterator(struct bt_message_iterator *iterator,
 	iterator->type = type;
 	iterator->msgs = g_ptr_array_new();
 	if (!iterator->msgs) {
-		BT_LOGE_STR("Failed to allocate a GPtrArray.");
+		BT_LIB_LOGE_APPEND_CAUSE("Failed to allocate a GPtrArray.");
 		ret = -1;
 		goto end;
 	}
@@ -314,9 +314,10 @@ bt_self_component_port_input_message_iterator_create_initial(
 	iterator = g_new0(
 		struct bt_self_component_port_input_message_iterator, 1);
 	if (!iterator) {
-		BT_LOGE_STR("Failed to allocate one self component input port "
+		BT_LIB_LOGE_APPEND_CAUSE(
+			"Failed to allocate one self component input port "
 			"message iterator.");
-		goto end;
+		goto error;
 	}
 
 	ret = init_message_iterator((void *) iterator,
@@ -324,15 +325,14 @@ bt_self_component_port_input_message_iterator_create_initial(
 		bt_self_component_port_input_message_iterator_destroy);
 	if (ret) {
 		/* init_message_iterator() logs errors */
-		BT_OBJECT_PUT_REF_AND_RESET(iterator);
-		goto end;
+		goto error;
 	}
 
 	iterator->last_ns_from_origin = INT64_MIN;
 
 	iterator->auto_seek.msgs = g_queue_new();
 	if (!iterator->auto_seek.msgs) {
-		BT_LOGE_STR("Failed to allocate a GQueue.");
+		BT_LIB_LOGE_APPEND_CAUSE("Failed to allocate a GQueue.");
 		ret = -1;
 		goto end;
 	}
@@ -410,6 +410,10 @@ bt_self_component_port_input_message_iterator_create_initial(
 	BT_LIB_LOGI("Created initial message iterator on self component input port: "
 		"%![up-port-]+p, %![up-comp-]+c, %![iter-]+i",
 		upstream_port, upstream_comp, iterator);
+	goto end;
+
+error:
+	BT_OBJECT_PUT_REF_AND_RESET(iterator);
 
 end:
 	return iterator;
@@ -458,9 +462,9 @@ bt_self_component_port_input_message_iterator_create(
 	iterator = bt_self_component_port_input_message_iterator_create_initial(
 		upstream_comp, upstream_port);
 	if (!iterator) {
-		BT_LOGW_STR("Cannot create self component input port "
-			"message iterator.");
-		goto end;
+		BT_LIB_LOGE_APPEND_CAUSE(
+			"Cannot create self component input port message iterator.");
+		goto error;
 	}
 
 	switch (upstream_comp_cls->type) {
@@ -496,9 +500,12 @@ bt_self_component_port_input_message_iterator_create(
 		BT_LOGD("User method returned: status=%s",
 			bt_common_func_status_string(iter_status));
 		if (iter_status != BT_FUNC_STATUS_OK) {
-			BT_LOGW_STR("Initialization method failed.");
-			BT_OBJECT_PUT_REF_AND_RESET(iterator);
-			goto end;
+			BT_LIB_LOGW_APPEND_CAUSE(
+				"Component input port message iterator initialization method failed: "
+				"%![iter-]+i, status=%s",
+				iterator,
+				bt_common_func_status_string(iter_status));
+			goto error;
 		}
 	}
 
@@ -508,6 +515,10 @@ bt_self_component_port_input_message_iterator_create(
 	BT_LIB_LOGI("Created message iterator on self component input port: "
 		"%![up-port-]+p, %![up-comp-]+c, %![iter-]+i",
 		upstream_port, upstream_comp, iterator);
+	goto end;
+
+error:
+	BT_OBJECT_PUT_REF_AND_RESET(iterator);
 
 end:
 	return iterator;
@@ -853,8 +864,13 @@ bt_self_component_port_input_message_iterator_next(
 	status = (int) call_iterator_next_method(iterator,
 		(void *) iterator->base.msgs->pdata, MSG_BATCH_SIZE,
 		user_count);
+	BT_LOGD("User method returned: status=%s, msg-count=%" PRIu64,
+		bt_common_func_status_string(status), *user_count);
 	if (status < 0) {
-		BT_LOGW_STR("User method failed.");
+		BT_LIB_LOGW_APPEND_CAUSE(
+			"Component input port message iterator's \"next\" method failed: "
+			"%![iter-]+i, status=%s",
+			iterator, bt_common_func_status_string(status));
 		goto end;
 	}
 
@@ -1015,7 +1031,8 @@ bt_port_output_message_iterator_create(struct bt_graph *graph,
 		"%![port-]+p, %![comp-]+c", output_port, output_port_comp);
 	iterator = g_new0(struct bt_port_output_message_iterator, 1);
 	if (!iterator) {
-		BT_LOGE_STR("Failed to allocate one output port message iterator.");
+		BT_LIB_LOGE_APPEND_CAUSE(
+			"Failed to allocate one output port message iterator.");
 		goto error;
 	}
 
@@ -1031,7 +1048,9 @@ bt_port_output_message_iterator_create(struct bt_graph *graph,
 	/* Create colander component */
 	colander_comp_cls = bt_component_class_sink_colander_get();
 	if (!colander_comp_cls) {
-		BT_LOGW("Cannot get colander sink component class.");
+		/* bt_component_class_sink_colander_get() logs errors */
+		BT_LIB_LOGE_APPEND_CAUSE(
+			"Cannot get colander sink component class.");
 		goto error;
 	}
 
@@ -1053,8 +1072,9 @@ bt_port_output_message_iterator_create(struct bt_graph *graph,
 			NULL, &colander_data, BT_LOGGING_LEVEL_NONE,
 			(void *) &iterator->colander);
 	if (graph_status != BT_FUNC_STATUS_OK) {
-		BT_LIB_LOGW("Cannot add colander sink component to graph: "
-			"%1[graph-]+g, status=%s", graph,
+		BT_LIB_LOGE_APPEND_CAUSE(
+			"Cannot add colander sink component to graph: "
+			"%![graph-]+g, status=%s", graph,
 			bt_common_func_status_string(graph_status));
 		goto error;
 	}
@@ -1070,7 +1090,8 @@ bt_port_output_message_iterator_create(struct bt_graph *graph,
 	graph_status = bt_graph_connect_ports(graph,
 		output_port, colander_in_port, NULL);
 	if (graph_status != BT_FUNC_STATUS_OK) {
-		BT_LIB_LOGW("Cannot add colander sink component to graph: "
+		BT_LIB_LOGW_APPEND_CAUSE(
+			"Cannot connect colander sink's port: "
 			"%![graph-]+g, %![comp-]+c, status=%s", graph,
 			iterator->colander,
 			bt_common_func_status_string(graph_status));
@@ -1090,8 +1111,11 @@ bt_port_output_message_iterator_create(struct bt_graph *graph,
 	/* Also set the graph as being configured. */
 	graph_status = bt_graph_configure(graph);
 	if (graph_status != BT_FUNC_STATUS_OK) {
-		BT_LIB_LOGW("Cannot configure graph after having added colander: "
-			"%![graph-]+g, status=%s", graph,
+		BT_LIB_LOGW_APPEND_CAUSE(
+			"Cannot configure graph after having "
+			"added and connected colander sink: "
+			"%![graph-]+g, %![comp-]+c, status=%s", graph,
+			iterator->colander,
 			bt_common_func_status_string(graph_status));
 		goto error;
 	}
@@ -1253,6 +1277,13 @@ bt_self_component_port_input_message_iterator_seek_beginning(
 		status == BT_FUNC_STATUS_AGAIN,
 		"Unexpected status: %![iter-]+i, status=%s",
 		iterator, bt_common_func_status_string(status));
+	if (status < 0) {
+		BT_LIB_LOGW_APPEND_CAUSE(
+			"Component input port message iterator's \"seek beginning\" method failed: "
+			"%![iter-]+i, status=%s",
+			iterator, bt_common_func_status_string(status));
+	}
+
 	set_iterator_state_after_seeking(iterator, status);
 	return status;
 }
@@ -1661,6 +1692,14 @@ int find_message_ge_ns_from_origin(
 		 */
 		status = call_iterator_next_method(iterator,
 			&messages[0], MSG_BATCH_SIZE, &user_count);
+		BT_LOGD("User method returned: status=%s",
+			bt_common_func_status_string(status));
+		if (status < 0) {
+			BT_LIB_LOGW_APPEND_CAUSE(
+				"Component input port message iterator's \"next\" method failed: "
+				"%![iter-]+i, status=%s",
+				iterator, bt_common_func_status_string(status));
+		}
 
 		/*
 		 * The user's "next" method must not do any action which
@@ -1811,6 +1850,12 @@ bt_self_component_port_input_message_iterator_seek_ns_from_origin(
 			status == BT_FUNC_STATUS_AGAIN,
 			"Unexpected status: %![iter-]+i, status=%s",
 			iterator, bt_common_func_status_string(status));
+		if (status < 0) {
+			BT_LIB_LOGW_APPEND_CAUSE(
+				"Component input port message iterator's \"seek nanoseconds from origin\" method failed: "
+				"%![iter-]+i, status=%s",
+				iterator, bt_common_func_status_string(status));
+		}
 	} else {
 		/*
 		 * The iterator doesn't know how to seek to a particular time.  We will
@@ -1829,6 +1874,13 @@ bt_self_component_port_input_message_iterator_seek_ns_from_origin(
 			status == BT_FUNC_STATUS_AGAIN,
 			"Unexpected status: %![iter-]+i, status=%s",
 			iterator, bt_common_func_status_string(status));
+		if (status < 0) {
+			BT_LIB_LOGW_APPEND_CAUSE(
+				"Component input port message iterator's \"seek beginning\" method failed: "
+				"%![iter-]+i, status=%s",
+				iterator, bt_common_func_status_string(status));
+		}
+
 		switch (status) {
 		case BT_FUNC_STATUS_OK:
 			break;
@@ -1854,7 +1906,8 @@ bt_self_component_port_input_message_iterator_seek_ns_from_origin(
 
 		stream_states = create_auto_seek_stream_states();
 		if (!stream_states) {
-			BT_LOGE_STR("Failed to allocate one GHashTable.");
+			BT_LIB_LOGE_APPEND_CAUSE(
+				"Failed to allocate one GHashTable.");
 			status = BT_FUNC_STATUS_MEMORY_ERROR;
 			goto end;
 		}
@@ -1884,7 +1937,9 @@ bt_self_component_port_input_message_iterator_seek_ns_from_origin(
 				uint64_t raw_value;
 
 				if (clock_raw_value_from_ns_from_origin(clock_class, ns_from_origin, &raw_value) != 0) {
-					BT_LIB_LOGW("Could not convert nanoseconds from origin to clock value: ns-from-origin=%" PRId64 ", %![cc-]+K",
+					BT_LIB_LOGW_APPEND_CAUSE(
+						"Could not convert nanoseconds from origin to clock value: "
+						"ns-from-origin=%" PRId64 ", %![cc-]+K",
 						ns_from_origin, clock_class);
 					status = BT_FUNC_STATUS_ERROR;
 					goto end;
@@ -1976,6 +2031,7 @@ end:
 		destroy_auto_seek_stream_states(stream_states);
 		stream_states = NULL;
 	}
+
 	set_iterator_state_after_seeking(iterator, status);
 	return status;
 }

@@ -120,7 +120,8 @@ struct bt_stream_class *create_stream_class_with_id(
 		tc, id);
 	stream_class = g_new0(struct bt_stream_class, 1);
 	if (!stream_class) {
-		BT_LOGE_STR("Failed to allocate one stream class.");
+		BT_LIB_LOGE_APPEND_CAUSE(
+			"Failed to allocate one stream class.");
 		goto error;
 	}
 
@@ -129,7 +130,7 @@ struct bt_stream_class *create_stream_class_with_id(
 
 	stream_class->name.str = g_string_new(NULL);
 	if (!stream_class->name.str) {
-		BT_LOGE_STR("Failed to allocate a GString.");
+		BT_LIB_LOGE_APPEND_CAUSE("Failed to allocate a GString.");
 		ret = -1;
 		goto end;
 	}
@@ -140,7 +141,7 @@ struct bt_stream_class *create_stream_class_with_id(
 	stream_class->event_classes = g_ptr_array_new_with_free_func(
 		(GDestroyNotify) bt_object_try_spec_release);
 	if (!stream_class->event_classes) {
-		BT_LOGE_STR("Failed to allocate a GPtrArray.");
+		BT_LIB_LOGE_APPEND_CAUSE("Failed to allocate a GPtrArray.");
 		goto error;
 	}
 
@@ -149,7 +150,8 @@ struct bt_stream_class *create_stream_class_with_id(
 		(bt_object_pool_destroy_object_func) free_field_wrapper,
 		stream_class);
 	if (ret) {
-		BT_LOGE("Failed to initialize packet context field pool: ret=%d",
+		BT_LIB_LOGE_APPEND_CAUSE(
+			"Failed to initialize packet context field pool: ret=%d",
 			ret);
 		goto error;
 	}

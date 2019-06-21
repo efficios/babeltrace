@@ -39,7 +39,8 @@ struct bt_field_wrapper *bt_field_wrapper_new(void *data)
 	BT_LOGD_STR("Creating empty field wrapper object.");
 
 	if (!field_wrapper) {
-		BT_LOGE("Failed to allocate one field wrapper.");
+		BT_LIB_LOGE_APPEND_CAUSE(
+			"Failed to allocate one field wrapper.");
 		goto end;
 	}
 
@@ -76,7 +77,8 @@ struct bt_field_wrapper *bt_field_wrapper_create(
 	BT_ASSERT(fc);
 	field_wrapper = bt_object_pool_create_object(pool);
 	if (!field_wrapper) {
-		BT_LIB_LOGE("Cannot allocate one field wrapper from field wrapper pool: "
+		BT_LIB_LOGE_APPEND_CAUSE(
+			"Cannot allocate one field wrapper from field wrapper pool: "
 			"%![pool-]+o", pool);
 		goto error;
 	}
@@ -84,7 +86,8 @@ struct bt_field_wrapper *bt_field_wrapper_create(
 	if (!field_wrapper->field) {
 		field_wrapper->field = (void *) bt_field_create(fc);
 		if (!field_wrapper->field) {
-			BT_LIB_LOGE("Cannot create field wrapper from field class: "
+			BT_LIB_LOGE_APPEND_CAUSE(
+				"Cannot create field wrapper from field class: "
 				"%![fc-]+F", fc);
 			goto error;
 		}

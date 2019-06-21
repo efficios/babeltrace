@@ -93,7 +93,8 @@ struct bt_field_class *create_integer_field_class(bt_trace_class *trace_class,
 		bt_common_field_class_type_string(type));
 	int_fc = g_new0(struct bt_field_class_integer, 1);
 	if (!int_fc) {
-		BT_LOGE_STR("Failed to allocate one integer field class.");
+		BT_LIB_LOGE_APPEND_CAUSE(
+			"Failed to allocate one integer field class.");
 		goto error;
 	}
 
@@ -240,7 +241,8 @@ struct bt_field_class *create_enumeration_field_class(
 		bt_common_field_class_type_string(type));
 	enum_fc = g_new0(struct bt_field_class_enumeration, 1);
 	if (!enum_fc) {
-		BT_LOGE_STR("Failed to allocate one enumeration field class.");
+		BT_LIB_LOGE_APPEND_CAUSE(
+			"Failed to allocate one enumeration field class.");
 		goto error;
 	}
 
@@ -249,13 +251,13 @@ struct bt_field_class *create_enumeration_field_class(
 	enum_fc->mappings = g_array_new(FALSE, TRUE,
 		sizeof(struct bt_field_class_enumeration_mapping));
 	if (!enum_fc->mappings) {
-		BT_LOGE_STR("Failed to allocate a GArray.");
+		BT_LIB_LOGE_APPEND_CAUSE("Failed to allocate a GArray.");
 		goto error;
 	}
 
 	enum_fc->label_buf = g_ptr_array_new();
 	if (!enum_fc->label_buf) {
-		BT_LOGE_STR("Failed to allocate a GArray.");
+		BT_LIB_LOGE_APPEND_CAUSE("Failed to allocate a GArray.");
 		goto error;
 	}
 
@@ -578,7 +580,7 @@ struct bt_field_class *bt_field_class_real_create(bt_trace_class *trace_class)
 	BT_LOGD_STR("Creating default real field class object.");
 	real_fc = g_new0(struct bt_field_class_real, 1);
 	if (!real_fc) {
-		BT_LOGE_STR("Failed to allocate one real field class.");
+		BT_LIB_LOGE_APPEND_CAUSE("Failed to allocate one real field class.");
 		goto error;
 	}
 
@@ -628,14 +630,14 @@ int init_named_field_classes_container(
 	fc->named_fcs = g_array_new(FALSE, TRUE,
 		sizeof(struct bt_named_field_class));
 	if (!fc->named_fcs) {
-		BT_LOGE_STR("Failed to allocate a GArray.");
+		BT_LIB_LOGE_APPEND_CAUSE("Failed to allocate a GArray.");
 		ret = -1;
 		goto end;
 	}
 
 	fc->name_to_index = g_hash_table_new(g_str_hash, g_str_equal);
 	if (!fc->name_to_index) {
-		BT_LOGE_STR("Failed to allocate a GHashTable.");
+		BT_LIB_LOGE_APPEND_CAUSE("Failed to allocate a GHashTable.");
 		ret = -1;
 		goto end;
 	}
@@ -703,7 +705,8 @@ struct bt_field_class *bt_field_class_structure_create(
 	BT_LOGD_STR("Creating default structure field class object.");
 	struct_fc = g_new0(struct bt_field_class_structure, 1);
 	if (!struct_fc) {
-		BT_LOGE_STR("Failed to allocate one structure field class.");
+		BT_LIB_LOGE_APPEND_CAUSE(
+			"Failed to allocate one structure field class.");
 		goto error;
 	}
 
@@ -742,7 +745,7 @@ int append_named_field_class_to_container_field_class(
 		"%![container-fc-]+F, name=\"%s\"", container_fc, name);
 	name_str = g_string_new(name);
 	if (!name_str) {
-		BT_LOGE_STR("Failed to allocate a GString.");
+		BT_LIB_LOGE_APPEND_CAUSE("Failed to allocate a GString.");
 		ret = BT_FUNC_STATUS_MEMORY_ERROR;
 		goto end;
 	}
@@ -929,7 +932,8 @@ struct bt_field_class *bt_field_class_variant_create(
 	BT_LOGD_STR("Creating default variant field class object.");
 	var_fc = g_new0(struct bt_field_class_variant, 1);
 	if (!var_fc) {
-		BT_LOGE_STR("Failed to allocate one variant field class.");
+		BT_LIB_LOGE_APPEND_CAUSE(
+			"Failed to allocate one variant field class.");
 		goto error;
 	}
 
@@ -1113,7 +1117,8 @@ bt_field_class_static_array_create(bt_trace_class *trace_class,
 	BT_LOGD_STR("Creating default static array field class object.");
 	array_fc = g_new0(struct bt_field_class_static_array, 1);
 	if (!array_fc) {
-		BT_LOGE_STR("Failed to allocate one static array field class.");
+		BT_LIB_LOGE_APPEND_CAUSE(
+			"Failed to allocate one static array field class.");
 		goto error;
 	}
 
@@ -1187,7 +1192,8 @@ struct bt_field_class *bt_field_class_dynamic_array_create(
 	BT_LOGD_STR("Creating default dynamic array field class object.");
 	array_fc = g_new0(struct bt_field_class_dynamic_array, 1);
 	if (!array_fc) {
-		BT_LOGE_STR("Failed to allocate one dynamic array field class.");
+		BT_LIB_LOGE_APPEND_CAUSE(
+			"Failed to allocate one dynamic array field class.");
 		goto error;
 	}
 
@@ -1251,7 +1257,8 @@ struct bt_field_class *bt_field_class_string_create(bt_trace_class *trace_class)
 	BT_LOGD_STR("Creating default string field class object.");
 	string_fc = g_new0(struct bt_field_class_string, 1);
 	if (!string_fc) {
-		BT_LOGE_STR("Failed to allocate one string field class.");
+		BT_LIB_LOGE_APPEND_CAUSE(
+			"Failed to allocate one string field class.");
 		goto error;
 	}
 
