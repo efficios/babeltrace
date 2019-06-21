@@ -583,6 +583,18 @@ of `+BT_LOG*()+`:
 `+BT_LIB_LOGF("format string", ...)+`::
     Library fatal logging statement.
 
+`+BT_LIB_LOGW_APPEND_CAUSE("format string", ...)+`::
+    Library warning logging statement, and unconditional error cause
+    appending.
+
+`+BT_LIB_LOGE_APPEND_CAUSE("format string", ...)+`::
+    Library error logging statement, and unconditional error cause
+    appending.
+
+`+BT_LIB_LOGF_APPEND_CAUSE("format string", ...)+`::
+    Library fatal logging statement, and unconditional error cause
+    appending.
+
 The macros above accept the typical `printf()` conversion specifiers
 with the following limitations:
 

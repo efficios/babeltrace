@@ -20,11 +20,8 @@
  * SOFTWARE.
  */
 
-/*
- * This is just to satisfy the preprocessor check in "lib/logging.h":
- * this file does not log anything.
- */
-#define BT_LOG_TAG ""
+#define BT_LOG_TAG "LIB/LIB-LOGGING"
+#include "lib/logging.h"
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -38,6 +35,7 @@
 #include <babeltrace2/trace-ir/event-const.h>
 #include <babeltrace2/trace-ir/packet-const.h>
 #include <babeltrace2/trace-ir/stream-const.h>
+#include <babeltrace2/current-thread.h>
 
 #include "logging.h"
 #include "assert-pre.h"
@@ -1487,4 +1485,42 @@ void bt_lib_log(const char *func, const char *file, unsigned line,
 		handle_conversion_specifier_bt, NULL, fmt, &args);
 	va_end(args);
 	_bt_log_write_d(func, file, line, lvl, tag, "%s", lib_logging_buf);
+}
+
+void bt_lib_maybe_log_and_append_cause(const char *func, const char *file,
+		unsigned line, int lvl, const char *tag,
+		const char *fmt, ...)
+{
+	va_list args;
+	bt_current_thread_error_append_cause_status status;
+
+	BT_ASSERT(fmt);
+	va_start(args, fmt);
+	bt_common_custom_vsnprintf(lib_logging_buf, LIB_LOGGING_BUF_SIZE, '!',
+		handle_conversion_specifier_bt, NULL, fmt, &args);
+	va_end(args);
+
+	/* Log conditionally, but always append the error cause */
+	if (BT_LOG_ON(lvl)) {
+		_bt_log_write_d(func, file, line, lvl, tag, "%s",
+			lib_logging_buf);
+	}
+
+	status = bt_current_thread_error_append_cause_from_unknown(
+		"Babeltrace library", file, line, "%s", lib_logging_buf);
+	if (status) {
+		/*
+		 * Worst case: this error cause is not appended to the
+		 * current thread's error.
+		 *
+		 * We can accept this as it's an almost impossible
+		 * scenario and returning an error here would mean you
+		 * need to check the return value of each
+		 * BT_LIB_LOG*_APPEND_CAUSE() macro and that would be
+		 * cumbersome.
+		 */
+		BT_LOGE("Cannot append error cause to current thread's "
+			"error object: status=%s",
+			bt_common_func_status_string(status));
+	}
 }
