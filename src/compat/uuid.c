@@ -23,6 +23,8 @@
  */
 
 #ifdef __APPLE__
+#include "common/macros.h"
+
 /*
  * On macOS, we need a dummy symbol so that the linker won't
  * complain of an empty table of contents.
