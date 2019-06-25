@@ -48,6 +48,7 @@
 static inline
 size_t remaining_mmap_bytes(struct ctf_fs_ds_file *ds_file)
 {
+	BT_ASSERT(ds_file->mmap_len >= ds_file->request_offset);
 	return ds_file->mmap_len - ds_file->request_offset;
 }
 
@@ -138,7 +139,10 @@ enum bt_msg_iter_medium_status medop_request_bytes(
 		goto end;
 	}
 
-	/* Check if we have at least one memory-mapped byte left */
+	/*
+	 * Check if we have at least one memory-mapped byte left. If we don't,
+	 * mmap the next file.
+	 */
 	if (remaining_mmap_bytes(ds_file) == 0) {
 		/* Are we at the end of the file? */
 		if (ds_file->mmap_offset >= ds_file->file->size) {
@@ -163,6 +167,7 @@ enum bt_msg_iter_medium_status medop_request_bytes(
 	}
 
 	*buffer_sz = MIN(remaining_mmap_bytes(ds_file), request_sz);
+	BT_ASSERT(ds_file->mmap_addr);
 	*buffer_addr = ((uint8_t *) ds_file->mmap_addr) + ds_file->request_offset;
 	ds_file->request_offset += *buffer_sz;
 	goto end;
@@ -206,7 +211,7 @@ enum bt_msg_iter_medium_status medop_seek(enum bt_msg_iter_seek_whence whence,
 	enum bt_msg_iter_medium_status ret =
 			BT_MSG_ITER_MEDIUM_STATUS_OK;
 	struct ctf_fs_ds_file *ds_file = data;
-	off_t file_size = ds_file->file->size;
+	off_t offset_in_mapping, file_size = ds_file->file->size;
 
 	if (whence != BT_MSG_ITER_SEEK_WHENCE_SET ||
 		offset < 0 || offset > file_size) {
@@ -217,16 +222,18 @@ enum bt_msg_iter_medium_status medop_seek(enum bt_msg_iter_seek_whence whence,
 		goto end;
 	}
 
+	/* If there is no current mapping, map the right file directly. */
+	if (!ds_file->mmap_addr) {
+		goto map_requested_offset;
+	}
+
 	/*
 	 * Determine whether or not the destination is contained within the
 	 * current mapping.
 	 */
-	if (ds_file->mmap_addr && (offset < ds_file->mmap_offset ||
-			offset >= ds_file->mmap_offset + ds_file->mmap_len)) {
+	if (offset < ds_file->mmap_offset ||
+			offset >= ds_file->mmap_offset + ds_file->mmap_len) {
 		int unmap_ret;
-		off_t offset_in_mapping = offset %
-			bt_common_get_page_size(ds_file->log_level);
-
 		BT_COMP_LOGD("Medium seek request cannot be accomodated by the current "
 				"file mapping: offset=%jd, mmap-offset=%jd, "
 				"mmap-len=%zu", offset, ds_file->mmap_offset,
@@ -236,17 +243,24 @@ enum bt_msg_iter_medium_status medop_seek(enum bt_msg_iter_seek_whence whence,
 			ret = BT_MSG_ITER_MEDIUM_STATUS_ERROR;
 			goto end;
 		}
-
-		ds_file->mmap_offset = offset - offset_in_mapping;
-		ds_file->request_offset = offset_in_mapping;
-		ret = ds_file_mmap_next(ds_file);
-		if (ret != BT_MSG_ITER_MEDIUM_STATUS_OK) {
-			goto end;
-		}
+		goto map_requested_offset;
 	} else {
 		ds_file->request_offset = offset - ds_file->mmap_offset;
+		goto test_end;
 	}
 
+map_requested_offset:
+	offset_in_mapping = offset %
+		bt_common_get_page_size(ds_file->log_level);
+
+	ds_file->mmap_offset = offset - offset_in_mapping;
+	ds_file->request_offset = offset_in_mapping;
+	ret = ds_file_mmap_next(ds_file);
+	if (ret != BT_MSG_ITER_MEDIUM_STATUS_OK) {
+		goto end;
+	}
+
+test_end:
 	ds_file->end_reached = (offset == file_size);
 end:
 	return ret;
