@@ -106,6 +106,10 @@ class NonexistentClockSnapshot(Error):
     pass
 
 
+class PluginLoadingError(Error):
+    pass
+
+
 class _ListenerHandle:
     def __init__(self, listener_id, obj):
         self._listener_id = listener_id

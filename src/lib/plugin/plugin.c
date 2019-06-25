@@ -57,15 +57,22 @@
 #include <plugin/python-plugin-provider.h>
 
 static
-struct bt_plugin_set *(*bt_plugin_python_create_all_from_file_sym)(const char *path) =
+enum bt_plugin_status (*bt_plugin_python_create_all_from_file_sym)(
+		const char *path, bool fail_on_load_error,
+		struct bt_plugin_set **plugin_set_out) =
 	bt_plugin_python_create_all_from_file;
 
 static
-void init_python_plugin_provider(void) {}
+void init_python_plugin_provider(void)
+{
+}
 #else /* BT_BUILT_IN_PYTHON_PLUGIN_SUPPORT */
 static GModule *python_plugin_provider_module;
+
 static
-struct bt_plugin_set *(*bt_plugin_python_create_all_from_file_sym)(const char *path);
+enum bt_plugin_status (*bt_plugin_python_create_all_from_file_sym)(
+		 const char *path, bool fail_on_load_error,
+		 struct bt_plugin_set **plugin_set_out);
 
 static
 void init_python_plugin_provider(void) {
@@ -77,6 +84,11 @@ void init_python_plugin_provider(void) {
 	python_plugin_provider_module =
 		g_module_open(PYTHON_PLUGIN_PROVIDER_FILENAME, 0);
 	if (!python_plugin_provider_module) {
+		/*
+		 * This is not an error. The whole point of having an
+		 * external Python plugin provider is that it can be
+		 * missing and the Babeltrace library still works.
+		 */
 		BT_LOGI("Cannot open `%s`: %s: continuing without Python plugin support.",
 			PYTHON_PLUGIN_PROVIDER_FILENAME, g_module_error());
 		return;
@@ -85,8 +97,15 @@ void init_python_plugin_provider(void) {
 	if (!g_module_symbol(python_plugin_provider_module,
 			PYTHON_PLUGIN_PROVIDER_SYM_NAME_STR,
 			(gpointer) &bt_plugin_python_create_all_from_file_sym)) {
-		BT_LOGI("Cannot find the Python plugin provider loading symbol: continuing without Python plugin support: "
+		/*
+		 * This is an error because, since we found the Python
+		 * plugin provider shared object, we expect this symbol
+		 * to exist.
+		 */
+		BT_LOGE("Cannot find the Python plugin provider loading symbol: "
+			"%s: continuing without Python plugin support: "
 			"file=\"%s\", symbol=\"%s\"",
+			g_module_error(),
 			PYTHON_PLUGIN_PROVIDER_FILENAME,
 			PYTHON_PLUGIN_PROVIDER_SYM_NAME_STR);
 		return;
@@ -125,45 +144,70 @@ const struct bt_plugin *bt_plugin_set_borrow_plugin_by_index_const(
 	return g_ptr_array_index(plugin_set->plugins, index);
 }
 
-const struct bt_plugin_set *bt_plugin_find_all_from_static(void)
+enum bt_plugin_status bt_plugin_find_all_from_static(
+		bt_bool fail_on_load_error,
+		const struct bt_plugin_set **plugin_set_out)
 {
 	/* bt_plugin_so_create_all_from_static() logs errors */
-	return bt_plugin_so_create_all_from_static();
+	return bt_plugin_so_create_all_from_static(fail_on_load_error,
+		(void *) plugin_set_out);
 }
 
-const struct bt_plugin_set *bt_plugin_find_all_from_file(const char *path)
+enum bt_plugin_status bt_plugin_find_all_from_file(const char *path,
+		bt_bool fail_on_load_error,
+		const struct bt_plugin_set **plugin_set_out)
 {
-	struct bt_plugin_set *plugin_set = NULL;
+	enum bt_plugin_status status;
 
 	BT_ASSERT_PRE_NON_NULL(path, "Path");
+	BT_ASSERT_PRE_NON_NULL(path, "Plugin set (output)");
 	BT_LOGI("Creating plugins from file: path=\"%s\"", path);
 
 	/* Try shared object plugins */
-	plugin_set = bt_plugin_so_create_all_from_file(path);
-	if (plugin_set) {
+	status = bt_plugin_so_create_all_from_file(path, fail_on_load_error,
+		(void *) plugin_set_out);
+	if (status == BT_PLUGIN_STATUS_OK) {
+		BT_ASSERT(*plugin_set_out);
+		BT_ASSERT((*plugin_set_out)->plugins->len > 0);
+		goto end;
+	} else if (status < 0) {
+		BT_ASSERT(!*plugin_set_out);
 		goto end;
 	}
+
+	BT_ASSERT(status == BT_PLUGIN_STATUS_NOT_FOUND);
+	BT_ASSERT(!*plugin_set_out);
 
 	/* Try Python plugins if support is available */
 	init_python_plugin_provider();
 	if (bt_plugin_python_create_all_from_file_sym) {
-		plugin_set = bt_plugin_python_create_all_from_file_sym(path);
-		if (plugin_set) {
+		status = bt_plugin_python_create_all_from_file_sym(path,
+			fail_on_load_error, (void *) plugin_set_out);
+		if (status == BT_PLUGIN_STATUS_OK) {
+			BT_ASSERT(*plugin_set_out);
+			BT_ASSERT((*plugin_set_out)->plugins->len > 0);
+			goto end;
+		} else if (status < 0) {
+			BT_ASSERT(!*plugin_set_out);
 			goto end;
 		}
+
+		BT_ASSERT(status == BT_PLUGIN_STATUS_NOT_FOUND);
+		BT_ASSERT(!*plugin_set_out);
 	}
 
 end:
-	if (plugin_set) {
+	if (status == BT_PLUGIN_STATUS_OK) {
 		BT_LOGI("Created %u plugins from file: "
 			"path=\"%s\", count=%u, plugin-set-addr=%p",
-			plugin_set->plugins->len, path,
-			plugin_set->plugins->len, plugin_set);
-	} else {
+			(*plugin_set_out)->plugins->len, path,
+			(*plugin_set_out)->plugins->len,
+			*plugin_set_out);
+	} else if (status == BT_PLUGIN_STATUS_NOT_FOUND) {
 		BT_LOGI("Found no plugins in file: path=\"%s\"", path);
 	}
 
-	return plugin_set;
+	return status;
 }
 
 static void destroy_gstring(void *data)
@@ -171,7 +215,8 @@ static void destroy_gstring(void *data)
 	g_string_free(data, TRUE);
 }
 
-const struct bt_plugin *bt_plugin_find(const char *plugin_name)
+enum bt_plugin_status bt_plugin_find(const char *plugin_name,
+		bt_bool fail_on_load_error, const struct bt_plugin **plugin_out)
 {
 	const char *system_plugin_dir;
 	char *home_plugin_dir = NULL;
@@ -180,14 +225,17 @@ const struct bt_plugin *bt_plugin_find(const char *plugin_name)
 	const struct bt_plugin_set *plugin_set = NULL;
 	GPtrArray *dirs = NULL;
 	int ret;
+	enum bt_plugin_status status = BT_PLUGIN_STATUS_OK;
 	size_t i, j;
 
 	BT_ASSERT_PRE_NON_NULL(plugin_name, "Name");
+	BT_ASSERT_PRE_NON_NULL(plugin_out, "Plugin (output)");
 	BT_LOGI("Finding named plugin in standard directories and built-in plugins: "
 		"name=\"%s\"", plugin_name);
 	dirs = g_ptr_array_new_with_free_func((GDestroyNotify) destroy_gstring);
 	if (!dirs) {
 		BT_LOGE_STR("Failed to allocate a GPtrArray.");
+		status = BT_PLUGIN_STATUS_NOMEM;
 		goto end;
 	}
 
@@ -210,17 +258,18 @@ const struct bt_plugin *bt_plugin_find(const char *plugin_name)
 		ret = bt_common_append_plugin_path_dirs(envvar, dirs);
 		if (ret) {
 			BT_LOGE_STR("Failed to append plugin path to array of directories.");
+			status = BT_PLUGIN_STATUS_NOMEM;
 			goto end;
 		}
 	}
 
 	home_plugin_dir = bt_common_get_home_plugin_path(BT_LOG_OUTPUT_LEVEL);
 	if (home_plugin_dir) {
-		GString *home_plugin_dir_str =
-			g_string_new(home_plugin_dir);
+		GString *home_plugin_dir_str = g_string_new(home_plugin_dir);
 
 		if (!home_plugin_dir_str) {
 			BT_LOGE_STR("Failed to allocate a GString.");
+			status = BT_PLUGIN_STATUS_NOMEM;
 			goto end;
 		}
 
@@ -234,6 +283,7 @@ const struct bt_plugin *bt_plugin_find(const char *plugin_name)
 
 		if (!system_plugin_dir_str) {
 			BT_LOGE_STR("Failed to allocate a GString.");
+			status = BT_PLUGIN_STATUS_NOMEM;
 			goto end;
 		}
 
@@ -256,12 +306,20 @@ const struct bt_plugin *bt_plugin_find(const char *plugin_name)
 		}
 
 		/* bt_plugin_find_all_from_dir() logs details/errors */
-		plugin_set = bt_plugin_find_all_from_dir(dir->str, BT_FALSE);
-		if (!plugin_set) {
+		status = bt_plugin_find_all_from_dir(dir->str, BT_FALSE,
+			fail_on_load_error, &plugin_set);
+		if (status < 0) {
+			BT_ASSERT(!plugin_set);
+			goto end;
+		} else if (status == BT_PLUGIN_STATUS_NOT_FOUND) {
+			BT_ASSERT(!plugin_set);
 			BT_LOGI("No plugins found in directory: path=\"%s\"",
 				dir->str);
 			continue;
 		}
+
+		BT_ASSERT(status == BT_PLUGIN_STATUS_OK);
+		BT_ASSERT(plugin_set);
 
 		for (j = 0; j < plugin_set->plugins->len; j++) {
 			const struct bt_plugin *candidate_plugin =
@@ -271,8 +329,8 @@ const struct bt_plugin *bt_plugin_find(const char *plugin_name)
 					plugin_name) == 0) {
 				BT_LOGI("Plugin found in directory: name=\"%s\", path=\"%s\"",
 					plugin_name, dir->str);
-				plugin = candidate_plugin;
-				bt_object_get_no_null_check(plugin);
+				*plugin_out = candidate_plugin;
+				bt_object_get_no_null_check(*plugin_out);
 				goto end;
 			}
 		}
@@ -281,23 +339,38 @@ const struct bt_plugin *bt_plugin_find(const char *plugin_name)
 			plugin_name, dir->str);
 	}
 
-	bt_object_put_ref(plugin_set);
-	plugin_set = bt_plugin_find_all_from_static();
-	if (plugin_set) {
-		for (j = 0; j < plugin_set->plugins->len; j++) {
-			const struct bt_plugin *candidate_plugin =
-				g_ptr_array_index(plugin_set->plugins, j);
+	BT_OBJECT_PUT_REF_AND_RESET(plugin_set);
+	status = bt_plugin_find_all_from_static(fail_on_load_error,
+		&plugin_set);
+	if (status < 0) {
+		BT_ASSERT(!plugin_set);
+		goto end;
+	}
 
-			if (strcmp(bt_plugin_get_name(candidate_plugin),
-					plugin_name) == 0) {
-				BT_LOGI("Plugin found in built-in plugins: "
-					"name=\"%s\"", plugin_name);
-				plugin = candidate_plugin;
-				bt_object_get_no_null_check(plugin);
-				goto end;
-			}
+	if (status == BT_PLUGIN_STATUS_NOT_FOUND) {
+		BT_ASSERT(!plugin_set);
+		BT_LOGI_STR("No plugins found in built-in plugins.");
+		goto end;
+	}
+
+	BT_ASSERT(status == BT_PLUGIN_STATUS_OK);
+	BT_ASSERT(plugin_set);
+
+	for (j = 0; j < plugin_set->plugins->len; j++) {
+		const struct bt_plugin *candidate_plugin =
+			g_ptr_array_index(plugin_set->plugins, j);
+
+		if (strcmp(bt_plugin_get_name(candidate_plugin),
+				plugin_name) == 0) {
+			BT_LOGI("Plugin found in built-in plugins: "
+				"name=\"%s\"", plugin_name);
+			*plugin_out = candidate_plugin;
+			bt_object_get_no_null_check(*plugin_out);
+			goto end;
 		}
 	}
+
+	status = BT_PLUGIN_STATUS_NOT_FOUND;
 
 end:
 	free(home_plugin_dir);
@@ -307,28 +380,30 @@ end:
 		g_ptr_array_free(dirs, TRUE);
 	}
 
-	if (plugin) {
+	if (status == BT_PLUGIN_STATUS_OK) {
 		BT_LIB_LOGI("Found plugin in standard directories and built-in plugins: "
 			"%!+l", plugin);
-	} else {
+	} else if (status == BT_PLUGIN_STATUS_NOT_FOUND) {
 		BT_LOGI("No plugin found in standard directories and built-in plugins: "
 			"name=\"%s\"", plugin_name);
 	}
 
-	return plugin;
+	return status;
 }
 
 static struct {
 	pthread_mutex_t lock;
 	struct bt_plugin_set *plugin_set;
 	bool recurse;
+	bool fail_on_load_error;
+	enum bt_plugin_status status;
 } append_all_from_dir_info = {
 	.lock = PTHREAD_MUTEX_INITIALIZER
 };
 
 static
-int nftw_append_all_from_dir(const char *file, const struct stat *sb, int flag,
-		struct FTW *s)
+int nftw_append_all_from_dir(const char *file,
+		const struct stat *sb, int flag, struct FTW *s)
 {
 	int ret = 0;
 	const char *name = file + s->base;
@@ -341,7 +416,7 @@ int nftw_append_all_from_dir(const char *file, const struct stat *sb, int flag,
 	switch (flag) {
 	case FTW_F:
 	{
-		const struct bt_plugin_set *plugins_from_file;
+		const struct bt_plugin_set *plugins_from_file = NULL;
 
 		if (name[0] == '.') {
 			/* Skip hidden files */
@@ -349,10 +424,14 @@ int nftw_append_all_from_dir(const char *file, const struct stat *sb, int flag,
 			goto end;
 		}
 
-		plugins_from_file = bt_plugin_find_all_from_file(file);
-
-		if (plugins_from_file) {
+		append_all_from_dir_info.status =
+			bt_plugin_find_all_from_file(file,
+				append_all_from_dir_info.fail_on_load_error,
+				&plugins_from_file);
+		if (append_all_from_dir_info.status == BT_PLUGIN_STATUS_OK) {
 			size_t j;
+
+			BT_ASSERT(plugins_from_file);
 
 			for (j = 0; j < plugins_from_file->plugins->len; j++) {
 				struct bt_plugin *plugin =
@@ -367,12 +446,26 @@ int nftw_append_all_from_dir(const char *file, const struct stat *sb, int flag,
 			}
 
 			bt_object_put_ref(plugins_from_file);
+			goto end;
+		} else if (append_all_from_dir_info.status < 0) {
+			/* bt_plugin_find_all_from_file() logs errors */
+			BT_ASSERT(!plugins_from_file);
+			ret = -1;
+			goto end;
 		}
+
+		/*
+		 * Not found in this file: this is no an error; continue
+		 * walking the directories.
+		 */
+		BT_ASSERT(!plugins_from_file);
+		BT_ASSERT(append_all_from_dir_info.status ==
+			BT_PLUGIN_STATUS_NOT_FOUND);
 		break;
 	}
 	case FTW_DNR:
 		/* Continue to next file / directory. */
-		BT_LOGW("Cannot enter directory: continuing: path=\"%s\"", file);
+		BT_LOGI("Cannot enter directory: continuing: path=\"%s\"", file);
 		break;
 	case FTW_NS:
 		/* Continue to next file / directory. */
@@ -387,10 +480,11 @@ end:
 static
 enum bt_plugin_status bt_plugin_create_append_all_from_dir(
 		struct bt_plugin_set *plugin_set, const char *path,
-		bt_bool recurse)
+		bt_bool recurse, bt_bool fail_on_load_error)
 {
 	int nftw_flags = FTW_PHYS;
-	enum bt_plugin_status ret = BT_PLUGIN_STATUS_OK;
+	int ret;
+	enum bt_plugin_status status;
 
 	BT_ASSERT(plugin_set);
 	BT_ASSERT(path);
@@ -398,50 +492,87 @@ enum bt_plugin_status bt_plugin_create_append_all_from_dir(
 	pthread_mutex_lock(&append_all_from_dir_info.lock);
 	append_all_from_dir_info.plugin_set = plugin_set;
 	append_all_from_dir_info.recurse = recurse;
+	append_all_from_dir_info.status = BT_PLUGIN_STATUS_OK;
+	append_all_from_dir_info.fail_on_load_error = fail_on_load_error;
 	ret = nftw(path, nftw_append_all_from_dir,
 		APPEND_ALL_FROM_DIR_NFDOPEN_MAX, nftw_flags);
+	append_all_from_dir_info.plugin_set = NULL;
+	status = append_all_from_dir_info.status;
 	pthread_mutex_unlock(&append_all_from_dir_info.lock);
-	if (ret != 0) {
-		BT_LOGW_ERRNO("Cannot open directory", ": path=\"%s\"", path);
-		ret = BT_PLUGIN_STATUS_ERROR;
+	if (ret) {
+		BT_LOGW_ERRNO("Failed to walk directory",
+			": path=\"%s\", recurse=%d",
+			path, recurse);
+		status = BT_PLUGIN_STATUS_ERROR;
+		goto end;
 	}
 
+	if (status == BT_PLUGIN_STATUS_NOT_FOUND) {
+		/*
+		 * We're just appending in this function; even if
+		 * nothing was found, it's still okay from the caller's
+		 * perspective.
+		 */
+		status = BT_PLUGIN_STATUS_OK;
+	}
+
+end:
 	return ret;
 }
 
-const struct bt_plugin_set *bt_plugin_find_all_from_dir(const char *path,
-		bt_bool recurse)
+enum bt_plugin_status bt_plugin_find_all_from_dir(const char *path,
+		bt_bool recurse, bt_bool fail_on_load_error,
+		const struct bt_plugin_set **plugin_set_out)
 {
-	struct bt_plugin_set *plugin_set;
-	enum bt_plugin_status status;
+	enum bt_plugin_status status = BT_PLUGIN_STATUS_OK;
 
+	BT_ASSERT_PRE_NON_NULL(plugin_set_out, "Plugin set (output)");
 	BT_LOGI("Creating all plugins in directory: path=\"%s\", recurse=%d",
 		path, recurse);
-	plugin_set = bt_plugin_set_create();
-	if (!plugin_set) {
+	*plugin_set_out = bt_plugin_set_create();
+	if (!*plugin_set_out) {
 		BT_LOGE_STR("Cannot create empty plugin set.");
+		status = BT_PLUGIN_STATUS_NOMEM;
 		goto error;
 	}
 
-	/* Append found plugins to array */
-	status = bt_plugin_create_append_all_from_dir(plugin_set, path,
-		recurse);
+	/*
+	 * Append found plugins to array (never returns
+	 * `BT_PLUGIN_STATUS_NOT_FOUND`)
+	 */
+	status = bt_plugin_create_append_all_from_dir((void *) *plugin_set_out,
+		path, recurse, fail_on_load_error);
 	if (status < 0) {
+		/*
+		 * bt_plugin_create_append_all_from_dir() handles
+		 * `fail_on_load_error`, so this is a "real" error.
+		 */
 		BT_LOGW("Cannot append plugins found in directory: "
 			"path=\"%s\", status=%s",
 			path, bt_plugin_status_string(status));
 		goto error;
 	}
 
+	BT_ASSERT(status == BT_PLUGIN_STATUS_OK);
+
+	if ((*plugin_set_out)->plugins->len == 0) {
+		/* Nothing was appended: not found */
+		BT_LOGI("No plugins found in directory: path=\"%s\"", path);
+		status = BT_PLUGIN_STATUS_NOT_FOUND;
+		goto error;
+	}
+
 	BT_LOGI("Created %u plugins from directory: count=%u, path=\"%s\"",
-		plugin_set->plugins->len, plugin_set->plugins->len, path);
+		(*plugin_set_out)->plugins->len,
+		(*plugin_set_out)->plugins->len, path);
 	goto end;
 
 error:
-	BT_OBJECT_PUT_REF_AND_RESET(plugin_set);
+	BT_ASSERT(status != BT_PLUGIN_STATUS_OK);
+	BT_OBJECT_PUT_REF_AND_RESET(*plugin_set_out);
 
 end:
-	return plugin_set;
+	return status;
 }
 
 const char *bt_plugin_get_name(const struct bt_plugin *plugin)

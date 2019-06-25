@@ -45,12 +45,6 @@ enum bt_plugin_type {
 	BT_PLUGIN_TYPE_PYTHON = 1,
 };
 
-enum bt_plugin_status {
-	BT_PLUGIN_STATUS_OK = 0,
-	BT_PLUGIN_STATUS_ERROR = -1,
-	BT_PLUGIN_STATUS_NOMEM = -12,
-};
-
 struct bt_plugin {
 	struct bt_object base;
 	enum bt_plugin_type type;
@@ -99,8 +93,12 @@ const char *bt_plugin_status_string(enum bt_plugin_status status)
 	switch (status) {
 	case BT_PLUGIN_STATUS_OK:
 		return "BT_PLUGIN_STATUS_OK";
+	case BT_PLUGIN_STATUS_NOT_FOUND:
+		return "BT_PLUGIN_STATUS_NOT_FOUND";
 	case BT_PLUGIN_STATUS_ERROR:
 		return "BT_PLUGIN_STATUS_ERROR";
+	case BT_PLUGIN_STATUS_LOADING_ERROR:
+		return "BT_PLUGIN_STATUS_LOADING_ERROR";
 	case BT_PLUGIN_STATUS_NOMEM:
 		return "BT_PLUGIN_STATUS_NOMEM";
 	default:

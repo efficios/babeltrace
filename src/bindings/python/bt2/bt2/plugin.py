@@ -27,29 +27,45 @@ import os.path
 import bt2
 
 
-def find_plugins(path, recurse=True):
+def _handle_status(status, gen_error_msg):
+    if status == native_bt.PLUGIN_STATUS_LOADING_ERROR:
+        raise bt2.PluginLoadingError
+    elif status < 0:
+        raise bt2.Error(gen_error_msg)
+
+
+def find_plugins(path, recurse=True, fail_on_load_error=False):
     utils._check_str(path)
     utils._check_bool(recurse)
+    utils._check_bool(fail_on_load_error)
     plugin_set_ptr = None
 
     if os.path.isfile(path):
-        plugin_set_ptr = native_bt.plugin_find_all_from_file(path)
+        status, plugin_set_ptr = native_bt.plugin_find_all_from_file_wrapper(path, fail_on_load_error)
     elif os.path.isdir(path):
-        plugin_set_ptr = native_bt.plugin_find_all_from_dir(path, int(recurse))
+        status, plugin_set_ptr = native_bt.plugin_find_all_from_dir_wrapper(path, int(recurse), int(fail_on_load_error))
+    else:
+        raise bt2.Error("invalid path: '{}'".format(path))
 
-    if plugin_set_ptr is None:
+    _handle_status(status, 'failed to find plugins')
+
+    if status == native_bt.PLUGIN_STATUS_NOT_FOUND:
         return
 
+    assert plugin_set_ptr is not None
     return _PluginSet._create_from_ptr(plugin_set_ptr)
 
 
-def find_plugin(name):
+def find_plugin(name, fail_on_load_error=False):
     utils._check_str(name)
-    ptr = native_bt.plugin_find(name)
+    utils._check_bool(fail_on_load_error)
+    status, ptr = native_bt.plugin_find_wrapper(name, int(fail_on_load_error))
+    _handle_status(status, 'failed to find plugin')
 
-    if ptr is None:
+    if status == native_bt.PLUGIN_STATUS_NOT_FOUND:
         return
 
+    assert ptr is not None
     return _Plugin._create_from_ptr(ptr)
 
 

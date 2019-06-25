@@ -47,9 +47,13 @@ class PluginSetTestCase(unittest.TestCase):
 
 
 class FindPluginsTestCase(unittest.TestCase):
-    def test_find_none(self):
-        pset = bt2.find_plugins('/this/does/not/exist/246703df-cb85-46d5-8406-5e8dc4a88b41')
-        self.assertIsNone(pset)
+    def test_find_nonexistent_dir(self):
+        with self.assertRaises(bt2.Error):
+            bt2.find_plugins('/this/does/not/exist/246703df-cb85-46d5-8406-5e8dc4a88b41')
+
+    def test_find_none_existing_dir(self):
+        plugins = bt2.find_plugins(_TEST_PLUGIN_PLUGINS_PATH, recurse=False)
+        self.assertIsNone(plugins)
 
     def test_find_dir(self):
         pset = bt2.find_plugins(_TEST_PLUGIN_PLUGINS_PATH)
