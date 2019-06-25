@@ -22,7 +22,7 @@ STATIC_BINDINGS_DEPS =					\
 	bt2/native_bt.i					\
 	bt2/native_bt_logging.i				\
 	bt2/native_bt_message.i				\
-	bt2/native_bt_notifier.i			\
+	bt2/native_bt_message_iterator.i		\
 	bt2/native_bt_packet.i				\
 	bt2/native_bt_plugin.i				\
 	bt2/native_bt_port.i				\
