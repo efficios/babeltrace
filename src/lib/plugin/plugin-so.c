@@ -174,33 +174,37 @@ void bt_plugin_so_shared_lib_handle_destroy(struct bt_object *obj)
 }
 
 static
-struct bt_plugin_so_shared_lib_handle *bt_plugin_so_shared_lib_handle_create(
-		const char *path)
+enum bt_plugin_status bt_plugin_so_shared_lib_handle_create(
+		const char *path,
+		struct bt_plugin_so_shared_lib_handle **shared_lib_handle)
 {
-	struct bt_plugin_so_shared_lib_handle *shared_lib_handle = NULL;
+	enum bt_plugin_status status = BT_PLUGIN_STATUS_OK;
 
+	BT_ASSERT(shared_lib_handle);
 	BT_LOGI("Creating shared library handle: path=\"%s\"", path);
-	shared_lib_handle = g_new0(struct bt_plugin_so_shared_lib_handle, 1);
-	if (!shared_lib_handle) {
+	*shared_lib_handle = g_new0(struct bt_plugin_so_shared_lib_handle, 1);
+	if (!*shared_lib_handle) {
 		BT_LOGE_STR("Failed to allocate one shared library handle.");
-		goto error;
+		status = BT_PLUGIN_STATUS_NOMEM;
+		goto end;
 	}
 
-	bt_object_init_shared(&shared_lib_handle->base,
+	bt_object_init_shared(&(*shared_lib_handle)->base,
 		bt_plugin_so_shared_lib_handle_destroy);
 
 	if (!path) {
 		goto end;
 	}
 
-	shared_lib_handle->path = g_string_new(path);
-	if (!shared_lib_handle->path) {
+	(*shared_lib_handle)->path = g_string_new(path);
+	if (!(*shared_lib_handle)->path) {
 		BT_LOGE_STR("Failed to allocate a GString.");
-		goto error;
+		status = BT_PLUGIN_STATUS_NOMEM;
+		goto end;
 	}
 
-	shared_lib_handle->module = g_module_open(path, G_MODULE_BIND_LOCAL);
-	if (!shared_lib_handle->module) {
+	(*shared_lib_handle)->module = g_module_open(path, G_MODULE_BIND_LOCAL);
+	if (!(*shared_lib_handle)->module) {
 		/*
 		 * INFO-level logging because we're only _trying_ to
 		 * open this file as a Babeltrace plugin: if it's not,
@@ -210,21 +214,21 @@ struct bt_plugin_so_shared_lib_handle *bt_plugin_so_shared_lib_handle_create(
 		 */
 		BT_LOGI("Cannot open GModule: %s: path=\"%s\"",
 			g_module_error(), path);
-		goto error;
+		BT_OBJECT_PUT_REF_AND_RESET(*shared_lib_handle);
+		status = BT_PLUGIN_STATUS_NOT_FOUND;
+		goto end;
 	}
 
 	goto end;
 
-error:
-	BT_OBJECT_PUT_REF_AND_RESET(shared_lib_handle);
-
 end:
-	if (shared_lib_handle) {
+	BT_ASSERT(*shared_lib_handle || status != BT_PLUGIN_STATUS_OK);
+	if (*shared_lib_handle) {
 		BT_LOGI("Created shared library handle: path=\"%s\", addr=%p",
-			path, shared_lib_handle);
+			path, *shared_lib_handle);
 	}
 
-	return shared_lib_handle;
+	return status;
 }
 
 static
@@ -271,8 +275,8 @@ void bt_plugin_so_destroy_spec_data(struct bt_plugin *plugin)
  * 6. Freeze the plugin object.
  */
 static
-enum bt_plugin_status bt_plugin_so_init(
-		struct bt_plugin *plugin,
+enum bt_plugin_status bt_plugin_so_init(struct bt_plugin *plugin,
+		bool fail_on_load_error,
 		const struct __bt_plugin_descriptor *descriptor,
 		struct __bt_plugin_descriptor_attribute const * const *attrs_begin,
 		struct __bt_plugin_descriptor_attribute const * const *attrs_end,
@@ -352,7 +356,7 @@ enum bt_plugin_status bt_plugin_so_init(
 		sizeof(struct comp_class_full_descriptor));
 	if (!comp_class_full_descriptors) {
 		BT_LOGE_STR("Failed to allocate a GArray.");
-		status = BT_PLUGIN_STATUS_ERROR;
+		status = BT_PLUGIN_STATUS_NOMEM;
 		goto end;
 	}
 
@@ -400,21 +404,24 @@ enum bt_plugin_status bt_plugin_so_init(
 				cur_attr->value.version.extra);
 			break;
 		default:
-			/*
-			 * WARN-level logging because this should not
-			 * happen with the appropriate ABI version. If
-			 * we're here, we know that for the reported
-			 * version of the ABI, this attribute is
-			 * unknown.
-			 */
-			BT_LOGW("Ignoring unknown plugin descriptor attribute: "
+			BT_LOG_WRITE(fail_on_load_error ?
+				BT_LOG_WARN : BT_LOG_INFO, BT_LOG_TAG,
+				"%s plugin descriptor attribute: "
 				"plugin-path=\"%s\", plugin-name=\"%s\", "
 				"attr-type-name=\"%s\", attr-type-id=%d",
+				fail_on_load_error ? "Unknown" :
+					"Ignoring unknown",
 				spec->shared_lib_handle->path ?
 					spec->shared_lib_handle->path->str :
 					NULL,
 				descriptor->name, cur_attr->type_name,
 				cur_attr->type);
+
+			if (fail_on_load_error) {
+				status = BT_PLUGIN_STATUS_LOADING_ERROR;
+				goto end;
+			}
+
 			break;
 		}
 	}
@@ -660,21 +667,17 @@ enum bt_plugin_status bt_plugin_so_init(
 				}
 				break;
 			default:
-				/*
-				 * WARN-level logging because this
-				 * should not happen with the
-				 * appropriate ABI version. If we're
-				 * here, we know that for the reported
-				 * version of the ABI, this attribute is
-				 * unknown.
-				 */
-				BT_LOGW("Ignoring unknown component class descriptor attribute: "
+				BT_LOG_WRITE(fail_on_load_error ?
+					BT_LOG_WARN : BT_LOG_INFO, BT_LOG_TAG,
+					"%s component class descriptor attribute: "
 					"plugin-path=\"%s\", "
 					"plugin-name=\"%s\", "
 					"comp-class-name=\"%s\", "
 					"comp-class-type=%s, "
 					"attr-type-name=\"%s\", "
 					"attr-type-id=%d",
+					fail_on_load_error ? "Unknown" :
+						"Ignoring unknown",
 					spec->shared_lib_handle->path ?
 						spec->shared_lib_handle->path->str :
 						NULL,
@@ -684,6 +687,12 @@ enum bt_plugin_status bt_plugin_so_init(
 						cur_cc_descr_attr->comp_class_descriptor->type),
 					cur_cc_descr_attr->type_name,
 					cur_cc_descr_attr->type);
+
+				if (fail_on_load_error) {
+					status = BT_PLUGIN_STATUS_LOADING_ERROR;
+					goto end;
+				}
+
 				break;
 			}
 		}
@@ -695,13 +704,20 @@ enum bt_plugin_status bt_plugin_so_init(
 
 		BT_LOGD_STR("Calling user's plugin initialization function.");
 		init_status = spec->init((void *) plugin);
-		BT_LOGD("User function returned: %s",
+		BT_LOGD("User function returned: status=%s",
 			bt_self_plugin_status_string(init_status));
 
 		if (init_status < 0) {
-			BT_LOGW_STR("User's plugin initialization function failed.");
-			status = BT_PLUGIN_STATUS_ERROR;
-			goto end;
+			BT_LOG_WRITE(fail_on_load_error ?
+				BT_LOG_WARN : BT_LOG_INFO, BT_LOG_TAG,
+				"User's plugin initialization function failed: "
+				"status=%s",
+				bt_self_plugin_status_string(init_status));
+
+			if (fail_on_load_error) {
+				status = (int) init_status;
+				goto end;
+			}
 		}
 	}
 
@@ -751,28 +767,31 @@ enum bt_plugin_status bt_plugin_so_init(
 				sink_comp_class);
 			break;
 		default:
-			/*
-			 * WARN-level logging because this should not
-			 * happen with the appropriate ABI version. If
-			 * we're here, we know that for the reported
-			 * version of the ABI, this component class type
-			 * is unknown.
-			 */
-			BT_LOGW("Ignoring unknown component class type: "
+			BT_LOG_WRITE(fail_on_load_error ?
+				BT_LOG_WARN : BT_LOG_INFO, BT_LOG_TAG,
+				"%s component class type: "
 				"plugin-path=\"%s\", plugin-name=\"%s\", "
 				"comp-class-name=\"%s\", comp-class-type=%d",
+				fail_on_load_error ? "Unknown" :
+					"Ignoring unknown",
 				spec->shared_lib_handle->path->str ?
 					spec->shared_lib_handle->path->str :
 					NULL,
 				descriptor->name,
 				cc_full_descr->descriptor->name,
 				cc_full_descr->descriptor->type);
+
+			if (fail_on_load_error) {
+				status = BT_PLUGIN_STATUS_LOADING_ERROR;
+				goto end;
+			}
+
 			continue;
 		}
 
 		if (!comp_class) {
 			BT_LOGE_STR("Cannot create component class.");
-			status = BT_PLUGIN_STATUS_ERROR;
+			status = BT_PLUGIN_STATUS_NOMEM;
 			goto end;
 		}
 
@@ -781,7 +800,7 @@ enum bt_plugin_status bt_plugin_so_init(
 				comp_class, cc_full_descr->description);
 			if (ret) {
 				BT_LOGE_STR("Cannot set component class's description.");
-				status = BT_PLUGIN_STATUS_ERROR;
+				status = BT_PLUGIN_STATUS_NOMEM;
 				BT_OBJECT_PUT_REF_AND_RESET(comp_class);
 				goto end;
 			}
@@ -792,7 +811,7 @@ enum bt_plugin_status bt_plugin_so_init(
 				cc_full_descr->help);
 			if (ret) {
 				BT_LOGE_STR("Cannot set component class's help string.");
-				status = BT_PLUGIN_STATUS_ERROR;
+				status = BT_PLUGIN_STATUS_NOMEM;
 				BT_OBJECT_PUT_REF_AND_RESET(comp_class);
 				goto end;
 			}
@@ -806,7 +825,7 @@ enum bt_plugin_status bt_plugin_so_init(
 					cc_full_descr->methods.source.init);
 				if (ret) {
 					BT_LOGE_STR("Cannot set source component class's initialization method.");
-					status = BT_PLUGIN_STATUS_ERROR;
+					status = BT_PLUGIN_STATUS_NOMEM;
 					BT_OBJECT_PUT_REF_AND_RESET(src_comp_class);
 					goto end;
 				}
@@ -818,7 +837,7 @@ enum bt_plugin_status bt_plugin_so_init(
 					cc_full_descr->methods.source.finalize);
 				if (ret) {
 					BT_LOGE_STR("Cannot set source component class's finalization method.");
-					status = BT_PLUGIN_STATUS_ERROR;
+					status = BT_PLUGIN_STATUS_NOMEM;
 					BT_OBJECT_PUT_REF_AND_RESET(src_comp_class);
 					goto end;
 				}
@@ -830,7 +849,7 @@ enum bt_plugin_status bt_plugin_so_init(
 					cc_full_descr->methods.source.query);
 				if (ret) {
 					BT_LOGE_STR("Cannot set source component class's query method.");
-					status = BT_PLUGIN_STATUS_ERROR;
+					status = BT_PLUGIN_STATUS_NOMEM;
 					BT_OBJECT_PUT_REF_AND_RESET(src_comp_class);
 					goto end;
 				}
@@ -842,7 +861,7 @@ enum bt_plugin_status bt_plugin_so_init(
 					cc_full_descr->methods.source.output_port_connected);
 				if (ret) {
 					BT_LOGE_STR("Cannot set source component class's \"output port connected\" method.");
-					status = BT_PLUGIN_STATUS_ERROR;
+					status = BT_PLUGIN_STATUS_NOMEM;
 					BT_OBJECT_PUT_REF_AND_RESET(src_comp_class);
 					goto end;
 				}
@@ -854,7 +873,7 @@ enum bt_plugin_status bt_plugin_so_init(
 					cc_full_descr->methods.source.msg_iter_init);
 				if (ret) {
 					BT_LOGE_STR("Cannot set source component class's message iterator initialization method.");
-					status = BT_PLUGIN_STATUS_ERROR;
+					status = BT_PLUGIN_STATUS_NOMEM;
 					BT_OBJECT_PUT_REF_AND_RESET(src_comp_class);
 					goto end;
 				}
@@ -866,7 +885,7 @@ enum bt_plugin_status bt_plugin_so_init(
 					cc_full_descr->methods.source.msg_iter_finalize);
 				if (ret) {
 					BT_LOGE_STR("Cannot set source component class's message iterator finalization method.");
-					status = BT_PLUGIN_STATUS_ERROR;
+					status = BT_PLUGIN_STATUS_NOMEM;
 					BT_OBJECT_PUT_REF_AND_RESET(src_comp_class);
 					goto end;
 				}
@@ -878,7 +897,7 @@ enum bt_plugin_status bt_plugin_so_init(
 					cc_full_descr->methods.source.msg_iter_seek_ns_from_origin);
 				if (ret) {
 					BT_LOGE_STR("Cannot set source component class's message iterator \"seek nanoseconds from origin\" method.");
-					status = BT_PLUGIN_STATUS_ERROR;
+					status = BT_PLUGIN_STATUS_NOMEM;
 					BT_OBJECT_PUT_REF_AND_RESET(src_comp_class);
 					goto end;
 				}
@@ -890,7 +909,7 @@ enum bt_plugin_status bt_plugin_so_init(
 					cc_full_descr->methods.source.msg_iter_seek_beginning);
 				if (ret) {
 					BT_LOGE_STR("Cannot set source component class's message iterator \"seek beginning\" method.");
-					status = BT_PLUGIN_STATUS_ERROR;
+					status = BT_PLUGIN_STATUS_NOMEM;
 					BT_OBJECT_PUT_REF_AND_RESET(src_comp_class);
 					goto end;
 				}
@@ -902,7 +921,7 @@ enum bt_plugin_status bt_plugin_so_init(
 					cc_full_descr->methods.source.msg_iter_can_seek_ns_from_origin);
 				if (ret) {
 					BT_LOGE_STR("Cannot set source component class's message iterator \"can seek nanoseconds from origin\" method.");
-					status = BT_PLUGIN_STATUS_ERROR;
+					status = BT_PLUGIN_STATUS_NOMEM;
 					BT_OBJECT_PUT_REF_AND_RESET(src_comp_class);
 					goto end;
 				}
@@ -914,7 +933,7 @@ enum bt_plugin_status bt_plugin_so_init(
 					cc_full_descr->methods.source.msg_iter_can_seek_beginning);
 				if (ret) {
 					BT_LOGE_STR("Cannot set source component class's message iterator \"can seek beginning\" method.");
-					status = BT_PLUGIN_STATUS_ERROR;
+					status = BT_PLUGIN_STATUS_NOMEM;
 					BT_OBJECT_PUT_REF_AND_RESET(src_comp_class);
 					goto end;
 				}
@@ -928,7 +947,7 @@ enum bt_plugin_status bt_plugin_so_init(
 					cc_full_descr->methods.filter.init);
 				if (ret) {
 					BT_LOGE_STR("Cannot set filter component class's initialization method.");
-					status = BT_PLUGIN_STATUS_ERROR;
+					status = BT_PLUGIN_STATUS_NOMEM;
 					BT_OBJECT_PUT_REF_AND_RESET(flt_comp_class);
 					goto end;
 				}
@@ -940,7 +959,7 @@ enum bt_plugin_status bt_plugin_so_init(
 					cc_full_descr->methods.filter.finalize);
 				if (ret) {
 					BT_LOGE_STR("Cannot set filter component class's finalization method.");
-					status = BT_PLUGIN_STATUS_ERROR;
+					status = BT_PLUGIN_STATUS_NOMEM;
 					BT_OBJECT_PUT_REF_AND_RESET(flt_comp_class);
 					goto end;
 				}
@@ -952,7 +971,7 @@ enum bt_plugin_status bt_plugin_so_init(
 					cc_full_descr->methods.filter.query);
 				if (ret) {
 					BT_LOGE_STR("Cannot set filter component class's query method.");
-					status = BT_PLUGIN_STATUS_ERROR;
+					status = BT_PLUGIN_STATUS_NOMEM;
 					BT_OBJECT_PUT_REF_AND_RESET(flt_comp_class);
 					goto end;
 				}
@@ -964,7 +983,7 @@ enum bt_plugin_status bt_plugin_so_init(
 					cc_full_descr->methods.filter.input_port_connected);
 				if (ret) {
 					BT_LOGE_STR("Cannot set filter component class's \"input port connected\" method.");
-					status = BT_PLUGIN_STATUS_ERROR;
+					status = BT_PLUGIN_STATUS_NOMEM;
 					BT_OBJECT_PUT_REF_AND_RESET(flt_comp_class);
 					goto end;
 				}
@@ -976,7 +995,7 @@ enum bt_plugin_status bt_plugin_so_init(
 					cc_full_descr->methods.filter.output_port_connected);
 				if (ret) {
 					BT_LOGE_STR("Cannot set filter component class's \"output port connected\" method.");
-					status = BT_PLUGIN_STATUS_ERROR;
+					status = BT_PLUGIN_STATUS_NOMEM;
 					BT_OBJECT_PUT_REF_AND_RESET(flt_comp_class);
 					goto end;
 				}
@@ -988,7 +1007,7 @@ enum bt_plugin_status bt_plugin_so_init(
 					cc_full_descr->methods.filter.msg_iter_init);
 				if (ret) {
 					BT_LOGE_STR("Cannot set filter component class's message iterator initialization method.");
-					status = BT_PLUGIN_STATUS_ERROR;
+					status = BT_PLUGIN_STATUS_NOMEM;
 					BT_OBJECT_PUT_REF_AND_RESET(flt_comp_class);
 					goto end;
 				}
@@ -1000,7 +1019,7 @@ enum bt_plugin_status bt_plugin_so_init(
 					cc_full_descr->methods.filter.msg_iter_finalize);
 				if (ret) {
 					BT_LOGE_STR("Cannot set filter component class's message iterator finalization method.");
-					status = BT_PLUGIN_STATUS_ERROR;
+					status = BT_PLUGIN_STATUS_NOMEM;
 					BT_OBJECT_PUT_REF_AND_RESET(flt_comp_class);
 					goto end;
 				}
@@ -1012,7 +1031,7 @@ enum bt_plugin_status bt_plugin_so_init(
 					cc_full_descr->methods.filter.msg_iter_seek_ns_from_origin);
 				if (ret) {
 					BT_LOGE_STR("Cannot set filter component class's message iterator \"seek nanoseconds from origin\" method.");
-					status = BT_PLUGIN_STATUS_ERROR;
+					status = BT_PLUGIN_STATUS_NOMEM;
 					BT_OBJECT_PUT_REF_AND_RESET(flt_comp_class);
 					goto end;
 				}
@@ -1024,7 +1043,7 @@ enum bt_plugin_status bt_plugin_so_init(
 					cc_full_descr->methods.filter.msg_iter_seek_beginning);
 				if (ret) {
 					BT_LOGE_STR("Cannot set filter component class's message iterator \"seek beginning\" method.");
-					status = BT_PLUGIN_STATUS_ERROR;
+					status = BT_PLUGIN_STATUS_NOMEM;
 					BT_OBJECT_PUT_REF_AND_RESET(flt_comp_class);
 					goto end;
 				}
@@ -1036,7 +1055,7 @@ enum bt_plugin_status bt_plugin_so_init(
 					cc_full_descr->methods.filter.msg_iter_can_seek_ns_from_origin);
 				if (ret) {
 					BT_LOGE_STR("Cannot set filter component class's message iterator \"can seek nanoseconds from origin\" method.");
-					status = BT_PLUGIN_STATUS_ERROR;
+					status = BT_PLUGIN_STATUS_NOMEM;
 					BT_OBJECT_PUT_REF_AND_RESET(flt_comp_class);
 					goto end;
 				}
@@ -1048,7 +1067,7 @@ enum bt_plugin_status bt_plugin_so_init(
 					cc_full_descr->methods.filter.msg_iter_can_seek_beginning);
 				if (ret) {
 					BT_LOGE_STR("Cannot set filter component class's message iterator \"can seek beginning\" method.");
-					status = BT_PLUGIN_STATUS_ERROR;
+					status = BT_PLUGIN_STATUS_NOMEM;
 					BT_OBJECT_PUT_REF_AND_RESET(flt_comp_class);
 					goto end;
 				}
@@ -1062,7 +1081,7 @@ enum bt_plugin_status bt_plugin_so_init(
 					cc_full_descr->methods.sink.init);
 				if (ret) {
 					BT_LOGE_STR("Cannot set sink component class's initialization method.");
-					status = BT_PLUGIN_STATUS_ERROR;
+					status = BT_PLUGIN_STATUS_NOMEM;
 					BT_OBJECT_PUT_REF_AND_RESET(sink_comp_class);
 					goto end;
 				}
@@ -1074,7 +1093,7 @@ enum bt_plugin_status bt_plugin_so_init(
 					cc_full_descr->methods.sink.finalize);
 				if (ret) {
 					BT_LOGE_STR("Cannot set sink component class's finalization method.");
-					status = BT_PLUGIN_STATUS_ERROR;
+					status = BT_PLUGIN_STATUS_NOMEM;
 					BT_OBJECT_PUT_REF_AND_RESET(sink_comp_class);
 					goto end;
 				}
@@ -1086,7 +1105,7 @@ enum bt_plugin_status bt_plugin_so_init(
 					cc_full_descr->methods.sink.query);
 				if (ret) {
 					BT_LOGE_STR("Cannot set sink component class's query method.");
-					status = BT_PLUGIN_STATUS_ERROR;
+					status = BT_PLUGIN_STATUS_NOMEM;
 					BT_OBJECT_PUT_REF_AND_RESET(sink_comp_class);
 					goto end;
 				}
@@ -1098,7 +1117,7 @@ enum bt_plugin_status bt_plugin_so_init(
 					cc_full_descr->methods.sink.input_port_connected);
 				if (ret) {
 					BT_LOGE_STR("Cannot set sink component class's \"input port connected\" method.");
-					status = BT_PLUGIN_STATUS_ERROR;
+					status = BT_PLUGIN_STATUS_NOMEM;
 					BT_OBJECT_PUT_REF_AND_RESET(sink_comp_class);
 					goto end;
 				}
@@ -1110,7 +1129,7 @@ enum bt_plugin_status bt_plugin_so_init(
 					cc_full_descr->methods.sink.graph_is_configured);
 				if (ret) {
 					BT_LOGE_STR("Cannot set sink component class's \"graph is configured\" method.");
-					status = BT_PLUGIN_STATUS_ERROR;
+					status = BT_PLUGIN_STATUS_NOMEM;
 					BT_OBJECT_PUT_REF_AND_RESET(sink_comp_class);
 					goto end;
 				}
@@ -1192,8 +1211,9 @@ size_t count_non_null_items_in_section(const void *begin, const void *end)
 }
 
 static
-struct bt_plugin_set *bt_plugin_so_create_all_from_sections(
+enum bt_plugin_status bt_plugin_so_create_all_from_sections(
 		struct bt_plugin_so_shared_lib_handle *shared_lib_handle,
+		bool fail_on_load_error,
 		struct __bt_plugin_descriptor const * const *descriptors_begin,
 		struct __bt_plugin_descriptor const * const *descriptors_end,
 		struct __bt_plugin_descriptor_attribute const * const *attrs_begin,
@@ -1201,20 +1221,22 @@ struct bt_plugin_set *bt_plugin_so_create_all_from_sections(
 		struct __bt_plugin_component_class_descriptor const * const *cc_descriptors_begin,
 		struct __bt_plugin_component_class_descriptor const * const *cc_descriptors_end,
 		struct __bt_plugin_component_class_descriptor_attribute const * const *cc_descr_attrs_begin,
-		struct __bt_plugin_component_class_descriptor_attribute const * const *cc_descr_attrs_end)
+		struct __bt_plugin_component_class_descriptor_attribute const * const *cc_descr_attrs_end,
+		struct bt_plugin_set **plugin_set_out)
 {
+	enum bt_plugin_status status = BT_PLUGIN_STATUS_OK;
 	size_t descriptor_count;
 	size_t attrs_count;
 	size_t cc_descriptors_count;
 	size_t cc_descr_attrs_count;
 	size_t i;
-	struct bt_plugin_set *plugin_set = NULL;
 
+	BT_ASSERT(plugin_set_out);
+	*plugin_set_out = NULL;
 	descriptor_count = count_non_null_items_in_section(descriptors_begin, descriptors_end);
 	attrs_count = count_non_null_items_in_section(attrs_begin, attrs_end);
 	cc_descriptors_count = count_non_null_items_in_section(cc_descriptors_begin, cc_descriptors_end);
 	cc_descr_attrs_count =  count_non_null_items_in_section(cc_descr_attrs_begin, cc_descr_attrs_end);
-
 	BT_LOGI("Creating all SO plugins from sections: "
 		"plugin-path=\"%s\", "
 		"descr-begin-addr=%p, descr-end-addr=%p, "
@@ -1230,9 +1252,10 @@ struct bt_plugin_set *bt_plugin_so_create_all_from_sections(
 		cc_descr_attrs_begin, cc_descr_attrs_end,
 		descriptor_count, attrs_count,
 		cc_descriptors_count, cc_descr_attrs_count);
-	plugin_set = bt_plugin_set_create();
-	if (!plugin_set) {
+	*plugin_set_out = bt_plugin_set_create();
+	if (!*plugin_set_out) {
 		BT_LOGE_STR("Cannot create empty plugin set.");
+		status = BT_PLUGIN_STATUS_NOMEM;
 		goto error;
 	}
 
@@ -1251,73 +1274,91 @@ struct bt_plugin_set *bt_plugin_so_create_all_from_sections(
 			descriptor->name, descriptor->major, descriptor->minor);
 
 		if (descriptor->major > __BT_PLUGIN_VERSION_MAJOR) {
-			/*
-			 * INFO-level logging because we're only
-			 * _trying_ to open this file as a compatible
-			 * Babeltrace plugin: if it's not, it's not an
-			 * error. And because this can be tried during
-			 * bt_plugin_find_all_from_dir(), it's not even
-			 * a warning.
-			 */
-			BT_LOGI("Unknown ABI major version: abi-major=%d",
-				descriptor->major);
-			goto error;
+			BT_LOG_WRITE(fail_on_load_error ? BT_LOG_WARN :
+				BT_LOG_INFO, BT_LOG_TAG,
+				"Unknown ABI major version: abi-major=%d",
+					descriptor->major);
+
+			if (fail_on_load_error) {
+				status = BT_PLUGIN_STATUS_LOADING_ERROR;
+				goto error;
+			} else {
+				continue;
+			}
 		}
 
 		plugin = bt_plugin_so_create_empty(shared_lib_handle);
 		if (!plugin) {
 			BT_LOGE_STR("Cannot create empty shared library handle.");
+			status = BT_PLUGIN_STATUS_NOMEM;
 			goto error;
 		}
 
 		if (shared_lib_handle && shared_lib_handle->path) {
-			bt_plugin_set_path(plugin, shared_lib_handle->path->str);
+			bt_plugin_set_path(plugin,
+				shared_lib_handle->path->str);
 		}
 
-		status = bt_plugin_so_init(plugin, descriptor, attrs_begin,
-			attrs_end, cc_descriptors_begin, cc_descriptors_end,
+		status = bt_plugin_so_init(plugin, fail_on_load_error,
+			descriptor, attrs_begin, attrs_end,
+			cc_descriptors_begin, cc_descriptors_end,
 			cc_descr_attrs_begin, cc_descr_attrs_end);
-		if (status < 0) {
+		if (status == BT_PLUGIN_STATUS_OK) {
+			/* Add to plugin set */
+			bt_plugin_set_add_plugin(*plugin_set_out, plugin);
+			BT_OBJECT_PUT_REF_AND_RESET(plugin);
+		} else if (status < 0) {
 			/*
-			 * DEBUG-level logging because we're only
-			 * _trying_ to open this file as a compatible
-			 * Babeltrace plugin: if it's not, it's not an
-			 * error. And because this can be tried during
-			 * bt_plugin_find_all_from_dir(), it's not
-			 * even a warning.
+			 * bt_plugin_so_init() handles
+			 * `fail_on_load_error`, so this is a "real"
+			 * error.
 			 */
-			BT_LOGD_STR("Cannot initialize SO plugin object from sections.");
+			BT_LOGW_STR("Cannot initialize SO plugin object from sections.");
 			BT_OBJECT_PUT_REF_AND_RESET(plugin);
 			goto error;
 		}
 
-		/* Add to plugin set */
-		bt_plugin_set_add_plugin(plugin_set, plugin);
-		bt_object_put_ref(plugin);
+		BT_ASSERT(!plugin);
+	}
+
+	BT_ASSERT(*plugin_set_out);
+
+	if ((*plugin_set_out)->plugins->len == 0) {
+		BT_OBJECT_PUT_REF_AND_RESET(*plugin_set_out);
+		status = BT_PLUGIN_STATUS_NOT_FOUND;
 	}
 
 	goto end;
 
 error:
-	BT_OBJECT_PUT_REF_AND_RESET(plugin_set);
+	BT_ASSERT(status < 0);
+	BT_OBJECT_PUT_REF_AND_RESET(*plugin_set_out);
 
 end:
-	return plugin_set;
+	return status;
 }
 
 BT_HIDDEN
-struct bt_plugin_set *bt_plugin_so_create_all_from_static(void)
+enum bt_plugin_status bt_plugin_so_create_all_from_static(
+		bool fail_on_load_error,
+		struct bt_plugin_set **plugin_set_out)
 {
-	struct bt_plugin_set *plugin_set = NULL;
-	struct bt_plugin_so_shared_lib_handle *shared_lib_handle =
-		bt_plugin_so_shared_lib_handle_create(NULL);
+	enum bt_plugin_status status;
+	struct bt_plugin_so_shared_lib_handle *shared_lib_handle = NULL;
 
-	if (!shared_lib_handle) {
+	BT_ASSERT(plugin_set_out);
+	*plugin_set_out = NULL;
+	status = bt_plugin_so_shared_lib_handle_create(NULL,
+		&shared_lib_handle);
+	if (status != BT_PLUGIN_STATUS_OK) {
+		BT_ASSERT(!shared_lib_handle);
 		goto end;
 	}
 
+	BT_ASSERT(shared_lib_handle);
 	BT_LOGD_STR("Creating all SO plugins from built-in plugins.");
-	plugin_set = bt_plugin_so_create_all_from_sections(shared_lib_handle,
+	status = bt_plugin_so_create_all_from_sections(shared_lib_handle,
+		fail_on_load_error,
 		__bt_get_begin_section_plugin_descriptors(),
 		__bt_get_end_section_plugin_descriptors(),
 		__bt_get_begin_section_plugin_descriptor_attributes(),
@@ -1325,19 +1366,22 @@ struct bt_plugin_set *bt_plugin_so_create_all_from_static(void)
 		__bt_get_begin_section_component_class_descriptors(),
 		__bt_get_end_section_component_class_descriptors(),
 		__bt_get_begin_section_component_class_descriptor_attributes(),
-		__bt_get_end_section_component_class_descriptor_attributes());
+		__bt_get_end_section_component_class_descriptor_attributes(),
+		plugin_set_out);
+	BT_ASSERT((status == BT_PLUGIN_STATUS_OK && *plugin_set_out &&
+		(*plugin_set_out)->plugins->len > 0) || !*plugin_set_out);
 
 end:
 	BT_OBJECT_PUT_REF_AND_RESET(shared_lib_handle);
-
-	return plugin_set;
+	return status;
 }
 
 BT_HIDDEN
-struct bt_plugin_set *bt_plugin_so_create_all_from_file(const char *path)
+enum bt_plugin_status bt_plugin_so_create_all_from_file(const char *path,
+		bool fail_on_load_error, struct bt_plugin_set **plugin_set_out)
 {
 	size_t path_len;
-	struct bt_plugin_set *plugin_set = NULL;
+	enum bt_plugin_status status;
 	struct __bt_plugin_descriptor const * const *descriptors_begin = NULL;
 	struct __bt_plugin_descriptor const * const *descriptors_end = NULL;
 	struct __bt_plugin_descriptor_attribute const * const *attrs_begin = NULL;
@@ -1358,6 +1402,8 @@ struct bt_plugin_set *bt_plugin_so_create_all_from_file(const char *path)
 	struct bt_plugin_so_shared_lib_handle *shared_lib_handle = NULL;
 
 	BT_ASSERT(path);
+	BT_ASSERT(plugin_set_out);
+	*plugin_set_out = NULL;
 	path_len = strlen(path);
 	BT_ASSERT_PRE(path_len > PLUGIN_SUFFIX_LEN,
 		"Path length is too short: path-length=%zu, min-length=%zu",
@@ -1377,14 +1423,17 @@ struct bt_plugin_set *bt_plugin_so_create_all_from_file(const char *path)
 		NATIVE_PLUGIN_SUFFIX_LEN);
 	if (!is_shared_object && !is_libtool_wrapper) {
 		/* Name indicates this is not a plugin file; not an error */
-		BT_LOGI("File is not a SO plugin file: path=\"%s\"", path);
+		BT_LOGI("File is not an SO plugin file: path=\"%s\"", path);
+		status = BT_PLUGIN_STATUS_NOT_FOUND;
 		goto end;
 	}
 
-	shared_lib_handle = bt_plugin_so_shared_lib_handle_create(path);
-	if (!shared_lib_handle) {
+	status = bt_plugin_so_shared_lib_handle_create(path,
+		&shared_lib_handle);
+	if (status != BT_PLUGIN_STATUS_OK) {
 		/* bt_plugin_so_shared_lib_handle_create() logs more details */
-		BT_LOGD_STR("Cannot create shared library handle.");
+		BT_ASSERT(!shared_lib_handle);
+		BT_LOGE_STR("Cannot create shared library handle.");
 		goto end;
 	}
 
@@ -1392,19 +1441,34 @@ struct bt_plugin_set *bt_plugin_so_create_all_from_file(const char *path)
 			(gpointer *) &get_begin_section_plugin_descriptors)) {
 		descriptors_begin = get_begin_section_plugin_descriptors();
 	} else {
+		/*
+		 * Use this first symbol to know whether or not this
+		 * shared object _looks like_ a Babeltrace plugin. Since
+		 * g_module_symbol() failed, assume that this is not a
+		 * Babeltrace plugin, so it's not an error.
+		 */
 		BT_LOGI("Cannot resolve plugin symbol: path=\"%s\", "
 			"symbol=\"%s\"", path,
 			"__bt_get_begin_section_plugin_descriptors");
+		status = BT_PLUGIN_STATUS_NOT_FOUND;
 		goto end;
 	}
 
+	/*
+	 * If g_module_symbol() fails for any of the other symbols, fail
+	 * if `fail_on_load_error` is true.
+	 */
 	if (g_module_symbol(shared_lib_handle->module, "__bt_get_end_section_plugin_descriptors",
 			(gpointer *) &get_end_section_plugin_descriptors)) {
 		descriptors_end = get_end_section_plugin_descriptors();
 	} else {
-		BT_LOGI("Cannot resolve plugin symbol: path=\"%s\", "
+		BT_LOG_WRITE(fail_on_load_error ? BT_LOG_WARN : BT_LOG_INFO,
+			BT_LOG_TAG,
+			"Cannot resolve plugin symbol: path=\"%s\", "
 			"symbol=\"%s\"", path,
 			"__bt_get_end_section_plugin_descriptors");
+		status = fail_on_load_error ? BT_PLUGIN_STATUS_LOADING_ERROR :
+			BT_PLUGIN_STATUS_NOT_FOUND;
 		goto end;
 	}
 
@@ -1427,13 +1491,17 @@ struct bt_plugin_set *bt_plugin_so_create_all_from_file(const char *path)
 	}
 
 	if ((!!attrs_begin - !!attrs_end) != 0) {
-		BT_LOGI("Found section start or end symbol, but not both: "
+		BT_LOG_WRITE(fail_on_load_error ? BT_LOG_WARN : BT_LOG_INFO,
+			BT_LOG_TAG,
+			"Found section start or end symbol, but not both: "
 			"path=\"%s\", symbol-start=\"%s\", "
 			"symbol-end=\"%s\", symbol-start-addr=%p, "
 			"symbol-end-addr=%p",
 			path, "__bt_get_begin_section_plugin_descriptor_attributes",
 			"__bt_get_end_section_plugin_descriptor_attributes",
 			attrs_begin, attrs_end);
+		status = fail_on_load_error ? BT_PLUGIN_STATUS_LOADING_ERROR :
+			BT_PLUGIN_STATUS_NOT_FOUND;
 		goto end;
 	}
 
@@ -1456,13 +1524,17 @@ struct bt_plugin_set *bt_plugin_so_create_all_from_file(const char *path)
 	}
 
 	if ((!!cc_descriptors_begin - !!cc_descriptors_end) != 0) {
-		BT_LOGI("Found section start or end symbol, but not both: "
+		BT_LOG_WRITE(fail_on_load_error ? BT_LOG_WARN : BT_LOG_INFO,
+			BT_LOG_TAG,
+			"Found section start or end symbol, but not both: "
 			"path=\"%s\", symbol-start=\"%s\", "
 			"symbol-end=\"%s\", symbol-start-addr=%p, "
 			"symbol-end-addr=%p",
 			path, "__bt_get_begin_section_component_class_descriptors",
 			"__bt_get_end_section_component_class_descriptors",
 			cc_descriptors_begin, cc_descriptors_end);
+		status = fail_on_load_error ? BT_PLUGIN_STATUS_LOADING_ERROR :
+			BT_PLUGIN_STATUS_NOT_FOUND;
 		goto end;
 	}
 
@@ -1485,26 +1557,31 @@ struct bt_plugin_set *bt_plugin_so_create_all_from_file(const char *path)
 	}
 
 	if ((!!cc_descr_attrs_begin - !!cc_descr_attrs_end) != 0) {
-		BT_LOGI("Found section start or end symbol, but not both: "
+		BT_LOG_WRITE(fail_on_load_error ? BT_LOG_WARN : BT_LOG_INFO,
+			BT_LOG_TAG,
+			"Found section start or end symbol, but not both: "
 			"path=\"%s\", symbol-start=\"%s\", "
 			"symbol-end=\"%s\", symbol-start-addr=%p, "
 			"symbol-end-addr=%p",
 			path, "__bt_get_begin_section_component_class_descriptor_attributes",
 			"__bt_get_end_section_component_class_descriptor_attributes",
 			cc_descr_attrs_begin, cc_descr_attrs_end);
+		status = fail_on_load_error ? BT_PLUGIN_STATUS_LOADING_ERROR :
+			BT_PLUGIN_STATUS_NOT_FOUND;
 		goto end;
 	}
 
 	/* Initialize plugin */
 	BT_LOGD_STR("Initializing plugin object.");
-	plugin_set = bt_plugin_so_create_all_from_sections(shared_lib_handle,
+	status = bt_plugin_so_create_all_from_sections(shared_lib_handle,
+		fail_on_load_error,
 		descriptors_begin, descriptors_end, attrs_begin, attrs_end,
 		cc_descriptors_begin, cc_descriptors_end,
-		cc_descr_attrs_begin, cc_descr_attrs_end);
+		cc_descr_attrs_begin, cc_descr_attrs_end, plugin_set_out);
 
 end:
 	BT_OBJECT_PUT_REF_AND_RESET(shared_lib_handle);
-	return plugin_set;
+	return status;
 }
 
 static

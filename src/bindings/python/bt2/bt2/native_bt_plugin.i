@@ -22,17 +22,57 @@
  * THE SOFTWARE.
  */
 
+/* Output argument typemap for plugin output (always appends) */
+%typemap(in, numinputs=0)
+	(const bt_plugin **OUT)
+	(bt_plugin *temp_plugin = NULL) {
+	$1 = &temp_plugin;
+}
+
+%typemap(argout)
+	(const bt_plugin **OUT) {
+	if (*$1) {
+		/* SWIG_Python_AppendOutput() steals the created object */
+		$result = SWIG_Python_AppendOutput($result,
+				SWIG_NewPointerObj(SWIG_as_voidptr(*$1),
+					SWIGTYPE_p_bt_plugin, 0));
+	} else {
+		/* SWIG_Python_AppendOutput() steals Py_None */
+		Py_INCREF(Py_None);
+		$result = SWIG_Python_AppendOutput($result, Py_None);
+	}
+}
+
+/* Output argument typemap for plugin set output (always appends) */
+%typemap(in, numinputs=0)
+	(const bt_plugin_set **OUT)
+	(bt_plugin_set *temp_plugin_set = NULL) {
+	$1 = &temp_plugin_set;
+}
+
+%typemap(argout)
+	(const bt_plugin_set **OUT) {
+	if (*$1) {
+		/* SWIG_Python_AppendOutput() steals the created object */
+		$result = SWIG_Python_AppendOutput($result,
+				SWIG_NewPointerObj(SWIG_as_voidptr(*$1),
+					SWIGTYPE_p_bt_plugin_set, 0));
+	} else {
+		/* SWIG_Python_AppendOutput() steals Py_None */
+		Py_INCREF(Py_None);
+		$result = SWIG_Python_AppendOutput($result, Py_None);
+	}
+}
+
 /* From plugin-const.h */
 
-extern const bt_plugin *bt_plugin_find(const char *plugin_name);
-
-extern const bt_plugin_set *bt_plugin_find_all_from_file(
-		const char *path);
-
-extern const bt_plugin_set *bt_plugin_find_all_from_dir(
-		const char *path, bt_bool recurse);
-
-extern const bt_plugin_set *bt_plugin_find_all_from_static(void);
+typedef enum bt_plugin_status {
+	BT_PLUGIN_STATUS_OK = 0,
+	BT_PLUGIN_STATUS_NOT_FOUND = 2,
+	BT_PLUGIN_STATUS_ERROR = -1,
+	BT_PLUGIN_STATUS_LOADING_ERROR = -2,
+	BT_PLUGIN_STATUS_NOMEM = -12,
+} bt_plugin_status;
 
 extern const char *bt_plugin_get_name(const bt_plugin *plugin);
 
@@ -43,10 +83,6 @@ extern const char *bt_plugin_get_license(const bt_plugin *plugin);
 extern const char *bt_plugin_get_description(const bt_plugin *plugin);
 
 extern const char *bt_plugin_get_path(const bt_plugin *plugin);
-
-extern bt_property_availability bt_plugin_get_version(
-		const bt_plugin *plugin, unsigned int *OUT,
-		unsigned int *OUT, unsigned int *OUT, const char **OUT);
 
 extern uint64_t bt_plugin_get_source_component_class_count(
 		const bt_plugin *plugin);
@@ -103,14 +139,25 @@ bt_property_availability bt_plugin_get_version_wrapper(
 		const bt_plugin *plugin, unsigned int *OUT,
 		unsigned int *OUT, unsigned int *OUT, const char **OUT);
 
+bt_plugin_status bt_plugin_find_wrapper(const char *plugin_name,
+		bt_bool fail_on_load_error, const bt_plugin **OUT);
+
+bt_plugin_status bt_plugin_find_all_from_file_wrapper(
+		const char *path, bt_bool fail_on_load_error,
+		const bt_plugin_set **OUT);
+
+bt_plugin_status bt_plugin_find_all_from_dir_wrapper(
+		const char *path, bt_bool recurse, bt_bool fail_on_load_error,
+		const bt_plugin_set **OUT);
+
 %{
 
 /*
- * This wrapper ensures that when the API function fails, the `*extra` output
- * parameter is set to NULL.  This is necessary because the epilogue of the
- * "char **OUT" typemap will use that value to make a Python str object.  We
- * can't rely on the initial value of `*extra`, it could point to unreadable
- * memory.
+ * This *_wrapper() functions below ensure that when the API function
+ * fails, the output parameter is set to `NULL`.  This is necessary
+ * because the epilogue of the `something **OUT` typemap will use that
+ * value to make a Python object.  We can't rely on the initial value of
+ * `*OUT`; it could point to unreadable memory.
  */
 
 bt_property_availability bt_plugin_get_version_wrapper(
@@ -126,6 +173,50 @@ bt_property_availability bt_plugin_get_version_wrapper(
 	}
 
 	return ret;
+}
+
+bt_plugin_status bt_plugin_find_wrapper(const char *plugin_name,
+		bt_bool fail_on_load_error, const bt_plugin **plugin)
+{
+	bt_plugin_status status;
+
+	status = bt_plugin_find(plugin_name, fail_on_load_error,
+		plugin);
+	if (status != BT_PLUGIN_STATUS_OK) {
+		*plugin = NULL;
+	}
+
+	return status;
+}
+
+bt_plugin_status bt_plugin_find_all_from_file_wrapper(
+		const char *path, bt_bool fail_on_load_error,
+		const bt_plugin_set **plugin_set)
+{
+	bt_plugin_status status;
+
+	status = bt_plugin_find_all_from_file(path, fail_on_load_error,
+		plugin_set);
+	if (status != BT_PLUGIN_STATUS_OK) {
+		*plugin_set = NULL;
+	}
+
+	return status;
+}
+
+bt_plugin_status bt_plugin_find_all_from_dir_wrapper(
+		const char *path, bt_bool recurse, bt_bool fail_on_load_error,
+		const bt_plugin_set **plugin_set)
+{
+	bt_plugin_status status;
+
+	status = bt_plugin_find_all_from_dir(path, recurse, fail_on_load_error,
+		plugin_set);
+	if (status != BT_PLUGIN_STATUS_OK) {
+		*plugin_set = NULL;
+	}
+
+	return status;
 }
 
 %}

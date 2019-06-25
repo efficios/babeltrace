@@ -797,7 +797,8 @@ int load_dynamic_plugins(const bt_value *plugin_paths)
 	for (i = 0; i < nr_paths; i++) {
 		const bt_value *plugin_path_value = NULL;
 		const char *plugin_path;
-		const bt_plugin_set *plugin_set;
+		const bt_plugin_set *plugin_set = NULL;
+		bt_plugin_status status;
 
 		plugin_path_value =
 			bt_value_array_borrow_element_by_index_const(
@@ -815,13 +816,20 @@ int load_dynamic_plugins(const bt_value *plugin_paths)
 			continue;
 		}
 
-		plugin_set = bt_plugin_find_all_from_dir(plugin_path, false);
-		if (!plugin_set) {
-			BT_LOGI("Unable to load dynamic plugins from directory: "
+		status = bt_plugin_find_all_from_dir(plugin_path, BT_FALSE,
+			BT_FALSE, &plugin_set);
+		if (status < 0) {
+			BT_LOGE("Unable to load dynamic plugins from directory: "
 				"path=\"%s\"", plugin_path);
+			continue;
+		} else if (status == BT_PLUGIN_STATUS_NOT_FOUND) {
+			BT_LOGI("No plugins found in directory: path=\"%s\"",
+				plugin_path);
 			continue;
 		}
 
+		BT_ASSERT(status == BT_PLUGIN_STATUS_OK);
+		BT_ASSERT(plugin_set);
 		add_to_loaded_plugins(plugin_set);
 		bt_plugin_set_put_ref(plugin_set);
 	}
@@ -834,15 +842,21 @@ int load_static_plugins(void)
 {
 	int ret = 0;
 	const bt_plugin_set *plugin_set;
+	bt_plugin_status status;
 
 	BT_LOGI("Loading static plugins.");
-	plugin_set = bt_plugin_find_all_from_static();
-	if (!plugin_set) {
+	status = bt_plugin_find_all_from_static(BT_FALSE, &plugin_set);
+	if (status < 0) {
 		BT_LOGE("Unable to load static plugins.");
 		ret = -1;
 		goto end;
+	} else if (status == BT_PLUGIN_STATUS_NOT_FOUND) {
+		BT_LOGI("No static plugins found.");
+		goto end;
 	}
 
+	BT_ASSERT(status == BT_PLUGIN_STATUS_OK);
+	BT_ASSERT(plugin_set);
 	add_to_loaded_plugins(plugin_set);
 	bt_plugin_set_put_ref(plugin_set);
 end:

@@ -26,6 +26,7 @@
 #include <babeltrace2/plugin/plugin-const.h>
 
 extern
-struct bt_plugin_set *bt_plugin_python_create_all_from_file(const char *path);
+enum bt_plugin_status bt_plugin_python_create_all_from_file(const char *path,
+		struct bt_plugin_set **plugin_set_out);
 
 #endif /* BABELTRACE_PLUGIN_PYTHON_PLUGIN_PROVIDER_INTERNAL_H */

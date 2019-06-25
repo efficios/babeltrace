@@ -43,15 +43,28 @@
 extern "C" {
 #endif
 
-extern const bt_plugin *bt_plugin_find(const char *plugin_name);
+typedef enum bt_plugin_status {
+	BT_PLUGIN_STATUS_OK = 0,
+	BT_PLUGIN_STATUS_NOT_FOUND = 2,
+	BT_PLUGIN_STATUS_ERROR = -1,
+	BT_PLUGIN_STATUS_LOADING_ERROR = -2,
+	BT_PLUGIN_STATUS_NOMEM = -12,
+} bt_plugin_status;
 
-extern const bt_plugin_set *bt_plugin_find_all_from_file(
-		const char *path);
+extern bt_plugin_status bt_plugin_find(const char *plugin_name,
+		bt_bool fail_on_load_error, const bt_plugin **plugin);
 
-extern const bt_plugin_set *bt_plugin_find_all_from_dir(
-		const char *path, bt_bool recurse);
+extern bt_plugin_status bt_plugin_find_all_from_file(
+		const char *path, bt_bool fail_on_load_error,
+		const bt_plugin_set **plugin_set);
 
-extern const bt_plugin_set *bt_plugin_find_all_from_static(void);
+extern bt_plugin_status bt_plugin_find_all_from_dir(
+		const char *path, bt_bool recurse, bt_bool fail_on_load_error,
+		const bt_plugin_set **plugin_set);
+
+extern bt_plugin_status bt_plugin_find_all_from_static(
+		bt_bool fail_on_load_error,
+		const bt_plugin_set **plugin_set);
 
 extern const char *bt_plugin_get_name(const bt_plugin *plugin);
 

@@ -53,10 +53,13 @@ struct bt_plugin_so_spec_data {
 };
 
 BT_HIDDEN
-struct bt_plugin_set *bt_plugin_so_create_all_from_file(const char *path);
+enum bt_plugin_status bt_plugin_so_create_all_from_file(const char *path,
+		bool fail_on_load_error, struct bt_plugin_set **plugin_set_out);
 
 BT_HIDDEN
-struct bt_plugin_set *bt_plugin_so_create_all_from_static(void);
+enum bt_plugin_status bt_plugin_so_create_all_from_static(
+		bool fail_on_load_error,
+		struct bt_plugin_set **plugin_set_out);
 
 void bt_plugin_so_on_add_component_class(struct bt_plugin *plugin,
 		struct bt_component_class *comp_class);

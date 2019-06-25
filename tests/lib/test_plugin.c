@@ -24,7 +24,7 @@
 #include "tap/tap.h"
 #include "common.h"
 
-#define NR_TESTS 		35
+#define NR_TESTS 		38
 #define NON_EXISTING_PATH	"/this/hopefully/does/not/exist/5bc75f8d-0dba-4043-a509-d7984b97e42b.so"
 
 /* Those symbols are written to by some test plugins */
@@ -64,17 +64,21 @@ static char *get_test_plugin_path(const char *plugin_dir,
 
 static void test_minimal(const char *plugin_dir)
 {
-	const bt_plugin_set *plugin_set;
+	const bt_plugin_set *plugin_set = NULL;
 	const bt_plugin *plugin;
 	char *minimal_path = get_test_plugin_path(plugin_dir, "minimal");
+	bt_plugin_status status;
 
 	BT_ASSERT(minimal_path);
 	diag("minimal plugin test below");
 
 	reset_test_plugin_env_vars();
-	plugin_set = bt_plugin_find_all_from_file(minimal_path);
-	ok(plugin_set && bt_plugin_set_get_plugin_count(plugin_set) == 1,
+	status = bt_plugin_find_all_from_file(minimal_path, BT_FALSE,
+		&plugin_set);
+	ok(status == BT_PLUGIN_STATUS_OK,
 		"bt_plugin_find_all_from_file() succeeds with a valid file");
+	ok(plugin_set,
+		"bt_plugin_find_all_from_file() returns a plugin set");
 	ok(check_env_var("BT_TEST_PLUGIN_INIT_CALLED") == 1,
 		"plugin's initialization function is called during bt_plugin_find_all_from_file()");
 	ok(bt_plugin_set_get_plugin_count(plugin_set) == 1,
@@ -109,7 +113,7 @@ static void test_minimal(const char *plugin_dir)
 
 static void test_sfs(const char *plugin_dir)
 {
-	const bt_plugin_set *plugin_set;
+	const bt_plugin_set *plugin_set = NULL;
 	const bt_plugin *plugin;
 	const bt_component_class_sink *sink_comp_class;
 	const bt_component_class_source *source_comp_class;
@@ -127,13 +131,15 @@ static void test_sfs(const char *plugin_dir)
 	bt_graph_status graph_ret;
 	bt_query_executor *query_exec = bt_query_executor_create();
 	int ret;
+	bt_plugin_status status;
 
 	BT_ASSERT(query_exec);
 	BT_ASSERT(sfs_path);
 	diag("sfs plugin test below");
 
-	plugin_set = bt_plugin_find_all_from_file(sfs_path);
-	BT_ASSERT(plugin_set && bt_plugin_set_get_plugin_count(plugin_set) == 1);
+	status = bt_plugin_find_all_from_file(sfs_path, BT_FALSE, &plugin_set);
+	BT_ASSERT(status == BT_PLUGIN_STATUS_OK && plugin_set &&
+		bt_plugin_set_get_plugin_count(plugin_set) == 1);
 	plugin = bt_plugin_set_borrow_plugin_by_index_const(plugin_set, 0);
 	ok(bt_plugin_get_version(plugin, &major, &minor, &patch, &extra) ==
 		BT_PROPERTY_AVAILABILITY_AVAILABLE,
@@ -211,15 +217,22 @@ static void test_sfs(const char *plugin_dir)
 static void test_create_all_from_dir(const char *plugin_dir)
 {
 	const bt_plugin_set *plugin_set;
+	bt_plugin_status status;
 
 	diag("create from all test below");
 
-	plugin_set = bt_plugin_find_all_from_dir(NON_EXISTING_PATH, BT_FALSE);
-	ok(!plugin_set,
+	status = bt_plugin_find_all_from_dir(NON_EXISTING_PATH, BT_FALSE,
+		BT_FALSE, &plugin_set);
+	ok(status == BT_PLUGIN_STATUS_ERROR,
 		"bt_plugin_find_all_from_dir() fails with an invalid path");
 
-	plugin_set = bt_plugin_find_all_from_dir(plugin_dir, BT_FALSE);
-	ok(plugin_set, "bt_plugin_find_all_from_dir() succeeds with a valid path");
+	plugin_set = NULL;
+	status = bt_plugin_find_all_from_dir(plugin_dir, BT_FALSE, BT_FALSE,
+		&plugin_set);
+	ok(status == BT_PLUGIN_STATUS_OK,
+		"bt_plugin_find_all_from_dir() succeeds with a valid path");
+	ok(plugin_set,
+		"bt_plugin_find_all_from_dir() returns a plugin set with a valid path");
 
 	/* 2 or 4, if `.la` files are considered or not */
 	ok(bt_plugin_set_get_plugin_count(plugin_set) == 2 ||
@@ -234,9 +247,11 @@ static void test_find(const char *plugin_dir)
 	int ret;
 	const bt_plugin *plugin;
 	char *plugin_path;
+	bt_plugin_status status;
 
-	ok(!bt_plugin_find(NON_EXISTING_PATH),
-		"bt_plugin_find() returns NULL with an unknown plugin name");
+	ok(bt_plugin_find(NON_EXISTING_PATH, BT_FALSE, &plugin) ==
+		BT_PLUGIN_STATUS_NOT_FOUND,
+		"bt_plugin_find() returns BT_PLUGIN_STATUS_NOT_FOUND with an unknown plugin name");
 	ret = asprintf(&plugin_path, "%s" G_SEARCHPATH_SEPARATOR_S
 			G_DIR_SEPARATOR_S "ec1d09e5-696c-442e-b1c3-f9c6cf7f5958"
 			G_SEARCHPATH_SEPARATOR_S G_SEARCHPATH_SEPARATOR_S
@@ -246,9 +261,11 @@ static void test_find(const char *plugin_dir)
 		NON_EXISTING_PATH, plugin_dir);
 	BT_ASSERT(ret > 0 && plugin_path);
 	g_setenv("BABELTRACE_PLUGIN_PATH", plugin_path, 1);
-	plugin = bt_plugin_find("test_minimal");
-	ok(plugin,
+	plugin = NULL;
+	status = bt_plugin_find("test_minimal", BT_FALSE, &plugin);
+	ok(status == BT_PLUGIN_STATUS_OK,
 		"bt_plugin_find() succeeds with a plugin name it can find");
+	ok(plugin, "bt_plugin_find() returns a plugin object");
 	ok(strcmp(bt_plugin_get_author(plugin), "Janine Sutto") == 0,
 		"bt_plugin_find() finds the correct plugin for a given name");
 	BT_PLUGIN_PUT_REF_AND_RESET(plugin);
