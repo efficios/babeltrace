@@ -1031,6 +1031,13 @@ class SignedIntegerValueTestCase(_TestIntegerValue, unittest.TestCase):
         self._def.value = raw
         self.assertEqual(self._def, raw)
 
+    def test_compare_big_int(self):
+        # Larger than the IEEE 754 double-precision exact representation of
+        # integers.
+        raw = (2**53) + 1
+        v = bt2.create_value(raw)
+        self.assertEqual(v, raw)
+
 
 _inject_numeric_testing_methods(SignedIntegerValueTestCase)
 

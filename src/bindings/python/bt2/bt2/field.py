@@ -250,6 +250,18 @@ class _IntegralField(_NumericField, numbers.Integral):
         self.value = self | other
         return self
 
+    def __lt__(self, other):
+        if not isinstance(other, numbers.Integral):
+            return super().__lt__(other);
+
+        return self._value < int(other)
+
+    def _spec_eq(self, other):
+        if not isinstance(other, numbers.Integral):
+            return super()._spec_eq(other);
+
+        return self._value == int(other)
+
 
 class _IntegerField(_IntegralField, _Field):
     pass
