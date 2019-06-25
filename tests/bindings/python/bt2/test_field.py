@@ -836,6 +836,15 @@ class _TestIntegerFieldCommon(_TestNumericField):
         field.value = 1777
         self.assertEqual(field, raw)
 
+    def test_assign_big_uint(self):
+        uint_fc = self._tc.create_unsigned_integer_field_class(64)
+        field = _create_field(self._tc, uint_fc)
+        # Larger than the IEEE 754 double-precision exact representation of
+        # integers.
+        raw = (2**53) + 1
+        field.value = (2**53) + 1
+        self.assertEqual(field, raw)
+
     def test_assign_uint_invalid_neg(self):
         uint_fc = self._tc.create_unsigned_integer_field_class(32)
         field = _create_field(self._tc, uint_fc)

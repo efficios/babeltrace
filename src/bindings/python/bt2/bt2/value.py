@@ -312,6 +312,18 @@ class _IntegralValue(_NumericValue, numbers.Integral):
         self.value = self | other
         return self
 
+    def __lt__(self, other):
+        if not isinstance(other, numbers.Integral):
+            return super().__lt__(other)
+
+        return self._value < int(other)
+
+    def __eq__(self, other):
+        if not isinstance(other, numbers.Integral):
+            return super().__eq__(other)
+
+        return self._value == int(other)
+
 
 class _RealValue(_NumericValue, numbers.Real):
     pass
