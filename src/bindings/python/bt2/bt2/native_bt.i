@@ -122,14 +122,6 @@ typedef int bt_bool;
 	$result = SWIG_Python_AppendOutput(resultobj,
 			SWIG_From_unsigned_SS_long_SS_long((uint64_t) (*$1)));
 }
-/* Output argument typemap for initialized double output parameter (always appends) */
-%typemap(in, numinputs=0) (double *OUT) (double temp) {
-	$1 = &temp;
-}
-
-%typemap(argout) (double *OUT) {
-	$result = SWIG_Python_AppendOutput(resultobj, SWIG_From_int((*$1)));
-}
 
 /* Input argument typemap for UUID bytes */
 %typemap(in) bt_uuid {
