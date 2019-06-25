@@ -68,7 +68,7 @@ bt_self_component_filter_borrow_output_port_by_index(
 extern bt_self_component_status
 bt_self_component_filter_add_output_port(
 		bt_self_component_filter *self_component,
-		const char *name, void *data,
+		const char *name, void *user_data,
 		bt_self_component_port_output **self_component_port);
 
 extern bt_self_component_port_input *
@@ -84,7 +84,7 @@ bt_self_component_filter_borrow_input_port_by_index(
 extern bt_self_component_status
 bt_self_component_filter_add_input_port(
 		bt_self_component_filter *self_component,
-		const char *name, void *data,
+		const char *name, void *user_data,
 		bt_self_component_port_input **self_component_port);
 
 #ifdef __cplusplus
