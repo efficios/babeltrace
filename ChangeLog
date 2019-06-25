@@ -1,3 +1,9 @@
+2019-06-25 lttng-tools 1.5.7 (Global Beatles Day)
+	* Cleanup: bitfields: streamline use of underscores
+	* Fix: bitfield: shift undefined/implementation defined behaviors
+	* Fix: array and sequence field's 'elems' members can be left NULL
+	* Fix: invalid alignment of enumeration fields
+
 2018-07-03 babeltrace 1.5.6 (National Fried Clam Day)
 	* Fix: remove left-over debug logging statement
 	* Use trace->trace_id in check to remove trace from bt_ctx

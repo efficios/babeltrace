@@ -1,5 +1,5 @@
 AC_PREREQ([2.50])
-AC_INIT([babeltrace],[1.5.6],[jeremie.galarneau@efficios.com],[],[https://diamon.org/babeltrace])
+AC_INIT([babeltrace],[1.5.7],[jeremie.galarneau@efficios.com],[],[https://diamon.org/babeltrace])
 AC_SUBST([BABELTRACE_LIBRARY_VERSION], [1:0:0])
 
 AC_CONFIG_HEADERS([config.h])
