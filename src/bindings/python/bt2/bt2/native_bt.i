@@ -187,7 +187,7 @@ typedef int bt_bool;
 %include "native_bt_graph.i"
 %include "native_bt_logging.i"
 %include "native_bt_message.i"
-%include "native_bt_notifier.i"
+%include "native_bt_message_iterator.i"
 %include "native_bt_packet.i"
 %include "native_bt_plugin.i"
 %include "native_bt_port.i"
