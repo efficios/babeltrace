@@ -2255,6 +2255,7 @@ int fix_packet_index_tracer_bugs(struct ctf_fs_component *ctf_fs)
 				BT_LOGE_STR("Failed to fix lttng-crash timestamp quirks.");
 				goto end;
 			}
+			trace->metadata->tc->quirks.lttng_crash = true;
 		}
 	}
 end:
