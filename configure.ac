@@ -402,9 +402,6 @@ AC_DEFINE_UNQUOTED([BT_LOG_LEVEL], [BT_LOG_$BABELTRACE_MINIMAL_LOG_LEVEL], [Mini
 # BABELTRACE_DEV_MODE:
 AC_ARG_VAR([BABELTRACE_DEV_MODE], [Set to 1 to enable the Babeltrace developer mode (enables run-time checks for plugin developers)])
 AS_IF([test "x$BABELTRACE_DEV_MODE" = x1], [
-	AS_IF([test "x$BABELTRACE_MINIMAL_LOG_LEVEL" = "xNONE"], [
-		AC_MSG_ERROR([Babeltrace developer mode (\$BABELTRACE_DEV_MODE) needs \$BABELTRACE_MINIMAL_LOG_LEVEL to be at least FATAL.])
-	])
 	AC_DEFINE([BT_DEV_MODE], 1, [Babeltrace developer mode])
 ], [BABELTRACE_DEV_MODE=0])
 

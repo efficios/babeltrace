@@ -45,30 +45,6 @@
 
 #ifdef BT_DEV_MODE
 /*
- * Asserts that the library precondition _cond is satisfied.
- *
- * If _cond is false, log a fatal statement using _fmt and the optional
- * arguments using BT_LIB_LOGF(), and abort.
- *
- * To assert that a postcondition is satisfied or that some internal
- * object/context/value is in the expected state, use BT_ASSERT().
- */
-# define BT_ASSERT_PRE(_cond, _fmt, ...)				\
-	do {								\
-		if (!(_cond)) {						\
-			BT_LOGF_STR("Library precondition not satisfied; error is:"); \
-			BT_LIB_LOGF((_fmt), ##__VA_ARGS__);		\
-			BT_LOGF_STR("Aborting...");			\
-			abort();					\
-		}							\
-	} while (0)
-
-/*
- * Marks a function as being only used within a BT_ASSERT_PRE() context.
- */
-# define BT_ASSERT_PRE_FUNC
-
-/*
  * Prints the details of an unsatisfied precondition without immediately
  * aborting. You should use this within a function which checks
  * preconditions, but which is called from a BT_ASSERT_PRE() context, so
@@ -95,7 +71,36 @@
  *     BT_ASSERT_PRE(check_complex_precond(...),
  *                   "Precondition is not satisfied: ...", ...);
  */
-# define BT_ASSERT_PRE_MSG	BT_LIB_LOGF
+# define BT_ASSERT_PRE_MSG(_fmt, ...)					\
+	do {								\
+		bt_lib_log(_BT_LOG_SRCLOC_FUNCTION, __FILE__,		\
+			__LINE__, BT_LOG_FATAL, BT_LOG_TAG,		\
+			(_fmt), ##__VA_ARGS__);				\
+	} while (0)
+
+/*
+ * Asserts that the library precondition _cond is satisfied.
+ *
+ * If `_cond` is false, log a fatal statement using `_fmt` and the
+ * optional arguments (same usage as BT_LIB_LOGF()), and abort.
+ *
+ * To assert that a postcondition is satisfied or that some internal
+ * object/context/value is in the expected state, use BT_ASSERT().
+ */
+# define BT_ASSERT_PRE(_cond, _fmt, ...)				\
+	do {								\
+		if (!(_cond)) {						\
+			BT_ASSERT_PRE_MSG("Babeltrace 2 library precondition not satisfied; error is:"); \
+			BT_ASSERT_PRE_MSG((_fmt), ##__VA_ARGS__);	\
+			BT_ASSERT_PRE_MSG("Aborting...");		\
+			abort();					\
+		}							\
+	} while (0)
+
+/*
+ * Marks a function as being only used within a BT_ASSERT_PRE() context.
+ */
+# define BT_ASSERT_PRE_FUNC
 #else
 # define BT_ASSERT_PRE(_cond, _fmt, ...)	((void) sizeof((void) (_cond), 0))
 # define BT_ASSERT_PRE_FUNC	__attribute__((unused))

@@ -45,6 +45,40 @@
 
 #ifdef BT_DEV_MODE
 /*
+ * Prints the details of an unsatisfied precondition without immediately
+ * aborting. You should use this within a function which checks
+ * preconditions, but which is called from a BT_CTF_ASSERT_PRE()
+ * context, so that the function can still return its result for
+ * BT_CTF_ASSERT_PRE() to evaluate it.
+ *
+ * Example:
+ *
+ *     BT_CTF_ASSERT_PRE_FUNC
+ *     static inline bool check_complex_precond(...)
+ *     {
+ *         ...
+ *
+ *         if (...) {
+ *             BT_CTF_ASSERT_PRE_MSG("Invalid object: ...", ...);
+ *             return false;
+ *         }
+ *
+ *         ...
+ *     }
+ *
+ *     ...
+ *
+ *     BT_CTF_ASSERT_PRE(check_complex_precond(...),
+ *                   "Precondition is not satisfied: ...", ...);
+ */
+# define BT_CTF_ASSERT_PRE_MSG(_fmt, ...)				\
+	do {								\
+		_bt_log_write_d(_BT_LOG_SRCLOC_FUNCTION, __FILE__,	\
+			__LINE__, BT_LOG_FATAL, BT_LOG_TAG, (_fmt),	\
+			##__VA_ARGS__);					\
+	} while (0)
+
+/*
  * Asserts that the library precondition _cond is satisfied.
  *
  * If _cond is false, log a fatal statement using _fmt and the optional
@@ -56,9 +90,9 @@
 # define BT_CTF_ASSERT_PRE(_cond, _fmt, ...)				\
 	do {								\
 		if (!(_cond)) {						\
-			BT_LOGF_STR("Library precondition not satisfied; error is:"); \
-			BT_LOGF((_fmt), ##__VA_ARGS__);		\
-			BT_LOGF_STR("Aborting...");			\
+			BT_CTF_ASSERT_PRE_MSG("CTF writer precondition not satisfied; error is:"); \
+			BT_CTF_ASSERT_PRE_MSG((_fmt), ##__VA_ARGS__);	\
+			BT_CTF_ASSERT_PRE_MSG("Aborting...");		\
 			abort();					\
 		}							\
 	} while (0)
@@ -95,7 +129,6 @@
  *     BT_CTF_ASSERT_PRE(check_complex_precond(...),
  *                   "Precondition is not satisfied: ...", ...);
  */
-# define BT_CTF_ASSERT_PRE_MSG	BT_LOGF
 #else
 # define BT_CTF_ASSERT_PRE(_cond, _fmt, ...)	((void) sizeof((void) (_cond), 0))
 # define BT_CTF_ASSERT_PRE_FUNC	__attribute__((unused))
