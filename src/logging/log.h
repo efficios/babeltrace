@@ -63,12 +63,13 @@
 #define BT_LOG_NONE    BT_LOGGING_LEVEL_NONE
 
 /* "Current" log level is a compile time check and has no runtime overhead. Log
- * level that is below current log level it said to be "disabled". Otherwise,
- * it's "enabled". Log messages that are disabled has no runtime overhead - they
- * are converted to no-op by preprocessor and then eliminated by compiler.
- * Current log level is configured per compilation module (.c/.cpp/.m file) by
- * defining BT_LOG_DEF_LEVEL or BT_LOG_LEVEL. BT_LOG_LEVEL has higer priority
- * and when defined overrides value provided by BT_LOG_DEF_LEVEL.
+ * level that is below current log level it said to be "disabled".
+ * Otherwise, it's "enabled". Log messages that are disabled has no
+ * runtime overhead - they are converted to no-op by preprocessor and
+ * then eliminated by compiler. Current log level is configured per
+ * compilation module (.c/.cpp/.m file) by defining BT_LOG_DEF_LEVEL or
+ * BT_MINIMAL_LOG_LEVEL. BT_MINIMAL_LOG_LEVEL has higer priority and
+ * when defined overrides value provided by BT_LOG_DEF_LEVEL.
  *
  * Common practice is to define default current log level with BT_LOG_DEF_LEVEL
  * in build script (e.g. Makefile, CMakeLists.txt, gyp, etc.) for the entire
@@ -76,37 +77,38 @@
  *
  *   CC_ARGS := -DBT_LOG_DEF_LEVEL=BT_LOG_INFO
  *
- * And when necessary to override it with BT_LOG_LEVEL in .c/.cpp/.m files
+ * And when necessary to override it with BT_MINIMAL_LOG_LEVEL in .c/.cpp/.m files
  * before including bt_log.h:
  *
- *   #define BT_LOG_LEVEL BT_LOG_TRACE
+ *   #define BT_MINIMAL_LOG_LEVEL BT_LOG_TRACE
  *   #include "logging.h"
  *
- * If both BT_LOG_DEF_LEVEL and BT_LOG_LEVEL are undefined, then
+ * If both BT_LOG_DEF_LEVEL and BT_MINIMAL_LOG_LEVEL are undefined, then
  * BT_LOG_INFO will be used for release builds (BT_DEBUG_MODE is NOT
  * defined) and BT_LOG_DEBUG otherwise (BT_DEBUG_MODE is defined).
  */
-#if defined(BT_LOG_LEVEL)
-	#define _BT_LOG_LEVEL BT_LOG_LEVEL
+#if defined(BT_MINIMAL_LOG_LEVEL)
+	#define _BT_MINIMAL_LOG_LEVEL BT_MINIMAL_LOG_LEVEL
 #elif defined(BT_LOG_DEF_LEVEL)
-	#define _BT_LOG_LEVEL BT_LOG_DEF_LEVEL
+	#define _BT_MINIMAL_LOG_LEVEL BT_LOG_DEF_LEVEL
 #else
 	#ifdef BT_DEBUG_MODE
-		#define _BT_LOG_LEVEL BT_LOG_DEBUG
+		#define _BT_MINIMAL_LOG_LEVEL BT_LOG_DEBUG
 	#else
-		#define _BT_LOG_LEVEL BT_LOG_INFO
+		#define _BT_MINIMAL_LOG_LEVEL BT_LOG_INFO
 	#endif
 #endif
 
 /* "Output" log level is a runtime check. When log level is below output log
- * level it said to be "turned off" (or just "off" for short). Otherwise it's
- * "turned on" (or just "on"). Log levels that were "disabled" (see
- * BT_LOG_LEVEL and BT_LOG_DEF_LEVEL) can't be "turned on", but "enabled" log
- * levels could be "turned off". Only messages with log level which is
- * "turned on" will reach output facility. All other messages will be ignored
- * (and their arguments will not be evaluated). Output log level is a global
- * property and configured per process using bt_log_set_output_level() function
- * which can be called at any time.
+ * level it said to be "turned off" (or just "off" for short). Otherwise
+ * it's "turned on" (or just "on"). Log levels that were "disabled" (see
+ * BT_MINIMAL_LOG_LEVEL and BT_LOG_DEF_LEVEL) can't be "turned on", but
+ * "enabled" log levels could be "turned off". Only messages with log
+ * level which is "turned on" will reach output facility. All other
+ * messages will be ignored (and their arguments will not be evaluated).
+ * Output log level is a global property and configured per process
+ * using bt_log_set_output_level() function which can be called at any
+ * time.
  *
  * Though in some cases it could be useful to configure output log level per
  * compilation module or per library. There are two ways to achieve that:
@@ -116,11 +118,13 @@
  *   BT_LOG_LIBRARY_PREFIX defined to library specific prefix. See
  *   BT_LOG_LIBRARY_PREFIX for more details.
  *
- * When defined, BT_LOG_OUTPUT_LEVEL must evaluate to integral value that
- * corresponds to desired output log level. Use it only when compilation module
- * is required to have output log level which is different from global output
- * log level set by bt_log_set_output_level() function. For other cases,
- * consider defining BT_LOG_LEVEL or using bt_log_set_output_level() function.
+ * When defined, BT_LOG_OUTPUT_LEVEL must evaluate to integral value
+ * that corresponds to desired output log level. Use it only when
+ * compilation module is required to have output log level which is
+ * different from global output log level set by
+ * bt_log_set_output_level() function. For other cases, consider
+ * defining BT_MINIMAL_LOG_LEVEL or using bt_log_set_output_level()
+ * function.
  *
  * Example:
  *
@@ -134,13 +138,14 @@
  *       g_module_log_level = on? BT_LOG_DEBUG: BT_LOG_INFO;
  *   }
  *
- * Note on performance. This expression will be evaluated each time message is
- * logged (except when message log level is "disabled" - see BT_LOG_LEVEL for
- * details). Keep this expression as simple as possible, otherwise it will not
- * only add runtime overhead, but also will increase size of call site (which
- * will result in larger executable). The prefered way is to use integer
- * variable (as in example above). If structure must be used, log_level field
- * must be the first field in this structure:
+ * Note on performance. This expression will be evaluated each time
+ * message is logged (except when message log level is "disabled" - see
+ * BT_MINIMAL_LOG_LEVEL for details). Keep this expression as simple as
+ * possible, otherwise it will not only add runtime overhead, but also
+ * will increase size of call site (which will result in larger
+ * executable). The prefered way is to use integer variable (as in
+ * example above). If structure must be used, log_level field must be
+ * the first field in this structure:
  *
  *   #define BT_LOG_OUTPUT_LEVEL (g_config.log_level)
  *   #include "logging.h"
@@ -506,7 +511,7 @@ void bt_log_set_tag_prefix(const char *const prefix);
  */
 void bt_log_set_mem_width(const unsigned w);
 
-/* Set "output" log level. See BT_LOG_LEVEL and BT_LOG_OUTPUT_LEVEL for more
+/* Set "output" log level. See BT_MINIMAL_LOG_LEVEL and BT_LOG_OUTPUT_LEVEL for more
  * info about log levels.
  */
 void bt_log_set_output_level(const int lvl);
@@ -637,9 +642,9 @@ bt_log_spec;
  *       BT_LOGD("enum value: %s", g_enum_strings[v]);
  *   #endif
  *
- * See BT_LOG_LEVEL for details.
+ * See BT_MINIMAL_LOG_LEVEL for details.
  */
-#define BT_LOG_ENABLED(lvl)     ((lvl) >= _BT_LOG_LEVEL)
+#define BT_LOG_ENABLED(lvl)     ((lvl) >= _BT_MINIMAL_LOG_LEVEL)
 #define BT_LOG_ENABLED_TRACE    BT_LOG_ENABLED(BT_LOG_TRACE)
 #define BT_LOG_ENABLED_DEBUG    BT_LOG_ENABLED(BT_LOG_DEBUG)
 #define BT_LOG_ENABLED_INFO     BT_LOG_ENABLED(BT_LOG_INFO)
