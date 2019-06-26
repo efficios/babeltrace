@@ -1141,7 +1141,7 @@ skip_msg:
 	goto end;
 
 push_msg:
-	g_queue_push_head(iterator->auto_seek_msgs, (void *) msg);
+	g_queue_push_tail(iterator->auto_seek_msgs, (void *) msg);
 	msg = NULL;
 
 end:
@@ -1210,7 +1210,7 @@ enum bt_message_iterator_status find_message_ge_ns_from_origin(
 
 		for (i = 0; i < user_count; i++) {
 			if (got_first) {
-				g_queue_push_head(iterator->auto_seek_msgs,
+				g_queue_push_tail(iterator->auto_seek_msgs,
 					(void *) messages[i]);
 				messages[i] = NULL;
 				continue;
@@ -1252,7 +1252,7 @@ enum bt_self_message_iterator_status post_auto_seek_next(
 	 * iterator's base message array).
 	 */
 	while (capacity > 0 && !g_queue_is_empty(iterator->auto_seek_msgs)) {
-		msgs[*count] = g_queue_pop_tail(iterator->auto_seek_msgs);
+		msgs[*count] = g_queue_pop_head(iterator->auto_seek_msgs);
 		capacity--;
 		(*count)++;
 	}
