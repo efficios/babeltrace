@@ -517,7 +517,7 @@ enum bt_plugin_status bt_plugin_create_append_all_from_dir(
 	}
 
 end:
-	return ret;
+	return status;
 }
 
 enum bt_plugin_status bt_plugin_find_all_from_dir(const char *path,
