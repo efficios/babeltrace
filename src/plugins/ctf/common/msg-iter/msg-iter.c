@@ -2529,13 +2529,29 @@ static
 void create_msg_packet_end(struct bt_msg_iter *notit, bt_message **message)
 {
 	bt_message *msg;
+	bool update_default_cs = true;
 
 	if (!notit->packet) {
 		return;
 	}
 
-	/* Update default clock from packet's end time */
-	if (notit->snapshots.end_clock != UINT64_C(-1)) {
+	/* Check if may be affected by lttng-crash timestamp_end quirk. */
+	if (G_UNLIKELY(notit->meta.tc->quirks.lttng_crash)) {
+		/*
+		 * Check if the `timestamp_begin` field is non-zero but
+		 * `timestamp_end` is zero. It means the trace is affected by
+		 * the lttng-crash packet `timestamp_end` quirk and must be
+		 * fixed up by omitting to update the default clock snapshot to
+		 * the `timestamp_end` as is typically done.
+		 */
+		if (notit->snapshots.beginning_clock != 0 &&
+				notit->snapshots.end_clock == 0) {
+			update_default_cs = false;
+		}
+	}
+
+	/* Update default clock from packet's end time. */
+	if (notit->snapshots.end_clock != UINT64_C(-1) && update_default_cs) {
 		notit->default_clock_snapshot = notit->snapshots.end_clock;
 	}
 
@@ -2545,7 +2561,7 @@ void create_msg_packet_end(struct bt_msg_iter *notit, bt_message **message)
 		BT_ASSERT(notit->snapshots.end_clock != UINT64_C(-1));
 		msg = bt_message_packet_end_create_with_default_clock_snapshot(
 			notit->msg_iter, notit->packet,
-			notit->snapshots.end_clock);
+			notit->default_clock_snapshot);
 	} else {
 		msg = bt_message_packet_end_create(notit->msg_iter,
 			notit->packet);
