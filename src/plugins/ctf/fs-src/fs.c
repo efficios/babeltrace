@@ -2247,6 +2247,7 @@ int fix_packet_index_tracer_bugs(struct ctf_fs_component *ctf_fs)
 				BT_LOGE_STR("Failed to fix barectf event-before-packet bug.");
 				goto end;
 			}
+			trace->metadata->tc->quirks.barectf_event_before_packet = true;
 		}
 
 		if (is_tracer_affected_by_lttng_crash_quirk(

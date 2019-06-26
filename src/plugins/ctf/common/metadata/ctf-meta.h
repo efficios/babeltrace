@@ -314,6 +314,7 @@ struct ctf_trace_class {
 	struct {
 		bool lttng_crash;
 		bool lttng_event_after_packet;
+		bool barectf_event_before_packet;
 	} quirks;
 };
 

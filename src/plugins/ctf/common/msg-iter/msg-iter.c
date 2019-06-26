@@ -104,10 +104,12 @@ enum state {
 	STATE_DSCOPE_EVENT_PAYLOAD_BEGIN,
 	STATE_DSCOPE_EVENT_PAYLOAD_CONTINUE,
 	STATE_EMIT_MSG_EVENT,
+	STATE_EMIT_QUEUED_MSG_EVENT,
 	STATE_SKIP_PACKET_PADDING,
 	STATE_EMIT_MSG_PACKET_END_MULTI,
 	STATE_EMIT_MSG_PACKET_END_SINGLE,
 	STATE_CHECK_EMIT_MSG_STREAM_END,
+	STATE_EMIT_QUEUED_MSG_PACKET_END,
 	STATE_EMIT_MSG_STREAM_END,
 	STATE_DONE,
 };
@@ -180,6 +182,12 @@ struct bt_msg_iter {
 
 	/* Current event message (NULL if not created yet) */
 	bt_message *event_msg;
+
+	/*
+	 * True if we need to emit a packet beginning message before we emit
+	 * the next event message or the packet end message.
+	 */
+	bool emit_delayed_packet_beginning_msg;
 
 	/* Database of current dynamic scopes */
 	struct {
@@ -308,12 +316,16 @@ const char *state_string(enum state state)
 		return "DSCOPE_EVENT_PAYLOAD_CONTINUE";
 	case STATE_EMIT_MSG_EVENT:
 		return "EMIT_MSG_EVENT";
+	case STATE_EMIT_QUEUED_MSG_EVENT:
+		return "EMIT_QUEUED_MSG_EVENT";
 	case STATE_SKIP_PACKET_PADDING:
 		return "SKIP_PACKET_PADDING";
 	case STATE_EMIT_MSG_PACKET_END_MULTI:
 		return "EMIT_MSG_PACKET_END_MULTI";
 	case STATE_EMIT_MSG_PACKET_END_SINGLE:
 		return "EMIT_MSG_PACKET_END_SINGLE";
+	case STATE_EMIT_QUEUED_MSG_PACKET_END:
+		return "EMIT_QUEUED_MSG_PACKET_END";
 	case STATE_EMIT_MSG_STREAM_END:
 		return "EMIT_MSG_STREAM_END";
 	case STATE_DONE:
@@ -1731,6 +1743,9 @@ enum bt_msg_iter_status handle_state(struct bt_msg_iter *notit)
 	case STATE_EMIT_MSG_EVENT:
 		notit->state = STATE_DSCOPE_EVENT_HEADER_BEGIN;
 		break;
+	case STATE_EMIT_QUEUED_MSG_EVENT:
+		notit->state = STATE_EMIT_MSG_EVENT;
+		break;
 	case STATE_SKIP_PACKET_PADDING:
 		status = skip_packet_padding_state(notit);
 		break;
@@ -1742,6 +1757,9 @@ enum bt_msg_iter_status handle_state(struct bt_msg_iter *notit)
 		break;
 	case STATE_CHECK_EMIT_MSG_STREAM_END:
 		status = check_emit_msg_stream_end(notit);
+		break;
+	case STATE_EMIT_QUEUED_MSG_PACKET_END:
+		notit->state = STATE_EMIT_MSG_PACKET_END_SINGLE;
 		break;
 	case STATE_EMIT_MSG_STREAM_END:
 		notit->state = STATE_DONE;
@@ -2465,20 +2483,13 @@ void create_msg_stream_end(struct bt_msg_iter *notit, bt_message **message)
 
 static
 void create_msg_packet_beginning(struct bt_msg_iter *notit,
-		bt_message **message)
+		bt_message **message, bool use_default_cs)
 {
 	int ret;
-	enum bt_msg_iter_status status;
 	bt_message *msg = NULL;
-	const bt_stream_class *sc;
-
-	status = set_current_packet(notit);
-	if (status != BT_MSG_ITER_STATUS_OK) {
-		goto end;
-	}
+	const bt_stream_class *sc = notit->meta.sc->ir_sc;
 
 	BT_ASSERT(notit->packet);
-	sc = notit->meta.sc->ir_sc;
 	BT_ASSERT(sc);
 
 	if (notit->packet_context_field) {
@@ -2504,9 +2515,21 @@ void create_msg_packet_beginning(struct bt_msg_iter *notit,
 
 	if (notit->meta.sc->packets_have_ts_begin) {
 		BT_ASSERT(notit->snapshots.beginning_clock != UINT64_C(-1));
+		uint64_t raw_cs_value;
+
+		/*
+		 * Either use the decoded packet `timestamp_begin` field or the
+		 * current stream's default clock_snapshot.
+		 */
+		if (use_default_cs) {
+			raw_cs_value = notit->default_clock_snapshot;
+		} else {
+			raw_cs_value = notit->snapshots.beginning_clock;
+		}
+
 		msg = bt_message_packet_beginning_create_with_default_clock_snapshot(
 			notit->msg_iter, notit->packet,
-			notit->snapshots.beginning_clock);
+			raw_cs_value);
 	} else {
 		msg = bt_message_packet_beginning_create(notit->msg_iter,
 			notit->packet);
@@ -2526,12 +2549,47 @@ end:
 }
 
 static
+void emit_delayed_packet_beg_msg(struct bt_msg_iter *notit,
+		bt_message **message)
+{
+	bool packet_beg_ts_need_fix_up;
+
+	notit->emit_delayed_packet_beginning_msg = false;
+
+	/*
+	 * Only fix the packet's timestamp_begin if it's larger than the first
+	 * event of the packet. If there was no event in the packet, the
+	 * `default_clock_snapshot` field will be either equal or greater than
+	 * `snapshots.beginning_clock` so there is not fix needed.
+	 */
+	packet_beg_ts_need_fix_up =
+		notit->default_clock_snapshot < notit->snapshots.beginning_clock;
+
+	/* create_msg_packet_beginning() logs errors */
+	create_msg_packet_beginning(notit, message, packet_beg_ts_need_fix_up);
+
+	return;
+}
+
+
+static
 void create_msg_packet_end(struct bt_msg_iter *notit, bt_message **message)
 {
 	bt_message *msg;
 	bool update_default_cs = true;
 
 	if (!notit->packet) {
+		return;
+	}
+
+	/*
+	 * Check if we need to emit the delayed packet
+	 * beginning message instead of the packet end message.
+	 */
+	if (G_UNLIKELY(notit->emit_delayed_packet_beginning_msg)) {
+		emit_delayed_packet_beg_msg(notit, message);
+		/* Don't forget to emit the packet end message. */
+		notit->state = STATE_EMIT_QUEUED_MSG_PACKET_END;
 		return;
 	}
 
@@ -2813,8 +2871,27 @@ enum bt_msg_iter_status bt_msg_iter_get_next_message(
 		switch (notit->state) {
 		case STATE_EMIT_MSG_EVENT:
 			BT_ASSERT(notit->event_msg);
-			*message = notit->event_msg;
-			notit->event_msg = NULL;
+
+			/*
+			 * Check if we need to emit the delayed packet
+			 * beginning message instead of the event message.
+			 */
+			if (G_UNLIKELY(notit->emit_delayed_packet_beginning_msg)) {
+				emit_delayed_packet_beg_msg(notit, message);
+				if (!*message) {
+					status = BT_MSG_ITER_STATUS_ERROR;
+				}
+
+				/*
+				 * Don't forget to emit the event message of
+				 * the event record that was just decoded.
+				 */
+				notit->state = STATE_EMIT_QUEUED_MSG_EVENT;
+
+			} else {
+				*message = notit->event_msg;
+				notit->event_msg = NULL;
+			}
 			goto end;
 		case STATE_EMIT_MSG_DISCARDED_EVENTS:
 			/* create_msg_discared_events() logs errors */
@@ -2835,11 +2912,26 @@ enum bt_msg_iter_status bt_msg_iter_get_next_message(
 
 			goto end;
 		case STATE_EMIT_MSG_PACKET_BEGINNING:
-			/* create_msg_packet_beginning() logs errors */
-			create_msg_packet_beginning(notit, message);
+			status = set_current_packet(notit);
+			if (status != BT_MSG_ITER_STATUS_OK) {
+				goto end;
+			}
 
-			if (!*message) {
-				status = BT_MSG_ITER_STATUS_ERROR;
+			if (G_UNLIKELY(notit->meta.tc->quirks.barectf_event_before_packet)) {
+				notit->emit_delayed_packet_beginning_msg = true;
+				/*
+				 * There is no message to return yet as this
+				 * packet beginning message is delayed until we
+				 * decode the first event message of the
+				 * packet.
+				 */
+				break;
+			} else {
+				/* create_msg_packet_beginning() logs errors */
+				create_msg_packet_beginning(notit, message, false);
+				if (!*message) {
+					status = BT_MSG_ITER_STATUS_ERROR;
+				}
 			}
 
 			goto end;
@@ -2939,9 +3031,11 @@ enum bt_msg_iter_status decode_until_state( struct bt_msg_iter *notit,
 		case STATE_DSCOPE_EVENT_PAYLOAD_BEGIN:
 		case STATE_DSCOPE_EVENT_PAYLOAD_CONTINUE:
 		case STATE_EMIT_MSG_EVENT:
+		case STATE_EMIT_QUEUED_MSG_EVENT:
 		case STATE_SKIP_PACKET_PADDING:
 		case STATE_EMIT_MSG_PACKET_END_MULTI:
 		case STATE_EMIT_MSG_PACKET_END_SINGLE:
+		case STATE_EMIT_QUEUED_MSG_PACKET_END:
 		case STATE_CHECK_EMIT_MSG_STREAM_END:
 		case STATE_EMIT_MSG_STREAM_END:
 			break;
