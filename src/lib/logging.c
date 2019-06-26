@@ -27,30 +27,19 @@
 #define BT_LOG_TAG "LIB/LOGGING"
 #include "lib/logging.h"
 
-#ifdef BT_DEV_MODE
-/*
- * Default log level is FATAL in developer mode because fatal logging is
- * our way to communicate an unsatisfied precondition and the details.
- */
-# define DEFAULT_LOG_LEVEL	BT_LOG_FATAL
-#else
-/*
- * In non-developer mode, use NONE by default: we don't print logging
- * statements for any executable which links with the library. The
- * executable must call bt_logging_set_global_level() or the
- * executable's user must set the `LIBBABELTRACE2_INIT_LOG_LEVEL`
- * environment variable to enable logging.
- */
-# define DEFAULT_LOG_LEVEL	BT_LOG_NONE
-#endif /* BT_DEV_MODE */
-
 /*
  * This is exported because even though the Python plugin provider is a
  * different shared object for packaging purposes, it's still considered
  * part of the library and therefore needs the library's run-time log
  * level.
+ *
+ * The default log level is NONE: we don't print logging statements for
+ * any executable which links with the library. The executable must call
+ * bt_logging_set_global_level() or the executable's user must set the
+ * `LIBBABELTRACE2_INIT_LOG_LEVEL` environment variable to enable
+ * logging.
  */
-int bt_lib_log_level = DEFAULT_LOG_LEVEL;
+int bt_lib_log_level = BT_LOG_NONE;
 
 enum bt_logging_level bt_logging_get_minimal_level(void)
 {
@@ -64,17 +53,6 @@ enum bt_logging_level bt_logging_get_global_level(void)
 
 void bt_logging_set_global_level(enum bt_logging_level log_level)
 {
-#ifdef BT_DEV_MODE
-	/*
-	 * Do not allow the library's log level to fall to NONE when in
-	 * developer mode because fatal logging is our way to
-	 * communicate an unsatisfied precondition and the details.
-	 */
-	if (log_level == BT_LOG_NONE) {
-		log_level = BT_LOG_FATAL;
-	}
-#endif
-
 	bt_lib_log_level = log_level;
 }
 
