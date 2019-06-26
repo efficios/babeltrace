@@ -160,13 +160,6 @@ class _NumericValue(_Value):
 
         return self._value < float(other)
 
-    def __le__(self, other):
-        if not isinstance(other, numbers.Number):
-            raise TypeError('unorderable types: {}() <= {}()'.format(self.__class__.__name__,
-                                                                     other.__class__.__name__))
-
-        return self._value <= float(other)
-
     def _spec_eq(self, other):
         pass
 
@@ -474,9 +467,6 @@ class StringValue(collections.abc.Sequence, _Value):
             return self._value == self._value_to_str(other)
         except:
             return
-
-    def __le__(self, other):
-        return self._value <= self._value_to_str(other)
 
     def __lt__(self, other):
         return self._value < self._value_to_str(other)

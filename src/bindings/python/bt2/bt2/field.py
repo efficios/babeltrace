@@ -101,13 +101,6 @@ class _NumericField(_Field):
 
         return self._value < float(other)
 
-    def __le__(self, other):
-        if not isinstance(other, numbers.Number):
-            raise TypeError('unorderable types: {}() <= {}()'.format(self.__class__.__name__,
-                                                                     other.__class__.__name__))
-
-        return self._value <= float(other)
-
     def _spec_eq(self, other):
         if not isinstance(other, numbers.Number):
             return NotImplemented
@@ -381,9 +374,6 @@ class _StringField(_Field):
             return False
 
         return self._value == other
-
-    def __le__(self, other):
-        return self._value <= self._value_to_str(other)
 
     def __lt__(self, other):
         return self._value < self._value_to_str(other)
