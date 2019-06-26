@@ -2550,6 +2550,24 @@ void create_msg_packet_end(struct bt_msg_iter *notit, bt_message **message)
 		}
 	}
 
+	/*
+	 * Check if may be affected by lttng event-after-packet `timestamp_end`
+	 * quirk.
+	 */
+	if (notit->meta.tc->quirks.lttng_event_after_packet) {
+		/*
+		 * Check if `timestamp_end` is smaller then the current
+		 * default_clock_snapshot (which is set to the last event
+		 * decoded). It means the trace is affected by the lttng
+		 * `event-after-packet` packet `timestamp_end` quirk and must
+		 * be fixed up by omitting to update the default clock snapshot
+		 * to the `timestamp_end` as is typically done.
+		 */
+		if (notit->snapshots.end_clock < notit->default_clock_snapshot) {
+			update_default_cs = false;
+		}
+	}
+
 	/* Update default clock from packet's end time. */
 	if (notit->snapshots.end_clock != UINT64_C(-1) && update_default_cs) {
 		notit->default_clock_snapshot = notit->snapshots.end_clock;
