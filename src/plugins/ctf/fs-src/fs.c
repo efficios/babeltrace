@@ -2236,6 +2236,7 @@ int fix_packet_index_tracer_bugs(struct ctf_fs_component *ctf_fs)
 				BT_LOGE_STR("Failed to fix LTTng event-after-packet bug.");
 				goto end;
 			}
+			trace->metadata->tc->quirks.lttng_event_after_packet = true;
 		}
 
 		if (is_tracer_affected_by_barectf_event_before_packet_bug(
