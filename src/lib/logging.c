@@ -43,7 +43,7 @@ int bt_lib_log_level = BT_LOG_NONE;
 
 enum bt_logging_level bt_logging_get_minimal_level(void)
 {
-	return BT_LOG_LEVEL;
+	return BT_MINIMAL_LOG_LEVEL;
 }
 
 enum bt_logging_level bt_logging_get_global_level(void)
