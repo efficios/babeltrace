@@ -180,7 +180,7 @@ end:
 
 BT_HIDDEN
 int bt_ctf_trace_common_set_uuid(struct bt_ctf_trace_common *trace,
-		const unsigned char *uuid)
+		const uint8_t *uuid)
 {
 	int ret = 0;
 
@@ -204,27 +204,12 @@ int bt_ctf_trace_common_set_uuid(struct bt_ctf_trace_common *trace,
 		goto end;
 	}
 
-	memcpy(trace->uuid, uuid, BABELTRACE_UUID_LEN);
+	bt_uuid_copy(trace->uuid, uuid);
 	trace->uuid_set = BT_TRUE;
 	BT_LOGT("Set trace's UUID: addr=%p, name=\"%s\", "
-		"uuid=\"%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x\"",
+		"uuid=\"" BT_UUID_FMT "\"",
 		trace, bt_ctf_trace_common_get_name(trace),
-		(unsigned int) uuid[0],
-		(unsigned int) uuid[1],
-		(unsigned int) uuid[2],
-		(unsigned int) uuid[3],
-		(unsigned int) uuid[4],
-		(unsigned int) uuid[5],
-		(unsigned int) uuid[6],
-		(unsigned int) uuid[7],
-		(unsigned int) uuid[8],
-		(unsigned int) uuid[9],
-		(unsigned int) uuid[10],
-		(unsigned int) uuid[11],
-		(unsigned int) uuid[12],
-		(unsigned int) uuid[13],
-		(unsigned int) uuid[14],
-		(unsigned int) uuid[15]);
+		BT_UUID_FMT_VALUES(uuid));
 
 end:
 	return ret;
@@ -1461,13 +1446,13 @@ error:
 	return trace;
 }
 
-const unsigned char *bt_ctf_trace_get_uuid(struct bt_ctf_trace *trace)
+const uint8_t *bt_ctf_trace_get_uuid(struct bt_ctf_trace *trace)
 {
 	return bt_ctf_trace_common_get_uuid(BT_CTF_TO_COMMON(trace));
 }
 
 int bt_ctf_trace_set_uuid(struct bt_ctf_trace *trace,
-		const unsigned char *uuid)
+		const uint8_t *uuid)
 {
 	return bt_ctf_trace_common_set_uuid(BT_CTF_TO_COMMON(trace), uuid);
 }
@@ -1684,7 +1669,7 @@ static
 int append_trace_metadata(struct bt_ctf_trace *trace,
 		struct metadata_context *context)
 {
-	unsigned char *uuid = trace->common.uuid;
+	uint8_t *uuid = trace->common.uuid;
 	int ret = 0;
 
 	if (trace->common.native_byte_order == BT_CTF_BYTE_ORDER_NATIVE ||
@@ -1706,11 +1691,8 @@ int append_trace_metadata(struct bt_ctf_trace *trace,
 
 	if (trace->common.uuid_set) {
 		g_string_append_printf(context->string,
-			"\tuuid = \"%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x\";\n",
-			uuid[0], uuid[1], uuid[2], uuid[3],
-			uuid[4], uuid[5], uuid[6], uuid[7],
-			uuid[8], uuid[9], uuid[10], uuid[11],
-			uuid[12], uuid[13], uuid[14], uuid[15]);
+			"\tuuid = \"" BT_UUID_FMT "\";\n",
+			BT_UUID_FMT_VALUES(uuid));
 	}
 
 	g_string_append_printf(context->string, "\tbyte_order = %s;\n",

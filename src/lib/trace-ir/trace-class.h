@@ -35,7 +35,6 @@
 #include <babeltrace2/types.h>
 #include <glib.h>
 #include <sys/types.h>
-#include "compat/uuid.h"
 
 #include "stream-class.h"
 #include "attributes.h"

@@ -29,7 +29,7 @@
  */
 
 #include "common/macros.h"
-#include "compat/uuid.h"
+#include "common/uuid.h"
 #include <babeltrace2/ctf-writer/field-types.h>
 #include <babeltrace2/ctf-writer/fields.h>
 #include <babeltrace2/ctf-writer/trace.h>
@@ -49,7 +49,7 @@ struct bt_ctf_trace_common {
 	struct bt_ctf_object base;
 	GString *name;
 	int frozen;
-	unsigned char uuid[BABELTRACE_UUID_LEN];
+	bt_uuid_t uuid;
 	bt_bool uuid_set;
 	enum bt_ctf_byte_order native_byte_order;
 	struct bt_ctf_private_value *environment;
@@ -88,14 +88,14 @@ BT_HIDDEN
 int bt_ctf_trace_common_set_name(struct bt_ctf_trace_common *trace, const char *name);
 
 static inline
-const unsigned char *bt_ctf_trace_common_get_uuid(struct bt_ctf_trace_common *trace)
+const uint8_t *bt_ctf_trace_common_get_uuid(struct bt_ctf_trace_common *trace)
 {
 	BT_CTF_ASSERT_PRE_NON_NULL(trace, "Trace");
 	return trace->uuid_set ? trace->uuid : NULL;
 }
 
 BT_HIDDEN
-int bt_ctf_trace_common_set_uuid(struct bt_ctf_trace_common *trace, const unsigned char *uuid);
+int bt_ctf_trace_common_set_uuid(struct bt_ctf_trace_common *trace, const uint8_t *uuid);
 
 BT_HIDDEN
 int bt_ctf_trace_common_set_environment_field(struct bt_ctf_trace_common *trace,

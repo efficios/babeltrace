@@ -7,6 +7,4 @@ Name: Babeltrace 2 CTF writer library
 Description: Common Trace Format (CTF) writer library from Babeltrace 2
 Version: @PACKAGE_VERSION@
 Libs: -L${libdir} -lbabeltrace2-ctf-writer
-Libs.private: @UUID_LIBS@
 Cflags: -I${includedir}
-Cflags.private: @UUID_CFLAGS@

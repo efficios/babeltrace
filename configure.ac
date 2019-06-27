@@ -293,51 +293,6 @@ AC_CHECK_FUNCS([ \
 #AC_FUNC_MALLOC
 #AC_FUNC_REALLOC
 
-# First, check for uuid in system libs
-AH_TEMPLATE([BABELTRACE_HAVE_LIBUUID], [Define if you have libuuid support])
-AC_CHECK_FUNCS([uuid_generate],
-  [
-    AC_DEFINE([BABELTRACE_HAVE_LIBUUID], [1])
-    UUID_LIBS=""
-  ],
-  [
-    # Then, check if the pkg-config module is available, otherwise explicitly check
-    # for libuuid, or uuid support in the C-library.
-    PKG_CHECK_MODULES([UUID], [uuid],
-      [
-        AC_DEFINE([BABELTRACE_HAVE_LIBUUID], [1])
-        dnl PKG_CHECK_MODULES defines UUID_LIBS
-      ],
-      [
-        AC_MSG_WARN([pkg-config was unable to find a valid .pc for libuuid. Set PKG_CONFIG_PATH to specify the pkgconfig configuration file location])
-        AC_MSG_WARN([Finding libuuid without pkg-config.])
-        AC_CHECK_LIB([uuid], [uuid_generate],
-          [
-            AC_DEFINE([BABELTRACE_HAVE_LIBUUID], [1])
-            UUID_LIBS="-luuid"
-          ],
-          [
-            # libuuid not found, check for uuid_create in libc.
-            AC_CHECK_LIB([c], [uuid_create],
-              [
-                AC_DEFINE([BABELTRACE_HAVE_LIBUUID], [1])
-                UUID_LIBS="-lc"
-              ],
-              [
-                # for MinGW32 we have our own internal implementation of uuid using Windows functions.
-                AS_IF([test "x$MINGW32" = xno],
-                  [AC_MSG_FAILURE([Cannot find libuuid uuid_generate nor libc uuid_create. Either set PKG_CONFIG_PATH to the configuration file location or use LDFLAGS=-Ldir to specify the library location])]
-		)
-              ]
-            )
-          ]
-        )
-      ]
-    )
-  ]
-)
-AC_SUBST(UUID_LIBS)
-
 # Check for fmemopen
 AC_CHECK_LIB([c], [fmemopen],
   [AC_DEFINE_UNQUOTED([BABELTRACE_HAVE_FMEMOPEN], 1, [Has fmemopen support.])]

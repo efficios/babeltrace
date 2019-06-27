@@ -26,6 +26,7 @@
 #include <babeltrace2/babeltrace.h>
 #include "compat/bitfield.h"
 #include "common/common.h"
+#include "common/uuid.h"
 #include "compat/time.h"
 #include "common/assert.h"
 #include <inttypes.h>
@@ -1280,23 +1281,8 @@ int print_discarded_elements_msg(struct pretty_component *pretty,
 
 	if (trace_uuid) {
 		g_string_append_printf(pretty->string,
-			"(UUID: %02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x) ",
-			trace_uuid[0],
-			trace_uuid[1],
-			trace_uuid[2],
-			trace_uuid[3],
-			trace_uuid[4],
-			trace_uuid[5],
-			trace_uuid[6],
-			trace_uuid[7],
-			trace_uuid[8],
-			trace_uuid[9],
-			trace_uuid[10],
-			trace_uuid[11],
-			trace_uuid[12],
-			trace_uuid[13],
-			trace_uuid[14],
-			trace_uuid[15]);
+			"(UUID: " BT_UUID_FMT ") ",
+			BT_UUID_FMT_VALUES(trace_uuid));
 	} else {
 		g_string_append(pretty->string, "(no UUID) ");
 	}

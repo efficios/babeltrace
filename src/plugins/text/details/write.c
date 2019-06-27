@@ -26,6 +26,7 @@
 
 #include "common/assert.h"
 #include "common/common.h"
+#include "common/uuid.h"
 #include "details.h"
 #include "write.h"
 #include "obj-lifetime-mgmt.h"
@@ -329,24 +330,9 @@ void write_uuid_prop_line(struct details_write_ctx *ctx, const char *prop_name,
 	write_indent(ctx);
 	write_prop_name(ctx, prop_name);
 	g_string_append_printf(ctx->str,
-		": %s%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x%s\n",
+		": %s" BT_UUID_FMT "%s\n",
 		color_bold(ctx),
-		(unsigned int) uuid[0],
-		(unsigned int) uuid[1],
-		(unsigned int) uuid[2],
-		(unsigned int) uuid[3],
-		(unsigned int) uuid[4],
-		(unsigned int) uuid[5],
-		(unsigned int) uuid[6],
-		(unsigned int) uuid[7],
-		(unsigned int) uuid[8],
-		(unsigned int) uuid[9],
-		(unsigned int) uuid[10],
-		(unsigned int) uuid[11],
-		(unsigned int) uuid[12],
-		(unsigned int) uuid[13],
-		(unsigned int) uuid[14],
-		(unsigned int) uuid[15],
+		BT_UUID_FMT_VALUES(uuid),
 		color_reset(ctx));
 }
 

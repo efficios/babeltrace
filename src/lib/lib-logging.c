@@ -32,6 +32,7 @@
 #include <wchar.h>
 #include <glib.h>
 #include "common/common.h"
+#include "common/uuid.h"
 #include <babeltrace2/trace-ir/event-const.h>
 #include <babeltrace2/trace-ir/packet-const.h>
 #include <babeltrace2/trace-ir/stream-const.h>
@@ -134,23 +135,7 @@ static inline void format_object(char **buf_ch, bool extended,
 
 static inline void format_uuid(char **buf_ch, bt_uuid uuid)
 {
-	BUF_APPEND("\"%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x\"",
-		(unsigned int) uuid[0],
-		(unsigned int) uuid[1],
-		(unsigned int) uuid[2],
-		(unsigned int) uuid[3],
-		(unsigned int) uuid[4],
-		(unsigned int) uuid[5],
-		(unsigned int) uuid[6],
-		(unsigned int) uuid[7],
-		(unsigned int) uuid[8],
-		(unsigned int) uuid[9],
-		(unsigned int) uuid[10],
-		(unsigned int) uuid[11],
-		(unsigned int) uuid[12],
-		(unsigned int) uuid[13],
-		(unsigned int) uuid[14],
-		(unsigned int) uuid[15]);
+	BUF_APPEND("\"" BT_UUID_FMT "\"", BT_UUID_FMT_VALUES(uuid));
 }
 
 static inline void format_object_pool(char **buf_ch, bool extended,

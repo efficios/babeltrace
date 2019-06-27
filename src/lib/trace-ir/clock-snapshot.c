@@ -24,7 +24,7 @@
 #include "lib/logging.h"
 
 #include "lib/assert-pre.h"
-#include "compat/uuid.h"
+#include "common/uuid.h"
 #include "clock-class.h"
 #include "clock-snapshot.h"
 #include <babeltrace2/trace-ir/clock-snapshot-const.h>

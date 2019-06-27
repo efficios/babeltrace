@@ -17,6 +17,7 @@
 
 #include <babeltrace2/babeltrace.h>
 #include "common/common.h"
+#include "common/uuid.h"
 #include "common/assert.h"
 #include <glib.h>
 #include <stdint.h>
@@ -75,7 +76,7 @@ struct ctf_clock_class {
 	uint64_t precision;
 	int64_t offset_seconds;
 	uint64_t offset_cycles;
-	uint8_t uuid[16];
+	bt_uuid_t uuid;
 	bool has_uuid;
 	bool is_absolute;
 
@@ -278,7 +279,7 @@ struct ctf_trace_class_env_entry {
 struct ctf_trace_class {
 	unsigned int major;
 	unsigned int minor;
-	uint8_t uuid[16];
+	bt_uuid_t uuid;
 	bool is_uuid_set;
 	enum ctf_byte_order default_byte_order;
 

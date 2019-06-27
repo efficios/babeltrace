@@ -38,6 +38,7 @@
 #include "compat/stdio.h"
 #include <string.h>
 #include "common/assert.h"
+#include "common/uuid.h"
 #include <fcntl.h>
 #include "tap/tap.h"
 #include <math.h>
@@ -72,7 +73,7 @@ static unsigned int packet_resize_test_length = PACKET_RESIZE_TEST_DEF_LENGTH;
 
 /* Return 1 if uuids match, zero if different. */
 static
-int uuid_match(const unsigned char *uuid_a, const unsigned char *uuid_b)
+int uuid_match(const uint8_t *uuid_a, const uint8_t *uuid_b)
 {
 	int ret = 0;
 	int i;
@@ -1600,8 +1601,8 @@ int main(int argc, char **argv)
 	struct bt_ctf_stream *stream1;
 	struct bt_ctf_stream *stream;
 	const char *ret_string;
-	const unsigned char *ret_uuid;
-	unsigned char tmp_uuid[16] = { 0 };
+	const uint8_t *ret_uuid;
+	bt_uuid_t tmp_uuid = { 0 };
 	struct bt_ctf_field_type *packet_context_type,
 		*packet_context_field_type,
 		*packet_header_type,

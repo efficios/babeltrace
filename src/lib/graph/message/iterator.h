@@ -31,7 +31,7 @@
 #include <babeltrace2/types.h>
 #include "common/assert.h"
 #include <stdbool.h>
-#include <compat/uuid.h>
+#include "common/uuid.h"
 
 struct bt_port;
 struct bt_graph;
@@ -144,7 +144,7 @@ struct bt_self_component_port_input_message_iterator {
 		 * irrelevant (as the clock will be correlatable with other
 		 * clocks having the same origin).
 		 */
-		uint8_t uuid[BABELTRACE_UUID_LEN];
+		bt_uuid_t uuid;
 	} clock_expectation;
 
 	/*

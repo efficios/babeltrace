@@ -3,10 +3,12 @@ AM_CPPFLAGS += -DINSTALL_LIBDIR=\"$(libdir)\"
 noinst_LTLIBRARIES = libbabeltrace2-common.la
 
 libbabeltrace2_common_la_SOURCES = \
-	assert.h \
 	assert.c \
+	assert.h \
 	common.c \
-	common.h
+	common.h \
+	uuid.c \
+	uuid.h
 
 noinst_HEADERS = \
 	align.h \

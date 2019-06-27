@@ -227,7 +227,7 @@ void bt_trace_set_uuid(struct bt_trace *trace, bt_uuid uuid)
 	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
 	BT_ASSERT_PRE_NON_NULL(uuid, "UUID");
 	BT_ASSERT_PRE_TRACE_HOT(trace);
-	memcpy(trace->uuid.uuid, uuid, BABELTRACE_UUID_LEN);
+	bt_uuid_copy(trace->uuid.uuid, uuid);
 	trace->uuid.value = trace->uuid.uuid;
 	BT_LIB_LOGD("Set trace's UUID: %!+t", trace);
 }

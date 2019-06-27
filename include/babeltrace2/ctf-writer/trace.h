@@ -42,11 +42,11 @@ extern enum bt_ctf_byte_order bt_ctf_trace_get_native_byte_order(
 extern int bt_ctf_trace_set_native_byte_order(struct bt_ctf_trace *trace,
 		enum bt_ctf_byte_order native_byte_order);
 
-extern const unsigned char *bt_ctf_trace_get_uuid(
+extern const uint8_t *bt_ctf_trace_get_uuid(
 		struct bt_ctf_trace *trace);
 
 extern int bt_ctf_trace_set_uuid(struct bt_ctf_trace *trace,
-		const unsigned char *uuid);
+		const uint8_t *uuid);
 
 extern int bt_ctf_trace_set_environment_field_integer(
 		struct bt_ctf_trace *trace, const char *name,

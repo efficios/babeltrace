@@ -43,7 +43,7 @@
 #include <inttypes.h>
 #include <errno.h>
 #include "common/common.h"
-#include "compat/uuid.h"
+#include "common/uuid.h"
 #include "compat/endian.h"
 #include <babeltrace2/babeltrace.h>
 
@@ -979,7 +979,7 @@ end:
 
 static
 int get_unary_uuid(struct ctx *ctx, struct bt_list_head *head,
-		unsigned char *uuid)
+		uint8_t *uuid)
 {
 	int i = 0;
 	int ret = 0;
@@ -999,7 +999,7 @@ int get_unary_uuid(struct ctx *ctx, struct bt_list_head *head,
 		}
 
 		src_string = node->u.unary_expression.u.string;
-		ret = bt_uuid_parse(src_string, uuid);
+		ret = bt_uuid_from_str(src_string, uuid);
 		if (ret) {
 			_BT_COMP_LOGE_NODE(node,
 				"Cannot parse UUID: uuid=\"%s\"", src_string);
@@ -4415,7 +4415,7 @@ int visit_clock_decl_entry(struct ctx *ctx, struct ctf_node *entry_node,
 		g_free(right);
 		_SET(set, _CLOCK_NAME_SET);
 	} else if (!strcmp(left, "uuid")) {
-		uint8_t uuid[BABELTRACE_UUID_LEN];
+		bt_uuid_t uuid;
 
 		if (_IS_SET(set, _CLOCK_UUID_SET)) {
 			_BT_COMP_LOGE_DUP_ATTR(entry_node, "uuid", "clock class");
@@ -4432,7 +4432,7 @@ int visit_clock_decl_entry(struct ctx *ctx, struct ctf_node *entry_node,
 		}
 
 		clock->has_uuid = true;
-		memcpy(&clock->uuid[0], uuid, 16);
+		bt_uuid_copy(clock->uuid, uuid);
 		_SET(set, _CLOCK_UUID_SET);
 	} else if (!strcmp(left, "description")) {
 		char *right;

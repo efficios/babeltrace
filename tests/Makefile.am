@@ -57,6 +57,7 @@ TESTS_CLI = \
 TESTS_LIB = \
 	lib/test_bitfield \
 	lib/test_bt_values \
+	lib/test_bt_uuid \
 	lib/test_graph_topo \
 	lib/test_trace_ir_ref
 

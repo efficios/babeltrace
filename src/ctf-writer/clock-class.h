@@ -27,7 +27,7 @@
 
 #include "common/macros.h"
 #include "object-pool.h"
-#include "compat/uuid.h"
+#include "common/uuid.h"
 #include <babeltrace2/types.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -43,7 +43,7 @@ struct bt_ctf_clock_class {
 	uint64_t precision;
 	int64_t offset_s;	/* Offset in seconds */
 	int64_t offset;		/* Offset in ticks */
-	unsigned char uuid[BABELTRACE_UUID_LEN];
+	bt_uuid_t uuid;
 	int uuid_set;
 	int absolute;
 
@@ -111,10 +111,10 @@ BT_HIDDEN
 int bt_ctf_clock_class_set_is_absolute(
 		struct bt_ctf_clock_class *clock_class, bt_bool is_absolute);
 BT_HIDDEN
-const unsigned char *bt_ctf_clock_class_get_uuid(
+const uint8_t *bt_ctf_clock_class_get_uuid(
 		struct bt_ctf_clock_class *clock_class);
 BT_HIDDEN
 int bt_ctf_clock_class_set_uuid(struct bt_ctf_clock_class *clock_class,
-		const unsigned char *uuid);
+		const uint8_t *uuid);
 
 #endif /* BABELTRACE_CTF_WRITER_CLOCK_CLASS_INTERNAL_H */
