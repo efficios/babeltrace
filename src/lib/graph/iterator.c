@@ -25,6 +25,7 @@
 #include "lib/logging.h"
 
 #include "compat/compiler.h"
+#include "compat/glib.h"
 #include "lib/trace-ir/clock-class.h"
 #include "lib/trace-ir/clock-snapshot.h"
 #include <babeltrace2/trace-ir/field.h>
@@ -1220,7 +1221,6 @@ skip_msg:
 	{
 		const struct bt_message_stream *stream_msg = (const void *) msg;
 		struct auto_seek_stream_state *stream_state;
-		gboolean did_not_exist;
 
 		/* Update stream's state: stream began. */
 		stream_state = create_auto_seek_stream_state();
@@ -1230,8 +1230,9 @@ skip_msg:
 		}
 
 		stream_state->state = AUTO_SEEK_STREAM_STATE_STREAM_BEGAN;
-		did_not_exist = g_hash_table_insert(stream_states, stream_msg->stream, stream_state);
-		BT_ASSERT(did_not_exist);
+
+		BT_ASSERT(!bt_g_hash_table_contains(stream_states, stream_msg->stream));
+		g_hash_table_insert(stream_states, stream_msg->stream, stream_state);
 		break;
 	}
 	case BT_MESSAGE_TYPE_STREAM_ACTIVITY_BEGINNING:
