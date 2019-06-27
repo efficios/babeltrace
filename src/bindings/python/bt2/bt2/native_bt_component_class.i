@@ -167,88 +167,24 @@ void bt_py3_native_comp_class_dtor(void) {
 	}
 }
 
-
-// TODO: maybe we can wrap code in the Python methods (e.g. _query_from_native)
-// in a try catch and print the error there instead, it would be simpler.
 static
 void bt2_py_loge_exception(void)
 {
-	PyObject *type = NULL;
-	PyObject *value = NULL;
-	PyObject *traceback = NULL;
-	PyObject *traceback_module = NULL;
-	PyObject *format_exception_func = NULL;
-	PyObject *exc_str_list = NULL;
-	GString *msg_buf = NULL;
-	Py_ssize_t i;
+	GString *gstr;
 
 	BT_ASSERT(PyErr_Occurred() != NULL);
-
-	PyErr_Fetch(&type, &value, &traceback);
-
-	BT_ASSERT(type != NULL);
-
-	/*
-	* traceback can be NULL, when we fail to call a Python function from the
-	* native code (there is no Python stack at that point).  E.g.:
-	*
-	*   TypeError: _query_from_native() takes 5 positional arguments but 8 were given
-	*/
-
-
-	/* Make sure `value` is what we expected - an instance of `type`. */
-	PyErr_NormalizeException(&type, &value, &traceback);
-
-	traceback_module = PyImport_ImportModule("traceback");
-	if (!traceback_module) {
-		BT_LOGE_STR("Failed to log Python exception (could not import traceback module).");
+	gstr = bt_py_common_format_exception(BT_LOG_OUTPUT_LEVEL);
+	if (!gstr) {
+		/* bt_py_common_format_exception() logs errors */
 		goto end;
 	}
 
-	format_exception_func = PyObject_GetAttrString(traceback_module,
-		traceback ? "format_exception" : "format_exception_only");
-	if (!format_exception_func) {
-		BT_LOGE_STR("Failed to log Python exception (could not find format_exception).");
-		goto end;
-	}
-
-	if (!PyCallable_Check(format_exception_func)) {
-		BT_LOGE_STR("Failed to log Python exception (format_exception is not callable).");
-		goto end;
-	}
-
-	exc_str_list = PyObject_CallFunctionObjArgs(format_exception_func, type, value, traceback, NULL);
-	if (!exc_str_list) {
-		PyErr_Print();
-		BT_LOGE_STR("Failed to log Python exception (call to format_exception failed).");
-		goto end;
-	}
-
-	msg_buf = g_string_new(NULL);
-
-	for (i = 0; i < PyList_Size(exc_str_list); i++) {
-		PyObject *exc_str = PyList_GetItem(exc_str_list, i);
-		const char *str = PyUnicode_AsUTF8(exc_str);
-		if (!str) {
-			BT_LOGE_STR("Failed to log Python exception (failed to convert exception to string).");
-			goto end;
-		}
-
-		g_string_append(msg_buf, str);
-	}
-
-	BT_LOGE_STR(msg_buf->str);
+	BT_LOGE_STR(gstr->str);
 
 end:
-	if (msg_buf) {
-		g_string_free(msg_buf, TRUE);
+	if (gstr) {
+		g_string_free(gstr, TRUE);
 	}
-	Py_XDECREF(exc_str_list);
-	Py_XDECREF(format_exception_func);
-	Py_XDECREF(traceback_module);
-
-	/* PyErr_Restore takes our references. */
-	PyErr_Restore(type, value, traceback);
 }
 
 static
