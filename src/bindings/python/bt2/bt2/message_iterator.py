@@ -131,9 +131,11 @@ class _UserMessageIterator(_MessageIterator):
 
         utils._check_type(msg, bt2.message._Message)
 
-        # Release the reference to the native part.
-        ptr = msg._release()
-        return int(ptr)
+        # The reference we return will be given to the message array.
+        # However, the `msg` Python object may stay alive, if the user has kept
+        # a reference to it.  Acquire a new reference to account for that.
+        msg._get_ref(msg._ptr)
+        return int(msg._ptr)
 
     def _create_event_message(self, event_class, packet, default_clock_snapshot=None):
         utils._check_type(event_class, bt2.event_class._EventClass)
