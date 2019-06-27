@@ -378,7 +378,7 @@ AC_SUBST(POPT_LIBS)
 ##                 ##
 
 AC_ARG_VAR([PYTHON_INCLUDE], [Include flags for Python, bypassing python-config])
-AC_ARG_VAR([PYTHON_LIBS], [Library flags for Python, bypassing python-config])
+AC_ARG_VAR([PYTHON_LDFLAGS], [Linker flags for Python, bypassing python-config])
 AC_ARG_VAR([PYTHON_CONFIG], [Path to python-config])
 
 # PLUGINSDIR: Plugins directory
@@ -572,7 +572,7 @@ AS_IF([test "x$enable_python_bindings" = xyes || test "x$enable_python_plugins" 
     PYTHON_INCLUDE=`$PYTHON_CONFIG --includes`
     AC_MSG_RESULT([$PYTHON_INCLUDE])
   ])
-  AS_IF([test -z "$PYTHON_LIBS"], [
+  AS_IF([test -z "$PYTHON_LDFLAGS"], [
     AS_IF([test -z "$PYTHON_CONFIG"], [
       AC_PATH_PROGS([PYTHON_CONFIG],
                     [python$PYTHON_VERSION-config python-config],
@@ -581,8 +581,8 @@ AS_IF([test "x$enable_python_bindings" = xyes || test "x$enable_python_plugins" 
       AS_IF([test "$PYTHON_CONFIG" = no], [AC_MSG_ERROR([cannot find python-config for $PYTHON. Is python-dev installed?])])
     ])
     AC_MSG_CHECKING([Python library flags])
-    PYTHON_LIBS=`$PYTHON_CONFIG --libs`
-    AC_MSG_RESULT([$PYTHON_LIBS])
+    PYTHON_LDFLAGS=`$PYTHON_CONFIG --ldflags`
+    AC_MSG_RESULT([$PYTHON_LDFLAGS])
   ])
   ]
 )
@@ -860,7 +860,7 @@ test "x$enable_python_plugins" = "xyes" && value=1 || value=0
 PPRINT_PROP_BOOL([Python plugin support], $value)
 AS_IF([test "x$enable_python_bindings" = "xyes" || test "x$enable_python_plugins" = "xyes"], [
   PPRINT_PROP_STRING([Python include paths], [$PYTHON_INCLUDE])
-  PPRINT_PROP_STRING([Python libraries], [$PYTHON_LIBS])
+  PPRINT_PROP_STRING([Python linker flags], [$PYTHON_LDFLAGS])
 ])
 
 AS_ECHO
