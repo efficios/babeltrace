@@ -54,7 +54,8 @@
 
 static GHashTable *bt_cc_ptr_to_py_cls;
 
-static void register_cc_ptr_to_py_cls(struct bt_component_class *bt_cc,
+static
+void register_cc_ptr_to_py_cls(struct bt_component_class *bt_cc,
 		PyObject *py_cls)
 {
 	if (!bt_cc_ptr_to_py_cls) {
@@ -72,7 +73,8 @@ static void register_cc_ptr_to_py_cls(struct bt_component_class *bt_cc,
 		(gpointer) py_cls);
 }
 
-static PyObject *lookup_cc_ptr_to_py_cls(const bt_component_class *bt_cc)
+static
+PyObject *lookup_cc_ptr_to_py_cls(const bt_component_class *bt_cc)
 {
 	if (!bt_cc_ptr_to_py_cls) {
 		BT_LOGW("Cannot look up Python component class because hash table is NULL: "
@@ -97,7 +99,8 @@ static PyObject *py_mod_bt2_exc_msg_iter_canceled_type = NULL;
 static PyObject *py_mod_bt2_exc_invalid_query_object_type = NULL;
 static PyObject *py_mod_bt2_exc_invalid_query_params_type = NULL;
 
-static void bt_py3_cc_init_from_bt2(void)
+static
+void bt_py3_cc_init_from_bt2(void)
 {
 	/*
 	 * This is called once the bt2 package is loaded.
@@ -126,7 +129,8 @@ static void bt_py3_cc_init_from_bt2(void)
 	BT_ASSERT(py_mod_bt2_exc_invalid_query_params_type);
 }
 
-static void bt_py3_cc_exit_handler(void)
+static
+void bt_py3_cc_exit_handler(void)
 {
 	/*
 	 * This is an exit handler (set by the bt2 package).
@@ -154,7 +158,8 @@ static void bt_py3_cc_exit_handler(void)
 /* Library destructor */
 
 __attribute__((destructor))
-static void bt_py3_native_comp_class_dtor(void) {
+static
+void bt_py3_native_comp_class_dtor(void) {
 	/* Destroy component class association hash table */
 	if (bt_cc_ptr_to_py_cls) {
 		BT_LOGD_STR("Destroying native component class to Python component class hash table.");
@@ -246,7 +251,8 @@ end:
 	PyErr_Restore(type, value, traceback);
 }
 
-static bt_self_component_status bt_py3_exc_to_self_component_status(void)
+static
+bt_self_component_status bt_py3_exc_to_self_component_status(void)
 {
 	bt_self_component_status status = BT_SELF_COMPONENT_STATUS_OK;
 	PyObject *exc = PyErr_Occurred();
@@ -273,8 +279,8 @@ end:
 
 /* Component class proxy methods (delegate to the attached Python object) */
 
-static bt_self_message_iterator_status
-bt_py3_exc_to_self_message_iterator_status(void)
+static
+bt_self_message_iterator_status bt_py3_exc_to_self_message_iterator_status(void)
 {
 	enum bt_self_message_iterator_status status =
 		BT_SELF_MESSAGE_ITERATOR_STATUS_OK;
@@ -298,7 +304,8 @@ end:
 	return status;
 }
 
-static enum bt_query_status bt_py3_exc_to_query_status(void)
+static
+enum bt_query_status bt_py3_exc_to_query_status(void)
 {
 	enum bt_query_status status = BT_QUERY_STATUS_OK;
 	PyObject *exc = PyErr_Occurred();
@@ -326,8 +333,8 @@ end:
 	return status;
 }
 
-static bt_self_component_status
-bt_py3_component_class_init(
+static
+bt_self_component_status bt_py3_component_class_init(
 		bt_self_component *self_component,
 		void *self_component_v,
 		swig_type_info *self_comp_cls_type_swig_type,
@@ -425,8 +432,9 @@ end:
  * of that class.
  */
 
-static bt_self_component_status
-bt_py3_component_class_source_init(bt_self_component_source *self_component_source,
+static
+bt_self_component_status bt_py3_component_class_source_init(
+		bt_self_component_source *self_component_source,
 		const bt_value *params, void *init_method_data)
 {
 	bt_self_component *self_component = bt_self_component_source_as_self_component(self_component_source);
@@ -437,8 +445,9 @@ bt_py3_component_class_source_init(bt_self_component_source *self_component_sour
 		params, init_method_data);
 }
 
-static bt_self_component_status
-bt_py3_component_class_filter_init(bt_self_component_filter *self_component_filter,
+static
+bt_self_component_status bt_py3_component_class_filter_init(
+		bt_self_component_filter *self_component_filter,
 		const bt_value *params, void *init_method_data)
 {
 	bt_self_component *self_component = bt_self_component_filter_as_self_component(self_component_filter);
@@ -449,8 +458,9 @@ bt_py3_component_class_filter_init(bt_self_component_filter *self_component_filt
 		params, init_method_data);
 }
 
-static bt_self_component_status
-bt_py3_component_class_sink_init(bt_self_component_sink *self_component_sink,
+static
+bt_self_component_status bt_py3_component_class_sink_init(
+		bt_self_component_sink *self_component_sink,
 		const bt_value *params, void *init_method_data)
 {
 	bt_self_component *self_component = bt_self_component_sink_as_self_component(self_component_sink);
@@ -461,7 +471,8 @@ bt_py3_component_class_sink_init(bt_self_component_sink *self_component_sink,
 		params, init_method_data);
 }
 
-static void bt_py3_component_class_finalize(bt_self_component *self_component)
+static
+void bt_py3_component_class_finalize(bt_self_component *self_component)
 {
 	PyObject *py_comp = bt_self_component_get_data(self_component);
 	BT_ASSERT(py_comp);
@@ -484,29 +495,29 @@ static void bt_py3_component_class_finalize(bt_self_component *self_component)
 	Py_DECREF(py_comp);
 }
 
-static void
-bt_py3_component_class_source_finalize(bt_self_component_source *self_component_source)
+static
+void bt_py3_component_class_source_finalize(bt_self_component_source *self_component_source)
 {
 	bt_self_component *self_component = bt_self_component_source_as_self_component(self_component_source);
 	bt_py3_component_class_finalize(self_component);
 }
 
-static void
-bt_py3_component_class_filter_finalize(bt_self_component_filter *self_component_filter)
+static
+void bt_py3_component_class_filter_finalize(bt_self_component_filter *self_component_filter)
 {
 	bt_self_component *self_component = bt_self_component_filter_as_self_component(self_component_filter);
 	bt_py3_component_class_finalize(self_component);
 }
 
-static void
-bt_py3_component_class_sink_finalize(bt_self_component_sink *self_component_sink)
+static
+void bt_py3_component_class_sink_finalize(bt_self_component_sink *self_component_sink)
 {
 	bt_self_component *self_component = bt_self_component_sink_as_self_component(self_component_sink);
 	bt_py3_component_class_finalize(self_component);
 }
 
-static bt_self_component_status
-bt_py3_component_class_port_connected(
+static
+bt_self_component_status bt_py3_component_class_port_connected(
 		bt_self_component *self_component,
 		void *self_component_port,
 		swig_type_info *self_component_port_swig_type,
@@ -554,8 +565,8 @@ end:
 	return status;
 }
 
-static bt_self_component_status
-bt_py3_component_class_source_output_port_connected(
+static
+bt_self_component_status bt_py3_component_class_source_output_port_connected(
 		bt_self_component_source *self_component_source,
 		bt_self_component_port_output *self_component_port_output,
 		const bt_port_input *other_port_input)
@@ -571,8 +582,8 @@ bt_py3_component_class_source_output_port_connected(
 		SWIGTYPE_p_bt_port_input);
 }
 
-static bt_self_component_status
-bt_py3_component_class_filter_input_port_connected(
+static
+bt_self_component_status bt_py3_component_class_filter_input_port_connected(
 		bt_self_component_filter *self_component_filter,
 		bt_self_component_port_input *self_component_port_input,
 		const bt_port_output *other_port_output)
@@ -588,8 +599,8 @@ bt_py3_component_class_filter_input_port_connected(
 		SWIGTYPE_p_bt_port_output);
 }
 
-static bt_self_component_status
-bt_py3_component_class_filter_output_port_connected(
+static
+bt_self_component_status bt_py3_component_class_filter_output_port_connected(
 		bt_self_component_filter *self_component_filter,
 		bt_self_component_port_output *self_component_port_output,
 		const bt_port_input *other_port_input)
@@ -605,8 +616,8 @@ bt_py3_component_class_filter_output_port_connected(
 		SWIGTYPE_p_bt_port_input);
 }
 
-static bt_self_component_status
-bt_py3_component_class_sink_input_port_connected(
+static
+bt_self_component_status bt_py3_component_class_sink_input_port_connected(
 		bt_self_component_sink *self_component_sink,
 		bt_self_component_port_input *self_component_port_input,
 		const bt_port_output *other_port_output)
@@ -622,8 +633,9 @@ bt_py3_component_class_sink_input_port_connected(
 		SWIGTYPE_p_bt_port_output);
 }
 
-static bt_self_component_status
-bt_py3_component_class_sink_graph_is_configured(bt_self_component_sink *self_component_sink)
+static
+bt_self_component_status bt_py3_component_class_sink_graph_is_configured(
+		bt_self_component_sink *self_component_sink)
 {
 	PyObject *py_comp = NULL;
 	PyObject *py_method_result = NULL;
@@ -643,8 +655,8 @@ bt_py3_component_class_sink_graph_is_configured(bt_self_component_sink *self_com
 	return status;
 }
 
-static bt_query_status
-bt_py3_component_class_query(
+static
+bt_query_status bt_py3_component_class_query(
 		const bt_component_class *component_class,
 		const bt_query_executor *query_executor,
 		const char *object, const bt_value *params,
@@ -720,8 +732,8 @@ end:
 	return status;
 }
 
-static bt_query_status
-bt_py3_component_class_source_query(
+static
+bt_query_status bt_py3_component_class_source_query(
 		bt_self_component_class_source *self_component_class_source,
 		const bt_query_executor *query_executor,
 		const char *object, const bt_value *params,
@@ -733,8 +745,8 @@ bt_py3_component_class_source_query(
 	return bt_py3_component_class_query(component_class, query_executor, object, params, log_level, result);
 }
 
-static bt_query_status
-bt_py3_component_class_filter_query(
+static
+bt_query_status bt_py3_component_class_filter_query(
 		bt_self_component_class_filter *self_component_class_filter,
 		const bt_query_executor *query_executor,
 		const char *object, const bt_value *params,
@@ -746,8 +758,8 @@ bt_py3_component_class_filter_query(
 	return bt_py3_component_class_query(component_class, query_executor, object, params, log_level, result);
 }
 
-static bt_query_status
-bt_py3_component_class_sink_query(
+static
+bt_query_status bt_py3_component_class_sink_query(
 		bt_self_component_class_sink *self_component_class_sink,
 		const bt_query_executor *query_executor,
 		const char *object, const bt_value *params,
@@ -759,8 +771,8 @@ bt_py3_component_class_sink_query(
 	return bt_py3_component_class_query(component_class, query_executor, object, params, log_level, result);
 }
 
-static bt_self_message_iterator_status
-bt_py3_component_class_message_iterator_init(
+static
+bt_self_message_iterator_status bt_py3_component_class_message_iterator_init(
 		bt_self_message_iterator *self_message_iterator,
 		bt_self_component *self_component,
 		bt_self_component_port_output *self_component_port_output)
@@ -886,8 +898,8 @@ end:
 	return status;
 }
 
-static bt_self_message_iterator_status
-bt_py3_component_class_source_message_iterator_init(
+static
+bt_self_message_iterator_status bt_py3_component_class_source_message_iterator_init(
 		bt_self_message_iterator *self_message_iterator,
 		bt_self_component_source *self_component_source,
 		bt_self_component_port_output *self_component_port_output)
@@ -896,8 +908,8 @@ bt_py3_component_class_source_message_iterator_init(
 	return bt_py3_component_class_message_iterator_init(self_message_iterator, self_component, self_component_port_output);
 }
 
-static bt_self_message_iterator_status
-bt_py3_component_class_filter_message_iterator_init(
+static
+bt_self_message_iterator_status bt_py3_component_class_filter_message_iterator_init(
 		bt_self_message_iterator *self_message_iterator,
 		bt_self_component_filter *self_component_filter,
 		bt_self_component_port_output *self_component_port_output)
@@ -906,8 +918,8 @@ bt_py3_component_class_filter_message_iterator_init(
 	return bt_py3_component_class_message_iterator_init(self_message_iterator, self_component, self_component_port_output);
 }
 
-static void
-bt_py3_component_class_message_iterator_finalize(
+static
+void bt_py3_component_class_message_iterator_finalize(
 		bt_self_message_iterator *message_iterator)
 {
 	PyObject *py_message_iter = bt_self_message_iterator_get_data(message_iterator);
@@ -935,11 +947,11 @@ bt_py3_component_class_message_iterator_finalize(
 
 /* Valid for both sources and filters. */
 
-static bt_self_message_iterator_status
-bt_py3_component_class_message_iterator_next(
-			bt_self_message_iterator *message_iterator,
-			bt_message_array_const msgs, uint64_t capacity,
-			uint64_t *count)
+static
+bt_self_message_iterator_status bt_py3_component_class_message_iterator_next(
+		bt_self_message_iterator *message_iterator,
+		bt_message_array_const msgs, uint64_t capacity,
+		uint64_t *count)
 {
 	bt_self_message_iterator_status status = BT_SELF_MESSAGE_ITERATOR_STATUS_OK;
 	PyObject *py_message_iter = bt_self_message_iterator_get_data(message_iterator);
@@ -971,8 +983,9 @@ end:
 	return status;
 }
 
-static bt_self_component_status
-bt_py3_component_class_sink_consume(bt_self_component_sink *self_component_sink)
+static
+bt_self_component_status bt_py3_component_class_sink_consume(
+	bt_self_component_sink *self_component_sink)
 {
    	bt_self_component *self_component = bt_self_component_sink_as_self_component(self_component_sink);
 	PyObject *py_comp = bt_self_component_get_data(self_component);
