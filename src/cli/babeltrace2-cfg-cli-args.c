@@ -2868,6 +2868,7 @@ void print_convert_usage(FILE *fp)
 	fprintf(fp, "  -P, --path=PATH                   Set the `path` string parameter of the\n");
 	fprintf(fp, "                                    current component to PATH\n");
 	fprintf(fp, "      --plugin-path=PATH[:PATH]...  Add PATH to the list of paths from which\n");
+	fprintf(fp, "                                    dynamic plugins can be loaded\n");
 	fprintf(fp, "      --retry-duration=DUR          When babeltrace2(1) needs to retry to run\n");
 	fprintf(fp, "                                    the graph later, retry in DUR µs\n");
 	fprintf(fp, "                                    (default: 100000)\n");
