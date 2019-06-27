@@ -166,6 +166,149 @@ class UserMessageIteratorTestCase(unittest.TestCase):
         self.assertIsInstance(msg_ev2, bt2.message._EventMessage)
         self.assertEqual(msg_ev1.addr, msg_ev2.addr)
 
+    @staticmethod
+    def _setup_seek_beginning_test():
+        # Use a source, a filter and an output port iterator.  This allows us
+        # to test calling `seek_beginning` on both a _OutputPortMessageIterator
+        # and a _UserComponentInputPortMessageIterator, on top of checking that
+        # _UserMessageIterator._seek_beginning is properly called.
+
+        class MySourceIter(bt2._UserMessageIterator):
+            def __init__(self, port):
+                tc, sc, ec = port.user_data
+                trace = tc()
+                stream = trace.create_stream(sc)
+                packet = stream.create_packet()
+
+                self._msgs = [
+                    self._create_stream_beginning_message(stream),
+                    self._create_stream_activity_beginning_message(stream),
+                    self._create_packet_beginning_message(packet),
+                    self._create_event_message(ec, packet),
+                    self._create_event_message(ec, packet),
+                    self._create_packet_end_message(packet),
+                    self._create_stream_activity_end_message(stream),
+                    self._create_stream_end_message(stream),
+                ]
+                self._at = 0
+
+            def _seek_beginning(self):
+                self._at = 0
+
+            def __next__(self):
+                if self._at < len(self._msgs):
+                    msg = self._msgs[self._at]
+                    self._at += 1
+                    return msg
+                else:
+                    raise StopIteration
+
+        class MySource(bt2._UserSourceComponent,
+                       message_iterator_class=MySourceIter):
+            def __init__(self, params):
+                tc = self._create_trace_class()
+                sc = tc.create_stream_class()
+                ec = sc.create_event_class()
+
+                self._add_output_port('out', (tc, sc, ec))
+
+        class MyFilterIter(bt2._UserMessageIterator):
+            def __init__(self, port):
+                input_port = port.user_data
+                self._upstream_iter = input_port.create_message_iterator()
+
+            def __next__(self):
+                return next(self._upstream_iter)
+
+            def _seek_beginning(self):
+                self._upstream_iter.seek_beginning()
+
+            @property
+            def _can_seek_beginning(self):
+                return self._upstream_iter.can_seek_beginning
+
+        class MyFilter(bt2._UserFilterComponent, message_iterator_class=MyFilterIter):
+            def __init__(self, params):
+                input_port = self._add_input_port('in')
+                self._add_output_port('out', input_port)
+
+
+        graph = bt2.Graph()
+        src = graph.add_component(MySource, 'src')
+        flt = graph.add_component(MyFilter, 'flt')
+        graph.connect_ports(src.output_ports['out'], flt.input_ports['in'])
+        it = graph.create_output_port_message_iterator(flt.output_ports['out'])
+
+        return it, MySourceIter
+
+    def test_can_seek_beginning(self):
+        it, MySourceIter = self._setup_seek_beginning_test()
+
+        def _can_seek_beginning(self):
+            nonlocal can_seek_beginning
+            return can_seek_beginning
+
+        MySourceIter._can_seek_beginning = property(_can_seek_beginning)
+
+        can_seek_beginning = True
+        self.assertTrue(it.can_seek_beginning)
+
+        can_seek_beginning = False
+        self.assertFalse(it.can_seek_beginning)
+
+        # Once can_seek_beginning returns an error, verify that it raises when
+        # _can_seek_beginning has/returns the wrong type.
+
+        # Remove the _can_seek_beginning method, we now rely on the presence of
+        # a _seek_beginning method to know whether the iterator can seek to
+        # beginning or not.
+        del MySourceIter._can_seek_beginning
+        self.assertTrue(it.can_seek_beginning)
+
+        del MySourceIter._seek_beginning
+        self.assertFalse(it.can_seek_beginning)
+
+    def test_seek_beginning(self):
+        it, MySourceIter = self._setup_seek_beginning_test()
+
+        msg = next(it)
+        self.assertIsInstance(msg, bt2.message._StreamBeginningMessage)
+        msg = next(it)
+        self.assertIsInstance(msg, bt2.message._StreamActivityBeginningMessage)
+
+        it.seek_beginning()
+
+        msg = next(it)
+        self.assertIsInstance(msg, bt2.message._StreamBeginningMessage)
+
+        # Verify that we can seek beginning after having reached the end.
+        #
+        # It currently does not work to seek an output port message iterator
+        # once it's ended, but we should eventually make it work and uncomment
+        # the following snippet.
+        #
+        # try:
+        #    while True:
+        #        next(it)
+        # except bt2.Stop:
+        #    pass
+        #
+        # it.seek_beginning()
+        # msg = next(it)
+        # self.assertIsInstance(msg, bt2.message._StreamBeginningMessage)
+
+    def test_seek_beginning_user_error(self):
+        it, MySourceIter = self._setup_seek_beginning_test()
+
+        def _seek_beginning_error(self):
+           raise ValueError('ouch')
+
+        MySourceIter._seek_beginning = _seek_beginning_error
+
+        with self.assertRaises(bt2.Error):
+            it.seek_beginning()
+
+
 
 class OutputPortMessageIteratorTestCase(unittest.TestCase):
     def test_component(self):
@@ -236,3 +379,6 @@ class OutputPortMessageIteratorTestCase(unittest.TestCase):
                 self.assertEqual(msg.event.cls.name, 'salut')
                 field = msg.event.payload_field['my_int']
                 self.assertEqual(field, at * 3)
+
+if __name__ == '__main__':
+    unittest.main()
