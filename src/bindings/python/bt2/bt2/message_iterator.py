@@ -28,14 +28,6 @@ import bt2
 
 
 class _MessageIterator(collections.abc.Iterator):
-    def _handle_status(self, status, gen_error_msg):
-        if status == native_bt.MESSAGE_ITERATOR_STATUS_AGAIN:
-            raise bt2.TryAgain
-        elif status == native_bt.MESSAGE_ITERATOR_STATUS_END:
-            raise bt2.Stop
-        elif status < 0:
-            raise bt2.Error(gen_error_msg)
-
     def __next__(self):
         raise NotImplementedError
 
@@ -45,6 +37,14 @@ class _GenericMessageIterator(object._SharedObject, _MessageIterator):
             self._current_msgs = []
             self._at = 0
             super().__init__(ptr)
+
+    def _handle_status(self, status, gen_error_msg):
+        if status == native_bt.MESSAGE_ITERATOR_STATUS_AGAIN:
+            raise bt2.TryAgain
+        elif status == native_bt.MESSAGE_ITERATOR_STATUS_END:
+            raise bt2.Stop
+        elif status < 0:
+            raise bt2.Error(gen_error_msg)
 
     def __next__(self):
         if len(self._current_msgs) == self._at:
@@ -59,12 +59,27 @@ class _GenericMessageIterator(object._SharedObject, _MessageIterator):
 
         return bt2.message._create_from_ptr(msg_ptr)
 
+    @property
+    def can_seek_beginning(self):
+        res = self._can_seek_beginning(self._ptr)
+        return res != 0
+
+    def seek_beginning(self):
+        # Forget about buffered messages, they won't be valid after seeking..
+        self._current_msgs.clear()
+        self._at = 0
+
+        status = self._seek_beginning(self._ptr)
+        self._handle_status(status, 'cannot seek message iterator beginning')
+
 
 # This is created when a component wants to iterate on one of its input ports.
 class _UserComponentInputPortMessageIterator(_GenericMessageIterator):
     _get_msg_range = staticmethod(native_bt.py3_self_component_port_input_get_msg_range)
     _get_ref = staticmethod(native_bt.self_component_port_input_message_iterator_get_ref)
     _put_ref = staticmethod(native_bt.self_component_port_input_message_iterator_put_ref)
+    _can_seek_beginning = staticmethod(native_bt.self_component_port_input_message_iterator_can_seek_beginning)
+    _seek_beginning = staticmethod(native_bt.self_component_port_input_message_iterator_seek_beginning)
 
 
 # This is created when the user wants to iterate on a component's output port,
@@ -73,6 +88,8 @@ class _OutputPortMessageIterator(_GenericMessageIterator):
     _get_msg_range = staticmethod(native_bt.py3_port_output_get_msg_range)
     _get_ref = staticmethod(native_bt.port_output_message_iterator_get_ref)
     _put_ref = staticmethod(native_bt.port_output_message_iterator_put_ref)
+    _can_seek_beginning = staticmethod(native_bt.port_output_message_iterator_can_seek_beginning)
+    _seek_beginning = staticmethod(native_bt.port_output_message_iterator_seek_beginning)
 
 
 # This is extended by the user to implement component classes in Python.  It
@@ -136,6 +153,24 @@ class _UserMessageIterator(_MessageIterator):
         # a reference to it.  Acquire a new reference to account for that.
         msg._get_ref(msg._ptr)
         return int(msg._ptr)
+
+    @property
+    def _can_seek_beginning_from_native(self):
+        # Here, we mimic the behavior of the C API:
+        #
+        # - If the iterator has a _can_seek_beginning attribute, read it and use
+        #   that result.
+        # - Otherwise, the presence or absence of a `_seek_beginning`
+        #   method indicates whether the iterator can seek beginning.
+        if hasattr(self, '_can_seek_beginning'):
+            can_seek_beginning = self._can_seek_beginning
+            utils._check_bool(can_seek_beginning)
+            return can_seek_beginning
+        else:
+            return hasattr(self, '_seek_beginning')
+
+    def _seek_beginning_from_native(self):
+        self._seek_beginning()
 
     def _create_event_message(self, event_class, packet, default_clock_snapshot=None):
         utils._check_type(event_class, bt2.event_class._EventClass)

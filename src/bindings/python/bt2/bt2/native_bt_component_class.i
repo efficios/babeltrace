@@ -453,6 +453,58 @@ void bt_py3_component_class_sink_finalize(bt_self_component_sink *self_component
 }
 
 static
+bt_bool bt_py3_component_class_can_seek_beginning(
+		bt_self_message_iterator *self_message_iterator)
+{
+	PyObject *py_iter;
+	PyObject *py_result = NULL;
+	bt_bool can_seek_beginning = false;
+
+	py_iter = bt_self_message_iterator_get_data(self_message_iterator);
+	BT_ASSERT(py_iter);
+
+	py_result = PyObject_GetAttrString(py_iter, "_can_seek_beginning_from_native");
+
+	BT_ASSERT(!py_result || PyBool_Check(py_result));
+
+	if (py_result) {
+		can_seek_beginning = PyObject_IsTrue(py_result);
+	} else {
+		/*
+		 * Once can_seek_beginning can report errors, convert the
+		 * exception to a status.  For now, log and return false;
+		 */
+		bt2_py_loge_exception();
+		PyErr_Clear();
+	}
+
+	Py_XDECREF(py_result);
+
+	return can_seek_beginning;
+}
+
+static
+bt_self_message_iterator_status bt_py3_component_class_seek_beginning(
+		bt_self_message_iterator *self_message_iterator)
+{
+	PyObject *py_iter;
+	PyObject *py_result;
+	bt_self_message_iterator_status status;
+
+	py_iter = bt_self_message_iterator_get_data(self_message_iterator);
+	BT_ASSERT(py_iter);
+
+	py_result = PyObject_CallMethod(py_iter, "_seek_beginning_from_native", NULL);
+
+	BT_ASSERT(!py_result || py_result == Py_None);
+        status = bt_py3_exc_to_self_message_iterator_status();
+
+	Py_XDECREF(py_result);
+
+	return status;
+}
+
+static
 bt_self_component_status bt_py3_component_class_port_connected(
 		bt_self_component *self_component,
 		void *self_component_port,
@@ -1001,7 +1053,13 @@ bt_component_class_source *bt_py3_component_class_source_create(
 
 	ret = bt_component_class_source_set_init_method(component_class_source, bt_py3_component_class_source_init);
 	BT_ASSERT(ret == 0);
-	ret = bt_component_class_source_set_finalize_method (component_class_source, bt_py3_component_class_source_finalize);
+	ret = bt_component_class_source_set_finalize_method(component_class_source, bt_py3_component_class_source_finalize);
+	BT_ASSERT(ret == 0);
+	ret = bt_component_class_source_set_message_iterator_can_seek_beginning_method(component_class_source,
+		bt_py3_component_class_can_seek_beginning);
+	BT_ASSERT(ret == 0);
+	ret = bt_component_class_source_set_message_iterator_seek_beginning_method(component_class_source,
+		bt_py3_component_class_seek_beginning);
 	BT_ASSERT(ret == 0);
 	ret = bt_component_class_source_set_output_port_connected_method(component_class_source,
 		bt_py3_component_class_source_output_port_connected);
@@ -1048,6 +1106,12 @@ bt_component_class_filter *bt_py3_component_class_filter_create(
 	ret = bt_component_class_filter_set_init_method(component_class_filter, bt_py3_component_class_filter_init);
 	BT_ASSERT(ret == 0);
 	ret = bt_component_class_filter_set_finalize_method (component_class_filter, bt_py3_component_class_filter_finalize);
+	BT_ASSERT(ret == 0);
+	ret = bt_component_class_filter_set_message_iterator_can_seek_beginning_method(component_class_filter,
+		bt_py3_component_class_can_seek_beginning);
+	BT_ASSERT(ret == 0);
+	ret = bt_component_class_filter_set_message_iterator_seek_beginning_method(component_class_filter,
+		bt_py3_component_class_seek_beginning);
 	BT_ASSERT(ret == 0);
 	ret = bt_component_class_filter_set_input_port_connected_method(component_class_filter,
 		bt_py3_component_class_filter_input_port_connected);
