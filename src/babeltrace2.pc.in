@@ -3,7 +3,7 @@ exec_prefix=@exec_prefix@
 libdir=@libdir@
 includedir=@includedir@
 
-Name: Babeltrace 2
+Name: Babeltrace 2 library
 Description: Babeltrace 2 library to support plugins and create trace processing graphs
 Version: @PACKAGE_VERSION@
 Libs: -L${libdir} -lbabeltrace2
