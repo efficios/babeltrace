@@ -26,7 +26,7 @@
 #include "plugins/comp-logging.h"
 
 #include "common/macros.h"
-#include "compat/uuid.h"
+#include "common/uuid.h"
 #include <babeltrace2/babeltrace.h>
 #include <glib.h>
 #include <stdbool.h>
@@ -103,7 +103,7 @@ struct muxer_msg_iter {
 	 * clock_class_expectation is
 	 * MUXER_MSG_ITER_CLOCK_CLASS_EXPECTATION_NOT_ABS_SPEC_UUID.
 	 */
-	unsigned char expected_clock_class_uuid[BABELTRACE_UUID_LEN];
+	bt_uuid_t expected_clock_class_uuid;
 };
 
 static
@@ -668,7 +668,7 @@ int validate_clock_class(struct muxer_msg_iter *muxer_msg_iter,
 		const bt_clock_class *clock_class)
 {
 	int ret = 0;
-	const unsigned char *cc_uuid;
+	const uint8_t *cc_uuid;
 	const char *cc_name;
 
 	BT_ASSERT(clock_class);
@@ -696,8 +696,7 @@ int validate_clock_class(struct muxer_msg_iter *muxer_msg_iter,
 				 */
 				muxer_msg_iter->clock_class_expectation =
 					MUXER_MSG_ITER_CLOCK_CLASS_EXPECTATION_NOT_ABS_SPEC_UUID;
-				memcpy(muxer_msg_iter->expected_clock_class_uuid,
-					cc_uuid, BABELTRACE_UUID_LEN);
+				bt_uuid_copy(muxer_msg_iter->expected_clock_class_uuid,	cc_uuid);
 			} else {
 				/*
 				 * Expect non-absolute clock classes
@@ -733,24 +732,8 @@ int validate_clock_class(struct muxer_msg_iter *muxer_msg_iter,
 				BT_COMP_LOGE("Expecting a non-absolute clock class with no UUID, "
 					"but got one with a UUID: "
 					"clock-class-addr=%p, clock-class-name=\"%s\", "
-					"uuid=\"%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x\"",
-					clock_class, cc_name,
-					(unsigned int) cc_uuid[0],
-					(unsigned int) cc_uuid[1],
-					(unsigned int) cc_uuid[2],
-					(unsigned int) cc_uuid[3],
-					(unsigned int) cc_uuid[4],
-					(unsigned int) cc_uuid[5],
-					(unsigned int) cc_uuid[6],
-					(unsigned int) cc_uuid[7],
-					(unsigned int) cc_uuid[8],
-					(unsigned int) cc_uuid[9],
-					(unsigned int) cc_uuid[10],
-					(unsigned int) cc_uuid[11],
-					(unsigned int) cc_uuid[12],
-					(unsigned int) cc_uuid[13],
-					(unsigned int) cc_uuid[14],
-					(unsigned int) cc_uuid[15]);
+					"uuid=\"" BT_UUID_FMT "\"",
+					clock_class, cc_name, BT_UUID_FMT_VALUES(cc_uuid));
 				goto error;
 			}
 			break;
@@ -771,46 +754,15 @@ int validate_clock_class(struct muxer_msg_iter *muxer_msg_iter,
 				goto error;
 			}
 
-			if (memcmp(muxer_msg_iter->expected_clock_class_uuid,
-					cc_uuid, BABELTRACE_UUID_LEN) != 0) {
+			if (bt_uuid_compare(muxer_msg_iter->expected_clock_class_uuid, cc_uuid) != 0) {
 				BT_COMP_LOGE("Expecting a non-absolute clock class with a specific UUID, "
 					"but got one with different UUID: "
 					"clock-class-addr=%p, clock-class-name=\"%s\", "
-					"expected-uuid=\"%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x\", "
-					"uuid=\"%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x\"",
+					"expected-uuid=\"" BT_UUID_FMT "\", "
+					"uuid=\"" BT_UUID_FMT "\"",
 					clock_class, cc_name,
-					(unsigned int) muxer_msg_iter->expected_clock_class_uuid[0],
-					(unsigned int) muxer_msg_iter->expected_clock_class_uuid[1],
-					(unsigned int) muxer_msg_iter->expected_clock_class_uuid[2],
-					(unsigned int) muxer_msg_iter->expected_clock_class_uuid[3],
-					(unsigned int) muxer_msg_iter->expected_clock_class_uuid[4],
-					(unsigned int) muxer_msg_iter->expected_clock_class_uuid[5],
-					(unsigned int) muxer_msg_iter->expected_clock_class_uuid[6],
-					(unsigned int) muxer_msg_iter->expected_clock_class_uuid[7],
-					(unsigned int) muxer_msg_iter->expected_clock_class_uuid[8],
-					(unsigned int) muxer_msg_iter->expected_clock_class_uuid[9],
-					(unsigned int) muxer_msg_iter->expected_clock_class_uuid[10],
-					(unsigned int) muxer_msg_iter->expected_clock_class_uuid[11],
-					(unsigned int) muxer_msg_iter->expected_clock_class_uuid[12],
-					(unsigned int) muxer_msg_iter->expected_clock_class_uuid[13],
-					(unsigned int) muxer_msg_iter->expected_clock_class_uuid[14],
-					(unsigned int) muxer_msg_iter->expected_clock_class_uuid[15],
-					(unsigned int) cc_uuid[0],
-					(unsigned int) cc_uuid[1],
-					(unsigned int) cc_uuid[2],
-					(unsigned int) cc_uuid[3],
-					(unsigned int) cc_uuid[4],
-					(unsigned int) cc_uuid[5],
-					(unsigned int) cc_uuid[6],
-					(unsigned int) cc_uuid[7],
-					(unsigned int) cc_uuid[8],
-					(unsigned int) cc_uuid[9],
-					(unsigned int) cc_uuid[10],
-					(unsigned int) cc_uuid[11],
-					(unsigned int) cc_uuid[12],
-					(unsigned int) cc_uuid[13],
-					(unsigned int) cc_uuid[14],
-					(unsigned int) cc_uuid[15]);
+					BT_UUID_FMT_VALUES(muxer_msg_iter->expected_clock_class_uuid),
+					BT_UUID_FMT_VALUES(cc_uuid));
 				goto error;
 			}
 			break;

@@ -1,6 +1,7 @@
 /tests/ctf-writer/ctf_writer
 /tests/lib/plugin
 /tests/lib/test_bitfield
+/tests/lib/test_bt_uuid
 /tests/lib/test_bt_values
 /tests/lib/test_graph_topo
 /tests/lib/test_trace_ir_ref

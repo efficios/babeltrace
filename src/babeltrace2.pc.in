@@ -7,6 +7,4 @@ Name: Babeltrace 2 library
 Description: Babeltrace 2 library to support plugins and create trace processing graphs
 Version: @PACKAGE_VERSION@
 Libs: -L${libdir} -lbabeltrace2
-Libs.private: @UUID_LIBS@
 Cflags: -I${includedir}
-Cflags.private: @UUID_CFLAGS@

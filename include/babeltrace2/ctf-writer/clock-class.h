@@ -84,11 +84,11 @@ extern bt_bool bt_ctf_clock_class_is_absolute(
 extern int bt_ctf_clock_class_set_is_absolute(
                 struct bt_ctf_clock_class *clock_class, bt_bool is_absolute);
 
-extern const unsigned char *bt_ctf_clock_class_get_uuid(
+extern const uint8_t *bt_ctf_clock_class_get_uuid(
                 struct bt_ctf_clock_class *clock_class);
 
 extern int bt_ctf_clock_class_set_uuid(struct bt_ctf_clock_class *clock_class,
-                const unsigned char *uuid);
+                const uint8_t *uuid);
 #ifdef __cplusplus
 }
 #endif

@@ -34,7 +34,7 @@
 #include <stdbool.h>
 #include "common/assert.h"
 #include <glib.h>
-#include "compat/uuid.h"
+#include "common/uuid.h"
 #include "compat/memstream.h"
 #include <babeltrace2/babeltrace.h>
 

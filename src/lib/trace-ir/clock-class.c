@@ -25,7 +25,7 @@
 #include "lib/logging.h"
 
 #include "lib/assert-pre.h"
-#include "compat/uuid.h"
+#include "common/uuid.h"
 #include <babeltrace2/trace-ir/clock-class-const.h>
 #include <babeltrace2/trace-ir/clock-class.h>
 #include "clock-class.h"
@@ -262,7 +262,7 @@ void bt_clock_class_set_uuid(struct bt_clock_class *clock_class,
 	BT_ASSERT_PRE_NON_NULL(clock_class, "Clock class");
 	BT_ASSERT_PRE_NON_NULL(uuid, "UUID");
 	BT_ASSERT_PRE_CLOCK_CLASS_HOT(clock_class);
-	memcpy(clock_class->uuid.uuid, uuid, BABELTRACE_UUID_LEN);
+	bt_uuid_copy(clock_class->uuid.uuid, uuid);
 	clock_class->uuid.value = clock_class->uuid.uuid;
 	BT_LIB_LOGD("Set clock class's UUID: %!+K", clock_class);
 }

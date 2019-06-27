@@ -42,7 +42,7 @@
 #include "common/assert.h"
 #include "compat/compiler.h"
 #include "compat/endian.h"
-#include "compat/uuid.h"
+#include "common/uuid.h"
 
 #include "clock.h"
 #include "fields.h"
@@ -109,7 +109,7 @@ struct bt_ctf_writer *bt_ctf_writer_create(const char *path)
 {
 	int ret;
 	struct bt_ctf_writer *writer = NULL;
-	unsigned char uuid[16];
+	bt_uuid_t uuid;
 	char *metadata_path = NULL;
 
 	if (!path) {
@@ -140,11 +140,7 @@ struct bt_ctf_writer *bt_ctf_writer_create(const char *path)
 	}
 
 	/* Generate a UUID for this writer's trace */
-	ret = bt_uuid_generate(uuid);
-	if (ret) {
-		BT_LOGE_STR("Cannot generate UUID for CTF writer's trace.");
-		goto error_destroy;
-	}
+	bt_uuid_generate(uuid);
 
 	ret = bt_ctf_trace_set_uuid(writer->trace, uuid);
 	if (ret) {

@@ -23,7 +23,7 @@
 #include <stdlib.h>
 #include <inttypes.h>
 #include "common/assert.h"
-#include "compat/uuid.h"
+#include "common/uuid.h"
 #include "compat/memstream.h"
 #include <babeltrace2/babeltrace.h>
 #include <glib.h>
@@ -41,7 +41,7 @@ int yydebug;
 
 struct ctf_metadata_decoder {
 	struct ctf_visitor_generate_ir *visitor;
-	uint8_t uuid[16];
+	bt_uuid_t uuid;
 	bool is_uuid_set;
 	int bo;
 	struct ctf_metadata_decoder_config config;
@@ -49,7 +49,7 @@ struct ctf_metadata_decoder {
 
 struct packet_header {
 	uint32_t magic;
-	uint8_t  uuid[16];
+	bt_uuid_t  uuid;
 	uint32_t checksum;
 	uint32_t content_size;
 	uint32_t packet_size;

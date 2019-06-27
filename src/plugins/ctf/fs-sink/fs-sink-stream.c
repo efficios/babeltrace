@@ -567,7 +567,7 @@ int fs_sink_stream_open_packet(struct fs_sink_stream *stream,
 	}
 
 	/* Packet header: UUID */
-	for (i = 0; i < BABELTRACE_UUID_LEN; i++) {
+	for (i = 0; i < BT_UUID_LEN; i++) {
 		ret = bt_ctfser_write_byte_aligned_unsigned_int(&stream->ctfser,
 			(uint64_t) stream->sc->trace->uuid[i], 8, 8, BYTE_ORDER);
 		if (ret) {

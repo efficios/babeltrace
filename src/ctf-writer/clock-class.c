@@ -29,7 +29,7 @@
 #define BT_LOG_TAG "CTF-WRITER/CLOCK-CLASS"
 #include "logging.h"
 
-#include "compat/uuid.h"
+#include "common/uuid.h"
 #include <babeltrace2/ctf-writer/utils.h>
 #include <babeltrace2/ctf-writer/object.h>
 #include "compat/compiler.h"
@@ -454,10 +454,10 @@ end:
 }
 
 BT_HIDDEN
-const unsigned char *bt_ctf_clock_class_get_uuid(
+const uint8_t *bt_ctf_clock_class_get_uuid(
 		struct bt_ctf_clock_class *clock_class)
 {
-	const unsigned char *ret;
+	const uint8_t *ret;
 
 	if (!clock_class) {
 		BT_LOGW_STR("Invalid parameter: clock class is NULL.");
@@ -479,7 +479,7 @@ end:
 
 BT_HIDDEN
 int bt_ctf_clock_class_set_uuid(struct bt_ctf_clock_class *clock_class,
-		const unsigned char *uuid)
+		const uint8_t *uuid)
 {
 	int ret = 0;
 
@@ -499,27 +499,11 @@ int bt_ctf_clock_class_set_uuid(struct bt_ctf_clock_class *clock_class,
 		goto end;
 	}
 
-	memcpy(clock_class->uuid, uuid, BABELTRACE_UUID_LEN);
+	bt_uuid_copy(clock_class->uuid, uuid);
 	clock_class->uuid_set = 1;
-	BT_LOGT("Set clock class's UUID: addr=%p, name=\"%s\", "
-		"uuid=\"%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x\"",
+	BT_LOGT("Set clock class's UUID: addr=%p, name=\"%s\", uuid=\"" BT_UUID_FMT "\"",
 		clock_class, bt_ctf_clock_class_get_name(clock_class),
-		(unsigned int) uuid[0],
-		(unsigned int) uuid[1],
-		(unsigned int) uuid[2],
-		(unsigned int) uuid[3],
-		(unsigned int) uuid[4],
-		(unsigned int) uuid[5],
-		(unsigned int) uuid[6],
-		(unsigned int) uuid[7],
-		(unsigned int) uuid[8],
-		(unsigned int) uuid[9],
-		(unsigned int) uuid[10],
-		(unsigned int) uuid[11],
-		(unsigned int) uuid[12],
-		(unsigned int) uuid[13],
-		(unsigned int) uuid[14],
-		(unsigned int) uuid[15]);
+		BT_UUID_FMT_VALUES(uuid));
 end:
 	return ret;
 }
@@ -641,43 +625,12 @@ int bt_ctf_clock_class_compare(struct bt_ctf_clock_class *clock_class_a,
 			goto end;
 		}
 
-		if (memcmp(clock_class_a->uuid, clock_class_b->uuid,
-				BABELTRACE_UUID_LEN) != 0) {
+		if (bt_uuid_compare(clock_class_a->uuid, clock_class_b->uuid) != 0) {
 			BT_LOGT("Clock classes differ: different UUIDs: "
-				"cc-a-uuid=\"%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x\", "
-				"cc-b-uuid=\"%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x\"",
-				(unsigned int) clock_class_a->uuid[0],
-				(unsigned int) clock_class_a->uuid[1],
-				(unsigned int) clock_class_a->uuid[2],
-				(unsigned int) clock_class_a->uuid[3],
-				(unsigned int) clock_class_a->uuid[4],
-				(unsigned int) clock_class_a->uuid[5],
-				(unsigned int) clock_class_a->uuid[6],
-				(unsigned int) clock_class_a->uuid[7],
-				(unsigned int) clock_class_a->uuid[8],
-				(unsigned int) clock_class_a->uuid[9],
-				(unsigned int) clock_class_a->uuid[10],
-				(unsigned int) clock_class_a->uuid[11],
-				(unsigned int) clock_class_a->uuid[12],
-				(unsigned int) clock_class_a->uuid[13],
-				(unsigned int) clock_class_a->uuid[14],
-				(unsigned int) clock_class_a->uuid[15],
-				(unsigned int) clock_class_b->uuid[0],
-				(unsigned int) clock_class_b->uuid[1],
-				(unsigned int) clock_class_b->uuid[2],
-				(unsigned int) clock_class_b->uuid[3],
-				(unsigned int) clock_class_b->uuid[4],
-				(unsigned int) clock_class_b->uuid[5],
-				(unsigned int) clock_class_b->uuid[6],
-				(unsigned int) clock_class_b->uuid[7],
-				(unsigned int) clock_class_b->uuid[8],
-				(unsigned int) clock_class_b->uuid[9],
-				(unsigned int) clock_class_b->uuid[10],
-				(unsigned int) clock_class_b->uuid[11],
-				(unsigned int) clock_class_b->uuid[12],
-				(unsigned int) clock_class_b->uuid[13],
-				(unsigned int) clock_class_b->uuid[14],
-				(unsigned int) clock_class_b->uuid[15]);
+				"cc-a-uuid=\"" BT_UUID_FMT "\", "
+				"cc-b-uuid=\"" BT_UUID_FMT "\"",
+				BT_UUID_FMT_VALUES(clock_class_a->uuid),
+				BT_UUID_FMT_VALUES(clock_class_b->uuid));
 			goto end;
 		}
 	} else {

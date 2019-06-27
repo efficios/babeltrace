@@ -29,7 +29,7 @@
 #include "common/macros.h"
 #include "common/common.h"
 #include "lib/object-pool.h"
-#include "compat/uuid.h"
+#include "common/uuid.h"
 #include <babeltrace2/types.h>
 #include "lib/property.h"
 #include "common/assert.h"
@@ -62,7 +62,7 @@ struct bt_clock_class {
 	uint64_t offset_cycles;
 
 	struct {
-		uint8_t uuid[BABELTRACE_UUID_LEN];
+		bt_uuid_t uuid;
 
 		/* NULL or `uuid` above */
 		bt_uuid value;

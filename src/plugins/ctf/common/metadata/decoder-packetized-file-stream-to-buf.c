@@ -23,7 +23,7 @@
 #include <stdlib.h>
 #include <inttypes.h>
 #include "common/assert.h"
-#include "compat/uuid.h"
+#include "common/uuid.h"
 #include "compat/memstream.h"
 #include <babeltrace2/babeltrace.h>
 #include <glib.h>
@@ -41,7 +41,7 @@ int yydebug;
 
 struct ctf_metadata_decoder {
 	struct ctf_visitor_generate_ir *visitor;
-	uint8_t uuid[16];
+	bt_uuid_t uuid;
 	bool is_uuid_set;
 	int bo;
 	struct ctf_metadata_decoder_config config;
@@ -49,7 +49,7 @@ struct ctf_metadata_decoder {
 
 struct packet_header {
 	uint32_t magic;
-	uint8_t  uuid[16];
+	bt_uuid_t  uuid;
 	uint32_t checksum;
 	uint32_t content_size;
 	uint32_t packet_size;
@@ -127,45 +127,15 @@ int decode_packet(FILE *in_fp, FILE *out_fp,
 	/* Set expected trace UUID if not set; otherwise validate it */
 	if (is_uuid_set) {
 		if (!*is_uuid_set) {
-			memcpy(uuid, header.uuid, sizeof(header.uuid));
+			bt_uuid_copy(uuid, header.uuid);
 			*is_uuid_set = true;
 		} else if (bt_uuid_compare(header.uuid, uuid)) {
 			BT_COMP_LOGE("Metadata UUID mismatch between packets of the same stream: "
-				"packet-uuid=\"%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x\", "
-				"expected-uuid=\"%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x\", "
+				"packet-uuid=\"" BT_UUID_FMT "\", "
+				"expected-uuid=\"" BT_UUID_FMT "\", "
 				"offset=%ld",
-				(unsigned int) header.uuid[0],
-				(unsigned int) header.uuid[1],
-				(unsigned int) header.uuid[2],
-				(unsigned int) header.uuid[3],
-				(unsigned int) header.uuid[4],
-				(unsigned int) header.uuid[5],
-				(unsigned int) header.uuid[6],
-				(unsigned int) header.uuid[7],
-				(unsigned int) header.uuid[8],
-				(unsigned int) header.uuid[9],
-				(unsigned int) header.uuid[10],
-				(unsigned int) header.uuid[11],
-				(unsigned int) header.uuid[12],
-				(unsigned int) header.uuid[13],
-				(unsigned int) header.uuid[14],
-				(unsigned int) header.uuid[15],
-				(unsigned int) uuid[0],
-				(unsigned int) uuid[1],
-				(unsigned int) uuid[2],
-				(unsigned int) uuid[3],
-				(unsigned int) uuid[4],
-				(unsigned int) uuid[5],
-				(unsigned int) uuid[6],
-				(unsigned int) uuid[7],
-				(unsigned int) uuid[8],
-				(unsigned int) uuid[9],
-				(unsigned int) uuid[10],
-				(unsigned int) uuid[11],
-				(unsigned int) uuid[12],
-				(unsigned int) uuid[13],
-				(unsigned int) uuid[14],
-				(unsigned int) uuid[15],
+				BT_UUID_FMT_VALUES(header.uuid),
+				BT_UUID_FMT_VALUES(uuid),
 				offset);
 			goto error;
 		}

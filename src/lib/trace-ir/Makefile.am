@@ -35,5 +35,3 @@ libtrace_ir_la_SOURCES = \
 	trace.h \
 	utils.c \
 	utils.h
-
-libtrace_ir_la_LIBADD = $(UUID_LIBS)

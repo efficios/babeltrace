@@ -41,10 +41,8 @@ libctf_ast_la_SOURCES = \
 	ctf-meta-configure-ir-trace.c \
 	ctf-meta-configure-ir-trace.h
 
-libctf_ast_la_LIBADD = $(UUID_LIBS)
-
 if BABELTRACE_BUILD_WITH_MINGW
-libctf_ast_la_LIBADD += -lrpcrt4 -lintl -liconv -lole32 $(POPT_LIBS)
+libctf_ast_la_LIBADD = -lintl -liconv -lole32 $(POPT_LIBS)
 endif
 
 # start with empty files to clean
