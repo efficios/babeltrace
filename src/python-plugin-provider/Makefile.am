@@ -10,7 +10,7 @@ libbabeltrace2_python_plugin_provider_la_SOURCES = \
 libbabeltrace2_python_plugin_provider_la_LDFLAGS = \
 	$(LT_NO_UNDEFINED) \
 	-version-info $(BABELTRACE_LIBRARY_VERSION) \
-	$(PYTHON_LIBS)
+	$(PYTHON_LDFLAGS)
 
 libbabeltrace2_python_plugin_provider_la_LIBADD =
 
