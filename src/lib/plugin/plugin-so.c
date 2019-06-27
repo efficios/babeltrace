@@ -142,10 +142,10 @@ void bt_plugin_so_shared_lib_handle_destroy(struct bt_object *obj)
 		/*
 		 * Valgrind shows incomplete stack traces when
 		 * dynamically loaded libraries are closed before it
-		 * finishes. Use the BABELTRACE_NO_DLCLOSE in a debug
+		 * finishes. Use the LIBBABELTRACE2_NO_DLCLOSE in a debug
 		 * build to avoid this.
 		 */
-		const char *var = getenv("BABELTRACE_NO_DLCLOSE");
+		const char *var = getenv("LIBBABELTRACE2_NO_DLCLOSE");
 
 		if (!var || strcmp(var, "1") != 0) {
 #endif
@@ -159,7 +159,7 @@ void bt_plugin_so_shared_lib_handle_destroy(struct bt_object *obj)
 			shared_lib_handle->module = NULL;
 #ifndef BT_DEBUG_MODE
 		} else {
-			BT_LOGI("Not closing GModule because `BABELTRACE_NO_DLCLOSE=1`: "
+			BT_LOGI("Not closing GModule because `LIBBABELTRACE2_NO_DLCLOSE=1`: "
 				"path=\"%s\"", path);
 		}
 #endif
