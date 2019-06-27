@@ -119,6 +119,53 @@ class UserMessageIteratorTestCase(unittest.TestCase):
         self.assertIsNotNone(addr)
         self.assertNotEqual(addr, 0)
 
+    # Test that messages returned by _UserMessageIterator.__next__ remain valid
+    # and can be re-used.
+    def test_reuse_message(self):
+        class MyIter(bt2._UserMessageIterator):
+            def __init__(self, port):
+                tc, sc, ec = port.user_data
+                trace = tc()
+                stream = trace.create_stream(sc)
+                packet = stream.create_packet()
+
+                # This message will be returned twice by __next__.
+                event_message = self._create_event_message(ec, packet)
+
+                self._msgs = [
+                    self._create_stream_beginning_message(stream),
+                    self._create_stream_activity_beginning_message(stream),
+                    self._create_packet_beginning_message(packet),
+                    event_message,
+                    event_message,
+                ]
+
+            def __next__(self):
+                return self._msgs.pop(0)
+
+        class MySource(bt2._UserSourceComponent, message_iterator_class=MyIter):
+            def __init__(self, params):
+                tc = self._create_trace_class()
+                sc = tc.create_stream_class()
+                ec = sc.create_event_class()
+                self._add_output_port('out', (tc, sc, ec))
+
+        graph = bt2.Graph()
+        src = graph.add_component(MySource, 'src')
+        it = graph.create_output_port_message_iterator(src.output_ports['out'])
+
+        # Skip beginning messages.
+        next(it)
+        next(it)
+        next(it)
+
+        msg_ev1 = next(it)
+        msg_ev2 = next(it)
+
+        self.assertIsInstance(msg_ev1, bt2.message._EventMessage)
+        self.assertIsInstance(msg_ev2, bt2.message._EventMessage)
+        self.assertEqual(msg_ev1.addr, msg_ev2.addr)
+
 
 class OutputPortMessageIteratorTestCase(unittest.TestCase):
     def test_component(self):
