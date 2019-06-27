@@ -158,7 +158,7 @@ class _NumericValue(_Value):
             raise TypeError('unorderable types: {}() < {}()'.format(self.__class__.__name__,
                                                                     other.__class__.__name__))
 
-        return self._value < float(other)
+        return self._value < self._extract_value(other)
 
     def _spec_eq(self, other):
         pass
@@ -167,7 +167,7 @@ class _NumericValue(_Value):
         if not isinstance(other, numbers.Number):
             return False
 
-        return self._value == complex(other)
+        return self._value == self._extract_value(other)
 
     def __rmod__(self, other):
         return self._extract_value(other) % self._value
@@ -311,18 +311,6 @@ class _IntegralValue(_NumericValue, numbers.Integral):
     def __ior__(self, other):
         self.value = self | other
         return self
-
-    def __lt__(self, other):
-        if not isinstance(other, numbers.Integral):
-            return super().__lt__(other)
-
-        return self._value < int(other)
-
-    def __eq__(self, other):
-        if not isinstance(other, numbers.Integral):
-            return super().__eq__(other)
-
-        return self._value == int(other)
 
 
 class _RealValue(_NumericValue, numbers.Real):
