@@ -490,7 +490,7 @@ AM_CONDITIONAL([ENABLE_API_DOC], [test "x$enable_api_doc" = xyes])
 AM_CONDITIONAL([ENABLE_BUILT_IN_PLUGINS], [test "x$enable_built_in_plugins" = xyes])
 AM_CONDITIONAL([ENABLE_BUILT_IN_PYTHON_PLUGIN_SUPPORT], [test "x$enable_built_in_python_plugin_support" = xyes])
 AM_CONDITIONAL([ENABLE_MAN_PAGES], [test "x$enable_man_pages" = xyes])
-
+AM_CONDITIONAL([HAVE_PYTHON], [test "x$enable_python_bindings" = xyes || test "x$enable_python_plugins" = xyes])
 
 # Set defines for optionnal features conditionnals in the source code
 
@@ -773,6 +773,7 @@ AC_CONFIG_FILES([
 	src/plugins/utils/Makefile
 	src/plugins/utils/muxer/Makefile
 	src/plugins/utils/trimmer/Makefile
+	src/py-common/Makefile
 	src/python-plugin-provider/Makefile
 	tests/ctf-writer/Makefile
 	tests/lib/Makefile

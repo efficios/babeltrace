@@ -35,6 +35,7 @@
 #include <babeltrace2/babeltrace.h>
 #include <babeltrace2/property.h>
 #include "common/assert.h"
+#include "py-common/py-common.h"
 
 typedef const uint8_t *bt_uuid;
 %}
