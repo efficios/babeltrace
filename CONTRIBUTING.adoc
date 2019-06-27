@@ -1459,7 +1459,7 @@ loads libbabeltrace2, use:
 
 ----
 $ G_SLICE=always-malloc G_DEBUG=gc-friendly PYTHONMALLOC=malloc \
-  BABELTRACE_NO_DLCLOSE=1 valgrind --leak-check=full \
+  LIBBABELTRACE2_NO_DLCLOSE=1 valgrind --leak-check=full \
   --suppressions=/path/to/babeltrace/extras/valgrind/popt.supp app
 ----
 
@@ -1468,6 +1468,6 @@ $ G_SLICE=always-malloc G_DEBUG=gc-friendly PYTHONMALLOC=malloc \
 the Python plugin provider (Valgrind will probably show a lot of errors
 which originate from the Python interpreter anyway).
 
-`BABELTRACE_NO_DLCLOSE=1` makes libbabeltrace2 not close the shared
+`LIBBABELTRACE2_NO_DLCLOSE=1` makes libbabeltrace2 not close the shared
 libraries (plugins) which it loads. You need this to see the appropriate
 backtrace when Valgrind shows errors.
