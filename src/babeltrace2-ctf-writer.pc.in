@@ -3,7 +3,7 @@ exec_prefix=@exec_prefix@
 libdir=@libdir@
 includedir=@includedir@
 
-Name: Babeltrace 2 CTF writer
+Name: Babeltrace 2 CTF writer library
 Description: Common Trace Format (CTF) writer library from Babeltrace 2
 Version: @PACKAGE_VERSION@
 Libs: -L${libdir} -lbabeltrace2-ctf-writer
