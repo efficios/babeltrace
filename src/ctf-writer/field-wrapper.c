@@ -25,8 +25,6 @@
 
 #include <glib.h>
 
-#include "lib/object-pool.h"
-
 #include "fields.h"
 #include "field-wrapper.h"
 #include "object.h"

@@ -26,7 +26,7 @@
  */
 
 #include "common/macros.h"
-#include "lib/object-pool.h"
+#include "object-pool.h"
 #include "compat/uuid.h"
 #include <babeltrace2/types.h>
 #include <stdbool.h>
