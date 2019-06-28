@@ -495,10 +495,6 @@ class _ArrayField(_ContainerField, _Field, collections.abc.MutableSequence):
                                       self._owner_put_ref)
 
     def __setitem__(self, index, value):
-        # we can only set numbers and strings
-        if not isinstance(value, (numbers.Number, _StringField, str)):
-            raise TypeError('expecting number or string object')
-
         # raises if index is somehow invalid
         field = self[index]
 
