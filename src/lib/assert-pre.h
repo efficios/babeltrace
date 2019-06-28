@@ -136,4 +136,6 @@
 		"Index is out of bounds: index=%" PRIu64 ", "		\
 		"count=%" PRIu64, (uint64_t) (_index), (uint64_t) (_length))
 
+#define BT_ASSERT_PRE_SUPPORTED
+
 #endif /* BABELTRACE_ASSERT_PRE_INTERNAL_H */

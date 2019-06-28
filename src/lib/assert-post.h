@@ -112,4 +112,6 @@
 # define BT_ASSERT_POST_MSG(_fmt, ...)
 #endif /* BT_DEV_MODE */
 
+#define BT_ASSERT_POST_SUPPORTED
+
 #endif /* BABELTRACE_ASSERT_POST_INTERNAL_H */
