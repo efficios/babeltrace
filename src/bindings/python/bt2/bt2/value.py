@@ -63,24 +63,20 @@ def create_value(value):
     if isinstance(value, bool):
         return BoolValue(value)
 
-    if isinstance(value, int):
+    if isinstance(value, numbers.Integral):
         return SignedIntegerValue(value)
 
-    if isinstance(value, float):
+    if isinstance(value, numbers.Real):
         return RealValue(value)
 
     if isinstance(value, str):
         return StringValue(value)
 
-    try:
-        return MapValue(value)
-    except:
-        pass
-
-    try:
+    if isinstance(value, collections.abc.Sequence):
         return ArrayValue(value)
-    except:
-        pass
+
+    if isinstance(value, collections.abc.Mapping):
+        return MapValue(value)
 
     raise TypeError("cannot create value object from '{}' object".format(value.__class__.__name__))
 
