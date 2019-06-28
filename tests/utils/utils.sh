@@ -26,12 +26,12 @@ scriptdir="$(dirname "${BASH_SOURCE[0]}")"
 
 # Allow overriding the source and build directories
 if [ "x${BT_TESTS_SRCDIR:-}" = "x" ]; then
-	BT_TESTS_SRCDIR=$(realpath -s "$scriptdir/..")
+	BT_TESTS_SRCDIR="$scriptdir/.."
 fi
 export BT_TESTS_SRCDIR
 
 if [ "x${BT_TESTS_BUILDDIR:-}" = "x" ]; then
-	BT_TESTS_BUILDDIR=$(realpath -s "$scriptdir/..")
+	BT_TESTS_BUILDDIR="$scriptdir/.."
 fi
 export BT_TESTS_BUILDDIR
 
@@ -44,12 +44,12 @@ fi
 
 # Allow overriding the babeltrace2 executables
 if [ "x${BT_TESTS_BT2_BIN:-}" = "x" ]; then
-	BT_TESTS_BT2_BIN=$(realpath -s "$BT_TESTS_BUILDDIR/../src/cli/babeltrace2")
+	BT_TESTS_BT2_BIN="$BT_TESTS_BUILDDIR/../src/cli/babeltrace2"
 fi
 export BT_TESTS_BT2_BIN
 
 if [ "x${BT_TESTS_BT2LOG_BIN:-}" = "x" ]; then
-	BT_TESTS_BT2LOG_BIN=$(realpath -s "$BT_TESTS_BUILDDIR/../src/cli/babeltrace2-log")
+	BT_TESTS_BT2LOG_BIN="$BT_TESTS_BUILDDIR/../src/cli/babeltrace2-log"
 fi
 export BT_TESTS_BT2LOG_BIN
 
