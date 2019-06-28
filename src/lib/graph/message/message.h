@@ -33,6 +33,11 @@
 #include "lib/object-pool.h"
 #include <babeltrace2/types.h>
 
+/* Protection: this file uses BT_LIB_LOG*() macros directly */
+#ifndef BT_LIB_LOG_SUPPORTED
+# error Please include "lib/logging.h" before including this file.
+#endif
+
 typedef struct bt_stream *(*get_stream_func)(
 		struct bt_message *message);
 
@@ -74,10 +79,8 @@ struct bt_message *bt_message_create_from_pool(
 	struct bt_message *msg = bt_object_pool_create_object(pool);
 
 	if (G_UNLIKELY(!msg)) {
-#ifdef BT_LIB_LOGE
 		BT_LIB_LOGE("Cannot allocate one message from message pool: "
 			"%![pool-]+o, %![graph-]+g", pool, graph);
-#endif
 		goto error;
 	}
 
