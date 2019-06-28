@@ -3,6 +3,7 @@ SUBDIRS = trace-ir prio-heap plugin graph
 lib_LTLIBRARIES = libbabeltrace2.la
 
 libbabeltrace2_la_SOURCES = \
+	assert-post.h \
 	assert-pre.h \
 	babeltrace2.c \
 	lib-logging.c \
