@@ -26,6 +26,7 @@
 
 #include "common/assert.h"
 #include "lib/assert-pre.h"
+#include "lib/assert-post.h"
 #include <babeltrace2/graph/graph.h>
 #include <babeltrace2/graph/graph-const.h>
 #include <babeltrace2/graph/component-source-const.h>
@@ -538,7 +539,7 @@ enum bt_graph_status consume_graph_sink(struct bt_component_sink *comp)
 	comp_status = sink_class->methods.consume((void *) comp);
 	BT_LOGD("User method returned: status=%s",
 		bt_self_component_status_string(comp_status));
-	BT_ASSERT_PRE(comp_status == BT_SELF_COMPONENT_STATUS_OK ||
+	BT_ASSERT_POST(comp_status == BT_SELF_COMPONENT_STATUS_OK ||
 		comp_status == BT_SELF_COMPONENT_STATUS_END ||
 		comp_status == BT_SELF_COMPONENT_STATUS_AGAIN ||
 		comp_status == BT_SELF_COMPONENT_STATUS_ERROR ||

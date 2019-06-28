@@ -26,6 +26,7 @@
 #include "common/assert.h"
 #include "common/common.h"
 #include "lib/assert-pre.h"
+#include "lib/assert-post.h"
 #include <babeltrace2/graph/query-executor-const.h>
 #include <babeltrace2/graph/query-executor.h>
 #include <babeltrace2/graph/component-class.h>
@@ -134,7 +135,7 @@ enum bt_query_executor_status bt_query_executor_query(
 		log_level, user_result);
 	BT_LIB_LOGD("User method returned: status=%s, %![res-]+v",
 		bt_query_status_string(status), *user_result);
-	BT_ASSERT_PRE(status != BT_QUERY_STATUS_OK || *user_result,
+	BT_ASSERT_POST(status != BT_QUERY_STATUS_OK || *user_result,
 		"User method returned `BT_QUERY_STATUS_OK` without a result.");
 	exec_status = (int) status;
 	if (query_exec->canceled) {

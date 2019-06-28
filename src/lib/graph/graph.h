@@ -256,8 +256,8 @@ enum bt_graph_status bt_graph_configure(struct bt_graph *graph)
 				bt_self_component_status_string(comp_status));
 #endif
 
-#ifdef BT_ASSERT_PRE
-			BT_ASSERT_PRE(comp_status == BT_SELF_COMPONENT_STATUS_OK ||
+#ifdef BT_ASSERT_POST
+			BT_ASSERT_POST(comp_status == BT_SELF_COMPONENT_STATUS_OK ||
 				comp_status == BT_SELF_COMPONENT_STATUS_ERROR ||
 				comp_status == BT_SELF_COMPONENT_STATUS_NOMEM,
 				"Unexpected returned status: status=%s",
