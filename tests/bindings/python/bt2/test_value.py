@@ -736,7 +736,7 @@ class _TestIntegerValue(_TestNumericValue):
         del self._def_value
 
     def _assert_expecting_int(self):
-        return self.assertRaisesRegex(TypeError, r'expecting a number object')
+        return self.assertRaisesRegex(TypeError, r'expecting an integral number object')
 
     def _assert_expecting_int64(self):
         return self.assertRaisesRegex(ValueError, r"expecting a signed 64-bit integral value")
@@ -765,15 +765,6 @@ class _TestIntegerValue(_TestNumericValue):
     def test_create_from_true(self):
         i = self._CLS(True)
         self.assertTrue(i)
-
-    def test_create_from_float(self):
-        i = self._CLS(99.6)
-        self.assertEqual(i, 99)
-
-    def test_create_from_vfloat(self):
-        f = bt2.create_value(17.5)
-        i = self._CLS(f)
-        self.assertEqual(i, 17)
 
     def test_create_from_unknown(self):
         class A:
@@ -805,11 +796,6 @@ class _TestIntegerValue(_TestNumericValue):
         raw = 999
         self._def.value = bt2.create_value(raw)
         self.assertEqual(self._def, raw)
-
-    def test_assign_vfloat(self):
-        raw = 123.456
-        self._def.value = bt2.create_value(raw)
-        self.assertEqual(self._def, int(raw))
 
 
 class SignedIntegerValueTestCase(_TestIntegerValue, unittest.TestCase):

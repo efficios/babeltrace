@@ -286,8 +286,8 @@ class _IntegerValue(_IntegralValue):
         super().__init__(ptr)
 
     def _value_to_int(self, value):
-        if not isinstance(value, numbers.Real):
-            raise TypeError('expecting a number object')
+        if not isinstance(value, numbers.Integral):
+            raise TypeError('expecting an integral number object')
 
         value = int(value)
         self._check_int_range(value)
