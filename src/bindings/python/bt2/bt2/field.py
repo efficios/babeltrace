@@ -525,8 +525,7 @@ class _VariantField(_ContainerField, _Field):
     value = property(fset=_set_value)
 
 
-class _ArrayField(_ContainerField, _Field):
-
+class _ArrayField(_ContainerField, _Field, collections.abc.MutableSequence):
     def _get_length(self):
         return native_bt.field_array_get_length(self._ptr)
 
