@@ -244,54 +244,6 @@ class _TestNumericField:
         with self.assertRaises(TypeError):
             op(self._def, None)
 
-    def _test_ibinop_value(self, op, rhs):
-        r, rv = self._binop(op, rhs)
-
-        if r is None:
-            return
-
-        # The inplace operators are special for field objects because
-        # they do not return a new, immutable object like it's the case
-        # for Python numbers. In Python, `a += 2`, where `a` is a number
-        # object, assigns a new number object reference to `a`, dropping
-        # the old reference. Since BT's field objects are mutable, we
-        # modify their internal value with the inplace operators. This
-        # means however that we can lose data in the process, for
-        # example:
-        #
-        #     int_value_obj += 3.3
-        #
-        # Here, if `int_value_obj` is a Python `int` with the value 2,
-        # it would be a `float` object after this, holding the value
-        # 5.3. In our case, if `int_value_obj` is an integer field
-        # object, 3.3 is converted to an `int` object (3) and added to
-        # the current value of `int_value_obj`, so after this the value
-        # of the object is 5. This does not compare to 5.3, which is
-        # why we also use the `int()` type here.
-        if isinstance(self._def, bt2.field._IntegerField):
-            rv = int(rv)
-
-        self.assertEqual(r, rv)
-
-    def _test_ibinop_type(self, op, rhs):
-        r, rv = self._binop(op, rhs)
-
-        if r is None:
-            return
-
-        self.assertIs(r, self._def)
-
-    def _test_ibinop_invalid_unknown(self, op):
-        class A:
-            pass
-
-        with self.assertRaises(TypeError):
-            op(self._def, A())
-
-    def _test_ibinop_invalid_none(self, op):
-        with self.assertRaises(TypeError):
-            op(self._def, None)
-
     def _test_binop_rhs_false(self, test_cb, op):
         test_cb(op, False)
 
@@ -502,90 +454,6 @@ class _TestNumericField:
     def _test_binop_lhs_value_same_zero_vfloat(self, op):
         self._test_binop_rhs_zero_vfloat(self._test_binop_lhs_value_same, op)
 
-    def _test_ibinop_type_false(self, op):
-        self._test_binop_rhs_false(self._test_ibinop_type, op)
-
-    def _test_ibinop_type_true(self, op):
-        self._test_binop_rhs_true(self._test_ibinop_type, op)
-
-    def _test_ibinop_type_pos_int(self, op):
-        self._test_binop_rhs_pos_int(self._test_ibinop_type, op)
-
-    def _test_ibinop_type_neg_int(self, op):
-        self._test_binop_rhs_neg_int(self._test_ibinop_type, op)
-
-    def _test_ibinop_type_zero_int(self, op):
-        self._test_binop_rhs_zero_int(self._test_ibinop_type, op)
-
-    def _test_ibinop_type_pos_vint(self, op):
-        self._test_binop_rhs_pos_vint(self._test_ibinop_type, op)
-
-    def _test_ibinop_type_neg_vint(self, op):
-        self._test_binop_rhs_neg_vint(self._test_ibinop_type, op)
-
-    def _test_ibinop_type_zero_vint(self, op):
-        self._test_binop_rhs_zero_vint(self._test_ibinop_type, op)
-
-    def _test_ibinop_type_pos_float(self, op):
-        self._test_binop_rhs_pos_float(self._test_ibinop_type, op)
-
-    def _test_ibinop_type_neg_float(self, op):
-        self._test_binop_rhs_neg_float(self._test_ibinop_type, op)
-
-    def _test_ibinop_type_zero_float(self, op):
-        self._test_binop_rhs_zero_float(self._test_ibinop_type, op)
-
-    def _test_ibinop_type_pos_vfloat(self, op):
-        self._test_binop_rhs_pos_vfloat(self._test_ibinop_type, op)
-
-    def _test_ibinop_type_neg_vfloat(self, op):
-        self._test_binop_rhs_neg_vfloat(self._test_ibinop_type, op)
-
-    def _test_ibinop_type_zero_vfloat(self, op):
-        self._test_binop_rhs_zero_vfloat(self._test_ibinop_type, op)
-
-    def _test_ibinop_value_false(self, op):
-        self._test_binop_rhs_false(self._test_ibinop_value, op)
-
-    def _test_ibinop_value_true(self, op):
-        self._test_binop_rhs_true(self._test_ibinop_value, op)
-
-    def _test_ibinop_value_pos_int(self, op):
-        self._test_binop_rhs_pos_int(self._test_ibinop_value, op)
-
-    def _test_ibinop_value_neg_int(self, op):
-        self._test_binop_rhs_neg_int(self._test_ibinop_value, op)
-
-    def _test_ibinop_value_zero_int(self, op):
-        self._test_binop_rhs_zero_int(self._test_ibinop_value, op)
-
-    def _test_ibinop_value_pos_vint(self, op):
-        self._test_binop_rhs_pos_vint(self._test_ibinop_value, op)
-
-    def _test_ibinop_value_neg_vint(self, op):
-        self._test_binop_rhs_neg_vint(self._test_ibinop_value, op)
-
-    def _test_ibinop_value_zero_vint(self, op):
-        self._test_binop_rhs_zero_vint(self._test_ibinop_value, op)
-
-    def _test_ibinop_value_pos_float(self, op):
-        self._test_binop_rhs_pos_float(self._test_ibinop_value, op)
-
-    def _test_ibinop_value_neg_float(self, op):
-        self._test_binop_rhs_neg_float(self._test_ibinop_value, op)
-
-    def _test_ibinop_value_zero_float(self, op):
-        self._test_binop_rhs_zero_float(self._test_ibinop_value, op)
-
-    def _test_ibinop_value_pos_vfloat(self, op):
-        self._test_binop_rhs_pos_vfloat(self._test_ibinop_value, op)
-
-    def _test_ibinop_value_neg_vfloat(self, op):
-        self._test_binop_rhs_neg_vfloat(self._test_ibinop_value, op)
-
-    def _test_ibinop_value_zero_vfloat(self, op):
-        self._test_binop_rhs_zero_vfloat(self._test_ibinop_value, op)
-
     def test_bool_op(self):
         self.assertEqual(bool(self._def), bool(self._def_value))
 
@@ -648,22 +516,6 @@ _BINOPS = (
 )
 
 
-_IBINOPS = (
-    ('iadd', operator.iadd),
-    ('iand', operator.iand),
-    ('ifloordiv', operator.ifloordiv),
-    ('ilshift', operator.ilshift),
-    ('imod', operator.imod),
-    ('imul', operator.imul),
-    ('ior', operator.ior),
-    ('ipow', operator.ipow),
-    ('irshift', operator.irshift),
-    ('isub', operator.isub),
-    ('itruediv', operator.itruediv),
-    ('ixor', operator.ixor),
-)
-
-
 _UNARYOPS = (
     ('neg', operator.neg),
     ('pos', operator.pos),
@@ -683,9 +535,6 @@ _UNARYOPS = (
 def _inject_numeric_testing_methods(cls):
     def test_binop_name(suffix):
         return 'test_binop_{}_{}'.format(name, suffix)
-
-    def test_ibinop_name(suffix):
-        return 'test_ibinop_{}_{}'.format(name, suffix)
 
     def test_unaryop_name(suffix):
         return 'test_unaryop_{}_{}'.format(name, suffix)
@@ -757,39 +606,6 @@ def _inject_numeric_testing_methods(cls):
         setattr(cls, test_unaryop_name('value'), partialmethod(_TestNumericField._test_unaryop_value, op=unaryop))
         setattr(cls, test_unaryop_name('addr_same'), partialmethod(_TestNumericField._test_unaryop_addr_same, op=unaryop))
         setattr(cls, test_unaryop_name('value_same'), partialmethod(_TestNumericField._test_unaryop_value_same, op=unaryop))
-
-    # inject testing methods for each inplace binary operation
-    for name, ibinop in _IBINOPS:
-        setattr(cls, test_ibinop_name('invalid_unknown'), partialmethod(_TestNumericField._test_ibinop_invalid_unknown, op=ibinop))
-        setattr(cls, test_ibinop_name('invalid_none'), partialmethod(_TestNumericField._test_ibinop_invalid_none, op=ibinop))
-        setattr(cls, test_ibinop_name('type_true'), partialmethod(_TestNumericField._test_ibinop_type_true, op=ibinop))
-        setattr(cls, test_ibinop_name('value_true'), partialmethod(_TestNumericField._test_ibinop_value_true, op=ibinop))
-        setattr(cls, test_ibinop_name('type_pos_int'), partialmethod(_TestNumericField._test_ibinop_type_pos_int, op=ibinop))
-        setattr(cls, test_ibinop_name('type_pos_vint'), partialmethod(_TestNumericField._test_ibinop_type_pos_vint, op=ibinop))
-        setattr(cls, test_ibinop_name('value_pos_int'), partialmethod(_TestNumericField._test_ibinop_value_pos_int, op=ibinop))
-        setattr(cls, test_ibinop_name('value_pos_vint'), partialmethod(_TestNumericField._test_ibinop_value_pos_vint, op=ibinop))
-        setattr(cls, test_ibinop_name('type_neg_int'), partialmethod(_TestNumericField._test_ibinop_type_neg_int, op=ibinop))
-        setattr(cls, test_ibinop_name('type_neg_vint'), partialmethod(_TestNumericField._test_ibinop_type_neg_vint, op=ibinop))
-        setattr(cls, test_ibinop_name('value_neg_int'), partialmethod(_TestNumericField._test_ibinop_value_neg_int, op=ibinop))
-        setattr(cls, test_ibinop_name('value_neg_vint'), partialmethod(_TestNumericField._test_ibinop_value_neg_vint, op=ibinop))
-        setattr(cls, test_ibinop_name('type_false'), partialmethod(_TestNumericField._test_ibinop_type_false, op=ibinop))
-        setattr(cls, test_ibinop_name('value_false'), partialmethod(_TestNumericField._test_ibinop_value_false, op=ibinop))
-        setattr(cls, test_ibinop_name('type_zero_int'), partialmethod(_TestNumericField._test_ibinop_type_zero_int, op=ibinop))
-        setattr(cls, test_ibinop_name('type_zero_vint'), partialmethod(_TestNumericField._test_ibinop_type_zero_vint, op=ibinop))
-        setattr(cls, test_ibinop_name('value_zero_int'), partialmethod(_TestNumericField._test_ibinop_value_zero_int, op=ibinop))
-        setattr(cls, test_ibinop_name('value_zero_vint'), partialmethod(_TestNumericField._test_ibinop_value_zero_vint, op=ibinop))
-        setattr(cls, test_ibinop_name('type_pos_float'), partialmethod(_TestNumericField._test_ibinop_type_pos_float, op=ibinop))
-        setattr(cls, test_ibinop_name('type_neg_float'), partialmethod(_TestNumericField._test_ibinop_type_neg_float, op=ibinop))
-        setattr(cls, test_ibinop_name('type_pos_vfloat'), partialmethod(_TestNumericField._test_ibinop_type_pos_vfloat, op=ibinop))
-        setattr(cls, test_ibinop_name('type_neg_vfloat'), partialmethod(_TestNumericField._test_ibinop_type_neg_vfloat, op=ibinop))
-        setattr(cls, test_ibinop_name('value_pos_float'), partialmethod(_TestNumericField._test_ibinop_value_pos_float, op=ibinop))
-        setattr(cls, test_ibinop_name('value_neg_float'), partialmethod(_TestNumericField._test_ibinop_value_neg_float, op=ibinop))
-        setattr(cls, test_ibinop_name('value_pos_vfloat'), partialmethod(_TestNumericField._test_ibinop_value_pos_vfloat, op=ibinop))
-        setattr(cls, test_ibinop_name('value_neg_vfloat'), partialmethod(_TestNumericField._test_ibinop_value_neg_vfloat, op=ibinop))
-        setattr(cls, test_ibinop_name('type_zero_float'), partialmethod(_TestNumericField._test_ibinop_type_zero_float, op=ibinop))
-        setattr(cls, test_ibinop_name('type_zero_vfloat'), partialmethod(_TestNumericField._test_ibinop_type_zero_vfloat, op=ibinop))
-        setattr(cls, test_ibinop_name('value_zero_float'), partialmethod(_TestNumericField._test_ibinop_value_zero_float, op=ibinop))
-        setattr(cls, test_ibinop_name('value_zero_vfloat'), partialmethod(_TestNumericField._test_ibinop_value_zero_vfloat, op=ibinop))
 
 
 class _TestIntegerFieldCommon(_TestNumericField):
