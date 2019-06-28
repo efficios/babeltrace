@@ -285,7 +285,7 @@ class _RealValue(_NumericValue, numbers.Real):
     pass
 
 
-class BoolValue(_Value):
+class BoolValue(_IntegralValue):
     _NAME = 'Boolean'
 
     def __init__(self, value=None):
@@ -296,12 +296,6 @@ class BoolValue(_Value):
 
         self._check_create_status(ptr)
         super().__init__(ptr)
-
-    def __eq__(self, other):
-        try:
-            return self._value == self._value_to_bool(other)
-        except:
-            return False
 
     def __bool__(self):
         return self._value
