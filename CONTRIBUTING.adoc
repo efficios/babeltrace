@@ -1250,6 +1250,7 @@ A _FATAL_-level logging statement should always be followed by
   `switch` statement.
 * Failed assertion (within `BT_ASSERT()`).
 * Unsatisfied library precondition (within `BT_ASSERT_PRE()`).
+* Unsatisfied library postcondition (within `BT_ASSERT_POST()`).
 |Almost none: should be executed in production.
 
 |_ERROR_

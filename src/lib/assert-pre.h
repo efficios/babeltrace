@@ -79,13 +79,17 @@
 	} while (0)
 
 /*
- * Asserts that the library precondition _cond is satisfied.
+ * Developer mode: asserts that the library precondition `_cond` is
+ * satisfied.
  *
  * If `_cond` is false, log a fatal statement using `_fmt` and the
  * optional arguments (same usage as BT_LIB_LOGF()), and abort.
  *
- * To assert that a postcondition is satisfied or that some internal
- * object/context/value is in the expected state, use BT_ASSERT().
+ * To assert that a library postcondition is satisfied (return from user
+ * code), use BT_ASSERT_POST().
+ *
+ * To assert that an internal postcondition is satisfied, use
+ * BT_ASSERT().
  */
 # define BT_ASSERT_PRE(_cond, _fmt, ...)				\
 	do {								\
@@ -108,21 +112,24 @@
 #endif /* BT_DEV_MODE */
 
 /*
- * Developer mode: asserts that a given variable is not NULL.
+ * Developer mode: asserts that a given variable `_obj` named
+ * `_obj_name` (capitalized) is not `NULL`.
  */
 #define BT_ASSERT_PRE_NON_NULL(_obj, _obj_name)				\
 	BT_ASSERT_PRE((_obj) != NULL, "%s is NULL: ", _obj_name)
 
 /*
- * Developer mode: asserts that a given object is NOT frozen. This macro
- * checks the `frozen` field of _obj.
+ * Developer mode: asserts that a given object `_obj` named `_obj_name`
+ * (capitalized) is NOT frozen. This macro checks the `frozen` field of
+ * `_obj`.
  */
 #define BT_ASSERT_PRE_HOT(_obj, _obj_name, _fmt, ...)			\
 	BT_ASSERT_PRE(!(_obj)->frozen, "%s is frozen" _fmt, _obj_name,	\
 		##__VA_ARGS__)
 
 /*
- * Developer mode: asserts that a given index is less than a given size.
+ * Developer mode: asserts that a given index `_index` is less than a
+ * given length `_length`.
  */
 #define BT_ASSERT_PRE_VALID_INDEX(_index, _length)			\
 	BT_ASSERT_PRE((_index) < (_length),				\

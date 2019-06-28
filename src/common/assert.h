@@ -36,8 +36,9 @@ extern void bt_common_assert_failed(const char *file, int line,
 
 /*
  * Internal assertion (to detect logic errors on which the library user
- * has no influence). Use BT_ASSERT_PRE() to check a precondition which
- * must be directly or indirectly satisfied by the library user.
+ * has no influence). Use BT_ASSERT_PRE() or BT_ASSERT_POST() to check
+ * preconditions or postconditions which must be directly or indirectly
+ * satisfied by the library user.
  */
 #define BT_ASSERT(_cond)                                                       \
 	do {                                                                   \
