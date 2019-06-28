@@ -27,6 +27,7 @@
 #include "common/common.h"
 #include "common/assert.h"
 #include "lib/assert-pre.h"
+#include "lib/assert-post.h"
 #include <babeltrace2/graph/self-component.h>
 #include <babeltrace2/graph/component-const.h>
 #include <babeltrace2/graph/component-source-const.h>
@@ -551,7 +552,7 @@ enum bt_self_component_status bt_component_port_connected(
 		status = method(comp, self_port, (void *) other_port);
 		BT_LOGD("User method returned: status=%s",
 			bt_self_component_status_string(status));
-		BT_ASSERT_PRE(status == BT_SELF_COMPONENT_STATUS_OK ||
+		BT_ASSERT_POST(status == BT_SELF_COMPONENT_STATUS_OK ||
 			status == BT_SELF_COMPONENT_STATUS_ERROR ||
 			status == BT_SELF_COMPONENT_STATUS_NOMEM,
 			"Unexpected returned component status: status=%s",
