@@ -26,6 +26,7 @@
 
 #include "common/assert.h"
 #include "lib/assert-pre.h"
+#include "lib/assert-post.h"
 #include <babeltrace2/graph/connection-const.h>
 #include "lib/object.h"
 #include "compat/compiler.h"

@@ -24,6 +24,8 @@
 #define BT_LOG_TAG "LIB/MSG-PACKET"
 #include "lib/logging.h"
 
+#include "lib/assert-pre.h"
+#include "lib/assert-post.h"
 #include "compat/compiler.h"
 #include <babeltrace2/trace-ir/packet.h>
 #include "lib/trace-ir/packet.h"
@@ -37,7 +39,6 @@
 #include <babeltrace2/graph/message-packet-beginning.h>
 #include <babeltrace2/graph/message-packet-end.h>
 #include "common/assert.h"
-#include "lib/assert-pre.h"
 #include "lib/object.h"
 #include <inttypes.h>
 

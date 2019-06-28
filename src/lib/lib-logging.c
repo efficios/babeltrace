@@ -35,13 +35,15 @@
 #include <wchar.h>
 #include <glib.h>
 #include "common/common.h"
-#include "lib/value.h"
-#include "lib/value.h"
-#include "lib/object-pool.h"
 #include <babeltrace2/trace-ir/event-const.h>
 #include <babeltrace2/trace-ir/packet-const.h>
 #include <babeltrace2/trace-ir/stream-const.h>
 
+#include "logging.h"
+#include "assert-pre.h"
+#include "assert-post.h"
+#include "value.h"
+#include "object-pool.h"
 #include "graph/component-class.h"
 #include "graph/component-class-sink-colander.h"
 #include "graph/component-filter.h"
@@ -59,7 +61,6 @@
 #include "graph/message/stream-activity.h"
 #include "graph/message/stream.h"
 #include "graph/port.h"
-#include "logging.h"
 #include "plugin/plugin.h"
 #include "plugin/plugin-so.h"
 #include "trace-ir/clock-class.h"
@@ -75,7 +76,6 @@
 #include "trace-ir/trace-class.h"
 #include "trace-ir/trace.h"
 #include "trace-ir/utils.h"
-#include "assert-pre.h"
 
 #define LIB_LOGGING_BUF_SIZE	(4096 * 4)
 
