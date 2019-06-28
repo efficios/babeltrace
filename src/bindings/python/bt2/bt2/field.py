@@ -71,7 +71,7 @@ class _Field(object._UniqueObject):
 class _NumericField(_Field):
     @staticmethod
     def _extract_value(other):
-        if other is True or other is False:
+        if isinstance(other, bool):
             return other
 
         if isinstance(other, numbers.Integral):
@@ -102,10 +102,10 @@ class _NumericField(_Field):
         return self._value < self._extract_value(other)
 
     def _spec_eq(self, other):
-        if not isinstance(other, numbers.Number):
-            return NotImplemented
-
-        return self._value == self._extract_value(other)
+        try:
+            return self._value == self._extract_value(other)
+        except:
+            return False
 
     def __rmod__(self, other):
         return self._extract_value(other) % self._value
@@ -369,11 +369,9 @@ class _StringField(_Field):
 
     def _spec_eq(self, other):
         try:
-            other = self._value_to_str(other)
-        except Exception:
+            return self._value == self._value_to_str(other)
+        except:
             return False
-
-        return self._value == other
 
     def __lt__(self, other):
         return self._value < self._value_to_str(other)
@@ -432,22 +430,21 @@ class _StructureField(_ContainerField, collections.abc.MutableMapping):
         return iter(self.field_class)
 
     def _spec_eq(self, other):
-        try:
-            if len(self) != len(other):
+        if not isinstance(other, collections.abc.Mapping):
+            return False
+
+        if len(self) != len(other):
+            # early mismatch
+            return False
+
+        for self_key in self:
+            if self_key not in other:
                 return False
 
-            for self_key, self_value in self.items():
-                if self_key not in other:
-                    return False
+            if self[self_key] != other[self_key]:
+                return False
 
-                other_value = other[self_key]
-
-                if self_value != other_value:
-                    return False
-
-            return True
-        except Exception:
-            return False
+        return True
 
     def _set_value(self, values):
         try:
@@ -507,8 +504,7 @@ class _VariantField(_ContainerField, _Field):
                                       self._owner_put_ref)
 
     def _spec_eq(self, other):
-        new_self = _get_leaf_field(self)
-        return new_self == other
+        return _get_leaf_field(self) == other
 
     def __bool__(self):
         raise NotImplementedError
@@ -565,17 +561,18 @@ class _ArrayField(_ContainerField, _Field, collections.abc.MutableSequence):
         raise NotImplementedError
 
     def _spec_eq(self, other):
-        try:
-            if len(self) != len(other):
+        if not isinstance(other, collections.abc.Sequence):
+            return False
+
+        if len(self) != len(other):
+            # early mismatch
+            return False
+
+        for self_elem, other_elem in zip(self, other):
+            if self_elem != other_elem:
                 return False
 
-            for self_field, other_field in zip(self, other):
-                if self_field != other_field:
-                    return False
-
-            return True
-        except Exception:
-            return False
+        return True
 
     def _repr(self):
         return '[{}]'.format(', '.join([repr(v) for v in self]))
