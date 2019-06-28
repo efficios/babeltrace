@@ -636,11 +636,6 @@ class _TestIntegerFieldCommon(_TestNumericField):
         self._def.value = field
         self.assertEqual(self._def, raw)
 
-    def test_assign_float(self):
-        raw = 123.456
-        self._def.value = raw
-        self.assertEqual(self._def, int(raw))
-
     def test_assign_invalid_type(self):
         with self.assertRaises(TypeError):
             self._def.value = 'yes'
