@@ -51,6 +51,11 @@
 #include <glib.h>
 #include "lib/object.h"
 
+/* Protection: this file uses BT_LIB_LOG*() macros directly */
+#ifndef BT_LIB_LOG_SUPPORTED
+# error Please include "lib/logging.h" before including this file.
+#endif
+
 typedef void *(*bt_object_pool_new_object_func)(void *data);
 typedef void *(*bt_object_pool_destroy_object_func)(void *obj, void *data);
 
@@ -107,11 +112,8 @@ void *bt_object_pool_create_object(struct bt_object_pool *pool)
 	struct bt_object *obj;
 
 	BT_ASSERT(pool);
-
-#ifdef BT_LOGT
 	BT_LOGT("Creating object from pool: pool-addr=%p, pool-size=%zu, pool-cap=%u",
 		pool, pool->size, pool->objects->len);
-#endif
 
 	if (pool->size > 0) {
 		/* Pick one from the pool */
@@ -122,19 +124,13 @@ void *bt_object_pool_create_object(struct bt_object_pool *pool)
 	}
 
 	/* Pool is empty: create a brand new object */
-#ifdef BT_LOGD
 	BT_LOGD("Pool is empty: allocating new object: pool-addr=%p",
 		pool);
-#endif
-
 	obj = pool->funcs.new_object(pool->data);
 
 end:
-#ifdef BT_LOGT
 	BT_LOGT("Created one object from pool: pool-addr=%p, obj-addr=%p",
 		pool, obj);
-#endif
-
 	return obj;
 }
 
@@ -150,19 +146,14 @@ void bt_object_pool_recycle_object(struct bt_object_pool *pool, void *obj)
 
 	BT_ASSERT(pool);
 	BT_ASSERT(obj);
-
-#ifdef BT_LOGT
 	BT_LOGT("Recycling object: pool-addr=%p, pool-size=%zu, pool-cap=%u, obj-addr=%p",
 		pool, pool->size, pool->objects->len, obj);
-#endif
 
 	if (pool->size == pool->objects->len) {
 		/* Backing array is full: make place for recycled object */
-#ifdef BT_LOGD
 		BT_LOGD("Object pool is full: increasing object pool capacity: "
 			"pool-addr=%p, old-pool-cap=%u, new-pool-cap=%u",
 			pool, pool->objects->len, pool->objects->len + 1);
-#endif
 		g_ptr_array_set_size(pool->objects, pool->size + 1);
 	}
 
@@ -172,11 +163,8 @@ void bt_object_pool_recycle_object(struct bt_object_pool *pool, void *obj)
 	/* Back to the pool */
 	pool->objects->pdata[pool->size] = obj;
 	pool->size++;
-
-#ifdef BT_LOGT
 	BT_LOGT("Recycled object: pool-addr=%p, pool-size=%zu, pool-cap=%u, obj-addr=%p",
 		pool, pool->size, pool->objects->len, obj);
-#endif
 }
 
 #endif /* BABELTRACE_OBJECT_POOL_INTERNAL_H */
