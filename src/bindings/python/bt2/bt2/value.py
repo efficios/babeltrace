@@ -197,34 +197,6 @@ class _NumericValue(_Value):
     def __rpow__(self, base):
         return self._extract_value(base) ** self._value
 
-    def __iadd__(self, other):
-        self.value = self + other
-        return self
-
-    def __isub__(self, other):
-        self.value = self - other
-        return self
-
-    def __imul__(self, other):
-        self.value = self * other
-        return self
-
-    def __itruediv__(self, other):
-        self.value = self / other
-        return self
-
-    def __ifloordiv__(self, other):
-        self.value = self // other
-        return self
-
-    def __imod__(self, other):
-        self.value = self % other
-        return self
-
-    def __ipow__(self, other):
-        self.value = self ** other
-        return self
-
 
 class _IntegralValue(_NumericValue, numbers.Integral):
     def __lshift__(self, other):
@@ -259,26 +231,6 @@ class _IntegralValue(_NumericValue, numbers.Integral):
 
     def __invert__(self):
         return ~self._value
-
-    def __ilshift__(self, other):
-        self.value = self << other
-        return self
-
-    def __irshift__(self, other):
-        self.value = self >> other
-        return self
-
-    def __iand__(self, other):
-        self.value = self & other
-        return self
-
-    def __ixor__(self, other):
-        self.value = self ^ other
-        return self
-
-    def __ior__(self, other):
-        self.value = self | other
-        return self
 
 
 class _RealValue(_NumericValue, numbers.Real):
