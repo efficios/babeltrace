@@ -211,8 +211,8 @@ class _UnsignedIntegerField(_IntegerField, _Field):
     _NAME = 'Unsigned integer'
 
     def _value_to_int(self, value):
-        if not isinstance(value, numbers.Real):
-            raise TypeError('expecting a real number object')
+        if not isinstance(value, numbers.Integral):
+            raise TypeError('expecting an integral number object')
 
         value = int(value)
         utils._check_uint64(value)
@@ -234,8 +234,8 @@ class _SignedIntegerField(_IntegerField, _Field):
     _NAME = 'Signed integer'
 
     def _value_to_int(self, value):
-        if not isinstance(value, numbers.Real):
-            raise TypeError('expecting a real number object')
+        if not isinstance(value, numbers.Integral):
+            raise TypeError('expecting an integral number object')
 
         value = int(value)
         utils._check_int64(value)
