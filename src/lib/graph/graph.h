@@ -38,6 +38,21 @@
 #include "component-sink.h"
 #include "connection.h"
 
+/* Protection: this file uses BT_LIB_LOG*() macros directly */
+#ifndef BT_LIB_LOG_SUPPORTED
+# error Please include "lib/logging.h" before including this file.
+#endif
+
+/* Protection: this file uses BT_ASSERT_PRE*() macros directly */
+#ifndef BT_ASSERT_PRE_SUPPORTED
+# error Please include "lib/assert-pre.h" before including this file.
+#endif
+
+/* Protection: this file uses BT_ASSERT_POST*() macros directly */
+#ifndef BT_ASSERT_POST_SUPPORTED
+# error Please include "lib/assert-post.h" before including this file.
+#endif
+
 struct bt_component;
 struct bt_port;
 
@@ -219,10 +234,7 @@ enum bt_graph_status bt_graph_configure(struct bt_graph *graph)
 		goto end;
 	}
 
-#ifdef BT_ASSERT_PRE
 	BT_ASSERT_PRE(graph->has_sink, "Graph has no sink component: %!+g", graph);
-#endif
-
 	graph->config_state = BT_GRAPH_CONFIGURATION_STATE_PARTIALLY_CONFIGURED;
 
 	for (i = 0; i < graph->components->len; i++) {
@@ -242,38 +254,26 @@ enum bt_graph_status bt_graph_configure(struct bt_graph *graph)
 		if (comp_cls_sink->methods.graph_is_configured) {
 			enum bt_self_component_status comp_status;
 
-#ifdef BT_LIB_LOGD
 			BT_LIB_LOGD("Calling user's \"graph is configured\" method: "
 				"%![graph-]+g, %![comp-]+c",
 				graph, comp);
-#endif
-
 			comp_status = comp_cls_sink->methods.graph_is_configured(
 				(void *) comp_sink);
-
-#ifdef BT_LIB_LOGD
 			BT_LIB_LOGD("User method returned: status=%s",
 				bt_self_component_status_string(comp_status));
-#endif
-
-#ifdef BT_ASSERT_POST
 			BT_ASSERT_POST(comp_status == BT_SELF_COMPONENT_STATUS_OK ||
 				comp_status == BT_SELF_COMPONENT_STATUS_ERROR ||
 				comp_status == BT_SELF_COMPONENT_STATUS_NOMEM,
 				"Unexpected returned status: status=%s",
 				bt_self_component_status_string(comp_status));
-#endif
 
 			if (comp_status != BT_SELF_COMPONENT_STATUS_OK) {
 				status = BT_GRAPH_STATUS_ERROR;
-#ifdef BT_LIB_LOGW
 				BT_LIB_LOGW("User's \"graph is configured\" method failed: "
 					"%![comp-]+c, status=%s",
 					comp,
 					bt_self_component_status_string(
 						comp_status));
-#endif
-
 				goto end;
 			}
 		}
@@ -291,9 +291,7 @@ static inline
 void bt_graph_make_faulty(struct bt_graph *graph)
 {
 	graph->config_state = BT_GRAPH_CONFIGURATION_STATE_FAULTY;
-#ifdef BT_LIB_LOGI
 	BT_LIB_LOGI("Set graph's state to faulty: %![graph-]+g", graph);
-#endif
 }
 
 #endif /* BABELTRACE_GRAPH_GRAPH_INTERNAL_H */
