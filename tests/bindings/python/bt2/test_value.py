@@ -713,7 +713,7 @@ class CreateValueFuncTestCase(unittest.TestCase):
             v = bt2.create_value(a)
 
 
-class BoolValueTestCase(_TestCopySimple, unittest.TestCase):
+class BoolValueTestCase(_TestNumericValue, unittest.TestCase):
     def setUp(self):
         self._f = bt2.BoolValue(False)
         self._t = bt2.BoolValue(True)
@@ -803,6 +803,9 @@ class BoolValueTestCase(_TestCopySimple, unittest.TestCase):
 
     def test_vtrue_ne_false(self):
         self.assertNotEqual(self._t, False)
+
+
+_inject_numeric_testing_methods(BoolValueTestCase)
 
 
 class _TestIntegerValue(_TestNumericValue):
