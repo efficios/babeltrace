@@ -47,6 +47,17 @@ usage() {
 
 if [ "x$*" = "x" ]; then
 	usage
-else
-	run_python_bt2 "${@}"
+	exit 1
 fi
+
+# Sanity check that the BT_TESTS_BUILDDIR value makes sense.
+if [ ! -f "$BT_TESTS_BUILDDIR/Makefile" ]; then
+	fold -w 80 -s <<- END
+	$0: BT_TESTS_BUILDDIR does not point to a valid directory (\`$BT_TESTS_BUILDDIR/Makefile\` does not exist).
+
+	If building out-of-tree, set BT_TESTS_BUILDDIR to point to the \`tests\` directory in the build tree.
+	END
+	exit 1
+fi
+
+run_python_bt2 "${@}"
