@@ -120,56 +120,90 @@ def _create_struct_array_field(tc, length):
     return packet.context_field[field_name]
 
 
+# Base class for numeric field test cases.
+#
+# To be compatible with this base class, a derived class must, in its
+# setUp() method:
+#
+# * Set `self._def` to a field object with an arbitrary value.
+# * Set `self._def_value` to the equivalent value of `self._def`.
 class _TestNumericField:
+    # Tries the binary operation `op`:
+    #
+    # 1. Between `self._def`, which is a field object, and `rhs`.
+    # 2. Between `self._def_value`, which is the raw value of
+    #    `self._def`, and `rhs`.
+    #
+    # Returns the results of 1. and 2.
+    #
+    # If there's an exception while performing 1. or 2., asserts that
+    # both operations raised exceptions, that both exceptions have the
+    # same type, and returns `None` for both results.
     def _binop(self, op, rhs):
-        rexc = None
-        rvexc = None
+        type_rexc = None
+        type_rvexc = None
         comp_value = rhs
 
+        # try with field object
         try:
             r = op(self._def, rhs)
         except Exception as e:
-            rexc = e
+            type_rexc = type(e)
 
+        # try with value
         try:
             rv = op(self._def_value, comp_value)
         except Exception as e:
-            rvexc = e
+            type_rvexc = type(e)
 
-        if rexc is not None or rvexc is not None:
+        if type_rexc is not None or type_rvexc is not None:
             # at least one of the operations raised an exception: in
             # this case both operations should have raised the same
             # type of exception (division by zero, bit shift with a
             # floating point number operand, etc.)
-            self.assertIs(type(rexc), type(rvexc))
+            self.assertIs(type_rexc, type_rvexc)
             return None, None
 
         return r, rv
 
+    # Tries the unary operation `op`:
+    #
+    # 1. On `self._def`, which is a field object.
+    # 2. On `self._def_value`, which is the value of `self._def`.
+    #
+    # Returns the results of 1. and 2.
+    #
+    # If there's an exception while performing 1. or 2., asserts that
+    # both operations raised exceptions, that both exceptions have the
+    # same type, and returns `None` for both results.
     def _unaryop(self, op):
-        rexc = None
-        rvexc = None
+        type_rexc = None
+        type_rvexc = None
 
+        # try with field object
         try:
             r = op(self._def)
         except Exception as e:
-            rexc = e
+            type_rexc = type(e)
 
+        # try with value
         try:
             rv = op(self._def_value)
         except Exception as e:
-            rvexc = e
+            type_rvexc = type(e)
 
-        if rexc is not None or rvexc is not None:
+        if type_rexc is not None or type_rvexc is not None:
             # at least one of the operations raised an exception: in
             # this case both operations should have raised the same
             # type of exception (division by zero, bit shift with a
             # floating point number operand, etc.)
-            self.assertIs(type(rexc), type(rvexc))
+            self.assertIs(type_rexc, type_rvexc)
             return None, None
 
         return r, rv
 
+    # Tests that the unary operation `op` gives results with the same
+    # type for both `self._def` and `self._def_value`.
     def _test_unaryop_type(self, op):
         r, rv = self._unaryop(op)
 
@@ -178,6 +212,9 @@ class _TestNumericField:
 
         self.assertIsInstance(r, type(rv))
 
+    # Tests that the unary operation `op` gives results with the same
+    # value for both `self._def` and `self._def_value`. This uses the
+    # __eq__() operator of `self._def`.
     def _test_unaryop_value(self, op):
         r, rv = self._unaryop(op)
 
@@ -186,16 +223,22 @@ class _TestNumericField:
 
         self.assertEqual(r, rv)
 
+    # Tests that the unary operation `op`, when applied to `self._def`,
+    # does not change its underlying BT object address.
     def _test_unaryop_addr_same(self, op):
         addr_before = self._def.addr
         self._unaryop(op)
         self.assertEqual(self._def.addr, addr_before)
 
+    # Tests that the unary operation `op`, when applied to `self._def`,
+    # does not change its value.
     def _test_unaryop_value_same(self, op):
         value_before = copy.copy(self._def_value)
         self._unaryop(op)
         self.assertEqual(self._def, value_before)
 
+    # Tests that the binary operation `op` gives results with the same
+    # type for both `self._def` and `self._def_value`.
     def _test_binop_type(self, op, rhs):
         r, rv = self._binop(op, rhs)
 
@@ -208,6 +251,9 @@ class _TestNumericField:
         else:
             self.assertIsInstance(r, type(rv))
 
+    # Tests that the binary operation `op` gives results with the same
+    # value for both `self._def` and `self._def_value`. This uses the
+    # __eq__() operator of `self._def`.
     def _test_binop_value(self, op, rhs):
         r, rv = self._binop(op, rhs)
 
@@ -216,16 +262,35 @@ class _TestNumericField:
 
         self.assertEqual(r, rv)
 
+    # Tests that the binary operation `op`, when applied to `self._def`,
+    # does not change its underlying BT object address.
     def _test_binop_lhs_addr_same(self, op, rhs):
         addr_before = self._def.addr
         r, rv = self._binop(op, rhs)
         self.assertEqual(self._def.addr, addr_before)
 
+    # Tests that the binary operation `op`, when applied to `self._def`,
+    # does not change its value.
     @unittest.skip('copy is not implemented')
     def _test_binop_lhs_value_same(self, op, rhs):
         value_before = copy.copy(self._def)
         r, rv = self._binop(op, rhs)
         self.assertEqual(self._def, value_before)
+
+    # The methods below which take the `test_cb` and/or `op` parameters
+    # are meant to be used with one of the _test_binop_*() functions
+    # above as `test_cb` and a binary operator function as `op`.
+    #
+    # For example:
+    #
+    #     self._test_binop_rhs_pos_int(self._test_binop_value,
+    #                                  operator.add)
+    #
+    # This tests that a numeric field object added to a positive integer
+    # value gives a result with the expected value.
+    #
+    # `vint` and `vfloat` mean a signed integer value object and a real
+    # value object.
 
     def _test_binop_invalid_unknown(self, op):
         if op in _COMP_BINOPS:
@@ -482,6 +547,11 @@ class _TestNumericField:
         self.assertTrue(self._def != None) # noqa: E711
 
 
+# This is a list of binary operators used for
+# _inject_numeric_testing_methods().
+#
+# Each entry is a pair of binary operator name (used as part of the
+# created testing method's name) and operator function.
 _BINOPS = (
     ('lt', operator.lt),
     ('le', operator.le),
@@ -516,6 +586,11 @@ _BINOPS = (
 )
 
 
+# This is a list of unary operators used for
+# _inject_numeric_testing_methods().
+#
+# Each entry is a pair of unary operator name (used as part of the
+# created testing method's name) and operator function.
 _UNARYOPS = (
     ('neg', operator.neg),
     ('pos', operator.pos),
@@ -532,6 +607,20 @@ _UNARYOPS = (
 )
 
 
+# This function injects a bunch of testing methods to a numeric
+# field test case.
+#
+# It is meant to be used like this:
+#
+#     _inject_numeric_testing_methods(MyNumericFieldTestCase)
+#
+# This function injects:
+#
+# * One testing method for each _TestNumericField._test_binop_*()
+#   method, for each binary operator in the _BINOPS tuple.
+#
+# * One testing method for each _TestNumericField._test_unaryop*()
+#   method, for each unary operator in the _UNARYOPS tuple.
 def _inject_numeric_testing_methods(cls):
     def test_binop_name(suffix):
         return 'test_binop_{}_{}'.format(name, suffix)
