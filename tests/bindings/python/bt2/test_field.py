@@ -351,6 +351,12 @@ class _TestNumericField:
     def _test_binop_rhs_zero_vfloat(self, test_cb, op):
         test_cb(op, bt2.create_value(0.0))
 
+    def _test_binop_rhs_complex(self, test_cb, op):
+        test_cb(op, -23+19j)
+
+    def _test_binop_rhs_zero_complex(self, test_cb, op):
+        test_cb(op, 0j)
+
     def _test_binop_type_false(self, op):
         self._test_binop_rhs_false(self._test_binop_type, op)
 
@@ -392,6 +398,12 @@ class _TestNumericField:
 
     def _test_binop_type_zero_vfloat(self, op):
         self._test_binop_rhs_zero_vfloat(self._test_binop_type, op)
+
+    def _test_binop_type_complex(self, op):
+        self._test_binop_rhs_complex(self._test_binop_type, op)
+
+    def _test_binop_type_zero_complex(self, op):
+        self._test_binop_rhs_zero_complex(self._test_binop_type, op)
 
     def _test_binop_value_false(self, op):
         self._test_binop_rhs_false(self._test_binop_value, op)
@@ -435,6 +447,12 @@ class _TestNumericField:
     def _test_binop_value_zero_vfloat(self, op):
         self._test_binop_rhs_zero_vfloat(self._test_binop_value, op)
 
+    def _test_binop_value_complex(self, op):
+        self._test_binop_rhs_complex(self._test_binop_value, op)
+
+    def _test_binop_value_zero_complex(self, op):
+        self._test_binop_rhs_zero_complex(self._test_binop_value, op)
+
     def _test_binop_lhs_addr_same_false(self, op):
         self._test_binop_rhs_false(self._test_binop_lhs_addr_same, op)
 
@@ -477,6 +495,12 @@ class _TestNumericField:
     def _test_binop_lhs_addr_same_zero_vfloat(self, op):
         self._test_binop_rhs_zero_vfloat(self._test_binop_lhs_addr_same, op)
 
+    def _test_binop_lhs_addr_same_complex(self, op):
+        self._test_binop_rhs_complex(self._test_binop_lhs_addr_same, op)
+
+    def _test_binop_lhs_addr_same_zero_complex(self, op):
+        self._test_binop_rhs_zero_complex(self._test_binop_lhs_addr_same, op)
+
     def _test_binop_lhs_value_same_false(self, op):
         self._test_binop_rhs_false(self._test_binop_lhs_value_same, op)
 
@@ -518,6 +542,12 @@ class _TestNumericField:
 
     def _test_binop_lhs_value_same_zero_vfloat(self, op):
         self._test_binop_rhs_zero_vfloat(self._test_binop_lhs_value_same, op)
+
+    def _test_binop_lhs_value_same_complex(self, op):
+        self._test_binop_rhs_complex(self._test_binop_lhs_value_same, op)
+
+    def _test_binop_lhs_value_same_zero_complex(self, op):
+        self._test_binop_rhs_zero_complex(self._test_binop_lhs_value_same, op)
 
     def test_bool_op(self):
         self.assertEqual(bool(self._def), bool(self._def_value))
@@ -688,6 +718,14 @@ def _inject_numeric_testing_methods(cls):
         setattr(cls, test_binop_name('lhs_addr_same_zero_vfloat'), partialmethod(_TestNumericField._test_binop_lhs_addr_same_zero_vfloat, op=binop))
         setattr(cls, test_binop_name('lhs_value_same_zero_float'), partialmethod(_TestNumericField._test_binop_lhs_value_same_zero_float, op=binop))
         setattr(cls, test_binop_name('lhs_value_same_zero_vfloat'), partialmethod(_TestNumericField._test_binop_lhs_value_same_zero_vfloat, op=binop))
+        setattr(cls, test_binop_name('type_complex'), partialmethod(_TestNumericField._test_binop_type_complex, op=binop))
+        setattr(cls, test_binop_name('type_zero_complex'), partialmethod(_TestNumericField._test_binop_type_zero_complex, op=binop))
+        setattr(cls, test_binop_name('value_complex'), partialmethod(_TestNumericField._test_binop_value_complex, op=binop))
+        setattr(cls, test_binop_name('value_zero_complex'), partialmethod(_TestNumericField._test_binop_value_zero_complex, op=binop))
+        setattr(cls, test_binop_name('lhs_addr_same_complex'), partialmethod(_TestNumericField._test_binop_lhs_addr_same_complex, op=binop))
+        setattr(cls, test_binop_name('lhs_addr_same_zero_complex'), partialmethod(_TestNumericField._test_binop_lhs_addr_same_zero_complex, op=binop))
+        setattr(cls, test_binop_name('lhs_value_same_complex'), partialmethod(_TestNumericField._test_binop_lhs_value_same_complex, op=binop))
+        setattr(cls, test_binop_name('lhs_value_same_zero_complex'), partialmethod(_TestNumericField._test_binop_lhs_value_same_zero_complex, op=binop))
 
     # inject testing methods for each unary operation
     for name, unaryop in _UNARYOPS:
