@@ -22,6 +22,7 @@ import unittest
 import math
 import copy
 import itertools
+import collections
 import bt2
 from utils import get_default_trace_class
 
@@ -1073,6 +1074,15 @@ class _TestArrayFieldCommon:
         field[1] = 1846
         field[2] = 1948754
         self.assertNotEqual(self._def, field)
+
+    def test_eq_non_sequence_iterable(self):
+        dct = collections.OrderedDict([(1, 2), (3, 4), (5, 6)])
+        field = _create_int_array_field(self._tc, 3)
+        field[0] = 1
+        field[1] = 3
+        field[2] = 5
+        self.assertEqual(field, list(dct.keys()))
+        self.assertNotEqual(field, dct)
 
     def test_setitem(self):
         self._def[2] = 24
