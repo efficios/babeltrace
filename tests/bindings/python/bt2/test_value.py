@@ -18,6 +18,7 @@
 
 from functools import partial, partialmethod
 import operator
+import collections
 import unittest
 import numbers
 import math
@@ -1286,6 +1287,12 @@ class ArrayValueTestCase(_TestCopySimple, unittest.TestCase):
         a1 = bt2.ArrayValue(raw)
         a2 = bt2.ArrayValue(copy.deepcopy(raw))
         self.assertEqual(a1, a2)
+
+    def test_eq_non_sequence_iterable(self):
+        dct = collections.OrderedDict([(1, 2), (3, 4), (5, 6)])
+        a = bt2.ArrayValue((1, 3, 5))
+        self.assertEqual(a, list(dct.keys()))
+        self.assertNotEqual(a, dct)
 
     def test_setitem_int(self):
         raw = 19
