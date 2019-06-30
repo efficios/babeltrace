@@ -27,13 +27,15 @@
  * http://www.efficios.com/ctf
  */
 
+#include <stdint.h>
+
 /* For bt_trace, bt_stream, bt_stream_class */
 #include <babeltrace2/types.h>
 
-/* For bt_stream_status */
-#include <babeltrace2/trace-ir/stream-const.h>
-
-#include <stdint.h>
+/* For __BT_FUNC_STATUS_* */
+#define __BT_FUNC_STATUS_ENABLE
+#include <babeltrace2/func-status.h>
+#undef __BT_FUNC_STATUS_ENABLE
 
 #ifdef __cplusplus
 extern "C" {
@@ -50,11 +52,18 @@ extern bt_trace *bt_stream_borrow_trace(bt_stream *stream);
 
 extern bt_stream_class *bt_stream_borrow_class(bt_stream *stream);
 
-extern bt_stream_status bt_stream_set_name(bt_stream *stream,
+typedef enum bt_stream_set_name_status {
+	BT_STREAM_SET_NAME_STATUS_MEMORY_ERROR	= __BT_FUNC_STATUS_MEMORY_ERROR,
+	BT_STREAM_SET_NAME_STATUS_OK		= __BT_FUNC_STATUS_OK,
+} bt_stream_set_name_status;
+
+extern bt_stream_set_name_status bt_stream_set_name(bt_stream *stream,
 		const char *name);
 
 #ifdef __cplusplus
 }
 #endif
+
+#include <babeltrace2/undef-func-status.h>
 
 #endif /* BABELTRACE_TRACE_IR_STREAM_H */

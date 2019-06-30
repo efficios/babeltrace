@@ -30,17 +30,6 @@
 extern "C" {
 #endif
 
-typedef enum bt_query_executor_status {
-	BT_QUERY_EXECUTOR_STATUS_OK = 0,
-	BT_QUERY_EXECUTOR_STATUS_AGAIN = 11,
-	BT_QUERY_EXECUTOR_STATUS_UNSUPPORTED = 95,
-	BT_QUERY_EXECUTOR_STATUS_CANCELED = 125,
-	BT_QUERY_EXECUTOR_STATUS_ERROR = -1,
-	BT_QUERY_EXECUTOR_STATUS_NOMEM = -12,
-	BT_QUERY_EXECUTOR_STATUS_INVALID_OBJECT = -23,
-	BT_QUERY_EXECUTOR_STATUS_INVALID_PARAMS = -24,
-} bt_query_executor_status;
-
 extern
 bt_bool bt_query_executor_is_canceled(
 		const bt_query_executor *query_executor);

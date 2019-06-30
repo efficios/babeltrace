@@ -36,6 +36,7 @@
 
 #include "field.h"
 #include "field-class.h"
+#include "lib/func-status.h"
 
 static
 void reset_single_field(struct bt_field *field);
@@ -559,7 +560,8 @@ void bt_field_real_set_value(struct bt_field *field, double value)
 	bt_field_set_single(field, true);
 }
 
-enum bt_field_status bt_field_unsigned_enumeration_get_mapping_labels(
+enum bt_field_enumeration_get_mapping_labels_status
+bt_field_unsigned_enumeration_get_mapping_labels(
 		const struct bt_field *field,
 		bt_field_class_enumeration_mapping_label_array *label_array,
 		uint64_t *count)
@@ -577,7 +579,8 @@ enum bt_field_status bt_field_unsigned_enumeration_get_mapping_labels(
 			field->class, int_field->value.u, label_array, count);
 }
 
-enum bt_field_status bt_field_signed_enumeration_get_mapping_labels(
+enum bt_field_enumeration_get_mapping_labels_status
+bt_field_signed_enumeration_get_mapping_labels(
 		const struct bt_field *field,
 		bt_field_class_enumeration_mapping_label_array *label_array,
 		uint64_t *count)
@@ -627,8 +630,8 @@ void clear_string_field(struct bt_field *field)
 	bt_field_set_single(field, true);
 }
 
-enum bt_field_status bt_field_string_set_value(struct bt_field *field,
-		const char *value)
+enum bt_field_string_set_value_status bt_field_string_set_value(
+		struct bt_field *field, const char *value)
 {
 	BT_ASSERT_PRE_NON_NULL(field, "Field");
 	BT_ASSERT_PRE_NON_NULL(value, "Value");
@@ -636,18 +639,19 @@ enum bt_field_status bt_field_string_set_value(struct bt_field *field,
 	BT_ASSERT_PRE_FIELD_HAS_CLASS_TYPE(field, BT_FIELD_CLASS_TYPE_STRING,
 		"Field");
 	clear_string_field(field);
-	return bt_field_string_append_with_length(field, value,
+	return (int) bt_field_string_append_with_length(field, value,
 		(uint64_t) strlen(value));
 }
 
-enum bt_field_status bt_field_string_append(struct bt_field *field, const char *value)
+enum bt_field_string_append_status bt_field_string_append(
+		struct bt_field *field, const char *value)
 {
 	return bt_field_string_append_with_length(field,
 		value, (uint64_t) strlen(value));
 }
 
-enum bt_field_status bt_field_string_append_with_length(struct bt_field *field,
-		const char *value, uint64_t length)
+enum bt_field_string_append_status bt_field_string_append_with_length(
+		struct bt_field *field, const char *value, uint64_t length)
 {
 	struct bt_field_string *string_field = (void *) field;
 	char *data;
@@ -675,17 +679,16 @@ enum bt_field_status bt_field_string_append_with_length(struct bt_field *field,
 	((char *) string_field->buf->data)[new_length] = '\0';
 	string_field->length = new_length;
 	bt_field_set_single(field, true);
-	return BT_FIELD_STATUS_OK;
+	return BT_FUNC_STATUS_OK;
 }
 
-enum bt_field_status bt_field_string_clear(struct bt_field *field)
+void bt_field_string_clear(struct bt_field *field)
 {
 	BT_ASSERT_PRE_NON_NULL(field, "Field");
 	BT_ASSERT_PRE_FIELD_HOT(field, "Field");
 	BT_ASSERT_PRE_FIELD_HAS_CLASS_TYPE(field,
 		BT_FIELD_CLASS_TYPE_STRING, "Field");
 	clear_string_field(field);
-	return BT_FIELD_STATUS_OK;
 }
 
 uint64_t bt_field_array_get_length(const struct bt_field *field)
@@ -697,10 +700,10 @@ uint64_t bt_field_array_get_length(const struct bt_field *field)
 	return array_field->length;
 }
 
-enum bt_field_status bt_field_dynamic_array_set_length(struct bt_field *field,
-		uint64_t length)
+enum bt_field_dynamic_array_set_length_status bt_field_dynamic_array_set_length(
+		struct bt_field *field, uint64_t length)
 {
-	int ret = BT_FIELD_STATUS_OK;
+	int ret = BT_FUNC_STATUS_OK;
 	struct bt_field_array *array_field = (void *) field;
 
 	BT_ASSERT_PRE_NON_NULL(field, "Field");
@@ -726,7 +729,7 @@ enum bt_field_status bt_field_dynamic_array_set_length(struct bt_field *field,
 					"dynamic array field: "
 					"index=%" PRIu64 ", "
 					"%![array-field-]+f", i, field);
-				ret = BT_FIELD_STATUS_NOMEM;
+				ret = BT_FUNC_STATUS_MEMORY_ERROR;
 				goto end;
 			}
 
@@ -861,7 +864,8 @@ const struct bt_field *bt_field_variant_borrow_selected_option_field_const(
 	return borrow_variant_field_selected_option_field((void *) field);
 }
 
-enum bt_field_status bt_field_variant_select_option_field(
+enum bt_field_variant_select_option_field_status
+bt_field_variant_select_option_field(
 		struct bt_field *field, uint64_t index)
 {
 	struct bt_field_variant *var_field = (void *) field;
@@ -873,7 +877,7 @@ enum bt_field_status bt_field_variant_select_option_field(
 	BT_ASSERT_PRE_VALID_INDEX(index, var_field->fields->len);
 	var_field->selected_field = var_field->fields->pdata[index];
 	var_field->selected_index = index;
-	return BT_FIELD_STATUS_OK;
+	return BT_FUNC_STATUS_OK;
 }
 
 uint64_t bt_field_variant_get_selected_option_field_index(

@@ -35,6 +35,7 @@
 #include "component-filter.h"
 #include "component.h"
 #include "component-class.h"
+#include "lib/func-status.h"
 
 BT_HIDDEN
 void bt_component_filter_destroy(struct bt_component *component)
@@ -111,18 +112,18 @@ bt_self_component_filter_borrow_output_port_by_index(
 		(void *) comp, index);
 }
 
-enum bt_self_component_status bt_self_component_filter_add_output_port(
+enum bt_self_component_add_port_status bt_self_component_filter_add_output_port(
 		struct bt_self_component_filter *self_comp,
 		const char *name, void *user_data,
 		struct bt_self_component_port_output **self_port)
 {
 	struct bt_component *comp = (void *) self_comp;
-	enum bt_self_component_status status;
+	enum bt_self_component_add_port_status status;
 	struct bt_port *port = NULL;
 
 	/* bt_component_add_output_port() logs details and errors */
 	status = bt_component_add_output_port(comp, name, user_data, &port);
-	if (status != BT_SELF_COMPONENT_STATUS_OK) {
+	if (status != BT_FUNC_STATUS_OK) {
 		goto end;
 	}
 
@@ -179,18 +180,18 @@ bt_self_component_filter_borrow_input_port_by_index(
 		(void *) component, index);
 }
 
-enum bt_self_component_status bt_self_component_filter_add_input_port(
+enum bt_self_component_add_port_status bt_self_component_filter_add_input_port(
 		struct bt_self_component_filter *self_comp,
 		const char *name, void *user_data,
 		struct bt_self_component_port_input **self_port)
 {
-	enum bt_self_component_status status;
+	enum bt_self_component_add_port_status status;
 	struct bt_port *port = NULL;
 	struct bt_component *comp = (void *) self_comp;
 
 	/* bt_component_add_input_port() logs details/errors */
 	status = bt_component_add_input_port(comp, name, user_data, &port);
-	if (status != BT_SELF_COMPONENT_STATUS_OK) {
+	if (status != BT_FUNC_STATUS_OK) {
 		goto end;
 	}
 

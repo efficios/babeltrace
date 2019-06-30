@@ -30,18 +30,6 @@ class QueryExecutor(object._SharedObject):
     _get_ref = staticmethod(native_bt.query_executor_get_ref)
     _put_ref = staticmethod(native_bt.query_executor_put_ref)
 
-    def _handle_status(self, status, gen_error_msg):
-        if status == native_bt.QUERY_EXECUTOR_STATUS_AGAIN:
-            raise bt2.TryAgain
-        elif status == native_bt.QUERY_EXECUTOR_STATUS_CANCELED:
-            raise bt2.QueryExecutorCanceled
-        elif status == native_bt.QUERY_EXECUTOR_STATUS_INVALID_OBJECT:
-            raise bt2.InvalidQueryObject
-        elif status == native_bt.QUERY_EXECUTOR_STATUS_INVALID_PARAMS:
-            raise bt2.InvalidQueryParams
-        elif status < 0:
-            raise bt2.Error(gen_error_msg)
-
     def __init__(self):
         ptr = native_bt.query_executor_create()
 
@@ -52,7 +40,8 @@ class QueryExecutor(object._SharedObject):
 
     def cancel(self):
         status = native_bt.query_executor_cancel(self._ptr)
-        self._handle_status(status, 'cannot cancel query executor object')
+        utils._handle_func_status(status,
+                                  'cannot cancel query executor object')
 
     @property
     def is_canceled(self):
@@ -63,7 +52,7 @@ class QueryExecutor(object._SharedObject):
     def query(self, component_class, object, params=None,
               logging_level=bt2.logging.LoggingLevel.NONE):
         if self.is_canceled:
-            raise bt2.QueryExecutorCanceled
+            raise bt2.Canceled
 
         if not isinstance(component_class, bt2.component._GenericComponentClass):
             err = False
@@ -92,6 +81,6 @@ class QueryExecutor(object._SharedObject):
         status, result_ptr = native_bt.query_executor_query(self._ptr, cc_ptr,
                                                             object, params_ptr,
                                                             logging_level)
-        self._handle_status(status, 'cannot query component class')
+        utils._handle_func_status(status, 'cannot query component class')
         assert(result_ptr)
         return bt2.value._create_from_ptr(result_ptr)

@@ -33,57 +33,59 @@
  */
 #include <babeltrace2/types.h>
 
-/* For bt_graph_status */
-#include <babeltrace2/graph/graph-const.h>
-
 /* For bt_logging_level */
 #include <babeltrace2/logging.h>
+
+/* For __BT_FUNC_STATUS_* */
+#define __BT_FUNC_STATUS_ENABLE
+#include <babeltrace2/func-status.h>
+#undef __BT_FUNC_STATUS_ENABLE
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-typedef enum bt_graph_listener_status {
-	BT_GRAPH_LISTENER_STATUS_OK = 0,
-	BT_GRAPH_LISTENER_STATUS_ERROR = -1,
-	BT_GRAPH_LISTENER_STATUS_NOMEM = -12,
-} bt_graph_listener_status;
+typedef enum bt_graph_listener_func_status {
+	BT_GRAPH_LISTENER_FUNC_STATUS_OK		= __BT_FUNC_STATUS_OK,
+	BT_GRAPH_LISTENER_FUNC_STATUS_ERROR		= __BT_FUNC_STATUS_ERROR,
+	BT_GRAPH_LISTENER_FUNC_STATUS_MEMORY_ERROR	= __BT_FUNC_STATUS_MEMORY_ERROR,
+} bt_graph_listener_func_status;
 
-typedef bt_graph_listener_status
+typedef bt_graph_listener_func_status
 (*bt_graph_filter_component_input_port_added_listener_func)(
 		const bt_component_filter *component,
 		const bt_port_input *port, void *data);
 
-typedef bt_graph_listener_status
+typedef bt_graph_listener_func_status
 (*bt_graph_sink_component_input_port_added_listener_func)(
 		const bt_component_sink *component,
 		const bt_port_input *port, void *data);
 
-typedef bt_graph_listener_status
+typedef bt_graph_listener_func_status
 (*bt_graph_source_component_output_port_added_listener_func)(
 		const bt_component_source *component,
 		const bt_port_output *port, void *data);
 
-typedef bt_graph_listener_status
+typedef bt_graph_listener_func_status
 (*bt_graph_filter_component_output_port_added_listener_func)(
 		const bt_component_filter *component,
 		const bt_port_output *port, void *data);
 
-typedef bt_graph_listener_status
+typedef bt_graph_listener_func_status
 (*bt_graph_source_filter_component_ports_connected_listener_func)(
 		const bt_component_source *source_component,
 		const bt_component_filter *filter_component,
 		const bt_port_output *upstream_port,
 		const bt_port_input *downstream_port, void *data);
 
-typedef bt_graph_listener_status
+typedef bt_graph_listener_func_status
 (*bt_graph_source_sink_component_ports_connected_listener_func)(
 		const bt_component_source *source_component,
 		const bt_component_sink *sink_component,
 		const bt_port_output *upstream_port,
 		const bt_port_input *downstream_port, void *data);
 
-typedef bt_graph_listener_status
+typedef bt_graph_listener_func_status
 (*bt_graph_filter_filter_component_ports_connected_listener_func)(
 		const bt_component_filter *filter_component_upstream,
 		const bt_component_filter *filter_component_downstream,
@@ -91,7 +93,7 @@ typedef bt_graph_listener_status
 		const bt_port_input *downstream_port,
 		void *data);
 
-typedef bt_graph_listener_status
+typedef bt_graph_listener_func_status
 (*bt_graph_filter_sink_component_ports_connected_listener_func)(
 		const bt_component_filter *filter_component,
 		const bt_component_sink *sink_component,
@@ -102,108 +104,160 @@ typedef void (* bt_graph_listener_removed_func)(void *data);
 
 extern bt_graph *bt_graph_create(void);
 
-extern bt_graph_status bt_graph_add_source_component(bt_graph *graph,
+typedef enum bt_graph_add_component_status {
+	BT_GRAPH_ADD_COMPONENT_STATUS_OK		= __BT_FUNC_STATUS_OK,
+	BT_GRAPH_ADD_COMPONENT_STATUS_ERROR		= __BT_FUNC_STATUS_ERROR,
+	BT_GRAPH_ADD_COMPONENT_STATUS_MEMORY_ERROR	= __BT_FUNC_STATUS_MEMORY_ERROR,
+} bt_graph_add_component_status;
+
+extern bt_graph_add_component_status
+bt_graph_add_source_component(bt_graph *graph,
 		const bt_component_class_source *component_class,
 		const char *name, const bt_value *params,
 		bt_logging_level log_level, const bt_component_source **component);
 
-extern bt_graph_status bt_graph_add_source_component_with_init_method_data(
+extern bt_graph_add_component_status
+bt_graph_add_source_component_with_init_method_data(
 		bt_graph *graph,
 		const bt_component_class_source *component_class,
 		const char *name, const bt_value *params,
 		void *init_method_data, bt_logging_level log_level,
 		const bt_component_source **component);
 
-extern bt_graph_status bt_graph_add_filter_component(bt_graph *graph,
+extern bt_graph_add_component_status
+bt_graph_add_filter_component(bt_graph *graph,
 		const bt_component_class_filter *component_class,
 		const char *name, const bt_value *params,
 		bt_logging_level log_level,
 		const bt_component_filter **component);
 
-extern bt_graph_status bt_graph_add_filter_component_with_init_method_data(
+extern bt_graph_add_component_status
+bt_graph_add_filter_component_with_init_method_data(
 		bt_graph *graph,
 		const bt_component_class_filter *component_class,
 		const char *name, const bt_value *params,
 		void *init_method_data, bt_logging_level log_level,
 		const bt_component_filter **component);
 
-extern bt_graph_status bt_graph_add_sink_component(
+extern bt_graph_add_component_status
+bt_graph_add_sink_component(
 		bt_graph *graph, const bt_component_class_sink *component_class,
 		const char *name, const bt_value *params,
 		bt_logging_level log_level,
 		const bt_component_sink **component);
 
-extern bt_graph_status bt_graph_add_sink_component_with_init_method_data(
+extern bt_graph_add_component_status
+bt_graph_add_sink_component_with_init_method_data(
 		bt_graph *graph, const bt_component_class_sink *component_class,
 		const char *name, const bt_value *params,
 		void *init_method_data, bt_logging_level log_level,
 		const bt_component_sink **component);
 
-extern bt_graph_status bt_graph_connect_ports(bt_graph *graph,
+typedef enum bt_graph_connect_ports_status {
+	BT_GRAPH_CONNECT_PORTS_STATUS_OK		= __BT_FUNC_STATUS_OK,
+	BT_GRAPH_CONNECT_PORTS_STATUS_ERROR		= __BT_FUNC_STATUS_ERROR,
+	BT_GRAPH_CONNECT_PORTS_STATUS_CANCELED		= __BT_FUNC_STATUS_CANCELED,
+	BT_GRAPH_CONNECT_PORTS_STATUS_MEMORY_ERROR	= __BT_FUNC_STATUS_MEMORY_ERROR,
+} bt_graph_connect_ports_status;
+
+extern bt_graph_connect_ports_status bt_graph_connect_ports(bt_graph *graph,
 		const bt_port_output *upstream,
 		const bt_port_input *downstream,
 		const bt_connection **connection);
 
-extern bt_graph_status bt_graph_run(bt_graph *graph);
+typedef enum bt_graph_run_status {
+	BT_GRAPH_RUN_STATUS_OK			= __BT_FUNC_STATUS_OK,
+	BT_GRAPH_RUN_STATUS_ERROR		= __BT_FUNC_STATUS_ERROR,
+	BT_GRAPH_RUN_STATUS_MEMORY_ERROR	= __BT_FUNC_STATUS_MEMORY_ERROR,
+	BT_GRAPH_RUN_STATUS_AGAIN		= __BT_FUNC_STATUS_AGAIN,
+	BT_GRAPH_RUN_STATUS_END			= __BT_FUNC_STATUS_END,
+	BT_GRAPH_RUN_STATUS_CANCELED		= __BT_FUNC_STATUS_CANCELED,
+} bt_graph_run_status;
 
-extern bt_graph_status bt_graph_consume(bt_graph *graph);
+extern bt_graph_run_status bt_graph_run(bt_graph *graph);
 
-extern bt_graph_status bt_graph_add_filter_component_input_port_added_listener(
+typedef enum bt_graph_consume_status {
+	BT_GRAPH_CONSUME_STATUS_OK		= __BT_FUNC_STATUS_OK,
+	BT_GRAPH_CONSUME_STATUS_ERROR		= __BT_FUNC_STATUS_ERROR,
+	BT_GRAPH_CONSUME_STATUS_MEMORY_ERROR	= __BT_FUNC_STATUS_MEMORY_ERROR,
+	BT_GRAPH_CONSUME_STATUS_AGAIN		= __BT_FUNC_STATUS_AGAIN,
+	BT_GRAPH_CONSUME_STATUS_END		= __BT_FUNC_STATUS_END,
+	BT_GRAPH_CONSUME_STATUS_CANCELED	= __BT_FUNC_STATUS_CANCELED,
+} bt_graph_consume_status;
+
+extern bt_graph_consume_status bt_graph_consume(bt_graph *graph);
+
+typedef enum bt_graph_add_listener_status {
+	BT_GRAPH_ADD_LISTENER_STATUS_OK			= __BT_FUNC_STATUS_OK,
+	BT_GRAPH_ADD_LISTENER_STATUS_MEMORY_ERROR	= __BT_FUNC_STATUS_MEMORY_ERROR,
+} bt_graph_add_listener_status;
+
+extern bt_graph_add_listener_status
+bt_graph_add_filter_component_input_port_added_listener(
 		bt_graph *graph,
 		bt_graph_filter_component_input_port_added_listener_func listener,
 		bt_graph_listener_removed_func listener_removed, void *data,
 		int *listener_id);
 
-extern bt_graph_status bt_graph_add_sink_component_input_port_added_listener(
+extern bt_graph_add_listener_status
+bt_graph_add_sink_component_input_port_added_listener(
 		bt_graph *graph,
 		bt_graph_sink_component_input_port_added_listener_func listener,
 		bt_graph_listener_removed_func listener_removed, void *data,
 		int *listener_id);
 
-extern bt_graph_status bt_graph_add_source_component_output_port_added_listener(
+extern bt_graph_add_listener_status
+bt_graph_add_source_component_output_port_added_listener(
 		bt_graph *graph,
 		bt_graph_source_component_output_port_added_listener_func listener,
 		bt_graph_listener_removed_func listener_removed, void *data,
 		int *listener_id);
 
-extern bt_graph_status bt_graph_add_filter_component_output_port_added_listener(
+extern bt_graph_add_listener_status
+bt_graph_add_filter_component_output_port_added_listener(
 		bt_graph *graph,
 		bt_graph_filter_component_output_port_added_listener_func listener,
 		bt_graph_listener_removed_func listener_removed, void *data,
 		int *listener_id);
 
-extern bt_graph_status
+extern bt_graph_add_listener_status
 bt_graph_add_source_filter_component_ports_connected_listener(
 		bt_graph *graph,
 		bt_graph_source_filter_component_ports_connected_listener_func listener,
 		bt_graph_listener_removed_func listener_removed, void *data,
 		int *listener_id);
 
-extern bt_graph_status
+extern bt_graph_add_listener_status
 bt_graph_add_filter_filter_component_ports_connected_listener(
 		bt_graph *graph,
 		bt_graph_filter_filter_component_ports_connected_listener_func listener,
 		bt_graph_listener_removed_func listener_removed, void *data,
 		int *listener_id);
 
-extern bt_graph_status
+extern bt_graph_add_listener_status
 bt_graph_add_source_sink_component_ports_connected_listener(
 		bt_graph *graph,
 		bt_graph_source_sink_component_ports_connected_listener_func listener,
 		bt_graph_listener_removed_func listener_removed, void *data,
 		int *listener_id);
 
-extern bt_graph_status
+extern bt_graph_add_listener_status
 bt_graph_add_filter_sink_component_ports_connected_listener(
 		bt_graph *graph,
 		bt_graph_filter_sink_component_ports_connected_listener_func listener,
 		bt_graph_listener_removed_func listener_removed, void *data,
 		int *listener_id);
 
-extern bt_graph_status bt_graph_cancel(bt_graph *graph);
+typedef enum bt_graph_cancel_status {
+	BT_GRAPH_CANCEL_STATUS_OK	= __BT_FUNC_STATUS_OK,
+} bt_graph_cancel_status;
+
+extern bt_graph_cancel_status bt_graph_cancel(bt_graph *graph);
 
 #ifdef __cplusplus
 }
 #endif
+
+#include <babeltrace2/undef-func-status.h>
 
 #endif /* BABELTRACE_GRAPH_GRAPH_H */

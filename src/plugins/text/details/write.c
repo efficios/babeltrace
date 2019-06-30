@@ -1385,7 +1385,7 @@ end:
 static
 void write_time(struct details_write_ctx *ctx, const bt_clock_snapshot *cs)
 {
-	bt_clock_snapshot_status status;
+	bt_clock_snapshot_get_ns_from_origin_status cs_status;
 	int64_t ns_from_origin;
 	char buf[32];
 
@@ -1398,8 +1398,8 @@ void write_time(struct details_write_ctx *ctx, const bt_clock_snapshot *cs)
 		color_bold(ctx), color_fg_blue(ctx), buf,
 		color_reset(ctx),
 		ctx->details_comp->cfg.compact ? "" : " cycles");
-	status = bt_clock_snapshot_get_ns_from_origin(cs, &ns_from_origin);
-	if (status == BT_CLOCK_SNAPSHOT_STATUS_OK) {
+	cs_status = bt_clock_snapshot_get_ns_from_origin(cs, &ns_from_origin);
+	if (cs_status == BT_CLOCK_SNAPSHOT_GET_NS_FROM_ORIGIN_STATUS_OK) {
 		format_int(buf, ns_from_origin, 10);
 		g_string_append_printf(ctx->str, "%s %s%s%s%s%s",
 			ctx->details_comp->cfg.compact ? "" : ",",

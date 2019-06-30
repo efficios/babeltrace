@@ -1,8 +1,8 @@
-#ifndef BABELTRACE_TRACE_IR_PACKET_H
-#define BABELTRACE_TRACE_IR_PACKET_H
+#ifndef BABELTRACE_FUNC_STATUS_INTERNAL_H
+#define BABELTRACE_FUNC_STATUS_INTERNAL_H
 
 /*
- * Copyright 2016-2018 Philippe Proulx <pproulx@efficios.com>
+ * Copyright (c) 2019 Philippe Proulx <pproulx@efficios.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,44 +21,29 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
- *
- * The Common Trace Format (CTF) Specification is available at
- * http://www.efficios.com/ctf
  */
 
-#include <stdint.h>
-
-/* For bt_packet, bt_packet_context_field, bt_stream */
-#include <babeltrace2/types.h>
-
-/* For __BT_FUNC_STATUS_* */
 #define __BT_FUNC_STATUS_ENABLE
 #include <babeltrace2/func-status.h>
 #undef __BT_FUNC_STATUS_ENABLE
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-extern bt_packet *bt_packet_create(const bt_stream *stream);
-
-extern bt_stream *bt_packet_borrow_stream(bt_packet *packet);
-
-extern
-bt_field *bt_packet_borrow_context_field(bt_packet *packet);
-
-typedef enum bt_packet_move_context_field_status {
-	BT_PACKET_MOVE_CONTEXT_FIELD_STATUS_OK	= __BT_FUNC_STATUS_OK,
-} bt_packet_move_context_field_status;
-
-extern
-bt_packet_move_context_field_status bt_packet_move_context_field(
-		bt_packet *packet, bt_packet_context_field *context);
-
-#ifdef __cplusplus
-}
-#endif
+/*
+ * Aliases without a `__` prefix for internal code: this is just easier
+ * to read.
+ */
+#define BT_FUNC_STATUS_OVERFLOW		__BT_FUNC_STATUS_OVERFLOW
+#define BT_FUNC_STATUS_INVALID_PARAMS	__BT_FUNC_STATUS_INVALID_PARAMS
+#define BT_FUNC_STATUS_INVALID_OBJECT	__BT_FUNC_STATUS_INVALID_OBJECT
+#define BT_FUNC_STATUS_MEMORY_ERROR	__BT_FUNC_STATUS_MEMORY_ERROR
+#define BT_FUNC_STATUS_LOADING_ERROR	__BT_FUNC_STATUS_LOADING_ERROR
+#define BT_FUNC_STATUS_ERROR		__BT_FUNC_STATUS_ERROR
+#define BT_FUNC_STATUS_OK		__BT_FUNC_STATUS_OK
+#define BT_FUNC_STATUS_END		__BT_FUNC_STATUS_END
+#define BT_FUNC_STATUS_NOT_FOUND	__BT_FUNC_STATUS_NOT_FOUND
+#define BT_FUNC_STATUS_AGAIN		__BT_FUNC_STATUS_AGAIN
+#define BT_FUNC_STATUS_UNSUPPORTED	__BT_FUNC_STATUS_UNSUPPORTED
+#define BT_FUNC_STATUS_CANCELED		__BT_FUNC_STATUS_CANCELED
 
 #include <babeltrace2/undef-func-status.h>
 
-#endif /* BABELTRACE_TRACE_IR_PACKET_H */
+#endif /* BABELTRACE_FUNC_STATUS_INTERNAL_H */

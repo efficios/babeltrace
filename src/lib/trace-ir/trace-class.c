@@ -54,6 +54,7 @@
 #include "stream.h"
 #include "trace.h"
 #include "utils.h"
+#include "lib/func-status.h"
 
 struct bt_trace_class_destruction_listener_elem {
 	bt_trace_class_destruction_listener_func func;
@@ -187,7 +188,7 @@ const char *bt_trace_class_get_name(const struct bt_trace_class *tc)
 	return tc->name.value;
 }
 
-enum bt_trace_class_status bt_trace_class_set_name(
+enum bt_trace_class_set_name_status bt_trace_class_set_name(
 		struct bt_trace_class *tc, const char *name)
 {
 	BT_ASSERT_PRE_NON_NULL(tc, "Trace class");
@@ -196,7 +197,7 @@ enum bt_trace_class_status bt_trace_class_set_name(
 	g_string_assign(tc->name.str, name);
 	tc->name.value = tc->name.str->str;
 	BT_LIB_LOGD("Set trace class's name: %!+T", tc);
-	return BT_TRACE_CLASS_STATUS_OK;
+	return BT_FUNC_STATUS_OK;
 }
 
 bt_uuid bt_trace_class_get_uuid(const struct bt_trace_class *tc)
@@ -215,7 +216,7 @@ void bt_trace_class_set_uuid(struct bt_trace_class *tc, bt_uuid uuid)
 	BT_LIB_LOGD("Set trace class's UUID: %!+T", tc);
 }
 
-enum bt_trace_class_status bt_trace_class_add_destruction_listener(
+enum bt_trace_class_add_listener_status bt_trace_class_add_destruction_listener(
 		const struct bt_trace_class *_tc,
 		bt_trace_class_destruction_listener_func listener,
 		void *data, uint64_t *listener_id)
@@ -253,7 +254,7 @@ enum bt_trace_class_status bt_trace_class_add_destruction_listener(
 
 	BT_LIB_LOGD("Added trace class destruction listener: %![tc-]+T, "
 			"listener-id=%" PRIu64, tc, i);
-	return BT_TRACE_CLASS_STATUS_OK;
+	return BT_FUNC_STATUS_OK;
 }
 
 BT_ASSERT_PRE_FUNC
@@ -266,7 +267,7 @@ bool has_listener_id(const struct bt_trace_class *tc, uint64_t listener_id)
 			listener_id))->func != NULL;
 }
 
-enum bt_trace_class_status bt_trace_class_remove_destruction_listener(
+enum bt_trace_class_remove_listener_status bt_trace_class_remove_destruction_listener(
 		const struct bt_trace_class *_tc, uint64_t listener_id)
 {
 	struct bt_trace_class *tc = (void *) _tc;
@@ -286,7 +287,7 @@ enum bt_trace_class_status bt_trace_class_remove_destruction_listener(
 	BT_LIB_LOGD("Removed trace class destruction listener: "
 		"%![tc-]+T, listener-id=%" PRIu64,
 		tc, listener_id);
-	return BT_TRACE_CLASS_STATUS_OK;
+	return BT_FUNC_STATUS_OK;
 }
 
 BT_ASSERT_FUNC
@@ -300,7 +301,8 @@ bool trace_has_environment_entry(const struct bt_trace_class *tc, const char *na
 }
 
 static
-enum bt_trace_class_status set_environment_entry(struct bt_trace_class *tc,
+enum bt_trace_class_set_environment_entry_status set_environment_entry(
+		struct bt_trace_class *tc,
 		const char *name, struct bt_value *value)
 {
 	int ret;
@@ -315,7 +317,7 @@ enum bt_trace_class_status set_environment_entry(struct bt_trace_class *tc,
 	ret = bt_attributes_set_field_value(tc->environment, name,
 		value);
 	if (ret) {
-		ret = BT_TRACE_CLASS_STATUS_NOMEM;
+		ret = BT_FUNC_STATUS_MEMORY_ERROR;
 		BT_LIB_LOGE("Cannot set trace class's environment entry: "
 			"%![tc-]+T, entry-name=\"%s\"", tc, name);
 	} else {
@@ -327,7 +329,8 @@ enum bt_trace_class_status set_environment_entry(struct bt_trace_class *tc,
 	return ret;
 }
 
-enum bt_trace_class_status bt_trace_class_set_environment_entry_string(
+enum bt_trace_class_set_environment_entry_status
+bt_trace_class_set_environment_entry_string(
 		struct bt_trace_class *tc, const char *name, const char *value)
 {
 	int ret;
@@ -350,7 +353,8 @@ end:
 	return ret;
 }
 
-enum bt_trace_class_status bt_trace_class_set_environment_entry_integer(
+enum bt_trace_class_set_environment_entry_status
+bt_trace_class_set_environment_entry_integer(
 		struct bt_trace_class *tc, const char *name, int64_t value)
 {
 	int ret;
@@ -360,7 +364,7 @@ enum bt_trace_class_status bt_trace_class_set_environment_entry_integer(
 	value_obj = bt_value_signed_integer_create_init(value);
 	if (!value_obj) {
 		BT_LOGE_STR("Cannot create an integer value object.");
-		ret = BT_TRACE_CLASS_STATUS_NOMEM;
+		ret = BT_FUNC_STATUS_MEMORY_ERROR;
 		goto end;
 	}
 

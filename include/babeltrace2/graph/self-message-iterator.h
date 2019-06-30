@@ -23,23 +23,12 @@
  * SOFTWARE.
  */
 
-/* For BT_MESSAGE_ITERATOR_STATUS_* */
-#include <babeltrace2/graph/message-iterator-const.h>
-
 /* For bt_self_component, bt_self_message_iterator, bt_self_port_output */
 #include <babeltrace2/types.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-typedef enum bt_self_message_iterator_status {
-	BT_SELF_MESSAGE_ITERATOR_STATUS_OK = BT_MESSAGE_ITERATOR_STATUS_OK,
-	BT_SELF_MESSAGE_ITERATOR_STATUS_END = BT_MESSAGE_ITERATOR_STATUS_END,
-	BT_SELF_MESSAGE_ITERATOR_STATUS_AGAIN = BT_MESSAGE_ITERATOR_STATUS_AGAIN,
-	BT_SELF_MESSAGE_ITERATOR_STATUS_ERROR = BT_MESSAGE_ITERATOR_STATUS_ERROR,
-	BT_SELF_MESSAGE_ITERATOR_STATUS_NOMEM = BT_MESSAGE_ITERATOR_STATUS_NOMEM,
-} bt_self_message_iterator_status;
 
 extern bt_self_component *
 bt_self_message_iterator_borrow_component(

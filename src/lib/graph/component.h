@@ -26,6 +26,7 @@
 
 #include "common/macros.h"
 #include <babeltrace2/graph/component-const.h>
+#include <babeltrace2/graph/component-class.h>
 #include "lib/object.h"
 #include <babeltrace2/types.h>
 #include <babeltrace2/logging.h>
@@ -84,7 +85,8 @@ int bt_component_create(struct bt_component_class *component_class,
 		struct bt_component **component);
 
 BT_HIDDEN
-enum bt_self_component_status bt_component_port_connected(
+enum bt_component_class_port_connected_method_status
+bt_component_port_connected(
 		struct bt_component *comp,
 		struct bt_port *self_port, struct bt_port *other_port);
 
@@ -115,12 +117,12 @@ struct bt_port_output *bt_component_borrow_output_port_by_name(
 		struct bt_component *comp, const char *name);
 
 BT_HIDDEN
-enum bt_self_component_status bt_component_add_input_port(
+enum bt_self_component_add_port_status bt_component_add_input_port(
 		struct bt_component *component, const char *name,
 		void *user_data, struct bt_port **port);
 
 BT_HIDDEN
-enum bt_self_component_status bt_component_add_output_port(
+enum bt_self_component_add_port_status bt_component_add_output_port(
 		struct bt_component *component, const char *name,
 		void *user_data, struct bt_port **port);
 

@@ -55,9 +55,9 @@ class _TraceClassEnv(collections.abc.MutableMapping):
         else:
             raise TypeError('expected str or int, got {}'.format(type(value)))
 
-        ret = set_env_entry_fn(self._trace_class._ptr, key, value)
-
-        utils._handle_ret(ret, "cannot set trace class object's environment entry")
+        status = set_env_entry_fn(self._trace_class._ptr, key, value)
+        utils._handle_func_status(status,
+                                  "cannot set trace class object's environment entry")
 
     def __delitem__(self, key):
         raise NotImplementedError
@@ -324,7 +324,7 @@ class _TraceClass(object._SharedObject, collections.abc.Mapping):
         if not callable(listener):
             raise TypeError("'listener' parameter is not callable")
 
-        fn = native_bt.py3_trace_class_add_destruction_listener
+        fn = native_bt.bt2_trace_class_add_destruction_listener
         listener_from_native = functools.partial(_trace_class_destruction_listener_from_native,
                                                  listener)
 

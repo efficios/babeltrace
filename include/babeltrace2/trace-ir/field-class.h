@@ -27,17 +27,19 @@
  * http://www.efficios.com/ctf
  */
 
+#include <stdint.h>
+#include <stddef.h>
+
 /* For bt_bool, bt_field_class, bt_trace_class */
 #include <babeltrace2/types.h>
 
-/*
- * For bt_field_class_status,
- * bt_field_class_integer_preferred_display_base
- */
+/* For bt_field_class_integer_preferred_display_base */
 #include <babeltrace2/trace-ir/field-class-const.h>
 
-#include <stdint.h>
-#include <stddef.h>
+/* For __BT_FUNC_STATUS_* */
+#define __BT_FUNC_STATUS_ENABLE
+#include <babeltrace2/func-status.h>
+#undef __BT_FUNC_STATUS_ENABLE
 
 #ifdef __cplusplus
 extern "C" {
@@ -68,11 +70,18 @@ extern bt_field_class *bt_field_class_unsigned_enumeration_create(
 extern bt_field_class *bt_field_class_signed_enumeration_create(
 		bt_trace_class *trace_class);
 
-extern bt_field_class_status bt_field_class_unsigned_enumeration_map_range(
+typedef enum bt_field_class_enumeration_map_range_status {
+	BT_FIELD_CLASS_ENUMERATION_MAP_RANGE_STATUS_MEMORY_ERROR	= __BT_FUNC_STATUS_MEMORY_ERROR,
+	BT_FIELD_CLASS_ENUMERATION_MAP_RANGE_STATUS_OK			= __BT_FUNC_STATUS_OK,
+} bt_field_class_enumeration_map_range_status;
+
+extern bt_field_class_enumeration_map_range_status
+bt_field_class_unsigned_enumeration_map_range(
 		bt_field_class *field_class, const char *label,
 		uint64_t range_lower, uint64_t range_upper);
 
-extern bt_field_class_status bt_field_class_signed_enumeration_map_range(
+extern bt_field_class_enumeration_map_range_status
+bt_field_class_signed_enumeration_map_range(
 		bt_field_class *field_class, const char *label,
 		int64_t range_lower, int64_t range_upper);
 
@@ -82,7 +91,13 @@ extern bt_field_class *bt_field_class_string_create(
 extern bt_field_class *bt_field_class_structure_create(
 		bt_trace_class *trace_class);
 
-extern bt_field_class_status bt_field_class_structure_append_member(
+typedef enum bt_field_class_structure_append_member_status {
+	BT_FIELD_CLASS_STRUCTURE_APPEND_MEMBER_STATUS_MEMORY_ERROR	= __BT_FUNC_STATUS_MEMORY_ERROR,
+	BT_FIELD_CLASS_STRUCTURE_APPEND_MEMBER_STATUS_OK		= __BT_FUNC_STATUS_OK,
+} bt_field_class_structure_append_member_status;
+
+extern bt_field_class_structure_append_member_status
+bt_field_class_structure_append_member(
 		bt_field_class *struct_field_class,
 		const char *name, bt_field_class *field_class);
 
@@ -105,7 +120,12 @@ extern bt_field_class *bt_field_class_dynamic_array_create(
 extern bt_field_class *bt_field_class_array_borrow_element_field_class(
 		bt_field_class *field_class);
 
-extern bt_field_class_status
+typedef enum bt_field_class_dynamic_array_set_length_field_class_status {
+	BT_FIELD_CLASS_DYNAMIC_ARRAY_SET_LENGTH_FIELD_CLASS_STATUS_MEMORY_ERROR	= __BT_FUNC_STATUS_MEMORY_ERROR,
+	BT_FIELD_CLASS_DYNAMIC_ARRAY_SET_LENGTH_FIELD_CLASS_STATUS_OK			= __BT_FUNC_STATUS_OK,
+} bt_field_class_dynamic_array_set_length_field_class_status;
+
+extern bt_field_class_dynamic_array_set_length_field_class_status
 bt_field_class_dynamic_array_set_length_field_class(
 		bt_field_class *field_class,
 		bt_field_class *length_field_class);
@@ -113,11 +133,22 @@ bt_field_class_dynamic_array_set_length_field_class(
 extern bt_field_class *bt_field_class_variant_create(
 		bt_trace_class *trace_class);
 
-extern bt_field_class_status
+typedef enum bt_field_class_variant_set_selector_field_class_status {
+	BT_FIELD_CLASS_VARIANT_SET_SELECTOR_FIELD_CLASS_STATUS_MEMORY_ERROR	= __BT_FUNC_STATUS_MEMORY_ERROR,
+	BT_FIELD_CLASS_VARIANT_SET_SELECTOR_FIELD_CLASS_STATUS_OK			= __BT_FUNC_STATUS_OK,
+} bt_field_class_variant_set_selector_field_class_status;
+
+extern bt_field_class_variant_set_selector_field_class_status
 bt_field_class_variant_set_selector_field_class(bt_field_class *field_class,
 		bt_field_class *selector_field_class);
 
-extern bt_field_class_status bt_field_class_variant_append_option(
+typedef enum bt_field_class_variant_append_option_status {
+	BT_FIELD_CLASS_VARIANT_APPEND_OPTION_STATUS_MEMORY_ERROR	= __BT_FUNC_STATUS_MEMORY_ERROR,
+	BT_FIELD_CLASS_VARIANT_APPEND_OPTION_STATUS_OK			= __BT_FUNC_STATUS_OK,
+} bt_field_class_variant_append_option_status;
+
+extern bt_field_class_variant_append_option_status
+bt_field_class_variant_append_option(
 		bt_field_class *var_field_class,
 		const char *name, bt_field_class *field_class);
 
@@ -135,5 +166,7 @@ extern bt_field_class *bt_field_class_variant_option_borrow_field_class(
 #ifdef __cplusplus
 }
 #endif
+
+#include <babeltrace2/undef-func-status.h>
 
 #endif /* BABELTRACE_TRACE_IR_FIELD_CLASSES_H */

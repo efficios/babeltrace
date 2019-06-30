@@ -34,6 +34,7 @@
 #include <glib.h>
 
 #include "plugin-so.h"
+#include "lib/func-status.h"
 
 /* Protection: this file uses BT_LIB_LOG*() macros directly */
 #ifndef BT_LIB_LOG_SUPPORTED
@@ -86,25 +87,6 @@ struct bt_plugin_set {
 	/* Array of struct bt_plugin * */
 	GPtrArray *plugins;
 };
-
-static inline
-const char *bt_plugin_status_string(enum bt_plugin_status status)
-{
-	switch (status) {
-	case BT_PLUGIN_STATUS_OK:
-		return "BT_PLUGIN_STATUS_OK";
-	case BT_PLUGIN_STATUS_NOT_FOUND:
-		return "BT_PLUGIN_STATUS_NOT_FOUND";
-	case BT_PLUGIN_STATUS_ERROR:
-		return "BT_PLUGIN_STATUS_ERROR";
-	case BT_PLUGIN_STATUS_LOADING_ERROR:
-		return "BT_PLUGIN_STATUS_LOADING_ERROR";
-	case BT_PLUGIN_STATUS_NOMEM:
-		return "BT_PLUGIN_STATUS_NOMEM";
-	default:
-		return "(unknown)";
-	}
-}
 
 static inline
 const char *bt_plugin_type_string(enum bt_plugin_type type)
@@ -347,7 +329,7 @@ void bt_plugin_set_version(struct bt_plugin *plugin, unsigned int major,
 }
 
 static inline
-enum bt_plugin_status bt_plugin_add_component_class(
+int bt_plugin_add_component_class(
 	struct bt_plugin *plugin, struct bt_component_class *comp_class)
 {
 	GPtrArray *comp_classes;
@@ -380,7 +362,7 @@ enum bt_plugin_status bt_plugin_add_component_class(
 
 	BT_LIB_LOGD("Added component class to plugin: "
 		"%![plugin-]+l, %![cc-]+C", plugin, comp_class);
-	return BT_PLUGIN_STATUS_OK;
+	return BT_FUNC_STATUS_OK;
 }
 
 static

@@ -25,8 +25,8 @@
 
 #include <stdint.h>
 
-/* For bt_message_iterator_status */
-#include <babeltrace2/graph/message-iterator-const.h>
+/* For bt_message_iterator_*_status */
+#include <babeltrace2/graph/message-iterator.h>
 
 /*
  * For bt_port, bt_message, bt_message_iterator,
@@ -52,7 +52,7 @@ bt_port_output_message_iterator_create(
 		bt_graph *graph,
 		const bt_port_output *output_port);
 
-extern bt_message_iterator_status
+extern bt_message_iterator_next_status
 bt_port_output_message_iterator_next(
 		bt_port_output_message_iterator *iterator,
 		bt_message_array_const *msgs, uint64_t *count);
@@ -64,12 +64,12 @@ extern bt_bool bt_port_output_message_iterator_can_seek_ns_from_origin(
 extern bt_bool bt_port_output_message_iterator_can_seek_beginning(
 		bt_port_output_message_iterator *iterator);
 
-extern bt_message_iterator_status
+extern bt_message_iterator_seek_ns_from_origin_status
 bt_port_output_message_iterator_seek_ns_from_origin(
 		bt_port_output_message_iterator *iterator,
 		int64_t ns_from_origin);
 
-extern bt_message_iterator_status
+extern bt_message_iterator_seek_beginning_status
 bt_port_output_message_iterator_seek_beginning(
 		bt_port_output_message_iterator *iterator);
 

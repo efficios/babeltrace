@@ -205,7 +205,7 @@ struct ctf_fs_msg_iter_data {
 };
 
 BT_HIDDEN
-bt_self_component_status ctf_fs_init(
+bt_component_class_init_method_status ctf_fs_init(
 		bt_self_component_source *source,
 		const bt_value *params, void *init_method_data);
 
@@ -213,7 +213,7 @@ BT_HIDDEN
 void ctf_fs_finalize(bt_self_component_source *component);
 
 BT_HIDDEN
-bt_query_status ctf_fs_query(
+bt_component_class_query_method_status ctf_fs_query(
 		bt_self_component_class_source *comp_class,
 		const bt_query_executor *query_exec,
 		const char *object, const bt_value *params,
@@ -221,7 +221,7 @@ bt_query_status ctf_fs_query(
 		const bt_value **result);
 
 BT_HIDDEN
-bt_self_message_iterator_status ctf_fs_iterator_init(
+bt_component_class_message_iterator_init_method_status ctf_fs_iterator_init(
 		bt_self_message_iterator *self_msg_iter,
 		bt_self_component_source *self_comp,
 		bt_self_component_port_output *self_port);
@@ -230,13 +230,13 @@ BT_HIDDEN
 void ctf_fs_iterator_finalize(bt_self_message_iterator *it);
 
 BT_HIDDEN
-bt_self_message_iterator_status ctf_fs_iterator_next(
+bt_component_class_message_iterator_next_method_status ctf_fs_iterator_next(
 		bt_self_message_iterator *iterator,
 		bt_message_array_const msgs, uint64_t capacity,
 		uint64_t *count);
 
 BT_HIDDEN
-bt_self_message_iterator_status ctf_fs_iterator_seek_beginning(
+bt_component_class_message_iterator_seek_beginning_method_status ctf_fs_iterator_seek_beginning(
 		bt_self_message_iterator *message_iterator);
 
 /* Create and initialize a new, empty ctf_fs_component. */

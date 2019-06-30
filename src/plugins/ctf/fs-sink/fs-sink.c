@@ -43,10 +43,11 @@ static
 const char * const in_port_name = "in";
 
 static
-bt_self_component_status ensure_output_dir_exists(
+bt_component_class_init_method_status ensure_output_dir_exists(
 		struct fs_sink_comp *fs_sink)
 {
-	bt_self_component_status status = BT_SELF_COMPONENT_STATUS_OK;
+	bt_component_class_init_method_status status =
+		BT_COMPONENT_CLASS_INIT_METHOD_STATUS_OK;
 	int ret;
 
 	ret = g_mkdir_with_parents(fs_sink->output_dir_path->str, 0755);
@@ -55,7 +56,7 @@ bt_self_component_status ensure_output_dir_exists(
 			"Cannot create directories for output directory",
 			": output-dir-path=\"%s\"",
 			fs_sink->output_dir_path->str);
-		status = BT_SELF_COMPONENT_STATUS_ERROR;
+		status = BT_COMPONENT_CLASS_INIT_METHOD_STATUS_ERROR;
 		goto end;
 	}
 
@@ -64,22 +65,24 @@ end:
 }
 
 static
-bt_self_component_status configure_component(struct fs_sink_comp *fs_sink,
+bt_component_class_init_method_status
+configure_component(struct fs_sink_comp *fs_sink,
 		const bt_value *params)
 {
-	bt_self_component_status status = BT_SELF_COMPONENT_STATUS_OK;
+	bt_component_class_init_method_status status =
+		BT_COMPONENT_CLASS_INIT_METHOD_STATUS_OK;
 	const bt_value *value;
 
 	value = bt_value_map_borrow_entry_value_const(params, "path");
 	if (!value) {
 		BT_COMP_LOGE_STR("Missing mandatory `path` parameter.");
-		status = BT_SELF_COMPONENT_STATUS_ERROR;
+		status = BT_COMPONENT_CLASS_INIT_METHOD_STATUS_ERROR;
 		goto end;
 	}
 
 	if (!bt_value_is_string(value)) {
 		BT_COMP_LOGE_STR("`path` parameter: expecting a string.");
-		status = BT_SELF_COMPONENT_STATUS_ERROR;
+		status = BT_COMPONENT_CLASS_INIT_METHOD_STATUS_ERROR;
 		goto end;
 	}
 
@@ -90,7 +93,7 @@ bt_self_component_status configure_component(struct fs_sink_comp *fs_sink,
 	if (value) {
 		if (!bt_value_is_bool(value)) {
 			BT_COMP_LOGE_STR("`assume-single-trace` parameter: expecting a boolean.");
-			status = BT_SELF_COMPONENT_STATUS_ERROR;
+			status = BT_COMPONENT_CLASS_INIT_METHOD_STATUS_ERROR;
 			goto end;
 		}
 
@@ -102,7 +105,7 @@ bt_self_component_status configure_component(struct fs_sink_comp *fs_sink,
 	if (value) {
 		if (!bt_value_is_bool(value)) {
 			BT_COMP_LOGE_STR("`ignore-discarded-events` parameter: expecting a boolean.");
-			status = BT_SELF_COMPONENT_STATUS_ERROR;
+			status = BT_COMPONENT_CLASS_INIT_METHOD_STATUS_ERROR;
 			goto end;
 		}
 
@@ -115,7 +118,7 @@ bt_self_component_status configure_component(struct fs_sink_comp *fs_sink,
 	if (value) {
 		if (!bt_value_is_bool(value)) {
 			BT_COMP_LOGE_STR("`ignore-discarded-packets` parameter: expecting a boolean.");
-			status = BT_SELF_COMPONENT_STATUS_ERROR;
+			status = BT_COMPONENT_CLASS_INIT_METHOD_STATUS_ERROR;
 			goto end;
 		}
 
@@ -128,7 +131,7 @@ bt_self_component_status configure_component(struct fs_sink_comp *fs_sink,
 	if (value) {
 		if (!bt_value_is_bool(value)) {
 			BT_COMP_LOGE_STR("`quiet` parameter: expecting a boolean.");
-			status = BT_SELF_COMPONENT_STATUS_ERROR;
+			status = BT_COMPONENT_CLASS_INIT_METHOD_STATUS_ERROR;
 			goto end;
 		}
 
@@ -165,11 +168,13 @@ end:
 }
 
 BT_HIDDEN
-bt_self_component_status ctf_fs_sink_init(
+bt_component_class_init_method_status ctf_fs_sink_init(
 		bt_self_component_sink *self_comp_sink, const bt_value *params,
 		void *init_method_data)
 {
-	bt_self_component_status status = BT_SELF_COMPONENT_STATUS_OK;
+	bt_component_class_init_method_status status =
+		BT_COMPONENT_CLASS_INIT_METHOD_STATUS_OK;
+	bt_self_component_add_port_status add_port_status;
 	struct fs_sink_comp *fs_sink = NULL;
 	bt_self_component *self_comp =
 		bt_self_component_sink_as_self_component(self_comp_sink);
@@ -180,7 +185,7 @@ bt_self_component_status ctf_fs_sink_init(
 	if (!fs_sink) {
 		BT_COMP_LOG_CUR_LVL(BT_LOG_ERROR, log_level, self_comp,
 			"Failed to allocate one CTF FS sink structure.");
-		status = BT_SELF_COMPONENT_STATUS_NOMEM;
+		status = BT_COMPONENT_CLASS_INIT_METHOD_STATUS_MEMORY_ERROR;
 		goto end;
 	}
 
@@ -188,7 +193,7 @@ bt_self_component_status ctf_fs_sink_init(
 	fs_sink->self_comp = self_comp;
 	fs_sink->output_dir_path = g_string_new(NULL);
 	status = configure_component(fs_sink, params);
-	if (status != BT_SELF_COMPONENT_STATUS_OK) {
+	if (status != BT_COMPONENT_CLASS_INIT_METHOD_STATUS_OK) {
 		/* configure_component() logs errors */
 		goto end;
 	}
@@ -198,12 +203,12 @@ bt_self_component_status ctf_fs_sink_init(
 				G_FILE_TEST_EXISTS)) {
 		BT_COMP_LOGE("Single trace mode, but output path exists: "
 			"output-path=\"%s\"", fs_sink->output_dir_path->str);
-		status = BT_SELF_COMPONENT_STATUS_ERROR;
+		status = BT_COMPONENT_CLASS_INIT_METHOD_STATUS_ERROR;
 		goto end;
 	}
 
 	status = ensure_output_dir_exists(fs_sink);
-	if (status != BT_SELF_COMPONENT_STATUS_OK) {
+	if (status != BT_COMPONENT_CLASS_INIT_METHOD_STATUS_OK) {
 		/* ensure_output_dir_exists() logs errors */
 		goto end;
 	}
@@ -212,20 +217,27 @@ bt_self_component_status ctf_fs_sink_init(
 		NULL, (GDestroyNotify) fs_sink_trace_destroy);
 	if (!fs_sink->traces) {
 		BT_COMP_LOGE_STR("Failed to allocate one GHashTable.");
-		status = BT_SELF_COMPONENT_STATUS_NOMEM;
+		status = BT_COMPONENT_CLASS_INIT_METHOD_STATUS_MEMORY_ERROR;
 		goto end;
 	}
 
-	status = bt_self_component_sink_add_input_port(self_comp_sink,
-		in_port_name, NULL, NULL);
-	if (status != BT_SELF_COMPONENT_STATUS_OK) {
+	add_port_status = bt_self_component_sink_add_input_port(
+		self_comp_sink, in_port_name, NULL, NULL);
+	switch (add_port_status) {
+	case BT_SELF_COMPONENT_ADD_PORT_STATUS_ERROR:
+		status = BT_COMPONENT_CLASS_INIT_METHOD_STATUS_ERROR;
 		goto end;
+	case BT_SELF_COMPONENT_ADD_PORT_STATUS_MEMORY_ERROR:
+		status = BT_COMPONENT_CLASS_INIT_METHOD_STATUS_MEMORY_ERROR;
+		goto end;
+	default:
+		break;
 	}
 
 	bt_self_component_set_data(self_comp, fs_sink);
 
 end:
-	if (status != BT_SELF_COMPONENT_STATUS_OK) {
+	if (status != BT_COMPONENT_CLASS_INIT_METHOD_STATUS_OK) {
 		destroy_fs_sink_comp(fs_sink);
 	}
 
@@ -269,11 +281,12 @@ end:
 }
 
 static inline
-bt_self_component_status handle_event_msg(struct fs_sink_comp *fs_sink,
-		const bt_message *msg)
+bt_component_class_sink_consume_method_status handle_event_msg(
+		struct fs_sink_comp *fs_sink, const bt_message *msg)
 {
 	int ret;
-	bt_self_component_status status = BT_SELF_COMPONENT_STATUS_OK;
+	bt_component_class_sink_consume_method_status status =
+		BT_COMPONENT_CLASS_SINK_CONSUME_METHOD_STATUS_OK;
 	const bt_event *ir_event = bt_message_event_borrow_event_const(msg);
 	const bt_stream *ir_stream = bt_event_borrow_stream_const(ir_event);
 	struct fs_sink_stream *stream;
@@ -282,14 +295,14 @@ bt_self_component_status handle_event_msg(struct fs_sink_comp *fs_sink,
 
 	stream = borrow_stream(fs_sink, ir_stream);
 	if (G_UNLIKELY(!stream)) {
-		status = BT_SELF_COMPONENT_STATUS_ERROR;
+		status = BT_COMPONENT_CLASS_SINK_CONSUME_METHOD_STATUS_ERROR;
 		goto end;
 	}
 
 	ret = try_translate_event_class_trace_ir_to_ctf_ir(fs_sink,
 		stream->sc, bt_event_borrow_class_const(ir_event), &ec);
 	if (ret) {
-		status = BT_SELF_COMPONENT_STATUS_ERROR;
+		status = BT_COMPONENT_CLASS_SINK_CONSUME_METHOD_STATUS_ERROR;
 		goto end;
 	}
 
@@ -302,7 +315,7 @@ bt_self_component_status handle_event_msg(struct fs_sink_comp *fs_sink,
 
 	ret = fs_sink_stream_write_event(stream, cs, ir_event, ec);
 	if (G_UNLIKELY(ret)) {
-		status = BT_SELF_COMPONENT_STATUS_ERROR;
+		status = BT_COMPONENT_CLASS_SINK_CONSUME_METHOD_STATUS_ERROR;
 		goto end;
 	}
 
@@ -311,11 +324,12 @@ end:
 }
 
 static inline
-bt_self_component_status handle_packet_beginning_msg(
+bt_component_class_sink_consume_method_status handle_packet_beginning_msg(
 		struct fs_sink_comp *fs_sink, const bt_message *msg)
 {
 	int ret;
-	bt_self_component_status status = BT_SELF_COMPONENT_STATUS_OK;
+	bt_component_class_sink_consume_method_status status =
+		BT_COMPONENT_CLASS_SINK_CONSUME_METHOD_STATUS_OK;
 	const bt_packet *ir_packet =
 		bt_message_packet_beginning_borrow_packet_const(msg);
 	const bt_stream *ir_stream = bt_packet_borrow_stream_const(ir_packet);
@@ -324,7 +338,7 @@ bt_self_component_status handle_packet_beginning_msg(
 
 	stream = borrow_stream(fs_sink, ir_stream);
 	if (G_UNLIKELY(!stream)) {
-		status = BT_SELF_COMPONENT_STATUS_ERROR;
+		status = BT_COMPONENT_CLASS_SINK_CONSUME_METHOD_STATUS_ERROR;
 		goto end;
 	}
 
@@ -388,7 +402,7 @@ bt_self_component_status handle_packet_beginning_msg(
 				bt_trace_get_name(
 					bt_stream_borrow_trace_const(ir_stream)),
 				stream->trace->path->str, stream->file_name->str);
-			status = BT_SELF_COMPONENT_STATUS_ERROR;
+			status = BT_COMPONENT_CLASS_SINK_CONSUME_METHOD_STATUS_ERROR;
 			goto end;
 		}
 	}
@@ -434,7 +448,7 @@ bt_self_component_status handle_packet_beginning_msg(
 				bt_trace_get_name(
 					bt_stream_borrow_trace_const(ir_stream)),
 				stream->trace->path->str, stream->file_name->str);
-			status = BT_SELF_COMPONENT_STATUS_ERROR;
+			status = BT_COMPONENT_CLASS_SINK_CONSUME_METHOD_STATUS_ERROR;
 			goto end;
 		}
 
@@ -453,7 +467,7 @@ bt_self_component_status handle_packet_beginning_msg(
 				bt_trace_get_name(
 					bt_stream_borrow_trace_const(ir_stream)),
 				stream->trace->path->str, stream->file_name->str);
-			status = BT_SELF_COMPONENT_STATUS_ERROR;
+			status = BT_COMPONENT_CLASS_SINK_CONSUME_METHOD_STATUS_ERROR;
 			goto end;
 		}
 
@@ -474,7 +488,7 @@ bt_self_component_status handle_packet_beginning_msg(
 				bt_trace_get_name(
 					bt_stream_borrow_trace_const(ir_stream)),
 				stream->trace->path->str, stream->file_name->str);
-			status = BT_SELF_COMPONENT_STATUS_ERROR;
+			status = BT_COMPONENT_CLASS_SINK_CONSUME_METHOD_STATUS_ERROR;
 			goto end;
 		}
 	}
@@ -489,7 +503,7 @@ bt_self_component_status handle_packet_beginning_msg(
 
 	ret = fs_sink_stream_open_packet(stream, cs, ir_packet);
 	if (ret) {
-		status = BT_SELF_COMPONENT_STATUS_ERROR;
+		status = BT_COMPONENT_CLASS_SINK_CONSUME_METHOD_STATUS_ERROR;
 		goto end;
 	}
 
@@ -498,11 +512,12 @@ end:
 }
 
 static inline
-bt_self_component_status handle_packet_end_msg(
+bt_component_class_sink_consume_method_status handle_packet_end_msg(
 		struct fs_sink_comp *fs_sink, const bt_message *msg)
 {
 	int ret;
-	bt_self_component_status status = BT_SELF_COMPONENT_STATUS_OK;
+	bt_component_class_sink_consume_method_status status =
+		BT_COMPONENT_CLASS_SINK_CONSUME_METHOD_STATUS_OK;
 	const bt_packet *ir_packet =
 		bt_message_packet_end_borrow_packet_const(msg);
 	const bt_stream *ir_stream = bt_packet_borrow_stream_const(ir_packet);
@@ -511,7 +526,7 @@ bt_self_component_status handle_packet_end_msg(
 
 	stream = borrow_stream(fs_sink, ir_stream);
 	if (G_UNLIKELY(!stream)) {
-		status = BT_SELF_COMPONENT_STATUS_ERROR;
+		status = BT_COMPONENT_CLASS_SINK_CONSUME_METHOD_STATUS_ERROR;
 		goto end;
 	}
 
@@ -563,14 +578,14 @@ bt_self_component_status handle_packet_end_msg(
 				bt_trace_get_name(
 					bt_stream_borrow_trace_const(ir_stream)),
 				stream->trace->path->str, stream->file_name->str);
-			status = BT_SELF_COMPONENT_STATUS_ERROR;
+			status = BT_COMPONENT_CLASS_SINK_CONSUME_METHOD_STATUS_ERROR;
 			goto end;
 		}
 	}
 
 	ret = fs_sink_stream_close_packet(stream, cs);
 	if (ret) {
-		status = BT_SELF_COMPONENT_STATUS_ERROR;
+		status = BT_COMPONENT_CLASS_SINK_CONSUME_METHOD_STATUS_ERROR;
 		goto end;
 	}
 
@@ -587,10 +602,11 @@ end:
 }
 
 static inline
-bt_self_component_status handle_stream_beginning_msg(
+bt_component_class_sink_consume_method_status handle_stream_beginning_msg(
 		struct fs_sink_comp *fs_sink, const bt_message *msg)
 {
-	bt_self_component_status status = BT_SELF_COMPONENT_STATUS_OK;
+	bt_component_class_sink_consume_method_status status =
+		BT_COMPONENT_CLASS_SINK_CONSUME_METHOD_STATUS_OK;
 	const bt_stream *ir_stream =
 		bt_message_stream_beginning_borrow_stream_const(msg);
 	const bt_stream_class *ir_sc =
@@ -615,7 +631,7 @@ bt_self_component_status handle_stream_beginning_msg(
 			"stream-name=\"%s\"",
 			ir_stream, bt_stream_get_id(ir_stream),
 			bt_stream_get_name(ir_stream));
-		status = BT_SELF_MESSAGE_ITERATOR_STATUS_ERROR;
+		status = BT_COMPONENT_CLASS_SINK_CONSUME_METHOD_STATUS_ERROR;
 		goto end;
 	}
 
@@ -635,13 +651,13 @@ bt_self_component_status handle_stream_beginning_msg(
 			"stream-name=\"%s\"",
 			ir_stream, bt_stream_get_id(ir_stream),
 			bt_stream_get_name(ir_stream));
-		status = BT_SELF_MESSAGE_ITERATOR_STATUS_ERROR;
+		status = BT_COMPONENT_CLASS_SINK_CONSUME_METHOD_STATUS_ERROR;
 		goto end;
 	}
 
 	stream = borrow_stream(fs_sink, ir_stream);
 	if (!stream) {
-		status = BT_SELF_COMPONENT_STATUS_ERROR;
+		status = BT_COMPONENT_CLASS_SINK_CONSUME_METHOD_STATUS_ERROR;
 		goto end;
 	}
 
@@ -657,17 +673,18 @@ end:
 }
 
 static inline
-bt_self_component_status handle_stream_end_msg(struct fs_sink_comp *fs_sink,
-		const bt_message *msg)
+bt_component_class_sink_consume_method_status handle_stream_end_msg(
+		struct fs_sink_comp *fs_sink, const bt_message *msg)
 {
-	bt_self_component_status status = BT_SELF_COMPONENT_STATUS_OK;
+	bt_component_class_sink_consume_method_status status =
+		BT_COMPONENT_CLASS_SINK_CONSUME_METHOD_STATUS_OK;
 	const bt_stream *ir_stream =
 		bt_message_stream_end_borrow_stream_const(msg);
 	struct fs_sink_stream *stream;
 
 	stream = borrow_stream(fs_sink, ir_stream);
 	if (!stream) {
-		status = BT_SELF_COMPONENT_STATUS_ERROR;
+		status = BT_COMPONENT_CLASS_SINK_CONSUME_METHOD_STATUS_ERROR;
 		goto end;
 	}
 
@@ -689,10 +706,11 @@ end:
 }
 
 static inline
-bt_self_component_status handle_discarded_events_msg(
+bt_component_class_sink_consume_method_status handle_discarded_events_msg(
 		struct fs_sink_comp *fs_sink, const bt_message *msg)
 {
-	bt_self_component_status status = BT_SELF_COMPONENT_STATUS_OK;
+	bt_component_class_sink_consume_method_status status =
+		BT_COMPONENT_CLASS_SINK_CONSUME_METHOD_STATUS_OK;
 	const bt_stream *ir_stream =
 		bt_message_discarded_events_borrow_stream_const(msg);
 	struct fs_sink_stream *stream;
@@ -702,7 +720,7 @@ bt_self_component_status handle_discarded_events_msg(
 
 	stream = borrow_stream(fs_sink, ir_stream);
 	if (!stream) {
-		status = BT_SELF_COMPONENT_STATUS_ERROR;
+		status = BT_COMPONENT_CLASS_SINK_CONSUME_METHOD_STATUS_ERROR;
 		goto end;
 	}
 
@@ -727,7 +745,7 @@ bt_self_component_status handle_discarded_events_msg(
 			bt_trace_get_name(
 				bt_stream_borrow_trace_const(ir_stream)),
 			stream->trace->path->str, stream->file_name->str);
-		status = BT_SELF_COMPONENT_STATUS_ERROR;
+		status = BT_COMPONENT_CLASS_SINK_CONSUME_METHOD_STATUS_ERROR;
 		goto end;
 	}
 
@@ -750,7 +768,7 @@ bt_self_component_status handle_discarded_events_msg(
 			bt_trace_get_name(
 				bt_stream_borrow_trace_const(ir_stream)),
 			stream->trace->path->str, stream->file_name->str);
-		status = BT_SELF_COMPONENT_STATUS_ERROR;
+		status = BT_COMPONENT_CLASS_SINK_CONSUME_METHOD_STATUS_ERROR;
 		goto end;
 	}
 
@@ -796,10 +814,11 @@ end:
 }
 
 static inline
-bt_self_component_status handle_discarded_packets_msg(
+bt_component_class_sink_consume_method_status handle_discarded_packets_msg(
 		struct fs_sink_comp *fs_sink, const bt_message *msg)
 {
-	bt_self_component_status status = BT_SELF_COMPONENT_STATUS_OK;
+	bt_component_class_sink_consume_method_status status =
+		BT_COMPONENT_CLASS_SINK_CONSUME_METHOD_STATUS_OK;
 	const bt_stream *ir_stream =
 		bt_message_discarded_packets_borrow_stream_const(msg);
 	struct fs_sink_stream *stream;
@@ -809,7 +828,7 @@ bt_self_component_status handle_discarded_packets_msg(
 
 	stream = borrow_stream(fs_sink, ir_stream);
 	if (!stream) {
-		status = BT_SELF_COMPONENT_STATUS_ERROR;
+		status = BT_COMPONENT_CLASS_SINK_CONSUME_METHOD_STATUS_ERROR;
 		goto end;
 	}
 
@@ -834,7 +853,7 @@ bt_self_component_status handle_discarded_packets_msg(
 			bt_trace_get_name(
 				bt_stream_borrow_trace_const(ir_stream)),
 			stream->trace->path->str, stream->file_name->str);
-		status = BT_SELF_COMPONENT_STATUS_ERROR;
+		status = BT_COMPONENT_CLASS_SINK_CONSUME_METHOD_STATUS_ERROR;
 		goto end;
 	}
 
@@ -896,11 +915,13 @@ void put_messages(bt_message_array_const msgs, uint64_t count)
 }
 
 BT_HIDDEN
-bt_self_component_status ctf_fs_sink_consume(bt_self_component_sink *self_comp)
+bt_component_class_sink_consume_method_status ctf_fs_sink_consume(
+		bt_self_component_sink *self_comp)
 {
-	bt_self_component_status status = BT_SELF_COMPONENT_STATUS_OK;
+	bt_component_class_sink_consume_method_status status =
+		BT_COMPONENT_CLASS_SINK_CONSUME_METHOD_STATUS_OK;
 	struct fs_sink_comp *fs_sink;
-	bt_message_iterator_status it_status;
+	bt_message_iterator_next_status next_status;
 	uint64_t msg_count = 0;
 	bt_message_array_const msgs;
 
@@ -910,15 +931,15 @@ bt_self_component_status ctf_fs_sink_consume(bt_self_component_sink *self_comp)
 	BT_ASSERT(fs_sink->upstream_iter);
 
 	/* Consume messages */
-	it_status = bt_self_component_port_input_message_iterator_next(
+	next_status = bt_self_component_port_input_message_iterator_next(
 		fs_sink->upstream_iter, &msgs, &msg_count);
-	if (it_status < 0) {
-		status = BT_SELF_COMPONENT_STATUS_ERROR;
+	if (next_status < 0) {
+		status = (int) next_status;
 		goto end;
 	}
 
-	switch (it_status) {
-	case BT_MESSAGE_ITERATOR_STATUS_OK:
+	switch (next_status) {
+	case BT_MESSAGE_ITERATOR_NEXT_STATUS_OK:
 	{
 		uint64_t i;
 
@@ -970,7 +991,7 @@ bt_self_component_status ctf_fs_sink_consume(bt_self_component_sink *self_comp)
 
 			BT_MESSAGE_PUT_REF_AND_RESET(msgs[i]);
 
-			if (status != BT_SELF_COMPONENT_STATUS_OK) {
+			if (status != BT_COMPONENT_CLASS_SINK_CONSUME_METHOD_STATUS_OK) {
 				BT_COMP_LOGE("Failed to handle message: "
 					"generated CTF traces could be incomplete: "
 					"output-dir-path=\"%s\"",
@@ -981,18 +1002,18 @@ bt_self_component_status ctf_fs_sink_consume(bt_self_component_sink *self_comp)
 
 		break;
 	}
-	case BT_MESSAGE_ITERATOR_STATUS_AGAIN:
-		status = BT_SELF_COMPONENT_STATUS_AGAIN;
+	case BT_MESSAGE_ITERATOR_NEXT_STATUS_AGAIN:
+		status = BT_COMPONENT_CLASS_SINK_CONSUME_METHOD_STATUS_AGAIN;
 		break;
-	case BT_MESSAGE_ITERATOR_STATUS_END:
+	case BT_MESSAGE_ITERATOR_NEXT_STATUS_END:
 		/* TODO: Finalize all traces (should already be done?) */
-		status = BT_SELF_COMPONENT_STATUS_END;
+		status = BT_COMPONENT_CLASS_SINK_CONSUME_METHOD_STATUS_END;
 		break;
-	case BT_MESSAGE_ITERATOR_STATUS_NOMEM:
-		status = BT_SELF_COMPONENT_STATUS_NOMEM;
+	case BT_MESSAGE_ITERATOR_NEXT_STATUS_MEMORY_ERROR:
+		status = BT_COMPONENT_CLASS_SINK_CONSUME_METHOD_STATUS_MEMORY_ERROR;
 		break;
-	case BT_MESSAGE_ITERATOR_STATUS_ERROR:
-		status = BT_SELF_COMPONENT_STATUS_NOMEM;
+	case BT_MESSAGE_ITERATOR_NEXT_STATUS_ERROR:
+		status = BT_COMPONENT_CLASS_SINK_CONSUME_METHOD_STATUS_MEMORY_ERROR;
 		break;
 	default:
 		break;
@@ -1001,7 +1022,7 @@ bt_self_component_status ctf_fs_sink_consume(bt_self_component_sink *self_comp)
 	goto end;
 
 error:
-	BT_ASSERT(status != BT_SELF_COMPONENT_STATUS_OK);
+	BT_ASSERT(status != BT_COMPONENT_CLASS_SINK_CONSUME_METHOD_STATUS_OK);
 	put_messages(msgs, msg_count);
 
 end:
@@ -1009,10 +1030,11 @@ end:
 }
 
 BT_HIDDEN
-bt_self_component_status ctf_fs_sink_graph_is_configured(
+bt_component_class_sink_graph_is_configured_method_status ctf_fs_sink_graph_is_configured(
 		bt_self_component_sink *self_comp)
 {
-	bt_self_component_status status = BT_SELF_COMPONENT_STATUS_OK;
+	bt_component_class_sink_graph_is_configured_method_status status =
+		BT_COMPONENT_CLASS_SINK_GRAPH_IS_CONFIGURED_METHOD_STATUS_OK;
 	struct fs_sink_comp *fs_sink = bt_self_component_get_data(
 			bt_self_component_sink_as_self_component(self_comp));
 
@@ -1021,7 +1043,7 @@ bt_self_component_status ctf_fs_sink_graph_is_configured(
 			bt_self_component_sink_borrow_input_port_by_name(
 				self_comp, in_port_name));
 	if (!fs_sink->upstream_iter) {
-		status = BT_SELF_COMPONENT_STATUS_NOMEM;
+		status = BT_COMPONENT_CLASS_SINK_GRAPH_IS_CONFIGURED_METHOD_STATUS_ERROR;
 		goto end;
 	}
 

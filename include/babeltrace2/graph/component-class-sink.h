@@ -26,14 +26,8 @@
 
 #include <stdint.h>
 
-/* For bt_self_component_status */
-#include <babeltrace2/graph/self-component.h>
-
-/* For bt_query_status */
+/* For bt_component_class_*_status */
 #include <babeltrace2/graph/component-class.h>
-
-/* For bt_component_class_status */
-#include <babeltrace2/graph/component-class-const.h>
 
 /*
  * For bt_component_class, bt_component_class_sink, bt_port_output,
@@ -46,18 +40,24 @@
 /* For bt_logging_level */
 #include <babeltrace2/logging.h>
 
+/* For __BT_FUNC_STATUS_* */
+#define __BT_FUNC_STATUS_ENABLE
+#include <babeltrace2/func-status.h>
+#undef __BT_FUNC_STATUS_ENABLE
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-typedef bt_self_component_status (*bt_component_class_sink_init_method)(
+typedef bt_component_class_init_method_status
+(*bt_component_class_sink_init_method)(
 		bt_self_component_sink *self_component,
 		const bt_value *params, void *init_method_data);
 
 typedef void (*bt_component_class_sink_finalize_method)(
 		bt_self_component_sink *self_component);
 
-typedef bt_query_status
+typedef bt_component_class_query_method_status
 (*bt_component_class_sink_query_method)(
 		bt_self_component_class_sink *comp_class,
 		const bt_query_executor *query_executor,
@@ -65,18 +65,33 @@ typedef bt_query_status
 		bt_logging_level logging_level,
 		const bt_value **result);
 
-typedef bt_self_component_status
+typedef bt_component_class_port_connected_method_status
 (*bt_component_class_sink_input_port_connected_method)(
 		bt_self_component_sink *self_component,
 		bt_self_component_port_input *self_port,
 		const bt_port_output *other_port);
 
-typedef bt_self_component_status
+typedef enum bt_component_class_sink_graph_is_configured_method_status {
+	BT_COMPONENT_CLASS_SINK_GRAPH_IS_CONFIGURED_METHOD_STATUS_OK		= __BT_FUNC_STATUS_OK,
+	BT_COMPONENT_CLASS_SINK_GRAPH_IS_CONFIGURED_METHOD_STATUS_ERROR		= __BT_FUNC_STATUS_ERROR,
+	BT_COMPONENT_CLASS_SINK_GRAPH_IS_CONFIGURED_METHOD_STATUS_MEMORY_ERROR	= __BT_FUNC_STATUS_MEMORY_ERROR,
+} bt_component_class_sink_graph_is_configured_method_status;
+
+typedef bt_component_class_sink_graph_is_configured_method_status
 (*bt_component_class_sink_graph_is_configured_method)(
 		bt_self_component_sink *self_component);
 
-typedef bt_self_component_status (*bt_component_class_sink_consume_method)(
-	bt_self_component_sink *self_component);
+typedef enum bt_component_class_sink_consume_method_status {
+	BT_COMPONENT_CLASS_SINK_CONSUME_METHOD_STATUS_OK		= __BT_FUNC_STATUS_OK,
+	BT_COMPONENT_CLASS_SINK_CONSUME_METHOD_STATUS_ERROR		= __BT_FUNC_STATUS_ERROR,
+	BT_COMPONENT_CLASS_SINK_CONSUME_METHOD_STATUS_MEMORY_ERROR	= __BT_FUNC_STATUS_MEMORY_ERROR,
+	BT_COMPONENT_CLASS_SINK_CONSUME_METHOD_STATUS_AGAIN		= __BT_FUNC_STATUS_AGAIN,
+	BT_COMPONENT_CLASS_SINK_CONSUME_METHOD_STATUS_END		= __BT_FUNC_STATUS_END,
+} bt_component_class_sink_consume_method_status;
+
+typedef bt_component_class_sink_consume_method_status
+(*bt_component_class_sink_consume_method)(
+		bt_self_component_sink *self_component);
 
 static inline
 bt_component_class *bt_component_class_sink_as_component_class(
@@ -90,30 +105,40 @@ bt_component_class_sink *bt_component_class_sink_create(
 		const char *name,
 		bt_component_class_sink_consume_method method);
 
-extern bt_component_class_status bt_component_class_sink_set_init_method(
+extern
+bt_component_class_set_method_status
+bt_component_class_sink_set_init_method(
 		bt_component_class_sink *comp_class,
 		bt_component_class_sink_init_method method);
 
-extern bt_component_class_status bt_component_class_sink_set_finalize_method(
+extern
+bt_component_class_set_method_status
+bt_component_class_sink_set_finalize_method(
 		bt_component_class_sink *comp_class,
 		bt_component_class_sink_finalize_method method);
 
-extern bt_component_class_status
+extern
+bt_component_class_set_method_status
 bt_component_class_sink_set_input_port_connected_method(
 		bt_component_class_sink *comp_class,
 		bt_component_class_sink_input_port_connected_method method);
 
-extern bt_component_class_status
+extern
+bt_component_class_set_method_status
 bt_component_class_sink_set_graph_is_configured_method(
 		bt_component_class_sink *comp_class,
 		bt_component_class_sink_graph_is_configured_method method);
 
-extern bt_component_class_status bt_component_class_sink_set_query_method(
+extern
+bt_component_class_set_method_status
+bt_component_class_sink_set_query_method(
 		bt_component_class_sink *comp_class,
 		bt_component_class_sink_query_method method);
 
 #ifdef __cplusplus
 }
 #endif
+
+#include <babeltrace2/undef-func-status.h>
 
 #endif /* BABELTRACE_GRAPH_COMPONENT_CLASS_SINK_H */

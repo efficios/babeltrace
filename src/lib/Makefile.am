@@ -6,12 +6,13 @@ libbabeltrace2_la_SOURCES = \
 	assert-post.h \
 	assert-pre.h \
 	babeltrace2.c \
+	func-status.h \
 	lib-logging.c \
-	logging.h \
 	logging.c \
-	object.h \
+	logging.h \
 	object-pool.c \
 	object-pool.h \
+	object.h \
 	property.h \
 	util.c \
 	value.c \

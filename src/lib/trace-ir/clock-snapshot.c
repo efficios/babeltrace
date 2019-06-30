@@ -34,6 +34,7 @@
 #include <inttypes.h>
 #include "lib/object.h"
 #include "common/assert.h"
+#include "lib/func-status.h"
 
 BT_HIDDEN
 void bt_clock_snapshot_destroy(struct bt_clock_snapshot *clock_snapshot)
@@ -146,11 +147,12 @@ uint64_t bt_clock_snapshot_get_value(
 	return clock_snapshot->value_cycles;
 }
 
-enum bt_clock_snapshot_status bt_clock_snapshot_get_ns_from_origin(
+enum bt_clock_snapshot_get_ns_from_origin_status
+bt_clock_snapshot_get_ns_from_origin(
 		const struct bt_clock_snapshot *clock_snapshot,
 		int64_t *ret_value_ns)
 {
-	int ret = BT_CLOCK_SNAPSHOT_STATUS_OK;
+	int ret = BT_FUNC_STATUS_OK;
 
 	BT_ASSERT_PRE_NON_NULL(clock_snapshot, "Clock snapshot");
 	BT_ASSERT_PRE_NON_NULL(ret_value_ns, "Value (ns) (output)");
@@ -161,7 +163,7 @@ enum bt_clock_snapshot_status bt_clock_snapshot_get_ns_from_origin(
 		BT_LIB_LOGD("Clock snapshot, once converted to nanoseconds from origin, "
 			"overflows the signed 64-bit integer range: "
 			"%![cs-]+k", clock_snapshot);
-		ret = BT_CLOCK_SNAPSHOT_STATUS_OVERFLOW;
+		ret = BT_FUNC_STATUS_OVERFLOW;
 		goto end;
 	}
 

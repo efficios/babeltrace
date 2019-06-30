@@ -39,32 +39,60 @@
 /* For bt_property_availability */
 #include <babeltrace2/property.h>
 
+/* For __BT_FUNC_STATUS_* */
+#define __BT_FUNC_STATUS_ENABLE
+#include <babeltrace2/func-status.h>
+#undef __BT_FUNC_STATUS_ENABLE
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-typedef enum bt_plugin_status {
-	BT_PLUGIN_STATUS_OK = 0,
-	BT_PLUGIN_STATUS_NOT_FOUND = 2,
-	BT_PLUGIN_STATUS_ERROR = -1,
-	BT_PLUGIN_STATUS_LOADING_ERROR = -2,
-	BT_PLUGIN_STATUS_NOMEM = -12,
-} bt_plugin_status;
+typedef enum bt_plugin_find_status {
+	BT_PLUGIN_FIND_STATUS_OK		= __BT_FUNC_STATUS_OK,
+	BT_PLUGIN_FIND_STATUS_NOT_FOUND		= __BT_FUNC_STATUS_NOT_FOUND,
+	BT_PLUGIN_FIND_STATUS_ERROR		= __BT_FUNC_STATUS_ERROR,
+	BT_PLUGIN_FIND_STATUS_LOADING_ERROR	= __BT_FUNC_STATUS_LOADING_ERROR,
+	BT_PLUGIN_FIND_STATUS_MEMORY_ERROR	= __BT_FUNC_STATUS_MEMORY_ERROR,
+} bt_plugin_find_status;
 
-extern bt_plugin_status bt_plugin_find(const char *plugin_name,
+extern bt_plugin_find_status bt_plugin_find(const char *plugin_name,
 		bt_bool fail_on_load_error, const bt_plugin **plugin);
 
-extern bt_plugin_status bt_plugin_find_all_from_file(
+typedef enum bt_plugin_find_all_from_file_status {
+	BT_PLUGIN_FIND_ALL_FROM_FILE_STATUS_OK			= __BT_FUNC_STATUS_OK,
+	BT_PLUGIN_FIND_ALL_FROM_FILE_STATUS_NOT_FOUND		= __BT_FUNC_STATUS_NOT_FOUND,
+	BT_PLUGIN_FIND_ALL_FROM_FILE_STATUS_ERROR		= __BT_FUNC_STATUS_ERROR,
+	BT_PLUGIN_FIND_ALL_FROM_FILE_STATUS_LOADING_ERROR	= __BT_FUNC_STATUS_LOADING_ERROR,
+	BT_PLUGIN_FIND_ALL_FROM_FILE_STATUS_MEMORY_ERROR	= __BT_FUNC_STATUS_MEMORY_ERROR,
+} bt_plugin_find_all_from_file_status;
+
+extern bt_plugin_find_all_from_file_status bt_plugin_find_all_from_file(
 		const char *path, bt_bool fail_on_load_error,
 		const bt_plugin_set **plugin_set);
 
-extern bt_plugin_status bt_plugin_find_all_from_dir(
+typedef enum bt_plugin_find_all_from_dir_status {
+	BT_PLUGIN_FIND_ALL_FROM_DIR_STATUS_OK			= __BT_FUNC_STATUS_OK,
+	BT_PLUGIN_FIND_ALL_FROM_DIR_STATUS_NOT_FOUND		= __BT_FUNC_STATUS_NOT_FOUND,
+	BT_PLUGIN_FIND_ALL_FROM_DIR_STATUS_ERROR		= __BT_FUNC_STATUS_ERROR,
+	BT_PLUGIN_FIND_ALL_FROM_DIR_STATUS_LOADING_ERROR	= __BT_FUNC_STATUS_LOADING_ERROR,
+	BT_PLUGIN_FIND_ALL_FROM_DIR_STATUS_MEMORY_ERROR		= __BT_FUNC_STATUS_MEMORY_ERROR,
+} bt_plugin_find_all_from_dir_status;
+
+extern bt_plugin_find_all_from_dir_status bt_plugin_find_all_from_dir(
 		const char *path, bt_bool recurse, bt_bool fail_on_load_error,
 		const bt_plugin_set **plugin_set);
 
-extern bt_plugin_status bt_plugin_find_all_from_static(
-		bt_bool fail_on_load_error,
-		const bt_plugin_set **plugin_set);
+typedef enum bt_plugin_find_all_from_static_status {
+	BT_PLUGIN_FIND_ALL_FROM_STATIC_STATUS_OK			= __BT_FUNC_STATUS_OK,
+	BT_PLUGIN_FIND_ALL_FROM_STATIC_STATUS_NOT_FOUND			= __BT_FUNC_STATUS_NOT_FOUND,
+	BT_PLUGIN_FIND_ALL_FROM_STATIC_STATUS_ERROR			= __BT_FUNC_STATUS_ERROR,
+	BT_PLUGIN_FIND_ALL_FROM_STATIC_STATUS_LOADING_ERROR		= __BT_FUNC_STATUS_LOADING_ERROR,
+	BT_PLUGIN_FIND_ALL_FROM_STATIC_STATUS_MEMORY_ERROR		= __BT_FUNC_STATUS_MEMORY_ERROR,
+} bt_plugin_find_all_from_static_status;
+
+extern bt_plugin_find_all_from_static_status bt_plugin_find_all_from_static(
+		bt_bool fail_on_load_error, const bt_plugin_set **plugin_set);
 
 extern const char *bt_plugin_get_name(const bt_plugin *plugin);
 
@@ -133,5 +161,7 @@ extern void bt_plugin_put_ref(const bt_plugin *plugin);
 #ifdef __cplusplus
 }
 #endif
+
+#include <babeltrace2/undef-func-status.h>
 
 #endif /* BABELTRACE_PLUGIN_PLUGIN_CONST_H */

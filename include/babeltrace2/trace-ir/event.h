@@ -30,9 +30,6 @@
 /* For bt_event, bt_event_class, bt_field, bt_packet */
 #include <babeltrace2/types.h>
 
-/* For bt_event_status */
-#include <babeltrace2/trace-ir/event-const.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif

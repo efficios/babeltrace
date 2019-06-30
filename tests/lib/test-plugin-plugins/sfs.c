@@ -18,26 +18,28 @@
 #include <babeltrace2/babeltrace.h>
 #include "common/assert.h"
 
-static bt_self_component_status sink_consume(
+static bt_component_class_sink_consume_method_status sink_consume(
 		bt_self_component_sink *self_comp)
 {
-	return BT_SELF_COMPONENT_STATUS_OK;
+	return BT_COMPONENT_CLASS_SINK_CONSUME_METHOD_STATUS_OK;
 }
 
-static bt_self_message_iterator_status src_dummy_iterator_init_method(
+static bt_component_class_message_iterator_init_method_status
+src_dummy_iterator_init_method(
 		bt_self_message_iterator *self_msg_iter,
 		bt_self_component_source *self_comp,
 		bt_self_component_port_output *self_port)
 {
-	return BT_SELF_MESSAGE_ITERATOR_STATUS_OK;
+	return BT_COMPONENT_CLASS_MESSAGE_ITERATOR_INIT_METHOD_STATUS_OK;
 }
 
-static bt_self_message_iterator_status flt_dummy_iterator_init_method(
+static bt_component_class_message_iterator_init_method_status
+flt_dummy_iterator_init_method(
 		bt_self_message_iterator *self_msg_iter,
 		bt_self_component_filter *self_comp,
 		bt_self_component_port_output *self_port)
 {
-	return BT_SELF_MESSAGE_ITERATOR_STATUS_OK;
+	return BT_COMPONENT_CLASS_MESSAGE_ITERATOR_INIT_METHOD_STATUS_OK;
 }
 
 static void dummy_iterator_finalize_method(
@@ -45,15 +47,16 @@ static void dummy_iterator_finalize_method(
 {
 }
 
-static bt_self_message_iterator_status dummy_iterator_next_method(
+static bt_component_class_message_iterator_next_method_status
+dummy_iterator_next_method(
 		bt_self_message_iterator *self_msg_iter,
 		bt_message_array_const msgs, uint64_t capacity,
 		uint64_t *count)
 {
-	return BT_SELF_MESSAGE_ITERATOR_STATUS_ERROR;
+	return BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_OK;
 }
 
-static bt_query_status flt_query_method(
+static bt_component_class_query_method_status flt_query_method(
 		bt_self_component_class_filter *component_class,
 		const bt_query_executor *query_exec,
 		const char *object, const bt_value *params,
@@ -73,7 +76,7 @@ static bt_query_status flt_query_method(
 	iret = bt_value_array_append_element(res, val);
 	BT_ASSERT(iret == 0);
 	bt_value_put_ref(val);
-	return BT_QUERY_STATUS_OK;
+	return BT_COMPONENT_CLASS_QUERY_METHOD_STATUS_OK;
 }
 
 BT_PLUGIN_MODULE();

@@ -26,17 +26,20 @@
 /* For bt_component, bt_self_component, __BT_UPCAST */
 #include <babeltrace2/types.h>
 
+/* For __BT_FUNC_STATUS_* */
+#define __BT_FUNC_STATUS_ENABLE
+#include <babeltrace2/func-status.h>
+#undef __BT_FUNC_STATUS_ENABLE
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-typedef enum bt_self_component_status {
-	BT_SELF_COMPONENT_STATUS_OK = 0,
-	BT_SELF_COMPONENT_STATUS_END = 1,
-	BT_SELF_COMPONENT_STATUS_AGAIN = 11,
-	BT_SELF_COMPONENT_STATUS_ERROR = -1,
-	BT_SELF_COMPONENT_STATUS_NOMEM = -12,
-} bt_self_component_status;
+typedef enum bt_self_component_add_port_status {
+	BT_SELF_COMPONENT_ADD_PORT_STATUS_OK		= __BT_FUNC_STATUS_OK,
+	BT_SELF_COMPONENT_ADD_PORT_STATUS_ERROR		= __BT_FUNC_STATUS_ERROR,
+	BT_SELF_COMPONENT_ADD_PORT_STATUS_MEMORY_ERROR	= __BT_FUNC_STATUS_MEMORY_ERROR,
+} bt_self_component_add_port_status;
 
 static inline
 const bt_component *bt_self_component_as_component(
@@ -54,5 +57,7 @@ extern void bt_self_component_set_data(
 #ifdef __cplusplus
 }
 #endif
+
+#include <babeltrace2/undef-func-status.h>
 
 #endif /* BABELTRACE_GRAPH_SELF_COMPONENT_H */

@@ -1139,12 +1139,12 @@ void put_messages(bt_message_array_const msgs, uint64_t count)
 }
 
 BT_HIDDEN
-bt_self_message_iterator_status lttng_live_msg_iter_next(
+bt_component_class_message_iterator_next_method_status lttng_live_msg_iter_next(
 		bt_self_message_iterator *self_msg_it,
 		bt_message_array_const msgs, uint64_t capacity,
 		uint64_t *count)
 {
-	bt_self_message_iterator_status status;
+	bt_component_class_message_iterator_next_method_status status;
 	struct lttng_live_msg_iter *lttng_live_msg_iter =
 		bt_self_message_iterator_get_data(self_msg_it);
 	struct lttng_live_component *lttng_live =
@@ -1170,7 +1170,7 @@ bt_self_message_iterator_status lttng_live_msg_iter_next(
 	if (lttng_live_msg_iter->sessions->len == 0) {
 		if (lttng_live->params.sess_not_found_act !=
 				SESSION_NOT_FOUND_ACTION_CONTINUE) {
-			status = BT_SELF_MESSAGE_ITERATOR_STATUS_END;
+			status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_END;
 			goto no_session;
 		} else {
 			/*
@@ -1179,7 +1179,7 @@ bt_self_message_iterator_status lttng_live_msg_iter_next(
 			 * requested session name.
 			 */
 			if (lttng_live_create_viewer_session(lttng_live_msg_iter)) {
-				status = BT_SELF_MESSAGE_ITERATOR_STATUS_ERROR;
+				status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_ERROR;
 				goto no_session;
 			}
 		}
@@ -1303,21 +1303,21 @@ end:
 			 * now. On the next call we return again if there are
 			 * still no new message to send.
 			 */
-			status = BT_SELF_MESSAGE_ITERATOR_STATUS_OK;
+			status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_OK;
 		} else {
-			status = BT_SELF_MESSAGE_ITERATOR_STATUS_AGAIN;
+			status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_AGAIN;
 		}
 		break;
 	case LTTNG_LIVE_ITERATOR_STATUS_END:
-		status = BT_SELF_MESSAGE_ITERATOR_STATUS_END;
+		status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_END;
 		break;
 	case LTTNG_LIVE_ITERATOR_STATUS_NOMEM:
-		status = BT_SELF_MESSAGE_ITERATOR_STATUS_NOMEM;
+		status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_MEMORY_ERROR;
 		break;
 	case LTTNG_LIVE_ITERATOR_STATUS_ERROR:
 	case LTTNG_LIVE_ITERATOR_STATUS_INVAL:
 	case LTTNG_LIVE_ITERATOR_STATUS_UNSUPPORTED:
-		status = BT_SELF_MESSAGE_ITERATOR_STATUS_ERROR;
+		status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_ERROR;
 		/* Put all existing messages on error. */
 		put_messages(msgs, *count);
 		break;
@@ -1330,15 +1330,15 @@ no_session:
 }
 
 BT_HIDDEN
-bt_self_message_iterator_status lttng_live_msg_iter_init(
+bt_component_class_message_iterator_init_method_status lttng_live_msg_iter_init(
 		bt_self_message_iterator *self_msg_it,
 		bt_self_component_source *self_comp_src,
 		bt_self_component_port_output *self_port)
 {
-	bt_self_message_iterator_status ret =
-			BT_SELF_MESSAGE_ITERATOR_STATUS_OK;
+	bt_component_class_message_iterator_init_method_status ret =
+		BT_COMPONENT_CLASS_MESSAGE_ITERATOR_INIT_METHOD_STATUS_OK;
 	bt_self_component *self_comp =
-			bt_self_component_source_as_self_component(self_comp_src);
+		bt_self_component_source_as_self_component(self_comp_src);
 	struct lttng_live_component *lttng_live;
 	struct lttng_live_msg_iter *lttng_live_msg_iter;
 	bt_logging_level log_level;
@@ -1355,7 +1355,7 @@ bt_self_message_iterator_status lttng_live_msg_iter_init(
 
 	lttng_live_msg_iter = g_new0(struct lttng_live_msg_iter, 1);
 	if (!lttng_live_msg_iter) {
-		ret = BT_SELF_MESSAGE_ITERATOR_STATUS_ERROR;
+		ret = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_INIT_METHOD_STATUS_ERROR;
 		goto end;
 	}
 
@@ -1414,17 +1414,19 @@ bt_self_message_iterator_status lttng_live_msg_iter_init(
 
 	goto end;
 error:
-	ret = BT_SELF_MESSAGE_ITERATOR_STATUS_ERROR;
+	ret = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_INIT_METHOD_STATUS_ERROR;
 	lttng_live_msg_iter_destroy(lttng_live_msg_iter);
 end:
 	return ret;
 }
 
 static
-bt_query_status lttng_live_query_list_sessions(const bt_value *params,
-		const bt_value **result, bt_logging_level log_level)
+bt_component_class_query_method_status lttng_live_query_list_sessions(
+		const bt_value *params, const bt_value **result,
+		bt_logging_level log_level)
 {
-	bt_query_status status = BT_QUERY_STATUS_OK;
+	bt_component_class_query_method_status status =
+		BT_COMPONENT_CLASS_QUERY_METHOD_STATUS_OK;
 	const bt_value *url_value = NULL;
 	const char *url;
 	struct live_viewer_connection *viewer_connection = NULL;
@@ -1433,14 +1435,14 @@ bt_query_status lttng_live_query_list_sessions(const bt_value *params,
 	url_value = bt_value_map_borrow_entry_value_const(params, URL_PARAM);
 	if (!url_value) {
 		BT_COMP_LOGW("Mandatory `%s` parameter missing", URL_PARAM);
-		status = BT_QUERY_STATUS_INVALID_PARAMS;
+		status = BT_COMPONENT_CLASS_QUERY_METHOD_STATUS_INVALID_PARAMS;
 		goto error;
 	}
 
 	if (!bt_value_is_string(url_value)) {
 		BT_COMP_LOGW("`%s` parameter is required to be a string value",
 			URL_PARAM);
-		status = BT_QUERY_STATUS_INVALID_PARAMS;
+		status = BT_COMPONENT_CLASS_QUERY_METHOD_STATUS_INVALID_PARAMS;
 		goto error;
 	}
 
@@ -1453,7 +1455,7 @@ bt_query_status lttng_live_query_list_sessions(const bt_value *params,
 
 	status = live_viewer_connection_list_sessions(viewer_connection,
 			result);
-	if (status != BT_QUERY_STATUS_OK) {
+	if (status != BT_COMPONENT_CLASS_QUERY_METHOD_STATUS_OK) {
 		goto error;
 	}
 
@@ -1463,7 +1465,7 @@ error:
 	BT_VALUE_PUT_REF_AND_RESET(*result);
 
 	if (status >= 0) {
-		status = BT_QUERY_STATUS_ERROR;
+		status = BT_COMPONENT_CLASS_QUERY_METHOD_STATUS_ERROR;
 	}
 
 end:
@@ -1474,12 +1476,14 @@ end:
 }
 
 BT_HIDDEN
-bt_query_status lttng_live_query(bt_self_component_class_source *comp_class,
+bt_component_class_query_method_status lttng_live_query(
+		bt_self_component_class_source *comp_class,
 		const bt_query_executor *query_exec,
 		const char *object, const bt_value *params,
 		bt_logging_level log_level, const bt_value **result)
 {
-	bt_query_status status = BT_QUERY_STATUS_OK;
+	bt_component_class_query_method_status status =
+		BT_COMPONENT_CLASS_QUERY_METHOD_STATUS_OK;
 	bt_self_component *self_comp = NULL;
 
 	if (strcmp(object, "sessions") == 0) {
@@ -1487,7 +1491,7 @@ bt_query_status lttng_live_query(bt_self_component_class_source *comp_class,
 			log_level);
 	} else {
 		BT_COMP_LOGW("Unknown query object `%s`", object);
-		status = BT_QUERY_STATUS_INVALID_OBJECT;
+		status = BT_COMPONENT_CLASS_QUERY_METHOD_STATUS_INVALID_OBJECT;
 		goto end;
 	}
 
@@ -1599,32 +1603,41 @@ end:
 }
 
 BT_HIDDEN
-bt_self_component_status lttng_live_component_init(
+bt_component_class_init_method_status lttng_live_component_init(
 		bt_self_component_source *self_comp_src,
 		const bt_value *params, __attribute__((unused)) void *init_method_data)
 {
 	struct lttng_live_component *lttng_live;
-	bt_self_component_status ret = BT_SELF_COMPONENT_STATUS_OK;
+	bt_component_class_init_method_status ret =
+		BT_COMPONENT_CLASS_INIT_METHOD_STATUS_OK;
 	bt_self_component *self_comp =
 		bt_self_component_source_as_self_component(self_comp_src);
 	bt_logging_level log_level = bt_component_get_logging_level(
 		bt_self_component_as_component(self_comp));
+	bt_self_component_add_port_status add_port_status;
 
 	lttng_live = lttng_live_component_create(params, log_level, self_comp);
 	if (!lttng_live) {
-		ret = BT_SELF_COMPONENT_STATUS_NOMEM;
+		ret = BT_COMPONENT_CLASS_INIT_METHOD_STATUS_MEMORY_ERROR;
 		goto error;
 	}
 
 	if (lttng_live_graph_is_canceled(lttng_live)) {
-		ret = BT_SELF_COMPONENT_STATUS_END;
+		ret = BT_COMPONENT_CLASS_INIT_METHOD_STATUS_ERROR;
 		goto error;
 	}
 
-	ret = bt_self_component_source_add_output_port(self_comp_src, "out",
-		NULL, NULL);
-	if (ret != BT_SELF_COMPONENT_STATUS_OK) {
+	add_port_status = bt_self_component_source_add_output_port(
+		self_comp_src, "out", NULL, NULL);
+	switch (add_port_status) {
+	case BT_SELF_COMPONENT_ADD_PORT_STATUS_ERROR:
+		ret = BT_COMPONENT_CLASS_INIT_METHOD_STATUS_ERROR;
 		goto error;
+	case BT_SELF_COMPONENT_ADD_PORT_STATUS_MEMORY_ERROR:
+		ret = BT_COMPONENT_CLASS_INIT_METHOD_STATUS_MEMORY_ERROR;
+		goto error;
+	default:
+		break;
 	}
 
 	bt_self_component_set_data(self_comp, lttng_live);

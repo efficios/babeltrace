@@ -38,19 +38,11 @@ class _GenericMessageIterator(object._SharedObject, _MessageIterator):
             self._at = 0
             super().__init__(ptr)
 
-    def _handle_status(self, status, gen_error_msg):
-        if status == native_bt.MESSAGE_ITERATOR_STATUS_AGAIN:
-            raise bt2.TryAgain
-        elif status == native_bt.MESSAGE_ITERATOR_STATUS_END:
-            raise bt2.Stop
-        elif status < 0:
-            raise bt2.Error(gen_error_msg)
-
     def __next__(self):
         if len(self._current_msgs) == self._at:
             status, msgs = self._get_msg_range(self._ptr)
-            self._handle_status(status,
-                                'unexpected error: cannot advance the message iterator')
+            utils._handle_func_status(status,
+                                      'unexpected error: cannot advance the message iterator')
             self._current_msgs = msgs
             self._at = 0
 
@@ -70,12 +62,13 @@ class _GenericMessageIterator(object._SharedObject, _MessageIterator):
         self._at = 0
 
         status = self._seek_beginning(self._ptr)
-        self._handle_status(status, 'cannot seek message iterator beginning')
+        utils._handle_func_status(status,
+                                  'cannot seek message iterator beginning')
 
 
 # This is created when a component wants to iterate on one of its input ports.
 class _UserComponentInputPortMessageIterator(_GenericMessageIterator):
-    _get_msg_range = staticmethod(native_bt.py3_self_component_port_input_get_msg_range)
+    _get_msg_range = staticmethod(native_bt.bt2_self_component_port_input_get_msg_range)
     _get_ref = staticmethod(native_bt.self_component_port_input_message_iterator_get_ref)
     _put_ref = staticmethod(native_bt.self_component_port_input_message_iterator_put_ref)
     _can_seek_beginning = staticmethod(native_bt.self_component_port_input_message_iterator_can_seek_beginning)
@@ -85,7 +78,7 @@ class _UserComponentInputPortMessageIterator(_GenericMessageIterator):
 # This is created when the user wants to iterate on a component's output port,
 # from outside the graph.
 class _OutputPortMessageIterator(_GenericMessageIterator):
-    _get_msg_range = staticmethod(native_bt.py3_port_output_get_msg_range)
+    _get_msg_range = staticmethod(native_bt.bt2_port_output_get_msg_range)
     _get_ref = staticmethod(native_bt.port_output_message_iterator_get_ref)
     _put_ref = staticmethod(native_bt.port_output_message_iterator_put_ref)
     _can_seek_beginning = staticmethod(native_bt.port_output_message_iterator_can_seek_beginning)
@@ -125,7 +118,7 @@ class _UserMessageIterator(_MessageIterator):
 
     @property
     def _component(self):
-        return native_bt.py3_get_user_component_from_user_msg_iter(self._ptr)
+        return native_bt.bt2_get_user_component_from_user_msg_iter(self._ptr)
 
     @property
     def addr(self):

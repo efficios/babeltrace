@@ -22,22 +22,4 @@
  * THE SOFTWARE.
  */
 
-%{
-#include <babeltrace2/logging.h>
-%}
-
-/* Log levels */
-enum bt_logging_level {
-	BT_LOGGING_LEVEL_TRACE = 1,
-	BT_LOGGING_LEVEL_DEBUG = 2,
-	BT_LOGGING_LEVEL_INFO = 3,
-	BT_LOGGING_LEVEL_WARN = 4,
-	BT_LOGGING_LEVEL_ERROR = 5,
-	BT_LOGGING_LEVEL_FATAL = 6,
-	BT_LOGGING_LEVEL_NONE = 0xff,
-};
-
-/* Logging functions */
-enum bt_logging_level bt_logging_get_minimal_level(void);
-enum bt_logging_level bt_logging_get_global_level(void);
-void bt_logging_set_global_level(enum bt_logging_level log_level);
+%include <babeltrace2/logging.h>

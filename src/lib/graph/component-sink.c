@@ -34,6 +34,7 @@
 
 #include "component-sink.h"
 #include "component.h"
+#include "lib/func-status.h"
 
 BT_HIDDEN
 void bt_component_sink_destroy(struct bt_component *component)
@@ -113,18 +114,18 @@ bt_self_component_sink_borrow_input_port_by_index(
 		(void *) component, index);
 }
 
-enum bt_self_component_status bt_self_component_sink_add_input_port(
+enum bt_self_component_add_port_status bt_self_component_sink_add_input_port(
 		struct bt_self_component_sink *self_comp,
 		const char *name, void *user_data,
 		struct bt_self_component_port_input **self_port)
 {
-	enum bt_self_component_status status;
+	enum bt_self_component_add_port_status status;
 	struct bt_port *port = NULL;
 	struct bt_component *comp = (void *) self_comp;
 
 	/* bt_component_add_input_port() logs details/errors */
 	status = bt_component_add_input_port(comp, name, user_data, &port);
-	if (status != BT_SELF_COMPONENT_STATUS_OK) {
+	if (status != BT_FUNC_STATUS_OK) {
 		goto end;
 	}
 

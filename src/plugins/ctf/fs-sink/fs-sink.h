@@ -66,17 +66,17 @@ struct fs_sink_comp {
 };
 
 BT_HIDDEN
-bt_self_component_status ctf_fs_sink_init(
+bt_component_class_init_method_status ctf_fs_sink_init(
 		bt_self_component_sink *component,
 		const bt_value *params,
 		void *init_method_data);
 
 BT_HIDDEN
-bt_self_component_status ctf_fs_sink_consume(
+bt_component_class_sink_consume_method_status ctf_fs_sink_consume(
 		bt_self_component_sink *component);
 
 BT_HIDDEN
-bt_self_component_status ctf_fs_sink_graph_is_configured(
+bt_component_class_sink_graph_is_configured_method_status ctf_fs_sink_graph_is_configured(
 		bt_self_component_sink *component);
 
 BT_HIDDEN

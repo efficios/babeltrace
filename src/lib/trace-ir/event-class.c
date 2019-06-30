@@ -47,6 +47,7 @@
 #include "stream-class.h"
 #include "trace.h"
 #include "utils.h"
+#include "lib/func-status.h"
 
 #define BT_ASSERT_PRE_EVENT_CLASS_HOT(_ec) \
 	BT_ASSERT_PRE_HOT(((const struct bt_event_class *) (_ec)),	\
@@ -193,7 +194,7 @@ const char *bt_event_class_get_name(const struct bt_event_class *event_class)
 	return event_class->name.value;
 }
 
-enum bt_event_class_status bt_event_class_set_name(
+enum bt_event_class_set_name_status bt_event_class_set_name(
 		struct bt_event_class *event_class, const char *name)
 {
 	BT_ASSERT_PRE_NON_NULL(event_class, "Event class");
@@ -202,7 +203,7 @@ enum bt_event_class_status bt_event_class_set_name(
 	g_string_assign(event_class->name.str, name);
 	event_class->name.value = event_class->name.str->str;
 	BT_LIB_LOGD("Set event class's name: %!+E", event_class);
-	return BT_EVENT_CLASS_STATUS_OK;
+	return BT_FUNC_STATUS_OK;
 }
 
 uint64_t bt_event_class_get_id(const struct bt_event_class *event_class)
@@ -239,7 +240,7 @@ const char *bt_event_class_get_emf_uri(const struct bt_event_class *event_class)
 	return event_class->emf_uri.value;
 }
 
-enum bt_event_class_status bt_event_class_set_emf_uri(
+enum bt_event_class_set_emf_uri_status bt_event_class_set_emf_uri(
 		struct bt_event_class *event_class,
 		const char *emf_uri)
 {
@@ -249,7 +250,7 @@ enum bt_event_class_status bt_event_class_set_emf_uri(
 	g_string_assign(event_class->emf_uri.str, emf_uri);
 	event_class->emf_uri.value = event_class->emf_uri.str->str;
 	BT_LIB_LOGD("Set event class's EMF URI: %!+E", event_class);
-	return BT_EVENT_CLASS_STATUS_OK;
+	return BT_FUNC_STATUS_OK;
 }
 
 struct bt_stream_class *bt_event_class_borrow_stream_class(
@@ -282,7 +283,8 @@ bt_event_class_borrow_specific_context_field_class(
 	return event_class->specific_context_fc;
 }
 
-enum bt_event_class_status bt_event_class_set_specific_context_field_class(
+enum bt_event_class_set_field_class_status
+bt_event_class_set_specific_context_field_class(
 		struct bt_event_class *event_class,
 		struct bt_field_class *field_class)
 {
@@ -315,7 +317,7 @@ enum bt_event_class_status bt_event_class_set_specific_context_field_class(
 		 * bt_resolve_field_paths() can fail: anything else
 		 * would be because a precondition is not satisfied.
 		 */
-		ret = BT_EVENT_CLASS_STATUS_NOMEM;
+		ret = BT_FUNC_STATUS_MEMORY_ERROR;
 		goto end;
 	}
 
@@ -345,7 +347,8 @@ struct bt_field_class *bt_event_class_borrow_payload_field_class(
 	return event_class->payload_fc;
 }
 
-enum bt_event_class_status bt_event_class_set_payload_field_class(
+enum bt_event_class_set_field_class_status
+bt_event_class_set_payload_field_class(
 		struct bt_event_class *event_class,
 		struct bt_field_class *field_class)
 {
@@ -379,7 +382,7 @@ enum bt_event_class_status bt_event_class_set_payload_field_class(
 		 * bt_resolve_field_paths() can fail: anything else
 		 * would be because a precondition is not satisfied.
 		 */
-		ret = BT_EVENT_CLASS_STATUS_NOMEM;
+		ret = BT_FUNC_STATUS_MEMORY_ERROR;
 		goto end;
 	}
 

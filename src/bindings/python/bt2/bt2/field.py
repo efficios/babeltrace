@@ -279,8 +279,9 @@ class _EnumerationField(_IntegerField):
 
     @property
     def labels(self):
-        ret, labels = self._get_mapping_labels(self._ptr)
-        utils._handle_ret(ret, "cannot get label for enumeration field")
+        status, labels = self._get_mapping_labels(self._ptr)
+        utils._handle_func_status(status,
+                                  "cannot get label for enumeration field")
 
         assert labels is not None
         return labels
@@ -345,8 +346,9 @@ class _StringField(_Field):
 
     def __iadd__(self, value):
         value = self._value_to_str(value)
-        ret = native_bt.field_string_append(self._ptr, value)
-        utils._handle_ret(ret, "cannot append to string field object's value")
+        status = native_bt.field_string_append(self._ptr, value)
+        utils._handle_func_status(status,
+                                  "cannot append to string field object's value")
         return self
 
 
@@ -552,8 +554,8 @@ class _DynamicArrayField(_ArrayField, _Field):
 
     def _set_length(self, length):
         utils._check_uint64(length)
-        ret = native_bt.field_dynamic_array_set_length(self._ptr, length)
-        utils._handle_ret(ret, "cannot set dynamic array length")
+        status = native_bt.field_dynamic_array_set_length(self._ptr, length)
+        utils._handle_func_status(status, "cannot set dynamic array length")
 
     length = property(fget=_ArrayField._get_length, fset=_set_length)
 

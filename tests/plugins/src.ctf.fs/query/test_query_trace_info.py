@@ -96,28 +96,28 @@ class QueryTraceInfoClockOffsetTestCase(unittest.TestCase):
         self._check(trace, -2000000002)
 
     def test_clock_class_offset_s_wrong_type(self):
-        with self.assertRaises(bt2.InvalidQueryParams):
+        with self.assertRaises(bt2.InvalidParams):
             self._executor.query(self._fs, 'trace-info', {
                 'paths': self._paths,
                 'clock-class-offset-s': "2",
             })
 
     def test_clock_class_offset_s_wrong_type_none(self):
-        with self.assertRaises(bt2.InvalidQueryParams):
+        with self.assertRaises(bt2.InvalidParams):
             self._executor.query(self._fs, 'trace-info', {
                 'paths': self._paths,
                 'clock-class-offset-s': None,
             })
 
     def test_clock_class_offset_ns_wrong_type(self):
-        with self.assertRaises(bt2.InvalidQueryParams):
+        with self.assertRaises(bt2.InvalidParams):
             self._executor.query(self._fs, 'trace-info', {
                 'paths': self._paths,
                 'clock-class-offset-ns': "2",
             })
 
     def test_clock_class_offset_ns_wrong_type_none(self):
-        with self.assertRaises(bt2.InvalidQueryParams):
+        with self.assertRaises(bt2.InvalidParams):
             self._executor.query(self._fs, 'trace-info', {
                 'paths': self._paths,
                 'clock-class-offset-ns': None,

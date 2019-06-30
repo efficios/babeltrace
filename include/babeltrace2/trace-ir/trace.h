@@ -27,13 +27,15 @@
  * http://www.efficios.com/ctf
  */
 
+#include <stdint.h>
+
 /* For bt_bool, bt_trace, bt_trace_class, bt_stream */
 #include <babeltrace2/types.h>
 
-/* For bt_trace_status */
-#include <babeltrace2/trace-ir/trace-const.h>
-
-#include <stdint.h>
+/* For __BT_FUNC_STATUS_* */
+#define __BT_FUNC_STATUS_ENABLE
+#include <babeltrace2/func-status.h>
+#undef __BT_FUNC_STATUS_ENABLE
 
 #ifdef __cplusplus
 extern "C" {
@@ -43,7 +45,12 @@ extern bt_trace_class *bt_trace_borrow_class(bt_trace *trace);
 
 extern bt_trace *bt_trace_create(bt_trace_class *trace_class);
 
-extern bt_trace_status bt_trace_set_name(bt_trace *trace,
+typedef enum bt_trace_set_name_status {
+	BT_TRACE_SET_NAME_STATUS_MEMORY_ERROR	= __BT_FUNC_STATUS_MEMORY_ERROR,
+	BT_TRACE_SET_NAME_STATUS_OK		= __BT_FUNC_STATUS_OK,
+} bt_trace_set_name_status;
+
+extern bt_trace_set_name_status bt_trace_set_name(bt_trace *trace,
 		const char *name);
 
 extern bt_stream *bt_trace_borrow_stream_by_index(bt_trace *trace,
@@ -55,5 +62,7 @@ extern bt_stream *bt_trace_borrow_stream_by_id(bt_trace *trace,
 #ifdef __cplusplus
 }
 #endif
+
+#include <babeltrace2/undef-func-status.h>
 
 #endif /* BABELTRACE_TRACE_IR_TRACE_H */

@@ -164,10 +164,10 @@ void fini_python(void) {
 }
 
 static
-enum bt_plugin_status bt_plugin_from_python_plugin_info(PyObject *plugin_info,
+int bt_plugin_from_python_plugin_info(PyObject *plugin_info,
 		bool fail_on_load_error, bt_plugin **plugin_out)
 {
-	enum bt_plugin_status status = BT_PLUGIN_STATUS_OK;
+	int status = __BT_FUNC_STATUS_OK;
 	PyObject *py_name = NULL;
 	PyObject *py_author = NULL;
 	PyObject *py_description = NULL;
@@ -191,8 +191,8 @@ enum bt_plugin_status bt_plugin_from_python_plugin_info(PyObject *plugin_info,
 			BT_LOG_WARN : BT_LOG_INFO, BT_LOG_TAG,
 			"Cannot find `name` attribute in Python plugin info object: "
 			"py-plugin-info-addr=%p", plugin_info);
-		status = fail_on_load_error ? BT_PLUGIN_STATUS_LOADING_ERROR :
-			BT_PLUGIN_STATUS_NOT_FOUND;
+		status = fail_on_load_error ? __BT_FUNC_STATUS_LOADING_ERROR :
+			__BT_FUNC_STATUS_NOT_FOUND;
 		goto error;
 	}
 
@@ -202,8 +202,8 @@ enum bt_plugin_status bt_plugin_from_python_plugin_info(PyObject *plugin_info,
 			BT_LOG_WARN : BT_LOG_INFO, BT_LOG_TAG,
 			"Cannot find `author` attribute in Python plugin info object: "
 			"py-plugin-info-addr=%p", plugin_info);
-		status = fail_on_load_error ? BT_PLUGIN_STATUS_LOADING_ERROR :
-			BT_PLUGIN_STATUS_NOT_FOUND;
+		status = fail_on_load_error ? __BT_FUNC_STATUS_LOADING_ERROR :
+			__BT_FUNC_STATUS_NOT_FOUND;
 		goto error;
 	}
 
@@ -213,8 +213,8 @@ enum bt_plugin_status bt_plugin_from_python_plugin_info(PyObject *plugin_info,
 			BT_LOG_WARN : BT_LOG_INFO, BT_LOG_TAG,
 			"Cannot find `desciption` attribute in Python plugin info object: "
 			"py-plugin-info-addr=%p", plugin_info);
-		status = fail_on_load_error ? BT_PLUGIN_STATUS_LOADING_ERROR :
-			BT_PLUGIN_STATUS_NOT_FOUND;
+		status = fail_on_load_error ? __BT_FUNC_STATUS_LOADING_ERROR :
+			__BT_FUNC_STATUS_NOT_FOUND;
 		goto error;
 	}
 
@@ -224,8 +224,8 @@ enum bt_plugin_status bt_plugin_from_python_plugin_info(PyObject *plugin_info,
 			BT_LOG_WARN : BT_LOG_INFO, BT_LOG_TAG,
 			"Cannot find `license` attribute in Python plugin info object: "
 			"py-plugin-info-addr=%p", plugin_info);
-		status = fail_on_load_error ? BT_PLUGIN_STATUS_LOADING_ERROR :
-			BT_PLUGIN_STATUS_NOT_FOUND;
+		status = fail_on_load_error ? __BT_FUNC_STATUS_LOADING_ERROR :
+			__BT_FUNC_STATUS_NOT_FOUND;
 		goto error;
 	}
 
@@ -235,8 +235,8 @@ enum bt_plugin_status bt_plugin_from_python_plugin_info(PyObject *plugin_info,
 			BT_LOG_WARN : BT_LOG_INFO, BT_LOG_TAG,
 			"Cannot find `version` attribute in Python plugin info object: "
 			"py-plugin-info-addr=%p", plugin_info);
-		status = fail_on_load_error ? BT_PLUGIN_STATUS_LOADING_ERROR :
-			BT_PLUGIN_STATUS_NOT_FOUND;
+		status = fail_on_load_error ? __BT_FUNC_STATUS_LOADING_ERROR :
+			__BT_FUNC_STATUS_NOT_FOUND;
 		goto error;
 	}
 
@@ -247,8 +247,8 @@ enum bt_plugin_status bt_plugin_from_python_plugin_info(PyObject *plugin_info,
 			BT_LOG_WARN : BT_LOG_INFO, BT_LOG_TAG,
 			"Cannot find `comp_class_addrs` attribute in Python plugin info object: "
 			"py-plugin-info-addr=%p", plugin_info);
-		status = fail_on_load_error ? BT_PLUGIN_STATUS_LOADING_ERROR :
-			BT_PLUGIN_STATUS_NOT_FOUND;
+		status = fail_on_load_error ? __BT_FUNC_STATUS_LOADING_ERROR :
+			__BT_FUNC_STATUS_NOT_FOUND;
 		goto error;
 	}
 
@@ -260,8 +260,8 @@ enum bt_plugin_status bt_plugin_from_python_plugin_info(PyObject *plugin_info,
 				"Cannot decode Python plugin name string: "
 				"py-plugin-info-addr=%p", plugin_info);
 			status = fail_on_load_error ?
-				BT_PLUGIN_STATUS_LOADING_ERROR :
-				BT_PLUGIN_STATUS_NOT_FOUND;
+				__BT_FUNC_STATUS_LOADING_ERROR :
+				__BT_FUNC_STATUS_NOT_FOUND;
 			goto error;
 		}
 	} else {
@@ -270,8 +270,8 @@ enum bt_plugin_status bt_plugin_from_python_plugin_info(PyObject *plugin_info,
 			BT_LOG_WARN : BT_LOG_INFO, BT_LOG_TAG,
 			"Plugin name is not a string: "
 			"py-plugin-info-addr=%p", plugin_info);
-		status = fail_on_load_error ? BT_PLUGIN_STATUS_LOADING_ERROR :
-			BT_PLUGIN_STATUS_NOT_FOUND;
+		status = fail_on_load_error ? __BT_FUNC_STATUS_LOADING_ERROR :
+			__BT_FUNC_STATUS_NOT_FOUND;
 		goto error;
 	}
 
@@ -283,8 +283,8 @@ enum bt_plugin_status bt_plugin_from_python_plugin_info(PyObject *plugin_info,
 				"Cannot decode Python plugin author string: "
 				"py-plugin-info-addr=%p", plugin_info);
 			status = fail_on_load_error ?
-				BT_PLUGIN_STATUS_LOADING_ERROR :
-				BT_PLUGIN_STATUS_NOT_FOUND;
+				__BT_FUNC_STATUS_LOADING_ERROR :
+				__BT_FUNC_STATUS_NOT_FOUND;
 			goto error;
 		}
 	}
@@ -297,8 +297,8 @@ enum bt_plugin_status bt_plugin_from_python_plugin_info(PyObject *plugin_info,
 				"Cannot decode Python plugin description string: "
 				"py-plugin-info-addr=%p", plugin_info);
 			status = fail_on_load_error ?
-				BT_PLUGIN_STATUS_LOADING_ERROR :
-				BT_PLUGIN_STATUS_NOT_FOUND;
+				__BT_FUNC_STATUS_LOADING_ERROR :
+				__BT_FUNC_STATUS_NOT_FOUND;
 			goto error;
 		}
 	}
@@ -311,8 +311,8 @@ enum bt_plugin_status bt_plugin_from_python_plugin_info(PyObject *plugin_info,
 				"Cannot decode Python plugin license string: "
 				"py-plugin-info-addr=%p", plugin_info);
 			status = fail_on_load_error ?
-				BT_PLUGIN_STATUS_LOADING_ERROR :
-				BT_PLUGIN_STATUS_NOT_FOUND;
+				__BT_FUNC_STATUS_LOADING_ERROR :
+				__BT_FUNC_STATUS_NOT_FOUND;
 			goto error;
 		}
 	}
@@ -346,8 +346,8 @@ enum bt_plugin_status bt_plugin_from_python_plugin_info(PyObject *plugin_info,
 					"Invalid Python plugin version format: "
 					"py-plugin-info-addr=%p", plugin_info);
 				status = fail_on_load_error ?
-					BT_PLUGIN_STATUS_LOADING_ERROR :
-					BT_PLUGIN_STATUS_NOT_FOUND;
+					__BT_FUNC_STATUS_LOADING_ERROR :
+					__BT_FUNC_STATUS_NOT_FOUND;
 				goto error;
 			}
 		}
@@ -365,8 +365,8 @@ enum bt_plugin_status bt_plugin_from_python_plugin_info(PyObject *plugin_info,
 						"Cannot decode Python plugin version's extra string: "
 						"py-plugin-info-addr=%p", plugin_info);
 					status = fail_on_load_error ?
-						BT_PLUGIN_STATUS_LOADING_ERROR :
-						BT_PLUGIN_STATUS_NOT_FOUND;
+						__BT_FUNC_STATUS_LOADING_ERROR :
+						__BT_FUNC_STATUS_NOT_FOUND;
 					goto error;
 				}
 			}
@@ -376,7 +376,7 @@ enum bt_plugin_status bt_plugin_from_python_plugin_info(PyObject *plugin_info,
 	*plugin_out = bt_plugin_create_empty(BT_PLUGIN_TYPE_PYTHON);
 	if (!*plugin_out) {
 		BT_LOGE_STR("Cannot create empty plugin object.");
-		status = BT_PLUGIN_STATUS_NOMEM;
+		status = __BT_FUNC_STATUS_MEMORY_ERROR;
 		goto error;
 	}
 
@@ -416,7 +416,7 @@ enum bt_plugin_status bt_plugin_from_python_plugin_info(PyObject *plugin_info,
 					plugin_info, i);
 
 				if (fail_on_load_error) {
-					status = BT_PLUGIN_STATUS_LOADING_ERROR;
+					status = __BT_FUNC_STATUS_LOADING_ERROR;
 					goto error;
 				}
 
@@ -446,7 +446,7 @@ enum bt_plugin_status bt_plugin_from_python_plugin_info(PyObject *plugin_info,
 	goto end;
 
 error:
-	BT_ASSERT(status != BT_PLUGIN_STATUS_OK);
+	BT_ASSERT(status != __BT_FUNC_STATUS_OK);
 	print_python_traceback(fail_on_load_error ? BT_LOG_WARN : BT_LOG_INFO);
 	pyerr_clear();
 	BT_OBJECT_PUT_REF_AND_RESET(*plugin_out);
@@ -462,14 +462,14 @@ end:
 }
 
 G_MODULE_EXPORT
-enum bt_plugin_status bt_plugin_python_create_all_from_file(const char *path,
+int bt_plugin_python_create_all_from_file(const char *path,
 		bool fail_on_load_error, struct bt_plugin_set **plugin_set_out)
 {
 	bt_plugin *plugin = NULL;
 	PyObject *py_plugin_info = NULL;
 	gchar *basename = NULL;
 	size_t path_len;
-	enum bt_plugin_status status = BT_PLUGIN_STATUS_OK;
+	int status = __BT_FUNC_STATUS_OK;
 
 	BT_ASSERT(path);
 
@@ -479,7 +479,7 @@ enum bt_plugin_status bt_plugin_python_create_all_from_file(const char *path,
 		 * here because we already know Python cannot be fully
 		 * initialized.
 		 */
-		status = BT_PLUGIN_STATUS_ERROR;
+		status = __BT_FUNC_STATUS_ERROR;
 		goto error;
 	} else if (python_state == PYTHON_STATE_WONT_INITIALIZE) {
 		/*
@@ -487,7 +487,7 @@ enum bt_plugin_status bt_plugin_python_create_all_from_file(const char *path,
 		 * Python plugins are disabled, so it's simply not
 		 * found.
 		 */
-		status = BT_PLUGIN_STATUS_NOT_FOUND;
+		status = __BT_FUNC_STATUS_NOT_FOUND;
 		goto error;
 	}
 
@@ -500,7 +500,7 @@ enum bt_plugin_status bt_plugin_python_create_all_from_file(const char *path,
 			PYTHON_PLUGIN_FILE_EXT,
 			PYTHON_PLUGIN_FILE_EXT_LEN) != 0) {
 		BT_LOGI("Skipping non-Python file: path=\"%s\"", path);
-		status = BT_PLUGIN_STATUS_NOT_FOUND;
+		status = __BT_FUNC_STATUS_NOT_FOUND;
 		goto error;
 	}
 
@@ -508,7 +508,7 @@ enum bt_plugin_status bt_plugin_python_create_all_from_file(const char *path,
 	basename = g_path_get_basename(path);
 	if (!basename) {
 		BT_LOGE("Cannot get path's basename: path=\"%s\"", path);
-		status = BT_PLUGIN_STATUS_ERROR;
+		status = __BT_FUNC_STATUS_ERROR;
 		goto error;
 	}
 
@@ -516,7 +516,7 @@ enum bt_plugin_status bt_plugin_python_create_all_from_file(const char *path,
 			PYTHON_PLUGIN_FILE_PREFIX_LEN) != 0) {
 		BT_LOGI("Skipping Python file not starting with `%s`: "
 			"path=\"%s\"", PYTHON_PLUGIN_FILE_PREFIX, path);
-		status = BT_PLUGIN_STATUS_NOT_FOUND;
+		status = __BT_FUNC_STATUS_NOT_FOUND;
 		goto error;
 	}
 
@@ -535,7 +535,7 @@ enum bt_plugin_status bt_plugin_python_create_all_from_file(const char *path,
 		 * Python plugins are disabled, so it's simply not
 		 * found.
 		 */
-		status = BT_PLUGIN_STATUS_NOT_FOUND;
+		status = __BT_FUNC_STATUS_NOT_FOUND;
 		goto error;
 	} else if (python_state != PYTHON_STATE_FULLY_INITIALIZED) {
 		/*
@@ -544,7 +544,7 @@ enum bt_plugin_status bt_plugin_python_create_all_from_file(const char *path,
 		 * attributes from them.
 		 */
 		BT_LOGE("Failed to initialize Python interpreter.");
-		status = BT_PLUGIN_STATUS_ERROR;
+		status = __BT_FUNC_STATUS_ERROR;
 		goto error;
 	}
 
@@ -564,8 +564,8 @@ enum bt_plugin_status bt_plugin_python_create_all_from_file(const char *path,
 		print_python_traceback(fail_on_load_error ? BT_LOG_WARN :
 			BT_LOG_INFO);
 		PyErr_Clear();
-		status = fail_on_load_error ? BT_PLUGIN_STATUS_LOADING_ERROR :
-			BT_PLUGIN_STATUS_NOT_FOUND;
+		status = fail_on_load_error ? __BT_FUNC_STATUS_LOADING_ERROR :
+			__BT_FUNC_STATUS_NOT_FOUND;
 		goto error;
 	}
 
@@ -585,18 +585,18 @@ enum bt_plugin_status bt_plugin_python_create_all_from_file(const char *path,
 			path, py_plugin_info);
 		BT_ASSERT(!plugin);
 		goto error;
-	} else if (status == BT_PLUGIN_STATUS_NOT_FOUND) {
+	} else if (status == __BT_FUNC_STATUS_NOT_FOUND) {
 		BT_ASSERT(!plugin);
 		goto error;
 	}
 
-	BT_ASSERT(status == BT_PLUGIN_STATUS_OK);
+	BT_ASSERT(status == __BT_FUNC_STATUS_OK);
 	BT_ASSERT(plugin);
 	bt_plugin_set_path(plugin, path);
 	*plugin_set_out = bt_plugin_set_create();
 	if (!*plugin_set_out) {
 		BT_LOGE_STR("Cannot create empty plugin set.");
-		status = BT_PLUGIN_STATUS_NOMEM;
+		status = __BT_FUNC_STATUS_MEMORY_ERROR;
 		goto error;
 	}
 
@@ -607,7 +607,7 @@ enum bt_plugin_status bt_plugin_python_create_all_from_file(const char *path,
 	goto end;
 
 error:
-	BT_ASSERT(status != BT_PLUGIN_STATUS_OK);
+	BT_ASSERT(status != __BT_FUNC_STATUS_OK);
 	BT_OBJECT_PUT_REF_AND_RESET(*plugin_set_out);
 
 end:

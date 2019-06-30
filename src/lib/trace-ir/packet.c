@@ -39,6 +39,7 @@
 #include "stream-class.h"
 #include "stream.h"
 #include "trace.h"
+#include "lib/func-status.h"
 
 #define BT_ASSERT_PRE_PACKET_HOT(_packet) \
 	BT_ASSERT_PRE_HOT((_packet), "Packet", ": %!+a", (_packet))
@@ -236,7 +237,8 @@ end:
 	return (void *) packet;
 }
 
-enum bt_packet_status bt_packet_move_context_field(struct bt_packet *packet,
+enum bt_packet_move_context_field_status bt_packet_move_context_field(
+		struct bt_packet *packet,
 		struct bt_packet_context_field *context_field)
 {
 	struct bt_stream_class *stream_class;
@@ -261,7 +263,7 @@ enum bt_packet_status bt_packet_move_context_field(struct bt_packet *packet,
 
 	/* Move new field */
 	packet->context_field = field_wrapper;
-	return BT_PACKET_STATUS_OK;
+	return BT_FUNC_STATUS_OK;
 }
 
 void bt_packet_get_ref(const struct bt_packet *packet)

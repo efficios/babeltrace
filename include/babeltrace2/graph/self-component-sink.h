@@ -25,7 +25,7 @@
 
 #include <stdint.h>
 
-/* For bt_self_component_status */
+/* For bt_self_component_*_status */
 #include <babeltrace2/graph/self-component.h>
 
 /*
@@ -62,7 +62,7 @@ extern bt_self_component_port_input *
 bt_self_component_sink_borrow_input_port_by_index(
 		bt_self_component_sink *self_component, uint64_t index);
 
-extern bt_self_component_status
+extern bt_self_component_add_port_status
 bt_self_component_sink_add_input_port(
 		bt_self_component_sink *self_component,
 		const char *name, void *user_data,

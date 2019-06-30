@@ -34,11 +34,14 @@
 #include <babeltrace2/trace-ir/packet-const.h>
 #include "lib/trace-ir/packet.h"
 #include "lib/trace-ir/stream.h"
+#include <babeltrace2/trace-ir/clock-class-const.h>
+#include <babeltrace2/trace-ir/stream-class-const.h>
+#include <babeltrace2/trace-ir/stream-const.h>
 #include <babeltrace2/graph/connection-const.h>
 #include <babeltrace2/graph/component-const.h>
 #include <babeltrace2/graph/component-sink-const.h>
 #include <babeltrace2/graph/message-const.h>
-#include <babeltrace2/graph/message-iterator-const.h>
+#include <babeltrace2/graph/message-iterator.h>
 #include <babeltrace2/graph/self-component-port-input-message-iterator.h>
 #include <babeltrace2/graph/port-output-message-iterator.h>
 #include <babeltrace2/graph/message-event-const.h>
@@ -78,6 +81,7 @@
 #include "message/stream.h"
 #include "message/packet.h"
 #include "message/stream-activity.h"
+#include "lib/func-status.h"
 
 /*
  * TODO: Use graph's state (number of active iterators, etc.) and
@@ -415,7 +419,7 @@ struct bt_self_component_port_input_message_iterator *
 bt_self_component_port_input_message_iterator_create(
 		struct bt_self_component_port_input *self_port)
 {
-	typedef enum bt_self_message_iterator_status (*init_method_t)(
+	typedef enum bt_component_class_message_iterator_init_method_status (*init_method_t)(
 			void *, void *, void *);
 
 	init_method_t init_method = NULL;
@@ -484,14 +488,14 @@ bt_self_component_port_input_message_iterator_create(
 	}
 
 	if (init_method) {
-		int iter_status;
+		enum bt_component_class_message_iterator_init_method_status iter_status;
 
 		BT_LIB_LOGD("Calling user's initialization method: %!+i", iterator);
 		iter_status = init_method(iterator, upstream_comp,
 			upstream_port);
 		BT_LOGD("User method returned: status=%s",
-			bt_message_iterator_status_string(iter_status));
-		if (iter_status != BT_MESSAGE_ITERATOR_STATUS_OK) {
+			bt_common_func_status_string(iter_status));
+		if (iter_status != BT_FUNC_STATUS_OK) {
 			BT_LOGW_STR("Initialization method failed.");
 			BT_OBJECT_PUT_REF_AND_RESET(iterator);
 			goto end;
@@ -545,7 +549,7 @@ bool clock_snapshots_are_monotonic_one(
 	const struct bt_clock_snapshot *clock_snapshot = NULL;
 	bt_message_type message_type = bt_message_get_type(msg);
 	int64_t ns_from_origin;
-	enum bt_clock_snapshot_status clock_snapshot_status;
+	enum bt_clock_snapshot_get_ns_from_origin_status clock_snapshot_status;
 
 	/*
 	 * The default is true: if we can't figure out the clock snapshot
@@ -605,7 +609,7 @@ bool clock_snapshots_are_monotonic_one(
 	}
 
 	clock_snapshot_status = bt_clock_snapshot_get_ns_from_origin(clock_snapshot, &ns_from_origin);
-	if (clock_snapshot_status != BT_CLOCK_SNAPSHOT_STATUS_OK) {
+	if (clock_snapshot_status != BT_FUNC_STATUS_OK) {
 		goto end;
 	}
 
@@ -793,19 +797,20 @@ end:
  */
 
 static
-bt_message_iterator_status call_iterator_next_method(
+enum bt_component_class_message_iterator_next_method_status
+call_iterator_next_method(
 		struct bt_self_component_port_input_message_iterator *iterator,
 		bt_message_array_const msgs, uint64_t capacity, uint64_t *user_count)
 {
-	bt_message_iterator_status status;
+	enum bt_component_class_message_iterator_next_method_status status;
 
 	BT_ASSERT(iterator->methods.next);
 	BT_LOGD_STR("Calling user's \"next\" method.");
 	status = iterator->methods.next(iterator, msgs, capacity, user_count);
 	BT_LOGD("User method returned: status=%s, msg-count=%" PRIu64,
-		bt_message_iterator_status_string(status), *user_count);
+		bt_common_func_status_string(status), *user_count);
 
-	if (status == BT_MESSAGE_ITERATOR_STATUS_OK) {
+	if (status == BT_FUNC_STATUS_OK) {
 		BT_ASSERT_POST(clock_classes_are_compatible(iterator, msgs, *user_count),
 			"Clocks are not compatible");
 		BT_ASSERT_POST(clock_snapshots_are_monotonic(iterator, msgs, *user_count),
@@ -815,12 +820,12 @@ bt_message_iterator_status call_iterator_next_method(
 	return status;
 }
 
-enum bt_message_iterator_status
+enum bt_message_iterator_next_status
 bt_self_component_port_input_message_iterator_next(
 		struct bt_self_component_port_input_message_iterator *iterator,
 		bt_message_array_const *msgs, uint64_t *user_count)
 {
-	int status = BT_MESSAGE_ITERATOR_STATUS_OK;
+	enum bt_message_iterator_next_status status = BT_FUNC_STATUS_OK;
 
 	BT_ASSERT_PRE_NON_NULL(iterator, "Message iterator");
 	BT_ASSERT_PRE_NON_NULL(msgs, "Message array (output)");
@@ -845,7 +850,7 @@ bt_self_component_port_input_message_iterator_next(
 	 * and status.
 	 */
 	*user_count = 0;
-	status = call_iterator_next_method(iterator,
+	status = (int) call_iterator_next_method(iterator,
 		(void *) iterator->base.msgs->pdata, MSG_BATCH_SIZE,
 		user_count);
 	if (status < 0) {
@@ -866,16 +871,16 @@ bt_self_component_port_input_message_iterator_next(
 		BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_STATE_ACTIVE);
 
 	switch (status) {
-	case BT_MESSAGE_ITERATOR_STATUS_OK:
+	case BT_FUNC_STATUS_OK:
 		BT_ASSERT_POST(*user_count <= MSG_BATCH_SIZE,
 			"Invalid returned message count: greater than "
 			"batch size: count=%" PRIu64 ", batch-size=%u",
 			*user_count, MSG_BATCH_SIZE);
 		*msgs = (void *) iterator->base.msgs->pdata;
 		break;
-	case BT_MESSAGE_ITERATOR_STATUS_AGAIN:
+	case BT_FUNC_STATUS_AGAIN:
 		goto end;
-	case BT_MESSAGE_ITERATOR_STATUS_END:
+	case BT_FUNC_STATUS_END:
 		set_self_comp_port_input_msg_iterator_state(iterator,
 			BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_STATE_ENDED);
 		goto end;
@@ -888,13 +893,13 @@ end:
 	return status;
 }
 
-enum bt_message_iterator_status bt_port_output_message_iterator_next(
+enum bt_message_iterator_next_status bt_port_output_message_iterator_next(
 		struct bt_port_output_message_iterator *iterator,
 		bt_message_array_const *msgs_to_user,
 		uint64_t *count_to_user)
 {
-	enum bt_message_iterator_status status;
-	enum bt_graph_status graph_status;
+	enum bt_message_iterator_next_status status;
+	int graph_status;
 
 	BT_ASSERT_PRE_NON_NULL(iterator, "Message iterator");
 	BT_ASSERT_PRE_NON_NULL(msgs_to_user, "Message array (output)");
@@ -904,14 +909,14 @@ enum bt_message_iterator_status bt_port_output_message_iterator_next(
 	graph_status = bt_graph_consume_sink_no_check(iterator->graph,
 		iterator->colander);
 	switch (graph_status) {
-	case BT_GRAPH_STATUS_CANCELED:
-	case BT_GRAPH_STATUS_AGAIN:
-	case BT_GRAPH_STATUS_END:
-	case BT_GRAPH_STATUS_NOMEM:
+	case BT_FUNC_STATUS_CANCELED:
+	case BT_FUNC_STATUS_AGAIN:
+	case BT_FUNC_STATUS_END:
+	case BT_FUNC_STATUS_MEMORY_ERROR:
 		status = (int) graph_status;
 		break;
-	case BT_GRAPH_STATUS_OK:
-		status = BT_MESSAGE_ITERATOR_STATUS_OK;
+	case BT_FUNC_STATUS_OK:
+		status = BT_FUNC_STATUS_OK;
 
 		/*
 		 * On success, the colander sink moves the messages
@@ -923,7 +928,7 @@ enum bt_message_iterator_status bt_port_output_message_iterator_next(
 		break;
 	default:
 		/* Other errors */
-		status = BT_MESSAGE_ITERATOR_STATUS_ERROR;
+		status = BT_FUNC_STATUS_ERROR;
 	}
 
 	return status;
@@ -987,7 +992,7 @@ bt_port_output_message_iterator_create(struct bt_graph *graph,
 	struct bt_component_class_sink *colander_comp_cls = NULL;
 	struct bt_component *output_port_comp = NULL;
 	struct bt_component_sink *colander_comp;
-	enum bt_graph_status graph_status;
+	int graph_status;
 	struct bt_port_input *colander_in_port = NULL;
 	struct bt_component_class_sink_colander_data colander_data;
 	int ret;
@@ -1042,16 +1047,15 @@ bt_port_output_message_iterator_create(struct bt_graph *graph,
 	 * class module does not use this level anyway since it belongs
 	 * to the library.
 	 */
-	graph_status =
-		bt_graph_add_sink_component_with_init_method_data(
+	graph_status = bt_graph_add_sink_component_with_init_method_data(
 			(void *) graph, colander_comp_cls,
 			"colander-36ac3409-b1a8-4d60-ab1f-4fdf341a8fb1",
 			NULL, &colander_data, BT_LOGGING_LEVEL_NONE,
 			(void *) &iterator->colander);
-	if (graph_status != BT_GRAPH_STATUS_OK) {
+	if (graph_status != BT_FUNC_STATUS_OK) {
 		BT_LIB_LOGW("Cannot add colander sink component to graph: "
 			"%1[graph-]+g, status=%s", graph,
-			bt_graph_status_string(graph_status));
+			bt_common_func_status_string(graph_status));
 		goto error;
 	}
 
@@ -1065,11 +1069,11 @@ bt_port_output_message_iterator_create(struct bt_graph *graph,
 	BT_ASSERT(colander_in_port);
 	graph_status = bt_graph_connect_ports(graph,
 		output_port, colander_in_port, NULL);
-	if (graph_status != BT_GRAPH_STATUS_OK) {
+	if (graph_status != BT_FUNC_STATUS_OK) {
 		BT_LIB_LOGW("Cannot add colander sink component to graph: "
 			"%![graph-]+g, %![comp-]+c, status=%s", graph,
 			iterator->colander,
-			bt_graph_status_string(graph_status));
+			bt_common_func_status_string(graph_status));
 		goto error;
 	}
 
@@ -1085,10 +1089,10 @@ bt_port_output_message_iterator_create(struct bt_graph *graph,
 
 	/* Also set the graph as being configured. */
 	graph_status = bt_graph_configure(graph);
-	if (graph_status != BT_GRAPH_STATUS_OK) {
+	if (graph_status != BT_FUNC_STATUS_OK) {
 		BT_LIB_LOGW("Cannot configure graph after having added colander: "
 			"%![graph-]+g, status=%s", graph,
-			bt_graph_status_string(graph_status));
+			bt_common_func_status_string(graph_status));
 		goto error;
 	}
 	goto end;
@@ -1179,23 +1183,23 @@ bt_bool bt_self_component_port_input_message_iterator_can_seek_beginning(
 static inline
 void set_iterator_state_after_seeking(
 		struct bt_self_component_port_input_message_iterator *iterator,
-		enum bt_message_iterator_status status)
+		int status)
 {
 	enum bt_self_component_port_input_message_iterator_state new_state = 0;
 
 	/* Set iterator's state depending on seeking status */
 	switch (status) {
-	case BT_MESSAGE_ITERATOR_STATUS_OK:
+	case BT_FUNC_STATUS_OK:
 		new_state = BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_STATE_ACTIVE;
 		break;
-	case BT_MESSAGE_ITERATOR_STATUS_AGAIN:
+	case BT_FUNC_STATUS_AGAIN:
 		new_state = BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_STATE_LAST_SEEKING_RETURNED_AGAIN;
 		break;
-	case BT_MESSAGE_ITERATOR_STATUS_ERROR:
-	case BT_MESSAGE_ITERATOR_STATUS_NOMEM:
+	case BT_FUNC_STATUS_ERROR:
+	case BT_FUNC_STATUS_MEMORY_ERROR:
 		new_state = BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_STATE_LAST_SEEKING_RETURNED_ERROR;
 		break;
-	case BT_MESSAGE_ITERATOR_STATUS_END:
+	case BT_FUNC_STATUS_END:
 		new_state = BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_STATE_ENDED;
 		break;
 	default:
@@ -1213,11 +1217,11 @@ void reset_iterator_expectations(
 	iterator->clock_expectation.type = CLOCK_EXPECTATION_UNSET;
 }
 
-enum bt_message_iterator_status
+enum bt_message_iterator_seek_beginning_status
 bt_self_component_port_input_message_iterator_seek_beginning(
 		struct bt_self_component_port_input_message_iterator *iterator)
 {
-	int status;
+	enum bt_message_iterator_seek_beginning_status status;
 
 	BT_ASSERT_PRE_NON_NULL(iterator, "Message iterator");
 	BT_ASSERT_PRE_ITER_HAS_STATE_TO_SEEK(iterator);
@@ -1242,17 +1246,16 @@ bt_self_component_port_input_message_iterator_seek_beginning(
 		BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_STATE_SEEKING);
 	status = iterator->methods.seek_beginning(iterator);
 	BT_LOGD("User method returned: status=%s",
-		bt_message_iterator_status_string(status));
-	BT_ASSERT_POST(status == BT_MESSAGE_ITERATOR_STATUS_OK ||
-		status == BT_MESSAGE_ITERATOR_STATUS_ERROR ||
-		status == BT_MESSAGE_ITERATOR_STATUS_NOMEM ||
-		status == BT_MESSAGE_ITERATOR_STATUS_AGAIN,
+		bt_common_func_status_string(status));
+	BT_ASSERT_POST(status == BT_FUNC_STATUS_OK ||
+		status == BT_FUNC_STATUS_ERROR ||
+		status == BT_FUNC_STATUS_MEMORY_ERROR ||
+		status == BT_FUNC_STATUS_AGAIN,
 		"Unexpected status: %![iter-]+i, status=%s",
-		iterator, bt_common_self_message_iterator_status_string(status));
+		iterator, bt_common_func_status_string(status));
 	set_iterator_state_after_seeking(iterator, status);
 	return status;
 }
-
 
 /*
  * Structure used to record the state of a given stream during the fast-forward
@@ -1326,12 +1329,12 @@ void destroy_auto_seek_stream_states(GHashTable *stream_states)
  */
 
 static inline
-enum bt_message_iterator_status auto_seek_handle_message(
+int auto_seek_handle_message(
 		struct bt_self_component_port_input_message_iterator *iterator,
 		int64_t ns_from_origin, const struct bt_message *msg,
 		bool *got_first, GHashTable *stream_states)
 {
-	enum bt_message_iterator_status status = BT_MESSAGE_ITERATOR_STATUS_OK;
+	int status = BT_FUNC_STATUS_OK;
 	int64_t msg_ns_from_origin;
 	const struct bt_clock_snapshot *clk_snapshot = NULL;
 	int ret;
@@ -1386,7 +1389,7 @@ enum bt_message_iterator_status auto_seek_handle_message(
 			msg_disc_items->default_begin_cs,
 			&msg_ns_from_origin);
 		if (ret) {
-			status = BT_MESSAGE_ITERATOR_STATUS_ERROR;
+			status = BT_FUNC_STATUS_ERROR;
 			goto end;
 		}
 
@@ -1399,7 +1402,7 @@ enum bt_message_iterator_status auto_seek_handle_message(
 			msg_disc_items->default_end_cs,
 			&msg_ns_from_origin);
 		if (ret) {
-			status = BT_MESSAGE_ITERATOR_STATUS_ERROR;
+			status = BT_FUNC_STATUS_ERROR;
 			goto end;
 		}
 
@@ -1419,7 +1422,7 @@ enum bt_message_iterator_status auto_seek_handle_message(
 				msg_disc_items->default_end_cs->clock_class,
 				ns_from_origin, &new_begin_raw_value);
 			if (ret) {
-				status = BT_MESSAGE_ITERATOR_STATUS_ERROR;
+				status = BT_FUNC_STATUS_ERROR;
 				goto end;
 			}
 
@@ -1503,7 +1506,7 @@ enum bt_message_iterator_status auto_seek_handle_message(
 	ret = bt_clock_snapshot_get_ns_from_origin(clk_snapshot,
 		&msg_ns_from_origin);
 	if (ret) {
-		status = BT_MESSAGE_ITERATOR_STATUS_ERROR;
+		status = BT_FUNC_STATUS_ERROR;
 		goto end;
 	}
 
@@ -1523,7 +1526,7 @@ skip_msg:
 		/* Update stream's state: stream began. */
 		stream_state = create_auto_seek_stream_state();
 		if (!stream_state) {
-			status = BT_MESSAGE_ITERATOR_STATUS_NOMEM;
+			status = BT_FUNC_STATUS_MEMORY_ERROR;
 			goto end;
 		}
 
@@ -1622,12 +1625,12 @@ push_msg:
 	msg = NULL;
 
 end:
-	BT_ASSERT(!msg || status != BT_MESSAGE_ITERATOR_STATUS_OK);
+	BT_ASSERT(!msg || status != BT_FUNC_STATUS_OK);
 	return status;
 }
 
 static
-enum bt_message_iterator_status find_message_ge_ns_from_origin(
+int find_message_ge_ns_from_origin(
 		struct bt_self_component_port_input_message_iterator *iterator,
 		int64_t ns_from_origin, GHashTable *stream_states)
 {
@@ -1667,16 +1670,16 @@ enum bt_message_iterator_status find_message_ge_ns_from_origin(
 			BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_STATE_ACTIVE);
 
 		switch (status) {
-		case BT_MESSAGE_ITERATOR_STATUS_OK:
+		case BT_FUNC_STATUS_OK:
 			BT_ASSERT_POST(user_count <= MSG_BATCH_SIZE,
 				"Invalid returned message count: greater than "
 				"batch size: count=%" PRIu64 ", batch-size=%u",
 				user_count, MSG_BATCH_SIZE);
 			break;
-		case BT_MESSAGE_ITERATOR_STATUS_AGAIN:
-		case BT_MESSAGE_ITERATOR_STATUS_ERROR:
-		case BT_MESSAGE_ITERATOR_STATUS_NOMEM:
-		case BT_MESSAGE_ITERATOR_STATUS_END:
+		case BT_FUNC_STATUS_AGAIN:
+		case BT_FUNC_STATUS_ERROR:
+		case BT_FUNC_STATUS_MEMORY_ERROR:
+		case BT_FUNC_STATUS_END:
 			goto end;
 		default:
 			abort();
@@ -1693,7 +1696,7 @@ enum bt_message_iterator_status find_message_ge_ns_from_origin(
 			status = auto_seek_handle_message(iterator,
 				ns_from_origin, messages[i], &got_first,
 				stream_states);
-			if (status == BT_MESSAGE_ITERATOR_STATUS_OK) {
+			if (status == BT_FUNC_STATUS_OK) {
 				/* Message was either pushed or moved */
 				messages[i] = NULL;
 			} else {
@@ -1721,7 +1724,7 @@ end:
  */
 
 static
-enum bt_self_message_iterator_status post_auto_seek_next(
+enum bt_component_class_message_iterator_next_method_status post_auto_seek_next(
 		struct bt_self_component_port_input_message_iterator *iterator,
 		bt_message_array_const msgs, uint64_t capacity,
 		uint64_t *count)
@@ -1748,7 +1751,7 @@ enum bt_self_message_iterator_status post_auto_seek_next(
 		iterator->auto_seek.original_next_callback = NULL;
 	}
 
-	return BT_SELF_MESSAGE_ITERATOR_STATUS_OK;
+	return BT_FUNC_STATUS_OK;
 }
 
 static inline
@@ -1765,7 +1768,7 @@ int clock_raw_value_from_ns_from_origin(const bt_clock_class *clock_class,
 }
 
 
-enum bt_message_iterator_status
+enum bt_message_iterator_seek_ns_from_origin_status
 bt_self_component_port_input_message_iterator_seek_ns_from_origin(
 		struct bt_self_component_port_input_message_iterator *iterator,
 		int64_t ns_from_origin)
@@ -1801,14 +1804,13 @@ bt_self_component_port_input_message_iterator_seek_ns_from_origin(
 		status = iterator->methods.seek_ns_from_origin(iterator,
 			ns_from_origin);
 		BT_LOGD("User method returned: status=%s",
-			bt_message_iterator_status_string(status));
-		BT_ASSERT_POST(status == BT_MESSAGE_ITERATOR_STATUS_OK ||
-			status == BT_MESSAGE_ITERATOR_STATUS_ERROR ||
-			status == BT_MESSAGE_ITERATOR_STATUS_NOMEM ||
-			status == BT_MESSAGE_ITERATOR_STATUS_AGAIN,
+			bt_common_func_status_string(status));
+		BT_ASSERT_POST(status == BT_FUNC_STATUS_OK ||
+			status == BT_FUNC_STATUS_ERROR ||
+			status == BT_FUNC_STATUS_MEMORY_ERROR ||
+			status == BT_FUNC_STATUS_AGAIN,
 			"Unexpected status: %![iter-]+i, status=%s",
-			iterator,
-			bt_common_self_message_iterator_status_string(status));
+			iterator, bt_common_func_status_string(status));
 	} else {
 		/*
 		 * The iterator doesn't know how to seek to a particular time.  We will
@@ -1820,20 +1822,19 @@ bt_self_component_port_input_message_iterator_seek_ns_from_origin(
 			iterator);
 		status = iterator->methods.seek_beginning(iterator);
 		BT_LOGD("User method returned: status=%s",
-			bt_message_iterator_status_string(status));
-		BT_ASSERT_POST(status == BT_MESSAGE_ITERATOR_STATUS_OK ||
-			status == BT_MESSAGE_ITERATOR_STATUS_ERROR ||
-			status == BT_MESSAGE_ITERATOR_STATUS_NOMEM ||
-			status == BT_MESSAGE_ITERATOR_STATUS_AGAIN,
+			bt_common_func_status_string(status));
+		BT_ASSERT_POST(status == BT_FUNC_STATUS_OK ||
+			status == BT_FUNC_STATUS_ERROR ||
+			status == BT_FUNC_STATUS_MEMORY_ERROR ||
+			status == BT_FUNC_STATUS_AGAIN,
 			"Unexpected status: %![iter-]+i, status=%s",
-			iterator,
-			bt_common_self_message_iterator_status_string(status));
+			iterator, bt_common_func_status_string(status));
 		switch (status) {
-		case BT_MESSAGE_ITERATOR_STATUS_OK:
+		case BT_FUNC_STATUS_OK:
 			break;
-		case BT_MESSAGE_ITERATOR_STATUS_ERROR:
-		case BT_MESSAGE_ITERATOR_STATUS_NOMEM:
-		case BT_MESSAGE_ITERATOR_STATUS_AGAIN:
+		case BT_FUNC_STATUS_ERROR:
+		case BT_FUNC_STATUS_MEMORY_ERROR:
+		case BT_FUNC_STATUS_AGAIN:
 			goto end;
 		default:
 			abort();
@@ -1854,15 +1855,15 @@ bt_self_component_port_input_message_iterator_seek_ns_from_origin(
 		stream_states = create_auto_seek_stream_states();
 		if (!stream_states) {
 			BT_LOGE_STR("Failed to allocate one GHashTable.");
-			status = BT_MESSAGE_ITERATOR_STATUS_NOMEM;
+			status = BT_FUNC_STATUS_MEMORY_ERROR;
 			goto end;
 		}
 
 		status = find_message_ge_ns_from_origin(iterator,
 			ns_from_origin, stream_states);
 		switch (status) {
-		case BT_MESSAGE_ITERATOR_STATUS_OK:
-		case BT_MESSAGE_ITERATOR_STATUS_END:
+		case BT_FUNC_STATUS_OK:
+		case BT_FUNC_STATUS_END:
 		{
 			GHashTableIter iter;
 			gpointer key, value;
@@ -1885,7 +1886,7 @@ bt_self_component_port_input_message_iterator_seek_ns_from_origin(
 				if (clock_raw_value_from_ns_from_origin(clock_class, ns_from_origin, &raw_value) != 0) {
 					BT_LIB_LOGW("Could not convert nanoseconds from origin to clock value: ns-from-origin=%" PRId64 ", %![cc-]+K",
 						ns_from_origin, clock_class);
-					status = BT_MESSAGE_ITERATOR_STATUS_ERROR;
+					status = BT_FUNC_STATUS_ERROR;
 					goto end;
 				}
 
@@ -1896,7 +1897,7 @@ bt_self_component_port_input_message_iterator_seek_ns_from_origin(
 					msg = bt_message_packet_beginning_create_with_default_clock_snapshot(
 						(bt_self_message_iterator *) iterator, stream_state->packet, raw_value);
 					if (!msg) {
-						status = BT_MESSAGE_ITERATOR_STATUS_NOMEM;
+						status = BT_FUNC_STATUS_MEMORY_ERROR;
 						goto end;
 					}
 
@@ -1907,7 +1908,7 @@ bt_self_component_port_input_message_iterator_seek_ns_from_origin(
 					msg = bt_message_stream_activity_beginning_create(
 						(bt_self_message_iterator *) iterator, stream);
 					if (!msg) {
-						status = BT_MESSAGE_ITERATOR_STATUS_NOMEM;
+						status = BT_FUNC_STATUS_MEMORY_ERROR;
 						goto end;
 					}
 
@@ -1920,7 +1921,7 @@ bt_self_component_port_input_message_iterator_seek_ns_from_origin(
 					msg = bt_message_stream_beginning_create(
 						(bt_self_message_iterator *) iterator, stream);
 					if (!msg) {
-						status = BT_MESSAGE_ITERATOR_STATUS_NOMEM;
+						status = BT_FUNC_STATUS_MEMORY_ERROR;
 						goto end;
 					}
 
@@ -1946,18 +1947,18 @@ bt_self_component_port_input_message_iterator_seek_ns_from_origin(
 			}
 
 			/*
-			 * `BT_MESSAGE_ITERATOR_STATUS_END` becomes
-			 * `BT_MESSAGE_ITERATOR_STATUS_OK`: the next
+			 * `BT_FUNC_STATUS_END` becomes
+			 * `BT_FUNC_STATUS_OK`: the next
 			 * time this iterator's "next" method is called,
 			 * it will return
-			 * `BT_MESSAGE_ITERATOR_STATUS_END`.
+			 * `BT_FUNC_STATUS_END`.
 			 */
-			status = BT_MESSAGE_ITERATOR_STATUS_OK;
+			status = BT_FUNC_STATUS_OK;
 			break;
 		}
-		case BT_MESSAGE_ITERATOR_STATUS_ERROR:
-		case BT_MESSAGE_ITERATOR_STATUS_NOMEM:
-		case BT_MESSAGE_ITERATOR_STATUS_AGAIN:
+		case BT_FUNC_STATUS_ERROR:
+		case BT_FUNC_STATUS_MEMORY_ERROR:
+		case BT_FUNC_STATUS_AGAIN:
 			goto end;
 		default:
 			abort();
@@ -2012,7 +2013,8 @@ bt_bool bt_port_output_message_iterator_can_seek_beginning(
 			iterator));
 }
 
-enum bt_message_iterator_status bt_port_output_message_iterator_seek_ns_from_origin(
+enum bt_message_iterator_seek_ns_from_origin_status
+bt_port_output_message_iterator_seek_ns_from_origin(
 		struct bt_port_output_message_iterator *iterator,
 		int64_t ns_from_origin)
 {
@@ -2022,7 +2024,8 @@ enum bt_message_iterator_status bt_port_output_message_iterator_seek_ns_from_ori
 		ns_from_origin);
 }
 
-enum bt_message_iterator_status bt_port_output_message_iterator_seek_beginning(
+enum bt_message_iterator_seek_beginning_status
+bt_port_output_message_iterator_seek_beginning(
 		struct bt_port_output_message_iterator *iterator)
 {
 	BT_ASSERT_PRE_NON_NULL(iterator, "Message iterator");

@@ -33,7 +33,15 @@
 #include "logging.h"
 
 #include <babeltrace2/babeltrace.h>
-#include <babeltrace2/property.h>
+
+/*
+ * This is not part of the API, but because those bindings reside within
+ * the project, we take the liberty to use them.
+ */
+#define __BT_FUNC_STATUS_ENABLE
+#include <babeltrace2/func-status.h>
+#undef __BT_FUNC_STATUS_ENABLE
+
 #include "common/assert.h"
 #include "py-common/py-common.h"
 
@@ -172,7 +180,12 @@ typedef int bt_bool;
 	$result = $1;
 }
 
+/* Property enumeration */
 %include <babeltrace2/property.h>
+
+/* Common function status codes */
+#define __BT_FUNC_STATUS_ENABLE
+%include <babeltrace2/func-status.h>
 
 /* Per-module interface files */
 %include "native_bt_clock_class.i"

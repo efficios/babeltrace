@@ -442,21 +442,21 @@ static void test_example_scenario(bt_self_component_source *self_comp)
 }
 
 static
-bt_self_component_status src_init(
+bt_component_class_init_method_status src_init(
 	bt_self_component_source *self_comp,
 	const bt_value *params, void *init_method_data)
 {
 	test_example_scenario(self_comp);
-	return BT_SELF_COMPONENT_STATUS_OK;
+	return BT_COMPONENT_CLASS_INIT_METHOD_STATUS_OK;
 }
 
 static
-bt_self_message_iterator_status src_iter_next(
+bt_component_class_message_iterator_next_method_status src_iter_next(
 		bt_self_message_iterator *self_iterator,
 		bt_message_array_const msgs, uint64_t capacity,
 		uint64_t *count)
 {
-	return BT_SELF_MESSAGE_ITERATOR_STATUS_ERROR;
+	return BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_ERROR;
 }
 
 static void test_example_scenario_in_graph(void)

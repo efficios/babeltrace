@@ -55,6 +55,7 @@
 #include "trace-class.h"
 #include "trace.h"
 #include "utils.h"
+#include "lib/func-status.h"
 
 struct bt_trace_destruction_listener_elem {
 	bt_trace_destruction_listener_func func;
@@ -191,7 +192,8 @@ const char *bt_trace_get_name(const struct bt_trace *trace)
 	return trace->name.value;
 }
 
-enum bt_trace_status bt_trace_set_name(struct bt_trace *trace, const char *name)
+enum bt_trace_set_name_status bt_trace_set_name(struct bt_trace *trace,
+		const char *name)
 {
 	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
 	BT_ASSERT_PRE_NON_NULL(name, "Name");
@@ -199,7 +201,7 @@ enum bt_trace_status bt_trace_set_name(struct bt_trace *trace, const char *name)
 	g_string_assign(trace->name.str, name);
 	trace->name.value = trace->name.str->str;
 	BT_LIB_LOGD("Set trace's name: %!+t", trace);
-	return BT_TRACE_STATUS_OK;
+	return BT_FUNC_STATUS_OK;
 }
 
 uint64_t bt_trace_get_stream_count(const struct bt_trace *trace)
@@ -250,7 +252,7 @@ const struct bt_stream *bt_trace_borrow_stream_by_id_const(
 	return bt_trace_borrow_stream_by_id((void *) trace, id);
 }
 
-enum bt_trace_status bt_trace_add_destruction_listener(
+enum bt_trace_add_listener_status bt_trace_add_destruction_listener(
 		const struct bt_trace *c_trace,
 		bt_trace_destruction_listener_func listener,
 		void *data, uint64_t *listener_id)
@@ -288,7 +290,7 @@ enum bt_trace_status bt_trace_add_destruction_listener(
 
 	BT_LIB_LOGD("Added destruction listener: " "%![trace-]+t, "
 			"listener-id=%" PRIu64, trace, i);
-	return BT_TRACE_STATUS_OK;
+	return BT_FUNC_STATUS_OK;
 }
 
 BT_ASSERT_PRE_FUNC
@@ -301,7 +303,7 @@ bool has_listener_id(const struct bt_trace *trace, uint64_t listener_id)
 			listener_id))->func != NULL;
 }
 
-enum bt_trace_status bt_trace_remove_destruction_listener(
+enum bt_trace_remove_listener_status bt_trace_remove_destruction_listener(
 		const struct bt_trace *c_trace, uint64_t listener_id)
 {
 	struct bt_trace *trace = (void *) c_trace;
@@ -321,7 +323,7 @@ enum bt_trace_status bt_trace_remove_destruction_listener(
 	BT_LIB_LOGD("Removed \"trace destruction listener: "
 		"%![trace-]+t, listener-id=%" PRIu64,
 		trace, listener_id);
-	return BT_TRACE_STATUS_OK;
+	return BT_FUNC_STATUS_OK;
 }
 
 BT_HIDDEN

@@ -22,6 +22,7 @@
 
 import bt2
 import bt2.logging
+from bt2 import native_bt
 
 
 def _check_bool(o):
@@ -118,11 +119,6 @@ def _raise_bt2_error(msg):
         raise bt2.Error(msg)
 
 
-def _handle_ret(ret, msg=None):
-    if int(ret) < 0:
-        _raise_bt2_error(msg)
-
-
 def _handle_ptr(ptr, msg=None):
     if ptr is None:
         _raise_bt2_error(msg)
@@ -143,3 +139,57 @@ def _check_log_level(log_level):
 
     if log_level not in log_levels:
         raise ValueError("'{}' is not a valid logging level".format(log_level))
+
+
+def _handle_func_status(status, msg=None):
+    if status == native_bt.__BT_FUNC_STATUS_OK:
+        # no error
+        return
+
+    if status == native_bt.__BT_FUNC_STATUS_ERROR or status == native_bt.__BT_FUNC_STATUS_MEMORY_ERROR:
+        if msg is None:
+            raise bt2.Error
+        else:
+            raise bt2.Error(msg)
+    elif status == native_bt.__BT_FUNC_STATUS_END:
+        if msg is None:
+            raise bt2.Stop
+        else:
+            raise bt2.Stop(msg)
+    elif status == native_bt.__BT_FUNC_STATUS_AGAIN:
+        if msg is None:
+            raise bt2.TryAgain
+        else:
+            raise bt2.TryAgain(msg)
+    elif status == native_bt.__BT_FUNC_STATUS_CANCELED:
+        if msg is None:
+            raise bt2.Canceled
+        else:
+            raise bt2.Canceled(msg)
+    elif status == native_bt.__BT_FUNC_STATUS_LOADING_ERROR:
+        if msg is None:
+            raise bt2.LoadingError
+        else:
+            raise bt2.LoadingError(msg)
+    elif status == native_bt.__BT_FUNC_STATUS_OVERFLOW:
+        if msg is None:
+            raise bt2.OverflowError
+        else:
+            raise bt2.OverflowError(msg)
+    elif status == native_bt.__BT_FUNC_STATUS_INVALID_OBJECT:
+        if msg is None:
+            raise bt2.InvalidObject
+        else:
+            raise bt2.InvalidObject(msg)
+    elif status == native_bt.__BT_FUNC_STATUS_INVALID_PARAMS:
+        if msg is None:
+            raise bt2.InvalidParams
+        else:
+            raise bt2.InvalidParams(msg)
+    elif status == native_bt.__BT_FUNC_STATUS_UNSUPPORTED:
+        if msg is None:
+            raise bt2.Unsupported
+        else:
+            raise bt2.Unsupported(msg)
+    else:
+        assert False

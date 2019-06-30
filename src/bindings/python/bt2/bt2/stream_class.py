@@ -103,8 +103,9 @@ class _StreamClass(object._SharedObject, collections.abc.Mapping):
 
     def _name(self, name):
         utils._check_str(name)
-        ret = native_bt.stream_class_set_name(self._ptr, name)
-        utils._handle_ret(ret, "cannot set stream class object's name")
+        status = native_bt.stream_class_set_name(self._ptr, name)
+        utils._handle_func_status(status,
+                                  "cannot set stream class object's name")
 
     _name = property(fset=_name)
 
@@ -194,8 +195,8 @@ class _StreamClass(object._SharedObject, collections.abc.Mapping):
     @id.setter
     def id(self, id):
         utils._check_int64(id)
-        ret = native_bt.stream_class_set_id(self._ptr, id)
-        utils._handle_ret(ret, "cannot set stream class object's ID")
+        status = native_bt.stream_class_set_id(self._ptr, id)
+        utils._handle_func_status(status, "cannot set stream class object's ID")
 
     @property
     def packet_context_field_class(self):
@@ -210,9 +211,10 @@ class _StreamClass(object._SharedObject, collections.abc.Mapping):
         if packet_context_field_class is not None:
             utils._check_type(packet_context_field_class,
                               bt2.field_class._StructureFieldClass)
-            ret = native_bt.stream_class_set_packet_context_field_class(self._ptr,
-                                                                        packet_context_field_class._ptr)
-            utils._handle_ret(ret, "cannot set stream class' packet context field class")
+            status = native_bt.stream_class_set_packet_context_field_class(self._ptr,
+                                                                           packet_context_field_class._ptr)
+            utils._handle_func_status(status,
+                                      "cannot set stream class' packet context field class")
 
     _packet_context_field_class = property(fset=_packet_context_field_class)
 
@@ -231,9 +233,9 @@ class _StreamClass(object._SharedObject, collections.abc.Mapping):
                               bt2.field_class._StructureFieldClass)
 
             set_context_fn = native_bt.stream_class_set_event_common_context_field_class
-            ret = set_context_fn(self._ptr, event_common_context_field_class._ptr)
-
-            utils._handle_ret(ret, "cannot set stream class' event context field type")
+            status = set_context_fn(self._ptr, event_common_context_field_class._ptr)
+            utils._handle_func_status(status,
+                                      "cannot set stream class' event context field type")
 
     _event_common_context_field_class = property(fset=_event_common_context_field_class)
 

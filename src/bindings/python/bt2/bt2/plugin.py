@@ -27,13 +27,6 @@ import os.path
 import bt2
 
 
-def _handle_status(status, gen_error_msg):
-    if status == native_bt.PLUGIN_STATUS_LOADING_ERROR:
-        raise bt2.PluginLoadingError
-    elif status < 0:
-        raise bt2.Error(gen_error_msg)
-
-
 def find_plugins(path, recurse=True, fail_on_load_error=False):
     utils._check_str(path)
     utils._check_bool(recurse)
@@ -41,17 +34,16 @@ def find_plugins(path, recurse=True, fail_on_load_error=False):
     plugin_set_ptr = None
 
     if os.path.isfile(path):
-        status, plugin_set_ptr = native_bt.plugin_find_all_from_file_wrapper(path, fail_on_load_error)
+        status, plugin_set_ptr = native_bt.bt2_plugin_find_all_from_file(path, fail_on_load_error)
     elif os.path.isdir(path):
-        status, plugin_set_ptr = native_bt.plugin_find_all_from_dir_wrapper(path, int(recurse), int(fail_on_load_error))
+        status, plugin_set_ptr = native_bt.bt2_plugin_find_all_from_dir(path, int(recurse), int(fail_on_load_error))
     else:
         raise bt2.Error("invalid path: '{}'".format(path))
 
-    _handle_status(status, 'failed to find plugins')
-
-    if status == native_bt.PLUGIN_STATUS_NOT_FOUND:
+    if status == native_bt.__BT_FUNC_STATUS_NOT_FOUND:
         return
 
+    utils._handle_func_status(status, 'failed to find plugins')
     assert plugin_set_ptr is not None
     return _PluginSet._create_from_ptr(plugin_set_ptr)
 
@@ -59,12 +51,12 @@ def find_plugins(path, recurse=True, fail_on_load_error=False):
 def find_plugin(name, fail_on_load_error=False):
     utils._check_str(name)
     utils._check_bool(fail_on_load_error)
-    status, ptr = native_bt.plugin_find_wrapper(name, int(fail_on_load_error))
-    _handle_status(status, 'failed to find plugin')
+    status, ptr = native_bt.bt2_plugin_find(name, int(fail_on_load_error))
 
-    if status == native_bt.PLUGIN_STATUS_NOT_FOUND:
+    if status == native_bt.__BT_FUNC_STATUS_NOT_FOUND:
         return
 
+    utils._handle_func_status(status, 'failed to find plugin')
     assert ptr is not None
     return _Plugin._create_from_ptr(ptr)
 
@@ -214,7 +206,7 @@ class _Plugin(object._SharedObject):
 
     @property
     def version(self):
-        status, major, minor, patch, extra = native_bt.plugin_get_version_wrapper(self._ptr)
+        status, major, minor, patch, extra = native_bt.bt2_plugin_get_version(self._ptr)
 
         if status == native_bt.PROPERTY_AVAILABILITY_NOT_AVAILABLE:
             return

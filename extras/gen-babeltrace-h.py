@@ -45,14 +45,22 @@ def _c_includes_from_sections(sections):
     src = ''
 
     for section in sections:
+        # CTF writer is not part of the Babeltrace library
         if 'ctf' in section.title.lower():
             continue
 
         src += '/* {} */\n'.format(section.title)
+        lines = []
 
         for filename in sorted(section.filenames):
-            src += '#include <{}>\n'.format(filename)
+            # not part of the API
+            if 'func-status' in filename:
+                continue
 
+            lines.append('#include <{}>\n'.format(filename))
+
+        lines.sort()
+        src += ''.join(lines)
         src += '\n'
 
     return src[:-1]
@@ -91,6 +99,7 @@ def _main():
 ''')
     print(_c_includes_from_sections(sections))
     print('#endif /* BABELTRACE_BABELTRACE_H */')
+
 
 if __name__ == '__main__':
     _main()

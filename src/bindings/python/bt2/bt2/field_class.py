@@ -173,12 +173,13 @@ class _EnumerationFieldClass(_IntegerFieldClass, collections.abc.Mapping):
         if upper is None:
             upper = lower
 
-        ret = self._map_range(self._ptr, label, lower, upper)
-        utils._handle_ret(ret, "cannot add mapping to enumeration field class object")
+        status = self._map_range(self._ptr, label, lower, upper)
+        utils._handle_func_status(status,
+                                  "cannot add mapping to enumeration field class object")
 
     def labels_by_value(self, value):
-        ret, labels = self._get_mapping_labels_by_value(self._ptr, value)
-        utils._handle_ret(ret, "cannot get mapping labels")
+        status, labels = self._get_mapping_labels_by_value(self._ptr, value)
+        utils._handle_func_status(status, "cannot get mapping labels")
         return labels
 
     def __iter__(self):
@@ -283,8 +284,9 @@ class _FieldContainer(collections.abc.Mapping):
     def _append_element_common(self, name, field_class):
         utils._check_str(name)
         utils._check_type(field_class, _FieldClass)
-        ret = self._append_element(self._ptr, name, field_class._ptr)
-        utils._handle_ret(ret, "cannot add field to {} field class object".format(self._NAME.lower()))
+        status = self._append_element(self._ptr, name, field_class._ptr)
+        utils._handle_func_status(status,
+                                  "cannot add field to {} field class object".format(self._NAME.lower()))
 
     def __iadd__(self, fields):
         for name, field_class in fields.items():
@@ -347,8 +349,9 @@ class _VariantFieldClass(_FieldClass, _FieldContainer):
 
     def _set_selector_field_class(self, selector_fc):
         utils._check_type(selector_fc, bt2.field_class._EnumerationFieldClass)
-        ret = native_bt.field_class_variant_set_selector_field_class(self._ptr, selector_fc._ptr)
-        utils._handle_ret(ret, "cannot set variant selector field type")
+        status = native_bt.field_class_variant_set_selector_field_class(self._ptr, selector_fc._ptr)
+        utils._handle_func_status(status,
+                                  "cannot set variant selector field type")
 
     _selector_field_class = property(fset=_set_selector_field_class)
 
@@ -377,8 +380,9 @@ class _DynamicArrayFieldClass(_ArrayFieldClass):
 
     def _set_length_field_class(self, length_fc):
         utils._check_type(length_fc, _UnsignedIntegerFieldClass)
-        ret = native_bt.field_class_dynamic_array_set_length_field_class(self._ptr, length_fc._ptr)
-        utils._handle_ret(ret, "cannot set dynamic array length field type")
+        status = native_bt.field_class_dynamic_array_set_length_field_class(self._ptr, length_fc._ptr)
+        utils._handle_func_status(status,
+                                  "cannot set dynamic array length field type")
 
     _length_field_class = property(fset=_set_length_field_class)
 

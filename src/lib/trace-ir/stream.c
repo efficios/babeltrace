@@ -40,6 +40,7 @@
 #include "stream-class.h"
 #include "stream.h"
 #include "trace.h"
+#include "lib/func-status.h"
 
 #define BT_ASSERT_PRE_STREAM_HOT(_stream) \
 	BT_ASSERT_PRE_HOT((_stream), "Stream", ": %!+s", (_stream))
@@ -206,7 +207,7 @@ const char *bt_stream_get_name(const struct bt_stream *stream)
 	return stream->name.value;
 }
 
-enum bt_stream_status bt_stream_set_name(struct bt_stream *stream,
+enum bt_stream_set_name_status bt_stream_set_name(struct bt_stream *stream,
 		const char *name)
 {
 	BT_ASSERT_PRE_NON_NULL(stream, "Stream");
@@ -215,7 +216,7 @@ enum bt_stream_status bt_stream_set_name(struct bt_stream *stream,
 	g_string_assign(stream->name.str, name);
 	stream->name.value = stream->name.str->str;
 	BT_LIB_LOGD("Set stream's name: %!+s", stream);
-	return BT_STREAM_STATUS_OK;
+	return BT_FUNC_STATUS_OK;
 }
 
 uint64_t bt_stream_get_id(const struct bt_stream *stream)

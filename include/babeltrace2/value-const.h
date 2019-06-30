@@ -29,20 +29,14 @@
 /* For bt_bool, bt_value */
 #include <babeltrace2/types.h>
 
+/* For __BT_FUNC_STATUS_* */
+#define __BT_FUNC_STATUS_ENABLE
+#include <babeltrace2/func-status.h>
+#undef __BT_FUNC_STATUS_ENABLE
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-typedef enum bt_value_status {
-	/// Operation canceled.
-	BT_VALUE_STATUS_CANCELED	= 125,
-
-	/// Cannot allocate memory.
-	BT_VALUE_STATUS_NOMEM		= -12,
-
-	/// Okay, no error.
-	BT_VALUE_STATUS_OK		= 0,
-} bt_value_status;
 
 typedef enum bt_value_type {
 	/// Null value object.
@@ -120,7 +114,12 @@ bt_bool bt_value_is_map(const bt_value *object)
 	return bt_value_get_type(object) == BT_VALUE_TYPE_MAP;
 }
 
-extern bt_value_status bt_value_copy(const bt_value *object,
+typedef enum bt_value_copy_status {
+	BT_VALUE_COPY_STATUS_MEMORY_ERROR	= __BT_FUNC_STATUS_MEMORY_ERROR,
+	BT_VALUE_COPY_STATUS_OK			= __BT_FUNC_STATUS_OK,
+} bt_value_copy_status;
+
+extern bt_value_copy_status bt_value_copy(const bt_value *object,
 		bt_value **copy);
 
 extern bt_bool bt_value_compare(const bt_value *object_a,
@@ -161,14 +160,25 @@ extern const bt_value *bt_value_map_borrow_entry_value_const(
 typedef bt_bool (* bt_value_map_foreach_entry_const_func)(const char *key,
 		const bt_value *object, void *data);
 
-extern bt_value_status bt_value_map_foreach_entry_const(
+typedef enum bt_value_map_foreach_entry_const_status {
+	BT_VALUE_MAP_FOREACH_ENTRY_CONST_STATUS_MEMORY_ERROR	= __BT_FUNC_STATUS_MEMORY_ERROR,
+	BT_VALUE_MAP_FOREACH_ENTRY_CONST_STATUS_OK		= __BT_FUNC_STATUS_OK,
+	BT_VALUE_MAP_FOREACH_ENTRY_CONST_STATUS_CANCELED	= __BT_FUNC_STATUS_CANCELED,
+} bt_value_map_foreach_entry_const_status;
+
+extern bt_value_map_foreach_entry_const_status bt_value_map_foreach_entry_const(
 		const bt_value *map_obj,
 		bt_value_map_foreach_entry_const_func func, void *data);
 
 extern bt_bool bt_value_map_has_entry(const bt_value *map_obj,
 		const char *key);
 
-extern bt_value_status bt_value_map_extend(
+typedef enum bt_value_map_extend_status {
+	BT_VALUE_MAP_EXTEND_STATUS_MEMORY_ERROR	= __BT_FUNC_STATUS_MEMORY_ERROR,
+	BT_VALUE_MAP_EXTEND_STATUS_OK		= __BT_FUNC_STATUS_OK,
+} bt_value_map_extend_status;
+
+extern bt_value_map_extend_status bt_value_map_extend(
 		const bt_value *base_map_obj,
 		const bt_value *extension_map_obj,
 		bt_value **extended_map_obj);
@@ -193,5 +203,7 @@ extern void bt_value_put_ref(const bt_value *value);
 #ifdef __cplusplus
 }
 #endif
+
+#include <babeltrace2/undef-func-status.h>
 
 #endif /* BABELTRACE_VALUES_CONST_H */

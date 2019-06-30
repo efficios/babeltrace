@@ -161,7 +161,7 @@ struct details_comp {
 };
 
 BT_HIDDEN
-bt_self_component_status details_init(
+bt_component_class_init_method_status details_init(
 		bt_self_component_sink *component,
 		const bt_value *params, void *init_method_data);
 
@@ -169,11 +169,11 @@ BT_HIDDEN
 void details_finalize(bt_self_component_sink *component);
 
 BT_HIDDEN
-bt_self_component_status details_graph_is_configured(
+bt_component_class_sink_graph_is_configured_method_status details_graph_is_configured(
 		bt_self_component_sink *comp);
 
 BT_HIDDEN
-bt_self_component_status details_consume(bt_self_component_sink *component);
+bt_component_class_sink_consume_method_status details_consume(bt_self_component_sink *component);
 
 BT_HIDDEN
 void details_destroy_details_trace_class_meta(

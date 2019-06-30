@@ -74,11 +74,19 @@ class CreationError(Error):
     '''Raised when object creation fails due to memory issues.'''
 
 
-class InvalidQueryObject(Error):
+class InvalidObject(Error):
     pass
 
 
-class InvalidQueryParams(Error):
+class InvalidParams(Error):
+    pass
+
+
+class OverflowError(OverflowError):
+    pass
+
+
+class Unsupported(Exception):
     pass
 
 
@@ -94,11 +102,7 @@ class IncompleteUserClass(Error):
     pass
 
 
-class GraphCanceled(Exception):
-    pass
-
-
-class QueryExecutorCanceled(Exception):
+class Canceled(Exception):
     pass
 
 
@@ -106,7 +110,7 @@ class NonexistentClockSnapshot(Error):
     pass
 
 
-class PluginLoadingError(Error):
+class LoadingError(Error):
     pass
 
 
@@ -120,10 +124,10 @@ def _init_and_register_exit():
     import bt2.native_bt as _native_bt
     import atexit
 
-    atexit.register(_native_bt.py3_cc_exit_handler)
+    atexit.register(_native_bt.bt2_cc_exit_handler)
     version = (_native_bt.version_get_major(), _native_bt.version_get_minor(),
                _native_bt.version_get_patch(), _native_bt.version_get_extra())
-    _native_bt.py3_cc_init_from_bt2()
+    _native_bt.bt2_cc_init_from_bt2()
 
 
 _init_and_register_exit()

@@ -69,32 +69,31 @@
 
 /* Helpers */
 
-bt_property_availability bt_plugin_get_version_wrapper(
+bt_property_availability bt_bt2_plugin_get_version(
 		const bt_plugin *plugin, unsigned int *major,
 		unsigned int *minor, unsigned int *patch, const char **extra);
 
-bt_plugin_status bt_plugin_find_wrapper(const char *plugin_name,
+bt_plugin_find_status bt_bt2_plugin_find(const char *plugin_name,
 		bt_bool fail_on_load_error, const bt_plugin **plugin);
 
-bt_plugin_status bt_plugin_find_all_from_file_wrapper(
+bt_plugin_find_all_from_file_status bt_bt2_plugin_find_all_from_file(
 		const char *path, bt_bool fail_on_load_error,
 		const bt_plugin_set **plugin_set);
 
-bt_plugin_status bt_plugin_find_all_from_dir_wrapper(
+bt_plugin_find_all_from_dir_status bt_bt2_plugin_find_all_from_dir(
 		const char *path, bt_bool recurse, bt_bool fail_on_load_error,
 		const bt_plugin_set **plugin_set);
 
 %{
-
 /*
- * This *_wrapper() functions below ensure that when the API function
+ * Those  bt_bt2_*() functions below ensure that when the API function
  * fails, the output parameter is set to `NULL`.  This is necessary
  * because the epilogue of the `something **OUT` typemap will use that
  * value to make a Python object.  We can't rely on the initial value of
  * `*OUT`; it could point to unreadable memory.
  */
 
-bt_property_availability bt_plugin_get_version_wrapper(
+bt_property_availability bt_bt2_plugin_get_version(
 		const bt_plugin *plugin, unsigned int *major,
 		unsigned int *minor, unsigned int *patch, const char **extra)
 {
@@ -109,48 +108,47 @@ bt_property_availability bt_plugin_get_version_wrapper(
 	return ret;
 }
 
-bt_plugin_status bt_plugin_find_wrapper(const char *plugin_name,
+bt_plugin_find_status bt_bt2_plugin_find(const char *plugin_name,
 		bt_bool fail_on_load_error, const bt_plugin **plugin)
 {
-	bt_plugin_status status;
+	bt_plugin_find_status status;
 
 	status = bt_plugin_find(plugin_name, fail_on_load_error,
 		plugin);
-	if (status != BT_PLUGIN_STATUS_OK) {
+	if (status != __BT_FUNC_STATUS_OK) {
 		*plugin = NULL;
 	}
 
 	return status;
 }
 
-bt_plugin_status bt_plugin_find_all_from_file_wrapper(
+bt_plugin_find_all_from_file_status bt_bt2_plugin_find_all_from_file(
 		const char *path, bt_bool fail_on_load_error,
 		const bt_plugin_set **plugin_set)
 {
-	bt_plugin_status status;
+	bt_plugin_find_all_from_file_status status;
 
 	status = bt_plugin_find_all_from_file(path, fail_on_load_error,
 		plugin_set);
-	if (status != BT_PLUGIN_STATUS_OK) {
+	if (status != __BT_FUNC_STATUS_OK) {
 		*plugin_set = NULL;
 	}
 
 	return status;
 }
 
-bt_plugin_status bt_plugin_find_all_from_dir_wrapper(
+bt_plugin_find_all_from_dir_status bt_bt2_plugin_find_all_from_dir(
 		const char *path, bt_bool recurse, bt_bool fail_on_load_error,
 		const bt_plugin_set **plugin_set)
 {
-	bt_plugin_status status;
+	bt_plugin_find_all_from_dir_status status;
 
 	status = bt_plugin_find_all_from_dir(path, recurse, fail_on_load_error,
 		plugin_set);
-	if (status != BT_PLUGIN_STATUS_OK) {
+	if (status != __BT_FUNC_STATUS_OK) {
 		*plugin_set = NULL;
 	}
 
 	return status;
 }
-
 %}

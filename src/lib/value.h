@@ -70,7 +70,7 @@ struct bt_value_map {
 };
 
 BT_HIDDEN
-enum bt_value_status _bt_value_freeze(const struct bt_value *object);
+void _bt_value_freeze(const struct bt_value *object);
 
 #ifdef BT_DEV_MODE
 # define bt_value_freeze	_bt_value_freeze
