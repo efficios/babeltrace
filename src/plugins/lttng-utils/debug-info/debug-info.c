@@ -571,7 +571,7 @@ void debug_info_destroy(struct debug_info *debug_info)
 {
 	bt_logging_level log_level;
 	bt_self_component *self_comp;
-	bt_trace_status status;
+	bt_trace_remove_listener_status remove_listener_status;
 	if (!debug_info) {
 		goto end;
 	}
@@ -583,9 +583,10 @@ void debug_info_destroy(struct debug_info *debug_info)
 		g_hash_table_destroy(debug_info->vpid_to_proc_dbg_info_src);
 	}
 
-	status = bt_trace_remove_destruction_listener(debug_info->input_trace,
+	remove_listener_status = bt_trace_remove_destruction_listener(
+			debug_info->input_trace,
 			debug_info->destruction_listener_id);
-	if (status != BT_TRACE_STATUS_OK) {
+	if (remove_listener_status != BT_TRACE_REMOVE_LISTENER_STATUS_OK) {
 		BT_COMP_LOGE("Trace destruction listener removal failed.");
 	}
 
@@ -949,34 +950,36 @@ void fill_debug_info_bin_field(struct debug_info_source *dbg_info_src,
 		bool full_path, bt_field *curr_field,
 		bt_logging_level log_level, bt_self_component *self_comp)
 {
-	bt_field_status status;
+	bt_field_string_set_value_status set_status;
+	bt_field_string_append_status append_status;
 
 	BT_ASSERT(bt_field_get_class_type(curr_field) ==
 			BT_FIELD_CLASS_TYPE_STRING);
 
 	if (dbg_info_src) {
 		if (full_path) {
-			status = bt_field_string_set_value(curr_field,
-					dbg_info_src->bin_path);
+			set_status = bt_field_string_set_value(curr_field,
+				dbg_info_src->bin_path);
 		} else {
-			status = bt_field_string_set_value(curr_field,
-					dbg_info_src->short_bin_path);
+			set_status = bt_field_string_set_value(curr_field,
+				dbg_info_src->short_bin_path);
 		}
-		if (status != BT_FIELD_STATUS_OK) {
+		if (set_status != BT_FIELD_STRING_SET_VALUE_STATUS_OK) {
 			BT_COMP_LOGE("Cannot set path component of \"bin\" "
 				"curr_field field's value: str-fc-addr=%p",
 				curr_field);
 		}
 
-		status = bt_field_string_append(curr_field, dbg_info_src->bin_loc);
-		if (status != BT_FIELD_STATUS_OK) {
+		append_status = bt_field_string_append(curr_field,
+			dbg_info_src->bin_loc);
+		if (append_status != BT_FIELD_STRING_APPEND_STATUS_OK) {
 			BT_COMP_LOGE("Cannot set bin location component of \"bin\" "
 				"curr_field field's value: str-fc-addr=%p",
 				curr_field);
 		}
 	} else {
-		status = bt_field_string_set_value(curr_field, "");
-		if (status != BT_FIELD_STATUS_OK) {
+		set_status = bt_field_string_set_value(curr_field, "");
+		if (set_status != BT_FIELD_STRING_SET_VALUE_STATUS_OK) {
 			BT_COMP_LOGE("Cannot set \"bin\" curr_field field's value: "
 				"str-fc-addr=%p", curr_field);
 		}
@@ -988,17 +991,17 @@ void fill_debug_info_func_field(struct debug_info_source *dbg_info_src,
 		bt_field *curr_field, bt_logging_level log_level,
 		bt_self_component *self_comp)
 {
-	bt_field_status status;
+	bt_field_string_set_value_status status;
 
 	BT_ASSERT(bt_field_get_class_type(curr_field) ==
 			BT_FIELD_CLASS_TYPE_STRING);
 	if (dbg_info_src && dbg_info_src->func) {
 		status = bt_field_string_set_value(curr_field,
-				dbg_info_src->func);
+			dbg_info_src->func);
 	} else {
 		status = bt_field_string_set_value(curr_field, "");
 	}
-	if (status != BT_FIELD_STATUS_OK) {
+	if (status != BT_FIELD_STRING_SET_VALUE_STATUS_OK) {
 		BT_COMP_LOGE("Cannot set \"func\" curr_field field's value: "
 			"str-fc-addr=%p", curr_field);
 	}
@@ -1010,41 +1013,43 @@ void fill_debug_info_src_field(struct debug_info_source *dbg_info_src,
 		bt_logging_level log_level,
 		bt_self_component *self_comp)
 {
-	bt_field_status status;
+	bt_field_string_set_value_status set_status;
+	bt_field_string_append_status append_status;
 
 	BT_ASSERT(bt_field_get_class_type(curr_field) ==
 			BT_FIELD_CLASS_TYPE_STRING);
 
 	if (dbg_info_src && dbg_info_src->src_path) {
 		if (full_path) {
-			status = bt_field_string_set_value(curr_field,
+			set_status = bt_field_string_set_value(curr_field,
 					dbg_info_src->src_path);
 		} else {
-			status = bt_field_string_set_value(curr_field,
+			set_status = bt_field_string_set_value(curr_field,
 					dbg_info_src->short_src_path);
 		}
-		if (status != BT_FIELD_STATUS_OK) {
+		if (set_status != BT_FIELD_STRING_SET_VALUE_STATUS_OK) {
 			BT_COMP_LOGE("Cannot set path component of \"src\" "
 				"curr_field field's value: str-fc-addr=%p",
 				curr_field);
 		}
 
-		status = bt_field_string_append(curr_field, ":");
-		if (status != BT_FIELD_STATUS_OK) {
+		append_status = bt_field_string_append(curr_field, ":");
+		if (append_status != BT_FIELD_STRING_APPEND_STATUS_OK) {
 			BT_COMP_LOGE("Cannot set colon component of \"src\" "
 				"curr_field field's value: str-fc-addr=%p",
 				curr_field);
 		}
 
-		status = bt_field_string_append(curr_field, dbg_info_src->line_no);
-		if (status != BT_FIELD_STATUS_OK) {
+		append_status = bt_field_string_append(curr_field,
+			dbg_info_src->line_no);
+		if (append_status != BT_FIELD_STRING_APPEND_STATUS_OK) {
 			BT_COMP_LOGE("Cannot set line number component of \"src\" "
 				"curr_field field's value: str-fc-addr=%p",
 				curr_field);
 		}
 	} else {
-		status = bt_field_string_set_value(curr_field, "");
-		if (status != BT_FIELD_STATUS_OK) {
+		set_status = bt_field_string_set_value(curr_field, "");
+		if (set_status != BT_FIELD_STRING_SET_VALUE_STATUS_OK) {
 			BT_COMP_LOGE("Cannot set \"src\" curr_field field's value: "
 				"str-fc-addr=%p", curr_field);
 		}
@@ -1055,7 +1060,7 @@ static
 void fill_debug_info_field_empty(bt_field *debug_info_field,
 	bt_logging_level log_level, bt_self_component *self_comp)
 {
-	bt_field_status status;
+	bt_field_string_set_value_status status;
 	bt_field *bin_field, *func_field, *src_field;
 
 	BT_ASSERT(bt_field_get_class_type(debug_info_field) ==
@@ -1076,19 +1081,19 @@ void fill_debug_info_field_empty(bt_field *debug_info_field,
 			BT_FIELD_CLASS_TYPE_STRING);
 
 	status = bt_field_string_set_value(bin_field, "");
-	if (status != BT_FIELD_STATUS_OK) {
+	if (status != BT_FIELD_STRING_SET_VALUE_STATUS_OK) {
 		BT_COMP_LOGE("Cannot set \"bin\" bin_field field's value: "
 			"str-fc-addr=%p", bin_field);
 	}
 
 	status = bt_field_string_set_value(func_field, "");
-	if (status != BT_FIELD_STATUS_OK) {
+	if (status != BT_FIELD_STRING_SET_VALUE_STATUS_OK) {
 		BT_COMP_LOGE("Cannot set \"func\" func_field field's value: "
 			"str-fc-addr=%p", func_field);
 	}
 
 	status = bt_field_string_set_value(src_field, "");
-	if (status != BT_FIELD_STATUS_OK) {
+	if (status != BT_FIELD_STRING_SET_VALUE_STATUS_OK) {
 		BT_COMP_LOGE("Cannot set \"src\" src_field field's value: "
 			"str-fc-addr=%p", src_field);
 	}
@@ -1806,13 +1811,15 @@ int init_from_params(struct debug_info_component *debug_info_component,
 }
 
 BT_HIDDEN
-bt_self_component_status debug_info_comp_init(
+bt_component_class_init_method_status debug_info_comp_init(
 		bt_self_component_filter *self_comp_flt,
 		const bt_value *params, __attribute__((unused)) void *init_method_data)
 {
 	int ret;
 	struct debug_info_component *debug_info_comp;
-	bt_self_component_status status = BT_SELF_COMPONENT_STATUS_OK;
+	bt_component_class_init_method_status status =
+		BT_COMPONENT_CLASS_INIT_METHOD_STATUS_OK;
+	bt_self_component_add_port_status add_port_status;
 	bt_self_component *self_comp =
 		bt_self_component_filter_as_self_component(self_comp_flt);
 	bt_logging_level log_level = bt_component_get_logging_level(
@@ -1832,16 +1839,30 @@ bt_self_component_status debug_info_comp_init(
 	debug_info_comp->self_comp = self_comp;
 	bt_self_component_set_data(self_comp, debug_info_comp);
 
-	status = bt_self_component_filter_add_input_port(self_comp_flt, "in",
-			NULL, NULL);
-	if (status != BT_SELF_COMPONENT_STATUS_OK) {
+	add_port_status = bt_self_component_filter_add_input_port(
+		self_comp_flt, "in", NULL, NULL);
+	switch (add_port_status) {
+	case BT_SELF_COMPONENT_ADD_PORT_STATUS_ERROR:
+		status = BT_COMPONENT_CLASS_INIT_METHOD_STATUS_ERROR;
 		goto error;
+	case BT_SELF_COMPONENT_ADD_PORT_STATUS_MEMORY_ERROR:
+		status = BT_COMPONENT_CLASS_INIT_METHOD_STATUS_MEMORY_ERROR;
+		goto error;
+	default:
+		break;
 	}
 
-	status = bt_self_component_filter_add_output_port(self_comp_flt, "out",
-			NULL, NULL);
-	if (status != BT_SELF_COMPONENT_STATUS_OK) {
+	add_port_status = bt_self_component_filter_add_output_port(
+			self_comp_flt, "out", NULL, NULL);
+	switch (add_port_status) {
+	case BT_SELF_COMPONENT_ADD_PORT_STATUS_ERROR:
+		status = BT_COMPONENT_CLASS_INIT_METHOD_STATUS_ERROR;
 		goto error;
+	case BT_SELF_COMPONENT_ADD_PORT_STATUS_MEMORY_ERROR:
+		status = BT_COMPONENT_CLASS_INIT_METHOD_STATUS_MEMORY_ERROR;
+		goto error;
+	default:
+		break;
 	}
 
 	ret = init_from_params(debug_info_comp, params);
@@ -1858,8 +1879,8 @@ error:
 	destroy_debug_info_comp(debug_info_comp);
 	bt_self_component_set_data(self_comp, NULL);
 
-	if (status == BT_SELF_COMPONENT_STATUS_OK) {
-		status = BT_SELF_COMPONENT_STATUS_ERROR;
+	if (status == BT_COMPONENT_CLASS_INIT_METHOD_STATUS_OK) {
+		status = BT_COMPONENT_CLASS_INIT_METHOD_STATUS_ERROR;
 	}
 end:
 	return status;
@@ -1882,22 +1903,22 @@ void debug_info_comp_finalize(bt_self_component_filter *self_comp_flt)
 }
 
 BT_HIDDEN
-bt_self_message_iterator_status debug_info_msg_iter_next(
+bt_component_class_message_iterator_next_method_status debug_info_msg_iter_next(
 		bt_self_message_iterator *self_msg_iter,
 		const bt_message_array_const msgs, uint64_t capacity,
 		uint64_t *count)
 {
 	bt_self_component_port_input_message_iterator *upstream_iterator = NULL;
-	bt_message_iterator_status upstream_iterator_ret_status;
+	bt_message_iterator_next_status upstream_iterator_ret_status;
 	struct debug_info_msg_iter *debug_info_msg_iter;
 	struct debug_info_component *debug_info = NULL;
-	bt_self_message_iterator_status status;
+	bt_component_class_message_iterator_next_method_status status;
 	bt_self_component *self_comp = NULL;
 	bt_message_array_const input_msgs;
 	const bt_message *out_message;
 	uint64_t curr_msg_idx, i;
 
-	status = BT_SELF_MESSAGE_ITERATOR_STATUS_OK;
+	status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_OK;
 
 	self_comp = bt_self_message_iterator_borrow_component(self_msg_iter);
 	BT_ASSERT(self_comp);
@@ -1914,13 +1935,14 @@ bt_self_message_iterator_status debug_info_msg_iter_next(
 	upstream_iterator_ret_status =
 		bt_self_component_port_input_message_iterator_next(
 				upstream_iterator, &input_msgs, count);
-	if (upstream_iterator_ret_status != BT_MESSAGE_ITERATOR_STATUS_OK) {
+	if (upstream_iterator_ret_status !=
+			BT_MESSAGE_ITERATOR_NEXT_STATUS_OK) {
 		/*
-		 * No messages were returned. Not necessarily an error. Convert
-		 * the upstream message iterator status to a self status.
+		 * No messages were returned. Not necessarily an error.
+		 * Convert the upstream message iterator status to a
+		 * self status.
 		 */
-		status = bt_common_message_iterator_status_to_self(
-				upstream_iterator_ret_status);
+		status = (int) upstream_iterator_ret_status;
 		goto end;
 	}
 
@@ -1932,7 +1954,7 @@ bt_self_message_iterator_status debug_info_msg_iter_next(
 
 	for (curr_msg_idx = 0; curr_msg_idx < *count; curr_msg_idx++) {
 		out_message = handle_message(debug_info_msg_iter,
-				input_msgs[curr_msg_idx]);
+			input_msgs[curr_msg_idx]);
 		if (!out_message) {
 			goto handle_msg_error;
 		}
@@ -1956,7 +1978,8 @@ handle_msg_error:
 		bt_message_put_ref(msgs[i]);
 	}
 
-	status = BT_SELF_MESSAGE_ITERATOR_STATUS_NOMEM;
+	status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_MEMORY_ERROR;
+
 end:
 	return status;
 }
@@ -1989,12 +2012,13 @@ end:
 }
 
 BT_HIDDEN
-bt_self_message_iterator_status debug_info_msg_iter_init(
+bt_component_class_message_iterator_init_method_status debug_info_msg_iter_init(
 		bt_self_message_iterator *self_msg_iter,
 		bt_self_component_filter *self_comp_flt,
 		bt_self_component_port_output *self_port)
 {
-	bt_self_message_iterator_status status = BT_SELF_MESSAGE_ITERATOR_STATUS_OK;
+	bt_component_class_message_iterator_init_method_status status =
+		BT_COMPONENT_CLASS_MESSAGE_ITERATOR_INIT_METHOD_STATUS_OK;
 	struct bt_self_component_port_input *input_port = NULL;
 	bt_self_component_port_input_message_iterator *upstream_iterator = NULL;
 	struct debug_info_msg_iter *debug_info_msg_iter = NULL;
@@ -2009,13 +2033,13 @@ bt_self_message_iterator_status debug_info_msg_iter_init(
 	input_port = bt_self_component_filter_borrow_input_port_by_name(
 		self_comp_flt, "in");
 	if (!input_port) {
-		status = BT_SELF_MESSAGE_ITERATOR_STATUS_ERROR;
+		status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_INIT_METHOD_STATUS_ERROR;
 		goto error;
 	}
 
 	debug_info_msg_iter = g_new0(struct debug_info_msg_iter, 1);
 	if (!debug_info_msg_iter) {
-		status = BT_SELF_MESSAGE_ITERATOR_STATUS_NOMEM;
+		status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_INIT_METHOD_STATUS_MEMORY_ERROR;
 		goto error;
 	}
 
@@ -2026,7 +2050,7 @@ bt_self_message_iterator_status debug_info_msg_iter_init(
 	upstream_iterator = bt_self_component_port_input_message_iterator_create(
 		input_port);
 	if (!upstream_iterator) {
-		status = BT_SELF_MESSAGE_ITERATOR_STATUS_NOMEM;
+		status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_INIT_METHOD_STATUS_MEMORY_ERROR;
 		goto error;
 	}
 
@@ -2038,7 +2062,7 @@ bt_self_message_iterator_status debug_info_msg_iter_init(
 		g_direct_hash, g_direct_equal, (GDestroyNotify) NULL,
 		(GDestroyNotify) debug_info_destroy);
 	if (!debug_info_msg_iter->debug_info_map) {
-		status = BT_SELF_MESSAGE_ITERATOR_STATUS_NOMEM;
+		status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_INIT_METHOD_STATUS_MEMORY_ERROR;
 		goto error;
 	}
 
@@ -2051,13 +2075,13 @@ bt_self_message_iterator_status debug_info_msg_iter_init(
 	debug_info_msg_iter->ir_maps = trace_ir_maps_create(self_comp,
 		debug_info_field_name, log_level);
 	if (!debug_info_msg_iter->ir_maps) {
-		status = BT_SELF_MESSAGE_ITERATOR_STATUS_NOMEM;
+		status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_INIT_METHOD_STATUS_MEMORY_ERROR;
 		goto error;
 	}
 
 	ret = bt_fd_cache_init(&debug_info_msg_iter->fd_cache, log_level);
 	if (ret) {
-		status = BT_SELF_MESSAGE_ITERATOR_STATUS_NOMEM;
+		status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_INIT_METHOD_STATUS_MEMORY_ERROR;
 		goto error;
 	}
 
@@ -2068,6 +2092,7 @@ bt_self_message_iterator_status debug_info_msg_iter_init(
 
 error:
 	debug_info_msg_iter_destroy(debug_info_msg_iter);
+
 end:
 	return status;
 }
@@ -2085,27 +2110,31 @@ bt_bool debug_info_msg_iter_can_seek_beginning(
 }
 
 BT_HIDDEN
-bt_self_message_iterator_status debug_info_msg_iter_seek_beginning(
+bt_component_class_message_iterator_seek_beginning_method_status debug_info_msg_iter_seek_beginning(
 		bt_self_message_iterator *self_msg_iter)
 {
 	struct debug_info_msg_iter *debug_info_msg_iter =
 		bt_self_message_iterator_get_data(self_msg_iter);
-	bt_message_iterator_status status = BT_MESSAGE_ITERATOR_STATUS_OK;
+	bt_component_class_message_iterator_seek_beginning_method_status status =
+		BT_COMPONENT_CLASS_MESSAGE_ITERATOR_SEEK_BEGINNING_METHOD_STATUS_OK;
+	bt_message_iterator_seek_beginning_status seek_beg_status;
 
 	BT_ASSERT(debug_info_msg_iter);
 
 	/* Ask the upstream component to seek to the beginning. */
-	status = bt_self_component_port_input_message_iterator_seek_beginning(
+	seek_beg_status = bt_self_component_port_input_message_iterator_seek_beginning(
 		debug_info_msg_iter->msg_iter);
-	if (status != BT_MESSAGE_ITERATOR_STATUS_OK) {
+	if (seek_beg_status != BT_MESSAGE_ITERATOR_SEEK_BEGINNING_STATUS_OK) {
+		status = (int) seek_beg_status;
 		goto end;
 	}
 
 	/* Clear this iterator data. */
 	trace_ir_maps_clear(debug_info_msg_iter->ir_maps);
 	g_hash_table_remove_all(debug_info_msg_iter->debug_info_map);
+
 end:
-	return bt_common_message_iterator_status_to_self(status);
+	return status;
 }
 
 BT_HIDDEN

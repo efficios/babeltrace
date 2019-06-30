@@ -551,7 +551,8 @@ error:
 BT_HIDDEN
 void trace_ir_data_maps_destroy(struct trace_ir_data_maps *maps)
 {
-	bt_trace_status status;
+	bt_trace_remove_listener_status status;
+
 	if (!maps) {
 		return;
 	}
@@ -569,8 +570,8 @@ void trace_ir_data_maps_destroy(struct trace_ir_data_maps *maps)
 	}
 
 	status = bt_trace_remove_destruction_listener(maps->input_trace,
-			maps->destruction_listener_id);
-	if (status != BT_TRACE_STATUS_OK) {
+		maps->destruction_listener_id);
+	if (status != BT_TRACE_REMOVE_LISTENER_STATUS_OK) {
 		BT_COMP_LOG_CUR_LVL(BT_LOG_DEBUG, maps->log_level,
 			maps->self_comp,
 			"Trace destruction listener removal failed.");
@@ -582,7 +583,8 @@ void trace_ir_data_maps_destroy(struct trace_ir_data_maps *maps)
 BT_HIDDEN
 void trace_ir_metadata_maps_destroy(struct trace_ir_metadata_maps *maps)
 {
-	bt_trace_class_status status;
+	bt_trace_class_remove_listener_status status;
+
 	if (!maps) {
 		return;
 	}
@@ -611,9 +613,10 @@ void trace_ir_metadata_maps_destroy(struct trace_ir_metadata_maps *maps)
 		bt_trace_class_put_ref(maps->output_trace_class);
 	}
 
-	status = bt_trace_class_remove_destruction_listener(maps->input_trace_class,
-			maps->destruction_listener_id);
-	if (status != BT_TRACE_CLASS_STATUS_OK) {
+	status = bt_trace_class_remove_destruction_listener(
+		maps->input_trace_class,
+		maps->destruction_listener_id);
+	if (status != BT_TRACE_CLASS_REMOVE_LISTENER_STATUS_OK) {
 		BT_COMP_LOG_CUR_LVL(BT_LOG_DEBUG, maps->log_level,
 			maps->self_comp,
 			"Trace destruction listener removal failed.");

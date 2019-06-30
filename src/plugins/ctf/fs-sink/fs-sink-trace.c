@@ -566,7 +566,7 @@ struct fs_sink_trace *fs_sink_trace_create(struct fs_sink_comp *fs_sink,
 {
 	int ret;
 	struct fs_sink_trace *trace = g_new0(struct fs_sink_trace, 1);
-	bt_trace_status trace_status;
+	bt_trace_add_listener_status trace_status;
 
 	if (!trace) {
 		goto end;

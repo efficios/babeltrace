@@ -2116,7 +2116,6 @@ enum bt_bfcr_status bfcr_string_begin_cb(
 {
 	bt_field *field = NULL;
 	struct bt_msg_iter *notit = data;
-	int ret;
 
 	BT_COMP_LOGT("String (beginning) function called from BFCR: "
 		"notit-addr=%p, bfcr-addr=%p, fc-addr=%p, "
@@ -2132,8 +2131,7 @@ enum bt_bfcr_status bfcr_string_begin_cb(
 	BT_ASSERT(bt_field_borrow_class_const(field) == fc->ir_fc);
 	BT_ASSERT(bt_field_get_class_type(field) ==
 		  BT_FIELD_CLASS_TYPE_STRING);
-	ret = bt_field_string_clear(field);
-	BT_ASSERT(ret == 0);
+	bt_field_string_clear(field);
 
 	/*
 	 * Push on stack. Not a compound class per se, but we know that
@@ -2245,13 +2243,10 @@ enum bt_bfcr_status bfcr_compound_begin_cb(
 		struct ctf_field_class_array_base *array_fc = (void *) fc;
 
 		if (array_fc->is_text) {
-			int ret;
-
 			BT_ASSERT(bt_field_get_class_type(field) ==
 				  BT_FIELD_CLASS_TYPE_STRING);
 			notit->done_filling_string = false;
-			ret = bt_field_string_clear(field);
-			BT_ASSERT(ret == 0);
+			bt_field_string_clear(field);
 			bt_bfcr_set_unsigned_int_cb(notit->bfcr,
 				bfcr_unsigned_int_char_cb);
 		}

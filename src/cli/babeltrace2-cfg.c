@@ -60,7 +60,7 @@ int bt_config_append_plugin_paths(
 
 		ret = bt_value_array_append_string_element(
 			plugin_paths, dir->str);
-		if (ret != BT_VALUE_STATUS_OK) {
+		if (ret < 0) {
 			ret = -1;
 			goto end;
 		}

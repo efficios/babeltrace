@@ -135,6 +135,7 @@ typedef struct bt_self_component_port_output bt_self_component_port_output;
 typedef struct bt_self_component_sink bt_self_component_sink;
 typedef struct bt_self_component_source bt_self_component_source;
 typedef struct bt_self_message_iterator bt_self_message_iterator;
+typedef struct bt_self_plugin bt_self_plugin;
 typedef struct bt_self_port bt_self_port;
 typedef struct bt_self_port_input bt_self_port_input;
 typedef struct bt_self_port_output bt_self_port_output;

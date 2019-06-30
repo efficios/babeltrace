@@ -34,16 +34,18 @@
 #include <glib.h>
 
 #include "component-class-sink-colander.h"
+#include "lib/func-status.h"
 
 static
 struct bt_component_class_sink *colander_comp_cls;
 
 static
-enum bt_self_component_status colander_init(
+enum bt_component_class_init_method_status colander_init(
 		struct bt_self_component_sink *self_comp,
 		const struct bt_value *params, void *init_method_data)
 {
-	enum bt_self_component_status status = BT_SELF_COMPONENT_STATUS_OK;
+	enum bt_component_class_init_method_status status =
+		BT_FUNC_STATUS_OK;
 	struct bt_component_class_sink_colander_priv_data *colander_data = NULL;
 	struct bt_component_class_sink_colander_data *user_provided_data =
 		init_method_data;
@@ -53,7 +55,7 @@ enum bt_self_component_status colander_init(
 		struct bt_component_class_sink_colander_priv_data, 1);
 	if (!colander_data) {
 		BT_LOGE_STR("Failed to allocate colander data.");
-		status = BT_SELF_COMPONENT_STATUS_NOMEM;
+		status = BT_FUNC_STATUS_MEMORY_ERROR;
 		goto end;
 	}
 
@@ -61,7 +63,7 @@ enum bt_self_component_status colander_init(
 	colander_data->count_addr = user_provided_data->count_addr;
 	status = bt_self_component_sink_add_input_port(self_comp, "in",
 		NULL, NULL);
-	if (status != BT_SELF_COMPONENT_STATUS_OK) {
+	if (status != BT_FUNC_STATUS_OK) {
 		BT_LOGE_STR("Cannot add input port.");
 		goto end;
 	}
@@ -90,10 +92,12 @@ void colander_finalize(struct bt_self_component_sink *self_comp)
 }
 
 static
-enum bt_self_component_status colander_graph_is_configured(
+enum bt_component_class_sink_graph_is_configured_method_status
+colander_graph_is_configured(
 	bt_self_component_sink *self_comp)
 {
-	enum bt_self_component_status status = BT_SELF_COMPONENT_STATUS_OK;
+	enum bt_component_class_sink_graph_is_configured_method_status status =
+		BT_FUNC_STATUS_OK;
 	struct bt_component_class_sink_colander_priv_data *colander_data =
 		bt_self_component_get_data(
 			bt_self_component_sink_as_self_component(self_comp));
@@ -111,7 +115,7 @@ enum bt_self_component_status colander_graph_is_configured(
 		BT_LIB_LOGE("Cannot create message iterator on "
 			"self component input port: %![port-]+p",
 			self_port);
-		status = BT_SELF_COMPONENT_STATUS_NOMEM;
+		status = BT_FUNC_STATUS_MEMORY_ERROR;
 		goto end;
 	}
 
@@ -120,11 +124,12 @@ end:
 }
 
 static
-enum bt_self_component_status colander_consume(
+enum bt_component_class_sink_consume_method_status colander_consume(
 		struct bt_self_component_sink *self_comp)
 {
-	enum bt_self_component_status status = BT_SELF_COMPONENT_STATUS_OK;
-	enum bt_message_iterator_status msg_iter_status;
+	enum bt_component_class_sink_consume_method_status status =
+		BT_FUNC_STATUS_OK;
+	enum bt_message_iterator_next_status next_status;
 	struct bt_component_class_sink_colander_priv_data *colander_data =
 		bt_self_component_get_data(
 			bt_self_component_sink_as_self_component(self_comp));
@@ -132,24 +137,23 @@ enum bt_self_component_status colander_consume(
 
 	BT_ASSERT(colander_data);
 	BT_ASSERT(colander_data->msg_iter);
-	msg_iter_status =
-		bt_self_component_port_input_message_iterator_next(
-			colander_data->msg_iter, &msgs,
-			colander_data->count_addr);
-	switch (msg_iter_status) {
-	case BT_MESSAGE_ITERATOR_STATUS_AGAIN:
-		status = BT_SELF_COMPONENT_STATUS_AGAIN;
+	next_status = bt_self_component_port_input_message_iterator_next(
+		colander_data->msg_iter, &msgs,
+		colander_data->count_addr);
+	switch (next_status) {
+	case BT_FUNC_STATUS_AGAIN:
+		status = BT_FUNC_STATUS_AGAIN;
 		goto end;
-	case BT_MESSAGE_ITERATOR_STATUS_END:
-		status = BT_SELF_COMPONENT_STATUS_END;
+	case BT_FUNC_STATUS_END:
+		status = BT_FUNC_STATUS_END;
 		goto end;
-	case BT_MESSAGE_ITERATOR_STATUS_OK:
+	case BT_FUNC_STATUS_OK:
 		/* Move messages to user (count already set) */
 		memcpy(colander_data->msgs, msgs,
 			sizeof(*msgs) * *colander_data->count_addr);
 		break;
 	default:
-		status = BT_SELF_COMPONENT_STATUS_ERROR;
+		status = BT_FUNC_STATUS_ERROR;
 		goto end;
 	}
 

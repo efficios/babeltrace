@@ -178,7 +178,7 @@ class GraphTestCase(unittest.TestCase):
         self._graph.cancel()
         self.assertTrue(self._graph.is_canceled)
 
-    # Test that Graph.run() raises bt2.GraphCanceled if the graph gets canceled
+    # Test that Graph.run() raises bt2.Canceled if the graph gets canceled
     # during execution.
     def test_cancel_while_running(self):
         class MyIter(_MyIter):
@@ -208,7 +208,7 @@ class GraphTestCase(unittest.TestCase):
         up = graph.add_component(MySource, 'down')
         down = graph.add_component(MySink, 'up')
         graph.connect_ports(up.output_ports['out'], down.input_ports['in'])
-        with self.assertRaises(bt2.GraphCanceled):
+        with self.assertRaises(bt2.Canceled):
             graph.run()
 
     def test_run(self):

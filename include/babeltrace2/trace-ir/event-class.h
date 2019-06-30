@@ -27,13 +27,18 @@
  * http://www.efficios.com/ctf
  */
 
-/* For bt_event_class_status, bt_event_class_log_level */
+#include <stdint.h>
+
+/* For bt_event_class_log_level */
 #include <babeltrace2/trace-ir/event-class-const.h>
 
 /* For bt_event_class, bt_stream_class */
 #include <babeltrace2/types.h>
 
-#include <stdint.h>
+/* For __BT_FUNC_STATUS_* */
+#define __BT_FUNC_STATUS_ENABLE
+#include <babeltrace2/func-status.h>
+#undef __BT_FUNC_STATUS_ENABLE
 
 #ifdef __cplusplus
 extern "C" {
@@ -48,23 +53,39 @@ extern bt_event_class *bt_event_class_create_with_id(
 extern bt_stream_class *bt_event_class_borrow_stream_class(
 		bt_event_class *event_class);
 
-extern bt_event_class_status bt_event_class_set_name(
+typedef enum bt_event_class_set_name_status {
+	BT_EVENT_CLASS_SET_NAME_STATUS_MEMORY_ERROR	= __BT_FUNC_STATUS_MEMORY_ERROR,
+	BT_EVENT_CLASS_SET_NAME_STATUS_OK		= __BT_FUNC_STATUS_OK,
+} bt_event_class_set_name_status;
+
+extern bt_event_class_set_name_status bt_event_class_set_name(
 		bt_event_class *event_class, const char *name);
 
 extern void bt_event_class_set_log_level(bt_event_class *event_class,
 		bt_event_class_log_level log_level);
 
-extern bt_event_class_status bt_event_class_set_emf_uri(
+typedef enum bt_event_class_set_emf_uri_status {
+	BT_EVENT_CLASS_SET_EMF_URI_STATUS_MEMORY_ERROR	= __BT_FUNC_STATUS_MEMORY_ERROR,
+	BT_EVENT_CLASS_SET_EMF_URI_STATUS_OK		= __BT_FUNC_STATUS_OK,
+} bt_event_class_set_emf_uri_status;
+
+extern bt_event_class_set_emf_uri_status bt_event_class_set_emf_uri(
 		bt_event_class *event_class, const char *emf_uri);
 
-extern bt_event_class_status
+typedef enum bt_event_class_set_field_class_status {
+	BT_EVENT_CLASS_SET_FIELD_CLASS_STATUS_MEMORY_ERROR	= __BT_FUNC_STATUS_MEMORY_ERROR,
+	BT_EVENT_CLASS_SET_FIELD_CLASS_STATUS_OK		= __BT_FUNC_STATUS_OK,
+} bt_event_class_set_field_class_status;
+
+extern bt_event_class_set_field_class_status
 bt_event_class_set_specific_context_field_class(bt_event_class *event_class,
 		bt_field_class *field_class);
 
 extern bt_field_class *
 bt_event_class_borrow_specific_context_field_class(bt_event_class *event_class);
 
-extern bt_event_class_status bt_event_class_set_payload_field_class(
+extern bt_event_class_set_field_class_status
+bt_event_class_set_payload_field_class(
 		bt_event_class *event_class,
 		bt_field_class *field_class);
 
@@ -74,5 +95,7 @@ extern bt_field_class *bt_event_class_borrow_payload_field_class(
 #ifdef __cplusplus
 }
 #endif
+
+#include <babeltrace2/undef-func-status.h>
 
 #endif /* BABELTRACE_TRACE_IR_EVENT_CLASS_H */

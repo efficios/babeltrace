@@ -160,7 +160,7 @@ int query(struct bt_config *cfg, const bt_component_class *comp_cls,
 		const bt_value **user_result, const char **fail_reason)
 {
 	const bt_value *result = NULL;
-	bt_query_executor_status status;
+	bt_query_executor_query_status query_status;
 	*fail_reason = "unknown error";
 	int ret = 0;
 
@@ -182,17 +182,18 @@ int query(struct bt_config *cfg, const bt_component_class *comp_cls,
 	}
 
 	while (true) {
-		status = bt_query_executor_query(the_query_executor,
-			comp_cls, obj, params, cfg->log_level, &result);
-		switch (status) {
-		case BT_QUERY_EXECUTOR_STATUS_OK:
+		query_status = bt_query_executor_query(
+			the_query_executor, comp_cls, obj, params,
+			cfg->log_level, &result);
+		switch (query_status) {
+		case BT_QUERY_EXECUTOR_QUERY_STATUS_OK:
 			goto ok;
-		case BT_QUERY_EXECUTOR_STATUS_AGAIN:
+		case BT_QUERY_EXECUTOR_QUERY_STATUS_AGAIN:
 		{
 			const uint64_t sleep_time_us = 100000;
 
 			/* Wait 100 ms and retry */
-			BT_LOGD("Got BT_QUERY_EXECUTOR_STATUS_AGAIN: sleeping: "
+			BT_LOGD("Got BT_QUERY_EXECUTOR_QUERY_STATUS_AGAIN: sleeping: "
 				"time-us=%" PRIu64, sleep_time_us);
 
 			if (usleep(sleep_time_us)) {
@@ -209,25 +210,27 @@ int query(struct bt_config *cfg, const bt_component_class *comp_cls,
 
 			continue;
 		}
-		case BT_QUERY_EXECUTOR_STATUS_CANCELED:
+		case BT_QUERY_EXECUTOR_QUERY_STATUS_CANCELED:
 			*fail_reason = "canceled by user";
 			goto error;
-		case BT_QUERY_EXECUTOR_STATUS_ERROR:
+		case BT_QUERY_EXECUTOR_QUERY_STATUS_ERROR:
 			goto error;
-		case BT_QUERY_EXECUTOR_STATUS_INVALID_OBJECT:
+		case BT_QUERY_EXECUTOR_QUERY_STATUS_INVALID_OBJECT:
 			*fail_reason = "invalid or unknown query object";
 			goto error;
-		case BT_QUERY_EXECUTOR_STATUS_INVALID_PARAMS:
+		case BT_QUERY_EXECUTOR_QUERY_STATUS_INVALID_PARAMS:
 			*fail_reason = "invalid query parameters";
 			goto error;
-		case BT_QUERY_EXECUTOR_STATUS_UNSUPPORTED:
+		case BT_QUERY_EXECUTOR_QUERY_STATUS_UNSUPPORTED:
 			*fail_reason = "unsupported action";
 			goto error;
-		case BT_QUERY_EXECUTOR_STATUS_NOMEM:
+		case BT_QUERY_EXECUTOR_QUERY_STATUS_MEMORY_ERROR:
 			*fail_reason = "not enough memory";
 			goto error;
 		default:
-			BT_LOGF("Unknown query status: status=%d", status);
+			BT_LOGF("Unknown query status: status=%s",
+				bt_common_func_status_string(
+					query_status));
 			abort();
 		}
 	}
@@ -798,7 +801,7 @@ int load_dynamic_plugins(const bt_value *plugin_paths)
 		const bt_value *plugin_path_value = NULL;
 		const char *plugin_path;
 		const bt_plugin_set *plugin_set = NULL;
-		bt_plugin_status status;
+		bt_plugin_find_all_from_dir_status status;
 
 		plugin_path_value =
 			bt_value_array_borrow_element_by_index_const(
@@ -822,13 +825,14 @@ int load_dynamic_plugins(const bt_value *plugin_paths)
 			BT_LOGE("Unable to load dynamic plugins from directory: "
 				"path=\"%s\"", plugin_path);
 			continue;
-		} else if (status == BT_PLUGIN_STATUS_NOT_FOUND) {
+		} else if (status ==
+				BT_PLUGIN_FIND_ALL_FROM_DIR_STATUS_NOT_FOUND) {
 			BT_LOGI("No plugins found in directory: path=\"%s\"",
 				plugin_path);
 			continue;
 		}
 
-		BT_ASSERT(status == BT_PLUGIN_STATUS_OK);
+		BT_ASSERT(status == BT_PLUGIN_FIND_ALL_FROM_DIR_STATUS_OK);
 		BT_ASSERT(plugin_set);
 		add_to_loaded_plugins(plugin_set);
 		bt_plugin_set_put_ref(plugin_set);
@@ -842,7 +846,7 @@ int load_static_plugins(void)
 {
 	int ret = 0;
 	const bt_plugin_set *plugin_set;
-	bt_plugin_status status;
+	bt_plugin_find_all_from_static_status status;
 
 	BT_LOGI("Loading static plugins.");
 	status = bt_plugin_find_all_from_static(BT_FALSE, &plugin_set);
@@ -850,15 +854,17 @@ int load_static_plugins(void)
 		BT_LOGE("Unable to load static plugins.");
 		ret = -1;
 		goto end;
-	} else if (status == BT_PLUGIN_STATUS_NOT_FOUND) {
+	} else if (status ==
+			BT_PLUGIN_FIND_ALL_FROM_STATIC_STATUS_NOT_FOUND) {
 		BT_LOGI("No static plugins found.");
 		goto end;
 	}
 
-	BT_ASSERT(status == BT_PLUGIN_STATUS_OK);
+	BT_ASSERT(status == BT_PLUGIN_FIND_ALL_FROM_STATIC_STATUS_OK);
 	BT_ASSERT(plugin_set);
 	add_to_loaded_plugins(plugin_set);
 	bt_plugin_set_put_ref(plugin_set);
+
 end:
 	return ret;
 }
@@ -1621,7 +1627,8 @@ int cmd_run_ctx_connect_upstream_port_to_downstream_component(
 	uint64_t i;
 	input_port_count_func_t port_count_fn;
 	borrow_input_port_by_index_func_t port_by_index_fn;
-	bt_graph_status status = BT_GRAPH_STATUS_ERROR;
+	bt_graph_connect_ports_status connect_ports_status =
+		BT_GRAPH_CONNECT_PORTS_STATUS_OK;
 	bool insert_trimmer = false;
 	bt_value *trimmer_params = NULL;
 	char *intersection_begin = NULL;
@@ -1647,7 +1654,7 @@ int cmd_run_ctx_connect_upstream_port_to_downstream_component(
 		range = (struct trace_range *) g_hash_table_lookup(
 			ctx->intersections, &port_id);
 		if (range) {
-			bt_value_status status;
+			bt_value_map_insert_entry_status insert_status;
 
 			intersection_begin = s_from_ns(
 				range->intersection_range_begin_ns);
@@ -1664,15 +1671,15 @@ int cmd_run_ctx_connect_upstream_port_to_downstream_component(
 				goto error;
 			}
 
-			status = bt_value_map_insert_string_entry(
+			insert_status = bt_value_map_insert_string_entry(
 				trimmer_params, "begin", intersection_begin);
-			if (status != BT_VALUE_STATUS_OK) {
+			if (insert_status < 0) {
 				goto error;
 			}
-			status = bt_value_map_insert_string_entry(
+			insert_status = bt_value_map_insert_string_entry(
 				trimmer_params,
 				"end", intersection_end);
-			if (status != BT_VALUE_STATUS_OK) {
+			if (insert_status < 0) {
 				goto error;
 			}
 		}
@@ -1766,7 +1773,7 @@ int cmd_run_ctx_connect_upstream_port_to_downstream_component(
 			 * source and the trimmer.
 			 */
 			char *trimmer_name = NULL;
-			bt_graph_status graph_status;
+			bt_graph_add_component_status add_comp_status;
 
 			ret = asprintf(&trimmer_name,
 				"stream-intersection-trimmer-%s",
@@ -1777,12 +1784,13 @@ int cmd_run_ctx_connect_upstream_port_to_downstream_component(
 			ret = 0;
 
 			ctx->connect_ports = false;
-			graph_status = bt_graph_add_filter_component(
+			add_comp_status = bt_graph_add_filter_component(
 				ctx->graph, trimmer_class, trimmer_name,
 				trimmer_params, ctx->cfg->log_level,
 				&trimmer);
 			free(trimmer_name);
-			if (graph_status != BT_GRAPH_STATUS_OK) {
+			if (add_comp_status !=
+					BT_GRAPH_ADD_COMPONENT_STATUS_OK) {
 				goto error;
 			}
 			BT_ASSERT(trimmer);
@@ -1813,15 +1821,14 @@ int cmd_run_ctx_connect_upstream_port_to_downstream_component(
 		}
 
 		/* We have a winner! */
-		status = bt_graph_connect_ports(ctx->graph,
+		connect_ports_status = bt_graph_connect_ports(ctx->graph,
 			out_upstream_port, in_downstream_port, NULL);
 		downstream_port = NULL;
-		switch (status) {
-		case BT_GRAPH_STATUS_OK:
+		switch (connect_ports_status) {
+		case BT_GRAPH_CONNECT_PORTS_STATUS_OK:
 			break;
-		case BT_GRAPH_STATUS_CANCELED:
+		case BT_GRAPH_CONNECT_PORTS_STATUS_CANCELED:
 			BT_LOGI_STR("Graph was canceled by user.");
-			status = BT_GRAPH_STATUS_OK;
 			break;
 		default:
 			BT_LOGE("Cannot create connection: graph refuses to connect ports: "
@@ -1981,13 +1988,14 @@ end:
 }
 
 static
-bt_graph_listener_status
+bt_graph_listener_func_status
 graph_output_port_added_listener(struct cmd_run_ctx *ctx,
 		const bt_port_output *out_port)
 {
 	const bt_component *comp;
 	const bt_port *port = bt_port_output_as_port_const(out_port);
-	bt_graph_listener_status ret = BT_GRAPH_LISTENER_STATUS_OK;
+	bt_graph_listener_func_status ret =
+		BT_GRAPH_LISTENER_FUNC_STATUS_OK;
 
 	comp = bt_port_borrow_component_const(port);
 	BT_LOGI("Port added to a graph's component: comp-addr=%p, "
@@ -2012,7 +2020,7 @@ graph_output_port_added_listener(struct cmd_run_ctx *ctx,
 	if (cmd_run_ctx_connect_upstream_port(ctx, out_port)) {
 		BT_LOGF_STR("Cannot connect upstream port.");
 		fprintf(stderr, "Added port could not be connected: aborting\n");
-		ret = BT_GRAPH_LISTENER_STATUS_ERROR;
+		ret = BT_GRAPH_LISTENER_FUNC_STATUS_ERROR;
 		goto end;
 	}
 
@@ -2021,7 +2029,7 @@ end:
 }
 
 static
-bt_graph_listener_status graph_source_output_port_added_listener(
+bt_graph_listener_func_status graph_source_output_port_added_listener(
 		const bt_component_source *component,
 		const bt_port_output *port, void *data)
 {
@@ -2029,7 +2037,7 @@ bt_graph_listener_status graph_source_output_port_added_listener(
 }
 
 static
-bt_graph_listener_status graph_filter_output_port_added_listener(
+bt_graph_listener_func_status graph_filter_output_port_added_listener(
 		const bt_component_filter *component,
 		const bt_port_output *port, void *data)
 {
@@ -2072,7 +2080,7 @@ static
 int cmd_run_ctx_init(struct cmd_run_ctx *ctx, struct bt_config *cfg)
 {
 	int ret = 0;
-	bt_graph_status status;
+	bt_graph_add_component_status add_comp_status;
 
 	ctx->cfg = cfg;
 	ctx->connect_ports = false;
@@ -2109,18 +2117,18 @@ int cmd_run_ctx_init(struct cmd_run_ctx *ctx, struct bt_config *cfg)
 	}
 
 	the_graph = ctx->graph;
-	status = bt_graph_add_source_component_output_port_added_listener(
+	add_comp_status = bt_graph_add_source_component_output_port_added_listener(
 		ctx->graph, graph_source_output_port_added_listener, NULL, ctx,
 		NULL);
-	if (status != BT_GRAPH_STATUS_OK) {
+	if (add_comp_status != BT_GRAPH_ADD_COMPONENT_STATUS_OK) {
 		BT_LOGE_STR("Cannot add \"port added\" listener to graph.");
 		goto error;
 	}
 
-	status = bt_graph_add_filter_component_output_port_added_listener(
+	add_comp_status = bt_graph_add_filter_component_output_port_added_listener(
 		ctx->graph, graph_filter_output_port_added_listener, NULL, ctx,
 		NULL);
-	if (status != BT_GRAPH_STATUS_OK) {
+	if (add_comp_status != BT_GRAPH_ADD_COMPONENT_STATUS_OK) {
 		BT_LOGE_STR("Cannot add \"port added\" listener to graph.");
 		goto error;
 	}
@@ -2560,27 +2568,6 @@ end:
 	return ret;
 }
 
-static inline
-const char *bt_graph_status_str(bt_graph_status status)
-{
-	switch (status) {
-	case BT_GRAPH_STATUS_OK:
-		return "BT_GRAPH_STATUS_OK";
-	case BT_GRAPH_STATUS_END:
-		return "BT_GRAPH_STATUS_END";
-	case BT_GRAPH_STATUS_AGAIN:
-		return "BT_GRAPH_STATUS_AGAIN";
-	case BT_GRAPH_STATUS_CANCELED:
-		return "BT_GRAPH_STATUS_CANCELED";
-	case BT_GRAPH_STATUS_ERROR:
-		return "BT_GRAPH_STATUS_ERROR";
-	case BT_GRAPH_STATUS_NOMEM:
-		return "BT_GRAPH_STATUS_NOMEM";
-	default:
-		return "(unknown)";
-	}
-}
-
 static
 int cmd_run(struct bt_config *cfg)
 {
@@ -2631,7 +2618,7 @@ int cmd_run(struct bt_config *cfg)
 
 	/* Run the graph */
 	while (true) {
-		bt_graph_status graph_status = bt_graph_run(ctx.graph);
+		bt_graph_run_status run_status = bt_graph_run(ctx.graph);
 
 		/*
 		 * Reset console in case something messed with console
@@ -2641,22 +2628,22 @@ int cmd_run(struct bt_config *cfg)
 		fflush(stdout);
 		fprintf(stderr, "%s", bt_common_color_reset());
 		BT_LOGT("bt_graph_run() returned: status=%s",
-			bt_graph_status_str(graph_status));
+			bt_common_func_status_string(run_status));
 
-		switch (graph_status) {
-		case BT_GRAPH_STATUS_OK:
+		switch (run_status) {
+		case BT_GRAPH_RUN_STATUS_OK:
 			break;
-		case BT_GRAPH_STATUS_CANCELED:
+		case BT_GRAPH_RUN_STATUS_CANCELED:
 			BT_LOGI_STR("Graph was canceled by user.");
 			goto error;
-		case BT_GRAPH_STATUS_AGAIN:
+		case BT_GRAPH_RUN_STATUS_AGAIN:
 			if (bt_graph_is_canceled(ctx.graph)) {
 				BT_LOGI_STR("Graph was canceled by user.");
 				goto error;
 			}
 
 			if (cfg->cmd_data.run.retry_duration_us > 0) {
-				BT_LOGT("Got BT_GRAPH_STATUS_AGAIN: sleeping: "
+				BT_LOGT("Got BT_GRAPH_RUN_STATUS_AGAIN: sleeping: "
 					"time-us=%" PRIu64,
 					cfg->cmd_data.run.retry_duration_us);
 
@@ -2668,7 +2655,7 @@ int cmd_run(struct bt_config *cfg)
 				}
 			}
 			break;
-		case BT_GRAPH_STATUS_END:
+		case BT_GRAPH_RUN_STATUS_END:
 			goto end;
 		default:
 			BT_LOGE_STR("Graph failed to complete successfully");

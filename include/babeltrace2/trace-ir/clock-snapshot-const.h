@@ -32,14 +32,14 @@
 /* For bt_clock_class, bt_clock_snapshot */
 #include <babeltrace2/types.h>
 
+/* For __BT_FUNC_STATUS_* */
+#define __BT_FUNC_STATUS_ENABLE
+#include <babeltrace2/func-status.h>
+#undef __BT_FUNC_STATUS_ENABLE
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-typedef enum bt_clock_snapshot_status {
-	BT_CLOCK_SNAPSHOT_STATUS_OK = 0,
-	BT_CLOCK_SNAPSHOT_STATUS_OVERFLOW = -75,
-} bt_clock_snapshot_status;
 
 extern const bt_clock_class *bt_clock_snapshot_borrow_clock_class_const(
 		const bt_clock_snapshot *clock_snapshot);
@@ -47,12 +47,20 @@ extern const bt_clock_class *bt_clock_snapshot_borrow_clock_class_const(
 extern uint64_t bt_clock_snapshot_get_value(
 		const bt_clock_snapshot *clock_snapshot);
 
-extern bt_clock_snapshot_status bt_clock_snapshot_get_ns_from_origin(
+typedef enum bt_clock_snapshot_get_ns_from_origin_status {
+	BT_CLOCK_SNAPSHOT_GET_NS_FROM_ORIGIN_STATUS_OK		= __BT_FUNC_STATUS_OK,
+	BT_CLOCK_SNAPSHOT_GET_NS_FROM_ORIGIN_STATUS_OVERFLOW	= __BT_FUNC_STATUS_OVERFLOW,
+} bt_clock_snapshot_get_ns_from_origin_status;
+
+extern bt_clock_snapshot_get_ns_from_origin_status
+bt_clock_snapshot_get_ns_from_origin(
 		const bt_clock_snapshot *clock_snapshot,
 		int64_t *ns_from_origin);
 
 #ifdef __cplusplus
 }
 #endif
+
+#include <babeltrace2/undef-func-status.h>
 
 #endif /* BABELTRACE_TRACE_IR_CLOCK_SNAPSHOT_CONST_H */

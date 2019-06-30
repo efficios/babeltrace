@@ -27,22 +27,22 @@
  * http://www.efficios.com/ctf
  */
 
+#include <stdint.h>
+
 /*
  * For bt_bool, bt_uuid, bt_trace_class, bt_stream_class,
  * bt_field_class, bt_value
  */
 #include <babeltrace2/types.h>
 
-#include <stdint.h>
+/* For __BT_FUNC_STATUS_* */
+#define __BT_FUNC_STATUS_ENABLE
+#include <babeltrace2/func-status.h>
+#undef __BT_FUNC_STATUS_ENABLE
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-typedef enum bt_trace_class_status {
-	BT_TRACE_CLASS_STATUS_OK = 0,
-	BT_TRACE_CLASS_STATUS_NOMEM = -12,
-} bt_trace_class_status;
 
 typedef void (* bt_trace_class_destruction_listener_func)(
 		const bt_trace_class *trace_class, void *data);
@@ -77,12 +77,24 @@ bt_trace_class_borrow_stream_class_by_index_const(
 extern const bt_stream_class *bt_trace_class_borrow_stream_class_by_id_const(
 		const bt_trace_class *trace_class, uint64_t id);
 
-extern bt_trace_class_status bt_trace_class_add_destruction_listener(
+typedef enum bt_trace_class_add_listener_status {
+	BT_TRACE_CLASS_ADD_LISTENER_STATUS_MEMORY_ERROR	= __BT_FUNC_STATUS_MEMORY_ERROR,
+	BT_TRACE_CLASS_ADD_LISTENER_STATUS_OK		= __BT_FUNC_STATUS_OK,
+} bt_trace_class_add_listener_status;
+
+extern bt_trace_class_add_listener_status
+bt_trace_class_add_destruction_listener(
         const bt_trace_class *trace_class,
         bt_trace_class_destruction_listener_func listener,
         void *data, uint64_t *listener_id);
 
-extern bt_trace_class_status bt_trace_class_remove_destruction_listener(
+typedef enum bt_trace_class_remove_listener_status {
+	BT_TRACE_CLASS_REMOVE_LISTENER_STATUS_MEMORY_ERROR	= __BT_FUNC_STATUS_MEMORY_ERROR,
+	BT_TRACE_CLASS_REMOVE_LISTENER_STATUS_OK		= __BT_FUNC_STATUS_OK,
+} bt_trace_class_remove_listener_status;
+
+extern bt_trace_class_remove_listener_status
+bt_trace_class_remove_destruction_listener(
         const bt_trace_class *trace_class, uint64_t listener_id);
 
 extern void bt_trace_class_get_ref(const bt_trace_class *trace_class);
@@ -105,5 +117,7 @@ extern void bt_trace_class_put_ref(const bt_trace_class *trace_class);
 #ifdef __cplusplus
 }
 #endif
+
+#include <babeltrace2/undef-func-status.h>
 
 #endif /* BABELTRACE_TRACE_IR_TRACE_CLASS_CONST_H */

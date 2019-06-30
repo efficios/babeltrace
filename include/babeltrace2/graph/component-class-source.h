@@ -26,17 +26,8 @@
 
 #include <stdint.h>
 
-/* For bt_self_component_status */
-#include <babeltrace2/graph/self-component.h>
-
-/* For bt_self_message_iterator_status */
-#include <babeltrace2/graph/self-message-iterator.h>
-
-/* For bt_query_status */
+/* For bt_component_class_*_status */
 #include <babeltrace2/graph/component-class.h>
-
-/* For bt_component_class_status */
-#include <babeltrace2/graph/component-class-const.h>
 
 /*
  * For bt_component_class, bt_component_class_source, bt_port_input,
@@ -54,7 +45,7 @@
 extern "C" {
 #endif
 
-typedef bt_self_component_status
+typedef bt_component_class_init_method_status
 (*bt_component_class_source_init_method)(
 		bt_self_component_source *self_component,
 		const bt_value *params, void *init_method_data);
@@ -62,7 +53,7 @@ typedef bt_self_component_status
 typedef void (*bt_component_class_source_finalize_method)(
 		bt_self_component_source *self_component);
 
-typedef bt_self_message_iterator_status
+typedef bt_component_class_message_iterator_init_method_status
 (*bt_component_class_source_message_iterator_init_method)(
 		bt_self_message_iterator *message_iterator,
 		bt_self_component_source *self_component,
@@ -72,18 +63,18 @@ typedef void
 (*bt_component_class_source_message_iterator_finalize_method)(
 		bt_self_message_iterator *message_iterator);
 
-typedef bt_self_message_iterator_status
+typedef bt_component_class_message_iterator_next_method_status
 (*bt_component_class_source_message_iterator_next_method)(
 		bt_self_message_iterator *message_iterator,
 		bt_message_array_const msgs, uint64_t capacity,
 		uint64_t *count);
 
-typedef bt_self_message_iterator_status
+typedef bt_component_class_message_iterator_seek_ns_from_origin_method_status
 (*bt_component_class_source_message_iterator_seek_ns_from_origin_method)(
 		bt_self_message_iterator *message_iterator,
 		int64_t ns_from_origin);
 
-typedef bt_self_message_iterator_status
+typedef bt_component_class_message_iterator_seek_beginning_method_status
 (*bt_component_class_source_message_iterator_seek_beginning_method)(
 		bt_self_message_iterator *message_iterator);
 
@@ -96,14 +87,15 @@ typedef bt_bool
 (*bt_component_class_source_message_iterator_can_seek_beginning_method)(
 		bt_self_message_iterator *message_iterator);
 
-typedef bt_query_status (*bt_component_class_source_query_method)(
+typedef bt_component_class_query_method_status
+(*bt_component_class_source_query_method)(
 		bt_self_component_class_source *comp_class,
 		const bt_query_executor *query_executor,
 		const char *object, const bt_value *params,
 		bt_logging_level logging_level,
 		const bt_value **result);
 
-typedef bt_self_component_status
+typedef bt_component_class_port_connected_method_status
 (*bt_component_class_source_output_port_connected_method)(
 		bt_self_component_source *self_component,
 		bt_self_component_port_output *self_port,
@@ -121,52 +113,52 @@ bt_component_class_source *bt_component_class_source_create(
 		const char *name,
 		bt_component_class_source_message_iterator_next_method method);
 
-extern bt_component_class_status
+extern bt_component_class_set_method_status
 bt_component_class_source_set_init_method(
 		bt_component_class_source *comp_class,
 		bt_component_class_source_init_method method);
 
-extern bt_component_class_status
+extern bt_component_class_set_method_status
 bt_component_class_source_set_finalize_method(
 		bt_component_class_source *comp_class,
 		bt_component_class_source_finalize_method method);
 
-extern bt_component_class_status
+extern bt_component_class_set_method_status
 bt_component_class_source_set_output_port_connected_method(
 		bt_component_class_source *comp_class,
 		bt_component_class_source_output_port_connected_method method);
 
-extern bt_component_class_status
+extern bt_component_class_set_method_status
 bt_component_class_source_set_query_method(
 		bt_component_class_source *comp_class,
 		bt_component_class_source_query_method method);
 
-extern bt_component_class_status
+extern bt_component_class_set_method_status
 bt_component_class_source_set_message_iterator_init_method(
 		bt_component_class_source *comp_class,
 		bt_component_class_source_message_iterator_init_method method);
 
-extern bt_component_class_status
+extern bt_component_class_set_method_status
 bt_component_class_source_set_message_iterator_finalize_method(
 		bt_component_class_source *comp_class,
 		bt_component_class_source_message_iterator_finalize_method method);
 
-extern bt_component_class_status
+extern bt_component_class_set_method_status
 bt_component_class_source_set_message_iterator_seek_ns_from_origin_method(
 		bt_component_class_source *comp_class,
 		bt_component_class_source_message_iterator_seek_ns_from_origin_method method);
 
-extern bt_component_class_status
+extern bt_component_class_set_method_status
 bt_component_class_source_set_message_iterator_seek_beginning_method(
 		bt_component_class_source *comp_class,
 		bt_component_class_source_message_iterator_seek_beginning_method method);
 
-extern bt_bool
+extern bt_component_class_set_method_status
 bt_component_class_source_set_message_iterator_can_seek_ns_from_origin_method(
 		bt_component_class_source *comp_class,
 		bt_component_class_source_message_iterator_can_seek_ns_from_origin_method method);
 
-extern bt_bool
+extern bt_component_class_set_method_status
 bt_component_class_source_set_message_iterator_can_seek_beginning_method(
 		bt_component_class_source *comp_class,
 		bt_component_class_source_message_iterator_can_seek_beginning_method method);

@@ -76,8 +76,9 @@ class _Trace(object._SharedObject, collections.abc.Mapping):
 
     def _name(self, name):
         utils._check_str(name)
-        ret = native_bt.trace_set_name(self._ptr, name)
-        utils._handle_ret(ret, "cannot set trace class object's name")
+        status = native_bt.trace_set_name(self._ptr, name)
+        utils._handle_func_status(status,
+                                  "cannot set trace class object's name")
 
     _name = property(fset=_name)
 
@@ -111,7 +112,7 @@ class _Trace(object._SharedObject, collections.abc.Mapping):
         if not callable(listener):
             raise TypeError("'listener' parameter is not callable")
 
-        fn = native_bt.py3_trace_add_destruction_listener
+        fn = native_bt.bt2_trace_add_destruction_listener
         listener_from_native = functools.partial(_trace_destruction_listener_from_native,
                                                  listener)
 

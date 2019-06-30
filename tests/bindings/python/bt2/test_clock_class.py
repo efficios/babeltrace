@@ -179,7 +179,7 @@ class ClockClassTestCase(unittest.TestCase):
             return comp_self._create_clock_class(frequency=1000)
 
         cc = run_in_component_init(f)
-        with self.assertRaises(OverflowError):
+        with self.assertRaises(bt2.OverflowError):
             cc.cycles_to_ns_from_origin(2**63)
 
     def test_create_uuid(self):
@@ -277,7 +277,7 @@ class ClockSnapshotTestCase(unittest.TestCase):
             self._msg.default_clock_snapshot.ns_from_origin, ns_from_origin)
 
     def test_ns_from_origin_overflow(self):
-        with self.assertRaises(OverflowError):
+        with self.assertRaises(bt2.OverflowError):
             self._msg_clock_overflow.default_clock_snapshot.ns_from_origin
 
     def test_eq_int(self):

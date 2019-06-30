@@ -35,7 +35,7 @@
 #define IP_FIELD_NAME		"ip"
 
 BT_HIDDEN
-bt_self_component_status debug_info_comp_init(
+bt_component_class_init_method_status debug_info_comp_init(
 		bt_self_component_filter *self_comp,
 		const bt_value *params, void *init_method_data);
 
@@ -43,13 +43,13 @@ BT_HIDDEN
 void debug_info_comp_finalize(bt_self_component_filter *self_comp);
 
 BT_HIDDEN
-bt_self_message_iterator_status debug_info_msg_iter_init(
+bt_component_class_message_iterator_init_method_status debug_info_msg_iter_init(
 		bt_self_message_iterator *self_msg_iter,
 		bt_self_component_filter *self_comp,
 		bt_self_component_port_output *self_port);
 
 BT_HIDDEN
-bt_self_message_iterator_status debug_info_msg_iter_next(
+bt_component_class_message_iterator_next_method_status debug_info_msg_iter_next(
 		bt_self_message_iterator *self_msg_iter,
 		const bt_message_array_const msgs, uint64_t capacity,
 		uint64_t *count);
@@ -59,7 +59,7 @@ bt_bool debug_info_msg_iter_can_seek_beginning(
 		bt_self_message_iterator *message_iterator);
 
 BT_HIDDEN
-bt_self_message_iterator_status debug_info_msg_iter_seek_beginning(
+bt_component_class_message_iterator_seek_beginning_method_status debug_info_msg_iter_seek_beginning(
 		bt_self_message_iterator *message_iterator);
 
 BT_HIDDEN

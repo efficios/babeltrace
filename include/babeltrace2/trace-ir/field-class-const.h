@@ -39,14 +39,14 @@
 #include <stdint.h>
 #include <stddef.h>
 
+/* For __BT_FUNC_STATUS_* */
+#define __BT_FUNC_STATUS_ENABLE
+#include <babeltrace2/func-status.h>
+#undef __BT_FUNC_STATUS_ENABLE
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-typedef enum bt_field_class_status {
-	BT_FIELD_CLASS_STATUS_OK = 0,
-	BT_FIELD_CLASS_STATUS_NOMEM = -12,
-} bt_field_class_status;
 
 typedef enum bt_field_class_type {
 	BT_FIELD_CLASS_TYPE_UNSIGNED_INTEGER,
@@ -124,13 +124,18 @@ bt_field_class_signed_enumeration_mapping_get_range_by_index(
 		const bt_field_class_signed_enumeration_mapping *mapping,
 		uint64_t index, int64_t *lower, int64_t *upper);
 
-extern bt_field_class_status
+typedef enum bt_field_class_enumeration_get_mapping_labels_by_value_status {
+	BT_FIELD_CLASS_ENUMERATION_GET_MAPPING_LABELS_BY_VALUE_STATUS_MEMORY_ERROR	= __BT_FUNC_STATUS_MEMORY_ERROR,
+	BT_FIELD_CLASS_ENUMERATION_GET_MAPPING_LABELS_BY_VALUE_STATUS_OK		= __BT_FUNC_STATUS_OK,
+} bt_field_class_enumeration_get_mapping_labels_by_value_status;
+
+extern bt_field_class_enumeration_get_mapping_labels_by_value_status
 bt_field_class_unsigned_enumeration_get_mapping_labels_by_value(
 		const bt_field_class *field_class, uint64_t value,
 		bt_field_class_enumeration_mapping_label_array *label_array,
 		uint64_t *count);
 
-extern bt_field_class_status
+extern bt_field_class_enumeration_get_mapping_labels_by_value_status
 bt_field_class_signed_enumeration_get_mapping_labels_by_value(
 		const bt_field_class *field_class, int64_t value,
 		bt_field_class_enumeration_mapping_label_array *label_array,
@@ -208,5 +213,7 @@ extern void bt_field_class_put_ref(const bt_field_class *field_class);
 #ifdef __cplusplus
 }
 #endif
+
+#include <babeltrace2/undef-func-status.h>
 
 #endif /* BABELTRACE_TRACE_IR_FIELD_CLASSES_CONST_H */

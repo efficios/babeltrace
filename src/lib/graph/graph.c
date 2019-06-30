@@ -49,14 +49,15 @@
 #include "message/event.h"
 #include "message/packet.h"
 
-typedef enum bt_graph_listener_status (*port_added_func_t)(
-		const void *, const void *, void *);
+typedef enum bt_graph_listener_func_status
+(*port_added_func_t)(const void *, const void *, void *);
 
-typedef enum bt_graph_listener_status (*ports_connected_func_t)(
-		const void *, const void *, const void *, const void *, void *);
-
-typedef enum bt_self_component_status (*comp_init_method_t)(const void *,
+typedef enum bt_graph_listener_func_status
+(*ports_connected_func_t)(const void *, const void *, const void *,
 		const void *, void *);
+
+typedef enum bt_component_class_init_method_status
+(*comp_init_method_t)(const void *, const void *, void *);
 
 struct bt_graph_listener {
 	bt_graph_listener_removed_func removed;
@@ -393,20 +394,20 @@ error:
 	goto end;
 }
 
-enum bt_graph_status bt_graph_connect_ports(
+enum bt_graph_connect_ports_status bt_graph_connect_ports(
 		struct bt_graph *graph,
 		const struct bt_port_output *upstream_port_out,
 		const struct bt_port_input *downstream_port_in,
 		const struct bt_connection **user_connection)
 {
-	enum bt_graph_status status = BT_GRAPH_STATUS_OK;
-	enum bt_graph_listener_status listener_status;
+	enum bt_graph_connect_ports_status status = BT_FUNC_STATUS_OK;
+	enum bt_graph_listener_func_status listener_status;
 	struct bt_connection *connection = NULL;
 	struct bt_port *upstream_port = (void *) upstream_port_out;
 	struct bt_port *downstream_port = (void *) downstream_port_in;
 	struct bt_component *upstream_component = NULL;
 	struct bt_component *downstream_component = NULL;
-	enum bt_self_component_status component_status;
+	enum bt_component_class_port_connected_method_status port_connected_status;
 	bool init_can_consume;
 
 	BT_ASSERT_PRE_NON_NULL(graph, "Graph");
@@ -441,7 +442,7 @@ enum bt_graph_status bt_graph_connect_ports(
 		(void *) downstream_port);
 	if (!connection) {
 		BT_LOGW("Cannot create connection object.");
-		status = BT_GRAPH_STATUS_NOMEM;
+		status = BT_FUNC_STATUS_MEMORY_ERROR;
 		goto end;
 	}
 
@@ -458,17 +459,17 @@ enum bt_graph_status bt_graph_connect_ports(
 	 */
 	BT_LIB_LOGD("Notifying upstream component that its port is connected: "
 		"%![comp-]+c, %![port-]+p", upstream_component, upstream_port);
-	component_status = bt_component_port_connected(upstream_component,
+	port_connected_status = bt_component_port_connected(upstream_component,
 		(void *) upstream_port, (void *) downstream_port);
-	if (component_status != BT_SELF_COMPONENT_STATUS_OK) {
+	if (port_connected_status != BT_FUNC_STATUS_OK) {
 		BT_LIB_LOGW("Error while notifying upstream component that its port is connected: "
 			"status=%s, %![graph-]+g, %![up-comp-]+c, "
 			"%![down-comp-]+c, %![up-port-]+p, %![down-port-]+p",
-			bt_self_component_status_string(component_status),
+			bt_common_func_status_string(port_connected_status),
 			graph, upstream_component, downstream_component,
 			upstream_port, downstream_port);
 		bt_connection_end(connection, true);
-		status = (int) component_status;
+		status = (int) port_connected_status;
 		goto end;
 	}
 
@@ -476,17 +477,17 @@ enum bt_graph_status bt_graph_connect_ports(
 	BT_LIB_LOGD("Notifying downstream component that its port is connected: "
 		"%![comp-]+c, %![port-]+p", downstream_component,
 		downstream_port);
-	component_status = bt_component_port_connected(downstream_component,
+	port_connected_status = bt_component_port_connected(downstream_component,
 		(void *) downstream_port, (void *) upstream_port);
-	if (component_status != BT_SELF_COMPONENT_STATUS_OK) {
+	if (port_connected_status != BT_FUNC_STATUS_OK) {
 		BT_LIB_LOGW("Error while notifying downstream component that its port is connected: "
 			"status=%s, %![graph-]+g, %![up-comp-]+c, "
 			"%![down-comp-]+c, %![up-port-]+p, %![down-port-]+p",
-			bt_self_component_status_string(component_status),
+			bt_common_func_status_string(port_connected_status),
 			graph, upstream_component, downstream_component,
 			upstream_port, downstream_port);
 		bt_connection_end(connection, true);
-		status = (int) component_status;
+		status = (int) port_connected_status;
 		goto end;
 	}
 
@@ -497,7 +498,7 @@ enum bt_graph_status bt_graph_connect_ports(
 	 */
 	BT_LOGD_STR("Notifying graph's user that new component ports are connected.");
 	listener_status = bt_graph_notify_ports_connected(graph, upstream_port, downstream_port);
-	if (listener_status != BT_GRAPH_LISTENER_STATUS_OK) {
+	if (listener_status != BT_FUNC_STATUS_OK) {
 		status = (int) listener_status;
 		goto end;
 	}
@@ -516,7 +517,7 @@ enum bt_graph_status bt_graph_connect_ports(
 	}
 
 end:
-	if (status != BT_GRAPH_STATUS_OK) {
+	if (status != BT_FUNC_STATUS_OK) {
 		bt_graph_make_faulty(graph);
 	}
 
@@ -527,35 +528,35 @@ end:
 }
 
 static inline
-enum bt_graph_status consume_graph_sink(struct bt_component_sink *comp)
+int consume_graph_sink(struct bt_component_sink *comp)
 {
-	enum bt_self_component_status comp_status;
+	enum bt_component_class_sink_consume_method_status consume_status;
 	struct bt_component_class_sink *sink_class = NULL;
 
 	BT_ASSERT(comp);
 	sink_class = (void *) comp->parent.class;
 	BT_ASSERT(sink_class->methods.consume);
 	BT_LIB_LOGD("Calling user's consume method: %!+c", comp);
-	comp_status = sink_class->methods.consume((void *) comp);
+	consume_status = sink_class->methods.consume((void *) comp);
 	BT_LOGD("User method returned: status=%s",
-		bt_self_component_status_string(comp_status));
-	BT_ASSERT_POST(comp_status == BT_SELF_COMPONENT_STATUS_OK ||
-		comp_status == BT_SELF_COMPONENT_STATUS_END ||
-		comp_status == BT_SELF_COMPONENT_STATUS_AGAIN ||
-		comp_status == BT_SELF_COMPONENT_STATUS_ERROR ||
-		comp_status == BT_SELF_COMPONENT_STATUS_NOMEM,
+		bt_common_func_status_string(consume_status));
+	BT_ASSERT_POST(consume_status == BT_FUNC_STATUS_OK ||
+		consume_status == BT_FUNC_STATUS_END ||
+		consume_status == BT_FUNC_STATUS_AGAIN ||
+		consume_status == BT_FUNC_STATUS_ERROR ||
+		consume_status == BT_FUNC_STATUS_MEMORY_ERROR,
 		"Invalid component status returned by consuming method: "
-		"status=%s", bt_self_component_status_string(comp_status));
-	if (comp_status < 0) {
+		"status=%s", bt_common_func_status_string(consume_status));
+	if (consume_status < 0) {
 		BT_LOGW_STR("Consume method failed.");
 		goto end;
 	}
 
 	BT_LIB_LOGD("Consumed from sink: %![comp-]+c, status=%s",
-		comp, bt_self_component_status_string(comp_status));
+		comp, bt_common_func_status_string(consume_status));
 
 end:
-	return (int) comp_status;
+	return consume_status;
 }
 
 /*
@@ -564,14 +565,14 @@ end:
  * still something to consume afterwards.
  */
 static inline
-enum bt_graph_status consume_sink_node(struct bt_graph *graph, GList *node)
+int consume_sink_node(struct bt_graph *graph, GList *node)
 {
-	enum bt_graph_status status;
+	int status;
 	struct bt_component_sink *sink;
 
 	sink = node->data;
 	status = consume_graph_sink(sink);
-	if (G_UNLIKELY(status != BT_GRAPH_STATUS_END)) {
+	if (G_UNLIKELY(status != BT_FUNC_STATUS_END)) {
 		g_queue_push_tail_link(graph->sinks_to_consume, node);
 		goto end;
 	}
@@ -581,21 +582,21 @@ enum bt_graph_status consume_sink_node(struct bt_graph *graph, GList *node)
 
 	/* Don't forward an END status if there are sinks left to consume. */
 	if (!g_queue_is_empty(graph->sinks_to_consume)) {
-		status = BT_GRAPH_STATUS_OK;
+		status = BT_FUNC_STATUS_OK;
 		goto end;
 	}
 
 end:
 	BT_LIB_LOGD("Consumed sink node: %![comp-]+c, status=%s",
-		sink, bt_graph_status_string(status));
+		sink, bt_common_func_status_string(status));
 	return status;
 }
 
 BT_HIDDEN
-enum bt_graph_status bt_graph_consume_sink_no_check(struct bt_graph *graph,
+int bt_graph_consume_sink_no_check(struct bt_graph *graph,
 		struct bt_component_sink *sink)
 {
-	enum bt_graph_status status;
+	int status;
 	GList *sink_node;
 	int index;
 
@@ -604,7 +605,7 @@ enum bt_graph_status bt_graph_consume_sink_no_check(struct bt_graph *graph,
 
 	if (g_queue_is_empty(graph->sinks_to_consume)) {
 		BT_LOGD_STR("Graph's sink queue is empty: end of graph.");
-		status = BT_GRAPH_STATUS_END;
+		status = BT_FUNC_STATUS_END;
 		goto end;
 	}
 
@@ -612,7 +613,7 @@ enum bt_graph_status bt_graph_consume_sink_no_check(struct bt_graph *graph,
 	if (index < 0) {
 		BT_LIB_LOGD("Sink component is not marked as consumable: "
 			"component sink is ended: %![comp-]+c", sink);
-		status = BT_GRAPH_STATUS_END;
+		status = BT_FUNC_STATUS_END;
 		goto end;
 	}
 
@@ -625,9 +626,9 @@ end:
 }
 
 static inline
-enum bt_graph_status consume_no_check(struct bt_graph *graph)
+int consume_no_check(struct bt_graph *graph)
 {
-	enum bt_graph_status status = BT_GRAPH_STATUS_OK;
+	int status = BT_FUNC_STATUS_OK;
 	struct bt_component *sink;
 	GList *current_node;
 
@@ -637,7 +638,7 @@ enum bt_graph_status consume_no_check(struct bt_graph *graph)
 
 	if (G_UNLIKELY(g_queue_is_empty(graph->sinks_to_consume))) {
 		BT_LOGD_STR("Graph's sink queue is empty: end of graph.");
-		status = BT_GRAPH_STATUS_END;
+		status = BT_FUNC_STATUS_END;
 		goto end;
 	}
 
@@ -650,9 +651,9 @@ end:
 	return status;
 }
 
-enum bt_graph_status bt_graph_consume(struct bt_graph *graph)
+enum bt_graph_consume_status bt_graph_consume(struct bt_graph *graph)
 {
-	enum bt_graph_status status;
+	enum bt_graph_consume_status status;
 
 	BT_ASSERT_PRE_NON_NULL(graph, "Graph");
 	BT_ASSERT_PRE(!graph->canceled, "Graph is canceled: %!+g", graph);
@@ -674,9 +675,9 @@ end:
 	return status;
 }
 
-enum bt_graph_status bt_graph_run(struct bt_graph *graph)
+enum bt_graph_run_status bt_graph_run(struct bt_graph *graph)
 {
-	enum bt_graph_status status;
+	enum bt_graph_run_status status;
 
 	BT_ASSERT_PRE_NON_NULL(graph, "Graph");
 	BT_ASSERT_PRE(!graph->canceled, "Graph is canceled: %!+g", graph);
@@ -703,12 +704,12 @@ enum bt_graph_status bt_graph_run(struct bt_graph *graph)
 		if (G_UNLIKELY(graph->canceled)) {
 			BT_LIB_LOGI("Stopping the graph: graph is canceled: "
 				"%!+g", graph);
-			status = BT_GRAPH_STATUS_CANCELED;
+			status = BT_FUNC_STATUS_CANCELED;
 			goto end;
 		}
 
 		status = consume_no_check(graph);
-		if (G_UNLIKELY(status == BT_GRAPH_STATUS_AGAIN)) {
+		if (G_UNLIKELY(status == BT_FUNC_STATUS_AGAIN)) {
 			/*
 			 * If AGAIN is received and there are multiple
 			 * sinks, go ahead and consume from the next
@@ -721,23 +722,23 @@ enum bt_graph_status bt_graph_run(struct bt_graph *graph)
 			 * sleep for an arbitrary amount of time.
 			 */
 			if (graph->sinks_to_consume->length > 1) {
-				status = BT_GRAPH_STATUS_OK;
+				status = BT_FUNC_STATUS_OK;
 			}
 		}
-	} while (status == BT_GRAPH_STATUS_OK);
+	} while (status == BT_FUNC_STATUS_OK);
 
 	if (g_queue_is_empty(graph->sinks_to_consume)) {
-		status = BT_GRAPH_STATUS_END;
+		status = BT_FUNC_STATUS_END;
 	}
 
 end:
 	BT_LIB_LOGI("Graph ran: %![graph-]+g, status=%s", graph,
-		bt_graph_status_string(status));
+		bt_common_func_status_string(status));
 	bt_graph_set_can_consume(graph, true);
 	return status;
 }
 
-enum bt_graph_status
+enum bt_graph_add_listener_status
 bt_graph_add_source_component_output_port_added_listener(
 		struct bt_graph *graph,
 		bt_graph_source_component_output_port_added_listener_func func,
@@ -769,10 +770,10 @@ bt_graph_add_source_component_output_port_added_listener(
 		*out_listener_id = listener_id;
 	}
 
-	return BT_GRAPH_STATUS_OK;
+	return BT_FUNC_STATUS_OK;
 }
 
-enum bt_graph_status
+enum bt_graph_add_listener_status
 bt_graph_add_filter_component_output_port_added_listener(
 		struct bt_graph *graph,
 		bt_graph_filter_component_output_port_added_listener_func func,
@@ -804,10 +805,10 @@ bt_graph_add_filter_component_output_port_added_listener(
 		*out_listener_id = listener_id;
 	}
 
-	return BT_GRAPH_STATUS_OK;
+	return BT_FUNC_STATUS_OK;
 }
 
-enum bt_graph_status
+enum bt_graph_add_listener_status
 bt_graph_add_filter_component_input_port_added_listener(
 		struct bt_graph *graph,
 		bt_graph_filter_component_input_port_added_listener_func func,
@@ -839,10 +840,10 @@ bt_graph_add_filter_component_input_port_added_listener(
 		*out_listener_id = listener_id;
 	}
 
-	return BT_GRAPH_STATUS_OK;
+	return BT_FUNC_STATUS_OK;
 }
 
-enum bt_graph_status
+enum bt_graph_add_listener_status
 bt_graph_add_sink_component_input_port_added_listener(
 		struct bt_graph *graph,
 		bt_graph_sink_component_input_port_added_listener_func func,
@@ -874,10 +875,10 @@ bt_graph_add_sink_component_input_port_added_listener(
 		*out_listener_id = listener_id;
 	}
 
-	return BT_GRAPH_STATUS_OK;
+	return BT_FUNC_STATUS_OK;
 }
 
-enum bt_graph_status
+enum bt_graph_add_listener_status
 bt_graph_add_source_filter_component_ports_connected_listener(
 		struct bt_graph *graph,
 		bt_graph_source_filter_component_ports_connected_listener_func func,
@@ -910,10 +911,10 @@ bt_graph_add_source_filter_component_ports_connected_listener(
 		*out_listener_id = listener_id;
 	}
 
-	return BT_GRAPH_STATUS_OK;
+	return BT_FUNC_STATUS_OK;
 }
 
-enum bt_graph_status
+enum bt_graph_add_listener_status
 bt_graph_add_source_sink_component_ports_connected_listener(
 		struct bt_graph *graph,
 		bt_graph_source_sink_component_ports_connected_listener_func func,
@@ -946,10 +947,10 @@ bt_graph_add_source_sink_component_ports_connected_listener(
 		*out_listener_id = listener_id;
 	}
 
-	return BT_GRAPH_STATUS_OK;
+	return BT_FUNC_STATUS_OK;
 }
 
-enum bt_graph_status
+enum bt_graph_add_listener_status
 bt_graph_add_filter_filter_component_ports_connected_listener(
 		struct bt_graph *graph,
 		bt_graph_filter_filter_component_ports_connected_listener_func func,
@@ -982,10 +983,10 @@ bt_graph_add_filter_filter_component_ports_connected_listener(
 		*out_listener_id = listener_id;
 	}
 
-	return BT_GRAPH_STATUS_OK;
+	return BT_FUNC_STATUS_OK;
 }
 
-enum bt_graph_status
+enum bt_graph_add_listener_status
 bt_graph_add_filter_sink_component_ports_connected_listener(
 		struct bt_graph *graph,
 		bt_graph_filter_sink_component_ports_connected_listener_func func,
@@ -1018,17 +1019,17 @@ bt_graph_add_filter_sink_component_ports_connected_listener(
 		*out_listener_id = listener_id;
 	}
 
-	return BT_GRAPH_STATUS_OK;
+	return BT_FUNC_STATUS_OK;
 }
 
 BT_HIDDEN
-enum bt_graph_listener_status bt_graph_notify_port_added(
+enum bt_graph_listener_func_status bt_graph_notify_port_added(
 		struct bt_graph *graph, struct bt_port *port)
 {
 	uint64_t i;
 	GArray *listeners;
 	struct bt_component *comp;
-	enum bt_graph_listener_status status = BT_GRAPH_LISTENER_STATUS_OK;
+	enum bt_graph_listener_func_status status = BT_FUNC_STATUS_OK;
 
 	BT_ASSERT(graph);
 	BT_ASSERT(port);
@@ -1089,7 +1090,7 @@ enum bt_graph_listener_status bt_graph_notify_port_added(
 
 		BT_ASSERT(listener->func);
 		status = listener->func(comp, port, listener->base.data);
-		if (status != BT_GRAPH_LISTENER_STATUS_OK) {
+		if (status != BT_FUNC_STATUS_OK) {
 			goto end;
 		}
 	}
@@ -1099,7 +1100,7 @@ end:
 }
 
 BT_HIDDEN
-enum bt_graph_listener_status bt_graph_notify_ports_connected(
+enum bt_graph_listener_func_status bt_graph_notify_ports_connected(
 		struct bt_graph *graph, struct bt_port *upstream_port,
 		struct bt_port *downstream_port)
 {
@@ -1107,7 +1108,7 @@ enum bt_graph_listener_status bt_graph_notify_ports_connected(
 	GArray *listeners;
 	struct bt_component *upstream_comp;
 	struct bt_component *downstream_comp;
-	enum bt_graph_listener_status status = BT_GRAPH_LISTENER_STATUS_OK;
+	enum bt_graph_listener_func_status status = BT_FUNC_STATUS_OK;
 
 	BT_ASSERT(graph);
 	BT_ASSERT(upstream_port);
@@ -1167,7 +1168,7 @@ enum bt_graph_listener_status bt_graph_notify_ports_connected(
 		BT_ASSERT(listener->func);
 		status = listener->func(upstream_comp, downstream_comp,
 			upstream_port, downstream_port, listener->base.data);
-		if (status != BT_GRAPH_LISTENER_STATUS_OK) {
+		if (status != BT_FUNC_STATUS_OK) {
 			goto end;
 		}
 	}
@@ -1176,13 +1177,12 @@ end:
 	return status;
 }
 
-enum bt_graph_status bt_graph_cancel(struct bt_graph *graph)
+enum bt_graph_cancel_status bt_graph_cancel(struct bt_graph *graph)
 {
-
 	BT_ASSERT_PRE_NON_NULL(graph, "Graph");
 	graph->canceled = true;
 	BT_LIB_LOGI("Canceled graph: %!+i", graph);
-	return BT_GRAPH_STATUS_OK;
+	return BT_FUNC_STATUS_OK;
 }
 
 bt_bool bt_graph_is_canceled(const struct bt_graph *graph)
@@ -1226,7 +1226,7 @@ end:
 }
 
 static
-enum bt_graph_status add_component_with_init_method_data(
+int add_component_with_init_method_data(
 		struct bt_graph *graph,
 		struct bt_component_class *comp_cls,
 		comp_init_method_t init_method,
@@ -1234,8 +1234,8 @@ enum bt_graph_status add_component_with_init_method_data(
 		void *init_method_data, bt_logging_level log_level,
 		struct bt_component **user_component)
 {
-	enum bt_graph_status graph_status = BT_GRAPH_STATUS_OK;
-	enum bt_self_component_status comp_status;
+	int status = BT_FUNC_STATUS_OK;
+	enum bt_component_class_init_method_status init_status;
 	struct bt_component *component = NULL;
 	int ret;
 	bool init_can_consume;
@@ -1265,7 +1265,7 @@ enum bt_graph_status add_component_with_init_method_data(
 		new_params = bt_value_map_create();
 		if (!new_params) {
 			BT_LOGE_STR("Cannot create empty map value object.");
-			graph_status = BT_GRAPH_STATUS_NOMEM;
+			status = BT_FUNC_STATUS_MEMORY_ERROR;
 			goto end;
 		}
 
@@ -1276,7 +1276,7 @@ enum bt_graph_status add_component_with_init_method_data(
 	if (ret) {
 		BT_LOGE("Cannot create empty component object: ret=%d",
 			ret);
-		graph_status = BT_GRAPH_STATUS_NOMEM;
+		status = BT_FUNC_STATUS_MEMORY_ERROR;
 		goto end;
 	}
 
@@ -1291,12 +1291,13 @@ enum bt_graph_status add_component_with_init_method_data(
 
 	if (init_method) {
 		BT_LOGD_STR("Calling user's initialization method.");
-		comp_status = init_method(component, params, init_method_data);
+		init_status = init_method(component, params, init_method_data);
 		BT_LOGD("User method returned: status=%s",
-			bt_self_component_status_string(comp_status));
-		if (comp_status != BT_SELF_COMPONENT_STATUS_OK) {
-			BT_LOGW_STR("Initialization method failed.");
-			graph_status = (int) comp_status;
+			bt_common_func_status_string(init_status));
+		if (init_status != BT_FUNC_STATUS_OK) {
+			BT_LIB_LOGW("Component initialization method failed: "
+				"%!+c", component);
+			status = init_status;
 			bt_component_set_graph(component, NULL);
 			g_ptr_array_remove_fast(graph->components, component);
 			goto end;
@@ -1338,7 +1339,7 @@ enum bt_graph_status add_component_with_init_method_data(
 	}
 
 end:
-	if (graph_status != BT_GRAPH_STATUS_OK) {
+	if (status != BT_FUNC_STATUS_OK) {
 		bt_graph_make_faulty(graph);
 	}
 
@@ -1346,10 +1347,10 @@ end:
 	bt_object_put_ref(new_params);
 	(void) init_can_consume;
 	bt_graph_set_can_consume(graph, init_can_consume);
-	return graph_status;
+	return status;
 }
 
-enum bt_graph_status
+enum bt_graph_add_component_status
 bt_graph_add_source_component_with_init_method_data(
 		struct bt_graph *graph,
 		const struct bt_component_class_source *comp_cls,
@@ -1363,7 +1364,7 @@ bt_graph_add_source_component_with_init_method_data(
 		name, params, init_method_data, log_level, (void *) component);
 }
 
-enum bt_graph_status bt_graph_add_source_component(
+enum bt_graph_add_component_status bt_graph_add_source_component(
 		struct bt_graph *graph,
 		const struct bt_component_class_source *comp_cls,
 		const char *name, const struct bt_value *params,
@@ -1374,7 +1375,7 @@ enum bt_graph_status bt_graph_add_source_component(
 		graph, comp_cls, name, params, NULL, log_level, component);
 }
 
-enum bt_graph_status
+enum bt_graph_add_component_status
 bt_graph_add_filter_component_with_init_method_data(
 		struct bt_graph *graph,
 		const struct bt_component_class_filter *comp_cls,
@@ -1388,7 +1389,7 @@ bt_graph_add_filter_component_with_init_method_data(
 		name, params, init_method_data, log_level, (void *) component);
 }
 
-enum bt_graph_status bt_graph_add_filter_component(
+enum bt_graph_add_component_status bt_graph_add_filter_component(
 		struct bt_graph *graph,
 		const struct bt_component_class_filter *comp_cls,
 		const char *name, const struct bt_value *params,
@@ -1399,7 +1400,7 @@ enum bt_graph_status bt_graph_add_filter_component(
 		graph, comp_cls, name, params, NULL, log_level, component);
 }
 
-enum bt_graph_status
+enum bt_graph_add_component_status
 bt_graph_add_sink_component_with_init_method_data(
 		struct bt_graph *graph,
 		const struct bt_component_class_sink *comp_cls,
@@ -1413,7 +1414,7 @@ bt_graph_add_sink_component_with_init_method_data(
 		name, params, init_method_data, log_level, (void *) component);
 }
 
-enum bt_graph_status bt_graph_add_sink_component(
+enum bt_graph_add_component_status bt_graph_add_sink_component(
 		struct bt_graph *graph,
 		const struct bt_component_class_sink *comp_cls,
 		const char *name, const struct bt_value *params,

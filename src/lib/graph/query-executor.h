@@ -33,49 +33,4 @@ struct bt_query_executor {
 	bool canceled;
 };
 
-static inline const char *bt_query_status_string(enum bt_query_status status)
-{
-	switch (status) {
-	case BT_QUERY_STATUS_OK:
-		return "BT_QUERY_STATUS_OK";
-	case BT_QUERY_STATUS_AGAIN:
-		return "BT_QUERY_STATUS_AGAIN";
-	case BT_QUERY_STATUS_ERROR:
-		return "BT_QUERY_STATUS_ERROR";
-	case BT_QUERY_STATUS_INVALID_OBJECT:
-		return "BT_QUERY_STATUS_INVALID_OBJECT";
-	case BT_QUERY_STATUS_INVALID_PARAMS:
-		return "BT_QUERY_STATUS_INVALID_PARAMS";
-	case BT_QUERY_STATUS_NOMEM:
-		return "BT_QUERY_STATUS_NOMEM";
-	default:
-		return "(unknown)";
-	}
-};
-
-static inline const char *bt_query_executor_status_string(
-		enum bt_query_executor_status status)
-{
-	switch (status) {
-	case BT_QUERY_EXECUTOR_STATUS_OK:
-		return "BT_QUERY_EXECUTOR_STATUS_OK";
-	case BT_QUERY_EXECUTOR_STATUS_AGAIN:
-		return "BT_QUERY_EXECUTOR_STATUS_AGAIN";
-	case BT_QUERY_EXECUTOR_STATUS_CANCELED:
-		return "BT_QUERY_EXECUTOR_STATUS_CANCELED";
-	case BT_QUERY_EXECUTOR_STATUS_UNSUPPORTED:
-		return "BT_QUERY_EXECUTOR_STATUS_UNSUPPORTED";
-	case BT_QUERY_EXECUTOR_STATUS_ERROR:
-		return "BT_QUERY_EXECUTOR_STATUS_ERROR";
-	case BT_QUERY_EXECUTOR_STATUS_INVALID_OBJECT:
-		return "BT_QUERY_EXECUTOR_STATUS_INVALID_OBJECT";
-	case BT_QUERY_EXECUTOR_STATUS_INVALID_PARAMS:
-		return "BT_QUERY_EXECUTOR_STATUS_INVALID_PARAMS";
-	case BT_QUERY_EXECUTOR_STATUS_NOMEM:
-		return "BT_QUERY_EXECUTOR_STATUS_NOMEM";
-	default:
-		return "(unknown)";
-	}
-};
-
 #endif /* BABELTRACE_GRAPH_QUERY_EXECUTOR_INTERNAL_H */

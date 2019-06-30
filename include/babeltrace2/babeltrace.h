@@ -87,7 +87,7 @@
 #include <babeltrace2/graph/message-discarded-packets.h>
 #include <babeltrace2/graph/message-event-const.h>
 #include <babeltrace2/graph/message-event.h>
-#include <babeltrace2/graph/message-iterator-const.h>
+#include <babeltrace2/graph/message-iterator.h>
 #include <babeltrace2/graph/message-message-iterator-inactivity-const.h>
 #include <babeltrace2/graph/message-message-iterator-inactivity.h>
 #include <babeltrace2/graph/message-packet-beginning-const.h>

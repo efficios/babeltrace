@@ -106,9 +106,9 @@ class QueryExecutorTestCase(unittest.TestCase):
 
             @classmethod
             def _query(cls, query_exec, obj, params, log_level):
-                raise bt2.InvalidQueryObject
+                raise bt2.InvalidObject
 
-        with self.assertRaises(bt2.InvalidQueryObject):
+        with self.assertRaises(bt2.InvalidObject):
             res = bt2.QueryExecutor().query(MySink, 'obj', [17, 23])
 
     def test_query_logging_level_invalid_type(self):
@@ -142,9 +142,9 @@ class QueryExecutorTestCase(unittest.TestCase):
 
             @classmethod
             def _query(cls, query_exec, obj, params, log_level):
-                raise bt2.InvalidQueryParams
+                raise bt2.InvalidParams
 
-        with self.assertRaises(bt2.InvalidQueryParams):
+        with self.assertRaises(bt2.InvalidParams):
             res = bt2.QueryExecutor().query(MySink, 'obj', [17, 23])
 
     def test_query_try_again(self):
@@ -177,5 +177,5 @@ class QueryExecutorTestCase(unittest.TestCase):
         query_exec = bt2.QueryExecutor()
         query_exec.cancel()
 
-        with self.assertRaises(bt2.QueryExecutorCanceled):
+        with self.assertRaises(bt2.Canceled):
             res = query_exec.query(MySink, 'obj', [17, 23])

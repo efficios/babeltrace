@@ -29,13 +29,6 @@ import abc
 import bt2
 
 
-def _handle_status(status, obj_name):
-    if status >= 0:
-        return
-    else:
-        raise RuntimeError('unexpected error')
-
-
 def _create_from_ptr(ptr):
     if ptr is None or ptr == native_bt.value_null:
         return
@@ -87,9 +80,6 @@ class _Value(object._SharedObject, metaclass=abc.ABCMeta):
 
     def __ne__(self, other):
         return not (self == other)
-
-    def _handle_status(self, status):
-        _handle_status(status, self._NAME)
 
     def _check_create_status(self, ptr):
         if ptr is None:
@@ -370,7 +360,7 @@ class StringValue(collections.abc.Sequence, _Value):
 
     def _set_value(self, value):
         status = native_bt.value_string_set(self._ptr, self._value_to_str(value))
-        self._handle_status(status)
+        utils._handle_func_status(status)
 
     value = property(fset=_set_value)
 
@@ -473,7 +463,7 @@ class ArrayValue(_Container, collections.abc.MutableSequence, _Value):
 
         status = native_bt.value_array_set_element_by_index(
             self._ptr, index, ptr)
-        self._handle_status(status)
+        utils._handle_func_status(status)
 
     def append(self, value):
         value = create_value(value)
@@ -484,7 +474,7 @@ class ArrayValue(_Container, collections.abc.MutableSequence, _Value):
             ptr = value._ptr
 
         status = native_bt.value_array_append_element(self._ptr, ptr)
-        self._handle_status(status)
+        utils._handle_func_status(status)
 
     def __iadd__(self, iterable):
         # Python will raise a TypeError if there's anything wrong with
@@ -590,7 +580,7 @@ class MapValue(_Container, collections.abc.MutableMapping, _Value):
             ptr = value._ptr
 
         status = native_bt.value_map_insert_entry(self._ptr, key, ptr)
-        self._handle_status(status)
+        utils._handle_func_status(status)
 
     def __repr__(self):
         items = ['{}: {}'.format(repr(k), repr(v)) for k, v in self.items()]

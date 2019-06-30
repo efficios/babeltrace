@@ -31,15 +31,6 @@
 extern "C" {
 #endif
 
-typedef enum bt_graph_status {
-	BT_GRAPH_STATUS_OK = 0,
-	BT_GRAPH_STATUS_END = 1,
-	BT_GRAPH_STATUS_AGAIN = 11,
-	BT_GRAPH_STATUS_CANCELED = 125,
-	BT_GRAPH_STATUS_ERROR = -1,
-	BT_GRAPH_STATUS_NOMEM = -12,
-} bt_graph_status;
-
 extern bt_bool bt_graph_is_canceled(const bt_graph *graph);
 
 extern void bt_graph_get_ref(const bt_graph *graph);

@@ -37,6 +37,7 @@
 
 #include "component-class.h"
 #include "query-executor.h"
+#include "lib/func-status.h"
 
 static
 void bt_query_executor_destroy(struct bt_object *obj)
@@ -67,18 +68,19 @@ end:
 	return (void *) query_exec;
 }
 
-enum bt_query_executor_status bt_query_executor_query(
+enum bt_query_executor_query_status bt_query_executor_query(
 		struct bt_query_executor *query_exec,
 		const struct bt_component_class *comp_cls,
 		const char *object, const struct bt_value *params,
-		bt_logging_level log_level,
+		enum bt_logging_level log_level,
 		const struct bt_value **user_result)
 {
-	typedef enum bt_query_status (*method_t)(void *, const void *,
-		const void *, const void *, bt_logging_level, const void *);
+	typedef enum bt_component_class_query_method_status (*method_t)(void *,
+		const void *, const void *, const void *, enum bt_logging_level,
+		const void *);
 
-	enum bt_query_status status;
-	enum bt_query_executor_status exec_status;
+	enum bt_query_executor_query_status status;
+	enum bt_component_class_query_method_status query_status;
 	method_t method = NULL;
 
 	BT_ASSERT_PRE_NON_NULL(query_exec, "Query executor");
@@ -121,7 +123,7 @@ enum bt_query_executor_status bt_query_executor_query(
 		/* Not an error: nothing to query */
 		BT_LIB_LOGD("Component class has no registered query method: "
 			"%!+C", comp_cls);
-		exec_status = BT_QUERY_EXECUTOR_STATUS_UNSUPPORTED;
+		status = BT_FUNC_STATUS_UNSUPPORTED;
 		goto end;
 	}
 
@@ -131,30 +133,30 @@ enum bt_query_executor_status bt_query_executor_query(
 		query_exec, comp_cls, object, params,
 		bt_common_logging_level_string(log_level));
 	*user_result = NULL;
-	status = method((void *) comp_cls, query_exec, object, params,
+	query_status = method((void *) comp_cls, query_exec, object, params,
 		log_level, user_result);
 	BT_LIB_LOGD("User method returned: status=%s, %![res-]+v",
-		bt_query_status_string(status), *user_result);
-	BT_ASSERT_POST(status != BT_QUERY_STATUS_OK || *user_result,
-		"User method returned `BT_QUERY_STATUS_OK` without a result.");
-	exec_status = (int) status;
+		bt_common_func_status_string(query_status), *user_result);
+	BT_ASSERT_POST(query_status != BT_FUNC_STATUS_OK || *user_result,
+		"User method returned `BT_FUNC_STATUS_OK` without a result.");
+	status = (int) query_status;
 	if (query_exec->canceled) {
 		BT_OBJECT_PUT_REF_AND_RESET(*user_result);
-		exec_status = BT_QUERY_EXECUTOR_STATUS_CANCELED;
+		status = BT_FUNC_STATUS_CANCELED;
 		goto end;
 	}
 
 end:
-	return exec_status;
+	return status;
 }
 
-enum bt_query_executor_status bt_query_executor_cancel(
+enum bt_query_executor_cancel_status bt_query_executor_cancel(
 		struct bt_query_executor *query_exec)
 {
 	BT_ASSERT_PRE_NON_NULL(query_exec, "Query executor");
 	query_exec->canceled = BT_TRUE;
 	BT_LOGI("Canceled query executor: addr=%p", query_exec);
-	return BT_QUERY_EXECUTOR_STATUS_OK;
+	return BT_FUNC_STATUS_OK;
 }
 
 bt_bool bt_query_executor_is_canceled(const struct bt_query_executor *query_exec)

@@ -32,8 +32,10 @@
 /* For bt_bool, bt_uuid, bt_clock_class, bt_trace_class */
 #include <babeltrace2/types.h>
 
-/* For bt_clock_class_status */
-#include <babeltrace2/trace-ir/clock-class-const.h>
+/* For __BT_FUNC_STATUS_* */
+#define __BT_FUNC_STATUS_ENABLE
+#include <babeltrace2/func-status.h>
+#undef __BT_FUNC_STATUS_ENABLE
 
 #ifdef __cplusplus
 extern "C" {
@@ -41,10 +43,20 @@ extern "C" {
 
 extern bt_clock_class *bt_clock_class_create(bt_self_component *self_comp);
 
-extern bt_clock_class_status bt_clock_class_set_name(
+typedef enum bt_clock_class_set_name_status {
+	BT_CLOCK_CLASS_SET_NAME_STATUS_MEMORY_ERROR	= __BT_FUNC_STATUS_MEMORY_ERROR,
+	BT_CLOCK_CLASS_SET_NAME_STATUS_OK		= __BT_FUNC_STATUS_OK,
+} bt_clock_class_set_name_status;
+
+extern bt_clock_class_set_name_status bt_clock_class_set_name(
 		bt_clock_class *clock_class, const char *name);
 
-extern bt_clock_class_status bt_clock_class_set_description(
+typedef enum bt_clock_class_set_description_status {
+	BT_CLOCK_CLASS_SET_DESCRIPTION_STATUS_MEMORY_ERROR	= __BT_FUNC_STATUS_MEMORY_ERROR,
+	BT_CLOCK_CLASS_SET_DESCRIPTION_STATUS_OK		= __BT_FUNC_STATUS_OK,
+} bt_clock_class_set_description_status;
+
+extern bt_clock_class_set_description_status bt_clock_class_set_description(
 		bt_clock_class *clock_class, const char *description);
 
 extern void bt_clock_class_set_frequency(bt_clock_class *clock_class,
@@ -65,5 +77,7 @@ extern void bt_clock_class_set_uuid(bt_clock_class *clock_class,
 #ifdef __cplusplus
 }
 #endif
+
+#include <babeltrace2/undef-func-status.h>
 
 #endif /* BABELTRACE_TRACE_IR_CLOCK_CLASS_H */

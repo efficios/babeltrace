@@ -91,7 +91,7 @@ struct live_viewer_connection * live_viewer_connection_create(
 void live_viewer_connection_destroy(
 		struct live_viewer_connection *conn);
 
-bt_query_status live_viewer_connection_list_sessions(
+bt_component_class_query_method_status live_viewer_connection_list_sessions(
 		struct live_viewer_connection *viewer_connection,
 		const bt_value **user_result);
 

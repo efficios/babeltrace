@@ -23,14 +23,16 @@
  * SOFTWARE.
  */
 
-/* For bt_query_executor_status */
-#include <babeltrace2/graph/query-executor.h>
-
 /* For bt_query_executor, bt_component_class, bt_value */
 #include <babeltrace2/types.h>
 
 /* For bt_logging_level */
 #include <babeltrace2/logging.h>
+
+/* For __BT_FUNC_STATUS_* */
+#define __BT_FUNC_STATUS_ENABLE
+#include <babeltrace2/func-status.h>
+#undef __BT_FUNC_STATUS_ENABLE
 
 #ifdef __cplusplus
 extern "C" {
@@ -39,19 +41,36 @@ extern "C" {
 extern
 bt_query_executor *bt_query_executor_create(void);
 
+typedef enum bt_query_executor_query_status {
+	BT_QUERY_EXECUTOR_QUERY_STATUS_OK		= __BT_FUNC_STATUS_OK,
+	BT_QUERY_EXECUTOR_QUERY_STATUS_AGAIN		= __BT_FUNC_STATUS_AGAIN,
+	BT_QUERY_EXECUTOR_QUERY_STATUS_UNSUPPORTED	= __BT_FUNC_STATUS_UNSUPPORTED,
+	BT_QUERY_EXECUTOR_QUERY_STATUS_CANCELED		= __BT_FUNC_STATUS_CANCELED,
+	BT_QUERY_EXECUTOR_QUERY_STATUS_ERROR		= __BT_FUNC_STATUS_ERROR,
+	BT_QUERY_EXECUTOR_QUERY_STATUS_MEMORY_ERROR	= __BT_FUNC_STATUS_MEMORY_ERROR,
+	BT_QUERY_EXECUTOR_QUERY_STATUS_INVALID_OBJECT	= __BT_FUNC_STATUS_INVALID_OBJECT,
+	BT_QUERY_EXECUTOR_QUERY_STATUS_INVALID_PARAMS	= __BT_FUNC_STATUS_INVALID_PARAMS,
+} bt_query_executor_query_status;
+
 extern
-bt_query_executor_status bt_query_executor_query(
+bt_query_executor_query_status bt_query_executor_query(
 		bt_query_executor *query_executor,
 		const bt_component_class *component_class,
 		const char *object, const bt_value *params,
 		bt_logging_level logging_level, const bt_value **result);
 
+typedef enum bt_query_executor_cancel_status {
+	BT_QUERY_EXECUTOR_CANCEL_STATUS_OK	= __BT_FUNC_STATUS_OK,
+} bt_query_executor_cancel_status;
+
 extern
-bt_query_executor_status bt_query_executor_cancel(
+bt_query_executor_cancel_status bt_query_executor_cancel(
 		bt_query_executor *query_executor);
 
 #ifdef __cplusplus
 }
 #endif
+
+#include <babeltrace2/undef-func-status.h>
 
 #endif /* BABELTRACE_GRAPH_QUERY_EXECUTOR_H */

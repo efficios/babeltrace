@@ -137,18 +137,20 @@ void counter_finalize(bt_self_component_sink *comp)
 }
 
 BT_HIDDEN
-bt_self_component_status counter_init(
+bt_component_class_init_method_status counter_init(
 		bt_self_component_sink *component,
 		const bt_value *params,
 		__attribute__((unused)) void *init_method_data)
 {
-	bt_self_component_status ret;
+	bt_component_class_init_method_status status =
+		BT_COMPONENT_CLASS_INIT_METHOD_STATUS_OK;
+	bt_self_component_add_port_status add_port_status;
 	struct counter *counter = g_new0(struct counter, 1);
 	const bt_value *step = NULL;
 	const bt_value *hide_zero = NULL;
 
 	if (!counter) {
-		ret = BT_SELF_COMPONENT_STATUS_NOMEM;
+		status = BT_COMPONENT_CLASS_INIT_METHOD_STATUS_MEMORY_ERROR;
 		goto error;
 	}
 
@@ -156,10 +158,17 @@ bt_self_component_status counter_init(
 		bt_self_component_sink_as_self_component(component);
 	counter->log_level = bt_component_get_logging_level(
 		bt_self_component_as_component(counter->self_comp));
-	ret = bt_self_component_sink_add_input_port(component,
+	add_port_status = bt_self_component_sink_add_input_port(component,
 		"in", NULL, NULL);
-	if (ret != BT_SELF_COMPONENT_STATUS_OK) {
+	switch (add_port_status) {
+	case BT_SELF_COMPONENT_ADD_PORT_STATUS_ERROR:
+		status = BT_COMPONENT_CLASS_INIT_METHOD_STATUS_ERROR;
 		goto error;
+	case BT_SELF_COMPONENT_ADD_PORT_STATUS_MEMORY_ERROR:
+		status = BT_COMPONENT_CLASS_INIT_METHOD_STATUS_MEMORY_ERROR;
+		goto error;
+	default:
+		break;
 	}
 
 	counter->last_printed_total = -1ULL;
@@ -195,17 +204,22 @@ bt_self_component_status counter_init(
 
 error:
 	destroy_private_counter_data(counter);
-	ret = BT_SELF_COMPONENT_STATUS_ERROR;
+
+	if (status == BT_COMPONENT_CLASS_INIT_METHOD_STATUS_OK) {
+		status = BT_COMPONENT_CLASS_INIT_METHOD_STATUS_ERROR;
+	}
 
 end:
-	return ret;
+	return status;
 }
 
 BT_HIDDEN
-bt_self_component_status counter_graph_is_configured(
+bt_component_class_sink_graph_is_configured_method_status
+counter_graph_is_configured(
 		bt_self_component_sink *comp)
 {
-	bt_self_component_status status = BT_SELF_COMPONENT_STATUS_OK;
+	bt_component_class_sink_graph_is_configured_method_status status =
+		BT_COMPONENT_CLASS_SINK_GRAPH_IS_CONFIGURED_METHOD_STATUS_OK;
 	struct counter *counter;
 	bt_self_component_port_input_message_iterator *iterator;
 
@@ -216,7 +230,7 @@ bt_self_component_status counter_graph_is_configured(
 		bt_self_component_sink_borrow_input_port_by_name(comp,
 			in_port_name));
 	if (!iterator) {
-		status = BT_SELF_COMPONENT_STATUS_NOMEM;
+		status = BT_COMPONENT_CLASS_SINK_GRAPH_IS_CONFIGURED_METHOD_STATUS_MEMORY_ERROR;
 		goto end;
 	}
 
@@ -228,12 +242,13 @@ end:
 }
 
 BT_HIDDEN
-bt_self_component_status counter_consume(
+bt_component_class_sink_consume_method_status counter_consume(
 		bt_self_component_sink *comp)
 {
-	bt_self_component_status ret = BT_SELF_COMPONENT_STATUS_OK;
+	bt_component_class_sink_consume_method_status status =
+		BT_COMPONENT_CLASS_SINK_CONSUME_METHOD_STATUS_OK;
 	struct counter *counter;
-	bt_message_iterator_status it_ret;
+	bt_message_iterator_next_status next_status;
 	uint64_t msg_count;
 	bt_message_array_const msgs;
 
@@ -243,20 +258,20 @@ bt_self_component_status counter_consume(
 
 	if (G_UNLIKELY(!counter->msg_iter)) {
 		try_print_last(counter);
-		ret = BT_SELF_COMPONENT_STATUS_END;
+		status = BT_COMPONENT_CLASS_SINK_CONSUME_METHOD_STATUS_END;
 		goto end;
 	}
 
 	/* Consume messages */
-	it_ret = bt_self_component_port_input_message_iterator_next(
+	next_status = bt_self_component_port_input_message_iterator_next(
 		counter->msg_iter, &msgs, &msg_count);
-	if (it_ret < 0) {
-		ret = BT_SELF_COMPONENT_STATUS_ERROR;
+	if (next_status < 0) {
+		status = (int) next_status;
 		goto end;
 	}
 
-	switch (it_ret) {
-	case BT_MESSAGE_ITERATOR_STATUS_OK:
+	switch (next_status) {
+	case BT_MESSAGE_ITERATOR_NEXT_STATUS_OK:
 	{
 		uint64_t i;
 
@@ -302,18 +317,18 @@ bt_self_component_status counter_consume(
 			bt_message_put_ref(msg);
 		}
 
-		ret = BT_SELF_COMPONENT_STATUS_OK;
+		status = BT_COMPONENT_CLASS_SINK_CONSUME_METHOD_STATUS_OK;
 		break;
 	}
-	case BT_MESSAGE_ITERATOR_STATUS_AGAIN:
-		ret = BT_SELF_COMPONENT_STATUS_AGAIN;
+	case BT_MESSAGE_ITERATOR_NEXT_STATUS_AGAIN:
+		status = BT_COMPONENT_CLASS_SINK_CONSUME_METHOD_STATUS_AGAIN;
 		goto end;
-	case BT_MESSAGE_ITERATOR_STATUS_END:
+	case BT_MESSAGE_ITERATOR_NEXT_STATUS_END:
 		try_print_last(counter);
-		ret = BT_SELF_COMPONENT_STATUS_END;
+		status = BT_COMPONENT_CLASS_SINK_CONSUME_METHOD_STATUS_END;
 		goto end;
-	case BT_MESSAGE_ITERATOR_STATUS_NOMEM:
-		ret = BT_SELF_COMPONENT_STATUS_NOMEM;
+	case BT_MESSAGE_ITERATOR_NEXT_STATUS_MEMORY_ERROR:
+		status = BT_COMPONENT_CLASS_SINK_CONSUME_METHOD_STATUS_MEMORY_ERROR;
 		goto end;
 	default:
 		break;
@@ -322,5 +337,5 @@ bt_self_component_status counter_consume(
 	try_print_count(counter, msg_count);
 
 end:
-	return ret;
+	return status;
 }

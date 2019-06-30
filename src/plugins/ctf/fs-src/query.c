@@ -47,12 +47,13 @@ struct range {
 };
 
 BT_HIDDEN
-bt_query_status metadata_info_query(
+bt_component_class_query_method_status metadata_info_query(
 		bt_self_component_class_source *comp_class,
 		const bt_value *params, bt_logging_level log_level,
 		const bt_value **user_result)
 {
-	bt_query_status status = BT_QUERY_STATUS_OK;
+	bt_component_class_query_method_status status =
+		BT_COMPONENT_CLASS_QUERY_METHOD_STATUS_OK;
 	bt_value *result = NULL;
 	const bt_value *path_value = NULL;
 	char *metadata_text = NULL;
@@ -65,7 +66,7 @@ bt_query_status metadata_info_query(
 
 	result = bt_value_map_create();
 	if (!result) {
-		status = BT_QUERY_STATUS_NOMEM;
+		status = BT_COMPONENT_CLASS_QUERY_METHOD_STATUS_MEMORY_ERROR;
 		goto error;
 	}
 
@@ -73,20 +74,20 @@ bt_query_status metadata_info_query(
 
 	if (!bt_value_is_map(params)) {
 		BT_LOGE_STR("Query parameters is not a map value object.");
-		status = BT_QUERY_STATUS_INVALID_PARAMS;
+		status = BT_COMPONENT_CLASS_QUERY_METHOD_STATUS_INVALID_PARAMS;
 		goto error;
 	}
 
 	path_value = bt_value_map_borrow_entry_value_const(params, "path");
 	if (!path_value) {
 		BT_LOGE_STR("Mandatory `path` parameter missing");
-		status = BT_QUERY_STATUS_INVALID_PARAMS;
+		status = BT_COMPONENT_CLASS_QUERY_METHOD_STATUS_INVALID_PARAMS;
 		goto error;
 	}
 
 	if (!bt_value_is_string(path_value)) {
 		BT_LOGE_STR("`path` parameter is required to be a string value");
-		status = BT_QUERY_STATUS_INVALID_PARAMS;
+		status = BT_COMPONENT_CLASS_QUERY_METHOD_STATUS_INVALID_PARAMS;
 		goto error;
 	}
 
@@ -176,7 +177,7 @@ error:
 	result = NULL;
 
 	if (status >= 0) {
-		status = BT_QUERY_STATUS_ERROR;
+		status = BT_COMPONENT_CLASS_QUERY_METHOD_STATUS_ERROR;
 	}
 
 end:
@@ -199,7 +200,7 @@ int add_range(bt_value *info, struct range *range,
 		const char *range_name)
 {
 	int ret = 0;
-	bt_value_status status;
+	bt_value_map_insert_entry_status status;
 	bt_value *range_map = NULL;
 
 	if (!range->set) {
@@ -215,21 +216,21 @@ int add_range(bt_value *info, struct range *range,
 
 	status = bt_value_map_insert_signed_integer_entry(range_map, "begin",
 			range->begin_ns);
-	if (status != BT_VALUE_STATUS_OK) {
+	if (status != BT_VALUE_MAP_INSERT_ENTRY_STATUS_OK) {
 		ret = -1;
 		goto end;
 	}
 
 	status = bt_value_map_insert_signed_integer_entry(range_map, "end",
 			range->end_ns);
-	if (status != BT_VALUE_STATUS_OK) {
+	if (status != BT_VALUE_MAP_INSERT_ENTRY_STATUS_OK) {
 		ret = -1;
 		goto end;
 	}
 
 	status = bt_value_map_insert_entry(info, range_name,
 		range_map);
-	if (status != BT_VALUE_STATUS_OK) {
+	if (status != BT_VALUE_MAP_INSERT_ENTRY_STATUS_OK) {
 		ret = -1;
 		goto end;
 	}
@@ -243,12 +244,12 @@ static
 int add_stream_ids(bt_value *info, struct ctf_fs_ds_file_group *ds_file_group)
 {
 	int ret = 0;
-	bt_value_status status;
+	bt_value_map_insert_entry_status status;
 
 	if (ds_file_group->stream_id != UINT64_C(-1)) {
 		status = bt_value_map_insert_unsigned_integer_entry(info, "id",
 			ds_file_group->stream_id);
-		if (status != BT_VALUE_STATUS_OK) {
+		if (status != BT_VALUE_MAP_INSERT_ENTRY_STATUS_OK) {
 			ret = -1;
 			goto end;
 		}
@@ -256,7 +257,7 @@ int add_stream_ids(bt_value *info, struct ctf_fs_ds_file_group *ds_file_group)
 
 	status = bt_value_map_insert_unsigned_integer_entry(info, "class-id",
 		ds_file_group->sc->id);
-	if (status != BT_VALUE_STATUS_OK) {
+	if (status != BT_VALUE_MAP_INSERT_ENTRY_STATUS_OK) {
 		ret = -1;
 		goto end;
 	}
@@ -271,7 +272,8 @@ int populate_stream_info(struct ctf_fs_ds_file_group *group,
 {
 	int ret = 0;
 	size_t file_idx;
-	bt_value_status status;
+	bt_value_map_insert_entry_status insert_status;
+	bt_value_array_append_element_status append_status;
 	bt_value *file_paths;
 	struct ctf_fs_ds_index_entry *first_ds_index_entry, *last_ds_index_entry;
 	gchar *port_name = NULL;
@@ -287,9 +289,9 @@ int populate_stream_info(struct ctf_fs_ds_file_group *group,
 			g_ptr_array_index(group->ds_file_infos,
 				file_idx);
 
-		status = bt_value_array_append_string_element(file_paths,
+		append_status = bt_value_array_append_string_element(file_paths,
 				info->path->str);
-		if (status != BT_VALUE_STATUS_OK) {
+		if (append_status != BT_VALUE_ARRAY_APPEND_ELEMENT_STATUS_OK) {
 			ret = -1;
 			goto end;
 		}
@@ -329,9 +331,9 @@ int populate_stream_info(struct ctf_fs_ds_file_group *group,
 		goto end;
 	}
 
-	status = bt_value_map_insert_entry(group_info, "paths",
+	insert_status = bt_value_map_insert_entry(group_info, "paths",
 		file_paths);
-	if (status != BT_VALUE_STATUS_OK) {
+	if (insert_status != BT_VALUE_MAP_INSERT_ENTRY_STATUS_OK) {
 		ret = -1;
 		goto end;
 	}
@@ -347,9 +349,9 @@ int populate_stream_info(struct ctf_fs_ds_file_group *group,
 		goto end;
 	}
 
-	status = bt_value_map_insert_string_entry(group_info, "port-name",
-		port_name);
-	if (status != BT_VALUE_STATUS_OK) {
+	insert_status = bt_value_map_insert_string_entry(group_info,
+		"port-name", port_name);
+	if (insert_status != BT_VALUE_MAP_INSERT_ENTRY_STATUS_OK) {
 		ret = -1;
 		goto end;
 	}
@@ -364,7 +366,8 @@ int populate_trace_info(const struct ctf_fs_trace *trace, bt_value *trace_info)
 {
 	int ret = 0;
 	size_t group_idx;
-	bt_value_status status;
+	bt_value_map_insert_entry_status insert_status;
+	bt_value_array_append_element_status append_status;
 	bt_value *file_groups = NULL;
 	struct range trace_range = {
 		.begin_ns = INT64_MAX,
@@ -389,15 +392,15 @@ int populate_trace_info(const struct ctf_fs_trace *trace, bt_value *trace_info)
 		goto end;
 	}
 
-	status = bt_value_map_insert_string_entry(trace_info, "name",
+	insert_status = bt_value_map_insert_string_entry(trace_info, "name",
 		trace->name->str);
-	if (status != BT_VALUE_STATUS_OK) {
+	if (insert_status != BT_VALUE_MAP_INSERT_ENTRY_STATUS_OK) {
 		ret = -1;
 		goto end;
 	}
-	status = bt_value_map_insert_string_entry(trace_info, "path",
+	insert_status = bt_value_map_insert_string_entry(trace_info, "path",
 		trace->path->str);
-	if (status != BT_VALUE_STATUS_OK) {
+	if (insert_status != BT_VALUE_MAP_INSERT_ENTRY_STATUS_OK) {
 		ret = -1;
 		goto end;
 	}
@@ -422,9 +425,10 @@ int populate_trace_info(const struct ctf_fs_trace *trace, bt_value *trace_info)
 			goto end;
 		}
 
-		status = bt_value_array_append_element(file_groups, group_info);
+		append_status = bt_value_array_append_element(file_groups,
+			group_info);
 		bt_value_put_ref(group_info);
-		if (status != BT_VALUE_STATUS_OK) {
+		if (append_status != BT_VALUE_ARRAY_APPEND_ELEMENT_STATUS_OK) {
 			goto end;
 		}
 
@@ -456,10 +460,10 @@ int populate_trace_info(const struct ctf_fs_trace *trace, bt_value *trace_info)
 		}
 	}
 
-	status = bt_value_map_insert_entry(trace_info, "streams",
+	insert_status = bt_value_map_insert_entry(trace_info, "streams",
 		file_groups);
 	BT_VALUE_PUT_REF_AND_RESET(file_groups);
-	if (status != BT_VALUE_STATUS_OK) {
+	if (insert_status != BT_VALUE_MAP_INSERT_ENTRY_STATUS_OK) {
 		ret = -1;
 		goto end;
 	}
@@ -470,13 +474,14 @@ end:
 }
 
 BT_HIDDEN
-bt_query_status trace_info_query(
+bt_component_class_query_method_status trace_info_query(
 		bt_self_component_class_source *comp_class,
 		const bt_value *params, bt_logging_level log_level,
 		const bt_value **user_result)
 {
 	struct ctf_fs_component *ctf_fs = NULL;
-	bt_query_status status = BT_QUERY_STATUS_OK;
+	bt_component_class_query_method_status status =
+		BT_COMPONENT_CLASS_QUERY_METHOD_STATUS_OK;
 	bt_value *result = NULL;
 	const bt_value *paths_value = NULL;
 	int ret = 0;
@@ -486,7 +491,7 @@ bt_query_status trace_info_query(
 
 	if (!bt_value_is_map(params)) {
 		BT_LOGE("Query parameters is not a map value object.");
-		status = BT_QUERY_STATUS_INVALID_PARAMS;
+		status = BT_COMPONENT_CLASS_QUERY_METHOD_STATUS_INVALID_PARAMS;
 		goto error;
 	}
 
@@ -496,7 +501,7 @@ bt_query_status trace_info_query(
 	}
 
 	if (!read_src_fs_parameters(params, &paths_value, ctf_fs)) {
-		status = BT_QUERY_STATUS_INVALID_PARAMS;
+		status = BT_COMPONENT_CLASS_QUERY_METHOD_STATUS_INVALID_PARAMS;
 		goto error;
 	}
 
@@ -506,14 +511,14 @@ bt_query_status trace_info_query(
 
 	result = bt_value_array_create();
 	if (!result) {
-		status = BT_QUERY_STATUS_NOMEM;
+		status = BT_COMPONENT_CLASS_QUERY_METHOD_STATUS_MEMORY_ERROR;
 		goto error;
 	}
 
 	for (i = 0; i < ctf_fs->traces->len; i++) {
 		struct ctf_fs_trace *trace;
 		bt_value *trace_info;
-		bt_value_status status;
+		bt_value_array_append_element_status append_status;
 
 		trace = g_ptr_array_index(ctf_fs->traces, i);
 		BT_ASSERT(trace);
@@ -530,9 +535,10 @@ bt_query_status trace_info_query(
 			goto error;
 		}
 
-		status = bt_value_array_append_element(result, trace_info);
+		append_status = bt_value_array_append_element(result,
+			trace_info);
 		bt_value_put_ref(trace_info);
-		if (status != BT_VALUE_STATUS_OK) {
+		if (append_status != BT_VALUE_ARRAY_APPEND_ELEMENT_STATUS_OK) {
 			goto error;
 		}
 	}
@@ -544,7 +550,7 @@ error:
 	result = NULL;
 
 	if (status >= 0) {
-		status = BT_QUERY_STATUS_ERROR;
+		status = BT_COMPONENT_CLASS_QUERY_METHOD_STATUS_ERROR;
 	}
 
 end:

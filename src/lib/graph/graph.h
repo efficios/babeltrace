@@ -37,6 +37,7 @@
 #include "component.h"
 #include "component-sink.h"
 #include "connection.h"
+#include "lib/func-status.h"
 
 /* Protection: this file uses BT_LIB_LOG*() macros directly */
 #ifndef BT_LIB_LOG_SUPPORTED
@@ -90,7 +91,7 @@ struct bt_graph {
 	/*
 	 * If this is false, then the public API's consuming
 	 * functions (bt_graph_consume() and bt_graph_run()) return
-	 * BT_GRAPH_STATUS_CANNOT_CONSUME. The internal "no check"
+	 * BT_FUNC_STATUS_CANNOT_CONSUME. The internal "no check"
 	 * functions always work.
 	 *
 	 * In bt_port_output_message_iterator_create(), on success,
@@ -152,15 +153,15 @@ void _bt_graph_set_can_consume(struct bt_graph *graph, bool can_consume)
 #endif
 
 BT_HIDDEN
-enum bt_graph_status bt_graph_consume_sink_no_check(struct bt_graph *graph,
+int bt_graph_consume_sink_no_check(struct bt_graph *graph,
 		struct bt_component_sink *sink);
 
 BT_HIDDEN
-enum bt_graph_listener_status bt_graph_notify_port_added(struct bt_graph *graph,
+enum bt_graph_listener_func_status bt_graph_notify_port_added(struct bt_graph *graph,
 		struct bt_port *port);
 
 BT_HIDDEN
-enum bt_graph_listener_status bt_graph_notify_ports_connected(
+enum bt_graph_listener_func_status bt_graph_notify_ports_connected(
 		struct bt_graph *graph, struct bt_port *upstream_port,
 		struct bt_port *downstream_port);
 
@@ -185,27 +186,6 @@ void bt_graph_add_message(struct bt_graph *graph,
 		struct bt_message *msg);
 
 static inline
-const char *bt_graph_status_string(enum bt_graph_status status)
-{
-	switch (status) {
-	case BT_GRAPH_STATUS_CANCELED:
-		return "BT_GRAPH_STATUS_CANCELED";
-	case BT_GRAPH_STATUS_AGAIN:
-		return "BT_GRAPH_STATUS_AGAIN";
-	case BT_GRAPH_STATUS_END:
-		return "BT_GRAPH_STATUS_END";
-	case BT_GRAPH_STATUS_OK:
-		return "BT_GRAPH_STATUS_OK";
-	case BT_GRAPH_STATUS_ERROR:
-		return "BT_GRAPH_STATUS_ERROR";
-	case BT_GRAPH_STATUS_NOMEM:
-		return "BT_GRAPH_STATUS_NOMEM";
-	default:
-		return "(unknown)";
-	}
-}
-
-static inline
 const char *bt_graph_configuration_state_string(
 		enum bt_graph_configuration_state state)
 {
@@ -222,9 +202,9 @@ const char *bt_graph_configuration_state_string(
 }
 
 static inline
-enum bt_graph_status bt_graph_configure(struct bt_graph *graph)
+int bt_graph_configure(struct bt_graph *graph)
 {
-	enum bt_graph_status status = BT_GRAPH_STATUS_OK;
+	int status = BT_FUNC_STATUS_OK;
 	uint64_t i;
 
 	BT_ASSERT(graph->config_state != BT_GRAPH_CONFIGURATION_STATE_FAULTY);
@@ -252,7 +232,7 @@ enum bt_graph_status bt_graph_configure(struct bt_graph *graph)
 		}
 
 		if (comp_cls_sink->methods.graph_is_configured) {
-			enum bt_self_component_status comp_status;
+			enum bt_component_class_sink_graph_is_configured_method_status comp_status;
 
 			BT_LIB_LOGD("Calling user's \"graph is configured\" method: "
 				"%![graph-]+g, %![comp-]+c",
@@ -260,19 +240,18 @@ enum bt_graph_status bt_graph_configure(struct bt_graph *graph)
 			comp_status = comp_cls_sink->methods.graph_is_configured(
 				(void *) comp_sink);
 			BT_LIB_LOGD("User method returned: status=%s",
-				bt_self_component_status_string(comp_status));
-			BT_ASSERT_POST(comp_status == BT_SELF_COMPONENT_STATUS_OK ||
-				comp_status == BT_SELF_COMPONENT_STATUS_ERROR ||
-				comp_status == BT_SELF_COMPONENT_STATUS_NOMEM,
+				bt_common_func_status_string(comp_status));
+			BT_ASSERT_POST(comp_status == BT_FUNC_STATUS_OK ||
+				comp_status == BT_FUNC_STATUS_ERROR ||
+				comp_status == BT_FUNC_STATUS_MEMORY_ERROR,
 				"Unexpected returned status: status=%s",
-				bt_self_component_status_string(comp_status));
+				bt_common_func_status_string(comp_status));
 
-			if (comp_status != BT_SELF_COMPONENT_STATUS_OK) {
-				status = BT_GRAPH_STATUS_ERROR;
+			if (comp_status != BT_FUNC_STATUS_OK) {
+				status = BT_FUNC_STATUS_ERROR;
 				BT_LIB_LOGW("User's \"graph is configured\" method failed: "
 					"%![comp-]+c, status=%s",
-					comp,
-					bt_self_component_status_string(
+					comp, bt_common_func_status_string(
 						comp_status));
 				goto end;
 			}

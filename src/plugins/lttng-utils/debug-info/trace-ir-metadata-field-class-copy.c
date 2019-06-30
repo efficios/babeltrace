@@ -228,7 +228,6 @@ int field_class_unsigned_enumeration_copy(
 		 */
 		for (range_index = 0; range_index < range_count; range_index++) {
 			uint64_t lower, upper;
-			bt_field_class_status status;
 			bt_field_class_unsigned_enumeration_mapping_get_range_by_index(
 					u_mapping, range_index, &lower, &upper);
 
@@ -237,10 +236,9 @@ int field_class_unsigned_enumeration_copy(
 					label, lower, upper);
 
 			/* Add the label and its range to the copy field class. */
-			status = bt_field_class_unsigned_enumeration_map_range(
-					out_field_class, label, lower, upper);
-
-			if (status != BT_FIELD_CLASS_STATUS_OK) {
+			if (bt_field_class_unsigned_enumeration_map_range(
+					out_field_class, label, lower, upper) !=
+					BT_FIELD_CLASS_ENUMERATION_MAP_RANGE_STATUS_OK) {
 				BT_COMP_LOGE_STR("Failed to add range to unsigned "
 						"enumeration.");
 				BT_FIELD_CLASS_PUT_REF_AND_RESET(out_field_class);
@@ -300,7 +298,6 @@ int field_class_signed_enumeration_copy(
 		 */
 		for (range_index = 0; range_index < range_count; range_index++) {
 			int64_t lower, upper;
-			bt_field_class_status status;
 			bt_field_class_signed_enumeration_mapping_get_range_by_index(
 					i_mapping, range_index, &lower, &upper);
 
@@ -309,9 +306,9 @@ int field_class_signed_enumeration_copy(
 					label, lower, upper);
 
 			/* Add the label and its range to the copy field class. */
-			status = bt_field_class_signed_enumeration_map_range(
-					out_field_class, label, lower, upper);
-			if (status != BT_FIELD_CLASS_STATUS_OK) {
+			if (bt_field_class_signed_enumeration_map_range(
+					out_field_class, label, lower, upper) !=
+					BT_FIELD_CLASS_ENUMERATION_MAP_RANGE_STATUS_OK) {
 				BT_COMP_LOGE_STR("Failed to add range to signed "
 						"enumeration.");
 				BT_FIELD_CLASS_PUT_REF_AND_RESET(out_field_class);
@@ -355,7 +352,6 @@ int field_class_structure_copy(
 		bt_field_class *out_field_class)
 {
 	uint64_t i, struct_member_count;
-	bt_field_class_status status;
 	int ret = 0;
 
 	BT_COMP_LOGD("Copying content of structure field class: "
@@ -398,9 +394,9 @@ int field_class_structure_copy(
 			goto error;
 		}
 
-		status = bt_field_class_structure_append_member(out_field_class,
-				member_name, out_member_field_class);
-		if (status != BT_FIELD_CLASS_STATUS_OK) {
+		if (bt_field_class_structure_append_member(out_field_class,
+				member_name, out_member_field_class) !=
+				BT_FIELD_CLASS_STRUCTURE_APPEND_MEMBER_STATUS_OK) {
 			BT_COMP_LOGE("Cannot append structure field class's field: "
 				"index=%" PRId64 ", "
 				"field-fc-addr=%p, field-name=\"%s\"",
@@ -457,7 +453,6 @@ int field_class_variant_copy(
 		const bt_field_class *option_fc;
 		const char *option_name;
 		bt_field_class *out_option_field_class;
-		bt_field_class_status status;
 		const bt_field_class_variant_option *option;
 
 		option = bt_field_class_variant_borrow_option_by_index_const(
@@ -480,10 +475,10 @@ int field_class_variant_copy(
 			goto error;
 		}
 
-		status = bt_field_class_variant_append_option(
+		if (bt_field_class_variant_append_option(
 				out_field_class, option_name,
-				out_option_field_class);
-		if (status != BT_FIELD_CLASS_STATUS_OK) {
+				out_option_field_class) !=
+				BT_FIELD_CLASS_VARIANT_APPEND_OPTION_STATUS_OK) {
 			BT_COMP_LOGE_STR("Cannot append option to variant field class'");
 			BT_FIELD_CLASS_PUT_REF_AND_RESET(out_tag_field_class);
 			ret = -1;
@@ -524,7 +519,6 @@ int field_class_dynamic_array_copy(
 {
 	const bt_field_class *len_fc;
 	const bt_field_path *len_fp;
-	bt_field_class_status status;
 	bt_field_class *out_len_field_class;
 	int ret = 0;
 
@@ -549,9 +543,9 @@ int field_class_dynamic_array_copy(
 			goto error;
 		}
 
-		status = bt_field_class_dynamic_array_set_length_field_class(
-				out_field_class, out_len_field_class);
-		if (status != BT_FIELD_CLASS_STATUS_OK) {
+		if (bt_field_class_dynamic_array_set_length_field_class(
+				out_field_class, out_len_field_class) !=
+				BT_FIELD_CLASS_DYNAMIC_ARRAY_SET_LENGTH_FIELD_CLASS_STATUS_OK) {
 			BT_COMP_LOGE_STR("Cannot set dynamic array field class' "
 					"length field class.");
 			BT_FIELD_CLASS_PUT_REF_AND_RESET(out_len_field_class);

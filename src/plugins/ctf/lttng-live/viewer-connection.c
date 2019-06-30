@@ -395,7 +395,8 @@ int list_append_session(bt_value *results,
 		struct live_viewer_connection *viewer_connection)
 {
 	int ret = 0;
-	bt_value_status ret_status;
+	bt_value_map_insert_entry_status insert_status;
+	bt_value_array_append_element_status append_status;
 	bt_value *map = NULL;
 	GString *url = NULL;
 	bool found = false;
@@ -431,8 +432,8 @@ int list_append_session(bt_value *results,
 	g_string_append_c(url, '/');
 	g_string_append(url, session->session_name);
 
-	ret_status = bt_value_map_insert_string_entry(map, "url", url->str);
-	if (ret_status != BT_VALUE_STATUS_OK) {
+	insert_status = bt_value_map_insert_string_entry(map, "url", url->str);
+	if (insert_status != BT_VALUE_MAP_INSERT_ENTRY_STATUS_OK) {
 		BT_COMP_LOGE_STR("Error inserting \"url\" entry.");
 		ret = -1;
 		goto end;
@@ -442,9 +443,9 @@ int list_append_session(bt_value *results,
 	 * key = "target-hostname",
 	 * value = <string>,
 	 */
-	ret_status = bt_value_map_insert_string_entry(map, "target-hostname",
+	insert_status = bt_value_map_insert_string_entry(map, "target-hostname",
 		session->hostname);
-	if (ret_status != BT_VALUE_STATUS_OK) {
+	if (insert_status != BT_VALUE_MAP_INSERT_ENTRY_STATUS_OK) {
 		BT_COMP_LOGE_STR("Error inserting \"target-hostname\" entry.");
 		ret = -1;
 		goto end;
@@ -454,9 +455,9 @@ int list_append_session(bt_value *results,
 	 * key = "session-name",
 	 * value = <string>,
 	 */
-	ret_status = bt_value_map_insert_string_entry(map, "session-name",
+	insert_status = bt_value_map_insert_string_entry(map, "session-name",
 		session->session_name);
-	if (ret_status != BT_VALUE_STATUS_OK) {
+	if (insert_status != BT_VALUE_MAP_INSERT_ENTRY_STATUS_OK) {
 		BT_COMP_LOGE_STR("Error inserting \"session-name\" entry.");
 		ret = -1;
 		goto end;
@@ -469,9 +470,9 @@ int list_append_session(bt_value *results,
 	{
 		uint32_t live_timer = be32toh(session->live_timer);
 
-		ret_status = bt_value_map_insert_signed_integer_entry(
+		insert_status = bt_value_map_insert_signed_integer_entry(
 			map, "timer-us", live_timer);
-		if (ret_status != BT_VALUE_STATUS_OK) {
+		if (insert_status != BT_VALUE_MAP_INSERT_ENTRY_STATUS_OK) {
 			BT_COMP_LOGE_STR("Error inserting \"timer-us\" entry.");
 			ret = -1;
 			goto end;
@@ -485,9 +486,9 @@ int list_append_session(bt_value *results,
 	{
 		uint32_t streams = be32toh(session->streams);
 
-		ret_status = bt_value_map_insert_signed_integer_entry(map,
+		insert_status = bt_value_map_insert_signed_integer_entry(map,
 			"stream-count", streams);
-		if (ret_status != BT_VALUE_STATUS_OK) {
+		if (insert_status != BT_VALUE_MAP_INSERT_ENTRY_STATUS_OK) {
 			BT_COMP_LOGE_STR("Error inserting \"stream-count\" entry.");
 			ret = -1;
 			goto end;
@@ -501,17 +502,17 @@ int list_append_session(bt_value *results,
 	{
 		uint32_t clients = be32toh(session->clients);
 
-		ret_status = bt_value_map_insert_signed_integer_entry(map,
+		insert_status = bt_value_map_insert_signed_integer_entry(map,
 			"client-count", clients);
-		if (ret_status != BT_VALUE_STATUS_OK) {
+		if (insert_status != BT_VALUE_MAP_INSERT_ENTRY_STATUS_OK) {
 			BT_COMP_LOGE_STR("Error inserting \"client-count\" entry.");
 			ret = -1;
 			goto end;
 		}
 	}
 
-	ret_status = bt_value_array_append_element(results, map);
-	if (ret_status != BT_VALUE_STATUS_OK) {
+	append_status = bt_value_array_append_element(results, map);
+	if (append_status != BT_VALUE_ARRAY_APPEND_ELEMENT_STATUS_OK) {
 		BT_COMP_LOGE_STR("Error appending map to results.");
 		ret = -1;
 	}
@@ -561,11 +562,12 @@ end:
  */
 
 BT_HIDDEN
-bt_query_status live_viewer_connection_list_sessions(
+bt_component_class_query_method_status live_viewer_connection_list_sessions(
 		struct live_viewer_connection *viewer_connection,
 		const bt_value **user_result)
 {
-	bt_query_status status = BT_QUERY_STATUS_OK;
+	bt_component_class_query_method_status status =
+		BT_COMPONENT_CLASS_QUERY_METHOD_STATUS_OK;
 	bt_value *result = NULL;
 	struct lttng_viewer_cmd cmd;
 	struct lttng_viewer_list_sessions list;
@@ -579,7 +581,7 @@ bt_query_status live_viewer_connection_list_sessions(
 	result = bt_value_array_create();
 	if (!result) {
 		BT_COMP_LOGE("Error creating array");
-		status = BT_QUERY_STATUS_NOMEM;
+		status = BT_COMPONENT_CLASS_QUERY_METHOD_STATUS_MEMORY_ERROR;
 		goto error;
 	}
 
@@ -590,7 +592,7 @@ bt_query_status live_viewer_connection_list_sessions(
 	ret_len = lttng_live_send(viewer_connection, &cmd, sizeof(cmd));
 	if (ret_len == BT_SOCKET_ERROR) {
 		BT_COMP_LOGE("Error sending cmd: %s", bt_socket_errormsg());
-		status = BT_QUERY_STATUS_ERROR;
+		status = BT_COMPONENT_CLASS_QUERY_METHOD_STATUS_ERROR;
 		goto error;
 	}
 	BT_ASSERT(ret_len == sizeof(cmd));
@@ -598,12 +600,12 @@ bt_query_status live_viewer_connection_list_sessions(
 	ret_len = lttng_live_recv(viewer_connection, &list, sizeof(list));
 	if (ret_len == 0) {
 		BT_COMP_LOGI("Remote side has closed connection");
-		status = BT_QUERY_STATUS_ERROR;
+		status = BT_COMPONENT_CLASS_QUERY_METHOD_STATUS_ERROR;
 		goto error;
 	}
 	if (ret_len == BT_SOCKET_ERROR) {
 		BT_COMP_LOGE("Error receiving session list: %s", bt_socket_errormsg());
-		status = BT_QUERY_STATUS_ERROR;
+		status = BT_COMPONENT_CLASS_QUERY_METHOD_STATUS_ERROR;
 		goto error;
 	}
 	BT_ASSERT(ret_len == sizeof(list));
@@ -616,12 +618,12 @@ bt_query_status live_viewer_connection_list_sessions(
 			sizeof(lsession));
 		if (ret_len == 0) {
 			BT_COMP_LOGI("Remote side has closed connection");
-			status = BT_QUERY_STATUS_ERROR;
+			status = BT_COMPONENT_CLASS_QUERY_METHOD_STATUS_ERROR;
 			goto error;
 		}
 		if (ret_len == BT_SOCKET_ERROR) {
 			BT_COMP_LOGE("Error receiving session: %s", bt_socket_errormsg());
-			status = BT_QUERY_STATUS_ERROR;
+			status = BT_COMPONENT_CLASS_QUERY_METHOD_STATUS_ERROR;
 			goto error;
 		}
 		BT_ASSERT(ret_len == sizeof(lsession));
@@ -629,7 +631,7 @@ bt_query_status live_viewer_connection_list_sessions(
 		lsession.session_name[LTTNG_VIEWER_NAME_MAX - 1] = '\0';
 		if (list_append_session(result, viewer_connection->url,
 				&lsession, viewer_connection)) {
-			status = BT_QUERY_STATUS_ERROR;
+			status = BT_COMPONENT_CLASS_QUERY_METHOD_STATUS_ERROR;
 			goto error;
 		}
 	}

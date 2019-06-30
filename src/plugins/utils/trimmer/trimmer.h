@@ -35,17 +35,17 @@ BT_HIDDEN
 void trimmer_finalize(bt_self_component_filter *self_comp);
 
 BT_HIDDEN
-bt_self_component_status trimmer_init(bt_self_component_filter *self_comp,
+bt_component_class_init_method_status trimmer_init(bt_self_component_filter *self_comp,
 		const bt_value *params, void *init_data);
 
 BT_HIDDEN
-bt_self_message_iterator_status trimmer_msg_iter_init(
+bt_component_class_message_iterator_init_method_status trimmer_msg_iter_init(
 		bt_self_message_iterator *self_msg_iter,
 		bt_self_component_filter *self_comp,
 		bt_self_component_port_output *port);
 
 BT_HIDDEN
-bt_self_message_iterator_status trimmer_msg_iter_next(
+bt_component_class_message_iterator_next_method_status trimmer_msg_iter_next(
 		bt_self_message_iterator *self_msg_iter,
 		bt_message_array_const msgs, uint64_t capacity,
 		uint64_t *count);

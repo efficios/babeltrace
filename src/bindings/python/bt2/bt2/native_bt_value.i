@@ -32,11 +32,11 @@ struct bt_value_map_get_keys_data {
 
 static int bt_value_map_get_keys_cb(const char *key, const struct bt_value *object, void *data)
 {
-	enum bt_value_status status;
+	bt_value_array_append_element_status status;
 	struct bt_value_map_get_keys_data *priv_data = data;
 
 	status = bt_value_array_append_string_element(priv_data->keys, key);
-	if (status != BT_VALUE_STATUS_OK) {
+	if (status != __BT_FUNC_STATUS_OK) {
 		return BT_FALSE;
 	}
 
@@ -45,7 +45,7 @@ static int bt_value_map_get_keys_cb(const char *key, const struct bt_value *obje
 
 static struct bt_value *bt_value_map_get_keys(const struct bt_value *map_obj)
 {
-	enum bt_value_status status;
+	bt_value_map_foreach_entry_const_status status;
 	struct bt_value_map_get_keys_data data;
 
 	data.keys = bt_value_array_create();
@@ -55,7 +55,7 @@ static struct bt_value *bt_value_map_get_keys(const struct bt_value *map_obj)
 
 	status = bt_value_map_foreach_entry_const(map_obj, bt_value_map_get_keys_cb,
 		&data);
-	if (status != BT_VALUE_STATUS_OK) {
+	if (status != __BT_FUNC_STATUS_OK) {
 		goto error;
 	}
 

@@ -40,11 +40,9 @@ class _ClockSnapshot(object._UniqueObject):
 
     @property
     def ns_from_origin(self):
-        ret, ns = native_bt.clock_snapshot_get_ns_from_origin(self._ptr)
-
-        if ret == native_bt.CLOCK_SNAPSHOT_STATUS_OVERFLOW:
-            raise OverflowError("cannot get clock snapshot's nanoseconds from origin")
-
+        status, ns = native_bt.clock_snapshot_get_ns_from_origin(self._ptr)
+        utils._handle_func_status(status,
+                                  "cannot get clock snapshot's nanoseconds from origin")
         return ns
 
     def __eq__(self, other):

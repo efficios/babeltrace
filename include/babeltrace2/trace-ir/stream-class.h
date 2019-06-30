@@ -35,8 +35,10 @@
  */
 #include <babeltrace2/types.h>
 
-/* For bt_stream_class_status */
-#include <babeltrace2/trace-ir/stream-class-const.h>
+/* For __BT_FUNC_STATUS_* */
+#define __BT_FUNC_STATUS_ENABLE
+#include <babeltrace2/func-status.h>
+#undef __BT_FUNC_STATUS_ENABLE
 
 #ifdef __cplusplus
 extern "C" {
@@ -51,7 +53,12 @@ extern bt_stream_class *bt_stream_class_create_with_id(
 extern bt_trace_class *bt_stream_class_borrow_trace_class(
 		bt_stream_class *stream_class);
 
-extern bt_stream_class_status bt_stream_class_set_name(
+typedef enum bt_stream_class_set_name_status {
+	BT_STREAM_CLASS_SET_NAME_STATUS_MEMORY_ERROR	= __BT_FUNC_STATUS_MEMORY_ERROR,
+	BT_STREAM_CLASS_SET_NAME_STATUS_OK		= __BT_FUNC_STATUS_OK,
+} bt_stream_class_set_name_status;
+
+extern bt_stream_class_set_name_status bt_stream_class_set_name(
 		bt_stream_class *stream_class, const char *name);
 
 extern void bt_stream_class_set_assigns_automatic_event_class_id(
@@ -76,7 +83,12 @@ extern void bt_stream_class_set_supports_discarded_packets(
 		bt_bool supports_discarded_packets,
 		bt_bool with_default_clock_snapshots);
 
-extern bt_stream_class_status
+typedef enum bt_stream_class_set_field_class_status {
+	BT_STREAM_CLASS_SET_FIELD_CLASS_STATUS_MEMORY_ERROR	= __BT_FUNC_STATUS_MEMORY_ERROR,
+	BT_STREAM_CLASS_SET_FIELD_CLASS_STATUS_OK		= __BT_FUNC_STATUS_OK,
+} bt_stream_class_set_field_class_status;
+
+extern bt_stream_class_set_field_class_status
 bt_stream_class_set_packet_context_field_class(
 		bt_stream_class *stream_class,
 		bt_field_class *field_class);
@@ -85,7 +97,7 @@ extern bt_field_class *
 bt_stream_class_borrow_packet_context_field_class(
 		bt_stream_class *stream_class);
 
-extern bt_stream_class_status
+extern bt_stream_class_set_field_class_status
 bt_stream_class_set_event_common_context_field_class(
 		bt_stream_class *stream_class,
 		bt_field_class *field_class);
@@ -105,12 +117,19 @@ bt_stream_class_borrow_event_class_by_id(
 extern bt_clock_class *bt_stream_class_borrow_default_clock_class(
 		bt_stream_class *stream_class);
 
-extern bt_stream_class_status bt_stream_class_set_default_clock_class(
+typedef enum bt_stream_class_set_default_clock_class_status {
+	BT_STREAM_CLASS_SET_DEFAULT_CLOCK_CLASS_STATUS_OK	= __BT_FUNC_STATUS_OK,
+} bt_stream_class_set_default_clock_class_status;
+
+extern bt_stream_class_set_default_clock_class_status
+bt_stream_class_set_default_clock_class(
 		bt_stream_class *stream_class,
 		bt_clock_class *clock_class);
 
 #ifdef __cplusplus
 }
 #endif
+
+#include <babeltrace2/undef-func-status.h>
 
 #endif /* BABELTRACE_TRACE_IR_STREAM_CLASS_H */

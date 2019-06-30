@@ -44,6 +44,7 @@
 #include "field.h"
 #include "field-path.h"
 #include "utils.h"
+#include "lib/func-status.h"
 
 enum bt_field_class_type bt_field_class_get_type(
 		const struct bt_field_class *fc)
@@ -365,7 +366,7 @@ void bt_field_class_signed_enumeration_mapping_get_range_by_index(
 		(uint64_t *) lower, (uint64_t *) upper);
 }
 
-enum bt_field_class_status
+enum bt_field_class_enumeration_get_mapping_labels_by_value_status
 bt_field_class_unsigned_enumeration_get_mapping_labels_by_value(
 		const struct bt_field_class *fc, uint64_t value,
 		bt_field_class_enumeration_mapping_label_array *label_array,
@@ -402,10 +403,10 @@ bt_field_class_unsigned_enumeration_get_mapping_labels_by_value(
 
 	*label_array = (void *) enum_fc->label_buf->pdata;
 	*count = (uint64_t) enum_fc->label_buf->len;
-	return BT_FIELD_CLASS_STATUS_OK;
+	return BT_FUNC_STATUS_OK;
 }
 
-enum bt_field_class_status
+enum bt_field_class_enumeration_get_mapping_labels_by_value_status
 bt_field_class_signed_enumeration_get_mapping_labels_by_value(
 		const struct bt_field_class *fc, int64_t value,
 		bt_field_class_enumeration_mapping_label_array *label_array,
@@ -442,15 +443,16 @@ bt_field_class_signed_enumeration_get_mapping_labels_by_value(
 
 	*label_array = (void *) enum_fc->label_buf->pdata;
 	*count = (uint64_t) enum_fc->label_buf->len;
-	return BT_FIELD_CLASS_STATUS_OK;
+	return BT_FUNC_STATUS_OK;
 }
 
 static inline
-enum bt_field_class_status add_mapping_to_enumeration_field_class(
+enum bt_field_class_enumeration_map_range_status
+add_mapping_to_enumeration_field_class(
 		struct bt_field_class *fc,
 		const char *label, uint64_t lower, uint64_t upper)
 {
-	int ret = BT_FIELD_CLASS_STATUS_OK;
+	int ret = BT_FUNC_STATUS_OK;
 	uint64_t i;
 	struct bt_field_class_enumeration *enum_fc = (void *) fc;
 	struct bt_field_class_enumeration_mapping *mapping = NULL;
@@ -481,7 +483,7 @@ enum bt_field_class_status add_mapping_to_enumeration_field_class(
 			finalize_enumeration_field_class_mapping(mapping);
 			g_array_set_size(enum_fc->mappings,
 				enum_fc->mappings->len - 1);
-			ret = BT_FIELD_CLASS_STATUS_NOMEM;
+			ret = BT_FUNC_STATUS_MEMORY_ERROR;
 			goto end;
 		}
 
@@ -490,7 +492,7 @@ enum bt_field_class_status add_mapping_to_enumeration_field_class(
 			finalize_enumeration_field_class_mapping(mapping);
 			g_array_set_size(enum_fc->mappings,
 				enum_fc->mappings->len - 1);
-			ret = BT_FIELD_CLASS_STATUS_NOMEM;
+			ret = BT_FUNC_STATUS_MEMORY_ERROR;
 			goto end;
 		}
 	}
@@ -510,7 +512,7 @@ end:
 	return ret;
 }
 
-enum bt_field_class_status bt_field_class_unsigned_enumeration_map_range(
+enum bt_field_class_enumeration_map_range_status bt_field_class_unsigned_enumeration_map_range(
 		struct bt_field_class *fc, const char *label,
 		uint64_t range_lower, uint64_t range_upper)
 {
@@ -535,7 +537,7 @@ enum bt_field_class_status bt_field_class_unsigned_enumeration_map_range(
 		range_upper);
 }
 
-enum bt_field_class_status bt_field_class_signed_enumeration_map_range(
+enum bt_field_class_enumeration_map_range_status bt_field_class_signed_enumeration_map_range(
 		struct bt_field_class *fc, const char *label,
 		int64_t range_lower, int64_t range_upper)
 {
@@ -722,11 +724,11 @@ end:
 }
 
 static
-enum bt_field_class_status append_named_field_class_to_container_field_class(
+int append_named_field_class_to_container_field_class(
 		struct bt_field_class_named_field_class_container *container_fc,
 		const char *name, struct bt_field_class *fc)
 {
-	int ret = BT_FIELD_CLASS_STATUS_OK;
+	int ret = BT_FUNC_STATUS_OK;
 	struct bt_named_field_class *named_fc;
 	GString *name_str;
 
@@ -741,7 +743,7 @@ enum bt_field_class_status append_named_field_class_to_container_field_class(
 	name_str = g_string_new(name);
 	if (!name_str) {
 		BT_LOGE_STR("Failed to allocate a GString.");
-		ret = BT_FIELD_CLASS_STATUS_NOMEM;
+		ret = BT_FUNC_STATUS_MEMORY_ERROR;
 		goto end;
 	}
 
@@ -766,7 +768,8 @@ end:
 	return ret;
 }
 
-enum bt_field_class_status bt_field_class_structure_append_member(
+enum bt_field_class_structure_append_member_status
+bt_field_class_structure_append_member(
 		struct bt_field_class *fc, const char *name,
 		struct bt_field_class *member_fc)
 {
@@ -946,7 +949,8 @@ end:
 	return (void *) var_fc;
 }
 
-enum bt_field_class_status bt_field_class_variant_set_selector_field_class(
+enum bt_field_class_variant_set_selector_field_class_status
+bt_field_class_variant_set_selector_field_class(
 		struct bt_field_class *fc,
 		struct bt_field_class *selector_fc)
 {
@@ -960,10 +964,11 @@ enum bt_field_class_status bt_field_class_variant_set_selector_field_class(
 	var_fc->selector_fc = selector_fc;
 	bt_object_get_no_null_check(selector_fc);
 	bt_field_class_freeze(selector_fc);
-	return BT_FIELD_CLASS_STATUS_OK;
+	return BT_FUNC_STATUS_OK;
 }
 
-enum bt_field_class_status bt_field_class_variant_append_option(
+enum bt_field_class_variant_append_option_status
+bt_field_class_variant_append_option(
 		struct bt_field_class *fc,
 		const char *name, struct bt_field_class *option_fc)
 {
@@ -1199,7 +1204,8 @@ end:
 	return (void *) array_fc;
 }
 
-enum bt_field_class_status bt_field_class_dynamic_array_set_length_field_class(
+enum bt_field_class_dynamic_array_set_length_field_class_status
+bt_field_class_dynamic_array_set_length_field_class(
 		struct bt_field_class *fc,
 		struct bt_field_class *length_fc)
 {
@@ -1214,7 +1220,7 @@ enum bt_field_class_status bt_field_class_dynamic_array_set_length_field_class(
 	array_fc->length_fc = length_fc;
 	bt_object_get_no_null_check(length_fc);
 	bt_field_class_freeze(length_fc);
-	return BT_FIELD_CLASS_STATUS_OK;
+	return BT_FUNC_STATUS_OK;
 }
 
 const struct bt_field_path *

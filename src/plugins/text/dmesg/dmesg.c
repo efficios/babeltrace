@@ -375,21 +375,40 @@ void destroy_dmesg_component(struct dmesg_component *dmesg_comp)
 }
 
 static
-bt_self_component_status create_port(
+bt_component_class_init_method_status create_port(
 		bt_self_component_source *self_comp)
 {
-	return bt_self_component_source_add_output_port(self_comp,
+	bt_component_class_init_method_status status;
+	bt_self_component_add_port_status add_port_status;
+
+	add_port_status = bt_self_component_source_add_output_port(self_comp,
 		"out", NULL, NULL);
+	switch (add_port_status) {
+	case BT_SELF_COMPONENT_ADD_PORT_STATUS_OK:
+		status = BT_COMPONENT_CLASS_INIT_METHOD_STATUS_OK;
+		break;
+	case BT_SELF_COMPONENT_ADD_PORT_STATUS_ERROR:
+		status = BT_COMPONENT_CLASS_INIT_METHOD_STATUS_ERROR;
+		break;
+	case BT_SELF_COMPONENT_ADD_PORT_STATUS_MEMORY_ERROR:
+		status = BT_COMPONENT_CLASS_INIT_METHOD_STATUS_MEMORY_ERROR;
+		break;
+	default:
+		abort();
+	}
+
+	return status;
 }
 
 BT_HIDDEN
-bt_self_component_status dmesg_init(
+bt_component_class_init_method_status dmesg_init(
 		bt_self_component_source *self_comp_src,
 		bt_value *params, void *init_method_data)
 {
 	int ret = 0;
 	struct dmesg_component *dmesg_comp = g_new0(struct dmesg_component, 1);
-	bt_self_component_status status = BT_SELF_COMPONENT_STATUS_OK;
+	bt_component_class_init_method_status status =
+		BT_COMPONENT_CLASS_INIT_METHOD_STATUS_OK;
 	bt_self_component *self_comp =
 		bt_self_component_source_as_self_component(self_comp_src);
 	const bt_component *comp = bt_self_component_as_component(self_comp);
@@ -427,7 +446,7 @@ bt_self_component_status dmesg_init(
 	}
 
 	status = create_port(self_comp_src);
-	if (status != BT_SELF_COMPONENT_STATUS_OK) {
+	if (status != BT_COMPONENT_CLASS_INIT_METHOD_STATUS_OK) {
 		goto error;
 	}
 
@@ -440,7 +459,7 @@ error:
 	bt_self_component_set_data(self_comp, NULL);
 
 	if (status >= 0) {
-		status = BT_SELF_COMPONENT_STATUS_ERROR;
+		status = BT_COMPONENT_CLASS_INIT_METHOD_STATUS_ERROR;
 	}
 
 end:
@@ -580,12 +599,7 @@ int fill_event_payload_from_line(struct dmesg_component *dmesg_comp,
 		len--;
 	}
 
-	ret = bt_field_string_clear(str_field);
-	if (ret) {
-		BT_COMP_LOGE_STR("Cannot clear string field object.");
-		goto error;
-	}
-
+	bt_field_string_clear(str_field);
 	ret = bt_field_string_append_with_length(str_field, line, len);
 	if (ret) {
 		BT_COMP_LOGE("Cannot append value to string field object: "
@@ -660,7 +674,7 @@ void destroy_dmesg_msg_iter(struct dmesg_msg_iter *dmesg_msg_iter)
 
 
 BT_HIDDEN
-bt_self_message_iterator_status dmesg_msg_iter_init(
+bt_component_class_message_iterator_init_method_status dmesg_msg_iter_init(
 		bt_self_message_iterator *self_msg_iter,
 		bt_self_component_source *self_comp,
 		bt_self_component_port_output *self_port)
@@ -669,8 +683,8 @@ bt_self_message_iterator_status dmesg_msg_iter_init(
 		bt_self_component_source_as_self_component(self_comp));
 	struct dmesg_msg_iter *dmesg_msg_iter =
 		g_new0(struct dmesg_msg_iter, 1);
-	bt_self_message_iterator_status status =
-		BT_SELF_MESSAGE_ITERATOR_STATUS_OK;
+	bt_component_class_message_iterator_init_method_status status =
+		BT_COMPONENT_CLASS_MESSAGE_ITERATOR_INIT_METHOD_STATUS_OK;
 
 	if (!dmesg_msg_iter) {
 		BT_COMP_LOGE_STR("Failed to allocate on dmesg message iterator structure.");
@@ -700,7 +714,7 @@ error:
 	destroy_dmesg_msg_iter(dmesg_msg_iter);
 	bt_self_message_iterator_set_data(self_msg_iter, NULL);
 	if (status >= 0) {
-		status = BT_SELF_MESSAGE_ITERATOR_STATUS_ERROR;
+		status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_INIT_METHOD_STATUS_ERROR;
 	}
 
 end:
@@ -716,21 +730,21 @@ void dmesg_msg_iter_finalize(
 }
 
 static
-bt_self_message_iterator_status dmesg_msg_iter_next_one(
+bt_component_class_message_iterator_next_method_status dmesg_msg_iter_next_one(
 		struct dmesg_msg_iter *dmesg_msg_iter,
 		bt_message **msg)
 {
 	ssize_t len;
 	struct dmesg_component *dmesg_comp;
-	bt_self_message_iterator_status status =
-		BT_SELF_MESSAGE_ITERATOR_STATUS_OK;
+	bt_component_class_message_iterator_next_method_status status =
+		BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_OK;
 
 	BT_ASSERT(dmesg_msg_iter);
 	dmesg_comp = dmesg_msg_iter->dmesg_comp;
 	BT_ASSERT(dmesg_comp);
 
 	if (dmesg_msg_iter->state == STATE_DONE) {
-		status = BT_SELF_MESSAGE_ITERATOR_STATUS_END;
+		status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_END;
 		goto end;
 	}
 
@@ -749,14 +763,13 @@ bt_self_message_iterator_status dmesg_msg_iter_next_one(
 			&dmesg_msg_iter->linebuf_len, dmesg_msg_iter->fp);
 		if (len < 0) {
 			if (errno == EINVAL) {
-				status = BT_SELF_MESSAGE_ITERATOR_STATUS_ERROR;
+				status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_ERROR;
 			} else if (errno == ENOMEM) {
-				status =
-					BT_SELF_MESSAGE_ITERATOR_STATUS_NOMEM;
+				status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_MEMORY_ERROR;
 			} else {
 				if (dmesg_msg_iter->state == STATE_EMIT_STREAM_BEGINNING) {
 					/* Stream did not even begin */
-					status = BT_SELF_MESSAGE_ITERATOR_STATUS_END;
+					status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_END;
 					goto end;
 				} else {
 					/* End current packet now */
@@ -857,7 +870,7 @@ handle_state:
 	if (!*msg) {
 		BT_COMP_LOGE("Cannot create message: dmesg-comp-addr=%p",
 			dmesg_comp);
-		status = BT_SELF_MESSAGE_ITERATOR_STATUS_ERROR;
+		status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_ERROR;
 	}
 
 end:
@@ -865,7 +878,7 @@ end:
 }
 
 BT_HIDDEN
-bt_self_message_iterator_status dmesg_msg_iter_next(
+bt_component_class_message_iterator_next_method_status dmesg_msg_iter_next(
 		bt_self_message_iterator *self_msg_iter,
 		bt_message_array_const msgs, uint64_t capacity,
 		uint64_t *count)
@@ -873,18 +886,18 @@ bt_self_message_iterator_status dmesg_msg_iter_next(
 	struct dmesg_msg_iter *dmesg_msg_iter =
 		bt_self_message_iterator_get_data(
 			self_msg_iter);
-	bt_self_message_iterator_status status =
-		BT_SELF_MESSAGE_ITERATOR_STATUS_OK;
+	bt_component_class_message_iterator_next_method_status status =
+		BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_OK;
 	uint64_t i = 0;
 
 	while (i < capacity &&
-			status == BT_SELF_MESSAGE_ITERATOR_STATUS_OK) {
+			status == BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_OK) {
 		bt_message *priv_msg = NULL;
 
 		status = dmesg_msg_iter_next_one(dmesg_msg_iter,
 			&priv_msg);
 		msgs[i] = priv_msg;
-		if (status == BT_SELF_MESSAGE_ITERATOR_STATUS_OK) {
+		if (status == BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_OK) {
 			i++;
 		}
 	}
@@ -903,7 +916,7 @@ bt_self_message_iterator_status dmesg_msg_iter_next(
 		 * message, in which case we'll return it.
 		 */
 		*count = i;
-		status = BT_SELF_MESSAGE_ITERATOR_STATUS_OK;
+		status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_OK;
 	}
 
 	return status;
@@ -921,7 +934,8 @@ bt_bool dmesg_msg_iter_can_seek_beginning(
 }
 
 BT_HIDDEN
-bt_self_message_iterator_status dmesg_msg_iter_seek_beginning(
+bt_component_class_message_iterator_seek_beginning_method_status
+dmesg_msg_iter_seek_beginning(
 		bt_self_message_iterator *self_msg_iter)
 {
 	struct dmesg_msg_iter *dmesg_msg_iter =
@@ -932,5 +946,5 @@ bt_self_message_iterator_status dmesg_msg_iter_seek_beginning(
 	BT_MESSAGE_PUT_REF_AND_RESET(dmesg_msg_iter->tmp_event_msg);
 	dmesg_msg_iter->last_clock_value = 0;
 	dmesg_msg_iter->state = STATE_EMIT_STREAM_BEGINNING;
-	return BT_SELF_MESSAGE_ITERATOR_STATUS_OK;
+	return BT_COMPONENT_CLASS_MESSAGE_ITERATOR_SEEK_BEGINNING_METHOD_STATUS_OK;
 }

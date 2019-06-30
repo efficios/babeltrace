@@ -40,11 +40,6 @@
 extern "C" {
 #endif
 
-typedef enum bt_packet_status {
-	BT_PACKET_STATUS_OK = 0,
-	BT_PACKET_STATUS_NOMEM = -12,
-} bt_packet_status;
-
 extern const bt_stream *bt_packet_borrow_stream_const(
 		const bt_packet *packet);
 

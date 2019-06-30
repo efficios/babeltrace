@@ -269,7 +269,7 @@ bt_value *ini_parse_array(struct ini_parsing_state *state)
 	while (!(token_type == G_TOKEN_CHAR && g_scanner_cur_value(state->scanner).v_char == ']')) {
 		/* Parse the item... */
 		bt_value *item_value;
-		bt_value_status status;
+		bt_value_array_append_element_status append_status;
 
 		item_value = ini_parse_value(state);
 		if (!item_value) {
@@ -277,10 +277,10 @@ bt_value *ini_parse_array(struct ini_parsing_state *state)
 		}
 
 		/* ... and add it to the result array. */
-		status = bt_value_array_append_element(array_value, item_value);
+		append_status = bt_value_array_append_element(array_value,
+			item_value);
 		BT_VALUE_PUT_REF_AND_RESET(item_value);
-
-		if (status != BT_VALUE_STATUS_OK) {
+		if (append_status < 0) {
 			goto error;
 		}
 
@@ -2490,7 +2490,7 @@ struct bt_config *bt_config_run_from_args(int argc, const char *argv[],
 	bt_value *connection_args = NULL;
 	char error_buf[256] = { 0 };
 	long retry_duration = -1;
-	bt_value_status status;
+	bt_value_map_extend_status extend_status;
 	struct poptOption run_long_options[] = {
 		{ "base-params", 'b', POPT_ARG_STRING, NULL, OPT_BASE_PARAMS, NULL, NULL },
 		{ "component", 'c', POPT_ARG_STRING, NULL, OPT_COMPONENT, NULL, NULL },
@@ -2610,9 +2610,8 @@ struct bt_config *bt_config_run_from_args(int argc, const char *argv[],
 
 			BT_ASSERT(cur_base_params);
 			bt_value_put_ref(cur_cfg_comp->params);
-			status = bt_value_copy(cur_base_params,
-				&cur_cfg_comp->params);
-			if (status != BT_VALUE_STATUS_OK) {
+			if (bt_value_copy(cur_base_params,
+					&cur_cfg_comp->params) < 0) {
 				print_err_oom();
 				goto error;
 			}
@@ -2638,10 +2637,10 @@ struct bt_config *bt_config_run_from_args(int argc, const char *argv[],
 				goto error;
 			}
 
-			status = bt_value_map_extend(cur_cfg_comp->params,
-				params, &params_to_set);
+			extend_status = bt_value_map_extend(
+				cur_cfg_comp->params, params, &params_to_set);
 			BT_VALUE_PUT_REF_AND_RESET(params);
-			if (status != BT_VALUE_STATUS_OK) {
+			if (extend_status != BT_VALUE_MAP_EXTEND_STATUS_OK) {
 				printf_err("Cannot extend current component parameters with --params option's argument:\n    %s\n",
 					arg);
 				goto error;
@@ -4468,8 +4467,8 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 
 	/* Consume and keep leftover arguments */
 	while ((leftover = poptGetArg(pc))) {
-		bt_value_status status = bt_value_array_append_string_element(leftovers, leftover);
-		if (status != BT_VALUE_STATUS_OK) {
+		if (bt_value_array_append_string_element(leftovers, leftover) !=
+				BT_VALUE_ARRAY_APPEND_ELEMENT_STATUS_OK) {
 			print_err_oom();
 			goto error;
 		}

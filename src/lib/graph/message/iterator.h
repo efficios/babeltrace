@@ -28,7 +28,6 @@
 #include "lib/object.h"
 #include <babeltrace2/graph/connection-const.h>
 #include <babeltrace2/graph/message-const.h>
-#include <babeltrace2/graph/message-iterator-const.h>
 #include <babeltrace2/types.h>
 #include "common/assert.h"
 #include <stdbool.h>
@@ -77,15 +76,15 @@ struct bt_message_iterator {
 	GPtrArray *msgs;
 };
 
-typedef enum bt_self_message_iterator_status
+typedef enum bt_component_class_message_iterator_next_method_status
 (*bt_self_component_port_input_message_iterator_next_method)(
 		void *, bt_message_array_const, uint64_t, uint64_t *);
 
-typedef enum bt_self_message_iterator_status
+typedef enum bt_component_class_message_iterator_seek_ns_from_origin_method_status
 (*bt_self_component_port_input_message_iterator_seek_ns_from_origin_method)(
 		void *, int64_t);
 
-typedef enum bt_self_message_iterator_status
+typedef enum bt_component_class_message_iterator_seek_beginning_method_status
 (*bt_self_component_port_input_message_iterator_seek_beginning_method)(
 		void *);
 

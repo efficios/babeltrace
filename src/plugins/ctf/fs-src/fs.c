@@ -103,11 +103,11 @@ void set_msg_iter_emits_stream_beginning_end_messages(
 }
 
 static
-bt_self_message_iterator_status ctf_fs_iterator_next_one(
+bt_component_class_message_iterator_next_method_status ctf_fs_iterator_next_one(
 		struct ctf_fs_msg_iter_data *msg_iter_data,
 		const bt_message **out_msg)
 {
-	bt_self_message_iterator_status status;
+	bt_component_class_message_iterator_next_method_status status;
 
 	BT_ASSERT(msg_iter_data->ds_file);
 
@@ -116,11 +116,11 @@ bt_self_message_iterator_status ctf_fs_iterator_next_one(
 
 		status = ctf_fs_ds_file_next(msg_iter_data->ds_file, &msg);
 		switch (status) {
-		case BT_SELF_MESSAGE_ITERATOR_STATUS_OK:
+		case BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_OK:
 			*out_msg = msg;
 			msg = NULL;
 			goto end;
-		case BT_SELF_MESSAGE_ITERATOR_STATUS_END:
+		case BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_END:
 		{
 			int ret;
 
@@ -142,7 +142,7 @@ bt_self_message_iterator_status ctf_fs_iterator_next_one(
 			 */
 			ret = msg_iter_data_set_current_ds_file(msg_iter_data);
 			if (ret) {
-				status = BT_SELF_MESSAGE_ITERATOR_STATUS_ERROR;
+				status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_ERROR;
 				goto end;
 			}
 
@@ -159,20 +159,21 @@ end:
 }
 
 BT_HIDDEN
-bt_self_message_iterator_status ctf_fs_iterator_next(
+bt_component_class_message_iterator_next_method_status ctf_fs_iterator_next(
 		bt_self_message_iterator *iterator,
 		bt_message_array_const msgs, uint64_t capacity,
 		uint64_t *count)
 {
-	bt_self_message_iterator_status status =
-		BT_SELF_MESSAGE_ITERATOR_STATUS_OK;
+	bt_component_class_message_iterator_next_method_status status =
+		BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_OK;
 	struct ctf_fs_msg_iter_data *msg_iter_data =
 		bt_self_message_iterator_get_data(iterator);
 	uint64_t i = 0;
 
-	while (i < capacity && status == BT_SELF_MESSAGE_ITERATOR_STATUS_OK) {
+	while (i < capacity &&
+			status == BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_OK) {
 		status = ctf_fs_iterator_next_one(msg_iter_data, &msgs[i]);
-		if (status == BT_SELF_MESSAGE_ITERATOR_STATUS_OK) {
+		if (status == BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_OK) {
 			i++;
 		}
 	}
@@ -180,17 +181,17 @@ bt_self_message_iterator_status ctf_fs_iterator_next(
 	if (i > 0) {
 		/*
 		 * Even if ctf_fs_iterator_next_one() returned something
-		 * else than BT_SELF_MESSAGE_ITERATOR_STATUS_OK, we
+		 * else than BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_OK, we
 		 * accumulated message objects in the output
 		 * message array, so we need to return
-		 * BT_SELF_MESSAGE_ITERATOR_STATUS_OK so that they are
+		 * BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_OK so that they are
 		 * transfered to downstream. This other status occurs
 		 * again the next time muxer_msg_iter_do_next() is
 		 * called, possibly without any accumulated
 		 * message, in which case we'll return it.
 		 */
 		*count = i;
-		status = BT_SELF_MESSAGE_ITERATOR_STATUS_OK;
+		status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_OK;
 	}
 
 	return status;
@@ -215,17 +216,17 @@ end:
 }
 
 BT_HIDDEN
-bt_self_message_iterator_status ctf_fs_iterator_seek_beginning(
-		bt_self_message_iterator *it)
+bt_component_class_message_iterator_seek_beginning_method_status
+ctf_fs_iterator_seek_beginning(bt_self_message_iterator *it)
 {
 	struct ctf_fs_msg_iter_data *msg_iter_data =
 		bt_self_message_iterator_get_data(it);
-	bt_self_message_iterator_status status =
-		BT_SELF_MESSAGE_ITERATOR_STATUS_OK;
+	bt_component_class_message_iterator_seek_beginning_method_status status =
+		BT_COMPONENT_CLASS_MESSAGE_ITERATOR_SEEK_BEGINNING_METHOD_STATUS_OK;
 
 	BT_ASSERT(msg_iter_data);
 	if (ctf_fs_iterator_reset(msg_iter_data)) {
-		status = BT_SELF_MESSAGE_ITERATOR_STATUS_ERROR;
+		status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_SEEK_BEGINNING_METHOD_STATUS_ERROR;
 	}
 
 	return status;
@@ -239,15 +240,15 @@ void ctf_fs_iterator_finalize(bt_self_message_iterator *it)
 }
 
 BT_HIDDEN
-bt_self_message_iterator_status ctf_fs_iterator_init(
+bt_component_class_message_iterator_init_method_status ctf_fs_iterator_init(
 		bt_self_message_iterator *self_msg_iter,
 		bt_self_component_source *self_comp_src,
 		bt_self_component_port_output *self_port)
 {
 	struct ctf_fs_port_data *port_data;
 	struct ctf_fs_msg_iter_data *msg_iter_data = NULL;
-	bt_self_message_iterator_status ret =
-		BT_SELF_MESSAGE_ITERATOR_STATUS_OK;
+	bt_component_class_message_iterator_init_method_status ret =
+		BT_COMPONENT_CLASS_MESSAGE_ITERATOR_INIT_METHOD_STATUS_OK;
 	bt_logging_level log_level;
 	bt_self_component *self_comp;
 
@@ -259,7 +260,7 @@ bt_self_message_iterator_status ctf_fs_iterator_init(
 	self_comp = port_data->ctf_fs->self_comp;
 	msg_iter_data = g_new0(struct ctf_fs_msg_iter_data, 1);
 	if (!msg_iter_data) {
-		ret = BT_SELF_MESSAGE_ITERATOR_STATUS_NOMEM;
+		ret = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_MEMORY_ERROR;
 		goto error;
 	}
 
@@ -273,19 +274,19 @@ bt_self_message_iterator_status ctf_fs_iterator_init(
 		self_comp);
 	if (!msg_iter_data->msg_iter) {
 		BT_COMP_LOGE_STR("Cannot create a CTF message iterator.");
-		ret = BT_SELF_MESSAGE_ITERATOR_STATUS_NOMEM;
+		ret = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_INIT_METHOD_STATUS_MEMORY_ERROR;
 		goto error;
 	}
 
 	msg_iter_data->ds_file_group = port_data->ds_file_group;
 	if (ctf_fs_iterator_reset(msg_iter_data)) {
-		ret = BT_SELF_MESSAGE_ITERATOR_STATUS_ERROR;
+		ret = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_INIT_METHOD_STATUS_ERROR;
 		goto error;
 	}
 
 	bt_self_message_iterator_set_data(self_msg_iter,
 		msg_iter_data);
-	if (ret != BT_SELF_MESSAGE_ITERATOR_STATUS_OK) {
+	if (ret != BT_COMPONENT_CLASS_MESSAGE_ITERATOR_INIT_METHOD_STATUS_OK) {
 		goto error;
 	}
 
@@ -1962,30 +1963,32 @@ end:
 }
 
 BT_HIDDEN
-bt_self_component_status ctf_fs_init(
+bt_component_class_init_method_status ctf_fs_init(
 		bt_self_component_source *self_comp,
 		const bt_value *params, __attribute__((unused)) void *init_method_data)
 {
 	struct ctf_fs_component *ctf_fs;
-	bt_self_component_status ret = BT_SELF_COMPONENT_STATUS_OK;
+	bt_component_class_init_method_status ret =
+		BT_COMPONENT_CLASS_INIT_METHOD_STATUS_OK;
 
 	ctf_fs = ctf_fs_create(self_comp, params);
 	if (!ctf_fs) {
-		ret = BT_SELF_COMPONENT_STATUS_ERROR;
+		ret = BT_COMPONENT_CLASS_INIT_METHOD_STATUS_ERROR;
 	}
 
 	return ret;
 }
 
 BT_HIDDEN
-bt_query_status ctf_fs_query(
+bt_component_class_query_method_status ctf_fs_query(
 		bt_self_component_class_source *comp_class,
 		const bt_query_executor *query_exec,
 		const char *object, const bt_value *params,
 		bt_logging_level log_level,
 		const bt_value **result)
 {
-	bt_query_status status = BT_QUERY_STATUS_OK;
+	bt_component_class_query_method_status status =
+		BT_COMPONENT_CLASS_QUERY_METHOD_STATUS_OK;
 
 	if (!strcmp(object, "metadata-info")) {
 		status = metadata_info_query(comp_class, params, log_level,
@@ -1995,7 +1998,7 @@ bt_query_status ctf_fs_query(
 			result);
 	} else {
 		BT_LOGE("Unknown query object `%s`", object);
-		status = BT_QUERY_STATUS_INVALID_OBJECT;
+		status = BT_COMPONENT_CLASS_QUERY_METHOD_STATUS_INVALID_OBJECT;
 		goto end;
 	}
 end:

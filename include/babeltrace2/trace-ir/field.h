@@ -32,8 +32,10 @@
 /* For bt_field, bt_field_class */
 #include <babeltrace2/types.h>
 
-/* For bt_field_status */
-#include <babeltrace2/trace-ir/field-const.h>
+/* For __BT_FUNC_STATUS_* */
+#define __BT_FUNC_STATUS_ENABLE
+#include <babeltrace2/func-status.h>
+#undef __BT_FUNC_STATUS_ENABLE
 
 #ifdef __cplusplus
 extern "C" {
@@ -47,16 +49,26 @@ extern void bt_field_unsigned_integer_set_value(bt_field *field,
 
 extern void bt_field_real_set_value(bt_field *field, double value);
 
-extern bt_field_status bt_field_string_set_value(bt_field *field,
-		const char *value);
+typedef enum bt_field_string_set_value_status {
+	BT_FIELD_STRING_SET_VALUE_STATUS_MEMORY_ERROR	= __BT_FUNC_STATUS_MEMORY_ERROR,
+	BT_FIELD_STRING_SET_VALUE_STATUS_OK		= __BT_FUNC_STATUS_OK,
+} bt_field_string_set_value_status;
 
-extern bt_field_status bt_field_string_append(bt_field *field,
-		const char *value);
+extern bt_field_string_set_value_status bt_field_string_set_value(
+		bt_field *field, const char *value);
 
-extern bt_field_status bt_field_string_append_with_length(bt_field *field,
-		const char *value, uint64_t length);
+typedef enum bt_field_string_append_status {
+	BT_FIELD_STRING_APPEND_STATUS_MEMORY_ERROR	= __BT_FUNC_STATUS_MEMORY_ERROR,
+	BT_FIELD_STRING_APPEND_STATUS_OK		= __BT_FUNC_STATUS_OK,
+} bt_field_string_append_status;
 
-extern bt_field_status bt_field_string_clear(bt_field *field);
+extern bt_field_string_append_status bt_field_string_append(
+		bt_field *field, const char *value);
+
+extern bt_field_string_append_status bt_field_string_append_with_length(
+		bt_field *field, const char *value, uint64_t length);
+
+extern void bt_field_string_clear(bt_field *field);
 
 extern bt_field *bt_field_structure_borrow_member_field_by_index(
 		bt_field *field, uint64_t index);
@@ -67,10 +79,21 @@ extern bt_field *bt_field_structure_borrow_member_field_by_name(
 extern bt_field *bt_field_array_borrow_element_field_by_index(
 		bt_field *field, uint64_t index);
 
-extern bt_field_status bt_field_dynamic_array_set_length(bt_field *field,
-		uint64_t length);
+typedef enum bt_field_dynamic_array_set_length_status {
+	BT_FIELD_DYNAMIC_ARRAY_SET_LENGTH_STATUS_MEMORY_ERROR	= __BT_FUNC_STATUS_MEMORY_ERROR,
+	BT_FIELD_DYNAMIC_ARRAY_SET_LENGTH_STATUS_OK		= __BT_FUNC_STATUS_OK,
+} bt_field_dynamic_array_set_length_status;
 
-extern bt_field_status bt_field_variant_select_option_field(
+extern bt_field_dynamic_array_set_length_status
+bt_field_dynamic_array_set_length(
+		bt_field *field, uint64_t length);
+
+typedef enum bt_field_variant_select_option_field_status {
+	BT_FIELD_VARIANT_SELECT_OPTION_FIELD_STATUS_OK		= __BT_FUNC_STATUS_OK,
+} bt_field_variant_select_option_field_status;
+
+extern bt_field_variant_select_option_field_status
+bt_field_variant_select_option_field(
 		bt_field *field, uint64_t index);
 
 extern bt_field *bt_field_variant_borrow_selected_option_field(
@@ -79,5 +102,7 @@ extern bt_field *bt_field_variant_borrow_selected_option_field(
 #ifdef __cplusplus
 }
 #endif
+
+#include <babeltrace2/undef-func-status.h>
 
 #endif /* BABELTRACE_TRACE_IR_FIELDS_H */

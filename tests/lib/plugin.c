@@ -67,7 +67,7 @@ static void test_minimal(const char *plugin_dir)
 	const bt_plugin_set *plugin_set = NULL;
 	const bt_plugin *plugin;
 	char *minimal_path = get_test_plugin_path(plugin_dir, "minimal");
-	bt_plugin_status status;
+	bt_plugin_find_all_from_file_status status;
 
 	BT_ASSERT(minimal_path);
 	diag("minimal plugin test below");
@@ -75,7 +75,7 @@ static void test_minimal(const char *plugin_dir)
 	reset_test_plugin_env_vars();
 	status = bt_plugin_find_all_from_file(minimal_path, BT_FALSE,
 		&plugin_set);
-	ok(status == BT_PLUGIN_STATUS_OK,
+	ok(status == BT_PLUGIN_FIND_ALL_FROM_FILE_STATUS_OK,
 		"bt_plugin_find_all_from_file() succeeds with a valid file");
 	ok(plugin_set,
 		"bt_plugin_find_all_from_file() returns a plugin set");
@@ -128,18 +128,18 @@ static void test_sfs(const char *plugin_dir)
 	const bt_value *res_params;
 	bt_graph *graph;
 	const char *object_str;
-	bt_graph_status graph_ret;
+	bt_graph_add_component_status graph_ret;
 	bt_query_executor *query_exec = bt_query_executor_create();
 	int ret;
-	bt_plugin_status status;
+	bt_plugin_find_all_from_file_status status;
 
 	BT_ASSERT(query_exec);
 	BT_ASSERT(sfs_path);
 	diag("sfs plugin test below");
 
 	status = bt_plugin_find_all_from_file(sfs_path, BT_FALSE, &plugin_set);
-	BT_ASSERT(status == BT_PLUGIN_STATUS_OK && plugin_set &&
-		bt_plugin_set_get_plugin_count(plugin_set) == 1);
+	BT_ASSERT(status == BT_PLUGIN_FIND_ALL_FROM_FILE_STATUS_OK &&
+		plugin_set && bt_plugin_set_get_plugin_count(plugin_set) == 1);
 	plugin = bt_plugin_set_borrow_plugin_by_index_const(plugin_set, 0);
 	ok(bt_plugin_get_version(plugin, &major, &minor, &patch, &extra) ==
 		BT_PROPERTY_AVAILABILITY_AVAILABLE,
@@ -202,7 +202,7 @@ static void test_sfs(const char *plugin_dir)
 	BT_ASSERT(graph);
 	graph_ret = bt_graph_add_sink_component(graph, sink_comp_class,
 		"the-sink", NULL, BT_LOGGING_LEVEL_NONE, &sink_component);
-	ok(graph_ret == BT_GRAPH_STATUS_OK && sink_component,
+	ok(graph_ret == BT_GRAPH_ADD_COMPONENT_STATUS_OK && sink_component,
 		"bt_graph_add_sink_component() still works after the plugin object is destroyed");
 	BT_COMPONENT_SINK_PUT_REF_AND_RESET(sink_component);
 	bt_graph_put_ref(graph);
@@ -217,19 +217,19 @@ static void test_sfs(const char *plugin_dir)
 static void test_create_all_from_dir(const char *plugin_dir)
 {
 	const bt_plugin_set *plugin_set;
-	bt_plugin_status status;
+	bt_plugin_find_all_from_dir_status status;
 
 	diag("create from all test below");
 
 	status = bt_plugin_find_all_from_dir(NON_EXISTING_PATH, BT_FALSE,
 		BT_FALSE, &plugin_set);
-	ok(status == BT_PLUGIN_STATUS_ERROR,
+	ok(status == BT_PLUGIN_FIND_ALL_FROM_DIR_STATUS_ERROR,
 		"bt_plugin_find_all_from_dir() fails with an invalid path");
 
 	plugin_set = NULL;
 	status = bt_plugin_find_all_from_dir(plugin_dir, BT_FALSE, BT_FALSE,
 		&plugin_set);
-	ok(status == BT_PLUGIN_STATUS_OK,
+	ok(status == BT_PLUGIN_FIND_ALL_FROM_DIR_STATUS_OK,
 		"bt_plugin_find_all_from_dir() succeeds with a valid path");
 	ok(plugin_set,
 		"bt_plugin_find_all_from_dir() returns a plugin set with a valid path");
@@ -247,10 +247,10 @@ static void test_find(const char *plugin_dir)
 	int ret;
 	const bt_plugin *plugin;
 	char *plugin_path;
-	bt_plugin_status status;
+	bt_plugin_find_status status;
 
 	ok(bt_plugin_find(NON_EXISTING_PATH, BT_FALSE, &plugin) ==
-		BT_PLUGIN_STATUS_NOT_FOUND,
+		BT_PLUGIN_FIND_STATUS_NOT_FOUND,
 		"bt_plugin_find() returns BT_PLUGIN_STATUS_NOT_FOUND with an unknown plugin name");
 	ret = asprintf(&plugin_path, "%s" G_SEARCHPATH_SEPARATOR_S
 			G_DIR_SEPARATOR_S "ec1d09e5-696c-442e-b1c3-f9c6cf7f5958"
@@ -263,7 +263,7 @@ static void test_find(const char *plugin_dir)
 	g_setenv("BABELTRACE_PLUGIN_PATH", plugin_path, 1);
 	plugin = NULL;
 	status = bt_plugin_find("test_minimal", BT_FALSE, &plugin);
-	ok(status == BT_PLUGIN_STATUS_OK,
+	ok(status == BT_PLUGIN_FIND_STATUS_OK,
 		"bt_plugin_find() succeeds with a plugin name it can find");
 	ok(plugin, "bt_plugin_find() returns a plugin object");
 	ok(strcmp(bt_plugin_get_author(plugin), "Janine Sutto") == 0,

@@ -65,15 +65,6 @@ class Graph(object._SharedObject):
 
         super().__init__(ptr)
 
-    def _handle_status(self, status, gen_error_msg):
-        if status == native_bt.GRAPH_STATUS_CANCELED:
-            raise bt2.GraphCanceled
-        elif status == native_bt.GRAPH_STATUS_END:
-            raise bt2.Stop
-        elif status == native_bt.GRAPH_STATUS_AGAIN:
-            raise bt2.TryAgain
-        elif status < 0:
-            raise bt2.Error(gen_error_msg)
 
     def add_component(self, component_class, name, params=None,
                       logging_level=bt2.logging.LoggingLevel.NONE):
@@ -113,7 +104,7 @@ class Graph(object._SharedObject):
 
         status, comp_ptr = add_fn(self._ptr, cc_ptr, name,
                                   params_ptr, logging_level)
-        self._handle_status(status, 'cannot add component to graph')
+        utils._handle_func_status(status, 'cannot add component to graph')
         assert comp_ptr
         return bt2.component._create_component_from_ptr(comp_ptr, cc_type)
 
@@ -123,7 +114,8 @@ class Graph(object._SharedObject):
         status, conn_ptr = native_bt.graph_connect_ports(self._ptr,
                                                          upstream_port._ptr,
                                                          downstream_port._ptr)
-        self._handle_status(status, 'cannot connect component ports within graph')
+        utils._handle_func_status(status,
+                                  'cannot connect component ports within graph')
         assert(conn_ptr)
         return bt2.connection._Connection._create_from_ptr(conn_ptr)
 
@@ -131,7 +123,7 @@ class Graph(object._SharedObject):
         if not callable(listener):
             raise TypeError("'listener' parameter is not callable")
 
-        fn = native_bt.py3_graph_add_port_added_listener
+        fn = native_bt.bt2_graph_add_port_added_listener
         listener_from_native = functools.partial(_graph_port_added_listener_from_native,
                                                  listener)
 
@@ -144,7 +136,7 @@ class Graph(object._SharedObject):
         if not callable(listener):
             raise TypeError("'listener' parameter is not callable")
 
-        fn = native_bt.py3_graph_add_ports_connected_listener
+        fn = native_bt.bt2_graph_add_ports_connected_listener
         listener_from_native = functools.partial(_graph_ports_connected_listener_from_native,
                                                  listener)
 
@@ -156,14 +148,18 @@ class Graph(object._SharedObject):
     def run(self):
         status = native_bt.graph_run(self._ptr)
 
-        if status == native_bt.GRAPH_STATUS_END:
+        try:
+            utils._handle_func_status(status,
+                                      'graph object stopped running because of an unexpected error')
+        except bt2.Stop:
+            # done
             return
-
-        self._handle_status(status, 'graph object stopped running because of an unexpected error')
+        except Exception:
+            raise
 
     def cancel(self):
         status = native_bt.graph_cancel(self._ptr)
-        self._handle_status(status, 'cannot cancel graph object')
+        utils._handle_func_status(status, 'cannot cancel graph object')
 
     @property
     def is_canceled(self):

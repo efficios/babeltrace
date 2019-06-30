@@ -36,6 +36,7 @@
 #include "lib/assert-pre.h"
 #include "lib/value.h"
 #include "common/assert.h"
+#include "func-status.h"
 
 #define BT_VALUE_TO_BOOL(_base) ((struct bt_value_bool *) (_base))
 #define BT_VALUE_TO_INTEGER(_base) ((struct bt_value_integer *) (_base))
@@ -539,10 +540,9 @@ void bt_value_destroy(struct bt_object *obj)
 }
 
 BT_HIDDEN
-enum bt_value_status _bt_value_freeze(const struct bt_value *c_object)
+void _bt_value_freeze(const struct bt_value *c_object)
 {
 	const struct bt_value *object = (void *) c_object;
-	enum bt_value_status ret = BT_VALUE_STATUS_OK;
 
 	BT_ASSERT(object);
 
@@ -554,7 +554,7 @@ enum bt_value_status _bt_value_freeze(const struct bt_value *c_object)
 	freeze_funcs[object->type]((void *) object);
 
 end:
-	return ret;
+	return;
 }
 
 enum bt_value_type bt_value_get_type(const struct bt_value *object)
@@ -855,7 +855,7 @@ const char *bt_value_string_get(const struct bt_value *string_obj)
 	return BT_VALUE_TO_STRING(string_obj)->gstr->str;
 }
 
-enum bt_value_status bt_value_string_set(
+enum bt_value_string_set_status bt_value_string_set(
 		struct bt_value *string_obj, const char *val)
 {
 	BT_ASSERT_PRE_NON_NULL(string_obj, "Value object");
@@ -864,7 +864,7 @@ enum bt_value_status bt_value_string_set(
 	g_string_assign(BT_VALUE_TO_STRING(string_obj)->gstr, val);
 	BT_LOGT("Set string value's raw value: value-addr=%p, raw-value-addr=%p",
 		string_obj, val);
-	return BT_VALUE_STATUS_OK;
+	return BT_FUNC_STATUS_OK;
 }
 
 uint64_t bt_value_array_get_size(const struct bt_value *array_obj)
@@ -895,7 +895,7 @@ const struct bt_value *bt_value_array_borrow_element_by_index_const(
 		(void *) array_obj, index);
 }
 
-enum bt_value_status bt_value_array_append_element(
+enum bt_value_array_append_element_status bt_value_array_append_element(
 		struct bt_value *array_obj,
 		struct bt_value *element_obj)
 {
@@ -911,13 +911,13 @@ enum bt_value_status bt_value_array_append_element(
 	BT_LOGT("Appended element to array value: array-value-addr=%p, "
 		"element-value-addr=%p, new-size=%u",
 		array_obj, element_obj, typed_array_obj->garray->len);
-	return BT_VALUE_STATUS_OK;
+	return BT_FUNC_STATUS_OK;
 }
 
-enum bt_value_status bt_value_array_append_bool_element(
-		struct bt_value *array_obj, bt_bool val)
+enum bt_value_array_append_element_status
+bt_value_array_append_bool_element(struct bt_value *array_obj, bt_bool val)
 {
-	enum bt_value_status ret;
+	enum bt_value_array_append_element_status ret;
 	struct bt_value *bool_obj = NULL;
 
 	bool_obj = bt_value_bool_create_init(val);
@@ -927,10 +927,11 @@ enum bt_value_status bt_value_array_append_bool_element(
 	return ret;
 }
 
-enum bt_value_status bt_value_array_append_unsigned_integer_element(
-		struct bt_value *array_obj, uint64_t val)
+enum bt_value_array_append_element_status
+bt_value_array_append_unsigned_integer_element(struct bt_value *array_obj,
+		uint64_t val)
 {
-	enum bt_value_status ret;
+	enum bt_value_array_append_element_status ret;
 	struct bt_value *integer_obj = NULL;
 
 	integer_obj = bt_value_unsigned_integer_create_init(val);
@@ -940,10 +941,11 @@ enum bt_value_status bt_value_array_append_unsigned_integer_element(
 	return ret;
 }
 
-enum bt_value_status bt_value_array_append_signed_integer_element(
-		struct bt_value *array_obj, int64_t val)
+enum bt_value_array_append_element_status
+bt_value_array_append_signed_integer_element(struct bt_value *array_obj,
+		int64_t val)
 {
-	enum bt_value_status ret;
+	enum bt_value_array_append_element_status ret;
 	struct bt_value *integer_obj = NULL;
 
 	integer_obj = bt_value_signed_integer_create_init(val);
@@ -953,10 +955,10 @@ enum bt_value_status bt_value_array_append_signed_integer_element(
 	return ret;
 }
 
-enum bt_value_status bt_value_array_append_real_element(
-		struct bt_value *array_obj, double val)
+enum bt_value_array_append_element_status
+bt_value_array_append_real_element(struct bt_value *array_obj, double val)
 {
-	enum bt_value_status ret;
+	enum bt_value_array_append_element_status ret;
 	struct bt_value *real_obj = NULL;
 
 	real_obj = bt_value_real_create_init(val);
@@ -966,10 +968,11 @@ enum bt_value_status bt_value_array_append_real_element(
 	return ret;
 }
 
-enum bt_value_status bt_value_array_append_string_element(
-		struct bt_value *array_obj, const char *val)
+enum bt_value_array_append_element_status
+bt_value_array_append_string_element(struct bt_value *array_obj,
+		const char *val)
 {
-	enum bt_value_status ret;
+	enum bt_value_array_append_element_status ret;
 	struct bt_value *string_obj = NULL;
 
 	string_obj = bt_value_string_create_init(val);
@@ -979,10 +982,10 @@ enum bt_value_status bt_value_array_append_string_element(
 	return ret;
 }
 
-enum bt_value_status bt_value_array_append_empty_array_element(
-		struct bt_value *array_obj)
+enum bt_value_array_append_element_status
+bt_value_array_append_empty_array_element(struct bt_value *array_obj)
 {
-	enum bt_value_status ret;
+	enum bt_value_array_append_element_status ret;
 	struct bt_value *empty_array_obj = NULL;
 
 	empty_array_obj = bt_value_array_create();
@@ -992,10 +995,10 @@ enum bt_value_status bt_value_array_append_empty_array_element(
 	return ret;
 }
 
-enum bt_value_status bt_value_array_append_empty_map_element(
-		struct bt_value *array_obj)
+enum bt_value_array_append_element_status
+bt_value_array_append_empty_map_element(struct bt_value *array_obj)
 {
-	enum bt_value_status ret;
+	enum bt_value_array_append_element_status ret;
 	struct bt_value *map_obj = NULL;
 
 	map_obj = bt_value_map_create();
@@ -1005,8 +1008,8 @@ enum bt_value_status bt_value_array_append_empty_map_element(
 	return ret;
 }
 
-enum bt_value_status bt_value_array_set_element_by_index(
-		struct bt_value *array_obj, uint64_t index,
+enum bt_value_array_set_element_by_index_status
+bt_value_array_set_element_by_index(struct bt_value *array_obj, uint64_t index,
 		struct bt_value *element_obj)
 {
 	struct bt_value_array *typed_array_obj =
@@ -1024,7 +1027,7 @@ enum bt_value_status bt_value_array_set_element_by_index(
 	BT_LOGT("Set array value's element: array-value-addr=%p, "
 		"index=%" PRIu64 ", element-value-addr=%p",
 		array_obj, index, element_obj);
-	return BT_VALUE_STATUS_OK;
+	return BT_FUNC_STATUS_OK;
 }
 
 uint64_t bt_value_map_get_size(const struct bt_value *map_obj)
@@ -1059,9 +1062,9 @@ bt_bool bt_value_map_has_entry(const struct bt_value *map_obj, const char *key)
 		GUINT_TO_POINTER(g_quark_from_string(key)));
 }
 
-enum bt_value_status bt_value_map_insert_entry(
-		struct bt_value *map_obj,
-		const char *key, struct bt_value *element_obj)
+enum bt_value_map_insert_entry_status bt_value_map_insert_entry(
+		struct bt_value *map_obj, const char *key,
+		struct bt_value *element_obj)
 {
 	BT_ASSERT_PRE_NON_NULL(map_obj, "Map value object");
 	BT_ASSERT_PRE_NON_NULL(key, "Key");
@@ -1074,13 +1077,13 @@ enum bt_value_status bt_value_map_insert_entry(
 	BT_LOGT("Inserted value into map value: map-value-addr=%p, "
 		"key=\"%s\", element-value-addr=%p",
 		map_obj, key, element_obj);
-	return BT_VALUE_STATUS_OK;
+	return BT_FUNC_STATUS_OK;
 }
 
-enum bt_value_status bt_value_map_insert_bool_entry(
+enum bt_value_map_insert_entry_status bt_value_map_insert_bool_entry(
 		struct bt_value *map_obj, const char *key, bt_bool val)
 {
-	enum bt_value_status ret;
+	enum bt_value_map_insert_entry_status ret;
 	struct bt_value *bool_obj = NULL;
 
 	bool_obj = bt_value_bool_create_init(val);
@@ -1090,10 +1093,11 @@ enum bt_value_status bt_value_map_insert_bool_entry(
 	return ret;
 }
 
-enum bt_value_status bt_value_map_insert_unsigned_integer_entry(
-		struct bt_value *map_obj, const char *key, uint64_t val)
+enum bt_value_map_insert_entry_status
+bt_value_map_insert_unsigned_integer_entry(struct bt_value *map_obj,
+		const char *key, uint64_t val)
 {
-	enum bt_value_status ret;
+	enum bt_value_map_insert_entry_status ret;
 	struct bt_value *integer_obj = NULL;
 
 	integer_obj = bt_value_unsigned_integer_create_init(val);
@@ -1103,10 +1107,11 @@ enum bt_value_status bt_value_map_insert_unsigned_integer_entry(
 	return ret;
 }
 
-enum bt_value_status bt_value_map_insert_signed_integer_entry(
-		struct bt_value *map_obj, const char *key, int64_t val)
+enum bt_value_map_insert_entry_status
+bt_value_map_insert_signed_integer_entry(struct bt_value *map_obj,
+		const char *key, int64_t val)
 {
-	enum bt_value_status ret;
+	enum bt_value_map_insert_entry_status ret;
 	struct bt_value *integer_obj = NULL;
 
 	integer_obj = bt_value_signed_integer_create_init(val);
@@ -1116,10 +1121,10 @@ enum bt_value_status bt_value_map_insert_signed_integer_entry(
 	return ret;
 }
 
-enum bt_value_status bt_value_map_insert_real_entry(
+enum bt_value_map_insert_entry_status bt_value_map_insert_real_entry(
 		struct bt_value *map_obj, const char *key, double val)
 {
-	enum bt_value_status ret;
+	enum bt_value_map_insert_entry_status ret;
 	struct bt_value *real_obj = NULL;
 
 	real_obj = bt_value_real_create_init(val);
@@ -1129,11 +1134,11 @@ enum bt_value_status bt_value_map_insert_real_entry(
 	return ret;
 }
 
-enum bt_value_status bt_value_map_insert_string_entry(
+enum bt_value_map_insert_entry_status bt_value_map_insert_string_entry(
 		struct bt_value *map_obj, const char *key,
 		const char *val)
 {
-	enum bt_value_status ret;
+	enum bt_value_map_insert_entry_status ret;
 	struct bt_value *string_obj = NULL;
 
 	string_obj = bt_value_string_create_init(val);
@@ -1143,10 +1148,11 @@ enum bt_value_status bt_value_map_insert_string_entry(
 	return ret;
 }
 
-enum bt_value_status bt_value_map_insert_empty_array_entry(
+enum bt_value_map_insert_entry_status
+bt_value_map_insert_empty_array_entry(
 		struct bt_value *map_obj, const char *key)
 {
-	enum bt_value_status ret;
+	enum bt_value_map_insert_entry_status ret;
 	struct bt_value *array_obj = NULL;
 
 	array_obj = bt_value_array_create();
@@ -1156,10 +1162,10 @@ enum bt_value_status bt_value_map_insert_empty_array_entry(
 	return ret;
 }
 
-enum bt_value_status bt_value_map_insert_empty_map_entry(
-		struct bt_value *map_obj, const char *key)
+enum bt_value_map_insert_entry_status
+bt_value_map_insert_empty_map_entry(struct bt_value *map_obj, const char *key)
 {
-	enum bt_value_status ret;
+	enum bt_value_map_insert_entry_status ret;
 	struct bt_value *empty_map_obj = NULL;
 
 	empty_map_obj = bt_value_map_create();
@@ -1169,10 +1175,11 @@ enum bt_value_status bt_value_map_insert_empty_map_entry(
 	return ret;
 }
 
-enum bt_value_status bt_value_map_foreach_entry(struct bt_value *map_obj,
-		bt_value_map_foreach_entry_func func, void *data)
+enum bt_value_map_foreach_entry_status bt_value_map_foreach_entry(
+		struct bt_value *map_obj, bt_value_map_foreach_entry_func func,
+		void *data)
 {
-	enum bt_value_status ret = BT_VALUE_STATUS_OK;
+	enum bt_value_map_foreach_entry_status ret = BT_FUNC_STATUS_OK;
 	gpointer key, element_obj;
 	GHashTableIter iter;
 	struct bt_value_map *typed_map_obj = BT_VALUE_TO_MAP(map_obj);
@@ -1189,7 +1196,7 @@ enum bt_value_status bt_value_map_foreach_entry(struct bt_value *map_obj,
 			BT_LOGT("User canceled the loop: key=\"%s\", "
 				"value-addr=%p, data=%p",
 				key_str, element_obj, data);
-			ret = BT_VALUE_STATUS_CANCELED;
+			ret = BT_FUNC_STATUS_CANCELED;
 			break;
 		}
 	}
@@ -1197,17 +1204,17 @@ enum bt_value_status bt_value_map_foreach_entry(struct bt_value *map_obj,
 	return ret;
 }
 
-enum bt_value_status bt_value_map_foreach_entry_const(
+enum bt_value_map_foreach_entry_const_status bt_value_map_foreach_entry_const(
 		const struct bt_value *map_obj,
 		bt_value_map_foreach_entry_const_func func, void *data)
 {
-	return bt_value_map_foreach_entry((void *) map_obj,
+	return (int) bt_value_map_foreach_entry((void *) map_obj,
 		(bt_value_map_foreach_entry_func) func, data);
 }
 
 struct extend_map_element_data {
 	struct bt_value *extended_obj;
-	enum bt_value_status status;
+	int status;
 };
 
 static
@@ -1220,7 +1227,7 @@ bt_bool extend_map_element(const char *key,
 
 	/* Copy object which is to replace the current one */
 	extend_data->status = bt_value_copy(extension_obj_elem,
-					    &extension_obj_elem_copy);
+		&extension_obj_elem_copy);
 	if (extend_data->status) {
 		BT_LOGE("Cannot copy map element: addr=%p",
 			extension_obj_elem);
@@ -1244,7 +1251,7 @@ bt_bool extend_map_element(const char *key,
 	goto end;
 
 error:
-	BT_ASSERT(extend_data->status != BT_VALUE_STATUS_OK);
+	BT_ASSERT(extend_data->status != BT_FUNC_STATUS_OK);
 	ret = BT_FALSE;
 
 end:
@@ -1252,14 +1259,14 @@ end:
 	return ret;
 }
 
-enum bt_value_status bt_value_map_extend(
+enum bt_value_map_extend_status bt_value_map_extend(
 		const struct bt_value *base_map_obj,
 		const struct bt_value *extension_obj,
 		struct bt_value **extended_map_obj)
 {
 	struct extend_map_element_data extend_data = {
 		.extended_obj = NULL,
-		.status = BT_VALUE_STATUS_OK,
+		.status = BT_FUNC_STATUS_OK,
 	};
 
 	BT_ASSERT_PRE_NON_NULL(base_map_obj, "Base value object");
@@ -1313,10 +1320,10 @@ end:
 	return extend_data.status;
 }
 
-enum bt_value_status bt_value_copy(const struct bt_value *object,
+enum bt_value_copy_status bt_value_copy(const struct bt_value *object,
 		struct bt_value **copy_obj)
 {
-	enum bt_value_status status = BT_VALUE_STATUS_OK;
+	enum bt_value_copy_status status = BT_FUNC_STATUS_OK;
 
 	BT_ASSERT_PRE_NON_NULL(object, "Value object");
 	BT_ASSERT_PRE_NON_NULL(copy_obj, "Value object copy (output)");
@@ -1326,7 +1333,7 @@ enum bt_value_status bt_value_copy(const struct bt_value *object,
 		BT_LOGD("Copied value object: copy-value-addr=%p",
 			copy_obj);
 	} else {
-		status = BT_VALUE_STATUS_NOMEM;
+		status = BT_FUNC_STATUS_MEMORY_ERROR;
 		*copy_obj = NULL;
 		BT_LOGE_STR("Failed to copy value object.");
 	}

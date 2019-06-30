@@ -95,15 +95,6 @@ class _GenericSinkComponentClass(_GenericComponentClass):
     _as_component_class_ptr = staticmethod(native_bt.component_class_sink_as_component_class)
 
 
-def _handle_component_status(status, gen_error_msg):
-    if status == native_bt.SELF_COMPONENT_STATUS_END:
-        raise bt2.Stop
-    elif status == native_bt.SELF_COMPONENT_STATUS_AGAIN:
-        raise bt2.TryAgain
-    elif status < 0:
-        raise bt2.Error(gen_error_msg)
-
-
 class _PortIterator(collections.abc.Iterator):
     def __init__(self, comp_ports):
         self._comp_ports = comp_ports
@@ -445,13 +436,13 @@ class _UserComponentType(type):
 
         if _UserSourceComponent in bases:
             _UserComponentType._set_iterator_class(cls, iter_cls)
-            cc_ptr = native_bt.py3_component_class_source_create(cls,
+            cc_ptr = native_bt.bt2_component_class_source_create(cls,
                                                                  comp_cls_name,
                                                                  comp_cls_descr,
                                                                  comp_cls_help)
         elif _UserFilterComponent in bases:
             _UserComponentType._set_iterator_class(cls, iter_cls)
-            cc_ptr = native_bt.py3_component_class_filter_create(cls,
+            cc_ptr = native_bt.bt2_component_class_filter_create(cls,
                                                                  comp_cls_name,
                                                                  comp_cls_descr,
                                                                  comp_cls_help)
@@ -459,7 +450,7 @@ class _UserComponentType(type):
             if not hasattr(cls, '_consume'):
                 raise bt2.IncompleteUserClass("cannot create component class '{}': missing a _consume() method".format(class_name))
 
-            cc_ptr = native_bt.py3_component_class_sink_create(cls,
+            cc_ptr = native_bt.bt2_component_class_sink_create(cls,
                                                                comp_cls_name,
                                                                comp_cls_descr,
                                                                comp_cls_help)
@@ -694,8 +685,8 @@ class _UserSourceComponent(_UserComponent, _SourceComponent):
         utils._check_str(name)
         fn = native_bt.self_component_source_add_output_port
         comp_status, self_port_ptr = fn(self._ptr, name, user_data)
-        _handle_component_status(comp_status,
-                                 'cannot add output port to source component object')
+        utils._handle_func_status(comp_status,
+                                  'cannot add output port to source component object')
         assert self_port_ptr is not None
         return bt2.port._UserComponentOutputPort._create_from_ptr(self_port_ptr)
 
@@ -732,8 +723,8 @@ class _UserFilterComponent(_UserComponent, _FilterComponent):
         utils._check_str(name)
         fn = native_bt.self_component_filter_add_output_port
         comp_status, self_port_ptr = fn(self._ptr, name, user_data)
-        _handle_component_status(comp_status,
-                                 'cannot add output port to filter component object')
+        utils._handle_func_status(comp_status,
+                                  'cannot add output port to filter component object')
         assert self_port_ptr
         return bt2.port._UserComponentOutputPort._create_from_ptr(self_port_ptr)
 
@@ -741,8 +732,8 @@ class _UserFilterComponent(_UserComponent, _FilterComponent):
         utils._check_str(name)
         fn = native_bt.self_component_filter_add_input_port
         comp_status, self_port_ptr = fn(self._ptr, name, user_data)
-        _handle_component_status(comp_status,
-                                 'cannot add input port to filter component object')
+        utils._handle_func_status(comp_status,
+                                  'cannot add input port to filter component object')
         assert self_port_ptr
         return bt2.port._UserComponentInputPort._create_from_ptr(self_port_ptr)
 
@@ -767,7 +758,7 @@ class _UserSinkComponent(_UserComponent, _SinkComponent):
         utils._check_str(name)
         fn = native_bt.self_component_sink_add_input_port
         comp_status, self_port_ptr = fn(self._ptr, name, user_data)
-        _handle_component_status(comp_status,
-                                 'cannot add input port to sink component object')
+        utils._handle_func_status(comp_status,
+                                  'cannot add input port to sink component object')
         assert self_port_ptr
         return bt2.port._UserComponentInputPort._create_from_ptr(self_port_ptr)

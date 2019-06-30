@@ -124,24 +124,25 @@ void pretty_finalize(bt_self_component_sink *comp)
 }
 
 static
-bt_self_component_status handle_message(
+bt_component_class_message_iterator_next_method_status handle_message(
 		struct pretty_component *pretty,
 		const bt_message *message)
 {
-	bt_self_component_status ret = BT_SELF_COMPONENT_STATUS_OK;
+	bt_component_class_message_iterator_next_method_status ret =
+		BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_OK;
 
 	BT_ASSERT(pretty);
 
 	switch (bt_message_get_type(message)) {
 	case BT_MESSAGE_TYPE_EVENT:
 		if (pretty_print_event(pretty, message)) {
-			ret = BT_SELF_COMPONENT_STATUS_ERROR;
+			ret = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_ERROR;
 		}
 		break;
 	case BT_MESSAGE_TYPE_DISCARDED_EVENTS:
 	case BT_MESSAGE_TYPE_DISCARDED_PACKETS:
 		if (pretty_print_discarded_items(pretty, message)) {
-			ret = BT_SELF_COMPONENT_STATUS_ERROR;
+			ret = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_ERROR;
 		}
 		break;
 	default:
@@ -152,10 +153,11 @@ bt_self_component_status handle_message(
 }
 
 BT_HIDDEN
-bt_self_component_status pretty_graph_is_configured(
-		bt_self_component_sink *comp)
+bt_component_class_sink_graph_is_configured_method_status
+pretty_graph_is_configured(bt_self_component_sink *comp)
 {
-	bt_self_component_status status = BT_SELF_COMPONENT_STATUS_OK;
+	bt_component_class_sink_graph_is_configured_method_status status =
+		BT_COMPONENT_CLASS_SINK_GRAPH_IS_CONFIGURED_METHOD_STATUS_OK;
 	struct pretty_component *pretty;
 
 	pretty = bt_self_component_get_data(
@@ -166,49 +168,47 @@ bt_self_component_status pretty_graph_is_configured(
 		bt_self_component_sink_borrow_input_port_by_name(comp,
 			in_port_name));
 	if (!pretty->iterator) {
-		status = BT_SELF_COMPONENT_STATUS_NOMEM;
+		status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_MEMORY_ERROR;
 	}
 
 	return status;
 }
 
 BT_HIDDEN
-bt_self_component_status pretty_consume(
+bt_component_class_sink_consume_method_status pretty_consume(
 		bt_self_component_sink *comp)
 {
-	bt_self_component_status ret;
+	bt_component_class_sink_consume_method_status ret;
 	bt_message_array_const msgs;
 	bt_self_component_port_input_message_iterator *it;
 	struct pretty_component *pretty = bt_self_component_get_data(
 		bt_self_component_sink_as_self_component(comp));
-	bt_message_iterator_status it_ret;
+	bt_message_iterator_next_status next_status;
 	uint64_t count = 0;
 	uint64_t i = 0;
 
 	it = pretty->iterator;
-	it_ret = bt_self_component_port_input_message_iterator_next(it,
+	next_status = bt_self_component_port_input_message_iterator_next(it,
 		&msgs, &count);
 
-	switch (it_ret) {
-	case BT_MESSAGE_ITERATOR_STATUS_OK:
+	switch (next_status) {
+	case BT_MESSAGE_ITERATOR_NEXT_STATUS_OK:
 		break;
-	case BT_MESSAGE_ITERATOR_STATUS_NOMEM:
-		ret = BT_SELF_COMPONENT_STATUS_NOMEM;
+	case BT_MESSAGE_ITERATOR_NEXT_STATUS_MEMORY_ERROR:
+	case BT_MESSAGE_ITERATOR_NEXT_STATUS_AGAIN:
+		ret = (int) next_status;
 		goto end;
-	case BT_MESSAGE_ITERATOR_STATUS_AGAIN:
-		ret = BT_SELF_COMPONENT_STATUS_AGAIN;
-		goto end;
-	case BT_MESSAGE_ITERATOR_STATUS_END:
-		ret = BT_SELF_COMPONENT_STATUS_END;
+	case BT_MESSAGE_ITERATOR_NEXT_STATUS_END:
+		ret = (int) next_status;
 		BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_PUT_REF_AND_RESET(
 			pretty->iterator);
 		goto end;
 	default:
-		ret = BT_SELF_COMPONENT_STATUS_ERROR;
+		ret = BT_COMPONENT_CLASS_SINK_CONSUME_METHOD_STATUS_ERROR;
 		goto end;
 	}
 
-	BT_ASSERT(it_ret == BT_MESSAGE_ITERATOR_STATUS_OK);
+	BT_ASSERT(next_status == BT_MESSAGE_ITERATOR_NEXT_STATUS_OK);
 
 	for (i = 0; i < count; i++) {
 		ret = handle_message(pretty, msgs[i]);
@@ -235,18 +235,14 @@ int add_params_to_map(bt_value *plugin_opt_map)
 
 	for (i = 0; i < BT_ARRAY_SIZE(plugin_options); i++) {
 		const char *key = plugin_options[i];
-		bt_value_status status;
 
-		status = bt_value_map_insert_entry(plugin_opt_map, key,
-			bt_value_null);
-		switch (status) {
-		case BT_VALUE_STATUS_OK:
-			break;
-		default:
+		if (bt_value_map_insert_entry(plugin_opt_map, key,
+				bt_value_null) < 0) {
 			ret = -1;
 			goto end;
 		}
 	}
+
 end:
 	return ret;
 }
@@ -340,7 +336,6 @@ static
 int apply_params(struct pretty_component *pretty, const bt_value *params)
 {
 	int ret = 0;
-	bt_value_status status;
 	bool value, found;
 	char *str = NULL;
 
@@ -354,15 +349,12 @@ int apply_params(struct pretty_component *pretty, const bt_value *params)
 		goto end;
 	}
 	/* Report unknown parameters. */
-	status = bt_value_map_foreach_entry_const(params,
-		check_param_exists, pretty);
-	switch (status) {
-	case BT_VALUE_STATUS_OK:
-		break;
-	default:
+	if (bt_value_map_foreach_entry_const(params,
+			check_param_exists, pretty) < 0) {
 		ret = -1;
 		goto end;
 	}
+
 	/* Known parameters. */
 	pretty->options.color = PRETTY_COLOR_OPT_AUTO;
 	if (bt_value_map_has_entry(params, "color")) {
@@ -636,23 +628,23 @@ void init_stream_packet_context_quarks(void)
 }
 
 BT_HIDDEN
-bt_self_component_status pretty_init(
-		bt_self_component_sink *comp,
-		const bt_value *params,
+bt_component_class_init_method_status pretty_init(
+		bt_self_component_sink *comp, const bt_value *params,
 		__attribute__((unused)) void *init_method_data)
 {
-	bt_self_component_status ret;
+	bt_component_class_init_method_status ret =
+		BT_COMPONENT_CLASS_INIT_METHOD_STATUS_OK;
 	struct pretty_component *pretty = create_pretty();
 
 	if (!pretty) {
-		ret = BT_SELF_COMPONENT_STATUS_NOMEM;
+		ret = BT_COMPONENT_CLASS_INIT_METHOD_STATUS_MEMORY_ERROR;
 		goto end;
 	}
 
-	ret = bt_self_component_sink_add_input_port(comp, in_port_name,
-		NULL, NULL);
-	if (ret != BT_SELF_COMPONENT_STATUS_OK) {
-		goto end;
+	if (bt_self_component_sink_add_input_port(comp,
+			in_port_name, NULL, NULL) < 0) {
+		ret = BT_COMPONENT_CLASS_INIT_METHOD_STATUS_MEMORY_ERROR;
+		goto error;
 	}
 
 	pretty->out = stdout;
@@ -665,7 +657,7 @@ bt_self_component_status pretty_init(
 	pretty->last_real_timestamp = -1ULL;
 
 	if (apply_params(pretty, params)) {
-		ret = BT_SELF_COMPONENT_STATUS_ERROR;
+		ret = BT_COMPONENT_CLASS_INIT_METHOD_STATUS_ERROR;
 		goto error;
 	}
 

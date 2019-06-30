@@ -44,6 +44,8 @@
 
 #include "plugin.h"
 #include "plugin-so.h"
+#include "lib/func-status.h"
+#include "common/common.h"
 
 #define NATIVE_PLUGIN_SUFFIX		"." G_MODULE_SUFFIX
 #define NATIVE_PLUGIN_SUFFIX_LEN	sizeof(NATIVE_PLUGIN_SUFFIX)
@@ -100,21 +102,6 @@ void fini_comp_class_list(void)
 	}
 
 	BT_LOGD_STR("Released references from all component classes to shared library handles.");
-}
-
-static inline
-const char *bt_self_plugin_status_string(enum bt_self_plugin_status status)
-{
-	switch (status) {
-	case BT_SELF_PLUGIN_STATUS_OK:
-		return "BT_SELF_PLUGIN_STATUS_OK";
-	case BT_SELF_PLUGIN_STATUS_ERROR:
-		return "BT_SELF_PLUGIN_STATUS_ERROR";
-	case BT_SELF_PLUGIN_STATUS_NOMEM:
-		return "BT_SELF_PLUGIN_STATUS_NOMEM";
-	default:
-		return "(unknown)";
-	}
 }
 
 static
@@ -174,18 +161,18 @@ void bt_plugin_so_shared_lib_handle_destroy(struct bt_object *obj)
 }
 
 static
-enum bt_plugin_status bt_plugin_so_shared_lib_handle_create(
+int bt_plugin_so_shared_lib_handle_create(
 		const char *path,
 		struct bt_plugin_so_shared_lib_handle **shared_lib_handle)
 {
-	enum bt_plugin_status status = BT_PLUGIN_STATUS_OK;
+	int status = BT_FUNC_STATUS_OK;
 
 	BT_ASSERT(shared_lib_handle);
 	BT_LOGI("Creating shared library handle: path=\"%s\"", path);
 	*shared_lib_handle = g_new0(struct bt_plugin_so_shared_lib_handle, 1);
 	if (!*shared_lib_handle) {
 		BT_LOGE_STR("Failed to allocate one shared library handle.");
-		status = BT_PLUGIN_STATUS_NOMEM;
+		status = BT_FUNC_STATUS_MEMORY_ERROR;
 		goto end;
 	}
 
@@ -199,7 +186,7 @@ enum bt_plugin_status bt_plugin_so_shared_lib_handle_create(
 	(*shared_lib_handle)->path = g_string_new(path);
 	if (!(*shared_lib_handle)->path) {
 		BT_LOGE_STR("Failed to allocate a GString.");
-		status = BT_PLUGIN_STATUS_NOMEM;
+		status = BT_FUNC_STATUS_MEMORY_ERROR;
 		goto end;
 	}
 
@@ -215,14 +202,14 @@ enum bt_plugin_status bt_plugin_so_shared_lib_handle_create(
 		BT_LOGI("Cannot open GModule: %s: path=\"%s\"",
 			g_module_error(), path);
 		BT_OBJECT_PUT_REF_AND_RESET(*shared_lib_handle);
-		status = BT_PLUGIN_STATUS_NOT_FOUND;
+		status = BT_FUNC_STATUS_NOT_FOUND;
 		goto end;
 	}
 
 	goto end;
 
 end:
-	BT_ASSERT(*shared_lib_handle || status != BT_PLUGIN_STATUS_OK);
+	BT_ASSERT(*shared_lib_handle || status != BT_FUNC_STATUS_OK);
 	if (*shared_lib_handle) {
 		BT_LOGI("Created shared library handle: path=\"%s\", addr=%p",
 			path, *shared_lib_handle);
@@ -275,7 +262,7 @@ void bt_plugin_so_destroy_spec_data(struct bt_plugin *plugin)
  * 6. Freeze the plugin object.
  */
 static
-enum bt_plugin_status bt_plugin_so_init(struct bt_plugin *plugin,
+int bt_plugin_so_init(struct bt_plugin *plugin,
 		bool fail_on_load_error,
 		const struct __bt_plugin_descriptor *descriptor,
 		struct __bt_plugin_descriptor_attribute const * const *attrs_begin,
@@ -332,7 +319,7 @@ enum bt_plugin_status bt_plugin_so_init(struct bt_plugin *plugin,
 		} methods;
 	};
 
-	enum bt_plugin_status status = BT_PLUGIN_STATUS_OK;
+	int status = BT_FUNC_STATUS_OK;
 	struct __bt_plugin_descriptor_attribute const * const *cur_attr_ptr;
 	struct __bt_plugin_component_class_descriptor const * const *cur_cc_descr_ptr;
 	struct __bt_plugin_component_class_descriptor_attribute const * const *cur_cc_descr_attr_ptr;
@@ -356,7 +343,7 @@ enum bt_plugin_status bt_plugin_so_init(struct bt_plugin *plugin,
 		sizeof(struct comp_class_full_descriptor));
 	if (!comp_class_full_descriptors) {
 		BT_LOGE_STR("Failed to allocate a GArray.");
-		status = BT_PLUGIN_STATUS_NOMEM;
+		status = BT_FUNC_STATUS_MEMORY_ERROR;
 		goto end;
 	}
 
@@ -418,7 +405,7 @@ enum bt_plugin_status bt_plugin_so_init(struct bt_plugin *plugin,
 				cur_attr->type);
 
 			if (fail_on_load_error) {
-				status = BT_PLUGIN_STATUS_LOADING_ERROR;
+				status = BT_FUNC_STATUS_LOADING_ERROR;
 				goto end;
 			}
 
@@ -689,7 +676,7 @@ enum bt_plugin_status bt_plugin_so_init(struct bt_plugin *plugin,
 					cur_cc_descr_attr->type);
 
 				if (fail_on_load_error) {
-					status = BT_PLUGIN_STATUS_LOADING_ERROR;
+					status = BT_FUNC_STATUS_LOADING_ERROR;
 					goto end;
 				}
 
@@ -700,22 +687,22 @@ enum bt_plugin_status bt_plugin_so_init(struct bt_plugin *plugin,
 
 	/* Initialize plugin */
 	if (spec->init) {
-		enum bt_self_plugin_status init_status;
+		enum bt_plugin_init_func_status init_status;
 
 		BT_LOGD_STR("Calling user's plugin initialization function.");
 		init_status = spec->init((void *) plugin);
 		BT_LOGD("User function returned: status=%s",
-			bt_self_plugin_status_string(init_status));
+			bt_common_func_status_string(init_status));
 
 		if (init_status < 0) {
 			BT_LOG_WRITE(fail_on_load_error ?
 				BT_LOG_WARN : BT_LOG_INFO, BT_LOG_TAG,
 				"User's plugin initialization function failed: "
 				"status=%s",
-				bt_self_plugin_status_string(init_status));
+				bt_common_func_status_string(init_status));
 
 			if (fail_on_load_error) {
-				status = (int) init_status;
+				status = init_status;
 				goto end;
 			}
 		}
@@ -782,7 +769,7 @@ enum bt_plugin_status bt_plugin_so_init(struct bt_plugin *plugin,
 				cc_full_descr->descriptor->type);
 
 			if (fail_on_load_error) {
-				status = BT_PLUGIN_STATUS_LOADING_ERROR;
+				status = BT_FUNC_STATUS_LOADING_ERROR;
 				goto end;
 			}
 
@@ -791,7 +778,7 @@ enum bt_plugin_status bt_plugin_so_init(struct bt_plugin *plugin,
 
 		if (!comp_class) {
 			BT_LOGE_STR("Cannot create component class.");
-			status = BT_PLUGIN_STATUS_NOMEM;
+			status = BT_FUNC_STATUS_MEMORY_ERROR;
 			goto end;
 		}
 
@@ -800,7 +787,7 @@ enum bt_plugin_status bt_plugin_so_init(struct bt_plugin *plugin,
 				comp_class, cc_full_descr->description);
 			if (ret) {
 				BT_LOGE_STR("Cannot set component class's description.");
-				status = BT_PLUGIN_STATUS_NOMEM;
+				status = BT_FUNC_STATUS_MEMORY_ERROR;
 				BT_OBJECT_PUT_REF_AND_RESET(comp_class);
 				goto end;
 			}
@@ -811,7 +798,7 @@ enum bt_plugin_status bt_plugin_so_init(struct bt_plugin *plugin,
 				cc_full_descr->help);
 			if (ret) {
 				BT_LOGE_STR("Cannot set component class's help string.");
-				status = BT_PLUGIN_STATUS_NOMEM;
+				status = BT_FUNC_STATUS_MEMORY_ERROR;
 				BT_OBJECT_PUT_REF_AND_RESET(comp_class);
 				goto end;
 			}
@@ -825,7 +812,7 @@ enum bt_plugin_status bt_plugin_so_init(struct bt_plugin *plugin,
 					cc_full_descr->methods.source.init);
 				if (ret) {
 					BT_LOGE_STR("Cannot set source component class's initialization method.");
-					status = BT_PLUGIN_STATUS_NOMEM;
+					status = BT_FUNC_STATUS_MEMORY_ERROR;
 					BT_OBJECT_PUT_REF_AND_RESET(src_comp_class);
 					goto end;
 				}
@@ -837,7 +824,7 @@ enum bt_plugin_status bt_plugin_so_init(struct bt_plugin *plugin,
 					cc_full_descr->methods.source.finalize);
 				if (ret) {
 					BT_LOGE_STR("Cannot set source component class's finalization method.");
-					status = BT_PLUGIN_STATUS_NOMEM;
+					status = BT_FUNC_STATUS_MEMORY_ERROR;
 					BT_OBJECT_PUT_REF_AND_RESET(src_comp_class);
 					goto end;
 				}
@@ -849,7 +836,7 @@ enum bt_plugin_status bt_plugin_so_init(struct bt_plugin *plugin,
 					cc_full_descr->methods.source.query);
 				if (ret) {
 					BT_LOGE_STR("Cannot set source component class's query method.");
-					status = BT_PLUGIN_STATUS_NOMEM;
+					status = BT_FUNC_STATUS_MEMORY_ERROR;
 					BT_OBJECT_PUT_REF_AND_RESET(src_comp_class);
 					goto end;
 				}
@@ -861,7 +848,7 @@ enum bt_plugin_status bt_plugin_so_init(struct bt_plugin *plugin,
 					cc_full_descr->methods.source.output_port_connected);
 				if (ret) {
 					BT_LOGE_STR("Cannot set source component class's \"output port connected\" method.");
-					status = BT_PLUGIN_STATUS_NOMEM;
+					status = BT_FUNC_STATUS_MEMORY_ERROR;
 					BT_OBJECT_PUT_REF_AND_RESET(src_comp_class);
 					goto end;
 				}
@@ -873,7 +860,7 @@ enum bt_plugin_status bt_plugin_so_init(struct bt_plugin *plugin,
 					cc_full_descr->methods.source.msg_iter_init);
 				if (ret) {
 					BT_LOGE_STR("Cannot set source component class's message iterator initialization method.");
-					status = BT_PLUGIN_STATUS_NOMEM;
+					status = BT_FUNC_STATUS_MEMORY_ERROR;
 					BT_OBJECT_PUT_REF_AND_RESET(src_comp_class);
 					goto end;
 				}
@@ -885,7 +872,7 @@ enum bt_plugin_status bt_plugin_so_init(struct bt_plugin *plugin,
 					cc_full_descr->methods.source.msg_iter_finalize);
 				if (ret) {
 					BT_LOGE_STR("Cannot set source component class's message iterator finalization method.");
-					status = BT_PLUGIN_STATUS_NOMEM;
+					status = BT_FUNC_STATUS_MEMORY_ERROR;
 					BT_OBJECT_PUT_REF_AND_RESET(src_comp_class);
 					goto end;
 				}
@@ -897,7 +884,7 @@ enum bt_plugin_status bt_plugin_so_init(struct bt_plugin *plugin,
 					cc_full_descr->methods.source.msg_iter_seek_ns_from_origin);
 				if (ret) {
 					BT_LOGE_STR("Cannot set source component class's message iterator \"seek nanoseconds from origin\" method.");
-					status = BT_PLUGIN_STATUS_NOMEM;
+					status = BT_FUNC_STATUS_MEMORY_ERROR;
 					BT_OBJECT_PUT_REF_AND_RESET(src_comp_class);
 					goto end;
 				}
@@ -909,7 +896,7 @@ enum bt_plugin_status bt_plugin_so_init(struct bt_plugin *plugin,
 					cc_full_descr->methods.source.msg_iter_seek_beginning);
 				if (ret) {
 					BT_LOGE_STR("Cannot set source component class's message iterator \"seek beginning\" method.");
-					status = BT_PLUGIN_STATUS_NOMEM;
+					status = BT_FUNC_STATUS_MEMORY_ERROR;
 					BT_OBJECT_PUT_REF_AND_RESET(src_comp_class);
 					goto end;
 				}
@@ -921,7 +908,7 @@ enum bt_plugin_status bt_plugin_so_init(struct bt_plugin *plugin,
 					cc_full_descr->methods.source.msg_iter_can_seek_ns_from_origin);
 				if (ret) {
 					BT_LOGE_STR("Cannot set source component class's message iterator \"can seek nanoseconds from origin\" method.");
-					status = BT_PLUGIN_STATUS_NOMEM;
+					status = BT_FUNC_STATUS_MEMORY_ERROR;
 					BT_OBJECT_PUT_REF_AND_RESET(src_comp_class);
 					goto end;
 				}
@@ -933,7 +920,7 @@ enum bt_plugin_status bt_plugin_so_init(struct bt_plugin *plugin,
 					cc_full_descr->methods.source.msg_iter_can_seek_beginning);
 				if (ret) {
 					BT_LOGE_STR("Cannot set source component class's message iterator \"can seek beginning\" method.");
-					status = BT_PLUGIN_STATUS_NOMEM;
+					status = BT_FUNC_STATUS_MEMORY_ERROR;
 					BT_OBJECT_PUT_REF_AND_RESET(src_comp_class);
 					goto end;
 				}
@@ -947,7 +934,7 @@ enum bt_plugin_status bt_plugin_so_init(struct bt_plugin *plugin,
 					cc_full_descr->methods.filter.init);
 				if (ret) {
 					BT_LOGE_STR("Cannot set filter component class's initialization method.");
-					status = BT_PLUGIN_STATUS_NOMEM;
+					status = BT_FUNC_STATUS_MEMORY_ERROR;
 					BT_OBJECT_PUT_REF_AND_RESET(flt_comp_class);
 					goto end;
 				}
@@ -959,7 +946,7 @@ enum bt_plugin_status bt_plugin_so_init(struct bt_plugin *plugin,
 					cc_full_descr->methods.filter.finalize);
 				if (ret) {
 					BT_LOGE_STR("Cannot set filter component class's finalization method.");
-					status = BT_PLUGIN_STATUS_NOMEM;
+					status = BT_FUNC_STATUS_MEMORY_ERROR;
 					BT_OBJECT_PUT_REF_AND_RESET(flt_comp_class);
 					goto end;
 				}
@@ -971,7 +958,7 @@ enum bt_plugin_status bt_plugin_so_init(struct bt_plugin *plugin,
 					cc_full_descr->methods.filter.query);
 				if (ret) {
 					BT_LOGE_STR("Cannot set filter component class's query method.");
-					status = BT_PLUGIN_STATUS_NOMEM;
+					status = BT_FUNC_STATUS_MEMORY_ERROR;
 					BT_OBJECT_PUT_REF_AND_RESET(flt_comp_class);
 					goto end;
 				}
@@ -983,7 +970,7 @@ enum bt_plugin_status bt_plugin_so_init(struct bt_plugin *plugin,
 					cc_full_descr->methods.filter.input_port_connected);
 				if (ret) {
 					BT_LOGE_STR("Cannot set filter component class's \"input port connected\" method.");
-					status = BT_PLUGIN_STATUS_NOMEM;
+					status = BT_FUNC_STATUS_MEMORY_ERROR;
 					BT_OBJECT_PUT_REF_AND_RESET(flt_comp_class);
 					goto end;
 				}
@@ -995,7 +982,7 @@ enum bt_plugin_status bt_plugin_so_init(struct bt_plugin *plugin,
 					cc_full_descr->methods.filter.output_port_connected);
 				if (ret) {
 					BT_LOGE_STR("Cannot set filter component class's \"output port connected\" method.");
-					status = BT_PLUGIN_STATUS_NOMEM;
+					status = BT_FUNC_STATUS_MEMORY_ERROR;
 					BT_OBJECT_PUT_REF_AND_RESET(flt_comp_class);
 					goto end;
 				}
@@ -1007,7 +994,7 @@ enum bt_plugin_status bt_plugin_so_init(struct bt_plugin *plugin,
 					cc_full_descr->methods.filter.msg_iter_init);
 				if (ret) {
 					BT_LOGE_STR("Cannot set filter component class's message iterator initialization method.");
-					status = BT_PLUGIN_STATUS_NOMEM;
+					status = BT_FUNC_STATUS_MEMORY_ERROR;
 					BT_OBJECT_PUT_REF_AND_RESET(flt_comp_class);
 					goto end;
 				}
@@ -1019,7 +1006,7 @@ enum bt_plugin_status bt_plugin_so_init(struct bt_plugin *plugin,
 					cc_full_descr->methods.filter.msg_iter_finalize);
 				if (ret) {
 					BT_LOGE_STR("Cannot set filter component class's message iterator finalization method.");
-					status = BT_PLUGIN_STATUS_NOMEM;
+					status = BT_FUNC_STATUS_MEMORY_ERROR;
 					BT_OBJECT_PUT_REF_AND_RESET(flt_comp_class);
 					goto end;
 				}
@@ -1031,7 +1018,7 @@ enum bt_plugin_status bt_plugin_so_init(struct bt_plugin *plugin,
 					cc_full_descr->methods.filter.msg_iter_seek_ns_from_origin);
 				if (ret) {
 					BT_LOGE_STR("Cannot set filter component class's message iterator \"seek nanoseconds from origin\" method.");
-					status = BT_PLUGIN_STATUS_NOMEM;
+					status = BT_FUNC_STATUS_MEMORY_ERROR;
 					BT_OBJECT_PUT_REF_AND_RESET(flt_comp_class);
 					goto end;
 				}
@@ -1043,7 +1030,7 @@ enum bt_plugin_status bt_plugin_so_init(struct bt_plugin *plugin,
 					cc_full_descr->methods.filter.msg_iter_seek_beginning);
 				if (ret) {
 					BT_LOGE_STR("Cannot set filter component class's message iterator \"seek beginning\" method.");
-					status = BT_PLUGIN_STATUS_NOMEM;
+					status = BT_FUNC_STATUS_MEMORY_ERROR;
 					BT_OBJECT_PUT_REF_AND_RESET(flt_comp_class);
 					goto end;
 				}
@@ -1055,7 +1042,7 @@ enum bt_plugin_status bt_plugin_so_init(struct bt_plugin *plugin,
 					cc_full_descr->methods.filter.msg_iter_can_seek_ns_from_origin);
 				if (ret) {
 					BT_LOGE_STR("Cannot set filter component class's message iterator \"can seek nanoseconds from origin\" method.");
-					status = BT_PLUGIN_STATUS_NOMEM;
+					status = BT_FUNC_STATUS_MEMORY_ERROR;
 					BT_OBJECT_PUT_REF_AND_RESET(flt_comp_class);
 					goto end;
 				}
@@ -1067,7 +1054,7 @@ enum bt_plugin_status bt_plugin_so_init(struct bt_plugin *plugin,
 					cc_full_descr->methods.filter.msg_iter_can_seek_beginning);
 				if (ret) {
 					BT_LOGE_STR("Cannot set filter component class's message iterator \"can seek beginning\" method.");
-					status = BT_PLUGIN_STATUS_NOMEM;
+					status = BT_FUNC_STATUS_MEMORY_ERROR;
 					BT_OBJECT_PUT_REF_AND_RESET(flt_comp_class);
 					goto end;
 				}
@@ -1081,7 +1068,7 @@ enum bt_plugin_status bt_plugin_so_init(struct bt_plugin *plugin,
 					cc_full_descr->methods.sink.init);
 				if (ret) {
 					BT_LOGE_STR("Cannot set sink component class's initialization method.");
-					status = BT_PLUGIN_STATUS_NOMEM;
+					status = BT_FUNC_STATUS_MEMORY_ERROR;
 					BT_OBJECT_PUT_REF_AND_RESET(sink_comp_class);
 					goto end;
 				}
@@ -1093,7 +1080,7 @@ enum bt_plugin_status bt_plugin_so_init(struct bt_plugin *plugin,
 					cc_full_descr->methods.sink.finalize);
 				if (ret) {
 					BT_LOGE_STR("Cannot set sink component class's finalization method.");
-					status = BT_PLUGIN_STATUS_NOMEM;
+					status = BT_FUNC_STATUS_MEMORY_ERROR;
 					BT_OBJECT_PUT_REF_AND_RESET(sink_comp_class);
 					goto end;
 				}
@@ -1105,7 +1092,7 @@ enum bt_plugin_status bt_plugin_so_init(struct bt_plugin *plugin,
 					cc_full_descr->methods.sink.query);
 				if (ret) {
 					BT_LOGE_STR("Cannot set sink component class's query method.");
-					status = BT_PLUGIN_STATUS_NOMEM;
+					status = BT_FUNC_STATUS_MEMORY_ERROR;
 					BT_OBJECT_PUT_REF_AND_RESET(sink_comp_class);
 					goto end;
 				}
@@ -1117,7 +1104,7 @@ enum bt_plugin_status bt_plugin_so_init(struct bt_plugin *plugin,
 					cc_full_descr->methods.sink.input_port_connected);
 				if (ret) {
 					BT_LOGE_STR("Cannot set sink component class's \"input port connected\" method.");
-					status = BT_PLUGIN_STATUS_NOMEM;
+					status = BT_FUNC_STATUS_MEMORY_ERROR;
 					BT_OBJECT_PUT_REF_AND_RESET(sink_comp_class);
 					goto end;
 				}
@@ -1129,7 +1116,7 @@ enum bt_plugin_status bt_plugin_so_init(struct bt_plugin *plugin,
 					cc_full_descr->methods.sink.graph_is_configured);
 				if (ret) {
 					BT_LOGE_STR("Cannot set sink component class's \"graph is configured\" method.");
-					status = BT_PLUGIN_STATUS_NOMEM;
+					status = BT_FUNC_STATUS_MEMORY_ERROR;
 					BT_OBJECT_PUT_REF_AND_RESET(sink_comp_class);
 					goto end;
 				}
@@ -1211,7 +1198,7 @@ size_t count_non_null_items_in_section(const void *begin, const void *end)
 }
 
 static
-enum bt_plugin_status bt_plugin_so_create_all_from_sections(
+int bt_plugin_so_create_all_from_sections(
 		struct bt_plugin_so_shared_lib_handle *shared_lib_handle,
 		bool fail_on_load_error,
 		struct __bt_plugin_descriptor const * const *descriptors_begin,
@@ -1224,7 +1211,7 @@ enum bt_plugin_status bt_plugin_so_create_all_from_sections(
 		struct __bt_plugin_component_class_descriptor_attribute const * const *cc_descr_attrs_end,
 		struct bt_plugin_set **plugin_set_out)
 {
-	enum bt_plugin_status status = BT_PLUGIN_STATUS_OK;
+	int status = BT_FUNC_STATUS_OK;
 	size_t descriptor_count;
 	size_t attrs_count;
 	size_t cc_descriptors_count;
@@ -1255,12 +1242,11 @@ enum bt_plugin_status bt_plugin_so_create_all_from_sections(
 	*plugin_set_out = bt_plugin_set_create();
 	if (!*plugin_set_out) {
 		BT_LOGE_STR("Cannot create empty plugin set.");
-		status = BT_PLUGIN_STATUS_NOMEM;
+		status = BT_FUNC_STATUS_MEMORY_ERROR;
 		goto error;
 	}
 
 	for (i = 0; i < descriptors_end - descriptors_begin; i++) {
-		enum bt_plugin_status status;
 		const struct __bt_plugin_descriptor *descriptor =
 			descriptors_begin[i];
 		struct bt_plugin *plugin;
@@ -1280,7 +1266,7 @@ enum bt_plugin_status bt_plugin_so_create_all_from_sections(
 					descriptor->major);
 
 			if (fail_on_load_error) {
-				status = BT_PLUGIN_STATUS_LOADING_ERROR;
+				status = BT_FUNC_STATUS_LOADING_ERROR;
 				goto error;
 			} else {
 				continue;
@@ -1290,7 +1276,7 @@ enum bt_plugin_status bt_plugin_so_create_all_from_sections(
 		plugin = bt_plugin_so_create_empty(shared_lib_handle);
 		if (!plugin) {
 			BT_LOGE_STR("Cannot create empty shared library handle.");
-			status = BT_PLUGIN_STATUS_NOMEM;
+			status = BT_FUNC_STATUS_MEMORY_ERROR;
 			goto error;
 		}
 
@@ -1303,7 +1289,7 @@ enum bt_plugin_status bt_plugin_so_create_all_from_sections(
 			descriptor, attrs_begin, attrs_end,
 			cc_descriptors_begin, cc_descriptors_end,
 			cc_descr_attrs_begin, cc_descr_attrs_end);
-		if (status == BT_PLUGIN_STATUS_OK) {
+		if (status == BT_FUNC_STATUS_OK) {
 			/* Add to plugin set */
 			bt_plugin_set_add_plugin(*plugin_set_out, plugin);
 			BT_OBJECT_PUT_REF_AND_RESET(plugin);
@@ -1325,7 +1311,7 @@ enum bt_plugin_status bt_plugin_so_create_all_from_sections(
 
 	if ((*plugin_set_out)->plugins->len == 0) {
 		BT_OBJECT_PUT_REF_AND_RESET(*plugin_set_out);
-		status = BT_PLUGIN_STATUS_NOT_FOUND;
+		status = BT_FUNC_STATUS_NOT_FOUND;
 	}
 
 	goto end;
@@ -1339,18 +1325,17 @@ end:
 }
 
 BT_HIDDEN
-enum bt_plugin_status bt_plugin_so_create_all_from_static(
-		bool fail_on_load_error,
+int bt_plugin_so_create_all_from_static(bool fail_on_load_error,
 		struct bt_plugin_set **plugin_set_out)
 {
-	enum bt_plugin_status status;
+	int status;
 	struct bt_plugin_so_shared_lib_handle *shared_lib_handle = NULL;
 
 	BT_ASSERT(plugin_set_out);
 	*plugin_set_out = NULL;
 	status = bt_plugin_so_shared_lib_handle_create(NULL,
 		&shared_lib_handle);
-	if (status != BT_PLUGIN_STATUS_OK) {
+	if (status != BT_FUNC_STATUS_OK) {
 		BT_ASSERT(!shared_lib_handle);
 		goto end;
 	}
@@ -1368,7 +1353,7 @@ enum bt_plugin_status bt_plugin_so_create_all_from_static(
 		__bt_get_begin_section_component_class_descriptor_attributes(),
 		__bt_get_end_section_component_class_descriptor_attributes(),
 		plugin_set_out);
-	BT_ASSERT((status == BT_PLUGIN_STATUS_OK && *plugin_set_out &&
+	BT_ASSERT((status == BT_FUNC_STATUS_OK && *plugin_set_out &&
 		(*plugin_set_out)->plugins->len > 0) || !*plugin_set_out);
 
 end:
@@ -1377,11 +1362,11 @@ end:
 }
 
 BT_HIDDEN
-enum bt_plugin_status bt_plugin_so_create_all_from_file(const char *path,
+int bt_plugin_so_create_all_from_file(const char *path,
 		bool fail_on_load_error, struct bt_plugin_set **plugin_set_out)
 {
 	size_t path_len;
-	enum bt_plugin_status status;
+	int status;
 	struct __bt_plugin_descriptor const * const *descriptors_begin = NULL;
 	struct __bt_plugin_descriptor const * const *descriptors_end = NULL;
 	struct __bt_plugin_descriptor_attribute const * const *attrs_begin = NULL;
@@ -1424,13 +1409,13 @@ enum bt_plugin_status bt_plugin_so_create_all_from_file(const char *path,
 	if (!is_shared_object && !is_libtool_wrapper) {
 		/* Name indicates this is not a plugin file; not an error */
 		BT_LOGI("File is not an SO plugin file: path=\"%s\"", path);
-		status = BT_PLUGIN_STATUS_NOT_FOUND;
+		status = BT_FUNC_STATUS_NOT_FOUND;
 		goto end;
 	}
 
 	status = bt_plugin_so_shared_lib_handle_create(path,
 		&shared_lib_handle);
-	if (status != BT_PLUGIN_STATUS_OK) {
+	if (status != BT_FUNC_STATUS_OK) {
 		/* bt_plugin_so_shared_lib_handle_create() logs more details */
 		BT_ASSERT(!shared_lib_handle);
 		BT_LOGE_STR("Cannot create shared library handle.");
@@ -1450,7 +1435,7 @@ enum bt_plugin_status bt_plugin_so_create_all_from_file(const char *path,
 		BT_LOGI("Cannot resolve plugin symbol: path=\"%s\", "
 			"symbol=\"%s\"", path,
 			"__bt_get_begin_section_plugin_descriptors");
-		status = BT_PLUGIN_STATUS_NOT_FOUND;
+		status = BT_FUNC_STATUS_NOT_FOUND;
 		goto end;
 	}
 
@@ -1467,8 +1452,8 @@ enum bt_plugin_status bt_plugin_so_create_all_from_file(const char *path,
 			"Cannot resolve plugin symbol: path=\"%s\", "
 			"symbol=\"%s\"", path,
 			"__bt_get_end_section_plugin_descriptors");
-		status = fail_on_load_error ? BT_PLUGIN_STATUS_LOADING_ERROR :
-			BT_PLUGIN_STATUS_NOT_FOUND;
+		status = fail_on_load_error ? BT_FUNC_STATUS_LOADING_ERROR :
+			BT_FUNC_STATUS_NOT_FOUND;
 		goto end;
 	}
 
@@ -1500,8 +1485,8 @@ enum bt_plugin_status bt_plugin_so_create_all_from_file(const char *path,
 			path, "__bt_get_begin_section_plugin_descriptor_attributes",
 			"__bt_get_end_section_plugin_descriptor_attributes",
 			attrs_begin, attrs_end);
-		status = fail_on_load_error ? BT_PLUGIN_STATUS_LOADING_ERROR :
-			BT_PLUGIN_STATUS_NOT_FOUND;
+		status = fail_on_load_error ? BT_FUNC_STATUS_LOADING_ERROR :
+			BT_FUNC_STATUS_NOT_FOUND;
 		goto end;
 	}
 
@@ -1533,8 +1518,8 @@ enum bt_plugin_status bt_plugin_so_create_all_from_file(const char *path,
 			path, "__bt_get_begin_section_component_class_descriptors",
 			"__bt_get_end_section_component_class_descriptors",
 			cc_descriptors_begin, cc_descriptors_end);
-		status = fail_on_load_error ? BT_PLUGIN_STATUS_LOADING_ERROR :
-			BT_PLUGIN_STATUS_NOT_FOUND;
+		status = fail_on_load_error ? BT_FUNC_STATUS_LOADING_ERROR :
+			BT_FUNC_STATUS_NOT_FOUND;
 		goto end;
 	}
 
@@ -1566,8 +1551,8 @@ enum bt_plugin_status bt_plugin_so_create_all_from_file(const char *path,
 			path, "__bt_get_begin_section_component_class_descriptor_attributes",
 			"__bt_get_end_section_component_class_descriptor_attributes",
 			cc_descr_attrs_begin, cc_descr_attrs_end);
-		status = fail_on_load_error ? BT_PLUGIN_STATUS_LOADING_ERROR :
-			BT_PLUGIN_STATUS_NOT_FOUND;
+		status = fail_on_load_error ? BT_FUNC_STATUS_LOADING_ERROR :
+			BT_FUNC_STATUS_NOT_FOUND;
 		goto end;
 	}
 

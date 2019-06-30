@@ -34,11 +34,6 @@
 extern "C" {
 #endif
 
-typedef enum bt_event_status {
-	BT_EVENT_STATUS_OK = 0,
-	BT_EVENT_STATUS_NOMEM = -12,
-} bt_event_status;
-
 extern const bt_event_class *bt_event_borrow_class_const(
 		const bt_event *event);
 

@@ -58,8 +58,9 @@ class _ClockClass(object._SharedObject):
 
     def _name(self, name):
         utils._check_str(name)
-        ret = native_bt.clock_class_set_name(self._ptr, name)
-        utils._handle_ret(ret, "cannot set clock class object's name")
+        status = native_bt.clock_class_set_name(self._ptr, name)
+        utils._handle_func_status(status,
+                                  "cannot set clock class object's name")
 
     _name = property(fset=_name)
 
@@ -69,8 +70,9 @@ class _ClockClass(object._SharedObject):
 
     def _description(self, description):
         utils._check_str(description)
-        ret = native_bt.clock_class_set_description(self._ptr, description)
-        utils._handle_ret(ret, "cannot set clock class object's description")
+        status = native_bt.clock_class_set_description(self._ptr, description)
+        utils._handle_func_status(status,
+                                  "cannot set clock class object's description")
 
     _description = property(fset=_description)
 
@@ -133,12 +135,7 @@ class _ClockClass(object._SharedObject):
 
     def cycles_to_ns_from_origin(self, cycles):
         utils._check_uint64(cycles)
-        ret, ns = native_bt.clock_class_cycles_to_ns_from_origin(self._ptr, cycles)
-
+        status, ns = native_bt.clock_class_cycles_to_ns_from_origin(self._ptr, cycles)
         error_msg = "cannot convert clock value to nanoseconds from origin for given clock class"
-
-        if ret == native_bt.CLOCK_CLASS_STATUS_OVERFLOW:
-            raise OverflowError(error_msg)
-
-        utils._handle_ret(ret, error_msg)
+        utils._handle_func_status(status, error_msg)
         return ns

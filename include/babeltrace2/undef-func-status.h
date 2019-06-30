@@ -1,9 +1,8 @@
-#ifndef BABELTRACE_GRAPH_MESSAGE_ITERATOR_CONST_H
-#define BABELTRACE_GRAPH_MESSAGE_ITERATOR_CONST_H
+#ifndef BABELTRACE_UNDEF_FUNC_STATUS_H
+#define BABELTRACE_UNDEF_FUNC_STATUS_H
 
 /*
- * Copyright 2017-2018 Philippe Proulx <pproulx@efficios.com>
- * Copyright 2015 Jérémie Galarneau <jeremie.galarneau@efficios.com>
+ * Copyright (c) 2019 Philippe Proulx <pproulx@efficios.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,20 +23,17 @@
  * SOFTWARE.
  */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#undef __BT_FUNC_STATUS_OVERFLOW
+#undef __BT_FUNC_STATUS_INVALID_PARAMS
+#undef __BT_FUNC_STATUS_INVALID_OBJECT
+#undef __BT_FUNC_STATUS_MEMORY_ERROR
+#undef __BT_FUNC_STATUS_LOADING_ERROR
+#undef __BT_FUNC_STATUS_ERROR
+#undef __BT_FUNC_STATUS_OK
+#undef __BT_FUNC_STATUS_END
+#undef __BT_FUNC_STATUS_NOT_FOUND
+#undef __BT_FUNC_STATUS_AGAIN
+#undef __BT_FUNC_STATUS_UNSUPPORTED
+#undef __BT_FUNC_STATUS_CANCELED
 
-typedef enum bt_message_iterator_status {
-	BT_MESSAGE_ITERATOR_STATUS_OK = 0,
-	BT_MESSAGE_ITERATOR_STATUS_END = 1,
-	BT_MESSAGE_ITERATOR_STATUS_AGAIN = 11,
-	BT_MESSAGE_ITERATOR_STATUS_ERROR = -1,
-	BT_MESSAGE_ITERATOR_STATUS_NOMEM = -12,
-} bt_message_iterator_status;
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif /* BABELTRACE_GRAPH_MESSAGE_ITERATOR_CONST_H */
+#endif /* BABELTRACE_UNDEF_FUNC_STATUS_H */

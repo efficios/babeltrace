@@ -435,7 +435,7 @@ int init_trimmer_comp_from_params(struct trimmer_comp *trimmer_comp,
 		if (set_bound_from_param(trimmer_comp, "begin", value,
 				&trimmer_comp->begin, trimmer_comp->is_gmt)) {
 			/* set_bound_from_param() logs errors */
-			ret = BT_SELF_COMPONENT_STATUS_ERROR;
+			ret = -1;
 			goto end;
 		}
 	} else {
@@ -448,7 +448,7 @@ int init_trimmer_comp_from_params(struct trimmer_comp *trimmer_comp,
 		if (set_bound_from_param(trimmer_comp, "end", value,
 				&trimmer_comp->end, trimmer_comp->is_gmt)) {
 			/* set_bound_from_param() logs errors */
-			ret = BT_SELF_COMPONENT_STATUS_ERROR;
+			ret = -1;
 			goto end;
 		}
 	} else {
@@ -466,37 +466,54 @@ end:
 	return ret;
 }
 
-bt_self_component_status trimmer_init(bt_self_component_filter *self_comp_flt,
+bt_component_class_init_method_status trimmer_init(
+		bt_self_component_filter *self_comp_flt,
 		const bt_value *params, void *init_data)
 {
 	int ret;
-	bt_self_component_status status;
+	bt_component_class_init_method_status status =
+		BT_COMPONENT_CLASS_INIT_METHOD_STATUS_OK;
+	bt_self_component_add_port_status add_port_status;
 	struct trimmer_comp *trimmer_comp = create_trimmer_comp();
 	bt_self_component *self_comp =
 		bt_self_component_filter_as_self_component(self_comp_flt);
 	if (!trimmer_comp) {
-		status = BT_SELF_COMPONENT_STATUS_NOMEM;
+		status = BT_COMPONENT_CLASS_INIT_METHOD_STATUS_MEMORY_ERROR;
 		goto error;
 	}
 
 	trimmer_comp->log_level = bt_component_get_logging_level(
 		bt_self_component_as_component(self_comp));
 	trimmer_comp->self_comp = self_comp;
-	status = bt_self_component_filter_add_input_port(
+	add_port_status = bt_self_component_filter_add_input_port(
 		self_comp_flt, in_port_name, NULL, NULL);
-	if (status != BT_SELF_COMPONENT_STATUS_OK) {
+	switch (add_port_status) {
+	case BT_SELF_COMPONENT_ADD_PORT_STATUS_ERROR:
+		status = BT_COMPONENT_CLASS_INIT_METHOD_STATUS_ERROR;
 		goto error;
+	case BT_SELF_COMPONENT_ADD_PORT_STATUS_MEMORY_ERROR:
+		status = BT_COMPONENT_CLASS_INIT_METHOD_STATUS_MEMORY_ERROR;
+		goto error;
+	default:
+		break;
 	}
 
-	status = bt_self_component_filter_add_output_port(
+	add_port_status = bt_self_component_filter_add_output_port(
 		self_comp_flt, "out", NULL, NULL);
-	if (status != BT_SELF_COMPONENT_STATUS_OK) {
+	switch (add_port_status) {
+	case BT_SELF_COMPONENT_ADD_PORT_STATUS_ERROR:
+		status = BT_COMPONENT_CLASS_INIT_METHOD_STATUS_ERROR;
 		goto error;
+	case BT_SELF_COMPONENT_ADD_PORT_STATUS_MEMORY_ERROR:
+		status = BT_COMPONENT_CLASS_INIT_METHOD_STATUS_MEMORY_ERROR;
+		goto error;
+	default:
+		break;
 	}
 
 	ret = init_trimmer_comp_from_params(trimmer_comp, params);
 	if (ret) {
-		status = BT_SELF_COMPONENT_STATUS_ERROR;
+		status = BT_COMPONENT_CLASS_INIT_METHOD_STATUS_ERROR;
 		goto error;
 	}
 
@@ -504,8 +521,8 @@ bt_self_component_status trimmer_init(bt_self_component_filter *self_comp_flt,
 	goto end;
 
 error:
-	if (status == BT_SELF_COMPONENT_STATUS_OK) {
-		status = BT_SELF_COMPONENT_STATUS_ERROR;
+	if (status == BT_COMPONENT_CLASS_INIT_METHOD_STATUS_OK) {
+		status = BT_COMPONENT_CLASS_INIT_METHOD_STATUS_ERROR;
 	}
 
 	if (trimmer_comp) {
@@ -544,18 +561,18 @@ void destroy_trimmer_iterator_stream_state(
 }
 
 BT_HIDDEN
-bt_self_message_iterator_status trimmer_msg_iter_init(
+bt_component_class_message_iterator_init_method_status trimmer_msg_iter_init(
 		bt_self_message_iterator *self_msg_iter,
 		bt_self_component_filter *self_comp,
 		bt_self_component_port_output *port)
 {
-	bt_self_message_iterator_status status =
-		BT_SELF_MESSAGE_ITERATOR_STATUS_OK;
+	bt_component_class_message_iterator_init_method_status status =
+		BT_COMPONENT_CLASS_MESSAGE_ITERATOR_INIT_METHOD_STATUS_OK;
 	struct trimmer_iterator *trimmer_it;
 
 	trimmer_it = g_new0(struct trimmer_iterator, 1);
 	if (!trimmer_it) {
-		status = BT_SELF_MESSAGE_ITERATOR_STATUS_NOMEM;
+		status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_INIT_METHOD_STATUS_MEMORY_ERROR;
 		goto end;
 	}
 
@@ -581,13 +598,13 @@ bt_self_message_iterator_status trimmer_msg_iter_init(
 			bt_self_component_filter_borrow_input_port_by_name(
 				self_comp, in_port_name));
 	if (!trimmer_it->upstream_iter) {
-		status = BT_SELF_MESSAGE_ITERATOR_STATUS_ERROR;
+		status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_INIT_METHOD_STATUS_ERROR;
 		goto end;
 	}
 
 	trimmer_it->output_messages = g_queue_new();
 	if (!trimmer_it->output_messages) {
-		status = BT_SELF_MESSAGE_ITERATOR_STATUS_NOMEM;
+		status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_INIT_METHOD_STATUS_MEMORY_ERROR;
 		goto end;
 	}
 
@@ -595,7 +612,7 @@ bt_self_message_iterator_status trimmer_msg_iter_init(
 		g_direct_equal, NULL,
 		(GDestroyNotify) destroy_trimmer_iterator_stream_state);
 	if (!trimmer_it->stream_states) {
-		status = BT_SELF_MESSAGE_ITERATOR_STATUS_NOMEM;
+		status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_INIT_METHOD_STATUS_MEMORY_ERROR;
 		goto end;
 	}
 
@@ -603,7 +620,7 @@ bt_self_message_iterator_status trimmer_msg_iter_init(
 	bt_self_message_iterator_set_data(self_msg_iter, trimmer_it);
 
 end:
-	if (status != BT_SELF_MESSAGE_ITERATOR_STATUS_OK && trimmer_it) {
+	if (status != BT_COMPONENT_CLASS_MESSAGE_ITERATOR_INIT_METHOD_STATUS_OK && trimmer_it) {
 		destroy_trimmer_iterator(trimmer_it);
 	}
 
@@ -792,11 +809,12 @@ end:
 }
 
 static
-bt_self_message_iterator_status state_set_trimmer_iterator_bounds(
+bt_component_class_message_iterator_next_method_status
+state_set_trimmer_iterator_bounds(
 		struct trimmer_iterator *trimmer_it)
 {
-	bt_message_iterator_status upstream_iter_status =
-		BT_MESSAGE_ITERATOR_STATUS_OK;
+	bt_message_iterator_next_status upstream_iter_status =
+		BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_OK;
 	struct trimmer_comp *trimmer_comp = trimmer_it->trimmer_comp;
 	bt_message_array_const msgs;
 	uint64_t count = 0;
@@ -811,7 +829,7 @@ bt_self_message_iterator_status state_set_trimmer_iterator_bounds(
 		upstream_iter_status =
 			bt_self_component_port_input_message_iterator_next(
 				trimmer_it->upstream_iter, &msgs, &count);
-		if (upstream_iter_status != BT_MESSAGE_ITERATOR_STATUS_OK) {
+		if (upstream_iter_status != BT_MESSAGE_ITERATOR_NEXT_STATUS_OK) {
 			goto end;
 		}
 
@@ -868,19 +886,20 @@ found:
 
 error:
 	put_messages(msgs, count);
-	upstream_iter_status = BT_MESSAGE_ITERATOR_STATUS_ERROR;
+	upstream_iter_status =
+		BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_ERROR;
 
 end:
 	return (int) upstream_iter_status;
 }
 
 static
-bt_self_message_iterator_status state_seek_initially(
+bt_component_class_message_iterator_next_method_status state_seek_initially(
 		struct trimmer_iterator *trimmer_it)
 {
 	struct trimmer_comp *trimmer_comp = trimmer_it->trimmer_comp;
-	bt_self_message_iterator_status status =
-		BT_SELF_MESSAGE_ITERATOR_STATUS_OK;
+	bt_component_class_message_iterator_next_method_status status =
+		BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_OK;
 
 	BT_ASSERT(trimmer_it->begin.is_set);
 
@@ -888,7 +907,7 @@ bt_self_message_iterator_status state_seek_initially(
 		if (!bt_self_component_port_input_message_iterator_can_seek_beginning(
 				trimmer_it->upstream_iter)) {
 			BT_COMP_LOGE_STR("Cannot make upstream message iterator initially seek its beginning.");
-			status = BT_SELF_MESSAGE_ITERATOR_STATUS_ERROR;
+			status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_ERROR;
 			goto end;
 		}
 
@@ -901,7 +920,7 @@ bt_self_message_iterator_status state_seek_initially(
 			BT_COMP_LOGE("Cannot make upstream message iterator initially seek: "
 				"seek-ns-from-origin=%" PRId64,
 				trimmer_it->begin.ns_from_origin);
-			status = BT_SELF_MESSAGE_ITERATOR_STATUS_ERROR;
+			status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_ERROR;
 			goto end;
 		}
 
@@ -909,7 +928,7 @@ bt_self_message_iterator_status state_seek_initially(
 			trimmer_it->upstream_iter, trimmer_it->begin.ns_from_origin);
 	}
 
-	if (status == BT_SELF_MESSAGE_ITERATOR_STATUS_OK) {
+	if (status == BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_OK) {
 		trimmer_it->state = TRIMMER_ITERATOR_STATE_TRIM;
 	}
 
@@ -945,11 +964,12 @@ int clock_raw_value_from_ns_from_origin(const bt_clock_class *clock_class,
 }
 
 static inline
-bt_self_message_iterator_status end_stream(struct trimmer_iterator *trimmer_it,
+bt_component_class_message_iterator_next_method_status
+end_stream(struct trimmer_iterator *trimmer_it,
 		struct trimmer_iterator_stream_state *sstate)
 {
-	bt_self_message_iterator_status status =
-		BT_SELF_MESSAGE_ITERATOR_STATUS_OK;
+	bt_component_class_message_iterator_next_method_status status =
+		BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_OK;
 	uint64_t raw_value;
 	const bt_clock_class *clock_class;
 	int ret;
@@ -978,7 +998,7 @@ bt_self_message_iterator_status end_stream(struct trimmer_iterator *trimmer_it,
 		ret = clock_raw_value_from_ns_from_origin(clock_class,
 			trimmer_it->end.ns_from_origin, &raw_value);
 		if (ret) {
-			status = BT_SELF_MESSAGE_ITERATOR_STATUS_ERROR;
+			status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_ERROR;
 			goto end;
 		}
 
@@ -986,7 +1006,7 @@ bt_self_message_iterator_status end_stream(struct trimmer_iterator *trimmer_it,
 			trimmer_it->self_msg_iter, sstate->cur_packet,
 			raw_value);
 		if (!msg) {
-			status = BT_SELF_MESSAGE_ITERATOR_STATUS_NOMEM;
+			status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_MEMORY_ERROR;
 			goto end;
 		}
 
@@ -1009,7 +1029,7 @@ bt_self_message_iterator_status end_stream(struct trimmer_iterator *trimmer_it,
 		msg = bt_message_stream_activity_end_create(
 			trimmer_it->self_msg_iter, sstate->stream);
 		if (!msg) {
-			status = BT_SELF_MESSAGE_ITERATOR_STATUS_NOMEM;
+			status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_MEMORY_ERROR;
 			goto end;
 		}
 
@@ -1032,7 +1052,7 @@ bt_self_message_iterator_status end_stream(struct trimmer_iterator *trimmer_it,
 		ret = clock_raw_value_from_ns_from_origin(clock_class,
 			sstate->stream_act_end_ns_from_origin, &raw_value);
 		if (ret) {
-			status = BT_SELF_MESSAGE_ITERATOR_STATUS_ERROR;
+			status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_ERROR;
 			goto end;
 		}
 
@@ -1046,7 +1066,7 @@ bt_self_message_iterator_status end_stream(struct trimmer_iterator *trimmer_it,
 	msg = bt_message_stream_end_create(trimmer_it->self_msg_iter,
 		sstate->stream);
 	if (!msg) {
-		status = BT_SELF_MESSAGE_ITERATOR_STATUS_NOMEM;
+		status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_MEMORY_ERROR;
 		goto end;
 	}
 
@@ -1065,11 +1085,11 @@ end:
 }
 
 static inline
-bt_self_message_iterator_status end_iterator_streams(
+bt_component_class_message_iterator_next_method_status end_iterator_streams(
 		struct trimmer_iterator *trimmer_it)
 {
-	bt_self_message_iterator_status status =
-		BT_SELF_MESSAGE_ITERATOR_STATUS_OK;
+	bt_component_class_message_iterator_next_method_status status =
+		BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_OK;
 	GHashTableIter iter;
 	gpointer key, sstate;
 
@@ -1103,14 +1123,15 @@ end:
 }
 
 static inline
-bt_self_message_iterator_status create_stream_beginning_activity_message(
+bt_component_class_message_iterator_next_method_status
+create_stream_beginning_activity_message(
 		struct trimmer_iterator *trimmer_it,
 		const bt_stream *stream,
 		const bt_clock_class *clock_class, bt_message **msg)
 {
 	bt_message *local_msg;
-	bt_self_message_iterator_status status =
-		BT_SELF_MESSAGE_ITERATOR_STATUS_OK;
+	bt_component_class_message_iterator_next_method_status status =
+		BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_OK;
 
 	BT_ASSERT(msg);
 	BT_ASSERT(!trimmer_it->begin.is_infinite);
@@ -1118,7 +1139,7 @@ bt_self_message_iterator_status create_stream_beginning_activity_message(
 	local_msg = bt_message_stream_activity_beginning_create(
 		trimmer_it->self_msg_iter, stream);
 	if (!local_msg) {
-		status = BT_SELF_MESSAGE_ITERATOR_STATUS_NOMEM;
+		status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_MEMORY_ERROR;
 		goto end;
 	}
 
@@ -1129,7 +1150,7 @@ bt_self_message_iterator_status create_stream_beginning_activity_message(
 		ret = clock_raw_value_from_ns_from_origin(clock_class,
 			trimmer_it->begin.ns_from_origin, &raw_value);
 		if (ret) {
-			status = BT_SELF_MESSAGE_ITERATOR_STATUS_ERROR;
+			status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_ERROR;
 			bt_message_put_ref(local_msg);
 			goto end;
 		}
@@ -1161,13 +1182,14 @@ end:
  * `reached_end`.
  */
 static inline
-bt_self_message_iterator_status handle_message_with_stream_state(
+bt_component_class_message_iterator_next_method_status
+handle_message_with_stream_state(
 		struct trimmer_iterator *trimmer_it, const bt_message *msg,
 		struct trimmer_iterator_stream_state *sstate,
 		int64_t ns_from_origin, bool *reached_end)
 {
-	bt_self_message_iterator_status status =
-		BT_SELF_MESSAGE_ITERATOR_STATUS_OK;
+	bt_component_class_message_iterator_next_method_status status =
+		BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_OK;
 	bt_message_type msg_type = bt_message_get_type(msg);
 	int ret;
 
@@ -1245,7 +1267,7 @@ bt_self_message_iterator_status handle_message_with_stream_state(
 
 		if (bt_clock_snapshot_get_ns_from_origin(end_cs,
 				&end_ns_from_origin)) {
-			status = BT_SELF_MESSAGE_ITERATOR_STATUS_ERROR;
+			status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_ERROR;
 			goto end;
 		}
 
@@ -1277,7 +1299,7 @@ bt_self_message_iterator_status handle_message_with_stream_state(
 			ret = clock_raw_value_from_ns_from_origin(clock_class,
 				trimmer_it->end.ns_from_origin, &end_raw_value);
 			if (ret) {
-				status = BT_SELF_MESSAGE_ITERATOR_STATUS_ERROR;
+				status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_ERROR;
 				goto end;
 			}
 
@@ -1300,7 +1322,7 @@ bt_self_message_iterator_status handle_message_with_stream_state(
 			}
 
 			if (!new_msg) {
-				status = BT_SELF_MESSAGE_ITERATOR_STATUS_NOMEM;
+				status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_MEMORY_ERROR;
 				goto end;
 			}
 
@@ -1385,7 +1407,7 @@ bt_self_message_iterator_status handle_message_with_stream_state(
 		} else if (sstate->stream_act_end_ns_from_origin <
 				trimmer_it->end.ns_from_origin) {
 			status = end_stream(trimmer_it, sstate);
-			if (status != BT_SELF_MESSAGE_ITERATOR_STATUS_OK) {
+			if (status != BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_OK) {
 				goto end;
 			}
 
@@ -1400,7 +1422,7 @@ bt_self_message_iterator_status handle_message_with_stream_state(
 end:
 	/* We release the message's reference whatever the outcome */
 	bt_message_put_ref(msg);
-	return BT_SELF_MESSAGE_ITERATOR_STATUS_OK;
+	return BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_OK;
 }
 
 /*
@@ -1416,11 +1438,11 @@ end:
  * `reached_end`.
  */
 static inline
-bt_self_message_iterator_status handle_message(
+bt_component_class_message_iterator_next_method_status handle_message(
 		struct trimmer_iterator *trimmer_it, const bt_message *msg,
 		bool *reached_end)
 {
-	bt_self_message_iterator_status status;
+	bt_component_class_message_iterator_next_method_status status;
 	const bt_stream *stream = NULL;
 	int64_t ns_from_origin = INT64_MIN;
 	bool skip;
@@ -1491,7 +1513,7 @@ bt_self_message_iterator_status handle_message(
 					"stream-name=\"%s\"",
 					stream, bt_stream_get_id(stream),
 					bt_stream_get_name(stream));
-				status = BT_SELF_MESSAGE_ITERATOR_STATUS_ERROR;
+				status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_ERROR;
 				goto end;
 			}
 
@@ -1511,7 +1533,7 @@ bt_self_message_iterator_status handle_message(
 					"stream-name=\"%s\"",
 					stream, bt_stream_get_id(stream),
 					bt_stream_get_name(stream));
-				status = BT_SELF_MESSAGE_ITERATOR_STATUS_ERROR;
+				status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_ERROR;
 				goto end;
 			}
 
@@ -1524,7 +1546,7 @@ bt_self_message_iterator_status handle_message(
 					"stream-name=\"%s\"",
 					stream, bt_stream_get_id(stream),
 					bt_stream_get_name(stream));
-				status = BT_SELF_MESSAGE_ITERATOR_STATUS_ERROR;
+				status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_ERROR;
 				goto end;
 			}
 
@@ -1537,7 +1559,7 @@ bt_self_message_iterator_status handle_message(
 					"stream-name=\"%s\"",
 					stream, bt_stream_get_id(stream),
 					bt_stream_get_name(stream));
-				status = BT_SELF_MESSAGE_ITERATOR_STATUS_ERROR;
+				status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_ERROR;
 				goto end;
 			}
 
@@ -1550,14 +1572,14 @@ bt_self_message_iterator_status handle_message(
 					"stream-name=\"%s\"",
 					stream, bt_stream_get_id(stream),
 					bt_stream_get_name(stream));
-				status = BT_SELF_MESSAGE_ITERATOR_STATUS_ERROR;
+				status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_ERROR;
 				goto end;
 			}
 
 			sstate = g_new0(struct trimmer_iterator_stream_state,
 				1);
 			if (!sstate) {
-				status = BT_SELF_MESSAGE_ITERATOR_STATUS_NOMEM;
+				status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_MEMORY_ERROR;
 				goto end;
 			}
 
@@ -1571,7 +1593,7 @@ bt_self_message_iterator_status handle_message(
 	/* Retrieve the message's time */
 	ret = get_msg_ns_from_origin(msg, &ns_from_origin, &skip);
 	if (G_UNLIKELY(ret)) {
-		status = BT_SELF_MESSAGE_ITERATOR_STATUS_ERROR;
+		status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_ERROR;
 		goto end;
 	}
 
@@ -1596,7 +1618,7 @@ bt_self_message_iterator_status handle_message(
 			*reached_end = true;
 		} else {
 			push_message(trimmer_it, msg);
-			status = BT_SELF_MESSAGE_ITERATOR_STATUS_OK;
+			status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_OK;
 			msg = NULL;
 		}
 	}
@@ -1628,17 +1650,17 @@ void fill_message_array_from_output_messages(
 }
 
 static inline
-bt_self_message_iterator_status state_ending(
+bt_component_class_message_iterator_next_method_status state_ending(
 		struct trimmer_iterator *trimmer_it,
 		bt_message_array_const msgs, uint64_t capacity,
 		uint64_t *count)
 {
-	bt_self_message_iterator_status status =
-		BT_SELF_MESSAGE_ITERATOR_STATUS_OK;
+	bt_component_class_message_iterator_next_method_status status =
+		BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_OK;
 
 	if (g_queue_is_empty(trimmer_it->output_messages)) {
 		trimmer_it->state = TRIMMER_ITERATOR_STATE_ENDED;
-		status = BT_SELF_MESSAGE_ITERATOR_STATUS_END;
+		status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_END;
 		goto end;
 	}
 
@@ -1650,12 +1672,13 @@ end:
 }
 
 static inline
-bt_self_message_iterator_status state_trim(struct trimmer_iterator *trimmer_it,
+bt_component_class_message_iterator_next_method_status
+state_trim(struct trimmer_iterator *trimmer_it,
 		bt_message_array_const msgs, uint64_t capacity,
 		uint64_t *count)
 {
-	bt_self_message_iterator_status status =
-		BT_SELF_MESSAGE_ITERATOR_STATUS_OK;
+	bt_component_class_message_iterator_next_method_status status =
+		BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_OK;
 	bt_message_array_const my_msgs;
 	uint64_t my_count;
 	uint64_t i;
@@ -1664,10 +1687,10 @@ bt_self_message_iterator_status state_trim(struct trimmer_iterator *trimmer_it,
 	while (g_queue_is_empty(trimmer_it->output_messages)) {
 		status = (int) bt_self_component_port_input_message_iterator_next(
 			trimmer_it->upstream_iter, &my_msgs, &my_count);
-		if (G_UNLIKELY(status != BT_SELF_MESSAGE_ITERATOR_STATUS_OK)) {
-			if (status == BT_SELF_MESSAGE_ITERATOR_STATUS_END) {
+		if (G_UNLIKELY(status != BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_OK)) {
+			if (status == BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_END) {
 				status = end_iterator_streams(trimmer_it);
-				if (status != BT_SELF_MESSAGE_ITERATOR_STATUS_OK) {
+				if (status != BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_OK) {
 					goto end;
 				}
 
@@ -1693,7 +1716,7 @@ bt_self_message_iterator_status state_trim(struct trimmer_iterator *trimmer_it,
 			my_msgs[i] = NULL;
 
 			if (G_UNLIKELY(status !=
-					BT_SELF_MESSAGE_ITERATOR_STATUS_OK)) {
+					BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_OK)) {
 				put_messages(my_msgs, my_count);
 				goto end;
 			}
@@ -1732,50 +1755,50 @@ end:
 }
 
 BT_HIDDEN
-bt_self_message_iterator_status trimmer_msg_iter_next(
+bt_component_class_message_iterator_next_method_status trimmer_msg_iter_next(
 		bt_self_message_iterator *self_msg_iter,
 		bt_message_array_const msgs, uint64_t capacity,
 		uint64_t *count)
 {
 	struct trimmer_iterator *trimmer_it =
 		bt_self_message_iterator_get_data(self_msg_iter);
-	bt_self_message_iterator_status status =
-		BT_SELF_MESSAGE_ITERATOR_STATUS_OK;
+	bt_component_class_message_iterator_next_method_status status =
+		BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_OK;
 
 	BT_ASSERT(trimmer_it);
 
 	if (G_LIKELY(trimmer_it->state == TRIMMER_ITERATOR_STATE_TRIM)) {
 		status = state_trim(trimmer_it, msgs, capacity, count);
-		if (status != BT_SELF_MESSAGE_ITERATOR_STATUS_OK) {
+		if (status != BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_OK) {
 			goto end;
 		}
 	} else {
 		switch (trimmer_it->state) {
 		case TRIMMER_ITERATOR_STATE_SET_BOUNDS_NS_FROM_ORIGIN:
 			status = state_set_trimmer_iterator_bounds(trimmer_it);
-			if (status != BT_SELF_MESSAGE_ITERATOR_STATUS_OK) {
+			if (status != BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_OK) {
 				goto end;
 			}
 
 			status = state_seek_initially(trimmer_it);
-			if (status != BT_SELF_MESSAGE_ITERATOR_STATUS_OK) {
+			if (status != BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_OK) {
 				goto end;
 			}
 
 			status = state_trim(trimmer_it, msgs, capacity, count);
-			if (status != BT_SELF_MESSAGE_ITERATOR_STATUS_OK) {
+			if (status != BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_OK) {
 				goto end;
 			}
 
 			break;
 		case TRIMMER_ITERATOR_STATE_SEEK_INITIALLY:
 			status = state_seek_initially(trimmer_it);
-			if (status != BT_SELF_MESSAGE_ITERATOR_STATUS_OK) {
+			if (status != BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_OK) {
 				goto end;
 			}
 
 			status = state_trim(trimmer_it, msgs, capacity, count);
-			if (status != BT_SELF_MESSAGE_ITERATOR_STATUS_OK) {
+			if (status != BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_OK) {
 				goto end;
 			}
 
@@ -1783,13 +1806,13 @@ bt_self_message_iterator_status trimmer_msg_iter_next(
 		case TRIMMER_ITERATOR_STATE_ENDING:
 			status = state_ending(trimmer_it, msgs, capacity,
 				count);
-			if (status != BT_SELF_MESSAGE_ITERATOR_STATUS_OK) {
+			if (status != BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_OK) {
 				goto end;
 			}
 
 			break;
 		case TRIMMER_ITERATOR_STATE_ENDED:
-			status = BT_SELF_MESSAGE_ITERATOR_STATUS_END;
+			status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_END;
 			break;
 		default:
 			abort();

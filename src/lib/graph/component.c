@@ -33,6 +33,7 @@
 #include <babeltrace2/graph/component-source-const.h>
 #include <babeltrace2/graph/component-filter-const.h>
 #include <babeltrace2/graph/component-sink-const.h>
+#include <babeltrace2/graph/graph-const.h>
 #include "common/macros.h"
 #include "compat/compiler.h"
 #include <babeltrace2/types.h>
@@ -50,6 +51,7 @@
 #include "graph.h"
 #include "message/iterator.h"
 #include "port.h"
+#include "lib/func-status.h"
 
 static
 struct bt_component * (* const component_create_funcs[])(
@@ -193,14 +195,14 @@ enum bt_component_class_type bt_component_get_class_type(
 }
 
 static
-enum bt_self_component_status add_port(
+enum bt_self_component_add_port_status add_port(
 		struct bt_component *component, GPtrArray *ports,
 		enum bt_port_type port_type, const char *name, void *user_data,
 		struct bt_port **port)
 {
 	struct bt_port *new_port = NULL;
 	struct bt_graph *graph = NULL;
-	enum bt_self_component_status status;
+	enum bt_self_component_add_port_status status;
 
 	BT_ASSERT_PRE_NON_NULL(component, "Component");
 	BT_ASSERT_PRE_NON_NULL(name, "Name");
@@ -223,7 +225,7 @@ enum bt_self_component_status add_port(
 	new_port = bt_port_create(component, port_type, name, user_data);
 	if (!new_port) {
 		BT_LOGE_STR("Cannot create port object.");
-		status = BT_SELF_COMPONENT_STATUS_NOMEM;
+		status = BT_FUNC_STATUS_MEMORY_ERROR;
 		goto error;
 	}
 
@@ -240,12 +242,12 @@ enum bt_self_component_status add_port(
 	 */
 	graph = bt_component_borrow_graph(component);
 	if (graph) {
-		enum bt_graph_listener_status listener_status;
+		enum bt_graph_listener_func_status listener_status;
 
 		listener_status = bt_graph_notify_port_added(graph, new_port);
-		if (listener_status != BT_GRAPH_LISTENER_STATUS_OK) {
+		if (listener_status != BT_FUNC_STATUS_OK) {
 			bt_graph_make_faulty(graph);
-			status = listener_status;
+			status = (int) listener_status;
 			goto error;
 		}
 	}
@@ -254,7 +256,7 @@ enum bt_self_component_status add_port(
 		"%![comp-]+c, %![port-]+p", component, new_port);
 
 	*port = new_port;
-	status = BT_SELF_COMPONENT_STATUS_OK;
+	status = BT_FUNC_STATUS_OK;
 
 	goto end;
 error:
@@ -461,7 +463,7 @@ struct bt_port_output *bt_component_borrow_output_port_by_index(
 }
 
 BT_HIDDEN
-enum bt_self_component_status bt_component_add_input_port(
+enum bt_self_component_add_port_status bt_component_add_input_port(
 		struct bt_component *component, const char *name,
 		void *user_data, struct bt_port **port)
 {
@@ -471,7 +473,7 @@ enum bt_self_component_status bt_component_add_input_port(
 }
 
 BT_HIDDEN
-enum bt_self_component_status bt_component_add_output_port(
+enum bt_self_component_add_port_status bt_component_add_output_port(
 		struct bt_component *component, const char *name,
 		void *user_data, struct bt_port **port)
 {
@@ -481,14 +483,16 @@ enum bt_self_component_status bt_component_add_output_port(
 }
 
 BT_HIDDEN
-enum bt_self_component_status bt_component_port_connected(
+enum bt_component_class_port_connected_method_status
+bt_component_port_connected(
 		struct bt_component *comp, struct bt_port *self_port,
 		struct bt_port *other_port)
 {
-	typedef enum bt_self_component_status (*method_t)(
+	typedef enum bt_component_class_port_connected_method_status (*method_t)(
 		void *, void *, const void *);
 
-	enum bt_self_component_status status = BT_SELF_COMPONENT_STATUS_OK;
+	enum bt_self_component_add_port_status status =
+		BT_FUNC_STATUS_OK;
 	method_t method = NULL;
 
 	BT_ASSERT(comp);
@@ -549,14 +553,14 @@ enum bt_self_component_status bt_component_port_connected(
 		BT_LIB_LOGD("Calling user's \"port connected\" method: "
 			"%![comp-]+c, %![self-port-]+p, %![other-port-]+p",
 			comp, self_port, other_port);
-		status = method(comp, self_port, (void *) other_port);
+		status = (int) method(comp, self_port, (void *) other_port);
 		BT_LOGD("User method returned: status=%s",
-			bt_self_component_status_string(status));
-		BT_ASSERT_POST(status == BT_SELF_COMPONENT_STATUS_OK ||
-			status == BT_SELF_COMPONENT_STATUS_ERROR ||
-			status == BT_SELF_COMPONENT_STATUS_NOMEM,
+			bt_common_func_status_string(status));
+		BT_ASSERT_POST(status == BT_FUNC_STATUS_OK ||
+			status == BT_FUNC_STATUS_ERROR ||
+			status == BT_FUNC_STATUS_MEMORY_ERROR,
 			"Unexpected returned component status: status=%s",
-			bt_self_component_status_string(status));
+			bt_common_func_status_string(status));
 	}
 
 	return status;

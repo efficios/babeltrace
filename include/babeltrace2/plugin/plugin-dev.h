@@ -29,9 +29,6 @@
 
 #include <stdint.h>
 
-/* For enum bt_plugin_status */
-#include <babeltrace2/plugin/plugin-const.h>
-
 /* For bt_component_class_type */
 #include <babeltrace2/graph/component-class-const.h>
 
@@ -39,6 +36,14 @@
 #include <babeltrace2/graph/component-class-source.h>
 #include <babeltrace2/graph/component-class-filter.h>
 #include <babeltrace2/graph/component-class-sink.h>
+
+/* For bt_self_plugin */
+#include <babeltrace2/types.h>
+
+/* For __BT_FUNC_STATUS_* */
+#define __BT_FUNC_STATUS_ENABLE
+#include <babeltrace2/func-status.h>
+#undef __BT_FUNC_STATUS_ENABLE
 
 /*
  * _BT_HIDDEN: set the hidden attribute for internal functions
@@ -63,15 +68,13 @@ extern "C" {
 #define __BT_PLUGIN_VERSION_MINOR	0
 
 /* Plugin initialization function type */
-typedef enum bt_self_plugin_status {
-	BT_SELF_PLUGIN_STATUS_OK = 0,
-	BT_SELF_PLUGIN_STATUS_NOMEM = -12,
-	BT_SELF_PLUGIN_STATUS_ERROR = -1,
-} bt_self_plugin_status;
+typedef enum bt_plugin_init_func_status {
+	BT_PLUGIN_INIT_FUNC_STATUS_OK		= __BT_FUNC_STATUS_OK,
+	BT_PLUGIN_INIT_FUNC_STATUS_MEMORY_ERROR	= __BT_FUNC_STATUS_MEMORY_ERROR,
+	BT_PLUGIN_INIT_FUNC_STATUS_ERROR	= __BT_FUNC_STATUS_ERROR,
+} bt_plugin_init_func_status;
 
-typedef struct bt_self_plugin bt_self_plugin;
-
-typedef bt_self_plugin_status (*bt_plugin_init_func)(
+typedef bt_plugin_init_func_status (*bt_plugin_init_func)(
 		bt_self_plugin *plugin);
 
 /* Plugin exit function type */
@@ -1475,5 +1478,7 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
 #ifdef __cplusplus
 }
 #endif
+
+#include <babeltrace2/undef-func-status.h>
 
 #endif /* BABELTRACE_PLUGIN_PLUGIN_DEV_H */

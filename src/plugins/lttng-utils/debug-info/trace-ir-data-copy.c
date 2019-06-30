@@ -39,19 +39,18 @@ BT_HIDDEN
 void copy_trace_content(const bt_trace *in_trace, bt_trace *out_trace,
 		bt_logging_level log_level, bt_self_component *self_comp)
 {
-	bt_trace_status status;
+	bt_trace_set_name_status status;
 	const char *trace_name;
 
 	BT_COMP_LOGD("Copying content of trace: in-t-addr=%p, out-t-addr=%p",
 			in_trace, out_trace);
-
 	trace_name = bt_trace_get_name(in_trace);
 	/* Copy the trace name. */
 	if (trace_name) {
 		status = bt_trace_set_name(out_trace, trace_name);
-		if (status != BT_TRACE_STATUS_OK) {
+		if (status != BT_TRACE_SET_NAME_STATUS_OK) {
 			BT_COMP_LOGE("Cannot set trace's name: trace-addr=%p, name=\"%s\"",
-					out_trace, trace_name);
+				out_trace, trace_name);
 			goto end;
 		}
 	}
@@ -67,7 +66,7 @@ void copy_stream_content(const bt_stream *in_stream, bt_stream *out_stream,
 		bt_logging_level log_level, bt_self_component *self_comp)
 {
 	const char *stream_name;
-	bt_stream_status status;
+	bt_stream_set_name_status status;
 
 	BT_COMP_LOGD("Copying content of stream: in-s-addr=%p, out-s-addr=%p",
 			in_stream, out_stream);
@@ -75,7 +74,7 @@ void copy_stream_content(const bt_stream *in_stream, bt_stream *out_stream,
 	stream_name = bt_stream_get_name(in_stream);
 	if (stream_name) {
 		status = bt_stream_set_name(out_stream, stream_name);
-		if (status != BT_STREAM_STATUS_OK) {
+		if (status != BT_STREAM_SET_NAME_STATUS_OK) {
 			BT_COMP_LOGE("Cannot set stream's name: stream-addr=%p, "
 				"name=%s", out_stream, stream_name);
 			goto end;
@@ -185,8 +184,9 @@ void copy_field_content(const bt_field *in_field, bt_field *out_field,
 	case BT_FIELD_CLASS_TYPE_STRING:
 	{
 		const char *str = bt_field_string_get_value(in_field);
-		bt_field_status status = bt_field_string_set_value(out_field, str);
-		if (status != BT_FIELD_STATUS_OK) {
+		bt_field_string_set_value_status status =
+			bt_field_string_set_value(out_field, str);
+		if (status != BT_FIELD_STRING_SET_VALUE_STATUS_OK) {
 			BT_COMP_LOGE("Cannot set string field's value: "
 				"str-field-addr=%p, str=%s" PRId64,
 				out_field, str);
@@ -237,14 +237,15 @@ void copy_field_content(const bt_field *in_field, bt_field *out_field,
 		const bt_field *in_element_field;
 		bt_field *out_element_field;
 		uint64_t i, array_len;
-		bt_field_status status;
+		bt_field_dynamic_array_set_length_status set_len_status;
 
 		array_len = bt_field_array_get_length(in_field);
 
 		if (in_fc_type == BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY) {
-			status = bt_field_dynamic_array_set_length(out_field,
-					array_len);
-			if (status != BT_FIELD_STATUS_OK) {
+			set_len_status = bt_field_dynamic_array_set_length(
+				out_field, array_len);
+			if (set_len_status !=
+					BT_FIELD_DYNAMIC_ARRAY_SET_LENGTH_STATUS_OK) {
 				BT_COMP_LOGE("Cannot set dynamic array field's "
 					"length field: field-addr=%p, "
 					"length=%" PRIu64, out_field, array_len);
@@ -254,10 +255,10 @@ void copy_field_content(const bt_field *in_field, bt_field *out_field,
 		for (i = 0; i < array_len; i++) {
 			in_element_field =
 				bt_field_array_borrow_element_field_by_index_const(
-						in_field, i);
+					in_field, i);
 			out_element_field =
 				bt_field_array_borrow_element_field_by_index(
-						out_field, i);
+					out_field, i);
 			copy_field_content(in_element_field, out_element_field,
 				log_level, self_comp);
 		}
@@ -265,7 +266,7 @@ void copy_field_content(const bt_field *in_field, bt_field *out_field,
 	}
 	case BT_FIELD_CLASS_TYPE_VARIANT:
 	{
-		bt_field_status status;
+		bt_field_variant_select_option_field_status sel_opt_status;
 		uint64_t in_selected_option_idx;
 		const bt_field *in_option_field;
 		bt_field *out_option_field;
@@ -273,9 +274,10 @@ void copy_field_content(const bt_field *in_field, bt_field *out_field,
 		in_selected_option_idx =
 			bt_field_variant_get_selected_option_field_index(
 					in_field);
-		status = bt_field_variant_select_option_field(out_field,
+		sel_opt_status = bt_field_variant_select_option_field(out_field,
 				in_selected_option_idx);
-		if (status != BT_FIELD_STATUS_OK) {
+		if (sel_opt_status !=
+				BT_FIELD_VARIANT_SELECT_OPTION_FIELD_STATUS_OK) {
 			BT_COMP_LOGE("Cannot select variant field's option field: "
 				"var-field-addr=%p, opt-index=%" PRId64,
 				out_field, in_selected_option_idx);
