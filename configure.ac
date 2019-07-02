@@ -386,16 +386,12 @@ AC_ARG_VAR([PLUGINSDIR], [built-in plugins install directory [LIBDIR/babeltrace2
 AS_IF([test "x$PLUGINSDIR" = x], [PLUGINSDIR='$(libdir)/babeltrace2/plugins'])
 
 # BABELTRACE_MINIMAL_LOG_LEVEL:
-AC_ARG_VAR([BABELTRACE_MINIMAL_LOG_LEVEL], [Minimal log level for Babeltrace program, library, and plugins (TRACE, DEBUG (default), INFO, WARN, ERROR, FATAL, or NONE)])
+AC_ARG_VAR([BABELTRACE_MINIMAL_LOG_LEVEL], [Minimal log level for Babeltrace program, library, and plugins (TRACE, DEBUG (default), or INFO)])
 AS_IF([test "x$BABELTRACE_MINIMAL_LOG_LEVEL" = x], [BABELTRACE_MINIMAL_LOG_LEVEL="DEBUG"])
 AS_IF([test "$BABELTRACE_MINIMAL_LOG_LEVEL" != "TRACE" && \
        test "$BABELTRACE_MINIMAL_LOG_LEVEL" != "DEBUG" && \
-       test "$BABELTRACE_MINIMAL_LOG_LEVEL" != "INFO" && \
-       test "$BABELTRACE_MINIMAL_LOG_LEVEL" != "WARN" && \
-       test "$BABELTRACE_MINIMAL_LOG_LEVEL" != "ERROR" && \
-       test "$BABELTRACE_MINIMAL_LOG_LEVEL" != "FATAL" && \
-       test "$BABELTRACE_MINIMAL_LOG_LEVEL" != "NONE"],
-  [AC_MSG_ERROR([Invalid BABELTRACE_MINIMAL_LOG_LEVEL value ($BABELTRACE_MINIMAL_LOG_LEVEL): use TRACE, DEBUG, INFO, WARN, ERROR, FATAL, or NONE.])]
+       test "$BABELTRACE_MINIMAL_LOG_LEVEL" != "INFO"],
+  [AC_MSG_ERROR([Invalid BABELTRACE_MINIMAL_LOG_LEVEL value ($BABELTRACE_MINIMAL_LOG_LEVEL): use TRACE, DEBUG, or INFO.])]
 )
 AC_DEFINE_UNQUOTED([BT_MINIMAL_LOG_LEVEL], [BT_LOG_$BABELTRACE_MINIMAL_LOG_LEVEL], [Minimal log level])
 

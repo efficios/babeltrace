@@ -380,7 +380,10 @@ $ BABELTRACE_MINIMAL_LOG_LEVEL=WARN ./configure
 +
 The default build-time log level is `DEBUG`. For optimal performance,
 set it to `INFO`, which effectively disables all fast path logging in
-all the Babeltrace modules.
+all the Babeltrace modules. You can't set it to `WARN`, `ERROR`,
+`FATAL`, or `NONE` because the impact on performance is minuscule
+starting from the _INFO_ log level anyway and we want any Babeltrace
+build to always be able to print _INFO_-level logs.
 +
 The library's public API provides `bt_logging_get_minimal_level()` to
 get the configured minimal log level.
@@ -1251,7 +1254,7 @@ A _FATAL_-level logging statement should always be followed by
 * Failed assertion (within `BT_ASSERT()`).
 * Unsatisfied library precondition (within `BT_ASSERT_PRE()`).
 * Unsatisfied library postcondition (within `BT_ASSERT_POST()`).
-|Almost none: should be executed in production.
+|Almost none: always enabled.
 
 |_ERROR_
 |
@@ -1270,7 +1273,7 @@ least exit cleanly.
   failure to create an empty object (no parameters): most probably
   failed internally because of an allocation error.
 * Almost any error in terminal elements: CLI and plugins.
-|Almost none: should be executed in production.
+|Almost none: always enabled.
 
 |_WARN_
 |
@@ -1286,7 +1289,7 @@ the user's control, so we always log memory errors with an _ERROR_ level
 * Missing data within something that is expected to have it, but there's
   an alternative.
 * Invalid file, but recoverable/fixable.
-|Almost none: can be executed in production.
+|Almost none: always enabled.
 
 |_INFO_
 |
@@ -1306,8 +1309,7 @@ level is used for sporadic and one-shot events.
 * An _optional_ subsystem cannot be loaded.
 * An _optional_ field/datum cannot be found.
 |
-Very little: can be executed in production if _INFO_ level information
-is desired.
+Very little: always enabled.
 
 |_DEBUG_
 |
