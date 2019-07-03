@@ -1122,49 +1122,6 @@ end:
 	return status;
 }
 
-static inline
-bt_component_class_message_iterator_next_method_status
-create_stream_beginning_activity_message(
-		struct trimmer_iterator *trimmer_it,
-		const bt_stream *stream,
-		const bt_clock_class *clock_class, bt_message **msg)
-{
-	bt_message *local_msg;
-	bt_component_class_message_iterator_next_method_status status =
-		BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_OK;
-
-	BT_ASSERT(msg);
-	BT_ASSERT(!trimmer_it->begin.is_infinite);
-
-	local_msg = bt_message_stream_activity_beginning_create(
-		trimmer_it->self_msg_iter, stream);
-	if (!local_msg) {
-		status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_MEMORY_ERROR;
-		goto end;
-	}
-
-	if (clock_class) {
-		int ret;
-		uint64_t raw_value;
-
-		ret = clock_raw_value_from_ns_from_origin(clock_class,
-			trimmer_it->begin.ns_from_origin, &raw_value);
-		if (ret) {
-			status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_ERROR;
-			bt_message_put_ref(local_msg);
-			goto end;
-		}
-
-		bt_message_stream_activity_beginning_set_default_clock_snapshot(
-			local_msg, raw_value);
-	}
-
-	BT_MESSAGE_MOVE_REF(*msg, local_msg);
-
-end:
-	return status;
-}
-
 /*
  * Handles a message which is associated to a given stream state. This
  * _could_ make the iterator's output message queue grow; this could
