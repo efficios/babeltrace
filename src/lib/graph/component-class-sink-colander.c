@@ -44,8 +44,7 @@ enum bt_component_class_init_method_status colander_init(
 		struct bt_self_component_sink *self_comp,
 		const struct bt_value *params, void *init_method_data)
 {
-	enum bt_component_class_init_method_status status =
-		BT_FUNC_STATUS_OK;
+	int status = BT_FUNC_STATUS_OK;
 	struct bt_component_class_sink_colander_priv_data *colander_data = NULL;
 	struct bt_component_class_sink_colander_data *user_provided_data =
 		init_method_data;

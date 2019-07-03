@@ -168,7 +168,7 @@ pretty_graph_is_configured(bt_self_component_sink *comp)
 		bt_self_component_sink_borrow_input_port_by_name(comp,
 			in_port_name));
 	if (!pretty->iterator) {
-		status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_MEMORY_ERROR;
+		status = BT_COMPONENT_CLASS_SINK_GRAPH_IS_CONFIGURED_METHOD_STATUS_ERROR;
 	}
 
 	return status;
@@ -211,7 +211,7 @@ bt_component_class_sink_consume_method_status pretty_consume(
 	BT_ASSERT(next_status == BT_MESSAGE_ITERATOR_NEXT_STATUS_OK);
 
 	for (i = 0; i < count; i++) {
-		ret = handle_message(pretty, msgs[i]);
+		ret = (int) handle_message(pretty, msgs[i]);
 		if (ret) {
 			goto end;
 		}
