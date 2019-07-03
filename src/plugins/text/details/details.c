@@ -139,9 +139,11 @@ void destroy_details_comp(struct details_comp *details_comp)
 
 			if (details_tc_meta->tc_destruction_listener_id !=
 					UINT64_C(-1)) {
-				bt_trace_class_remove_destruction_listener(
-					(const void *) key,
-					details_tc_meta->tc_destruction_listener_id);
+				if (bt_trace_class_remove_destruction_listener(
+						(const void *) key,
+						details_tc_meta->tc_destruction_listener_id)) {
+					bt_current_thread_clear_error();
+				}
 			}
 		}
 
@@ -160,9 +162,11 @@ void destroy_details_comp(struct details_comp *details_comp)
 		while (g_hash_table_iter_next(&iter, &key, &value)) {
 			struct details_trace *details_trace = value;
 
-			bt_trace_remove_destruction_listener(
-				(const void *) key,
-				details_trace->trace_destruction_listener_id);
+			if (bt_trace_remove_destruction_listener(
+					(const void *) key,
+					details_trace->trace_destruction_listener_id)) {
+				bt_current_thread_clear_error();
+			}
 		}
 
 		g_hash_table_destroy(details_comp->traces);

@@ -51,6 +51,7 @@ void copy_trace_content(const bt_trace *in_trace, bt_trace *out_trace,
 		if (status != BT_TRACE_SET_NAME_STATUS_OK) {
 			BT_COMP_LOGE("Cannot set trace's name: trace-addr=%p, name=\"%s\"",
 				out_trace, trace_name);
+			bt_current_thread_clear_error();
 			goto end;
 		}
 	}
@@ -190,6 +191,8 @@ void copy_field_content(const bt_field *in_field, bt_field *out_field,
 			BT_COMP_LOGE("Cannot set string field's value: "
 				"str-field-addr=%p, str=%s" PRId64,
 				out_field, str);
+			bt_current_thread_clear_error();
+
 		}
 		break;
 	}
@@ -249,6 +252,7 @@ void copy_field_content(const bt_field *in_field, bt_field *out_field,
 				BT_COMP_LOGE("Cannot set dynamic array field's "
 					"length field: field-addr=%p, "
 					"length=%" PRIu64, out_field, array_len);
+				bt_current_thread_clear_error();
 			}
 		}
 
@@ -281,6 +285,7 @@ void copy_field_content(const bt_field *in_field, bt_field *out_field,
 			BT_COMP_LOGE("Cannot select variant field's option field: "
 				"var-field-addr=%p, opt-index=%" PRId64,
 				out_field, in_selected_option_idx);
+			bt_current_thread_clear_error();
 		}
 
 		in_option_field = bt_field_variant_borrow_selected_option_field_const(in_field);

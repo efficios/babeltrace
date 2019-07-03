@@ -588,6 +588,7 @@ void debug_info_destroy(struct debug_info *debug_info)
 			debug_info->destruction_listener_id);
 	if (remove_listener_status != BT_TRACE_REMOVE_LISTENER_STATUS_OK) {
 		BT_COMP_LOGE("Trace destruction listener removal failed.");
+		bt_current_thread_clear_error();
 	}
 
 	g_free(debug_info);
@@ -890,13 +891,17 @@ void handle_event_statedump(struct debug_info_msg_iter *debug_it,
 
 	debug_info = g_hash_table_lookup(debug_it->debug_info_map, trace);
 	if (!debug_info) {
+		bt_trace_add_listener_status add_listener_status;
+
 		debug_info = debug_info_create(debug_it->debug_info_component,
 				trace, &debug_it->fd_cache);
 		g_hash_table_insert(debug_it->debug_info_map, (gpointer) trace,
 				debug_info);
-		bt_trace_add_destruction_listener(trace,
-				trace_debug_info_remove_func, debug_it,
+		add_listener_status = bt_trace_add_destruction_listener(
+				trace, trace_debug_info_remove_func,
+				debug_it,
 				&debug_info->destruction_listener_id);
+		BT_ASSERT(add_listener_status == BT_TRACE_ADD_LISTENER_STATUS_OK);
 	}
 
 	q_event_name = g_quark_try_string(event_name);
@@ -968,6 +973,7 @@ void fill_debug_info_bin_field(struct debug_info_source *dbg_info_src,
 			BT_COMP_LOGE("Cannot set path component of \"bin\" "
 				"curr_field field's value: str-fc-addr=%p",
 				curr_field);
+			bt_current_thread_clear_error();
 		}
 
 		append_status = bt_field_string_append(curr_field,
@@ -976,12 +982,14 @@ void fill_debug_info_bin_field(struct debug_info_source *dbg_info_src,
 			BT_COMP_LOGE("Cannot set bin location component of \"bin\" "
 				"curr_field field's value: str-fc-addr=%p",
 				curr_field);
+			bt_current_thread_clear_error();
 		}
 	} else {
 		set_status = bt_field_string_set_value(curr_field, "");
 		if (set_status != BT_FIELD_STRING_SET_VALUE_STATUS_OK) {
 			BT_COMP_LOGE("Cannot set \"bin\" curr_field field's value: "
 				"str-fc-addr=%p", curr_field);
+			bt_current_thread_clear_error();
 		}
 	}
 }
@@ -1004,6 +1012,7 @@ void fill_debug_info_func_field(struct debug_info_source *dbg_info_src,
 	if (status != BT_FIELD_STRING_SET_VALUE_STATUS_OK) {
 		BT_COMP_LOGE("Cannot set \"func\" curr_field field's value: "
 			"str-fc-addr=%p", curr_field);
+		bt_current_thread_clear_error();
 	}
 }
 
@@ -1031,6 +1040,7 @@ void fill_debug_info_src_field(struct debug_info_source *dbg_info_src,
 			BT_COMP_LOGE("Cannot set path component of \"src\" "
 				"curr_field field's value: str-fc-addr=%p",
 				curr_field);
+			bt_current_thread_clear_error();
 		}
 
 		append_status = bt_field_string_append(curr_field, ":");
@@ -1038,6 +1048,7 @@ void fill_debug_info_src_field(struct debug_info_source *dbg_info_src,
 			BT_COMP_LOGE("Cannot set colon component of \"src\" "
 				"curr_field field's value: str-fc-addr=%p",
 				curr_field);
+			bt_current_thread_clear_error();
 		}
 
 		append_status = bt_field_string_append(curr_field,
@@ -1046,12 +1057,14 @@ void fill_debug_info_src_field(struct debug_info_source *dbg_info_src,
 			BT_COMP_LOGE("Cannot set line number component of \"src\" "
 				"curr_field field's value: str-fc-addr=%p",
 				curr_field);
+			bt_current_thread_clear_error();
 		}
 	} else {
 		set_status = bt_field_string_set_value(curr_field, "");
 		if (set_status != BT_FIELD_STRING_SET_VALUE_STATUS_OK) {
 			BT_COMP_LOGE("Cannot set \"src\" curr_field field's value: "
 				"str-fc-addr=%p", curr_field);
+			bt_current_thread_clear_error();
 		}
 	}
 }
@@ -1084,18 +1097,21 @@ void fill_debug_info_field_empty(bt_field *debug_info_field,
 	if (status != BT_FIELD_STRING_SET_VALUE_STATUS_OK) {
 		BT_COMP_LOGE("Cannot set \"bin\" bin_field field's value: "
 			"str-fc-addr=%p", bin_field);
+		bt_current_thread_clear_error();
 	}
 
 	status = bt_field_string_set_value(func_field, "");
 	if (status != BT_FIELD_STRING_SET_VALUE_STATUS_OK) {
 		BT_COMP_LOGE("Cannot set \"func\" func_field field's value: "
 			"str-fc-addr=%p", func_field);
+		bt_current_thread_clear_error();
 	}
 
 	status = bt_field_string_set_value(src_field, "");
 	if (status != BT_FIELD_STRING_SET_VALUE_STATUS_OK) {
 		BT_COMP_LOGE("Cannot set \"src\" src_field field's value: "
 			"str-fc-addr=%p", src_field);
+		bt_current_thread_clear_error();
 	}
 }
 static
@@ -1366,11 +1382,13 @@ bt_message *handle_stream_end_message(struct debug_info_msg_iter *debug_it,
 	if (!out_message) {
 		BT_COMP_LOGE("Error creating output stream end message: out-s-addr=%p",
 				out_stream);
+		goto end;
 	}
 
 	/* Remove stream from trace mapping hashtable. */
 	trace_ir_mapping_remove_mapped_stream(debug_it->ir_maps, in_stream);
 
+end:
 	return out_message;
 }
 
@@ -1462,11 +1480,13 @@ bt_message *handle_packet_end_message(struct debug_info_msg_iter *debug_it,
 	if (!out_message) {
 		BT_COMP_LOGE("Error creating output packet end message: "
 			"out-p-addr=%p", out_packet);
+		goto end;
 	}
 
 	/* Remove packet from data mapping hashtable. */
 	trace_ir_mapping_remove_mapped_packet(debug_it->ir_maps, in_packet);
 
+end:
 	return out_message;
 }
 

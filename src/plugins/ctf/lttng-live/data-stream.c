@@ -111,11 +111,14 @@ bt_stream *medop_borrow_stream(bt_stream_class *stream_class,
 				"%" PRId64 ", stream ID %" PRIu64 ")",
 				lttng_live_stream->name->str,
 				stream_class_id, stream_id);
+			goto end;
 		}
+
 		bt_stream_set_name(lttng_live_stream->stream,
 			lttng_live_stream->name->str);
 	}
 
+end:
 	return lttng_live_stream->stream;
 }
 
