@@ -194,16 +194,16 @@ run_python_bt2() {
 	local lib_search_var
 	local lib_search_path
 
+	local python_provider_path="${BT_TESTS_BUILDDIR}/../src/python-plugin-provider/.libs"
+	local main_lib_path="${BT_TESTS_BUILDDIR}/../src/lib/.libs"
+
 	# Set the library search path so the python interpreter can load libbabeltrace2
 	if [ "x${MSYSTEM:-}" != "x" ]; then
 		lib_search_var="PATH"
-		lib_search_path="${BT_TESTS_BUILDDIR}/../src/lib/.libs:${PATH:-}"
+		lib_search_path="${python_provider_path}:${main_lib_path}:${PATH:-}"
 	else
 		lib_search_var="LD_LIBRARY_PATH"
-		lib_search_path="${BT_TESTS_BUILDDIR}/../src/lib/.libs:${LD_LIBRARY_PATH:-}"
-	fi
-	if [ "x${test_lib_search_path:-}" != "x" ]; then
-		lib_search_path+=":${test_lib_search_path}"
+		lib_search_path="${python_provider_path}:${main_lib_path}:${LD_LIBRARY_PATH:-}"
 	fi
 
 	env \
@@ -220,11 +220,9 @@ run_python_bt2() {
 #
 # $1 : The directory containing the python test scripts
 # $2 : The pattern to match python test script names (optional)
-# $3 : Additionnal library search path (optional)
 run_python_bt2_test() {
 	local test_dir="$1"
 	local test_pattern="${2:-}" # optional
-	local test_lib_search_path="${3:-}" # optional
 
 	local ret
 	local test_runner_args=()

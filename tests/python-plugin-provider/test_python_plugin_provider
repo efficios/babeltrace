@@ -30,5 +30,4 @@ export PYTHON_PLUGIN_PROVIDER_TEST_PLUGIN_PATH="${BT_TESTS_SRCDIR}/python-plugin
 
 run_python_bt2_test \
 	"${BT_TESTS_SRCDIR}/python-plugin-provider" \
-	test_python_plugin_provider.py \
-	"${BT_TESTS_BUILDDIR}/../src/python-plugin-provider/.libs"
+	test_python_plugin_provider.py
