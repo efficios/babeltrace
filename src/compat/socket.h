@@ -33,7 +33,7 @@
 #define BT_SOCKET SOCKET
 
 static inline
-int bt_socket_init(void)
+int bt_socket_init(int log_level)
 {
 	WORD verreq;
 	WSADATA wsa;
@@ -44,15 +44,17 @@ int bt_socket_init(void)
 
 	ret = WSAStartup(verreq, &wsa);
 	if (ret != 0) {
-#ifdef BT_LOGE
-		BT_LOGE("Winsock init failed with error: %d", ret);
+#ifdef BT_LOG_WRITE_CUR_LVL
+		BT_LOG_WRITE_CUR_LVL(BT_LOG_ERROR, log_level, BT_LOG_TAG,
+				"Winsock init failed with error: %d", ret);
 #endif
 		goto end;
 	}
 
 	if (LOBYTE(wsa.wVersion) != 2 || HIBYTE(wsa.wVersion) != 2) {
-#ifdef BT_LOGE_STR
-		BT_LOGE_STR("Could not init winsock 2.2 support");
+#ifdef BT_LOG_WRITE_CUR_LVL
+		BT_LOG_WRITE_CUR_LVL(BT_LOG_ERROR, log_level, BT_LOG_TAG,
+				"Could not init winsock 2.2 support");
 #endif
 		WSACleanup();
 		ret = -1;
@@ -282,7 +284,7 @@ const char *bt_socket_errormsg(void)
 #define BT_SOCKET int
 
 static inline
-int bt_socket_init(void)
+int bt_socket_init(int log_level)
 {
 	return 0;
 }

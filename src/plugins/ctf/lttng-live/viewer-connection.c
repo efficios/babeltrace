@@ -1479,7 +1479,7 @@ struct live_viewer_connection *live_viewer_connection_create(
 
 	viewer_connection = g_new0(struct live_viewer_connection, 1);
 
-	if (bt_socket_init() != 0) {
+	if (bt_socket_init(lttng_live_msg_iter->log_level) != 0) {
 		goto error;
 	}
 

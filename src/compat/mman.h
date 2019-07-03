@@ -46,7 +46,7 @@
  * mappings to exceed the file's size (even within a page).
  */
 void *bt_mmap(void *addr, size_t length, int prot, int flags, int fd,
-	off_t offset);
+	off_t offset, int log_level);
 
 int bt_munmap(void *addr, size_t length);
 
@@ -56,7 +56,7 @@ int bt_munmap(void *addr, size_t length);
 
 static inline
 void *bt_mmap(void *addr, size_t length, int prot, int flags, int fd,
-	off_t offset)
+	off_t offset, int log_level)
 {
 	return (void *) mmap(addr, length, prot, flags, fd, offset);
 }
