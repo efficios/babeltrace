@@ -93,7 +93,7 @@ struct mmap_align *mmap_align(size_t length, int prot,
 	 */
 	mma->page_aligned_length = ALIGN(length + offset - page_aligned_offset, page_size);
 	mma->page_aligned_addr = bt_mmap(NULL, mma->page_aligned_length,
-		prot, flags, fd, page_aligned_offset);
+		prot, flags, fd, page_aligned_offset, log_level);
 	if (mma->page_aligned_addr == MAP_FAILED) {
 		free(mma);
 		return MAP_FAILED;

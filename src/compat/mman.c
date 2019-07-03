@@ -70,7 +70,7 @@ GHashTable *mmap_mappings = NULL;
 static pthread_mutex_t mmap_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 static
-struct mmap_mapping *mapping_create(void)
+struct mmap_mapping *mapping_create(int log_level)
 {
 	struct mmap_mapping *mapping;
 
@@ -78,6 +78,7 @@ struct mmap_mapping *mapping_create(void)
 	if (mapping != NULL) {
 		mapping->file_handle = NULL;
 		mapping->map_handle = NULL;
+		mapping->log_level = log_level;
 	}
 
 	return mapping;
@@ -119,7 +120,7 @@ static
 void mmap_lock(int log_level)
 {
 	if (pthread_mutex_lock(&mmap_mutex)) {
-		BT_LOGF_STR("Failed to acquire mmap_mutex.");
+		BT_LOG_WRITE_CUR_LVL(BT_LOG_FATAL, log_level, BT_LOG_TAG, "Failed to acquire mmap_mutex.");
 		abort();
 	}
 }
@@ -128,7 +129,7 @@ static
 void mmap_unlock(int log_level)
 {
 	if (pthread_mutex_unlock(&mmap_mutex)) {
-		BT_LOGF_STR("Failed to release mmap_mutex.");
+		BT_LOG_WRITE_CUR_LVL(BT_LOG_FATAL, log_level, BT_LOG_TAG, "Failed to release mmap_mutex.");
 		abort();
 	}
 }
