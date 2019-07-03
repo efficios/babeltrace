@@ -124,7 +124,7 @@ bt_diff_cli() {
 	# Run the CLI to get a detailed file. Strip any \r present due to
 	# Windows (\n -> \r\n). "diff --string-trailing-cr" is not used since it
 	# is not present on Solaris.
-	echo "$args" | xargs "$BT_TESTS_BT2_BIN" 2>/dev/null | tr -d "\r" > "$temp_output_file"
+	echo "$args" | xargs "$BT_TESTS_BT2_BIN" | tr -d "\r" > "$temp_output_file"
 
 	# Compare output with expected output
 	if ! diff -u "$temp_output_file" "$expected_file" 2>/dev/null >"$temp_diff"; then
