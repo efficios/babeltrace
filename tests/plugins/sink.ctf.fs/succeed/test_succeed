@@ -59,9 +59,9 @@ test_ctf_gen_single() {
 	converted_test_name="Converted trace '$name' gives the expected output"
 
 	if [ $ret -eq 0 ]; then
-		bt_diff_details_ctf_single "$temp_out_trace_dir" \
-			"$expect_dir/trace-$name.expect" \
-			'-p with-uuid=no,with-trace-name=no,with-stream-name=no'
+		bt_diff_details_ctf_single "$expect_dir/trace-$name.expect" \
+			"$temp_out_trace_dir" \
+			"-p" "with-uuid=no,with-trace-name=no,with-stream-name=no"
 		ok $? "$converted_test_name"
 	else
 		fail "$converted_test_name"

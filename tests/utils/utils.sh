@@ -103,17 +103,17 @@ BT_DEBUG_INFO_PATH="${BT_TESTS_DATADIR}/debug-info"
 
 ### Diff Functions ###
 
-# Checks the difference between:
-#
-# 1. What the CLI outputs when given the arguments "$1" (passed to
-#    `xargs`, so they can include quoted arguments).
-# 2. The file with path "$2".
+# Checks the difference between the content of the file with path "$1"
+# and the output of the CLI when called with the rest of arguments
+# to this function.
 #
 # Returns 0 if there's no difference, and 1 if there is, also printing
 # said difference to the standard error.
 bt_diff_cli() {
-	local args="$1"
-	local expected_file="$2"
+	local expected_file="$1"
+	shift 1
+	local args=("$@")
+
 	local temp_output_file
 	local temp_diff
 	local ret=0
@@ -124,11 +124,11 @@ bt_diff_cli() {
 	# Run the CLI to get a detailed file. Strip any \r present due to
 	# Windows (\n -> \r\n). "diff --string-trailing-cr" is not used since it
 	# is not present on Solaris.
-	echo "$args" | xargs "$BT_TESTS_BT2_BIN" | tr -d "\r" > "$temp_output_file"
+	"$BT_TESTS_BT2_BIN" "${args[@]}" | tr -d "\r" > "$temp_output_file"
 
 	# Compare output with expected output
 	if ! diff -u "$temp_output_file" "$expected_file" 2>/dev/null >"$temp_diff"; then
-		echo "ERROR: for '$args': actual and expected outputs differ:" >&2
+		echo "ERROR: for '${args[*]}': actual and expected outputs differ:" >&2
 		cat "$temp_diff" >&2
 		ret=1
 	fi
@@ -138,25 +138,21 @@ bt_diff_cli() {
 	return $ret
 }
 
-# Checks the difference between:
-#
-# 1. What the CLI outputs when given the arguments:
-#
-#        "$1" -c sink.text.details $3
-#
-# 2. The file with path "$2".
-#
-# Parameter 3 is optional.
+# Checks the difference between the content of the file with path "$1"
+# and the output of the CLI when called on the directory path "$2" with
+# the arguments '-c sink.text.details' and the rest of the arguments to
+# this function.
 #
 # Returns 0 if there's no difference, and 1 if there is, also printing
 # said difference to the standard error.
 bt_diff_details_ctf_single() {
-	local trace_dir="$1"
-	local expected_file="$2"
-	local extra_details_args="${3:-}"
+	local expected_file="$1"
+	local trace_dir="$2"
+	shift 2
+	local extra_details_args=("$@")
 
 	# Compare using the CLI with `sink.text.details`
-	bt_diff_cli "\"$trace_dir\" -c sink.text.details $extra_details_args" "$expected_file"
+	bt_diff_cli "$expected_file" "$trace_dir" "-c" "sink.text.details" "${extra_details_args[@]}"
 }
 
 # Calls bt_diff_details_ctf_single(), except that "$1" is the path to a
@@ -166,7 +162,8 @@ bt_diff_details_ctf_single() {
 bt_diff_details_ctf_gen_single() {
 	local ctf_gen_prog_path="$1"
 	local expected_file="$2"
-	local extra_details_args="${3:-}"
+	shift 2
+	local extra_details_args=("$@")
 
 	local temp_trace_dir
 	local ret
@@ -181,7 +178,7 @@ bt_diff_details_ctf_gen_single() {
 	fi
 
 	# Compare using the CLI with `sink.text.details`
-	bt_diff_details_ctf_single "$temp_trace_dir" "$expected_file" "$extra_details_args"
+	bt_diff_details_ctf_single "$expected_file" "$temp_trace_dir" "${extra_details_args[@]}"
 	ret=$?
 	rm -rf "$temp_trace_dir"
 	return $ret

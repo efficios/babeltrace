@@ -58,9 +58,7 @@ function run_test
 
 	# with_stream_msgs_cs is set to "true" or "false" by the tests.
 
-	cli_args="-c src.test-trimmer.TheSourceOfAllEvil -p 'with-stream-msgs-cs=$with_stream_msgs_cs' -c sink.text.details '--params=compact=true,with-metadata=false' '--plugin-path=$data_dir' $begin $end"
-
-	bt_diff_cli "$cli_args" "$temp_expected"
+	bt_diff_cli "$temp_expected" -c src.test-trimmer.TheSourceOfAllEvil -p with-stream-msgs-cs=$with_stream_msgs_cs -c sink.text.details --params=compact=true,with-metadata=false --plugin-path=$data_dir $begin $end
 	ok $? "$test_name"
 }
 

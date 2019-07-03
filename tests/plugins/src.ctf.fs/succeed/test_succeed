@@ -38,7 +38,7 @@ this_dir_build="$BT_TESTS_BUILDDIR/$this_dir_relative"
 succeed_trace_dir="$BT_CTF_TRACES_PATH/succeed"
 expect_dir="$BT_TESTS_DATADIR/$this_dir_relative"
 
-test_ctf_common_details_args="-p with-trace-name=no,with-stream-name=no"
+test_ctf_common_details_args=("-p" "with-trace-name=no,with-stream-name=no")
 
 test_ctf_gen_single() {
 	name="$1"
@@ -46,15 +46,15 @@ test_ctf_gen_single() {
 	diag "Generating trace '$name'"
 	bt_diff_details_ctf_gen_single "$this_dir_build/gen-trace-$name" \
 		"$expect_dir/trace-$name.expect" \
-		"$test_ctf_common_details_args -p with-uuid=no"
+		"${test_ctf_common_details_args[@]}" "-p" "with-uuid=no"
 	ok $? "Generated trace '$name' gives the expected output"
 }
 
 test_ctf_single() {
 	name="$1"
 
-	bt_diff_details_ctf_single "$succeed_trace_dir/$name" \
-		"$expect_dir/trace-$name.expect" "$test_ctf_common_details_args"
+	bt_diff_details_ctf_single "$expect_dir/trace-$name.expect" \
+		"$succeed_trace_dir/$name" "${test_ctf_common_details_args[@]}"
 	ok $? "Trace '$name' gives the expected output"
 }
 
