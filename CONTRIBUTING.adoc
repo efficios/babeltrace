@@ -1474,3 +1474,33 @@ which originate from the Python interpreter anyway).
 `LIBBABELTRACE2_NO_DLCLOSE=1` makes libbabeltrace2 not close the shared
 libraries (plugins) which it loads. You need this to see the appropriate
 backtrace when Valgrind shows errors.
+
+== Testing
+
+=== Python Bindings
+
+To run all the `bt2` Python package tests use:
+
+----
+$ BT_TESTS_BUILDDIR=/path/to/build/babeltrace/tests \
+	./tests/bindings/python/bt2/test_python_bt2
+----
+
+To run all the tests in a test module (e.g. `test_event.py`) use:
+
+----
+$ BT_TESTS_BUILDDIR=/path/to/build/babeltrace/tests \
+	./tests/utils/run_python_bt2 python3 ./tests/utils/python/testrunner.py \
+	-t test_event \
+	./tests/bindings/python/bt2/
+----
+
+To run a specific test (e.g. `EventTestCase.test_clock_value`) in a test module
+(e.g. `test_event.py`) use:
+
+----
+$ BT_TESTS_BUILDDIR=/path/to/build/babeltrace/tests \
+	./tests/utils/run_python_bt2 python3 ./tests/utils/python/testrunner.py \
+	-t test_event.EventTestCase.test_clock_value \
+	./tests/bindings/python/bt2/
+----
