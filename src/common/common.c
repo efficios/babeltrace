@@ -1671,3 +1671,123 @@ void bt_common_sep_digits(char *str, unsigned int digits_per_group, char sep)
 		i++;
 	}
 }
+
+BT_HIDDEN
+GString *bt_common_fold(const char *str, unsigned int total_length,
+		unsigned int indent)
+{
+	const unsigned int content_length = total_length - indent;
+	GString *folded = g_string_new(NULL);
+	GString *tmp_line = g_string_new(NULL);
+	gchar **lines = NULL;
+	gchar **line_words = NULL;
+	gchar * const *line;
+	unsigned int i;
+
+	BT_ASSERT(str);
+	BT_ASSERT(indent < total_length);
+	BT_ASSERT(tmp_line);
+	BT_ASSERT(folded);
+
+	if (strlen(str) == 0) {
+		/* Empty input string: empty output string */
+		goto end;
+	}
+
+	/* Split lines */
+	lines = g_strsplit(str, "\n", 0);
+	BT_ASSERT(lines);
+
+	/* For each source line */
+	for (line = lines; *line; line++) {
+		gchar * const *word;
+
+		/*
+		 * Append empty line without indenting if source line is
+		 * empty.
+		 */
+		if (strlen(*line) == 0) {
+			g_string_append_c(folded, '\n');
+			continue;
+		}
+
+		/* Split words */
+		line_words = g_strsplit(*line, " ", 0);
+		BT_ASSERT(line_words);
+
+		/*
+		 * Indent for first line (we know there's at least one
+		 * word at this point).
+		 */
+		for (i = 0; i < indent; i++) {
+			g_string_append_c(folded, ' ');
+		}
+
+		/* Append words, folding when necessary */
+		g_string_assign(tmp_line, "");
+
+		for (word = line_words; *word; word++) {
+			/*
+			 * `tmp_line->len > 0` is in the condition so
+			 * that words that are larger than
+			 * `content_length` are at least written on
+			 * their own line.
+			 *
+			 * `tmp_line->len - 1` because the temporary
+			 * line always contains a trailing space which
+			 * won't be part of the line if we fold.
+			 */
+			if (tmp_line->len > 0 &&
+					tmp_line->len - 1 + strlen(*word) >= content_length) {
+				/* Fold (without trailing space) */
+				g_string_append_len(folded,
+					tmp_line->str, tmp_line->len - 1);
+				g_string_append_c(folded, '\n');
+
+				/* Indent new line */
+				for (i = 0; i < indent; i++) {
+					g_string_append_c(folded, ' ');
+				}
+
+				g_string_assign(tmp_line, "");
+			}
+
+			/* Append current word and space to temporary line */
+			g_string_append(tmp_line, *word);
+			g_string_append_c(tmp_line, ' ');
+		}
+
+		/* Append last line if any, without trailing space */
+		if (tmp_line->len > 0) {
+			g_string_append_len(folded, tmp_line->str,
+				tmp_line->len - 1);
+		}
+
+		/* Append source newline */
+		g_string_append_c(folded, '\n');
+
+		/* Free array of this line's words */
+		g_strfreev(line_words);
+		line_words = NULL;
+	}
+
+	/* Remove trailing newline if any */
+	if (folded->str[folded->len - 1] == '\n') {
+		g_string_truncate(folded, folded->len - 1);
+	}
+
+end:
+	if (lines) {
+		g_strfreev(lines);
+	}
+
+	if (line_words) {
+		g_strfreev(line_words);
+	}
+
+	if (tmp_line) {
+		g_string_free(tmp_line, TRUE);
+	}
+
+	return folded;
+}

@@ -332,6 +332,23 @@ BT_HIDDEN
 void bt_common_sep_digits(char *str, unsigned int digits_per_group, char sep);
 
 /*
+ * This is similar to what the command `fold --spaces` does: it wraps
+ * the input lines of `str`, breaking at spaces, and indenting each line
+ * with `indent` spaces so that each line fits the total length
+ * `total_length`.
+ *
+ * If an original line in `str` contains a word which is >= the content
+ * length (`total_length - indent`), then the corresponding folded line
+ * is also larger than the content length. In other words, breaking at
+ * spaces is a best effort, but it might not be possible.
+ *
+ * The returned string, on success, is owned by the caller.
+ */
+BT_HIDDEN
+GString *bt_common_fold(const char *str, unsigned int total_length,
+		unsigned int indent);
+
+/*
  * Wraps read() function to handle EINTR and partial reads.
  * On success, it returns `count` received as parameter. On error, it returns a
  * value smaller than the requested `count`.
