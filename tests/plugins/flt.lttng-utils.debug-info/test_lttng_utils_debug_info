@@ -28,4 +28,5 @@ source "$UTILSSH"
 
 export BT_DEBUG_INFO_PATH
 
-run_python_bt2_test "${BT_TESTS_SRCDIR}/plugins/flt.lttng-utils.debug-info" "test_lttng_utils_debug_info.py"
+run_python_bt2_test "${BT_TESTS_SRCDIR}/plugins/flt.lttng-utils.debug-info" \
+	"test_lttng_utils_debug_info.py"
