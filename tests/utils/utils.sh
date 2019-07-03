@@ -45,11 +45,17 @@ fi
 # Allow overriding the babeltrace2 executables
 if [ "x${BT_TESTS_BT2_BIN:-}" = "x" ]; then
 	BT_TESTS_BT2_BIN="$BT_TESTS_BUILDDIR/../src/cli/babeltrace2"
+	if [ "x${MSYSTEM:-}" != "x" ]; then
+		BT_TESTS_BT2_BIN="${BT_TESTS_BT2_BIN}.exe"
+	fi
 fi
 export BT_TESTS_BT2_BIN
 
 if [ "x${BT_TESTS_BT2LOG_BIN:-}" = "x" ]; then
 	BT_TESTS_BT2LOG_BIN="$BT_TESTS_BUILDDIR/../src/cli/babeltrace2-log"
+	if [ "x${MSYSTEM:-}" != "x" ]; then
+		BT_TESTS_BT2LOG_BIN="${BT_TESTS_BT2LOG_BIN}.exe"
+	fi
 fi
 export BT_TESTS_BT2LOG_BIN
 
