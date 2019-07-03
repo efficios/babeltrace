@@ -814,7 +814,7 @@ state_set_trimmer_iterator_bounds(
 		struct trimmer_iterator *trimmer_it)
 {
 	bt_message_iterator_next_status upstream_iter_status =
-		BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_OK;
+		BT_MESSAGE_ITERATOR_NEXT_STATUS_OK;
 	struct trimmer_comp *trimmer_comp = trimmer_it->trimmer_comp;
 	bt_message_array_const msgs;
 	uint64_t count = 0;
@@ -886,8 +886,7 @@ found:
 
 error:
 	put_messages(msgs, count);
-	upstream_iter_status =
-		BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_ERROR;
+	upstream_iter_status = BT_MESSAGE_ITERATOR_NEXT_STATUS_ERROR;
 
 end:
 	return (int) upstream_iter_status;

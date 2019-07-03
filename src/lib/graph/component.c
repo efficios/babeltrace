@@ -491,7 +491,7 @@ bt_component_port_connected(
 	typedef enum bt_component_class_port_connected_method_status (*method_t)(
 		void *, void *, const void *);
 
-	enum bt_self_component_add_port_status status =
+	enum bt_component_class_port_connected_method_status status =
 		BT_FUNC_STATUS_OK;
 	method_t method = NULL;
 

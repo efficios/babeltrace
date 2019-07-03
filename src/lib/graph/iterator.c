@@ -1221,7 +1221,7 @@ enum bt_message_iterator_seek_beginning_status
 bt_self_component_port_input_message_iterator_seek_beginning(
 		struct bt_self_component_port_input_message_iterator *iterator)
 {
-	enum bt_message_iterator_seek_beginning_status status;
+	int status;
 
 	BT_ASSERT_PRE_NON_NULL(iterator, "Message iterator");
 	BT_ASSERT_PRE_ITER_HAS_STATE_TO_SEEK(iterator);

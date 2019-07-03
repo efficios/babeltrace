@@ -2080,7 +2080,7 @@ static
 int cmd_run_ctx_init(struct cmd_run_ctx *ctx, struct bt_config *cfg)
 {
 	int ret = 0;
-	bt_graph_add_component_status add_comp_status;
+	bt_graph_add_listener_status add_listener_status;
 
 	ctx->cfg = cfg;
 	ctx->connect_ports = false;
@@ -2117,18 +2117,18 @@ int cmd_run_ctx_init(struct cmd_run_ctx *ctx, struct bt_config *cfg)
 	}
 
 	the_graph = ctx->graph;
-	add_comp_status = bt_graph_add_source_component_output_port_added_listener(
+	add_listener_status = bt_graph_add_source_component_output_port_added_listener(
 		ctx->graph, graph_source_output_port_added_listener, NULL, ctx,
 		NULL);
-	if (add_comp_status != BT_GRAPH_ADD_COMPONENT_STATUS_OK) {
+	if (add_listener_status != BT_GRAPH_ADD_LISTENER_STATUS_OK) {
 		BT_LOGE_STR("Cannot add \"port added\" listener to graph.");
 		goto error;
 	}
 
-	add_comp_status = bt_graph_add_filter_component_output_port_added_listener(
+	add_listener_status = bt_graph_add_filter_component_output_port_added_listener(
 		ctx->graph, graph_filter_output_port_added_listener, NULL, ctx,
 		NULL);
-	if (add_comp_status != BT_GRAPH_ADD_COMPONENT_STATUS_OK) {
+	if (add_listener_status != BT_GRAPH_ADD_LISTENER_STATUS_OK) {
 		BT_LOGE_STR("Cannot add \"port added\" listener to graph.");
 		goto error;
 	}

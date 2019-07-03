@@ -260,7 +260,7 @@ bt_component_class_message_iterator_init_method_status ctf_fs_iterator_init(
 	self_comp = port_data->ctf_fs->self_comp;
 	msg_iter_data = g_new0(struct ctf_fs_msg_iter_data, 1);
 	if (!msg_iter_data) {
-		ret = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_MEMORY_ERROR;
+		ret = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_INIT_METHOD_STATUS_MEMORY_ERROR;
 		goto error;
 	}
 
