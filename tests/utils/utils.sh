@@ -228,7 +228,7 @@ run_python_bt2() {
 # $2 : The pattern to match python test script names (optional)
 run_python_bt2_test() {
 	local test_dir="$1"
-	local test_pattern="${2:-}" # optional
+	local test_pattern="${2:-'*'}" # optional, if none default to "*"
 
 	local ret
 	local test_runner_args=()
@@ -247,7 +247,9 @@ run_python_bt2_test() {
 	run_python_bt2 \
 		"${python_exec}" \
 		"${BT_TESTS_SRCDIR}/utils/python/testrunner.py" \
-		"${test_runner_args[@]}"
+		--pattern "$test_pattern" \
+		"$test_dir" \
+
 	ret=$?
 
 	if test "x${BT_TESTS_COVERAGE_REPORT:-}" = "x1"; then
