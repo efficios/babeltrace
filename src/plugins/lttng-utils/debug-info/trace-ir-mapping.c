@@ -484,6 +484,8 @@ struct trace_ir_data_maps *trace_ir_data_maps_create(struct trace_ir_maps *ir_ma
 {
 	struct trace_ir_data_maps *d_maps =
 		g_new0(struct trace_ir_data_maps, 1);
+	bt_trace_add_listener_status add_listener_status;
+
 	if (!d_maps) {
 		BT_COMP_LOGE_STR("Error allocating trace_ir_maps");
 		goto error;
@@ -499,8 +501,11 @@ struct trace_ir_data_maps *trace_ir_data_maps_create(struct trace_ir_maps *ir_ma
 	d_maps->packet_map = g_hash_table_new_full(g_direct_hash,
 			g_direct_equal, NULL,(GDestroyNotify) bt_packet_put_ref);
 
-	bt_trace_add_destruction_listener(in_trace, trace_ir_data_maps_remove_func,
-			ir_maps, &d_maps->destruction_listener_id);
+	add_listener_status = bt_trace_add_destruction_listener(
+		in_trace, trace_ir_data_maps_remove_func,
+		ir_maps, &d_maps->destruction_listener_id);
+	BT_ASSERT(add_listener_status == BT_TRACE_ADD_LISTENER_STATUS_OK);
+
 error:
 	return d_maps;
 }
@@ -511,6 +516,8 @@ struct trace_ir_metadata_maps *trace_ir_metadata_maps_create(
 {
 	struct trace_ir_metadata_maps *md_maps =
 		g_new0(struct trace_ir_metadata_maps, 1);
+	bt_trace_class_add_listener_status add_listener_status;
+
 	if (!md_maps) {
 		BT_COMP_LOGE_STR("Error allocating trace_ir_maps");
 		goto error;
@@ -541,9 +548,13 @@ struct trace_ir_metadata_maps *trace_ir_metadata_maps_create(
 	md_maps->clock_class_map = g_hash_table_new_full(g_direct_hash,
 			g_direct_equal, NULL, (GDestroyNotify) bt_clock_class_put_ref);
 
-	bt_trace_class_add_destruction_listener(in_trace_class,
+	add_listener_status = bt_trace_class_add_destruction_listener(
+			in_trace_class,
 			trace_ir_metadata_maps_remove_func,
 			ir_maps, &md_maps->destruction_listener_id);
+	BT_ASSERT(add_listener_status ==
+		BT_TRACE_CLASS_ADD_LISTENER_STATUS_OK);
+
 error:
 	return md_maps;
 }
@@ -575,6 +586,7 @@ void trace_ir_data_maps_destroy(struct trace_ir_data_maps *maps)
 		BT_COMP_LOG_CUR_LVL(BT_LOG_DEBUG, maps->log_level,
 			maps->self_comp,
 			"Trace destruction listener removal failed.");
+		bt_current_thread_clear_error();
 	}
 
 	g_free(maps);
@@ -620,6 +632,7 @@ void trace_ir_metadata_maps_destroy(struct trace_ir_metadata_maps *maps)
 		BT_COMP_LOG_CUR_LVL(BT_LOG_DEBUG, maps->log_level,
 			maps->self_comp,
 			"Trace destruction listener removal failed.");
+		bt_current_thread_clear_error();
 	}
 
 	g_free(maps);

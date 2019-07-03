@@ -56,7 +56,13 @@ int copy_trace_class_content(const bt_trace_class *in_trace_class,
 
 	in_trace_class_name = bt_trace_class_get_name(in_trace_class);
 	if (in_trace_class_name) {
-		bt_trace_class_set_name(out_trace_class, in_trace_class_name);
+		bt_trace_class_set_name_status status;
+
+		status = bt_trace_class_set_name(out_trace_class,
+			in_trace_class_name);
+		if (status != BT_TRACE_CLASS_SET_NAME_STATUS_OK) {
+			bt_current_thread_clear_error();
+		}
 	}
 
 	/*
