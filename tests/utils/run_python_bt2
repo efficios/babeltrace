@@ -22,7 +22,9 @@
 # bt2 Python bindings. For example, one could use it to run a specific Python
 # binding test case with:
 #
-#   $ ./run_python_bt2 python3 -m unittest test_values.MapValueTestCase.test_deepcopy
+#   $ tests/utils/run_python_bt2 python3 ./tests/utils/python/testrunner.py \
+#     -t test_value.MapValueTestCase.test_deepcopy \
+#     ./tests/bindings/python/bt2
 
 if [ "x${BT_TESTS_SRCDIR:-}" != "x" ]; then
 	UTILSSH="$BT_TESTS_SRCDIR/utils/utils.sh"
