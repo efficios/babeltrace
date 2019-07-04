@@ -146,8 +146,8 @@ class GraphTestCase(unittest.TestCase):
                                          sink.input_ports['in'])
         self.assertTrue(src.output_ports['out'].is_connected)
         self.assertTrue(sink.input_ports['in'].is_connected)
-        self.assertEqual(src.output_ports['out'].connection._ptr, conn._ptr)
-        self.assertEqual(sink.input_ports['in'].connection._ptr, conn._ptr)
+        self.assertEqual(src.output_ports['out'].connection.addr, conn.addr)
+        self.assertEqual(sink.input_ports['in'].connection.addr, conn.addr)
 
     def test_connect_ports_invalid_direction(self):
         class MyIter(bt2._UserMessageIterator):
