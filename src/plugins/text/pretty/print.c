@@ -301,6 +301,7 @@ int print_event_header(struct pretty_component *pretty,
 	const bt_stream *stream = NULL;
 	const bt_trace *trace = NULL;
 	const bt_event *event = bt_message_event_borrow_event_const(event_msg);
+	const char *ev_name;
 	int dom_print = 0;
 	bt_property_availability prop_avail;
 
@@ -486,10 +487,19 @@ int print_event_header(struct pretty_component *pretty,
 	if (print_names) {
 		print_name_equal(pretty, "name");
 	}
+	ev_name = bt_event_class_get_name(event_class);
 	if (pretty->use_colors) {
-		g_string_append(pretty->string, COLOR_EVENT_NAME);
+		if (ev_name) {
+			g_string_append(pretty->string, COLOR_EVENT_NAME);
+		} else {
+			g_string_append(pretty->string, COLOR_UNKNOWN);
+		}
 	}
-	g_string_append(pretty->string, bt_event_class_get_name(event_class));
+	if (ev_name) {
+		g_string_append(pretty->string, ev_name);
+	} else {
+		g_string_append(pretty->string, "<unknown>");
+	}
 	if (pretty->use_colors) {
 		g_string_append(pretty->string, COLOR_RST);
 	}
