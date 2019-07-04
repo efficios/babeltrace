@@ -2866,5 +2866,11 @@ int main(int argc, const char **argv)
 end:
 	BT_OBJECT_PUT_REF_AND_RESET(cfg);
 	fini_static_data();
+
+	/*
+	 * Clear current thread's error in case there is one to avoid a
+	 * memory leak.
+	 */
+	bt_current_thread_clear_error();
 	return retcode;
 }
