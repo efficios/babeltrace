@@ -1315,6 +1315,9 @@ int ctf_fs_component_create_ctf_fs_traces_one_root(
 	if (!trace_paths) {
 		BT_COMP_LOGE("No CTF traces recursively found in `%s`.",
 			path_param);
+		(void) BT_CURRENT_THREAD_ERROR_APPEND_CAUSE_FROM_COMPONENT(
+			ctf_fs->self_comp,
+			"No CTF traces recursively found in `%s`.", path_param);
 		goto error;
 	}
 
