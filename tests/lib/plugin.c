@@ -225,6 +225,7 @@ static void test_create_all_from_dir(const char *plugin_dir)
 		BT_FALSE, &plugin_set);
 	ok(status == BT_PLUGIN_FIND_ALL_FROM_DIR_STATUS_ERROR,
 		"bt_plugin_find_all_from_dir() fails with an invalid path");
+	bt_current_thread_clear_error();
 
 	plugin_set = NULL;
 	status = bt_plugin_find_all_from_dir(plugin_dir, BT_FALSE, BT_FALSE,
