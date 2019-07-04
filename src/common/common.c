@@ -46,6 +46,7 @@
 
 #ifndef __MINGW32__
 #include <pwd.h>
+#include <sys/ioctl.h>
 #endif
 
 #define SYSTEM_PLUGIN_PATH	INSTALL_LIBDIR "/babeltrace2/plugins"
@@ -1791,3 +1792,35 @@ end:
 
 	return folded;
 }
+
+#ifdef __MINGW32__
+BT_HIDDEN
+int bt_common_get_term_size(unsigned int *width, unsigned int *height)
+{
+	/* Not supported on Windows yet */
+	return -1;
+}
+#else /* __MINGW32__ */
+BT_HIDDEN
+int bt_common_get_term_size(unsigned int *width, unsigned int *height)
+{
+	int ret = 0;
+	struct winsize winsize;
+
+	if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &winsize) < 0) {
+		ret = -1;
+		goto end;
+	}
+
+	if (width) {
+		*width = (unsigned int) winsize.ws_col;
+	}
+
+	if (height) {
+		*height = (unsigned int) winsize.ws_row;
+	}
+
+end:
+	return ret;
+}
+#endif /* __MINGW32__ */
