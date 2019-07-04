@@ -349,6 +349,13 @@ GString *bt_common_fold(const char *str, unsigned int total_length,
 		unsigned int indent);
 
 /*
+ * Writes the terminal's width to `*width`, its height to `*height`,
+ * and returns 0 on success, or returns -1 on error.
+ */
+BT_HIDDEN
+int bt_common_get_term_size(unsigned int *width, unsigned int *height);
+
+/*
  * Wraps read() function to handle EINTR and partial reads.
  * On success, it returns `count` received as parameter. On error, it returns a
  * value smaller than the requested `count`.
