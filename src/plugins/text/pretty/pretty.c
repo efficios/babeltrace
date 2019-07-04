@@ -178,7 +178,8 @@ BT_HIDDEN
 bt_component_class_sink_consume_method_status pretty_consume(
 		bt_self_component_sink *comp)
 {
-	bt_component_class_sink_consume_method_status ret;
+	bt_component_class_sink_consume_method_status ret =
+		BT_COMPONENT_CLASS_SINK_CONSUME_METHOD_STATUS_OK;
 	bt_message_array_const msgs;
 	bt_self_component_port_input_message_iterator *it;
 	struct pretty_component *pretty = bt_self_component_get_data(
