@@ -699,6 +699,7 @@ void test_src_port_connected_error(void)
 		sink_def_port, &conn);
 	ok(status != BT_GRAPH_CONNECT_PORTS_STATUS_OK,
 		"bt_graph_connect_ports() returns an error");
+	bt_current_thread_clear_error();
 	ok(!conn, "returned connection is still NULL");
 	gsrc = bt_component_source_as_component_const(src);
 	gsink = bt_component_sink_as_component_const(sink);
@@ -764,6 +765,7 @@ void test_sink_port_connected_error(void)
 		sink_def_port, &conn);
 	ok(status != BT_GRAPH_CONNECT_PORTS_STATUS_OK,
 		"bt_graph_connect_ports() returns an error");
+	bt_current_thread_clear_error();
 	ok(!conn, "returned connection is still NULL");
 	gsrc = bt_component_source_as_component_const(src);
 	gsink = bt_component_sink_as_component_const(sink);
