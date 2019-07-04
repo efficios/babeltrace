@@ -400,9 +400,11 @@ void print_plugin_comp_cls_opt(FILE *fh, const char *plugin_name,
 	GString *shell_plugin_name = NULL;
 	GString *shell_comp_cls_name = NULL;
 
-	shell_plugin_name = bt_common_shell_quote(plugin_name, false);
-	if (!shell_plugin_name) {
-		goto end;
+	if (plugin_name) {
+		shell_plugin_name = bt_common_shell_quote(plugin_name, false);
+		if (!shell_plugin_name) {
+			goto end;
+		}
 	}
 
 	shell_comp_cls_name = bt_common_shell_quote(comp_cls_name, false);
@@ -410,14 +412,20 @@ void print_plugin_comp_cls_opt(FILE *fh, const char *plugin_name,
 		goto end;
 	}
 
-	fprintf(fh, "'%s%s%s%s.%s%s%s.%s%s%s'",
+	fprintf(fh, "'%s%s%s%s",
 		bt_common_color_bold(),
 		bt_common_color_fg_cyan(),
 		component_type_str(type),
-		bt_common_color_fg_default(),
-		bt_common_color_fg_blue(),
-		shell_plugin_name->str,
-		bt_common_color_fg_default(),
+		bt_common_color_fg_default());
+
+	if (shell_plugin_name) {
+		fprintf(fh, ".%s%s%s",
+			bt_common_color_fg_blue(),
+			shell_plugin_name->str,
+			bt_common_color_fg_default());
+	}
+
+	fprintf(fh, ".%s%s%s'",
 		bt_common_color_fg_yellow(),
 		shell_comp_cls_name->str,
 		bt_common_color_reset());
@@ -2719,6 +2727,123 @@ void set_auto_log_levels(struct bt_config *cfg)
 	}
 }
 
+static
+void print_error_causes(void)
+{
+	const bt_error *error = bt_current_thread_take_error();
+	int64_t i;
+	GString *folded = NULL;
+	unsigned int columns;
+
+	if (!error || bt_error_get_cause_count(error) == 0) {
+		fprintf(stderr, "%s%sUnknown command-line error.%s\n",
+			bt_common_color_bold(), bt_common_color_fg_red(),
+			bt_common_color_reset());
+		goto end;
+	}
+
+	/* Try to get terminal width to fold the error cause messages */
+	if (bt_common_get_term_size(&columns, NULL) < 0) {
+		/* Width not found: default to 80 */
+		columns = 80;
+	}
+
+	/*
+	 * This helps visually separate the error causes from the last
+	 * logging statement.
+	 */
+	fprintf(stderr, "\n");
+
+	/* Reverse order: deepest (root) cause printed at the end */
+	for (i = bt_error_get_cause_count(error) - 1; i >= 0; i--) {
+		const bt_error_cause *cause =
+			bt_error_borrow_cause_by_index(error, (uint64_t) i);
+		const char *prefix_fmt =
+			i == bt_error_get_cause_count(error) - 1 ?
+				"%s%sERROR%s:    " : "%s%sCAUSED BY%s ";
+
+		/* Print prefix */
+		fprintf(stderr, prefix_fmt,
+			bt_common_color_bold(), bt_common_color_fg_red(),
+			bt_common_color_reset());
+
+		/* Print actor name */
+		fprintf(stderr, "[");
+		switch (bt_error_cause_get_actor_type(cause)) {
+		case BT_ERROR_CAUSE_ACTOR_TYPE_UNKNOWN:
+			fprintf(stderr, "%s%s%s",
+				bt_common_color_bold(),
+				bt_error_cause_get_module_name(cause),
+				bt_common_color_reset());
+			break;
+		case BT_ERROR_CAUSE_ACTOR_TYPE_COMPONENT:
+			fprintf(stderr, "%s%s%s: ",
+				bt_common_color_bold(),
+				bt_error_cause_component_actor_get_component_name(cause),
+				bt_common_color_reset());
+			print_plugin_comp_cls_opt(stderr,
+				bt_error_cause_component_actor_get_plugin_name(cause),
+				bt_error_cause_component_actor_get_component_class_name(cause),
+				bt_error_cause_component_actor_get_component_class_type(cause));
+			break;
+		case BT_ERROR_CAUSE_ACTOR_TYPE_COMPONENT_CLASS:
+			print_plugin_comp_cls_opt(stderr,
+				bt_error_cause_component_class_actor_get_plugin_name(cause),
+				bt_error_cause_component_class_actor_get_component_class_name(cause),
+				bt_error_cause_component_class_actor_get_component_class_type(cause));
+			break;
+		case BT_ERROR_CAUSE_ACTOR_TYPE_MESSAGE_ITERATOR:
+			fprintf(stderr, "%s%s%s (%s%s%s): ",
+				bt_common_color_bold(),
+				bt_error_cause_message_iterator_actor_get_component_name(cause),
+				bt_common_color_reset(),
+				bt_common_color_bold(),
+				bt_error_cause_message_iterator_actor_get_component_output_port_name(cause),
+				bt_common_color_reset());
+			print_plugin_comp_cls_opt(stderr,
+				bt_error_cause_message_iterator_actor_get_plugin_name(cause),
+				bt_error_cause_message_iterator_actor_get_component_class_name(cause),
+				bt_error_cause_message_iterator_actor_get_component_class_type(cause));
+			break;
+		default:
+			abort();
+		}
+
+		/* Print file name and line number */
+		fprintf(stderr, "] (%s%s%s%s:%s%" PRIu64 "%s)\n",
+			bt_common_color_bold(),
+			bt_common_color_fg_magenta(),
+			bt_error_cause_get_file_name(cause),
+			bt_common_color_reset(),
+			bt_common_color_fg_green(),
+			bt_error_cause_get_line_number(cause),
+			bt_common_color_reset());
+
+		/* Print message */
+		folded = bt_common_fold(bt_error_cause_get_message(cause),
+			columns, 2);
+		if (!folded) {
+			BT_LOGE_STR("Could not fold string.");
+			fprintf(stderr, "%s\n",
+				bt_error_cause_get_message(cause));
+			continue;
+		}
+
+		fprintf(stderr, "%s\n", folded->str);
+		g_string_free(folded, TRUE);
+		folded = NULL;
+	}
+
+end:
+	if (folded) {
+		g_string_free(folded, TRUE);
+	}
+
+	if (error) {
+		bt_error_release(error);
+	}
+}
+
 int main(int argc, const char **argv)
 {
 	int ret;
@@ -2798,6 +2923,10 @@ int main(int argc, const char **argv)
 end:
 	BT_OBJECT_PUT_REF_AND_RESET(cfg);
 	fini_static_data();
+
+	if (retcode != 0) {
+		print_error_causes();
+	}
 
 	/*
 	 * Clear current thread's error in case there is one to avoid a
