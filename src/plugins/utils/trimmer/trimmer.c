@@ -198,7 +198,7 @@ bool compile_and_match(const char *pattern, const char *string, GMatchInfo **mat
 		 * FALSE.  If there's no match, we have no use for it, so free
 		 * it immediatly and don't return it to the caller.
 		 */
-		g_match_info_unref(*match_info);
+		g_match_info_free(*match_info);
 		*match_info = NULL;
 	}
 
