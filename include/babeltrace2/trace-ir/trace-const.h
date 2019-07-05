@@ -52,6 +52,17 @@ extern const bt_trace_class *bt_trace_borrow_class_const(
 
 extern const char *bt_trace_get_name(const bt_trace *trace);
 
+extern bt_uuid bt_trace_get_uuid(const bt_trace *trace);
+
+extern uint64_t bt_trace_get_environment_entry_count(const bt_trace *trace);
+
+extern void bt_trace_borrow_environment_entry_by_index_const(
+		const bt_trace *trace, uint64_t index,
+		const char **name, const bt_value **value);
+
+extern const bt_value *bt_trace_borrow_environment_entry_value_by_name_const(
+		const bt_trace *trace, const char *name);
+
 extern uint64_t bt_trace_get_stream_count(const bt_trace *trace);
 
 extern const bt_stream *bt_trace_borrow_stream_by_index_const(

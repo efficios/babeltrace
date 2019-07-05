@@ -39,14 +39,14 @@ struct fs_sink_trace {
 	struct fs_sink_comp *fs_sink;
 
 	/* Owned by this */
-	struct fs_sink_ctf_trace_class *tc;
+	struct fs_sink_ctf_trace *trace;
 
 	/*
-	 * Weak reference: this object does not own it, and `tc` above
-	 * does not own its trace IR trace class either. Instead, we add
-	 * a "trace destruction" listener (in create_trace()) so that
-	 * this object gets destroyed when the trace object is
-	 * destroyed.
+	 * Weak reference: this object does not own it, and `trace`
+	 * above does not own its trace IR trace and trace class either.
+	 * Instead, we add a "trace destruction" listener (in
+	 * create_trace()) so that this object gets destroyed when the
+	 * trace object is destroyed.
 	 *
 	 * Otherwise (with a strong reference), we would keep this trace
 	 * object alive until the upstream message iterator ends. This

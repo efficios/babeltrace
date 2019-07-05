@@ -792,7 +792,7 @@ void append_stream_class(struct ctx *ctx,
 }
 
 BT_HIDDEN
-void translate_trace_class_ctf_ir_to_tsdl(struct fs_sink_ctf_trace_class *tc,
+void translate_trace_ctf_ir_to_tsdl(struct fs_sink_ctf_trace *trace,
 		GString *tsdl)
 {
 	struct ctx ctx = {
@@ -817,7 +817,7 @@ void translate_trace_class_ctf_ir_to_tsdl(struct fs_sink_ctf_trace_class *tc,
 	g_string_append(tsdl, "minor = 8;\n");
 	append_indent(&ctx);
 	g_string_append(tsdl, "uuid = ");
-	append_uuid(&ctx, tc->uuid);
+	append_uuid(&ctx, trace->uuid);
 	g_string_append(tsdl, ";\n");
 	append_indent(&ctx);
 	g_string_append(tsdl, "byte_order = ");
@@ -858,8 +858,8 @@ void translate_trace_class_ctf_ir_to_tsdl(struct fs_sink_ctf_trace_class *tc,
 	/* End trace class */
 	append_end_block_semi_nl_nl(&ctx);
 
-	/* Trace class environment */
-	count = bt_trace_class_get_environment_entry_count(tc->ir_tc);
+	/* Trace environment */
+	count = bt_trace_get_environment_entry_count(trace->ir_trace);
 	if (count > 0) {
 		append_indent(&ctx);
 		g_string_append(tsdl, "env {\n");
@@ -869,8 +869,8 @@ void translate_trace_class_ctf_ir_to_tsdl(struct fs_sink_ctf_trace_class *tc,
 			const char *name;
 			const bt_value *val;
 
-			bt_trace_class_borrow_environment_entry_by_index_const(
-				tc->ir_tc, i, &name, &val);
+			bt_trace_borrow_environment_entry_by_index_const(
+				trace->ir_trace, i, &name, &val);
 			append_indent(&ctx);
 			g_string_append_printf(tsdl, "%s = ", name);
 
@@ -885,7 +885,7 @@ void translate_trace_class_ctf_ir_to_tsdl(struct fs_sink_ctf_trace_class *tc,
 			default:
 				/*
 				 * This is checked in
-				 * translate_trace_class_trace_ir_to_ctf_ir().
+				 * translate_trace_trace_ir_to_ctf_ir().
 				 */
 				abort();
 			}
@@ -898,7 +898,7 @@ void translate_trace_class_ctf_ir_to_tsdl(struct fs_sink_ctf_trace_class *tc,
 	}
 
 	/* Stream classes and their event classes */
-	for (i = 0; i < tc->stream_classes->len; i++) {
-		append_stream_class(&ctx, tc->stream_classes->pdata[i]);
+	for (i = 0; i < trace->stream_classes->len; i++) {
+		append_stream_class(&ctx, trace->stream_classes->pdata[i]);
 	}
 }

@@ -1121,96 +1121,11 @@ static
 void write_trace_class(struct details_write_ctx *ctx, const bt_trace_class *tc)
 {
 	GPtrArray *stream_classes = g_ptr_array_new();
-	GPtrArray *env_names = g_ptr_array_new();
-	uint64_t env_count;
 	uint64_t i;
 	bool printed_prop = false;
 
 	write_indent(ctx);
 	write_obj_type_name(ctx, "Trace class");
-
-	/* Write name */
-	if (ctx->details_comp->cfg.with_trace_class_name) {
-		const char *name = bt_trace_class_get_name(tc);
-
-		if (name) {
-			g_string_append(ctx->str, " `");
-			write_str_prop_value(ctx, name);
-			g_string_append(ctx->str, "`");
-		}
-	}
-
-	/* Write properties */
-	incr_indent(ctx);
-
-	if (ctx->details_comp->cfg.with_uuid) {
-		bt_uuid uuid = bt_trace_class_get_uuid(tc);
-
-		if (uuid) {
-			if (!printed_prop) {
-				g_string_append(ctx->str, ":\n");
-				printed_prop = true;
-			}
-
-			write_uuid_prop_line(ctx, "UUID", uuid);
-		}
-	}
-
-	/* Write environment */
-	env_count = bt_trace_class_get_environment_entry_count(tc);
-	if (env_count > 0) {
-		if (!printed_prop) {
-			g_string_append(ctx->str, ":\n");
-			printed_prop = true;
-		}
-
-		write_indent(ctx);
-		write_prop_name(ctx, "Environment");
-		g_string_append(ctx->str, " (");
-		write_uint_prop_value(ctx, env_count);
-		g_string_append_printf(ctx->str, " entr%s):",
-			env_count == 1 ? "y" : "ies");
-		write_nl(ctx);
-		incr_indent(ctx);
-
-		for (i = 0; i < env_count; i++) {
-			const char *name;
-			const bt_value *value;
-
-			bt_trace_class_borrow_environment_entry_by_index_const(
-				tc, i, &name, &value);
-			g_ptr_array_add(env_names, (gpointer) name);
-		}
-
-		g_ptr_array_sort(env_names, (GCompareFunc) compare_strings);
-
-		for (i = 0; i < env_names->len; i++) {
-			const char *name = env_names->pdata[i];
-			const bt_value *value =
-				bt_trace_class_borrow_environment_entry_value_by_name_const(
-					tc, name);
-
-			BT_ASSERT(value);
-			write_compound_member_name(ctx, name);
-			write_sp(ctx);
-
-			if (bt_value_get_type(value) ==
-					BT_VALUE_TYPE_SIGNED_INTEGER) {
-				write_int_prop_value(ctx,
-					bt_value_signed_integer_get(value));
-			} else if (bt_value_get_type(value) ==
-					BT_VALUE_TYPE_STRING) {
-				write_str_prop_value(ctx,
-					bt_value_string_get(value));
-			} else {
-				abort();
-			}
-
-			write_nl(ctx);
-		}
-
-		decr_indent(ctx);
-	}
 
 	for (i = 0; i < bt_trace_class_get_stream_class_count(tc); i++) {
 		g_ptr_array_add(stream_classes,
@@ -1227,18 +1142,18 @@ void write_trace_class(struct details_write_ctx *ctx, const bt_trace_class *tc)
 		}
 	}
 
+	incr_indent(ctx);
+
 	for (i = 0; i < stream_classes->len; i++) {
 		write_stream_class(ctx, stream_classes->pdata[i]);
 	}
-
-	decr_indent(ctx);
 
 	if (!printed_prop) {
 		write_nl(ctx);
 	}
 
+	decr_indent(ctx);
 	g_ptr_array_free(stream_classes, TRUE);
-	g_ptr_array_free(env_names, TRUE);
 }
 
 static
@@ -1716,10 +1631,11 @@ static
 void write_trace(struct details_write_ctx *ctx, const bt_trace *trace)
 {
 	const char *name;
-	const bt_trace_class *tc = bt_trace_borrow_class_const(trace);
 	GPtrArray *streams = g_ptr_array_new();
 	uint64_t i;
 	bool printed_prop = false;
+	GPtrArray *env_names = g_ptr_array_new();
+	uint64_t env_count;
 
 	write_indent(ctx);
 	write_obj_type_name(ctx, "Trace");
@@ -1737,20 +1653,9 @@ void write_trace(struct details_write_ctx *ctx, const bt_trace *trace)
 	/* Write properties */
 	incr_indent(ctx);
 
-	if (ctx->details_comp->cfg.with_trace_class_name) {
-		name = bt_trace_class_get_name(tc);
-		if (name) {
-			if (!printed_prop) {
-				g_string_append(ctx->str, ":\n");
-				printed_prop = true;
-			}
-
-			write_str_prop_line(ctx, "Class name", name);
-		}
-	}
-
+	/* Write UUID */
 	if (ctx->details_comp->cfg.with_uuid) {
-		bt_uuid uuid = bt_trace_class_get_uuid(tc);
+		bt_uuid uuid = bt_trace_get_uuid(trace);
 
 		if (uuid) {
 			if (!printed_prop) {
@@ -1758,8 +1663,64 @@ void write_trace(struct details_write_ctx *ctx, const bt_trace *trace)
 				printed_prop = true;
 			}
 
-			write_uuid_prop_line(ctx, "Class UUID", uuid);
+			write_uuid_prop_line(ctx, "UUID", uuid);
 		}
+	}
+
+	/* Write environment */
+	env_count = bt_trace_get_environment_entry_count(trace);
+	if (env_count > 0) {
+		if (!printed_prop) {
+			g_string_append(ctx->str, ":\n");
+			printed_prop = true;
+		}
+
+		write_indent(ctx);
+		write_prop_name(ctx, "Environment");
+		g_string_append(ctx->str, " (");
+		write_uint_prop_value(ctx, env_count);
+		g_string_append_printf(ctx->str, " entr%s):",
+			env_count == 1 ? "y" : "ies");
+		write_nl(ctx);
+		incr_indent(ctx);
+
+		for (i = 0; i < env_count; i++) {
+			const char *name;
+			const bt_value *value;
+
+			bt_trace_borrow_environment_entry_by_index_const(
+				trace, i, &name, &value);
+			g_ptr_array_add(env_names, (gpointer) name);
+		}
+
+		g_ptr_array_sort(env_names, (GCompareFunc) compare_strings);
+
+		for (i = 0; i < env_names->len; i++) {
+			const char *name = env_names->pdata[i];
+			const bt_value *value =
+				bt_trace_borrow_environment_entry_value_by_name_const(
+					trace, name);
+
+			BT_ASSERT(value);
+			write_compound_member_name(ctx, name);
+			write_sp(ctx);
+
+			if (bt_value_get_type(value) ==
+					BT_VALUE_TYPE_SIGNED_INTEGER) {
+				write_int_prop_value(ctx,
+					bt_value_signed_integer_get(value));
+			} else if (bt_value_get_type(value) ==
+					BT_VALUE_TYPE_STRING) {
+				write_str_prop_value(ctx,
+					bt_value_string_get(value));
+			} else {
+				abort();
+			}
+
+			write_nl(ctx);
+		}
+
+		decr_indent(ctx);
 	}
 
 	for (i = 0; i < bt_trace_get_stream_count(trace); i++) {
@@ -1796,6 +1757,7 @@ void write_trace(struct details_write_ctx *ctx, const bt_trace *trace)
 	}
 
 	g_ptr_array_free(streams, TRUE);
+	g_ptr_array_free(env_names, TRUE);
 }
 
 static

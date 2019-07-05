@@ -41,6 +41,7 @@ void copy_trace_content(const bt_trace *in_trace, bt_trace *out_trace,
 {
 	bt_trace_set_name_status status;
 	const char *trace_name;
+	uint64_t i, env_field_count;
 
 	BT_COMP_LOGD("Copying content of trace: in-t-addr=%p, out-t-addr=%p",
 			in_trace, out_trace);
@@ -50,6 +51,56 @@ void copy_trace_content(const bt_trace *in_trace, bt_trace *out_trace,
 		status = bt_trace_set_name(out_trace, trace_name);
 		if (status != BT_TRACE_SET_NAME_STATUS_OK) {
 			BT_COMP_LOGE("Cannot set trace's name: trace-addr=%p, name=\"%s\"",
+				out_trace, trace_name);
+			bt_current_thread_clear_error();
+			goto end;
+		}
+	}
+
+	/*
+	 * Do not copy the trace UUID as it may be modified and should
+	 * no longer have the same UUID.
+	 */
+
+	/*
+	 * Go over all the entries in the environment section of the
+	 * trace and copy the content to the new trace.
+	 */
+	env_field_count = bt_trace_get_environment_entry_count(in_trace);
+	for (i = 0; i < env_field_count; i++) {
+		const char *value_name;
+		const bt_value *value = NULL;
+		bt_trace_set_environment_entry_status set_env_status;
+
+		bt_trace_borrow_environment_entry_by_index_const(
+			in_trace, i, &value_name, &value);
+
+		BT_COMP_LOGD("Copying trace environnement entry: "
+			"index=%" PRId64 ", value-addr=%p, value-name=%s",
+			i, value, value_name);
+
+		BT_ASSERT(value_name);
+		BT_ASSERT(value);
+
+		if (bt_value_is_signed_integer(value)) {
+			set_env_status =
+				bt_trace_set_environment_entry_integer(
+						out_trace, value_name,
+						bt_value_signed_integer_get(
+							value));
+		} else if (bt_value_is_string(value)) {
+			set_env_status =
+				bt_trace_set_environment_entry_string(
+					out_trace, value_name,
+					bt_value_string_get(value));
+		} else {
+			abort();
+		}
+
+		if (set_env_status !=
+				BT_TRACE_SET_ENVIRONMENT_ENTRY_STATUS_OK) {
+			BT_COMP_LOGE("Cannot copy trace's environment: "
+				"trace-addr=%p, name=\"%s\"",
 				out_trace, trace_name);
 			bt_current_thread_clear_error();
 			goto end;

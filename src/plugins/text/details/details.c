@@ -54,9 +54,6 @@ static
 const char * const with_time_param_name = "with-time";
 
 static
-const char * const with_trace_class_name_param_name = "with-trace-class-name";
-
-static
 const char * const with_trace_name_param_name = "with-trace-name";
 
 static
@@ -322,14 +319,6 @@ int configure_details_comp(struct details_comp *details_comp,
 		goto error;
 	}
 
-	/* With trace class name? */
-	ret = configure_bool_opt(details_comp, params,
-		with_trace_class_name_param_name,
-		true, &details_comp->cfg.with_trace_class_name);
-	if (ret) {
-		goto error;
-	}
-
 	/* With trace name? */
 	ret = configure_bool_opt(details_comp, params,
 		with_trace_name_param_name,
@@ -381,8 +370,6 @@ void log_configuration(bt_self_component_sink *comp,
 	BT_COMP_LOGI("  Compact: %d", details_comp->cfg.compact);
 	BT_COMP_LOGI("  With metadata: %d", details_comp->cfg.with_meta);
 	BT_COMP_LOGI("  With time: %d", details_comp->cfg.with_time);
-	BT_COMP_LOGI("  With trace class name: %d",
-		details_comp->cfg.with_trace_class_name);
 	BT_COMP_LOGI("  With trace name: %d", details_comp->cfg.with_trace_name);
 	BT_COMP_LOGI("  With stream class name: %d",
 		details_comp->cfg.with_stream_class_name);

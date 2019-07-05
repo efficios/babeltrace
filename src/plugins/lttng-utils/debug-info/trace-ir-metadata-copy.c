@@ -43,79 +43,15 @@ int copy_trace_class_content(const bt_trace_class *in_trace_class,
 		bt_trace_class *out_trace_class, bt_logging_level log_level,
 		bt_self_component *self_comp)
 {
-	int ret = 0;
-	uint64_t i, env_field_count;
-	const char *in_trace_class_name;
-
 	BT_COMP_LOGD("Copying content of trace class: in-tc-addr=%p, out-tc-addr=%p",
 			in_trace_class, out_trace_class);
 
 	/* Use the same stream class ids as in the origin trace class. */
 	bt_trace_class_set_assigns_automatic_stream_class_id(out_trace_class,
 			BT_FALSE);
-
-	in_trace_class_name = bt_trace_class_get_name(in_trace_class);
-	if (in_trace_class_name) {
-		bt_trace_class_set_name_status status;
-
-		status = bt_trace_class_set_name(out_trace_class,
-			in_trace_class_name);
-		if (status != BT_TRACE_CLASS_SET_NAME_STATUS_OK) {
-			bt_current_thread_clear_error();
-		}
-	}
-
-	/*
-	 * Do not copy the trace class UUID as it may be modified and should no
-	 * longer have the same UUID.
-	 */
-
-	/*
-	 * Go over all the entries in the environment section of the trace class
-	 * and copy the content to the new trace class.
-	 */
-	env_field_count = bt_trace_class_get_environment_entry_count(in_trace_class);
-	for (i = 0; i < env_field_count; i++) {
-		const char *value_name;
-		const bt_value *value = NULL;
-		bt_trace_class_set_environment_entry_status set_env_status;
-
-		bt_trace_class_borrow_environment_entry_by_index_const(
-			in_trace_class, i, &value_name, &value);
-
-		BT_COMP_LOGD("Copying trace class environnement entry: "
-			"index=%" PRId64 ", value-addr=%p, value-name=%s",
-			i, value, value_name);
-
-		BT_ASSERT(value_name);
-		BT_ASSERT(value);
-
-		if (bt_value_is_signed_integer(value)) {
-			set_env_status =
-				bt_trace_class_set_environment_entry_integer(
-						out_trace_class, value_name,
-						bt_value_signed_integer_get(
-							value));
-		} else if (bt_value_is_string(value)) {
-			set_env_status =
-				bt_trace_class_set_environment_entry_string(
-					out_trace_class, value_name,
-					bt_value_string_get(value));
-		} else {
-			abort();
-		}
-
-		if (set_env_status !=
-				BT_TRACE_CLASS_SET_ENVIRONMENT_ENTRY_STATUS_OK) {
-			ret = -1;
-			goto error;
-		}
-	}
-
 	BT_COMP_LOGD("Copied content of trace class: in-tc-addr=%p, out-tc-addr=%p",
 			in_trace_class, out_trace_class);
-error:
-	return ret;
+	return 0;
 }
 
 static

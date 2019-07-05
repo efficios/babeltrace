@@ -118,6 +118,12 @@ void destroy_trace(struct bt_object *obj)
 		trace->name.value = NULL;
 	}
 
+	if (trace->environment) {
+		BT_LOGD_STR("Destroying environment attributes.");
+		bt_attributes_destroy(trace->environment);
+		trace->environment = NULL;
+	}
+
 	if (trace->streams) {
 		BT_LOGD_STR("Destroying streams.");
 		g_ptr_array_free(trace->streams, TRUE);
@@ -167,6 +173,12 @@ struct bt_trace *bt_trace_create(struct bt_trace_class *tc)
 		goto error;
 	}
 
+	trace->environment = bt_attributes_create();
+	if (!trace->environment) {
+		BT_LIB_LOGE_APPEND_CAUSE("Cannot create empty attributes object.");
+		goto error;
+	}
+
 	trace->destruction_listeners = g_array_new(FALSE, TRUE,
 		sizeof(struct bt_trace_destruction_listener_elem));
 	if (!trace->destruction_listeners) {
@@ -202,6 +214,145 @@ enum bt_trace_set_name_status bt_trace_set_name(struct bt_trace *trace,
 	trace->name.value = trace->name.str->str;
 	BT_LIB_LOGD("Set trace's name: %!+t", trace);
 	return BT_FUNC_STATUS_OK;
+}
+
+bt_uuid bt_trace_get_uuid(const struct bt_trace *trace)
+{
+	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
+	return trace->uuid.value;
+}
+
+void bt_trace_set_uuid(struct bt_trace *trace, bt_uuid uuid)
+{
+	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
+	BT_ASSERT_PRE_NON_NULL(uuid, "UUID");
+	BT_ASSERT_PRE_TRACE_HOT(trace);
+	memcpy(trace->uuid.uuid, uuid, BABELTRACE_UUID_LEN);
+	trace->uuid.value = trace->uuid.uuid;
+	BT_LIB_LOGD("Set trace's UUID: %!+t", trace);
+}
+
+BT_ASSERT_FUNC
+static
+bool trace_has_environment_entry(const struct bt_trace *trace, const char *name)
+{
+	BT_ASSERT(trace);
+
+	return bt_attributes_borrow_field_value_by_name(
+		trace->environment, name) != NULL;
+}
+
+static
+enum bt_trace_set_environment_entry_status set_environment_entry(
+		struct bt_trace *trace,
+		const char *name, struct bt_value *value)
+{
+	int ret;
+
+	BT_ASSERT(trace);
+	BT_ASSERT(name);
+	BT_ASSERT(value);
+	BT_ASSERT_PRE(!trace->frozen ||
+		!trace_has_environment_entry(trace, name),
+		"Trace is frozen: cannot replace environment entry: "
+		"%![trace-]+t, entry-name=\"%s\"", trace, name);
+	ret = bt_attributes_set_field_value(trace->environment, name,
+		value);
+	if (ret) {
+		ret = BT_FUNC_STATUS_MEMORY_ERROR;
+		BT_LIB_LOGE_APPEND_CAUSE(
+			"Cannot set trace's environment entry: "
+			"%![trace-]+t, entry-name=\"%s\"", trace, name);
+	} else {
+		bt_value_freeze(value);
+		BT_LIB_LOGD("Set trace's environment entry: "
+			"%![trace-]+t, entry-name=\"%s\"", trace, name);
+	}
+
+	return ret;
+}
+
+enum bt_trace_set_environment_entry_status
+bt_trace_set_environment_entry_string(
+		struct bt_trace *trace, const char *name, const char *value)
+{
+	int ret;
+	struct bt_value *value_obj;
+	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
+	BT_ASSERT_PRE_NON_NULL(name, "Name");
+	BT_ASSERT_PRE_NON_NULL(value, "Value");
+	value_obj = bt_value_string_create_init(value);
+	if (!value_obj) {
+		BT_LIB_LOGE_APPEND_CAUSE(
+			"Cannot create a string value object.");
+		ret = -1;
+		goto end;
+	}
+
+	/* set_environment_entry() logs errors */
+	ret = set_environment_entry(trace, name, value_obj);
+
+end:
+	bt_object_put_ref(value_obj);
+	return ret;
+}
+
+enum bt_trace_set_environment_entry_status
+bt_trace_set_environment_entry_integer(
+		struct bt_trace *trace, const char *name, int64_t value)
+{
+	int ret;
+	struct bt_value *value_obj;
+	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
+	BT_ASSERT_PRE_NON_NULL(name, "Name");
+	value_obj = bt_value_signed_integer_create_init(value);
+	if (!value_obj) {
+		BT_LIB_LOGE_APPEND_CAUSE(
+			"Cannot create an integer value object.");
+		ret = BT_FUNC_STATUS_MEMORY_ERROR;
+		goto end;
+	}
+
+	/* set_environment_entry() logs errors */
+	ret = set_environment_entry(trace, name, value_obj);
+
+end:
+	bt_object_put_ref(value_obj);
+	return ret;
+}
+
+uint64_t bt_trace_get_environment_entry_count(const struct bt_trace *trace)
+{
+	int64_t ret;
+
+	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
+	ret = bt_attributes_get_count(trace->environment);
+	BT_ASSERT(ret >= 0);
+	return (uint64_t) ret;
+}
+
+void bt_trace_borrow_environment_entry_by_index_const(
+		const struct bt_trace *trace, uint64_t index,
+		const char **name, const struct bt_value **value)
+{
+	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
+	BT_ASSERT_PRE_NON_NULL(name, "Name");
+	BT_ASSERT_PRE_NON_NULL(value, "Value");
+	BT_ASSERT_PRE_VALID_INDEX(index,
+		bt_attributes_get_count(trace->environment));
+	*value = bt_attributes_borrow_field_value(trace->environment, index);
+	BT_ASSERT(*value);
+	*name = bt_attributes_get_field_name(trace->environment, index);
+	BT_ASSERT(*name);
+}
+
+const struct bt_value *bt_trace_borrow_environment_entry_value_by_name_const(
+		const struct bt_trace *trace, const char *name)
+{
+	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
+	BT_ASSERT_PRE_NON_NULL(name, "Name");
+	return bt_attributes_borrow_field_value_by_name(trace->environment,
+		name);
 }
 
 uint64_t bt_trace_get_stream_count(const struct bt_trace *trace)

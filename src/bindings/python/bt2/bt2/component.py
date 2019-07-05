@@ -606,8 +606,7 @@ class _UserComponent(metaclass=_UserComponentType):
     def _bt_graph_is_configured_from_native(self):
         self._graph_is_configured()
 
-    def _create_trace_class(self, env=None, uuid=None,
-                            assigns_automatic_stream_class_id=True):
+    def _create_trace_class(self, assigns_automatic_stream_class_id=True):
         ptr = self._bt_as_self_component_ptr(self._bt_ptr)
         tc_ptr = native_bt.trace_class_create(ptr)
 
@@ -615,14 +614,6 @@ class _UserComponent(metaclass=_UserComponentType):
             raise bt2.CreationError('could not create trace class')
 
         tc = bt2._TraceClass._create_from_ptr(tc_ptr)
-
-        if env is not None:
-            for key, value in env.items():
-                tc.env[key] = value
-
-        if uuid is not None:
-            tc._uuid = uuid
-
         tc._assigns_automatic_stream_class_id = assigns_automatic_stream_class_id
 
         return tc

@@ -37,7 +37,9 @@ libctf_ast_la_SOURCES = \
 	ctf-meta-update-stream-class-config.c \
 	ctf-meta-warn-meaningless-header-fields.c \
 	ctf-meta-translate.c \
-	ctf-meta-resolve.c
+	ctf-meta-resolve.c \
+	ctf-meta-configure-ir-trace.c \
+	ctf-meta-configure-ir-trace.h
 
 libctf_ast_la_LIBADD = $(UUID_LIBS)
 

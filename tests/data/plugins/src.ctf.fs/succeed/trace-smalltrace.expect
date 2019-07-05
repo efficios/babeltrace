@@ -1,5 +1,4 @@
 Trace class:
-  UUID: 2a6422d0-6cee-11e0-8c08-cb07d7b3a564
   Stream class (ID 0):
     Packets have beginning default clock snapshot: No
     Packets have end default clock snapshot: No
@@ -14,7 +13,7 @@ Trace class:
 {Trace 0, Stream class ID 0, Stream ID 0}
 Stream beginning:
   Trace:
-    Class UUID: 2a6422d0-6cee-11e0-8c08-cb07d7b3a564
+    UUID: 2a6422d0-6cee-11e0-8c08-cb07d7b3a564
     Stream (ID 0, Class ID 0)
 
 [Unknown]

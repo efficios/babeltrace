@@ -164,12 +164,12 @@ end:
 
 static
 int append_lttng_trace_path_ust_uid(const struct fs_sink_trace *trace,
-		GString *path, const bt_trace_class *tc)
+		GString *path, const bt_trace *tc)
 {
 	const bt_value *v;
 	int ret;
 
-	v = bt_trace_class_borrow_environment_entry_value_by_name_const(tc, "tracer_buffering_id");
+	v = bt_trace_borrow_environment_entry_value_by_name_const(tc, "tracer_buffering_id");
 	if (!v || !bt_value_is_signed_integer(v)) {
 		BT_COMP_LOGI_STR("Couldn't get environment value: name=\"tracer_buffering_id\"");
 		goto error;
@@ -178,7 +178,7 @@ int append_lttng_trace_path_ust_uid(const struct fs_sink_trace *trace,
 	g_string_append_printf(path, G_DIR_SEPARATOR_S "%" PRId64,
 		bt_value_signed_integer_get(v));
 
-	v = bt_trace_class_borrow_environment_entry_value_by_name_const(tc, "isa_length");
+	v = bt_trace_borrow_environment_entry_value_by_name_const(tc, "isa_length");
 	if (!v || !bt_value_is_signed_integer(v)) {
 		BT_COMP_LOGI_STR("Couldn't get environment value: name=\"isa_length\"");
 		goto error;
@@ -199,13 +199,13 @@ end:
 
 static
 int append_lttng_trace_path_ust_pid(const struct fs_sink_trace *trace,
-		GString *path, const bt_trace_class *tc)
+		GString *path, const bt_trace *tc)
 {
 	const bt_value *v;
 	const char *datetime;
 	int ret;
 
-	v = bt_trace_class_borrow_environment_entry_value_by_name_const(tc, "procname");
+	v = bt_trace_borrow_environment_entry_value_by_name_const(tc, "procname");
 	if (!v || !bt_value_is_string(v)) {
 		BT_COMP_LOGI_STR("Couldn't get environment value: name=\"procname\"");
 		goto error;
@@ -213,7 +213,7 @@ int append_lttng_trace_path_ust_pid(const struct fs_sink_trace *trace,
 
 	g_string_append_printf(path, G_DIR_SEPARATOR_S "%s", bt_value_string_get(v));
 
-	v = bt_trace_class_borrow_environment_entry_value_by_name_const(tc, "vpid");
+	v = bt_trace_borrow_environment_entry_value_by_name_const(tc, "vpid");
 	if (!v || !bt_value_is_signed_integer(v)) {
 		BT_COMP_LOGI_STR("Couldn't get environment value: name=\"vpid\"");
 		goto error;
@@ -221,7 +221,7 @@ int append_lttng_trace_path_ust_pid(const struct fs_sink_trace *trace,
 
 	g_string_append_printf(path, "-%" PRId64, bt_value_signed_integer_get(v));
 
-	v = bt_trace_class_borrow_environment_entry_value_by_name_const(tc, "vpid_datetime");
+	v = bt_trace_borrow_environment_entry_value_by_name_const(tc, "vpid_datetime");
 	if (!v || !bt_value_is_string(v)) {
 		BT_COMP_LOGI_STR("Couldn't get environment value: name=\"vpid_datetime\"");
 		goto error;
@@ -252,7 +252,6 @@ end:
 static
 GString *make_lttng_trace_path_rel(const struct fs_sink_trace *trace)
 {
-	const bt_trace_class *tc;
 	const bt_value *v;
 	const char *tracer_name, *domain, *datetime;
 	int64_t tracer_major, tracer_minor;
@@ -263,9 +262,8 @@ GString *make_lttng_trace_path_rel(const struct fs_sink_trace *trace)
 		goto error;
 	}
 
-	tc = bt_trace_borrow_class_const(trace->ir_trace);
-
-	v = bt_trace_class_borrow_environment_entry_value_by_name_const(tc, "tracer_name");
+	v = bt_trace_borrow_environment_entry_value_by_name_const(
+		trace->ir_trace, "tracer_name");
 	if (!v || !bt_value_is_string(v)) {
 		BT_COMP_LOGI_STR("Couldn't get environment value: name=\"tracer_name\"");
 		goto error;
@@ -279,7 +277,8 @@ GString *make_lttng_trace_path_rel(const struct fs_sink_trace *trace)
 		goto error;
 	}
 
-	v = bt_trace_class_borrow_environment_entry_value_by_name_const(tc, "tracer_major");
+	v = bt_trace_borrow_environment_entry_value_by_name_const(
+		trace->ir_trace, "tracer_major");
 	if (!v || !bt_value_is_signed_integer(v)) {
 		BT_COMP_LOGI_STR("Couldn't get environment value: name=\"tracer_major\"");
 		goto error;
@@ -287,7 +286,8 @@ GString *make_lttng_trace_path_rel(const struct fs_sink_trace *trace)
 
 	tracer_major = bt_value_signed_integer_get(v);
 
-	v = bt_trace_class_borrow_environment_entry_value_by_name_const(tc, "tracer_minor");
+	v = bt_trace_borrow_environment_entry_value_by_name_const(
+		trace->ir_trace, "tracer_minor");
 	if (!v || !bt_value_is_signed_integer(v)) {
 		BT_COMP_LOGI_STR("Couldn't get environment value: name=\"tracer_minor\"");
 		goto error;
@@ -301,7 +301,8 @@ GString *make_lttng_trace_path_rel(const struct fs_sink_trace *trace)
 		goto error;
 	}
 
-	v = bt_trace_class_borrow_environment_entry_value_by_name_const(tc, "hostname");
+	v = bt_trace_borrow_environment_entry_value_by_name_const(
+		trace->ir_trace, "hostname");
 	if (!v || !bt_value_is_string(v)) {
 		BT_COMP_LOGI_STR("Couldn't get environment value: name=\"tracer_hostname\"");
 		goto error;
@@ -309,7 +310,8 @@ GString *make_lttng_trace_path_rel(const struct fs_sink_trace *trace)
 
 	g_string_assign(path, bt_value_string_get(v));
 
-	v = bt_trace_class_borrow_environment_entry_value_by_name_const(tc, "trace_name");
+	v = bt_trace_borrow_environment_entry_value_by_name_const(
+		trace->ir_trace, "trace_name");
 	if (!v || !bt_value_is_string(v)) {
 		BT_COMP_LOGI_STR("Couldn't get environment value: name=\"trace_name\"");
 		goto error;
@@ -317,7 +319,8 @@ GString *make_lttng_trace_path_rel(const struct fs_sink_trace *trace)
 
 	g_string_append_printf(path, G_DIR_SEPARATOR_S "%s", bt_value_string_get(v));
 
-	v = bt_trace_class_borrow_environment_entry_value_by_name_const(tc, "trace_creation_datetime");
+	v = bt_trace_borrow_environment_entry_value_by_name_const(
+		trace->ir_trace, "trace_creation_datetime");
 	if (!v || !bt_value_is_string(v)) {
 		BT_COMP_LOGI_STR("Couldn't get environment value: name=\"trace_creation_datetime\"");
 		goto error;
@@ -331,7 +334,8 @@ GString *make_lttng_trace_path_rel(const struct fs_sink_trace *trace)
 
 	g_string_append_printf(path, "-%s", datetime);
 
-	v = bt_trace_class_borrow_environment_entry_value_by_name_const(tc, "domain");
+	v = bt_trace_borrow_environment_entry_value_by_name_const(
+		trace->ir_trace, "domain");
 	if (!v || !bt_value_is_string(v)) {
 		BT_COMP_LOGI_STR("Couldn't get environment value: name=\"domain\"");
 		goto error;
@@ -343,7 +347,8 @@ GString *make_lttng_trace_path_rel(const struct fs_sink_trace *trace)
 	if (g_str_equal(domain, "ust")) {
 		const char *tracer_buffering_scheme;
 
-		v = bt_trace_class_borrow_environment_entry_value_by_name_const(tc, "tracer_buffering_scheme");
+		v = bt_trace_borrow_environment_entry_value_by_name_const(
+			trace->ir_trace, "tracer_buffering_scheme");
 		if (!v || !bt_value_is_string(v)) {
 			BT_COMP_LOGI_STR("Couldn't get environment value: name=\"tracer_buffering_scheme\"");
 			goto error;
@@ -353,11 +358,13 @@ GString *make_lttng_trace_path_rel(const struct fs_sink_trace *trace)
 		g_string_append_printf(path, G_DIR_SEPARATOR_S "%s", tracer_buffering_scheme);
 
 		if (g_str_equal(tracer_buffering_scheme, "uid")) {
-			if (append_lttng_trace_path_ust_uid(trace, path, tc)) {
+			if (append_lttng_trace_path_ust_uid(trace, path,
+					trace->ir_trace)) {
 				goto error;
 			}
 		} else if (g_str_equal(tracer_buffering_scheme, "pid")){
-			if (append_lttng_trace_path_ust_pid(trace, path, tc)) {
+			if (append_lttng_trace_path_ust_pid(trace, path,
+					trace->ir_trace)) {
 				goto error;
 			}
 		} else {
@@ -493,7 +500,7 @@ void fs_sink_trace_destroy(struct fs_sink_trace *trace)
 
 	tsdl = g_string_new(NULL);
 	BT_ASSERT(tsdl);
-	translate_trace_class_ctf_ir_to_tsdl(trace->tc, tsdl);
+	translate_trace_ctf_ir_to_tsdl(trace->trace, tsdl);
 
 	BT_ASSERT(trace->metadata_path);
 	fh = fopen(trace->metadata_path->str, "wb");
@@ -524,8 +531,8 @@ void fs_sink_trace_destroy(struct fs_sink_trace *trace)
 	g_string_free(trace->metadata_path, TRUE);
 	trace->metadata_path = NULL;
 
-	fs_sink_ctf_trace_class_destroy(trace->tc);
-	trace->tc = NULL;
+	fs_sink_ctf_trace_destroy(trace->trace);
+	trace->trace = NULL;
 	g_free(trace);
 
 end:
@@ -576,9 +583,8 @@ struct fs_sink_trace *fs_sink_trace_create(struct fs_sink_comp *fs_sink,
 	trace->fs_sink = fs_sink;
 	trace->ir_trace = ir_trace;
 	trace->ir_trace_destruction_listener_id = UINT64_C(-1);
-	trace->tc = translate_trace_class_trace_ir_to_ctf_ir(
-		fs_sink, bt_trace_borrow_class_const(ir_trace));
-	if (!trace->tc) {
+	trace->trace = translate_trace_trace_ir_to_ctf_ir(fs_sink, ir_trace);
+	if (!trace->trace) {
 		goto error;
 	}
 

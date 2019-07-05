@@ -64,8 +64,6 @@ struct ctf_fs_metadata {
 	struct ctf_trace_class *tc;
 
 	/* Owned by this */
-
-	/* Owned by this */
 	char *text;
 
 	int bo;

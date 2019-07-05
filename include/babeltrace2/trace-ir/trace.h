@@ -29,7 +29,7 @@
 
 #include <stdint.h>
 
-/* For bt_bool, bt_trace, bt_trace_class, bt_stream */
+/* For bt_bool, bt_uuid, bt_trace, bt_trace_class, bt_stream */
 #include <babeltrace2/types.h>
 
 /* For __BT_FUNC_STATUS_* */
@@ -52,6 +52,21 @@ typedef enum bt_trace_set_name_status {
 
 extern bt_trace_set_name_status bt_trace_set_name(bt_trace *trace,
 		const char *name);
+
+extern void bt_trace_set_uuid(bt_trace *trace, bt_uuid uuid);
+
+typedef enum bt_trace_set_environment_entry_status {
+	BT_TRACE_SET_ENVIRONMENT_ENTRY_STATUS_MEMORY_ERROR	= __BT_FUNC_STATUS_MEMORY_ERROR,
+	BT_TRACE_SET_ENVIRONMENT_ENTRY_STATUS_OK		= __BT_FUNC_STATUS_OK,
+} bt_trace_set_environment_entry_status;
+
+extern bt_trace_set_environment_entry_status
+bt_trace_set_environment_entry_integer(bt_trace *trace, const char *name,
+		int64_t value);
+
+extern bt_trace_set_environment_entry_status
+bt_trace_set_environment_entry_string(bt_trace *trace, const char *name,
+		const char *value);
 
 extern bt_stream *bt_trace_borrow_stream_by_index(bt_trace *trace,
 		uint64_t index);

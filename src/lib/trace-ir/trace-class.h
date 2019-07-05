@@ -44,22 +44,6 @@
 struct bt_trace_class {
 	struct bt_object base;
 
-	struct {
-		GString *str;
-
-		/* NULL or `str->str` above */
-		const char *value;
-	} name;
-
-	struct {
-		uint8_t uuid[BABELTRACE_UUID_LEN];
-
-		/* NULL or `uuid` above */
-		bt_uuid value;
-	} uuid;
-
-	struct bt_value *environment;
-
 	/* Array of `struct bt_stream_class *` */
 	GPtrArray *stream_classes;
 

@@ -97,9 +97,6 @@ struct details_comp {
 		/* Write message's time */
 		bool with_time;
 
-		/* Write trace class's name */
-		bool with_trace_class_name;
-
 		/* Write trace's name */
 		bool with_trace_name;
 

@@ -28,6 +28,52 @@ import bt2.stream
 import bt2.trace_class
 import bt2
 import functools
+import uuid as uuidp
+
+
+class _TraceEnv(collections.abc.MutableMapping):
+    def __init__(self, trace):
+        self._trace = trace
+
+    def __getitem__(self, key):
+        utils._check_str(key)
+
+        borrow_entry_fn = native_bt.trace_borrow_environment_entry_value_by_name_const
+        value_ptr = borrow_entry_fn(self._trace._ptr, key)
+
+        if value_ptr is None:
+            raise KeyError(key)
+
+        return bt2.value._create_from_ptr_and_get_ref(value_ptr)
+
+    def __setitem__(self, key, value):
+        if isinstance(value, str):
+            set_env_entry_fn = native_bt.trace_set_environment_entry_string
+        elif isinstance(value, int):
+            set_env_entry_fn = native_bt.trace_set_environment_entry_integer
+        else:
+            raise TypeError('expected str or int, got {}'.format(type(value)))
+
+        status = set_env_entry_fn(self._trace._ptr, key, value)
+        utils._handle_func_status(status,
+                                  "cannot set trace object's environment entry")
+
+    def __delitem__(self, key):
+        raise NotImplementedError
+
+    def __len__(self):
+        count = native_bt.trace_get_environment_entry_count(self._trace._ptr)
+        assert count >= 0
+        return count
+
+    def __iter__(self):
+        trace_ptr = self._trace_env._trace._ptr
+
+        for idx in range(len(self)):
+            borrow_entry_fn = native_bt.trace_borrow_environment_entry_by_index_const
+            entry_name, _ = borrow_entry_fn(trace_ptr, idx)
+            assert entry_name is not None
+            yield entry_name
 
 
 def _trace_destruction_listener_from_native(user_listener, trace_ptr):
@@ -81,6 +127,24 @@ class _Trace(object._SharedObject, collections.abc.Mapping):
                                   "cannot set trace class object's name")
 
     _name = property(fset=_name)
+
+    @property
+    def uuid(self):
+        uuid_bytes = native_bt.trace_get_uuid(self._ptr)
+        if uuid_bytes is None:
+            return
+
+        return uuidp.UUID(bytes=uuid_bytes)
+
+    def _uuid(self, uuid):
+        utils._check_type(uuid, uuidp.UUID)
+        native_bt.trace_set_uuid(self._ptr, uuid.bytes)
+
+    _uuid = property(fset=_uuid)
+
+    @property
+    def env(self):
+        return _TraceEnv(self)
 
     def create_stream(self, stream_class, id=None, name=None):
         utils._check_type(stream_class, bt2.stream_class._StreamClass)

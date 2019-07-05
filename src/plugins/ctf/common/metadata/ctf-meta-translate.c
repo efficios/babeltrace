@@ -540,34 +540,6 @@ int ctf_trace_class_to_ir(struct ctx *ctx)
 		goto end;
 	}
 
-	if (ctx->tc->is_uuid_set) {
-		bt_trace_class_set_uuid(ctx->ir_tc, ctx->tc->uuid);
-	}
-
-	for (i = 0; i < ctx->tc->env_entries->len; i++) {
-		struct ctf_trace_class_env_entry *env_entry =
-			ctf_trace_class_borrow_env_entry_by_index(ctx->tc, i);
-
-		switch (env_entry->type) {
-		case CTF_TRACE_CLASS_ENV_ENTRY_TYPE_INT:
-			ret = bt_trace_class_set_environment_entry_integer(
-				ctx->ir_tc, env_entry->name->str,
-				env_entry->value.i);
-			break;
-		case CTF_TRACE_CLASS_ENV_ENTRY_TYPE_STR:
-			ret = bt_trace_class_set_environment_entry_string(
-				ctx->ir_tc, env_entry->name->str,
-				env_entry->value.str->str);
-			break;
-		default:
-			abort();
-		}
-
-		if (ret) {
-			goto end;
-		}
-	}
-
 	for (i = 0; i < ctx->tc->clock_classes->len; i++) {
 		struct ctf_clock_class *cc = ctx->tc->clock_classes->pdata[i];
 
