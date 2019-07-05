@@ -8,10 +8,10 @@
   '''
   exclude = '''
   (
-       bindings/python/bt2/build/
-     | bindings/python/bt2/setup\.py$
-     | bindings/python/bt2/bt2/native_bt\.py$
-     | bindings/python/bt2/bt2/__init__\.py$
+       src/bindings/python/bt2/build/
+     | src/bindings/python/bt2/setup\.py$
+     | src/bindings/python/bt2/bt2/native_bt\.py$
+     | src/bindings/python/bt2/bt2/__init__\.py$
 
   )
   '''
