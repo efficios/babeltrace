@@ -37,7 +37,7 @@ class QueryTraceInfoClockOffsetTestCase(unittest.TestCase):
         ctf = bt2.find_plugin('ctf')
         self._fs = ctf.source_component_classes['fs']
 
-        self._paths = [
+        self._inputs = [
             os.path.join(test_ctf_traces_path, 'intersection', '3eventsintersect')
         ]
         self._executor = bt2.QueryExecutor()
@@ -64,7 +64,7 @@ class QueryTraceInfoClockOffsetTestCase(unittest.TestCase):
     # Without clock class offset
 
     def test_no_clock_class_offset(self):
-        res = self._executor.query(self._fs, 'trace-info', {'paths': self._paths})
+        res = self._executor.query(self._fs, 'trace-info', {'inputs': self._inputs})
         trace = res[0]
         self._check(trace, 0)
 
@@ -72,7 +72,7 @@ class QueryTraceInfoClockOffsetTestCase(unittest.TestCase):
 
     def test_clock_class_offset_s(self):
         res = self._executor.query(
-            self._fs, 'trace-info', {'paths': self._paths, 'clock-class-offset-s': 2}
+            self._fs, 'trace-info', {'inputs': self._inputs, 'clock-class-offset-s': 2}
         )
         trace = res[0]
         self._check(trace, 2000000000)
@@ -81,7 +81,7 @@ class QueryTraceInfoClockOffsetTestCase(unittest.TestCase):
 
     def test_clock_class_offset_ns(self):
         res = self._executor.query(
-            self._fs, 'trace-info', {'paths': self._paths, 'clock-class-offset-ns': 2}
+            self._fs, 'trace-info', {'inputs': self._inputs, 'clock-class-offset-ns': 2}
         )
         trace = res[0]
         self._check(trace, 2)
@@ -93,7 +93,7 @@ class QueryTraceInfoClockOffsetTestCase(unittest.TestCase):
             self._fs,
             'trace-info',
             {
-                'paths': self._paths,
+                'inputs': self._inputs,
                 'clock-class-offset-s': -2,
                 'clock-class-offset-ns': -2,
             },
@@ -106,7 +106,7 @@ class QueryTraceInfoClockOffsetTestCase(unittest.TestCase):
             self._executor.query(
                 self._fs,
                 'trace-info',
-                {'paths': self._paths, 'clock-class-offset-s': "2"},
+                {'inputs': self._inputs, 'clock-class-offset-s': "2"},
             )
 
     def test_clock_class_offset_s_wrong_type_none(self):
@@ -114,7 +114,7 @@ class QueryTraceInfoClockOffsetTestCase(unittest.TestCase):
             self._executor.query(
                 self._fs,
                 'trace-info',
-                {'paths': self._paths, 'clock-class-offset-s': None},
+                {'inputs': self._inputs, 'clock-class-offset-s': None},
             )
 
     def test_clock_class_offset_ns_wrong_type(self):
@@ -122,7 +122,7 @@ class QueryTraceInfoClockOffsetTestCase(unittest.TestCase):
             self._executor.query(
                 self._fs,
                 'trace-info',
-                {'paths': self._paths, 'clock-class-offset-ns': "2"},
+                {'inputs': self._inputs, 'clock-class-offset-ns': "2"},
             )
 
     def test_clock_class_offset_ns_wrong_type_none(self):
@@ -130,7 +130,7 @@ class QueryTraceInfoClockOffsetTestCase(unittest.TestCase):
             self._executor.query(
                 self._fs,
                 'trace-info',
-                {'paths': self._paths, 'clock-class-offset-ns': None},
+                {'inputs': self._inputs, 'clock-class-offset-ns': None},
             )
 
 
@@ -146,7 +146,7 @@ class QueryTraceInfoPortNameTestCase(unittest.TestCase):
             self._fs,
             "trace-info",
             {
-                "paths": [
+                "inputs": [
                     os.path.join(
                         test_ctf_traces_path, "intersection", "3eventsintersect"
                     )
@@ -181,7 +181,7 @@ class QueryTraceInfoPortNameTestCase(unittest.TestCase):
         res = self._executor.query(
             self._fs,
             "trace-info",
-            {"paths": [os.path.join(test_ctf_traces_path, "succeed", "succeed1")]},
+            {"inputs": [os.path.join(test_ctf_traces_path, "succeed", "succeed1")]},
         )
 
         os_stream_path = PurePosixPath(
@@ -217,7 +217,7 @@ class QueryTraceInfoRangeTestCase(unittest.TestCase):
         res = self._executor.query(
             self._fs,
             "trace-info",
-            {"paths": [os.path.join(test_ctf_traces_path, "succeed", "succeed1")]},
+            {"inputs": [os.path.join(test_ctf_traces_path, "succeed", "succeed1")]},
         )
 
         self.assertEqual(len(res), 1)

@@ -1,0 +1,57 @@
+#!/bin/bash
+#
+# Copyright (C) 2019 Simon Marchi <simon.marchi@efficios.com>
+#
+# This program is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License, version 2 only, as
+# published by the Free Software Foundation.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+# more details.
+#
+# You should have received a copy of the GNU General Public License along with
+# this program; if not, write to the Free Software Foundation, Inc., 51
+# Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+
+# Test the auto source disovery mechanism of the CLI.
+
+if [ "x${BT_TESTS_SRCDIR:-}" != "x" ]; then
+	UTILSSH="$BT_TESTS_SRCDIR/utils/utils.sh"
+else
+	UTILSSH="$(dirname "$0")/../../utils/utils.sh"
+fi
+
+# shellcheck source=../../utils/utils.sh
+SH_TAP=1 source "$UTILSSH"
+
+NUM_TESTS=2
+
+plan_tests $NUM_TESTS
+
+data_dir=$(readlink -f "${BT_TESTS_DATADIR}/cli/auto-source-discovery")
+plugin_dir="${data_dir}"
+trace_dir="${data_dir}/traces"
+
+expected_file=$(mktemp expected.XXXXXX)
+actual_file=$(mktemp actual.XXXXXX)
+
+run_python_bt2 "$BT_TESTS_BT2_BIN" convert --plugin-path "${plugin_dir}" "ABCDE" "${trace_dir}" some_other_leftover | sort > "$actual_file"
+ok "${PIPESTATUS[0]}" "successful execution"
+
+cat > "$expected_file" <<END
+TestSourceABCDE: ABCDE
+TestSourceExt: ${trace_dir}/aaa1, ${trace_dir}/aaa2, ${trace_dir}/aaa3
+TestSourceExt: ${trace_dir}/bbb1, ${trace_dir}/bbb2
+TestSourceExt: ${trace_dir}/ccc1
+TestSourceExt: ${trace_dir}/ccc2
+TestSourceExt: ${trace_dir}/ccc3
+TestSourceExt: ${trace_dir}/ccc4
+TestSourceSomeDir: ${trace_dir}/some-dir
+END
+
+diff -u "$expected_file" "$actual_file"
+ok "$?" "sources are auto-discovered"
+
+rm -f "$expected_file" "$actual_file"

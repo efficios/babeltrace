@@ -38,7 +38,7 @@ class ComponentSpecTestCase(unittest.TestCase):
 
     def test_create_good_with_path_params(self):
         spec = bt2.ComponentSpec('plugin', 'compcls', 'a path')
-        self.assertEqual(spec.params['paths'], ['a path'])
+        self.assertEqual(spec.params['inputs'], ['a path'])
 
     def test_create_wrong_plugin_name_type(self):
         with self.assertRaises(TypeError):
@@ -142,7 +142,7 @@ class TraceCollectionMessageIteratorTestCase(unittest.TestCase):
         hist = _count_msgs_by_type(msgs)
         self.assertEqual(hist[bt2.message._EventMessage], 3)
 
-    def test_iter_intersection_no_path_param(self):
+    def test_iter_intersection_no_inputs_param(self):
         specs = [bt2.ComponentSpec('text', 'dmesg', {'read-from-stdin': True})]
 
         with self.assertRaises(bt2.Error):

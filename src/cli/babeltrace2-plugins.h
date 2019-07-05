@@ -31,7 +31,7 @@
 BT_HIDDEN void init_loaded_plugins(void);
 BT_HIDDEN void fini_loaded_plugins(void);
 
-BT_HIDDEN int load_all_plugins(const bt_value *plugin_paths);
+BT_HIDDEN int require_loaded_plugins(const bt_value *plugin_paths);
 
 BT_HIDDEN const bt_plugin *find_loaded_plugin(const char *name);
 BT_HIDDEN size_t get_loaded_plugins_count(void);

@@ -1705,10 +1705,10 @@ int ctf_fs_component_create_ctf_fs_traces(bt_self_component_source *self_comp,
 
 	for (i = 0; i < bt_value_array_get_size(paths_value); i++) {
 		const bt_value *path_value = bt_value_array_borrow_element_by_index_const(paths_value, i);
-		const char *path = bt_value_string_get(path_value);
+		const char *input = bt_value_string_get(path_value);
 
 		ret = ctf_fs_component_create_ctf_fs_traces_one_root(ctf_fs,
-			path);
+			input);
 		if (ret) {
 			goto end;
 		}
@@ -1826,8 +1826,8 @@ end:
  */
 
 static
-bool validate_paths_parameter(struct ctf_fs_component *ctf_fs,
-		const bt_value *paths)
+bool validate_inputs_parameter(struct ctf_fs_component *ctf_fs,
+		const bt_value *inputs)
 {
 	bool ret;
 	bt_value_type type;
@@ -1835,25 +1835,25 @@ bool validate_paths_parameter(struct ctf_fs_component *ctf_fs,
 	bt_logging_level log_level = ctf_fs->log_level;
 	bt_self_component *self_comp = ctf_fs->self_comp;
 
-	if (!paths) {
-		BT_COMP_LOGE("missing \"paths\" parameter");
+	if (!inputs) {
+		BT_COMP_LOGE("missing \"inputs\" parameter");
 		goto error;
 	}
 
-	type = bt_value_get_type(paths);
+	type = bt_value_get_type(inputs);
 	if (type != BT_VALUE_TYPE_ARRAY) {
-		BT_COMP_LOGE("`paths` parameter: expecting array value: type=%s",
+		BT_COMP_LOGE("`inputs` parameter: expecting array value: type=%s",
 			bt_common_value_type_string(type));
 		goto error;
 	}
 
-	for (i = 0; i < bt_value_array_get_size(paths); i++) {
+	for (i = 0; i < bt_value_array_get_size(inputs); i++) {
 		const bt_value *elem;
 
-		elem = bt_value_array_borrow_element_by_index_const(paths, i);
+		elem = bt_value_array_borrow_element_by_index_const(inputs, i);
 		type = bt_value_get_type(elem);
 		if (type != BT_VALUE_TYPE_STRING) {
-			BT_COMP_LOGE("`paths` parameter: expecting string value: index=%" PRIu64 ", type=%s",
+			BT_COMP_LOGE("`inputs` parameter: expecting string value: index=%" PRIu64 ", type=%s",
 				i, bt_common_value_type_string(type));
 			goto error;
 		}
@@ -1870,15 +1870,15 @@ end:
 }
 
 bool read_src_fs_parameters(const bt_value *params,
-		const bt_value **paths, struct ctf_fs_component *ctf_fs) {
+		const bt_value **inputs, struct ctf_fs_component *ctf_fs) {
 	bool ret;
 	const bt_value *value;
 	bt_logging_level log_level = ctf_fs->log_level;
 	bt_self_component *self_comp = ctf_fs->self_comp;
 
-	/* paths parameter */
-	*paths = bt_value_map_borrow_entry_value_const(params, "paths");
-	if (!validate_paths_parameter(ctf_fs, *paths)) {
+	/* inputs parameter */
+	*inputs = bt_value_map_borrow_entry_value_const(params, "inputs");
+	if (!validate_inputs_parameter(ctf_fs, *inputs)) {
 		goto error;
 	}
 
@@ -1924,7 +1924,7 @@ struct ctf_fs_component *ctf_fs_create(
 {
 	struct ctf_fs_component *ctf_fs = NULL;
 	guint i;
-	const bt_value *paths_value;
+	const bt_value *inputs_value;
 	bt_self_component *self_comp =
 		bt_self_component_source_as_self_component(self_comp_src);
 
@@ -1934,7 +1934,7 @@ struct ctf_fs_component *ctf_fs_create(
 		goto error;
 	}
 
-	if (!read_src_fs_parameters(params, &paths_value, ctf_fs)) {
+	if (!read_src_fs_parameters(params, &inputs_value, ctf_fs)) {
 		goto error;
 	}
 
@@ -1942,7 +1942,7 @@ struct ctf_fs_component *ctf_fs_create(
 	ctf_fs->self_comp = self_comp;
 	ctf_fs->self_comp_src = self_comp_src;
 
-	if (ctf_fs_component_create_ctf_fs_traces(self_comp_src, ctf_fs, paths_value)) {
+	if (ctf_fs_component_create_ctf_fs_traces(self_comp_src, ctf_fs, inputs_value)) {
 		goto error;
 	}
 
@@ -2003,6 +2003,8 @@ bt_component_class_query_method_status ctf_fs_query(
 	} else if (strcmp(object, "trace-info") == 0) {
 		status = trace_info_query(comp_class, params, log_level,
 			result);
+	} else if (!strcmp(object, "support-info")) {
+		status = support_info_query(comp_class, params, log_level, result);
 	} else {
 		BT_LOGE("Unknown query object `%s`", object);
 		status = BT_COMPONENT_CLASS_QUERY_METHOD_STATUS_INVALID_OBJECT;

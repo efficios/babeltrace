@@ -484,7 +484,7 @@ bt_component_class_query_method_status trace_info_query(
 	bt_component_class_query_method_status status =
 		BT_COMPONENT_CLASS_QUERY_METHOD_STATUS_OK;
 	bt_value *result = NULL;
-	const bt_value *paths_value = NULL;
+	const bt_value *inputs_value = NULL;
 	int ret = 0;
 	guint i;
 
@@ -501,12 +501,12 @@ bt_component_class_query_method_status trace_info_query(
 		goto error;
 	}
 
-	if (!read_src_fs_parameters(params, &paths_value, ctf_fs)) {
+	if (!read_src_fs_parameters(params, &inputs_value, ctf_fs)) {
 		status = BT_COMPONENT_CLASS_QUERY_METHOD_STATUS_INVALID_PARAMS;
 		goto error;
 	}
 
-	if (ctf_fs_component_create_ctf_fs_traces(NULL, ctf_fs, paths_value)) {
+	if (ctf_fs_component_create_ctf_fs_traces(NULL, ctf_fs, inputs_value)) {
 		goto error;
 	}
 
@@ -561,5 +561,78 @@ end:
 	}
 
 	*user_result = result;
+	return status;
+}
+
+BT_HIDDEN
+bt_component_class_query_method_status support_info_query(
+		bt_self_component_class_source *comp_class,
+		const bt_value *params, bt_logging_level log_level,
+		const bt_value **user_result)
+{
+	const bt_value *input_type_value;
+	const char *input_type;
+	bt_component_class_query_method_status status;
+	double weight = 0;
+	gchar *metadata_path = NULL;
+	bt_value *result = NULL;
+
+	input_type_value = bt_value_map_borrow_entry_value_const(params, "type");
+	BT_ASSERT(input_type_value);
+	BT_ASSERT(bt_value_get_type(input_type_value) == BT_VALUE_TYPE_STRING);
+	input_type = bt_value_string_get(input_type_value);
+
+	result = bt_value_map_create();
+	if (!result) {
+		status = BT_COMPONENT_CLASS_QUERY_METHOD_STATUS_MEMORY_ERROR;
+		goto end;
+	}
+
+	if (strcmp(input_type, "directory") == 0) {
+		const bt_value *input_value;
+		const char *path;
+
+		input_value = bt_value_map_borrow_entry_value_const(params, "input");
+		BT_ASSERT(input_value);
+		BT_ASSERT(bt_value_get_type(input_value) == BT_VALUE_TYPE_STRING);
+		path = bt_value_string_get(input_value);
+
+		metadata_path = g_build_filename(path, CTF_FS_METADATA_FILENAME, NULL);
+		if (!metadata_path) {
+			status = BT_COMPONENT_CLASS_QUERY_METHOD_STATUS_MEMORY_ERROR;
+			goto end;
+		}
+
+		/*
+		 * If the metadata file exists in this directory, consider it to
+		 * be a CTF trace.
+		 */
+		if (g_file_test(metadata_path, G_FILE_TEST_EXISTS)) {
+			weight = 0.5;
+		}
+	}
+
+	if (bt_value_map_insert_real_entry(result, "weight", weight) != BT_VALUE_MAP_INSERT_ENTRY_STATUS_OK) {
+		status = BT_COMPONENT_CLASS_QUERY_METHOD_STATUS_MEMORY_ERROR;
+		goto end;
+	}
+
+	/*
+	 * Use the arbitrary constant string "ctf" as the group, such that all
+	 * found ctf traces are passed to the same instance of src.ctf.fs.
+	 */
+	if (bt_value_map_insert_string_entry(result, "group", "ctf") != BT_VALUE_MAP_INSERT_ENTRY_STATUS_OK) {
+		status = BT_COMPONENT_CLASS_QUERY_METHOD_STATUS_MEMORY_ERROR;
+		goto end;
+	}
+
+	*user_result = result;
+	result = NULL;
+	status = BT_COMPONENT_CLASS_QUERY_METHOD_STATUS_OK;
+
+end:
+	g_free(metadata_path);
+	bt_value_put_ref(result);
+
 	return status;
 }

@@ -2699,7 +2699,7 @@ int main(int argc, const char **argv)
 	print_cfg(cfg);
 
 	if (cfg->command_needs_plugins) {
-		ret = load_all_plugins(cfg->plugin_paths);
+		ret = require_loaded_plugins(cfg->plugin_paths);
 		if (ret) {
 			BT_CLI_LOGE_APPEND_CAUSE(
 				"Failed to load plugins: ret=%d", ret);
