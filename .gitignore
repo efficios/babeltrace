@@ -7,6 +7,8 @@
 /tests/plugins/flt.lttng-utils.debug-info/test_bin_info
 /tests/plugins/flt.lttng-utils.debug-info/test_dwarf
 /tests/plugins/src.ctf.fs/succeed/gen-trace-simple
+/tests/plugins/sink.ctf.fs/succeed/gen-trace-float
+/tests/plugins/sink.ctf.fs/succeed/gen-trace-double
 *~
 *.o
 *.a

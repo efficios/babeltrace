@@ -507,10 +507,10 @@ int bt_ctfser_write_float64(struct bt_ctfser *ctfser, double value,
 {
 	union u64f {
 		uint64_t u;
-		float f;
+		double d;
 	} u64f;
 
-	u64f.f = value;
+	u64f.d = value;
 	return bt_ctfser_write_unsigned_int(ctfser, u64f.u, alignment_bits,
 		64, byte_order);
 }
