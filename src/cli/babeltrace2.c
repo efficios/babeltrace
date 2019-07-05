@@ -39,6 +39,7 @@
 #include "babeltrace2-cfg.h"
 #include "babeltrace2-cfg-cli-args.h"
 #include "babeltrace2-cfg-cli-args-default.h"
+#include "babeltrace2-plugins.h"
 
 #define ENV_BABELTRACE_WARN_COMMAND_NAME_DIRECTORY_CLASH "BABELTRACE_CLI_WARN_COMMAND_NAME_DIRECTORY_CLASH"
 #define ENV_BABELTRACE_CLI_LOG_LEVEL "BABELTRACE_CLI_LOG_LEVEL"
@@ -58,8 +59,6 @@ static const char* log_level_env_var_names[] = {
 static bt_graph *the_graph;
 static bt_query_executor *the_query_executor;
 static bool canceled = false;
-
-GPtrArray *loaded_plugins;
 
 #ifdef __MINGW32__
 
@@ -120,19 +119,6 @@ void set_signal_handler(void)
 }
 
 #endif /* __MINGW32__ */
-
-static
-void init_static_data(void)
-{
-	loaded_plugins = g_ptr_array_new_with_free_func(
-		(GDestroyNotify) bt_object_put_ref);
-}
-
-static
-void fini_static_data(void)
-{
-	g_ptr_array_free(loaded_plugins, TRUE);
-}
 
 static
 int create_the_query_executor(void)
@@ -250,35 +236,7 @@ end:
 	return ret;
 }
 
-static
-const bt_plugin *find_plugin(const char *name)
-{
-	int i;
-	const bt_plugin *plugin = NULL;
 
-	BT_ASSERT(name);
-	BT_LOGI("Finding plugin: name=\"%s\"", name);
-
-	for (i = 0; i < loaded_plugins->len; i++) {
-		plugin = g_ptr_array_index(loaded_plugins, i);
-
-		if (strcmp(name, bt_plugin_get_name(plugin)) == 0) {
-			break;
-		}
-
-		plugin = NULL;
-	}
-
-	if (plugin) {
-		BT_LOGI("Found plugin: name=\"%s\", plugin-addr=%p",
-			name, plugin);
-	} else {
-		BT_LOGI("Cannot find plugin: name=\"%s\"", name);
-	}
-
-	bt_plugin_get_ref(plugin);
-	return plugin;
-}
 
 typedef const void *(*plugin_borrow_comp_cls_func_t)(
 		const bt_plugin *, const char *);
@@ -294,7 +252,7 @@ const void *find_component_class_from_plugin(const char *plugin_name,
 	BT_LOGI("Finding component class: plugin-name=\"%s\", "
 		"comp-cls-name=\"%s\"", plugin_name, comp_class_name);
 
-	plugin = find_plugin(plugin_name);
+	plugin = find_loaded_plugin(plugin_name);
 	if (!plugin) {
 		goto end;
 	}
@@ -758,151 +716,6 @@ void print_cfg(struct bt_config *cfg)
 }
 
 static
-void add_to_loaded_plugins(const bt_plugin_set *plugin_set)
-{
-	int64_t i;
-	int64_t count;
-
-	count = bt_plugin_set_get_plugin_count(plugin_set);
-	BT_ASSERT(count >= 0);
-
-	for (i = 0; i < count; i++) {
-		const bt_plugin *plugin =
-			bt_plugin_set_borrow_plugin_by_index_const(plugin_set, i);
-		const bt_plugin *loaded_plugin =
-			find_plugin(bt_plugin_get_name(plugin));
-
-		BT_ASSERT(plugin);
-
-		if (loaded_plugin) {
-			BT_LOGI("Not using plugin: another one already exists with the same name: "
-				"plugin-name=\"%s\", plugin-path=\"%s\", "
-				"existing-plugin-path=\"%s\"",
-				bt_plugin_get_name(plugin),
-				bt_plugin_get_path(plugin),
-				bt_plugin_get_path(loaded_plugin));
-			bt_plugin_put_ref(loaded_plugin);
-		} else {
-			/* Add to global array. */
-			BT_LOGD("Adding plugin to loaded plugins: plugin-path=\"%s\"",
-				bt_plugin_get_name(plugin));
-			bt_plugin_get_ref(plugin);
-			g_ptr_array_add(loaded_plugins, (void *) plugin);
-		}
-	}
-}
-
-static
-int load_dynamic_plugins(const bt_value *plugin_paths)
-{
-	int nr_paths, i, ret = 0;
-
-	nr_paths = bt_value_array_get_size(plugin_paths);
-	if (nr_paths < 0) {
-		BT_CLI_LOGE_APPEND_CAUSE(
-			"Cannot load dynamic plugins: no plugin path.");
-		ret = -1;
-		goto end;
-	}
-
-	BT_LOGI_STR("Loading dynamic plugins.");
-
-	for (i = 0; i < nr_paths; i++) {
-		const bt_value *plugin_path_value = NULL;
-		const char *plugin_path;
-		const bt_plugin_set *plugin_set = NULL;
-		bt_plugin_find_all_from_dir_status status;
-
-		plugin_path_value =
-			bt_value_array_borrow_element_by_index_const(
-				plugin_paths, i);
-		plugin_path = bt_value_string_get(plugin_path_value);
-
-		/*
-		 * Skip this if the directory does not exist because
-		 * bt_plugin_find_all_from_dir() expects an existing
-		 * directory.
-		 */
-		if (!g_file_test(plugin_path, G_FILE_TEST_IS_DIR)) {
-			BT_LOGI("Skipping nonexistent directory path: "
-				"path=\"%s\"", plugin_path);
-			continue;
-		}
-
-		status = bt_plugin_find_all_from_dir(plugin_path, BT_FALSE,
-			BT_FALSE, &plugin_set);
-		if (status < 0) {
-			BT_CLI_LOGE_APPEND_CAUSE(
-				"Unable to load dynamic plugins from directory: "
-				"path=\"%s\"", plugin_path);
-			ret = -1;
-			goto end;
-		} else if (status ==
-				BT_PLUGIN_FIND_ALL_FROM_DIR_STATUS_NOT_FOUND) {
-			BT_LOGI("No plugins found in directory: path=\"%s\"",
-				plugin_path);
-			continue;
-		}
-
-		BT_ASSERT(status == BT_PLUGIN_FIND_ALL_FROM_DIR_STATUS_OK);
-		BT_ASSERT(plugin_set);
-		add_to_loaded_plugins(plugin_set);
-		bt_plugin_set_put_ref(plugin_set);
-	}
-end:
-	return ret;
-}
-
-static
-int load_static_plugins(void)
-{
-	int ret = 0;
-	const bt_plugin_set *plugin_set;
-	bt_plugin_find_all_from_static_status status;
-
-	BT_LOGI("Loading static plugins.");
-	status = bt_plugin_find_all_from_static(BT_FALSE, &plugin_set);
-	if (status < 0) {
-		BT_CLI_LOGE_APPEND_CAUSE("Unable to load static plugins.");
-		ret = -1;
-		goto end;
-	} else if (status ==
-			BT_PLUGIN_FIND_ALL_FROM_STATIC_STATUS_NOT_FOUND) {
-		BT_LOGI("No static plugins found.");
-		goto end;
-	}
-
-	BT_ASSERT(status == BT_PLUGIN_FIND_ALL_FROM_STATIC_STATUS_OK);
-	BT_ASSERT(plugin_set);
-	add_to_loaded_plugins(plugin_set);
-	bt_plugin_set_put_ref(plugin_set);
-
-end:
-	return ret;
-}
-
-static
-int load_all_plugins(const bt_value *plugin_paths)
-{
-	int ret = 0;
-
-	if (load_dynamic_plugins(plugin_paths)) {
-		ret = -1;
-		goto end;
-	}
-
-	if (load_static_plugins()) {
-		ret = -1;
-		goto end;
-	}
-
-	BT_LOGI("Loaded all plugins: count=%u", loaded_plugins->len);
-
-end:
-	return ret;
-}
-
-static
 void print_plugin_info(const bt_plugin *plugin)
 {
 	unsigned int major, minor, patch;
@@ -1034,7 +847,7 @@ int cmd_help(struct bt_config *cfg)
 	const bt_plugin *plugin = NULL;
 	const bt_component_class *needed_comp_cls = NULL;
 
-	plugin = find_plugin(cfg->cmd_data.help.cfg_component->plugin_name->str);
+	plugin = find_loaded_plugin(cfg->cmd_data.help.cfg_component->plugin_name->str);
 	if (!plugin) {
 		BT_CLI_LOGE_APPEND_CAUSE(
 			"Cannot find plugin: plugin-name=\"%s\"",
@@ -1149,14 +962,14 @@ int cmd_list_plugins(struct bt_config *cfg)
 	printf("From the following plugin paths:\n\n");
 	print_value(stdout, cfg->plugin_paths, 2);
 	printf("\n");
-	plugins_count = loaded_plugins->len;
+	plugins_count = get_loaded_plugins_count();
 	if (plugins_count == 0) {
 		printf("No plugins found.\n");
 		goto end;
 	}
 
 	for (i = 0; i < plugins_count; i++) {
-		const bt_plugin *plugin = g_ptr_array_index(loaded_plugins, i);
+		const bt_plugin *plugin = borrow_loaded_plugin(i);
 
 		component_classes_count +=
 			bt_plugin_get_source_component_class_count(plugin) +
@@ -1173,7 +986,7 @@ int cmd_list_plugins(struct bt_config *cfg)
 		bt_common_color_reset());
 
 	for (i = 0; i < plugins_count; i++) {
-		const bt_plugin *plugin = g_ptr_array_index(loaded_plugins, i);
+		const bt_plugin *plugin = borrow_loaded_plugin(i);
 
 		printf("\n");
 		print_plugin_info(plugin);
@@ -2859,7 +2672,7 @@ int main(int argc, const char **argv)
 
 	init_log_level();
 	set_signal_handler();
-	init_static_data();
+	init_loaded_plugins();
 	cfg = bt_config_cli_args_create_with_default(argc, argv, &retcode);
 
 	if (retcode < 0) {
@@ -2929,7 +2742,7 @@ int main(int argc, const char **argv)
 
 end:
 	BT_OBJECT_PUT_REF_AND_RESET(cfg);
-	fini_static_data();
+	fini_loaded_plugins();
 
 	if (retcode != 0) {
 		print_error_causes();
