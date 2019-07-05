@@ -39,12 +39,12 @@ int try_translate_event_class_trace_ir_to_ctf_ir(
 BT_HIDDEN
 int try_translate_stream_class_trace_ir_to_ctf_ir(
 		struct fs_sink_comp *fs_sink,
-		struct fs_sink_ctf_trace_class *tc,
+		struct fs_sink_ctf_trace *trace,
 		const bt_stream_class *ir_sc,
 		struct fs_sink_ctf_stream_class **out_sc);
 
 BT_HIDDEN
-struct fs_sink_ctf_trace_class *translate_trace_class_trace_ir_to_ctf_ir(
-		struct fs_sink_comp *fs_sink, const bt_trace_class *ir_tc);
+struct fs_sink_ctf_trace *translate_trace_trace_ir_to_ctf_ir(
+		struct fs_sink_comp *fs_sink, const bt_trace *ir_trace);
 
 #endif /* BABELTRACE_PLUGIN_CTF_FS_SINK_TRANSLATE_TRACE_IR_TO_CTF_IR_H */

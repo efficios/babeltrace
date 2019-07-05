@@ -55,6 +55,15 @@ struct bt_trace {
 		const char *value;
 	} name;
 
+	struct {
+		uint8_t uuid[BABELTRACE_UUID_LEN];
+
+		/* NULL or `uuid` above */
+		bt_uuid value;
+	} uuid;
+
+	struct bt_value *environment;
+
 	/* Array of `struct bt_stream *` */
 	GPtrArray *streams;
 

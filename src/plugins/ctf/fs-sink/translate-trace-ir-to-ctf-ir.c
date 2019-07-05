@@ -1115,15 +1115,15 @@ end:
 	return ret;
 }
 
-bool default_clock_class_name_exists(struct fs_sink_ctf_trace_class *tc,
+bool default_clock_class_name_exists(struct fs_sink_ctf_trace *trace,
 		const char *name)
 {
 	bool exists = false;
 	uint64_t i;
 
-	for (i = 0; i < tc->stream_classes->len; i++) {
+	for (i = 0; i < trace->stream_classes->len; i++) {
 		struct fs_sink_ctf_stream_class *sc =
-			tc->stream_classes->pdata[i];
+			trace->stream_classes->pdata[i];
 
 		if (sc->default_clock_class_name->len == 0) {
 			/* No default clock class */
@@ -1149,7 +1149,7 @@ void make_unique_default_clock_class_name(struct fs_sink_ctf_stream_class *sc)
 	g_string_assign(sc->default_clock_class_name, "");
 	sprintf(buf, "default");
 
-	while (default_clock_class_name_exists(sc->tc, buf)) {
+	while (default_clock_class_name_exists(sc->trace, buf)) {
 		sprintf(buf, "default%u", suffix);
 		suffix++;
 	}
@@ -1159,17 +1159,17 @@ void make_unique_default_clock_class_name(struct fs_sink_ctf_stream_class *sc)
 
 static
 int translate_stream_class(struct fs_sink_comp *fs_sink,
-		struct fs_sink_ctf_trace_class *tc,
+		struct fs_sink_ctf_trace *trace,
 		const bt_stream_class *ir_sc,
 		struct fs_sink_ctf_stream_class **out_sc)
 {
 	int ret = 0;
 	struct ctx ctx;
 
-	BT_ASSERT(tc);
+	BT_ASSERT(trace);
 	BT_ASSERT(ir_sc);
 	ctx_init(&ctx, fs_sink);
-	*out_sc = fs_sink_ctf_stream_class_create(tc, ir_sc);
+	*out_sc = fs_sink_ctf_stream_class_create(trace, ir_sc);
 	BT_ASSERT(*out_sc);
 
 	/* Set default clock class's protected name, if any */
@@ -1234,46 +1234,46 @@ end:
 BT_HIDDEN
 int try_translate_stream_class_trace_ir_to_ctf_ir(
 		struct fs_sink_comp *fs_sink,
-		struct fs_sink_ctf_trace_class *tc,
+		struct fs_sink_ctf_trace *trace,
 		const bt_stream_class *ir_sc,
 		struct fs_sink_ctf_stream_class **out_sc)
 {
 	int ret = 0;
 	uint64_t i;
 
-	BT_ASSERT(tc);
+	BT_ASSERT(trace);
 	BT_ASSERT(ir_sc);
 
-	for (i = 0; i < tc->stream_classes->len; i++) {
-		*out_sc = tc->stream_classes->pdata[i];
+	for (i = 0; i < trace->stream_classes->len; i++) {
+		*out_sc = trace->stream_classes->pdata[i];
 
 		if ((*out_sc)->ir_sc == ir_sc) {
 			goto end;
 		}
 	}
 
-	ret = translate_stream_class(fs_sink, tc, ir_sc, out_sc);
+	ret = translate_stream_class(fs_sink, trace, ir_sc, out_sc);
 
 end:
 	return ret;
 }
 
 BT_HIDDEN
-struct fs_sink_ctf_trace_class *translate_trace_class_trace_ir_to_ctf_ir(
-		struct fs_sink_comp *fs_sink, const bt_trace_class *ir_tc)
+struct fs_sink_ctf_trace *translate_trace_trace_ir_to_ctf_ir(
+		struct fs_sink_comp *fs_sink, const bt_trace *ir_trace)
 {
 	uint64_t count;
 	uint64_t i;
-	struct fs_sink_ctf_trace_class *tc = NULL;
+	struct fs_sink_ctf_trace *trace = NULL;
 
-	/* Check that trace class's environment is TSDL-compatible */
-	count = bt_trace_class_get_environment_entry_count(ir_tc);
+	/* Check that trace's environment is TSDL-compatible */
+	count = bt_trace_get_environment_entry_count(ir_trace);
 	for (i = 0; i < count; i++) {
 		const char *name;
 		const bt_value *val;
 
-		bt_trace_class_borrow_environment_entry_by_index_const(
-			ir_tc, i, &name, &val);
+		bt_trace_borrow_environment_entry_by_index_const(
+			ir_trace, i, &name, &val);
 
 		if (!fs_sink_ctf_ist_valid_identifier(name)) {
 			BT_COMP_LOG_CUR_LVL(BT_LOG_ERROR, fs_sink->log_level,
@@ -1298,9 +1298,9 @@ struct fs_sink_ctf_trace_class *translate_trace_class_trace_ir_to_ctf_ir(
 		}
 	}
 
-	tc = fs_sink_ctf_trace_class_create(ir_tc);
-	BT_ASSERT(tc);
+	trace = fs_sink_ctf_trace_create(ir_trace);
+	BT_ASSERT(trace);
 
 end:
-	return tc;
+	return trace;
 }

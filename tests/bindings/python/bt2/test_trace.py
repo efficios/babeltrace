@@ -16,6 +16,7 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
 
+import uuid
 import unittest
 from utils import get_default_trace_class
 
@@ -26,19 +27,36 @@ class TraceTestCase(unittest.TestCase):
 
     def test_create_default(self):
         trace = self._tc()
-        self.assertEqual(trace.name, None)
-
-    def test_create_full(self):
-        trace = self._tc(name='my name')
-        self.assertEqual(trace.name, 'my name')
+        self.assertIsNone(trace.name)
+        self.assertIsNone(trace.uuid)
+        self.assertEqual(len(trace.env), 0)
 
     def test_create_invalid_name(self):
         with self.assertRaises(TypeError):
             self._tc(name=17)
 
     def test_attr_trace_class(self):
-        trace = self._tc(name='my name')
+        trace = self._tc()
         self.assertEqual(trace.cls.addr, self._tc.addr)
+
+    def test_attr_name(self):
+        trace = self._tc(name='mein trace')
+        self.assertEqual(trace.name, 'mein trace')
+
+    def test_attr_uuid(self):
+        trace = self._tc(uuid=uuid.UUID('da7d6b6f-3108-4706-89bd-ab554732611b'))
+        self.assertEqual(trace.uuid, uuid.UUID('da7d6b6f-3108-4706-89bd-ab554732611b'))
+
+    def test_env_get(self):
+        trace = self._tc(env={'hello': 'you', 'foo': -5})
+        self.assertEqual(trace.env['hello'], 'you')
+        self.assertEqual(trace.env['foo'], -5)
+
+    def test_env_get_non_existent(self):
+        trace = self._tc(env={'hello': 'you', 'foo': -5})
+
+        with self.assertRaises(KeyError):
+            trace.env['lel']
 
     def test_len(self):
         trace = self._tc()

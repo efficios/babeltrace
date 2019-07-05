@@ -39,6 +39,7 @@
 
 #include "metadata.h"
 #include "../common/metadata/decoder.h"
+#include "../common/metadata/ctf-meta-configure-ir-trace.h"
 
 #define TSDL_MAGIC	0x75d11d57
 
@@ -224,10 +225,21 @@ enum lttng_live_iterator_status lttng_live_metadata_update(
 	switch (decoder_status) {
 	case CTF_METADATA_DECODER_STATUS_OK:
 		if (!trace->trace_class) {
+			struct ctf_trace_class *tc =
+				ctf_metadata_decoder_borrow_ctf_trace_class(
+					metadata->decoder);
+
 			trace->trace_class =
 				ctf_metadata_decoder_get_ir_trace_class(
 						metadata->decoder);
 			trace->trace = bt_trace_create(trace->trace_class);
+			if (!trace->trace) {
+				goto error;
+			}
+			if (ctf_trace_class_configure_ir_trace(tc,
+					trace->trace)) {
+				goto error;
+			}
 			if (!stream_classes_all_have_default_clock_class(
 					trace->trace_class, log_level,
 					self_comp)) {

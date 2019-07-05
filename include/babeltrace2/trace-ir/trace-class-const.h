@@ -50,23 +50,6 @@ typedef void (* bt_trace_class_destruction_listener_func)(
 extern bt_bool bt_trace_class_assigns_automatic_stream_class_id(
 		const bt_trace_class *trace_class);
 
-extern const char *bt_trace_class_get_name(
-		const bt_trace_class *trace_class);
-
-extern bt_uuid bt_trace_class_get_uuid(
-		const bt_trace_class *trace_class);
-
-extern uint64_t bt_trace_class_get_environment_entry_count(
-		const bt_trace_class *trace_class);
-
-extern void bt_trace_class_borrow_environment_entry_by_index_const(
-		const bt_trace_class *trace_class, uint64_t index,
-		const char **name, const bt_value **value);
-
-extern const bt_value *
-bt_trace_class_borrow_environment_entry_value_by_name_const(
-		const bt_trace_class *trace_class, const char *name);
-
 extern uint64_t bt_trace_class_get_stream_class_count(
 		const bt_trace_class *trace_class);
 

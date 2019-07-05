@@ -120,11 +120,11 @@ struct fs_sink_ctf_event_class {
 	struct fs_sink_ctf_field_class *payload_fc;
 };
 
-struct fs_sink_ctf_trace_class;
+struct fs_sink_ctf_trace;
 
 struct fs_sink_ctf_stream_class {
 	/* Weak */
-	struct fs_sink_ctf_trace_class *tc;
+	struct fs_sink_ctf_trace *trace;
 
 	/* Weak */
 	const bt_stream_class *ir_sc;
@@ -155,7 +155,10 @@ struct fs_sink_ctf_stream_class {
 	GHashTable *event_classes_from_ir;
 };
 
-struct fs_sink_ctf_trace_class {
+struct fs_sink_ctf_trace {
+	/* Weak */
+	const bt_trace *ir_trace;
+
 	/* Weak */
 	const bt_trace_class *ir_tc;
 
@@ -715,16 +718,16 @@ void fs_sink_ctf_event_class_destroy(struct fs_sink_ctf_event_class *ec)
 
 static inline
 struct fs_sink_ctf_stream_class *fs_sink_ctf_stream_class_create(
-		struct fs_sink_ctf_trace_class *tc,
+		struct fs_sink_ctf_trace *trace,
 		const bt_stream_class *ir_sc)
 {
 	struct fs_sink_ctf_stream_class *sc =
 		g_new0(struct fs_sink_ctf_stream_class, 1);
 
-	BT_ASSERT(tc);
+	BT_ASSERT(trace);
 	BT_ASSERT(ir_sc);
 	BT_ASSERT(sc);
-	sc->tc = tc;
+	sc->trace = trace;
 	sc->ir_sc = ir_sc;
 	sc->default_clock_class =
 		bt_stream_class_borrow_default_clock_class_const(ir_sc);
@@ -756,7 +759,7 @@ struct fs_sink_ctf_stream_class *fs_sink_ctf_stream_class_create(
 				ir_sc);
 	}
 
-	g_ptr_array_add(tc->stream_classes, sc);
+	g_ptr_array_add(trace->stream_classes, sc);
 	return sc;
 }
 
@@ -798,42 +801,42 @@ void fs_sink_ctf_stream_class_append_event_class(
 }
 
 static inline
-void fs_sink_ctf_trace_class_destroy(struct fs_sink_ctf_trace_class *tc)
+void fs_sink_ctf_trace_destroy(struct fs_sink_ctf_trace *trace)
 {
-	if (!tc) {
+	if (!trace) {
 		return;
 	}
 
-	if (tc->stream_classes) {
-		g_ptr_array_free(tc->stream_classes, TRUE);
-		tc->stream_classes = NULL;
+	if (trace->stream_classes) {
+		g_ptr_array_free(trace->stream_classes, TRUE);
+		trace->stream_classes = NULL;
 	}
 
-	g_free(tc);
+	g_free(trace);
 }
 
 static inline
-struct fs_sink_ctf_trace_class *fs_sink_ctf_trace_class_create(
-		const bt_trace_class *ir_tc)
+struct fs_sink_ctf_trace *fs_sink_ctf_trace_create(const bt_trace *ir_trace)
 {
-	struct fs_sink_ctf_trace_class *tc =
-		g_new0(struct fs_sink_ctf_trace_class, 1);
+	struct fs_sink_ctf_trace *trace =
+		g_new0(struct fs_sink_ctf_trace, 1);
 
-	BT_ASSERT(tc);
+	BT_ASSERT(trace);
 
-	if (bt_uuid_generate(tc->uuid)) {
-		fs_sink_ctf_trace_class_destroy(tc);
-		tc = NULL;
+	if (bt_uuid_generate(trace->uuid)) {
+		fs_sink_ctf_trace_destroy(trace);
+		trace = NULL;
 		goto end;
 	}
 
-	tc->ir_tc = ir_tc;
-	tc->stream_classes = g_ptr_array_new_with_free_func(
+	trace->ir_trace = ir_trace;
+	trace->ir_tc = bt_trace_borrow_class_const(ir_trace);
+	trace->stream_classes = g_ptr_array_new_with_free_func(
 		(GDestroyNotify) fs_sink_ctf_stream_class_destroy);
-	BT_ASSERT(tc->stream_classes);
+	BT_ASSERT(trace->stream_classes);
 
 end:
-	return tc;
+	return trace;
 }
 
 static inline

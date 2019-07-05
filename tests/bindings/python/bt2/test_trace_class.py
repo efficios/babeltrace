@@ -16,7 +16,6 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
 
-import uuid
 import unittest
 import bt2
 from utils import run_in_component_init, get_default_trace_class
@@ -31,17 +30,7 @@ class TraceClassTestCase(unittest.TestCase):
         tc = run_in_component_init(f)
 
         self.assertEqual(len(tc), 0)
-        self.assertEqual(len(tc.env), 0)
-        self.assertIsNone(tc.uuid)
         self.assertTrue(tc.assigns_automatic_stream_class_id)
-
-    def test_uuid(self):
-        def f(comp_self):
-            return comp_self._create_trace_class(uuid=uuid.UUID('da7d6b6f-3108-4706-89bd-ab554732611b'))
-
-        tc = run_in_component_init(f)
-
-        self.assertEqual(tc.uuid, uuid.UUID('da7d6b6f-3108-4706-89bd-ab554732611b'))
 
     def test_automatic_stream_class_id(self):
         def f(comp_self):
@@ -86,24 +75,6 @@ class TraceClassTestCase(unittest.TestCase):
         # In this mode, it is required to pass an explicit id.
         with self.assertRaises(ValueError):
             tc.create_stream_class()
-
-    def test_env_get(self):
-        def f(comp_self):
-            return comp_self._create_trace_class(env={'hello': 'you', 'foo': -5})
-
-        tc = run_in_component_init(f)
-
-        self.assertEqual(tc.env['hello'], 'you')
-        self.assertEqual(tc.env['foo'], -5)
-
-    def test_env_get_non_existent(self):
-        def f(comp_self):
-            return comp_self._create_trace_class(env={'hello': 'you', 'foo': -5})
-
-        tc = run_in_component_init(f)
-
-        with self.assertRaises(KeyError):
-            tc.env['lel']
 
     @staticmethod
     def _create_trace_class_with_some_stream_classes():

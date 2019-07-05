@@ -42,6 +42,7 @@
 #include "data-stream-file.h"
 #include "file.h"
 #include "../common/metadata/decoder.h"
+#include "../common/metadata/ctf-meta-configure-ir-trace.h"
 #include "../common/msg-iter/msg-iter.h"
 #include "query.h"
 
@@ -980,7 +981,6 @@ int set_trace_name(bt_trace *trace, const char *name_suffix,
 		bt_logging_level log_level, bt_self_component *self_comp)
 {
 	int ret = 0;
-	const bt_trace_class *tc = bt_trace_borrow_class_const(trace);
 	const bt_value *val;
 	GString *name;
 
@@ -995,8 +995,8 @@ int set_trace_name(bt_trace *trace, const char *name_suffix,
 	 * Check if we have a trace environment string value named `hostname`.
 	 * If so, use it as the trace name's prefix.
 	 */
-	val = bt_trace_class_borrow_environment_entry_value_by_name_const(
-		tc, "hostname");
+	val = bt_trace_borrow_environment_entry_value_by_name_const(
+		trace, "hostname");
 	if (val && bt_value_is_string(val)) {
 		g_string_append(name, bt_value_string_get(val));
 
@@ -1077,6 +1077,12 @@ struct ctf_fs_trace *ctf_fs_trace_create(bt_self_component *self_comp,
 	}
 
 	if (ctf_fs_trace->trace) {
+		ret = ctf_trace_class_configure_ir_trace(
+			ctf_fs_trace->metadata->tc, ctf_fs_trace->trace);
+		if (ret) {
+			goto error;
+		}
+
 		ret = set_trace_name(ctf_fs_trace->trace, name, log_level,
 			self_comp);
 		if (ret) {

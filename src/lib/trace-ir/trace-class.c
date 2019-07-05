@@ -43,7 +43,6 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include "attributes.h"
 #include "clock-class.h"
 #include "event-class.h"
 #include "event.h"
@@ -110,18 +109,6 @@ void destroy_trace_class(struct bt_object *obj)
 		tc->destruction_listeners = NULL;
 	}
 
-	if (tc->environment) {
-		BT_LOGD_STR("Destroying environment attributes.");
-		bt_attributes_destroy(tc->environment);
-		tc->environment = NULL;
-	}
-
-	if (tc->name.str) {
-		g_string_free(tc->name.str, TRUE);
-		tc->name.str = NULL;
-		tc->name.value = NULL;
-	}
-
 	if (tc->stream_classes) {
 		BT_LOGD_STR("Destroying stream classes.");
 		g_ptr_array_free(tc->stream_classes, TRUE);
@@ -152,18 +139,6 @@ struct bt_trace_class *bt_trace_class_create(bt_self_component *self_comp)
 		goto error;
 	}
 
-	tc->name.str = g_string_new(NULL);
-	if (!tc->name.str) {
-		BT_LIB_LOGE_APPEND_CAUSE("Failed to allocate one GString.");
-		goto error;
-	}
-
-	tc->environment = bt_attributes_create();
-	if (!tc->environment) {
-		BT_LIB_LOGE_APPEND_CAUSE("Cannot create empty attributes object.");
-		goto error;
-	}
-
 	tc->destruction_listeners = g_array_new(FALSE, TRUE,
 		sizeof(struct bt_trace_class_destruction_listener_elem));
 	if (!tc->destruction_listeners) {
@@ -180,40 +155,6 @@ error:
 
 end:
 	return tc;
-}
-
-const char *bt_trace_class_get_name(const struct bt_trace_class *tc)
-{
-	BT_ASSERT_PRE_NON_NULL(tc, "Trace class");
-	return tc->name.value;
-}
-
-enum bt_trace_class_set_name_status bt_trace_class_set_name(
-		struct bt_trace_class *tc, const char *name)
-{
-	BT_ASSERT_PRE_NON_NULL(tc, "Trace class");
-	BT_ASSERT_PRE_NON_NULL(name, "Name");
-	BT_ASSERT_PRE_TRACE_CLASS_HOT(tc);
-	g_string_assign(tc->name.str, name);
-	tc->name.value = tc->name.str->str;
-	BT_LIB_LOGD("Set trace class's name: %!+T", tc);
-	return BT_FUNC_STATUS_OK;
-}
-
-bt_uuid bt_trace_class_get_uuid(const struct bt_trace_class *tc)
-{
-	BT_ASSERT_PRE_NON_NULL(tc, "Trace class");
-	return tc->uuid.value;
-}
-
-void bt_trace_class_set_uuid(struct bt_trace_class *tc, bt_uuid uuid)
-{
-	BT_ASSERT_PRE_NON_NULL(tc, "Trace class");
-	BT_ASSERT_PRE_NON_NULL(uuid, "UUID");
-	BT_ASSERT_PRE_TRACE_CLASS_HOT(tc);
-	memcpy(tc->uuid.uuid, uuid, BABELTRACE_UUID_LEN);
-	tc->uuid.value = tc->uuid.uuid;
-	BT_LIB_LOGD("Set trace class's UUID: %!+T", tc);
 }
 
 enum bt_trace_class_add_listener_status bt_trace_class_add_destruction_listener(
@@ -288,129 +229,6 @@ enum bt_trace_class_remove_listener_status bt_trace_class_remove_destruction_lis
 		"%![tc-]+T, listener-id=%" PRIu64,
 		tc, listener_id);
 	return BT_FUNC_STATUS_OK;
-}
-
-BT_ASSERT_FUNC
-static
-bool trace_has_environment_entry(const struct bt_trace_class *tc, const char *name)
-{
-	BT_ASSERT(tc);
-
-	return bt_attributes_borrow_field_value_by_name(
-		tc->environment, name) != NULL;
-}
-
-static
-enum bt_trace_class_set_environment_entry_status set_environment_entry(
-		struct bt_trace_class *tc,
-		const char *name, struct bt_value *value)
-{
-	int ret;
-
-	BT_ASSERT(tc);
-	BT_ASSERT(name);
-	BT_ASSERT(value);
-	BT_ASSERT_PRE(!tc->frozen ||
-		!trace_has_environment_entry(tc, name),
-		"Trace class is frozen: cannot replace environment entry: "
-		"%![tc-]+T, entry-name=\"%s\"", tc, name);
-	ret = bt_attributes_set_field_value(tc->environment, name,
-		value);
-	if (ret) {
-		ret = BT_FUNC_STATUS_MEMORY_ERROR;
-		BT_LIB_LOGE_APPEND_CAUSE(
-			"Cannot set trace class's environment entry: "
-			"%![tc-]+T, entry-name=\"%s\"", tc, name);
-	} else {
-		bt_value_freeze(value);
-		BT_LIB_LOGD("Set trace class's environment entry: "
-			"%![tc-]+T, entry-name=\"%s\"", tc, name);
-	}
-
-	return ret;
-}
-
-enum bt_trace_class_set_environment_entry_status
-bt_trace_class_set_environment_entry_string(
-		struct bt_trace_class *tc, const char *name, const char *value)
-{
-	int ret;
-	struct bt_value *value_obj;
-	BT_ASSERT_PRE_NON_NULL(tc, "Trace class");
-	BT_ASSERT_PRE_NON_NULL(name, "Name");
-	BT_ASSERT_PRE_NON_NULL(value, "Value");
-	value_obj = bt_value_string_create_init(value);
-	if (!value_obj) {
-		BT_LIB_LOGE_APPEND_CAUSE(
-			"Cannot create a string value object.");
-		ret = -1;
-		goto end;
-	}
-
-	/* set_environment_entry() logs errors */
-	ret = set_environment_entry(tc, name, value_obj);
-
-end:
-	bt_object_put_ref(value_obj);
-	return ret;
-}
-
-enum bt_trace_class_set_environment_entry_status
-bt_trace_class_set_environment_entry_integer(
-		struct bt_trace_class *tc, const char *name, int64_t value)
-{
-	int ret;
-	struct bt_value *value_obj;
-	BT_ASSERT_PRE_NON_NULL(tc, "Trace class");
-	BT_ASSERT_PRE_NON_NULL(name, "Name");
-	value_obj = bt_value_signed_integer_create_init(value);
-	if (!value_obj) {
-		BT_LIB_LOGE_APPEND_CAUSE(
-			"Cannot create an integer value object.");
-		ret = BT_FUNC_STATUS_MEMORY_ERROR;
-		goto end;
-	}
-
-	/* set_environment_entry() logs errors */
-	ret = set_environment_entry(tc, name, value_obj);
-
-end:
-	bt_object_put_ref(value_obj);
-	return ret;
-}
-
-uint64_t bt_trace_class_get_environment_entry_count(const struct bt_trace_class *tc)
-{
-	int64_t ret;
-
-	BT_ASSERT_PRE_NON_NULL(tc, "Trace class");
-	ret = bt_attributes_get_count(tc->environment);
-	BT_ASSERT(ret >= 0);
-	return (uint64_t) ret;
-}
-
-void bt_trace_class_borrow_environment_entry_by_index_const(
-		const struct bt_trace_class *tc, uint64_t index,
-		const char **name, const struct bt_value **value)
-{
-	BT_ASSERT_PRE_NON_NULL(tc, "Trace class");
-	BT_ASSERT_PRE_NON_NULL(name, "Name");
-	BT_ASSERT_PRE_NON_NULL(value, "Value");
-	BT_ASSERT_PRE_VALID_INDEX(index,
-		bt_attributes_get_count(tc->environment));
-	*value = bt_attributes_borrow_field_value(tc->environment, index);
-	BT_ASSERT(*value);
-	*name = bt_attributes_get_field_name(tc->environment, index);
-	BT_ASSERT(*name);
-}
-
-const struct bt_value *bt_trace_class_borrow_environment_entry_value_by_name_const(
-		const struct bt_trace_class *tc, const char *name)
-{
-	BT_ASSERT_PRE_NON_NULL(tc, "Trace class");
-	BT_ASSERT_PRE_NON_NULL(name, "Name");
-	return bt_attributes_borrow_field_value_by_name(tc->environment,
-		name);
 }
 
 uint64_t bt_trace_class_get_stream_class_count(const struct bt_trace_class *tc)

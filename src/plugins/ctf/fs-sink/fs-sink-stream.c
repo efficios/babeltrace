@@ -165,7 +165,7 @@ struct fs_sink_stream *fs_sink_stream_create(struct fs_sink_trace *trace,
 	stream->prev_packet_state.discarded_events_counter = UINT64_C(-1);
 	stream->prev_packet_state.seq_num = UINT64_C(-1);
 	ret = try_translate_stream_class_trace_ir_to_ctf_ir(trace->fs_sink,
-		trace->tc, bt_stream_borrow_class_const(ir_stream),
+		trace->trace, bt_stream_borrow_class_const(ir_stream),
 		&stream->sc);
 	if (ret) {
 		goto error;
@@ -569,7 +569,7 @@ int fs_sink_stream_open_packet(struct fs_sink_stream *stream,
 	/* Packet header: UUID */
 	for (i = 0; i < BABELTRACE_UUID_LEN; i++) {
 		ret = bt_ctfser_write_byte_aligned_unsigned_int(&stream->ctfser,
-			(uint64_t) stream->sc->tc->uuid[i], 8, 8, BYTE_ORDER);
+			(uint64_t) stream->sc->trace->uuid[i], 8, 8, BYTE_ORDER);
 		if (ret) {
 			BT_COMP_LOGE("Error writing packet header UUID: stream-file-name=%s",
 				stream->file_name->str);

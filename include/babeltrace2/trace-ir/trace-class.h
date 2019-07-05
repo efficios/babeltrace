@@ -29,10 +29,7 @@
 
 #include <stdint.h>
 
-/*
- * For bt_bool, bt_uuid, bt_trace_class, bt_stream_class,
- * bt_field_class, bt_self_component
- */
+/* For bt_bool, bt_trace_class, bt_stream_class, bt_self_component */
 #include <babeltrace2/types.h>
 
 /* For __BT_FUNC_STATUS_* */
@@ -48,32 +45,6 @@ extern bt_trace_class *bt_trace_class_create(bt_self_component *self_comp);
 
 extern void bt_trace_class_set_assigns_automatic_stream_class_id(
 		bt_trace_class *trace_class, bt_bool value);
-
-typedef enum bt_trace_class_set_name_status {
-	BT_TRACE_CLASS_SET_NAME_STATUS_MEMORY_ERROR	= __BT_FUNC_STATUS_MEMORY_ERROR,
-	BT_TRACE_CLASS_SET_NAME_STATUS_OK		= __BT_FUNC_STATUS_OK,
-} bt_trace_class_set_name_status;
-
-extern bt_trace_class_set_name_status bt_trace_class_set_name(
-		bt_trace_class *trace_class, const char *name);
-
-extern void bt_trace_class_set_uuid(bt_trace_class *trace_class,
-		bt_uuid uuid);
-
-typedef enum bt_trace_class_set_environment_entry_status {
-	BT_TRACE_CLASS_SET_ENVIRONMENT_ENTRY_STATUS_MEMORY_ERROR	= __BT_FUNC_STATUS_MEMORY_ERROR,
-	BT_TRACE_CLASS_SET_ENVIRONMENT_ENTRY_STATUS_OK		= __BT_FUNC_STATUS_OK,
-} bt_trace_class_set_environment_entry_status;
-
-extern bt_trace_class_set_environment_entry_status
-bt_trace_class_set_environment_entry_integer(
-		bt_trace_class *trace_class,
-		const char *name, int64_t value);
-
-extern bt_trace_class_set_environment_entry_status
-bt_trace_class_set_environment_entry_string(
-		bt_trace_class *trace_class,
-		const char *name, const char *value);
 
 extern bt_stream_class *bt_trace_class_borrow_stream_class_by_index(
 		bt_trace_class *trace_class, uint64_t index);

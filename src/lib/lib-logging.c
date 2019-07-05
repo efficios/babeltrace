@@ -451,20 +451,11 @@ static inline void format_field_path(char **buf_ch, bool extended,
 static inline void format_trace_class(char **buf_ch, bool extended,
 		const char *prefix, const struct bt_trace_class *trace_class)
 {
-	if (trace_class->name.value) {
-		BUF_APPEND(", %sname=\"%s\"",
-			PRFIELD(trace_class->name.value));
-	}
-
 	if (!extended) {
 		return;
 	}
 
 	BUF_APPEND(", %sis-frozen=%d", PRFIELD(trace_class->frozen));
-
-	if (trace_class->uuid.value) {
-		BUF_APPEND_UUID(trace_class->uuid.value);
-	}
 
 	if (trace_class->stream_classes) {
 		BUF_APPEND(", %sstream-class-count=%u",
@@ -486,6 +477,10 @@ static inline void format_trace(char **buf_ch, bool extended,
 
 	if (!extended) {
 		return;
+	}
+
+	if (trace->uuid.value) {
+		BUF_APPEND_UUID(trace->uuid.value);
 	}
 
 	BUF_APPEND(", %sis-frozen=%d", PRFIELD(trace->frozen));
