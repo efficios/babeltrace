@@ -131,7 +131,7 @@ class _PluginComponentClassesIterator(collections.abc.Iterator):
 
         comp_cls_type = self._plugin_comp_cls._comp_cls_type
         comp_cls_pycls = bt2.component._COMP_CLS_TYPE_TO_GENERIC_COMP_CLS_PYCLS[comp_cls_type]
-        comp_cls_ptr = comp_cls_pycls._as_component_class_ptr(comp_cls_ptr)
+        comp_cls_ptr = comp_cls_pycls._bt_as_component_class_ptr(comp_cls_ptr)
         name = native_bt.component_class_get_name(comp_cls_ptr)
         assert name is not None
         return name

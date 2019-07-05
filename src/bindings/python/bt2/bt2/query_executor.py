@@ -76,7 +76,7 @@ class QueryExecutor(object._SharedObject):
             params_ptr = params._ptr
 
         utils._check_log_level(logging_level)
-        cc_ptr = component_class._component_class_ptr()
+        cc_ptr = component_class._bt_component_class_ptr()
 
         status, result_ptr = native_bt.query_executor_query(self._ptr, cc_ptr,
                                                             object, params_ptr,
