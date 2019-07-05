@@ -41,6 +41,8 @@
 #include "babeltrace2-cfg-cli-args.h"
 #include "babeltrace2-cfg-cli-args-connect.h"
 #include "babeltrace2-cfg-cli-params-arg.h"
+#include "babeltrace2-plugins.h"
+#include "babeltrace2-cfg-src-auto-disc.h"
 #include "common/version.h"
 
 static const int cli_default_log_level = BT_LOG_WARNING;
@@ -2517,8 +2519,13 @@ end:
 
 struct implicit_component_args {
 	bool exists;
+
+	/* The component class name (e.g. src.ctf.fs). */
 	GString *comp_arg;
+
+	/* The component instance name. */
 	GString *name_arg;
+
 	GString *params_arg;
 	bt_value *extra_params;
 };
@@ -2639,6 +2646,8 @@ end:
 	return ret;
 }
 
+/* Free the fields of a `struct implicit_component_args`. */
+
 static
 void finalize_implicit_component_args(struct implicit_component_args *args)
 {
@@ -2658,6 +2667,17 @@ void finalize_implicit_component_args(struct implicit_component_args *args)
 
 	bt_value_put_ref(args->extra_params);
 }
+
+/* Destroy a dynamically-allocated `struct implicit_component_args`. */
+
+static
+void destroy_implicit_component_args(struct implicit_component_args *args)
+{
+	finalize_implicit_component_args(args);
+	g_free(args);
+}
+
+/* Initialize the fields of an already allocated `struct implicit_component_args`. */
 
 static
 int init_implicit_component_args(struct implicit_component_args *args,
@@ -2683,6 +2703,31 @@ end:
 	return ret;
 }
 
+/* Dynamically allocate and initialize a `struct implicit_component_args`. */
+
+static
+struct implicit_component_args *create_implicit_component_args(
+		const char *comp_arg)
+{
+	struct implicit_component_args *args;
+	int status;
+
+	args = g_new(struct implicit_component_args, 1);
+	if (!args) {
+		BT_CLI_LOGE_APPEND_CAUSE_OOM();
+		goto end;
+	}
+
+	status = init_implicit_component_args(args, comp_arg, true);
+	if (status != 0) {
+		g_free(args);
+		args = NULL;
+	}
+
+end:
+	return args;
+}
+
 static
 void append_implicit_component_param(struct implicit_component_args *args,
 	const char *key, const char *value)
@@ -2691,6 +2736,33 @@ void append_implicit_component_param(struct implicit_component_args *args,
 	BT_ASSERT(key);
 	BT_ASSERT(value);
 	append_param_arg(args->params_arg, key, value);
+}
+
+/*
+ * Append the given parameter (`key=value`) to all component specifications
+ * in `implicit_comp_args` (an array of `struct implicit_component_args *`)
+ * which match `comp_arg`.
+ *
+ * Return the number of matching components.
+ */
+
+static
+int append_multiple_implicit_components_param(GPtrArray *implicit_comp_args,
+		const char *comp_arg, const char *key, const char *value)
+{
+	int i;
+	int n = 0;
+
+	for (i = 0; i < implicit_comp_args->len; i++) {
+		struct implicit_component_args *args = implicit_comp_args->pdata[i];
+
+		if (strcmp(args->comp_arg->str, comp_arg) == 0) {
+			append_implicit_component_param(args, key, value);
+			n++;
+		}
+	}
+
+	return n;
 }
 
 /* Escape value to make it suitable to use as a string parameter value. */
@@ -3209,6 +3281,55 @@ end:
 }
 
 /*
+ * Create `struct implicit_component_args` structures for each of the source
+ * components we identified.  Add them to `component_args`.
+ */
+
+static
+void create_implicit_component_args_from_auto_discovered_sources(
+		const struct auto_source_discovery *auto_disc, GPtrArray *component_args)
+{
+	gchar *cc_name = NULL;
+	struct implicit_component_args *comp = NULL;
+	int status;
+	guint i, len;
+
+	len = auto_disc->results->len;
+
+	for (i = 0; i < len; i++) {
+		struct auto_source_discovery_result *res =
+			g_ptr_array_index(auto_disc->results, i);
+
+		g_free(cc_name);
+		cc_name = g_strdup_printf("source.%s.%s", res->plugin_name, res->source_cc_name);
+		if (!cc_name) {
+			BT_CLI_LOGE_APPEND_CAUSE_OOM();
+			goto end;
+		}
+
+		comp = create_implicit_component_args(cc_name);
+		if (!comp) {
+			goto end;
+		}
+
+		status = append_parameter_to_args(comp->extra_params, "inputs", res->inputs);
+		if (status != 0) {
+			goto end;
+		}
+
+		g_ptr_array_add(component_args, comp);
+		comp = NULL;
+	}
+
+end:
+	g_free(cc_name);
+
+	if (comp) {
+		destroy_implicit_component_args(comp);
+	}
+}
+
+/*
  * Creates a Babeltrace config object from the arguments of a convert
  * command.
  *
@@ -3243,7 +3364,6 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 	GList *filter_names = NULL;
 	GList *sink_names = NULL;
 	bt_value *leftovers = NULL;
-	struct implicit_component_args implicit_ctf_input_args = { 0 };
 	struct implicit_component_args implicit_ctf_output_args = { 0 };
 	struct implicit_component_args implicit_lttng_live_args = { 0 };
 	struct implicit_component_args implicit_dummy_args = { 0 };
@@ -3256,6 +3376,24 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 	size_t i;
 	struct bt_common_lttng_live_url_parts lttng_live_url_parts = { 0 };
 	char *output = NULL;
+	struct auto_source_discovery auto_disc = { NULL };
+	GString *auto_disc_comp_name = NULL;
+
+	/*
+	 * Array of `struct implicit_component_args *` created for the sources
+	 * we have auto-discovered.
+	 */
+	GPtrArray *discovered_source_args = NULL;
+
+	/*
+	 * If set, restrict automatic source discovery to this component class
+	 * of this plugin.
+	 */
+	const char *auto_source_discovery_restrict_plugin_name = NULL;
+	const char *auto_source_discovery_restrict_component_class_name = NULL;
+
+	gchar *ctf_fs_source_clock_class_offset_arg = NULL;
+	gchar *ctf_fs_source_clock_class_offset_ns_arg = NULL;
 
 	(void) bt_value_copy(initial_plugin_paths, &plugin_paths);
 
@@ -3265,11 +3403,6 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 		print_convert_usage(stdout);
 		*retcode = -1;
 		goto end;
-	}
-
-	if (init_implicit_component_args(&implicit_ctf_input_args,
-			"source.ctf.fs", false)) {
-		goto error;
 	}
 
 	if (init_implicit_component_args(&implicit_ctf_output_args,
@@ -3338,6 +3471,23 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 
 	leftovers = bt_value_array_create();
 	if (!leftovers) {
+		BT_CLI_LOGE_APPEND_CAUSE_OOM();
+		goto error;
+	}
+
+	if (auto_source_discovery_init(&auto_disc) != 0) {
+		goto error;
+	}
+
+	discovered_source_args =
+		g_ptr_array_new_with_free_func((GDestroyNotify) destroy_implicit_component_args);
+	if (!discovered_source_args) {
+		BT_CLI_LOGE_APPEND_CAUSE_OOM();
+		goto error;
+	}
+
+	auto_disc_comp_name = g_string_new(NULL);
+	if (!auto_disc_comp_name) {
 		BT_CLI_LOGE_APPEND_CAUSE_OOM();
 		goto error;
 	}
@@ -3727,16 +3877,28 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 			implicit_text_args.exists = true;
 			break;
 		case OPT_CLOCK_OFFSET:
-			implicit_ctf_input_args.exists = true;
-			append_implicit_component_param(
-					&implicit_ctf_input_args,
-					"clock-class-offset-s", arg);
+			if (ctf_fs_source_clock_class_offset_arg) {
+				BT_CLI_LOGE_APPEND_CAUSE("Duplicate --clock-offset option\n");
+				goto error;
+			}
+
+			ctf_fs_source_clock_class_offset_arg = g_strdup(arg);
+			if (!ctf_fs_source_clock_class_offset_arg) {
+				BT_CLI_LOGE_APPEND_CAUSE_OOM();
+				goto error;
+			}
 			break;
 		case OPT_CLOCK_OFFSET_NS:
-			implicit_ctf_input_args.exists = true;
-			append_implicit_component_param(
-					&implicit_ctf_input_args,
-					"clock-class-offset-ns", arg);
+			if (ctf_fs_source_clock_class_offset_ns_arg) {
+				BT_CLI_LOGE_APPEND_CAUSE("Duplicate --clock-offset-ns option\n");
+				goto error;
+			}
+
+			ctf_fs_source_clock_class_offset_ns_arg = g_strdup(arg);
+			if (!ctf_fs_source_clock_class_offset_ns_arg) {
+				BT_CLI_LOGE_APPEND_CAUSE_OOM();
+				goto error;
+			}
 			break;
 		case OPT_CLOCK_SECONDS:
 			append_implicit_component_param(
@@ -3826,8 +3988,11 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 			got_input_format_opt = true;
 
 			if (strcmp(arg, "ctf") == 0) {
-				implicit_ctf_input_args.exists = true;
+				auto_source_discovery_restrict_plugin_name = "ctf";
+				auto_source_discovery_restrict_component_class_name = "fs";
 			} else if (strcmp(arg, "lttng-live") == 0) {
+				auto_source_discovery_restrict_plugin_name = "ctf";
+				auto_source_discovery_restrict_component_class_name = "lttng-live";
 				implicit_lttng_live_args.exists = true;
 			} else {
 				BT_CLI_LOGE_APPEND_CAUSE("Unknown legacy input format:\n    %s",
@@ -4086,42 +4251,55 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 				goto error;
 			}
 		} else {
-			/*
-			 * Create one source.ctf.fs component, pass it an array
-			 * with the leftovers.
-			 * Note that it still has to be named later.
-			 */
-			implicit_ctf_input_args.exists = true;
-			ret = append_parameter_to_args(implicit_ctf_input_args.extra_params,
-					"paths", leftovers);
-			if (ret) {
+			int status;
+
+			status = auto_discover_source_components(plugin_paths, leftovers,
+				auto_source_discovery_restrict_plugin_name,
+				auto_source_discovery_restrict_component_class_name,
+				*default_log_level >= 0 ? *default_log_level : cli_default_log_level,
+				&auto_disc);
+
+			if (status != 0) {
 				goto error;
 			}
+
+			create_implicit_component_args_from_auto_discovered_sources(
+				&auto_disc, discovered_source_args);
+		}
+	}
+
+	/* If --clock-offset was given, apply it to any src.ctf.fs component. */
+	if (ctf_fs_source_clock_class_offset_arg) {
+		int n;
+
+		n = append_multiple_implicit_components_param(
+			discovered_source_args, "source.ctf.fs", "clock-class-offset-s",
+			ctf_fs_source_clock_class_offset_arg);
+
+		if (n == 0) {
+			BT_CLI_LOGE_APPEND_CAUSE("--clock-offset specified, but no source.ctf.fs component instantiated.");
+			goto error;
+		}
+	}
+
+	/* If --clock-offset-ns was given, apply it to any src.ctf.fs component. */
+	if (ctf_fs_source_clock_class_offset_ns_arg) {
+		int n;
+
+		n = append_multiple_implicit_components_param(
+			discovered_source_args, "source.ctf.fs", "clock-class-offset-ns",
+			ctf_fs_source_clock_class_offset_ns_arg);
+
+		if (n == 0) {
+			BT_CLI_LOGE_APPEND_CAUSE("--clock-offset-ns specified, but no source.ctf.fs component instantiated.");
+			goto error;
 		}
 	}
 
 	/*
-	 * Ensure mutual exclusion between implicit `source.ctf.fs` and
-	 * `source.ctf.lttng-live` components.
+	 * If the implicit `source.ctf.lttng-live` component exists, make sure
+	 * there's at least one leftover (which is the URL).
 	 */
-	if (implicit_ctf_input_args.exists && implicit_lttng_live_args.exists) {
-		BT_CLI_LOGE_APPEND_CAUSE("Cannot create both implicit `%s` and `%s` components.",
-			implicit_ctf_input_args.comp_arg->str,
-			implicit_lttng_live_args.comp_arg->str);
-		goto error;
-	}
-
-	/*
-	 * If the implicit `source.ctf.fs` or `source.ctf.lttng-live`
-	 * components exists, make sure there's at least one leftover
-	 * (which is the path or URL).
-	 */
-	if (implicit_ctf_input_args.exists && bt_value_array_is_empty(leftovers)) {
-		BT_CLI_LOGE_APPEND_CAUSE("Missing path for implicit `%s` component.",
-			implicit_ctf_input_args.comp_arg->str);
-		goto error;
-	}
-
 	if (implicit_lttng_live_args.exists && bt_value_array_is_empty(leftovers)) {
 		BT_CLI_LOGE_APPEND_CAUSE("Missing URL for implicit `%s` component.",
 			implicit_lttng_live_args.comp_arg->str);
@@ -4129,10 +4307,26 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 	}
 
 	/* Assign names to implicit components */
-	ret = assign_name_to_implicit_component(&implicit_ctf_input_args,
-		"source-ctf-fs", all_names, &source_names, true);
-	if (ret) {
-		goto error;
+	for (i = 0; i < discovered_source_args->len; i++) {
+		struct implicit_component_args *args;
+		int j;
+
+		args = discovered_source_args->pdata[i];
+
+		g_string_printf(auto_disc_comp_name, "auto-disc-%s", args->comp_arg->str);
+
+		/* Give it a name like `auto-disc-src-ctf-fs`. */
+		for (j = 0; j < auto_disc_comp_name->len; j++) {
+			if (auto_disc_comp_name->str[j] == '.') {
+				auto_disc_comp_name->str[j] = '-';
+			}
+		}
+
+		ret = assign_name_to_implicit_component(args,
+			auto_disc_comp_name->str, all_names, &source_names, true);
+		if (ret) {
+			goto error;
+		}
 	}
 
 	ret = assign_name_to_implicit_component(&implicit_lttng_live_args,
@@ -4218,9 +4412,14 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 	 * Append the equivalent run arguments for the implicit
 	 * components.
 	 */
-	ret = append_run_args_for_implicit_component(&implicit_ctf_input_args, run_args);
-	if (ret) {
-		goto error;
+	for (i = 0; i < discovered_source_args->len; i++) {
+		struct implicit_component_args *args =
+			discovered_source_args->pdata[i];
+
+		ret = append_run_args_for_implicit_component(args, run_args);
+		if (ret) {
+			goto error;
+		}
 	}
 
 	ret = append_run_args_for_implicit_component(&implicit_lttng_live_args,
@@ -4379,7 +4578,6 @@ end:
 	destroy_glist_of_gstring(filter_names);
 	destroy_glist_of_gstring(sink_names);
 	bt_value_put_ref(leftovers);
-	finalize_implicit_component_args(&implicit_ctf_input_args);
 	finalize_implicit_component_args(&implicit_ctf_output_args);
 	finalize_implicit_component_args(&implicit_lttng_live_args);
 	finalize_implicit_component_args(&implicit_dummy_args);
@@ -4389,6 +4587,19 @@ end:
 	finalize_implicit_component_args(&implicit_trimmer_args);
 	bt_value_put_ref(plugin_paths);
 	bt_common_destroy_lttng_live_url_parts(&lttng_live_url_parts);
+	auto_source_discovery_fini(&auto_disc);
+
+	if (discovered_source_args) {
+		g_ptr_array_free(discovered_source_args, TRUE);
+	}
+
+	g_free(ctf_fs_source_clock_class_offset_arg);
+	g_free(ctf_fs_source_clock_class_offset_ns_arg);
+
+	if (auto_disc_comp_name) {
+		g_string_free(auto_disc_comp_name, TRUE);
+	}
+
 	return cfg;
 }
 

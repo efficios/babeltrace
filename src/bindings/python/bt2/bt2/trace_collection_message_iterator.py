@@ -49,7 +49,7 @@ class ComponentSpec:
         self._logging_level = logging_level
 
         if type(params) is str:
-            self._params = bt2.create_value({'paths': [params]})
+            self._params = bt2.create_value({'inputs': [params]})
         else:
             self._params = bt2.create_value(params)
 
@@ -141,19 +141,19 @@ class TraceCollectionMessageIterator(bt2.message_iterator._MessageIterator):
 
     def _create_stream_intersection_trimmer(self, component, port):
         # find the original parameters specified by the user to create
-        # this port's component to get the `path` parameter
+        # this port's component to get the `inputs` parameter
         for src_comp_and_spec in self._src_comps_and_specs:
             if component == src_comp_and_spec.comp:
                 break
 
         try:
-            paths = src_comp_and_spec.spec.params['paths']
+            inputs = src_comp_and_spec.spec.params['inputs']
         except Exception as e:
             raise bt2.Error(
-                'all source components must be created with a "paths" parameter in stream intersection mode'
+                'all source components must be created with an "inputs" parameter in stream intersection mode'
             ) from e
 
-        params = {'paths': paths}
+        params = {'inputs': inputs}
 
         # query the port's component for the `trace-info` object which
         # contains the stream intersection range for each exposed

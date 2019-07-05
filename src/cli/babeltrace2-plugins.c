@@ -205,7 +205,7 @@ end:
 	return ret;
 }
 
-int load_all_plugins(const bt_value *plugin_paths)
+int require_loaded_plugins(const bt_value *plugin_paths)
 {
 	static bool loaded = false;
 	static int ret = 0;
