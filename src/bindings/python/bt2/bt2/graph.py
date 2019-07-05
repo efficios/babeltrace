@@ -81,15 +81,15 @@ class Graph(object._SharedObject):
             add_fn = native_bt.graph_add_sink_component
             cc_type = native_bt.COMPONENT_CLASS_TYPE_SINK
         elif issubclass(component_class, bt2.component._UserSourceComponent):
-            cc_ptr = component_class._cc_ptr
+            cc_ptr = component_class._bt_cc_ptr
             add_fn = native_bt.graph_add_source_component
             cc_type = native_bt.COMPONENT_CLASS_TYPE_SOURCE
         elif issubclass(component_class, bt2.component._UserSinkComponent):
-            cc_ptr = component_class._cc_ptr
+            cc_ptr = component_class._bt_cc_ptr
             add_fn = native_bt.graph_add_sink_component
             cc_type = native_bt.COMPONENT_CLASS_TYPE_SINK
         elif issubclass(component_class, bt2.component._UserFilterComponent):
-            cc_ptr = component_class._cc_ptr
+            cc_ptr = component_class._bt_cc_ptr
             add_fn = native_bt.graph_add_filter_component
             cc_type = native_bt.COMPONENT_CLASS_TYPE_FILTER
         else:

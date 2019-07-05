@@ -294,15 +294,15 @@ bt_component_class_init_method_status component_class_init(
 	/*
 	 * Do the equivalent of this:
 	 *
-	 *     py_comp = py_cls._init_from_native(py_comp_ptr, py_params_ptr)
+	 *     py_comp = py_cls._bt_init_from_native(py_comp_ptr, py_params_ptr)
 	 *
-	 * _UserComponentType._init_from_native() calls the Python
+	 * _UserComponentType._bt_init_from_native() calls the Python
 	 * component object's __init__() function.
 	 */
 	py_comp = PyObject_CallMethod(py_cls,
-		"_init_from_native", "(OO)", py_comp_ptr, py_params_ptr);
+		"_bt_init_from_native", "(OO)", py_comp_ptr, py_params_ptr);
 	if (!py_comp) {
-		BT_LOGW("Failed to call Python class's _init_from_native() method: "
+		BT_LOGW("Failed to call Python class's _bt_init_from_native() method: "
 			"py-cls-addr=%p", py_cls);
 		logw_exception();
 		goto error;
@@ -436,7 +436,7 @@ bt_bool component_class_can_seek_beginning(
 	py_iter = bt_self_message_iterator_get_data(self_message_iterator);
 	BT_ASSERT(py_iter);
 
-	py_result = PyObject_GetAttrString(py_iter, "_can_seek_beginning_from_native");
+	py_result = PyObject_GetAttrString(py_iter, "_bt_can_seek_beginning_from_native");
 
 	BT_ASSERT(!py_result || PyBool_Check(py_result));
 
@@ -466,7 +466,7 @@ component_class_seek_beginning(bt_self_message_iterator *self_message_iterator)
 
 	py_iter = bt_self_message_iterator_get_data(self_message_iterator);
 	BT_ASSERT(py_iter);
-	py_result = PyObject_CallMethod(py_iter, "_seek_beginning_from_native",
+	py_result = PyObject_CallMethod(py_iter, "_bt_seek_beginning_from_native",
 		NULL);
 	BT_ASSERT(!py_result || py_result == Py_None);
         status = py_exc_to_status();
@@ -507,7 +507,7 @@ bt_component_class_port_connected_method_status component_class_port_connected(
 		goto end;	}
 
 	py_method_result = PyObject_CallMethod(py_comp,
-		"_port_connected_from_native", "(OiO)", py_self_port_ptr,
+		"_bt_port_connected_from_native", "(OiO)", py_self_port_ptr,
 		self_component_port_type, py_other_port_ptr);
 	BT_ASSERT(!py_method_result || py_method_result == Py_None);
 	status = py_exc_to_status();
@@ -603,7 +603,7 @@ component_class_sink_graph_is_configured(
 
 	py_comp = bt_self_component_get_data(self_component);
 	py_method_result = PyObject_CallMethod(py_comp,
-		"_graph_is_configured_from_native", NULL);
+		"_bt_graph_is_configured_from_native", NULL);
 	BT_ASSERT(!py_method_result || py_method_result == Py_None);
 	status = py_exc_to_status();
 	Py_XDECREF(py_method_result);
@@ -654,10 +654,10 @@ bt_component_class_query_method_status component_class_query(
 	}
 
 	py_results_addr = PyObject_CallMethod(py_cls,
-		"_query_from_native", "(OOOi)", py_query_exec_ptr,
+		"_bt_query_from_native", "(OOOi)", py_query_exec_ptr,
 		py_object, py_params_ptr, (int) log_level);
 	if (!py_results_addr) {
-		BT_LOGW("Failed to call Python class's _query_from_native() method: "
+		BT_LOGW("Failed to call Python class's _bt_query_from_native() method: "
 			"py-cls-addr=%p", py_cls);
 		status = py_exc_to_status();
 		goto end;
@@ -802,7 +802,7 @@ component_class_message_iterator_init(
 	}
 
 	py_init_method_result = PyObject_CallMethod(py_iter,
-		"_init_from_native", "O", py_component_port_output_ptr);
+		"_bt_init_from_native", "O", py_component_port_output_ptr);
 	if (!py_init_method_result) {
 		BT_LOGW_STR("User's __init__() method failed:");
 		logw_exception();
@@ -925,7 +925,7 @@ component_class_message_iterator_next(
 
 	BT_ASSERT(py_message_iter);
 	py_method_result = PyObject_CallMethod(py_message_iter,
-		"_next_from_native", NULL);
+		"_bt_next_from_native", NULL);
 	if (!py_method_result) {
 		status = py_exc_to_status();
 		BT_ASSERT(status != __BT_FUNC_STATUS_OK);
