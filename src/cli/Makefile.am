@@ -32,7 +32,10 @@ babeltrace2_bin_SOURCES = \
 	babeltrace2-cfg-cli-args-default.c \
 	babeltrace2-cfg-cli-params-arg.c \
 	babeltrace2-cfg-cli-params-arg.h \
-	logging.c logging.h
+	babeltrace2-plugins.c \
+	babeltrace2-plugins.h \
+	logging.c \
+	logging.h
 
 # -Wl,--no-as-needed is needed for recent gold linker who seems to think
 # it knows better and considers libraries with constructors having
