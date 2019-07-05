@@ -68,7 +68,8 @@ TESTS_LIB += lib/test_plugin
 endif
 
 TESTS_PLUGINS = \
-	plugins/src.ctf.fs/succeed/test_succeed
+	plugins/src.ctf.fs/succeed/test_succeed \
+	plugins/sink.ctf.fs/succeed/test_succeed
 
 if !ENABLE_BUILT_IN_PLUGINS
 if ENABLE_PYTHON_BINDINGS
