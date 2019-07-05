@@ -134,37 +134,59 @@ BT_DEBUG_INFO_PATH="${BT_TESTS_DATADIR}/debug-info"
 
 ### Diff Functions ###
 
-# Checks the difference between the content of the file with path "$1"
-# and the output of the CLI when called with the rest of arguments
-# to this function.
+# Checks the difference between:
+#
+#   1. What the CLI outputs on its standard output when given the arguments
+#   "$@" (excluding the first two arguments).
+#   2. The file with path "$1".
+#
+# And the difference between:
+#
+#   1. What the CLI outputs on its standard error when given the arguments
+#   "$@" (excluding the first two arguments).
+#   2. The file with path "$2".
 #
 # Returns 0 if there's no difference, and 1 if there is, also printing
 # said difference to the standard error.
 bt_diff_cli() {
-	local expected_file="$1"
-	shift 1
+	local expected_stdout_file="$1"
+	local expected_stderr_file="$2"
+	shift 2
 	local args=("$@")
 
-	local temp_output_file
+	local temp_stdout_output_file
+	local temp_stderr_output_file
 	local temp_diff
 	local ret=0
 
-	temp_output_file="$(mktemp)"
+	temp_stdout_output_file="$(mktemp)"
+	temp_stderr_output_file="$(mktemp)"
 	temp_diff="$(mktemp)"
 
-	# Run the CLI to get a detailed file. Strip any \r present due to
-	# Windows (\n -> \r\n). "diff --string-trailing-cr" is not used since it
-	# is not present on Solaris.
-	run_python_bt2 "$BT_TESTS_BT2_BIN" "${args[@]}" | tr -d "\r" > "$temp_output_file"
+	# Run the CLI to get a detailed file.
+	run_python_bt2 "$BT_TESTS_BT2_BIN" "${args[@]}" 1>"$temp_stdout_output_file" 2>"$temp_stderr_output_file"
 
-	# Compare output with expected output
-	if ! diff -u "$temp_output_file" "$expected_file" 2>/dev/null >"$temp_diff"; then
-		echo "ERROR: for '${args[*]}': actual and expected outputs differ:" >&2
+	# Strip any \r present due to Windows (\n -> \r\n).
+	# "diff --string-trailing-cr" is not used since it is not present on
+	# Solaris.
+	"$BT_TESTS_SED_BIN" -i 's/\r//g' "$temp_stdout_output_file"
+	"$BT_TESTS_SED_BIN" -i 's/\r//g' "$temp_stderr_output_file"
+
+	# Compare stdout output with expected stdout output
+	if ! diff -u "$temp_stdout_output_file" "$expected_stdout_file" 2>/dev/null >"$temp_diff"; then
+		echo "ERROR: for '${args[*]}': actual standard output and expected output differ:" >&2
 		cat "$temp_diff" >&2
 		ret=1
 	fi
 
-	rm -f "$temp_output_file" "$temp_diff"
+	# Compare stderr output with expected stderr output
+	if ! diff -u "$temp_stderr_output_file" "$expected_stderr_file" 2>/dev/null >"$temp_diff"; then
+		echo "ERROR: for '${args[*]}': actual standard error and expected error differ:" >&2
+		cat "$temp_diff" >&2
+		ret=1
+	fi
+
+	rm -f "$temp_stdout_output_file" "$temp_stderr_output_file" "$temp_diff"
 
 	return $ret
 }
@@ -177,13 +199,14 @@ bt_diff_cli() {
 # Returns 0 if there's no difference, and 1 if there is, also printing
 # said difference to the standard error.
 bt_diff_details_ctf_single() {
-	local expected_file="$1"
+	local expected_stdout_file="$1"
 	local trace_dir="$2"
 	shift 2
 	local extra_details_args=("$@")
+	expected_stderr_file="/dev/null"
 
 	# Compare using the CLI with `sink.text.details`
-	bt_diff_cli "$expected_file" "$trace_dir" "-c" "sink.text.details" "${extra_details_args[@]}"
+	bt_diff_cli "$expected_stdout_file" "$expected_stderr_file" "$trace_dir" "-c" "sink.text.details" "${extra_details_args[@]}"
 }
 
 # Calls bt_diff_details_ctf_single(), except that "$1" is the path to a
@@ -192,7 +215,7 @@ bt_diff_details_ctf_single() {
 # CTF trace as its first argument.
 bt_diff_details_ctf_gen_single() {
 	local ctf_gen_prog_path="$1"
-	local expected_file="$2"
+	local expected_stdout_file="$2"
 	shift 2
 	local extra_details_args=("$@")
 
@@ -209,7 +232,7 @@ bt_diff_details_ctf_gen_single() {
 	fi
 
 	# Compare using the CLI with `sink.text.details`
-	bt_diff_details_ctf_single "$expected_file" "$temp_trace_dir" "${extra_details_args[@]}"
+	bt_diff_details_ctf_single "$expected_stdout_file" "$temp_trace_dir" "${extra_details_args[@]}"
 	ret=$?
 	rm -rf "$temp_trace_dir"
 	return $ret
