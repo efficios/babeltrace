@@ -31,10 +31,6 @@ import bt2
 import os
 
 
-_env_var = os.environ.get('BABELTRACE_PYTHON_BT2_NO_TRACEBACK')
-_NO_PRINT_TRACEBACK = _env_var == '1'
-
-
 # This class wraps a component class pointer. This component class could
 # have been created by Python code, but since we only have the pointer,
 # we can only wrap it in a generic way and lose the original Python
