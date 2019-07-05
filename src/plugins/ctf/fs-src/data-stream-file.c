@@ -411,7 +411,7 @@ struct ctf_fs_ds_index *build_index_from_idx_file(
 		if (i != 0 && index_entry->offset < prev_index_entry->offset) {
 			BT_COMP_LOGW("Invalid, non-monotonic, packet offset encountered in LTTng trace index file: "
 				"previous offset=%" PRIu64 ", current offset=%" PRIu64,
-				(index_entry - 1)->offset, index_entry->offset);
+				prev_index_entry->offset, index_entry->offset);
 			goto error;
 		}
 
