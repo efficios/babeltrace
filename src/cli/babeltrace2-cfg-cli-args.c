@@ -4566,7 +4566,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 			const bt_value *bt_val_leftover;
 
 			if (bt_value_array_get_size(leftovers) > 1) {
-				printf_err("Too many URLs specified for --output-format=lttng-live\n");
+				printf_err("Too many URLs specified for --input-format=lttng-live\n");
 				goto error;
 			}
 
