@@ -282,7 +282,7 @@ struct ctf_fs_ds_index *build_index_from_idx_file(
 	const char *mmap_begin = NULL, *file_pos = NULL;
 	const struct ctf_packet_index_file_hdr *header = NULL;
 	struct ctf_fs_ds_index *index = NULL;
-	struct ctf_fs_ds_index_entry *index_entry = NULL;
+	struct ctf_fs_ds_index_entry *index_entry = NULL, *prev_index_entry = NULL;
 	uint64_t total_packets_size = 0;
 	size_t file_index_entry_size;
 	size_t file_entry_count;
@@ -394,7 +394,7 @@ struct ctf_fs_ds_index *build_index_from_idx_file(
 		index_entry->packet_size = packet_size;
 
 		index_entry->offset = be64toh(file_index->offset);
-		if (i != 0 && index_entry->offset < (index_entry - 1)->offset) {
+		if (i != 0 && index_entry->offset < prev_index_entry->offset) {
 			BT_COMP_LOGW("Invalid, non-monotonic, packet offset encountered in LTTng trace index file: "
 				"previous offset=%" PRIu64 ", current offset=%" PRIu64,
 				(index_entry - 1)->offset, index_entry->offset);
@@ -431,6 +431,7 @@ struct ctf_fs_ds_index *build_index_from_idx_file(
 		file_pos += file_index_entry_size;
 
 		g_ptr_array_add(index->entries, index_entry);
+		prev_index_entry = index_entry;
 	}
 
 	/* Validate that the index addresses the complete stream. */
