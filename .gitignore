@@ -1,4 +1,5 @@
 /tests/bitfield/test_bitfield
+/tests/argpar/test_argpar
 /tests/ctf-writer/ctf_writer
 /tests/lib/plugin
 /tests/lib/test_bt_uuid

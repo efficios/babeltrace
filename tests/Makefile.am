@@ -1,4 +1,4 @@
-SUBDIRS = utils lib bitfield ctf-writer plugins
+SUBDIRS = utils lib bitfield ctf-writer plugins argpar
 
 # Directories added to EXTRA_DIST will be recursively copied to the distribution.
 EXTRA_DIST = $(srcdir)/data \
@@ -48,6 +48,9 @@ TESTS_BINDINGS =
 if ENABLE_PYTHON_BINDINGS
 TESTS_BINDINGS += bindings/python/bt2/test_python_bt2
 endif
+
+TESTS_ARGPAR = \
+	argpar/test_argpar
 
 TESTS_CLI = \
 	cli/test_trace_read \
@@ -125,6 +128,7 @@ LOG_DRIVER = env AM_TAP_AWK='$(AWK)' \
 	     $(SHELL) $(srcdir)/utils/tap-driver.sh
 
 TESTS_NO_BITFIELD = \
+	$(TESTS_ARGPAR) \
 	$(TESTS_BINDINGS) \
 	$(TESTS_CLI) \
 	$(TESTS_CTF_WRITER) \
@@ -139,6 +143,7 @@ check-$(1):
 	$(MAKE) $(AM_MAKEFLAGS) TESTS="$2" check
 endef
 
+$(eval $(call check_target,argpar,$(TESTS_ARGPAR)))
 $(eval $(call check_target,bindings,$(TESTS_BINDINGS)))
 $(eval $(call check_target,bitfield,$(TESTS_BITFIELD)))
 $(eval $(call check_target,cli,$(TESTS_CLI)))

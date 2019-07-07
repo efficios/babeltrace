@@ -1,6 +1,7 @@
 SUBDIRS = \
 	common \
 	py-common \
+	argpar \
 	ctfser \
 	fd-cache \
 	compat \
