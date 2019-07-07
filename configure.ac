@@ -693,6 +693,7 @@ AC_CONFIG_FILES([
 	doc/man/Makefile
 	include/Makefile
 	Makefile
+	src/argpar/Makefile
 	src/babeltrace2-ctf-writer.pc
 	src/babeltrace2.pc
 	src/bindings/Makefile
@@ -738,6 +739,7 @@ AC_CONFIG_FILES([
 	src/python-plugin-provider/Makefile
 	tests/bitfield/Makefile
 	tests/ctf-writer/Makefile
+	tests/argpar/Makefile
 	tests/lib/Makefile
 	tests/lib/test-plugin-plugins/Makefile
 	tests/Makefile
