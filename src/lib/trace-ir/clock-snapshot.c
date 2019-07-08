@@ -39,6 +39,7 @@
 BT_HIDDEN
 void bt_clock_snapshot_destroy(struct bt_clock_snapshot *clock_snapshot)
 {
+	BT_ASSERT(clock_snapshot);
 	BT_LIB_LOGD("Destroying clock snapshot: %!+k", clock_snapshot);
 	BT_OBJECT_PUT_REF_AND_RESET(clock_snapshot->clock_class);
 	g_free(clock_snapshot);
