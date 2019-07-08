@@ -1033,15 +1033,22 @@ void write_stream_class(struct details_write_ctx *ctx,
 	write_bool_prop_line(ctx,
 		"Supports discarded events",
 		bt_stream_class_supports_discarded_events(sc));
-	write_bool_prop_line(ctx,
-		"Discarded events have default clock snapshots",
-		bt_stream_class_discarded_events_have_default_clock_snapshots(sc));
+
+	if (bt_stream_class_supports_discarded_events(sc)) {
+		write_bool_prop_line(ctx,
+			"Discarded events have default clock snapshots",
+			bt_stream_class_discarded_events_have_default_clock_snapshots(sc));
+	}
+
 	write_bool_prop_line(ctx,
 		"Supports discarded packets",
 		bt_stream_class_supports_discarded_packets(sc));
-	write_bool_prop_line(ctx,
-		"Discarded packets have default clock snapshots",
-		bt_stream_class_discarded_packets_have_default_clock_snapshots(sc));
+
+	if (bt_stream_class_supports_discarded_packets(sc)) {
+		write_bool_prop_line(ctx,
+			"Discarded packets have default clock snapshots",
+			bt_stream_class_discarded_packets_have_default_clock_snapshots(sc));
+	}
 
 	/* Write default clock class */
 	if (bt_stream_class_borrow_default_clock_class_const(sc)) {

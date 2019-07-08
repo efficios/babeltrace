@@ -5,7 +5,6 @@ Trace class:
     Supports discarded events: Yes
     Discarded events have default clock snapshots: Yes
     Supports discarded packets: No
-    Discarded packets have default clock snapshots: No
     Default clock class:
       Name: default
       Frequency (Hz): 1,000,000,000
