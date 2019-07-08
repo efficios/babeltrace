@@ -12,7 +12,7 @@ all-local: $(SPHINX_HTML_TARGET) $(SPHINX_DIRHTML_TARGET)
 PYTHON_BT2_BUILD_LIB_DIR = $(abs_top_builddir)/src/bindings/python/bt2/build/build_lib
 PP = $(PYTHON_BT2_BUILD_LIB_DIR)
 LLP = $(abs_top_builddir)/src/lib/.libs
-SPHINXBUILD = PYTHONPATH="$(PP)" LD_LIBRARY_PATH="$(LLP)" $(PYTHON) -m sphinx
+SPHINXBUILD = PYTHONPATH="$(PP)" LD_LIBRARY_PATH="$(LLP)" DYLD_LIBRARY_PATH="$(LLP)" $(PYTHON) -m sphinx
 SPHINX_SRC = $(wildcard $(SPHINX_SOURCE_DIR)/*.rst)
 
 $(SPHINX_HTML_TARGET): $(SPHINX_SRC)
