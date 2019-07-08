@@ -80,7 +80,8 @@ function expect_failure()
 	isnt $? 0 "trimmer: ${msg}: exit status"
 
 	num_events=$(wc -l < "${tmp_out}")
-	is "${num_events}" 0 "trimmer: ${msg}: number of events (0)"
+	# Use bash parameter expansion to strip spaces added by BSD 'wc' on macOs and Solaris
+	is "${num_events// /}" 0 "trimmer: ${msg}: number of events (0)"
 
 	stderr="$(cat "${tmp_err}")"
 	# "like" doesn't like when the passed text is empty.
