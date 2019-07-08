@@ -26,6 +26,8 @@ babeltrace2_bin_SOURCES = \
 	babeltrace2-cfg-cli-args-connect.h \
 	babeltrace2-cfg-cli-args-default.h \
 	babeltrace2-cfg-cli-args-default.c \
+	babeltrace2-cfg-cli-params-arg.c \
+	babeltrace2-cfg-cli-params-arg.h \
 	logging.c logging.h
 
 # -Wl,--no-as-needed is needed for recent gold linker who seems to think
