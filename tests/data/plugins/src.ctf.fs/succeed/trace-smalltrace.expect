@@ -3,9 +3,7 @@ Trace class:
     Packets have beginning default clock snapshot: No
     Packets have end default clock snapshot: No
     Supports discarded events: No
-    Discarded events have default clock snapshots: No
     Supports discarded packets: No
-    Discarded packets have default clock snapshots: No
     Event class `string` (ID 0):
       Payload field class: Structure (1 member):
         str: String
