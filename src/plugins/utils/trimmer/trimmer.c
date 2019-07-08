@@ -1349,7 +1349,6 @@ handle_message_with_stream(
 		 * couldn't be using the trimmer component.
 		 */
 		BT_ASSERT(ns_from_origin);
-		BT_ASSERT(sstate->cur_packet);
 
 		if (G_UNLIKELY(!trimmer_it->end.is_infinite &&
 				*ns_from_origin > trimmer_it->end.ns_from_origin)) {

@@ -63,6 +63,9 @@ struct bt_packet_context_field *bt_packet_context_field_create(
 	struct bt_field_wrapper *field_wrapper;
 
 	BT_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
+	BT_ASSERT_PRE(stream_class->supports_packets,
+		"Stream class does not support packets: %![sc-]+S",
+		stream_class);
 	BT_ASSERT_PRE(stream_class->packet_context_fc,
 		"Stream class has no packet context field class: %!+S",
 		stream_class);

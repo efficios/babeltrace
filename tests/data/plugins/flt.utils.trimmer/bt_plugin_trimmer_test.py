@@ -55,6 +55,7 @@ class TheSourceOfAllEvil(bt2._UserSourceComponent,
         # possible to represent with this clock class).
         cc = self._create_clock_class(frequency=1, offset=bt2.ClockClassOffset(10000))
         sc = tc.create_stream_class(default_clock_class=cc,
+                                    supports_packets=True,
                                     packets_have_beginning_default_clock_snapshot=True,
                                     packets_have_end_default_clock_snapshot=True)
         ec1 = sc.create_event_class(name='event 1')

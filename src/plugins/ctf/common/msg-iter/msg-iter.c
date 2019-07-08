@@ -1197,11 +1197,11 @@ enum bt_msg_iter_status set_current_event_message(
 	BT_ASSERT(notit->meta.sc);
 
 	if (bt_stream_class_borrow_default_clock_class(notit->meta.sc->ir_sc)) {
-		msg = bt_message_event_create_with_default_clock_snapshot(
+		msg = bt_message_event_create_with_packet_and_default_clock_snapshot(
 			notit->msg_iter, notit->meta.ec->ir_ec,
 			notit->packet, notit->default_clock_snapshot);
 	} else {
-		msg = bt_message_event_create(notit->msg_iter,
+		msg = bt_message_event_create_with_packet(notit->msg_iter,
 			notit->meta.ec->ir_ec, notit->packet);
 	}
 

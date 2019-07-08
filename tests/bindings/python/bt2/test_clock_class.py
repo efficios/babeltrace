@@ -207,13 +207,9 @@ class ClockSnapshotTestCase(unittest.TestCase):
 
         _cc, _tc = run_in_component_init(f)
         _trace = _tc()
-        _sc = _tc.create_stream_class(default_clock_class=_cc,
-                                      packets_have_beginning_default_clock_snapshot=True,
-                                      packets_have_end_default_clock_snapshot=True)
+        _sc = _tc.create_stream_class(default_clock_class=_cc)
         _ec = _sc.create_event_class(name='salut')
         _stream = _trace.create_stream(_sc)
-        _packet = _stream.create_packet()
-        self._packet = _packet
         self._stream = _stream
         self._ec = _ec
         self._cc = _cc
@@ -226,14 +222,10 @@ class ClockSnapshotTestCase(unittest.TestCase):
                 if self._at == 0:
                     notif = self._create_stream_beginning_message(_stream)
                 elif self._at == 1:
-                    notif = self._create_packet_beginning_message(_packet, 100)
+                    notif = self._create_event_message(_ec, _stream, 123)
                 elif self._at == 2:
-                    notif = self._create_event_message(_ec, _packet, 123)
+                    notif = self._create_event_message(_ec, _stream, 2**63)
                 elif self._at == 3:
-                    notif = self._create_event_message(_ec, _packet, 2**63)
-                elif self._at == 4:
-                    notif = self._create_packet_end_message(_packet)
-                elif self._at == 5:
                     notif = self._create_stream_end_message(_stream)
                 else:
                     raise bt2.Stop
@@ -251,9 +243,9 @@ class ClockSnapshotTestCase(unittest.TestCase):
             self._src_comp.output_ports['out'])
 
         for i, msg in enumerate(self._msg_iter):
-            if i == 2:
+            if i == 1:
                 self._msg = msg
-            elif i == 3:
+            elif i == 2:
                 self._msg_clock_overflow = msg
                 break
 

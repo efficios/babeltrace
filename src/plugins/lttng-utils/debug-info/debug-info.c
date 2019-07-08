@@ -1261,8 +1261,10 @@ bt_message *handle_event_message(struct debug_info_msg_iter *debug_it,
 	const bt_clock_snapshot *cs;
 	const bt_clock_class *default_cc;
 	const bt_packet *in_packet;
+	const bt_stream *in_stream;
+	const bt_stream *out_stream;
 	bt_event_class *out_event_class;
-	bt_packet *out_packet;
+	bt_packet *out_packet = NULL;
 	bt_event *out_event;
 	bt_logging_level log_level = debug_it->log_level;
 	bt_self_component *self_comp = debug_it->self_comp;
@@ -1285,10 +1287,19 @@ bt_message *handle_event_message(struct debug_info_msg_iter *debug_it,
 	}
 	BT_ASSERT(out_event_class);
 
+	/* Borrow the input stream. */
+	in_stream = bt_event_borrow_stream_const(in_event);
+	BT_ASSERT(in_stream);
+	out_stream = trace_ir_mapping_borrow_mapped_stream(debug_it->ir_maps,
+		in_stream);
+	BT_ASSERT(in_stream);
+
 	/* Borrow the input and output packets. */
 	in_packet = bt_event_borrow_packet_const(in_event);
-	out_packet = trace_ir_mapping_borrow_mapped_packet(debug_it->ir_maps,
-			in_packet);
+	if (in_packet) {
+		out_packet = trace_ir_mapping_borrow_mapped_packet(
+			debug_it->ir_maps, in_packet);
+	}
 
 	default_cc = bt_stream_class_borrow_default_clock_class_const(
 			bt_event_class_borrow_stream_class_const(in_event_class));
@@ -1298,13 +1309,29 @@ bt_message *handle_event_message(struct debug_info_msg_iter *debug_it,
 				in_message);
 
 		/* Create an output event message. */
-		out_message = bt_message_event_create_with_default_clock_snapshot(
+		if (out_packet) {
+			out_message =
+				bt_message_event_create_with_packet_and_default_clock_snapshot(
 					debug_it->input_iterator,
 					out_event_class, out_packet,
 					bt_clock_snapshot_get_value(cs));
+		} else {
+			out_message =
+				bt_message_event_create_with_default_clock_snapshot(
+					debug_it->input_iterator,
+					out_event_class, out_stream,
+					bt_clock_snapshot_get_value(cs));
+		}
 	} else {
-		out_message = bt_message_event_create(debug_it->input_iterator,
-				out_event_class, out_packet);
+		if (out_packet) {
+			out_message = bt_message_event_create_with_packet(
+				debug_it->input_iterator, out_event_class,
+				out_packet);
+		} else {
+			out_message = bt_message_event_create(
+				debug_it->input_iterator, out_event_class,
+				out_stream);
+		}
 	}
 
 	if (!out_message) {

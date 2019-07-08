@@ -145,7 +145,7 @@ class UserMessageIteratorTestCase(unittest.TestCase):
         class MySource(bt2._UserSourceComponent, message_iterator_class=MyIter):
             def __init__(self, params):
                 tc = self._create_trace_class()
-                sc = tc.create_stream_class()
+                sc = tc.create_stream_class(supports_packets=True)
                 ec = sc.create_event_class()
                 self._add_output_port('out', (tc, sc, ec))
 
@@ -205,7 +205,7 @@ class UserMessageIteratorTestCase(unittest.TestCase):
                        message_iterator_class=MySourceIter):
             def __init__(self, params):
                 tc = self._create_trace_class()
-                sc = tc.create_stream_class()
+                sc = tc.create_stream_class(supports_packets=True)
                 ec = sc.create_event_class()
 
                 self._add_output_port('out', (tc, sc, ec))
@@ -339,7 +339,7 @@ class OutputPortMessageIteratorTestCase(unittest.TestCase):
                 self._add_output_port('out')
 
                 trace_class = self._create_trace_class()
-                stream_class = trace_class.create_stream_class()
+                stream_class = trace_class.create_stream_class(supports_packets=True)
 
                 # Create payload field class
                 my_int_ft = trace_class.create_signed_integer_field_class(32)

@@ -72,8 +72,11 @@ void _bt_event_set_is_frozen(const struct bt_event *event, bool is_frozen)
 	}
 
 	((struct bt_event *) event)->frozen = is_frozen;
-	BT_LOGD_STR("Setting event's packet's frozen state.");
-	bt_packet_set_is_frozen(event->packet, is_frozen);
+
+	if (event->packet) {
+		BT_LOGD_STR("Setting event's packet's frozen state.");
+		bt_packet_set_is_frozen(event->packet, is_frozen);
+	}
 }
 
 BT_HIDDEN
@@ -147,7 +150,7 @@ const struct bt_event_class *bt_event_borrow_class_const(
 struct bt_stream *bt_event_borrow_stream(struct bt_event *event)
 {
 	BT_ASSERT_PRE_NON_NULL(event, "Event");
-	return event->packet ? event->packet->stream : NULL;
+	return event->stream;
 }
 
 const struct bt_stream *bt_event_borrow_stream_const(
@@ -223,6 +226,8 @@ void bt_event_destroy(struct bt_event *event)
 	bt_object_put_ref(event->class);
 	BT_LOGD_STR("Putting event's packet.");
 	BT_OBJECT_PUT_REF_AND_RESET(event->packet);
+	BT_LOGD_STR("Putting event's stream.");
+	BT_OBJECT_PUT_REF_AND_RESET(event->stream);
 	g_free(event);
 }
 

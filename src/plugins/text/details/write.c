@@ -1025,11 +1025,17 @@ void write_stream_class(struct details_write_ctx *ctx,
 
 	/* Write configuration */
 	write_bool_prop_line(ctx,
-		"Packets have beginning default clock snapshot",
-		bt_stream_class_packets_have_beginning_default_clock_snapshot(sc));
-	write_bool_prop_line(ctx,
-		"Packets have end default clock snapshot",
-		bt_stream_class_packets_have_end_default_clock_snapshot(sc));
+		"Supports packets", bt_stream_class_supports_packets(sc));
+
+	if (bt_stream_class_supports_packets(sc)) {
+		write_bool_prop_line(ctx,
+			"Packets have beginning default clock snapshot",
+			bt_stream_class_packets_have_beginning_default_clock_snapshot(sc));
+		write_bool_prop_line(ctx,
+			"Packets have end default clock snapshot",
+			bt_stream_class_packets_have_end_default_clock_snapshot(sc));
+	}
+
 	write_bool_prop_line(ctx,
 		"Supports discarded events",
 		bt_stream_class_supports_discarded_events(sc));

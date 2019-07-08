@@ -60,7 +60,7 @@ class _EventMessage(_Message, _MessageWithDefaultClockSnapshot):
 
     @property
     def default_clock_snapshot(self):
-        self._check_has_default_clock_class(self.event.packet.stream.cls.default_clock_class)
+        self._check_has_default_clock_class(self.event.stream.cls.default_clock_class)
         return self._get_default_clock_snapshot(self._borrow_default_clock_snapshot_ptr)
 
     @property

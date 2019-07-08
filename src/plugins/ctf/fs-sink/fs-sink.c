@@ -313,6 +313,42 @@ bt_component_class_sink_consume_method_status handle_event_msg(
 			msg);
 	}
 
+	/*
+	 * If this event's stream does not support packets, then we
+	 * lazily create artificial packets.
+	 *
+	 * The size of an artificial packet is arbitrarily at least
+	 * 4 MiB (it usually is greater because we close it when
+	 * comes the time to write a new event and the packet's content
+	 * size is >= 4 MiB), except the last one which can be smaller.
+	 */
+	if (G_UNLIKELY(!stream->sc->has_packets)) {
+		if (stream->packet_state.is_open &&
+				bt_ctfser_get_offset_in_current_packet_bits(&stream->ctfser) / 8 >=
+				4 * 1024 * 1024) {
+			/*
+			 * Stream's current packet is larger than 4 MiB:
+			 * close it. A new packet will be opened just
+			 * below.
+			 */
+			ret = fs_sink_stream_close_packet(stream, NULL);
+			if (ret) {
+				status = BT_COMPONENT_CLASS_SINK_CONSUME_METHOD_STATUS_ERROR;
+				goto end;
+			}
+		}
+
+		if (!stream->packet_state.is_open) {
+			/* Stream's packet is not currently opened: open it */
+			ret = fs_sink_stream_open_packet(stream, NULL, NULL);
+			if (ret) {
+				status = BT_COMPONENT_CLASS_SINK_CONSUME_METHOD_STATUS_ERROR;
+				goto end;
+			}
+		}
+	}
+
+	BT_ASSERT(stream->packet_state.is_open);
 	ret = fs_sink_stream_write_event(stream, cs, ir_event, ec);
 	if (G_UNLIKELY(ret)) {
 		status = BT_COMPONENT_CLASS_SINK_CONSUME_METHOD_STATUS_ERROR;
@@ -617,6 +653,29 @@ bt_component_class_sink_consume_method_status handle_stream_beginning_msg(
 		bt_stream_class_packets_have_end_default_clock_snapshot(ir_sc);
 
 	/*
+	 * Not supported: discarded events or discarded packets support
+	 * without packets support. Packets are the way to know where
+	 * discarded events/packets occured in CTF 1.8.
+	 */
+	if (!bt_stream_class_supports_packets(ir_sc)) {
+		BT_ASSERT(!bt_stream_class_supports_discarded_packets(ir_sc));
+
+		if (!fs_sink->ignore_discarded_events &&
+				bt_stream_class_supports_discarded_events(ir_sc)) {
+			BT_COMP_LOGE("Unsupported stream: "
+				"stream does not support packets, "
+				"but supports discarded events: "
+				"stream-addr=%p, "
+				"stream-id=%" PRIu64 ", "
+				"stream-name=\"%s\"",
+				ir_stream, bt_stream_get_id(ir_stream),
+				bt_stream_get_name(ir_stream));
+			status = BT_COMPONENT_CLASS_SINK_CONSUME_METHOD_STATUS_ERROR;
+			goto end;
+		}
+	}
+
+	/*
 	 * Not supported: discarded events with default clock snapshots,
 	 * but packet beginning/end without default clock snapshot.
 	 */
@@ -686,6 +745,17 @@ bt_component_class_sink_consume_method_status handle_stream_end_msg(
 	if (!stream) {
 		status = BT_COMPONENT_CLASS_SINK_CONSUME_METHOD_STATUS_ERROR;
 		goto end;
+	}
+
+	if (G_UNLIKELY(!stream->sc->has_packets &&
+			stream->packet_state.is_open)) {
+		/* Close stream's current artificial packet */
+		int ret = fs_sink_stream_close_packet(stream, NULL);
+
+		if (ret) {
+			status = BT_COMPONENT_CLASS_SINK_CONSUME_METHOD_STATUS_ERROR;
+			goto end;
+		}
 	}
 
 	BT_COMP_LOGI("Closing stream file: "

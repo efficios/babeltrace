@@ -165,23 +165,37 @@ class _UserMessageIterator(_MessageIterator):
     def _bt_seek_beginning_from_native(self):
         self._seek_beginning()
 
-    def _create_event_message(self, event_class, packet, default_clock_snapshot=None):
+    def _create_event_message(self, event_class, parent=None,
+                              default_clock_snapshot=None):
         utils._check_type(event_class, bt2.event_class._EventClass)
-        utils._check_type(packet, bt2.packet._Packet)
+
+        if event_class.stream_class.supports_packets:
+            utils._check_type(parent, bt2.packet._Packet)
+        else:
+            utils._check_type(parent, bt2.stream._Stream)
 
         if default_clock_snapshot is not None:
             if event_class.stream_class.default_clock_class is None:
                 raise ValueError('event messages in this stream must not have a default clock snapshot')
 
             utils._check_uint64(default_clock_snapshot)
-            ptr = native_bt.message_event_create_with_default_clock_snapshot(
-                self._bt_ptr, event_class._ptr, packet._ptr, default_clock_snapshot)
+
+            if event_class.stream_class.supports_packets:
+                ptr = native_bt.message_event_create_with_packet_and_default_clock_snapshot(
+                    self._bt_ptr, event_class._ptr, parent._ptr, default_clock_snapshot)
+            else:
+                ptr = native_bt.message_event_create_with_default_clock_snapshot(
+                    self._bt_ptr, event_class._ptr, parent._ptr, default_clock_snapshot)
         else:
             if event_class.stream_class.default_clock_class is not None:
                 raise ValueError('event messages in this stream must have a default clock snapshot')
 
-            ptr = native_bt.message_event_create(
-                self._bt_ptr, event_class._ptr, packet._ptr)
+            if event_class.stream_class.supports_packets:
+                ptr = native_bt.message_event_create_with_packet(
+                    self._bt_ptr, event_class._ptr, parent._ptr)
+            else:
+                ptr = native_bt.message_event_create(
+                    self._bt_ptr, event_class._ptr, parent._ptr)
 
         if ptr is None:
             raise bt2.CreationError('cannot create event message object')

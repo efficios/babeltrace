@@ -48,7 +48,10 @@ class _Event(object._UniqueObject):
     @property
     def packet(self):
         packet_ptr = native_bt.event_borrow_packet(self._ptr)
-        assert packet_ptr is not None
+
+        if packet_ptr is None:
+            return
+
         return bt2.packet._Packet._create_from_ptr_and_get_ref(packet_ptr)
 
     @property

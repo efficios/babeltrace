@@ -197,37 +197,6 @@ static bt_event_class *create_complex_event(bt_stream_class *sc,
 	return event;
 }
 
-static void set_stream_class_field_classes(
-		bt_stream_class *stream_class)
-{
-	bt_trace_class *trace_class =
-		bt_stream_class_borrow_trace_class(stream_class);
-	bt_field_class *packet_context_type;
-	bt_field_class *fc;
-	int ret;
-
-	packet_context_type = bt_field_class_structure_create(trace_class);
-	BT_ASSERT(packet_context_type);
-	fc = bt_field_class_unsigned_integer_create(trace_class);
-	BT_ASSERT(fc);
-	bt_field_class_integer_set_field_value_range(fc, 32);
-	ret = bt_field_class_structure_append_member(packet_context_type,
-		"packet_size", fc);
-	BT_ASSERT(ret == 0);
-	bt_field_class_put_ref(fc);
-	fc = bt_field_class_unsigned_integer_create(trace_class);
-	BT_ASSERT(fc);
-	bt_field_class_integer_set_field_value_range(fc, 32);
-	ret = bt_field_class_structure_append_member(packet_context_type,
-		"content_size", fc);
-	BT_ASSERT(ret == 0);
-	bt_field_class_put_ref(fc);
-	ret = bt_stream_class_set_packet_context_field_class(
-		stream_class, packet_context_type);
-	BT_ASSERT(ret == 0);
-	bt_field_class_put_ref(packet_context_type);
-}
-
 static void create_sc1(bt_trace_class *trace_class)
 {
 	int ret;
@@ -238,7 +207,6 @@ static void create_sc1(bt_trace_class *trace_class)
 	BT_ASSERT(sc1);
 	ret = bt_stream_class_set_name(sc1, "sc1");
 	BT_ASSERT(ret == 0);
-	set_stream_class_field_classes(sc1);
 	ec1 = create_complex_event(sc1, "ec1");
 	BT_ASSERT(ec1);
 	ec2 = create_simple_event(sc1, "ec2");
@@ -262,7 +230,6 @@ static void create_sc2(bt_trace_class *trace_class)
 	BT_ASSERT(sc2);
 	ret = bt_stream_class_set_name(sc2, "sc2");
 	BT_ASSERT(ret == 0);
-	set_stream_class_field_classes(sc2);
 	ec3 = create_simple_event(sc2, "ec3");
 	ret_stream = bt_event_class_borrow_stream_class(ec3);
 	ok(ret_stream == sc2, "Borrow parent stream SC2 from EC3");

@@ -115,6 +115,7 @@ class _TraceClass(object._SharedObject, collections.abc.Mapping):
                             default_clock_class=None,
                             assigns_automatic_event_class_id=True,
                             assigns_automatic_stream_id=True,
+                            supports_packets=False,
                             packets_have_beginning_default_clock_snapshot=False,
                             packets_have_end_default_clock_snapshot=False,
                             supports_discarded_events=False,
@@ -139,19 +140,28 @@ class _TraceClass(object._SharedObject, collections.abc.Mapping):
         if name is not None:
             sc._name = name
 
-        if packet_context_field_class is not None:
-            sc._packet_context_field_class = packet_context_field_class
-
         if event_common_context_field_class is not None:
             sc._event_common_context_field_class = event_common_context_field_class
 
         if default_clock_class is not None:
             sc._default_clock_class = default_clock_class
 
+        # call after `sc._default_clock_class` because, if
+        # `packets_have_beginning_default_clock_snapshot` or
+        # `packets_have_end_default_clock_snapshot` is true, then this
+        # stream class needs a default clock class already.
+        sc._set_supports_packets(supports_packets,
+                                 packets_have_beginning_default_clock_snapshot,
+                                 packets_have_end_default_clock_snapshot)
+
+        # call after sc._set_supports_packets() because, if
+        # `packet_context_field_class` is not `None`, then this stream
+        # class needs to support packets already.
+        if packet_context_field_class is not None:
+            sc._packet_context_field_class = packet_context_field_class
+
         sc._assigns_automatic_event_class_id = assigns_automatic_event_class_id
         sc._assigns_automatic_stream_id = assigns_automatic_stream_id
-        sc._packets_have_beginning_default_clock_snapshot = packets_have_beginning_default_clock_snapshot
-        sc._packets_have_end_default_clock_snapshot = packets_have_end_default_clock_snapshot
         sc._set_supports_discarded_events(supports_discarded_events,
                                           discarded_events_have_default_clock_snapshots)
         sc._set_supports_discarded_packets(supports_discarded_packets,

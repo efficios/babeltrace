@@ -55,9 +55,7 @@ struct dmesg_msg_iter {
 
 	enum {
 		STATE_EMIT_STREAM_BEGINNING,
-		STATE_EMIT_PACKET_BEGINNING,
 		STATE_EMIT_EVENT,
-		STATE_EMIT_PACKET_END,
 		STATE_EMIT_STREAM_END,
 		STATE_DONE,
 	} state;
@@ -79,7 +77,6 @@ struct dmesg_component {
 	bt_event_class *event_class;
 	bt_trace *trace;
 	bt_stream *stream;
-	bt_packet *packet;
 	bt_clock_class *clock_class;
 };
 
@@ -161,11 +158,6 @@ int create_meta(struct dmesg_component *dmesg_comp, bool has_ts)
 			BT_COMP_LOGE_STR("Cannot set stream class's default clock class.");
 			goto error;
 		}
-
-		bt_stream_class_set_packets_have_beginning_default_clock_snapshot(
-			dmesg_comp->stream_class, BT_TRUE);
-		bt_stream_class_set_packets_have_end_default_clock_snapshot(
-			dmesg_comp->stream_class, BT_TRUE);
 	}
 
 	dmesg_comp->event_class = bt_event_class_create(
@@ -258,7 +250,7 @@ end:
 }
 
 static
-int create_packet_and_stream_and_trace(struct dmesg_component *dmesg_comp)
+int create_stream_and_trace(struct dmesg_component *dmesg_comp)
 {
 	int ret = 0;
 	const char *trace_name = NULL;
@@ -298,12 +290,6 @@ int create_packet_and_stream_and_trace(struct dmesg_component *dmesg_comp)
 		goto error;
 	}
 
-	dmesg_comp->packet = bt_packet_create(dmesg_comp->stream);
-	if (!dmesg_comp->packet) {
-		BT_COMP_LOGE_STR("Cannot create packet object.");
-		goto error;
-	}
-
 	goto end;
 
 error:
@@ -318,8 +304,7 @@ end:
 }
 
 static
-int try_create_meta_stream_packet(struct dmesg_component *dmesg_comp,
-		bool has_ts)
+int try_create_meta_stream(struct dmesg_component *dmesg_comp, bool has_ts)
 {
 	int ret = 0;
 
@@ -335,9 +320,9 @@ int try_create_meta_stream_packet(struct dmesg_component *dmesg_comp,
 		goto error;
 	}
 
-	ret = create_packet_and_stream_and_trace(dmesg_comp);
+	ret = create_stream_and_trace(dmesg_comp);
 	if (ret) {
-		BT_COMP_LOGE("Cannot create packet and stream objects: "
+		BT_COMP_LOGE("Cannot create stream object: "
 			"dmesg-comp-addr=%p", dmesg_comp);
 		goto error;
 	}
@@ -362,7 +347,6 @@ void destroy_dmesg_component(struct dmesg_component *dmesg_comp)
 		g_string_free(dmesg_comp->params.path, TRUE);
 	}
 
-	bt_packet_put_ref(dmesg_comp->packet);
 	bt_trace_put_ref(dmesg_comp->trace);
 	bt_stream_class_put_ref(dmesg_comp->stream_class);
 	bt_event_class_put_ref(dmesg_comp->event_class);
@@ -539,22 +523,22 @@ skip_ts:
 	/*
 	 * At this point, we know if the stream class's event header
 	 * field class should have a timestamp or not, so we can lazily
-	 * create the metadata, stream, and packet objects.
+	 * create the metadata and stream objects.
 	 */
-	ret = try_create_meta_stream_packet(dmesg_comp, has_timestamp);
+	ret = try_create_meta_stream(dmesg_comp, has_timestamp);
 	if (ret) {
-		/* try_create_meta_stream_packet() logs errors */
+		/* try_create_meta_stream() logs errors */
 		goto error;
 	}
 
 	if (dmesg_comp->clock_class) {
 		msg = bt_message_event_create_with_default_clock_snapshot(
 			msg_iter->pc_msg_iter,
-			dmesg_comp->event_class, dmesg_comp->packet, ts);
+			dmesg_comp->event_class, dmesg_comp->stream, ts);
 		msg_iter->last_clock_value = ts;
 	} else {
 		msg = bt_message_event_create(msg_iter->pc_msg_iter,
-			dmesg_comp->event_class, dmesg_comp->packet);
+			dmesg_comp->event_class, dmesg_comp->stream);
 	}
 
 	if (!msg) {
@@ -747,7 +731,6 @@ bt_component_class_message_iterator_next_method_status dmesg_msg_iter_next_one(
 	}
 
 	if (dmesg_msg_iter->tmp_event_msg ||
-			dmesg_msg_iter->state == STATE_EMIT_PACKET_END ||
 			dmesg_msg_iter->state == STATE_EMIT_STREAM_END) {
 		goto handle_state;
 	}
@@ -769,9 +752,9 @@ bt_component_class_message_iterator_next_method_status dmesg_msg_iter_next_one(
 					status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_END;
 					goto end;
 				} else {
-					/* End current packet now */
+					/* End stream now */
 					dmesg_msg_iter->state =
-						STATE_EMIT_PACKET_END;
+						STATE_EMIT_STREAM_END;
 					goto handle_state;
 				}
 			}
@@ -811,38 +794,12 @@ handle_state:
 		BT_ASSERT(dmesg_msg_iter->tmp_event_msg);
 		*msg = bt_message_stream_beginning_create(
 			dmesg_msg_iter->pc_msg_iter, dmesg_comp->stream);
-		dmesg_msg_iter->state = STATE_EMIT_PACKET_BEGINNING;
-		break;
-	case STATE_EMIT_PACKET_BEGINNING:
-		BT_ASSERT(dmesg_msg_iter->tmp_event_msg);
-
-		if (dmesg_comp->clock_class) {
-			*msg = bt_message_packet_beginning_create_with_default_clock_snapshot(
-				dmesg_msg_iter->pc_msg_iter, dmesg_comp->packet,
-				dmesg_msg_iter->last_clock_value);
-		} else {
-			*msg = bt_message_packet_beginning_create(
-				dmesg_msg_iter->pc_msg_iter, dmesg_comp->packet);
-		}
-
 		dmesg_msg_iter->state = STATE_EMIT_EVENT;
 		break;
 	case STATE_EMIT_EVENT:
 		BT_ASSERT(dmesg_msg_iter->tmp_event_msg);
 		*msg = dmesg_msg_iter->tmp_event_msg;
 		dmesg_msg_iter->tmp_event_msg = NULL;
-		break;
-	case STATE_EMIT_PACKET_END:
-		if (dmesg_comp->clock_class) {
-			*msg = bt_message_packet_end_create_with_default_clock_snapshot(
-				dmesg_msg_iter->pc_msg_iter, dmesg_comp->packet,
-				dmesg_msg_iter->last_clock_value);
-		} else {
-			*msg = bt_message_packet_end_create(
-				dmesg_msg_iter->pc_msg_iter, dmesg_comp->packet);
-		}
-
-		dmesg_msg_iter->state = STATE_EMIT_STREAM_END;
 		break;
 	case STATE_EMIT_STREAM_END:
 		*msg = bt_message_stream_end_create(

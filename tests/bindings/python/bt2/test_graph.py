@@ -31,7 +31,7 @@ class _MyIter(bt2._UserMessageIterator):
     def _build_meta(self):
         self._tc = self._component._create_trace_class()
         self._t = self._tc()
-        self._sc = self._tc.create_stream_class()
+        self._sc = self._tc.create_stream_class(supports_packets=True)
         self._ec = self._sc.create_event_class(name='salut')
         self._my_int_ft = self._tc.create_signed_integer_field_class(32)
         payload_ft = self._tc.create_structure_field_class()

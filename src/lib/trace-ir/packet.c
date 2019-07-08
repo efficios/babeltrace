@@ -222,6 +222,9 @@ struct bt_packet *bt_packet_create(const struct bt_stream *c_stream)
 	struct bt_stream *stream = (void *) c_stream;
 
 	BT_ASSERT_PRE_NON_NULL(stream, "Stream");
+	BT_ASSERT_PRE(stream->class->supports_packets,
+		"Stream class does not support packets: %![sc-]+S",
+		stream->class);
 	packet = bt_object_pool_create_object(&stream->packet_pool);
 	if (G_UNLIKELY(!packet)) {
 		BT_LIB_LOGE_APPEND_CAUSE(

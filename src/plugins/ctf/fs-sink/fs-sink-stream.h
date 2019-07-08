@@ -95,7 +95,10 @@ struct fs_sink_stream {
 		 */
 		uint64_t context_offset_bits;
 
-		/* Owned by this */
+		/*
+		 * Owned by this; `NULL` if the current packet is closed
+		 * or if the trace IR stream does not support packets.
+		 */
 		const bt_packet *packet;
 	} packet_state;
 

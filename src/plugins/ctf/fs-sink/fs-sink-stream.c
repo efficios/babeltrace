@@ -517,10 +517,11 @@ int write_packet_context(struct fs_sink_stream *stream)
 
 	/* Other members */
 	if (stream->sc->packet_context_fc) {
-		const bt_field *packet_context_field =
-			bt_packet_borrow_context_field_const(
-				stream->packet_state.packet);
+		const bt_field *packet_context_field;
 
+		BT_ASSERT(stream->packet_state.packet);
+		packet_context_field = bt_packet_borrow_context_field_const(
+			stream->packet_state.packet);
 		BT_ASSERT(packet_context_field);
 		ret = write_struct_field(stream,
 			(void *) stream->sc->packet_context_fc,

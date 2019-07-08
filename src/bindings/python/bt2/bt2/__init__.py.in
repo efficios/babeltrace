@@ -47,6 +47,7 @@ from bt2.logging import *
 from bt2.message import *
 from bt2.message import _DiscardedEventsMessage
 from bt2.message import _DiscardedPacketsMessage
+from bt2.message import _EventMessage
 from bt2.message_iterator import *
 from bt2.message_iterator import _UserMessageIterator
 from bt2.packet import _Packet

@@ -130,24 +130,29 @@ class _StreamClass(object._SharedObject, collections.abc.Mapping):
     _assigns_automatic_stream_id = property(fset=_assigns_automatic_stream_id)
 
     @property
+    def supports_packets(self):
+        return native_bt.stream_class_supports_packets(self._ptr)
+
+    @property
     def packets_have_beginning_default_clock_snapshot(self):
         return native_bt.stream_class_packets_have_beginning_default_clock_snapshot(self._ptr)
-
-    def _packets_have_beginning_default_clock_snapshot(self, value):
-        utils._check_bool(value)
-        native_bt.stream_class_set_packets_have_beginning_default_clock_snapshot(self._ptr, value)
-
-    _packets_have_beginning_default_clock_snapshot = property(fset=_packets_have_beginning_default_clock_snapshot)
 
     @property
     def packets_have_end_default_clock_snapshot(self):
         return native_bt.stream_class_packets_have_end_default_clock_snapshot(self._ptr)
 
-    def _packets_have_end_default_clock_snapshot(self, value):
-        utils._check_bool(value)
-        native_bt.stream_class_set_packets_have_end_default_clock_snapshot(self._ptr, value)
+    def _set_supports_packets(self, supports, with_begin_cs=False, with_end_cs=False):
+        utils._check_bool(supports)
+        utils._check_bool(with_begin_cs)
+        utils._check_bool(with_end_cs)
 
-    _packets_have_end_default_clock_snapshot = property(fset=_packets_have_end_default_clock_snapshot)
+        if not supports and (with_begin_cs or with_end_cs):
+            raise ValueError('cannot not support packets, but have default clock snapshots')
+
+        if not supports and self.packet_context_field_class is not None:
+            raise ValueError('stream class already has a packet context field class')
+
+        native_bt.stream_class_set_supports_packets(self._ptr, supports, with_begin_cs, with_end_cs)
 
     @property
     def supports_discarded_events(self):
@@ -173,6 +178,9 @@ class _StreamClass(object._SharedObject, collections.abc.Mapping):
     def _set_supports_discarded_packets(self, supports, with_cs):
         utils._check_bool(supports)
         utils._check_bool(with_cs)
+
+        if supports and not self.supports_packets:
+            raise ValueError('cannot support discarded packets, but not support packets')
 
         if not supports and with_cs:
             raise ValueError('cannot not support discarded packets, but have default clock snapshots')
@@ -211,6 +219,10 @@ class _StreamClass(object._SharedObject, collections.abc.Mapping):
         if packet_context_field_class is not None:
             utils._check_type(packet_context_field_class,
                               bt2.field_class._StructureFieldClass)
+
+            if not self.supports_packets:
+                raise ValueError('stream class does not support packets')
+
             status = native_bt.stream_class_set_packet_context_field_class(self._ptr,
                                                                            packet_context_field_class._ptr)
             utils._handle_func_status(status,

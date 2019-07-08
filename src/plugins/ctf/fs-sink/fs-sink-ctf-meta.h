@@ -133,6 +133,7 @@ struct fs_sink_ctf_stream_class {
 	const bt_clock_class *default_clock_class;
 
 	GString *default_clock_class_name;
+	bool has_packets;
 	bool packets_have_ts_begin;
 	bool packets_have_ts_end;
 	bool has_discarded_events;
@@ -739,6 +740,7 @@ struct fs_sink_ctf_stream_class *fs_sink_ctf_stream_class_create(
 	sc->event_classes_from_ir = g_hash_table_new(g_direct_hash,
 		g_direct_equal);
 	BT_ASSERT(sc->event_classes_from_ir);
+	sc->has_packets = bt_stream_class_supports_packets(ir_sc);
 	sc->packets_have_ts_begin =
 		bt_stream_class_packets_have_beginning_default_clock_snapshot(
 			ir_sc);
