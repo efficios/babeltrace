@@ -1,4 +1,4 @@
-SUBDIRS = utils lib ctf-writer plugins
+SUBDIRS = utils lib bitfield ctf-writer plugins
 
 # Directories added to EXTRA_DIST will be recursively copied to the distribution.
 EXTRA_DIST = $(srcdir)/data \
@@ -55,11 +55,13 @@ TESTS_CLI = \
 	cli/test_trimmer
 
 TESTS_LIB = \
-	lib/test_bitfield \
 	lib/test_bt_values \
 	lib/test_bt_uuid \
 	lib/test_graph_topo \
 	lib/test_trace_ir_ref
+
+TESTS_BITFIELD = \
+	bitfield/test_bitfield
 
 TESTS_CTF_WRITER = \
 	ctf-writer/test_ctf_writer
@@ -116,8 +118,15 @@ LOG_DRIVER = env AM_TAP_AWK='$(AWK)' \
 	     BT_TESTS_SED_BIN="$(SED)" \
 	     $(SHELL) $(top_srcdir)/config/tap-driver.sh
 
-TESTS = $(TESTS_BINDINGS) $(TESTS_CLI) $(TESTS_CTF_WRITER) $(TESTS_LIB) \
-	$(TESTS_PLUGINS) $(TESTS_PYTHON_PLUGIN_PROVIDER)
+TESTS_NO_BITFIELD = \
+	$(TESTS_BINDINGS) \
+	$(TESTS_CLI) \
+	$(TESTS_CTF_WRITER) \
+	$(TESTS_LIB) \
+	$(TESTS_PLUGINS) \
+	$(TESTS_PYTHON_PLUGIN_PROVIDER)
+
+TESTS = $(TESTS_NO_BITFIELD) $(TESTS_BITFIELD)
 
 define check_target
 check-$(1):
@@ -125,8 +134,12 @@ check-$(1):
 endef
 
 $(eval $(call check_target,bindings,$(TESTS_BINDINGS)))
+$(eval $(call check_target,bitfield,$(TESTS_BITFIELD)))
 $(eval $(call check_target,cli,$(TESTS_CLI)))
 $(eval $(call check_target,ctf-writer,$(TESTS_CTF_WRITER)))
 $(eval $(call check_target,lib,$(TESTS_LIB)))
 $(eval $(call check_target,plugins,$(TESTS_PLUGINS)))
 $(eval $(call check_target,python-plugin-provider,$(TESTS_PYTHON_PLUGIN_PROVIDER)))
+
+check-no-bitfield:
+	$(MAKE) $(AM_MAKEFLAGS) TESTS="$(TESTS_NO_BITFIELD)" check
