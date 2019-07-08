@@ -24,6 +24,29 @@ set -u
 
 scriptdir="$(dirname "${BASH_SOURCE[0]}")"
 
+# The OS on which we are running. See [1] for possible values of 'uname -s'.
+# We do a bit of translation to ease our life down the road for comparison.
+# Export it so that called executables can use it.
+# [1] https://en.wikipedia.org/wiki/Uname#Examples
+if [ "x${BT_OS_TYPE:-}" = "x" ]; then
+	BT_OS_TYPE="$(uname -s)"
+	case "$BT_OS_TYPE" in
+	MINGW*)
+		BT_OS_TYPE="mingw"
+		;;
+	Darwin)
+		BT_OS_TYPE="darwin"
+		;;
+	Linux)
+		BT_OS_TYPE="linux"
+		;;
+	*)
+		BT_OS_TYPE="unsupported"
+		;;
+	esac
+fi
+export BT_OS_TYPE
+
 # Allow overriding the source and build directories
 if [ "x${BT_TESTS_SRCDIR:-}" = "x" ]; then
 	BT_TESTS_SRCDIR="$scriptdir/.."
@@ -45,7 +68,7 @@ fi
 # Allow overriding the babeltrace2 executables
 if [ "x${BT_TESTS_BT2_BIN:-}" = "x" ]; then
 	BT_TESTS_BT2_BIN="$BT_TESTS_BUILDDIR/../src/cli/babeltrace2"
-	if [ "x${MSYSTEM:-}" != "x" ]; then
+	if [ "$BT_OS_TYPE" = "mingw" ]; then
 		BT_TESTS_BT2_BIN="${BT_TESTS_BT2_BIN}.exe"
 	fi
 fi
@@ -53,7 +76,7 @@ export BT_TESTS_BT2_BIN
 
 if [ "x${BT_TESTS_BT2LOG_BIN:-}" = "x" ]; then
 	BT_TESTS_BT2LOG_BIN="$BT_TESTS_BUILDDIR/../src/cli/babeltrace2-log"
-	if [ "x${MSYSTEM:-}" != "x" ]; then
+	if [ "$BT_OS_TYPE" = "mingw" ]; then
 		BT_TESTS_BT2LOG_BIN="${BT_TESTS_BT2LOG_BIN}.exe"
 	fi
 fi
@@ -201,9 +224,12 @@ run_python_bt2() {
 	local main_lib_path="${BT_TESTS_BUILDDIR}/../src/lib/.libs"
 
 	# Set the library search path so the python interpreter can load libbabeltrace2
-	if [ "x${MSYSTEM:-}" != "x" ]; then
+	if [ "$BT_OS_TYPE" = "mingw" ]; then
 		lib_search_var="PATH"
 		lib_search_path="${python_provider_path}:${main_lib_path}:${PATH:-}"
+	elif [ "$BT_OS_TYPE" = "darwin" ]; then
+		lib_search_var="DYLD_LIBRARY_PATH"
+		lib_search_path="${python_provider_path}:${main_lib_path}:${DYLD_LIBRARY_PATH:-}"
 	else
 		lib_search_var="LD_LIBRARY_PATH"
 		lib_search_path="${python_provider_path}:${main_lib_path}:${LD_LIBRARY_PATH:-}"
