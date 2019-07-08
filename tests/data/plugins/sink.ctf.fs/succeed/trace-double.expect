@@ -1,5 +1,6 @@
 Trace class:
   Stream class (ID 0):
+    Supports packets: Yes
     Packets have beginning default clock snapshot: Yes
     Packets have end default clock snapshot: Yes
     Supports discarded events: Yes

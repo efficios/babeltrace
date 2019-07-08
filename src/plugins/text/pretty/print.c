@@ -296,7 +296,6 @@ int print_event_header(struct pretty_component *pretty,
 	bool print_names = pretty->options.print_header_field_names;
 	int ret = 0;
 	const bt_event_class *event_class = NULL;
-	const bt_packet *packet = NULL;
 	const bt_stream *stream = NULL;
 	const bt_trace *trace = NULL;
 	const bt_event *event = bt_message_event_borrow_event_const(event_msg);
@@ -305,8 +304,7 @@ int print_event_header(struct pretty_component *pretty,
 	bt_property_availability prop_avail;
 
 	event_class = bt_event_borrow_class_const(event);
-	packet = bt_event_borrow_packet_const(event);
-	stream = bt_packet_borrow_stream_const(packet);
+	stream = bt_event_borrow_stream_const(event);
 	trace = bt_stream_borrow_trace_const(stream);
 	ret = print_event_timestamp(pretty, event_msg, &pretty->start_line);
 	if (ret) {
@@ -1038,7 +1036,6 @@ int print_stream_packet_context(struct pretty_component *pretty,
 
 	packet = bt_event_borrow_packet_const(event);
 	if (!packet) {
-		ret = -1;
 		goto end;
 	}
 	main_field = bt_packet_borrow_context_field_const(packet);

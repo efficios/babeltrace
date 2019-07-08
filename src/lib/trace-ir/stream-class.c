@@ -310,6 +310,9 @@ bt_stream_class_set_packet_context_field_class(
 	};
 
 	BT_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
+	BT_ASSERT_PRE(stream_class->supports_packets,
+		"Stream class does not support packets: %![sc-]+S",
+		stream_class);
 	BT_ASSERT_PRE_NON_NULL(field_class, "Field class");
 	BT_ASSERT_PRE_STREAM_CLASS_HOT(stream_class);
 	BT_ASSERT_PRE(bt_field_class_get_type(field_class) ==
@@ -457,46 +460,6 @@ void bt_stream_class_set_assigns_automatic_event_class_id(
 		"assignment property: %!+S", stream_class);
 }
 
-bt_bool bt_stream_class_packets_have_beginning_default_clock_snapshot(
-		const struct bt_stream_class *stream_class)
-{
-	BT_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
-	return (bt_bool) stream_class->packets_have_beginning_default_clock_snapshot;
-}
-
-void bt_stream_class_set_packets_have_beginning_default_clock_snapshot(
-		struct bt_stream_class *stream_class, bt_bool value)
-{
-	BT_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
-	BT_ASSERT_PRE_STREAM_CLASS_HOT(stream_class);
-	BT_ASSERT_PRE(!value || stream_class->default_clock_class,
-		"Stream class has no default clock class: %!+S", stream_class);
-	stream_class->packets_have_beginning_default_clock_snapshot =
-		(bool) value;
-	BT_LIB_LOGD("Set stream class's \"packets have default beginning "
-		"clock snapshot\" property: %!+S", stream_class);
-}
-
-bt_bool bt_stream_class_packets_have_end_default_clock_snapshot(
-		const struct bt_stream_class *stream_class)
-{
-	BT_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
-	return (bt_bool) stream_class->packets_have_end_default_clock_snapshot;
-}
-
-void bt_stream_class_set_packets_have_end_default_clock_snapshot(
-		struct bt_stream_class *stream_class, bt_bool value)
-{
-	BT_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
-	BT_ASSERT_PRE_STREAM_CLASS_HOT(stream_class);
-	BT_ASSERT_PRE(!value || stream_class->default_clock_class,
-		"Stream class has no default clock class: %!+S", stream_class);
-	stream_class->packets_have_end_default_clock_snapshot =
-		(bool) value;
-	BT_LIB_LOGD("Set stream class's \"packets have default end "
-		"clock snapshot\" property: %!+S", stream_class);
-}
-
 bt_bool bt_stream_class_assigns_automatic_stream_id(
 		const struct bt_stream_class *stream_class)
 {
@@ -547,6 +510,10 @@ void bt_stream_class_set_supports_discarded_packets(
 {
 	BT_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
 	BT_ASSERT_PRE_STREAM_CLASS_HOT(stream_class);
+	BT_ASSERT_PRE(!supports_discarded_packets ||
+		stream_class->supports_packets,
+		"Stream class does not support packets: %!+S",
+		stream_class);
 	BT_ASSERT_PRE(supports_discarded_packets ||
 		!with_default_clock_snapshots,
 		"Discarded packets cannot have default clock snapshots when "
@@ -574,6 +541,61 @@ bt_bool bt_stream_class_discarded_packets_have_default_clock_snapshots(
 {
 	BT_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
 	return (bt_bool) stream_class->discarded_packets_have_default_clock_snapshots;
+}
+
+void bt_stream_class_set_supports_packets(
+		struct bt_stream_class *stream_class,
+		bt_bool supports_packets,
+		bt_bool with_beginning_default_clock_snapshot,
+		bt_bool with_end_default_clock_snapshot)
+{
+	bt_bool with_default_clock_snapshot =
+		with_beginning_default_clock_snapshot ||
+		with_end_default_clock_snapshot;
+	BT_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
+	BT_ASSERT_PRE_STREAM_CLASS_HOT(stream_class);
+	BT_ASSERT_PRE(supports_packets ||
+		!with_default_clock_snapshot,
+		"Packets cannot have default clock snapshots when "
+		"not supported: %!+S", stream_class);
+	BT_ASSERT_PRE(!with_default_clock_snapshot ||
+		stream_class->default_clock_class,
+		"Stream class has no default clock class: %!+S", stream_class);
+	BT_ASSERT_PRE(supports_packets || !stream_class->packet_context_fc,
+		"Stream class already has a packet context field class: %!+S",
+		stream_class);
+	BT_ASSERT_PRE(supports_packets ||
+		!stream_class->supports_discarded_packets,
+		"Stream class already supports discarded packets: %!+S",
+		stream_class);
+	stream_class->supports_packets = (bool) supports_packets;
+	stream_class->packets_have_beginning_default_clock_snapshot =
+		(bool) with_beginning_default_clock_snapshot;
+	stream_class->packets_have_end_default_clock_snapshot =
+		(bool) with_end_default_clock_snapshot;
+	BT_LIB_LOGD("Set stream class's packets support property: %!+S",
+		stream_class);
+}
+
+bt_bool bt_stream_class_supports_packets(
+		const struct bt_stream_class *stream_class)
+{
+	BT_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
+	return (bt_bool) stream_class->supports_packets;
+}
+
+bt_bool bt_stream_class_packets_have_beginning_default_clock_snapshot(
+		const struct bt_stream_class *stream_class)
+{
+	BT_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
+	return (bt_bool) stream_class->packets_have_beginning_default_clock_snapshot;
+}
+
+bt_bool bt_stream_class_packets_have_end_default_clock_snapshot(
+		const struct bt_stream_class *stream_class)
+{
+	BT_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
+	return (bt_bool) stream_class->packets_have_end_default_clock_snapshot;
 }
 
 void bt_stream_class_set_assigns_automatic_stream_id(

@@ -88,6 +88,7 @@ class AllMessagesTestCase(unittest.TestCase):
                     cc = None
 
                 sc = tc.create_stream_class(default_clock_class=cc,
+                                            supports_packets=True,
                                             packets_have_beginning_default_clock_snapshot=with_cc,
                                             packets_have_end_default_clock_snapshot=with_cc,
                                             supports_discarded_events=True,

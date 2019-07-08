@@ -518,14 +518,16 @@ static inline void format_stream_class(char **buf_ch, bool extended,
 	}
 
 	BUF_APPEND(", %sassigns-auto-ec-id=%d, %sassigns-auto-stream-id=%d, "
-		"%spackets-have-default-beginning-cs=%d, "
-		"%spackets-have-default-end-cs=%d, "
+		"%ssupports-packets=%d, "
+		"%spackets-have-begin-default-cs=%d, "
+		"%spackets-have-end-default-cs=%d, "
 		"%ssupports-discarded-events=%d, "
 		"%sdiscarded-events-have-default-cs=%d, "
 		"%ssupports-discarded-packets=%d, "
 		"%sdiscarded-packets-have-default-cs=%d",
 		PRFIELD(stream_class->assigns_automatic_event_class_id),
 		PRFIELD(stream_class->assigns_automatic_stream_id),
+		PRFIELD(stream_class->supports_packets),
 		PRFIELD(stream_class->packets_have_beginning_default_clock_snapshot),
 		PRFIELD(stream_class->packets_have_end_default_clock_snapshot),
 		PRFIELD(stream_class->supports_discarded_events),
@@ -674,8 +676,6 @@ static inline void format_packet(char **buf_ch, bool extended,
 static inline void format_event(char **buf_ch, bool extended,
 		const char *prefix, const struct bt_event *event)
 {
-	const struct bt_packet *packet;
-	const struct bt_stream *stream;
 	const struct bt_trace_class *trace_class;
 	const struct bt_stream_class *stream_class;
 	char tmp_prefix[TMP_PREFIX_LEN];
@@ -718,22 +718,17 @@ static inline void format_event(char **buf_ch, bool extended,
 		}
 	}
 
-	packet = bt_event_borrow_packet_const(event);
-	if (!packet) {
-		return;
+	if (event->stream) {
+		BUF_APPEND(", %sstream-addr=%p", PRFIELD(event->stream));
+		SET_TMP_PREFIX("stream-");
+		format_stream(buf_ch, false, tmp_prefix, event->stream);
 	}
 
-	BUF_APPEND(", %spacket-addr=%p", PRFIELD(packet));
-	SET_TMP_PREFIX("packet-");
-	format_packet(buf_ch, false, tmp_prefix, packet);
-	stream = bt_packet_borrow_stream_const(packet);
-	if (!stream) {
-		return;
+	if (event->packet) {
+		BUF_APPEND(", %spacket-addr=%p", PRFIELD(event->packet));
+		SET_TMP_PREFIX("packet-");
+		format_packet(buf_ch, false, tmp_prefix, event->packet);
 	}
-
-	BUF_APPEND(", %sstream-addr=%p", PRFIELD(stream));
-	SET_TMP_PREFIX("stream-");
-	format_stream(buf_ch, false, tmp_prefix, stream);
 }
 
 static inline void format_clock_class(char **buf_ch, bool extended,
@@ -953,13 +948,13 @@ static inline void format_message(char **buf_ch, bool extended,
 		}
 
 		if (msg_disc_items->default_begin_cs) {
-			SET_TMP_PREFIX("default-begin-cs-");
+			SET_TMP_PREFIX("begin-default-cs-");
 			format_clock_snapshot(buf_ch, true, tmp_prefix,
 				msg_disc_items->default_begin_cs);
 		}
 
 		if (msg_disc_items->default_end_cs) {
-			SET_TMP_PREFIX("default-end-cs-");
+			SET_TMP_PREFIX("end-default-cs-");
 			format_clock_snapshot(buf_ch, true, tmp_prefix,
 				msg_disc_items->default_end_cs);
 		}

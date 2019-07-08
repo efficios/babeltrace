@@ -99,6 +99,12 @@ struct bt_message *create_packet_message(
 	stream_class = bt_stream_borrow_class(stream);
 	BT_ASSERT(stream_class);
 
+	/*
+	 * It's not possible to create a packet from a stream of which
+	 * the class indicates that packets are not supported.
+	 */
+	BT_ASSERT(stream_class->supports_packets);
+
 	if (pool == &msg_iter->graph->packet_begin_msg_pool) {
 		need_cs = stream_class->packets_have_beginning_default_clock_snapshot;
 	} else {

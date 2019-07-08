@@ -52,6 +52,9 @@ class _Stream(bt2.object._SharedObject):
         return id if id >= 0 else None
 
     def create_packet(self):
+        if not self.cls.supports_packets:
+            raise bt2.Error('cannot create packet: stream class does not support packets')
+
         packet_ptr = native_bt.packet_create(self._ptr)
 
         if packet_ptr is None:

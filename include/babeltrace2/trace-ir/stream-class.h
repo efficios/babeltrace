@@ -67,12 +67,6 @@ extern void bt_stream_class_set_assigns_automatic_event_class_id(
 extern void bt_stream_class_set_assigns_automatic_stream_id(
 		bt_stream_class *stream_class, bt_bool value);
 
-extern void bt_stream_class_set_packets_have_beginning_default_clock_snapshot(
-		bt_stream_class *stream_class, bt_bool value);
-
-extern void bt_stream_class_set_packets_have_end_default_clock_snapshot(
-		bt_stream_class *stream_class, bt_bool value);
-
 extern void bt_stream_class_set_supports_discarded_events(
 		bt_stream_class *stream_class,
 		bt_bool supports_discarded_events,
@@ -87,6 +81,11 @@ typedef enum bt_stream_class_set_field_class_status {
 	BT_STREAM_CLASS_SET_FIELD_CLASS_STATUS_MEMORY_ERROR	= __BT_FUNC_STATUS_MEMORY_ERROR,
 	BT_STREAM_CLASS_SET_FIELD_CLASS_STATUS_OK		= __BT_FUNC_STATUS_OK,
 } bt_stream_class_set_field_class_status;
+
+extern void bt_stream_class_set_supports_packets(
+		bt_stream_class *stream_class, bt_bool supports_packets,
+		bt_bool with_beginning_default_clock_snapshot,
+		bt_bool with_end_default_clock_snapshot);
 
 extern bt_stream_class_set_field_class_status
 bt_stream_class_set_packet_context_field_class(

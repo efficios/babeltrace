@@ -455,6 +455,22 @@ void ctf_stream_class_to_ir(struct ctx *ctx)
 	ctx->ir_sc = bt_stream_class_create_with_id(ctx->ir_tc, ctx->sc->id);
 	BT_ASSERT(ctx->ir_sc);
 	bt_stream_class_put_ref(ctx->ir_sc);
+
+	if (ctx->sc->default_clock_class) {
+		BT_ASSERT(ctx->sc->default_clock_class->ir_cc);
+		ret = bt_stream_class_set_default_clock_class(ctx->ir_sc,
+			ctx->sc->default_clock_class->ir_cc);
+		BT_ASSERT(ret == 0);
+	}
+
+	bt_stream_class_set_supports_packets(ctx->ir_sc, BT_TRUE,
+		ctx->sc->packets_have_ts_begin, ctx->sc->packets_have_ts_end);
+	bt_stream_class_set_supports_discarded_events(ctx->ir_sc,
+		ctx->sc->has_discarded_events,
+		ctx->sc->discarded_events_have_default_cs);
+	bt_stream_class_set_supports_discarded_packets(ctx->ir_sc,
+		ctx->sc->has_discarded_packets,
+		ctx->sc->discarded_packets_have_default_cs);
 	ctx->scope = CTF_SCOPE_PACKET_CONTEXT;
 	ir_fc = scope_ctf_field_class_to_ir(ctx);
 	if (ir_fc) {
@@ -477,23 +493,6 @@ void ctf_stream_class_to_ir(struct ctx *ctx)
 		BT_FALSE);
 	bt_stream_class_set_assigns_automatic_stream_id(ctx->ir_sc, BT_FALSE);
 
-	if (ctx->sc->default_clock_class) {
-		BT_ASSERT(ctx->sc->default_clock_class->ir_cc);
-		ret = bt_stream_class_set_default_clock_class(ctx->ir_sc,
-			ctx->sc->default_clock_class->ir_cc);
-		BT_ASSERT(ret == 0);
-	}
-
-	bt_stream_class_set_packets_have_beginning_default_clock_snapshot(
-		ctx->ir_sc, ctx->sc->packets_have_ts_begin);
-	bt_stream_class_set_packets_have_end_default_clock_snapshot(
-		ctx->ir_sc, ctx->sc->packets_have_ts_end);
-	bt_stream_class_set_supports_discarded_events(ctx->ir_sc,
-		ctx->sc->has_discarded_events,
-		ctx->sc->discarded_events_have_default_cs);
-	bt_stream_class_set_supports_discarded_packets(ctx->ir_sc,
-		ctx->sc->has_discarded_packets,
-		ctx->sc->discarded_packets_have_default_cs);
 	ctx->sc->is_translated = true;
 	ctx->sc->ir_sc = ctx->ir_sc;
 

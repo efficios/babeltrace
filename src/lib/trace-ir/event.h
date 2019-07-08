@@ -56,8 +56,11 @@ struct bt_event {
 	/* Owned by this */
 	struct bt_event_class *class;
 
-	/* Owned by this */
+	/* Owned by this (can be `NULL`) */
 	struct bt_packet *packet;
+
+	/* Owned by this */
+	struct bt_stream *stream;
 
 	struct bt_field *common_context_field;
 	struct bt_field *specific_context_field;
@@ -118,8 +121,13 @@ void bt_event_reset(struct bt_event *event)
 	BT_ASSERT(event);
 	BT_LIB_LOGD("Resetting event: %!+e", event);
 	bt_event_set_is_frozen(event, false);
-	bt_object_put_no_null_check(&event->packet->base);
-	event->packet = NULL;
+	bt_object_put_no_null_check(&event->stream->base);
+	event->stream = NULL;
+
+	if (event->packet) {
+		bt_object_put_no_null_check(&event->packet->base);
+		event->packet = NULL;
+	}
 }
 
 static inline
@@ -170,7 +178,7 @@ void bt_event_set_packet(struct bt_event *event, struct bt_packet *packet)
 		event->class) == packet->stream->class,
 		"Packet's stream class and event's stream class differ: "
 		"%![event-]+e, %![packet-]+a", event, packet);
-
+	BT_ASSERT(event->stream->class->supports_packets);
 	BT_ASSERT(!event->packet);
 	event->packet = packet;
 	bt_object_get_no_null_check_no_parent_check(&event->packet->base);
@@ -179,12 +187,30 @@ void bt_event_set_packet(struct bt_event *event, struct bt_packet *packet)
 }
 
 static inline
+void bt_event_set_stream(struct bt_event *event, struct bt_stream *stream)
+{
+	BT_ASSERT_PRE_NON_NULL(event, "Event");
+	BT_ASSERT_PRE_NON_NULL(stream, "Stream");
+	BT_ASSERT_PRE_EVENT_HOT(event);
+	BT_ASSERT_PRE(bt_event_class_borrow_stream_class(
+		event->class) == stream->class,
+		"Stream's class and event's stream class differ: "
+		"%![event-]+e, %![stream-]+s", event, stream);
+	BT_ASSERT(!event->stream);
+	event->stream = stream;
+	bt_object_get_no_null_check_no_parent_check(&event->stream->base);
+	BT_LIB_LOGD("Set event's stream: %![event-]+e, %![stream-]+s",
+		event, stream);
+}
+
+static inline
 struct bt_event *bt_event_create(struct bt_event_class *event_class,
-		struct bt_packet *packet)
+		struct bt_packet *packet, struct bt_stream *stream)
 {
 	struct bt_event *event = NULL;
 
 	BT_ASSERT(event_class);
+	BT_ASSERT(stream);
 	event = bt_object_pool_create_object(&event_class->event_pool);
 	if (G_UNLIKELY(!event)) {
 		BT_LIB_LOGE_APPEND_CAUSE(
@@ -198,8 +224,13 @@ struct bt_event *bt_event_create(struct bt_event_class *event_class,
 		bt_object_get_no_null_check(&event_class->base);
 	}
 
-	BT_ASSERT(packet);
-	bt_event_set_packet(event, packet);
+	bt_event_set_stream(event, stream);
+
+	if (packet) {
+		BT_ASSERT(packet);
+		bt_event_set_packet(event, packet);
+	}
+
 	goto end;
 
 end:

@@ -52,7 +52,8 @@ class PacketTestCase(unittest.TestCase):
         # stream class
         sc = tc.create_stream_class(default_clock_class=clock_class,
                                     event_common_context_field_class=sec,
-                                    packet_context_field_class=pc)
+                                    packet_context_field_class=pc,
+                                    supports_packets=True)
 
         # event context
         ec = tc.create_structure_field_class()

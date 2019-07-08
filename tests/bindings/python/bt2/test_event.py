@@ -26,31 +26,45 @@ class EventTestCase(unittest.TestCase):
                                    event_fields_config=None,
                                    with_clockclass=False,
                                    with_cc=False, with_sc=False,
-                                   with_ep=False):
+                                   with_ep=False, with_packet=False):
 
         class MyIter(bt2._UserMessageIterator):
             def __init__(self, self_output_port):
                 self._at = 0
+                self._msgs = [
+                    self._create_stream_beginning_message(test_obj.stream),
+                ]
+
+                if with_packet:
+                    assert test_obj.packet
+                    self._msgs.append(self._create_packet_beginning_message(test_obj.packet))
+
+                default_clock_snapshot = 789 if with_clockclass else None
+
+                if with_packet:
+                    assert test_obj.packet
+                    ev_parent = test_obj.packet
+                else:
+                    assert test_obj.stream
+                    ev_parent = test_obj.stream
+
+                msg = self._create_event_message(test_obj.event_class, ev_parent, default_clock_snapshot)
+
+                if event_fields_config is not None:
+                    event_fields_config(msg.event)
+
+                self._msgs.append(msg)
+
+                if with_packet:
+                    self._msgs.append(self._create_packet_end_message(test_obj.packet))
+
+                self._msgs.append(self._create_stream_end_message(test_obj.stream))
 
             def __next__(self):
-                if self._at == 0:
-                    msg = self._create_stream_beginning_message(test_obj.stream)
-                elif self._at == 1:
-                    assert test_obj.packet
-                    msg = self._create_packet_beginning_message(test_obj.packet)
-                elif self._at == 2:
-                    default_clock_snapshot = 789 if with_clockclass else None
-                    assert test_obj.packet
-                    msg = self._create_event_message(test_obj.event_class, test_obj.packet, default_clock_snapshot)
-                    if event_fields_config is not None:
-                        event_fields_config(msg.event)
-                elif self._at == 3:
-                    msg = self._create_packet_end_message(test_obj.packet)
-                elif self._at == 4:
-                    msg = self._create_stream_end_message(test_obj.stream)
-                elif self._at >= 5:
+                if self._at == len(self._msgs):
                     raise bt2.Stop
 
+                msg = self._msgs[self._at]
                 self._at += 1
                 return msg
 
@@ -73,15 +87,19 @@ class EventTestCase(unittest.TestCase):
                     ))
 
                 # packet context (stream-class-defined)
-                pc = tc.create_structure_field_class()
-                pc += OrderedDict((
-                    ('something', tc.create_unsigned_integer_field_class(8)),
-                    ('something_else', tc.create_real_field_class()),
-                ))
+                pc = None
+
+                if with_packet:
+                    pc = tc.create_structure_field_class()
+                    pc += OrderedDict((
+                        ('something', tc.create_unsigned_integer_field_class(8)),
+                        ('something_else', tc.create_real_field_class()),
+                    ))
 
                 stream_class = tc.create_stream_class(default_clock_class=clock_class,
                                                       event_common_context_field_class=cc,
-                                                      packet_context_field_class=pc)
+                                                      packet_context_field_class=pc,
+                                                      supports_packets=with_packet)
 
                 # specific context (event-class-defined)
                 sc = None
@@ -108,12 +126,17 @@ class EventTestCase(unittest.TestCase):
 
                 trace = tc()
                 stream = trace.create_stream(stream_class)
-                packet = stream.create_packet()
+
+                if with_packet:
+                    packet = stream.create_packet()
 
                 if packet_fields_config is not None:
+                    assert packet
                     packet_fields_config(packet)
 
-                test_obj.packet = packet
+                if with_packet:
+                    test_obj.packet = packet
+
                 test_obj.stream = stream
                 test_obj.event_class = event_class
 
@@ -122,8 +145,8 @@ class EventTestCase(unittest.TestCase):
         self._src_comp = self._graph.add_component(MySrc, 'my_source')
         self._msg_iter = self._graph.create_output_port_message_iterator(self._src_comp.output_ports['out'])
 
-        for i, msg in enumerate(self._msg_iter):
-            if i == 2:
+        for msg in self._msg_iter:
+            if type(msg) is bt2._EventMessage:
                 return msg
 
     def test_attr_event_class(self):
@@ -211,7 +234,8 @@ class EventTestCase(unittest.TestCase):
 
         msg = self._create_test_event_message(packet_fields_config=packet_fields_config,
                                               event_fields_config=event_fields_config,
-                                              with_cc=True, with_sc=True, with_ep=True)
+                                              with_cc=True, with_sc=True, with_ep=True,
+                                              with_packet=True)
         ev = msg.event
 
         # Test event fields

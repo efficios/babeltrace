@@ -82,7 +82,8 @@ static inline
 struct bt_message *create_event_message(
 		struct bt_self_message_iterator *self_msg_iter,
 		const struct bt_event_class *c_event_class,
-		const struct bt_packet *c_packet, bool with_cs,
+		const struct bt_packet *c_packet,
+		const struct bt_stream *c_stream, bool with_cs,
 		uint64_t raw_value)
 {
 	struct bt_self_component_port_input_message_iterator *msg_iter =
@@ -91,11 +92,12 @@ struct bt_message *create_event_message(
 	struct bt_event_class *event_class = (void *) c_event_class;
 	struct bt_stream_class *stream_class;
 	struct bt_packet *packet = (void *) c_packet;
+	struct bt_stream *stream = (void *) c_stream;
 	struct bt_event *event;
 
+	BT_ASSERT(stream);
 	BT_ASSERT_PRE_NON_NULL(msg_iter, "Message iterator");
 	BT_ASSERT_PRE_NON_NULL(event_class, "Event class");
-	BT_ASSERT_PRE_NON_NULL(packet, "Packet");
 	BT_ASSERT_PRE(event_class_has_trace(event_class),
 		"Event class is not part of a trace: %!+E", event_class);
 	stream_class = bt_event_class_borrow_stream_class_inline(event_class);
@@ -109,7 +111,7 @@ struct bt_message *create_event_message(
 		"cs-val=%" PRIu64,
 		event_class, stream_class, with_cs, raw_value);
 	BT_LIB_LOGD("Creating event message object: %![ec-]+E", event_class);
-	event = bt_event_create(event_class, packet);
+	event = bt_event_create(event_class, packet, stream);
 	if (G_UNLIKELY(!event)) {
 		BT_LIB_LOGE_APPEND_CAUSE(
 			"Cannot create event from event class: "
@@ -152,7 +154,12 @@ struct bt_message *create_event_message(
 
 	BT_ASSERT(!message->event);
 	message->event = event;
-	bt_packet_set_is_frozen(packet, true);
+
+	if (packet) {
+		bt_packet_set_is_frozen(packet, true);
+	}
+
+	bt_stream_freeze(stream);
 	bt_event_class_freeze(event_class);
 	BT_LIB_LOGD("Created event message object: "
 		"%![msg-]+n, %![event-]+e", message, event);
@@ -169,19 +176,43 @@ end:
 struct bt_message *bt_message_event_create(
 		struct bt_self_message_iterator *msg_iter,
 		const struct bt_event_class *event_class,
+		const struct bt_stream *stream)
+{
+	BT_ASSERT_PRE_NON_NULL(stream, "Stream");
+	return create_event_message(msg_iter, event_class, NULL, stream, false, 0);
+}
+
+struct bt_message *bt_message_event_create_with_packet(
+		struct bt_self_message_iterator *msg_iter,
+		const struct bt_event_class *event_class,
 		const struct bt_packet *packet)
 {
-	return create_event_message(msg_iter, event_class, packet, false, 0);
+	BT_ASSERT_PRE_NON_NULL(packet, "Packet");
+	return create_event_message(msg_iter, event_class, packet,
+		packet->stream, false, 0);
 }
 
 struct bt_message *bt_message_event_create_with_default_clock_snapshot(
 		struct bt_self_message_iterator *msg_iter,
 		const struct bt_event_class *event_class,
+		const struct bt_stream *stream,
+		uint64_t raw_value)
+{
+	BT_ASSERT_PRE_NON_NULL(stream, "Stream");
+	return create_event_message(msg_iter, event_class, NULL, stream,
+		true, raw_value);
+}
+
+struct bt_message *
+bt_message_event_create_with_packet_and_default_clock_snapshot(
+		struct bt_self_message_iterator *msg_iter,
+		const struct bt_event_class *event_class,
 		const struct bt_packet *packet,
 		uint64_t raw_value)
 {
+	BT_ASSERT_PRE_NON_NULL(packet, "Packet");
 	return create_event_message(msg_iter, event_class, packet,
-		true, raw_value);
+		packet->stream, true, raw_value);
 }
 
 BT_HIDDEN

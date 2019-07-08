@@ -451,7 +451,7 @@ class VariantFieldClassTestCase(_TestFieldContainer, unittest.TestCase):
 
         # The path to the selector field is resolved when the sequence is
         # actually used, for example in a packet context.
-        self._tc.create_stream_class(packet_context_field_class=outer_struct_fc)
+        self._tc.create_stream_class(supports_packets=True, packet_context_field_class=outer_struct_fc)
 
         return fc
 
@@ -545,7 +545,8 @@ class DynamicArrayFieldClassTestCase(unittest.TestCase):
 
         # The path to the length field is resolved when the sequence is
         # actually used, for example in a packet context.
-        self._tc.create_stream_class(packet_context_field_class=outer_struct_fc)
+        self._tc.create_stream_class(packet_context_field_class=outer_struct_fc,
+                                     supports_packets=True)
 
         return fc
 

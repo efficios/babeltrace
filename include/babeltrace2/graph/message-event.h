@@ -27,7 +27,7 @@
 #include <stdint.h>
 
 /*
- * For bt_self_message_iterator, bt_event, bt_packet,
+ * For bt_self_message_iterator, bt_event, bt_packet, bt_stream,
  * bt_event_class, bt_message
  */
 #include <babeltrace2/types.h>
@@ -40,10 +40,22 @@ extern
 bt_message *bt_message_event_create(
 		bt_self_message_iterator *message_iterator,
 		const bt_event_class *event_class,
+		const bt_stream *stream);
+
+extern
+bt_message *bt_message_event_create_with_packet(
+		bt_self_message_iterator *message_iterator,
+		const bt_event_class *event_class,
 		const bt_packet *packet);
 
 extern
 bt_message *bt_message_event_create_with_default_clock_snapshot(
+		bt_self_message_iterator *message_iterator,
+		const bt_event_class *event_class,
+		const bt_stream *stream, uint64_t raw_clock_value);
+
+extern
+bt_message *bt_message_event_create_with_packet_and_default_clock_snapshot(
 		bt_self_message_iterator *message_iterator,
 		const bt_event_class *event_class,
 		const bt_packet *packet, uint64_t raw_clock_value);
