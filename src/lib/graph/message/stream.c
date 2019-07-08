@@ -45,6 +45,14 @@ void destroy_stream_message(struct bt_object *obj)
 	struct bt_message_stream *message = (void *) obj;
 
 	BT_LIB_LOGD("Destroying stream message: %!+n", message);
+
+	if (message->default_cs) {
+		BT_LIB_LOGD("Putting default clock snapshot: %!+k",
+			message->default_cs);
+		bt_clock_snapshot_destroy(message->default_cs);
+		message->default_cs = NULL;
+	}
+
 	BT_LIB_LOGD("Putting stream: %!+s", message->stream);
 	BT_OBJECT_PUT_REF_AND_RESET(message->stream);
 	g_free(message);
