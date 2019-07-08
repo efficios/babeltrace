@@ -77,7 +77,7 @@ comment() {
 	echo "### $1 ###"
 }
 
-if [ "x${MSYSTEM:-}" != "x" ]; then
+if [ "$BT_OS_TYPE" = "mingw" ]; then
 	path_to_trace="C://path/to/trace"
 	output_path="C://output/path"
 else
