@@ -21,6 +21,9 @@
 #include <babeltrace2/babeltrace.h>
 
 #include "common/macros.h"
+#include "common/uuid.h"
+
+struct ctf_trace_class;
 
 /* A CTF metadata decoder object */
 struct ctf_metadata_decoder;
@@ -36,13 +39,24 @@ enum ctf_metadata_decoder_status {
 
 /* Decoding configuration */
 struct ctf_metadata_decoder_config {
+	/* Active log level to use */
 	bt_logging_level log_level;
 
-	/* Weak */
+	/* Component to use for logging (can be `NULL`); weak */
 	bt_self_component *self_comp;
 
+	/* Additional clock class offset to apply */
 	int64_t clock_class_offset_s;
 	int64_t clock_class_offset_ns;
+
+	/* True to create trace class objects */
+	bool create_trace_class;
+
+	/*
+	 * True to keep the plain text when content is appended with
+	 * ctf_metadata_decoder_append_content().
+	 */
+	bool keep_plain_text;
 };
 
 /*
@@ -63,62 +77,89 @@ void ctf_metadata_decoder_destroy(
 		struct ctf_metadata_decoder *metadata_decoder);
 
 /*
- * Decodes a new chunk of CTF metadata.
+ * Appends content to the metadata decoder.
  *
  * This function reads the metadata from the current position of `fp`
- * until the end of this file stream. If it finds new information (new
- * event class, new stream class, or new clock class), it appends this
- * information to the decoder's trace object (as returned by
- * ctf_metadata_decoder_get_ir_trace_class()), or it creates this trace.
+ * until the end of this file stream.
  *
  * The metadata can be packetized or not.
  *
- * The metadata chunk needs to be complete and scannable, that is,
- * zero or more complete top-level blocks. If it's incomplete, this
+ * The metadata chunk needs to be complete and lexically scannable, that
+ * is, zero or more complete top-level blocks. If it's incomplete, this
  * function returns `CTF_METADATA_DECODER_STATUS_INCOMPLETE`. If this
  * function returns `CTF_METADATA_DECODER_STATUS_INCOMPLETE`, then you
- * need to call it again with the same metadata and more to make it
+ * need to call it again with the _same_ metadata and more to make it
  * complete. For example:
  *
  *     First call:  event { name = hell
  *     Second call: event { name = hello_world; ... };
  *
- * If the conversion from the metadata text to CTF IR objects fails,
- * this function returns `CTF_METADATA_DECODER_STATUS_IR_VISITOR_ERROR`.
- *
  * If everything goes as expected, this function returns
  * `CTF_METADATA_DECODER_STATUS_OK`.
  */
 BT_HIDDEN
-enum ctf_metadata_decoder_status ctf_metadata_decoder_decode(
+enum ctf_metadata_decoder_status ctf_metadata_decoder_append_content(
 		struct ctf_metadata_decoder *metadata_decoder, FILE *fp);
 
+/*
+ * Returns the trace IR trace class of this metadata decoder (new
+ * reference).
+ *
+ * Returns `NULL` if there's none yet or if the metadata decoder is not
+ * configured to create trace classes.
+ */
 BT_HIDDEN
 bt_trace_class *ctf_metadata_decoder_get_ir_trace_class(
 		struct ctf_metadata_decoder *mdec);
 
+/*
+ * Returns the CTF IR trace class of this metadata decoder.
+ *
+ * Returns `NULL` if there's none yet or if the metadata decoder is not
+ * configured to create trace classes.
+ */
 BT_HIDDEN
 struct ctf_trace_class *ctf_metadata_decoder_borrow_ctf_trace_class(
 		struct ctf_metadata_decoder *mdec);
 
 /*
- * Checks whether or not a given metadata file stream is packetized, and
- * if so, sets `*byte_order` to the byte order of the first packet.
+ * Checks whether or not a given metadata file stream `fp` is
+ * packetized, setting `is_packetized` accordingly on success. On
+ * success, also sets `*byte_order` to the byte order of the first
+ * packet.
+ *
+ * This function uses `log_level` and `self_comp` for logging purposes.
+ * `self_comp` can be `NULL` if not available.
  */
 BT_HIDDEN
-bool ctf_metadata_decoder_is_packetized(FILE *fp, int *byte_order,
-		bt_logging_level log_level,
+int ctf_metadata_decoder_is_packetized(FILE *fp, bool *is_packetized,
+		int *byte_order, bt_logging_level log_level,
 		bt_self_component *self_comp);
 
 /*
- * Decodes a packetized metadata file stream to a NULL-terminated
- * text buffer using the given byte order.
+ * Returns the byte order of the decoder's metadata stream as set by the
+ * last call to ctf_metadata_decoder_append_content().
+ *
+ * Returns -1 if unknown (plain text content).
  */
 BT_HIDDEN
-int ctf_metadata_decoder_packetized_file_stream_to_buf(FILE *fp,
-		char **buf, int byte_order, bool *is_uuid_set,
-		uint8_t *uuid, bt_logging_level log_level,
-		bt_self_component *self_comp);
+int ctf_metadata_decoder_get_byte_order(struct ctf_metadata_decoder *mdec);
+
+/*
+ * Returns the UUID of the decoder's metadata stream as set by the last
+ * call to ctf_metadata_decoder_append_content().
+ *
+ * Returns -1 if unknown (plain text content).
+ */
+BT_HIDDEN
+int ctf_metadata_decoder_get_uuid(struct ctf_metadata_decoder *mdec,
+		bt_uuid_t uuid);
+
+/*
+ * Returns the metadata decoder's current metadata text.
+ */
+BT_HIDDEN
+const char *ctf_metadata_decoder_get_text(struct ctf_metadata_decoder *mdec);
 
 static inline
 bool ctf_metadata_decoder_is_packet_version_valid(unsigned int major,

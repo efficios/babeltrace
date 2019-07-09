@@ -217,10 +217,11 @@ enum lttng_live_iterator_status lttng_live_metadata_update(
 	}
 
 	/*
-	 * The call to ctf_metadata_decoder_decode will append new metadata to
-	 * our current trace class.
+	 * The call to ctf_metadata_decoder_append_content() will append
+	 * new metadata to our current trace class.
 	 */
-	decoder_status = ctf_metadata_decoder_decode(metadata->decoder, fp);
+	decoder_status = ctf_metadata_decoder_append_content(
+		metadata->decoder, fp);
 	switch (decoder_status) {
 	case CTF_METADATA_DECODER_STATUS_OK:
 		if (!trace->trace_class) {
@@ -288,6 +289,7 @@ int lttng_live_metadata_create_stream(struct lttng_live_session *session,
 		.self_comp = session->self_comp,
 		.clock_class_offset_s = 0,
 		.clock_class_offset_ns = 0,
+		.create_trace_class = true,
 	};
 
 	metadata = g_new0(struct lttng_live_metadata, 1);

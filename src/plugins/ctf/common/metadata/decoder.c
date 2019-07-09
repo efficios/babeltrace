@@ -40,11 +40,14 @@ extern
 int yydebug;
 
 struct ctf_metadata_decoder {
+	struct ctf_scanner *scanner;
+	GString *text;
 	struct ctf_visitor_generate_ir *visitor;
 	bt_uuid_t uuid;
 	bool is_uuid_set;
 	int bo;
 	struct ctf_metadata_decoder_config config;
+	struct meta_log_config log_cfg;
 };
 
 struct packet_header {
@@ -61,26 +64,35 @@ struct packet_header {
 } __attribute__((__packed__));
 
 BT_HIDDEN
-bool ctf_metadata_decoder_is_packetized(FILE *fp, int *byte_order,
-		bt_logging_level log_level, bt_self_component *self_comp)
+int ctf_metadata_decoder_packetized_file_stream_to_buf(FILE *fp,
+		char **buf, int byte_order, bool *is_uuid_set,
+		uint8_t *uuid, bt_logging_level log_level,
+		bt_self_component *self_comp);
+
+BT_HIDDEN
+int ctf_metadata_decoder_is_packetized(FILE *fp, bool *is_packetized,
+		int *byte_order, bt_logging_level log_level,
+		bt_self_component *self_comp)
 {
 	uint32_t magic;
 	size_t len;
 	int ret = 0;
 
+	*is_packetized = false;
 	len = fread(&magic, sizeof(magic), 1, fp);
 	if (len != 1) {
 		BT_COMP_LOG_CUR_LVL(BT_LOG_INFO, log_level, self_comp,
 			"Cannot read first metadata packet header: assuming the stream is not packetized.");
+		ret = -1;
 		goto end;
 	}
 
 	if (byte_order) {
 		if (magic == TSDL_MAGIC) {
-			ret = 1;
+			*is_packetized = true;
 			*byte_order = BYTE_ORDER;
 		} else if (magic == GUINT32_SWAP_LE_BE(TSDL_MAGIC)) {
-			ret = 1;
+			*is_packetized = true;
 			*byte_order = BYTE_ORDER == BIG_ENDIAN ?
 				LITTLE_ENDIAN : BIG_ENDIAN;
 		}
@@ -113,14 +125,29 @@ struct ctf_metadata_decoder *ctf_metadata_decoder_create(
 		goto end;
 	}
 
+	mdec->log_cfg.log_level = config->log_level;
+	mdec->log_cfg.self_comp = config->self_comp;
+	mdec->scanner = ctf_scanner_alloc();
+	if (!mdec->scanner) {
+		BT_COMP_LOGE("Cannot allocate a metadata lexical scanner: "
+			"mdec-addr=%p", mdec);
+		goto error;
+	}
+
+	mdec->text = g_string_new(NULL);
+	if (!mdec->text) {
+		BT_COMP_LOGE("Failed to allocate one GString: "
+			"mdec-addr=%p", mdec);
+		goto error;
+	}
+
+	mdec->bo = -1;
 	mdec->config = *config;
 	mdec->visitor = ctf_visitor_generate_ir_create(config);
 	if (!mdec->visitor) {
 		BT_COMP_LOGE("Failed to create a CTF IR metadata AST visitor: "
 			"mdec-addr=%p", mdec);
-		ctf_metadata_decoder_destroy(mdec);
-		mdec = NULL;
-		goto end;
+		goto error;
 	}
 
 	BT_COMP_LOGD("Creating CTF metadata decoder: "
@@ -128,6 +155,11 @@ struct ctf_metadata_decoder *ctf_metadata_decoder_create(
 		"clock-class-offset-ns=%" PRId64 ", addr=%p",
 		config->clock_class_offset_s, config->clock_class_offset_ns,
 		mdec);
+	goto end;
+
+error:
+	ctf_metadata_decoder_destroy(mdec);
+	mdec = NULL;
 
 end:
 	return mdec;
@@ -140,29 +172,40 @@ void ctf_metadata_decoder_destroy(struct ctf_metadata_decoder *mdec)
 		return;
 	}
 
+	if (mdec->scanner) {
+		ctf_scanner_free(mdec->scanner);
+	}
+
+	if (mdec->text) {
+		g_string_free(mdec->text, TRUE);
+	}
+
 	BT_COMP_LOGD("Destroying CTF metadata decoder: addr=%p", mdec);
 	ctf_visitor_generate_ir_destroy(mdec->visitor);
 	g_free(mdec);
 }
 
 BT_HIDDEN
-enum ctf_metadata_decoder_status ctf_metadata_decoder_decode(
+enum ctf_metadata_decoder_status ctf_metadata_decoder_append_content(
 		struct ctf_metadata_decoder *mdec, FILE *fp)
 {
 	enum ctf_metadata_decoder_status status =
 		CTF_METADATA_DECODER_STATUS_OK;
 	int ret;
-	struct ctf_scanner *scanner = NULL;
 	char *buf = NULL;
 	bool close_fp = false;
-	struct meta_log_config log_cfg;
+	long start_pos = -1;
+	bool is_packetized;
 
 	BT_ASSERT(mdec);
-	log_cfg.log_level = mdec->config.log_level;
-	log_cfg.self_comp = mdec->config.self_comp;
+	ret = ctf_metadata_decoder_is_packetized(fp, &is_packetized, &mdec->bo,
+			mdec->config.log_level, mdec->config.self_comp);
+	if (ret) {
+		status = CTF_METADATA_DECODER_STATUS_ERROR;
+		goto end;
+	}
 
-	if (ctf_metadata_decoder_is_packetized(fp, &mdec->bo,
-			mdec->config.log_level, mdec->config.self_comp)) {
+	if (is_packetized) {
 		BT_COMP_LOGI("Metadata stream is packetized: mdec-addr=%p", mdec);
 		ret = ctf_metadata_decoder_packetized_file_stream_to_buf(fp,
 			&buf, mdec->bo, &mdec->is_uuid_set,
@@ -232,17 +275,15 @@ enum ctf_metadata_decoder_status ctf_metadata_decoder_decode(
 		yydebug = 1;
 	}
 
-	/* Allocate a scanner and append the metadata text content */
-	scanner = ctf_scanner_alloc();
-	if (!scanner) {
-		BT_COMP_LOGE("Cannot allocate a metadata lexical scanner: "
-			"mdec-addr=%p", mdec);
-		status = CTF_METADATA_DECODER_STATUS_ERROR;
-		goto end;
+	/* Save the file's position: we'll seek back to append the plain text */
+	BT_ASSERT(fp);
+
+	if (mdec->config.keep_plain_text) {
+		start_pos = ftell(fp);
 	}
 
-	BT_ASSERT(fp);
-	ret = ctf_scanner_append_ast(scanner, fp);
+	/* Append the metadata text content */
+	ret = ctf_scanner_append_ast(mdec->scanner, fp);
 	if (ret) {
 		BT_COMP_LOGE("Cannot create the metadata AST out of the metadata text: "
 			"mdec-addr=%p", mdec);
@@ -250,7 +291,28 @@ enum ctf_metadata_decoder_status ctf_metadata_decoder_decode(
 		goto end;
 	}
 
-	ret = ctf_visitor_semantic_check(0, &scanner->ast->root, &log_cfg);
+	/* We know it's complete: append plain text */
+	if (mdec->config.keep_plain_text) {
+		BT_ASSERT(start_pos != -1);
+		ret = fseek(fp, start_pos, SEEK_SET);
+		if (ret) {
+			BT_COMP_LOGE("Failed to seek file: ret=%d, mdec-addr=%p",
+				ret, mdec);
+			status = CTF_METADATA_DECODER_STATUS_ERROR;
+			goto end;
+		}
+
+		ret = bt_common_append_file_content_to_g_string(mdec->text, fp);
+		if (ret) {
+			BT_COMP_LOGE("Failed to append to current plain text: "
+				"ret=%d, mdec-addr=%p", ret, mdec);
+			status = CTF_METADATA_DECODER_STATUS_ERROR;
+			goto end;
+		}
+	}
+
+	ret = ctf_visitor_semantic_check(0, &mdec->scanner->ast->root,
+		&mdec->log_cfg);
 	if (ret) {
 		BT_COMP_LOGE("Validation of the metadata semantics failed: "
 			"mdec-addr=%p", mdec);
@@ -258,29 +320,27 @@ enum ctf_metadata_decoder_status ctf_metadata_decoder_decode(
 		goto end;
 	}
 
-	ret = ctf_visitor_generate_ir_visit_node(mdec->visitor,
-		&scanner->ast->root);
-	switch (ret) {
-	case 0:
-		/* Success */
-		break;
-	case -EINCOMPLETE:
-		BT_COMP_LOGD("While visiting metadata AST: incomplete data: "
-			"mdec-addr=%p", mdec);
-		status = CTF_METADATA_DECODER_STATUS_INCOMPLETE;
-		goto end;
-	default:
-		BT_COMP_LOGE("Failed to visit AST node to create CTF IR objects: "
-			"mdec-addr=%p, ret=%d", mdec, ret);
-		status = CTF_METADATA_DECODER_STATUS_IR_VISITOR_ERROR;
-		goto end;
+	if (mdec->config.create_trace_class) {
+		ret = ctf_visitor_generate_ir_visit_node(mdec->visitor,
+			&mdec->scanner->ast->root);
+		switch (ret) {
+		case 0:
+			/* Success */
+			break;
+		case -EINCOMPLETE:
+			BT_COMP_LOGD("While visiting metadata AST: incomplete data: "
+				"mdec-addr=%p", mdec);
+			status = CTF_METADATA_DECODER_STATUS_INCOMPLETE;
+			goto end;
+		default:
+			BT_COMP_LOGE("Failed to visit AST node to create CTF IR objects: "
+				"mdec-addr=%p, ret=%d", mdec, ret);
+			status = CTF_METADATA_DECODER_STATUS_IR_VISITOR_ERROR;
+			goto end;
+		}
 	}
 
 end:
-	if (scanner) {
-		ctf_scanner_free(scanner);
-	}
-
 	yydebug = 0;
 
 	if (fp && close_fp) {
@@ -299,6 +359,8 @@ BT_HIDDEN
 bt_trace_class *ctf_metadata_decoder_get_ir_trace_class(
 		struct ctf_metadata_decoder *mdec)
 {
+	BT_ASSERT(mdec);
+	BT_ASSERT(mdec->config.create_trace_class);
 	return ctf_visitor_generate_ir_get_ir_trace_class(mdec->visitor);
 }
 
@@ -306,5 +368,41 @@ BT_HIDDEN
 struct ctf_trace_class *ctf_metadata_decoder_borrow_ctf_trace_class(
 		struct ctf_metadata_decoder *mdec)
 {
+	BT_ASSERT(mdec);
+	BT_ASSERT(mdec->config.create_trace_class);
 	return ctf_visitor_generate_ir_borrow_ctf_trace_class(mdec->visitor);
+}
+
+BT_HIDDEN
+const char *ctf_metadata_decoder_get_text(struct ctf_metadata_decoder *mdec)
+{
+	BT_ASSERT(mdec);
+	BT_ASSERT(mdec->config.keep_plain_text);
+	return mdec->text->str;
+}
+
+BT_HIDDEN
+int ctf_metadata_decoder_get_byte_order(struct ctf_metadata_decoder *mdec)
+{
+	BT_ASSERT(mdec);
+	return mdec->bo;
+}
+
+BT_HIDDEN
+int ctf_metadata_decoder_get_uuid(struct ctf_metadata_decoder *mdec,
+		bt_uuid_t uuid)
+{
+	int ret = 0;
+
+	BT_ASSERT(mdec);
+
+	if (!mdec->is_uuid_set) {
+		ret = -1;
+		goto end;
+	}
+
+	bt_uuid_copy(uuid, mdec->uuid);
+
+end:
+	return ret;
 }
