@@ -866,6 +866,7 @@ int set_trimmer_iterator_bound(struct trimmer_iterator *trimmer_it,
 {
 	struct trimmer_comp *trimmer_comp = trimmer_it->trimmer_comp;
 	struct tm tm;
+	struct tm *res;
 	time_t time_seconds = (time_t) (ns_from_origin / NS_PER_S);
 	int ret = 0;
 
@@ -874,12 +875,12 @@ int set_trimmer_iterator_bound(struct trimmer_iterator *trimmer_it,
 
 	/* We only need to extract the date from this time */
 	if (is_gmt) {
-		bt_gmtime_r(&time_seconds, &tm);
+		res = bt_gmtime_r(&time_seconds, &tm);
 	} else {
-		bt_localtime_r(&time_seconds, &tm);
+		res = bt_localtime_r(&time_seconds, &tm);
 	}
 
-	if (errno) {
+	if (!res) {
 		BT_COMP_LOGE_ERRNO("Cannot convert timestamp to date and time",
 			"ts=%" PRId64, (int64_t) time_seconds);
 		ret = -1;
