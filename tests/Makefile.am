@@ -98,7 +98,7 @@ endif
 
 if ENABLE_PYTHON_PLUGINS
 if ENABLE_PYTHON_BINDINGS
-TESTS_PLUGINS += plugins/flt.utils.trimmer/test_trimming_wrapper
+TESTS_PLUGINS += plugins/flt.utils.trimmer/test_trimming
 endif
 endif
 
