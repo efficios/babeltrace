@@ -142,9 +142,9 @@ struct bt_field_class_enumeration {
 	/*
 	 * This is an array of `const char *` which acts as a temporary
 	 * (potentially growing) buffer for
-	 * bt_field_class_unsigned_enumeration_get_mapping_labels_by_value()
+	 * bt_field_class_unsigned_enumeration_get_mapping_labels_for_value()
 	 * and
-	 * bt_field_class_signed_enumeration_get_mapping_labels_by_value().
+	 * bt_field_class_signed_enumeration_get_mapping_labels_for_value().
 	 *
 	 * The actual strings are owned by the mappings above.
 	 */

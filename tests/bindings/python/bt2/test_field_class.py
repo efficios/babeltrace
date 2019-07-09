@@ -217,7 +217,7 @@ class EnumerationFieldClassTestCase(_TestIntegerFieldClassProps):
         self._fc.map_range('f', 0)
         self._fc.map_range('g', 14)
 
-        labels = self._fc.labels_by_value(14)
+        labels = self._fc.labels_for_value(14)
 
         expected_labels = ['c', 'd', 'e', 'g']
 
