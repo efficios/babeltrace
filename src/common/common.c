@@ -1862,3 +1862,44 @@ int bt_common_g_string_append_printf(GString *str, const char *fmt, ...)
 	}
 	return print_len;
 }
+
+BT_HIDDEN
+int bt_common_append_file_content_to_g_string(GString *str, FILE *fp)
+{
+	const size_t chunk_size = 4096;
+	int ret = 0;
+	char *buf;
+	size_t read_len;
+	gsize orig_len = str->len;
+
+	BT_ASSERT(str);
+	BT_ASSERT(fp);
+	buf = g_malloc(chunk_size);
+	if (!buf) {
+		ret = -1;
+		goto end;
+	}
+
+	while (true) {
+		if (ferror(fp)) {
+			ret = -1;
+			goto end;
+		}
+
+		if (feof(fp)) {
+			break;
+		}
+
+		read_len = fread(buf, 1, chunk_size, fp);
+		g_string_append_len(str, buf, read_len);
+	}
+
+end:
+	if (ret) {
+		/* Remove what was appended */
+		g_string_truncate(str, orig_len);
+	}
+
+	g_free(buf);
+	return ret;
+}
