@@ -177,8 +177,8 @@ class _EnumerationFieldClass(_IntegerFieldClass, collections.abc.Mapping):
         utils._handle_func_status(status,
                                   "cannot add mapping to enumeration field class object")
 
-    def labels_by_value(self, value):
-        status, labels = self._get_mapping_labels_by_value(self._ptr, value)
+    def labels_for_value(self, value):
+        status, labels = self._get_mapping_labels_for_value(self._ptr, value)
         utils._handle_func_status(status, "cannot get mapping labels")
         return labels
 
@@ -220,9 +220,9 @@ class _UnsignedEnumerationFieldClass(_EnumerationFieldClass, _UnsignedIntegerFie
         return native_bt.field_class_unsigned_enumeration_map_range(enum_ptr, label, lower, upper)
 
     @staticmethod
-    def _get_mapping_labels_by_value(enum_ptr, value):
+    def _get_mapping_labels_for_value(enum_ptr, value):
         utils._check_uint64(value)
-        return native_bt.field_class_unsigned_enumeration_get_mapping_labels_by_value(enum_ptr, value)
+        return native_bt.field_class_unsigned_enumeration_get_mapping_labels_for_value(enum_ptr, value)
 
 
 class _SignedEnumerationFieldClass(_EnumerationFieldClass, _SignedIntegerFieldClass):
@@ -241,9 +241,9 @@ class _SignedEnumerationFieldClass(_EnumerationFieldClass, _SignedIntegerFieldCl
         return native_bt.field_class_signed_enumeration_map_range(enum_ptr, label, lower, upper)
 
     @staticmethod
-    def _get_mapping_labels_by_value(enum_ptr, value):
+    def _get_mapping_labels_for_value(enum_ptr, value):
         utils._check_int64(value)
-        return native_bt.field_class_signed_enumeration_get_mapping_labels_by_value(enum_ptr, value)
+        return native_bt.field_class_signed_enumeration_get_mapping_labels_for_value(enum_ptr, value)
 
 
 class _StringFieldClass(_FieldClass):

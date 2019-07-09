@@ -583,7 +583,7 @@ bt_field_unsigned_enumeration_get_mapping_labels(
 	BT_ASSERT_PRE_FIELD_HAS_CLASS_TYPE(field,
 		BT_FIELD_CLASS_TYPE_UNSIGNED_ENUMERATION, "Field");
 	return (int)
-		bt_field_class_unsigned_enumeration_get_mapping_labels_by_value(
+		bt_field_class_unsigned_enumeration_get_mapping_labels_for_value(
 			field->class, int_field->value.u, label_array, count);
 }
 
@@ -602,7 +602,7 @@ bt_field_signed_enumeration_get_mapping_labels(
 	BT_ASSERT_PRE_FIELD_HAS_CLASS_TYPE(field,
 		BT_FIELD_CLASS_TYPE_SIGNED_ENUMERATION, "Field");
 	return (int)
-		bt_field_class_signed_enumeration_get_mapping_labels_by_value(
+		bt_field_class_signed_enumeration_get_mapping_labels_for_value(
 			field->class, int_field->value.i, label_array, count);
 }
 

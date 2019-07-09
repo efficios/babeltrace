@@ -124,19 +124,19 @@ bt_field_class_signed_enumeration_mapping_get_range_by_index(
 		const bt_field_class_signed_enumeration_mapping *mapping,
 		uint64_t index, int64_t *lower, int64_t *upper);
 
-typedef enum bt_field_class_enumeration_get_mapping_labels_by_value_status {
+typedef enum bt_field_class_enumeration_get_mapping_labels_for_value_status {
 	BT_FIELD_CLASS_ENUMERATION_GET_MAPPING_LABELS_BY_VALUE_STATUS_MEMORY_ERROR	= __BT_FUNC_STATUS_MEMORY_ERROR,
 	BT_FIELD_CLASS_ENUMERATION_GET_MAPPING_LABELS_BY_VALUE_STATUS_OK		= __BT_FUNC_STATUS_OK,
-} bt_field_class_enumeration_get_mapping_labels_by_value_status;
+} bt_field_class_enumeration_get_mapping_labels_for_value_status;
 
-extern bt_field_class_enumeration_get_mapping_labels_by_value_status
-bt_field_class_unsigned_enumeration_get_mapping_labels_by_value(
+extern bt_field_class_enumeration_get_mapping_labels_for_value_status
+bt_field_class_unsigned_enumeration_get_mapping_labels_for_value(
 		const bt_field_class *field_class, uint64_t value,
 		bt_field_class_enumeration_mapping_label_array *label_array,
 		uint64_t *count);
 
-extern bt_field_class_enumeration_get_mapping_labels_by_value_status
-bt_field_class_signed_enumeration_get_mapping_labels_by_value(
+extern bt_field_class_enumeration_get_mapping_labels_for_value_status
+bt_field_class_signed_enumeration_get_mapping_labels_for_value(
 		const bt_field_class *field_class, int64_t value,
 		bt_field_class_enumeration_mapping_label_array *label_array,
 		uint64_t *count);

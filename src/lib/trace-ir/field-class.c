@@ -368,8 +368,8 @@ void bt_field_class_signed_enumeration_mapping_get_range_by_index(
 		(uint64_t *) lower, (uint64_t *) upper);
 }
 
-enum bt_field_class_enumeration_get_mapping_labels_by_value_status
-bt_field_class_unsigned_enumeration_get_mapping_labels_by_value(
+enum bt_field_class_enumeration_get_mapping_labels_for_value_status
+bt_field_class_unsigned_enumeration_get_mapping_labels_for_value(
 		const struct bt_field_class *fc, uint64_t value,
 		bt_field_class_enumeration_mapping_label_array *label_array,
 		uint64_t *count)
@@ -408,8 +408,8 @@ bt_field_class_unsigned_enumeration_get_mapping_labels_by_value(
 	return BT_FUNC_STATUS_OK;
 }
 
-enum bt_field_class_enumeration_get_mapping_labels_by_value_status
-bt_field_class_signed_enumeration_get_mapping_labels_by_value(
+enum bt_field_class_enumeration_get_mapping_labels_for_value_status
+bt_field_class_signed_enumeration_get_mapping_labels_for_value(
 		const struct bt_field_class *fc, int64_t value,
 		bt_field_class_enumeration_mapping_label_array *label_array,
 		uint64_t *count)
