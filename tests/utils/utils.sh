@@ -62,6 +62,7 @@ export BT_TESTS_BUILDDIR
 # the test script, define the 'SH_TAP' variable to '1' before sourcing this
 # script.
 if [ "x${SH_TAP:-}" = x1 ]; then
+	# shellcheck source=./tap/tap.sh
 	. "${BT_TESTS_SRCDIR}/utils/tap/tap.sh"
 fi
 
@@ -147,7 +148,7 @@ bt_diff_cli() {
 	# Run the CLI to get a detailed file. Strip any \r present due to
 	# Windows (\n -> \r\n). "diff --string-trailing-cr" is not used since it
 	# is not present on Solaris.
-	"$BT_TESTS_BT2_BIN" "${args[@]}" | tr -d "\r" > "$temp_output_file"
+	run_python_bt2 "$BT_TESTS_BT2_BIN" "${args[@]}" | tr -d "\r" > "$temp_output_file"
 
 	# Compare output with expected output
 	if ! diff -u "$temp_output_file" "$expected_file" 2>/dev/null >"$temp_diff"; then

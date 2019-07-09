@@ -27,10 +27,10 @@ else
 	UTILSSH="$(dirname "$0")/../../utils/utils.sh"
 fi
 
-# shellcheck source=../../../utils/utils.sh
+# shellcheck source=../../utils/utils.sh
 source "$UTILSSH"
 
-data_dir="$BT_TESTS_SRCDIR/data/plugins/flt.utils.trimmer"
+data_dir="$BT_TESTS_DATADIR/plugins/flt.utils.trimmer"
 temp_expected=$(mktemp)
 
 plan_tests 32
@@ -39,26 +39,31 @@ function run_test
 {
 	local begin_time="$1"
 	local end_time="$2"
+	local local_args=(
+		"-c" "src.test-trimmer.TheSourceOfAllEvil"
+		"-p" "with-stream-msgs-cs=$with_stream_msgs_cs"
+		"-c" "sink.text.details"
+		"--params=compact=true,with-metadata=false"
+		"--plugin-path=$data_dir"
+	)
 
 	if [ -n "$begin_time" ]; then
-		begin="--begin=$begin_time"
-		test_name="with $begin"
+		local_args+=("--begin=$begin_time")
+		test_name="with --begin=$begin_time"
 	else
-		begin=""
 		test_name="without --begin"
 	fi
 
 	if [ -n "$end_time" ]; then
-		end="--end=$end_time"
-		test_name="$test_name, with $end"
+		local_args+=("--end=$end_time")
+		test_name="$test_name, with --end=$end_time"
 	else
-		end=""
 		test_name="$test_name, without --end"
 	fi
 
 	# with_stream_msgs_cs is set to "true" or "false" by the tests.
 
-	bt_diff_cli "$temp_expected" -c src.test-trimmer.TheSourceOfAllEvil -p with-stream-msgs-cs=$with_stream_msgs_cs -c sink.text.details --params=compact=true,with-metadata=false --plugin-path=$data_dir $begin $end
+	bt_diff_cli "$temp_expected" "${local_args[@]}"
 	ok $? "$test_name"
 }
 
@@ -66,7 +71,7 @@ function test_with_stream_msg_cs {
 	with_stream_msgs_cs="true"
 
 	# Baseline (without trimming)
-	cat <<- 'END' > $temp_expected
+	cat <<- 'END' > "$temp_expected"
 	[100 10,100,000,000,000] {0 0 0} Stream beginning
 	[200 10,200,000,000,000] {0 0 0} Packet beginning
 	[300 10,300,000,000,000] {0 0 0} Event `event 1` (0)
@@ -77,7 +82,7 @@ function test_with_stream_msg_cs {
 	run_test "" ""
 
 	# Trim begin at a time before what the clock class can represent
-	cat <<- 'END' > $temp_expected
+	cat <<- 'END' > "$temp_expected"
 	[100 10,100,000,000,000] {0 0 0} Stream beginning
 	[200 10,200,000,000,000] {0 0 0} Packet beginning
 	[300 10,300,000,000,000] {0 0 0} Event `event 1` (0)
@@ -88,7 +93,7 @@ function test_with_stream_msg_cs {
 	run_test 50 ""
 
 	# Trim begin before stream beginning
-	cat <<- 'END' > $temp_expected
+	cat <<- 'END' > "$temp_expected"
 	[100 10,100,000,000,000] {0 0 0} Stream beginning
 	[200 10,200,000,000,000] {0 0 0} Packet beginning
 	[300 10,300,000,000,000] {0 0 0} Event `event 1` (0)
@@ -99,7 +104,7 @@ function test_with_stream_msg_cs {
 	run_test 10050 ""
 
 	# Trim begin before packet beginning
-	cat <<- 'END' > $temp_expected
+	cat <<- 'END' > "$temp_expected"
 	[150 10,150,000,000,000] {0 0 0} Stream beginning
 	[200 10,200,000,000,000] {0 0 0} Packet beginning
 	[300 10,300,000,000,000] {0 0 0} Event `event 1` (0)
@@ -110,7 +115,7 @@ function test_with_stream_msg_cs {
 	run_test 10150 ""
 
 	# Trim begin before first event
-	cat <<- 'END' > $temp_expected
+	cat <<- 'END' > "$temp_expected"
 	[250 10,250,000,000,000] {0 0 0} Stream beginning
 	[250 10,250,000,000,000] {0 0 0} Packet beginning
 	[300 10,300,000,000,000] {0 0 0} Event `event 1` (0)
@@ -121,7 +126,7 @@ function test_with_stream_msg_cs {
 	run_test 10250 ""
 
 	# Trim begin before second event
-	cat <<- 'END' > $temp_expected
+	cat <<- 'END' > "$temp_expected"
 	[350 10,350,000,000,000] {0 0 0} Stream beginning
 	[350 10,350,000,000,000] {0 0 0} Packet beginning
 	[400 10,400,000,000,000] {0 0 0} Event `event 2` (1)
@@ -132,7 +137,7 @@ function test_with_stream_msg_cs {
 	run_test 10350 ""
 
 	# Trim begin before packet end
-	cat <<- 'END' > $temp_expected
+	cat <<- 'END' > "$temp_expected"
 	[850 10,850,000,000,000] {0 0 0} Stream beginning
 	[850 10,850,000,000,000] {0 0 0} Packet beginning
 	[900 10,900,000,000,000] {0 0 0} Packet end
@@ -142,13 +147,13 @@ function test_with_stream_msg_cs {
 	run_test 10850 ""
 
 	# Trim begin after everything
-	cat <<- 'END' > $temp_expected
+	cat <<- 'END' > "$temp_expected"
 	END
 
 	run_test 11050 ""
 
 	# Trim end after stream end
-	cat <<- 'END' > $temp_expected
+	cat <<- 'END' > "$temp_expected"
 	[100 10,100,000,000,000] {0 0 0} Stream beginning
 	[200 10,200,000,000,000] {0 0 0} Packet beginning
 	[300 10,300,000,000,000] {0 0 0} Event `event 1` (0)
@@ -160,7 +165,7 @@ function test_with_stream_msg_cs {
 	run_test "" 11050
 
 	# Trim end after packet end
-	cat <<- 'END' > $temp_expected
+	cat <<- 'END' > "$temp_expected"
 	[100 10,100,000,000,000] {0 0 0} Stream beginning
 	[200 10,200,000,000,000] {0 0 0} Packet beginning
 	[300 10,300,000,000,000] {0 0 0} Event `event 1` (0)
@@ -172,7 +177,7 @@ function test_with_stream_msg_cs {
 	run_test "" 10950
 
 	# Trim end after second event
-	cat <<- 'END' > $temp_expected
+	cat <<- 'END' > "$temp_expected"
 	[100 10,100,000,000,000] {0 0 0} Stream beginning
 	[200 10,200,000,000,000] {0 0 0} Packet beginning
 	[300 10,300,000,000,000] {0 0 0} Event `event 1` (0)
@@ -184,7 +189,7 @@ function test_with_stream_msg_cs {
 	run_test "" 10450
 
 	# Trim end after first event
-	cat <<- 'END' > $temp_expected
+	cat <<- 'END' > "$temp_expected"
 	[100 10,100,000,000,000] {0 0 0} Stream beginning
 	[200 10,200,000,000,000] {0 0 0} Packet beginning
 	[300 10,300,000,000,000] {0 0 0} Event `event 1` (0)
@@ -195,7 +200,7 @@ function test_with_stream_msg_cs {
 	run_test "" 10350
 
 	# Trim end after packet beginning
-	cat <<- 'END' > $temp_expected
+	cat <<- 'END' > "$temp_expected"
 	[100 10,100,000,000,000] {0 0 0} Stream beginning
 	[200 10,200,000,000,000] {0 0 0} Packet beginning
 	[250 10,250,000,000,000] {0 0 0} Packet end
@@ -205,7 +210,7 @@ function test_with_stream_msg_cs {
 	run_test "" 10250
 
 	# Trim end after stream beginning
-	cat <<- 'END' > $temp_expected
+	cat <<- 'END' > "$temp_expected"
 	[100 10,100,000,000,000] {0 0 0} Stream beginning
 	[150 10,150,000,000,000] {0 0 0} Stream end
 	END
@@ -213,13 +218,13 @@ function test_with_stream_msg_cs {
 	run_test "" 10150
 
 	# Trim end before everything
-	cat <<- 'END' > $temp_expected
+	cat <<- 'END' > "$temp_expected"
 	END
 
 	run_test "" 10050
 
 	# Trim end at a time before what the clock class can represent
-	cat <<- 'END' > $temp_expected
+	cat <<- 'END' > "$temp_expected"
 	END
 
 	run_test "" 50
@@ -229,7 +234,7 @@ function test_without_stream_msg_cs {
 	with_stream_msgs_cs="false"
 
 	# Baseline (without trimming)
-	cat <<- 'END' > $temp_expected
+	cat <<- 'END' > "$temp_expected"
 	[Unknown] {0 0 0} Stream beginning
 	[200 10,200,000,000,000] {0 0 0} Packet beginning
 	[300 10,300,000,000,000] {0 0 0} Event `event 1` (0)
@@ -240,7 +245,7 @@ function test_without_stream_msg_cs {
 	run_test "" ""
 
 	# Trim begin at a time before what the clock class can represent
-	cat <<- 'END' > $temp_expected
+	cat <<- 'END' > "$temp_expected"
 	[Unknown] {0 0 0} Stream beginning
 	[200 10,200,000,000,000] {0 0 0} Packet beginning
 	[300 10,300,000,000,000] {0 0 0} Event `event 1` (0)
@@ -251,7 +256,7 @@ function test_without_stream_msg_cs {
 	run_test 50 ""
 
 	# Trim begin before stream beginning
-	cat <<- 'END' > $temp_expected
+	cat <<- 'END' > "$temp_expected"
 	[Unknown] {0 0 0} Stream beginning
 	[200 10,200,000,000,000] {0 0 0} Packet beginning
 	[300 10,300,000,000,000] {0 0 0} Event `event 1` (0)
@@ -262,7 +267,7 @@ function test_without_stream_msg_cs {
 	run_test 10050 ""
 
 	# Trim begin before packet beginning
-	cat <<- 'END' > $temp_expected
+	cat <<- 'END' > "$temp_expected"
 	[Unknown] {0 0 0} Stream beginning
 	[200 10,200,000,000,000] {0 0 0} Packet beginning
 	[300 10,300,000,000,000] {0 0 0} Event `event 1` (0)
@@ -273,7 +278,7 @@ function test_without_stream_msg_cs {
 	run_test 10150 ""
 
 	# Trim begin before first event
-	cat <<- 'END' > $temp_expected
+	cat <<- 'END' > "$temp_expected"
 	[250 10,250,000,000,000] {0 0 0} Stream beginning
 	[250 10,250,000,000,000] {0 0 0} Packet beginning
 	[300 10,300,000,000,000] {0 0 0} Event `event 1` (0)
@@ -284,7 +289,7 @@ function test_without_stream_msg_cs {
 	run_test 10250 ""
 
 	# Trim begin before second event
-	cat <<- 'END' > $temp_expected
+	cat <<- 'END' > "$temp_expected"
 	[350 10,350,000,000,000] {0 0 0} Stream beginning
 	[350 10,350,000,000,000] {0 0 0} Packet beginning
 	[400 10,400,000,000,000] {0 0 0} Event `event 2` (1)
@@ -295,7 +300,7 @@ function test_without_stream_msg_cs {
 	run_test 10350 ""
 
 	# Trim begin before packet end
-	cat <<- 'END' > $temp_expected
+	cat <<- 'END' > "$temp_expected"
 	[850 10,850,000,000,000] {0 0 0} Stream beginning
 	[850 10,850,000,000,000] {0 0 0} Packet beginning
 	[900 10,900,000,000,000] {0 0 0} Packet end
@@ -305,13 +310,13 @@ function test_without_stream_msg_cs {
 	run_test 10850 ""
 
 	# Trim begin after everything
-	cat <<- 'END' > $temp_expected
+	cat <<- 'END' > "$temp_expected"
 	END
 
 	run_test 11050 ""
 
 	# Trim end after stream end
-	cat <<- 'END' > $temp_expected
+	cat <<- 'END' > "$temp_expected"
 	[Unknown] {0 0 0} Stream beginning
 	[200 10,200,000,000,000] {0 0 0} Packet beginning
 	[300 10,300,000,000,000] {0 0 0} Event `event 1` (0)
@@ -323,7 +328,7 @@ function test_without_stream_msg_cs {
 	run_test "" 11050
 
 	# Trim end after packet end
-	cat <<- 'END' > $temp_expected
+	cat <<- 'END' > "$temp_expected"
 	[Unknown] {0 0 0} Stream beginning
 	[200 10,200,000,000,000] {0 0 0} Packet beginning
 	[300 10,300,000,000,000] {0 0 0} Event `event 1` (0)
@@ -335,7 +340,7 @@ function test_without_stream_msg_cs {
 	run_test "" 10950
 
 	# Trim end after second event
-	cat <<- 'END' > $temp_expected
+	cat <<- 'END' > "$temp_expected"
 	[Unknown] {0 0 0} Stream beginning
 	[200 10,200,000,000,000] {0 0 0} Packet beginning
 	[300 10,300,000,000,000] {0 0 0} Event `event 1` (0)
@@ -347,7 +352,7 @@ function test_without_stream_msg_cs {
 	run_test "" 10450
 
 	# Trim end after first event
-	cat <<- 'END' > $temp_expected
+	cat <<- 'END' > "$temp_expected"
 	[Unknown] {0 0 0} Stream beginning
 	[200 10,200,000,000,000] {0 0 0} Packet beginning
 	[300 10,300,000,000,000] {0 0 0} Event `event 1` (0)
@@ -358,7 +363,7 @@ function test_without_stream_msg_cs {
 	run_test "" 10350
 
 	# Trim end after packet beginning
-	cat <<- 'END' > $temp_expected
+	cat <<- 'END' > "$temp_expected"
 	[Unknown] {0 0 0} Stream beginning
 	[200 10,200,000,000,000] {0 0 0} Packet beginning
 	[250 10,250,000,000,000] {0 0 0} Packet end
@@ -368,7 +373,7 @@ function test_without_stream_msg_cs {
 	run_test "" 10250
 
 	# Trim end after stream beginning
-	cat <<- 'END' > $temp_expected
+	cat <<- 'END' > "$temp_expected"
 	[Unknown] {0 0 0} Stream beginning
 	[Unknown] {0 0 0} Stream end
 	END
@@ -376,7 +381,7 @@ function test_without_stream_msg_cs {
 	run_test "" 10150
 
 	# Trim end before everything
-	cat <<- 'END' > $temp_expected
+	cat <<- 'END' > "$temp_expected"
 	[Unknown] {0 0 0} Stream beginning
 	[Unknown] {0 0 0} Stream end
 	END
@@ -384,7 +389,7 @@ function test_without_stream_msg_cs {
 	run_test "" 10050
 
 	# Trim end at a time before what the clock class can represent
-	cat <<- 'END' > $temp_expected
+	cat <<- 'END' > "$temp_expected"
 	[Unknown] {0 0 0} Stream beginning
 	[Unknown] {0 0 0} Stream end
 	END
