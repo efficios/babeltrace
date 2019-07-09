@@ -8,7 +8,7 @@ babeltrace_plugin_lttng_utils_la_LIBADD += \
 	debug-info/libdebug-info.la
 endif
 
-plugindir = "$(PLUGINSDIR)"
+plugindir = "$(BABELTRACE_PLUGINS_DIR)"
 plugin_LTLIBRARIES = babeltrace-plugin-lttng-utils.la
 
 babeltrace_plugin_lttng_utils_la_SOURCES = \

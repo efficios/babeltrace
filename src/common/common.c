@@ -49,7 +49,7 @@
 #include <sys/ioctl.h>
 #endif
 
-#define SYSTEM_PLUGIN_PATH	INSTALL_LIBDIR "/babeltrace2/plugins"
+#define SYSTEM_PLUGIN_PATH	BABELTRACE_PLUGINS_DIR
 #define HOME_ENV_VAR		"HOME"
 #define HOME_PLUGIN_SUBPATH	"/.local/lib/babeltrace2/plugins"
 
