@@ -31,6 +31,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include <unistd.h>
 #include <string.h>
 
@@ -350,6 +351,15 @@ GString *bt_common_fold(const char *str, unsigned int total_length,
  */
 BT_HIDDEN
 int bt_common_get_term_size(unsigned int *width, unsigned int *height);
+
+/*
+ * Appends the textual content of `fp` to `str`, starting from its
+ * current position to the end of the file.
+ *
+ * This function does NOT rewind `fp` once it's done or on error.
+ */
+BT_HIDDEN
+int bt_common_append_file_content_to_g_string(GString *str, FILE *fp);
 
 /*
  * Wraps read() function to handle EINTR and partial reads.
