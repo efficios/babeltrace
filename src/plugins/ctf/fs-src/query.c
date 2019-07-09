@@ -59,13 +59,14 @@ bt_component_class_query_method_status metadata_info_query(
 		bt_self_component_class_source_as_self_component_class(self_comp_class_src);
 	bt_value *result = NULL;
 	const bt_value *path_value = NULL;
-	char *metadata_text = NULL;
 	FILE *metadata_fp = NULL;
-	GString *g_metadata_text = NULL;
 	int ret;
 	int bo;
 	const char *path;
 	bool is_packetized;
+	struct ctf_metadata_decoder *decoder = NULL;
+	struct ctf_metadata_decoder_config decoder_cfg = { 0 };
+	enum ctf_metadata_decoder_status decoder_status;
 
 	result = bt_value_map_create();
 	if (!result) {
@@ -107,69 +108,36 @@ bt_component_class_query_method_status metadata_info_query(
 		goto error;
 	}
 
-	is_packetized = ctf_metadata_decoder_is_packetized(metadata_fp,
+	ret = ctf_metadata_decoder_is_packetized(metadata_fp, &is_packetized,
 		&bo, log_level, NULL);
-
-	if (is_packetized) {
-		ret = ctf_metadata_decoder_packetized_file_stream_to_buf(
-			metadata_fp, &metadata_text, bo, NULL, NULL,
-			log_level, NULL);
-		if (ret) {
-			BT_COMP_CLASS_LOGE_APPEND_CAUSE(self_comp_class,
-				"Cannot decode packetized metadata file: path=\"%s\"",
-				path);
-			goto error;
-		}
-	} else {
-		long filesize;
-
-		ret = fseek(metadata_fp, 0, SEEK_END);
-		if (ret) {
-			BT_COMP_CLASS_LOGE_APPEND_CAUSE_ERRNO(self_comp_class,
-				"Failed to seek to the end of the metadata file",
-				": path=\"%s\"", path);
-			goto error;
-		}
-		filesize = ftell(metadata_fp);
-		if (filesize < 0) {
-			BT_COMP_CLASS_LOGE_APPEND_CAUSE_ERRNO(self_comp_class,
-				"Failed to get the current position in the metadata file",
-				": path=\"%s\"", path);
-			goto error;
-		}
-		rewind(metadata_fp);
-		metadata_text = malloc(filesize + 1);
-		if (!metadata_text) {
-			BT_COMP_CLASS_LOGE_APPEND_CAUSE(self_comp_class,
-				"Cannot allocate buffer for metadata text.");
-			goto error;
-		}
-
-		if (fread(metadata_text, filesize, 1, metadata_fp) != 1) {
-			BT_COMP_CLASS_LOGE_APPEND_CAUSE_ERRNO(self_comp_class,
-				"Cannot read metadata file", ": path=\"%s\"",
-				path);
-			goto error;
-		}
-
-		metadata_text[filesize] = '\0';
-	}
-
-	g_metadata_text = g_string_new(NULL);
-	if (!g_metadata_text) {
+	if (ret) {
+		BT_COMP_CLASS_LOGE_APPEND_CAUSE(self_comp_class,
+			"Cannot check whether or not the metadata stream is packetized: path=\"%s\".",
+			path);
 		goto error;
 	}
 
-	if (strncmp(metadata_text, METADATA_TEXT_SIG,
-			sizeof(METADATA_TEXT_SIG) - 1) != 0) {
-		g_string_assign(g_metadata_text, METADATA_TEXT_SIG);
-		g_string_append(g_metadata_text, " */\n\n");
+	decoder_cfg.log_level = log_level;
+	decoder_cfg.keep_plain_text = true;
+	decoder = ctf_metadata_decoder_create(&decoder_cfg);
+	if (!decoder) {
+		BT_COMP_CLASS_LOGE_APPEND_CAUSE(self_comp_class,
+			"Cannot create metadata decoder: path=\"%s\".", path);
+		goto error;
 	}
 
-	g_string_append(g_metadata_text, metadata_text);
+	rewind(metadata_fp);
+	decoder_status = ctf_metadata_decoder_append_content(decoder,
+		metadata_fp);
+	if (decoder_status) {
+		BT_COMP_CLASS_LOGE_APPEND_CAUSE(self_comp_class,
+			"Cannot update metadata decoder's content: path=\"%s\".",
+			path);
+		goto error;
+	}
 
 	ret = bt_value_map_insert_string_entry(result, "text",
-		g_metadata_text->str);
+		ctf_metadata_decoder_get_text(decoder));
 	if (ret) {
 		BT_COMP_CLASS_LOGE_APPEND_CAUSE(self_comp_class,
 			"Cannot insert metadata text into query result.");
@@ -195,11 +163,7 @@ error:
 	}
 
 end:
-	free(metadata_text);
-
-	if (g_metadata_text) {
-		g_string_free(g_metadata_text, TRUE);
-	}
+	ctf_metadata_decoder_destroy(decoder);
 
 	if (metadata_fp) {
 		fclose(metadata_fp);

@@ -102,12 +102,13 @@ int ctf_fs_metadata_set_trace_class(
 		.self_comp = self_comp,
 		.clock_class_offset_s = config ? config->clock_class_offset_s : 0,
 		.clock_class_offset_ns = config ? config->clock_class_offset_ns : 0,
+		.create_trace_class = true,
 	};
 	bt_logging_level log_level = ctf_fs_trace->log_level;
 
 	file = get_file(ctf_fs_trace->path->str, log_level, self_comp);
 	if (!file) {
-		BT_COMP_LOGE("Cannot create metadata file object");
+		BT_COMP_LOGE("Cannot create metadata file object.");
 		ret = -1;
 		goto end;
 	}
@@ -115,15 +116,15 @@ int ctf_fs_metadata_set_trace_class(
 	ctf_fs_trace->metadata->decoder = ctf_metadata_decoder_create(
 		&decoder_config);
 	if (!ctf_fs_trace->metadata->decoder) {
-		BT_COMP_LOGE("Cannot create metadata decoder object");
+		BT_COMP_LOGE("Cannot create metadata decoder object.");
 		ret = -1;
 		goto end;
 	}
 
-	ret = ctf_metadata_decoder_decode(ctf_fs_trace->metadata->decoder,
-		file->fp);
+	ret = ctf_metadata_decoder_append_content(
+		ctf_fs_trace->metadata->decoder, file->fp);
 	if (ret) {
-		BT_COMP_LOGE("Cannot decode metadata file");
+		BT_COMP_LOGE("Cannot update metadata decoder's content.");
 		goto end;
 	}
 
