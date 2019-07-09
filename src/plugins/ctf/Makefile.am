@@ -3,7 +3,7 @@ SUBDIRS = common \
 	fs-sink \
 	lttng-live
 
-plugindir = "$(PLUGINSDIR)"
+plugindir = "$(BABELTRACE_PLUGINS_DIR)"
 plugin_LTLIBRARIES = babeltrace-plugin-ctf.la
 
 # ctf plugin

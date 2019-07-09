@@ -1,6 +1,6 @@
 SUBDIRS = pretty dmesg details
 
-plugindir = "$(PLUGINSDIR)"
+plugindir = "$(BABELTRACE_PLUGINS_DIR)"
 plugin_LTLIBRARIES = babeltrace-plugin-text.la
 
 babeltrace_plugin_text_la_SOURCES = plugin.c

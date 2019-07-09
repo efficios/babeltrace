@@ -1,6 +1,6 @@
 SUBDIRS = dummy muxer counter trimmer
 
-plugindir = "$(PLUGINSDIR)"
+plugindir = "$(BABELTRACE_PLUGINS_DIR)"
 plugin_LTLIBRARIES = babeltrace-plugin-utils.la
 
 babeltrace_plugin_utils_la_SOURCES = plugin.c
