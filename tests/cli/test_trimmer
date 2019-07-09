@@ -116,7 +116,18 @@ expect_success 0 "--begin, out of range, GMT absolute timestamps" \
 expect_success 0 "--begin, out of range, GMT absolute timestamps" \
 	--clock-gmt --end "2012-10-29 16:48:17.588680018"
 
-export TZ=EST
+# Note here that the POSIX notation is a bit weird.
+# The libc documentation shed some light on this:
+#  The offset specifies the time value you must add to the local time to get a
+#  Coordinated Universal Time value. It has syntax like [+|-]hh[:mm[:ss]]. This
+#  is positive if the local time zone is west of the Prime Meridian and negative
+#  if it is east. The hour must be between 0 and 24, and the minute and seconds
+#  between 0 and 59. [1]
+#
+# This is why we use EST5 to simulate an effective UTC-5:00 time.
+#
+# [1] https://www.gnu.org/software/libc/manual/html_node/TZ-Variable.html
+export TZ=EST5
 
 expect_success 18 "--begin, EST relative timestamps" \
 	--begin "12:48:17.587029529"
