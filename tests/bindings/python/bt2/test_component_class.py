@@ -245,6 +245,18 @@ class UserComponentClassTestCase(unittest.TestCase):
         self.assertEqual(query_log_level, bt2.LoggingLevel.WARNING)
         del query_log_level
 
+    def test_query_returns_none(self):
+        class MySink(bt2._UserSinkComponent):
+            def _consume(self):
+                pass
+
+            @staticmethod
+            def _query(query_exec, obj, params, log_level):
+                return
+
+        res = bt2.QueryExecutor().query(MySink, 'obj', None)
+        self.assertIsNone(res)
+
     def test_query_simple(self):
         class MySink(bt2._UserSinkComponent):
             def _consume(self):

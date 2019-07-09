@@ -30,7 +30,14 @@ import bt2
 
 
 def _create_from_ptr(ptr):
-    if ptr is None or ptr == native_bt.value_null:
+    if ptr is None:
+        return
+
+    # bt_value_null is translated to None.  However, we are given a reference
+    # to it that we are not going to manage anymore, since we don't create a
+    # Python wrapper for it.  Therefore put that reference immediately.
+    if ptr == native_bt.value_null:
+        bt2.value._Value._put_ref(ptr)
         return
 
     typeid = native_bt.value_get_type(ptr)
