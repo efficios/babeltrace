@@ -526,7 +526,7 @@ void *bt_self_message_iterator_get_data(
 	struct bt_self_component_port_input_message_iterator *iterator =
 		(void *) self_iterator;
 
-	BT_ASSERT_PRE_NON_NULL(iterator, "Message iterator");
+	BT_ASSERT_PRE_DEV_NON_NULL(iterator, "Message iterator");
 	return iterator->user_data;
 }
 
@@ -536,7 +536,7 @@ void bt_self_message_iterator_set_data(
 	struct bt_self_component_port_input_message_iterator *iterator =
 		(void *) self_iterator;
 
-	BT_ASSERT_PRE_NON_NULL(iterator, "Message iterator");
+	BT_ASSERT_PRE_DEV_NON_NULL(iterator, "Message iterator");
 	iterator->user_data = data;
 	BT_LIB_LOGD("Set message iterator's user data: "
 		"%!+i, user-data-addr=%p", iterator, data);
@@ -547,7 +547,7 @@ void bt_self_message_iterator_set_data(
  * time.
  */
 
-BT_ASSERT_POST_FUNC
+BT_ASSERT_POST_DEV_FUNC
 static
 bool clock_snapshots_are_monotonic_one(
 		struct bt_self_component_port_input_message_iterator *iterator,
@@ -622,7 +622,7 @@ end:
 	return result;
 }
 
-BT_ASSERT_POST_FUNC
+BT_ASSERT_POST_DEV_FUNC
 static
 bool clock_snapshots_are_monotonic(
 		struct bt_self_component_port_input_message_iterator *iterator,
@@ -649,7 +649,7 @@ end:
  * stream is compatible with what we've seen before.
  */
 
-BT_ASSERT_POST_FUNC
+BT_ASSERT_POST_DEV_FUNC
 static
 bool clock_classes_are_compatible_one(struct bt_self_component_port_input_message_iterator *iterator,
 		const struct bt_message *msg)
@@ -689,7 +689,8 @@ bool clock_classes_are_compatible_one(struct bt_self_component_port_input_messag
 
 		case CLOCK_EXPECTATION_NONE:
 			if (clock_class) {
-				BT_ASSERT_POST_MSG("Expecting no clock class, got one: %![cc-]+K",
+				BT_ASSERT_POST_DEV_MSG(
+					"Expecting no clock class, got one: %![cc-]+K",
 					clock_class);
 				result = false;
 				goto end;
@@ -699,13 +700,15 @@ bool clock_classes_are_compatible_one(struct bt_self_component_port_input_messag
 
 		case CLOCK_EXPECTATION_ORIGIN_UNIX:
 			if (!clock_class) {
-				BT_ASSERT_POST_MSG("Expecting a clock class, got none.");
+				BT_ASSERT_POST_DEV_MSG(
+					"Expecting a clock class, got none.");
 				result = false;
 				goto end;
 			}
 
 			if (!bt_clock_class_origin_is_unix_epoch(clock_class)) {
-				BT_ASSERT_POST_MSG("Expecting a clock class with Unix epoch origin: %![cc-]+K",
+				BT_ASSERT_POST_DEV_MSG(
+					"Expecting a clock class with Unix epoch origin: %![cc-]+K",
 					clock_class);
 				result = false;
 				goto end;
@@ -714,27 +717,31 @@ bool clock_classes_are_compatible_one(struct bt_self_component_port_input_messag
 
 		case CLOCK_EXPECTATION_ORIGIN_OTHER_UUID:
 			if (!clock_class) {
-				BT_ASSERT_POST_MSG("Expecting a clock class, got none.");
+				BT_ASSERT_POST_DEV_MSG(
+					"Expecting a clock class, got none.");
 				result = false;
 				goto end;
 			}
 
 			if (bt_clock_class_origin_is_unix_epoch(clock_class)) {
-				BT_ASSERT_POST_MSG("Expecting a clock class without Unix epoch origin: %![cc-]+K",
+				BT_ASSERT_POST_DEV_MSG(
+					"Expecting a clock class without Unix epoch origin: %![cc-]+K",
 					clock_class);
 				result = false;
 				goto end;
 			}
 
 			if (!clock_class_uuid) {
-				BT_ASSERT_POST_MSG("Expecting a clock class with UUID: %![cc-]+K",
+				BT_ASSERT_POST_DEV_MSG(
+					"Expecting a clock class with UUID: %![cc-]+K",
 					clock_class);
 				result = false;
 				goto end;
 			}
 
 			if (bt_uuid_compare(iterator->clock_expectation.uuid, clock_class_uuid)) {
-				BT_ASSERT_POST_MSG("Expecting a clock class with UUID, got one "
+				BT_ASSERT_POST_DEV_MSG(
+					"Expecting a clock class with UUID, got one "
 					"with a different UUID: %![cc-]+K, expected-uuid=%!u",
 					clock_class, iterator->clock_expectation.uuid);
 				result = false;
@@ -744,20 +751,23 @@ bool clock_classes_are_compatible_one(struct bt_self_component_port_input_messag
 
 		case CLOCK_EXPECTATION_ORIGIN_OTHER_NO_UUID:
 			if (!clock_class) {
-				BT_ASSERT_POST_MSG("Expecting a clock class, got none.");
+				BT_ASSERT_POST_DEV_MSG(
+					"Expecting a clock class, got none.");
 				result = false;
 				goto end;
 			}
 
 			if (bt_clock_class_origin_is_unix_epoch(clock_class)) {
-				BT_ASSERT_POST_MSG("Expecting a clock class without Unix epoch origin: %![cc-]+K",
+				BT_ASSERT_POST_DEV_MSG(
+					"Expecting a clock class without Unix epoch origin: %![cc-]+K",
 					clock_class);
 				result = false;
 				goto end;
 			}
 
 			if (clock_class_uuid) {
-				BT_ASSERT_POST_MSG("Expecting a clock class without UUID: %![cc-]+K",
+				BT_ASSERT_POST_DEV_MSG(
+					"Expecting a clock class without UUID: %![cc-]+K",
 					clock_class);
 				result = false;
 				goto end;
@@ -772,7 +782,7 @@ end:
 	return result;
 }
 
-BT_ASSERT_POST_FUNC
+BT_ASSERT_POST_DEV_FUNC
 static
 bool clock_classes_are_compatible(
 		struct bt_self_component_port_input_message_iterator *iterator,
@@ -814,9 +824,9 @@ call_iterator_next_method(
 		bt_common_func_status_string(status), *user_count);
 
 	if (status == BT_FUNC_STATUS_OK) {
-		BT_ASSERT_POST(clock_classes_are_compatible(iterator, msgs, *user_count),
+		BT_ASSERT_POST_DEV(clock_classes_are_compatible(iterator, msgs, *user_count),
 			"Clocks are not compatible");
-		BT_ASSERT_POST(clock_snapshots_are_monotonic(iterator, msgs, *user_count),
+		BT_ASSERT_POST_DEV(clock_snapshots_are_monotonic(iterator, msgs, *user_count),
 			"Clock snapshots are not monotonic");
 	}
 
@@ -830,16 +840,16 @@ bt_self_component_port_input_message_iterator_next(
 {
 	enum bt_message_iterator_next_status status = BT_FUNC_STATUS_OK;
 
-	BT_ASSERT_PRE_NON_NULL(iterator, "Message iterator");
-	BT_ASSERT_PRE_NON_NULL(msgs, "Message array (output)");
-	BT_ASSERT_PRE_NON_NULL(user_count, "Message count (output)");
-	BT_ASSERT_PRE(iterator->state ==
+	BT_ASSERT_PRE_DEV_NON_NULL(iterator, "Message iterator");
+	BT_ASSERT_PRE_DEV_NON_NULL(msgs, "Message array (output)");
+	BT_ASSERT_PRE_DEV_NON_NULL(user_count, "Message count (output)");
+	BT_ASSERT_PRE_DEV(iterator->state ==
 		BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_STATE_ACTIVE,
 		"Message iterator's \"next\" called, but "
 		"message iterator is in the wrong state: %!+i", iterator);
 	BT_ASSERT(iterator->upstream_component);
 	BT_ASSERT(iterator->upstream_component->class);
-	BT_ASSERT_PRE(
+	BT_ASSERT_PRE_DEV(
 		bt_component_borrow_graph(iterator->upstream_component)->config_state !=
 			BT_GRAPH_CONFIGURATION_STATE_CONFIGURING,
 		"Graph is not configured: %!+g",
@@ -880,7 +890,7 @@ bt_self_component_port_input_message_iterator_next(
 
 	switch (status) {
 	case BT_FUNC_STATUS_OK:
-		BT_ASSERT_POST(*user_count <= MSG_BATCH_SIZE,
+		BT_ASSERT_POST_DEV(*user_count <= MSG_BATCH_SIZE,
 			"Invalid returned message count: greater than "
 			"batch size: count=%" PRIu64 ", batch-size=%u",
 			*user_count, MSG_BATCH_SIZE);
@@ -909,9 +919,9 @@ enum bt_message_iterator_next_status bt_port_output_message_iterator_next(
 	enum bt_message_iterator_next_status status;
 	int graph_status;
 
-	BT_ASSERT_PRE_NON_NULL(iterator, "Message iterator");
-	BT_ASSERT_PRE_NON_NULL(msgs_to_user, "Message array (output)");
-	BT_ASSERT_PRE_NON_NULL(count_to_user, "Message count (output)");
+	BT_ASSERT_PRE_DEV_NON_NULL(iterator, "Message iterator");
+	BT_ASSERT_PRE_DEV_NON_NULL(msgs_to_user, "Message array (output)");
+	BT_ASSERT_PRE_DEV_NON_NULL(count_to_user, "Message count (output)");
 	BT_LIB_LOGD("Getting next output port message iterator's messages: "
 		"%!+i", iterator);
 	graph_status = bt_graph_consume_sink_no_check(iterator->graph,
@@ -946,7 +956,7 @@ struct bt_component *
 bt_self_component_port_input_message_iterator_borrow_component(
 		struct bt_self_component_port_input_message_iterator *iterator)
 {
-	BT_ASSERT_PRE_NON_NULL(iterator, "Message iterator");
+	BT_ASSERT_PRE_DEV_NON_NULL(iterator, "Message iterator");
 	return iterator->upstream_component;
 }
 
@@ -954,7 +964,7 @@ const struct bt_component *
 bt_self_component_port_input_message_iterator_borrow_component_const(
 		const struct bt_self_component_port_input_message_iterator *iterator)
 {
-	BT_ASSERT_PRE_NON_NULL(iterator, "Message iterator");
+	BT_ASSERT_PRE_DEV_NON_NULL(iterator, "Message iterator");
 	return iterator->upstream_component;
 }
 
@@ -964,7 +974,7 @@ struct bt_self_component *bt_self_message_iterator_borrow_component(
 	struct bt_self_component_port_input_message_iterator *iterator =
 		(void *) self_iterator;
 
-	BT_ASSERT_PRE_NON_NULL(iterator, "Message iterator");
+	BT_ASSERT_PRE_DEV_NON_NULL(iterator, "Message iterator");
 	return (void *) iterator->upstream_component;
 }
 
@@ -974,7 +984,7 @@ struct bt_self_port_output *bt_self_message_iterator_borrow_port(
 	struct bt_self_component_port_input_message_iterator *iterator =
 		(void *) self_iterator;
 
-	BT_ASSERT_PRE_NON_NULL(iterator, "Message iterator");
+	BT_ASSERT_PRE_DEV_NON_NULL(iterator, "Message iterator");
 	return (void *) iterator->upstream_port;
 }
 
@@ -1373,7 +1383,7 @@ int auto_seek_handle_message(
 			(const void *) msg;
 
 		clk_snapshot = event_msg->default_cs;
-		BT_ASSERT_POST(clk_snapshot,
+		BT_ASSERT_POST_DEV(clk_snapshot,
 			"Event message has no default clock snapshot: %!+n",
 			event_msg);
 		break;
@@ -1394,7 +1404,7 @@ int auto_seek_handle_message(
 			(const void *) msg;
 
 		clk_snapshot = packet_msg->default_cs;
-		BT_ASSERT_POST(clk_snapshot,
+		BT_ASSERT_POST_DEV(clk_snapshot,
 			"Packet message has no default clock snapshot: %!+n",
 			packet_msg);
 		break;
@@ -1405,7 +1415,7 @@ int auto_seek_handle_message(
 		struct bt_message_discarded_items *msg_disc_items =
 			(void *) msg;
 
-		BT_ASSERT_POST(msg_disc_items->default_begin_cs &&
+		BT_ASSERT_POST_DEV(msg_disc_items->default_begin_cs &&
 			msg_disc_items->default_end_cs,
 			"Discarded events/packets message has no default clock snapshots: %!+n",
 			msg_disc_items);
@@ -1675,7 +1685,7 @@ int find_message_ge_ns_from_origin(
 
 		switch (status) {
 		case BT_FUNC_STATUS_OK:
-			BT_ASSERT_POST(user_count <= MSG_BATCH_SIZE,
+			BT_ASSERT_POST_DEV(user_count <= MSG_BATCH_SIZE,
 				"Invalid returned message count: greater than "
 				"batch size: count=%" PRIu64 ", batch-size=%u",
 				user_count, MSG_BATCH_SIZE);

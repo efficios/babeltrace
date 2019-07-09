@@ -46,8 +46,8 @@
 #include "packet.h"
 #include "stream.h"
 
-#define BT_ASSERT_PRE_EVENT_HOT(_event) \
-	BT_ASSERT_PRE_HOT(((const struct bt_event *) (_event)), 	\
+#define BT_ASSERT_PRE_DEV_EVENT_HOT(_event)				\
+	BT_ASSERT_PRE_DEV_HOT(((const struct bt_event *) (_event)), 	\
 		"Event", ": %!+e", (_event))
 
 struct bt_event {
@@ -171,10 +171,10 @@ void bt_event_recycle(struct bt_event *event)
 static inline
 void bt_event_set_packet(struct bt_event *event, struct bt_packet *packet)
 {
-	BT_ASSERT_PRE_NON_NULL(event, "Event");
-	BT_ASSERT_PRE_NON_NULL(packet, "Packet");
-	BT_ASSERT_PRE_EVENT_HOT(event);
-	BT_ASSERT_PRE(bt_event_class_borrow_stream_class(
+	BT_ASSERT_PRE_DEV_NON_NULL(event, "Event");
+	BT_ASSERT_PRE_DEV_NON_NULL(packet, "Packet");
+	BT_ASSERT_PRE_DEV_EVENT_HOT(event);
+	BT_ASSERT_PRE_DEV(bt_event_class_borrow_stream_class(
 		event->class) == packet->stream->class,
 		"Packet's stream class and event's stream class differ: "
 		"%![event-]+e, %![packet-]+a", event, packet);
@@ -189,10 +189,10 @@ void bt_event_set_packet(struct bt_event *event, struct bt_packet *packet)
 static inline
 void bt_event_set_stream(struct bt_event *event, struct bt_stream *stream)
 {
-	BT_ASSERT_PRE_NON_NULL(event, "Event");
-	BT_ASSERT_PRE_NON_NULL(stream, "Stream");
-	BT_ASSERT_PRE_EVENT_HOT(event);
-	BT_ASSERT_PRE(bt_event_class_borrow_stream_class(
+	BT_ASSERT_PRE_DEV_NON_NULL(event, "Event");
+	BT_ASSERT_PRE_DEV_NON_NULL(stream, "Stream");
+	BT_ASSERT_PRE_DEV_EVENT_HOT(event);
+	BT_ASSERT_PRE_DEV(bt_event_class_borrow_stream_class(
 		event->class) == stream->class,
 		"Stream's class and event's stream class differ: "
 		"%![event-]+e, %![stream-]+s", event, stream);

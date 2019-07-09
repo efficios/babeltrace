@@ -43,13 +43,12 @@
 #include <inttypes.h>
 #include "common/macros.h"
 
-#ifdef BT_DEV_MODE
 /*
  * Prints the details of an unsatisfied postcondition without
  * immediately aborting. You should use this within a function which
- * checks postconditions, but which is called from a BT_ASSERT_POST()
- * context, so that the function can still return its result for
- * BT_ASSERT_POST() to evaluate it.
+ * checks postconditions, but which is called from a
+ * BT_ASSERT_POST() context, so that the function can still return
+ * its result for BT_ASSERT_POST() to evaluate it.
  *
  * Example:
  *
@@ -69,9 +68,9 @@
  *     ...
  *
  *     BT_ASSERT_POST(check_complex_postcond(...),
- *                   "Postcondition is not satisfied: ...", ...);
+ *                         "Postcondition is not satisfied: ...", ...);
  */
-# define BT_ASSERT_POST_MSG(_fmt, ...)					\
+#define BT_ASSERT_POST_MSG(_fmt, ...)					\
 	do {								\
 		bt_lib_log(_BT_LOG_SRCLOC_FUNCTION, __FILE__,		\
 			__LINE__, BT_LOG_FATAL, BT_LOG_TAG,		\
@@ -79,8 +78,7 @@
 	} while (0)
 
 /*
- * Developer mode: asserts that the library postcondition `_cond` is
- * satisfied.
+ * Asserts that the library postcondition `_cond` is satisfied.
  *
  * If `_cond` is false, log a fatal statement using `_fmt` and the
  * optional arguments (same usage as BT_LIB_LOGF()), and abort.
@@ -91,11 +89,11 @@
  * To assert that an internal postcondition is satisfied, use
  * BT_ASSERT().
  */
-# define BT_ASSERT_POST(_cond, _fmt, ...)				\
+#define BT_ASSERT_POST(_cond, _fmt, ...)				\
 	do {								\
 		if (!(_cond)) {						\
 			BT_ASSERT_POST_MSG("Babeltrace 2 library postcondition not satisfied; error is:"); \
-			BT_ASSERT_POST_MSG((_fmt), ##__VA_ARGS__);	\
+			BT_ASSERT_POST_MSG(_fmt, ##__VA_ARGS__);	\
 			BT_ASSERT_POST_MSG("Aborting...");		\
 			abort();					\
 		}							\
@@ -105,11 +103,23 @@
  * Marks a function as being only used within a BT_ASSERT_POST()
  * context.
  */
-# define BT_ASSERT_POST_FUNC
+#define BT_ASSERT_POST_FUNC
+
+#ifdef BT_DEV_MODE
+/* Developer mode version of BT_ASSERT_POST_MSG(). */
+# define BT_ASSERT_POST_DEV_MSG(_fmt, ...)				\
+	BT_ASSERT_POST_MSG(_fmt, ##__VA_ARGS__)
+
+/* Developer mode version of BT_ASSERT_POST(). */
+# define BT_ASSERT_POST_DEV(_cond, _fmt, ...)				\
+	BT_ASSERT_POST((_cond), _fmt, ##__VA_ARGS__)
+
+/* Developer mode version of `BT_ASSERT_POST_FUNC`. */
+# define BT_ASSERT_POST_DEV_FUNC BT_ASSERT_POST_FUNC
 #else
-# define BT_ASSERT_POST(_cond, _fmt, ...)	((void) sizeof((void) (_cond), 0))
-# define BT_ASSERT_POST_FUNC	__attribute__((unused))
-# define BT_ASSERT_POST_MSG(_fmt, ...)
+# define BT_ASSERT_POST_DEV_MSG(_fmt, ...)
+# define BT_ASSERT_POST_DEV(_cond, _fmt, ...)	((void) sizeof((void) (_cond), 0))
+# define BT_ASSERT_POST_DEV_FUNC	__attribute__((unused))
 #endif /* BT_DEV_MODE */
 
 #define BT_ASSERT_POST_SUPPORTED

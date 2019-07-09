@@ -271,8 +271,8 @@ struct bt_event *borrow_event(struct bt_message *message)
 {
 	struct bt_message_event *event_message;
 
-	BT_ASSERT_PRE_NON_NULL(message, "Message");
-	BT_ASSERT_PRE_MSG_IS_TYPE(message, BT_MESSAGE_TYPE_EVENT);
+	BT_ASSERT_PRE_DEV_NON_NULL(message, "Message");
+	BT_ASSERT_PRE_DEV_MSG_IS_TYPE(message, BT_MESSAGE_TYPE_EVENT);
 	event_message = container_of(message,
 			struct bt_message_event, parent);
 	return event_message->event;
@@ -297,12 +297,12 @@ bt_message_event_borrow_default_clock_snapshot_const(
 	struct bt_message_event *event_msg = (void *) msg;
 	struct bt_stream_class *stream_class;
 
-	BT_ASSERT_PRE_NON_NULL(msg, "Message");
-	BT_ASSERT_PRE_MSG_IS_TYPE(msg, BT_MESSAGE_TYPE_EVENT);
+	BT_ASSERT_PRE_DEV_NON_NULL(msg, "Message");
+	BT_ASSERT_PRE_DEV_MSG_IS_TYPE(msg, BT_MESSAGE_TYPE_EVENT);
 	stream_class = bt_event_class_borrow_stream_class_inline(
 		event_msg->event->class);
 	BT_ASSERT(stream_class);
-	BT_ASSERT_PRE(stream_class->default_clock_class,
+	BT_ASSERT_PRE_DEV(stream_class->default_clock_class,
 		"Message's stream's class has no default clock class: "
 		"%![msg-]+n, %![sc-]+S", msg, stream_class);
 	return event_msg->default_cs;
@@ -315,8 +315,8 @@ bt_message_event_borrow_stream_class_default_clock_class_const(
 	struct bt_message_event *event_msg = (void *) msg;
 	struct bt_stream_class *stream_class;
 
-	BT_ASSERT_PRE_NON_NULL(msg, "Message");
-	BT_ASSERT_PRE_MSG_IS_TYPE(msg, BT_MESSAGE_TYPE_EVENT);
+	BT_ASSERT_PRE_DEV_NON_NULL(msg, "Message");
+	BT_ASSERT_PRE_DEV_MSG_IS_TYPE(msg, BT_MESSAGE_TYPE_EVENT);
 	stream_class = bt_event_class_borrow_stream_class_inline(
 		event_msg->event->class);
 	BT_ASSERT(stream_class);

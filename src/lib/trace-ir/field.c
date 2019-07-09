@@ -185,20 +185,20 @@ void (* const field_destroy_funcs[])(struct bt_field *) = {
 
 struct bt_field_class *bt_field_borrow_class(const struct bt_field *field)
 {
-	BT_ASSERT_PRE_NON_NULL(field, "Field");
+	BT_ASSERT_PRE_DEV_NON_NULL(field, "Field");
 	return field->class;
 }
 
 const struct bt_field_class *bt_field_borrow_class_const(
 		const struct bt_field *field)
 {
-	BT_ASSERT_PRE_NON_NULL(field, "Field");
+	BT_ASSERT_PRE_DEV_NON_NULL(field, "Field");
 	return field->class;
 }
 
 enum bt_field_class_type bt_field_get_class_type(const struct bt_field *field)
 {
-	BT_ASSERT_PRE_NON_NULL(field, "Field");
+	BT_ASSERT_PRE_DEV_NON_NULL(field, "Field");
 	return field->class->type;
 }
 
@@ -207,7 +207,7 @@ struct bt_field *bt_field_create(struct bt_field_class *fc)
 {
 	struct bt_field *field = NULL;
 
-	BT_ASSERT_PRE_NON_NULL(fc, "Field class");
+	BT_ASSERT(fc);
 	BT_ASSERT(bt_field_class_has_known_type(fc));
 	field = field_create_funcs[fc->type](fc);
 	if (!field) {
@@ -496,9 +496,9 @@ int64_t bt_field_signed_integer_get_value(const struct bt_field *field)
 {
 	const struct bt_field_integer *int_field = (const void *) field;
 
-	BT_ASSERT_PRE_NON_NULL(field, "Field");
-	BT_ASSERT_PRE_FIELD_IS_SET(field, "Field");
-	BT_ASSERT_PRE_FIELD_IS_SIGNED_INT(field, "Field");
+	BT_ASSERT_PRE_DEV_NON_NULL(field, "Field");
+	BT_ASSERT_PRE_DEV_FIELD_IS_SET(field, "Field");
+	BT_ASSERT_PRE_DEV_FIELD_IS_SIGNED_INT(field, "Field");
 	return int_field->value.i;
 }
 
@@ -506,10 +506,10 @@ void bt_field_signed_integer_set_value(struct bt_field *field, int64_t value)
 {
 	struct bt_field_integer *int_field = (void *) field;
 
-	BT_ASSERT_PRE_NON_NULL(field, "Field");
-	BT_ASSERT_PRE_FIELD_IS_SIGNED_INT(field, "Field");
-	BT_ASSERT_PRE_FIELD_HOT(field, "Field");
-	BT_ASSERT_PRE(bt_util_value_is_in_range_signed(
+	BT_ASSERT_PRE_DEV_NON_NULL(field, "Field");
+	BT_ASSERT_PRE_DEV_FIELD_IS_SIGNED_INT(field, "Field");
+	BT_ASSERT_PRE_DEV_FIELD_HOT(field, "Field");
+	BT_ASSERT_PRE_DEV(bt_util_value_is_in_range_signed(
 		((struct bt_field_class_integer *) field->class)->range, value),
 		"Value is out of bounds: value=%" PRId64 ", %![field-]+f, "
 		"%![fc-]+F", value, field, field->class);
@@ -521,9 +521,9 @@ uint64_t bt_field_unsigned_integer_get_value(const struct bt_field *field)
 {
 	const struct bt_field_integer *int_field = (const void *) field;
 
-	BT_ASSERT_PRE_NON_NULL(field, "Field");
-	BT_ASSERT_PRE_FIELD_IS_SET(field, "Field");
-	BT_ASSERT_PRE_FIELD_IS_UNSIGNED_INT(field, "Field");
+	BT_ASSERT_PRE_DEV_NON_NULL(field, "Field");
+	BT_ASSERT_PRE_DEV_FIELD_IS_SET(field, "Field");
+	BT_ASSERT_PRE_DEV_FIELD_IS_UNSIGNED_INT(field, "Field");
 	return int_field->value.u;
 }
 
@@ -531,10 +531,10 @@ void bt_field_unsigned_integer_set_value(struct bt_field *field, uint64_t value)
 {
 	struct bt_field_integer *int_field = (void *) field;
 
-	BT_ASSERT_PRE_NON_NULL(field, "Field");
-	BT_ASSERT_PRE_FIELD_IS_UNSIGNED_INT(field, "Field");
-	BT_ASSERT_PRE_FIELD_HOT(field, "Field");
-	BT_ASSERT_PRE(bt_util_value_is_in_range_unsigned(
+	BT_ASSERT_PRE_DEV_NON_NULL(field, "Field");
+	BT_ASSERT_PRE_DEV_FIELD_IS_UNSIGNED_INT(field, "Field");
+	BT_ASSERT_PRE_DEV_FIELD_HOT(field, "Field");
+	BT_ASSERT_PRE_DEV(bt_util_value_is_in_range_unsigned(
 		((struct bt_field_class_integer *) field->class)->range, value),
 		"Value is out of bounds: value=%" PRIu64 ", %![field-]+f, "
 		"%![fc-]+F", value, field, field->class);
@@ -546,9 +546,9 @@ double bt_field_real_get_value(const struct bt_field *field)
 {
 	const struct bt_field_real *real_field = (const void *) field;
 
-	BT_ASSERT_PRE_NON_NULL(field, "Field");
-	BT_ASSERT_PRE_FIELD_IS_SET(field, "Field");
-	BT_ASSERT_PRE_FIELD_HAS_CLASS_TYPE(field, BT_FIELD_CLASS_TYPE_REAL, "Field");
+	BT_ASSERT_PRE_DEV_NON_NULL(field, "Field");
+	BT_ASSERT_PRE_DEV_FIELD_IS_SET(field, "Field");
+	BT_ASSERT_PRE_DEV_FIELD_HAS_CLASS_TYPE(field, BT_FIELD_CLASS_TYPE_REAL, "Field");
 	return real_field->value;
 }
 
@@ -556,10 +556,10 @@ void bt_field_real_set_value(struct bt_field *field, double value)
 {
 	struct bt_field_real *real_field = (void *) field;
 
-	BT_ASSERT_PRE_NON_NULL(field, "Field");
-	BT_ASSERT_PRE_FIELD_HAS_CLASS_TYPE(field, BT_FIELD_CLASS_TYPE_REAL, "Field");
-	BT_ASSERT_PRE_FIELD_HOT(field, "Field");
-	BT_ASSERT_PRE(
+	BT_ASSERT_PRE_DEV_NON_NULL(field, "Field");
+	BT_ASSERT_PRE_DEV_FIELD_HAS_CLASS_TYPE(field, BT_FIELD_CLASS_TYPE_REAL, "Field");
+	BT_ASSERT_PRE_DEV_FIELD_HOT(field, "Field");
+	BT_ASSERT_PRE_DEV(
 		!((struct bt_field_class_real *) field->class)->is_single_precision ||
 		(double) (float) value == value,
 		"Invalid value for a single-precision real number: value=%f, "
@@ -576,11 +576,11 @@ bt_field_unsigned_enumeration_get_mapping_labels(
 {
 	const struct bt_field_integer *int_field = (const void *) field;
 
-	BT_ASSERT_PRE_NON_NULL(field, "Field");
-	BT_ASSERT_PRE_NON_NULL(label_array, "Label array (output)");
-	BT_ASSERT_PRE_NON_NULL(label_array, "Count (output)");
-	BT_ASSERT_PRE_FIELD_IS_SET(field, "Field");
-	BT_ASSERT_PRE_FIELD_HAS_CLASS_TYPE(field,
+	BT_ASSERT_PRE_DEV_NON_NULL(field, "Field");
+	BT_ASSERT_PRE_DEV_NON_NULL(label_array, "Label array (output)");
+	BT_ASSERT_PRE_DEV_NON_NULL(label_array, "Count (output)");
+	BT_ASSERT_PRE_DEV_FIELD_IS_SET(field, "Field");
+	BT_ASSERT_PRE_DEV_FIELD_HAS_CLASS_TYPE(field,
 		BT_FIELD_CLASS_TYPE_UNSIGNED_ENUMERATION, "Field");
 	return (int)
 		bt_field_class_unsigned_enumeration_get_mapping_labels_for_value(
@@ -595,11 +595,11 @@ bt_field_signed_enumeration_get_mapping_labels(
 {
 	const struct bt_field_integer *int_field = (const void *) field;
 
-	BT_ASSERT_PRE_NON_NULL(field, "Field");
-	BT_ASSERT_PRE_NON_NULL(label_array, "Label array (output)");
-	BT_ASSERT_PRE_NON_NULL(label_array, "Count (output)");
-	BT_ASSERT_PRE_FIELD_IS_SET(field, "Field");
-	BT_ASSERT_PRE_FIELD_HAS_CLASS_TYPE(field,
+	BT_ASSERT_PRE_DEV_NON_NULL(field, "Field");
+	BT_ASSERT_PRE_DEV_NON_NULL(label_array, "Label array (output)");
+	BT_ASSERT_PRE_DEV_NON_NULL(label_array, "Count (output)");
+	BT_ASSERT_PRE_DEV_FIELD_IS_SET(field, "Field");
+	BT_ASSERT_PRE_DEV_FIELD_HAS_CLASS_TYPE(field,
 		BT_FIELD_CLASS_TYPE_SIGNED_ENUMERATION, "Field");
 	return (int)
 		bt_field_class_signed_enumeration_get_mapping_labels_for_value(
@@ -610,9 +610,9 @@ const char *bt_field_string_get_value(const struct bt_field *field)
 {
 	const struct bt_field_string *string_field = (const void *) field;
 
-	BT_ASSERT_PRE_NON_NULL(field, "Field");
-	BT_ASSERT_PRE_FIELD_IS_SET(field, "Field");
-	BT_ASSERT_PRE_FIELD_HAS_CLASS_TYPE(field, BT_FIELD_CLASS_TYPE_STRING,
+	BT_ASSERT_PRE_DEV_NON_NULL(field, "Field");
+	BT_ASSERT_PRE_DEV_FIELD_IS_SET(field, "Field");
+	BT_ASSERT_PRE_DEV_FIELD_HAS_CLASS_TYPE(field, BT_FIELD_CLASS_TYPE_STRING,
 		"Field");
 	return (const char *) string_field->buf->data;
 }
@@ -621,9 +621,9 @@ uint64_t bt_field_string_get_length(const struct bt_field *field)
 {
 	const struct bt_field_string *string_field = (const void *) field;
 
-	BT_ASSERT_PRE_NON_NULL(field, "Field");
-	BT_ASSERT_PRE_FIELD_IS_SET(field, "Field");
-	BT_ASSERT_PRE_FIELD_HAS_CLASS_TYPE(field, BT_FIELD_CLASS_TYPE_STRING,
+	BT_ASSERT_PRE_DEV_NON_NULL(field, "Field");
+	BT_ASSERT_PRE_DEV_FIELD_IS_SET(field, "Field");
+	BT_ASSERT_PRE_DEV_FIELD_HAS_CLASS_TYPE(field, BT_FIELD_CLASS_TYPE_STRING,
 		"Field");
 	return string_field->length;
 }
@@ -641,10 +641,10 @@ void clear_string_field(struct bt_field *field)
 enum bt_field_string_set_value_status bt_field_string_set_value(
 		struct bt_field *field, const char *value)
 {
-	BT_ASSERT_PRE_NON_NULL(field, "Field");
-	BT_ASSERT_PRE_NON_NULL(value, "Value");
-	BT_ASSERT_PRE_FIELD_HOT(field, "Field");
-	BT_ASSERT_PRE_FIELD_HAS_CLASS_TYPE(field, BT_FIELD_CLASS_TYPE_STRING,
+	BT_ASSERT_PRE_DEV_NON_NULL(field, "Field");
+	BT_ASSERT_PRE_DEV_NON_NULL(value, "Value");
+	BT_ASSERT_PRE_DEV_FIELD_HOT(field, "Field");
+	BT_ASSERT_PRE_DEV_FIELD_HAS_CLASS_TYPE(field, BT_FIELD_CLASS_TYPE_STRING,
 		"Field");
 	clear_string_field(field);
 	return (int) bt_field_string_append_with_length(field, value,
@@ -665,14 +665,14 @@ enum bt_field_string_append_status bt_field_string_append_with_length(
 	char *data;
 	uint64_t new_length;
 
-	BT_ASSERT_PRE_NON_NULL(field, "Field");
-	BT_ASSERT_PRE_NON_NULL(value, "Value");
-	BT_ASSERT_PRE_FIELD_HOT(field, "Field");
-	BT_ASSERT_PRE_FIELD_HAS_CLASS_TYPE(field,
+	BT_ASSERT_PRE_DEV_NON_NULL(field, "Field");
+	BT_ASSERT_PRE_DEV_NON_NULL(value, "Value");
+	BT_ASSERT_PRE_DEV_FIELD_HOT(field, "Field");
+	BT_ASSERT_PRE_DEV_FIELD_HAS_CLASS_TYPE(field,
 		BT_FIELD_CLASS_TYPE_STRING, "Field");
 
 	/* Make sure no null bytes are appended */
-	BT_ASSERT_PRE(memchr(value, '\0', length) == NULL,
+	BT_ASSERT_PRE_DEV(memchr(value, '\0', length) == NULL,
 		"String value to append contains a null character: "
 		"partial-value=\"%.32s\", length=%" PRIu64, value, length);
 
@@ -692,9 +692,9 @@ enum bt_field_string_append_status bt_field_string_append_with_length(
 
 void bt_field_string_clear(struct bt_field *field)
 {
-	BT_ASSERT_PRE_NON_NULL(field, "Field");
-	BT_ASSERT_PRE_FIELD_HOT(field, "Field");
-	BT_ASSERT_PRE_FIELD_HAS_CLASS_TYPE(field,
+	BT_ASSERT_PRE_DEV_NON_NULL(field, "Field");
+	BT_ASSERT_PRE_DEV_FIELD_HOT(field, "Field");
+	BT_ASSERT_PRE_DEV_FIELD_HAS_CLASS_TYPE(field,
 		BT_FIELD_CLASS_TYPE_STRING, "Field");
 	clear_string_field(field);
 }
@@ -703,8 +703,8 @@ uint64_t bt_field_array_get_length(const struct bt_field *field)
 {
 	const struct bt_field_array *array_field = (const void *) field;
 
-	BT_ASSERT_PRE_NON_NULL(field, "Field");
-	BT_ASSERT_PRE_FIELD_IS_ARRAY(field, "Field");
+	BT_ASSERT_PRE_DEV_NON_NULL(field, "Field");
+	BT_ASSERT_PRE_DEV_FIELD_IS_ARRAY(field, "Field");
 	return array_field->length;
 }
 
@@ -714,10 +714,10 @@ enum bt_field_dynamic_array_set_length_status bt_field_dynamic_array_set_length(
 	int ret = BT_FUNC_STATUS_OK;
 	struct bt_field_array *array_field = (void *) field;
 
-	BT_ASSERT_PRE_NON_NULL(field, "Field");
-	BT_ASSERT_PRE_FIELD_HAS_CLASS_TYPE(field,
+	BT_ASSERT_PRE_DEV_NON_NULL(field, "Field");
+	BT_ASSERT_PRE_DEV_FIELD_HAS_CLASS_TYPE(field,
 		BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY, "Field");
-	BT_ASSERT_PRE_FIELD_HOT(field, "Field");
+	BT_ASSERT_PRE_DEV_FIELD_HOT(field, "Field");
 
 	if (G_UNLIKELY(length > array_field->fields->len)) {
 		/* Make more room */
@@ -759,9 +759,9 @@ struct bt_field *borrow_array_field_element_field_by_index(
 {
 	struct bt_field_array *array_field = (void *) field;
 
-	BT_ASSERT_PRE_NON_NULL(field, "Field");
-	BT_ASSERT_PRE_FIELD_IS_ARRAY(field, "Field");
-	BT_ASSERT_PRE_VALID_INDEX(index, array_field->length);
+	BT_ASSERT_PRE_DEV_NON_NULL(field, "Field");
+	BT_ASSERT_PRE_DEV_FIELD_IS_ARRAY(field, "Field");
+	BT_ASSERT_PRE_DEV_VALID_INDEX(index, array_field->length);
 	return array_field->fields->pdata[index];
 }
 
@@ -784,10 +784,10 @@ struct bt_field *borrow_structure_field_member_field_by_index(
 {
 	struct bt_field_structure *struct_field = (void *) field;
 
-	BT_ASSERT_PRE_NON_NULL(field, "Field");
-	BT_ASSERT_PRE_FIELD_HAS_CLASS_TYPE(field,
+	BT_ASSERT_PRE_DEV_NON_NULL(field, "Field");
+	BT_ASSERT_PRE_DEV_FIELD_HAS_CLASS_TYPE(field,
 		BT_FIELD_CLASS_TYPE_STRUCTURE, "Field");
-	BT_ASSERT_PRE_VALID_INDEX(index, struct_field->fields->len);
+	BT_ASSERT_PRE_DEV_VALID_INDEX(index, struct_field->fields->len);
 	return struct_field->fields->pdata[index];
 }
 
@@ -816,9 +816,9 @@ struct bt_field *borrow_structure_field_member_field_by_name(
 	gpointer orig_key;
 	gpointer index;
 
-	BT_ASSERT_PRE_NON_NULL(field, "Field");
-	BT_ASSERT_PRE_NON_NULL(name, "Field name");
-	BT_ASSERT_PRE_FIELD_HAS_CLASS_TYPE(field,
+	BT_ASSERT_PRE_DEV_NON_NULL(field, "Field");
+	BT_ASSERT_PRE_DEV_NON_NULL(name, "Field name");
+	BT_ASSERT_PRE_DEV_FIELD_HAS_CLASS_TYPE(field,
 		BT_FIELD_CLASS_TYPE_STRUCTURE, "Field");
 	struct_fc = (void *) field->class;
 
@@ -853,10 +853,10 @@ struct bt_field *borrow_variant_field_selected_option_field(
 {
 	struct bt_field_variant *var_field = (void *) field;
 
-	BT_ASSERT_PRE_NON_NULL(field, "Field");
-	BT_ASSERT_PRE_FIELD_HAS_CLASS_TYPE(field,
+	BT_ASSERT_PRE_DEV_NON_NULL(field, "Field");
+	BT_ASSERT_PRE_DEV_FIELD_HAS_CLASS_TYPE(field,
 		BT_FIELD_CLASS_TYPE_VARIANT, "Field");
-	BT_ASSERT_PRE(var_field->selected_field,
+	BT_ASSERT_PRE_DEV(var_field->selected_field,
 		"Variant field has no selected field: %!+f", field);
 	return var_field->selected_field;
 }
@@ -879,11 +879,11 @@ bt_field_variant_select_option_field(
 {
 	struct bt_field_variant *var_field = (void *) field;
 
-	BT_ASSERT_PRE_NON_NULL(field, "Field");
-	BT_ASSERT_PRE_FIELD_HAS_CLASS_TYPE(field,
+	BT_ASSERT_PRE_DEV_NON_NULL(field, "Field");
+	BT_ASSERT_PRE_DEV_FIELD_HAS_CLASS_TYPE(field,
 		BT_FIELD_CLASS_TYPE_VARIANT, "Field");
-	BT_ASSERT_PRE_FIELD_HOT(field, "Field");
-	BT_ASSERT_PRE_VALID_INDEX(index, var_field->fields->len);
+	BT_ASSERT_PRE_DEV_FIELD_HOT(field, "Field");
+	BT_ASSERT_PRE_DEV_VALID_INDEX(index, var_field->fields->len);
 	var_field->selected_field = var_field->fields->pdata[index];
 	var_field->selected_index = index;
 	return BT_FUNC_STATUS_OK;
@@ -894,10 +894,10 @@ uint64_t bt_field_variant_get_selected_option_field_index(
 {
 	const struct bt_field_variant *var_field = (const void *) field;
 
-	BT_ASSERT_PRE_NON_NULL(field, "Field");
-	BT_ASSERT_PRE_FIELD_HAS_CLASS_TYPE(field,
+	BT_ASSERT_PRE_DEV_NON_NULL(field, "Field");
+	BT_ASSERT_PRE_DEV_FIELD_HAS_CLASS_TYPE(field,
 		BT_FIELD_CLASS_TYPE_VARIANT, "Field");
-	BT_ASSERT_PRE(var_field->selected_field,
+	BT_ASSERT_PRE_DEV(var_field->selected_field,
 		"Variant field has no selected field: %!+f", field);
 	return var_field->selected_index;
 }

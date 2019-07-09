@@ -41,12 +41,9 @@
 #include "trace.h"
 #include "lib/func-status.h"
 
-#define BT_ASSERT_PRE_PACKET_HOT(_packet) \
-	BT_ASSERT_PRE_HOT((_packet), "Packet", ": %!+a", (_packet))
-
 struct bt_stream *bt_packet_borrow_stream(struct bt_packet *packet)
 {
-	BT_ASSERT_PRE_NON_NULL(packet, "Packet");
+	BT_ASSERT_PRE_DEV_NON_NULL(packet, "Packet");
 	return packet->stream;
 }
 
@@ -58,7 +55,7 @@ const struct bt_stream *bt_packet_borrow_stream_const(
 
 struct bt_field *bt_packet_borrow_context_field(struct bt_packet *packet)
 {
-	BT_ASSERT_PRE_NON_NULL(packet, "Packet");
+	BT_ASSERT_PRE_DEV_NON_NULL(packet, "Packet");
 	return packet->context_field ? packet->context_field->field : NULL;
 }
 
@@ -250,14 +247,14 @@ enum bt_packet_move_context_field_status bt_packet_move_context_field(
 	struct bt_stream_class *stream_class;
 	struct bt_field_wrapper *field_wrapper = (void *) context_field;
 
-	BT_ASSERT_PRE_NON_NULL(packet, "Packet");
-	BT_ASSERT_PRE_NON_NULL(field_wrapper, "Context field");
-	BT_ASSERT_PRE_HOT(packet, "Packet", ": %!+a", packet);
+	BT_ASSERT_PRE_DEV_NON_NULL(packet, "Packet");
+	BT_ASSERT_PRE_DEV_NON_NULL(field_wrapper, "Context field");
+	BT_ASSERT_PRE_DEV_HOT(packet, "Packet", ": %!+a", packet);
 	stream_class = packet->stream->class;
-	BT_ASSERT_PRE(stream_class->packet_context_fc,
+	BT_ASSERT_PRE_DEV(stream_class->packet_context_fc,
 		"Stream class has no packet context field class: %!+S",
 		stream_class);
-	BT_ASSERT_PRE(field_wrapper->field->class ==
+	BT_ASSERT_PRE_DEV(field_wrapper->field->class ==
 		stream_class->packet_context_fc,
 		"Unexpected packet context field's class: "
 		"%![fc-]+F, %![expected-fc-]+F", field_wrapper->field->class,

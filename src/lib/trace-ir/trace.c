@@ -62,8 +62,8 @@ struct bt_trace_destruction_listener_elem {
 	void *data;
 };
 
-#define BT_ASSERT_PRE_TRACE_HOT(_trace) \
-	BT_ASSERT_PRE_HOT((_trace), "Trace", ": %!+t", (_trace))
+#define BT_ASSERT_PRE_DEV_TRACE_HOT(_trace) \
+	BT_ASSERT_PRE_DEV_HOT((_trace), "Trace", ": %!+t", (_trace))
 
 static
 void destroy_trace(struct bt_object *obj)
@@ -200,7 +200,7 @@ end:
 
 const char *bt_trace_get_name(const struct bt_trace *trace)
 {
-	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
+	BT_ASSERT_PRE_DEV_NON_NULL(trace, "Trace");
 	return trace->name.value;
 }
 
@@ -209,7 +209,7 @@ enum bt_trace_set_name_status bt_trace_set_name(struct bt_trace *trace,
 {
 	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
 	BT_ASSERT_PRE_NON_NULL(name, "Name");
-	BT_ASSERT_PRE_TRACE_HOT(trace);
+	BT_ASSERT_PRE_DEV_TRACE_HOT(trace);
 	g_string_assign(trace->name.str, name);
 	trace->name.value = trace->name.str->str;
 	BT_LIB_LOGD("Set trace's name: %!+t", trace);
@@ -218,7 +218,7 @@ enum bt_trace_set_name_status bt_trace_set_name(struct bt_trace *trace,
 
 bt_uuid bt_trace_get_uuid(const struct bt_trace *trace)
 {
-	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
+	BT_ASSERT_PRE_DEV_NON_NULL(trace, "Trace");
 	return trace->uuid.value;
 }
 
@@ -226,7 +226,7 @@ void bt_trace_set_uuid(struct bt_trace *trace, bt_uuid uuid)
 {
 	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
 	BT_ASSERT_PRE_NON_NULL(uuid, "UUID");
-	BT_ASSERT_PRE_TRACE_HOT(trace);
+	BT_ASSERT_PRE_DEV_TRACE_HOT(trace);
 	bt_uuid_copy(trace->uuid.uuid, uuid);
 	trace->uuid.value = trace->uuid.uuid;
 	BT_LIB_LOGD("Set trace's UUID: %!+t", trace);
@@ -325,7 +325,7 @@ uint64_t bt_trace_get_environment_entry_count(const struct bt_trace *trace)
 {
 	int64_t ret;
 
-	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
+	BT_ASSERT_PRE_DEV_NON_NULL(trace, "Trace");
 	ret = bt_attributes_get_count(trace->environment);
 	BT_ASSERT(ret >= 0);
 	return (uint64_t) ret;
@@ -335,10 +335,10 @@ void bt_trace_borrow_environment_entry_by_index_const(
 		const struct bt_trace *trace, uint64_t index,
 		const char **name, const struct bt_value **value)
 {
-	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
-	BT_ASSERT_PRE_NON_NULL(name, "Name");
-	BT_ASSERT_PRE_NON_NULL(value, "Value");
-	BT_ASSERT_PRE_VALID_INDEX(index,
+	BT_ASSERT_PRE_DEV_NON_NULL(trace, "Trace");
+	BT_ASSERT_PRE_DEV_NON_NULL(name, "Name");
+	BT_ASSERT_PRE_DEV_NON_NULL(value, "Value");
+	BT_ASSERT_PRE_DEV_VALID_INDEX(index,
 		bt_attributes_get_count(trace->environment));
 	*value = bt_attributes_borrow_field_value(trace->environment, index);
 	BT_ASSERT(*value);
@@ -349,23 +349,23 @@ void bt_trace_borrow_environment_entry_by_index_const(
 const struct bt_value *bt_trace_borrow_environment_entry_value_by_name_const(
 		const struct bt_trace *trace, const char *name)
 {
-	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
-	BT_ASSERT_PRE_NON_NULL(name, "Name");
+	BT_ASSERT_PRE_DEV_NON_NULL(trace, "Trace");
+	BT_ASSERT_PRE_DEV_NON_NULL(name, "Name");
 	return bt_attributes_borrow_field_value_by_name(trace->environment,
 		name);
 }
 
 uint64_t bt_trace_get_stream_count(const struct bt_trace *trace)
 {
-	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
+	BT_ASSERT_PRE_DEV_NON_NULL(trace, "Trace");
 	return (uint64_t) trace->streams->len;
 }
 
 struct bt_stream *bt_trace_borrow_stream_by_index(
 		struct bt_trace *trace, uint64_t index)
 {
-	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
-	BT_ASSERT_PRE_VALID_INDEX(index, trace->streams->len);
+	BT_ASSERT_PRE_DEV_NON_NULL(trace, "Trace");
+	BT_ASSERT_PRE_DEV_VALID_INDEX(index, trace->streams->len);
 	return g_ptr_array_index(trace->streams, index);
 }
 
@@ -381,7 +381,7 @@ struct bt_stream *bt_trace_borrow_stream_by_id(struct bt_trace *trace,
 	struct bt_stream *stream = NULL;
 	uint64_t i;
 
-	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
+	BT_ASSERT_PRE_DEV_NON_NULL(trace, "Trace");
 
 	for (i = 0; i < trace->streams->len; i++) {
 		struct bt_stream *stream_candidate =
@@ -526,7 +526,7 @@ uint64_t bt_trace_get_automatic_stream_id(const struct bt_trace *trace,
 
 struct bt_trace_class *bt_trace_borrow_class(struct bt_trace *trace)
 {
-	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
+	BT_ASSERT_PRE_DEV_NON_NULL(trace, "Trace");
 	return trace->class;
 }
 

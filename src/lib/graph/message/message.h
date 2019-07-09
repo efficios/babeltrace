@@ -55,11 +55,23 @@ struct bt_message {
 	struct bt_graph *graph;
 };
 
-#define BT_ASSERT_PRE_MSG_IS_TYPE(_msg, _type)			\
-	BT_ASSERT_PRE(((struct bt_message *) (_msg))->type == (_type), \
-		"Message has the wrong type: expected-type=%s, "	\
-		"%![msg-]+n", bt_message_type_string(_type),	\
-		(_msg))
+#define _BT_ASSERT_PRE_MSG_IS_TYPE_COND(_msg, _type)			\
+	(((struct bt_message *) (_msg))->type == (_type))
+
+#define _BT_ASSERT_PRE_MSG_IS_TYPE_FMT					\
+	"Message has the wrong type: expected-type=%s, %![msg-]+n"
+
+#define BT_ASSERT_PRE_MSG_IS_TYPE(_msg, _type)				\
+	BT_ASSERT_PRE(							\
+		_BT_ASSERT_PRE_MSG_IS_TYPE_COND((_msg), (_type)),	\
+		_BT_ASSERT_PRE_MSG_IS_TYPE_FMT,				\
+		bt_message_type_string(_type), (_msg))
+
+#define BT_ASSERT_PRE_DEV_MSG_IS_TYPE(_msg, _type)			\
+	BT_ASSERT_PRE_DEV(						\
+		_BT_ASSERT_PRE_MSG_IS_TYPE_COND((_msg), (_type)),	\
+		_BT_ASSERT_PRE_MSG_IS_TYPE_FMT,				\
+		bt_message_type_string(_type), (_msg))
 
 BT_HIDDEN
 void bt_message_init(struct bt_message *message,

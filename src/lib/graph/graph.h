@@ -145,17 +145,11 @@ struct bt_graph {
 };
 
 static inline
-void _bt_graph_set_can_consume(struct bt_graph *graph, bool can_consume)
+void bt_graph_set_can_consume(struct bt_graph *graph, bool can_consume)
 {
 	BT_ASSERT(graph);
 	graph->can_consume = can_consume;
 }
-
-#ifdef BT_DEV_MODE
-# define bt_graph_set_can_consume	_bt_graph_set_can_consume
-#else
-# define bt_graph_set_can_consume(_graph, _can_consume)
-#endif
 
 BT_HIDDEN
 int bt_graph_consume_sink_no_check(struct bt_graph *graph,
