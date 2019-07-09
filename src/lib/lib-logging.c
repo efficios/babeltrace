@@ -104,11 +104,17 @@ static __thread char lib_logging_buf[LIB_LOGGING_BUF_SIZE];
 
 #define PRFIELD_GSTRING(_expr)	PRFIELD((_expr) ? (_expr)->str : NULL)
 
-#define TMP_PREFIX_LEN 64
+#define TMP_PREFIX_LEN 128
 #define SET_TMP_PREFIX(_prefix2)					\
 	do {								\
-		snprintf(tmp_prefix, TMP_PREFIX_LEN - 1, "%s%s",	\
-			prefix, (_prefix2));				\
+		int snprintf_ret =					\
+			snprintf(tmp_prefix, TMP_PREFIX_LEN - 1, "%s%s", \
+				prefix, (_prefix2));			\
+									\
+		if (snprintf_ret < 0 || snprintf_ret >= TMP_PREFIX_LEN - 1) { \
+			abort();					\
+		}							\
+									\
 		tmp_prefix[TMP_PREFIX_LEN - 1] = '\0';			\
 	} while (0)
 
