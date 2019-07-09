@@ -241,8 +241,8 @@ class UserComponentClassTestCase(unittest.TestCase):
 
         query_log_level = None
         res = bt2.QueryExecutor().query(MySink, 'obj', None,
-                                        bt2.LoggingLevel.WARN)
-        self.assertEqual(query_log_level, bt2.LoggingLevel.WARN)
+                                        bt2.LoggingLevel.WARNING)
+        self.assertEqual(query_log_level, bt2.LoggingLevel.WARNING)
         del query_log_level
 
     def test_query_simple(self):

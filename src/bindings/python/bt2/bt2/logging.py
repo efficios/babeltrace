@@ -28,7 +28,7 @@ class LoggingLevel:
     TRACE = native_bt.LOGGING_LEVEL_TRACE
     DEBUG = native_bt.LOGGING_LEVEL_DEBUG
     INFO = native_bt.LOGGING_LEVEL_INFO
-    WARN = native_bt.LOGGING_LEVEL_WARN
+    WARNING = native_bt.LOGGING_LEVEL_WARNING
     ERROR = native_bt.LOGGING_LEVEL_ERROR
     FATAL = native_bt.LOGGING_LEVEL_FATAL
     NONE = native_bt.LOGGING_LEVEL_NONE
@@ -47,7 +47,7 @@ def set_global_logging_level(level):
         LoggingLevel.TRACE,
         LoggingLevel.DEBUG,
         LoggingLevel.INFO,
-        LoggingLevel.WARN,
+        LoggingLevel.WARNING,
         LoggingLevel.ERROR,
         LoggingLevel.FATAL,
         LoggingLevel.NONE,

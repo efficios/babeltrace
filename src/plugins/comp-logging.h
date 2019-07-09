@@ -95,7 +95,7 @@
 #define BT_COMP_LOGE(_fmt, ...) \
 	BT_COMP_LOG(BT_LOG_ERROR, (BT_COMP_LOG_SELF_COMP), _fmt, ##__VA_ARGS__)
 #define BT_COMP_LOGW(_fmt, ...) \
-	BT_COMP_LOG(BT_LOG_WARN, (BT_COMP_LOG_SELF_COMP), _fmt, ##__VA_ARGS__)
+	BT_COMP_LOG(BT_LOG_WARNING, (BT_COMP_LOG_SELF_COMP), _fmt, ##__VA_ARGS__)
 #define BT_COMP_LOGI(_fmt, ...) \
 	BT_COMP_LOG(BT_LOG_INFO, (BT_COMP_LOG_SELF_COMP), _fmt, ##__VA_ARGS__)
 #define BT_COMP_LOGD(_fmt, ...) \
@@ -107,7 +107,7 @@
 #define BT_COMP_LOGE_STR(_str) \
 	BT_COMP_LOG(BT_LOG_ERROR, (BT_COMP_LOG_SELF_COMP), "%s", (_str))
 #define BT_COMP_LOGW_STR(_str) \
-	BT_COMP_LOG(BT_LOG_WARN, (BT_COMP_LOG_SELF_COMP), "%s", (_str))
+	BT_COMP_LOG(BT_LOG_WARNING, (BT_COMP_LOG_SELF_COMP), "%s", (_str))
 #define BT_COMP_LOGI_STR(_str) \
 	BT_COMP_LOG(BT_LOG_INFO, (BT_COMP_LOG_SELF_COMP), "%s", (_str))
 #define BT_COMP_LOGD_STR(_str) \
@@ -119,7 +119,7 @@
 #define BT_COMP_LOGE_ERRNO(_msg, _fmt, ...) \
 	BT_COMP_LOG_ERRNO(BT_LOG_ERROR, (BT_COMP_LOG_SELF_COMP), _msg, _fmt, ##__VA_ARGS__)
 #define BT_COMP_LOGW_ERRNO(_msg, _fmt, ...) \
-	BT_COMP_LOG_ERRNO(BT_LOG_WARN, (BT_COMP_LOG_SELF_COMP), _msg, _fmt, ##__VA_ARGS__)
+	BT_COMP_LOG_ERRNO(BT_LOG_WARNING, (BT_COMP_LOG_SELF_COMP), _msg, _fmt, ##__VA_ARGS__)
 #define BT_COMP_LOGI_ERRNO(_msg, _fmt, ...) \
 	BT_COMP_LOG_ERRNO(BT_LOG_INFO, (BT_COMP_LOG_SELF_COMP), _msg, _fmt, ##__VA_ARGS__)
 #define BT_COMP_LOGD_ERRNO(_msg, _fmt, ...) \
@@ -131,7 +131,7 @@
 #define BT_COMP_LOGE_MEM(_data_ptr, _data_sz, _fmt, ...) \
 	BT_COMP_LOG_MEM(BT_LOG_ERROR, (BT_COMP_LOG_SELF_COMP), (_data_ptr), (_data_sz), _fmt, ##__VA_ARGS__)
 #define BT_COMP_LOGW_MEM(_data_ptr, _data_sz, _fmt, ...) \
-	BT_COMP_LOG_MEM(BT_LOG_WARN, (BT_COMP_LOG_SELF_COMP), (_data_ptr), (_data_sz), _fmt, ##__VA_ARGS__)
+	BT_COMP_LOG_MEM(BT_LOG_WARNING, (BT_COMP_LOG_SELF_COMP), (_data_ptr), (_data_sz), _fmt, ##__VA_ARGS__)
 #define BT_COMP_LOGI_MEM(_data_ptr, _data_sz, _fmt, ...) \
 	BT_COMP_LOG_MEM(BT_LOG_INFO, (BT_COMP_LOG_SELF_COMP), (_data_ptr), (_data_sz), _fmt, ##__VA_ARGS__)
 #define BT_COMP_LOGD_MEM(_data_ptr, _data_sz, _fmt, ...) \

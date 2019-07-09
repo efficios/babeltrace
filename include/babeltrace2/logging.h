@@ -83,7 +83,7 @@ typedef enum bt_logging_level {
 	The library's and object's states remain consistent when a
 	warning is issued.
 	*/
-	BT_LOGGING_LEVEL_WARN		= 4,
+	BT_LOGGING_LEVEL_WARNING		= 4,
 
 	/**
 	An important error from which the library cannot recover, but

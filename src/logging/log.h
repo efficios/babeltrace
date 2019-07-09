@@ -40,7 +40,7 @@
  * - BT_LOG_ERROR - happened something possible, but highly unexpected. The
  *   process is able to recover and continue execution.
  *   Example: out of memory (could also be FATAL if not handled properly).
- * - BT_LOG_WARN - happened something that *usually* should not happen and
+ * - BT_LOG_WARNING - happened something that *usually* should not happen and
  *   significantly changes application behavior for some period of time.
  *   Example: configuration file not found, auth error.
  * - BT_LOG_INFO - happened significant life cycle event or major state
@@ -57,7 +57,7 @@
 #define BT_LOG_TRACE   BT_LOGGING_LEVEL_TRACE
 #define BT_LOG_DEBUG   BT_LOGGING_LEVEL_DEBUG
 #define BT_LOG_INFO    BT_LOGGING_LEVEL_INFO
-#define BT_LOG_WARN    BT_LOGGING_LEVEL_WARN
+#define BT_LOG_WARNING BT_LOGGING_LEVEL_WARNING
 #define BT_LOG_ERROR   BT_LOGGING_LEVEL_ERROR
 #define BT_LOG_FATAL   BT_LOGGING_LEVEL_FATAL
 #define BT_LOG_NONE    BT_LOGGING_LEVEL_NONE
@@ -648,7 +648,7 @@ bt_log_spec;
 #define BT_LOG_ENABLED_TRACE    BT_LOG_ENABLED(BT_LOG_TRACE)
 #define BT_LOG_ENABLED_DEBUG    BT_LOG_ENABLED(BT_LOG_DEBUG)
 #define BT_LOG_ENABLED_INFO     BT_LOG_ENABLED(BT_LOG_INFO)
-#define BT_LOG_ENABLED_WARN     BT_LOG_ENABLED(BT_LOG_WARN)
+#define BT_LOG_ENABLED_WARNING  BT_LOG_ENABLED(BT_LOG_WARNING)
 #define BT_LOG_ENABLED_ERROR    BT_LOG_ENABLED(BT_LOG_ERROR)
 #define BT_LOG_ENABLED_FATAL    BT_LOG_ENABLED(BT_LOG_FATAL)
 
@@ -672,7 +672,7 @@ bt_log_spec;
 #define BT_LOG_ON_TRACE     BT_LOG_ON(BT_LOG_TRACE)
 #define BT_LOG_ON_DEBUG     BT_LOG_ON(BT_LOG_DEBUG)
 #define BT_LOG_ON_INFO      BT_LOG_ON(BT_LOG_INFO)
-#define BT_LOG_ON_WARN      BT_LOG_ON(BT_LOG_WARN)
+#define BT_LOG_ON_WARNING   BT_LOG_ON(BT_LOG_WARNING)
 #define BT_LOG_ON_ERROR     BT_LOG_ON(BT_LOG_ERROR)
 #define BT_LOG_ON_FATAL     BT_LOG_ON(BT_LOG_FATAL)
 
@@ -933,17 +933,17 @@ static _BT_LOG_INLINE void _bt_log_unused(const int dummy, ...) {(void)dummy;}
 	#define BT_LOGI_MEM_AUX(...) _BT_LOG_UNUSED(__VA_ARGS__)
 #endif
 
-#if BT_LOG_ENABLED_WARN
+#if BT_LOG_ENABLED_WARNING
 	#define BT_LOGW(...) \
-			BT_LOG_WRITE(BT_LOG_WARN, _BT_LOG_TAG, __VA_ARGS__)
+			BT_LOG_WRITE(BT_LOG_WARNING, _BT_LOG_TAG, __VA_ARGS__)
 	#define BT_LOGW_ERRNO(...) \
-			BT_LOG_WRITE_ERRNO(BT_LOG_WARN, _BT_LOG_TAG, __VA_ARGS__)
+			BT_LOG_WRITE_ERRNO(BT_LOG_WARNING, _BT_LOG_TAG, __VA_ARGS__)
 	#define BT_LOGW_AUX(log, ...) \
-			BT_LOG_WRITE_AUX(log, BT_LOG_WARN, _BT_LOG_TAG, __VA_ARGS__)
+			BT_LOG_WRITE_AUX(log, BT_LOG_WARNING, _BT_LOG_TAG, __VA_ARGS__)
 	#define BT_LOGW_MEM(d, d_sz, ...) \
-			BT_LOG_WRITE_MEM(BT_LOG_WARN, _BT_LOG_TAG, d, d_sz, __VA_ARGS__)
+			BT_LOG_WRITE_MEM(BT_LOG_WARNING, _BT_LOG_TAG, d, d_sz, __VA_ARGS__)
 	#define BT_LOGW_MEM_AUX(log, d, d_sz, ...) \
-			BT_LOG_WRITE_MEM_AUX(log, BT_LOG_WARN, _BT_LOG_TAG, d, d_sz, __VA_ARGS__)
+			BT_LOG_WRITE_MEM_AUX(log, BT_LOG_WARNING, _BT_LOG_TAG, d, d_sz, __VA_ARGS__)
 #else
 	#define BT_LOGW(...) _BT_LOG_UNUSED(__VA_ARGS__)
 	#define BT_LOGW_AUX(...) _BT_LOG_UNUSED(__VA_ARGS__)
@@ -1046,7 +1046,7 @@ char bt_log_get_letter_from_level(int level)
 	case BT_LOG_INFO:
 		letter = 'I';
 		break;
-	case BT_LOG_WARN:
+	case BT_LOG_WARNING:
 		letter = 'W';
 		break;
 	case BT_LOG_ERROR:
@@ -1088,7 +1088,7 @@ int bt_log_get_level_from_string(const char *str)
 	} else if (strcmp(str, "WARN") == 0 ||
 			strcmp(str, "WARNING") == 0 ||
 			strcmp(str, "W") == 0) {
-		level = BT_LOG_WARN;
+		level = BT_LOG_WARNING;
 	} else if (strcmp(str, "ERROR") == 0 ||
 			strcmp(str, "E") == 0) {
 		level = BT_LOG_ERROR;

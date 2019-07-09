@@ -21,7 +21,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#define BT_LOG_OUTPUT_LEVEL BT_LOG_WARN
+#define BT_LOG_OUTPUT_LEVEL BT_LOG_WARNING
 #define BT_LOG_TAG "TEST/BIN-INFO"
 #include "logging/log.h"
 

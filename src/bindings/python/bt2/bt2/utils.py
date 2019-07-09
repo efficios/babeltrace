@@ -131,7 +131,7 @@ def _check_log_level(log_level):
         bt2.logging.LoggingLevel.TRACE,
         bt2.logging.LoggingLevel.DEBUG,
         bt2.logging.LoggingLevel.INFO,
-        bt2.logging.LoggingLevel.WARN,
+        bt2.logging.LoggingLevel.WARNING,
         bt2.logging.LoggingLevel.ERROR,
         bt2.logging.LoggingLevel.FATAL,
         bt2.logging.LoggingLevel.NONE,

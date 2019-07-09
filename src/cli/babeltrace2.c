@@ -2637,7 +2637,7 @@ void warn_command_name_and_directory_clash(struct bt_config *cfg)
 	if (g_file_test(cfg->command_name,
 			G_FILE_TEST_EXISTS | G_FILE_TEST_IS_DIR)) {
 		_bt_log_write_d(_BT_LOG_SRCLOC_FUNCTION, __FILE__, __LINE__,
-				BT_LOG_WARN, BT_LOG_TAG,
+				BT_LOG_WARNING, BT_LOG_TAG,
 				"The `%s` command was executed. "
 				"If you meant to convert a trace located in "
 				"the local `%s` directory, please use:\n\n"

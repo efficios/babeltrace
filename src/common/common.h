@@ -584,8 +584,8 @@ const char *bt_common_logging_level_string(
 		return "BT_LOGGING_LEVEL_DEBUG";
 	case BT_LOGGING_LEVEL_INFO:
 		return "BT_LOGGING_LEVEL_INFO";
-	case BT_LOGGING_LEVEL_WARN:
-		return "BT_LOGGING_LEVEL_WARN";
+	case BT_LOGGING_LEVEL_WARNING:
+		return "BT_LOGGING_LEVEL_WARNING";
 	case BT_LOGGING_LEVEL_ERROR:
 		return "BT_LOGGING_LEVEL_ERROR";
 	case BT_LOGGING_LEVEL_FATAL:
