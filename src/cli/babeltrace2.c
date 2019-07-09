@@ -173,7 +173,8 @@ int query(struct bt_config *cfg, const bt_component_class *comp_cls,
 	}
 
 	if (canceled) {
-		BT_LOGI("Canceled by user before executing the query: "
+		BT_CLI_LOGW_APPEND_CAUSE(
+			"Canceled by user before executing the query: "
 			"comp-cls-addr=%p, comp-cls-name=\"%s\", "
 			"query-obj=\"%s\"", comp_cls,
 			bt_component_class_get_name(comp_cls), obj);
@@ -198,7 +199,8 @@ int query(struct bt_config *cfg, const bt_component_class *comp_cls,
 
 			if (usleep(sleep_time_us)) {
 				if (bt_query_executor_is_canceled(the_query_executor)) {
-					BT_LOGI("Query was canceled by user: "
+					BT_CLI_LOGW_APPEND_CAUSE(
+						"Query was canceled by user: "
 						"comp-cls-addr=%p, comp-cls-name=\"%s\", "
 						"query-obj=\"%s\"", comp_cls,
 						bt_component_class_get_name(comp_cls),
@@ -1793,7 +1795,7 @@ int cmd_run_ctx_connect_upstream_port_to_downstream_component(
 		case BT_GRAPH_CONNECT_PORTS_STATUS_OK:
 			break;
 		case BT_GRAPH_CONNECT_PORTS_STATUS_CANCELED:
-			BT_LOGI_STR("Graph was canceled by user.");
+			BT_CLI_LOGW_APPEND_CAUSE("Graph was canceled by user.");
 			break;
 		default:
 			BT_CLI_LOGE_APPEND_CAUSE(
@@ -2520,7 +2522,8 @@ int cmd_run(struct bt_config *cfg)
 	}
 
 	if (canceled) {
-		BT_LOGI_STR("Canceled by user before creating components.");
+		BT_CLI_LOGW_APPEND_CAUSE(
+			"Canceled by user before creating components.");
 		goto error;
 	}
 
@@ -2533,7 +2536,8 @@ int cmd_run(struct bt_config *cfg)
 	}
 
 	if (canceled) {
-		BT_LOGI_STR("Canceled by user before connecting components.");
+		BT_CLI_LOGW_APPEND_CAUSE(
+			"Canceled by user before connecting components.");
 		goto error;
 	}
 
@@ -2547,7 +2551,8 @@ int cmd_run(struct bt_config *cfg)
 	}
 
 	if (canceled) {
-		BT_LOGI_STR("Canceled by user before running the graph.");
+		BT_CLI_LOGW_APPEND_CAUSE(
+			"Canceled by user before running the graph.");
 		goto error;
 	}
 
@@ -2571,11 +2576,12 @@ int cmd_run(struct bt_config *cfg)
 		case BT_GRAPH_RUN_STATUS_OK:
 			break;
 		case BT_GRAPH_RUN_STATUS_CANCELED:
-			BT_LOGI_STR("Graph was canceled by user.");
+			BT_CLI_LOGW_APPEND_CAUSE("Graph was canceled by user.");
 			goto error;
 		case BT_GRAPH_RUN_STATUS_AGAIN:
 			if (bt_graph_is_canceled(ctx.graph)) {
-				BT_LOGI_STR("Graph was canceled by user.");
+				BT_CLI_LOGW_APPEND_CAUSE(
+					"Graph was canceled by user.");
 				goto error;
 			}
 
@@ -2586,7 +2592,8 @@ int cmd_run(struct bt_config *cfg)
 
 				if (usleep(cfg->cmd_data.run.retry_duration_us)) {
 					if (bt_graph_is_canceled(ctx.graph)) {
-						BT_LOGI_STR("Graph was canceled by user.");
+						BT_CLI_LOGW_APPEND_CAUSE(
+							"Graph was canceled by user.");
 						goto error;
 					}
 				}
