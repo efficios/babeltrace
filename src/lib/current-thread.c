@@ -58,6 +58,7 @@ void bt_current_thread_clear_error(void)
 
 void bt_current_thread_move_error(const struct bt_error *error)
 {
+	BT_ASSERT_PRE_NON_NULL(error, "Error");
 	bt_current_thread_clear_error();
 	thread_error = (void *) error;
 	BT_LOGD("Moved error object as current thread's error: addr=%p",
@@ -100,6 +101,10 @@ bt_current_thread_error_append_cause_from_unknown(
 		try_create_thread_error();
 	va_list args;
 
+	BT_ASSERT_PRE_NON_NULL(module_name, "Module name");
+	BT_ASSERT_PRE_NON_NULL(file_name, "File name");
+	BT_ASSERT_PRE_NON_NULL(msg_fmt, "Message format string");
+
 	if (status) {
 		goto end;
 	}
@@ -123,6 +128,10 @@ bt_current_thread_error_append_cause_from_component(
 	enum bt_current_thread_error_append_cause_status status =
 		try_create_thread_error();
 	va_list args;
+
+	BT_ASSERT_PRE_NON_NULL(self_comp, "Component");
+	BT_ASSERT_PRE_NON_NULL(file_name, "File name");
+	BT_ASSERT_PRE_NON_NULL(msg_fmt, "Message format string");
 
 	if (status) {
 		goto end;
@@ -148,6 +157,10 @@ bt_current_thread_error_append_cause_from_component_class(
 		try_create_thread_error();
 	va_list args;
 
+	BT_ASSERT_PRE_NON_NULL(self_comp_class, "Component class");
+	BT_ASSERT_PRE_NON_NULL(file_name, "File name");
+	BT_ASSERT_PRE_NON_NULL(msg_fmt, "Message format string");
+
 	if (status) {
 		goto end;
 	}
@@ -171,6 +184,10 @@ bt_current_thread_error_append_cause_from_message_iterator(
 	enum bt_current_thread_error_append_cause_status status =
 		try_create_thread_error();
 	va_list args;
+
+	BT_ASSERT_PRE_NON_NULL(self_iter, "Message iterator");
+	BT_ASSERT_PRE_NON_NULL(file_name, "File name");
+	BT_ASSERT_PRE_NON_NULL(msg_fmt, "Message format string");
 
 	if (status) {
 		goto end;

@@ -487,10 +487,10 @@ int bt_error_append_cause_from_unknown(struct bt_error *error,
 	struct bt_error_cause *cause = NULL;
 	int status = BT_FUNC_STATUS_OK;
 
-	BT_ASSERT_PRE_NON_NULL(error, "Error");
-	BT_ASSERT_PRE_NON_NULL(module_name, "Module name");
-	BT_ASSERT_PRE_NON_NULL(file_name, "Function name");
-	BT_ASSERT_PRE_NON_NULL(msg_fmt, "Message format string");
+	BT_ASSERT(error);
+	BT_ASSERT(module_name);
+	BT_ASSERT(file_name);
+	BT_ASSERT(msg_fmt);
 	BT_LOGD("Appending error cause from unknown actor: "
 		"module-name=\"%s\", func-name=\"%s\", line-no=%" PRIu64,
 		module_name, file_name, line_no);
@@ -520,10 +520,10 @@ int bt_error_append_cause_from_component(
 	struct bt_error_cause_component_actor *cause = NULL;
 	int status = BT_FUNC_STATUS_OK;
 
-	BT_ASSERT_PRE_NON_NULL(error, "Error");
-	BT_ASSERT_PRE_NON_NULL(self_comp, "Component");
-	BT_ASSERT_PRE_NON_NULL(file_name, "Function name");
-	BT_ASSERT_PRE_NON_NULL(msg_fmt, "Message format string");
+	BT_ASSERT(error);
+	BT_ASSERT(self_comp);
+	BT_ASSERT(file_name);
+	BT_ASSERT(msg_fmt);
 	BT_LIB_LOGD("Appending error cause from component actor: %![comp-]+c",
 		self_comp);
 	cause = create_error_cause_component_actor((void *) self_comp,
@@ -554,10 +554,10 @@ int bt_error_append_cause_from_component_class(
 	struct bt_error_cause_component_class_actor *cause = NULL;
 	int status = BT_FUNC_STATUS_OK;
 
-	BT_ASSERT_PRE_NON_NULL(error, "Error");
-	BT_ASSERT_PRE_NON_NULL(self_comp_class, "Component class");
-	BT_ASSERT_PRE_NON_NULL(file_name, "Function name");
-	BT_ASSERT_PRE_NON_NULL(msg_fmt, "Message format string");
+	BT_ASSERT(error);
+	BT_ASSERT(self_comp_class);
+	BT_ASSERT(file_name);
+	BT_ASSERT(msg_fmt);
 	BT_LIB_LOGD("Appending error cause from component class actor: "
 		"%![comp-cls-]+C", self_comp_class);
 	cause = create_error_cause_component_class_actor(
@@ -587,10 +587,10 @@ int bt_error_append_cause_from_message_iterator(
 	struct bt_error_cause_message_iterator_actor *cause = NULL;
 	int status = BT_FUNC_STATUS_OK;
 
-	BT_ASSERT_PRE_NON_NULL(error, "Error");
-	BT_ASSERT_PRE_NON_NULL(self_iter, "Message iterator");
-	BT_ASSERT_PRE_NON_NULL(file_name, "Function name");
-	BT_ASSERT_PRE_NON_NULL(msg_fmt, "Message format string");
+	BT_ASSERT(error);
+	BT_ASSERT(self_iter);
+	BT_ASSERT(file_name);
+	BT_ASSERT(msg_fmt);
 	BT_LIB_LOGD("Appending error cause from message iterator actor: "
 		"%![comp-]+i", self_iter);
 	cause = create_error_cause_message_iterator_actor(
