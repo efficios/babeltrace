@@ -43,7 +43,6 @@
 #include <inttypes.h>
 #include "common/macros.h"
 
-#ifdef BT_DEV_MODE
 /*
  * Prints the details of an unsatisfied precondition without immediately
  * aborting. You should use this within a function which checks
@@ -71,7 +70,7 @@
  *     BT_ASSERT_PRE(check_complex_precond(...),
  *                   "Precondition is not satisfied: ...", ...);
  */
-# define BT_ASSERT_PRE_MSG(_fmt, ...)					\
+#define BT_ASSERT_PRE_MSG(_fmt, ...)					\
 	do {								\
 		bt_lib_log(_BT_LOG_SRCLOC_FUNCTION, __FILE__,		\
 			__LINE__, BT_LOG_FATAL, BT_LOG_TAG,		\
@@ -79,8 +78,7 @@
 	} while (0)
 
 /*
- * Developer mode: asserts that the library precondition `_cond` is
- * satisfied.
+ * Asserts that the library precondition `_cond` is satisfied.
  *
  * If `_cond` is false, log a fatal statement using `_fmt` and the
  * optional arguments (same usage as BT_LIB_LOGF()), and abort.
@@ -91,50 +89,80 @@
  * To assert that an internal postcondition is satisfied, use
  * BT_ASSERT().
  */
-# define BT_ASSERT_PRE(_cond, _fmt, ...)				\
+#define BT_ASSERT_PRE(_cond, _fmt, ...)				\
 	do {								\
 		if (!(_cond)) {						\
 			BT_ASSERT_PRE_MSG("Babeltrace 2 library precondition not satisfied; error is:"); \
-			BT_ASSERT_PRE_MSG((_fmt), ##__VA_ARGS__);	\
+			BT_ASSERT_PRE_MSG(_fmt, ##__VA_ARGS__);	\
 			BT_ASSERT_PRE_MSG("Aborting...");		\
 			abort();					\
 		}							\
 	} while (0)
 
 /*
- * Marks a function as being only used within a BT_ASSERT_PRE() context.
- */
-# define BT_ASSERT_PRE_FUNC
-#else
-# define BT_ASSERT_PRE(_cond, _fmt, ...)	((void) sizeof((void) (_cond), 0))
-# define BT_ASSERT_PRE_FUNC	__attribute__((unused))
-# define BT_ASSERT_PRE_MSG(_fmt, ...)
-#endif /* BT_DEV_MODE */
-
-/*
- * Developer mode: asserts that a given variable `_obj` named
- * `_obj_name` (capitalized) is not `NULL`.
+ * Asserts that a given variable `_obj` named `_obj_name` (capitalized)
+ * is not `NULL`.
  */
 #define BT_ASSERT_PRE_NON_NULL(_obj, _obj_name)				\
 	BT_ASSERT_PRE((_obj) != NULL, "%s is NULL: ", _obj_name)
 
 /*
- * Developer mode: asserts that a given object `_obj` named `_obj_name`
- * (capitalized) is NOT frozen. This macro checks the `frozen` field of
- * `_obj`.
- */
-#define BT_ASSERT_PRE_HOT(_obj, _obj_name, _fmt, ...)			\
-	BT_ASSERT_PRE(!(_obj)->frozen, "%s is frozen" _fmt, _obj_name,	\
-		##__VA_ARGS__)
-
-/*
- * Developer mode: asserts that a given index `_index` is less than a
- * given length `_length`.
+ * Asserts that a given index `_index` is less than a given length
+ * `_length`.
  */
 #define BT_ASSERT_PRE_VALID_INDEX(_index, _length)			\
 	BT_ASSERT_PRE((_index) < (_length),				\
 		"Index is out of bounds: index=%" PRIu64 ", "		\
 		"count=%" PRIu64, (uint64_t) (_index), (uint64_t) (_length))
+
+/*
+ * Marks a function as being only used within a BT_ASSERT_PRE() context.
+ */
+#define BT_ASSERT_PRE_FUNC
+
+#ifdef BT_DEV_MODE
+/* Developer mode version of BT_ASSERT_PRE_MSG(). */
+# define BT_ASSERT_PRE_DEV_MSG(_fmt, ...)					\
+	BT_ASSERT_PRE_MSG(_fmt, #__VA_ARGS__)
+
+/* Developer mode version of BT_ASSERT_PRE(). */
+# define BT_ASSERT_PRE_DEV(_cond, _fmt, ...)				\
+	BT_ASSERT_PRE((_cond), _fmt, #__VA_ARGS__)
+
+/* Developer mode version of BT_ASSERT_PRE_NON_NULL() */
+# define BT_ASSERT_PRE_DEV_NON_NULL(_obj, _obj_name)			\
+	BT_ASSERT_PRE_NON_NULL((_obj), (_obj_name))
+
+/*
+ * Developer mode: asserts that a given object `_obj` named `_obj_name`
+ * (capitalized) is NOT frozen. This macro checks the `frozen` field of
+ * `_obj`.
+ *
+ * This currently only exists in developer mode because some freezing
+ * functions can be called on the fast path, so they too are only
+ * enabled in developer mode.
+ */
+# define BT_ASSERT_PRE_DEV_HOT(_obj, _obj_name, _fmt, ...)		\
+	BT_ASSERT_PRE(!(_obj)->frozen, "%s is frozen" _fmt, _obj_name,	\
+		##__VA_ARGS__)
+
+/* Developer mode version of BT_ASSERT_PRE_VALID_INDEX() */
+# define BT_ASSERT_PRE_DEV_VALID_INDEX(_index, _length)			\
+	BT_ASSERT_PRE_VALID_INDEX((_index), (_length))
+
+/* Developer mode version of `BT_ASSERT_PRE_FUNC`. */
+# define BT_ASSERT_PRE_DEV_FUNC
+#else
+# define BT_ASSERT_PRE_DEV_MSG(_fmt, ...)
+# define BT_ASSERT_PRE_DEV(_cond, _fmt, ...)	((void) sizeof((void) (_cond), 0))
+# define BT_ASSERT_PRE_DEV_NON_NULL(_obj, _obj_name)			\
+	((void) sizeof((void) (_obj), (void) (_obj_name), 0))
+# define BT_ASSERT_PRE_DEV_HOT(_obj, _obj_name, _fmt, ...)		\
+	((void) sizeof((void) (_obj), (void) (_obj_name), 0))
+# define BT_ASSERT_PRE_DEV_VALID_INDEX(_index, _length)			\
+	((void) sizeof((void) (_index), (void) (_length), 0))
+# define BT_ASSERT_PRE_DEV_FUNC		__attribute__((unused))
+#endif /* BT_DEV_MODE */
 
 #define BT_ASSERT_PRE_SUPPORTED
 

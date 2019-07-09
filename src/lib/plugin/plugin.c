@@ -145,15 +145,15 @@ void fini_python_plugin_provider(void) {
 
 uint64_t bt_plugin_set_get_plugin_count(struct bt_plugin_set *plugin_set)
 {
-	BT_ASSERT_PRE_NON_NULL(plugin_set, "Plugin set");
+	BT_ASSERT_PRE_DEV_NON_NULL(plugin_set, "Plugin set");
 	return (uint64_t) plugin_set->plugins->len;
 }
 
 const struct bt_plugin *bt_plugin_set_borrow_plugin_by_index_const(
 		const struct bt_plugin_set *plugin_set, uint64_t index)
 {
-	BT_ASSERT_PRE_NON_NULL(plugin_set, "Plugin set");
-	BT_ASSERT_PRE_VALID_INDEX(index, plugin_set->plugins->len);
+	BT_ASSERT_PRE_DEV_NON_NULL(plugin_set, "Plugin set");
+	BT_ASSERT_PRE_DEV_VALID_INDEX(index, plugin_set->plugins->len);
 	return g_ptr_array_index(plugin_set->plugins, index);
 }
 
@@ -626,31 +626,31 @@ end:
 
 const char *bt_plugin_get_name(const struct bt_plugin *plugin)
 {
-	BT_ASSERT_PRE_NON_NULL(plugin, "Plugin");
+	BT_ASSERT_PRE_DEV_NON_NULL(plugin, "Plugin");
 	return plugin->info.name_set ? plugin->info.name->str : NULL;
 }
 
 const char *bt_plugin_get_author(const struct bt_plugin *plugin)
 {
-	BT_ASSERT_PRE_NON_NULL(plugin, "Plugin");
+	BT_ASSERT_PRE_DEV_NON_NULL(plugin, "Plugin");
 	return plugin->info.author_set ? plugin->info.author->str : NULL;
 }
 
 const char *bt_plugin_get_license(const struct bt_plugin *plugin)
 {
-	BT_ASSERT_PRE_NON_NULL(plugin, "Plugin");
+	BT_ASSERT_PRE_DEV_NON_NULL(plugin, "Plugin");
 	return plugin->info.license_set ? plugin->info.license->str : NULL;
 }
 
 const char *bt_plugin_get_path(const struct bt_plugin *plugin)
 {
-	BT_ASSERT_PRE_NON_NULL(plugin, "Plugin");
+	BT_ASSERT_PRE_DEV_NON_NULL(plugin, "Plugin");
 	return plugin->info.path_set ? plugin->info.path->str : NULL;
 }
 
 const char *bt_plugin_get_description(const struct bt_plugin *plugin)
 {
-	BT_ASSERT_PRE_NON_NULL(plugin, "Plugin");
+	BT_ASSERT_PRE_DEV_NON_NULL(plugin, "Plugin");
 	return plugin->info.description_set ?
 		plugin->info.description->str : NULL;
 }
@@ -662,7 +662,7 @@ enum bt_property_availability bt_plugin_get_version(const struct bt_plugin *plug
 	enum bt_property_availability avail =
 		BT_PROPERTY_AVAILABILITY_AVAILABLE;
 
-	BT_ASSERT_PRE_NON_NULL(plugin, "Plugin");
+	BT_ASSERT_PRE_DEV_NON_NULL(plugin, "Plugin");
 
 	if (!plugin->info.version_set) {
 		BT_LIB_LOGD("Plugin's version is not set: %!+l", plugin);
@@ -692,19 +692,19 @@ end:
 
 uint64_t bt_plugin_get_source_component_class_count(const struct bt_plugin *plugin)
 {
-	BT_ASSERT_PRE_NON_NULL(plugin, "Plugin");
+	BT_ASSERT_PRE_DEV_NON_NULL(plugin, "Plugin");
 	return (uint64_t) plugin->src_comp_classes->len;
 }
 
 uint64_t bt_plugin_get_filter_component_class_count(const struct bt_plugin *plugin)
 {
-	BT_ASSERT_PRE_NON_NULL(plugin, "Plugin");
+	BT_ASSERT_PRE_DEV_NON_NULL(plugin, "Plugin");
 	return (uint64_t) plugin->flt_comp_classes->len;
 }
 
 uint64_t bt_plugin_get_sink_component_class_count(const struct bt_plugin *plugin)
 {
-	BT_ASSERT_PRE_NON_NULL(plugin, "Plugin");
+	BT_ASSERT_PRE_DEV_NON_NULL(plugin, "Plugin");
 	return (uint64_t) plugin->sink_comp_classes->len;
 }
 
@@ -713,8 +713,8 @@ struct bt_component_class *borrow_component_class_by_index(
 		const struct bt_plugin *plugin, GPtrArray *comp_classes,
 		uint64_t index)
 {
-	BT_ASSERT_PRE_NON_NULL(plugin, "Plugin");
-	BT_ASSERT_PRE_VALID_INDEX(index, comp_classes->len);
+	BT_ASSERT_PRE_DEV_NON_NULL(plugin, "Plugin");
+	BT_ASSERT_PRE_DEV_VALID_INDEX(index, comp_classes->len);
 	return g_ptr_array_index(comp_classes, index);
 }
 
@@ -750,8 +750,8 @@ struct bt_component_class *borrow_component_class_by_name(
 	struct bt_component_class *comp_class = NULL;
 	size_t i;
 
-	BT_ASSERT_PRE_NON_NULL(plugin, "Plugin");
-	BT_ASSERT_PRE_NON_NULL(name, "Name");
+	BT_ASSERT_PRE_DEV_NON_NULL(plugin, "Plugin");
+	BT_ASSERT_PRE_DEV_NON_NULL(name, "Name");
 
 	for (i = 0; i < comp_classes->len; i++) {
 		struct bt_component_class *comp_class_candidate =

@@ -564,7 +564,7 @@ int consume_graph_sink(struct bt_component_sink *comp)
 	consume_status = sink_class->methods.consume((void *) comp);
 	BT_LOGD("User method returned: status=%s",
 		bt_common_func_status_string(consume_status));
-	BT_ASSERT_POST(consume_status == BT_FUNC_STATUS_OK ||
+	BT_ASSERT_POST_DEV(consume_status == BT_FUNC_STATUS_OK ||
 		consume_status == BT_FUNC_STATUS_END ||
 		consume_status == BT_FUNC_STATUS_AGAIN ||
 		consume_status == BT_FUNC_STATUS_ERROR ||
@@ -663,7 +663,7 @@ int consume_no_check(struct bt_graph *graph)
 	struct bt_component *sink;
 	GList *current_node;
 
-	BT_ASSERT_PRE(graph->has_sink,
+	BT_ASSERT_PRE_DEV(graph->has_sink,
 		"Graph has no sink component: %!+g", graph);
 	BT_LIB_LOGD("Making next sink component consume: %![graph-]+g", graph);
 
@@ -686,11 +686,12 @@ enum bt_graph_consume_status bt_graph_consume(struct bt_graph *graph)
 {
 	enum bt_graph_consume_status status;
 
-	BT_ASSERT_PRE_NON_NULL(graph, "Graph");
-	BT_ASSERT_PRE(!graph->canceled, "Graph is canceled: %!+g", graph);
-	BT_ASSERT_PRE(graph->can_consume,
+	BT_ASSERT_PRE_DEV_NON_NULL(graph, "Graph");
+	BT_ASSERT_PRE_DEV(!graph->canceled, "Graph is canceled: %!+g", graph);
+	BT_ASSERT_PRE_DEV(graph->can_consume,
 		"Cannot consume graph in its current state: %!+g", graph);
-	BT_ASSERT_PRE(graph->config_state != BT_GRAPH_CONFIGURATION_STATE_FAULTY,
+	BT_ASSERT_PRE_DEV(graph->config_state !=
+		BT_GRAPH_CONFIGURATION_STATE_FAULTY,
 		"Graph is in a faulty state: %!+g", graph);
 	bt_graph_set_can_consume(graph, false);
 	status = bt_graph_configure(graph);
@@ -1218,7 +1219,7 @@ enum bt_graph_cancel_status bt_graph_cancel(struct bt_graph *graph)
 
 bt_bool bt_graph_is_canceled(const struct bt_graph *graph)
 {
-	BT_ASSERT_PRE_NON_NULL(graph, "Graph");
+	BT_ASSERT_PRE_DEV_NON_NULL(graph, "Graph");
 	return graph->canceled ? BT_TRUE : BT_FALSE;
 }
 

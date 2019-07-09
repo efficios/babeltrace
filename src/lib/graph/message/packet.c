@@ -280,8 +280,8 @@ struct bt_packet *bt_message_packet_beginning_borrow_packet(
 {
 	struct bt_message_packet *packet_msg = (void *) message;
 
-	BT_ASSERT_PRE_NON_NULL(message, "Message");
-	BT_ASSERT_PRE_MSG_IS_TYPE(message,
+	BT_ASSERT_PRE_DEV_NON_NULL(message, "Message");
+	BT_ASSERT_PRE_DEV_MSG_IS_TYPE(message,
 		BT_MESSAGE_TYPE_PACKET_BEGINNING);
 	return packet_msg->packet;
 }
@@ -298,8 +298,8 @@ struct bt_packet *bt_message_packet_end_borrow_packet(
 {
 	struct bt_message_packet *packet_msg = (void *) message;
 
-	BT_ASSERT_PRE_NON_NULL(message, "Message");
-	BT_ASSERT_PRE_MSG_IS_TYPE(message,
+	BT_ASSERT_PRE_DEV_NON_NULL(message, "Message");
+	BT_ASSERT_PRE_DEV_MSG_IS_TYPE(message,
 		BT_MESSAGE_TYPE_PACKET_END);
 	return packet_msg->packet;
 }
@@ -319,7 +319,8 @@ borrow_packet_message_default_clock_snapshot_const(
 	struct bt_message_packet *packet_msg = (void *) message;
 
 	BT_ASSERT(message);
-	BT_ASSERT_PRE(packet_msg->packet->stream->class->default_clock_class,
+	BT_ASSERT_PRE_DEV(
+		packet_msg->packet->stream->class->default_clock_class,
 		"Message's stream's class has no default clock class: "
 		"%![msg-]+n, %![sc-]+S",
 		message, packet_msg->packet->stream->class);
@@ -330,8 +331,8 @@ const struct bt_clock_snapshot *
 bt_message_packet_beginning_borrow_default_clock_snapshot_const(
 		const struct bt_message *msg)
 {
-	BT_ASSERT_PRE_NON_NULL(msg, "Message");
-	BT_ASSERT_PRE_MSG_IS_TYPE(msg, BT_MESSAGE_TYPE_PACKET_BEGINNING);
+	BT_ASSERT_PRE_DEV_NON_NULL(msg, "Message");
+	BT_ASSERT_PRE_DEV_MSG_IS_TYPE(msg, BT_MESSAGE_TYPE_PACKET_BEGINNING);
 	return borrow_packet_message_default_clock_snapshot_const(msg);
 }
 
@@ -339,8 +340,8 @@ const struct bt_clock_snapshot *
 bt_message_packet_end_borrow_default_clock_snapshot_const(
 		const struct bt_message *msg)
 {
-	BT_ASSERT_PRE_NON_NULL(msg, "Message");
-	BT_ASSERT_PRE_MSG_IS_TYPE(msg, BT_MESSAGE_TYPE_PACKET_END);
+	BT_ASSERT_PRE_DEV_NON_NULL(msg, "Message");
+	BT_ASSERT_PRE_DEV_MSG_IS_TYPE(msg, BT_MESSAGE_TYPE_PACKET_END);
 	return borrow_packet_message_default_clock_snapshot_const(msg);
 }
 
@@ -359,8 +360,8 @@ const struct bt_clock_class *
 bt_message_packet_beginning_borrow_stream_class_default_clock_class_const(
 		const struct bt_message *msg)
 {
-	BT_ASSERT_PRE_NON_NULL(msg, "Message");
-	BT_ASSERT_PRE_MSG_IS_TYPE(msg, BT_MESSAGE_TYPE_PACKET_BEGINNING);
+	BT_ASSERT_PRE_DEV_NON_NULL(msg, "Message");
+	BT_ASSERT_PRE_DEV_MSG_IS_TYPE(msg, BT_MESSAGE_TYPE_PACKET_BEGINNING);
 	return borrow_packet_message_stream_class_default_clock_class(msg);
 }
 
@@ -368,7 +369,7 @@ const struct bt_clock_class *
 bt_message_packet_end_borrow_stream_class_default_clock_class_const(
 		const struct bt_message *msg)
 {
-	BT_ASSERT_PRE_NON_NULL(msg, "Message");
-	BT_ASSERT_PRE_MSG_IS_TYPE(msg, BT_MESSAGE_TYPE_PACKET_END);
+	BT_ASSERT_PRE_DEV_NON_NULL(msg, "Message");
+	BT_ASSERT_PRE_DEV_MSG_IS_TYPE(msg, BT_MESSAGE_TYPE_PACKET_END);
 	return borrow_packet_message_stream_class_default_clock_class(msg);
 }

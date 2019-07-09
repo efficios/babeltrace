@@ -39,8 +39,8 @@
 #include "common/assert.h"
 #include "lib/func-status.h"
 
-#define BT_ASSERT_PRE_CLOCK_CLASS_HOT(_cc) \
-	BT_ASSERT_PRE_HOT((_cc), "Clock class", ": %!+K", (_cc))
+#define BT_ASSERT_PRE_DEV_CLOCK_CLASS_HOT(_cc) \
+	BT_ASSERT_PRE_DEV_HOT((_cc), "Clock class", ": %!+K", (_cc))
 
 static
 void destroy_clock_class(struct bt_object *obj)
@@ -134,7 +134,7 @@ end:
 
 const char *bt_clock_class_get_name(const struct bt_clock_class *clock_class)
 {
-	BT_ASSERT_PRE_NON_NULL(clock_class, "Clock class");
+	BT_ASSERT_PRE_DEV_NON_NULL(clock_class, "Clock class");
 	return clock_class->name.value;
 }
 
@@ -143,7 +143,7 @@ enum bt_clock_class_set_name_status bt_clock_class_set_name(
 {
 	BT_ASSERT_PRE_NON_NULL(clock_class, "Clock class");
 	BT_ASSERT_PRE_NON_NULL(name, "Name");
-	BT_ASSERT_PRE_CLOCK_CLASS_HOT(clock_class);
+	BT_ASSERT_PRE_DEV_CLOCK_CLASS_HOT(clock_class);
 	g_string_assign(clock_class->name.str, name);
 	clock_class->name.value = clock_class->name.str->str;
 	BT_LIB_LOGD("Set clock class's name: %!+K", clock_class);
@@ -153,7 +153,7 @@ enum bt_clock_class_set_name_status bt_clock_class_set_name(
 const char *bt_clock_class_get_description(
 		const struct bt_clock_class *clock_class)
 {
-	BT_ASSERT_PRE_NON_NULL(clock_class, "Clock class");
+	BT_ASSERT_PRE_DEV_NON_NULL(clock_class, "Clock class");
 	return clock_class->description.value;
 }
 
@@ -162,7 +162,7 @@ enum bt_clock_class_set_description_status bt_clock_class_set_description(
 {
 	BT_ASSERT_PRE_NON_NULL(clock_class, "Clock class");
 	BT_ASSERT_PRE_NON_NULL(descr, "Description");
-	BT_ASSERT_PRE_CLOCK_CLASS_HOT(clock_class);
+	BT_ASSERT_PRE_DEV_CLOCK_CLASS_HOT(clock_class);
 	g_string_assign(clock_class->description.str, descr);
 	clock_class->description.value = clock_class->description.str->str;
 	BT_LIB_LOGD("Set clock class's description: %!+K",
@@ -172,7 +172,7 @@ enum bt_clock_class_set_description_status bt_clock_class_set_description(
 
 uint64_t bt_clock_class_get_frequency(const struct bt_clock_class *clock_class)
 {
-	BT_ASSERT_PRE_NON_NULL(clock_class, "Clock class");
+	BT_ASSERT_PRE_DEV_NON_NULL(clock_class, "Clock class");
 	return clock_class->frequency;
 }
 
@@ -180,7 +180,7 @@ void bt_clock_class_set_frequency(struct bt_clock_class *clock_class,
 		uint64_t frequency)
 {
 	BT_ASSERT_PRE_NON_NULL(clock_class, "Clock class");
-	BT_ASSERT_PRE_CLOCK_CLASS_HOT(clock_class);
+	BT_ASSERT_PRE_DEV_CLOCK_CLASS_HOT(clock_class);
 	BT_ASSERT_PRE(frequency != UINT64_C(-1) && frequency != 0,
 		"Invalid frequency: %![cc-]+K, new-freq=%" PRIu64,
 		clock_class, frequency);
@@ -194,7 +194,7 @@ void bt_clock_class_set_frequency(struct bt_clock_class *clock_class,
 
 uint64_t bt_clock_class_get_precision(const struct bt_clock_class *clock_class)
 {
-	BT_ASSERT_PRE_NON_NULL(clock_class, "Clock class");
+	BT_ASSERT_PRE_DEV_NON_NULL(clock_class, "Clock class");
 	return clock_class->precision;
 }
 
@@ -202,7 +202,7 @@ void bt_clock_class_set_precision(struct bt_clock_class *clock_class,
 		uint64_t precision)
 {
 	BT_ASSERT_PRE_NON_NULL(clock_class, "Clock class");
-	BT_ASSERT_PRE_CLOCK_CLASS_HOT(clock_class);
+	BT_ASSERT_PRE_DEV_CLOCK_CLASS_HOT(clock_class);
 	BT_ASSERT_PRE(precision != UINT64_C(-1),
 		"Invalid precision: %![cc-]+K, new-precision=%" PRIu64,
 		clock_class, precision);
@@ -213,9 +213,9 @@ void bt_clock_class_set_precision(struct bt_clock_class *clock_class,
 void bt_clock_class_get_offset(const struct bt_clock_class *clock_class,
 		int64_t *seconds, uint64_t *cycles)
 {
-	BT_ASSERT_PRE_NON_NULL(clock_class, "Clock class");
-	BT_ASSERT_PRE_NON_NULL(seconds, "Seconds (output)");
-	BT_ASSERT_PRE_NON_NULL(cycles, "Cycles (output)");
+	BT_ASSERT_PRE_DEV_NON_NULL(clock_class, "Clock class");
+	BT_ASSERT_PRE_DEV_NON_NULL(seconds, "Seconds (output)");
+	BT_ASSERT_PRE_DEV_NON_NULL(cycles, "Cycles (output)");
 	*seconds = clock_class->offset_seconds;
 	*cycles = clock_class->offset_cycles;
 }
@@ -224,7 +224,7 @@ void bt_clock_class_set_offset(struct bt_clock_class *clock_class,
 		int64_t seconds, uint64_t cycles)
 {
 	BT_ASSERT_PRE_NON_NULL(clock_class, "Clock class");
-	BT_ASSERT_PRE_CLOCK_CLASS_HOT(clock_class);
+	BT_ASSERT_PRE_DEV_CLOCK_CLASS_HOT(clock_class);
 	BT_ASSERT_PRE(cycles < clock_class->frequency,
 		"Offset (cycles) is greater than clock class's frequency: "
 		"%![cc-]+K, new-offset-cycles=%" PRIu64, clock_class, cycles);
@@ -236,7 +236,7 @@ void bt_clock_class_set_offset(struct bt_clock_class *clock_class,
 
 bt_bool bt_clock_class_origin_is_unix_epoch(const struct bt_clock_class *clock_class)
 {
-	BT_ASSERT_PRE_NON_NULL(clock_class, "Clock class");
+	BT_ASSERT_PRE_DEV_NON_NULL(clock_class, "Clock class");
 	return (bool) clock_class->origin_is_unix_epoch;
 }
 
@@ -244,7 +244,7 @@ void bt_clock_class_set_origin_is_unix_epoch(struct bt_clock_class *clock_class,
 		bt_bool origin_is_unix_epoch)
 {
 	BT_ASSERT_PRE_NON_NULL(clock_class, "Clock class");
-	BT_ASSERT_PRE_CLOCK_CLASS_HOT(clock_class);
+	BT_ASSERT_PRE_DEV_CLOCK_CLASS_HOT(clock_class);
 	clock_class->origin_is_unix_epoch = (bool) origin_is_unix_epoch;
 	BT_LIB_LOGD("Set clock class's origin is Unix epoch property: %!+K",
 		clock_class);
@@ -252,7 +252,7 @@ void bt_clock_class_set_origin_is_unix_epoch(struct bt_clock_class *clock_class,
 
 bt_uuid bt_clock_class_get_uuid(const struct bt_clock_class *clock_class)
 {
-	BT_ASSERT_PRE_NON_NULL(clock_class, "Clock class");
+	BT_ASSERT_PRE_DEV_NON_NULL(clock_class, "Clock class");
 	return clock_class->uuid.value;
 }
 
@@ -261,7 +261,7 @@ void bt_clock_class_set_uuid(struct bt_clock_class *clock_class,
 {
 	BT_ASSERT_PRE_NON_NULL(clock_class, "Clock class");
 	BT_ASSERT_PRE_NON_NULL(uuid, "UUID");
-	BT_ASSERT_PRE_CLOCK_CLASS_HOT(clock_class);
+	BT_ASSERT_PRE_DEV_CLOCK_CLASS_HOT(clock_class);
 	bt_uuid_copy(clock_class->uuid.uuid, uuid);
 	clock_class->uuid.value = clock_class->uuid.uuid;
 	BT_LIB_LOGD("Set clock class's UUID: %!+K", clock_class);
@@ -287,8 +287,8 @@ bt_clock_class_cycles_to_ns_from_origin(
 {
 	int ret;
 
-	BT_ASSERT_PRE_NON_NULL(clock_class, "Clock class");
-	BT_ASSERT_PRE_NON_NULL(ns, "Nanoseconds (output)");
+	BT_ASSERT_PRE_DEV_NON_NULL(clock_class, "Clock class");
+	BT_ASSERT_PRE_DEV_NON_NULL(ns, "Nanoseconds (output)");
 	ret = bt_util_ns_from_origin_clock_class(clock_class, cycles, ns);
 	if (ret) {
 		ret = BT_FUNC_STATUS_OVERFLOW;

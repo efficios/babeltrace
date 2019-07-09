@@ -33,42 +33,89 @@
 #include <stdint.h>
 #include <glib.h>
 
+#define _BT_ASSERT_PRE_FC_IS_INT_COND(_fc)				\
+	(((const struct bt_field_class *) (_fc))->type == BT_FIELD_CLASS_TYPE_UNSIGNED_INTEGER || \
+	((const struct bt_field_class *) (_fc))->type == BT_FIELD_CLASS_TYPE_SIGNED_INTEGER || \
+	((const struct bt_field_class *) (_fc))->type == BT_FIELD_CLASS_TYPE_UNSIGNED_ENUMERATION || \
+	((const struct bt_field_class *) (_fc))->type == BT_FIELD_CLASS_TYPE_SIGNED_ENUMERATION)
+
+#define _BT_ASSERT_PRE_FC_IS_INT_FMT(_name)				\
+	_name " is not an integer field class: %![fc-]+F"
+
+#define _BT_ASSERT_PRE_FC_IS_UNSIGNED_INT_COND(_fc)			\
+	(((const struct bt_field_class *) (_fc))->type == BT_FIELD_CLASS_TYPE_UNSIGNED_INTEGER || \
+	((const struct bt_field_class *) (_fc))->type == BT_FIELD_CLASS_TYPE_UNSIGNED_ENUMERATION)
+
+#define _BT_ASSERT_PRE_FC_IS_UNSIGNED_INT_FMT(_name)			\
+	_name " is not an unsigned integer field class: %![fc-]+F"
+
+#define _BT_ASSERT_PRE_FC_IS_ENUM_COND(_fc)				\
+	(((const struct bt_field_class *) (_fc))->type == BT_FIELD_CLASS_TYPE_UNSIGNED_ENUMERATION || \
+	((const struct bt_field_class *) (_fc))->type == BT_FIELD_CLASS_TYPE_SIGNED_ENUMERATION)
+
+#define _BT_ASSERT_PRE_FC_IS_ENUM_FMT(_name)				\
+	_name " is not an enumeration field class: %![fc-]+F"
+
+#define _BT_ASSERT_PRE_FC_IS_ARRAY_COND(_fc)				\
+	(((const struct bt_field_class *) (_fc))->type == BT_FIELD_CLASS_TYPE_STATIC_ARRAY || \
+	((const struct bt_field_class *) (_fc))->type == BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY)
+
+#define _BT_ASSERT_PRE_FC_IS_ARRAY_FMT(_name)				\
+	_name " is not an array field class: %![fc-]+F"
+
+#define _BT_ASSERT_PRE_FC_HAS_ID_COND(_fc, _type)			\
+	(((const struct bt_field_class *) (_fc))->type == (_type))
+
+#define _BT_ASSERT_PRE_FC_HAS_ID_FMT(_name)				\
+	_name " has the wrong type: expected-type=%s, %![fc-]+F"
+
 #define BT_ASSERT_PRE_FC_IS_INT(_fc, _name)				\
-	BT_ASSERT_PRE(							\
-		((const struct bt_field_class *) (_fc))->type == BT_FIELD_CLASS_TYPE_UNSIGNED_INTEGER || \
-		((const struct bt_field_class *) (_fc))->type == BT_FIELD_CLASS_TYPE_SIGNED_INTEGER || \
-		((const struct bt_field_class *) (_fc))->type == BT_FIELD_CLASS_TYPE_UNSIGNED_ENUMERATION || \
-		((const struct bt_field_class *) (_fc))->type == BT_FIELD_CLASS_TYPE_SIGNED_ENUMERATION, \
-		_name " is not an integer field class: %![fc-]+F", (_fc))
+	BT_ASSERT_PRE(_BT_ASSERT_PRE_FC_IS_INT_COND(_fc),		\
+	_BT_ASSERT_PRE_FC_IS_INT_FMT(_name), (_fc))
 
 #define BT_ASSERT_PRE_FC_IS_UNSIGNED_INT(_fc, _name)			\
-	BT_ASSERT_PRE(							\
-		((const struct bt_field_class *) (_fc))->type == BT_FIELD_CLASS_TYPE_UNSIGNED_INTEGER || \
-		((const struct bt_field_class *) (_fc))->type == BT_FIELD_CLASS_TYPE_UNSIGNED_ENUMERATION, \
-		_name " is not an unsigned integer field class: %![fc-]+F", (_fc))
+	BT_ASSERT_PRE(_BT_ASSERT_PRE_FC_IS_UNSIGNED_INT_COND(_fc),	\
+	_BT_ASSERT_PRE_FC_IS_UNSIGNED_INT_FMT(_name), (_fc))
 
 #define BT_ASSERT_PRE_FC_IS_ENUM(_fc, _name)				\
-	BT_ASSERT_PRE(							\
-		((const struct bt_field_class *) (_fc))->type == BT_FIELD_CLASS_TYPE_UNSIGNED_ENUMERATION || \
-		((const struct bt_field_class *) (_fc))->type == BT_FIELD_CLASS_TYPE_SIGNED_ENUMERATION, \
-		_name " is not an enumeration field class: %![fc-]+F", (_fc))
+	BT_ASSERT_PRE(_BT_ASSERT_PRE_FC_IS_ENUM_COND(_fc),		\
+	_BT_ASSERT_PRE_FC_IS_ENUM_FMT(_name), (_fc))
 
 #define BT_ASSERT_PRE_FC_IS_ARRAY(_fc, _name)				\
-	BT_ASSERT_PRE(							\
-		((const struct bt_field_class *) (_fc))->type == BT_FIELD_CLASS_TYPE_STATIC_ARRAY || \
-		((const struct bt_field_class *) (_fc))->type == BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY, \
-		_name " is not an array field class: %![fc-]+F", (_fc))
+	BT_ASSERT_PRE(_BT_ASSERT_PRE_FC_IS_ARRAY_COND(_fc),		\
+	_BT_ASSERT_PRE_FC_IS_ARRAY_FMT(_name), (_fc))
 
 #define BT_ASSERT_PRE_FC_HAS_ID(_fc, _type, _name)			\
-	BT_ASSERT_PRE(((const struct bt_field_class *) (_fc))->type == (_type), 	\
-		_name " has the wrong type: expected-type=%s, "		\
-		"%![fc-]+F", bt_common_field_class_type_string(_type), (_fc))
+	BT_ASSERT_PRE(_BT_ASSERT_PRE_FC_HAS_ID_COND((_fc), (_type)),	\
+	_BT_ASSERT_PRE_FC_HAS_ID_FMT(_name),				\
+	bt_common_field_class_type_string(_type), (_fc))
 
-#define BT_ASSERT_PRE_FC_HOT(_fc, _name)				\
-	BT_ASSERT_PRE_HOT((const struct bt_field_class *) (_fc),		\
+#define BT_ASSERT_PRE_DEV_FC_IS_INT(_fc, _name)				\
+	BT_ASSERT_PRE_DEV(_BT_ASSERT_PRE_FC_IS_INT_COND(_fc),		\
+	_BT_ASSERT_PRE_FC_IS_INT_FMT(_name), (_fc))
+
+#define BT_ASSERT_PRE_DEV_FC_IS_UNSIGNED_INT(_fc, _name)		\
+	BT_ASSERT_PRE_DEV(_BT_ASSERT_PRE_FC_IS_UNSIGNED_INT_COND(_fc),	\
+	_BT_ASSERT_PRE_FC_IS_UNSIGNED_INT_FMT(_name), (_fc))
+
+#define BT_ASSERT_PRE_DEV_FC_IS_ENUM(_fc, _name)			\
+	BT_ASSERT_PRE_DEV(_BT_ASSERT_PRE_FC_IS_ENUM_COND(_fc),		\
+	_BT_ASSERT_PRE_FC_IS_ENUM_FMT(_name), (_fc))
+
+#define BT_ASSERT_PRE_DEV_FC_IS_ARRAY(_fc, _name)			\
+	BT_ASSERT_PRE_DEV(_BT_ASSERT_PRE_FC_IS_ARRAY_COND(_fc),		\
+	_BT_ASSERT_PRE_FC_IS_ARRAY_FMT(_name), (_fc))
+
+#define BT_ASSERT_PRE_DEV_FC_HAS_ID(_fc, _type, _name)			\
+	BT_ASSERT_PRE_DEV(_BT_ASSERT_PRE_FC_HAS_ID_COND((_fc), (_type)), \
+	_BT_ASSERT_PRE_FC_HAS_ID_FMT(_name),				\
+	bt_common_field_class_type_string(_type), (_fc))
+
+#define BT_ASSERT_PRE_DEV_FC_HOT(_fc, _name)				\
+	BT_ASSERT_PRE_DEV_HOT((const struct bt_field_class *) (_fc),	\
 		(_name), ": %!+F", (_fc))
 
-#define BT_FIELD_CLASS_NAMED_FC_AT_INDEX(_fc, _index)		\
+#define BT_FIELD_CLASS_NAMED_FC_AT_INDEX(_fc, _index)			\
 	(&g_array_index(((struct bt_field_class_named_field_class_container *) (_fc))->named_fcs, \
 		struct bt_named_field_class, (_index)))
 
@@ -89,8 +136,8 @@ struct bt_field_class {
 	bool frozen;
 
 	/*
-	 * Only used in developer mode, this flag indicates whether or
-	 * not this field class is part of a trace class.
+	 * This flag indicates whether or not this field class is part
+	 * of a trace class.
 	 */
 	bool part_of_trace_class;
 };
@@ -258,13 +305,7 @@ void _bt_named_field_class_freeze(const struct bt_named_field_class *named_fc);
  * shared objects for other purposes.
  */
 BT_HIDDEN
-void _bt_field_class_make_part_of_trace_class(
+void bt_field_class_make_part_of_trace_class(
 		const struct bt_field_class *field_class);
-
-#ifdef BT_DEV_MODE
-# define bt_field_class_make_part_of_trace_class	_bt_field_class_make_part_of_trace_class
-#else
-# define bt_field_class_make_part_of_trace_class(_fc)	((void) _fc)
-#endif
 
 #endif /* BABELTRACE_TRACE_IR_FIELD_CLASSES_INTERNAL_H */

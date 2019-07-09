@@ -42,8 +42,8 @@
 #include "trace.h"
 #include "lib/func-status.h"
 
-#define BT_ASSERT_PRE_STREAM_HOT(_stream) \
-	BT_ASSERT_PRE_HOT((_stream), "Stream", ": %!+s", (_stream))
+#define BT_ASSERT_PRE_DEV_STREAM_HOT(_stream) \
+	BT_ASSERT_PRE_DEV_HOT((_stream), "Stream", ": %!+s", (_stream))
 
 static
 void destroy_stream(struct bt_object *obj)
@@ -180,7 +180,7 @@ struct bt_stream *bt_stream_create_with_id(struct bt_stream_class *stream_class,
 
 struct bt_stream_class *bt_stream_borrow_class(struct bt_stream *stream)
 {
-	BT_ASSERT_PRE_NON_NULL(stream, "Stream");
+	BT_ASSERT_PRE_DEV_NON_NULL(stream, "Stream");
 	return stream->class;
 }
 
@@ -192,7 +192,7 @@ const struct bt_stream_class *bt_stream_borrow_class_const(
 
 struct bt_trace *bt_stream_borrow_trace(struct bt_stream *stream)
 {
-	BT_ASSERT_PRE_NON_NULL(stream, "Stream");
+	BT_ASSERT_PRE_DEV_NON_NULL(stream, "Stream");
 	return bt_stream_borrow_trace_inline(stream);
 }
 
@@ -204,7 +204,7 @@ const struct bt_trace *bt_stream_borrow_trace_const(
 
 const char *bt_stream_get_name(const struct bt_stream *stream)
 {
-	BT_ASSERT_PRE_NON_NULL(stream, "Stream");
+	BT_ASSERT_PRE_DEV_NON_NULL(stream, "Stream");
 	return stream->name.value;
 }
 
@@ -213,7 +213,7 @@ enum bt_stream_set_name_status bt_stream_set_name(struct bt_stream *stream,
 {
 	BT_ASSERT_PRE_NON_NULL(stream, "Stream");
 	BT_ASSERT_PRE_NON_NULL(name, "Name");
-	BT_ASSERT_PRE_STREAM_HOT(stream);
+	BT_ASSERT_PRE_DEV_STREAM_HOT(stream);
 	g_string_assign(stream->name.str, name);
 	stream->name.value = stream->name.str->str;
 	BT_LIB_LOGD("Set stream's name: %!+s", stream);
@@ -222,7 +222,7 @@ enum bt_stream_set_name_status bt_stream_set_name(struct bt_stream *stream,
 
 uint64_t bt_stream_get_id(const struct bt_stream *stream)
 {
-	BT_ASSERT_PRE_NON_NULL(stream, "Stream class");
+	BT_ASSERT_PRE_DEV_NON_NULL(stream, "Stream class");
 	return stream->id;
 }
 

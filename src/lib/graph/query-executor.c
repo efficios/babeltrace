@@ -162,7 +162,7 @@ enum bt_query_executor_cancel_status bt_query_executor_cancel(
 
 bt_bool bt_query_executor_is_canceled(const struct bt_query_executor *query_exec)
 {
-	BT_ASSERT_PRE_NON_NULL(query_exec, "Query executor");
+	BT_ASSERT_PRE_DEV_NON_NULL(query_exec, "Query executor");
 	return query_exec->canceled;
 }
 

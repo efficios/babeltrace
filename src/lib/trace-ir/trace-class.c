@@ -60,8 +60,8 @@ struct bt_trace_class_destruction_listener_elem {
 	void *data;
 };
 
-#define BT_ASSERT_PRE_TRACE_CLASS_HOT(_tc)				\
-	BT_ASSERT_PRE_HOT((_tc), "Trace class", ": %!+T", (_tc))
+#define BT_ASSERT_PRE_DEV_TRACE_CLASS_HOT(_tc)				\
+	BT_ASSERT_PRE_DEV_HOT((_tc), "Trace class", ": %!+T", (_tc))
 
 static
 void destroy_trace_class(struct bt_object *obj)
@@ -233,15 +233,15 @@ enum bt_trace_class_remove_listener_status bt_trace_class_remove_destruction_lis
 
 uint64_t bt_trace_class_get_stream_class_count(const struct bt_trace_class *tc)
 {
-	BT_ASSERT_PRE_NON_NULL(tc, "Trace class");
+	BT_ASSERT_PRE_DEV_NON_NULL(tc, "Trace class");
 	return (uint64_t) tc->stream_classes->len;
 }
 
 struct bt_stream_class *bt_trace_class_borrow_stream_class_by_index(
 		struct bt_trace_class *tc, uint64_t index)
 {
-	BT_ASSERT_PRE_NON_NULL(tc, "Trace class");
-	BT_ASSERT_PRE_VALID_INDEX(index, tc->stream_classes->len);
+	BT_ASSERT_PRE_DEV_NON_NULL(tc, "Trace class");
+	BT_ASSERT_PRE_DEV_VALID_INDEX(index, tc->stream_classes->len);
 	return g_ptr_array_index(tc->stream_classes, index);
 }
 
@@ -259,7 +259,7 @@ struct bt_stream_class *bt_trace_class_borrow_stream_class_by_id(
 	struct bt_stream_class *stream_class = NULL;
 	uint64_t i;
 
-	BT_ASSERT_PRE_NON_NULL(tc, "Trace class");
+	BT_ASSERT_PRE_DEV_NON_NULL(tc, "Trace class");
 
 	for (i = 0; i < tc->stream_classes->len; i++) {
 		struct bt_stream_class *stream_class_candidate =
@@ -292,7 +292,7 @@ void _bt_trace_class_freeze(const struct bt_trace_class *tc)
 
 bt_bool bt_trace_class_assigns_automatic_stream_class_id(const struct bt_trace_class *tc)
 {
-	BT_ASSERT_PRE_NON_NULL(tc, "Trace class");
+	BT_ASSERT_PRE_DEV_NON_NULL(tc, "Trace class");
 	return (bt_bool) tc->assigns_automatic_stream_class_id;
 }
 
@@ -300,7 +300,7 @@ void bt_trace_class_set_assigns_automatic_stream_class_id(struct bt_trace_class 
 		bt_bool value)
 {
 	BT_ASSERT_PRE_NON_NULL(tc, "Trace class");
-	BT_ASSERT_PRE_TRACE_CLASS_HOT(tc);
+	BT_ASSERT_PRE_DEV_TRACE_CLASS_HOT(tc);
 	tc->assigns_automatic_stream_class_id = (bool) value;
 	BT_LIB_LOGD("Set trace class's automatic stream class ID "
 		"assignment property: %!+T", tc);

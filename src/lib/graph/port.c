@@ -93,34 +93,34 @@ end:
 
 const char *bt_port_get_name(const struct bt_port *port)
 {
-	BT_ASSERT_PRE_NON_NULL(port, "Port");
+	BT_ASSERT_PRE_DEV_NON_NULL(port, "Port");
 	return port->name->str;
 }
 
 enum bt_port_type bt_port_get_type(const struct bt_port *port)
 {
-	BT_ASSERT_PRE_NON_NULL(port, "Port");
+	BT_ASSERT_PRE_DEV_NON_NULL(port, "Port");
 	return port->type;
 }
 
 const struct bt_connection *bt_port_borrow_connection_const(
 		const struct bt_port *port)
 {
-	BT_ASSERT_PRE_NON_NULL(port, "Port");
+	BT_ASSERT_PRE_DEV_NON_NULL(port, "Port");
 	return port->connection;
 }
 
 const struct bt_component *bt_port_borrow_component_const(
 		const struct bt_port *port)
 {
-	BT_ASSERT_PRE_NON_NULL(port, "Port");
+	BT_ASSERT_PRE_DEV_NON_NULL(port, "Port");
 	return bt_port_borrow_component_inline(port);
 }
 
 struct bt_self_component *bt_self_component_port_borrow_component(
 		struct bt_self_component_port *port)
 {
-	BT_ASSERT_PRE_NON_NULL(port, "Port");
+	BT_ASSERT_PRE_DEV_NON_NULL(port, "Port");
 	return (void *) bt_object_borrow_parent((void *) port);
 }
 
@@ -140,13 +140,13 @@ void bt_port_set_connection(struct bt_port *port,
 
 bt_bool bt_port_is_connected(const struct bt_port *port)
 {
-	BT_ASSERT_PRE_NON_NULL(port, "Port");
+	BT_ASSERT_PRE_DEV_NON_NULL(port, "Port");
 	return port->connection ? BT_TRUE : BT_FALSE;
 }
 
 void *bt_self_component_port_get_data(const struct bt_self_component_port *port)
 {
-	BT_ASSERT_PRE_NON_NULL(port, "Port");
+	BT_ASSERT_PRE_DEV_NON_NULL(port, "Port");
 	return ((struct bt_port *) port)->user_data;
 }
 

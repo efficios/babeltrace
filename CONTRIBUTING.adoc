@@ -1268,8 +1268,10 @@ A _FATAL_-level logging statement should always be followed by
 * Logic error in internal code, for example an unexpected value in a
   `switch` statement.
 * Failed assertion (within `BT_ASSERT()`).
-* Unsatisfied library precondition (within `BT_ASSERT_PRE()`).
-* Unsatisfied library postcondition (within `BT_ASSERT_POST()`).
+* Unsatisfied library precondition (within `BT_ASSERT_PRE()` or
+  `BT_ASSERT_PRE_DEV()`).
+* Unsatisfied library postcondition (within `BT_ASSERT_POST()` or
+  `BT_ASSERT_POST_DEV()`).
 |Almost none: always enabled.
 
 |_ERROR_
