@@ -527,12 +527,15 @@ class _UserComponentType(type):
         results = bt2.create_value(results)
 
         if results is None:
-            results_addr = int(native_bt.value_null)
+            results_ptr = native_bt.value_null
         else:
             # return new reference
-            results_addr = int(results._release())
+            results_ptr = results._ptr
 
-        return results_addr
+        # We return a new reference.
+        bt2.value._Value._get_ref(results_ptr)
+
+        return int(results_ptr)
 
     def _query(cls, query_executor, obj, params, log_level):
         raise NotImplementedError
