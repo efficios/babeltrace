@@ -201,7 +201,7 @@ void loge_exception(void)
 static inline
 void logw_exception(void)
 {
-	log_exception(BT_LOG_WARN);
+	log_exception(BT_LOG_WARNING);
 }
 
 static inline

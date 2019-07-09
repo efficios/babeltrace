@@ -115,8 +115,8 @@ class GenericComponentTestCase(unittest.TestCase):
             def _consume(self):
                 pass
 
-        comp = self._create_comp(MySink, 'yaes', bt2.LoggingLevel.WARN)
-        self.assertEqual(comp.logging_level, bt2.LoggingLevel.WARN)
+        comp = self._create_comp(MySink, 'yaes', bt2.LoggingLevel.WARNING)
+        self.assertEqual(comp.logging_level, bt2.LoggingLevel.WARNING)
 
     def test_class(self):
         class MySink(bt2._UserSinkComponent):

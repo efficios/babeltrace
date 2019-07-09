@@ -108,7 +108,7 @@ extern unsigned long pthread_getsequence_np(pthread_t *);
  * level variable. In that case it must be defined elsewhere using
  * BT_LOG_DEFINE_GLOBAL_OUTPUT_LEVEL macro, for example:
  *
- *   BT_LOG_DEFINE_GLOBAL_OUTPUT_LEVEL = BT_LOG_WARN;
+ *   BT_LOG_DEFINE_GLOBAL_OUTPUT_LEVEL = BT_LOG_WARNING;
  *
  * This allows to specify custom value for static initialization and avoid
  * overhead of setting this value in runtime.
@@ -559,7 +559,7 @@ static INSTRUMENTED_CONST buffer_cb g_buffer_cb = buffer_callback;
 			return ANDROID_LOG_DEBUG;
 		case BT_LOG_INFO:
 			return ANDROID_LOG_INFO;
-		case BT_LOG_WARN:
+		case BT_LOG_WARNING:
 			return ANDROID_LOG_WARN;
 		case BT_LOG_ERROR:
 			return ANDROID_LOG_ERROR;
@@ -602,7 +602,7 @@ static INSTRUMENTED_CONST buffer_cb g_buffer_cb = buffer_callback;
 			return 7; /* ASL_LEVEL_DEBUG / kCFLogLevelDebug */;
 		case BT_LOG_INFO:
 			return 6; /* ASL_LEVEL_INFO / kCFLogLevelInfo */;
-		case BT_LOG_WARN:
+		case BT_LOG_WARNING:
 			return 4; /* ASL_LEVEL_WARNING / kCFLogLevelWarning */;
 		case BT_LOG_ERROR:
 			return 3; /* ASL_LEVEL_ERR / kCFLogLevelError */;
@@ -708,7 +708,7 @@ static char lvl_char(const int lvl)
 		return 'D';
 	case BT_LOG_INFO:
 		return 'I';
-	case BT_LOG_WARN:
+	case BT_LOG_WARNING:
 		return 'W';
 	case BT_LOG_ERROR:
 		return 'E';
@@ -1277,7 +1277,7 @@ static void _bt_log_write_imp(
 		color_p = bt_common_color_fg_blue();
 		color_e = color_p + strlen(color_p);
 		break;
-	case BT_LOG_WARN:
+	case BT_LOG_WARNING:
 		color_p = bt_common_color_fg_yellow();
 		color_e = color_p + strlen(color_p);
 		break;

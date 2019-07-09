@@ -200,7 +200,7 @@ end:
 #endif
 
 	log_python_traceback(ret == BT_FUNC_STATUS_ERROR ?
-		BT_LOG_WARN : BT_LOG_INFO);
+		BT_LOG_WARNING : BT_LOG_INFO);
 	pyerr_clear();
 	Py_XDECREF(py_bt2_py_plugin_mod);
 	return ret;
@@ -595,7 +595,7 @@ int bt_plugin_from_python_plugin_info(PyObject *plugin_info,
 
 error:
 	BT_ASSERT(status != BT_FUNC_STATUS_OK);
-	log_python_traceback(fail_on_load_error ? BT_LOG_WARN : BT_LOG_INFO);
+	log_python_traceback(fail_on_load_error ? BT_LOG_WARNING : BT_LOG_INFO);
 	pyerr_clear();
 	BT_OBJECT_PUT_REF_AND_RESET(*plugin_out);
 
@@ -750,7 +750,7 @@ int bt_plugin_python_create_all_from_file(const char *path,
 
 error:
 	BT_ASSERT(status != BT_FUNC_STATUS_OK);
-	log_python_traceback(fail_on_load_error ? BT_LOG_WARN : BT_LOG_INFO);
+	log_python_traceback(fail_on_load_error ? BT_LOG_WARNING : BT_LOG_INFO);
 	pyerr_clear();
 	BT_OBJECT_PUT_REF_AND_RESET(*plugin_set_out);
 

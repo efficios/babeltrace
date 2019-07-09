@@ -330,10 +330,10 @@ order of severity:
 |`BT_LOG_INFO`
 |`BT_LOGGING_LEVEL_INFO`
 
-|_WARN_
+|_WARNING_
 |`W`
-|`BT_LOG_WARN`
-|`BT_LOGGING_LEVEL_WARN`
+|`BT_LOG_WARNING`
+|`BT_LOGGING_LEVEL_WARNING`
 
 |_ERROR_
 |`E`
@@ -374,13 +374,13 @@ You can set this level at configuration time with the
 +
 --
 ----
-$ BABELTRACE_MINIMAL_LOG_LEVEL=WARN ./configure
+$ BABELTRACE_MINIMAL_LOG_LEVEL=INFO ./configure
 ----
 --
 +
 The default build-time log level is `DEBUG`. For optimal performance,
 set it to `INFO`, which effectively disables all fast path logging in
-all the Babeltrace modules. You can't set it to `WARN`, `ERROR`,
+all the Babeltrace modules. You can't set it to `WARNING`, `ERROR`,
 `FATAL`, or `NONE` because the impact on performance is minuscule
 starting from the _INFO_ log level anyway and we want any Babeltrace
 build to always be able to print _INFO_-level logs.
@@ -879,7 +879,7 @@ The available definitions for build-time conditions are:
 * `BT_LOG_ENABLED_TRACE`
 * `BT_LOG_ENABLED_DEBUG`
 * `BT_LOG_ENABLED_INFO`
-* `BT_LOG_ENABLED_WARN`
+* `BT_LOG_ENABLED_WARNING`
 * `BT_LOG_ENABLED_ERROR`
 * `BT_LOG_ENABLED_FATAL`
 
@@ -901,7 +901,7 @@ The available definitions for run-time conditions are:
 * `BT_LOG_ON_TRACE`
 * `BT_LOG_ON_DEBUG`
 * `BT_LOG_ON_INFO`
-* `BT_LOG_ON_WARN`
+* `BT_LOG_ON_WARNING`
 * `BT_LOG_ON_ERROR`
 * `BT_LOG_ON_FATAL`
 
@@ -1291,16 +1291,17 @@ least exit cleanly.
 * Almost any error in terminal elements: CLI and plugins.
 |Almost none: always enabled.
 
-|_WARN_
+|_WARNING_
 |
 An error which still allows the execution to continue, but you judge
 that it should be reported to the user.
 
-_WARN_-level logging statements are for any error or weird action that
-is directly or indirectly caused by the user, often through some bad
-input data. For example, not having enough memory is considered beyond
-the user's control, so we always log memory errors with an _ERROR_ level
-(not _FATAL_ because we usually don't abort in this condition).
+_WARNING_-level logging statements are for any error or weird action
+that is directly or indirectly caused by the user, often through some
+bad input data. For example, not having enough memory is considered
+beyond the user's control, so we always log memory errors with an
+_ERROR_ level (not _FATAL_ because we usually don't abort in this
+condition).
 |
 * Missing data within something that is expected to have it, but there's
   an alternative.
@@ -1364,7 +1365,7 @@ other log levels). More appropriate for tracing in general.
 
 [IMPORTANT]
 --
-Make sure not to use a _WARN_ (or higher) log level when the
+Make sure not to use a _WARNING_ (or higher) log level when the
 condition leading to the logging statement can occur under normal
 circumstances.
 
@@ -1453,7 +1454,7 @@ name and line number, and the <<message,message>>.
 When Babeltrace supports terminal color codes (depends on the
 `BABELTRACE_TERM_COLOR` environment variable's value and what the
 standard output and error streams are plugged into), _INFO_-level lines
-are blue, _WARN_-level lines are yellow, and _ERROR_-level and
+are blue, _WARNING_-level lines are yellow, and _ERROR_-level and
 _FATAL_-level lines are red.
 
 Log line example:

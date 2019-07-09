@@ -59,7 +59,7 @@
 	} while (0)
 
 static bool is_first_error = true;
-static const int cli_default_log_level = BT_LOG_WARN;
+static const int cli_default_log_level = BT_LOG_WARNING;
 
 /* INI-style parsing FSM states */
 enum ini_parsing_fsm_state {

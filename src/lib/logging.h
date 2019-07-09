@@ -49,7 +49,7 @@ int bt_lib_log_level;
 /* See `CONTRIBUTING.adoc` for usage */
 #define BT_LIB_LOGF(_fmt, ...)	BT_LIB_LOG(BT_LOG_FATAL, _fmt, ##__VA_ARGS__)
 #define BT_LIB_LOGE(_fmt, ...)	BT_LIB_LOG(BT_LOG_ERROR, _fmt, ##__VA_ARGS__)
-#define BT_LIB_LOGW(_fmt, ...)	BT_LIB_LOG(BT_LOG_WARN, _fmt, ##__VA_ARGS__)
+#define BT_LIB_LOGW(_fmt, ...)	BT_LIB_LOG(BT_LOG_WARNING, _fmt, ##__VA_ARGS__)
 #define BT_LIB_LOGI(_fmt, ...)	BT_LIB_LOG(BT_LOG_INFO, _fmt, ##__VA_ARGS__)
 #define BT_LIB_LOGD(_fmt, ...)	BT_LIB_LOG(BT_LOG_DEBUG, _fmt, ##__VA_ARGS__)
 #define BT_LIB_LOGT(_fmt, ...)	BT_LIB_LOG(BT_LOG_TRACE, _fmt, ##__VA_ARGS__)
@@ -78,7 +78,7 @@ void bt_lib_log(const char *func, const char *file, unsigned line,
 #define BT_LIB_LOGE_APPEND_CAUSE(_fmt, ...)				\
 	BT_LIB_LOG_AND_APPEND(BT_LOG_ERROR, _fmt, ##__VA_ARGS__)
 #define BT_LIB_LOGW_APPEND_CAUSE(_fmt, ...)				\
-	BT_LIB_LOG_AND_APPEND(BT_LOG_WARN, _fmt, ##__VA_ARGS__)
+	BT_LIB_LOG_AND_APPEND(BT_LOG_WARNING, _fmt, ##__VA_ARGS__)
 
 /*
  * Like bt_lib_log(), but also appends a cause to the current thread's
