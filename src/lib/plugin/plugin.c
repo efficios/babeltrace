@@ -49,7 +49,8 @@
 #include "plugin-so.h"
 #include "lib/func-status.h"
 
-#define PYTHON_PLUGIN_PROVIDER_FILENAME	"libbabeltrace2-python-plugin-provider." G_MODULE_SUFFIX
+#define PYTHON_PLUGIN_PROVIDER_FILENAME	"babeltrace2-python-plugin-provider." G_MODULE_SUFFIX
+#define PYTHON_PLUGIN_PROVIDER_DIR	BABELTRACE_PLUGIN_PROVIDERS_DIR
 #define PYTHON_PLUGIN_PROVIDER_SYM_NAME	bt_plugin_python_create_all_from_file
 #define PYTHON_PLUGIN_PROVIDER_SYM_NAME_STR	G_STRINGIFY(PYTHON_PLUGIN_PROVIDER_SYM_NAME)
 
@@ -79,14 +80,32 @@ int (*bt_plugin_python_create_all_from_file_sym)(
 static
 int init_python_plugin_provider(void) {
 	int status = BT_FUNC_STATUS_OK;
+	const char *provider_dir_envvar;
+	static const char * const provider_dir_envvar_name = "LIBBABELTRACE2_PLUGIN_PROVIDER_DIR";
+	char *provider_path = NULL;
 
 	if (bt_plugin_python_create_all_from_file_sym != NULL) {
 		goto end;
 	}
 
 	BT_LOGI_STR("Loading Python plugin provider module.");
-	python_plugin_provider_module =
-		g_module_open(PYTHON_PLUGIN_PROVIDER_FILENAME, 0);
+
+	provider_dir_envvar = getenv(provider_dir_envvar_name);
+	if (provider_dir_envvar) {
+		provider_path = g_build_filename(provider_dir_envvar,
+			PYTHON_PLUGIN_PROVIDER_FILENAME, NULL);
+		BT_LOGI("Using `%s` environment variable to find the Python "
+			"plugin provider: path=\"%s\"", provider_dir_envvar_name,
+			provider_path);
+	} else {
+		provider_path = g_build_filename(PYTHON_PLUGIN_PROVIDER_DIR,
+			PYTHON_PLUGIN_PROVIDER_FILENAME, NULL);
+		BT_LOGI("Using default path (`%s` environment variable is not "
+			"set) to find the Python plugin provider: path=\"%s\"",
+			provider_dir_envvar_name, provider_path);
+	}
+
+	python_plugin_provider_module = g_module_open(provider_path, 0);
 	if (!python_plugin_provider_module) {
 		/*
 		 * This is not an error. The whole point of having an
@@ -94,7 +113,7 @@ int init_python_plugin_provider(void) {
 		 * missing and the Babeltrace library still works.
 		 */
 		BT_LOGI("Cannot open `%s`: %s: continuing without Python plugin support.",
-			PYTHON_PLUGIN_PROVIDER_FILENAME, g_module_error());
+			provider_path, g_module_error());
 		goto end;
 	}
 
@@ -111,7 +130,7 @@ int init_python_plugin_provider(void) {
 			"%s: continuing without Python plugin support: "
 			"file=\"%s\", symbol=\"%s\"",
 			g_module_error(),
-			PYTHON_PLUGIN_PROVIDER_FILENAME,
+			provider_path,
 			PYTHON_PLUGIN_PROVIDER_SYM_NAME_STR);
 		status = BT_FUNC_STATUS_ERROR;
 		goto end;
@@ -121,6 +140,8 @@ int init_python_plugin_provider(void) {
 		python_plugin_provider_module);
 
 end:
+	g_free(provider_path);
+
 	return status;
 }
 

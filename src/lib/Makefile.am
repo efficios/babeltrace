@@ -34,5 +34,5 @@ libbabeltrace2_la_LIBADD = \
 	$(top_builddir)/src/compat/libcompat.la
 
 if ENABLE_BUILT_IN_PYTHON_PLUGIN_SUPPORT
-libbabeltrace2_la_LIBADD += $(top_builddir)/src/python-plugin-provider/libbabeltrace2-python-plugin-provider.la
+libbabeltrace2_la_LIBADD += $(top_builddir)/src/python-plugin-provider/babeltrace2-python-plugin-provider.la
 endif

@@ -91,6 +91,10 @@ if [ "x${BT_TESTS_BABELTRACE_PLUGIN_PATH:-}" = "x" ]; then
 	BT_TESTS_BABELTRACE_PLUGIN_PATH="${BT_PLUGINS_PATH}/ctf:${BT_PLUGINS_PATH}/utils:${BT_PLUGINS_PATH}/text"
 fi
 
+if [ "x${BT_TESTS_PROVIDER_DIR:-}" = "x" ]; then
+	BT_TESTS_PROVIDER_DIR="${BT_TESTS_BUILDDIR}/../src/python-plugin-provider/.libs"
+fi
+
 # Allow overriding the babeltrace2 executables
 if [ "x${BT_TESTS_PYTHONPATH:-}" = "x" ]; then
 	BT_TESTS_PYTHONPATH="${BT_TESTS_BUILDDIR}/../src/bindings/python/bt2/build/build_lib"
@@ -221,24 +225,24 @@ run_python_bt2() {
 	local lib_search_var
 	local lib_search_path
 
-	local python_provider_path="${BT_TESTS_BUILDDIR}/../src/python-plugin-provider/.libs"
 	local main_lib_path="${BT_TESTS_BUILDDIR}/../src/lib/.libs"
 
 	# Set the library search path so the python interpreter can load libbabeltrace2
 	if [ "$BT_OS_TYPE" = "mingw" ]; then
 		lib_search_var="PATH"
-		lib_search_path="${python_provider_path}:${main_lib_path}:${PATH:-}"
+		lib_search_path="${main_lib_path}:${PATH:-}"
 	elif [ "$BT_OS_TYPE" = "darwin" ]; then
 		lib_search_var="DYLD_LIBRARY_PATH"
-		lib_search_path="${python_provider_path}:${main_lib_path}:${DYLD_LIBRARY_PATH:-}"
+		lib_search_path="${main_lib_path}:${DYLD_LIBRARY_PATH:-}"
 	else
 		lib_search_var="LD_LIBRARY_PATH"
-		lib_search_path="${python_provider_path}:${main_lib_path}:${LD_LIBRARY_PATH:-}"
+		lib_search_path="${main_lib_path}:${LD_LIBRARY_PATH:-}"
 	fi
 
 	env \
 		BABELTRACE_PYTHON_BT2_NO_TRACEBACK=1 \
 		BABELTRACE_PLUGIN_PATH="${BT_TESTS_BABELTRACE_PLUGIN_PATH}" \
+		LIBBABELTRACE2_PLUGIN_PROVIDER_DIR=${BT_TESTS_PROVIDER_DIR} \
 		BT_CTF_TRACES_PATH="${BT_CTF_TRACES_PATH}" \
 		BT_PLUGINS_PATH="${BT_PLUGINS_PATH}" \
 		PYTHONPATH="${BT_TESTS_PYTHONPATH}:${BT_TESTS_SRCDIR}/utils/python" \
