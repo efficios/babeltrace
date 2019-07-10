@@ -29,7 +29,7 @@
 #include <inttypes.h>
 #include <stdlib.h>
 
-#include <babeltrace2/ctf-writer/object.h>
+#include <babeltrace2-ctf-writer/object.h>
 
 #include "common/align.h"
 #include "common/assert.h"

@@ -23,10 +23,10 @@
  * SOFTWARE.
  */
 
-#include <babeltrace2/ctf-writer/field-types.h>
-#include <babeltrace2/ctf-writer/stream-class.h>
-#include <babeltrace2/ctf-writer/stream.h>
-#include <babeltrace2/ctf-writer/trace.h>
+#include <babeltrace2-ctf-writer/field-types.h>
+#include <babeltrace2-ctf-writer/stream-class.h>
+#include <babeltrace2-ctf-writer/stream.h>
+#include <babeltrace2-ctf-writer/trace.h>
 
 #ifdef __cplusplus
 extern "C" {

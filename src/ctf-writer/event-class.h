@@ -27,11 +27,11 @@
 
 #include "common/assert.h"
 #include "common/macros.h"
-#include <babeltrace2/ctf-writer/event.h>
-#include <babeltrace2/ctf-writer/field-types.h>
-#include <babeltrace2/ctf-writer/fields.h>
-#include <babeltrace2/ctf-writer/stream-class.h>
-#include <babeltrace2/ctf-writer/stream.h>
+#include <babeltrace2-ctf-writer/event.h>
+#include <babeltrace2-ctf-writer/field-types.h>
+#include <babeltrace2-ctf-writer/fields.h>
+#include <babeltrace2-ctf-writer/stream-class.h>
+#include <babeltrace2-ctf-writer/stream.h>
 #include <glib.h>
 
 #include "object.h"

@@ -22,8 +22,8 @@
  */
 
 #include "common/macros.h"
-#include <babeltrace2/ctf-writer/field-types.h>
-#include <babeltrace2/ctf-writer/event.h>
+#include <babeltrace2-ctf-writer/field-types.h>
+#include <babeltrace2-ctf-writer/event.h>
 #include <stdint.h>
 
 #include "field-path.h"

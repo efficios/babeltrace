@@ -29,9 +29,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <babeltrace2/ctf-writer/event.h>
-#include <babeltrace2/ctf-writer/object.h>
-#include <babeltrace2/ctf-writer/utils.h>
+#include <babeltrace2-ctf-writer/event.h>
+#include <babeltrace2-ctf-writer/object.h>
+#include <babeltrace2-ctf-writer/utils.h>
 #include <babeltrace2/types.h>
 
 #include "common/assert.h"

@@ -30,8 +30,8 @@
 #include "logging.h"
 
 #include "common/uuid.h"
-#include <babeltrace2/ctf-writer/utils.h>
-#include <babeltrace2/ctf-writer/object.h>
+#include <babeltrace2-ctf-writer/utils.h>
+#include <babeltrace2-ctf-writer/object.h>
 #include "compat/compiler.h"
 #include <babeltrace2/types.h>
 #include "compat/string.h"

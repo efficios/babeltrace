@@ -19,15 +19,15 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include <babeltrace2/ctf-writer/writer.h>
-#include <babeltrace2/ctf-writer/clock.h>
-#include <babeltrace2/ctf-writer/clock-class.h>
-#include <babeltrace2/ctf-writer/stream.h>
-#include <babeltrace2/ctf-writer/event.h>
-#include <babeltrace2/ctf-writer/event-types.h>
-#include <babeltrace2/ctf-writer/event-fields.h>
-#include <babeltrace2/ctf-writer/stream-class.h>
-#include <babeltrace2/ctf-writer/trace.h>
+#include <babeltrace2-ctf-writer/writer.h>
+#include <babeltrace2-ctf-writer/clock.h>
+#include <babeltrace2-ctf-writer/clock-class.h>
+#include <babeltrace2-ctf-writer/stream.h>
+#include <babeltrace2-ctf-writer/event.h>
+#include <babeltrace2-ctf-writer/event-types.h>
+#include <babeltrace2-ctf-writer/event-fields.h>
+#include <babeltrace2-ctf-writer/stream-class.h>
+#include <babeltrace2-ctf-writer/trace.h>
 #include <babeltrace2/babeltrace.h>
 #include <glib.h>
 #include <unistd.h>

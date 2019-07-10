@@ -37,7 +37,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-#include <babeltrace2/ctf-writer/object.h>
+#include <babeltrace2-ctf-writer/object.h>
 
 #include "common/assert.h"
 #include "compat/compiler.h"

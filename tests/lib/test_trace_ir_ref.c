@@ -25,15 +25,15 @@
 #include "lib/object.h"
 #include "compat/stdlib.h"
 #include "common/assert.h"
-#include <babeltrace2/ctf-writer/writer.h>
-#include <babeltrace2/ctf-writer/clock.h>
-#include <babeltrace2/ctf-writer/clock-class.h>
-#include <babeltrace2/ctf-writer/stream.h>
-#include <babeltrace2/ctf-writer/event.h>
-#include <babeltrace2/ctf-writer/event-types.h>
-#include <babeltrace2/ctf-writer/event-fields.h>
-#include <babeltrace2/ctf-writer/stream-class.h>
-#include <babeltrace2/ctf-writer/trace.h>
+#include <babeltrace2-ctf-writer/writer.h>
+#include <babeltrace2-ctf-writer/clock.h>
+#include <babeltrace2-ctf-writer/clock-class.h>
+#include <babeltrace2-ctf-writer/stream.h>
+#include <babeltrace2-ctf-writer/event.h>
+#include <babeltrace2-ctf-writer/event-types.h>
+#include <babeltrace2-ctf-writer/event-fields.h>
+#include <babeltrace2-ctf-writer/stream-class.h>
+#include <babeltrace2-ctf-writer/trace.h>
 #include "common.h"
 
 #define NR_TESTS 37

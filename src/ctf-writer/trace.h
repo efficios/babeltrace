@@ -30,9 +30,9 @@
 
 #include "common/macros.h"
 #include "common/uuid.h"
-#include <babeltrace2/ctf-writer/field-types.h>
-#include <babeltrace2/ctf-writer/fields.h>
-#include <babeltrace2/ctf-writer/trace.h>
+#include <babeltrace2-ctf-writer/field-types.h>
+#include <babeltrace2-ctf-writer/fields.h>
+#include <babeltrace2-ctf-writer/trace.h>
 #include <babeltrace2/types.h>
 #include <glib.h>
 #include <sys/types.h>

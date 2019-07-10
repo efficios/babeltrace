@@ -29,10 +29,10 @@
 #include <inttypes.h>
 #include <stdlib.h>
 
-#include <babeltrace2/ctf-writer/fields.h>
-#include <babeltrace2/ctf-writer/field-types.h>
-#include <babeltrace2/ctf-writer/object.h>
-#include <babeltrace2/ctf-writer/utils.h>
+#include <babeltrace2-ctf-writer/fields.h>
+#include <babeltrace2-ctf-writer/field-types.h>
+#include <babeltrace2-ctf-writer/object.h>
+#include <babeltrace2-ctf-writer/utils.h>
 
 #include "common/assert.h"
 #include "compat/compiler.h"

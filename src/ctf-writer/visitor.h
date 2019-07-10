@@ -27,7 +27,7 @@
 
 #include <stdlib.h>
 #include <stdint.h>
-#include <babeltrace2/ctf-writer/visitor.h>
+#include <babeltrace2-ctf-writer/visitor.h>
 #include "common/macros.h"
 
 typedef void *(*bt_ctf_child_accessor)(void *object, int index);

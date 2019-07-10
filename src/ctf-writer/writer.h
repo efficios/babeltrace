@@ -29,8 +29,8 @@
 #include <glib.h>
 #include <sys/types.h>
 
-#include <babeltrace2/ctf-writer/trace.h>
-#include <babeltrace2/ctf-writer/writer.h>
+#include <babeltrace2-ctf-writer/trace.h>
+#include <babeltrace2-ctf-writer/writer.h>
 
 #include "common/macros.h"
 

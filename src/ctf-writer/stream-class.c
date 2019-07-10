@@ -28,10 +28,10 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include <babeltrace2/ctf-writer/event.h>
-#include <babeltrace2/ctf-writer/object.h>
-#include <babeltrace2/ctf-writer/trace.h>
-#include <babeltrace2/ctf-writer/utils.h>
+#include <babeltrace2-ctf-writer/event.h>
+#include <babeltrace2-ctf-writer/object.h>
+#include <babeltrace2-ctf-writer/trace.h>
+#include <babeltrace2-ctf-writer/utils.h>
 
 #include "common/align.h"
 #include "common/assert.h"
