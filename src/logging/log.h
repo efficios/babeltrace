@@ -13,7 +13,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <babeltrace2/logging.h>
+#include <babeltrace2/babeltrace.h>
+
 #include "common/macros.h"
 #include "common/assert.h"
 

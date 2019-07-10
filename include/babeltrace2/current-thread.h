@@ -23,6 +23,10 @@
  * SOFTWARE.
  */
 
+#ifndef __BT_IN_BABELTRACE_H
+# error "Please include <babeltrace2/babeltrace.h> instead."
+#endif
+
 #include <stdarg.h>
 
 /*
@@ -30,11 +34,6 @@
  * bt_self_message_iterator
  */
 #include <babeltrace2/types.h>
-
-/* For __BT_FUNC_STATUS_* */
-#define __BT_FUNC_STATUS_ENABLE
-#include <babeltrace2/func-status.h>
-#undef __BT_FUNC_STATUS_ENABLE
 
 #ifdef __cplusplus
 extern "C" {
@@ -97,7 +96,5 @@ bt_current_thread_error_append_cause_from_message_iterator(
 #ifdef __cplusplus
 }
 #endif
-
-#include <babeltrace2/undef-func-status.h>
 
 #endif /* BABELTRACE2_CURRENT_THREAD_H */

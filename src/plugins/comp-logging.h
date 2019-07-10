@@ -36,9 +36,7 @@
 #endif
 
 #include <stdlib.h>
-#include <babeltrace2/graph/self-component.h>
-#include <babeltrace2/graph/component-const.h>
-#include <babeltrace2/graph/component-class-const.h>
+#include <babeltrace2/babeltrace.h>
 #include "logging/log.h"
 
 #define _BT_COMP_LOG_COMP_PREFIX	"[%s] "

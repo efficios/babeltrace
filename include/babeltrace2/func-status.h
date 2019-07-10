@@ -1,12 +1,6 @@
 /*
- * No include guards here: this header is included by a public header to
- * get the `__BT_FUNC_STATUS_*` definitions locally, and then
- * <babeltrace2/undef-func-status.h> is included at the end of the
- * header to undefine all those definitions.
- *
- * If we forget to include <babeltrace2/undef-func-status.h> at the end
- * of a public header, we want to get the "redefined" compiler warning
- * to catch it.
+ * No include guards here: it is safe to include this file multiple
+ * times.
  */
 
 /*
@@ -31,19 +25,8 @@
  * SOFTWARE.
  */
 
-/*
- * This is just extra protection, in case the user tries to include
- * <babeltrace2/func-status.h> in user code: this is a redminder that
- * this header is reserved for internal use.
- *
- * The correct way for a public header to include this is:
- *
- *     #define __BT_FUNC_STATUS_ENABLE
- *     #include <babeltrace2/func-status.h>
- *     #undef __BT_FUNC_STATUS_ENABLE
- */
-#ifndef __BT_FUNC_STATUS_ENABLE
-# error Do NOT include <babeltrace2/func-status.h> in user code.
+#ifndef __BT_IN_BABELTRACE_H
+# error "Please include <babeltrace2/babeltrace.h> instead."
 #endif
 
 /*
@@ -54,37 +37,61 @@
  */
 
 /* Value is too large for the given data type */
-#define __BT_FUNC_STATUS_OVERFLOW		-75
+#ifndef __BT_FUNC_STATUS_OVERFLOW
+# define __BT_FUNC_STATUS_OVERFLOW		-75
+#endif
 
 /* Invalid query parameters */
-#define __BT_FUNC_STATUS_INVALID_PARAMS		-24
+#ifndef __BT_FUNC_STATUS_INVALID_PARAMS
+# define __BT_FUNC_STATUS_INVALID_PARAMS	-24
+#endif
 
 /* Invalid query object */
-#define __BT_FUNC_STATUS_INVALID_OBJECT		-23
+#ifndef __BT_FUNC_STATUS_INVALID_OBJECT
+# define __BT_FUNC_STATUS_INVALID_OBJECT	-23
+#endif
 
 /* Memory allocation error */
-#define __BT_FUNC_STATUS_MEMORY_ERROR		-12
+#ifndef __BT_FUNC_STATUS_MEMORY_ERROR
+# define __BT_FUNC_STATUS_MEMORY_ERROR		-12
+#endif
 
 /* Plugin loading error */
-#define __BT_FUNC_STATUS_LOADING_ERROR		-2
+#ifndef __BT_FUNC_STATUS_LOADING_ERROR
+# define __BT_FUNC_STATUS_LOADING_ERROR		-2
+#endif
 
 /* General error */
-#define __BT_FUNC_STATUS_ERROR			-1
+#ifndef __BT_FUNC_STATUS_ERROR
+# define __BT_FUNC_STATUS_ERROR			-1
+#endif
 
 /* Saul Goodman */
-#define __BT_FUNC_STATUS_OK			0
+#ifndef __BT_FUNC_STATUS_OK
+# define __BT_FUNC_STATUS_OK			0
+#endif
 
 /* End of iteration/consumption */
-#define __BT_FUNC_STATUS_END			1
+#ifndef __BT_FUNC_STATUS_END
+# define __BT_FUNC_STATUS_END			1
+#endif
 
 /* Something can't be found */
-#define __BT_FUNC_STATUS_NOT_FOUND		2
+#ifndef __BT_FUNC_STATUS_NOT_FOUND
+# define __BT_FUNC_STATUS_NOT_FOUND		2
+#endif
 
 /* Try operation again later */
-#define __BT_FUNC_STATUS_AGAIN			11
+#ifndef __BT_FUNC_STATUS_AGAIN
+# define __BT_FUNC_STATUS_AGAIN			11
+#endif
 
 /* Unsupported operation */
-#define __BT_FUNC_STATUS_UNSUPPORTED		95
+#ifndef __BT_FUNC_STATUS_UNSUPPORTED
+# define __BT_FUNC_STATUS_UNSUPPORTED		95
+#endif
 
 /* Object is canceled */
-#define __BT_FUNC_STATUS_CANCELED		125
+#ifndef __BT_FUNC_STATUS_CANCELED
+# define __BT_FUNC_STATUS_CANCELED		125
+#endif

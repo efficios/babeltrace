@@ -27,15 +27,14 @@
  * http://www.efficios.com/ctf
  */
 
+#ifndef __BT_IN_BABELTRACE_H
+# error "Please include <babeltrace2/babeltrace.h> instead."
+#endif
+
 #include <stdint.h>
 
 /* For bt_field, bt_field_class */
 #include <babeltrace2/types.h>
-
-/* For __BT_FUNC_STATUS_* */
-#define __BT_FUNC_STATUS_ENABLE
-#include <babeltrace2/func-status.h>
-#undef __BT_FUNC_STATUS_ENABLE
 
 #ifdef __cplusplus
 extern "C" {
@@ -102,7 +101,5 @@ extern bt_field *bt_field_variant_borrow_selected_option_field(
 #ifdef __cplusplus
 }
 #endif
-
-#include <babeltrace2/undef-func-status.h>
 
 #endif /* BABELTRACE2_TRACE_IR_FIELD_H */

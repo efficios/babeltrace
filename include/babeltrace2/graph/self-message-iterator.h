@@ -23,6 +23,10 @@
  * SOFTWARE.
  */
 
+#ifndef __BT_IN_BABELTRACE_H
+# error "Please include <babeltrace2/babeltrace.h> instead."
+#endif
+
 /* For bt_self_component, bt_self_message_iterator, bt_self_port_output */
 #include <babeltrace2/types.h>
 

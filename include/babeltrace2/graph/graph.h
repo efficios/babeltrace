@@ -24,6 +24,10 @@
  * SOFTWARE.
  */
 
+#ifndef __BT_IN_BABELTRACE_H
+# error "Please include <babeltrace2/babeltrace.h> instead."
+#endif
+
 /*
  * For bt_bool, bt_component, bt_component_class,
  * bt_component_class_filter, bt_component_class_sink,
@@ -35,11 +39,6 @@
 
 /* For bt_logging_level */
 #include <babeltrace2/logging.h>
-
-/* For __BT_FUNC_STATUS_* */
-#define __BT_FUNC_STATUS_ENABLE
-#include <babeltrace2/func-status.h>
-#undef __BT_FUNC_STATUS_ENABLE
 
 #ifdef __cplusplus
 extern "C" {
@@ -257,7 +256,5 @@ extern bt_graph_cancel_status bt_graph_cancel(bt_graph *graph);
 #ifdef __cplusplus
 }
 #endif
-
-#include <babeltrace2/undef-func-status.h>
 
 #endif /* BABELTRACE2_GRAPH_GRAPH_H */

@@ -24,6 +24,10 @@
  * SOFTWARE.
  */
 
+#ifndef __BT_IN_BABELTRACE_H
+# error "Please include <babeltrace2/babeltrace.h> instead."
+#endif
+
 /*
  * For bt_component_class_filter, bt_self_component_class_filter,
  * __BT_UPCAST_CONST

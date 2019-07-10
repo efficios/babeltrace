@@ -24,8 +24,7 @@
  */
 
 #include "common/assert.h"
-#include <babeltrace2/property.h>
-#include <babeltrace2/types.h>
+#include <babeltrace2/babeltrace.h>
 #include <glib.h>
 #include <stdint.h>
 #include <stdbool.h>

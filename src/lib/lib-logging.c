@@ -33,10 +33,7 @@
 #include <glib.h>
 #include "common/common.h"
 #include "common/uuid.h"
-#include <babeltrace2/trace-ir/event-const.h>
-#include <babeltrace2/trace-ir/packet-const.h>
-#include <babeltrace2/trace-ir/stream-const.h>
-#include <babeltrace2/current-thread.h>
+#include <babeltrace2/babeltrace.h>
 
 #include "logging.h"
 #include "assert-pre.h"

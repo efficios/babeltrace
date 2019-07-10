@@ -23,9 +23,8 @@
  * SOFTWARE.
  */
 
-#define __BT_FUNC_STATUS_ENABLE
+#define __BT_IN_BABELTRACE_H
 #include <babeltrace2/func-status.h>
-#undef __BT_FUNC_STATUS_ENABLE
 
 /*
  * Aliases without a `__` prefix for internal code: this is just easier
@@ -43,7 +42,5 @@
 #define BT_FUNC_STATUS_AGAIN		__BT_FUNC_STATUS_AGAIN
 #define BT_FUNC_STATUS_UNSUPPORTED	__BT_FUNC_STATUS_UNSUPPORTED
 #define BT_FUNC_STATUS_CANCELED		__BT_FUNC_STATUS_CANCELED
-
-#include <babeltrace2/undef-func-status.h>
 
 #endif /* BABELTRACE_FUNC_STATUS_INTERNAL_H */

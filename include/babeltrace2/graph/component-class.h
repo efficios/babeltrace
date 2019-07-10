@@ -24,13 +24,12 @@
  * SOFTWARE.
  */
 
+#ifndef __BT_IN_BABELTRACE_H
+# error "Please include <babeltrace2/babeltrace.h> instead."
+#endif
+
 /* For bt_component_class */
 #include <babeltrace2/types.h>
-
-/* For __BT_FUNC_STATUS_* */
-#define __BT_FUNC_STATUS_ENABLE
-#include <babeltrace2/func-status.h>
-#undef __BT_FUNC_STATUS_ENABLE
 
 #ifdef __cplusplus
 extern "C" {
@@ -110,7 +109,5 @@ extern bt_component_class_set_help_status bt_component_class_set_help(
 #ifdef __cplusplus
 }
 #endif
-
-#include <babeltrace2/undef-func-status.h>
 
 #endif /* BABELTRACE2_GRAPH_COMPONENT_CLASS_H */

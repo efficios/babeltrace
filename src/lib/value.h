@@ -23,11 +23,10 @@
  * SOFTWARE.
  */
 
-#include "lib/object.h"
-#include <babeltrace2/value.h>
-#include <babeltrace2/value-const.h>
-#include <babeltrace2/types.h>
 #include <glib.h>
+#include <babeltrace2/babeltrace.h>
+
+#include "lib/object.h"
 #include "common/macros.h"
 
 struct bt_value {

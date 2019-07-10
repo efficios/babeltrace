@@ -27,6 +27,10 @@
  * http://www.efficios.com/ctf
  */
 
+#ifndef __BT_IN_BABELTRACE_H
+# error "Please include <babeltrace2/babeltrace.h> instead."
+#endif
+
 /*
  * For bt_bool, bt_field_class, bt_field_path,
  * bt_field_class_enumeration_mapping,
@@ -38,11 +42,6 @@
 
 #include <stdint.h>
 #include <stddef.h>
-
-/* For __BT_FUNC_STATUS_* */
-#define __BT_FUNC_STATUS_ENABLE
-#include <babeltrace2/func-status.h>
-#undef __BT_FUNC_STATUS_ENABLE
 
 #ifdef __cplusplus
 extern "C" {
@@ -213,7 +212,5 @@ extern void bt_field_class_put_ref(const bt_field_class *field_class);
 #ifdef __cplusplus
 }
 #endif
-
-#include <babeltrace2/undef-func-status.h>
 
 #endif /* BABELTRACE2_TRACE_IR_FIELD_CLASS_CONST_H */
