@@ -2,11 +2,7 @@
 #define BABELTRACE2_PLUGIN_PLUGIN_DEV_H
 
 /*
- * This is the header that you need to include for the development of
- * a Babeltrace plug-in.
- *
- * Copyright 2017-2018 Philippe Proulx <pproulx@efficios.com>
- * Copyright 2015 Jérémie Galarneau <jeremie.galarneau@efficios.com>
+ * Copyright (c) 2010-2019 EfficiOS Inc. and Linux Foundation
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
