@@ -357,9 +357,7 @@ int populate_stream_info(struct ctf_fs_ds_file_group *group,
 	}
 
 end:
-	if (port_name) {
-		g_free(port_name);
-	}
+	g_free(port_name);
 	bt_value_put_ref(file_paths);
 	return ret;
 }

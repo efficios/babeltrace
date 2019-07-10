@@ -296,9 +296,7 @@ error:
 	ret = -1;
 
 end:
-	if (basename) {
-		g_free(basename);
-	}
+	g_free(basename);
 
 	return ret;
 }

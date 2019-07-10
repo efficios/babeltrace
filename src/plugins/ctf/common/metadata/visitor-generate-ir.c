@@ -3394,9 +3394,7 @@ int visit_event_decl_entry(struct ctx *ctx, struct ctf_node *node,
 	goto end;
 
 error:
-	if (left) {
-		g_free(left);
-	}
+	g_free(left);
 
 end:
 	return ret;
@@ -3571,9 +3569,7 @@ end:
 		ctx_pop_scope(ctx);
 	}
 
-	if (event_name) {
-		g_free(event_name);
-	}
+	g_free(event_name);
 
 	return ret;
 }
