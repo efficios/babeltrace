@@ -33,8 +33,8 @@
 #include "common/assert.h"
 #include "common/uuid.h"
 #include "compat/compiler.h"
-#include <babeltrace2/ctf-writer/utils.h>
-#include <babeltrace2/ctf-writer/object.h>
+#include <babeltrace2-ctf-writer/utils.h>
+#include <babeltrace2-ctf-writer/object.h>
 #include <inttypes.h>
 
 #include "clock-class.h"

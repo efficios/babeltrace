@@ -33,7 +33,7 @@ extern "C" {
 @brief Common reference counting management for all Babeltrace objects.
 
 @code
-#include <babeltrace2/ctf-writer/object.h>
+#include <babeltrace2-ctf-writer/object.h>
 @endcode
 
 The macros and functions of this module are everything that is needed

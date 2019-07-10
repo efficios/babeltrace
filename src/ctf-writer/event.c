@@ -26,13 +26,13 @@
 
 #include <inttypes.h>
 
-#include <babeltrace2/ctf-writer/event.h>
-#include <babeltrace2/ctf-writer/fields.h>
-#include <babeltrace2/ctf-writer/field-types.h>
-#include <babeltrace2/ctf-writer/object.h>
-#include <babeltrace2/ctf-writer/stream-class.h>
-#include <babeltrace2/ctf-writer/trace.h>
-#include <babeltrace2/ctf-writer/utils.h>
+#include <babeltrace2-ctf-writer/event.h>
+#include <babeltrace2-ctf-writer/fields.h>
+#include <babeltrace2-ctf-writer/field-types.h>
+#include <babeltrace2-ctf-writer/object.h>
+#include <babeltrace2-ctf-writer/stream-class.h>
+#include <babeltrace2-ctf-writer/trace.h>
+#include <babeltrace2-ctf-writer/utils.h>
 
 #include "common/assert.h"
 #include "compat/compiler.h"

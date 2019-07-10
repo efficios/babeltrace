@@ -28,11 +28,11 @@
 #include <stdint.h>
 #include <unistd.h>
 
-#include <babeltrace2/ctf-writer/field-types.h>
-#include <babeltrace2/ctf-writer/object.h>
-#include <babeltrace2/ctf-writer/stream-class.h>
-#include <babeltrace2/ctf-writer/stream.h>
-#include <babeltrace2/ctf-writer/trace.h>
+#include <babeltrace2-ctf-writer/field-types.h>
+#include <babeltrace2-ctf-writer/object.h>
+#include <babeltrace2-ctf-writer/stream-class.h>
+#include <babeltrace2-ctf-writer/stream.h>
+#include <babeltrace2-ctf-writer/trace.h>
 
 #include "common/align.h"
 #include "common/assert.h"

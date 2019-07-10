@@ -36,9 +36,9 @@
 #include <limits.h>
 #include <stdlib.h>
 
-#include <babeltrace2/ctf-writer/field-types.h>
-#include <babeltrace2/ctf-writer/object.h>
-#include <babeltrace2/ctf-writer/stream-class.h>
+#include <babeltrace2-ctf-writer/field-types.h>
+#include <babeltrace2-ctf-writer/object.h>
+#include <babeltrace2-ctf-writer/stream-class.h>
 #include <babeltrace2/types.h>
 
 #include "common/macros.h"

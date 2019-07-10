@@ -30,7 +30,7 @@
 
 #include "common/assert.h"
 #include "common/macros.h"
-#include <babeltrace2/ctf-writer/stream.h>
+#include <babeltrace2-ctf-writer/stream.h>
 #include "ctfser/ctfser.h"
 #include <stdint.h>
 

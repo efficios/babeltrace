@@ -33,7 +33,7 @@
 #include <limits.h>
 #include <stdint.h>
 
-#include <babeltrace2/ctf-writer/field-types.h>
+#include <babeltrace2-ctf-writer/field-types.h>
 
 #include "common/assert.h"
 

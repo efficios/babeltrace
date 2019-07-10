@@ -27,7 +27,7 @@
 #define BT_LOG_TAG "CTF-WRITER/VALIDATION"
 #include "logging.h"
 
-#include <babeltrace2/ctf-writer/object.h>
+#include <babeltrace2-ctf-writer/object.h>
 
 #include "common/macros.h"
 

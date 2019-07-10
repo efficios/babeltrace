@@ -27,7 +27,7 @@
  * SOFTWARE.
  */
 
-#include <babeltrace2/ctf-writer/field-types.h>
+#include <babeltrace2-ctf-writer/field-types.h>
 #include "common/macros.h"
 #include <glib.h>
 

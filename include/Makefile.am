@@ -15,23 +15,23 @@ babeltrace2include_HEADERS = \
 	babeltrace2/version.h
 
 # CTF writer API
-babeltrace2ctfwriterincludedir = "$(includedir)/babeltrace2/ctf-writer"
+babeltrace2ctfwriterincludedir = "$(includedir)/babeltrace2-ctf-writer"
 babeltrace2ctfwriterinclude_HEADERS = \
-	babeltrace2/ctf-writer/clock-class.h \
-	babeltrace2/ctf-writer/clock.h \
-	babeltrace2/ctf-writer/event-fields.h \
-	babeltrace2/ctf-writer/event-types.h \
-	babeltrace2/ctf-writer/event.h \
-	babeltrace2/ctf-writer/field-types.h \
-	babeltrace2/ctf-writer/fields.h \
-	babeltrace2/ctf-writer/object.h \
-	babeltrace2/ctf-writer/stream-class.h \
-	babeltrace2/ctf-writer/stream.h \
-	babeltrace2/ctf-writer/trace.h \
-	babeltrace2/ctf-writer/types.h \
-	babeltrace2/ctf-writer/utils.h \
-	babeltrace2/ctf-writer/visitor.h \
-	babeltrace2/ctf-writer/writer.h
+	babeltrace2-ctf-writer/clock-class.h \
+	babeltrace2-ctf-writer/clock.h \
+	babeltrace2-ctf-writer/event-fields.h \
+	babeltrace2-ctf-writer/event-types.h \
+	babeltrace2-ctf-writer/event.h \
+	babeltrace2-ctf-writer/field-types.h \
+	babeltrace2-ctf-writer/fields.h \
+	babeltrace2-ctf-writer/object.h \
+	babeltrace2-ctf-writer/stream-class.h \
+	babeltrace2-ctf-writer/stream.h \
+	babeltrace2-ctf-writer/trace.h \
+	babeltrace2-ctf-writer/types.h \
+	babeltrace2-ctf-writer/utils.h \
+	babeltrace2-ctf-writer/visitor.h \
+	babeltrace2-ctf-writer/writer.h
 
 # Trace IR API
 babeltrace2traceirincludedir = "$(includedir)/babeltrace2/trace-ir"

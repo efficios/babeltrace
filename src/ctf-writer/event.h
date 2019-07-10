@@ -30,10 +30,10 @@
 
 #include "common/assert.h"
 #include "common/macros.h"
-#include <babeltrace2/ctf-writer/field-types.h>
-#include <babeltrace2/ctf-writer/fields.h>
-#include <babeltrace2/ctf-writer/stream-class.h>
-#include <babeltrace2/ctf-writer/stream.h>
+#include <babeltrace2-ctf-writer/field-types.h>
+#include <babeltrace2-ctf-writer/fields.h>
+#include <babeltrace2-ctf-writer/stream-class.h>
+#include <babeltrace2-ctf-writer/stream.h>
 #include "ctfser/ctfser.h"
 
 #include "assert-pre.h"

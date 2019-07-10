@@ -35,7 +35,7 @@
 #include <stdint.h>
 #include <string.h>
 
-#include <babeltrace2/ctf-writer/fields.h>
+#include <babeltrace2-ctf-writer/fields.h>
 #include <babeltrace2/types.h>
 
 #include "common/macros.h"

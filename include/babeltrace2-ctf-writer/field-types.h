@@ -25,7 +25,7 @@
 
 #include <stdint.h>
 #include <stddef.h>
-#include <babeltrace2/ctf-writer/types.h>
+#include <babeltrace2-ctf-writer/types.h>
 
 #ifdef __cplusplus
 extern "C" {

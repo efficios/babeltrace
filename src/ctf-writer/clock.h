@@ -23,7 +23,7 @@
  * SOFTWARE.
  */
 
-#include <babeltrace2/ctf-writer/clock.h>
+#include <babeltrace2-ctf-writer/clock.h>
 #include "common/macros.h"
 #include <glib.h>
 

@@ -24,7 +24,7 @@
  * SOFTWARE.
  */
 
-#include <babeltrace2/ctf-writer/types.h>
+#include <babeltrace2-ctf-writer/types.h>
 
 #include "common/macros.h"
 
