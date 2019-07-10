@@ -882,7 +882,7 @@ int set_trimmer_iterator_bound(struct trimmer_iterator *trimmer_it,
 
 	if (!res) {
 		BT_COMP_LOGE_ERRNO("Cannot convert timestamp to date and time",
-			"ts=%" PRId64, (int64_t) time_seconds);
+			": ts=%" PRId64, (int64_t) time_seconds);
 		ret = -1;
 		goto end;
 	}
