@@ -177,12 +177,12 @@ void test_string(void)
 		"bt_value_string_create() returns a string value object");
 
 	value = bt_value_string_get(obj);
-	ok(value && !strcmp(value, ""),
+	ok(value && strcmp(value, "") == 0,
 		"default string value object value is \"\"");
 
 	bt_value_string_set(obj, "hello worldz");
 	value = bt_value_string_get(obj);
-	ok(value && !strcmp(value, "hello worldz"),
+	ok(value && strcmp(value, "hello worldz") == 0,
 		"bt_value_string_get() works");
 
 	BT_VALUE_PUT_REF_AND_RESET(obj);
@@ -192,7 +192,7 @@ void test_string(void)
 	ok(obj && bt_value_is_string(obj),
 		"bt_value_string_create_init() returns a string value object");
 	value = bt_value_string_get(obj);
-	ok(value && !strcmp(value, "initial value"),
+	ok(value && strcmp(value, "initial value") == 0,
 		"bt_value_string_create_init() sets the appropriate initial value");
 
 	BT_VALUE_PUT_REF_AND_RESET(obj);
@@ -327,7 +327,7 @@ void test_array(void)
 	ok(obj && bt_value_is_string(obj),
 		"bt_value_array_append_string_element() appends a string value object");
 	string_value = bt_value_string_get(obj);
-	ok(!ret && string_value && !strcmp(string_value, "bt_value"),
+	ok(!ret && string_value && strcmp(string_value, "bt_value") == 0,
 		"bt_value_array_append_string_element() appends the appropriate value");
 	obj = bt_value_array_borrow_element_by_index(array_obj, 10);
 	ok(obj && bt_value_is_array(obj),
@@ -379,7 +379,7 @@ bt_bool test_map_foreach_cb_check(const char *key, bt_value *object,
 {
 	struct map_foreach_checklist *checklist = data;
 
-	if (!strcmp(key, "bt_bool")) {
+	if (strcmp(key, "bt_bool") == 0) {
 		if (checklist->bool1) {
 			fail("test_map_foreach_cb_check(): duplicate key \"bt_bool\"");
 		} else {
@@ -394,7 +394,7 @@ bt_bool test_map_foreach_cb_check(const char *key, bt_value *object,
 				fail("test_map_foreach_cb_check(): \"bt_bool\" value object has the wrong value");
 			}
 		}
-	} else if (!strcmp(key, "uint")) {
+	} else if (strcmp(key, "uint") == 0) {
 		if (checklist->uint) {
 			fail("test_map_foreach_cb_check(): duplicate key \"uint\"");
 		} else {
@@ -409,7 +409,7 @@ bt_bool test_map_foreach_cb_check(const char *key, bt_value *object,
 				fail("test_map_foreach_cb_check(): \"uint\" value object has the wrong value");
 			}
 		}
-	} else if (!strcmp(key, "int")) {
+	} else if (strcmp(key, "int") == 0) {
 		if (checklist->int1) {
 			fail("test_map_foreach_cb_check(): duplicate key \"int\"");
 		} else {
@@ -424,7 +424,7 @@ bt_bool test_map_foreach_cb_check(const char *key, bt_value *object,
 				fail("test_map_foreach_cb_check(): \"int\" value object has the wrong value");
 			}
 		}
-	} else if (!strcmp(key, "real")) {
+	} else if (strcmp(key, "real") == 0) {
 		if (checklist->real1) {
 			fail("test_map_foreach_cb_check(): duplicate key \"real\"");
 		} else {
@@ -439,14 +439,14 @@ bt_bool test_map_foreach_cb_check(const char *key, bt_value *object,
 				fail("test_map_foreach_cb_check(): \"real\" value object has the wrong value");
 			}
 		}
-	} else if (!strcmp(key, "null")) {
+	} else if (strcmp(key, "null") == 0) {
 		if (checklist->null1) {
 			fail("test_map_foreach_cb_check(): duplicate key \"bt_bool\"");
 		} else {
 			ok(bt_value_is_null(object), "test_map_foreach_cb_check(): success getting \"null\" value object");
 			checklist->null1 = BT_TRUE;
 		}
-	} else if (!strcmp(key, "bool2")) {
+	} else if (strcmp(key, "bool2") == 0) {
 		if (checklist->bool2) {
 			fail("test_map_foreach_cb_check(): duplicate key \"bool2\"");
 		} else {
@@ -461,7 +461,7 @@ bt_bool test_map_foreach_cb_check(const char *key, bt_value *object,
 				fail("test_map_foreach_cb_check(): \"bool2\" value object has the wrong value");
 			}
 		}
-	} else if (!strcmp(key, "int2")) {
+	} else if (strcmp(key, "int2") == 0) {
 		if (checklist->int2) {
 			fail("test_map_foreach_cb_check(): duplicate key \"int2\"");
 		} else {
@@ -476,7 +476,7 @@ bt_bool test_map_foreach_cb_check(const char *key, bt_value *object,
 				fail("test_map_foreach_cb_check(): \"int2\" value object has the wrong value");
 			}
 		}
-	} else if (!strcmp(key, "real2")) {
+	} else if (strcmp(key, "real2") == 0) {
 		if (checklist->real2) {
 			fail("test_map_foreach_cb_check(): duplicate key \"real2\"");
 		} else {
@@ -491,7 +491,7 @@ bt_bool test_map_foreach_cb_check(const char *key, bt_value *object,
 				fail("test_map_foreach_cb_check(): \"real2\" value object has the wrong value");
 			}
 		}
-	} else if (!strcmp(key, "string2")) {
+	} else if (strcmp(key, "string2") == 0) {
 		if (checklist->string2) {
 			fail("test_map_foreach_cb_check(): duplicate key \"string2\"");
 		} else {
@@ -499,14 +499,14 @@ bt_bool test_map_foreach_cb_check(const char *key, bt_value *object,
 
 			val = bt_value_string_get(object);
 
-			if (val && !strcmp(val, "bt_value")) {
+			if (val && strcmp(val, "bt_value") == 0) {
 				pass("test_map_foreach_cb_check(): \"string2\" value object has the right value");
 				checklist->string2 = BT_TRUE;
 			} else {
 				fail("test_map_foreach_cb_check(): \"string2\" value object has the wrong value");
 			}
 		}
-	} else if (!strcmp(key, "array2")) {
+	} else if (strcmp(key, "array2") == 0) {
 		if (checklist->array2) {
 			fail("test_map_foreach_cb_check(): duplicate key \"array2\"");
 		} else {
@@ -515,7 +515,7 @@ bt_bool test_map_foreach_cb_check(const char *key, bt_value *object,
 				"test_map_foreach_cb_check(): \"array2\" value object is empty");
 			checklist->array2 = BT_TRUE;
 		}
-	} else if (!strcmp(key, "map2")) {
+	} else if (strcmp(key, "map2") == 0) {
 		if (checklist->map2) {
 			fail("test_map_foreach_cb_check(): duplicate key \"map2\"");
 		} else {

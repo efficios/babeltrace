@@ -1035,9 +1035,9 @@ int get_boolean(struct ctx *ctx, struct ctf_node *unary_expr)
 	{
 		const char *str = unary_expr->u.unary_expression.u.string;
 
-		if (!strcmp(str, "true") || !strcmp(str, "TRUE")) {
+		if (strcmp(str, "true") == 0 || strcmp(str, "TRUE") == 0) {
 			ret = TRUE;
-		} else if (!strcmp(str, "false") || !strcmp(str, "FALSE")) {
+		} else if (strcmp(str, "false") == 0 || strcmp(str, "FALSE") == 0) {
 			ret = FALSE;
 		} else {
 			_BT_COMP_LOGE_NODE(unary_expr,
@@ -1074,11 +1074,11 @@ enum ctf_byte_order byte_order_from_unary_expr(struct ctx *ctx,
 
 	str = unary_expr->u.unary_expression.u.string;
 
-	if (!strcmp(str, "be") || !strcmp(str, "network")) {
+	if (strcmp(str, "be") == 0 || strcmp(str, "network") == 0) {
 		bo = CTF_BYTE_ORDER_BIG;
-	} else if (!strcmp(str, "le")) {
+	} else if (strcmp(str, "le") == 0) {
 		bo = CTF_BYTE_ORDER_LITTLE;
-	} else if (!strcmp(str, "native")) {
+	} else if (strcmp(str, "native") == 0) {
 		bo = CTF_BYTE_ORDER_DEFAULT;
 	} else {
 		_BT_COMP_LOGE_NODE(unary_expr,
@@ -2396,7 +2396,7 @@ int visit_integer_decl(struct ctx *ctx,
 			goto error;
 		}
 
-		if (!strcmp(left->u.unary_expression.u.string, "signed")) {
+		if (strcmp(left->u.unary_expression.u.string, "signed") == 0) {
 			if (_IS_SET(&set, _INTEGER_SIGNED_SET)) {
 				_BT_COMP_LOGE_DUP_ATTR(left, "signed",
 					"integer field class");
@@ -2414,8 +2414,7 @@ int visit_integer_decl(struct ctx *ctx,
 			}
 
 			_SET(&set, _INTEGER_SIGNED_SET);
-		} else if (!strcmp(left->u.unary_expression.u.string,
-				"byte_order")) {
+		} else if (strcmp(left->u.unary_expression.u.string, "byte_order") == 0) {
 			if (_IS_SET(&set, _INTEGER_BYTE_ORDER_SET)) {
 				_BT_COMP_LOGE_DUP_ATTR(left, "byte_order",
 					"integer field class");
@@ -2433,7 +2432,7 @@ int visit_integer_decl(struct ctx *ctx,
 			}
 
 			_SET(&set, _INTEGER_BYTE_ORDER_SET);
-		} else if (!strcmp(left->u.unary_expression.u.string, "size")) {
+		} else if (strcmp(left->u.unary_expression.u.string, "size") == 0) {
 			if (_IS_SET(&set, _INTEGER_SIZE_SET)) {
 				_BT_COMP_LOGE_DUP_ATTR(left, "size",
 					"integer field class");
@@ -2470,8 +2469,7 @@ int visit_integer_decl(struct ctx *ctx,
 			}
 
 			_SET(&set, _INTEGER_SIZE_SET);
-		} else if (!strcmp(left->u.unary_expression.u.string,
-				"align")) {
+		} else if (strcmp(left->u.unary_expression.u.string, "align") == 0) {
 			if (_IS_SET(&set, _INTEGER_ALIGN_SET)) {
 				_BT_COMP_LOGE_DUP_ATTR(left, "align",
 					"integer field class");
@@ -2502,7 +2500,7 @@ int visit_integer_decl(struct ctx *ctx,
 			}
 
 			_SET(&set, _INTEGER_ALIGN_SET);
-		} else if (!strcmp(left->u.unary_expression.u.string, "base")) {
+		} else if (strcmp(left->u.unary_expression.u.string, "base") == 0) {
 			if (_IS_SET(&set, _INTEGER_BASE_SET)) {
 				_BT_COMP_LOGE_DUP_ATTR(left, "base",
 					"integer field class");
@@ -2550,24 +2548,24 @@ int visit_integer_decl(struct ctx *ctx,
 					goto error;
 				}
 
-				if (!strcmp(s_right, "decimal") ||
-						!strcmp(s_right, "dec") ||
-						!strcmp(s_right, "d") ||
-						!strcmp(s_right, "i") ||
-						!strcmp(s_right, "u")) {
+				if (strcmp(s_right, "decimal") == 0 ||
+						strcmp(s_right, "dec") == 0 ||
+						strcmp(s_right, "d") == 0 ||
+						strcmp(s_right, "i") == 0 ||
+						strcmp(s_right, "u") == 0) {
 					base = BT_FIELD_CLASS_INTEGER_PREFERRED_DISPLAY_BASE_DECIMAL;
-				} else if (!strcmp(s_right, "hexadecimal") ||
-						!strcmp(s_right, "hex") ||
-						!strcmp(s_right, "x") ||
-						!strcmp(s_right, "X") ||
-						!strcmp(s_right, "p")) {
+				} else if (strcmp(s_right, "hexadecimal") == 0 ||
+						strcmp(s_right, "hex") == 0 ||
+						strcmp(s_right, "x") == 0 ||
+						strcmp(s_right, "X") == 0 ||
+						strcmp(s_right, "p") == 0) {
 					base = BT_FIELD_CLASS_INTEGER_PREFERRED_DISPLAY_BASE_HEXADECIMAL;
-				} else if (!strcmp(s_right, "octal") ||
-						!strcmp(s_right, "oct") ||
-						!strcmp(s_right, "o")) {
+				} else if (strcmp(s_right, "octal") == 0 ||
+						strcmp(s_right, "oct") == 0 ||
+						strcmp(s_right, "o") == 0) {
 					base = BT_FIELD_CLASS_INTEGER_PREFERRED_DISPLAY_BASE_OCTAL;
-				} else if (!strcmp(s_right, "binary") ||
-						!strcmp(s_right, "b")) {
+				} else if (strcmp(s_right, "binary") == 0 ||
+						strcmp(s_right, "b") == 0) {
 					base = BT_FIELD_CLASS_INTEGER_PREFERRED_DISPLAY_BASE_BINARY;
 				} else {
 					_BT_COMP_LOGE_NODE(right,
@@ -2590,8 +2588,7 @@ int visit_integer_decl(struct ctx *ctx,
 			}
 
 			_SET(&set, _INTEGER_BASE_SET);
-		} else if (!strcmp(left->u.unary_expression.u.string,
-				"encoding")) {
+		} else if (strcmp(left->u.unary_expression.u.string, "encoding") == 0) {
 			char *s_right;
 
 			if (_IS_SET(&set, _INTEGER_ENCODING_SET)) {
@@ -2618,14 +2615,14 @@ int visit_integer_decl(struct ctx *ctx,
 				goto error;
 			}
 
-			if (!strcmp(s_right, "UTF8") ||
-					!strcmp(s_right, "utf8") ||
-					!strcmp(s_right, "utf-8") ||
-					!strcmp(s_right, "UTF-8") ||
-					!strcmp(s_right, "ASCII") ||
-					!strcmp(s_right, "ascii")) {
+			if (strcmp(s_right, "UTF8") == 0 ||
+					strcmp(s_right, "utf8") == 0 ||
+					strcmp(s_right, "utf-8") == 0 ||
+					strcmp(s_right, "UTF-8") == 0 ||
+					strcmp(s_right, "ASCII") == 0 ||
+					strcmp(s_right, "ascii") == 0) {
 				encoding = CTF_ENCODING_UTF8;
-			} else if (!strcmp(s_right, "none")) {
+			} else if (strcmp(s_right, "none") == 0) {
 				encoding = CTF_ENCODING_NONE;
 			} else {
 				_BT_COMP_LOGE_NODE(right,
@@ -2639,7 +2636,7 @@ int visit_integer_decl(struct ctx *ctx,
 
 			g_free(s_right);
 			_SET(&set, _INTEGER_ENCODING_SET);
-		} else if (!strcmp(left->u.unary_expression.u.string, "map")) {
+		} else if (strcmp(left->u.unary_expression.u.string, "map") == 0) {
 			const char *clock_name;
 
 			if (_IS_SET(&set, _INTEGER_MAP_SET)) {
@@ -2764,7 +2761,7 @@ int visit_floating_point_number_decl(struct ctx *ctx,
 			goto error;
 		}
 
-		if (!strcmp(left->u.unary_expression.u.string, "byte_order")) {
+		if (strcmp(left->u.unary_expression.u.string, "byte_order") == 0) {
 			if (_IS_SET(&set, _FLOAT_BYTE_ORDER_SET)) {
 				_BT_COMP_LOGE_DUP_ATTR(left, "byte_order",
 					"floating point number field class");
@@ -2782,8 +2779,7 @@ int visit_floating_point_number_decl(struct ctx *ctx,
 			}
 
 			_SET(&set, _FLOAT_BYTE_ORDER_SET);
-		} else if (!strcmp(left->u.unary_expression.u.string,
-				"exp_dig")) {
+		} else if (strcmp(left->u.unary_expression.u.string, "exp_dig") == 0) {
 			if (_IS_SET(&set, _FLOAT_EXP_DIG_SET)) {
 				_BT_COMP_LOGE_DUP_ATTR(left, "exp_dig",
 					"floating point number field class");
@@ -2804,8 +2800,7 @@ int visit_floating_point_number_decl(struct ctx *ctx,
 
 			exp_dig = right->u.unary_expression.u.unsigned_constant;
 			_SET(&set, _FLOAT_EXP_DIG_SET);
-		} else if (!strcmp(left->u.unary_expression.u.string,
-				"mant_dig")) {
+		} else if (strcmp(left->u.unary_expression.u.string, "mant_dig") == 0) {
 			if (_IS_SET(&set, _FLOAT_MANT_DIG_SET)) {
 				_BT_COMP_LOGE_DUP_ATTR(left, "mant_dig",
 					"floating point number field class");
@@ -2827,8 +2822,7 @@ int visit_floating_point_number_decl(struct ctx *ctx,
 			mant_dig = right->u.unary_expression.u.
 				unsigned_constant;
 			_SET(&set, _FLOAT_MANT_DIG_SET);
-		} else if (!strcmp(left->u.unary_expression.u.string,
-				"align")) {
+		} else if (strcmp(left->u.unary_expression.u.string, "align") == 0) {
 			if (_IS_SET(&set, _FLOAT_ALIGN_SET)) {
 				_BT_COMP_LOGE_DUP_ATTR(left, "align",
 					"floating point number field class");
@@ -2950,7 +2944,7 @@ int visit_string_decl(struct ctx *ctx,
 			goto error;
 		}
 
-		if (!strcmp(left->u.unary_expression.u.string, "encoding")) {
+		if (strcmp(left->u.unary_expression.u.string, "encoding") == 0) {
 			char *s_right;
 
 			if (_IS_SET(&set, _STRING_ENCODING_SET)) {
@@ -2977,14 +2971,14 @@ int visit_string_decl(struct ctx *ctx,
 				goto error;
 			}
 
-			if (!strcmp(s_right, "UTF8") ||
-					!strcmp(s_right, "utf8") ||
-					!strcmp(s_right, "utf-8") ||
-					!strcmp(s_right, "UTF-8") ||
-					!strcmp(s_right, "ASCII") ||
-					!strcmp(s_right, "ascii")) {
+			if (strcmp(s_right, "UTF8") == 0 ||
+					strcmp(s_right, "utf8") == 0 ||
+					strcmp(s_right, "utf-8") == 0 ||
+					strcmp(s_right, "UTF-8") == 0 ||
+					strcmp(s_right, "ASCII") == 0 ||
+					strcmp(s_right, "ascii") == 0) {
 				encoding = CTF_ENCODING_UTF8;
-			} else if (!strcmp(s_right, "none")) {
+			} else if (strcmp(s_right, "none") == 0) {
 				encoding = CTF_ENCODING_NONE;
 			} else {
 				_BT_COMP_LOGE_NODE(right,
@@ -3175,7 +3169,7 @@ int visit_event_decl_entry(struct ctx *ctx, struct ctf_node *node,
 			goto error;
 		}
 
-		if (!strcmp(left, "name")) {
+		if (strcmp(left, "name") == 0) {
 			/* This is already known at this stage */
 			if (_IS_SET(set, _EVENT_NAME_SET)) {
 				_BT_COMP_LOGE_DUP_ATTR(node, "name", "event class");
@@ -3184,7 +3178,7 @@ int visit_event_decl_entry(struct ctx *ctx, struct ctf_node *node,
 			}
 
 			_SET(set, _EVENT_NAME_SET);
-		} else if (!strcmp(left, "id")) {
+		} else if (strcmp(left, "id") == 0) {
 			int64_t id = -1;
 
 			if (_IS_SET(set, _EVENT_ID_SET)) {
@@ -3206,7 +3200,7 @@ int visit_event_decl_entry(struct ctx *ctx, struct ctf_node *node,
 
 			event_class->id = id;
 			_SET(set, _EVENT_ID_SET);
-		} else if (!strcmp(left, "stream_id")) {
+		} else if (strcmp(left, "stream_id") == 0) {
 			if (_IS_SET(set, _EVENT_STREAM_ID_SET)) {
 				_BT_COMP_LOGE_DUP_ATTR(node, "stream_id",
 					"event class");
@@ -3229,7 +3223,7 @@ int visit_event_decl_entry(struct ctx *ctx, struct ctf_node *node,
 			}
 
 			_SET(set, _EVENT_STREAM_ID_SET);
-		} else if (!strcmp(left, "context")) {
+		} else if (strcmp(left, "context") == 0) {
 			if (_IS_SET(set, _EVENT_CONTEXT_SET)) {
 				_BT_COMP_LOGE_NODE(node,
 					"Duplicate `context` entry in event class.");
@@ -3250,7 +3244,7 @@ int visit_event_decl_entry(struct ctx *ctx, struct ctf_node *node,
 
 			BT_ASSERT(event_class->spec_context_fc);
 			_SET(set, _EVENT_CONTEXT_SET);
-		} else if (!strcmp(left, "fields")) {
+		} else if (strcmp(left, "fields") == 0) {
 			if (_IS_SET(set, _EVENT_FIELDS_SET)) {
 				_BT_COMP_LOGE_NODE(node,
 					"Duplicate `fields` entry in event class.");
@@ -3271,7 +3265,7 @@ int visit_event_decl_entry(struct ctx *ctx, struct ctf_node *node,
 
 			BT_ASSERT(event_class->payload_fc);
 			_SET(set, _EVENT_FIELDS_SET);
-		} else if (!strcmp(left, "loglevel")) {
+		} else if (strcmp(left, "loglevel") == 0) {
 			uint64_t loglevel_value;
 			bt_event_class_log_level log_level = -1;
 
@@ -3347,7 +3341,7 @@ int visit_event_decl_entry(struct ctx *ctx, struct ctf_node *node,
 			}
 
 			_SET(set, _EVENT_LOG_LEVEL_SET);
-		} else if (!strcmp(left, "model.emf.uri")) {
+		} else if (strcmp(left, "model.emf.uri") == 0) {
 			char *right;
 
 			if (_IS_SET(set, _EVENT_MODEL_EMF_URI_SET)) {
@@ -3420,7 +3414,7 @@ char *get_event_decl_name(struct ctx *ctx, struct ctf_node *node)
 			goto error;
 		}
 
-		if (!strcmp(left, "name")) {
+		if (strcmp(left, "name") == 0) {
 			name = concatenate_unary_strings(
 				&iter->u.ctf_expression.right);
 			if (!name) {
@@ -3733,7 +3727,7 @@ int visit_stream_decl_entry(struct ctx *ctx, struct ctf_node *node,
 			goto error;
 		}
 
-		if (!strcmp(left, "id")) {
+		if (strcmp(left, "id") == 0) {
 			int64_t id;
 
 			if (_IS_SET(set, _STREAM_ID_SET)) {
@@ -3766,7 +3760,7 @@ int visit_stream_decl_entry(struct ctx *ctx, struct ctf_node *node,
 
 			stream_class->id = id;
 			_SET(set, _STREAM_ID_SET);
-		} else if (!strcmp(left, "event.header")) {
+		} else if (strcmp(left, "event.header") == 0) {
 			if (_IS_SET(set, _STREAM_EVENT_HEADER_SET)) {
 				_BT_COMP_LOGE_NODE(node,
 					"Duplicate `event.header` entry in stream class.");
@@ -3795,7 +3789,7 @@ int visit_stream_decl_entry(struct ctx *ctx, struct ctf_node *node,
 			}
 
 			_SET(set, _STREAM_EVENT_HEADER_SET);
-		} else if (!strcmp(left, "event.context")) {
+		} else if (strcmp(left, "event.context") == 0) {
 			if (_IS_SET(set, _STREAM_EVENT_CONTEXT_SET)) {
 				_BT_COMP_LOGE_NODE(node,
 					"Duplicate `event.context` entry in stream class.");
@@ -3816,7 +3810,7 @@ int visit_stream_decl_entry(struct ctx *ctx, struct ctf_node *node,
 
 			BT_ASSERT(stream_class->event_common_context_fc);
 			_SET(set, _STREAM_EVENT_CONTEXT_SET);
-		} else if (!strcmp(left, "packet.context")) {
+		} else if (strcmp(left, "packet.context") == 0) {
 			if (_IS_SET(set, _STREAM_PACKET_CONTEXT_SET)) {
 				_BT_COMP_LOGE_NODE(node,
 					"Duplicate `packet.context` entry in stream class.");
@@ -4009,7 +4003,7 @@ int visit_trace_decl_entry(struct ctx *ctx, struct ctf_node *node, int *set)
 			goto error;
 		}
 
-		if (!strcmp(left, "major")) {
+		if (strcmp(left, "major") == 0) {
 			if (_IS_SET(set, _TRACE_MAJOR_SET)) {
 				_BT_COMP_LOGE_DUP_ATTR(node, "major", "trace");
 				ret = -EPERM;
@@ -4033,7 +4027,7 @@ int visit_trace_decl_entry(struct ctx *ctx, struct ctf_node *node, int *set)
 
 			ctx->ctf_tc->major = val;
 			_SET(set, _TRACE_MAJOR_SET);
-		} else if (!strcmp(left, "minor")) {
+		} else if (strcmp(left, "minor") == 0) {
 			if (_IS_SET(set, _TRACE_MINOR_SET)) {
 				_BT_COMP_LOGE_DUP_ATTR(node, "minor", "trace");
 				ret = -EPERM;
@@ -4057,7 +4051,7 @@ int visit_trace_decl_entry(struct ctx *ctx, struct ctf_node *node, int *set)
 
 			ctx->ctf_tc->minor = val;
 			_SET(set, _TRACE_MINOR_SET);
-		} else if (!strcmp(left, "uuid")) {
+		} else if (strcmp(left, "uuid") == 0) {
 			if (_IS_SET(set, _TRACE_UUID_SET)) {
 				_BT_COMP_LOGE_DUP_ATTR(node, "uuid", "trace");
 				ret = -EPERM;
@@ -4075,7 +4069,7 @@ int visit_trace_decl_entry(struct ctx *ctx, struct ctf_node *node, int *set)
 
 			ctx->ctf_tc->is_uuid_set = true;
 			_SET(set, _TRACE_UUID_SET);
-		} else if (!strcmp(left, "byte_order")) {
+		} else if (strcmp(left, "byte_order") == 0) {
 			/* Default byte order is already known at this stage */
 			if (_IS_SET(set, _TRACE_BYTE_ORDER_SET)) {
 				_BT_COMP_LOGE_DUP_ATTR(node, "byte_order",
@@ -4086,7 +4080,7 @@ int visit_trace_decl_entry(struct ctx *ctx, struct ctf_node *node, int *set)
 
 			BT_ASSERT(ctx->ctf_tc->default_byte_order != -1);
 			_SET(set, _TRACE_BYTE_ORDER_SET);
-		} else if (!strcmp(left, "packet.header")) {
+		} else if (strcmp(left, "packet.header") == 0) {
 			if (_IS_SET(set, _TRACE_PACKET_HEADER_SET)) {
 				_BT_COMP_LOGE_NODE(node,
 					"Duplicate `packet.header` entry in trace.");
@@ -4314,7 +4308,7 @@ int set_trace_byte_order(struct ctx *ctx, struct ctf_node *trace_node)
 				goto error;
 			}
 
-			if (!strcmp(left, "byte_order")) {
+			if (strcmp(left, "byte_order") == 0) {
 				enum ctf_byte_order bo;
 
 				if (_IS_SET(&set, _TRACE_BYTE_ORDER_SET)) {
@@ -4389,7 +4383,7 @@ int visit_clock_decl_entry(struct ctx *ctx, struct ctf_node *entry_node,
 		goto error;
 	}
 
-	if (!strcmp(left, "name")) {
+	if (strcmp(left, "name") == 0) {
 		char *right;
 
 		if (_IS_SET(set, _CLOCK_NAME_SET)) {
@@ -4410,7 +4404,7 @@ int visit_clock_decl_entry(struct ctx *ctx, struct ctf_node *entry_node,
 		g_string_assign(clock->name, right);
 		g_free(right);
 		_SET(set, _CLOCK_NAME_SET);
-	} else if (!strcmp(left, "uuid")) {
+	} else if (strcmp(left, "uuid") == 0) {
 		bt_uuid_t uuid;
 
 		if (_IS_SET(set, _CLOCK_UUID_SET)) {
@@ -4430,7 +4424,7 @@ int visit_clock_decl_entry(struct ctx *ctx, struct ctf_node *entry_node,
 		clock->has_uuid = true;
 		bt_uuid_copy(clock->uuid, uuid);
 		_SET(set, _CLOCK_UUID_SET);
-	} else if (!strcmp(left, "description")) {
+	} else if (strcmp(left, "description") == 0) {
 		char *right;
 
 		if (_IS_SET(set, _CLOCK_DESCRIPTION_SET)) {
@@ -4452,7 +4446,7 @@ int visit_clock_decl_entry(struct ctx *ctx, struct ctf_node *entry_node,
 		g_string_assign(clock->description, right);
 		g_free(right);
 		_SET(set, _CLOCK_DESCRIPTION_SET);
-	} else if (!strcmp(left, "freq")) {
+	} else if (strcmp(left, "freq") == 0) {
 		uint64_t freq = UINT64_C(-1);
 
 		if (_IS_SET(set, _CLOCK_FREQ_SET)) {
@@ -4480,7 +4474,7 @@ int visit_clock_decl_entry(struct ctx *ctx, struct ctf_node *entry_node,
 
 		clock->frequency = freq;
 		_SET(set, _CLOCK_FREQ_SET);
-	} else if (!strcmp(left, "precision")) {
+	} else if (strcmp(left, "precision") == 0) {
 		uint64_t precision;
 
 		if (_IS_SET(set, _CLOCK_PRECISION_SET)) {
@@ -4501,7 +4495,7 @@ int visit_clock_decl_entry(struct ctx *ctx, struct ctf_node *entry_node,
 
 		clock->precision = precision;
 		_SET(set, _CLOCK_PRECISION_SET);
-	} else if (!strcmp(left, "offset_s")) {
+	} else if (strcmp(left, "offset_s") == 0) {
 		if (_IS_SET(set, _CLOCK_OFFSET_S_SET)) {
 			_BT_COMP_LOGE_DUP_ATTR(entry_node, "offset_s",
 				"clock class");
@@ -4519,7 +4513,7 @@ int visit_clock_decl_entry(struct ctx *ctx, struct ctf_node *entry_node,
 		}
 
 		_SET(set, _CLOCK_OFFSET_S_SET);
-	} else if (!strcmp(left, "offset")) {
+	} else if (strcmp(left, "offset") == 0) {
 		if (_IS_SET(set, _CLOCK_OFFSET_SET)) {
 			_BT_COMP_LOGE_DUP_ATTR(entry_node, "offset", "clock class");
 			ret = -EPERM;
@@ -4536,7 +4530,7 @@ int visit_clock_decl_entry(struct ctx *ctx, struct ctf_node *entry_node,
 		}
 
 		_SET(set, _CLOCK_OFFSET_SET);
-	} else if (!strcmp(left, "absolute")) {
+	} else if (strcmp(left, "absolute") == 0) {
 		struct ctf_node *right;
 
 		if (_IS_SET(set, _CLOCK_ABSOLUTE_SET)) {

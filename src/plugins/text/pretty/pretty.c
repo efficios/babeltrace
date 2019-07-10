@@ -415,9 +415,9 @@ int apply_params(struct pretty_component *pretty, const bt_value *params)
 	apply_one_string("name-default", params, &str);
 	if (!str) {
 		pretty->options.name_default = PRETTY_DEFAULT_UNSET;
-	} else if (!strcmp(str, "show")) {
+	} else if (strcmp(str, "show") == 0) {
 		pretty->options.name_default = PRETTY_DEFAULT_SHOW;
-	} else if (!strcmp(str, "hide")) {
+	} else if (strcmp(str, "hide") == 0) {
 		pretty->options.name_default = PRETTY_DEFAULT_HIDE;
 	} else {
 		ret = -1;
@@ -482,9 +482,9 @@ int apply_params(struct pretty_component *pretty, const bt_value *params)
 	apply_one_string("field-default", params, &str);
 	if (!str) {
 		pretty->options.field_default = PRETTY_DEFAULT_UNSET;
-	} else if (!strcmp(str, "show")) {
+	} else if (strcmp(str, "show") == 0) {
 		pretty->options.field_default = PRETTY_DEFAULT_SHOW;
-	} else if (!strcmp(str, "hide")) {
+	} else if (strcmp(str, "hide") == 0) {
 		pretty->options.field_default = PRETTY_DEFAULT_HIDE;
 	} else {
 		ret = -1;

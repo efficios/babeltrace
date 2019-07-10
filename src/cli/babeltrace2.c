@@ -1483,8 +1483,8 @@ gboolean port_id_equal(gconstpointer v1, gconstpointer v2)
 	const struct port_id *id1 = v1;
 	const struct port_id *id2 = v2;
 
-	return !strcmp(id1->instance_name, id2->instance_name) &&
-		!strcmp(id1->port_name, id2->port_name);
+	return strcmp(id1->instance_name, id2->instance_name) == 0 &&
+		strcmp(id1->port_name, id2->port_name) == 0;
 }
 
 static
