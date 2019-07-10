@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_ERROR_CAUSE_CONST_H
-#define BABELTRACE_ERROR_CAUSE_CONST_H
+#ifndef BABELTRACE2_ERROR_CAUSE_CONST_H
+#define BABELTRACE2_ERROR_CAUSE_CONST_H
 
 /*
  * Copyright (c) 2019 Philippe Proulx <pproulx@efficios.com>
@@ -113,4 +113,4 @@ const char *bt_error_cause_message_iterator_actor_get_plugin_name(
 }
 #endif
 
-#endif /* BABELTRACE_ERROR_CAUSE_CONST_H */
+#endif /* BABELTRACE2_ERROR_CAUSE_CONST_H */

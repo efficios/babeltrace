@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_PROPERTY_H
-#define BABELTRACE_PROPERTY_H
+#ifndef BABELTRACE2_PROPERTY_H
+#define BABELTRACE2_PROPERTY_H
 
 /*
  * Copyright (c) 2018 Philippe Proulx <pproulx@efficios.com>
@@ -36,4 +36,4 @@ typedef enum bt_property_availability {
 }
 #endif
 
-#endif /* BABELTRACE_PROPERTY_H */
+#endif /* BABELTRACE2_PROPERTY_H */

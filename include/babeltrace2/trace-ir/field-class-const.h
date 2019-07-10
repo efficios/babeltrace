@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_TRACE_IR_FIELD_CLASSES_CONST_H
-#define BABELTRACE_TRACE_IR_FIELD_CLASSES_CONST_H
+#ifndef BABELTRACE2_TRACE_IR_FIELD_CLASS_CONST_H
+#define BABELTRACE2_TRACE_IR_FIELD_CLASS_CONST_H
 
 /*
  * Copyright 2017-2018 Philippe Proulx <pproulx@efficios.com>
@@ -216,4 +216,4 @@ extern void bt_field_class_put_ref(const bt_field_class *field_class);
 
 #include <babeltrace2/undef-func-status.h>
 
-#endif /* BABELTRACE_TRACE_IR_FIELD_CLASSES_CONST_H */
+#endif /* BABELTRACE2_TRACE_IR_FIELD_CLASS_CONST_H */

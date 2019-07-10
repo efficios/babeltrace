@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_CTF_WRITER_TRACE_H
-#define BABELTRACE_CTF_WRITER_TRACE_H
+#ifndef BABELTRACE2_CTF_WRITER_TRACE_H
+#define BABELTRACE2_CTF_WRITER_TRACE_H
 
 /*
  * Copyright 2014 EfficiOS Inc.
@@ -85,4 +85,4 @@ extern const char *bt_ctf_trace_get_name(struct bt_ctf_trace *trace);
 }
 #endif
 
-#endif /* BABELTRACE_CTF_WRITER_TRACE_H */
+#endif /* BABELTRACE2_CTF_WRITER_TRACE_H */

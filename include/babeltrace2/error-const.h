@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_ERROR_CONST_H
-#define BABELTRACE_ERROR_CONST_H
+#ifndef BABELTRACE2_ERROR_CONST_H
+#define BABELTRACE2_ERROR_CONST_H
 
 /*
  * Copyright (c) 2019 Philippe Proulx <pproulx@efficios.com>
@@ -47,4 +47,4 @@ void bt_error_release(const bt_error *error);
 }
 #endif
 
-#endif /* BABELTRACE_ERROR_CONST_H */
+#endif /* BABELTRACE2_ERROR_CONST_H */

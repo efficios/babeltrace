@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_TRACE_IR_CLOCK_SNAPSHOT_CONST_H
-#define BABELTRACE_TRACE_IR_CLOCK_SNAPSHOT_CONST_H
+#ifndef BABELTRACE2_TRACE_IR_CLOCK_SNAPSHOT_CONST_H
+#define BABELTRACE2_TRACE_IR_CLOCK_SNAPSHOT_CONST_H
 
 /*
  * Copyright 2017-2018 Philippe Proulx <pproulx@efficios.com>
@@ -63,4 +63,4 @@ bt_clock_snapshot_get_ns_from_origin(
 
 #include <babeltrace2/undef-func-status.h>
 
-#endif /* BABELTRACE_TRACE_IR_CLOCK_SNAPSHOT_CONST_H */
+#endif /* BABELTRACE2_TRACE_IR_CLOCK_SNAPSHOT_CONST_H */

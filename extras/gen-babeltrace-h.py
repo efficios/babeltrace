@@ -70,8 +70,8 @@ def _main():
     with open('include/Makefile.am') as f:
         sections = _get_sections(f)
 
-    print('''#ifndef BABELTRACE_BABELTRACE_H
-#define BABELTRACE_BABELTRACE_H
+    print('''#ifndef BABELTRACE2_BABELTRACE_H
+#define BABELTRACE2_BABELTRACE_H
 
 /*
  * Babeltrace API
@@ -98,7 +98,7 @@ def _main():
  */
 ''')
     print(_c_includes_from_sections(sections))
-    print('#endif /* BABELTRACE_BABELTRACE_H */')
+    print('#endif /* BABELTRACE2_BABELTRACE_H */')
 
 
 if __name__ == '__main__':

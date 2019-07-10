@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_GRAPH_MESSAGE_STREAM_BEGINNING_END_H
-#define BABELTRACE_GRAPH_MESSAGE_STREAM_BEGINNING_END_H
+#ifndef BABELTRACE2_GRAPH_MESSAGE_STREAM_END_CONST_H
+#define BABELTRACE2_GRAPH_MESSAGE_STREAM_END_CONST_H
 
 /*
  * Copyright 2017-2018 Philippe Proulx <pproulx@efficios.com>
@@ -49,4 +49,4 @@ bt_message_stream_end_borrow_stream_class_default_clock_class_const(
 }
 #endif
 
-#endif /* BABELTRACE_GRAPH_MESSAGE_STREAM_BEGINNING_END_H */
+#endif /* BABELTRACE2_GRAPH_MESSAGE_STREAM_END_CONST_H */

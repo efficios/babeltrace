@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_GRAPH_MESSAGE_PACKET_BEGINNING_H
-#define BABELTRACE_GRAPH_MESSAGE_PACKET_BEGINNING_H
+#ifndef BABELTRACE2_GRAPH_MESSAGE_PACKET_BEGINNING_H
+#define BABELTRACE2_GRAPH_MESSAGE_PACKET_BEGINNING_H
 
 /*
  * Copyright 2017-2018 Philippe Proulx <pproulx@efficios.com>
@@ -50,4 +50,4 @@ extern bt_packet *bt_message_packet_beginning_borrow_packet(
 }
 #endif
 
-#endif /* BABELTRACE_GRAPH_MESSAGE_PACKET_BEGINNING_H */
+#endif /* BABELTRACE2_GRAPH_MESSAGE_PACKET_BEGINNING_H */

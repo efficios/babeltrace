@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_CTF_WRITER_OBJECT_H
-#define BABELTRACE_CTF_WRITER_OBJECT_H
+#ifndef BABELTRACE2_CTF_WRITER_OBJECT_H
+#define BABELTRACE2_CTF_WRITER_OBJECT_H
 
 /*
  * Copyright (c) 2015 EfficiOS Inc. and Linux Foundation
@@ -212,4 +212,4 @@ void bt_ctf_object_put_ref(void *obj);
 }
 #endif
 
-#endif /* BABELTRACE_CTF_WRITER_OBJECT_H */
+#endif /* BABELTRACE2_CTF_WRITER_OBJECT_H */

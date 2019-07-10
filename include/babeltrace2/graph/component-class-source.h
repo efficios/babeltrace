@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_GRAPH_COMPONENT_CLASS_SOURCE_H
-#define BABELTRACE_GRAPH_COMPONENT_CLASS_SOURCE_H
+#ifndef BABELTRACE2_GRAPH_COMPONENT_CLASS_SOURCE_H
+#define BABELTRACE2_GRAPH_COMPONENT_CLASS_SOURCE_H
 
 /*
  * Copyright 2017-2018 Philippe Proulx <pproulx@efficios.com>
@@ -167,4 +167,4 @@ bt_component_class_source_set_message_iterator_can_seek_beginning_method(
 }
 #endif
 
-#endif /* BABELTRACE_GRAPH_COMPONENT_CLASS_SOURCE_H */
+#endif /* BABELTRACE2_GRAPH_COMPONENT_CLASS_SOURCE_H */

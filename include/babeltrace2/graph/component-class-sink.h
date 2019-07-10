@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_GRAPH_COMPONENT_CLASS_SINK_H
-#define BABELTRACE_GRAPH_COMPONENT_CLASS_SINK_H
+#ifndef BABELTRACE2_GRAPH_COMPONENT_CLASS_SINK_H
+#define BABELTRACE2_GRAPH_COMPONENT_CLASS_SINK_H
 
 /*
  * Copyright 2017-2018 Philippe Proulx <pproulx@efficios.com>
@@ -141,4 +141,4 @@ bt_component_class_sink_set_query_method(
 
 #include <babeltrace2/undef-func-status.h>
 
-#endif /* BABELTRACE_GRAPH_COMPONENT_CLASS_SINK_H */
+#endif /* BABELTRACE2_GRAPH_COMPONENT_CLASS_SINK_H */

@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_TYPES_H
-#define BABELTRACE_TYPES_H
+#ifndef BABELTRACE2_TYPES_H
+#define BABELTRACE2_TYPES_H
 
 /*
  * Copyright (c) 2017 Philippe Proulx <pproulx@efficios.com>
@@ -157,4 +157,4 @@ typedef const struct bt_message **bt_message_array_const;
 }
 #endif
 
-#endif /* BABELTRACE_TYPES_H */
+#endif /* BABELTRACE2_TYPES_H */

@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_TRACE_IR_PACKET_CONST_H
-#define BABELTRACE_TRACE_IR_PACKET_CONST_H
+#ifndef BABELTRACE2_TRACE_IR_PACKET_CONST_H
+#define BABELTRACE2_TRACE_IR_PACKET_CONST_H
 
 /*
  * Copyright 2016-2018 Philippe Proulx <pproulx@efficios.com>
@@ -68,4 +68,4 @@ extern void bt_packet_put_ref(const bt_packet *packet);
 }
 #endif
 
-#endif /* BABELTRACE_TRACE_IR_PACKET_CONST_H */
+#endif /* BABELTRACE2_TRACE_IR_PACKET_CONST_H */

@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_GRAPH_MESSAGE_STREAM_BEGINNING_H
-#define BABELTRACE_GRAPH_MESSAGE_STREAM_BEGINNING_H
+#ifndef BABELTRACE2_GRAPH_MESSAGE_STREAM_BEGINNING_H
+#define BABELTRACE2_GRAPH_MESSAGE_STREAM_BEGINNING_H
 
 /*
  * Copyright 2017-2018 Philippe Proulx <pproulx@efficios.com>
@@ -47,4 +47,4 @@ void bt_message_stream_beginning_set_default_clock_snapshot(
 }
 #endif
 
-#endif /* BABELTRACE_GRAPH_MESSAGE_STREAM_BEGINNING_H */
+#endif /* BABELTRACE2_GRAPH_MESSAGE_STREAM_BEGINNING_H */

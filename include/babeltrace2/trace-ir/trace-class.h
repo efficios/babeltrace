@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_TRACE_IR_TRACE_CLASS_H
-#define BABELTRACE_TRACE_IR_TRACE_CLASS_H
+#ifndef BABELTRACE2_TRACE_IR_TRACE_CLASS_H
+#define BABELTRACE2_TRACE_IR_TRACE_CLASS_H
 
 /*
  * Copyright 2017-2018 Philippe Proulx <pproulx@efficios.com>
@@ -58,4 +58,4 @@ extern bt_stream_class *bt_trace_class_borrow_stream_class_by_id(
 
 #include <babeltrace2/undef-func-status.h>
 
-#endif /* BABELTRACE_TRACE_IR_TRACE_CLASS_H */
+#endif /* BABELTRACE2_TRACE_IR_TRACE_CLASS_H */

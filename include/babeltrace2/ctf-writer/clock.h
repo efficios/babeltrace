@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_CTF_WRITER_CLOCK_H
-#define BABELTRACE_CTF_WRITER_CLOCK_H
+#ifndef BABELTRACE2_CTF_WRITER_CLOCK_H
+#define BABELTRACE2_CTF_WRITER_CLOCK_H
 
 /*
  * Copyright 2013, 2014 Jérémie Galarneau <jeremie.galarneau@efficios.com>
@@ -284,4 +284,4 @@ void bt_ctf_clock_put(struct bt_ctf_clock *clock)
 }
 #endif
 
-#endif /* BABELTRACE_CTF_WRITER_CLOCK_H */
+#endif /* BABELTRACE2_CTF_WRITER_CLOCK_H */

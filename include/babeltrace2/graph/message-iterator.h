@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_GRAPH_MESSAGE_ITERATOR_H
-#define BABELTRACE_GRAPH_MESSAGE_ITERATOR_H
+#ifndef BABELTRACE2_GRAPH_MESSAGE_ITERATOR_H
+#define BABELTRACE2_GRAPH_MESSAGE_ITERATOR_H
 
 /*
  * Copyright 2017-2018 Philippe Proulx <pproulx@efficios.com>
@@ -63,4 +63,4 @@ typedef enum bt_message_iterator_seek_ns_from_origin_status {
 
 #include <babeltrace2/undef-func-status.h>
 
-#endif /* BABELTRACE_GRAPH_MESSAGE_ITERATOR_H */
+#endif /* BABELTRACE2_GRAPH_MESSAGE_ITERATOR_H */

@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_TRACE_IR_STREAM_CLASS_H
-#define BABELTRACE_TRACE_IR_STREAM_CLASS_H
+#ifndef BABELTRACE2_TRACE_IR_STREAM_CLASS_H
+#define BABELTRACE2_TRACE_IR_STREAM_CLASS_H
 
 /*
  * Copyright 2017-2018 Philippe Proulx <pproulx@efficios.com>
@@ -131,4 +131,4 @@ bt_stream_class_set_default_clock_class(
 
 #include <babeltrace2/undef-func-status.h>
 
-#endif /* BABELTRACE_TRACE_IR_STREAM_CLASS_H */
+#endif /* BABELTRACE2_TRACE_IR_STREAM_CLASS_H */

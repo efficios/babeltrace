@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_CTF_WRITER_STREAM_CLASS_H
-#define BABELTRACE_CTF_WRITER_STREAM_CLASS_H
+#ifndef BABELTRACE2_CTF_WRITER_STREAM_CLASS_H
+#define BABELTRACE2_CTF_WRITER_STREAM_CLASS_H
 
 /*
  * Copyright 2014 EfficiOS Inc.
@@ -119,4 +119,4 @@ void bt_ctf_stream_class_put(struct bt_ctf_stream_class *stream_class)
 }
 #endif
 
-#endif /* BABELTRACE_CTF_WRITER_STREAM_CLASS_H */
+#endif /* BABELTRACE2_CTF_WRITER_STREAM_CLASS_H */

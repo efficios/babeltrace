@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_GRAPH_SELF_COMPONENT_PORT_OUTPUT_H
-#define BABELTRACE_GRAPH_SELF_COMPONENT_PORT_OUTPUT_H
+#ifndef BABELTRACE2_GRAPH_SELF_COMPONENT_PORT_OUTPUT_H
+#define BABELTRACE2_GRAPH_SELF_COMPONENT_PORT_OUTPUT_H
 
 /*
  * Copyright 2017-2018 Philippe Proulx <pproulx@efficios.com>
@@ -52,4 +52,4 @@ const bt_port_output *bt_self_component_port_output_as_port_output(
 }
 #endif
 
-#endif /* BABELTRACE_GRAPH_SELF_COMPONENT_PORT_OUTPUT_H */
+#endif /* BABELTRACE2_GRAPH_SELF_COMPONENT_PORT_OUTPUT_H */

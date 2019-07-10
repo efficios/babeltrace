@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_GRAPH_PORT_CONST_H
-#define BABELTRACE_GRAPH_PORT_CONST_H
+#ifndef BABELTRACE2_GRAPH_PORT_CONST_H
+#define BABELTRACE2_GRAPH_PORT_CONST_H
 
 /*
  * Copyright 2017-2018 Philippe Proulx <pproulx@efficios.com>
@@ -83,4 +83,4 @@ extern void bt_port_put_ref(const bt_port *port);
 }
 #endif
 
-#endif /* BABELTRACE_GRAPH_PORT_CONST_H */
+#endif /* BABELTRACE2_GRAPH_PORT_CONST_H */

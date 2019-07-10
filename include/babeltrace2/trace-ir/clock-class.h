@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_TRACE_IR_CLOCK_CLASS_H
-#define BABELTRACE_TRACE_IR_CLOCK_CLASS_H
+#ifndef BABELTRACE2_TRACE_IR_CLOCK_CLASS_H
+#define BABELTRACE2_TRACE_IR_CLOCK_CLASS_H
 
 /*
  * Copyright 2013, 2014 Jérémie Galarneau <jeremie.galarneau@efficios.com>
@@ -80,4 +80,4 @@ extern void bt_clock_class_set_uuid(bt_clock_class *clock_class,
 
 #include <babeltrace2/undef-func-status.h>
 
-#endif /* BABELTRACE_TRACE_IR_CLOCK_CLASS_H */
+#endif /* BABELTRACE2_TRACE_IR_CLOCK_CLASS_H */

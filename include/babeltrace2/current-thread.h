@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_CURRENT_THREAD_H
-#define BABELTRACE_CURRENT_THREAD_H
+#ifndef BABELTRACE2_CURRENT_THREAD_H
+#define BABELTRACE2_CURRENT_THREAD_H
 
 /*
  * Copyright (c) 2019 Philippe Proulx <pproulx@efficios.com>
@@ -100,4 +100,4 @@ bt_current_thread_error_append_cause_from_message_iterator(
 
 #include <babeltrace2/undef-func-status.h>
 
-#endif /* BABELTRACE_CURRENT_THREAD_H */
+#endif /* BABELTRACE2_CURRENT_THREAD_H */

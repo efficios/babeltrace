@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_CTF_WRITER_STREAM_H
-#define BABELTRACE_CTF_WRITER_STREAM_H
+#ifndef BABELTRACE2_CTF_WRITER_STREAM_H
+#define BABELTRACE2_CTF_WRITER_STREAM_H
 
 /*
  * Copyright 2013, 2014 Jérémie Galarneau <jeremie.galarneau@efficios.com>
@@ -184,4 +184,4 @@ void bt_ctf_stream_put(struct bt_ctf_stream *stream)
 }
 #endif
 
-#endif /* BABELTRACE_CTF_WRITER_STREAM_H */
+#endif /* BABELTRACE2_CTF_WRITER_STREAM_H */

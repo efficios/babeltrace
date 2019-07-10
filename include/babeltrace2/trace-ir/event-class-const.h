@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_TRACE_IR_EVENT_CLASS_CONST_H
-#define BABELTRACE_TRACE_IR_EVENT_CLASS_CONST_H
+#ifndef BABELTRACE2_TRACE_IR_EVENT_CLASS_CONST_H
+#define BABELTRACE2_TRACE_IR_EVENT_CLASS_CONST_H
 
 /*
  * Copyright 2017-2018 Philippe Proulx <pproulx@efficios.com>
@@ -100,4 +100,4 @@ extern void bt_event_class_put_ref(const bt_event_class *event_class);
 }
 #endif
 
-#endif /* BABELTRACE_TRACE_IR_EVENT_CLASS_CONST_H */
+#endif /* BABELTRACE2_TRACE_IR_EVENT_CLASS_CONST_H */

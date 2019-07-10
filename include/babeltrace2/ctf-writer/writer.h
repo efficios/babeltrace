@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_CTF_WRITER_WRITER_H
-#define BABELTRACE_CTF_WRITER_WRITER_H
+#ifndef BABELTRACE2_CTF_WRITER_WRITER_H
+#define BABELTRACE2_CTF_WRITER_WRITER_H
 
 /*
  * Copyright 2013, 2014 Jérémie Galarneau <jeremie.galarneau@efficios.com>
@@ -201,4 +201,4 @@ void bt_ctf_writer_put(struct bt_ctf_writer *writer)
 }
 #endif
 
-#endif /* BABELTRACE_CTF_WRITER_WRITER_H */
+#endif /* BABELTRACE2_CTF_WRITER_WRITER_H */

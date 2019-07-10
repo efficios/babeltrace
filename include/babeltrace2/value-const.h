@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_VALUES_CONST_H
-#define BABELTRACE_VALUES_CONST_H
+#ifndef BABELTRACE2_VALUE_CONST_H
+#define BABELTRACE2_VALUE_CONST_H
 
 /*
  * Copyright (c) 2015-2018 Philippe Proulx <pproulx@efficios.com>
@@ -206,4 +206,4 @@ extern void bt_value_put_ref(const bt_value *value);
 
 #include <babeltrace2/undef-func-status.h>
 
-#endif /* BABELTRACE_VALUES_CONST_H */
+#endif /* BABELTRACE2_VALUE_CONST_H */
