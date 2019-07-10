@@ -205,7 +205,7 @@ int bt_ctf_trace_common_set_uuid(struct bt_ctf_trace_common *trace,
 	}
 
 	bt_uuid_copy(trace->uuid, uuid);
-	trace->uuid_set = BT_TRUE;
+	trace->uuid_set = BT_CTF_TRUE;
 	BT_LOGT("Set trace's UUID: addr=%p, name=\"%s\", "
 		"uuid=\"" BT_UUID_FMT "\"",
 		trace, bt_ctf_trace_common_get_name(trace),
@@ -1256,7 +1256,7 @@ end:
 }
 
 BT_HIDDEN
-bt_bool bt_ctf_trace_common_has_clock_class(struct bt_ctf_trace_common *trace,
+bt_ctf_bool bt_ctf_trace_common_has_clock_class(struct bt_ctf_trace_common *trace,
 		struct bt_ctf_clock_class *clock_class)
 {
 	struct bt_ctf_search_query query = { .value = clock_class, .found = 0 };

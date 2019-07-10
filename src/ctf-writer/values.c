@@ -63,7 +63,7 @@
 struct bt_ctf_value {
 	struct bt_ctf_object base;
 	enum bt_ctf_value_type type;
-	bt_bool frozen;
+	bt_ctf_bool frozen;
 };
 
 static
@@ -83,7 +83,7 @@ struct bt_ctf_value bt_ctf_value_null_instance = {
 		.parent = NULL,
 	},
 	.type = BT_CTF_VALUE_TYPE_NULL,
-	.frozen = BT_TRUE,
+	.frozen = BT_CTF_TRUE,
 };
 
 struct bt_ctf_value *const bt_ctf_value_null = &bt_ctf_value_null_instance;
@@ -92,7 +92,7 @@ struct bt_ctf_private_value *const bt_ctf_private_value_null =
 
 struct bt_ctf_value_bool {
 	struct bt_ctf_value base;
-	bt_bool value;
+	bt_ctf_bool value;
 };
 
 struct bt_ctf_value_integer {
@@ -316,19 +316,19 @@ struct bt_ctf_private_value *(* const copy_funcs[])(const struct bt_ctf_value *)
 };
 
 static
-bt_bool bt_ctf_value_null_compare(const struct bt_ctf_value *object_a,
+bt_ctf_bool bt_ctf_value_null_compare(const struct bt_ctf_value *object_a,
 		const struct bt_ctf_value *object_b)
 {
 	/*
-	 * Always BT_TRUE since bt_ctf_value_compare() already checks if both
+	 * Always BT_CTF_TRUE since bt_ctf_value_compare() already checks if both
 	 * object_a and object_b have the same type, and in the case of
 	 * null value objects, they're always the same if it is so.
 	 */
-	return BT_TRUE;
+	return BT_CTF_TRUE;
 }
 
 static
-bt_bool bt_ctf_value_bool_compare(const struct bt_ctf_value *object_a,
+bt_ctf_bool bt_ctf_value_bool_compare(const struct bt_ctf_value *object_a,
 		const struct bt_ctf_value *object_b)
 {
 	if (BT_CTF_VALUE_TO_BOOL(object_a)->value !=
@@ -337,14 +337,14 @@ bt_bool bt_ctf_value_bool_compare(const struct bt_ctf_value *object_a,
 			"bool-a-val=%d, bool-b-val=%d",
 			BT_CTF_VALUE_TO_BOOL(object_a)->value,
 			BT_CTF_VALUE_TO_BOOL(object_b)->value);
-		return BT_FALSE;
+		return BT_CTF_FALSE;
 	}
 
-	return BT_TRUE;
+	return BT_CTF_TRUE;
 }
 
 static
-bt_bool bt_ctf_value_integer_compare(const struct bt_ctf_value *object_a,
+bt_ctf_bool bt_ctf_value_integer_compare(const struct bt_ctf_value *object_a,
 		const struct bt_ctf_value *object_b)
 {
 	if (BT_CTF_VALUE_TO_INTEGER(object_a)->value !=
@@ -353,14 +353,14 @@ bt_bool bt_ctf_value_integer_compare(const struct bt_ctf_value *object_a,
 			"int-a-val=%" PRId64 ", int-b-val=%" PRId64,
 			BT_CTF_VALUE_TO_INTEGER(object_a)->value,
 			BT_CTF_VALUE_TO_INTEGER(object_b)->value);
-		return BT_FALSE;
+		return BT_CTF_FALSE;
 	}
 
-	return BT_TRUE;
+	return BT_CTF_TRUE;
 }
 
 static
-bt_bool bt_ctf_value_real_compare(const struct bt_ctf_value *object_a,
+bt_ctf_bool bt_ctf_value_real_compare(const struct bt_ctf_value *object_a,
 		const struct bt_ctf_value *object_b)
 {
 	if (BT_CTF_VALUE_TO_REAL(object_a)->value !=
@@ -369,14 +369,14 @@ bt_bool bt_ctf_value_real_compare(const struct bt_ctf_value *object_a,
 			"real-a-val=%f, real-b-val=%f",
 			BT_CTF_VALUE_TO_REAL(object_a)->value,
 			BT_CTF_VALUE_TO_REAL(object_b)->value);
-		return BT_FALSE;
+		return BT_CTF_FALSE;
 	}
 
-	return BT_TRUE;
+	return BT_CTF_TRUE;
 }
 
 static
-bt_bool bt_ctf_value_string_compare(const struct bt_ctf_value *object_a,
+bt_ctf_bool bt_ctf_value_string_compare(const struct bt_ctf_value *object_a,
 		const struct bt_ctf_value *object_b)
 {
 	if (strcmp(BT_CTF_VALUE_TO_STRING(object_a)->gstr->str,
@@ -385,18 +385,18 @@ bt_bool bt_ctf_value_string_compare(const struct bt_ctf_value *object_a,
 			"string-a-val=\"%s\", string-b-val=\"%s\"",
 			BT_CTF_VALUE_TO_STRING(object_a)->gstr->str,
 			BT_CTF_VALUE_TO_STRING(object_b)->gstr->str);
-		return BT_FALSE;
+		return BT_CTF_FALSE;
 	}
 
-	return BT_TRUE;
+	return BT_CTF_TRUE;
 }
 
 static
-bt_bool bt_ctf_value_array_compare(const struct bt_ctf_value *object_a,
+bt_ctf_bool bt_ctf_value_array_compare(const struct bt_ctf_value *object_a,
 		const struct bt_ctf_value *object_b)
 {
 	int i;
-	bt_bool ret = BT_TRUE;
+	bt_ctf_bool ret = BT_CTF_TRUE;
 	const struct bt_ctf_value_array *array_obj_a =
 		BT_CTF_VALUE_TO_ARRAY(object_a);
 
@@ -408,7 +408,7 @@ bt_bool bt_ctf_value_array_compare(const struct bt_ctf_value *object_a,
 			object_a, object_b,
 			bt_ctf_value_array_get_size(object_a),
 			bt_ctf_value_array_get_size(object_b));
-		ret = BT_FALSE;
+		ret = BT_CTF_FALSE;
 		goto end;
 	}
 
@@ -425,7 +425,7 @@ bt_bool bt_ctf_value_array_compare(const struct bt_ctf_value *object_a,
 			BT_LOGT("Array values's elements are different: "
 				"value-a-addr=%p, value-b-addr=%p, index=%d",
 				element_obj_a, element_obj_b, i);
-			ret = BT_FALSE;
+			ret = BT_CTF_FALSE;
 			goto end;
 		}
 	}
@@ -435,10 +435,10 @@ end:
 }
 
 static
-bt_bool bt_ctf_value_map_compare(const struct bt_ctf_value *object_a,
+bt_ctf_bool bt_ctf_value_map_compare(const struct bt_ctf_value *object_a,
 		const struct bt_ctf_value *object_b)
 {
-	bt_bool ret = BT_TRUE;
+	bt_ctf_bool ret = BT_CTF_TRUE;
 	GHashTableIter iter;
 	gpointer key, element_obj_a;
 	const struct bt_ctf_value_map *map_obj_a = BT_CTF_VALUE_TO_MAP(object_a);
@@ -451,7 +451,7 @@ bt_bool bt_ctf_value_map_compare(const struct bt_ctf_value *object_a,
 			object_a, object_b,
 			bt_ctf_value_map_get_size(object_a),
 			bt_ctf_value_map_get_size(object_b));
-		ret = BT_FALSE;
+		ret = BT_CTF_FALSE;
 		goto end;
 	}
 
@@ -468,7 +468,7 @@ bt_bool bt_ctf_value_map_compare(const struct bt_ctf_value *object_a,
 			BT_LOGT("Map values's elements are different: "
 				"value-a-addr=%p, value-b-addr=%p, key=\"%s\"",
 				element_obj_a, element_obj_b, key_str);
-			ret = BT_FALSE;
+			ret = BT_CTF_FALSE;
 			goto end;
 		}
 	}
@@ -478,7 +478,7 @@ end:
 }
 
 static
-bt_bool (* const compare_funcs[])(const struct bt_ctf_value *,
+bt_ctf_bool (* const compare_funcs[])(const struct bt_ctf_value *,
 		const struct bt_ctf_value *) = {
 	[BT_CTF_VALUE_TYPE_NULL] =		bt_ctf_value_null_compare,
 	[BT_CTF_VALUE_TYPE_BOOL] =		bt_ctf_value_bool_compare,
@@ -497,7 +497,7 @@ void bt_ctf_value_null_freeze(struct bt_ctf_value *object)
 static
 void bt_ctf_value_generic_freeze(struct bt_ctf_value *object)
 {
-	object->frozen = BT_TRUE;
+	object->frozen = BT_CTF_TRUE;
 }
 
 static
@@ -592,13 +592,13 @@ struct bt_ctf_value bt_ctf_value_create_base(enum bt_ctf_value_type type)
 	struct bt_ctf_value value;
 
 	value.type = type;
-	value.frozen = BT_FALSE;
+	value.frozen = BT_CTF_FALSE;
 	bt_ctf_object_init_shared(&value.base, bt_ctf_value_destroy);
 	return value;
 }
 
 BT_HIDDEN
-struct bt_ctf_private_value *bt_ctf_private_value_bool_create_init(bt_bool val)
+struct bt_ctf_private_value *bt_ctf_private_value_bool_create_init(bt_ctf_bool val)
 {
 	struct bt_ctf_value_bool *bool_obj;
 
@@ -620,7 +620,7 @@ end:
 BT_HIDDEN
 struct bt_ctf_private_value *bt_ctf_private_value_bool_create(void)
 {
-	return bt_ctf_private_value_bool_create_init(BT_FALSE);
+	return bt_ctf_private_value_bool_create_init(BT_CTF_FALSE);
 }
 
 BT_HIDDEN
@@ -775,7 +775,7 @@ end:
 }
 
 BT_HIDDEN
-bt_bool bt_ctf_value_bool_get(const struct bt_ctf_value *bool_obj)
+bt_ctf_bool bt_ctf_value_bool_get(const struct bt_ctf_value *bool_obj)
 {
 	BT_CTF_ASSERT_PRE_NON_NULL(bool_obj, "Value object");
 	BT_CTF_ASSERT_PRE_VALUE_IS_TYPE(bool_obj, BT_CTF_VALUE_TYPE_BOOL);
@@ -783,7 +783,7 @@ bt_bool bt_ctf_value_bool_get(const struct bt_ctf_value *bool_obj)
 }
 
 BT_HIDDEN
-void bt_ctf_private_value_bool_set(struct bt_ctf_private_value *bool_obj, bt_bool val)
+void bt_ctf_private_value_bool_set(struct bt_ctf_private_value *bool_obj, bt_ctf_bool val)
 {
 	BT_CTF_ASSERT_PRE_NON_NULL(bool_obj, "Value object");
 	BT_CTF_ASSERT_PRE_VALUE_IS_TYPE(bool_obj, BT_CTF_VALUE_TYPE_BOOL);
@@ -907,7 +907,7 @@ enum bt_ctf_value_status bt_ctf_private_value_array_append_element(
 
 BT_HIDDEN
 enum bt_ctf_value_status bt_ctf_private_value_array_append_bool_element(
-		struct bt_ctf_private_value *array_obj, bt_bool val)
+		struct bt_ctf_private_value *array_obj, bt_ctf_bool val)
 {
 	enum bt_ctf_value_status ret;
 	struct bt_ctf_private_value *bool_obj = NULL;
@@ -1039,7 +1039,7 @@ struct bt_ctf_private_value *bt_ctf_private_value_map_borrow_entry_value(
 }
 
 BT_HIDDEN
-bt_bool bt_ctf_value_map_has_entry(const struct bt_ctf_value *map_obj, const char *key)
+bt_ctf_bool bt_ctf_value_map_has_entry(const struct bt_ctf_value *map_obj, const char *key)
 {
 	BT_CTF_ASSERT_PRE_NON_NULL(map_obj, "Value object");
 	BT_CTF_ASSERT_PRE_NON_NULL(key, "Key");
@@ -1069,7 +1069,7 @@ enum bt_ctf_value_status bt_ctf_private_value_map_insert_entry(
 
 BT_HIDDEN
 enum bt_ctf_value_status bt_ctf_private_value_map_insert_bool_entry(
-		struct bt_ctf_private_value *map_obj, const char *key, bt_bool val)
+		struct bt_ctf_private_value *map_obj, const char *key, bt_ctf_bool val)
 {
 	enum bt_ctf_value_status ret;
 	struct bt_ctf_private_value *bool_obj = NULL;
@@ -1196,10 +1196,10 @@ struct extend_map_element_data {
 };
 
 static
-bt_bool extend_map_element(const char *key,
+bt_ctf_bool extend_map_element(const char *key,
 		struct bt_ctf_value *extension_obj_elem, void *data)
 {
-	bt_bool ret = BT_TRUE;
+	bt_ctf_bool ret = BT_CTF_TRUE;
 	struct extend_map_element_data *extend_data = data;
 	struct bt_ctf_private_value *extension_obj_elem_copy = NULL;
 
@@ -1230,7 +1230,7 @@ bt_bool extend_map_element(const char *key,
 
 error:
 	BT_ASSERT(extend_data->status != BT_CTF_VALUE_STATUS_OK);
-	ret = BT_FALSE;
+	ret = BT_CTF_FALSE;
 
 end:
 	BT_CTF_OBJECT_PUT_REF_AND_RESET(extension_obj_elem_copy);
@@ -1322,10 +1322,10 @@ enum bt_ctf_value_status bt_ctf_value_copy(struct bt_ctf_private_value **copy_ob
 }
 
 BT_HIDDEN
-bt_bool bt_ctf_value_compare(const struct bt_ctf_value *object_a,
+bt_ctf_bool bt_ctf_value_compare(const struct bt_ctf_value *object_a,
 	const struct bt_ctf_value *object_b)
 {
-	bt_bool ret = BT_FALSE;
+	bt_ctf_bool ret = BT_CTF_FALSE;
 
 	BT_CTF_ASSERT_PRE_NON_NULL(object_a, "Value object A");
 	BT_CTF_ASSERT_PRE_NON_NULL(object_b, "Value object B");

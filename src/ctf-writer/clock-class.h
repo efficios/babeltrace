@@ -28,7 +28,7 @@
 #include "common/macros.h"
 #include "object-pool.h"
 #include "common/uuid.h"
-#include <babeltrace2/types.h>
+#include <babeltrace2/ctf-writer/types.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <glib.h>
@@ -58,7 +58,7 @@ BT_HIDDEN
 void bt_ctf_clock_class_freeze(struct bt_ctf_clock_class *clock_class);
 
 BT_HIDDEN
-bt_bool bt_ctf_clock_class_is_valid(struct bt_ctf_clock_class *clock_class);
+bt_ctf_bool bt_ctf_clock_class_is_valid(struct bt_ctf_clock_class *clock_class);
 
 BT_HIDDEN
 int bt_ctf_clock_class_compare(struct bt_ctf_clock_class *clock_class_a,
@@ -105,11 +105,11 @@ BT_HIDDEN
 int bt_ctf_clock_class_set_offset_cycles(
 		struct bt_ctf_clock_class *clock_class, int64_t cycles);
 BT_HIDDEN
-bt_bool bt_ctf_clock_class_is_absolute(
+bt_ctf_bool bt_ctf_clock_class_is_absolute(
 		struct bt_ctf_clock_class *clock_class);
 BT_HIDDEN
 int bt_ctf_clock_class_set_is_absolute(
-		struct bt_ctf_clock_class *clock_class, bt_bool is_absolute);
+		struct bt_ctf_clock_class *clock_class, bt_ctf_bool is_absolute);
 BT_HIDDEN
 const uint8_t *bt_ctf_clock_class_get_uuid(
 		struct bt_ctf_clock_class *clock_class);

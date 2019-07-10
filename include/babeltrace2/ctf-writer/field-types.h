@@ -30,8 +30,7 @@
 
 #include <stdint.h>
 #include <stddef.h>
-
-#include <babeltrace2/types.h>
+#include <babeltrace2/ctf-writer/types.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -145,7 +144,7 @@ extern int bt_ctf_field_type_integer_get_size(
 extern int bt_ctf_field_type_integer_set_size(
 		struct bt_ctf_field_type *int_field_type, unsigned int size);
 
-extern bt_bool bt_ctf_field_type_integer_is_signed(
+extern bt_ctf_bool bt_ctf_field_type_integer_is_signed(
 		struct bt_ctf_field_type *int_field_type);
 
 /* Pre-2.0 CTF writer compatibility */
@@ -157,7 +156,7 @@ int bt_ctf_field_type_integer_get_signed(
 }
 
 extern int bt_ctf_field_type_integer_set_is_signed(
-		struct bt_ctf_field_type *int_field_type, bt_bool is_signed);
+		struct bt_ctf_field_type *int_field_type, bt_ctf_bool is_signed);
 
 /* Pre-2.0 CTF writer compatibility */
 static inline
@@ -165,7 +164,7 @@ int bt_ctf_field_type_integer_set_signed(
 		struct bt_ctf_field_type *int_field_type, int is_signed)
 {
 	return bt_ctf_field_type_integer_set_is_signed(int_field_type,
-		is_signed ? BT_TRUE : BT_FALSE);
+		is_signed ? BT_CTF_TRUE : BT_CTF_FALSE);
 }
 
 extern enum bt_ctf_integer_base bt_ctf_field_type_integer_get_base(

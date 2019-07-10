@@ -67,7 +67,7 @@ typedef void (*bt_ctf_field_common_method_set_is_frozen)(struct bt_ctf_field_com
 typedef int (*bt_ctf_field_common_method_validate)(struct bt_ctf_field_common *);
 typedef struct bt_ctf_field_common *(*bt_ctf_field_common_method_copy)(
 		struct bt_ctf_field_common *);
-typedef bt_bool (*bt_ctf_field_common_method_is_set)(struct bt_ctf_field_common *);
+typedef bt_ctf_bool (*bt_ctf_field_common_method_is_set)(struct bt_ctf_field_common *);
 typedef void (*bt_ctf_field_common_method_reset)(struct bt_ctf_field_common *);
 
 struct bt_ctf_field_common_methods {
@@ -255,20 +255,20 @@ void _bt_ctf_field_common_set_is_frozen_recursive(struct bt_ctf_field_common *fi
 		bool is_frozen);
 
 BT_HIDDEN
-bt_bool bt_ctf_field_common_generic_is_set(struct bt_ctf_field_common *field);
+bt_ctf_bool bt_ctf_field_common_generic_is_set(struct bt_ctf_field_common *field);
 
 BT_HIDDEN
-bt_bool bt_ctf_field_common_structure_is_set_recursive(
+bt_ctf_bool bt_ctf_field_common_structure_is_set_recursive(
 		struct bt_ctf_field_common *field);
 
 BT_HIDDEN
-bt_bool bt_ctf_field_common_variant_is_set_recursive(struct bt_ctf_field_common *field);
+bt_ctf_bool bt_ctf_field_common_variant_is_set_recursive(struct bt_ctf_field_common *field);
 
 BT_HIDDEN
-bt_bool bt_ctf_field_common_array_is_set_recursive(struct bt_ctf_field_common *field);
+bt_ctf_bool bt_ctf_field_common_array_is_set_recursive(struct bt_ctf_field_common *field);
 
 BT_HIDDEN
-bt_bool bt_ctf_field_common_sequence_is_set_recursive(struct bt_ctf_field_common *field);
+bt_ctf_bool bt_ctf_field_common_sequence_is_set_recursive(struct bt_ctf_field_common *field);
 
 #ifdef BT_DEV_MODE
 # define bt_ctf_field_common_validate_recursive		_bt_ctf_field_common_validate_recursive
@@ -279,7 +279,7 @@ bt_bool bt_ctf_field_common_sequence_is_set_recursive(struct bt_ctf_field_common
 #else
 # define bt_ctf_field_common_validate_recursive(_field)	(-1)
 # define bt_ctf_field_common_set_is_frozen_recursive(_field, _is_frozen)
-# define bt_ctf_field_common_is_set_recursive(_field)	(BT_FALSE)
+# define bt_ctf_field_common_is_set_recursive(_field)	(BT_CTF_FALSE)
 # define bt_ctf_field_common_reset_recursive(_field)
 # define bt_ctf_field_common_set(_field, _val)
 #endif
@@ -329,9 +329,9 @@ void _bt_ctf_field_common_set(struct bt_ctf_field_common *field, bool value)
 }
 
 static inline
-bt_bool _bt_ctf_field_common_is_set_recursive(struct bt_ctf_field_common *field)
+bt_ctf_bool _bt_ctf_field_common_is_set_recursive(struct bt_ctf_field_common *field)
 {
-	bt_bool is_set = BT_FALSE;
+	bt_ctf_bool is_set = BT_CTF_FALSE;
 
 	if (!field) {
 		goto end;
@@ -844,7 +844,7 @@ struct bt_ctf_field *bt_ctf_field_enumeration_borrow_container(
 		struct bt_ctf_field *field);
 
 static inline
-bt_bool bt_ctf_field_is_set_recursive(struct bt_ctf_field *field)
+bt_ctf_bool bt_ctf_field_is_set_recursive(struct bt_ctf_field *field)
 {
 	return bt_ctf_field_common_is_set_recursive((void *) field);
 }

@@ -217,7 +217,7 @@ struct bt_ctf_stream *bt_ctf_writer_create_stream(struct bt_ctf_writer *writer,
 {
 	struct bt_ctf_stream *stream = NULL;
 	int stream_class_count;
-	bt_bool stream_class_found = BT_FALSE;
+	bt_ctf_bool stream_class_found = BT_CTF_FALSE;
 	int i;
 
 	if (!writer || !stream_class) {
@@ -236,7 +236,7 @@ struct bt_ctf_stream *bt_ctf_writer_create_stream(struct bt_ctf_writer *writer,
 				writer->trace, i);
 
 		if (existing_stream_class == stream_class) {
-			stream_class_found = BT_TRUE;
+			stream_class_found = BT_CTF_TRUE;
 		}
 
 		BT_CTF_OBJECT_PUT_REF_AND_RESET(existing_stream_class);

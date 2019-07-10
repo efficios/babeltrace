@@ -564,16 +564,16 @@ end:
 }
 
 BT_HIDDEN
-bt_bool bt_ctf_field_common_generic_is_set(struct bt_ctf_field_common *field)
+bt_ctf_bool bt_ctf_field_common_generic_is_set(struct bt_ctf_field_common *field)
 {
 	return field && field->payload_set;
 }
 
 BT_HIDDEN
-bt_bool bt_ctf_field_common_structure_is_set_recursive(
+bt_ctf_bool bt_ctf_field_common_structure_is_set_recursive(
 		struct bt_ctf_field_common *field)
 {
-	bt_bool is_set = BT_FALSE;
+	bt_ctf_bool is_set = BT_CTF_FALSE;
 	size_t i;
 	struct bt_ctf_field_common_structure *structure = BT_CTF_FROM_COMMON(field);
 
@@ -592,10 +592,10 @@ end:
 }
 
 BT_HIDDEN
-bt_bool bt_ctf_field_common_variant_is_set_recursive(struct bt_ctf_field_common *field)
+bt_ctf_bool bt_ctf_field_common_variant_is_set_recursive(struct bt_ctf_field_common *field)
 {
 	struct bt_ctf_field_common_variant *variant = BT_CTF_FROM_COMMON(field);
-	bt_bool is_set = BT_FALSE;
+	bt_ctf_bool is_set = BT_CTF_FALSE;
 
 	BT_ASSERT(field);
 
@@ -608,10 +608,10 @@ bt_bool bt_ctf_field_common_variant_is_set_recursive(struct bt_ctf_field_common 
 }
 
 BT_HIDDEN
-bt_bool bt_ctf_field_common_array_is_set_recursive(struct bt_ctf_field_common *field)
+bt_ctf_bool bt_ctf_field_common_array_is_set_recursive(struct bt_ctf_field_common *field)
 {
 	size_t i;
-	bt_bool is_set = BT_FALSE;
+	bt_ctf_bool is_set = BT_CTF_FALSE;
 	struct bt_ctf_field_common_array *array = BT_CTF_FROM_COMMON(field);
 
 	BT_ASSERT(field);
@@ -628,10 +628,10 @@ end:
 }
 
 BT_HIDDEN
-bt_bool bt_ctf_field_common_sequence_is_set_recursive(struct bt_ctf_field_common *field)
+bt_ctf_bool bt_ctf_field_common_sequence_is_set_recursive(struct bt_ctf_field_common *field)
 {
 	size_t i;
-	bt_bool is_set = BT_FALSE;
+	bt_ctf_bool is_set = BT_CTF_FALSE;
 	struct bt_ctf_field_common_sequence *sequence = BT_CTF_FROM_COMMON(field);
 
 	BT_ASSERT(field);
@@ -676,7 +676,7 @@ static
 int bt_ctf_field_enumeration_validate_recursive(struct bt_ctf_field_common *field);
 
 static
-bt_bool bt_ctf_field_enumeration_is_set_recursive(
+bt_ctf_bool bt_ctf_field_enumeration_is_set_recursive(
 		struct bt_ctf_field_common *field);
 
 static
@@ -730,7 +730,7 @@ static
 int bt_ctf_field_variant_validate_recursive(struct bt_ctf_field_common *field);
 
 static
-bt_bool bt_ctf_field_variant_is_set_recursive(struct bt_ctf_field_common *field);
+bt_ctf_bool bt_ctf_field_variant_is_set_recursive(struct bt_ctf_field_common *field);
 
 static
 void bt_ctf_field_variant_reset_recursive(struct bt_ctf_field_common *field);
@@ -1235,7 +1235,7 @@ struct bt_ctf_field *bt_ctf_field_variant_get_field(struct bt_ctf_field *field,
 	struct bt_ctf_field_type_common_variant *variant_ft;
 	struct bt_ctf_field_type_common_enumeration *tag_ft;
 	struct bt_ctf_field *current_field = NULL;
-	bt_bool is_signed;
+	bt_ctf_bool is_signed;
 	uint64_t tag_uval;
 	int ret;
 
@@ -1701,9 +1701,9 @@ int bt_ctf_field_enumeration_validate_recursive(struct bt_ctf_field_common *fiel
 }
 
 static
-bt_bool bt_ctf_field_enumeration_is_set_recursive(struct bt_ctf_field_common *field)
+bt_ctf_bool bt_ctf_field_enumeration_is_set_recursive(struct bt_ctf_field_common *field)
 {
-	bt_bool is_set = BT_FALSE;
+	bt_ctf_bool is_set = BT_CTF_FALSE;
 	struct bt_ctf_field_enumeration *enumeration = (void *) field;
 
 	if (enumeration->container) {
@@ -1763,9 +1763,9 @@ end:
 }
 
 static
-bt_bool bt_ctf_field_variant_is_set_recursive(struct bt_ctf_field_common *field)
+bt_ctf_bool bt_ctf_field_variant_is_set_recursive(struct bt_ctf_field_common *field)
 {
-	bt_bool is_set;
+	bt_ctf_bool is_set;
 	struct bt_ctf_field_variant *variant = (void *) field;
 
 	if (variant->tag) {

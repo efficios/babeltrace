@@ -78,11 +78,11 @@ extern int bt_ctf_clock_class_get_offset_cycles(
 extern int bt_ctf_clock_class_set_offset_cycles(
                 struct bt_ctf_clock_class *clock_class, int64_t cycles);
 
-extern bt_bool bt_ctf_clock_class_is_absolute(
+extern bt_ctf_bool bt_ctf_clock_class_is_absolute(
                 struct bt_ctf_clock_class *clock_class);
 
 extern int bt_ctf_clock_class_set_is_absolute(
-                struct bt_ctf_clock_class *clock_class, bt_bool is_absolute);
+                struct bt_ctf_clock_class *clock_class, bt_ctf_bool is_absolute);
 
 extern const uint8_t *bt_ctf_clock_class_get_uuid(
                 struct bt_ctf_clock_class *clock_class);
