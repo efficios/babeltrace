@@ -14,11 +14,6 @@ babeltrace2include_HEADERS = \
 	babeltrace2/value.h \
 	babeltrace2/version.h
 
-# Legacy API (for CTF writer)
-babeltrace2ctfincludedir = "$(includedir)/babeltrace2/ctf"
-babeltrace2ctfinclude_HEADERS = \
-	babeltrace2/ctf/events.h
-
 # CTF writer API
 babeltrace2ctfwriterincludedir = "$(includedir)/babeltrace2/ctf-writer"
 babeltrace2ctfwriterinclude_HEADERS = \
@@ -37,20 +32,6 @@ babeltrace2ctfwriterinclude_HEADERS = \
 	babeltrace2/ctf-writer/utils.h \
 	babeltrace2/ctf-writer/visitor.h \
 	babeltrace2/ctf-writer/writer.h
-
-# Legacy API (for CTF writer)
-babeltrace2ctfirincludedir = "$(includedir)/babeltrace2/ctf-ir"
-babeltrace2ctfirinclude_HEADERS = \
-	babeltrace2/ctf-ir/clock.h \
-	babeltrace2/ctf-ir/event-fields.h \
-	babeltrace2/ctf-ir/event-types.h \
-	babeltrace2/ctf-ir/event.h \
-	babeltrace2/ctf-ir/field-types.h \
-	babeltrace2/ctf-ir/fields.h \
-	babeltrace2/ctf-ir/stream-class.h \
-	babeltrace2/ctf-ir/stream.h \
-	babeltrace2/ctf-ir/trace.h \
-	babeltrace2/ctf-ir/utils.h
 
 # Trace IR API
 babeltrace2traceirincludedir = "$(includedir)/babeltrace2/trace-ir"
