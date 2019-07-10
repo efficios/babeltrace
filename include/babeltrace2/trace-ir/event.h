@@ -31,7 +31,6 @@
 # error "Please include <babeltrace2/babeltrace.h> instead."
 #endif
 
-/* For bt_event, bt_event_class, bt_field, bt_packet */
 #include <babeltrace2/types.h>
 
 #ifdef __cplusplus

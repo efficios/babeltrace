@@ -28,7 +28,6 @@
 # error "Please include <babeltrace2/babeltrace.h> instead."
 #endif
 
-/* For bt_bool, bt_message, bt_event. bt_clock_class, bt_clock_snapshot */
 #include <babeltrace2/types.h>
 
 #ifdef __cplusplus

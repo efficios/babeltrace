@@ -33,7 +33,6 @@
 
 #include <stdint.h>
 
-/* For bt_field, bt_field_class */
 #include <babeltrace2/types.h>
 
 #ifdef __cplusplus

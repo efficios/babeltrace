@@ -29,7 +29,6 @@
 
 #include <stdint.h>
 
-/* For bt_message, bt_self_message_iterator, bt_stream */
 #include <babeltrace2/types.h>
 
 #ifdef __cplusplus

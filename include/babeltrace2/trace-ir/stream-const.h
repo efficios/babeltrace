@@ -31,10 +31,9 @@
 # error "Please include <babeltrace2/babeltrace.h> instead."
 #endif
 
-/* For bt_trace, bt_stream, bt_stream_class */
-#include <babeltrace2/types.h>
-
 #include <stdint.h>
+
+#include <babeltrace2/types.h>
 
 #ifdef __cplusplus
 extern "C" {

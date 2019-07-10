@@ -29,10 +29,6 @@
 
 #include <stdarg.h>
 
-/*
- * For bt_error, bt_self_component, bt_self_component_class, and
- * bt_self_message_iterator
- */
 #include <babeltrace2/types.h>
 
 #ifdef __cplusplus

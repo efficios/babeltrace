@@ -29,7 +29,6 @@
 
 #include <stdint.h>
 
-/* For bt_self_message_iterator, bt_message, bt_clock_class */
 #include <babeltrace2/types.h>
 
 #ifdef __cplusplus

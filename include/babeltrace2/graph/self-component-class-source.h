@@ -28,10 +28,6 @@
 # error "Please include <babeltrace2/babeltrace.h> instead."
 #endif
 
-/*
- * For bt_component_class_source, bt_self_component_class_source,
- * __BT_UPCAST_CONST
- */
 #include <babeltrace2/types.h>
 
 #ifdef __cplusplus

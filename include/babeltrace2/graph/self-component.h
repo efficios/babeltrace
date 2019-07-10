@@ -27,7 +27,6 @@
 # error "Please include <babeltrace2/babeltrace.h> instead."
 #endif
 
-/* For bt_component, bt_self_component, __BT_UPCAST */
 #include <babeltrace2/types.h>
 
 #ifdef __cplusplus

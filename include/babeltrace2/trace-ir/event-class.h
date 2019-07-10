@@ -33,10 +33,7 @@
 
 #include <stdint.h>
 
-/* For bt_event_class_log_level */
 #include <babeltrace2/trace-ir/event-class-const.h>
-
-/* For bt_event_class, bt_stream_class */
 #include <babeltrace2/types.h>
 
 #ifdef __cplusplus

@@ -33,7 +33,6 @@
 
 #include <stdint.h>
 
-/* For bt_bool, bt_uuid, bt_trace, bt_trace_class, bt_stream */
 #include <babeltrace2/types.h>
 
 #ifdef __cplusplus

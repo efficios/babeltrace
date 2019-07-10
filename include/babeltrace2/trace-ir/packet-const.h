@@ -32,12 +32,7 @@
 
 #include <stdint.h>
 
-/* For bt_property_availability */
 #include <babeltrace2/property.h>
-
-/*
- * For bt_packet, bt_packet_context_field, bt_stream
- */
 #include <babeltrace2/types.h>
 
 #ifdef __cplusplus

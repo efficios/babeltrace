@@ -29,13 +29,7 @@
 
 #include <stdint.h>
 
-/* For bt_self_component_*_status */
 #include <babeltrace2/graph/self-component.h>
-
-/*
- * For bt_component_source, bt_self_component, bt_self_component_source,
- * bt_self_component_port_output, __BT_UPCAST, __BT_UPCAST_CONST
- */
 #include <babeltrace2/types.h>
 
 #ifdef __cplusplus

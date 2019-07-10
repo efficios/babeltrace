@@ -31,14 +31,11 @@
 # error "Please include <babeltrace2/babeltrace.h> instead."
 #endif
 
-/* For bt_property_availability */
-#include <babeltrace2/property.h>
-
-/* For bt_event_class, bt_field_class, bt_stream_class */
-#include <babeltrace2/types.h>
-
 #include <stdint.h>
 #include <stddef.h>
+
+#include <babeltrace2/property.h>
+#include <babeltrace2/types.h>
 
 #ifdef __cplusplus
 extern "C" {

@@ -30,7 +30,6 @@
 # error "Please include <babeltrace2/babeltrace.h> instead."
 #endif
 
-/* For bt_stream_class, bt_packet_context_field, bt_field */
 #include <babeltrace2/types.h>
 
 #ifdef __cplusplus

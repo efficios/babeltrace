@@ -30,7 +30,6 @@
 #include <stdint.h>
 #include <stddef.h>
 
-/* For bt_error, bt_error_cause */
 #include <babeltrace2/types.h>
 
 #ifdef __cplusplus

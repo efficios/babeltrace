@@ -28,16 +28,7 @@
 # error "Please include <babeltrace2/babeltrace.h> instead."
 #endif
 
-/*
- * For bt_bool, bt_component, bt_component_class,
- * bt_component_class_filter, bt_component_class_sink,
- * bt_component_class_source, bt_component_filter, bt_component_sink,
- * bt_component_source, bt_connection, bt_graph, bt_port_input,
- * bt_port_output, bt_value
- */
 #include <babeltrace2/types.h>
-
-/* For bt_logging_level */
 #include <babeltrace2/logging.h>
 
 #ifdef __cplusplus

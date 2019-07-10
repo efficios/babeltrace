@@ -28,7 +28,6 @@
 # error "Please include <babeltrace2/babeltrace.h> instead."
 #endif
 
-/* For bt_message */
 #include <babeltrace2/types.h>
 
 #ifdef __cplusplus

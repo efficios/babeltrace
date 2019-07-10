@@ -30,18 +30,8 @@
 
 #include <stdint.h>
 
-/* For bt_component_class_*_status */
 #include <babeltrace2/graph/component-class.h>
-
-/*
- * For bt_component_class, bt_component_class_sink, bt_port_output,
- * bt_query_executor, bt_self_component_class_sink,
- * bt_self_component_sink, bt_self_component_port_input, bt_value,
- * __BT_UPCAST
- */
 #include <babeltrace2/types.h>
-
-/* For bt_logging_level */
 #include <babeltrace2/logging.h>
 
 #ifdef __cplusplus

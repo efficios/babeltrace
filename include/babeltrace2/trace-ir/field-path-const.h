@@ -32,7 +32,6 @@
 
 #include <stdint.h>
 
-/* For bt_field_path, bt_field_path_item */
 #include <babeltrace2/types.h>
 
 #ifdef __cplusplus
