@@ -52,6 +52,22 @@ struct bt_config *bt_config_cli_args_create_with_default(int argc,
 		goto error;
 	}
 
+#ifdef CONFIG_IN_TREE_PROVIDER_DIR
+	/*
+	 * Set LIBBABELTRACE2_PLUGIN_PROVIDER_DIR to load the in-tree Python
+	 * plugin provider, if the env variable is already set, do not overwrite
+	 * it.
+	 */
+	setenv("LIBBABELTRACE2_PLUGIN_PROVIDER_DIR", CONFIG_IN_TREE_PROVIDER_DIR, 0);
+#else
+	/*
+	 * If the Pyhton plugin provider is disabled, use a non-exitent path to avoid
+	 * loading the system installed provider if it exit, if the env variable is
+	 * already set, do not overwrite it.
+	 */
+	setenv("LIBBABELTRACE2_PLUGIN_PROVIDER_DIR", "/nonexistent", 0);
+#endif
+
 	cfg = bt_config_cli_args_create(argc, argv, retcode, true, true,
 		initial_plugin_paths);
 	goto end;

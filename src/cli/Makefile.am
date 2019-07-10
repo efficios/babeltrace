@@ -13,6 +13,10 @@ endif
 
 AM_CPPFLAGS += '-DCONFIG_IN_TREE_PLUGIN_PATH="$(IN_TREE_PLUGIN_PATH)"'
 
+if ENABLE_PYTHON_PLUGINS
+AM_CPPFLAGS += '-DCONFIG_IN_TREE_PROVIDER_DIR="$(abs_top_builddir)/src/python-plugin-provider/.libs"'
+endif
+
 bin_PROGRAMS = babeltrace2.bin babeltrace2-log.bin
 noinst_PROGRAMS = babeltrace2 babeltrace2-log
 
