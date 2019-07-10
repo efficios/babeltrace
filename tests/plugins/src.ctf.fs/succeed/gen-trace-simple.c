@@ -78,7 +78,7 @@ void configure_writer(struct config *cfg, const char *path)
 	BT_ASSERT(cfg->ec);
 	ft = bt_ctf_field_type_integer_create(8);
 	BT_ASSERT(ft);
-	ret = bt_ctf_field_type_integer_set_is_signed(ft, BT_TRUE);
+	ret = bt_ctf_field_type_integer_set_is_signed(ft, BT_CTF_TRUE);
 	BT_ASSERT(ret == 0);
 	ret = bt_ctf_event_class_add_field(cfg->ec, ft, "first");
 	BT_ASSERT(ret == 0);

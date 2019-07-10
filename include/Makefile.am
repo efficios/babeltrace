@@ -34,6 +34,7 @@ babeltrace2ctfwriterinclude_HEADERS = \
 	babeltrace2/ctf-writer/stream-class.h \
 	babeltrace2/ctf-writer/stream.h \
 	babeltrace2/ctf-writer/trace.h \
+	babeltrace2/ctf-writer/types.h \
 	babeltrace2/ctf-writer/utils.h \
 	babeltrace2/ctf-writer/visitor.h \
 	babeltrace2/ctf-writer/writer.h

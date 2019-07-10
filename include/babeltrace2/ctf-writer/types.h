@@ -1,8 +1,8 @@
-#ifndef BABELTRACE_CTF_WRITER_UTILS_H
-#define BABELTRACE_CTF_WRITER_UTILS_H
+#ifndef BABELTRACE2_CTF_WRITER_TYPES_H
+#define BABELTRACE2_CTF_WRITER_TYPES_H
 
 /*
- * Copyright 2015 Jérémie Galarneau <jeremie.galarneau@efficios.com>
+ * Copyright 2013, 2014 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
  * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
@@ -28,23 +28,20 @@
  * http://www.efficios.com/ctf
  */
 
-/* For bt_ctf_bool */
-#include <babeltrace2/ctf-writer/types.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-extern bt_ctf_bool bt_ctf_identifier_is_valid(const char *identifier);
+/// False boolean value for the #bt_ctf_bool type.
+#define BT_CTF_FALSE    0
 
-static inline
-int bt_ctf_validate_identifier(const char *identifier)
-{
-	return bt_ctf_identifier_is_valid(identifier) ? 1 : 0;
-}
+/// True boolean value for the #bt_ctf_bool type.
+#define BT_CTF_TRUE     1
+
+typedef int bt_ctf_bool;
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* BABELTRACE_CTF_WRITER_UTILS_H */
+#endif /* BABELTRACE2_CTF_WRITER_TYPES_H */

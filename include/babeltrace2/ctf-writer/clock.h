@@ -30,7 +30,7 @@
 
 #include <stdint.h>
 #include <babeltrace2/ctf-writer/object.h>
-#include <babeltrace2/types.h>
+#include <babeltrace2/ctf-writer/types.h>
 
 #ifdef __cplusplus
 extern "C" {

@@ -46,7 +46,7 @@ static
 void bt_ctf_clock_class_destroy(struct bt_ctf_object *obj);
 
 BT_HIDDEN
-bt_bool bt_ctf_clock_class_is_valid(struct bt_ctf_clock_class *clock_class)
+bt_ctf_bool bt_ctf_clock_class_is_valid(struct bt_ctf_clock_class *clock_class)
 {
 	return clock_class && clock_class->name;
 }
@@ -412,7 +412,7 @@ end:
 }
 
 BT_HIDDEN
-bt_bool bt_ctf_clock_class_is_absolute(struct bt_ctf_clock_class *clock_class)
+bt_ctf_bool bt_ctf_clock_class_is_absolute(struct bt_ctf_clock_class *clock_class)
 {
 	int ret = -1;
 
@@ -428,7 +428,7 @@ end:
 
 BT_HIDDEN
 int bt_ctf_clock_class_set_is_absolute(struct bt_ctf_clock_class *clock_class,
-		bt_bool is_absolute)
+		bt_ctf_bool is_absolute)
 {
 	int ret = 0;
 

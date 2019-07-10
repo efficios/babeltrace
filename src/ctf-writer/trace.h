@@ -50,7 +50,7 @@ struct bt_ctf_trace_common {
 	GString *name;
 	int frozen;
 	bt_uuid_t uuid;
-	bt_bool uuid_set;
+	bt_ctf_bool uuid_set;
 	enum bt_ctf_byte_order native_byte_order;
 	struct bt_ctf_private_value *environment;
 	GPtrArray *clock_classes; /* Array of pointers to bt_ctf_clock_class */
@@ -67,7 +67,7 @@ struct bt_ctf_trace_common {
 };
 
 BT_HIDDEN
-bt_bool bt_ctf_trace_common_has_clock_class(struct bt_ctf_trace_common *trace,
+bt_ctf_bool bt_ctf_trace_common_has_clock_class(struct bt_ctf_trace_common *trace,
 		struct bt_ctf_clock_class *clock_class);
 
 BT_HIDDEN

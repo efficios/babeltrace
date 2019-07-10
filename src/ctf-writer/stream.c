@@ -1872,7 +1872,7 @@ void bt_ctf_stream_destroy(struct bt_ctf_object *obj)
 
 static
 int _set_structure_field_integer(struct bt_ctf_field *structure, char *name,
-		uint64_t value, bt_bool force)
+		uint64_t value, bt_ctf_bool force)
 {
 	int ret = 0;
 	struct bt_ctf_field_type *field_type = NULL;
@@ -1937,7 +1937,7 @@ static
 int try_set_structure_field_integer(struct bt_ctf_field *structure, char *name,
 		uint64_t value)
 {
-	return _set_structure_field_integer(structure, name, value, BT_FALSE);
+	return _set_structure_field_integer(structure, name, value, BT_CTF_FALSE);
 }
 
 struct bt_ctf_stream_class *bt_ctf_stream_get_class(

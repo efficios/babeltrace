@@ -32,7 +32,7 @@
 #include <stddef.h>
 
 #include <babeltrace2/ctf-writer/field-types.h>
-#include <babeltrace2/types.h>
+#include <babeltrace2/ctf-writer/types.h>
 
 #include "common/macros.h"
 
@@ -135,7 +135,7 @@ struct bt_ctf_field_type_common_integer {
 	struct bt_ctf_clock_class *mapped_clock_class;
 
 	enum bt_ctf_byte_order user_byte_order;
-	bt_bool is_signed;
+	bt_ctf_bool is_signed;
 	unsigned int size;
 	enum bt_ctf_integer_base base;
 	enum bt_ctf_string_encoding encoding;
@@ -163,7 +163,7 @@ struct bt_ctf_field_type_common_enumeration {
 	GPtrArray *entries;
 
 	/* Only set during validation */
-	bt_bool has_overlapping_ranges;
+	bt_ctf_bool has_overlapping_ranges;
 };
 
 enum bt_ctf_field_type_enumeration_mapping_iterator_type {
@@ -394,11 +394,11 @@ BT_HIDDEN
 int bt_ctf_field_type_common_integer_get_size(struct bt_ctf_field_type_common *ft);
 
 BT_HIDDEN
-bt_bool bt_ctf_field_type_common_integer_is_signed(struct bt_ctf_field_type_common *ft);
+bt_ctf_bool bt_ctf_field_type_common_integer_is_signed(struct bt_ctf_field_type_common *ft);
 
 BT_HIDDEN
 int bt_ctf_field_type_common_integer_set_is_signed(struct bt_ctf_field_type_common *ft,
-		bt_bool is_signed);
+		bt_ctf_bool is_signed);
 
 BT_HIDDEN
 int bt_ctf_field_type_common_integer_set_size(struct bt_ctf_field_type_common *ft,

@@ -82,29 +82,29 @@ void trace_finalize(void)
 	}
 }
 
-bt_bool bt_ctf_identifier_is_valid(const char *identifier)
+bt_ctf_bool bt_ctf_identifier_is_valid(const char *identifier)
 {
-	bt_bool is_valid = BT_TRUE;
+	bt_ctf_bool is_valid = BT_CTF_TRUE;
 	char *string = NULL;
 	char *save_ptr, *token;
 
 	if (!identifier) {
 		BT_LOGT_STR("Invalid parameter: input string is NULL.");
-		is_valid = BT_FALSE;
+		is_valid = BT_CTF_FALSE;
 		goto end;
 	}
 
 	try_init_reserved_keywords();
 
 	if (identifier[0] == '\0') {
-		is_valid = BT_FALSE;
+		is_valid = BT_CTF_FALSE;
 		goto end;
 	}
 
 	string = strdup(identifier);
 	if (!string) {
 		BT_LOGE("strdup() failed.");
-		is_valid = BT_FALSE;
+		is_valid = BT_CTF_FALSE;
 		goto end;
 	}
 
@@ -113,7 +113,7 @@ bt_bool bt_ctf_identifier_is_valid(const char *identifier)
 		if (g_hash_table_lookup_extended(reserved_keywords_set,
 			GINT_TO_POINTER(g_quark_from_string(token)),
 			NULL, NULL)) {
-			is_valid = BT_FALSE;
+			is_valid = BT_CTF_FALSE;
 			goto end;
 		}
 

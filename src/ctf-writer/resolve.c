@@ -179,7 +179,7 @@ end:
  * Checks whether or not `stack` is empty.
  */
 static
-bt_bool type_stack_empty(type_stack *stack)
+bt_ctf_bool type_stack_empty(type_stack *stack)
 {
 	return stack->len == 0;
 }
@@ -402,7 +402,7 @@ int ptokens_to_field_path(GList *ptokens, struct bt_ctf_field_path *field_path,
 {
 	int ret = 0;
 	GList *cur_ptoken = ptokens;
-	bt_bool first_level_done = BT_FALSE;
+	bt_ctf_bool first_level_done = BT_CTF_FALSE;
 
 	/* Get our own reference */
 	bt_ctf_object_get_ref(type);
@@ -445,7 +445,7 @@ int ptokens_to_field_path(GList *ptokens, struct bt_ctf_field_path *field_path,
 
 			/* Next path token */
 			cur_ptoken = g_list_next(cur_ptoken);
-			first_level_done = BT_TRUE;
+			first_level_done = BT_CTF_TRUE;
 		}
 
 		/* Create new field path entry */
@@ -558,7 +558,7 @@ int relative_ptokens_to_field_path(GList *ptokens,
 			int tail_field_path_len =
 				tail_field_path->indexes->len;
 
-			while (BT_TRUE) {
+			while (BT_CTF_TRUE) {
 				struct bt_ctf_field_type_common *cur_type =
 					type_stack_at(ctx->type_stack, i)->type;
 				int index = type_stack_at(
@@ -842,7 +842,7 @@ int get_field_paths_lca_index(struct bt_ctf_field_path *field_path1,
 	field_path1_len = field_path1->indexes->len;
 	field_path2_len = field_path2->indexes->len;
 
-	while (BT_TRUE) {
+	while (BT_CTF_TRUE) {
 		int target_index, ctx_index;
 
 		if (lca_index == field_path2_len ||

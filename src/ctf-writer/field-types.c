@@ -871,7 +871,7 @@ void bt_ctf_field_type_common_enumeration_set_range_overlap(
 							<= mapping[1]->range_end._signed
 						&& mapping[0]->range_end._signed
 							>= mapping[1]->range_start._signed) {
-					ft->has_overlapping_ranges = BT_TRUE;
+					ft->has_overlapping_ranges = BT_CTF_TRUE;
 					goto end;
 				}
 			} else {
@@ -879,7 +879,7 @@ void bt_ctf_field_type_common_enumeration_set_range_overlap(
 							<= mapping[1]->range_end._unsigned
 						&& mapping[0]->range_end._unsigned
 							>= mapping[1]->range_start._unsigned) {
-					ft->has_overlapping_ranges = BT_TRUE;
+					ft->has_overlapping_ranges = BT_CTF_TRUE;
 					goto end;
 				}
 			}
@@ -999,7 +999,7 @@ end:
 }
 
 static
-bt_bool bt_ctf_field_type_common_enumeration_has_overlapping_ranges(
+bt_ctf_bool bt_ctf_field_type_common_enumeration_has_overlapping_ranges(
 		struct bt_ctf_field_type_common_enumeration *enum_ft)
 {
 	if (!enum_ft->common.frozen) {
@@ -1133,7 +1133,7 @@ int bt_ctf_field_type_common_integer_get_size(struct bt_ctf_field_type_common *f
 }
 
 BT_HIDDEN
-bt_bool bt_ctf_field_type_common_integer_is_signed(struct bt_ctf_field_type_common *ft)
+bt_ctf_bool bt_ctf_field_type_common_integer_is_signed(struct bt_ctf_field_type_common *ft)
 {
 	struct bt_ctf_field_type_common_integer *int_ft = BT_CTF_FROM_COMMON(ft);
 
@@ -1145,7 +1145,7 @@ bt_bool bt_ctf_field_type_common_integer_is_signed(struct bt_ctf_field_type_comm
 
 BT_HIDDEN
 int bt_ctf_field_type_common_integer_set_is_signed(struct bt_ctf_field_type_common *ft,
-		bt_bool is_signed)
+		bt_ctf_bool is_signed)
 {
 	int ret = 0;
 	struct bt_ctf_field_type_common_integer *int_ft = BT_CTF_FROM_COMMON(ft);
@@ -4597,13 +4597,13 @@ int bt_ctf_field_type_integer_get_size(struct bt_ctf_field_type *ft)
 	return bt_ctf_field_type_common_integer_get_size((void *) ft);
 }
 
-bt_bool bt_ctf_field_type_integer_is_signed(struct bt_ctf_field_type *ft)
+bt_ctf_bool bt_ctf_field_type_integer_is_signed(struct bt_ctf_field_type *ft)
 {
 	return bt_ctf_field_type_common_integer_is_signed((void *) ft);
 }
 
 int bt_ctf_field_type_integer_set_is_signed(struct bt_ctf_field_type *ft,
-		bt_bool is_signed)
+		bt_ctf_bool is_signed)
 {
 	return bt_ctf_field_type_common_integer_set_is_signed((void *) ft,
 		is_signed);
