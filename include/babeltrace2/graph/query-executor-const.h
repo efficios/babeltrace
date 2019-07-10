@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_GRAPH_QUERY_EXECUTOR_CONST_H
-#define BABELTRACE_GRAPH_QUERY_EXECUTOR_CONST_H
+#ifndef BABELTRACE2_GRAPH_QUERY_EXECUTOR_CONST_H
+#define BABELTRACE2_GRAPH_QUERY_EXECUTOR_CONST_H
 
 /*
  * Copyright 2017-2018 Philippe Proulx <pproulx@efficios.com>
@@ -57,4 +57,4 @@ extern void bt_query_executor_put_ref(
 }
 #endif
 
-#endif /* BABELTRACE_GRAPH_QUERY_EXECUTOR_CONST_H */
+#endif /* BABELTRACE2_GRAPH_QUERY_EXECUTOR_CONST_H */

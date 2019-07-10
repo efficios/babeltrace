@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_TRACE_IR_PACKET_CONTEXT_FIELD_H
-#define BABELTRACE_TRACE_IR_PACKET_CONTEXT_FIELD_H
+#ifndef BABELTRACE2_TRACE_IR_PACKET_CONTEXT_FIELD_H
+#define BABELTRACE2_TRACE_IR_PACKET_CONTEXT_FIELD_H
 
 /*
  * Copyright 2018 Philippe Proulx <pproulx@efficios.com>
@@ -49,4 +49,4 @@ void bt_packet_context_field_release(
 }
 #endif
 
-#endif /* BABELTRACE_TRACE_IR_PACKET_CONTEXT_FIELD_H */
+#endif /* BABELTRACE2_TRACE_IR_PACKET_CONTEXT_FIELD_H */

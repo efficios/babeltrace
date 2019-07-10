@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_CTF_WRITER_UTILS_H
-#define BABELTRACE_CTF_WRITER_UTILS_H
+#ifndef BABELTRACE2_CTF_WRITER_UTILS_H
+#define BABELTRACE2_CTF_WRITER_UTILS_H
 
 /*
  * Copyright 2015 Jérémie Galarneau <jeremie.galarneau@efficios.com>
@@ -47,4 +47,4 @@ int bt_ctf_validate_identifier(const char *identifier)
 }
 #endif
 
-#endif /* BABELTRACE_CTF_WRITER_UTILS_H */
+#endif /* BABELTRACE2_CTF_WRITER_UTILS_H */

@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_CTF_WRITER_FIELDS_H
-#define BABELTRACE_CTF_WRITER_FIELDS_H
+#ifndef BABELTRACE2_CTF_WRITER_FIELDS_H
+#define BABELTRACE2_CTF_WRITER_FIELDS_H
 
 /*
  * Copyright 2013, 2014 Jérémie Galarneau <jeremie.galarneau@efficios.com>
@@ -136,4 +136,4 @@ extern struct bt_ctf_field *bt_ctf_field_variant_get_current_field(
 }
 #endif
 
-#endif /* BABELTRACE_CTF_WRITER_FIELDS_H */
+#endif /* BABELTRACE2_CTF_WRITER_FIELDS_H */

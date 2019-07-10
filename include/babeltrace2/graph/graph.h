@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_GRAPH_GRAPH_H
-#define BABELTRACE_GRAPH_GRAPH_H
+#ifndef BABELTRACE2_GRAPH_GRAPH_H
+#define BABELTRACE2_GRAPH_GRAPH_H
 
 /*
  * Copyright 2017-2018 Philippe Proulx <pproulx@efficios.com>
@@ -260,4 +260,4 @@ extern bt_graph_cancel_status bt_graph_cancel(bt_graph *graph);
 
 #include <babeltrace2/undef-func-status.h>
 
-#endif /* BABELTRACE_GRAPH_GRAPH_H */
+#endif /* BABELTRACE2_GRAPH_GRAPH_H */

@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_TRACE_IR_FIELDS_H
-#define BABELTRACE_TRACE_IR_FIELDS_H
+#ifndef BABELTRACE2_TRACE_IR_FIELD_H
+#define BABELTRACE2_TRACE_IR_FIELD_H
 
 /*
  * Copyright 2017-2018 Philippe Proulx <pproulx@efficios.com>
@@ -105,4 +105,4 @@ extern bt_field *bt_field_variant_borrow_selected_option_field(
 
 #include <babeltrace2/undef-func-status.h>
 
-#endif /* BABELTRACE_TRACE_IR_FIELDS_H */
+#endif /* BABELTRACE2_TRACE_IR_FIELD_H */

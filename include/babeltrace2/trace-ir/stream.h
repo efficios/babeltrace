@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_TRACE_IR_STREAM_H
-#define BABELTRACE_TRACE_IR_STREAM_H
+#ifndef BABELTRACE2_TRACE_IR_STREAM_H
+#define BABELTRACE2_TRACE_IR_STREAM_H
 
 /*
  * Copyright 2017-2018 Philippe Proulx <pproulx@efficios.com>
@@ -66,4 +66,4 @@ extern bt_stream_set_name_status bt_stream_set_name(bt_stream *stream,
 
 #include <babeltrace2/undef-func-status.h>
 
-#endif /* BABELTRACE_TRACE_IR_STREAM_H */
+#endif /* BABELTRACE2_TRACE_IR_STREAM_H */

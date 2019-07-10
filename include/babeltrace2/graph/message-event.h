@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_GRAPH_MESSAGE_EVENT_H
-#define BABELTRACE_GRAPH_MESSAGE_EVENT_H
+#ifndef BABELTRACE2_GRAPH_MESSAGE_EVENT_H
+#define BABELTRACE2_GRAPH_MESSAGE_EVENT_H
 
 /*
  * Copyright 2017-2018 Philippe Proulx <pproulx@efficios.com>
@@ -67,4 +67,4 @@ extern bt_event *bt_message_event_borrow_event(
 }
 #endif
 
-#endif /* BABELTRACE_GRAPH_MESSAGE_EVENT_H */
+#endif /* BABELTRACE2_GRAPH_MESSAGE_EVENT_H */

@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_TRACE_IR_EVENT_CLASS_H
-#define BABELTRACE_TRACE_IR_EVENT_CLASS_H
+#ifndef BABELTRACE2_TRACE_IR_EVENT_CLASS_H
+#define BABELTRACE2_TRACE_IR_EVENT_CLASS_H
 
 /*
  * Copyright 2017-2018 Philippe Proulx <pproulx@efficios.com>
@@ -98,4 +98,4 @@ extern bt_field_class *bt_event_class_borrow_payload_field_class(
 
 #include <babeltrace2/undef-func-status.h>
 
-#endif /* BABELTRACE_TRACE_IR_EVENT_CLASS_H */
+#endif /* BABELTRACE2_TRACE_IR_EVENT_CLASS_H */

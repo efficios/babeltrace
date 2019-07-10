@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_VERSION_H
-#define BABELTRACE_VERSION_H
+#ifndef BABELTRACE2_VERSION_H
+#define BABELTRACE2_VERSION_H
 
 /*
  * Copyright 2017 Philippe Proulx <pproulx@efficios.com>
@@ -36,4 +36,4 @@ extern const char *bt_version_get_extra(void);
 }
 #endif
 
-#endif /* BABELTRACE_VERSION_H */
+#endif /* BABELTRACE2_VERSION_H */

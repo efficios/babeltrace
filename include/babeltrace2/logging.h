@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_LOGGING_H
-#define BABELTRACE_LOGGING_H
+#ifndef BABELTRACE2_LOGGING_H
+#define BABELTRACE2_LOGGING_H
 
 /*
  * Copyright (c) 2017 Philippe Proulx <pproulx@efficios.com>
@@ -146,4 +146,4 @@ extern void bt_logging_set_global_level(bt_logging_level log_level);
 }
 #endif
 
-#endif /* BABELTRACE_LOGGING_H */
+#endif /* BABELTRACE2_LOGGING_H */

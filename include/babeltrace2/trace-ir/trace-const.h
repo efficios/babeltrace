@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_TRACE_IR_TRACE_CONST_H
-#define BABELTRACE_TRACE_IR_TRACE_CONST_H
+#ifndef BABELTRACE2_TRACE_IR_TRACE_CONST_H
+#define BABELTRACE2_TRACE_IR_TRACE_CONST_H
 
 /*
  * Copyright 2017-2018 Philippe Proulx <pproulx@efficios.com>
@@ -112,4 +112,4 @@ extern void bt_trace_put_ref(const bt_trace *trace);
 
 #include <babeltrace2/undef-func-status.h>
 
-#endif /* BABELTRACE_TRACE_IR_TRACE_CONST_H */
+#endif /* BABELTRACE2_TRACE_IR_TRACE_CONST_H */

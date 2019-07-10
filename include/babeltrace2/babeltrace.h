@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_BABELTRACE_H
-#define BABELTRACE_BABELTRACE_H
+#ifndef BABELTRACE2_BABELTRACE_H
+#define BABELTRACE2_BABELTRACE_H
 
 /*
  * Babeltrace API
@@ -121,4 +121,4 @@
 #include <babeltrace2/graph/self-component.h>
 #include <babeltrace2/graph/self-message-iterator.h>
 
-#endif /* BABELTRACE_BABELTRACE_H */
+#endif /* BABELTRACE2_BABELTRACE_H */

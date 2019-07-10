@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_GRAPH_MESSAGE_DISCARDED_EVENTS_H
-#define BABELTRACE_GRAPH_MESSAGE_DISCARDED_EVENTS_H
+#ifndef BABELTRACE2_GRAPH_MESSAGE_DISCARDED_EVENTS_H
+#define BABELTRACE2_GRAPH_MESSAGE_DISCARDED_EVENTS_H
 
 /*
  * Copyright 2019 Philippe Proulx <pproulx@efficios.com>
@@ -51,4 +51,4 @@ extern void bt_message_discarded_events_set_count(bt_message *message,
 }
 #endif
 
-#endif /* BABELTRACE_GRAPH_MESSAGE_DISCARDED_EVENTS_H */
+#endif /* BABELTRACE2_GRAPH_MESSAGE_DISCARDED_EVENTS_H */

@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_TRACE_IR_EVENT_CONST_H
-#define BABELTRACE_TRACE_IR_EVENT_CONST_H
+#ifndef BABELTRACE2_TRACE_IR_EVENT_CONST_H
+#define BABELTRACE2_TRACE_IR_EVENT_CONST_H
 
 /*
  * Copyright 2017-2018 Philippe Proulx <pproulx@efficios.com>
@@ -56,4 +56,4 @@ extern const bt_field *bt_event_borrow_payload_field_const(
 }
 #endif
 
-#endif /* BABELTRACE_TRACE_IR_EVENT_CONST_H */
+#endif /* BABELTRACE2_TRACE_IR_EVENT_CONST_H */

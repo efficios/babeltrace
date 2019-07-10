@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_PLUGIN_PLUGIN_SET_CONST_H
-#define BABELTRACE_PLUGIN_PLUGIN_SET_CONST_H
+#ifndef BABELTRACE2_PLUGIN_PLUGIN_SET_CONST_H
+#define BABELTRACE2_PLUGIN_PLUGIN_SET_CONST_H
 
 /*
  * Copyright 2017-2018 Philippe Proulx <pproulx@efficios.com>
@@ -60,4 +60,4 @@ extern void bt_plugin_set_put_ref(const bt_plugin_set *plugin_set);
 }
 #endif
 
-#endif /* BABELTRACE_PLUGIN_PLUGIN_SET_CONST_H */
+#endif /* BABELTRACE2_PLUGIN_PLUGIN_SET_CONST_H */

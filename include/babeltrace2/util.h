@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_UTIL_H
-#define BABELTRACE_UTIL_H
+#ifndef BABELTRACE2_UTIL_H
+#define BABELTRACE2_UTIL_H
 
 /*
  * Copyright (c) 2015-2018 Philippe Proulx <pproulx@efficios.com>
@@ -42,4 +42,4 @@ bt_util_status bt_util_clock_cycles_to_ns_from_origin(uint64_t cycles,
 }
 #endif
 
-#endif /* BABELTRACE_UTIL_H */
+#endif /* BABELTRACE2_UTIL_H */

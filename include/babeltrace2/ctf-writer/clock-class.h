@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_CTF_WRITER_CLOCK_CLASS_H
-#define BABELTRACE_CTF_WRITER_CLOCK_CLASS_H
+#ifndef BABELTRACE2_CTF_WRITER_CLOCK_CLASS_H
+#define BABELTRACE2_CTF_WRITER_CLOCK_CLASS_H
 
 /*
  * BabelTrace - CTF Writer: Clock Class
@@ -93,4 +93,4 @@ extern int bt_ctf_clock_class_set_uuid(struct bt_ctf_clock_class *clock_class,
 }
 #endif
 
-#endif /* BABELTRACE_CTF_WRITER_CLOCK_CLASS_H */
+#endif /* BABELTRACE2_CTF_WRITER_CLOCK_CLASS_H */

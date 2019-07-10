@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_GRAPH_SELF_COMPONENT_SINK_H
-#define BABELTRACE_GRAPH_SELF_COMPONENT_SINK_H
+#ifndef BABELTRACE2_GRAPH_SELF_COMPONENT_SINK_H
+#define BABELTRACE2_GRAPH_SELF_COMPONENT_SINK_H
 
 /*
  * Copyright 2017-2018 Philippe Proulx <pproulx@efficios.com>
@@ -72,4 +72,4 @@ bt_self_component_sink_add_input_port(
 }
 #endif
 
-#endif /* BABELTRACE_GRAPH_SELF_COMPONENT_SINK_H */
+#endif /* BABELTRACE2_GRAPH_SELF_COMPONENT_SINK_H */

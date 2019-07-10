@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_CTF_WRITER_EVENT_H
-#define BABELTRACE_CTF_WRITER_EVENT_H
+#ifndef BABELTRACE2_CTF_WRITER_EVENT_H
+#define BABELTRACE2_CTF_WRITER_EVENT_H
 
 /*
  * Copyright 2013, 2014 Jérémie Galarneau <jeremie.galarneau@efficios.com>
@@ -213,4 +213,4 @@ void bt_ctf_event_class_put(struct bt_ctf_event_class *event_class)
 }
 #endif
 
-#endif /* BABELTRACE_CTF_WRITER_EVENT_H */
+#endif /* BABELTRACE2_CTF_WRITER_EVENT_H */

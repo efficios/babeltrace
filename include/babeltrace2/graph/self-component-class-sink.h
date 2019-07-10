@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_GRAPH_SELF_COMPONENT_CLASS_SINK_H
-#define BABELTRACE_GRAPH_SELF_COMPONENT_CLASS_SINK_H
+#ifndef BABELTRACE2_GRAPH_SELF_COMPONENT_CLASS_SINK_H
+#define BABELTRACE2_GRAPH_SELF_COMPONENT_CLASS_SINK_H
 
 /*
  * Copyright 2017-2018 Philippe Proulx <pproulx@efficios.com>
@@ -46,4 +46,4 @@ bt_self_component_class_sink_as_component_class_sink(
 }
 #endif
 
-#endif /* BABELTRACE_GRAPH_SELF_COMPONENT_CLASS_SINK_H */
+#endif /* BABELTRACE2_GRAPH_SELF_COMPONENT_CLASS_SINK_H */

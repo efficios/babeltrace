@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_GRAPH_QUERY_EXECUTOR_H
-#define BABELTRACE_GRAPH_QUERY_EXECUTOR_H
+#ifndef BABELTRACE2_GRAPH_QUERY_EXECUTOR_H
+#define BABELTRACE2_GRAPH_QUERY_EXECUTOR_H
 
 /*
  * Copyright 2017-2018 Philippe Proulx <pproulx@efficios.com>
@@ -73,4 +73,4 @@ bt_query_executor_cancel_status bt_query_executor_cancel(
 
 #include <babeltrace2/undef-func-status.h>
 
-#endif /* BABELTRACE_GRAPH_QUERY_EXECUTOR_H */
+#endif /* BABELTRACE2_GRAPH_QUERY_EXECUTOR_H */

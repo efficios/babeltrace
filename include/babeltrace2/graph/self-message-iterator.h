@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_GRAPH_SELF_MESSAGE_ITERATOR_H
-#define BABELTRACE_GRAPH_SELF_MESSAGE_ITERATOR_H
+#ifndef BABELTRACE2_GRAPH_SELF_MESSAGE_ITERATOR_H
+#define BABELTRACE2_GRAPH_SELF_MESSAGE_ITERATOR_H
 
 /*
  * Copyright 2017-2018 Philippe Proulx <pproulx@efficios.com>
@@ -49,4 +49,4 @@ extern void *bt_self_message_iterator_get_data(
 }
 #endif
 
-#endif /* BABELTRACE_GRAPH_SELF_MESSAGE_ITERATOR_H */
+#endif /* BABELTRACE2_GRAPH_SELF_MESSAGE_ITERATOR_H */

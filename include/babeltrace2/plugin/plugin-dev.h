@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_PLUGIN_PLUGIN_DEV_H
-#define BABELTRACE_PLUGIN_PLUGIN_DEV_H
+#ifndef BABELTRACE2_PLUGIN_PLUGIN_DEV_H
+#define BABELTRACE2_PLUGIN_PLUGIN_DEV_H
 
 /*
  * This is the header that you need to include for the development of
@@ -1481,4 +1481,4 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
 
 #include <babeltrace2/undef-func-status.h>
 
-#endif /* BABELTRACE_PLUGIN_PLUGIN_DEV_H */
+#endif /* BABELTRACE2_PLUGIN_PLUGIN_DEV_H */

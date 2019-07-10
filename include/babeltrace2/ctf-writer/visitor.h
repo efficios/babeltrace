@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_CTF_WRITER_VISITOR_H
-#define BABELTRACE_CTF_WRITER_VISITOR_H
+#ifndef BABELTRACE2_CTF_WRITER_VISITOR_H
+#define BABELTRACE2_CTF_WRITER_VISITOR_H
 
 /*
  * Copyright 2016 Jérémie Galarneau <jeremie.galarneau@efficios.com>
@@ -170,4 +170,4 @@ void *bt_ctf_visitor_object_get_object(struct bt_ctf_visitor_object *object);
 }
 #endif
 
-#endif /* BABELTRACE_CTF_WRITER_VISITOR_H */
+#endif /* BABELTRACE2_CTF_WRITER_VISITOR_H */

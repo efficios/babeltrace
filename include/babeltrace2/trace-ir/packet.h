@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_TRACE_IR_PACKET_H
-#define BABELTRACE_TRACE_IR_PACKET_H
+#ifndef BABELTRACE2_TRACE_IR_PACKET_H
+#define BABELTRACE2_TRACE_IR_PACKET_H
 
 /*
  * Copyright 2016-2018 Philippe Proulx <pproulx@efficios.com>
@@ -61,4 +61,4 @@ bt_packet_move_context_field_status bt_packet_move_context_field(
 
 #include <babeltrace2/undef-func-status.h>
 
-#endif /* BABELTRACE_TRACE_IR_PACKET_H */
+#endif /* BABELTRACE2_TRACE_IR_PACKET_H */

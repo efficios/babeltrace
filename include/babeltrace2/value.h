@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_VALUES_H
-#define BABELTRACE_VALUES_H
+#ifndef BABELTRACE2_VALUE_H
+#define BABELTRACE2_VALUE_H
 
 /*
  * Copyright (c) 2015-2018 Philippe Proulx <pproulx@efficios.com>
@@ -179,4 +179,4 @@ bt_value_map_insert_empty_map_entry(bt_value *map_obj, const char *key);
 
 #include <babeltrace2/undef-func-status.h>
 
-#endif /* BABELTRACE_VALUES_H */
+#endif /* BABELTRACE2_VALUE_H */

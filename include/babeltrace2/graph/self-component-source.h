@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_GRAPH_SELF_COMPONENT_SOURCE_H
-#define BABELTRACE_GRAPH_SELF_COMPONENT_SOURCE_H
+#ifndef BABELTRACE2_GRAPH_SELF_COMPONENT_SOURCE_H
+#define BABELTRACE2_GRAPH_SELF_COMPONENT_SOURCE_H
 
 /*
  * Copyright 2017-2018 Philippe Proulx <pproulx@efficios.com>
@@ -73,4 +73,4 @@ bt_self_component_source_add_output_port(
 }
 #endif
 
-#endif /* BABELTRACE_GRAPH_SELF_COMPONENT_SOURCE_H */
+#endif /* BABELTRACE2_GRAPH_SELF_COMPONENT_SOURCE_H */

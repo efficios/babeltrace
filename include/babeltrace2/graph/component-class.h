@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_GRAPH_COMPONENT_CLASS_H
-#define BABELTRACE_GRAPH_COMPONENT_CLASS_H
+#ifndef BABELTRACE2_GRAPH_COMPONENT_CLASS_H
+#define BABELTRACE2_GRAPH_COMPONENT_CLASS_H
 
 /*
  * Copyright 2017-2018 Philippe Proulx <pproulx@efficios.com>
@@ -113,4 +113,4 @@ extern bt_component_class_set_help_status bt_component_class_set_help(
 
 #include <babeltrace2/undef-func-status.h>
 
-#endif /* BABELTRACE_GRAPH_COMPONENT_CLASS_H */
+#endif /* BABELTRACE2_GRAPH_COMPONENT_CLASS_H */

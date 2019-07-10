@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_TRACE_IR_STREAM_CLASS_CONST_H
-#define BABELTRACE_TRACE_IR_STREAM_CLASS_CONST_H
+#ifndef BABELTRACE2_TRACE_IR_STREAM_CLASS_CONST_H
+#define BABELTRACE2_TRACE_IR_STREAM_CLASS_CONST_H
 
 /*
  * Copyright 2017-2018 Philippe Proulx <pproulx@efficios.com>
@@ -119,4 +119,4 @@ extern void bt_stream_class_put_ref(const bt_stream_class *stream_class);
 }
 #endif
 
-#endif /* BABELTRACE_TRACE_IR_STREAM_CLASS_CONST_H */
+#endif /* BABELTRACE2_TRACE_IR_STREAM_CLASS_CONST_H */
