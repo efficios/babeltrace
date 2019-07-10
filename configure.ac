@@ -340,6 +340,10 @@ AC_ARG_VAR([PYTHON_CONFIG], [Path to python-config])
 AC_ARG_VAR([BABELTRACE_PLUGINS_DIR], [built-in plugins install directory [LIBDIR/babeltrace2/plugins]])
 AS_IF([test "x$BABELTRACE_PLUGINS_DIR" = x], [BABELTRACE_PLUGINS_DIR='${libdir}/babeltrace2/plugins'])
 
+# BABELTRACE_PLUGIN_PROVIDERS_DIR: Plugin providers directory
+AC_ARG_VAR([BABELTRACE_PLUGIN_PROVIDERS_DIR], [built-in plugin providers install directory [LIBDIR/babeltrace2/plugin-providers]])
+AS_IF([test "x$BABELTRACE_PLUGIN_PROVIDERS_DIR" = x], [BABELTRACE_PLUGIN_PROVIDERS_DIR='${libdir}/babeltrace2/plugin-providers'])
+
 # BABELTRACE_MINIMAL_LOG_LEVEL:
 AC_ARG_VAR([BABELTRACE_MINIMAL_LOG_LEVEL], [Minimal log level for Babeltrace program, library, and plugins (TRACE, DEBUG (default), or INFO)])
 AS_IF([test "x$BABELTRACE_MINIMAL_LOG_LEVEL" = x], [BABELTRACE_MINIMAL_LOG_LEVEL="DEBUG"])
@@ -840,6 +844,7 @@ report_bindir="`eval eval echo $bindir`"
 report_libdir="`eval eval echo $libdir`"
 report_sysconfdif="`eval eval echo $sysconfdir`"
 report_pluginsdir="`eval eval eval echo $BABELTRACE_PLUGINS_DIR`"
+report_pluginprovidersdir="`eval eval eval echo $BABELTRACE_PLUGIN_PROVIDERS_DIR`"
 
 # Print the bindir and libdir this `make install' will install into.
 AS_ECHO
@@ -847,4 +852,5 @@ PPRINT_SUBTITLE([Install directories])
 PPRINT_PROP_STRING([Binaries], [$report_bindir])
 PPRINT_PROP_STRING([Libraries], [$report_libdir])
 PPRINT_PROP_STRING([Plugins], [$report_pluginsdir])
+PPRINT_PROP_STRING([Plugin providers], [$report_pluginprovidersdir])
 PPRINT_PROP_STRING([Configuration], [$report_sysconfdif])
