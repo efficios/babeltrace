@@ -267,9 +267,7 @@ void lttng_live_stream_iterator_destroy(
 	if (stream_iter->msg_iter) {
 		bt_msg_iter_destroy(stream_iter->msg_iter);
 	}
-	if (stream_iter->buf) {
-		g_free(stream_iter->buf);
-	}
+	g_free(stream_iter->buf);
 	if (stream_iter->name) {
 		g_string_free(stream_iter->name, TRUE);
 	}

@@ -617,9 +617,7 @@ void trace_ir_metadata_maps_destroy(struct trace_ir_metadata_maps *maps)
 		g_hash_table_destroy(maps->clock_class_map);
 	}
 
-	if (maps->fc_resolving_ctx) {
-		g_free(maps->fc_resolving_ctx);
-	}
+	g_free(maps->fc_resolving_ctx);
 
 	if (maps->output_trace_class) {
 		bt_trace_class_put_ref(maps->output_trace_class);
@@ -656,9 +654,7 @@ void trace_ir_maps_destroy(struct trace_ir_maps *maps)
 		return;
 	}
 
-	if (maps->debug_info_field_class_name) {
-		g_free(maps->debug_info_field_class_name);
-	}
+	g_free(maps->debug_info_field_class_name);
 
 	if (maps->data_maps) {
 		g_hash_table_destroy(maps->data_maps);

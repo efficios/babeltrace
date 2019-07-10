@@ -496,9 +496,7 @@ error:
 	ret = -1;
 
 end:
-	if (port_name) {
-		g_free(port_name);
-	}
+	g_free(port_name);
 
 	port_data_destroy(port_data);
 	return ret;

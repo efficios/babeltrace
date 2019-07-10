@@ -758,9 +758,7 @@ end:
 	bt_plugin_put_ref(plugin);
 	Py_XDECREF(py_plugin_info);
 
-	if (basename) {
-		g_free(basename);
-	}
+	g_free(basename);
 
 	return status;
 }

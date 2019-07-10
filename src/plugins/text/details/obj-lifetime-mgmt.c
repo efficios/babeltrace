@@ -232,9 +232,7 @@ error:
 	ret = -1;
 
 end:
-	if (details_trace) {
-		g_free(details_trace);
-	}
+	g_free(details_trace);
 
 	return ret;
 }
