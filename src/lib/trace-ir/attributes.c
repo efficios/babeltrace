@@ -191,7 +191,7 @@ struct bt_value *bt_attributes_borrow_field_by_name(
 
 		field_name = bt_value_string_get(attr_field_name_obj);
 
-		if (!strcmp(field_name, name)) {
+		if (strcmp(field_name, name) == 0) {
 			break;
 		}
 

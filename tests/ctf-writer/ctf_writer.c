@@ -247,7 +247,7 @@ void append_simple_event(struct bt_ctf_stream_class *stream_class,
 	ok(bt_ctf_field_type_enumeration_signed_get_mapping_by_index(enum_type, 6, &ret_char,
 		&ret_range_start_int64_t, &ret_range_end_int64_t) == 0,
 		"bt_ctf_field_type_enumeration_signed_get_mapping_by_index returns a value");
-	ok(!strcmp(ret_char, mapping_name_test),
+	ok(strcmp(ret_char, mapping_name_test) == 0,
 		"bt_ctf_field_type_enumeration_signed_get_mapping_by_index returns a correct mapping name");
 	ok(ret_range_start_int64_t == 42,
 		"bt_ctf_field_type_enumeration_signed_get_mapping_by_index returns a correct mapping start");
@@ -289,7 +289,7 @@ void append_simple_event(struct bt_ctf_stream_class *stream_class,
 	ok(bt_ctf_field_type_enumeration_unsigned_get_mapping_by_index(enum_type_unsigned, 4, &ret_char,
 		&ret_range_start_uint64_t, &ret_range_end_uint64_t) == 0,
 		"bt_ctf_field_type_enumeration_unsigned_get_mapping_by_index returns a value");
-	ok(!strcmp(ret_char, mapping_name_test),
+	ok(strcmp(ret_char, mapping_name_test) == 0,
 		"bt_ctf_field_type_enumeration_unsigned_get_mapping_by_index returns a correct mapping name");
 	ok(ret_range_start_uint64_t == 42,
 		"bt_ctf_field_type_enumeration_unsigned_get_mapping_by_index returns a correct mapping start");
@@ -580,7 +580,7 @@ void append_complex_event(struct bt_ctf_stream_class *stream_class,
 	bt_ctf_object_put_ref(ret_field_type);
 
 	ret_string = bt_ctf_field_type_variant_get_tag_name(variant_type);
-	ok(ret_string ? !strcmp(ret_string, "variant_selector") : 0,
+	ok(ret_string ? strcmp(ret_string, "variant_selector") == 0 : 0,
 		"bt_ctf_field_type_variant_get_tag_name returns the correct variant tag name");
 	ret_field_type = bt_ctf_field_type_variant_get_field_type_by_name(
 		variant_type, "INT16_TYPE");
@@ -598,7 +598,7 @@ void append_complex_event(struct bt_ctf_stream_class *stream_class,
 		"bt_ctf_field_type_variant_get_field handles a NULL field type correctly");
 	ok(bt_ctf_field_type_variant_get_field_by_index(variant_type, &ret_string, &ret_field_type, 1) == 0,
 		"bt_ctf_field_type_variant_get_field returns a field");
-	ok(!strcmp("INT16_TYPE", ret_string),
+	ok(strcmp("INT16_TYPE", ret_string) == 0,
 		"bt_ctf_field_type_variant_get_field returns a correct field name");
 	ok(ret_field_type == int_16_type,
 		"bt_ctf_field_type_variant_get_field returns a correct field type");
@@ -635,7 +635,7 @@ void append_complex_event(struct bt_ctf_stream_class *stream_class,
 		"Add composite structure to an event");
 
 	ret_string = bt_ctf_event_class_get_name(event_class);
-	ok(!strcmp(ret_string, complex_test_event_string),
+	ok(strcmp(ret_string, complex_test_event_string) == 0,
 		"bt_ctf_event_class_get_name returns a correct name");
 	ok(bt_ctf_event_class_get_id(event_class) < 0,
 		"bt_ctf_event_class_get_id returns a negative value when not set");
@@ -758,7 +758,7 @@ void append_complex_event(struct bt_ctf_stream_class *stream_class,
 
 	ret_string = bt_ctf_field_string_get_value(a_string_field);
 	ok(ret_string, "bt_ctf_field_string_get_value returns a string");
-	ok(ret_string ? !strcmp(ret_string, test_string_cat) : 0,
+	ok(ret_string ? strcmp(ret_string, test_string_cat) == 0 : 0,
 		"bt_ctf_field_string_get_value returns a correct value");
 	bt_ctf_field_integer_unsigned_set_value(uint_35_field,
 		SEQUENCE_TEST_LENGTH);
@@ -933,7 +933,7 @@ void type_field_tests()
 
 	ret_string = bt_ctf_field_type_sequence_get_length_field_name(
 		sequence_type);
-	ok(!strcmp(ret_string, "seq_len"),
+	ok(strcmp(ret_string, "seq_len") == 0,
 		"bt_ctf_field_type_sequence_get_length_field_name returns the correct value");
 	returned_type = bt_ctf_field_type_sequence_get_element_field_type(
 		sequence_type);
@@ -982,7 +982,7 @@ void type_field_tests()
 	ok(bt_ctf_field_type_structure_get_field(structure_seq_type,
 		&ret_string, &returned_type, 1) == 0,
 		"bt_ctf_field_type_structure_get_field returns a field");
-	ok(!strcmp(ret_string, "a_sequence"),
+	ok(strcmp(ret_string, "a_sequence") == 0,
 		"bt_ctf_field_type_structure_get_field returns a correct field name");
 	ok(returned_type == sequence_type,
 		"bt_ctf_field_type_structure_get_field returns a correct field type");
@@ -1717,7 +1717,7 @@ int main(int argc, char **argv)
 	ok(clock, "Clock created sucessfully");
 	returned_clock_name = bt_ctf_clock_get_name(clock);
 	ok(returned_clock_name, "bt_ctf_clock_get_name returns a clock name");
-	ok(returned_clock_name ? !strcmp(returned_clock_name, clock_name) : 0,
+	ok(returned_clock_name ? strcmp(returned_clock_name, clock_name) == 0 : 0,
 		"Returned clock name is valid");
 
 	returned_clock_description = bt_ctf_clock_get_description(clock);
@@ -1729,7 +1729,7 @@ int main(int argc, char **argv)
 	ok(returned_clock_description,
 		"bt_ctf_clock_get_description returns a description.");
 	ok(returned_clock_description ?
-		!strcmp(returned_clock_description, clock_description) : 0,
+		strcmp(returned_clock_description, clock_description) == 0 : 0,
 		"Returned clock description is valid");
 
 	ok(bt_ctf_clock_get_frequency(clock) == DEFAULT_CLOCK_FREQ,
@@ -1795,7 +1795,7 @@ int main(int argc, char **argv)
 	/* Define a stream class */
 	stream_class = bt_ctf_stream_class_create("test_stream");
 	ret_string = bt_ctf_stream_class_get_name(stream_class);
-	ok(ret_string && !strcmp(ret_string, "test_stream"),
+	ok(ret_string && strcmp(ret_string, "test_stream") == 0,
 		"bt_ctf_stream_class_get_name returns a correct stream class name");
 
 	ok(bt_ctf_stream_class_get_clock(stream_class) == NULL,

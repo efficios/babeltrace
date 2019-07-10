@@ -410,7 +410,7 @@ struct bt_port *borrow_port_by_name(GPtrArray *ports,
 	for (i = 0; i < ports->len; i++) {
 		struct bt_port *port = g_ptr_array_index(ports, i);
 
-		if (!strcmp(name, port->name->str)) {
+		if (strcmp(name, port->name->str) == 0) {
 			ret_port = port;
 			break;
 		}

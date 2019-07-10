@@ -318,17 +318,17 @@ bt_value *ini_parse_value(struct ini_parsing_state *state)
 		 */
 		const char *id = state->scanner->value.v_identifier;
 
-		if (!strcmp(id, "null") || !strcmp(id, "NULL") ||
-				!strcmp(id, "nul")) {
+		if (strcmp(id, "null") == 0 || strcmp(id, "NULL") == 0 ||
+				strcmp(id, "nul") == 0) {
 			value = bt_value_null;
-		} else if (!strcmp(id, "true") || !strcmp(id, "TRUE") ||
-				!strcmp(id, "yes") ||
-				!strcmp(id, "YES")) {
+		} else if (strcmp(id, "true") == 0 || strcmp(id, "TRUE") == 0 ||
+				strcmp(id, "yes") == 0 ||
+				strcmp(id, "YES") == 0) {
 			value = bt_value_bool_create_init(true);
-		} else if (!strcmp(id, "false") ||
-				!strcmp(id, "FALSE") ||
-				!strcmp(id, "no") ||
-				!strcmp(id, "NO")) {
+		} else if (strcmp(id, "false") == 0 ||
+				strcmp(id, "FALSE") == 0 ||
+				strcmp(id, "no") == 0 ||
+				strcmp(id, "NO") == 0) {
 			value = bt_value_bool_create_init(false);
 		} else {
 			value = bt_value_string_create_init(id);

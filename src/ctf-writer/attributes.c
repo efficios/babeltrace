@@ -205,7 +205,7 @@ struct bt_ctf_private_value *bt_ctf_attributes_borrow_field_by_name(
 		field_name = bt_ctf_value_string_get(
 			bt_ctf_private_value_as_value(attr_field_name_obj));
 
-		if (!strcmp(field_name, name)) {
+		if (strcmp(field_name, name) == 0) {
 			break;
 		}
 

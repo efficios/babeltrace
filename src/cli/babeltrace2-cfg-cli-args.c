@@ -615,35 +615,35 @@ bt_value *names_from_arg(const char *arg)
 		{
 			const char *identifier = scanner->value.v_identifier;
 
-			if (!strcmp(identifier, "payload") ||
-					!strcmp(identifier, "args") ||
-					!strcmp(identifier, "arg")) {
+			if (strcmp(identifier, "payload") == 0 ||
+					strcmp(identifier, "args") == 0 ||
+					strcmp(identifier, "arg") == 0) {
 				found_item = true;
 				if (bt_value_array_append_string_element(names,
 						"payload")) {
 					goto error;
 				}
-			} else if (!strcmp(identifier, "context") ||
-					!strcmp(identifier, "ctx")) {
+			} else if (strcmp(identifier, "context") == 0 ||
+					strcmp(identifier, "ctx") == 0) {
 				found_item = true;
 				if (bt_value_array_append_string_element(names,
 						"context")) {
 					goto error;
 				}
-			} else if (!strcmp(identifier, "scope") ||
-					!strcmp(identifier, "header")) {
+			} else if (strcmp(identifier, "scope") == 0 ||
+					strcmp(identifier, "header") == 0) {
 				found_item = true;
 				if (bt_value_array_append_string_element(names,
 						identifier)) {
 					goto error;
 				}
-			} else if (!strcmp(identifier, "all")) {
+			} else if (strcmp(identifier, "all") == 0) {
 				found_all = true;
 				if (bt_value_array_append_string_element(names,
 						identifier)) {
 					goto error;
 				}
-			} else if (!strcmp(identifier, "none")) {
+			} else if (strcmp(identifier, "none") == 0) {
 				found_none = true;
 				if (bt_value_array_append_string_element(names,
 						identifier)) {
@@ -726,15 +726,15 @@ bt_value *fields_from_arg(const char *arg)
 		{
 			const char *identifier = scanner->value.v_identifier;
 
-			if (!strcmp(identifier, "trace") ||
-					!strcmp(identifier, "trace:hostname") ||
-					!strcmp(identifier, "trace:domain") ||
-					!strcmp(identifier, "trace:procname") ||
-					!strcmp(identifier, "trace:vpid") ||
-					!strcmp(identifier, "loglevel") ||
-					!strcmp(identifier, "emf") ||
-					!strcmp(identifier, "callsite") ||
-					!strcmp(identifier, "all")) {
+			if (strcmp(identifier, "trace") == 0 ||
+					strcmp(identifier, "trace:hostname") == 0 ||
+					strcmp(identifier, "trace:domain") == 0 ||
+					strcmp(identifier, "trace:procname") == 0 ||
+					strcmp(identifier, "trace:vpid") == 0 ||
+					strcmp(identifier, "loglevel") == 0 ||
+					strcmp(identifier, "emf") == 0 ||
+					strcmp(identifier, "callsite") == 0 ||
+					strcmp(identifier, "all") == 0) {
 				if (bt_value_array_append_string_element(fields,
 						identifier)) {
 					goto error;
@@ -837,10 +837,10 @@ int insert_flat_params_from_array(GString *params_arg,
 		g_string_append(tmpstr, "-");
 
 		/* Special-case for "all" and "none". */
-		if (!strcmp(suffix, "all")) {
+		if (strcmp(suffix, "all") == 0) {
 			is_default = true;
 			g_string_assign(default_value, "show");
-		} else if (!strcmp(suffix, "none")) {
+		} else if (strcmp(suffix, "none") == 0) {
 			is_default = true;
 			g_string_assign(default_value, "hide");
 		}

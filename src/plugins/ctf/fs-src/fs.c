@@ -899,7 +899,7 @@ int create_ds_file_groups(struct ctf_fs_trace *ctf_fs_trace)
 	while ((basename = g_dir_read_name(dir))) {
 		struct ctf_fs_file *file;
 
-		if (!strcmp(basename, CTF_FS_METADATA_FILENAME)) {
+		if (strcmp(basename, CTF_FS_METADATA_FILENAME) == 0) {
 			/* Ignore the metadata stream. */
 			BT_COMP_LOGI("Ignoring metadata file `%s" G_DIR_SEPARATOR_S "%s`",
 				ctf_fs_trace->path->str, basename);
@@ -1997,10 +1997,10 @@ bt_component_class_query_method_status ctf_fs_query(
 	bt_component_class_query_method_status status =
 		BT_COMPONENT_CLASS_QUERY_METHOD_STATUS_OK;
 
-	if (!strcmp(object, "metadata-info")) {
+	if (strcmp(object, "metadata-info") == 0) {
 		status = metadata_info_query(comp_class, params, log_level,
 			result);
-	} else if (!strcmp(object, "trace-info")) {
+	} else if (strcmp(object, "trace-info") == 0) {
 		status = trace_info_query(comp_class, params, log_level,
 			result);
 	} else {

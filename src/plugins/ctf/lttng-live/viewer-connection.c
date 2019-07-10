@@ -347,9 +347,8 @@ int list_update_session(bt_value *results,
 		hostname_str = bt_value_string_get(hostname);
 		session_name_str = bt_value_string_get(session_name);
 
-		if (!strcmp(session->hostname, hostname_str)
-				&& !strcmp(session->session_name,
-					session_name_str)) {
+		if (strcmp(session->hostname, hostname_str) == 0
+				&& strcmp(session->session_name, session_name_str) == 0) {
 			int64_t val;
 			uint32_t streams = be32toh(session->streams);
 			uint32_t clients = be32toh(session->clients);
