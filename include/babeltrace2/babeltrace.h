@@ -32,8 +32,17 @@
 # define __BT_IN_BABELTRACE_H
 #endif
 
-/* Need by some of the following included headers */
+/* Internal: needed by some of the following included headers */
 #include <babeltrace2/func-status.h>
+
+/* Internal: needed by some of the following included headers */
+#ifdef __cplusplus
+# define __BT_UPCAST(_type, _p)		static_cast<_type *>(static_cast<void *>(_p))
+# define __BT_UPCAST_CONST(_type, _p)	static_cast<const _type *>(static_cast<const void *>(_p))
+#else
+# define __BT_UPCAST(_type, _p)		((_type *) (_p))
+# define __BT_UPCAST_CONST(_type, _p)	((const _type *) (_p))
+#endif
 
 /* Core API */
 #include <babeltrace2/current-thread.h>
@@ -157,5 +166,7 @@
 #undef __BT_FUNC_STATUS_UNSUPPORTED
 #undef __BT_FUNC_STATUS_CANCELED
 #undef __BT_IN_BABELTRACE_H
+#undef __BT_UPCAST
+#undef __BT_UPCAST_CONST
 
 #endif /* BABELTRACE2_BABELTRACE_H */
