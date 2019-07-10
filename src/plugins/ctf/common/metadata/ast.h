@@ -23,6 +23,7 @@
 #include "common/list.h"
 #include <babeltrace2/babeltrace.h>
 #include "common/macros.h"
+#include "common/assert.h"
 
 #include "decoder.h"
 #include "ctf-meta.h"
@@ -343,5 +344,95 @@ int ctf_visitor_semantic_check(int depth, struct ctf_node *node,
 BT_HIDDEN
 int ctf_visitor_parent_links(int depth, struct ctf_node *node,
 		struct meta_log_config *log_cfg);
+
+static inline
+char *ctf_ast_concatenate_unary_strings(struct bt_list_head *head)
+{
+	int i = 0;
+	GString *str;
+	struct ctf_node *node;
+
+	str = g_string_new(NULL);
+	BT_ASSERT(str);
+
+	bt_list_for_each_entry(node, head, siblings) {
+		char *src_string;
+
+		if (
+			node->type != NODE_UNARY_EXPRESSION ||
+			node->u.unary_expression.type != UNARY_STRING ||
+			!(
+				(
+					node->u.unary_expression.link !=
+					UNARY_LINK_UNKNOWN
+				) ^ (i == 0)
+			)
+		) {
+			goto error;
+		}
+
+		switch (node->u.unary_expression.link) {
+		case UNARY_DOTLINK:
+			g_string_append(str, ".");
+			break;
+		case UNARY_ARROWLINK:
+			g_string_append(str, "->");
+			break;
+		case UNARY_DOTDOTDOT:
+			g_string_append(str, "...");
+			break;
+		default:
+			break;
+		}
+
+		src_string = node->u.unary_expression.u.string;
+		g_string_append(str, src_string);
+		i++;
+	}
+
+	/* Destroys the container, returns the underlying string */
+	return g_string_free(str, FALSE);
+
+error:
+	/* This always returns NULL */
+	return g_string_free(str, TRUE);
+}
+
+static inline
+int ctf_ast_get_unary_uuid(struct bt_list_head *head,
+		bt_uuid_t uuid, int log_level, bt_self_component *self_comp)
+{
+	int i = 0;
+	int ret = 0;
+	struct ctf_node *node;
+
+	bt_list_for_each_entry(node, head, siblings) {
+		int uexpr_type = node->u.unary_expression.type;
+		int uexpr_link = node->u.unary_expression.link;
+		const char *src_string;
+
+		if (node->type != NODE_UNARY_EXPRESSION ||
+				uexpr_type != UNARY_STRING ||
+				uexpr_link != UNARY_LINK_UNKNOWN ||
+				i != 0) {
+			ret = -EINVAL;
+			goto end;
+		}
+
+		src_string = node->u.unary_expression.u.string;
+		ret = bt_uuid_from_str(src_string, uuid);
+		if (ret) {
+#ifdef BT_COMP_LOG_CUR_LVL
+			BT_COMP_LOG_CUR_LVL(BT_LOG_ERROR, log_level,
+				self_comp,
+				"Cannot parse UUID: uuid=\"%s\"", src_string);
+#endif
+			goto end;
+		}
+	}
+
+end:
+	return ret;
+}
 
 #endif /* _CTF_AST_H */

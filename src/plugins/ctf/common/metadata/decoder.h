@@ -31,6 +31,7 @@ struct ctf_metadata_decoder;
 /* CTF metadata decoder status */
 enum ctf_metadata_decoder_status {
 	CTF_METADATA_DECODER_STATUS_OK			= 0,
+	CTF_METADATA_DECODER_STATUS_NONE		= 1,
 	CTF_METADATA_DECODER_STATUS_ERROR		= -1,
 	CTF_METADATA_DECODER_STATUS_INCOMPLETE		= -2,
 	CTF_METADATA_DECODER_STATUS_INVAL_VERSION	= -3,
@@ -148,12 +149,23 @@ int ctf_metadata_decoder_get_byte_order(struct ctf_metadata_decoder *mdec);
 /*
  * Returns the UUID of the decoder's metadata stream as set by the last
  * call to ctf_metadata_decoder_append_content().
- *
- * Returns -1 if unknown (plain text content).
  */
 BT_HIDDEN
-int ctf_metadata_decoder_get_uuid(struct ctf_metadata_decoder *mdec,
-		bt_uuid_t uuid);
+int ctf_metadata_decoder_get_uuid(
+		struct ctf_metadata_decoder *mdec, bt_uuid_t uuid);
+
+/*
+ * Returns the UUID of the decoder's trace class, if available.
+ *
+ * Returns:
+ *
+ * * `CTF_METADATA_DECODER_STATUS_OK`: success.
+ * * `CTF_METADATA_DECODER_STATUS_NONE`: no UUID.
+ * * `CTF_METADATA_DECODER_STATUS_INCOMPLETE`: missing metadata content.
+ */
+BT_HIDDEN
+enum ctf_metadata_decoder_status ctf_metadata_decoder_get_trace_class_uuid(
+		struct ctf_metadata_decoder *mdec, bt_uuid_t uuid);
 
 /*
  * Returns the metadata decoder's current metadata text.

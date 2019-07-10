@@ -255,9 +255,7 @@ enum lttng_live_iterator_status lttng_live_metadata_update(
 	case CTF_METADATA_DECODER_STATUS_INCOMPLETE:
 		status = LTTNG_LIVE_ITERATOR_STATUS_AGAIN;
 		break;
-	case CTF_METADATA_DECODER_STATUS_ERROR:
-	case CTF_METADATA_DECODER_STATUS_INVAL_VERSION:
-	case CTF_METADATA_DECODER_STATUS_IR_VISITOR_ERROR:
+	default:
 		goto error;
 	}
 
