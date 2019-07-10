@@ -143,7 +143,7 @@ void fini_python_plugin_provider(void) {
 }
 #endif
 
-uint64_t bt_plugin_set_get_plugin_count(struct bt_plugin_set *plugin_set)
+uint64_t bt_plugin_set_get_plugin_count(const struct bt_plugin_set *plugin_set)
 {
 	BT_ASSERT_PRE_DEV_NON_NULL(plugin_set, "Plugin set");
 	return (uint64_t) plugin_set->plugins->len;
