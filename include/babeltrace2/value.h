@@ -30,10 +30,7 @@
 #include <stdint.h>
 #include <stddef.h>
 
-/* For bt_bool, bt_value */
 #include <babeltrace2/types.h>
-
-/* For bt_value_type */
 #include <babeltrace2/value-const.h>
 
 #ifdef __cplusplus

@@ -33,7 +33,6 @@
 
 #include <stdint.h>
 
-/* For bt_clock_class, bt_clock_snapshot */
 #include <babeltrace2/types.h>
 
 #ifdef __cplusplus

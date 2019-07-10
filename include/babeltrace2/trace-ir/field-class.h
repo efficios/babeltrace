@@ -34,10 +34,7 @@
 #include <stdint.h>
 #include <stddef.h>
 
-/* For bt_bool, bt_field_class, bt_trace_class */
 #include <babeltrace2/types.h>
-
-/* For bt_field_class_integer_preferred_display_base */
 #include <babeltrace2/trace-ir/field-class-const.h>
 
 #ifdef __cplusplus

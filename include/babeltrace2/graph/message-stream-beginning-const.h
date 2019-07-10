@@ -28,10 +28,7 @@
 # error "Please include <babeltrace2/babeltrace.h> instead."
 #endif
 
-/* For bt_message, bt_clock_snapshot, bt_stream */
 #include <babeltrace2/types.h>
-
-/* For bt_message_stream_clock_snapshot_state */
 #include <babeltrace2/graph/message-stream-const.h>
 
 #ifdef __cplusplus

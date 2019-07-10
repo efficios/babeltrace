@@ -30,7 +30,6 @@
 
 #include <stdint.h>
 
-/* For bt_plugin, bt_plugin_set */
 #include <babeltrace2/types.h>
 
 #ifdef __cplusplus

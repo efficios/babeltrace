@@ -30,10 +30,6 @@
 
 #include <stdint.h>
 
-/*
- * For bt_component, bt_component_filter, bt_port_input, bt_port_output,
- * __BT_UPCAST_CONST, bt_component_class_filter
- */
 #include <babeltrace2/types.h>
 
 #ifdef __cplusplus

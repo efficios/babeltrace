@@ -27,7 +27,6 @@
 # error "Please include <babeltrace2/babeltrace.h> instead."
 #endif
 
-/* For bt_bool, bt_query_executor */
 #include <babeltrace2/types.h>
 
 #ifdef __cplusplus

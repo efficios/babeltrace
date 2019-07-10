@@ -27,10 +27,7 @@
 # error "Please include <babeltrace2/babeltrace.h> instead."
 #endif
 
-/* For bt_query_executor, bt_component_class, bt_value */
 #include <babeltrace2/types.h>
-
-/* For bt_logging_level */
 #include <babeltrace2/logging.h>
 
 #ifdef __cplusplus

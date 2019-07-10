@@ -30,10 +30,7 @@
 #include <stdint.h>
 #include <stddef.h>
 
-/* For bt_error, bt_error_cause */
 #include <babeltrace2/types.h>
-
-/* For bt_component_class_type */
 #include <babeltrace2/graph/component-class-const.h>
 
 #ifdef __cplusplus

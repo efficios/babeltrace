@@ -30,7 +30,6 @@
 
 #include <stdint.h>
 
-/* For bt_message, bt_self_message_iterator, bt_packet */
 #include <babeltrace2/types.h>
 
 #ifdef __cplusplus

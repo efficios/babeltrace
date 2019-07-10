@@ -31,17 +31,10 @@
 # error "Please include <babeltrace2/babeltrace.h> instead."
 #endif
 
-/*
- * For bt_bool, bt_field_class, bt_field_path,
- * bt_field_class_enumeration_mapping,
- * bt_field_class_unsigned_enumeration_mapping,
- * bt_field_class_signed_enumeration_mapping,
- * bt_field_class_enumeration_mapping_label_array, __BT_UPCAST_CONST
- */
-#include <babeltrace2/types.h>
-
 #include <stdint.h>
 #include <stddef.h>
+
+#include <babeltrace2/types.h>
 
 #ifdef __cplusplus
 extern "C" {

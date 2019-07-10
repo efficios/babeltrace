@@ -33,14 +33,7 @@
 #include <stdint.h>
 #include <stddef.h>
 
-/*
- * For bt_bool, bt_plugin, bt_plugin_set, bt_component_class,
- * bt_component_class_source, bt_component_class_filter,
- * bt_component_class_sink
- */
 #include <babeltrace2/types.h>
-
-/* For bt_property_availability */
 #include <babeltrace2/property.h>
 
 #ifdef __cplusplus

@@ -33,15 +33,10 @@
 
 #include <stdint.h>
 
-/* For bt_component_class_type */
 #include <babeltrace2/graph/component-class-const.h>
-
-/* For component class method type definitions */
 #include <babeltrace2/graph/component-class-source.h>
 #include <babeltrace2/graph/component-class-filter.h>
 #include <babeltrace2/graph/component-class-sink.h>
-
-/* For bt_self_plugin */
 #include <babeltrace2/types.h>
 
 /*

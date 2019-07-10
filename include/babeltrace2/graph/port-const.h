@@ -30,7 +30,6 @@
 
 #include <stdint.h>
 
-/* For bt_bool, bt_port, bt_connection, bt_component */
 #include <babeltrace2/types.h>
 
 #ifdef __cplusplus

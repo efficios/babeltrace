@@ -29,14 +29,7 @@
 
 #include <stdint.h>
 
-/* For bt_message_iterator_*_status */
 #include <babeltrace2/graph/message-iterator.h>
-
-/*
- * For bt_port, bt_message, bt_message_iterator,
- * bt_port_output_message_iterator, bt_graph, bt_port_output,
- * bt_message_array_const, bt_bool, __BT_UPCAST
- */
 #include <babeltrace2/types.h>
 
 #ifdef __cplusplus
