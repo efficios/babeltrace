@@ -28,7 +28,6 @@
 #include <babeltrace2/ctf-writer/event-fields.h>
 #include <babeltrace2/ctf-writer/stream-class.h>
 #include <babeltrace2/ctf-writer/trace.h>
-#include <babeltrace2/ctf/events.h>
 #include <babeltrace2/babeltrace.h>
 #include <glib.h>
 #include <unistd.h>
