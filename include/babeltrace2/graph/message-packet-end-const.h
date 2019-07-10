@@ -24,6 +24,10 @@
  * SOFTWARE.
  */
 
+#ifndef __BT_IN_BABELTRACE_H
+# error "Please include <babeltrace2/babeltrace.h> instead."
+#endif
+
 /* For bt_message, bt_packet, bt_clock_snapshot, bt_clock_class */
 #include <babeltrace2/types.h>
 

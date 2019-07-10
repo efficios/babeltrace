@@ -23,6 +23,10 @@
  * SOFTWARE.
  */
 
+#ifndef __BT_IN_BABELTRACE_H
+# error "Please include <babeltrace2/babeltrace.h> instead."
+#endif
+
 #include <stdint.h>
 #include <stdbool.h>
 #include <stddef.h>

@@ -2,14 +2,13 @@
 babeltrace2includedir = "$(includedir)/babeltrace2"
 babeltrace2include_HEADERS = \
 	babeltrace2/babeltrace.h \
-	babeltrace2/func-status.h \
 	babeltrace2/current-thread.h \
 	babeltrace2/error-cause-const.h \
 	babeltrace2/error-const.h \
+	babeltrace2/func-status.h \
 	babeltrace2/logging.h \
 	babeltrace2/property.h \
 	babeltrace2/types.h \
-	babeltrace2/undef-func-status.h \
 	babeltrace2/util.h \
 	babeltrace2/value-const.h \
 	babeltrace2/value.h \

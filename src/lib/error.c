@@ -25,8 +25,7 @@
 
 #include <stdlib.h>
 #include <stdint.h>
-#include <babeltrace2/error-const.h>
-#include <babeltrace2/error-cause-const.h>
+#include <babeltrace2/babeltrace.h>
 
 #include "error.h"
 #include "graph/message/iterator.h"

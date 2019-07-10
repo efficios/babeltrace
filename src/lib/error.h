@@ -25,8 +25,7 @@
 
 #include <stdarg.h>
 #include <glib.h>
-#include <babeltrace2/error-const.h>
-#include <babeltrace2/error-cause-const.h>
+#include <babeltrace2/babeltrace.h>
 #include "lib/object.h"
 #include "common/macros.h"
 

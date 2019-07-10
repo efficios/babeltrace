@@ -27,15 +27,14 @@
  * http://www.efficios.com/ctf
  */
 
+#ifndef __BT_IN_BABELTRACE_H
+# error "Please include <babeltrace2/babeltrace.h> instead."
+#endif
+
 #include <stdint.h>
 
 /* For bt_clock_class, bt_clock_snapshot */
 #include <babeltrace2/types.h>
-
-/* For __BT_FUNC_STATUS_* */
-#define __BT_FUNC_STATUS_ENABLE
-#include <babeltrace2/func-status.h>
-#undef __BT_FUNC_STATUS_ENABLE
 
 #ifdef __cplusplus
 extern "C" {
@@ -60,7 +59,5 @@ bt_clock_snapshot_get_ns_from_origin(
 #ifdef __cplusplus
 }
 #endif
-
-#include <babeltrace2/undef-func-status.h>
 
 #endif /* BABELTRACE2_TRACE_IR_CLOCK_SNAPSHOT_CONST_H */

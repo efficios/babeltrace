@@ -23,6 +23,10 @@
  * SOFTWARE.
  */
 
+#ifndef __BT_IN_BABELTRACE_H
+# error "Please include <babeltrace2/babeltrace.h> instead."
+#endif
+
 /*
  * For bt_port, bt_self_component_port, bt_self_component,
  * bt_connection, __BT_UPCAST_CONST

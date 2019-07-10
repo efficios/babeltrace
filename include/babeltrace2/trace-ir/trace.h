@@ -27,15 +27,14 @@
  * http://www.efficios.com/ctf
  */
 
+#ifndef __BT_IN_BABELTRACE_H
+# error "Please include <babeltrace2/babeltrace.h> instead."
+#endif
+
 #include <stdint.h>
 
 /* For bt_bool, bt_uuid, bt_trace, bt_trace_class, bt_stream */
 #include <babeltrace2/types.h>
-
-/* For __BT_FUNC_STATUS_* */
-#define __BT_FUNC_STATUS_ENABLE
-#include <babeltrace2/func-status.h>
-#undef __BT_FUNC_STATUS_ENABLE
 
 #ifdef __cplusplus
 extern "C" {
@@ -77,7 +76,5 @@ extern bt_stream *bt_trace_borrow_stream_by_id(bt_trace *trace,
 #ifdef __cplusplus
 }
 #endif
-
-#include <babeltrace2/undef-func-status.h>
 
 #endif /* BABELTRACE2_TRACE_IR_TRACE_H */

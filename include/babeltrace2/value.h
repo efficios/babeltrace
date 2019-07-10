@@ -23,6 +23,10 @@
  * SOFTWARE.
  */
 
+#ifndef __BT_IN_BABELTRACE_H
+# error "Please include <babeltrace2/babeltrace.h> instead."
+#endif
+
 #include <stdint.h>
 #include <stddef.h>
 
@@ -31,11 +35,6 @@
 
 /* For bt_value_type */
 #include <babeltrace2/value-const.h>
-
-/* For __BT_FUNC_STATUS_* */
-#define __BT_FUNC_STATUS_ENABLE
-#include <babeltrace2/func-status.h>
-#undef __BT_FUNC_STATUS_ENABLE
 
 #ifdef __cplusplus
 extern "C" {
@@ -176,7 +175,5 @@ bt_value_map_insert_empty_map_entry(bt_value *map_obj, const char *key);
 #ifdef __cplusplus
 }
 #endif
-
-#include <babeltrace2/undef-func-status.h>
 
 #endif /* BABELTRACE2_VALUE_H */

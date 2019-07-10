@@ -33,15 +33,10 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#include <babeltrace2/trace-ir/event-class-const.h>
-#include <babeltrace2/trace-ir/field-class-const.h>
-#include <babeltrace2/trace-ir/field-path-const.h>
-#include <babeltrace2/logging.h>
-#include <babeltrace2/value.h>
+#include <babeltrace2/babeltrace.h>
 
-#define __BT_FUNC_STATUS_ENABLE
+#define __BT_IN_BABELTRACE_H
 #include <babeltrace2/func-status.h>
-#undef __BT_FUNC_STATUS_ENABLE
 
 #include "common/assert.h"
 #include "common/macros.h"
@@ -720,7 +715,5 @@ int bt_common_clock_value_from_ns_from_origin(
 end:
 	return ret;
 }
-
-#include <babeltrace2/undef-func-status.h>
 
 #endif /* BABELTRACE_COMMON_INTERNAL_H */

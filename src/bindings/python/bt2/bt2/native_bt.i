@@ -32,15 +32,19 @@
 #define BT_LOG_TAG "BT2-PY"
 #include "logging.h"
 
+/*
+ * Include before `<babeltrace2/func-status.h>` because
+ * `<babeltrace2/babeltrace.h>` removes the `__BT_IN_BABELTRACE_H`
+ * definition.
+ */
 #include <babeltrace2/babeltrace.h>
 
 /*
  * This is not part of the API, but because those bindings reside within
  * the project, we take the liberty to use them.
  */
-#define __BT_FUNC_STATUS_ENABLE
+#define __BT_IN_BABELTRACE_H
 #include <babeltrace2/func-status.h>
-#undef __BT_FUNC_STATUS_ENABLE
 
 #include "common/assert.h"
 #include "py-common/py-common.h"
@@ -180,11 +184,17 @@ typedef int bt_bool;
 	$result = $1;
 }
 
+/*
+ * Define `__BT_IN_BABELTRACE_H` to allow specific headers to be
+ * included. This remains defined as long as we don't include the main
+ * header, `<babeltrace2/babeltrace.h>`.
+ */
+#define __BT_IN_BABELTRACE_H
+
 /* Property enumeration */
 %include <babeltrace2/property.h>
 
 /* Common function status codes */
-#define __BT_FUNC_STATUS_ENABLE
 %include <babeltrace2/func-status.h>
 
 /* Per-module interface files */

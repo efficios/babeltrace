@@ -27,12 +27,11 @@
 #include <string.h>
 #include <string.h>
 #include <inttypes.h>
+#include <babeltrace2/babeltrace.h>
+
 #include "compat/compiler.h"
 #include "common/common.h"
-#include <babeltrace2/value-const.h>
-#include <babeltrace2/value.h>
 #include "compat/glib.h"
-#include <babeltrace2/types.h>
 #include "lib/assert-pre.h"
 #include "lib/value.h"
 #include "common/assert.h"

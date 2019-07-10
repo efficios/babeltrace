@@ -28,7 +28,7 @@
 #include <string.h>
 #include <string.h>
 #include <inttypes.h>
-#include <babeltrace2/util.h>
+#include <babeltrace2/babeltrace.h>
 #include "lib/trace-ir/utils.h"
 
 bt_util_status bt_util_clock_cycles_to_ns_from_origin(uint64_t cycles,

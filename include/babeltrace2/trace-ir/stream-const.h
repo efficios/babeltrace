@@ -27,6 +27,10 @@
  * http://www.efficios.com/ctf
  */
 
+#ifndef __BT_IN_BABELTRACE_H
+# error "Please include <babeltrace2/babeltrace.h> instead."
+#endif
+
 /* For bt_trace, bt_stream, bt_stream_class */
 #include <babeltrace2/types.h>
 

@@ -24,10 +24,9 @@
  * SOFTWARE.
  */
 
-/* For __BT_FUNC_STATUS_* */
-#define __BT_FUNC_STATUS_ENABLE
-#include <babeltrace2/func-status.h>
-#undef __BT_FUNC_STATUS_ENABLE
+#ifndef __BT_IN_BABELTRACE_H
+# error "Please include <babeltrace2/babeltrace.h> instead."
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -60,7 +59,5 @@ typedef enum bt_message_iterator_seek_ns_from_origin_status {
 #ifdef __cplusplus
 }
 #endif
-
-#include <babeltrace2/undef-func-status.h>
 
 #endif /* BABELTRACE2_GRAPH_MESSAGE_ITERATOR_H */

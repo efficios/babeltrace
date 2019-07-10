@@ -23,7 +23,7 @@
 #define BT_LOG_TAG "LIB/CUR-THREAD"
 #include "lib/logging.h"
 
-#include <babeltrace2/current-thread.h>
+#include <babeltrace2/babeltrace.h>
 #include <stdint.h>
 #include <stdarg.h>
 

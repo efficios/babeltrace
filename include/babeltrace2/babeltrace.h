@@ -4,7 +4,7 @@
 /*
  * Babeltrace API
  *
- * Copyright 2010-2018 EfficiOS Inc. <http://www.efficios.com/>
+ * Copyright 2010-2019 EfficiOS Inc. <http://www.efficios.com/>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,6 +24,18 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+
+/*
+ * Tell the specific headers that they are included from this header.
+ *
+ * Do NOT define `__BT_IN_BABELTRACE_H` in user code.
+ */
+#ifndef __BT_IN_BABELTRACE_H
+# define __BT_IN_BABELTRACE_H
+#endif
+
+/* Need by some of the following included headers */
+#include <babeltrace2/func-status.h>
 
 /* Core API */
 #include <babeltrace2/current-thread.h>
@@ -62,12 +74,7 @@
 #include <babeltrace2/trace-ir/trace-const.h>
 #include <babeltrace2/trace-ir/trace.h>
 
-/* Plugin and plugin development API */
-#include <babeltrace2/plugin/plugin-const.h>
-#include <babeltrace2/plugin/plugin-dev.h>
-#include <babeltrace2/plugin/plugin-set-const.h>
-
-/* Graph, component, and message API */
+/* Component class API */
 #include <babeltrace2/graph/component-class-const.h>
 #include <babeltrace2/graph/component-class-filter-const.h>
 #include <babeltrace2/graph/component-class-filter.h>
@@ -76,13 +83,30 @@
 #include <babeltrace2/graph/component-class-source-const.h>
 #include <babeltrace2/graph/component-class-source.h>
 #include <babeltrace2/graph/component-class.h>
+#include <babeltrace2/graph/self-component-class-filter.h>
+#include <babeltrace2/graph/self-component-class-sink.h>
+#include <babeltrace2/graph/self-component-class-source.h>
+
+/* Component API */
 #include <babeltrace2/graph/component-const.h>
 #include <babeltrace2/graph/component-filter-const.h>
 #include <babeltrace2/graph/component-sink-const.h>
 #include <babeltrace2/graph/component-source-const.h>
-#include <babeltrace2/graph/connection-const.h>
-#include <babeltrace2/graph/graph-const.h>
-#include <babeltrace2/graph/graph.h>
+#include <babeltrace2/graph/self-component-filter.h>
+#include <babeltrace2/graph/self-component-port-input.h>
+#include <babeltrace2/graph/self-component-port-output.h>
+#include <babeltrace2/graph/self-component-port.h>
+#include <babeltrace2/graph/self-component-sink.h>
+#include <babeltrace2/graph/self-component-source.h>
+#include <babeltrace2/graph/self-component.h>
+
+/* Message iterator API */
+#include <babeltrace2/graph/message-iterator.h>
+#include <babeltrace2/graph/port-output-message-iterator.h>
+#include <babeltrace2/graph/self-component-port-input-message-iterator.h>
+#include <babeltrace2/graph/self-message-iterator.h>
+
+/* Message API */
 #include <babeltrace2/graph/message-const.h>
 #include <babeltrace2/graph/message-discarded-events-const.h>
 #include <babeltrace2/graph/message-discarded-events.h>
@@ -90,7 +114,6 @@
 #include <babeltrace2/graph/message-discarded-packets.h>
 #include <babeltrace2/graph/message-event-const.h>
 #include <babeltrace2/graph/message-event.h>
-#include <babeltrace2/graph/message-iterator.h>
 #include <babeltrace2/graph/message-message-iterator-inactivity-const.h>
 #include <babeltrace2/graph/message-message-iterator-inactivity.h>
 #include <babeltrace2/graph/message-packet-beginning-const.h>
@@ -102,23 +125,39 @@
 #include <babeltrace2/graph/message-stream-const.h>
 #include <babeltrace2/graph/message-stream-end-const.h>
 #include <babeltrace2/graph/message-stream-end.h>
+
+/* Graph API */
+#include <babeltrace2/graph/connection-const.h>
+#include <babeltrace2/graph/graph-const.h>
+#include <babeltrace2/graph/graph.h>
 #include <babeltrace2/graph/port-const.h>
 #include <babeltrace2/graph/port-input-const.h>
 #include <babeltrace2/graph/port-output-const.h>
-#include <babeltrace2/graph/port-output-message-iterator.h>
+
+/* Query executor API */
 #include <babeltrace2/graph/query-executor-const.h>
 #include <babeltrace2/graph/query-executor.h>
-#include <babeltrace2/graph/self-component-class-filter.h>
-#include <babeltrace2/graph/self-component-class-sink.h>
-#include <babeltrace2/graph/self-component-class-source.h>
-#include <babeltrace2/graph/self-component-filter.h>
-#include <babeltrace2/graph/self-component-port-input-message-iterator.h>
-#include <babeltrace2/graph/self-component-port-input.h>
-#include <babeltrace2/graph/self-component-port-output.h>
-#include <babeltrace2/graph/self-component-port.h>
-#include <babeltrace2/graph/self-component-sink.h>
-#include <babeltrace2/graph/self-component-source.h>
-#include <babeltrace2/graph/self-component.h>
-#include <babeltrace2/graph/self-message-iterator.h>
+
+/* Plugin API */
+#include <babeltrace2/plugin/plugin-const.h>
+#include <babeltrace2/plugin/plugin-set-const.h>
+
+/* Plugin development */
+#include <babeltrace2/plugin/plugin-dev.h>
+
+/* Cancel private definitions */
+#undef __BT_FUNC_STATUS_OVERFLOW
+#undef __BT_FUNC_STATUS_INVALID_PARAMS
+#undef __BT_FUNC_STATUS_INVALID_OBJECT
+#undef __BT_FUNC_STATUS_MEMORY_ERROR
+#undef __BT_FUNC_STATUS_LOADING_ERROR
+#undef __BT_FUNC_STATUS_ERROR
+#undef __BT_FUNC_STATUS_OK
+#undef __BT_FUNC_STATUS_END
+#undef __BT_FUNC_STATUS_NOT_FOUND
+#undef __BT_FUNC_STATUS_AGAIN
+#undef __BT_FUNC_STATUS_UNSUPPORTED
+#undef __BT_FUNC_STATUS_CANCELED
+#undef __BT_IN_BABELTRACE_H
 
 #endif /* BABELTRACE2_BABELTRACE_H */
