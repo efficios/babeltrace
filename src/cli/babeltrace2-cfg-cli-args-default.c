@@ -21,6 +21,8 @@
  * SOFTWARE.
  */
 
+#include <glib.h>
+
 #include <babeltrace2/babeltrace.h>
 #include "babeltrace2-cfg.h"
 #include "babeltrace2-cfg-cli-args.h"
@@ -58,14 +60,14 @@ struct bt_config *bt_config_cli_args_create_with_default(int argc,
 	 * plugin provider, if the env variable is already set, do not overwrite
 	 * it.
 	 */
-	setenv("LIBBABELTRACE2_PLUGIN_PROVIDER_DIR", CONFIG_IN_TREE_PROVIDER_DIR, 0);
+	g_setenv("LIBBABELTRACE2_PLUGIN_PROVIDER_DIR", CONFIG_IN_TREE_PROVIDER_DIR, 0);
 #else
 	/*
 	 * If the Pyhton plugin provider is disabled, use a non-exitent path to avoid
 	 * loading the system installed provider if it exit, if the env variable is
 	 * already set, do not overwrite it.
 	 */
-	setenv("LIBBABELTRACE2_PLUGIN_PROVIDER_DIR", "/nonexistent", 0);
+	g_setenv("LIBBABELTRACE2_PLUGIN_PROVIDER_DIR", "/nonexistent", 0);
 #endif
 
 	cfg = bt_config_cli_args_create(argc, argv, retcode, true, true,
