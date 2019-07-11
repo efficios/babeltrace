@@ -40,6 +40,9 @@ if [ "x${BT_OS_TYPE:-}" = "x" ]; then
 	Linux)
 		BT_OS_TYPE="linux"
 		;;
+	CYGWIN*)
+		BT_OS_TYPE="cygwin"
+		;;
 	*)
 		BT_OS_TYPE="unsupported"
 		;;
@@ -228,7 +231,7 @@ run_python_bt2() {
 	local main_lib_path="${BT_TESTS_BUILDDIR}/../src/lib/.libs"
 
 	# Set the library search path so the python interpreter can load libbabeltrace2
-	if [ "$BT_OS_TYPE" = "mingw" ]; then
+	if [ "$BT_OS_TYPE" = "mingw" ] || [ "$BT_OS_TYPE" = "cygwin" ]; then
 		lib_search_var="PATH"
 		lib_search_path="${main_lib_path}:${PATH:-}"
 	elif [ "$BT_OS_TYPE" = "darwin" ]; then
