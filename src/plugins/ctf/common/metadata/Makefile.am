@@ -1,5 +1,5 @@
 AM_CPPFLAGS += -I$(builddir) -I$(srcdir)
-AM_YFLAGS = -t -d -v
+AM_YFLAGS = -t -d -v -Wno-yacc
 
 noinst_LTLIBRARIES = libctf-parser.la libctf-ast.la
 
