@@ -12,6 +12,7 @@
      | src/bindings/python/bt2/setup\.py$
      | src/bindings/python/bt2/bt2/native_bt\.py$
      | src/bindings/python/bt2/bt2/__init__\.py$
+     | tests/utils/python/tap
 
   )
   '''
