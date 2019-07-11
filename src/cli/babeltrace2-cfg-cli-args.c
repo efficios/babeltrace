@@ -43,22 +43,6 @@
 #include "babeltrace2-cfg-cli-params-arg.h"
 #include "common/version.h"
 
-/*
- * Error printf() macro which prepends "Error: " the first time it's
- * called. This gives a nicer feel than having a bunch of error prefixes
- * (since the following lines usually describe the error and possible
- * solutions), or the error prefix just at the end.
- */
-#define printf_err(fmt, args...)					\
-	do {								\
-		if (is_first_error) {					\
-			fprintf(stderr, "Command line error: ");	\
-			is_first_error = false;				\
-		}							\
-		fprintf(stderr, fmt, ##args);				\
-	} while (0)
-
-static bool is_first_error = true;
 static const int cli_default_log_level = BT_LOG_WARNING;
 
 /* INI-style parsing FSM states */
@@ -146,14 +130,7 @@ enum legacy_output_format {
 	LEGACY_OUTPUT_FORMAT_DUMMY,
 };
 
-/*
- * Prints the "out of memory" error.
- */
-static
-void print_err_oom(void)
-{
-	printf_err("Out of memory\n");
-}
+#define BT_CLI_LOGE_APPEND_CAUSE_OOM() BT_CLI_LOGE_APPEND_CAUSE("Out of memory.")
 
 /*
  * Returns the plugin name, component class name, component class type,
@@ -187,7 +164,7 @@ void plugin_comp_cls_names(const char *arg, char **name, char **plugin,
 	BT_ASSERT(comp_cls_type);
 
 	if (!bt_common_string_is_printable(arg)) {
-		printf_err("Argument contains a non-printable character\n");
+		BT_CLI_LOGE_APPEND_CAUSE("Argument contains a non-printable character.");
 		goto error;
 	}
 
@@ -207,7 +184,7 @@ void plugin_comp_cls_names(const char *arg, char **name, char **plugin,
 	/* Parse the component class type */
 	gs_comp_cls_type = bt_common_string_until(at, ".:\\", ".", &end_pos);
 	if (!gs_comp_cls_type || at[end_pos] == '\0') {
-		printf_err("Missing component class type (`source`, `filter`, or `sink`)\n");
+		BT_CLI_LOGE_APPEND_CAUSE("Missing component class type (`source`, `filter`, or `sink`).");
 		goto error;
 	}
 
@@ -220,7 +197,7 @@ void plugin_comp_cls_names(const char *arg, char **name, char **plugin,
 	} else if (strcmp(gs_comp_cls_type->str, "sink") == 0) {
 		*comp_cls_type = BT_COMPONENT_CLASS_TYPE_SINK;
 	} else {
-		printf_err("Unknown component class type: `%s`\n",
+		BT_CLI_LOGE_APPEND_CAUSE("Unknown component class type: `%s`.",
 			gs_comp_cls_type->str);
 		goto error;
 	}
@@ -230,7 +207,7 @@ void plugin_comp_cls_names(const char *arg, char **name, char **plugin,
 	/* Parse the plugin name */
 	gs_plugin = bt_common_string_until(at, ".:\\", ".", &end_pos);
 	if (!gs_plugin || gs_plugin->len == 0 || at[end_pos] == '\0') {
-		printf_err("Missing plugin or component class name\n");
+		BT_CLI_LOGE_APPEND_CAUSE("Missing plugin or component class name.");
 		goto error;
 	}
 
@@ -239,7 +216,7 @@ void plugin_comp_cls_names(const char *arg, char **name, char **plugin,
 	/* Parse the component class name */
 	gs_comp_cls = bt_common_string_until(at, ".:\\", ".", &end_pos);
 	if (!gs_comp_cls || gs_comp_cls->len == 0) {
-		printf_err("Missing component class name\n");
+		BT_CLI_LOGE_APPEND_CAUSE("Missing component class name.");
 		goto error;
 	}
 
@@ -359,7 +336,7 @@ struct bt_config_component *bt_config_component_create(
 
 	cfg_component = g_new0(struct bt_config_component, 1);
 	if (!cfg_component) {
-		print_err_oom();
+		BT_CLI_LOGE_APPEND_CAUSE_OOM();
 		goto error;
 	}
 
@@ -368,19 +345,19 @@ struct bt_config_component *bt_config_component_create(
 	cfg_component->type = type;
 	cfg_component->plugin_name = g_string_new(plugin_name);
 	if (!cfg_component->plugin_name) {
-		print_err_oom();
+		BT_CLI_LOGE_APPEND_CAUSE_OOM();
 		goto error;
 	}
 
 	cfg_component->comp_cls_name = g_string_new(comp_cls_name);
 	if (!cfg_component->comp_cls_name) {
-		print_err_oom();
+		BT_CLI_LOGE_APPEND_CAUSE_OOM();
 		goto error;
 	}
 
 	cfg_component->instance_name = g_string_new(NULL);
 	if (!cfg_component->instance_name) {
-		print_err_oom();
+		BT_CLI_LOGE_APPEND_CAUSE_OOM();
 		goto error;
 	}
 
@@ -389,7 +366,7 @@ struct bt_config_component *bt_config_component_create(
 	/* Start with empty parameters */
 	cfg_component->params = bt_value_map_create();
 	if (!cfg_component->params) {
-		print_err_oom();
+		BT_CLI_LOGE_APPEND_CAUSE_OOM();
 		goto error;
 	}
 
@@ -575,7 +552,7 @@ GScanner *create_csv_identifiers_scanner(void)
 
 	scanner = g_scanner_new(&scanner_config);
 	if (!scanner) {
-		print_err_oom();
+		BT_CLI_LOGE_APPEND_CAUSE_OOM();
 	}
 
 	return scanner;
@@ -596,7 +573,7 @@ bt_value *names_from_arg(const char *arg)
 
 	names = bt_value_array_create();
 	if (!names) {
-		print_err_oom();
+		BT_CLI_LOGE_APPEND_CAUSE_OOM();
 		goto error;
 	}
 
@@ -650,7 +627,7 @@ bt_value *names_from_arg(const char *arg)
 					goto error;
 				}
 			} else {
-				printf_err("Unknown name: `%s`\n",
+				BT_CLI_LOGE_APPEND_CAUSE("Unknown name: `%s`.",
 					identifier);
 				goto error;
 			}
@@ -667,7 +644,7 @@ bt_value *names_from_arg(const char *arg)
 
 end:
 	if (found_none && found_all) {
-		printf_err("Only either `all` or `none` can be specified in the list given to the --names option, but not both.\n");
+		BT_CLI_LOGE_APPEND_CAUSE("Only either `all` or `none` can be specified in the list given to the --names option, but not both.");
 		goto error;
 	}
 	/*
@@ -707,7 +684,7 @@ bt_value *fields_from_arg(const char *arg)
 
 	fields = bt_value_array_create();
 	if (!fields) {
-		print_err_oom();
+		BT_CLI_LOGE_APPEND_CAUSE_OOM();
 		goto error;
 	}
 
@@ -740,7 +717,7 @@ bt_value *fields_from_arg(const char *arg)
 					goto error;
 				}
 			} else {
-				printf_err("Unknown field: `%s`\n",
+				BT_CLI_LOGE_APPEND_CAUSE("Unknown field: `%s`.",
 					identifier);
 				goto error;
 			}
@@ -806,14 +783,14 @@ int insert_flat_params_from_array(GString *params_arg,
 
 	tmpstr = g_string_new(NULL);
 	if (!tmpstr) {
-		print_err_oom();
+		BT_CLI_LOGE_APPEND_CAUSE_OOM();
 		ret = -1;
 		goto end;
 	}
 
 	default_value = g_string_new(NULL);
 	if (!default_value) {
-		print_err_oom();
+		BT_CLI_LOGE_APPEND_CAUSE_OOM();
 		ret = -1;
 		goto end;
 	}
@@ -826,7 +803,7 @@ int insert_flat_params_from_array(GString *params_arg,
 		bool is_default = false;
 
 		if (!str_obj) {
-			printf_err("Unexpected error\n");
+			BT_CLI_LOGE_APPEND_CAUSE("Unexpected error.");
 			ret = -1;
 			goto end;
 		}
@@ -964,14 +941,14 @@ int add_run_cfg_comp_check_name(struct bt_config *cfg,
 	int ret = 0;
 
 	if (cfg_comp->instance_name->len == 0) {
-		printf_err("Found an unnamed component\n");
+		BT_CLI_LOGE_APPEND_CAUSE("Found an unnamed component.");
 		ret = -1;
 		goto end;
 	}
 
 	if (bt_value_map_has_entry(instance_names,
 				   cfg_comp->instance_name->str)) {
-		printf_err("Duplicate component instance name:\n    %s\n",
+		BT_CLI_LOGE_APPEND_CAUSE("Duplicate component instance name:\n    %s",
 			cfg_comp->instance_name->str);
 		ret = -1;
 		goto end;
@@ -979,7 +956,7 @@ int add_run_cfg_comp_check_name(struct bt_config *cfg,
 
 	if (bt_value_map_insert_entry(instance_names,
 			cfg_comp->instance_name->str, bt_value_null)) {
-		print_err_oom();
+		BT_CLI_LOGE_APPEND_CAUSE_OOM();
 		ret = -1;
 		goto end;
 	}
@@ -1010,7 +987,7 @@ int append_env_var_plugin_paths(bt_value *plugin_paths)
 
 end:
 	if (ret) {
-		printf_err("Cannot append plugin paths from BABELTRACE_PLUGIN_PATH\n");
+		BT_CLI_LOGE_APPEND_CAUSE("Cannot append plugin paths from BABELTRACE_PLUGIN_PATH.");
 	}
 
 	return ret;
@@ -1035,7 +1012,7 @@ int append_home_and_system_plugin_paths(bt_value *plugin_paths,
 				free(home_plugin_dir);
 
 				if (ret) {
-					printf_err("Invalid home plugin path\n");
+					BT_CLI_LOGE_APPEND_CAUSE("Invalid home plugin path.");
 					goto error;
 				}
 			}
@@ -1045,13 +1022,13 @@ int append_home_and_system_plugin_paths(bt_value *plugin_paths,
 	if (!omit_system_plugin_path) {
 		if (bt_config_append_plugin_paths(plugin_paths,
 				bt_common_get_system_plugin_path())) {
-			printf_err("Invalid system plugin path\n");
+			BT_CLI_LOGE_APPEND_CAUSE("Invalid system plugin path.");
 			goto error;
 		}
 	}
 	return 0;
 error:
-	printf_err("Cannot append home and system plugin paths\n");
+	BT_CLI_LOGE_APPEND_CAUSE("Cannot append home and system plugin paths.");
 	return -1;
 }
 
@@ -1072,7 +1049,7 @@ struct bt_config *bt_config_base_create(enum bt_config_command command,
 	/* Create config */
 	cfg = g_new0(struct bt_config, 1);
 	if (!cfg) {
-		print_err_oom();
+		BT_CLI_LOGE_APPEND_CAUSE_OOM();
 		goto error;
 	}
 
@@ -1089,7 +1066,7 @@ struct bt_config *bt_config_base_create(enum bt_config_command command,
 	} else {
 		cfg->plugin_paths = bt_value_array_create();
 		if (!cfg->plugin_paths) {
-			print_err_oom();
+			BT_CLI_LOGE_APPEND_CAUSE_OOM();
 			goto error;
 		}
 	}
@@ -1119,28 +1096,28 @@ struct bt_config *bt_config_run_create(
 	cfg->cmd_data.run.sources = g_ptr_array_new_with_free_func(
 		(GDestroyNotify) bt_object_put_ref);
 	if (!cfg->cmd_data.run.sources) {
-		print_err_oom();
+		BT_CLI_LOGE_APPEND_CAUSE_OOM();
 		goto error;
 	}
 
 	cfg->cmd_data.run.filters = g_ptr_array_new_with_free_func(
 		(GDestroyNotify) bt_object_put_ref);
 	if (!cfg->cmd_data.run.filters) {
-		print_err_oom();
+		BT_CLI_LOGE_APPEND_CAUSE_OOM();
 		goto error;
 	}
 
 	cfg->cmd_data.run.sinks = g_ptr_array_new_with_free_func(
 		(GDestroyNotify) bt_object_put_ref);
 	if (!cfg->cmd_data.run.sinks) {
-		print_err_oom();
+		BT_CLI_LOGE_APPEND_CAUSE_OOM();
 		goto error;
 	}
 
 	cfg->cmd_data.run.connections = g_ptr_array_new_with_free_func(
 		(GDestroyNotify) bt_config_connection_destroy);
 	if (!cfg->cmd_data.run.connections) {
-		print_err_oom();
+		BT_CLI_LOGE_APPEND_CAUSE_OOM();
 		goto error;
 	}
 
@@ -1219,7 +1196,7 @@ struct bt_config *bt_config_query_create(
 
 	cfg->cmd_data.query.object = g_string_new(NULL);
 	if (!cfg->cmd_data.query.object) {
-		print_err_oom();
+		BT_CLI_LOGE_APPEND_CAUSE_OOM();
 		goto error;
 	}
 
@@ -1247,13 +1224,13 @@ struct bt_config *bt_config_print_ctf_metadata_create(
 
 	cfg->cmd_data.print_ctf_metadata.path = g_string_new(NULL);
 	if (!cfg->cmd_data.print_ctf_metadata.path) {
-		print_err_oom();
+		BT_CLI_LOGE_APPEND_CAUSE_OOM();
 		goto error;
 	}
 
 	cfg->cmd_data.print_ctf_metadata.output_path = g_string_new(NULL);
 	if (!cfg->cmd_data.print_ctf_metadata.output_path) {
-		print_err_oom();
+		BT_CLI_LOGE_APPEND_CAUSE_OOM();
 		goto error;
 	}
 
@@ -1281,14 +1258,14 @@ struct bt_config *bt_config_print_lttng_live_sessions_create(
 
 	cfg->cmd_data.print_lttng_live_sessions.url = g_string_new(NULL);
 	if (!cfg->cmd_data.print_lttng_live_sessions.url) {
-		print_err_oom();
+		BT_CLI_LOGE_APPEND_CAUSE_OOM();
 		goto error;
 	}
 
 	cfg->cmd_data.print_lttng_live_sessions.output_path =
 		g_string_new(NULL);
 	if (!cfg->cmd_data.print_lttng_live_sessions.output_path) {
-		print_err_oom();
+		BT_CLI_LOGE_APPEND_CAUSE_OOM();
 		goto error;
 	}
 
@@ -1313,7 +1290,7 @@ int bt_config_append_plugin_paths_check_setuid_setgid(
 	}
 
 	if (bt_config_append_plugin_paths(plugin_paths, arg)) {
-		printf_err("Invalid --plugin-path option's argument:\n    %s\n",
+		BT_CLI_LOGE_APPEND_CAUSE("Invalid --plugin-path option's argument:\n    %s",
 			arg);
 		ret = -1;
 		goto end;
@@ -1434,7 +1411,7 @@ struct bt_config *bt_config_help_from_args(int argc, const char *argv[],
 	pc = poptGetContext(NULL, argc, (const char **) argv,
 		help_long_options, 0);
 	if (!pc) {
-		printf_err("Cannot get popt context\n");
+		BT_CLI_LOGE_APPEND_CAUSE("Cannot get popt context.");
 		goto error;
 	}
 
@@ -1462,7 +1439,7 @@ struct bt_config *bt_config_help_from_args(int argc, const char *argv[],
 			BT_OBJECT_PUT_REF_AND_RESET(cfg);
 			goto end;
 		default:
-			printf_err("Unknown command-line option specified (option code %d)\n",
+			BT_CLI_LOGE_APPEND_CAUSE("Unknown command-line option specified (option code %d).",
 				opt);
 			goto error;
 		}
@@ -1473,7 +1450,7 @@ struct bt_config *bt_config_help_from_args(int argc, const char *argv[],
 
 	/* Check for option parsing error */
 	if (opt < -1) {
-		printf_err("While parsing command-line options, at option %s: %s\n",
+		BT_CLI_LOGE_APPEND_CAUSE("While parsing command-line options, at option %s: `%s`.",
 			poptBadOption(pc, 0), poptStrerror(opt));
 		goto error;
 	}
@@ -1592,7 +1569,7 @@ struct bt_config *bt_config_query_from_args(int argc, const char *argv[],
 
 	error_str = g_string_new(NULL);
 	if (!error_str) {
-		print_err_oom();
+		BT_CLI_LOGE_APPEND_CAUSE_OOM();
 		goto error;
 	}
 
@@ -1607,7 +1584,7 @@ struct bt_config *bt_config_query_from_args(int argc, const char *argv[],
 	pc = poptGetContext(NULL, argc, (const char **) argv,
 		query_long_options, 0);
 	if (!pc) {
-		printf_err("Cannot get popt context\n");
+		BT_CLI_LOGE_APPEND_CAUSE("Cannot get popt context.");
 		goto error;
 	}
 
@@ -1634,7 +1611,7 @@ struct bt_config *bt_config_query_from_args(int argc, const char *argv[],
 			bt_value_put_ref(params);
 			params = cli_value_from_arg(arg, error_str);
 			if (!params) {
-				printf_err("Invalid format for --params option's argument:\n    %s\n",
+				BT_CLI_LOGE_APPEND_CAUSE("Invalid format for --params option's argument:\n    %s",
 					error_str->str);
 				goto error;
 			}
@@ -1646,7 +1623,7 @@ struct bt_config *bt_config_query_from_args(int argc, const char *argv[],
 			BT_OBJECT_PUT_REF_AND_RESET(cfg);
 			goto end;
 		default:
-			printf_err("Unknown command-line option specified (option code %d)\n",
+			BT_CLI_LOGE_APPEND_CAUSE("Unknown command-line option specified (option code %d).",
 				opt);
 			goto error;
 		}
@@ -1657,7 +1634,7 @@ struct bt_config *bt_config_query_from_args(int argc, const char *argv[],
 
 	/* Check for option parsing error */
 	if (opt < -1) {
-		printf_err("While parsing command-line options, at option %s: %s\n",
+		BT_CLI_LOGE_APPEND_CAUSE("While parsing command-line options, at option %s: `%s`.",
 			poptBadOption(pc, 0), poptStrerror(opt));
 		goto error;
 	}
@@ -1672,7 +1649,7 @@ struct bt_config *bt_config_query_from_args(int argc, const char *argv[],
 			bt_config_component_from_arg(leftover,
 				default_log_level);
 		if (!cfg->cmd_data.query.cfg_component) {
-			printf_err("Invalid format for component class specification:\n    %s\n",
+			BT_CLI_LOGE_APPEND_CAUSE("Invalid format for component class specification:\n    %s",
 				leftover);
 			goto error;
 		}
@@ -1690,7 +1667,7 @@ struct bt_config *bt_config_query_from_args(int argc, const char *argv[],
 	leftover = poptGetArg(pc);
 	if (leftover) {
 		if (strlen(leftover) == 0) {
-			printf_err("Invalid empty object\n");
+			BT_CLI_LOGE_APPEND_CAUSE("Invalid empty object.");
 			goto error;
 		}
 
@@ -1704,7 +1681,7 @@ struct bt_config *bt_config_query_from_args(int argc, const char *argv[],
 
 	leftover = poptGetArg(pc);
 	if (leftover) {
-		printf_err("Unexpected argument: %s\n", leftover);
+		BT_CLI_LOGE_APPEND_CAUSE("Unexpected argument: `%s`.", leftover);
 		goto error;
 	}
 
@@ -1800,7 +1777,7 @@ struct bt_config *bt_config_list_plugins_from_args(int argc, const char *argv[],
 	pc = poptGetContext(NULL, argc, (const char **) argv,
 		list_plugins_long_options, 0);
 	if (!pc) {
-		printf_err("Cannot get popt context\n");
+		BT_CLI_LOGE_APPEND_CAUSE("Cannot get popt context.");
 		goto error;
 	}
 
@@ -1828,7 +1805,7 @@ struct bt_config *bt_config_list_plugins_from_args(int argc, const char *argv[],
 			BT_OBJECT_PUT_REF_AND_RESET(cfg);
 			goto end;
 		default:
-			printf_err("Unknown command-line option specified (option code %d)\n",
+			BT_CLI_LOGE_APPEND_CAUSE("Unknown command-line option specified (option code %d).",
 				opt);
 			goto error;
 		}
@@ -1839,14 +1816,14 @@ struct bt_config *bt_config_list_plugins_from_args(int argc, const char *argv[],
 
 	/* Check for option parsing error */
 	if (opt < -1) {
-		printf_err("While parsing command-line options, at option %s: %s\n",
+		BT_CLI_LOGE_APPEND_CAUSE("While parsing command-line options, at option %s: %s",
 			poptBadOption(pc, 0), poptStrerror(opt));
 		goto error;
 	}
 
 	leftover = poptGetArg(pc);
 	if (leftover) {
-		printf_err("Unexpected argument: %s\n", leftover);
+		BT_CLI_LOGE_APPEND_CAUSE("Unexpected argument: `%s`.", leftover);
 		goto error;
 	}
 
@@ -1996,7 +1973,7 @@ struct bt_config *bt_config_run_from_args(int argc, const char *argv[],
 
 	error_str = g_string_new(NULL);
 	if (!error_str) {
-		print_err_oom();
+		BT_CLI_LOGE_APPEND_CAUSE_OOM();
 		goto error;
 	}
 
@@ -2016,19 +1993,19 @@ struct bt_config *bt_config_run_from_args(int argc, const char *argv[],
 	cfg->omit_home_plugin_path = force_omit_home_plugin_path;
 	cur_base_params = bt_value_map_create();
 	if (!cur_base_params) {
-		print_err_oom();
+		BT_CLI_LOGE_APPEND_CAUSE_OOM();
 		goto error;
 	}
 
 	instance_names = bt_value_map_create();
 	if (!instance_names) {
-		print_err_oom();
+		BT_CLI_LOGE_APPEND_CAUSE_OOM();
 		goto error;
 	}
 
 	connection_args = bt_value_array_create();
 	if (!connection_args) {
-		print_err_oom();
+		BT_CLI_LOGE_APPEND_CAUSE_OOM();
 		goto error;
 	}
 
@@ -2041,7 +2018,7 @@ struct bt_config *bt_config_run_from_args(int argc, const char *argv[],
 	pc = poptGetContext(NULL, argc, (const char **) argv,
 		run_long_options, 0);
 	if (!pc) {
-		printf_err("Cannot get popt context\n");
+		BT_CLI_LOGE_APPEND_CAUSE("Cannot get popt context.");
 		goto error;
 	}
 
@@ -2080,7 +2057,7 @@ struct bt_config *bt_config_run_from_args(int argc, const char *argv[],
 			cur_cfg_comp = bt_config_component_from_arg(arg,
 				default_log_level);
 			if (!cur_cfg_comp) {
-				printf_err("Invalid format for --component option's argument:\n    %s\n",
+				BT_CLI_LOGE_APPEND_CAUSE("Invalid format for --component option's argument:\n    %s",
 					arg);
 				goto error;
 			}
@@ -2103,7 +2080,7 @@ struct bt_config *bt_config_run_from_args(int argc, const char *argv[],
 			bt_value_put_ref(cur_cfg_comp->params);
 			if (bt_value_copy(cur_base_params,
 					&cur_cfg_comp->params) < 0) {
-				print_err_oom();
+				BT_CLI_LOGE_APPEND_CAUSE_OOM();
 				goto error;
 			}
 
@@ -2116,14 +2093,14 @@ struct bt_config *bt_config_run_from_args(int argc, const char *argv[],
 			bt_value *params_to_set;
 
 			if (!cur_cfg_comp) {
-				printf_err("Cannot add parameters to unavailable component:\n    %s\n",
+				BT_CLI_LOGE_APPEND_CAUSE("Cannot add parameters to unavailable component:\n    %s",
 					arg);
 				goto error;
 			}
 
 			params = cli_value_from_arg(arg, error_str);
 			if (!params) {
-				printf_err("Invalid format for --params option's argument:\n    %s\n",
+				BT_CLI_LOGE_APPEND_CAUSE("Invalid format for --params option's argument:\n    %s",
 					error_str->str);
 				goto error;
 			}
@@ -2132,7 +2109,7 @@ struct bt_config *bt_config_run_from_args(int argc, const char *argv[],
 				cur_cfg_comp->params, params, &params_to_set);
 			BT_VALUE_PUT_REF_AND_RESET(params);
 			if (extend_status != BT_VALUE_MAP_EXTEND_STATUS_OK) {
-				printf_err("Cannot extend current component parameters with --params option's argument:\n    %s\n",
+				BT_CLI_LOGE_APPEND_CAUSE("Cannot extend current component parameters with --params option's argument:\n    %s",
 					arg);
 				goto error;
 			}
@@ -2142,7 +2119,7 @@ struct bt_config *bt_config_run_from_args(int argc, const char *argv[],
 		}
 		case OPT_NAME:
 			if (!cur_cfg_comp) {
-				printf_err("Cannot set the name of unavailable component:\n    %s\n",
+				BT_CLI_LOGE_APPEND_CAUSE("Cannot set the name of unavailable component:\n    %s",
 					arg);
 				goto error;
 			}
@@ -2151,7 +2128,7 @@ struct bt_config *bt_config_run_from_args(int argc, const char *argv[],
 			break;
 		case OPT_LOG_LEVEL:
 			if (!cur_cfg_comp) {
-				printf_err("Cannot set the log level of unavailable component:\n    %s\n",
+				BT_CLI_LOGE_APPEND_CAUSE("Cannot set the log level of unavailable component:\n    %s",
 					arg);
 				goto error;
 			}
@@ -2159,7 +2136,7 @@ struct bt_config *bt_config_run_from_args(int argc, const char *argv[],
 			cur_cfg_comp->log_level =
 				bt_log_get_level_from_string(arg);
 			if (cur_cfg_comp->log_level < 0) {
-				printf_err("Invalid argument for --log-level option:\n    %s\n",
+				BT_CLI_LOGE_APPEND_CAUSE("Invalid argument for --log-level option:\n    %s",
 					arg);
 				goto error;
 			}
@@ -2169,7 +2146,7 @@ struct bt_config *bt_config_run_from_args(int argc, const char *argv[],
 			bt_value *params = cli_value_from_arg(arg, error_str);
 
 			if (!params) {
-				printf_err("Invalid format for --base-params option's argument:\n    %s\n",
+				BT_CLI_LOGE_APPEND_CAUSE("Invalid format for --base-params option's argument:\n    %s",
 					error_str->str);
 				goto error;
 			}
@@ -2181,20 +2158,20 @@ struct bt_config *bt_config_run_from_args(int argc, const char *argv[],
 			BT_VALUE_PUT_REF_AND_RESET(cur_base_params);
 			cur_base_params = bt_value_map_create();
 			if (!cur_base_params) {
-				print_err_oom();
+				BT_CLI_LOGE_APPEND_CAUSE_OOM();
 				goto error;
 			}
 			break;
 		case OPT_CONNECT:
 			if (bt_value_array_append_string_element(
 					connection_args, arg)) {
-				print_err_oom();
+				BT_CLI_LOGE_APPEND_CAUSE_OOM();
 				goto error;
 			}
 			break;
 		case OPT_RETRY_DURATION:
 			if (retry_duration < 0) {
-				printf_err("--retry-duration option's argument must be positive or 0: %ld\n",
+				BT_CLI_LOGE_APPEND_CAUSE("--retry-duration option's argument must be positive or 0: %ld",
 					retry_duration);
 				goto error;
 			}
@@ -2208,7 +2185,7 @@ struct bt_config *bt_config_run_from_args(int argc, const char *argv[],
 			BT_OBJECT_PUT_REF_AND_RESET(cfg);
 			goto end;
 		default:
-			printf_err("Unknown command-line option specified (option code %d)\n",
+			BT_CLI_LOGE_APPEND_CAUSE("Unknown command-line option specified (option code %d).",
 				opt);
 			goto error;
 		}
@@ -2219,14 +2196,14 @@ struct bt_config *bt_config_run_from_args(int argc, const char *argv[],
 
 	/* Check for option parsing error */
 	if (opt < -1) {
-		printf_err("While parsing command-line options, at option %s: %s\n",
+		BT_CLI_LOGE_APPEND_CAUSE("While parsing command-line options, at option %s: %s",
 			poptBadOption(pc, 0), poptStrerror(opt));
 		goto error;
 	}
 
 	/* This command does not accept leftover arguments */
 	if (poptPeekArg(pc)) {
-		printf_err("Unexpected argument: %s\n", poptPeekArg(pc));
+		BT_CLI_LOGE_APPEND_CAUSE("Unexpected argument: %s", poptPeekArg(pc));
 		goto error;
 	}
 
@@ -2241,12 +2218,12 @@ struct bt_config *bt_config_run_from_args(int argc, const char *argv[],
 	}
 
 	if (cfg->cmd_data.run.sources->len == 0) {
-		printf_err("Incomplete graph: no source component\n");
+		BT_CLI_LOGE_APPEND_CAUSE("Incomplete graph: no source component.");
 		goto error;
 	}
 
 	if (cfg->cmd_data.run.sinks->len == 0) {
-		printf_err("Incomplete graph: no sink component\n");
+		BT_CLI_LOGE_APPEND_CAUSE("Incomplete graph: no sink component.");
 		goto error;
 	}
 
@@ -2258,7 +2235,7 @@ struct bt_config *bt_config_run_from_args(int argc, const char *argv[],
 		connection_args,
 		error_buf, 256);
 	if (ret) {
-		printf_err("Cannot creation connections:\n%s", error_buf);
+		BT_CLI_LOGE_APPEND_CAUSE("Cannot creation connections:\n%s", error_buf);
 		goto error;
 	}
 
@@ -2298,7 +2275,7 @@ struct bt_config *bt_config_run_from_args_array(const bt_value *run_args,
 
 	argv = calloc(argc, sizeof(*argv));
 	if (!argv) {
-		print_err_oom();
+		BT_CLI_LOGE_APPEND_CAUSE_OOM();
 		goto end;
 	}
 
@@ -2306,7 +2283,7 @@ struct bt_config *bt_config_run_from_args_array(const bt_value *run_args,
 
 	len = bt_value_array_get_size(run_args);
 	if (len < 0) {
-		printf_err("Invalid executable arguments\n");
+		BT_CLI_LOGE_APPEND_CAUSE("Invalid executable arguments.");
 		goto end;
 	}
 	for (i = 0; i < len; i++) {
@@ -2520,7 +2497,7 @@ GString *get_component_auto_name(const char *prefix,
 	GString *auto_name = g_string_new(NULL);
 
 	if (!auto_name) {
-		print_err_oom();
+		BT_CLI_LOGE_APPEND_CAUSE_OOM();
 		goto end;
 	}
 
@@ -2570,7 +2547,7 @@ int assign_name_to_implicit_component(struct implicit_component_args *args,
 
 	if (bt_value_map_insert_entry(existing_names, name->str,
 			bt_value_null)) {
-		print_err_oom();
+		BT_CLI_LOGE_APPEND_CAUSE_OOM();
 		ret = -1;
 		goto end;
 	}
@@ -2601,34 +2578,34 @@ int append_run_args_for_implicit_component(
 	}
 
 	if (bt_value_array_append_string_element(run_args, "--component")) {
-		print_err_oom();
+		BT_CLI_LOGE_APPEND_CAUSE_OOM();
 		goto error;
 	}
 
 	if (bt_value_array_append_string_element(run_args, impl_args->comp_arg->str)) {
-		print_err_oom();
+		BT_CLI_LOGE_APPEND_CAUSE_OOM();
 		goto error;
 	}
 
 	if (bt_value_array_append_string_element(run_args, "--name")) {
-		print_err_oom();
+		BT_CLI_LOGE_APPEND_CAUSE_OOM();
 		goto error;
 	}
 
 	if (bt_value_array_append_string_element(run_args, impl_args->name_arg->str)) {
-		print_err_oom();
+		BT_CLI_LOGE_APPEND_CAUSE_OOM();
 		goto error;
 	}
 
 	if (impl_args->params_arg->len > 0) {
 		if (bt_value_array_append_string_element(run_args, "--params")) {
-			print_err_oom();
+			BT_CLI_LOGE_APPEND_CAUSE_OOM();
 			goto error;
 		}
 
 		if (bt_value_array_append_string_element(run_args,
 				impl_args->params_arg->str)) {
-			print_err_oom();
+			BT_CLI_LOGE_APPEND_CAUSE_OOM();
 			goto error;
 		}
 	}
@@ -2648,7 +2625,7 @@ int append_run_args_for_implicit_component(
 		arg = bt_value_string_get(elem);
 		ret = bt_value_array_append_string_element(run_args, arg);
 		if (ret) {
-			print_err_oom();
+			BT_CLI_LOGE_APPEND_CAUSE_OOM();
 			goto error;
 		}
 	}
@@ -2698,7 +2675,7 @@ int init_implicit_component_args(struct implicit_component_args *args,
 			!args->params_arg || !args->extra_params) {
 		ret = -1;
 		finalize_implicit_component_args(args);
-		print_err_oom();
+		BT_CLI_LOGE_APPEND_CAUSE_OOM();
 		goto end;
 	}
 
@@ -2725,7 +2702,7 @@ gchar *escape_string_value(const char *value)
 
 	ret = g_string_new(NULL);
 	if (!ret) {
-		print_err_oom();
+		BT_CLI_LOGE_APPEND_CAUSE_OOM();
 		goto end;
 	}
 
@@ -2815,7 +2792,7 @@ gchar *bt_value_to_cli_param_value(bt_value *value)
 
 	buf = g_string_new(NULL);
 	if (!buf) {
-		print_err_oom();
+		BT_CLI_LOGE_APPEND_CAUSE_OOM();
 		goto error;
 	}
 
@@ -2850,7 +2827,7 @@ int append_parameter_to_args(bt_value *args, const char *key, bt_value *value)
 	GString *parameter = NULL;
 
 	if (bt_value_array_append_string_element(args, "--params")) {
-		print_err_oom();
+		BT_CLI_LOGE_APPEND_CAUSE_OOM();
 		ret = -1;
 		goto end;
 	}
@@ -2863,7 +2840,7 @@ int append_parameter_to_args(bt_value *args, const char *key, bt_value *value)
 
 	parameter = g_string_new(NULL);
 	if (!parameter) {
-		print_err_oom();
+		BT_CLI_LOGE_APPEND_CAUSE_OOM();
 		ret = -1;
 		goto end;
 	}
@@ -2871,7 +2848,7 @@ int append_parameter_to_args(bt_value *args, const char *key, bt_value *value)
 	g_string_printf(parameter, "%s=%s", key, str_value);
 
 	if (bt_value_array_append_string_element(args, parameter->str)) {
-		print_err_oom();
+		BT_CLI_LOGE_APPEND_CAUSE_OOM();
 		ret = -1;
 		goto end;
 	}
@@ -2899,7 +2876,7 @@ int append_string_parameter_to_args(bt_value *args, const char *key, const char 
 	str_value = bt_value_string_create_init(value);
 
 	if (!str_value) {
-		print_err_oom();
+		BT_CLI_LOGE_APPEND_CAUSE_OOM();
 		ret = -1;
 		goto end;
 	}
@@ -2948,7 +2925,7 @@ int convert_append_name_param(enum bt_config_component_dest dest,
 			 */
 			if (bt_value_map_has_entry(all_names,
 						   cur_name->str)) {
-				printf_err("Duplicate component instance name:\n    %s\n",
+				BT_CLI_LOGE_APPEND_CAUSE("Duplicate component instance name:\n    %s",
 					cur_name->str);
 				goto error;
 			}
@@ -2957,7 +2934,7 @@ int convert_append_name_param(enum bt_config_component_dest dest,
 		}
 
 		if (!name) {
-			print_err_oom();
+			BT_CLI_LOGE_APPEND_CAUSE_OOM();
 			goto error;
 		}
 
@@ -2966,7 +2943,7 @@ int convert_append_name_param(enum bt_config_component_dest dest,
 		 * all component names.
 		 */
 		if (bt_value_map_insert_entry(all_names, name->str, bt_value_null)) {
-			print_err_oom();
+			BT_CLI_LOGE_APPEND_CAUSE_OOM();
 			goto error;
 		}
 
@@ -2975,12 +2952,12 @@ int convert_append_name_param(enum bt_config_component_dest dest,
 		 */
 		if (append_name_opt) {
 			if (bt_value_array_append_string_element(run_args, "--name")) {
-				print_err_oom();
+				BT_CLI_LOGE_APPEND_CAUSE_OOM();
 				goto error;
 			}
 
 			if (bt_value_array_append_string_element(run_args, name->str)) {
-				print_err_oom();
+				BT_CLI_LOGE_APPEND_CAUSE_OOM();
 				goto error;
 			}
 		}
@@ -3025,7 +3002,7 @@ GString *escape_dot_colon(const char *input)
 	const char *ch;
 
 	if (!output) {
-		print_err_oom();
+		BT_CLI_LOGE_APPEND_CAUSE_OOM();
 		goto end;
 	}
 
@@ -3056,14 +3033,14 @@ int append_connect_arg(bt_value *run_args,
 	GString *arg = g_string_new(NULL);
 
 	if (!e_upstream_name || !e_downstream_name || !arg) {
-		print_err_oom();
+		BT_CLI_LOGE_APPEND_CAUSE_OOM();
 		ret = -1;
 		goto end;
 	}
 
 	ret = bt_value_array_append_string_element(run_args, "--connect");
 	if (ret) {
-		print_err_oom();
+		BT_CLI_LOGE_APPEND_CAUSE_OOM();
 		ret = -1;
 		goto end;
 	}
@@ -3073,7 +3050,7 @@ int append_connect_arg(bt_value *run_args,
 	g_string_append(arg, e_downstream_name->str);
 	ret = bt_value_array_append_string_element(run_args, arg->str);
 	if (ret) {
-		print_err_oom();
+		BT_CLI_LOGE_APPEND_CAUSE_OOM();
 		ret = -1;
 		goto end;
 	}
@@ -3221,7 +3198,7 @@ int g_list_prepend_gstring(GList **list, const char *string)
 	BT_ASSERT(list);
 
 	if (!gs) {
-		print_err_oom();
+		BT_CLI_LOGE_APPEND_CAUSE_OOM();
 		goto end;
 	}
 
@@ -3332,25 +3309,25 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 
 	all_names = bt_value_map_create();
 	if (!all_names) {
-		print_err_oom();
+		BT_CLI_LOGE_APPEND_CAUSE_OOM();
 		goto error;
 	}
 
 	run_args = bt_value_array_create();
 	if (!run_args) {
-		print_err_oom();
+		BT_CLI_LOGE_APPEND_CAUSE_OOM();
 		goto error;
 	}
 
 	cur_name = g_string_new(NULL);
 	if (!cur_name) {
-		print_err_oom();
+		BT_CLI_LOGE_APPEND_CAUSE_OOM();
 		goto error;
 	}
 
 	cur_name_prefix = g_string_new(NULL);
 	if (!cur_name_prefix) {
-		print_err_oom();
+		BT_CLI_LOGE_APPEND_CAUSE_OOM();
 		goto error;
 	}
 
@@ -3361,7 +3338,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 
 	leftovers = bt_value_array_create();
 	if (!leftovers) {
-		print_err_oom();
+		BT_CLI_LOGE_APPEND_CAUSE_OOM();
 		goto error;
 	}
 
@@ -3380,7 +3357,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 	pc = poptGetContext(NULL, argc, (const char **) argv,
 		convert_long_options, 0);
 	if (!pc) {
-		printf_err("Cannot get popt context\n");
+		BT_CLI_LOGE_APPEND_CAUSE("Cannot get popt context.");
 		goto error;
 	}
 
@@ -3411,7 +3388,8 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 			plugin_comp_cls_names(arg, &name, &plugin_name,
 				&comp_cls_name, &type);
 			if (!plugin_name || !comp_cls_name) {
-				printf_err("Invalid format for --component option's argument:\n    %s\n",
+				BT_CLI_LOGE_APPEND_CAUSE(
+					"Invalid format for --component option's argument:\n    %s",
 					arg);
 				goto error;
 			}
@@ -3441,12 +3419,12 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 
 			if (bt_value_array_append_string_element(run_args,
 					"--component")) {
-				print_err_oom();
+				BT_CLI_LOGE_APPEND_CAUSE_OOM();
 				goto error;
 			}
 
 			if (bt_value_array_append_string_element(run_args, arg)) {
-				print_err_oom();
+				BT_CLI_LOGE_APPEND_CAUSE_OOM();
 				goto error;
 			}
 
@@ -3463,25 +3441,25 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 		}
 		case OPT_PARAMS:
 			if (cur_name_prefix->len == 0) {
-				printf_err("No current component of which to set parameters:\n    %s\n",
+				BT_CLI_LOGE_APPEND_CAUSE("No current component of which to set parameters:\n    %s",
 					arg);
 				goto error;
 			}
 
 			if (bt_value_array_append_string_element(run_args,
 					"--params")) {
-				print_err_oom();
+				BT_CLI_LOGE_APPEND_CAUSE_OOM();
 				goto error;
 			}
 
 			if (bt_value_array_append_string_element(run_args, arg)) {
-				print_err_oom();
+				BT_CLI_LOGE_APPEND_CAUSE_OOM();
 				goto error;
 			}
 			break;
 		case OPT_PATH:
 			if (cur_name_prefix->len == 0) {
-				printf_err("No current component of which to set `path` parameter:\n    %s\n",
+				BT_CLI_LOGE_APPEND_CAUSE("No current component of which to set `path` parameter:\n    %s",
 					arg);
 				goto error;
 			}
@@ -3492,7 +3470,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 			break;
 		case OPT_URL:
 			if (cur_name_prefix->len == 0) {
-				printf_err("No current component of which to set `url` parameter:\n    %s\n",
+				BT_CLI_LOGE_APPEND_CAUSE("No current component of which to set `url` parameter:\n    %s",
 					arg);
 				goto error;
 			}
@@ -3504,18 +3482,18 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 			break;
 		case OPT_NAME:
 			if (cur_name_prefix->len == 0) {
-				printf_err("No current component to name:\n    %s\n",
+				BT_CLI_LOGE_APPEND_CAUSE("No current component to name:\n    %s",
 					arg);
 				goto error;
 			}
 
 			if (bt_value_array_append_string_element(run_args, "--name")) {
-				print_err_oom();
+				BT_CLI_LOGE_APPEND_CAUSE_OOM();
 				goto error;
 			}
 
 			if (bt_value_array_append_string_element(run_args, arg)) {
-				print_err_oom();
+				BT_CLI_LOGE_APPEND_CAUSE_OOM();
 				goto error;
 			}
 
@@ -3523,18 +3501,18 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 			break;
 		case OPT_LOG_LEVEL:
 			if (cur_name_prefix->len == 0) {
-				printf_err("No current component to assign a log level to:\n    %s\n",
+				BT_CLI_LOGE_APPEND_CAUSE("No current component to assign a log level to:\n    %s",
 					arg);
 				goto error;
 			}
 
 			if (bt_value_array_append_string_element(run_args, "--log-level")) {
-				print_err_oom();
+				BT_CLI_LOGE_APPEND_CAUSE_OOM();
 				goto error;
 			}
 
 			if (bt_value_array_append_string_element(run_args, arg)) {
-				print_err_oom();
+				BT_CLI_LOGE_APPEND_CAUSE_OOM();
 				goto error;
 			}
 
@@ -3544,19 +3522,19 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 
 			if (bt_value_array_append_string_element(run_args,
 					"--omit-home-plugin-path")) {
-				print_err_oom();
+				BT_CLI_LOGE_APPEND_CAUSE_OOM();
 				goto error;
 			}
 			break;
 		case OPT_RETRY_DURATION:
 			if (bt_value_array_append_string_element(run_args,
 					"--retry-duration")) {
-				print_err_oom();
+				BT_CLI_LOGE_APPEND_CAUSE_OOM();
 				goto error;
 			}
 
 			if (bt_value_array_append_string_element(run_args, arg)) {
-				print_err_oom();
+				BT_CLI_LOGE_APPEND_CAUSE_OOM();
 				goto error;
 			}
 			break;
@@ -3565,7 +3543,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 
 			if (bt_value_array_append_string_element(run_args,
 					"--omit-system-plugin-path")) {
-				print_err_oom();
+				BT_CLI_LOGE_APPEND_CAUSE_OOM();
 				goto error;
 			}
 			break;
@@ -3577,12 +3555,12 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 
 			if (bt_value_array_append_string_element(run_args,
 					"--plugin-path")) {
-				print_err_oom();
+				BT_CLI_LOGE_APPEND_CAUSE_OOM();
 				goto error;
 			}
 
 			if (bt_value_array_append_string_element(run_args, arg)) {
-				print_err_oom();
+				BT_CLI_LOGE_APPEND_CAUSE_OOM();
 				goto error;
 			}
 			break;
@@ -3620,7 +3598,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 			/* Ignore in this pass */
 			break;
 		default:
-			printf_err("Unknown command-line option specified (option code %d)\n",
+			BT_CLI_LOGE_APPEND_CAUSE("Unknown command-line option specified (option code %d).",
 				opt);
 			goto error;
 		}
@@ -3639,7 +3617,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 
 	/* Check for option parsing error */
 	if (opt < -1) {
-		printf_err("While parsing command-line options, at option %s: %s\n",
+		BT_CLI_LOGE_APPEND_CAUSE("While parsing command-line options, at option `%s`: %s.",
 			poptBadOption(pc, 0), poptStrerror(opt));
 		goto error;
 	}
@@ -3656,7 +3634,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 	pc = poptGetContext(NULL, argc, (const char **) argv,
 		convert_long_options, 0);
 	if (!pc) {
-		printf_err("Cannot get popt context\n");
+		BT_CLI_LOGE_APPEND_CAUSE("Cannot get popt context.");
 		goto error;
 	}
 
@@ -3709,7 +3687,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 
 			ret = split_timerange(arg, &begin, &end);
 			if (ret) {
-				printf_err("Invalid --timerange option's argument: expecting BEGIN,END or [BEGIN,END]:\n    %s\n",
+				BT_CLI_LOGE_APPEND_CAUSE("Invalid --timerange option's argument: expecting BEGIN,END or [BEGIN,END]:\n    %s",
 					arg);
 				goto error;
 			}
@@ -3841,7 +3819,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 			break;
 		case OPT_INPUT_FORMAT:
 			if (got_input_format_opt) {
-				printf_err("Duplicate --input-format option\n");
+				BT_CLI_LOGE_APPEND_CAUSE("Duplicate --input-format option.");
 				goto error;
 			}
 
@@ -3852,14 +3830,14 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 			} else if (strcmp(arg, "lttng-live") == 0) {
 				implicit_lttng_live_args.exists = true;
 			} else {
-				printf_err("Unknown legacy input format:\n    %s\n",
+				BT_CLI_LOGE_APPEND_CAUSE("Unknown legacy input format:\n    %s",
 					arg);
 				goto error;
 			}
 			break;
 		case OPT_OUTPUT_FORMAT:
 			if (got_output_format_opt) {
-				printf_err("Duplicate --output-format option\n");
+				BT_CLI_LOGE_APPEND_CAUSE("Duplicate --output-format option.");
 				goto error;
 			}
 
@@ -3874,26 +3852,26 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 			} else if (strcmp(arg, "ctf-metadata") == 0) {
 				print_ctf_metadata = true;
 			} else {
-				printf_err("Unknown legacy output format:\n    %s\n",
+				BT_CLI_LOGE_APPEND_CAUSE("Unknown legacy output format:\n    %s",
 					arg);
 				goto error;
 			}
 			break;
 		case OPT_OUTPUT:
 			if (output) {
-				printf_err("Duplicate --output option\n");
+				BT_CLI_LOGE_APPEND_CAUSE("Duplicate --output option");
 				goto error;
 			}
 
 			output = strdup(arg);
 			if (!output) {
-				print_err_oom();
+				BT_CLI_LOGE_APPEND_CAUSE_OOM();
 				goto error;
 			}
 			break;
 		case OPT_RUN_ARGS:
 			if (print_run_args_0) {
-				printf_err("Cannot specify --run-args and --run-args-0\n");
+				BT_CLI_LOGE_APPEND_CAUSE("Cannot specify --run-args and --run-args-0.");
 				goto error;
 			}
 
@@ -3901,7 +3879,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 			break;
 		case OPT_RUN_ARGS_0:
 			if (print_run_args) {
-				printf_err("Cannot specify --run-args and --run-args-0\n");
+				BT_CLI_LOGE_APPEND_CAUSE("Cannot specify --run-args and --run-args-0.");
 				goto error;
 			}
 
@@ -3933,7 +3911,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 
 	/* Check for option parsing error */
 	if (opt < -1) {
-		printf_err("While parsing command-line options, at option %s: %s\n",
+		BT_CLI_LOGE_APPEND_CAUSE("While parsing command-line options, at option %s: %s",
 			poptBadOption(pc, 0), poptStrerror(opt));
 		goto error;
 	}
@@ -3963,7 +3941,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 	while ((leftover = poptGetArg(pc))) {
 		if (bt_value_array_append_string_element(leftovers, leftover) !=
 				BT_VALUE_ARRAY_APPEND_ELEMENT_STATUS_OK) {
-			print_err_oom();
+			BT_CLI_LOGE_APPEND_CAUSE_OOM();
 			goto error;
 		}
 	}
@@ -3973,12 +3951,12 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 		const bt_value *bt_val_leftover;
 
 		if (bt_value_array_is_empty(leftovers)) {
-			printf_err("--output-format=ctf-metadata specified without a path\n");
+			BT_CLI_LOGE_APPEND_CAUSE("--output-format=ctf-metadata specified without a path.");
 			goto error;
 		}
 
 		if (bt_value_array_get_size(leftovers) > 1) {
-			printf_err("Too many paths specified for --output-format=ctf-metadata\n");
+			BT_CLI_LOGE_APPEND_CAUSE("Too many paths specified for --output-format=ctf-metadata.");
 			goto error;
 		}
 
@@ -4008,7 +3986,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 	 */
 	if (implicit_ctf_output_args.exists) {
 		if (!output) {
-			printf_err("--output-format=ctf specified without --output (trace output path)\n");
+			BT_CLI_LOGE_APPEND_CAUSE("--output-format=ctf specified without --output (trace output path).");
 			goto error;
 		}
 
@@ -4025,7 +4003,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 		 * sink.ctf.fs implicit components.
 		 */
 		if (implicit_text_args.exists) {
-			printf_err("Ambiguous --output option: --output-format=ctf specified but another option implies --output-format=text\n");
+			BT_CLI_LOGE_APPEND_CAUSE("Ambiguous --output option: --output-format=ctf specified but another option implies --output-format=text.");
 			goto error;
 		}
 	}
@@ -4060,7 +4038,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 			const bt_value *bt_val_leftover;
 
 			if (bt_value_array_get_size(leftovers) > 1) {
-				printf_err("Too many URLs specified for --input-format=lttng-live\n");
+				BT_CLI_LOGE_APPEND_CAUSE("Too many URLs specified for --input-format=lttng-live.");
 				goto error;
 			}
 
@@ -4069,7 +4047,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 				bt_common_parse_lttng_live_url(bt_value_string_get(bt_val_leftover),
 					error_buf, sizeof(error_buf));
 			if (!lttng_live_url_parts.proto) {
-				printf_err("Invalid LTTng live URL format: %s\n",
+				BT_CLI_LOGE_APPEND_CAUSE("Invalid LTTng live URL format: %s.",
 					error_buf);
 				goto error;
 			}
@@ -4127,7 +4105,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 	 * `source.ctf.lttng-live` components.
 	 */
 	if (implicit_ctf_input_args.exists && implicit_lttng_live_args.exists) {
-		printf_err("Cannot create both implicit `%s` and `%s` components\n",
+		BT_CLI_LOGE_APPEND_CAUSE("Cannot create both implicit `%s` and `%s` components.",
 			implicit_ctf_input_args.comp_arg->str,
 			implicit_lttng_live_args.comp_arg->str);
 		goto error;
@@ -4139,13 +4117,13 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 	 * (which is the path or URL).
 	 */
 	if (implicit_ctf_input_args.exists && bt_value_array_is_empty(leftovers)) {
-		printf_err("Missing path for implicit `%s` component\n",
+		BT_CLI_LOGE_APPEND_CAUSE("Missing path for implicit `%s` component.",
 			implicit_ctf_input_args.comp_arg->str);
 		goto error;
 	}
 
 	if (implicit_lttng_live_args.exists && bt_value_array_is_empty(leftovers)) {
-		printf_err("Missing URL for implicit `%s` component\n",
+		BT_CLI_LOGE_APPEND_CAUSE("Missing URL for implicit `%s` component.",
 			implicit_lttng_live_args.comp_arg->str);
 		goto error;
 	}
@@ -4201,12 +4179,12 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 
 	/* Make sure there's at least one source and one sink */
 	if (!source_names) {
-		printf_err("No source component\n");
+		BT_CLI_LOGE_APPEND_CAUSE("No source component.");
 		goto error;
 	}
 
 	if (!sink_names) {
-		printf_err("No sink component\n");
+		BT_CLI_LOGE_APPEND_CAUSE("No sink component.");
 		goto error;
 	}
 
@@ -4291,7 +4269,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 	ret = convert_auto_connect(run_args, source_names, filter_names,
 			sink_names);
 	if (ret) {
-		printf_err("Cannot auto-connect components\n");
+		BT_CLI_LOGE_APPEND_CAUSE("Cannot auto-connect components.");
 		goto error;
 	}
 
@@ -4302,7 +4280,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 	 */
 	if (print_run_args || print_run_args_0) {
 		if (stream_intersection_mode) {
-			printf_err("Cannot specify --stream-intersection with --run-args or --run-args-0\n");
+			BT_CLI_LOGE_APPEND_CAUSE("Cannot specify --stream-intersection with --run-args or --run-args-0.");
 			goto error;
 		}
 
@@ -4505,7 +4483,7 @@ struct bt_config *bt_config_cli_args_create(int argc, const char *argv[],
 		} else if (strcmp(cur_arg, "--log-level") == 0 ||
 				strcmp(cur_arg, "-l") == 0) {
 			if (!next_arg) {
-				printf_err("Missing log level value for --log-level option\n");
+				BT_CLI_LOGE_APPEND_CAUSE("Missing log level value for --log-level option.");
 				*retcode = 1;
 				goto end;
 			}
@@ -4513,7 +4491,7 @@ struct bt_config *bt_config_cli_args_create(int argc, const char *argv[],
 			default_log_level =
 				bt_log_get_level_from_string(next_arg);
 			if (default_log_level < 0) {
-				printf_err("Invalid argument for --log-level option:\n    %s\n",
+				BT_CLI_LOGE_APPEND_CAUSE("Invalid argument for --log-level option:\n    %s",
 					next_arg);
 				*retcode = 1;
 				goto end;
@@ -4525,7 +4503,7 @@ struct bt_config *bt_config_cli_args_create(int argc, const char *argv[],
 
 			default_log_level = bt_log_get_level_from_string(arg);
 			if (default_log_level < 0) {
-				printf_err("Invalid argument for --log-level option:\n    %s\n",
+				BT_CLI_LOGE_APPEND_CAUSE("Invalid argument for --log-level option:\n    %s",
 					arg);
 				*retcode = 1;
 				goto end;
@@ -4535,7 +4513,7 @@ struct bt_config *bt_config_cli_args_create(int argc, const char *argv[],
 
 			default_log_level = bt_log_get_level_from_string(arg);
 			if (default_log_level < 0) {
-				printf_err("Invalid argument for --log-level option:\n    %s\n",
+				BT_CLI_LOGE_APPEND_CAUSE("Invalid argument for --log-level option:\n    %s",
 					arg);
 				*retcode = 1;
 				goto end;
