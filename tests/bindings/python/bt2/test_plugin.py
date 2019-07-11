@@ -23,6 +23,7 @@ import os
 
 
 _TEST_PLUGIN_PLUGINS_PATH = os.environ['BT_PLUGINS_PATH']
+_TEST_PLUGIN_PLUGIN_EXTENSION_BY_OS = {'cygwin': 'dll', 'mingw': 'dll'}
 
 
 class PluginSetTestCase(unittest.TestCase):
@@ -60,7 +61,9 @@ class FindPluginsTestCase(unittest.TestCase):
         self.assertTrue(len(pset) >= 3)
 
     def test_find_file(self):
-        path = os.path.join(_TEST_PLUGIN_PLUGINS_PATH, 'utils', '.libs', 'babeltrace-plugin-utils.so')
+        extension = _TEST_PLUGIN_PLUGIN_EXTENSION_BY_OS.get(os.environ['BT_OS_TYPE'], 'so')
+        plugin_name = 'babeltrace-plugin-utils.{}'.format(extension)
+        path = os.path.join(_TEST_PLUGIN_PLUGINS_PATH, 'utils', '.libs', plugin_name)
         pset = bt2.find_plugins(path)
         self.assertTrue(len(pset) == 1)
 
