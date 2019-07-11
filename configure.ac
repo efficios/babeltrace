@@ -201,7 +201,7 @@ AM_CONDITIONAL([IN_GIT_REPO], [test "x$in_git_repo" = "xyes"])
 
 # check for bison
 AC_PROG_YACC
-AX_PROG_BISON_VERSION([2.4], [have_bison=yes])
+AX_PROG_BISON_VERSION([2.5], [have_bison=yes])
 
 AS_IF([test "x$have_bison" != "xyes"], [
   AS_IF([test "x$in_git_repo" = "xyes"], [
