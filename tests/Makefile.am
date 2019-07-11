@@ -115,7 +115,7 @@ LOG_DRIVER = env AM_TAP_AWK='$(AWK)' \
 	     BT_TESTS_GREP_BIN="$(GREP)" \
 	     BT_TESTS_PYTHON_BIN="$(PYTHON)" \
 	     BT_TESTS_SED_BIN="$(SED)" \
-	     $(SHELL) $(top_srcdir)/config/tap-driver.sh
+	     $(SHELL) $(srcdir)/utils/tap-driver.sh
 
 TESTS_NO_BITFIELD = \
 	$(TESTS_BINDINGS) \
