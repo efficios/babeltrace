@@ -8,4 +8,5 @@ EXTRA_DIST = python
 
 dist_check_SCRIPTS = \
 	run_python_bt2 \
+	tap-driver.sh \
 	utils.sh

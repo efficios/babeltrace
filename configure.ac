@@ -46,7 +46,6 @@ AC_SUBST([BABELTRACE_LIBRARY_VERSION], bt_lib_version)
 AC_CONFIG_HEADERS([src/common/config.h])
 AC_CONFIG_AUX_DIR([config])
 AC_CONFIG_MACRO_DIR([m4])
-AC_REQUIRE_AUX_FILE([tap-driver.sh])
 
 AC_DEFINE([BT_VERSION_MAJOR], bt_version_major, [Babeltrace major version])
 AC_DEFINE([BT_VERSION_MINOR], bt_version_minor, [Babeltrace minor version])
