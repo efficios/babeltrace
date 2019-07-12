@@ -10,6 +10,8 @@ libbabeltrace2_la_SOURCES = \
 	error.c \
 	error.h \
 	func-status.h \
+	integer-range-set.c \
+	integer-range-set.h \
 	lib-logging.c \
 	logging.c \
 	logging.h \

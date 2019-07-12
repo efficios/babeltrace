@@ -6,6 +6,8 @@ babeltrace2include_HEADERS = \
 	babeltrace2/error-cause-const.h \
 	babeltrace2/error-const.h \
 	babeltrace2/func-status.h \
+	babeltrace2/integer-range-set-const.h \
+	babeltrace2/integer-range-set.h \
 	babeltrace2/logging.h \
 	babeltrace2/property.h \
 	babeltrace2/types.h \
