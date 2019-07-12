@@ -98,10 +98,106 @@ end:
 	return is_reserved;
 }
 
+static const char *reserved_tsdl_keywords[] = {
+	"align",
+	"callsite",
+	"const",
+	"char",
+	"clock",
+	"double",
+	"enum",
+	"env",
+	"event",
+	"floating_point",
+	"float",
+	"integer",
+	"int",
+	"long",
+	"short",
+	"signed",
+	"stream",
+	"string",
+	"struct",
+	"trace",
+	"typealias",
+	"typedef",
+	"unsigned",
+	"variant",
+	"void",
+	"_Bool",
+	"_Complex",
+	"_Imaginary",
+};
+
+static inline
+bool ist_valid_identifier(const char *name)
+{
+	const char *at;
+	uint64_t i;
+	bool ist_valid = true;
+
+	/* Make sure the name is not a reserved keyword */
+	for (i = 0; i < sizeof(reserved_tsdl_keywords) / sizeof(*reserved_tsdl_keywords);
+			i++) {
+		if (strcmp(name, reserved_tsdl_keywords[i]) == 0) {
+			ist_valid = false;
+			goto end;
+		}
+	}
+
+	/* Make sure the name is not an empty string */
+	if (strlen(name) == 0) {
+		ist_valid = false;
+		goto end;
+	}
+
+	/* Make sure the name starts with a letter or `_` */
+	if (!isalpha(name[0]) && name[0] != '_') {
+		ist_valid = false;
+		goto end;
+	}
+
+	/* Make sure the name only contains letters, digits, and `_` */
+	for (at = name; *at != '\0'; at++) {
+		if (!isalnum(*at) && *at != '_') {
+			ist_valid = false;
+			goto end;
+		}
+	}
+
+end:
+	return ist_valid;
+}
+
+static inline
+bool must_protect_identifier(const char *name)
+{
+	uint64_t i;
+	bool must_protect = false;
+
+	/* Protect a reserved keyword */
+	for (i = 0; i < sizeof(reserved_tsdl_keywords) / sizeof(*reserved_tsdl_keywords);
+			i++) {
+		if (strcmp(name, reserved_tsdl_keywords[i]) == 0) {
+			must_protect = true;
+			goto end;
+		}
+	}
+
+	/* Protect an identifier which already starts with `_` */
+	if (name[0] == '_') {
+		must_protect = true;
+		goto end;
+	}
+
+end:
+	return must_protect;
+}
+
 static inline
 int cur_path_stack_push(struct ctx *ctx,
-		uint64_t index_in_parent, const char *ir_name,
-		const bt_field_class *ir_fc,
+		uint64_t index_in_parent, const char *name,
+		bool force_protect_name, const bt_field_class *ir_fc,
 		struct fs_sink_ctf_field_class *parent_fc)
 {
 	int ret = 0;
@@ -110,29 +206,35 @@ int cur_path_stack_push(struct ctx *ctx,
 	g_array_set_size(ctx->cur_path, ctx->cur_path->len + 1);
 	field_path_elem = cur_path_stack_top(ctx);
 	field_path_elem->index_in_parent = index_in_parent;
-	field_path_elem->name = g_string_new(ir_name);
+	field_path_elem->name = g_string_new(NULL);
 
-	if (ir_name) {
+	if (name) {
+		if (force_protect_name) {
+			g_string_assign(field_path_elem->name, "_");
+		}
+
+		g_string_append(field_path_elem->name, name);
+
 		if (ctx->cur_scope == BT_SCOPE_PACKET_CONTEXT) {
-			if (is_reserved_member_name(ir_name, "packet_size") ||
-					is_reserved_member_name(ir_name, "content_size") ||
-					is_reserved_member_name(ir_name, "timestamp_begin") ||
-					is_reserved_member_name(ir_name, "timestamp_end") ||
-					is_reserved_member_name(ir_name, "events_discarded") ||
-					is_reserved_member_name(ir_name, "packet_seq_num")) {
+			if (is_reserved_member_name(name, "packet_size") ||
+					is_reserved_member_name(name, "content_size") ||
+					is_reserved_member_name(name, "timestamp_begin") ||
+					is_reserved_member_name(name, "timestamp_end") ||
+					is_reserved_member_name(name, "events_discarded") ||
+					is_reserved_member_name(name, "packet_seq_num")) {
 				BT_COMP_LOGE("Unsupported reserved TSDL structure field class member "
 					"or variant field class option name: name=\"%s\"",
-					ir_name);
+					name);
 				ret = -1;
 				goto end;
 			}
 		}
 
-		ret = fs_sink_ctf_protect_name(field_path_elem->name);
-		if (ret) {
+		if (!ist_valid_identifier(field_path_elem->name->str)) {
+			ret = -1;
 			BT_COMP_LOGE("Unsupported non-TSDL structure field class member "
 				"or variant field class option name: name=\"%s\"",
-				ir_name);
+				field_path_elem->name->str);
 			goto end;
 		}
 	}
@@ -174,7 +276,8 @@ void cur_path_stack_pop(struct ctx *ctx)
  */
 static
 int create_relative_field_ref(struct ctx *ctx,
-		const bt_field_path *tgt_ir_field_path, GString *tgt_field_ref)
+		const bt_field_path *tgt_ir_field_path, GString *tgt_field_ref,
+		struct fs_sink_ctf_field_class **user_tgt_fc)
 {
 	int ret = 0;
 	struct fs_sink_ctf_field_class *tgt_fc = NULL;
@@ -307,6 +410,10 @@ int create_relative_field_ref(struct ctx *ctx,
 				if (named_fc->fc == tgt_fc) {
 					g_string_assign(tgt_field_ref,
 						tgt_fc_name);
+
+					if (user_tgt_fc) {
+						*user_tgt_fc = tgt_fc;
+					}
 				} else {
 					/*
 					 * Using only the target field
@@ -334,7 +441,8 @@ end:
  */
 static
 int create_absolute_field_ref(struct ctx *ctx,
-		const bt_field_path *tgt_ir_field_path, GString *tgt_field_ref)
+		const bt_field_path *tgt_ir_field_path, GString *tgt_field_ref,
+		struct fs_sink_ctf_field_class **user_tgt_fc)
 {
 	int ret = 0;
 	struct fs_sink_ctf_field_class *fc = NULL;
@@ -405,6 +513,10 @@ int create_absolute_field_ref(struct ctx *ctx,
 		fc = named_fc->fc;
 	}
 
+	if (user_tgt_fc) {
+		*user_tgt_fc = fc;
+	}
+
 end:
 	return ret;
 }
@@ -419,7 +531,8 @@ end:
 static
 void resolve_field_class(struct ctx *ctx,
 		const bt_field_path *tgt_ir_field_path,
-		GString *tgt_field_ref, bool *create_before)
+		GString *tgt_field_ref, bool *create_before,
+		struct fs_sink_ctf_field_class **user_tgt_fc)
 {
 	int ret;
 	bt_scope tgt_scope;
@@ -449,10 +562,10 @@ void resolve_field_class(struct ctx *ctx,
 		 *    requesting field class (fallback).
 		 */
 		ret = create_relative_field_ref(ctx, tgt_ir_field_path,
-			tgt_field_ref);
+			tgt_field_ref, user_tgt_fc);
 		if (ret) {
 			ret = create_absolute_field_ref(ctx, tgt_ir_field_path,
-				tgt_field_ref);
+				tgt_field_ref, user_tgt_fc);
 			if (ret) {
 				*create_before = true;
 				ret = 0;
@@ -461,7 +574,7 @@ void resolve_field_class(struct ctx *ctx,
 		}
 	} else {
 		ret = create_absolute_field_ref(ctx, tgt_ir_field_path,
-			tgt_field_ref);
+			tgt_field_ref, user_tgt_fc);
 
 		/* It must always work in previous scopes */
 		BT_ASSERT(ret == 0);
@@ -551,7 +664,7 @@ int translate_structure_field_class_members(struct ctx *ctx,
 		name = bt_field_class_structure_member_get_name(member);
 		memb_ir_fc = bt_field_class_structure_member_borrow_field_class_const(
 			member);
-		ret = cur_path_stack_push(ctx, i, name, memb_ir_fc,
+		ret = cur_path_stack_push(ctx, i, name, true, memb_ir_fc,
 			(void *) struct_fc);
 		if (ret) {
 			BT_COMP_LOGE("Cannot translate structure field class member: "
@@ -595,6 +708,328 @@ end:
 	return ret;
 }
 
+/*
+ * This function returns whether or not a given field class `tag_fc`
+ * is valid as the tag field class of the variant field class `fc`.
+ *
+ * CTF 1.8 requires that the tag field class be an enumeration field
+ * class and that, for each variant field class option's range set, the
+ * tag field class contains a mapping which has the option's name and an
+ * equal range set.
+ */
+static inline
+bool _is_variant_field_class_tag_valid(
+		struct fs_sink_ctf_field_class_variant *fc,
+		struct fs_sink_ctf_field_class *tag_fc)
+{
+	bool is_valid = true;
+	bt_field_class_type ir_tag_fc_type = bt_field_class_get_type(
+		tag_fc->ir_fc);
+	uint64_t i;
+	GString *escaped_opt_name = g_string_new(NULL);
+
+	BT_ASSERT(escaped_opt_name);
+
+	if (ir_tag_fc_type != BT_FIELD_CLASS_TYPE_UNSIGNED_ENUMERATION &&
+			ir_tag_fc_type != BT_FIELD_CLASS_TYPE_SIGNED_ENUMERATION) {
+		is_valid = false;
+		goto end;
+	}
+
+	for (i = 0; i < bt_field_class_variant_get_option_count(
+			fc->base.ir_fc); i++) {
+		const bt_field_class_variant_option *var_opt_base =
+			bt_field_class_variant_borrow_option_by_index_const(
+				fc->base.ir_fc, i);
+		const char *opt_name = bt_field_class_variant_option_get_name(
+			var_opt_base);
+
+		/*
+		 * If the option is named `name` in trace IR, then it
+		 * was _possibly_ named `_name` originally if it comes
+		 * from `src.ctf.fs`. This means the corresponding
+		 * enumeration field class mapping was also named
+		 * `_name`, but this one didn't change, as enumeration
+		 * FC mapping names are not escaped; they are literal
+		 * strings.
+		 *
+		 * The `sink.ctf.fs` component escapes all the variant
+		 * FC option names with `_`. Therefore the
+		 * _escaped name_ must match the original enumeration
+		 * FC mapping name.
+		 */
+		g_string_assign(escaped_opt_name, "_");
+		g_string_append(escaped_opt_name, opt_name);
+
+		if (ir_tag_fc_type == BT_FIELD_CLASS_TYPE_UNSIGNED_ENUMERATION) {
+			const bt_field_class_variant_with_unsigned_selector_option *var_opt =
+				bt_field_class_variant_with_unsigned_selector_borrow_option_by_index_const(
+					fc->base.ir_fc, i);
+			const bt_field_class_unsigned_enumeration_mapping *mapping;
+			const bt_integer_range_set_unsigned *opt_ranges;
+			const bt_integer_range_set_unsigned *mapping_ranges;
+
+			mapping = bt_field_class_unsigned_enumeration_borrow_mapping_by_label_const(
+				tag_fc->ir_fc, escaped_opt_name->str);
+			if (!mapping) {
+				is_valid = false;
+				goto end;
+			}
+
+			opt_ranges = bt_field_class_variant_with_unsigned_selector_option_borrow_ranges_const(
+				var_opt);
+			mapping_ranges = bt_field_class_unsigned_enumeration_mapping_borrow_ranges_const(
+				mapping);
+			if (!bt_integer_range_set_unsigned_compare(opt_ranges,
+					mapping_ranges)) {
+				is_valid = false;
+				goto end;
+			}
+		} else {
+			const bt_field_class_variant_with_signed_selector_option *var_opt =
+				bt_field_class_variant_with_signed_selector_borrow_option_by_index_const(
+					fc->base.ir_fc, i);
+			const bt_field_class_signed_enumeration_mapping *mapping;
+			const bt_integer_range_set_signed *opt_ranges;
+			const bt_integer_range_set_signed *mapping_ranges;
+
+			mapping = bt_field_class_signed_enumeration_borrow_mapping_by_label_const(
+				tag_fc->ir_fc, escaped_opt_name->str);
+			if (!mapping) {
+				is_valid = false;
+				goto end;
+			}
+
+			opt_ranges = bt_field_class_variant_with_signed_selector_option_borrow_ranges_const(
+				var_opt);
+			mapping_ranges = bt_field_class_signed_enumeration_mapping_borrow_ranges_const(
+				mapping);
+			if (!bt_integer_range_set_signed_compare(opt_ranges,
+					mapping_ranges)) {
+				is_valid = false;
+				goto end;
+			}
+		}
+	}
+
+end:
+	return is_valid;
+}
+
+/*
+ * This function indicates whether or not a given variant FC option name
+ * must be protected (with the `_` prefix).
+ *
+ * One of the goals of `sink.ctf.fs` is to write a CTF trace which is as
+ * close as possible to an original CTF trace as decoded by
+ * `src.ctf.fs`.
+ *
+ * This scenario is valid in CTF 1.8:
+ *
+ *     enum {
+ *         HELLO,
+ *         MEOW
+ *     } tag;
+ *
+ *     variant <tag> {
+ *         int HELLO;
+ *         string MEOW;
+ *     };
+ *
+ * Once in trace IR, the enumeration FC mapping names and variant FC
+ * option names are kept as is. For this reason, we don't want to
+ * protect the variant FC option names here (by prepending `_`): this
+ * would make the variant FC option name and the enumeration FC mapping
+ * name not match.
+ *
+ * This scenario is also valid in CTF 1.8:
+ *
+ *     enum {
+ *         _HELLO,
+ *         MEOW
+ *     } tag;
+ *
+ *     variant <tag> {
+ *         int _HELLO;
+ *         string MEOW;
+ *     };
+ *
+ * Once in trace IR, the enumeration FC mapping names are kept as is,
+ * but the `_HELLO` variant FC option name becomes `HELLO` (unprotected
+ * for presentation, as recommended by CTF 1.8). When going back to
+ * TSDL, we need to protect `HELLO` so that it becomes `_HELLO` to match
+ * the corresponding enumeration FC mapping name.
+ *
+ * This scenario is also valid in CTF 1.8:
+ *
+ *     enum {
+ *         __HELLO,
+ *         MEOW
+ *     } tag;
+ *
+ *     variant <tag> {
+ *         int __HELLO;
+ *         string MEOW;
+ *     };
+ *
+ * Once in trace IR, the enumeration FC mapping names are kept as is,
+ * but the `__HELLO` variant FC option name becomes `_HELLO`
+ * (unprotected). When going back to TSDL, we need to protect `_HELLO`
+ * so that it becomes `__HELLO` to match the corresponding enumeration
+ * FC mapping name.
+ *
+ * `src.ctf.fs` always uses the _same_ integer range sets for a selector
+ * FC mapping and a corresponding variant FC option. We can use that
+ * fact to find the original variant FC option names by matching variant
+ * FC options and enumeration FC mappings by range set.
+ */
+static
+int must_protect_variant_option_name(const bt_field_class *ir_var_fc,
+		const bt_field_class *ir_tag_fc, uint64_t opt_i,
+		GString *name_buf, bool *must_protect)
+{
+	int ret = 0;
+	uint64_t i;
+	bt_field_class_type ir_var_fc_type;
+	const void *opt_ranges = NULL;
+	const char *mapping_label = NULL;
+	const char *ir_opt_name;
+	const bt_field_class_variant_option *base_var_opt;
+	bool force_protect = false;
+
+	*must_protect = false;
+	ir_var_fc_type = bt_field_class_get_type(ir_var_fc);
+	base_var_opt = bt_field_class_variant_borrow_option_by_index_const(
+		ir_var_fc, opt_i);
+	BT_ASSERT(base_var_opt);
+	ir_opt_name = bt_field_class_variant_option_get_name(base_var_opt);
+	BT_ASSERT(ir_opt_name);
+
+	/*
+	 * Check if the variant FC option name is required to be
+	 * protected (reserved TSDL keyword or starts with `_`). In that
+	 * case, the name of the selector FC mapping we find must match
+	 * exactly the protected name.
+	 */
+	force_protect = must_protect_identifier(ir_opt_name);
+	if (force_protect) {
+		*must_protect = true;
+		g_string_assign(name_buf, "_");
+		g_string_append(name_buf, ir_opt_name);
+	} else {
+		g_string_assign(name_buf, ir_opt_name);
+	}
+
+	/* Borrow option's ranges */
+	if (ir_var_fc_type == BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR) {
+		/* No ranges: we're done */
+		goto end;
+	} if (ir_var_fc_type == BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_SELECTOR) {
+		const bt_field_class_variant_with_unsigned_selector_option *var_opt =
+			bt_field_class_variant_with_unsigned_selector_borrow_option_by_index_const(
+				ir_var_fc, opt_i);
+		opt_ranges =
+			bt_field_class_variant_with_unsigned_selector_option_borrow_ranges_const(
+				var_opt);
+	} else {
+		const bt_field_class_variant_with_signed_selector_option *var_opt =
+			bt_field_class_variant_with_signed_selector_borrow_option_by_index_const(
+				ir_var_fc, opt_i);
+		opt_ranges =
+			bt_field_class_variant_with_signed_selector_option_borrow_ranges_const(
+				var_opt);
+	}
+
+	/* Find corresponding mapping by range set in selector FC */
+	for (i = 0; i < bt_field_class_enumeration_get_mapping_count(ir_tag_fc);
+			i++) {
+		if (ir_var_fc_type == BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_SELECTOR) {
+			const bt_field_class_enumeration_mapping *mapping_base;
+			const bt_field_class_unsigned_enumeration_mapping *mapping;
+			const bt_integer_range_set_unsigned *mapping_ranges;
+
+			mapping = bt_field_class_unsigned_enumeration_borrow_mapping_by_index_const(
+				ir_tag_fc, i);
+			mapping_ranges = bt_field_class_unsigned_enumeration_mapping_borrow_ranges_const(
+				mapping);
+
+			if (bt_integer_range_set_unsigned_compare(opt_ranges,
+					mapping_ranges)) {
+				/* We have a winner */
+				mapping_base =
+					bt_field_class_unsigned_enumeration_mapping_as_mapping_const(
+						mapping);
+				mapping_label =
+					bt_field_class_enumeration_mapping_get_label(
+						mapping_base);
+				break;
+			}
+		} else {
+			const bt_field_class_enumeration_mapping *mapping_base;
+			const bt_field_class_signed_enumeration_mapping *mapping;
+			const bt_integer_range_set_signed *mapping_ranges;
+
+			mapping = bt_field_class_signed_enumeration_borrow_mapping_by_index_const(
+				ir_tag_fc, i);
+			mapping_ranges = bt_field_class_signed_enumeration_mapping_borrow_ranges_const(
+				mapping);
+
+			if (bt_integer_range_set_signed_compare(opt_ranges,
+					mapping_ranges)) {
+				/* We have a winner */
+				mapping_base =
+					bt_field_class_signed_enumeration_mapping_as_mapping_const(
+						mapping);
+				mapping_label =
+					bt_field_class_enumeration_mapping_get_label(
+						mapping_base);
+				break;
+			}
+		}
+	}
+
+	if (!mapping_label) {
+		/* Range set not found: invalid selector for CTF 1.8 */
+		ret = -1;
+		goto end;
+	}
+
+	/*
+	 * If the enumeration FC mapping name is not the same as the
+	 * variant FC option name and we didn't protect already, try
+	 * protecting the option name and check again.
+	 */
+	if (strcmp(mapping_label, name_buf->str) != 0) {
+		if (force_protect) {
+			ret = -1;
+			goto end;
+		}
+
+		if (mapping_label[0] == '\0') {
+			ret = -1;
+			goto end;
+		}
+
+		g_string_assign(name_buf, "_");
+		g_string_append(name_buf, ir_opt_name);
+
+		if (strcmp(mapping_label, name_buf->str) != 0) {
+			ret = -1;
+			goto end;
+		}
+
+		/*
+		 * If this comes from a `src.ctf.fs` source, it looks
+		 * like the variant FC option name was initially
+		 * protected: protect it again when going back to TSDL.
+		 */
+		*must_protect = true;
+	}
+
+end:
+	return ret;
+}
+
 static inline
 int translate_variant_field_class(struct ctx *ctx)
 {
@@ -604,38 +1039,156 @@ int translate_variant_field_class(struct ctx *ctx)
 		fs_sink_ctf_field_class_variant_create_empty(
 			cur_path_stack_top(ctx)->ir_fc,
 			cur_path_stack_top(ctx)->index_in_parent);
+	bt_field_class_type ir_fc_type;
+	const bt_field_path *ir_selector_field_path = NULL;
+	struct fs_sink_ctf_field_class *tgt_fc = NULL;
+	GString *name_buf = g_string_new(NULL);
+	bt_value *prot_opt_names = bt_value_array_create();
+	uint64_t opt_count;
 
 	BT_ASSERT(fc);
+	BT_ASSERT(name_buf);
+	BT_ASSERT(prot_opt_names);
+	ir_fc_type = bt_field_class_get_type(fc->base.ir_fc);
+	opt_count = bt_field_class_variant_get_option_count(fc->base.ir_fc);
+
+	if (ir_fc_type == BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_SELECTOR ||
+			ir_fc_type == BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_SELECTOR) {
+		ir_selector_field_path = bt_field_class_variant_with_selector_borrow_selector_field_path_const(
+			fc->base.ir_fc);
+		BT_ASSERT(ir_selector_field_path);
+	}
 
 	/* Resolve tag field class before appending to parent */
-	resolve_field_class(ctx,
-		bt_field_class_variant_borrow_selector_field_path_const(
-			fc->base.ir_fc), fc->tag_ref, &fc->tag_is_before);
+	resolve_field_class(ctx, ir_selector_field_path, fc->tag_ref,
+		&fc->tag_is_before, &tgt_fc);
 
+	if (ir_selector_field_path && tgt_fc) {
+		uint64_t mapping_count;
+		uint64_t option_count;
+
+		/* CTF 1.8: selector FC must be an enumeration FC */
+		bt_field_class_type type = bt_field_class_get_type(
+			tgt_fc->ir_fc);
+
+		if (type != BT_FIELD_CLASS_TYPE_UNSIGNED_ENUMERATION &&
+				type != BT_FIELD_CLASS_TYPE_SIGNED_ENUMERATION) {
+			fc->tag_is_before = true;
+			goto validate_opts;
+		}
+
+		/*
+		 * Call must_protect_variant_option_name() for each
+		 * option below. In that case we also want selector FC
+		 * to contain as many mappings as the variant FC has
+		 * options.
+		 */
+		mapping_count = bt_field_class_enumeration_get_mapping_count(
+			tgt_fc->ir_fc);
+		option_count = bt_field_class_variant_get_option_count(
+			fc->base.ir_fc);
+
+		if (mapping_count != option_count) {
+			fc->tag_is_before = true;
+			goto validate_opts;
+		}
+	} else {
+		/*
+		 * No compatible selector field class for CTF 1.8:
+		 * create the appropriate selector field class.
+		 */
+		fc->tag_is_before = true;
+	}
+
+validate_opts:
+	/*
+	 * First pass: detect any option name clash with option name
+	 * protection. In that case, we don't fail: just create the
+	 * selector field class before the variant field class.
+	 *
+	 * After this, `prot_opt_names` contains the final option names,
+	 * potentially protected if needed. They can still be invalid
+	 * TSDL identifiers however; this will be checked by
+	 * cur_path_stack_push().
+	 */
+	for (i = 0; i < opt_count; i++) {
+		bool must_protect = false;
+
+		ret = must_protect_variant_option_name(fc->base.ir_fc,
+			tgt_fc->ir_fc, i, name_buf, &must_protect);
+		if (ret) {
+			fc->tag_is_before = true;
+		}
+
+		ret = bt_value_array_append_string_element(prot_opt_names,
+			name_buf->str);
+		if (ret) {
+			goto end;
+		}
+	}
+
+	for (i = 0; i < opt_count; i++) {
+		uint64_t j;
+		const bt_value *opt_name_a =
+			bt_value_array_borrow_element_by_index_const(
+				prot_opt_names, i);
+
+		for (j = 0; j < opt_count; j++) {
+			const bt_value *opt_name_b;
+
+			if (i == j) {
+				continue;
+			}
+
+			opt_name_b =
+				bt_value_array_borrow_element_by_index_const(
+					prot_opt_names, j);
+			if (bt_value_compare(opt_name_a, opt_name_b)) {
+				/*
+				 * Variant FC option names are not
+				 * unique when protected.
+				 */
+				fc->tag_is_before = true;
+				goto append_to_parent;
+			}
+		}
+	}
+
+append_to_parent:
 	append_to_parent_field_class(ctx, (void *) fc);
 
-	for (i = 0; i < bt_field_class_variant_get_option_count(fc->base.ir_fc);
-			i++) {
+	for (i = 0; i < opt_count; i++) {
 		const bt_field_class_variant_option *opt;
-		const char *name;
 		const bt_field_class *opt_ir_fc;
+		const bt_value *prot_opt_name_val =
+			bt_value_array_borrow_element_by_index_const(
+				prot_opt_names, i);
+		const char *prot_opt_name = bt_value_string_get(
+			prot_opt_name_val);
 
+		BT_ASSERT(prot_opt_name);
 		opt = bt_field_class_variant_borrow_option_by_index_const(
 			fc->base.ir_fc, i);
-		name = bt_field_class_variant_option_get_name(opt);
 		opt_ir_fc = bt_field_class_variant_option_borrow_field_class_const(
 			opt);
-		ret = cur_path_stack_push(ctx, i, name, opt_ir_fc, (void *) fc);
+
+		/*
+		 * We don't ask cur_path_stack_push() to protect the
+		 * option name because it's already protected at this
+		 * point.
+		 */
+		ret = cur_path_stack_push(ctx, i, prot_opt_name, false,
+			opt_ir_fc, (void *) fc);
 		if (ret) {
 			BT_COMP_LOGE("Cannot translate variant field class option: "
-				"name=\"%s\"", name);
+				"name=\"%s\"", prot_opt_name);
 			goto end;
 		}
 
 		ret = translate_field_class(ctx);
 		if (ret) {
 			BT_COMP_LOGE("Cannot translate variant field class option: "
-				"name=\"%s\"", name);
+				"name=\"%s\"", prot_opt_name);
 			goto end;
 		}
 
@@ -643,6 +1196,11 @@ int translate_variant_field_class(struct ctx *ctx)
 	}
 
 end:
+	if (name_buf) {
+		g_string_free(name_buf, TRUE);
+	}
+
+	bt_value_put_ref(prot_opt_names);
 	return ret;
 }
 
@@ -660,7 +1218,7 @@ int translate_static_array_field_class(struct ctx *ctx)
 
 	BT_ASSERT(fc);
 	append_to_parent_field_class(ctx, (void *) fc);
-	ret = cur_path_stack_push(ctx, UINT64_C(-1), NULL, elem_ir_fc,
+	ret = cur_path_stack_push(ctx, UINT64_C(-1), NULL, false, elem_ir_fc,
 		(void *) fc);
 	if (ret) {
 		BT_COMP_LOGE_STR("Cannot translate static array field class element.");
@@ -698,10 +1256,10 @@ int translate_dynamic_array_field_class(struct ctx *ctx)
 	resolve_field_class(ctx,
 		bt_field_class_dynamic_array_borrow_length_field_path_const(
 			fc->base.base.ir_fc),
-		fc->length_ref, &fc->length_is_before);
+		fc->length_ref, &fc->length_is_before, NULL);
 
 	append_to_parent_field_class(ctx, (void *) fc);
-	ret = cur_path_stack_push(ctx, UINT64_C(-1), NULL, elem_ir_fc,
+	ret = cur_path_stack_push(ctx, UINT64_C(-1), NULL, false, elem_ir_fc,
 		(void *) fc);
 	if (ret) {
 		BT_COMP_LOGE_STR("Cannot translate dynamic array field class element.");
@@ -794,7 +1352,9 @@ int translate_field_class(struct ctx *ctx)
 	case BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY:
 		ret = translate_dynamic_array_field_class(ctx);
 		break;
-	case BT_FIELD_CLASS_TYPE_VARIANT:
+	case BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR:
+	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_SELECTOR:
+	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_SELECTOR:
 		ret = translate_variant_field_class(ctx);
 		break;
 	default:
@@ -1009,7 +1569,7 @@ int translate_scope_field_class(struct ctx *ctx, bt_scope scope,
 	BT_ASSERT(*fc);
 	ctx->cur_scope = scope;
 	BT_ASSERT(ctx->cur_path->len == 0);
-	ret = cur_path_stack_push(ctx, UINT64_C(-1), NULL, ir_fc, NULL);
+	ret = cur_path_stack_push(ctx, UINT64_C(-1), NULL, false, ir_fc, NULL);
 	if (ret) {
 		BT_COMP_LOGE("Cannot translate scope structure field class: "
 			"scope=%d", scope);
@@ -1180,10 +1740,18 @@ int translate_stream_class(struct fs_sink_comp *fs_sink,
 		if (name) {
 			/* Try original name, protected */
 			g_string_assign((*out_sc)->default_clock_class_name,
+				"");
+
+			if (must_protect_identifier(name)) {
+				g_string_assign(
+					(*out_sc)->default_clock_class_name,
+					"_");
+			}
+
+			g_string_assign((*out_sc)->default_clock_class_name,
 				name);
-			ret = fs_sink_ctf_protect_name(
-				(*out_sc)->default_clock_class_name);
-			if (ret) {
+			if (!ist_valid_identifier(
+					(*out_sc)->default_clock_class_name->str)) {
 				/* Invalid: create a new name */
 				make_unique_default_clock_class_name(*out_sc);
 				ret = 0;
@@ -1275,7 +1843,7 @@ struct fs_sink_ctf_trace *translate_trace_trace_ir_to_ctf_ir(
 		bt_trace_borrow_environment_entry_by_index_const(
 			ir_trace, i, &name, &val);
 
-		if (!fs_sink_ctf_ist_valid_identifier(name)) {
+		if (!ist_valid_identifier(name)) {
 			BT_COMP_LOG_CUR_LVL(BT_LOG_ERROR, fs_sink->log_level,
 				fs_sink->self_comp,
 				"Unsupported trace class's environment entry name: "

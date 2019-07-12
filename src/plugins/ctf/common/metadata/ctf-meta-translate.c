@@ -83,15 +83,43 @@ bt_field_class *ctf_field_class_enum_to_ir(struct ctx *ctx,
 	for (i = 0; i < fc->mappings->len; i++) {
 		struct ctf_field_class_enum_mapping *mapping =
 			ctf_field_class_enum_borrow_mapping_by_index(fc, i);
+		void *range_set;
+		uint64_t range_i;
 
 		if (fc->base.is_signed) {
-			ret = bt_field_class_signed_enumeration_map_range(
-				ir_fc, mapping->label->str,
-				mapping->range.lower.i, mapping->range.upper.i);
+			range_set = bt_integer_range_set_signed_create();
 		} else {
-			ret = bt_field_class_unsigned_enumeration_map_range(
-				ir_fc, mapping->label->str,
-				mapping->range.lower.u, mapping->range.upper.u);
+			range_set = bt_integer_range_set_unsigned_create();
+		}
+
+		BT_ASSERT(range_set);
+
+		for (range_i = 0; range_i < mapping->ranges->len; range_i++) {
+			struct ctf_range *range =
+				ctf_field_class_enum_mapping_borrow_range_by_index(
+					mapping, range_i);
+
+			if (fc->base.is_signed) {
+				ret = bt_integer_range_set_signed_add_range(
+					range_set, range->lower.i,
+					range->upper.i);
+			} else {
+				ret = bt_integer_range_set_unsigned_add_range(
+					range_set, range->lower.u,
+					range->upper.u);
+			}
+
+			BT_ASSERT(ret == 0);
+		}
+
+		if (fc->base.is_signed) {
+			ret = bt_field_class_signed_enumeration_add_mapping(
+				ir_fc, mapping->label->str, range_set);
+			BT_RANGE_SET_SIGNED_PUT_REF_AND_RESET(range_set);
+		} else {
+			ret = bt_field_class_unsigned_enumeration_add_mapping(
+				ir_fc, mapping->label->str, range_set);
+			BT_RANGE_SET_UNSIGNED_PUT_REF_AND_RESET(range_set);
 		}
 
 		BT_ASSERT(ret == 0);
@@ -184,22 +212,63 @@ bt_field_class *borrow_ir_fc_from_field_path(struct ctx *ctx,
 }
 
 static inline
+const void *find_ir_enum_field_class_mapping_by_label(const bt_field_class *fc,
+		const char *label, bool is_signed)
+{
+	const void *mapping = NULL;
+	uint64_t i;
+
+	for (i = 0; i < bt_field_class_enumeration_get_mapping_count(fc); i++) {
+		const bt_field_class_enumeration_mapping *this_mapping;
+		const void *spec_this_mapping;
+
+		if (is_signed) {
+			spec_this_mapping =
+				bt_field_class_signed_enumeration_borrow_mapping_by_index_const(
+					fc, i);
+			this_mapping =
+				bt_field_class_signed_enumeration_mapping_as_mapping_const(
+					spec_this_mapping);
+		} else {
+			spec_this_mapping =
+				bt_field_class_unsigned_enumeration_borrow_mapping_by_index_const(
+					fc, i);
+			this_mapping =
+				bt_field_class_unsigned_enumeration_mapping_as_mapping_const(
+					spec_this_mapping);
+		}
+
+		BT_ASSERT(this_mapping);
+		BT_ASSERT(spec_this_mapping);
+
+		if (strcmp(bt_field_class_enumeration_mapping_get_label(
+				this_mapping), label) == 0) {
+			mapping = spec_this_mapping;
+			goto end;
+		}
+	}
+
+end:
+	return mapping;
+}
+
+static inline
 bt_field_class *ctf_field_class_variant_to_ir(struct ctx *ctx,
 		struct ctf_field_class_variant *fc)
 {
 	int ret;
-	bt_field_class *ir_fc = bt_field_class_variant_create(ctx->ir_tc);
+	bt_field_class *ir_fc;
 	uint64_t i;
-
-	BT_ASSERT(ir_fc);
+	bt_field_class *ir_tag_fc = NULL;
 
 	if (fc->tag_path.root != CTF_SCOPE_PACKET_HEADER &&
 			fc->tag_path.root != CTF_SCOPE_EVENT_HEADER) {
-		ret = bt_field_class_variant_set_selector_field_class(
-			ir_fc, borrow_ir_fc_from_field_path(ctx,
-				&fc->tag_path));
-		BT_ASSERT(ret == 0);
+		ir_tag_fc = borrow_ir_fc_from_field_path(ctx, &fc->tag_path);
+		BT_ASSERT(ir_tag_fc);
 	}
+
+	ir_fc = bt_field_class_variant_create(ctx->ir_tc, ir_tag_fc);
+	BT_ASSERT(ir_fc);
 
 	for (i = 0; i < fc->options->len; i++) {
 		struct ctf_named_field_class *named_fc =
@@ -209,8 +278,56 @@ bt_field_class *ctf_field_class_variant_to_ir(struct ctx *ctx,
 		BT_ASSERT(named_fc->fc->in_ir);
 		option_ir_fc = ctf_field_class_to_ir(ctx, named_fc->fc);
 		BT_ASSERT(option_ir_fc);
-		ret = bt_field_class_variant_append_option(
-			ir_fc, named_fc->name->str, option_ir_fc);
+
+		if (ir_tag_fc) {
+			/*
+			 * At this point the trace IR selector
+			 * (enumeration) field class already exists if
+			 * the variant is tagged (`ir_tag_fc`). This one
+			 * already contains range sets for its mappings,
+			 * so we just reuse the same, finding them by
+			 * matching a variant field class's option's
+			 * _original_ name (with a leading underscore,
+			 * possibly) with a selector field class's
+			 * mapping name.
+			 */
+			if (fc->tag_fc->base.is_signed) {
+				const bt_field_class_signed_enumeration_mapping *mapping =
+					find_ir_enum_field_class_mapping_by_label(
+						ir_tag_fc,
+						named_fc->orig_name->str, true);
+				const bt_integer_range_set_signed *range_set;
+
+				BT_ASSERT(mapping);
+				range_set =
+					bt_field_class_signed_enumeration_mapping_borrow_ranges_const(
+						mapping);
+				BT_ASSERT(range_set);
+				ret = bt_field_class_variant_with_signed_selector_append_option(
+					ir_fc, named_fc->name->str,
+					option_ir_fc, range_set);
+			} else {
+				const bt_field_class_unsigned_enumeration_mapping *mapping =
+					find_ir_enum_field_class_mapping_by_label(
+						ir_tag_fc,
+						named_fc->orig_name->str,
+						false);
+				const bt_integer_range_set_unsigned *range_set;
+
+				BT_ASSERT(mapping);
+				range_set =
+					bt_field_class_unsigned_enumeration_mapping_borrow_ranges_const(
+						mapping);
+				BT_ASSERT(range_set);
+				ret = bt_field_class_variant_with_unsigned_selector_append_option(
+					ir_fc, named_fc->name->str,
+					option_ir_fc, range_set);
+			}
+		} else {
+			ret = bt_field_class_variant_without_selector_append_option(
+				ir_fc, named_fc->name->str, option_ir_fc);
+		}
+
 		BT_ASSERT(ret == 0);
 		bt_field_class_put_ref(option_ir_fc);
 	}

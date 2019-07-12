@@ -35,9 +35,9 @@ class _MyIter(bt2._UserMessageIterator):
         self._ec = self._sc.create_event_class(name='salut')
         self._my_int_ft = self._tc.create_signed_integer_field_class(32)
         payload_ft = self._tc.create_structure_field_class()
-        payload_ft += collections.OrderedDict([
+        payload_ft += [
             ('my_int', self._my_int_ft),
-        ])
+        ]
         self._ec.payload_field_type = payload_ft
         self._stream = self._t.create_stream(self._sc)
         self._packet = self._stream.create_packet()

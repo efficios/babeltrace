@@ -48,7 +48,9 @@ bool find_field_class_recursive(struct bt_field_class *fc,
 
 	switch (fc->type) {
 	case BT_FIELD_CLASS_TYPE_STRUCTURE:
-	case BT_FIELD_CLASS_TYPE_VARIANT:
+	case BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR:
+	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_SELECTOR:
+	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_SELECTOR:
 	{
 		struct bt_field_class_named_field_class_container *container_fc =
 			(void *) fc;
@@ -56,8 +58,7 @@ bool find_field_class_recursive(struct bt_field_class *fc,
 
 		for (i = 0; i < container_fc->named_fcs->len; i++) {
 			struct bt_named_field_class *named_fc =
-				BT_FIELD_CLASS_NAMED_FC_AT_INDEX(
-					container_fc, i);
+				container_fc->named_fcs->pdata[i];
 			struct bt_field_path_item item = {
 				.type = BT_FIELD_PATH_ITEM_TYPE_INDEX,
 				.index = i,
@@ -241,13 +242,16 @@ struct bt_field_class *borrow_child_field_class(
 
 	switch (parent_fc->type) {
 	case BT_FIELD_CLASS_TYPE_STRUCTURE:
-	case BT_FIELD_CLASS_TYPE_VARIANT:
+	case BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR:
+	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_SELECTOR:
+	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_SELECTOR:
 	{
+		struct bt_field_class_named_field_class_container *container_fc =
+			(void *) parent_fc;
 		struct bt_named_field_class *named_fc;
 
 		BT_ASSERT(fp_item->type == BT_FIELD_PATH_ITEM_TYPE_INDEX);
-		named_fc = BT_FIELD_CLASS_NAMED_FC_AT_INDEX(parent_fc,
-			fp_item->index);
+		named_fc = container_fc->named_fcs->pdata[fp_item->index];
 		child_fc = named_fc->fc;
 		break;
 	}
@@ -292,7 +296,9 @@ bool target_field_path_in_different_scope_has_struct_fc_only(
 
 		if (fc->type == BT_FIELD_CLASS_TYPE_STATIC_ARRAY ||
 				fc->type == BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY ||
-				fc->type == BT_FIELD_CLASS_TYPE_VARIANT) {
+				fc->type == BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR ||
+				fc->type == BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_SELECTOR ||
+				fc->type == BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_SELECTOR) {
 			is_valid = false;
 			goto end;
 		}
@@ -409,7 +415,9 @@ bool lca_to_target_has_struct_fc_only(struct bt_field_path *src_field_path,
 
 		if (tgt_fc->type == BT_FIELD_CLASS_TYPE_STATIC_ARRAY ||
 				tgt_fc->type == BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY ||
-				tgt_fc->type == BT_FIELD_CLASS_TYPE_VARIANT) {
+				tgt_fc->type == BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR ||
+				tgt_fc->type == BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_SELECTOR ||
+				tgt_fc->type == BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_SELECTOR) {
 			is_valid = false;
 			goto end;
 		}
@@ -535,15 +543,17 @@ int bt_resolve_field_paths(struct bt_field_class *fc,
 
 		break;
 	}
-	case BT_FIELD_CLASS_TYPE_VARIANT:
+	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_SELECTOR:
+	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_SELECTOR:
 	{
-		struct bt_field_class_variant *var_fc = (void *) fc;
+		struct bt_field_class_variant_with_selector *var_fc =
+			(void *) fc;
 
 		if (var_fc->selector_fc) {
 			BT_ASSERT(!var_fc->selector_field_path);
 			var_fc->selector_field_path =
 				resolve_field_path(fc,
-					var_fc->selector_fc, ctx);
+					(void *) var_fc->selector_fc, ctx);
 			if (!var_fc->selector_field_path) {
 				ret = -1;
 				goto end;
@@ -557,7 +567,9 @@ int bt_resolve_field_paths(struct bt_field_class *fc,
 	/* Recursive part */
 	switch (fc->type) {
 	case BT_FIELD_CLASS_TYPE_STRUCTURE:
-	case BT_FIELD_CLASS_TYPE_VARIANT:
+	case BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR:
+	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_SELECTOR:
+	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_SELECTOR:
 	{
 		struct bt_field_class_named_field_class_container *container_fc =
 			(void *) fc;
@@ -565,8 +577,7 @@ int bt_resolve_field_paths(struct bt_field_class *fc,
 
 		for (i = 0; i < container_fc->named_fcs->len; i++) {
 			struct bt_named_field_class *named_fc =
-				BT_FIELD_CLASS_NAMED_FC_AT_INDEX(
-					container_fc, i);
+				container_fc->named_fcs->pdata[i];
 
 			ret = bt_resolve_field_paths(named_fc->fc, ctx);
 			if (ret) {

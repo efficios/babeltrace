@@ -99,9 +99,9 @@ class AllMessagesTestCase(unittest.TestCase):
                 # Create payload field class
                 my_int_fc = tc.create_signed_integer_field_class(32)
                 payload_fc = tc.create_structure_field_class()
-                payload_fc += collections.OrderedDict([
+                payload_fc += [
                     ('my_int', my_int_fc),
-                ])
+                ]
 
                 ec = sc.create_event_class(name='salut', payload_field_class=payload_fc)
 

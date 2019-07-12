@@ -126,7 +126,9 @@ struct ctf_range {
 
 struct ctf_field_class_enum_mapping {
 	GString *label;
-	struct ctf_range range;
+
+	/* Array of `struct ctf_range` */
+	GArray *ranges;
 };
 
 struct ctf_field_class_enum {
@@ -146,6 +148,10 @@ struct ctf_field_class_string {
 };
 
 struct ctf_named_field_class {
+	/* Original name which can include a leading `_` */
+	GString *orig_name;
+
+	/* Name as translated to trace IR (leading `_` removed) */
 	GString *name;
 
 	/* Owned by this */
@@ -356,6 +362,8 @@ void _ctf_named_field_class_init(struct ctf_named_field_class *named_fc)
 	BT_ASSERT(named_fc);
 	named_fc->name = g_string_new(NULL);
 	BT_ASSERT(named_fc->name);
+	named_fc->orig_name = g_string_new(NULL);
+	BT_ASSERT(named_fc->orig_name);
 }
 
 static inline
@@ -365,6 +373,10 @@ void _ctf_named_field_class_fini(struct ctf_named_field_class *named_fc)
 
 	if (named_fc->name) {
 		g_string_free(named_fc->name, TRUE);
+	}
+
+	if (named_fc->orig_name) {
+		g_string_free(named_fc->orig_name, TRUE);
 	}
 
 	ctf_field_class_destroy(named_fc->fc);
@@ -377,6 +389,8 @@ void _ctf_field_class_enum_mapping_init(
 	BT_ASSERT(mapping);
 	mapping->label = g_string_new(NULL);
 	BT_ASSERT(mapping->label);
+	mapping->ranges = g_array_new(FALSE, TRUE, sizeof(struct ctf_range));
+	BT_ASSERT(mapping->ranges);
 }
 
 static inline
@@ -387,6 +401,10 @@ void _ctf_field_class_enum_mapping_fini(
 
 	if (mapping->label) {
 		g_string_free(mapping->label, TRUE);
+	}
+
+	if (mapping->ranges) {
+		g_array_free(mapping->ranges, TRUE);
 	}
 }
 
@@ -661,21 +679,12 @@ void ctf_field_class_destroy(struct ctf_field_class *fc)
 }
 
 static inline
-void ctf_field_class_enum_append_mapping(struct ctf_field_class_enum *fc,
-		const char *label, uint64_t u_lower, uint64_t u_upper)
+struct ctf_range *ctf_field_class_enum_mapping_borrow_range_by_index(
+		struct ctf_field_class_enum_mapping *mapping, uint64_t index)
 {
-	struct ctf_field_class_enum_mapping *mapping;
-
-	BT_ASSERT(fc);
-	BT_ASSERT(label);
-	g_array_set_size(fc->mappings, fc->mappings->len + 1);
-
-	mapping = &g_array_index(fc->mappings,
-		struct ctf_field_class_enum_mapping, fc->mappings->len - 1);
-	_ctf_field_class_enum_mapping_init(mapping);
-	g_string_assign(mapping->label, label);
-	mapping->range.lower.u = u_lower;
-	mapping->range.upper.u = u_upper;
+	BT_ASSERT(mapping);
+	BT_ASSERT(index < mapping->ranges->len);
+	return &g_array_index(mapping->ranges, struct ctf_range, index);
 }
 
 static inline
@@ -686,6 +695,68 @@ struct ctf_field_class_enum_mapping *ctf_field_class_enum_borrow_mapping_by_inde
 	BT_ASSERT(index < fc->mappings->len);
 	return &g_array_index(fc->mappings, struct ctf_field_class_enum_mapping,
 		index);
+}
+
+static inline
+struct ctf_field_class_enum_mapping *ctf_field_class_enum_borrow_mapping_by_label(
+		struct ctf_field_class_enum *fc, const char *label)
+{
+	struct ctf_field_class_enum_mapping *ret_mapping = NULL;
+	uint64_t i;
+
+	BT_ASSERT(fc);
+	BT_ASSERT(label);
+
+	for (i = 0; i < fc->mappings->len; i++) {
+		struct ctf_field_class_enum_mapping *mapping =
+			ctf_field_class_enum_borrow_mapping_by_index(fc, i);
+
+		if (strcmp(mapping->label->str, label) == 0) {
+			ret_mapping = mapping;
+			goto end;
+		}
+	}
+
+end:
+	return ret_mapping;
+}
+
+static inline
+void ctf_field_class_enum_map_range(struct ctf_field_class_enum *fc,
+		const char *label, uint64_t u_lower, uint64_t u_upper)
+{
+	struct ctf_field_class_enum_mapping *mapping = NULL;
+	struct ctf_range range = {
+		.lower.u = u_lower,
+		.upper.u = u_upper,
+	};
+	uint64_t i;
+
+	BT_ASSERT(fc);
+	BT_ASSERT(label);
+
+	for (i = 0; i < fc->mappings->len; i++) {
+		mapping = ctf_field_class_enum_borrow_mapping_by_index(
+			fc, i);
+
+		if (strcmp(mapping->label->str, label) == 0) {
+			break;
+		}
+	}
+
+	if (i == fc->mappings->len) {
+		mapping = NULL;
+	}
+
+	if (!mapping) {
+		g_array_set_size(fc->mappings, fc->mappings->len + 1);
+		mapping = ctf_field_class_enum_borrow_mapping_by_index(
+			fc, fc->mappings->len - 1);
+		_ctf_field_class_enum_mapping_init(mapping);
+		g_string_assign(mapping->label, label);
+	}
+
+	g_array_append_val(mapping->ranges, range);
 }
 
 static inline
@@ -768,21 +839,34 @@ end:
 	return int_fc;
 }
 
+static inline
+void _ctf_named_field_class_unescape_orig_name(
+		struct ctf_named_field_class *named_fc)
+{
+	const char *name = named_fc->orig_name->str;
+
+	if (name[0] == '_') {
+		name++;
+	}
+
+	g_string_assign(named_fc->name, name);
+}
 
 static inline
 void ctf_field_class_struct_append_member(struct ctf_field_class_struct *fc,
-		const char *name, struct ctf_field_class *member_fc)
+		const char *orig_name, struct ctf_field_class *member_fc)
 {
 	struct ctf_named_field_class *named_fc;
 
 	BT_ASSERT(fc);
-	BT_ASSERT(name);
+	BT_ASSERT(orig_name);
 	g_array_set_size(fc->members, fc->members->len + 1);
 
 	named_fc = &g_array_index(fc->members, struct ctf_named_field_class,
 		fc->members->len - 1);
 	_ctf_named_field_class_init(named_fc);
-	g_string_assign(named_fc->name, name);
+	g_string_assign(named_fc->orig_name, orig_name);
+	_ctf_named_field_class_unescape_orig_name(named_fc);
 	named_fc->fc = member_fc;
 
 	if (member_fc->alignment > fc->base.alignment) {
@@ -837,18 +921,19 @@ ctf_field_class_variant_borrow_range_by_index(
 
 static inline
 void ctf_field_class_variant_append_option(struct ctf_field_class_variant *fc,
-		const char *name, struct ctf_field_class *option_fc)
+		const char *orig_name, struct ctf_field_class *option_fc)
 {
 	struct ctf_named_field_class *named_fc;
 
 	BT_ASSERT(fc);
-	BT_ASSERT(name);
+	BT_ASSERT(orig_name);
 	g_array_set_size(fc->options, fc->options->len + 1);
 
 	named_fc = &g_array_index(fc->options, struct ctf_named_field_class,
 		fc->options->len - 1);
 	_ctf_named_field_class_init(named_fc);
-	g_string_assign(named_fc->name, name);
+	g_string_assign(named_fc->orig_name, orig_name);
+	_ctf_named_field_class_unescape_orig_name(named_fc);
 	named_fc->fc = option_fc;
 }
 
@@ -864,25 +949,28 @@ void ctf_field_class_variant_set_tag_field_class(
 	fc->tag_fc = tag_fc;
 
 	for (option_i = 0; option_i < fc->options->len; option_i++) {
-		uint64_t mapping_i;
+		uint64_t range_i;
 		struct ctf_named_field_class *named_fc =
 			ctf_field_class_variant_borrow_option_by_index(
 				fc, option_i);
+		struct ctf_field_class_enum_mapping *mapping;
 
-		for (mapping_i = 0; mapping_i < tag_fc->mappings->len;
-				mapping_i++) {
-			struct ctf_field_class_enum_mapping *mapping =
-				ctf_field_class_enum_borrow_mapping_by_index(
-					tag_fc, mapping_i);
+		mapping = ctf_field_class_enum_borrow_mapping_by_label(
+			tag_fc, named_fc->orig_name->str);
+		if (!mapping) {
+			continue;
+		}
 
-			if (strcmp(named_fc->name->str,
-					mapping->label->str) == 0) {
-				struct ctf_field_class_variant_range range;
+		for (range_i = 0; range_i < mapping->ranges->len;
+				range_i++) {
+			struct ctf_range *range =
+				ctf_field_class_enum_mapping_borrow_range_by_index(
+					mapping, range_i);
+			struct ctf_field_class_variant_range var_range;
 
-				range.range = mapping->range;
-				range.option_index = option_i;
-				g_array_append_val(fc->ranges, range);
-			}
+			var_range.range = *range;
+			var_range.option_index = option_i;
+			g_array_append_val(fc->ranges, var_range);
 		}
 	}
 }
@@ -965,8 +1053,8 @@ uint64_t ctf_field_class_compound_get_field_class_count(struct ctf_field_class *
 }
 
 static inline
-int64_t ctf_field_class_compound_get_field_class_index_from_name(
-		struct ctf_field_class *fc, const char *name)
+int64_t ctf_field_class_compound_get_field_class_index_from_orig_name(
+		struct ctf_field_class *fc, const char *orig_name)
 {
 	int64_t ret_index = -1;
 	uint64_t i;
@@ -981,7 +1069,7 @@ int64_t ctf_field_class_compound_get_field_class_index_from_name(
 				ctf_field_class_struct_borrow_member_by_index(
 					struct_fc, i);
 
-			if (strcmp(name, named_fc->name->str) == 0) {
+			if (strcmp(orig_name, named_fc->orig_name->str) == 0) {
 				ret_index = (int64_t) i;
 				goto end;
 			}
@@ -998,7 +1086,7 @@ int64_t ctf_field_class_compound_get_field_class_index_from_name(
 				ctf_field_class_variant_borrow_option_by_index(
 					var_fc, i);
 
-			if (strcmp(name, named_fc->name->str) == 0) {
+			if (strcmp(orig_name, named_fc->orig_name->str) == 0) {
 				ret_index = (int64_t) i;
 				goto end;
 			}
@@ -1182,12 +1270,21 @@ struct ctf_field_class_enum *_ctf_field_class_enum_copy(
 	ctf_field_class_int_copy_content((void *) copy_fc, (void *) fc);
 
 	for (i = 0; i < fc->mappings->len; i++) {
+		uint64_t range_i;
+
 		struct ctf_field_class_enum_mapping *mapping =
 			&g_array_index(fc->mappings,
 				struct ctf_field_class_enum_mapping, i);
 
-		ctf_field_class_enum_append_mapping(copy_fc, mapping->label->str,
-			mapping->range.lower.u, mapping->range.upper.u);
+		for (range_i = 0; range_i < mapping->ranges->len; range_i++) {
+			struct ctf_range *range =
+				&g_array_index(mapping->ranges,
+					struct ctf_range, range_i);
+
+			ctf_field_class_enum_map_range(copy_fc,
+				mapping->label->str, range->lower.u,
+				range->upper.u);
+		}
 	}
 
 	return copy_fc;

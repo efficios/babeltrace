@@ -344,9 +344,9 @@ class OutputPortMessageIteratorTestCase(unittest.TestCase):
                 # Create payload field class
                 my_int_ft = trace_class.create_signed_integer_field_class(32)
                 payload_ft = trace_class.create_structure_field_class()
-                payload_ft += collections.OrderedDict([
+                payload_ft += [
                     ('my_int', my_int_ft),
-                ])
+                ]
 
                 event_class = stream_class.create_event_class(name='salut', payload_field_class=payload_ft)
 

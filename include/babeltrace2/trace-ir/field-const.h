@@ -89,6 +89,18 @@ extern const bt_field *
 bt_field_variant_borrow_selected_option_field_const(
 		const bt_field *field);
 
+extern const bt_field_class_variant_option *
+bt_field_variant_borrow_selected_class_option_const(
+		const bt_field *field);
+
+extern const bt_field_class_variant_with_unsigned_selector_option *
+bt_field_variant_with_unsigned_selector_borrow_selected_class_option_const(
+		const bt_field *field);
+
+extern const bt_field_class_variant_with_signed_selector_option *
+bt_field_variant_with_signed_selector_borrow_selected_class_option_const(
+		const bt_field *field);
+
 #ifdef __cplusplus
 }
 #endif

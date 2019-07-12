@@ -446,7 +446,7 @@ class _VariantField(_ContainerField, _Field):
 
     @selected_option_index.setter
     def selected_option_index(self, index):
-        native_bt.field_variant_select_option_field(self._ptr, index)
+        native_bt.field_variant_select_option_field_by_index(self._ptr, index)
 
     @property
     def selected_option(self):
@@ -580,5 +580,7 @@ _TYPE_ID_TO_OBJ = {
     native_bt.FIELD_CLASS_TYPE_STRUCTURE: _StructureField,
     native_bt.FIELD_CLASS_TYPE_STATIC_ARRAY: _StaticArrayField,
     native_bt.FIELD_CLASS_TYPE_DYNAMIC_ARRAY: _DynamicArrayField,
-    native_bt.FIELD_CLASS_TYPE_VARIANT: _VariantField,
+    native_bt.FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR: _VariantField,
+    native_bt.FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_SELECTOR: _VariantField,
+    native_bt.FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_SELECTOR: _VariantField,
 }

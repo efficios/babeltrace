@@ -33,21 +33,21 @@ class PacketTestCase(unittest.TestCase):
 
         # stream event context
         sec = tc.create_structure_field_class()
-        sec += OrderedDict((
+        sec += [
             ('cpu_id', tc.create_signed_integer_field_class(8)),
             ('stuff', tc.create_real_field_class()),
-        ))
+        ]
 
         # packet context
         pc = None
         if with_pc:
             pc = tc.create_structure_field_class()
-            pc += OrderedDict((
+            pc += [
                 ('something', tc.create_signed_integer_field_class(8)),
                 ('something_else', tc.create_real_field_class()),
                 ('events_discarded', tc.create_unsigned_integer_field_class(64)),
                 ('packet_seq_num', tc.create_unsigned_integer_field_class(64)),
-            ))
+            ]
 
         # stream class
         sc = tc.create_stream_class(default_clock_class=clock_class,
@@ -57,18 +57,18 @@ class PacketTestCase(unittest.TestCase):
 
         # event context
         ec = tc.create_structure_field_class()
-        ec += OrderedDict((
+        ec += [
             ('ant', tc.create_signed_integer_field_class(16)),
             ('msg', tc.create_string_field_class()),
-        ))
+        ]
 
         # event payload
         ep = tc.create_structure_field_class()
-        ep += OrderedDict((
+        ep += [
             ('giraffe', tc.create_signed_integer_field_class(32)),
             ('gnu', tc.create_signed_integer_field_class(8)),
             ('mosquito', tc.create_signed_integer_field_class(8)),
-        ))
+        ]
 
         # event class
         event_class = sc.create_event_class(name='ec', payload_field_class=ep)

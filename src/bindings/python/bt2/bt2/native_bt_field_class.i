@@ -45,47 +45,5 @@
 	}
 }
 
-/* Output argument typemap for value output (always appends) */
-%typemap(in, numinputs=0)
-	(const bt_field_class_signed_enumeration_mapping_ranges **)
-	(bt_field_class_signed_enumeration_mapping_ranges *temp_value = NULL) {
-	$1 = &temp_value;
-}
-
-%typemap(argout)
-	(const bt_field_class_signed_enumeration_mapping_ranges **) {
-	if (*$1) {
-		/* SWIG_Python_AppendOutput() steals the created object */
-		$result = SWIG_Python_AppendOutput($result,
-				SWIG_NewPointerObj(SWIG_as_voidptr(*$1),
-					SWIGTYPE_p_bt_field_class_signed_enumeration_mapping_ranges, 0));
-	} else {
-		/* SWIG_Python_AppendOutput() steals Py_None */
-		Py_INCREF(Py_None);
-		$result = SWIG_Python_AppendOutput($result, Py_None);
-	}
-}
-
-/* Output argument typemap for value output (always appends) */
-%typemap(in, numinputs=0)
-	(const bt_field_class_unsigned_enumeration_mapping_ranges **)
-	(bt_field_class_unsigned_enumeration_mapping_ranges *temp_value = NULL) {
-	$1 = &temp_value;
-}
-
-%typemap(argout)
-	(const bt_field_class_unsigned_enumeration_mapping_ranges **) {
-	if (*$1) {
-		/* SWIG_Python_AppendOutput() steals the created object */
-		$result = SWIG_Python_AppendOutput($result,
-				SWIG_NewPointerObj(SWIG_as_voidptr(*$1),
-					SWIGTYPE_p_bt_field_class_unsigned_enumeration_mapping_ranges, 0));
-	} else {
-		/* SWIG_Python_AppendOutput() steals Py_None */
-		Py_INCREF(Py_None);
-		$result = SWIG_Python_AppendOutput($result, Py_None);
-	}
-}
-
 %include <babeltrace2/trace-ir/field-class-const.h>
 %include <babeltrace2/trace-ir/field-class.h>

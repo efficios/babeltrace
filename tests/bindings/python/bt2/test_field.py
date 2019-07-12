@@ -816,11 +816,11 @@ class SignedIntegerFieldTestCase(_TestIntegerFieldCommon, unittest.TestCase):
 class SignedEnumerationFieldTestCase(_TestIntegerFieldCommon, unittest.TestCase):
     def _create_fc(self, tc):
         fc = tc.create_signed_enumeration_field_class(32)
-        fc.map_range('something', 17)
-        fc.map_range('speaker', 12, 16)
-        fc.map_range('can', 18, 2540)
-        fc.map_range('whole range', -(2 ** 31), (2 ** 31) - 1)
-        fc.map_range('zip', -45, 1001)
+        fc.add_mapping('something', bt2.SignedIntegerRangeSet([(17, 17)]))
+        fc.add_mapping('speaker', bt2.SignedIntegerRangeSet([(12, 16)]))
+        fc.add_mapping('can', bt2.SignedIntegerRangeSet([(18, 2540)]))
+        fc.add_mapping('whole range', bt2.SignedIntegerRangeSet([(-(2 ** 31), (2 ** 31) - 1)]))
+        fc.add_mapping('zip', bt2.SignedIntegerRangeSet([(-45, 1001)]))
         return fc
 
     def setUp(self):
@@ -1455,26 +1455,16 @@ class StructureFieldTestCase(unittest.TestCase):
 
 class VariantFieldTestCase(unittest.TestCase):
     def _create_fc(self, tc):
-        selector_fc = tc.create_signed_enumeration_field_class(field_value_range=32)
-        selector_fc.map_range('corner', 23)
-        selector_fc.map_range('zoom', 17, 20)
-        selector_fc.map_range('mellotron', 1001)
-        selector_fc.map_range('giorgio', 2000, 3000)
-
         ft0 = tc.create_signed_integer_field_class(32)
         ft1 = tc.create_string_field_class()
         ft2 = tc.create_real_field_class()
         ft3 = tc.create_signed_integer_field_class(17)
-
         fc = tc.create_variant_field_class()
         fc.append_option('corner', ft0)
         fc.append_option('zoom', ft1)
         fc.append_option('mellotron', ft2)
         fc.append_option('giorgio', ft3)
-        fc.selector_field_class = selector_fc
-
         top_fc = tc.create_structure_field_class()
-        top_fc.append_member('selector_field', selector_fc)
         top_fc.append_member('variant_field', fc)
         return top_fc
 

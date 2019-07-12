@@ -64,6 +64,13 @@
 		((const struct bt_field *) (_field))->class->type == BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY, \
 		_name " is not an array field: %![field-]+f", (_field))
 
+#define BT_ASSERT_PRE_DEV_FIELD_IS_VARIANT(_field, _name)		\
+	BT_ASSERT_PRE_DEV(						\
+		((const struct bt_field *) (_field))->class->type == BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR || \
+		((const struct bt_field *) (_field))->class->type == BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_SELECTOR || \
+		((const struct bt_field *) (_field))->class->type == BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_SELECTOR, \
+		_name " is not a variant field: %![field-]+f", (_field))
+
 #define BT_ASSERT_PRE_DEV_FIELD_IS_SET(_field, _name)			\
 	BT_ASSERT_PRE_DEV(bt_field_is_set(_field),			\
 		_name " is not set: %!+f", (_field))
@@ -187,7 +194,6 @@ bt_bool _bt_field_is_set(const struct bt_field *field)
 		goto end;
 	}
 
-	BT_ASSERT(bt_field_class_has_known_type(field->class));
 	BT_ASSERT(field->methods->is_set);
 	is_set = field->methods->is_set(field);
 

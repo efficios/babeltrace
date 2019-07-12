@@ -1,3 +1,5 @@
+#5149916
+
 SUBDIRS = utils lib bitfield ctf-writer plugins
 
 # Directories added to EXTRA_DIST will be recursively copied to the distribution.

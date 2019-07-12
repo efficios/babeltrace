@@ -680,61 +680,6 @@ int visit_field_class_specifier_list(struct ctx *ctx, struct ctf_node *ts_list,
 		struct ctf_field_class **decl);
 
 static
-char *remove_underscores_from_field_ref(struct ctx *ctx, const char *field_ref)
-{
-	const char *in_ch;
-	char *out_ch;
-	char *ret;
-	enum {
-		UNDERSCORE_REMOVE_STATE_REMOVE_NEXT_UNDERSCORE,
-		UNDERSCORE_REMOVE_STATE_DO_NOT_REMOVE_NEXT_UNDERSCORE,
-	} state = UNDERSCORE_REMOVE_STATE_REMOVE_NEXT_UNDERSCORE;
-
-	BT_ASSERT(field_ref);
-	ret = calloc(strlen(field_ref) + 1, 1);
-	if (!ret) {
-		BT_COMP_LOGE("Failed to allocate a string: size=%zu",
-			strlen(field_ref) + 1);
-		goto end;
-	}
-
-	in_ch = field_ref;
-	out_ch = ret;
-
-	while (*in_ch != '\0') {
-		switch (*in_ch) {
-		case ' ':
-		case '\t':
-			/* Remove whitespace */
-			in_ch++;
-			continue;
-		case '_':
-			if (state == UNDERSCORE_REMOVE_STATE_REMOVE_NEXT_UNDERSCORE) {
-				in_ch++;
-				state = UNDERSCORE_REMOVE_STATE_DO_NOT_REMOVE_NEXT_UNDERSCORE;
-				continue;
-			}
-
-			goto copy;
-		case '.':
-			state = UNDERSCORE_REMOVE_STATE_REMOVE_NEXT_UNDERSCORE;
-			goto copy;
-		default:
-			state = UNDERSCORE_REMOVE_STATE_DO_NOT_REMOVE_NEXT_UNDERSCORE;
-			goto copy;
-		}
-
-copy:
-		*out_ch = *in_ch;
-		in_ch++;
-		out_ch++;
-	}
-
-end:
-	return ret;
-}
-
-static
 int is_unary_string(struct bt_list_head *head)
 {
 	int ret = TRUE;
@@ -1385,10 +1330,6 @@ int visit_field_class_declarator(struct ctx *ctx,
 			const char *id =
 				node_field_class_declarator->u.field_class_declarator.u.id;
 
-			if (id[0] == '_') {
-				id++;
-			}
-
 			*field_name = g_quark_from_string(id);
 		} else {
 			*field_name = 0;
@@ -1493,24 +1434,12 @@ int visit_field_class_declarator(struct ctx *ctx,
 				nested_decl = NULL;
 				decl = (void *) array_decl;
 			} else {
-				char *length_name_no_underscore =
-					remove_underscores_from_field_ref(ctx,
-						length_name);
-				if (!length_name_no_underscore) {
-					/*
-					 * remove_underscores_from_field_ref()
-					 * logs errors
-					 */
-					ret = -EINVAL;
-					goto error;
-				}
 				seq_decl = ctf_field_class_sequence_create();
 				BT_ASSERT(seq_decl);
 				seq_decl->base.elem_fc = nested_decl;
 				nested_decl = NULL;
 				g_string_assign(seq_decl->length_ref,
-					length_name_no_underscore);
-				free(length_name_no_underscore);
+					length_name);
 				decl = (void *) seq_decl;
 			}
 
@@ -2067,17 +1996,7 @@ int visit_variant_decl(struct ctx *ctx, const char *name,
 		 * At this point, we have a fresh untagged variant; nobody
 		 * else owns it. Set its tag now.
 		 */
-		char *tag_no_underscore =
-			remove_underscores_from_field_ref(ctx, tag);
-
-		if (!tag_no_underscore) {
-			/* remove_underscores_from_field_ref() logs errors */
-			goto error;
-		}
-
-		g_string_assign(untagged_variant_decl->tag_ref,
-			tag_no_underscore);
-		free(tag_no_underscore);
+		g_string_assign(untagged_variant_decl->tag_ref, tag);
 		*variant_decl = untagged_variant_decl;
 		untagged_variant_decl = NULL;
 	}
@@ -2118,7 +2037,6 @@ int visit_enum_decl_entry(struct ctx *ctx, struct ctf_node *enumerator,
 		.value.u = 0,
 	};
 	const char *label = enumerator->u.enumerator.id;
-	const char *effective_label = label;
 	struct bt_list_head *values = &enumerator->u.enumerator.values;
 
 	bt_list_for_each_entry(iter, values, siblings) {
@@ -2185,19 +2103,7 @@ int visit_enum_decl_entry(struct ctx *ctx, struct ctf_node *enumerator,
 		last->value.u = end.value.u + 1;
 	}
 
-	if (label[0] == '_') {
-		/*
-		 * Strip the first underscore of any enumeration field
-		 * class's label in case this enumeration FC is used as
-		 * a variant FC tag later. The variant FC choice names
-		 * could also start with `_`, in which case the prefix
-		 * is removed, and it the resulting choice name needs to
-		 * match tag labels.
-		 */
-		effective_label = &label[1];
-	}
-
-	ctf_field_class_enum_append_mapping(enum_decl, effective_label,
+	ctf_field_class_enum_map_range(enum_decl, label,
 		start.value.u, end.value.u);
 	return 0;
 

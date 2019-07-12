@@ -1,0 +1,88 @@
+Trace class:
+  Stream class (ID 0):
+    Supports packets: Yes
+    Packets have beginning default clock snapshot: No
+    Packets have end default clock snapshot: No
+    Supports discarded events: No
+    Supports discarded packets: Yes
+    Discarded packets have default clock snapshots: No
+    Event class `yo` (ID 0):
+      Payload field class: Structure (2 members):
+        tag: Unsigned enumeration (8-bit, Base 10, 28 mappings):
+          __Bool: [25]
+          __Complex: [26]
+          __Imaginary: [27]
+          _align: [0]
+          _callsite: [1]
+          _char: [3]
+          _clock: [4]
+          _const: [2]
+          _double: [5]
+          _enum: [6]
+          _env: [7]
+          _event: [8]
+          _float: [10]
+          _floating_point: [9]
+          _int: [12]
+          _integer: [11]
+          _long: [13]
+          _short: [14]
+          _signed: [15]
+          _stream: [16]
+          _string: [17]
+          _struct: [18]
+          _trace: [19]
+          _typealias: [20]
+          _typedef: [21]
+          _unsigned: [22]
+          _variant: [23]
+          _void: [24]
+        var: Variant (unsigned selector) (28 options, Selector field path [Event payload: 0]):
+          align: [0]: String
+          callsite: [1]: String
+          const: [2]: String
+          char: [3]: String
+          clock: [4]: String
+          double: [5]: String
+          enum: [6]: String
+          env: [7]: String
+          event: [8]: String
+          floating_point: [9]: String
+          float: [10]: String
+          integer: [11]: String
+          int: [12]: String
+          long: [13]: String
+          short: [14]: String
+          signed: [15]: String
+          stream: [16]: String
+          string: [17]: String
+          struct: [18]: String
+          trace: [19]: String
+          typealias: [20]: String
+          typedef: [21]: String
+          unsigned: [22]: String
+          variant: [23]: String
+          void: [24]: String
+          _Bool: [25]: String
+          _Complex: [26]: String
+          _Imaginary: [27]: String
+
+{Trace 0, Stream class ID 0, Stream ID 0}
+Stream beginning:
+  Trace:
+    Stream (ID 0, Class ID 0)
+
+{Trace 0, Stream class ID 0, Stream ID 0}
+Packet beginning:
+
+{Trace 0, Stream class ID 0, Stream ID 0}
+Event `yo` (Class ID 0):
+  Payload:
+    tag: 1
+    var: Daniel Lavoie
+
+{Trace 0, Stream class ID 0, Stream ID 0}
+Packet end
+
+{Trace 0, Stream class ID 0, Stream ID 0}
+Stream end

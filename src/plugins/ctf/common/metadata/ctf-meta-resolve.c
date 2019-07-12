@@ -379,8 +379,8 @@ error:
 /*
  * Converts a path token list to a field path object. The path token
  * list is relative from `fc`. The index of the source looking for its
- * target within `fc` is indicated by `src_index`. This can be `INT64_MAX`
- * if the source is contained in `fc`.
+ * target within `fc` is indicated by `src_index`. This can be
+ * `INT64_MAX` if the source is contained in `fc`.
  *
  * `field_path` is an output parameter owned by the caller that must be
  * filled here.
@@ -408,7 +408,7 @@ int ptokens_to_field_path(GList *ptokens, struct ctf_field_path *field_path,
 			child_index = -1;
 		} else {
 			child_index =
-				ctf_field_class_compound_get_field_class_index_from_name(
+				ctf_field_class_compound_get_field_class_index_from_orig_name(
 					fc, ft_name);
 			if (child_index < 0) {
 				/*
