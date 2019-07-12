@@ -42,6 +42,14 @@ bt_self_component_class_source_as_component_class_source(
 		self_comp_cls_source);
 }
 
+static inline
+bt_self_component_class*
+bt_self_component_class_source_as_self_component_class(
+		bt_self_component_class_source *self_comp_cls_source)
+{
+	return __BT_UPCAST(bt_self_component_class, self_comp_cls_source);
+}
+
 #ifdef __cplusplus
 }
 #endif

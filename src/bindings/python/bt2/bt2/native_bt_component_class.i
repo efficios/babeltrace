@@ -173,7 +173,11 @@ void native_comp_class_dtor(void) {
 }
 
 static inline
-void log_exception(int log_level)
+void log_exception_and_maybe_append_error(int log_level,
+		bool append_error,
+		bt_self_component_class *self_component_class,
+		bt_self_component *self_component,
+		bt_self_message_iterator *self_message_iterator)
 {
 	GString *gstr;
 
@@ -186,6 +190,22 @@ void log_exception(int log_level)
 
 	BT_LOG_WRITE(log_level, BT_LOG_TAG, "%s", gstr->str);
 
+	if (append_error) {
+		if (self_component_class) {
+			BT_CURRENT_THREAD_ERROR_APPEND_CAUSE_FROM_COMPONENT_CLASS(
+				self_component_class, "%s", gstr->str);
+		} else if (self_component) {
+			BT_CURRENT_THREAD_ERROR_APPEND_CAUSE_FROM_COMPONENT(
+				self_component, "%s", gstr->str);
+		} else if (self_message_iterator) {
+			BT_CURRENT_THREAD_ERROR_APPEND_CAUSE_FROM_MESSAGE_ITERATOR(
+				self_message_iterator, "%s", gstr->str);
+		} else {
+			BT_CURRENT_THREAD_ERROR_APPEND_CAUSE_FROM_UNKNOWN(
+				"Python", "%s", gstr->str);
+		}
+	}
+
 end:
 	if (gstr) {
 		g_string_free(gstr, TRUE);
@@ -195,17 +215,26 @@ end:
 static inline
 void loge_exception(void)
 {
-	log_exception(BT_LOG_ERROR);
+	log_exception_and_maybe_append_error(BT_LOG_ERROR, true, NULL, NULL, NULL);
+}
+
+static
+void loge_exception_message_iterator(
+		bt_self_message_iterator *self_message_iterator)
+{
+	log_exception_and_maybe_append_error(BT_LOG_ERROR, true, NULL, NULL, self_message_iterator);
 }
 
 static inline
 void logw_exception(void)
 {
-	log_exception(BT_LOG_WARNING);
+	log_exception_and_maybe_append_error(BT_LOG_WARNING, false, NULL, NULL, NULL);
 }
 
 static inline
-int py_exc_to_status(void)
+int py_exc_to_status(bt_self_component_class *self_component_class,
+		bt_self_component *self_component,
+		bt_self_message_iterator *self_message_iterator)
 {
 	int status = __BT_FUNC_STATUS_OK;
 	PyObject *exc = PyErr_Occurred();
@@ -231,13 +260,34 @@ int py_exc_to_status(void)
 		status = __BT_FUNC_STATUS_UNSUPPORTED;
 	} else {
 		/* Unknown exception: convert to general error */
-		logw_exception();
+		log_exception_and_maybe_append_error(BT_LOG_WARNING, true,
+			self_component_class, self_component,
+			self_message_iterator);
 		status = __BT_FUNC_STATUS_ERROR;
 	}
 
 end:
 	PyErr_Clear();
 	return status;
+}
+
+static
+int py_exc_to_status_component_class(bt_self_component_class *self_component_class)
+{
+	return py_exc_to_status(self_component_class, NULL, NULL);
+}
+
+static
+int py_exc_to_status_component(bt_self_component *self_component)
+{
+	return py_exc_to_status(NULL, self_component, NULL);
+}
+
+static
+int py_exc_to_status_message_iterator(
+		bt_self_message_iterator *self_message_iterator)
+{
+	return py_exc_to_status(NULL, NULL, self_message_iterator);
 }
 
 /* Component class proxy methods (delegate to the attached Python object) */
@@ -304,8 +354,8 @@ bt_component_class_init_method_status component_class_init(
 	if (!py_comp) {
 		BT_LOGW("Failed to call Python class's _bt_init_from_native() method: "
 			"py-cls-addr=%p", py_cls);
-		logw_exception();
-		goto error;
+		status = py_exc_to_status_component(self_component);
+		goto end;
 	}
 
 	/*
@@ -447,7 +497,7 @@ bt_bool component_class_can_seek_beginning(
 		 * Once can_seek_beginning can report errors, convert the
 		 * exception to a status.  For now, log and return false;
 		 */
-		loge_exception();
+		loge_exception_message_iterator(self_message_iterator);
 		PyErr_Clear();
 	}
 
@@ -469,7 +519,7 @@ component_class_seek_beginning(bt_self_message_iterator *self_message_iterator)
 	py_result = PyObject_CallMethod(py_iter, "_bt_seek_beginning_from_native",
 		NULL);
 	BT_ASSERT(!py_result || py_result == Py_None);
-        status = py_exc_to_status();
+        status = py_exc_to_status_message_iterator(self_message_iterator);
 	Py_XDECREF(py_result);
 	return status;
 }
@@ -510,7 +560,7 @@ bt_component_class_port_connected_method_status component_class_port_connected(
 		"_bt_port_connected_from_native", "(OiO)", py_self_port_ptr,
 		self_component_port_type, py_other_port_ptr);
 	BT_ASSERT(!py_method_result || py_method_result == Py_None);
-	status = py_exc_to_status();
+	status = py_exc_to_status_component(self_component);
 
 end:
 	Py_XDECREF(py_self_port_ptr);
@@ -605,7 +655,7 @@ component_class_sink_graph_is_configured(
 	py_method_result = PyObject_CallMethod(py_comp,
 		"_bt_graph_is_configured_from_native", NULL);
 	BT_ASSERT(!py_method_result || py_method_result == Py_None);
-	status = py_exc_to_status();
+	status = py_exc_to_status_component(self_component);
 	Py_XDECREF(py_method_result);
 	return status;
 }
@@ -613,6 +663,7 @@ component_class_sink_graph_is_configured(
 static
 bt_component_class_query_method_status component_class_query(
 		const bt_component_class *component_class,
+		bt_self_component_class *self_component_class,
 		const bt_query_executor *query_executor,
 		const char *object, const bt_value *params,
 		bt_logging_level log_level,
@@ -659,7 +710,7 @@ bt_component_class_query_method_status component_class_query(
 	if (!py_results_addr) {
 		BT_LOGW("Failed to call Python class's _bt_query_from_native() method: "
 			"py-cls-addr=%p", py_cls);
-		status = py_exc_to_status();
+		status = py_exc_to_status_component_class(self_component_class);
 		goto end;
 	}
 
@@ -696,8 +747,9 @@ bt_component_class_query_method_status component_class_source_query(
 {
 	const bt_component_class_source *component_class_source = bt_self_component_class_source_as_component_class_source(self_component_class_source);
 	const bt_component_class *component_class = bt_component_class_source_as_component_class_const(component_class_source);
+	bt_self_component_class *self_component_class = bt_self_component_class_source_as_self_component_class(self_component_class_source);
 
-	return component_class_query(component_class, query_executor, object, params, log_level, result);
+	return component_class_query(component_class, self_component_class, query_executor, object, params, log_level, result);
 }
 
 static
@@ -710,8 +762,9 @@ bt_component_class_query_method_status component_class_filter_query(
 {
 	const bt_component_class_filter *component_class_filter = bt_self_component_class_filter_as_component_class_filter(self_component_class_filter);
 	const bt_component_class *component_class = bt_component_class_filter_as_component_class_const(component_class_filter);
+	bt_self_component_class *self_component_class = bt_self_component_class_filter_as_self_component_class(self_component_class_filter);
 
-	return component_class_query(component_class, query_executor, object, params, log_level, result);
+	return component_class_query(component_class, self_component_class, query_executor, object, params, log_level, result);
 }
 
 static
@@ -724,8 +777,9 @@ bt_component_class_query_method_status component_class_sink_query(
 {
 	const bt_component_class_sink *component_class_sink = bt_self_component_class_sink_as_component_class_sink(self_component_class_sink);
 	const bt_component_class *component_class = bt_component_class_sink_as_component_class_const(component_class_sink);
+	bt_self_component_class *self_component_class = bt_self_component_class_sink_as_self_component_class(self_component_class_sink);
 
-	return component_class_query(component_class, query_executor, object, params, log_level, result);
+	return component_class_query(component_class, self_component_class, query_executor, object, params, log_level, result);
 }
 
 static
@@ -750,19 +804,23 @@ component_class_message_iterator_init(
 	py_comp_cls = PyObject_GetAttrString(py_comp, "__class__");
 	if (!py_comp_cls) {
 		BT_LOGE_STR("Cannot get Python object's `__class__` attribute.");
-		goto error;
+		goto python_error;
 	}
 
 	py_iter_cls = PyObject_GetAttrString(py_comp_cls, "_iter_cls");
 	if (!py_iter_cls) {
 		BT_LOGE_STR("Cannot get Python class's `_iter_cls` attribute.");
-		goto error;
+		goto python_error;
 	}
 
 	py_iter_ptr = SWIG_NewPointerObj(SWIG_as_voidptr(self_message_iterator),
 		SWIGTYPE_p_bt_self_message_iterator, 0);
 	if (!py_iter_ptr) {
-		BT_LOGE_STR("Failed to create a SWIG pointer object.");
+		const char *err = "Failed to create a SWIG pointer object.";
+
+		BT_LOGE_STR(err);
+		BT_CURRENT_THREAD_ERROR_APPEND_CAUSE_FROM_MESSAGE_ITERATOR(
+			self_message_iterator, err);
 		goto error;
 	}
 
@@ -777,8 +835,7 @@ component_class_message_iterator_init(
 	if (!py_iter) {
 		BT_LOGE("Failed to call Python class's __new__() method: "
 			"py-cls-addr=%p", py_iter_cls);
-		loge_exception();
-		goto error;
+		goto python_error;
 	}
 
 	/*
@@ -797,16 +854,19 @@ component_class_message_iterator_init(
         	SWIG_as_voidptr(self_component_port_output),
 		SWIGTYPE_p_bt_self_component_port_output, 0);
 	if (!py_component_port_output_ptr) {
-		BT_LOGE_STR("Failed to create a SWIG pointer object.");
+		const char *err = "Failed to create a SWIG pointer object.";
+
+		BT_LOGE_STR(err);
+		BT_CURRENT_THREAD_ERROR_APPEND_CAUSE_FROM_MESSAGE_ITERATOR(
+			self_message_iterator, err);
 		goto error;
 	}
 
 	py_init_method_result = PyObject_CallMethod(py_iter,
 		"_bt_init_from_native", "O", py_component_port_output_ptr);
 	if (!py_init_method_result) {
-		BT_LOGW_STR("User's __init__() method failed:");
-		logw_exception();
-		goto error;
+		BT_LOGE_STR("User's __init__() method failed:");
+		goto python_error;
 	}
 
 	/*
@@ -831,24 +891,19 @@ component_class_message_iterator_init(
 	py_iter = NULL;
 	goto end;
 
-error:
-	status = py_exc_to_status();
-	if (status == __BT_FUNC_STATUS_OK) {
-		/*
-		 * Looks like there wasn't any exception from the Python
-		 * side, but we're still in an error state here.
-		 */
-		status = __BT_FUNC_STATUS_ERROR;
-	}
+python_error:
+	/* Handling of errors that cause a Python exception to be set. */
+	status = py_exc_to_status_message_iterator(self_message_iterator);
+	BT_ASSERT(status != __BT_FUNC_STATUS_OK);
+	goto end;
 
-	/*
-	 * Clear any exception: we're returning a bad status anyway. If
-	 * this call originated from Python, then the user gets an
-	 * appropriate creation error.
-	 */
-	PyErr_Clear();
+error:
+	/* Handling of errors that don't cause a Python exception to be set. */
+	status = __BT_FUNC_STATUS_ERROR;
 
 end:
+	BT_ASSERT(!PyErr_Occurred());
+
 	Py_XDECREF(py_comp_cls);
 	Py_XDECREF(py_iter_cls);
 	Py_XDECREF(py_iter_ptr);
@@ -927,7 +982,7 @@ component_class_message_iterator_next(
 	py_method_result = PyObject_CallMethod(py_message_iter,
 		"_bt_next_from_native", NULL);
 	if (!py_method_result) {
-		status = py_exc_to_status();
+		status = py_exc_to_status_message_iterator(message_iterator);
 		BT_ASSERT(status != __BT_FUNC_STATUS_OK);
 		goto end;
 	}
@@ -961,7 +1016,7 @@ component_class_sink_consume(bt_self_component_sink *self_component_sink)
 	BT_ASSERT(py_comp);
 	py_method_result = PyObject_CallMethod(py_comp,
 		"_consume", NULL);
-	status = py_exc_to_status();
+	status = py_exc_to_status_component(self_component);
 	if (!py_method_result && status == __BT_FUNC_STATUS_OK) {
 		/* Pretty sure this should never happen, but just in case */
 		BT_LOGE("User's _consume() method failed without raising an exception: "
