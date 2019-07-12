@@ -43,6 +43,7 @@ from bt2.field_class import *
 from bt2.field_path import *
 from bt2.field import *
 from bt2.graph import *
+from bt2.integer_range_set import *
 from bt2.logging import *
 from bt2.message import *
 from bt2.message import _DiscardedEventsMessage

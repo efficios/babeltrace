@@ -216,6 +216,7 @@ typedef int bt_bool;
 %include "native_bt_plugin.i"
 %include "native_bt_port.i"
 %include "native_bt_query_exec.i"
+%include "native_bt_integer_range_set.i"
 %include "native_bt_stream.i"
 %include "native_bt_stream_class.i"
 %include "native_bt_trace.i"

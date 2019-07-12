@@ -15,6 +15,7 @@ dist_check_SCRIPTS = \
 	bindings/python/bt2/test_field_class.py \
 	bindings/python/bt2/test_field.py \
 	bindings/python/bt2/test_graph.py \
+	bindings/python/bt2/test_integer_range_set.py \
 	bindings/python/bt2/test_message_iterator.py \
 	bindings/python/bt2/test_message.py \
 	bindings/python/bt2/test_packet.py \
