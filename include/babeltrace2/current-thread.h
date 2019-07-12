@@ -86,7 +86,7 @@ bt_current_thread_error_append_cause_from_message_iterator(
 		(_self_cc), __FILE__, __LINE__, (_msg_fmt), ##__VA_ARGS__)
 
 #define BT_CURRENT_THREAD_ERROR_APPEND_CAUSE_FROM_MESSAGE_ITERATOR(_self_iter, _msg_fmt, ...) \
-	bt_current_thread_error_append_cause_from_component( \
+	bt_current_thread_error_append_cause_from_message_iterator( \
 		(_self_iter), __FILE__, __LINE__, (_msg_fmt), ##__VA_ARGS__)
 
 #ifdef __cplusplus
