@@ -167,9 +167,7 @@ void subtest_lookup_function_name(struct bin_info *bin, uint64_t addr,
 	ret = bin_info_lookup_function_name(bin, SO_INV_ADDR, &_func_name);
 	ok(ret == -1 && _func_name == NULL,
 	   "bin_info_lookup_function_name - fail on invalid addr");
-	if (_func_name) {
-		free(_func_name);
-	}
+	free(_func_name);
 }
 
 static

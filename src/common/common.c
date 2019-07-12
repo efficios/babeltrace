@@ -1115,9 +1115,7 @@ error:
 		norm_path = NULL;
 	}
 end:
-	if (tmp) {
-		free(tmp);
-	}
+	free(tmp);
 	return norm_path;
 }
 #else
