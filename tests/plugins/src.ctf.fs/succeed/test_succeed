@@ -58,7 +58,8 @@ test_ctf_single() {
 	ok $? "Trace '$name' gives the expected output"
 }
 
-plan_tests 2
+plan_tests 3
 
 test_ctf_gen_single simple
 test_ctf_single smalltrace
+test_ctf_single 2packets

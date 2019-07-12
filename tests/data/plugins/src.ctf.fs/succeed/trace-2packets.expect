@@ -1,0 +1,79 @@
+Trace class:
+  Stream class (ID 0):
+    Supports packets: Yes
+    Packets have beginning default clock snapshot: Yes
+    Packets have end default clock snapshot: Yes
+    Supports discarded events: Yes
+    Discarded events have default clock snapshots: Yes
+    Supports discarded packets: Yes
+    Discarded packets have default clock snapshots: Yes
+    Default clock class:
+      Name: monotonic
+      Description: Monotonic Clock
+      Frequency (Hz): 1,000,000,000
+      Precision (cycles): 0
+      Offset (s): 1,561,498,843
+      Offset (cycles): 433,067,926
+      Origin is Unix epoch: Yes
+      UUID: db965ea1-f862-45a3-ab65-602642fdad90
+    Packet context field class: Structure (1 member):
+      cpu_id: Unsigned integer (32-bit, Base 10)
+    Event common context field class: Structure (1 member):
+      vpid: Signed integer (32-bit, Base 10)
+    Event class `lttng_ust_statedump:procname` (ID 0):
+      Log level: Debug (line)
+      Payload field class: Structure (1 member):
+        procname: String
+
+[Unknown]
+{Trace 0, Stream class ID 0, Stream ID 2}
+Stream beginning:
+  Trace:
+    UUID: 0f37a32b-1796-408d-b723-bd27b45921c6
+    Environment (5 entries):
+      domain: ust
+      hostname: joraj-alpa
+      tracer_major: 2
+      tracer_minor: 11
+      tracer_name: lttng-ust
+    Stream (ID 2, Class ID 0)
+
+[257,960,472,138,367 cycles, 1,561,756,803,905,206,293 ns from origin]
+{Trace 0, Stream class ID 0, Stream ID 2}
+Packet beginning:
+  Context:
+    cpu_id: 2
+
+[257,960,490,358,932 cycles, 1,561,756,803,923,426,858 ns from origin]
+{Trace 0, Stream class ID 0, Stream ID 2}
+Event `lttng_ust_statedump:procname` (Class ID 0):
+  Common context:
+    vpid: 15,062
+  Payload:
+    procname: sample-ust
+
+[257,963,419,223,089 cycles, 1,561,756,806,852,291,015 ns from origin]
+{Trace 0, Stream class ID 0, Stream ID 2}
+Packet end
+
+[257,971,894,873,186 cycles, 1,561,756,815,327,941,112 ns from origin]
+{Trace 0, Stream class ID 0, Stream ID 2}
+Packet beginning:
+  Context:
+    cpu_id: 2
+
+[257,971,894,873,186 cycles, 1,561,756,815,327,941,112 ns from origin]
+{Trace 0, Stream class ID 0, Stream ID 2}
+Event `lttng_ust_statedump:procname` (Class ID 0):
+  Common context:
+    vpid: 15,062
+  Payload:
+    procname: sample-ust
+
+[257,974,030,386,677 cycles, 1,561,756,817,463,454,603 ns from origin]
+{Trace 0, Stream class ID 0, Stream ID 2}
+Packet end
+
+[Unknown]
+{Trace 0, Stream class ID 0, Stream ID 2}
+Stream end
