@@ -8,7 +8,7 @@ Trace class:
     Supports discarded packets: Yes
     Discarded packets have default clock snapshots: Yes
     Default clock class:
-      Name: _default
+      Name: default
       Frequency (Hz): 1,000,000,000
       Precision (cycles): 1
       Offset (s): 0

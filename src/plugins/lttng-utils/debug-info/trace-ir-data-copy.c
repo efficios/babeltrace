@@ -319,9 +319,11 @@ void copy_field_content(const bt_field *in_field, bt_field *out_field,
 		}
 		break;
 	}
-	case BT_FIELD_CLASS_TYPE_VARIANT:
+	case BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR:
+	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_SELECTOR:
+	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_SELECTOR:
 	{
-		bt_field_variant_select_option_field_status sel_opt_status;
+		bt_field_variant_select_option_field_by_index_status sel_opt_status;
 		uint64_t in_selected_option_idx;
 		const bt_field *in_option_field;
 		bt_field *out_option_field;
@@ -329,7 +331,7 @@ void copy_field_content(const bt_field *in_field, bt_field *out_field,
 		in_selected_option_idx =
 			bt_field_variant_get_selected_option_field_index(
 					in_field);
-		sel_opt_status = bt_field_variant_select_option_field(out_field,
+		sel_opt_status = bt_field_variant_select_option_field_by_index(out_field,
 				in_selected_option_idx);
 		if (sel_opt_status !=
 				BT_FIELD_VARIANT_SELECT_OPTION_FIELD_STATUS_OK) {

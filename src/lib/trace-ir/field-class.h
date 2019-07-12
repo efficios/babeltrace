@@ -28,6 +28,7 @@
 #include <babeltrace2/trace-ir/clock-class.h>
 #include <babeltrace2/trace-ir/field-class.h>
 #include "common/macros.h"
+#include "common/common.h"
 #include "lib/object.h"
 #include <babeltrace2/types.h>
 #include <stdint.h>
@@ -49,6 +50,14 @@
 #define _BT_ASSERT_PRE_FC_IS_UNSIGNED_INT_FMT(_name)			\
 	_name " is not an unsigned integer field class: %![fc-]+F"
 
+
+#define _BT_ASSERT_PRE_FC_IS_SIGNED_INT_COND(_fc)			\
+	(((const struct bt_field_class *) (_fc))->type == BT_FIELD_CLASS_TYPE_SIGNED_INTEGER || \
+	((const struct bt_field_class *) (_fc))->type == BT_FIELD_CLASS_TYPE_SIGNED_ENUMERATION)
+
+#define _BT_ASSERT_PRE_FC_IS_SIGNED_INT_FMT(_name)			\
+	_name " is not a signed integer field class: %![fc-]+F"
+
 #define _BT_ASSERT_PRE_FC_IS_ENUM_COND(_fc)				\
 	(((const struct bt_field_class *) (_fc))->type == BT_FIELD_CLASS_TYPE_UNSIGNED_ENUMERATION || \
 	((const struct bt_field_class *) (_fc))->type == BT_FIELD_CLASS_TYPE_SIGNED_ENUMERATION)
@@ -63,6 +72,21 @@
 #define _BT_ASSERT_PRE_FC_IS_ARRAY_FMT(_name)				\
 	_name " is not an array field class: %![fc-]+F"
 
+#define _BT_ASSERT_PRE_FC_IS_VARIANT_COND(_fc)				\
+	(((const struct bt_field_class *) (_fc))->type == BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR || \
+	((const struct bt_field_class *) (_fc))->type == BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_SELECTOR || \
+	((const struct bt_field_class *) (_fc))->type == BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_SELECTOR)
+
+#define _BT_ASSERT_PRE_FC_IS_VARIANT_FMT(_name)				\
+	_name " is not a variant field class: %![fc-]+F"
+
+#define _BT_ASSERT_PRE_FC_IS_VARIANT_WITH_SEL_COND(_fc)			\
+	(((const struct bt_field_class *) (_fc))->type == BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_SELECTOR || \
+	((const struct bt_field_class *) (_fc))->type == BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_SELECTOR)
+
+#define _BT_ASSERT_PRE_FC_IS_VARIANT_WITH_SEL_FMT(_name)		\
+	_name " is not a variant field class with a selector: %![fc-]+F"
+
 #define _BT_ASSERT_PRE_FC_HAS_ID_COND(_fc, _type)			\
 	(((const struct bt_field_class *) (_fc))->type == (_type))
 
@@ -71,53 +95,73 @@
 
 #define BT_ASSERT_PRE_FC_IS_INT(_fc, _name)				\
 	BT_ASSERT_PRE(_BT_ASSERT_PRE_FC_IS_INT_COND(_fc),		\
-	_BT_ASSERT_PRE_FC_IS_INT_FMT(_name), (_fc))
+		_BT_ASSERT_PRE_FC_IS_INT_FMT(_name), (_fc))
 
 #define BT_ASSERT_PRE_FC_IS_UNSIGNED_INT(_fc, _name)			\
 	BT_ASSERT_PRE(_BT_ASSERT_PRE_FC_IS_UNSIGNED_INT_COND(_fc),	\
-	_BT_ASSERT_PRE_FC_IS_UNSIGNED_INT_FMT(_name), (_fc))
+		_BT_ASSERT_PRE_FC_IS_UNSIGNED_INT_FMT(_name), (_fc))
+
+#define BT_ASSERT_PRE_FC_IS_SIGNED_INT(_fc, _name)			\
+	BT_ASSERT_PRE(_BT_ASSERT_PRE_FC_IS_SIGNED_INT_COND(_fc),	\
+		_BT_ASSERT_PRE_FC_IS_SIGNED_INT_FMT(_name), (_fc))
 
 #define BT_ASSERT_PRE_FC_IS_ENUM(_fc, _name)				\
 	BT_ASSERT_PRE(_BT_ASSERT_PRE_FC_IS_ENUM_COND(_fc),		\
-	_BT_ASSERT_PRE_FC_IS_ENUM_FMT(_name), (_fc))
+		_BT_ASSERT_PRE_FC_IS_ENUM_FMT(_name), (_fc))
 
 #define BT_ASSERT_PRE_FC_IS_ARRAY(_fc, _name)				\
 	BT_ASSERT_PRE(_BT_ASSERT_PRE_FC_IS_ARRAY_COND(_fc),		\
-	_BT_ASSERT_PRE_FC_IS_ARRAY_FMT(_name), (_fc))
+		_BT_ASSERT_PRE_FC_IS_ARRAY_FMT(_name), (_fc))
+
+#define BT_ASSERT_PRE_FC_IS_VARIANT(_fc, _name)				\
+	BT_ASSERT_PRE(_BT_ASSERT_PRE_FC_IS_VARIANT_COND(_fc),		\
+		_BT_ASSERT_PRE_FC_IS_VARIANT_FMT(_name), (_fc))
+
+#define BT_ASSERT_PRE_FC_IS_VARIANT_WITH_SEL(_fc, _name)		\
+	BT_ASSERT_PRE(_BT_ASSERT_PRE_FC_IS_VARIANT_WITH_SEL_COND(_fc),	\
+		_BT_ASSERT_PRE_FC_IS_VARIANT_WITH_SEL_FMT(_name), (_fc))
 
 #define BT_ASSERT_PRE_FC_HAS_ID(_fc, _type, _name)			\
 	BT_ASSERT_PRE(_BT_ASSERT_PRE_FC_HAS_ID_COND((_fc), (_type)),	\
-	_BT_ASSERT_PRE_FC_HAS_ID_FMT(_name),				\
-	bt_common_field_class_type_string(_type), (_fc))
+		_BT_ASSERT_PRE_FC_HAS_ID_FMT(_name),			\
+		bt_common_field_class_type_string(_type), (_fc))
 
 #define BT_ASSERT_PRE_DEV_FC_IS_INT(_fc, _name)				\
 	BT_ASSERT_PRE_DEV(_BT_ASSERT_PRE_FC_IS_INT_COND(_fc),		\
-	_BT_ASSERT_PRE_FC_IS_INT_FMT(_name), (_fc))
+		_BT_ASSERT_PRE_FC_IS_INT_FMT(_name), (_fc))
 
 #define BT_ASSERT_PRE_DEV_FC_IS_UNSIGNED_INT(_fc, _name)		\
 	BT_ASSERT_PRE_DEV(_BT_ASSERT_PRE_FC_IS_UNSIGNED_INT_COND(_fc),	\
-	_BT_ASSERT_PRE_FC_IS_UNSIGNED_INT_FMT(_name), (_fc))
+		_BT_ASSERT_PRE_FC_IS_UNSIGNED_INT_FMT(_name), (_fc))
+
+#define BT_ASSERT_PRE_DEV_FC_IS_SIGNED_INT(_fc, _name)			\
+	BT_ASSERT_PRE_DEV(_BT_ASSERT_PRE_FC_IS_SIGNED_INT_COND(_fc),	\
+		_BT_ASSERT_PRE_FC_IS_SIGNED_INT_FMT(_name), (_fc))
 
 #define BT_ASSERT_PRE_DEV_FC_IS_ENUM(_fc, _name)			\
 	BT_ASSERT_PRE_DEV(_BT_ASSERT_PRE_FC_IS_ENUM_COND(_fc),		\
-	_BT_ASSERT_PRE_FC_IS_ENUM_FMT(_name), (_fc))
+		_BT_ASSERT_PRE_FC_IS_ENUM_FMT(_name), (_fc))
 
 #define BT_ASSERT_PRE_DEV_FC_IS_ARRAY(_fc, _name)			\
 	BT_ASSERT_PRE_DEV(_BT_ASSERT_PRE_FC_IS_ARRAY_COND(_fc),		\
-	_BT_ASSERT_PRE_FC_IS_ARRAY_FMT(_name), (_fc))
+		_BT_ASSERT_PRE_FC_IS_ARRAY_FMT(_name), (_fc))
+
+#define BT_ASSERT_PRE_DEV_FC_IS_VARIANT(_fc, _name)			\
+	BT_ASSERT_PRE_DEV(_BT_ASSERT_PRE_FC_IS_VARIANT_COND(_fc),	\
+		_BT_ASSERT_PRE_FC_IS_VARIANT_FMT(_name), (_fc))
+
+#define BT_ASSERT_PRE_DEV_FC_IS_VARIANT_WITH_SEL(_fc, _name)		\
+	BT_ASSERT_PRE_DEV(_BT_ASSERT_PRE_FC_IS_VARIANT_WITH_SEL_COND(_fc), \
+		_BT_ASSERT_PRE_FC_IS_VARIANT_WITH_SEL_FMT(_name), (_fc))
 
 #define BT_ASSERT_PRE_DEV_FC_HAS_ID(_fc, _type, _name)			\
 	BT_ASSERT_PRE_DEV(_BT_ASSERT_PRE_FC_HAS_ID_COND((_fc), (_type)), \
-	_BT_ASSERT_PRE_FC_HAS_ID_FMT(_name),				\
-	bt_common_field_class_type_string(_type), (_fc))
+		_BT_ASSERT_PRE_FC_HAS_ID_FMT(_name),			\
+		bt_common_field_class_type_string(_type), (_fc))
 
 #define BT_ASSERT_PRE_DEV_FC_HOT(_fc, _name)				\
 	BT_ASSERT_PRE_DEV_HOT((const struct bt_field_class *) (_fc),	\
 		(_name), ": %!+F", (_fc))
-
-#define BT_FIELD_CLASS_NAMED_FC_AT_INDEX(_fc, _index)			\
-	(&g_array_index(((struct bt_field_class_named_field_class_container *) (_fc))->named_fcs, \
-		struct bt_named_field_class, (_index)))
 
 #define BT_FIELD_CLASS_ENUM_MAPPING_AT_INDEX(_fc, _index)		\
 	(&g_array_index(((struct bt_field_class_enumeration *) (_fc))->mappings, \
@@ -158,23 +202,11 @@ struct bt_field_class_integer {
 	enum bt_field_class_integer_preferred_display_base base;
 };
 
-struct bt_field_class_enumeration_mapping_range {
-	union {
-		uint64_t u;
-		int64_t i;
-	} lower;
-
-	union {
-		uint64_t u;
-		int64_t i;
-	} upper;
-};
-
 struct bt_field_class_enumeration_mapping {
 	GString *label;
 
-	/* Array of `struct bt_field_class_enumeration_mapping_range` */
-	GArray *ranges;
+	/* Owner by this */
+	const struct bt_integer_range_set *range_set;
 };
 
 struct bt_field_class_unsigned_enumeration_mapping;
@@ -219,22 +251,20 @@ struct bt_named_field_class {
 
 struct bt_field_class_structure_member;
 struct bt_field_class_variant_option;
+struct bt_field_class_variant_with_unsigned_selector_option;
+struct bt_field_class_variant_with_signed_selector_option;
 
-/*
- * This is the base field class for a container of named field classes.
- * Structure and variant field classes inherit this.
- */
 struct bt_field_class_named_field_class_container {
 	struct bt_field_class common;
 
 	/*
 	 * Key: `const char *`, not owned by this (owned by named field
-	 * type objects contained in `named_fcs` below).
+	 * class objects contained in `named_fcs` below).
 	 */
 	GHashTable *name_to_index;
 
-	/* Array of `struct bt_named_field_class` */
-	GArray *named_fcs;
+	/* Array of `struct bt_named_field_class *` */
+	GPtrArray *named_fcs;
 };
 
 struct bt_field_class_structure {
@@ -263,22 +293,38 @@ struct bt_field_class_dynamic_array {
 	struct bt_field_path *length_field_path;
 };
 
-struct bt_field_class_variant {
-	struct bt_field_class_named_field_class_container common;
+/* Variant FC (with selector) option: named field class + range set */
+struct bt_field_class_variant_with_selector_option {
+	struct bt_named_field_class common;
 
-	/* Weak: never dereferenced, only use to find it elsewhere */
-	struct bt_field_class *selector_fc;
+	/* Owned by this */
+	const struct bt_integer_range_set *range_set;
+};
+
+struct bt_field_class_variant {
+	/*
+	 * Depending on the variant field class type, the contained
+	 * named field classes are of type
+	 * `struct bt_named_field_class *` if the variant field class
+	 * doesn't have a selector, or
+	 * `struct bt_field_class_variant_with_selector_option *`
+	 * if it has.
+	 */
+	struct bt_field_class_named_field_class_container common;
+};
+
+struct bt_field_class_variant_with_selector {
+	struct bt_field_class_variant common;
+
+	/*
+	 * Owned by this, but never dereferenced: only use to find it
+	 * elsewhere.
+	 */
+	const struct bt_field_class *selector_fc;
 
 	/* Owned by this */
 	struct bt_field_path *selector_field_path;
 };
-
-static inline
-bool bt_field_class_has_known_type(const struct bt_field_class *fc)
-{
-	return fc->type >= BT_FIELD_CLASS_TYPE_UNSIGNED_INTEGER &&
-		fc->type <= BT_FIELD_CLASS_TYPE_VARIANT;
-}
 
 BT_HIDDEN
 void _bt_field_class_freeze(const struct bt_field_class *field_class);

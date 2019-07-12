@@ -1,0 +1,38 @@
+Trace class:
+  Stream class (ID 0):
+    Supports packets: Yes
+    Packets have beginning default clock snapshot: No
+    Packets have end default clock snapshot: No
+    Supports discarded events: No
+    Supports discarded packets: Yes
+    Discarded packets have default clock snapshots: No
+    Event class `yo` (ID 0):
+      Payload field class: Structure (2 members):
+        tag: Unsigned enumeration (8-bit, Base 10, 3 mappings):
+          COSSETTE: [0]
+          PELCHAT: [1]
+          _VOISINE: [2]
+        var: Variant (unsigned selector) (3 options, Selector field path [Event payload: 0]):
+          COSSETTE: [0]: String
+          PELCHAT: [1]: String
+          VOISINE: [2]: String
+
+{Trace 0, Stream class ID 0, Stream ID 0}
+Stream beginning:
+  Trace:
+    Stream (ID 0, Class ID 0)
+
+{Trace 0, Stream class ID 0, Stream ID 0}
+Packet beginning:
+
+{Trace 0, Stream class ID 0, Stream ID 0}
+Event `yo` (Class ID 0):
+  Payload:
+    tag: 1
+    var: Daniel Lavoie
+
+{Trace 0, Stream class ID 0, Stream ID 0}
+Packet end
+
+{Trace 0, Stream class ID 0, Stream ID 0}
+Stream end

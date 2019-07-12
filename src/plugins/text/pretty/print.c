@@ -1013,7 +1013,9 @@ int print_field(struct pretty_component *pretty,
 	case BT_FIELD_CLASS_TYPE_STRUCTURE:
 		return print_struct(pretty, field, print_names, filter_fields,
 				filter_array_len);
-	case BT_FIELD_CLASS_TYPE_VARIANT:
+	case BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR:
+	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_SELECTOR:
+	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_SELECTOR:
 		return print_variant(pretty, field, print_names);
 	case BT_FIELD_CLASS_TYPE_STATIC_ARRAY:
 		return print_array(pretty, field, print_names);

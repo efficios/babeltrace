@@ -259,7 +259,9 @@ static inline void format_field_class(char **buf_ch, bool extended,
 
 		break;
 	}
-	case BT_FIELD_CLASS_TYPE_VARIANT:
+	case BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR:
+	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_SELECTOR:
+	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_SELECTOR:
 	{
 		const struct bt_field_class_variant *var_fc =
 			(const void *) field_class;
@@ -269,16 +271,22 @@ static inline void format_field_class(char **buf_ch, bool extended,
 				PRFIELD(var_fc->common.named_fcs->len));
 		}
 
-		if (var_fc->selector_fc) {
-			SET_TMP_PREFIX("selector-fc-");
-			format_field_class(buf_ch, extended, tmp_prefix,
-				var_fc->selector_fc);
-		}
+		if (field_class->type == BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_SELECTOR ||
+				field_class->type == BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_SELECTOR) {
+			const struct bt_field_class_variant_with_selector *var_with_sel_fc =
+				(const void *) var_fc;
 
-		if (var_fc->selector_field_path) {
-			SET_TMP_PREFIX("selector-field-path-");
-			format_field_path(buf_ch, extended, tmp_prefix,
-				var_fc->selector_field_path);
+			if (var_with_sel_fc->selector_fc) {
+				SET_TMP_PREFIX("selector-fc-");
+				format_field_class(buf_ch, extended, tmp_prefix,
+					var_with_sel_fc->selector_fc);
+			}
+
+			if (var_with_sel_fc->selector_field_path) {
+				SET_TMP_PREFIX("selector-field-path-");
+				format_field_path(buf_ch, extended, tmp_prefix,
+					var_with_sel_fc->selector_field_path);
+			}
 		}
 
 		break;
@@ -384,7 +392,9 @@ static inline void format_field(char **buf_ch, bool extended,
 
 		break;
 	}
-	case BT_FIELD_CLASS_TYPE_VARIANT:
+	case BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR:
+	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_SELECTOR:
+	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_SELECTOR:
 	{
 		const struct bt_field_variant *var_field = (const void *) field;
 

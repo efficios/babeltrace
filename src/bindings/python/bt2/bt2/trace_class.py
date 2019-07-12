@@ -27,6 +27,7 @@ __all__ = ['_TraceClass']
 import bt2
 from bt2 import native_bt, utils, object
 import bt2.stream_class
+import bt2.field_class
 import collections.abc
 import functools
 
@@ -261,14 +262,15 @@ class _TraceClass(object._SharedObject, collections.abc.Mapping):
         return obj
 
     def create_variant_field_class(self, selector_fc=None):
-        ptr = native_bt.field_class_variant_create(self._ptr)
-        self._check_create_status(ptr, 'variant')
-        obj = bt2.field_class._VariantFieldClass._create_from_ptr(ptr)
+        selector_fc_ptr = None
 
         if selector_fc is not None:
-            obj._selector_field_class = selector_fc
+            utils._check_type(selector_fc, bt2.field_class._IntegerFieldClass)
+            selector_fc_ptr = selector_fc._ptr
 
-        return obj
+        ptr = native_bt.field_class_variant_create(self._ptr, selector_fc_ptr)
+        self._check_create_status(ptr, 'variant')
+        return bt2.field_class._create_field_class_from_ptr_and_get_ref(ptr)
 
     # Add a listener to be called when the trace class is destroyed.
 

@@ -211,58 +211,54 @@ void append_integer_field_class(struct ctx *ctx,
 			const char *label;
 			const bt_field_class_enumeration_mapping *mapping;
 			const bt_field_class_unsigned_enumeration_mapping *u_mapping;
-			const bt_field_class_signed_enumeration_mapping *i_mapping;
+			const bt_field_class_signed_enumeration_mapping *s_mapping;
+			const bt_integer_range_set *ranges;
+			const bt_integer_range_set_unsigned *u_ranges;
+			const bt_integer_range_set_signed *s_ranges;
 			uint64_t range_count;
 			uint64_t range_i;
 
 			if (is_signed) {
-				i_mapping = bt_field_class_signed_enumeration_borrow_mapping_by_index_const(
+				s_mapping = bt_field_class_signed_enumeration_borrow_mapping_by_index_const(
 					ir_fc, i);
 				mapping = bt_field_class_signed_enumeration_mapping_as_mapping_const(
-					i_mapping);
+					s_mapping);
+				s_ranges = bt_field_class_signed_enumeration_mapping_borrow_ranges_const(
+					s_mapping);
+				ranges = bt_integer_range_set_signed_as_range_set_const(
+					s_ranges);
 			} else {
 				u_mapping = bt_field_class_unsigned_enumeration_borrow_mapping_by_index_const(
 					ir_fc, i);
 				mapping = bt_field_class_unsigned_enumeration_mapping_as_mapping_const(
 					u_mapping);
+				u_ranges = bt_field_class_unsigned_enumeration_mapping_borrow_ranges_const(
+					u_mapping);
+				ranges = bt_integer_range_set_unsigned_as_range_set_const(
+					u_ranges);
 			}
 
 			label = bt_field_class_enumeration_mapping_get_label(
 				mapping);
-			range_count =
-				bt_field_class_enumeration_mapping_get_range_count(
-					mapping);
+			range_count = bt_integer_range_set_get_range_count(
+				ranges);
 
 			for (range_i = 0; range_i < range_count; range_i++) {
 				append_indent(ctx);
-
-				/*
-				 * Systematically prepend `_` to the
-				 * mapping's label as this could be used
-				 * as the tag of a subsequent variant
-				 * field class and variant FC option
-				 * names are systematically protected
-				 * with a leading `_`.
-				 *
-				 * FIXME: This is temporary as the
-				 * library's API should change to
-				 * decouple variant FC option names from
-				 * selector FC labels. The current
-				 * drawback is that an original label
-				 * `HELLO` becomes `_HELLO` in the
-				 * generated metadata, therefore tools
-				 * expecting `HELLO` could fail.
-				 */
-				g_string_append(ctx->tsdl, "\"_");
+				g_string_append(ctx->tsdl, "\"");
 				append_quoted_string_content(ctx, label);
 				g_string_append(ctx->tsdl, "\" = ");
 
 				if (is_signed) {
+					const bt_integer_range_signed *range;
 					int64_t lower, upper;
 
-					bt_field_class_signed_enumeration_mapping_get_range_by_index(
-						i_mapping, range_i,
-						&lower, &upper);
+					range = bt_integer_range_set_signed_borrow_range_by_index_const(
+						s_ranges, range_i);
+					lower = bt_integer_range_signed_get_lower(
+						range);
+					upper = bt_integer_range_signed_get_upper(
+						range);
 
 					if (lower == upper) {
 						g_string_append_printf(
@@ -274,11 +270,15 @@ void append_integer_field_class(struct ctx *ctx,
 							lower, upper);
 					}
 				} else {
+					const bt_integer_range_unsigned *range;
 					uint64_t lower, upper;
 
-					bt_field_class_unsigned_enumeration_mapping_get_range_by_index(
-						u_mapping, range_i,
-						&lower, &upper);
+					range = bt_integer_range_set_unsigned_borrow_range_by_index_const(
+						u_ranges, range_i);
+					lower = bt_integer_range_unsigned_get_lower(
+						range);
+					upper = bt_integer_range_unsigned_get_upper(
+						range);
 
 					if (lower == upper) {
 						g_string_append_printf(

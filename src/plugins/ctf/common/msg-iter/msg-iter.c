@@ -1835,7 +1835,9 @@ bt_field *borrow_next_field(struct bt_msg_iter *notit)
 		next_field = bt_field_array_borrow_element_field_by_index(
 			base_field, index);
 		break;
-	case BT_FIELD_CLASS_TYPE_VARIANT:
+	case BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR:
+	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_SELECTOR:
+	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_SELECTOR:
 		BT_ASSERT(index == 0);
 		next_field = bt_field_variant_borrow_selected_option_field(
 			base_field);
@@ -2385,7 +2387,7 @@ struct ctf_field_class *bfcr_borrow_variant_selected_field_class_cb(
 	if (selected_option->fc->in_ir) {
 		bt_field *var_field = stack_top(notit->stack)->base;
 
-		ret = bt_field_variant_select_option_field(
+		ret = bt_field_variant_select_option_field_by_index(
 			var_field, option_index);
 		if (ret) {
 			BT_COMP_LOGW("Cannot select variant field's option field: "

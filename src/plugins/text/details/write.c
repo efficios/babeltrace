@@ -367,7 +367,7 @@ void write_int_field_class_props(struct details_write_ctx *ctx,
 	}
 }
 
-struct enum_field_class_mapping_range {
+struct int_range {
 	union {
 		uint64_t u;
 		int64_t i;
@@ -383,7 +383,7 @@ struct enum_field_class_mapping {
 	/* Weak */
 	const char *label;
 
-	/* Array of `struct enum_field_class_mapping_range` */
+	/* Array of `struct int_range` */
 	GArray *ranges;
 };
 
@@ -395,9 +395,7 @@ gint compare_enum_field_class_mappings(struct enum_field_class_mapping **a,
 }
 
 static
-gint compare_enum_field_class_mapping_ranges_signed(
-		struct enum_field_class_mapping_range *a,
-		struct enum_field_class_mapping_range *b)
+gint compare_int_ranges_signed(struct int_range *a, struct int_range *b)
 {
 
 	if (a->lower.i < b->lower.i) {
@@ -416,9 +414,7 @@ gint compare_enum_field_class_mapping_ranges_signed(
 }
 
 static
-gint compare_enum_field_class_mapping_ranges_unsigned(
-		struct enum_field_class_mapping_range *a,
-		struct enum_field_class_mapping_range *b)
+gint compare_int_ranges_unsigned(struct int_range *a, struct int_range *b)
 {
 	if (a->lower.u < b->lower.u) {
 		return -1;
@@ -436,6 +432,58 @@ gint compare_enum_field_class_mapping_ranges_unsigned(
 }
 
 static
+GArray *range_set_to_int_ranges(const void *spec_range_set, bool is_signed)
+{
+	uint64_t i;
+	const bt_integer_range_set *range_set;
+	GArray *ranges = g_array_new(FALSE, TRUE, sizeof(struct int_range));
+
+	if (!ranges) {
+		goto end;
+	}
+
+	if (is_signed) {
+		range_set = bt_integer_range_set_signed_as_range_set_const(
+			spec_range_set);
+	} else {
+		range_set = bt_integer_range_set_unsigned_as_range_set_const(
+			spec_range_set);
+	}
+
+	for (i = 0; i < bt_integer_range_set_get_range_count(range_set); i++) {
+		struct int_range range;
+
+		if (is_signed) {
+			const bt_integer_range_signed *orig_range =
+				bt_integer_range_set_signed_borrow_range_by_index_const(
+					spec_range_set, i);
+
+			range.lower.i = bt_integer_range_signed_get_lower(orig_range);
+			range.upper.i = bt_integer_range_signed_get_upper(orig_range);
+		} else {
+			const bt_integer_range_unsigned *orig_range =
+				bt_integer_range_set_unsigned_borrow_range_by_index_const(
+					spec_range_set, i);
+
+			range.lower.u = bt_integer_range_unsigned_get_lower(orig_range);
+			range.upper.u = bt_integer_range_unsigned_get_upper(orig_range);
+		}
+
+		g_array_append_val(ranges, range);
+	}
+
+	if (is_signed) {
+		g_array_sort(ranges, (GCompareFunc) compare_int_ranges_signed);
+	} else {
+		g_array_sort(ranges,
+			(GCompareFunc) compare_int_ranges_unsigned);
+	}
+
+end:
+	return ranges;
+}
+
+static
 void destroy_enum_field_class_mapping(struct enum_field_class_mapping *mapping)
 {
 	if (mapping->ranges) {
@@ -447,8 +495,14 @@ void destroy_enum_field_class_mapping(struct enum_field_class_mapping *mapping)
 }
 
 static
-void write_enum_field_class_mapping_range(struct details_write_ctx *ctx,
-		struct enum_field_class_mapping_range *range, bool is_signed)
+struct int_range *int_range_at(GArray *ranges, uint64_t index)
+{
+	return &g_array_index(ranges, struct int_range, index);
+}
+
+static
+void write_int_range(struct details_write_ctx *ctx,
+		struct int_range *range, bool is_signed)
 {
 	g_string_append(ctx->str, "[");
 
@@ -458,12 +512,14 @@ void write_enum_field_class_mapping_range(struct details_write_ctx *ctx,
 		write_int_prop_value(ctx, range->lower.u);
 	}
 
-	g_string_append(ctx->str, ", ");
+	if (range->lower.u != range->upper.u) {
+		g_string_append(ctx->str, ", ");
 
-	if (is_signed) {
-		write_int_prop_value(ctx, range->upper.i);
-	} else {
-		write_int_prop_value(ctx, range->upper.u);
+		if (is_signed) {
+			write_int_prop_value(ctx, range->upper.i);
+		} else {
+			write_int_prop_value(ctx, range->upper.u);
+		}
 	}
 
 	g_string_append(ctx->str, "]");
@@ -489,65 +545,36 @@ void write_enum_field_class_mappings(struct details_write_ctx *ctx,
 	 */
 	for (i = 0; i < bt_field_class_enumeration_get_mapping_count(fc); i++) {
 		const void *fc_mapping;
+		const void *fc_range_set;
 		struct enum_field_class_mapping *mapping = g_new0(
 			struct enum_field_class_mapping, 1);
 
 		BT_ASSERT(mapping);
-		mapping->ranges = g_array_new(FALSE, TRUE,
-			sizeof(struct enum_field_class_mapping_range));
-		BT_ASSERT(mapping->ranges);
 
 		if (is_signed) {
 			fc_mapping = bt_field_class_signed_enumeration_borrow_mapping_by_index_const(
 				fc, i);
+			fc_range_set = bt_field_class_signed_enumeration_mapping_borrow_ranges_const(
+				fc_mapping);
 		} else {
 			fc_mapping = bt_field_class_unsigned_enumeration_borrow_mapping_by_index_const(
 				fc, i);
+			fc_range_set = bt_field_class_unsigned_enumeration_mapping_borrow_ranges_const(
+				fc_mapping);
 		}
 
 		mapping->label = bt_field_class_enumeration_mapping_get_label(
 			bt_field_class_signed_enumeration_mapping_as_mapping_const(
 				fc_mapping));
-
-		for (range_i = 0;
-				range_i < bt_field_class_enumeration_mapping_get_range_count(
-					bt_field_class_signed_enumeration_mapping_as_mapping_const(fc_mapping));
-				range_i++) {
-			struct enum_field_class_mapping_range range;
-
-			if (is_signed) {
-				bt_field_class_signed_enumeration_mapping_get_range_by_index(
-					fc_mapping, range_i,
-					&range.lower.i, &range.upper.i);
-			} else {
-				bt_field_class_unsigned_enumeration_mapping_get_range_by_index(
-					fc_mapping, range_i,
-					&range.lower.u, &range.upper.u);
-			}
-
-			g_array_append_val(mapping->ranges, range);
-		}
-
+		mapping->ranges = range_set_to_int_ranges(fc_range_set,
+			is_signed);
+		BT_ASSERT(mapping->ranges);
 		g_ptr_array_add(mappings, mapping);
 	}
 
-	/* Sort mappings, and for each mapping, sort ranges */
+	/* Sort mappings (ranges are already sorted within mappings) */
 	g_ptr_array_sort(mappings,
 		(GCompareFunc) compare_enum_field_class_mappings);
-
-	for (i = 0; i < mappings->len; i++) {
-		struct enum_field_class_mapping *mapping = mappings->pdata[i];
-
-		if (is_signed) {
-			g_array_sort(mapping->ranges,
-				(GCompareFunc)
-					compare_enum_field_class_mapping_ranges_signed);
-		} else {
-			g_array_sort(mapping->ranges,
-				(GCompareFunc)
-					compare_enum_field_class_mapping_ranges_unsigned);
-		}
-	}
 
 	/* Write mappings */
 	for (i = 0; i < mappings->len; i++) {
@@ -556,28 +583,12 @@ void write_enum_field_class_mappings(struct details_write_ctx *ctx,
 		write_nl(ctx);
 		write_compound_member_name(ctx, mapping->label);
 
-		if (mapping->ranges->len == 1) {
-			/* Single one: write on same line */
-			write_sp(ctx);
-			write_enum_field_class_mapping_range(ctx,
-				&g_array_index(mapping->ranges,
-					struct enum_field_class_mapping_range,
-					0), is_signed);
-			continue;
-		}
-
-		incr_indent(ctx);
-
 		for (range_i = 0; range_i < mapping->ranges->len; range_i++) {
-			write_nl(ctx);
-			write_indent(ctx);
-			write_enum_field_class_mapping_range(ctx,
-				&g_array_index(mapping->ranges,
-					struct enum_field_class_mapping_range,
-					range_i), is_signed);
+			write_sp(ctx);
+			write_int_range(ctx,
+				int_range_at(mapping->ranges, range_i),
+				is_signed);
 		}
-
-		decr_indent(ctx);
 	}
 
 	g_ptr_array_free(mappings, TRUE);
@@ -635,18 +646,118 @@ void write_field_path(struct details_write_ctx *ctx,
 }
 
 static
-void write_field_class(struct details_write_ctx *ctx, const bt_field_class *fc,
-		const char *name)
+void write_field_class(struct details_write_ctx *ctx, const bt_field_class *fc);
+
+static
+void write_variant_field_class_option(struct details_write_ctx *ctx,
+		const bt_field_class *fc, uint64_t index)
+{
+	bt_field_class_type fc_type = bt_field_class_get_type(fc);
+	const bt_field_class_variant_option *option =
+		bt_field_class_variant_borrow_option_by_index_const(
+			fc, index);
+	const void *orig_ranges;
+	GArray *int_ranges = NULL;
+	bool is_signed;
+
+	write_nl(ctx);
+	write_compound_member_name(ctx,
+		bt_field_class_variant_option_get_name(option));
+
+	if (fc_type == BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_SELECTOR) {
+		const bt_field_class_variant_with_unsigned_selector_option *spec_opt =
+			bt_field_class_variant_with_unsigned_selector_borrow_option_by_index_const(
+				fc, index);
+
+		orig_ranges =
+			bt_field_class_variant_with_unsigned_selector_option_borrow_ranges_const(
+				spec_opt);
+		is_signed = false;
+	} else {
+		const bt_field_class_variant_with_signed_selector_option *spec_opt =
+			bt_field_class_variant_with_signed_selector_borrow_option_by_index_const(
+				fc, index);
+
+		orig_ranges =
+			bt_field_class_variant_with_signed_selector_option_borrow_ranges_const(
+				spec_opt);
+		is_signed = true;
+	}
+
+	if (orig_ranges) {
+		uint64_t i;
+
+		int_ranges = range_set_to_int_ranges(orig_ranges, is_signed);
+		BT_ASSERT(int_ranges);
+
+		for (i = 0; i < int_ranges->len; i++) {
+			struct int_range *range = int_range_at(int_ranges, i);
+
+			write_sp(ctx);
+			write_int_range(ctx, range, is_signed);
+		}
+
+		g_string_append(ctx->str, ": ");
+	} else {
+		write_sp(ctx);
+	}
+
+	write_field_class(ctx,
+		bt_field_class_variant_option_borrow_field_class_const(option));
+
+	if (int_ranges) {
+		g_array_free(int_ranges, TRUE);
+	}
+}
+
+static
+void write_variant_field_class(struct details_write_ctx *ctx,
+		const bt_field_class *fc)
+{
+	bt_field_class_type fc_type = bt_field_class_get_type(fc);
+	uint64_t option_count =
+		bt_field_class_variant_get_option_count(fc);
+	const bt_field_path *sel_field_path = NULL;
+
+	if (fc_type == BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_SELECTOR) {
+ 		sel_field_path =
+ 			bt_field_class_variant_with_selector_borrow_selector_field_path_const(
+				fc);
+ 		BT_ASSERT(sel_field_path);
+	}
+
+	g_string_append(ctx->str, " (");
+	write_uint_prop_value(ctx, option_count);
+	g_string_append_printf(ctx->str, " option%s, ",
+		plural(option_count));
+
+	if (sel_field_path) {
+		g_string_append(ctx->str, "Selector field path ");
+		write_field_path(ctx, sel_field_path);
+	}
+
+	g_string_append_c(ctx->str, ')');
+
+	if (option_count > 0) {
+		uint64_t i;
+
+		g_string_append_c(ctx->str, ':');
+		incr_indent(ctx);
+
+		for (i = 0; i < option_count; i++) {
+			write_variant_field_class_option(ctx, fc, i);
+		}
+
+		decr_indent(ctx);
+	}
+}
+
+static
+void write_field_class(struct details_write_ctx *ctx, const bt_field_class *fc)
 {
 	uint64_t i;
 	const char *type;
 	bt_field_class_type fc_type = bt_field_class_get_type(fc);
-
-	/* Write field class's name */
-	if (name) {
-		write_compound_member_name(ctx, name);
-		write_sp(ctx);
-	}
 
 	/* Write field class's type */
 	switch (fc_type) {
@@ -677,8 +788,14 @@ void write_field_class(struct details_write_ctx *ctx, const bt_field_class *fc,
 	case BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY:
 		type = "Dynamic array";
 		break;
-	case BT_FIELD_CLASS_TYPE_VARIANT:
-		type = "Variant";
+	case BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR:
+		type = "Variant (no selector)";
+		break;
+	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_SELECTOR:
+		type = "Variant (unsigned selector)";
+		break;
+	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_SELECTOR:
+		type = "Variant (signed selector)";
 		break;
 	default:
 		abort();
@@ -744,9 +861,11 @@ void write_field_class(struct details_write_ctx *ctx, const bt_field_class *fc,
 						fc, i);
 
 				write_nl(ctx);
-				write_field_class(ctx,
-					bt_field_class_structure_member_borrow_field_class_const(member),
+				write_compound_member_name(ctx,
 					bt_field_class_structure_member_get_name(member));
+				write_sp(ctx);
+				write_field_class(ctx,
+					bt_field_class_structure_member_borrow_field_class_const(member));
 			}
 
 			decr_indent(ctx);
@@ -776,51 +895,17 @@ void write_field_class(struct details_write_ctx *ctx, const bt_field_class *fc,
 		g_string_append_c(ctx->str, ':');
 		write_nl(ctx);
 		incr_indent(ctx);
+		write_compound_member_name(ctx, "Element");
+		write_sp(ctx);
 		write_field_class(ctx,
-			bt_field_class_array_borrow_element_field_class_const(fc),
-			"Element");
+			bt_field_class_array_borrow_element_field_class_const(fc));
 		decr_indent(ctx);
 		break;
-	case BT_FIELD_CLASS_TYPE_VARIANT:
-	{
-		uint64_t option_count =
-			bt_field_class_variant_get_option_count(fc);
-		const bt_field_path *sel_field_path =
-			bt_field_class_variant_borrow_selector_field_path_const(
-				fc);
-
-		g_string_append(ctx->str, " (");
-		write_uint_prop_value(ctx, option_count);
-		g_string_append_printf(ctx->str, " option%s, ",
-			plural(option_count));
-
-		if (sel_field_path) {
-			g_string_append(ctx->str, "Selector field path ");
-			write_field_path(ctx, sel_field_path);
-		}
-
-		g_string_append_c(ctx->str, ')');
-
-		if (option_count > 0) {
-			g_string_append_c(ctx->str, ':');
-			incr_indent(ctx);
-
-			for (i = 0; i < option_count; i++) {
-				const bt_field_class_variant_option *option =
-					bt_field_class_variant_borrow_option_by_index_const(
-						fc, i);
-
-				write_nl(ctx);
-				write_field_class(ctx,
-					bt_field_class_variant_option_borrow_field_class_const(option),
-					bt_field_class_variant_option_get_name(option));
-			}
-
-			decr_indent(ctx);
-		}
-
+	case BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR:
+	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_SELECTOR:
+	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_SELECTOR:
+		write_variant_field_class(ctx, fc);
 		break;
-	}
 	default:
 		break;
 	}
@@ -835,7 +920,7 @@ void write_root_field_class(struct details_write_ctx *ctx, const char *name,
 	write_indent(ctx);
 	write_prop_name(ctx, name);
 	g_string_append(ctx->str, ": ");
-	write_field_class(ctx, fc, NULL);
+	write_field_class(ctx, fc);
 	write_nl(ctx);
 }
 
@@ -1499,7 +1584,9 @@ void write_field(struct details_write_ctx *ctx, const bt_field *field,
 		decr_indent(ctx);
 		break;
 	}
-	case BT_FIELD_CLASS_TYPE_VARIANT:
+	case BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR:
+	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_SELECTOR:
+	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_SELECTOR:
 		write_field(ctx,
 			bt_field_variant_borrow_selected_option_field_const(
 				field), NULL);

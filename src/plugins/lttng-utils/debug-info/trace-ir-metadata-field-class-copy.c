@@ -74,7 +74,9 @@ const bt_field_class *walk_field_path(struct trace_ir_metadata_maps *md_maps,
 				member);
 			break;
 		}
-		case BT_FIELD_CLASS_TYPE_VARIANT:
+		case BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR:
+		case BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_SELECTOR:
+		case BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_SELECTOR:
 		{
 			const bt_field_class_variant_option *option;
 
@@ -207,44 +209,21 @@ int field_class_unsigned_enumeration_copy(
 	enum_mapping_count = bt_field_class_enumeration_get_mapping_count(in_field_class);
 	for (i = 0; i < enum_mapping_count; i++) {
 		const char *label;
+		const bt_integer_range_set_unsigned *range_set;
 		const bt_field_class_unsigned_enumeration_mapping *u_mapping;
 		const bt_field_class_enumeration_mapping *mapping;
-		uint64_t range_index, range_count;
 
-		/* Get the ranges and the range count. */
 		u_mapping = bt_field_class_unsigned_enumeration_borrow_mapping_by_index_const(
 				in_field_class, i);
 		mapping = bt_field_class_unsigned_enumeration_mapping_as_mapping_const(
 			u_mapping);
-		range_count =
-			bt_field_class_enumeration_mapping_get_range_count(
-				mapping);
-		label = bt_field_class_enumeration_mapping_get_label(
-			mapping);
-
-		/*
-		 * Iterate over all the ranges to add them to copied field
-		 * class.
-		 */
-		for (range_index = 0; range_index < range_count; range_index++) {
-			uint64_t lower, upper;
-			bt_field_class_unsigned_enumeration_mapping_get_range_by_index(
-					u_mapping, range_index, &lower, &upper);
-
-			BT_COMP_LOGD("Copying range in enumeration field class: "
-					"label=%s, lower=%"PRId64", upper=%"PRId64,
-					label, lower, upper);
-
-			/* Add the label and its range to the copy field class. */
-			if (bt_field_class_unsigned_enumeration_map_range(
-					out_field_class, label, lower, upper) !=
-					BT_FIELD_CLASS_ENUMERATION_MAP_RANGE_STATUS_OK) {
-				BT_COMP_LOGE_STR("Failed to add range to unsigned "
-						"enumeration.");
-				BT_FIELD_CLASS_PUT_REF_AND_RESET(out_field_class);
-				ret = -1;
-				goto error;
-			}
+		label = bt_field_class_enumeration_mapping_get_label(mapping);
+		range_set = bt_field_class_unsigned_enumeration_mapping_borrow_ranges_const(
+			u_mapping);
+		ret = bt_field_class_unsigned_enumeration_add_mapping(
+			out_field_class, label, range_set);
+		if (ret) {
+			goto error;
 		}
 	}
 
@@ -277,44 +256,21 @@ int field_class_signed_enumeration_copy(
 		bt_field_class_enumeration_get_mapping_count(in_field_class);
 	for (i = 0; i < enum_mapping_count; i++) {
 		const char *label;
-		const bt_field_class_signed_enumeration_mapping *i_mapping;
+		const bt_integer_range_set_signed *range_set;
+		const bt_field_class_signed_enumeration_mapping *s_mapping;
 		const bt_field_class_enumeration_mapping *mapping;
-		uint64_t range_index, range_count;
 
-		/* Get the ranges and the range count. */
-		i_mapping = bt_field_class_signed_enumeration_borrow_mapping_by_index_const(
+		s_mapping = bt_field_class_signed_enumeration_borrow_mapping_by_index_const(
 				in_field_class, i);
 		mapping = bt_field_class_signed_enumeration_mapping_as_mapping_const(
-			i_mapping);
-		range_count =
-			bt_field_class_enumeration_mapping_get_range_count(
-				mapping);
-		label = bt_field_class_enumeration_mapping_get_label(
-			mapping);
-
-		/*
-		 * Iterate over all the ranges to add them to copied field
-		 * class.
-		 */
-		for (range_index = 0; range_index < range_count; range_index++) {
-			int64_t lower, upper;
-			bt_field_class_signed_enumeration_mapping_get_range_by_index(
-					i_mapping, range_index, &lower, &upper);
-
-			BT_COMP_LOGD("Copying range in enumeration field class: "
-					"label=%s, lower=%"PRId64", upper=%"PRId64,
-					label, lower, upper);
-
-			/* Add the label and its range to the copy field class. */
-			if (bt_field_class_signed_enumeration_map_range(
-					out_field_class, label, lower, upper) !=
-					BT_FIELD_CLASS_ENUMERATION_MAP_RANGE_STATUS_OK) {
-				BT_COMP_LOGE_STR("Failed to add range to signed "
-						"enumeration.");
-				BT_FIELD_CLASS_PUT_REF_AND_RESET(out_field_class);
-				ret = -1;
-				goto error;
-			}
+			s_mapping);
+		label = bt_field_class_enumeration_mapping_get_label(mapping);
+		range_set = bt_field_class_signed_enumeration_mapping_borrow_ranges_const(
+			s_mapping);
+		ret = bt_field_class_signed_enumeration_add_mapping(
+			out_field_class, label, range_set);
+		if (ret) {
+			goto error;
 		}
 	}
 
@@ -422,31 +378,12 @@ int field_class_variant_copy(
 {
 	bt_field_class *out_tag_field_class = NULL;
 	uint64_t i, variant_option_count;
-	const bt_field_path *tag_fp;
-	const bt_field_class *tag_fc;
+	bt_field_class_type fc_type = bt_field_class_get_type(in_field_class);
 	int ret = 0;
 
 	BT_COMP_LOGD("Copying content of variant field class: "
 			"in-fc-addr=%p, out-fc-addr=%p",
 			in_field_class, out_field_class);
-
-	tag_fp = bt_field_class_variant_borrow_selector_field_path_const(
-			in_field_class);
-	if (tag_fp) {
-		tag_fc = resolve_field_path_to_field_class(tag_fp,
-				md_maps);
-
-		out_tag_field_class = g_hash_table_lookup(
-				md_maps->field_class_map, tag_fc);
-		if (!out_tag_field_class) {
-			BT_COMP_LOGE_STR("Cannot find the tag field class.");
-			ret = -1;
-			goto error;
-		}
-		bt_field_class_variant_set_selector_field_class(out_field_class,
-				out_tag_field_class);
-	}
-
 	variant_option_count =
 		bt_field_class_variant_get_option_count(in_field_class);
 	for (i = 0; i < variant_option_count; i++) {
@@ -475,14 +412,52 @@ int field_class_variant_copy(
 			goto error;
 		}
 
-		if (bt_field_class_variant_append_option(
-				out_field_class, option_name,
-				out_option_field_class) !=
-				BT_FIELD_CLASS_VARIANT_APPEND_OPTION_STATUS_OK) {
-			BT_COMP_LOGE_STR("Cannot append option to variant field class'");
-			BT_FIELD_CLASS_PUT_REF_AND_RESET(out_tag_field_class);
-			ret = -1;
-			goto error;
+		if (fc_type == BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_SELECTOR) {
+			const bt_field_class_variant_with_unsigned_selector_option *spec_opt =
+				bt_field_class_variant_with_unsigned_selector_borrow_option_by_index_const(
+					in_field_class, i);
+			const bt_integer_range_set_unsigned *ranges =
+				bt_field_class_variant_with_unsigned_selector_option_borrow_ranges_const(
+					spec_opt);
+
+			if (bt_field_class_variant_with_unsigned_selector_append_option(
+					out_field_class, option_name,
+					out_option_field_class, ranges) !=
+					BT_FIELD_CLASS_VARIANT_WITH_SELECTOR_APPEND_OPTION_STATUS_OK) {
+				BT_COMP_LOGE_STR("Cannot append option to variant field class with unsigned selector'");
+				BT_FIELD_CLASS_PUT_REF_AND_RESET(out_tag_field_class);
+				ret = -1;
+				goto error;
+			}
+		} else if (fc_type == BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_SELECTOR) {
+			const bt_field_class_variant_with_signed_selector_option *spec_opt =
+				bt_field_class_variant_with_signed_selector_borrow_option_by_index_const(
+					in_field_class, i);
+			const bt_integer_range_set_signed *ranges =
+				bt_field_class_variant_with_signed_selector_option_borrow_ranges_const(
+					spec_opt);
+
+			if (bt_field_class_variant_with_signed_selector_append_option(
+					out_field_class, option_name,
+					out_option_field_class, ranges) !=
+					BT_FIELD_CLASS_VARIANT_WITH_SELECTOR_APPEND_OPTION_STATUS_OK) {
+				BT_COMP_LOGE_STR("Cannot append option to variant field class with signed selector'");
+				BT_FIELD_CLASS_PUT_REF_AND_RESET(out_tag_field_class);
+				ret = -1;
+				goto error;
+			}
+		} else {
+			BT_ASSERT(fc_type == BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR);
+
+			if (bt_field_class_variant_without_selector_append_option(
+					out_field_class, option_name,
+					out_option_field_class) !=
+					BT_FIELD_CLASS_VARIANT_WITHOUT_SELECTOR_APPEND_OPTION_STATUS_OK) {
+				BT_COMP_LOGE_STR("Cannot append option to variant field class'");
+				BT_FIELD_CLASS_PUT_REF_AND_RESET(out_tag_field_class);
+				ret = -1;
+				goto error;
+			}
 		}
 	}
 
@@ -610,11 +585,12 @@ bt_field_class *create_field_class_copy_internal(struct trace_ir_metadata_maps *
 		const bt_field_class *in_field_class)
 {
 	bt_field_class *out_field_class = NULL;
+	bt_field_class_type fc_type = bt_field_class_get_type(in_field_class);
 
 	BT_COMP_LOGD("Creating bare field class based on field class: in-fc-addr=%p",
 			in_field_class);
 
-	switch(bt_field_class_get_type(in_field_class)) {
+	switch (fc_type) {
 	case BT_FIELD_CLASS_TYPE_UNSIGNED_INTEGER:
 		out_field_class = bt_field_class_unsigned_integer_create(
 				md_maps->output_trace_class);
@@ -681,10 +657,32 @@ bt_field_class *create_field_class_copy_internal(struct trace_ir_metadata_maps *
 				out_elem_fc);
 		break;
 	}
-	case BT_FIELD_CLASS_TYPE_VARIANT:
+	case BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR:
+	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_SELECTOR:
+	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_SELECTOR:
+	{
+		bt_field_class *out_sel_fc = NULL;
+
+		if (fc_type == BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_SELECTOR ||
+				fc_type == BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_SELECTOR) {
+			const bt_field_class *in_sel_fc;
+			const bt_field_path *sel_fp =
+				bt_field_class_variant_with_selector_borrow_selector_field_path_const(
+					in_field_class);
+
+			BT_ASSERT(sel_fp);
+			in_sel_fc = resolve_field_path_to_field_class(sel_fp,
+				md_maps);
+			BT_ASSERT(in_sel_fc);
+			out_sel_fc = g_hash_table_lookup(
+				md_maps->field_class_map, in_sel_fc);
+			BT_ASSERT(out_sel_fc);
+		}
+
 		out_field_class = bt_field_class_variant_create(
-				md_maps->output_trace_class);
+			md_maps->output_trace_class, out_sel_fc);
 		break;
+	}
 	default:
 		abort();
 	}
@@ -753,7 +751,9 @@ int copy_field_class_content_internal(
 		ret = field_class_dynamic_array_copy(md_maps,
 				in_field_class, out_field_class);
 		break;
-	case BT_FIELD_CLASS_TYPE_VARIANT:
+	case BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR:
+	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_SELECTOR:
+	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_SELECTOR:
 		ret = field_class_variant_copy(md_maps,
 				in_field_class, out_field_class);
 		break;

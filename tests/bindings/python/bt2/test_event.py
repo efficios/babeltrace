@@ -81,20 +81,20 @@ class EventTestCase(unittest.TestCase):
                 cc = None
                 if with_cc:
                     cc = tc.create_structure_field_class()
-                    cc += OrderedDict((
+                    cc += [
                         ('cpu_id', tc.create_signed_integer_field_class(8)),
                         ('stuff', tc.create_real_field_class()),
-                    ))
+                    ]
 
                 # packet context (stream-class-defined)
                 pc = None
 
                 if with_packet:
                     pc = tc.create_structure_field_class()
-                    pc += OrderedDict((
+                    pc += [
                         ('something', tc.create_unsigned_integer_field_class(8)),
                         ('something_else', tc.create_real_field_class()),
-                    ))
+                    ]
 
                 stream_class = tc.create_stream_class(default_clock_class=clock_class,
                                                       event_common_context_field_class=cc,
@@ -105,20 +105,20 @@ class EventTestCase(unittest.TestCase):
                 sc = None
                 if with_sc:
                     sc = tc.create_structure_field_class()
-                    sc += OrderedDict((
+                    sc += [
                         ('ant', tc.create_signed_integer_field_class(16)),
                         ('msg', tc.create_string_field_class()),
-                    ))
+                    ]
 
                 # event payload
                 ep = None
                 if with_ep:
                     ep = tc.create_structure_field_class()
-                    ep += OrderedDict((
+                    ep += [
                         ('giraffe', tc.create_signed_integer_field_class(32)),
                         ('gnu', tc.create_signed_integer_field_class(8)),
                         ('mosquito', tc.create_signed_integer_field_class(8)),
-                    ))
+                    ]
 
                 event_class = stream_class.create_event_class(name='garou',
                                                               specific_context_field_class=sc,

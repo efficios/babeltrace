@@ -311,8 +311,8 @@ struct fs_sink_ctf_field_class_variant *fs_sink_ctf_field_class_variant_create_e
 	fc->tag_ref = g_string_new(NULL);
 	BT_ASSERT(fc->tag_ref);
 	fc->tag_is_before =
-		bt_field_class_variant_borrow_selector_field_path_const(ir_fc) ==
-		NULL;
+		bt_field_class_get_type(fc->base.ir_fc) ==
+		BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR;
 	return fc;
 }
 
@@ -834,93 +834,6 @@ struct fs_sink_ctf_trace *fs_sink_ctf_trace_create(const bt_trace *ir_trace)
 	BT_ASSERT(trace->stream_classes);
 
 	return trace;
-}
-
-static inline
-bool fs_sink_ctf_ist_valid_identifier(const char *name)
-{
-	const char *at;
-	uint64_t i;
-	bool ist_valid = true;
-	static const char *reserved_keywords[] = {
-		"align",
-		"callsite",
-		"const",
-		"char",
-		"clock",
-		"double",
-		"enum",
-		"env",
-		"event",
-		"floating_point",
-		"float",
-		"integer",
-		"int",
-		"long",
-		"short",
-		"signed",
-		"stream",
-		"string",
-		"struct",
-		"trace",
-		"typealias",
-		"typedef",
-		"unsigned",
-		"variant",
-		"void",
-		"_Bool",
-		"_Complex",
-		"_Imaginary",
-	};
-
-	/* Make sure the name is not a reserved keyword */
-	for (i = 0; i < sizeof(reserved_keywords) / sizeof(*reserved_keywords);
-			i++) {
-		if (strcmp(name, reserved_keywords[i]) == 0) {
-			ist_valid = false;
-			goto end;
-		}
-	}
-
-	/* Make sure the name is not an empty string */
-	if (strlen(name) == 0) {
-		ist_valid = false;
-		goto end;
-	}
-
-	/* Make sure the name starts with a letter or `_` */
-	if (!isalpha(name[0]) && name[0] != '_') {
-		ist_valid = false;
-		goto end;
-	}
-
-	/* Make sure the name only contains letters, digits, and `_` */
-	for (at = name; *at != '\0'; at++) {
-		if (!isalnum(*at) && *at != '_') {
-			ist_valid = false;
-			goto end;
-		}
-	}
-
-end:
-	return ist_valid;
-}
-
-static inline
-int fs_sink_ctf_protect_name(GString *name)
-{
-	int ret = 0;
-
-	if (!fs_sink_ctf_ist_valid_identifier(name->str)) {
-		ret = -1;
-		goto end;
-	}
-
-	/* Prepend `_` to protect it */
-	g_string_prepend_c(name, '_');
-
-end:
-	return ret;
 }
 
 #endif /* BABELTRACE_PLUGIN_CTF_FS_SINK_FS_SINK_CTF_META_H */
