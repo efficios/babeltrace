@@ -151,9 +151,7 @@ int ctf_fs_metadata_init(struct ctf_fs_metadata *metadata)
 BT_HIDDEN
 void ctf_fs_metadata_fini(struct ctf_fs_metadata *metadata)
 {
-	if (metadata->text) {
-		free(metadata->text);
-	}
+	free(metadata->text);
 
 	if (metadata->trace_class) {
 		BT_TRACE_CLASS_PUT_REF_AND_RESET(metadata->trace_class);

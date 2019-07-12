@@ -290,9 +290,7 @@ end:
 		}
 	}
 
-	if (buf) {
-		free(buf);
-	}
+	free(buf);
 
 	return status;
 }
