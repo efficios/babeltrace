@@ -41,6 +41,14 @@ bt_self_component_class_sink_as_component_class_sink(
 	return __BT_UPCAST_CONST(bt_component_class_sink, self_comp_cls_sink);
 }
 
+static inline
+bt_self_component_class*
+bt_self_component_class_sink_as_self_component_class(
+		bt_self_component_class_sink *self_comp_cls_sink)
+{
+	return __BT_UPCAST(bt_self_component_class, self_comp_cls_sink);
+}
+
 #ifdef __cplusplus
 }
 #endif
