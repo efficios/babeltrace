@@ -1489,8 +1489,6 @@ int bt_plugin_so_create_all_from_file(const char *path,
 	if (status != BT_FUNC_STATUS_OK) {
 		/* bt_plugin_so_shared_lib_handle_create() logs more details */
 		BT_ASSERT(!shared_lib_handle);
-		BT_LIB_LOGE_APPEND_CAUSE(
-			"Cannot create shared library handle.");
 		goto end;
 	}
 
