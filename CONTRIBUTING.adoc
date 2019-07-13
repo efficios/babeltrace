@@ -1496,30 +1496,133 @@ backtrace when Valgrind shows errors.
 
 == Testing
 
-=== Python Bindings
+[[test-env]]
+=== Environment
 
-To run all the `bt2` Python package tests use:
+`tests/utils/utils.sh` sets the environment variables for any Babeltrace
+test script.
+
+`utils.sh` only needs to know the path to the `tests` directory within
+the source and the build directories. By default, `utils.sh` assumes the
+build is in tree, that is, you ran `./configure` from the source's root
+directory, and sets the `BT_TESTS_SRCDIR` and `BT_TESTS_BUILDDIR`
+environment variables accordingly. You can override those variables, for
+example if you build out of tree.
+
+All test scripts eventually do something like this to source `utils.sh`,
+according to where they are located relative to the `tests` directory:
+
+[source,bash]
+----
+if [ "x${BT_TESTS_SRCDIR:-}" != "x" ]; then
+    UTILSSH="$BT_TESTS_SRCDIR/utils/utils.sh"
+else
+    UTILSSH="$(dirname "$0")/../utils/utils.sh"
+fi
+----
+
+==== Python
+
+You can use the `tests/utils/run_python_bt2` script to run any command
+within an environment making the build's `bt2` Python package available.
+
+`run_python_bt2` uses <<test-env,`utils.sh`>> which needs to know the
+build directory, so make sure you set the `BT_TESTS_BUILDDIR`
+environment variable correctly _if you build out of tree_, for example:
 
 ----
-$ BT_TESTS_BUILDDIR=/path/to/build/babeltrace/tests \
-	./tests/bindings/python/bt2/test_python_bt2
+$ export BT_TESTS_BUILDDIR=/path/to/build/babeltrace/tests
 ----
 
-To run all the tests in a test module (e.g. `test_event.py`) use:
+You can run any command which needs the `bt2` Python package through
+`run_python_bt2`, for example:
 
 ----
-$ BT_TESTS_BUILDDIR=/path/to/build/babeltrace/tests \
-	./tests/utils/run_python_bt2 python3 ./tests/utils/python/testrunner.py \
-	-t test_event \
-	./tests/bindings/python/bt2/
+$ ./tests/utils/run_python_bt2 ipython3
 ----
 
-To run a specific test (e.g. `EventTestCase.test_clock_value`) in a test module
-(e.g. `test_event.py`) use:
+=== Report format
+
+All test scripts output the test results following the
+https://testanything.org/[Test Anything Protocol] (TAP) format.
+
+The TAP format has two mechanisms to print additional information about
+a test:
+
+* Print a line starting with `#` to the standard output.
++
+This is usually done with the `diag()` C function or the `diag` shell
+function.
+
+* Print to the standard error.
+
+
+=== Python bindings
+
+The `bt2` Python package tests are located in
+`tests/bindings/python/bt2`.
+
+
+==== Python test runner
+
+`tests/utils/python/testrunner.py` is Babeltrace's Python test runner
+which loads Python files containing unit tests, finds all the test
+cases, and runs the tests, producing a TAP report.
+
+You can see the test runner command's help with:
 
 ----
-$ BT_TESTS_BUILDDIR=/path/to/build/babeltrace/tests \
-	./tests/utils/run_python_bt2 python3 ./tests/utils/python/testrunner.py \
-	-t test_event.EventTestCase.test_clock_value \
-	./tests/bindings/python/bt2/
+$ python3 ./tests/utils/python/testrunner.py --help
+----
+
+By default, the test runner reports failing tests (TAP's `not{nbsp}ok`
+line), but continues to run other tests. You can use the `--failfast`
+option to make the test runner fail as soon as a test fails.
+
+
+==== Guides
+
+To run all the `bt2` Python package tests:
+
+* Run:
++
+----
+$ ./tests/utils/run_python_bt2 ./tests/bindings/python/bt2/test_python_bt2
+----
++
+or:
++
+----
+$ ./tests/utils/run_python_bt2 python3 ./tests/utils/python/testrunner.py \
+  ./tests/bindings/python/bt2/ -p '*.py'
+----
+
+To run **all the tests** in a test module (for example,
+`test_value.py`):
+
+* Run:
++
+----
+$ ./tests/utils/run_python_bt2 python3 ./tests/utils/python/testrunner.py \
+  ./tests/bindings/python/bt2 -t test_value
+----
+
+To run a **specific test case** (for example, `RealValueTestCase` within
+`test_value.py`):
+
+* Run:
++
+----
+$ ./tests/utils/run_python_bt2 python3 ./tests/utils/python/testrunner.py \
+  ./tests/bindings/python/bt2/ -t test_value.RealValueTestCase
+----
+
+To run a **specific test** (for example,
+`RealValueTestCase.test_assign_pos_int` within `test_value.py`):
+
+* Run:
++
+----
+$ ./tests/utils/run_python_bt2 python3 ./tests/utils/python/testrunner.py \
+  ./tests/bindings/python/bt2/ -t test_value.RealValueTestCase.test_assign_pos_int
 ----
