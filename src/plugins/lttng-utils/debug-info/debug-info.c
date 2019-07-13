@@ -1913,6 +1913,14 @@ handle_msg_error:
 		bt_message_put_ref(msgs[i]);
 	}
 
+	/*
+	 * Drop references of all the input messages not dropped before the
+	 * failure.
+	 */
+	for (i = curr_msg_idx; i < *count; i++) {
+		bt_message_put_ref(input_msgs[i]);
+	}
+
 	status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_MEMORY_ERROR;
 
 end:
