@@ -5,7 +5,6 @@ EXTRA_DIST = $(srcdir)/data \
 	     bindings/python/bt2/.coveragerc
 
 dist_check_SCRIPTS = \
-	bindings/python/bt2/test_clock_class_priority_map.py \
 	bindings/python/bt2/test_clock_class.py \
 	bindings/python/bt2/test_component_class.py \
 	bindings/python/bt2/test_component.py \
