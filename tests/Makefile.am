@@ -79,10 +79,11 @@ TESTS_PLUGINS = \
 if !ENABLE_BUILT_IN_PLUGINS
 if ENABLE_PYTHON_BINDINGS
 TESTS_PLUGINS += plugins/src.ctf.fs/query/test_query
+endif
 
 if ENABLE_DEBUG_INFO
-TESTS_PLUGINS += plugins/flt.lttng-utils.debug-info/test_lttng_utils_debug_info
-endif
+TESTS_PLUGINS += \
+	plugins/flt.lttng-utils.debug-info/test_succeed
 endif
 endif
 

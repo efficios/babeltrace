@@ -129,7 +129,6 @@ export BT_TESTS_SED_BIN
 # Data files path
 BT_TESTS_DATADIR="${BT_TESTS_SRCDIR}/data"
 BT_CTF_TRACES_PATH="${BT_TESTS_DATADIR}/ctf-traces"
-BT_DEBUG_INFO_PATH="${BT_TESTS_DATADIR}/debug-info"
 
 
 ### Diff Functions ###

@@ -11,8 +11,7 @@ dist_check_SCRIPTS = \
 	test_dwarf_powerpc64le-linux-gnu \
 	test_dwarf_powerpc-linux-gnu \
 	test_dwarf_x86_64-linux-gnu \
-	test_lttng_utils_debug_info \
-	test_lttng_utils_debug_info.py
+	test_succeed
 
 noinst_PROGRAMS =
 

@@ -1,0 +1,131 @@
+Trace class:
+  Stream class (ID 0):
+    Supports packets: Yes
+    Packets have beginning default clock snapshot: Yes
+    Packets have end default clock snapshot: Yes
+    Supports discarded events: Yes
+    Discarded events have default clock snapshots: Yes
+    Supports discarded packets: Yes
+    Discarded packets have default clock snapshots: Yes
+    Default clock class:
+      Name: monotonic
+      Description: Monotonic Clock
+      Frequency (Hz): 1,000,000,000
+      Precision (cycles): 0
+      Offset (s): 1,563,264,475
+      Offset (cycles): 374,722,151
+      Origin is Unix epoch: Yes
+      UUID: c56ad62a-6a35-4722-9807-d8e0f118a367
+    Packet context field class: Structure (1 member):
+      cpu_id: Unsigned integer (32-bit, Base 10)
+    Event common context field class: Structure (3 members):
+      vpid: Signed integer (32-bit, Base 10)
+      ip: Unsigned integer (64-bit, Base 16)
+      debug_info: Structure (3 members):
+        bin: String
+        func: String
+        src: String
+    Event class `lttng_ust_statedump:bin_info` (ID 0):
+      Log level: Debug (line)
+      Payload field class: Structure (6 members):
+        baddr: Unsigned integer (64-bit, Base 16)
+        memsz: Unsigned integer (64-bit, Base 10)
+        path: String
+        is_pic: Unsigned integer (8-bit, Base 10)
+        has_build_id: Unsigned integer (8-bit, Base 10)
+        has_debug_link: Unsigned integer (8-bit, Base 10)
+    Event class `my_provider:my_first_tracepoint` (ID 1):
+      Log level: Debug (line)
+      Payload field class: Structure (2 members):
+        my_string_field: String
+        my_integer_field: Signed integer (32-bit, Base 10)
+
+[Unknown]
+{Trace 0, Stream class ID 0, Stream ID 0}
+Stream beginning:
+  Trace:
+    Environment (5 entries):
+      domain: ust
+      hostname: raton
+      tracer_major: 2
+      tracer_minor: 11
+      tracer_name: lttng-ust
+    Stream (ID 0, Class ID 0)
+
+[21,705,969,336,938 cycles, 1,563,286,181,344,059,089 ns from origin]
+{Trace 0, Stream class ID 0, Stream ID 0}
+Packet beginning:
+  Context:
+    cpu_id: 0
+
+[21,705,976,167,081 cycles, 1,563,286,181,350,889,232 ns from origin]
+{Trace 0, Stream class ID 0, Stream ID 0}
+Event `lttng_ust_statedump:bin_info` (Class ID 0):
+  Common context:
+    vpid: 9746
+    ip: 0x7f09:b7d2:922b
+    debug_info:
+      bin: 
+      func: 
+      src: 
+  Payload:
+    baddr: 0x7ffc:bd1e:1000
+    memsz: 0
+    path: [linux-vdso.so.1]
+    is_pic: 0
+    has_build_id: 0
+    has_debug_link: 0
+
+[21,705,976,183,716 cycles, 1,563,286,181,350,905,867 ns from origin]
+{Trace 0, Stream class ID 0, Stream ID 0}
+Event `lttng_ust_statedump:bin_info` (Class ID 0):
+  Common context:
+    vpid: 9746
+    ip: 0x7f09:b7d2:922b
+    debug_info:
+      bin: 
+      func: 
+      src: 
+  Payload:
+    baddr: 0x7f09:b7f9:8000
+    memsz: 2,114,208
+    path: /libhello_so
+    is_pic: 1
+    has_build_id: 1
+    has_debug_link: 0
+
+[21,705,977,090,044 cycles, 1,563,286,181,351,812,195 ns from origin]
+{Trace 0, Stream class ID 0, Stream ID 0}
+Event `my_provider:my_first_tracepoint` (Class ID 1):
+  Common context:
+    vpid: 9746
+    ip: 0x7f09:b7f9:a349
+    debug_info:
+      bin: libhello_so+0x2349
+      func: foo+0xd2
+      src: libhello.c:35
+  Payload:
+    my_string_field: hello, tracer
+    my_integer_field: 42
+
+[21,705,977,161,190 cycles, 1,563,286,181,351,883,341 ns from origin]
+{Trace 0, Stream class ID 0, Stream ID 0}
+Event `my_provider:my_first_tracepoint` (Class ID 1):
+  Common context:
+    vpid: 9746
+    ip: 0x7f09:b7f9:a448
+    debug_info:
+      bin: libhello_so+0x2448
+      func: bar+0xd2
+      src: libhello.c:41
+  Payload:
+    my_string_field: recoltes et semailles
+    my_integer_field: 57
+
+[21,706,180,381,092 cycles, 1,563,286,181,555,103,243 ns from origin]
+{Trace 0, Stream class ID 0, Stream ID 0}
+Packet end
+
+[Unknown]
+{Trace 0, Stream class ID 0, Stream ID 0}
+Stream end

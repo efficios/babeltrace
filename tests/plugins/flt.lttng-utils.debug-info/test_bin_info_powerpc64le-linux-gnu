@@ -27,9 +27,11 @@ fi
 # shellcheck source=../../utils/utils.sh
 source "$UTILSSH"
 
-debug_info_data="${BT_DEBUG_INFO_PATH}/powerpc64le-linux-gnu"
+this_dir_relative="plugins/flt.lttng-utils.debug-info"
+this_dir_build="$BT_TESTS_BUILDDIR/$this_dir_relative"
+debug_info_data="$BT_TESTS_DATADIR/$this_dir_relative/powerpc64le-linux-gnu"
 
-"${BT_TESTS_BUILDDIR}/plugins/flt.lttng-utils.debug-info/test_bin_info" \
+"$this_dir_build/test_bin_info" \
 	--foo-addr=0x2e7c \
 	--printf-offset=0x190 \
 	--printf-lineno=36 \
