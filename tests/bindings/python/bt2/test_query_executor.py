@@ -28,6 +28,9 @@ class QueryExecutorTestCase(unittest.TestCase):
             def _consume(self):
                 pass
 
+            def _graph_is_configured(self):
+                pass
+
             @classmethod
             def _query(cls, query_exec, obj, params, log_level):
                 nonlocal query_params
@@ -61,6 +64,9 @@ class QueryExecutorTestCase(unittest.TestCase):
             def _consume(self):
                 pass
 
+            def _graph_is_configured(self):
+                pass
+
             @classmethod
             def _query(cls, query_exec, obj, params, log_level):
                 nonlocal query_params
@@ -74,6 +80,9 @@ class QueryExecutorTestCase(unittest.TestCase):
     def test_query_logging_level(self):
         class MySink(bt2._UserSinkComponent):
             def _consume(self):
+                pass
+
+            def _graph_is_configured(self):
                 pass
 
             @classmethod
@@ -92,6 +101,9 @@ class QueryExecutorTestCase(unittest.TestCase):
             def _consume(self):
                 pass
 
+            def _graph_is_configured(self):
+                pass
+
             @classmethod
             def _query(cls, query_exec, obj, params, log_level):
                 raise ValueError
@@ -102,6 +114,9 @@ class QueryExecutorTestCase(unittest.TestCase):
     def test_query_invalid_object(self):
         class MySink(bt2._UserSinkComponent):
             def _consume(self):
+                pass
+
+            def _graph_is_configured(self):
                 pass
 
             @classmethod
@@ -116,6 +131,9 @@ class QueryExecutorTestCase(unittest.TestCase):
             def _consume(self):
                 pass
 
+            def _graph_is_configured(self):
+                pass
+
             @classmethod
             def _query(cls, query_exec, obj, params, log_level):
                 pass
@@ -126,6 +144,9 @@ class QueryExecutorTestCase(unittest.TestCase):
     def test_query_logging_level_invalid_value(self):
         class MySink(bt2._UserSinkComponent):
             def _consume(self):
+                pass
+
+            def _graph_is_configured(self):
                 pass
 
             @classmethod
@@ -140,6 +161,9 @@ class QueryExecutorTestCase(unittest.TestCase):
             def _consume(self):
                 pass
 
+            def _graph_is_configured(self):
+                pass
+
             @classmethod
             def _query(cls, query_exec, obj, params, log_level):
                 raise bt2.InvalidParams
@@ -150,6 +174,9 @@ class QueryExecutorTestCase(unittest.TestCase):
     def test_query_try_again(self):
         class MySink(bt2._UserSinkComponent):
             def _consume(self):
+                pass
+
+            def _graph_is_configured(self):
                 pass
 
             @classmethod
@@ -168,6 +195,9 @@ class QueryExecutorTestCase(unittest.TestCase):
     def test_query_canceled(self):
         class MySink(bt2._UserSinkComponent):
             def _consume(self):
+                pass
+
+            def _graph_is_configured(self):
                 pass
 
             @classmethod

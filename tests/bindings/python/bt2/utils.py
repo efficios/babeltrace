@@ -32,6 +32,9 @@ def run_in_component_init(func):
         def _consume(self):
             pass
 
+        def _graph_is_configured(self):
+            pass
+
     g = bt2.Graph()
     res_bound = None
     g.add_component(MySink, 'comp')

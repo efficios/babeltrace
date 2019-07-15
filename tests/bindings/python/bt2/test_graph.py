@@ -63,6 +63,8 @@ class GraphTestCase(unittest.TestCase):
         class MySink(bt2._UserSinkComponent):
             def _consume(self):
                 pass
+            def _graph_is_configured(self):
+                pass
 
         comp = self._graph.add_component(MySink, 'salut')
         self.assertEqual(comp.name, 'salut')
@@ -70,6 +72,8 @@ class GraphTestCase(unittest.TestCase):
     def test_add_component_gen_cls(self):
         class MySink(bt2._UserSinkComponent):
             def _consume(self):
+                pass
+            def _graph_is_configured(self):
                 pass
 
         comp = self._graph.add_component(MySink, 'salut')
@@ -87,6 +91,8 @@ class GraphTestCase(unittest.TestCase):
 
             def _consume(self):
                 pass
+            def _graph_is_configured(self):
+                pass
 
         params = {'hello': 23, 'path': '/path/to/stuff'}
         comp = self._graph.add_component(MySink, 'salut', params)
@@ -101,6 +107,8 @@ class GraphTestCase(unittest.TestCase):
         class MySink(bt2._UserSinkComponent):
             def _consume(self):
                 pass
+            def _graph_is_configured(self):
+                pass
 
         with self.assertRaises(TypeError):
             self._graph.add_component(MySink, 'salut', logging_level='yo')
@@ -109,6 +117,8 @@ class GraphTestCase(unittest.TestCase):
         class MySink(bt2._UserSinkComponent):
             def _consume(self):
                 pass
+            def _graph_is_configured(self):
+                pass
 
         with self.assertRaises(ValueError):
             self._graph.add_component(MySink, 'salut', logging_level=12345)
@@ -116,6 +126,8 @@ class GraphTestCase(unittest.TestCase):
     def test_add_component_logging_level(self):
         class MySink(bt2._UserSinkComponent):
             def _consume(self):
+                pass
+            def _graph_is_configured(self):
                 pass
 
         comp = self._graph.add_component(MySink, 'salut',
@@ -138,6 +150,9 @@ class GraphTestCase(unittest.TestCase):
 
             def _consume(self):
                 raise bt2.Stop
+
+            def _graph_is_configured(self):
+                pass
 
         src = self._graph.add_component(MySource, 'src')
         sink = self._graph.add_component(MySink, 'sink')
@@ -165,6 +180,9 @@ class GraphTestCase(unittest.TestCase):
 
             def _consume(self):
                 raise bt2.Stop
+
+            def _graph_is_configured(self):
+                pass
 
         src = self._graph.add_component(MySource, 'src')
         sink = self._graph.add_component(MySink, 'sink')
@@ -393,6 +411,9 @@ class GraphTestCase(unittest.TestCase):
             def _consume(self):
                 raise bt2.Stop
 
+            def _graph_is_configured(self):
+                pass
+
             def _port_connected(self, port, other_port):
                 self._add_input_port('taste')
 
@@ -457,6 +478,9 @@ class GraphTestCase(unittest.TestCase):
             def _consume(self):
                 raise bt2.Stop
 
+            def _graph_is_configured(self):
+                pass
+
             def _port_connected(self, port, other_port):
                 self._add_input_port('taste')
 
@@ -473,6 +497,9 @@ class GraphTestCase(unittest.TestCase):
             def _consume(self):
                 raise bt2.Stop
 
+            def _graph_is_configured(self):
+                pass
+
         graph = bt2.Graph()
 
         with self.assertRaises(bt2.Error):
@@ -485,6 +512,9 @@ class GraphTestCase(unittest.TestCase):
 
             def _consume(self):
                 raise bt2.Stop
+
+            def _graph_is_configured(self):
+                pass
 
         def port_added_listener(component, port):
             raise ValueError('oh noes!')
@@ -511,6 +541,9 @@ class GraphTestCase(unittest.TestCase):
 
             def _consume(self):
                 raise bt2.Stop
+
+            def _graph_is_configured(self):
+                pass
 
         def ports_connected_listener(upstream_component, upstream_port,
                                      downstream_component, downstream_port):

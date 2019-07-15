@@ -38,6 +38,9 @@ class ConnectionTestCase(unittest.TestCase):
             def _consume(self):
                 raise bt2.Stop
 
+            def _graph_is_configured(self):
+                pass
+
         graph = bt2.Graph()
         src = graph.add_component(MySource, 'src')
         sink = graph.add_component(MySink, 'sink')
@@ -62,6 +65,9 @@ class ConnectionTestCase(unittest.TestCase):
             def _consume(self):
                 raise bt2.Stop
 
+            def _graph_is_configured(self):
+                pass
+
         graph = bt2.Graph()
         src = graph.add_component(MySource, 'src')
         sink = graph.add_component(MySink, 'sink')
@@ -85,6 +91,9 @@ class ConnectionTestCase(unittest.TestCase):
 
             def _consume(self):
                 raise bt2.Stop
+
+            def _graph_is_configured(self):
+                pass
 
         graph = bt2.Graph()
         src = graph.add_component(MySource, 'src')
