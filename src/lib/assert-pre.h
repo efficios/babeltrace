@@ -122,12 +122,12 @@
 
 #ifdef BT_DEV_MODE
 /* Developer mode version of BT_ASSERT_PRE_MSG(). */
-# define BT_ASSERT_PRE_DEV_MSG(_fmt, ...)					\
-	BT_ASSERT_PRE_MSG(_fmt, #__VA_ARGS__)
+# define BT_ASSERT_PRE_DEV_MSG(_fmt, ...)				\
+	BT_ASSERT_PRE_MSG(_fmt, ##__VA_ARGS__)
 
 /* Developer mode version of BT_ASSERT_PRE(). */
 # define BT_ASSERT_PRE_DEV(_cond, _fmt, ...)				\
-	BT_ASSERT_PRE((_cond), _fmt, #__VA_ARGS__)
+	BT_ASSERT_PRE((_cond), _fmt, ##__VA_ARGS__)
 
 /* Developer mode version of BT_ASSERT_PRE_NON_NULL() */
 # define BT_ASSERT_PRE_DEV_NON_NULL(_obj, _obj_name)			\
