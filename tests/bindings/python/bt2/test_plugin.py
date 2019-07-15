@@ -95,8 +95,8 @@ class PluginTestCase(unittest.TestCase):
         self.assertEqual(self._plugin.name, 'ctf')
 
     def test_path(self):
-        plugin_path = os.path.normcase(self._plugin.path)
-        plugin_path_env = os.path.normcase(_TEST_PLUGIN_PLUGINS_PATH)
+        plugin_path = os.path.abspath(os.path.normcase(self._plugin.path))
+        plugin_path_env = os.path.abspath(os.path.normcase(_TEST_PLUGIN_PLUGINS_PATH))
         self.assertTrue(plugin_path.startswith(plugin_path_env))
 
     def test_author(self):
