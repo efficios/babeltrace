@@ -81,6 +81,9 @@ class PortTestCase(unittest.TestCase):
             def _consume(self):
                 pass
 
+            def _graph_is_configured(self):
+                pass
+
         comp = self._create_comp(MySink)
         self.assertEqual(len(comp.input_ports), 1)
 
@@ -146,6 +149,9 @@ class PortTestCase(unittest.TestCase):
                 self.assertEqual(port1.addr, comp_self._input_ports['clear'].addr)
 
             def _consume(self):
+                pass
+
+            def _graph_is_configured(self):
                 pass
 
         self._create_comp(MySink)
@@ -214,6 +220,9 @@ class PortTestCase(unittest.TestCase):
             def _consume(self):
                 pass
 
+            def _graph_is_configured(self):
+                pass
+
         self._create_comp(MySink)
 
     def test_user_src_output_ports_len(self):
@@ -270,6 +279,9 @@ class PortTestCase(unittest.TestCase):
                 self.assertEqual(len(comp_self._input_ports), 3)
 
             def _consume(self):
+                pass
+
+            def _graph_is_configured(self):
                 pass
 
         self._create_comp(MySink)
@@ -370,6 +382,9 @@ class PortTestCase(unittest.TestCase):
             def _consume(self):
                 pass
 
+            def _graph_is_configured(self):
+                pass
+
         self._create_comp(MySink)
 
     def test_gen_src_output_ports_getitem(self):
@@ -462,6 +477,9 @@ class PortTestCase(unittest.TestCase):
             def _consume(self):
                 pass
 
+            def _graph_is_configured(self):
+                pass
+
         comp = self._create_comp(MySink)
         self.assertEqual(port3.addr, comp.input_ports['insert'].addr)
         self.assertEqual(port2.addr, comp.input_ports['print'].addr)
@@ -534,6 +552,9 @@ class PortTestCase(unittest.TestCase):
             def _consume(self):
                 pass
 
+            def _graph_is_configured(self):
+                pass
+
         comp = self._create_comp(MySink)
 
         with self.assertRaises(KeyError):
@@ -592,6 +613,9 @@ class PortTestCase(unittest.TestCase):
                 comp_self._add_input_port('insert')
 
             def _consume(self):
+                pass
+
+            def _graph_is_configured(self):
                 pass
 
         comp = self._create_comp(MySink)
@@ -711,6 +735,9 @@ class PortTestCase(unittest.TestCase):
             def _consume(self):
                 pass
 
+            def _graph_is_configured(self):
+                pass
+
         comp = self._create_comp(MySink)
         ports = []
 
@@ -735,6 +762,9 @@ class PortTestCase(unittest.TestCase):
             def _consume(self):
                 pass
 
+            def _graph_is_configured(self):
+                pass
+
         comp = self._create_comp(MySink)
         self.assertEqual(comp.input_ports['clear'].name, 'clear')
 
@@ -746,6 +776,9 @@ class PortTestCase(unittest.TestCase):
             def _consume(self):
                 pass
 
+            def _graph_is_configured(self):
+                pass
+
         comp = self._create_comp(MySink)
         self.assertIsNone(comp.input_ports['clear'].connection)
 
@@ -755,6 +788,9 @@ class PortTestCase(unittest.TestCase):
                 comp_self._add_input_port('clear')
 
             def _consume(self):
+                pass
+
+            def _graph_is_configured(self):
                 pass
 
         comp = self._create_comp(MySink)
@@ -769,6 +805,9 @@ class PortTestCase(unittest.TestCase):
             def _consume(self):
                 pass
 
+            def _graph_is_configured(self):
+                pass
+
         self._create_comp(MySink)
 
     def test_self_connection_none(self):
@@ -780,6 +819,9 @@ class PortTestCase(unittest.TestCase):
             def _consume(self):
                 pass
 
+            def _graph_is_configured(self):
+                pass
+
         self._create_comp(MySink)
 
     def test_self_is_connected_false(self):
@@ -789,6 +831,9 @@ class PortTestCase(unittest.TestCase):
                 self.assertFalse(port.is_connected)
 
             def _consume(self):
+                pass
+
+            def _graph_is_configured(self):
                 pass
 
         self._create_comp(MySink)

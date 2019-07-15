@@ -40,6 +40,9 @@ class MySink(bt2._UserSinkComponent):
     def _consume(self):
         pass
 
+    def _graph_is_configured(self):
+        pass
+
 
 bt2.register_plugin(__name__, 'sparkling', author='Philippe Proulx',
                     description='A delicious plugin.',

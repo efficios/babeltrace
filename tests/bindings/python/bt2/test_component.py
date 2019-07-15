@@ -40,6 +40,9 @@ class UserComponentTestCase(unittest.TestCase):
             def _consume(self):
                 pass
 
+            def _graph_is_configured(self):
+                pass
+
         comp = self._create_comp(MySink, 'yaes')
 
     def test_logging_level(self):
@@ -50,6 +53,9 @@ class UserComponentTestCase(unittest.TestCase):
             def _consume(self):
                 pass
 
+            def _graph_is_configured(self):
+                pass
+
         comp = self._create_comp(MySink, 'yaes', bt2.LoggingLevel.INFO)
 
     def test_class(self):
@@ -58,6 +64,9 @@ class UserComponentTestCase(unittest.TestCase):
                 self.assertEqual(comp_self.cls, MySink)
 
             def _consume(self):
+                pass
+
+            def _graph_is_configured(self):
                 pass
 
         self._create_comp(MySink)
@@ -71,6 +80,9 @@ class UserComponentTestCase(unittest.TestCase):
             def _consume(self):
                 pass
 
+            def _graph_is_configured(self):
+                pass
+
         self._create_comp(MySink)
 
     def test_finalize(self):
@@ -78,6 +90,9 @@ class UserComponentTestCase(unittest.TestCase):
 
         class MySink(bt2._UserSinkComponent):
             def _consume(self):
+                pass
+
+            def _graph_is_configured(self):
                 pass
 
             def _finalize(comp_self):
@@ -107,12 +122,18 @@ class GenericComponentTestCase(unittest.TestCase):
             def _consume(self):
                 pass
 
+            def _graph_is_configured(self):
+                pass
+
         comp = self._create_comp(MySink, 'yaes')
         self.assertEqual(comp.name, 'yaes')
 
     def test_logging_level(self):
         class MySink(bt2._UserSinkComponent):
             def _consume(self):
+                pass
+
+            def _graph_is_configured(self):
                 pass
 
         comp = self._create_comp(MySink, 'yaes', bt2.LoggingLevel.WARNING)
@@ -123,12 +144,18 @@ class GenericComponentTestCase(unittest.TestCase):
             def _consume(self):
                 pass
 
+            def _graph_is_configured(self):
+                pass
+
         comp = self._create_comp(MySink)
         self.assertEqual(comp.cls, MySink)
 
     def test_addr(self):
         class MySink(bt2._UserSinkComponent):
             def _consume(self):
+                pass
+
+            def _graph_is_configured(self):
                 pass
 
         comp = self._create_comp(MySink)
