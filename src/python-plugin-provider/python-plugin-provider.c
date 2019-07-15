@@ -252,7 +252,7 @@ int bt_plugin_from_python_plugin_info(PyObject *plugin_info,
 				"py-plugin-info-addr=%p", plugin_info);
 			status = BT_FUNC_STATUS_LOADING_ERROR;
 		} else {
-			BT_LIB_LOGI(
+			BT_LIB_LOGW(
 				"Cannot find `name` attribute in Python plugin info object: "
 				"py-plugin-info-addr=%p", plugin_info);
 			status = BT_FUNC_STATUS_NOT_FOUND;
@@ -270,7 +270,7 @@ int bt_plugin_from_python_plugin_info(PyObject *plugin_info,
 				"py-plugin-info-addr=%p", plugin_info);
 			status = BT_FUNC_STATUS_LOADING_ERROR;
 		} else {
-			BT_LIB_LOGI(
+			BT_LIB_LOGW(
 				"Cannot find `author` attribute in Python plugin info object: "
 				"py-plugin-info-addr=%p", plugin_info);
 			status = BT_FUNC_STATUS_NOT_FOUND;
@@ -288,7 +288,7 @@ int bt_plugin_from_python_plugin_info(PyObject *plugin_info,
 				"py-plugin-info-addr=%p", plugin_info);
 			status = BT_FUNC_STATUS_LOADING_ERROR;
 		} else {
-			BT_LIB_LOGI(
+			BT_LIB_LOGW(
 				"Cannot find `description` attribute in Python plugin info object: "
 				"py-plugin-info-addr=%p", plugin_info);
 			status = BT_FUNC_STATUS_NOT_FOUND;
@@ -306,7 +306,7 @@ int bt_plugin_from_python_plugin_info(PyObject *plugin_info,
 				"py-plugin-info-addr=%p", plugin_info);
 			status = BT_FUNC_STATUS_LOADING_ERROR;
 		} else {
-			BT_LIB_LOGI(
+			BT_LIB_LOGW(
 				"Cannot find `license` attribute in Python plugin info object: "
 				"py-plugin-info-addr=%p", plugin_info);
 			status = BT_FUNC_STATUS_NOT_FOUND;
@@ -324,7 +324,7 @@ int bt_plugin_from_python_plugin_info(PyObject *plugin_info,
 				"py-plugin-info-addr=%p", plugin_info);
 			status = BT_FUNC_STATUS_LOADING_ERROR;
 		} else {
-			BT_LIB_LOGI(
+			BT_LIB_LOGW(
 				"Cannot find `version` attribute in Python plugin info object: "
 				"py-plugin-info-addr=%p", plugin_info);
 			status = BT_FUNC_STATUS_NOT_FOUND;
@@ -343,7 +343,7 @@ int bt_plugin_from_python_plugin_info(PyObject *plugin_info,
 				"py-plugin-info-addr=%p", plugin_info);
 			status = BT_FUNC_STATUS_LOADING_ERROR;
 		} else {
-			BT_LIB_LOGI(
+			BT_LIB_LOGW(
 				"Cannot find `comp_class_addrs` attribute in Python plugin info object: "
 				"py-plugin-info-addr=%p", plugin_info);
 			status = BT_FUNC_STATUS_NOT_FOUND;
@@ -362,7 +362,7 @@ int bt_plugin_from_python_plugin_info(PyObject *plugin_info,
 					"py-plugin-info-addr=%p", plugin_info);
 				status = BT_FUNC_STATUS_LOADING_ERROR;
 			} else {
-				BT_LIB_LOGI(
+				BT_LIB_LOGW(
 					"Cannot decode Python plugin name string: "
 					"py-plugin-info-addr=%p", plugin_info);
 				status = BT_FUNC_STATUS_NOT_FOUND;
@@ -379,7 +379,7 @@ int bt_plugin_from_python_plugin_info(PyObject *plugin_info,
 				"py-plugin-info-addr=%p", plugin_info);
 			status = BT_FUNC_STATUS_LOADING_ERROR;
 		} else {
-			BT_LIB_LOGI(
+			BT_LIB_LOGW(
 				"Plugin name is not a string: "
 				"py-plugin-info-addr=%p", plugin_info);
 			status = BT_FUNC_STATUS_NOT_FOUND;
@@ -398,7 +398,7 @@ int bt_plugin_from_python_plugin_info(PyObject *plugin_info,
 					"py-plugin-info-addr=%p", plugin_info);
 				status = BT_FUNC_STATUS_LOADING_ERROR;
 			} else {
-				BT_LIB_LOGI(
+				BT_LIB_LOGW(
 					"Cannot decode Python plugin author string: "
 					"py-plugin-info-addr=%p", plugin_info);
 				status = BT_FUNC_STATUS_NOT_FOUND;
@@ -418,7 +418,7 @@ int bt_plugin_from_python_plugin_info(PyObject *plugin_info,
 					"py-plugin-info-addr=%p", plugin_info);
 				status = BT_FUNC_STATUS_LOADING_ERROR;
 			} else {
-				BT_LIB_LOGI(
+				BT_LIB_LOGW(
 					"Cannot decode Python plugin description string: "
 					"py-plugin-info-addr=%p", plugin_info);
 				status = BT_FUNC_STATUS_NOT_FOUND;
@@ -438,7 +438,7 @@ int bt_plugin_from_python_plugin_info(PyObject *plugin_info,
 					"py-plugin-info-addr=%p", plugin_info);
 				status = BT_FUNC_STATUS_LOADING_ERROR;
 			} else {
-				BT_LIB_LOGI(
+				BT_LIB_LOGW(
 					"Cannot decode Python plugin license string: "
 					"py-plugin-info-addr=%p", plugin_info);
 				status = BT_FUNC_STATUS_NOT_FOUND;
@@ -479,7 +479,7 @@ int bt_plugin_from_python_plugin_info(PyObject *plugin_info,
 						"py-plugin-info-addr=%p", plugin_info);
 					status = BT_FUNC_STATUS_LOADING_ERROR;
 				} else {
-					BT_LIB_LOGI(
+					BT_LIB_LOGW(
 						"Invalid Python plugin version format: "
 						"py-plugin-info-addr=%p", plugin_info);
 					status = BT_FUNC_STATUS_NOT_FOUND;
@@ -504,7 +504,7 @@ int bt_plugin_from_python_plugin_info(PyObject *plugin_info,
 							"py-plugin-info-addr=%p", plugin_info);
 						status = BT_FUNC_STATUS_LOADING_ERROR;
 					} else {
-						BT_LIB_LOGI(
+						BT_LIB_LOGW(
 							"Cannot decode Python plugin version's extra string: "
 							"py-plugin-info-addr=%p", plugin_info);
 						status = BT_FUNC_STATUS_NOT_FOUND;
@@ -560,7 +560,7 @@ int bt_plugin_from_python_plugin_info(PyObject *plugin_info,
 						plugin_info, i);
 					status = BT_FUNC_STATUS_LOADING_ERROR;
 				} else {
-					BT_LIB_LOGI(
+					BT_LIB_LOGW(
 						"Component class address is not an integer in Python plugin info object: "
 						"py-plugin-info-addr=%p, index=%zu",
 						plugin_info, i);
@@ -702,7 +702,7 @@ int bt_plugin_python_create_all_from_file(const char *path,
 				"Cannot load Python plugin: path=\"%s\"", path);
 			status = BT_FUNC_STATUS_LOADING_ERROR;
 		} else {
-			BT_LIB_LOGI(
+			BT_LIB_LOGW(
 				"Cannot load Python plugin: path=\"%s\"", path);
 			status = BT_FUNC_STATUS_NOT_FOUND;
 		}
@@ -750,7 +750,7 @@ int bt_plugin_python_create_all_from_file(const char *path,
 
 error:
 	BT_ASSERT(status != BT_FUNC_STATUS_OK);
-	log_python_traceback(fail_on_load_error ? BT_LOG_WARNING : BT_LOG_INFO);
+	log_python_traceback(BT_LOG_WARNING);
 	pyerr_clear();
 	BT_OBJECT_PUT_REF_AND_RESET(*plugin_set_out);
 
