@@ -69,7 +69,7 @@ extern int bt_ctf_field_integer_unsigned_set_value(
 
 /* Pre-2.0 CTF writer compatibility */
 static inline
-int bt_ctf_field_unsigned_integer_set_value(
+int bt_ctf_field_unsigned_integer_get_value(
 		struct bt_ctf_field *integer_field, uint64_t *value)
 {
 	return bt_ctf_field_integer_unsigned_get_value(integer_field, value);
