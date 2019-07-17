@@ -784,6 +784,8 @@ PPRINT_PROP_BOOL([Python plugin support], $value)
 AS_IF([test "x$enable_python_bindings" = "xyes" || test "x$enable_python_plugins" = "xyes"], [
   PPRINT_PROP_STRING([Python include paths], [$PYTHON_INCLUDE])
   PPRINT_PROP_STRING([Python linker flags], [$PYTHON_LDFLAGS])
+  PPRINT_PROP_STRING([SWIG executable], [$SWIG])
+  PPRINT_PROP_STRING([SWIG library], [$SWIG_LIB])
 ])
 
 AS_ECHO
