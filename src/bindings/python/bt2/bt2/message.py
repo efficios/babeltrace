@@ -30,10 +30,6 @@ import bt2
 
 def _create_from_ptr(ptr):
     msg_type = native_bt.message_get_type(ptr)
-
-    if msg_type not in _MESSAGE_TYPE_TO_CLS:
-        raise bt2.Error('unknown message type: {}'.format(msg_type))
-
     return _MESSAGE_TYPE_TO_CLS[msg_type]._create_from_ptr(ptr)
 
 

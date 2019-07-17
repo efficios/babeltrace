@@ -522,7 +522,7 @@ class _UserComponentType(type):
         return self
 
     def __call__(cls, *args, **kwargs):
-        raise bt2.Error(
+        raise RuntimeError(
             'cannot directly instantiate a user component from a Python module'
         )
 

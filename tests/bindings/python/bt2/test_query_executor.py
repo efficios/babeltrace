@@ -97,8 +97,16 @@ class QueryExecutorTestCase(unittest.TestCase):
             def _query(cls, query_exec, obj, params, log_level):
                 raise ValueError
 
-        with self.assertRaises(bt2.Error):
+        with self.assertRaises(bt2.Error) as ctx:
             res = bt2.QueryExecutor().query(MySink, 'obj', [17, 23])
+
+        exc = ctx.exception
+        self.assertEqual(len(exc), 1)
+        cause = exc[0]
+        self.assertIsInstance(cause, bt2.error._ComponentClassErrorCause)
+        self.assertIn('raise ValueError', cause.message)
+        self.assertEqual(cause.component_class_type, bt2.ComponentClassType.SINK)
+        self.assertEqual(cause.component_class_name, 'MySink')
 
     def test_query_invalid_object(self):
         class MySink(bt2._UserSinkComponent):

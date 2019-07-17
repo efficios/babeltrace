@@ -202,6 +202,7 @@ typedef int bt_bool;
 %include "native_bt_component.i"
 %include "native_bt_component_class.i"
 %include "native_bt_connection.i"
+%include "native_bt_error.i"
 %include "native_bt_event.i"
 %include "native_bt_event_class.i"
 %include "native_bt_field.i"

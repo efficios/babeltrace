@@ -89,6 +89,12 @@ bt_current_thread_error_append_cause_from_message_iterator(
 	bt_current_thread_error_append_cause_from_message_iterator( \
 		(_self_iter), __FILE__, __LINE__, (_msg_fmt), ##__VA_ARGS__)
 
+#define BT_CURRENT_THREAD_MOVE_ERROR_AND_RESET(_var)	\
+	do {						\
+		bt_current_thread_move_error(_var);	\
+		(_var) = NULL;				\
+	} while (0)
+
 #ifdef __cplusplus
 }
 #endif

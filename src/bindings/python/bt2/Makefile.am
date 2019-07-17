@@ -12,6 +12,7 @@ SWIG_INTERFACE_FILES =					\
 	bt2/native_bt_component_class.i			\
 	bt2/native_bt_component.i			\
 	bt2/native_bt_connection.i			\
+	bt2/native_bt_error.i				\
 	bt2/native_bt_event_class.i			\
 	bt2/native_bt_event.i				\
 	bt2/native_bt_field_class.i			\
@@ -44,6 +45,7 @@ STATIC_BINDINGS_DEPS =					\
 	bt2/clock_snapshot.py				\
 	bt2/component.py				\
 	bt2/connection.py				\
+	bt2/error.py					\
 	bt2/event_class.py				\
 	bt2/event.py					\
 	bt2/field.py					\

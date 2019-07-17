@@ -89,7 +89,7 @@ class TraceCollectionMessageIteratorTestCase(unittest.TestCase):
     def test_create_no_such_plugin(self):
         specs = [bt2.ComponentSpec('77', '101', _3EVENTS_INTERSECT_TRACE_PATH)]
 
-        with self.assertRaises(bt2.Error):
+        with self.assertRaises(ValueError):
             bt2.TraceCollectionMessageIterator(specs)
 
     def test_create_begin_s(self):
@@ -145,7 +145,7 @@ class TraceCollectionMessageIteratorTestCase(unittest.TestCase):
     def test_iter_intersection_no_inputs_param(self):
         specs = [bt2.ComponentSpec('text', 'dmesg', {'read-from-stdin': True})]
 
-        with self.assertRaises(bt2.Error):
+        with self.assertRaises(ValueError):
             bt2.TraceCollectionMessageIterator(specs, stream_intersection_mode=True)
 
     def test_iter_no_intersection_two_traces(self):
