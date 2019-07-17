@@ -32,10 +32,12 @@ SWIG_INTERFACE_FILES =					\
 	bt2/native_bt_value.i				\
 	bt2/native_bt_version.i
 
-STATIC_BINDINGS_DEPS =					\
-	$(SWIG_INTERFACE_FILES)				\
+# Non-generated files built into the native library.
+STATIC_NATIVE_LIB_SRCS =				\
 	bt2/logging.c					\
-	bt2/logging.h					\
+	bt2/logging.h
+
+STATIC_BINDINGS_DEPS =					\
 	bt2/clock_class.py				\
 	bt2/clock_snapshot.py				\
 	bt2/component.py				\
@@ -70,7 +72,7 @@ GENERATED_BINDINGS_DEPS =	\
 
 BUILD_FLAGS=CC="$(CC)" \
 		CFLAGS="$(GLIB_CFLAGS) $(AM_CFLAGS) $(CFLAGS)" \
-		CPPFLAGS="$(AM_CPPFLAGS) $(CPPFLAGS)" \
+		CPPFLAGS="$(AM_CPPFLAGS) $(CPPFLAGS) -I$(srcdir)/bt2" \
 		LDFLAGS="$(AM_LDFLAGS) $(LDFLAGS) $(GLIB_LIBS) $(LIBS)"
 
 all-local: build-python-bindings.stamp
@@ -83,7 +85,7 @@ copy-static-deps.stamp: $(addprefix $(srcdir)/, $(STATIC_BINDINGS_DEPS))
 	fi
 	touch $@
 
-build-python-bindings.stamp: copy-static-deps.stamp $(GENERATED_BINDINGS_DEPS)
+build-python-bindings.stamp: copy-static-deps.stamp $(GENERATED_BINDINGS_DEPS) $(STATIC_NATIVE_LIB_SRCS)
 	$(BUILD_FLAGS) $(PYTHON) $(builddir)/setup.py build --force
 	touch $@
 
@@ -121,7 +123,7 @@ uninstall-local:
 	rm -f $(INSTALLED_FILES)
 
 # distribute: extra Python modules and SWIG interface files
-EXTRA_DIST = $(STATIC_BINDINGS_DEPS)
+EXTRA_DIST = $(STATIC_BINDINGS_DEPS) $(SWIG_INTERFACE_FILES) $(STATIC_NATIVE_LIB_SRCS)
 
 # clean: generated C and Python files (by SWIG)
 CLEANFILES = bt2/native_bt.py bt2/native_bt.c build-python-bindings.stamp copy-static-deps.stamp

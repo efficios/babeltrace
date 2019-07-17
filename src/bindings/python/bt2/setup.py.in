@@ -36,7 +36,7 @@ following command to your .bashrc/.zshrc:
 
 def main():
     babeltrace_ext = Extension('bt2._native_bt',
-                        sources=['bt2/native_bt.c', 'bt2/logging.c'],
+                        sources=['bt2/native_bt.c', '@srcdir@/bt2/logging.c'],
                         libraries=['babeltrace2', 'glib-2.0'],
                         extra_objects=['@top_builddir@/src/logging/.libs/libbabeltrace2-logging.a',
                             '@top_builddir@/src/common/.libs/libbabeltrace2-common.a',
