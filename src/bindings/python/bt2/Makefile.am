@@ -5,9 +5,8 @@ AM_LDFLAGS=-L$(top_builddir)/src/lib/.libs
 
 INSTALLED_FILES=$(builddir)/installed_files.txt
 
-STATIC_BINDINGS_DEPS =					\
-	bt2/logging.c					\
-	bt2/logging.h					\
+SWIG_INTERFACE_FILES =					\
+	bt2/native_bt.i					\
 	bt2/native_bt_clock_class.i			\
 	bt2/native_bt_clock_snapshot.i			\
 	bt2/native_bt_component_class.i			\
@@ -19,7 +18,6 @@ STATIC_BINDINGS_DEPS =					\
 	bt2/native_bt_field_path.i			\
 	bt2/native_bt_field.i				\
 	bt2/native_bt_graph.i				\
-	bt2/native_bt.i					\
 	bt2/native_bt_logging.i				\
 	bt2/native_bt_message.i				\
 	bt2/native_bt_message_iterator.i		\
@@ -32,7 +30,12 @@ STATIC_BINDINGS_DEPS =					\
 	bt2/native_bt_trace_class.i			\
 	bt2/native_bt_trace.i				\
 	bt2/native_bt_value.i				\
-	bt2/native_bt_version.i				\
+	bt2/native_bt_version.i
+
+STATIC_BINDINGS_DEPS =					\
+	$(SWIG_INTERFACE_FILES)				\
+	bt2/logging.c					\
+	bt2/logging.h					\
 	bt2/clock_class.py				\
 	bt2/clock_snapshot.py				\
 	bt2/component.py				\
@@ -62,6 +65,7 @@ STATIC_BINDINGS_DEPS =					\
 
 GENERATED_BINDINGS_DEPS =	\
 	bt2/__init__.py		\
+	bt2/native_bt.c		\
 	setup.py
 
 BUILD_FLAGS=CC="$(CC)" \
@@ -80,9 +84,15 @@ copy-static-deps.stamp: $(addprefix $(srcdir)/, $(STATIC_BINDINGS_DEPS))
 	touch $@
 
 build-python-bindings.stamp: copy-static-deps.stamp $(GENERATED_BINDINGS_DEPS)
-	$(BUILD_FLAGS) $(PYTHON) $(builddir)/setup.py build_ext --force --swig "$(SWIG)"
 	$(BUILD_FLAGS) $(PYTHON) $(builddir)/setup.py build --force
 	touch $@
+
+swig_verbose = $(swig_verbose_@AM_V@)
+swig_verbose_ = $(swig_verbose_@AM_DEFAULT_V@)
+swig_verbose_0 = @echo "  SWIG     " $@;
+
+$(builddir)/bt2/native_bt.c: $(SWIG_INTERFACE_FILES)
+	$(swig_verbose)$(SWIG) -python -I"$(top_srcdir)/include" -o "$@" "$<"
 
 install-exec-local: build-python-bindings.stamp
 	@opts="--prefix=$(prefix) --record $(INSTALLED_FILES) --verbose --no-compile $(DISTSETUPOPTS)"; \
@@ -114,4 +124,4 @@ uninstall-local:
 EXTRA_DIST = $(STATIC_BINDINGS_DEPS)
 
 # clean: generated C and Python files (by SWIG)
-CLEANFILES = bt2/native_bt.py bt2/native_bt_wrap.c build-python-bindings.stamp copy-static-deps.stamp
+CLEANFILES = bt2/native_bt.py bt2/native_bt.c build-python-bindings.stamp copy-static-deps.stamp
