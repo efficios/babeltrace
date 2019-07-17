@@ -55,7 +55,7 @@ class _Stream(bt2.object._SharedObject):
 
     def create_packet(self):
         if not self.cls.supports_packets:
-            raise bt2.Error(
+            raise ValueError(
                 'cannot create packet: stream class does not support packets'
             )
 

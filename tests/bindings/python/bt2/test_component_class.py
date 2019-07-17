@@ -23,7 +23,7 @@ import bt2
 
 class UserComponentClassTestCase(unittest.TestCase):
     def _test_no_init(self, cls):
-        with self.assertRaises(bt2.Error):
+        with self.assertRaises(RuntimeError):
             cls()
 
     def test_no_init_source(self):

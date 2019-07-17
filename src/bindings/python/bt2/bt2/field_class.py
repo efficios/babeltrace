@@ -164,7 +164,7 @@ class _EnumerationFieldClass(_IntegerFieldClass, collections.abc.Mapping):
         utils._check_type(ranges, self._range_set_type)
 
         if label in self:
-            raise bt2.Error("duplicate mapping label '{}'".format(label))
+            raise ValueError("duplicate mapping label '{}'".format(label))
 
         status = self._add_mapping(self._ptr, label, ranges._ptr)
         utils._handle_func_status(
@@ -291,7 +291,7 @@ class _StructureFieldClass(_FieldClass, collections.abc.Mapping):
         utils._check_type(field_class, _FieldClass)
 
         if name in self:
-            raise bt2.Error("duplicate member name '{}'".format(name))
+            raise ValueError("duplicate member name '{}'".format(name))
 
         status = native_bt.field_class_structure_append_member(
             self._ptr, name, field_class._ptr
@@ -447,7 +447,7 @@ class _VariantFieldClassWithoutSelector(_VariantFieldClass):
         utils._check_type(field_class, _FieldClass)
 
         if name in self:
-            raise bt2.Error("duplicate option name '{}'".format(name))
+            raise ValueError("duplicate option name '{}'".format(name))
 
         status = native_bt.field_class_variant_without_selector_append_option(
             self._ptr, name, field_class._ptr
@@ -497,7 +497,7 @@ class _VariantFieldClassWithSelector(_VariantFieldClass):
         utils._check_type(ranges, self._range_set_type)
 
         if name in self:
-            raise bt2.Error("duplicate option name '{}'".format(name))
+            raise ValueError("duplicate option name '{}'".format(name))
 
         if len(ranges) == 0:
             raise ValueError('range set is empty')

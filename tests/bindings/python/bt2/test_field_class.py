@@ -132,7 +132,7 @@ class _EnumerationFieldClassTestCase(_TestIntegerFieldClassProps):
             self._fc.add_mapping('allo', 'meow')
 
     def test_add_mapping_dup_label(self):
-        with self.assertRaises(bt2.Error):
+        with self.assertRaises(ValueError):
             self._fc.add_mapping('a', self._ranges1)
             self._fc.add_mapping('a', self._ranges2)
 
@@ -263,7 +263,7 @@ class _TestElementContainer:
         sub_fc1 = self._tc.create_string_field_class()
         sub_fc2 = self._tc.create_string_field_class()
 
-        with self.assertRaises(bt2.Error):
+        with self.assertRaises(ValueError):
             self._append_element_method(self._fc, 'yes', sub_fc1)
             self._append_element_method(self._fc, 'yes', sub_fc2)
 
@@ -446,7 +446,7 @@ class _VariantFieldClassWithSelectorTestCase:
         sub_fc1 = self._tc.create_string_field_class()
         sub_fc2 = self._tc.create_string_field_class()
 
-        with self.assertRaises(bt2.Error):
+        with self.assertRaises(ValueError):
             self._fc.append_option('yes', sub_fc1, self._ranges1)
             self._fc.append_option('yes', sub_fc2, self._ranges2)
 

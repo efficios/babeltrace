@@ -44,7 +44,7 @@ trace_class_destroyed_listener(const bt_trace_class *trace_class, void *py_calla
 	if (py_res) {
 		BT_ASSERT(py_res == Py_None);
 	} else {
-		loge_exception();
+		loge_exception("Trace class's destruction listener (Python)");
 	}
 
 	Py_DECREF(py_trace_class_ptr);

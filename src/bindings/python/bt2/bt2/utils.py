@@ -139,10 +139,8 @@ def _handle_func_status(status, msg=None):
         status == native_bt.__BT_FUNC_STATUS_ERROR
         or status == native_bt.__BT_FUNC_STATUS_MEMORY_ERROR
     ):
-        if msg is None:
-            raise bt2.Error
-        else:
-            raise bt2.Error(msg)
+        assert msg is not None
+        raise bt2.Error(msg)
     elif status == native_bt.__BT_FUNC_STATUS_END:
         if msg is None:
             raise bt2.Stop

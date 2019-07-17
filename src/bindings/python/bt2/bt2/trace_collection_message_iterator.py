@@ -149,7 +149,7 @@ class TraceCollectionMessageIterator(bt2.message_iterator._MessageIterator):
         try:
             inputs = src_comp_and_spec.spec.params['inputs']
         except Exception as e:
-            raise bt2.Error(
+            raise ValueError(
                 'all source components must be created with an "inputs" parameter in stream intersection mode'
             ) from e
 
@@ -178,7 +178,7 @@ class TraceCollectionMessageIterator(bt2.message_iterator._MessageIterator):
             pass
 
         if begin is None or end is None:
-            raise bt2.Error(
+            raise RuntimeError(
                 'cannot find stream intersection range for port "{}"'.format(port.name)
             )
 
@@ -189,10 +189,10 @@ class TraceCollectionMessageIterator(bt2.message_iterator._MessageIterator):
         plugin = bt2.find_plugin('utils')
 
         if plugin is None:
-            raise bt2.Error('cannot find "utils" plugin (needed for the muxer)')
+            raise RuntimeError('cannot find "utils" plugin (needed for the muxer)')
 
         if 'muxer' not in plugin.filter_component_classes:
-            raise bt2.Error(
+            raise RuntimeError(
                 'cannot find "muxer" filter component class in "utils" plugin'
             )
 
@@ -203,10 +203,10 @@ class TraceCollectionMessageIterator(bt2.message_iterator._MessageIterator):
         plugin = bt2.find_plugin('utils')
 
         if plugin is None:
-            raise bt2.Error('cannot find "utils" plugin (needed for the trimmer)')
+            raise RuntimeError('cannot find "utils" plugin (needed for the trimmer)')
 
         if 'trimmer' not in plugin.filter_component_classes:
-            raise bt2.Error(
+            raise RuntimeError(
                 'cannot find "trimmer" filter component class in "utils" plugin'
             )
 
@@ -242,7 +242,7 @@ class TraceCollectionMessageIterator(bt2.message_iterator._MessageIterator):
         plugin = bt2.find_plugin(comp_spec.plugin_name)
 
         if plugin is None:
-            raise bt2.Error('no such plugin: {}'.format(comp_spec.plugin_name))
+            raise ValueError('no such plugin: {}'.format(comp_spec.plugin_name))
 
         if comp_cls_type == _CompClsType.SOURCE:
             comp_classes = plugin.source_component_classes
@@ -251,7 +251,7 @@ class TraceCollectionMessageIterator(bt2.message_iterator._MessageIterator):
 
         if comp_spec.class_name not in comp_classes:
             cc_type = 'source' if comp_cls_type == _CompClsType.SOURCE else 'filter'
-            raise bt2.Error(
+            raise ValueError(
                 'no such {} component class in "{}" plugin: {}'.format(
                     cc_type, comp_spec.plugin_name, comp_spec.class_name
                 )

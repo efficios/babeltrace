@@ -42,7 +42,7 @@ def find_plugins(path, recurse=True, fail_on_load_error=False):
             path, int(recurse), int(fail_on_load_error)
         )
     else:
-        raise bt2.Error("invalid path: '{}'".format(path))
+        raise ValueError("invalid path: '{}'".format(path))
 
     if status == native_bt.__BT_FUNC_STATUS_NOT_FOUND:
         return

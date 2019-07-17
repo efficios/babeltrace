@@ -49,7 +49,7 @@ class PluginSetTestCase(unittest.TestCase):
 
 class FindPluginsTestCase(unittest.TestCase):
     def test_find_nonexistent_dir(self):
-        with self.assertRaises(bt2.Error):
+        with self.assertRaises(ValueError):
             bt2.find_plugins(
                 '/this/does/not/exist/246703df-cb85-46d5-8406-5e8dc4a88b41'
             )
