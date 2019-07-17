@@ -1527,8 +1527,9 @@ void destroy_dynamic_array_field_class(struct bt_object *obj)
 }
 
 struct bt_field_class *bt_field_class_dynamic_array_create(
-		bt_trace_class *trace_class,
-		struct bt_field_class *element_fc)
+		struct bt_trace_class *trace_class,
+		struct bt_field_class *element_fc,
+		struct bt_field_class *length_fc)
 {
 	struct bt_field_class_dynamic_array *array_fc = NULL;
 
@@ -1545,6 +1546,15 @@ struct bt_field_class *bt_field_class_dynamic_array_create(
 	init_array_field_class((void *) array_fc,
 		BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY,
 		destroy_dynamic_array_field_class, element_fc);
+
+	if (length_fc) {
+		BT_ASSERT_PRE_FC_IS_UNSIGNED_INT(length_fc,
+			"Length field class");
+		array_fc->length_fc = length_fc;
+		bt_object_get_no_null_check(array_fc->length_fc);
+		bt_field_class_freeze(length_fc);
+	}
+
 	BT_LIB_LOGD("Created dynamic array field class object: %!+F", array_fc);
 	goto end;
 
@@ -1553,25 +1563,6 @@ error:
 
 end:
 	return (void *) array_fc;
-}
-
-enum bt_field_class_dynamic_array_set_length_field_class_status
-bt_field_class_dynamic_array_set_length_field_class(
-		struct bt_field_class *fc,
-		struct bt_field_class *length_fc)
-{
-	struct bt_field_class_dynamic_array *array_fc = (void *) fc;
-
-	BT_ASSERT_PRE_NON_NULL(fc, "Dynamic array field class");
-	BT_ASSERT_PRE_NON_NULL(length_fc, "Length field class");
-	BT_ASSERT_PRE_FC_HAS_ID(fc, BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY,
-		"Field class");
-	BT_ASSERT_PRE_FC_IS_UNSIGNED_INT(length_fc, "Length field class");
-	BT_ASSERT_PRE_DEV_FC_HOT(fc, "Dynamic array field class");
-	array_fc->length_fc = length_fc;
-	bt_object_get_no_null_check(array_fc->length_fc);
-	bt_field_class_freeze(length_fc);
-	return BT_FUNC_STATUS_OK;
 }
 
 const struct bt_field_path *

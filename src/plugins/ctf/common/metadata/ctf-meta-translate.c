@@ -363,9 +363,9 @@ static inline
 bt_field_class *ctf_field_class_sequence_to_ir(struct ctx *ctx,
 		struct ctf_field_class_sequence *fc)
 {
-	int ret;
 	bt_field_class *ir_fc;
 	bt_field_class *elem_ir_fc;
+	bt_field_class *length_fc = NULL;
 
 	if (fc->base.is_text) {
 		ir_fc = bt_field_class_string_create(ctx->ir_tc);
@@ -375,17 +375,18 @@ bt_field_class *ctf_field_class_sequence_to_ir(struct ctx *ctx,
 
 	elem_ir_fc = ctf_field_class_to_ir(ctx, fc->base.elem_fc);
 	BT_ASSERT(elem_ir_fc);
-	ir_fc = bt_field_class_dynamic_array_create(ctx->ir_tc, elem_ir_fc);
-	BT_ASSERT(ir_fc);
-	bt_field_class_put_ref(elem_ir_fc);
-	BT_ASSERT(ir_fc);
 
 	if (fc->length_path.root != CTF_SCOPE_PACKET_HEADER &&
 			fc->length_path.root != CTF_SCOPE_EVENT_HEADER) {
-		ret = bt_field_class_dynamic_array_set_length_field_class(
-			ir_fc, borrow_ir_fc_from_field_path(ctx, &fc->length_path));
-		BT_ASSERT(ret == 0);
+		length_fc = borrow_ir_fc_from_field_path(ctx, &fc->length_path);
+		BT_ASSERT(length_fc);
 	}
+
+	ir_fc = bt_field_class_dynamic_array_create(ctx->ir_tc, elem_ir_fc,
+		length_fc);
+	BT_ASSERT(ir_fc);
+	bt_field_class_put_ref(elem_ir_fc);
+	BT_ASSERT(ir_fc);
 
 end:
 	return ir_fc;

@@ -252,14 +252,15 @@ class _TraceClass(object._SharedObject, collections.abc.Mapping):
 
     def create_dynamic_array_field_class(self, elem_fc, length_fc=None):
         utils._check_type(elem_fc, bt2.field_class._FieldClass)
-        ptr = native_bt.field_class_dynamic_array_create(self._ptr, elem_fc._ptr)
-        self._check_create_status(ptr, 'dynamic array')
-        obj = bt2.field_class._DynamicArrayFieldClass._create_from_ptr(ptr)
+        length_fc_ptr = None
 
         if length_fc is not None:
-            obj._length_field_class = length_fc
+            utils._check_type(length_fc, bt2.field_class._UnsignedIntegerFieldClass)
+            length_fc_ptr = length_fc._ptr
 
-        return obj
+        ptr = native_bt.field_class_dynamic_array_create(self._ptr, elem_fc._ptr, length_fc_ptr)
+        self._check_create_status(ptr, 'dynamic array')
+        return bt2.field_class._DynamicArrayFieldClass._create_from_ptr(ptr)
 
     def create_variant_field_class(self, selector_fc=None):
         selector_fc_ptr = None
