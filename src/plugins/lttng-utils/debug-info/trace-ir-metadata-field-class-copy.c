@@ -492,48 +492,18 @@ int field_class_dynamic_array_copy(
 		const bt_field_class *in_field_class,
 		bt_field_class *out_field_class)
 {
-	const bt_field_class *len_fc;
-	const bt_field_path *len_fp;
-	bt_field_class *out_len_field_class;
-	int ret = 0;
-
 	BT_COMP_LOGD("Copying content of dynamic array field class: "
 			"in-fc-addr=%p, out-fc-addr=%p",
 			in_field_class, out_field_class);
 
-	len_fp = bt_field_class_dynamic_array_borrow_length_field_path_const(
-			in_field_class);
-
-	if (len_fp) {
-		BT_COMP_LOGD("Copying dynamic array length field class using "
-				"field path: in-len-fp=%p", len_fp);
-		len_fc = resolve_field_path_to_field_class(
-				len_fp, md_maps);
-		out_len_field_class = g_hash_table_lookup(
-				md_maps->field_class_map, len_fc);
-		if (!out_len_field_class) {
-			BT_COMP_LOGE_STR("Cannot find the output matching length"
-					"field class.");
-			ret = -1;
-			goto error;
-		}
-
-		if (bt_field_class_dynamic_array_set_length_field_class(
-				out_field_class, out_len_field_class) !=
-				BT_FIELD_CLASS_DYNAMIC_ARRAY_SET_LENGTH_FIELD_CLASS_STATUS_OK) {
-			BT_COMP_LOGE_STR("Cannot set dynamic array field class' "
-					"length field class.");
-			BT_FIELD_CLASS_PUT_REF_AND_RESET(out_len_field_class);
-			ret = -1;
-			goto error;
-		}
-	}
-
+	/*
+	 * There is no content to copy. Keep this function call anyway for
+	 * logging purposes.
+	 */
 	BT_COMP_LOGD("Copied dynamic array field class: in-fc-addr=%p, "
 			"out-fc-addr=%p", in_field_class, out_field_class);
 
-error:
-	return ret;
+	return 0;
 }
 
 static inline
@@ -644,17 +614,32 @@ bt_field_class *create_field_class_copy_internal(struct trace_ir_metadata_maps *
 		const bt_field_class *in_elem_fc =
 			bt_field_class_array_borrow_element_field_class_const(
 					in_field_class);
+		const bt_field_path *length_fp =
+			bt_field_class_dynamic_array_borrow_length_field_path_const(
+				in_field_class);
+		bt_field_class *out_length_fc = NULL;
 
 		bt_field_class *out_elem_fc = copy_field_class_array_element(
-				md_maps, in_elem_fc);
+			md_maps, in_elem_fc);
 		if (!out_elem_fc) {
 			out_field_class = NULL;
 			goto error;
 		}
 
+		if (length_fp) {
+			const bt_field_class *in_length_fc =
+				resolve_field_path_to_field_class(length_fp,
+					md_maps);
+
+			BT_ASSERT(in_length_fc);
+			out_length_fc = g_hash_table_lookup(md_maps->field_class_map,
+				in_length_fc);
+			BT_ASSERT(out_length_fc);
+		}
+
 		out_field_class = bt_field_class_dynamic_array_create(
 				md_maps->output_trace_class,
-				out_elem_fc);
+				out_elem_fc, out_length_fc);
 		break;
 	}
 	case BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR:

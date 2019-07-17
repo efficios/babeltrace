@@ -107,20 +107,11 @@ extern bt_field_class *bt_field_class_static_array_create(
 
 extern bt_field_class *bt_field_class_dynamic_array_create(
 		bt_trace_class *trace_class,
-		bt_field_class *elem_field_class);
+		bt_field_class *elem_field_class,
+		bt_field_class *length_field_class);
 
 extern bt_field_class *bt_field_class_array_borrow_element_field_class(
 		bt_field_class *field_class);
-
-typedef enum bt_field_class_dynamic_array_set_length_field_class_status {
-	BT_FIELD_CLASS_DYNAMIC_ARRAY_SET_LENGTH_FIELD_CLASS_STATUS_MEMORY_ERROR	= __BT_FUNC_STATUS_MEMORY_ERROR,
-	BT_FIELD_CLASS_DYNAMIC_ARRAY_SET_LENGTH_FIELD_CLASS_STATUS_OK		= __BT_FUNC_STATUS_OK,
-} bt_field_class_dynamic_array_set_length_field_class_status;
-
-extern bt_field_class_dynamic_array_set_length_field_class_status
-bt_field_class_dynamic_array_set_length_field_class(
-		bt_field_class *field_class,
-		bt_field_class *length_field_class);
 
 extern bt_field_class *bt_field_class_variant_create(
 		bt_trace_class *trace_class,

@@ -501,14 +501,6 @@ class _DynamicArrayFieldClass(_ArrayFieldClass):
 
         return bt2.field_path._FieldPath._create_from_ptr_and_get_ref(ptr)
 
-    def _set_length_field_class(self, length_fc):
-        utils._check_type(length_fc, _UnsignedIntegerFieldClass)
-        status = native_bt.field_class_dynamic_array_set_length_field_class(self._ptr, length_fc._ptr)
-        utils._handle_func_status(status,
-                                  "cannot set dynamic array length field type")
-
-    _length_field_class = property(fset=_set_length_field_class)
-
 
 _FIELD_CLASS_TYPE_TO_OBJ = {
     native_bt.FIELD_CLASS_TYPE_UNSIGNED_INTEGER: _UnsignedIntegerFieldClass,
