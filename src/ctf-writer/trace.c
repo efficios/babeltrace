@@ -899,7 +899,7 @@ int bt_ctf_trace_common_add_stream_class(struct bt_ctf_trace_common *trace,
 	struct bt_ctf_field_type_common *packet_context_type = NULL;
 	struct bt_ctf_field_type_common *event_header_type = NULL;
 	struct bt_ctf_field_type_common *stream_event_ctx_type = NULL;
-	int64_t event_class_count;
+	int64_t event_class_count = 0;
 	struct bt_ctf_trace_common *current_parent_trace = NULL;
 	struct bt_ctf_clock_class *expected_clock_class =
 		bt_ctf_object_get_ref(init_expected_clock_class);
