@@ -198,7 +198,6 @@ enum bt_trace_class_add_listener_status bt_trace_class_add_destruction_listener(
 	return BT_FUNC_STATUS_OK;
 }
 
-BT_ASSERT_PRE_FUNC
 static
 bool has_listener_id(const struct bt_trace_class *tc, uint64_t listener_id)
 {

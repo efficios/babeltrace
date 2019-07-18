@@ -52,7 +52,6 @@
  *
  * Example:
  *
- *     BT_ASSERT_PRE_FUNC
  *     static inline bool check_complex_precond(...)
  *     {
  *         ...
@@ -115,11 +114,6 @@
 		"Index is out of bounds: index=%" PRIu64 ", "		\
 		"count=%" PRIu64, (uint64_t) (_index), (uint64_t) (_length))
 
-/*
- * Marks a function as being only used within a BT_ASSERT_PRE() context.
- */
-#define BT_ASSERT_PRE_FUNC
-
 #ifdef BT_DEV_MODE
 /* Developer mode version of BT_ASSERT_PRE_MSG(). */
 # define BT_ASSERT_PRE_DEV_MSG(_fmt, ...)				\
@@ -150,7 +144,10 @@
 # define BT_ASSERT_PRE_DEV_VALID_INDEX(_index, _length)			\
 	BT_ASSERT_PRE_VALID_INDEX((_index), (_length))
 
-/* Developer mode version of `BT_ASSERT_PRE_FUNC`. */
+/*
+ * Marks a function as being only used within a BT_ASSERT_PRE_DEV()
+ * context.
+ */
 # define BT_ASSERT_PRE_DEV_FUNC
 #else
 # define BT_ASSERT_PRE_DEV_MSG(_fmt, ...)

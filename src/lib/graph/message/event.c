@@ -44,7 +44,6 @@
 
 #include "event.h"
 
-BT_ASSERT_PRE_FUNC
 static inline bool event_class_has_trace(struct bt_event_class *event_class)
 {
 	struct bt_stream_class *stream_class;

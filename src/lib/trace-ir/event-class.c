@@ -85,7 +85,6 @@ void free_event(struct bt_event *event,
 	bt_event_destroy(event);
 }
 
-BT_ASSERT_PRE_FUNC
 static
 bool event_class_id_is_unique(const struct bt_stream_class *stream_class,
 		uint64_t id)

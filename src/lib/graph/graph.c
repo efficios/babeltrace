@@ -1234,7 +1234,6 @@ void bt_graph_remove_connection(struct bt_graph *graph,
 	g_ptr_array_remove(graph->connections, connection);
 }
 
-BT_ASSERT_PRE_FUNC
 static inline
 bool component_name_exists(struct bt_graph *graph, const char *name)
 {
