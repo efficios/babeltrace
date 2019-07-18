@@ -31,8 +31,7 @@ class UserComponentClassTestCase(unittest.TestCase):
             def __next__(self):
                 raise bt2.Stop
 
-        class MySource(bt2._UserSourceComponent,
-                       message_iterator_class=MyIter):
+        class MySource(bt2._UserSourceComponent, message_iterator_class=MyIter):
             pass
 
         self._test_no_init(MySource)
@@ -42,8 +41,7 @@ class UserComponentClassTestCase(unittest.TestCase):
             def __next__(self):
                 raise bt2.Stop
 
-        class MyFilter(bt2._UserFilterComponent,
-                       message_iterator_class=MyIter):
+        class MyFilter(bt2._UserFilterComponent, message_iterator_class=MyIter):
             pass
 
         self._test_no_init(MyFilter)
@@ -63,6 +61,7 @@ class UserComponentClassTestCase(unittest.TestCase):
             pass
 
         with self.assertRaises(bt2.IncompleteUserClass):
+
             class MySource(bt2._UserSourceComponent):
                 pass
 
@@ -71,8 +70,8 @@ class UserComponentClassTestCase(unittest.TestCase):
             pass
 
         with self.assertRaises(bt2.IncompleteUserClass):
-            class MySource(bt2._UserSourceComponent,
-                           message_iterator_class=int):
+
+            class MySource(bt2._UserSourceComponent, message_iterator_class=int):
                 pass
 
     def test_incomplete_filter_no_msg_iter_cls(self):
@@ -80,6 +79,7 @@ class UserComponentClassTestCase(unittest.TestCase):
             pass
 
         with self.assertRaises(bt2.IncompleteUserClass):
+
             class MyFilter(bt2._UserFilterComponent):
                 pass
 
@@ -88,6 +88,7 @@ class UserComponentClassTestCase(unittest.TestCase):
             pass
 
         with self.assertRaises(bt2.IncompleteUserClass):
+
             class MySink(bt2._UserSinkComponent):
                 pass
 
@@ -95,16 +96,14 @@ class UserComponentClassTestCase(unittest.TestCase):
         class MyIter(bt2._UserMessageIterator):
             pass
 
-        class MySource(bt2._UserSourceComponent,
-                       message_iterator_class=MyIter):
+        class MySource(bt2._UserSourceComponent, message_iterator_class=MyIter):
             pass
 
     def test_minimal_filter(self):
         class MyIter(bt2._UserMessageIterator):
             pass
 
-        class MyFilter(bt2._UserFilterComponent,
-                       message_iterator_class=MyIter):
+        class MyFilter(bt2._UserFilterComponent, message_iterator_class=MyIter):
             pass
 
     def test_minimal_sink(self):
@@ -137,6 +136,7 @@ class UserComponentClassTestCase(unittest.TestCase):
 
     def test_invalid_custom_name(self):
         with self.assertRaises(TypeError):
+
             class MySink(bt2._UserSinkComponent, name=23):
                 def _consume(self):
                     pass
@@ -282,8 +282,7 @@ class UserComponentClassTestCase(unittest.TestCase):
                 query_log_level = log_level
 
         query_log_level = None
-        res = bt2.QueryExecutor().query(MySink, 'obj', None,
-                                        bt2.LoggingLevel.WARNING)
+        res = bt2.QueryExecutor().query(MySink, 'obj', None, bt2.LoggingLevel.WARNING)
         self.assertEqual(query_log_level, bt2.LoggingLevel.WARNING)
         del query_log_level
 
@@ -335,28 +334,18 @@ class UserComponentClassTestCase(unittest.TestCase):
             def _query(cls, query_exec, obj, params, log_level):
                 nonlocal query_params
                 query_params = params
-                return {
-                    'null': None,
-                    'bt2': 'BT2',
-                }
+                return {'null': None, 'bt2': 'BT2'}
 
         query_params = None
         params = {
             'array': ['coucou', 23, None],
-            'other_map': {
-                'yes': 'yeah',
-                '19': 19,
-                'minus 1.5': -1.5,
-            },
+            'other_map': {'yes': 'yeah', '19': 19, 'minus 1.5': -1.5},
             'null': None,
         }
 
         res = bt2.QueryExecutor().query(MySink, 'obj', params)
         self.assertEqual(query_params, params)
-        self.assertEqual(res, {
-            'null': None,
-            'bt2': 'BT2',
-        })
+        self.assertEqual(res, {'null': None, 'bt2': 'BT2'})
         del query_params
 
     def test_eq(self):
@@ -378,6 +367,7 @@ class GenericComponentClassTestCase(unittest.TestCase):
 
             The help.
             '''
+
             def _consume(self):
                 pass
 
@@ -392,8 +382,9 @@ class GenericComponentClassTestCase(unittest.TestCase):
         graph = bt2.Graph()
         comp = graph.add_component(MySink, 'salut')
         self._comp_cls = comp.cls
-        self.assertTrue(issubclass(type(self._comp_cls),
-                                   bt2.component._GenericComponentClass))
+        self.assertTrue(
+            issubclass(type(self._comp_cls), bt2.component._GenericComponentClass)
+        )
 
     def tearDown(self):
         del self._py_comp_cls
@@ -420,7 +411,8 @@ class GenericComponentClassTestCase(unittest.TestCase):
         self.assertEqual(self._py_comp_cls, self._comp_cls)
 
     def test_query(self):
-        res = bt2.QueryExecutor().query(self._comp_cls, 'an object',
-                                        {'yes': 'no', 'book': -17})
+        res = bt2.QueryExecutor().query(
+            self._comp_cls, 'an object', {'yes': 'no', 'book': -17}
+        )
         expected = ['an object', {'yes': 'no', 'book': -17}, 23]
         self.assertEqual(res, expected)

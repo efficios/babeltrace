@@ -34,46 +34,46 @@ following command to your .bashrc/.zshrc:
 --------------------------------------------------------------------------------
 """
 
+
 def main():
-    babeltrace_ext = Extension('bt2._native_bt',
-                        sources=['bt2/native_bt.c', '@srcdir@/bt2/logging.c'],
-                        libraries=['babeltrace2', 'glib-2.0'],
-                        extra_objects=['@top_builddir@/src/logging/.libs/libbabeltrace2-logging.a',
-                            '@top_builddir@/src/common/.libs/libbabeltrace2-common.a',
-                            '@top_builddir@/src/py-common/.libs/libbabeltrace2-py-common.a'])
+    babeltrace_ext = Extension(
+        'bt2._native_bt',
+        sources=['bt2/native_bt.c', '@srcdir@/bt2/logging.c'],
+        libraries=['babeltrace2', 'glib-2.0'],
+        extra_objects=[
+            '@top_builddir@/src/logging/.libs/libbabeltrace2-logging.a',
+            '@top_builddir@/src/common/.libs/libbabeltrace2-common.a',
+            '@top_builddir@/src/py-common/.libs/libbabeltrace2-py-common.a',
+        ],
+    )
 
-    dist = setup(name='bt2',
-            version='@PACKAGE_VERSION@',
-            description='Babeltrace 2 Python Bindings',
-            packages=['bt2'],
-            package_dir={'bt2': 'bt2'},
-            options={'build':
-                {
-                    'build_base': 'build',
-                    'build_lib': 'build/build_lib'
-                },
-                'build_ext':
-                {
-                    'build_lib': 'build/build_lib'
-                }
-            },
-            url='http://diamon.org/babeltrace',
-            ext_modules=[babeltrace_ext],
-            license='MIT',
-            classifiers=[
-                'Development Status :: 5 - Production/Stable',
-                'Intended Audience :: Developers',
-                'License :: OSI Approved :: The MIT License',
-                'Programming Language :: Python :: 3'
-                'Topic :: System :: Logging',
-                ])
+    dist = setup(
+        name='bt2',
+        version='@PACKAGE_VERSION@',
+        description='Babeltrace 2 Python Bindings',
+        packages=['bt2'],
+        package_dir={'bt2': 'bt2'},
+        options={
+            'build': {'build_base': 'build', 'build_lib': 'build/build_lib'},
+            'build_ext': {'build_lib': 'build/build_lib'},
+        },
+        url='http://diamon.org/babeltrace',
+        ext_modules=[babeltrace_ext],
+        license='MIT',
+        classifiers=[
+            'Development Status :: 5 - Production/Stable',
+            'Intended Audience :: Developers',
+            'License :: OSI Approved :: The MIT License',
+            'Programming Language :: Python :: 3' 'Topic :: System :: Logging',
+        ],
+    )
 
-# After the installation, we check that the install directory is included in
-# the Python search path and we print a warning message when it's not.
-# We need to do this because Python search path differs depending on the distro
-# and some distros don't include any /usr/local/ in the search path. This is
-# also useful for out-of-tree installs and tests.
-# It's only relevant to make this check on the `install` command.
+    # After the installation, we check that the install directory is included in
+    # the Python search path and we print a warning message when it's not.
+    # We need to do this because Python search path differs depending on the distro
+    # and some distros don't include any /usr/local/ in the search path. This is
+    # also useful for out-of-tree installs and tests.
+    # It's only relevant to make this check on the `install` command.
 
     if 'install' in dist.command_obj:
         install_dir = dist.command_obj['install'].install_libbase
@@ -82,6 +82,7 @@ def main():
             # distro differently. We only warn the user that some
             # extra configuration is needed to use the bindings
             print(PY_PATH_WARN_MSG.format(install_dir, install_dir))
+
 
 if __name__ == "__main__":
     main()

@@ -42,6 +42,6 @@ class _Packet(object._SharedObject):
         if field_ptr is None:
             return
 
-        return bt2.field._create_field_from_ptr(field_ptr, self._ptr,
-                                                self._get_ref,
-                                                self._put_ref)
+        return bt2.field._create_field_from_ptr(
+            field_ptr, self._ptr, self._get_ref, self._put_ref
+        )

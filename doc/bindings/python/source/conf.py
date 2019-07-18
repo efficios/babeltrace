@@ -6,10 +6,7 @@ import os
 
 # general configuration
 needs_sphinx = '1.2'
-extensions = [
-    'sphinx.ext.autodoc',
-    'sphinx.ext.ifconfig',
-]
+extensions = ['sphinx.ext.autodoc', 'sphinx.ext.ifconfig']
 templates_path = ['_templates']
 source_suffix = '.rst'
 source_encoding = 'utf-8-sig'

@@ -48,7 +48,9 @@ class _StreamClass(object._SharedObject, collections.abc.Mapping):
 
     def __iter__(self):
         for idx in range(len(self)):
-            ec_ptr = native_bt.stream_class_borrow_event_class_by_index_const(self._ptr, idx)
+            ec_ptr = native_bt.stream_class_borrow_event_class_by_index_const(
+                self._ptr, idx
+            )
             assert ec_ptr is not None
 
             id = native_bt.event_class_get_id(ec_ptr)
@@ -56,17 +58,27 @@ class _StreamClass(object._SharedObject, collections.abc.Mapping):
 
             yield id
 
-    def create_event_class(self, id=None, name=None, log_level=None, emf_uri=None,
-                           specific_context_field_class=None,
-                           payload_field_class=None):
+    def create_event_class(
+        self,
+        id=None,
+        name=None,
+        log_level=None,
+        emf_uri=None,
+        specific_context_field_class=None,
+        payload_field_class=None,
+    ):
         if self.assigns_automatic_event_class_id:
             if id is not None:
-                raise ValueError('id provided, but stream class assigns automatic event class ids')
+                raise ValueError(
+                    'id provided, but stream class assigns automatic event class ids'
+                )
 
             ec_ptr = native_bt.event_class_create(self._ptr)
         else:
             if id is None:
-                raise ValueError('id not provided, but stream class does not assign automatic event class ids')
+                raise ValueError(
+                    'id not provided, but stream class does not assign automatic event class ids'
+                )
 
             utils._check_uint64(id)
             ec_ptr = native_bt.event_class_create_with_id(self._ptr, id)
@@ -104,8 +116,7 @@ class _StreamClass(object._SharedObject, collections.abc.Mapping):
     def _name(self, name):
         utils._check_str(name)
         status = native_bt.stream_class_set_name(self._ptr, name)
-        utils._handle_func_status(status,
-                                  "cannot set stream class object's name")
+        utils._handle_func_status(status, "cannot set stream class object's name")
 
     _name = property(fset=_name)
 
@@ -115,7 +126,9 @@ class _StreamClass(object._SharedObject, collections.abc.Mapping):
 
     def _assigns_automatic_event_class_id(self, auto_id):
         utils._check_bool(auto_id)
-        return native_bt.stream_class_set_assigns_automatic_event_class_id(self._ptr, auto_id)
+        return native_bt.stream_class_set_assigns_automatic_event_class_id(
+            self._ptr, auto_id
+        )
 
     _assigns_automatic_event_class_id = property(fset=_assigns_automatic_event_class_id)
 
@@ -125,7 +138,9 @@ class _StreamClass(object._SharedObject, collections.abc.Mapping):
 
     def _assigns_automatic_stream_id(self, auto_id):
         utils._check_bool(auto_id)
-        return native_bt.stream_class_set_assigns_automatic_stream_id(self._ptr, auto_id)
+        return native_bt.stream_class_set_assigns_automatic_stream_id(
+            self._ptr, auto_id
+        )
 
     _assigns_automatic_stream_id = property(fset=_assigns_automatic_stream_id)
 
@@ -135,7 +150,9 @@ class _StreamClass(object._SharedObject, collections.abc.Mapping):
 
     @property
     def packets_have_beginning_default_clock_snapshot(self):
-        return native_bt.stream_class_packets_have_beginning_default_clock_snapshot(self._ptr)
+        return native_bt.stream_class_packets_have_beginning_default_clock_snapshot(
+            self._ptr
+        )
 
     @property
     def packets_have_end_default_clock_snapshot(self):
@@ -147,12 +164,16 @@ class _StreamClass(object._SharedObject, collections.abc.Mapping):
         utils._check_bool(with_end_cs)
 
         if not supports and (with_begin_cs or with_end_cs):
-            raise ValueError('cannot not support packets, but have default clock snapshots')
+            raise ValueError(
+                'cannot not support packets, but have default clock snapshots'
+            )
 
         if not supports and self.packet_context_field_class is not None:
             raise ValueError('stream class already has a packet context field class')
 
-        native_bt.stream_class_set_supports_packets(self._ptr, supports, with_begin_cs, with_end_cs)
+        native_bt.stream_class_set_supports_packets(
+            self._ptr, supports, with_begin_cs, with_end_cs
+        )
 
     @property
     def supports_discarded_events(self):
@@ -163,13 +184,19 @@ class _StreamClass(object._SharedObject, collections.abc.Mapping):
         utils._check_bool(with_cs)
 
         if not supports and with_cs:
-            raise ValueError('cannot not support discarded events, but have default clock snapshots')
+            raise ValueError(
+                'cannot not support discarded events, but have default clock snapshots'
+            )
 
-        native_bt.stream_class_set_supports_discarded_events(self._ptr, supports, with_cs)
+        native_bt.stream_class_set_supports_discarded_events(
+            self._ptr, supports, with_cs
+        )
 
     @property
     def discarded_events_have_default_clock_snapshots(self):
-        return native_bt.stream_class_discarded_events_have_default_clock_snapshots(self._ptr)
+        return native_bt.stream_class_discarded_events_have_default_clock_snapshots(
+            self._ptr
+        )
 
     @property
     def supports_discarded_packets(self):
@@ -180,16 +207,24 @@ class _StreamClass(object._SharedObject, collections.abc.Mapping):
         utils._check_bool(with_cs)
 
         if supports and not self.supports_packets:
-            raise ValueError('cannot support discarded packets, but not support packets')
+            raise ValueError(
+                'cannot support discarded packets, but not support packets'
+            )
 
         if not supports and with_cs:
-            raise ValueError('cannot not support discarded packets, but have default clock snapshots')
+            raise ValueError(
+                'cannot not support discarded packets, but have default clock snapshots'
+            )
 
-        native_bt.stream_class_set_supports_discarded_packets(self._ptr, supports, with_cs)
+        native_bt.stream_class_set_supports_discarded_packets(
+            self._ptr, supports, with_cs
+        )
 
     @property
     def discarded_packets_have_default_clock_snapshots(self):
-        return native_bt.stream_class_discarded_packets_have_default_clock_snapshots(self._ptr)
+        return native_bt.stream_class_discarded_packets_have_default_clock_snapshots(
+            self._ptr
+        )
 
     @property
     def id(self):
@@ -208,7 +243,9 @@ class _StreamClass(object._SharedObject, collections.abc.Mapping):
 
     @property
     def packet_context_field_class(self):
-        fc_ptr = native_bt.stream_class_borrow_packet_context_field_class_const(self._ptr)
+        fc_ptr = native_bt.stream_class_borrow_packet_context_field_class_const(
+            self._ptr
+        )
 
         if fc_ptr is None:
             return
@@ -217,22 +254,27 @@ class _StreamClass(object._SharedObject, collections.abc.Mapping):
 
     def _packet_context_field_class(self, packet_context_field_class):
         if packet_context_field_class is not None:
-            utils._check_type(packet_context_field_class,
-                              bt2.field_class._StructureFieldClass)
+            utils._check_type(
+                packet_context_field_class, bt2.field_class._StructureFieldClass
+            )
 
             if not self.supports_packets:
                 raise ValueError('stream class does not support packets')
 
-            status = native_bt.stream_class_set_packet_context_field_class(self._ptr,
-                                                                           packet_context_field_class._ptr)
-            utils._handle_func_status(status,
-                                      "cannot set stream class' packet context field class")
+            status = native_bt.stream_class_set_packet_context_field_class(
+                self._ptr, packet_context_field_class._ptr
+            )
+            utils._handle_func_status(
+                status, "cannot set stream class' packet context field class"
+            )
 
     _packet_context_field_class = property(fset=_packet_context_field_class)
 
     @property
     def event_common_context_field_class(self):
-        fc_ptr = native_bt.stream_class_borrow_event_common_context_field_class_const(self._ptr)
+        fc_ptr = native_bt.stream_class_borrow_event_common_context_field_class_const(
+            self._ptr
+        )
 
         if fc_ptr is None:
             return
@@ -241,13 +283,15 @@ class _StreamClass(object._SharedObject, collections.abc.Mapping):
 
     def _event_common_context_field_class(self, event_common_context_field_class):
         if event_common_context_field_class is not None:
-            utils._check_type(event_common_context_field_class,
-                              bt2.field_class._StructureFieldClass)
+            utils._check_type(
+                event_common_context_field_class, bt2.field_class._StructureFieldClass
+            )
 
             set_context_fn = native_bt.stream_class_set_event_common_context_field_class
             status = set_context_fn(self._ptr, event_common_context_field_class._ptr)
-            utils._handle_func_status(status,
-                                      "cannot set stream class' event context field type")
+            utils._handle_func_status(
+                status, "cannot set stream class' event context field type"
+            )
 
     _event_common_context_field_class = property(fset=_event_common_context_field_class)
 
@@ -261,7 +305,6 @@ class _StreamClass(object._SharedObject, collections.abc.Mapping):
 
     def _default_clock_class(self, clock_class):
         utils._check_type(clock_class, bt2.clock_class._ClockClass)
-        native_bt.stream_class_set_default_clock_class(
-            self._ptr, clock_class._ptr)
+        native_bt.stream_class_set_default_clock_class(self._ptr, clock_class._ptr)
 
     _default_clock_class = property(fset=_default_clock_class)

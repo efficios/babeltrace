@@ -59,8 +59,7 @@ class _ClockClass(object._SharedObject):
     def _name(self, name):
         utils._check_str(name)
         status = native_bt.clock_class_set_name(self._ptr, name)
-        utils._handle_func_status(status,
-                                  "cannot set clock class object's name")
+        utils._handle_func_status(status, "cannot set clock class object's name")
 
     _name = property(fset=_name)
 
@@ -71,8 +70,7 @@ class _ClockClass(object._SharedObject):
     def _description(self, description):
         utils._check_str(description)
         status = native_bt.clock_class_set_description(self._ptr, description)
-        utils._handle_func_status(status,
-                                  "cannot set clock class object's description")
+        utils._handle_func_status(status, "cannot set clock class object's description")
 
     _description = property(fset=_description)
 
@@ -114,7 +112,9 @@ class _ClockClass(object._SharedObject):
 
     def _origin_is_unix_epoch(self, origin_is_unix_epoch):
         utils._check_bool(origin_is_unix_epoch)
-        native_bt.clock_class_set_origin_is_unix_epoch(self._ptr, int(origin_is_unix_epoch))
+        native_bt.clock_class_set_origin_is_unix_epoch(
+            self._ptr, int(origin_is_unix_epoch)
+        )
 
     _origin_is_unix_epoch = property(fset=_origin_is_unix_epoch)
 

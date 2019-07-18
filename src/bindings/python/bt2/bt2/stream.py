@@ -34,7 +34,9 @@ class _Stream(bt2.object._SharedObject):
     def cls(self):
         stream_class_ptr = native_bt.stream_borrow_class(self._ptr)
         assert stream_class_ptr is not None
-        return bt2.stream_class._StreamClass._create_from_ptr_and_get_ref(stream_class_ptr)
+        return bt2.stream_class._StreamClass._create_from_ptr_and_get_ref(
+            stream_class_ptr
+        )
 
     @property
     def name(self):
@@ -53,7 +55,9 @@ class _Stream(bt2.object._SharedObject):
 
     def create_packet(self):
         if not self.cls.supports_packets:
-            raise bt2.Error('cannot create packet: stream class does not support packets')
+            raise bt2.Error(
+                'cannot create packet: stream class does not support packets'
+            )
 
         packet_ptr = native_bt.packet_create(self._ptr)
 

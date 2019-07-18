@@ -126,8 +126,12 @@ def _init_and_register_exit():
     import atexit
 
     atexit.register(_native_bt.bt2_cc_exit_handler)
-    version = (_native_bt.version_get_major(), _native_bt.version_get_minor(),
-               _native_bt.version_get_patch(), _native_bt.version_get_extra())
+    version = (
+        _native_bt.version_get_major(),
+        _native_bt.version_get_minor(),
+        _native_bt.version_get_patch(),
+        _native_bt.version_get_extra(),
+    )
     _native_bt.bt2_cc_init_from_bt2()
 
 

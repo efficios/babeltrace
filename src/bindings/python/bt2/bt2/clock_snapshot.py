@@ -41,8 +41,9 @@ class _ClockSnapshot(object._UniqueObject):
     @property
     def ns_from_origin(self):
         status, ns = native_bt.clock_snapshot_get_ns_from_origin(self._ptr)
-        utils._handle_func_status(status,
-                                  "cannot get clock snapshot's nanoseconds from origin")
+        utils._handle_func_status(
+            status, "cannot get clock snapshot's nanoseconds from origin"
+        )
         return ns
 
     def __eq__(self, other):

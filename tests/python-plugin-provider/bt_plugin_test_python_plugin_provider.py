@@ -24,14 +24,12 @@ class MyIter(bt2._UserMessageIterator):
 
 
 @bt2.plugin_component_class
-class MySource(bt2._UserSourceComponent,
-               message_iterator_class=MyIter):
+class MySource(bt2._UserSourceComponent, message_iterator_class=MyIter):
     pass
 
 
 @bt2.plugin_component_class
-class MyFilter(bt2._UserFilterComponent,
-               message_iterator_class=MyIter):
+class MyFilter(bt2._UserFilterComponent, message_iterator_class=MyIter):
     pass
 
 
@@ -44,7 +42,11 @@ class MySink(bt2._UserSinkComponent):
         pass
 
 
-bt2.register_plugin(__name__, 'sparkling', author='Philippe Proulx',
-                    description='A delicious plugin.',
-                    version=(1, 2, 3, 'EXTRA'),
-                    license='MIT')
+bt2.register_plugin(
+    __name__,
+    'sparkling',
+    author='Philippe Proulx',
+    description='A delicious plugin.',
+    version=(1, 2, 3, 'EXTRA'),
+    license='MIT',
+)

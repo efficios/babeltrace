@@ -32,12 +32,15 @@ def plugin_component_class(component_class):
     return component_class
 
 
-def register_plugin(module_name, name, description=None, author=None,
-                    license=None, version=None):
+def register_plugin(
+    module_name, name, description=None, author=None, license=None, version=None
+):
     import sys
 
     if module_name not in sys.modules:
-        raise RuntimeError("cannot find module '{}' in loaded modules".format(module_name))
+        raise RuntimeError(
+            "cannot find module '{}' in loaded modules".format(module_name)
+        )
 
     utils._check_str(name)
 
@@ -52,11 +55,13 @@ def register_plugin(module_name, name, description=None, author=None,
 
     if version is not None:
         if not _validate_version(version):
-            raise ValueError('wrong version: expecting a tuple: (major, minor, patch) or (major, minor, patch, extra)')
+            raise ValueError(
+                'wrong version: expecting a tuple: (major, minor, patch) or (major, minor, patch, extra)'
+            )
 
-    sys.modules[module_name]._bt_plugin_info = _PluginInfo(name, description,
-                                                           author, license,
-                                                           version)
+    sys.modules[module_name]._bt_plugin_info = _PluginInfo(
+        name, description, author, license, version
+    )
 
 
 def _validate_version(version):

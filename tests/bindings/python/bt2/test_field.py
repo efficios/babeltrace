@@ -27,10 +27,7 @@ import bt2
 from utils import get_default_trace_class
 
 
-_COMP_BINOPS = (
-    operator.eq,
-    operator.ne,
-)
+_COMP_BINOPS = (operator.eq, operator.ne)
 
 
 # Create and return a stream with the field classes part of its stream packet
@@ -38,14 +35,16 @@ _COMP_BINOPS = (
 #
 # The stream is part of a dummy trace created from trace class `tc`.
 
+
 def _create_stream(tc, ctx_field_classes):
     packet_context_fc = tc.create_structure_field_class()
     for name, fc in ctx_field_classes:
         packet_context_fc.append_member(name, fc)
 
     trace = tc()
-    stream_class = tc.create_stream_class(packet_context_field_class=packet_context_fc,
-                                          supports_packets=True)
+    stream_class = tc.create_stream_class(
+        packet_context_field_class=packet_context_fc, supports_packets=True
+    )
 
     stream = trace.create_stream(stream_class)
     return stream
@@ -55,6 +54,7 @@ def _create_stream(tc, ctx_field_classes):
 #
 # The field is part of a dummy stream, itself part of a dummy trace created
 # from trace class `tc`.
+
 
 def _create_field(tc, field_class):
     field_name = 'field'
@@ -68,6 +68,7 @@ def _create_field(tc, field_class):
 # The field is part of a dummy stream, itself part of a dummy trace created
 # from trace class `tc`.  It is made out of a dummy string field class.
 
+
 def _create_string_field(tc):
     field_name = 'string_field'
     stream = _create_stream(tc, [(field_name, tc.create_string_field_class())])
@@ -80,6 +81,7 @@ def _create_string_field(tc):
 # The field is part of a dummy stream, itself part of a dummy trace created
 # from trace class `tc`.  It is made out of a dummy static array field class,
 # with a dummy integer field class as element class.
+
 
 def _create_int_array_field(tc, length):
     elem_fc = tc.create_signed_integer_field_class(32)
@@ -95,6 +97,7 @@ def _create_int_array_field(tc, length):
 # The field is part of a dummy stream, itself part of a dummy trace created
 # from trace class `tc`.  It is made out of a dummy static array field class,
 # with a dummy integer field class as element and length classes.
+
 
 def _create_dynamic_array(tc):
     elem_fc = tc.create_signed_integer_field_class(32)
@@ -112,6 +115,7 @@ def _create_dynamic_array(tc):
 # The field is part of a dummy stream, itself part of a dummy trace created
 # from trace class `tc`.  It is made out of a dummy static array field class,
 # with a dummy struct field class as element class.
+
 
 def _create_struct_array_field(tc, length):
     elem_fc = tc.create_structure_field_class()
@@ -354,7 +358,7 @@ class _TestNumericField:
         test_cb(op, bt2.create_value(0.0))
 
     def _test_binop_rhs_complex(self, test_cb, op):
-        test_cb(op, -23+19j)
+        test_cb(op, -23 + 19j)
 
     def _test_binop_rhs_zero_complex(self, test_cb, op):
         test_cb(op, 0j)
@@ -570,13 +574,13 @@ class _TestNumericField:
         # Ignore this lint error:
         #   E711 comparison to None should be 'if cond is None:'
         # since this is what we want to test (even though not good practice).
-        self.assertFalse(self._def == None) # noqa: E711
+        self.assertFalse(self._def == None)  # noqa: E711
 
     def test_ne_none(self):
         # Ignore this lint error:
         #   E711 comparison to None should be 'if cond is not None:'
         # since this is what we want to test (even though not good practice).
-        self.assertTrue(self._def != None) # noqa: E711
+        self.assertTrue(self._def != None)  # noqa: E711
 
 
 # This is a list of binary operators used for
@@ -662,79 +666,415 @@ def _inject_numeric_testing_methods(cls):
 
     # inject testing methods for each binary operation
     for name, binop in _BINOPS:
-        setattr(cls, test_binop_name('invalid_unknown'), partialmethod(_TestNumericField._test_binop_invalid_unknown, op=binop))
-        setattr(cls, test_binop_name('invalid_none'), partialmethod(_TestNumericField._test_binop_invalid_none, op=binop))
-        setattr(cls, test_binop_name('type_true'), partialmethod(_TestNumericField._test_binop_type_true, op=binop))
-        setattr(cls, test_binop_name('type_pos_int'), partialmethod(_TestNumericField._test_binop_type_pos_int, op=binop))
-        setattr(cls, test_binop_name('type_pos_vint'), partialmethod(_TestNumericField._test_binop_type_pos_vint, op=binop))
-        setattr(cls, test_binop_name('value_true'), partialmethod(_TestNumericField._test_binop_value_true, op=binop))
-        setattr(cls, test_binop_name('value_pos_int'), partialmethod(_TestNumericField._test_binop_value_pos_int, op=binop))
-        setattr(cls, test_binop_name('value_pos_vint'), partialmethod(_TestNumericField._test_binop_value_pos_vint, op=binop))
-        setattr(cls, test_binop_name('lhs_addr_same_true'), partialmethod(_TestNumericField._test_binop_lhs_addr_same_true, op=binop))
-        setattr(cls, test_binop_name('lhs_addr_same_pos_int'), partialmethod(_TestNumericField._test_binop_lhs_addr_same_pos_int, op=binop))
-        setattr(cls, test_binop_name('lhs_addr_same_pos_vint'), partialmethod(_TestNumericField._test_binop_lhs_addr_same_pos_vint, op=binop))
-        setattr(cls, test_binop_name('lhs_value_same_true'), partialmethod(_TestNumericField._test_binop_lhs_value_same_true, op=binop))
-        setattr(cls, test_binop_name('lhs_value_same_pos_int'), partialmethod(_TestNumericField._test_binop_lhs_value_same_pos_int, op=binop))
-        setattr(cls, test_binop_name('lhs_value_same_pos_vint'), partialmethod(_TestNumericField._test_binop_lhs_value_same_pos_vint, op=binop))
-        setattr(cls, test_binop_name('type_neg_int'), partialmethod(_TestNumericField._test_binop_type_neg_int, op=binop))
-        setattr(cls, test_binop_name('type_neg_vint'), partialmethod(_TestNumericField._test_binop_type_neg_vint, op=binop))
-        setattr(cls, test_binop_name('value_neg_int'), partialmethod(_TestNumericField._test_binop_value_neg_int, op=binop))
-        setattr(cls, test_binop_name('value_neg_vint'), partialmethod(_TestNumericField._test_binop_value_neg_vint, op=binop))
-        setattr(cls, test_binop_name('lhs_addr_same_neg_int'), partialmethod(_TestNumericField._test_binop_lhs_addr_same_neg_int, op=binop))
-        setattr(cls, test_binop_name('lhs_addr_same_neg_vint'), partialmethod(_TestNumericField._test_binop_lhs_addr_same_neg_vint, op=binop))
-        setattr(cls, test_binop_name('lhs_value_same_neg_int'), partialmethod(_TestNumericField._test_binop_lhs_value_same_neg_int, op=binop))
-        setattr(cls, test_binop_name('lhs_value_same_neg_vint'), partialmethod(_TestNumericField._test_binop_lhs_value_same_neg_vint, op=binop))
-        setattr(cls, test_binop_name('type_false'), partialmethod(_TestNumericField._test_binop_type_false, op=binop))
-        setattr(cls, test_binop_name('type_zero_int'), partialmethod(_TestNumericField._test_binop_type_zero_int, op=binop))
-        setattr(cls, test_binop_name('type_zero_vint'), partialmethod(_TestNumericField._test_binop_type_zero_vint, op=binop))
-        setattr(cls, test_binop_name('value_false'), partialmethod(_TestNumericField._test_binop_value_false, op=binop))
-        setattr(cls, test_binop_name('value_zero_int'), partialmethod(_TestNumericField._test_binop_value_zero_int, op=binop))
-        setattr(cls, test_binop_name('value_zero_vint'), partialmethod(_TestNumericField._test_binop_value_zero_vint, op=binop))
-        setattr(cls, test_binop_name('lhs_addr_same_false'), partialmethod(_TestNumericField._test_binop_lhs_addr_same_false, op=binop))
-        setattr(cls, test_binop_name('lhs_addr_same_zero_int'), partialmethod(_TestNumericField._test_binop_lhs_addr_same_zero_int, op=binop))
-        setattr(cls, test_binop_name('lhs_addr_same_zero_vint'), partialmethod(_TestNumericField._test_binop_lhs_addr_same_zero_vint, op=binop))
-        setattr(cls, test_binop_name('lhs_value_same_false'), partialmethod(_TestNumericField._test_binop_lhs_value_same_false, op=binop))
-        setattr(cls, test_binop_name('lhs_value_same_zero_int'), partialmethod(_TestNumericField._test_binop_lhs_value_same_zero_int, op=binop))
-        setattr(cls, test_binop_name('lhs_value_same_zero_vint'), partialmethod(_TestNumericField._test_binop_lhs_value_same_zero_vint, op=binop))
-        setattr(cls, test_binop_name('type_pos_float'), partialmethod(_TestNumericField._test_binop_type_pos_float, op=binop))
-        setattr(cls, test_binop_name('type_neg_float'), partialmethod(_TestNumericField._test_binop_type_neg_float, op=binop))
-        setattr(cls, test_binop_name('type_pos_vfloat'), partialmethod(_TestNumericField._test_binop_type_pos_vfloat, op=binop))
-        setattr(cls, test_binop_name('type_neg_vfloat'), partialmethod(_TestNumericField._test_binop_type_neg_vfloat, op=binop))
-        setattr(cls, test_binop_name('value_pos_float'), partialmethod(_TestNumericField._test_binop_value_pos_float, op=binop))
-        setattr(cls, test_binop_name('value_neg_float'), partialmethod(_TestNumericField._test_binop_value_neg_float, op=binop))
-        setattr(cls, test_binop_name('value_pos_vfloat'), partialmethod(_TestNumericField._test_binop_value_pos_vfloat, op=binop))
-        setattr(cls, test_binop_name('value_neg_vfloat'), partialmethod(_TestNumericField._test_binop_value_neg_vfloat, op=binop))
-        setattr(cls, test_binop_name('lhs_addr_same_pos_float'), partialmethod(_TestNumericField._test_binop_lhs_addr_same_pos_float, op=binop))
-        setattr(cls, test_binop_name('lhs_addr_same_neg_float'), partialmethod(_TestNumericField._test_binop_lhs_addr_same_neg_float, op=binop))
-        setattr(cls, test_binop_name('lhs_addr_same_pos_vfloat'), partialmethod(_TestNumericField._test_binop_lhs_addr_same_pos_vfloat, op=binop))
-        setattr(cls, test_binop_name('lhs_addr_same_neg_vfloat'), partialmethod(_TestNumericField._test_binop_lhs_addr_same_neg_vfloat, op=binop))
-        setattr(cls, test_binop_name('lhs_value_same_pos_float'), partialmethod(_TestNumericField._test_binop_lhs_value_same_pos_float, op=binop))
-        setattr(cls, test_binop_name('lhs_value_same_neg_float'), partialmethod(_TestNumericField._test_binop_lhs_value_same_neg_float, op=binop))
-        setattr(cls, test_binop_name('lhs_value_same_pos_vfloat'), partialmethod(_TestNumericField._test_binop_lhs_value_same_pos_vfloat, op=binop))
-        setattr(cls, test_binop_name('lhs_value_same_neg_vfloat'), partialmethod(_TestNumericField._test_binop_lhs_value_same_neg_vfloat, op=binop))
-        setattr(cls, test_binop_name('type_zero_float'), partialmethod(_TestNumericField._test_binop_type_zero_float, op=binop))
-        setattr(cls, test_binop_name('type_zero_vfloat'), partialmethod(_TestNumericField._test_binop_type_zero_vfloat, op=binop))
-        setattr(cls, test_binop_name('value_zero_float'), partialmethod(_TestNumericField._test_binop_value_zero_float, op=binop))
-        setattr(cls, test_binop_name('value_zero_vfloat'), partialmethod(_TestNumericField._test_binop_value_zero_vfloat, op=binop))
-        setattr(cls, test_binop_name('lhs_addr_same_zero_float'), partialmethod(_TestNumericField._test_binop_lhs_addr_same_zero_float, op=binop))
-        setattr(cls, test_binop_name('lhs_addr_same_zero_vfloat'), partialmethod(_TestNumericField._test_binop_lhs_addr_same_zero_vfloat, op=binop))
-        setattr(cls, test_binop_name('lhs_value_same_zero_float'), partialmethod(_TestNumericField._test_binop_lhs_value_same_zero_float, op=binop))
-        setattr(cls, test_binop_name('lhs_value_same_zero_vfloat'), partialmethod(_TestNumericField._test_binop_lhs_value_same_zero_vfloat, op=binop))
-        setattr(cls, test_binop_name('type_complex'), partialmethod(_TestNumericField._test_binop_type_complex, op=binop))
-        setattr(cls, test_binop_name('type_zero_complex'), partialmethod(_TestNumericField._test_binop_type_zero_complex, op=binop))
-        setattr(cls, test_binop_name('value_complex'), partialmethod(_TestNumericField._test_binop_value_complex, op=binop))
-        setattr(cls, test_binop_name('value_zero_complex'), partialmethod(_TestNumericField._test_binop_value_zero_complex, op=binop))
-        setattr(cls, test_binop_name('lhs_addr_same_complex'), partialmethod(_TestNumericField._test_binop_lhs_addr_same_complex, op=binop))
-        setattr(cls, test_binop_name('lhs_addr_same_zero_complex'), partialmethod(_TestNumericField._test_binop_lhs_addr_same_zero_complex, op=binop))
-        setattr(cls, test_binop_name('lhs_value_same_complex'), partialmethod(_TestNumericField._test_binop_lhs_value_same_complex, op=binop))
-        setattr(cls, test_binop_name('lhs_value_same_zero_complex'), partialmethod(_TestNumericField._test_binop_lhs_value_same_zero_complex, op=binop))
+        setattr(
+            cls,
+            test_binop_name('invalid_unknown'),
+            partialmethod(_TestNumericField._test_binop_invalid_unknown, op=binop),
+        )
+        setattr(
+            cls,
+            test_binop_name('invalid_none'),
+            partialmethod(_TestNumericField._test_binop_invalid_none, op=binop),
+        )
+        setattr(
+            cls,
+            test_binop_name('type_true'),
+            partialmethod(_TestNumericField._test_binop_type_true, op=binop),
+        )
+        setattr(
+            cls,
+            test_binop_name('type_pos_int'),
+            partialmethod(_TestNumericField._test_binop_type_pos_int, op=binop),
+        )
+        setattr(
+            cls,
+            test_binop_name('type_pos_vint'),
+            partialmethod(_TestNumericField._test_binop_type_pos_vint, op=binop),
+        )
+        setattr(
+            cls,
+            test_binop_name('value_true'),
+            partialmethod(_TestNumericField._test_binop_value_true, op=binop),
+        )
+        setattr(
+            cls,
+            test_binop_name('value_pos_int'),
+            partialmethod(_TestNumericField._test_binop_value_pos_int, op=binop),
+        )
+        setattr(
+            cls,
+            test_binop_name('value_pos_vint'),
+            partialmethod(_TestNumericField._test_binop_value_pos_vint, op=binop),
+        )
+        setattr(
+            cls,
+            test_binop_name('lhs_addr_same_true'),
+            partialmethod(_TestNumericField._test_binop_lhs_addr_same_true, op=binop),
+        )
+        setattr(
+            cls,
+            test_binop_name('lhs_addr_same_pos_int'),
+            partialmethod(
+                _TestNumericField._test_binop_lhs_addr_same_pos_int, op=binop
+            ),
+        )
+        setattr(
+            cls,
+            test_binop_name('lhs_addr_same_pos_vint'),
+            partialmethod(
+                _TestNumericField._test_binop_lhs_addr_same_pos_vint, op=binop
+            ),
+        )
+        setattr(
+            cls,
+            test_binop_name('lhs_value_same_true'),
+            partialmethod(_TestNumericField._test_binop_lhs_value_same_true, op=binop),
+        )
+        setattr(
+            cls,
+            test_binop_name('lhs_value_same_pos_int'),
+            partialmethod(
+                _TestNumericField._test_binop_lhs_value_same_pos_int, op=binop
+            ),
+        )
+        setattr(
+            cls,
+            test_binop_name('lhs_value_same_pos_vint'),
+            partialmethod(
+                _TestNumericField._test_binop_lhs_value_same_pos_vint, op=binop
+            ),
+        )
+        setattr(
+            cls,
+            test_binop_name('type_neg_int'),
+            partialmethod(_TestNumericField._test_binop_type_neg_int, op=binop),
+        )
+        setattr(
+            cls,
+            test_binop_name('type_neg_vint'),
+            partialmethod(_TestNumericField._test_binop_type_neg_vint, op=binop),
+        )
+        setattr(
+            cls,
+            test_binop_name('value_neg_int'),
+            partialmethod(_TestNumericField._test_binop_value_neg_int, op=binop),
+        )
+        setattr(
+            cls,
+            test_binop_name('value_neg_vint'),
+            partialmethod(_TestNumericField._test_binop_value_neg_vint, op=binop),
+        )
+        setattr(
+            cls,
+            test_binop_name('lhs_addr_same_neg_int'),
+            partialmethod(
+                _TestNumericField._test_binop_lhs_addr_same_neg_int, op=binop
+            ),
+        )
+        setattr(
+            cls,
+            test_binop_name('lhs_addr_same_neg_vint'),
+            partialmethod(
+                _TestNumericField._test_binop_lhs_addr_same_neg_vint, op=binop
+            ),
+        )
+        setattr(
+            cls,
+            test_binop_name('lhs_value_same_neg_int'),
+            partialmethod(
+                _TestNumericField._test_binop_lhs_value_same_neg_int, op=binop
+            ),
+        )
+        setattr(
+            cls,
+            test_binop_name('lhs_value_same_neg_vint'),
+            partialmethod(
+                _TestNumericField._test_binop_lhs_value_same_neg_vint, op=binop
+            ),
+        )
+        setattr(
+            cls,
+            test_binop_name('type_false'),
+            partialmethod(_TestNumericField._test_binop_type_false, op=binop),
+        )
+        setattr(
+            cls,
+            test_binop_name('type_zero_int'),
+            partialmethod(_TestNumericField._test_binop_type_zero_int, op=binop),
+        )
+        setattr(
+            cls,
+            test_binop_name('type_zero_vint'),
+            partialmethod(_TestNumericField._test_binop_type_zero_vint, op=binop),
+        )
+        setattr(
+            cls,
+            test_binop_name('value_false'),
+            partialmethod(_TestNumericField._test_binop_value_false, op=binop),
+        )
+        setattr(
+            cls,
+            test_binop_name('value_zero_int'),
+            partialmethod(_TestNumericField._test_binop_value_zero_int, op=binop),
+        )
+        setattr(
+            cls,
+            test_binop_name('value_zero_vint'),
+            partialmethod(_TestNumericField._test_binop_value_zero_vint, op=binop),
+        )
+        setattr(
+            cls,
+            test_binop_name('lhs_addr_same_false'),
+            partialmethod(_TestNumericField._test_binop_lhs_addr_same_false, op=binop),
+        )
+        setattr(
+            cls,
+            test_binop_name('lhs_addr_same_zero_int'),
+            partialmethod(
+                _TestNumericField._test_binop_lhs_addr_same_zero_int, op=binop
+            ),
+        )
+        setattr(
+            cls,
+            test_binop_name('lhs_addr_same_zero_vint'),
+            partialmethod(
+                _TestNumericField._test_binop_lhs_addr_same_zero_vint, op=binop
+            ),
+        )
+        setattr(
+            cls,
+            test_binop_name('lhs_value_same_false'),
+            partialmethod(_TestNumericField._test_binop_lhs_value_same_false, op=binop),
+        )
+        setattr(
+            cls,
+            test_binop_name('lhs_value_same_zero_int'),
+            partialmethod(
+                _TestNumericField._test_binop_lhs_value_same_zero_int, op=binop
+            ),
+        )
+        setattr(
+            cls,
+            test_binop_name('lhs_value_same_zero_vint'),
+            partialmethod(
+                _TestNumericField._test_binop_lhs_value_same_zero_vint, op=binop
+            ),
+        )
+        setattr(
+            cls,
+            test_binop_name('type_pos_float'),
+            partialmethod(_TestNumericField._test_binop_type_pos_float, op=binop),
+        )
+        setattr(
+            cls,
+            test_binop_name('type_neg_float'),
+            partialmethod(_TestNumericField._test_binop_type_neg_float, op=binop),
+        )
+        setattr(
+            cls,
+            test_binop_name('type_pos_vfloat'),
+            partialmethod(_TestNumericField._test_binop_type_pos_vfloat, op=binop),
+        )
+        setattr(
+            cls,
+            test_binop_name('type_neg_vfloat'),
+            partialmethod(_TestNumericField._test_binop_type_neg_vfloat, op=binop),
+        )
+        setattr(
+            cls,
+            test_binop_name('value_pos_float'),
+            partialmethod(_TestNumericField._test_binop_value_pos_float, op=binop),
+        )
+        setattr(
+            cls,
+            test_binop_name('value_neg_float'),
+            partialmethod(_TestNumericField._test_binop_value_neg_float, op=binop),
+        )
+        setattr(
+            cls,
+            test_binop_name('value_pos_vfloat'),
+            partialmethod(_TestNumericField._test_binop_value_pos_vfloat, op=binop),
+        )
+        setattr(
+            cls,
+            test_binop_name('value_neg_vfloat'),
+            partialmethod(_TestNumericField._test_binop_value_neg_vfloat, op=binop),
+        )
+        setattr(
+            cls,
+            test_binop_name('lhs_addr_same_pos_float'),
+            partialmethod(
+                _TestNumericField._test_binop_lhs_addr_same_pos_float, op=binop
+            ),
+        )
+        setattr(
+            cls,
+            test_binop_name('lhs_addr_same_neg_float'),
+            partialmethod(
+                _TestNumericField._test_binop_lhs_addr_same_neg_float, op=binop
+            ),
+        )
+        setattr(
+            cls,
+            test_binop_name('lhs_addr_same_pos_vfloat'),
+            partialmethod(
+                _TestNumericField._test_binop_lhs_addr_same_pos_vfloat, op=binop
+            ),
+        )
+        setattr(
+            cls,
+            test_binop_name('lhs_addr_same_neg_vfloat'),
+            partialmethod(
+                _TestNumericField._test_binop_lhs_addr_same_neg_vfloat, op=binop
+            ),
+        )
+        setattr(
+            cls,
+            test_binop_name('lhs_value_same_pos_float'),
+            partialmethod(
+                _TestNumericField._test_binop_lhs_value_same_pos_float, op=binop
+            ),
+        )
+        setattr(
+            cls,
+            test_binop_name('lhs_value_same_neg_float'),
+            partialmethod(
+                _TestNumericField._test_binop_lhs_value_same_neg_float, op=binop
+            ),
+        )
+        setattr(
+            cls,
+            test_binop_name('lhs_value_same_pos_vfloat'),
+            partialmethod(
+                _TestNumericField._test_binop_lhs_value_same_pos_vfloat, op=binop
+            ),
+        )
+        setattr(
+            cls,
+            test_binop_name('lhs_value_same_neg_vfloat'),
+            partialmethod(
+                _TestNumericField._test_binop_lhs_value_same_neg_vfloat, op=binop
+            ),
+        )
+        setattr(
+            cls,
+            test_binop_name('type_zero_float'),
+            partialmethod(_TestNumericField._test_binop_type_zero_float, op=binop),
+        )
+        setattr(
+            cls,
+            test_binop_name('type_zero_vfloat'),
+            partialmethod(_TestNumericField._test_binop_type_zero_vfloat, op=binop),
+        )
+        setattr(
+            cls,
+            test_binop_name('value_zero_float'),
+            partialmethod(_TestNumericField._test_binop_value_zero_float, op=binop),
+        )
+        setattr(
+            cls,
+            test_binop_name('value_zero_vfloat'),
+            partialmethod(_TestNumericField._test_binop_value_zero_vfloat, op=binop),
+        )
+        setattr(
+            cls,
+            test_binop_name('lhs_addr_same_zero_float'),
+            partialmethod(
+                _TestNumericField._test_binop_lhs_addr_same_zero_float, op=binop
+            ),
+        )
+        setattr(
+            cls,
+            test_binop_name('lhs_addr_same_zero_vfloat'),
+            partialmethod(
+                _TestNumericField._test_binop_lhs_addr_same_zero_vfloat, op=binop
+            ),
+        )
+        setattr(
+            cls,
+            test_binop_name('lhs_value_same_zero_float'),
+            partialmethod(
+                _TestNumericField._test_binop_lhs_value_same_zero_float, op=binop
+            ),
+        )
+        setattr(
+            cls,
+            test_binop_name('lhs_value_same_zero_vfloat'),
+            partialmethod(
+                _TestNumericField._test_binop_lhs_value_same_zero_vfloat, op=binop
+            ),
+        )
+        setattr(
+            cls,
+            test_binop_name('type_complex'),
+            partialmethod(_TestNumericField._test_binop_type_complex, op=binop),
+        )
+        setattr(
+            cls,
+            test_binop_name('type_zero_complex'),
+            partialmethod(_TestNumericField._test_binop_type_zero_complex, op=binop),
+        )
+        setattr(
+            cls,
+            test_binop_name('value_complex'),
+            partialmethod(_TestNumericField._test_binop_value_complex, op=binop),
+        )
+        setattr(
+            cls,
+            test_binop_name('value_zero_complex'),
+            partialmethod(_TestNumericField._test_binop_value_zero_complex, op=binop),
+        )
+        setattr(
+            cls,
+            test_binop_name('lhs_addr_same_complex'),
+            partialmethod(
+                _TestNumericField._test_binop_lhs_addr_same_complex, op=binop
+            ),
+        )
+        setattr(
+            cls,
+            test_binop_name('lhs_addr_same_zero_complex'),
+            partialmethod(
+                _TestNumericField._test_binop_lhs_addr_same_zero_complex, op=binop
+            ),
+        )
+        setattr(
+            cls,
+            test_binop_name('lhs_value_same_complex'),
+            partialmethod(
+                _TestNumericField._test_binop_lhs_value_same_complex, op=binop
+            ),
+        )
+        setattr(
+            cls,
+            test_binop_name('lhs_value_same_zero_complex'),
+            partialmethod(
+                _TestNumericField._test_binop_lhs_value_same_zero_complex, op=binop
+            ),
+        )
 
     # inject testing methods for each unary operation
     for name, unaryop in _UNARYOPS:
-        setattr(cls, test_unaryop_name('type'), partialmethod(_TestNumericField._test_unaryop_type, op=unaryop))
-        setattr(cls, test_unaryop_name('value'), partialmethod(_TestNumericField._test_unaryop_value, op=unaryop))
-        setattr(cls, test_unaryop_name('addr_same'), partialmethod(_TestNumericField._test_unaryop_addr_same, op=unaryop))
-        setattr(cls, test_unaryop_name('value_same'), partialmethod(_TestNumericField._test_unaryop_value_same, op=unaryop))
+        setattr(
+            cls,
+            test_unaryop_name('type'),
+            partialmethod(_TestNumericField._test_unaryop_type, op=unaryop),
+        )
+        setattr(
+            cls,
+            test_unaryop_name('value'),
+            partialmethod(_TestNumericField._test_unaryop_value, op=unaryop),
+        )
+        setattr(
+            cls,
+            test_unaryop_name('addr_same'),
+            partialmethod(_TestNumericField._test_unaryop_addr_same, op=unaryop),
+        )
+        setattr(
+            cls,
+            test_unaryop_name('value_same'),
+            partialmethod(_TestNumericField._test_unaryop_value_same, op=unaryop),
+        )
 
 
 class _TestIntegerFieldCommon(_TestNumericField):
@@ -781,8 +1121,8 @@ class _TestIntegerFieldCommon(_TestNumericField):
         field = _create_field(self._tc, uint_fc)
         # Larger than the IEEE 754 double-precision exact representation of
         # integers.
-        raw = (2**53) + 1
-        field.value = (2**53) + 1
+        raw = (2 ** 53) + 1
+        field.value = (2 ** 53) + 1
         self.assertEqual(field, raw)
 
     def test_assign_uint_invalid_neg(self):
@@ -819,7 +1159,9 @@ class SignedEnumerationFieldTestCase(_TestIntegerFieldCommon, unittest.TestCase)
         fc.add_mapping('something', bt2.SignedIntegerRangeSet([(17, 17)]))
         fc.add_mapping('speaker', bt2.SignedIntegerRangeSet([(12, 16)]))
         fc.add_mapping('can', bt2.SignedIntegerRangeSet([(18, 2540)]))
-        fc.add_mapping('whole range', bt2.SignedIntegerRangeSet([(-(2 ** 31), (2 ** 31) - 1)]))
+        fc.add_mapping(
+            'whole range', bt2.SignedIntegerRangeSet([(-(2 ** 31), (2 ** 31) - 1)])
+        )
         fc.add_mapping('zip', bt2.SignedIntegerRangeSet([(-45, 1001)]))
         return fc
 
@@ -838,8 +1180,7 @@ class SignedEnumerationFieldTestCase(_TestIntegerFieldCommon, unittest.TestCase)
         # Establish all permutations of the three expected matches since
         # the order in which mappings are enumerated is not explicitly part of
         # the API.
-        for p in itertools.permutations(['whole range', 'something',
-                                         'zip']):
+        for p in itertools.permutations(['whole range', 'something', 'zip']):
             candidate = '{} ({})'.format(self._def_value, ', '.join(p))
             if candidate == s:
                 expected_string_found = True
@@ -1147,21 +1488,9 @@ class _TestArrayFieldCommon:
         array_fc = self._tc.create_static_array_field_class(struct_fc, 3)
         stream = _create_stream(self._tc, [('array_field', array_fc)])
         values = [
-            {
-                'an_int': 42,
-                'a_string': 'hello',
-                'another_int': 66
-            },
-            {
-                'an_int': 1,
-                'a_string': 'goodbye',
-                'another_int': 488
-            },
-            {
-                'an_int': 156,
-                'a_string': 'or not',
-                'another_int': 4648
-            },
+            {'an_int': 42, 'a_string': 'hello', 'another_int': 66},
+            {'an_int': 1, 'a_string': 'goodbye', 'another_int': 488},
+            {'an_int': 156, 'a_string': 'or not', 'another_int': 4648},
         ]
 
         array = stream.create_packet().context_field['array_field']
@@ -1173,8 +1502,7 @@ class _TestArrayFieldCommon:
 
     def test_str_op(self):
         s = str(self._def)
-        expected_string = '[{}]'.format(', '.join(
-            [repr(v) for v in self._def_value]))
+        expected_string = '[{}]'.format(', '.join([repr(v) for v in self._def_value]))
         self.assertEqual(expected_string, s)
 
 
@@ -1254,7 +1582,7 @@ class StructureFieldTestCase(unittest.TestCase):
             'C': 17.5,
             'D': 16497,
             'E': {},
-            'F': {'F_1': 52}
+            'F': {'F_1': 52},
         }
 
     def _modify_def(self):
@@ -1280,7 +1608,7 @@ class StructureFieldTestCase(unittest.TestCase):
             self._def.member_at_index(len(self._def_value))
 
     def test_eq(self):
-        field = _create_field(self._tc, self._create_fc(self._tc, ))
+        field = _create_field(self._tc, self._create_fc(self._tc))
         field['A'] = -1872
         field['B'] = 'salut'
         field['C'] = 17.5
@@ -1391,7 +1719,7 @@ class StructureFieldTestCase(unittest.TestCase):
             'C': 17.5,
             'D': 16497,
             'E': {},
-            'F': {'F_1': 52}
+            'F': {'F_1': 52},
         }
 
         for vkey, vval in self._def.items():
@@ -1405,7 +1733,7 @@ class StructureFieldTestCase(unittest.TestCase):
             'C': 17.5,
             'D': 16497,
             'E': {},
-            'F': {'F_1': 52}
+            'F': {'F_1': 52},
         }
         self.assertEqual(self._def, orig_values)
 
@@ -1417,11 +1745,7 @@ class StructureFieldTestCase(unittest.TestCase):
         struct_fc.append_member(field_class=int_fc, name='an_int')
         struct_fc.append_member(field_class=str_fc, name='a_string')
         struct_fc.append_member(field_class=another_int_fc, name='another_int')
-        values = {
-            'an_int': 42,
-            'a_string': 'hello',
-            'another_int': 66
-        }
+        values = {'an_int': 42, 'a_string': 'hello', 'another_int': 66}
 
         struct = _create_field(self._tc, struct_fc)
         struct.value = values

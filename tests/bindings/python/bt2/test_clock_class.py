@@ -169,7 +169,9 @@ class ClockClassTestCase(unittest.TestCase):
 
     def test_cycles_to_ns_from_origin(self):
         def f(comp_self):
-            return comp_self._create_clock_class(frequency=10**8, origin_is_unix_epoch=True)
+            return comp_self._create_clock_class(
+                frequency=10 ** 8, origin_is_unix_epoch=True
+            )
 
         cc = run_in_component_init(f)
         self.assertEqual(cc.cycles_to_ns_from_origin(112), 1120)
@@ -180,11 +182,13 @@ class ClockClassTestCase(unittest.TestCase):
 
         cc = run_in_component_init(f)
         with self.assertRaises(bt2.OverflowError):
-            cc.cycles_to_ns_from_origin(2**63)
+            cc.cycles_to_ns_from_origin(2 ** 63)
 
     def test_create_uuid(self):
         def f(comp_self):
-            return comp_self._create_clock_class(uuid=uuid.UUID('b43372c32ef0be28444dfc1c5cdafd33'))
+            return comp_self._create_clock_class(
+                uuid=uuid.UUID('b43372c32ef0be28444dfc1c5cdafd33')
+            )
 
         cc = run_in_component_init(f)
         self.assertEqual(cc.uuid, uuid.UUID('b43372c32ef0be28444dfc1c5cdafd33'))
@@ -199,8 +203,9 @@ class ClockClassTestCase(unittest.TestCase):
 class ClockSnapshotTestCase(unittest.TestCase):
     def setUp(self):
         def f(comp_self):
-            cc = comp_self._create_clock_class(1000, 'my_cc',
-                                               offset=bt2.ClockClassOffset(45, 354))
+            cc = comp_self._create_clock_class(
+                1000, 'my_cc', offset=bt2.ClockClassOffset(45, 354)
+            )
             tc = comp_self._create_trace_class()
 
             return (cc, tc)
@@ -224,7 +229,7 @@ class ClockSnapshotTestCase(unittest.TestCase):
                 elif self._at == 1:
                     notif = self._create_event_message(_ec, _stream, 123)
                 elif self._at == 2:
-                    notif = self._create_event_message(_ec, _stream, 2**63)
+                    notif = self._create_event_message(_ec, _stream, 2 ** 63)
                 elif self._at == 3:
                     notif = self._create_stream_end_message(_stream)
                 else:
@@ -240,7 +245,8 @@ class ClockSnapshotTestCase(unittest.TestCase):
         self._graph = bt2.Graph()
         self._src_comp = self._graph.add_component(MySrc, 'my_source')
         self._msg_iter = self._graph.create_output_port_message_iterator(
-            self._src_comp.output_ports['out'])
+            self._src_comp.output_ports['out']
+        )
 
         for i, msg in enumerate(self._msg_iter):
             if i == 1:
@@ -255,18 +261,21 @@ class ClockSnapshotTestCase(unittest.TestCase):
 
     def test_create_default(self):
         self.assertEqual(
-            self._msg.default_clock_snapshot.clock_class.addr, self._cc.addr)
+            self._msg.default_clock_snapshot.clock_class.addr, self._cc.addr
+        )
         self.assertEqual(self._msg.default_clock_snapshot.value, 123)
 
     def test_clock_class(self):
         self.assertEqual(
-            self._msg.default_clock_snapshot.clock_class.addr, self._cc.addr)
+            self._msg.default_clock_snapshot.clock_class.addr, self._cc.addr
+        )
 
     def test_ns_from_origin(self):
         s_from_origin = 45 + ((354 + 123) / 1000)
         ns_from_origin = int(s_from_origin * 1e9)
         self.assertEqual(
-            self._msg.default_clock_snapshot.ns_from_origin, ns_from_origin)
+            self._msg.default_clock_snapshot.ns_from_origin, ns_from_origin
+        )
 
     def test_ns_from_origin_overflow(self):
         with self.assertRaises(bt2.OverflowError):

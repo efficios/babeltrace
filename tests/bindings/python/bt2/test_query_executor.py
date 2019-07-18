@@ -35,28 +35,18 @@ class QueryExecutorTestCase(unittest.TestCase):
             def _query(cls, query_exec, obj, params, log_level):
                 nonlocal query_params
                 query_params = params
-                return {
-                    'null': None,
-                    'bt2': 'BT2',
-                }
+                return {'null': None, 'bt2': 'BT2'}
 
         query_params = None
         params = {
             'array': ['coucou', 23, None],
-            'other_map': {
-                'yes': 'yeah',
-                '19': 19,
-                'minus 1.5': -1.5,
-            },
+            'other_map': {'yes': 'yeah', '19': 19, 'minus 1.5': -1.5},
             'null': None,
         }
 
         res = bt2.QueryExecutor().query(MySink, 'obj', params)
         self.assertEqual(query_params, params)
-        self.assertEqual(res, {
-            'null': None,
-            'bt2': 'BT2',
-        })
+        self.assertEqual(res, {'null': None, 'bt2': 'BT2'})
         del query_params
 
     def test_query_params_none(self):
@@ -91,8 +81,7 @@ class QueryExecutorTestCase(unittest.TestCase):
                 query_log_level = log_level
 
         query_log_level = None
-        res = bt2.QueryExecutor().query(MySink, 'obj', None,
-                                        bt2.LoggingLevel.INFO)
+        res = bt2.QueryExecutor().query(MySink, 'obj', None, bt2.LoggingLevel.INFO)
         self.assertEqual(query_log_level, bt2.LoggingLevel.INFO)
         del query_log_level
 

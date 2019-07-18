@@ -50,7 +50,9 @@ class _TestIntegerFieldClassProps:
             self._create_func(field_value_range=0)
 
     def test_create_base(self):
-        fc = self._create_func(preferred_display_base=bt2.IntegerDisplayBase.HEXADECIMAL)
+        fc = self._create_func(
+            preferred_display_base=bt2.IntegerDisplayBase.HEXADECIMAL
+        )
         self.assertEqual(fc.preferred_display_base, bt2.IntegerDisplayBase.HEXADECIMAL)
 
     def test_create_invalid_base_type(self):
@@ -93,6 +95,7 @@ class RealFieldClassTestCase(unittest.TestCase):
 # Converts an _EnumerationFieldClassMapping to a list of ranges:
 #
 #    [(lower0, upper0), (lower1, upper1), ...]
+
 
 def enum_mapping_to_set(mapping):
     return {(x.lower, x.upper) for x in mapping.ranges}
@@ -140,10 +143,7 @@ class _EnumerationFieldClassTestCase(_TestIntegerFieldClassProps):
     def test_iadd(self):
         self._fc.add_mapping('c', self._ranges1)
 
-        self._fc += [
-            ('d', self._ranges2),
-            ('e', self._ranges3),
-        ]
+        self._fc += [('d', self._ranges2), ('e', self._ranges3)]
 
         self.assertEqual(len(self._fc), 3)
         self.assertEqual(self._fc['c'].label, 'c')
@@ -196,7 +196,9 @@ class _EnumerationFieldClassTestCase(_TestIntegerFieldClassProps):
         self.assertEqual(labels, expected_labels)
 
 
-class UnsignedEnumerationFieldClassTestCase(_EnumerationFieldClassTestCase, unittest.TestCase):
+class UnsignedEnumerationFieldClassTestCase(
+    _EnumerationFieldClassTestCase, unittest.TestCase
+):
     def _spec_set_up(self):
         self._ranges1 = bt2.UnsignedIntegerRangeSet([(1, 4), (18, 47)])
         self._ranges2 = bt2.UnsignedIntegerRangeSet([(5, 5)])
@@ -206,7 +208,9 @@ class UnsignedEnumerationFieldClassTestCase(_EnumerationFieldClassTestCase, unit
         self._create_func = self._tc.create_unsigned_enumeration_field_class
 
 
-class SignedEnumerationFieldClassTestCase(_EnumerationFieldClassTestCase, unittest.TestCase):
+class SignedEnumerationFieldClassTestCase(
+    _EnumerationFieldClassTestCase, unittest.TestCase
+):
     def _spec_set_up(self):
         self._ranges1 = bt2.SignedIntegerRangeSet([(-10, -4), (18, 47)])
         self._ranges2 = bt2.SignedIntegerRangeSet([(-3, -3)])
@@ -225,7 +229,7 @@ class StringFieldClassTestCase(unittest.TestCase):
         self.assertIsNotNone(self._fc)
 
 
-class _TestElementContainer():
+class _TestElementContainer:
     def setUp(self):
         self._tc = get_default_trace_class()
         self._fc = self._create_default_fc()
@@ -270,7 +274,9 @@ class _TestElementContainer():
         self._append_element_method(self._fc, 'a_float', a_field_class)
         self._append_element_method(self._fc, 'b_int', b_field_class)
         c_field_class = self._tc.create_string_field_class()
-        d_field_class = self._tc.create_signed_enumeration_field_class(field_value_range=32)
+        d_field_class = self._tc.create_signed_enumeration_field_class(
+            field_value_range=32
+        )
         e_field_class = self._tc.create_structure_field_class()
         self._fc += [
             ('c_string', c_field_class),
@@ -326,11 +332,7 @@ class _TestElementContainer():
         a_fc = self._tc.create_signed_integer_field_class(32)
         b_fc = self._tc.create_string_field_class()
         c_fc = self._tc.create_real_field_class()
-        elements = (
-            ('a', a_fc),
-            ('b', b_fc),
-            ('c', c_fc),
-        )
+        elements = (('a', a_fc), ('b', b_fc), ('c', c_fc))
 
         for elem in elements:
             self._append_element_method(self._fc, *elem)
@@ -352,29 +354,43 @@ class _TestElementContainer():
         self.assertEqual(elem.name, 'a')
 
     def test_at_index_invalid(self):
-        self._append_element_method(self._fc, 'c', self._tc.create_signed_integer_field_class(32))
+        self._append_element_method(
+            self._fc, 'c', self._tc.create_signed_integer_field_class(32)
+        )
 
         with self.assertRaises(TypeError):
             self._at_index_method(self._fc, 'yes')
 
     def test_at_index_out_of_bounds_after(self):
-        self._append_element_method(self._fc, 'c', self._tc.create_signed_integer_field_class(32))
+        self._append_element_method(
+            self._fc, 'c', self._tc.create_signed_integer_field_class(32)
+        )
 
         with self.assertRaises(IndexError):
             self._at_index_method(self._fc, len(self._fc))
 
 
 class StructureFieldClassTestCase(_TestElementContainer, unittest.TestCase):
-    _append_element_method = staticmethod(bt2.field_class._StructureFieldClass.append_member)
-    _at_index_method = staticmethod(bt2.field_class._StructureFieldClass.member_at_index)
+    _append_element_method = staticmethod(
+        bt2.field_class._StructureFieldClass.append_member
+    )
+    _at_index_method = staticmethod(
+        bt2.field_class._StructureFieldClass.member_at_index
+    )
 
     def _create_default_fc(self):
         return self._tc.create_structure_field_class()
 
 
-class VariantFieldClassWithoutSelectorTestCase(_TestElementContainer, unittest.TestCase):
-    _append_element_method = staticmethod(bt2.field_class._VariantFieldClassWithoutSelector.append_option)
-    _at_index_method = staticmethod(bt2.field_class._VariantFieldClassWithoutSelector.option_at_index)
+class VariantFieldClassWithoutSelectorTestCase(
+    _TestElementContainer, unittest.TestCase
+):
+    _append_element_method = staticmethod(
+        bt2.field_class._VariantFieldClassWithoutSelector.append_option
+    )
+    _at_index_method = staticmethod(
+        bt2.field_class._VariantFieldClassWithoutSelector.option_at_index
+    )
 
     def _create_default_fc(self):
         return self._tc.create_variant_field_class()
@@ -402,8 +418,9 @@ class _VariantFieldClassWithSelectorTestCase:
 
     def test_append_element_kwargs(self):
         int_field_class = self._tc.create_signed_integer_field_class(32)
-        self._fc.append_option(name='int32', field_class=int_field_class,
-                               ranges=self._ranges1)
+        self._fc.append_option(
+            name='int32', field_class=int_field_class, ranges=self._ranges1
+        )
         opt = self._fc['int32']
         self.assertEqual(opt.field_class.addr, int_field_class.addr)
         self.assertEqual(opt.name, 'int32')
@@ -444,7 +461,9 @@ class _VariantFieldClassWithSelectorTestCase:
         a_field_class = self._tc.create_real_field_class()
         self._fc.append_option('a_float', a_field_class, self._ranges1)
         c_field_class = self._tc.create_string_field_class()
-        d_field_class = self._tc.create_signed_enumeration_field_class(field_value_range=32)
+        d_field_class = self._tc.create_signed_enumeration_field_class(
+            field_value_range=32
+        )
         self._fc += [
             ('c_string', c_field_class, self._ranges2),
             ('d_enum', d_field_class, self._ranges3),
@@ -525,13 +544,17 @@ class _VariantFieldClassWithSelectorTestCase:
         self.assertEqual(self._fc.option_at_index(1).ranges.addr, self._ranges2.addr)
 
     def test_at_index_invalid(self):
-        self._fc.append_option('c', self._tc.create_signed_integer_field_class(32), self._ranges3)
+        self._fc.append_option(
+            'c', self._tc.create_signed_integer_field_class(32), self._ranges3
+        )
 
         with self.assertRaises(TypeError):
             self._fc.option_at_index('yes')
 
     def test_at_index_out_of_bounds_after(self):
-        self._fc.append_option('c', self._tc.create_signed_integer_field_class(32), self._ranges3)
+        self._fc.append_option(
+            'c', self._tc.create_signed_integer_field_class(32), self._ranges3
+        )
 
         with self.assertRaises(IndexError):
             self._fc.option_at_index(len(self._fc))
@@ -553,8 +576,12 @@ class _VariantFieldClassWithSelectorTestCase:
         #   } inner_struct[2];
         # };
         self._fc.append_option('a', self._tc.create_real_field_class(), self._ranges1)
-        self._fc.append_option('b', self._tc.create_signed_integer_field_class(21), self._ranges2)
-        self._fc.append_option('c', self._tc.create_unsigned_integer_field_class(34), self._ranges3)
+        self._fc.append_option(
+            'b', self._tc.create_signed_integer_field_class(21), self._ranges2
+        )
+        self._fc.append_option(
+            'c', self._tc.create_unsigned_integer_field_class(34), self._ranges3
+        )
 
         foo_fc = self._tc.create_real_field_class()
         bar_fc = self._tc.create_string_field_class()
@@ -566,7 +593,9 @@ class _VariantFieldClassWithSelectorTestCase:
         inner_struct_fc.append_member('baz', baz_fc)
         inner_struct_fc.append_member('variant', self._fc)
 
-        inner_struct_array_fc = self._tc.create_static_array_field_class(inner_struct_fc, 2)
+        inner_struct_array_fc = self._tc.create_static_array_field_class(
+            inner_struct_fc, 2
+        )
 
         outer_struct_fc = self._tc.create_structure_field_class()
         outer_struct_fc.append_member('foo', foo_fc)
@@ -574,8 +603,9 @@ class _VariantFieldClassWithSelectorTestCase:
 
         # The path to the selector field is resolved when the sequence is
         # actually used, for example in a packet context.
-        self._tc.create_stream_class(supports_packets=True,
-                                     packet_context_field_class=outer_struct_fc)
+        self._tc.create_stream_class(
+            supports_packets=True, packet_context_field_class=outer_struct_fc
+        )
 
     def test_selector_field_path_length(self):
         self._fill_default_fc_for_field_path_test()
@@ -590,17 +620,23 @@ class _VariantFieldClassWithSelectorTestCase:
         self.assertIsInstance(path_items[0], bt2.field_path._IndexFieldPathItem)
         self.assertEqual(path_items[0].index, 1)
 
-        self.assertIsInstance(path_items[1], bt2.field_path._CurrentArrayElementFieldPathItem)
+        self.assertIsInstance(
+            path_items[1], bt2.field_path._CurrentArrayElementFieldPathItem
+        )
 
         self.assertIsInstance(path_items[2], bt2.field_path._IndexFieldPathItem)
         self.assertEqual(path_items[2].index, 0)
 
     def test_selector_field_path_root_scope(self):
         self._fill_default_fc_for_field_path_test()
-        self.assertEqual(self._fc.selector_field_path.root_scope, bt2.field_path.Scope.PACKET_CONTEXT)
+        self.assertEqual(
+            self._fc.selector_field_path.root_scope, bt2.field_path.Scope.PACKET_CONTEXT
+        )
 
 
-class VariantFieldClassWithUnsignedSelectorTestCase(_VariantFieldClassWithSelectorTestCase, unittest.TestCase):
+class VariantFieldClassWithUnsignedSelectorTestCase(
+    _VariantFieldClassWithSelectorTestCase, unittest.TestCase
+):
     def _spec_set_up(self):
         self._ranges1 = bt2.UnsignedIntegerRangeSet([(1, 4), (18, 47)])
         self._ranges2 = bt2.UnsignedIntegerRangeSet([(5, 5)])
@@ -609,7 +645,9 @@ class VariantFieldClassWithUnsignedSelectorTestCase(_VariantFieldClassWithSelect
         self._selector_fc = self._tc.create_unsigned_integer_field_class()
 
 
-class VariantFieldClassWithSignedSelectorTestCase(_VariantFieldClassWithSelectorTestCase, unittest.TestCase):
+class VariantFieldClassWithSignedSelectorTestCase(
+    _VariantFieldClassWithSelectorTestCase, unittest.TestCase
+):
     def _spec_set_up(self):
         self._ranges1 = bt2.SignedIntegerRangeSet([(-10, -4), (18, 47)])
         self._ranges2 = bt2.SignedIntegerRangeSet([(-3, -3)])
@@ -634,11 +672,15 @@ class StaticArrayFieldClassTestCase(unittest.TestCase):
 
     def test_create_invalid_length(self):
         with self.assertRaises(ValueError):
-            self._tc.create_static_array_field_class(self._tc.create_string_field_class(), -17)
+            self._tc.create_static_array_field_class(
+                self._tc.create_string_field_class(), -17
+            )
 
     def test_create_invalid_length_type(self):
         with self.assertRaises(TypeError):
-            self._tc.create_static_array_field_class(self._tc.create_string_field_class(), 'the length')
+            self._tc.create_static_array_field_class(
+                self._tc.create_string_field_class(), 'the length'
+            )
 
 
 class DynamicArrayFieldClassTestCase(unittest.TestCase):
@@ -677,7 +719,9 @@ class DynamicArrayFieldClassTestCase(unittest.TestCase):
         inner_struct_fc.append_member('len', self._len_fc)
         inner_struct_fc.append_member('dyn_array', fc)
 
-        inner_struct_array_fc = self._tc.create_static_array_field_class(inner_struct_fc, 2)
+        inner_struct_array_fc = self._tc.create_static_array_field_class(
+            inner_struct_fc, 2
+        )
 
         outer_struct_fc = self._tc.create_structure_field_class()
         outer_struct_fc.append_member('foo', foo_fc)
@@ -685,8 +729,9 @@ class DynamicArrayFieldClassTestCase(unittest.TestCase):
 
         # The path to the length field is resolved when the sequence is
         # actually used, for example in a packet context.
-        self._tc.create_stream_class(packet_context_field_class=outer_struct_fc,
-                                     supports_packets=True)
+        self._tc.create_stream_class(
+            packet_context_field_class=outer_struct_fc, supports_packets=True
+        )
 
         return fc
 
@@ -703,14 +748,18 @@ class DynamicArrayFieldClassTestCase(unittest.TestCase):
         self.assertIsInstance(path_items[0], bt2.field_path._IndexFieldPathItem)
         self.assertEqual(path_items[0].index, 1)
 
-        self.assertIsInstance(path_items[1], bt2.field_path._CurrentArrayElementFieldPathItem)
+        self.assertIsInstance(
+            path_items[1], bt2.field_path._CurrentArrayElementFieldPathItem
+        )
 
         self.assertIsInstance(path_items[2], bt2.field_path._IndexFieldPathItem)
         self.assertEqual(path_items[2].index, 2)
 
     def test_field_path_root_scope(self):
         fc = self._create_field_class_for_field_path_test()
-        self.assertEqual(fc.length_field_path.root_scope, bt2.field_path.Scope.PACKET_CONTEXT)
+        self.assertEqual(
+            fc.length_field_path.root_scope, bt2.field_path.Scope.PACKET_CONTEXT
+        )
 
     def test_create_invalid_field_class(self):
         with self.assertRaises(TypeError):
@@ -718,7 +767,9 @@ class DynamicArrayFieldClassTestCase(unittest.TestCase):
 
     def test_create_invalid_length_type(self):
         with self.assertRaises(TypeError):
-            self._tc.create_dynamic_array_field_class(self._tc.create_string_field_class(), 17)
+            self._tc.create_dynamic_array_field_class(
+                self._tc.create_string_field_class(), 17
+            )
 
 
 if __name__ == "__main__":
