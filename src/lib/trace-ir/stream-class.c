@@ -85,7 +85,6 @@ void free_field_wrapper(struct bt_field_wrapper *field_wrapper,
 	bt_field_wrapper_destroy((void *) field_wrapper);
 }
 
-BT_ASSERT_PRE_FUNC
 static
 bool stream_class_id_is_unique(const struct bt_trace_class *tc, uint64_t id)
 {

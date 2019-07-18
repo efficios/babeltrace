@@ -133,7 +133,6 @@ uint64_t bt_field_class_integer_get_field_value_range(
 	return int_fc->range;
 }
 
-BT_ASSERT_PRE_FUNC
 static
 bool size_is_valid_for_enumeration_field_class(struct bt_field_class *fc,
 		uint64_t size)

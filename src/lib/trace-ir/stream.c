@@ -70,7 +70,6 @@ void bt_stream_free_packet(struct bt_packet *packet, struct bt_stream *stream)
 	bt_packet_destroy(packet);
 }
 
-BT_ASSERT_PRE_FUNC
 static inline
 bool stream_id_is_unique(struct bt_trace *trace,
 		struct bt_stream_class *stream_class, uint64_t id)
