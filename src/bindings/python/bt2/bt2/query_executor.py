@@ -40,17 +40,21 @@ class QueryExecutor(object._SharedObject):
 
     def cancel(self):
         status = native_bt.query_executor_cancel(self._ptr)
-        utils._handle_func_status(status,
-                                  'cannot cancel query executor object')
+        utils._handle_func_status(status, 'cannot cancel query executor object')
 
     @property
     def is_canceled(self):
         is_canceled = native_bt.query_executor_is_canceled(self._ptr)
-        assert(is_canceled >= 0)
+        assert is_canceled >= 0
         return is_canceled > 0
 
-    def query(self, component_class, object, params=None,
-              logging_level=bt2.logging.LoggingLevel.NONE):
+    def query(
+        self,
+        component_class,
+        object,
+        params=None,
+        logging_level=bt2.logging.LoggingLevel.NONE,
+    ):
         if self.is_canceled:
             raise bt2.Canceled
 
@@ -78,9 +82,9 @@ class QueryExecutor(object._SharedObject):
         utils._check_log_level(logging_level)
         cc_ptr = component_class._bt_component_class_ptr()
 
-        status, result_ptr = native_bt.query_executor_query(self._ptr, cc_ptr,
-                                                            object, params_ptr,
-                                                            logging_level)
+        status, result_ptr = native_bt.query_executor_query(
+            self._ptr, cc_ptr, object, params_ptr, logging_level
+        )
         utils._handle_func_status(status, 'cannot query component class')
-        assert(result_ptr)
+        assert result_ptr
         return bt2.value._create_from_ptr(result_ptr)

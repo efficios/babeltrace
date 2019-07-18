@@ -67,9 +67,9 @@ class _Event(object._UniqueObject):
         if field_ptr is None:
             return
 
-        return bt2.field._create_field_from_ptr(field_ptr, self._owner_ptr,
-                                                self._owner_get_ref,
-                                                self._owner_put_ref)
+        return bt2.field._create_field_from_ptr(
+            field_ptr, self._owner_ptr, self._owner_get_ref, self._owner_put_ref
+        )
 
     @property
     def specific_context_field(self):
@@ -78,9 +78,9 @@ class _Event(object._UniqueObject):
         if field_ptr is None:
             return
 
-        return bt2.field._create_field_from_ptr(field_ptr, self._owner_ptr,
-                                                self._owner_get_ref,
-                                                self._owner_put_ref)
+        return bt2.field._create_field_from_ptr(
+            field_ptr, self._owner_ptr, self._owner_get_ref, self._owner_put_ref
+        )
 
     @property
     def payload_field(self):
@@ -89,9 +89,9 @@ class _Event(object._UniqueObject):
         if field_ptr is None:
             return
 
-        return bt2.field._create_field_from_ptr(field_ptr, self._owner_ptr,
-                                                self._owner_get_ref,
-                                                self._owner_put_ref)
+        return bt2.field._create_field_from_ptr(
+            field_ptr, self._owner_ptr, self._owner_get_ref, self._owner_put_ref
+        )
 
     def __getitem__(self, key):
         utils._check_str(key)

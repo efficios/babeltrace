@@ -38,9 +38,9 @@ class _BaseObject:
         return int(self._ptr)
 
     def __repr__(self):
-        return '<{}.{} object @ {}>'.format(self.__class__.__module__,
-                                            self.__class__.__name__,
-                                            hex(self.addr))
+        return '<{}.{} object @ {}>'.format(
+            self.__class__.__module__, self.__class__.__name__, hex(self.addr)
+        )
 
     def __copy__(self):
         raise NotImplementedError
@@ -58,6 +58,7 @@ class _BaseObject:
 # of unique objects, we make it so acquiring a reference on a unique object
 # acquires a reference on its owner.
 
+
 class _UniqueObject(_BaseObject):
 
     # Create a _UniqueObject.
@@ -69,8 +70,7 @@ class _UniqueObject(_BaseObject):
     #   - owner_put_ref: Callback to put a reference on the owner.
 
     @classmethod
-    def _create_from_ptr_and_get_ref(cls, ptr, owner_ptr,
-                                     owner_get_ref, owner_put_ref):
+    def _create_from_ptr_and_get_ref(cls, ptr, owner_ptr, owner_get_ref, owner_put_ref):
         obj = cls.__new__(cls)
 
         obj._ptr = ptr

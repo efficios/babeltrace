@@ -35,9 +35,7 @@ class _MyIter(bt2._UserMessageIterator):
         self._ec = self._sc.create_event_class(name='salut')
         self._my_int_ft = self._tc.create_signed_integer_field_class(32)
         payload_ft = self._tc.create_structure_field_class()
-        payload_ft += [
-            ('my_int', self._my_int_ft),
-        ]
+        payload_ft += [('my_int', self._my_int_ft)]
         self._ec.payload_field_type = payload_ft
         self._stream = self._t.create_stream(self._sc)
         self._packet = self._stream.create_packet()
@@ -63,6 +61,7 @@ class GraphTestCase(unittest.TestCase):
         class MySink(bt2._UserSinkComponent):
             def _consume(self):
                 pass
+
             def _graph_is_configured(self):
                 pass
 
@@ -73,6 +72,7 @@ class GraphTestCase(unittest.TestCase):
         class MySink(bt2._UserSinkComponent):
             def _consume(self):
                 pass
+
             def _graph_is_configured(self):
                 pass
 
@@ -91,6 +91,7 @@ class GraphTestCase(unittest.TestCase):
 
             def _consume(self):
                 pass
+
             def _graph_is_configured(self):
                 pass
 
@@ -107,6 +108,7 @@ class GraphTestCase(unittest.TestCase):
         class MySink(bt2._UserSinkComponent):
             def _consume(self):
                 pass
+
             def _graph_is_configured(self):
                 pass
 
@@ -117,6 +119,7 @@ class GraphTestCase(unittest.TestCase):
         class MySink(bt2._UserSinkComponent):
             def _consume(self):
                 pass
+
             def _graph_is_configured(self):
                 pass
 
@@ -127,11 +130,13 @@ class GraphTestCase(unittest.TestCase):
         class MySink(bt2._UserSinkComponent):
             def _consume(self):
                 pass
+
             def _graph_is_configured(self):
                 pass
 
-        comp = self._graph.add_component(MySink, 'salut',
-                                         logging_level=bt2.LoggingLevel.DEBUG)
+        comp = self._graph.add_component(
+            MySink, 'salut', logging_level=bt2.LoggingLevel.DEBUG
+        )
         self.assertEqual(comp.logging_level, bt2.LoggingLevel.DEBUG)
 
     def test_connect_ports(self):
@@ -139,8 +144,7 @@ class GraphTestCase(unittest.TestCase):
             def __next__(self):
                 raise bt2.Stop
 
-        class MySource(bt2._UserSourceComponent,
-                       message_iterator_class=MyIter):
+        class MySource(bt2._UserSourceComponent, message_iterator_class=MyIter):
             def __init__(self, params):
                 self._add_output_port('out')
 
@@ -157,8 +161,9 @@ class GraphTestCase(unittest.TestCase):
         src = self._graph.add_component(MySource, 'src')
         sink = self._graph.add_component(MySink, 'sink')
 
-        conn = self._graph.connect_ports(src.output_ports['out'],
-                                         sink.input_ports['in'])
+        conn = self._graph.connect_ports(
+            src.output_ports['out'], sink.input_ports['in']
+        )
         self.assertTrue(src.output_ports['out'].is_connected)
         self.assertTrue(sink.input_ports['in'].is_connected)
         self.assertEqual(src.output_ports['out'].connection.addr, conn.addr)
@@ -169,8 +174,7 @@ class GraphTestCase(unittest.TestCase):
             def __next__(self):
                 raise bt2.Stop
 
-        class MySource(bt2._UserSourceComponent,
-                       message_iterator_class=MyIter):
+        class MySource(bt2._UserSourceComponent, message_iterator_class=MyIter):
             def __init__(self, params):
                 self._add_output_port('out')
 
@@ -188,8 +192,9 @@ class GraphTestCase(unittest.TestCase):
         sink = self._graph.add_component(MySink, 'sink')
 
         with self.assertRaises(TypeError):
-            conn = self._graph.connect_ports(sink.input_ports['in'],
-                                             src.output_ports['out'])
+            conn = self._graph.connect_ports(
+                sink.input_ports['in'], src.output_ports['out']
+            )
 
     def test_cancel(self):
         self.assertFalse(self._graph.is_canceled)
@@ -203,8 +208,7 @@ class GraphTestCase(unittest.TestCase):
             def __next__(self):
                 return self._create_stream_beginning_message(self._stream)
 
-        class MySource(bt2._UserSourceComponent,
-                       message_iterator_class=MyIter):
+        class MySource(bt2._UserSourceComponent, message_iterator_class=MyIter):
             def __init__(self, params):
                 self._add_output_port('out')
 
@@ -249,8 +253,7 @@ class GraphTestCase(unittest.TestCase):
                 self._at += 1
                 return msg
 
-        class MySource(bt2._UserSourceComponent,
-                       message_iterator_class=MyIter):
+        class MySource(bt2._UserSourceComponent, message_iterator_class=MyIter):
             def __init__(self, params):
                 self._add_output_port('out')
 
@@ -281,8 +284,9 @@ class GraphTestCase(unittest.TestCase):
 
         src = self._graph.add_component(MySource, 'src')
         sink = self._graph.add_component(MySink, 'sink')
-        conn = self._graph.connect_ports(src.output_ports['out'],
-                                         sink.input_ports['in'])
+        conn = self._graph.connect_ports(
+            src.output_ports['out'], sink.input_ports['in']
+        )
         self._graph.run()
 
     def test_run_again(self):
@@ -301,8 +305,7 @@ class GraphTestCase(unittest.TestCase):
                 self._at += 1
                 return msg
 
-        class MySource(bt2._UserSourceComponent,
-                       message_iterator_class=MyIter):
+        class MySource(bt2._UserSourceComponent, message_iterator_class=MyIter):
             def __init__(self, params):
                 self._add_output_port('out')
 
@@ -330,8 +333,9 @@ class GraphTestCase(unittest.TestCase):
 
         src = self._graph.add_component(MySource, 'src')
         sink = self._graph.add_component(MySink, 'sink')
-        conn = self._graph.connect_ports(src.output_ports['out'],
-                                         sink.input_ports['in'])
+        conn = self._graph.connect_ports(
+            src.output_ports['out'], sink.input_ports['in']
+        )
 
         with self.assertRaises(bt2.TryAgain):
             self._graph.run()
@@ -357,8 +361,7 @@ class GraphTestCase(unittest.TestCase):
                 self._at += 1
                 return msg
 
-        class MySource(bt2._UserSourceComponent,
-                       message_iterator_class=MyIter):
+        class MySource(bt2._UserSourceComponent, message_iterator_class=MyIter):
             def __init__(self, params):
                 self._add_output_port('out')
 
@@ -387,8 +390,9 @@ class GraphTestCase(unittest.TestCase):
 
         src = self._graph.add_component(MySource, 'src')
         sink = self._graph.add_component(MySink, 'sink')
-        conn = self._graph.connect_ports(src.output_ports['out'],
-                                         sink.input_ports['in'])
+        conn = self._graph.connect_ports(
+            src.output_ports['out'], sink.input_ports['in']
+        )
 
         with self.assertRaises(bt2.Error):
             self._graph.run()
@@ -398,8 +402,7 @@ class GraphTestCase(unittest.TestCase):
             def __next__(self):
                 raise bt2.Stop
 
-        class MySource(bt2._UserSourceComponent,
-                       message_iterator_class=MyIter):
+        class MySource(bt2._UserSourceComponent, message_iterator_class=MyIter):
             def __init__(self, params):
                 self._add_output_port('out')
                 self._add_output_port('zero')
@@ -421,20 +424,26 @@ class GraphTestCase(unittest.TestCase):
             nonlocal calls
             calls.append((port_added_listener, component, port))
 
-        def ports_connected_listener(upstream_component, upstream_port,
-                                     downstream_component, downstream_port):
+        def ports_connected_listener(
+            upstream_component, upstream_port, downstream_component, downstream_port
+        ):
             nonlocal calls
-            calls.append((ports_connected_listener,
-                          upstream_component, upstream_port,
-                          downstream_component, downstream_port))
+            calls.append(
+                (
+                    ports_connected_listener,
+                    upstream_component,
+                    upstream_port,
+                    downstream_component,
+                    downstream_port,
+                )
+            )
 
         calls = []
         self._graph.add_port_added_listener(port_added_listener)
         self._graph.add_ports_connected_listener(ports_connected_listener)
         src = self._graph.add_component(MySource, 'src')
         sink = self._graph.add_component(MySink, 'sink')
-        self._graph.connect_ports(src.output_ports['out'],
-                                  sink.input_ports['in'])
+        self._graph.connect_ports(src.output_ports['out'], sink.input_ports['in'])
 
         self.assertEqual(len(calls), 5)
 
@@ -465,8 +474,7 @@ class GraphTestCase(unittest.TestCase):
             def __next__(self):
                 raise bt2.Stop
 
-        class MySource(bt2._UserSourceComponent,
-                       message_iterator_class=MyIter):
+        class MySource(bt2._UserSourceComponent, message_iterator_class=MyIter):
             def __init__(self, params):
                 self._add_output_port('out')
                 self._add_output_port('zero')
@@ -530,8 +538,7 @@ class GraphTestCase(unittest.TestCase):
             def __next__(self):
                 raise bt2.Stop
 
-        class MySource(bt2._UserSourceComponent,
-                       message_iterator_class=MyIter):
+        class MySource(bt2._UserSourceComponent, message_iterator_class=MyIter):
             def __init__(self, params):
                 self._add_output_port('out')
 
@@ -545,8 +552,9 @@ class GraphTestCase(unittest.TestCase):
             def _graph_is_configured(self):
                 pass
 
-        def ports_connected_listener(upstream_component, upstream_port,
-                                     downstream_component, downstream_port):
+        def ports_connected_listener(
+            upstream_component, upstream_port, downstream_component, downstream_port
+        ):
             raise ValueError('oh noes!')
 
         graph = bt2.Graph()

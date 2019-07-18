@@ -29,11 +29,10 @@ class LttngUtilsDebugInfoTestCase(unittest.TestCase):
         trace_path = os.path.join(debug_info_data_path, 'trace')
         target_prefix = os.path.join(debug_info_data_path, '..', '..')
         src = bt2.ComponentSpec('ctf', 'fs', trace_path)
-        flt = bt2.ComponentSpec('lttng-utils', 'debug-info', {
-            'target-prefix': target_prefix,
-        })
-        it = bt2.TraceCollectionNotificationIterator(src, flt,
-                                                     [bt2.EventNotification])
+        flt = bt2.ComponentSpec(
+            'lttng-utils', 'debug-info', {'target-prefix': target_prefix}
+        )
+        it = bt2.TraceCollectionNotificationIterator(src, flt, [bt2.EventNotification])
         notifs = list(it)
         debug_info = notifs[2].event['debug_info']
         self.assertEqual(debug_info['bin'], 'libhello_so+0x14d4')

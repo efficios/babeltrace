@@ -24,9 +24,9 @@ import os.path
 
 
 _BT_CTF_TRACES_PATH = os.environ['BT_CTF_TRACES_PATH']
-_3EVENTS_INTERSECT_TRACE_PATH = os.path.join(_BT_CTF_TRACES_PATH,
-                                             'intersection',
-                                             '3eventsintersect')
+_3EVENTS_INTERSECT_TRACE_PATH = os.path.join(
+    _BT_CTF_TRACES_PATH, 'intersection', '3eventsintersect'
+)
 
 
 class ComponentSpecTestCase(unittest.TestCase):
@@ -54,6 +54,7 @@ class ComponentSpecTestCase(unittest.TestCase):
 
 
 # Return a map, msg type -> number of messages of this type.
+
 
 def _count_msgs_by_type(msgs):
     res = {}
@@ -126,16 +127,16 @@ class TraceCollectionMessageIteratorTestCase(unittest.TestCase):
 
     def test_iter_custom_filter(self):
         src_spec = bt2.ComponentSpec('ctf', 'fs', _3EVENTS_INTERSECT_TRACE_PATH)
-        flt_spec = bt2.ComponentSpec('utils', 'trimmer', {
-            'end': '13515309.000000075',
-        })
+        flt_spec = bt2.ComponentSpec('utils', 'trimmer', {'end': '13515309.000000075'})
         msg_iter = bt2.TraceCollectionMessageIterator(src_spec, flt_spec)
         hist = _count_msgs_by_type(msg_iter)
         self.assertEqual(hist[bt2.message._EventMessage], 5)
 
     def test_iter_intersection(self):
         specs = [bt2.ComponentSpec('ctf', 'fs', _3EVENTS_INTERSECT_TRACE_PATH)]
-        msg_iter = bt2.TraceCollectionMessageIterator(specs, stream_intersection_mode=True)
+        msg_iter = bt2.TraceCollectionMessageIterator(
+            specs, stream_intersection_mode=True
+        )
         msgs = list(msg_iter)
         self.assertEqual(len(msgs), 15)
         hist = _count_msgs_by_type(msgs)

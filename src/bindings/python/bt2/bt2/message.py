@@ -44,7 +44,9 @@ class _Message(object._SharedObject):
     @staticmethod
     def _check_has_default_clock_class(clock_class):
         if clock_class is None:
-            raise bt2.NonexistentClockSnapshot('cannot get default clock snapshot: stream class has no default clock class')
+            raise bt2.NonexistentClockSnapshot(
+                'cannot get default clock snapshot: stream class has no default clock class'
+            )
 
 
 class _MessageWithDefaultClockSnapshot:
@@ -52,11 +54,14 @@ class _MessageWithDefaultClockSnapshot:
         snapshot_ptr = borrow_clock_snapshot_ptr(self._ptr)
 
         return bt2.clock_snapshot._ClockSnapshot._create_from_ptr_and_get_ref(
-            snapshot_ptr, self._ptr, self._get_ref, self._put_ref)
+            snapshot_ptr, self._ptr, self._get_ref, self._put_ref
+        )
 
 
 class _EventMessage(_Message, _MessageWithDefaultClockSnapshot):
-    _borrow_default_clock_snapshot_ptr = staticmethod(native_bt.message_event_borrow_default_clock_snapshot_const)
+    _borrow_default_clock_snapshot_ptr = staticmethod(
+        native_bt.message_event_borrow_default_clock_snapshot_const
+    )
 
     @property
     def default_clock_snapshot(self):
@@ -68,7 +73,8 @@ class _EventMessage(_Message, _MessageWithDefaultClockSnapshot):
         event_ptr = native_bt.message_event_borrow_event(self._ptr)
         assert event_ptr is not None
         return bt2.event._Event._create_from_ptr_and_get_ref(
-            event_ptr, self._ptr, self._get_ref, self._put_ref)
+            event_ptr, self._ptr, self._get_ref, self._put_ref
+        )
 
 
 class _PacketMessage(_Message, _MessageWithDefaultClockSnapshot):
@@ -86,12 +92,16 @@ class _PacketMessage(_Message, _MessageWithDefaultClockSnapshot):
 
 class _PacketBeginningMessage(_PacketMessage):
     _borrow_packet_ptr = staticmethod(native_bt.message_packet_beginning_borrow_packet)
-    _borrow_default_clock_snapshot_ptr = staticmethod(native_bt.message_packet_beginning_borrow_default_clock_snapshot_const)
+    _borrow_default_clock_snapshot_ptr = staticmethod(
+        native_bt.message_packet_beginning_borrow_default_clock_snapshot_const
+    )
 
 
 class _PacketEndMessage(_PacketMessage):
     _borrow_packet_ptr = staticmethod(native_bt.message_packet_end_borrow_packet)
-    _borrow_default_clock_snapshot_ptr = staticmethod(native_bt.message_packet_end_borrow_default_clock_snapshot_const)
+    _borrow_default_clock_snapshot_ptr = staticmethod(
+        native_bt.message_packet_end_borrow_default_clock_snapshot_const
+    )
 
 
 class _StreamMessage(_Message, _MessageWithDefaultClockSnapshot):
@@ -111,7 +121,8 @@ class _StreamMessage(_Message, _MessageWithDefaultClockSnapshot):
             return bt2.clock_snapshot._UnknownClockSnapshot()
 
         return bt2.clock_snapshot._ClockSnapshot._create_from_ptr_and_get_ref(
-            snapshot_ptr, self._ptr, self._get_ref, self._put_ref)
+            snapshot_ptr, self._ptr, self._get_ref, self._put_ref
+        )
 
     def _default_clock_snapshot(self, raw_value):
         utils._check_uint64(raw_value)
@@ -122,18 +133,28 @@ class _StreamMessage(_Message, _MessageWithDefaultClockSnapshot):
 
 class _StreamBeginningMessage(_StreamMessage):
     _borrow_stream_ptr = staticmethod(native_bt.message_stream_beginning_borrow_stream)
-    _borrow_default_clock_snapshot_ptr = staticmethod(native_bt.message_stream_beginning_borrow_default_clock_snapshot_const)
-    _set_default_clock_snapshot = staticmethod(native_bt.message_stream_beginning_set_default_clock_snapshot)
+    _borrow_default_clock_snapshot_ptr = staticmethod(
+        native_bt.message_stream_beginning_borrow_default_clock_snapshot_const
+    )
+    _set_default_clock_snapshot = staticmethod(
+        native_bt.message_stream_beginning_set_default_clock_snapshot
+    )
 
 
 class _StreamEndMessage(_StreamMessage):
     _borrow_stream_ptr = staticmethod(native_bt.message_stream_end_borrow_stream)
-    _borrow_default_clock_snapshot_ptr = staticmethod(native_bt.message_stream_end_borrow_default_clock_snapshot_const)
-    _set_default_clock_snapshot = staticmethod(native_bt.message_stream_end_set_default_clock_snapshot)
+    _borrow_default_clock_snapshot_ptr = staticmethod(
+        native_bt.message_stream_end_borrow_default_clock_snapshot_const
+    )
+    _set_default_clock_snapshot = staticmethod(
+        native_bt.message_stream_end_set_default_clock_snapshot
+    )
 
 
 class _MessageIteratorInactivityMessage(_Message, _MessageWithDefaultClockSnapshot):
-    _borrow_default_clock_snapshot_ptr = staticmethod(native_bt.message_message_iterator_inactivity_borrow_default_clock_snapshot_const)
+    _borrow_default_clock_snapshot_ptr = staticmethod(
+        native_bt.message_message_iterator_inactivity_borrow_default_clock_snapshot_const
+    )
 
     @property
     def default_clock_snapshot(self):
@@ -163,12 +184,16 @@ class _DiscardedMessage(_Message, _MessageWithDefaultClockSnapshot):
 
     def _check_has_default_clock_snapshots(self):
         if not self._has_default_clock_snapshots:
-            raise bt2.NonexistentClockSnapshot('cannot get default clock snapshot: such a message has no clock snapshots for this stream class')
+            raise bt2.NonexistentClockSnapshot(
+                'cannot get default clock snapshot: such a message has no clock snapshots for this stream class'
+            )
 
     @property
     def beginning_default_clock_snapshot(self):
         self._check_has_default_clock_snapshots()
-        return self._get_default_clock_snapshot(self._borrow_beginning_clock_snapshot_ptr)
+        return self._get_default_clock_snapshot(
+            self._borrow_beginning_clock_snapshot_ptr
+        )
 
     @property
     def end_default_clock_snapshot(self):
@@ -177,11 +202,17 @@ class _DiscardedMessage(_Message, _MessageWithDefaultClockSnapshot):
 
 
 class _DiscardedEventsMessage(_DiscardedMessage):
-    _borrow_stream_ptr = staticmethod(native_bt.message_discarded_events_borrow_stream_const)
+    _borrow_stream_ptr = staticmethod(
+        native_bt.message_discarded_events_borrow_stream_const
+    )
     _get_count = staticmethod(native_bt.message_discarded_events_get_count)
     _set_count = staticmethod(native_bt.message_discarded_events_set_count)
-    _borrow_beginning_clock_snapshot_ptr = staticmethod(native_bt.message_discarded_events_borrow_beginning_default_clock_snapshot_const)
-    _borrow_end_clock_snapshot_ptr = staticmethod(native_bt.message_discarded_events_borrow_end_default_clock_snapshot_const)
+    _borrow_beginning_clock_snapshot_ptr = staticmethod(
+        native_bt.message_discarded_events_borrow_beginning_default_clock_snapshot_const
+    )
+    _borrow_end_clock_snapshot_ptr = staticmethod(
+        native_bt.message_discarded_events_borrow_end_default_clock_snapshot_const
+    )
 
     @property
     def _has_default_clock_snapshots(self):
@@ -189,11 +220,17 @@ class _DiscardedEventsMessage(_DiscardedMessage):
 
 
 class _DiscardedPacketsMessage(_DiscardedMessage):
-    _borrow_stream_ptr = staticmethod(native_bt.message_discarded_packets_borrow_stream_const)
+    _borrow_stream_ptr = staticmethod(
+        native_bt.message_discarded_packets_borrow_stream_const
+    )
     _get_count = staticmethod(native_bt.message_discarded_packets_get_count)
     _set_count = staticmethod(native_bt.message_discarded_packets_set_count)
-    _borrow_beginning_clock_snapshot_ptr = staticmethod(native_bt.message_discarded_packets_borrow_beginning_default_clock_snapshot_const)
-    _borrow_end_clock_snapshot_ptr = staticmethod(native_bt.message_discarded_packets_borrow_end_default_clock_snapshot_const)
+    _borrow_beginning_clock_snapshot_ptr = staticmethod(
+        native_bt.message_discarded_packets_borrow_beginning_default_clock_snapshot_const
+    )
+    _borrow_end_clock_snapshot_ptr = staticmethod(
+        native_bt.message_discarded_packets_borrow_end_default_clock_snapshot_const
+    )
 
     @property
     def _has_default_clock_snapshots(self):

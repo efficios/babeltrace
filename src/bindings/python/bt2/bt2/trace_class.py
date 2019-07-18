@@ -41,7 +41,9 @@ class _StreamClassIterator(collections.abc.Iterator):
         if self._at == len(self._trace_class):
             raise StopIteration
 
-        borrow_stream_class_fn = native_bt.trace_class_borrow_stream_class_by_index_const
+        borrow_stream_class_fn = (
+            native_bt.trace_class_borrow_stream_class_by_index_const
+        )
         sc_ptr = borrow_stream_class_fn(self._trace_class._ptr, self._at)
         assert sc_ptr
         id = native_bt.stream_class_get_id(sc_ptr)
@@ -51,7 +53,9 @@ class _StreamClassIterator(collections.abc.Iterator):
 
 
 def _trace_class_destruction_listener_from_native(user_listener, trace_class_ptr):
-    trace_class = bt2.trace_class._TraceClass._create_from_ptr_and_get_ref(trace_class_ptr)
+    trace_class = bt2.trace_class._TraceClass._create_from_ptr_and_get_ref(
+        trace_class_ptr
+    )
     user_listener(trace_class)
 
 
@@ -101,7 +105,9 @@ class _TraceClass(object._SharedObject, collections.abc.Mapping):
 
     def __iter__(self):
         for idx in range(len(self)):
-            sc_ptr = native_bt.trace_class_borrow_stream_class_by_index_const(self._ptr, idx)
+            sc_ptr = native_bt.trace_class_borrow_stream_class_by_index_const(
+                self._ptr, idx
+            )
             assert sc_ptr is not None
 
             id = native_bt.stream_class_get_id(sc_ptr)
@@ -109,29 +115,36 @@ class _TraceClass(object._SharedObject, collections.abc.Mapping):
 
             yield id
 
-    def create_stream_class(self, id=None,
-                            name=None,
-                            packet_context_field_class=None,
-                            event_common_context_field_class=None,
-                            default_clock_class=None,
-                            assigns_automatic_event_class_id=True,
-                            assigns_automatic_stream_id=True,
-                            supports_packets=False,
-                            packets_have_beginning_default_clock_snapshot=False,
-                            packets_have_end_default_clock_snapshot=False,
-                            supports_discarded_events=False,
-                            discarded_events_have_default_clock_snapshots=False,
-                            supports_discarded_packets=False,
-                            discarded_packets_have_default_clock_snapshots=False):
+    def create_stream_class(
+        self,
+        id=None,
+        name=None,
+        packet_context_field_class=None,
+        event_common_context_field_class=None,
+        default_clock_class=None,
+        assigns_automatic_event_class_id=True,
+        assigns_automatic_stream_id=True,
+        supports_packets=False,
+        packets_have_beginning_default_clock_snapshot=False,
+        packets_have_end_default_clock_snapshot=False,
+        supports_discarded_events=False,
+        discarded_events_have_default_clock_snapshots=False,
+        supports_discarded_packets=False,
+        discarded_packets_have_default_clock_snapshots=False,
+    ):
 
         if self.assigns_automatic_stream_class_id:
             if id is not None:
-                raise ValueError('id provided, but trace class assigns automatic stream class ids')
+                raise ValueError(
+                    'id provided, but trace class assigns automatic stream class ids'
+                )
 
             sc_ptr = native_bt.stream_class_create(self._ptr)
         else:
             if id is None:
-                raise ValueError('id not provided, but trace class does not assign automatic stream class ids')
+                raise ValueError(
+                    'id not provided, but trace class does not assign automatic stream class ids'
+                )
 
             utils._check_uint64(id)
             sc_ptr = native_bt.stream_class_create_with_id(self._ptr, id)
@@ -151,9 +164,11 @@ class _TraceClass(object._SharedObject, collections.abc.Mapping):
         # `packets_have_beginning_default_clock_snapshot` or
         # `packets_have_end_default_clock_snapshot` is true, then this
         # stream class needs a default clock class already.
-        sc._set_supports_packets(supports_packets,
-                                 packets_have_beginning_default_clock_snapshot,
-                                 packets_have_end_default_clock_snapshot)
+        sc._set_supports_packets(
+            supports_packets,
+            packets_have_beginning_default_clock_snapshot,
+            packets_have_end_default_clock_snapshot,
+        )
 
         # call after sc._set_supports_packets() because, if
         # `packet_context_field_class` is not `None`, then this stream
@@ -163,10 +178,12 @@ class _TraceClass(object._SharedObject, collections.abc.Mapping):
 
         sc._assigns_automatic_event_class_id = assigns_automatic_event_class_id
         sc._assigns_automatic_stream_id = assigns_automatic_stream_id
-        sc._set_supports_discarded_events(supports_discarded_events,
-                                          discarded_events_have_default_clock_snapshots)
-        sc._set_supports_discarded_packets(supports_discarded_packets,
-                                           discarded_packets_have_default_clock_snapshots)
+        sc._set_supports_discarded_events(
+            supports_discarded_events, discarded_events_have_default_clock_snapshots
+        )
+        sc._set_supports_discarded_packets(
+            supports_discarded_packets, discarded_packets_have_default_clock_snapshots
+        )
         return sc
 
     @property
@@ -175,18 +192,23 @@ class _TraceClass(object._SharedObject, collections.abc.Mapping):
 
     def _assigns_automatic_stream_class_id(self, auto_id):
         utils._check_bool(auto_id)
-        return native_bt.trace_class_set_assigns_automatic_stream_class_id(self._ptr, auto_id)
+        return native_bt.trace_class_set_assigns_automatic_stream_class_id(
+            self._ptr, auto_id
+        )
 
-    _assigns_automatic_stream_class_id = property(fset=_assigns_automatic_stream_class_id)
+    _assigns_automatic_stream_class_id = property(
+        fset=_assigns_automatic_stream_class_id
+    )
 
     # Field class creation methods.
 
     def _check_create_status(self, ptr, type_name):
         if ptr is None:
-            raise bt2.CreationError(
-                'cannot create {} field class'.format(type_name))
+            raise bt2.CreationError('cannot create {} field class'.format(type_name))
 
-    def _create_integer_field_class(self, create_func, py_cls, type_name, field_value_range, preferred_display_base):
+    def _create_integer_field_class(
+        self, create_func, py_cls, type_name, field_value_range, preferred_display_base
+    ):
         field_class_ptr = create_func(self._ptr)
         self._check_create_status(field_class_ptr, type_name)
 
@@ -200,25 +222,49 @@ class _TraceClass(object._SharedObject, collections.abc.Mapping):
 
         return field_class
 
-    def create_signed_integer_field_class(self, field_value_range=None, preferred_display_base=None):
-        return self._create_integer_field_class(native_bt.field_class_signed_integer_create,
-                                                bt2.field_class._SignedIntegerFieldClass,
-                                                'signed integer', field_value_range, preferred_display_base)
+    def create_signed_integer_field_class(
+        self, field_value_range=None, preferred_display_base=None
+    ):
+        return self._create_integer_field_class(
+            native_bt.field_class_signed_integer_create,
+            bt2.field_class._SignedIntegerFieldClass,
+            'signed integer',
+            field_value_range,
+            preferred_display_base,
+        )
 
-    def create_unsigned_integer_field_class(self, field_value_range=None, preferred_display_base=None):
-        return self._create_integer_field_class(native_bt.field_class_unsigned_integer_create,
-                                                bt2.field_class._UnsignedIntegerFieldClass,
-                                                'unsigned integer', field_value_range, preferred_display_base)
+    def create_unsigned_integer_field_class(
+        self, field_value_range=None, preferred_display_base=None
+    ):
+        return self._create_integer_field_class(
+            native_bt.field_class_unsigned_integer_create,
+            bt2.field_class._UnsignedIntegerFieldClass,
+            'unsigned integer',
+            field_value_range,
+            preferred_display_base,
+        )
 
-    def create_signed_enumeration_field_class(self, field_value_range=None, preferred_display_base=None):
-        return self._create_integer_field_class(native_bt.field_class_signed_enumeration_create,
-                                                bt2.field_class._SignedEnumerationFieldClass,
-                                                'signed enumeration', field_value_range, preferred_display_base)
+    def create_signed_enumeration_field_class(
+        self, field_value_range=None, preferred_display_base=None
+    ):
+        return self._create_integer_field_class(
+            native_bt.field_class_signed_enumeration_create,
+            bt2.field_class._SignedEnumerationFieldClass,
+            'signed enumeration',
+            field_value_range,
+            preferred_display_base,
+        )
 
-    def create_unsigned_enumeration_field_class(self, field_value_range=None, preferred_display_base=None):
-        return self._create_integer_field_class(native_bt.field_class_unsigned_enumeration_create,
-                                                bt2.field_class._UnsignedEnumerationFieldClass,
-                                                'unsigned enumeration', field_value_range, preferred_display_base)
+    def create_unsigned_enumeration_field_class(
+        self, field_value_range=None, preferred_display_base=None
+    ):
+        return self._create_integer_field_class(
+            native_bt.field_class_unsigned_enumeration_create,
+            bt2.field_class._UnsignedEnumerationFieldClass,
+            'unsigned enumeration',
+            field_value_range,
+            preferred_display_base,
+        )
 
     def create_real_field_class(self, is_single_precision=False):
         field_class_ptr = native_bt.field_class_real_create(self._ptr)
@@ -258,7 +304,9 @@ class _TraceClass(object._SharedObject, collections.abc.Mapping):
             utils._check_type(length_fc, bt2.field_class._UnsignedIntegerFieldClass)
             length_fc_ptr = length_fc._ptr
 
-        ptr = native_bt.field_class_dynamic_array_create(self._ptr, elem_fc._ptr, length_fc_ptr)
+        ptr = native_bt.field_class_dynamic_array_create(
+            self._ptr, elem_fc._ptr, length_fc_ptr
+        )
         self._check_create_status(ptr, 'dynamic array')
         return bt2.field_class._DynamicArrayFieldClass._create_from_ptr(ptr)
 
@@ -281,11 +329,14 @@ class _TraceClass(object._SharedObject, collections.abc.Mapping):
             raise TypeError("'listener' parameter is not callable")
 
         fn = native_bt.bt2_trace_class_add_destruction_listener
-        listener_from_native = functools.partial(_trace_class_destruction_listener_from_native,
-                                                 listener)
+        listener_from_native = functools.partial(
+            _trace_class_destruction_listener_from_native, listener
+        )
 
         listener_id = fn(self._ptr, listener_from_native)
         if listener_id is None:
-            utils._raise_bt2_error('cannot add destruction listener to trace class object')
+            utils._raise_bt2_error(
+                'cannot add destruction listener to trace class object'
+            )
 
         return bt2._ListenerHandle(listener_id, self)

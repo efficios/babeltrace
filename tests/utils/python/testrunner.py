@@ -28,27 +28,31 @@ import argparse
 
 if __name__ == '__main__':
     argparser = argparse.ArgumentParser()
-    argparser.add_argument('-f', '--failfast',
-                           help='Stop on first fail or error',
-                           action='store_true')
+    argparser.add_argument(
+        '-f', '--failfast', help='Stop on first fail or error', action='store_true'
+    )
 
-    argparser.add_argument('start_dir',
-                           help='Base directory where to search for tests',
-                           type=str)
+    argparser.add_argument(
+        'start_dir', help='Base directory where to search for tests', type=str
+    )
 
     mut_exclu_group = argparser.add_mutually_exclusive_group(required=True)
 
-    mut_exclu_group.add_argument('-p', '--pattern',
-                           help='Glob-style pattern of test files to run '
-                           '(e.g. test_event*.py)',
-                           type=str)
+    mut_exclu_group.add_argument(
+        '-p',
+        '--pattern',
+        help='Glob-style pattern of test files to run ' '(e.g. test_event*.py)',
+        type=str,
+    )
 
-    mut_exclu_group.add_argument('-t', '--test-case',
-                           help='Run a specfic test module name, test class '
-                           'name, or test method name '
-                           '(e.g. test_event.EventTestCase.test_clock_value)',
-                           type=str)
-
+    mut_exclu_group.add_argument(
+        '-t',
+        '--test-case',
+        help='Run a specfic test module name, test class '
+        'name, or test method name '
+        '(e.g. test_event.EventTestCase.test_clock_value)',
+        type=str,
+    )
 
     args = argparser.parse_args()
 
@@ -69,7 +73,6 @@ if __name__ == '__main__':
         # `required` parameter set to True. So one or the other must be set or
         # else it will fail to parse.
         sys.exit(1)
-
 
     if tests.countTestCases() < 1:
         print("No tests matching '%s' found in '%s'" % (pattern, start_dir))

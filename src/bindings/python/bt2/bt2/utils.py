@@ -47,13 +47,14 @@ def _check_str(o):
 
 def _check_type(o, expected_type):
     if not isinstance(o, expected_type):
-        raise TypeError("'{}' is not a '{}' object".format(o.__class__.__name__,
-                                                           expected_type))
+        raise TypeError(
+            "'{}' is not a '{}' object".format(o.__class__.__name__, expected_type)
+        )
 
 
 def _is_in_int64_range(v):
-    assert(isinstance(v, int))
-    return v >= -(2**63) and v <= (2**63 - 1)
+    assert isinstance(v, int)
+    return v >= -(2 ** 63) and v <= (2 ** 63 - 1)
 
 
 def _is_int64(v):
@@ -64,8 +65,8 @@ def _is_int64(v):
 
 
 def _is_in_uint64_range(v):
-    assert(isinstance(v, int))
-    return v >= 0 and v <= (2**64 - 1)
+    assert isinstance(v, int)
+    return v >= 0 and v <= (2 ** 64 - 1)
 
 
 def _is_uint64(v):
@@ -146,7 +147,10 @@ def _handle_func_status(status, msg=None):
         # no error
         return
 
-    if status == native_bt.__BT_FUNC_STATUS_ERROR or status == native_bt.__BT_FUNC_STATUS_MEMORY_ERROR:
+    if (
+        status == native_bt.__BT_FUNC_STATUS_ERROR
+        or status == native_bt.__BT_FUNC_STATUS_MEMORY_ERROR
+    ):
         if msg is None:
             raise bt2.Error
         else:

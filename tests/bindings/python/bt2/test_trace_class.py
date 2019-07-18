@@ -22,7 +22,6 @@ from utils import run_in_component_init, get_default_trace_class
 
 
 class TraceClassTestCase(unittest.TestCase):
-
     def test_create_default(self):
         def f(comp_self):
             return comp_self._create_trace_class()
@@ -57,7 +56,9 @@ class TraceClassTestCase(unittest.TestCase):
 
     def test_no_assigns_automatic_stream_class_id(self):
         def f(comp_self):
-            return comp_self._create_trace_class(assigns_automatic_stream_class_id=False)
+            return comp_self._create_trace_class(
+                assigns_automatic_stream_class_id=False
+            )
 
         tc = run_in_component_init(f)
         self.assertFalse(tc.assigns_automatic_stream_class_id)
@@ -67,7 +68,9 @@ class TraceClassTestCase(unittest.TestCase):
 
     def test_no_assigns_automatic_stream_class_id_raises(self):
         def f(comp_self):
-            return comp_self._create_trace_class(assigns_automatic_stream_class_id=False)
+            return comp_self._create_trace_class(
+                assigns_automatic_stream_class_id=False
+            )
 
         tc = run_in_component_init(f)
         self.assertFalse(tc.assigns_automatic_stream_class_id)
@@ -79,7 +82,9 @@ class TraceClassTestCase(unittest.TestCase):
     @staticmethod
     def _create_trace_class_with_some_stream_classes():
         def f(comp_self):
-            return comp_self._create_trace_class(assigns_automatic_stream_class_id=False)
+            return comp_self._create_trace_class(
+                assigns_automatic_stream_class_id=False
+            )
 
         tc = run_in_component_init(f)
         sc1 = tc.create_stream_class(id=12)

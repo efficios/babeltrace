@@ -27,12 +27,16 @@ class EventClassTestCase(unittest.TestCase):
 
         self._context_fc = self._tc.create_structure_field_class()
         self._context_fc.append_member('allo', self._tc.create_string_field_class())
-        self._context_fc.append_member('zola', self._tc.create_signed_integer_field_class(18))
+        self._context_fc.append_member(
+            'zola', self._tc.create_signed_integer_field_class(18)
+        )
 
         self._payload_fc = self._tc.create_structure_field_class()
         self._payload_fc.append_member('zoom', self._tc.create_string_field_class())
 
-        self._stream_class = self._tc.create_stream_class(assigns_automatic_event_class_id=True)
+        self._stream_class = self._tc.create_stream_class(
+            assigns_automatic_event_class_id=True
+        )
 
     def test_create_default(self):
         ec = self._stream_class.create_event_class()
@@ -84,7 +88,9 @@ class EventClassTestCase(unittest.TestCase):
             self._stream_class.create_event_class(emf_uri=23)
 
     def test_create_log_level(self):
-        ec = self._stream_class.create_event_class(log_level=bt2.EventClassLogLevel.EMERGENCY)
+        ec = self._stream_class.create_event_class(
+            log_level=bt2.EventClassLogLevel.EMERGENCY
+        )
         self.assertEqual(ec.log_level, bt2.EventClassLogLevel.EMERGENCY)
 
     def test_create_invalid_log_level(self):

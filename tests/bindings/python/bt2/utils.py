@@ -23,6 +23,7 @@ import bt2
 #
 # The value returned by the callable is returned by run_in_component_init.
 
+
 def run_in_component_init(func):
     class MySink(bt2._UserSinkComponent):
         def __init__(self, params):
@@ -52,7 +53,9 @@ def run_in_component_init(func):
     del res_bound
     return res
 
+
 # Create an empty trace class with default values.
+
 
 def get_default_trace_class():
     def f(comp_self):

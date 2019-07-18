@@ -113,14 +113,15 @@ class _EventClass(object._SharedObject):
     def _emf_uri(self, emf_uri):
         utils._check_str(emf_uri)
         status = native_bt.event_class_set_emf_uri(self._ptr, emf_uri)
-        utils._handle_func_status(status,
-                                  "cannot set event class object's EMF URI")
+        utils._handle_func_status(status, "cannot set event class object's EMF URI")
 
     _emf_uri = property(fset=_emf_uri)
 
     @property
     def specific_context_field_class(self):
-        fc_ptr = native_bt.event_class_borrow_specific_context_field_class_const(self._ptr)
+        fc_ptr = native_bt.event_class_borrow_specific_context_field_class_const(
+            self._ptr
+        )
 
         if fc_ptr is None:
             return
@@ -130,9 +131,12 @@ class _EventClass(object._SharedObject):
     def _specific_context_field_class(self, context_field_class):
         if context_field_class is not None:
             utils._check_type(context_field_class, bt2.field_class._StructureFieldClass)
-            status = native_bt.event_class_set_specific_context_field_class(self._ptr, context_field_class._ptr)
-            utils._handle_func_status(status,
-                                      "cannot set event class object's context field class")
+            status = native_bt.event_class_set_specific_context_field_class(
+                self._ptr, context_field_class._ptr
+            )
+            utils._handle_func_status(
+                status, "cannot set event class object's context field class"
+            )
 
     _specific_context_field_class = property(fset=_specific_context_field_class)
 
@@ -148,9 +152,12 @@ class _EventClass(object._SharedObject):
     def _payload_field_class(self, payload_field_class):
         if payload_field_class is not None:
             utils._check_type(payload_field_class, bt2.field_class._StructureFieldClass)
-            status = native_bt.event_class_set_payload_field_class(self._ptr, payload_field_class._ptr)
-            utils._handle_func_status(status,
-                                      "cannot set event class object's payload field class")
+            status = native_bt.event_class_set_payload_field_class(
+                self._ptr, payload_field_class._ptr
+            )
+            utils._handle_func_status(
+                status, "cannot set event class object's payload field class"
+            )
 
     _payload_field_class = property(fset=_payload_field_class)
 

@@ -50,7 +50,9 @@ class PluginSetTestCase(unittest.TestCase):
 class FindPluginsTestCase(unittest.TestCase):
     def test_find_nonexistent_dir(self):
         with self.assertRaises(bt2.Error):
-            bt2.find_plugins('/this/does/not/exist/246703df-cb85-46d5-8406-5e8dc4a88b41')
+            bt2.find_plugins(
+                '/this/does/not/exist/246703df-cb85-46d5-8406-5e8dc4a88b41'
+            )
 
     def test_find_none_existing_dir(self):
         plugins = bt2.find_plugins(_TEST_PLUGIN_PLUGINS_PATH, recurse=False)
@@ -61,7 +63,9 @@ class FindPluginsTestCase(unittest.TestCase):
         self.assertTrue(len(pset) >= 3)
 
     def test_find_file(self):
-        extension = _TEST_PLUGIN_PLUGIN_EXTENSION_BY_OS.get(os.environ['BT_OS_TYPE'], 'so')
+        extension = _TEST_PLUGIN_PLUGIN_EXTENSION_BY_OS.get(
+            os.environ['BT_OS_TYPE'], 'so'
+        )
         plugin_name = 'babeltrace-plugin-utils.{}'.format(extension)
         path = os.path.join(_TEST_PLUGIN_PLUGINS_PATH, 'utils', '.libs', plugin_name)
         pset = bt2.find_plugins(path)
@@ -70,7 +74,9 @@ class FindPluginsTestCase(unittest.TestCase):
 
 class FindPluginTestCase(unittest.TestCase):
     def test_find_none(self):
-        plugin = bt2.find_plugin('this-does-not-exist-246703df-cb85-46d5-8406-5e8dc4a88b41')
+        plugin = bt2.find_plugin(
+            'this-does-not-exist-246703df-cb85-46d5-8406-5e8dc4a88b41'
+        )
         self.assertIsNone(plugin)
 
     def test_find_existing(self):

@@ -55,8 +55,7 @@ class _TraceEnv(collections.abc.MutableMapping):
             raise TypeError('expected str or int, got {}'.format(type(value)))
 
         status = set_env_entry_fn(self._trace._ptr, key, value)
-        utils._handle_func_status(status,
-                                  "cannot set trace object's environment entry")
+        utils._handle_func_status(status, "cannot set trace object's environment entry")
 
     def __delitem__(self, key):
         raise NotImplementedError
@@ -123,8 +122,7 @@ class _Trace(object._SharedObject, collections.abc.Mapping):
     def _name(self, name):
         utils._check_str(name)
         status = native_bt.trace_set_name(self._ptr, name)
-        utils._handle_func_status(status,
-                                  "cannot set trace class object's name")
+        utils._handle_func_status(status, "cannot set trace class object's name")
 
     _name = property(fset=_name)
 
@@ -151,15 +149,21 @@ class _Trace(object._SharedObject, collections.abc.Mapping):
 
         if stream_class.assigns_automatic_stream_id:
             if id is not None:
-                raise ValueError("id provided, but stream class assigns automatic stream ids")
+                raise ValueError(
+                    "id provided, but stream class assigns automatic stream ids"
+                )
 
             stream_ptr = native_bt.stream_create(stream_class._ptr, self._ptr)
         else:
             if id is None:
-                raise ValueError("id not provided, but stream class does not assign automatic stream ids")
+                raise ValueError(
+                    "id not provided, but stream class does not assign automatic stream ids"
+                )
 
             utils._check_uint64(id)
-            stream_ptr = native_bt.stream_create_with_id(stream_class._ptr, self._ptr, id)
+            stream_ptr = native_bt.stream_create_with_id(
+                stream_class._ptr, self._ptr, id
+            )
 
         if stream_ptr is None:
             raise bt2.CreationError('cannot create stream object')
@@ -177,8 +181,9 @@ class _Trace(object._SharedObject, collections.abc.Mapping):
             raise TypeError("'listener' parameter is not callable")
 
         fn = native_bt.bt2_trace_add_destruction_listener
-        listener_from_native = functools.partial(_trace_destruction_listener_from_native,
-                                                 listener)
+        listener_from_native = functools.partial(
+            _trace_destruction_listener_from_native, listener
+        )
 
         listener_id = fn(self._ptr, listener_from_native)
         if listener_id is None:

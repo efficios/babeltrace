@@ -32,19 +32,24 @@ def sort_predictably(stream):
 
 
 class QueryTraceInfoClockOffsetTestCase(unittest.TestCase):
-
     def setUp(self):
         ctf = bt2.find_plugin('ctf')
         self._fs = ctf.source_component_classes['fs']
 
-        self._paths = [os.path.join(test_ctf_traces_path, 'intersection', '3eventsintersect')]
+        self._paths = [
+            os.path.join(test_ctf_traces_path, 'intersection', '3eventsintersect')
+        ]
         self._executor = bt2.QueryExecutor()
 
     def _check(self, trace, offset):
         self.assertEqual(trace['range-ns']['begin'], 13515309000000000 + offset)
         self.assertEqual(trace['range-ns']['end'], 13515309000000120 + offset)
-        self.assertEqual(trace['intersection-range-ns']['begin'], 13515309000000070 + offset)
-        self.assertEqual(trace['intersection-range-ns']['end'], 13515309000000100 + offset)
+        self.assertEqual(
+            trace['intersection-range-ns']['begin'], 13515309000000070 + offset
+        )
+        self.assertEqual(
+            trace['intersection-range-ns']['end'], 13515309000000100 + offset
+        )
 
         streams = sorted(trace['streams'], key=sort_predictably)
         self.assertEqual(streams[0]['range-ns']['begin'], 13515309000000000 + offset)
@@ -58,70 +63,74 @@ class QueryTraceInfoClockOffsetTestCase(unittest.TestCase):
     # Without clock class offset
 
     def test_no_clock_class_offset(self):
-        res = self._executor.query(self._fs, 'trace-info', {
-            'paths': self._paths,
-        })
+        res = self._executor.query(self._fs, 'trace-info', {'paths': self._paths})
         trace = res[0]
         self._check(trace, 0)
 
     # With clock-class-offset-s
 
     def test_clock_class_offset_s(self):
-        res = self._executor.query(self._fs, 'trace-info', {
-            'paths': self._paths,
-            'clock-class-offset-s': 2,
-        })
+        res = self._executor.query(
+            self._fs, 'trace-info', {'paths': self._paths, 'clock-class-offset-s': 2}
+        )
         trace = res[0]
         self._check(trace, 2000000000)
 
     # With clock-class-offset-ns
 
     def test_clock_class_offset_ns(self):
-        res = self._executor.query(self._fs, 'trace-info', {
-            'paths': self._paths,
-            'clock-class-offset-ns': 2,
-        })
+        res = self._executor.query(
+            self._fs, 'trace-info', {'paths': self._paths, 'clock-class-offset-ns': 2}
+        )
         trace = res[0]
         self._check(trace, 2)
 
     # With both, negative
 
     def test_clock_class_offset_both(self):
-        res = self._executor.query(self._fs, 'trace-info', {
-            'paths': self._paths,
-            'clock-class-offset-s': -2,
-            'clock-class-offset-ns': -2,
-        })
+        res = self._executor.query(
+            self._fs,
+            'trace-info',
+            {
+                'paths': self._paths,
+                'clock-class-offset-s': -2,
+                'clock-class-offset-ns': -2,
+            },
+        )
         trace = res[0]
         self._check(trace, -2000000002)
 
     def test_clock_class_offset_s_wrong_type(self):
         with self.assertRaises(bt2.InvalidParams):
-            self._executor.query(self._fs, 'trace-info', {
-                'paths': self._paths,
-                'clock-class-offset-s': "2",
-            })
+            self._executor.query(
+                self._fs,
+                'trace-info',
+                {'paths': self._paths, 'clock-class-offset-s': "2"},
+            )
 
     def test_clock_class_offset_s_wrong_type_none(self):
         with self.assertRaises(bt2.InvalidParams):
-            self._executor.query(self._fs, 'trace-info', {
-                'paths': self._paths,
-                'clock-class-offset-s': None,
-            })
+            self._executor.query(
+                self._fs,
+                'trace-info',
+                {'paths': self._paths, 'clock-class-offset-s': None},
+            )
 
     def test_clock_class_offset_ns_wrong_type(self):
         with self.assertRaises(bt2.InvalidParams):
-            self._executor.query(self._fs, 'trace-info', {
-                'paths': self._paths,
-                'clock-class-offset-ns': "2",
-            })
+            self._executor.query(
+                self._fs,
+                'trace-info',
+                {'paths': self._paths, 'clock-class-offset-ns': "2"},
+            )
 
     def test_clock_class_offset_ns_wrong_type_none(self):
         with self.assertRaises(bt2.InvalidParams):
-            self._executor.query(self._fs, 'trace-info', {
-                'paths': self._paths,
-                'clock-class-offset-ns': None,
-            })
+            self._executor.query(
+                self._fs,
+                'trace-info',
+                {'paths': self._paths, 'clock-class-offset-ns': None},
+            )
 
 
 class QueryTraceInfoPortNameTestCase(unittest.TestCase):

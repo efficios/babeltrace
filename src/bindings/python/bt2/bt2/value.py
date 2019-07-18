@@ -78,7 +78,9 @@ def create_value(value):
     if isinstance(value, collections.abc.Mapping):
         return MapValue(value)
 
-    raise TypeError("cannot create value object from '{}' object".format(value.__class__.__name__))
+    raise TypeError(
+        "cannot create value object from '{}' object".format(value.__class__.__name__)
+    )
 
 
 class _Value(object._SharedObject, metaclass=abc.ABCMeta):
@@ -91,7 +93,8 @@ class _Value(object._SharedObject, metaclass=abc.ABCMeta):
     def _check_create_status(self, ptr):
         if ptr is None:
             raise bt2.CreationError(
-                'cannot create {} value object'.format(self._NAME.lower()))
+                'cannot create {} value object'.format(self._NAME.lower())
+            )
 
 
 @functools.total_ordering
@@ -110,7 +113,9 @@ class _NumericValue(_Value):
         if isinstance(other, numbers.Complex):
             return complex(other)
 
-        raise TypeError("'{}' object is not a number object".format(other.__class__.__name__))
+        raise TypeError(
+            "'{}' object is not a number object".format(other.__class__.__name__)
+        )
 
     def __int__(self):
         return int(self._value)
@@ -253,7 +258,11 @@ class BoolValue(_IntegralValue):
             value = value._value
 
         if not isinstance(value, bool):
-            raise TypeError("'{}' object is not a 'bool' or 'BoolValue' object".format(value.__class__))
+            raise TypeError(
+                "'{}' object is not a 'bool' or 'BoolValue' object".format(
+                    value.__class__
+                )
+            )
 
         return value
 
@@ -440,13 +449,17 @@ class ArrayValue(_Container, collections.abc.MutableSequence, _Value):
 
     def __len__(self):
         size = native_bt.value_array_get_size(self._ptr)
-        assert(size >= 0)
+        assert size >= 0
         return size
 
     def _check_index(self, index):
         # TODO: support slices also
         if not isinstance(index, numbers.Integral):
-            raise TypeError("'{}' object is not an integral number object: invalid index".format(index.__class__.__name__))
+            raise TypeError(
+                "'{}' object is not an integral number object: invalid index".format(
+                    index.__class__.__name__
+                )
+            )
 
         index = int(index)
 
@@ -456,7 +469,7 @@ class ArrayValue(_Container, collections.abc.MutableSequence, _Value):
     def __getitem__(self, index):
         self._check_index(index)
         ptr = native_bt.value_array_borrow_element_by_index(self._ptr, index)
-        assert(ptr)
+        assert ptr
         return _create_from_ptr_and_get_ref(ptr)
 
     def __setitem__(self, index, value):
@@ -468,8 +481,7 @@ class ArrayValue(_Container, collections.abc.MutableSequence, _Value):
         else:
             ptr = value._ptr
 
-        status = native_bt.value_array_set_element_by_index(
-            self._ptr, index, ptr)
+        status = native_bt.value_array_set_element_by_index(self._ptr, index, ptr)
         utils._handle_func_status(status)
 
     def append(self, value):
@@ -554,7 +566,7 @@ class MapValue(_Container, collections.abc.MutableMapping, _Value):
 
     def __len__(self):
         size = native_bt.value_map_get_size(self._ptr)
-        assert(size >= 0)
+        assert size >= 0
         return size
 
     def __contains__(self, key):
@@ -571,7 +583,7 @@ class MapValue(_Container, collections.abc.MutableMapping, _Value):
     def __getitem__(self, key):
         self._check_key(key)
         ptr = native_bt.value_map_borrow_entry_value(self._ptr, key)
-        assert(ptr)
+        assert ptr
         return _create_from_ptr_and_get_ref(ptr)
 
     def __iter__(self):

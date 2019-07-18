@@ -1,4 +1,3 @@
-
 #
 # Copyright (C) 2019 EfficiOS Inc.
 #
@@ -40,8 +39,7 @@ class UserMessageIteratorTestCase(unittest.TestCase):
         graph = bt2.Graph()
         src_comp = graph.add_component(src_comp_cls, 'src')
         sink_comp = graph.add_component(MySink, 'sink')
-        graph.connect_ports(src_comp.output_ports['out'],
-                            sink_comp.input_ports['in'])
+        graph.connect_ports(src_comp.output_ports['out'], sink_comp.input_ports['in'])
         return graph
 
     def test_init(self):
@@ -55,8 +53,7 @@ class UserMessageIteratorTestCase(unittest.TestCase):
                 initialized = True
                 the_output_port_from_iter = self_port_output
 
-        class MySource(bt2._UserSourceComponent,
-                       message_iterator_class=MyIter):
+        class MySource(bt2._UserSourceComponent, message_iterator_class=MyIter):
             def __init__(self, params):
                 nonlocal the_output_port_from_source
                 the_output_port_from_source = self._add_output_port('out', 'user data')
@@ -65,7 +62,9 @@ class UserMessageIteratorTestCase(unittest.TestCase):
         graph = self._create_graph(MySource)
         graph.run()
         self.assertTrue(initialized)
-        self.assertEqual(the_output_port_from_source.addr, the_output_port_from_iter.addr)
+        self.assertEqual(
+            the_output_port_from_source.addr, the_output_port_from_iter.addr
+        )
         self.assertEqual(the_output_port_from_iter.user_data, 'user data')
 
     def test_finalize(self):
@@ -74,8 +73,7 @@ class UserMessageIteratorTestCase(unittest.TestCase):
                 nonlocal finalized
                 finalized = True
 
-        class MySource(bt2._UserSourceComponent,
-                       message_iterator_class=MyIter):
+        class MySource(bt2._UserSourceComponent, message_iterator_class=MyIter):
             def __init__(self, params):
                 self._add_output_port('out')
 
@@ -91,8 +89,7 @@ class UserMessageIteratorTestCase(unittest.TestCase):
                 nonlocal salut
                 salut = self._component._salut
 
-        class MySource(bt2._UserSourceComponent,
-                       message_iterator_class=MyIter):
+        class MySource(bt2._UserSourceComponent, message_iterator_class=MyIter):
             def __init__(self, params):
                 self._add_output_port('out')
                 self._salut = 23
@@ -108,8 +105,7 @@ class UserMessageIteratorTestCase(unittest.TestCase):
                 nonlocal addr
                 addr = self.addr
 
-        class MySource(bt2._UserSourceComponent,
-                       message_iterator_class=MyIter):
+        class MySource(bt2._UserSourceComponent, message_iterator_class=MyIter):
             def __init__(self, params):
                 self._add_output_port('out')
 
@@ -201,8 +197,7 @@ class UserMessageIteratorTestCase(unittest.TestCase):
                 else:
                     raise StopIteration
 
-        class MySource(bt2._UserSourceComponent,
-                       message_iterator_class=MySourceIter):
+        class MySource(bt2._UserSourceComponent, message_iterator_class=MySourceIter):
             def __init__(self, params):
                 tc = self._create_trace_class()
                 sc = tc.create_stream_class(supports_packets=True)
@@ -229,7 +224,6 @@ class UserMessageIteratorTestCase(unittest.TestCase):
             def __init__(self, params):
                 input_port = self._add_input_port('in')
                 self._add_output_port('out', input_port)
-
 
         graph = bt2.Graph()
         src = graph.add_component(MySource, 'src')
@@ -299,13 +293,12 @@ class UserMessageIteratorTestCase(unittest.TestCase):
         it, MySourceIter = self._setup_seek_beginning_test()
 
         def _seek_beginning_error(self):
-           raise ValueError('ouch')
+            raise ValueError('ouch')
 
         MySourceIter._seek_beginning = _seek_beginning_error
 
         with self.assertRaises(bt2.Error):
             it.seek_beginning()
-
 
 
 class OutputPortMessageIteratorTestCase(unittest.TestCase):
@@ -327,14 +320,15 @@ class OutputPortMessageIteratorTestCase(unittest.TestCase):
                 elif self._at == 6:
                     msg = self._create_stream_end_message(test_obj._stream)
                 else:
-                    msg = self._create_event_message(test_obj._event_class, test_obj._packet)
+                    msg = self._create_event_message(
+                        test_obj._event_class, test_obj._packet
+                    )
                     msg.event.payload_field['my_int'] = self._at * 3
 
                 self._at += 1
                 return msg
 
-        class MySource(bt2._UserSourceComponent,
-                       message_iterator_class=MyIter):
+        class MySource(bt2._UserSourceComponent, message_iterator_class=MyIter):
             def __init__(self, params):
                 self._add_output_port('out')
 
@@ -344,11 +338,11 @@ class OutputPortMessageIteratorTestCase(unittest.TestCase):
                 # Create payload field class
                 my_int_ft = trace_class.create_signed_integer_field_class(32)
                 payload_ft = trace_class.create_structure_field_class()
-                payload_ft += [
-                    ('my_int', my_int_ft),
-                ]
+                payload_ft += [('my_int', my_int_ft)]
 
-                event_class = stream_class.create_event_class(name='salut', payload_field_class=payload_ft)
+                event_class = stream_class.create_event_class(
+                    name='salut', payload_field_class=payload_ft
+                )
 
                 trace = trace_class()
                 stream = trace.create_stream(stream_class)
@@ -377,6 +371,7 @@ class OutputPortMessageIteratorTestCase(unittest.TestCase):
                 self.assertEqual(msg.event.cls.name, 'salut')
                 field = msg.event.payload_field['my_int']
                 self.assertEqual(field, at * 3)
+
 
 if __name__ == '__main__':
     unittest.main()

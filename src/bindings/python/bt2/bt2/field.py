@@ -34,13 +34,15 @@ def _create_field_from_ptr(ptr, owner_ptr, owner_get_ref, owner_put_ref):
     utils._handle_ptr(field_class_ptr, "cannot get field object's class")
     typeid = native_bt.field_class_get_type(field_class_ptr)
     field = _TYPE_ID_TO_OBJ[typeid]._create_from_ptr_and_get_ref(
-        ptr, owner_ptr, owner_get_ref, owner_put_ref)
+        ptr, owner_ptr, owner_get_ref, owner_put_ref
+    )
     return field
 
 
 # Get the "effective" field of `field`.  If `field` is a variant, return the
 # currently selected field.  If `field` is of any other type, return `field`
 # directly.
+
 
 def _get_leaf_field(field):
     if not isinstance(field, _VariantField):
@@ -83,7 +85,9 @@ class _NumericField(_Field):
         if isinstance(other, numbers.Complex):
             return complex(other)
 
-        raise TypeError("'{}' object is not a number object".format(other.__class__.__name__))
+        raise TypeError(
+            "'{}' object is not a number object".format(other.__class__.__name__)
+        )
 
     def __int__(self):
         return int(self._value)
@@ -96,8 +100,11 @@ class _NumericField(_Field):
 
     def __lt__(self, other):
         if not isinstance(other, numbers.Number):
-            raise TypeError('unorderable types: {}() < {}()'.format(self.__class__.__name__,
-                                                                    other.__class__.__name__))
+            raise TypeError(
+                'unorderable types: {}() < {}()'.format(
+                    self.__class__.__name__, other.__class__.__name__
+                )
+            )
 
         return self._value < self._extract_value(other)
 
@@ -280,8 +287,7 @@ class _EnumerationField(_IntegerField):
     @property
     def labels(self):
         status, labels = self._get_mapping_labels(self._ptr)
-        utils._handle_func_status(status,
-                                  "cannot get label for enumeration field")
+        utils._handle_func_status(status, "cannot get label for enumeration field")
 
         assert labels is not None
         return labels
@@ -289,12 +295,16 @@ class _EnumerationField(_IntegerField):
 
 class _UnsignedEnumerationField(_EnumerationField, _UnsignedIntegerField):
     _NAME = 'Unsigned Enumeration'
-    _get_mapping_labels = staticmethod(native_bt.field_unsigned_enumeration_get_mapping_labels)
+    _get_mapping_labels = staticmethod(
+        native_bt.field_unsigned_enumeration_get_mapping_labels
+    )
 
 
 class _SignedEnumerationField(_EnumerationField, _SignedIntegerField):
     _NAME = 'Signed Enumeration'
-    _get_mapping_labels = staticmethod(native_bt.field_signed_enumeration_get_mapping_labels)
+    _get_mapping_labels = staticmethod(
+        native_bt.field_signed_enumeration_get_mapping_labels
+    )
 
 
 @functools.total_ordering
@@ -347,8 +357,9 @@ class _StringField(_Field):
     def __iadd__(self, value):
         value = self._value_to_str(value)
         status = native_bt.field_string_append(self._ptr, value)
-        utils._handle_func_status(status,
-                                  "cannot append to string field object's value")
+        utils._handle_func_status(
+            status, "cannot append to string field object's value"
+        )
         return self
 
 
@@ -415,14 +426,16 @@ class _StructureField(_ContainerField, collections.abc.MutableMapping):
 
     def __getitem__(self, key):
         utils._check_str(key)
-        field_ptr = native_bt.field_structure_borrow_member_field_by_name(self._ptr, key)
+        field_ptr = native_bt.field_structure_borrow_member_field_by_name(
+            self._ptr, key
+        )
 
         if field_ptr is None:
             raise KeyError(key)
 
-        return _create_field_from_ptr(field_ptr, self._owner_ptr,
-                                      self._owner_get_ref,
-                                      self._owner_put_ref)
+        return _create_field_from_ptr(
+            field_ptr, self._owner_ptr, self._owner_get_ref, self._owner_put_ref
+        )
 
     def member_at_index(self, index):
         utils._check_uint64(index)
@@ -430,11 +443,13 @@ class _StructureField(_ContainerField, collections.abc.MutableMapping):
         if index >= len(self):
             raise IndexError
 
-        field_ptr = native_bt.field_structure_borrow_member_field_by_index(self._ptr, index)
+        field_ptr = native_bt.field_structure_borrow_member_field_by_index(
+            self._ptr, index
+        )
         assert field_ptr is not None
-        return _create_field_from_ptr(field_ptr, self._owner_ptr,
-                                      self._owner_get_ref,
-                                      self._owner_put_ref)
+        return _create_field_from_ptr(
+            field_ptr, self._owner_ptr, self._owner_get_ref, self._owner_put_ref
+        )
 
 
 class _VariantField(_ContainerField, _Field):
@@ -453,9 +468,9 @@ class _VariantField(_ContainerField, _Field):
         field_ptr = native_bt.field_variant_borrow_selected_option_field(self._ptr)
         utils._handle_ptr(field_ptr, "cannot get variant field's selected option")
 
-        return _create_field_from_ptr(field_ptr, self._owner_ptr,
-                                      self._owner_get_ref,
-                                      self._owner_put_ref)
+        return _create_field_from_ptr(
+            field_ptr, self._owner_ptr, self._owner_get_ref, self._owner_put_ref
+        )
 
     def _spec_eq(self, other):
         return _get_leaf_field(self) == other
@@ -483,18 +498,24 @@ class _ArrayField(_ContainerField, _Field, collections.abc.MutableSequence):
 
     def __getitem__(self, index):
         if not isinstance(index, numbers.Integral):
-            raise TypeError("'{}' is not an integral number object: invalid index".format(index.__class__.__name__))
+            raise TypeError(
+                "'{}' is not an integral number object: invalid index".format(
+                    index.__class__.__name__
+                )
+            )
 
         index = int(index)
 
         if index < 0 or index >= len(self):
             raise IndexError('{} field object index is out of range'.format(self._NAME))
 
-        field_ptr = native_bt.field_array_borrow_element_field_by_index(self._ptr, index)
-        assert(field_ptr)
-        return _create_field_from_ptr(field_ptr, self._owner_ptr,
-                                      self._owner_get_ref,
-                                      self._owner_put_ref)
+        field_ptr = native_bt.field_array_borrow_element_field_by_index(
+            self._ptr, index
+        )
+        assert field_ptr
+        return _create_field_from_ptr(
+            field_ptr, self._owner_ptr, self._owner_get_ref, self._owner_put_ref
+        )
 
     def __setitem__(self, index, value):
         # raises if index is somehow invalid
@@ -536,8 +557,7 @@ class _StaticArrayField(_ArrayField, _Field):
 
     def _set_value(self, values):
         if len(self) != len(values):
-            raise ValueError(
-                'expected length of value and array field to match')
+            raise ValueError('expected length of value and array field to match')
 
         for index, value in enumerate(values):
             if value is not None:

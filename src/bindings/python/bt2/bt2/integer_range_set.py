@@ -31,7 +31,11 @@ class _IntegerRange:
         self._check_type(upper)
 
         if lower > upper:
-            raise ValueError("range's lower bound ({}) is greater than its upper bound ({})".format(lower, upper))
+            raise ValueError(
+                "range's lower bound ({}) is greater than its upper bound ({})".format(
+                    lower, upper
+                )
+            )
 
         self._lower = lower
         self._upper = upper
@@ -117,8 +121,7 @@ class _IntegerRangeSet(object._SharedObject, collections.abc.MutableSet):
             rg = self._range_type(rg[0], rg[1])
 
         status = self._add_range(self._ptr, rg.lower, rg.upper)
-        utils._handle_func_status(status,
-                                  'cannot add range to range set object')
+        utils._handle_func_status(status, 'cannot add range to range set object')
 
     def discard(self, rg):
         raise NotImplementedError
@@ -127,9 +130,13 @@ class _IntegerRangeSet(object._SharedObject, collections.abc.MutableSet):
 class SignedIntegerRangeSet(_IntegerRangeSet):
     _get_ref = staticmethod(native_bt.integer_range_set_signed_get_ref)
     _put_ref = staticmethod(native_bt.integer_range_set_signed_put_ref)
-    _as_range_set_ptr = staticmethod(native_bt.integer_range_set_signed_as_range_set_const)
+    _as_range_set_ptr = staticmethod(
+        native_bt.integer_range_set_signed_as_range_set_const
+    )
     _create_range_set = staticmethod(native_bt.integer_range_set_signed_create)
-    _borrow_range_by_index_ptr = staticmethod(native_bt.integer_range_set_signed_borrow_range_by_index_const)
+    _borrow_range_by_index_ptr = staticmethod(
+        native_bt.integer_range_set_signed_borrow_range_by_index_const
+    )
     _range_get_lower = staticmethod(native_bt.integer_range_signed_get_lower)
     _range_get_upper = staticmethod(native_bt.integer_range_signed_get_upper)
     _add_range = staticmethod(native_bt.integer_range_set_signed_add_range)
@@ -140,9 +147,13 @@ class SignedIntegerRangeSet(_IntegerRangeSet):
 class UnsignedIntegerRangeSet(_IntegerRangeSet):
     _get_ref = staticmethod(native_bt.integer_range_set_unsigned_get_ref)
     _put_ref = staticmethod(native_bt.integer_range_set_unsigned_put_ref)
-    _as_range_set_ptr = staticmethod(native_bt.integer_range_set_unsigned_as_range_set_const)
+    _as_range_set_ptr = staticmethod(
+        native_bt.integer_range_set_unsigned_as_range_set_const
+    )
     _create_range_set = staticmethod(native_bt.integer_range_set_unsigned_create)
-    _borrow_range_by_index_ptr = staticmethod(native_bt.integer_range_set_unsigned_borrow_range_by_index_const)
+    _borrow_range_by_index_ptr = staticmethod(
+        native_bt.integer_range_set_unsigned_borrow_range_by_index_const
+    )
     _range_get_lower = staticmethod(native_bt.integer_range_unsigned_get_lower)
     _range_get_upper = staticmethod(native_bt.integer_range_unsigned_get_upper)
     _add_range = staticmethod(native_bt.integer_range_set_unsigned_add_range)

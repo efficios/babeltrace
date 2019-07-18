@@ -110,11 +110,13 @@ class _IntegerRangeSetTestCase:
         self.assertIn(self._range3, self._rs)
 
     def test_create_tuples(self):
-        rs = self._CLS((
-            (self._range1.lower, self._range1.upper),
-            (self._range2.lower, self._range2.upper),
-            (self._range3.lower, self._range3.upper),
-        ))
+        rs = self._CLS(
+            (
+                (self._range1.lower, self._range1.upper),
+                (self._range2.lower, self._range2.upper),
+                (self._range3.lower, self._range3.upper),
+            )
+        )
         self.assertEqual(len(rs), 3)
         self.assertIn(self._range1, rs)
         self.assertIn(self._range2, rs)

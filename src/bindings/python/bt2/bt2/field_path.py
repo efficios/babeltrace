@@ -69,7 +69,7 @@ class _FieldPath(object._SharedObject, collections.abc.Iterable):
                 idx = native_bt.field_path_item_index_get_index(item_ptr)
                 yield _IndexFieldPathItem(idx)
             elif item_type == native_bt.FIELD_PATH_ITEM_TYPE_CURRENT_ARRAY_ELEMENT:
-                yield  _CurrentArrayElementFieldPathItem()
+                yield _CurrentArrayElementFieldPathItem()
             else:
                 assert False
 
@@ -78,5 +78,5 @@ _SCOPE_TO_OBJ = {
     native_bt.SCOPE_PACKET_CONTEXT: Scope.PACKET_CONTEXT,
     native_bt.SCOPE_EVENT_COMMON_CONTEXT: Scope.EVENT_COMMON_CONTEXT,
     native_bt.SCOPE_EVENT_SPECIFIC_CONTEXT: Scope.EVENT_SPECIFIC_CONTEXT,
-    native_bt.SCOPE_EVENT_PAYLOAD: Scope.EVENT_PAYLOAD
+    native_bt.SCOPE_EVENT_PAYLOAD: Scope.EVENT_PAYLOAD,
 }

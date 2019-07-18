@@ -34,9 +34,13 @@ def find_plugins(path, recurse=True, fail_on_load_error=False):
     plugin_set_ptr = None
 
     if os.path.isfile(path):
-        status, plugin_set_ptr = native_bt.bt2_plugin_find_all_from_file(path, fail_on_load_error)
+        status, plugin_set_ptr = native_bt.bt2_plugin_find_all_from_file(
+            path, fail_on_load_error
+        )
     elif os.path.isdir(path):
-        status, plugin_set_ptr = native_bt.bt2_plugin_find_all_from_dir(path, int(recurse), int(fail_on_load_error))
+        status, plugin_set_ptr = native_bt.bt2_plugin_find_all_from_dir(
+            path, int(recurse), int(fail_on_load_error)
+        )
     else:
         raise bt2.Error("invalid path: '{}'".format(path))
 
@@ -67,7 +71,7 @@ class _PluginSet(object._SharedObject, collections.abc.Sequence):
 
     def __len__(self):
         count = native_bt.plugin_set_get_plugin_count(self._ptr)
-        assert(count >= 0)
+        assert count >= 0
         return count
 
     def __getitem__(self, index):
@@ -125,12 +129,16 @@ class _PluginComponentClassesIterator(collections.abc.Iterator):
         if self._at == total:
             raise StopIteration
 
-        comp_cls_ptr = self._plugin_comp_cls._borrow_component_class_by_index(plugin_ptr, self._at)
+        comp_cls_ptr = self._plugin_comp_cls._borrow_component_class_by_index(
+            plugin_ptr, self._at
+        )
         assert comp_cls_ptr is not None
         self._at += 1
 
         comp_cls_type = self._plugin_comp_cls._comp_cls_type
-        comp_cls_pycls = bt2.component._COMP_CLS_TYPE_TO_GENERIC_COMP_CLS_PYCLS[comp_cls_type]
+        comp_cls_pycls = bt2.component._COMP_CLS_TYPE_TO_GENERIC_COMP_CLS_PYCLS[
+            comp_cls_type
+        ]
         comp_cls_ptr = comp_cls_pycls._bt_as_component_class_ptr(comp_cls_ptr)
         name = native_bt.component_class_get_name(comp_cls_ptr)
         assert name is not None
@@ -148,7 +156,9 @@ class _PluginComponentClasses(collections.abc.Mapping):
         if cc_ptr is None:
             raise KeyError(key)
 
-        return bt2.component._create_component_class_from_ptr_and_get_ref(cc_ptr, self._comp_cls_type)
+        return bt2.component._create_component_class_from_ptr_and_get_ref(
+            cc_ptr, self._comp_cls_type
+        )
 
     def __len__(self):
         return self._component_class_count(self._plugin._ptr)
@@ -158,23 +168,41 @@ class _PluginComponentClasses(collections.abc.Mapping):
 
 
 class _PluginSourceComponentClasses(_PluginComponentClasses):
-    _component_class_count = staticmethod(native_bt.plugin_get_source_component_class_count)
-    _borrow_component_class_by_name = staticmethod(native_bt.plugin_borrow_source_component_class_by_name_const)
-    _borrow_component_class_by_index = staticmethod(native_bt.plugin_borrow_source_component_class_by_index_const)
+    _component_class_count = staticmethod(
+        native_bt.plugin_get_source_component_class_count
+    )
+    _borrow_component_class_by_name = staticmethod(
+        native_bt.plugin_borrow_source_component_class_by_name_const
+    )
+    _borrow_component_class_by_index = staticmethod(
+        native_bt.plugin_borrow_source_component_class_by_index_const
+    )
     _comp_cls_type = native_bt.COMPONENT_CLASS_TYPE_SOURCE
 
 
 class _PluginFilterComponentClasses(_PluginComponentClasses):
-    _component_class_count = staticmethod(native_bt.plugin_get_filter_component_class_count)
-    _borrow_component_class_by_name = staticmethod(native_bt.plugin_borrow_filter_component_class_by_name_const)
-    _borrow_component_class_by_index = staticmethod(native_bt.plugin_borrow_filter_component_class_by_index_const)
+    _component_class_count = staticmethod(
+        native_bt.plugin_get_filter_component_class_count
+    )
+    _borrow_component_class_by_name = staticmethod(
+        native_bt.plugin_borrow_filter_component_class_by_name_const
+    )
+    _borrow_component_class_by_index = staticmethod(
+        native_bt.plugin_borrow_filter_component_class_by_index_const
+    )
     _comp_cls_type = native_bt.COMPONENT_CLASS_TYPE_FILTER
 
 
 class _PluginSinkComponentClasses(_PluginComponentClasses):
-    _component_class_count = staticmethod(native_bt.plugin_get_sink_component_class_count)
-    _borrow_component_class_by_name = staticmethod(native_bt.plugin_borrow_sink_component_class_by_name_const)
-    _borrow_component_class_by_index = staticmethod(native_bt.plugin_borrow_sink_component_class_by_index_const)
+    _component_class_count = staticmethod(
+        native_bt.plugin_get_sink_component_class_count
+    )
+    _borrow_component_class_by_name = staticmethod(
+        native_bt.plugin_borrow_sink_component_class_by_name_const
+    )
+    _borrow_component_class_by_index = staticmethod(
+        native_bt.plugin_borrow_sink_component_class_by_index_const
+    )
     _comp_cls_type = native_bt.COMPONENT_CLASS_TYPE_SINK
 
 
@@ -185,7 +213,7 @@ class _Plugin(object._SharedObject):
     @property
     def name(self):
         name = native_bt.plugin_get_name(self._ptr)
-        assert(name is not None)
+        assert name is not None
         return name
 
     @property

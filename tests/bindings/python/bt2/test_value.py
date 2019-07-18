@@ -39,10 +39,7 @@ class _TestCopySimple:
             copy.deepcopy(self._def)
 
 
-_COMP_BINOPS = (
-    operator.eq,
-    operator.ne,
-)
+_COMP_BINOPS = (operator.eq, operator.ne)
 
 
 # Base class for numeric value test cases.
@@ -264,7 +261,7 @@ class _TestNumericValue(_TestCopySimple):
         test_cb(op, 0.0)
 
     def _test_binop_rhs_complex(self, test_cb, op):
-        test_cb(op, -23+19j)
+        test_cb(op, -23 + 19j)
 
     def _test_binop_rhs_zero_complex(self, test_cb, op):
         test_cb(op, 0j)
@@ -575,79 +572,415 @@ def _inject_numeric_testing_methods(cls):
 
     # inject testing methods for each binary operation
     for name, binop in _BINOPS:
-        setattr(cls, test_binop_name('invalid_unknown'), partialmethod(_TestNumericValue._test_binop_invalid_unknown, op=binop))
-        setattr(cls, test_binop_name('invalid_none'), partialmethod(_TestNumericValue._test_binop_invalid_none, op=binop))
-        setattr(cls, test_binop_name('type_true'), partialmethod(_TestNumericValue._test_binop_type_true, op=binop))
-        setattr(cls, test_binop_name('type_pos_int'), partialmethod(_TestNumericValue._test_binop_type_pos_int, op=binop))
-        setattr(cls, test_binop_name('type_pos_vint'), partialmethod(_TestNumericValue._test_binop_type_pos_vint, op=binop))
-        setattr(cls, test_binop_name('value_true'), partialmethod(_TestNumericValue._test_binop_value_true, op=binop))
-        setattr(cls, test_binop_name('value_pos_int'), partialmethod(_TestNumericValue._test_binop_value_pos_int, op=binop))
-        setattr(cls, test_binop_name('value_pos_vint'), partialmethod(_TestNumericValue._test_binop_value_pos_vint, op=binop))
-        setattr(cls, test_binop_name('lhs_addr_same_true'), partialmethod(_TestNumericValue._test_binop_lhs_addr_same_true, op=binop))
-        setattr(cls, test_binop_name('lhs_addr_same_pos_int'), partialmethod(_TestNumericValue._test_binop_lhs_addr_same_pos_int, op=binop))
-        setattr(cls, test_binop_name('lhs_addr_same_pos_vint'), partialmethod(_TestNumericValue._test_binop_lhs_addr_same_pos_vint, op=binop))
-        setattr(cls, test_binop_name('lhs_value_same_true'), partialmethod(_TestNumericValue._test_binop_lhs_value_same_true, op=binop))
-        setattr(cls, test_binop_name('lhs_value_same_pos_int'), partialmethod(_TestNumericValue._test_binop_lhs_value_same_pos_int, op=binop))
-        setattr(cls, test_binop_name('lhs_value_same_pos_vint'), partialmethod(_TestNumericValue._test_binop_lhs_value_same_pos_vint, op=binop))
-        setattr(cls, test_binop_name('type_neg_int'), partialmethod(_TestNumericValue._test_binop_type_neg_int, op=binop))
-        setattr(cls, test_binop_name('type_neg_vint'), partialmethod(_TestNumericValue._test_binop_type_neg_vint, op=binop))
-        setattr(cls, test_binop_name('value_neg_int'), partialmethod(_TestNumericValue._test_binop_value_neg_int, op=binop))
-        setattr(cls, test_binop_name('value_neg_vint'), partialmethod(_TestNumericValue._test_binop_value_neg_vint, op=binop))
-        setattr(cls, test_binop_name('lhs_addr_same_neg_int'), partialmethod(_TestNumericValue._test_binop_lhs_addr_same_neg_int, op=binop))
-        setattr(cls, test_binop_name('lhs_addr_same_neg_vint'), partialmethod(_TestNumericValue._test_binop_lhs_addr_same_neg_vint, op=binop))
-        setattr(cls, test_binop_name('lhs_value_same_neg_int'), partialmethod(_TestNumericValue._test_binop_lhs_value_same_neg_int, op=binop))
-        setattr(cls, test_binop_name('lhs_value_same_neg_vint'), partialmethod(_TestNumericValue._test_binop_lhs_value_same_neg_vint, op=binop))
-        setattr(cls, test_binop_name('type_false'), partialmethod(_TestNumericValue._test_binop_type_false, op=binop))
-        setattr(cls, test_binop_name('type_zero_int'), partialmethod(_TestNumericValue._test_binop_type_zero_int, op=binop))
-        setattr(cls, test_binop_name('type_zero_vint'), partialmethod(_TestNumericValue._test_binop_type_zero_vint, op=binop))
-        setattr(cls, test_binop_name('value_false'), partialmethod(_TestNumericValue._test_binop_value_false, op=binop))
-        setattr(cls, test_binop_name('value_zero_int'), partialmethod(_TestNumericValue._test_binop_value_zero_int, op=binop))
-        setattr(cls, test_binop_name('value_zero_vint'), partialmethod(_TestNumericValue._test_binop_value_zero_vint, op=binop))
-        setattr(cls, test_binop_name('lhs_addr_same_false'), partialmethod(_TestNumericValue._test_binop_lhs_addr_same_false, op=binop))
-        setattr(cls, test_binop_name('lhs_addr_same_zero_int'), partialmethod(_TestNumericValue._test_binop_lhs_addr_same_zero_int, op=binop))
-        setattr(cls, test_binop_name('lhs_addr_same_zero_vint'), partialmethod(_TestNumericValue._test_binop_lhs_addr_same_zero_vint, op=binop))
-        setattr(cls, test_binop_name('lhs_value_same_false'), partialmethod(_TestNumericValue._test_binop_lhs_value_same_false, op=binop))
-        setattr(cls, test_binop_name('lhs_value_same_zero_int'), partialmethod(_TestNumericValue._test_binop_lhs_value_same_zero_int, op=binop))
-        setattr(cls, test_binop_name('lhs_value_same_zero_vint'), partialmethod(_TestNumericValue._test_binop_lhs_value_same_zero_vint, op=binop))
-        setattr(cls, test_binop_name('type_neg_float'), partialmethod(_TestNumericValue._test_binop_type_neg_float, op=binop))
-        setattr(cls, test_binop_name('type_neg_vfloat'), partialmethod(_TestNumericValue._test_binop_type_neg_vfloat, op=binop))
-        setattr(cls, test_binop_name('value_neg_float'), partialmethod(_TestNumericValue._test_binop_value_neg_float, op=binop))
-        setattr(cls, test_binop_name('value_neg_vfloat'), partialmethod(_TestNumericValue._test_binop_value_neg_vfloat, op=binop))
-        setattr(cls, test_binop_name('lhs_addr_same_neg_float'), partialmethod(_TestNumericValue._test_binop_lhs_addr_same_neg_float, op=binop))
-        setattr(cls, test_binop_name('lhs_addr_same_neg_vfloat'), partialmethod(_TestNumericValue._test_binop_lhs_addr_same_neg_vfloat, op=binop))
-        setattr(cls, test_binop_name('lhs_value_same_neg_float'), partialmethod(_TestNumericValue._test_binop_lhs_value_same_neg_float, op=binop))
-        setattr(cls, test_binop_name('lhs_value_same_neg_vfloat'), partialmethod(_TestNumericValue._test_binop_lhs_value_same_neg_vfloat, op=binop))
-        setattr(cls, test_binop_name('type_pos_float'), partialmethod(_TestNumericValue._test_binop_type_pos_float, op=binop))
-        setattr(cls, test_binop_name('type_pos_vfloat'), partialmethod(_TestNumericValue._test_binop_type_pos_vfloat, op=binop))
-        setattr(cls, test_binop_name('value_pos_float'), partialmethod(_TestNumericValue._test_binop_value_pos_float, op=binop))
-        setattr(cls, test_binop_name('value_pos_vfloat'), partialmethod(_TestNumericValue._test_binop_value_pos_vfloat, op=binop))
-        setattr(cls, test_binop_name('lhs_addr_same_pos_float'), partialmethod(_TestNumericValue._test_binop_lhs_addr_same_pos_float, op=binop))
-        setattr(cls, test_binop_name('lhs_addr_same_pos_vfloat'), partialmethod(_TestNumericValue._test_binop_lhs_addr_same_pos_vfloat, op=binop))
-        setattr(cls, test_binop_name('lhs_value_same_pos_float'), partialmethod(_TestNumericValue._test_binop_lhs_value_same_pos_float, op=binop))
-        setattr(cls, test_binop_name('lhs_value_same_pos_vfloat'), partialmethod(_TestNumericValue._test_binop_lhs_value_same_pos_vfloat, op=binop))
-        setattr(cls, test_binop_name('type_zero_float'), partialmethod(_TestNumericValue._test_binop_type_zero_float, op=binop))
-        setattr(cls, test_binop_name('type_zero_vfloat'), partialmethod(_TestNumericValue._test_binop_type_zero_vfloat, op=binop))
-        setattr(cls, test_binop_name('value_zero_float'), partialmethod(_TestNumericValue._test_binop_value_zero_float, op=binop))
-        setattr(cls, test_binop_name('value_zero_vfloat'), partialmethod(_TestNumericValue._test_binop_value_zero_vfloat, op=binop))
-        setattr(cls, test_binop_name('lhs_addr_same_zero_float'), partialmethod(_TestNumericValue._test_binop_lhs_addr_same_zero_float, op=binop))
-        setattr(cls, test_binop_name('lhs_addr_same_zero_vfloat'), partialmethod(_TestNumericValue._test_binop_lhs_addr_same_zero_vfloat, op=binop))
-        setattr(cls, test_binop_name('lhs_value_same_zero_float'), partialmethod(_TestNumericValue._test_binop_lhs_value_same_zero_float, op=binop))
-        setattr(cls, test_binop_name('lhs_value_same_zero_vfloat'), partialmethod(_TestNumericValue._test_binop_lhs_value_same_zero_vfloat, op=binop))
-        setattr(cls, test_binop_name('type_complex'), partialmethod(_TestNumericValue._test_binop_type_complex, op=binop))
-        setattr(cls, test_binop_name('type_zero_complex'), partialmethod(_TestNumericValue._test_binop_type_zero_complex, op=binop))
-        setattr(cls, test_binop_name('value_complex'), partialmethod(_TestNumericValue._test_binop_value_complex, op=binop))
-        setattr(cls, test_binop_name('value_zero_complex'), partialmethod(_TestNumericValue._test_binop_value_zero_complex, op=binop))
-        setattr(cls, test_binop_name('lhs_addr_same_complex'), partialmethod(_TestNumericValue._test_binop_lhs_addr_same_complex, op=binop))
-        setattr(cls, test_binop_name('lhs_addr_same_zero_complex'), partialmethod(_TestNumericValue._test_binop_lhs_addr_same_zero_complex, op=binop))
-        setattr(cls, test_binop_name('lhs_value_same_complex'), partialmethod(_TestNumericValue._test_binop_lhs_value_same_complex, op=binop))
-        setattr(cls, test_binop_name('lhs_value_same_zero_complex'), partialmethod(_TestNumericValue._test_binop_lhs_value_same_zero_complex, op=binop))
+        setattr(
+            cls,
+            test_binop_name('invalid_unknown'),
+            partialmethod(_TestNumericValue._test_binop_invalid_unknown, op=binop),
+        )
+        setattr(
+            cls,
+            test_binop_name('invalid_none'),
+            partialmethod(_TestNumericValue._test_binop_invalid_none, op=binop),
+        )
+        setattr(
+            cls,
+            test_binop_name('type_true'),
+            partialmethod(_TestNumericValue._test_binop_type_true, op=binop),
+        )
+        setattr(
+            cls,
+            test_binop_name('type_pos_int'),
+            partialmethod(_TestNumericValue._test_binop_type_pos_int, op=binop),
+        )
+        setattr(
+            cls,
+            test_binop_name('type_pos_vint'),
+            partialmethod(_TestNumericValue._test_binop_type_pos_vint, op=binop),
+        )
+        setattr(
+            cls,
+            test_binop_name('value_true'),
+            partialmethod(_TestNumericValue._test_binop_value_true, op=binop),
+        )
+        setattr(
+            cls,
+            test_binop_name('value_pos_int'),
+            partialmethod(_TestNumericValue._test_binop_value_pos_int, op=binop),
+        )
+        setattr(
+            cls,
+            test_binop_name('value_pos_vint'),
+            partialmethod(_TestNumericValue._test_binop_value_pos_vint, op=binop),
+        )
+        setattr(
+            cls,
+            test_binop_name('lhs_addr_same_true'),
+            partialmethod(_TestNumericValue._test_binop_lhs_addr_same_true, op=binop),
+        )
+        setattr(
+            cls,
+            test_binop_name('lhs_addr_same_pos_int'),
+            partialmethod(
+                _TestNumericValue._test_binop_lhs_addr_same_pos_int, op=binop
+            ),
+        )
+        setattr(
+            cls,
+            test_binop_name('lhs_addr_same_pos_vint'),
+            partialmethod(
+                _TestNumericValue._test_binop_lhs_addr_same_pos_vint, op=binop
+            ),
+        )
+        setattr(
+            cls,
+            test_binop_name('lhs_value_same_true'),
+            partialmethod(_TestNumericValue._test_binop_lhs_value_same_true, op=binop),
+        )
+        setattr(
+            cls,
+            test_binop_name('lhs_value_same_pos_int'),
+            partialmethod(
+                _TestNumericValue._test_binop_lhs_value_same_pos_int, op=binop
+            ),
+        )
+        setattr(
+            cls,
+            test_binop_name('lhs_value_same_pos_vint'),
+            partialmethod(
+                _TestNumericValue._test_binop_lhs_value_same_pos_vint, op=binop
+            ),
+        )
+        setattr(
+            cls,
+            test_binop_name('type_neg_int'),
+            partialmethod(_TestNumericValue._test_binop_type_neg_int, op=binop),
+        )
+        setattr(
+            cls,
+            test_binop_name('type_neg_vint'),
+            partialmethod(_TestNumericValue._test_binop_type_neg_vint, op=binop),
+        )
+        setattr(
+            cls,
+            test_binop_name('value_neg_int'),
+            partialmethod(_TestNumericValue._test_binop_value_neg_int, op=binop),
+        )
+        setattr(
+            cls,
+            test_binop_name('value_neg_vint'),
+            partialmethod(_TestNumericValue._test_binop_value_neg_vint, op=binop),
+        )
+        setattr(
+            cls,
+            test_binop_name('lhs_addr_same_neg_int'),
+            partialmethod(
+                _TestNumericValue._test_binop_lhs_addr_same_neg_int, op=binop
+            ),
+        )
+        setattr(
+            cls,
+            test_binop_name('lhs_addr_same_neg_vint'),
+            partialmethod(
+                _TestNumericValue._test_binop_lhs_addr_same_neg_vint, op=binop
+            ),
+        )
+        setattr(
+            cls,
+            test_binop_name('lhs_value_same_neg_int'),
+            partialmethod(
+                _TestNumericValue._test_binop_lhs_value_same_neg_int, op=binop
+            ),
+        )
+        setattr(
+            cls,
+            test_binop_name('lhs_value_same_neg_vint'),
+            partialmethod(
+                _TestNumericValue._test_binop_lhs_value_same_neg_vint, op=binop
+            ),
+        )
+        setattr(
+            cls,
+            test_binop_name('type_false'),
+            partialmethod(_TestNumericValue._test_binop_type_false, op=binop),
+        )
+        setattr(
+            cls,
+            test_binop_name('type_zero_int'),
+            partialmethod(_TestNumericValue._test_binop_type_zero_int, op=binop),
+        )
+        setattr(
+            cls,
+            test_binop_name('type_zero_vint'),
+            partialmethod(_TestNumericValue._test_binop_type_zero_vint, op=binop),
+        )
+        setattr(
+            cls,
+            test_binop_name('value_false'),
+            partialmethod(_TestNumericValue._test_binop_value_false, op=binop),
+        )
+        setattr(
+            cls,
+            test_binop_name('value_zero_int'),
+            partialmethod(_TestNumericValue._test_binop_value_zero_int, op=binop),
+        )
+        setattr(
+            cls,
+            test_binop_name('value_zero_vint'),
+            partialmethod(_TestNumericValue._test_binop_value_zero_vint, op=binop),
+        )
+        setattr(
+            cls,
+            test_binop_name('lhs_addr_same_false'),
+            partialmethod(_TestNumericValue._test_binop_lhs_addr_same_false, op=binop),
+        )
+        setattr(
+            cls,
+            test_binop_name('lhs_addr_same_zero_int'),
+            partialmethod(
+                _TestNumericValue._test_binop_lhs_addr_same_zero_int, op=binop
+            ),
+        )
+        setattr(
+            cls,
+            test_binop_name('lhs_addr_same_zero_vint'),
+            partialmethod(
+                _TestNumericValue._test_binop_lhs_addr_same_zero_vint, op=binop
+            ),
+        )
+        setattr(
+            cls,
+            test_binop_name('lhs_value_same_false'),
+            partialmethod(_TestNumericValue._test_binop_lhs_value_same_false, op=binop),
+        )
+        setattr(
+            cls,
+            test_binop_name('lhs_value_same_zero_int'),
+            partialmethod(
+                _TestNumericValue._test_binop_lhs_value_same_zero_int, op=binop
+            ),
+        )
+        setattr(
+            cls,
+            test_binop_name('lhs_value_same_zero_vint'),
+            partialmethod(
+                _TestNumericValue._test_binop_lhs_value_same_zero_vint, op=binop
+            ),
+        )
+        setattr(
+            cls,
+            test_binop_name('type_neg_float'),
+            partialmethod(_TestNumericValue._test_binop_type_neg_float, op=binop),
+        )
+        setattr(
+            cls,
+            test_binop_name('type_neg_vfloat'),
+            partialmethod(_TestNumericValue._test_binop_type_neg_vfloat, op=binop),
+        )
+        setattr(
+            cls,
+            test_binop_name('value_neg_float'),
+            partialmethod(_TestNumericValue._test_binop_value_neg_float, op=binop),
+        )
+        setattr(
+            cls,
+            test_binop_name('value_neg_vfloat'),
+            partialmethod(_TestNumericValue._test_binop_value_neg_vfloat, op=binop),
+        )
+        setattr(
+            cls,
+            test_binop_name('lhs_addr_same_neg_float'),
+            partialmethod(
+                _TestNumericValue._test_binop_lhs_addr_same_neg_float, op=binop
+            ),
+        )
+        setattr(
+            cls,
+            test_binop_name('lhs_addr_same_neg_vfloat'),
+            partialmethod(
+                _TestNumericValue._test_binop_lhs_addr_same_neg_vfloat, op=binop
+            ),
+        )
+        setattr(
+            cls,
+            test_binop_name('lhs_value_same_neg_float'),
+            partialmethod(
+                _TestNumericValue._test_binop_lhs_value_same_neg_float, op=binop
+            ),
+        )
+        setattr(
+            cls,
+            test_binop_name('lhs_value_same_neg_vfloat'),
+            partialmethod(
+                _TestNumericValue._test_binop_lhs_value_same_neg_vfloat, op=binop
+            ),
+        )
+        setattr(
+            cls,
+            test_binop_name('type_pos_float'),
+            partialmethod(_TestNumericValue._test_binop_type_pos_float, op=binop),
+        )
+        setattr(
+            cls,
+            test_binop_name('type_pos_vfloat'),
+            partialmethod(_TestNumericValue._test_binop_type_pos_vfloat, op=binop),
+        )
+        setattr(
+            cls,
+            test_binop_name('value_pos_float'),
+            partialmethod(_TestNumericValue._test_binop_value_pos_float, op=binop),
+        )
+        setattr(
+            cls,
+            test_binop_name('value_pos_vfloat'),
+            partialmethod(_TestNumericValue._test_binop_value_pos_vfloat, op=binop),
+        )
+        setattr(
+            cls,
+            test_binop_name('lhs_addr_same_pos_float'),
+            partialmethod(
+                _TestNumericValue._test_binop_lhs_addr_same_pos_float, op=binop
+            ),
+        )
+        setattr(
+            cls,
+            test_binop_name('lhs_addr_same_pos_vfloat'),
+            partialmethod(
+                _TestNumericValue._test_binop_lhs_addr_same_pos_vfloat, op=binop
+            ),
+        )
+        setattr(
+            cls,
+            test_binop_name('lhs_value_same_pos_float'),
+            partialmethod(
+                _TestNumericValue._test_binop_lhs_value_same_pos_float, op=binop
+            ),
+        )
+        setattr(
+            cls,
+            test_binop_name('lhs_value_same_pos_vfloat'),
+            partialmethod(
+                _TestNumericValue._test_binop_lhs_value_same_pos_vfloat, op=binop
+            ),
+        )
+        setattr(
+            cls,
+            test_binop_name('type_zero_float'),
+            partialmethod(_TestNumericValue._test_binop_type_zero_float, op=binop),
+        )
+        setattr(
+            cls,
+            test_binop_name('type_zero_vfloat'),
+            partialmethod(_TestNumericValue._test_binop_type_zero_vfloat, op=binop),
+        )
+        setattr(
+            cls,
+            test_binop_name('value_zero_float'),
+            partialmethod(_TestNumericValue._test_binop_value_zero_float, op=binop),
+        )
+        setattr(
+            cls,
+            test_binop_name('value_zero_vfloat'),
+            partialmethod(_TestNumericValue._test_binop_value_zero_vfloat, op=binop),
+        )
+        setattr(
+            cls,
+            test_binop_name('lhs_addr_same_zero_float'),
+            partialmethod(
+                _TestNumericValue._test_binop_lhs_addr_same_zero_float, op=binop
+            ),
+        )
+        setattr(
+            cls,
+            test_binop_name('lhs_addr_same_zero_vfloat'),
+            partialmethod(
+                _TestNumericValue._test_binop_lhs_addr_same_zero_vfloat, op=binop
+            ),
+        )
+        setattr(
+            cls,
+            test_binop_name('lhs_value_same_zero_float'),
+            partialmethod(
+                _TestNumericValue._test_binop_lhs_value_same_zero_float, op=binop
+            ),
+        )
+        setattr(
+            cls,
+            test_binop_name('lhs_value_same_zero_vfloat'),
+            partialmethod(
+                _TestNumericValue._test_binop_lhs_value_same_zero_vfloat, op=binop
+            ),
+        )
+        setattr(
+            cls,
+            test_binop_name('type_complex'),
+            partialmethod(_TestNumericValue._test_binop_type_complex, op=binop),
+        )
+        setattr(
+            cls,
+            test_binop_name('type_zero_complex'),
+            partialmethod(_TestNumericValue._test_binop_type_zero_complex, op=binop),
+        )
+        setattr(
+            cls,
+            test_binop_name('value_complex'),
+            partialmethod(_TestNumericValue._test_binop_value_complex, op=binop),
+        )
+        setattr(
+            cls,
+            test_binop_name('value_zero_complex'),
+            partialmethod(_TestNumericValue._test_binop_value_zero_complex, op=binop),
+        )
+        setattr(
+            cls,
+            test_binop_name('lhs_addr_same_complex'),
+            partialmethod(
+                _TestNumericValue._test_binop_lhs_addr_same_complex, op=binop
+            ),
+        )
+        setattr(
+            cls,
+            test_binop_name('lhs_addr_same_zero_complex'),
+            partialmethod(
+                _TestNumericValue._test_binop_lhs_addr_same_zero_complex, op=binop
+            ),
+        )
+        setattr(
+            cls,
+            test_binop_name('lhs_value_same_complex'),
+            partialmethod(
+                _TestNumericValue._test_binop_lhs_value_same_complex, op=binop
+            ),
+        )
+        setattr(
+            cls,
+            test_binop_name('lhs_value_same_zero_complex'),
+            partialmethod(
+                _TestNumericValue._test_binop_lhs_value_same_zero_complex, op=binop
+            ),
+        )
 
     # inject testing methods for each unary operation
     for name, unaryop in _UNARYOPS:
-        setattr(cls, test_unaryop_name('type'), partialmethod(_TestNumericValue._test_unaryop_type, op=unaryop))
-        setattr(cls, test_unaryop_name('value'), partialmethod(_TestNumericValue._test_unaryop_value, op=unaryop))
-        setattr(cls, test_unaryop_name('addr_same'), partialmethod(_TestNumericValue._test_unaryop_addr_same, op=unaryop))
-        setattr(cls, test_unaryop_name('value_same'), partialmethod(_TestNumericValue._test_unaryop_value_same, op=unaryop))
+        setattr(
+            cls,
+            test_unaryop_name('type'),
+            partialmethod(_TestNumericValue._test_unaryop_type, op=unaryop),
+        )
+        setattr(
+            cls,
+            test_unaryop_name('value'),
+            partialmethod(_TestNumericValue._test_unaryop_value, op=unaryop),
+        )
+        setattr(
+            cls,
+            test_unaryop_name('addr_same'),
+            partialmethod(_TestNumericValue._test_unaryop_addr_same, op=unaryop),
+        )
+        setattr(
+            cls,
+            test_unaryop_name('value_same'),
+            partialmethod(_TestNumericValue._test_unaryop_value_same, op=unaryop),
+        )
 
 
 class CreateValueFuncTestCase(unittest.TestCase):
@@ -748,7 +1081,9 @@ class CreateValueFuncTestCase(unittest.TestCase):
 
         a = A()
 
-        with self.assertRaisesRegex(TypeError, "cannot create value object from 'A' object") as cm:
+        with self.assertRaisesRegex(
+            TypeError, "cannot create value object from 'A' object"
+        ) as cm:
             v = bt2.create_value(a)
 
 
@@ -864,10 +1199,14 @@ class _TestIntegerValue(_TestNumericValue):
         return self.assertRaisesRegex(TypeError, r'expecting an integral number object')
 
     def _assert_expecting_int64(self):
-        return self.assertRaisesRegex(ValueError, r"expecting a signed 64-bit integral value")
+        return self.assertRaisesRegex(
+            ValueError, r"expecting a signed 64-bit integral value"
+        )
 
     def _assert_expecting_uint64(self):
-        return self.assertRaisesRegex(ValueError, r"expecting an unsigned 64-bit integral value")
+        return self.assertRaisesRegex(
+            ValueError, r"expecting an unsigned 64-bit integral value"
+        )
 
     def test_create_default(self):
         i = self._CLS()
@@ -955,7 +1294,7 @@ class SignedIntegerValueTestCase(_TestIntegerValue, unittest.TestCase):
     def test_compare_big_int(self):
         # Larger than the IEEE 754 double-precision exact representation of
         # integers.
-        raw = (2**53) + 1
+        raw = (2 ** 53) + 1
         v = bt2.create_value(raw)
         self.assertEqual(v, raw)
 
@@ -1378,7 +1717,7 @@ class MapValueTestCase(_TestCopySimple, unittest.TestCase):
             'pos-int': 42,
             'neg-float': -42.4,
             'pos-float': 23.17,
-            'str': 'yes'
+            'str': 'yes',
         }
         self._def = bt2.MapValue(copy.deepcopy(self._def_value))
 
@@ -1435,11 +1774,7 @@ class MapValueTestCase(_TestCopySimple, unittest.TestCase):
         self.assertNotEqual(a1, a2)
 
     def test_eq_same_content_same_len(self):
-        raw = {
-            '3': 3,
-            'True': True,
-            'array': [1, 2.5, None, {'a': 17.6, 'b': None}]
-        }
+        raw = {'3': 3, 'True': True, 'array': [1, 2.5, None, {'a': 17.6, 'b': None}]}
         a1 = bt2.MapValue(raw)
         a2 = bt2.MapValue(copy.deepcopy(raw))
         self.assertEqual(a1, a2)

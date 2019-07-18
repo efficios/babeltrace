@@ -22,22 +22,26 @@ import bt2
 
 
 class EventTestCase(unittest.TestCase):
-    def _create_test_event_message(self, packet_fields_config=None,
-                                   event_fields_config=None,
-                                   with_clockclass=False,
-                                   with_cc=False, with_sc=False,
-                                   with_ep=False, with_packet=False):
-
+    def _create_test_event_message(
+        self,
+        packet_fields_config=None,
+        event_fields_config=None,
+        with_clockclass=False,
+        with_cc=False,
+        with_sc=False,
+        with_ep=False,
+        with_packet=False,
+    ):
         class MyIter(bt2._UserMessageIterator):
             def __init__(self, self_output_port):
                 self._at = 0
-                self._msgs = [
-                    self._create_stream_beginning_message(test_obj.stream),
-                ]
+                self._msgs = [self._create_stream_beginning_message(test_obj.stream)]
 
                 if with_packet:
                     assert test_obj.packet
-                    self._msgs.append(self._create_packet_beginning_message(test_obj.packet))
+                    self._msgs.append(
+                        self._create_packet_beginning_message(test_obj.packet)
+                    )
 
                 default_clock_snapshot = 789 if with_clockclass else None
 
@@ -48,7 +52,9 @@ class EventTestCase(unittest.TestCase):
                     assert test_obj.stream
                     ev_parent = test_obj.stream
 
-                msg = self._create_event_message(test_obj.event_class, ev_parent, default_clock_snapshot)
+                msg = self._create_event_message(
+                    test_obj.event_class, ev_parent, default_clock_snapshot
+                )
 
                 if event_fields_config is not None:
                     event_fields_config(msg.event)
@@ -96,10 +102,12 @@ class EventTestCase(unittest.TestCase):
                         ('something_else', tc.create_real_field_class()),
                     ]
 
-                stream_class = tc.create_stream_class(default_clock_class=clock_class,
-                                                      event_common_context_field_class=cc,
-                                                      packet_context_field_class=pc,
-                                                      supports_packets=with_packet)
+                stream_class = tc.create_stream_class(
+                    default_clock_class=clock_class,
+                    event_common_context_field_class=cc,
+                    packet_context_field_class=pc,
+                    supports_packets=with_packet,
+                )
 
                 # specific context (event-class-defined)
                 sc = None
@@ -120,9 +128,11 @@ class EventTestCase(unittest.TestCase):
                         ('mosquito', tc.create_signed_integer_field_class(8)),
                     ]
 
-                event_class = stream_class.create_event_class(name='garou',
-                                                              specific_context_field_class=sc,
-                                                              payload_field_class=ep)
+                event_class = stream_class.create_event_class(
+                    name='garou',
+                    specific_context_field_class=sc,
+                    payload_field_class=ep,
+                )
 
                 trace = tc()
                 stream = trace.create_stream(stream_class)
@@ -143,7 +153,9 @@ class EventTestCase(unittest.TestCase):
         test_obj = self
         self._graph = bt2.Graph()
         self._src_comp = self._graph.add_component(MySrc, 'my_source')
-        self._msg_iter = self._graph.create_output_port_message_iterator(self._src_comp.output_ports['out'])
+        self._msg_iter = self._graph.create_output_port_message_iterator(
+            self._src_comp.output_ports['out']
+        )
 
         for msg in self._msg_iter:
             if type(msg) is bt2._EventMessage:
@@ -166,7 +178,9 @@ class EventTestCase(unittest.TestCase):
             event.common_context_field['cpu_id'] = 1
             event.common_context_field['stuff'] = 13.194
 
-        msg = self._create_test_event_message(event_fields_config=event_fields_config, with_cc=True)
+        msg = self._create_test_event_message(
+            event_fields_config=event_fields_config, with_cc=True
+        )
 
         self.assertEqual(msg.event.common_context_field['cpu_id'], 1)
         self.assertEqual(msg.event.common_context_field['stuff'], 13.194)
@@ -180,7 +194,9 @@ class EventTestCase(unittest.TestCase):
             event.specific_context_field['ant'] = -1
             event.specific_context_field['msg'] = 'hellooo'
 
-        msg = self._create_test_event_message(event_fields_config=event_fields_config, with_sc=True)
+        msg = self._create_test_event_message(
+            event_fields_config=event_fields_config, with_sc=True
+        )
 
         self.assertEqual(msg.event.specific_context_field['ant'], -1)
         self.assertEqual(msg.event.specific_context_field['msg'], 'hellooo')
@@ -195,7 +211,9 @@ class EventTestCase(unittest.TestCase):
             event.payload_field['gnu'] = 23
             event.payload_field['mosquito'] = 42
 
-        msg = self._create_test_event_message(event_fields_config=event_fields_config, with_ep=True)
+        msg = self._create_test_event_message(
+            event_fields_config=event_fields_config, with_ep=True
+        )
 
         self.assertEqual(msg.event.payload_field['giraffe'], 1)
         self.assertEqual(msg.event.payload_field['gnu'], 23)
@@ -232,10 +250,14 @@ class EventTestCase(unittest.TestCase):
             packet.context_field['something'] = 154
             packet.context_field['something_else'] = 17.2
 
-        msg = self._create_test_event_message(packet_fields_config=packet_fields_config,
-                                              event_fields_config=event_fields_config,
-                                              with_cc=True, with_sc=True, with_ep=True,
-                                              with_packet=True)
+        msg = self._create_test_event_message(
+            packet_fields_config=packet_fields_config,
+            event_fields_config=event_fields_config,
+            with_cc=True,
+            with_sc=True,
+            with_ep=True,
+            with_packet=True,
+        )
         ev = msg.event
 
         # Test event fields
