@@ -613,7 +613,7 @@ int init_packet_context(struct bt_ctf_stream_class *stream_class)
 		bt_ctf_field_type_structure_create();
 	struct bt_ctf_field_type *_uint64_t =
 		get_field_type(FIELD_TYPE_ALIAS_UINT64_T);
-	struct bt_ctf_field_type *ts_begin_end_uint64_t;
+	struct bt_ctf_field_type *ts_begin_end_uint64_t = NULL;
 
 	if (!packet_context_type) {
 		BT_LOGE_STR("Cannot create empty structure field type.");

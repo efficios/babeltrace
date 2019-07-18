@@ -1450,7 +1450,7 @@ int auto_seek_handle_message(
 			 * as we don't know if items were really
 			 * discarded within the new time range.
 			 */
-			uint64_t new_begin_raw_value;
+			uint64_t new_begin_raw_value = 0;
 
 			ret = bt_clock_class_clock_value_from_ns_from_origin(
 				msg_disc_items->default_end_cs->clock_class,

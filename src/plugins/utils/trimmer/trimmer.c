@@ -1598,7 +1598,7 @@ bt_component_class_message_iterator_next_method_status handle_message(
 	bt_component_class_message_iterator_next_method_status status;
 	const bt_stream *stream = NULL;
 	int64_t ns_from_origin = INT64_MIN;
-	bool has_ns_from_origin;
+	bool has_ns_from_origin = false;
 	int ret;
 
 	/* Find message's associated stream */
