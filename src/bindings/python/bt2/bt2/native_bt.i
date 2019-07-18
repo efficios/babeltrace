@@ -164,7 +164,6 @@ typedef int bt_bool;
 		$result = Py_False;
 	}
 	Py_INCREF($result);
-	return $result;
 }
 
 /*
