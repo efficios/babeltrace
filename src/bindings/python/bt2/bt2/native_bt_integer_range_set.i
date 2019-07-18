@@ -22,13 +22,5 @@
  * THE SOFTWARE.
  */
 
-/*
- * Typemap for the user data attached to (and owned by) a self component port.
- * The pointer saved as the port's user data is directly the PyObject *.
- *
- * As per the CPython calling convention, we need to return a new reference to
- * the returned object, which will be transferred to the caller.
- */
-
 %include <babeltrace2/integer-range-set.h>
 %include <babeltrace2/integer-range-set-const.h>
