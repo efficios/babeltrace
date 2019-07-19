@@ -601,6 +601,28 @@ int get_msg_ts_ns(struct muxer_comp *muxer_comp,
 		}
 
 		break;
+	case BT_MESSAGE_TYPE_STREAM_BEGINNING:
+	{
+		enum bt_message_stream_clock_snapshot_state snapshot_state =
+			bt_message_stream_beginning_borrow_default_clock_snapshot_const(
+				msg, &clock_snapshot);
+		if (snapshot_state == BT_MESSAGE_STREAM_CLOCK_SNAPSHOT_STATE_UNKNOWN) {
+			goto no_clock_snapshot;
+		}
+
+		break;
+	}
+	case BT_MESSAGE_TYPE_STREAM_END:
+	{
+		enum bt_message_stream_clock_snapshot_state snapshot_state =
+			bt_message_stream_end_borrow_default_clock_snapshot_const(
+				msg, &clock_snapshot);
+		if (snapshot_state == BT_MESSAGE_STREAM_CLOCK_SNAPSHOT_STATE_UNKNOWN) {
+			goto no_clock_snapshot;
+		}
+
+		break;
+	}
 	case BT_MESSAGE_TYPE_DISCARDED_EVENTS:
 		if (bt_stream_class_discarded_events_have_default_clock_snapshots(
 				stream_class)) {
