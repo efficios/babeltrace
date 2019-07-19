@@ -107,7 +107,8 @@ endif
 if ENABLE_PYTHON_PLUGINS
 if ENABLE_PYTHON_BINDINGS
 TESTS_CLI += cli/convert/test_auto_source_discovery_grouping
-TESTS_PLUGINS += plugins/flt.utils.trimmer/test_trimming
+TESTS_PLUGINS += plugins/flt.utils.trimmer/test_trimming \
+	plugins/flt.utils.muxer/succeed/test_succeed
 endif
 endif
 

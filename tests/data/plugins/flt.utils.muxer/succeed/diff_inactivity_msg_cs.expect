@@ -1,0 +1,19 @@
+[0 cycles, 0 ns from origin]
+Message iterator inactivity:
+  Clock class:
+    Name: Chicoutimi
+    Frequency (Hz): 1
+    Precision (cycles): 0
+    Offset (s): 0
+    Offset (cycles): 0
+    Origin is Unix epoch: Yes
+
+[0 cycles, 0 ns from origin]
+Message iterator inactivity:
+  Clock class:
+    Name: La Baie
+    Frequency (Hz): 1
+    Precision (cycles): 0
+    Offset (s): 0
+    Offset (cycles): 0
+    Origin is Unix epoch: Yes

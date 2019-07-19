@@ -1,0 +1,29 @@
+[0 cycles, 0 ns from origin]
+{Trace 0, Stream class ID 0, Stream ID 0}
+Stream beginning:
+  Trace:
+    Stream (ID 0, Class ID 0)
+
+[4 cycles, 4,000,000,000 ns from origin]
+{Trace 1, Stream class ID 2, Stream ID 0}
+Stream beginning:
+  Trace:
+    Stream (ID 0, Class ID 2)
+
+[120 cycles, 120,000,000,000 ns from origin]
+{Trace 2, Stream class ID 1, Stream ID 0}
+Stream beginning:
+  Trace:
+    Stream (ID 0, Class ID 1)
+
+[193 cycles, 193,000,000,000 ns from origin]
+{Trace 0, Stream class ID 0, Stream ID 0}
+Stream end
+
+[386 cycles, 386,000,000,000 ns from origin]
+{Trace 2, Stream class ID 1, Stream ID 0}
+Stream end
+
+[579 cycles, 579,000,000,000 ns from origin]
+{Trace 1, Stream class ID 2, Stream ID 0}
+Stream end
