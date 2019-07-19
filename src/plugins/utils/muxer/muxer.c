@@ -1531,8 +1531,14 @@ bt_component_class_message_iterator_seek_beginning_method_status muxer_msg_iter_
 		muxer_msg_iter->ended_muxer_upstream_msg_iters->pdata[i] = NULL;
 	}
 
-	g_ptr_array_remove_range(muxer_msg_iter->ended_muxer_upstream_msg_iters,
-		0, muxer_msg_iter->ended_muxer_upstream_msg_iters->len);
+	/*
+	 * GLib < 2.48.0 asserts when g_ptr_array_remove_range() is
+	 * called on an empty array.
+	 */
+	if (muxer_msg_iter->ended_muxer_upstream_msg_iters->len > 0) {
+		g_ptr_array_remove_range(muxer_msg_iter->ended_muxer_upstream_msg_iters,
+			0, muxer_msg_iter->ended_muxer_upstream_msg_iters->len);
+	}
 	muxer_msg_iter->last_returned_ts_ns = INT64_MIN;
 	muxer_msg_iter->clock_class_expectation =
 		MUXER_MSG_ITER_CLOCK_CLASS_EXPECTATION_ANY;
