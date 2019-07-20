@@ -307,18 +307,18 @@ class _IntegerValue(_IntegralValue):
 
 class UnsignedIntegerValue(_IntegerValue):
     _check_int_range = staticmethod(utils._check_uint64)
-    _create_default_value = staticmethod(native_bt.value_unsigned_integer_create)
-    _create_value = staticmethod(native_bt.value_unsigned_integer_create_init)
-    _set_value = staticmethod(native_bt.value_unsigned_integer_set)
-    _get_value = staticmethod(native_bt.value_unsigned_integer_get)
+    _create_default_value = staticmethod(native_bt.value_integer_unsigned_create)
+    _create_value = staticmethod(native_bt.value_integer_unsigned_create_init)
+    _set_value = staticmethod(native_bt.value_integer_unsigned_set)
+    _get_value = staticmethod(native_bt.value_integer_unsigned_get)
 
 
 class SignedIntegerValue(_IntegerValue):
     _check_int_range = staticmethod(utils._check_int64)
-    _create_default_value = staticmethod(native_bt.value_signed_integer_create)
-    _create_value = staticmethod(native_bt.value_signed_integer_create_init)
-    _set_value = staticmethod(native_bt.value_signed_integer_set)
-    _get_value = staticmethod(native_bt.value_signed_integer_get)
+    _create_default_value = staticmethod(native_bt.value_integer_signed_create)
+    _create_value = staticmethod(native_bt.value_integer_signed_create_init)
+    _set_value = staticmethod(native_bt.value_integer_signed_set)
+    _get_value = staticmethod(native_bt.value_integer_signed_get)
 
 
 class RealValue(_RealValue):

@@ -762,23 +762,23 @@ bool _is_variant_field_class_tag_valid(
 		g_string_append(escaped_opt_name, opt_name);
 
 		if (ir_tag_fc_type == BT_FIELD_CLASS_TYPE_UNSIGNED_ENUMERATION) {
-			const bt_field_class_variant_with_unsigned_selector_option *var_opt =
-				bt_field_class_variant_with_unsigned_selector_borrow_option_by_index_const(
+			const bt_field_class_variant_with_selector_unsigned_option *var_opt =
+				bt_field_class_variant_with_selector_unsigned_borrow_option_by_index_const(
 					fc->base.ir_fc, i);
-			const bt_field_class_unsigned_enumeration_mapping *mapping;
+			const bt_field_class_enumeration_unsigned_mapping *mapping;
 			const bt_integer_range_set_unsigned *opt_ranges;
 			const bt_integer_range_set_unsigned *mapping_ranges;
 
-			mapping = bt_field_class_unsigned_enumeration_borrow_mapping_by_label_const(
+			mapping = bt_field_class_enumeration_unsigned_borrow_mapping_by_label_const(
 				tag_fc->ir_fc, escaped_opt_name->str);
 			if (!mapping) {
 				is_valid = false;
 				goto end;
 			}
 
-			opt_ranges = bt_field_class_variant_with_unsigned_selector_option_borrow_ranges_const(
+			opt_ranges = bt_field_class_variant_with_selector_unsigned_option_borrow_ranges_const(
 				var_opt);
-			mapping_ranges = bt_field_class_unsigned_enumeration_mapping_borrow_ranges_const(
+			mapping_ranges = bt_field_class_enumeration_unsigned_mapping_borrow_ranges_const(
 				mapping);
 			if (!bt_integer_range_set_unsigned_compare(opt_ranges,
 					mapping_ranges)) {
@@ -786,23 +786,23 @@ bool _is_variant_field_class_tag_valid(
 				goto end;
 			}
 		} else {
-			const bt_field_class_variant_with_signed_selector_option *var_opt =
-				bt_field_class_variant_with_signed_selector_borrow_option_by_index_const(
+			const bt_field_class_variant_with_selector_signed_option *var_opt =
+				bt_field_class_variant_with_selector_signed_borrow_option_by_index_const(
 					fc->base.ir_fc, i);
-			const bt_field_class_signed_enumeration_mapping *mapping;
+			const bt_field_class_enumeration_signed_mapping *mapping;
 			const bt_integer_range_set_signed *opt_ranges;
 			const bt_integer_range_set_signed *mapping_ranges;
 
-			mapping = bt_field_class_signed_enumeration_borrow_mapping_by_label_const(
+			mapping = bt_field_class_enumeration_signed_borrow_mapping_by_label_const(
 				tag_fc->ir_fc, escaped_opt_name->str);
 			if (!mapping) {
 				is_valid = false;
 				goto end;
 			}
 
-			opt_ranges = bt_field_class_variant_with_signed_selector_option_borrow_ranges_const(
+			opt_ranges = bt_field_class_variant_with_selector_signed_option_borrow_ranges_const(
 				var_opt);
-			mapping_ranges = bt_field_class_signed_enumeration_mapping_borrow_ranges_const(
+			mapping_ranges = bt_field_class_enumeration_signed_mapping_borrow_ranges_const(
 				mapping);
 			if (!bt_integer_range_set_signed_compare(opt_ranges,
 					mapping_ranges)) {
@@ -925,18 +925,18 @@ int must_protect_variant_option_name(const bt_field_class *ir_var_fc,
 		/* No ranges: we're done */
 		goto end;
 	} if (ir_var_fc_type == BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_SELECTOR) {
-		const bt_field_class_variant_with_unsigned_selector_option *var_opt =
-			bt_field_class_variant_with_unsigned_selector_borrow_option_by_index_const(
+		const bt_field_class_variant_with_selector_unsigned_option *var_opt =
+			bt_field_class_variant_with_selector_unsigned_borrow_option_by_index_const(
 				ir_var_fc, opt_i);
 		opt_ranges =
-			bt_field_class_variant_with_unsigned_selector_option_borrow_ranges_const(
+			bt_field_class_variant_with_selector_unsigned_option_borrow_ranges_const(
 				var_opt);
 	} else {
-		const bt_field_class_variant_with_signed_selector_option *var_opt =
-			bt_field_class_variant_with_signed_selector_borrow_option_by_index_const(
+		const bt_field_class_variant_with_selector_signed_option *var_opt =
+			bt_field_class_variant_with_selector_signed_borrow_option_by_index_const(
 				ir_var_fc, opt_i);
 		opt_ranges =
-			bt_field_class_variant_with_signed_selector_option_borrow_ranges_const(
+			bt_field_class_variant_with_selector_signed_option_borrow_ranges_const(
 				var_opt);
 	}
 
@@ -945,19 +945,19 @@ int must_protect_variant_option_name(const bt_field_class *ir_var_fc,
 			i++) {
 		if (ir_var_fc_type == BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_SELECTOR) {
 			const bt_field_class_enumeration_mapping *mapping_base;
-			const bt_field_class_unsigned_enumeration_mapping *mapping;
+			const bt_field_class_enumeration_unsigned_mapping *mapping;
 			const bt_integer_range_set_unsigned *mapping_ranges;
 
-			mapping = bt_field_class_unsigned_enumeration_borrow_mapping_by_index_const(
+			mapping = bt_field_class_enumeration_unsigned_borrow_mapping_by_index_const(
 				ir_tag_fc, i);
-			mapping_ranges = bt_field_class_unsigned_enumeration_mapping_borrow_ranges_const(
+			mapping_ranges = bt_field_class_enumeration_unsigned_mapping_borrow_ranges_const(
 				mapping);
 
 			if (bt_integer_range_set_unsigned_compare(opt_ranges,
 					mapping_ranges)) {
 				/* We have a winner */
 				mapping_base =
-					bt_field_class_unsigned_enumeration_mapping_as_mapping_const(
+					bt_field_class_enumeration_unsigned_mapping_as_mapping_const(
 						mapping);
 				mapping_label =
 					bt_field_class_enumeration_mapping_get_label(
@@ -966,19 +966,19 @@ int must_protect_variant_option_name(const bt_field_class *ir_var_fc,
 			}
 		} else {
 			const bt_field_class_enumeration_mapping *mapping_base;
-			const bt_field_class_signed_enumeration_mapping *mapping;
+			const bt_field_class_enumeration_signed_mapping *mapping;
 			const bt_integer_range_set_signed *mapping_ranges;
 
-			mapping = bt_field_class_signed_enumeration_borrow_mapping_by_index_const(
+			mapping = bt_field_class_enumeration_signed_borrow_mapping_by_index_const(
 				ir_tag_fc, i);
-			mapping_ranges = bt_field_class_signed_enumeration_mapping_borrow_ranges_const(
+			mapping_ranges = bt_field_class_enumeration_signed_mapping_borrow_ranges_const(
 				mapping);
 
 			if (bt_integer_range_set_signed_compare(opt_ranges,
 					mapping_ranges)) {
 				/* We have a winner */
 				mapping_base =
-					bt_field_class_signed_enumeration_mapping_as_mapping_const(
+					bt_field_class_enumeration_signed_mapping_as_mapping_const(
 						mapping);
 				mapping_label =
 					bt_field_class_enumeration_mapping_get_label(
@@ -1254,7 +1254,7 @@ int translate_dynamic_array_field_class(struct ctx *ctx)
 
 	/* Resolve length field class before appending to parent */
 	resolve_field_class(ctx,
-		bt_field_class_dynamic_array_borrow_length_field_path_const(
+		bt_field_class_array_dynamic_borrow_length_field_path_const(
 			fc->base.base.ir_fc),
 		fc->length_ref, &fc->length_is_before, NULL);
 

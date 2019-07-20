@@ -37,10 +37,10 @@
 extern "C" {
 #endif
 
-extern bt_field_class *bt_field_class_unsigned_integer_create(
+extern bt_field_class *bt_field_class_integer_unsigned_create(
 		bt_trace_class *trace_class);
 
-extern bt_field_class *bt_field_class_signed_integer_create(
+extern bt_field_class *bt_field_class_integer_signed_create(
 		bt_trace_class *trace_class);
 
 extern void bt_field_class_integer_set_field_value_range(
@@ -56,10 +56,10 @@ extern void bt_field_class_real_set_is_single_precision(
 		bt_field_class *field_class,
 		bt_bool is_single_precision);
 
-extern bt_field_class *bt_field_class_unsigned_enumeration_create(
+extern bt_field_class *bt_field_class_enumeration_unsigned_create(
 		bt_trace_class *trace_class);
 
-extern bt_field_class *bt_field_class_signed_enumeration_create(
+extern bt_field_class *bt_field_class_enumeration_signed_create(
 		bt_trace_class *trace_class);
 
 typedef enum bt_field_class_enumeration_add_mapping_status {
@@ -68,12 +68,12 @@ typedef enum bt_field_class_enumeration_add_mapping_status {
 } bt_field_class_enumeration_add_mapping_status;
 
 extern bt_field_class_enumeration_add_mapping_status
-bt_field_class_unsigned_enumeration_add_mapping(
+bt_field_class_enumeration_unsigned_add_mapping(
 		bt_field_class *field_class, const char *label,
 		const bt_integer_range_set_unsigned *range_set);
 
 extern bt_field_class_enumeration_add_mapping_status
-bt_field_class_signed_enumeration_add_mapping(
+bt_field_class_enumeration_signed_add_mapping(
 		bt_field_class *field_class, const char *label,
 		const bt_integer_range_set_signed *range_set);
 
@@ -101,11 +101,11 @@ extern bt_field_class_structure_member *
 bt_field_class_structure_borrow_member_by_name(
 		bt_field_class *field_class, const char *name);
 
-extern bt_field_class *bt_field_class_static_array_create(
+extern bt_field_class *bt_field_class_array_static_create(
 		bt_trace_class *trace_class,
 		bt_field_class *elem_field_class, uint64_t length);
 
-extern bt_field_class *bt_field_class_dynamic_array_create(
+extern bt_field_class *bt_field_class_array_dynamic_create(
 		bt_trace_class *trace_class,
 		bt_field_class *elem_field_class,
 		bt_field_class *length_field_class);
@@ -133,13 +133,13 @@ typedef enum bt_field_class_variant_with_selector_append_option_status {
 } bt_field_class_variant_with_selector_append_option_status;
 
 extern bt_field_class_variant_with_selector_append_option_status
-bt_field_class_variant_with_unsigned_selector_append_option(
+bt_field_class_variant_with_selector_unsigned_append_option(
 		bt_field_class *var_field_class, const char *name,
 		bt_field_class *field_class,
 		const bt_integer_range_set_unsigned *range_set);
 
 extern bt_field_class_variant_with_selector_append_option_status
-bt_field_class_variant_with_signed_selector_append_option(
+bt_field_class_variant_with_selector_signed_append_option(
 		bt_field_class *var_field_class, const char *name,
 		bt_field_class *field_class,
 		const bt_integer_range_set_signed *range_set);

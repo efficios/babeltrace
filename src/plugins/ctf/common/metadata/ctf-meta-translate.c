@@ -53,9 +53,9 @@ bt_field_class *ctf_field_class_int_to_ir(struct ctx *ctx,
 	bt_field_class *ir_fc;
 
 	if (fc->is_signed) {
-		ir_fc = bt_field_class_signed_integer_create(ctx->ir_tc);
+		ir_fc = bt_field_class_integer_signed_create(ctx->ir_tc);
 	} else {
-		ir_fc = bt_field_class_unsigned_integer_create(ctx->ir_tc);
+		ir_fc = bt_field_class_integer_unsigned_create(ctx->ir_tc);
 	}
 
 	BT_ASSERT(ir_fc);
@@ -72,9 +72,9 @@ bt_field_class *ctf_field_class_enum_to_ir(struct ctx *ctx,
 	uint64_t i;
 
 	if (fc->base.is_signed) {
-		ir_fc = bt_field_class_signed_enumeration_create(ctx->ir_tc);
+		ir_fc = bt_field_class_enumeration_signed_create(ctx->ir_tc);
 	} else {
-		ir_fc = bt_field_class_unsigned_enumeration_create(ctx->ir_tc);
+		ir_fc = bt_field_class_enumeration_unsigned_create(ctx->ir_tc);
 	}
 
 	BT_ASSERT(ir_fc);
@@ -113,11 +113,11 @@ bt_field_class *ctf_field_class_enum_to_ir(struct ctx *ctx,
 		}
 
 		if (fc->base.is_signed) {
-			ret = bt_field_class_signed_enumeration_add_mapping(
+			ret = bt_field_class_enumeration_signed_add_mapping(
 				ir_fc, mapping->label->str, range_set);
 			BT_RANGE_SET_SIGNED_PUT_REF_AND_RESET(range_set);
 		} else {
-			ret = bt_field_class_unsigned_enumeration_add_mapping(
+			ret = bt_field_class_enumeration_unsigned_add_mapping(
 				ir_fc, mapping->label->str, range_set);
 			BT_RANGE_SET_UNSIGNED_PUT_REF_AND_RESET(range_set);
 		}
@@ -224,17 +224,17 @@ const void *find_ir_enum_field_class_mapping_by_label(const bt_field_class *fc,
 
 		if (is_signed) {
 			spec_this_mapping =
-				bt_field_class_signed_enumeration_borrow_mapping_by_index_const(
+				bt_field_class_enumeration_signed_borrow_mapping_by_index_const(
 					fc, i);
 			this_mapping =
-				bt_field_class_signed_enumeration_mapping_as_mapping_const(
+				bt_field_class_enumeration_signed_mapping_as_mapping_const(
 					spec_this_mapping);
 		} else {
 			spec_this_mapping =
-				bt_field_class_unsigned_enumeration_borrow_mapping_by_index_const(
+				bt_field_class_enumeration_unsigned_borrow_mapping_by_index_const(
 					fc, i);
 			this_mapping =
-				bt_field_class_unsigned_enumeration_mapping_as_mapping_const(
+				bt_field_class_enumeration_unsigned_mapping_as_mapping_const(
 					spec_this_mapping);
 		}
 
@@ -292,7 +292,7 @@ bt_field_class *ctf_field_class_variant_to_ir(struct ctx *ctx,
 			 * mapping name.
 			 */
 			if (fc->tag_fc->base.is_signed) {
-				const bt_field_class_signed_enumeration_mapping *mapping =
+				const bt_field_class_enumeration_signed_mapping *mapping =
 					find_ir_enum_field_class_mapping_by_label(
 						ir_tag_fc,
 						named_fc->orig_name->str, true);
@@ -300,14 +300,14 @@ bt_field_class *ctf_field_class_variant_to_ir(struct ctx *ctx,
 
 				BT_ASSERT(mapping);
 				range_set =
-					bt_field_class_signed_enumeration_mapping_borrow_ranges_const(
+					bt_field_class_enumeration_signed_mapping_borrow_ranges_const(
 						mapping);
 				BT_ASSERT(range_set);
-				ret = bt_field_class_variant_with_signed_selector_append_option(
+				ret = bt_field_class_variant_with_selector_signed_append_option(
 					ir_fc, named_fc->name->str,
 					option_ir_fc, range_set);
 			} else {
-				const bt_field_class_unsigned_enumeration_mapping *mapping =
+				const bt_field_class_enumeration_unsigned_mapping *mapping =
 					find_ir_enum_field_class_mapping_by_label(
 						ir_tag_fc,
 						named_fc->orig_name->str,
@@ -316,10 +316,10 @@ bt_field_class *ctf_field_class_variant_to_ir(struct ctx *ctx,
 
 				BT_ASSERT(mapping);
 				range_set =
-					bt_field_class_unsigned_enumeration_mapping_borrow_ranges_const(
+					bt_field_class_enumeration_unsigned_mapping_borrow_ranges_const(
 						mapping);
 				BT_ASSERT(range_set);
-				ret = bt_field_class_variant_with_unsigned_selector_append_option(
+				ret = bt_field_class_variant_with_selector_unsigned_append_option(
 					ir_fc, named_fc->name->str,
 					option_ir_fc, range_set);
 			}
@@ -350,7 +350,7 @@ bt_field_class *ctf_field_class_array_to_ir(struct ctx *ctx,
 
 	elem_ir_fc = ctf_field_class_to_ir(ctx, fc->base.elem_fc);
 	BT_ASSERT(elem_ir_fc);
-	ir_fc = bt_field_class_static_array_create(ctx->ir_tc, elem_ir_fc,
+	ir_fc = bt_field_class_array_static_create(ctx->ir_tc, elem_ir_fc,
 		fc->length);
 	BT_ASSERT(ir_fc);
 	bt_field_class_put_ref(elem_ir_fc);
@@ -382,7 +382,7 @@ bt_field_class *ctf_field_class_sequence_to_ir(struct ctx *ctx,
 		BT_ASSERT(length_fc);
 	}
 
-	ir_fc = bt_field_class_dynamic_array_create(ctx->ir_tc, elem_ir_fc,
+	ir_fc = bt_field_class_array_dynamic_create(ctx->ir_tc, elem_ir_fc,
 		length_fc);
 	BT_ASSERT(ir_fc);
 	bt_field_class_put_ref(elem_ir_fc);

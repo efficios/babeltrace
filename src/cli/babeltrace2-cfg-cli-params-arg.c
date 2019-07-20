@@ -127,7 +127,7 @@ bt_value *ini_parse_uint(struct ini_parsing_state *state)
 		goto end;
 	}
 
-	value = bt_value_unsigned_integer_create_init(
+	value = bt_value_integer_unsigned_create_init(
 		state->scanner->value.v_int64);
 
 end:
@@ -154,7 +154,7 @@ bt_value *ini_parse_neg_number(struct ini_parsing_state *state)
 				"Integer value -%" PRIu64 " is outside the range of a 64-bit signed integer\n",
 				int_val);
 		} else {
-			value = bt_value_signed_integer_create_init(
+			value = bt_value_integer_signed_create_init(
 				-((int64_t) int_val));
 		}
 
@@ -292,7 +292,7 @@ bt_value *ini_parse_value(struct ini_parsing_state *state)
 				int_val);
 			goto end;
 		} else {
-			value = bt_value_signed_integer_create_init(
+			value = bt_value_integer_signed_create_init(
 				(int64_t) int_val);
 		}
 

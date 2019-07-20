@@ -445,7 +445,7 @@ int set_bound_from_param(struct trimmer_comp *trimmer_comp,
 	char tmp_arg[64];
 
 	if (bt_value_is_signed_integer(param)) {
-		int64_t value = bt_value_signed_integer_get(param);
+		int64_t value = bt_value_integer_signed_get(param);
 
 		/*
 		 * Just convert it to a temporary string to handle

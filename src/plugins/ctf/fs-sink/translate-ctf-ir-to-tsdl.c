@@ -210,8 +210,8 @@ void append_integer_field_class(struct ctx *ctx,
 		for (i = 0; i < bt_field_class_enumeration_get_mapping_count(ir_fc); i++) {
 			const char *label;
 			const bt_field_class_enumeration_mapping *mapping;
-			const bt_field_class_unsigned_enumeration_mapping *u_mapping;
-			const bt_field_class_signed_enumeration_mapping *s_mapping;
+			const bt_field_class_enumeration_unsigned_mapping *u_mapping;
+			const bt_field_class_enumeration_signed_mapping *s_mapping;
 			const bt_integer_range_set *ranges;
 			const bt_integer_range_set_unsigned *u_ranges;
 			const bt_integer_range_set_signed *s_ranges;
@@ -219,20 +219,20 @@ void append_integer_field_class(struct ctx *ctx,
 			uint64_t range_i;
 
 			if (is_signed) {
-				s_mapping = bt_field_class_signed_enumeration_borrow_mapping_by_index_const(
+				s_mapping = bt_field_class_enumeration_signed_borrow_mapping_by_index_const(
 					ir_fc, i);
-				mapping = bt_field_class_signed_enumeration_mapping_as_mapping_const(
+				mapping = bt_field_class_enumeration_signed_mapping_as_mapping_const(
 					s_mapping);
-				s_ranges = bt_field_class_signed_enumeration_mapping_borrow_ranges_const(
+				s_ranges = bt_field_class_enumeration_signed_mapping_borrow_ranges_const(
 					s_mapping);
 				ranges = bt_integer_range_set_signed_as_range_set_const(
 					s_ranges);
 			} else {
-				u_mapping = bt_field_class_unsigned_enumeration_borrow_mapping_by_index_const(
+				u_mapping = bt_field_class_enumeration_unsigned_borrow_mapping_by_index_const(
 					ir_fc, i);
-				mapping = bt_field_class_unsigned_enumeration_mapping_as_mapping_const(
+				mapping = bt_field_class_enumeration_unsigned_mapping_as_mapping_const(
 					u_mapping);
-				u_ranges = bt_field_class_unsigned_enumeration_mapping_borrow_ranges_const(
+				u_ranges = bt_field_class_enumeration_unsigned_mapping_borrow_ranges_const(
 					u_mapping);
 				ranges = bt_integer_range_set_unsigned_as_range_set_const(
 					u_ranges);
@@ -862,7 +862,7 @@ void translate_trace_ctf_ir_to_tsdl(struct fs_sink_ctf_trace *trace,
 			switch (bt_value_get_type(val)) {
 			case BT_VALUE_TYPE_SIGNED_INTEGER:
 				g_string_append_printf(tsdl, "%" PRId64,
-					bt_value_signed_integer_get(val));
+					bt_value_integer_signed_get(val));
 				break;
 			case BT_VALUE_TYPE_STRING:
 				append_quoted_string(&ctx, bt_value_string_get(val));

@@ -81,19 +81,19 @@ static bt_field_class *create_integer_struct(bt_trace_class *trace_class)
 
 	structure = bt_field_class_structure_create(trace_class);
 	BT_ASSERT(structure);
-	ui8 = bt_field_class_unsigned_integer_create(trace_class);
+	ui8 = bt_field_class_integer_unsigned_create(trace_class);
 	BT_ASSERT(ui8);
 	bt_field_class_integer_set_field_value_range(ui8, 8);
 	ret = bt_field_class_structure_append_member(structure,
 		"payload_8", ui8);
 	BT_ASSERT(ret == 0);
-	ui16 = bt_field_class_unsigned_integer_create(trace_class);
+	ui16 = bt_field_class_integer_unsigned_create(trace_class);
 	BT_ASSERT(ui16);
 	bt_field_class_integer_set_field_value_range(ui16, 16);
 	ret = bt_field_class_structure_append_member(structure,
 		"payload_16", ui16);
 	BT_ASSERT(ret == 0);
-	ui32 = bt_field_class_unsigned_integer_create(trace_class);
+	ui32 = bt_field_class_integer_unsigned_create(trace_class);
 	BT_ASSERT(ui32);
 	bt_field_class_integer_set_field_value_range(ui32, 32);
 	ret = bt_field_class_structure_append_member(structure,

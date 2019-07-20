@@ -231,7 +231,7 @@ static inline void format_field_class(char **buf_ch, bool extended,
 	}
 	case BT_FIELD_CLASS_TYPE_STATIC_ARRAY:
 	{
-		const struct bt_field_class_static_array *array_fc =
+		const struct bt_field_class_array_static *array_fc =
 			(const void *) field_class;
 
 		format_array_field_class(buf_ch, extended, prefix, field_class);
@@ -240,7 +240,7 @@ static inline void format_field_class(char **buf_ch, bool extended,
 	}
 	case BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY:
 	{
-		const struct bt_field_class_dynamic_array *array_fc =
+		const struct bt_field_class_array_dynamic *array_fc =
 			(const void *) field_class;
 
 		format_array_field_class(buf_ch, extended, prefix, field_class);
@@ -827,13 +827,13 @@ static inline void format_value(char **buf_ch, bool extended,
 	case BT_VALUE_TYPE_UNSIGNED_INTEGER:
 	{
 		BUF_APPEND(", %svalue=%" PRIu64,
-			PRFIELD(bt_value_unsigned_integer_get(value)));
+			PRFIELD(bt_value_integer_unsigned_get(value)));
 		break;
 	}
 	case BT_VALUE_TYPE_SIGNED_INTEGER:
 	{
 		BUF_APPEND(", %svalue=%" PRId64,
-			PRFIELD(bt_value_signed_integer_get(value)));
+			PRFIELD(bt_value_integer_signed_get(value)));
 		break;
 	}
 	case BT_VALUE_TYPE_REAL:

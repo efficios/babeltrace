@@ -406,7 +406,7 @@ int print_event_header(struct pretty_component *pretty,
 			} else if (dom_print) {
 				g_string_append(pretty->string, ":");
 			}
-			value = bt_value_signed_integer_get(vpid_value);
+			value = bt_value_integer_signed_get(vpid_value);
 			g_string_append_printf(pretty->string,
 				"(%" PRId64 ")", value);
 			dom_print = 1;
@@ -527,9 +527,9 @@ int print_integer(struct pretty_component *pretty,
 	ft_type = bt_field_get_class_type(field);
 	if (ft_type == BT_FIELD_CLASS_TYPE_UNSIGNED_INTEGER ||
 			ft_type == BT_FIELD_CLASS_TYPE_UNSIGNED_ENUMERATION) {
-		v.u = bt_field_unsigned_integer_get_value(field);
+		v.u = bt_field_integer_unsigned_get_value(field);
 	} else {
-		v.s = bt_field_signed_integer_get_value(field);
+		v.s = bt_field_integer_signed_get_value(field);
 	}
 
 	if (pretty->use_colors) {
@@ -693,11 +693,11 @@ int print_enum(struct pretty_component *pretty,
 
 	switch (bt_field_get_class_type(field)) {
 	case BT_FIELD_CLASS_TYPE_UNSIGNED_ENUMERATION:
-		ret = bt_field_unsigned_enumeration_get_mapping_labels(field,
+		ret = bt_field_enumeration_unsigned_get_mapping_labels(field,
 			&label_array, &label_count);
 		break;
 	case BT_FIELD_CLASS_TYPE_SIGNED_ENUMERATION:
-		ret = bt_field_signed_enumeration_get_mapping_labels(field,
+		ret = bt_field_enumeration_signed_get_mapping_labels(field,
 			&label_array, &label_count);
 		break;
 	default:

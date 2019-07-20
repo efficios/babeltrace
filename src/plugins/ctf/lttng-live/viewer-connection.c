@@ -361,10 +361,10 @@ int list_update_session(bt_value *results,
 				ret = -1;
 				goto end;
 			}
-			val = bt_value_signed_integer_get(btval);
+			val = bt_value_integer_signed_get(btval);
 			/* sum */
 			val += streams;
-			bt_value_signed_integer_set(btval, val);
+			bt_value_integer_signed_set(btval, val);
 
 			btval = bt_value_map_borrow_entry_value(map, "client-count");
 			if (!btval) {
@@ -372,10 +372,10 @@ int list_update_session(bt_value *results,
 				ret = -1;
 				goto end;
 			}
-			val = bt_value_signed_integer_get(btval);
+			val = bt_value_integer_signed_get(btval);
 			/* max */
 			val = bt_max_t(int64_t, clients, val);
-			bt_value_signed_integer_set(btval, val);
+			bt_value_integer_signed_set(btval, val);
 		}
 
 		if (found) {

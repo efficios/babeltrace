@@ -228,11 +228,11 @@ class _UnsignedIntegerField(_IntegerField, _Field):
 
     @property
     def _value(self):
-        return native_bt.field_unsigned_integer_get_value(self._ptr)
+        return native_bt.field_integer_unsigned_get_value(self._ptr)
 
     def _set_value(self, value):
         value = self._value_to_int(value)
-        native_bt.field_unsigned_integer_set_value(self._ptr, value)
+        native_bt.field_integer_unsigned_set_value(self._ptr, value)
 
     value = property(fset=_set_value)
 
@@ -251,11 +251,11 @@ class _SignedIntegerField(_IntegerField, _Field):
 
     @property
     def _value(self):
-        return native_bt.field_signed_integer_get_value(self._ptr)
+        return native_bt.field_integer_signed_get_value(self._ptr)
 
     def _set_value(self, value):
         value = self._value_to_int(value)
-        native_bt.field_signed_integer_set_value(self._ptr, value)
+        native_bt.field_integer_signed_set_value(self._ptr, value)
 
     value = property(fset=_set_value)
 
@@ -296,14 +296,14 @@ class _EnumerationField(_IntegerField):
 class _UnsignedEnumerationField(_EnumerationField, _UnsignedIntegerField):
     _NAME = 'Unsigned Enumeration'
     _get_mapping_labels = staticmethod(
-        native_bt.field_unsigned_enumeration_get_mapping_labels
+        native_bt.field_enumeration_unsigned_get_mapping_labels
     )
 
 
 class _SignedEnumerationField(_EnumerationField, _SignedIntegerField):
     _NAME = 'Signed Enumeration'
     _get_mapping_labels = staticmethod(
-        native_bt.field_signed_enumeration_get_mapping_labels
+        native_bt.field_enumeration_signed_get_mapping_labels
     )
 
 
@@ -574,7 +574,7 @@ class _DynamicArrayField(_ArrayField, _Field):
 
     def _set_length(self, length):
         utils._check_uint64(length)
-        status = native_bt.field_dynamic_array_set_length(self._ptr, length)
+        status = native_bt.field_array_dynamic_set_length(self._ptr, length)
         utils._handle_func_status(status, "cannot set dynamic array length")
 
     length = property(fget=_ArrayField._get_length, fset=_set_length)

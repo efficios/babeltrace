@@ -206,11 +206,11 @@ int write_int_field(struct fs_sink_stream *stream,
 
 	if (fc->is_signed) {
 		ret = bt_ctfser_write_signed_int(&stream->ctfser,
-			bt_field_signed_integer_get_value(field),
+			bt_field_integer_signed_get_value(field),
 			fc->base.base.alignment, fc->base.size, BYTE_ORDER);
 	} else {
 		ret = bt_ctfser_write_unsigned_int(&stream->ctfser,
-			bt_field_unsigned_integer_get_value(field),
+			bt_field_integer_unsigned_get_value(field),
 			fc->base.base.alignment, fc->base.size, BYTE_ORDER);
 	}
 

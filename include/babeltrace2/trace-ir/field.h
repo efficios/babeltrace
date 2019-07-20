@@ -35,10 +35,10 @@
 extern "C" {
 #endif
 
-extern void bt_field_signed_integer_set_value(bt_field *field,
+extern void bt_field_integer_signed_set_value(bt_field *field,
 		int64_t value);
 
-extern void bt_field_unsigned_integer_set_value(bt_field *field,
+extern void bt_field_integer_unsigned_set_value(bt_field *field,
 		uint64_t value);
 
 extern void bt_field_real_set_value(bt_field *field, double value);
@@ -73,13 +73,13 @@ extern bt_field *bt_field_structure_borrow_member_field_by_name(
 extern bt_field *bt_field_array_borrow_element_field_by_index(
 		bt_field *field, uint64_t index);
 
-typedef enum bt_field_dynamic_array_set_length_status {
+typedef enum bt_field_array_dynamic_set_length_status {
 	BT_FIELD_DYNAMIC_ARRAY_SET_LENGTH_STATUS_MEMORY_ERROR	= __BT_FUNC_STATUS_MEMORY_ERROR,
 	BT_FIELD_DYNAMIC_ARRAY_SET_LENGTH_STATUS_OK		= __BT_FUNC_STATUS_OK,
-} bt_field_dynamic_array_set_length_status;
+} bt_field_array_dynamic_set_length_status;
 
-extern bt_field_dynamic_array_set_length_status
-bt_field_dynamic_array_set_length(
+extern bt_field_array_dynamic_set_length_status
+bt_field_array_dynamic_set_length(
 		bt_field *field, uint64_t length);
 
 typedef enum bt_field_variant_select_option_field_by_index_status {

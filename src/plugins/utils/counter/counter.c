@@ -178,7 +178,7 @@ bt_component_class_init_method_status counter_init(
 			goto error;
 		}
 
-		counter->step = bt_value_unsigned_integer_get(step);
+		counter->step = bt_value_integer_unsigned_get(step);
 	}
 
 	hide_zero = bt_value_map_borrow_entry_value_const(params, "hide-zero");

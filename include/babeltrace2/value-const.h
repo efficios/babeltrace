@@ -125,9 +125,9 @@ extern bt_bool bt_value_compare(const bt_value *object_a,
 
 extern bt_bool bt_value_bool_get(const bt_value *bool_obj);
 
-extern uint64_t bt_value_unsigned_integer_get(const bt_value *integer_obj);
+extern uint64_t bt_value_integer_unsigned_get(const bt_value *integer_obj);
 
-extern int64_t bt_value_signed_integer_get(const bt_value *integer_obj);
+extern int64_t bt_value_integer_signed_get(const bt_value *integer_obj);
 
 extern double bt_value_real_get(const bt_value *real_obj);
 
