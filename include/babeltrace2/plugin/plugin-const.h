@@ -45,7 +45,21 @@ typedef enum bt_plugin_find_status {
 } bt_plugin_find_status;
 
 extern bt_plugin_find_status bt_plugin_find(const char *plugin_name,
+		bt_bool find_in_std_env_var, bt_bool find_in_user_dir,
+		bt_bool find_in_sys_dir, bt_bool find_in_static,
 		bt_bool fail_on_load_error, const bt_plugin **plugin);
+
+typedef enum bt_plugin_find_all_status {
+	BT_PLUGIN_FIND_ALL_STATUS_OK		= __BT_FUNC_STATUS_OK,
+	BT_PLUGIN_FIND_ALL_STATUS_NOT_FOUND	= __BT_FUNC_STATUS_NOT_FOUND,
+	BT_PLUGIN_FIND_ALL_STATUS_ERROR		= __BT_FUNC_STATUS_ERROR,
+	BT_PLUGIN_FIND_ALL_STATUS_MEMORY_ERROR	= __BT_FUNC_STATUS_MEMORY_ERROR,
+} bt_plugin_find_all_status;
+
+bt_plugin_find_all_status bt_plugin_find_all(bt_bool find_in_std_env_var,
+		bt_bool find_in_user_dir, bt_bool find_in_sys_dir,
+		bt_bool find_in_static, bt_bool fail_on_load_error,
+		const bt_plugin_set **plugin_set);
 
 typedef enum bt_plugin_find_all_from_file_status {
 	BT_PLUGIN_FIND_ALL_FROM_FILE_STATUS_OK			= __BT_FUNC_STATUS_OK,

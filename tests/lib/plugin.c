@@ -250,8 +250,8 @@ static void test_find(const char *plugin_dir)
 	char *plugin_path;
 	bt_plugin_find_status status;
 
-	ok(bt_plugin_find(NON_EXISTING_PATH, BT_FALSE, &plugin) ==
-		BT_PLUGIN_FIND_STATUS_NOT_FOUND,
+	ok(bt_plugin_find(NON_EXISTING_PATH, BT_TRUE, BT_FALSE, BT_FALSE,
+		BT_FALSE, BT_FALSE, &plugin) == BT_PLUGIN_FIND_STATUS_NOT_FOUND,
 		"bt_plugin_find() returns BT_PLUGIN_STATUS_NOT_FOUND with an unknown plugin name");
 	ret = asprintf(&plugin_path, "%s" G_SEARCHPATH_SEPARATOR_S
 			G_DIR_SEPARATOR_S "ec1d09e5-696c-442e-b1c3-f9c6cf7f5958"
@@ -263,7 +263,8 @@ static void test_find(const char *plugin_dir)
 	BT_ASSERT(ret > 0 && plugin_path);
 	g_setenv("BABELTRACE_PLUGIN_PATH", plugin_path, 1);
 	plugin = NULL;
-	status = bt_plugin_find("test_minimal", BT_FALSE, &plugin);
+	status = bt_plugin_find("test_minimal", BT_TRUE, BT_FALSE, BT_FALSE,
+		BT_FALSE, BT_FALSE, &plugin);
 	ok(status == BT_PLUGIN_FIND_STATUS_OK,
 		"bt_plugin_find() succeeds with a plugin name it can find");
 	ok(plugin, "bt_plugin_find() returns a plugin object");
