@@ -29,35 +29,39 @@
 #include "func-status.h"
 #include "integer-range-set.h"
 
-uint64_t bt_integer_range_unsigned_get_lower(const struct bt_integer_range_unsigned *u_range)
+uint64_t bt_integer_range_unsigned_get_lower(
+		const struct bt_integer_range_unsigned *u_range)
 {
 	const struct bt_integer_range *range = (const void *) u_range;
 
-	BT_ASSERT_PRE_DEV_NON_NULL(range, "Range");
+	BT_ASSERT_PRE_DEV_NON_NULL(range, "Integer range");
 	return range->lower.u;
 }
 
-uint64_t bt_integer_range_unsigned_get_upper(const struct bt_integer_range_unsigned *u_range)
+uint64_t bt_integer_range_unsigned_get_upper(
+		const struct bt_integer_range_unsigned *u_range)
 {
 	const struct bt_integer_range *range = (const void *) u_range;
 
-	BT_ASSERT_PRE_DEV_NON_NULL(range, "Range");
+	BT_ASSERT_PRE_DEV_NON_NULL(range, "Integer range");
 	return range->upper.u;
 }
 
-int64_t bt_integer_range_signed_get_lower(const struct bt_integer_range_signed *i_range)
+int64_t bt_integer_range_signed_get_lower(
+		const struct bt_integer_range_signed *i_range)
 {
 	const struct bt_integer_range *range = (const void *) i_range;
 
-	BT_ASSERT_PRE_DEV_NON_NULL(range, "Range");
+	BT_ASSERT_PRE_DEV_NON_NULL(range, "Integer range");
 	return range->lower.i;
 }
 
-int64_t bt_integer_range_signed_get_upper(const struct bt_integer_range_signed *i_range)
+int64_t bt_integer_range_signed_get_upper(
+		const struct bt_integer_range_signed *i_range)
 {
 	const struct bt_integer_range *range = (const void *) i_range;
 
-	BT_ASSERT_PRE_DEV_NON_NULL(range, "Range");
+	BT_ASSERT_PRE_DEV_NON_NULL(range, "Integer range");
 	return range->upper.i;
 }
 
@@ -73,8 +77,8 @@ bt_bool bt_integer_range_unsigned_compare(
 		const struct bt_integer_range_unsigned *range_a,
 		const struct bt_integer_range_unsigned *range_b)
 {
-	BT_ASSERT_PRE_DEV_NON_NULL(range_a, "Range A");
-	BT_ASSERT_PRE_DEV_NON_NULL(range_b, "Range B");
+	BT_ASSERT_PRE_DEV_NON_NULL(range_a, "Integer range A");
+	BT_ASSERT_PRE_DEV_NON_NULL(range_b, "Integer range B");
 	return (bt_bool) compare_ranges((const void *) range_a,
 		(const void *) range_b);
 }
@@ -83,8 +87,8 @@ bt_bool bt_integer_range_signed_compare(
 		const struct bt_integer_range_signed *range_a,
 		const struct bt_integer_range_signed *range_b)
 {
-	BT_ASSERT_PRE_DEV_NON_NULL(range_a, "Range A");
-	BT_ASSERT_PRE_DEV_NON_NULL(range_b, "Range B");
+	BT_ASSERT_PRE_DEV_NON_NULL(range_a, "Integer range A");
+	BT_ASSERT_PRE_DEV_NON_NULL(range_b, "Integer range B");
 	return (bt_bool) compare_ranges((const void *) range_a,
 		(const void *) range_b);
 }
@@ -92,34 +96,43 @@ bt_bool bt_integer_range_signed_compare(
 uint64_t bt_integer_range_set_get_range_count(
 		const bt_integer_range_set *range_set)
 {
-	BT_ASSERT_PRE_DEV_NON_NULL(range_set, "Range set");
+	BT_ASSERT_PRE_DEV_NON_NULL(range_set, "Integer range set");
 	return (uint64_t) range_set->ranges->len;
 }
 
-const struct bt_integer_range_unsigned *bt_integer_range_set_unsigned_borrow_range_by_index_const(
-		const bt_integer_range_set_unsigned *u_range_set, uint64_t index)
+const struct bt_integer_range_unsigned *
+bt_integer_range_set_unsigned_borrow_range_by_index_const(
+		const bt_integer_range_set_unsigned *u_range_set,
+		uint64_t index)
 {
-	const struct bt_integer_range_set *range_set = (const void *) u_range_set;
+	const struct bt_integer_range_set *range_set =
+		(const void *) u_range_set;
 
-	BT_ASSERT_PRE_DEV_NON_NULL(range_set, "Range set");
+	BT_ASSERT_PRE_DEV_NON_NULL(range_set, "Integer range set");
 	BT_ASSERT_PRE_DEV_VALID_INDEX(index, range_set->ranges->len);
-	return (const void *) BT_INTEGER_RANGE_SET_RANGE_AT_INDEX(range_set, index);
+	return (const void *) BT_INTEGER_RANGE_SET_RANGE_AT_INDEX(range_set,
+		index);
 }
 
-const struct bt_integer_range_signed *bt_integer_range_set_signed_borrow_range_by_index_const(
+const struct bt_integer_range_signed *
+bt_integer_range_set_signed_borrow_range_by_index_const(
 		const bt_integer_range_set_signed *i_range_set, uint64_t index)
 {
-	const struct bt_integer_range_set *range_set = (const void *) i_range_set;
+	const struct bt_integer_range_set *range_set =
+		(const void *) i_range_set;
 
-	BT_ASSERT_PRE_DEV_NON_NULL(range_set, "Range set");
+	BT_ASSERT_PRE_DEV_NON_NULL(range_set, "Integer range set");
 	BT_ASSERT_PRE_DEV_VALID_INDEX(index, range_set->ranges->len);
-	return (const void *) BT_INTEGER_RANGE_SET_RANGE_AT_INDEX(range_set, index);
+	return (const void *) BT_INTEGER_RANGE_SET_RANGE_AT_INDEX(range_set,
+		index);
 }
 
 static
 void destroy_range_set(struct bt_object *obj)
 {
 	struct bt_integer_range_set *range_set = (void *) obj;
+
+	BT_LIB_LOGD("Destroying integer range set: %!+R", range_set);
 
 	if (range_set->ranges) {
 		g_array_free(range_set->ranges, TRUE);
@@ -132,10 +145,14 @@ void destroy_range_set(struct bt_object *obj)
 static
 struct bt_integer_range_set *create_range_set(void)
 {
-	struct bt_integer_range_set *range_set = g_new0(struct bt_integer_range_set, 1);
+	struct bt_integer_range_set *range_set;
+
+	BT_LOGD_STR("Creating empty integer range set.");
+	range_set = g_new0(struct bt_integer_range_set, 1);
 
 	if (!range_set) {
-		BT_LIB_LOGE_APPEND_CAUSE("Failed to allocate one range set.");
+		BT_LIB_LOGE_APPEND_CAUSE(
+			"Failed to allocate one integer range set.");
 		goto error;
 	}
 
@@ -144,10 +161,11 @@ struct bt_integer_range_set *create_range_set(void)
 		sizeof(struct bt_integer_range));
 	if (!range_set->ranges) {
 		BT_LIB_LOGE_APPEND_CAUSE(
-			"Failed to allocate range set's range array.");
+			"Failed to allocate integer range set's range array.");
 		goto error;
 	}
 
+	BT_LOGD_STR("Created empty integer range set.");
 	goto end;
 
 error:
@@ -175,16 +193,17 @@ void add_range_to_range_set(struct bt_integer_range_set *range_set,
 		.upper.u = u_upper,
 	};
 
-	BT_ASSERT_PRE_NON_NULL(range_set, "Range set");
-	BT_ASSERT_PRE_DEV_HOT(range_set, "Range set", ": addr=%p", range_set);
+	BT_ASSERT_PRE_NON_NULL(range_set, "Integer range set");
+	BT_ASSERT_PRE_DEV_HOT(range_set, "Integer range set", ": %!+R",
+		range_set);
 	g_array_append_val(range_set->ranges, range);
-	BT_LIB_LOGD("Added range to range set: "
-		"range-set-addr=%p, lower-unsigned=%" PRIu64 ", "
-		"upper-unsigned=%" PRIu64,
-		range_set, u_lower, u_upper);
+	BT_LIB_LOGD("Added integer range to integer range set: "
+		"%![range-set-]+R, lower-unsigned=%" PRIu64 ", "
+		"upper-unsigned=%" PRIu64, range_set, u_lower, u_upper);
 }
 
-enum bt_integer_range_set_add_range_status bt_integer_range_set_unsigned_add_range(
+enum bt_integer_range_set_add_range_status
+bt_integer_range_set_unsigned_add_range(
 		struct bt_integer_range_set_unsigned *range_set,
 		uint64_t lower, uint64_t upper)
 {
@@ -195,7 +214,8 @@ enum bt_integer_range_set_add_range_status bt_integer_range_set_unsigned_add_ran
 	return BT_FUNC_STATUS_OK;
 }
 
-enum bt_integer_range_set_add_range_status bt_integer_range_set_signed_add_range(
+enum bt_integer_range_set_add_range_status
+bt_integer_range_set_signed_add_range(
 		struct bt_integer_range_set_signed *range_set,
 		int64_t lower, int64_t upper)
 {
@@ -211,12 +231,13 @@ BT_HIDDEN
 void _bt_integer_range_set_freeze(const struct bt_integer_range_set *range_set)
 {
 	BT_ASSERT(range_set);
-	BT_LIB_LOGD("Freezing range set: addr=%p", range_set);
+	BT_LIB_LOGD("Freezing integer range set: %!+R", range_set);
 	((struct bt_integer_range_set *) range_set)->frozen = true;
 }
 
 BT_HIDDEN
-bool bt_integer_range_set_unsigned_has_overlaps(const struct bt_integer_range_set *range_set)
+bool bt_integer_range_set_unsigned_has_overlaps(
+		const struct bt_integer_range_set *range_set)
 {
 	uint64_t i, j;
 	bool has_overlap = false;
@@ -229,7 +250,8 @@ bool bt_integer_range_set_unsigned_has_overlaps(const struct bt_integer_range_se
 
 		for (j = 0; j < range_set->ranges->len; j++) {
 			const struct bt_integer_range *range_j =
-				BT_INTEGER_RANGE_SET_RANGE_AT_INDEX(range_set, j);
+				BT_INTEGER_RANGE_SET_RANGE_AT_INDEX(
+					range_set, j);
 
 			if (i == j) {
 				continue;
@@ -248,7 +270,8 @@ end:
 }
 
 BT_HIDDEN
-bool bt_integer_range_set_signed_has_overlaps(const struct bt_integer_range_set *range_set)
+bool bt_integer_range_set_signed_has_overlaps(
+		const struct bt_integer_range_set *range_set)
 {
 	uint64_t i, j;
 	bool has_overlap = false;
@@ -261,7 +284,8 @@ bool bt_integer_range_set_signed_has_overlaps(const struct bt_integer_range_set 
 
 		for (j = 0; j < range_set->ranges->len; j++) {
 			const struct bt_integer_range *range_j =
-				BT_INTEGER_RANGE_SET_RANGE_AT_INDEX(range_set, j);
+				BT_INTEGER_RANGE_SET_RANGE_AT_INDEX(
+					range_set, j);
 
 			if (i == j) {
 				continue;
@@ -361,12 +385,14 @@ void bt_integer_range_set_unsigned_put_ref(
 	bt_object_put_ref(range_set);
 }
 
-void bt_integer_range_set_signed_get_ref(const struct bt_integer_range_set_signed *range_set)
+void bt_integer_range_set_signed_get_ref(
+		const struct bt_integer_range_set_signed *range_set)
 {
 	bt_object_get_ref(range_set);
 }
 
-void bt_integer_range_set_signed_put_ref(const struct bt_integer_range_set_signed *range_set)
+void bt_integer_range_set_signed_put_ref(
+		const struct bt_integer_range_set_signed *range_set)
 {
 	bt_object_put_ref(range_set);
 }
