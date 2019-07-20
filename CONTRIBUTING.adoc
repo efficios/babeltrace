@@ -713,6 +713,10 @@ The available format specifiers are:
 |Graph
 |`+const struct bt_graph *+`
 
+|`z`
+|Interrupter
+|`+struct bt_interrupter *+`
+
 |`l`
 |Plugin
 |`+const struct bt_plugin *+`

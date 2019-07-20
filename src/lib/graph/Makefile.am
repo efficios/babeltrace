@@ -20,6 +20,8 @@ libgraph_la_SOURCES = \
 	connection.h \
 	graph.c \
 	graph.h \
+	interrupter.c \
+	interrupter.h \
 	iterator.c \
 	port.c \
 	port.h \
