@@ -417,16 +417,48 @@ end:
 }
 
 static inline
+bool bt_plugin_set_contains_plugin(struct bt_plugin_set *plugin_set,
+		const char *name)
+{
+	uint64_t i;
+	bool contains = false;
+
+	BT_ASSERT(plugin_set);
+	BT_ASSERT(name);
+
+	for (i = 0; i < plugin_set->plugins->len; i++) {
+		const struct bt_plugin *plugin = plugin_set->plugins->pdata[i];
+
+		if (strcmp(plugin->info.name->str, name) == 0) {
+			contains = true;
+			goto end;
+		}
+	}
+
+end:
+	return contains;
+}
+
+static inline
 void bt_plugin_set_add_plugin(struct bt_plugin_set *plugin_set,
 		struct bt_plugin *plugin)
 {
 	BT_ASSERT(plugin_set);
 	BT_ASSERT(plugin);
+
+	if (bt_plugin_set_contains_plugin(plugin_set,
+			plugin->info.name->str)) {
+		goto end;
+	}
+
 	bt_object_get_ref(plugin);
 	g_ptr_array_add(plugin_set->plugins, plugin);
 	BT_LIB_LOGD("Added plugin to plugin set: "
 		"plugin-set-addr=%p, %![plugin-]+l",
 		plugin_set, plugin);
+
+end:
+	return;
 }
 
 #endif /* BABELTRACE_PLUGIN_PLUGIN_INTERNAL_H */

@@ -28,15 +28,15 @@ _TEST_PLUGIN_PLUGIN_EXTENSION_BY_OS = {'cygwin': 'dll', 'mingw': 'dll'}
 
 class PluginSetTestCase(unittest.TestCase):
     def test_create(self):
-        pset = bt2.find_plugins(_TEST_PLUGIN_PLUGINS_PATH)
+        pset = bt2.find_plugins_in_path(_TEST_PLUGIN_PLUGINS_PATH)
         self.assertTrue(len(pset) >= 3)
 
     def test_getitem(self):
-        pset = bt2.find_plugins(_TEST_PLUGIN_PLUGINS_PATH)
+        pset = bt2.find_plugins_in_path(_TEST_PLUGIN_PLUGINS_PATH)
         self.assertTrue(pset[0].path.startswith(_TEST_PLUGIN_PLUGINS_PATH))
 
     def test_iter(self):
-        pset = bt2.find_plugins(_TEST_PLUGIN_PLUGINS_PATH)
+        pset = bt2.find_plugins_in_path(_TEST_PLUGIN_PLUGINS_PATH)
         names = set()
 
         for plugin in pset:
@@ -50,16 +50,16 @@ class PluginSetTestCase(unittest.TestCase):
 class FindPluginsTestCase(unittest.TestCase):
     def test_find_nonexistent_dir(self):
         with self.assertRaises(ValueError):
-            bt2.find_plugins(
+            bt2.find_plugins_in_path(
                 '/this/does/not/exist/246703df-cb85-46d5-8406-5e8dc4a88b41'
             )
 
     def test_find_none_existing_dir(self):
-        plugins = bt2.find_plugins(_TEST_PLUGIN_PLUGINS_PATH, recurse=False)
+        plugins = bt2.find_plugins_in_path(_TEST_PLUGIN_PLUGINS_PATH, recurse=False)
         self.assertIsNone(plugins)
 
     def test_find_dir(self):
-        pset = bt2.find_plugins(_TEST_PLUGIN_PLUGINS_PATH)
+        pset = bt2.find_plugins_in_path(_TEST_PLUGIN_PLUGINS_PATH)
         self.assertTrue(len(pset) >= 3)
 
     def test_find_file(self):
@@ -68,7 +68,7 @@ class FindPluginsTestCase(unittest.TestCase):
         )
         plugin_name = 'babeltrace-plugin-utils.{}'.format(extension)
         path = os.path.join(_TEST_PLUGIN_PLUGINS_PATH, 'utils', '.libs', plugin_name)
-        pset = bt2.find_plugins(path)
+        pset = bt2.find_plugins_in_path(path)
         self.assertTrue(len(pset) == 1)
 
 
@@ -80,7 +80,7 @@ class FindPluginTestCase(unittest.TestCase):
         self.assertIsNone(plugin)
 
     def test_find_existing(self):
-        plugin = bt2.find_plugin('ctf')
+        plugin = bt2.find_plugin('ctf', find_in_user_dir=False, find_in_sys_dir=False)
         self.assertIsInstance(plugin, bt2.plugin._Plugin)
 
 

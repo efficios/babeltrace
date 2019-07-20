@@ -24,7 +24,7 @@ import os
 class PythonPluginProviderTestCase(unittest.TestCase):
     def test_python_plugin_provider(self):
         path = os.environ['PYTHON_PLUGIN_PROVIDER_TEST_PLUGIN_PATH']
-        pset = bt2.find_plugins(path)
+        pset = bt2.find_plugins_in_path(path)
         self.assertEqual(len(pset), 1)
         plugin = pset[0]
         self.assertEqual(plugin.name, 'sparkling')

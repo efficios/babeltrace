@@ -258,28 +258,30 @@ end:
 	return status;
 }
 
-static void destroy_gstring(void *data)
+static
+void destroy_gstring(void *data)
 {
 	g_string_free(data, TRUE);
 }
 
-enum bt_plugin_find_status bt_plugin_find(const char *plugin_name,
-		bt_bool fail_on_load_error, const struct bt_plugin **plugin_out)
+enum bt_plugin_find_all_status bt_plugin_find_all(bt_bool find_in_std_env_var,
+		bt_bool find_in_user_dir, bt_bool find_in_sys_dir,
+		bt_bool find_in_static, bt_bool fail_on_load_error,
+		const struct bt_plugin_set **plugin_set_out)
 {
-	const char *system_plugin_dir;
 	char *home_plugin_dir = NULL;
-	const char *envvar;
-	const struct bt_plugin *plugin = NULL;
 	const struct bt_plugin_set *plugin_set = NULL;
 	GPtrArray *dirs = NULL;
 	int ret;
 	int status = BT_FUNC_STATUS_OK;
-	size_t i, j;
+	uint64_t dir_i, plugin_i;
 
-	BT_ASSERT_PRE_NON_NULL(plugin_name, "Name");
-	BT_ASSERT_PRE_NON_NULL(plugin_out, "Plugin (output)");
-	BT_LOGI("Finding named plugin in standard directories and built-in plugins: "
-		"name=\"%s\"", plugin_name);
+	BT_ASSERT_PRE_NON_NULL(plugin_set_out, "Plugin set (output)");
+	BT_LOGI("Finding all plugins in standard directories and built-in plugins: "
+		"find-in-std-env-var=%d, find-in-user-dir=%d, "
+		"find-in-sys-dir=%d, find-in-static=%d",
+		find_in_std_env_var, find_in_user_dir, find_in_sys_dir,
+		find_in_static);
 	dirs = g_ptr_array_new_with_free_func((GDestroyNotify) destroy_gstring);
 	if (!dirs) {
 		BT_LIB_LOGE_APPEND_CAUSE("Failed to allocate a GPtrArray.");
@@ -287,60 +289,77 @@ enum bt_plugin_find_status bt_plugin_find(const char *plugin_name,
 		goto end;
 	}
 
+	*plugin_set_out = bt_plugin_set_create();
+	if (!*plugin_set_out) {
+		BT_LIB_LOGE_APPEND_CAUSE("Cannot create empty plugin set.");
+		status = BT_FUNC_STATUS_MEMORY_ERROR;
+		goto end;
+	}
+
 	/*
 	 * Search order is:
 	 *
-	 * 1. BABELTRACE_PLUGIN_PATH environment variable
+	 * 1. `BABELTRACE_PLUGIN_PATH` environment variable
 	 *    (colon-separated list of directories)
-	 * 2. ~/.local/lib/babeltrace2/plugins
+	 * 2. `~/.local/lib/babeltrace2/plugins`
 	 * 3. Default system directory for Babeltrace plugins, usually
-	 *    /usr/lib/babeltrace2/plugins or
-	 *    /usr/local/lib/babeltrace2/plugins if installed
-	 *    locally
+	 *    `/usr/lib/babeltrace2/plugins` or
+	 *    `/usr/local/lib/babeltrace2/plugins` if installed locally
 	 * 4. Built-in plugins (static)
 	 *
 	 * Directories are searched non-recursively.
 	 */
-	envvar = getenv("BABELTRACE_PLUGIN_PATH");
-	if (envvar) {
-		ret = bt_common_append_plugin_path_dirs(envvar, dirs);
-		if (ret) {
-			BT_LIB_LOGE_APPEND_CAUSE(
-				"Failed to append plugin path to array of directories.");
-			status = BT_FUNC_STATUS_MEMORY_ERROR;
-			goto end;
+	if (find_in_std_env_var) {
+		const char *envvar = getenv("BABELTRACE_PLUGIN_PATH");
+
+		if (envvar) {
+			ret = bt_common_append_plugin_path_dirs(envvar, dirs);
+			if (ret) {
+				BT_LIB_LOGE_APPEND_CAUSE(
+					"Failed to append plugin path to array of directories.");
+				status = BT_FUNC_STATUS_MEMORY_ERROR;
+				goto end;
+			}
 		}
 	}
 
-	home_plugin_dir = bt_common_get_home_plugin_path(BT_LOG_OUTPUT_LEVEL);
-	if (home_plugin_dir) {
-		GString *home_plugin_dir_str = g_string_new(home_plugin_dir);
+	if (find_in_user_dir) {
+		home_plugin_dir = bt_common_get_home_plugin_path(
+			BT_LOG_OUTPUT_LEVEL);
+		if (home_plugin_dir) {
+			GString *home_plugin_dir_str = g_string_new(
+				home_plugin_dir);
 
-		if (!home_plugin_dir_str) {
-			BT_LIB_LOGE_APPEND_CAUSE("Failed to allocate a GString.");
-			status = BT_FUNC_STATUS_MEMORY_ERROR;
-			goto end;
+			if (!home_plugin_dir_str) {
+				BT_LIB_LOGE_APPEND_CAUSE("Failed to allocate a GString.");
+				status = BT_FUNC_STATUS_MEMORY_ERROR;
+				goto end;
+			}
+
+			g_ptr_array_add(dirs, home_plugin_dir_str);
 		}
-
-		g_ptr_array_add(dirs, home_plugin_dir_str);
 	}
 
-	system_plugin_dir = bt_common_get_system_plugin_path();
-	if (system_plugin_dir) {
-		GString *system_plugin_dir_str =
-			g_string_new(system_plugin_dir);
+	if (find_in_sys_dir) {
+		const char *system_plugin_dir =
+			bt_common_get_system_plugin_path();
 
-		if (!system_plugin_dir_str) {
-			BT_LIB_LOGE_APPEND_CAUSE("Failed to allocate a GString.");
-			status = BT_FUNC_STATUS_MEMORY_ERROR;
-			goto end;
+		if (system_plugin_dir) {
+			GString *system_plugin_dir_str =
+				g_string_new(system_plugin_dir);
+
+			if (!system_plugin_dir_str) {
+				BT_LIB_LOGE_APPEND_CAUSE("Failed to allocate a GString.");
+				status = BT_FUNC_STATUS_MEMORY_ERROR;
+				goto end;
+			}
+
+			g_ptr_array_add(dirs, system_plugin_dir_str);
 		}
-
-		g_ptr_array_add(dirs, system_plugin_dir_str);
 	}
 
-	for (i = 0; i < dirs->len; i++) {
-		GString *dir = g_ptr_array_index(dirs, i);
+	for (dir_i = 0; dir_i < dirs->len; dir_i++) {
+		GString *dir = dirs->pdata[dir_i];
 
 		BT_OBJECT_PUT_REF_AND_RESET(plugin_set);
 
@@ -369,55 +388,40 @@ enum bt_plugin_find_status bt_plugin_find(const char *plugin_name,
 
 		BT_ASSERT(status == BT_FUNC_STATUS_OK);
 		BT_ASSERT(plugin_set);
+		BT_LOGI("Found plugins in directory: path=\"%s\", count=%u",
+			dir->str, plugin_set->plugins->len);
 
-		for (j = 0; j < plugin_set->plugins->len; j++) {
-			const struct bt_plugin *candidate_plugin =
-				g_ptr_array_index(plugin_set->plugins, j);
-
-			if (strcmp(bt_plugin_get_name(candidate_plugin),
-					plugin_name) == 0) {
-				BT_LOGI("Plugin found in directory: name=\"%s\", path=\"%s\"",
-					plugin_name, dir->str);
-				*plugin_out = candidate_plugin;
-				bt_object_get_no_null_check(*plugin_out);
-				goto end;
-			}
+		for (plugin_i = 0; plugin_i < plugin_set->plugins->len;
+				plugin_i++) {
+			bt_plugin_set_add_plugin((void *) *plugin_set_out,
+				plugin_set->plugins->pdata[plugin_i]);
 		}
-
-		BT_LOGI("Plugin not found in directory: name=\"%s\", path=\"%s\"",
-			plugin_name, dir->str);
 	}
 
-	BT_OBJECT_PUT_REF_AND_RESET(plugin_set);
-	status = bt_plugin_find_all_from_static(fail_on_load_error,
-		&plugin_set);
-	if (status < 0) {
-		BT_ASSERT(!plugin_set);
-		goto end;
-	} else if (status == BT_FUNC_STATUS_NOT_FOUND) {
-		BT_ASSERT(!plugin_set);
-		BT_LOGI_STR("No plugins found in built-in plugins.");
-		goto end;
-	}
-
-	BT_ASSERT(status == BT_FUNC_STATUS_OK);
-	BT_ASSERT(plugin_set);
-
-	for (j = 0; j < plugin_set->plugins->len; j++) {
-		const struct bt_plugin *candidate_plugin =
-			g_ptr_array_index(plugin_set->plugins, j);
-
-		if (strcmp(bt_plugin_get_name(candidate_plugin),
-				plugin_name) == 0) {
-			BT_LOGI("Plugin found in built-in plugins: "
-				"name=\"%s\"", plugin_name);
-			*plugin_out = candidate_plugin;
-			bt_object_get_no_null_check(*plugin_out);
+	if (find_in_static) {
+		BT_OBJECT_PUT_REF_AND_RESET(plugin_set);
+		status = bt_plugin_find_all_from_static(fail_on_load_error,
+			&plugin_set);
+		if (status < 0) {
+			BT_ASSERT(!plugin_set);
+			goto end;
+		} else if (status == BT_FUNC_STATUS_NOT_FOUND) {
+			BT_ASSERT(!plugin_set);
+			BT_LOGI_STR("No plugins found in built-in plugins.");
 			goto end;
 		}
-	}
 
-	status = BT_FUNC_STATUS_NOT_FOUND;
+		BT_ASSERT(status == BT_FUNC_STATUS_OK);
+		BT_ASSERT(plugin_set);
+		BT_LOGI("Found built-in plugins: count=%u",
+			plugin_set->plugins->len);
+
+		for (plugin_i = 0; plugin_i < plugin_set->plugins->len;
+				plugin_i++) {
+			bt_plugin_set_add_plugin((void *) *plugin_set_out,
+				plugin_set->plugins->pdata[plugin_i]);
+		}
+	}
 
 end:
 	free(home_plugin_dir);
@@ -427,10 +431,68 @@ end:
 		g_ptr_array_free(dirs, TRUE);
 	}
 
+	if (status < 0) {
+		BT_OBJECT_PUT_REF_AND_RESET(*plugin_set_out);
+	} else {
+		BT_ASSERT(*plugin_set_out);
+
+		if ((*plugin_set_out)->plugins->len > 0) {
+			BT_LOGI("Found plugins in standard directories and built-in plugins: "
+				"count=%u", (*plugin_set_out)->plugins->len);
+			status = BT_FUNC_STATUS_OK;
+		} else {
+			BT_LOGI_STR("No plugins found in standard directories and built-in plugins.");
+			status = BT_FUNC_STATUS_NOT_FOUND;
+			BT_OBJECT_PUT_REF_AND_RESET(*plugin_set_out);
+		}
+	}
+
+	return status;
+}
+
+enum bt_plugin_find_status bt_plugin_find(const char *plugin_name,
+		bt_bool find_in_std_env_var, bt_bool find_in_user_dir,
+		bt_bool find_in_sys_dir, bt_bool find_in_static,
+		bt_bool fail_on_load_error, const struct bt_plugin **plugin_out)
+{
+	enum bt_plugin_find_status status;
+	const struct bt_plugin_set *plugin_set = NULL;
+	uint64_t i;
+
+	BT_ASSERT_PRE_NON_NULL(plugin_name, "Name");
+	BT_ASSERT_PRE_NON_NULL(plugin_out, "Plugin (output)");
+	BT_LOGI("Finding named plugin in standard directories and built-in plugins: "
+		"name=\"%s\", find-in-std-env-var=%d, find-in-user-dir=%d, "
+		"find-in-sys-dir=%d, find-in-static=%d",
+		plugin_name, find_in_std_env_var, find_in_user_dir,
+		find_in_sys_dir, find_in_static);
+	status = bt_plugin_find_all(find_in_std_env_var, find_in_user_dir,
+		find_in_sys_dir, find_in_static, fail_on_load_error,
+		&plugin_set);
+	if (status != BT_FUNC_STATUS_OK) {
+		goto end;
+	}
+
+	BT_ASSERT(plugin_set);
+
+	for (i = 0; i < plugin_set->plugins->len; i++) {
+		const struct bt_plugin *plugin = plugin_set->plugins->pdata[i];
+
+		if (strcmp(plugin->info.name->str, plugin_name) == 0) {
+			*plugin_out = plugin;
+			bt_object_get_no_null_check(*plugin_out);
+			goto end;
+		}
+	}
+
+	status = BT_FUNC_STATUS_NOT_FOUND;
+
+end:
 	if (status == BT_FUNC_STATUS_OK) {
+		BT_ASSERT(*plugin_out);
 		BT_LIB_LOGI("Found plugin in standard directories and built-in plugins: "
-			"%!+l", plugin);
-	} else if (status == BT_FUNC_STATUS_NOT_FOUND) {
+			"%!+l", *plugin_out);
+        } else if (status == BT_FUNC_STATUS_NOT_FOUND) {
 		BT_LOGI("No plugin found in standard directories and built-in plugins: "
 			"name=\"%s\"", plugin_name);
 	}

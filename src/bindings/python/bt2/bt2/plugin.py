@@ -27,7 +27,7 @@ import os.path
 import bt2
 
 
-def find_plugins(path, recurse=True, fail_on_load_error=False):
+def find_plugins_in_path(path, recurse=True, fail_on_load_error=False):
     utils._check_str(path)
     utils._check_bool(recurse)
     utils._check_bool(fail_on_load_error)
@@ -52,10 +52,54 @@ def find_plugins(path, recurse=True, fail_on_load_error=False):
     return _PluginSet._create_from_ptr(plugin_set_ptr)
 
 
-def find_plugin(name, fail_on_load_error=False):
+def find_plugins(
+    find_in_std_env_var=True,
+    find_in_user_dir=True,
+    find_in_sys_dir=True,
+    find_in_static=True,
+    fail_on_load_error=False,
+):
+    utils._check_bool(find_in_std_env_var)
+    utils._check_bool(find_in_user_dir)
+    utils._check_bool(find_in_sys_dir)
+    utils._check_bool(find_in_static)
+    utils._check_bool(fail_on_load_error)
+    plugin_set_ptr = None
+
+    status, plugin_set_ptr = native_bt.bt2_plugin_find_all(
+        int(find_in_std_env_var),
+        int(find_in_user_dir),
+        int(find_in_sys_dir),
+        int(find_in_static),
+        int(fail_on_load_error),
+    )
+
+    if status == native_bt.__BT_FUNC_STATUS_NOT_FOUND:
+        return
+
+    utils._handle_func_status(status, 'failed to find plugins')
+    assert plugin_set_ptr is not None
+    return _PluginSet._create_from_ptr(plugin_set_ptr)
+
+
+def find_plugin(
+    name,
+    find_in_std_env_var=True,
+    find_in_user_dir=True,
+    find_in_sys_dir=True,
+    find_in_static=True,
+    fail_on_load_error=False,
+):
     utils._check_str(name)
     utils._check_bool(fail_on_load_error)
-    status, ptr = native_bt.bt2_plugin_find(name, int(fail_on_load_error))
+    status, ptr = native_bt.bt2_plugin_find(
+        name,
+        int(find_in_std_env_var),
+        int(find_in_user_dir),
+        int(find_in_sys_dir),
+        int(find_in_static),
+        int(fail_on_load_error),
+    )
 
     if status == native_bt.__BT_FUNC_STATUS_NOT_FOUND:
         return
