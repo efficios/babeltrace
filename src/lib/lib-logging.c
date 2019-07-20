@@ -39,6 +39,7 @@
 #include "assert-pre.h"
 #include "assert-post.h"
 #include "value.h"
+#include "integer-range-set.h"
 #include "object-pool.h"
 #include "graph/component-class.h"
 #include "graph/component-class-sink-colander.h"
@@ -871,6 +872,19 @@ static inline void format_value(char **buf_ch, bool extended,
 	}
 }
 
+static inline void format_integer_range_set(char **buf_ch, bool extended,
+		const char *prefix,
+		const struct bt_integer_range_set *range_set)
+{
+	BUF_APPEND(", %srange-count=%u", PRFIELD(range_set->ranges->len));
+
+	if (!extended) {
+		return;
+	}
+
+	BUF_APPEND(", %sis-frozen=%d", PRFIELD(range_set->frozen));
+}
+
 static inline void format_message(char **buf_ch, bool extended,
 		const char *prefix, const struct bt_message *msg)
 {
@@ -1404,6 +1418,9 @@ static inline void handle_conversion_specifier_bt(void *priv_data,
 		break;
 	case 'v':
 		format_value(buf_ch, extended, prefix, obj);
+		break;
+	case 'R':
+		format_integer_range_set(buf_ch, extended, prefix, obj);
 		break;
 	case 'n':
 		format_message(buf_ch, extended, prefix, obj);

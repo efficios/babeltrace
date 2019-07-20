@@ -631,59 +631,63 @@ The available format specifiers are:
 
 |`F`
 |Trace IR field class
-|`+struct bt_field_class *+`
+|`+const struct bt_field_class *+`
 
 |`f`
 |Trace IR field
-|`+struct bt_field *+`
+|`+const struct bt_field *+`
 
 |`P`
 |Trace IR field path
-|`+struct bt_field_path *+`
+|`+const struct bt_field_path *+`
 
 |`E`
 |Trace IR event class
-|`+struct bt_event_class *+`
+|`+const struct bt_event_class *+`
 
 |`e`
 |Trace IR event
-|`+struct bt_event *+`
+|`+const struct bt_event *+`
 
 |`S`
 |Trace IR stream class.
-|`+struct bt_stream_class *+`
+|`+const struct bt_stream_class *+`
 
 |`s`
 |Trace IR stream
-|`+struct bt_stream *+`
+|`+const struct bt_stream *+`
 
 |`a`
 |Trace IR packet
-|`+struct bt_packet *+`
+|`+const struct bt_packet *+`
 
 |`T`
 |Trace IR trace class
-|`+struct bt_trace_class *+`
+|`+const struct bt_trace_class *+`
 
 |`t`
 |Trace IR trace
-|`+struct bt_trace *+`
+|`+const struct bt_trace *+`
 
 |`K`
 |Trace IR clock class
-|`+struct bt_clock_class *+`
+|`+const struct bt_clock_class *+`
 
 |`k`
 |Trace IR clock snapshot
-|`+struct bt_clock_snapshot *+`
+|`+const struct bt_clock_snapshot *+`
 
 |`v`
 |Value object
-|`+struct bt_value *+`
+|`+const struct bt_value *+`
+
+|`R`
+|Integer range set
+|`const struct bt_integer_range_set *`
 
 |`n`
 |Message
-|`+struct bt_message *+`
+|`+const struct bt_message *+`
 
 |`i`
 |Message iterator
@@ -695,35 +699,35 @@ The available format specifiers are:
 
 |`c`
 |Component
-|`+struct bt_component *+`
+|`+const struct bt_component *+`
 
 |`p`
 |Port
-|`+struct bt_port *+`
+|`+const struct bt_port *+`
 
 |`x`
 |Connection
-|`+struct bt_connection *+`
+|`+const struct bt_connection *+`
 
 |`g`
 |Graph
-|`+struct bt_graph *+`
+|`+const struct bt_graph *+`
 
 |`l`
 |Plugin
-|`const struct bt_plugin *`
+|`+const struct bt_plugin *+`
 
 |`r`
 |Error cause
-|`const struct bt_error_cause *`
+|`+const struct bt_error_cause *+`
 
 |`o`
 |Object pool
-|`+struct bt_object_pool *+`
+|`+const struct bt_object_pool *+`
 
 |`O`
 |Object
-|`+struct bt_object *+`
+|`+const struct bt_object *+`
 |===
 
 Conversion specifier examples:

@@ -512,7 +512,7 @@ add_mapping_to_enumeration_field_class(struct bt_field_class *fc,
 
 	BT_ASSERT(fc);
 	BT_ASSERT_PRE_NON_NULL(label, "Label");
-	BT_ASSERT_PRE_NON_NULL(range_set, "Range set");
+	BT_ASSERT_PRE_NON_NULL(range_set, "Integer range set");
 	BT_ASSERT_PRE(!enumeration_field_class_has_mapping_with_label(
 		enum_fc, label),
 		"Duplicate mapping name in enumeration field class: "
@@ -1226,10 +1226,10 @@ int append_option_to_variant_with_selector_field_class(
 	BT_ASSERT_PRE_NON_NULL(fc, "Field class");
 	BT_ASSERT_PRE_NON_NULL(name, "Name");
 	BT_ASSERT_PRE_NON_NULL(option_fc, "Option field class");
-	BT_ASSERT_PRE_NON_NULL(range_set, "Range set");
+	BT_ASSERT_PRE_NON_NULL(range_set, "Integer range set");
 	BT_ASSERT_PRE_FC_HAS_ID(fc, expected_type, "Field class");
 	BT_ASSERT_PRE(range_set->ranges->len > 0,
-		"Range set is empty: addr=%p", range_set);
+		"Integer range set is empty: %!+R", range_set);
 	status = ranges_overlap(var_fc->common.common.named_fcs, range_set,
 		expected_type == BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_SELECTOR,
 		&has_overlap);
@@ -1239,8 +1239,8 @@ int append_option_to_variant_with_selector_field_class(
 	}
 
 	BT_ASSERT_PRE(!has_overlap,
-		"Range set's ranges and existing ranges have an overlap: "
-		"addr=%p", range_set);
+		"Integer range set's ranges and existing ranges have an overlap: "
+		"%!+R", range_set);
 	opt = create_variant_with_selector_option(name, option_fc, range_set);
 	if (!opt) {
 		/* create_variant_with_selector_option() logs errors */
