@@ -73,6 +73,9 @@ enum muxer_msg_iter_clock_class_expectation {
 struct muxer_msg_iter {
 	struct muxer_comp *muxer_comp;
 
+	/* Weak */
+	bt_self_message_iterator *self_msg_iter;
+
 	/*
 	 * Array of struct muxer_upstream_msg_iter * (owned by this).
 	 *
@@ -427,6 +430,7 @@ void muxer_finalize(bt_self_component_filter *self_comp)
 static
 bt_self_component_port_input_message_iterator *
 create_msg_iter_on_input_port(struct muxer_comp *muxer_comp,
+		struct muxer_msg_iter *muxer_msg_iter,
 		bt_self_component_port_input *self_port)
 {
 	const bt_port *port = bt_self_component_port_as_port(
@@ -441,8 +445,8 @@ create_msg_iter_on_input_port(struct muxer_comp *muxer_comp,
 	// TODO: Advance the iterator to >= the time of the latest
 	//       returned message by the muxer message
 	//       iterator which creates it.
-	msg_iter = bt_self_component_port_input_message_iterator_create(
-		self_port);
+	msg_iter = bt_self_component_port_input_message_iterator_create_from_message_iterator(
+		muxer_msg_iter->self_msg_iter, self_port);
 	if (!msg_iter) {
 		BT_COMP_LOGE("Cannot create upstream message iterator on input port: "
 			"port-addr=%p, port-name=\"%s\"",
@@ -1231,7 +1235,7 @@ int muxer_msg_iter_init_upstream_iterators(struct muxer_comp *muxer_comp,
 		}
 
 		upstream_msg_iter = create_msg_iter_on_input_port(muxer_comp,
-			self_port);
+			muxer_msg_iter, self_port);
 		if (!upstream_msg_iter) {
 			/* create_msg_iter_on_input_port() logs errors */
 			BT_ASSERT(!upstream_msg_iter);
@@ -1292,6 +1296,7 @@ bt_component_class_message_iterator_init_method_status muxer_msg_iter_init(
 	}
 
 	muxer_msg_iter->muxer_comp = muxer_comp;
+	muxer_msg_iter->self_msg_iter = self_msg_iter;
 	muxer_msg_iter->last_returned_ts_ns = INT64_MIN;
 	muxer_msg_iter->active_muxer_upstream_msg_iters =
 		g_ptr_array_new_with_free_func(

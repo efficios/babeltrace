@@ -453,8 +453,8 @@ details_graph_is_configured(bt_self_component_sink *comp)
 		goto end;
 	}
 
-	iterator = bt_self_component_port_input_message_iterator_create(
-		bt_self_component_sink_borrow_input_port_by_name(comp,
+	iterator = bt_self_component_port_input_message_iterator_create_from_sink_component(
+		comp, bt_self_component_sink_borrow_input_port_by_name(comp,
 			in_port_name));
 	if (!iterator) {
 		status = BT_COMPONENT_CLASS_SINK_GRAPH_IS_CONFIGURED_METHOD_STATUS_MEMORY_ERROR;

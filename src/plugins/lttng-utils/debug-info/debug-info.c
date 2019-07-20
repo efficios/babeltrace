@@ -1990,8 +1990,8 @@ bt_component_class_message_iterator_init_method_status debug_info_msg_iter_init(
 	debug_info_msg_iter->self_comp = self_comp;
 
 	/* Create an iterator on the upstream component. */
-	upstream_iterator = bt_self_component_port_input_message_iterator_create(
-		input_port);
+	upstream_iterator = bt_self_component_port_input_message_iterator_create_from_message_iterator(
+		self_msg_iter, input_port);
 	if (!upstream_iterator) {
 		status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_INIT_METHOD_STATUS_MEMORY_ERROR;
 		goto error;

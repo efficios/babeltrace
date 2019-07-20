@@ -24,6 +24,7 @@ from bt2 import native_bt, object, utils
 import bt2.message
 import collections.abc
 import bt2.component
+import bt2.port
 import bt2
 
 
@@ -177,6 +178,18 @@ class _UserMessageIterator(_MessageIterator):
 
     def _bt_seek_beginning_from_native(self):
         self._seek_beginning()
+
+    def _create_input_port_message_iterator(self, input_port):
+        utils._check_type(input_port, bt2.port._UserComponentInputPort)
+
+        msg_iter_ptr = native_bt.self_component_port_input_message_iterator_create_from_message_iterator(
+            self._bt_ptr, input_port._ptr
+        )
+
+        if msg_iter_ptr is None:
+            raise bt2.CreationError('cannot create message iterator object')
+
+        return _UserComponentInputPortMessageIterator(msg_iter_ptr)
 
     def _create_event_message(
         self, event_class, parent=None, default_clock_snapshot=None

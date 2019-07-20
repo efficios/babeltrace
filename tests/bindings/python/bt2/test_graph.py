@@ -224,7 +224,9 @@ class GraphTestCase(unittest.TestCase):
                 return next(self._msg_iter)
 
             def _graph_is_configured(self):
-                self._msg_iter = self._input_ports['in'].create_message_iterator()
+                self._msg_iter = self._create_input_port_message_iterator(
+                    self._input_ports['in']
+                )
 
         graph = bt2.Graph()
         up = graph.add_component(MySource, 'down')
@@ -280,7 +282,9 @@ class GraphTestCase(unittest.TestCase):
                 comp_self._at += 1
 
             def _graph_is_configured(self):
-                self._msg_iter = self._input_port.create_message_iterator()
+                self._msg_iter = self._create_input_port_message_iterator(
+                    self._input_port
+                )
 
         src = self._graph.add_component(MySource, 'src')
         sink = self._graph.add_component(MySink, 'sink')
@@ -329,7 +333,9 @@ class GraphTestCase(unittest.TestCase):
                 comp_self._at += 1
 
             def _graph_is_configured(self):
-                self._msg_iter = self._input_port.create_message_iterator()
+                self._msg_iter = self._create_input_port_message_iterator(
+                    self._input_port
+                )
 
         src = self._graph.add_component(MySource, 'src')
         sink = self._graph.add_component(MySink, 'sink')
@@ -386,7 +392,9 @@ class GraphTestCase(unittest.TestCase):
                 comp_self._at += 1
 
             def _graph_is_configured(self):
-                self._msg_iter = self._input_port.create_message_iterator()
+                self._msg_iter = self._create_input_port_message_iterator(
+                    self._input_port
+                )
 
         src = self._graph.add_component(MySource, 'src')
         sink = self._graph.add_component(MySink, 'sink')

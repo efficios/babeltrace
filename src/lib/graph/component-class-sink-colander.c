@@ -110,8 +110,8 @@ colander_graph_is_configured(
 	BT_ASSERT(colander_data);
 	BT_OBJECT_PUT_REF_AND_RESET(colander_data->msg_iter);
 	colander_data->msg_iter =
-		bt_self_component_port_input_message_iterator_create(
-			self_port);
+		bt_self_component_port_input_message_iterator_create_from_sink_component(
+			self_comp, self_port);
 	if (!colander_data->msg_iter) {
 		BT_LIB_LOGE_APPEND_CAUSE("Cannot create message iterator on "
 			"self component input port: %![port-]+p",
