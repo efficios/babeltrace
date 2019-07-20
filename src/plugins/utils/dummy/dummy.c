@@ -99,8 +99,8 @@ bt_component_class_sink_graph_is_configured_method_status dummy_graph_is_configu
 	dummy = bt_self_component_get_data(
 		bt_self_component_sink_as_self_component(comp));
 	BT_ASSERT(dummy);
-	iterator = bt_self_component_port_input_message_iterator_create(
-		bt_self_component_sink_borrow_input_port_by_name(comp,
+	iterator = bt_self_component_port_input_message_iterator_create_from_sink_component(
+		comp, bt_self_component_sink_borrow_input_port_by_name(comp,
 			in_port_name));
 	if (!iterator) {
 		status = BT_COMPONENT_CLASS_SINK_GRAPH_IS_CONFIGURED_METHOD_STATUS_MEMORY_ERROR;

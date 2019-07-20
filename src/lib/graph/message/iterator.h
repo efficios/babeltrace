@@ -103,6 +103,27 @@ struct bt_self_component_port_input_message_iterator {
 	struct bt_connection *connection; /* Weak */
 	struct bt_graph *graph; /* Weak */
 
+	/*
+	 * Array of
+	 * `struct bt_self_component_port_input_message_iterator *`
+	 * (weak).
+	 *
+	 * This is an array of upstream message iterators on which this
+	 * iterator depends. The references are weak: an upstream
+	 * message iterator is responsible for removing its entry within
+	 * this array on finalization/destruction.
+	 */
+	GPtrArray *upstream_msg_iters;
+
+	/*
+	 * Downstream message iterator which depends on this message
+	 * iterator (weak).
+	 *
+	 * This can be `NULL` if this message iterator's owner is a sink
+	 * component.
+	 */
+	struct bt_self_component_port_input_message_iterator *downstream_msg_iter;
+
 	struct {
 		bt_self_component_port_input_message_iterator_next_method next;
 		bt_self_component_port_input_message_iterator_seek_ns_from_origin_method seek_ns_from_origin;

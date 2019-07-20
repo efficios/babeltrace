@@ -685,7 +685,8 @@ bt_component_class_message_iterator_init_method_status trimmer_msg_iter_init(
 	trimmer_it->begin = trimmer_it->trimmer_comp->begin;
 	trimmer_it->end = trimmer_it->trimmer_comp->end;
 	trimmer_it->upstream_iter =
-		bt_self_component_port_input_message_iterator_create(
+		bt_self_component_port_input_message_iterator_create_from_message_iterator(
+			self_msg_iter,
 			bt_self_component_filter_borrow_input_port_by_name(
 				self_comp, in_port_name));
 	if (!trimmer_it->upstream_iter) {

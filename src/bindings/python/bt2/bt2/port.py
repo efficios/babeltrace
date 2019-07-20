@@ -114,15 +114,6 @@ class _UserComponentInputPort(_UserComponentPort, _InputPort):
         native_bt.self_component_port_input_as_self_component_port
     )
 
-    def create_message_iterator(self):
-        msg_iter_ptr = native_bt.self_component_port_input_message_iterator_create(
-            self._ptr
-        )
-        if msg_iter_ptr is None:
-            raise bt2._MemoryError('cannot create message iterator object')
-
-        return bt2.message_iterator._UserComponentInputPortMessageIterator(msg_iter_ptr)
-
 
 class _UserComponentOutputPort(_UserComponentPort, _OutputPort):
     _as_self_port_ptr = staticmethod(

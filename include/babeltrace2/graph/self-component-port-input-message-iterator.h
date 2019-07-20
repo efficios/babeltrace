@@ -45,7 +45,13 @@ bt_self_component_port_input_message_iterator_as_message_iterator(
 }
 
 extern bt_self_component_port_input_message_iterator *
-bt_self_component_port_input_message_iterator_create(
+bt_self_component_port_input_message_iterator_create_from_message_iterator(
+		bt_self_message_iterator *self_msg_iter,
+		bt_self_component_port_input *input_port);
+
+extern bt_self_component_port_input_message_iterator *
+bt_self_component_port_input_message_iterator_create_from_sink_component(
+		bt_self_component_sink *self_comp,
 		bt_self_component_port_input *input_port);
 
 extern bt_component *

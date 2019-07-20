@@ -1104,7 +1104,8 @@ bt_component_class_sink_graph_is_configured_method_status ctf_fs_sink_graph_is_c
 			bt_self_component_sink_as_self_component(self_comp));
 
 	fs_sink->upstream_iter =
-		bt_self_component_port_input_message_iterator_create(
+		bt_self_component_port_input_message_iterator_create_from_sink_component(
+			self_comp,
 			bt_self_component_sink_borrow_input_port_by_name(
 				self_comp, in_port_name));
 	if (!fs_sink->upstream_iter) {
