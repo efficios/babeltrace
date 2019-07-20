@@ -41,6 +41,7 @@
 #include "value.h"
 #include "integer-range-set.h"
 #include "object-pool.h"
+#include "graph/interrupter.h"
 #include "graph/component-class.h"
 #include "graph/component-class-sink-colander.h"
 #include "graph/component-filter.h"
@@ -807,6 +808,12 @@ static inline void format_clock_snapshot(char **buf_ch, bool extended,
 	}
 }
 
+static inline void format_interrupter(char **buf_ch, bool extended,
+		const char *prefix, const struct bt_interrupter *intr)
+{
+	BUF_APPEND(", %sis-set=%d", PRFIELD(intr->is_set));
+}
+
 static inline void format_value(char **buf_ch, bool extended,
 		const char *prefix, const struct bt_value *value)
 {
@@ -1445,6 +1452,9 @@ static inline void handle_conversion_specifier_bt(void *priv_data,
 		break;
 	case 'g':
 		format_graph(buf_ch, extended, prefix, obj);
+		break;
+	case 'z':
+		format_interrupter(buf_ch, extended, prefix, obj);
 		break;
 	case 'o':
 		format_object_pool(buf_ch, extended, prefix, obj);

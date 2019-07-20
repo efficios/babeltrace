@@ -87,6 +87,8 @@ babeltrace2graphinclude_HEADERS = \
 	babeltrace2/graph/connection-const.h \
 	babeltrace2/graph/graph-const.h \
 	babeltrace2/graph/graph.h \
+	babeltrace2/graph/interrupter-const.h \
+	babeltrace2/graph/interrupter.h \
 	babeltrace2/graph/message-const.h \
 	babeltrace2/graph/message-discarded-events-const.h \
 	babeltrace2/graph/message-discarded-events.h \
