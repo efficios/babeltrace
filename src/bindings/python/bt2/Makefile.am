@@ -9,18 +9,18 @@ SWIG_INTERFACE_FILES =					\
 	bt2/native_bt.i					\
 	bt2/native_bt_clock_class.i			\
 	bt2/native_bt_clock_snapshot.i			\
-	bt2/native_bt_component_class.i			\
 	bt2/native_bt_component.i			\
+	bt2/native_bt_component_class.i			\
 	bt2/native_bt_connection.i			\
 	bt2/native_bt_error.i				\
-	bt2/native_bt_event_class.i			\
 	bt2/native_bt_event.i				\
+	bt2/native_bt_event_class.i			\
+	bt2/native_bt_field.i				\
 	bt2/native_bt_field_class.i			\
 	bt2/native_bt_field_path.i			\
-	bt2/native_bt_field.i				\
 	bt2/native_bt_graph.i				\
 	bt2/native_bt_integer_range_set.i		\
-	bt2/native_bt.i					\
+	bt2/native_bt_interrupter.i			\
 	bt2/native_bt_logging.i				\
 	bt2/native_bt_message.i				\
 	bt2/native_bt_message_iterator.i		\
@@ -28,10 +28,10 @@ SWIG_INTERFACE_FILES =					\
 	bt2/native_bt_plugin.i				\
 	bt2/native_bt_port.i				\
 	bt2/native_bt_query_exec.i			\
-	bt2/native_bt_stream_class.i			\
 	bt2/native_bt_stream.i				\
-	bt2/native_bt_trace_class.i			\
+	bt2/native_bt_stream_class.i			\
 	bt2/native_bt_trace.i				\
+	bt2/native_bt_trace_class.i			\
 	bt2/native_bt_value.i				\
 	bt2/native_bt_version.i
 
@@ -46,24 +46,25 @@ STATIC_BINDINGS_DEPS =					\
 	bt2/component.py				\
 	bt2/connection.py				\
 	bt2/error.py					\
-	bt2/event_class.py				\
 	bt2/event.py					\
+	bt2/event_class.py				\
 	bt2/field.py					\
 	bt2/field_class.py				\
 	bt2/field_path.py				\
 	bt2/graph.py					\
 	bt2/integer_range_set.py			\
+	bt2/interrupter.py				\
 	bt2/logging.py					\
-	bt2/message_iterator.py				\
 	bt2/message.py					\
+	bt2/message_iterator.py				\
 	bt2/object.py					\
 	bt2/packet.py					\
 	bt2/plugin.py					\
 	bt2/port.py					\
 	bt2/py_plugin.py				\
 	bt2/query_executor.py				\
-	bt2/stream_class.py				\
 	bt2/stream.py					\
+	bt2/stream_class.py				\
 	bt2/trace.py					\
 	bt2/trace_class.py				\
 	bt2/trace_collection_message_iterator.py	\

@@ -23,6 +23,7 @@
 __version__ = '@PACKAGE_VERSION@'
 
 
+from bt2.interrupter import *
 from bt2.clock_class import *
 from bt2.clock_snapshot import *
 from bt2.component import *
