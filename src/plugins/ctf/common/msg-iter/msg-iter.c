@@ -1972,7 +1972,7 @@ update_def_clock:
 		  BT_FIELD_CLASS_TYPE_UNSIGNED_INTEGER ||
 		  bt_field_get_class_type(field) ==
 		  BT_FIELD_CLASS_TYPE_UNSIGNED_ENUMERATION);
-	bt_field_unsigned_integer_set_value(field, value);
+	bt_field_integer_unsigned_set_value(field, value);
 	stack_top(notit->stack)->index++;
 
 end:
@@ -2061,7 +2061,7 @@ enum bt_bfcr_status bfcr_signed_int_cb(int64_t value,
 		  BT_FIELD_CLASS_TYPE_SIGNED_INTEGER ||
 		  bt_field_get_class_type(field) ==
 		  BT_FIELD_CLASS_TYPE_SIGNED_ENUMERATION);
-	bt_field_signed_integer_set_value(field, value);
+	bt_field_integer_signed_set_value(field, value);
 	stack_top(notit->stack)->index++;
 
 end:
@@ -2313,7 +2313,7 @@ int64_t bfcr_get_sequence_length_cb(struct ctf_field_class *fc, void *data)
 	if (!seq_fc->base.is_text) {
 		BT_ASSERT(bt_field_get_class_type(seq_field) ==
 			BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY);
-		ret = bt_field_dynamic_array_set_length(seq_field,
+		ret = bt_field_array_dynamic_set_length(seq_field,
 			(uint64_t) length);
 		if (ret) {
 			BT_COMP_LOGE("Cannot set dynamic array field's length field: "

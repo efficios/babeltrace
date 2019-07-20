@@ -643,26 +643,26 @@ end:
 	return (void *) integer_obj;
 }
 
-struct bt_value *bt_value_unsigned_integer_create_init(uint64_t val)
+struct bt_value *bt_value_integer_unsigned_create_init(uint64_t val)
 {
 	return bt_value_integer_create_init(BT_VALUE_TYPE_UNSIGNED_INTEGER,
 		val);
 }
 
-struct bt_value *bt_value_unsigned_integer_create(void)
+struct bt_value *bt_value_integer_unsigned_create(void)
 {
-	return bt_value_unsigned_integer_create_init(0);
+	return bt_value_integer_unsigned_create_init(0);
 }
 
-struct bt_value *bt_value_signed_integer_create_init(int64_t val)
+struct bt_value *bt_value_integer_signed_create_init(int64_t val)
 {
 	return bt_value_integer_create_init(BT_VALUE_TYPE_SIGNED_INTEGER,
 		(uint64_t) val);
 }
 
-struct bt_value *bt_value_signed_integer_create(void)
+struct bt_value *bt_value_integer_signed_create(void)
 {
-	return bt_value_signed_integer_create_init(0);
+	return bt_value_integer_signed_create_init(0);
 }
 
 struct bt_value *bt_value_real_create_init(double val)
@@ -800,7 +800,7 @@ void bt_value_bool_set(struct bt_value *bool_obj, bt_bool val)
 		bool_obj, val);
 }
 
-uint64_t bt_value_unsigned_integer_get(const struct bt_value *integer_obj)
+uint64_t bt_value_integer_unsigned_get(const struct bt_value *integer_obj)
 {
 	BT_ASSERT_PRE_DEV_NON_NULL(integer_obj, "Value object");
 	BT_ASSERT_PRE_DEV_VALUE_IS_TYPE(integer_obj,
@@ -808,7 +808,7 @@ uint64_t bt_value_unsigned_integer_get(const struct bt_value *integer_obj)
 	return BT_VALUE_TO_INTEGER(integer_obj)->value.u;
 }
 
-int64_t bt_value_signed_integer_get(const struct bt_value *integer_obj)
+int64_t bt_value_integer_signed_get(const struct bt_value *integer_obj)
 {
 	BT_ASSERT_PRE_DEV_NON_NULL(integer_obj, "Value object");
 	BT_ASSERT_PRE_DEV_VALUE_IS_TYPE(integer_obj,
@@ -826,7 +826,7 @@ void bt_value_integer_set(struct bt_value *integer_obj,
 	BT_VALUE_TO_INTEGER(integer_obj)->value.u = uval;
 }
 
-void bt_value_unsigned_integer_set(struct bt_value *integer_obj,
+void bt_value_integer_unsigned_set(struct bt_value *integer_obj,
 		uint64_t val)
 {
 	bt_value_integer_set(integer_obj, BT_VALUE_TYPE_UNSIGNED_INTEGER, val);
@@ -834,7 +834,7 @@ void bt_value_unsigned_integer_set(struct bt_value *integer_obj,
 		"value-addr=%p, value=%" PRIu64, integer_obj, val);
 }
 
-void bt_value_signed_integer_set(struct bt_value *integer_obj,
+void bt_value_integer_signed_set(struct bt_value *integer_obj,
 		int64_t val)
 {
 	bt_value_integer_set(integer_obj, BT_VALUE_TYPE_SIGNED_INTEGER,
@@ -945,7 +945,7 @@ bt_value_array_append_unsigned_integer_element(struct bt_value *array_obj,
 	enum bt_value_array_append_element_status ret;
 	struct bt_value *integer_obj = NULL;
 
-	integer_obj = bt_value_unsigned_integer_create_init(val);
+	integer_obj = bt_value_integer_unsigned_create_init(val);
 	ret = bt_value_array_append_element(array_obj,
 		(void *) integer_obj);
 	bt_object_put_ref(integer_obj);
@@ -959,7 +959,7 @@ bt_value_array_append_signed_integer_element(struct bt_value *array_obj,
 	enum bt_value_array_append_element_status ret;
 	struct bt_value *integer_obj = NULL;
 
-	integer_obj = bt_value_signed_integer_create_init(val);
+	integer_obj = bt_value_integer_signed_create_init(val);
 	ret = bt_value_array_append_element(array_obj,
 		(void *) integer_obj);
 	bt_object_put_ref(integer_obj);
@@ -1110,7 +1110,7 @@ bt_value_map_insert_unsigned_integer_entry(struct bt_value *map_obj,
 	enum bt_value_map_insert_entry_status ret;
 	struct bt_value *integer_obj = NULL;
 
-	integer_obj = bt_value_unsigned_integer_create_init(val);
+	integer_obj = bt_value_integer_unsigned_create_init(val);
 	ret = bt_value_map_insert_entry(map_obj, key,
 		(void *) integer_obj);
 	bt_object_put_ref(integer_obj);
@@ -1124,7 +1124,7 @@ bt_value_map_insert_signed_integer_entry(struct bt_value *map_obj,
 	enum bt_value_map_insert_entry_status ret;
 	struct bt_value *integer_obj = NULL;
 
-	integer_obj = bt_value_signed_integer_create_init(val);
+	integer_obj = bt_value_integer_signed_create_init(val);
 	ret = bt_value_map_insert_entry(map_obj, key,
 		(void *) integer_obj);
 	bt_object_put_ref(integer_obj);

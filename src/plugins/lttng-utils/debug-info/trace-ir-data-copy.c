@@ -86,7 +86,7 @@ void copy_trace_content(const bt_trace *in_trace, bt_trace *out_trace,
 			set_env_status =
 				bt_trace_set_environment_entry_integer(
 						out_trace, value_name,
-						bt_value_signed_integer_get(
+						bt_value_integer_signed_get(
 							value));
 		} else if (bt_value_is_string(value)) {
 			set_env_status =
@@ -221,13 +221,13 @@ void copy_field_content(const bt_field *in_field, bt_field *out_field,
 	switch (in_fc_type) {
 	case BT_FIELD_CLASS_TYPE_UNSIGNED_INTEGER:
 	case BT_FIELD_CLASS_TYPE_UNSIGNED_ENUMERATION:
-		bt_field_unsigned_integer_set_value(out_field,
-				bt_field_unsigned_integer_get_value(in_field));
+		bt_field_integer_unsigned_set_value(out_field,
+				bt_field_integer_unsigned_get_value(in_field));
 		break;
 	case BT_FIELD_CLASS_TYPE_SIGNED_INTEGER:
 	case BT_FIELD_CLASS_TYPE_SIGNED_ENUMERATION:
-		bt_field_signed_integer_set_value(out_field,
-				bt_field_signed_integer_get_value(in_field));
+		bt_field_integer_signed_set_value(out_field,
+				bt_field_integer_signed_get_value(in_field));
 		break;
 	case BT_FIELD_CLASS_TYPE_REAL:
 		bt_field_real_set_value(out_field,
@@ -291,12 +291,12 @@ void copy_field_content(const bt_field *in_field, bt_field *out_field,
 		const bt_field *in_element_field;
 		bt_field *out_element_field;
 		uint64_t i, array_len;
-		bt_field_dynamic_array_set_length_status set_len_status;
+		bt_field_array_dynamic_set_length_status set_len_status;
 
 		array_len = bt_field_array_get_length(in_field);
 
 		if (in_fc_type == BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY) {
-			set_len_status = bt_field_dynamic_array_set_length(
+			set_len_status = bt_field_array_dynamic_set_length(
 				out_field, array_len);
 			if (set_len_status !=
 					BT_FIELD_DYNAMIC_ARRAY_SET_LENGTH_STATUS_OK) {

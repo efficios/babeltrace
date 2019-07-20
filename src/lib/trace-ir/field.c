@@ -439,7 +439,7 @@ end:
 static
 struct bt_field *create_static_array_field(struct bt_field_class *fc)
 {
-	struct bt_field_class_static_array *array_fc = (void *) fc;
+	struct bt_field_class_array_static *array_fc = (void *) fc;
 	struct bt_field_array *array_field;
 
 	BT_LIB_LOGD("Creating static array field object: %![fc-]+F", fc);
@@ -494,7 +494,7 @@ end:
 	return (void *) array_field;
 }
 
-int64_t bt_field_signed_integer_get_value(const struct bt_field *field)
+int64_t bt_field_integer_signed_get_value(const struct bt_field *field)
 {
 	const struct bt_field_integer *int_field = (const void *) field;
 
@@ -504,7 +504,7 @@ int64_t bt_field_signed_integer_get_value(const struct bt_field *field)
 	return int_field->value.i;
 }
 
-void bt_field_signed_integer_set_value(struct bt_field *field, int64_t value)
+void bt_field_integer_signed_set_value(struct bt_field *field, int64_t value)
 {
 	struct bt_field_integer *int_field = (void *) field;
 
@@ -519,7 +519,7 @@ void bt_field_signed_integer_set_value(struct bt_field *field, int64_t value)
 	bt_field_set_single(field, true);
 }
 
-uint64_t bt_field_unsigned_integer_get_value(const struct bt_field *field)
+uint64_t bt_field_integer_unsigned_get_value(const struct bt_field *field)
 {
 	const struct bt_field_integer *int_field = (const void *) field;
 
@@ -529,7 +529,7 @@ uint64_t bt_field_unsigned_integer_get_value(const struct bt_field *field)
 	return int_field->value.u;
 }
 
-void bt_field_unsigned_integer_set_value(struct bt_field *field, uint64_t value)
+void bt_field_integer_unsigned_set_value(struct bt_field *field, uint64_t value)
 {
 	struct bt_field_integer *int_field = (void *) field;
 
@@ -571,7 +571,7 @@ void bt_field_real_set_value(struct bt_field *field, double value)
 }
 
 enum bt_field_enumeration_get_mapping_labels_status
-bt_field_unsigned_enumeration_get_mapping_labels(
+bt_field_enumeration_unsigned_get_mapping_labels(
 		const struct bt_field *field,
 		bt_field_class_enumeration_mapping_label_array *label_array,
 		uint64_t *count)
@@ -585,12 +585,12 @@ bt_field_unsigned_enumeration_get_mapping_labels(
 	BT_ASSERT_PRE_DEV_FIELD_HAS_CLASS_TYPE(field,
 		BT_FIELD_CLASS_TYPE_UNSIGNED_ENUMERATION, "Field");
 	return (int)
-		bt_field_class_unsigned_enumeration_get_mapping_labels_for_value(
+		bt_field_class_enumeration_unsigned_get_mapping_labels_for_value(
 			field->class, int_field->value.u, label_array, count);
 }
 
 enum bt_field_enumeration_get_mapping_labels_status
-bt_field_signed_enumeration_get_mapping_labels(
+bt_field_enumeration_signed_get_mapping_labels(
 		const struct bt_field *field,
 		bt_field_class_enumeration_mapping_label_array *label_array,
 		uint64_t *count)
@@ -604,7 +604,7 @@ bt_field_signed_enumeration_get_mapping_labels(
 	BT_ASSERT_PRE_DEV_FIELD_HAS_CLASS_TYPE(field,
 		BT_FIELD_CLASS_TYPE_SIGNED_ENUMERATION, "Field");
 	return (int)
-		bt_field_class_signed_enumeration_get_mapping_labels_for_value(
+		bt_field_class_enumeration_signed_get_mapping_labels_for_value(
 			field->class, int_field->value.i, label_array, count);
 }
 
@@ -710,7 +710,7 @@ uint64_t bt_field_array_get_length(const struct bt_field *field)
 	return array_field->length;
 }
 
-enum bt_field_dynamic_array_set_length_status bt_field_dynamic_array_set_length(
+enum bt_field_array_dynamic_set_length_status bt_field_array_dynamic_set_length(
 		struct bt_field *field, uint64_t length)
 {
 	int ret = BT_FUNC_STATUS_OK;
@@ -897,7 +897,7 @@ bt_field_variant_borrow_selected_class_option_const(
 	return borrow_variant_field_selected_class_option(field);
 }
 
-const struct bt_field_class_variant_with_unsigned_selector_option *
+const struct bt_field_class_variant_with_selector_unsigned_option *
 bt_field_variant_with_unsigned_selector_borrow_selected_class_option_const(
 		const struct bt_field *field)
 {
@@ -907,7 +907,7 @@ bt_field_variant_with_unsigned_selector_borrow_selected_class_option_const(
 	return (const void *) borrow_variant_field_selected_class_option(field);
 }
 
-const struct bt_field_class_variant_with_signed_selector_option *
+const struct bt_field_class_variant_with_selector_signed_option *
 bt_field_variant_with_signed_selector_borrow_selected_class_option_const(
 		const struct bt_field *field)
 {

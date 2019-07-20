@@ -1891,7 +1891,7 @@ bool read_src_fs_parameters(const bt_value *params,
 			goto error;
 		}
 		ctf_fs->metadata_config.clock_class_offset_s =
-			bt_value_signed_integer_get(value);
+			bt_value_integer_signed_get(value);
 	}
 
 	/* clock-class-offset-ns parameter */
@@ -1903,7 +1903,7 @@ bool read_src_fs_parameters(const bt_value *params,
 			goto error;
 		}
 		ctf_fs->metadata_config.clock_class_offset_ns =
-			bt_value_signed_integer_get(value);
+			bt_value_integer_signed_get(value);
 	}
 
 

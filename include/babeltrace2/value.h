@@ -45,17 +45,17 @@ extern bt_value *bt_value_bool_create_init(bt_bool val);
 
 extern void bt_value_bool_set(bt_value *bool_obj, bt_bool val);
 
-extern bt_value *bt_value_unsigned_integer_create(void);
+extern bt_value *bt_value_integer_unsigned_create(void);
 
-extern bt_value *bt_value_unsigned_integer_create_init(uint64_t val);
+extern bt_value *bt_value_integer_unsigned_create_init(uint64_t val);
 
-extern void bt_value_unsigned_integer_set(bt_value *integer_obj, uint64_t val);
+extern void bt_value_integer_unsigned_set(bt_value *integer_obj, uint64_t val);
 
-extern bt_value *bt_value_signed_integer_create(void);
+extern bt_value *bt_value_integer_signed_create(void);
 
-extern bt_value *bt_value_signed_integer_create_init(int64_t val);
+extern bt_value *bt_value_integer_signed_create_init(int64_t val);
 
-extern void bt_value_signed_integer_set(bt_value *integer_obj, int64_t val);
+extern void bt_value_integer_signed_set(bt_value *integer_obj, int64_t val);
 
 extern bt_value *bt_value_real_create(void);
 

@@ -176,7 +176,7 @@ int append_lttng_trace_path_ust_uid(const struct fs_sink_trace *trace,
 	}
 
 	g_string_append_printf(path, G_DIR_SEPARATOR_S "%" PRId64,
-		bt_value_signed_integer_get(v));
+		bt_value_integer_signed_get(v));
 
 	v = bt_trace_borrow_environment_entry_value_by_name_const(tc, "isa_length");
 	if (!v || !bt_value_is_signed_integer(v)) {
@@ -185,7 +185,7 @@ int append_lttng_trace_path_ust_uid(const struct fs_sink_trace *trace,
 	}
 
 	g_string_append_printf(path, G_DIR_SEPARATOR_S "%" PRIu64 "-bit",
-		bt_value_signed_integer_get(v));
+		bt_value_integer_signed_get(v));
 
 	ret = 0;
 	goto end;
@@ -219,7 +219,7 @@ int append_lttng_trace_path_ust_pid(const struct fs_sink_trace *trace,
 		goto error;
 	}
 
-	g_string_append_printf(path, "-%" PRId64, bt_value_signed_integer_get(v));
+	g_string_append_printf(path, "-%" PRId64, bt_value_integer_signed_get(v));
 
 	v = bt_trace_borrow_environment_entry_value_by_name_const(tc, "vpid_datetime");
 	if (!v || !bt_value_is_string(v)) {
@@ -284,7 +284,7 @@ GString *make_lttng_trace_path_rel(const struct fs_sink_trace *trace)
 		goto error;
 	}
 
-	tracer_major = bt_value_signed_integer_get(v);
+	tracer_major = bt_value_integer_signed_get(v);
 
 	v = bt_trace_borrow_environment_entry_value_by_name_const(
 		trace->ir_trace, "tracer_minor");
@@ -293,7 +293,7 @@ GString *make_lttng_trace_path_rel(const struct fs_sink_trace *trace)
 		goto error;
 	}
 
-	tracer_minor = bt_value_signed_integer_get(v);
+	tracer_minor = bt_value_integer_signed_get(v);
 
 	if (!(tracer_major >= 3 || (tracer_major == 2 && tracer_minor >= 11))) {
 		BT_COMP_LOGI("Unsupported LTTng version for automatic trace path: major=%" PRId64 ", minor=%" PRId64,

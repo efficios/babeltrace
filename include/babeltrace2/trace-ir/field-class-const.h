@@ -74,34 +74,34 @@ extern bt_bool bt_field_class_real_is_single_precision(
 extern uint64_t bt_field_class_enumeration_get_mapping_count(
 		const bt_field_class *field_class);
 
-extern const bt_field_class_unsigned_enumeration_mapping *
-bt_field_class_unsigned_enumeration_borrow_mapping_by_index_const(
+extern const bt_field_class_enumeration_unsigned_mapping *
+bt_field_class_enumeration_unsigned_borrow_mapping_by_index_const(
 		const bt_field_class *field_class, uint64_t index);
 
-extern const bt_field_class_unsigned_enumeration_mapping *
-bt_field_class_unsigned_enumeration_borrow_mapping_by_label_const(
+extern const bt_field_class_enumeration_unsigned_mapping *
+bt_field_class_enumeration_unsigned_borrow_mapping_by_label_const(
 		const bt_field_class *field_class, const char *label);
 
-extern const bt_field_class_signed_enumeration_mapping *
-bt_field_class_signed_enumeration_borrow_mapping_by_index_const(
+extern const bt_field_class_enumeration_signed_mapping *
+bt_field_class_enumeration_signed_borrow_mapping_by_index_const(
 		const bt_field_class *field_class, uint64_t index);
 
-extern const bt_field_class_signed_enumeration_mapping *
-bt_field_class_signed_enumeration_borrow_mapping_by_label_const(
+extern const bt_field_class_enumeration_signed_mapping *
+bt_field_class_enumeration_signed_borrow_mapping_by_label_const(
 		const bt_field_class *field_class, const char *label);
 
 static inline
 const bt_field_class_enumeration_mapping *
-bt_field_class_unsigned_enumeration_mapping_as_mapping_const(
-		const bt_field_class_unsigned_enumeration_mapping *mapping)
+bt_field_class_enumeration_unsigned_mapping_as_mapping_const(
+		const bt_field_class_enumeration_unsigned_mapping *mapping)
 {
 	return __BT_UPCAST_CONST(bt_field_class_enumeration_mapping, mapping);
 }
 
 static inline
 const bt_field_class_enumeration_mapping *
-bt_field_class_signed_enumeration_mapping_as_mapping_const(
-		const bt_field_class_signed_enumeration_mapping *mapping)
+bt_field_class_enumeration_signed_mapping_as_mapping_const(
+		const bt_field_class_enumeration_signed_mapping *mapping)
 {
 	return __BT_UPCAST_CONST(bt_field_class_enumeration_mapping, mapping);
 }
@@ -110,12 +110,12 @@ extern const char *bt_field_class_enumeration_mapping_get_label(
 		const bt_field_class_enumeration_mapping *mapping);
 
 extern const bt_integer_range_set_unsigned *
-bt_field_class_unsigned_enumeration_mapping_borrow_ranges_const(
-		const bt_field_class_unsigned_enumeration_mapping *mapping);
+bt_field_class_enumeration_unsigned_mapping_borrow_ranges_const(
+		const bt_field_class_enumeration_unsigned_mapping *mapping);
 
 extern const bt_integer_range_set_signed *
-bt_field_class_signed_enumeration_mapping_borrow_ranges_const(
-		const bt_field_class_signed_enumeration_mapping *mapping);
+bt_field_class_enumeration_signed_mapping_borrow_ranges_const(
+		const bt_field_class_enumeration_signed_mapping *mapping);
 
 typedef enum bt_field_class_enumeration_get_mapping_labels_for_value_status {
 	BT_FIELD_CLASS_ENUMERATION_GET_MAPPING_LABELS_BY_VALUE_STATUS_MEMORY_ERROR	= __BT_FUNC_STATUS_MEMORY_ERROR,
@@ -123,13 +123,13 @@ typedef enum bt_field_class_enumeration_get_mapping_labels_for_value_status {
 } bt_field_class_enumeration_get_mapping_labels_for_value_status;
 
 extern bt_field_class_enumeration_get_mapping_labels_for_value_status
-bt_field_class_unsigned_enumeration_get_mapping_labels_for_value(
+bt_field_class_enumeration_unsigned_get_mapping_labels_for_value(
 		const bt_field_class *field_class, uint64_t value,
 		bt_field_class_enumeration_mapping_label_array *label_array,
 		uint64_t *count);
 
 extern bt_field_class_enumeration_get_mapping_labels_for_value_status
-bt_field_class_signed_enumeration_get_mapping_labels_for_value(
+bt_field_class_enumeration_signed_get_mapping_labels_for_value(
 		const bt_field_class *field_class, int64_t value,
 		bt_field_class_enumeration_mapping_label_array *label_array,
 		uint64_t *count);
@@ -156,11 +156,11 @@ extern const bt_field_class *
 bt_field_class_array_borrow_element_field_class_const(
 		const bt_field_class *field_class);
 
-extern uint64_t bt_field_class_static_array_get_length(
+extern uint64_t bt_field_class_array_static_get_length(
 		const bt_field_class *field_class);
 
 extern const bt_field_path *
-bt_field_class_dynamic_array_borrow_length_field_path_const(
+bt_field_class_array_dynamic_borrow_length_field_path_const(
 		const bt_field_class *field_class);
 
 extern uint64_t bt_field_class_variant_get_option_count(
@@ -174,20 +174,20 @@ extern const bt_field_class_variant_option *
 bt_field_class_variant_borrow_option_by_name_const(
 		const bt_field_class *field_class, const char *name);
 
-extern const bt_field_class_variant_with_unsigned_selector_option *
-bt_field_class_variant_with_unsigned_selector_borrow_option_by_index_const(
+extern const bt_field_class_variant_with_selector_unsigned_option *
+bt_field_class_variant_with_selector_unsigned_borrow_option_by_index_const(
 		const bt_field_class *field_class, uint64_t index);
 
-extern const bt_field_class_variant_with_unsigned_selector_option *
-bt_field_class_variant_with_unsigned_selector_borrow_option_by_name_const(
+extern const bt_field_class_variant_with_selector_unsigned_option *
+bt_field_class_variant_with_selector_unsigned_borrow_option_by_name_const(
 		const bt_field_class *field_class, const char *name);
 
-extern const bt_field_class_variant_with_signed_selector_option *
-bt_field_class_variant_with_signed_selector_borrow_option_by_index_const(
+extern const bt_field_class_variant_with_selector_signed_option *
+bt_field_class_variant_with_selector_signed_borrow_option_by_index_const(
 		const bt_field_class *field_class, uint64_t index);
 
-extern const bt_field_class_variant_with_signed_selector_option *
-bt_field_class_variant_with_signed_selector_borrow_option_by_name_const(
+extern const bt_field_class_variant_with_selector_signed_option *
+bt_field_class_variant_with_selector_signed_borrow_option_by_name_const(
 		const bt_field_class *field_class, const char *name);
 
 extern const char *bt_field_class_variant_option_get_name(
@@ -202,25 +202,25 @@ bt_field_class_variant_with_selector_borrow_selector_field_path_const(
 		const bt_field_class *field_class);
 
 extern const bt_integer_range_set_unsigned *
-bt_field_class_variant_with_unsigned_selector_option_borrow_ranges_const(
-		const bt_field_class_variant_with_unsigned_selector_option *option);
+bt_field_class_variant_with_selector_unsigned_option_borrow_ranges_const(
+		const bt_field_class_variant_with_selector_unsigned_option *option);
 
 static inline
 const bt_field_class_variant_option *
-bt_field_class_variant_with_unsigned_selector_option_as_option_const(
-		const bt_field_class_variant_with_unsigned_selector_option *option)
+bt_field_class_variant_with_selector_unsigned_option_as_option_const(
+		const bt_field_class_variant_with_selector_unsigned_option *option)
 {
 	return __BT_UPCAST_CONST(bt_field_class_variant_option, option);
 }
 
 extern const bt_integer_range_set_signed *
-bt_field_class_variant_with_signed_selector_option_borrow_ranges_const(
-		const bt_field_class_variant_with_signed_selector_option *option);
+bt_field_class_variant_with_selector_signed_option_borrow_ranges_const(
+		const bt_field_class_variant_with_selector_signed_option *option);
 
 static inline
 const bt_field_class_variant_option *
-bt_field_class_variant_with_signed_selector_option_as_option_const(
-		const bt_field_class_variant_with_signed_selector_option *option)
+bt_field_class_variant_with_selector_signed_option_as_option_const(
+		const bt_field_class_variant_with_selector_signed_option *option)
 {
 	return __BT_UPCAST_CONST(bt_field_class_variant_option, option);
 }

@@ -42,9 +42,9 @@ extern const bt_field_class *bt_field_borrow_class_const(
 extern bt_field_class_type bt_field_get_class_type(
 		const bt_field *field);
 
-extern int64_t bt_field_signed_integer_get_value(const bt_field *field);
+extern int64_t bt_field_integer_signed_get_value(const bt_field *field);
 
-extern uint64_t bt_field_unsigned_integer_get_value(
+extern uint64_t bt_field_integer_unsigned_get_value(
 		const bt_field *field);
 
 extern double bt_field_real_get_value(const bt_field *field);
@@ -55,12 +55,12 @@ typedef enum bt_field_enumeration_get_mapping_labels_status {
 } bt_field_enumeration_get_mapping_labels_status;
 
 extern bt_field_enumeration_get_mapping_labels_status
-bt_field_unsigned_enumeration_get_mapping_labels(const bt_field *field,
+bt_field_enumeration_unsigned_get_mapping_labels(const bt_field *field,
 		bt_field_class_enumeration_mapping_label_array *label_array,
 		uint64_t *count);
 
 extern bt_field_enumeration_get_mapping_labels_status
-bt_field_signed_enumeration_get_mapping_labels(const bt_field *field,
+bt_field_enumeration_signed_get_mapping_labels(const bt_field *field,
 		bt_field_class_enumeration_mapping_label_array *label_array,
 		uint64_t *count);
 
@@ -93,11 +93,11 @@ extern const bt_field_class_variant_option *
 bt_field_variant_borrow_selected_class_option_const(
 		const bt_field *field);
 
-extern const bt_field_class_variant_with_unsigned_selector_option *
+extern const bt_field_class_variant_with_selector_unsigned_option *
 bt_field_variant_with_unsigned_selector_borrow_selected_class_option_const(
 		const bt_field *field);
 
-extern const bt_field_class_variant_with_signed_selector_option *
+extern const bt_field_class_variant_with_selector_signed_option *
 bt_field_variant_with_signed_selector_borrow_selected_class_option_const(
 		const bt_field *field);
 

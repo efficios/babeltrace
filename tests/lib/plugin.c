@@ -179,7 +179,7 @@ static void test_sfs(const char *plugin_dir)
 		plugin, "filter");
 	ok(filter_comp_class,
 		"bt_plugin_borrow_filter_component_class_by_name_const() finds a filter component class");
-	params = bt_value_signed_integer_create_init(23);
+	params = bt_value_integer_signed_create_init(23);
 	BT_ASSERT(params);
 	ret = bt_query_executor_query(query_exec,
 		bt_component_class_filter_as_component_class_const(filter_comp_class),

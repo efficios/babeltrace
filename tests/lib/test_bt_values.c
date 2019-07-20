@@ -78,27 +78,27 @@ void test_unsigned_integer(void)
 	uint64_t value;
 	bt_value *obj;
 
-	obj = bt_value_unsigned_integer_create();
+	obj = bt_value_integer_unsigned_create();
 	ok(obj && bt_value_is_unsigned_integer(obj),
-		"bt_value_unsigned_integer_create() returns an unsigned integer value object");
+		"bt_value_integer_unsigned_create() returns an unsigned integer value object");
 
 	value = 1961;
-	value = bt_value_unsigned_integer_get(obj);
+	value = bt_value_integer_unsigned_get(obj);
 	ok(value == 0, "default unsigned integer value object value is 0");
 
-	bt_value_unsigned_integer_set(obj, 98765);
-	value = bt_value_unsigned_integer_get(obj);
-	ok(value == 98765, "bt_value_unsigned_integer_bool_set() works");
+	bt_value_integer_unsigned_set(obj, 98765);
+	value = bt_value_integer_unsigned_get(obj);
+	ok(value == 98765, "bt_value_integer_unsigned_bool_set() works");
 
 	BT_VALUE_PUT_REF_AND_RESET(obj);
 	pass("putting an existing unsigned integer value object does not cause a crash")
 
-	obj = bt_value_unsigned_integer_create_init(321456987);
+	obj = bt_value_integer_unsigned_create_init(321456987);
 	ok(obj && bt_value_is_unsigned_integer(obj),
-		"bt_value_unsigned_integer_create_init() returns an unsigned integer value object");
-	value = bt_value_unsigned_integer_get(obj);
+		"bt_value_integer_unsigned_create_init() returns an unsigned integer value object");
+	value = bt_value_integer_unsigned_get(obj);
 	ok(value == 321456987,
-		"bt_value_unsigned_integer_create_init() sets the appropriate initial value");
+		"bt_value_integer_unsigned_create_init() sets the appropriate initial value");
 
 	BT_VALUE_PUT_REF_AND_RESET(obj);
 }
@@ -109,27 +109,27 @@ void test_signed_integer(void)
 	int64_t value;
 	bt_value *obj;
 
-	obj = bt_value_signed_integer_create();
+	obj = bt_value_integer_signed_create();
 	ok(obj && bt_value_is_signed_integer(obj),
-		"bt_value_signed_integer_create() returns a signed integer value object");
+		"bt_value_integer_signed_create() returns a signed integer value object");
 
 	value = 1961;
-	value = bt_value_signed_integer_get(obj);
+	value = bt_value_integer_signed_get(obj);
 	ok(value == 0, "default signed integer value object value is 0");
 
-	bt_value_signed_integer_set(obj, 98765);
-	value = bt_value_signed_integer_get(obj);
-	ok(value == 98765, "bt_value_signed_integer_bool_set() works");
+	bt_value_integer_signed_set(obj, 98765);
+	value = bt_value_integer_signed_get(obj);
+	ok(value == 98765, "bt_value_integer_signed_bool_set() works");
 
 	BT_VALUE_PUT_REF_AND_RESET(obj);
 	pass("putting an existing signed integer value object does not cause a crash")
 
-	obj = bt_value_signed_integer_create_init(-321456987);
+	obj = bt_value_integer_signed_create_init(-321456987);
 	ok(obj && bt_value_is_signed_integer(obj),
-		"bt_value_signed_integer_create_init() returns a signed integer value object");
-	value = bt_value_signed_integer_get(obj);
+		"bt_value_integer_signed_create_init() returns a signed integer value object");
+	value = bt_value_integer_signed_get(obj);
 	ok(value == -321456987,
-		"bt_value_signed_integer_create_init() sets the appropriate initial value");
+		"bt_value_integer_signed_create_init() sets the appropriate initial value");
 
 	BT_VALUE_PUT_REF_AND_RESET(obj);
 }
@@ -215,10 +215,10 @@ void test_array(void)
 	ok(bt_value_array_is_empty(array_obj),
 		"initial array value object size is 0");
 
-	obj = bt_value_unsigned_integer_create_init(345);
+	obj = bt_value_integer_unsigned_create_init(345);
 	ret = bt_value_array_append_element(array_obj, obj);
 	BT_VALUE_PUT_REF_AND_RESET(obj);
-	obj = bt_value_signed_integer_create_init(-507);
+	obj = bt_value_integer_signed_create_init(-507);
 	ret |= bt_value_array_append_element(array_obj, obj);
 	BT_VALUE_PUT_REF_AND_RESET(obj);
 	obj = bt_value_real_create_init(-17.45);
@@ -236,13 +236,13 @@ void test_array(void)
 	obj = bt_value_array_borrow_element_by_index(array_obj, 0);
 	ok(obj && bt_value_is_unsigned_integer(obj),
 		"bt_value_array_borrow_element_by_index() returns an value object with the appropriate type (unsigned integer)");
-	int_value = bt_value_unsigned_integer_get(obj);
+	int_value = bt_value_integer_unsigned_get(obj);
 	ok(int_value == 345,
 		"bt_value_array_borrow_element_by_index() returns an value object with the appropriate value (unsigned integer)");
 	obj = bt_value_array_borrow_element_by_index(array_obj, 1);
 	ok(obj && bt_value_is_signed_integer(obj),
 		"bt_value_array_borrow_element_by_index() returns an value object with the appropriate type (signed integer)");
-	int_value = bt_value_signed_integer_get(obj);
+	int_value = bt_value_integer_signed_get(obj);
 	ok(int_value == -507,
 		"bt_value_array_borrow_element_by_index() returns an value object with the appropriate value (signed integer)");
 	obj = bt_value_array_borrow_element_by_index(array_obj, 2);
@@ -261,7 +261,7 @@ void test_array(void)
 	ok(obj == bt_value_null,
 		"bt_value_array_borrow_element_by_index() returns an value object with the appropriate type (null)");
 
-	obj = bt_value_signed_integer_create_init(1001);
+	obj = bt_value_integer_signed_create_init(1001);
 	BT_ASSERT(obj);
 	ok(!bt_value_array_set_element_by_index(array_obj, 2, obj),
 		"bt_value_array_set_element_by_index() succeeds");
@@ -269,7 +269,7 @@ void test_array(void)
 	obj = bt_value_array_borrow_element_by_index(array_obj, 2);
 	ok(obj && bt_value_is_signed_integer(obj),
 		"bt_value_array_set_element_by_index() inserts an value object with the appropriate type");
-	int_value = bt_value_signed_integer_get(obj);
+	int_value = bt_value_integer_signed_get(obj);
 	BT_ASSERT(!ret);
 	ok(int_value == 1001,
 		"bt_value_array_set_element_by_index() inserts an value object with the appropriate value");
@@ -308,13 +308,13 @@ void test_array(void)
 	obj = bt_value_array_borrow_element_by_index(array_obj, 6);
 	ok(obj && bt_value_is_unsigned_integer(obj),
 		"bt_value_array_append_unsigned_integer_element() appends an unsigned integer value object");
-	int_value = bt_value_unsigned_integer_get(obj);
+	int_value = bt_value_integer_unsigned_get(obj);
 	ok(int_value == 98765,
 		"bt_value_array_append_unsigned_integer_element() appends the appropriate value");
 	obj = bt_value_array_borrow_element_by_index(array_obj, 7);
 	ok(obj && bt_value_is_signed_integer(obj),
 		"bt_value_array_append_signed_integer_element() appends a signed integer value object");
-	int_value = bt_value_signed_integer_get(obj);
+	int_value = bt_value_integer_signed_get(obj);
 	ok(int_value == -10101,
 		"bt_value_array_append_signed_integer_element() appends the appropriate value");
 	obj = bt_value_array_borrow_element_by_index(array_obj, 8);
@@ -400,7 +400,7 @@ bt_bool test_map_foreach_cb_check(const char *key, bt_value *object,
 		} else {
 			uint64_t val = 0;
 
-			val = bt_value_unsigned_integer_get(object);
+			val = bt_value_integer_unsigned_get(object);
 
 			if (val == 19457) {
 				pass("test_map_foreach_cb_check(): \"uint\" value object has the right value");
@@ -415,7 +415,7 @@ bt_bool test_map_foreach_cb_check(const char *key, bt_value *object,
 		} else {
 			int64_t val = 0;
 
-			val = bt_value_signed_integer_get(object);
+			val = bt_value_integer_signed_get(object);
 
 			if (val == -12345) {
 				pass("test_map_foreach_cb_check(): \"int\" value object has the right value");
@@ -467,7 +467,7 @@ bt_bool test_map_foreach_cb_check(const char *key, bt_value *object,
 		} else {
 			int64_t val = 0;
 
-			val = bt_value_signed_integer_get(object);
+			val = bt_value_integer_signed_get(object);
 
 			if (val == 98765) {
 				pass("test_map_foreach_cb_check(): \"int2\" value object has the right value");
@@ -550,10 +550,10 @@ void test_map(void)
 	ok(bt_value_map_get_size(map_obj) == 0,
 		"initial map value object size is 0");
 
-	obj = bt_value_unsigned_integer_create_init(19457);
+	obj = bt_value_integer_unsigned_create_init(19457);
 	ret = bt_value_map_insert_entry(map_obj, "uint", obj);
 	BT_VALUE_PUT_REF_AND_RESET(obj);
-	obj = bt_value_signed_integer_create_init(-12345);
+	obj = bt_value_integer_signed_create_init(-12345);
 	ret |= bt_value_map_insert_entry(map_obj, "int", obj);
 	BT_VALUE_PUT_REF_AND_RESET(obj);
 	obj = bt_value_real_create_init(5.444);
@@ -584,13 +584,13 @@ void test_map(void)
 	obj = bt_value_map_borrow_entry_value(map_obj, "uint");
 	ok(obj && bt_value_is_unsigned_integer(obj),
 		"bt_value_map_borrow_entry_value() returns an value object with the appropriate type (unsigned integer)");
-	int_value = bt_value_unsigned_integer_get(obj);
+	int_value = bt_value_integer_unsigned_get(obj);
 	ok(int_value == 19457,
 		"bt_value_map_borrow_entry_value() returns an value object with the appropriate value (unsigned integer)");
 	obj = bt_value_map_borrow_entry_value(map_obj, "int");
 	ok(obj && bt_value_is_signed_integer(obj),
 		"bt_value_map_borrow_entry_value() returns an value object with the appropriate type (signed integer)");
-	int_value = bt_value_signed_integer_get(obj);
+	int_value = bt_value_integer_signed_get(obj);
 	ok(int_value == -12345,
 		"bt_value_map_borrow_entry_value() returns an value object with the appropriate value (signed integer)");
 	obj = bt_value_map_borrow_entry_value(map_obj, "null");
@@ -719,11 +719,11 @@ static
 void test_compare_unsigned_integer(void)
 {
 	bt_value *int1 =
-		bt_value_unsigned_integer_create_init(10);
+		bt_value_integer_unsigned_create_init(10);
 	bt_value *int2 =
-		bt_value_unsigned_integer_create_init(23);
+		bt_value_integer_unsigned_create_init(23);
 	bt_value *int3 =
-		bt_value_unsigned_integer_create_init(10);
+		bt_value_integer_unsigned_create_init(10);
 
 	BT_ASSERT(int1 && int2 && int3);
 	ok(!bt_value_compare(bt_value_null,
@@ -742,11 +742,11 @@ void test_compare_unsigned_integer(void)
 void test_compare_signed_integer(void)
 {
 	bt_value *int1 =
-		bt_value_signed_integer_create_init(10);
+		bt_value_integer_signed_create_init(10);
 	bt_value *int2 =
-		bt_value_signed_integer_create_init(-23);
+		bt_value_integer_signed_create_init(-23);
 	bt_value *int3 =
-		bt_value_signed_integer_create_init(10);
+		bt_value_integer_signed_create_init(10);
 
 	BT_ASSERT(int1 && int2 && int3);
 	ok(!bt_value_compare(bt_value_null,
@@ -958,8 +958,8 @@ void test_copy(void)
 	bt_value_copy_status copy_status;
 
 	bool_obj = bt_value_bool_create_init(BT_TRUE);
-	unsigned_integer_obj = bt_value_unsigned_integer_create_init(23);
-	signed_integer_obj = bt_value_signed_integer_create_init(-47);
+	unsigned_integer_obj = bt_value_integer_unsigned_create_init(23);
+	signed_integer_obj = bt_value_integer_signed_create_init(-47);
 	real_obj = bt_value_real_create_init(-3.1416);
 	string_obj = bt_value_string_create_init("test");
 	array_obj = bt_value_array_create();

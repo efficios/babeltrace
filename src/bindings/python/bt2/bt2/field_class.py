@@ -136,20 +136,20 @@ class _EnumerationFieldClassMapping:
 class _UnsignedEnumerationFieldClassMapping(_EnumerationFieldClassMapping):
     _ranges_type = bt2.integer_range_set.UnsignedIntegerRangeSet
     _as_enumeration_field_class_mapping_ptr = staticmethod(
-        native_bt.field_class_unsigned_enumeration_mapping_as_mapping_const
+        native_bt.field_class_enumeration_unsigned_mapping_as_mapping_const
     )
     _mapping_borrow_ranges_ptr = staticmethod(
-        native_bt.field_class_unsigned_enumeration_mapping_borrow_ranges_const
+        native_bt.field_class_enumeration_unsigned_mapping_borrow_ranges_const
     )
 
 
 class _SignedEnumerationFieldClassMapping(_EnumerationFieldClassMapping):
     _ranges_type = bt2.integer_range_set.SignedIntegerRangeSet
     _as_enumeration_field_class_mapping_ptr = staticmethod(
-        native_bt.field_class_signed_enumeration_mapping_as_mapping_const
+        native_bt.field_class_enumeration_signed_mapping_as_mapping_const
     )
     _mapping_borrow_ranges_ptr = staticmethod(
-        native_bt.field_class_signed_enumeration_mapping_borrow_ranges_const
+        native_bt.field_class_enumeration_signed_mapping_borrow_ranges_const
     )
 
 
@@ -204,11 +204,11 @@ class _UnsignedEnumerationFieldClass(
 ):
     _NAME = 'Unsigned enumeration'
     _range_set_type = bt2.integer_range_set.UnsignedIntegerRangeSet
-    _add_mapping = staticmethod(native_bt.field_class_unsigned_enumeration_add_mapping)
+    _add_mapping = staticmethod(native_bt.field_class_enumeration_unsigned_add_mapping)
 
     @staticmethod
     def _get_mapping_by_index(enum_ptr, index):
-        mapping_ptr = native_bt.field_class_unsigned_enumeration_borrow_mapping_by_index_const(
+        mapping_ptr = native_bt.field_class_enumeration_unsigned_borrow_mapping_by_index_const(
             enum_ptr, index
         )
         assert mapping_ptr is not None
@@ -216,7 +216,7 @@ class _UnsignedEnumerationFieldClass(
 
     @staticmethod
     def _get_mapping_by_label(enum_ptr, label):
-        mapping_ptr = native_bt.field_class_unsigned_enumeration_borrow_mapping_by_label_const(
+        mapping_ptr = native_bt.field_class_enumeration_unsigned_borrow_mapping_by_label_const(
             enum_ptr, label
         )
 
@@ -228,7 +228,7 @@ class _UnsignedEnumerationFieldClass(
     @staticmethod
     def _get_mapping_labels_for_value(enum_ptr, value):
         utils._check_uint64(value)
-        return native_bt.field_class_unsigned_enumeration_get_mapping_labels_for_value(
+        return native_bt.field_class_enumeration_unsigned_get_mapping_labels_for_value(
             enum_ptr, value
         )
 
@@ -236,11 +236,11 @@ class _UnsignedEnumerationFieldClass(
 class _SignedEnumerationFieldClass(_EnumerationFieldClass, _SignedIntegerFieldClass):
     _NAME = 'Signed enumeration'
     _range_set_type = bt2.integer_range_set.SignedIntegerRangeSet
-    _add_mapping = staticmethod(native_bt.field_class_signed_enumeration_add_mapping)
+    _add_mapping = staticmethod(native_bt.field_class_enumeration_signed_add_mapping)
 
     @staticmethod
     def _get_mapping_by_index(enum_ptr, index):
-        mapping_ptr = native_bt.field_class_signed_enumeration_borrow_mapping_by_index_const(
+        mapping_ptr = native_bt.field_class_enumeration_signed_borrow_mapping_by_index_const(
             enum_ptr, index
         )
         assert mapping_ptr is not None
@@ -248,7 +248,7 @@ class _SignedEnumerationFieldClass(_EnumerationFieldClass, _SignedIntegerFieldCl
 
     @staticmethod
     def _get_mapping_by_label(enum_ptr, label):
-        mapping_ptr = native_bt.field_class_signed_enumeration_borrow_mapping_by_label_const(
+        mapping_ptr = native_bt.field_class_enumeration_signed_borrow_mapping_by_label_const(
             enum_ptr, label
         )
 
@@ -260,7 +260,7 @@ class _SignedEnumerationFieldClass(_EnumerationFieldClass, _SignedIntegerFieldCl
     @staticmethod
     def _get_mapping_labels_for_value(enum_ptr, value):
         utils._check_int64(value)
-        return native_bt.field_class_signed_enumeration_get_mapping_labels_for_value(
+        return native_bt.field_class_enumeration_signed_get_mapping_labels_for_value(
             enum_ptr, value
         )
 
@@ -519,19 +519,19 @@ class _VariantFieldClassWithSelector(_VariantFieldClass):
 class _VariantFieldClassWithUnsignedSelector(_VariantFieldClassWithSelector):
     _NAME = 'Variant (with unsigned selector)'
     _borrow_option_by_name_ptr = staticmethod(
-        native_bt.field_class_variant_with_unsigned_selector_borrow_option_by_name_const
+        native_bt.field_class_variant_with_selector_unsigned_borrow_option_by_name_const
     )
     _borrow_member_by_index_ptr = staticmethod(
-        native_bt.field_class_variant_with_unsigned_selector_borrow_option_by_index_const
+        native_bt.field_class_variant_with_selector_unsigned_borrow_option_by_index_const
     )
     _as_option_ptr = staticmethod(
-        native_bt.field_class_variant_with_unsigned_selector_option_as_option_const
+        native_bt.field_class_variant_with_selector_unsigned_option_as_option_const
     )
     _append_option = staticmethod(
-        native_bt.field_class_variant_with_unsigned_selector_append_option
+        native_bt.field_class_variant_with_selector_unsigned_append_option
     )
     _option_borrow_ranges_ptr = staticmethod(
-        native_bt.field_class_variant_with_unsigned_selector_option_borrow_ranges_const
+        native_bt.field_class_variant_with_selector_unsigned_option_borrow_ranges_const
     )
     _range_set_type = bt2.integer_range_set.UnsignedIntegerRangeSet
 
@@ -539,19 +539,19 @@ class _VariantFieldClassWithUnsignedSelector(_VariantFieldClassWithSelector):
 class _VariantFieldClassWithSignedSelector(_VariantFieldClassWithSelector):
     _NAME = 'Variant (with signed selector)'
     _borrow_option_by_name_ptr = staticmethod(
-        native_bt.field_class_variant_with_signed_selector_borrow_option_by_name_const
+        native_bt.field_class_variant_with_selector_signed_borrow_option_by_name_const
     )
     _borrow_member_by_index_ptr = staticmethod(
-        native_bt.field_class_variant_with_signed_selector_borrow_option_by_index_const
+        native_bt.field_class_variant_with_selector_signed_borrow_option_by_index_const
     )
     _as_option_ptr = staticmethod(
-        native_bt.field_class_variant_with_signed_selector_option_as_option_const
+        native_bt.field_class_variant_with_selector_signed_option_as_option_const
     )
     _append_option = staticmethod(
-        native_bt.field_class_variant_with_signed_selector_append_option
+        native_bt.field_class_variant_with_selector_signed_append_option
     )
     _option_borrow_ranges_ptr = staticmethod(
-        native_bt.field_class_variant_with_signed_selector_option_borrow_ranges_const
+        native_bt.field_class_variant_with_selector_signed_option_borrow_ranges_const
     )
     _range_set_type = bt2.integer_range_set.SignedIntegerRangeSet
 
@@ -568,13 +568,13 @@ class _ArrayFieldClass(_FieldClass):
 class _StaticArrayFieldClass(_ArrayFieldClass):
     @property
     def length(self):
-        return native_bt.field_class_static_array_get_length(self._ptr)
+        return native_bt.field_class_array_static_get_length(self._ptr)
 
 
 class _DynamicArrayFieldClass(_ArrayFieldClass):
     @property
     def length_field_path(self):
-        ptr = native_bt.field_class_dynamic_array_borrow_length_field_path_const(
+        ptr = native_bt.field_class_array_dynamic_borrow_length_field_path_const(
             self._ptr
         )
         if ptr is None:

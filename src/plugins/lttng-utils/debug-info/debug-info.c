@@ -363,7 +363,7 @@ static inline
 void event_get_common_context_signed_integer_field_value(
 		const bt_event *event, const char *field_name, int64_t *value)
 {
-	*value = bt_field_signed_integer_get_value(
+	*value = bt_field_integer_signed_get_value(
 			event_borrow_common_context_field(event, field_name));
 }
 
@@ -417,7 +417,7 @@ int event_get_payload_build_id_value(const bt_event *event,
 			bt_field_array_borrow_element_field_by_index_const(
 					build_id_field, i);
 
-		build_id[i] = bt_field_unsigned_integer_get_value(curr_field);
+		build_id[i] = bt_field_integer_unsigned_get_value(curr_field);
 	}
 
 	return ret;
@@ -427,7 +427,7 @@ static
 void event_get_payload_unsigned_integer_field_value(const bt_event *event,
 		const char *field_name, uint64_t *value)
 {
-	*value = bt_field_unsigned_integer_get_value(
+	*value = bt_field_integer_unsigned_get_value(
 			event_borrow_payload_field(event, field_name));
 }
 
@@ -1195,8 +1195,8 @@ void fill_debug_info_event_if_needed(struct debug_info_msg_iter *debug_it,
 	ip_field = bt_field_structure_borrow_member_field_by_name_const(
 			out_common_ctx_field, IP_FIELD_NAME);
 
-	vpid = bt_field_signed_integer_get_value(vpid_field);
-	ip = bt_field_unsigned_integer_get_value(ip_field);
+	vpid = bt_field_integer_signed_get_value(vpid_field);
+	ip = bt_field_integer_unsigned_get_value(ip_field);
 
 	/*
 	 * Borrow the debug_info structure needed for the source

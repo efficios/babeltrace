@@ -327,7 +327,7 @@ struct fs_sink_ctf_field_class_array *fs_sink_ctf_field_class_array_create_empty
 	_fs_sink_ctf_field_class_init((void *) fc,
 		FS_SINK_CTF_FIELD_CLASS_TYPE_ARRAY, ir_fc,
 		1, index_in_parent);
-	fc->length = bt_field_class_static_array_get_length(ir_fc);
+	fc->length = bt_field_class_array_static_get_length(ir_fc);
 	return fc;
 }
 
@@ -345,7 +345,7 @@ struct fs_sink_ctf_field_class_sequence *fs_sink_ctf_field_class_sequence_create
 	fc->length_ref = g_string_new(NULL);
 	BT_ASSERT(fc->length_ref);
 	fc->length_is_before =
-		bt_field_class_dynamic_array_borrow_length_field_path_const(ir_fc) ==
+		bt_field_class_array_dynamic_borrow_length_field_path_const(ir_fc) ==
 		NULL;
 	return fc;
 }

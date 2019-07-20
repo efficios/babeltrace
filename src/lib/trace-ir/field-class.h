@@ -209,8 +209,8 @@ struct bt_field_class_enumeration_mapping {
 	const struct bt_integer_range_set *range_set;
 };
 
-struct bt_field_class_unsigned_enumeration_mapping;
-struct bt_field_class_signed_enumeration_mapping;
+struct bt_field_class_enumeration_unsigned_mapping;
+struct bt_field_class_enumeration_signed_mapping;
 
 struct bt_field_class_enumeration {
 	struct bt_field_class_integer common;
@@ -221,9 +221,9 @@ struct bt_field_class_enumeration {
 	/*
 	 * This is an array of `const char *` which acts as a temporary
 	 * (potentially growing) buffer for
-	 * bt_field_class_unsigned_enumeration_get_mapping_labels_for_value()
+	 * bt_field_class_enumeration_unsigned_get_mapping_labels_for_value()
 	 * and
-	 * bt_field_class_signed_enumeration_get_mapping_labels_for_value().
+	 * bt_field_class_enumeration_signed_get_mapping_labels_for_value().
 	 *
 	 * The actual strings are owned by the mappings above.
 	 */
@@ -251,8 +251,8 @@ struct bt_named_field_class {
 
 struct bt_field_class_structure_member;
 struct bt_field_class_variant_option;
-struct bt_field_class_variant_with_unsigned_selector_option;
-struct bt_field_class_variant_with_signed_selector_option;
+struct bt_field_class_variant_with_selector_unsigned_option;
+struct bt_field_class_variant_with_selector_signed_option;
 
 struct bt_field_class_named_field_class_container {
 	struct bt_field_class common;
@@ -278,12 +278,12 @@ struct bt_field_class_array {
 	struct bt_field_class *element_fc;
 };
 
-struct bt_field_class_static_array {
+struct bt_field_class_array_static {
 	struct bt_field_class_array common;
 	uint64_t length;
 };
 
-struct bt_field_class_dynamic_array {
+struct bt_field_class_array_dynamic {
 	struct bt_field_class_array common;
 
 	/* Weak: never dereferenced, only use to find it elsewhere */

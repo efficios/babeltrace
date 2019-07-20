@@ -529,7 +529,7 @@ int bt_resolve_field_paths(struct bt_field_class *fc,
 	switch (fc->type) {
 	case BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY:
 	{
-		struct bt_field_class_dynamic_array *dyn_array_fc = (void *) fc;
+		struct bt_field_class_array_dynamic *dyn_array_fc = (void *) fc;
 
 		if (dyn_array_fc->length_fc) {
 			BT_ASSERT(!dyn_array_fc->length_field_path);

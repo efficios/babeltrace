@@ -305,7 +305,7 @@ bt_trace_set_environment_entry_integer(
 	struct bt_value *value_obj;
 	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
 	BT_ASSERT_PRE_NON_NULL(name, "Name");
-	value_obj = bt_value_signed_integer_create_init(value);
+	value_obj = bt_value_integer_signed_create_init(value);
 	if (!value_obj) {
 		BT_LIB_LOGE_APPEND_CAUSE(
 			"Cannot create an integer value object.");

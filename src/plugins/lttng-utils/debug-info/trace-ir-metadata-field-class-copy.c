@@ -210,17 +210,17 @@ int field_class_unsigned_enumeration_copy(
 	for (i = 0; i < enum_mapping_count; i++) {
 		const char *label;
 		const bt_integer_range_set_unsigned *range_set;
-		const bt_field_class_unsigned_enumeration_mapping *u_mapping;
+		const bt_field_class_enumeration_unsigned_mapping *u_mapping;
 		const bt_field_class_enumeration_mapping *mapping;
 
-		u_mapping = bt_field_class_unsigned_enumeration_borrow_mapping_by_index_const(
+		u_mapping = bt_field_class_enumeration_unsigned_borrow_mapping_by_index_const(
 				in_field_class, i);
-		mapping = bt_field_class_unsigned_enumeration_mapping_as_mapping_const(
+		mapping = bt_field_class_enumeration_unsigned_mapping_as_mapping_const(
 			u_mapping);
 		label = bt_field_class_enumeration_mapping_get_label(mapping);
-		range_set = bt_field_class_unsigned_enumeration_mapping_borrow_ranges_const(
+		range_set = bt_field_class_enumeration_unsigned_mapping_borrow_ranges_const(
 			u_mapping);
-		ret = bt_field_class_unsigned_enumeration_add_mapping(
+		ret = bt_field_class_enumeration_unsigned_add_mapping(
 			out_field_class, label, range_set);
 		if (ret) {
 			goto error;
@@ -257,17 +257,17 @@ int field_class_signed_enumeration_copy(
 	for (i = 0; i < enum_mapping_count; i++) {
 		const char *label;
 		const bt_integer_range_set_signed *range_set;
-		const bt_field_class_signed_enumeration_mapping *s_mapping;
+		const bt_field_class_enumeration_signed_mapping *s_mapping;
 		const bt_field_class_enumeration_mapping *mapping;
 
-		s_mapping = bt_field_class_signed_enumeration_borrow_mapping_by_index_const(
+		s_mapping = bt_field_class_enumeration_signed_borrow_mapping_by_index_const(
 				in_field_class, i);
-		mapping = bt_field_class_signed_enumeration_mapping_as_mapping_const(
+		mapping = bt_field_class_enumeration_signed_mapping_as_mapping_const(
 			s_mapping);
 		label = bt_field_class_enumeration_mapping_get_label(mapping);
-		range_set = bt_field_class_signed_enumeration_mapping_borrow_ranges_const(
+		range_set = bt_field_class_enumeration_signed_mapping_borrow_ranges_const(
 			s_mapping);
-		ret = bt_field_class_signed_enumeration_add_mapping(
+		ret = bt_field_class_enumeration_signed_add_mapping(
 			out_field_class, label, range_set);
 		if (ret) {
 			goto error;
@@ -413,14 +413,14 @@ int field_class_variant_copy(
 		}
 
 		if (fc_type == BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_SELECTOR) {
-			const bt_field_class_variant_with_unsigned_selector_option *spec_opt =
-				bt_field_class_variant_with_unsigned_selector_borrow_option_by_index_const(
+			const bt_field_class_variant_with_selector_unsigned_option *spec_opt =
+				bt_field_class_variant_with_selector_unsigned_borrow_option_by_index_const(
 					in_field_class, i);
 			const bt_integer_range_set_unsigned *ranges =
-				bt_field_class_variant_with_unsigned_selector_option_borrow_ranges_const(
+				bt_field_class_variant_with_selector_unsigned_option_borrow_ranges_const(
 					spec_opt);
 
-			if (bt_field_class_variant_with_unsigned_selector_append_option(
+			if (bt_field_class_variant_with_selector_unsigned_append_option(
 					out_field_class, option_name,
 					out_option_field_class, ranges) !=
 					BT_FIELD_CLASS_VARIANT_WITH_SELECTOR_APPEND_OPTION_STATUS_OK) {
@@ -430,14 +430,14 @@ int field_class_variant_copy(
 				goto error;
 			}
 		} else if (fc_type == BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_SELECTOR) {
-			const bt_field_class_variant_with_signed_selector_option *spec_opt =
-				bt_field_class_variant_with_signed_selector_borrow_option_by_index_const(
+			const bt_field_class_variant_with_selector_signed_option *spec_opt =
+				bt_field_class_variant_with_selector_signed_borrow_option_by_index_const(
 					in_field_class, i);
 			const bt_integer_range_set_signed *ranges =
-				bt_field_class_variant_with_signed_selector_option_borrow_ranges_const(
+				bt_field_class_variant_with_selector_signed_option_borrow_ranges_const(
 					spec_opt);
 
-			if (bt_field_class_variant_with_signed_selector_append_option(
+			if (bt_field_class_variant_with_selector_signed_append_option(
 					out_field_class, option_name,
 					out_option_field_class, ranges) !=
 					BT_FIELD_CLASS_VARIANT_WITH_SELECTOR_APPEND_OPTION_STATUS_OK) {
@@ -562,19 +562,19 @@ bt_field_class *create_field_class_copy_internal(struct trace_ir_metadata_maps *
 
 	switch (fc_type) {
 	case BT_FIELD_CLASS_TYPE_UNSIGNED_INTEGER:
-		out_field_class = bt_field_class_unsigned_integer_create(
+		out_field_class = bt_field_class_integer_unsigned_create(
 				md_maps->output_trace_class);
 		break;
 	case BT_FIELD_CLASS_TYPE_SIGNED_INTEGER:
-		out_field_class = bt_field_class_signed_integer_create(
+		out_field_class = bt_field_class_integer_signed_create(
 				md_maps->output_trace_class);
 		break;
 	case BT_FIELD_CLASS_TYPE_UNSIGNED_ENUMERATION:
-		out_field_class = bt_field_class_unsigned_enumeration_create(
+		out_field_class = bt_field_class_enumeration_unsigned_create(
 				md_maps->output_trace_class);
 		break;
 	case BT_FIELD_CLASS_TYPE_SIGNED_ENUMERATION:
-		out_field_class = bt_field_class_signed_enumeration_create(
+		out_field_class = bt_field_class_enumeration_signed_create(
 				md_maps->output_trace_class);
 		break;
 	case BT_FIELD_CLASS_TYPE_REAL:
@@ -595,7 +595,7 @@ bt_field_class *create_field_class_copy_internal(struct trace_ir_metadata_maps *
 			bt_field_class_array_borrow_element_field_class_const(
 					in_field_class);
 		uint64_t array_len =
-			bt_field_class_static_array_get_length(in_field_class);
+			bt_field_class_array_static_get_length(in_field_class);
 
 		bt_field_class *out_elem_fc = copy_field_class_array_element(
 				md_maps, in_elem_fc);
@@ -604,7 +604,7 @@ bt_field_class *create_field_class_copy_internal(struct trace_ir_metadata_maps *
 			goto error;
 		}
 
-		out_field_class = bt_field_class_static_array_create(
+		out_field_class = bt_field_class_array_static_create(
 				md_maps->output_trace_class,
 				out_elem_fc, array_len);
 		break;
@@ -615,7 +615,7 @@ bt_field_class *create_field_class_copy_internal(struct trace_ir_metadata_maps *
 			bt_field_class_array_borrow_element_field_class_const(
 					in_field_class);
 		const bt_field_path *length_fp =
-			bt_field_class_dynamic_array_borrow_length_field_path_const(
+			bt_field_class_array_dynamic_borrow_length_field_path_const(
 				in_field_class);
 		bt_field_class *out_length_fc = NULL;
 
@@ -637,7 +637,7 @@ bt_field_class *create_field_class_copy_internal(struct trace_ir_metadata_maps *
 			BT_ASSERT(out_length_fc);
 		}
 
-		out_field_class = bt_field_class_dynamic_array_create(
+		out_field_class = bt_field_class_array_dynamic_create(
 				md_maps->output_trace_class,
 				out_elem_fc, out_length_fc);
 		break;

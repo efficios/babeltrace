@@ -226,7 +226,7 @@ class _TraceClass(object._SharedObject, collections.abc.Mapping):
         self, field_value_range=None, preferred_display_base=None
     ):
         return self._create_integer_field_class(
-            native_bt.field_class_signed_integer_create,
+            native_bt.field_class_integer_signed_create,
             bt2.field_class._SignedIntegerFieldClass,
             'signed integer',
             field_value_range,
@@ -237,7 +237,7 @@ class _TraceClass(object._SharedObject, collections.abc.Mapping):
         self, field_value_range=None, preferred_display_base=None
     ):
         return self._create_integer_field_class(
-            native_bt.field_class_unsigned_integer_create,
+            native_bt.field_class_integer_unsigned_create,
             bt2.field_class._UnsignedIntegerFieldClass,
             'unsigned integer',
             field_value_range,
@@ -248,7 +248,7 @@ class _TraceClass(object._SharedObject, collections.abc.Mapping):
         self, field_value_range=None, preferred_display_base=None
     ):
         return self._create_integer_field_class(
-            native_bt.field_class_signed_enumeration_create,
+            native_bt.field_class_enumeration_signed_create,
             bt2.field_class._SignedEnumerationFieldClass,
             'signed enumeration',
             field_value_range,
@@ -259,7 +259,7 @@ class _TraceClass(object._SharedObject, collections.abc.Mapping):
         self, field_value_range=None, preferred_display_base=None
     ):
         return self._create_integer_field_class(
-            native_bt.field_class_unsigned_enumeration_create,
+            native_bt.field_class_enumeration_unsigned_create,
             bt2.field_class._UnsignedEnumerationFieldClass,
             'unsigned enumeration',
             field_value_range,
@@ -291,7 +291,7 @@ class _TraceClass(object._SharedObject, collections.abc.Mapping):
     def create_static_array_field_class(self, elem_fc, length):
         utils._check_type(elem_fc, bt2.field_class._FieldClass)
         utils._check_uint64(length)
-        ptr = native_bt.field_class_static_array_create(self._ptr, elem_fc._ptr, length)
+        ptr = native_bt.field_class_array_static_create(self._ptr, elem_fc._ptr, length)
         self._check_create_status(ptr, 'static array')
 
         return bt2.field_class._StaticArrayFieldClass._create_from_ptr_and_get_ref(ptr)
@@ -304,7 +304,7 @@ class _TraceClass(object._SharedObject, collections.abc.Mapping):
             utils._check_type(length_fc, bt2.field_class._UnsignedIntegerFieldClass)
             length_fc_ptr = length_fc._ptr
 
-        ptr = native_bt.field_class_dynamic_array_create(
+        ptr = native_bt.field_class_array_dynamic_create(
             self._ptr, elem_fc._ptr, length_fc_ptr
         )
         self._check_create_status(ptr, 'dynamic array')
