@@ -145,7 +145,6 @@ bt_graph_add_sink_component_with_init_method_data(
 typedef enum bt_graph_connect_ports_status {
 	BT_GRAPH_CONNECT_PORTS_STATUS_OK		= __BT_FUNC_STATUS_OK,
 	BT_GRAPH_CONNECT_PORTS_STATUS_ERROR		= __BT_FUNC_STATUS_ERROR,
-	BT_GRAPH_CONNECT_PORTS_STATUS_CANCELED		= __BT_FUNC_STATUS_CANCELED,
 	BT_GRAPH_CONNECT_PORTS_STATUS_MEMORY_ERROR	= __BT_FUNC_STATUS_MEMORY_ERROR,
 } bt_graph_connect_ports_status;
 
@@ -160,7 +159,6 @@ typedef enum bt_graph_run_status {
 	BT_GRAPH_RUN_STATUS_MEMORY_ERROR	= __BT_FUNC_STATUS_MEMORY_ERROR,
 	BT_GRAPH_RUN_STATUS_AGAIN		= __BT_FUNC_STATUS_AGAIN,
 	BT_GRAPH_RUN_STATUS_END			= __BT_FUNC_STATUS_END,
-	BT_GRAPH_RUN_STATUS_CANCELED		= __BT_FUNC_STATUS_CANCELED,
 } bt_graph_run_status;
 
 extern bt_graph_run_status bt_graph_run(bt_graph *graph);
@@ -171,7 +169,6 @@ typedef enum bt_graph_consume_status {
 	BT_GRAPH_CONSUME_STATUS_MEMORY_ERROR	= __BT_FUNC_STATUS_MEMORY_ERROR,
 	BT_GRAPH_CONSUME_STATUS_AGAIN		= __BT_FUNC_STATUS_AGAIN,
 	BT_GRAPH_CONSUME_STATUS_END		= __BT_FUNC_STATUS_END,
-	BT_GRAPH_CONSUME_STATUS_CANCELED	= __BT_FUNC_STATUS_CANCELED,
 } bt_graph_consume_status;
 
 extern bt_graph_consume_status bt_graph_consume(bt_graph *graph);
@@ -237,11 +234,15 @@ bt_graph_add_filter_sink_component_ports_connected_listener(
 		bt_graph_listener_removed_func listener_removed, void *data,
 		int *listener_id);
 
-typedef enum bt_graph_cancel_status {
-	BT_GRAPH_CANCEL_STATUS_OK	= __BT_FUNC_STATUS_OK,
-} bt_graph_cancel_status;
+typedef enum bt_graph_add_interrupter_status {
+	BT_GRAPH_ADD_INTERRUPTER_STATUS_OK	= __BT_FUNC_STATUS_OK,
+	BT_GRAPH_ADD_INTERRUPTER_MEMORY_ERROR	= __BT_FUNC_STATUS_MEMORY_ERROR,
+} bt_graph_add_interrupter_status;
 
-extern bt_graph_cancel_status bt_graph_cancel(bt_graph *graph);
+extern bt_graph_add_interrupter_status bt_graph_add_interrupter(bt_graph *graph,
+		const bt_interrupter *interrupter);
+
+extern void bt_graph_interrupt(bt_graph *graph);
 
 #ifdef __cplusplus
 }

@@ -208,9 +208,6 @@ enum bt_self_component_add_port_status add_port(
 	BT_ASSERT_PRE_NON_NULL(name, "Name");
 	BT_ASSERT_PRE(strlen(name) > 0, "Name is empty");
 	graph = bt_component_borrow_graph(component);
-	BT_ASSERT_PRE(graph && !bt_graph_is_canceled(graph),
-		"Component's graph is canceled: %![comp-]+c, %![graph-]+g",
-		component, graph);
 	BT_ASSERT_PRE(
 		graph->config_state == BT_GRAPH_CONFIGURATION_STATE_CONFIGURING,
 		"Component's graph is already configured: "
@@ -390,12 +387,6 @@ void bt_component_set_graph(struct bt_component *component,
 {
 	bt_object_set_parent(&component->base,
 		graph ? &graph->base : NULL);
-}
-
-bt_bool bt_component_graph_is_canceled(const struct bt_component *component)
-{
-	return bt_graph_is_canceled(
-		(void *) bt_object_borrow_parent(&component->base));
 }
 
 static

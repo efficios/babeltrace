@@ -40,7 +40,6 @@ bt_query_executor *bt_query_executor_create(void);
 typedef enum bt_query_executor_query_status {
 	BT_QUERY_EXECUTOR_QUERY_STATUS_OK		= __BT_FUNC_STATUS_OK,
 	BT_QUERY_EXECUTOR_QUERY_STATUS_AGAIN		= __BT_FUNC_STATUS_AGAIN,
-	BT_QUERY_EXECUTOR_QUERY_STATUS_CANCELED		= __BT_FUNC_STATUS_CANCELED,
 	BT_QUERY_EXECUTOR_QUERY_STATUS_ERROR		= __BT_FUNC_STATUS_ERROR,
 	BT_QUERY_EXECUTOR_QUERY_STATUS_MEMORY_ERROR	= __BT_FUNC_STATUS_MEMORY_ERROR,
 	BT_QUERY_EXECUTOR_QUERY_STATUS_INVALID_OBJECT	= __BT_FUNC_STATUS_INVALID_OBJECT,
@@ -54,13 +53,16 @@ bt_query_executor_query_status bt_query_executor_query(
 		const char *object, const bt_value *params,
 		bt_logging_level logging_level, const bt_value **result);
 
-typedef enum bt_query_executor_cancel_status {
-	BT_QUERY_EXECUTOR_CANCEL_STATUS_OK	= __BT_FUNC_STATUS_OK,
-} bt_query_executor_cancel_status;
+typedef enum bt_query_executor_add_interrupter_status {
+	BT_QUERY_EXECUTOR_ADD_INTERRUPTER_STATUS_OK	= __BT_FUNC_STATUS_OK,
+	BT_QUERY_EXECUTOR_ADD_INTERRUPTER_MEMORY_ERROR	= __BT_FUNC_STATUS_MEMORY_ERROR,
+} bt_query_executor_add_interrupter_status;
 
-extern
-bt_query_executor_cancel_status bt_query_executor_cancel(
-		bt_query_executor *query_executor);
+extern bt_query_executor_add_interrupter_status
+bt_query_executor_add_interrupter(bt_query_executor *query_executor,
+		const bt_interrupter *interrupter);
+
+extern void bt_query_executor_interrupt(bt_query_executor *query_executor);
 
 #ifdef __cplusplus
 }

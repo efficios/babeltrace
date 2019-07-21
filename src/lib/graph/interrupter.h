@@ -33,4 +33,25 @@ struct bt_interrupter {
 	bool is_set;
 };
 
+static inline
+bool bt_interrupter_array_any_is_set(const GPtrArray *interrupters)
+{
+	bool is_set = false;
+	uint64_t i;
+
+	BT_ASSERT(interrupters);
+
+	for (i = 0; i < interrupters->len; i++) {
+		const struct bt_interrupter *intr = interrupters->pdata[i];
+
+		if (intr->is_set) {
+			is_set = true;
+			goto end;
+		}
+	}
+
+end:
+	return is_set;
+}
+
 #endif /* BABELTRACE_GRAPH_INTERRUPTER_INTERNAL_H */

@@ -33,15 +33,12 @@
 extern "C" {
 #endif
 
-extern
-bt_bool bt_query_executor_is_canceled(
+extern bt_bool bt_query_executor_is_interrupted(
 		const bt_query_executor *query_executor);
 
-extern void bt_query_executor_get_ref(
-		const bt_query_executor *query_executor);
+extern void bt_query_executor_get_ref(const bt_query_executor *query_executor);
 
-extern void bt_query_executor_put_ref(
-		const bt_query_executor *query_executor);
+extern void bt_query_executor_put_ref(const bt_query_executor *query_executor);
 
 #define BT_QUERY_EXECUTOR_PUT_REF_AND_RESET(_var)		\
 	do {							\

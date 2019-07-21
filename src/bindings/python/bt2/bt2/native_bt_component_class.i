@@ -97,7 +97,6 @@ static PyObject *py_mod_bt2_exc_error_type = NULL;
 static PyObject *py_mod_bt2_exc_memory_error = NULL;
 static PyObject *py_mod_bt2_exc_try_again_type = NULL;
 static PyObject *py_mod_bt2_exc_stop_type = NULL;
-static PyObject *py_mod_bt2_exc_msg_iter_canceled_type = NULL;
 static PyObject *py_mod_bt2_exc_invalid_object_type = NULL;
 static PyObject *py_mod_bt2_exc_invalid_params_type = NULL;
 
@@ -154,7 +153,6 @@ void bt_bt2_cc_exit_handler(void)
 	Py_XDECREF(py_mod_bt2_exc_error_type);
 	Py_XDECREF(py_mod_bt2_exc_try_again_type);
 	Py_XDECREF(py_mod_bt2_exc_stop_type);
-	Py_XDECREF(py_mod_bt2_exc_msg_iter_canceled_type);
 	Py_XDECREF(py_mod_bt2_exc_invalid_object_type);
 	Py_XDECREF(py_mod_bt2_exc_invalid_params_type);
 }

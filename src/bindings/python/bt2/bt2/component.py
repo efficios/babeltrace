@@ -864,3 +864,7 @@ class _UserSinkComponent(_UserComponent, _SinkComponent):
             raise bt2.CreationError('cannot create message iterator object')
 
         return bt2.message_iterator._UserComponentInputPortMessageIterator(msg_iter_ptr)
+
+    @property
+    def _is_interrupted(self):
+        return bool(native_bt.self_component_sink_is_interrupted(self._bt_ptr))

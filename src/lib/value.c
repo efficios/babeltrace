@@ -1203,10 +1203,10 @@ enum bt_value_map_foreach_entry_status bt_value_map_foreach_entry(
 		const char *key_str = g_quark_to_string(GPOINTER_TO_UINT(key));
 
 		if (!func(key_str, element_obj, data)) {
-			BT_LOGT("User canceled the loop: key=\"%s\", "
+			BT_LOGT("User interrupted the loop: key=\"%s\", "
 				"value-addr=%p, data=%p",
 				key_str, element_obj, data);
-			ret = BT_FUNC_STATUS_CANCELED;
+			ret = BT_FUNC_STATUS_INTERRUPTED;
 			break;
 		}
 	}

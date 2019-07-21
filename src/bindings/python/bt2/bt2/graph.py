@@ -21,6 +21,7 @@
 # THE SOFTWARE.
 
 from bt2 import native_bt, object, utils
+import bt2.interrupter
 import bt2.connection
 import bt2.component
 import functools
@@ -170,24 +171,19 @@ class Graph(object._SharedObject):
         status = native_bt.graph_run(self._ptr)
 
         try:
-            utils._handle_func_status(
-                status, 'graph object stopped running because of an unexpected error'
-            )
+            utils._handle_func_status(status, 'graph object stopped running')
         except bt2.Stop:
             # done
             return
         except Exception:
             raise
 
-    def cancel(self):
-        status = native_bt.graph_cancel(self._ptr)
-        utils._handle_func_status(status, 'cannot cancel graph object')
+    def add_interrupter(self, interrupter):
+        utils._check_type(interrupter, bt2.interrupter.Interrupter)
+        native_bt.graph_add_interrupter(self._ptr, interrupter._ptr)
 
-    @property
-    def is_canceled(self):
-        is_canceled = native_bt.graph_is_canceled(self._ptr)
-        assert is_canceled >= 0
-        return is_canceled > 0
+    def interrupt(self):
+        native_bt.graph_interrupt(self._ptr)
 
     def create_output_port_message_iterator(self, output_port):
         utils._check_type(output_port, bt2.port._OutputPort)

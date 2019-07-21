@@ -76,12 +76,12 @@
 # define __BT_FUNC_STATUS_NOT_FOUND		2
 #endif
 
+/* Object is interrupted */
+#ifndef __BT_FUNC_STATUS_INTERRUPTED
+# define __BT_FUNC_STATUS_INTERRUPTED		4
+#endif
+
 /* Try operation again later */
 #ifndef __BT_FUNC_STATUS_AGAIN
 # define __BT_FUNC_STATUS_AGAIN			11
-#endif
-
-/* Object is canceled */
-#ifndef __BT_FUNC_STATUS_CANCELED
-# define __BT_FUNC_STATUS_CANCELED		125
 #endif

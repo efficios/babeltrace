@@ -26,6 +26,7 @@
 
 #include "common/assert.h"
 #include "lib/assert-pre.h"
+#include "lib/assert-post.h"
 #include "compat/compiler.h"
 #include <babeltrace2/value.h>
 #include <babeltrace2/graph/self-component-sink.h>
@@ -34,6 +35,7 @@
 
 #include "component-sink.h"
 #include "component.h"
+#include "graph.h"
 #include "lib/func-status.h"
 
 BT_HIDDEN
@@ -139,6 +141,16 @@ enum bt_self_component_add_port_status bt_self_component_sink_add_input_port(
 end:
 	bt_object_put_ref(port);
 	return status;
+}
+
+bt_bool bt_self_component_sink_is_interrupted(
+		const struct bt_self_component_sink *self_comp)
+{
+	struct bt_component *comp = (void *) self_comp;
+
+	BT_ASSERT_PRE_NON_NULL(comp, "Component");
+	return (bt_bool) bt_graph_is_interrupted(
+		bt_component_borrow_graph(comp));
 }
 
 void bt_component_sink_get_ref(

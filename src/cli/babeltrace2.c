@@ -55,10 +55,9 @@ static const char* log_level_env_var_names[] = {
 	NULL,
 };
 
-/* Application's processing graph (weak) */
-static bt_graph *the_graph;
-static bt_query_executor *the_query_executor;
-static bool canceled = false;
+/* Application's interrupter (owned by this) */
+static bt_interrupter *the_interrupter;
+static volatile bool interrupted = false;
 
 #ifdef __MINGW32__
 
@@ -66,12 +65,11 @@ static bool canceled = false;
 
 static
 BOOL WINAPI signal_handler(DWORD signal) {
-	if (the_graph) {
-		bt_graph_cancel(the_graph);
+	if (the_interrupter) {
+		bt_interrupter_set(the_interrupter);
 	}
 
-	canceled = true;
-
+	interrupted = true;
 	return TRUE;
 }
 
@@ -92,15 +90,11 @@ void signal_handler(int signum)
 		return;
 	}
 
-	if (the_graph) {
-		bt_graph_cancel(the_graph);
+	if (the_interrupter) {
+		bt_interrupter_set(the_interrupter);
 	}
 
-	if (the_query_executor) {
-		bt_query_executor_cancel(the_query_executor);
-	}
-
-	canceled = true;
+	interrupted = true;
 }
 
 static
@@ -121,56 +115,39 @@ void set_signal_handler(void)
 #endif /* __MINGW32__ */
 
 static
-int create_the_query_executor(void)
-{
-	int ret = 0;
-
-	the_query_executor = bt_query_executor_create();
-	if (!the_query_executor) {
-		BT_CLI_LOGE_APPEND_CAUSE("Cannot create a query executor.");
-		ret = -1;
-	}
-
-	return ret;
-}
-
-static
-void destroy_the_query_executor(void)
-{
-	BT_QUERY_EXECUTOR_PUT_REF_AND_RESET(the_query_executor);
-}
-
-static
 int query(struct bt_config *cfg, const bt_component_class *comp_cls,
 		const char *obj, const bt_value *params,
 		const bt_value **user_result, const char **fail_reason)
 {
 	const bt_value *result = NULL;
 	bt_query_executor_query_status query_status;
+	bt_query_executor *query_exec;
 	*fail_reason = "unknown error";
 	int ret = 0;
 
 	BT_ASSERT(fail_reason);
 	BT_ASSERT(user_result);
-	ret = create_the_query_executor();
-	if (ret) {
-		/* create_the_query_executor() logs errors */
-		goto end;
+	query_exec = bt_query_executor_create();
+	if (!query_exec) {
+		BT_CLI_LOGE_APPEND_CAUSE("Cannot create a query executor.");
+		goto error;
 	}
 
-	if (canceled) {
+	bt_query_executor_add_interrupter(query_exec, the_interrupter);
+
+	if (interrupted) {
 		BT_CLI_LOGW_APPEND_CAUSE(
-			"Canceled by user before executing the query: "
+			"Interrupted by user before executing the query: "
 			"comp-cls-addr=%p, comp-cls-name=\"%s\", "
 			"query-obj=\"%s\"", comp_cls,
 			bt_component_class_get_name(comp_cls), obj);
-		*fail_reason = "canceled by user";
+		*fail_reason = "interrupted by user";
 		goto error;
 	}
 
 	while (true) {
 		query_status = bt_query_executor_query(
-			the_query_executor, comp_cls, obj, params,
+			query_exec, comp_cls, obj, params,
 			cfg->log_level, &result);
 		switch (query_status) {
 		case BT_QUERY_EXECUTOR_QUERY_STATUS_OK:
@@ -179,29 +156,36 @@ int query(struct bt_config *cfg, const bt_component_class *comp_cls,
 		{
 			const uint64_t sleep_time_us = 100000;
 
+			if (bt_interrupter_is_set(the_interrupter)) {
+				*fail_reason = "interrupted by user";
+				goto error;
+			}
+
 			/* Wait 100 ms and retry */
 			BT_LOGD("Got BT_QUERY_EXECUTOR_QUERY_STATUS_AGAIN: sleeping: "
 				"time-us=%" PRIu64, sleep_time_us);
 
 			if (usleep(sleep_time_us)) {
-				if (bt_query_executor_is_canceled(the_query_executor)) {
+				if (bt_interrupter_is_set(the_interrupter)) {
 					BT_CLI_LOGW_APPEND_CAUSE(
-						"Query was canceled by user: "
+						"Query was interrupted by user: "
 						"comp-cls-addr=%p, comp-cls-name=\"%s\", "
 						"query-obj=\"%s\"", comp_cls,
 						bt_component_class_get_name(comp_cls),
 						obj);
-					*fail_reason = "canceled by user";
+					*fail_reason = "interrupted by user";
 					goto error;
 				}
 			}
 
 			continue;
 		}
-		case BT_QUERY_EXECUTOR_QUERY_STATUS_CANCELED:
-			*fail_reason = "canceled by user";
-			goto error;
 		case BT_QUERY_EXECUTOR_QUERY_STATUS_ERROR:
+			if (bt_interrupter_is_set(the_interrupter)) {
+				*fail_reason = "interrupted by user";
+				goto error;
+			}
+
 			goto error;
 		case BT_QUERY_EXECUTOR_QUERY_STATUS_INVALID_OBJECT:
 			*fail_reason = "invalid or unknown query object";
@@ -228,7 +212,7 @@ error:
 	ret = -1;
 
 end:
-	destroy_the_query_executor();
+	bt_query_executor_put_ref(query_exec);
 	bt_value_put_ref(result);
 	return ret;
 }
@@ -1604,9 +1588,6 @@ int cmd_run_ctx_connect_upstream_port_to_downstream_component(
 		switch (connect_ports_status) {
 		case BT_GRAPH_CONNECT_PORTS_STATUS_OK:
 			break;
-		case BT_GRAPH_CONNECT_PORTS_STATUS_CANCELED:
-			BT_CLI_LOGW_APPEND_CAUSE("Graph was canceled by user.");
-			break;
 		default:
 			BT_CLI_LOGE_APPEND_CAUSE(
 				"Cannot create connection: graph refuses to connect ports: "
@@ -1826,7 +1807,6 @@ void cmd_run_ctx_destroy(struct cmd_run_ctx *ctx)
 	}
 
 	BT_GRAPH_PUT_REF_AND_RESET(ctx->graph);
-	the_graph = NULL;
 	ctx->cfg = NULL;
 }
 
@@ -1870,7 +1850,7 @@ int cmd_run_ctx_init(struct cmd_run_ctx *ctx, struct bt_config *cfg)
 		goto error;
 	}
 
-	the_graph = ctx->graph;
+	bt_graph_add_interrupter(ctx->graph, the_interrupter);
 	add_listener_status = bt_graph_add_source_component_output_port_added_listener(
 		ctx->graph, graph_source_output_port_added_listener, NULL, ctx,
 		NULL);
@@ -2331,9 +2311,9 @@ int cmd_run(struct bt_config *cfg)
 		goto error;
 	}
 
-	if (canceled) {
+	if (interrupted) {
 		BT_CLI_LOGW_APPEND_CAUSE(
-			"Canceled by user before creating components.");
+			"Interrupted by user before creating components.");
 		goto error;
 	}
 
@@ -2345,9 +2325,9 @@ int cmd_run(struct bt_config *cfg)
 		goto error;
 	}
 
-	if (canceled) {
+	if (interrupted) {
 		BT_CLI_LOGW_APPEND_CAUSE(
-			"Canceled by user before connecting components.");
+			"Interrupted by user before connecting components.");
 		goto error;
 	}
 
@@ -2360,9 +2340,9 @@ int cmd_run(struct bt_config *cfg)
 		goto error;
 	}
 
-	if (canceled) {
+	if (interrupted) {
 		BT_CLI_LOGW_APPEND_CAUSE(
-			"Canceled by user before running the graph.");
+			"Interrupted by user before running the graph.");
 		goto error;
 	}
 
@@ -2385,13 +2365,10 @@ int cmd_run(struct bt_config *cfg)
 		switch (run_status) {
 		case BT_GRAPH_RUN_STATUS_OK:
 			break;
-		case BT_GRAPH_RUN_STATUS_CANCELED:
-			BT_CLI_LOGW_APPEND_CAUSE("Graph was canceled by user.");
-			goto error;
 		case BT_GRAPH_RUN_STATUS_AGAIN:
-			if (bt_graph_is_canceled(ctx.graph)) {
+			if (bt_interrupter_is_set(the_interrupter)) {
 				BT_CLI_LOGW_APPEND_CAUSE(
-					"Graph was canceled by user.");
+					"Graph was interrupted by user.");
 				goto error;
 			}
 
@@ -2401,9 +2378,9 @@ int cmd_run(struct bt_config *cfg)
 					cfg->cmd_data.run.retry_duration_us);
 
 				if (usleep(cfg->cmd_data.run.retry_duration_us)) {
-					if (bt_graph_is_canceled(ctx.graph)) {
+					if (bt_interrupter_is_set(the_interrupter)) {
 						BT_CLI_LOGW_APPEND_CAUSE(
-							"Graph was canceled by user.");
+							"Graph was interrupted by user.");
 						goto error;
 					}
 				}
@@ -2412,6 +2389,14 @@ int cmd_run(struct bt_config *cfg)
 		case BT_GRAPH_RUN_STATUS_END:
 			goto end;
 		default:
+			if (bt_interrupter_is_set(the_interrupter)) {
+				BT_CLI_LOGW_APPEND_CAUSE(
+					"Graph was interrupted by user and failed: "
+					"status=%s",
+					bt_common_func_status_string(run_status));
+				goto error;
+			}
+
 			BT_CLI_LOGE_APPEND_CAUSE(
 				"Graph failed to complete successfully");
 			goto error;
@@ -2705,6 +2690,14 @@ int main(int argc, const char **argv)
 		}
 	}
 
+	BT_ASSERT(!the_interrupter);
+	the_interrupter = bt_interrupter_create();
+	if (!the_interrupter) {
+		BT_CLI_LOGE_APPEND_CAUSE("Failed to create an interrupter object.");
+		retcode = 1;
+		goto end;
+	}
+
 	BT_LOGI("Executing command: cmd=%d, command-name=\"%s\"",
 		cfg->command, cfg->command_name);
 
@@ -2740,6 +2733,7 @@ int main(int argc, const char **argv)
 end:
 	BT_OBJECT_PUT_REF_AND_RESET(cfg);
 	fini_loaded_plugins();
+	bt_interrupter_put_ref(the_interrupter);
 
 	if (retcode != 0) {
 		print_error_causes();

@@ -33,6 +33,9 @@
 extern "C" {
 #endif
 
+extern bt_bool bt_self_message_iterator_is_interrupted(
+		const bt_self_message_iterator *message_iterator);
+
 extern bt_self_component *
 bt_self_message_iterator_borrow_component(
 		bt_self_message_iterator *message_iterator);

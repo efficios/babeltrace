@@ -67,6 +67,7 @@ enum bt_graph_configuration_state {
 	BT_GRAPH_CONFIGURATION_STATE_PARTIALLY_CONFIGURED,
 	BT_GRAPH_CONFIGURATION_STATE_CONFIGURED,
 	BT_GRAPH_CONFIGURATION_STATE_FAULTY,
+	BT_GRAPH_CONFIGURATION_STATE_DESTROYING,
 };
 
 struct bt_graph {
@@ -89,7 +90,19 @@ struct bt_graph {
 	/* Queue of pointers (weak references) to sink bt_components. */
 	GQueue *sinks_to_consume;
 
-	bool canceled;
+	/*
+	 * Array of `struct bt_interrupter *`, each one owned by this.
+	 * If any interrupter is set, then this graph is deemed
+	 * interrupted.
+	 */
+	GPtrArray *interrupters;
+
+	/*
+	 * Default interrupter to support bt_graph_interrupt(); owned
+	 * by this.
+	 */
+	struct bt_interrupter *default_interrupter;
+
 	bool in_remove_listener;
 	bool has_sink;
 
@@ -183,6 +196,9 @@ int bt_graph_remove_unconnected_component(struct bt_graph *graph,
 BT_HIDDEN
 void bt_graph_add_message(struct bt_graph *graph,
 		struct bt_message *msg);
+
+BT_HIDDEN
+bool bt_graph_is_interrupted(const struct bt_graph *graph);
 
 static inline
 const char *bt_graph_configuration_state_string(

@@ -348,17 +348,16 @@ create_self_component_input_port_message_iterator(
 		"Input port is not connected: %![port-]+p", port);
 	BT_ASSERT_PRE(comp, "Input port is not part of a component: %![port-]+p",
 		port);
-	BT_ASSERT_PRE(!bt_component_graph_is_canceled(comp),
-		"Input port's component's graph is canceled: "
-		"%![port-]+p, %![comp-]+c", port, comp);
 	BT_ASSERT(port->connection);
 	upstream_port = port->connection->upstream_port;
 	BT_ASSERT(upstream_port);
 	upstream_comp = bt_port_borrow_component_inline(upstream_port);
 	BT_ASSERT(upstream_comp);
 	BT_ASSERT_PRE(
-		bt_component_borrow_graph(upstream_comp)->config_state !=
-			BT_GRAPH_CONFIGURATION_STATE_CONFIGURING,
+		bt_component_borrow_graph(upstream_comp)->config_state ==
+			BT_GRAPH_CONFIGURATION_STATE_PARTIALLY_CONFIGURED ||
+		bt_component_borrow_graph(upstream_comp)->config_state ==
+			BT_GRAPH_CONFIGURATION_STATE_CONFIGURED,
 		"Graph is not configured: %!+g",
 		bt_component_borrow_graph(upstream_comp));
 	upstream_comp_cls = upstream_comp->class;
@@ -964,7 +963,6 @@ enum bt_message_iterator_next_status bt_port_output_message_iterator_next(
 	graph_status = bt_graph_consume_sink_no_check(iterator->graph,
 		iterator->colander);
 	switch (graph_status) {
-	case BT_FUNC_STATUS_CANCELED:
 	case BT_FUNC_STATUS_AGAIN:
 	case BT_FUNC_STATUS_END:
 	case BT_FUNC_STATUS_MEMORY_ERROR:
@@ -2117,6 +2115,16 @@ bt_port_output_message_iterator_seek_beginning(
 	return bt_self_component_port_input_message_iterator_seek_beginning(
 		borrow_output_port_message_iterator_upstream_iterator(
 			iterator));
+}
+
+bt_bool bt_self_message_iterator_is_interrupted(
+		const struct bt_self_message_iterator *self_msg_iter)
+{
+	const struct bt_self_component_port_input_message_iterator *iterator =
+		(const void *) self_msg_iter;
+
+	BT_ASSERT_PRE_NON_NULL(iterator, "Message iterator");
+	return (bt_bool) bt_graph_is_interrupted(iterator->graph);
 }
 
 void bt_port_output_message_iterator_get_ref(

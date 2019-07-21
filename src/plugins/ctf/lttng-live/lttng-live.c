@@ -109,18 +109,17 @@ const char *print_state(struct lttng_live_stream_iterator *s)
 	} while (0);
 
 BT_HIDDEN
-bool lttng_live_graph_is_canceled(struct lttng_live_component *lttng_live)
+bool lttng_live_graph_is_canceled(struct lttng_live_msg_iter *msg_iter)
 {
-	const bt_component *component;
 	bool ret;
 
-	if (!lttng_live) {
+	if (!msg_iter) {
 		ret = false;
 		goto end;
 	}
 
-	component = bt_self_component_as_component(lttng_live->self_comp);
-	ret = bt_component_graph_is_canceled(component);
+	ret = bt_self_message_iterator_is_interrupted(
+		msg_iter->self_msg_iter);
 
 end:
 	return ret;
@@ -259,7 +258,6 @@ end:
 static
 void lttng_live_destroy_session(struct lttng_live_session *session)
 {
-	struct lttng_live_component *live_comp;
 	bt_logging_level log_level;
 	bt_self_component *self_comp;
 
@@ -272,9 +270,9 @@ void lttng_live_destroy_session(struct lttng_live_session *session)
 	BT_COMP_LOGD("Destroy lttng live session");
 	if (session->id != -1ULL) {
 		if (lttng_live_detach_session(session)) {
-			live_comp = session->lttng_live_msg_iter->lttng_live_comp;
 			if (session->lttng_live_msg_iter &&
-					!lttng_live_graph_is_canceled(live_comp)) {
+					!lttng_live_graph_is_canceled(
+						session->lttng_live_msg_iter)) {
 				/* Old relayd cannot detach sessions. */
 				BT_COMP_LOGD("Unable to detach lttng live session %" PRIu64,
 					session->id);
@@ -442,7 +440,7 @@ enum lttng_live_iterator_status lttng_live_get_session(
 		ret = lttng_live_attach_session(session);
 		if (ret) {
 			if (lttng_live_msg_iter && lttng_live_graph_is_canceled(
-						lttng_live_msg_iter->lttng_live_comp)) {
+					lttng_live_msg_iter)) {
 				status = LTTNG_LIVE_ITERATOR_STATUS_AGAIN;
 			} else {
 				status = LTTNG_LIVE_ITERATOR_STATUS_ERROR;
@@ -1586,11 +1584,6 @@ bt_component_class_init_method_status lttng_live_component_init(
 	lttng_live = lttng_live_component_create(params, log_level, self_comp);
 	if (!lttng_live) {
 		ret = BT_COMPONENT_CLASS_INIT_METHOD_STATUS_MEMORY_ERROR;
-		goto error;
-	}
-
-	if (lttng_live_graph_is_canceled(lttng_live)) {
-		ret = BT_COMPONENT_CLASS_INIT_METHOD_STATUS_ERROR;
 		goto error;
 	}
 

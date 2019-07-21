@@ -313,6 +313,6 @@ struct lttng_live_trace *lttng_live_borrow_trace(
 		struct lttng_live_session *session, uint64_t trace_id);
 void lttng_live_need_new_streams(struct lttng_live_msg_iter *lttng_live_msg_iter);
 
-bool lttng_live_graph_is_canceled(struct lttng_live_component *lttng_live);
+bool lttng_live_graph_is_canceled(struct lttng_live_msg_iter *msg_iter);
 
 #endif /* BABELTRACE_PLUGIN_CTF_LTTNG_LIVE_H */

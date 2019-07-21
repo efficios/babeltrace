@@ -120,8 +120,6 @@ enum lttng_live_iterator_status lttng_live_metadata_update(
 {
 	struct lttng_live_session *session = trace->session;
 	struct lttng_live_metadata *metadata = trace->metadata;
-	struct lttng_live_component *lttng_live =
-		session->lttng_live_msg_iter->lttng_live_comp;
 	ssize_t ret = 0;
 	size_t size, len_read = 0;
 	char *metadata_buf = NULL;
@@ -188,7 +186,8 @@ enum lttng_live_iterator_status lttng_live_metadata_update(
 			metadata->trace = NULL;
 		}
 		if (errno == EINTR) {
-			if (lttng_live_graph_is_canceled(lttng_live)) {
+			if (lttng_live_graph_is_canceled(
+					session->lttng_live_msg_iter)) {
 				status = LTTNG_LIVE_ITERATOR_STATUS_AGAIN;
 				goto end;
 			}

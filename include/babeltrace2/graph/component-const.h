@@ -79,9 +79,6 @@ bt_bool bt_component_is_sink(const bt_component *component)
 		BT_COMPONENT_CLASS_TYPE_SINK;
 }
 
-extern bt_bool bt_component_graph_is_canceled(
-		const bt_component *component);
-
 extern void bt_component_get_ref(const bt_component *component);
 
 extern void bt_component_put_ref(const bt_component *component);

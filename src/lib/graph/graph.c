@@ -46,6 +46,7 @@
 #include "component-sink.h"
 #include "connection.h"
 #include "graph.h"
+#include "interrupter.h"
 #include "message/event.h"
 #include "message/packet.h"
 
@@ -133,12 +134,7 @@ void destroy_graph(struct bt_object *obj)
 	 */
 	BT_LIB_LOGI("Destroying graph: %!+g", graph);
 	obj->ref_count++;
-
-	/*
-	 * Cancel the graph to disallow some operations, like creating
-	 * message iterators and adding ports to components.
-	 */
-	(void) bt_graph_cancel((void *) graph);
+	graph->config_state = BT_GRAPH_CONFIGURATION_STATE_DESTROYING;
 
 	/* Call all remove listeners */
 	CALL_REMOVE_LISTENERS(struct bt_graph_listener_port_added,
@@ -174,6 +170,14 @@ void destroy_graph(struct bt_object *obj)
 		g_ptr_array_free(graph->components, TRUE);
 		graph->components = NULL;
 	}
+
+	if (graph->interrupters) {
+		BT_LOGD_STR("Putting interrupters.");
+		g_ptr_array_free(graph->interrupters, TRUE);
+		graph->interrupters = NULL;
+	}
+
+	BT_OBJECT_PUT_REF_AND_RESET(graph->default_interrupter);
 
 	if (graph->sinks_to_consume) {
 		g_queue_free(graph->sinks_to_consume);
@@ -353,6 +357,21 @@ struct bt_graph *bt_graph_create(void)
 		goto error;
 	}
 
+	graph->interrupters = g_ptr_array_new_with_free_func(
+		(GDestroyNotify) bt_object_put_no_null_check);
+	if (!graph->interrupters) {
+		BT_LIB_LOGE_APPEND_CAUSE("Failed to allocate one GPtrArray.");
+		goto error;
+	}
+
+	graph->default_interrupter = bt_interrupter_create();
+	if (!graph->default_interrupter) {
+		BT_LIB_LOGE_APPEND_CAUSE(
+			"Failed to create one interrupter object.");
+		goto error;
+	}
+
+	bt_graph_add_interrupter(graph, graph->default_interrupter);
 	ret = bt_object_pool_initialize(&graph->event_msg_pool,
 		(bt_object_pool_new_object_func) bt_message_event_new,
 		(bt_object_pool_destroy_object_func) destroy_message_event,
@@ -417,7 +436,6 @@ enum bt_graph_connect_ports_status bt_graph_connect_ports(
 	BT_ASSERT_PRE_NON_NULL(graph, "Graph");
 	BT_ASSERT_PRE_NON_NULL(upstream_port, "Upstream port");
 	BT_ASSERT_PRE_NON_NULL(downstream_port, "Downstream port port");
-	BT_ASSERT_PRE(!graph->canceled, "Graph is canceled: %!+g", graph);
 	BT_ASSERT_PRE(
 		graph->config_state == BT_GRAPH_CONFIGURATION_STATE_CONFIGURING,
 		"Graph is not in the \"configuring\" state: %!+g", graph);
@@ -687,7 +705,6 @@ enum bt_graph_consume_status bt_graph_consume(struct bt_graph *graph)
 	enum bt_graph_consume_status status;
 
 	BT_ASSERT_PRE_DEV_NON_NULL(graph, "Graph");
-	BT_ASSERT_PRE_DEV(!graph->canceled, "Graph is canceled: %!+g", graph);
 	BT_ASSERT_PRE_DEV(graph->can_consume,
 		"Cannot consume graph in its current state: %!+g", graph);
 	BT_ASSERT_PRE_DEV(graph->config_state !=
@@ -712,7 +729,6 @@ enum bt_graph_run_status bt_graph_run(struct bt_graph *graph)
 	enum bt_graph_run_status status;
 
 	BT_ASSERT_PRE_NON_NULL(graph, "Graph");
-	BT_ASSERT_PRE(!graph->canceled, "Graph is canceled: %!+g", graph);
 	BT_ASSERT_PRE(graph->can_consume,
 		"Cannot consume graph in its current state: %!+g", graph);
 	BT_ASSERT_PRE(graph->config_state != BT_GRAPH_CONFIGURATION_STATE_FAULTY,
@@ -728,15 +744,15 @@ enum bt_graph_run_status bt_graph_run(struct bt_graph *graph)
 
 	do {
 		/*
-		 * Check if the graph is canceled at each iteration. If
-		 * the graph was canceled by another thread or by a
-		 * signal handler, this is not a warning nor an error,
-		 * it was intentional: log with a DEBUG level only.
+		 * Check if the graph is interrupted at each iteration.
+		 * If the graph was interrupted by another thread or by
+		 * a signal handler, this is NOT a warning nor an error;
+		 * it was intentional: log with an INFO level only.
 		 */
-		if (G_UNLIKELY(graph->canceled)) {
-			BT_LIB_LOGI("Stopping the graph: graph is canceled: "
-				"%!+g", graph);
-			status = BT_FUNC_STATUS_CANCELED;
+		if (G_UNLIKELY(bt_graph_is_interrupted(graph))) {
+			BT_LIB_LOGI("Stopping the graph: "
+				"graph was interrupted: %!+g", graph);
+			status = BT_FUNC_STATUS_AGAIN;
 			goto end;
 		}
 
@@ -1209,20 +1225,6 @@ end:
 	return status;
 }
 
-enum bt_graph_cancel_status bt_graph_cancel(struct bt_graph *graph)
-{
-	BT_ASSERT_PRE_NON_NULL(graph, "Graph");
-	graph->canceled = true;
-	BT_LIB_LOGI("Canceled graph: %!+i", graph);
-	return BT_FUNC_STATUS_OK;
-}
-
-bt_bool bt_graph_is_canceled(const struct bt_graph *graph)
-{
-	BT_ASSERT_PRE_DEV_NON_NULL(graph, "Graph");
-	return graph->canceled ? BT_TRUE : BT_FALSE;
-}
-
 BT_HIDDEN
 void bt_graph_remove_connection(struct bt_graph *graph,
 		struct bt_connection *connection)
@@ -1275,7 +1277,6 @@ int add_component_with_init_method_data(
 	BT_ASSERT(comp_cls);
 	BT_ASSERT_PRE_NON_NULL(graph, "Graph");
 	BT_ASSERT_PRE_NON_NULL(name, "Name");
-	BT_ASSERT_PRE(!graph->canceled, "Graph is canceled: %!+g", graph);
 	BT_ASSERT_PRE(
 		graph->config_state == BT_GRAPH_CONFIGURATION_STATE_CONFIGURING,
 		"Graph is not in the \"configuring\" state: %!+g", graph);
@@ -1557,6 +1558,32 @@ void bt_graph_add_message(struct bt_graph *graph,
 	 *   graph, which means the original graph is already destroyed.
 	 */
 	g_ptr_array_add(graph->messages, msg);
+}
+
+BT_HIDDEN
+bool bt_graph_is_interrupted(const struct bt_graph *graph)
+{
+	BT_ASSERT(graph);
+	return bt_interrupter_array_any_is_set(graph->interrupters);
+}
+
+enum bt_graph_add_interrupter_status bt_graph_add_interrupter(
+		struct bt_graph *graph, const struct bt_interrupter *intr)
+{
+	BT_ASSERT_PRE_NON_NULL(graph, "Graph");
+	BT_ASSERT_PRE_NON_NULL(intr, "Interrupter");
+	g_ptr_array_add(graph->interrupters, (void *) intr);
+	bt_object_get_no_null_check(intr);
+	BT_LIB_LOGD("Added interrupter to graph: %![graph-]+g, %![intr-]+z",
+		graph, intr);
+	return BT_FUNC_STATUS_OK;
+}
+
+void bt_graph_interrupt(struct bt_graph *graph)
+{
+	BT_ASSERT_PRE_NON_NULL(graph, "Graph");
+	bt_interrupter_set(graph->default_interrupter);
+	BT_LIB_LOGI("Interrupted graph: %!+g", graph);
 }
 
 void bt_graph_get_ref(const struct bt_graph *graph)
