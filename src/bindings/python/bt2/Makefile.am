@@ -68,6 +68,13 @@ STATIC_BINDINGS_DEPS =					\
 	bt2/utils.py					\
 	bt2/value.py
 
+# Convenience static libraries on which the Python bindings library depends.
+# These are listed in the setup.py(.in) file.
+STATIC_LIBRARIES_DEPS = \
+	$(top_builddir)/src/logging/libbabeltrace2-logging.la \
+	$(top_builddir)/src/common/libbabeltrace2-common.la \
+	$(top_builddir)/src/py-common/libbabeltrace2-py-common.la
+
 GENERATED_BINDINGS_DEPS =	\
 	bt2/__init__.py		\
 	bt2/native_bt.c		\
@@ -88,7 +95,8 @@ copy-static-deps.stamp: $(addprefix $(srcdir)/, $(STATIC_BINDINGS_DEPS))
 	fi
 	touch $@
 
-build-python-bindings.stamp: copy-static-deps.stamp $(GENERATED_BINDINGS_DEPS) $(STATIC_NATIVE_LIB_SRCS)
+build-python-bindings.stamp: copy-static-deps.stamp $(GENERATED_BINDINGS_DEPS) \
+		$(STATIC_NATIVE_LIB_SRCS) $(STATIC_LIBRARIES_DEPS)
 	$(BUILD_FLAGS) $(PYTHON) $(builddir)/setup.py build --force
 	touch $@
 
