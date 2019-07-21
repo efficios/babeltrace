@@ -300,6 +300,29 @@ class UserMessageIteratorTestCase(unittest.TestCase):
         with self.assertRaises(bt2.Error):
             it.seek_beginning()
 
+    # Try consuming many times from an iterator that always returns TryAgain.
+    # This verifies that we are not missing an incref of Py_None, making the
+    # refcount of Py_None reach 0.
+    def test_try_again_many_times(self):
+        class MyIter(bt2._UserMessageIterator):
+            def __next__(self):
+                raise bt2.TryAgain
+
+        class MySource(bt2._UserSourceComponent, message_iterator_class=MyIter):
+            def __init__(self, params):
+                self._add_output_port('out')
+
+        graph = bt2.Graph()
+        src = graph.add_component(MySource, 'src')
+        it = graph.create_output_port_message_iterator(src.output_ports['out'])
+
+        # The initial refcount of Py_None was in the 7000, so 100000 iterations
+        # should be enough to catch the bug even if there are small differences
+        # between configurations.
+        for i in range(100000):
+            with self.assertRaises(bt2.TryAgain):
+                next(it)
+
 
 class OutputPortMessageIteratorTestCase(unittest.TestCase):
     def test_component(self):
