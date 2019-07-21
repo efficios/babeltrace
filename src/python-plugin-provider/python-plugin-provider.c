@@ -72,7 +72,7 @@ void append_python_traceback_error_cause(void)
 	GString *exc = NULL;
 
 	if (Py_IsInitialized() && PyErr_Occurred()) {
-		exc = bt_py_common_format_exception(BT_LOG_OUTPUT_LEVEL);
+		exc = bt_py_common_format_current_exception(BT_LOG_OUTPUT_LEVEL);
 		if (!exc) {
 			BT_LOGE_STR("Failed to format Python exception.");
 			goto end;
@@ -94,7 +94,7 @@ void log_python_traceback(int log_level)
 	GString *exc = NULL;
 
 	if (Py_IsInitialized() && PyErr_Occurred()) {
-		exc = bt_py_common_format_exception(BT_LOG_OUTPUT_LEVEL);
+		exc = bt_py_common_format_current_exception(BT_LOG_OUTPUT_LEVEL);
 		if (!exc) {
 			BT_LOGE_STR("Failed to format Python exception.");
 			goto end;

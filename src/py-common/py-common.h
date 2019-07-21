@@ -26,13 +26,27 @@
  */
 
 #include <glib.h>
+#include <Python.h>
 
 #include "common/macros.h"
 
 /*
- * Formats the Python error indicator (exception) and returns the
- * formatted string, or `NULL` on error. The returned string does NOT
- * end with a newline.
+ * Formats the Python exception described by `py_exc_type`, `py_exc_value`
+ * and `py_exc_tb` and returns the formatted string, or `NULL` on error. The
+ * returned string does NOT end with a newline.
+ *
+ * If `chain` is true, include all exceptions in the causality chain
+ * (see parameter `chain` of Python's traceback.format_exception).
+ */
+BT_HIDDEN
+GString *bt_py_common_format_exception(PyObject *py_exc_type,
+	        PyObject *py_exc_value, PyObject *py_exc_tb,
+		int log_level, bool chain);
+
+/*
+ * Wrapper for `bt_py_common_format_exception` that passes the Python error
+ * indicator (the exception currently being raised).  Always include the
+ * full exception chain.
  *
  * You must ensure that the error indicator is set with PyErr_Occurred()
  * before you call this function.
@@ -41,6 +55,6 @@
  * that is fetched is always restored.
  */
 BT_HIDDEN
-GString *bt_py_common_format_exception(int log_level);
+GString *bt_py_common_format_current_exception(int log_level);
 
 #endif /* BABELTRACE_PY_COMMON_INTERNAL_H */
