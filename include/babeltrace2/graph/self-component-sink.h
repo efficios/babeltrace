@@ -66,6 +66,9 @@ bt_self_component_sink_add_input_port(
 		const char *name, void *user_data,
 		bt_self_component_port_input **self_component_port);
 
+extern bt_bool bt_self_component_sink_is_interrupted(
+		const bt_self_component_sink *self_component);
+
 #ifdef __cplusplus
 }
 #endif

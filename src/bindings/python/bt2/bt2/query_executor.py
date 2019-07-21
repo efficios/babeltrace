@@ -21,6 +21,7 @@
 # THE SOFTWARE.
 
 from bt2 import native_bt, object, utils
+import bt2.interrupter
 import bt2.component
 import bt2.logging
 import bt2
@@ -38,15 +39,17 @@ class QueryExecutor(object._SharedObject):
 
         super().__init__(ptr)
 
-    def cancel(self):
-        status = native_bt.query_executor_cancel(self._ptr)
-        utils._handle_func_status(status, 'cannot cancel query executor object')
+    def add_interrupter(self, interrupter):
+        utils._check_type(interrupter, bt2.interrupter.Interrupter)
+        native_bt.query_executor_add_interrupter(self._ptr, interrupter._ptr)
+
+    def interrupt(self):
+        native_bt.query_executor_interrupt(self._ptr)
 
     @property
-    def is_canceled(self):
-        is_canceled = native_bt.query_executor_is_canceled(self._ptr)
-        assert is_canceled >= 0
-        return is_canceled > 0
+    def is_interrupted(self):
+        is_interrupted = native_bt.query_executor_is_interrupted(self._ptr)
+        return bool(is_interrupted)
 
     def query(
         self,
@@ -55,9 +58,6 @@ class QueryExecutor(object._SharedObject):
         params=None,
         logging_level=bt2.logging.LoggingLevel.NONE,
     ):
-        if self.is_canceled:
-            raise bt2.Canceled
-
         if not isinstance(component_class, bt2.component._GenericComponentClass):
             err = False
 

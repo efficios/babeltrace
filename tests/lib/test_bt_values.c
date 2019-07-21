@@ -651,7 +651,7 @@ void test_map(void)
 
 	ret = bt_value_map_foreach_entry(map_obj, test_map_foreach_cb_count,
 		&count);
-	ok(ret == BT_VALUE_MAP_FOREACH_ENTRY_STATUS_CANCELED && count == 3,
+	ok(ret == BT_VALUE_MAP_FOREACH_ENTRY_STATUS_INTERRUPTED && count == 3,
 		"bt_value_map_foreach_entry() breaks the loop when the user function returns BT_FALSE");
 
 	memset(&checklist, 0, sizeof(checklist));

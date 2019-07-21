@@ -67,7 +67,7 @@ ssize_t lttng_live_recv(struct live_viewer_connection *viewer_connection,
 		}
 		if (ret == BT_SOCKET_ERROR && bt_socket_interrupted()) {
 			if (!viewer_connection->in_query &&
-					lttng_live_graph_is_canceled(lttng_live_msg_iter->lttng_live_comp)) {
+					lttng_live_graph_is_canceled(lttng_live_msg_iter)) {
 				break;
 			} else {
 				continue;
@@ -93,7 +93,7 @@ ssize_t lttng_live_send(struct live_viewer_connection *viewer_connection,
 		ret = bt_socket_send_nosigpipe(sock, buf, len);
 		if (ret == BT_SOCKET_ERROR && bt_socket_interrupted()) {
 			if (!viewer_connection->in_query &&
-					lttng_live_graph_is_canceled(lttng_live_msg_iter->lttng_live_comp)) {
+					lttng_live_graph_is_canceled(lttng_live_msg_iter)) {
 				break;
 			} else {
 				continue;
@@ -1125,8 +1125,6 @@ enum lttng_live_iterator_status lttng_live_get_next_index(
 	struct lttng_live_trace *trace = stream->trace;
 	const size_t cmd_buf_len = sizeof(cmd) + sizeof(rq);
 	char cmd_buf[cmd_buf_len];
-	struct lttng_live_component *lttng_live =
-		lttng_live_msg_iter->lttng_live_comp;
 
 	cmd.cmd = htobe32(LTTNG_VIEWER_GET_NEXT_INDEX);
 	cmd.data_size = htobe64((uint64_t) sizeof(rq));
@@ -1239,7 +1237,7 @@ end:
 	return retstatus;
 
 error:
-	if (lttng_live_graph_is_canceled(lttng_live)) {
+	if (lttng_live_graph_is_canceled(lttng_live_msg_iter)) {
 		retstatus = LTTNG_LIVE_ITERATOR_STATUS_AGAIN;
 	} else {
 		retstatus = LTTNG_LIVE_ITERATOR_STATUS_ERROR;
@@ -1264,8 +1262,6 @@ enum bt_msg_iter_medium_status lttng_live_get_stream_bytes(
 	struct lttng_live_trace *trace = stream->trace;
 	const size_t cmd_buf_len = sizeof(cmd) + sizeof(rq);
 	char cmd_buf[cmd_buf_len];
-	struct lttng_live_component *lttng_live =
-		lttng_live_msg_iter->lttng_live_comp;
 
 	BT_COMP_LOGD("lttng_live_get_stream_bytes: offset=%" PRIu64 ", req_len=%" PRIu64,
 			offset, req_len);
@@ -1364,7 +1360,7 @@ end:
 	return retstatus;
 
 error:
-	if (lttng_live_graph_is_canceled(lttng_live)) {
+	if (lttng_live_graph_is_canceled(lttng_live_msg_iter)) {
 		retstatus = BT_MSG_ITER_MEDIUM_STATUS_AGAIN;
 	} else {
 		retstatus = BT_MSG_ITER_MEDIUM_STATUS_ERROR;
@@ -1389,8 +1385,6 @@ enum lttng_live_iterator_status lttng_live_get_new_streams(
 		session->lttng_live_msg_iter;
 	struct live_viewer_connection *viewer_connection =
 		lttng_live_msg_iter->viewer_connection;
-	struct lttng_live_component *lttng_live =
-		lttng_live_msg_iter->lttng_live_comp;
 	uint32_t streams_count;
 	const size_t cmd_buf_len = sizeof(cmd) + sizeof(rq);
 	char cmd_buf[cmd_buf_len];
@@ -1461,7 +1455,7 @@ end:
 	return status;
 
 error:
-	if (lttng_live_graph_is_canceled(lttng_live)) {
+	if (lttng_live_graph_is_canceled(lttng_live_msg_iter)) {
 		status = LTTNG_LIVE_ITERATOR_STATUS_AGAIN;
 	} else {
 		status = LTTNG_LIVE_ITERATOR_STATUS_ERROR;

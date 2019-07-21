@@ -1353,7 +1353,7 @@ an _INFO_ build.
 * Object copying (except fields and values).
 * Object freezing (whatever the type, as freezing only occurs in
   developer mode).
-* Object cancellation.
+* Object interruption.
 * Calling user methods and logging the result.
 * Setting object properties (except fields and values).
 |

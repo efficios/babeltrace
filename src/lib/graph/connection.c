@@ -50,8 +50,7 @@ void destroy_connection(struct bt_object *obj)
 	/*
 	 * Make sure that each message iterator which was created for
 	 * this connection is finalized before we destroy it. Once a
-	 * message iterator is finalized, all its method return NULL or
-	 * the BT_MESSAGE_ITERATOR_STATUS_CANCELED status.
+	 * message iterator is finalized, you cannot use it.
 	 *
 	 * Because connections are destroyed before components within a
 	 * graph, this ensures that message iterators are always

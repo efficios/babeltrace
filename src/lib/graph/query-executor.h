@@ -23,14 +23,29 @@
  * SOFTWARE.
  */
 
+#include <glib.h>
+
 #include <babeltrace2/types.h>
-#include "lib/object.h"
 #include <babeltrace2/graph/query-executor.h>
 #include <babeltrace2/graph/component-class.h>
 
+#include "lib/object.h"
+
 struct bt_query_executor {
 	struct bt_object base;
-	bool canceled;
+
+	/*
+	 * Array of `struct bt_interrupter *`, each one owned by this.
+	 * If any interrupter is set, then this query executor is deemed
+	 * interrupted.
+	 */
+	GPtrArray *interrupters;
+
+	/*
+	 * Default interrupter to support bt_query_executor_interrupt();
+	 * owned by this.
+	 */
+	struct bt_interrupter *default_interrupter;
 };
 
 #endif /* BABELTRACE_GRAPH_QUERY_EXECUTOR_INTERNAL_H */

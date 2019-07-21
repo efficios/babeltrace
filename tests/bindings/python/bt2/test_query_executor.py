@@ -183,13 +183,7 @@ class QueryExecutorTestCase(unittest.TestCase):
         with self.assertRaises(bt2.TryAgain):
             res = bt2.QueryExecutor().query(MySink, 'obj', [17, 23])
 
-    def test_cancel_no_query(self):
-        query_exec = bt2.QueryExecutor()
-        self.assertFalse(query_exec.is_canceled)
-        query_exec.cancel()
-        self.assertTrue(query_exec.is_canceled)
-
-    def test_query_canceled(self):
+    def test_query_add_interrupter(self):
         class MySink(bt2._UserSinkComponent):
             def _consume(self):
                 pass
@@ -199,10 +193,35 @@ class QueryExecutorTestCase(unittest.TestCase):
 
             @classmethod
             def _query(cls, query_exec, obj, params, log_level):
-                raise bt2.TryAgain
+                nonlocal interrupter2
+                test_self.assertFalse(query_exec.is_interrupted)
+                interrupter2.set()
+                test_self.assertTrue(query_exec.is_interrupted)
+                interrupter2.reset()
+                test_self.assertFalse(query_exec.is_interrupted)
 
+        interrupter1 = bt2.Interrupter()
+        interrupter2 = bt2.Interrupter()
+        test_self = self
         query_exec = bt2.QueryExecutor()
-        query_exec.cancel()
+        query_exec.add_interrupter(interrupter1)
+        query_exec.add_interrupter(interrupter2)
+        query_exec.query(MySink, 'obj', [17, 23])
 
-        with self.assertRaises(bt2.Canceled):
-            res = query_exec.query(MySink, 'obj', [17, 23])
+    def test_query_interrupt(self):
+        class MySink(bt2._UserSinkComponent):
+            def _consume(self):
+                pass
+
+            def _graph_is_configured(self):
+                pass
+
+            @classmethod
+            def _query(cls, query_exec, obj, params, log_level):
+                test_self.assertFalse(query_exec.is_interrupted)
+                query_exec.interrupt()
+                test_self.assertTrue(query_exec.is_interrupted)
+
+        test_self = self
+        query_exec = bt2.QueryExecutor()
+        query_exec.query(MySink, 'obj', [17, 23])

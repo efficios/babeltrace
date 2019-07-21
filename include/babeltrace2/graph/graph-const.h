@@ -33,8 +33,6 @@
 extern "C" {
 #endif
 
-extern bt_bool bt_graph_is_canceled(const bt_graph *graph);
-
 extern void bt_graph_get_ref(const bt_graph *graph);
 
 extern void bt_graph_put_ref(const bt_graph *graph);

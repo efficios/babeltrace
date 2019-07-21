@@ -138,6 +138,10 @@ class _UserMessageIterator(_MessageIterator):
     def addr(self):
         return int(self._bt_ptr)
 
+    @property
+    def _is_interrupted(self):
+        return bool(native_bt.self_message_iterator_is_interrupted(self._bt_ptr))
+
     def _finalize(self):
         pass
 

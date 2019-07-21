@@ -151,11 +151,6 @@ def _handle_func_status(status, msg=None):
             raise bt2.TryAgain
         else:
             raise bt2.TryAgain(msg)
-    elif status == native_bt.__BT_FUNC_STATUS_CANCELED:
-        if msg is None:
-            raise bt2.Canceled
-        else:
-            raise bt2.Canceled(msg)
     elif status == native_bt.__BT_FUNC_STATUS_OVERFLOW:
         if msg is None:
             raise bt2.OverflowError

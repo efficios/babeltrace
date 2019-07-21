@@ -37,6 +37,7 @@
 
 #include "component-class.h"
 #include "query-executor.h"
+#include "interrupter.h"
 #include "lib/func-status.h"
 
 static
@@ -46,6 +47,15 @@ void bt_query_executor_destroy(struct bt_object *obj)
 		container_of(obj, struct bt_query_executor, base);
 
 	BT_LOGD("Destroying query executor: addr=%p", query_exec);
+
+	if (query_exec->interrupters) {
+		BT_LOGD_STR("Putting interrupters.");
+		g_ptr_array_free(query_exec->interrupters, TRUE);
+		query_exec->interrupters = NULL;
+	}
+
+	BT_OBJECT_PUT_REF_AND_RESET(query_exec->default_interrupter);
+
 	g_free(query_exec);
 }
 
@@ -61,6 +71,24 @@ struct bt_query_executor *bt_query_executor_create(void)
 		goto end;
 	}
 
+	query_exec->interrupters = g_ptr_array_new_with_free_func(
+		(GDestroyNotify) bt_object_put_no_null_check);
+	if (!query_exec->interrupters) {
+		BT_LIB_LOGE_APPEND_CAUSE("Failed to allocate one GPtrArray.");
+		BT_OBJECT_PUT_REF_AND_RESET(query_exec);
+		goto end;
+	}
+
+	query_exec->default_interrupter = bt_interrupter_create();
+	if (!query_exec->default_interrupter) {
+		BT_LIB_LOGE_APPEND_CAUSE(
+			"Failed to create one interrupter object.");
+		BT_OBJECT_PUT_REF_AND_RESET(query_exec);
+		goto end;
+	}
+
+	bt_query_executor_add_interrupter(query_exec,
+		query_exec->default_interrupter);
 	bt_object_init_shared(&query_exec->base,
 		bt_query_executor_destroy);
 	BT_LOGD("Created query executor: addr=%p", query_exec);
@@ -88,7 +116,6 @@ enum bt_query_executor_query_status bt_query_executor_query(
 	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
 	BT_ASSERT_PRE_NON_NULL(object, "Object");
 	BT_ASSERT_PRE_NON_NULL(user_result, "Result (output)");
-	BT_ASSERT_PRE(!query_exec->canceled, "Query executor is canceled.");
 
 	if (!params) {
 		params = bt_value_null;
@@ -141,29 +168,38 @@ enum bt_query_executor_query_status bt_query_executor_query(
 	BT_ASSERT_POST(query_status != BT_FUNC_STATUS_OK || *user_result,
 		"User method returned `BT_FUNC_STATUS_OK` without a result.");
 	status = (int) query_status;
-	if (query_exec->canceled) {
-		BT_OBJECT_PUT_REF_AND_RESET(*user_result);
-		status = BT_FUNC_STATUS_CANCELED;
-		goto end;
-	}
 
 end:
 	return status;
 }
 
-enum bt_query_executor_cancel_status bt_query_executor_cancel(
-		struct bt_query_executor *query_exec)
+enum bt_query_executor_add_interrupter_status bt_query_executor_add_interrupter(
+		struct bt_query_executor *query_exec,
+		const struct bt_interrupter *intr)
 {
 	BT_ASSERT_PRE_NON_NULL(query_exec, "Query executor");
-	query_exec->canceled = BT_TRUE;
-	BT_LOGI("Canceled query executor: addr=%p", query_exec);
+	BT_ASSERT_PRE_NON_NULL(intr, "Interrupter");
+	g_ptr_array_add(query_exec->interrupters, (void *) intr);
+	bt_object_get_no_null_check(intr);
+	BT_LIB_LOGD("Added interrupter to query executor: "
+		"query-exec-addr=%p, %![intr-]+z",
+		query_exec, intr);
 	return BT_FUNC_STATUS_OK;
 }
 
-bt_bool bt_query_executor_is_canceled(const struct bt_query_executor *query_exec)
+bt_bool bt_query_executor_is_interrupted(const struct bt_query_executor *query_exec)
 {
-	BT_ASSERT_PRE_DEV_NON_NULL(query_exec, "Query executor");
-	return query_exec->canceled;
+	BT_ASSERT_PRE_NON_NULL(query_exec, "Query executor");
+	return (bt_bool) bt_interrupter_array_any_is_set(
+		query_exec->interrupters);
+}
+
+void bt_query_executor_interrupt(struct bt_query_executor *query_exec)
+{
+	BT_ASSERT_PRE_NON_NULL(query_exec, "Query executor");
+	bt_interrupter_set(query_exec->default_interrupter);
+	BT_LIB_LOGI("Interrupted query executor: query-exec-addr=%p",
+		query_exec);
 }
 
 void bt_query_executor_get_ref(const struct bt_query_executor *query_executor)

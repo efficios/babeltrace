@@ -130,7 +130,7 @@ typedef bt_bool (* bt_value_map_foreach_entry_func)(const char *key,
 typedef enum bt_value_map_foreach_entry_status {
 	BT_VALUE_MAP_FOREACH_ENTRY_STATUS_MEMORY_ERROR	= __BT_FUNC_STATUS_MEMORY_ERROR,
 	BT_VALUE_MAP_FOREACH_ENTRY_STATUS_OK		= __BT_FUNC_STATUS_OK,
-	BT_VALUE_MAP_FOREACH_ENTRY_STATUS_CANCELED	= __BT_FUNC_STATUS_CANCELED,
+	BT_VALUE_MAP_FOREACH_ENTRY_STATUS_INTERRUPTED	= __BT_FUNC_STATUS_INTERRUPTED,
 } bt_value_map_foreach_entry_status;
 
 extern bt_value_map_foreach_entry_status bt_value_map_foreach_entry(
