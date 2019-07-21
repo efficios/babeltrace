@@ -32,24 +32,16 @@
 #include "py-common.h"
 
 BT_HIDDEN
-GString *bt_py_common_format_exception(int log_level)
+GString *bt_py_common_format_exception(PyObject *py_exc_type,
+		PyObject *py_exc_value, PyObject *py_exc_tb,
+		int log_level, bool chain)
 {
-	PyObject *type = NULL;
-	PyObject *value = NULL;
-	PyObject *traceback = NULL;
 	PyObject *traceback_module = NULL;
 	PyObject *format_exception_func = NULL;
 	PyObject *exc_str_list = NULL;
 	GString *msg_buf = NULL;
 	const char *format_exc_func_name;
 	Py_ssize_t i;
-
-	BT_ASSERT(PyErr_Occurred());
-	PyErr_Fetch(&type, &value, &traceback);
-	BT_ASSERT(type);
-
-	/* Make sure `value` is what we expected: an instance of `type` */
-	PyErr_NormalizeException(&type, &value, &traceback);
 
 	/*
 	 * Import the standard `traceback` module which contains the
@@ -62,12 +54,12 @@ GString *bt_py_common_format_exception(int log_level)
 	}
 
 	/*
-	 * `traceback` can be `NULL`, when we fail to call a Python
+	 * `py_exc_tb` can be `NULL`, when we fail to call a Python
 	 * function from native code (there is no Python stack at that
 	 * point). For example, a function which takes 5 positional
 	 * arguments, but 8 were given.
 	 */
-	format_exc_func_name = traceback ? "format_exception" :
+	format_exc_func_name = py_exc_tb ? "format_exception" :
 		"format_exception_only";
 	format_exception_func = PyObject_GetAttrString(traceback_module,
 		format_exc_func_name);
@@ -83,8 +75,13 @@ GString *bt_py_common_format_exception(int log_level)
 		goto error;
 	}
 
+	/*
+	 * If we are calling format_exception_only, `py_exc_tb` is NULL, so the
+	 * effective argument list is of length 2.
+	 */
 	exc_str_list = PyObject_CallFunctionObjArgs(format_exception_func,
-		type, value, traceback, NULL);
+		py_exc_type, py_exc_value, py_exc_tb, Py_None /* limit */,
+		chain ? Py_True : Py_False /* chain */, NULL);
 	if (!exc_str_list) {
 		if (BT_LOG_ON_ERROR) {
 			BT_LOGE("Failed to call `traceback.%s` function:",
@@ -139,6 +136,30 @@ end:
 	Py_XDECREF(format_exception_func);
 	Py_XDECREF(traceback_module);
 
+	return msg_buf;
+}
+
+BT_HIDDEN
+GString *bt_py_common_format_current_exception(int log_level)
+{
+	GString *result;
+	PyObject *py_exc_type = NULL;
+	PyObject *py_exc_value = NULL;
+	PyObject *py_exc_tb = NULL;
+
+	BT_ASSERT(PyErr_Occurred());
+	PyErr_Fetch(&py_exc_type, &py_exc_value, &py_exc_tb);
+	BT_ASSERT(py_exc_type);
+
+	/*
+	 * Make sure `py_exc_value` is what we expected: an instance of
+	 * `py_exc_type`.
+	 */
+	PyErr_NormalizeException(&py_exc_type, &py_exc_value, &py_exc_tb);
+
+	result = bt_py_common_format_exception(py_exc_type, py_exc_value,
+		py_exc_tb, log_level, true);
+
 	/*
 	 * We can safely call PyErr_Restore() because we always call
 	 * PyErr_Fetch(), and having an error indicator is a function's
@@ -146,7 +167,7 @@ end:
 	 *
 	 * PyErr_Restore() steals our references.
 	 */
-	PyErr_Restore(type, value, traceback);
+	PyErr_Restore(py_exc_type, py_exc_value, py_exc_tb);
 
-	return msg_buf;
+	return result;
 }

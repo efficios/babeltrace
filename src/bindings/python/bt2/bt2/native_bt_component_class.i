@@ -182,9 +182,9 @@ void log_exception_and_maybe_append_error(int log_level,
 	GString *gstr;
 
 	BT_ASSERT(PyErr_Occurred());
-	gstr = bt_py_common_format_exception(BT_LOG_OUTPUT_LEVEL);
+	gstr = bt_py_common_format_current_exception(BT_LOG_OUTPUT_LEVEL);
 	if (!gstr) {
-		/* bt_py_common_format_exception() logs errors */
+		/* bt_py_common_format_current_exception() logs errors */
 		goto end;
 	}
 
