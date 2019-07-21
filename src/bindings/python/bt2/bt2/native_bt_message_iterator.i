@@ -68,20 +68,25 @@ PyObject *get_msg_range_common(bt_message_iterator_next_status status,
 {
 	PyObject *py_status;
 	PyObject *py_return_tuple;
-	PyObject *py_msg_list = Py_None;
+	PyObject *py_msg_list;
 
-	py_status = SWIG_From_long_SS_long(status);
-	if (status != __BT_FUNC_STATUS_OK) {
-		goto end;
-	}
-
-	py_msg_list = create_pylist_from_messages(messages, message_count);
-
-end:
 	py_return_tuple = PyTuple_New(2);
 	BT_ASSERT(py_return_tuple);
+
+	/* Set tuple[0], status. */
+	py_status = SWIG_From_long_SS_long(status);
 	PyTuple_SET_ITEM(py_return_tuple, 0, py_status);
+
+	/* Set tuple[1], message list on success, None otherwise. */
+	if (status == __BT_FUNC_STATUS_OK) {
+		py_msg_list = create_pylist_from_messages(messages, message_count);
+	} else {
+		py_msg_list = Py_None;
+		Py_INCREF(py_msg_list);
+	}
+
 	PyTuple_SET_ITEM(py_return_tuple, 1, py_msg_list);
+
 	return py_return_tuple;
 }
 
