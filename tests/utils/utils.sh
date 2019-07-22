@@ -120,6 +120,11 @@ if [ "x${BT_TESTS_PYTHON_BIN:-}" = "x" ]; then
 fi
 export BT_TESTS_PYTHON_BIN
 
+if [ "x${BT_TESTS_PYTHON_CONFIG_BIN:-}" = "x" ]; then
+	BT_TESTS_PYTHON_CONFIG_BIN="python3-config"
+fi
+export BT_TESTS_PYTHON_BIN
+
 if [ "x${BT_TESTS_SED_BIN:-}" = "x" ]; then
 	BT_TESTS_SED_BIN="sed"
 fi
@@ -247,32 +252,36 @@ check_coverage() {
 # Execute a shell command in the appropriate environment to have access to the
 # bt2 Python bindings.
 run_python_bt2() {
-	local lib_search_var
-	local lib_search_path
+	local env_args
+
+	env_args=(
+		"BABELTRACE_PYTHON_BT2_NO_TRACEBACK=1" \
+		"BABELTRACE_PLUGIN_PATH=${BT_TESTS_BABELTRACE_PLUGIN_PATH}" \
+		"LIBBABELTRACE2_PLUGIN_PROVIDER_DIR=${BT_TESTS_PROVIDER_DIR}" \
+		"BT_CTF_TRACES_PATH=${BT_CTF_TRACES_PATH}" \
+		"BT_PLUGINS_PATH=${BT_PLUGINS_PATH}" \
+		"PYTHONPATH=${BT_TESTS_PYTHONPATH}:${BT_TESTS_SRCDIR}/utils/python"
+		)
 
 	local main_lib_path="${BT_TESTS_BUILDDIR}/../src/lib/.libs"
 
 	# Set the library search path so the python interpreter can load libbabeltrace2
 	if [ "$BT_OS_TYPE" = "mingw" ] || [ "$BT_OS_TYPE" = "cygwin" ]; then
-		lib_search_var="PATH"
-		lib_search_path="${main_lib_path}:${PATH:-}"
+		env_args+=("PATH=${main_lib_path}:${PATH:-}")
 	elif [ "$BT_OS_TYPE" = "darwin" ]; then
-		lib_search_var="DYLD_LIBRARY_PATH"
-		lib_search_path="${main_lib_path}:${DYLD_LIBRARY_PATH:-}"
+		env_args+=("DYLD_LIBRARY_PATH=${main_lib_path}:${DYLD_LIBRARY_PATH:-}")
 	else
-		lib_search_var="LD_LIBRARY_PATH"
-		lib_search_path="${main_lib_path}:${LD_LIBRARY_PATH:-}"
+		env_args+=("LD_LIBRARY_PATH=${main_lib_path}:${LD_LIBRARY_PATH:-}")
 	fi
 
-	env \
-		BABELTRACE_PYTHON_BT2_NO_TRACEBACK=1 \
-		BABELTRACE_PLUGIN_PATH="${BT_TESTS_BABELTRACE_PLUGIN_PATH}" \
-		LIBBABELTRACE2_PLUGIN_PROVIDER_DIR=${BT_TESTS_PROVIDER_DIR} \
-		BT_CTF_TRACES_PATH="${BT_CTF_TRACES_PATH}" \
-		BT_PLUGINS_PATH="${BT_PLUGINS_PATH}" \
-		PYTHONPATH="${BT_TESTS_PYTHONPATH}:${BT_TESTS_SRCDIR}/utils/python" \
-		"${lib_search_var}"="${lib_search_path}" \
-		"$@"
+	# On Windows, an embedded Python interpreter needs a way to locate the path
+	# to it's internal modules, set the prefix from python-config to the
+	# PYTHONHOME variable.
+	if [ "$BT_OS_TYPE" = "mingw" ]; then
+		env_args+=("PYTHONHOME=$($BT_TESTS_PYTHON_CONFIG_BIN --prefix)")
+	fi
+
+	env "${env_args[@]}" "$@"
 }
 
 # Set the environment and run python tests in the directory.
