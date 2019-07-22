@@ -481,13 +481,6 @@ class _UserComponentType(type):
                 cls, comp_cls_name, comp_cls_descr, comp_cls_help
             )
         elif _UserSinkComponent in bases:
-            if not hasattr(cls, '_graph_is_configured'):
-                raise bt2.IncompleteUserClass(
-                    "cannot create component class '{}': missing a _graph_is_configured() method".format(
-                        class_name
-                    )
-                )
-
             if not hasattr(cls, '_consume'):
                 raise bt2.IncompleteUserClass(
                     "cannot create component class '{}': missing a _consume() method".format(
@@ -832,6 +825,9 @@ class _UserSinkComponent(_UserComponent, _SinkComponent):
 
     def _bt_graph_is_configured_from_native(self):
         self._graph_is_configured()
+
+    def _graph_is_configured(self):
+        pass
 
     @property
     def _input_ports(self):
