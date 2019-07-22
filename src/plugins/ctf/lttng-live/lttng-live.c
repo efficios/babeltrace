@@ -1457,7 +1457,7 @@ bt_component_class_query_method_status lttng_live_query(
 		status = lttng_live_query_list_sessions(params, result,
 			log_level);
 	} else {
-		BT_COMP_LOGW("Unknown query object `%s`", object);
+		BT_COMP_LOGI("Unknown query object `%s`", object);
 		status = BT_COMPONENT_CLASS_QUERY_METHOD_STATUS_INVALID_OBJECT;
 		goto end;
 	}
