@@ -679,9 +679,6 @@ class _UserComponent(metaclass=_UserComponentType):
         )
         self._port_connected(port, other_port)
 
-    def _bt_graph_is_configured_from_native(self):
-        self._graph_is_configured()
-
     def _create_trace_class(self, assigns_automatic_stream_class_id=True):
         ptr = self._bt_as_self_component_ptr(self._bt_ptr)
         tc_ptr = native_bt.trace_class_create(ptr)
@@ -832,6 +829,9 @@ class _UserSinkComponent(_UserComponent, _SinkComponent):
     _bt_as_self_component_ptr = staticmethod(
         native_bt.self_component_sink_as_self_component
     )
+
+    def _bt_graph_is_configured_from_native(self):
+        self._graph_is_configured()
 
     @property
     def _input_ports(self):
