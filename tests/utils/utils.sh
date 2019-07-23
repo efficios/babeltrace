@@ -22,7 +22,14 @@
 # Error out when encountering an undefined variable
 set -u
 
+# If "readlink -f" is available, get a resolved absolute path to the
+# tests source dir, otherwise make do with a relative path.
 scriptdir="$(dirname "${BASH_SOURCE[0]}")"
+if readlink -f "." >/dev/null 2>&1; then
+	testsdir=$(readlink -f "$scriptdir/..")
+else
+	testsdir="$scriptdir/.."
+fi
 
 # The OS on which we are running. See [1] for possible values of 'uname -s'.
 # We do a bit of translation to ease our life down the road for comparison.
@@ -52,12 +59,12 @@ export BT_OS_TYPE
 
 # Allow overriding the source and build directories
 if [ "x${BT_TESTS_SRCDIR:-}" = "x" ]; then
-	BT_TESTS_SRCDIR="$scriptdir/.."
+	BT_TESTS_SRCDIR="$testsdir"
 fi
 export BT_TESTS_SRCDIR
 
 if [ "x${BT_TESTS_BUILDDIR:-}" = "x" ]; then
-	BT_TESTS_BUILDDIR="$scriptdir/.."
+	BT_TESTS_BUILDDIR="$testsdir"
 fi
 export BT_TESTS_BUILDDIR
 

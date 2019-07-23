@@ -30,7 +30,7 @@ NUM_TESTS=2
 
 plan_tests $NUM_TESTS
 
-data_dir=$(readlink -f "${BT_TESTS_DATADIR}/cli/auto-source-discovery")
+data_dir="${BT_TESTS_DATADIR}/cli/auto-source-discovery"
 plugin_dir="${data_dir}"
 trace_dir="${data_dir}/traces"
 
