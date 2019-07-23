@@ -50,6 +50,7 @@ enum ctf_field_class_meaning {
 };
 
 enum ctf_byte_order {
+	CTF_BYTE_ORDER_UNKNOWN,
 	CTF_BYTE_ORDER_DEFAULT,
 	CTF_BYTE_ORDER_LITTLE,
 	CTF_BYTE_ORDER_BIG,
@@ -1636,7 +1637,7 @@ struct ctf_trace_class *ctf_trace_class_create(void)
 	struct ctf_trace_class *tc = g_new0(struct ctf_trace_class, 1);
 
 	BT_ASSERT(tc);
-	tc->default_byte_order = -1;
+	tc->default_byte_order = CTF_BYTE_ORDER_UNKNOWN;
 	tc->clock_classes = g_ptr_array_new_with_free_func(
 		(GDestroyNotify) ctf_clock_class_destroy);
 	BT_ASSERT(tc->clock_classes);
