@@ -4810,7 +4810,7 @@ int ctf_visitor_generate_ir_visit_node(struct ctf_visitor_generate_ir *visitor,
 		BT_ASSERT(ctx->ctf_tc->default_byte_order == CTF_BYTE_ORDER_LITTLE ||
 			ctx->ctf_tc->default_byte_order == CTF_BYTE_ORDER_BIG);
 		BT_ASSERT(ctx->current_scope &&
-				ctx->current_scope->parent_scope == NULL);
+				!ctx->current_scope->parent_scope);
 
 		/* Environment */
 		bt_list_for_each_entry(iter, &node->u.root.env, siblings) {
@@ -4824,7 +4824,7 @@ int ctf_visitor_generate_ir_visit_node(struct ctf_visitor_generate_ir *visitor,
 		}
 
 		BT_ASSERT(ctx->current_scope &&
-			ctx->current_scope->parent_scope == NULL);
+			!ctx->current_scope->parent_scope);
 
 		/*
 		 * Visit clock blocks.
@@ -4840,7 +4840,7 @@ int ctf_visitor_generate_ir_visit_node(struct ctf_visitor_generate_ir *visitor,
 		}
 
 		BT_ASSERT(ctx->current_scope &&
-			ctx->current_scope->parent_scope == NULL);
+			!ctx->current_scope->parent_scope);
 
 		/*
 		 * Visit root declarations next, as they can be used by any
@@ -4858,7 +4858,7 @@ int ctf_visitor_generate_ir_visit_node(struct ctf_visitor_generate_ir *visitor,
 		}
 
 		BT_ASSERT(ctx->current_scope &&
-			ctx->current_scope->parent_scope == NULL);
+			!ctx->current_scope->parent_scope);
 
 		/* Callsite blocks are not supported */
 		bt_list_for_each_entry(iter, &node->u.root.callsite, siblings) {
@@ -4867,7 +4867,7 @@ int ctf_visitor_generate_ir_visit_node(struct ctf_visitor_generate_ir *visitor,
 		}
 
 		BT_ASSERT(ctx->current_scope &&
-			ctx->current_scope->parent_scope == NULL);
+			!ctx->current_scope->parent_scope);
 
 		/* Trace */
 		bt_list_for_each_entry(iter, &node->u.root.trace, siblings) {
@@ -4881,7 +4881,7 @@ int ctf_visitor_generate_ir_visit_node(struct ctf_visitor_generate_ir *visitor,
 		}
 
 		BT_ASSERT(ctx->current_scope &&
-			ctx->current_scope->parent_scope == NULL);
+			!ctx->current_scope->parent_scope);
 
 		/* Streams */
 		bt_list_for_each_entry(iter, &node->u.root.stream, siblings) {
@@ -4895,7 +4895,7 @@ int ctf_visitor_generate_ir_visit_node(struct ctf_visitor_generate_ir *visitor,
 		}
 
 		BT_ASSERT(ctx->current_scope &&
-			ctx->current_scope->parent_scope == NULL);
+			!ctx->current_scope->parent_scope);
 
 		/* Events */
 		bt_list_for_each_entry(iter, &node->u.root.event, siblings) {
@@ -4909,7 +4909,7 @@ int ctf_visitor_generate_ir_visit_node(struct ctf_visitor_generate_ir *visitor,
 		}
 
 		BT_ASSERT(ctx->current_scope &&
-			ctx->current_scope->parent_scope == NULL);
+			!ctx->current_scope->parent_scope);
 		break;
 	}
 	default:

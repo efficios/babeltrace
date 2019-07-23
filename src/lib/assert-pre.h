@@ -103,7 +103,7 @@
  * is not `NULL`.
  */
 #define BT_ASSERT_PRE_NON_NULL(_obj, _obj_name)				\
-	BT_ASSERT_PRE((_obj) != NULL, "%s is NULL: ", _obj_name)
+	BT_ASSERT_PRE((_obj), "%s is NULL: ", _obj_name)
 
 /*
  * Asserts that a given index `_index` is less than a given length

@@ -1021,7 +1021,7 @@ append_ids:
 		stream_class_id, stream->common.id);
 
 	file_path = g_build_filename(writer->path->str, filename->str, NULL);
-	if (file_path == NULL) {
+	if (!file_path) {
 		ret = -1;
 		goto end;
 	}
@@ -1627,7 +1627,7 @@ int bt_ctf_stream_flush(struct bt_ctf_stream *stream)
 
 		packet_size_field = bt_ctf_field_structure_get_field_by_name(
 				stream->packet_context, "packet_size");
-		has_packet_size = (packet_size_field != NULL);
+		has_packet_size = packet_size_field;
 		bt_ctf_object_put_ref(packet_size_field);
 	}
 

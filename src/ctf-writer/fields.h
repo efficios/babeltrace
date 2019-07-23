@@ -650,7 +650,7 @@ int bt_ctf_field_common_string_append_len(struct bt_ctf_field_common *field,
 		BT_CTF_FIELD_TYPE_ID_STRING, "Field");
 
 	/* Make sure no null bytes are appended */
-	BT_CTF_ASSERT_PRE(memchr(value, '\0', length) == NULL,
+	BT_CTF_ASSERT_PRE(!memchr(value, '\0', length),
 		"String value to append contains a null character: "
 		"partial-value=\"%.32s\", length=%u", value, length);
 

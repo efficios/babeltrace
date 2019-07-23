@@ -149,10 +149,10 @@ int parse_url(struct live_viewer_connection *viewer_connection)
 			"proto : %s",
 			viewer_connection->relay_hostname->str,
 			viewer_connection->port,
-			viewer_connection->target_hostname == NULL ?
-				"<none>" : viewer_connection->target_hostname->str,
-			viewer_connection->session_name == NULL ?
-				"<none>" : viewer_connection->session_name->str,
+			!viewer_connection->target_hostname ?
+			"<none>" : viewer_connection->target_hostname->str,
+			!viewer_connection->session_name ?
+			"<none>" : viewer_connection->session_name->str,
 			lttng_live_url_parts.proto->str);
 	ret = 0;
 

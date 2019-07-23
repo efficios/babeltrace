@@ -46,7 +46,7 @@ void test_bt_no_dwarf(const char *data_dir)
 	Dwarf *dwarf_info = NULL;
 
 	path = g_build_filename(data_dir, ELF_DIR_NAME, SO_NAME, NULL);
-	if (path == NULL) {
+	if (!path) {
 		diag("Failed to allocate memory for path");
 		exit(EXIT_FAILURE);
 	}
@@ -57,10 +57,10 @@ void test_bt_no_dwarf(const char *data_dir)
 		skip(1, "dwarf_begin failed as expected");
 	} else {
 		dwarf_info = dwarf_begin(fd, DWARF_C_READ);
-		ok(dwarf_info == NULL, "dwarf_begin failed as expected");
+		ok(!dwarf_info, "dwarf_begin failed as expected");
 	}
 
-	if (dwarf_info != NULL) {
+	if (dwarf_info) {
 		dwarf_end(dwarf_info);
 	}
 	close(fd);
@@ -81,7 +81,7 @@ void test_bt_dwarf(const char *data_dir)
 	Dwarf *dwarf_info = NULL;
 
 	path = g_build_filename(data_dir, DWARF_DIR_NAME, SO_NAME, NULL);
-	if (path == NULL) {
+	if (!path) {
 		diag("Failed to allocate memory for path");
 		exit(EXIT_FAILURE);
 	}
@@ -92,13 +92,13 @@ void test_bt_dwarf(const char *data_dir)
 	        exit(EXIT_FAILURE);
 	}
 	dwarf_info = dwarf_begin(fd, DWARF_C_READ);
-	ok(dwarf_info != NULL, "dwarf_begin successful");
+	ok(dwarf_info, "dwarf_begin successful");
 	cu = bt_dwarf_cu_create(dwarf_info);
-	ok(cu != NULL, "bt_dwarf_cu_create successful");
+	ok(cu, "bt_dwarf_cu_create successful");
 	ret = bt_dwarf_cu_next(cu);
 	ok(ret == 0, "bt_dwarf_cu_next successful");
 	die = bt_dwarf_die_create(cu);
-	ok(die != NULL, "bt_dwarf_die_create successful");
+	ok(die, "bt_dwarf_die_create successful");
 	if (!die) {
 		exit(EXIT_FAILURE);
 	}

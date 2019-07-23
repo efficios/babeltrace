@@ -87,7 +87,7 @@ void ini_append_error_expecting(struct ini_parsing_state *state,
 	g_string_append_printf(state->ini_error, "Expecting %s:\n", expecting);
 
 	/* Only append error if there's one line */
-	if (strchr(state->arg, '\n') != NULL || strlen(state->arg) == 0) {
+	if (strchr(state->arg, '\n') || strlen(state->arg) == 0) {
 		return;
 	}
 

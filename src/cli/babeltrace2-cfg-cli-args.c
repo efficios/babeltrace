@@ -506,7 +506,7 @@ void destroy_glist_of_gstring(GList *list)
 		return;
 	}
 
-	for (at = list; at != NULL; at = g_list_next(at)) {
+	for (at = list; at; at = g_list_next(at)) {
 		g_string_free(at->data, TRUE);
 	}
 
@@ -3162,7 +3162,7 @@ int convert_auto_connect(bt_value *run_args,
 	BT_ASSERT(sink_names);
 
 	/* Connect all sources to the first filter */
-	for (source_at = source_names; source_at != NULL; source_at = g_list_next(source_at)) {
+	for (source_at = source_names; source_at; source_at = g_list_next(source_at)) {
 		GString *source_name = source_at->data;
 		GString *filter_name = filter_at->data;
 
@@ -3177,7 +3177,7 @@ int convert_auto_connect(bt_value *run_args,
 	filter_at = g_list_next(filter_at);
 
 	/* Connect remaining filters */
-	for (; filter_at != NULL; filter_prev = filter_at, filter_at = g_list_next(filter_at)) {
+	for (; filter_at; filter_prev = filter_at, filter_at = g_list_next(filter_at)) {
 		GString *filter_name = filter_at->data;
 		GString *filter_prev_name = filter_prev->data;
 
@@ -3189,7 +3189,7 @@ int convert_auto_connect(bt_value *run_args,
 	}
 
 	/* Connect last filter to all sinks */
-	for (sink_at = sink_names; sink_at != NULL; sink_at = g_list_next(sink_at)) {
+	for (sink_at = sink_names; sink_at; sink_at = g_list_next(sink_at)) {
 		GString *filter_name = filter_prev->data;
 		GString *sink_name = sink_at->data;
 

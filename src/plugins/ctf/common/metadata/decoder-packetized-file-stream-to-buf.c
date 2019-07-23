@@ -212,7 +212,7 @@ int ctf_metadata_decoder_packetized_file_stream_to_buf(FILE *fp,
 	size_t packet_index = 0;
 
 	out_fp = bt_open_memstream(buf, &size);
-	if (out_fp == NULL) {
+	if (!out_fp) {
 		BT_COMP_LOGE("Cannot open memory stream: %s.",
 			strerror(errno));
 		goto error;

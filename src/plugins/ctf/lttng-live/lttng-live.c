@@ -868,7 +868,7 @@ retry:
 	live_status = lttng_live_iterator_next_handle_one_quiescent_stream(
 			lttng_live_msg_iter, stream_iter, curr_msg);
 	if (live_status != LTTNG_LIVE_ITERATOR_STATUS_OK) {
-		BT_ASSERT(*curr_msg == NULL);
+		BT_ASSERT(!*curr_msg);
 		goto end;
 	}
 	if (*curr_msg) {
@@ -877,7 +877,7 @@ retry:
 	live_status = lttng_live_iterator_next_handle_one_active_data_stream(
 			lttng_live_msg_iter, stream_iter, curr_msg);
 	if (live_status != LTTNG_LIVE_ITERATOR_STATUS_OK) {
-		BT_ASSERT(*curr_msg == NULL);
+		BT_ASSERT(!*curr_msg);
 	}
 
 end:

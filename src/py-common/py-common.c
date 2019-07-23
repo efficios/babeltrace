@@ -44,9 +44,9 @@ GString *bt_py_common_format_exception(int log_level)
 	const char *format_exc_func_name;
 	Py_ssize_t i;
 
-	BT_ASSERT(PyErr_Occurred() != NULL);
+	BT_ASSERT(PyErr_Occurred());
 	PyErr_Fetch(&type, &value, &traceback);
-	BT_ASSERT(type != NULL);
+	BT_ASSERT(type);
 
 	/* Make sure `value` is what we expected: an instance of `type` */
 	PyErr_NormalizeException(&type, &value, &traceback);

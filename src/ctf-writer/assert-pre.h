@@ -139,7 +139,7 @@
  * Developer mode: asserts that a given variable is not NULL.
  */
 #define BT_CTF_ASSERT_PRE_NON_NULL(_obj, _obj_name)				\
-	BT_CTF_ASSERT_PRE((_obj) != NULL, "%s is NULL: ", _obj_name)
+	BT_CTF_ASSERT_PRE((_obj), "%s is NULL: ", _obj_name)
 
 /*
  * Developer mode: asserts that a given object is NOT frozen. This macro

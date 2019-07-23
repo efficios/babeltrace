@@ -1683,7 +1683,7 @@ int merge_traces_with_same_uuid(struct ctf_fs_component *ctf_fs)
 
 	/* Clear any NULL slot (traces that got merged in another one) in the array.  */
 	for (i = 0; i < traces->len;) {
-		if (g_ptr_array_index(traces, i) == NULL) {
+		if (!g_ptr_array_index(traces, i)) {
 			g_ptr_array_remove_index_fast(traces, i);
 		} else {
 			i++;

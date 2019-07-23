@@ -674,7 +674,7 @@ enum bt_field_string_append_status bt_field_string_append_with_length(
 		BT_FIELD_CLASS_TYPE_STRING, "Field");
 
 	/* Make sure no null bytes are appended */
-	BT_ASSERT_PRE_DEV(memchr(value, '\0', length) == NULL,
+	BT_ASSERT_PRE_DEV(!memchr(value, '\0', length),
 		"String value to append contains a null character: "
 		"partial-value=\"%.32s\", length=%" PRIu64, value, length);
 

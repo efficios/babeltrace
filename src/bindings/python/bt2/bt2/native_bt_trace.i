@@ -40,7 +40,7 @@ trace_destroyed_listener(const bt_trace *trace, void *py_callable)
 	}
 
 	py_res = PyObject_CallFunction(py_callable, "(O)", py_trace_ptr);
-	if (py_res != NULL) {
+	if (py_res) {
 		BT_ASSERT(py_res == Py_None);
 	} else {
 		loge_exception();

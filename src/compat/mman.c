@@ -75,7 +75,7 @@ struct mmap_mapping *mapping_create(int log_level)
 	struct mmap_mapping *mapping;
 
 	mapping = malloc(sizeof(struct mmap_mapping));
-	if (mapping != NULL) {
+	if (mapping) {
 		mapping->file_handle = NULL;
 		mapping->map_handle = NULL;
 		mapping->log_level = log_level;
@@ -283,7 +283,7 @@ int bt_munmap(void *addr, size_t length)
 	mmap_lock(log_level);
 
 	/* Check if the mapping exists in the hashtable. */
-	if (g_hash_table_lookup(mmap_mappings, addr) == NULL) {
+	if (!g_hash_table_lookup(mmap_mappings, addr)) {
 		_set_errno(EINVAL);
 		ret = -1;
 		goto end;

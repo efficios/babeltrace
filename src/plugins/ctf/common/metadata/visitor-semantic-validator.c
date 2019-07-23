@@ -358,7 +358,7 @@ int ctf_visitor_field_class_declarator(int depth, struct ctf_node *node,
 			}
 		}
 		if (node->u.field_class_declarator.type == TYPEDEC_ID &&
-		    node->u.field_class_declarator.u.id != NULL)
+		    node->u.field_class_declarator.u.id)
 			goto errperm;
 		break;			/* OK */
 	case NODE_TYPEDEF:
