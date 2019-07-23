@@ -113,13 +113,6 @@ def _check_alignment(a):
         raise ValueError('{} is not a power of two'.format(a))
 
 
-def _raise_bt2_error(msg):
-    if msg is None:
-        raise bt2.Error
-    else:
-        raise bt2.Error(msg)
-
-
 def _check_log_level(log_level):
     _check_int(log_level)
 
