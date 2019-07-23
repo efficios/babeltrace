@@ -265,14 +265,14 @@ enum ctf_scope get_root_scope_from_absolute_pathstr(const char *pathstr,
 		struct resolve_context *ctx)
 {
 	enum ctf_scope scope;
-	enum ctf_scope ret = -1;
+	enum ctf_scope ret = CTF_SCOPE_PACKET_UNKNOWN;
 	const size_t prefixes_count = sizeof(absolute_path_prefixes) /
 		sizeof(*absolute_path_prefixes);
 
 	for (scope = CTF_SCOPE_PACKET_HEADER; scope < CTF_SCOPE_PACKET_HEADER +
 			prefixes_count; scope++) {
 		/*
-		 * Chech if path string starts with a known absolute
+		 * Check if path string starts with a known absolute
 		 * path prefix.
 		 *
 		 * Refer to CTF 7.3.2 STATIC AND DYNAMIC SCOPES.
@@ -661,7 +661,7 @@ int pathstr_to_field_path(const char *pathstr,
 	/* Absolute or relative path? */
 	root_scope = get_root_scope_from_absolute_pathstr(pathstr, ctx);
 
-	if (root_scope == -1) {
+	if (root_scope == CTF_SCOPE_PACKET_UNKNOWN) {
 		/* Relative path: start with current root scope */
 		field_path->root = ctx->root_scope;
 		BT_COMP_LOGD("Detected relative path: starting with current root scope: "
