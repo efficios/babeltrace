@@ -1009,7 +1009,7 @@ enum ctf_byte_order byte_order_from_unary_expr(struct ctx *ctx,
 		struct ctf_node *unary_expr)
 {
 	const char *str;
-	enum ctf_byte_order bo = -1;
+	enum ctf_byte_order bo = CTF_BYTE_ORDER_UNKNOWN;
 
 	if (unary_expr->u.unary_expression.type != UNARY_STRING) {
 		_BT_COMP_LOGE_NODE(unary_expr,
@@ -2329,7 +2329,7 @@ int visit_integer_decl(struct ctx *ctx,
 			}
 
 			byte_order = get_real_byte_order(ctx, right);
-			if (byte_order == -1) {
+			if (byte_order == CTF_BYTE_ORDER_UNKNOWN) {
 				_BT_COMP_LOGE_NODE(right,
 					"Invalid `byte_order` attribute in integer field class: "
 					"ret=%d", ret);
@@ -2676,7 +2676,7 @@ int visit_floating_point_number_decl(struct ctx *ctx,
 			}
 
 			byte_order = get_real_byte_order(ctx, right);
-			if (byte_order == -1) {
+			if (byte_order == CTF_BYTE_ORDER_UNKNOWN) {
 				_BT_COMP_LOGE_NODE(right,
 					"Invalid `byte_order` attribute in floating point number field class: "
 					"ret=%d", ret);
@@ -3986,7 +3986,7 @@ int visit_trace_decl_entry(struct ctx *ctx, struct ctf_node *node, int *set)
 				goto error;
 			}
 
-			BT_ASSERT(ctx->ctf_tc->default_byte_order != -1);
+			BT_ASSERT(ctx->ctf_tc->default_byte_order != CTF_BYTE_ORDER_UNKNOWN);
 			_SET(set, _TRACE_BYTE_ORDER_SET);
 		} else if (strcmp(left, "packet.header") == 0) {
 			if (_IS_SET(set, _TRACE_PACKET_HEADER_SET)) {
@@ -4232,7 +4232,7 @@ int set_trace_byte_order(struct ctx *ctx, struct ctf_node *trace_node)
 					struct ctf_node, siblings);
 				bo = byte_order_from_unary_expr(ctx,
 					right_node);
-				if (bo == -1) {
+				if (bo == CTF_BYTE_ORDER_UNKNOWN) {
 					_BT_COMP_LOGE_NODE(node,
 						"Invalid `byte_order` attribute in trace (`trace` block): "
 						"expecting `le`, `be`, or `network`.");
@@ -4782,7 +4782,7 @@ int ctf_visitor_generate_ir_visit_node(struct ctf_visitor_generate_ir *visitor,
 		 * have the native byte order yet, and we don't have any
 		 * trace block yet, then fail with EINCOMPLETE.
 		 */
-		if (ctx->ctf_tc->default_byte_order == -1) {
+		if (ctx->ctf_tc->default_byte_order == CTF_BYTE_ORDER_UNKNOWN) {
 			bt_list_for_each_entry(iter, &node->u.root.trace, siblings) {
 				if (got_trace_decl) {
 					_BT_COMP_LOGE_NODE(node,

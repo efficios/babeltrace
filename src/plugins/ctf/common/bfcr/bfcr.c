@@ -116,8 +116,8 @@ struct bt_bfcr {
 	 * classes for which the common boundary is not the boundary of
 	 * a byte cannot have different byte orders.
 	 *
-	 * This is set to -1 on reset and when the last basic field class
-	 * was a string class.
+	 * This is set to CTF_BYTE_ORDER_UNKNOWN on reset and when the last
+	 * basic field class was a string class.
 	 */
 	enum ctf_byte_order last_bo;
 
@@ -517,12 +517,12 @@ enum bt_bfcr_status validate_contiguous_bo(struct bt_bfcr *bfcr,
 	}
 
 	/* Always valid if last byte order is unknown */
-	if (bfcr->last_bo == -1) {
+	if (bfcr->last_bo == CTF_BYTE_ORDER_UNKNOWN) {
 		goto end;
 	}
 
 	/* Always valid if next byte order is unknown */
-	if (next_bo == -1) {
+	if (next_bo == CTF_BYTE_ORDER_UNKNOWN) {
 		goto end;
 	}
 
@@ -1241,7 +1241,7 @@ void reset(struct bt_bfcr *bfcr)
 	stack_clear(bfcr->stack);
 	stitch_reset(bfcr);
 	bfcr->buf.addr = NULL;
-	bfcr->last_bo = -1;
+	bfcr->last_bo = CTF_BYTE_ORDER_UNKNOWN;
 }
 
 static
