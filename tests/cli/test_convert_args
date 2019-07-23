@@ -77,13 +77,17 @@ comment() {
 	echo "### $1 ###"
 }
 
+path_to_trace="${BT_CTF_TRACES_PATH}/succeed/succeed1"
+path_to_trace2="${BT_CTF_TRACES_PATH}/succeed/succeed2"
+output_path="/output/path"
+
 if [ "$BT_OS_TYPE" = "mingw" ]; then
-	path_to_trace="C://path/to/trace"
-	output_path="C://output/path"
-else
-	path_to_trace="${BT_CTF_TRACES_PATH}/succeed/succeed1"
-	path_to_trace2="${BT_CTF_TRACES_PATH}/succeed/succeed2"
-	output_path="/output/path"
+	# Use Windows native paths for comparison because Unix
+	# paths are converted by the shell before they are passed
+	# to the native babeltrace2 binary.
+	path_to_trace=$(cygpath -m "$path_to_trace")
+	path_to_trace2=$(cygpath -m "$path_to_trace2")
+	output_path=$(cygpath -m "$output_path")
 fi
 
 plan_tests 77
