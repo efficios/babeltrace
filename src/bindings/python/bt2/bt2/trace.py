@@ -166,7 +166,7 @@ class _Trace(object._SharedObject, collections.abc.Mapping):
             )
 
         if stream_ptr is None:
-            raise bt2.CreationError('cannot create stream object')
+            raise bt2.MemoryError('cannot create stream object')
 
         stream = bt2.stream._Stream._create_from_ptr(stream_ptr)
 

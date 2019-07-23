@@ -68,8 +68,8 @@ from bt2.value import _IntegerValue
 from bt2.clock_snapshot import _UnknownClockSnapshot
 
 
-class CreationError(Error):
-    '''Raised when object creation fails due to memory issues.'''
+class MemoryError(Error):
+    '''Raised when an operation fails due to memory issues.'''
 
 
 class InvalidObject(Exception):

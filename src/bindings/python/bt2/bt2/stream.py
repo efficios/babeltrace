@@ -62,6 +62,6 @@ class _Stream(bt2.object._SharedObject):
         packet_ptr = native_bt.packet_create(self._ptr)
 
         if packet_ptr is None:
-            raise bt2.CreationError('cannot create packet object')
+            raise bt2.MemoryError('cannot create packet object')
 
         return bt2.packet._Packet._create_from_ptr(packet_ptr)

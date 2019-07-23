@@ -94,6 +94,7 @@ PyObject *lookup_cc_ptr_to_py_cls(const bt_component_class *bt_cc)
 
 static PyObject *py_mod_bt2 = NULL;
 static PyObject *py_mod_bt2_exc_error_type = NULL;
+static PyObject *py_mod_bt2_exc_memory_error = NULL;
 static PyObject *py_mod_bt2_exc_try_again_type = NULL;
 static PyObject *py_mod_bt2_exc_stop_type = NULL;
 static PyObject *py_mod_bt2_exc_msg_iter_canceled_type = NULL;
@@ -117,6 +118,9 @@ void bt_bt2_cc_init_from_bt2(void)
 	py_mod_bt2_exc_error_type =
 		PyObject_GetAttrString(py_mod_bt2, "Error");
 	BT_ASSERT(py_mod_bt2_exc_error_type);
+	py_mod_bt2_exc_memory_error =
+		PyObject_GetAttrString(py_mod_bt2, "MemoryError");
+	BT_ASSERT(py_mod_bt2_exc_memory_error);
 	py_mod_bt2_exc_try_again_type =
 		PyObject_GetAttrString(py_mod_bt2, "TryAgain");
 	BT_ASSERT(py_mod_bt2_exc_try_again_type);
@@ -408,7 +412,13 @@ int py_exc_to_status(bt_self_component_class *self_component_class,
 		log_exception_and_maybe_append_error(BT_LOG_WARNING, true,
 			self_component_class, self_component,
 			self_message_iterator, module_name);
-		status = __BT_FUNC_STATUS_ERROR;
+
+		if (PyErr_GivenExceptionMatches(exc,
+				py_mod_bt2_exc_memory_error)) {
+			status = __BT_FUNC_STATUS_MEMORY_ERROR;
+		} else {
+			status = __BT_FUNC_STATUS_ERROR;
+		}
 	}
 
 end:
