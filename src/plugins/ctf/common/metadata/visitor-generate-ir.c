@@ -3173,6 +3173,7 @@ int visit_event_decl_entry(struct ctx *ctx, struct ctf_node *node,
 			_SET(set, _EVENT_FIELDS_SET);
 		} else if (strcmp(left, "loglevel") == 0) {
 			uint64_t loglevel_value;
+			bool is_log_level_known = true;
 			bt_event_class_log_level log_level = -1;
 
 			if (_IS_SET(set, _EVENT_LOG_LEVEL_SET)) {
@@ -3238,12 +3239,13 @@ int visit_event_decl_entry(struct ctx *ctx, struct ctf_node *node,
 				log_level = BT_EVENT_CLASS_LOG_LEVEL_DEBUG;
 				break;
 			default:
+				is_log_level_known = false;
 				_BT_COMP_LOGW_NODE(node, "Not setting event class's log level because its value is unknown: "
 					"log-level=%" PRIu64, loglevel_value);
 			}
 
-			if (log_level != -1) {
-				event_class->log_level = log_level;
+			if (is_log_level_known) {
+				ctf_event_class_set_log_level(event_class, log_level);
 			}
 
 			_SET(set, _EVENT_LOG_LEVEL_SET);

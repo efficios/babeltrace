@@ -543,7 +543,7 @@ void ctf_event_class_to_ir(struct ctx *ctx)
 		BT_ASSERT(ret == 0);
 	}
 
-	if (ctx->ec->log_level != -1) {
+	if (ctx->ec->is_log_level_set) {
 		bt_event_class_set_log_level(ir_ec, ctx->ec->log_level);
 	}
 
