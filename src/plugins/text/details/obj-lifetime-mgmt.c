@@ -97,7 +97,7 @@ bool details_need_to_write_meta_object(struct details_write_ctx *ctx,
 	details_tc_meta = g_hash_table_lookup(ctx->details_comp->meta, tc);
 	BT_ASSERT(details_tc_meta);
 	need_to_write =
-		g_hash_table_lookup(details_tc_meta->objects, obj) == NULL;
+		!g_hash_table_lookup(details_tc_meta->objects, obj);
 
 end:
 	return need_to_write;
@@ -130,7 +130,7 @@ bool details_need_to_write_trace_class(struct details_write_ctx *ctx,
 
 	BT_ASSERT(ctx->details_comp->meta);
 	details_tc_meta = g_hash_table_lookup(ctx->details_comp->meta, tc);
-	need_to_write = details_tc_meta == NULL;
+	need_to_write = !details_tc_meta;
 
 end:
 	return need_to_write;

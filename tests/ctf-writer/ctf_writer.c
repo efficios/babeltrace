@@ -681,7 +681,7 @@ void append_complex_event(struct bt_ctf_stream_class *stream_class,
 		"bt_ctf_event_class_get_stream_class returns the correct stream class");
 	bt_ctf_object_put_ref(ret_stream_class);
 
-	ok(bt_ctf_event_class_get_field_by_name(event_class, "truie") == NULL,
+	ok(!bt_ctf_event_class_get_field_by_name(event_class, "truie"),
 		"bt_ctf_event_class_get_field_by_name handles an invalid field name correctly");
 	ret_field_type = bt_ctf_event_class_get_field_by_name(event_class,
 		"complex_structure");
@@ -1217,7 +1217,7 @@ void test_empty_stream(struct bt_ctf_writer *writer)
 	ret = bt_ctf_stream_class_set_event_header_type(stream_class, NULL);
 	BT_ASSERT(ret == 0);
 
-	ok(bt_ctf_stream_class_get_trace(stream_class) == NULL,
+	ok(!bt_ctf_stream_class_get_trace(stream_class),
 		"bt_ctf_stream_class_get_trace returns NULL when stream class is orphaned");
 
 	stream = bt_ctf_writer_create_stream(writer, stream_class);
@@ -1711,7 +1711,7 @@ int main(int argc, char **argv)
 		name.machine);
 
 	/* Define a clock and add it to the trace */
-	ok(bt_ctf_clock_create("signed") == NULL,
+	ok(!bt_ctf_clock_create("signed"),
 		"Illegal clock name rejected");
 	clock = bt_ctf_clock_create(clock_name);
 	ok(clock, "Clock created sucessfully");
@@ -1798,9 +1798,9 @@ int main(int argc, char **argv)
 	ok(ret_string && strcmp(ret_string, "test_stream") == 0,
 		"bt_ctf_stream_class_get_name returns a correct stream class name");
 
-	ok(bt_ctf_stream_class_get_clock(stream_class) == NULL,
+	ok(!bt_ctf_stream_class_get_clock(stream_class),
 		"bt_ctf_stream_class_get_clock returns NULL when a clock was not set");
-	ok(bt_ctf_stream_class_get_clock(NULL) == NULL,
+	ok(!bt_ctf_stream_class_get_clock(NULL),
 		"bt_ctf_stream_class_get_clock handles NULL correctly");
 
 	ok(stream_class, "Create stream class");
@@ -2001,7 +2001,7 @@ int main(int argc, char **argv)
 		"Changes to a stream class that was already instantiated fail");
 
 	/* Populate the custom packet header field only once for all tests */
-	ok(bt_ctf_stream_get_packet_header(NULL) == NULL,
+	ok(!bt_ctf_stream_get_packet_header(NULL),
 		"bt_ctf_stream_get_packet_header handles NULL correctly");
 	packet_header = bt_ctf_stream_get_packet_header(stream1);
 	ok(packet_header,

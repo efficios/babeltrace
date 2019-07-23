@@ -69,7 +69,7 @@ FILE *bt_fmemopen(void *buf, size_t size, const char *mode)
 
 	/* Build a temporary filename */
 	tmpname = g_build_filename(g_get_tmp_dir(), "babeltrace-tmp-XXXXXX", NULL);
-	if (_mktemp(tmpname) == NULL) {
+	if (!_mktemp(tmpname)) {
 		goto error_free;
 	}
 
@@ -217,7 +217,7 @@ FILE *bt_open_memstream(char **ptr, size_t *sizeloc)
 
 	tmpname = g_build_filename(g_get_tmp_dir(), "babeltrace-tmp-XXXXXX", NULL);
 
-	if (_mktemp(tmpname) == NULL) {
+	if (!_mktemp(tmpname)) {
 		goto error_free;
 	}
 

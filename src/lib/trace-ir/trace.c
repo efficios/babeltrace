@@ -239,7 +239,7 @@ bool trace_has_environment_entry(const struct bt_trace *trace, const char *name)
 	BT_ASSERT(trace);
 
 	return bt_attributes_borrow_field_value_by_name(
-		trace->environment, name) != NULL;
+		trace->environment, name);
 }
 
 static
@@ -450,7 +450,7 @@ bool has_listener_id(const struct bt_trace *trace, uint64_t listener_id)
 	BT_ASSERT(listener_id < trace->destruction_listeners->len);
 	return (&g_array_index(trace->destruction_listeners,
 			struct bt_trace_destruction_listener_elem,
-			listener_id))->func != NULL;
+			listener_id))->func;
 }
 
 enum bt_trace_remove_listener_status bt_trace_remove_destruction_listener(

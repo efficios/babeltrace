@@ -84,7 +84,7 @@ int init_python_plugin_provider(void) {
 	static const char * const provider_dir_envvar_name = "LIBBABELTRACE2_PLUGIN_PROVIDER_DIR";
 	char *provider_path = NULL;
 
-	if (bt_plugin_python_create_all_from_file_sym != NULL) {
+	if (bt_plugin_python_create_all_from_file_sym) {
 		goto end;
 	}
 

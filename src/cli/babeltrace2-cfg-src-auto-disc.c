@@ -562,7 +562,7 @@ int auto_discover_source_for_input_as_dir_or_file_rec(GString *input,
 				BT_LOGW_ERRNO("Failed to read directory entry", ": dir=%s", input->str);
 				goto error;
 			}
-		} while (dirent != NULL);
+		} while (dirent);
 
 		status = dir_status;
 

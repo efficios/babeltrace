@@ -443,7 +443,7 @@ static inline
 bool event_has_payload_field(const bt_event *event,
 		const char *field_name)
 {
-	return event_borrow_payload_field(event, field_name) != NULL;
+	return event_borrow_payload_field(event, field_name);
 }
 
 static

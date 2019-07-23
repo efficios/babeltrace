@@ -37,10 +37,10 @@ char * _bt_getline_bufalloc(char **lineptr, size_t *n, size_t linelen)
 	size_t buflen = *n;
 	char *buf = *lineptr;
 
-	if (buflen >= linelen && buf != NULL) {
+	if (buflen >= linelen && buf) {
 		return buf;
 	}
-	if (buf == NULL) {
+	if (!buf) {
 		buflen = BT_GETLINE_MINBUFLEN;
 	} else {
 		buflen = buflen << 1;
@@ -80,7 +80,7 @@ ssize_t bt_getline(char **lineptr, size_t *n, FILE *stream)
 	char *buf;
 	int found_eof = 0;
 
-	if (lineptr == NULL || n == NULL) {
+	if (!lineptr || !n) {
 		errno = EINVAL;
 		return -1;
 	}

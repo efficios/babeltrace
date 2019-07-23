@@ -351,7 +351,7 @@ int is_type(struct ctf_scanner *scanner, const char *id)
 	struct ctf_scanner_scope *it;
 	int ret = 0;
 
-	for (it = scanner->cs; it != NULL; it = it->parent) {
+	for (it = scanner->cs; it; it = it->parent) {
 		if (lookup_type(it, id)) {
 			ret = 1;
 			break;

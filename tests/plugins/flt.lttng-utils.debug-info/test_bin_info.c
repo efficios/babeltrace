@@ -97,7 +97,7 @@ int build_id_to_bin(void)
 {
 	int ret, len, i;
 
-	if (opt_build_id == NULL) {
+	if (!opt_build_id) {
 		goto error;
 	}
 
@@ -165,7 +165,7 @@ void subtest_lookup_function_name(struct bin_info *bin, uint64_t addr,
 
 	/* Test function name lookup - erroneous address */
 	ret = bin_info_lookup_function_name(bin, SO_INV_ADDR, &_func_name);
-	ok(ret == -1 && _func_name == NULL,
+	ok(ret == -1 && !_func_name,
 	   "bin_info_lookup_function_name - fail on invalid addr");
 	free(_func_name);
 }
@@ -196,7 +196,7 @@ void subtest_lookup_source_location(struct bin_info *bin, uint64_t addr,
 
 	/* Test source location lookup - erroneous address */
 	ret = bin_info_lookup_source_location(bin, SO_INV_ADDR, &src_loc);
-	ok(ret == -1 && src_loc == NULL,
+	ok(ret == -1 && !src_loc,
 	   "bin_info_lookup_source_location - fail on invalid addr");
 	if (src_loc) {
 		source_location_destroy(src_loc);
@@ -221,7 +221,7 @@ void test_bin_info_build_id(const char *bin_info_dir)
 	bin_path =
 		g_build_filename(bin_info_dir, BUILDID_DIR_NAME, SO_NAME, NULL);
 
-	if (data_dir == NULL || bin_path == NULL) {
+	if (!data_dir || !bin_path) {
 		exit(EXIT_FAILURE);
 	}
 
@@ -233,7 +233,7 @@ void test_bin_info_build_id(const char *bin_info_dir)
 
 	bin = bin_info_create(&fdc, bin_path, SO_LOW_ADDR, SO_MEMSZ, true,
 			      data_dir, NULL, BT_LOG_OUTPUT_LEVEL, NULL);
-	ok(bin != NULL, "bin_info_create successful (%s)", bin_path);
+	ok(bin, "bin_info_create successful (%s)", bin_path);
 
 	/* Test setting invalid build_id */
 	ret = bin_info_set_build_id(bin, invalid_build_id, BUILD_ID_HEX_LEN);
@@ -275,7 +275,7 @@ void test_bin_info_debug_link(const char *bin_info_dir)
 	bin_path = g_build_filename(bin_info_dir, DEBUGLINK_DIR_NAME, SO_NAME,
 				    NULL);
 
-	if (data_dir == NULL || bin_path == NULL) {
+	if (!data_dir || !bin_path) {
 		exit(EXIT_FAILURE);
 	}
 
@@ -287,7 +287,7 @@ void test_bin_info_debug_link(const char *bin_info_dir)
 
 	bin = bin_info_create(&fdc, bin_path, SO_LOW_ADDR, SO_MEMSZ, true,
 		data_dir, NULL, BT_LOG_OUTPUT_LEVEL, NULL);
-	ok(bin != NULL, "bin_info_create successful (%s)", bin_path);
+	ok(bin, "bin_info_create successful (%s)", bin_path);
 
 	/* Test setting debug link */
 	ret = bin_info_set_debug_link(bin, DEBUG_NAME, opt_debug_link_crc);
@@ -325,7 +325,7 @@ void test_bin_info_elf(const char *bin_info_dir)
 	data_dir = g_build_filename(bin_info_dir, ELF_DIR_NAME, NULL);
 	bin_path = g_build_filename(bin_info_dir, ELF_DIR_NAME, SO_NAME, NULL);
 
-	if (data_dir == NULL || bin_path == NULL) {
+	if (!data_dir || !bin_path) {
 		exit(EXIT_FAILURE);
 	}
 
@@ -337,7 +337,7 @@ void test_bin_info_elf(const char *bin_info_dir)
 
 	bin = bin_info_create(&fdc, bin_path, SO_LOW_ADDR, SO_MEMSZ, true,
 		data_dir, NULL, BT_LOG_OUTPUT_LEVEL, NULL);
-	ok(bin != NULL, "bin_info_create successful (%s)", bin_path);
+	ok(bin, "bin_info_create successful (%s)", bin_path);
 
 	/* Test bin_info_has_address */
 	subtest_has_address(bin, func_foo_printf_addr);
@@ -373,7 +373,7 @@ void test_bin_info_bundled(const char *bin_info_dir)
 	bin_path =
 		g_build_filename(bin_info_dir, DWARF_DIR_NAME, SO_NAME, NULL);
 
-	if (data_dir == NULL || bin_path == NULL) {
+	if (!data_dir || !bin_path) {
 		exit(EXIT_FAILURE);
 	}
 
@@ -385,7 +385,7 @@ void test_bin_info_bundled(const char *bin_info_dir)
 
 	bin = bin_info_create(&fdc, bin_path, SO_LOW_ADDR, SO_MEMSZ, true,
 		data_dir, NULL, BT_LOG_OUTPUT_LEVEL, NULL);
-	ok(bin != NULL, "bin_info_create successful (%s)", bin_path);
+	ok(bin, "bin_info_create successful (%s)", bin_path);
 
 	/* Test bin_info_has_address */
 	subtest_has_address(bin, func_foo_printf_addr);

@@ -364,7 +364,7 @@ int bt_plugin_so_init(struct bt_plugin *plugin,
 		const struct __bt_plugin_descriptor_attribute *cur_attr =
 			*cur_attr_ptr;
 
-		if (cur_attr == NULL) {
+		if (!cur_attr) {
 			continue;
 		}
 
@@ -434,7 +434,7 @@ int bt_plugin_so_init(struct bt_plugin *plugin,
 			*cur_cc_descr_ptr;
 		struct comp_class_full_descriptor full_descriptor = {0};
 
-		if (cur_cc_descr == NULL) {
+		if (!cur_cc_descr) {
 			continue;
 		}
 
@@ -457,7 +457,7 @@ int bt_plugin_so_init(struct bt_plugin *plugin,
 			*cur_cc_descr_attr_ptr;
 		enum bt_component_class_type cc_type;
 
-		if (cur_cc_descr_attr == NULL) {
+		if (!cur_cc_descr_attr) {
 			continue;
 		}
 
@@ -1319,7 +1319,7 @@ int bt_plugin_so_create_all_from_sections(
 			descriptors_begin[i];
 		struct bt_plugin *plugin;
 
-		if (descriptor == NULL) {
+		if (!descriptor) {
 			continue;
 		}
 
