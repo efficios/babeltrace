@@ -33,9 +33,6 @@ class _Connection(bt2.object._SharedObject):
     @property
     def downstream_port(self):
         port_ptr = native_bt.connection_borrow_downstream_port_const(self._ptr)
-        utils._handle_ptr(
-            port_ptr, "cannot get connection object's downstream port object"
-        )
         return bt2.port._create_from_ptr_and_get_ref(
             port_ptr, native_bt.PORT_TYPE_INPUT
         )
@@ -43,9 +40,6 @@ class _Connection(bt2.object._SharedObject):
     @property
     def upstream_port(self):
         port_ptr = native_bt.connection_borrow_upstream_port_const(self._ptr)
-        utils._handle_ptr(
-            port_ptr, "cannot get connection object's upstream port object"
-        )
         return bt2.port._create_from_ptr_and_get_ref(
             port_ptr, native_bt.PORT_TYPE_OUTPUT
         )
