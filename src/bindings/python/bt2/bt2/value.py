@@ -92,7 +92,7 @@ class _Value(object._SharedObject, metaclass=abc.ABCMeta):
 
     def _check_create_status(self, ptr):
         if ptr is None:
-            raise bt2.CreationError(
+            raise bt2.MemoryError(
                 'cannot create {} value object'.format(self._NAME.lower())
             )
 

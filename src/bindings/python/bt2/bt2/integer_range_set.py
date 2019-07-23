@@ -72,7 +72,7 @@ class _IntegerRangeSet(object._SharedObject, collections.abc.MutableSet):
         ptr = self._create_range_set()
 
         if ptr is None:
-            raise bt2.CreationError('cannot create range set object')
+            raise bt2.MemoryError('cannot create range set object')
 
         super().__init__(ptr)
 
