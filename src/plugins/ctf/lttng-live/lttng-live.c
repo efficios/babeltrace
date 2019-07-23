@@ -1372,6 +1372,17 @@ bt_component_class_message_iterator_init_method_status lttng_live_msg_iter_init(
 				SESS_NOT_FOUND_ACTION_END_STR,
 				lttng_live->params.url->str);
 			break;
+		case SESSION_NOT_FOUND_ACTION_UNKNOWN:
+		default:
+			/* Fallthrough */
+			BT_COMP_LOGE("Unknown action for session not found"
+				"error. Fail the message iterator"
+				"initialization because of %s=\"%s\" "
+				"component parameter: url =\"%s\"",
+				SESS_NOT_FOUND_ACTION_PARAM,
+				SESS_NOT_FOUND_ACTION_FAIL_STR,
+				lttng_live->params.url->str);
+			break;
 		}
 	}
 
@@ -1505,7 +1516,7 @@ enum session_not_found_action parse_session_not_found_action_param(
 	} else if (strcmp(no_session_act_str, SESS_NOT_FOUND_ACTION_END_STR) == 0) {
 		action = SESSION_NOT_FOUND_ACTION_END;
 	} else {
-		action = -1;
+		action = SESSION_NOT_FOUND_ACTION_UNKNOWN;
 	}
 
 	return action;
@@ -1545,7 +1556,7 @@ struct lttng_live_component *lttng_live_component_create(const bt_value *params,
 	if (value && bt_value_is_string(value)) {
 		lttng_live->params.sess_not_found_act =
 			parse_session_not_found_action_param(value);
-		if (lttng_live->params.sess_not_found_act == -1) {
+		if (lttng_live->params.sess_not_found_act == SESSION_NOT_FOUND_ACTION_UNKNOWN) {
 			BT_COMP_LOGE("Unexpected value for `%s` parameter: "
 				"value=\"%s\"", SESS_NOT_FOUND_ACTION_PARAM,
 				bt_value_string_get(value));
