@@ -221,6 +221,7 @@ struct ctf_event_class {
 	GString *emf_uri;
 	bt_event_class_log_level log_level;
 	bool is_translated;
+	bool is_log_level_set;
 
 	/* Owned by this */
 	struct ctf_field_class *spec_context_fc;
@@ -1485,8 +1486,17 @@ struct ctf_event_class *ctf_event_class_create(void)
 	BT_ASSERT(ec->name);
 	ec->emf_uri = g_string_new(NULL);
 	BT_ASSERT(ec->emf_uri);
-	ec->log_level = -1;
+	ec->is_log_level_set = false;
 	return ec;
+}
+
+static inline
+void ctf_event_class_set_log_level(struct ctf_event_class *ec,
+		enum bt_event_class_log_level log_level)
+{
+	BT_ASSERT(ec);
+	ec->log_level = log_level;
+	ec->is_log_level_set = true;
 }
 
 static inline
