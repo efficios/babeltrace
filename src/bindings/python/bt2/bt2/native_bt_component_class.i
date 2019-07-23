@@ -991,15 +991,15 @@ component_class_message_iterator_init(
 	 *
 	 *     py_iter.__init__(self_output_port)
 	 *
-         * through the _init_for_native helper static method.
+	 * through the _init_for_native helper static method.
 	 *
 	 * At this point, py_iter._ptr is set, so this initialization
 	 * function has access to self._component (which gives it the
 	 * user Python component object from which the iterator was
 	 * created).
 	 */
-        py_component_port_output_ptr = SWIG_NewPointerObj(
-        	SWIG_as_voidptr(self_component_port_output),
+	py_component_port_output_ptr = SWIG_NewPointerObj(
+		SWIG_as_voidptr(self_component_port_output),
 		SWIGTYPE_p_bt_self_component_port_output, 0);
 	if (!py_component_port_output_ptr) {
 		const char *err = "Failed to create a SWIG pointer object.";

@@ -116,7 +116,7 @@ static PyObject *bt_bt2_port_output_get_msg_range(
 %}
 
 PyObject *bt_bt2_get_user_component_from_user_msg_iter(
-    bt_self_message_iterator *self_message_iterator);
+		bt_self_message_iterator *self_message_iterator);
 PyObject *bt_bt2_self_component_port_input_get_msg_range(
 		bt_self_component_port_input_message_iterator *iter);
 PyObject *bt_bt2_port_output_get_msg_range(
