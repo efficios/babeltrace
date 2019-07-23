@@ -333,10 +333,9 @@ class _TraceClass(object._SharedObject, collections.abc.Mapping):
             _trace_class_destruction_listener_from_native, listener
         )
 
-        listener_id = fn(self._ptr, listener_from_native)
-        if listener_id is None:
-            utils._raise_bt2_error(
-                'cannot add destruction listener to trace class object'
-            )
+        status, listener_id = fn(self._ptr, listener_from_native)
+        utils._handle_func_status(
+            status, 'cannot add destruction listener to trace class object'
+        )
 
         return bt2._ListenerHandle(listener_id, self)

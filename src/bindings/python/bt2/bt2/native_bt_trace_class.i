@@ -51,25 +51,24 @@ trace_class_destroyed_listener(const bt_trace_class *trace_class, void *py_calla
 	Py_XDECREF(py_res);
 }
 
-uint64_t bt_bt2_trace_class_add_destruction_listener(bt_trace_class *trace_class,
-	PyObject *py_callable)
+int bt_bt2_trace_class_add_destruction_listener(
+		bt_trace_class *trace_class, PyObject *py_callable,
+		uint64_t *id)
 {
-	uint64_t id = UINT64_C(-1);
 	bt_trace_class_add_listener_status status;
 
 	BT_ASSERT(trace_class);
 	BT_ASSERT(py_callable);
 	status = bt_trace_class_add_destruction_listener(
-		trace_class, trace_class_destroyed_listener, py_callable, &id);
-	if (status != __BT_FUNC_STATUS_OK) {
-		BT_LOGF_STR("Failed to add trace class destruction listener.");
-		abort();
+		trace_class, trace_class_destroyed_listener, py_callable, id);
+	if (status == __BT_FUNC_STATUS_OK) {
+		Py_INCREF(py_callable);
 	}
 
-	Py_INCREF(py_callable);
-	return id;
+	return status;
 }
 %}
 
-uint64_t bt_bt2_trace_class_add_destruction_listener(bt_trace_class *trace_class,
-	PyObject *py_callable);
+int bt_bt2_trace_class_add_destruction_listener(
+		bt_trace_class *trace_class, PyObject *py_callable,
+		uint64_t *id);
