@@ -120,11 +120,6 @@ def _raise_bt2_error(msg):
         raise bt2.Error(msg)
 
 
-def _handle_ptr(ptr, msg=None):
-    if ptr is None:
-        _raise_bt2_error(msg)
-
-
 def _check_log_level(log_level):
     _check_int(log_level)
 

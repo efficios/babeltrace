@@ -31,7 +31,6 @@ import bt2
 
 def _create_field_from_ptr(ptr, owner_ptr, owner_get_ref, owner_put_ref):
     field_class_ptr = native_bt.field_borrow_class_const(ptr)
-    utils._handle_ptr(field_class_ptr, "cannot get field object's class")
     typeid = native_bt.field_class_get_type(field_class_ptr)
     field = _TYPE_ID_TO_OBJ[typeid]._create_from_ptr_and_get_ref(
         ptr, owner_ptr, owner_get_ref, owner_put_ref
@@ -465,8 +464,10 @@ class _VariantField(_ContainerField, _Field):
 
     @property
     def selected_option(self):
+        # TODO: Is there a way to check if the variant field has a selected_option,
+        # so we can raise an exception instead of hitting a pre-condition check?
+        # If there is something, that check should be added to selected_option_index too.
         field_ptr = native_bt.field_variant_borrow_selected_option_field(self._ptr)
-        utils._handle_ptr(field_ptr, "cannot get variant field's selected option")
 
         return _create_field_from_ptr(
             field_ptr, self._owner_ptr, self._owner_get_ref, self._owner_put_ref
