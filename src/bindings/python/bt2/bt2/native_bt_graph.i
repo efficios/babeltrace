@@ -209,6 +209,8 @@ PyObject *bt_bt2_graph_add_port_added_listener(struct bt_graph *graph,
 	PyObject *py_listener_id = NULL;
 	int listener_id;
 	bt_graph_add_listener_status status;
+	const char * const module_name =
+		"graph_add_port_added_listener() (Python)";
 
 	BT_ASSERT(graph);
 	BT_ASSERT(py_callable);
@@ -219,6 +221,8 @@ PyObject *bt_bt2_graph_add_port_added_listener(struct bt_graph *graph,
 	 */
 	py_listener_ids = PyTuple_New(4);
 	if (!py_listener_ids) {
+		BT_CURRENT_THREAD_ERROR_APPEND_CAUSE_FROM_UNKNOWN(module_name,
+			"Failed to allocate one PyTuple.");
 		goto error;
 	}
 
@@ -227,11 +231,17 @@ PyObject *bt_bt2_graph_add_port_added_listener(struct bt_graph *graph,
 		graph, source_component_output_port_added_listener,
 		graph_listener_removed, py_callable, &listener_id);
 	if (status != __BT_FUNC_STATUS_OK) {
+		/*
+		 * bt_graph_add_source_component_output_port_added_listener has
+		 * already logged/appended an error cause.
+		 */
 		goto error;
 	}
 
 	py_listener_id = PyLong_FromLong(listener_id);
 	if (!py_listener_id) {
+		BT_CURRENT_THREAD_ERROR_APPEND_CAUSE_FROM_UNKNOWN(module_name,
+			"Failed to allocate one PyLong.");
 		goto error;
 	}
 
@@ -243,11 +253,17 @@ PyObject *bt_bt2_graph_add_port_added_listener(struct bt_graph *graph,
 		graph, filter_component_input_port_added_listener,
 		graph_listener_removed, py_callable, &listener_id);
 	if (status != __BT_FUNC_STATUS_OK) {
+		/*
+		 * bt_graph_add_filter_component_input_port_added_listener has
+		 * already logged/appended an error cause.
+		 */
 		goto error;
 	}
 
 	py_listener_id = PyLong_FromLong(listener_id);
 	if (!py_listener_id) {
+		BT_CURRENT_THREAD_ERROR_APPEND_CAUSE_FROM_UNKNOWN(module_name,
+			"Failed to allocate one PyLong.");
 		goto error;
 	}
 
@@ -259,11 +275,17 @@ PyObject *bt_bt2_graph_add_port_added_listener(struct bt_graph *graph,
 		graph, filter_component_output_port_added_listener,
 		graph_listener_removed, py_callable, &listener_id);
 	if (status != __BT_FUNC_STATUS_OK) {
+		/*
+		 * bt_graph_add_filter_component_output_port_added_listener has
+		 * already logged/appended an error cause.
+		 */
 		goto error;
 	}
 
 	py_listener_id = PyLong_FromLong(listener_id);
 	if (!py_listener_id) {
+		BT_CURRENT_THREAD_ERROR_APPEND_CAUSE_FROM_UNKNOWN(module_name,
+			"Failed to allocate one PyLong.");
 		goto error;
 	}
 
@@ -275,11 +297,17 @@ PyObject *bt_bt2_graph_add_port_added_listener(struct bt_graph *graph,
 		graph, sink_component_input_port_added_listener,
 		graph_listener_removed, py_callable, &listener_id);
 	if (status != __BT_FUNC_STATUS_OK) {
+		/*
+		 * bt_graph_add_sink_component_input_port_added_listener has
+		 * already logged/appended an error cause.
+		 */
 		goto error;
 	}
 
 	py_listener_id = PyLong_FromLong(listener_id);
 	if (!py_listener_id) {
+		BT_CURRENT_THREAD_ERROR_APPEND_CAUSE_FROM_UNKNOWN(module_name,
+			"Failed to allocate one PyLong.");
 		goto error;
 	}
 
@@ -448,6 +476,8 @@ PyObject *bt_bt2_graph_add_ports_connected_listener(struct bt_graph *graph,
 	PyObject *py_listener_id = NULL;
 	int listener_id;
 	bt_graph_add_listener_status status;
+	const char * const module_name =
+		"graph_add_ports_connected_listener() (Python)";
 
 	BT_ASSERT(graph);
 	BT_ASSERT(py_callable);
@@ -456,6 +486,8 @@ PyObject *bt_bt2_graph_add_ports_connected_listener(struct bt_graph *graph,
 	 * return all of their ids. */
 	py_listener_ids = PyTuple_New(4);
 	if (!py_listener_ids) {
+		BT_CURRENT_THREAD_ERROR_APPEND_CAUSE_FROM_UNKNOWN(module_name,
+			"Failed to allocate one PyTuple.");
 		goto error;
 	}
 
@@ -464,11 +496,17 @@ PyObject *bt_bt2_graph_add_ports_connected_listener(struct bt_graph *graph,
 		graph, source_filter_component_ports_connected_listener,
 		graph_listener_removed, py_callable, &listener_id);
 	if (status != __BT_FUNC_STATUS_OK) {
+		/*
+		 * bt_graph_add_source_filter_component_ports_connected_listener
+		 * has already logged/appended an error cause.
+		 */
 		goto error;
 	}
 
 	py_listener_id = PyLong_FromLong(listener_id);
 	if (!py_listener_id) {
+		BT_CURRENT_THREAD_ERROR_APPEND_CAUSE_FROM_UNKNOWN(module_name,
+			"Failed to allocate one PyLong.");
 		goto error;
 	}
 
@@ -480,11 +518,17 @@ PyObject *bt_bt2_graph_add_ports_connected_listener(struct bt_graph *graph,
 		graph, source_sink_component_ports_connected_listener,
 		graph_listener_removed, py_callable, &listener_id);
 	if (status != __BT_FUNC_STATUS_OK) {
+		/*
+		 * bt_graph_add_source_sink_component_ports_connected_listener
+		 * has already logged/appended an error cause.
+		 */
 		goto error;
 	}
 
 	py_listener_id = PyLong_FromLong(listener_id);
 	if (!py_listener_id) {
+		BT_CURRENT_THREAD_ERROR_APPEND_CAUSE_FROM_UNKNOWN(module_name,
+			"Failed to allocate one PyLong.");
 		goto error;
 	}
 
@@ -496,11 +540,17 @@ PyObject *bt_bt2_graph_add_ports_connected_listener(struct bt_graph *graph,
 		graph, filter_filter_component_ports_connected_listener,
 		graph_listener_removed, py_callable, &listener_id);
 	if (status != __BT_FUNC_STATUS_OK) {
+		/*
+		 * bt_graph_add_filter_filter_component_ports_connected_listener
+		 * has already logged/appended an error cause.
+		 */
 		goto error;
 	}
 
 	py_listener_id = PyLong_FromLong(listener_id);
 	if (!py_listener_id) {
+		BT_CURRENT_THREAD_ERROR_APPEND_CAUSE_FROM_UNKNOWN(module_name,
+			"Failed to allocate one PyLong.");
 		goto error;
 	}
 
@@ -512,11 +562,17 @@ PyObject *bt_bt2_graph_add_ports_connected_listener(struct bt_graph *graph,
 		graph, filter_sink_component_ports_connected_listener,
 		graph_listener_removed, py_callable, &listener_id);
 	if (status != __BT_FUNC_STATUS_OK) {
+		/*
+		 * bt_graph_add_filter_sink_component_ports_connected_listener
+		 * has already logged/appended an error cause.
+		 */
 		goto error;
 	}
 
 	py_listener_id = PyLong_FromLong(listener_id);
 	if (!py_listener_id) {
+		BT_CURRENT_THREAD_ERROR_APPEND_CAUSE_FROM_UNKNOWN(module_name,
+			"Failed to allocate one PyLong.");
 		goto error;
 	}
 
