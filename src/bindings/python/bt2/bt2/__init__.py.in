@@ -165,7 +165,7 @@ class InvalidObject(Exception):
     pass
 
 
-class _OverflowError(OverflowError):
+class _OverflowError(_Error, OverflowError):
     pass
 
 
