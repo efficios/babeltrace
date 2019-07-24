@@ -1399,15 +1399,15 @@ bt_component_class_query_method_status lttng_live_query_list_sessions(
 
 	url_value = bt_value_map_borrow_entry_value_const(params, URL_PARAM);
 	if (!url_value) {
-		BT_COMP_LOGW("Mandatory `%s` parameter missing", URL_PARAM);
-		status = BT_COMPONENT_CLASS_QUERY_METHOD_STATUS_INVALID_PARAMS;
+		BT_COMP_LOGE("Mandatory `%s` parameter missing", URL_PARAM);
+		status = BT_COMPONENT_CLASS_QUERY_METHOD_STATUS_ERROR;
 		goto error;
 	}
 
 	if (!bt_value_is_string(url_value)) {
-		BT_COMP_LOGW("`%s` parameter is required to be a string value",
+		BT_COMP_LOGE("`%s` parameter is required to be a string value",
 			URL_PARAM);
-		status = BT_COMPONENT_CLASS_QUERY_METHOD_STATUS_INVALID_PARAMS;
+		status = BT_COMPONENT_CLASS_QUERY_METHOD_STATUS_ERROR;
 		goto error;
 	}
 

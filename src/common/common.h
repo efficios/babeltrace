@@ -603,8 +603,6 @@ const char *bt_common_func_status_string(int status)
 	switch (status) {
 	case __BT_FUNC_STATUS_OVERFLOW:
 		return "OVERFLOW";
-	case __BT_FUNC_STATUS_INVALID_PARAMS:
-		return "INVALID_PARAMS";
 	case __BT_FUNC_STATUS_INVALID_OBJECT:
 		return "INVALID_OBJECT";
 	case __BT_FUNC_STATUS_MEMORY_ERROR:
