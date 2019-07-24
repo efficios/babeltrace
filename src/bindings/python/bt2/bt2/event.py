@@ -58,7 +58,7 @@ class _Event(object._UniqueObject):
     def stream(self):
         stream_ptr = native_bt.event_borrow_stream(self._ptr)
         assert stream_ptr is not None
-        return bt2._Stream._create_from_ptr_and_get_ref(stream_ptr)
+        return bt2.stream._Stream._create_from_ptr_and_get_ref(stream_ptr)
 
     @property
     def common_context_field(self):

@@ -23,6 +23,7 @@
 from bt2 import native_bt, object, utils
 import bt2.field_class
 import bt2.event_class
+import bt2.trace_class
 import collections.abc
 import bt2.stream
 import bt2
@@ -107,7 +108,7 @@ class _StreamClass(object._SharedObject, collections.abc.Mapping):
         tc_ptr = native_bt.stream_class_borrow_trace_class_const(self._ptr)
 
         if tc_ptr is not None:
-            return bt2._TraceClass._create_from_ptr_and_get_ref(tc_ptr)
+            return bt2.trace_class._TraceClass._create_from_ptr_and_get_ref(tc_ptr)
 
     @property
     def name(self):

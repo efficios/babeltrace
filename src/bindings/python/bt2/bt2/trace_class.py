@@ -28,6 +28,7 @@ import bt2
 from bt2 import native_bt, utils, object
 import bt2.stream_class
 import bt2.field_class
+import bt2.trace
 import collections.abc
 import functools
 

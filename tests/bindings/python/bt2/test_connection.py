@@ -44,7 +44,6 @@ class ConnectionTestCase(unittest.TestCase):
         src = graph.add_component(MySource, 'src')
         sink = graph.add_component(MySink, 'sink')
         conn = graph.connect_ports(src.output_ports['out'], sink.input_ports['in'])
-        self.assertIsInstance(conn, bt2._Connection)
 
     def test_downstream_port(self):
         class MyIter(bt2._UserMessageIterator):
