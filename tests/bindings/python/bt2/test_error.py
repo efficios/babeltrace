@@ -60,11 +60,8 @@ class SinkWithExceptionChaining(bt2._UserSinkComponent):
 
     def _consume(self):
         try:
-            print(self._iter.__next__)
             next(self._iter)
         except bt2._Error as e:
-            print(hex(id(e)))
-            print(e.__dict__)
             raise ValueError('oops') from e
 
 
