@@ -28,9 +28,9 @@ from bt2.clock_class import *
 from bt2.clock_snapshot import *
 from bt2.component import *
 from bt2.component import _FilterComponent
-from bt2.component import _GenericFilterComponentClass
-from bt2.component import _GenericSinkComponentClass
-from bt2.component import _GenericSourceComponentClass
+from bt2.component import _FilterComponentClass
+from bt2.component import _SinkComponentClass
+from bt2.component import _SourceComponentClass
 from bt2.component import _SinkComponent
 from bt2.component import _SourceComponent
 from bt2.component import _UserFilterComponent
