@@ -22,9 +22,9 @@
 
 from bt2 import native_bt, object, utils
 import collections.abc
-import bt2.field
-import bt2.field_path
-import bt2.integer_range_set
+from bt2 import field as bt2_field
+from bt2 import field_path as bt2_field_path
+from bt2 import integer_range_set as bt2_integer_range_set
 import bt2
 
 
@@ -134,7 +134,7 @@ class _EnumerationFieldClassMapping:
 
 
 class _UnsignedEnumerationFieldClassMapping(_EnumerationFieldClassMapping):
-    _ranges_type = bt2.integer_range_set.UnsignedIntegerRangeSet
+    _ranges_type = bt2_integer_range_set.UnsignedIntegerRangeSet
     _as_enumeration_field_class_mapping_ptr = staticmethod(
         native_bt.field_class_enumeration_unsigned_mapping_as_mapping_const
     )
@@ -144,7 +144,7 @@ class _UnsignedEnumerationFieldClassMapping(_EnumerationFieldClassMapping):
 
 
 class _SignedEnumerationFieldClassMapping(_EnumerationFieldClassMapping):
-    _ranges_type = bt2.integer_range_set.SignedIntegerRangeSet
+    _ranges_type = bt2_integer_range_set.SignedIntegerRangeSet
     _as_enumeration_field_class_mapping_ptr = staticmethod(
         native_bt.field_class_enumeration_signed_mapping_as_mapping_const
     )
@@ -203,7 +203,7 @@ class _UnsignedEnumerationFieldClass(
     _EnumerationFieldClass, _UnsignedIntegerFieldClass
 ):
     _NAME = 'Unsigned enumeration'
-    _range_set_type = bt2.integer_range_set.UnsignedIntegerRangeSet
+    _range_set_type = bt2_integer_range_set.UnsignedIntegerRangeSet
     _add_mapping = staticmethod(native_bt.field_class_enumeration_unsigned_add_mapping)
 
     @staticmethod
@@ -235,7 +235,7 @@ class _UnsignedEnumerationFieldClass(
 
 class _SignedEnumerationFieldClass(_EnumerationFieldClass, _SignedIntegerFieldClass):
     _NAME = 'Signed enumeration'
-    _range_set_type = bt2.integer_range_set.SignedIntegerRangeSet
+    _range_set_type = bt2_integer_range_set.SignedIntegerRangeSet
     _add_mapping = staticmethod(native_bt.field_class_enumeration_signed_add_mapping)
 
     @staticmethod
@@ -489,7 +489,7 @@ class _VariantFieldClassWithSelector(_VariantFieldClass):
         if ptr is None:
             return
 
-        return bt2.field_path._FieldPath._create_from_ptr_and_get_ref(ptr)
+        return bt2_field_path._FieldPath._create_from_ptr_and_get_ref(ptr)
 
     def append_option(self, name, field_class, ranges):
         utils._check_str(name)
@@ -533,7 +533,7 @@ class _VariantFieldClassWithUnsignedSelector(_VariantFieldClassWithSelector):
     _option_borrow_ranges_ptr = staticmethod(
         native_bt.field_class_variant_with_selector_unsigned_option_borrow_ranges_const
     )
-    _range_set_type = bt2.integer_range_set.UnsignedIntegerRangeSet
+    _range_set_type = bt2_integer_range_set.UnsignedIntegerRangeSet
 
 
 class _VariantFieldClassWithSignedSelector(_VariantFieldClassWithSelector):
@@ -553,7 +553,7 @@ class _VariantFieldClassWithSignedSelector(_VariantFieldClassWithSelector):
     _option_borrow_ranges_ptr = staticmethod(
         native_bt.field_class_variant_with_selector_signed_option_borrow_ranges_const
     )
-    _range_set_type = bt2.integer_range_set.SignedIntegerRangeSet
+    _range_set_type = bt2_integer_range_set.SignedIntegerRangeSet
 
 
 class _ArrayFieldClass(_FieldClass):
@@ -580,7 +580,7 @@ class _DynamicArrayFieldClass(_ArrayFieldClass):
         if ptr is None:
             return
 
-        return bt2.field_path._FieldPath._create_from_ptr_and_get_ref(ptr)
+        return bt2_field_path._FieldPath._create_from_ptr_and_get_ref(ptr)
 
 
 _FIELD_CLASS_TYPE_TO_OBJ = {

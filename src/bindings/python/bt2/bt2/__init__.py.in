@@ -23,6 +23,7 @@
 __version__ = '@PACKAGE_VERSION@'
 
 
+# import all public names
 from bt2.clock_class import ClockClassOffset
 from bt2.clock_snapshot import _ClockSnapshot
 from bt2.clock_snapshot import _UnknownClockSnapshot
@@ -114,6 +115,48 @@ from bt2.value import ArrayValue
 from bt2.value import MapValue
 
 
+def _del_global_name(name):
+    if name in globals():
+        del globals()[name]
+
+
+# remove private module names from the package
+_del_global_name('_native_bt')
+_del_global_name('clock_class')
+_del_global_name('clock_snapshot')
+_del_global_name('component')
+_del_global_name('connection')
+_del_global_name('error')
+_del_global_name('event')
+_del_global_name('event_class')
+_del_global_name('field')
+_del_global_name('field_class')
+_del_global_name('field_path')
+_del_global_name('graph')
+_del_global_name('integer_range_set')
+_del_global_name('interrupter')
+_del_global_name('logging')
+_del_global_name('message')
+_del_global_name('message_iterator')
+_del_global_name('native_bt')
+_del_global_name('object')
+_del_global_name('packet')
+_del_global_name('plugin')
+_del_global_name('port')
+_del_global_name('py_plugin')
+_del_global_name('query_executor')
+_del_global_name('stream')
+_del_global_name('stream_class')
+_del_global_name('trace')
+_del_global_name('trace_class')
+_del_global_name('trace_collection_message_iterator')
+_del_global_name('utils')
+_del_global_name('value')
+
+# remove private `_del_global_name` name from the package
+del _del_global_name
+
+
 class _MemoryError(_Error):
     '''Raised when an operation fails due to memory issues.'''
 
@@ -139,23 +182,20 @@ class _IncompleteUserClass(Exception):
 
 
 def _init_and_register_exit():
-    import bt2.native_bt as _native_bt
+    from bt2 import native_bt
     import atexit
 
-    atexit.register(_native_bt.bt2_cc_exit_handler)
+    atexit.register(native_bt.bt2_cc_exit_handler)
     version = (
-        _native_bt.version_get_major(),
-        _native_bt.version_get_minor(),
-        _native_bt.version_get_patch(),
-        _native_bt.version_get_extra(),
+        native_bt.version_get_major(),
+        native_bt.version_get_minor(),
+        native_bt.version_get_patch(),
+        native_bt.version_get_extra(),
     )
-    _native_bt.bt2_cc_init_from_bt2()
+    native_bt.bt2_cc_init_from_bt2()
 
 
 _init_and_register_exit()
 
-
-try:
-    del native_bt
-except:
-    pass
+# remove private `_init_and_register_exit` name from the package
+del _init_and_register_exit

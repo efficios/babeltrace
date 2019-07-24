@@ -23,6 +23,7 @@
 from bt2 import native_bt, object, utils
 import numbers
 import bt2
+from bt2 import clock_class as bt2_clock_class
 import functools
 
 
@@ -32,7 +33,7 @@ class _ClockSnapshot(object._UniqueObject):
     def clock_class(self):
         cc_ptr = native_bt.clock_snapshot_borrow_clock_class_const(self._ptr)
         assert cc_ptr is not None
-        return bt2.clock_class._ClockClass._create_from_ptr_and_get_ref(cc_ptr)
+        return bt2_clock_class._ClockClass._create_from_ptr_and_get_ref(cc_ptr)
 
     @property
     def value(self):

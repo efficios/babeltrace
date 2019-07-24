@@ -21,11 +21,12 @@
 # THE SOFTWARE.
 
 from bt2 import native_bt, object, utils
-import bt2.field_class
+from bt2 import field_class as bt2_field_class
 import collections.abc
-import bt2.value
-import bt2.stream
-import bt2.trace_class
+from bt2 import value as bt2_value
+from bt2 import stream as bt2_stream
+from bt2 import trace_class as bt2_trace_class
+from bt2 import stream_class as bt2_stream_class
 import bt2
 import functools
 import uuid as uuidp
@@ -44,7 +45,7 @@ class _TraceEnv(collections.abc.MutableMapping):
         if value_ptr is None:
             raise KeyError(key)
 
-        return bt2.value._create_from_ptr_and_get_ref(value_ptr)
+        return bt2_value._create_from_ptr_and_get_ref(value_ptr)
 
     def __setitem__(self, key, value):
         if isinstance(value, str):
@@ -76,7 +77,7 @@ class _TraceEnv(collections.abc.MutableMapping):
 
 
 def _trace_destruction_listener_from_native(user_listener, trace_ptr):
-    trace = bt2.trace._Trace._create_from_ptr_and_get_ref(trace_ptr)
+    trace = _Trace._create_from_ptr_and_get_ref(trace_ptr)
     user_listener(trace)
 
 
@@ -97,7 +98,7 @@ class _Trace(object._SharedObject, collections.abc.Mapping):
         if stream_ptr is None:
             raise KeyError(id)
 
-        return bt2.stream._Stream._create_from_ptr_and_get_ref(stream_ptr)
+        return bt2_stream._Stream._create_from_ptr_and_get_ref(stream_ptr)
 
     def __iter__(self):
         for idx in range(len(self)):
@@ -113,7 +114,7 @@ class _Trace(object._SharedObject, collections.abc.Mapping):
     def cls(self):
         trace_class_ptr = native_bt.trace_borrow_class(self._ptr)
         assert trace_class_ptr is not None
-        return bt2.trace_class._TraceClass._create_from_ptr_and_get_ref(trace_class_ptr)
+        return bt2_trace_class._TraceClass._create_from_ptr_and_get_ref(trace_class_ptr)
 
     @property
     def name(self):
@@ -145,7 +146,7 @@ class _Trace(object._SharedObject, collections.abc.Mapping):
         return _TraceEnv(self)
 
     def create_stream(self, stream_class, id=None, name=None):
-        utils._check_type(stream_class, bt2.stream_class._StreamClass)
+        utils._check_type(stream_class, bt2_stream_class._StreamClass)
 
         if stream_class.assigns_automatic_stream_id:
             if id is not None:
@@ -168,7 +169,7 @@ class _Trace(object._SharedObject, collections.abc.Mapping):
         if stream_ptr is None:
             raise bt2._MemoryError('cannot create stream object')
 
-        stream = bt2.stream._Stream._create_from_ptr(stream_ptr)
+        stream = bt2_stream._Stream._create_from_ptr(stream_ptr)
 
         if name is not None:
             stream._name = name
@@ -190,4 +191,4 @@ class _Trace(object._SharedObject, collections.abc.Mapping):
             status, 'cannot add destruction listener to trace object'
         )
 
-        return bt2.utils._ListenerHandle(listener_id, self)
+        return utils._ListenerHandle(listener_id, self)

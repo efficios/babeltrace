@@ -21,7 +21,7 @@
 # THE SOFTWARE.
 
 import bt2
-import bt2.logging
+from bt2 import logging as bt2_logging
 from bt2 import native_bt
 
 
@@ -117,13 +117,13 @@ def _check_log_level(log_level):
     _check_int(log_level)
 
     log_levels = (
-        bt2.logging.LoggingLevel.TRACE,
-        bt2.logging.LoggingLevel.DEBUG,
-        bt2.logging.LoggingLevel.INFO,
-        bt2.logging.LoggingLevel.WARNING,
-        bt2.logging.LoggingLevel.ERROR,
-        bt2.logging.LoggingLevel.FATAL,
-        bt2.logging.LoggingLevel.NONE,
+        bt2_logging.LoggingLevel.TRACE,
+        bt2_logging.LoggingLevel.DEBUG,
+        bt2_logging.LoggingLevel.INFO,
+        bt2_logging.LoggingLevel.WARNING,
+        bt2_logging.LoggingLevel.ERROR,
+        bt2_logging.LoggingLevel.FATAL,
+        bt2_logging.LoggingLevel.NONE,
     )
 
     if log_level not in log_levels:

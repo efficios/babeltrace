@@ -26,9 +26,10 @@ __all__ = ['_TraceClass']
 
 import bt2
 from bt2 import native_bt, utils, object
-import bt2.stream_class
-import bt2.field_class
-import bt2.trace
+from bt2 import stream_class as bt2_stream_class
+from bt2 import field_class as bt2_field_class
+from bt2 import trace as bt2_trace
+from bt2 import trace_class as bt2_trace_class
 import collections.abc
 import functools
 
@@ -54,7 +55,7 @@ class _StreamClassIterator(collections.abc.Iterator):
 
 
 def _trace_class_destruction_listener_from_native(user_listener, trace_class_ptr):
-    trace_class = bt2.trace_class._TraceClass._create_from_ptr_and_get_ref(
+    trace_class = bt2_trace_class._TraceClass._create_from_ptr_and_get_ref(
         trace_class_ptr
     )
     user_listener(trace_class)
@@ -72,7 +73,7 @@ class _TraceClass(object._SharedObject, collections.abc.Mapping):
         if trace_ptr is None:
             raise bt2._MemoryError('cannot create trace class object')
 
-        trace = bt2.trace._Trace._create_from_ptr(trace_ptr)
+        trace = bt2_trace._Trace._create_from_ptr(trace_ptr)
 
         if name is not None:
             trace._name = name
@@ -102,7 +103,7 @@ class _TraceClass(object._SharedObject, collections.abc.Mapping):
         if sc_ptr is None:
             raise KeyError(key)
 
-        return bt2.stream_class._StreamClass._create_from_ptr_and_get_ref(sc_ptr)
+        return bt2_stream_class._StreamClass._create_from_ptr_and_get_ref(sc_ptr)
 
     def __iter__(self):
         for idx in range(len(self)):
@@ -150,7 +151,7 @@ class _TraceClass(object._SharedObject, collections.abc.Mapping):
             utils._check_uint64(id)
             sc_ptr = native_bt.stream_class_create_with_id(self._ptr, id)
 
-        sc = bt2.stream_class._StreamClass._create_from_ptr(sc_ptr)
+        sc = bt2_stream_class._StreamClass._create_from_ptr(sc_ptr)
 
         if name is not None:
             sc._name = name
@@ -228,7 +229,7 @@ class _TraceClass(object._SharedObject, collections.abc.Mapping):
     ):
         return self._create_integer_field_class(
             native_bt.field_class_integer_signed_create,
-            bt2.field_class._SignedIntegerFieldClass,
+            bt2_field_class._SignedIntegerFieldClass,
             'signed integer',
             field_value_range,
             preferred_display_base,
@@ -239,7 +240,7 @@ class _TraceClass(object._SharedObject, collections.abc.Mapping):
     ):
         return self._create_integer_field_class(
             native_bt.field_class_integer_unsigned_create,
-            bt2.field_class._UnsignedIntegerFieldClass,
+            bt2_field_class._UnsignedIntegerFieldClass,
             'unsigned integer',
             field_value_range,
             preferred_display_base,
@@ -250,7 +251,7 @@ class _TraceClass(object._SharedObject, collections.abc.Mapping):
     ):
         return self._create_integer_field_class(
             native_bt.field_class_enumeration_signed_create,
-            bt2.field_class._SignedEnumerationFieldClass,
+            bt2_field_class._SignedEnumerationFieldClass,
             'signed enumeration',
             field_value_range,
             preferred_display_base,
@@ -261,7 +262,7 @@ class _TraceClass(object._SharedObject, collections.abc.Mapping):
     ):
         return self._create_integer_field_class(
             native_bt.field_class_enumeration_unsigned_create,
-            bt2.field_class._UnsignedEnumerationFieldClass,
+            bt2_field_class._UnsignedEnumerationFieldClass,
             'unsigned enumeration',
             field_value_range,
             preferred_display_base,
@@ -271,7 +272,7 @@ class _TraceClass(object._SharedObject, collections.abc.Mapping):
         field_class_ptr = native_bt.field_class_real_create(self._ptr)
         self._check_create_status(field_class_ptr, 'real')
 
-        field_class = bt2.field_class._RealFieldClass._create_from_ptr(field_class_ptr)
+        field_class = bt2_field_class._RealFieldClass._create_from_ptr(field_class_ptr)
 
         field_class._is_single_precision = is_single_precision
 
@@ -281,46 +282,46 @@ class _TraceClass(object._SharedObject, collections.abc.Mapping):
         field_class_ptr = native_bt.field_class_structure_create(self._ptr)
         self._check_create_status(field_class_ptr, 'structure')
 
-        return bt2.field_class._StructureFieldClass._create_from_ptr(field_class_ptr)
+        return bt2_field_class._StructureFieldClass._create_from_ptr(field_class_ptr)
 
     def create_string_field_class(self):
         field_class_ptr = native_bt.field_class_string_create(self._ptr)
         self._check_create_status(field_class_ptr, 'string')
 
-        return bt2.field_class._StringFieldClass._create_from_ptr(field_class_ptr)
+        return bt2_field_class._StringFieldClass._create_from_ptr(field_class_ptr)
 
     def create_static_array_field_class(self, elem_fc, length):
-        utils._check_type(elem_fc, bt2.field_class._FieldClass)
+        utils._check_type(elem_fc, bt2_field_class._FieldClass)
         utils._check_uint64(length)
         ptr = native_bt.field_class_array_static_create(self._ptr, elem_fc._ptr, length)
         self._check_create_status(ptr, 'static array')
 
-        return bt2.field_class._StaticArrayFieldClass._create_from_ptr_and_get_ref(ptr)
+        return bt2_field_class._StaticArrayFieldClass._create_from_ptr_and_get_ref(ptr)
 
     def create_dynamic_array_field_class(self, elem_fc, length_fc=None):
-        utils._check_type(elem_fc, bt2.field_class._FieldClass)
+        utils._check_type(elem_fc, bt2_field_class._FieldClass)
         length_fc_ptr = None
 
         if length_fc is not None:
-            utils._check_type(length_fc, bt2.field_class._UnsignedIntegerFieldClass)
+            utils._check_type(length_fc, bt2_field_class._UnsignedIntegerFieldClass)
             length_fc_ptr = length_fc._ptr
 
         ptr = native_bt.field_class_array_dynamic_create(
             self._ptr, elem_fc._ptr, length_fc_ptr
         )
         self._check_create_status(ptr, 'dynamic array')
-        return bt2.field_class._DynamicArrayFieldClass._create_from_ptr(ptr)
+        return bt2_field_class._DynamicArrayFieldClass._create_from_ptr(ptr)
 
     def create_variant_field_class(self, selector_fc=None):
         selector_fc_ptr = None
 
         if selector_fc is not None:
-            utils._check_type(selector_fc, bt2.field_class._IntegerFieldClass)
+            utils._check_type(selector_fc, bt2_field_class._IntegerFieldClass)
             selector_fc_ptr = selector_fc._ptr
 
         ptr = native_bt.field_class_variant_create(self._ptr, selector_fc_ptr)
         self._check_create_status(ptr, 'variant')
-        return bt2.field_class._create_field_class_from_ptr_and_get_ref(ptr)
+        return bt2_field_class._create_field_class_from_ptr_and_get_ref(ptr)
 
     # Add a listener to be called when the trace class is destroyed.
 
@@ -339,4 +340,4 @@ class _TraceClass(object._SharedObject, collections.abc.Mapping):
             status, 'cannot add destruction listener to trace class object'
         )
 
-        return bt2.utils._ListenerHandle(listener_id, self)
+        return utils._ListenerHandle(listener_id, self)

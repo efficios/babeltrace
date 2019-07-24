@@ -21,11 +21,11 @@
 # THE SOFTWARE.
 
 from bt2 import utils
-import bt2.component
+from bt2 import component as bt2_component
 
 
 def plugin_component_class(component_class):
-    if not issubclass(component_class, bt2.component._UserComponent):
+    if not issubclass(component_class, bt2_component._UserComponent):
         raise TypeError('component class is not a subclass of a user component class')
 
     component_class._bt_plugin_component_class = None

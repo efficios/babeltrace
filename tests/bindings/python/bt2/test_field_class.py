@@ -371,12 +371,8 @@ class _TestElementContainer:
 
 
 class StructureFieldClassTestCase(_TestElementContainer, unittest.TestCase):
-    _append_element_method = staticmethod(
-        bt2.field_class._StructureFieldClass.append_member
-    )
-    _at_index_method = staticmethod(
-        bt2.field_class._StructureFieldClass.member_at_index
-    )
+    _append_element_method = staticmethod(bt2._StructureFieldClass.append_member)
+    _at_index_method = staticmethod(bt2._StructureFieldClass.member_at_index)
 
     def _create_default_fc(self):
         return self._tc.create_structure_field_class()
@@ -386,10 +382,10 @@ class VariantFieldClassWithoutSelectorTestCase(
     _TestElementContainer, unittest.TestCase
 ):
     _append_element_method = staticmethod(
-        bt2.field_class._VariantFieldClassWithoutSelector.append_option
+        bt2._VariantFieldClassWithoutSelector.append_option
     )
     _at_index_method = staticmethod(
-        bt2.field_class._VariantFieldClassWithoutSelector.option_at_index
+        bt2._VariantFieldClassWithoutSelector.option_at_index
     )
 
     def _create_default_fc(self):
@@ -617,20 +613,18 @@ class _VariantFieldClassWithSelectorTestCase:
 
         self.assertEqual(len(path_items), 3)
 
-        self.assertIsInstance(path_items[0], bt2.field_path._IndexFieldPathItem)
+        self.assertIsInstance(path_items[0], bt2._IndexFieldPathItem)
         self.assertEqual(path_items[0].index, 1)
 
-        self.assertIsInstance(
-            path_items[1], bt2.field_path._CurrentArrayElementFieldPathItem
-        )
+        self.assertIsInstance(path_items[1], bt2._CurrentArrayElementFieldPathItem)
 
-        self.assertIsInstance(path_items[2], bt2.field_path._IndexFieldPathItem)
+        self.assertIsInstance(path_items[2], bt2._IndexFieldPathItem)
         self.assertEqual(path_items[2].index, 0)
 
     def test_selector_field_path_root_scope(self):
         self._fill_default_fc_for_field_path_test()
         self.assertEqual(
-            self._fc.selector_field_path.root_scope, bt2.field_path.Scope.PACKET_CONTEXT
+            self._fc.selector_field_path.root_scope, bt2.Scope.PACKET_CONTEXT
         )
 
 
@@ -745,21 +739,17 @@ class DynamicArrayFieldClassTestCase(unittest.TestCase):
 
         self.assertEqual(len(path_items), 3)
 
-        self.assertIsInstance(path_items[0], bt2.field_path._IndexFieldPathItem)
+        self.assertIsInstance(path_items[0], bt2._IndexFieldPathItem)
         self.assertEqual(path_items[0].index, 1)
 
-        self.assertIsInstance(
-            path_items[1], bt2.field_path._CurrentArrayElementFieldPathItem
-        )
+        self.assertIsInstance(path_items[1], bt2._CurrentArrayElementFieldPathItem)
 
-        self.assertIsInstance(path_items[2], bt2.field_path._IndexFieldPathItem)
+        self.assertIsInstance(path_items[2], bt2._IndexFieldPathItem)
         self.assertEqual(path_items[2].index, 2)
 
     def test_field_path_root_scope(self):
         fc = self._create_field_class_for_field_path_test()
-        self.assertEqual(
-            fc.length_field_path.root_scope, bt2.field_path.Scope.PACKET_CONTEXT
-        )
+        self.assertEqual(fc.length_field_path.root_scope, bt2.Scope.PACKET_CONTEXT)
 
     def test_create_invalid_field_class(self):
         with self.assertRaises(TypeError):

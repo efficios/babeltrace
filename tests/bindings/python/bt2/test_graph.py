@@ -306,16 +306,16 @@ class GraphTestCase(unittest.TestCase):
                 msg = next(comp_self._msg_iter)
 
                 if comp_self._at == 0:
-                    self.assertIsInstance(msg, bt2.message._StreamBeginningMessage)
+                    self.assertIsInstance(msg, bt2._StreamBeginningMessage)
                 elif comp_self._at == 1:
-                    self.assertIsInstance(msg, bt2.message._PacketBeginningMessage)
+                    self.assertIsInstance(msg, bt2._PacketBeginningMessage)
                 elif comp_self._at >= 2 and comp_self._at <= 6:
-                    self.assertIsInstance(msg, bt2.message._EventMessage)
+                    self.assertIsInstance(msg, bt2._EventMessage)
                     self.assertEqual(msg.event.cls.name, 'salut')
                 elif comp_self._at == 7:
-                    self.assertIsInstance(msg, bt2.message._PacketEndMessage)
+                    self.assertIsInstance(msg, bt2._PacketEndMessage)
                 elif comp_self._at == 8:
-                    self.assertIsInstance(msg, bt2.message._StreamEndMessage)
+                    self.assertIsInstance(msg, bt2._StreamEndMessage)
 
                 comp_self._at += 1
 
@@ -359,11 +359,11 @@ class GraphTestCase(unittest.TestCase):
             def _consume(comp_self):
                 msg = next(comp_self._msg_iter)
                 if comp_self._at == 0:
-                    self.assertIsInstance(msg, bt2.message._StreamBeginningMessage)
+                    self.assertIsInstance(msg, bt2._StreamBeginningMessage)
                 elif comp_self._at == 1:
-                    self.assertIsInstance(msg, bt2.message._PacketBeginningMessage)
+                    self.assertIsInstance(msg, bt2._PacketBeginningMessage)
                 elif comp_self._at == 2:
-                    self.assertIsInstance(msg, bt2.message._EventMessage)
+                    self.assertIsInstance(msg, bt2._EventMessage)
                     raise bt2.TryAgain
                 else:
                     pass
@@ -417,11 +417,11 @@ class GraphTestCase(unittest.TestCase):
             def _consume(comp_self):
                 msg = next(comp_self._msg_iter)
                 if comp_self._at == 0:
-                    self.assertIsInstance(msg, bt2.message._StreamBeginningMessage)
+                    self.assertIsInstance(msg, bt2._StreamBeginningMessage)
                 elif comp_self._at == 1:
-                    self.assertIsInstance(msg, bt2.message._PacketBeginningMessage)
+                    self.assertIsInstance(msg, bt2._PacketBeginningMessage)
                 elif comp_self._at == 2:
-                    self.assertIsInstance(msg, bt2.message._EventMessage)
+                    self.assertIsInstance(msg, bt2._EventMessage)
                 elif comp_self._at == 3:
                     nonlocal raised_in_sink
                     raised_in_sink = True

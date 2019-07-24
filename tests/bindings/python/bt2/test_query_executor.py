@@ -103,7 +103,7 @@ class QueryExecutorTestCase(unittest.TestCase):
         exc = ctx.exception
         self.assertEqual(len(exc), 2)
         cause = exc[0]
-        self.assertIsInstance(cause, bt2.error._ComponentClassErrorCause)
+        self.assertIsInstance(cause, bt2._ComponentClassErrorCause)
         self.assertIn('raise ValueError', cause.message)
         self.assertEqual(cause.component_class_type, bt2.ComponentClassType.SINK)
         self.assertEqual(cause.component_class_name, 'MySink')

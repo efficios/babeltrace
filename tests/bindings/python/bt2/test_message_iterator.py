@@ -200,15 +200,15 @@ class UserMessageIteratorTestCase(unittest.TestCase):
 
         # Skip beginning messages.
         msg = next(it)
-        self.assertIsInstance(msg, bt2.message._StreamBeginningMessage)
+        self.assertIsInstance(msg, bt2._StreamBeginningMessage)
         msg = next(it)
-        self.assertIsInstance(msg, bt2.message._PacketBeginningMessage)
+        self.assertIsInstance(msg, bt2._PacketBeginningMessage)
 
         msg_ev1 = next(it)
         msg_ev2 = next(it)
 
-        self.assertIsInstance(msg_ev1, bt2.message._EventMessage)
-        self.assertIsInstance(msg_ev2, bt2.message._EventMessage)
+        self.assertIsInstance(msg_ev1, bt2._EventMessage)
+        self.assertIsInstance(msg_ev2, bt2._EventMessage)
         self.assertEqual(msg_ev1.addr, msg_ev2.addr)
 
     @staticmethod
@@ -315,14 +315,14 @@ class UserMessageIteratorTestCase(unittest.TestCase):
         it, MySourceIter = self._setup_seek_beginning_test()
 
         msg = next(it)
-        self.assertIsInstance(msg, bt2.message._StreamBeginningMessage)
+        self.assertIsInstance(msg, bt2._StreamBeginningMessage)
         msg = next(it)
-        self.assertIsInstance(msg, bt2.message._PacketBeginningMessage)
+        self.assertIsInstance(msg, bt2._PacketBeginningMessage)
 
         it.seek_beginning()
 
         msg = next(it)
-        self.assertIsInstance(msg, bt2.message._StreamBeginningMessage)
+        self.assertIsInstance(msg, bt2._StreamBeginningMessage)
 
         # Verify that we can seek beginning after having reached the end.
         #
@@ -338,7 +338,7 @@ class UserMessageIteratorTestCase(unittest.TestCase):
         #
         # it.seek_beginning()
         # msg = next(it)
-        # self.assertIsInstance(msg, bt2.message._StreamBeginningMessage)
+        # self.assertIsInstance(msg, bt2._StreamBeginningMessage)
 
     def test_seek_beginning_user_error(self):
         it, MySourceIter = self._setup_seek_beginning_test()
@@ -433,15 +433,15 @@ class OutputPortMessageIteratorTestCase(unittest.TestCase):
 
         for at, msg in enumerate(msg_iter):
             if at == 0:
-                self.assertIsInstance(msg, bt2.message._StreamBeginningMessage)
+                self.assertIsInstance(msg, bt2._StreamBeginningMessage)
             elif at == 1:
-                self.assertIsInstance(msg, bt2.message._PacketBeginningMessage)
+                self.assertIsInstance(msg, bt2._PacketBeginningMessage)
             elif at == 5:
-                self.assertIsInstance(msg, bt2.message._PacketEndMessage)
+                self.assertIsInstance(msg, bt2._PacketEndMessage)
             elif at == 6:
-                self.assertIsInstance(msg, bt2.message._StreamEndMessage)
+                self.assertIsInstance(msg, bt2._StreamEndMessage)
             else:
-                self.assertIsInstance(msg, bt2.message._EventMessage)
+                self.assertIsInstance(msg, bt2._EventMessage)
                 self.assertEqual(msg.event.cls.name, 'salut')
                 field = msg.event.payload_field['my_int']
                 self.assertEqual(field, at * 3)

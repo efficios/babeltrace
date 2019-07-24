@@ -21,10 +21,10 @@
 # THE SOFTWARE.
 
 from bt2 import native_bt, object, utils
-import bt2.clock_snapshot
-import bt2.packet
-import bt2.stream
-import bt2.event
+from bt2 import clock_snapshot as bt2_clock_snapshot
+from bt2 import packet as bt2_packet
+from bt2 import stream as bt2_stream
+from bt2 import event as bt2_event
 import bt2
 
 
@@ -49,7 +49,7 @@ class _MessageWithDefaultClockSnapshot:
     def _get_default_clock_snapshot(self, borrow_clock_snapshot_ptr):
         snapshot_ptr = borrow_clock_snapshot_ptr(self._ptr)
 
-        return bt2.clock_snapshot._ClockSnapshot._create_from_ptr_and_get_ref(
+        return bt2_clock_snapshot._ClockSnapshot._create_from_ptr_and_get_ref(
             snapshot_ptr, self._ptr, self._get_ref, self._put_ref
         )
 
@@ -68,7 +68,7 @@ class _EventMessage(_Message, _MessageWithDefaultClockSnapshot):
     def event(self):
         event_ptr = native_bt.message_event_borrow_event(self._ptr)
         assert event_ptr is not None
-        return bt2.event._Event._create_from_ptr_and_get_ref(
+        return bt2_event._Event._create_from_ptr_and_get_ref(
             event_ptr, self._ptr, self._get_ref, self._put_ref
         )
 
@@ -83,7 +83,7 @@ class _PacketMessage(_Message, _MessageWithDefaultClockSnapshot):
     def packet(self):
         packet_ptr = self._borrow_packet_ptr(self._ptr)
         assert packet_ptr is not None
-        return bt2.packet._Packet._create_from_ptr_and_get_ref(packet_ptr)
+        return bt2_packet._Packet._create_from_ptr_and_get_ref(packet_ptr)
 
 
 class _PacketBeginningMessage(_PacketMessage):
@@ -105,7 +105,7 @@ class _StreamMessage(_Message, _MessageWithDefaultClockSnapshot):
     def stream(self):
         stream_ptr = self._borrow_stream_ptr(self._ptr)
         assert stream_ptr
-        return bt2.stream._Stream._create_from_ptr_and_get_ref(stream_ptr)
+        return bt2_stream._Stream._create_from_ptr_and_get_ref(stream_ptr)
 
     @property
     def default_clock_snapshot(self):
@@ -114,9 +114,9 @@ class _StreamMessage(_Message, _MessageWithDefaultClockSnapshot):
         status, snapshot_ptr = self._borrow_default_clock_snapshot_ptr(self._ptr)
 
         if status == native_bt.MESSAGE_STREAM_CLOCK_SNAPSHOT_STATE_UNKNOWN:
-            return bt2.clock_snapshot._UnknownClockSnapshot()
+            return bt2_clock_snapshot._UnknownClockSnapshot()
 
-        return bt2.clock_snapshot._ClockSnapshot._create_from_ptr_and_get_ref(
+        return bt2_clock_snapshot._ClockSnapshot._create_from_ptr_and_get_ref(
             snapshot_ptr, self._ptr, self._get_ref, self._put_ref
         )
 
@@ -164,7 +164,7 @@ class _DiscardedMessage(_Message, _MessageWithDefaultClockSnapshot):
     def stream(self):
         stream_ptr = self._borrow_stream_ptr(self._ptr)
         assert stream_ptr
-        return bt2.stream._Stream._create_from_ptr_and_get_ref(stream_ptr)
+        return bt2_stream._Stream._create_from_ptr_and_get_ref(stream_ptr)
 
     @property
     def count(self):

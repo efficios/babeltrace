@@ -116,8 +116,6 @@ class TraceClassTestCase(unittest.TestCase):
         tc, sc1, sc2, sc3 = self._create_trace_class_with_some_stream_classes()
 
         for sc_id, stream_class in tc.items():
-            self.assertIsInstance(stream_class, bt2.stream_class._StreamClass)
-
             if sc_id == 12:
                 self.assertEqual(stream_class.addr, sc1.addr)
             elif sc_id == 54:

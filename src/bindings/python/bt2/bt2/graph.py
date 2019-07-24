@@ -21,22 +21,23 @@
 # THE SOFTWARE.
 
 from bt2 import native_bt, object, utils
-import bt2.interrupter
-import bt2.connection
-import bt2.component
+from bt2 import interrupter as bt2_interrupter
+from bt2 import connection as bt2_connection
+from bt2 import component as bt2_component
+from bt2 import message_iterator as bt2_message_iterator
 import functools
-import bt2.port
-import bt2.logging
+from bt2 import port as bt2_port
+from bt2 import logging as bt2_logging
 import bt2
 
 
 def _graph_port_added_listener_from_native(
     user_listener, component_ptr, component_type, port_ptr, port_type
 ):
-    component = bt2.component._create_component_from_ptr_and_get_ref(
+    component = bt2_component._create_component_from_ptr_and_get_ref(
         component_ptr, component_type
     )
-    port = bt2.port._create_from_ptr_and_get_ref(port_ptr, port_type)
+    port = bt2_port._create_from_ptr_and_get_ref(port_ptr, port_type)
     user_listener(component, port)
 
 
@@ -49,16 +50,16 @@ def _graph_ports_connected_listener_from_native(
     downstream_component_type,
     downstream_port_ptr,
 ):
-    upstream_component = bt2.component._create_component_from_ptr_and_get_ref(
+    upstream_component = bt2_component._create_component_from_ptr_and_get_ref(
         upstream_component_ptr, upstream_component_type
     )
-    upstream_port = bt2.port._create_from_ptr_and_get_ref(
+    upstream_port = bt2_port._create_from_ptr_and_get_ref(
         upstream_port_ptr, native_bt.PORT_TYPE_OUTPUT
     )
-    downstream_component = bt2.component._create_component_from_ptr_and_get_ref(
+    downstream_component = bt2_component._create_component_from_ptr_and_get_ref(
         downstream_component_ptr, downstream_component_type
     )
-    downstream_port = bt2.port._create_from_ptr_and_get_ref(
+    downstream_port = bt2_port._create_from_ptr_and_get_ref(
         downstream_port_ptr, native_bt.PORT_TYPE_INPUT
     )
     user_listener(
@@ -83,29 +84,29 @@ class Graph(object._SharedObject):
         component_class,
         name,
         params=None,
-        logging_level=bt2.logging.LoggingLevel.NONE,
+        logging_level=bt2_logging.LoggingLevel.NONE,
     ):
-        if isinstance(component_class, bt2.component._SourceComponentClass):
+        if isinstance(component_class, bt2_component._SourceComponentClass):
             cc_ptr = component_class._ptr
             add_fn = native_bt.graph_add_source_component
             cc_type = native_bt.COMPONENT_CLASS_TYPE_SOURCE
-        elif isinstance(component_class, bt2.component._FilterComponentClass):
+        elif isinstance(component_class, bt2_component._FilterComponentClass):
             cc_ptr = component_class._ptr
             add_fn = native_bt.graph_add_filter_component
             cc_type = native_bt.COMPONENT_CLASS_TYPE_FILTER
-        elif isinstance(component_class, bt2.component._SinkComponentClass):
+        elif isinstance(component_class, bt2_component._SinkComponentClass):
             cc_ptr = component_class._ptr
             add_fn = native_bt.graph_add_sink_component
             cc_type = native_bt.COMPONENT_CLASS_TYPE_SINK
-        elif issubclass(component_class, bt2.component._UserSourceComponent):
+        elif issubclass(component_class, bt2_component._UserSourceComponent):
             cc_ptr = component_class._bt_cc_ptr
             add_fn = native_bt.graph_add_source_component
             cc_type = native_bt.COMPONENT_CLASS_TYPE_SOURCE
-        elif issubclass(component_class, bt2.component._UserSinkComponent):
+        elif issubclass(component_class, bt2_component._UserSinkComponent):
             cc_ptr = component_class._bt_cc_ptr
             add_fn = native_bt.graph_add_sink_component
             cc_type = native_bt.COMPONENT_CLASS_TYPE_SINK
-        elif issubclass(component_class, bt2.component._UserFilterComponent):
+        elif issubclass(component_class, bt2_component._UserFilterComponent):
             cc_ptr = component_class._bt_cc_ptr
             add_fn = native_bt.graph_add_filter_component
             cc_type = native_bt.COMPONENT_CLASS_TYPE_FILTER
@@ -125,17 +126,17 @@ class Graph(object._SharedObject):
         status, comp_ptr = add_fn(self._ptr, cc_ptr, name, params_ptr, logging_level)
         utils._handle_func_status(status, 'cannot add component to graph')
         assert comp_ptr
-        return bt2.component._create_component_from_ptr(comp_ptr, cc_type)
+        return bt2_component._create_component_from_ptr(comp_ptr, cc_type)
 
     def connect_ports(self, upstream_port, downstream_port):
-        utils._check_type(upstream_port, bt2.port._OutputPort)
-        utils._check_type(downstream_port, bt2.port._InputPort)
+        utils._check_type(upstream_port, bt2_port._OutputPort)
+        utils._check_type(downstream_port, bt2_port._InputPort)
         status, conn_ptr = native_bt.graph_connect_ports(
             self._ptr, upstream_port._ptr, downstream_port._ptr
         )
         utils._handle_func_status(status, 'cannot connect component ports within graph')
         assert conn_ptr
-        return bt2.connection._Connection._create_from_ptr(conn_ptr)
+        return bt2_connection._Connection._create_from_ptr(conn_ptr)
 
     def add_port_added_listener(self, listener):
         if not callable(listener):
@@ -150,7 +151,7 @@ class Graph(object._SharedObject):
         if listener_ids is None:
             raise bt2._Error('cannot add listener to graph object')
 
-        return bt2.utils._ListenerHandle(listener_ids, self)
+        return utils._ListenerHandle(listener_ids, self)
 
     def add_ports_connected_listener(self, listener):
         if not callable(listener):
@@ -165,7 +166,7 @@ class Graph(object._SharedObject):
         if listener_ids is None:
             raise bt2._Error('cannot add listener to graph object')
 
-        return bt2.utils._ListenerHandle(listener_ids, self)
+        return utils._ListenerHandle(listener_ids, self)
 
     def run(self):
         status = native_bt.graph_run(self._ptr)
@@ -179,14 +180,14 @@ class Graph(object._SharedObject):
             raise
 
     def add_interrupter(self, interrupter):
-        utils._check_type(interrupter, bt2.interrupter.Interrupter)
+        utils._check_type(interrupter, bt2_interrupter.Interrupter)
         native_bt.graph_add_interrupter(self._ptr, interrupter._ptr)
 
     def interrupt(self):
         native_bt.graph_interrupt(self._ptr)
 
     def create_output_port_message_iterator(self, output_port):
-        utils._check_type(output_port, bt2.port._OutputPort)
+        utils._check_type(output_port, bt2_port._OutputPort)
         msg_iter_ptr = native_bt.port_output_message_iterator_create(
             self._ptr, output_port._ptr
         )
@@ -194,4 +195,4 @@ class Graph(object._SharedObject):
         if msg_iter_ptr is None:
             raise bt2._MemoryError('cannot create output port message iterator')
 
-        return bt2.message_iterator._OutputPortMessageIterator(msg_iter_ptr)
+        return bt2_message_iterator._OutputPortMessageIterator(msg_iter_ptr)

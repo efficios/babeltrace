@@ -21,7 +21,8 @@
 # THE SOFTWARE.
 
 from bt2 import native_bt, object
-import bt2.field
+from bt2 import field as bt2_field
+from bt2 import stream as bt2_stream
 import bt2
 
 
@@ -33,7 +34,7 @@ class _Packet(object._SharedObject):
     def stream(self):
         stream_ptr = native_bt.packet_borrow_stream(self._ptr)
         assert stream_ptr is not None
-        return bt2.stream._Stream._create_from_ptr_and_get_ref(stream_ptr)
+        return bt2_stream._Stream._create_from_ptr_and_get_ref(stream_ptr)
 
     @property
     def context_field(self):
@@ -42,6 +43,6 @@ class _Packet(object._SharedObject):
         if field_ptr is None:
             return
 
-        return bt2.field._create_field_from_ptr(
+        return bt2_field._create_field_from_ptr(
             field_ptr, self._ptr, self._get_ref, self._put_ref
         )

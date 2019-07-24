@@ -22,7 +22,7 @@
 
 from bt2 import native_bt, object, utils
 import collections.abc
-import bt2.component
+from bt2 import component as bt2_component
 import os.path
 import bt2
 
@@ -180,7 +180,7 @@ class _PluginComponentClassesIterator(collections.abc.Iterator):
         self._at += 1
 
         comp_cls_type = self._plugin_comp_cls._comp_cls_type
-        comp_cls_pycls = bt2.component._COMP_CLS_TYPE_TO_GENERIC_COMP_CLS_PYCLS[
+        comp_cls_pycls = bt2_component._COMP_CLS_TYPE_TO_GENERIC_COMP_CLS_PYCLS[
             comp_cls_type
         ]
         comp_cls_ptr = comp_cls_pycls._bt_as_component_class_ptr(comp_cls_ptr)
@@ -200,7 +200,7 @@ class _PluginComponentClasses(collections.abc.Mapping):
         if cc_ptr is None:
             raise KeyError(key)
 
-        return bt2.component._create_component_class_from_ptr_and_get_ref(
+        return bt2_component._create_component_class_from_ptr_and_get_ref(
             cc_ptr, self._comp_cls_type
         )
 

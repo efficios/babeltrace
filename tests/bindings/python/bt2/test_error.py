@@ -107,7 +107,7 @@ class ErrorTestCase(unittest.TestCase):
 
         for c in exc:
             # Each cause is an instance of _ErrorCause (including subclasses).
-            self.assertIsInstance(c, bt2.error._ErrorCause)
+            self.assertIsInstance(c, bt2._ErrorCause)
 
     def test_getitem(self):
         exc = self._run_failing_graph(SourceWithFailingIter, WorkingSink)
@@ -115,7 +115,7 @@ class ErrorTestCase(unittest.TestCase):
         for i in range(len(exc)):
             c = exc[i]
             # Each cause is an instance of _ErrorCause (including subclasses).
-            self.assertIsInstance(c, bt2.error._ErrorCause)
+            self.assertIsInstance(c, bt2._ErrorCause)
 
     def test_getitem_indexerror(self):
         exc = self._run_failing_graph(SourceWithFailingIter, WorkingSink)
@@ -138,24 +138,23 @@ class ErrorTestCase(unittest.TestCase):
 
         self.assertEqual(len(exc), 5)
 
-        self.assertIsInstance(exc[0], bt2.error._MessageIteratorErrorCause)
+        self.assertIsInstance(exc[0], bt2._MessageIteratorErrorCause)
         self.assertEqual(exc[0].component_class_name, 'SourceWithFailingIter')
         self.assertIn('ValueError: User message iterator is failing', exc[0].message)
 
-        self.assertIsInstance(exc[1], bt2.error._ErrorCause)
+        self.assertIsInstance(exc[1], bt2._ErrorCause)
 
-        self.assertIsInstance(exc[2], bt2.error._ComponentErrorCause)
+        self.assertIsInstance(exc[2], bt2._ComponentErrorCause)
         self.assertEqual(exc[2].component_class_name, 'SinkWithExceptionChaining')
         self.assertIn(
-            'bt2.error._Error: unexpected error: cannot advance the message iterator',
-            exc[2].message,
+            'unexpected error: cannot advance the message iterator', exc[2].message
         )
 
-        self.assertIsInstance(exc[3], bt2.error._ComponentErrorCause)
+        self.assertIsInstance(exc[3], bt2._ComponentErrorCause)
         self.assertEqual(exc[3].component_class_name, 'SinkWithExceptionChaining')
         self.assertIn('ValueError: oops', exc[3].message)
 
-        self.assertIsInstance(exc[4], bt2.error._ErrorCause)
+        self.assertIsInstance(exc[4], bt2._ErrorCause)
 
     def _common_cause_tests(self, cause):
         self.assertIsInstance(cause.module_name, str)
@@ -165,13 +164,13 @@ class ErrorTestCase(unittest.TestCase):
     def test_unknown_error_cause(self):
         exc = self._run_failing_graph(SourceWithFailingIter, SinkWithExceptionChaining)
         cause = exc[-1]
-        self.assertIs(type(cause), bt2.error._ErrorCause)
+        self.assertIs(type(cause), bt2._ErrorCause)
         self._common_cause_tests(cause)
 
     def test_component_error_cause(self):
         exc = self._run_failing_graph(SourceWithFailingInit, SinkWithExceptionChaining)
         cause = exc[0]
-        self.assertIs(type(cause), bt2.error._ComponentErrorCause)
+        self.assertIs(type(cause), bt2._ComponentErrorCause)
         self._common_cause_tests(cause)
 
         self.assertIn('Source is failing', cause.message)
@@ -187,7 +186,7 @@ class ErrorTestCase(unittest.TestCase):
             q.query(SinkWithFailingQuery, 'hello')
 
         cause = ctx.exception[0]
-        self.assertIs(type(cause), bt2.error._ComponentClassErrorCause)
+        self.assertIs(type(cause), bt2._ComponentClassErrorCause)
         self._common_cause_tests(cause)
 
         self.assertIn('Query is failing', cause.message)
@@ -199,7 +198,7 @@ class ErrorTestCase(unittest.TestCase):
     def test_message_iterator_error_cause(self):
         exc = self._run_failing_graph(SourceWithFailingIter, SinkWithExceptionChaining)
         cause = exc[0]
-        self.assertIs(type(cause), bt2.error._MessageIteratorErrorCause)
+        self.assertIs(type(cause), bt2._MessageIteratorErrorCause)
         self._common_cause_tests(cause)
 
         self.assertIn('User message iterator is failing', cause.message)

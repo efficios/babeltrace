@@ -18,7 +18,6 @@
 
 import unittest
 import bt2
-import bt2.plugin
 import os
 
 
@@ -81,7 +80,6 @@ class FindPluginTestCase(unittest.TestCase):
 
     def test_find_existing(self):
         plugin = bt2.find_plugin('ctf', find_in_user_dir=False, find_in_sys_dir=False)
-        self.assertIsInstance(plugin, bt2.plugin._Plugin)
 
 
 class PluginTestCase(unittest.TestCase):
