@@ -484,9 +484,9 @@ class _UserComponentType(type):
                 cls, comp_cls_name, comp_cls_descr, comp_cls_help
             )
         elif _UserSinkComponent in bases:
-            if not hasattr(cls, '_consume'):
+            if not hasattr(cls, '_user_consume'):
                 raise bt2._IncompleteUserClass(
-                    "cannot create component class '{}': missing a _consume() method".format(
+                    "cannot create component class '{}': missing a _user_consume() method".format(
                         class_name
                     )
                 )
@@ -586,7 +586,7 @@ class _UserComponentType(type):
         )
 
         # this can raise, but the native side checks the exception
-        results = cls._query(query_exec, obj, params, log_level)
+        results = cls._user_query(query_exec, obj, params, log_level)
 
         # this can raise, but the native side checks the exception
         results = bt2.create_value(results)
@@ -602,7 +602,7 @@ class _UserComponentType(type):
 
         return int(results_ptr)
 
-    def _query(cls, query_executor, obj, params, log_level):
+    def _user_query(cls, query_executor, obj, params, log_level):
         raise NotImplementedError
 
     def _bt_component_class_ptr(self):
@@ -656,10 +656,10 @@ class _UserComponent(metaclass=_UserComponentType):
     def __init__(self, params=None):
         pass
 
-    def _finalize(self):
+    def _user_finalize(self):
         pass
 
-    def _port_connected(self, port, other_port):
+    def _user_port_connected(self, port, other_port):
         pass
 
     def _bt_port_connected_from_native(
@@ -675,7 +675,7 @@ class _UserComponent(metaclass=_UserComponentType):
         other_port = bt2_port._create_from_ptr_and_get_ref(
             other_port_ptr, other_port_type
         )
-        self._port_connected(port, other_port)
+        self._user_port_connected(port, other_port)
 
     def _create_trace_class(self, assigns_automatic_stream_class_id=True):
         ptr = self._bt_as_self_component_ptr(self._bt_ptr)
@@ -829,9 +829,9 @@ class _UserSinkComponent(_UserComponent, _SinkComponent):
     )
 
     def _bt_graph_is_configured_from_native(self):
-        self._graph_is_configured()
+        self._user_graph_is_configured()
 
-    def _graph_is_configured(self):
+    def _user_graph_is_configured(self):
         pass
 
     @property

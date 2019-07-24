@@ -59,10 +59,7 @@ class GraphTestCase(unittest.TestCase):
 
     def test_add_component_user_cls(self):
         class MySink(bt2._UserSinkComponent):
-            def _consume(self):
-                pass
-
-            def _graph_is_configured(self):
+            def _user_consume(self):
                 pass
 
         comp = self._graph.add_component(MySink, 'salut')
@@ -70,10 +67,7 @@ class GraphTestCase(unittest.TestCase):
 
     def test_add_component_gen_cls(self):
         class MySink(bt2._UserSinkComponent):
-            def _consume(self):
-                pass
-
-            def _graph_is_configured(self):
+            def _user_consume(self):
                 pass
 
         comp = self._graph.add_component(MySink, 'salut')
@@ -89,10 +83,7 @@ class GraphTestCase(unittest.TestCase):
                 nonlocal comp_params
                 comp_params = params
 
-            def _consume(self):
-                pass
-
-            def _graph_is_configured(self):
+            def _user_consume(self):
                 pass
 
         params = {'hello': 23, 'path': '/path/to/stuff'}
@@ -106,10 +97,7 @@ class GraphTestCase(unittest.TestCase):
 
     def test_add_component_invalid_logging_level_type(self):
         class MySink(bt2._UserSinkComponent):
-            def _consume(self):
-                pass
-
-            def _graph_is_configured(self):
+            def _user_consume(self):
                 pass
 
         with self.assertRaises(TypeError):
@@ -117,10 +105,7 @@ class GraphTestCase(unittest.TestCase):
 
     def test_add_component_invalid_logging_level_value(self):
         class MySink(bt2._UserSinkComponent):
-            def _consume(self):
-                pass
-
-            def _graph_is_configured(self):
+            def _user_consume(self):
                 pass
 
         with self.assertRaises(ValueError):
@@ -128,10 +113,7 @@ class GraphTestCase(unittest.TestCase):
 
     def test_add_component_logging_level(self):
         class MySink(bt2._UserSinkComponent):
-            def _consume(self):
-                pass
-
-            def _graph_is_configured(self):
+            def _user_consume(self):
                 pass
 
         comp = self._graph.add_component(
@@ -152,11 +134,8 @@ class GraphTestCase(unittest.TestCase):
             def __init__(self, params):
                 self._add_input_port('in')
 
-            def _consume(self):
+            def _user_consume(self):
                 raise bt2.Stop
-
-            def _graph_is_configured(self):
-                pass
 
         src = self._graph.add_component(MySource, 'src')
         sink = self._graph.add_component(MySink, 'sink')
@@ -182,11 +161,8 @@ class GraphTestCase(unittest.TestCase):
             def __init__(self, params):
                 self._add_input_port('in')
 
-            def _consume(self):
+            def _user_consume(self):
                 raise bt2.Stop
-
-            def _graph_is_configured(self):
-                pass
 
         src = self._graph.add_component(MySource, 'src')
         sink = self._graph.add_component(MySink, 'sink')
@@ -209,10 +185,10 @@ class GraphTestCase(unittest.TestCase):
             def __init__(self, params):
                 self._add_input_port('in')
 
-            def _consume(self):
+            def _user_consume(self):
                 next(self._msg_iter)
 
-            def _graph_is_configured(self):
+            def _user_graph_is_configured(self):
                 self._msg_iter = self._create_input_port_message_iterator(
                     self._input_ports['in']
                 )
@@ -254,13 +230,13 @@ class GraphTestCase(unittest.TestCase):
             def __init__(self, params):
                 self._add_input_port('in')
 
-            def _consume(self):
+            def _user_consume(self):
                 # Pretend that somebody asynchronously interrupted the graph.
                 nonlocal graph
                 graph.interrupt()
                 return next(self._msg_iter)
 
-            def _graph_is_configured(self):
+            def _user_graph_is_configured(self):
                 self._msg_iter = self._create_input_port_message_iterator(
                     self._input_ports['in']
                 )
@@ -302,7 +278,7 @@ class GraphTestCase(unittest.TestCase):
                 self._input_port = self._add_input_port('in')
                 self._at = 0
 
-            def _consume(comp_self):
+            def _user_consume(comp_self):
                 msg = next(comp_self._msg_iter)
 
                 if comp_self._at == 0:
@@ -319,7 +295,7 @@ class GraphTestCase(unittest.TestCase):
 
                 comp_self._at += 1
 
-            def _graph_is_configured(self):
+            def _user_graph_is_configured(self):
                 self._msg_iter = self._create_input_port_message_iterator(
                     self._input_port
                 )
@@ -356,7 +332,7 @@ class GraphTestCase(unittest.TestCase):
                 self._input_port = self._add_input_port('in')
                 self._at = 0
 
-            def _consume(comp_self):
+            def _user_consume(comp_self):
                 msg = next(comp_self._msg_iter)
                 if comp_self._at == 0:
                     self.assertIsInstance(msg, bt2._StreamBeginningMessage)
@@ -370,7 +346,7 @@ class GraphTestCase(unittest.TestCase):
 
                 comp_self._at += 1
 
-            def _graph_is_configured(self):
+            def _user_graph_is_configured(self):
                 self._msg_iter = self._create_input_port_message_iterator(
                     self._input_port
                 )
@@ -414,7 +390,7 @@ class GraphTestCase(unittest.TestCase):
                 self._input_port = self._add_input_port('in')
                 self._at = 0
 
-            def _consume(comp_self):
+            def _user_consume(comp_self):
                 msg = next(comp_self._msg_iter)
                 if comp_self._at == 0:
                     self.assertIsInstance(msg, bt2._StreamBeginningMessage)
@@ -429,7 +405,7 @@ class GraphTestCase(unittest.TestCase):
 
                 comp_self._at += 1
 
-            def _graph_is_configured(self):
+            def _user_graph_is_configured(self):
                 self._msg_iter = self._create_input_port_message_iterator(
                     self._input_port
                 )
@@ -457,13 +433,10 @@ class GraphTestCase(unittest.TestCase):
             def __init__(self, params):
                 self._add_input_port('in')
 
-            def _consume(self):
+            def _user_consume(self):
                 raise bt2.Stop
 
-            def _graph_is_configured(self):
-                pass
-
-            def _port_connected(self, port, other_port):
+            def _user_port_connected(self, port, other_port):
                 self._add_input_port('taste')
 
         def port_added_listener(component, port):
@@ -529,13 +502,10 @@ class GraphTestCase(unittest.TestCase):
             def __init__(self, params):
                 self._add_input_port('in')
 
-            def _consume(self):
+            def _user_consume(self):
                 raise bt2.Stop
 
-            def _graph_is_configured(self):
-                pass
-
-            def _port_connected(self, port, other_port):
+            def _user_port_connected(self, port, other_port):
                 self._add_input_port('taste')
 
         with self.assertRaises(TypeError):
@@ -548,11 +518,8 @@ class GraphTestCase(unittest.TestCase):
             def __init__(self, params):
                 raise ValueError('oops!')
 
-            def _consume(self):
+            def _user_consume(self):
                 raise bt2.Stop
-
-            def _graph_is_configured(self):
-                pass
 
         graph = bt2.Graph()
 
@@ -564,11 +531,8 @@ class GraphTestCase(unittest.TestCase):
             def __init__(self, params):
                 self._add_input_port('in')
 
-            def _consume(self):
+            def _user_consume(self):
                 raise bt2.Stop
-
-            def _graph_is_configured(self):
-                pass
 
         def port_added_listener(component, port):
             raise ValueError('oh noes!')
@@ -592,11 +556,8 @@ class GraphTestCase(unittest.TestCase):
             def __init__(self, params):
                 self._add_input_port('in')
 
-            def _consume(self):
+            def _user_consume(self):
                 raise bt2.Stop
-
-            def _graph_is_configured(self):
-                pass
 
         def ports_connected_listener(
             upstream_component, upstream_port, downstream_component, downstream_port

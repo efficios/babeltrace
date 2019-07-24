@@ -573,19 +573,19 @@ void component_class_finalize(bt_self_component *self_component)
 	PyObject *py_comp = bt_self_component_get_data(self_component);
 	BT_ASSERT(py_comp);
 
-	/* Call user's _finalize() method */
+	/* Call user's _user_finalize() method */
 	PyObject *py_method_result = PyObject_CallMethod(py_comp,
-		"_finalize", NULL);
+		"_user_finalize", NULL);
 
 	if (PyErr_Occurred()) {
-		BT_LOGW("User component's _finalize() method raised an exception: ignoring:");
+		BT_LOGW("User component's _user_finalize() method raised an exception: ignoring:");
 		logw_exception();
 	}
 
 	/*
-	 * Ignore any exception raised by the _finalize() method because
-	 * it won't change anything at this point: the component is
-	 * being destroyed anyway.
+	 * Ignore any exception raised by the _user_finalize() method
+	 * because it won't change anything at this point: the component
+	 * is being destroyed anyway.
 	 */
 	PyErr_Clear();
 	Py_XDECREF(py_method_result);
@@ -1084,19 +1084,19 @@ void component_class_message_iterator_finalize(
 
 	BT_ASSERT(py_message_iter);
 
-	/* Call user's _finalize() method */
+	/* Call user's _user_finalize() method */
 	py_method_result = PyObject_CallMethod(py_message_iter,
-		"_finalize", NULL);
+		"_user_finalize", NULL);
 
 	if (PyErr_Occurred()) {
-		BT_LOGW("User's _finalize() method raised an exception: ignoring:");
+		BT_LOGW("User's _user_finalize() method raised an exception: ignoring:");
 		logw_exception();
 	}
 
 	/*
-	 * Ignore any exception raised by the _finalize() method because
-	 * it won't change anything at this point: the component is
-	 * being destroyed anyway.
+	 * Ignore any exception raised by the _user_finalize() method
+	 * because it won't change anything at this point: the component
+	 * is being destroyed anyway.
 	 */
 	PyErr_Clear();
 	Py_XDECREF(py_method_result);
@@ -1153,11 +1153,11 @@ component_class_sink_consume(bt_self_component_sink *self_component_sink)
 
 	BT_ASSERT(py_comp);
 	py_method_result = PyObject_CallMethod(py_comp,
-		"_consume", NULL);
+		"_user_consume", NULL);
 	status = py_exc_to_status_component(self_component);
 	if (!py_method_result && status == __BT_FUNC_STATUS_OK) {
 		/* Pretty sure this should never happen, but just in case */
-		BT_LOGE("User's _consume() method failed without raising an exception: "
+		BT_LOGE("User's _user_consume() method failed without raising an exception: "
 			"status=%d", status);
 		status = __BT_FUNC_STATUS_ERROR;
 	}

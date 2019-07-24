@@ -25,14 +25,11 @@ import bt2
 class QueryExecutorTestCase(unittest.TestCase):
     def test_query(self):
         class MySink(bt2._UserSinkComponent):
-            def _consume(self):
-                pass
-
-            def _graph_is_configured(self):
+            def _user_consume(self):
                 pass
 
             @classmethod
-            def _query(cls, query_exec, obj, params, log_level):
+            def _user_query(cls, query_exec, obj, params, log_level):
                 nonlocal query_params
                 query_params = params
                 return {'null': None, 'bt2': 'BT2'}
@@ -51,14 +48,11 @@ class QueryExecutorTestCase(unittest.TestCase):
 
     def test_query_params_none(self):
         class MySink(bt2._UserSinkComponent):
-            def _consume(self):
-                pass
-
-            def _graph_is_configured(self):
+            def _user_consume(self):
                 pass
 
             @classmethod
-            def _query(cls, query_exec, obj, params, log_level):
+            def _user_query(cls, query_exec, obj, params, log_level):
                 nonlocal query_params
                 query_params = params
 
@@ -69,14 +63,11 @@ class QueryExecutorTestCase(unittest.TestCase):
 
     def test_query_logging_level(self):
         class MySink(bt2._UserSinkComponent):
-            def _consume(self):
-                pass
-
-            def _graph_is_configured(self):
+            def _user_consume(self):
                 pass
 
             @classmethod
-            def _query(cls, query_exec, obj, params, log_level):
+            def _user_query(cls, query_exec, obj, params, log_level):
                 nonlocal query_log_level
                 query_log_level = log_level
 
@@ -87,14 +78,11 @@ class QueryExecutorTestCase(unittest.TestCase):
 
     def test_query_gen_error(self):
         class MySink(bt2._UserSinkComponent):
-            def _consume(self):
-                pass
-
-            def _graph_is_configured(self):
+            def _user_consume(self):
                 pass
 
             @classmethod
-            def _query(cls, query_exec, obj, params, log_level):
+            def _user_query(cls, query_exec, obj, params, log_level):
                 raise ValueError
 
         with self.assertRaises(bt2._Error) as ctx:
@@ -110,14 +98,11 @@ class QueryExecutorTestCase(unittest.TestCase):
 
     def test_query_invalid_object(self):
         class MySink(bt2._UserSinkComponent):
-            def _consume(self):
-                pass
-
-            def _graph_is_configured(self):
+            def _user_consume(self):
                 pass
 
             @classmethod
-            def _query(cls, query_exec, obj, params, log_level):
+            def _user_query(cls, query_exec, obj, params, log_level):
                 raise bt2.InvalidObject
 
         with self.assertRaises(bt2.InvalidObject):
@@ -125,14 +110,11 @@ class QueryExecutorTestCase(unittest.TestCase):
 
     def test_query_logging_level_invalid_type(self):
         class MySink(bt2._UserSinkComponent):
-            def _consume(self):
-                pass
-
-            def _graph_is_configured(self):
+            def _user_consume(self):
                 pass
 
             @classmethod
-            def _query(cls, query_exec, obj, params, log_level):
+            def _user_query(cls, query_exec, obj, params, log_level):
                 pass
 
         with self.assertRaises(TypeError):
@@ -140,14 +122,11 @@ class QueryExecutorTestCase(unittest.TestCase):
 
     def test_query_logging_level_invalid_value(self):
         class MySink(bt2._UserSinkComponent):
-            def _consume(self):
-                pass
-
-            def _graph_is_configured(self):
+            def _user_consume(self):
                 pass
 
             @classmethod
-            def _query(cls, query_exec, obj, params, log_level):
+            def _user_query(cls, query_exec, obj, params, log_level):
                 pass
 
         with self.assertRaises(ValueError):
@@ -155,14 +134,11 @@ class QueryExecutorTestCase(unittest.TestCase):
 
     def test_query_try_again(self):
         class MySink(bt2._UserSinkComponent):
-            def _consume(self):
-                pass
-
-            def _graph_is_configured(self):
+            def _user_consume(self):
                 pass
 
             @classmethod
-            def _query(cls, query_exec, obj, params, log_level):
+            def _user_query(cls, query_exec, obj, params, log_level):
                 raise bt2.TryAgain
 
         with self.assertRaises(bt2.TryAgain):
@@ -170,14 +146,11 @@ class QueryExecutorTestCase(unittest.TestCase):
 
     def test_query_add_interrupter(self):
         class MySink(bt2._UserSinkComponent):
-            def _consume(self):
-                pass
-
-            def _graph_is_configured(self):
+            def _user_consume(self):
                 pass
 
             @classmethod
-            def _query(cls, query_exec, obj, params, log_level):
+            def _user_query(cls, query_exec, obj, params, log_level):
                 nonlocal interrupter2
                 test_self.assertFalse(query_exec.is_interrupted)
                 interrupter2.set()
@@ -195,14 +168,11 @@ class QueryExecutorTestCase(unittest.TestCase):
 
     def test_query_interrupt(self):
         class MySink(bt2._UserSinkComponent):
-            def _consume(self):
-                pass
-
-            def _graph_is_configured(self):
+            def _user_consume(self):
                 pass
 
             @classmethod
-            def _query(cls, query_exec, obj, params, log_level):
+            def _user_query(cls, query_exec, obj, params, log_level):
                 test_self.assertFalse(query_exec.is_interrupted)
                 query_exec.interrupt()
                 test_self.assertTrue(query_exec.is_interrupted)

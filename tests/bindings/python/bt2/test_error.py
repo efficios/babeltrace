@@ -44,10 +44,10 @@ class WorkingSink(bt2._UserSinkComponent):
     def __init__(self, params):
         self._in = self._add_input_port('in')
 
-    def _graph_is_configured(self):
+    def _user_graph_is_configured(self):
         self._iter = self._create_input_port_message_iterator(self._in)
 
-    def _consume(self):
+    def _user_consume(self):
         next(self._iter)
 
 
@@ -55,10 +55,10 @@ class SinkWithExceptionChaining(bt2._UserSinkComponent):
     def __init__(self, params):
         self._in = self._add_input_port('in')
 
-    def _graph_is_configured(self):
+    def _user_graph_is_configured(self):
         self._iter = self._create_input_port_message_iterator(self._in)
 
-    def _consume(self):
+    def _user_consume(self):
         try:
             next(self._iter)
         except bt2._Error as e:
@@ -66,14 +66,11 @@ class SinkWithExceptionChaining(bt2._UserSinkComponent):
 
 
 class SinkWithFailingQuery(bt2._UserSinkComponent):
-    def _graph_is_configured(self):
-        pass
-
-    def _consume(self):
+    def _user_consume(self):
         pass
 
     @staticmethod
-    def _query(executor, obj, params, log_level):
+    def _user_query(executor, obj, params, log_level):
         raise ValueError('Query is failing')
 
 
