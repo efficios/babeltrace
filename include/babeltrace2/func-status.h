@@ -41,11 +41,6 @@
 # define __BT_FUNC_STATUS_OVERFLOW		-75
 #endif
 
-/* Invalid query parameters */
-#ifndef __BT_FUNC_STATUS_INVALID_PARAMS
-# define __BT_FUNC_STATUS_INVALID_PARAMS	-24
-#endif
-
 /* Invalid query object */
 #ifndef __BT_FUNC_STATUS_INVALID_OBJECT
 # define __BT_FUNC_STATUS_INVALID_OBJECT	-23

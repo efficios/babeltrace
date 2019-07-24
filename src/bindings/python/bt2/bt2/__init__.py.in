@@ -78,10 +78,6 @@ class InvalidObject(Exception):
     pass
 
 
-class InvalidParams(Exception):
-    pass
-
-
 class OverflowError(OverflowError):
     pass
 

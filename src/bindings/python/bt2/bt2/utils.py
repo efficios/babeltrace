@@ -161,10 +161,5 @@ def _handle_func_status(status, msg=None):
             raise bt2.InvalidObject
         else:
             raise bt2.InvalidObject(msg)
-    elif status == native_bt.__BT_FUNC_STATUS_INVALID_PARAMS:
-        if msg is None:
-            raise bt2.InvalidParams
-        else:
-            raise bt2.InvalidParams(msg)
     else:
         assert False

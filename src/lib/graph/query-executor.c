@@ -191,6 +191,15 @@ enum bt_query_executor_query_status bt_query_executor_query(
 		"User method returned `BT_FUNC_STATUS_OK` without a result.");
 	status = (int) query_status;
 
+	if (status < 0) {
+		BT_LIB_LOGW_APPEND_CAUSE(
+			"Component class's \"query\" method failed: "
+			"query-exec-addr=%p, %![cc-]+C, object=\"%s\", "
+			"%![params-]+v, log-level=%s", query_exec, comp_cls,
+			object, params, bt_common_logging_level_string(log_level));
+		goto end;
+	}
+
 end:
 	return status;
 }

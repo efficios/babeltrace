@@ -74,20 +74,20 @@ bt_component_class_query_method_status metadata_info_query(
 
 	if (!bt_value_is_map(params)) {
 		BT_LOGE_STR("Query parameters is not a map value object.");
-		status = BT_COMPONENT_CLASS_QUERY_METHOD_STATUS_INVALID_PARAMS;
+		status = BT_COMPONENT_CLASS_QUERY_METHOD_STATUS_ERROR;
 		goto error;
 	}
 
 	path_value = bt_value_map_borrow_entry_value_const(params, "path");
 	if (!path_value) {
 		BT_LOGE_STR("Mandatory `path` parameter missing");
-		status = BT_COMPONENT_CLASS_QUERY_METHOD_STATUS_INVALID_PARAMS;
+		status = BT_COMPONENT_CLASS_QUERY_METHOD_STATUS_ERROR;
 		goto error;
 	}
 
 	if (!bt_value_is_string(path_value)) {
 		BT_LOGE_STR("`path` parameter is required to be a string value");
-		status = BT_COMPONENT_CLASS_QUERY_METHOD_STATUS_INVALID_PARAMS;
+		status = BT_COMPONENT_CLASS_QUERY_METHOD_STATUS_ERROR;
 		goto error;
 	}
 
@@ -492,7 +492,7 @@ bt_component_class_query_method_status trace_info_query(
 
 	if (!bt_value_is_map(params)) {
 		BT_LOGE("Query parameters is not a map value object.");
-		status = BT_COMPONENT_CLASS_QUERY_METHOD_STATUS_INVALID_PARAMS;
+		status = BT_COMPONENT_CLASS_QUERY_METHOD_STATUS_ERROR;
 		goto error;
 	}
 
@@ -502,7 +502,7 @@ bt_component_class_query_method_status trace_info_query(
 	}
 
 	if (!read_src_fs_parameters(params, &inputs_value, ctf_fs)) {
-		status = BT_COMPONENT_CLASS_QUERY_METHOD_STATUS_INVALID_PARAMS;
+		status = BT_COMPONENT_CLASS_QUERY_METHOD_STATUS_ERROR;
 		goto error;
 	}
 
