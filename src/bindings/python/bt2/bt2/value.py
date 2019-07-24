@@ -37,7 +37,7 @@ def _create_from_ptr(ptr):
     # to it that we are not going to manage anymore, since we don't create a
     # Python wrapper for it.  Therefore put that reference immediately.
     if ptr == native_bt.value_null:
-        bt2.value._Value._put_ref(ptr)
+        _Value._put_ref(ptr)
         return
 
     typeid = native_bt.value_get_type(ptr)

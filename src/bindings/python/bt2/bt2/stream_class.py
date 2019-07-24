@@ -21,11 +21,12 @@
 # THE SOFTWARE.
 
 from bt2 import native_bt, object, utils
-import bt2.field_class
-import bt2.event_class
-import bt2.trace_class
+from bt2 import field_class as bt2_field_class
+from bt2 import event_class as bt2_event_class
+from bt2 import trace_class as bt2_trace_class
+from bt2 import clock_class as bt2_clock_class
 import collections.abc
-import bt2.stream
+from bt2 import stream as bt2_stream
 import bt2
 
 
@@ -40,7 +41,7 @@ class _StreamClass(object._SharedObject, collections.abc.Mapping):
         if ec_ptr is None:
             raise KeyError(key)
 
-        return bt2.event_class._EventClass._create_from_ptr_and_get_ref(ec_ptr)
+        return bt2_event_class._EventClass._create_from_ptr_and_get_ref(ec_ptr)
 
     def __len__(self):
         count = native_bt.stream_class_get_event_class_count(self._ptr)
@@ -84,7 +85,7 @@ class _StreamClass(object._SharedObject, collections.abc.Mapping):
             utils._check_uint64(id)
             ec_ptr = native_bt.event_class_create_with_id(self._ptr, id)
 
-        event_class = bt2.event_class._EventClass._create_from_ptr(ec_ptr)
+        event_class = bt2_event_class._EventClass._create_from_ptr(ec_ptr)
 
         if name is not None:
             event_class._name = name
@@ -108,7 +109,7 @@ class _StreamClass(object._SharedObject, collections.abc.Mapping):
         tc_ptr = native_bt.stream_class_borrow_trace_class_const(self._ptr)
 
         if tc_ptr is not None:
-            return bt2.trace_class._TraceClass._create_from_ptr_and_get_ref(tc_ptr)
+            return bt2_trace_class._TraceClass._create_from_ptr_and_get_ref(tc_ptr)
 
     @property
     def name(self):
@@ -251,12 +252,12 @@ class _StreamClass(object._SharedObject, collections.abc.Mapping):
         if fc_ptr is None:
             return
 
-        return bt2.field_class._create_field_class_from_ptr_and_get_ref(fc_ptr)
+        return bt2_field_class._create_field_class_from_ptr_and_get_ref(fc_ptr)
 
     def _packet_context_field_class(self, packet_context_field_class):
         if packet_context_field_class is not None:
             utils._check_type(
-                packet_context_field_class, bt2.field_class._StructureFieldClass
+                packet_context_field_class, bt2_field_class._StructureFieldClass
             )
 
             if not self.supports_packets:
@@ -280,12 +281,12 @@ class _StreamClass(object._SharedObject, collections.abc.Mapping):
         if fc_ptr is None:
             return
 
-        return bt2.field_class._create_field_class_from_ptr_and_get_ref(fc_ptr)
+        return bt2_field_class._create_field_class_from_ptr_and_get_ref(fc_ptr)
 
     def _event_common_context_field_class(self, event_common_context_field_class):
         if event_common_context_field_class is not None:
             utils._check_type(
-                event_common_context_field_class, bt2.field_class._StructureFieldClass
+                event_common_context_field_class, bt2_field_class._StructureFieldClass
             )
 
             set_context_fn = native_bt.stream_class_set_event_common_context_field_class
@@ -302,10 +303,10 @@ class _StreamClass(object._SharedObject, collections.abc.Mapping):
         if cc_ptr is None:
             return
 
-        return bt2.clock_class._ClockClass._create_from_ptr_and_get_ref(cc_ptr)
+        return bt2_clock_class._ClockClass._create_from_ptr_and_get_ref(cc_ptr)
 
     def _default_clock_class(self, clock_class):
-        utils._check_type(clock_class, bt2.clock_class._ClockClass)
+        utils._check_type(clock_class, bt2_clock_class._ClockClass)
         native_bt.stream_class_set_default_clock_class(self._ptr, clock_class._ptr)
 
     _default_clock_class = property(fset=_default_clock_class)

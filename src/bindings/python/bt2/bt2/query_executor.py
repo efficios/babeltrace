@@ -21,9 +21,10 @@
 # THE SOFTWARE.
 
 from bt2 import native_bt, object, utils
-import bt2.interrupter
-import bt2.component
-import bt2.logging
+from bt2 import interrupter as bt2_interrupter
+from bt2 import component as bt2_component
+from bt2 import logging as bt2_logging
+from bt2 import value as bt2_value
 import bt2
 
 
@@ -40,7 +41,7 @@ class QueryExecutor(object._SharedObject):
         super().__init__(ptr)
 
     def add_interrupter(self, interrupter):
-        utils._check_type(interrupter, bt2.interrupter.Interrupter)
+        utils._check_type(interrupter, bt2_interrupter.Interrupter)
         native_bt.query_executor_add_interrupter(self._ptr, interrupter._ptr)
 
     def interrupt(self):
@@ -56,13 +57,13 @@ class QueryExecutor(object._SharedObject):
         component_class,
         object,
         params=None,
-        logging_level=bt2.logging.LoggingLevel.NONE,
+        logging_level=bt2_logging.LoggingLevel.NONE,
     ):
-        if not isinstance(component_class, bt2.component._ComponentClass):
+        if not isinstance(component_class, bt2_component._ComponentClass):
             err = False
 
             try:
-                if not issubclass(component_class, bt2.component._UserComponent):
+                if not issubclass(component_class, bt2_component._UserComponent):
                     err = True
             except TypeError:
                 err = True
@@ -87,4 +88,4 @@ class QueryExecutor(object._SharedObject):
         )
         utils._handle_func_status(status, 'cannot query component class')
         assert result_ptr
-        return bt2.value._create_from_ptr(result_ptr)
+        return bt2_value._create_from_ptr(result_ptr)

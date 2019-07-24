@@ -1391,7 +1391,7 @@ class _TestArrayFieldCommon:
 
     def test_getitem(self):
         field = self._def[1]
-        self.assertIs(type(field), bt2.field._SignedIntegerField)
+        self.assertIs(type(field), bt2._SignedIntegerField)
         self.assertEqual(field, 1847)
 
     def test_eq(self):
@@ -1600,7 +1600,7 @@ class StructureFieldTestCase(unittest.TestCase):
 
     def test_getitem(self):
         field = self._def['A']
-        self.assertIs(type(field), bt2.field._SignedIntegerField)
+        self.assertIs(type(field), bt2._SignedIntegerField)
         self.assertEqual(field, -1872)
 
     def test_member_at_index_out_of_bounds_after(self):

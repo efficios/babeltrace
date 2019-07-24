@@ -21,12 +21,12 @@
 # THE SOFTWARE.
 
 from bt2 import native_bt, object, utils
-import bt2.clock_class
-import bt2.event_class
-import bt2.packet
-import bt2.stream
-import bt2.field
-import bt2.clock_snapshot
+from bt2 import clock_class as bt2_clock_class
+from bt2 import event_class as bt2_event_class
+from bt2 import packet as bt2_packet
+from bt2 import stream as bt2_stream
+from bt2 import field as bt2_field
+from bt2 import clock_snapshot as bt2_clock_snapshot
 import bt2
 
 
@@ -35,7 +35,7 @@ class _Event(object._UniqueObject):
     def cls(self):
         event_class_ptr = native_bt.event_borrow_class(self._ptr)
         assert event_class_ptr is not None
-        return bt2.event_class._EventClass._create_from_ptr_and_get_ref(event_class_ptr)
+        return bt2_event_class._EventClass._create_from_ptr_and_get_ref(event_class_ptr)
 
     @property
     def name(self):
@@ -52,13 +52,13 @@ class _Event(object._UniqueObject):
         if packet_ptr is None:
             return
 
-        return bt2.packet._Packet._create_from_ptr_and_get_ref(packet_ptr)
+        return bt2_packet._Packet._create_from_ptr_and_get_ref(packet_ptr)
 
     @property
     def stream(self):
         stream_ptr = native_bt.event_borrow_stream(self._ptr)
         assert stream_ptr is not None
-        return bt2.stream._Stream._create_from_ptr_and_get_ref(stream_ptr)
+        return bt2_stream._Stream._create_from_ptr_and_get_ref(stream_ptr)
 
     @property
     def common_context_field(self):
@@ -67,7 +67,7 @@ class _Event(object._UniqueObject):
         if field_ptr is None:
             return
 
-        return bt2.field._create_field_from_ptr(
+        return bt2_field._create_field_from_ptr(
             field_ptr, self._owner_ptr, self._owner_get_ref, self._owner_put_ref
         )
 
@@ -78,7 +78,7 @@ class _Event(object._UniqueObject):
         if field_ptr is None:
             return
 
-        return bt2.field._create_field_from_ptr(
+        return bt2_field._create_field_from_ptr(
             field_ptr, self._owner_ptr, self._owner_get_ref, self._owner_put_ref
         )
 
@@ -89,7 +89,7 @@ class _Event(object._UniqueObject):
         if field_ptr is None:
             return
 
-        return bt2.field._create_field_from_ptr(
+        return bt2_field._create_field_from_ptr(
             field_ptr, self._owner_ptr, self._owner_get_ref, self._owner_put_ref
         )
 

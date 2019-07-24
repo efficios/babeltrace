@@ -382,7 +382,7 @@ class ComponentClassTestCase(unittest.TestCase):
         graph = bt2.Graph()
         comp = graph.add_component(MySink, 'salut')
         self._comp_cls = comp.cls
-        self.assertTrue(issubclass(type(self._comp_cls), bt2.component._ComponentClass))
+        self.assertTrue(issubclass(type(self._comp_cls), bt2._SinkComponentClass))
 
     def tearDown(self):
         del self._py_comp_cls

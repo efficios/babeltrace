@@ -21,10 +21,14 @@
 # THE SOFTWARE.
 
 from bt2 import native_bt, object, utils
-import bt2.message
+from bt2 import message as bt2_message
 import collections.abc
-import bt2.component
-import bt2.port
+from bt2 import component as bt2_component
+from bt2 import stream as bt2_stream
+from bt2 import event_class as bt2_event_class
+from bt2 import packet as bt2_packet
+from bt2 import port as bt2_port
+from bt2 import clock_class as bt2_clock_class
 import bt2
 
 
@@ -51,7 +55,7 @@ class _GenericMessageIterator(object._SharedObject, _MessageIterator):
         msg_ptr = self._current_msgs[self._at]
         self._at += 1
 
-        return bt2.message._create_from_ptr(msg_ptr)
+        return bt2_message._create_from_ptr(msg_ptr)
 
     @property
     def can_seek_beginning(self):
@@ -122,7 +126,7 @@ class _UserMessageIterator(_MessageIterator):
         return self
 
     def _bt_init_from_native(self, self_output_port_ptr):
-        self_output_port = bt2.port._create_self_from_ptr_and_get_ref(
+        self_output_port = bt2_port._create_self_from_ptr_and_get_ref(
             self_output_port_ptr, native_bt.PORT_TYPE_OUTPUT
         )
         self.__init__(self_output_port)
@@ -157,7 +161,7 @@ class _UserMessageIterator(_MessageIterator):
         except:
             raise
 
-        utils._check_type(msg, bt2.message._Message)
+        utils._check_type(msg, bt2_message._Message)
 
         # The reference we return will be given to the message array.
         # However, the `msg` Python object may stay alive, if the user has kept
@@ -184,7 +188,7 @@ class _UserMessageIterator(_MessageIterator):
         self._seek_beginning()
 
     def _create_input_port_message_iterator(self, input_port):
-        utils._check_type(input_port, bt2.port._UserComponentInputPort)
+        utils._check_type(input_port, bt2_port._UserComponentInputPort)
 
         msg_iter_ptr = native_bt.self_component_port_input_message_iterator_create_from_message_iterator(
             self._bt_ptr, input_port._ptr
@@ -198,12 +202,12 @@ class _UserMessageIterator(_MessageIterator):
     def _create_event_message(
         self, event_class, parent=None, default_clock_snapshot=None
     ):
-        utils._check_type(event_class, bt2.event_class._EventClass)
+        utils._check_type(event_class, bt2_event_class._EventClass)
 
         if event_class.stream_class.supports_packets:
-            utils._check_type(parent, bt2.packet._Packet)
+            utils._check_type(parent, bt2_packet._Packet)
         else:
-            utils._check_type(parent, bt2.stream._Stream)
+            utils._check_type(parent, bt2_stream._Stream)
 
         if default_clock_snapshot is not None:
             if event_class.stream_class.default_clock_class is None:
@@ -239,10 +243,10 @@ class _UserMessageIterator(_MessageIterator):
         if ptr is None:
             raise bt2._MemoryError('cannot create event message object')
 
-        return bt2.message._EventMessage(ptr)
+        return bt2_message._EventMessage(ptr)
 
     def _create_message_iterator_inactivity_message(self, clock_class, clock_snapshot):
-        utils._check_type(clock_class, bt2.clock_class._ClockClass)
+        utils._check_type(clock_class, bt2_clock_class._ClockClass)
         ptr = native_bt.message_message_iterator_inactivity_create(
             self._bt_ptr, clock_class._ptr, clock_snapshot
         )
@@ -250,16 +254,16 @@ class _UserMessageIterator(_MessageIterator):
         if ptr is None:
             raise bt2._MemoryError('cannot create inactivity message object')
 
-        return bt2.message._MessageIteratorInactivityMessage(ptr)
+        return bt2_message._MessageIteratorInactivityMessage(ptr)
 
     def _create_stream_beginning_message(self, stream, default_clock_snapshot=None):
-        utils._check_type(stream, bt2.stream._Stream)
+        utils._check_type(stream, bt2_stream._Stream)
 
         ptr = native_bt.message_stream_beginning_create(self._bt_ptr, stream._ptr)
         if ptr is None:
             raise bt2._MemoryError('cannot create stream beginning message object')
 
-        msg = bt2.message._StreamBeginningMessage(ptr)
+        msg = bt2_message._StreamBeginningMessage(ptr)
 
         if default_clock_snapshot is not None:
             msg._default_clock_snapshot = default_clock_snapshot
@@ -267,13 +271,13 @@ class _UserMessageIterator(_MessageIterator):
         return msg
 
     def _create_stream_end_message(self, stream, default_clock_snapshot=None):
-        utils._check_type(stream, bt2.stream._Stream)
+        utils._check_type(stream, bt2_stream._Stream)
 
         ptr = native_bt.message_stream_end_create(self._bt_ptr, stream._ptr)
         if ptr is None:
             raise bt2._MemoryError('cannot create stream end message object')
 
-        msg = bt2.message._StreamEndMessage(ptr)
+        msg = bt2_message._StreamEndMessage(ptr)
 
         if default_clock_snapshot is not None:
             msg._default_clock_snapshot = default_clock_snapshot
@@ -281,7 +285,7 @@ class _UserMessageIterator(_MessageIterator):
         return msg
 
     def _create_packet_beginning_message(self, packet, default_clock_snapshot=None):
-        utils._check_type(packet, bt2.packet._Packet)
+        utils._check_type(packet, bt2_packet._Packet)
 
         if packet.stream.cls.packets_have_beginning_default_clock_snapshot:
             if default_clock_snapshot is None:
@@ -304,10 +308,10 @@ class _UserMessageIterator(_MessageIterator):
         if ptr is None:
             raise bt2._MemoryError('cannot create packet beginning message object')
 
-        return bt2.message._PacketBeginningMessage(ptr)
+        return bt2_message._PacketBeginningMessage(ptr)
 
     def _create_packet_end_message(self, packet, default_clock_snapshot=None):
-        utils._check_type(packet, bt2.packet._Packet)
+        utils._check_type(packet, bt2_packet._Packet)
 
         if packet.stream.cls.packets_have_end_default_clock_snapshot:
             if default_clock_snapshot is None:
@@ -330,12 +334,12 @@ class _UserMessageIterator(_MessageIterator):
         if ptr is None:
             raise bt2._MemoryError('cannot create packet end message object')
 
-        return bt2.message._PacketEndMessage(ptr)
+        return bt2_message._PacketEndMessage(ptr)
 
     def _create_discarded_events_message(
         self, stream, count=None, beg_clock_snapshot=None, end_clock_snapshot=None
     ):
-        utils._check_type(stream, bt2.stream._Stream)
+        utils._check_type(stream, bt2_stream._Stream)
 
         if not stream.cls.supports_discarded_events:
             raise ValueError('stream class does not support discarded events')
@@ -362,7 +366,7 @@ class _UserMessageIterator(_MessageIterator):
         if ptr is None:
             raise bt2._MemoryError('cannot discarded events message object')
 
-        msg = bt2.message._DiscardedEventsMessage(ptr)
+        msg = bt2_message._DiscardedEventsMessage(ptr)
 
         if count is not None:
             msg._count = count
@@ -372,7 +376,7 @@ class _UserMessageIterator(_MessageIterator):
     def _create_discarded_packets_message(
         self, stream, count=None, beg_clock_snapshot=None, end_clock_snapshot=None
     ):
-        utils._check_type(stream, bt2.stream._Stream)
+        utils._check_type(stream, bt2_stream._Stream)
 
         if not stream.cls.supports_discarded_packets:
             raise ValueError('stream class does not support discarded packets')
@@ -399,7 +403,7 @@ class _UserMessageIterator(_MessageIterator):
         if ptr is None:
             raise bt2._MemoryError('cannot discarded packets message object')
 
-        msg = bt2.message._DiscardedPacketsMessage(ptr)
+        msg = bt2_message._DiscardedPacketsMessage(ptr)
 
         if count is not None:
             msg._count = count

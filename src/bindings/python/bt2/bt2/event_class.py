@@ -21,9 +21,10 @@
 # THE SOFTWARE.
 
 from bt2 import native_bt, object, utils
-import bt2.field_class
-import bt2.value
-import bt2.event
+from bt2 import field_class as bt2_field_class
+from bt2 import value as bt2_value
+from bt2 import event as bt2_event
+from bt2 import stream_class as bt2_stream_class
 import bt2
 
 
@@ -54,7 +55,7 @@ class _EventClass(object._SharedObject):
         sc_ptr = native_bt.event_class_borrow_stream_class(self._ptr)
 
         if sc_ptr is not None:
-            return bt2.stream_class._StreamClass._create_from_ptr_and_get_ref(sc_ptr)
+            return bt2_stream_class._StreamClass._create_from_ptr_and_get_ref(sc_ptr)
 
     @property
     def name(self):
@@ -126,11 +127,11 @@ class _EventClass(object._SharedObject):
         if fc_ptr is None:
             return
 
-        return bt2.field_class._create_field_class_from_ptr_and_get_ref(fc_ptr)
+        return bt2_field_class._create_field_class_from_ptr_and_get_ref(fc_ptr)
 
     def _specific_context_field_class(self, context_field_class):
         if context_field_class is not None:
-            utils._check_type(context_field_class, bt2.field_class._StructureFieldClass)
+            utils._check_type(context_field_class, bt2_field_class._StructureFieldClass)
             status = native_bt.event_class_set_specific_context_field_class(
                 self._ptr, context_field_class._ptr
             )
@@ -147,11 +148,11 @@ class _EventClass(object._SharedObject):
         if fc_ptr is None:
             return
 
-        return bt2.field_class._create_field_class_from_ptr_and_get_ref(fc_ptr)
+        return bt2_field_class._create_field_class_from_ptr_and_get_ref(fc_ptr)
 
     def _payload_field_class(self, payload_field_class):
         if payload_field_class is not None:
-            utils._check_type(payload_field_class, bt2.field_class._StructureFieldClass)
+            utils._check_type(payload_field_class, bt2_field_class._StructureFieldClass)
             status = native_bt.event_class_set_payload_field_class(
                 self._ptr, payload_field_class._ptr
             )

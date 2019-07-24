@@ -21,25 +21,26 @@
 # THE SOFTWARE.
 
 from bt2 import native_bt, utils
-import bt2.message_iterator
-import bt2.port
+from bt2 import message_iterator as bt2_message_iterator
+from bt2 import port as bt2_port
+from bt2 import object as bt2_object
 import bt2
 
 
-class _Connection(bt2.object._SharedObject):
+class _Connection(bt2_object._SharedObject):
     _get_ref = staticmethod(native_bt.connection_get_ref)
     _put_ref = staticmethod(native_bt.connection_put_ref)
 
     @property
     def downstream_port(self):
         port_ptr = native_bt.connection_borrow_downstream_port_const(self._ptr)
-        return bt2.port._create_from_ptr_and_get_ref(
+        return bt2_port._create_from_ptr_and_get_ref(
             port_ptr, native_bt.PORT_TYPE_INPUT
         )
 
     @property
     def upstream_port(self):
         port_ptr = native_bt.connection_borrow_upstream_port_const(self._ptr)
-        return bt2.port._create_from_ptr_and_get_ref(
+        return bt2_port._create_from_ptr_and_get_ref(
             port_ptr, native_bt.PORT_TYPE_OUTPUT
         )

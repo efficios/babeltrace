@@ -21,10 +21,10 @@
 # THE SOFTWARE.
 
 from bt2 import native_bt, object
-import bt2.component
-import bt2.connection
-import bt2.message_iterator
-import bt2.message
+from bt2 import component as bt2_component
+from bt2 import connection as bt2_connection
+from bt2 import message_iterator as bt2_message_iterator
+from bt2 import message as bt2_message
 import bt2
 
 
@@ -72,7 +72,7 @@ class _Port(object._SharedObject):
         if conn_ptr is None:
             return
 
-        return bt2.connection._Connection._create_from_ptr_and_get_ref(conn_ptr)
+        return bt2_connection._Connection._create_from_ptr_and_get_ref(conn_ptr)
 
     @property
     def is_connected(self):
@@ -101,7 +101,7 @@ class _UserComponentPort(_Port):
         if conn_ptr is None:
             return
 
-        return bt2.connection._Connection._create_from_ptr_and_get_ref(conn_ptr)
+        return bt2_connection._Connection._create_from_ptr_and_get_ref(conn_ptr)
 
     @property
     def user_data(self):

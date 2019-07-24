@@ -21,7 +21,7 @@
 # THE SOFTWARE.
 
 from bt2 import native_bt, object, utils
-import bt2.field_class
+from bt2 import field_class as bt2_field_class
 import collections.abc
 import functools
 import numbers
@@ -59,7 +59,7 @@ class _Field(object._UniqueObject):
     def field_class(self):
         field_class_ptr = native_bt.field_borrow_class_const(self._ptr)
         assert field_class_ptr is not None
-        return bt2.field_class._create_field_class_from_ptr_and_get_ref(field_class_ptr)
+        return bt2_field_class._create_field_class_from_ptr_and_get_ref(field_class_ptr)
 
     def _repr(self):
         raise NotImplementedError

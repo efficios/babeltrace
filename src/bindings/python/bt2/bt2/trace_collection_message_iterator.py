@@ -23,7 +23,9 @@
 from bt2 import utils
 import bt2
 import itertools
-import bt2.message_iterator
+from bt2 import message_iterator as bt2_message_iterator
+from bt2 import logging as bt2_logging
+from bt2 import port as bt2_port
 import datetime
 from collections import namedtuple
 import numbers
@@ -39,7 +41,7 @@ class ComponentSpec:
         plugin_name,
         class_name,
         params=None,
-        logging_level=bt2.logging.LoggingLevel.NONE,
+        logging_level=bt2_logging.LoggingLevel.NONE,
     ):
         utils._check_str(plugin_name)
         utils._check_str(class_name)
@@ -94,7 +96,7 @@ class _CompClsType:
     FILTER = 1
 
 
-class TraceCollectionMessageIterator(bt2.message_iterator._MessageIterator):
+class TraceCollectionMessageIterator(bt2_message_iterator._MessageIterator):
     def __init__(
         self,
         source_component_specs,
@@ -291,7 +293,7 @@ class TraceCollectionMessageIterator(bt2.message_iterator._MessageIterator):
         if not self._connect_ports:
             return
 
-        if type(port) is bt2.port._InputPort:
+        if type(port) is bt2_port._InputPort:
             return
 
         if component not in [comp.comp for comp in self._src_comps_and_specs]:

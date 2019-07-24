@@ -21,12 +21,14 @@
 # THE SOFTWARE.
 
 from bt2 import native_bt, utils
-import bt2.packet
-import bt2.event
+from bt2 import object as bt2_object
+from bt2 import packet as bt2_packet
+from bt2 import event as bt2_event
+from bt2 import stream_class as bt2_stream_class
 import bt2
 
 
-class _Stream(bt2.object._SharedObject):
+class _Stream(bt2_object._SharedObject):
     _get_ref = staticmethod(native_bt.stream_get_ref)
     _put_ref = staticmethod(native_bt.stream_put_ref)
 
@@ -34,7 +36,7 @@ class _Stream(bt2.object._SharedObject):
     def cls(self):
         stream_class_ptr = native_bt.stream_borrow_class(self._ptr)
         assert stream_class_ptr is not None
-        return bt2.stream_class._StreamClass._create_from_ptr_and_get_ref(
+        return bt2_stream_class._StreamClass._create_from_ptr_and_get_ref(
             stream_class_ptr
         )
 
@@ -64,4 +66,4 @@ class _Stream(bt2.object._SharedObject):
         if packet_ptr is None:
             raise bt2._MemoryError('cannot create packet object')
 
-        return bt2.packet._Packet._create_from_ptr(packet_ptr)
+        return bt2_packet._Packet._create_from_ptr(packet_ptr)
