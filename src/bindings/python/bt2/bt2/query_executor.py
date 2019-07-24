@@ -58,7 +58,7 @@ class QueryExecutor(object._SharedObject):
         params=None,
         logging_level=bt2.logging.LoggingLevel.NONE,
     ):
-        if not isinstance(component_class, bt2.component._GenericComponentClass):
+        if not isinstance(component_class, bt2.component._ComponentClass):
             err = False
 
             try:

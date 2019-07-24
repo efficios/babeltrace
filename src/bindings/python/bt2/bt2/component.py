@@ -42,7 +42,7 @@ import os
 #     pointer to a 'bt_component_class *'.
 
 
-class _GenericComponentClass(object._SharedObject):
+class _ComponentClass(object._SharedObject):
     @property
     def name(self):
         ptr = self._bt_as_component_class_ptr(self._ptr)
@@ -64,7 +64,7 @@ class _GenericComponentClass(object._SharedObject):
         return self._bt_as_component_class_ptr(self._ptr)
 
     def __eq__(self, other):
-        if not isinstance(other, _GenericComponentClass):
+        if not isinstance(other, _ComponentClass):
             try:
                 if not issubclass(other, _UserComponent):
                     return False
@@ -74,7 +74,7 @@ class _GenericComponentClass(object._SharedObject):
         return self.addr == other.addr
 
 
-class _GenericSourceComponentClass(_GenericComponentClass):
+class _SourceComponentClass(_ComponentClass):
     _get_ref = staticmethod(native_bt.component_class_source_get_ref)
     _put_ref = staticmethod(native_bt.component_class_source_put_ref)
     _bt_as_component_class_ptr = staticmethod(
@@ -82,7 +82,7 @@ class _GenericSourceComponentClass(_GenericComponentClass):
     )
 
 
-class _GenericFilterComponentClass(_GenericComponentClass):
+class _FilterComponentClass(_ComponentClass):
     _get_ref = staticmethod(native_bt.component_class_filter_get_ref)
     _put_ref = staticmethod(native_bt.component_class_filter_put_ref)
     _bt_as_component_class_ptr = staticmethod(
@@ -90,7 +90,7 @@ class _GenericFilterComponentClass(_GenericComponentClass):
     )
 
 
-class _GenericSinkComponentClass(_GenericComponentClass):
+class _SinkComponentClass(_ComponentClass):
     _get_ref = staticmethod(native_bt.component_class_sink_get_ref)
     _put_ref = staticmethod(native_bt.component_class_sink_put_ref)
     _bt_as_component_class_ptr = staticmethod(
@@ -233,7 +233,7 @@ class _SinkComponent(_Component):
     _bt_as_component_ptr = staticmethod(native_bt.component_sink_as_component_const)
 
 
-# This is analogous to _GenericSourceComponentClass, but for source
+# This is analogous to _SourceComponentClass, but for source
 # component objects.
 class _GenericSourceComponent(object._SharedObject, _SourceComponent):
     _get_ref = staticmethod(native_bt.component_source_get_ref)
@@ -250,7 +250,7 @@ class _GenericSourceComponent(object._SharedObject, _SourceComponent):
         )
 
 
-# This is analogous to _GenericFilterComponentClass, but for filter
+# This is analogous to _FilterComponentClass, but for filter
 # component objects.
 class _GenericFilterComponent(object._SharedObject, _FilterComponent):
     _get_ref = staticmethod(native_bt.component_filter_get_ref)
@@ -277,7 +277,7 @@ class _GenericFilterComponent(object._SharedObject, _FilterComponent):
         )
 
 
-# This is analogous to _GenericSinkComponentClass, but for sink
+# This is analogous to _SinkComponentClass, but for sink
 # component objects.
 class _GenericSinkComponent(object._SharedObject, _SinkComponent):
     _get_ref = staticmethod(native_bt.component_sink_get_ref)
@@ -302,9 +302,9 @@ _COMP_CLS_TYPE_TO_GENERIC_COMP_PYCLS = {
 
 
 _COMP_CLS_TYPE_TO_GENERIC_COMP_CLS_PYCLS = {
-    native_bt.COMPONENT_CLASS_TYPE_SOURCE: _GenericSourceComponentClass,
-    native_bt.COMPONENT_CLASS_TYPE_FILTER: _GenericFilterComponentClass,
-    native_bt.COMPONENT_CLASS_TYPE_SINK: _GenericSinkComponentClass,
+    native_bt.COMPONENT_CLASS_TYPE_SOURCE: _SourceComponentClass,
+    native_bt.COMPONENT_CLASS_TYPE_FILTER: _FilterComponentClass,
+    native_bt.COMPONENT_CLASS_TYPE_SINK: _SinkComponentClass,
 }
 
 
@@ -330,8 +330,8 @@ def _create_component_from_ptr_and_get_ref(ptr, comp_cls_type):
 
 
 # Create a component class Python object of type
-# _GenericSourceComponentClass, _GenericFilterComponentClass or
-# _GenericSinkComponentClass, depending on comp_cls_type.
+# _SourceComponentClass, _FilterComponentClass or
+# _SinkComponentClass, depending on comp_cls_type.
 #
 # Acquires a new reference to ptr.
 
@@ -379,7 +379,7 @@ def _trim_docstring(docstring):
 # creates a native BT component class of the corresponding type and
 # associates it with this user-defined class. The metaclass also defines
 # class methods like the `name` and `description` properties to match
-# the _GenericComponentClass interface.
+# the _ComponentClass interface.
 #
 # The component class name which is used is either:
 #

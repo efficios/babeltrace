@@ -85,15 +85,15 @@ class Graph(object._SharedObject):
         params=None,
         logging_level=bt2.logging.LoggingLevel.NONE,
     ):
-        if isinstance(component_class, bt2.component._GenericSourceComponentClass):
+        if isinstance(component_class, bt2.component._SourceComponentClass):
             cc_ptr = component_class._ptr
             add_fn = native_bt.graph_add_source_component
             cc_type = native_bt.COMPONENT_CLASS_TYPE_SOURCE
-        elif isinstance(component_class, bt2.component._GenericFilterComponentClass):
+        elif isinstance(component_class, bt2.component._FilterComponentClass):
             cc_ptr = component_class._ptr
             add_fn = native_bt.graph_add_filter_component
             cc_type = native_bt.COMPONENT_CLASS_TYPE_FILTER
-        elif isinstance(component_class, bt2.component._GenericSinkComponentClass):
+        elif isinstance(component_class, bt2.component._SinkComponentClass):
             cc_ptr = component_class._ptr
             add_fn = native_bt.graph_add_sink_component
             cc_type = native_bt.COMPONENT_CLASS_TYPE_SINK

@@ -359,7 +359,7 @@ class UserComponentClassTestCase(unittest.TestCase):
         self.assertEqual(MySink, MySink)
 
 
-class GenericComponentClassTestCase(unittest.TestCase):
+class ComponentClassTestCase(unittest.TestCase):
     def setUp(self):
         class MySink(bt2._UserSinkComponent):
             '''
@@ -382,9 +382,7 @@ class GenericComponentClassTestCase(unittest.TestCase):
         graph = bt2.Graph()
         comp = graph.add_component(MySink, 'salut')
         self._comp_cls = comp.cls
-        self.assertTrue(
-            issubclass(type(self._comp_cls), bt2.component._GenericComponentClass)
-        )
+        self.assertTrue(issubclass(type(self._comp_cls), bt2.component._ComponentClass))
 
     def tearDown(self):
         del self._py_comp_cls
