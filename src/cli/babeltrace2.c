@@ -57,7 +57,6 @@ static const char* log_level_env_var_names[] = {
 
 /* Application's interrupter (owned by this) */
 static bt_interrupter *the_interrupter;
-static volatile bool interrupted = false;
 
 #ifdef __MINGW32__
 
@@ -69,7 +68,6 @@ BOOL WINAPI signal_handler(DWORD signal) {
 		bt_interrupter_set(the_interrupter);
 	}
 
-	interrupted = true;
 	return TRUE;
 }
 
@@ -93,8 +91,6 @@ void signal_handler(int signum)
 	if (the_interrupter) {
 		bt_interrupter_set(the_interrupter);
 	}
-
-	interrupted = true;
 }
 
 static
@@ -134,16 +130,6 @@ int query(struct bt_config *cfg, const bt_component_class *comp_cls,
 	}
 
 	bt_query_executor_add_interrupter(query_exec, the_interrupter);
-
-	if (interrupted) {
-		BT_CLI_LOGW_APPEND_CAUSE(
-			"Interrupted by user before executing the query: "
-			"comp-cls-addr=%p, comp-cls-name=\"%s\", "
-			"query-obj=\"%s\"", comp_cls,
-			bt_component_class_get_name(comp_cls), obj);
-		*fail_reason = "interrupted by user";
-		goto error;
-	}
 
 	while (true) {
 		query_status = bt_query_executor_query(
@@ -2311,7 +2297,7 @@ int cmd_run(struct bt_config *cfg)
 		goto error;
 	}
 
-	if (interrupted) {
+	if (bt_interrupter_is_set(the_interrupter)) {
 		BT_CLI_LOGW_APPEND_CAUSE(
 			"Interrupted by user before creating components.");
 		goto error;
@@ -2325,7 +2311,7 @@ int cmd_run(struct bt_config *cfg)
 		goto error;
 	}
 
-	if (interrupted) {
+	if (bt_interrupter_is_set(the_interrupter)) {
 		BT_CLI_LOGW_APPEND_CAUSE(
 			"Interrupted by user before connecting components.");
 		goto error;
@@ -2337,12 +2323,6 @@ int cmd_run(struct bt_config *cfg)
 	if (cmd_run_ctx_connect_ports(&ctx)) {
 		BT_CLI_LOGE_APPEND_CAUSE(
 			"Cannot connect initial component ports.");
-		goto error;
-	}
-
-	if (interrupted) {
-		BT_CLI_LOGW_APPEND_CAUSE(
-			"Interrupted by user before running the graph.");
 		goto error;
 	}
 
