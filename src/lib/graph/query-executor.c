@@ -124,7 +124,7 @@ enum bt_query_executor_query_status bt_query_executor_query(
 		/* Not an error: nothing to query */
 		BT_LIB_LOGD("Component class has no registered query method: "
 			"%!+C", comp_cls);
-		status = BT_FUNC_STATUS_UNSUPPORTED;
+		status = BT_FUNC_STATUS_INVALID_OBJECT;
 		goto end;
 	}
 

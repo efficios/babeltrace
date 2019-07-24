@@ -171,10 +171,5 @@ def _handle_func_status(status, msg=None):
             raise bt2.InvalidParams
         else:
             raise bt2.InvalidParams(msg)
-    elif status == native_bt.__BT_FUNC_STATUS_UNSUPPORTED:
-        if msg is None:
-            raise bt2.Unsupported
-        else:
-            raise bt2.Unsupported(msg)
     else:
         assert False

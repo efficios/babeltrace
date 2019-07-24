@@ -619,8 +619,6 @@ const char *bt_common_func_status_string(int status)
 		return "NOT_FOUND";
 	case __BT_FUNC_STATUS_AGAIN:
 		return "AGAIN";
-	case __BT_FUNC_STATUS_UNSUPPORTED:
-		return "UNSUPPORTED";
 	case __BT_FUNC_STATUS_CANCELED:
 		return "CANCELED";
 	default:

@@ -85,10 +85,6 @@ class OverflowError(OverflowError):
     pass
 
 
-class Unsupported(Exception):
-    pass
-
-
 class TryAgain(Exception):
     pass
 
