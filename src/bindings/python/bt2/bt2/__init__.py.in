@@ -138,12 +138,6 @@ class _IncompleteUserClass(Exception):
     pass
 
 
-class _ListenerHandle:
-    def __init__(self, listener_id, obj):
-        self._listener_id = listener_id
-        self._obj = obj
-
-
 def _init_and_register_exit():
     import bt2.native_bt as _native_bt
     import atexit
