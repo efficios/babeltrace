@@ -30,6 +30,7 @@ dist_check_SCRIPTS = \
 	bindings/python/bt2/test_trace.py \
 	bindings/python/bt2/test_value.py \
 	bindings/python/bt2/utils.py \
+	cli/auto-source-discovery/test_auto_source_discovery \
 	cli/test_convert_args \
 	cli/test_intersection \
 	cli/test_output_ctf_metadata \
@@ -100,6 +101,7 @@ endif
 
 if ENABLE_PYTHON_PLUGINS
 if ENABLE_PYTHON_BINDINGS
+TESTS_CLI += cli/auto-source-discovery/test_auto_source_discovery
 TESTS_PLUGINS += plugins/flt.utils.trimmer/test_trimming
 endif
 endif
