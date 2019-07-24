@@ -609,8 +609,6 @@ const char *bt_common_func_status_string(int status)
 		return "INVALID_OBJECT";
 	case __BT_FUNC_STATUS_MEMORY_ERROR:
 		return "MEMORY_ERROR";
-	case __BT_FUNC_STATUS_LOADING_ERROR:
-		return "LOADING_ERROR";
 	case __BT_FUNC_STATUS_ERROR:
 		return "ERROR";
 	case __BT_FUNC_STATUS_OK:

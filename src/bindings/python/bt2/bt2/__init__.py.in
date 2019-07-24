@@ -105,10 +105,6 @@ class Canceled(Exception):
     pass
 
 
-class _LoadingError(_Error):
-    pass
-
-
 class _ListenerHandle:
     def __init__(self, listener_id, obj):
         self._listener_id = listener_id
