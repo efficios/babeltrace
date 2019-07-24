@@ -214,7 +214,9 @@ class AllMessagesTestCase(unittest.TestCase):
             if i == 0:
                 self.assertIsInstance(msg, bt2.message._StreamBeginningMessage)
                 self.assertEqual(msg.stream.addr, self._stream.addr)
-                with self.assertRaises(bt2.NonexistentClockSnapshot):
+                with self.assertRaisesRegex(
+                    ValueError, 'stream class has no default clock class'
+                ):
                     msg.default_clock_snapshot
             elif i == 1:
                 self.assertIsInstance(msg, bt2.message._PacketBeginningMessage)
@@ -222,16 +224,24 @@ class AllMessagesTestCase(unittest.TestCase):
             elif i == 2:
                 self.assertIsInstance(msg, bt2.message._EventMessage)
                 self.assertEqual(msg.event.cls.addr, self._event_class.addr)
-                with self.assertRaises(bt2.NonexistentClockSnapshot):
+                with self.assertRaisesRegex(
+                    ValueError, 'stream class has no default clock class'
+                ):
                     msg.default_clock_snapshot
             elif i == 3:
                 self.assertIsInstance(msg, bt2.message._DiscardedEventsMessage)
                 self.assertEqual(msg.stream.addr, self._stream.addr)
                 self.assertEqual(msg.count, 890)
                 self.assertIsNone(msg.stream.cls.default_clock_class)
-                with self.assertRaises(bt2.NonexistentClockSnapshot):
+                with self.assertRaisesRegex(
+                    ValueError,
+                    'such a message has no clock snapshots for this stream class',
+                ):
                     msg.beginning_default_clock_snapshot
-                with self.assertRaises(bt2.NonexistentClockSnapshot):
+                with self.assertRaisesRegex(
+                    ValueError,
+                    'such a message has no clock snapshots for this stream class',
+                ):
                     msg.end_default_clock_snapshot
             elif i == 4:
                 self.assertIsInstance(msg, bt2.message._PacketEndMessage)
@@ -241,14 +251,22 @@ class AllMessagesTestCase(unittest.TestCase):
                 self.assertEqual(msg.stream.addr, self._stream.addr)
                 self.assertEqual(msg.count, 678)
                 self.assertIsNone(msg.stream.cls.default_clock_class)
-                with self.assertRaises(bt2.NonexistentClockSnapshot):
+                with self.assertRaisesRegex(
+                    ValueError,
+                    'such a message has no clock snapshots for this stream class',
+                ):
                     msg.beginning_default_clock_snapshot
-                with self.assertRaises(bt2.NonexistentClockSnapshot):
+                with self.assertRaisesRegex(
+                    ValueError,
+                    'such a message has no clock snapshots for this stream class',
+                ):
                     msg.end_default_clock_snapshot
             elif i == 6:
                 self.assertIsInstance(msg, bt2.message._StreamEndMessage)
                 self.assertEqual(msg.stream.addr, self._stream.addr)
-                with self.assertRaises(bt2.NonexistentClockSnapshot):
+                with self.assertRaisesRegex(
+                    ValueError, 'stream class has no default clock class'
+                ):
                     msg.default_clock_snapshot
             else:
                 raise Exception
