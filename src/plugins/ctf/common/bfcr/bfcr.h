@@ -362,15 +362,15 @@ const char *bt_bfcr_status_string(enum bt_bfcr_status status)
 {
 	switch (status) {
 	case BT_BFCR_STATUS_ENOMEM:
-		return "BT_BFCR_STATUS_ENOMEM";
+		return "ENOMEM";
 	case BT_BFCR_STATUS_EOF:
-		return "BT_BFCR_STATUS_EOF";
+		return "EOF";
 	case BT_BFCR_STATUS_INVAL:
-		return "BT_BFCR_STATUS_INVAL";
+		return "INVAL";
 	case BT_BFCR_STATUS_ERROR:
-		return "BT_BFCR_STATUS_ERROR";
+		return "ERROR";
 	case BT_BFCR_STATUS_OK:
-		return "BT_BFCR_STATUS_OK";
+		return "OK";
 	default:
 		return "(unknown)";
 	}

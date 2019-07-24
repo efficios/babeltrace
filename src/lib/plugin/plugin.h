@@ -93,9 +93,9 @@ const char *bt_plugin_type_string(enum bt_plugin_type type)
 {
 	switch (type) {
 	case BT_PLUGIN_TYPE_SO:
-		return "BT_PLUGIN_TYPE_SO";
+		return "SO";
 	case BT_PLUGIN_TYPE_PYTHON:
-		return "BT_PLUGIN_TYPE_PYTHON";
+		return "PYTHON";
 	default:
 		return "(unknown)";
 	}

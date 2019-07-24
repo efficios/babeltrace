@@ -80,9 +80,9 @@ const char *bt_field_path_item_type_string(enum bt_field_path_item_type type)
 {
 	switch (type) {
 	case BT_FIELD_PATH_ITEM_TYPE_INDEX:
-		return "BT_FIELD_PATH_ITEM_TYPE_INDEX";
+		return "INDEX";
 	case BT_FIELD_PATH_ITEM_TYPE_CURRENT_ARRAY_ELEMENT:
-		return "BT_FIELD_PATH_ITEM_TYPE_CURRENT_ARRAY_ELEMENT";
+		return "CURRENT_ARRAY_ELEMENT";
 	default:
 		return "(unknown)";
 	}

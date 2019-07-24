@@ -172,17 +172,17 @@ const char *bfcr_state_string(enum bfcr_state state)
 {
 	switch (state) {
 	case BFCR_STATE_NEXT_FIELD:
-		return "BFCR_STATE_NEXT_FIELD";
+		return "NEXT_FIELD";
 	case BFCR_STATE_ALIGN_BASIC:
-		return "BFCR_STATE_ALIGN_BASIC";
+		return "ALIGN_BASIC";
 	case BFCR_STATE_ALIGN_COMPOUND:
-		return "BFCR_STATE_ALIGN_COMPOUND";
+		return "ALIGN_COMPOUND";
 	case BFCR_STATE_READ_BASIC_BEGIN:
-		return "BFCR_STATE_READ_BASIC_BEGIN";
+		return "READ_BASIC_BEGIN";
 	case BFCR_STATE_READ_BASIC_CONTINUE:
-		return "BFCR_STATE_READ_BASIC_CONTINUE";
+		return "READ_BASIC_CONTINUE";
 	case BFCR_STATE_DONE:
-		return "BFCR_STATE_DONE";
+		return "DONE";
 	default:
 		return "(unknown)";
 	}

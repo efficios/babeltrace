@@ -57,9 +57,9 @@ const char *bt_port_type_string(enum bt_port_type port_type)
 {
 	switch (port_type) {
 	case BT_PORT_TYPE_INPUT:
-		return "BT_PORT_TYPE_INPUT";
+		return "INPUT";
 	case BT_PORT_TYPE_OUTPUT:
-		return "BT_PORT_TYPE_OUTPUT";
+		return "OUTPUT";
 	default:
 		return "(unknown)";
 	}

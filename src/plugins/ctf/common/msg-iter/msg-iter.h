@@ -346,15 +346,15 @@ const char *bt_msg_iter_medium_status_string(
 {
 	switch (status) {
 	case BT_MSG_ITER_MEDIUM_STATUS_EOF:
-		return "BT_MSG_ITER_MEDIUM_STATUS_EOF";
+		return "EOF";
 	case BT_MSG_ITER_MEDIUM_STATUS_AGAIN:
-		return "BT_MSG_ITER_MEDIUM_STATUS_AGAIN";
+		return "AGAIN";
 	case BT_MSG_ITER_MEDIUM_STATUS_INVAL:
-		return "BT_MSG_ITER_MEDIUM_STATUS_INVAL";
+		return "INVAL";
 	case BT_MSG_ITER_MEDIUM_STATUS_ERROR:
-		return "BT_MSG_ITER_MEDIUM_STATUS_ERROR";
+		return "ERROR";
 	case BT_MSG_ITER_MEDIUM_STATUS_OK:
-		return "BT_MSG_ITER_MEDIUM_STATUS_OK";
+		return "OK";
 	default:
 		return "(unknown)";
 	}
@@ -366,15 +366,15 @@ const char *bt_msg_iter_status_string(
 {
 	switch (status) {
 	case BT_MSG_ITER_STATUS_EOF:
-		return "BT_MSG_ITER_STATUS_EOF";
+		return "EOF";
 	case BT_MSG_ITER_STATUS_AGAIN:
-		return "BT_MSG_ITER_STATUS_AGAIN";
+		return "AGAIN";
 	case BT_MSG_ITER_STATUS_INVAL:
-		return "BT_MSG_ITER_STATUS_INVAL";
+		return "INVAL";
 	case BT_MSG_ITER_STATUS_ERROR:
-		return "BT_MSG_ITER_STATUS_ERROR";
+		return "ERROR";
 	case BT_MSG_ITER_STATUS_OK:
-		return "BT_MSG_ITER_STATUS_OK";
+		return "OK";
 	default:
 		return "(unknown)";
 	}
