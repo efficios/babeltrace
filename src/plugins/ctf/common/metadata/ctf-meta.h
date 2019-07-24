@@ -1130,17 +1130,17 @@ const char *ctf_scope_string(enum ctf_scope scope)
 {
 	switch (scope) {
 	case CTF_SCOPE_PACKET_HEADER:
-		return "CTF_SCOPE_PACKET_HEADER";
+		return "PACKET_HEADER";
 	case CTF_SCOPE_PACKET_CONTEXT:
-		return "CTF_SCOPE_PACKET_CONTEXT";
+		return "PACKET_CONTEXT";
 	case CTF_SCOPE_EVENT_HEADER:
-		return "CTF_SCOPE_EVENT_HEADER";
+		return "EVENT_HEADER";
 	case CTF_SCOPE_EVENT_COMMON_CONTEXT:
-		return "CTF_SCOPE_EVENT_COMMON_CONTEXT";
+		return "EVENT_COMMON_CONTEXT";
 	case CTF_SCOPE_EVENT_SPECIFIC_CONTEXT:
-		return "CTF_SCOPE_EVENT_SPECIFIC_CONTEXT";
+		return "EVENT_SPECIFIC_CONTEXT";
 	case CTF_SCOPE_EVENT_PAYLOAD:
-		return "CTF_SCOPE_EVENT_PAYLOAD";
+		return "EVENT_PAYLOAD";
 	default:
 		abort();
 	}

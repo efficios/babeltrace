@@ -46,9 +46,9 @@ const char *bt_message_stream_clock_snapshot_state_string(
 {
 	switch (state) {
 	case BT_MESSAGE_STREAM_CLOCK_SNAPSHOT_STATE_KNOWN:
-		return "BT_MESSAGE_STREAM_ACTIVITY_CLOCK_SNAPSHOT_STATE_KNOWN";
+		return "KNOWN";
 	case BT_MESSAGE_STREAM_CLOCK_SNAPSHOT_STATE_UNKNOWN:
-		return "BT_MESSAGE_STREAM_ACTIVITY_CLOCK_SNAPSHOT_STATE_UNKNOWN";
+		return "UNKNOWN";
 	default:
 		return "(unknown)";
 	}

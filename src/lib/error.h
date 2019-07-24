@@ -75,13 +75,13 @@ const char *bt_error_cause_actor_type_string(
 {
 	switch (actor_type) {
 	case BT_ERROR_CAUSE_ACTOR_TYPE_UNKNOWN:
-		return "BT_ERROR_CAUSE_ACTOR_TYPE_UNKNOWN";
+		return "UNKNOWN";
 	case BT_ERROR_CAUSE_ACTOR_TYPE_COMPONENT:
-		return "BT_ERROR_CAUSE_ACTOR_TYPE_COMPONENT";
+		return "COMPONENT";
 	case BT_ERROR_CAUSE_ACTOR_TYPE_COMPONENT_CLASS:
-		return "BT_ERROR_CAUSE_ACTOR_TYPE_COMPONENT_CLASS";
+		return "COMPONENT_CLASS";
 	case BT_ERROR_CAUSE_ACTOR_TYPE_MESSAGE_ITERATOR:
-		return "BT_ERROR_CAUSE_ACTOR_TYPE_MESSAGE_ITERATOR";
+		return "MESSAGE_ITERATOR";
 	default:
 		return "(unknown)";
 	}
