@@ -603,16 +603,16 @@ void write_field_path(struct details_write_ctx *ctx,
 	g_string_append_c(ctx->str, '[');
 
 	switch (bt_field_path_get_root_scope(field_path)) {
-	case BT_SCOPE_PACKET_CONTEXT:
+	case BT_FIELD_PATH_SCOPE_PACKET_CONTEXT:
 		write_str_prop_value(ctx, "Packet context");
 		break;
-	case BT_SCOPE_EVENT_COMMON_CONTEXT:
+	case BT_FIELD_PATH_SCOPE_EVENT_COMMON_CONTEXT:
 		write_str_prop_value(ctx, "Event common context");
 		break;
-	case BT_SCOPE_EVENT_SPECIFIC_CONTEXT:
+	case BT_FIELD_PATH_SCOPE_EVENT_SPECIFIC_CONTEXT:
 		write_str_prop_value(ctx, "Event specific context");
 		break;
-	case BT_SCOPE_EVENT_PAYLOAD:
+	case BT_FIELD_PATH_SCOPE_EVENT_PAYLOAD:
 		write_str_prop_value(ctx, "Event payload");
 		break;
 	default:

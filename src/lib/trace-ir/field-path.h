@@ -39,7 +39,7 @@ struct bt_field_path_item {
 
 struct bt_field_path {
 	struct bt_object base;
-	enum bt_scope root;
+	enum bt_field_path_scope root;
 
 	/* Array of `struct bt_field_path_item` (items) */
 	GArray *items;

@@ -74,7 +74,7 @@ from bt2.field_class import _VariantFieldClassWithSignedSelector
 from bt2.field_class import _ArrayFieldClass
 from bt2.field_class import _StaticArrayFieldClass
 from bt2.field_class import _DynamicArrayFieldClass
-from bt2.field_path import Scope
+from bt2.field_path import FieldPathScope
 from bt2.field_path import _IndexFieldPathItem
 from bt2.field_path import _CurrentArrayElementFieldPathItem
 from bt2.graph import Graph

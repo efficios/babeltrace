@@ -454,17 +454,17 @@ const char *bt_common_field_class_integer_preferred_display_base_string(enum bt_
 }
 
 static inline
-const char *bt_common_scope_string(enum bt_scope scope)
+const char *bt_common_scope_string(enum bt_field_path_scope scope)
 {
 	switch (scope) {
-	case BT_SCOPE_PACKET_CONTEXT:
-		return "BT_SCOPE_PACKET_CONTEXT";
-	case BT_SCOPE_EVENT_COMMON_CONTEXT:
-		return "BT_SCOPE_EVENT_COMMON_CONTEXT";
-	case BT_SCOPE_EVENT_SPECIFIC_CONTEXT:
-		return "BT_SCOPE_EVENT_SPECIFIC_CONTEXT";
-	case BT_SCOPE_EVENT_PAYLOAD:
-		return "BT_SCOPE_EVENT_PAYLOAD";
+	case BT_FIELD_PATH_SCOPE_PACKET_CONTEXT:
+		return "BT_FIELD_PATH_SCOPE_PACKET_CONTEXT";
+	case BT_FIELD_PATH_SCOPE_EVENT_COMMON_CONTEXT:
+		return "BT_FIELD_PATH_SCOPE_EVENT_COMMON_CONTEXT";
+	case BT_FIELD_PATH_SCOPE_EVENT_SPECIFIC_CONTEXT:
+		return "BT_FIELD_PATH_SCOPE_EVENT_SPECIFIC_CONTEXT";
+	case BT_FIELD_PATH_SCOPE_EVENT_PAYLOAD:
+		return "BT_FIELD_PATH_SCOPE_EVENT_PAYLOAD";
 	default:
 		return "(unknown)";
 	}

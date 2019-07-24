@@ -105,7 +105,7 @@ end:
 
 static
 int find_field_class(struct bt_field_class *root_fc,
-		enum bt_scope root_scope, struct bt_field_class *tgt_fc,
+		enum bt_field_path_scope root_scope, struct bt_field_class *tgt_fc,
 		struct bt_field_path **ret_field_path)
 {
 	int ret = 0;
@@ -139,25 +139,25 @@ struct bt_field_path *find_field_class_in_ctx(struct bt_field_class *fc,
 	struct bt_field_path *field_path = NULL;
 	int ret;
 
-	ret = find_field_class(ctx->packet_context, BT_SCOPE_PACKET_CONTEXT,
+	ret = find_field_class(ctx->packet_context, BT_FIELD_PATH_SCOPE_PACKET_CONTEXT,
 		fc, &field_path);
 	if (ret || field_path) {
 		goto end;
 	}
 
 	ret = find_field_class(ctx->event_common_context,
-		BT_SCOPE_EVENT_COMMON_CONTEXT, fc, &field_path);
+		BT_FIELD_PATH_SCOPE_EVENT_COMMON_CONTEXT, fc, &field_path);
 	if (ret || field_path) {
 		goto end;
 	}
 
 	ret = find_field_class(ctx->event_specific_context,
-		BT_SCOPE_EVENT_SPECIFIC_CONTEXT, fc, &field_path);
+		BT_FIELD_PATH_SCOPE_EVENT_SPECIFIC_CONTEXT, fc, &field_path);
 	if (ret || field_path) {
 		goto end;
 	}
 
-	ret = find_field_class(ctx->event_payload, BT_SCOPE_EVENT_PAYLOAD,
+	ret = find_field_class(ctx->event_payload, BT_FIELD_PATH_SCOPE_EVENT_PAYLOAD,
 		fc, &field_path);
 	if (ret || field_path) {
 		goto end;
@@ -214,16 +214,16 @@ end:
 BT_ASSERT_PRE_DEV_FUNC
 static inline
 struct bt_field_class *borrow_root_field_class(
-		struct bt_resolve_field_path_context *ctx, enum bt_scope scope)
+		struct bt_resolve_field_path_context *ctx, enum bt_field_path_scope scope)
 {
 	switch (scope) {
-	case BT_SCOPE_PACKET_CONTEXT:
+	case BT_FIELD_PATH_SCOPE_PACKET_CONTEXT:
 		return ctx->packet_context;
-	case BT_SCOPE_EVENT_COMMON_CONTEXT:
+	case BT_FIELD_PATH_SCOPE_EVENT_COMMON_CONTEXT:
 		return ctx->event_common_context;
-	case BT_SCOPE_EVENT_SPECIFIC_CONTEXT:
+	case BT_FIELD_PATH_SCOPE_EVENT_SPECIFIC_CONTEXT:
 		return ctx->event_specific_context;
-	case BT_SCOPE_EVENT_PAYLOAD:
+	case BT_FIELD_PATH_SCOPE_EVENT_PAYLOAD:
 		return ctx->event_payload;
 	default:
 		abort();
