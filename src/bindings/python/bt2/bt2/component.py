@@ -24,6 +24,7 @@ from bt2 import native_bt, object, utils
 import bt2.message_iterator
 import collections.abc
 import bt2.value
+import bt2.trace_class
 import traceback
 import bt2.port
 import sys
@@ -679,7 +680,7 @@ class _UserComponent(metaclass=_UserComponentType):
         if tc_ptr is None:
             raise bt2._MemoryError('could not create trace class')
 
-        tc = bt2._TraceClass._create_from_ptr(tc_ptr)
+        tc = bt2.trace_class._TraceClass._create_from_ptr(tc_ptr)
         tc._assigns_automatic_stream_class_id = assigns_automatic_stream_class_id
 
         return tc
