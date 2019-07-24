@@ -184,7 +184,7 @@ class UserComponentClassTestCase(unittest.TestCase):
             def _user_consume(self):
                 pass
 
-        with self.assertRaises(bt2._Error):
+        with self.assertRaises(bt2.UnknownObject):
             bt2.QueryExecutor().query(MySink, 'obj', 23)
 
     def test_query_raises(self):

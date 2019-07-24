@@ -160,7 +160,12 @@ class _MemoryError(_Error):
     '''Raised when an operation fails due to memory issues.'''
 
 
-class InvalidObject(Exception):
+class UnknownObject(Exception):
+    '''
+    Raised when a component class handles a query for an object it doesn't
+    know about.
+    '''
+
     pass
 
 

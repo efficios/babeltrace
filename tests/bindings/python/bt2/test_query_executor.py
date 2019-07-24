@@ -96,16 +96,16 @@ class QueryExecutorTestCase(unittest.TestCase):
         self.assertEqual(cause.component_class_type, bt2.ComponentClassType.SINK)
         self.assertEqual(cause.component_class_name, 'MySink')
 
-    def test_query_invalid_object(self):
+    def test_query_unknown_object(self):
         class MySink(bt2._UserSinkComponent):
             def _user_consume(self):
                 pass
 
             @classmethod
             def _user_query(cls, query_exec, obj, params, log_level):
-                raise bt2.InvalidObject
+                raise bt2.UnknownObject
 
-        with self.assertRaises(bt2.InvalidObject):
+        with self.assertRaises(bt2.UnknownObject):
             res = bt2.QueryExecutor().query(MySink, 'obj', [17, 23])
 
     def test_query_logging_level_invalid_type(self):
