@@ -483,7 +483,7 @@ class _UserComponentType(type):
             )
         elif _UserSinkComponent in bases:
             if not hasattr(cls, '_consume'):
-                raise bt2.IncompleteUserClass(
+                raise bt2._IncompleteUserClass(
                     "cannot create component class '{}': missing a _consume() method".format(
                         class_name
                     )
@@ -493,7 +493,7 @@ class _UserComponentType(type):
                 cls, comp_cls_name, comp_cls_descr, comp_cls_help
             )
         else:
-            raise bt2.IncompleteUserClass(
+            raise bt2._IncompleteUserClass(
                 "cannot find a known component class base in the bases of '{}'".format(
                     class_name
                 )
@@ -530,21 +530,21 @@ class _UserComponentType(type):
     @staticmethod
     def _bt_set_iterator_class(cls, iter_cls):
         if iter_cls is None:
-            raise bt2.IncompleteUserClass(
+            raise bt2._IncompleteUserClass(
                 "cannot create component class '{}': missing message iterator class".format(
                     cls.__name__
                 )
             )
 
         if not issubclass(iter_cls, bt2.message_iterator._UserMessageIterator):
-            raise bt2.IncompleteUserClass(
+            raise bt2._IncompleteUserClass(
                 "cannot create component class '{}': message iterator class does not inherit bt2._UserMessageIterator".format(
                     cls.__name__
                 )
             )
 
         if not hasattr(iter_cls, '__next__'):
-            raise bt2.IncompleteUserClass(
+            raise bt2._IncompleteUserClass(
                 "cannot create component class '{}': message iterator class is missing a __next__() method".format(
                     cls.__name__
                 )
