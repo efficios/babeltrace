@@ -117,6 +117,28 @@ enum bt_query_executor_query_status bt_query_executor_query(
 	BT_ASSERT_PRE_NON_NULL(object, "Object");
 	BT_ASSERT_PRE_NON_NULL(user_result, "Result (output)");
 
+	/*
+	 * Initial check: is the query executor already interrupted? If
+	 * so, return `BT_FUNC_STATUS_AGAIN`. Returning this status is
+	 * harmless: it's not `BT_FUNC_STATUS_OK` (there's no result),
+	 * and it's not `BT_FUNC_STATUS_ERROR` either (there's no
+	 * legitimate error). Since any query operation could return
+	 * `BT_FUNC_STATUS_AGAIN` when interrupted or instead of
+	 * blocking, the caller is responsible for checking the
+	 * interruption state of the query executor when getting this
+	 * status.
+	 */
+	if (bt_query_executor_is_interrupted(query_exec)) {
+		BT_LIB_LOGD("Query executor is interrupted: "
+			"not performing the query operation: "
+			"query-exec-addr=%p, %![cc-]+C, object=\"%s\", "
+			"%![params-]+v, log-level=%s",
+			query_exec, comp_cls, object, params,
+			bt_common_logging_level_string(log_level));
+		status = BT_FUNC_STATUS_AGAIN;
+		goto end;
+	}
+
 	if (!params) {
 		params = bt_value_null;
 	}
