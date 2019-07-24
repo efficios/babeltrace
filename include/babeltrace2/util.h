@@ -35,7 +35,7 @@ extern "C" {
 
 typedef enum bt_util_status {
 	BT_UTIL_STATUS_OK = 0,
-	BT_UTIL_STATUS_OVERFLOW = -75,
+	BT_UTIL_STATUS_OVERFLOW_ERROR = -75,
 } bt_util_status;
 
 bt_util_status bt_util_clock_cycles_to_ns_from_origin(uint64_t cycles,

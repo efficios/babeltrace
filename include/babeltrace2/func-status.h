@@ -37,8 +37,8 @@
  */
 
 /* Value is too large for the given data type */
-#ifndef __BT_FUNC_STATUS_OVERFLOW
-# define __BT_FUNC_STATUS_OVERFLOW		-75
+#ifndef __BT_FUNC_STATUS_OVERFLOW_ERROR
+# define __BT_FUNC_STATUS_OVERFLOW_ERROR	-75
 #endif
 
 /* Invalid query object */

@@ -57,7 +57,7 @@ extern bt_uuid bt_clock_class_get_uuid(
 		const bt_clock_class *clock_class);
 
 typedef enum bt_clock_class_cycles_to_ns_from_origin_status {
-	BT_CLOCK_CLASS_CYCLES_TO_NS_FROM_ORIGIN_STATUS_OVERFLOW		= __BT_FUNC_STATUS_OVERFLOW,
+	BT_CLOCK_CLASS_CYCLES_TO_NS_FROM_ORIGIN_STATUS_OVERFLOW_ERROR	= __BT_FUNC_STATUS_OVERFLOW_ERROR,
 	BT_CLOCK_CLASS_CYCLES_TO_NS_FROM_ORIGIN_STATUS_OK		= __BT_FUNC_STATUS_OK,
 } bt_clock_class_cycles_to_ns_from_origin_status;
 

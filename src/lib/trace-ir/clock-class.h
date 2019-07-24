@@ -115,7 +115,7 @@ int bt_clock_class_clock_value_from_ns_from_origin(
 
 	return bt_common_clock_value_from_ns_from_origin(cc->offset_seconds,
 		cc->offset_cycles, cc->frequency, ns_from_origin,
-		raw_value) ? BT_FUNC_STATUS_OVERFLOW : BT_FUNC_STATUS_OK;
+		raw_value) ? BT_FUNC_STATUS_OVERFLOW_ERROR : BT_FUNC_STATUS_OK;
 }
 
 #endif /* BABELTRACE_TRACE_IR_CLOCK_CLASS_INTERNAL_H */

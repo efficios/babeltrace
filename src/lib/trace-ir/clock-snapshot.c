@@ -167,7 +167,7 @@ bt_clock_snapshot_get_ns_from_origin(
 			"Clock snapshot, once converted to nanoseconds from origin, "
 			"overflows the signed 64-bit integer range: "
 			"%![cs-]+k", clock_snapshot);
-		ret = BT_FUNC_STATUS_OVERFLOW;
+		ret = BT_FUNC_STATUS_OVERFLOW_ERROR;
 		goto end;
 	}
 
