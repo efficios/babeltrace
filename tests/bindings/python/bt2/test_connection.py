@@ -34,11 +34,8 @@ class ConnectionTestCase(unittest.TestCase):
             def __init__(self, params):
                 self._add_input_port('in')
 
-            def _consume(self):
+            def _user_consume(self):
                 raise bt2.Stop
-
-            def _graph_is_configured(self):
-                pass
 
         graph = bt2.Graph()
         src = graph.add_component(MySource, 'src')
@@ -58,11 +55,8 @@ class ConnectionTestCase(unittest.TestCase):
             def __init__(self, params):
                 self._add_input_port('in')
 
-            def _consume(self):
+            def _user_consume(self):
                 raise bt2.Stop
-
-            def _graph_is_configured(self):
-                pass
 
         graph = bt2.Graph()
         src = graph.add_component(MySource, 'src')
@@ -83,11 +77,8 @@ class ConnectionTestCase(unittest.TestCase):
             def __init__(self, params):
                 self._add_input_port('in')
 
-            def _consume(self):
+            def _user_consume(self):
                 raise bt2.Stop
-
-            def _graph_is_configured(self):
-                pass
 
         graph = bt2.Graph()
         src = graph.add_component(MySource, 'src')

@@ -33,7 +33,7 @@ class TheIteratorOfAllEvil(bt2._UserMessageIterator):
         ]
         self._at = 0
 
-    def _seek_beginning(self):
+    def _user_seek_beginning(self):
         self._at = 0
 
     def __next__(self):

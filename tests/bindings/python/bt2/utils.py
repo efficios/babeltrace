@@ -30,10 +30,7 @@ def run_in_component_init(func):
             nonlocal res_bound
             res_bound = func(self)
 
-        def _consume(self):
-            pass
-
-        def _graph_is_configured(self):
+        def _user_consume(self):
             pass
 
     g = bt2.Graph()

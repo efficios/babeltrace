@@ -37,10 +37,7 @@ class UserComponentTestCase(unittest.TestCase):
             def __init__(comp_self, params):
                 self.assertEqual(comp_self.name, 'yaes')
 
-            def _consume(self):
-                pass
-
-            def _graph_is_configured(self):
+            def _user_consume(self):
                 pass
 
         comp = self._create_comp(MySink, 'yaes')
@@ -50,10 +47,7 @@ class UserComponentTestCase(unittest.TestCase):
             def __init__(comp_self, params):
                 self.assertEqual(comp_self.logging_level, bt2.LoggingLevel.INFO)
 
-            def _consume(self):
-                pass
-
-            def _graph_is_configured(self):
+            def _user_consume(self):
                 pass
 
         comp = self._create_comp(MySink, 'yaes', bt2.LoggingLevel.INFO)
@@ -63,10 +57,7 @@ class UserComponentTestCase(unittest.TestCase):
             def __init__(comp_self, params):
                 self.assertEqual(comp_self.cls, MySink)
 
-            def _consume(self):
-                pass
-
-            def _graph_is_configured(self):
+            def _user_consume(self):
                 pass
 
         self._create_comp(MySink)
@@ -77,10 +68,7 @@ class UserComponentTestCase(unittest.TestCase):
                 self.assertIsInstance(comp_self.addr, int)
                 self.assertNotEqual(comp_self.addr, 0)
 
-            def _consume(self):
-                pass
-
-            def _graph_is_configured(self):
+            def _user_consume(self):
                 pass
 
         self._create_comp(MySink)
@@ -89,13 +77,10 @@ class UserComponentTestCase(unittest.TestCase):
         finalized = False
 
         class MySink(bt2._UserSinkComponent):
-            def _consume(self):
+            def _user_consume(self):
                 pass
 
-            def _graph_is_configured(self):
-                pass
-
-            def _finalize(comp_self):
+            def _user_finalize(comp_self):
                 nonlocal finalized
                 finalized = True
 
@@ -119,10 +104,7 @@ class GenericComponentTestCase(unittest.TestCase):
 
     def test_name(self):
         class MySink(bt2._UserSinkComponent):
-            def _consume(self):
-                pass
-
-            def _graph_is_configured(self):
+            def _user_consume(self):
                 pass
 
         comp = self._create_comp(MySink, 'yaes')
@@ -130,10 +112,7 @@ class GenericComponentTestCase(unittest.TestCase):
 
     def test_logging_level(self):
         class MySink(bt2._UserSinkComponent):
-            def _consume(self):
-                pass
-
-            def _graph_is_configured(self):
+            def _user_consume(self):
                 pass
 
         comp = self._create_comp(MySink, 'yaes', bt2.LoggingLevel.WARNING)
@@ -141,10 +120,7 @@ class GenericComponentTestCase(unittest.TestCase):
 
     def test_class(self):
         class MySink(bt2._UserSinkComponent):
-            def _consume(self):
-                pass
-
-            def _graph_is_configured(self):
+            def _user_consume(self):
                 pass
 
         comp = self._create_comp(MySink)
@@ -152,10 +128,7 @@ class GenericComponentTestCase(unittest.TestCase):
 
     def test_addr(self):
         class MySink(bt2._UserSinkComponent):
-            def _consume(self):
-                pass
-
-            def _graph_is_configured(self):
+            def _user_consume(self):
                 pass
 
         comp = self._create_comp(MySink)

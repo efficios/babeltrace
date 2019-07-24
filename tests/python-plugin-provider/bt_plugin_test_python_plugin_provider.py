@@ -35,10 +35,7 @@ class MyFilter(bt2._UserFilterComponent, message_iterator_class=MyIter):
 
 @bt2.plugin_component_class
 class MySink(bt2._UserSinkComponent):
-    def _consume(self):
-        pass
-
-    def _graph_is_configured(self):
+    def _user_consume(self):
         pass
 
 

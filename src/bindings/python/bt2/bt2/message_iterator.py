@@ -146,7 +146,7 @@ class _UserMessageIterator(_MessageIterator):
     def _is_interrupted(self):
         return bool(native_bt.self_message_iterator_is_interrupted(self._bt_ptr))
 
-    def _finalize(self):
+    def _user_finalize(self):
         pass
 
     def __next__(self):
@@ -173,19 +173,19 @@ class _UserMessageIterator(_MessageIterator):
     def _bt_can_seek_beginning_from_native(self):
         # Here, we mimic the behavior of the C API:
         #
-        # - If the iterator has a _can_seek_beginning attribute, read it and use
-        #   that result.
+        # - If the iterator has a _user_can_seek_beginning attribute,
+        #   read it and use that result.
         # - Otherwise, the presence or absence of a `_seek_beginning`
         #   method indicates whether the iterator can seek beginning.
-        if hasattr(self, '_can_seek_beginning'):
-            can_seek_beginning = self._can_seek_beginning
+        if hasattr(self, '_user_can_seek_beginning'):
+            can_seek_beginning = self._user_can_seek_beginning
             utils._check_bool(can_seek_beginning)
             return can_seek_beginning
         else:
-            return hasattr(self, '_seek_beginning')
+            return hasattr(self, '_user_seek_beginning')
 
     def _bt_seek_beginning_from_native(self):
-        self._seek_beginning()
+        self._user_seek_beginning()
 
     def _create_input_port_message_iterator(self, input_port):
         utils._check_type(input_port, bt2_port._UserComponentInputPort)

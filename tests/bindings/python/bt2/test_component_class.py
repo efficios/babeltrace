@@ -48,10 +48,7 @@ class UserComponentClassTestCase(unittest.TestCase):
 
     def test_no_init_sink(self):
         class MySink(bt2._UserSinkComponent):
-            def _consume(self):
-                pass
-
-            def _graph_is_configured(self):
+            def _user_consume(self):
                 pass
 
         self._test_no_init(MySink)
@@ -108,28 +105,19 @@ class UserComponentClassTestCase(unittest.TestCase):
 
     def test_minimal_sink(self):
         class MySink(bt2._UserSinkComponent):
-            def _consume(self):
-                pass
-
-            def _graph_is_configured(self):
+            def _user_consume(self):
                 pass
 
     def test_default_name(self):
         class MySink(bt2._UserSinkComponent):
-            def _consume(self):
-                pass
-
-            def _graph_is_configured(self):
+            def _user_consume(self):
                 pass
 
         self.assertEqual(MySink.name, 'MySink')
 
     def test_custom_name(self):
         class MySink(bt2._UserSinkComponent, name='salut'):
-            def _consume(self):
-                pass
-
-            def _graph_is_configured(self):
+            def _user_consume(self):
                 pass
 
         self.assertEqual(MySink.name, 'salut')
@@ -138,10 +126,7 @@ class UserComponentClassTestCase(unittest.TestCase):
         with self.assertRaises(TypeError):
 
             class MySink(bt2._UserSinkComponent, name=23):
-                def _consume(self):
-                    pass
-
-                def _graph_is_configured(self):
+                def _user_consume(self):
                     pass
 
     def test_description(self):
@@ -156,10 +141,7 @@ class UserComponentClassTestCase(unittest.TestCase):
             cupim flank tenderloin.
             """
 
-            def _consume(self):
-                pass
-
-            def _graph_is_configured(self):
+            def _user_consume(self):
                 pass
 
         self.assertEqual(MySink.description, 'The description.')
@@ -169,10 +151,7 @@ class UserComponentClassTestCase(unittest.TestCase):
             """
             """
 
-            def _consume(self):
-                pass
-
-            def _graph_is_configured(self):
+            def _user_consume(self):
                 pass
 
         self.assertIsNone(MySink.description)
@@ -187,20 +166,14 @@ class UserComponentClassTestCase(unittest.TestCase):
             here.
             """
 
-            def _consume(self):
-                pass
-
-            def _graph_is_configured(self):
+            def _user_consume(self):
                 pass
 
         self.assertEqual(MySink.help, 'The help\ntext is\nhere.')
 
     def test_addr(self):
         class MySink(bt2._UserSinkComponent):
-            def _consume(self):
-                pass
-
-            def _graph_is_configured(self):
+            def _user_consume(self):
                 pass
 
         self.assertIsInstance(MySink.addr, int)
@@ -208,10 +181,7 @@ class UserComponentClassTestCase(unittest.TestCase):
 
     def test_query_not_implemented(self):
         class MySink(bt2._UserSinkComponent):
-            def _consume(self):
-                pass
-
-            def _graph_is_configured(self):
+            def _user_consume(self):
                 pass
 
         with self.assertRaises(bt2._Error):
@@ -219,14 +189,11 @@ class UserComponentClassTestCase(unittest.TestCase):
 
     def test_query_raises(self):
         class MySink(bt2._UserSinkComponent):
-            def _consume(self):
-                pass
-
-            def _graph_is_configured(self):
+            def _user_consume(self):
                 pass
 
             @classmethod
-            def _query(cls, query_exec, obj, params, log_level):
+            def _user_query(cls, query_exec, obj, params, log_level):
                 raise ValueError
 
         with self.assertRaises(bt2._Error):
@@ -234,14 +201,11 @@ class UserComponentClassTestCase(unittest.TestCase):
 
     def test_query_wrong_return_type(self):
         class MySink(bt2._UserSinkComponent):
-            def _consume(self):
-                pass
-
-            def _graph_is_configured(self):
+            def _user_consume(self):
                 pass
 
             @classmethod
-            def _query(cls, query_exec, obj, params, log_level):
+            def _user_query(cls, query_exec, obj, params, log_level):
                 return ...
 
         with self.assertRaises(bt2._Error):
@@ -249,14 +213,11 @@ class UserComponentClassTestCase(unittest.TestCase):
 
     def test_query_params_none(self):
         class MySink(bt2._UserSinkComponent):
-            def _consume(self):
-                pass
-
-            def _graph_is_configured(self):
+            def _user_consume(self):
                 pass
 
             @classmethod
-            def _query(cls, query_exec, obj, params, log_level):
+            def _user_query(cls, query_exec, obj, params, log_level):
                 nonlocal query_params
                 query_params = params
                 return None
@@ -270,14 +231,11 @@ class UserComponentClassTestCase(unittest.TestCase):
 
     def test_query_logging_level(self):
         class MySink(bt2._UserSinkComponent):
-            def _consume(self):
-                pass
-
-            def _graph_is_configured(self):
+            def _user_consume(self):
                 pass
 
             @classmethod
-            def _query(cls, query_exec, obj, params, log_level):
+            def _user_query(cls, query_exec, obj, params, log_level):
                 nonlocal query_log_level
                 query_log_level = log_level
 
@@ -288,14 +246,11 @@ class UserComponentClassTestCase(unittest.TestCase):
 
     def test_query_returns_none(self):
         class MySink(bt2._UserSinkComponent):
-            def _consume(self):
-                pass
-
-            def _graph_is_configured(self):
+            def _user_consume(self):
                 pass
 
             @staticmethod
-            def _query(query_exec, obj, params, log_level):
+            def _user_query(query_exec, obj, params, log_level):
                 return
 
         res = bt2.QueryExecutor().query(MySink, 'obj', None)
@@ -303,14 +258,11 @@ class UserComponentClassTestCase(unittest.TestCase):
 
     def test_query_simple(self):
         class MySink(bt2._UserSinkComponent):
-            def _consume(self):
-                pass
-
-            def _graph_is_configured(self):
+            def _user_consume(self):
                 pass
 
             @classmethod
-            def _query(cls, query_exec, obj, params, log_level):
+            def _user_query(cls, query_exec, obj, params, log_level):
                 nonlocal query_params
                 query_params = params
                 return 17.5
@@ -324,14 +276,11 @@ class UserComponentClassTestCase(unittest.TestCase):
 
     def test_query_complex(self):
         class MySink(bt2._UserSinkComponent):
-            def _consume(self):
-                pass
-
-            def _graph_is_configured(self):
+            def _user_consume(self):
                 pass
 
             @classmethod
-            def _query(cls, query_exec, obj, params, log_level):
+            def _user_query(cls, query_exec, obj, params, log_level):
                 nonlocal query_params
                 query_params = params
                 return {'null': None, 'bt2': 'BT2'}
@@ -350,10 +299,7 @@ class UserComponentClassTestCase(unittest.TestCase):
 
     def test_eq(self):
         class MySink(bt2._UserSinkComponent):
-            def _consume(self):
-                pass
-
-            def _graph_is_configured(self):
+            def _user_consume(self):
                 pass
 
         self.assertEqual(MySink, MySink)
@@ -368,14 +314,11 @@ class ComponentClassTestCase(unittest.TestCase):
             The help.
             '''
 
-            def _consume(self):
-                pass
-
-            def _graph_is_configured(self):
+            def _user_consume(self):
                 pass
 
             @classmethod
-            def _query(cls, query_exec, obj, params, log_level):
+            def _user_query(cls, query_exec, obj, params, log_level):
                 return [obj, params, 23]
 
         self._py_comp_cls = MySink

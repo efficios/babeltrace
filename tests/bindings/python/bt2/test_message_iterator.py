@@ -30,10 +30,10 @@ class UserMessageIteratorTestCase(unittest.TestCase):
             def __init__(self, params):
                 self._add_input_port('in')
 
-            def _consume(self):
+            def _user_consume(self):
                 next(self._msg_iter)
 
-            def _graph_is_configured(self):
+            def _user_graph_is_configured(self):
                 self._msg_iter = self._create_input_port_message_iterator(
                     self._input_ports['in']
                 )
@@ -118,7 +118,7 @@ class UserMessageIteratorTestCase(unittest.TestCase):
 
     def test_finalize(self):
         class MyIter(bt2._UserMessageIterator):
-            def _finalize(self):
+            def _user_finalize(self):
                 nonlocal finalized
                 finalized = True
 
@@ -235,7 +235,7 @@ class UserMessageIteratorTestCase(unittest.TestCase):
                 ]
                 self._at = 0
 
-            def _seek_beginning(self):
+            def _user_seek_beginning(self):
                 self._at = 0
 
             def __next__(self):
@@ -264,11 +264,11 @@ class UserMessageIteratorTestCase(unittest.TestCase):
             def __next__(self):
                 return next(self._upstream_iter)
 
-            def _seek_beginning(self):
+            def _user_seek_beginning(self):
                 self._upstream_iter.seek_beginning()
 
             @property
-            def _can_seek_beginning(self):
+            def _user_can_seek_beginning(self):
                 return self._upstream_iter.can_seek_beginning
 
         class MyFilter(bt2._UserFilterComponent, message_iterator_class=MyFilterIter):
@@ -287,11 +287,11 @@ class UserMessageIteratorTestCase(unittest.TestCase):
     def test_can_seek_beginning(self):
         it, MySourceIter = self._setup_seek_beginning_test()
 
-        def _can_seek_beginning(self):
+        def _user_can_seek_beginning(self):
             nonlocal can_seek_beginning
             return can_seek_beginning
 
-        MySourceIter._can_seek_beginning = property(_can_seek_beginning)
+        MySourceIter._user_can_seek_beginning = property(_user_can_seek_beginning)
 
         can_seek_beginning = True
         self.assertTrue(it.can_seek_beginning)
@@ -305,10 +305,10 @@ class UserMessageIteratorTestCase(unittest.TestCase):
         # Remove the _can_seek_beginning method, we now rely on the presence of
         # a _seek_beginning method to know whether the iterator can seek to
         # beginning or not.
-        del MySourceIter._can_seek_beginning
+        del MySourceIter._user_can_seek_beginning
         self.assertTrue(it.can_seek_beginning)
 
-        del MySourceIter._seek_beginning
+        del MySourceIter._user_seek_beginning
         self.assertFalse(it.can_seek_beginning)
 
     def test_seek_beginning(self):
@@ -343,10 +343,10 @@ class UserMessageIteratorTestCase(unittest.TestCase):
     def test_seek_beginning_user_error(self):
         it, MySourceIter = self._setup_seek_beginning_test()
 
-        def _seek_beginning_error(self):
+        def _user_seek_beginning_error(self):
             raise ValueError('ouch')
 
-        MySourceIter._seek_beginning = _seek_beginning_error
+        MySourceIter._user_seek_beginning = _user_seek_beginning_error
 
         with self.assertRaises(bt2._Error):
             it.seek_beginning()
