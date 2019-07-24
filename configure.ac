@@ -689,7 +689,7 @@ AC_CONFIG_FILES([
 	src/babeltrace2-ctf-writer.pc
 	src/babeltrace2.pc
 	src/bindings/Makefile
-	src/bindings/python/bt2/bt2/__init__.py
+	src/bindings/python/bt2/bt2/version.py
 	src/bindings/python/bt2/Makefile
 	src/bindings/python/bt2/setup.py
 	src/bindings/python/Makefile

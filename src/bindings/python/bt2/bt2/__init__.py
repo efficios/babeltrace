@@ -20,9 +20,6 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-__version__ = '@PACKAGE_VERSION@'
-
-
 # import all public names
 from bt2.clock_class import ClockClassOffset
 from bt2.clock_snapshot import _ClockSnapshot
@@ -113,6 +110,7 @@ from bt2.value import RealValue
 from bt2.value import StringValue
 from bt2.value import ArrayValue
 from bt2.value import MapValue
+from bt2.version import __version__
 
 
 def _del_global_name(name):
@@ -152,6 +150,7 @@ _del_global_name('trace_class')
 _del_global_name('trace_collection_message_iterator')
 _del_global_name('utils')
 _del_global_name('value')
+_del_global_name('version')
 
 # remove private `_del_global_name` name from the package
 del _del_global_name

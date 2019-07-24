@@ -41,6 +41,7 @@ STATIC_NATIVE_LIB_SRCS =				\
 	bt2/logging.h
 
 STATIC_BINDINGS_DEPS =					\
+	bt2/__init__.py					\
 	bt2/clock_class.py				\
 	bt2/clock_snapshot.py				\
 	bt2/component.py				\
@@ -79,8 +80,8 @@ STATIC_LIBRARIES_DEPS = \
 	$(top_builddir)/src/py-common/libbabeltrace2-py-common.la
 
 GENERATED_BINDINGS_DEPS =	\
-	bt2/__init__.py		\
 	bt2/native_bt.c		\
+	bt2/version.py		\
 	setup.py
 
 BUILD_FLAGS=CC="$(CC)" \

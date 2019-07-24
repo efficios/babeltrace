@@ -11,7 +11,7 @@
        src/bindings/python/bt2/build/
      | src/bindings/python/bt2/setup\.py$
      | src/bindings/python/bt2/bt2/native_bt\.py$
-     | src/bindings/python/bt2/bt2/__init__\.py$
+     | src/bindings/python/bt2/bt2/version\.py$
      | tests/utils/python/tap
 
   )
