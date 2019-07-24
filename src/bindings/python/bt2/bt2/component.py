@@ -499,7 +499,7 @@ class _UserComponentType(type):
             )
 
         if cc_ptr is None:
-            raise bt2.MemoryError(
+            raise bt2._MemoryError(
                 "cannot create component class '{}'".format(class_name)
             )
 
@@ -677,7 +677,7 @@ class _UserComponent(metaclass=_UserComponentType):
         tc_ptr = native_bt.trace_class_create(ptr)
 
         if tc_ptr is None:
-            raise bt2.MemoryError('could not create trace class')
+            raise bt2._MemoryError('could not create trace class')
 
         tc = bt2._TraceClass._create_from_ptr(tc_ptr)
         tc._assigns_automatic_stream_class_id = assigns_automatic_stream_class_id
@@ -698,7 +698,7 @@ class _UserComponent(metaclass=_UserComponentType):
         cc_ptr = native_bt.clock_class_create(ptr)
 
         if cc_ptr is None:
-            raise bt2.MemoryError('could not create clock class')
+            raise bt2._MemoryError('could not create clock class')
 
         cc = bt2.clock_class._ClockClass._create_from_ptr(cc_ptr)
 

@@ -154,7 +154,7 @@ _ACTOR_TYPE_TO_CLS = {
 }
 
 
-class Error(Exception, abc.Sequence):
+class _Error(Exception, abc.Sequence):
     """
     Babeltrace API call error.
 

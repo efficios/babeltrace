@@ -116,10 +116,10 @@ void bt_bt2_cc_init_from_bt2(void)
 	py_mod_bt2 = PyImport_ImportModule("bt2");
 	BT_ASSERT(py_mod_bt2);
 	py_mod_bt2_exc_error_type =
-		PyObject_GetAttrString(py_mod_bt2, "Error");
+		PyObject_GetAttrString(py_mod_bt2, "_Error");
 	BT_ASSERT(py_mod_bt2_exc_error_type);
 	py_mod_bt2_exc_memory_error =
-		PyObject_GetAttrString(py_mod_bt2, "MemoryError");
+		PyObject_GetAttrString(py_mod_bt2, "_MemoryError");
 	BT_ASSERT(py_mod_bt2_exc_memory_error);
 	py_mod_bt2_exc_try_again_type =
 		PyObject_GetAttrString(py_mod_bt2, "TryAgain");
@@ -198,7 +198,7 @@ void restore_current_thread_error_and_append_exception_chain_recursive(
 	}
 
 	/*
-	 * If the raised exception is a bt2.Error, restore the wrapped error.
+	 * If the raised exception is a bt2._Error, restore the wrapped error.
 	 */
 	if (PyErr_GivenExceptionMatches(py_exc_value, py_mod_bt2_exc_error_type)) {
 		PyObject *py_error_swig_ptr;
@@ -206,7 +206,7 @@ void restore_current_thread_error_and_append_exception_chain_recursive(
 		int ret;
 
 		/*
-		 * We never raise a bt2.Error with a cause: it should be the
+		 * We never raise a bt2._Error with a cause: it should be the
 		 * end of the chain.
 		 */
 		BT_ASSERT(!py_exc_cause_value);
@@ -270,21 +270,21 @@ end:
  * try:
  *     try:
  *         something_that_raises_bt2_error()
- *     except bt2.Error as e1:
+ *     except bt2._Error as e1:
  *         raise ValueError from e1
  * except ValueError as e2:
  *     raise TypeError from e2
  *
  * We will have the following exception chain:
  *
- *     TypeError -> ValueError -> bt2.Error
+ *     TypeError -> ValueError -> bt2._Error
  *
  * Where the TypeError is the current exception (obtained from PyErr_Fetch).
  *
- * The bt2.Error contains a `struct bt_error *` that used to be the current
+ * The bt2._Error contains a `struct bt_error *` that used to be the current
  * thread's error, at the moment the exception was raised.
  *
- * This function gets to the bt2.Error and restores the wrapped
+ * This function gets to the bt2._Error and restores the wrapped
  * `struct bt_error *` as the current thread's error.
  *
  * Then, for each exception in the chain, starting with the oldest one, it adds

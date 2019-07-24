@@ -69,7 +69,7 @@ class _TraceClass(object._SharedObject, collections.abc.Mapping):
         trace_ptr = native_bt.trace_create(self._ptr)
 
         if trace_ptr is None:
-            raise bt2.MemoryError('cannot create trace class object')
+            raise bt2._MemoryError('cannot create trace class object')
 
         trace = bt2.trace._Trace._create_from_ptr(trace_ptr)
 
@@ -204,7 +204,7 @@ class _TraceClass(object._SharedObject, collections.abc.Mapping):
 
     def _check_create_status(self, ptr, type_name):
         if ptr is None:
-            raise bt2.MemoryError('cannot create {} field class'.format(type_name))
+            raise bt2._MemoryError('cannot create {} field class'.format(type_name))
 
     def _create_integer_field_class(
         self, create_func, py_cls, type_name, field_value_range, preferred_display_base

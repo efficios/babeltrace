@@ -394,7 +394,7 @@ class GraphTestCase(unittest.TestCase):
             src.output_ports['out'], sink.input_ports['in']
         )
 
-        with self.assertRaises(bt2.Error):
+        with self.assertRaises(bt2._Error):
             self._graph.run()
 
     def test_listeners(self):
@@ -510,7 +510,7 @@ class GraphTestCase(unittest.TestCase):
 
         graph = bt2.Graph()
 
-        with self.assertRaises(bt2.Error):
+        with self.assertRaises(bt2._Error):
             graph.add_component(MySink, 'comp')
 
     def test_raise_in_port_added_listener(self):
@@ -530,7 +530,7 @@ class GraphTestCase(unittest.TestCase):
         graph = bt2.Graph()
         graph.add_port_added_listener(port_added_listener)
 
-        with self.assertRaises(bt2.Error):
+        with self.assertRaises(bt2._Error):
             graph.add_component(MySink, 'comp')
 
     def test_raise_in_ports_connected_listener(self):
@@ -562,5 +562,5 @@ class GraphTestCase(unittest.TestCase):
         up = graph.add_component(MySource, 'down')
         down = graph.add_component(MySink, 'up')
 
-        with self.assertRaises(bt2.Error):
+        with self.assertRaises(bt2._Error):
             graph.connect_ports(up.output_ports['out'], down.input_ports['in'])

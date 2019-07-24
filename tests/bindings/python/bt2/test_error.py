@@ -62,7 +62,7 @@ class SinkWithExceptionChaining(bt2._UserSinkComponent):
         try:
             print(self._iter.__next__)
             next(self._iter)
-        except bt2.Error as e:
+        except bt2._Error as e:
             print(hex(id(e)))
             print(e.__dict__)
             raise ValueError('oops') from e
@@ -82,7 +82,7 @@ class SinkWithFailingQuery(bt2._UserSinkComponent):
 
 class ErrorTestCase(unittest.TestCase):
     def _run_failing_graph(self, source_cc, sink_cc):
-        with self.assertRaises(bt2.Error) as ctx:
+        with self.assertRaises(bt2._Error) as ctx:
             graph = bt2.Graph()
             src = graph.add_component(source_cc, 'src')
             snk = graph.add_component(sink_cc, 'snk')
@@ -92,7 +92,7 @@ class ErrorTestCase(unittest.TestCase):
         return ctx.exception
 
     def test_current_thread_error_none(self):
-        # When a bt2.Error is raised, it steals the current thread's error.
+        # When a bt2._Error is raised, it steals the current thread's error.
         # Verify that it is now NULL.
         exc = self._run_failing_graph(SourceWithFailingInit, WorkingSink)
         self.assertIsNone(native_bt.current_thread_take_error())
@@ -131,10 +131,10 @@ class ErrorTestCase(unittest.TestCase):
         #
         # try:
         #     ...
-        # except bt2.Error as exc:
+        # except bt2._Error as exc:
         #     raise ValueError('oh noes') from exc
         #
-        # We are able to fetch the causes of the original bt2.Error in the
+        # We are able to fetch the causes of the original bt2._Error in the
         # exception chain.  Also, each exception in the chain should become one
         # cause once caught.
         exc = self._run_failing_graph(SourceWithFailingIter, SinkWithExceptionChaining)
@@ -150,7 +150,7 @@ class ErrorTestCase(unittest.TestCase):
         self.assertIsInstance(exc[2], bt2.error._ComponentErrorCause)
         self.assertEqual(exc[2].component_class_name, 'SinkWithExceptionChaining')
         self.assertIn(
-            'bt2.error.Error: unexpected error: cannot advance the message iterator',
+            'bt2.error._Error: unexpected error: cannot advance the message iterator',
             exc[2].message,
         )
 
@@ -186,7 +186,7 @@ class ErrorTestCase(unittest.TestCase):
     def test_component_class_error_cause(self):
         q = bt2.QueryExecutor()
 
-        with self.assertRaises(bt2.Error) as ctx:
+        with self.assertRaises(bt2._Error) as ctx:
             q.query(SinkWithFailingQuery, 'hello')
 
         cause = ctx.exception[0]
