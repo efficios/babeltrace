@@ -40,7 +40,7 @@ class _Message(object._SharedObject):
     @staticmethod
     def _check_has_default_clock_class(clock_class):
         if clock_class is None:
-            raise bt2.NonexistentClockSnapshot(
+            raise ValueError(
                 'cannot get default clock snapshot: stream class has no default clock class'
             )
 
@@ -180,7 +180,7 @@ class _DiscardedMessage(_Message, _MessageWithDefaultClockSnapshot):
 
     def _check_has_default_clock_snapshots(self):
         if not self._has_default_clock_snapshots:
-            raise bt2.NonexistentClockSnapshot(
+            raise ValueError(
                 'cannot get default clock snapshot: such a message has no clock snapshots for this stream class'
             )
 
