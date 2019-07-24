@@ -466,7 +466,7 @@ enum bt_plugin_find_status bt_plugin_find(const char *plugin_name,
 		"find-in-sys-dir=%d, find-in-static=%d",
 		plugin_name, find_in_std_env_var, find_in_user_dir,
 		find_in_sys_dir, find_in_static);
-	status = bt_plugin_find_all(find_in_std_env_var, find_in_user_dir,
+	status = (enum bt_plugin_find_status) bt_plugin_find_all(find_in_std_env_var, find_in_user_dir,
 		find_in_sys_dir, find_in_static, fail_on_load_error,
 		&plugin_set);
 	if (status != BT_FUNC_STATUS_OK) {
