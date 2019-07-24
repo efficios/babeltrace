@@ -163,3 +163,9 @@ def _handle_func_status(status, msg=None):
             raise bt2.InvalidObject(msg)
     else:
         assert False
+
+
+class _ListenerHandle:
+    def __init__(self, listener_id, obj):
+        self._listener_id = listener_id
+        self._obj = obj

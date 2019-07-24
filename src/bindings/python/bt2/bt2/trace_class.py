@@ -339,4 +339,4 @@ class _TraceClass(object._SharedObject, collections.abc.Mapping):
             status, 'cannot add destruction listener to trace class object'
         )
 
-        return bt2._ListenerHandle(listener_id, self)
+        return bt2.utils._ListenerHandle(listener_id, self)
