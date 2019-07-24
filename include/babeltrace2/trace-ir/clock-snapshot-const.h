@@ -42,8 +42,8 @@ extern uint64_t bt_clock_snapshot_get_value(
 		const bt_clock_snapshot *clock_snapshot);
 
 typedef enum bt_clock_snapshot_get_ns_from_origin_status {
-	BT_CLOCK_SNAPSHOT_GET_NS_FROM_ORIGIN_STATUS_OK		= __BT_FUNC_STATUS_OK,
-	BT_CLOCK_SNAPSHOT_GET_NS_FROM_ORIGIN_STATUS_OVERFLOW	= __BT_FUNC_STATUS_OVERFLOW,
+	BT_CLOCK_SNAPSHOT_GET_NS_FROM_ORIGIN_STATUS_OK			= __BT_FUNC_STATUS_OK,
+	BT_CLOCK_SNAPSHOT_GET_NS_FROM_ORIGIN_STATUS_OVERFLOW_ERROR	= __BT_FUNC_STATUS_OVERFLOW_ERROR,
 } bt_clock_snapshot_get_ns_from_origin_status;
 
 extern bt_clock_snapshot_get_ns_from_origin_status

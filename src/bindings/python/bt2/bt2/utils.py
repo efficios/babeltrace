@@ -151,7 +151,7 @@ def _handle_func_status(status, msg=None):
             raise bt2.TryAgain
         else:
             raise bt2.TryAgain(msg)
-    elif status == native_bt.__BT_FUNC_STATUS_OVERFLOW:
+    elif status == native_bt.__BT_FUNC_STATUS_OVERFLOW_ERROR:
         if msg is None:
             raise bt2.OverflowError
         else:

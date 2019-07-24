@@ -51,7 +51,7 @@ bt_util_status bt_util_clock_cycles_to_ns_from_origin(uint64_t cycles,
 	overflows = bt_util_get_base_offset_ns(offset_seconds, offset_cycles,
 		frequency, &base_offset_ns);
 	if (overflows) {
-		status = BT_UTIL_STATUS_OVERFLOW;
+		status = BT_UTIL_STATUS_OVERFLOW_ERROR;
 		goto end;
 	}
 
@@ -59,7 +59,7 @@ bt_util_status bt_util_clock_cycles_to_ns_from_origin(uint64_t cycles,
 		offset_seconds, offset_cycles,
 		frequency, cycles, ns);
 	if (ret) {
-		status = BT_UTIL_STATUS_OVERFLOW;
+		status = BT_UTIL_STATUS_OVERFLOW_ERROR;
 	}
 
 end:

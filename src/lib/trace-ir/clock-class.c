@@ -296,7 +296,7 @@ bt_clock_class_cycles_to_ns_from_origin(
 			"value overflows the signed 64-bit integer range: "
 			"%![cc-]+K, cycles=%" PRIu64,
 			clock_class, cycles);
-		ret = BT_FUNC_STATUS_OVERFLOW;
+		ret = BT_FUNC_STATUS_OVERFLOW_ERROR;
 	}
 
 	return ret;

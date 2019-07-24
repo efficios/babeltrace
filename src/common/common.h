@@ -601,7 +601,7 @@ static inline
 const char *bt_common_func_status_string(int status)
 {
 	switch (status) {
-	case __BT_FUNC_STATUS_OVERFLOW:
+	case __BT_FUNC_STATUS_OVERFLOW_ERROR:
 		return "OVERFLOW";
 	case __BT_FUNC_STATUS_INVALID_OBJECT:
 		return "INVALID_OBJECT";
