@@ -153,9 +153,9 @@ def _handle_func_status(status, msg=None):
             raise bt2.TryAgain(msg)
     elif status == native_bt.__BT_FUNC_STATUS_OVERFLOW_ERROR:
         if msg is None:
-            raise bt2.OverflowError
+            raise bt2._OverflowError
         else:
-            raise bt2.OverflowError(msg)
+            raise bt2._OverflowError(msg)
     elif status == native_bt.__BT_FUNC_STATUS_INVALID_OBJECT:
         if msg is None:
             raise bt2.InvalidObject

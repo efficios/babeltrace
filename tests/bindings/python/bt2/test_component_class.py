@@ -60,7 +60,7 @@ class UserComponentClassTestCase(unittest.TestCase):
         class MyIter(bt2._UserMessageIterator):
             pass
 
-        with self.assertRaises(bt2.IncompleteUserClass):
+        with self.assertRaises(bt2._IncompleteUserClass):
 
             class MySource(bt2._UserSourceComponent):
                 pass
@@ -69,7 +69,7 @@ class UserComponentClassTestCase(unittest.TestCase):
         class MyIter(bt2._UserMessageIterator):
             pass
 
-        with self.assertRaises(bt2.IncompleteUserClass):
+        with self.assertRaises(bt2._IncompleteUserClass):
 
             class MySource(bt2._UserSourceComponent, message_iterator_class=int):
                 pass
@@ -78,7 +78,7 @@ class UserComponentClassTestCase(unittest.TestCase):
         class MyIter(bt2._UserMessageIterator):
             pass
 
-        with self.assertRaises(bt2.IncompleteUserClass):
+        with self.assertRaises(bt2._IncompleteUserClass):
 
             class MyFilter(bt2._UserFilterComponent):
                 pass
@@ -87,7 +87,7 @@ class UserComponentClassTestCase(unittest.TestCase):
         class MyIter(bt2._UserMessageIterator):
             pass
 
-        with self.assertRaises(bt2.IncompleteUserClass):
+        with self.assertRaises(bt2._IncompleteUserClass):
 
             class MySink(bt2._UserSinkComponent):
                 pass
