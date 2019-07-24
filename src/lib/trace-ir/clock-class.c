@@ -291,12 +291,12 @@ bt_clock_class_cycles_to_ns_from_origin(
 	BT_ASSERT_PRE_DEV_NON_NULL(ns, "Nanoseconds (output)");
 	ret = bt_util_ns_from_origin_clock_class(clock_class, cycles, ns);
 	if (ret) {
-		ret = BT_FUNC_STATUS_OVERFLOW;
-		BT_LIB_LOGD("Cannot convert cycles to nanoseconds "
+		BT_LIB_LOGE_APPEND_CAUSE("Cannot convert cycles to nanoseconds "
 			"from origin for given clock class: "
 			"value overflows the signed 64-bit integer range: "
 			"%![cc-]+K, cycles=%" PRIu64,
 			clock_class, cycles);
+		ret = BT_FUNC_STATUS_OVERFLOW;
 	}
 
 	return ret;

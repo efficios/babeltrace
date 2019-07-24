@@ -163,7 +163,8 @@ bt_clock_snapshot_get_ns_from_origin(
 		"Clock snapshot is not set: %!+k", clock_snapshot);
 
 	if (clock_snapshot->ns_from_origin_overflows) {
-		BT_LIB_LOGD("Clock snapshot, once converted to nanoseconds from origin, "
+		BT_LIB_LOGE_APPEND_CAUSE(
+			"Clock snapshot, once converted to nanoseconds from origin, "
 			"overflows the signed 64-bit integer range: "
 			"%![cs-]+k", clock_snapshot);
 		ret = BT_FUNC_STATUS_OVERFLOW;
