@@ -37,6 +37,7 @@
 #include <popt.h>
 #include <glib.h>
 #include <sys/types.h>
+#include "argpar/argpar.h"
 #include "babeltrace2-cfg.h"
 #include "babeltrace2-cfg-cli-args.h"
 #include "babeltrace2-cfg-cli-args-connect.h"
@@ -899,6 +900,7 @@ enum {
 	OPT_TIMERANGE,
 	OPT_URL,
 	OPT_VERBOSE,
+	OPT_VERSION,
 };
 
 enum bt_config_component_dest {
@@ -1411,7 +1413,7 @@ struct bt_config *bt_config_help_from_args(int argc, const char *argv[],
 
 	/* Parse options */
 	pc = poptGetContext(NULL, argc, (const char **) argv,
-		help_long_options, 0);
+		help_long_options, POPT_CONTEXT_KEEP_FIRST);
 	if (!pc) {
 		BT_CLI_LOGE_APPEND_CAUSE("Cannot get popt context.");
 		goto error;
@@ -1584,7 +1586,7 @@ struct bt_config *bt_config_query_from_args(int argc, const char *argv[],
 
 	/* Parse options */
 	pc = poptGetContext(NULL, argc, (const char **) argv,
-		query_long_options, 0);
+		query_long_options, POPT_CONTEXT_KEEP_FIRST);
 	if (!pc) {
 		BT_CLI_LOGE_APPEND_CAUSE("Cannot get popt context.");
 		goto error;
@@ -1777,7 +1779,7 @@ struct bt_config *bt_config_list_plugins_from_args(int argc, const char *argv[],
 
 	/* Parse options */
 	pc = poptGetContext(NULL, argc, (const char **) argv,
-		list_plugins_long_options, 0);
+		list_plugins_long_options, POPT_CONTEXT_KEEP_FIRST);
 	if (!pc) {
 		BT_CLI_LOGE_APPEND_CAUSE("Cannot get popt context.");
 		goto error;
@@ -1979,7 +1981,7 @@ struct bt_config *bt_config_run_from_args(int argc, const char *argv[],
 		goto error;
 	}
 
-	if (argc <= 1) {
+	if (argc < 1) {
 		print_run_usage(stdout);
 		*retcode = -1;
 		goto end;
@@ -2018,7 +2020,7 @@ struct bt_config *bt_config_run_from_args(int argc, const char *argv[],
 
 	/* Parse options */
 	pc = poptGetContext(NULL, argc, (const char **) argv,
-		run_long_options, 0);
+		run_long_options, POPT_CONTEXT_KEEP_FIRST);
 	if (!pc) {
 		BT_CLI_LOGE_APPEND_CAUSE("Cannot get popt context.");
 		goto error;
@@ -2273,15 +2275,13 @@ struct bt_config *bt_config_run_from_args_array(const bt_value *run_args,
 	struct bt_config *cfg = NULL;
 	const char **argv;
 	int64_t i, len;
-	const size_t argc = bt_value_array_get_size(run_args) + 1;
+	const size_t argc = bt_value_array_get_size(run_args);
 
 	argv = calloc(argc, sizeof(*argv));
 	if (!argv) {
 		BT_CLI_LOGE_APPEND_CAUSE_OOM();
 		goto end;
 	}
-
-	argv[0] = "run";
 
 	len = bt_value_array_get_size(run_args);
 	if (len < 0) {
@@ -2297,7 +2297,7 @@ struct bt_config *bt_config_run_from_args_array(const bt_value *run_args,
 		BT_ASSERT(arg_value);
 		arg = bt_value_string_get(arg_value);
 		BT_ASSERT(arg);
-		argv[i + 1] = arg;
+		argv[i] = arg;
 	}
 
 	cfg = bt_config_run_from_args(argc, argv, retcode,
@@ -3399,7 +3399,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 
 	*retcode = 0;
 
-	if (argc <= 1) {
+	if (argc < 1) {
 		print_convert_usage(stdout);
 		*retcode = -1;
 		goto end;
@@ -3505,7 +3505,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 	 * `plugin_paths`.
 	 */
 	pc = poptGetContext(NULL, argc, (const char **) argv,
-		convert_long_options, 0);
+		convert_long_options, POPT_CONTEXT_KEEP_FIRST);
 	if (!pc) {
 		BT_CLI_LOGE_APPEND_CAUSE("Cannot get popt context.");
 		goto error;
@@ -3782,7 +3782,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 	 * command.
 	 */
 	pc = poptGetContext(NULL, argc, (const char **) argv,
-		convert_long_options, 0);
+		convert_long_options, POPT_CONTEXT_KEEP_FIRST);
 	if (!pc) {
 		BT_CLI_LOGE_APPEND_CAUSE("Cannot get popt context.");
 		goto error;
@@ -4638,10 +4638,23 @@ struct bt_config *bt_config_cli_args_create(int argc, const char *argv[],
 {
 	struct bt_config *config = NULL;
 	int i;
-	const char **command_argv = NULL;
+	int top_level_argc;
+	const char **top_level_argv;
 	int command_argc = -1;
+	const char **command_argv = NULL;
 	const char *command_name = NULL;
 	int default_log_level = -1;
+	struct bt_argpar_parse_ret argpar_parse_ret = { 0 };
+
+	/* Top-level option descriptions. */
+	static const struct bt_argpar_opt_descr descrs[] = {
+		{ OPT_DEBUG, 'd', "debug", false },
+		{ OPT_HELP, 'h', "help", false },
+		{ OPT_LOG_LEVEL, 'l', "log-level", true },
+		{ OPT_VERBOSE, 'v', "verbose", false },
+		{ OPT_VERSION, 'V', "version", false},
+		BT_ARGPAR_OPT_DESCR_SENTINEL
+	};
 
 	enum command_type {
 		COMMAND_TYPE_NONE = -1,
@@ -4671,114 +4684,118 @@ struct bt_config *bt_config_cli_args_create(int argc, const char *argv[],
 		goto end;
 	}
 
-	for (i = 1; i < argc; i++) {
-		const char *cur_arg = argv[i];
-		const char *next_arg = i == (argc - 1) ? NULL : argv[i + 1];
+	/* Skip first argument, the name of the program. */
+	top_level_argc = argc - 1;
+	top_level_argv = argv + 1;
+	argpar_parse_ret = bt_argpar_parse(top_level_argc, top_level_argv,
+		descrs, false);
 
-		if (strcmp(cur_arg, "-d") == 0 ||
-				strcmp(cur_arg, "--debug") == 0) {
-			default_log_level = BT_LOG_TRACE;
-		} else if (strcmp(cur_arg, "-v") == 0 ||
-				strcmp(cur_arg, "--verbose") == 0) {
-			if (default_log_level != BT_LOG_TRACE &&
-					default_log_level != BT_LOG_DEBUG) {
-				/*
-				 * Legacy: do not override a previous
-				 * --debug because --verbose and --debug
-				 * can be specified together (in this
-				 * case we want the lowest log level to
-				 * apply, TRACE).
-				 */
-				default_log_level = BT_LOG_INFO;
-			}
-		} else if (strcmp(cur_arg, "--log-level") == 0 ||
-				strcmp(cur_arg, "-l") == 0) {
-			if (!next_arg) {
-				BT_CLI_LOGE_APPEND_CAUSE("Missing log level value for --log-level option.");
-				*retcode = 1;
-				goto end;
-			}
+	if (argpar_parse_ret.error) {
+		BT_CLI_LOGE_APPEND_CAUSE(
+			"While parsing command-line arguments: %s",
+			argpar_parse_ret.error->str);
+		goto error;
+	}
 
-			default_log_level =
-				bt_log_get_level_from_string(next_arg);
-			if (default_log_level < 0) {
-				BT_CLI_LOGE_APPEND_CAUSE("Invalid argument for --log-level option:\n    %s",
-					next_arg);
-				*retcode = 1;
-				goto end;
-			}
+	for (i = 0; i < argpar_parse_ret.items->len; i++) {
+		struct bt_argpar_item *item;
 
-			i++;
-		} else if (strncmp(cur_arg, "--log-level=", 12) == 0) {
-			const char *arg = &cur_arg[12];
+		item = g_ptr_array_index(argpar_parse_ret.items, i);
 
-			default_log_level = bt_log_get_level_from_string(arg);
-			if (default_log_level < 0) {
-				BT_CLI_LOGE_APPEND_CAUSE("Invalid argument for --log-level option:\n    %s",
-					arg);
-				*retcode = 1;
-				goto end;
-			}
-		} else if (strncmp(cur_arg, "-l", 2) == 0) {
-			const char *arg = &cur_arg[2];
+		if (item->type == BT_ARGPAR_ITEM_TYPE_OPT) {
+			struct bt_argpar_item_opt *item_opt =
+				(struct bt_argpar_item_opt *) item;
 
-			default_log_level = bt_log_get_level_from_string(arg);
-			if (default_log_level < 0) {
-				BT_CLI_LOGE_APPEND_CAUSE("Invalid argument for --log-level option:\n    %s",
-					arg);
-				*retcode = 1;
-				goto end;
+			switch (item_opt->descr->id) {
+				case OPT_DEBUG:
+					default_log_level = BT_LOG_TRACE;
+					break;
+				case OPT_VERBOSE:
+					/*
+					 * Legacy: do not override a previous
+					 * --debug because --verbose and --debug
+					 * can be specified together (in this
+					 * case we want the lowest log level to
+					 * apply, TRACE).
+					 */
+					default_log_level = BT_LOG_INFO;
+					break;
+				case OPT_LOG_LEVEL:
+					default_log_level =
+						bt_log_get_level_from_string(item_opt->arg);
+					if (default_log_level < 0) {
+						BT_CLI_LOGE_APPEND_CAUSE(
+							"Invalid argument for --log-level option:\n    %s",
+							item_opt->arg);
+						goto error;
+					}
+					break;
+				case OPT_VERSION:
+					print_version();
+					goto end;
+				case OPT_HELP:
+					print_gen_usage(stdout);
+					goto end;
 			}
-		} else if (strcmp(cur_arg, "-V") == 0 ||
-				strcmp(cur_arg, "--version") == 0) {
-			print_version();
-			goto end;
-		} else if (strcmp(cur_arg, "-h") == 0 ||
-				strcmp(cur_arg, "--help") == 0) {
-			print_gen_usage(stdout);
-			goto end;
-		} else {
+		} else if (item->type == BT_ARGPAR_ITEM_TYPE_NON_OPT) {
+			struct bt_argpar_item_non_opt *item_non_opt =
+				(struct bt_argpar_item_non_opt *) item;
 			/*
 			 * First unknown argument: is it a known command
 			 * name?
 			 */
-			command_argv = &argv[i];
-			command_argc = argc - i;
+			command_argc =
+				top_level_argc - item_non_opt->orig_index - 1;
+			command_argv =
+				&top_level_argv[item_non_opt->orig_index + 1];
 
-			if (strcmp(cur_arg, "convert") == 0) {
+			if (strcmp(item_non_opt->arg, "convert") == 0) {
 				command_type = COMMAND_TYPE_CONVERT;
-			} else if (strcmp(cur_arg, "list-plugins") == 0) {
+			} else if (strcmp(item_non_opt->arg, "list-plugins") == 0) {
 				command_type = COMMAND_TYPE_LIST_PLUGINS;
-			} else if (strcmp(cur_arg, "help") == 0) {
+			} else if (strcmp(item_non_opt->arg, "help") == 0) {
 				command_type = COMMAND_TYPE_HELP;
-			} else if (strcmp(cur_arg, "query") == 0) {
+			} else if (strcmp(item_non_opt->arg, "query") == 0) {
 				command_type = COMMAND_TYPE_QUERY;
-			} else if (strcmp(cur_arg, "run") == 0) {
+			} else if (strcmp(item_non_opt->arg, "run") == 0) {
 				command_type = COMMAND_TYPE_RUN;
 			} else {
 				/*
-				 * Unknown argument, but not a known
+				 * Non-option argument, but not a known
 				 * command name: assume the default
 				 * `convert` command.
 				 */
 				command_type = COMMAND_TYPE_CONVERT;
 				command_name = "convert";
-				command_argv = &argv[i - 1];
-				command_argc = argc - i + 1;
+				command_argc++;
+				command_argv--;
 			}
 			break;
 		}
 	}
 
 	if (command_type == COMMAND_TYPE_NONE) {
+		if (argpar_parse_ret.ingested_orig_args == top_level_argc) {
+			/*
+			 * We only got non-help, non-version general options
+			 * like --verbose and --debug, without any other
+			 * arguments, so we can't do anything useful: print the
+			 * usage and quit.
+			 */
+			print_gen_usage(stdout);
+			goto end;
+		}
+
 		/*
-		 * We only got non-help, non-version general options
-		 * like --verbose and --debug, without any other
-		 * arguments, so we can't do anything useful: print the
-		 * usage and quit.
+		 * We stopped on an unknown option argument (and therefore
+		 * didn't see a command name). Assume `convert` command.
 		 */
-		print_gen_usage(stdout);
-		goto end;
+		command_type = COMMAND_TYPE_CONVERT;
+		command_name = "convert";
+		command_argc =
+			top_level_argc - argpar_parse_ret.ingested_orig_args;
+		command_argv =
+			&top_level_argv[argpar_parse_ret.ingested_orig_args];
 	}
 
 	BT_ASSERT(command_argv);
@@ -4834,7 +4851,13 @@ struct bt_config *bt_config_cli_args_create(int argc, const char *argv[],
 		config->command_name = command_name;
 	}
 
+	goto end;
+
+error:
+	*retcode = 1;
+
 end:
+	bt_argpar_parse_ret_fini(&argpar_parse_ret);
 	bt_value_put_ref(initial_plugin_paths);
 	return config;
 }
