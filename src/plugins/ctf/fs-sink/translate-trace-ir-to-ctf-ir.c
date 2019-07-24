@@ -58,7 +58,7 @@ struct ctx {
 	/* Weak */
 	struct fs_sink_ctf_event_class *cur_ec;
 
-	bt_scope cur_scope;
+	bt_field_path_scope cur_scope;
 
 	/*
 	 * Array of `struct field_path_elem` */
@@ -215,7 +215,7 @@ int cur_path_stack_push(struct ctx *ctx,
 
 		g_string_append(field_path_elem->name, name);
 
-		if (ctx->cur_scope == BT_SCOPE_PACKET_CONTEXT) {
+		if (ctx->cur_scope == BT_FIELD_PATH_SCOPE_PACKET_CONTEXT) {
 			if (is_reserved_member_name(name, "packet_size") ||
 					is_reserved_member_name(name, "content_size") ||
 					is_reserved_member_name(name, "timestamp_begin") ||
@@ -288,19 +288,19 @@ int create_relative_field_ref(struct ctx *ctx,
 
 	/* Get target field class's name */
 	switch (bt_field_path_get_root_scope(tgt_ir_field_path)) {
-	case BT_SCOPE_PACKET_CONTEXT:
+	case BT_FIELD_PATH_SCOPE_PACKET_CONTEXT:
 		BT_ASSERT(ctx->cur_sc);
 		tgt_fc = ctx->cur_sc->packet_context_fc;
 		break;
-	case BT_SCOPE_EVENT_COMMON_CONTEXT:
+	case BT_FIELD_PATH_SCOPE_EVENT_COMMON_CONTEXT:
 		BT_ASSERT(ctx->cur_sc);
 		tgt_fc = ctx->cur_sc->event_common_context_fc;
 		break;
-	case BT_SCOPE_EVENT_SPECIFIC_CONTEXT:
+	case BT_FIELD_PATH_SCOPE_EVENT_SPECIFIC_CONTEXT:
 		BT_ASSERT(ctx->cur_ec);
 		tgt_fc = ctx->cur_ec->spec_context_fc;
 		break;
-	case BT_SCOPE_EVENT_PAYLOAD:
+	case BT_FIELD_PATH_SCOPE_EVENT_PAYLOAD:
 		BT_ASSERT(ctx->cur_ec);
 		tgt_fc = ctx->cur_ec->payload_fc;
 		break;
@@ -449,22 +449,22 @@ int create_absolute_field_ref(struct ctx *ctx,
 	uint64_t i;
 
 	switch (bt_field_path_get_root_scope(tgt_ir_field_path)) {
-	case BT_SCOPE_PACKET_CONTEXT:
+	case BT_FIELD_PATH_SCOPE_PACKET_CONTEXT:
 		BT_ASSERT(ctx->cur_sc);
 		fc = ctx->cur_sc->packet_context_fc;
 		g_string_assign(tgt_field_ref, "stream.packet.context");
 		break;
-	case BT_SCOPE_EVENT_COMMON_CONTEXT:
+	case BT_FIELD_PATH_SCOPE_EVENT_COMMON_CONTEXT:
 		BT_ASSERT(ctx->cur_sc);
 		fc = ctx->cur_sc->event_common_context_fc;
 		g_string_assign(tgt_field_ref, "stream.event.context");
 		break;
-	case BT_SCOPE_EVENT_SPECIFIC_CONTEXT:
+	case BT_FIELD_PATH_SCOPE_EVENT_SPECIFIC_CONTEXT:
 		BT_ASSERT(ctx->cur_ec);
 		fc = ctx->cur_ec->spec_context_fc;
 		g_string_assign(tgt_field_ref, "event.context");
 		break;
-	case BT_SCOPE_EVENT_PAYLOAD:
+	case BT_FIELD_PATH_SCOPE_EVENT_PAYLOAD:
 		BT_ASSERT(ctx->cur_ec);
 		fc = ctx->cur_ec->payload_fc;
 		g_string_assign(tgt_field_ref, "event.fields");
@@ -535,7 +535,7 @@ void resolve_field_class(struct ctx *ctx,
 		struct fs_sink_ctf_field_class **user_tgt_fc)
 {
 	int ret;
-	bt_scope tgt_scope;
+	bt_field_path_scope tgt_scope;
 
 	*create_before = false;
 
@@ -1551,7 +1551,7 @@ end:
  * fill it.
  */
 static
-int translate_scope_field_class(struct ctx *ctx, bt_scope scope,
+int translate_scope_field_class(struct ctx *ctx, bt_field_path_scope scope,
 		struct fs_sink_ctf_field_class **fc,
 		const bt_field_class *ir_fc)
 {
@@ -1630,7 +1630,7 @@ int translate_event_class(struct fs_sink_comp *fs_sink,
 	BT_ASSERT(ec);
 	ctx.cur_sc = sc;
 	ctx.cur_ec = ec;
-	ret = translate_scope_field_class(&ctx, BT_SCOPE_EVENT_SPECIFIC_CONTEXT,
+	ret = translate_scope_field_class(&ctx, BT_FIELD_PATH_SCOPE_EVENT_SPECIFIC_CONTEXT,
 		&ec->spec_context_fc,
 		bt_event_class_borrow_specific_context_field_class_const(
 			ir_ec));
@@ -1638,7 +1638,7 @@ int translate_event_class(struct fs_sink_comp *fs_sink,
 		goto end;
 	}
 
-	ret = translate_scope_field_class(&ctx, BT_SCOPE_EVENT_PAYLOAD,
+	ret = translate_scope_field_class(&ctx, BT_FIELD_PATH_SCOPE_EVENT_PAYLOAD,
 		&ec->payload_fc,
 		bt_event_class_borrow_payload_field_class_const(ir_ec));
 	if (ret) {
@@ -1763,7 +1763,7 @@ int translate_stream_class(struct fs_sink_comp *fs_sink,
 	}
 
 	ctx.cur_sc = *out_sc;
-	ret = translate_scope_field_class(&ctx, BT_SCOPE_PACKET_CONTEXT,
+	ret = translate_scope_field_class(&ctx, BT_FIELD_PATH_SCOPE_PACKET_CONTEXT,
 		&(*out_sc)->packet_context_fc,
 		bt_stream_class_borrow_packet_context_field_class_const(ir_sc));
 	if (ret) {
@@ -1780,7 +1780,7 @@ int translate_stream_class(struct fs_sink_comp *fs_sink,
 			(void *) (*out_sc)->packet_context_fc, 8);
 	}
 
-	ret = translate_scope_field_class(&ctx, BT_SCOPE_EVENT_COMMON_CONTEXT,
+	ret = translate_scope_field_class(&ctx, BT_FIELD_PATH_SCOPE_EVENT_COMMON_CONTEXT,
 		&(*out_sc)->event_common_context_fc,
 		bt_stream_class_borrow_event_common_context_field_class_const(
 			ir_sc));

@@ -79,7 +79,7 @@ end:
 	return field_path;
 }
 
-enum bt_scope bt_field_path_get_root_scope(
+enum bt_field_path_scope bt_field_path_get_root_scope(
 		const struct bt_field_path *field_path)
 {
 	BT_ASSERT_PRE_DEV_NON_NULL(field_path, "Field path");

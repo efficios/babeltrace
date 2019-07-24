@@ -112,7 +112,7 @@ const bt_field_class *resolve_field_path_to_field_class(const bt_field_path *fp,
 {
 	struct field_class_resolving_context *fc_resolving_ctx;
 	const bt_field_class *fc;
-	bt_scope fp_scope;
+	bt_field_path_scope fp_scope;
 
 	BT_COMP_LOGD("Resolving field path: fp-addr=%p", fp);
 
@@ -120,19 +120,19 @@ const bt_field_class *resolve_field_path_to_field_class(const bt_field_path *fp,
 	fp_scope = bt_field_path_get_root_scope(fp);
 
 	switch (fp_scope) {
-	case BT_SCOPE_PACKET_CONTEXT:
+	case BT_FIELD_PATH_SCOPE_PACKET_CONTEXT:
 		fc = walk_field_path(md_maps, fp,
 			fc_resolving_ctx->packet_context);
 		break;
-	case BT_SCOPE_EVENT_COMMON_CONTEXT:
+	case BT_FIELD_PATH_SCOPE_EVENT_COMMON_CONTEXT:
 		fc = walk_field_path(md_maps, fp,
 			fc_resolving_ctx->event_common_context);
 		break;
-	case BT_SCOPE_EVENT_SPECIFIC_CONTEXT:
+	case BT_FIELD_PATH_SCOPE_EVENT_SPECIFIC_CONTEXT:
 		fc = walk_field_path(md_maps, fp,
 			fc_resolving_ctx->event_specific_context);
 		break;
-	case BT_SCOPE_EVENT_PAYLOAD:
+	case BT_FIELD_PATH_SCOPE_EVENT_PAYLOAD:
 		fc = walk_field_path(md_maps, fp,
 			fc_resolving_ctx->event_payload);
 		break;

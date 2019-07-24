@@ -40,14 +40,14 @@ typedef enum bt_field_path_item_type {
 	BT_FIELD_PATH_ITEM_TYPE_CURRENT_ARRAY_ELEMENT,
 } bt_field_path_item_type;
 
-typedef enum bt_scope {
-	BT_SCOPE_PACKET_CONTEXT,
-	BT_SCOPE_EVENT_COMMON_CONTEXT,
-	BT_SCOPE_EVENT_SPECIFIC_CONTEXT,
-	BT_SCOPE_EVENT_PAYLOAD,
-} bt_scope;
+typedef enum bt_field_path_scope {
+	BT_FIELD_PATH_SCOPE_PACKET_CONTEXT,
+	BT_FIELD_PATH_SCOPE_EVENT_COMMON_CONTEXT,
+	BT_FIELD_PATH_SCOPE_EVENT_SPECIFIC_CONTEXT,
+	BT_FIELD_PATH_SCOPE_EVENT_PAYLOAD,
+} bt_field_path_scope;
 
-extern bt_scope bt_field_path_get_root_scope(
+extern bt_field_path_scope bt_field_path_get_root_scope(
 		const bt_field_path *field_path);
 
 extern uint64_t bt_field_path_get_item_count(

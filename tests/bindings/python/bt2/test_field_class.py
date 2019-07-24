@@ -624,7 +624,7 @@ class _VariantFieldClassWithSelectorTestCase:
     def test_selector_field_path_root_scope(self):
         self._fill_default_fc_for_field_path_test()
         self.assertEqual(
-            self._fc.selector_field_path.root_scope, bt2.Scope.PACKET_CONTEXT
+            self._fc.selector_field_path.root_scope, bt2.FieldPathScope.PACKET_CONTEXT
         )
 
 
@@ -749,7 +749,9 @@ class DynamicArrayFieldClassTestCase(unittest.TestCase):
 
     def test_field_path_root_scope(self):
         fc = self._create_field_class_for_field_path_test()
-        self.assertEqual(fc.length_field_path.root_scope, bt2.Scope.PACKET_CONTEXT)
+        self.assertEqual(
+            fc.length_field_path.root_scope, bt2.FieldPathScope.PACKET_CONTEXT
+        )
 
     def test_create_invalid_field_class(self):
         with self.assertRaises(TypeError):
