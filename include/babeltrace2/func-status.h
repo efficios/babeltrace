@@ -41,10 +41,6 @@
 # define __BT_FUNC_STATUS_OVERFLOW_ERROR	-75
 #endif
 
-/* Invalid query object */
-#ifndef __BT_FUNC_STATUS_INVALID_OBJECT
-# define __BT_FUNC_STATUS_INVALID_OBJECT	-23
-#endif
 
 /* Memory allocation error */
 #ifndef __BT_FUNC_STATUS_MEMORY_ERROR
@@ -79,4 +75,9 @@
 /* Try operation again later */
 #ifndef __BT_FUNC_STATUS_AGAIN
 # define __BT_FUNC_STATUS_AGAIN			11
+#endif
+
+/* Unknown query object */
+#ifndef __BT_FUNC_STATUS_UNKNOWN_OBJECT
+# define __BT_FUNC_STATUS_UNKNOWN_OBJECT	42
 #endif

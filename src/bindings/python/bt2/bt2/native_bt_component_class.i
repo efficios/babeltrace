@@ -97,7 +97,7 @@ static PyObject *py_mod_bt2_exc_error_type = NULL;
 static PyObject *py_mod_bt2_exc_memory_error = NULL;
 static PyObject *py_mod_bt2_exc_try_again_type = NULL;
 static PyObject *py_mod_bt2_exc_stop_type = NULL;
-static PyObject *py_mod_bt2_exc_invalid_object_type = NULL;
+static PyObject *py_mod_bt2_exc_unknown_object_type = NULL;
 
 static
 void bt_bt2_cc_init_from_bt2(void)
@@ -124,9 +124,9 @@ void bt_bt2_cc_init_from_bt2(void)
 	py_mod_bt2_exc_stop_type =
 		PyObject_GetAttrString(py_mod_bt2, "Stop");
 	BT_ASSERT(py_mod_bt2_exc_stop_type);
-	py_mod_bt2_exc_invalid_object_type =
-		PyObject_GetAttrString(py_mod_bt2, "InvalidObject");
-	BT_ASSERT(py_mod_bt2_exc_invalid_object_type);
+	py_mod_bt2_exc_unknown_object_type =
+		PyObject_GetAttrString(py_mod_bt2, "UnknownObject");
+	BT_ASSERT(py_mod_bt2_exc_unknown_object_type);
 }
 
 static
@@ -149,7 +149,7 @@ void bt_bt2_cc_exit_handler(void)
 	Py_XDECREF(py_mod_bt2_exc_error_type);
 	Py_XDECREF(py_mod_bt2_exc_try_again_type);
 	Py_XDECREF(py_mod_bt2_exc_stop_type);
-	Py_XDECREF(py_mod_bt2_exc_invalid_object_type);
+	Py_XDECREF(py_mod_bt2_exc_unknown_object_type);
 }
 
 
@@ -388,8 +388,8 @@ int py_exc_to_status(bt_self_component_class *self_component_class,
 			py_mod_bt2_exc_stop_type)) {
 		status = __BT_FUNC_STATUS_END;
 	} else if (PyErr_GivenExceptionMatches(exc,
-			py_mod_bt2_exc_invalid_object_type)) {
-		status = __BT_FUNC_STATUS_INVALID_OBJECT;
+			py_mod_bt2_exc_unknown_object_type)) {
+		status = __BT_FUNC_STATUS_UNKNOWN_OBJECT;
 	} else {
 		/* Unknown exception: convert to general error */
 		log_exception_and_maybe_append_error(BT_LOG_WARNING, true,

@@ -603,7 +603,7 @@ class _UserComponentType(type):
         return int(results_ptr)
 
     def _user_query(cls, query_executor, obj, params, log_level):
-        raise NotImplementedError
+        raise bt2.UnknownObject
 
     def _bt_component_class_ptr(self):
         return self._bt_as_component_class_ptr(self._bt_cc_ptr)

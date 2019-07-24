@@ -49,7 +49,7 @@ class TestSourceExt(Base, bt2._UserSourceComponent, message_iterator_class=TestI
             else:
                 return 0
         else:
-            raise bt2.InvalidObject
+            raise bt2.UnknownObject
 
 
 @bt2.plugin_component_class
@@ -72,7 +72,7 @@ class TestSourceSomeDir(
             else:
                 return 0
         else:
-            raise bt2.InvalidObject
+            raise bt2.UnknownObject
 
 
 @bt2.plugin_component_class
@@ -91,7 +91,7 @@ class TestSourceABCDE(Base, bt2._UserSourceComponent, message_iterator_class=Tes
                 else 0.0
             )
         else:
-            raise bt2.InvalidObject
+            raise bt2.UnknownObject
 
 
 class TestSourceNoQuery(bt2._UserSourceComponent, message_iterator_class=TestIter):

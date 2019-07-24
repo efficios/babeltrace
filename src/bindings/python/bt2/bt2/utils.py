@@ -156,11 +156,11 @@ def _handle_func_status(status, msg=None):
             raise bt2._OverflowError
         else:
             raise bt2._OverflowError(msg)
-    elif status == native_bt.__BT_FUNC_STATUS_INVALID_OBJECT:
+    elif status == native_bt.__BT_FUNC_STATUS_UNKNOWN_OBJECT:
         if msg is None:
-            raise bt2.InvalidObject
+            raise bt2.UnknownObject
         else:
-            raise bt2.InvalidObject(msg)
+            raise bt2.UnknownObject(msg)
     else:
         assert False
 

@@ -2007,7 +2007,7 @@ bt_component_class_query_method_status ctf_fs_query(
 		status = support_info_query(comp_class, params, log_level, result);
 	} else {
 		BT_LOGE("Unknown query object `%s`", object);
-		status = BT_COMPONENT_CLASS_QUERY_METHOD_STATUS_INVALID_OBJECT;
+		status = BT_COMPONENT_CLASS_QUERY_METHOD_STATUS_UNKNOWN_OBJECT;
 		goto end;
 	}
 end:
