@@ -209,9 +209,6 @@ int query(struct bt_config *cfg, const bt_component_class *comp_cls,
 		case BT_QUERY_EXECUTOR_QUERY_STATUS_INVALID_PARAMS:
 			*fail_reason = "invalid query parameters";
 			goto error;
-		case BT_QUERY_EXECUTOR_QUERY_STATUS_UNSUPPORTED:
-			*fail_reason = "unsupported action";
-			goto error;
 		case BT_QUERY_EXECUTOR_QUERY_STATUS_MEMORY_ERROR:
 			*fail_reason = "not enough memory";
 			goto error;

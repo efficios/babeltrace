@@ -81,11 +81,6 @@
 # define __BT_FUNC_STATUS_AGAIN			11
 #endif
 
-/* Unsupported operation */
-#ifndef __BT_FUNC_STATUS_UNSUPPORTED
-# define __BT_FUNC_STATUS_UNSUPPORTED		95
-#endif
-
 /* Object is canceled */
 #ifndef __BT_FUNC_STATUS_CANCELED
 # define __BT_FUNC_STATUS_CANCELED		125
