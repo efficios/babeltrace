@@ -156,11 +156,6 @@ def _handle_func_status(status, msg=None):
             raise bt2.Canceled
         else:
             raise bt2.Canceled(msg)
-    elif status == native_bt.__BT_FUNC_STATUS_LOADING_ERROR:
-        if msg is None:
-            raise bt2._LoadingError
-        else:
-            raise bt2._LoadingError(msg)
     elif status == native_bt.__BT_FUNC_STATUS_OVERFLOW:
         if msg is None:
             raise bt2.OverflowError

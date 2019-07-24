@@ -406,7 +406,7 @@ int bt_plugin_so_init(struct bt_plugin *plugin,
 						NULL,
 					descriptor->name, cur_attr->type_name,
 					cur_attr->type);
-				status = BT_FUNC_STATUS_LOADING_ERROR;
+				status = BT_FUNC_STATUS_ERROR;
 				goto end;
 			} else {
 				BT_LIB_LOGW(
@@ -683,7 +683,7 @@ int bt_plugin_so_init(struct bt_plugin *plugin,
 							cur_cc_descr_attr->comp_class_descriptor->type),
 						cur_cc_descr_attr->type_name,
 						cur_cc_descr_attr->type);
-					status = BT_FUNC_STATUS_LOADING_ERROR;
+					status = BT_FUNC_STATUS_ERROR;
 					goto end;
 				} else {
 					BT_LIB_LOGW(
@@ -796,7 +796,7 @@ int bt_plugin_so_init(struct bt_plugin *plugin,
 					descriptor->name,
 					cc_full_descr->descriptor->name,
 					cc_full_descr->descriptor->type);
-				status = BT_FUNC_STATUS_LOADING_ERROR;
+				status = BT_FUNC_STATUS_ERROR;
 				goto end;
 			} else {
 				BT_LIB_LOGW(
@@ -1332,7 +1332,7 @@ int bt_plugin_so_create_all_from_sections(
 				BT_LIB_LOGW_APPEND_CAUSE(
 					"Unknown ABI major version: abi-major=%d",
 						descriptor->major);
-				status = BT_FUNC_STATUS_LOADING_ERROR;
+				status = BT_FUNC_STATUS_ERROR;
 				goto error;
 			} else {
 				BT_LIB_LOGW(
@@ -1522,7 +1522,7 @@ int bt_plugin_so_create_all_from_file(const char *path,
 				"Cannot resolve plugin symbol: path=\"%s\", "
 				"symbol=\"%s\"", path,
 				"__bt_get_end_section_plugin_descriptors");
-			status = BT_FUNC_STATUS_LOADING_ERROR;
+			status = BT_FUNC_STATUS_ERROR;
 		} else {
 			BT_LIB_LOGW(
 				"Cannot resolve plugin symbol: path=\"%s\", "
@@ -1562,7 +1562,7 @@ int bt_plugin_so_create_all_from_file(const char *path,
 				path, "__bt_get_begin_section_plugin_descriptor_attributes",
 				"__bt_get_end_section_plugin_descriptor_attributes",
 				attrs_begin, attrs_end);
-			status = BT_FUNC_STATUS_LOADING_ERROR;
+			status = BT_FUNC_STATUS_ERROR;
 		} else {
 			BT_LIB_LOGW(
 				"Found section start or end symbol, but not both: "
@@ -1606,7 +1606,7 @@ int bt_plugin_so_create_all_from_file(const char *path,
 				path, "__bt_get_begin_section_component_class_descriptors",
 				"__bt_get_end_section_component_class_descriptors",
 				cc_descriptors_begin, cc_descriptors_end);
-			status = BT_FUNC_STATUS_LOADING_ERROR;
+			status = BT_FUNC_STATUS_ERROR;
 		} else {
 			BT_LIB_LOGW(
 				"Found section start or end symbol, but not both: "
@@ -1650,7 +1650,7 @@ int bt_plugin_so_create_all_from_file(const char *path,
 				path, "__bt_get_begin_section_component_class_descriptor_attributes",
 				"__bt_get_end_section_component_class_descriptor_attributes",
 				cc_descr_attrs_begin, cc_descr_attrs_end);
-			status = BT_FUNC_STATUS_LOADING_ERROR;
+			status = BT_FUNC_STATUS_ERROR;
 		} else {
 			BT_LIB_LOGW(
 				"Found section start or end symbol, but not both: "
