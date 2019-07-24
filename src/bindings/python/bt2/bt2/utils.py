@@ -137,10 +137,10 @@ def _handle_func_status(status, msg=None):
 
     if status == native_bt.__BT_FUNC_STATUS_ERROR:
         assert msg is not None
-        raise bt2.Error(msg)
+        raise bt2._Error(msg)
     elif status == native_bt.__BT_FUNC_STATUS_MEMORY_ERROR:
         assert msg is not None
-        raise bt2.MemoryError(msg)
+        raise bt2._MemoryError(msg)
     elif status == native_bt.__BT_FUNC_STATUS_END:
         if msg is None:
             raise bt2.Stop
@@ -158,9 +158,9 @@ def _handle_func_status(status, msg=None):
             raise bt2.Canceled(msg)
     elif status == native_bt.__BT_FUNC_STATUS_LOADING_ERROR:
         if msg is None:
-            raise bt2.LoadingError
+            raise bt2._LoadingError
         else:
-            raise bt2.LoadingError(msg)
+            raise bt2._LoadingError(msg)
     elif status == native_bt.__BT_FUNC_STATUS_OVERFLOW:
         if msg is None:
             raise bt2.OverflowError

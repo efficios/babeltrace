@@ -297,7 +297,7 @@ class UserMessageIteratorTestCase(unittest.TestCase):
 
         MySourceIter._seek_beginning = _seek_beginning_error
 
-        with self.assertRaises(bt2.Error):
+        with self.assertRaises(bt2._Error):
             it.seek_beginning()
 
     # Try consuming many times from an iterator that always returns TryAgain.

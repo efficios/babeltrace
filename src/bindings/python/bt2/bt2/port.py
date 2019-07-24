@@ -119,7 +119,7 @@ class _UserComponentInputPort(_UserComponentPort, _InputPort):
             self._ptr
         )
         if msg_iter_ptr is None:
-            raise bt2.MemoryError('cannot create message iterator object')
+            raise bt2._MemoryError('cannot create message iterator object')
 
         return bt2.message_iterator._UserComponentInputPortMessageIterator(msg_iter_ptr)
 

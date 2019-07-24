@@ -214,7 +214,7 @@ class UserComponentClassTestCase(unittest.TestCase):
             def _graph_is_configured(self):
                 pass
 
-        with self.assertRaises(bt2.Error):
+        with self.assertRaises(bt2._Error):
             bt2.QueryExecutor().query(MySink, 'obj', 23)
 
     def test_query_raises(self):
@@ -229,7 +229,7 @@ class UserComponentClassTestCase(unittest.TestCase):
             def _query(cls, query_exec, obj, params, log_level):
                 raise ValueError
 
-        with self.assertRaises(bt2.Error):
+        with self.assertRaises(bt2._Error):
             bt2.QueryExecutor().query(MySink, 'obj', 23)
 
     def test_query_wrong_return_type(self):
@@ -244,7 +244,7 @@ class UserComponentClassTestCase(unittest.TestCase):
             def _query(cls, query_exec, obj, params, log_level):
                 return ...
 
-        with self.assertRaises(bt2.Error):
+        with self.assertRaises(bt2._Error):
             bt2.QueryExecutor().query(MySink, 'obj', 23)
 
     def test_query_params_none(self):

@@ -38,6 +38,7 @@ from bt2.component import _UserSourceComponent
 from bt2.connection import *
 from bt2.connection import _Connection
 from bt2.error import *
+from bt2.error import _Error
 from bt2.event import _Event
 from bt2.event_class import *
 from bt2.field_class import *
@@ -68,7 +69,7 @@ from bt2.value import _IntegerValue
 from bt2.clock_snapshot import _UnknownClockSnapshot
 
 
-class MemoryError(Error):
+class _MemoryError(_Error):
     '''Raised when an operation fails due to memory issues.'''
 
 
@@ -108,7 +109,7 @@ class NonexistentClockSnapshot(Exception):
     pass
 
 
-class LoadingError(Error):
+class _LoadingError(_Error):
     pass
 
 

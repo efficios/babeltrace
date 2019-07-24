@@ -46,7 +46,7 @@ class _FieldClass(object._SharedObject):
 
     def _check_create_status(self, ptr):
         if ptr is None:
-            raise bt2.MemoryError(
+            raise bt2._MemoryError(
                 'cannot create {} field class object'.format(self._NAME.lower())
             )
 

@@ -97,7 +97,7 @@ class QueryExecutorTestCase(unittest.TestCase):
             def _query(cls, query_exec, obj, params, log_level):
                 raise ValueError
 
-        with self.assertRaises(bt2.Error) as ctx:
+        with self.assertRaises(bt2._Error) as ctx:
             res = bt2.QueryExecutor().query(MySink, 'obj', [17, 23])
 
         exc = ctx.exception

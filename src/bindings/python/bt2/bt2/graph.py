@@ -73,7 +73,7 @@ class Graph(object._SharedObject):
         ptr = native_bt.graph_create()
 
         if ptr is None:
-            raise bt2.MemoryError('cannot create graph object')
+            raise bt2._MemoryError('cannot create graph object')
 
         super().__init__(ptr)
 
@@ -147,7 +147,7 @@ class Graph(object._SharedObject):
 
         listener_ids = fn(self._ptr, listener_from_native)
         if listener_ids is None:
-            raise bt2.Error('cannot add listener to graph object')
+            raise bt2._Error('cannot add listener to graph object')
 
         return bt2._ListenerHandle(listener_ids, self)
 
@@ -162,7 +162,7 @@ class Graph(object._SharedObject):
 
         listener_ids = fn(self._ptr, listener_from_native)
         if listener_ids is None:
-            raise bt2.Error('cannot add listener to graph object')
+            raise bt2._Error('cannot add listener to graph object')
 
         return bt2._ListenerHandle(listener_ids, self)
 
@@ -196,6 +196,6 @@ class Graph(object._SharedObject):
         )
 
         if msg_iter_ptr is None:
-            raise bt2.MemoryError('cannot create output port message iterator')
+            raise bt2._MemoryError('cannot create output port message iterator')
 
         return bt2.message_iterator._OutputPortMessageIterator(msg_iter_ptr)
