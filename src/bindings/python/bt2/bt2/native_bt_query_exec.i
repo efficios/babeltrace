@@ -22,5 +22,6 @@
  * THE SOFTWARE.
  */
 
+%include <babeltrace2/graph/private-query-executor.h>
 %include <babeltrace2/graph/query-executor-const.h>
 %include <babeltrace2/graph/query-executor.h>

@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-#define BT_LOG_TAG "CLI-CFG-CLI-ARGS"
+#define BT_LOG_TAG "CLI/CFG-CLI-ARGS"
 #include "logging.h"
 
 #include <errno.h>

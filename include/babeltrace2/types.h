@@ -129,6 +129,7 @@ typedef struct bt_port bt_port;
 typedef struct bt_port_input bt_port_input;
 typedef struct bt_port_output bt_port_output;
 typedef struct bt_port_output_message_iterator bt_port_output_message_iterator;
+typedef struct bt_private_query_executor bt_private_query_executor;
 typedef struct bt_query_executor bt_query_executor;
 typedef struct bt_self_component bt_self_component;
 typedef struct bt_self_component_class bt_self_component_class;

@@ -82,9 +82,8 @@ typedef bt_bool
 typedef bt_component_class_query_method_status
 (*bt_component_class_source_query_method)(
 		bt_self_component_class_source *comp_class,
-		const bt_query_executor *query_executor,
+		bt_private_query_executor *query_executor,
 		const char *object, const bt_value *params,
-		bt_logging_level logging_level,
 		const bt_value **result);
 
 typedef bt_component_class_port_connected_method_status

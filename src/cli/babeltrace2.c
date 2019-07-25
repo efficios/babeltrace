@@ -40,6 +40,7 @@
 #include "babeltrace2-cfg-cli-args.h"
 #include "babeltrace2-cfg-cli-args-default.h"
 #include "babeltrace2-plugins.h"
+#include "babeltrace2-query.h"
 
 #define ENV_BABELTRACE_WARN_COMMAND_NAME_DIRECTORY_CLASH "BABELTRACE_CLI_WARN_COMMAND_NAME_DIRECTORY_CLASH"
 #define ENV_BABELTRACE_CLI_LOG_LEVEL "BABELTRACE_CLI_LOG_LEVEL"
@@ -115,92 +116,9 @@ int query(struct bt_config *cfg, const bt_component_class *comp_cls,
 		const char *obj, const bt_value *params,
 		const bt_value **user_result, const char **fail_reason)
 {
-	const bt_value *result = NULL;
-	bt_query_executor_query_status query_status;
-	bt_query_executor *query_exec;
-	*fail_reason = "unknown error";
-	int ret = 0;
-
-	BT_ASSERT(fail_reason);
-	BT_ASSERT(user_result);
-	query_exec = bt_query_executor_create();
-	if (!query_exec) {
-		BT_CLI_LOGE_APPEND_CAUSE("Cannot create a query executor.");
-		goto error;
-	}
-
-	bt_query_executor_add_interrupter(query_exec, the_interrupter);
-
-	while (true) {
-		query_status = bt_query_executor_query(
-			query_exec, comp_cls, obj, params,
-			cfg->log_level, &result);
-		switch (query_status) {
-		case BT_QUERY_EXECUTOR_QUERY_STATUS_OK:
-			goto ok;
-		case BT_QUERY_EXECUTOR_QUERY_STATUS_AGAIN:
-		{
-			const uint64_t sleep_time_us = 100000;
-
-			if (bt_interrupter_is_set(the_interrupter)) {
-				*fail_reason = "interrupted by user";
-				goto error;
-			}
-
-			/* Wait 100 ms and retry */
-			BT_LOGD("Got BT_QUERY_EXECUTOR_QUERY_STATUS_AGAIN: sleeping: "
-				"time-us=%" PRIu64, sleep_time_us);
-
-			if (usleep(sleep_time_us)) {
-				if (bt_interrupter_is_set(the_interrupter)) {
-					BT_CLI_LOGW_APPEND_CAUSE(
-						"Query was interrupted by user: "
-						"comp-cls-addr=%p, comp-cls-name=\"%s\", "
-						"query-obj=\"%s\"", comp_cls,
-						bt_component_class_get_name(comp_cls),
-						obj);
-					*fail_reason = "interrupted by user";
-					goto error;
-				}
-			}
-
-			continue;
-		}
-		case BT_QUERY_EXECUTOR_QUERY_STATUS_ERROR:
-			if (bt_interrupter_is_set(the_interrupter)) {
-				*fail_reason = "interrupted by user";
-				goto error;
-			}
-
-			goto error;
-		case BT_QUERY_EXECUTOR_QUERY_STATUS_UNKNOWN_OBJECT:
-			*fail_reason = "unknown query object";
-			goto error;
-		case BT_QUERY_EXECUTOR_QUERY_STATUS_MEMORY_ERROR:
-			*fail_reason = "not enough memory";
-			goto error;
-		default:
-			BT_LOGF("Unknown query status: status=%s",
-				bt_common_func_status_string(query_status));
-			abort();
-		}
-	}
-
-ok:
-	*user_result = result;
-	result = NULL;
-	goto end;
-
-error:
-	ret = -1;
-
-end:
-	bt_query_executor_put_ref(query_exec);
-	bt_value_put_ref(result);
-	return ret;
+	return cli_query(comp_cls, obj, params, cfg->log_level,
+		the_interrupter, user_result, fail_reason);
 }
-
-
 
 typedef const void *(*plugin_borrow_comp_cls_func_t)(
 		const bt_plugin *, const char *);

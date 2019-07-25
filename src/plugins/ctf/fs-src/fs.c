@@ -1989,13 +1989,15 @@ bt_component_class_init_method_status ctf_fs_init(
 BT_HIDDEN
 bt_component_class_query_method_status ctf_fs_query(
 		bt_self_component_class_source *comp_class,
-		const bt_query_executor *query_exec,
+		bt_private_query_executor *priv_query_exec,
 		const char *object, const bt_value *params,
-		bt_logging_level log_level,
 		const bt_value **result)
 {
 	bt_component_class_query_method_status status =
 		BT_COMPONENT_CLASS_QUERY_METHOD_STATUS_OK;
+	bt_logging_level log_level = bt_query_executor_get_logging_level(
+		bt_private_query_executor_as_query_executor_const(
+			priv_query_exec));
 
 	if (strcmp(object, "metadata-info") == 0) {
 		status = metadata_info_query(comp_class, params, log_level,

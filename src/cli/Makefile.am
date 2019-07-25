@@ -36,6 +36,8 @@ babeltrace2_bin_SOURCES = \
 	babeltrace2-cfg-src-auto-disc.h \
 	babeltrace2-plugins.c \
 	babeltrace2-plugins.h \
+	babeltrace2-query.c \
+	babeltrace2-query.h \
 	logging.c \
 	logging.h
 
