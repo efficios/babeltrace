@@ -48,11 +48,10 @@
 
 #include "common/assert.h"
 #include "py-common/py-common.h"
-
-typedef const uint8_t *bt_uuid;
 %}
 
 typedef int bt_bool;
+typedef uint64_t bt_listener_id;
 
 /* For uint*_t/int*_t */
 %include "stdint.i"

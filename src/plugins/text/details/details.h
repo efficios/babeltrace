@@ -54,7 +54,7 @@ struct details_trace_class_meta {
 	 * Trace class destruction listener ID (`UINT64_C(-1)` if
 	 * there's no listener ID.
 	 */
-	uint64_t tc_destruction_listener_id;
+	bt_listener_id tc_destruction_listener_id;
 };
 
 /*
@@ -69,7 +69,7 @@ struct details_trace {
 	 * Trace destruction listener ID (`UINT64_C(-1)` if there's no
 	 * listener ID.
 	 */
-	uint64_t trace_destruction_listener_id;
+	bt_listener_id trace_destruction_listener_id;
 };
 
 /* A `sink.text.details` component */

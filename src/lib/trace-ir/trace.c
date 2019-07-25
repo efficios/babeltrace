@@ -406,7 +406,7 @@ const struct bt_stream *bt_trace_borrow_stream_by_id_const(
 enum bt_trace_add_listener_status bt_trace_add_destruction_listener(
 		const struct bt_trace *c_trace,
 		bt_trace_destruction_listener_func listener,
-		void *data, uint64_t *listener_id)
+		void *data, bt_listener_id *listener_id)
 {
 	struct bt_trace *trace = (void *) c_trace;
 	uint64_t i;
@@ -454,7 +454,7 @@ bool has_listener_id(const struct bt_trace *trace, uint64_t listener_id)
 }
 
 enum bt_trace_remove_listener_status bt_trace_remove_destruction_listener(
-		const struct bt_trace *c_trace, uint64_t listener_id)
+		const struct bt_trace *c_trace, bt_listener_id listener_id)
 {
 	struct bt_trace *trace = (void *) c_trace;
 	struct bt_trace_destruction_listener_elem *elem;

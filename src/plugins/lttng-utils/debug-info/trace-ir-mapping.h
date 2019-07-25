@@ -83,7 +83,7 @@ struct trace_ir_metadata_maps {
 
 	struct field_class_resolving_context *fc_resolving_ctx;
 
-	uint64_t destruction_listener_id;
+	bt_listener_id destruction_listener_id;
 };
 
 struct trace_ir_data_maps {
@@ -106,7 +106,7 @@ struct trace_ir_data_maps {
 	 */
 	GHashTable *packet_map;
 
-	uint64_t destruction_listener_id;
+	bt_listener_id destruction_listener_id;
 };
 
 struct trace_ir_maps {

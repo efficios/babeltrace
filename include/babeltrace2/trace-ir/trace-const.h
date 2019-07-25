@@ -70,7 +70,7 @@ typedef enum bt_trace_add_listener_status {
 extern bt_trace_add_listener_status bt_trace_add_destruction_listener(
 		const bt_trace *trace,
 		bt_trace_destruction_listener_func listener,
-		void *data, uint64_t *listener_id);
+		void *data, bt_listener_id *listener_id);
 
 typedef enum bt_trace_remove_listener_status {
 	BT_TRACE_REMOVE_LISTENER_STATUS_MEMORY_ERROR	= __BT_FUNC_STATUS_MEMORY_ERROR,
@@ -78,7 +78,7 @@ typedef enum bt_trace_remove_listener_status {
 } bt_trace_remove_listener_status;
 
 extern bt_trace_remove_listener_status bt_trace_remove_destruction_listener(
-		const bt_trace *trace, uint64_t listener_id);
+		const bt_trace *trace, bt_listener_id listener_id);
 
 extern void bt_trace_get_ref(const bt_trace *trace);
 
