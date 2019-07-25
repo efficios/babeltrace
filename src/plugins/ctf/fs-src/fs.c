@@ -2000,10 +2000,10 @@ bt_component_class_query_method_status ctf_fs_query(
 	if (strcmp(object, "metadata-info") == 0) {
 		status = metadata_info_query(comp_class, params, log_level,
 			result);
-	} else if (strcmp(object, "trace-info") == 0) {
+	} else if (strcmp(object, "babeltrace.trace-info") == 0) {
 		status = trace_info_query(comp_class, params, log_level,
 			result);
-	} else if (!strcmp(object, "support-info")) {
+	} else if (!strcmp(object, "babeltrace.support-info")) {
 		status = support_info_query(comp_class, params, log_level, result);
 	} else {
 		BT_LOGE("Unknown query object `%s`", object);

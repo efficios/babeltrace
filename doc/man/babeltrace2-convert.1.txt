@@ -833,8 +833,8 @@ opt:--stream-intersection::
 +
 All the source components, <<comp-create-expl,explicit>> and
 <<comp-create-impl,implicit>>, must have classes which support the
-`trace-info` query object to use this option. The only Babeltrace
-project's component class which supports this query object is
+`babeltrace.trace-info` query object to use this option. The only
+Babeltrace project's component class which supports this query object is
 compcls:source.ctf.fs.
 +
 Because it is not possible to replicate with a single

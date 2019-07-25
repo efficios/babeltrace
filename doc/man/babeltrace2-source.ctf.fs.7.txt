@@ -165,11 +165,11 @@ Returned object (map):
     True if the metadata stream is packetized.
 
 
-`trace-info`
-~~~~~~~~~~~~
-You can query the `trace-info` object for a set of CTF traces to get
-information about the data streams they contain, their intersection time
-range, and more.
+`babeltrace.trace-info`
+~~~~~~~~~~~~~~~~~~~~~~~
+You can query the `babeltrace.trace-info` object for a set of CTF traces
+to get information about the data streams they contain, their
+intersection time range, and more.
 
 This query object requires that the processed CTF traces have the
 `timestamp_begin` and `timestamp_end` fields in their packet context
