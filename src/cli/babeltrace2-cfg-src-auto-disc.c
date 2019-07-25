@@ -525,7 +525,7 @@ int auto_discover_source_for_input_as_dir_or_file_rec(GString *input,
 			const char *fmt = "Failed to open directory %s: %s";
 			BT_LOGW(fmt, input->str, error->message);
 
-			if (errno == EACCES) {
+			if (error->code == G_FILE_ERROR_ACCES) {
 				/* This is not a fatal error, we just skip it. */
 				status = 1;
 				goto end;
