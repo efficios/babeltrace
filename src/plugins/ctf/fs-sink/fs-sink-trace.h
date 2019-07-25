@@ -55,7 +55,7 @@ struct fs_sink_trace {
 	 */
 	const bt_trace *ir_trace;
 
-	uint64_t ir_trace_destruction_listener_id;
+	bt_listener_id ir_trace_destruction_listener_id;
 
 	/* Trace's directory */
 	GString *path;

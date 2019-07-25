@@ -53,7 +53,7 @@ trace_class_destroyed_listener(const bt_trace_class *trace_class, void *py_calla
 
 int bt_bt2_trace_class_add_destruction_listener(
 		bt_trace_class *trace_class, PyObject *py_callable,
-		uint64_t *id)
+		bt_listener_id *id)
 {
 	bt_trace_class_add_listener_status status;
 
@@ -71,4 +71,4 @@ int bt_bt2_trace_class_add_destruction_listener(
 
 int bt_bt2_trace_class_add_destruction_listener(
 		bt_trace_class *trace_class, PyObject *py_callable,
-		uint64_t *id);
+		bt_listener_id *id);

@@ -160,7 +160,7 @@ end:
 enum bt_trace_class_add_listener_status bt_trace_class_add_destruction_listener(
 		const struct bt_trace_class *_tc,
 		bt_trace_class_destruction_listener_func listener,
-		void *data, uint64_t *listener_id)
+		void *data, bt_listener_id *listener_id)
 {
 	struct bt_trace_class *tc = (void *) _tc;
 	uint64_t i;
@@ -208,7 +208,7 @@ bool has_listener_id(const struct bt_trace_class *tc, uint64_t listener_id)
 }
 
 enum bt_trace_class_remove_listener_status bt_trace_class_remove_destruction_listener(
-		const struct bt_trace_class *_tc, uint64_t listener_id)
+		const struct bt_trace_class *_tc, bt_listener_id listener_id)
 {
 	struct bt_trace_class *tc = (void *) _tc;
 	struct bt_trace_class_destruction_listener_elem *elem;

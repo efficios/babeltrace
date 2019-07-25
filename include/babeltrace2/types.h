@@ -78,6 +78,8 @@ if (ret) {
 */
 typedef int bt_bool;
 
+typedef uint64_t bt_listener_id;
+
 typedef const uint8_t *bt_uuid;
 
 typedef struct bt_clock_class bt_clock_class;

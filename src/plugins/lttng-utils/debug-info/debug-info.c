@@ -119,7 +119,7 @@ struct debug_info {
 	bt_self_component *self_comp;
 	struct debug_info_component *comp;
 	const bt_trace *input_trace;
-	uint64_t destruction_listener_id;
+	bt_listener_id destruction_listener_id;
 
 	/*
 	 * Hash table of VPIDs (pointer to int64_t) to

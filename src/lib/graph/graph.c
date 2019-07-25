@@ -791,7 +791,7 @@ bt_graph_add_source_component_output_port_added_listener(
 		struct bt_graph *graph,
 		bt_graph_source_component_output_port_added_listener_func func,
 		bt_graph_listener_removed_func listener_removed, void *data,
-		int *out_listener_id)
+		bt_listener_id *out_listener_id)
 {
 	struct bt_graph_listener_port_added listener = {
 		.base = {
@@ -800,7 +800,7 @@ bt_graph_add_source_component_output_port_added_listener(
 		},
 		.func = (port_added_func_t) func,
 	};
-	int listener_id;
+	bt_listener_id listener_id;
 
 	BT_ASSERT_PRE_NON_NULL(graph, "Graph");
 	BT_ASSERT_PRE_NON_NULL(func, "Listener");
@@ -826,7 +826,7 @@ bt_graph_add_filter_component_output_port_added_listener(
 		struct bt_graph *graph,
 		bt_graph_filter_component_output_port_added_listener_func func,
 		bt_graph_listener_removed_func listener_removed, void *data,
-		int *out_listener_id)
+		bt_listener_id *out_listener_id)
 {
 	struct bt_graph_listener_port_added listener = {
 		.base = {
@@ -835,7 +835,7 @@ bt_graph_add_filter_component_output_port_added_listener(
 		},
 		.func = (port_added_func_t) func,
 	};
-	int listener_id;
+	bt_listener_id listener_id;
 
 	BT_ASSERT_PRE_NON_NULL(graph, "Graph");
 	BT_ASSERT_PRE_NON_NULL(func, "Listener");
@@ -861,7 +861,7 @@ bt_graph_add_filter_component_input_port_added_listener(
 		struct bt_graph *graph,
 		bt_graph_filter_component_input_port_added_listener_func func,
 		bt_graph_listener_removed_func listener_removed, void *data,
-		int *out_listener_id)
+		bt_listener_id *out_listener_id)
 {
 	struct bt_graph_listener_port_added listener = {
 		.base = {
@@ -870,7 +870,7 @@ bt_graph_add_filter_component_input_port_added_listener(
 		},
 		.func = (port_added_func_t) func,
 	};
-	int listener_id;
+	bt_listener_id listener_id;
 
 	BT_ASSERT_PRE_NON_NULL(graph, "Graph");
 	BT_ASSERT_PRE_NON_NULL(func, "Listener");
@@ -896,7 +896,7 @@ bt_graph_add_sink_component_input_port_added_listener(
 		struct bt_graph *graph,
 		bt_graph_sink_component_input_port_added_listener_func func,
 		bt_graph_listener_removed_func listener_removed, void *data,
-		int *out_listener_id)
+		bt_listener_id *out_listener_id)
 {
 	struct bt_graph_listener_port_added listener = {
 		.base = {
@@ -905,7 +905,7 @@ bt_graph_add_sink_component_input_port_added_listener(
 		},
 		.func = (port_added_func_t) func,
 	};
-	int listener_id;
+	bt_listener_id listener_id;
 
 	BT_ASSERT_PRE_NON_NULL(graph, "Graph");
 	BT_ASSERT_PRE_NON_NULL(func, "Listener");
@@ -931,7 +931,7 @@ bt_graph_add_source_filter_component_ports_connected_listener(
 		struct bt_graph *graph,
 		bt_graph_source_filter_component_ports_connected_listener_func func,
 		bt_graph_listener_removed_func listener_removed, void *data,
-		int *out_listener_id)
+		bt_listener_id *out_listener_id)
 {
 	struct bt_graph_listener_ports_connected listener = {
 		.base = {
@@ -940,7 +940,7 @@ bt_graph_add_source_filter_component_ports_connected_listener(
 		},
 		.func = (ports_connected_func_t) func,
 	};
-	int listener_id;
+	bt_listener_id listener_id;
 
 	BT_ASSERT_PRE_NON_NULL(graph, "Graph");
 	BT_ASSERT_PRE_NON_NULL(func, "Listener");
@@ -967,7 +967,7 @@ bt_graph_add_source_sink_component_ports_connected_listener(
 		struct bt_graph *graph,
 		bt_graph_source_sink_component_ports_connected_listener_func func,
 		bt_graph_listener_removed_func listener_removed, void *data,
-		int *out_listener_id)
+		bt_listener_id *out_listener_id)
 {
 	struct bt_graph_listener_ports_connected listener = {
 		.base = {
@@ -976,7 +976,7 @@ bt_graph_add_source_sink_component_ports_connected_listener(
 		},
 		.func = (ports_connected_func_t) func,
 	};
-	int listener_id;
+	bt_listener_id listener_id;
 
 	BT_ASSERT_PRE_NON_NULL(graph, "Graph");
 	BT_ASSERT_PRE_NON_NULL(func, "Listener");
@@ -1003,7 +1003,7 @@ bt_graph_add_filter_filter_component_ports_connected_listener(
 		struct bt_graph *graph,
 		bt_graph_filter_filter_component_ports_connected_listener_func func,
 		bt_graph_listener_removed_func listener_removed, void *data,
-		int *out_listener_id)
+		bt_listener_id *out_listener_id)
 {
 	struct bt_graph_listener_ports_connected listener = {
 		.base = {
@@ -1012,7 +1012,7 @@ bt_graph_add_filter_filter_component_ports_connected_listener(
 		},
 		.func = (ports_connected_func_t) func,
 	};
-	int listener_id;
+	bt_listener_id listener_id;
 
 	BT_ASSERT_PRE_NON_NULL(graph, "Graph");
 	BT_ASSERT_PRE_NON_NULL(func, "Listener");
@@ -1039,7 +1039,7 @@ bt_graph_add_filter_sink_component_ports_connected_listener(
 		struct bt_graph *graph,
 		bt_graph_filter_sink_component_ports_connected_listener_func func,
 		bt_graph_listener_removed_func listener_removed, void *data,
-		int *out_listener_id)
+		bt_listener_id *out_listener_id)
 {
 	struct bt_graph_listener_ports_connected listener = {
 		.base = {
@@ -1048,7 +1048,7 @@ bt_graph_add_filter_sink_component_ports_connected_listener(
 		},
 		.func = (ports_connected_func_t) func,
 	};
-	int listener_id;
+	bt_listener_id listener_id;
 
 	BT_ASSERT_PRE_NON_NULL(graph, "Graph");
 	BT_ASSERT_PRE_NON_NULL(func, "Listener");
