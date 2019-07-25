@@ -27,7 +27,7 @@ class TestSourceExt(Base, bt2._UserSourceComponent, message_iterator_class=TestI
 
     @staticmethod
     def _user_query(query_exec, obj, params, log_level):
-        if obj == 'support-info':
+        if obj == 'babeltrace.support-info':
             if params['type'] == 'file':
                 name = os.path.basename(str(params['input']))
 
@@ -65,7 +65,7 @@ class TestSourceSomeDir(
 
     @staticmethod
     def _user_query(query_exec, obj, params, log_level):
-        if obj == 'support-info':
+        if obj == 'babeltrace.support-info':
             if params['type'] == 'directory':
                 name = os.path.basename(str(params['input']))
                 return 1 if name == 'some-dir' else 0
@@ -84,7 +84,7 @@ class TestSourceABCDE(Base, bt2._UserSourceComponent, message_iterator_class=Tes
 
     @staticmethod
     def _user_query(query_exec, obj, params, log_level):
-        if obj == 'support-info':
+        if obj == 'babeltrace.support-info':
             return (
                 1.0
                 if params['type'] == 'string' and params['input'] == 'ABCDE'

@@ -196,7 +196,7 @@ int convert_weight_value(const bt_value *weight_value, double *weight,
 		/* Accept signed integer as a convenience for "return 0" or "return 1" in Python. */
 		*weight = bt_value_integer_signed_get(weight_value);
 	} else {
-		BT_LOGW("support-info query: unexpected type for weight: "
+		BT_LOGW("babeltrace.support-info query: unexpected type for weight: "
 			"component-class-name=source.%s.%s, input=%s, input-type=%s, "
 			"expected-entry-type=%s, actual-entry-type=%s",
 			plugin_name, source_cc_name, input, input_type,
@@ -206,7 +206,7 @@ int convert_weight_value(const bt_value *weight_value, double *weight,
 	}
 
 	if (*weight < 0.0 || *weight > 1.0) {
-		BT_LOGW("support-info query: weight value is out of range [0.0, 1.0]: "
+		BT_LOGW("babeltrace.support-info query: weight value is out of range [0.0, 1.0]: "
 			"component-class-name=source.%s.%s, input=%s, input-type=%s, "
 			"weight=%f",
 			plugin_name, source_cc_name, input, input_type, *weight);
@@ -315,11 +315,11 @@ int support_info_query_all_sources(const char *input,
 				continue;
 			}
 
-			BT_LOGD("support-info query: before: component-class-name=source.%s.%s, input=%s, "
+			BT_LOGD("babeltrace.support-info query: before: component-class-name=source.%s.%s, input=%s, "
 				"type=%s", plugin_name, source_cc_name, input, input_type);
 
 			BT_VALUE_PUT_REF_AND_RESET(query_result);
-			query_status = bt_query_executor_query(query_executor, cc, "support-info",
+			query_status = bt_query_executor_query(query_executor, cc, "babeltrace.support-info",
 				query_params, log_level, &query_result);
 
 			if (query_status == BT_QUERY_EXECUTOR_QUERY_STATUS_OK) {
@@ -340,7 +340,7 @@ int support_info_query_all_sources(const char *input,
 					const bt_value *weight_value;
 
 					if (!bt_value_map_has_entry(query_result, "weight")) {
-						BT_LOGW("support-info query: result is missing `weight` entry: "
+						BT_LOGW("babeltrace.support-info query: result is missing `weight` entry: "
 							"component-class-name=source.%s.%s, input=%s, input-type=%s",
 							bt_plugin_get_name(plugin),
 							bt_component_class_get_name(cc), input,
@@ -368,7 +368,7 @@ int support_info_query_all_sources(const char *input,
 							/* Do as if no value was passed. */
 							group_value = NULL;
 						} else if (bt_value_get_type(group_value) != BT_VALUE_TYPE_STRING) {
-							BT_LOGW("support-info query: unexpected type for entry `group`: "
+							BT_LOGW("babeltrace.support-info query: unexpected type for entry `group`: "
 								"component-class-name=source.%s.%s, input=%s, input-type=%s, "
 								"expected-entry-type=%s,%s, actual-entry-type=%s",
 								bt_plugin_get_name(plugin),
@@ -381,7 +381,7 @@ int support_info_query_all_sources(const char *input,
 						}
 					}
 				} else {
-					BT_LOGW("support-info query: unexpected result type: "
+					BT_LOGW("babeltrace.support-info query: unexpected result type: "
 						"component-class-name=source.%s.%s, input=%s, input-type=%s, "
 						"expected-types=%s,%s,%s, actual-type=%s",
 						bt_plugin_get_name(plugin),
@@ -394,7 +394,7 @@ int support_info_query_all_sources(const char *input,
 					continue;
 				}
 
-				BT_LOGD("support-info query: success: component-class-name=source.%s.%s, input=%s, "
+				BT_LOGD("babeltrace.support-info query: success: component-class-name=source.%s.%s, input=%s, "
 					"type=%s, weight=%f\n",
 					bt_plugin_get_name(plugin), bt_component_class_get_name(cc), input,
 					input_type, weight);
@@ -410,13 +410,13 @@ int support_info_query_all_sources(const char *input,
 					winner.weigth = weight;
 				}
 			} else if (query_status == BT_QUERY_EXECUTOR_QUERY_STATUS_ERROR) {
-				BT_CLI_LOGE_APPEND_CAUSE("support-info query failed.");
+				BT_CLI_LOGE_APPEND_CAUSE("babeltrace.support-info query failed.");
 				goto error;
 			} else if (query_status == BT_QUERY_EXECUTOR_QUERY_STATUS_MEMORY_ERROR) {
 				BT_CLI_LOGE_APPEND_CAUSE("Memory error.");
 				goto error;
 			} else {
-				BT_LOGD("support-info query: failure: component-class-name=source.%s.%s, input=%s, "
+				BT_LOGD("babeltrace.support-info query: failure: component-class-name=source.%s.%s, input=%s, "
 					"type=%s, status=%s\n",
 					bt_plugin_get_name(plugin), bt_component_class_get_name(cc), input,
 					input_type,

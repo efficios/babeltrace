@@ -101,8 +101,8 @@ $ babeltrace2 query src.ctf.fs metadata-info \
 ====
 [role="term"]
 ----
-$ babeltrace2 query src.ctf.fs trace-info \
-                   --params='path="/path/to/trace"'
+$ babeltrace2 query src.ctf.fs babeltrace.trace-info \
+                    --params='path="/path/to/trace"'
 ----
 ====
 

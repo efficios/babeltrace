@@ -1884,11 +1884,11 @@ int set_stream_intersections(struct cmd_run_ctx *ctx,
 	const bt_component_class *comp_cls =
 		bt_component_class_source_as_component_class_const(src_comp_cls);
 
-	ret = query(ctx->cfg, comp_cls, "trace-info",
+	ret = query(ctx->cfg, comp_cls, "babeltrace.trace-info",
 		cfg_comp->params, &query_result,
 		&fail_reason);
 	if (ret) {
-		BT_LOGD("Component class does not support the `trace-info` query: %s: "
+		BT_LOGD("Component class does not support the `babeltrace.trace-info` query: %s: "
 			"comp-class-name=\"%s\"", fail_reason,
 			bt_component_class_get_name(comp_cls));
 		ret = -1;
@@ -1898,7 +1898,7 @@ int set_stream_intersections(struct cmd_run_ctx *ctx,
 	BT_ASSERT(query_result);
 
 	if (!bt_value_is_array(query_result)) {
-		BT_LOGD("Unexpected format of \'trace-info\' query result: "
+		BT_LOGD("Unexpected format of `babeltrace.trace-info` query result: "
 			"component-class-name=%s",
 			bt_component_class_get_name(comp_cls));
 		ret = -1;
