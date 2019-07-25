@@ -862,18 +862,22 @@ static
 bt_component_class_query_method_status component_class_query(
 		const bt_component_class *component_class,
 		bt_self_component_class *self_component_class,
-		const bt_query_executor *query_executor,
+		bt_private_query_executor *priv_query_executor,
 		const char *object, const bt_value *params,
-		bt_logging_level log_level,
 		const bt_value **result)
 {
 	PyObject *py_cls = NULL;
 	PyObject *py_params_ptr = NULL;
-	PyObject *py_query_exec_ptr = NULL;
+	PyObject *py_priv_query_exec_ptr = NULL;
 	PyObject *py_query_func = NULL;
 	PyObject *py_object = NULL;
 	PyObject *py_results_addr = NULL;
 	bt_component_class_query_method_status status = __BT_FUNC_STATUS_OK;
+	const bt_query_executor *query_exec =
+		bt_private_query_executor_as_query_executor_const(
+			priv_query_executor);
+	bt_logging_level log_level =
+		bt_query_executor_get_logging_level(query_exec);
 
 	py_cls = lookup_cc_ptr_to_py_cls(component_class);
 	if (!py_cls) {
@@ -891,9 +895,10 @@ bt_component_class_query_method_status component_class_query(
 		goto error;
 	}
 
-	py_query_exec_ptr = SWIG_NewPointerObj(SWIG_as_voidptr(query_executor),
-		SWIGTYPE_p_bt_query_executor, 0);
-	if (!py_query_exec_ptr) {
+	py_priv_query_exec_ptr = SWIG_NewPointerObj(
+		SWIG_as_voidptr(priv_query_executor),
+		SWIGTYPE_p_bt_private_query_executor, 0);
+	if (!py_priv_query_exec_ptr) {
 		BT_LOG_WRITE_CUR_LVL(BT_LOG_ERROR, log_level, BT_LOG_TAG,
 			"Failed to create a SWIG pointer object.");
 		goto error;
@@ -907,8 +912,8 @@ bt_component_class_query_method_status component_class_query(
 	}
 
 	py_results_addr = PyObject_CallMethod(py_cls,
-		"_bt_query_from_native", "(OOOi)", py_query_exec_ptr,
-		py_object, py_params_ptr, (int) log_level);
+		"_bt_query_from_native", "(OOO)", py_priv_query_exec_ptr,
+		py_object, py_params_ptr);
 	if (!py_results_addr) {
 		BT_LOG_WRITE_CUR_LVL(BT_LOG_WARNING, log_level, BT_LOG_TAG,
 			"Failed to call Python class's _bt_query_from_native() method: "
@@ -934,7 +939,7 @@ error:
 
 end:
 	Py_XDECREF(py_params_ptr);
-	Py_XDECREF(py_query_exec_ptr);
+	Py_XDECREF(py_priv_query_exec_ptr);
 	Py_XDECREF(py_query_func);
 	Py_XDECREF(py_object);
 	Py_XDECREF(py_results_addr);
@@ -944,46 +949,46 @@ end:
 static
 bt_component_class_query_method_status component_class_source_query(
 		bt_self_component_class_source *self_component_class_source,
-		const bt_query_executor *query_executor,
+		bt_private_query_executor *priv_query_executor,
 		const char *object, const bt_value *params,
-		bt_logging_level log_level,
 		const bt_value **result)
 {
 	const bt_component_class_source *component_class_source = bt_self_component_class_source_as_component_class_source(self_component_class_source);
 	const bt_component_class *component_class = bt_component_class_source_as_component_class_const(component_class_source);
 	bt_self_component_class *self_component_class = bt_self_component_class_source_as_self_component_class(self_component_class_source);
 
-	return component_class_query(component_class, self_component_class, query_executor, object, params, log_level, result);
+	return component_class_query(component_class, self_component_class,
+		priv_query_executor, object, params, result);
 }
 
 static
 bt_component_class_query_method_status component_class_filter_query(
 		bt_self_component_class_filter *self_component_class_filter,
-		const bt_query_executor *query_executor,
+		bt_private_query_executor *priv_query_executor,
 		const char *object, const bt_value *params,
-		bt_logging_level log_level,
 		const bt_value **result)
 {
 	const bt_component_class_filter *component_class_filter = bt_self_component_class_filter_as_component_class_filter(self_component_class_filter);
 	const bt_component_class *component_class = bt_component_class_filter_as_component_class_const(component_class_filter);
 	bt_self_component_class *self_component_class = bt_self_component_class_filter_as_self_component_class(self_component_class_filter);
 
-	return component_class_query(component_class, self_component_class, query_executor, object, params, log_level, result);
+	return component_class_query(component_class, self_component_class,
+		priv_query_executor, object, params, result);
 }
 
 static
 bt_component_class_query_method_status component_class_sink_query(
 		bt_self_component_class_sink *self_component_class_sink,
-		const bt_query_executor *query_executor,
+		bt_private_query_executor *priv_query_executor,
 		const char *object, const bt_value *params,
-		bt_logging_level log_level,
 		const bt_value **result)
 {
 	const bt_component_class_sink *component_class_sink = bt_self_component_class_sink_as_component_class_sink(self_component_class_sink);
 	const bt_component_class *component_class = bt_component_class_sink_as_component_class_const(component_class_sink);
 	bt_self_component_class *self_component_class = bt_self_component_class_sink_as_self_component_class(self_component_class_sink);
 
-	return component_class_query(component_class, self_component_class, query_executor, object, params, log_level, result);
+	return component_class_query(component_class, self_component_class,
+		priv_query_executor, object, params, result);
 }
 
 static

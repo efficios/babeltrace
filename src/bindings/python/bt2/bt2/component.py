@@ -573,7 +573,7 @@ class _UserComponentType(type):
     def addr(cls):
         return int(cls._bt_cc_ptr)
 
-    def _bt_query_from_native(cls, query_exec_ptr, obj, params_ptr, log_level):
+    def _bt_query_from_native(cls, priv_query_exec_ptr, obj, params_ptr):
         # this can raise, in which case the native call to
         # bt_component_class_query() returns NULL
         if params_ptr is not None:
@@ -581,12 +581,19 @@ class _UserComponentType(type):
         else:
             params = None
 
-        query_exec = bt2_query_executor.QueryExecutor._create_from_ptr_and_get_ref(
-            query_exec_ptr
-        )
+        priv_query_exec = bt2_query_executor._PrivateQueryExecutor(priv_query_exec_ptr)
 
-        # this can raise, but the native side checks the exception
-        results = cls._user_query(query_exec, obj, params, log_level)
+        try:
+            # this can raise, but the native side checks the exception
+            results = cls._user_query(priv_query_exec, obj, params)
+        finally:
+            # the private query executor is a private view on the query
+            # executor; it's not a shared object (the library does not
+            # offer an API to get/put a reference, just like "self"
+            # objects) from this query's point of view, so invalidate
+            # the object in case the user kept a reference and uses it
+            # later
+            priv_query_exec._invalidate()
 
         # this can raise, but the native side checks the exception
         results = bt2.create_value(results)
@@ -594,15 +601,13 @@ class _UserComponentType(type):
         if results is None:
             results_ptr = native_bt.value_null
         else:
-            # return new reference
             results_ptr = results._ptr
 
-        # We return a new reference.
+        # return new reference
         bt2_value._Value._get_ref(results_ptr)
-
         return int(results_ptr)
 
-    def _user_query(cls, query_executor, obj, params, log_level):
+    def _user_query(cls, priv_query_executor, obj, params):
         raise bt2.UnknownObject
 
     def _bt_component_class_ptr(self):

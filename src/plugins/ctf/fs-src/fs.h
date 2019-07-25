@@ -213,9 +213,8 @@ void ctf_fs_finalize(bt_self_component_source *component);
 BT_HIDDEN
 bt_component_class_query_method_status ctf_fs_query(
 		bt_self_component_class_source *comp_class,
-		const bt_query_executor *query_exec,
+		bt_private_query_executor *priv_query_exec,
 		const char *object, const bt_value *params,
-		bt_logging_level log_level,
 		const bt_value **result);
 
 BT_HIDDEN

@@ -54,16 +54,31 @@ void bt_query_executor_destroy(struct bt_object *obj)
 		query_exec->interrupters = NULL;
 	}
 
-	BT_OBJECT_PUT_REF_AND_RESET(query_exec->default_interrupter);
+	BT_LOGD_STR("Putting component class.");
+	BT_OBJECT_PUT_REF_AND_RESET(query_exec->comp_cls);
 
+	if (query_exec->object) {
+		g_string_free(query_exec->object, TRUE);
+		query_exec->object = NULL;
+	}
+
+	BT_LOGD_STR("Putting parameters.");
+	BT_OBJECT_PUT_REF_AND_RESET(query_exec->params);
+	BT_OBJECT_PUT_REF_AND_RESET(query_exec->default_interrupter);
 	g_free(query_exec);
 }
 
-struct bt_query_executor *bt_query_executor_create(void)
+struct bt_query_executor *bt_query_executor_create(
+		const bt_component_class *comp_cls, const char *object,
+		const bt_value *params)
 {
 	struct bt_query_executor *query_exec;
 
-	BT_LOGD_STR("Creating query executor.");
+	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
+	BT_ASSERT_PRE_NON_NULL(object, "Object");
+	BT_LIB_LOGD("Creating query executor: "
+		"%![comp-cls-]+C, object=\"%s\", %![params-]%+v",
+		comp_cls, object, params);
 	query_exec = g_new0(struct bt_query_executor, 1);
 	if (!query_exec) {
 		BT_LIB_LOGE_APPEND_CAUSE(
@@ -87,11 +102,31 @@ struct bt_query_executor *bt_query_executor_create(void)
 		goto end;
 	}
 
+	query_exec->object = g_string_new(object);
+	if (!query_exec->object) {
+		BT_LIB_LOGE_APPEND_CAUSE("Failed to allocate one GString.");
+		BT_OBJECT_PUT_REF_AND_RESET(query_exec);
+		goto end;
+	}
+
+	query_exec->comp_cls = comp_cls;
+	bt_object_get_no_null_check(query_exec->comp_cls);
+
+	if (!params) {
+		query_exec->params = bt_value_null;
+	} else {
+		query_exec->params = params;
+	}
+
+	bt_object_get_no_null_check(query_exec->params);
+	query_exec->log_level = BT_LOGGING_LEVEL_NONE;
 	bt_query_executor_add_interrupter(query_exec,
 		query_exec->default_interrupter);
 	bt_object_init_shared(&query_exec->base,
 		bt_query_executor_destroy);
-	BT_LOGD("Created query executor: addr=%p", query_exec);
+	BT_LIB_LOGD("Created query executor: "
+		"addr=%p, %![comp-cls-]+C, object=\"%s\", %![params-]%+v",
+		query_exec, comp_cls, object, params);
 
 end:
 	return (void *) query_exec;
@@ -99,22 +134,20 @@ end:
 
 enum bt_query_executor_query_status bt_query_executor_query(
 		struct bt_query_executor *query_exec,
-		const struct bt_component_class *comp_cls,
-		const char *object, const struct bt_value *params,
-		enum bt_logging_level log_level,
 		const struct bt_value **user_result)
 {
-	typedef enum bt_component_class_query_method_status (*method_t)(void *,
-		const void *, const void *, const void *, enum bt_logging_level,
-		const void *);
+	typedef enum bt_component_class_query_method_status (*method_t)(
+		void * /* self component class */,
+		void * /* private query executor */,
+		const char * /* object */,
+		const struct bt_value * /* parameters */,
+		const struct bt_value ** /* result */);
 
 	enum bt_query_executor_query_status status;
 	enum bt_component_class_query_method_status query_status;
 	method_t method = NULL;
 
 	BT_ASSERT_PRE_NON_NULL(query_exec, "Query executor");
-	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
-	BT_ASSERT_PRE_NON_NULL(object, "Object");
 	BT_ASSERT_PRE_NON_NULL(user_result, "Result (output)");
 
 	/*
@@ -133,34 +166,34 @@ enum bt_query_executor_query_status bt_query_executor_query(
 			"not performing the query operation: "
 			"query-exec-addr=%p, %![cc-]+C, object=\"%s\", "
 			"%![params-]+v, log-level=%s",
-			query_exec, comp_cls, object, params,
-			bt_common_logging_level_string(log_level));
+			query_exec, query_exec->comp_cls,
+			query_exec->object->str, query_exec->params,
+			bt_common_logging_level_string(query_exec->log_level));
 		status = BT_FUNC_STATUS_AGAIN;
 		goto end;
 	}
 
-	if (!params) {
-		params = bt_value_null;
-	}
-
-	switch (comp_cls->type) {
+	switch (query_exec->comp_cls->type) {
 	case BT_COMPONENT_CLASS_TYPE_SOURCE:
 	{
-		struct bt_component_class_source *src_cc = (void *) comp_cls;
+		struct bt_component_class_source *src_cc = (void *)
+			query_exec->comp_cls;
 
 		method = (method_t) src_cc->methods.query;
 		break;
 	}
 	case BT_COMPONENT_CLASS_TYPE_FILTER:
 	{
-		struct bt_component_class_filter *flt_cc = (void *) comp_cls;
+		struct bt_component_class_filter *flt_cc = (void *)
+			query_exec->comp_cls;
 
 		method = (method_t) flt_cc->methods.query;
 		break;
 	}
 	case BT_COMPONENT_CLASS_TYPE_SINK:
 	{
-		struct bt_component_class_sink *sink_cc = (void *) comp_cls;
+		struct bt_component_class_sink *sink_cc = (void *)
+			query_exec->comp_cls;
 
 		method = (method_t) sink_cc->methods.query;
 		break;
@@ -172,7 +205,7 @@ enum bt_query_executor_query_status bt_query_executor_query(
 	if (!method) {
 		/* Not an error: nothing to query */
 		BT_LIB_LOGD("Component class has no registered query method: "
-			"%!+C", comp_cls);
+			"%!+C", query_exec->comp_cls);
 		status = BT_FUNC_STATUS_UNKNOWN_OBJECT;
 		goto end;
 	}
@@ -180,11 +213,13 @@ enum bt_query_executor_query_status bt_query_executor_query(
 	BT_LIB_LOGD("Calling user's query method: "
 		"query-exec-addr=%p, %![cc-]+C, object=\"%s\", %![params-]+v, "
 		"log-level=%s",
-		query_exec, comp_cls, object, params,
-		bt_common_logging_level_string(log_level));
+		query_exec, query_exec->comp_cls, query_exec->object->str,
+		query_exec->params,
+		bt_common_logging_level_string(query_exec->log_level));
 	*user_result = NULL;
-	query_status = method((void *) comp_cls, query_exec, object, params,
-		log_level, user_result);
+	query_status = method((void *) query_exec->comp_cls,
+		(void *) query_exec, query_exec->object->str,
+		query_exec->params, user_result);
 	BT_LIB_LOGD("User method returned: status=%s, %![res-]+v",
 		bt_common_func_status_string(query_status), *user_result);
 	BT_ASSERT_POST(query_status != BT_FUNC_STATUS_OK || *user_result,
@@ -195,8 +230,10 @@ enum bt_query_executor_query_status bt_query_executor_query(
 		BT_LIB_LOGW_APPEND_CAUSE(
 			"Component class's \"query\" method failed: "
 			"query-exec-addr=%p, %![cc-]+C, object=\"%s\", "
-			"%![params-]+v, log-level=%s", query_exec, comp_cls,
-			object, params, bt_common_logging_level_string(log_level));
+			"%![params-]+v, log-level=%s", query_exec,
+			query_exec->comp_cls, query_exec->object->str,
+			query_exec->params,
+			bt_common_logging_level_string(query_exec->log_level));
 		goto end;
 	}
 
@@ -231,6 +268,22 @@ void bt_query_executor_interrupt(struct bt_query_executor *query_exec)
 	bt_interrupter_set(query_exec->default_interrupter);
 	BT_LIB_LOGI("Interrupted query executor: query-exec-addr=%p",
 		query_exec);
+}
+
+enum bt_query_executor_set_logging_level_status
+bt_query_executor_set_logging_level(struct bt_query_executor *query_exec,
+		enum bt_logging_level log_level)
+{
+	BT_ASSERT_PRE_NON_NULL(query_exec, "Query executor");
+	query_exec->log_level = log_level;
+	return BT_FUNC_STATUS_OK;
+}
+
+enum bt_logging_level bt_query_executor_get_logging_level(
+		const struct bt_query_executor *query_exec)
+{
+	BT_ASSERT_PRE_NON_NULL(query_exec, "Query executor");
+	return query_exec->log_level;
 }
 
 void bt_query_executor_get_ref(const struct bt_query_executor *query_executor)

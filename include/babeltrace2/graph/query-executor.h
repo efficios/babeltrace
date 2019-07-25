@@ -35,7 +35,9 @@ extern "C" {
 #endif
 
 extern
-bt_query_executor *bt_query_executor_create(void);
+bt_query_executor *bt_query_executor_create(
+		const bt_component_class *component_class, const char *object,
+		const bt_value *params);
 
 typedef enum bt_query_executor_query_status {
 	BT_QUERY_EXECUTOR_QUERY_STATUS_OK		= __BT_FUNC_STATUS_OK,
@@ -47,10 +49,7 @@ typedef enum bt_query_executor_query_status {
 
 extern
 bt_query_executor_query_status bt_query_executor_query(
-		bt_query_executor *query_executor,
-		const bt_component_class *component_class,
-		const char *object, const bt_value *params,
-		bt_logging_level logging_level, const bt_value **result);
+		bt_query_executor *query_executor, const bt_value **result);
 
 typedef enum bt_query_executor_add_interrupter_status {
 	BT_QUERY_EXECUTOR_ADD_INTERRUPTER_STATUS_OK	= __BT_FUNC_STATUS_OK,
@@ -62,6 +61,14 @@ bt_query_executor_add_interrupter(bt_query_executor *query_executor,
 		const bt_interrupter *interrupter);
 
 extern void bt_query_executor_interrupt(bt_query_executor *query_executor);
+
+typedef enum bt_query_executor_set_logging_level_status {
+	BT_QUERY_EXECUTOR_SET_LOGGING_LEVEL_STATUS_OK	= __BT_FUNC_STATUS_OK,
+} bt_query_executor_set_logging_level_status;
+
+extern bt_query_executor_set_logging_level_status
+bt_query_executor_set_logging_level(bt_query_executor *query_executor,
+		bt_logging_level logging_level);
 
 #ifdef __cplusplus
 }

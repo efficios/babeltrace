@@ -129,11 +129,10 @@ static void test_sfs(const char *plugin_dir)
 	bt_graph *graph;
 	const char *object_str;
 	bt_graph_add_component_status graph_ret;
-	bt_query_executor *query_exec = bt_query_executor_create();
+	bt_query_executor *query_exec;
 	int ret;
 	bt_plugin_find_all_from_file_status status;
 
-	BT_ASSERT(query_exec);
 	BT_ASSERT(sfs_path);
 	diag("sfs plugin test below");
 
@@ -181,9 +180,11 @@ static void test_sfs(const char *plugin_dir)
 		"bt_plugin_borrow_filter_component_class_by_name_const() finds a filter component class");
 	params = bt_value_integer_signed_create_init(23);
 	BT_ASSERT(params);
-	ret = bt_query_executor_query(query_exec,
-		bt_component_class_filter_as_component_class_const(filter_comp_class),
-		"get-something", params, BT_LOGGING_LEVEL_NONE, &results);
+	query_exec = bt_query_executor_create(
+		bt_component_class_filter_as_component_class_const(
+			filter_comp_class), "get-something", params);
+	BT_ASSERT(query_exec);
+	ret = bt_query_executor_query(query_exec, &results);
 	ok(ret == 0 && results, "bt_query_executor_query() succeeds");
 	BT_ASSERT(bt_value_is_array(results) && bt_value_array_get_size(results) == 2);
 	object = bt_value_array_borrow_element_by_index_const(results, 0);

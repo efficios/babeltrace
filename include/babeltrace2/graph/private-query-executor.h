@@ -1,8 +1,8 @@
-#ifndef BABELTRACE_GRAPH_QUERY_EXECUTOR_INTERNAL_H
-#define BABELTRACE_GRAPH_QUERY_EXECUTOR_INTERNAL_H
+#ifndef BABELTRACE2_GRAPH_PRIVATE_QUERY_EXECUTOR_H
+#define BABELTRACE2_GRAPH_PRIVATE_QUERY_EXECUTOR_H
 
 /*
- * Copyright 2017-2018 Philippe Proulx <pproulx@efficios.com>
+ * Copyright (c) 2010-2019 EfficiOS Inc. and Linux Foundation
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,40 +23,26 @@
  * SOFTWARE.
  */
 
-#include <glib.h>
+#ifndef __BT_IN_BABELTRACE_H
+# error "Please include <babeltrace2/babeltrace.h> instead."
+#endif
 
 #include <babeltrace2/types.h>
-#include <babeltrace2/graph/query-executor.h>
-#include <babeltrace2/graph/component-class.h>
 
-#include "lib/object.h"
-#include "lib/value.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-struct bt_query_executor {
-	struct bt_object base;
+static inline
+const bt_query_executor *
+bt_private_query_executor_as_query_executor_const(
+		bt_private_query_executor *query_executor)
+{
+	return __BT_UPCAST_CONST(bt_query_executor, query_executor);
+}
 
-	/*
-	 * Array of `struct bt_interrupter *`, each one owned by this.
-	 * If any interrupter is set, then this query executor is deemed
-	 * interrupted.
-	 */
-	GPtrArray *interrupters;
+#ifdef __cplusplus
+}
+#endif
 
-	/*
-	 * Default interrupter to support bt_query_executor_interrupt();
-	 * owned by this.
-	 */
-	struct bt_interrupter *default_interrupter;
-
-	/* Owned by this */
-	const struct bt_component_class *comp_cls;
-
-	GString *object;
-
-	/* Owned by this */
-	const struct bt_value *params;
-
-	enum bt_logging_level log_level;
-};
-
-#endif /* BABELTRACE_GRAPH_QUERY_EXECUTOR_INTERNAL_H */
+#endif /* BABELTRACE2_GRAPH_PRIVATE_QUERY_EXECUTOR_H */

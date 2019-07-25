@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-#define BT_LOG_TAG "CLI"
+#define BT_LOG_TAG "CLI/PLUGINS"
 #include "logging.h"
 
 #include "babeltrace2-plugins.h"

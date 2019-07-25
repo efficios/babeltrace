@@ -160,10 +160,10 @@ class TraceCollectionMessageIterator(bt2_message_iterator._MessageIterator):
         # query the port's component for the `babeltrace.trace-info`
         # object which contains the stream intersection range for each
         # exposed trace
-        query_exec = bt2.QueryExecutor()
-        trace_info_res = query_exec.query(
+        query_exec = bt2.QueryExecutor(
             src_comp_and_spec.comp.cls, 'babeltrace.trace-info', params
         )
+        trace_info_res = query_exec.query()
         begin = None
         end = None
 

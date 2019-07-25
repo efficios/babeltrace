@@ -70,7 +70,7 @@ class SinkWithFailingQuery(bt2._UserSinkComponent):
         pass
 
     @staticmethod
-    def _user_query(executor, obj, params, log_level):
+    def _user_query(priv_executor, obj, params):
         raise ValueError('Query is failing')
 
 
@@ -177,10 +177,10 @@ class ErrorTestCase(unittest.TestCase):
         self.assertIsNone(cause.plugin_name)
 
     def test_component_class_error_cause(self):
-        q = bt2.QueryExecutor()
+        q = bt2.QueryExecutor(SinkWithFailingQuery, 'hello')
 
         with self.assertRaises(bt2._Error) as ctx:
-            q.query(SinkWithFailingQuery, 'hello')
+            q.query()
 
         cause = ctx.exception[0]
         self.assertIs(type(cause), bt2._ComponentClassErrorCause)

@@ -40,7 +40,6 @@ class QueryTraceInfoClockOffsetTestCase(unittest.TestCase):
         self._inputs = [
             os.path.join(test_ctf_traces_path, 'intersection', '3eventsintersect')
         ]
-        self._executor = bt2.QueryExecutor()
 
     def _check(self, trace, offset):
         self.assertEqual(trace['range-ns']['begin'], 13515309000000000 + offset)
@@ -64,38 +63,38 @@ class QueryTraceInfoClockOffsetTestCase(unittest.TestCase):
     # Without clock class offset
 
     def test_no_clock_class_offset(self):
-        res = self._executor.query(
+        res = bt2.QueryExecutor(
             self._fs, 'babeltrace.trace-info', {'inputs': self._inputs}
-        )
+        ).query()
         trace = res[0]
         self._check(trace, 0)
 
     # With clock-class-offset-s
 
     def test_clock_class_offset_s(self):
-        res = self._executor.query(
+        res = bt2.QueryExecutor(
             self._fs,
             'babeltrace.trace-info',
             {'inputs': self._inputs, 'clock-class-offset-s': 2},
-        )
+        ).query()
         trace = res[0]
         self._check(trace, 2000000000)
 
     # With clock-class-offset-ns
 
     def test_clock_class_offset_ns(self):
-        res = self._executor.query(
+        res = bt2.QueryExecutor(
             self._fs,
             'babeltrace.trace-info',
             {'inputs': self._inputs, 'clock-class-offset-ns': 2},
-        )
+        ).query()
         trace = res[0]
         self._check(trace, 2)
 
     # With both, negative
 
     def test_clock_class_offset_both(self):
-        res = self._executor.query(
+        res = bt2.QueryExecutor(
             self._fs,
             'babeltrace.trace-info',
             {
@@ -103,41 +102,41 @@ class QueryTraceInfoClockOffsetTestCase(unittest.TestCase):
                 'clock-class-offset-s': -2,
                 'clock-class-offset-ns': -2,
             },
-        )
+        ).query()
         trace = res[0]
         self._check(trace, -2000000002)
 
     def test_clock_class_offset_s_wrong_type(self):
         with self.assertRaises(bt2._Error):
-            self._executor.query(
+            bt2.QueryExecutor(
                 self._fs,
                 'babeltrace.trace-info',
                 {'inputs': self._inputs, 'clock-class-offset-s': "2"},
-            )
+            ).query()
 
     def test_clock_class_offset_s_wrong_type_none(self):
         with self.assertRaises(bt2._Error):
-            self._executor.query(
+            bt2.QueryExecutor(
                 self._fs,
                 'babeltrace.trace-info',
                 {'inputs': self._inputs, 'clock-class-offset-s': None},
-            )
+            ).query()
 
     def test_clock_class_offset_ns_wrong_type(self):
         with self.assertRaises(bt2._Error):
-            self._executor.query(
+            bt2.QueryExecutor(
                 self._fs,
                 'babeltrace.trace-info',
                 {'inputs': self._inputs, 'clock-class-offset-ns': "2"},
-            )
+            ).query()
 
     def test_clock_class_offset_ns_wrong_type_none(self):
         with self.assertRaises(bt2._Error):
-            self._executor.query(
+            bt2.QueryExecutor(
                 self._fs,
                 'babeltrace.trace-info',
                 {'inputs': self._inputs, 'clock-class-offset-ns': None},
-            )
+            ).query()
 
 
 class QueryTraceInfoPortNameTestCase(unittest.TestCase):
@@ -145,10 +144,8 @@ class QueryTraceInfoPortNameTestCase(unittest.TestCase):
         ctf = bt2.find_plugin("ctf")
         self._fs = ctf.source_component_classes["fs"]
 
-        self._executor = bt2.QueryExecutor()
-
     def test_trace_uuid_stream_class_id_no_stream_id(self):
-        res = self._executor.query(
+        res = bt2.QueryExecutor(
             self._fs,
             "babeltrace.trace-info",
             {
@@ -158,7 +155,7 @@ class QueryTraceInfoPortNameTestCase(unittest.TestCase):
                     )
                 ]
             },
-        )
+        ).query()
 
         os_stream_path = PurePosixPath(
             '/tests/data/ctf-traces/intersection/3eventsintersect/'
@@ -184,11 +181,11 @@ class QueryTraceInfoPortNameTestCase(unittest.TestCase):
         )
 
     def test_trace_uuid_no_stream_class_id_no_stream_id(self):
-        res = self._executor.query(
+        res = bt2.QueryExecutor(
             self._fs,
             "babeltrace.trace-info",
             {"inputs": [os.path.join(test_ctf_traces_path, "succeed", "succeed1")]},
-        )
+        ).query()
 
         os_stream_path = PurePosixPath(
             '/tests/data/ctf-traces/succeed/succeed1/dummystream'
@@ -213,19 +210,17 @@ class QueryTraceInfoRangeTestCase(unittest.TestCase):
         ctf = bt2.find_plugin("ctf")
         self._fs = ctf.source_component_classes["fs"]
 
-        self._executor = bt2.QueryExecutor()
-
     def test_trace_no_range(self):
         # This trace has no `timestamp_begin` and `timestamp_end` in its
         # packet context. The `babeltrace.trace-info` query should omit
         # the `range-ns` fields in the `trace` and `stream` data
         # structures.
 
-        res = self._executor.query(
+        res = bt2.QueryExecutor(
             self._fs,
             "babeltrace.trace-info",
             {"inputs": [os.path.join(test_ctf_traces_path, "succeed", "succeed1")]},
-        )
+        ).query()
 
         self.assertEqual(len(res), 1)
         trace = res[0]

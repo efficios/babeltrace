@@ -36,6 +36,9 @@ extern "C" {
 extern bt_bool bt_query_executor_is_interrupted(
 		const bt_query_executor *query_executor);
 
+extern bt_logging_level bt_query_executor_get_logging_level(
+		const bt_query_executor *query_executor);
+
 extern void bt_query_executor_get_ref(const bt_query_executor *query_executor);
 
 extern void bt_query_executor_put_ref(const bt_query_executor *query_executor);

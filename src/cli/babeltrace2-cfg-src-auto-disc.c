@@ -25,6 +25,7 @@
 
 #include "babeltrace2-cfg-src-auto-disc.h"
 #include "babeltrace2-plugins.h"
+#include "babeltrace2-query.h"
 #include "common/common.h"
 
 /* Finalize and free a `struct auto_source_discovery_result`. */
@@ -241,8 +242,7 @@ end:
  */
 static
 int support_info_query_all_sources(const char *input,
-		const char *input_type,
-		bt_query_executor *query_executor, size_t plugin_count,
+		const char *input_type, size_t plugin_count,
 		const char *plugin_restrict,
 		const char *component_class_restrict,
 		enum bt_logging_level log_level,
@@ -319,8 +319,9 @@ int support_info_query_all_sources(const char *input,
 				"type=%s", plugin_name, source_cc_name, input, input_type);
 
 			BT_VALUE_PUT_REF_AND_RESET(query_result);
-			query_status = bt_query_executor_query(query_executor, cc, "babeltrace.support-info",
-				query_params, log_level, &query_result);
+			query_status = cli_query(cc, "babeltrace.support-info",
+				query_params, log_level, NULL, &query_result,
+				NULL);
 
 			if (query_status == BT_QUERY_EXECUTOR_QUERY_STATUS_OK) {
 				double weight;
@@ -470,21 +471,19 @@ end:
 
 static
 int auto_discover_source_for_input_as_string(const char *input,
-		bt_query_executor *query_executor, size_t plugin_count,
-		const char *plugin_restrict,
+		size_t plugin_count, const char *plugin_restrict,
 		const char *component_class_restrict,
 		enum bt_logging_level log_level,
 		struct auto_source_discovery *auto_disc)
 {
 	return support_info_query_all_sources(input, "string",
-		query_executor, plugin_count, plugin_restrict,
-		component_class_restrict, log_level, auto_disc);
+		plugin_count, plugin_restrict, component_class_restrict,
+		log_level, auto_disc);
 }
 
 static
 int auto_discover_source_for_input_as_dir_or_file_rec(GString *input,
-		bt_query_executor *query_executor, size_t plugin_count,
-		const char *plugin_restrict,
+		size_t plugin_count, const char *plugin_restrict,
 		const char *component_class_restrict,
 		enum bt_logging_level log_level,
 		struct auto_source_discovery *auto_disc)
@@ -495,7 +494,7 @@ int auto_discover_source_for_input_as_dir_or_file_rec(GString *input,
 	if (g_file_test(input->str, G_FILE_TEST_IS_REGULAR)) {
 		/* It's a file. */
 		status = support_info_query_all_sources(input->str,
-			"file", query_executor, plugin_count,
+			"file", plugin_count,
 			plugin_restrict, component_class_restrict, log_level, auto_disc);
 	} else if (g_file_test(input->str, G_FILE_TEST_IS_DIR)) {
 		GDir *dir;
@@ -505,7 +504,7 @@ int auto_discover_source_for_input_as_dir_or_file_rec(GString *input,
 
 		/* It's a directory. */
 		status = support_info_query_all_sources(input->str,
-			"directory", query_executor, plugin_count,
+			"directory", plugin_count,
 			plugin_restrict, component_class_restrict, log_level,
 			auto_disc);
 
@@ -546,7 +545,7 @@ int auto_discover_source_for_input_as_dir_or_file_rec(GString *input,
 				g_string_append(input, dirent);
 
 				status = auto_discover_source_for_input_as_dir_or_file_rec(
-					input, query_executor, plugin_count,
+					input, plugin_count,
 					plugin_restrict, component_class_restrict,
 					log_level, auto_disc);
 
@@ -596,8 +595,7 @@ end:
 
 static
 int auto_discover_source_for_input_as_dir_or_file(const char *input,
-		bt_query_executor *query_executor, size_t plugin_count,
-		const char *plugin_restrict,
+		size_t plugin_count, const char *plugin_restrict,
 		const char *component_class_restrict,
 		enum bt_logging_level log_level,
 		struct auto_source_discovery *auto_disc)
@@ -612,7 +610,7 @@ int auto_discover_source_for_input_as_dir_or_file(const char *input,
 	}
 
 	status = auto_discover_source_for_input_as_dir_or_file_rec(
-		mutable_input, query_executor, plugin_count, plugin_restrict,
+		mutable_input, plugin_count, plugin_restrict,
 		component_class_restrict, log_level, auto_disc);
 
 	g_string_free(mutable_input, TRUE);
@@ -631,7 +629,6 @@ int auto_discover_source_components(
 	uint64_t i_inputs, input_count;
 	int status;
 	size_t plugin_count;
-	bt_query_executor *query_executor = NULL;
 
 	input_count = bt_value_array_get_size(inputs);
 
@@ -642,19 +639,13 @@ int auto_discover_source_components(
 
 	plugin_count = get_loaded_plugins_count();
 
-	query_executor = bt_query_executor_create();
-	if (!query_executor) {
-		BT_CLI_LOGE_APPEND_CAUSE("Failed to allocate a query executor.");
-		goto end;
-	}
-
 	for (i_inputs = 0; i_inputs < input_count; i_inputs++) {
 		const bt_value *input_value;
 		const char *input;
 
 		input_value = bt_value_array_borrow_element_by_index_const(inputs, i_inputs);
 		input = bt_value_string_get(input_value);
-		status = auto_discover_source_for_input_as_string(input, query_executor,
+		status = auto_discover_source_for_input_as_string(input,
 			plugin_count, plugin_restrict, component_class_restrict,
 			log_level, auto_disc);
 		if (status < 0) {
@@ -666,8 +657,8 @@ int auto_discover_source_components(
 		}
 
 		status = auto_discover_source_for_input_as_dir_or_file(input,
-			query_executor, plugin_count, plugin_restrict,
-			component_class_restrict, log_level, auto_disc);
+			plugin_count, plugin_restrict, component_class_restrict,
+			log_level, auto_disc);
 		if (status < 0) {
 			/* Fatal error. */
 			goto end;
@@ -683,6 +674,5 @@ int auto_discover_source_components(
 
 	status = 0;
 end:
-	bt_query_executor_put_ref(query_executor);
 	return status;
 }
