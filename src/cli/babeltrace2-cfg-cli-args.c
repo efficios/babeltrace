@@ -1344,6 +1344,31 @@ void print_expected_params_format(FILE *fp)
 	fprintf(fp, "babeltrace2 from a shell.\n");
 }
 
+static
+bool help_option_is_specified(
+		const struct bt_argpar_parse_ret *argpar_parse_ret)
+{
+	int i;
+	bool specified = false;
+
+	for (i = 0; i < argpar_parse_ret->items->len; i++) {
+		struct bt_argpar_item *argpar_item =
+			g_ptr_array_index(argpar_parse_ret->items, i);
+		struct bt_argpar_item_opt *argpar_item_opt;
+
+		if (argpar_item->type != BT_ARGPAR_ITEM_TYPE_OPT) {
+			continue;
+		}
+
+		argpar_item_opt = (struct bt_argpar_item_opt *) argpar_item;
+		if (argpar_item_opt->descr->id == OPT_HELP) {
+			specified = true;
+			break;
+		}
+	}
+
+	return specified;
+}
 
 /*
  * Prints the help command usage.
@@ -1943,13 +1968,11 @@ struct bt_config *bt_config_run_from_args(int argc, const char *argv[],
 		bool force_omit_home_plugin_path,
 		const bt_value *initial_plugin_paths, int default_log_level)
 {
-	poptContext pc = NULL;
-	char *arg = NULL;
 	struct bt_config_component *cur_cfg_comp = NULL;
 	enum bt_config_component_dest cur_cfg_comp_dest =
 			BT_CONFIG_COMPONENT_DEST_UNKNOWN;
 	bt_value *cur_base_params = NULL;
-	int opt, ret = 0;
+	int ret = 0;
 	struct bt_config *cfg = NULL;
 	bt_value *instance_names = NULL;
 	bt_value *connection_args = NULL;
@@ -1957,20 +1980,23 @@ struct bt_config *bt_config_run_from_args(int argc, const char *argv[],
 	long retry_duration = -1;
 	bt_value_map_extend_status extend_status;
 	GString *error_str = NULL;
-	struct poptOption run_long_options[] = {
-		{ "base-params", 'b', POPT_ARG_STRING, NULL, OPT_BASE_PARAMS, NULL, NULL },
-		{ "component", 'c', POPT_ARG_STRING, NULL, OPT_COMPONENT, NULL, NULL },
-		{ "connect", 'x', POPT_ARG_STRING, NULL, OPT_CONNECT, NULL, NULL },
-		{ "help", 'h', POPT_ARG_NONE, NULL, OPT_HELP, NULL, NULL },
-		{ "log-level", 'l', POPT_ARG_STRING, NULL, OPT_LOG_LEVEL, NULL, NULL },
-		{ "name", 'n', POPT_ARG_STRING, NULL, OPT_NAME, NULL, NULL },
-		{ "omit-home-plugin-path", '\0', POPT_ARG_NONE, NULL, OPT_OMIT_HOME_PLUGIN_PATH, NULL, NULL },
-		{ "omit-system-plugin-path", '\0', POPT_ARG_NONE, NULL, OPT_OMIT_SYSTEM_PLUGIN_PATH, NULL, NULL },
-		{ "params", 'p', POPT_ARG_STRING, NULL, OPT_PARAMS, NULL, NULL },
-		{ "plugin-path", '\0', POPT_ARG_STRING, NULL, OPT_PLUGIN_PATH, NULL, NULL },
-		{ "reset-base-params", 'r', POPT_ARG_NONE, NULL, OPT_RESET_BASE_PARAMS, NULL, NULL },
-		{ "retry-duration", '\0', POPT_ARG_LONG, &retry_duration, OPT_RETRY_DURATION, NULL, NULL },
-		{ NULL, 0, '\0', NULL, 0, NULL, NULL },
+	struct bt_argpar_parse_ret argpar_parse_ret = { 0 };
+	int i;
+
+	static const struct bt_argpar_opt_descr run_options[] = {
+		{ OPT_BASE_PARAMS, 'b', "base-params", true },
+		{ OPT_COMPONENT, 'c', "component", true },
+		{ OPT_CONNECT, 'x', "connect", true },
+		{ OPT_HELP, 'h', "help", false },
+		{ OPT_LOG_LEVEL, 'l', "log-level", true },
+		{ OPT_NAME, 'n', "name", true },
+		{ OPT_OMIT_HOME_PLUGIN_PATH, '\0', "omit-home-plugin-path", false },
+		{ OPT_OMIT_SYSTEM_PLUGIN_PATH, '\0', "omit-system-plugin-path", false },
+		{ OPT_PARAMS, 'p', "params", true },
+		{ OPT_PLUGIN_PATH, '\0', "plugin-path", true },
+		{ OPT_RESET_BASE_PARAMS, 'r', "reset-base-params", false },
+		{ OPT_RETRY_DURATION, '\0', "retry-duration", true },
+		BT_ARGPAR_OPT_DESCR_SENTINEL
 	};
 
 	*retcode = 0;
@@ -2019,19 +2045,41 @@ struct bt_config *bt_config_run_from_args(int argc, const char *argv[],
 	}
 
 	/* Parse options */
-	pc = poptGetContext(NULL, argc, (const char **) argv,
-		run_long_options, POPT_CONTEXT_KEEP_FIRST);
-	if (!pc) {
-		BT_CLI_LOGE_APPEND_CAUSE("Cannot get popt context.");
+	argpar_parse_ret = bt_argpar_parse(argc, argv, run_options, true);
+	if (argpar_parse_ret.error) {
+		BT_CLI_LOGE_APPEND_CAUSE(
+			"While parsing `run` command's command-line arguments: %s",
+			argpar_parse_ret.error->str);
 		goto error;
 	}
 
-	poptReadDefaultConfig(pc, 0);
+	if (help_option_is_specified(&argpar_parse_ret)) {
+		print_run_usage(stdout);
+		*retcode = -1;
+		BT_OBJECT_PUT_REF_AND_RESET(cfg);
+		goto end;
+	}
 
-	while ((opt = poptGetNextOpt(pc)) > 0) {
-		arg = poptGetOptArg(pc);
+	for (i = 0; i < argpar_parse_ret.items->len; i++) {
+		struct bt_argpar_item *argpar_item =
+			g_ptr_array_index(argpar_parse_ret.items, i);
+		struct bt_argpar_item_opt *argpar_item_opt;
+		const char *arg;
 
-		switch (opt) {
+		/* This command does not accept leftover arguments. */
+		if (argpar_item->type == BT_ARGPAR_ITEM_TYPE_NON_OPT) {
+			struct bt_argpar_item_non_opt *argpar_nonopt_item =
+				(struct bt_argpar_item_non_opt *) argpar_item;
+
+			BT_CLI_LOGE_APPEND_CAUSE("Unexpected argument: `%s`",
+				argpar_nonopt_item->arg);
+			goto error;
+		}
+
+		argpar_item_opt = (struct bt_argpar_item_opt *) argpar_item;
+		arg = argpar_item_opt->arg;
+
+		switch (argpar_item_opt->descr->id) {
 		case OPT_PLUGIN_PATH:
 			if (bt_config_append_plugin_paths_check_setuid_setgid(
 					cfg->plugin_paths, arg)) {
@@ -2173,7 +2221,19 @@ struct bt_config *bt_config_run_from_args(int argc, const char *argv[],
 				goto error;
 			}
 			break;
-		case OPT_RETRY_DURATION:
+		case OPT_RETRY_DURATION: {
+			gchar *end;
+			size_t arg_len = strlen(argpar_item_opt->arg);
+
+			retry_duration = g_ascii_strtoll(argpar_item_opt->arg, &end, 10);
+
+			if (arg_len == 0 || end != (argpar_item_opt->arg + arg_len)) {
+				BT_CLI_LOGE_APPEND_CAUSE(
+					"Could not parse --retry-duration option's argument as an unsigned integer: `%s`",
+					argpar_item_opt->arg);
+				goto error;
+			}
+
 			if (retry_duration < 0) {
 				BT_CLI_LOGE_APPEND_CAUSE("--retry-duration option's argument must be positive or 0: %ld",
 					retry_duration);
@@ -2183,32 +2243,12 @@ struct bt_config *bt_config_run_from_args(int argc, const char *argv[],
 			cfg->cmd_data.run.retry_duration_us =
 				(uint64_t) retry_duration;
 			break;
-		case OPT_HELP:
-			print_run_usage(stdout);
-			*retcode = -1;
-			BT_OBJECT_PUT_REF_AND_RESET(cfg);
-			goto end;
+		}
 		default:
 			BT_CLI_LOGE_APPEND_CAUSE("Unknown command-line option specified (option code %d).",
-				opt);
+				argpar_item_opt->descr->id);
 			goto error;
 		}
-
-		free(arg);
-		arg = NULL;
-	}
-
-	/* Check for option parsing error */
-	if (opt < -1) {
-		BT_CLI_LOGE_APPEND_CAUSE("While parsing command-line options, at option %s: %s",
-			poptBadOption(pc, 0), poptStrerror(opt));
-		goto error;
-	}
-
-	/* This command does not accept leftover arguments */
-	if (poptPeekArg(pc)) {
-		BT_CLI_LOGE_APPEND_CAUSE("Unexpected argument: %s", poptPeekArg(pc));
-		goto error;
 	}
 
 	/* Add current component */
@@ -2250,15 +2290,11 @@ error:
 	BT_OBJECT_PUT_REF_AND_RESET(cfg);
 
 end:
-	if (pc) {
-		poptFreeContext(pc);
-	}
-
 	if (error_str) {
 		g_string_free(error_str, TRUE);
 	}
 
-	free(arg);
+	bt_argpar_parse_ret_fini(&argpar_parse_ret);
 	BT_OBJECT_PUT_REF_AND_RESET(cur_cfg_comp);
 	BT_VALUE_PUT_REF_AND_RESET(cur_base_params);
 	BT_VALUE_PUT_REF_AND_RESET(instance_names);
