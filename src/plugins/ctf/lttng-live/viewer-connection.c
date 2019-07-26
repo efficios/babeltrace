@@ -24,7 +24,7 @@
 #define BT_COMP_LOG_SELF_COMP (viewer_connection->self_comp)
 #define BT_LOG_OUTPUT_LEVEL (viewer_connection->log_level)
 #define BT_LOG_TAG "PLUGIN/SRC.CTF.LTTNG-LIVE/VIEWER"
-#include "plugins/comp-logging.h"
+#include "logging/comp-logging.h"
 
 #include <stdio.h>
 #include <stdint.h>

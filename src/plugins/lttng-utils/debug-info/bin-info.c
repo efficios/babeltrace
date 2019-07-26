@@ -29,7 +29,7 @@
 #define BT_COMP_LOG_SELF_COMP (bin->self_comp)
 #define BT_LOG_OUTPUT_LEVEL (bin->log_level)
 #define BT_LOG_TAG "PLUGIN/FLT.LTTNG-UTILS.DEBUG-INFO/BIN-INFO"
-#include "plugins/comp-logging.h"
+#include "logging/comp-logging.h"
 
 #include <babeltrace2/logging.h>
 #include <dwarf.h>

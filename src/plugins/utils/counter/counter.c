@@ -23,7 +23,7 @@
 #define BT_COMP_LOG_SELF_COMP (counter->self_comp)
 #define BT_LOG_OUTPUT_LEVEL (counter->log_level)
 #define BT_LOG_TAG "PLUGIN/FLT.UTILS.COUNTER"
-#include "plugins/comp-logging.h"
+#include "logging/comp-logging.h"
 
 #include <babeltrace2/babeltrace.h>
 #include "common/macros.h"

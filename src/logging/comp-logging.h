@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_PLUGINS_COMP_LOGGING_H
-#define BABELTRACE_PLUGINS_COMP_LOGGING_H
+#ifndef BABELTRACE_LOGGING_COMP_LOGGING_H
+#define BABELTRACE_LOGGING_COMP_LOGGING_H
 
 /*
  * Copyright 2019 Philippe Proulx <pproulx@efficios.com>
@@ -25,14 +25,6 @@
 
 #ifndef BT_LOG_TAG
 # error Please define a tag with BT_LOG_TAG before including this file.
-#endif
-
-#ifndef BT_LOG_OUTPUT_LEVEL
-# error Please define a log level expression with BT_LOG_OUTPUT_LEVEL before including this file.
-#endif
-
-#ifndef BT_COMP_LOG_SELF_COMP
-# error Please define a self component address expression with BT_COMP_LOG_SELF_COMP before including this file.
 #endif
 
 #include <stdlib.h>
@@ -139,4 +131,4 @@
 
 #define BT_COMP_LOG_SUPPORTED
 
-#endif /* BABELTRACE_PLUGINS_COMP_LOGGING_H */
+#endif /* BABELTRACE_LOGGING_COMP_LOGGING_H */

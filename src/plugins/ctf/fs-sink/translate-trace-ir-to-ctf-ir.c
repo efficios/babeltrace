@@ -23,7 +23,7 @@
 #define BT_COMP_LOG_SELF_COMP (ctx->self_comp)
 #define BT_LOG_OUTPUT_LEVEL (ctx->log_level)
 #define BT_LOG_TAG "PLUGIN/SINK.CTF.FS/TRANSLATE-TRACE-IR-TO-CTF-IR"
-#include "plugins/comp-logging.h"
+#include "logging/comp-logging.h"
 
 #include <babeltrace2/babeltrace.h>
 #include "common/macros.h"

@@ -24,7 +24,7 @@
 #define BT_COMP_LOG_SELF_COMP (dmesg_comp->self_comp)
 #define BT_LOG_OUTPUT_LEVEL (dmesg_comp->log_level)
 #define BT_LOG_TAG "PLUGIN/SRC.TEXT.DMESG"
-#include "plugins/comp-logging.h"
+#include "logging/comp-logging.h"
 
 #include <stdbool.h>
 #include <string.h>

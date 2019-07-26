@@ -295,7 +295,7 @@ hidden symbol which is the library's current log level before including
 This header offers the <<lib-logging-statements,library-specific logging
 statement macros>>.
 
-`"plugins/comp-logging.h"`::
+`"logging/comp-logging.h"`::
     Specific internal header to use within a component class.
 +
 This header offers the <<comp-logging-statements,component-specific
@@ -1144,11 +1144,11 @@ variable:
 #define BT_COMP_LOG_SELF_COMP (my_comp->self_comp)
 ----
 
-. Include `"plugins/comp-logging.h"`:
+. Include `"logging/comp-logging.h"`:
 +
 [source,c]
 ----
-#include "plugins/comp-logging.h"
+#include "logging/comp-logging.h"
 ----
 
 . In the component initialization method, make sure to set the
@@ -1189,7 +1189,7 @@ bt_self_component_status my_comp_init(
 To instrument a component class C header file (`.h`), if you have
 `static inline` functions in it:
 
-. Do not include `"plugins/comp-logging.h"`!
+. Do not include `"logging/comp-logging.h"`!
 
 . Require that component logging be enabled:
 +
@@ -1197,7 +1197,7 @@ To instrument a component class C header file (`.h`), if you have
 ----
 /* Protection: this file uses BT_COMP_LOG*() macros directly */
 #ifndef BT_COMP_LOG_SUPPORTED
-# error Please include "plugins/comp-logging.h" before including this file.
+# error Please include "logging/comp-logging.h" before including this file.
 #endif
 ----
 

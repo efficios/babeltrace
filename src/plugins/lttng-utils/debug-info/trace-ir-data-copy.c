@@ -26,7 +26,7 @@
 #define BT_COMP_LOG_SELF_COMP self_comp
 #define BT_LOG_OUTPUT_LEVEL log_level
 #define BT_LOG_TAG "PLUGIN/FLT.LTTNG-UTILS.DEBUG-INFO/TRACE-IR-DATA-COPY"
-#include "plugins/comp-logging.h"
+#include "logging/comp-logging.h"
 
 #include <inttypes.h>
 #include <stdint.h>

@@ -27,7 +27,7 @@
 #define BT_COMP_LOG_SELF_COMP (md_maps->self_comp)
 #define BT_LOG_OUTPUT_LEVEL (md_maps->log_level)
 #define BT_LOG_TAG "PLUGIN/FLT.LTTNG-UTILS.DEBUG-INFO/TRACE-IR-META-FC-COPY"
-#include "plugins/comp-logging.h"
+#include "logging/comp-logging.h"
 
 #include "common/assert.h"
 #include "common/common.h"
