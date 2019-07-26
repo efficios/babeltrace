@@ -35,6 +35,8 @@
 %include <babeltrace2/graph/self-component-class-sink.h>
 
 %{
+#include "logging/comp-logging.h"
+
 /*
  * This hash table associates a BT component class object address to a
  * user-defined Python class (PyObject *). The keys and values are NOT
@@ -167,7 +169,7 @@ void native_comp_class_dtor(void) {
 
 static
 void restore_current_thread_error_and_append_exception_chain_recursive(
-		PyObject *py_exc_value,
+		int active_log_level, PyObject *py_exc_value,
 		bt_self_component_class *self_component_class,
 		bt_self_component *self_component,
 		bt_self_message_iterator *self_message_iterator,
@@ -182,8 +184,9 @@ void restore_current_thread_error_and_append_exception_chain_recursive(
 	py_exc_cause_value = PyException_GetCause(py_exc_value);
 	if (py_exc_cause_value) {
 		restore_current_thread_error_and_append_exception_chain_recursive(
-			py_exc_cause_value, self_component_class,
-			self_component, self_message_iterator, module_name);
+			active_log_level, py_exc_cause_value,
+			self_component_class, self_component,
+			self_message_iterator, module_name);
 	}
 
 	/*
@@ -223,7 +226,7 @@ void restore_current_thread_error_and_append_exception_chain_recursive(
 	py_exc_tb = PyException_GetTraceback(py_exc_value);
 
 	gstr = bt_py_common_format_exception(py_exc_type, py_exc_value,
-			py_exc_tb, BT_LOG_OUTPUT_LEVEL, false);
+			py_exc_tb, active_log_level, false);
 	if (!gstr) {
 		/* bt_py_common_format_exception has already warned. */
 		goto end;
@@ -281,6 +284,7 @@ end:
  */
 static
 void restore_bt_error_and_append_current_exception_chain(
+		int active_log_level,
 		bt_self_component_class *self_component_class,
 		bt_self_component *self_component,
 		bt_self_message_iterator *self_message_iterator,
@@ -307,16 +311,16 @@ void restore_bt_error_and_append_current_exception_chain(
 	 */
 	PyException_SetTraceback(py_exc_value, py_exc_tb);
 
-	restore_current_thread_error_and_append_exception_chain_recursive(py_exc_value,
-		self_component_class, self_component, self_message_iterator,
-		module_name);
+	restore_current_thread_error_and_append_exception_chain_recursive(
+		active_log_level, py_exc_value, self_component_class,
+		self_component, self_message_iterator, module_name);
 
 	PyErr_Restore(py_exc_type, py_exc_value, py_exc_tb);
 }
 
 static inline
-void log_exception_and_maybe_append_error(int log_level,
-		bool append_error,
+void log_exception_and_maybe_append_error(int func_log_level,
+		int active_log_level, bool append_error,
 		bt_self_component_class *self_component_class,
 		bt_self_component *self_component,
 		bt_self_message_iterator *self_message_iterator,
@@ -325,17 +329,18 @@ void log_exception_and_maybe_append_error(int log_level,
 	GString *gstr;
 
 	BT_ASSERT(PyErr_Occurred());
-	gstr = bt_py_common_format_current_exception(BT_LOG_OUTPUT_LEVEL);
+	gstr = bt_py_common_format_current_exception(active_log_level);
 	if (!gstr) {
 		/* bt_py_common_format_current_exception() logs errors */
 		goto end;
 	}
 
-	BT_LOG_WRITE(log_level, BT_LOG_TAG, "%s", gstr->str);
+	BT_COMP_LOG_CUR_LVL(func_log_level, active_log_level, self_component,
+		"%s", gstr->str);
 
 	if (append_error) {
 		restore_bt_error_and_append_current_exception_chain(
-			self_component_class, self_component,
+			active_log_level, self_component_class, self_component,
 			self_message_iterator, module_name);
 
 	}
@@ -346,33 +351,53 @@ end:
 	}
 }
 
-static inline
-void loge_exception(const char *module_name)
+static
+bt_logging_level get_self_component_log_level(bt_self_component *self_comp)
 {
-	log_exception_and_maybe_append_error(BT_LOG_ERROR, true, NULL, NULL,
-		NULL, module_name);
+	return bt_component_get_logging_level(
+		bt_self_component_as_component(self_comp));
+}
+
+static
+bt_logging_level get_self_message_iterator_log_level(
+		bt_self_message_iterator *self_msg_iter)
+{
+	bt_self_component *self_comp =
+		bt_self_message_iterator_borrow_component(self_msg_iter);
+
+	return get_self_component_log_level(self_comp);
+}
+
+static inline
+void loge_exception(const char *module_name, int active_log_level)
+{
+	log_exception_and_maybe_append_error(BT_LOG_ERROR, active_log_level,
+		true, NULL, NULL, NULL, module_name);
 }
 
 static
 void loge_exception_message_iterator(
 		bt_self_message_iterator *self_message_iterator)
 {
-	log_exception_and_maybe_append_error(BT_LOG_ERROR, true, NULL, NULL,
-		self_message_iterator, NULL);
+	bt_logging_level log_level = get_self_message_iterator_log_level(
+		self_message_iterator);
+
+	log_exception_and_maybe_append_error(BT_LOG_ERROR, log_level,
+		true, NULL, NULL, self_message_iterator, NULL);
 }
 
 static inline
-void logw_exception(void)
+void logw_exception(int active_log_level)
 {
-	log_exception_and_maybe_append_error(BT_LOG_WARNING, false, NULL, NULL,
-		NULL, NULL);
+	log_exception_and_maybe_append_error(BT_LOG_WARNING, active_log_level,
+		false, NULL, NULL, NULL, NULL);
 }
 
 static inline
 int py_exc_to_status(bt_self_component_class *self_component_class,
 		bt_self_component *self_component,
 		bt_self_message_iterator *self_message_iterator,
-		const char *module_name)
+		const char *module_name, int active_log_level)
 {
 	int status = __BT_FUNC_STATUS_OK;
 	PyObject *exc = PyErr_Occurred();
@@ -391,8 +416,26 @@ int py_exc_to_status(bt_self_component_class *self_component_class,
 			py_mod_bt2_exc_unknown_object_type)) {
 		status = __BT_FUNC_STATUS_UNKNOWN_OBJECT;
 	} else {
-		/* Unknown exception: convert to general error */
-		log_exception_and_maybe_append_error(BT_LOG_WARNING, true,
+		/*
+		 * Unknown exception: convert to general error.
+		 *
+		 * Because we only want to fetch the log level when
+		 * we actually get an exception, and not systematically
+		 * when we call py_exc_to_status() (as py_exc_to_status()
+		 * can return `__BT_FUNC_STATUS_OK`), we get it here
+		 * depending on the actor's type.
+		 */
+		if (self_component) {
+			active_log_level = get_self_component_log_level(
+				self_component);
+		} else if (self_message_iterator) {
+			active_log_level = get_self_message_iterator_log_level(
+				self_message_iterator);
+		}
+
+		BT_ASSERT(active_log_level != -1);
+		log_exception_and_maybe_append_error(BT_LOG_WARNING,
+			active_log_level, true,
 			self_component_class, self_component,
 			self_message_iterator, module_name);
 
@@ -410,22 +453,25 @@ end:
 }
 
 static
-int py_exc_to_status_component_class(bt_self_component_class *self_component_class)
+int py_exc_to_status_component_class(
+		bt_self_component_class *self_component_class,
+		int active_log_level)
 {
-	return py_exc_to_status(self_component_class, NULL, NULL, NULL);
+	return py_exc_to_status(self_component_class, NULL, NULL, NULL,
+		active_log_level);
 }
 
 static
 int py_exc_to_status_component(bt_self_component *self_component)
 {
-	return py_exc_to_status(NULL, self_component, NULL, NULL);
+	return py_exc_to_status(NULL, self_component, NULL, NULL, -1);
 }
 
 static
 int py_exc_to_status_message_iterator(
 		bt_self_message_iterator *self_message_iterator)
 {
-	return py_exc_to_status(NULL, NULL, self_message_iterator, NULL);
+	return py_exc_to_status(NULL, NULL, self_message_iterator, NULL, -1);
 }
 
 /* Component class proxy methods (delegate to the attached Python object) */
@@ -445,6 +491,8 @@ bt_component_class_init_method_status component_class_init(
 	PyObject *py_comp = NULL;
 	PyObject *py_params_ptr = NULL;
 	PyObject *py_comp_ptr = NULL;
+	bt_logging_level log_level = get_self_component_log_level(
+		self_component);
 
 	(void) init_method_data;
 
@@ -459,7 +507,8 @@ bt_component_class_init_method_status component_class_init(
 	 */
 	py_cls = lookup_cc_ptr_to_py_cls(component_class);
 	if (!py_cls) {
-		BT_LOGE("Cannot find Python class associated to native component class: "
+		BT_COMP_LOG_CUR_LVL(BT_LOG_ERROR, log_level, self_component,
+			"Cannot find Python class associated to native component class: "
 			"comp-cls-addr=%p", component_class);
 		goto error;
 	}
@@ -468,14 +517,16 @@ bt_component_class_init_method_status component_class_init(
 	py_params_ptr = SWIG_NewPointerObj(SWIG_as_voidptr(params),
 		SWIGTYPE_p_bt_value, 0);
 	if (!py_params_ptr) {
-		BT_LOGE_STR("Failed to create a SWIG pointer object.");
+		BT_COMP_LOG_CUR_LVL(BT_LOG_ERROR, log_level, self_component,
+			"Failed to create a SWIG pointer object.");
 		goto error;
 	}
 
 	py_comp_ptr = SWIG_NewPointerObj(SWIG_as_voidptr(self_component_v),
 		self_comp_cls_type_swig_type, 0);
 	if (!py_comp_ptr) {
-		BT_LOGE_STR("Failed to create a SWIG pointer object.");
+		BT_COMP_LOG_CUR_LVL(BT_LOG_ERROR, log_level, self_component,
+			"Failed to create a SWIG pointer object.");
 		goto error;
 	}
 
@@ -490,7 +541,8 @@ bt_component_class_init_method_status component_class_init(
 	py_comp = PyObject_CallMethod(py_cls,
 		"_bt_init_from_native", "(OO)", py_comp_ptr, py_params_ptr);
 	if (!py_comp) {
-		BT_LOGW("Failed to call Python class's _bt_init_from_native() method: "
+		BT_COMP_LOG_CUR_LVL(BT_LOG_WARNING, log_level, self_component,
+			"Failed to call Python class's _bt_init_from_native() method: "
 			"py-cls-addr=%p", py_cls);
 		status = py_exc_to_status_component(self_component);
 		goto end;
@@ -578,8 +630,12 @@ void component_class_finalize(bt_self_component *self_component)
 		"_user_finalize", NULL);
 
 	if (PyErr_Occurred()) {
-		BT_LOGW("User component's _user_finalize() method raised an exception: ignoring:");
-		logw_exception();
+		bt_logging_level log_level = get_self_component_log_level(
+			self_component);
+
+		BT_COMP_LOG_CUR_LVL(BT_LOG_WARNING, log_level, self_component,
+			"User component's _user_finalize() method raised an exception: ignoring:");
+		logw_exception(log_level);
 	}
 
 	/*
@@ -676,13 +732,16 @@ bt_component_class_port_connected_method_status component_class_port_connected(
 	PyObject *py_self_port_ptr = NULL;
 	PyObject *py_other_port_ptr = NULL;
 	PyObject *py_method_result = NULL;
+	bt_logging_level log_level = get_self_component_log_level(
+		self_component);
 
 	py_comp = bt_self_component_get_data(self_component);
 	BT_ASSERT(py_comp);
 	py_self_port_ptr = SWIG_NewPointerObj(SWIG_as_voidptr(self_component_port),
 		self_component_port_swig_type, 0);
 	if (!py_self_port_ptr) {
-		BT_LOGF_STR("Failed to create a SWIG pointer object.");
+		BT_COMP_LOG_CUR_LVL(BT_LOG_ERROR, log_level, self_component,
+			"Failed to create a SWIG pointer object.");
 		status = __BT_FUNC_STATUS_MEMORY_ERROR;
 		goto end;
 	}
@@ -690,7 +749,8 @@ bt_component_class_port_connected_method_status component_class_port_connected(
 	py_other_port_ptr = SWIG_NewPointerObj(SWIG_as_voidptr(other_port),
 		other_port_swig_type, 0);
 	if (!py_other_port_ptr) {
-		BT_LOGF_STR("Failed to create a SWIG pointer object.");
+		BT_COMP_LOG_CUR_LVL(BT_LOG_ERROR, log_level, self_component,
+			"Failed to create a SWIG pointer object.");
 		status = __BT_FUNC_STATUS_MEMORY_ERROR;
 		goto end;	}
 
@@ -817,7 +877,8 @@ bt_component_class_query_method_status component_class_query(
 
 	py_cls = lookup_cc_ptr_to_py_cls(component_class);
 	if (!py_cls) {
-		BT_LOGE("Cannot find Python class associated to native component class: "
+		BT_LOG_WRITE_CUR_LVL(BT_LOG_ERROR, log_level, BT_LOG_TAG,
+			"Cannot find Python class associated to native component class: "
 			"comp-cls-addr=%p", component_class);
 		goto error;
 	}
@@ -825,20 +886,23 @@ bt_component_class_query_method_status component_class_query(
 	py_params_ptr = SWIG_NewPointerObj(SWIG_as_voidptr(params),
 		SWIGTYPE_p_bt_value, 0);
 	if (!py_params_ptr) {
-		BT_LOGE_STR("Failed to create a SWIG pointer object.");
+		BT_LOG_WRITE_CUR_LVL(BT_LOG_ERROR, log_level, BT_LOG_TAG,
+			"Failed to create a SWIG pointer object.");
 		goto error;
 	}
 
 	py_query_exec_ptr = SWIG_NewPointerObj(SWIG_as_voidptr(query_executor),
 		SWIGTYPE_p_bt_query_executor, 0);
 	if (!py_query_exec_ptr) {
-		BT_LOGE_STR("Failed to create a SWIG pointer object.");
+		BT_LOG_WRITE_CUR_LVL(BT_LOG_ERROR, log_level, BT_LOG_TAG,
+			"Failed to create a SWIG pointer object.");
 		goto error;
 	}
 
 	py_object = SWIG_FromCharPtr(object);
 	if (!py_object) {
-		BT_LOGE_STR("Failed to create a Python string.");
+		BT_LOG_WRITE_CUR_LVL(BT_LOG_ERROR, log_level, BT_LOG_TAG,
+			"Failed to create a Python string.");
 		goto error;
 	}
 
@@ -846,9 +910,11 @@ bt_component_class_query_method_status component_class_query(
 		"_bt_query_from_native", "(OOOi)", py_query_exec_ptr,
 		py_object, py_params_ptr, (int) log_level);
 	if (!py_results_addr) {
-		BT_LOGW("Failed to call Python class's _bt_query_from_native() method: "
+		BT_LOG_WRITE_CUR_LVL(BT_LOG_WARNING, log_level, BT_LOG_TAG,
+			"Failed to call Python class's _bt_query_from_native() method: "
 			"py-cls-addr=%p", py_cls);
-		status = py_exc_to_status_component_class(self_component_class);
+		status = py_exc_to_status_component_class(self_component_class,
+			log_level);
 		goto end;
 	}
 
@@ -935,19 +1001,23 @@ component_class_message_iterator_init(
 	PyObject *py_init_method_result = NULL;
 	PyObject *py_iter = NULL;
 	PyObject *py_comp;
+	bt_logging_level log_level = get_self_component_log_level(
+		self_component);
 
 	py_comp = bt_self_component_get_data(self_component);
 
 	/* Find user's Python message iterator class */
 	py_comp_cls = PyObject_GetAttrString(py_comp, "__class__");
 	if (!py_comp_cls) {
-		BT_LOGE_STR("Cannot get Python object's `__class__` attribute.");
+		BT_COMP_LOG_CUR_LVL(BT_LOG_ERROR, log_level, self_component,
+			"Cannot get Python object's `__class__` attribute.");
 		goto python_error;
 	}
 
 	py_iter_cls = PyObject_GetAttrString(py_comp_cls, "_iter_cls");
 	if (!py_iter_cls) {
-		BT_LOGE_STR("Cannot get Python class's `_iter_cls` attribute.");
+		BT_COMP_LOG_CUR_LVL(BT_LOG_ERROR, log_level, self_component,
+			"Cannot get Python class's `_iter_cls` attribute.");
 		goto python_error;
 	}
 
@@ -956,7 +1026,8 @@ component_class_message_iterator_init(
 	if (!py_iter_ptr) {
 		const char *err = "Failed to create a SWIG pointer object.";
 
-		BT_LOGE_STR(err);
+		BT_COMP_LOG_CUR_LVL(BT_LOG_ERROR, log_level, self_component,
+			"%s", err);
 		BT_CURRENT_THREAD_ERROR_APPEND_CAUSE_FROM_MESSAGE_ITERATOR(
 			self_message_iterator, err);
 		goto error;
@@ -971,7 +1042,8 @@ component_class_message_iterator_init(
 	py_iter = PyObject_CallMethod(py_iter_cls, "__new__",
 		"(OO)", py_iter_cls, py_iter_ptr);
 	if (!py_iter) {
-		BT_LOGE("Failed to call Python class's __new__() method: "
+		BT_COMP_LOG_CUR_LVL(BT_LOG_ERROR, log_level, self_component,
+			"Failed to call Python class's __new__() method: "
 			"py-cls-addr=%p", py_iter_cls);
 		goto python_error;
 	}
@@ -994,7 +1066,8 @@ component_class_message_iterator_init(
 	if (!py_component_port_output_ptr) {
 		const char *err = "Failed to create a SWIG pointer object.";
 
-		BT_LOGE_STR(err);
+		BT_COMP_LOG_CUR_LVL(BT_LOG_ERROR, log_level, self_component,
+			"%s", err);
 		BT_CURRENT_THREAD_ERROR_APPEND_CAUSE_FROM_MESSAGE_ITERATOR(
 			self_message_iterator, err);
 		goto error;
@@ -1003,7 +1076,8 @@ component_class_message_iterator_init(
 	py_init_method_result = PyObject_CallMethod(py_iter,
 		"_bt_init_from_native", "O", py_component_port_output_ptr);
 	if (!py_init_method_result) {
-		BT_LOGE_STR("User's __init__() method failed:");
+		BT_COMP_LOG_CUR_LVL(BT_LOG_ERROR, log_level, self_component,
+			"User's __init__() method failed:");
 		goto python_error;
 	}
 
@@ -1079,7 +1153,8 @@ static
 void component_class_message_iterator_finalize(
 		bt_self_message_iterator *message_iterator)
 {
-	PyObject *py_message_iter = bt_self_message_iterator_get_data(message_iterator);
+	PyObject *py_message_iter = bt_self_message_iterator_get_data(
+		message_iterator);
 	PyObject *py_method_result = NULL;
 
 	BT_ASSERT(py_message_iter);
@@ -1089,8 +1164,16 @@ void component_class_message_iterator_finalize(
 		"_user_finalize", NULL);
 
 	if (PyErr_Occurred()) {
-		BT_LOGW("User's _user_finalize() method raised an exception: ignoring:");
-		logw_exception();
+		bt_self_component *self_comp =
+			bt_self_message_iterator_borrow_component(
+				message_iterator);
+		bt_logging_level log_level = get_self_component_log_level(
+			self_comp);
+
+		BT_COMP_LOG_CUR_LVL(BT_LOG_WARNING, log_level, self_comp,
+			"User's _user_finalize() method raised an exception: ignoring:");
+		logw_exception(get_self_message_iterator_log_level(
+			message_iterator));
 	}
 
 	/*
@@ -1155,13 +1238,7 @@ component_class_sink_consume(bt_self_component_sink *self_component_sink)
 	py_method_result = PyObject_CallMethod(py_comp,
 		"_user_consume", NULL);
 	status = py_exc_to_status_component(self_component);
-	if (!py_method_result && status == __BT_FUNC_STATUS_OK) {
-		/* Pretty sure this should never happen, but just in case */
-		BT_LOGE("User's _user_consume() method failed without raising an exception: "
-			"status=%d", status);
-		status = __BT_FUNC_STATUS_ERROR;
-	}
-
+	BT_ASSERT(py_method_result || status != __BT_FUNC_STATUS_OK);
 	Py_XDECREF(py_method_result);
 	return status;
 }
