@@ -23,7 +23,7 @@
 #define BT_COMP_LOG_SELF_COMP (fs_sink->self_comp)
 #define BT_LOG_OUTPUT_LEVEL (fs_sink->log_level)
 #define BT_LOG_TAG "PLUGIN/SINK.CTF.FS"
-#include "plugins/comp-logging.h"
+#include "logging/comp-logging.h"
 
 #include <babeltrace2/babeltrace.h>
 #include <stdio.h>

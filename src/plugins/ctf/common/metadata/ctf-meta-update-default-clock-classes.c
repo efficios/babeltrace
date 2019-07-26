@@ -15,7 +15,7 @@
 #define BT_COMP_LOG_SELF_COMP (log_cfg->self_comp)
 #define BT_LOG_OUTPUT_LEVEL (log_cfg->log_level)
 #define BT_LOG_TAG "PLUGIN/CTF/META/UPDATE-DEF-CC"
-#include "plugins/comp-logging.h"
+#include "logging/comp-logging.h"
 
 #include <babeltrace2/babeltrace.h>
 #include "common/macros.h"

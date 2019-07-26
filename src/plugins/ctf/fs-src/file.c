@@ -23,7 +23,7 @@
 #define BT_COMP_LOG_SELF_COMP (file->self_comp)
 #define BT_LOG_OUTPUT_LEVEL (file->log_level)
 #define BT_LOG_TAG "PLUGIN/SRC.CTF.FS/FILE"
-#include "plugins/comp-logging.h"
+#include "logging/comp-logging.h"
 
 #include <stdio.h>
 #include <sys/types.h>

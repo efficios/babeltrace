@@ -28,7 +28,7 @@
 #define BT_COMP_LOG_SELF_COMP self_comp
 #define BT_LOG_OUTPUT_LEVEL log_level
 #define BT_LOG_TAG "PLUGIN/SRC.CTF.FS"
-#include "plugins/comp-logging.h"
+#include "logging/comp-logging.h"
 
 #include "common/common.h"
 #include <babeltrace2/babeltrace.h>

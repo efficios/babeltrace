@@ -23,7 +23,7 @@
 #define BT_COMP_LOG_SELF_COMP (details_comp->self_comp)
 #define BT_LOG_OUTPUT_LEVEL (details_comp->log_level)
 #define BT_LOG_TAG "PLUGIN/SINK.TEXT.DETAILS"
-#include "plugins/comp-logging.h"
+#include "logging/comp-logging.h"
 
 #include <babeltrace2/babeltrace.h>
 

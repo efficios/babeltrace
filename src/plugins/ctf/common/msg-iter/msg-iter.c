@@ -26,7 +26,7 @@
 #define BT_COMP_LOG_SELF_COMP (notit->self_comp)
 #define BT_LOG_OUTPUT_LEVEL (notit->log_level)
 #define BT_LOG_TAG "PLUGIN/CTF/MSG-ITER"
-#include "plugins/comp-logging.h"
+#include "logging/comp-logging.h"
 
 #include <stdint.h>
 #include <inttypes.h>

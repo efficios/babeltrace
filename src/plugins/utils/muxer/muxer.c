@@ -23,7 +23,7 @@
 #define BT_COMP_LOG_SELF_COMP (muxer_comp->self_comp)
 #define BT_LOG_OUTPUT_LEVEL (muxer_comp->log_level)
 #define BT_LOG_TAG "PLUGIN/FLT.UTILS.MUXER"
-#include "plugins/comp-logging.h"
+#include "logging/comp-logging.h"
 
 #include "common/macros.h"
 #include "common/uuid.h"

@@ -28,7 +28,7 @@
 #define BT_COMP_LOG_SELF_COMP (ir_maps->self_comp)
 #define BT_LOG_OUTPUT_LEVEL (ir_maps->log_level)
 #define BT_LOG_TAG "PLUGIN/FLT.LTTNG-UTILS.DEBUG-INFO/TRACE-IR-MAPPING"
-#include "plugins/comp-logging.h"
+#include "logging/comp-logging.h"
 
 #include <stdbool.h>
 

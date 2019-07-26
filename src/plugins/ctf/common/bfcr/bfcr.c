@@ -26,7 +26,7 @@
 #define BT_COMP_LOG_SELF_COMP (bfcr->self_comp)
 #define BT_LOG_OUTPUT_LEVEL (bfcr->log_level)
 #define BT_LOG_TAG "PLUGIN/CTF/BFCR"
-#include "plugins/comp-logging.h"
+#include "logging/comp-logging.h"
 
 #include <stdlib.h>
 #include <stdint.h>

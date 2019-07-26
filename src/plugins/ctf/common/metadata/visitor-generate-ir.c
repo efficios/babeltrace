@@ -30,7 +30,7 @@
 #define BT_COMP_LOG_SELF_COMP (ctx->log_cfg.self_comp)
 #define BT_LOG_OUTPUT_LEVEL (ctx->log_cfg.log_level)
 #define BT_LOG_TAG "PLUGIN/CTF/META/IR-VISITOR"
-#include "plugins/comp-logging.h"
+#include "logging/comp-logging.h"
 
 #include <stdio.h>
 #include <unistd.h>
