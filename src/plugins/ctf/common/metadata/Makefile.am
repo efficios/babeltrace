@@ -42,7 +42,7 @@ libctf_ast_la_SOURCES = \
 	ctf-meta-configure-ir-trace.h
 
 if BABELTRACE_BUILD_WITH_MINGW
-libctf_ast_la_LIBADD = -lintl -liconv -lole32 $(POPT_LIBS)
+libctf_ast_la_LIBADD = -lintl -liconv -lole32
 endif
 
 # start with empty files to clean

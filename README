@@ -43,9 +43,6 @@ To compile Babeltrace, you will need:
 	glib 2.22 or better development libraries
 	  (Debian : libglib2.0-0, libglib2.0-dev)
 	  (Fedora : glib2, glib2-devel)
-	libpopt >= 1.13 development libraries
-	  (Debian : libpopt-dev)
-	  (Fedora : popt)
 	elfutils >= 0.154 development libraries (optional)
 	  (Debian : libelf-dev, libdw-dev)
 	  (Fedora : elfutils-devel, elfutils-libelf-devel)

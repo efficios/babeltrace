@@ -34,7 +34,6 @@
 #include <inttypes.h>
 #include <babeltrace2/babeltrace.h>
 #include "common/common.h"
-#include <popt.h>
 #include <glib.h>
 #include <sys/types.h>
 #include "argpar/argpar.h"
@@ -856,7 +855,7 @@ end:
 	return ret;
 }
 
-/* popt options */
+/* argpar options */
 enum {
 	OPT_NONE = 0,
 	OPT_BASE_PARAMS,

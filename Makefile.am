@@ -6,10 +6,6 @@ SUBDIRS = \
 	doc \
 	tests
 
-# Directories added to EXTRA_DIST will be recursively copied to the distribution.
-EXTRA_DIST = \
-	extras
-
 dist_doc_DATA = ChangeLog LICENSE mit-license.txt gpl-2.0.txt \
 		std-ext-lib.txt README CONTRIBUTING.adoc
 

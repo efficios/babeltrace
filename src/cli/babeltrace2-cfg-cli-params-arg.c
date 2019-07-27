@@ -29,7 +29,6 @@
 #include <inttypes.h>
 #include <babeltrace2/babeltrace.h>
 #include "common/common.h"
-#include <popt.h>
 #include <glib.h>
 #include <sys/types.h>
 #include "babeltrace2-cfg.h"

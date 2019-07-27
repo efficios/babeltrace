@@ -1489,8 +1489,7 @@ loads libbabeltrace2, use:
 
 ----
 $ G_SLICE=always-malloc G_DEBUG=gc-friendly PYTHONMALLOC=malloc \
-  LIBBABELTRACE2_NO_DLCLOSE=1 valgrind --leak-check=full \
-  --suppressions=/path/to/babeltrace/extras/valgrind/popt.supp app
+  LIBBABELTRACE2_NO_DLCLOSE=1 valgrind --leak-check=full app
 ----
 
 `G_SLICE=always-malloc` and `G_DEBUG=gc-friendly` is for GLib and

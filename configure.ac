@@ -307,26 +307,6 @@ AC_CHECK_LIB([c], [posix_fallocate],
   [AC_DEFINE_UNQUOTED([BABELTRACE_HAVE_POSIX_FALLOCATE], 1, [Has posix_fallocate support.])]
 )
 
-# Check libpopt
-PKG_CHECK_MODULES([POPT], [popt],
-  [
-    dnl PKG_CHECK_MODULES defines POPT_LIBS
-  ],
-  [
-    AC_MSG_WARN([pkg-config was unable to find a valid .pc for libpopt. Set PKG_CONFIG_PATH to specify the pkgconfig configuration file location])
-    AC_MSG_WARN([Finding libpopt without pkg-config.])
-    AC_CHECK_LIB([popt],
-      [poptGetContext],
-      [POPT_LIBS="-lpopt"],
-      [
-        AC_MSG_FAILURE([Cannot find libpopt. Either set PKG_CONFIG_PATH to the configuration file location or use LDFLAGS=-Ldir to specify the library location])
-      ]
-    )
-  ]
-)
-AC_SUBST(POPT_LIBS)
-
-
 ##                 ##
 ## User variables  ##
 ##                 ##
