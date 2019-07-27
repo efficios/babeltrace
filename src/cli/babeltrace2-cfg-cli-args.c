@@ -1559,14 +1559,14 @@ void print_query_usage(FILE *fp)
 }
 
 static
-struct poptOption query_long_options[] = {
-	/* longName, shortName, argInfo, argPtr, value, descrip, argDesc */
-	{ "help", 'h', POPT_ARG_NONE, NULL, OPT_HELP, NULL, NULL },
-	{ "omit-home-plugin-path", '\0', POPT_ARG_NONE, NULL, OPT_OMIT_HOME_PLUGIN_PATH, NULL, NULL },
-	{ "omit-system-plugin-path", '\0', POPT_ARG_NONE, NULL, OPT_OMIT_SYSTEM_PLUGIN_PATH, NULL, NULL },
-	{ "params", 'p', POPT_ARG_STRING, NULL, OPT_PARAMS, NULL, NULL },
-	{ "plugin-path", '\0', POPT_ARG_STRING, NULL, OPT_PLUGIN_PATH, NULL, NULL },
-	{ NULL, 0, '\0', NULL, 0, NULL, NULL },
+const struct bt_argpar_opt_descr query_options[] = {
+	/* id, short_name, long_name, with_arg */
+	{ OPT_HELP, 'h', "help", false },
+	{ OPT_OMIT_HOME_PLUGIN_PATH, '\0', "omit-home-plugin-path", false },
+	{ OPT_OMIT_SYSTEM_PLUGIN_PATH, '\0', "omit-system-plugin-path", false },
+	{ OPT_PARAMS, 'p', "params", true },
+	{ OPT_PLUGIN_PATH, '\0', "plugin-path", true },
+	BT_ARGPAR_OPT_DESCR_SENTINEL
 };
 
 /*
@@ -1582,14 +1582,13 @@ struct bt_config *bt_config_query_from_args(int argc, const char *argv[],
 		const bt_value *initial_plugin_paths,
 		int default_log_level)
 {
-	poptContext pc = NULL;
-	char *arg = NULL;
-	int opt;
-	int ret;
+	int ret, i;
 	struct bt_config *cfg = NULL;
-	const char *leftover;
+	const char *component_class_spec = NULL;
+	const char *query_object = NULL;
 	bt_value *params;
 	GString *error_str = NULL;
+	struct bt_argpar_parse_ret argpar_parse_ret;
 
 	params = bt_value_null;
 	bt_value_get_ref(bt_value_null);
@@ -1614,109 +1613,104 @@ struct bt_config *bt_config_query_from_args(int argc, const char *argv[],
 	}
 
 	/* Parse options */
-	pc = poptGetContext(NULL, argc, (const char **) argv,
-		query_long_options, POPT_CONTEXT_KEEP_FIRST);
-	if (!pc) {
-		BT_CLI_LOGE_APPEND_CAUSE("Cannot get popt context.");
+	argpar_parse_ret = bt_argpar_parse(argc, argv, query_options, true);
+	if (argpar_parse_ret.error) {
+		BT_CLI_LOGE_APPEND_CAUSE(
+			"While parsing `query` command's command-line arguments: %s",
+			argpar_parse_ret.error->str);
 		goto error;
 	}
 
-	poptReadDefaultConfig(pc, 0);
-
-	while ((opt = poptGetNextOpt(pc)) > 0) {
-		arg = poptGetOptArg(pc);
-
-		switch (opt) {
-		case OPT_PLUGIN_PATH:
-			if (bt_config_append_plugin_paths_check_setuid_setgid(
-					cfg->plugin_paths, arg)) {
-				goto error;
-			}
-			break;
-		case OPT_OMIT_SYSTEM_PLUGIN_PATH:
-			cfg->omit_system_plugin_path = true;
-			break;
-		case OPT_OMIT_HOME_PLUGIN_PATH:
-			cfg->omit_home_plugin_path = true;
-			break;
-		case OPT_PARAMS:
-		{
-			bt_value_put_ref(params);
-			params = cli_value_from_arg(arg, error_str);
-			if (!params) {
-				BT_CLI_LOGE_APPEND_CAUSE("Invalid format for --params option's argument:\n    %s",
-					error_str->str);
-				goto error;
-			}
-			break;
-		}
-		case OPT_HELP:
-			print_query_usage(stdout);
-			*retcode = -1;
-			BT_OBJECT_PUT_REF_AND_RESET(cfg);
-			goto end;
-		default:
-			BT_CLI_LOGE_APPEND_CAUSE("Unknown command-line option specified (option code %d).",
-				opt);
-			goto error;
-		}
-
-		free(arg);
-		arg = NULL;
-	}
-
-	/* Check for option parsing error */
-	if (opt < -1) {
-		BT_CLI_LOGE_APPEND_CAUSE("While parsing command-line options, at option %s: `%s`.",
-			poptBadOption(pc, 0), poptStrerror(opt));
-		goto error;
-	}
-
-	/*
-	 * We need exactly two leftover arguments which are the
-	 * mandatory component class specification and query object.
-	 */
-	leftover = poptGetArg(pc);
-	if (leftover) {
-		cfg->cmd_data.query.cfg_component =
-			bt_config_component_from_arg(leftover,
-				default_log_level);
-		if (!cfg->cmd_data.query.cfg_component) {
-			BT_CLI_LOGE_APPEND_CAUSE("Invalid format for component class specification:\n    %s",
-				leftover);
-			goto error;
-		}
-
-		BT_ASSERT(params);
-		BT_OBJECT_MOVE_REF(cfg->cmd_data.query.cfg_component->params,
-			params);
-	} else {
+	if (help_option_is_specified(&argpar_parse_ret)) {
 		print_query_usage(stdout);
 		*retcode = -1;
 		BT_OBJECT_PUT_REF_AND_RESET(cfg);
 		goto end;
 	}
 
-	leftover = poptGetArg(pc);
-	if (leftover) {
-		if (strlen(leftover) == 0) {
-			BT_CLI_LOGE_APPEND_CAUSE("Invalid empty object.");
-			goto error;
-		}
+	for (i = 0; i < argpar_parse_ret.items->len; i++) {
+		struct bt_argpar_item *argpar_item =
+			g_ptr_array_index(argpar_parse_ret.items, i);
 
-		g_string_assign(cfg->cmd_data.query.object, leftover);
-	} else {
+		if (argpar_item->type == BT_ARGPAR_ITEM_TYPE_OPT) {
+			struct bt_argpar_item_opt *argpar_item_opt =
+				(struct bt_argpar_item_opt *) argpar_item;
+			const char *arg = argpar_item_opt->arg;
+
+			switch (argpar_item_opt->descr->id) {
+			case OPT_PLUGIN_PATH:
+				if (bt_config_append_plugin_paths_check_setuid_setgid(
+						cfg->plugin_paths, arg)) {
+					goto error;
+				}
+				break;
+			case OPT_OMIT_SYSTEM_PLUGIN_PATH:
+				cfg->omit_system_plugin_path = true;
+				break;
+			case OPT_OMIT_HOME_PLUGIN_PATH:
+				cfg->omit_home_plugin_path = true;
+				break;
+			case OPT_PARAMS:
+			{
+				bt_value_put_ref(params);
+				params = cli_value_from_arg(arg, error_str);
+				if (!params) {
+					BT_CLI_LOGE_APPEND_CAUSE("Invalid format for --params option's argument:\n    %s",
+						error_str->str);
+					goto error;
+				}
+				break;
+			}
+			default:
+				BT_CLI_LOGE_APPEND_CAUSE("Unknown command-line option specified (option code %d).",
+					argpar_item_opt->descr->id);
+				goto error;
+			}
+		} else {
+			struct bt_argpar_item_non_opt *argpar_item_non_opt
+				= (struct bt_argpar_item_non_opt *) argpar_item;
+
+			/*
+			 * We need exactly two leftover arguments which are the
+			 * mandatory component class specification and query object.
+			 */
+			if (!component_class_spec) {
+				component_class_spec = argpar_item_non_opt->arg;
+			} else if (!query_object) {
+				query_object = argpar_item_non_opt->arg;
+			} else {
+				BT_CLI_LOGE_APPEND_CAUSE("Extraneous command-line argument specified to `query` command: `%s`.",
+					argpar_item_non_opt->arg);
+				goto error;
+			}
+		}
+	}
+
+	if (!component_class_spec || !query_object) {
 		print_query_usage(stdout);
 		*retcode = -1;
 		BT_OBJECT_PUT_REF_AND_RESET(cfg);
 		goto end;
 	}
 
-	leftover = poptGetArg(pc);
-	if (leftover) {
-		BT_CLI_LOGE_APPEND_CAUSE("Unexpected argument: `%s`.", leftover);
+	cfg->cmd_data.query.cfg_component =
+		bt_config_component_from_arg(component_class_spec,
+			default_log_level);
+	if (!cfg->cmd_data.query.cfg_component) {
+		BT_CLI_LOGE_APPEND_CAUSE("Invalid format for component class specification:\n    %s",
+			component_class_spec);
 		goto error;
 	}
+
+	BT_ASSERT(params);
+	BT_OBJECT_MOVE_REF(cfg->cmd_data.query.cfg_component->params, params);
+
+	if (strlen(query_object) == 0) {
+		BT_CLI_LOGE_APPEND_CAUSE("Invalid empty object.");
+		goto error;
+	}
+
+	g_string_assign(cfg->cmd_data.query.object, query_object);
 
 	if (append_home_and_system_plugin_paths_cfg(cfg)) {
 		goto error;
@@ -1729,16 +1723,13 @@ error:
 	BT_OBJECT_PUT_REF_AND_RESET(cfg);
 
 end:
-	if (pc) {
-		poptFreeContext(pc);
-	}
+	bt_argpar_parse_ret_fini(&argpar_parse_ret);
 
 	if (error_str) {
 		g_string_free(error_str, TRUE);
 	}
 
 	bt_value_put_ref(params);
-	free(arg);
 	return cfg;
 }
 
