@@ -2485,46 +2485,46 @@ void print_convert_usage(FILE *fp)
 }
 
 static
-struct poptOption convert_long_options[] = {
-	/* longName, shortName, argInfo, argPtr, value, descrip, argDesc */
-	{ "begin", 'b', POPT_ARG_STRING, NULL, OPT_BEGIN, NULL, NULL },
-	{ "clock-cycles", '\0', POPT_ARG_NONE, NULL, OPT_CLOCK_CYCLES, NULL, NULL },
-	{ "clock-date", '\0', POPT_ARG_NONE, NULL, OPT_CLOCK_DATE, NULL, NULL },
-	{ "clock-force-correlate", '\0', POPT_ARG_NONE, NULL, OPT_CLOCK_FORCE_CORRELATE, NULL, NULL },
-	{ "clock-gmt", '\0', POPT_ARG_NONE, NULL, OPT_CLOCK_GMT, NULL, NULL },
-	{ "clock-offset", '\0', POPT_ARG_STRING, NULL, OPT_CLOCK_OFFSET, NULL, NULL },
-	{ "clock-offset-ns", '\0', POPT_ARG_STRING, NULL, OPT_CLOCK_OFFSET_NS, NULL, NULL },
-	{ "clock-seconds", '\0', POPT_ARG_NONE, NULL, OPT_CLOCK_SECONDS, NULL, NULL },
-	{ "color", '\0', POPT_ARG_STRING, NULL, OPT_COLOR, NULL, NULL },
-	{ "component", 'c', POPT_ARG_STRING, NULL, OPT_COMPONENT, NULL, NULL },
-	{ "debug", 'd', POPT_ARG_NONE, NULL, OPT_DEBUG, NULL, NULL },
-	{ "debug-info-dir", 0, POPT_ARG_STRING, NULL, OPT_DEBUG_INFO_DIR, NULL, NULL },
-	{ "debug-info-full-path", 0, POPT_ARG_NONE, NULL, OPT_DEBUG_INFO_FULL_PATH, NULL, NULL },
-	{ "debug-info-target-prefix", 0, POPT_ARG_STRING, NULL, OPT_DEBUG_INFO_TARGET_PREFIX, NULL, NULL },
-	{ "end", 'e', POPT_ARG_STRING, NULL, OPT_END, NULL, NULL },
-	{ "fields", 'f', POPT_ARG_STRING, NULL, OPT_FIELDS, NULL, NULL },
-	{ "help", 'h', POPT_ARG_NONE, NULL, OPT_HELP, NULL, NULL },
-	{ "input-format", 'i', POPT_ARG_STRING, NULL, OPT_INPUT_FORMAT, NULL, NULL },
-	{ "log-level", 'l', POPT_ARG_STRING, NULL, OPT_LOG_LEVEL, NULL, NULL },
-	{ "name", '\0', POPT_ARG_STRING, NULL, OPT_NAME, NULL, NULL },
-	{ "names", 'n', POPT_ARG_STRING, NULL, OPT_NAMES, NULL, NULL },
-	{ "debug-info", '\0', POPT_ARG_NONE, NULL, OPT_DEBUG_INFO, NULL, NULL },
-	{ "no-delta", '\0', POPT_ARG_NONE, NULL, OPT_NO_DELTA, NULL, NULL },
-	{ "omit-home-plugin-path", '\0', POPT_ARG_NONE, NULL, OPT_OMIT_HOME_PLUGIN_PATH, NULL, NULL },
-	{ "omit-system-plugin-path", '\0', POPT_ARG_NONE, NULL, OPT_OMIT_SYSTEM_PLUGIN_PATH, NULL, NULL },
-	{ "output", 'w', POPT_ARG_STRING, NULL, OPT_OUTPUT, NULL, NULL },
-	{ "output-format", 'o', POPT_ARG_STRING, NULL, OPT_OUTPUT_FORMAT, NULL, NULL },
-	{ "params", 'p', POPT_ARG_STRING, NULL, OPT_PARAMS, NULL, NULL },
-	{ "path", 'P', POPT_ARG_STRING, NULL, OPT_PATH, NULL, NULL },
-	{ "plugin-path", '\0', POPT_ARG_STRING, NULL, OPT_PLUGIN_PATH, NULL, NULL },
-	{ "retry-duration", '\0', POPT_ARG_STRING, NULL, OPT_RETRY_DURATION, NULL, NULL },
-	{ "run-args", '\0', POPT_ARG_NONE, NULL, OPT_RUN_ARGS, NULL, NULL },
-	{ "run-args-0", '\0', POPT_ARG_NONE, NULL, OPT_RUN_ARGS_0, NULL, NULL },
-	{ "stream-intersection", '\0', POPT_ARG_NONE, NULL, OPT_STREAM_INTERSECTION, NULL, NULL },
-	{ "timerange", '\0', POPT_ARG_STRING, NULL, OPT_TIMERANGE, NULL, NULL },
-	{ "url", 'u', POPT_ARG_STRING, NULL, OPT_URL, NULL, NULL },
-	{ "verbose", 'v', POPT_ARG_NONE, NULL, OPT_VERBOSE, NULL, NULL },
-	{ NULL, 0, '\0', NULL, 0, NULL, NULL },
+const struct bt_argpar_opt_descr convert_options[] = {
+	/* id, short_name, long_name, with_arg */
+	{ OPT_BEGIN, 'b', "begin", true },
+	{ OPT_CLOCK_CYCLES, '\0', "clock-cycles", false },
+	{ OPT_CLOCK_DATE, '\0', "clock-date", false },
+	{ OPT_CLOCK_FORCE_CORRELATE, '\0', "clock-force-correlate", false },
+	{ OPT_CLOCK_GMT, '\0', "clock-gmt", false },
+	{ OPT_CLOCK_OFFSET, '\0', "clock-offset", true },
+	{ OPT_CLOCK_OFFSET_NS, '\0', "clock-offset-ns", true },
+	{ OPT_CLOCK_SECONDS, '\0', "clock-seconds", false },
+	{ OPT_COLOR, '\0', "color", true },
+	{ OPT_COMPONENT, 'c', "component", true },
+	{ OPT_DEBUG, 'd', "debug", false },
+	{ OPT_DEBUG_INFO_DIR, '\0', "debug-info-dir", true },
+	{ OPT_DEBUG_INFO_FULL_PATH, '\0', "debug-info-full-path", false },
+	{ OPT_DEBUG_INFO_TARGET_PREFIX, '\0', "debug-info-target-prefix", true },
+	{ OPT_END, 'e', "end", true },
+	{ OPT_FIELDS, 'f', "fields", true },
+	{ OPT_HELP, 'h', "help", false },
+	{ OPT_INPUT_FORMAT, 'i', "input-format", true },
+	{ OPT_LOG_LEVEL, 'l', "log-level", true },
+	{ OPT_NAME, '\0', "name", true },
+	{ OPT_NAMES, 'n', "names", true },
+	{ OPT_DEBUG_INFO, '\0', "debug-info", false },
+	{ OPT_NO_DELTA, '\0', "no-delta", false },
+	{ OPT_OMIT_HOME_PLUGIN_PATH, '\0', "omit-home-plugin-path", false },
+	{ OPT_OMIT_SYSTEM_PLUGIN_PATH, '\0', "omit-system-plugin-path", false },
+	{ OPT_OUTPUT, 'w', "output", true },
+	{ OPT_OUTPUT_FORMAT, 'o', "output-format", true },
+	{ OPT_PARAMS, 'p', "params", true },
+	{ OPT_PATH, 'P', "path", true },
+	{ OPT_PLUGIN_PATH, '\0', "plugin-path", true },
+	{ OPT_RETRY_DURATION, '\0', "retry-duration", true },
+	{ OPT_RUN_ARGS, '\0', "run-args", false },
+	{ OPT_RUN_ARGS_0, '\0', "run-args-0", false },
+	{ OPT_STREAM_INTERSECTION, '\0', "stream-intersection", false },
+	{ OPT_TIMERANGE, '\0', "timerange", true },
+	{ OPT_URL, 'u', "url", true },
+	{ OPT_VERBOSE, 'v', "verbose", false },
+	BT_ARGPAR_OPT_DESCR_SENTINEL
 };
 
 static
@@ -3377,11 +3377,9 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 		bool force_omit_home_plugin_path,
 		const bt_value *initial_plugin_paths, int *default_log_level)
 {
-	poptContext pc = NULL;
-	char *arg = NULL;
 	enum bt_config_component_dest cur_comp_dest =
 			BT_CONFIG_COMPONENT_DEST_UNKNOWN;
-	int opt, ret = 0;
+	int ret = 0;
 	struct bt_config *cfg = NULL;
 	bool got_input_format_opt = false;
 	bool got_output_format_opt = false;
@@ -3390,7 +3388,6 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 	bool stream_intersection_mode = false;
 	GString *cur_name = NULL;
 	GString *cur_name_prefix = NULL;
-	const char *leftover = NULL;
 	bool print_run_args = false;
 	bool print_run_args_0 = false;
 	bool print_ctf_metadata = false;
@@ -3414,6 +3411,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 	char *output = NULL;
 	struct auto_source_discovery auto_disc = { NULL };
 	GString *auto_disc_comp_name = NULL;
+	struct bt_argpar_parse_ret argpar_parse_ret = { 0 };
 
 	/*
 	 * Array of `struct implicit_component_args *` created for the sources
@@ -3540,23 +3538,38 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 	 * Also it appends the plugin paths of --plugin-path to
 	 * `plugin_paths`.
 	 */
-	pc = poptGetContext(NULL, argc, (const char **) argv,
-		convert_long_options, POPT_CONTEXT_KEEP_FIRST);
-	if (!pc) {
-		BT_CLI_LOGE_APPEND_CAUSE("Cannot get popt context.");
+	argpar_parse_ret = bt_argpar_parse(argc, argv, convert_options, true);
+	if (argpar_parse_ret.error) {
+		BT_CLI_LOGE_APPEND_CAUSE(
+			"While parsing `convert` command's command-line arguments: %s",
+			argpar_parse_ret.error->str);
 		goto error;
 	}
 
-	poptReadDefaultConfig(pc, 0);
+	if (help_option_is_specified(&argpar_parse_ret)) {
+		print_convert_usage(stdout);
+		*retcode = -1;
+		BT_OBJECT_PUT_REF_AND_RESET(cfg);
+		goto end;
+	}
 
-	while ((opt = poptGetNextOpt(pc)) > 0) {
+	for (i = 0; i < argpar_parse_ret.items->len; i++) {
+		struct bt_argpar_item *argpar_item =
+			g_ptr_array_index(argpar_parse_ret.items, i);
+		struct bt_argpar_item_opt *argpar_item_opt;
 		char *name = NULL;
 		char *plugin_name = NULL;
 		char *comp_cls_name = NULL;
+		const char *arg;
 
-		arg = poptGetOptArg(pc);
+		if (argpar_item->type != BT_ARGPAR_ITEM_TYPE_OPT) {
+			continue;
+		}
 
-		switch (opt) {
+		argpar_item_opt = (struct bt_argpar_item_opt *) argpar_item;
+		arg = argpar_item_opt->arg;
+
+		switch (argpar_item_opt->descr->id) {
 		case OPT_COMPONENT:
 		{
 			bt_component_class_type type;
@@ -3750,11 +3763,6 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 				goto error;
 			}
 			break;
-		case OPT_HELP:
-			print_convert_usage(stdout);
-			*retcode = -1;
-			BT_OBJECT_PUT_REF_AND_RESET(cfg);
-			goto end;
 		case OPT_BEGIN:
 		case OPT_CLOCK_CYCLES:
 		case OPT_CLOCK_DATE:
@@ -3785,12 +3793,9 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 			break;
 		default:
 			BT_CLI_LOGE_APPEND_CAUSE("Unknown command-line option specified (option code %d).",
-				opt);
+				argpar_item_opt->descr->id);
 			goto error;
 		}
-
-		free(arg);
-		arg = NULL;
 	}
 
 	/* Append current component's name if needed */
@@ -3801,35 +3806,25 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 		goto error;
 	}
 
-	/* Check for option parsing error */
-	if (opt < -1) {
-		BT_CLI_LOGE_APPEND_CAUSE("While parsing command-line options, at option `%s`: %s.",
-			poptBadOption(pc, 0), poptStrerror(opt));
-		goto error;
-	}
-
-	poptFreeContext(pc);
-	free(arg);
-	arg = NULL;
-
 	/*
 	 * Second pass: transform the convert-specific options and
 	 * arguments into implicit component instances for the run
 	 * command.
 	 */
-	pc = poptGetContext(NULL, argc, (const char **) argv,
-		convert_long_options, POPT_CONTEXT_KEEP_FIRST);
-	if (!pc) {
-		BT_CLI_LOGE_APPEND_CAUSE("Cannot get popt context.");
-		goto error;
-	}
+	for (i = 0; i < argpar_parse_ret.items->len; i++) {
+		struct bt_argpar_item *argpar_item =
+			g_ptr_array_index(argpar_parse_ret.items, i);
+		struct bt_argpar_item_opt *argpar_item_opt;
+		const char *arg;
 
-	poptReadDefaultConfig(pc, 0);
+		if (argpar_item->type != BT_ARGPAR_ITEM_TYPE_OPT) {
+			continue;
+		}
 
-	while ((opt = poptGetNextOpt(pc)) > 0) {
-		arg = poptGetOptArg(pc);
+		argpar_item_opt = (struct bt_argpar_item_opt *) argpar_item;
+		arg = argpar_item_opt->arg;
 
-		switch (opt) {
+		switch (argpar_item_opt->descr->id) {
 		case OPT_BEGIN:
 			if (trimmer_has_begin) {
 				printf("At --begin option: --begin or --timerange option already specified\n    %s\n",
@@ -4105,16 +4100,6 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 		default:
 			break;
 		}
-
-		free(arg);
-		arg = NULL;
-	}
-
-	/* Check for option parsing error */
-	if (opt < -1) {
-		BT_CLI_LOGE_APPEND_CAUSE("While parsing command-line options, at option %s: %s",
-			poptBadOption(pc, 0), poptStrerror(opt));
-		goto error;
 	}
 
 	/*
@@ -4139,8 +4124,18 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 	}
 
 	/* Consume and keep leftover arguments */
-	while ((leftover = poptGetArg(pc))) {
-		if (bt_value_array_append_string_element(leftovers, leftover) !=
+	for (i = 0; i < argpar_parse_ret.items->len; i++) {
+		struct bt_argpar_item *argpar_item =
+			g_ptr_array_index(argpar_parse_ret.items, i);
+		struct bt_argpar_item_non_opt *argpar_item_non_opt;
+
+		if (argpar_item->type != BT_ARGPAR_ITEM_TYPE_NON_OPT) {
+			continue;
+		}
+
+		argpar_item_non_opt = (struct bt_argpar_item_non_opt *) argpar_item;
+
+		if (bt_value_array_append_string_element(leftovers, argpar_item_non_opt->arg) !=
 				BT_VALUE_ARRAY_APPEND_ELEMENT_STATUS_OK) {
 			BT_CLI_LOGE_APPEND_CAUSE_OOM();
 			goto error;
@@ -4593,11 +4588,8 @@ end:
 		*default_log_level = cli_default_log_level;
 	}
 
-	if (pc) {
-		poptFreeContext(pc);
-	}
+	bt_argpar_parse_ret_fini(&argpar_parse_ret);
 
-	free(arg);
 	free(output);
 
 	if (cur_name) {
