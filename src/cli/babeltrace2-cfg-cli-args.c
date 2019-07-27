@@ -1765,13 +1765,13 @@ void print_list_plugins_usage(FILE *fp)
 }
 
 static
-struct poptOption list_plugins_long_options[] = {
-	/* longName, shortName, argInfo, argPtr, value, descrip, argDesc */
-	{ "help", 'h', POPT_ARG_NONE, NULL, OPT_HELP, NULL, NULL },
-	{ "omit-home-plugin-path", '\0', POPT_ARG_NONE, NULL, OPT_OMIT_HOME_PLUGIN_PATH, NULL, NULL },
-	{ "omit-system-plugin-path", '\0', POPT_ARG_NONE, NULL, OPT_OMIT_SYSTEM_PLUGIN_PATH, NULL, NULL },
-	{ "plugin-path", '\0', POPT_ARG_STRING, NULL, OPT_PLUGIN_PATH, NULL, NULL },
-	{ NULL, 0, '\0', NULL, 0, NULL, NULL },
+const struct bt_argpar_opt_descr list_plugins_options[] = {
+	/* id, short_name, long_name, with_arg */
+	{ OPT_HELP, 'h', "help", false },
+	{ OPT_OMIT_HOME_PLUGIN_PATH, '\0', "omit-home-plugin-path", false },
+	{ OPT_OMIT_SYSTEM_PLUGIN_PATH, '\0', "omit-system-plugin-path", false },
+	{ OPT_PLUGIN_PATH, '\0', "plugin-path", true },
+	BT_ARGPAR_OPT_DESCR_SENTINEL
 };
 
 /*
@@ -1786,12 +1786,9 @@ struct bt_config *bt_config_list_plugins_from_args(int argc, const char *argv[],
 		bool force_omit_home_plugin_path,
 		const bt_value *initial_plugin_paths)
 {
-	poptContext pc = NULL;
-	char *arg = NULL;
-	int opt;
-	int ret;
+	int ret, i;
 	struct bt_config *cfg = NULL;
-	const char *leftover;
+	struct bt_argpar_parse_ret argpar_parse_ret = { 0 };
 
 	*retcode = 0;
 	cfg = bt_config_list_plugins_create(initial_plugin_paths);
@@ -1807,19 +1804,40 @@ struct bt_config *bt_config_list_plugins_from_args(int argc, const char *argv[],
 	}
 
 	/* Parse options */
-	pc = poptGetContext(NULL, argc, (const char **) argv,
-		list_plugins_long_options, POPT_CONTEXT_KEEP_FIRST);
-	if (!pc) {
-		BT_CLI_LOGE_APPEND_CAUSE("Cannot get popt context.");
+	argpar_parse_ret = bt_argpar_parse(argc, argv, list_plugins_options, true);
+	if (argpar_parse_ret.error) {
+		BT_CLI_LOGE_APPEND_CAUSE(
+			"While parsing `list-plugins` command's command-line arguments: %s",
+			argpar_parse_ret.error->str);
 		goto error;
 	}
 
-	poptReadDefaultConfig(pc, 0);
+	if (help_option_is_specified(&argpar_parse_ret)) {
+		print_list_plugins_usage(stdout);
+		*retcode = -1;
+		BT_OBJECT_PUT_REF_AND_RESET(cfg);
+		goto end;
+	}
 
-	while ((opt = poptGetNextOpt(pc)) > 0) {
-		arg = poptGetOptArg(pc);
+	for (i = 0; i < argpar_parse_ret.items->len; i++) {
+		struct bt_argpar_item *argpar_item =
+			g_ptr_array_index(argpar_parse_ret.items, i);
+		struct bt_argpar_item_opt *argpar_item_opt;
+		const char *arg;
 
-		switch (opt) {
+		if (argpar_item->type == BT_ARGPAR_ITEM_TYPE_NON_OPT) {
+			struct bt_argpar_item_non_opt *argpar_item_non_opt
+				= (struct bt_argpar_item_non_opt *) argpar_item;
+
+			BT_CLI_LOGE_APPEND_CAUSE("Unexpected argument: `%s`.",
+				argpar_item_non_opt->arg);
+			goto error;
+		}
+
+		argpar_item_opt = (struct bt_argpar_item_opt *) argpar_item;
+		arg = argpar_item_opt->arg;
+
+		switch (argpar_item_opt->descr->id) {
 		case OPT_PLUGIN_PATH:
 			if (bt_config_append_plugin_paths_check_setuid_setgid(
 					cfg->plugin_paths, arg)) {
@@ -1832,32 +1850,11 @@ struct bt_config *bt_config_list_plugins_from_args(int argc, const char *argv[],
 		case OPT_OMIT_HOME_PLUGIN_PATH:
 			cfg->omit_home_plugin_path = true;
 			break;
-		case OPT_HELP:
-			print_list_plugins_usage(stdout);
-			*retcode = -1;
-			BT_OBJECT_PUT_REF_AND_RESET(cfg);
-			goto end;
 		default:
 			BT_CLI_LOGE_APPEND_CAUSE("Unknown command-line option specified (option code %d).",
-				opt);
+				argpar_item_opt->descr->id);
 			goto error;
 		}
-
-		free(arg);
-		arg = NULL;
-	}
-
-	/* Check for option parsing error */
-	if (opt < -1) {
-		BT_CLI_LOGE_APPEND_CAUSE("While parsing command-line options, at option %s: %s",
-			poptBadOption(pc, 0), poptStrerror(opt));
-		goto error;
-	}
-
-	leftover = poptGetArg(pc);
-	if (leftover) {
-		BT_CLI_LOGE_APPEND_CAUSE("Unexpected argument: `%s`.", leftover);
-		goto error;
 	}
 
 	if (append_home_and_system_plugin_paths_cfg(cfg)) {
@@ -1871,11 +1868,8 @@ error:
 	BT_OBJECT_PUT_REF_AND_RESET(cfg);
 
 end:
-	if (pc) {
-		poptFreeContext(pc);
-	}
+	bt_argpar_parse_ret_fini(&argpar_parse_ret);
 
-	free(arg);
 	return cfg;
 }
 
