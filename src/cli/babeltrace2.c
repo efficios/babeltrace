@@ -29,7 +29,6 @@
 #include "common/common.h"
 #include <unistd.h>
 #include <stdlib.h>
-#include <popt.h>
 #include <string.h>
 #include <stdio.h>
 #include <glib.h>
