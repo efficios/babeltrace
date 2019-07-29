@@ -1337,7 +1337,7 @@ bt_component_class_message_iterator_init_method_status lttng_live_msg_iter_init(
 
 	lttng_live_msg_iter->viewer_connection =
 		live_viewer_connection_create(lttng_live->params.url->str, false,
-			lttng_live_msg_iter);
+			lttng_live_msg_iter, log_level);
 	if (!lttng_live_msg_iter->viewer_connection) {
 		goto error;
 	}
@@ -1424,7 +1424,8 @@ bt_component_class_query_method_status lttng_live_query_list_sessions(
 
 	url = bt_value_string_get(url_value);
 
-	viewer_connection = live_viewer_connection_create(url, true, NULL);
+	viewer_connection = live_viewer_connection_create(url, true, NULL,
+		log_level);
 	if (!viewer_connection) {
 		goto error;
 	}

@@ -1466,18 +1466,23 @@ error:
 BT_HIDDEN
 struct live_viewer_connection *live_viewer_connection_create(
 		const char *url, bool in_query,
-		struct lttng_live_msg_iter *lttng_live_msg_iter)
+		struct lttng_live_msg_iter *lttng_live_msg_iter,
+		bt_logging_level log_level)
 {
 	struct live_viewer_connection *viewer_connection;
 
 	viewer_connection = g_new0(struct live_viewer_connection, 1);
 
-	if (bt_socket_init(lttng_live_msg_iter->log_level) != 0) {
+	if (bt_socket_init(log_level) != 0) {
 		goto error;
 	}
 
-	viewer_connection->log_level = lttng_live_msg_iter->log_level;
-	viewer_connection->self_comp = lttng_live_msg_iter->self_comp;
+	viewer_connection->log_level = log_level;
+
+	if (lttng_live_msg_iter) {
+		viewer_connection->self_comp = lttng_live_msg_iter->self_comp;
+	}
+
 	bt_object_init_shared(&viewer_connection->obj, connection_release);
 	viewer_connection->control_sock = BT_INVALID_SOCKET;
 	viewer_connection->port = -1;
