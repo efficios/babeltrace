@@ -26,7 +26,7 @@ fi
 # shellcheck source=../../utils/utils.sh
 SH_TAP=1 source "$UTILSSH"
 
-NUM_TESTS=2
+NUM_TESTS=1
 
 plan_tests $NUM_TESTS
 
@@ -34,24 +34,31 @@ data_dir="${BT_TESTS_DATADIR}/cli/auto-source-discovery"
 plugin_dir="${data_dir}"
 trace_dir="${data_dir}/traces"
 
-expected_file=$(mktemp expected.XXXXXX)
-actual_file=$(mktemp actual.XXXXXX)
+if [ "$BT_OS_TYPE" = "mingw" ]; then
+	# Use Windows native paths for comparison because Unix
+	# paths are converted by the shell before they are passed
+	# to the native babeltrace2 binary.
+	trace_dir=$(cygpath -w "$trace_dir")
+	dir_sep='\'
+else
+	dir_sep='/'
+fi
 
-run_python_bt2 "$BT_TESTS_BT2_BIN" convert --plugin-path "${plugin_dir}" "ABCDE" "${trace_dir}" some_other_leftover | sort > "$actual_file"
-ok "${PIPESTATUS[0]}" "successful execution"
+expected_file=$(mktemp -t expected.XXXXXX)
+stderr_expected=/dev/null
 
 cat > "$expected_file" <<END
 TestSourceABCDE: ABCDE
-TestSourceExt: ${trace_dir}/aaa1, ${trace_dir}/aaa2, ${trace_dir}/aaa3
-TestSourceExt: ${trace_dir}/bbb1, ${trace_dir}/bbb2
-TestSourceExt: ${trace_dir}/ccc1
-TestSourceExt: ${trace_dir}/ccc2
-TestSourceExt: ${trace_dir}/ccc3
-TestSourceExt: ${trace_dir}/ccc4
-TestSourceSomeDir: ${trace_dir}/some-dir
+TestSourceExt: ${trace_dir}${dir_sep}aaa1, ${trace_dir}${dir_sep}aaa2, ${trace_dir}${dir_sep}aaa3
+TestSourceExt: ${trace_dir}${dir_sep}bbb1, ${trace_dir}${dir_sep}bbb2
+TestSourceExt: ${trace_dir}${dir_sep}ccc1
+TestSourceExt: ${trace_dir}${dir_sep}ccc2
+TestSourceExt: ${trace_dir}${dir_sep}ccc3
+TestSourceExt: ${trace_dir}${dir_sep}ccc4
+TestSourceSomeDir: ${trace_dir}${dir_sep}some-dir
 END
 
-diff -u "$expected_file" "$actual_file"
+bt_diff_cli_sorted "$expected_file" "$stderr_expected" convert --plugin-path "${plugin_dir}" "ABCDE" "${trace_dir}" some_other_leftover
 ok "$?" "sources are auto-discovered"
 
-rm -f "$expected_file" "$actual_file"
+rm -f "$expected_file"
