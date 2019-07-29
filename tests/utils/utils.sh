@@ -130,7 +130,7 @@ export BT_TESTS_PYTHON_BIN
 if [ "x${BT_TESTS_PYTHON_CONFIG_BIN:-}" = "x" ]; then
 	BT_TESTS_PYTHON_CONFIG_BIN="python3-config"
 fi
-export BT_TESTS_PYTHON_BIN
+export BT_TESTS_PYTHON_CONFIG_BIN
 
 if [ "x${BT_TESTS_SED_BIN:-}" = "x" ]; then
 	BT_TESTS_SED_BIN="sed"
