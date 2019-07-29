@@ -86,7 +86,8 @@ struct packet_index {
 
 struct live_viewer_connection * live_viewer_connection_create(
 		const char *url, bool in_query,
-		struct lttng_live_msg_iter *lttng_live_msg_iter);
+		struct lttng_live_msg_iter *lttng_live_msg_iter,
+		bt_logging_level log_level);
 
 void live_viewer_connection_destroy(
 		struct live_viewer_connection *conn);
