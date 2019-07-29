@@ -17,8 +17,8 @@ if ENABLE_PYTHON_PLUGINS
 AM_CPPFLAGS += '-DCONFIG_IN_TREE_PROVIDER_DIR="$(abs_top_builddir)/src/python-plugin-provider/.libs"'
 endif
 
-bin_PROGRAMS = babeltrace2.bin babeltrace2-log.bin
-noinst_PROGRAMS = babeltrace2 babeltrace2-log
+bin_PROGRAMS = babeltrace2.bin
+noinst_PROGRAMS = babeltrace2
 
 babeltrace2_bin_SOURCES = \
 	babeltrace2.c \
@@ -99,17 +99,3 @@ babeltrace2_SOURCES = $(babeltrace2_bin_SOURCES)
 babeltrace2_LDFLAGS = $(babeltrace2_bin_LDFLAGS)
 babeltrace2_LDADD = $(babeltrace2_bin_LDADD)
 babeltrace2_CFLAGS = $(AM_CFLAGS) -DBT_SET_DEFAULT_IN_TREE_CONFIGURATION
-
-# babeltrace2-log rules and config below
-babeltrace2_log_bin_SOURCES = babeltrace2-log.c
-babeltrace2_log_bin_LDADD = \
-	$(top_builddir)/src/compat/libcompat.la \
-	$(top_builddir)/src/common/libbabeltrace2-common.la \
-	$(top_builddir)/src/logging/libbabeltrace2-logging.la \
-	$(POPT_LIBS)
-babeltrace2_log_bin_CFLAGS = $(AM_CFLAGS) '-DBT_CLI_PATH="$(abs_top_builddir)/src/cli/babeltrace2$(EXEEXT)"'
-
-# Only used for in-tree execution and tests
-babeltrace2_log_SOURCES = $(babeltrace2_log_bin_SOURCES)
-babeltrace2_log_LDADD = $(babeltrace2_log_bin_LDADD)
-babeltrace2_log_CFLAGS = $(AM_CFLAGS) '-DBT_CLI_PATH="$(bindir)/babeltrace2$(EXEEXT)"'
