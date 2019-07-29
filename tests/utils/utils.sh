@@ -85,14 +85,6 @@ if [ "x${BT_TESTS_BT2_BIN:-}" = "x" ]; then
 fi
 export BT_TESTS_BT2_BIN
 
-if [ "x${BT_TESTS_BT2LOG_BIN:-}" = "x" ]; then
-	BT_TESTS_BT2LOG_BIN="$BT_TESTS_BUILDDIR/../src/cli/babeltrace2-log"
-	if [ "$BT_OS_TYPE" = "mingw" ]; then
-		BT_TESTS_BT2LOG_BIN="${BT_TESTS_BT2LOG_BIN}.exe"
-	fi
-fi
-export BT_TESTS_BT2LOG_BIN
-
 # TODO: Remove when bindings/python/bt2/test_plugin.py is fixed
 BT_PLUGINS_PATH="${BT_TESTS_BUILDDIR}/../src/plugins"
 

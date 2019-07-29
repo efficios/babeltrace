@@ -679,7 +679,7 @@ CFLAGS=${save_CFLAGS}
 
 # Abuse autoconf's AC_ARG_PROGRAM output variable 'program_transform_name'
 # to rename babeltrace2.bin to babeltrace2 at install time.
-program_transform_name="s&babeltrace2\.bin&babeltrace2&;s&babeltrace2-log\.bin&babeltrace2-log&;$program_transform_name"
+program_transform_name="s&babeltrace2\.bin&babeltrace2&;$program_transform_name"
 AC_SUBST(program_transform_name)
 
 AC_CONFIG_FILES([
