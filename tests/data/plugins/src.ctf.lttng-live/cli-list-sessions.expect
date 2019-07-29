@@ -1,0 +1,2 @@
+net://localhost:@PORT@/host/hostname/multi-domains (timer = 1, 10 stream(s), 0 client(s) connected)
+net://localhost:@PORT@/host/hostname/trace-with-index (timer = 1, 5 stream(s), 0 client(s) connected)
