@@ -573,10 +573,6 @@ bt_component_class_query_method_status live_viewer_connection_list_sessions(
 	uint32_t i, sessions_count;
 	ssize_t ret_len;
 
-	if (lttng_live_handshake(viewer_connection)) {
-		goto error;
-	}
-
 	result = bt_value_array_create();
 	if (!result) {
 		BT_COMP_LOGE("Error creating array");
