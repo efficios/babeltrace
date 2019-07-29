@@ -3234,6 +3234,9 @@ enum convert_current_item_type {
 
 	/* Current item is a component. */
 	CONVERT_CURRENT_ITEM_TYPE_COMPONENT,
+
+	/* Current item is a leftover. */
+	CONVERT_CURRENT_ITEM_TYPE_LEFTOVER,
 };
 
 /*
@@ -3424,226 +3427,242 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 		char *comp_cls_name = NULL;
 		const char *arg;
 
-		if (argpar_item->type != BT_ARGPAR_ITEM_TYPE_OPT) {
-			continue;
-		}
+		if (argpar_item->type == BT_ARGPAR_ITEM_TYPE_OPT) {
+			argpar_item_opt = (struct bt_argpar_item_opt *) argpar_item;
+			arg = argpar_item_opt->arg;
 
-		argpar_item_opt = (struct bt_argpar_item_opt *) argpar_item;
-		arg = argpar_item_opt->arg;
+			switch (argpar_item_opt->descr->id) {
+			case OPT_COMPONENT:
+			{
+				bt_component_class_type type;
 
-		switch (argpar_item_opt->descr->id) {
-		case OPT_COMPONENT:
-		{
-			bt_component_class_type type;
+				current_item_type = CONVERT_CURRENT_ITEM_TYPE_COMPONENT;
 
-			current_item_type = CONVERT_CURRENT_ITEM_TYPE_COMPONENT;
-
-			/* Parse the argument */
-			plugin_comp_cls_names(arg, &name, &plugin_name,
-				&comp_cls_name, &type);
-			if (!plugin_name || !comp_cls_name) {
-				BT_CLI_LOGE_APPEND_CAUSE(
-					"Invalid format for --component option's argument:\n    %s",
-					arg);
-				goto error;
-			}
-
-			if (name) {
-				/*
-				 * Name was given by the user, verify it isn't
-				 * taken.
-				 */
-				if (bt_value_map_has_entry(all_names, name)) {
+				/* Parse the argument */
+				plugin_comp_cls_names(arg, &name, &plugin_name,
+					&comp_cls_name, &type);
+				if (!plugin_name || !comp_cls_name) {
 					BT_CLI_LOGE_APPEND_CAUSE(
-						"Duplicate component instance name:\n    %s",
-						name);
+						"Invalid format for --component option's argument:\n    %s",
+						arg);
 					goto error;
 				}
 
-				name_gstr = g_string_new(name);
-				if (!name_gstr) {
+				if (name) {
+					/*
+					 * Name was given by the user, verify it isn't
+					 * taken.
+					 */
+					if (bt_value_map_has_entry(all_names, name)) {
+						BT_CLI_LOGE_APPEND_CAUSE(
+							"Duplicate component instance name:\n    %s",
+							name);
+						goto error;
+					}
+
+					name_gstr = g_string_new(name);
+					if (!name_gstr) {
+						BT_CLI_LOGE_APPEND_CAUSE_OOM();
+						goto error;
+					}
+
+					g_string_assign(component_arg_for_run, arg);
+				} else {
+					/* Name not given by user, generate one. */
+					name_gstr = get_component_auto_name(arg, all_names);
+					if (!name_gstr) {
+						goto error;
+					}
+
+					g_string_printf(component_arg_for_run, "%s:%s",
+						name_gstr->str, arg);
+				}
+
+				if (bt_value_array_append_string_element(run_args,
+						"--component")) {
 					BT_CLI_LOGE_APPEND_CAUSE_OOM();
 					goto error;
 				}
 
-				g_string_assign(component_arg_for_run, arg);
-			} else {
-				/* Name not given by user, generate one. */
-				name_gstr = get_component_auto_name(arg, all_names);
-				if (!name_gstr) {
+				if (bt_value_array_append_string_element(run_args,
+						component_arg_for_run->str)) {
+					BT_CLI_LOGE_APPEND_CAUSE_OOM();
 					goto error;
 				}
 
-				g_string_printf(component_arg_for_run, "%s:%s",
-					name_gstr->str, arg);
-			}
+				/*
+				 * Remember this name globally, for the uniqueness of
+				 * all component names.
+				 */
+				if (bt_value_map_insert_entry(all_names,
+						name_gstr->str, bt_value_null)) {
+					BT_CLI_LOGE_APPEND_CAUSE_OOM();
+					goto error;
+				}
 
-			if (bt_value_array_append_string_element(run_args,
-					"--component")) {
-				BT_CLI_LOGE_APPEND_CAUSE_OOM();
-				goto error;
-			}
+				/*
+				 * Remember this name specifically for the type of the
+				 * component. This is to create connection arguments.
+				 *
+				 * The list takes ownership of `name_gstr`.
+				 */
+				switch (type) {
+				case BT_COMPONENT_CLASS_TYPE_SOURCE:
+					source_names = g_list_append(source_names, name_gstr);
+					break;
+				case BT_COMPONENT_CLASS_TYPE_FILTER:
+					filter_names = g_list_append(filter_names, name_gstr);
+					break;
+				case BT_COMPONENT_CLASS_TYPE_SINK:
+					sink_names = g_list_append(sink_names, name_gstr);
+					break;
+				default:
+					abort();
+				}
+				name_gstr = NULL;
 
-			if (bt_value_array_append_string_element(run_args,
-					component_arg_for_run->str)) {
-				BT_CLI_LOGE_APPEND_CAUSE_OOM();
-				goto error;
-			}
-
-			/*
-			 * Remember this name globally, for the uniqueness of
-			 * all component names.
-			 */
-			if (bt_value_map_insert_entry(all_names,
-					name_gstr->str, bt_value_null)) {
-				BT_CLI_LOGE_APPEND_CAUSE_OOM();
-				goto error;
-			}
-
-			/*
-			 * Remember this name specifically for the type of the
-			 * component. This is to create connection arguments.
-			 *
-			 * The list takes ownership of `name_gstr`.
-			 */
-			switch (type) {
-			case BT_COMPONENT_CLASS_TYPE_SOURCE:
-				source_names = g_list_append(source_names, name_gstr);
+				free(name);
+				free(plugin_name);
+				free(comp_cls_name);
+				name = NULL;
+				plugin_name = NULL;
+				comp_cls_name = NULL;
 				break;
-			case BT_COMPONENT_CLASS_TYPE_FILTER:
-				filter_names = g_list_append(filter_names, name_gstr);
+			}
+			case OPT_PARAMS:
+				if (current_item_type != CONVERT_CURRENT_ITEM_TYPE_COMPONENT) {
+					BT_CLI_LOGE_APPEND_CAUSE(
+						"No current component (--component option) of which to set parameters:\n    %s",
+						arg);
+					goto error;
+				}
+
+				if (bt_value_array_append_string_element(run_args,
+						"--params")) {
+					BT_CLI_LOGE_APPEND_CAUSE_OOM();
+					goto error;
+				}
+
+				if (bt_value_array_append_string_element(run_args, arg)) {
+					BT_CLI_LOGE_APPEND_CAUSE_OOM();
+					goto error;
+				}
 				break;
-			case BT_COMPONENT_CLASS_TYPE_SINK:
-				sink_names = g_list_append(sink_names, name_gstr);
+			case OPT_LOG_LEVEL:
+				if (current_item_type != CONVERT_CURRENT_ITEM_TYPE_COMPONENT) {
+					BT_CLI_LOGE_APPEND_CAUSE(
+						"No current component (--component option) to assign a log level to:\n    %s",
+						arg);
+					goto error;
+				}
+
+				if (bt_value_array_append_string_element(run_args, "--log-level")) {
+					BT_CLI_LOGE_APPEND_CAUSE_OOM();
+					goto error;
+				}
+
+				if (bt_value_array_append_string_element(run_args, arg)) {
+					BT_CLI_LOGE_APPEND_CAUSE_OOM();
+					goto error;
+				}
+
+				break;
+			case OPT_OMIT_HOME_PLUGIN_PATH:
+				force_omit_home_plugin_path = true;
+
+				if (bt_value_array_append_string_element(run_args,
+						"--omit-home-plugin-path")) {
+					BT_CLI_LOGE_APPEND_CAUSE_OOM();
+					goto error;
+				}
+				break;
+			case OPT_RETRY_DURATION:
+				if (bt_value_array_append_string_element(run_args,
+						"--retry-duration")) {
+					BT_CLI_LOGE_APPEND_CAUSE_OOM();
+					goto error;
+				}
+
+				if (bt_value_array_append_string_element(run_args, arg)) {
+					BT_CLI_LOGE_APPEND_CAUSE_OOM();
+					goto error;
+				}
+				break;
+			case OPT_OMIT_SYSTEM_PLUGIN_PATH:
+				force_omit_system_plugin_path = true;
+
+				if (bt_value_array_append_string_element(run_args,
+						"--omit-system-plugin-path")) {
+					BT_CLI_LOGE_APPEND_CAUSE_OOM();
+					goto error;
+				}
+				break;
+			case OPT_PLUGIN_PATH:
+				if (bt_config_append_plugin_paths_check_setuid_setgid(
+						plugin_paths, arg)) {
+					goto error;
+				}
+
+				if (bt_value_array_append_string_element(run_args,
+						"--plugin-path")) {
+					BT_CLI_LOGE_APPEND_CAUSE_OOM();
+					goto error;
+				}
+
+				if (bt_value_array_append_string_element(run_args, arg)) {
+					BT_CLI_LOGE_APPEND_CAUSE_OOM();
+					goto error;
+				}
+				break;
+			case OPT_BEGIN:
+			case OPT_CLOCK_CYCLES:
+			case OPT_CLOCK_DATE:
+			case OPT_CLOCK_FORCE_CORRELATE:
+			case OPT_CLOCK_GMT:
+			case OPT_CLOCK_OFFSET:
+			case OPT_CLOCK_OFFSET_NS:
+			case OPT_CLOCK_SECONDS:
+			case OPT_COLOR:
+			case OPT_DEBUG:
+			case OPT_DEBUG_INFO:
+			case OPT_DEBUG_INFO_DIR:
+			case OPT_DEBUG_INFO_FULL_PATH:
+			case OPT_DEBUG_INFO_TARGET_PREFIX:
+			case OPT_END:
+			case OPT_FIELDS:
+			case OPT_INPUT_FORMAT:
+			case OPT_NAMES:
+			case OPT_NO_DELTA:
+			case OPT_OUTPUT_FORMAT:
+			case OPT_OUTPUT:
+			case OPT_RUN_ARGS:
+			case OPT_RUN_ARGS_0:
+			case OPT_STREAM_INTERSECTION:
+			case OPT_TIMERANGE:
+			case OPT_VERBOSE:
+				/* Ignore in this pass */
 				break;
 			default:
-				abort();
-			}
-			name_gstr = NULL;
-
-			free(name);
-			free(plugin_name);
-			free(comp_cls_name);
-			name = NULL;
-			plugin_name = NULL;
-			comp_cls_name = NULL;
-			break;
-		}
-		case OPT_PARAMS:
-			if (current_item_type != CONVERT_CURRENT_ITEM_TYPE_COMPONENT) {
-				BT_CLI_LOGE_APPEND_CAUSE("No current component of which to set parameters:\n    %s",
-					arg);
+				BT_CLI_LOGE_APPEND_CAUSE("Unknown command-line option specified (option code %d).",
+					argpar_item_opt->descr->id);
 				goto error;
 			}
+		} else if (argpar_item->type == BT_ARGPAR_ITEM_TYPE_NON_OPT) {
+			struct bt_argpar_item_non_opt *argpar_item_non_opt;
+			bt_value_array_append_element_status append_status;
 
-			if (bt_value_array_append_string_element(run_args,
-					"--params")) {
+			current_item_type = CONVERT_CURRENT_ITEM_TYPE_LEFTOVER;
+
+			argpar_item_non_opt = (struct bt_argpar_item_non_opt *) argpar_item;
+
+			append_status = bt_value_array_append_string_element(leftovers,
+				argpar_item_non_opt->arg);
+			if (append_status != BT_VALUE_ARRAY_APPEND_ELEMENT_STATUS_OK) {
 				BT_CLI_LOGE_APPEND_CAUSE_OOM();
 				goto error;
 			}
-
-			if (bt_value_array_append_string_element(run_args, arg)) {
-				BT_CLI_LOGE_APPEND_CAUSE_OOM();
-				goto error;
-			}
-			break;
-		case OPT_LOG_LEVEL:
-			if (current_item_type != CONVERT_CURRENT_ITEM_TYPE_COMPONENT) {
-				BT_CLI_LOGE_APPEND_CAUSE("No current component to assign a log level to:\n    %s",
-					arg);
-				goto error;
-			}
-
-			if (bt_value_array_append_string_element(run_args, "--log-level")) {
-				BT_CLI_LOGE_APPEND_CAUSE_OOM();
-				goto error;
-			}
-
-			if (bt_value_array_append_string_element(run_args, arg)) {
-				BT_CLI_LOGE_APPEND_CAUSE_OOM();
-				goto error;
-			}
-
-			break;
-		case OPT_OMIT_HOME_PLUGIN_PATH:
-			force_omit_home_plugin_path = true;
-
-			if (bt_value_array_append_string_element(run_args,
-					"--omit-home-plugin-path")) {
-				BT_CLI_LOGE_APPEND_CAUSE_OOM();
-				goto error;
-			}
-			break;
-		case OPT_RETRY_DURATION:
-			if (bt_value_array_append_string_element(run_args,
-					"--retry-duration")) {
-				BT_CLI_LOGE_APPEND_CAUSE_OOM();
-				goto error;
-			}
-
-			if (bt_value_array_append_string_element(run_args, arg)) {
-				BT_CLI_LOGE_APPEND_CAUSE_OOM();
-				goto error;
-			}
-			break;
-		case OPT_OMIT_SYSTEM_PLUGIN_PATH:
-			force_omit_system_plugin_path = true;
-
-			if (bt_value_array_append_string_element(run_args,
-					"--omit-system-plugin-path")) {
-				BT_CLI_LOGE_APPEND_CAUSE_OOM();
-				goto error;
-			}
-			break;
-		case OPT_PLUGIN_PATH:
-			if (bt_config_append_plugin_paths_check_setuid_setgid(
-					plugin_paths, arg)) {
-				goto error;
-			}
-
-			if (bt_value_array_append_string_element(run_args,
-					"--plugin-path")) {
-				BT_CLI_LOGE_APPEND_CAUSE_OOM();
-				goto error;
-			}
-
-			if (bt_value_array_append_string_element(run_args, arg)) {
-				BT_CLI_LOGE_APPEND_CAUSE_OOM();
-				goto error;
-			}
-			break;
-		case OPT_BEGIN:
-		case OPT_CLOCK_CYCLES:
-		case OPT_CLOCK_DATE:
-		case OPT_CLOCK_FORCE_CORRELATE:
-		case OPT_CLOCK_GMT:
-		case OPT_CLOCK_OFFSET:
-		case OPT_CLOCK_OFFSET_NS:
-		case OPT_CLOCK_SECONDS:
-		case OPT_COLOR:
-		case OPT_DEBUG:
-		case OPT_DEBUG_INFO:
-		case OPT_DEBUG_INFO_DIR:
-		case OPT_DEBUG_INFO_FULL_PATH:
-		case OPT_DEBUG_INFO_TARGET_PREFIX:
-		case OPT_END:
-		case OPT_FIELDS:
-		case OPT_INPUT_FORMAT:
-		case OPT_NAMES:
-		case OPT_NO_DELTA:
-		case OPT_OUTPUT_FORMAT:
-		case OPT_OUTPUT:
-		case OPT_RUN_ARGS:
-		case OPT_RUN_ARGS_0:
-		case OPT_STREAM_INTERSECTION:
-		case OPT_TIMERANGE:
-		case OPT_VERBOSE:
-			/* Ignore in this pass */
-			break;
-		default:
-			BT_CLI_LOGE_APPEND_CAUSE("Unknown command-line option specified (option code %d).",
-				argpar_item_opt->descr->id);
-			goto error;
+		} else {
+			abort();
 		}
 	}
 
@@ -3962,25 +3981,6 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 			force_omit_system_plugin_path,
 			force_omit_home_plugin_path)) {
 		goto error;
-	}
-
-	/* Consume and keep leftover arguments */
-	for (i = 0; i < argpar_parse_ret.items->len; i++) {
-		struct bt_argpar_item *argpar_item =
-			g_ptr_array_index(argpar_parse_ret.items, i);
-		struct bt_argpar_item_non_opt *argpar_item_non_opt;
-
-		if (argpar_item->type != BT_ARGPAR_ITEM_TYPE_NON_OPT) {
-			continue;
-		}
-
-		argpar_item_non_opt = (struct bt_argpar_item_non_opt *) argpar_item;
-
-		if (bt_value_array_append_string_element(leftovers, argpar_item_non_opt->arg) !=
-				BT_VALUE_ARRAY_APPEND_ELEMENT_STATUS_OK) {
-			BT_CLI_LOGE_APPEND_CAUSE_OOM();
-			goto error;
-		}
 	}
 
 	/* Print CTF metadata or print LTTng live sessions */
