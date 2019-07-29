@@ -444,7 +444,7 @@ AM_CONDITIONAL([ENABLE_API_DOC], [test "x$enable_api_doc" = xyes])
 AM_CONDITIONAL([ENABLE_BUILT_IN_PLUGINS], [test "x$enable_built_in_plugins" = xyes])
 AM_CONDITIONAL([ENABLE_BUILT_IN_PYTHON_PLUGIN_SUPPORT], [test "x$enable_built_in_python_plugin_support" = xyes])
 AM_CONDITIONAL([ENABLE_MAN_PAGES], [test "x$enable_man_pages" = xyes])
-AM_CONDITIONAL([HAVE_PYTHON], [test "x$enable_python_bindings" = xyes || test "x$enable_python_plugins" = xyes])
+AM_CONDITIONAL([ENABLE_PYTHON_COMMON_DEPS], [test "x$enable_python_bindings" = xyes || test "x$enable_python_plugins" = xyes])
 
 # Set defines for optionnal features conditionnals in the source code
 
@@ -505,41 +505,48 @@ AS_IF([test "x$enable_python_bindings" = xyes],
   [AX_PKG_SWIG(2.0.0, [], [AC_MSG_ERROR([SWIG 2.0.0 or newer is required to build the python bindings])])]
 )
 
-AS_IF([test "x$enable_python_bindings" = xyes || test "x$enable_python_plugins" = xyes],
-  [
-  AM_PATH_PYTHON([3.0], [], [AC_MSG_ERROR(Python 3 is not available or is not the default Python interpreter on your system. See the README file to learn how to override your distribution's default Python interpreter.)])
-
+AM_PATH_PYTHON([3.0], [
   AM_PATH_PYTHON_MODULES([PYTHON])
+
   # pythondir is the path where extra modules are to be installed
   pythondir=$PYTHON_PREFIX/$PYTHON_MODULES_PATH
+
   # pyexecdir is the path that contains shared objects used by the extra modules
   pyexecdir=$PYTHON_EXEC_PREFIX/$PYTHON_MODULES_PATH
-  AS_IF([test -z "$PYTHON_INCLUDE"], [
-    AS_IF([test -z "$PYTHON_CONFIG"], [
-      AC_PATH_PROGS([PYTHON_CONFIG],
-                    [python$PYTHON_VERSION-config python-config],
-                    [no],
-                    [`dirname $PYTHON`])
-      AS_IF([test "$PYTHON_CONFIG" = no], [AC_MSG_ERROR([cannot find python-config for $PYTHON. Is python-dev installed?])])
-    ])
-    AC_MSG_CHECKING([Python include flags])
-    PYTHON_INCLUDE=`$PYTHON_CONFIG --includes`
-    AC_MSG_RESULT([$PYTHON_INCLUDE])
+
+  AS_IF([test -z "$PYTHON_CONFIG"], [
+    AC_PATH_PROGS([PYTHON_CONFIG],
+                  [python$PYTHON_VERSION-config python-config],
+                  [],
+                  [`dirname $PYTHON`])
   ])
-  AS_IF([test -z "$PYTHON_LDFLAGS"], [
-    AS_IF([test -z "$PYTHON_CONFIG"], [
-      AC_PATH_PROGS([PYTHON_CONFIG],
-                    [python$PYTHON_VERSION-config python-config],
-                    [no],
-                    [`dirname $PYTHON`])
-      AS_IF([test "$PYTHON_CONFIG" = no], [AC_MSG_ERROR([cannot find python-config for $PYTHON. Is python-dev installed?])])
+
+  AS_IF([test -n "$PYTHON_CONFIG"], [
+    AS_IF([test -z "$PYTHON_INCLUDE"], [
+      AC_MSG_CHECKING([Python include flags])
+      PYTHON_INCLUDE=`$PYTHON_CONFIG --includes`
+      AC_MSG_RESULT([$PYTHON_INCLUDE])
     ])
-    AC_MSG_CHECKING([Python library flags])
-    PYTHON_LDFLAGS=`$PYTHON_CONFIG --ldflags`
-    AC_MSG_RESULT([$PYTHON_LDFLAGS])
+
+    AS_IF([test -z "$PYTHON_LDFLAGS"], [
+      AC_MSG_CHECKING([Python library flags])
+      PYTHON_LDFLAGS=`$PYTHON_CONFIG --ldflags`
+      AC_MSG_RESULT([$PYTHON_LDFLAGS])
+    ])
   ])
-  ]
-)
+], [:])
+
+AS_IF([test "$PYTHON" != :], [have_python=yes], [have_python=no])
+AS_IF([test -n "$PYTHON_CONFIG"], [have_python_dev=yes], [have_python_dev=no])
+
+AM_CONDITIONAL([HAVE_PYTHON], [test "x$have_python" = xyes])
+AM_CONDITIONAL([HAVE_PYTHON_DEV], [test "x$have_python_dev" = xyes])
+
+AS_IF([test "x$enable_python_bindings" = xyes || test "x$enable_python_plugins" = xyes], [
+  AS_IF([test "x$have_python_dev" = xno], [
+    AC_MSG_ERROR([Cannot find a suitable python-config. You can override the python-config path with the PYTHON_CONFIG environment variable.])
+  ])
+])
 
 AS_IF([test "x$enable_python_bindings_doc" = xyes],
   [
@@ -777,13 +784,23 @@ PPRINT_PROP_STRING([Target architecture], $target_arch)
 
 AS_ECHO
 PPRINT_SUBTITLE([Python 3 language support])
+test "x$have_python" = "xyes" && value=1 || value=0
+PPRINT_PROP_BOOL([Have Python interpreter], $value)
+test "x$have_python_dev" = "xyes" && value=1 || value=0
+PPRINT_PROP_BOOL([Have Python development libraries], $value)
 test "x$enable_python_bindings" = "xyes" && value=1 || value=0
 PPRINT_PROP_BOOL([Python bindings], $value)
 test "x$enable_python_plugins" = "xyes" && value=1 || value=0
 PPRINT_PROP_BOOL([Python plugin support], $value)
-AS_IF([test "x$enable_python_bindings" = "xyes" || test "x$enable_python_plugins" = "xyes"], [
+AS_IF([test "x$have_python" = "xyes"], [
+  PPRINT_PROP_STRING([Python interpreter path], [$PYTHON])
+])
+AS_IF([test "x$have_python_dev" = "xyes"], [
+  PPRINT_PROP_STRING([python-config path], [$PYTHON_CONFIG])
   PPRINT_PROP_STRING([Python include paths], [$PYTHON_INCLUDE])
   PPRINT_PROP_STRING([Python linker flags], [$PYTHON_LDFLAGS])
+])
+AS_IF([test "x$enable_python_bindings" = "xyes"], [
   PPRINT_PROP_STRING([SWIG executable], [$SWIG])
   PPRINT_PROP_STRING([SWIG library], [$SWIG_LIB])
 ])
