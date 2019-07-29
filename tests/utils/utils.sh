@@ -145,6 +145,55 @@ BT_CTF_TRACES_PATH="${BT_TESTS_DATADIR}/ctf-traces"
 
 ### Diff Functions ###
 
+# Checks the difference between stdout:
+#
+#   The file with path "$1", and the file with path "$2"
+#
+# And the difference between stderr:
+#
+#   The file with path "$3", and the file with path "$4"
+#
+# Returns 0 if there's no difference, and 1 if there is, also printing
+# said difference to the standard error, and an error message with the
+# args starting at "$5".
+bt_diff() {
+	local expected_stdout_file="$1"
+	local actual_stdout_file="$2"
+	local expected_stderr_file="$3"
+	local actual_stderr_file="$4"
+	shift 4
+	local args=("$@")
+
+	local ret=0
+	local temp_diff
+
+	temp_diff="$(mktemp -t diff.XXXXXX)"
+
+	# Strip any \r present due to Windows (\n -> \r\n).
+	# "diff --string-trailing-cr" is not used since it is not present on
+	# Solaris.
+	"$BT_TESTS_SED_BIN" -i 's/\r//g' "$actual_stdout_file"
+	"$BT_TESTS_SED_BIN" -i 's/\r//g' "$actual_stderr_file"
+
+	# Compare stdout output with expected stdout output
+	if ! diff -u "$actual_stdout_file" "$expected_stdout_file" 2>/dev/null >"$temp_diff"; then
+		echo "ERROR: for '${args[*]}': actual standard output and expected output differ:" >&2
+		cat "$temp_diff" >&2
+		ret=1
+	fi
+
+	# Compare stderr output with expected stderr output
+	if ! diff -u "$actual_stderr_file" "$expected_stderr_file" 2>/dev/null >"$temp_diff"; then
+		echo "ERROR: for '${args[*]}': actual standard error and expected error differ:" >&2
+		cat "$temp_diff" >&2
+		ret=1
+	fi
+
+	rm -f "$temp_diff"
+
+	return $ret
+}
+
 # Checks the difference between:
 #
 #   1. What the CLI outputs on its standard output when given the arguments
@@ -167,37 +216,60 @@ bt_diff_cli() {
 
 	local temp_stdout_output_file
 	local temp_stderr_output_file
-	local temp_diff
 	local ret=0
 
-	temp_stdout_output_file="$(mktemp)"
-	temp_stderr_output_file="$(mktemp)"
-	temp_diff="$(mktemp)"
+	temp_stdout_output_file="$(mktemp -t actual_stdout.XXXXXX)"
+	temp_stderr_output_file="$(mktemp -t actual_stderr.XXXXXX)"
 
 	# Run the CLI to get a detailed file.
 	run_python_bt2 "$BT_TESTS_BT2_BIN" "${args[@]}" 1>"$temp_stdout_output_file" 2>"$temp_stderr_output_file"
 
-	# Strip any \r present due to Windows (\n -> \r\n).
-	# "diff --string-trailing-cr" is not used since it is not present on
-	# Solaris.
-	"$BT_TESTS_SED_BIN" -i 's/\r//g' "$temp_stdout_output_file"
-	"$BT_TESTS_SED_BIN" -i 's/\r//g' "$temp_stderr_output_file"
+	bt_diff "$expected_stdout_file" "$temp_stdout_output_file" "$expected_stderr_file" "$temp_stderr_output_file" "${args[@]}"
+	ret=$?
 
-	# Compare stdout output with expected stdout output
-	if ! diff -u "$temp_stdout_output_file" "$expected_stdout_file" 2>/dev/null >"$temp_diff"; then
-		echo "ERROR: for '${args[*]}': actual standard output and expected output differ:" >&2
-		cat "$temp_diff" >&2
-		ret=1
-	fi
+	rm -f "$temp_stdout_output_file" "$temp_stderr_output_file"
 
-	# Compare stderr output with expected stderr output
-	if ! diff -u "$temp_stderr_output_file" "$expected_stderr_file" 2>/dev/null >"$temp_diff"; then
-		echo "ERROR: for '${args[*]}': actual standard error and expected error differ:" >&2
-		cat "$temp_diff" >&2
-		ret=1
-	fi
+	return $ret
+}
 
-	rm -f "$temp_stdout_output_file" "$temp_stderr_output_file" "$temp_diff"
+# Checks the difference between:
+#
+#   1. What the CLI outputs on its standard output when given the arguments
+#   "$@" (excluding the first two arguments), sorted with the default "sort".
+#   2. The file with path "$1".
+#
+# And the difference between:
+#
+#   1. What the CLI outputs on its standard error when given the arguments
+#   "$@" (excluding the first two arguments).
+#   2. The file with path "$2".
+#
+# Returns 0 if there's no difference, and 1 if there is, also printing
+# said difference to the standard error.
+bt_diff_cli_sorted() {
+	local expected_stdout_file="$1"
+	local expected_stderr_file="$2"
+	shift 2
+	local args=("$@")
+
+	local temp_stdout_output_file
+	local temp_stderr_output_file
+	local ret=0
+
+	temp_stdout_output_file="$(mktemp -t actual_stdout.XXXXXX)"
+	temp_stderr_output_file="$(mktemp -t actual_stderr.XXXXXX)"
+
+	# Run the CLI to get a detailed file.
+	run_python_bt2 "$BT_TESTS_BT2_BIN" "${args[@]}" 1>"$temp_stdout_output_file" 2>"$temp_stderr_output_file"
+
+	# Sort the stdout file, use a subshell to do it in-place
+	# shellcheck disable=SC2005
+	echo "$(LC_ALL=C sort "$temp_stdout_output_file")" > "$temp_stdout_output_file"
+
+	bt_diff "$expected_stdout_file" "$temp_stdout_output_file" "$expected_stderr_file" "$temp_stderr_output_file" "${args[@]}"
+	ret=$?
+
+	rm -f "$temp_stdout_output_file" "$temp_stderr_output_file"
 
 	return $ret
 }
