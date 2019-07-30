@@ -2920,7 +2920,7 @@ enum bt_msg_iter_status bt_msg_iter_seek(struct bt_msg_iter *notit,
 
 	BT_ASSERT(notit);
 	if (offset < 0) {
-		BT_COMP_LOGE("Cannot seek to negative offset: offset=%jd", offset);
+		BT_COMP_LOGE("Cannot seek to negative offset: offset=%jd", (intmax_t) offset);
 		ret = BT_MSG_ITER_STATUS_INVAL;
 		goto end;
 	}
