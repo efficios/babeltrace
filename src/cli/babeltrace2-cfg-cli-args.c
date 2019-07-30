@@ -889,7 +889,6 @@ enum {
 	OPT_OUTPUT,
 	OPT_OUTPUT_FORMAT,
 	OPT_PARAMS,
-	OPT_PATH,
 	OPT_PLUGIN_PATH,
 	OPT_RESET_BASE_PARAMS,
 	OPT_RETRY_DURATION,
@@ -897,7 +896,6 @@ enum {
 	OPT_RUN_ARGS_0,
 	OPT_STREAM_INTERSECTION,
 	OPT_TIMERANGE,
-	OPT_URL,
 	OPT_VERBOSE,
 	OPT_VERSION,
 };
@@ -2361,8 +2359,6 @@ void print_convert_usage(FILE *fp)
 	fprintf(fp, "  -p, --params=PARAMS               Add initialization parameters PARAMS to the\n");
 	fprintf(fp, "                                    current component (see the expected format\n");
 	fprintf(fp, "                                    of PARAMS below)\n");
-	fprintf(fp, "  -P, --path=PATH                   Set the `path` string parameter of the\n");
-	fprintf(fp, "                                    current component to PATH\n");
 	fprintf(fp, "      --plugin-path=PATH[:PATH]...  Add PATH to the list of paths from which\n");
 	fprintf(fp, "                                    dynamic plugins can be loaded\n");
 	fprintf(fp, "      --retry-duration=DUR          When babeltrace2(1) needs to retry to run\n");
@@ -2377,8 +2373,6 @@ void print_convert_usage(FILE *fp)
 	fprintf(fp, "                                    formatted for `xargs -0`, and quit\n");
 	fprintf(fp, "      --stream-intersection         Only process events when all streams\n");
 	fprintf(fp, "                                    are active\n");
-	fprintf(fp, "  -u, --url=URL                     Set the `url` string parameter of the\n");
-	fprintf(fp, "                                    current component to URL\n");
 	fprintf(fp, "  -h, --help                        Show this help and quit\n");
 	fprintf(fp, "\n");
 	fprintf(fp, "Implicit `source.ctf.fs` component options:\n");
@@ -2503,14 +2497,12 @@ const struct bt_argpar_opt_descr convert_options[] = {
 	{ OPT_OUTPUT, 'w', "output", true },
 	{ OPT_OUTPUT_FORMAT, 'o', "output-format", true },
 	{ OPT_PARAMS, 'p', "params", true },
-	{ OPT_PATH, 'P', "path", true },
 	{ OPT_PLUGIN_PATH, '\0', "plugin-path", true },
 	{ OPT_RETRY_DURATION, '\0', "retry-duration", true },
 	{ OPT_RUN_ARGS, '\0', "run-args", false },
 	{ OPT_RUN_ARGS_0, '\0', "run-args-0", false },
 	{ OPT_STREAM_INTERSECTION, '\0', "stream-intersection", false },
 	{ OPT_TIMERANGE, '\0', "timerange", true },
-	{ OPT_URL, 'u', "url", true },
 	{ OPT_VERBOSE, 'v', "verbose", false },
 	BT_ARGPAR_OPT_DESCR_SENTINEL
 };
@@ -3518,10 +3510,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 	 * First pass: collect all arguments which need to be passed
 	 * as is to the run command. This pass can also add --name
 	 * arguments if needed to automatically name unnamed component
-	 * instances. Also it does the following transformations:
-	 *
-	 *     --path=PATH -> --params=path="PATH"
-	 *     --url=URL   -> --params=url="URL"
+	 * instances.
 	 *
 	 * Also it appends the plugin paths of --plugin-path to
 	 * `plugin_paths`.
@@ -3641,29 +3630,6 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 
 			if (bt_value_array_append_string_element(run_args, arg)) {
 				BT_CLI_LOGE_APPEND_CAUSE_OOM();
-				goto error;
-			}
-			break;
-		case OPT_PATH:
-			if (cur_name_prefix->len == 0) {
-				BT_CLI_LOGE_APPEND_CAUSE("No current component of which to set `path` parameter:\n    %s",
-					arg);
-				goto error;
-			}
-
-			if (append_string_parameter_to_args(run_args, "path", arg)) {
-				goto error;
-			}
-			break;
-		case OPT_URL:
-			if (cur_name_prefix->len == 0) {
-				BT_CLI_LOGE_APPEND_CAUSE("No current component of which to set `url` parameter:\n    %s",
-					arg);
-				goto error;
-			}
-
-
-			if (append_string_parameter_to_args(run_args, "url", arg)) {
 				goto error;
 			}
 			break;

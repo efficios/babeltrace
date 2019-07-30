@@ -73,7 +73,7 @@ for path in "${SUCCESS_TRACES[@]}"; do
 		fi
 	fi
 
-	"${BT_TESTS_BT2_BIN}" "${path}" --component sink.ctf.fs --path "${out_path}" >/dev/null 2>&1
+	"${BT_TESTS_BT2_BIN}" "${path}" --component sink.ctf.fs "--params=path=\"${out_path}\"" >/dev/null 2>&1
 	ok $? "Copy trace ${trace} with ctf-fs sink"
 
 	"${BT_TESTS_BT2_BIN}" "${out_path}" >/dev/null 2>&1

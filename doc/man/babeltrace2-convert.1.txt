@@ -197,19 +197,6 @@ opt:--params='PARAMS'::
 +
 See <<params-fmt,Parameters format>> for the format of 'PARAMS'.
 
-opt:--path='PATH'::
-    Set the nlparam:path initialization parameter of the current
-    component to 'PATH' (replace the parameter if it exists).
-+
-You can use this option instead of manually specifying `path="PATH"` in
-a opt:--params option to use your shell's tilde expansion (`~`). Tilde
-expansion requires the tilde to be the first character of the argument,
-which is not possible with `path="PATH"`.
-
-opt:--url='URL'::
-    Set the nlparam:url initialization parameter of the current
-    component to 'URL' (replace the parameter if it exists).
-
 See <<examples,EXAMPLES>> for usage examples.
 
 
@@ -490,14 +477,6 @@ opt:-p 'PARAMS', opt:--params='PARAMS'::
     component. If 'PARAMS' contains a key which exists in the current
     component's initialization parameters, replace the parameter.
     See <<params-fmt,Parameters format>> for the format of 'PARAMS'.
-
-opt:-P 'PATH', opt:--path='PATH'::
-    Set the nlparam:path initialization parameter of the current
-    component to 'PATH' (replace the parameter if it exists).
-
-opt:-u 'URL', opt:--url='URL'::
-    Set the nlparam:url initialization parameter of the current
-    component to 'URL' (replace the parameter if it exists).
 
 
 Legacy options to create implicit components
