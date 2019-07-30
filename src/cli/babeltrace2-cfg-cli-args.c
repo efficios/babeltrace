@@ -881,7 +881,6 @@ enum {
 	OPT_INPUT_FORMAT,
 	OPT_LIST,
 	OPT_LOG_LEVEL,
-	OPT_NAME,
 	OPT_NAMES,
 	OPT_NO_DELTA,
 	OPT_OMIT_HOME_PLUGIN_PATH,
@@ -1875,19 +1874,15 @@ void print_run_usage(FILE *fp)
 	fprintf(fp, "                                    for all the following components until\n");
 	fprintf(fp, "                                    --reset-base-params is encountered\n");
 	fprintf(fp, "                                    (see the expected format of PARAMS below)\n");
-	fprintf(fp, "  -c, --component=[NAME:]TYPE.PLUGIN.CLS\n");
+	fprintf(fp, "  -c, --component=NAME:TYPE.PLUGIN.CLS\n");
 	fprintf(fp, "                                    Instantiate the component class CLS of type\n");
 	fprintf(fp, "                                    TYPE (`source`, `filter`, or `sink`) found\n");
 	fprintf(fp, "                                    in the plugin PLUGIN, add it to the graph,\n");
-	fprintf(fp, "                                    and optionally name it NAME (you can also\n");
-	fprintf(fp, "                                    specify the name with --name)\n");
+	fprintf(fp, "                                    and name it NAME");
 	fprintf(fp, "  -x, --connect=CONNECTION          Connect two created components (see the\n");
 	fprintf(fp, "                                    expected format of CONNECTION below)\n");
 	fprintf(fp, "  -l, --log-level=LVL               Set the log level of the current component to LVL\n");
 	fprintf(fp, "                                    (`N`, `V`, `D`, `I`, `W`, `E`, or `F`)\n");
-	fprintf(fp, "  -n, --name=NAME                   Set the name of the current component\n");
-	fprintf(fp, "                                    to NAME (must be unique amongst all the\n");
-	fprintf(fp, "                                    names of the created components)\n");
 	fprintf(fp, "      --omit-home-plugin-path       Omit home plugins from plugin search path\n");
 	fprintf(fp, "                                    (~/.local/lib/babeltrace2/plugins)\n");
 	fprintf(fp, "      --omit-system-plugin-path     Omit system plugins from plugin search path\n");
@@ -1912,8 +1907,8 @@ void print_run_usage(FILE *fp)
 	fprintf(fp, "\n");
 	fprintf(fp, "UPSTREAM and DOWNSTREAM are names of the upstream and downstream\n");
 	fprintf(fp, "components to connect together. You must escape the following characters\n\n");
-	fprintf(fp, "with `\\`: `\\`, `.`, and `:`. You can set the name of the current\n");
-	fprintf(fp, "component with the --name option.\n");
+	fprintf(fp, "with `\\`: `\\`, `.`, and `:`. You must set the name of the current\n");
+	fprintf(fp, "component using the NAME prefix of the --component option.\n");
 	fprintf(fp, "\n");
 	fprintf(fp, "UPSTREAM-PORT and DOWNSTREAM-PORT are optional globbing patterns to\n");
 	fprintf(fp, "identify the upstream and downstream ports to use for the connection.\n");
@@ -1955,8 +1950,6 @@ struct bt_config *bt_config_run_from_args(int argc, const char *argv[],
 		const bt_value *initial_plugin_paths, int default_log_level)
 {
 	struct bt_config_component *cur_cfg_comp = NULL;
-	enum bt_config_component_dest cur_cfg_comp_dest =
-			BT_CONFIG_COMPONENT_DEST_UNKNOWN;
 	bt_value *cur_base_params = NULL;
 	int ret = 0;
 	struct bt_config *cfg = NULL;
@@ -1975,7 +1968,6 @@ struct bt_config *bt_config_run_from_args(int argc, const char *argv[],
 		{ OPT_CONNECT, 'x', "connect", true },
 		{ OPT_HELP, 'h', "help", false },
 		{ OPT_LOG_LEVEL, 'l', "log-level", true },
-		{ OPT_NAME, 'n', "name", true },
 		{ OPT_OMIT_HOME_PLUGIN_PATH, '\0', "omit-home-plugin-path", false },
 		{ OPT_OMIT_SYSTEM_PLUGIN_PATH, '\0', "omit-system-plugin-path", false },
 		{ OPT_PARAMS, 'p', "params", true },
@@ -2080,18 +2072,9 @@ struct bt_config *bt_config_run_from_args(int argc, const char *argv[],
 			break;
 		case OPT_COMPONENT:
 		{
-			enum bt_config_component_dest new_dest;
+			enum bt_config_component_dest dest;
 
-			if (cur_cfg_comp) {
-				ret = add_run_cfg_comp_check_name(cfg,
-					cur_cfg_comp, cur_cfg_comp_dest,
-					instance_names);
-				BT_OBJECT_PUT_REF_AND_RESET(cur_cfg_comp);
-				if (ret) {
-					goto error;
-				}
-			}
-
+			BT_OBJECT_PUT_REF_AND_RESET(cur_cfg_comp);
 			cur_cfg_comp = bt_config_component_from_arg(arg,
 				default_log_level);
 			if (!cur_cfg_comp) {
@@ -2102,13 +2085,13 @@ struct bt_config *bt_config_run_from_args(int argc, const char *argv[],
 
 			switch (cur_cfg_comp->type) {
 			case BT_COMPONENT_CLASS_TYPE_SOURCE:
-				new_dest = BT_CONFIG_COMPONENT_DEST_SOURCE;
+				dest = BT_CONFIG_COMPONENT_DEST_SOURCE;
 				break;
 			case BT_COMPONENT_CLASS_TYPE_FILTER:
-				new_dest = BT_CONFIG_COMPONENT_DEST_FILTER;
+				dest = BT_CONFIG_COMPONENT_DEST_FILTER;
 				break;
 			case BT_COMPONENT_CLASS_TYPE_SINK:
-				new_dest = BT_CONFIG_COMPONENT_DEST_SINK;
+				dest = BT_CONFIG_COMPONENT_DEST_SINK;
 				break;
 			default:
 				abort();
@@ -2122,7 +2105,13 @@ struct bt_config *bt_config_run_from_args(int argc, const char *argv[],
 				goto error;
 			}
 
-			cur_cfg_comp_dest = new_dest;
+			ret = add_run_cfg_comp_check_name(cfg,
+				cur_cfg_comp, dest,
+				instance_names);
+			if (ret) {
+				goto error;
+			}
+
 			break;
 		}
 		case OPT_PARAMS:
@@ -2155,15 +2144,6 @@ struct bt_config *bt_config_run_from_args(int argc, const char *argv[],
 			BT_OBJECT_MOVE_REF(cur_cfg_comp->params, params_to_set);
 			break;
 		}
-		case OPT_NAME:
-			if (!cur_cfg_comp) {
-				BT_CLI_LOGE_APPEND_CAUSE("Cannot set the name of unavailable component:\n    %s",
-					arg);
-				goto error;
-			}
-
-			g_string_assign(cur_cfg_comp->instance_name, arg);
-			break;
 		case OPT_LOG_LEVEL:
 			if (!cur_cfg_comp) {
 				BT_CLI_LOGE_APPEND_CAUSE("Cannot set the log level of unavailable component:\n    %s",
@@ -2237,15 +2217,7 @@ struct bt_config *bt_config_run_from_args(int argc, const char *argv[],
 		}
 	}
 
-	/* Add current component */
-	if (cur_cfg_comp) {
-		ret = add_run_cfg_comp_check_name(cfg, cur_cfg_comp,
-			cur_cfg_comp_dest, instance_names);
-		BT_OBJECT_PUT_REF_AND_RESET(cur_cfg_comp);
-		if (ret) {
-			goto error;
-		}
-	}
+	BT_OBJECT_PUT_REF_AND_RESET(cur_cfg_comp);
 
 	if (cfg->cmd_data.run.sources->len == 0) {
 		BT_CLI_LOGE_APPEND_CAUSE("Incomplete graph: no source component.");
@@ -2346,13 +2318,9 @@ void print_convert_usage(FILE *fp)
 	fprintf(fp, "                                    TYPE (`source`, `filter`, or `sink`) found\n");
 	fprintf(fp, "                                    in the plugin PLUGIN, add it to the\n");
 	fprintf(fp, "                                    conversion graph, and optionally name it\n");
-	fprintf(fp, "                                    NAME (you can also specify the name with\n");
-	fprintf(fp, "                                    --name)\n");
+	fprintf(fp, "                                    NAME\n");
 	fprintf(fp, "  -l, --log-level=LVL               Set the log level of the current component to LVL\n");
 	fprintf(fp, "                                    (`N`, `V`, `D`, `I`, `W`, `E`, or `F`)\n");
-	fprintf(fp, "      --name=NAME                   Set the name of the current component\n");
-	fprintf(fp, "                                    to NAME (must be unique amongst all the\n");
-	fprintf(fp, "                                    names of the created components)\n");
 	fprintf(fp, "      --omit-home-plugin-path       Omit home plugins from plugin search path\n");
 	fprintf(fp, "                                    (~/.local/lib/babeltrace2/plugins)\n");
 	fprintf(fp, "      --omit-system-plugin-path     Omit system plugins from plugin search path\n");
@@ -2488,7 +2456,6 @@ const struct bt_argpar_opt_descr convert_options[] = {
 	{ OPT_HELP, 'h', "help", false },
 	{ OPT_INPUT_FORMAT, 'i', "input-format", true },
 	{ OPT_LOG_LEVEL, 'l', "log-level", true },
-	{ OPT_NAME, '\0', "name", true },
 	{ OPT_NAMES, 'n', "names", true },
 	{ OPT_DEBUG_INFO, '\0', "debug-info", false },
 	{ OPT_NO_DELTA, '\0', "no-delta", false },
@@ -2595,27 +2562,31 @@ int append_run_args_for_implicit_component(
 {
 	int ret = 0;
 	size_t i;
+	GString *component_arg_for_run = NULL;
 
 	if (!impl_args->exists) {
 		goto end;
 	}
+
+	component_arg_for_run = g_string_new(NULL);
+	if (!component_arg_for_run) {
+		BT_CLI_LOGE_APPEND_CAUSE_OOM();
+		goto error;
+	}
+
+	/* Build the full `name:type.plugin.cls`. */
+	BT_ASSERT(!strchr(impl_args->name_arg->str, '\\'));
+	BT_ASSERT(!strchr(impl_args->name_arg->str, ':'));
+	g_string_printf(component_arg_for_run, "%s:%s",
+		impl_args->name_arg->str, impl_args->comp_arg->str);
 
 	if (bt_value_array_append_string_element(run_args, "--component")) {
 		BT_CLI_LOGE_APPEND_CAUSE_OOM();
 		goto error;
 	}
 
-	if (bt_value_array_append_string_element(run_args, impl_args->comp_arg->str)) {
-		BT_CLI_LOGE_APPEND_CAUSE_OOM();
-		goto error;
-	}
-
-	if (bt_value_array_append_string_element(run_args, "--name")) {
-		BT_CLI_LOGE_APPEND_CAUSE_OOM();
-		goto error;
-	}
-
-	if (bt_value_array_append_string_element(run_args, impl_args->name_arg->str)) {
+	if (bt_value_array_append_string_element(run_args,
+			component_arg_for_run->str)) {
 		BT_CLI_LOGE_APPEND_CAUSE_OOM();
 		goto error;
 	}
@@ -2659,6 +2630,10 @@ error:
 	ret = -1;
 
 end:
+	if (component_arg_for_run) {
+		g_string_free(component_arg_for_run, TRUE);
+	}
+
 	return ret;
 }
 
@@ -2983,103 +2958,6 @@ int append_implicit_component_extra_param(struct implicit_component_args *args,
 	return append_string_parameter_to_args(args->extra_params, key, value);
 }
 
-static
-int convert_append_name_param(enum bt_config_component_dest dest,
-		GString *cur_name, GString *cur_name_prefix,
-		bt_value *run_args,
-		bt_value *all_names,
-		GList **source_names, GList **filter_names,
-		GList **sink_names)
-{
-	int ret = 0;
-
-	if (cur_name_prefix->len > 0) {
-		/* We're after a --component option */
-		GString *name = NULL;
-		bool append_name_opt = false;
-
-		if (cur_name->len == 0) {
-			/*
-			 * No explicit name was provided for the user
-			 * component.
-			 */
-			name = get_component_auto_name(cur_name_prefix->str,
-				all_names);
-			append_name_opt = true;
-		} else {
-			/*
-			 * An explicit name was provided for the user
-			 * component.
-			 */
-			if (bt_value_map_has_entry(all_names,
-						   cur_name->str)) {
-				BT_CLI_LOGE_APPEND_CAUSE("Duplicate component instance name:\n    %s",
-					cur_name->str);
-				goto error;
-			}
-
-			name = g_string_new(cur_name->str);
-		}
-
-		if (!name) {
-			BT_CLI_LOGE_APPEND_CAUSE_OOM();
-			goto error;
-		}
-
-		/*
-		 * Remember this name globally, for the uniqueness of
-		 * all component names.
-		 */
-		if (bt_value_map_insert_entry(all_names, name->str, bt_value_null)) {
-			BT_CLI_LOGE_APPEND_CAUSE_OOM();
-			goto error;
-		}
-
-		/*
-		 * Append the --name option if necessary.
-		 */
-		if (append_name_opt) {
-			if (bt_value_array_append_string_element(run_args, "--name")) {
-				BT_CLI_LOGE_APPEND_CAUSE_OOM();
-				goto error;
-			}
-
-			if (bt_value_array_append_string_element(run_args, name->str)) {
-				BT_CLI_LOGE_APPEND_CAUSE_OOM();
-				goto error;
-			}
-		}
-
-		/*
-		 * Remember this name specifically for the type of the
-		 * component. This is to create connection arguments.
-		 */
-		switch (dest) {
-		case BT_CONFIG_COMPONENT_DEST_SOURCE:
-			*source_names = g_list_append(*source_names, name);
-			break;
-		case BT_CONFIG_COMPONENT_DEST_FILTER:
-			*filter_names = g_list_append(*filter_names, name);
-			break;
-		case BT_CONFIG_COMPONENT_DEST_SINK:
-			*sink_names = g_list_append(*sink_names, name);
-			break;
-		default:
-			abort();
-		}
-
-		g_string_assign(cur_name_prefix, "");
-	}
-
-	goto end;
-
-error:
-	ret = -1;
-
-end:
-	return ret;
-}
-
 /*
  * Escapes `.`, `:`, and `\` of `input` with `\`.
  */
@@ -3346,6 +3224,19 @@ end:
 }
 
 /*
+ * As we iterate the arguments to the convert command, this tracks what is the
+ * type of the current item, to which some contextual options (e.g. --params)
+ * apply to.
+ */
+enum convert_current_item_type {
+	/* There is no current item. */
+	CONVERT_CURRENT_ITEM_TYPE_NONE,
+
+	/* Current item is a component. */
+	CONVERT_CURRENT_ITEM_TYPE_COMPONENT,
+};
+
+/*
  * Creates a Babeltrace config object from the arguments of a convert
  * command.
  *
@@ -3357,8 +3248,8 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 		bool force_omit_home_plugin_path,
 		const bt_value *initial_plugin_paths, int *default_log_level)
 {
-	enum bt_config_component_dest cur_comp_dest =
-			BT_CONFIG_COMPONENT_DEST_UNKNOWN;
+	enum convert_current_item_type current_item_type =
+		CONVERT_CURRENT_ITEM_TYPE_NONE;
 	int ret = 0;
 	struct bt_config *cfg = NULL;
 	bool got_input_format_opt = false;
@@ -3366,8 +3257,6 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 	bool trimmer_has_begin = false;
 	bool trimmer_has_end = false;
 	bool stream_intersection_mode = false;
-	GString *cur_name = NULL;
-	GString *cur_name_prefix = NULL;
 	bool print_run_args = false;
 	bool print_run_args_0 = false;
 	bool print_ctf_metadata = false;
@@ -3392,6 +3281,8 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 	struct auto_source_discovery auto_disc = { NULL };
 	GString *auto_disc_comp_name = NULL;
 	struct bt_argpar_parse_ret argpar_parse_ret = { 0 };
+	GString *name_gstr = NULL;
+	GString *component_arg_for_run = NULL;
 
 	/*
 	 * Array of `struct implicit_component_args *` created for the sources
@@ -3466,14 +3357,8 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 		goto error;
 	}
 
-	cur_name = g_string_new(NULL);
-	if (!cur_name) {
-		BT_CLI_LOGE_APPEND_CAUSE_OOM();
-		goto error;
-	}
-
-	cur_name_prefix = g_string_new(NULL);
-	if (!cur_name_prefix) {
+	component_arg_for_run = g_string_new(NULL);
+	if (!component_arg_for_run) {
 		BT_CLI_LOGE_APPEND_CAUSE_OOM();
 		goto error;
 	}
@@ -3550,15 +3435,8 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 		case OPT_COMPONENT:
 		{
 			bt_component_class_type type;
-			const char *type_prefix;
 
-			/* Append current component's name if needed */
-			ret = convert_append_name_param(cur_comp_dest, cur_name,
-				cur_name_prefix, run_args, all_names,
-				&source_names, &filter_names, &sink_names);
-			if (ret) {
-				goto error;
-			}
+			current_item_type = CONVERT_CURRENT_ITEM_TYPE_COMPONENT;
 
 			/* Parse the argument */
 			plugin_comp_cls_names(arg, &name, &plugin_name,
@@ -3571,26 +3449,33 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 			}
 
 			if (name) {
-				g_string_assign(cur_name, name);
-			} else {
-				g_string_assign(cur_name, "");
-			}
+				/*
+				 * Name was given by the user, verify it isn't
+				 * taken.
+				 */
+				if (bt_value_map_has_entry(all_names, name)) {
+					BT_CLI_LOGE_APPEND_CAUSE(
+						"Duplicate component instance name:\n    %s",
+						name);
+					goto error;
+				}
 
-			switch (type) {
-			case BT_COMPONENT_CLASS_TYPE_SOURCE:
-				cur_comp_dest = BT_CONFIG_COMPONENT_DEST_SOURCE;
-				type_prefix = "source";
-				break;
-			case BT_COMPONENT_CLASS_TYPE_FILTER:
-				cur_comp_dest = BT_CONFIG_COMPONENT_DEST_FILTER;
-				type_prefix = "filter";
-				break;
-			case BT_COMPONENT_CLASS_TYPE_SINK:
-				cur_comp_dest = BT_CONFIG_COMPONENT_DEST_SINK;
-				type_prefix = "sink";
-				break;
-			default:
-				abort();
+				name_gstr = g_string_new(name);
+				if (!name_gstr) {
+					BT_CLI_LOGE_APPEND_CAUSE_OOM();
+					goto error;
+				}
+
+				g_string_assign(component_arg_for_run, arg);
+			} else {
+				/* Name not given by user, generate one. */
+				name_gstr = get_component_auto_name(arg, all_names);
+				if (!name_gstr) {
+					goto error;
+				}
+
+				g_string_printf(component_arg_for_run, "%s:%s",
+					name_gstr->str, arg);
 			}
 
 			if (bt_value_array_append_string_element(run_args,
@@ -3599,14 +3484,43 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 				goto error;
 			}
 
-			if (bt_value_array_append_string_element(run_args, arg)) {
+			if (bt_value_array_append_string_element(run_args,
+					component_arg_for_run->str)) {
 				BT_CLI_LOGE_APPEND_CAUSE_OOM();
 				goto error;
 			}
 
-			g_string_assign(cur_name_prefix, "");
-			g_string_append_printf(cur_name_prefix, "%s.%s.%s",
-				type_prefix, plugin_name, comp_cls_name);
+			/*
+			 * Remember this name globally, for the uniqueness of
+			 * all component names.
+			 */
+			if (bt_value_map_insert_entry(all_names,
+					name_gstr->str, bt_value_null)) {
+				BT_CLI_LOGE_APPEND_CAUSE_OOM();
+				goto error;
+			}
+
+			/*
+			 * Remember this name specifically for the type of the
+			 * component. This is to create connection arguments.
+			 *
+			 * The list takes ownership of `name_gstr`.
+			 */
+			switch (type) {
+			case BT_COMPONENT_CLASS_TYPE_SOURCE:
+				source_names = g_list_append(source_names, name_gstr);
+				break;
+			case BT_COMPONENT_CLASS_TYPE_FILTER:
+				filter_names = g_list_append(filter_names, name_gstr);
+				break;
+			case BT_COMPONENT_CLASS_TYPE_SINK:
+				sink_names = g_list_append(sink_names, name_gstr);
+				break;
+			default:
+				abort();
+			}
+			name_gstr = NULL;
+
 			free(name);
 			free(plugin_name);
 			free(comp_cls_name);
@@ -3616,7 +3530,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 			break;
 		}
 		case OPT_PARAMS:
-			if (cur_name_prefix->len == 0) {
+			if (current_item_type != CONVERT_CURRENT_ITEM_TYPE_COMPONENT) {
 				BT_CLI_LOGE_APPEND_CAUSE("No current component of which to set parameters:\n    %s",
 					arg);
 				goto error;
@@ -3633,27 +3547,8 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 				goto error;
 			}
 			break;
-		case OPT_NAME:
-			if (cur_name_prefix->len == 0) {
-				BT_CLI_LOGE_APPEND_CAUSE("No current component to name:\n    %s",
-					arg);
-				goto error;
-			}
-
-			if (bt_value_array_append_string_element(run_args, "--name")) {
-				BT_CLI_LOGE_APPEND_CAUSE_OOM();
-				goto error;
-			}
-
-			if (bt_value_array_append_string_element(run_args, arg)) {
-				BT_CLI_LOGE_APPEND_CAUSE_OOM();
-				goto error;
-			}
-
-			g_string_assign(cur_name, arg);
-			break;
 		case OPT_LOG_LEVEL:
-			if (cur_name_prefix->len == 0) {
+			if (current_item_type != CONVERT_CURRENT_ITEM_TYPE_COMPONENT) {
 				BT_CLI_LOGE_APPEND_CAUSE("No current component to assign a log level to:\n    %s",
 					arg);
 				goto error;
@@ -3750,14 +3645,6 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 				argpar_item_opt->descr->id);
 			goto error;
 		}
-	}
-
-	/* Append current component's name if needed */
-	ret = convert_append_name_param(cur_comp_dest, cur_name,
-		cur_name_prefix, run_args, all_names, &source_names,
-		&filter_names, &sink_names);
-	if (ret) {
-		goto error;
 	}
 
 	/*
@@ -4546,12 +4433,12 @@ end:
 
 	free(output);
 
-	if (cur_name) {
-		g_string_free(cur_name, TRUE);
+	if (component_arg_for_run) {
+		g_string_free(component_arg_for_run, TRUE);
 	}
 
-	if (cur_name_prefix) {
-		g_string_free(cur_name_prefix, TRUE);
+	if (name_gstr) {
+		g_string_free(name_gstr, TRUE);
 	}
 
 	bt_value_put_ref(run_args);
