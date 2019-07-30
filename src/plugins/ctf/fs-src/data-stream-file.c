@@ -216,8 +216,8 @@ enum bt_msg_iter_medium_status medop_seek(enum bt_msg_iter_seek_whence whence,
 	if (whence != BT_MSG_ITER_SEEK_WHENCE_SET ||
 		offset < 0 || offset > file_size) {
 		BT_COMP_LOGE("Invalid medium seek request: whence=%d, offset=%jd, "
-				"file-size=%jd", (int) whence, offset,
-				file_size);
+				"file-size=%jd", (int) whence, (intmax_t) offset,
+				(intmax_t) file_size);
 		ret = BT_MSG_ITER_MEDIUM_STATUS_INVAL;
 		goto end;
 	}
@@ -236,7 +236,7 @@ enum bt_msg_iter_medium_status medop_seek(enum bt_msg_iter_seek_whence whence,
 		int unmap_ret;
 		BT_COMP_LOGD("Medium seek request cannot be accomodated by the current "
 				"file mapping: offset=%jd, mmap-offset=%jd, "
-				"mmap-len=%zu", offset, ds_file->mmap_offset,
+				"mmap-len=%zu", (intmax_t) offset, (intmax_t) ds_file->mmap_offset,
 				ds_file->mmap_len);
 		unmap_ret = ds_file_munmap(ds_file);
 		if (unmap_ret) {
@@ -576,9 +576,9 @@ struct ctf_fs_ds_index *build_index_from_stream_file(
 					"packet-offset=%jd, packet-size-bytes=%jd, "
 					"file-size=%jd",
 					ds_file->file->path->str,
-					current_packet_offset_bytes,
-					current_packet_size_bytes,
-					ds_file->file->size);
+					(intmax_t) current_packet_offset_bytes,
+					(intmax_t) current_packet_size_bytes,
+					(intmax_t) ds_file->file->size);
 			goto error;
 		}
 
@@ -600,8 +600,8 @@ struct ctf_fs_ds_index *build_index_from_stream_file(
 		current_packet_offset_bytes += current_packet_size_bytes;
 		BT_COMP_LOGD("Seeking to next packet: current-packet-offset=%jd, "
 			"next-packet-offset=%jd",
-			current_packet_offset_bytes - current_packet_size_bytes,
-			current_packet_offset_bytes);
+			(intmax_t) (current_packet_offset_bytes - current_packet_size_bytes),
+			(intmax_t) current_packet_offset_bytes);
 
 	} while (iter_status == BT_MSG_ITER_STATUS_OK);
 
