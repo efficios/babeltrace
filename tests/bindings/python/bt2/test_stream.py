@@ -45,6 +45,10 @@ class StreamTestCase(unittest.TestCase):
         stream = self._tr.create_stream(self._sc)
         self.assertEqual(stream.cls, self._sc)
 
+    def test_trace(self):
+        stream = self._tr.create_stream(self._sc)
+        self.assertEqual(stream.trace.addr, self._tr.addr)
+
     def test_invalid_id(self):
         sc = self._tc.create_stream_class(assigns_automatic_stream_id=False)
 
