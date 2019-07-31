@@ -51,6 +51,12 @@ struct auto_source_discovery_result {
 
 	/* Array of input strings. */
 	bt_value *inputs;
+
+	/*
+	 * Array of integers: indices of the original inputs that contributed
+	 * to this result.
+	 */
+	bt_value *original_input_indices;
 };
 
 int auto_source_discovery_init(struct auto_source_discovery *auto_disc);

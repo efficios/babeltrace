@@ -1,0 +1,87 @@
+#!/bin/bash
+#
+# Copyright (C) 2019 Simon Marchi <simon.marchi@efficios.com>
+#
+# This program is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License, version 2 only, as
+# published by the Free Software Foundation.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+# more details.
+#
+# You should have received a copy of the GNU General Public License along with
+# this program; if not, write to the Free Software Foundation, Inc., 51
+# Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+
+# Test how parameters are applied to sources auto-discovered by the convert
+# command.
+
+if [ "x${BT_TESTS_SRCDIR:-}" != "x" ]; then
+	UTILSSH="$BT_TESTS_SRCDIR/utils/utils.sh"
+else
+	UTILSSH="$(dirname "$0")/../../utils/utils.sh"
+fi
+
+# shellcheck source=../../utils/utils.sh
+SH_TAP=1 source "$UTILSSH"
+
+NUM_TESTS=4
+
+plan_tests $NUM_TESTS
+
+data_dir="${BT_TESTS_DATADIR}/cli/convert/auto-source-discovery-params"
+plugin_dir="${data_dir}"
+dir_a="${data_dir}/dir-a"
+dir_b="${data_dir}/dir-b"
+dir_ab="${data_dir}/dir-ab"
+
+expected_file=$(mktemp -t expected.XXXXXX)
+stderr_expected=/dev/null
+
+# Apply params to two components from one leftover.
+cat > "$expected_file" <<END
+TestSourceA: ('test-allo', 'madame')
+TestSourceB: ('test-allo', 'madame')
+END
+
+bt_diff_cli_sorted "$expected_file" "$stderr_expected" \
+	convert --plugin-path "${plugin_dir}" \
+	"${dir_ab}" --params 'test-allo="madame"'
+ok "$?" "apply params to two components from one leftover"
+
+# Apply params to two components from two distinct leftovers.
+cat > "$expected_file" <<END
+TestSourceA: ('test-allo', 'madame')
+TestSourceB: ('test-bonjour', 'monsieur')
+END
+
+bt_diff_cli_sorted "$expected_file" "$stderr_expected" \
+	convert --plugin-path "${plugin_dir}" \
+	"${dir_a}" --params 'test-allo="madame"' "${dir_b}" --params 'test-bonjour="monsieur"'
+ok "$?" "apply params to two leftovers"
+
+# Apply params to one component coming from one leftover and one component coming from two leftovers (1).
+cat > "$expected_file" <<END
+TestSourceA: ('test-allo', 'madame'), ('test-bonjour', 'monsieur')
+TestSourceB: ('test-bonjour', 'monsieur')
+END
+
+bt_diff_cli_sorted "$expected_file" "$stderr_expected" \
+	convert --plugin-path "${plugin_dir}" \
+	"${dir_a}" --params 'test-allo="madame"' "${dir_ab}" --params 'test-bonjour="monsieur"'
+ok "$?" "apply params to one component coming from one leftover and one component coming from two leftovers (1)"
+
+# Apply params to one component coming from one leftover and one component coming from two leftovers (2).
+cat > "$expected_file" <<END
+TestSourceA: ('test-bonjour', 'monsieur'), ('test-salut', 'les amis')
+TestSourceB: ('test-bonjour', 'madame'), ('test-salut', 'les amis')
+END
+
+bt_diff_cli_sorted "$expected_file" "$stderr_expected" \
+	convert --plugin-path "${plugin_dir}" \
+	"${dir_ab}" --params 'test-bonjour="madame",test-salut="les amis"' "${dir_a}" --params 'test-bonjour="monsieur"'
+ok "$?" "apply params to one component coming from one leftover and one component coming from two leftovers (2)"
+
+rm -f "$expected_file"
