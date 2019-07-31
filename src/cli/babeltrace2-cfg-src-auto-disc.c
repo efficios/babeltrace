@@ -70,6 +70,12 @@ struct auto_source_discovery_result *auto_source_discovery_result_create(
 		goto error;
 	}
 
+	res->original_input_indices = bt_value_array_create();
+	if (!res->original_input_indices) {
+		BT_CLI_LOGE_APPEND_CAUSE("Failed to allocate an array value.");
+		goto error;
+	}
+
 	goto end;
 error:
 	auto_source_discovery_result_destroy(res);
@@ -112,6 +118,14 @@ end:
 	return status;
 }
 
+static
+const bt_value *borrow_array_value_last_element_const(const bt_value *array)
+{
+	uint64_t last_index = bt_value_array_get_size(array) - 1;
+
+	return bt_value_array_borrow_element_by_index_const(array, last_index);
+}
+
 /*
  * Assign `input` to source component class `source_cc_name` of plugin
  * `plugin_name`, in the group with key `group`.
@@ -122,13 +136,15 @@ int auto_source_discovery_add(struct auto_source_discovery *auto_disc,
 		const char *plugin_name,
 		const char *source_cc_name,
 		const char *group,
-		const char *input)
+		const char *input,
+		uint64_t original_input_index)
 {
 	int status;
 	bt_value_array_append_element_status append_status;
 	guint len;
 	guint i;
 	struct auto_source_discovery_result *res = NULL;
+	bool append_index;
 
 	len = auto_disc->results->len;
 	i = len;
@@ -170,6 +186,35 @@ int auto_source_discovery_add(struct auto_source_discovery *auto_disc,
 		goto error;
 	}
 
+	/*
+	 * Append `original_input_index` to `original_input_indices` if not
+	 * there already.  We process the `inputs` array in order, so if it is
+	 * present, it has to be the last element.
+	 */
+	if (bt_value_array_is_empty(res->original_input_indices)) {
+		append_index = true;
+	} else {
+		const bt_value *last_index_value;
+		uint64_t last_index;
+
+		last_index_value =
+			borrow_array_value_last_element_const(res->original_input_indices);
+		last_index = bt_value_integer_unsigned_get(last_index_value);
+
+		BT_ASSERT(last_index <= original_input_index);
+
+		append_index = (last_index != original_input_index);
+	}
+
+	if (append_index) {
+		append_status = bt_value_array_append_unsigned_integer_element(
+			res->original_input_indices, original_input_index);
+
+		if (append_status != BT_VALUE_ARRAY_APPEND_ELEMENT_STATUS_OK) {
+			BT_CLI_LOGE_APPEND_CAUSE("Failed to append an unsigned integer value.");
+			goto error;
+		}
+	}
 
 	status = 0;
 	goto end;
@@ -242,7 +287,9 @@ end:
  */
 static
 int support_info_query_all_sources(const char *input,
-		const char *input_type, size_t plugin_count,
+		const char *input_type,
+		uint64_t original_input_index,
+		size_t plugin_count,
 		const char *plugin_restrict,
 		const char *component_class_restrict,
 		enum bt_logging_level log_level,
@@ -439,7 +486,8 @@ int support_info_query_all_sources(const char *input,
 		BT_LOGI("Input %s is awarded to component class source.%s.%s with weight %f",
 			input, plugin_name, source_name, winner.weigth);
 
-		status = auto_source_discovery_add(auto_disc, plugin_name, source_name, group, input);
+		status = auto_source_discovery_add(auto_disc, plugin_name,
+			source_name, group, input, original_input_index);
 		if (status != 0) {
 			goto error;
 		}
@@ -471,18 +519,20 @@ end:
 
 static
 int auto_discover_source_for_input_as_string(const char *input,
+		uint64_t original_input_index,
 		size_t plugin_count, const char *plugin_restrict,
 		const char *component_class_restrict,
 		enum bt_logging_level log_level,
 		struct auto_source_discovery *auto_disc)
 {
 	return support_info_query_all_sources(input, "string",
-		plugin_count, plugin_restrict, component_class_restrict,
-		log_level, auto_disc);
+		original_input_index, plugin_count, plugin_restrict,
+		component_class_restrict, log_level, auto_disc);
 }
 
 static
 int auto_discover_source_for_input_as_dir_or_file_rec(GString *input,
+		uint64_t original_input_index,
 		size_t plugin_count, const char *plugin_restrict,
 		const char *component_class_restrict,
 		enum bt_logging_level log_level,
@@ -494,7 +544,7 @@ int auto_discover_source_for_input_as_dir_or_file_rec(GString *input,
 	if (g_file_test(input->str, G_FILE_TEST_IS_REGULAR)) {
 		/* It's a file. */
 		status = support_info_query_all_sources(input->str,
-			"file", plugin_count,
+			"file", original_input_index, plugin_count,
 			plugin_restrict, component_class_restrict, log_level, auto_disc);
 	} else if (g_file_test(input->str, G_FILE_TEST_IS_DIR)) {
 		GDir *dir;
@@ -504,7 +554,7 @@ int auto_discover_source_for_input_as_dir_or_file_rec(GString *input,
 
 		/* It's a directory. */
 		status = support_info_query_all_sources(input->str,
-			"directory", plugin_count,
+			"directory", original_input_index, plugin_count,
 			plugin_restrict, component_class_restrict, log_level,
 			auto_disc);
 
@@ -545,7 +595,7 @@ int auto_discover_source_for_input_as_dir_or_file_rec(GString *input,
 				g_string_append(input, dirent);
 
 				status = auto_discover_source_for_input_as_dir_or_file_rec(
-					input, plugin_count,
+					input, original_input_index, plugin_count,
 					plugin_restrict, component_class_restrict,
 					log_level, auto_disc);
 
@@ -595,6 +645,7 @@ end:
 
 static
 int auto_discover_source_for_input_as_dir_or_file(const char *input,
+		uint64_t original_input_index,
 		size_t plugin_count, const char *plugin_restrict,
 		const char *component_class_restrict,
 		enum bt_logging_level log_level,
@@ -610,7 +661,7 @@ int auto_discover_source_for_input_as_dir_or_file(const char *input,
 	}
 
 	status = auto_discover_source_for_input_as_dir_or_file_rec(
-		mutable_input, plugin_count, plugin_restrict,
+		mutable_input, original_input_index, plugin_count, plugin_restrict,
 		component_class_restrict, log_level, auto_disc);
 
 	g_string_free(mutable_input, TRUE);
@@ -645,7 +696,7 @@ int auto_discover_source_components(
 
 		input_value = bt_value_array_borrow_element_by_index_const(inputs, i_inputs);
 		input = bt_value_string_get(input_value);
-		status = auto_discover_source_for_input_as_string(input,
+		status = auto_discover_source_for_input_as_string(input, i_inputs,
 			plugin_count, plugin_restrict, component_class_restrict,
 			log_level, auto_disc);
 		if (status < 0) {
@@ -657,8 +708,8 @@ int auto_discover_source_components(
 		}
 
 		status = auto_discover_source_for_input_as_dir_or_file(input,
-			plugin_count, plugin_restrict, component_class_restrict,
-			log_level, auto_disc);
+			i_inputs, plugin_count, plugin_restrict,
+			component_class_restrict, log_level, auto_disc);
 		if (status < 0) {
 			/* Fatal error. */
 			goto end;
