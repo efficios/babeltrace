@@ -102,7 +102,7 @@ if [ "$BT_OS_TYPE" = "mingw" ]; then
 	output_path=$(cygpath -m "$output_path")
 fi
 
-plan_tests 73
+plan_tests 71
 
 test_bt_convert_run_args 'path leftover' "$path_to_trace" "--component auto-disc-source-ctf-fs:source.ctf.fs --params 'inputs=[\"$path_to_trace\"]' --component pretty:sink.text.pretty --component muxer:filter.utils.muxer --connect auto-disc-source-ctf-fs:muxer --connect muxer:pretty"
 test_bt_convert_run_args 'path leftovers' "$path_to_trace $path_to_trace2" "--component auto-disc-source-ctf-fs:source.ctf.fs --params 'inputs=[\"$path_to_trace\", \"${path_to_trace2}\"]' --component pretty:sink.text.pretty --component muxer:filter.utils.muxer --connect auto-disc-source-ctf-fs:muxer --connect muxer:pretty"
@@ -176,6 +176,5 @@ test_bt_convert_fails 'no source' '-o text'
 test_bt_convert_fails '-o ctf without --output' 'my-trace -o ctf'
 test_bt_convert_fails '-o ctf + --output with implicit sink.text.pretty' "my-trace -o ctf --output $output_path --no-delta"
 test_bt_convert_fails '--stream-intersection' "$path_to_trace --stream-intersection"
-test_bt_convert_fails '--log-level after leftover' "--component src.ctf.fs $path_to_trace --log-level=W" 'No current component (--component option) to assign a log level to'
 
 rm -f "${tmp_stderr}"

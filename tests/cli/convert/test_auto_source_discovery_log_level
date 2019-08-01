@@ -15,7 +15,7 @@
 # this program; if not, write to the Free Software Foundation, Inc., 51
 # Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-# Test how parameters are applied to sources auto-discovered by the convert
+# Test log level options are applied to sources auto-discovered by the convert
 # command.
 
 if [ "x${BT_TESTS_SRCDIR:-}" != "x" ]; then
@@ -40,50 +40,53 @@ dir_ab="${data_dir}/dir-ab"
 expected_file=$(mktemp -t expected.XXXXXX)
 stderr_expected=/dev/null
 
-print_test_params="--params print=\"test-params\""
+print_log_level="--params print=\"log-level\""
 
-# Apply params to two components from one leftover.
+debug=2
+trace=1
+
+# Apply log level to two components from one leftover.
 cat > "$expected_file" <<END
-TestSourceA: ('test-allo', 'madame')
-TestSourceB: ('test-allo', 'madame')
+TestSourceA: ${debug}
+TestSourceB: ${debug}
 END
 
 bt_diff_cli_sorted "$expected_file" "$stderr_expected" \
 	convert --plugin-path "${plugin_dir}" \
-	"${dir_ab}" --params 'test-allo="madame"' ${print_test_params}
-ok "$?" "apply params to two components from one leftover"
+	"${dir_ab}" --log-level DEBUG ${print_log_level}
+ok "$?" "apply log level to two components from one leftover"
 
-# Apply params to two components from two distinct leftovers.
+# Apply log level to two components from two distinct leftovers.
 cat > "$expected_file" <<END
-TestSourceA: ('test-allo', 'madame')
-TestSourceB: ('test-bonjour', 'monsieur')
+TestSourceA: ${debug}
+TestSourceB: ${trace}
 END
 
 bt_diff_cli_sorted "$expected_file" "$stderr_expected" \
 	convert --plugin-path "${plugin_dir}" \
-	"${dir_a}" --params 'test-allo="madame"' ${print_test_params} "${dir_b}" --params 'test-bonjour="monsieur"' ${print_test_params}
-ok "$?" "apply params to two leftovers"
+	"${dir_a}" --log-level DEBUG ${print_log_level} "${dir_b}" --log-level TRACE ${print_log_level}
+ok "$?" "apply log level to two leftovers"
 
-# Apply params to one component coming from one leftover and one component coming from two leftovers (1).
+# Apply log level to one component coming from one leftover and one component coming from two leftovers (1).
 cat > "$expected_file" <<END
-TestSourceA: ('test-allo', 'madame'), ('test-bonjour', 'monsieur')
-TestSourceB: ('test-bonjour', 'monsieur')
+TestSourceA: ${trace}
+TestSourceB: ${trace}
 END
 
 bt_diff_cli_sorted "$expected_file" "$stderr_expected" \
 	convert --plugin-path "${plugin_dir}" \
-	"${dir_a}" --params 'test-allo="madame"' ${print_test_params} "${dir_ab}" --params 'test-bonjour="monsieur"' ${print_test_params}
-ok "$?" "apply params to one component coming from one leftover and one component coming from two leftovers (1)"
+	"${dir_a}" --log-level DEBUG ${print_log_level} "${dir_ab}" --log-level TRACE ${print_log_level}
+ok "$?" "apply log level to one component coming from one leftover and one component coming from two leftovers (1)"
 
-# Apply params to one component coming from one leftover and one component coming from two leftovers (2).
+# Apply log level to one component coming from one leftover and one component coming from two leftovers (2).
 cat > "$expected_file" <<END
-TestSourceA: ('test-bonjour', 'monsieur'), ('test-salut', 'les amis')
-TestSourceB: ('test-bonjour', 'madame'), ('test-salut', 'les amis')
+TestSourceA: ${trace}
+TestSourceB: ${debug}
 END
 
 bt_diff_cli_sorted "$expected_file" "$stderr_expected" \
 	convert --plugin-path "${plugin_dir}" \
-	"${dir_ab}" --params 'test-bonjour="madame",test-salut="les amis"' ${print_test_params} "${dir_a}" --params 'test-bonjour="monsieur"' ${print_test_params}
-ok "$?" "apply params to one component coming from one leftover and one component coming from two leftovers (2)"
+	"${dir_ab}" --log-level DEBUG ${print_log_level} "${dir_a}" --log-level TRACE ${print_log_level}
+ok "$?" "apply log level to one component coming from one leftover and one component coming from two leftovers (2)"
 
 rm -f "$expected_file"
