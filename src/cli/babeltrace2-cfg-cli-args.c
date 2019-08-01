@@ -3194,6 +3194,7 @@ static
 int create_implicit_component_args_from_auto_discovered_sources(
 		const struct auto_source_discovery *auto_disc,
 		const bt_value *leftover_params,
+		const bt_value *leftover_loglevels,
 		GPtrArray *component_args)
 {
 	gchar *cc_name = NULL;
@@ -3221,8 +3222,8 @@ int create_implicit_component_args_from_auto_discovered_sources(
 		}
 
 		/*
-		 * Append parameters of all the leftovers that contributed to
-		 * this component instance coming into existence.
+		 * Append parameters and log levels of all the leftovers that
+		 * contributed to this component instance coming into existence.
 		 */
 		orig_indices_count = bt_value_array_get_size(res->original_input_indices);
 		for (orig_indices_i = 0; orig_indices_i < orig_indices_count; orig_indices_i++) {
@@ -3234,6 +3235,7 @@ int create_implicit_component_args_from_auto_discovered_sources(
 				bt_value_array_borrow_element_by_index_const(
 					leftover_params, orig_idx);
 			uint64_t params_i, params_count;
+			const bt_value *loglevel_value;
 
 			params_count = bt_value_array_get_size(params_array);
 			for (params_i = 0; params_i < params_count; params_i++) {
@@ -3252,6 +3254,27 @@ int create_implicit_component_args_from_auto_discovered_sources(
 
 				append_status = bt_value_array_append_string_element(
 					comp->extra_params, params);
+				if (append_status != BT_VALUE_ARRAY_APPEND_ELEMENT_STATUS_OK) {
+					BT_CLI_LOGE_APPEND_CAUSE("Failed to append array element.");
+					goto error;
+				}
+			}
+
+			loglevel_value = bt_value_array_borrow_element_by_index_const(
+				leftover_loglevels, orig_idx);
+			if (bt_value_get_type(loglevel_value) == BT_VALUE_TYPE_STRING) {
+				const char *loglevel = bt_value_string_get(loglevel_value);
+				bt_value_array_append_element_status append_status;
+
+				append_status = bt_value_array_append_string_element(
+					comp->extra_params, "--log-level");
+				if (append_status != BT_VALUE_ARRAY_APPEND_ELEMENT_STATUS_OK) {
+					BT_CLI_LOGE_APPEND_CAUSE("Failed to append array element.");
+					goto error;
+				}
+
+				append_status = bt_value_array_append_string_element(
+					comp->extra_params, loglevel);
 				if (append_status != BT_VALUE_ARRAY_APPEND_ELEMENT_STATUS_OK) {
 					BT_CLI_LOGE_APPEND_CAUSE("Failed to append array element.");
 					goto error;
@@ -3331,6 +3354,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 	GList *sink_names = NULL;
 	bt_value *leftovers = NULL;
 	bt_value *leftover_params = NULL;
+	bt_value *leftover_loglevels = NULL;
 	struct implicit_component_args implicit_ctf_output_args = { 0 };
 	struct implicit_component_args implicit_lttng_live_args = { 0 };
 	struct implicit_component_args implicit_dummy_args = { 0 };
@@ -3441,6 +3465,12 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 
 	leftover_params = bt_value_array_create();
 	if (!leftover_params) {
+		BT_CLI_LOGE_APPEND_CAUSE_OOM();
+		goto error;
+	}
+
+	leftover_loglevels = bt_value_array_create();
+	if (!leftover_loglevels) {
 		BT_CLI_LOGE_APPEND_CAUSE_OOM();
 		goto error;
 	}
@@ -3628,20 +3658,36 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 				}
 				break;
 			case OPT_LOG_LEVEL:
-				if (current_item_type != CONVERT_CURRENT_ITEM_TYPE_COMPONENT) {
+				if (current_item_type == CONVERT_CURRENT_ITEM_TYPE_COMPONENT) {
+					if (bt_value_array_append_string_element(run_args, "--log-level")) {
+						BT_CLI_LOGE_APPEND_CAUSE_OOM();
+						goto error;
+					}
+
+					if (bt_value_array_append_string_element(run_args, arg)) {
+						BT_CLI_LOGE_APPEND_CAUSE_OOM();
+						goto error;
+					}
+				} else if (current_item_type == CONVERT_CURRENT_ITEM_TYPE_LEFTOVER) {
+					uint64_t idx = bt_value_array_get_size(leftover_loglevels) - 1;
+					bt_value *log_level_str_value;
+
+					log_level_str_value = bt_value_string_create_init(arg);
+					if (!log_level_str_value) {
+						BT_CLI_LOGE_APPEND_CAUSE_OOM();
+						goto error;
+					}
+
+					if (bt_value_array_set_element_by_index(leftover_loglevels, idx,
+							log_level_str_value)) {
+						bt_value_put_ref(log_level_str_value);
+						BT_CLI_LOGE_APPEND_CAUSE_OOM();
+						goto error;
+					}
+				} else {
 					BT_CLI_LOGE_APPEND_CAUSE(
-						"No current component (--component option) to assign a log level to:\n    %s",
+						"No current component (--component option) or non-option argument to assign a log level to:\n    %s",
 						arg);
-					goto error;
-				}
-
-				if (bt_value_array_append_string_element(run_args, "--log-level")) {
-					BT_CLI_LOGE_APPEND_CAUSE_OOM();
-					goto error;
-				}
-
-				if (bt_value_array_append_string_element(run_args, arg)) {
-					BT_CLI_LOGE_APPEND_CAUSE_OOM();
 					goto error;
 				}
 
@@ -3742,6 +3788,12 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 			}
 
 			append_status = bt_value_array_append_empty_array_element(leftover_params);
+			if (append_status != BT_VALUE_ARRAY_APPEND_ELEMENT_STATUS_OK) {
+				BT_CLI_LOGE_APPEND_CAUSE_OOM();
+				goto error;
+			}
+
+			append_status = bt_value_array_append_element(leftover_loglevels, bt_value_null);
 			if (append_status != BT_VALUE_ARRAY_APPEND_ELEMENT_STATUS_OK) {
 				BT_CLI_LOGE_APPEND_CAUSE_OOM();
 				goto error;
@@ -4221,7 +4273,8 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 			}
 
 			status = create_implicit_component_args_from_auto_discovered_sources(
-				&auto_disc, leftover_params, discovered_source_args);
+				&auto_disc, leftover_params, leftover_loglevels,
+				discovered_source_args);
 			if (status != 0) {
 				goto error;
 			}
