@@ -31,8 +31,8 @@ dist_check_SCRIPTS = \
 	bindings/python/bt2/test_trace.py \
 	bindings/python/bt2/test_value.py \
 	bindings/python/bt2/utils.py \
-	cli/auto-source-discovery/test_auto_source_discovery \
-	cli/test_convert_args \
+	cli/convert/test_auto_source_discovery_grouping \
+	cli/convert/test_convert_args \
 	cli/test_intersection \
 	cli/test_output_ctf_metadata \
 	cli/test_packet_seq_num \
@@ -53,9 +53,9 @@ TESTS_ARGPAR = \
 	argpar/test_argpar
 
 TESTS_CLI = \
+	cli/convert/test_convert_args \
 	cli/test_trace_read \
 	cli/test_packet_seq_num \
-	cli/test_convert_args \
 	cli/test_intersection \
 	cli/test_trace_copy \
 	cli/test_trimmer
@@ -105,7 +105,7 @@ endif
 
 if ENABLE_PYTHON_PLUGINS
 if ENABLE_PYTHON_BINDINGS
-TESTS_CLI += cli/auto-source-discovery/test_auto_source_discovery
+TESTS_CLI += cli/convert/test_auto_source_discovery_grouping
 TESTS_PLUGINS += plugins/flt.utils.trimmer/test_trimming
 endif
 endif

@@ -30,7 +30,7 @@ NUM_TESTS=1
 
 plan_tests $NUM_TESTS
 
-data_dir="${BT_TESTS_DATADIR}/cli/auto-source-discovery"
+data_dir="${BT_TESTS_DATADIR}/cli/convert/auto-source-discovery-grouping"
 plugin_dir="${data_dir}"
 trace_dir="${data_dir}/traces"
 
