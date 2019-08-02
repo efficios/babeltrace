@@ -11,6 +11,7 @@ SWIG_INTERFACE_FILES =					\
 	bt2/native_bt_clock_snapshot.i			\
 	bt2/native_bt_component.i			\
 	bt2/native_bt_component_class.i			\
+	bt2/native_bt_component_class.i.h		\
 	bt2/native_bt_connection.i			\
 	bt2/native_bt_error.i				\
 	bt2/native_bt_event.i				\
@@ -19,20 +20,26 @@ SWIG_INTERFACE_FILES =					\
 	bt2/native_bt_field_class.i			\
 	bt2/native_bt_field_path.i			\
 	bt2/native_bt_graph.i				\
+	bt2/native_bt_graph.i.h				\
 	bt2/native_bt_integer_range_set.i		\
 	bt2/native_bt_interrupter.i			\
 	bt2/native_bt_logging.i				\
 	bt2/native_bt_message.i				\
 	bt2/native_bt_message_iterator.i		\
+	bt2/native_bt_message_iterator.i.h		\
 	bt2/native_bt_packet.i				\
 	bt2/native_bt_plugin.i				\
+	bt2/native_bt_plugin.i.h			\
 	bt2/native_bt_port.i				\
 	bt2/native_bt_query_exec.i			\
 	bt2/native_bt_stream.i				\
 	bt2/native_bt_stream_class.i			\
 	bt2/native_bt_trace.i				\
+	bt2/native_bt_trace.i.h				\
 	bt2/native_bt_trace_class.i			\
+	bt2/native_bt_trace_class.i.h			\
 	bt2/native_bt_value.i				\
+	bt2/native_bt_value.i.h				\
 	bt2/native_bt_version.i
 
 # Non-generated files built into the native library.
