@@ -189,8 +189,8 @@ def _init_and_register_exit():
     from bt2 import native_bt
     import atexit
 
-    atexit.register(native_bt.bt2_cc_exit_handler)
-    native_bt.bt2_cc_init_from_bt2()
+    atexit.register(native_bt.bt2_exit_handler)
+    native_bt.bt2_init_from_bt2()
 
 
 _init_and_register_exit()

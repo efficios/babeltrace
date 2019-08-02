@@ -47,5 +47,3 @@ struct bt_component_class_filter *bt_bt2_component_class_filter_create(
 struct bt_component_class_sink *bt_bt2_component_class_sink_create(
 		PyObject *py_cls, const char *name, const char *description,
 		const char *help);
-void bt_bt2_cc_init_from_bt2(void);
-void bt_bt2_cc_exit_handler(void);
