@@ -48,6 +48,10 @@
 
 #include "common/assert.h"
 #include "py-common/py-common.h"
+
+/* Used by some interface files */
+#include "native_bt_bt2_objects.h"
+#include "native_bt_log_and_append_error.h"
 %}
 
 typedef int bt_bool;
@@ -181,6 +185,10 @@ typedef uint64_t bt_listener_id;
 %typemap(out) PyObject * {
 	$result = $1;
 }
+
+/* Native part initialization and finalization */
+void bt_bt2_init_from_bt2(void);
+void bt_bt2_exit_handler(void);
 
 /*
  * Define `__BT_IN_BABELTRACE_H` to allow specific headers to be
