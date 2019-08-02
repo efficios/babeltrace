@@ -22,12 +22,46 @@
  * THE SOFTWARE.
  */
 
-%include <babeltrace2/trace-ir/trace-const.h>
-%include <babeltrace2/trace-ir/trace.h>
+struct bt_value_map_get_keys_data {
+	struct bt_value *keys;
+};
 
-%{
-#include "native_bt_trace.i.h"
-%}
+static int bt_value_map_get_keys_cb(const char *key, const struct bt_value *object, void *data)
+{
+	bt_value_array_append_element_status status;
+	struct bt_value_map_get_keys_data *priv_data = data;
 
-int bt_bt2_trace_add_destruction_listener(bt_trace *trace,
-		PyObject *py_callable, bt_listener_id *id);
+	status = bt_value_array_append_string_element(priv_data->keys, key);
+	if (status != __BT_FUNC_STATUS_OK) {
+		return BT_FALSE;
+	}
+
+	return BT_TRUE;
+}
+
+static struct bt_value *bt_value_map_get_keys(const struct bt_value *map_obj)
+{
+	bt_value_map_foreach_entry_const_status status;
+	struct bt_value_map_get_keys_data data;
+
+	data.keys = bt_value_array_create();
+	if (!data.keys) {
+		return NULL;
+	}
+
+	status = bt_value_map_foreach_entry_const(map_obj, bt_value_map_get_keys_cb,
+		&data);
+	if (status != __BT_FUNC_STATUS_OK) {
+		goto error;
+	}
+
+	goto end;
+
+error:
+	if (data.keys) {
+		BT_VALUE_PUT_REF_AND_RESET(data.keys);
+	}
+
+end:
+	return data.keys;
+}
