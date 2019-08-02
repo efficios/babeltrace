@@ -23,7 +23,4 @@
  */
 
 /* Version functions */
-int bt_version_get_major(void);
-int bt_version_get_minor(void);
-int bt_version_get_patch(void);
-const char *bt_version_get_extra(void);
+%include <babeltrace2/version.h>
