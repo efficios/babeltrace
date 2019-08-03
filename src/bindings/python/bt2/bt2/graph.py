@@ -84,31 +84,32 @@ class Graph(object._SharedObject):
         component_class,
         name,
         params=None,
+        obj=None,
         logging_level=bt2_logging.LoggingLevel.NONE,
     ):
         if isinstance(component_class, bt2_component._SourceComponentClass):
             cc_ptr = component_class._ptr
-            add_fn = native_bt.graph_add_source_component
+            add_fn = native_bt.bt2_graph_add_source_component
             cc_type = native_bt.COMPONENT_CLASS_TYPE_SOURCE
         elif isinstance(component_class, bt2_component._FilterComponentClass):
             cc_ptr = component_class._ptr
-            add_fn = native_bt.graph_add_filter_component
+            add_fn = native_bt.bt2_graph_add_filter_component
             cc_type = native_bt.COMPONENT_CLASS_TYPE_FILTER
         elif isinstance(component_class, bt2_component._SinkComponentClass):
             cc_ptr = component_class._ptr
-            add_fn = native_bt.graph_add_sink_component
+            add_fn = native_bt.bt2_graph_add_sink_component
             cc_type = native_bt.COMPONENT_CLASS_TYPE_SINK
         elif issubclass(component_class, bt2_component._UserSourceComponent):
             cc_ptr = component_class._bt_cc_ptr
-            add_fn = native_bt.graph_add_source_component
+            add_fn = native_bt.bt2_graph_add_source_component
             cc_type = native_bt.COMPONENT_CLASS_TYPE_SOURCE
         elif issubclass(component_class, bt2_component._UserSinkComponent):
             cc_ptr = component_class._bt_cc_ptr
-            add_fn = native_bt.graph_add_sink_component
+            add_fn = native_bt.bt2_graph_add_sink_component
             cc_type = native_bt.COMPONENT_CLASS_TYPE_SINK
         elif issubclass(component_class, bt2_component._UserFilterComponent):
             cc_ptr = component_class._bt_cc_ptr
-            add_fn = native_bt.graph_add_filter_component
+            add_fn = native_bt.bt2_graph_add_filter_component
             cc_type = native_bt.COMPONENT_CLASS_TYPE_FILTER
         else:
             raise TypeError(
@@ -119,11 +120,17 @@ class Graph(object._SharedObject):
 
         utils._check_str(name)
         utils._check_log_level(logging_level)
-        params = bt2.create_value(params)
+        base_cc_ptr = component_class._bt_component_class_ptr()
 
+        if obj is not None and not native_bt.bt2_is_python_component_class(base_cc_ptr):
+            raise ValueError('cannot pass a Python object to a non-Python component')
+
+        params = bt2.create_value(params)
         params_ptr = params._ptr if params is not None else None
 
-        status, comp_ptr = add_fn(self._ptr, cc_ptr, name, params_ptr, logging_level)
+        status, comp_ptr = add_fn(
+            self._ptr, cc_ptr, name, params_ptr, obj, logging_level
+        )
         utils._handle_func_status(status, 'cannot add component to graph')
         assert comp_ptr
         return bt2_component._create_component_from_ptr(comp_ptr, cc_type)

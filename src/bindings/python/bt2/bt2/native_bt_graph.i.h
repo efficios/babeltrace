@@ -513,3 +513,45 @@ end:
 	Py_XDECREF(py_listener_id);
 	return py_listener_ids;
 }
+
+static
+bt_graph_add_component_status
+bt_bt2_graph_add_source_component(
+		bt_graph *graph,
+		const bt_component_class_source *component_class,
+		const char *name, const bt_value *params,
+		PyObject *obj, bt_logging_level log_level,
+		const bt_component_source **component)
+{
+	return bt_graph_add_source_component_with_init_method_data(graph,
+		component_class, name, params, obj == Py_None ? NULL : obj,
+		log_level, component);
+}
+
+static
+bt_graph_add_component_status
+bt_bt2_graph_add_filter_component(
+		bt_graph *graph,
+		const bt_component_class_filter *component_class,
+		const char *name, const bt_value *params,
+		PyObject *obj, bt_logging_level log_level,
+		const bt_component_filter **component)
+{
+	return bt_graph_add_filter_component_with_init_method_data(graph,
+		component_class, name, params, obj == Py_None ? NULL : obj,
+		log_level, component);
+}
+
+static
+bt_graph_add_component_status
+bt_bt2_graph_add_sink_component(
+		bt_graph *graph,
+		const bt_component_class_sink *component_class,
+		const char *name, const bt_value *params,
+		PyObject *obj, bt_logging_level log_level,
+		const bt_component_sink **component)
+{
+	return bt_graph_add_sink_component_with_init_method_data(graph,
+		component_class, name, params, obj == Py_None ? NULL : obj,
+		log_level, component);
+}

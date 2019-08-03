@@ -36,7 +36,7 @@ class PortTestCase(unittest.TestCase):
                 raise bt2.Stop
 
         class MySource(bt2._UserSourceComponent, message_iterator_class=MyIter):
-            def __init__(comp_self, params):
+            def __init__(comp_self, params, obj):
                 port = comp_self._add_output_port('out')
                 self.assertEqual(port.name, 'out')
 
@@ -49,7 +49,7 @@ class PortTestCase(unittest.TestCase):
                 raise bt2.Stop
 
         class MyFilter(bt2._UserFilterComponent, message_iterator_class=MyIter):
-            def __init__(comp_self, params):
+            def __init__(comp_self, params, obj):
                 port = comp_self._add_output_port('out')
                 self.assertEqual(port.name, 'out')
 
@@ -62,7 +62,7 @@ class PortTestCase(unittest.TestCase):
                 raise bt2.Stop
 
         class MyFilter(bt2._UserFilterComponent, message_iterator_class=MyIter):
-            def __init__(comp_self, params):
+            def __init__(comp_self, params, obj):
                 port = comp_self._add_input_port('in')
                 self.assertEqual(port.name, 'in')
 
@@ -71,7 +71,7 @@ class PortTestCase(unittest.TestCase):
 
     def test_sink_add_input_port(self):
         class MySink(bt2._UserSinkComponent):
-            def __init__(comp_self, params):
+            def __init__(comp_self, params, obj):
                 port = comp_self._add_input_port('in')
                 self.assertEqual(port.name, 'in')
 
@@ -87,7 +87,7 @@ class PortTestCase(unittest.TestCase):
                 raise bt2.Stop
 
         class MySource(bt2._UserSourceComponent, message_iterator_class=MyIter):
-            def __init__(comp_self, params):
+            def __init__(comp_self, params, obj):
                 port1 = comp_self._add_output_port('clear')
                 port2 = comp_self._add_output_port('print')
                 port3 = comp_self._add_output_port('insert')
@@ -103,7 +103,7 @@ class PortTestCase(unittest.TestCase):
                 raise bt2.Stop
 
         class MyFilter(bt2._UserFilterComponent, message_iterator_class=MyIter):
-            def __init__(comp_self, params):
+            def __init__(comp_self, params, obj):
                 port1 = comp_self._add_output_port('clear')
                 port2 = comp_self._add_output_port('print')
                 port3 = comp_self._add_output_port('insert')
@@ -119,7 +119,7 @@ class PortTestCase(unittest.TestCase):
                 raise bt2.Stop
 
         class MyFilter(bt2._UserFilterComponent, message_iterator_class=MyIter):
-            def __init__(comp_self, params):
+            def __init__(comp_self, params, obj):
                 port1 = comp_self._add_input_port('clear')
                 port2 = comp_self._add_input_port('print')
                 port3 = comp_self._add_input_port('insert')
@@ -131,7 +131,7 @@ class PortTestCase(unittest.TestCase):
 
     def test_user_sink_input_ports_getitem(self):
         class MySink(bt2._UserSinkComponent):
-            def __init__(comp_self, params):
+            def __init__(comp_self, params, obj):
                 port1 = comp_self._add_input_port('clear')
                 port2 = comp_self._add_input_port('print')
                 port3 = comp_self._add_input_port('insert')
@@ -150,7 +150,7 @@ class PortTestCase(unittest.TestCase):
                 raise bt2.Stop
 
         class MySource(bt2._UserSourceComponent, message_iterator_class=MyIter):
-            def __init__(comp_self, params):
+            def __init__(comp_self, params, obj):
                 comp_self._add_output_port('clear')
                 comp_self._add_output_port('print')
                 comp_self._add_output_port('insert')
@@ -166,7 +166,7 @@ class PortTestCase(unittest.TestCase):
                 raise bt2.Stop
 
         class MyFilter(bt2._UserFilterComponent, message_iterator_class=MyIter):
-            def __init__(comp_self, params):
+            def __init__(comp_self, params, obj):
                 comp_self._add_output_port('clear')
                 comp_self._add_output_port('print')
                 comp_self._add_output_port('insert')
@@ -182,7 +182,7 @@ class PortTestCase(unittest.TestCase):
                 raise bt2.Stop
 
         class MyFilter(bt2._UserFilterComponent, message_iterator_class=MyIter):
-            def __init__(comp_self, params):
+            def __init__(comp_self, params, obj):
                 comp_self._add_input_port('clear')
                 comp_self._add_input_port('print')
                 comp_self._add_input_port('insert')
@@ -194,7 +194,7 @@ class PortTestCase(unittest.TestCase):
 
     def test_user_sink_input_ports_getitem_invalid_key(self):
         class MySink(bt2._UserSinkComponent):
-            def __init__(comp_self, params):
+            def __init__(comp_self, params, obj):
                 comp_self._add_input_port('clear')
                 comp_self._add_input_port('print')
                 comp_self._add_input_port('insert')
@@ -213,7 +213,7 @@ class PortTestCase(unittest.TestCase):
                 raise bt2.Stop
 
         class MySource(bt2._UserSourceComponent, message_iterator_class=MyIter):
-            def __init__(comp_self, params):
+            def __init__(comp_self, params, obj):
                 comp_self._add_output_port('clear')
                 comp_self._add_output_port('print')
                 comp_self._add_output_port('insert')
@@ -227,7 +227,7 @@ class PortTestCase(unittest.TestCase):
                 raise bt2.Stop
 
         class MyFilter(bt2._UserFilterComponent, message_iterator_class=MyIter):
-            def __init__(comp_self, params):
+            def __init__(comp_self, params, obj):
                 comp_self._add_output_port('clear')
                 comp_self._add_output_port('print')
                 comp_self._add_output_port('insert')
@@ -241,7 +241,7 @@ class PortTestCase(unittest.TestCase):
                 raise bt2.Stop
 
         class MyFilter(bt2._UserFilterComponent, message_iterator_class=MyIter):
-            def __init__(comp_self, params):
+            def __init__(comp_self, params, obj):
                 comp_self._add_input_port('clear')
                 comp_self._add_input_port('print')
                 comp_self._add_input_port('insert')
@@ -251,7 +251,7 @@ class PortTestCase(unittest.TestCase):
 
     def test_user_sink_input_ports_len(self):
         class MySink(bt2._UserSinkComponent):
-            def __init__(comp_self, params):
+            def __init__(comp_self, params, obj):
                 comp_self._add_input_port('clear')
                 comp_self._add_input_port('print')
                 comp_self._add_input_port('insert')
@@ -268,7 +268,7 @@ class PortTestCase(unittest.TestCase):
                 raise bt2.Stop
 
         class MySource(bt2._UserSourceComponent, message_iterator_class=MyIter):
-            def __init__(comp_self, params):
+            def __init__(comp_self, params, obj):
                 port1 = comp_self._add_output_port('clear')
                 port2 = comp_self._add_output_port('print')
                 port3 = comp_self._add_output_port('insert')
@@ -292,7 +292,7 @@ class PortTestCase(unittest.TestCase):
                 raise bt2.Stop
 
         class MyFilter(bt2._UserFilterComponent, message_iterator_class=MyIter):
-            def __init__(comp_self, params):
+            def __init__(comp_self, params, obj):
                 port1 = comp_self._add_output_port('clear')
                 port2 = comp_self._add_output_port('print')
                 port3 = comp_self._add_output_port('insert')
@@ -316,7 +316,7 @@ class PortTestCase(unittest.TestCase):
                 raise bt2.Stop
 
         class MyFilter(bt2._UserFilterComponent, message_iterator_class=MyIter):
-            def __init__(comp_self, params):
+            def __init__(comp_self, params, obj):
                 port1 = comp_self._add_input_port('clear')
                 port2 = comp_self._add_input_port('print')
                 port3 = comp_self._add_input_port('insert')
@@ -336,7 +336,7 @@ class PortTestCase(unittest.TestCase):
 
     def test_user_sink_input_ports_iter(self):
         class MySink(bt2._UserSinkComponent):
-            def __init__(comp_self, params):
+            def __init__(comp_self, params, obj):
                 port1 = comp_self._add_input_port('clear')
                 port2 = comp_self._add_input_port('print')
                 port3 = comp_self._add_input_port('insert')
@@ -367,7 +367,7 @@ class PortTestCase(unittest.TestCase):
         port3 = None
 
         class MySource(bt2._UserSourceComponent, message_iterator_class=MyIter):
-            def __init__(comp_self, params):
+            def __init__(comp_self, params, obj):
                 nonlocal port1, port2, port3
                 port1 = comp_self._add_output_port('clear')
                 port2 = comp_self._add_output_port('print')
@@ -391,7 +391,7 @@ class PortTestCase(unittest.TestCase):
         port3 = None
 
         class MyFilter(bt2._UserFilterComponent, message_iterator_class=MyIter):
-            def __init__(comp_self, params):
+            def __init__(comp_self, params, obj):
                 nonlocal port1, port2, port3
                 port1 = comp_self._add_output_port('clear')
                 port2 = comp_self._add_output_port('print')
@@ -415,7 +415,7 @@ class PortTestCase(unittest.TestCase):
         port3 = None
 
         class MyFilter(bt2._UserFilterComponent, message_iterator_class=MyIter):
-            def __init__(comp_self, params):
+            def __init__(comp_self, params, obj):
                 nonlocal port1, port2, port3
                 port1 = comp_self._add_input_port('clear')
                 port2 = comp_self._add_input_port('print')
@@ -435,7 +435,7 @@ class PortTestCase(unittest.TestCase):
         port3 = None
 
         class MySink(bt2._UserSinkComponent):
-            def __init__(comp_self, params):
+            def __init__(comp_self, params, obj):
                 nonlocal port1, port2, port3
                 port1 = comp_self._add_input_port('clear')
                 port2 = comp_self._add_input_port('print')
@@ -458,7 +458,7 @@ class PortTestCase(unittest.TestCase):
                 raise bt2.Stop
 
         class MySource(bt2._UserSourceComponent, message_iterator_class=MyIter):
-            def __init__(comp_self, params):
+            def __init__(comp_self, params, obj):
                 comp_self._add_output_port('clear')
                 comp_self._add_output_port('print')
                 comp_self._add_output_port('insert')
@@ -474,7 +474,7 @@ class PortTestCase(unittest.TestCase):
                 raise bt2.Stop
 
         class MyFilter(bt2._UserFilterComponent, message_iterator_class=MyIter):
-            def __init__(comp_self, params):
+            def __init__(comp_self, params, obj):
                 comp_self._add_output_port('clear')
                 comp_self._add_output_port('print')
                 comp_self._add_output_port('insert')
@@ -490,7 +490,7 @@ class PortTestCase(unittest.TestCase):
                 raise bt2.Stop
 
         class MyFilter(bt2._UserFilterComponent, message_iterator_class=MyIter):
-            def __init__(comp_self, params):
+            def __init__(comp_self, params, obj):
                 comp_self._add_input_port('clear')
                 comp_self._add_input_port('print')
                 comp_self._add_input_port('insert')
@@ -502,7 +502,7 @@ class PortTestCase(unittest.TestCase):
 
     def test_gen_sink_input_ports_getitem_invalid_key(self):
         class MySink(bt2._UserSinkComponent):
-            def __init__(comp_self, params):
+            def __init__(comp_self, params, obj):
                 comp_self._add_input_port('clear')
                 comp_self._add_input_port('print')
                 comp_self._add_input_port('insert')
@@ -524,7 +524,7 @@ class PortTestCase(unittest.TestCase):
                 raise bt2.Stop
 
         class MySource(bt2._UserSourceComponent, message_iterator_class=MyIter):
-            def __init__(comp_self, params):
+            def __init__(comp_self, params, obj):
                 comp_self._add_output_port('clear')
                 comp_self._add_output_port('print')
                 comp_self._add_output_port('insert')
@@ -538,7 +538,7 @@ class PortTestCase(unittest.TestCase):
                 raise bt2.Stop
 
         class MyFilter(bt2._UserFilterComponent, message_iterator_class=MyIter):
-            def __init__(comp_self, params):
+            def __init__(comp_self, params, obj):
                 comp_self._add_output_port('clear')
                 comp_self._add_output_port('print')
                 comp_self._add_output_port('insert')
@@ -552,7 +552,7 @@ class PortTestCase(unittest.TestCase):
                 raise bt2.Stop
 
         class MyFilter(bt2._UserFilterComponent, message_iterator_class=MyIter):
-            def __init__(comp_self, params):
+            def __init__(comp_self, params, obj):
                 comp_self._add_input_port('clear')
                 comp_self._add_input_port('print')
                 comp_self._add_input_port('insert')
@@ -562,7 +562,7 @@ class PortTestCase(unittest.TestCase):
 
     def test_gen_sink_input_ports_len(self):
         class MySink(bt2._UserSinkComponent):
-            def __init__(comp_self, params):
+            def __init__(comp_self, params, obj):
                 comp_self._add_input_port('clear')
                 comp_self._add_input_port('print')
                 comp_self._add_input_port('insert')
@@ -583,7 +583,7 @@ class PortTestCase(unittest.TestCase):
         port3 = None
 
         class MySource(bt2._UserSourceComponent, message_iterator_class=MyIter):
-            def __init__(comp_self, params):
+            def __init__(comp_self, params, obj):
                 nonlocal port1, port2, port3
                 port1 = comp_self._add_output_port('clear')
                 port2 = comp_self._add_output_port('print')
@@ -615,7 +615,7 @@ class PortTestCase(unittest.TestCase):
         port3 = None
 
         class MyFilter(bt2._UserFilterComponent, message_iterator_class=MyIter):
-            def __init__(comp_self, params):
+            def __init__(comp_self, params, obj):
                 nonlocal port1, port2, port3
                 port1 = comp_self._add_output_port('clear')
                 port2 = comp_self._add_output_port('print')
@@ -647,7 +647,7 @@ class PortTestCase(unittest.TestCase):
         port3 = None
 
         class MyFilter(bt2._UserFilterComponent, message_iterator_class=MyIter):
-            def __init__(comp_self, params):
+            def __init__(comp_self, params, obj):
                 nonlocal port1, port2, port3
                 port1 = comp_self._add_input_port('clear')
                 port2 = comp_self._add_input_port('print')
@@ -675,7 +675,7 @@ class PortTestCase(unittest.TestCase):
         port3 = None
 
         class MySink(bt2._UserSinkComponent):
-            def __init__(comp_self, params):
+            def __init__(comp_self, params, obj):
                 nonlocal port1, port2, port3
                 port1 = comp_self._add_input_port('clear')
                 port2 = comp_self._add_input_port('print')
@@ -702,7 +702,7 @@ class PortTestCase(unittest.TestCase):
 
     def test_name(self):
         class MySink(bt2._UserSinkComponent):
-            def __init__(comp_self, params):
+            def __init__(comp_self, params, obj):
                 comp_self._add_input_port('clear')
 
             def _user_consume(self):
@@ -713,7 +713,7 @@ class PortTestCase(unittest.TestCase):
 
     def test_connection_none(self):
         class MySink(bt2._UserSinkComponent):
-            def __init__(comp_self, params):
+            def __init__(comp_self, params, obj):
                 comp_self._add_input_port('clear')
 
             def _user_consume(self):
@@ -724,7 +724,7 @@ class PortTestCase(unittest.TestCase):
 
     def test_is_connected_false(self):
         class MySink(bt2._UserSinkComponent):
-            def __init__(comp_self, params):
+            def __init__(comp_self, params, obj):
                 comp_self._add_input_port('clear')
 
             def _user_consume(self):
@@ -735,7 +735,7 @@ class PortTestCase(unittest.TestCase):
 
     def test_self_name(self):
         class MySink(bt2._UserSinkComponent):
-            def __init__(comp_self, params):
+            def __init__(comp_self, params, obj):
                 port = comp_self._add_input_port('clear')
                 self.assertEqual(port.name, 'clear')
 
@@ -746,7 +746,7 @@ class PortTestCase(unittest.TestCase):
 
     def test_self_connection_none(self):
         class MySink(bt2._UserSinkComponent):
-            def __init__(comp_self, params):
+            def __init__(comp_self, params, obj):
                 port = comp_self._add_input_port('clear')
                 self.assertIsNone(port.connection)
 
@@ -757,7 +757,7 @@ class PortTestCase(unittest.TestCase):
 
     def test_self_is_connected_false(self):
         class MySink(bt2._UserSinkComponent):
-            def __init__(comp_self, params):
+            def __init__(comp_self, params, obj):
                 port = comp_self._add_input_port('clear')
                 self.assertFalse(port.is_connected)
 
@@ -772,7 +772,7 @@ class PortTestCase(unittest.TestCase):
                 raise bt2.Stop
 
         class MySource(bt2._UserFilterComponent, message_iterator_class=MyIter):
-            def __init__(comp_self, params):
+            def __init__(comp_self, params, obj):
                 nonlocal user_datas
 
                 p = comp_self._add_output_port('port1')
@@ -791,7 +791,7 @@ class PortTestCase(unittest.TestCase):
                 raise bt2.Stop
 
         class MyFilter(bt2._UserFilterComponent, message_iterator_class=MyIter):
-            def __init__(comp_self, params):
+            def __init__(comp_self, params, obj):
                 nonlocal user_datas
 
                 p = comp_self._add_output_port('port1')
@@ -817,7 +817,7 @@ class PortTestCase(unittest.TestCase):
                 raise bt2.Stop
 
         class MySink(bt2._UserFilterComponent, message_iterator_class=MyIter):
-            def __init__(comp_self, params):
+            def __init__(comp_self, params, obj):
                 nonlocal user_datas
 
                 p = comp_self._add_input_port('port1')

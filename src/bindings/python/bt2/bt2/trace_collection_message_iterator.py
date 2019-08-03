@@ -41,6 +41,7 @@ class ComponentSpec:
         plugin_name,
         class_name,
         params=None,
+        obj=None,
         logging_level=bt2_logging.LoggingLevel.NONE,
     ):
         utils._check_str(plugin_name)
@@ -49,6 +50,7 @@ class ComponentSpec:
         self._plugin_name = plugin_name
         self._class_name = class_name
         self._logging_level = logging_level
+        self._obj = obj
 
         if type(params) is str:
             self._params = bt2.create_value({'inputs': [params]})
@@ -70,6 +72,10 @@ class ComponentSpec:
     @property
     def params(self):
         return self._params
+
+    @property
+    def obj(self):
+        return self._obj
 
 
 # datetime.datetime or integral to nanoseconds
@@ -262,7 +268,7 @@ class TraceCollectionMessageIterator(bt2_message_iterator._MessageIterator):
         comp_cls = comp_classes[comp_spec.class_name]
         name = self._get_unique_comp_name(comp_spec)
         comp = self._graph.add_component(
-            comp_cls, name, comp_spec.params, comp_spec.logging_level
+            comp_cls, name, comp_spec.params, comp_spec.obj, comp_spec.logging_level
         )
         return comp
 

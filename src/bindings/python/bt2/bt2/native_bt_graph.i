@@ -112,5 +112,30 @@
 
 PyObject *bt_bt2_graph_add_port_added_listener(struct bt_graph *graph,
 		PyObject *py_callable);
+
 PyObject *bt_bt2_graph_add_ports_connected_listener(struct bt_graph *graph,
 		PyObject *py_callable);
+
+bt_graph_add_component_status
+bt_bt2_graph_add_source_component(
+		bt_graph *graph,
+		const bt_component_class_source *component_class,
+		const char *name, const bt_value *params,
+		PyObject *obj, bt_logging_level log_level,
+		const bt_component_source **component);
+
+bt_graph_add_component_status
+bt_bt2_graph_add_filter_component(
+		bt_graph *graph,
+		const bt_component_class_filter *component_class,
+		const char *name, const bt_value *params,
+		PyObject *obj, bt_logging_level log_level,
+		const bt_component_filter **component);
+
+bt_graph_add_component_status
+bt_bt2_graph_add_sink_component(
+		bt_graph *graph,
+		const bt_component_class_sink *component_class,
+		const char *name, const bt_value *params,
+		PyObject *obj, bt_logging_level log_level,
+		const bt_component_sink **component);

@@ -239,7 +239,7 @@ class ClockSnapshotTestCase(unittest.TestCase):
                 return notif
 
         class MySrc(bt2._UserSourceComponent, message_iterator_class=MyIter):
-            def __init__(self, params):
+            def __init__(self, params, obj):
                 self._add_output_port('out')
 
         self._graph = bt2.Graph()

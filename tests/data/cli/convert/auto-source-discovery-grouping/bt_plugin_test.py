@@ -22,7 +22,7 @@ class TestSourceExt(Base, bt2._UserSourceComponent, message_iterator_class=TestI
     files are not grouped.
     """
 
-    def __init__(self, params):
+    def __init__(self, params, obj):
         self._print_params(params)
 
     @staticmethod
@@ -60,7 +60,7 @@ class TestSourceSomeDir(
     directory "some-dir" won't be found by TestSourceExt, because we won't
     recurse in "some-dir"."""
 
-    def __init__(self, params):
+    def __init__(self, params, obj):
         self._print_params(params)
 
     @staticmethod
@@ -79,7 +79,7 @@ class TestSourceSomeDir(
 class TestSourceABCDE(Base, bt2._UserSourceComponent, message_iterator_class=TestIter):
     """A source that recognizes the arbitrary string input "ABCDE"."""
 
-    def __init__(self, params):
+    def __init__(self, params, obj):
         self._print_params(params)
 
     @staticmethod
