@@ -617,6 +617,7 @@ class _UserComponentType(type):
         if hasattr(cls, '_bt_cc_ptr'):
             cc_ptr = cls._bt_as_component_class_ptr(cls._bt_cc_ptr)
             native_bt.component_class_put_ref(cc_ptr)
+            native_bt.bt2_unregister_cc_ptr_to_py_cls(cc_ptr)
 
 
 # Subclasses must provide these methods or property:

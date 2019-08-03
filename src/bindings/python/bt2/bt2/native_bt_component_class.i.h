@@ -45,6 +45,19 @@
 static GHashTable *bt_cc_ptr_to_py_cls;
 
 static
+void bt_bt2_unregister_cc_ptr_to_py_cls(const bt_component_class *comp_cls)
+{
+	gboolean existed;
+
+	if (!bt_cc_ptr_to_py_cls) {
+		return;
+	}
+
+	existed = g_hash_table_remove(bt_cc_ptr_to_py_cls, comp_cls);
+	BT_ASSERT(existed);
+}
+
+static
 void register_cc_ptr_to_py_cls(struct bt_component_class *bt_cc,
 		PyObject *py_cls)
 {
@@ -85,6 +98,7 @@ void native_comp_class_dtor(void) {
 	if (bt_cc_ptr_to_py_cls) {
 		BT_LOGD_STR("Destroying native component class to Python component class hash table.");
 		g_hash_table_destroy(bt_cc_ptr_to_py_cls);
+		bt_cc_ptr_to_py_cls = NULL;
 	}
 }
 
