@@ -26,7 +26,7 @@ import bt2
 
 def run_in_component_init(func):
     class MySink(bt2._UserSinkComponent):
-        def __init__(self, params):
+        def __init__(self, params, obj):
             nonlocal res_bound
             res_bound = func(self)
 

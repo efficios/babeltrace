@@ -27,7 +27,7 @@ class UserMessageIteratorTestCase(unittest.TestCase):
     @staticmethod
     def _create_graph(src_comp_cls, flt_comp_cls=None):
         class MySink(bt2._UserSinkComponent):
-            def __init__(self, params):
+            def __init__(self, params, obj):
                 self._add_input_port('in')
 
             def _user_consume(self):
@@ -70,7 +70,7 @@ class UserMessageIteratorTestCase(unittest.TestCase):
                 the_output_port_from_iter = self_port_output
 
         class MySource(bt2._UserSourceComponent, message_iterator_class=MyIter):
-            def __init__(self, params):
+            def __init__(self, params, obj):
                 nonlocal the_output_port_from_source
                 the_output_port_from_source = self._add_output_port('out', 'user data')
 
@@ -90,7 +90,7 @@ class UserMessageIteratorTestCase(unittest.TestCase):
                 src_iter_initialized = True
 
         class MySource(bt2._UserSourceComponent, message_iterator_class=MySourceIter):
-            def __init__(self, params):
+            def __init__(self, params, obj):
                 self._add_output_port('out')
 
         class MyFilterIter(bt2._UserMessageIterator):
@@ -105,7 +105,7 @@ class UserMessageIteratorTestCase(unittest.TestCase):
                 return next(self._up_iter)
 
         class MyFilter(bt2._UserFilterComponent, message_iterator_class=MyFilterIter):
-            def __init__(self, params):
+            def __init__(self, params, obj):
                 self._add_input_port('in')
                 self._add_output_port('out')
 
@@ -123,7 +123,7 @@ class UserMessageIteratorTestCase(unittest.TestCase):
                 finalized = True
 
         class MySource(bt2._UserSourceComponent, message_iterator_class=MyIter):
-            def __init__(self, params):
+            def __init__(self, params, obj):
                 self._add_output_port('out')
 
         finalized = False
@@ -139,7 +139,7 @@ class UserMessageIteratorTestCase(unittest.TestCase):
                 salut = self._component._salut
 
         class MySource(bt2._UserSourceComponent, message_iterator_class=MyIter):
-            def __init__(self, params):
+            def __init__(self, params, obj):
                 self._add_output_port('out')
                 self._salut = 23
 
@@ -155,7 +155,7 @@ class UserMessageIteratorTestCase(unittest.TestCase):
                 addr = self.addr
 
         class MySource(bt2._UserSourceComponent, message_iterator_class=MyIter):
-            def __init__(self, params):
+            def __init__(self, params, obj):
                 self._add_output_port('out')
 
         addr = None
@@ -188,7 +188,7 @@ class UserMessageIteratorTestCase(unittest.TestCase):
                 return self._msgs.pop(0)
 
         class MySource(bt2._UserSourceComponent, message_iterator_class=MyIter):
-            def __init__(self, params):
+            def __init__(self, params, obj):
                 tc = self._create_trace_class()
                 sc = tc.create_stream_class(supports_packets=True)
                 ec = sc.create_event_class()
@@ -247,7 +247,7 @@ class UserMessageIteratorTestCase(unittest.TestCase):
                     raise StopIteration
 
         class MySource(bt2._UserSourceComponent, message_iterator_class=MySourceIter):
-            def __init__(self, params):
+            def __init__(self, params, obj):
                 tc = self._create_trace_class()
                 sc = tc.create_stream_class(supports_packets=True)
                 ec = sc.create_event_class()
@@ -272,7 +272,7 @@ class UserMessageIteratorTestCase(unittest.TestCase):
                 return self._upstream_iter.can_seek_beginning
 
         class MyFilter(bt2._UserFilterComponent, message_iterator_class=MyFilterIter):
-            def __init__(self, params):
+            def __init__(self, params, obj):
                 input_port = self._add_input_port('in')
                 self._add_output_port('out', input_port)
 
@@ -360,7 +360,7 @@ class UserMessageIteratorTestCase(unittest.TestCase):
                 raise bt2.TryAgain
 
         class MySource(bt2._UserSourceComponent, message_iterator_class=MyIter):
-            def __init__(self, params):
+            def __init__(self, params, obj):
                 self._add_output_port('out')
 
         graph = bt2.Graph()
@@ -403,7 +403,7 @@ class OutputPortMessageIteratorTestCase(unittest.TestCase):
                 return msg
 
         class MySource(bt2._UserSourceComponent, message_iterator_class=MyIter):
-            def __init__(self, params):
+            def __init__(self, params, obj):
                 self._add_output_port('out')
 
                 trace_class = self._create_trace_class()

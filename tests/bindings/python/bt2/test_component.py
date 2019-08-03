@@ -33,7 +33,7 @@ class UserComponentTestCase(unittest.TestCase):
 
     def test_name(self):
         class MySink(bt2._UserSinkComponent):
-            def __init__(comp_self, params):
+            def __init__(comp_self, params, obj):
                 self.assertEqual(comp_self.name, 'yaes')
 
             def _user_consume(self):
@@ -43,7 +43,7 @@ class UserComponentTestCase(unittest.TestCase):
 
     def test_logging_level(self):
         class MySink(bt2._UserSinkComponent):
-            def __init__(comp_self, params):
+            def __init__(comp_self, params, obj):
                 self.assertEqual(comp_self.logging_level, bt2.LoggingLevel.INFO)
 
             def _user_consume(self):
@@ -53,7 +53,7 @@ class UserComponentTestCase(unittest.TestCase):
 
     def test_class(self):
         class MySink(bt2._UserSinkComponent):
-            def __init__(comp_self, params):
+            def __init__(comp_self, params, obj):
                 self.assertEqual(comp_self.cls, MySink)
 
             def _user_consume(self):
@@ -63,7 +63,7 @@ class UserComponentTestCase(unittest.TestCase):
 
     def test_addr(self):
         class MySink(bt2._UserSinkComponent):
-            def __init__(comp_self, params):
+            def __init__(comp_self, params, obj):
                 self.assertIsInstance(comp_self.addr, int)
                 self.assertNotEqual(comp_self.addr, 0)
 

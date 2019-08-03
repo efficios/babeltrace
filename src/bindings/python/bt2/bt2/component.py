@@ -508,7 +508,7 @@ class _UserComponentType(type):
 
         cls._bt_cc_ptr = cc_ptr
 
-    def _bt_init_from_native(cls, comp_ptr, params_ptr):
+    def _bt_init_from_native(cls, comp_ptr, params_ptr, obj):
         # create instance, not user-initialized yet
         self = cls.__new__(cls)
 
@@ -521,7 +521,7 @@ class _UserComponentType(type):
         else:
             params = None
 
-        self.__init__(params)
+        self.__init__(params, obj)
         return self
 
     def __call__(cls, *args, **kwargs):
@@ -659,7 +659,7 @@ class _UserComponent(metaclass=_UserComponentType):
     def addr(self):
         return int(self._bt_ptr)
 
-    def __init__(self, params=None):
+    def __init__(self, params=None, obj=None):
         pass
 
     def _user_finalize(self):

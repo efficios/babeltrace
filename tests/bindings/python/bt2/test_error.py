@@ -29,19 +29,19 @@ class FailingIter(bt2._UserMessageIterator):
 class SourceWithFailingIter(
     bt2._UserSourceComponent, message_iterator_class=FailingIter
 ):
-    def __init__(self, params):
+    def __init__(self, params, obj):
         self._add_output_port('out')
 
 
 class SourceWithFailingInit(
     bt2._UserSourceComponent, message_iterator_class=FailingIter
 ):
-    def __init__(self, params):
+    def __init__(self, params, obj):
         raise ValueError('Source is failing')
 
 
 class WorkingSink(bt2._UserSinkComponent):
-    def __init__(self, params):
+    def __init__(self, params, obj):
         self._in = self._add_input_port('in')
 
     def _user_graph_is_configured(self):
@@ -52,7 +52,7 @@ class WorkingSink(bt2._UserSinkComponent):
 
 
 class SinkWithExceptionChaining(bt2._UserSinkComponent):
-    def __init__(self, params):
+    def __init__(self, params, obj):
         self._in = self._add_input_port('in')
 
     def _user_graph_is_configured(self):

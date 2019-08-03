@@ -49,7 +49,7 @@ class TheIteratorOfAllEvil(bt2._UserMessageIterator):
 class TheSourceOfAllEvil(
     bt2._UserSourceComponent, message_iterator_class=TheIteratorOfAllEvil
 ):
-    def __init__(self, params):
+    def __init__(self, params, obj):
         tc = self._create_trace_class()
 
         # Use a clock class with an offset, so we can test with --begin or --end
