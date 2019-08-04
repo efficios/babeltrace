@@ -43,7 +43,6 @@
 #include <babeltrace2/graph/message-const.h>
 #include <babeltrace2/graph/message-iterator.h>
 #include <babeltrace2/graph/self-component-port-input-message-iterator.h>
-#include <babeltrace2/graph/port-output-message-iterator.h>
 #include <babeltrace2/graph/message-event-const.h>
 #include <babeltrace2/graph/message-message-iterator-inactivity-const.h>
 #include <babeltrace2/graph/message-packet-beginning.h>
@@ -104,21 +103,6 @@ void set_self_comp_port_input_msg_iterator_state(
 }
 
 static
-void destroy_base_message_iterator(struct bt_object *obj)
-{
-	struct bt_message_iterator *iterator = (void *) obj;
-
-	BT_ASSERT(iterator);
-
-	if (iterator->msgs) {
-		g_ptr_array_free(iterator->msgs, TRUE);
-		iterator->msgs = NULL;
-	}
-
-	g_free(iterator);
-}
-
-static
 void bt_self_component_port_input_message_iterator_destroy(struct bt_object *obj)
 {
 	struct bt_self_component_port_input_message_iterator *iterator;
@@ -172,7 +156,12 @@ void bt_self_component_port_input_message_iterator_destroy(struct bt_object *obj
 		iterator->upstream_msg_iters = NULL;
 	}
 
-	destroy_base_message_iterator(obj);
+	if (iterator->msgs) {
+		g_ptr_array_free(iterator->msgs, TRUE);
+		iterator->msgs = NULL;
+	}
+
+	g_free(iterator);
 }
 
 BT_HIDDEN
@@ -285,28 +274,6 @@ void bt_self_component_port_input_message_iterator_set_connection(
 }
 
 static
-int init_message_iterator(struct bt_message_iterator *iterator,
-		enum bt_message_iterator_type type,
-		bt_object_release_func destroy)
-{
-	int ret = 0;
-
-	bt_object_init_shared(&iterator->base, destroy);
-	iterator->type = type;
-	iterator->msgs = g_ptr_array_new();
-	if (!iterator->msgs) {
-		BT_LIB_LOGE_APPEND_CAUSE("Failed to allocate a GPtrArray.");
-		ret = -1;
-		goto end;
-	}
-
-	g_ptr_array_set_size(iterator->msgs, MSG_BATCH_SIZE);
-
-end:
-	return ret;
-}
-
-static
 bt_bool can_seek_ns_from_origin_true(
 		struct bt_self_component_port_input_message_iterator *iterator,
 		int64_t ns_from_origin)
@@ -330,7 +297,6 @@ create_self_component_input_port_message_iterator(
 	typedef enum bt_component_class_message_iterator_init_method_status (*init_method_t)(
 			void *, void *, void *);
 
-	int ret;
 	init_method_t init_method = NULL;
 	struct bt_self_component_port_input_message_iterator *iterator =
 		NULL;
@@ -376,14 +342,15 @@ create_self_component_input_port_message_iterator(
 		goto error;
 	}
 
-	ret = init_message_iterator((void *) iterator,
-		BT_MESSAGE_ITERATOR_TYPE_SELF_COMPONENT_PORT_INPUT,
+	bt_object_init_shared(&iterator->base,
 		bt_self_component_port_input_message_iterator_destroy);
-	if (ret) {
-		/* init_message_iterator() logs errors */
+	iterator->msgs = g_ptr_array_new();
+	if (!iterator->msgs) {
+		BT_LIB_LOGE_APPEND_CAUSE("Failed to allocate a GPtrArray.");
 		goto error;
 	}
 
+	g_ptr_array_set_size(iterator->msgs, MSG_BATCH_SIZE);
 	iterator->last_ns_from_origin = INT64_MIN;
 	iterator->auto_seek.msgs = g_queue_new();
 	if (!iterator->auto_seek.msgs) {
@@ -900,7 +867,7 @@ bt_self_component_port_input_message_iterator_next(
 	 */
 	*user_count = 0;
 	status = (int) call_iterator_next_method(iterator,
-		(void *) iterator->base.msgs->pdata, MSG_BATCH_SIZE,
+		(void *) iterator->msgs->pdata, MSG_BATCH_SIZE,
 		user_count);
 	BT_LOGD("User method returned: status=%s, msg-count=%" PRIu64,
 		bt_common_func_status_string(status), *user_count);
@@ -930,7 +897,7 @@ bt_self_component_port_input_message_iterator_next(
 			"Invalid returned message count: greater than "
 			"batch size: count=%" PRIu64 ", batch-size=%u",
 			*user_count, MSG_BATCH_SIZE);
-		*msgs = (void *) iterator->base.msgs->pdata;
+		*msgs = (void *) iterator->msgs->pdata;
 		break;
 	case BT_FUNC_STATUS_AGAIN:
 		goto end;
@@ -944,46 +911,6 @@ bt_self_component_port_input_message_iterator_next(
 	}
 
 end:
-	return status;
-}
-
-enum bt_message_iterator_next_status bt_port_output_message_iterator_next(
-		struct bt_port_output_message_iterator *iterator,
-		bt_message_array_const *msgs_to_user,
-		uint64_t *count_to_user)
-{
-	enum bt_message_iterator_next_status status;
-	int graph_status;
-
-	BT_ASSERT_PRE_DEV_NON_NULL(iterator, "Message iterator");
-	BT_ASSERT_PRE_DEV_NON_NULL(msgs_to_user, "Message array (output)");
-	BT_ASSERT_PRE_DEV_NON_NULL(count_to_user, "Message count (output)");
-	BT_LIB_LOGD("Getting next output port message iterator's messages: "
-		"%!+i", iterator);
-	graph_status = bt_graph_consume_sink_no_check(iterator->graph,
-		iterator->colander);
-	switch (graph_status) {
-	case BT_FUNC_STATUS_AGAIN:
-	case BT_FUNC_STATUS_END:
-	case BT_FUNC_STATUS_MEMORY_ERROR:
-		status = (int) graph_status;
-		break;
-	case BT_FUNC_STATUS_OK:
-		status = BT_FUNC_STATUS_OK;
-
-		/*
-		 * On success, the colander sink moves the messages
-		 * to this iterator's array and sets this iterator's
-		 * message count: move them to the user.
-		 */
-		*msgs_to_user = (void *) iterator->base.msgs->pdata;
-		*count_to_user = iterator->count;
-		break;
-	default:
-		/* Other errors */
-		status = BT_FUNC_STATUS_ERROR;
-	}
-
 	return status;
 }
 
@@ -1021,172 +948,6 @@ struct bt_self_port_output *bt_self_message_iterator_borrow_port(
 
 	BT_ASSERT_PRE_DEV_NON_NULL(iterator, "Message iterator");
 	return (void *) iterator->upstream_port;
-}
-
-static
-void bt_port_output_message_iterator_destroy(struct bt_object *obj)
-{
-	struct bt_port_output_message_iterator *iterator = (void *) obj;
-
-	BT_LIB_LOGI("Destroying output port message iterator object: %!+i",
-		iterator);
-	BT_LOGD_STR("Putting graph.");
-	BT_OBJECT_PUT_REF_AND_RESET(iterator->graph);
-	BT_LOGD_STR("Putting colander sink component.");
-	BT_OBJECT_PUT_REF_AND_RESET(iterator->colander);
-	destroy_base_message_iterator(obj);
-}
-
-struct bt_port_output_message_iterator *
-bt_port_output_message_iterator_create(struct bt_graph *graph,
-		const struct bt_port_output *output_port)
-{
-	struct bt_port_output_message_iterator *iterator = NULL;
-	struct bt_component_class_sink *colander_comp_cls = NULL;
-	struct bt_component *output_port_comp = NULL;
-	struct bt_component_sink *colander_comp;
-	int graph_status;
-	struct bt_port_input *colander_in_port = NULL;
-	struct bt_component_class_sink_colander_data colander_data;
-	int ret;
-
-	BT_ASSERT_PRE_NON_NULL(graph, "Graph");
-	BT_ASSERT_PRE_NON_NULL(output_port, "Output port");
-	output_port_comp = bt_port_borrow_component_inline(
-		(const void *) output_port);
-	BT_ASSERT_PRE(output_port_comp,
-		"Output port has no component: %!+p", output_port);
-	BT_ASSERT_PRE(bt_component_borrow_graph(output_port_comp) ==
-		(void *) graph,
-		"Output port is not part of graph: %![graph-]+g, %![port-]+p",
-		graph, output_port);
-	BT_ASSERT_PRE(!graph->has_sink,
-		"Graph already has a sink component: %![graph-]+g");
-
-	/* Create message iterator */
-	BT_LIB_LOGI("Creating message iterator on output port: "
-		"%![port-]+p, %![comp-]+c", output_port, output_port_comp);
-	iterator = g_new0(struct bt_port_output_message_iterator, 1);
-	if (!iterator) {
-		BT_LIB_LOGE_APPEND_CAUSE(
-			"Failed to allocate one output port message iterator.");
-		goto error;
-	}
-
-	ret = init_message_iterator((void *) iterator,
-		BT_MESSAGE_ITERATOR_TYPE_PORT_OUTPUT,
-		bt_port_output_message_iterator_destroy);
-	if (ret) {
-		/* init_message_iterator() logs errors */
-		BT_OBJECT_PUT_REF_AND_RESET(iterator);
-		goto end;
-	}
-
-	/* Create colander component */
-	colander_comp_cls = bt_component_class_sink_colander_get();
-	if (!colander_comp_cls) {
-		/* bt_component_class_sink_colander_get() logs errors */
-		BT_LIB_LOGE_APPEND_CAUSE(
-			"Cannot get colander sink component class.");
-		goto error;
-	}
-
-	iterator->graph = graph;
-	bt_object_get_no_null_check(iterator->graph);
-	colander_data.msgs = (void *) iterator->base.msgs->pdata;
-	colander_data.count_addr = &iterator->count;
-
-	/*
-	 * Hope that nobody uses this very unique name.
-	 *
-	 * We pass `BT_LOGGING_LEVEL_NONE` but the colander component
-	 * class module does not use this level anyway since it belongs
-	 * to the library.
-	 */
-	graph_status = bt_graph_add_sink_component_with_init_method_data(
-			(void *) graph, colander_comp_cls,
-			"colander-36ac3409-b1a8-4d60-ab1f-4fdf341a8fb1",
-			NULL, &colander_data, BT_LOGGING_LEVEL_NONE,
-			(void *) &iterator->colander);
-	if (graph_status != BT_FUNC_STATUS_OK) {
-		BT_LIB_LOGE_APPEND_CAUSE(
-			"Cannot add colander sink component to graph: "
-			"%![graph-]+g, status=%s", graph,
-			bt_common_func_status_string(graph_status));
-		goto error;
-	}
-
-	/*
-	 * Connect provided output port to the colander component's
-	 * input port.
-	 */
-	colander_in_port =
-		(void *) bt_component_sink_borrow_input_port_by_index_const(
-			(void *) iterator->colander, 0);
-	BT_ASSERT(colander_in_port);
-	graph_status = bt_graph_connect_ports(graph,
-		output_port, colander_in_port, NULL);
-	if (graph_status != BT_FUNC_STATUS_OK) {
-		BT_LIB_LOGW_APPEND_CAUSE(
-			"Cannot connect colander sink's port: "
-			"%![graph-]+g, %![comp-]+c, status=%s", graph,
-			iterator->colander,
-			bt_common_func_status_string(graph_status));
-		goto error;
-	}
-
-	/*
-	 * At this point everything went fine. Make the graph
-	 * nonconsumable forever so that only this message iterator
-	 * can consume (thanks to bt_graph_consume_sink_no_check()).
-	 * This avoids leaking the message created by the colander
-	 * sink and moved to the message iterator's message
-	 * member.
-	 */
-	bt_graph_set_can_consume(iterator->graph, false);
-
-	/* Also set the graph as being configured. */
-	graph_status = bt_graph_configure(graph);
-	if (graph_status != BT_FUNC_STATUS_OK) {
-		BT_LIB_LOGW_APPEND_CAUSE(
-			"Cannot configure graph after having "
-			"added and connected colander sink: "
-			"%![graph-]+g, %![comp-]+c, status=%s", graph,
-			iterator->colander,
-			bt_common_func_status_string(graph_status));
-		goto error;
-	}
-	goto end;
-
-error:
-	if (iterator && iterator->graph && iterator->colander) {
-		int ret;
-
-		/* Remove created colander component from graph if any */
-		colander_comp = iterator->colander;
-		BT_OBJECT_PUT_REF_AND_RESET(iterator->colander);
-
-		/*
-		 * At this point the colander component's reference
-		 * count is 0 because iterator->colander was the only
-		 * owner. We also know that it is not connected because
-		 * this is the last operation before this function
-		 * succeeds.
-		 *
-		 * Since we honor the preconditions here,
-		 * bt_graph_remove_unconnected_component() always
-		 * succeeds.
-		 */
-		ret = bt_graph_remove_unconnected_component(iterator->graph,
-			(void *) colander_comp);
-		BT_ASSERT(ret == 0);
-	}
-
-	BT_OBJECT_PUT_REF_AND_RESET(iterator);
-
-end:
-	bt_object_put_ref(colander_comp_cls);
-	return (void *) iterator;
 }
 
 bt_bool bt_self_component_port_input_message_iterator_can_seek_ns_from_origin(
@@ -2063,60 +1824,6 @@ end:
 	return status;
 }
 
-static inline
-bt_self_component_port_input_message_iterator *
-borrow_output_port_message_iterator_upstream_iterator(
-		struct bt_port_output_message_iterator *iterator)
-{
-	struct bt_component_class_sink_colander_priv_data *colander_data;
-
-	BT_ASSERT(iterator);
-	colander_data = (void *) iterator->colander->parent.user_data;
-	BT_ASSERT(colander_data);
-	BT_ASSERT(colander_data->msg_iter);
-	return colander_data->msg_iter;
-}
-
-bt_bool bt_port_output_message_iterator_can_seek_ns_from_origin(
-		struct bt_port_output_message_iterator *iterator,
-		int64_t ns_from_origin)
-{
-	BT_ASSERT_PRE_NON_NULL(iterator, "Message iterator");
-	return bt_self_component_port_input_message_iterator_can_seek_ns_from_origin(
-		borrow_output_port_message_iterator_upstream_iterator(
-			iterator), ns_from_origin);
-}
-
-bt_bool bt_port_output_message_iterator_can_seek_beginning(
-		struct bt_port_output_message_iterator *iterator)
-{
-	BT_ASSERT_PRE_NON_NULL(iterator, "Message iterator");
-	return bt_self_component_port_input_message_iterator_can_seek_beginning(
-		borrow_output_port_message_iterator_upstream_iterator(
-			iterator));
-}
-
-enum bt_message_iterator_seek_ns_from_origin_status
-bt_port_output_message_iterator_seek_ns_from_origin(
-		struct bt_port_output_message_iterator *iterator,
-		int64_t ns_from_origin)
-{
-	BT_ASSERT_PRE_NON_NULL(iterator, "Message iterator");
-	return bt_self_component_port_input_message_iterator_seek_ns_from_origin(
-		borrow_output_port_message_iterator_upstream_iterator(iterator),
-		ns_from_origin);
-}
-
-enum bt_message_iterator_seek_beginning_status
-bt_port_output_message_iterator_seek_beginning(
-		struct bt_port_output_message_iterator *iterator)
-{
-	BT_ASSERT_PRE_NON_NULL(iterator, "Message iterator");
-	return bt_self_component_port_input_message_iterator_seek_beginning(
-		borrow_output_port_message_iterator_upstream_iterator(
-			iterator));
-}
-
 bt_bool bt_self_message_iterator_is_interrupted(
 		const struct bt_self_message_iterator *self_msg_iter)
 {
@@ -2125,18 +1832,6 @@ bt_bool bt_self_message_iterator_is_interrupted(
 
 	BT_ASSERT_PRE_NON_NULL(iterator, "Message iterator");
 	return (bt_bool) bt_graph_is_interrupted(iterator->graph);
-}
-
-void bt_port_output_message_iterator_get_ref(
-		const struct bt_port_output_message_iterator *iterator)
-{
-	bt_object_get_ref(iterator);
-}
-
-void bt_port_output_message_iterator_put_ref(
-		const struct bt_port_output_message_iterator *iterator)
-{
-	bt_object_put_ref(iterator);
 }
 
 void bt_self_component_port_input_message_iterator_get_ref(

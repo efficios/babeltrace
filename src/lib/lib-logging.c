@@ -1153,66 +1153,34 @@ static inline void format_message_iterator(char **buf_ch,
 		bool extended, const char *prefix,
 		const struct bt_message_iterator *iterator)
 {
-	const char *type;
 	char tmp_prefix[TMP_PREFIX_LEN];
+	const struct bt_self_component_port_input_message_iterator *
+		port_in_iter = (const void *) iterator;
 
-	if (iterator->type == BT_MESSAGE_ITERATOR_TYPE_SELF_COMPONENT_PORT_INPUT) {
-		type = "BT_MESSAGE_ITERATOR_TYPE_SELF_COMPONENT_PORT_INPUT";
-	} else if (iterator->type == BT_MESSAGE_ITERATOR_TYPE_PORT_OUTPUT) {
-		type = "BT_MESSAGE_ITERATOR_TYPE_PORT_OUTPUT";
-	} else {
-		type = "(unknown)";
+	if (port_in_iter->upstream_component) {
+		SET_TMP_PREFIX("upstream-comp-");
+		format_component(buf_ch, false, tmp_prefix,
+			port_in_iter->upstream_component);
 	}
 
-	BUF_APPEND(", %stype=%s", PRFIELD(type));
-
-	switch (iterator->type) {
-	case BT_MESSAGE_ITERATOR_TYPE_SELF_COMPONENT_PORT_INPUT:
-	{
-		const struct bt_self_component_port_input_message_iterator *
-			port_in_iter = (const void *) iterator;
-
-		if (port_in_iter->upstream_component) {
-			SET_TMP_PREFIX("upstream-comp-");
-			format_component(buf_ch, false, tmp_prefix,
-				port_in_iter->upstream_component);
-		}
-
-		if (port_in_iter->upstream_port) {
-			SET_TMP_PREFIX("upstream-port-");
-			format_port(buf_ch, false, tmp_prefix,
-				port_in_iter->upstream_port);
-		}
-
-		if (port_in_iter->connection) {
-			SET_TMP_PREFIX("upstream-conn-");
-			format_connection(buf_ch, false, tmp_prefix,
-				port_in_iter->connection);
-		}
-		break;
+	if (!extended) {
+		goto end;
 	}
-	case BT_MESSAGE_ITERATOR_TYPE_PORT_OUTPUT:
-	{
-		const struct bt_port_output_message_iterator *port_out_iter =
-			(const void *) iterator;
 
-		if (port_out_iter->graph) {
-			SET_TMP_PREFIX("graph-");
-			format_graph(buf_ch, false, tmp_prefix,
-				port_out_iter->graph);
-		}
-
-		if (port_out_iter->colander) {
-			SET_TMP_PREFIX("colander-comp-");
-			format_component(buf_ch, false, tmp_prefix,
-				(void *) port_out_iter->colander);
-		}
-
-		break;
+	if (port_in_iter->upstream_port) {
+		SET_TMP_PREFIX("upstream-port-");
+		format_port(buf_ch, false, tmp_prefix,
+			port_in_iter->upstream_port);
 	}
-	default:
-		break;
+
+	if (port_in_iter->connection) {
+		SET_TMP_PREFIX("upstream-conn-");
+		format_connection(buf_ch, false, tmp_prefix,
+			port_in_iter->connection);
 	}
+
+end:
+	return;
 }
 
 static inline void format_plugin(char **buf_ch, bool extended,

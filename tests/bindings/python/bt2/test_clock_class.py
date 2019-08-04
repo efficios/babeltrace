@@ -20,7 +20,7 @@ import unittest
 import uuid
 import copy
 import bt2
-from utils import run_in_component_init
+from utils import run_in_component_init, TestOutputPortMessageIterator
 
 
 class ClockClassOffsetTestCase(unittest.TestCase):
@@ -244,8 +244,8 @@ class ClockSnapshotTestCase(unittest.TestCase):
 
         self._graph = bt2.Graph()
         self._src_comp = self._graph.add_component(MySrc, 'my_source')
-        self._msg_iter = self._graph.create_output_port_message_iterator(
-            self._src_comp.output_ports['out']
+        self._msg_iter = TestOutputPortMessageIterator(
+            self._graph, self._src_comp.output_ports['out']
         )
 
         for i, msg in enumerate(self._msg_iter):

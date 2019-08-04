@@ -24,7 +24,6 @@ from bt2 import native_bt, object, utils
 from bt2 import interrupter as bt2_interrupter
 from bt2 import connection as bt2_connection
 from bt2 import component as bt2_component
-from bt2 import message_iterator as bt2_message_iterator
 import functools
 from bt2 import port as bt2_port
 from bt2 import logging as bt2_logging
@@ -196,14 +195,3 @@ class Graph(object._SharedObject):
 
     def interrupt(self):
         native_bt.graph_interrupt(self._ptr)
-
-    def create_output_port_message_iterator(self, output_port):
-        utils._check_type(output_port, bt2_port._OutputPort)
-        msg_iter_ptr = native_bt.port_output_message_iterator_create(
-            self._ptr, output_port._ptr
-        )
-
-        if msg_iter_ptr is None:
-            raise bt2._MemoryError('cannot create output port message iterator')
-
-        return bt2_message_iterator._OutputPortMessageIterator(msg_iter_ptr)

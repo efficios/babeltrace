@@ -94,15 +94,3 @@ static PyObject *bt_bt2_self_component_port_input_get_msg_range(
 		&messages, &message_count);
 	return get_msg_range_common(status, messages, message_count);
 }
-
-static PyObject *bt_bt2_port_output_get_msg_range(
-		bt_port_output_message_iterator *iter)
-{
-	bt_message_array_const messages;
-	uint64_t message_count = 0;
-	bt_message_iterator_next_status status;
-
-	status = bt_port_output_message_iterator_next(iter, &messages,
-		&message_count);
-	return get_msg_range_common(status, messages, message_count);
-}

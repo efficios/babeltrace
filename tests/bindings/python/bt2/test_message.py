@@ -19,6 +19,7 @@
 import collections
 import unittest
 import bt2
+from utils import TestOutputPortMessageIterator
 
 
 class AllMessagesTestCase(unittest.TestCase):
@@ -148,8 +149,8 @@ class AllMessagesTestCase(unittest.TestCase):
     def test_all_msg_with_cc(self):
         params = {'with_cc': True}
         self._src_comp = self._graph.add_component(self._src, 'my_source', params)
-        self._msg_iter = self._graph.create_output_port_message_iterator(
-            self._src_comp.output_ports['out']
+        self._msg_iter = TestOutputPortMessageIterator(
+            self._graph, self._src_comp.output_ports['out']
         )
 
         for i, msg in enumerate(self._msg_iter):
@@ -204,8 +205,8 @@ class AllMessagesTestCase(unittest.TestCase):
     def test_all_msg_without_cc(self):
         params = {'with_cc': False}
         self._src_comp = self._graph.add_component(self._src, 'my_source', params)
-        self._msg_iter = self._graph.create_output_port_message_iterator(
-            self._src_comp.output_ports['out']
+        self._msg_iter = TestOutputPortMessageIterator(
+            self._graph, self._src_comp.output_ports['out']
         )
 
         for i, msg in enumerate(self._msg_iter):
@@ -273,8 +274,8 @@ class AllMessagesTestCase(unittest.TestCase):
         params = {'with_cc': True, 'with_stream_msgs_clock_snapshots': True}
 
         self._src_comp = self._graph.add_component(self._src, 'my_source', params)
-        self._msg_iter = self._graph.create_output_port_message_iterator(
-            self._src_comp.output_ports['out']
+        self._msg_iter = TestOutputPortMessageIterator(
+            self._graph, self._src_comp.output_ports['out']
         )
         msgs = list(self._msg_iter)
 

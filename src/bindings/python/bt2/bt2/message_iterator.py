@@ -88,20 +88,6 @@ class _UserComponentInputPortMessageIterator(_GenericMessageIterator):
     )
 
 
-# This is created when the user wants to iterate on a component's output port,
-# from outside the graph.
-class _OutputPortMessageIterator(_GenericMessageIterator):
-    _get_msg_range = staticmethod(native_bt.bt2_port_output_get_msg_range)
-    _get_ref = staticmethod(native_bt.port_output_message_iterator_get_ref)
-    _put_ref = staticmethod(native_bt.port_output_message_iterator_put_ref)
-    _can_seek_beginning = staticmethod(
-        native_bt.port_output_message_iterator_can_seek_beginning
-    )
-    _seek_beginning = staticmethod(
-        native_bt.port_output_message_iterator_seek_beginning
-    )
-
-
 # This is extended by the user to implement component classes in Python.  It
 # is created for a given output port when an input port message iterator is
 # created on the input port on the other side of the connection.  It is also

@@ -111,7 +111,6 @@ babeltrace2graphinclude_HEADERS = \
 	babeltrace2/graph/port-const.h \
 	babeltrace2/graph/port-input-const.h \
 	babeltrace2/graph/port-output-const.h \
-	babeltrace2/graph/port-output-message-iterator.h \
 	babeltrace2/graph/private-query-executor.h \
 	babeltrace2/graph/query-executor-const.h \
 	babeltrace2/graph/query-executor.h \

@@ -19,6 +19,7 @@
 from collections import OrderedDict
 import unittest
 import bt2
+from utils import TestOutputPortMessageIterator
 
 
 class EventTestCase(unittest.TestCase):
@@ -153,8 +154,8 @@ class EventTestCase(unittest.TestCase):
         test_obj = self
         self._graph = bt2.Graph()
         self._src_comp = self._graph.add_component(MySrc, 'my_source')
-        self._msg_iter = self._graph.create_output_port_message_iterator(
-            self._src_comp.output_ports['out']
+        self._msg_iter = TestOutputPortMessageIterator(
+            self._graph, self._src_comp.output_ports['out']
         )
 
         for msg in self._msg_iter:
