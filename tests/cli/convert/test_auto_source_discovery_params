@@ -42,7 +42,7 @@ stderr_expected=/dev/null
 
 print_test_params="--params print=\"test-params\""
 
-# Apply params to two components from one leftover.
+# Apply params to two components from one non-option argument.
 cat > "$expected_file" <<END
 TestSourceA: ('test-allo', 'madame')
 TestSourceB: ('test-allo', 'madame')
@@ -51,9 +51,9 @@ END
 bt_diff_cli_sorted "$expected_file" "$stderr_expected" \
 	convert --plugin-path "${plugin_dir}" \
 	"${dir_ab}" --params 'test-allo="madame"' ${print_test_params}
-ok "$?" "apply params to two components from one leftover"
+ok "$?" "apply params to two components from one non-option argument"
 
-# Apply params to two components from two distinct leftovers.
+# Apply params to two components from two distinct non-option arguments.
 cat > "$expected_file" <<END
 TestSourceA: ('test-allo', 'madame')
 TestSourceB: ('test-bonjour', 'monsieur')
@@ -62,9 +62,9 @@ END
 bt_diff_cli_sorted "$expected_file" "$stderr_expected" \
 	convert --plugin-path "${plugin_dir}" \
 	"${dir_a}" --params 'test-allo="madame"' ${print_test_params} "${dir_b}" --params 'test-bonjour="monsieur"' ${print_test_params}
-ok "$?" "apply params to two leftovers"
+ok "$?" "apply params to two non-option arguments"
 
-# Apply params to one component coming from one leftover and one component coming from two leftovers (1).
+# Apply params to one component coming from one non-option argument and one component coming from two non-option arguments (1).
 cat > "$expected_file" <<END
 TestSourceA: ('test-allo', 'madame'), ('test-bonjour', 'monsieur')
 TestSourceB: ('test-bonjour', 'monsieur')
@@ -73,9 +73,9 @@ END
 bt_diff_cli_sorted "$expected_file" "$stderr_expected" \
 	convert --plugin-path "${plugin_dir}" \
 	"${dir_a}" --params 'test-allo="madame"' ${print_test_params} "${dir_ab}" --params 'test-bonjour="monsieur"' ${print_test_params}
-ok "$?" "apply params to one component coming from one leftover and one component coming from two leftovers (1)"
+ok "$?" "apply params to one component coming from one non-option argument and one component coming from two non-option arguments (1)"
 
-# Apply params to one component coming from one leftover and one component coming from two leftovers (2).
+# Apply params to one component coming from one non-option argument and one component coming from two non-option arguments (2).
 cat > "$expected_file" <<END
 TestSourceA: ('test-bonjour', 'monsieur'), ('test-salut', 'les amis')
 TestSourceB: ('test-bonjour', 'madame'), ('test-salut', 'les amis')
@@ -84,6 +84,6 @@ END
 bt_diff_cli_sorted "$expected_file" "$stderr_expected" \
 	convert --plugin-path "${plugin_dir}" \
 	"${dir_ab}" --params 'test-bonjour="madame",test-salut="les amis"' ${print_test_params} "${dir_a}" --params 'test-bonjour="monsieur"' ${print_test_params}
-ok "$?" "apply params to one component coming from one leftover and one component coming from two leftovers (2)"
+ok "$?" "apply params to one component coming from one non-option argument and one component coming from two non-option arguments (2)"
 
 rm -f "$expected_file"

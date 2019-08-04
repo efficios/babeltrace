@@ -1413,7 +1413,7 @@ struct bt_config *bt_config_help_from_args(int argc, const char *argv[],
 {
 	int ret, i;
 	struct bt_config *cfg = NULL;
-	const char *leftover = NULL;
+	const char *non_opt = NULL;
 	char *plugin_name = NULL, *comp_cls_name = NULL;
 	struct bt_argpar_parse_ret argpar_parse_ret;
 
@@ -1478,18 +1478,18 @@ struct bt_config *bt_config_help_from_args(int argc, const char *argv[],
 			struct bt_argpar_item_non_opt *argpar_item_non_opt
 				= (struct bt_argpar_item_non_opt *) argpar_item;
 
-			if (leftover) {
+			if (non_opt) {
 				BT_CLI_LOGE_APPEND_CAUSE("Extraneous command-line argument specified to `help` command: `%s`.",
 					argpar_item_non_opt->arg);
 				goto error;
 			}
 
-			leftover = argpar_item_non_opt->arg;
+			non_opt = argpar_item_non_opt->arg;
 		}
 	}
 
-	if (leftover) {
-		plugin_comp_cls_names(leftover, NULL,
+	if (non_opt) {
+		plugin_comp_cls_names(non_opt, NULL,
 			&plugin_name, &comp_cls_name,
 			&cfg->cmd_data.help.cfg_component->type);
 		if (plugin_name && comp_cls_name) {
@@ -1504,7 +1504,7 @@ struct bt_config *bt_config_help_from_args(int argc, const char *argv[],
 			/* Fall back to plugin help */
 			g_string_assign(
 				cfg->cmd_data.help.cfg_component->plugin_name,
-				leftover);
+				non_opt);
 		}
 	} else {
 		print_help_usage(stdout);
@@ -1667,8 +1667,9 @@ struct bt_config *bt_config_query_from_args(int argc, const char *argv[],
 				= (struct bt_argpar_item_non_opt *) argpar_item;
 
 			/*
-			 * We need exactly two leftover arguments which are the
-			 * mandatory component class specification and query object.
+			 * We need exactly two non-option arguments
+			 * which are the mandatory component class
+			 * specification and query object.
 			 */
 			if (!component_class_spec) {
 				component_class_spec = argpar_item_non_opt->arg;
@@ -2044,7 +2045,7 @@ struct bt_config *bt_config_run_from_args(int argc, const char *argv[],
 		struct bt_argpar_item_opt *argpar_item_opt;
 		const char *arg;
 
-		/* This command does not accept leftover arguments. */
+		/* This command does not accept non-option arguments.*/
 		if (argpar_item->type == BT_ARGPAR_ITEM_TYPE_NON_OPT) {
 			struct bt_argpar_item_non_opt *argpar_nonopt_item =
 				(struct bt_argpar_item_non_opt *) argpar_item;
@@ -3175,17 +3176,17 @@ end:
 }
 
 /*
- * Create `struct implicit_component_args` structures for each of the source
- * components we identified.  Add them to `component_args`.
+ * Create `struct implicit_component_args` structures for each of the
+ * source components we identified.  Add them to `component_args`.
  *
- * `leftover_params` is an array where each element is an array of strings
- * containing all the arguments to `--params` that apply to the leftover at the
- * same index.  For example, if, for a leftover, the following `--params`
- * options applied:
+ * `non_opt_params` is an array where each element is an array of
+ * strings containing all the arguments to `--params` that apply to the
+ * non-option argument at the same index.  For example, if, for a
+ * non-option argument, the following `--params` options applied:
  *
  *     --params=a=2 --params=b=3,c=4
  *
- * its entry in `leftover_params` would contain
+ * its entry in `non_opt_params` would contain
  *
  *     ["a=2", "b=3,c=4"]
  */
@@ -3193,8 +3194,8 @@ end:
 static
 int create_implicit_component_args_from_auto_discovered_sources(
 		const struct auto_source_discovery *auto_disc,
-		const bt_value *leftover_params,
-		const bt_value *leftover_loglevels,
+		const bt_value *non_opt_params,
+		const bt_value *non_opt_loglevels,
 		GPtrArray *component_args)
 {
 	gchar *cc_name = NULL;
@@ -3222,8 +3223,9 @@ int create_implicit_component_args_from_auto_discovered_sources(
 		}
 
 		/*
-		 * Append parameters and log levels of all the leftovers that
-		 * contributed to this component instance coming into existence.
+		 * Append parameters and log levels of all the
+		 * non-option arguments that contributed to this
+		 * component instance coming into existence.
 		 */
 		orig_indices_count = bt_value_array_get_size(res->original_input_indices);
 		for (orig_indices_i = 0; orig_indices_i < orig_indices_count; orig_indices_i++) {
@@ -3233,7 +3235,7 @@ int create_implicit_component_args_from_auto_discovered_sources(
 			uint64_t orig_idx = bt_value_integer_unsigned_get(orig_idx_value);
 			const bt_value *params_array =
 				bt_value_array_borrow_element_by_index_const(
-					leftover_params, orig_idx);
+					non_opt_params, orig_idx);
 			uint64_t params_i, params_count;
 			const bt_value *loglevel_value;
 
@@ -3261,7 +3263,7 @@ int create_implicit_component_args_from_auto_discovered_sources(
 			}
 
 			loglevel_value = bt_value_array_borrow_element_by_index_const(
-				leftover_loglevels, orig_idx);
+				non_opt_loglevels, orig_idx);
 			if (bt_value_get_type(loglevel_value) == BT_VALUE_TYPE_STRING) {
 				const char *loglevel = bt_value_string_get(loglevel_value);
 				bt_value_array_append_element_status append_status;
@@ -3319,8 +3321,8 @@ enum convert_current_item_type {
 	/* Current item is a component. */
 	CONVERT_CURRENT_ITEM_TYPE_COMPONENT,
 
-	/* Current item is a leftover. */
-	CONVERT_CURRENT_ITEM_TYPE_LEFTOVER,
+	/* Current item is a non-option argument. */
+	CONVERT_CURRENT_ITEM_TYPE_NON_OPT,
 };
 
 /*
@@ -3352,9 +3354,9 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 	GList *source_names = NULL;
 	GList *filter_names = NULL;
 	GList *sink_names = NULL;
-	bt_value *leftovers = NULL;
-	bt_value *leftover_params = NULL;
-	bt_value *leftover_loglevels = NULL;
+	bt_value *non_opts = NULL;
+	bt_value *non_opt_params = NULL;
+	bt_value *non_opt_loglevels = NULL;
 	struct implicit_component_args implicit_ctf_output_args = { 0 };
 	struct implicit_component_args implicit_lttng_live_args = { 0 };
 	struct implicit_component_args implicit_dummy_args = { 0 };
@@ -3457,20 +3459,20 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 		goto error;
 	}
 
-	leftovers = bt_value_array_create();
-	if (!leftovers) {
+	non_opts = bt_value_array_create();
+	if (!non_opts) {
 		BT_CLI_LOGE_APPEND_CAUSE_OOM();
 		goto error;
 	}
 
-	leftover_params = bt_value_array_create();
-	if (!leftover_params) {
+	non_opt_params = bt_value_array_create();
+	if (!non_opt_params) {
 		BT_CLI_LOGE_APPEND_CAUSE_OOM();
 		goto error;
 	}
 
-	leftover_loglevels = bt_value_array_create();
-	if (!leftover_loglevels) {
+	non_opt_loglevels = bt_value_array_create();
+	if (!non_opt_loglevels) {
 		BT_CLI_LOGE_APPEND_CAUSE_OOM();
 		goto error;
 	}
@@ -3643,12 +3645,16 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 						BT_CLI_LOGE_APPEND_CAUSE_OOM();
 						goto error;
 					}
-				} else if (current_item_type == CONVERT_CURRENT_ITEM_TYPE_LEFTOVER) {
-					/* The current item is a leftover, record it in `leftover_params`. */
+				} else if (current_item_type == CONVERT_CURRENT_ITEM_TYPE_NON_OPT) {
+					/*
+					 * The current item is a
+					 * non-option argument, record
+					 * it in `non_opt_params`.
+					 */
 					bt_value *array;
-					uint64_t idx = bt_value_array_get_size(leftover_params) - 1;
+					uint64_t idx = bt_value_array_get_size(non_opt_params) - 1;
 
-					array = bt_value_array_borrow_element_by_index(leftover_params, idx);
+					array = bt_value_array_borrow_element_by_index(non_opt_params, idx);
 					bt_value_array_append_string_element(array, arg);
 				} else {
 					BT_CLI_LOGE_APPEND_CAUSE(
@@ -3668,8 +3674,8 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 						BT_CLI_LOGE_APPEND_CAUSE_OOM();
 						goto error;
 					}
-				} else if (current_item_type == CONVERT_CURRENT_ITEM_TYPE_LEFTOVER) {
-					uint64_t idx = bt_value_array_get_size(leftover_loglevels) - 1;
+				} else if (current_item_type == CONVERT_CURRENT_ITEM_TYPE_NON_OPT) {
+					uint64_t idx = bt_value_array_get_size(non_opt_loglevels) - 1;
 					bt_value *log_level_str_value;
 
 					log_level_str_value = bt_value_string_create_init(arg);
@@ -3678,7 +3684,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 						goto error;
 					}
 
-					if (bt_value_array_set_element_by_index(leftover_loglevels, idx,
+					if (bt_value_array_set_element_by_index(non_opt_loglevels, idx,
 							log_level_str_value)) {
 						bt_value_put_ref(log_level_str_value);
 						BT_CLI_LOGE_APPEND_CAUSE_OOM();
@@ -3776,24 +3782,24 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 			struct bt_argpar_item_non_opt *argpar_item_non_opt;
 			bt_value_array_append_element_status append_status;
 
-			current_item_type = CONVERT_CURRENT_ITEM_TYPE_LEFTOVER;
+			current_item_type = CONVERT_CURRENT_ITEM_TYPE_NON_OPT;
 
 			argpar_item_non_opt = (struct bt_argpar_item_non_opt *) argpar_item;
 
-			append_status = bt_value_array_append_string_element(leftovers,
+			append_status = bt_value_array_append_string_element(non_opts,
 				argpar_item_non_opt->arg);
 			if (append_status != BT_VALUE_ARRAY_APPEND_ELEMENT_STATUS_OK) {
 				BT_CLI_LOGE_APPEND_CAUSE_OOM();
 				goto error;
 			}
 
-			append_status = bt_value_array_append_empty_array_element(leftover_params);
+			append_status = bt_value_array_append_empty_array_element(non_opt_params);
 			if (append_status != BT_VALUE_ARRAY_APPEND_ELEMENT_STATUS_OK) {
 				BT_CLI_LOGE_APPEND_CAUSE_OOM();
 				goto error;
 			}
 
-			append_status = bt_value_array_append_element(leftover_loglevels, bt_value_null);
+			append_status = bt_value_array_append_element(non_opt_loglevels, bt_value_null);
 			if (append_status != BT_VALUE_ARRAY_APPEND_ELEMENT_STATUS_OK) {
 				BT_CLI_LOGE_APPEND_CAUSE_OOM();
 				goto error;
@@ -4122,14 +4128,14 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 
 	/* Print CTF metadata or print LTTng live sessions */
 	if (print_ctf_metadata) {
-		const bt_value *bt_val_leftover;
+		const bt_value *bt_val_non_opt;
 
-		if (bt_value_array_is_empty(leftovers)) {
+		if (bt_value_array_is_empty(non_opts)) {
 			BT_CLI_LOGE_APPEND_CAUSE("--output-format=ctf-metadata specified without a path.");
 			goto error;
 		}
 
-		if (bt_value_array_get_size(leftovers) > 1) {
+		if (bt_value_array_get_size(non_opts) > 1) {
 			BT_CLI_LOGE_APPEND_CAUSE("Too many paths specified for --output-format=ctf-metadata.");
 			goto error;
 		}
@@ -4139,9 +4145,9 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 			goto error;
 		}
 
-		bt_val_leftover = bt_value_array_borrow_element_by_index_const(leftovers, 0);
+		bt_val_non_opt = bt_value_array_borrow_element_by_index_const(non_opts, 0);
 		g_string_assign(cfg->cmd_data.print_ctf_metadata.path,
-				bt_value_string_get(bt_val_leftover));
+				bt_value_string_get(bt_val_non_opt));
 
 		if (output) {
 			g_string_assign(
@@ -4206,19 +4212,19 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 		}
 	}
 
-	/* Decide where the leftover argument(s) go */
-	if (bt_value_array_get_size(leftovers) > 0) {
+	/* Decide where the non-option argument(s) go */
+	if (bt_value_array_get_size(non_opts) > 0) {
 		if (implicit_lttng_live_args.exists) {
-			const bt_value *bt_val_leftover;
+			const bt_value *bt_val_non_opt;
 
-			if (bt_value_array_get_size(leftovers) > 1) {
+			if (bt_value_array_get_size(non_opts) > 1) {
 				BT_CLI_LOGE_APPEND_CAUSE("Too many URLs specified for --input-format=lttng-live.");
 				goto error;
 			}
 
-			bt_val_leftover = bt_value_array_borrow_element_by_index_const(leftovers, 0);
+			bt_val_non_opt = bt_value_array_borrow_element_by_index_const(non_opts, 0);
 			lttng_live_url_parts =
-				bt_common_parse_lttng_live_url(bt_value_string_get(bt_val_leftover),
+				bt_common_parse_lttng_live_url(bt_value_string_get(bt_val_non_opt),
 					error_buf, sizeof(error_buf));
 			if (!lttng_live_url_parts.proto) {
 				BT_CLI_LOGE_APPEND_CAUSE("Invalid LTTng live URL format: %s.",
@@ -4235,7 +4241,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 				}
 
 				g_string_assign(cfg->cmd_data.print_lttng_live_sessions.url,
-					bt_value_string_get(bt_val_leftover));
+					bt_value_string_get(bt_val_non_opt));
 
 				if (output) {
 					g_string_assign(
@@ -4248,7 +4254,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 
 			ret = append_implicit_component_extra_param(
 				&implicit_lttng_live_args, "url",
-				bt_value_string_get(bt_val_leftover));
+				bt_value_string_get(bt_val_non_opt));
 			if (ret) {
 				goto error;
 			}
@@ -4262,7 +4268,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 		} else {
 			int status;
 
-			status = auto_discover_source_components(plugin_paths, leftovers,
+			status = auto_discover_source_components(plugin_paths, non_opts,
 				auto_source_discovery_restrict_plugin_name,
 				auto_source_discovery_restrict_component_class_name,
 				*default_log_level >= 0 ? *default_log_level : cli_default_log_level,
@@ -4273,7 +4279,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 			}
 
 			status = create_implicit_component_args_from_auto_discovered_sources(
-				&auto_disc, leftover_params, leftover_loglevels,
+				&auto_disc, non_opt_params, non_opt_loglevels,
 				discovered_source_args);
 			if (status != 0) {
 				goto error;
@@ -4310,10 +4316,11 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 	}
 
 	/*
-	 * If the implicit `source.ctf.lttng-live` component exists, make sure
-	 * there's at least one leftover (which is the URL).
+	 * If the implicit `source.ctf.lttng-live` component exists,
+	 * make sure there's at least one non-option argument (which is
+	 * the URL).
 	 */
-	if (implicit_lttng_live_args.exists && bt_value_array_is_empty(leftovers)) {
+	if (implicit_lttng_live_args.exists && bt_value_array_is_empty(non_opts)) {
 		BT_CLI_LOGE_APPEND_CAUSE("Missing URL for implicit `%s` component.",
 			implicit_lttng_live_args.comp_arg->str);
 		goto error;
@@ -4587,9 +4594,9 @@ end:
 	destroy_glist_of_gstring(source_names);
 	destroy_glist_of_gstring(filter_names);
 	destroy_glist_of_gstring(sink_names);
-	bt_value_put_ref(leftovers);
-	bt_value_put_ref(leftover_params);
-	bt_value_put_ref(leftover_loglevels);
+	bt_value_put_ref(non_opt_params);
+	bt_value_put_ref(non_opt_loglevels);
+	bt_value_put_ref(non_opts);
 	finalize_implicit_component_args(&implicit_ctf_output_args);
 	finalize_implicit_component_args(&implicit_lttng_live_args);
 	finalize_implicit_component_args(&implicit_dummy_args);

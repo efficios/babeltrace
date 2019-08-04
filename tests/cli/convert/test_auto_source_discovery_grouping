@@ -58,7 +58,7 @@ TestSourceExt: ${trace_dir}${dir_sep}ccc4
 TestSourceSomeDir: ${trace_dir}${dir_sep}some-dir
 END
 
-bt_diff_cli_sorted "$expected_file" "$stderr_expected" convert --plugin-path "${plugin_dir}" "ABCDE" "${trace_dir}" some_other_leftover
+bt_diff_cli_sorted "$expected_file" "$stderr_expected" convert --plugin-path "${plugin_dir}" "ABCDE" "${trace_dir}" some_other_non_opt
 ok "$?" "sources are auto-discovered"
 
 rm -f "$expected_file"
