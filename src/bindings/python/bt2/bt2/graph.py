@@ -175,6 +175,10 @@ class Graph(object._SharedObject):
 
         return utils._ListenerHandle(listener_ids, self)
 
+    def run_once(self):
+        status = native_bt.graph_run_once(self._ptr)
+        utils._handle_func_status(status, 'graph object could not run once')
+
     def run(self):
         status = native_bt.graph_run(self._ptr)
 
