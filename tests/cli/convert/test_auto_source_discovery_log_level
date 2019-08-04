@@ -45,7 +45,7 @@ print_log_level="--params print=\"log-level\""
 debug=2
 trace=1
 
-# Apply log level to two components from one leftover.
+# Apply log level to two components from one non-option argument.
 cat > "$expected_file" <<END
 TestSourceA: ${debug}
 TestSourceB: ${debug}
@@ -54,9 +54,9 @@ END
 bt_diff_cli_sorted "$expected_file" "$stderr_expected" \
 	convert --plugin-path "${plugin_dir}" \
 	"${dir_ab}" --log-level DEBUG ${print_log_level}
-ok "$?" "apply log level to two components from one leftover"
+ok "$?" "apply log level to two components from one non-option argument"
 
-# Apply log level to two components from two distinct leftovers.
+# Apply log level to two components from two distinct non-option arguments.
 cat > "$expected_file" <<END
 TestSourceA: ${debug}
 TestSourceB: ${trace}
@@ -65,9 +65,9 @@ END
 bt_diff_cli_sorted "$expected_file" "$stderr_expected" \
 	convert --plugin-path "${plugin_dir}" \
 	"${dir_a}" --log-level DEBUG ${print_log_level} "${dir_b}" --log-level TRACE ${print_log_level}
-ok "$?" "apply log level to two leftovers"
+ok "$?" "apply log level to two non-option arguments"
 
-# Apply log level to one component coming from one leftover and one component coming from two leftovers (1).
+# Apply log level to one component coming from one non-option argument and one component coming from two non-option arguments (1).
 cat > "$expected_file" <<END
 TestSourceA: ${trace}
 TestSourceB: ${trace}
@@ -76,9 +76,9 @@ END
 bt_diff_cli_sorted "$expected_file" "$stderr_expected" \
 	convert --plugin-path "${plugin_dir}" \
 	"${dir_a}" --log-level DEBUG ${print_log_level} "${dir_ab}" --log-level TRACE ${print_log_level}
-ok "$?" "apply log level to one component coming from one leftover and one component coming from two leftovers (1)"
+ok "$?" "apply log level to one component coming from one non-option argument and one component coming from two non-option arguments (1)"
 
-# Apply log level to one component coming from one leftover and one component coming from two leftovers (2).
+# Apply log level to one component coming from one non-option argument and one component coming from two non-option arguments (2).
 cat > "$expected_file" <<END
 TestSourceA: ${trace}
 TestSourceB: ${debug}
@@ -87,6 +87,6 @@ END
 bt_diff_cli_sorted "$expected_file" "$stderr_expected" \
 	convert --plugin-path "${plugin_dir}" \
 	"${dir_ab}" --log-level DEBUG ${print_log_level} "${dir_a}" --log-level TRACE ${print_log_level}
-ok "$?" "apply log level to one component coming from one leftover and one component coming from two leftovers (2)"
+ok "$?" "apply log level to one component coming from one non-option argument and one component coming from two non-option arguments (2)"
 
 rm -f "$expected_file"
