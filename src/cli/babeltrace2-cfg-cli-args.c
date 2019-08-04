@@ -4588,6 +4588,8 @@ end:
 	destroy_glist_of_gstring(filter_names);
 	destroy_glist_of_gstring(sink_names);
 	bt_value_put_ref(leftovers);
+	bt_value_put_ref(leftover_params);
+	bt_value_put_ref(leftover_loglevels);
 	finalize_implicit_component_args(&implicit_ctf_output_args);
 	finalize_implicit_component_args(&implicit_lttng_live_args);
 	finalize_implicit_component_args(&implicit_dummy_args);
