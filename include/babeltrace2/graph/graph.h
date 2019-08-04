@@ -163,15 +163,15 @@ typedef enum bt_graph_run_status {
 
 extern bt_graph_run_status bt_graph_run(bt_graph *graph);
 
-typedef enum bt_graph_consume_status {
-	BT_GRAPH_CONSUME_STATUS_OK		= __BT_FUNC_STATUS_OK,
-	BT_GRAPH_CONSUME_STATUS_ERROR		= __BT_FUNC_STATUS_ERROR,
-	BT_GRAPH_CONSUME_STATUS_MEMORY_ERROR	= __BT_FUNC_STATUS_MEMORY_ERROR,
-	BT_GRAPH_CONSUME_STATUS_AGAIN		= __BT_FUNC_STATUS_AGAIN,
-	BT_GRAPH_CONSUME_STATUS_END		= __BT_FUNC_STATUS_END,
-} bt_graph_consume_status;
+typedef enum bt_graph_run_once_status {
+	BT_GRAPH_RUN_ONCE_STATUS_OK		= __BT_FUNC_STATUS_OK,
+	BT_GRAPH_RUN_ONCE_STATUS_ERROR		= __BT_FUNC_STATUS_ERROR,
+	BT_GRAPH_RUN_ONCE_STATUS_MEMORY_ERROR	= __BT_FUNC_STATUS_MEMORY_ERROR,
+	BT_GRAPH_RUN_ONCE_STATUS_AGAIN		= __BT_FUNC_STATUS_AGAIN,
+	BT_GRAPH_RUN_ONCE_STATUS_END		= __BT_FUNC_STATUS_END,
+} bt_graph_run_once_status;
 
-extern bt_graph_consume_status bt_graph_consume(bt_graph *graph);
+extern bt_graph_run_once_status bt_graph_run_once(bt_graph *graph);
 
 typedef enum bt_graph_add_listener_status {
 	BT_GRAPH_ADD_LISTENER_STATUS_OK			= __BT_FUNC_STATUS_OK,

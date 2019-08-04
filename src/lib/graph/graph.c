@@ -700,9 +700,9 @@ end:
 	return status;
 }
 
-enum bt_graph_consume_status bt_graph_consume(struct bt_graph *graph)
+enum bt_graph_run_once_status bt_graph_run_once(struct bt_graph *graph)
 {
-	enum bt_graph_consume_status status;
+	enum bt_graph_run_once_status status;
 
 	BT_ASSERT_PRE_DEV_NON_NULL(graph, "Graph");
 	BT_ASSERT_PRE_DEV(graph->can_consume,
@@ -1352,7 +1352,8 @@ int add_component_with_init_method_data(
 
 	/*
 	 * If it's a sink component, it needs to be part of the graph's
-	 * sink queue to be consumed by bt_graph_consume().
+	 * sink queue to be consumed by bt_graph_run() or
+	 * bt_graph_run_once().
 	 */
 	if (bt_component_is_sink(component)) {
 		graph->has_sink = true;
