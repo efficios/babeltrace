@@ -21,6 +21,7 @@ import collections
 import unittest
 import copy
 import bt2
+import sys
 from utils import TestOutputPortMessageIterator
 
 
@@ -405,10 +406,12 @@ class UserMessageIteratorTestCase(unittest.TestCase):
         src = graph.add_component(MySource, 'src')
         it = TestOutputPortMessageIterator(graph, src.output_ports['out'])
 
-        # The initial refcount of Py_None was in the 7000, so 100000 iterations
-        # should be enough to catch the bug even if there are small differences
+        # Three times the initial ref count of `None` iterations should
+        # be enough to catch the bug even if there are small differences
         # between configurations.
-        for i in range(100000):
+        none_ref_count = sys.getrefcount(None) * 3
+
+        for i in range(none_ref_count):
             with self.assertRaises(bt2.TryAgain):
                 next(it)
 
