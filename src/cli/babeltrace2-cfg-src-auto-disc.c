@@ -36,6 +36,7 @@ void auto_source_discovery_result_destroy(struct auto_source_discovery_result *r
 	if (res) {
 		g_free(res->group);
 		bt_value_put_ref(res->inputs);
+		bt_value_put_ref(res->original_input_indices);
 		g_free(res);
 	}
 }
