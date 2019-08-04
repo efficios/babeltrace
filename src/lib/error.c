@@ -378,8 +378,6 @@ create_error_cause_message_iterator_actor(struct bt_message_iterator *iter,
 	 * message iterator, which is a self component port input
 	 * message iterator.
 	 */
-	BT_ASSERT(iter->type ==
-		BT_MESSAGE_ITERATOR_TYPE_SELF_COMPONENT_PORT_INPUT);
 	input_port_iter = (void *) iter;
 	cause = g_new0(struct bt_error_cause_message_iterator_actor, 1);
 	if (!cause) {

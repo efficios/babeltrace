@@ -23,7 +23,6 @@
 from bt2 import native_bt, object
 from bt2 import component as bt2_component
 from bt2 import connection as bt2_connection
-from bt2 import message_iterator as bt2_message_iterator
 from bt2 import message as bt2_message
 import bt2
 

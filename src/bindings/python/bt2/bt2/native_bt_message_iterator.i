@@ -23,7 +23,6 @@
  */
 
 %include <babeltrace2/graph/message-iterator.h>
-%include <babeltrace2/graph/port-output-message-iterator.h>
 %include <babeltrace2/graph/self-component-port-input-message-iterator.h>
 %include <babeltrace2/graph/self-message-iterator.h>
 
@@ -36,5 +35,3 @@ PyObject *bt_bt2_get_user_component_from_user_msg_iter(
 		bt_self_message_iterator *self_message_iterator);
 PyObject *bt_bt2_self_component_port_input_get_msg_range(
 		bt_self_component_port_input_message_iterator *iter);
-PyObject *bt_bt2_port_output_get_msg_range(
-		bt_port_output_message_iterator *iter);

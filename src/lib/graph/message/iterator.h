@@ -36,11 +36,6 @@
 struct bt_port;
 struct bt_graph;
 
-enum bt_message_iterator_type {
-	BT_MESSAGE_ITERATOR_TYPE_SELF_COMPONENT_PORT_INPUT,
-	BT_MESSAGE_ITERATOR_TYPE_PORT_OUTPUT,
-};
-
 enum bt_self_component_port_input_message_iterator_state {
 	/* Iterator is not initialized */
 	BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_STATE_NON_INITIALIZED,
@@ -70,12 +65,6 @@ enum bt_self_component_port_input_message_iterator_state {
 	BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_STATE_LAST_SEEKING_RETURNED_ERROR,
 };
 
-struct bt_message_iterator {
-	struct bt_object base;
-	enum bt_message_iterator_type type;
-	GPtrArray *msgs;
-};
-
 typedef enum bt_component_class_message_iterator_next_method_status
 (*bt_self_component_port_input_message_iterator_next_method)(
 		void *, bt_message_array_const, uint64_t, uint64_t *);
@@ -97,7 +86,8 @@ typedef bt_bool
 		void *);
 
 struct bt_self_component_port_input_message_iterator {
-	struct bt_message_iterator base;
+	struct bt_object base;
+	GPtrArray *msgs;
 	struct bt_component *upstream_component; /* Weak */
 	struct bt_port *upstream_port; /* Weak */
 	struct bt_connection *connection; /* Weak */
@@ -197,18 +187,6 @@ struct bt_self_component_port_input_message_iterator {
 	} auto_seek;
 
 	void *user_data;
-};
-
-struct bt_port_output_message_iterator {
-	struct bt_message_iterator base;
-	struct bt_graph *graph; /* Owned by this */
-	struct bt_component_sink *colander; /* Owned by this */
-
-	/*
-	 * Only used temporarily as a bridge between a colander sink and
-	 * the user.
-	 */
-	uint64_t count;
 };
 
 BT_HIDDEN

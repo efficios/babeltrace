@@ -21,6 +21,7 @@ import collections
 import unittest
 import copy
 import bt2
+from utils import TestOutputPortMessageIterator
 
 
 class UserMessageIteratorTestCase(unittest.TestCase):
@@ -196,7 +197,7 @@ class UserMessageIteratorTestCase(unittest.TestCase):
 
         graph = bt2.Graph()
         src = graph.add_component(MySource, 'src')
-        it = graph.create_output_port_message_iterator(src.output_ports['out'])
+        it = TestOutputPortMessageIterator(graph, src.output_ports['out'])
 
         # Skip beginning messages.
         msg = next(it)
@@ -212,7 +213,7 @@ class UserMessageIteratorTestCase(unittest.TestCase):
         self.assertEqual(msg_ev1.addr, msg_ev2.addr)
 
     @staticmethod
-    def _setup_seek_beginning_test():
+    def _setup_seek_beginning_test(sink_cls):
         # Use a source, a filter and an output port iterator.  This allows us
         # to test calling `seek_beginning` on both a _OutputPortMessageIterator
         # and a _UserComponentInputPortMessageIterator, on top of checking that
@@ -279,25 +280,42 @@ class UserMessageIteratorTestCase(unittest.TestCase):
         graph = bt2.Graph()
         src = graph.add_component(MySource, 'src')
         flt = graph.add_component(MyFilter, 'flt')
+        sink = graph.add_component(sink_cls, 'sink')
         graph.connect_ports(src.output_ports['out'], flt.input_ports['in'])
-        it = graph.create_output_port_message_iterator(flt.output_ports['out'])
-
-        return it, MySourceIter
+        graph.connect_ports(flt.output_ports['out'], sink.input_ports['in'])
+        return MySourceIter, graph
 
     def test_can_seek_beginning(self):
-        it, MySourceIter = self._setup_seek_beginning_test()
+        class MySink(bt2._UserSinkComponent):
+            def __init__(self, params, obj):
+                self._add_input_port('in')
+
+            def _user_graph_is_configured(self):
+                self._msg_iter = self._create_input_port_message_iterator(
+                    self._input_ports['in']
+                )
+
+            def _user_consume(self):
+                nonlocal can_seek_beginning
+                can_seek_beginning = self._msg_iter.can_seek_beginning
+
+        MySourceIter, graph = self._setup_seek_beginning_test(MySink)
 
         def _user_can_seek_beginning(self):
-            nonlocal can_seek_beginning
-            return can_seek_beginning
+            nonlocal input_port_iter_can_seek_beginning
+            return input_port_iter_can_seek_beginning
 
         MySourceIter._user_can_seek_beginning = property(_user_can_seek_beginning)
 
-        can_seek_beginning = True
-        self.assertTrue(it.can_seek_beginning)
+        input_port_iter_can_seek_beginning = True
+        can_seek_beginning = None
+        graph.run_once()
+        self.assertTrue(can_seek_beginning)
 
-        can_seek_beginning = False
-        self.assertFalse(it.can_seek_beginning)
+        input_port_iter_can_seek_beginning = False
+        can_seek_beginning = None
+        graph.run_once()
+        self.assertFalse(can_seek_beginning)
 
         # Once can_seek_beginning returns an error, verify that it raises when
         # _can_seek_beginning has/returns the wrong type.
@@ -306,42 +324,62 @@ class UserMessageIteratorTestCase(unittest.TestCase):
         # a _seek_beginning method to know whether the iterator can seek to
         # beginning or not.
         del MySourceIter._user_can_seek_beginning
-        self.assertTrue(it.can_seek_beginning)
+        can_seek_beginning = None
+        graph.run_once()
+        self.assertTrue(can_seek_beginning)
 
         del MySourceIter._user_seek_beginning
-        self.assertFalse(it.can_seek_beginning)
+        can_seek_beginning = None
+        graph.run_once()
+        self.assertFalse(can_seek_beginning)
 
     def test_seek_beginning(self):
-        it, MySourceIter = self._setup_seek_beginning_test()
+        class MySink(bt2._UserSinkComponent):
+            def __init__(self, params, obj):
+                self._add_input_port('in')
 
-        msg = next(it)
+            def _user_graph_is_configured(self):
+                self._msg_iter = self._create_input_port_message_iterator(
+                    self._input_ports['in']
+                )
+
+            def _user_consume(self):
+                nonlocal do_seek_beginning
+                nonlocal msg
+
+                if do_seek_beginning:
+                    self._msg_iter.seek_beginning()
+                    return
+
+                msg = next(self._msg_iter)
+
+        do_seek_beginning = False
+        msg = None
+        MySourceIter, graph = self._setup_seek_beginning_test(MySink)
+        graph.run_once()
         self.assertIsInstance(msg, bt2._StreamBeginningMessage)
-        msg = next(it)
+        graph.run_once()
         self.assertIsInstance(msg, bt2._PacketBeginningMessage)
-
-        it.seek_beginning()
-
-        msg = next(it)
+        do_seek_beginning = True
+        graph.run_once()
+        do_seek_beginning = False
+        graph.run_once()
         self.assertIsInstance(msg, bt2._StreamBeginningMessage)
-
-        # Verify that we can seek beginning after having reached the end.
-        #
-        # It currently does not work to seek an output port message iterator
-        # once it's ended, but we should eventually make it work and uncomment
-        # the following snippet.
-        #
-        # try:
-        #    while True:
-        #        next(it)
-        # except bt2.Stop:
-        #    pass
-        #
-        # it.seek_beginning()
-        # msg = next(it)
-        # self.assertIsInstance(msg, bt2._StreamBeginningMessage)
 
     def test_seek_beginning_user_error(self):
-        it, MySourceIter = self._setup_seek_beginning_test()
+        class MySink(bt2._UserSinkComponent):
+            def __init__(self, params, obj):
+                self._add_input_port('in')
+
+            def _user_graph_is_configured(self):
+                self._msg_iter = self._create_input_port_message_iterator(
+                    self._input_ports['in']
+                )
+
+            def _user_consume(self):
+                self._msg_iter.seek_beginning()
+
+        MySourceIter, graph = self._setup_seek_beginning_test(MySink)
 
         def _user_seek_beginning_error(self):
             raise ValueError('ouch')
@@ -349,7 +387,7 @@ class UserMessageIteratorTestCase(unittest.TestCase):
         MySourceIter._user_seek_beginning = _user_seek_beginning_error
 
         with self.assertRaises(bt2._Error):
-            it.seek_beginning()
+            graph.run_once()
 
     # Try consuming many times from an iterator that always returns TryAgain.
     # This verifies that we are not missing an incref of Py_None, making the
@@ -365,7 +403,7 @@ class UserMessageIteratorTestCase(unittest.TestCase):
 
         graph = bt2.Graph()
         src = graph.add_component(MySource, 'src')
-        it = graph.create_output_port_message_iterator(src.output_ports['out'])
+        it = TestOutputPortMessageIterator(graph, src.output_ports['out'])
 
         # The initial refcount of Py_None was in the 7000, so 100000 iterations
         # should be enough to catch the bug even if there are small differences
@@ -373,78 +411,6 @@ class UserMessageIteratorTestCase(unittest.TestCase):
         for i in range(100000):
             with self.assertRaises(bt2.TryAgain):
                 next(it)
-
-
-class OutputPortMessageIteratorTestCase(unittest.TestCase):
-    def test_component(self):
-        class MyIter(bt2._UserMessageIterator):
-            def __init__(self, self_port_output):
-                self._at = 0
-
-            def __next__(self):
-                if self._at == 7:
-                    raise bt2.Stop
-
-                if self._at == 0:
-                    msg = self._create_stream_beginning_message(test_obj._stream)
-                elif self._at == 1:
-                    msg = self._create_packet_beginning_message(test_obj._packet)
-                elif self._at == 5:
-                    msg = self._create_packet_end_message(test_obj._packet)
-                elif self._at == 6:
-                    msg = self._create_stream_end_message(test_obj._stream)
-                else:
-                    msg = self._create_event_message(
-                        test_obj._event_class, test_obj._packet
-                    )
-                    msg.event.payload_field['my_int'] = self._at * 3
-
-                self._at += 1
-                return msg
-
-        class MySource(bt2._UserSourceComponent, message_iterator_class=MyIter):
-            def __init__(self, params, obj):
-                self._add_output_port('out')
-
-                trace_class = self._create_trace_class()
-                stream_class = trace_class.create_stream_class(supports_packets=True)
-
-                # Create payload field class
-                my_int_ft = trace_class.create_signed_integer_field_class(32)
-                payload_ft = trace_class.create_structure_field_class()
-                payload_ft += [('my_int', my_int_ft)]
-
-                event_class = stream_class.create_event_class(
-                    name='salut', payload_field_class=payload_ft
-                )
-
-                trace = trace_class()
-                stream = trace.create_stream(stream_class)
-                packet = stream.create_packet()
-
-                test_obj._event_class = event_class
-                test_obj._stream = stream
-                test_obj._packet = packet
-
-        test_obj = self
-        graph = bt2.Graph()
-        src = graph.add_component(MySource, 'src')
-        msg_iter = graph.create_output_port_message_iterator(src.output_ports['out'])
-
-        for at, msg in enumerate(msg_iter):
-            if at == 0:
-                self.assertIsInstance(msg, bt2._StreamBeginningMessage)
-            elif at == 1:
-                self.assertIsInstance(msg, bt2._PacketBeginningMessage)
-            elif at == 5:
-                self.assertIsInstance(msg, bt2._PacketEndMessage)
-            elif at == 6:
-                self.assertIsInstance(msg, bt2._StreamEndMessage)
-            else:
-                self.assertIsInstance(msg, bt2._EventMessage)
-                self.assertEqual(msg.event.cls.name, 'salut')
-                field = msg.event.payload_field['my_int']
-                self.assertEqual(field, at * 3)
 
 
 if __name__ == '__main__':
