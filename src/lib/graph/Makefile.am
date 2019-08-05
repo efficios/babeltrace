@@ -4,16 +4,18 @@ noinst_LTLIBRARIES = libgraph.la
 
 # Graph library
 libgraph_la_SOURCES = \
-	component.c \
+	component-class-sink-simple.c \
+	component-class-sink-simple.h \
 	component-class.c \
 	component-class.h \
 	component-filter.c \
 	component-filter.h \
-	component.h \
 	component-sink.c \
 	component-sink.h \
 	component-source.c \
 	component-source.h \
+	component.c \
+	component.h \
 	connection.c \
 	connection.h \
 	graph.c \
