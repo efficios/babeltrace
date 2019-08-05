@@ -63,7 +63,6 @@
 #include <stdlib.h>
 
 #include "component-class.h"
-#include "component-class-sink-colander.h"
 #include "component.h"
 #include "component-sink.h"
 #include "component-source.h"
