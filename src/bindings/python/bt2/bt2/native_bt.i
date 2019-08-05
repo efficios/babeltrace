@@ -204,6 +204,7 @@ void bt_bt2_exit_handler(void);
 %include <babeltrace2/func-status.h>
 
 /* Per-module interface files */
+%include "native_bt_autodisc.i"
 %include "native_bt_clock_class.i"
 %include "native_bt_clock_snapshot.i"
 %include "native_bt_component.i"

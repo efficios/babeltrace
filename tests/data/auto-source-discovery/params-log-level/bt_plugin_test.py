@@ -14,6 +14,7 @@ import os
 class TestIter(bt2._UserMessageIterator):
     def __init__(self, output_port):
         params = output_port.user_data['params']
+        obj = output_port.user_data['obj']
 
         comp_cls_name = self._component.__class__.__name__
 
@@ -23,6 +24,9 @@ class TestIter(bt2._UserMessageIterator):
         elif params['what'] == 'log-level':
             log_level = self._component.logging_level
             stream_name = '{}: {}'.format(comp_cls_name, log_level)
+        elif params['what'] == 'python-obj':
+            assert type(obj) == str or obj is None
+            stream_name = '{}: {}'.format(comp_cls_name, obj)
         else:
             assert False
 
@@ -44,17 +48,17 @@ class TestIter(bt2._UserMessageIterator):
 
 
 class Base:
-    def __init__(self, params):
+    def __init__(self, params, obj):
         tc = self._create_trace_class()
         sc = tc.create_stream_class()
 
-        self._add_output_port('out', {'params': params, 'sc': sc})
+        self._add_output_port('out', {'params': params, 'obj': obj, 'sc': sc})
 
 
 @bt2.plugin_component_class
 class TestSourceA(Base, bt2._UserSourceComponent, message_iterator_class=TestIter):
     def __init__(self, params, obj):
-        super().__init__(params)
+        super().__init__(params, obj)
 
     @staticmethod
     def _user_query(priv_query_exec, obj, params, method_obj):
@@ -77,7 +81,7 @@ class TestSourceA(Base, bt2._UserSourceComponent, message_iterator_class=TestIte
 @bt2.plugin_component_class
 class TestSourceB(Base, bt2._UserSourceComponent, message_iterator_class=TestIter):
     def __init__(self, params, obj):
-        super().__init__(params)
+        super().__init__(params, obj)
 
     @staticmethod
     def _user_query(priv_query_exec, obj, params, method_obj):

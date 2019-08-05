@@ -258,6 +258,9 @@ class PackageTestCase(unittest.TestCase):
     def test_has_QueryExecutor(self):
         self._assert_in_bt2('QueryExecutor')
 
+    def test_has_AutoSourceComponentSpec(self):
+        self._assert_in_bt2('AutoSourceComponentSpec')
+
     def test_has_ComponentSpec(self):
         self._assert_in_bt2('ComponentSpec')
 
