@@ -6,6 +6,7 @@
 /tests/lib/test_bt_values
 /tests/lib/test_graph_topo
 /tests/lib/test_trace_ir_ref
+/tests/lib/test_simple_sink
 /tests/plugins/flt.lttng-utils.debug-info/test_bin_info
 /tests/plugins/flt.lttng-utils.debug-info/test_dwarf
 /tests/plugins/src.ctf.fs/succeed/gen-trace-simple

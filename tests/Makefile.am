@@ -64,7 +64,8 @@ TESTS_LIB = \
 	lib/test_bt_values \
 	lib/test_bt_uuid \
 	lib/test_graph_topo \
-	lib/test_trace_ir_ref
+	lib/test_trace_ir_ref \
+	lib/test_simple_sink
 
 TESTS_BITFIELD = \
 	bitfield/test_bitfield
