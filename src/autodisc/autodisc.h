@@ -1,5 +1,5 @@
-#ifndef CLI_BABELTRACE_CFG_SRC_AUTO_DISC_H
-#define CLI_BABELTRACE_CFG_SRC_AUTO_DISC_H
+#ifndef AUTODISC_AUTODISC_H
+#define AUTODISC_AUTODISC_H
 
 /*
  * Copyright (c) 2019 EfficiOS Inc. and Linux Foundation
@@ -70,11 +70,11 @@ void auto_source_discovery_fini(struct auto_source_discovery *auto_disc);
  */
 
 int auto_discover_source_components(
-		const bt_value *plugin_paths,
 		const bt_value *inputs,
-		const char *plugin_filter,
-		const char *component_class_filter,
+		const bt_plugin **plugins,
+		size_t plugin_count,
+		const char *component_class_restrict,
 		enum bt_logging_level log_level,
 		struct auto_source_discovery *auto_disc);
 
-#endif /* CLI_BABELTRACE_CFG_SRC_AUTO_DISC_H */
+#endif /* AUTODISC_AUTODISC_H */

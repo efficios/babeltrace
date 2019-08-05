@@ -1,6 +1,7 @@
 SUBDIRS = \
 	common \
 	py-common \
+	autodisc \
 	argpar \
 	ctfser \
 	fd-cache \

@@ -32,8 +32,6 @@ babeltrace2_bin_SOURCES = \
 	babeltrace2-cfg-cli-args-default.c \
 	babeltrace2-cfg-cli-params-arg.c \
 	babeltrace2-cfg-cli-params-arg.h \
-	babeltrace2-cfg-src-auto-disc.c \
-	babeltrace2-cfg-src-auto-disc.h \
 	babeltrace2-plugins.c \
 	babeltrace2-plugins.h \
 	babeltrace2-query.c \
@@ -55,6 +53,7 @@ babeltrace2_bin_LDFLAGS = $(LD_NO_AS_NEEDED)
 # directly).
 babeltrace2_bin_LDADD = \
 	$(top_builddir)/src/argpar/libbabeltrace2-argpar.la \
+	$(top_builddir)/src/autodisc/libbabeltrace2-autodisc.la \
 	$(top_builddir)/src/lib/libbabeltrace2.la \
 	$(top_builddir)/src/compat/libcompat.la \
 	$(top_builddir)/src/common/libbabeltrace2-common.la \

@@ -77,6 +77,11 @@ size_t get_loaded_plugins_count(void)
 	return loaded_plugins->len;
 }
 
+const bt_plugin **borrow_loaded_plugins(void)
+{
+	return (const bt_plugin **) loaded_plugins->pdata;
+}
+
 const bt_plugin *borrow_loaded_plugin(size_t index)
 {
 	BT_ASSERT(index < loaded_plugins->len);

@@ -674,6 +674,7 @@ AC_CONFIG_FILES([
 	include/Makefile
 	Makefile
 	src/argpar/Makefile
+	src/autodisc/Makefile
 	src/babeltrace2-ctf-writer.pc
 	src/babeltrace2.pc
 	src/bindings/Makefile

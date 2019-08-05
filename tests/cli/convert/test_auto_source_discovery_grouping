@@ -26,7 +26,7 @@ fi
 # shellcheck source=../../utils/utils.sh
 SH_TAP=1 source "$UTILSSH"
 
-NUM_TESTS=1
+NUM_TESTS=3
 
 plan_tests $NUM_TESTS
 
@@ -45,8 +45,21 @@ else
 fi
 
 stdout_expected_file="${data_dir}/stdout.expect"
+stdout_actual_file=$(mktemp -t stdout-actual.XXXXXX)
+stderr_actual_file=$(mktemp -t actual-stderr.XXXXXX)
 
-bt_diff_cli "$stdout_expected_file" "/dev/null" \
+bt_cli "$stdout_actual_file" "$stderr_actual_file" \
 	convert --plugin-path "${plugin_dir}" "ABCDE" "${trace_dir}" some_other_non_opt \
 	-c sink.text.details --params='with-metadata=false'
-ok "$?" "sources are auto-discovered"
+ok "$?" "CLI runs successfully"
+
+# Check components and their inputs.
+bt_diff "$stdout_expected_file" "$stdout_actual_file"
+ok "$?" "expected components are instantiated with expected inputs"
+
+# Check that expected warning is printed.
+grep -q 'No trace was found based on input `some_other_non_opt`' "$stderr_actual_file"
+ok "$?" "warning is printed"
+
+rm -f "$stdout_actual_file"
+rm -f "$stderr_actual_file"
