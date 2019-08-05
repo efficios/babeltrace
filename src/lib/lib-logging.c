@@ -43,7 +43,6 @@
 #include "object-pool.h"
 #include "graph/interrupter.h"
 #include "graph/component-class.h"
-#include "graph/component-class-sink-colander.h"
 #include "graph/component-filter.h"
 #include "graph/component.h"
 #include "graph/component-sink.h"

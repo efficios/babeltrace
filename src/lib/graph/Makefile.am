@@ -7,8 +7,6 @@ libgraph_la_SOURCES = \
 	component.c \
 	component-class.c \
 	component-class.h \
-	component-class-sink-colander.c \
-	component-class-sink-colander.h \
 	component-filter.c \
 	component-filter.h \
 	component.h \
