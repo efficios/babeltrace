@@ -266,7 +266,6 @@ int bt_graph_configure(struct bt_graph *graph)
 				"Unexpected returned status: status=%s",
 				bt_common_func_status_string(comp_status));
 			if (comp_status != BT_FUNC_STATUS_OK) {
-				comp_status = BT_FUNC_STATUS_ERROR;
 				if (comp_status < 0) {
 					BT_LIB_LOGW_APPEND_CAUSE(
 						"Component's \"graph is configured\" method failed: "
