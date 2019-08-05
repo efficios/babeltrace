@@ -99,6 +99,7 @@ from bt2.plugin import find_plugin
 from bt2.py_plugin import plugin_component_class
 from bt2.py_plugin import register_plugin
 from bt2.query_executor import QueryExecutor
+from bt2.trace_collection_message_iterator import AutoSourceComponentSpec
 from bt2.trace_collection_message_iterator import ComponentSpec
 from bt2.trace_collection_message_iterator import TraceCollectionMessageIterator
 from bt2.value import create_value
