@@ -21,12 +21,21 @@
  */
 
 #define BT_LOG_TAG "CLI-CFG-SRC-AUTO-DISC"
-#include "logging.h"
+#define BT_LOG_OUTPUT_LEVEL log_level
+#include "logging/log.h"
 
-#include "babeltrace2-cfg-src-auto-disc.h"
-#include "babeltrace2-plugins.h"
-#include "babeltrace2-query.h"
+#include "autodisc.h"
 #include "common/common.h"
+
+#define BT_AUTODISC_LOG_AND_APPEND(_lvl, _fmt, ...)				\
+	do {								\
+		BT_LOG_WRITE(_lvl, BT_LOG_TAG, _fmt, ##__VA_ARGS__);	\
+		(void) BT_CURRENT_THREAD_ERROR_APPEND_CAUSE_FROM_UNKNOWN( \
+			"Source auto-discovery", _fmt, ##__VA_ARGS__);		\
+	} while (0)
+
+#define BT_AUTODISC_LOGE_APPEND_CAUSE(_fmt, ...)				\
+	BT_AUTODISC_LOG_AND_APPEND(BT_LOG_ERROR, _fmt, ##__VA_ARGS__)
 
 /* Finalize and free a `struct auto_source_discovery_result`. */
 
@@ -46,13 +55,13 @@ void auto_source_discovery_result_destroy(struct auto_source_discovery_result *r
 static
 struct auto_source_discovery_result *auto_source_discovery_result_create(
 		const char *plugin_name, const char *source_cc_name,
-		const char *group)
+		const char *group, bt_logging_level log_level)
 {
 	struct auto_source_discovery_result *res;
 
 	res = g_new0(struct auto_source_discovery_result, 1);
 	if (!res) {
-		BT_CLI_LOGE_APPEND_CAUSE(
+		BT_AUTODISC_LOGE_APPEND_CAUSE(
 			"Failed to allocate a auto_source_discovery_result structure.");
 		goto error;
 	}
@@ -61,19 +70,19 @@ struct auto_source_discovery_result *auto_source_discovery_result_create(
 	res->source_cc_name = source_cc_name;
 	res->group = g_strdup(group);
 	if (group && !res->group) {
-		BT_CLI_LOGE_APPEND_CAUSE("Failed to allocate a string.");
+		BT_AUTODISC_LOGE_APPEND_CAUSE("Failed to allocate a string.");
 		goto error;
 	}
 
 	res->inputs = bt_value_array_create();
 	if (!res->inputs) {
-		BT_CLI_LOGE_APPEND_CAUSE("Failed to allocate an array value.");
+		BT_AUTODISC_LOGE_APPEND_CAUSE("Failed to allocate an array value.");
 		goto error;
 	}
 
 	res->original_input_indices = bt_value_array_create();
 	if (!res->original_input_indices) {
-		BT_CLI_LOGE_APPEND_CAUSE("Failed to allocate an array value.");
+		BT_AUTODISC_LOGE_APPEND_CAUSE("Failed to allocate an array value.");
 		goto error;
 	}
 
@@ -138,7 +147,8 @@ int auto_source_discovery_add(struct auto_source_discovery *auto_disc,
 		const char *source_cc_name,
 		const char *group,
 		const char *input,
-		uint64_t original_input_index)
+		uint64_t original_input_index,
+		bt_logging_level log_level)
 {
 	int status;
 	bt_value_array_append_element_status append_status;
@@ -173,7 +183,7 @@ int auto_source_discovery_add(struct auto_source_discovery *auto_disc,
 	if (i == len) {
 		/* Add a new result entry. */
 		res = auto_source_discovery_result_create(plugin_name,
-			source_cc_name, group);
+			source_cc_name, group, log_level);
 		if (!res) {
 			goto error;
 		}
@@ -183,7 +193,7 @@ int auto_source_discovery_add(struct auto_source_discovery *auto_disc,
 
 	append_status = bt_value_array_append_string_element(res->inputs, input);
 	if (append_status != BT_VALUE_ARRAY_APPEND_ELEMENT_STATUS_OK) {
-		BT_CLI_LOGE_APPEND_CAUSE("Failed to append a string value.");
+		BT_AUTODISC_LOGE_APPEND_CAUSE("Failed to append a string value.");
 		goto error;
 	}
 
@@ -212,7 +222,7 @@ int auto_source_discovery_add(struct auto_source_discovery *auto_disc,
 			res->original_input_indices, original_input_index);
 
 		if (append_status != BT_VALUE_ARRAY_APPEND_ELEMENT_STATUS_OK) {
-			BT_CLI_LOGE_APPEND_CAUSE("Failed to append an unsigned integer value.");
+			BT_AUTODISC_LOGE_APPEND_CAUSE("Failed to append an unsigned integer value.");
 			goto error;
 		}
 	}
@@ -230,7 +240,8 @@ end:
 static
 int convert_weight_value(const bt_value *weight_value, double *weight,
 		const char *plugin_name, const char *source_cc_name,
-		const char *input, const char *input_type)
+		const char *input, const char *input_type,
+		bt_logging_level log_level)
 {
 	enum bt_value_type weight_value_type;
 	int status;
@@ -270,6 +281,41 @@ end:
 	return status;
 }
 
+static
+bt_query_executor_query_status simple_query(const bt_component_class *comp_cls,
+		const char *obj, const bt_value *params,
+		bt_logging_level log_level, const bt_value **result)
+{
+	bt_query_executor_query_status status;
+	bt_query_executor_set_logging_level_status set_logging_level_status;
+	bt_query_executor *query_exec;
+
+	query_exec = bt_query_executor_create(comp_cls, obj, params);
+	if (!query_exec) {
+		BT_AUTODISC_LOGE_APPEND_CAUSE("Cannot create a query executor.");
+		status = BT_QUERY_EXECUTOR_QUERY_STATUS_MEMORY_ERROR;
+		goto end;
+	}
+
+	set_logging_level_status = bt_query_executor_set_logging_level(query_exec, log_level);
+	if (set_logging_level_status != BT_QUERY_EXECUTOR_SET_LOGGING_LEVEL_STATUS_OK) {
+		BT_AUTODISC_LOGE_APPEND_CAUSE(
+			"Cannot set query executor's logging level: "
+			"log-level=%s",
+			bt_common_logging_level_string(log_level));
+		status = (int) set_logging_level_status;
+		goto end;
+	}
+
+	status = bt_query_executor_query(query_exec, result);
+
+end:
+	bt_query_executor_put_ref(query_exec);
+
+	return status;
+}
+
+
 /*
  * Query all known source components to see if any of them can handle `input`
  * as the given `type`(arbitrary string, directory or file).
@@ -290,8 +336,8 @@ static
 int support_info_query_all_sources(const char *input,
 		const char *input_type,
 		uint64_t original_input_index,
+		const bt_plugin **plugins,
 		size_t plugin_count,
-		const char *plugin_restrict,
 		const char *component_class_restrict,
 		enum bt_logging_level log_level,
 		struct auto_source_discovery *auto_disc)
@@ -310,19 +356,19 @@ int support_info_query_all_sources(const char *input,
 
 	query_params = bt_value_map_create();
 	if (!query_params) {
-		BT_CLI_LOGE_APPEND_CAUSE("Failed to allocate a map value.");
+		BT_AUTODISC_LOGE_APPEND_CAUSE("Failed to allocate a map value.");
 		goto error;
 	}
 
 	insert_status = bt_value_map_insert_string_entry(query_params, "input", input);
 	if (insert_status != BT_VALUE_MAP_INSERT_ENTRY_STATUS_OK) {
-		BT_CLI_LOGE_APPEND_CAUSE("Failed to insert a map entry.");
+		BT_AUTODISC_LOGE_APPEND_CAUSE("Failed to insert a map entry.");
 		goto error;
 	}
 
 	insert_status = bt_value_map_insert_string_entry(query_params, "type", input_type);
 	if (insert_status != BT_VALUE_MAP_INSERT_ENTRY_STATUS_OK) {
-		BT_CLI_LOGE_APPEND_CAUSE("Failed to insert a map entry.");
+		BT_AUTODISC_LOGE_APPEND_CAUSE("Failed to insert a map entry.");
 		goto error;
 	}
 
@@ -332,16 +378,8 @@ int support_info_query_all_sources(const char *input,
 		uint64_t source_count;
 		uint64_t i_sources;
 
-		plugin = borrow_loaded_plugin(i_plugins);
+		plugin = plugins[i_plugins];
 		plugin_name = bt_plugin_get_name(plugin);
-
-		/*
-		 * If the search is restricted to a specific plugin, only consider
-		 * the plugin with that name.
-		 */
-		if (plugin_restrict && strcmp(plugin_restrict, plugin_name) != 0) {
-			continue;
-		}
 
 		source_count = bt_plugin_get_source_component_class_count(plugin);
 
@@ -367,9 +405,8 @@ int support_info_query_all_sources(const char *input,
 				"type=%s", plugin_name, source_cc_name, input, input_type);
 
 			BT_VALUE_PUT_REF_AND_RESET(query_result);
-			query_status = cli_query(cc, "babeltrace.support-info",
-				query_params, log_level, NULL, &query_result,
-				NULL);
+			query_status = simple_query(cc, "babeltrace.support-info",
+				query_params, log_level, &query_result);
 
 			if (query_status == BT_QUERY_EXECUTOR_QUERY_STATUS_OK) {
 				double weight;
@@ -381,7 +418,7 @@ int support_info_query_all_sources(const char *input,
 				query_result_type = bt_value_get_type(query_result);
 
 				if (query_result_type == BT_VALUE_TYPE_REAL || query_result_type == BT_VALUE_TYPE_SIGNED_INTEGER) {
-					if (convert_weight_value(query_result, &weight, plugin_name, source_cc_name, input, input_type) != 0) {
+					if (convert_weight_value(query_result, &weight, plugin_name, source_cc_name, input, input_type, log_level) != 0) {
 						/* convert_weight_value has already warned. */
 						continue;
 					}
@@ -400,7 +437,7 @@ int support_info_query_all_sources(const char *input,
 					weight_value = bt_value_map_borrow_entry_value_const(query_result, "weight");
 					BT_ASSERT(weight_value);
 
-					if (convert_weight_value(weight_value, &weight, plugin_name, source_cc_name, input, input_type) != 0) {
+					if (convert_weight_value(weight_value, &weight, plugin_name, source_cc_name, input, input_type, log_level) != 0) {
 						/* convert_weight_value has already warned. */
 						continue;
 					}
@@ -459,10 +496,10 @@ int support_info_query_all_sources(const char *input,
 					winner.weigth = weight;
 				}
 			} else if (query_status == BT_QUERY_EXECUTOR_QUERY_STATUS_ERROR) {
-				BT_CLI_LOGE_APPEND_CAUSE("babeltrace.support-info query failed.");
+				BT_AUTODISC_LOGE_APPEND_CAUSE("babeltrace.support-info query failed.");
 				goto error;
 			} else if (query_status == BT_QUERY_EXECUTOR_QUERY_STATUS_MEMORY_ERROR) {
-				BT_CLI_LOGE_APPEND_CAUSE("Memory error.");
+				BT_AUTODISC_LOGE_APPEND_CAUSE("Memory error.");
 				goto error;
 			} else {
 				BT_LOGD("babeltrace.support-info query: failure: component-class-name=source.%s.%s, input=%s, "
@@ -488,7 +525,7 @@ int support_info_query_all_sources(const char *input,
 			input, plugin_name, source_name, winner.weigth);
 
 		status = auto_source_discovery_add(auto_disc, plugin_name,
-			source_name, group, input, original_input_index);
+			source_name, group, input, original_input_index, log_level);
 		if (status != 0) {
 			goto error;
 		}
@@ -521,20 +558,22 @@ end:
 static
 int auto_discover_source_for_input_as_string(const char *input,
 		uint64_t original_input_index,
-		size_t plugin_count, const char *plugin_restrict,
+		const bt_plugin **plugins,
+		size_t plugin_count,
 		const char *component_class_restrict,
 		enum bt_logging_level log_level,
 		struct auto_source_discovery *auto_disc)
 {
 	return support_info_query_all_sources(input, "string",
-		original_input_index, plugin_count, plugin_restrict,
+		original_input_index, plugins, plugin_count,
 		component_class_restrict, log_level, auto_disc);
 }
 
 static
 int auto_discover_source_for_input_as_dir_or_file_rec(GString *input,
 		uint64_t original_input_index,
-		size_t plugin_count, const char *plugin_restrict,
+		const bt_plugin **plugins,
+		size_t plugin_count,
 		const char *component_class_restrict,
 		enum bt_logging_level log_level,
 		struct auto_source_discovery *auto_disc)
@@ -545,8 +584,8 @@ int auto_discover_source_for_input_as_dir_or_file_rec(GString *input,
 	if (g_file_test(input->str, G_FILE_TEST_IS_REGULAR)) {
 		/* It's a file. */
 		status = support_info_query_all_sources(input->str,
-			"file", original_input_index, plugin_count,
-			plugin_restrict, component_class_restrict, log_level, auto_disc);
+			"file", original_input_index, plugins, plugin_count,
+			component_class_restrict, log_level, auto_disc);
 	} else if (g_file_test(input->str, G_FILE_TEST_IS_DIR)) {
 		GDir *dir;
 		const gchar *dirent;
@@ -555,8 +594,8 @@ int auto_discover_source_for_input_as_dir_or_file_rec(GString *input,
 
 		/* It's a directory. */
 		status = support_info_query_all_sources(input->str,
-			"directory", original_input_index, plugin_count,
-			plugin_restrict, component_class_restrict, log_level,
+			"directory", original_input_index, plugins,
+			plugin_count, component_class_restrict, log_level,
 			auto_disc);
 
 		if (status < 0) {
@@ -580,7 +619,7 @@ int auto_discover_source_for_input_as_dir_or_file_rec(GString *input,
 				status = 1;
 				goto end;
 			} else {
-				BT_CLI_LOGE_APPEND_CAUSE(fmt, input->str,
+				BT_AUTODISC_LOGE_APPEND_CAUSE(fmt, input->str,
 					error->message);
 				goto error;
 			}
@@ -596,9 +635,8 @@ int auto_discover_source_for_input_as_dir_or_file_rec(GString *input,
 				g_string_append(input, dirent);
 
 				status = auto_discover_source_for_input_as_dir_or_file_rec(
-					input, original_input_index, plugin_count,
-					plugin_restrict, component_class_restrict,
-					log_level, auto_disc);
+					input, original_input_index, plugins, plugin_count,
+					component_class_restrict, log_level, auto_disc);
 
 				g_string_truncate(input, saved_input_len);
 
@@ -647,7 +685,8 @@ end:
 static
 int auto_discover_source_for_input_as_dir_or_file(const char *input,
 		uint64_t original_input_index,
-		size_t plugin_count, const char *plugin_restrict,
+		const bt_plugin **plugins,
+		size_t plugin_count,
 		const char *component_class_restrict,
 		enum bt_logging_level log_level,
 		struct auto_source_discovery *auto_disc)
@@ -662,7 +701,7 @@ int auto_discover_source_for_input_as_dir_or_file(const char *input,
 	}
 
 	status = auto_discover_source_for_input_as_dir_or_file_rec(
-		mutable_input, original_input_index, plugin_count, plugin_restrict,
+		mutable_input, original_input_index, plugins, plugin_count,
 		component_class_restrict, log_level, auto_disc);
 
 	g_string_free(mutable_input, TRUE);
@@ -671,25 +710,17 @@ end:
 }
 
 int auto_discover_source_components(
-		const bt_value *plugin_paths,
 		const bt_value *inputs,
-		const char *plugin_restrict,
+		const bt_plugin **plugins,
+		size_t plugin_count,
 		const char *component_class_restrict,
 		enum bt_logging_level log_level,
 		struct auto_source_discovery *auto_disc)
 {
 	uint64_t i_inputs, input_count;
 	int status;
-	size_t plugin_count;
 
 	input_count = bt_value_array_get_size(inputs);
-
-	status = require_loaded_plugins(plugin_paths);
-	if (status != 0) {
-		goto end;
-	}
-
-	plugin_count = get_loaded_plugins_count();
 
 	for (i_inputs = 0; i_inputs < input_count; i_inputs++) {
 		const bt_value *input_value;
@@ -698,7 +729,7 @@ int auto_discover_source_components(
 		input_value = bt_value_array_borrow_element_by_index_const(inputs, i_inputs);
 		input = bt_value_string_get(input_value);
 		status = auto_discover_source_for_input_as_string(input, i_inputs,
-			plugin_count, plugin_restrict, component_class_restrict,
+			plugins, plugin_count, component_class_restrict,
 			log_level, auto_disc);
 		if (status < 0) {
 			/* Fatal error. */
@@ -709,7 +740,7 @@ int auto_discover_source_components(
 		}
 
 		status = auto_discover_source_for_input_as_dir_or_file(input,
-			i_inputs, plugin_count, plugin_restrict,
+			i_inputs, plugins, plugin_count,
 			component_class_restrict, log_level, auto_disc);
 		if (status < 0) {
 			/* Fatal error. */

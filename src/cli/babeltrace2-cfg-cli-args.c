@@ -42,7 +42,8 @@
 #include "babeltrace2-cfg-cli-args-connect.h"
 #include "babeltrace2-cfg-cli-params-arg.h"
 #include "babeltrace2-plugins.h"
-#include "babeltrace2-cfg-src-auto-disc.h"
+#include "babeltrace2-query.h"
+#include "autodisc/autodisc.h"
 #include "common/version.h"
 
 static const int cli_default_log_level = BT_LOG_WARNING;
@@ -4267,9 +4268,25 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 			}
 		} else {
 			int status;
+			size_t plugin_count;
+			const bt_plugin **plugins;
+			const bt_plugin *plugin;
 
-			status = auto_discover_source_components(plugin_paths, non_opts,
-				auto_source_discovery_restrict_plugin_name,
+			status = require_loaded_plugins(plugin_paths);
+			if (status != 0) {
+				goto error;
+			}
+
+			if (auto_source_discovery_restrict_plugin_name) {
+				plugin_count = 1;
+				plugin = find_loaded_plugin(auto_source_discovery_restrict_plugin_name);
+				plugins = &plugin;
+			} else {
+				plugin_count = get_loaded_plugins_count();
+				plugins = borrow_loaded_plugins();
+			}
+
+			status = auto_discover_source_components(non_opts, plugins, plugin_count,
 				auto_source_discovery_restrict_component_class_name,
 				*default_log_level >= 0 ? *default_log_level : cli_default_log_level,
 				&auto_disc);
