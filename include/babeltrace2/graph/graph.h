@@ -91,6 +91,32 @@ typedef bt_graph_listener_func_status
 
 typedef void (* bt_graph_listener_removed_func)(void *data);
 
+typedef enum bt_graph_simple_sink_component_init_func_status {
+	BT_GRAPH_SIMPLE_SINK_COMPONENT_INIT_FUNC_STATUS_OK		= __BT_FUNC_STATUS_OK,
+	BT_GRAPH_SIMPLE_SINK_COMPONENT_INIT_FUNC_STATUS_ERROR		= __BT_FUNC_STATUS_ERROR,
+	BT_GRAPH_SIMPLE_SINK_COMPONENT_INIT_FUNC_STATUS_MEMORY_ERROR	= __BT_FUNC_STATUS_MEMORY_ERROR,
+} bt_graph_simple_sink_component_init_func_status;
+
+typedef bt_graph_simple_sink_component_init_func_status
+(*bt_graph_simple_sink_component_init_func)(
+		bt_self_component_port_input_message_iterator *iterator,
+		void *data);
+
+typedef enum bt_graph_simple_sink_component_consume_func_status {
+	BT_GRAPH_SIMPLE_SINK_COMPONENT_CONSUME_FUNC_STATUS_OK			= __BT_FUNC_STATUS_OK,
+	BT_GRAPH_SIMPLE_SINK_COMPONENT_CONSUME_FUNC_STATUS_ERROR		= __BT_FUNC_STATUS_ERROR,
+	BT_GRAPH_SIMPLE_SINK_COMPONENT_CONSUME_FUNC_STATUS_MEMORY_ERROR	= 	__BT_FUNC_STATUS_MEMORY_ERROR,
+	BT_GRAPH_SIMPLE_SINK_COMPONENT_CONSUME_FUNC_STATUS_AGAIN		= __BT_FUNC_STATUS_AGAIN,
+	BT_GRAPH_SIMPLE_SINK_COMPONENT_CONSUME_FUNC_STATUS_END			= __BT_FUNC_STATUS_END,
+} bt_graph_simple_sink_component_consume_func_status;
+
+typedef bt_graph_simple_sink_component_consume_func_status
+(*bt_graph_simple_sink_component_consume_func)(
+		bt_self_component_port_input_message_iterator *iterator,
+		void *data);
+
+typedef void (*bt_graph_simple_sink_component_finalize_func)(void *data);
+
 extern bt_graph *bt_graph_create(void);
 
 typedef enum bt_graph_add_component_status {
@@ -141,6 +167,13 @@ bt_graph_add_sink_component_with_init_method_data(
 		const char *name, const bt_value *params,
 		void *init_method_data, bt_logging_level log_level,
 		const bt_component_sink **component);
+
+extern bt_graph_add_component_status
+bt_graph_add_simple_sink_component(bt_graph *graph, const char *name,
+		bt_graph_simple_sink_component_init_func init_func,
+		bt_graph_simple_sink_component_consume_func consume_func,
+		bt_graph_simple_sink_component_finalize_func finalize_func,
+		void *user_data, const bt_component_sink **component);
 
 typedef enum bt_graph_connect_ports_status {
 	BT_GRAPH_CONNECT_PORTS_STATUS_OK		= __BT_FUNC_STATUS_OK,

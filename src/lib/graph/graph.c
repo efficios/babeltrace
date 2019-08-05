@@ -42,6 +42,7 @@
 #include <unistd.h>
 #include <glib.h>
 
+#include "component-class-sink-simple.h"
 #include "component.h"
 #include "component-sink.h"
 #include "connection.h"
@@ -1464,6 +1465,44 @@ enum bt_graph_add_component_status bt_graph_add_sink_component(
 {
 	return bt_graph_add_sink_component_with_init_method_data(
 		graph, comp_cls, name, params, NULL, log_level, component);
+}
+
+enum bt_graph_add_component_status
+bt_graph_add_simple_sink_component(struct bt_graph *graph, const char *name,
+		bt_graph_simple_sink_component_init_func init_func,
+		bt_graph_simple_sink_component_consume_func consume_func,
+		bt_graph_simple_sink_component_finalize_func finalize_func,
+		void *user_data, const bt_component_sink **component)
+{
+	enum bt_graph_add_component_status status;
+	struct bt_component_class_sink *comp_cls;
+	struct simple_sink_init_method_data init_method_data = {
+		.init_func = init_func,
+		.consume_func = consume_func,
+		.finalize_func = finalize_func,
+		.user_data = user_data,
+	};
+
+	/*
+	 * Other preconditions are checked by
+	 * bt_graph_add_sink_component_with_init_method_data().
+	 */
+	BT_ASSERT_PRE_NON_NULL(consume_func, "Consume function");
+
+	comp_cls = bt_component_class_sink_simple_borrow();
+	if (!comp_cls) {
+		BT_LIB_LOGE_APPEND_CAUSE(
+			"Cannot borrow simple sink component class.");
+		status = BT_FUNC_STATUS_MEMORY_ERROR;
+		goto end;
+	}
+
+	status = bt_graph_add_sink_component_with_init_method_data(graph,
+		comp_cls, name, NULL, &init_method_data,
+		BT_LOGGING_LEVEL_NONE, component);
+
+end:
+	return status;
 }
 
 BT_HIDDEN
