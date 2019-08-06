@@ -80,6 +80,7 @@ struct stack {
 /* State */
 enum state {
 	STATE_INIT,
+	STATE_SWITCH_PACKET,
 	STATE_DSCOPE_TRACE_PACKET_HEADER_BEGIN,
 	STATE_DSCOPE_TRACE_PACKET_HEADER_CONTINUE,
 	STATE_AFTER_TRACE_PACKET_HEADER,
@@ -259,6 +260,8 @@ const char *state_string(enum state state)
 	switch (state) {
 	case STATE_INIT:
 		return "INIT";
+	case STATE_SWITCH_PACKET:
+		return "SWITCH_PACKET";
 	case STATE_DSCOPE_TRACE_PACKET_HEADER_BEGIN:
 		return "DSCOPE_TRACE_PACKET_HEADER_BEGIN";
 	case STATE_DSCOPE_TRACE_PACKET_HEADER_CONTINUE:
@@ -313,9 +316,6 @@ const char *state_string(enum state state)
 		return "(unknown)";
 	}
 }
-
-static
-int bt_msg_iter_switch_packet(struct bt_msg_iter *notit);
 
 static
 struct stack *stack_new(struct bt_msg_iter *notit)
@@ -678,17 +678,76 @@ void release_all_dscopes(struct bt_msg_iter *notit)
 }
 
 static
+enum bt_msg_iter_status switch_packet_state(struct bt_msg_iter *notit)
+{
+	enum bt_msg_iter_status status = BT_MSG_ITER_STATUS_OK;
+
+	/*
+	 * We don't put the stream class here because we need to make
+	 * sure that all the packets processed by the same message
+	 * iterator refer to the same stream class (the first one).
+	 */
+	BT_ASSERT(notit);
+
+	if (notit->cur_exp_packet_total_size != -1) {
+		notit->cur_packet_offset += notit->cur_exp_packet_total_size;
+	}
+
+	BT_COMP_LOGD("Switching packet: notit-addr=%p, cur=%zu, "
+		"packet-offset=%" PRId64, notit, notit->buf.at,
+		notit->cur_packet_offset);
+	stack_clear(notit->stack);
+	notit->meta.ec = NULL;
+	BT_PACKET_PUT_REF_AND_RESET(notit->packet);
+	BT_MESSAGE_PUT_REF_AND_RESET(notit->event_msg);
+	release_all_dscopes(notit);
+	notit->cur_dscope_field = NULL;
+
+	/*
+	 * Adjust current buffer so that addr points to the beginning of the new
+	 * packet.
+	 */
+	if (notit->buf.addr) {
+		size_t consumed_bytes = (size_t) (notit->buf.at / CHAR_BIT);
+
+		/* Packets are assumed to start on a byte frontier. */
+		if (notit->buf.at % CHAR_BIT) {
+			BT_COMP_LOGW("Cannot switch packet: current position is not a multiple of 8: "
+				"notit-addr=%p, cur=%zu", notit, notit->buf.at);
+			status = BT_MSG_ITER_STATUS_ERROR;
+			goto end;
+		}
+
+		notit->buf.addr += consumed_bytes;
+		notit->buf.sz -= consumed_bytes;
+		notit->buf.at = 0;
+		notit->buf.packet_offset = 0;
+		BT_COMP_LOGD("Adjusted buffer: addr=%p, size=%zu",
+			notit->buf.addr, notit->buf.sz);
+	}
+
+	notit->cur_exp_packet_content_size = -1;
+	notit->cur_exp_packet_total_size = -1;
+	notit->cur_stream_class_id = -1;
+	notit->cur_event_class_id = -1;
+	notit->cur_data_stream_id = -1;
+	notit->prev_packet_snapshots = notit->snapshots;
+	notit->snapshots.discarded_events = UINT64_C(-1);
+	notit->snapshots.packets = UINT64_C(-1);
+	notit->snapshots.beginning_clock = UINT64_C(-1);
+	notit->snapshots.end_clock = UINT64_C(-1);
+	notit->state = STATE_DSCOPE_TRACE_PACKET_HEADER_BEGIN;
+
+end:
+	return status;
+}
+
+static
 enum bt_msg_iter_status read_packet_header_begin_state(
 		struct bt_msg_iter *notit)
 {
 	struct ctf_field_class *packet_header_fc = NULL;
 	enum bt_msg_iter_status ret = BT_MSG_ITER_STATUS_OK;
-
-	if (bt_msg_iter_switch_packet(notit)) {
-		BT_COMP_LOGW("Cannot switch packet: notit-addr=%p", notit);
-		ret = BT_MSG_ITER_STATUS_ERROR;
-		goto end;
-	}
 
 	/*
 	 * Make sure at least one bit is available for this packet. An
@@ -1420,11 +1479,12 @@ enum bt_msg_iter_status skip_packet_padding_state(struct bt_msg_iter *notit)
 {
 	enum bt_msg_iter_status status = BT_MSG_ITER_STATUS_OK;
 	size_t bits_to_skip;
+	const enum state next_state = STATE_SWITCH_PACKET;
 
 	BT_ASSERT(notit->cur_exp_packet_total_size > 0);
 	bits_to_skip = notit->cur_exp_packet_total_size - packet_at(notit);
 	if (bits_to_skip == 0) {
-		notit->state = STATE_DSCOPE_TRACE_PACKET_HEADER_BEGIN;
+		notit->state = next_state;
 		goto end;
 	} else {
 		size_t bits_to_consume;
@@ -1443,7 +1503,7 @@ enum bt_msg_iter_status skip_packet_padding_state(struct bt_msg_iter *notit)
 		bits_to_skip = notit->cur_exp_packet_total_size -
 			packet_at(notit);
 		if (bits_to_skip == 0) {
-			notit->state = STATE_DSCOPE_TRACE_PACKET_HEADER_BEGIN;
+			notit->state = next_state;
 			goto end;
 		}
 	}
@@ -1585,7 +1645,10 @@ enum bt_msg_iter_status handle_state(struct bt_msg_iter *notit)
 	// TODO: optimalize!
 	switch (state) {
 	case STATE_INIT:
-		notit->state = STATE_DSCOPE_TRACE_PACKET_HEADER_BEGIN;
+		notit->state = STATE_SWITCH_PACKET;
+		break;
+	case STATE_SWITCH_PACKET:
+		status = switch_packet_state(notit);
 		break;
 	case STATE_DSCOPE_TRACE_PACKET_HEADER_BEGIN:
 		status = read_packet_header_begin_state(notit);
@@ -1736,70 +1799,6 @@ void bt_msg_iter_reset(struct bt_msg_iter *notit)
 	notit->prev_packet_snapshots.packets = UINT64_C(-1);
 	notit->prev_packet_snapshots.beginning_clock = UINT64_C(-1);
 	notit->prev_packet_snapshots.end_clock = UINT64_C(-1);
-}
-
-static
-int bt_msg_iter_switch_packet(struct bt_msg_iter *notit)
-{
-	int ret = 0;
-
-	/*
-	 * We don't put the stream class here because we need to make
-	 * sure that all the packets processed by the same message
-	 * iterator refer to the same stream class (the first one).
-	 */
-	BT_ASSERT(notit);
-
-	if (notit->cur_exp_packet_total_size != -1) {
-		notit->cur_packet_offset += notit->cur_exp_packet_total_size;
-	}
-
-	BT_COMP_LOGD("Switching packet: notit-addr=%p, cur=%zu, "
-		"packet-offset=%" PRId64, notit, notit->buf.at,
-		notit->cur_packet_offset);
-	stack_clear(notit->stack);
-	notit->meta.ec = NULL;
-	BT_PACKET_PUT_REF_AND_RESET(notit->packet);
-	BT_MESSAGE_PUT_REF_AND_RESET(notit->event_msg);
-	release_all_dscopes(notit);
-	notit->cur_dscope_field = NULL;
-
-	/*
-	 * Adjust current buffer so that addr points to the beginning of the new
-	 * packet.
-	 */
-	if (notit->buf.addr) {
-		size_t consumed_bytes = (size_t) (notit->buf.at / CHAR_BIT);
-
-		/* Packets are assumed to start on a byte frontier. */
-		if (notit->buf.at % CHAR_BIT) {
-			BT_COMP_LOGW("Cannot switch packet: current position is not a multiple of 8: "
-				"notit-addr=%p, cur=%zu", notit, notit->buf.at);
-			ret = -1;
-			goto end;
-		}
-
-		notit->buf.addr += consumed_bytes;
-		notit->buf.sz -= consumed_bytes;
-		notit->buf.at = 0;
-		notit->buf.packet_offset = 0;
-		BT_COMP_LOGD("Adjusted buffer: addr=%p, size=%zu",
-			notit->buf.addr, notit->buf.sz);
-	}
-
-	notit->cur_exp_packet_content_size = -1;
-	notit->cur_exp_packet_total_size = -1;
-	notit->cur_stream_class_id = -1;
-	notit->cur_event_class_id = -1;
-	notit->cur_data_stream_id = -1;
-	notit->prev_packet_snapshots = notit->snapshots;
-	notit->snapshots.discarded_events = UINT64_C(-1);
-	notit->snapshots.packets = UINT64_C(-1);
-	notit->snapshots.beginning_clock = UINT64_C(-1);
-	notit->snapshots.end_clock = UINT64_C(-1);
-
-end:
-	return ret;
 }
 
 static
@@ -2869,6 +2868,7 @@ enum bt_msg_iter_status read_packet_header_context_fields(
 			 */
 			goto end;
 		case STATE_INIT:
+		case STATE_SWITCH_PACKET:
 		case STATE_DSCOPE_TRACE_PACKET_HEADER_BEGIN:
 		case STATE_DSCOPE_TRACE_PACKET_HEADER_CONTINUE:
 		case STATE_AFTER_TRACE_PACKET_HEADER:
