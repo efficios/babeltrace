@@ -22,14 +22,11 @@
  * THE SOFTWARE.
  */
 
-%include <babeltrace2/graph/private-query-executor.h>
-%include <babeltrace2/graph/query-executor-const.h>
-%include <babeltrace2/graph/query-executor.h>
-
-%{
-#include "native_bt_query_exec.i.h"
-%}
-
+static
 bt_query_executor *bt_bt2_query_executor_create(
 		const bt_component_class *component_class, const char *object,
-		const bt_value *params, PyObject *py_obj);
+		const bt_value *params, PyObject *py_obj)
+{
+	return bt_query_executor_create_with_method_data(component_class,
+		object, params, py_obj == Py_None ? NULL : py_obj);
+}

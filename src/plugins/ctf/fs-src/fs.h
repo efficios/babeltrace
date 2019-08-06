@@ -215,7 +215,7 @@ bt_component_class_query_method_status ctf_fs_query(
 		bt_self_component_class_source *comp_class,
 		bt_private_query_executor *priv_query_exec,
 		const char *object, const bt_value *params,
-		const bt_value **result);
+		void *method_data, const bt_value **result);
 
 BT_HIDDEN
 bt_component_class_message_iterator_init_method_status ctf_fs_iterator_init(

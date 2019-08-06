@@ -39,6 +39,11 @@ bt_query_executor *bt_query_executor_create(
 		const bt_component_class *component_class, const char *object,
 		const bt_value *params);
 
+extern
+bt_query_executor *bt_query_executor_create_with_method_data(
+		const bt_component_class *component_class, const char *object,
+		const bt_value *params, void *method_data);
+
 typedef enum bt_query_executor_query_status {
 	BT_QUERY_EXECUTOR_QUERY_STATUS_OK		= __BT_FUNC_STATUS_OK,
 	BT_QUERY_EXECUTOR_QUERY_STATUS_AGAIN		= __BT_FUNC_STATUS_AGAIN,

@@ -573,7 +573,7 @@ class _UserComponentType(type):
     def addr(cls):
         return int(cls._bt_cc_ptr)
 
-    def _bt_query_from_native(cls, priv_query_exec_ptr, obj, params_ptr):
+    def _bt_query_from_native(cls, priv_query_exec_ptr, object, params_ptr, method_obj):
         # this can raise, in which case the native call to
         # bt_component_class_query() returns NULL
         if params_ptr is not None:
@@ -585,7 +585,7 @@ class _UserComponentType(type):
 
         try:
             # this can raise, but the native side checks the exception
-            results = cls._user_query(priv_query_exec, obj, params)
+            results = cls._user_query(priv_query_exec, object, params, method_obj)
         finally:
             # the private query executor is a private view on the query
             # executor; it's not a shared object (the library does not
@@ -607,7 +607,7 @@ class _UserComponentType(type):
         bt2_value._Value._get_ref(results_ptr)
         return int(results_ptr)
 
-    def _user_query(cls, priv_query_executor, obj, params):
+    def _user_query(cls, priv_query_executor, object, params, method_obj):
         raise bt2.UnknownObject
 
     def _bt_component_class_ptr(self):

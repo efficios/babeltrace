@@ -20,6 +20,7 @@ from bt2 import value
 import unittest
 import copy
 import bt2
+import re
 
 
 class QueryExecutorTestCase(unittest.TestCase):
@@ -29,7 +30,7 @@ class QueryExecutorTestCase(unittest.TestCase):
                 pass
 
             @classmethod
-            def _user_query(cls, priv_query_exec, obj, params):
+            def _user_query(cls, priv_query_exec, obj, params, method_obj):
                 nonlocal query_params
                 query_params = params
                 return {'null': None, 'bt2': 'BT2'}
@@ -52,7 +53,7 @@ class QueryExecutorTestCase(unittest.TestCase):
                 pass
 
             @classmethod
-            def _user_query(cls, priv_query_exec, obj, params):
+            def _user_query(cls, priv_query_exec, obj, params, method_obj):
                 nonlocal query_params
                 query_params = params
 
@@ -67,7 +68,7 @@ class QueryExecutorTestCase(unittest.TestCase):
                 pass
 
             @classmethod
-            def _user_query(cls, priv_query_exec, obj, params):
+            def _user_query(cls, priv_query_exec, obj, params, method_obj):
                 nonlocal query_params
                 query_params = params
 
@@ -76,13 +77,79 @@ class QueryExecutorTestCase(unittest.TestCase):
         self.assertIs(query_params, None)
         del query_params
 
+    def test_query_with_method_obj(self):
+        class MySink(bt2._UserSinkComponent):
+            def _user_consume(self):
+                pass
+
+            @classmethod
+            def _user_query(cls, priv_query_exec, obj, params, method_obj):
+                nonlocal query_method_obj
+                query_method_obj = method_obj
+
+        query_method_obj = None
+        method_obj = object()
+        res = bt2.QueryExecutor(MySink, 'obj', method_obj=method_obj).query()
+        self.assertIs(query_method_obj, method_obj)
+        del query_method_obj
+
+    def test_query_with_method_obj_del_ref(self):
+        class MySink(bt2._UserSinkComponent):
+            def _user_consume(self):
+                pass
+
+            @classmethod
+            def _user_query(cls, priv_query_exec, obj, params, method_obj):
+                nonlocal query_method_obj
+                query_method_obj = method_obj
+
+        class Custom:
+            pass
+
+        query_method_obj = None
+        method_obj = Custom()
+        method_obj.hola = 'hello'
+        query_exec = bt2.QueryExecutor(MySink, 'obj', method_obj=method_obj)
+        del method_obj
+        query_exec.query()
+        self.assertIsInstance(query_method_obj, Custom)
+        self.assertEqual(query_method_obj.hola, 'hello')
+        del query_method_obj
+
+    def test_query_with_none_method_obj(self):
+        class MySink(bt2._UserSinkComponent):
+            def _user_consume(self):
+                pass
+
+            @classmethod
+            def _user_query(cls, priv_query_exec, obj, params, method_obj):
+                nonlocal query_method_obj
+                query_method_obj = method_obj
+
+        query_method_obj = object()
+        res = bt2.QueryExecutor(MySink, 'obj').query()
+        self.assertIsNone(query_method_obj)
+        del query_method_obj
+
+    def test_query_with_method_obj_non_python_comp_cls(self):
+        plugin = bt2.find_plugin('text', find_in_user_dir=False, find_in_sys_dir=False)
+        assert plugin is not None
+        cc = plugin.source_component_classes['dmesg']
+        assert cc is not None
+
+        with self.assertRaisesRegex(
+            ValueError,
+            re.escape(r'cannot pass a Python object to a non-Python component class'),
+        ):
+            bt2.QueryExecutor(cc, 'obj', method_obj=object()).query()
+
     def test_query_logging_level(self):
         class MySink(bt2._UserSinkComponent):
             def _user_consume(self):
                 pass
 
             @classmethod
-            def _user_query(cls, priv_query_exec, obj, params):
+            def _user_query(cls, priv_query_exec, obj, params, method_obj):
                 nonlocal query_log_level
                 query_log_level = priv_query_exec.logging_level
 
@@ -99,7 +166,7 @@ class QueryExecutorTestCase(unittest.TestCase):
                 pass
 
             @classmethod
-            def _user_query(cls, priv_query_exec, obj, params):
+            def _user_query(cls, priv_query_exec, obj, params, method_obj):
                 raise ValueError
 
         with self.assertRaises(bt2._Error) as ctx:
@@ -119,7 +186,7 @@ class QueryExecutorTestCase(unittest.TestCase):
                 pass
 
             @classmethod
-            def _user_query(cls, priv_query_exec, obj, params):
+            def _user_query(cls, priv_query_exec, obj, params, method_obj):
                 raise bt2.UnknownObject
 
         with self.assertRaises(bt2.UnknownObject):
@@ -131,7 +198,7 @@ class QueryExecutorTestCase(unittest.TestCase):
                 pass
 
             @classmethod
-            def _user_query(cls, priv_query_exec, obj, params):
+            def _user_query(cls, priv_query_exec, obj, params, method_obj):
                 pass
 
         query_exec = bt2.QueryExecutor(MySink, 'obj', [17, 23])
@@ -145,7 +212,7 @@ class QueryExecutorTestCase(unittest.TestCase):
                 pass
 
             @classmethod
-            def _user_query(cls, priv_query_exec, obj, params):
+            def _user_query(cls, priv_query_exec, obj, params, method_obj):
                 pass
 
         query_exec = bt2.QueryExecutor(MySink, 'obj', [17, 23])
@@ -159,7 +226,7 @@ class QueryExecutorTestCase(unittest.TestCase):
                 pass
 
             @classmethod
-            def _user_query(cls, priv_query_exec, obj, params):
+            def _user_query(cls, priv_query_exec, obj, params, method_obj):
                 raise bt2.TryAgain
 
         with self.assertRaises(bt2.TryAgain):
@@ -171,7 +238,7 @@ class QueryExecutorTestCase(unittest.TestCase):
                 pass
 
             @classmethod
-            def _user_query(cls, priv_query_exec, obj, params):
+            def _user_query(cls, priv_query_exec, obj, params, method_obj):
                 nonlocal interrupter2
                 test_self.assertFalse(query_exec.is_interrupted)
                 interrupter2.set()
@@ -193,7 +260,7 @@ class QueryExecutorTestCase(unittest.TestCase):
                 pass
 
             @classmethod
-            def _user_query(cls, priv_query_exec, obj, params):
+            def _user_query(cls, priv_query_exec, obj, params, method_obj):
                 test_self.assertFalse(query_exec.is_interrupted)
                 query_exec.interrupt()
                 test_self.assertTrue(query_exec.is_interrupted)
@@ -208,7 +275,7 @@ class QueryExecutorTestCase(unittest.TestCase):
                 pass
 
             @classmethod
-            def _user_query(cls, priv_query_exec, obj, params):
+            def _user_query(cls, priv_query_exec, obj, params, method_obj):
                 nonlocal test_priv_query_exec
                 test_priv_query_exec = priv_query_exec
 

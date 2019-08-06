@@ -50,7 +50,7 @@ class QueryExecutor(object._SharedObject, _QueryExecutorCommon):
     def _as_query_executor_ptr(self):
         return self._ptr
 
-    def __init__(self, component_class, object, params=None):
+    def __init__(self, component_class, object, params=None, method_obj=None):
         if not isinstance(component_class, bt2_component._ComponentClass):
             err = False
 
@@ -74,12 +74,27 @@ class QueryExecutor(object._SharedObject, _QueryExecutorCommon):
 
         cc_ptr = component_class._bt_component_class_ptr()
         assert cc_ptr is not None
-        ptr = native_bt.query_executor_create(cc_ptr, object, params_ptr)
+
+        if method_obj is not None and not native_bt.bt2_is_python_component_class(
+            cc_ptr
+        ):
+            raise ValueError(
+                'cannot pass a Python object to a non-Python component class'
+            )
+
+        ptr = native_bt.bt2_query_executor_create(
+            cc_ptr, object, params_ptr, method_obj
+        )
 
         if ptr is None:
             raise bt2._MemoryError('cannot create query executor object')
 
         super().__init__(ptr)
+
+        # Keep a reference of `method_obj` as the native query executor
+        # does not have any. This ensures that, when this object's
+        # query() method is called, the Python object still exists.
+        self._method_obj = method_obj
 
     def add_interrupter(self, interrupter):
         utils._check_type(interrupter, bt2_interrupter.Interrupter)

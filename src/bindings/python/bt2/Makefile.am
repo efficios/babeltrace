@@ -34,6 +34,7 @@ SWIG_INTERFACE_FILES =					\
 	bt2/native_bt_plugin.i.h			\
 	bt2/native_bt_port.i				\
 	bt2/native_bt_query_exec.i			\
+	bt2/native_bt_query_exec.i.h			\
 	bt2/native_bt_stream.i				\
 	bt2/native_bt_stream_class.i			\
 	bt2/native_bt_trace.i				\
