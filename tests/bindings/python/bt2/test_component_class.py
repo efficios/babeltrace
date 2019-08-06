@@ -205,7 +205,7 @@ class UserComponentClassTestCase(unittest.TestCase):
                 pass
 
             @classmethod
-            def _user_query(cls, priv_query_exec, obj, params):
+            def _user_query(cls, priv_query_exec, obj, params, method_obj):
                 return ...
 
         with self.assertRaises(bt2._Error):
@@ -217,7 +217,7 @@ class UserComponentClassTestCase(unittest.TestCase):
                 pass
 
             @classmethod
-            def _user_query(cls, priv_query_exec, obj, params):
+            def _user_query(cls, priv_query_exec, obj, params, method_obj):
                 nonlocal query_params
                 query_params = params
                 return None
@@ -235,7 +235,7 @@ class UserComponentClassTestCase(unittest.TestCase):
                 pass
 
             @classmethod
-            def _user_query(cls, priv_query_exec, obj, params):
+            def _user_query(cls, priv_query_exec, obj, params, method_obj):
                 nonlocal query_log_level
                 query_log_level = priv_query_exec.logging_level
 
@@ -252,7 +252,7 @@ class UserComponentClassTestCase(unittest.TestCase):
                 pass
 
             @staticmethod
-            def _user_query(priv_query_exec, obj, params):
+            def _user_query(priv_query_exec, obj, params, method_obj):
                 return
 
         res = bt2.QueryExecutor(MySink, 'obj', None).query()
@@ -264,7 +264,7 @@ class UserComponentClassTestCase(unittest.TestCase):
                 pass
 
             @classmethod
-            def _user_query(cls, priv_query_exec, obj, params):
+            def _user_query(cls, priv_query_exec, obj, params, method_obj):
                 nonlocal query_params
                 query_params = params
                 return 17.5
@@ -282,7 +282,7 @@ class UserComponentClassTestCase(unittest.TestCase):
                 pass
 
             @classmethod
-            def _user_query(cls, priv_query_exec, obj, params):
+            def _user_query(cls, priv_query_exec, obj, params, method_obj):
                 nonlocal query_params
                 query_params = params
                 return {'null': None, 'bt2': 'BT2'}
@@ -320,7 +320,7 @@ class ComponentClassTestCase(unittest.TestCase):
                 pass
 
             @classmethod
-            def _user_query(cls, priv_query_exec, obj, params):
+            def _user_query(cls, priv_query_exec, obj, params, method_obj):
                 return [obj, params, 23]
 
         self._py_comp_cls = MySink

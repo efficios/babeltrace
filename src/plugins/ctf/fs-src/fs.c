@@ -1991,6 +1991,7 @@ bt_component_class_query_method_status ctf_fs_query(
 		bt_self_component_class_source *comp_class,
 		bt_private_query_executor *priv_query_exec,
 		const char *object, const bt_value *params,
+		__attribute__((unused)) void *method_data,
 		const bt_value **result)
 {
 	bt_component_class_query_method_status status =

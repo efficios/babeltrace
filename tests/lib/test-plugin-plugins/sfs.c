@@ -60,6 +60,7 @@ static bt_component_class_query_method_status flt_query_method(
 		bt_self_component_class_filter *component_class,
 		bt_private_query_executor *priv_query_exec,
 		const char *object, const bt_value *params,
+		__attribute__((unused)) void *method_data,
 		const bt_value **result)
 {
 	bt_value *res = bt_value_array_create();

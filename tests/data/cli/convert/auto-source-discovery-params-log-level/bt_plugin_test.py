@@ -39,7 +39,7 @@ class TestSourceA(Base, bt2._UserSourceComponent, message_iterator_class=TestIte
         self._print_info(params)
 
     @staticmethod
-    def _user_query(priv_query_exec, obj, params):
+    def _user_query(priv_query_exec, obj, params, method_obj):
         # Match files starting with 'aaa'.
 
         if obj == 'babeltrace.support-info':
@@ -62,7 +62,7 @@ class TestSourceB(Base, bt2._UserSourceComponent, message_iterator_class=TestIte
         self._print_info(params)
 
     @staticmethod
-    def _user_query(priv_query_exec, obj, params):
+    def _user_query(priv_query_exec, obj, params, method_obj):
         # Match files starting with 'bbb'.
 
         if obj == 'babeltrace.support-info':

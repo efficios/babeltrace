@@ -56,6 +56,7 @@ struct bt_query_executor {
 	/* Owned by this */
 	const struct bt_value *params;
 
+	void *method_data;
 	enum bt_logging_level log_level;
 };
 

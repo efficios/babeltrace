@@ -50,7 +50,7 @@ typedef bt_component_class_query_method_status
 		bt_self_component_class_sink *comp_class,
 		bt_private_query_executor *query_executor,
 		const char *object, const bt_value *params,
-		const bt_value **result);
+		void *method_data, const bt_value **result);
 
 typedef bt_component_class_port_connected_method_status
 (*bt_component_class_sink_input_port_connected_method)(

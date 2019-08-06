@@ -266,7 +266,7 @@ bt_component_class_query_method_status lttng_live_query(
 		bt_self_component_class_source *comp_class,
 		bt_private_query_executor *priv_query_exec,
 		const char *object, const bt_value *params,
-		const bt_value **result);
+		void *method_data, const bt_value **result);
 
 void lttng_live_component_finalize(bt_self_component_source *component);
 

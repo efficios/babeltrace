@@ -215,14 +215,6 @@ bt_component_class_init_method_status component_class_init(
 	BT_ASSERT(self_comp_cls_type_swig_type);
 
 	/*
-	 * If there's any `init_method_data`, assume this component is
-	 * getting initialized from Python, so that `init_method_data`
-	 * is a Python object to pass to the user's __init__() method.
-	 */
-	BT_ASSERT(!init_method_data ||
-			bt_bt2_is_python_component_class(component_class));
-
-	/*
 	 * Get the user-defined Python class which created this
 	 * component's class in the first place (borrowed
 	 * reference).
@@ -593,7 +585,7 @@ bt_component_class_query_method_status component_class_query(
 		const bt_component_class *component_class,
 		bt_self_component_class *self_component_class,
 		bt_private_query_executor *priv_query_executor,
-		const char *object, const bt_value *params,
+		const char *object, const bt_value *params, void *method_data,
 		const bt_value **result)
 {
 	PyObject *py_cls = NULL;
@@ -608,6 +600,14 @@ bt_component_class_query_method_status component_class_query(
 			priv_query_executor);
 	bt_logging_level log_level =
 		bt_query_executor_get_logging_level(query_exec);
+
+	/*
+	 * If there's any `method_data`, assume this component class is
+	 * getting queried from Python, so that `method_data` is a
+	 * Python object to pass to the user's _user_query() method.
+	 */
+	BT_ASSERT(!method_data ||
+			bt_bt2_is_python_component_class(component_class));
 
 	py_cls = lookup_cc_ptr_to_py_cls(component_class);
 	if (!py_cls) {
@@ -641,9 +641,17 @@ bt_component_class_query_method_status component_class_query(
 		goto error;
 	}
 
+	/*
+	 * We don't take any reference on `method_data` which, if not
+	 * `NULL`, is assumed to be a `PyObject *`: the user's
+	 * _user_query() function will eventually take a reference if
+	 * needed. If `method_data` is `NULL`, then we pass `Py_None` as
+	 * the initialization's Python object.
+	 */
 	py_results_addr = PyObject_CallMethod(py_cls,
-		"_bt_query_from_native", "(OOO)", py_priv_query_exec_ptr,
-		py_object, py_params_ptr);
+		"_bt_query_from_native", "(OOOO)", py_priv_query_exec_ptr,
+		py_object, py_params_ptr,
+		method_data ? method_data : Py_None);
 	if (!py_results_addr) {
 		BT_LOG_WRITE_CUR_LVL(BT_LOG_WARNING, log_level, BT_LOG_TAG,
 			"Failed to call Python class's _bt_query_from_native() method: "
@@ -680,7 +688,7 @@ static
 bt_component_class_query_method_status component_class_source_query(
 		bt_self_component_class_source *self_component_class_source,
 		bt_private_query_executor *priv_query_executor,
-		const char *object, const bt_value *params,
+		const char *object, const bt_value *params, void *method_data,
 		const bt_value **result)
 {
 	const bt_component_class_source *component_class_source = bt_self_component_class_source_as_component_class_source(self_component_class_source);
@@ -688,14 +696,14 @@ bt_component_class_query_method_status component_class_source_query(
 	bt_self_component_class *self_component_class = bt_self_component_class_source_as_self_component_class(self_component_class_source);
 
 	return component_class_query(component_class, self_component_class,
-		priv_query_executor, object, params, result);
+		priv_query_executor, object, params, method_data, result);
 }
 
 static
 bt_component_class_query_method_status component_class_filter_query(
 		bt_self_component_class_filter *self_component_class_filter,
 		bt_private_query_executor *priv_query_executor,
-		const char *object, const bt_value *params,
+		const char *object, const bt_value *params, void *method_data,
 		const bt_value **result)
 {
 	const bt_component_class_filter *component_class_filter = bt_self_component_class_filter_as_component_class_filter(self_component_class_filter);
@@ -703,14 +711,14 @@ bt_component_class_query_method_status component_class_filter_query(
 	bt_self_component_class *self_component_class = bt_self_component_class_filter_as_self_component_class(self_component_class_filter);
 
 	return component_class_query(component_class, self_component_class,
-		priv_query_executor, object, params, result);
+		priv_query_executor, object, params, method_data, result);
 }
 
 static
 bt_component_class_query_method_status component_class_sink_query(
 		bt_self_component_class_sink *self_component_class_sink,
 		bt_private_query_executor *priv_query_executor,
-		const char *object, const bt_value *params,
+		const char *object, const bt_value *params, void *method_data,
 		const bt_value **result)
 {
 	const bt_component_class_sink *component_class_sink = bt_self_component_class_sink_as_component_class_sink(self_component_class_sink);
@@ -718,7 +726,7 @@ bt_component_class_query_method_status component_class_sink_query(
 	bt_self_component_class *self_component_class = bt_self_component_class_sink_as_self_component_class(self_component_class_sink);
 
 	return component_class_query(component_class, self_component_class,
-		priv_query_executor, object, params, result);
+		priv_query_executor, object, params, method_data, result);
 }
 
 static

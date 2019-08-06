@@ -70,7 +70,7 @@ class SinkWithFailingQuery(bt2._UserSinkComponent):
         pass
 
     @staticmethod
-    def _user_query(priv_executor, obj, params):
+    def _user_query(priv_executor, obj, params, method_obj):
         raise ValueError('Query is failing')
 
 

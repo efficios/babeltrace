@@ -68,9 +68,9 @@ void bt_query_executor_destroy(struct bt_object *obj)
 	g_free(query_exec);
 }
 
-struct bt_query_executor *bt_query_executor_create(
+struct bt_query_executor *bt_query_executor_create_with_method_data(
 		const bt_component_class *comp_cls, const char *object,
-		const bt_value *params)
+		const bt_value *params, void *method_data)
 {
 	struct bt_query_executor *query_exec;
 
@@ -119,6 +119,7 @@ struct bt_query_executor *bt_query_executor_create(
 	}
 
 	bt_object_get_no_null_check(query_exec->params);
+	query_exec->method_data = method_data;
 	query_exec->log_level = BT_LOGGING_LEVEL_NONE;
 	bt_query_executor_add_interrupter(query_exec,
 		query_exec->default_interrupter);
@@ -132,6 +133,14 @@ end:
 	return (void *) query_exec;
 }
 
+struct bt_query_executor *bt_query_executor_create(
+		const bt_component_class *comp_cls, const char *object,
+		const bt_value *params)
+{
+	return bt_query_executor_create_with_method_data(comp_cls,
+		object, params, NULL);
+}
+
 enum bt_query_executor_query_status bt_query_executor_query(
 		struct bt_query_executor *query_exec,
 		const struct bt_value **user_result)
@@ -141,6 +150,7 @@ enum bt_query_executor_query_status bt_query_executor_query(
 		void * /* private query executor */,
 		const char * /* object */,
 		const struct bt_value * /* parameters */,
+		void * /* method data */,
 		const struct bt_value ** /* result */);
 
 	enum bt_query_executor_query_status status;
@@ -219,7 +229,7 @@ enum bt_query_executor_query_status bt_query_executor_query(
 	*user_result = NULL;
 	query_status = method((void *) query_exec->comp_cls,
 		(void *) query_exec, query_exec->object->str,
-		query_exec->params, user_result);
+		query_exec->params, query_exec->method_data, user_result);
 	BT_LIB_LOGD("User method returned: status=%s, %![res-]+v",
 		bt_common_func_status_string(query_status), *user_result);
 	BT_ASSERT_POST(query_status != BT_FUNC_STATUS_OK || *user_result,
