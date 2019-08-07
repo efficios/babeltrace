@@ -34,7 +34,9 @@
 	(bt_field_class_enumeration_mapping_label_array *label_array, uint64_t *count) {
 	if (*$1) {
 		PyObject *py_label_list = PyList_New(*$2);
-		for (int i = 0; i < *$2; i++) {
+		uint64_t i;
+
+		for (i = 0; i < *$2; i++) {
 			PyList_SET_ITEM(py_label_list, i, PyUnicode_FromString((*$1)[i]));
 		}
 
