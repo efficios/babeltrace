@@ -1217,6 +1217,7 @@ enum lttng_live_iterator_status lttng_live_get_next_index(
 		index->offset = EOF;
 		retstatus = LTTNG_LIVE_ITERATOR_STATUS_END;
 		stream->state = LTTNG_LIVE_STREAM_EOF;
+		stream->has_stream_hung_up = true;
 		break;
 	case LTTNG_VIEWER_INDEX_ERR:
 		BT_COMP_LOGE("get_next_index: error");

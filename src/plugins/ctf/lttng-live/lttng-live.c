@@ -793,6 +793,34 @@ end:
 	return ret;
 }
 
+static
+enum lttng_live_iterator_status lttng_live_iterator_close_stream(
+		struct lttng_live_msg_iter *lttng_live_msg_iter,
+		struct lttng_live_stream_iterator *stream_iter,
+		bt_message **curr_msg)
+{
+	enum lttng_live_iterator_status live_status =
+		LTTNG_LIVE_ITERATOR_STATUS_OK;
+	/*
+	 * The viewer has hung up on us so we are closing the stream. The
+	 * `bt_msg_iter` should simply realize that it needs to close the
+	 * stream properly by emitting the necessary stream end message.
+	 */
+	enum bt_msg_iter_status status =
+		bt_msg_iter_get_next_message(stream_iter->msg_iter,
+			lttng_live_msg_iter->self_msg_iter, curr_msg);
+
+	if (status == BT_MSG_ITER_STATUS_ERROR) {
+		live_status = LTTNG_LIVE_ITERATOR_STATUS_ERROR;
+		goto end;
+	}
+
+	BT_ASSERT(status == BT_MSG_ITER_STATUS_OK);
+
+end:
+	return live_status;
+}
+
 /*
  * helper function:
  *            handle_no_data_streams()
@@ -851,6 +879,17 @@ enum lttng_live_iterator_status lttng_live_iterator_next_on_stream(
 	bt_self_component *self_comp = lttng_live_msg_iter->self_comp;
 	enum lttng_live_iterator_status live_status;
 
+	if (stream_iter->has_stream_hung_up) {
+		/*
+		 * The stream has hung up and the stream was properly closed
+		 * during the last call to the current function. Return _END
+		 * status now so that this stream iterator is removed for the
+		 * stream iterator list.
+		 */
+		live_status = LTTNG_LIVE_ITERATOR_STATUS_END;
+		goto end;
+	}
+
 retry:
 	print_stream_state(stream_iter);
 	live_status = lttng_live_iterator_handle_new_streams_and_metadata(
@@ -860,7 +899,16 @@ retry:
 	}
 	live_status = lttng_live_iterator_next_handle_one_no_data_stream(
 			lttng_live_msg_iter, stream_iter);
+
 	if (live_status != LTTNG_LIVE_ITERATOR_STATUS_OK) {
+		if (live_status == LTTNG_LIVE_ITERATOR_STATUS_END) {
+			/*
+			 * We overwrite `live_status` since `curr_msg` is
+			 * likely set to a valid message in this function.
+			 */
+			live_status = lttng_live_iterator_close_stream(
+				lttng_live_msg_iter, stream_iter, curr_msg);
+		}
 		goto end;
 	}
 	live_status = lttng_live_iterator_next_handle_one_quiescent_stream(
