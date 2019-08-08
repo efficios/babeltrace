@@ -119,6 +119,8 @@ struct lttng_live_stream_iterator {
 
 	/* Owned by this. */
 	GString *name;
+
+	bool has_stream_hung_up;
 };
 
 struct lttng_live_metadata {

@@ -58,12 +58,18 @@ enum bt_msg_iter_medium_status medop_request_bytes(
 	uint64_t len_left;
 	uint64_t read_len;
 
+	if (stream->has_stream_hung_up) {
+		status = BT_MSG_ITER_MEDIUM_STATUS_EOF;
+		goto end;
+	}
+
 	len_left = stream->base_offset + stream->len - stream->offset;
 	if (!len_left) {
 		stream->state = LTTNG_LIVE_STREAM_ACTIVE_NO_DATA;
 		status = BT_MSG_ITER_MEDIUM_STATUS_AGAIN;
-		return status;
+		goto end;
 	}
+
 	read_len = MIN(request_sz, stream->buflen);
 	read_len = MIN(read_len, len_left);
 	status = lttng_live_get_stream_bytes(live_msg_iter,
@@ -72,6 +78,7 @@ enum bt_msg_iter_medium_status medop_request_bytes(
 	*buffer_addr = stream->buf;
 	*buffer_sz = recv_len;
 	stream->offset += recv_len;
+end:
 	return status;
 }
 
