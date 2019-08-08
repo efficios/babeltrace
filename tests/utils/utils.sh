@@ -134,6 +134,22 @@ export BT_TESTS_SED_BIN
 BT_TESTS_DATADIR="${BT_TESTS_SRCDIR}/data"
 BT_CTF_TRACES_PATH="${BT_TESTS_DATADIR}/ctf-traces"
 
+# Run the Babeltrace CLI, redirecting stdout and stderr to specified files.
+#
+#   $1: file to redirect stdout to
+#   $2: file to redirect stderr to
+#   remaining args: arguments to pass to the CLI
+#
+# Return the exit code of the CLI.
+
+bt_cli() {
+	local stdout_file="$1"
+	local stderr_file="$2"
+	shift 2
+	local args=("$@")
+
+	run_python_bt2 "$BT_TESTS_BT2_BIN" "${args[@]}" 1>"$stdout_file" 2>"$stderr_file"
+}
 
 ### Diff Functions ###
 
@@ -214,7 +230,7 @@ bt_diff_cli() {
 	temp_stderr_output_file="$(mktemp -t actual_stderr.XXXXXX)"
 
 	# Run the CLI to get a detailed file.
-	run_python_bt2 "$BT_TESTS_BT2_BIN" "${args[@]}" 1>"$temp_stdout_output_file" 2>"$temp_stderr_output_file"
+	bt_cli "$temp_stdout_output_file" "$temp_stderr_output_file" "${args[@]}"
 
 	bt_diff "$expected_stdout_file" "$temp_stdout_output_file" "$expected_stderr_file" "$temp_stderr_output_file" "${args[@]}"
 	ret=$?
@@ -252,7 +268,7 @@ bt_diff_cli_sorted() {
 	temp_stderr_output_file="$(mktemp -t actual_stderr.XXXXXX)"
 
 	# Run the CLI to get a detailed file.
-	run_python_bt2 "$BT_TESTS_BT2_BIN" "${args[@]}" 1>"$temp_stdout_output_file" 2>"$temp_stderr_output_file"
+	bt_cli "$temp_stdout_output_file" "$temp_stderr_output_file" "${args[@]}"
 
 	# Sort the stdout file, use a subshell to do it in-place
 	# shellcheck disable=SC2005
