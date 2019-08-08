@@ -153,25 +153,22 @@ bt_cli() {
 
 ### Diff Functions ###
 
-# Checks the difference between stdout:
+# Check the differences between two files (typically some expected output vs
+# some actual output).  If there are differences, print the diff to stderr.
 #
-#   The file with path "$1", and the file with path "$2"
+#   $1: file 1 (expected)
+#   $2: file 2 (actual)
 #
-# And the difference between stderr:
+# Return 0 if there's no difference, and 1 if there are.
 #
-#   The file with path "$3", and the file with path "$4"
-#
-# Returns 0 if there's no difference, and 1 if there is, also printing
-# said difference to the standard error, and an error message with the
-# args starting at "$5".
-bt_diff() {
-	local expected_stdout_file="$1"
-	local actual_stdout_file="$2"
-	local expected_stderr_file="$3"
-	local actual_stderr_file="$4"
-	shift 4
-	local args=("$@")
+# Note that this function modifies the actual output file ($2) _in-place_ to
+# remove any \r character.
 
+bt_diff() {
+	local expected_file="$1"
+	local actual_file="$2"
+	shift 2
+	local args=("$@")
 	local ret=0
 	local temp_diff
 
@@ -180,19 +177,10 @@ bt_diff() {
 	# Strip any \r present due to Windows (\n -> \r\n).
 	# "diff --string-trailing-cr" is not used since it is not present on
 	# Solaris.
-	"$BT_TESTS_SED_BIN" -i 's/\r//g' "$actual_stdout_file"
-	"$BT_TESTS_SED_BIN" -i 's/\r//g' "$actual_stderr_file"
+	"$BT_TESTS_SED_BIN" -i 's/\r//g' "$actual_file"
 
-	# Compare stdout output with expected stdout output
-	if ! diff -u "$actual_stdout_file" "$expected_stdout_file" 2>/dev/null >"$temp_diff"; then
-		echo "ERROR: for '${args[*]}': actual standard output and expected output differ:" >&2
-		cat "$temp_diff" >&2
-		ret=1
-	fi
-
-	# Compare stderr output with expected stderr output
-	if ! diff -u "$actual_stderr_file" "$expected_stderr_file" 2>/dev/null >"$temp_diff"; then
-		echo "ERROR: for '${args[*]}': actual standard error and expected error differ:" >&2
+	if ! diff -u "$expected_file" "$actual_file" > "$temp_diff"; then
+		echo "ERROR: for '${args[*]}': output does not match:" >&2
 		cat "$temp_diff" >&2
 		ret=1
 	fi
@@ -225,6 +213,8 @@ bt_diff_cli() {
 	local temp_stdout_output_file
 	local temp_stderr_output_file
 	local ret=0
+	local ret_stdout
+	local ret_stderr
 
 	temp_stdout_output_file="$(mktemp -t actual_stdout.XXXXXX)"
 	temp_stderr_output_file="$(mktemp -t actual_stderr.XXXXXX)"
@@ -232,8 +222,14 @@ bt_diff_cli() {
 	# Run the CLI to get a detailed file.
 	bt_cli "$temp_stdout_output_file" "$temp_stderr_output_file" "${args[@]}"
 
-	bt_diff "$expected_stdout_file" "$temp_stdout_output_file" "$expected_stderr_file" "$temp_stderr_output_file" "${args[@]}"
-	ret=$?
+	bt_diff "$expected_stdout_file" "$temp_stdout_output_file" "${args[@]}"
+	ret_stdout=$?
+	bt_diff "$expected_stderr_file" "$temp_stderr_output_file" "${args[@]}"
+	ret_stderr=$?
+
+	if ((ret_stdout != 0 || ret_stderr != 0)); then
+		ret=1
+	fi
 
 	rm -f "$temp_stdout_output_file" "$temp_stderr_output_file"
 
@@ -263,6 +259,8 @@ bt_diff_cli_sorted() {
 	local temp_stdout_output_file
 	local temp_stderr_output_file
 	local ret=0
+	local ret_stdout
+	local ret_stderr
 
 	temp_stdout_output_file="$(mktemp -t actual_stdout.XXXXXX)"
 	temp_stderr_output_file="$(mktemp -t actual_stderr.XXXXXX)"
@@ -274,8 +272,14 @@ bt_diff_cli_sorted() {
 	# shellcheck disable=SC2005
 	echo "$(LC_ALL=C sort "$temp_stdout_output_file")" > "$temp_stdout_output_file"
 
-	bt_diff "$expected_stdout_file" "$temp_stdout_output_file" "$expected_stderr_file" "$temp_stderr_output_file" "${args[@]}"
-	ret=$?
+	bt_diff "$expected_stdout_file" "$temp_stdout_output_file" "${args[@]}"
+	ret_stdout=$?
+	bt_diff "$expected_stderr_file" "$temp_stderr_output_file" "${args[@]}"
+	ret_stderr=$?
+
+	if ((ret_stdout != 0 || ret_stderr != 0)); then
+		ret=1
+	fi
 
 	rm -f "$temp_stdout_output_file" "$temp_stderr_output_file"
 
