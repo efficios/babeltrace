@@ -77,7 +77,7 @@ struct bt_query_executor *bt_query_executor_create_with_method_data(
 	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
 	BT_ASSERT_PRE_NON_NULL(object, "Object");
 	BT_LIB_LOGD("Creating query executor: "
-		"%![comp-cls-]+C, object=\"%s\", %![params-]%+v",
+		"%![comp-cls-]+C, object=\"%s\", %![params-]+v",
 		comp_cls, object, params);
 	query_exec = g_new0(struct bt_query_executor, 1);
 	if (!query_exec) {
@@ -126,7 +126,7 @@ struct bt_query_executor *bt_query_executor_create_with_method_data(
 	bt_object_init_shared(&query_exec->base,
 		bt_query_executor_destroy);
 	BT_LIB_LOGD("Created query executor: "
-		"addr=%p, %![comp-cls-]+C, object=\"%s\", %![params-]%+v",
+		"addr=%p, %![comp-cls-]+C, object=\"%s\", %![params-]+v",
 		query_exec, comp_cls, object, params);
 
 end:
