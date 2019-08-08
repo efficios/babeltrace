@@ -90,11 +90,12 @@ test_packet_end() {
 	rm -f "$temp_stdout_output_file" "$temp_stderr_output_file" "$temp_greped_stdout_output_file"
 }
 
-plan_tests 6
+plan_tests 7
 
 test_ctf_gen_single simple
 test_ctf_single smalltrace
 test_ctf_single 2packets
 test_ctf_single barectf-event-before-packet
+test_ctf_single session-rotation
 test_packet_end lttng-event-after-packet
 test_packet_end lttng-crash

@@ -30,6 +30,11 @@
 
 #include "query.h"
 #include <stdbool.h>
+#include <glib.h>
+#include <glib/gstdio.h>
+#include <fcntl.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 #include "common/assert.h"
 #include "metadata.h"
 #include "../common/metadata/decoder.h"
@@ -440,57 +445,96 @@ bt_component_class_query_method_status support_info_query(
 	const bt_value *input_type_value;
 	const char *input_type;
 	bt_component_class_query_method_status status;
+	bt_value_map_insert_entry_status insert_entry_status;
 	double weight = 0;
 	gchar *metadata_path = NULL;
 	bt_value *result = NULL;
+	struct ctf_metadata_decoder *metadata_decoder = NULL;
+	FILE *metadata_file = NULL;
+	char uuid_str[BT_UUID_STR_LEN + 1];
+	bool has_uuid = false;
+	const bt_value *input_value;
+	const char *input;
 
 	input_type_value = bt_value_map_borrow_entry_value_const(params, "type");
 	BT_ASSERT(input_type_value);
 	BT_ASSERT(bt_value_get_type(input_type_value) == BT_VALUE_TYPE_STRING);
 	input_type = bt_value_string_get(input_type_value);
 
+	if (strcmp(input_type, "directory") != 0) {
+		goto create_result;
+	}
+
+	input_value = bt_value_map_borrow_entry_value_const(params, "input");
+	BT_ASSERT(input_value);
+	BT_ASSERT(bt_value_get_type(input_value) == BT_VALUE_TYPE_STRING);
+	input = bt_value_string_get(input_value);
+
+	metadata_path = g_build_filename(input, CTF_FS_METADATA_FILENAME, NULL);
+	if (!metadata_path) {
+		status = BT_COMPONENT_CLASS_QUERY_METHOD_STATUS_MEMORY_ERROR;
+		goto end;
+	}
+
+	metadata_file = g_fopen(metadata_path, "r");
+	if (metadata_file) {
+		struct ctf_metadata_decoder_config metadata_decoder_config = { 0 };
+		enum ctf_metadata_decoder_status decoder_status;
+		bt_uuid_t uuid;
+
+		metadata_decoder_config.log_level = log_level;
+
+		metadata_decoder = ctf_metadata_decoder_create(
+			&metadata_decoder_config);
+		if (!metadata_decoder) {
+			status = BT_COMPONENT_CLASS_QUERY_METHOD_STATUS_ERROR;
+			goto end;
+		}
+
+		decoder_status = ctf_metadata_decoder_append_content(
+			metadata_decoder, metadata_file);
+		if (decoder_status != CTF_METADATA_DECODER_STATUS_OK) {
+			BT_LOGW("cannot append metadata content: metadata-decoder-status=%d",
+				decoder_status);
+			status = BT_COMPONENT_CLASS_QUERY_METHOD_STATUS_ERROR;
+			goto end;
+		}
+
+		/*
+		 * We were able to parse the metadata file, so we are
+		 * confident it's a CTF trace.
+		 */
+		weight = 0.75;
+
+		/* If the trace has a UUID, return the stringified UUID as the group. */
+		if (ctf_metadata_decoder_get_trace_class_uuid(metadata_decoder, uuid) == 0) {
+			bt_uuid_to_str(uuid, uuid_str);
+			has_uuid = true;
+		}
+	}
+
+create_result:
 	result = bt_value_map_create();
 	if (!result) {
 		status = BT_COMPONENT_CLASS_QUERY_METHOD_STATUS_MEMORY_ERROR;
 		goto end;
 	}
 
-	if (strcmp(input_type, "directory") == 0) {
-		const bt_value *input_value;
-		const char *path;
+	insert_entry_status = bt_value_map_insert_real_entry(result, "weight", weight);
+	if (insert_entry_status != BT_VALUE_MAP_INSERT_ENTRY_STATUS_OK) {
+		status = (int) insert_entry_status;
+		goto end;
+	}
 
-		input_value = bt_value_map_borrow_entry_value_const(params, "input");
-		BT_ASSERT(input_value);
-		BT_ASSERT(bt_value_get_type(input_value) == BT_VALUE_TYPE_STRING);
-		path = bt_value_string_get(input_value);
+	/* We are not supposed to have weight == 0 and a UUID. */
+	BT_ASSERT(weight > 0 || !has_uuid);
 
-		metadata_path = g_build_filename(path, CTF_FS_METADATA_FILENAME, NULL);
-		if (!metadata_path) {
-			status = BT_COMPONENT_CLASS_QUERY_METHOD_STATUS_MEMORY_ERROR;
+	if (weight > 0 && has_uuid) {
+		insert_entry_status = bt_value_map_insert_string_entry(result, "group", uuid_str);
+		if (insert_entry_status != BT_VALUE_MAP_INSERT_ENTRY_STATUS_OK) {
+			status = (int) insert_entry_status;
 			goto end;
 		}
-
-		/*
-		 * If the metadata file exists in this directory, consider it to
-		 * be a CTF trace.
-		 */
-		if (g_file_test(metadata_path, G_FILE_TEST_EXISTS)) {
-			weight = 0.5;
-		}
-	}
-
-	if (bt_value_map_insert_real_entry(result, "weight", weight) != BT_VALUE_MAP_INSERT_ENTRY_STATUS_OK) {
-		status = BT_COMPONENT_CLASS_QUERY_METHOD_STATUS_MEMORY_ERROR;
-		goto end;
-	}
-
-	/*
-	 * Use the arbitrary constant string "ctf" as the group, such that all
-	 * found ctf traces are passed to the same instance of src.ctf.fs.
-	 */
-	if (bt_value_map_insert_string_entry(result, "group", "ctf") != BT_VALUE_MAP_INSERT_ENTRY_STATUS_OK) {
-		status = BT_COMPONENT_CLASS_QUERY_METHOD_STATUS_MEMORY_ERROR;
-		goto end;
 	}
 
 	*user_result = result;
@@ -500,6 +544,7 @@ bt_component_class_query_method_status support_info_query(
 end:
 	g_free(metadata_path);
 	bt_value_put_ref(result);
+	ctf_metadata_decoder_destroy(metadata_decoder);
 
 	return status;
 }

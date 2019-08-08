@@ -85,6 +85,7 @@ TESTS_PLUGINS = \
 
 if !ENABLE_BUILT_IN_PLUGINS
 if ENABLE_PYTHON_BINDINGS
+TESTS_PLUGINS += plugins/src.ctf.fs/query/test_query_support_info
 TESTS_PLUGINS += plugins/src.ctf.fs/query/test_query_trace_info
 TESTS_PLUGINS += plugins/src.ctf.fs/query/test_query_metadata_info
 endif
