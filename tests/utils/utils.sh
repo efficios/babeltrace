@@ -148,6 +148,7 @@ bt_cli() {
 	shift 2
 	local args=("$@")
 
+	echo "Running: $BT_TESTS_BT2_BIN ${args[*]}" >&2
 	run_python_bt2 "$BT_TESTS_BT2_BIN" "${args[@]}" 1>"$stdout_file" 2>"$stderr_file"
 }
 
@@ -159,7 +160,7 @@ bt_cli() {
 #   $1: file 1 (expected)
 #   $2: file 2 (actual)
 #
-# Return 0 if there's no difference, and 1 if there are.
+# Return 0 if there's no difference, and non-zero if there are.
 #
 # Note that this function modifies the actual output file ($2) _in-place_ to
 # remove any \r character.
@@ -167,27 +168,16 @@ bt_cli() {
 bt_diff() {
 	local expected_file="$1"
 	local actual_file="$2"
-	shift 2
-	local args=("$@")
 	local ret=0
-	local temp_diff
-
-	temp_diff="$(mktemp -t diff.XXXXXX)"
 
 	# Strip any \r present due to Windows (\n -> \r\n).
 	# "diff --string-trailing-cr" is not used since it is not present on
 	# Solaris.
 	"$BT_TESTS_SED_BIN" -i 's/\r//g' "$actual_file"
 
-	if ! diff -u "$expected_file" "$actual_file" > "$temp_diff"; then
-		echo "ERROR: for '${args[*]}': output does not match:" >&2
-		cat "$temp_diff" >&2
-		ret=1
-	fi
+	diff -u "$expected_file" "$actual_file" 1>&2
 
-	rm -f "$temp_diff"
-
-	return $ret
+	return $?
 }
 
 # Checks the difference between:
@@ -272,9 +262,9 @@ bt_diff_cli_sorted() {
 	# shellcheck disable=SC2005
 	echo "$(LC_ALL=C sort "$temp_stdout_output_file")" > "$temp_stdout_output_file"
 
-	bt_diff "$expected_stdout_file" "$temp_stdout_output_file" "${args[@]}"
+	bt_diff "$expected_stdout_file" "$temp_stdout_output_file"
 	ret_stdout=$?
-	bt_diff "$expected_stderr_file" "$temp_stderr_output_file" "${args[@]}"
+	bt_diff "$expected_stderr_file" "$temp_stderr_output_file"
 	ret_stderr=$?
 
 	if ((ret_stdout != 0 || ret_stderr != 0)); then
