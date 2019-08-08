@@ -283,7 +283,6 @@ int lttng_live_metadata_create_stream(struct lttng_live_session *session,
 {
 	struct lttng_live_metadata *metadata = NULL;
 	struct lttng_live_trace *trace;
-	const char *match;
 	struct ctf_metadata_decoder_config cfg = {
 		.log_level = session->log_level,
 		.self_comp = session->self_comp,
@@ -298,11 +297,6 @@ int lttng_live_metadata_create_stream(struct lttng_live_session *session,
 	metadata->log_level = session->log_level;
 	metadata->self_comp = session->self_comp;
 	metadata->stream_id = stream_id;
-
-	match = strstr(trace_name, session->session_name->str);
-	if (!match) {
-		goto error;
-	}
 
 	metadata->decoder = ctf_metadata_decoder_create(&cfg);
 	if (!metadata->decoder) {
