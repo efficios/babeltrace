@@ -44,21 +44,9 @@ else
 	dir_sep='/'
 fi
 
-expected_file=$(mktemp -t expected.XXXXXX)
-stderr_expected=/dev/null
+stdout_expected_file="${data_dir}/stdout.expect"
 
-cat > "$expected_file" <<END
-TestSourceABCDE: ABCDE
-TestSourceExt: ${trace_dir}${dir_sep}aaa1, ${trace_dir}${dir_sep}aaa2, ${trace_dir}${dir_sep}aaa3
-TestSourceExt: ${trace_dir}${dir_sep}bbb1, ${trace_dir}${dir_sep}bbb2
-TestSourceExt: ${trace_dir}${dir_sep}ccc1
-TestSourceExt: ${trace_dir}${dir_sep}ccc2
-TestSourceExt: ${trace_dir}${dir_sep}ccc3
-TestSourceExt: ${trace_dir}${dir_sep}ccc4
-TestSourceSomeDir: ${trace_dir}${dir_sep}some-dir
-END
-
-bt_diff_cli_sorted "$expected_file" "$stderr_expected" convert --plugin-path "${plugin_dir}" "ABCDE" "${trace_dir}" some_other_non_opt
+bt_diff_cli "$stdout_expected_file" "/dev/null" \
+	convert --plugin-path "${plugin_dir}" "ABCDE" "${trace_dir}" some_other_non_opt \
+	-c sink.text.details --params='with-metadata=false'
 ok "$?" "sources are auto-discovered"
-
-rm -f "$expected_file"

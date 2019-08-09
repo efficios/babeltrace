@@ -1,0 +1,71 @@
+{Trace 0, Stream class ID 0, Stream ID 0}
+Stream beginning:
+  Name: TestSourceABCDE: ABCDE
+  Trace:
+    Stream (ID 0, Class ID 0)
+
+{Trace 1, Stream class ID 0, Stream ID 0}
+Stream beginning:
+  Name: TestSourceExt: aaa1, aaa2, aaa3
+  Trace:
+    Stream (ID 0, Class ID 0)
+
+{Trace 2, Stream class ID 0, Stream ID 0}
+Stream beginning:
+  Name: TestSourceExt: bbb1, bbb2
+  Trace:
+    Stream (ID 0, Class ID 0)
+
+{Trace 3, Stream class ID 0, Stream ID 0}
+Stream beginning:
+  Name: TestSourceExt: ccc1
+  Trace:
+    Stream (ID 0, Class ID 0)
+
+{Trace 4, Stream class ID 0, Stream ID 0}
+Stream beginning:
+  Name: TestSourceExt: ccc2
+  Trace:
+    Stream (ID 0, Class ID 0)
+
+{Trace 5, Stream class ID 0, Stream ID 0}
+Stream beginning:
+  Name: TestSourceExt: ccc3
+  Trace:
+    Stream (ID 0, Class ID 0)
+
+{Trace 6, Stream class ID 0, Stream ID 0}
+Stream beginning:
+  Name: TestSourceExt: ccc4
+  Trace:
+    Stream (ID 0, Class ID 0)
+
+{Trace 7, Stream class ID 0, Stream ID 0}
+Stream beginning:
+  Name: TestSourceSomeDir: some-dir
+  Trace:
+    Stream (ID 0, Class ID 0)
+
+{Trace 0, Stream class ID 0, Stream ID 0}
+Stream end
+
+{Trace 1, Stream class ID 0, Stream ID 0}
+Stream end
+
+{Trace 2, Stream class ID 0, Stream ID 0}
+Stream end
+
+{Trace 3, Stream class ID 0, Stream ID 0}
+Stream end
+
+{Trace 4, Stream class ID 0, Stream ID 0}
+Stream end
+
+{Trace 5, Stream class ID 0, Stream ID 0}
+Stream end
+
+{Trace 6, Stream class ID 0, Stream ID 0}
+Stream end
+
+{Trace 7, Stream class ID 0, Stream ID 0}
+Stream end

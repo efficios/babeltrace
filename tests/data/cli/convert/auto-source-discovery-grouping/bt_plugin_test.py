@@ -1,16 +1,46 @@
 import bt2
 import os
 
+# Source component classes in this file recognize and group inputs in
+# various ways.  One stream is created by each component, with a name
+# derived from the component class and the inputs.  This is then checked
+# using the `sink.text.details` sink.
+
 
 class TestIter(bt2._UserMessageIterator):
-    pass
+    def __init__(self, output_port):
+        inputs = output_port.user_data['inputs']
+        sc = output_port.user_data['sc']
+        tc = sc.trace_class
+        t = tc()
+        s = t.create_stream(sc, name=self._make_stream_name(inputs))
+
+        self._msgs = [
+            self._create_stream_beginning_message(s),
+            self._create_stream_end_message(s),
+        ]
+
+    def _make_stream_name(self, inputs):
+        comp_cls_name = self._component.__class__.__name__
+        return (
+            comp_cls_name
+            + ': '
+            + ', '.join(sorted([os.path.basename(str(x)) for x in inputs]))
+        )
+
+    def __next__(self):
+        if len(self._msgs) == 0:
+            raise StopIteration
+
+        return self._msgs.pop(0)
 
 
 class Base:
-    @classmethod
-    def _print_params(cls, params):
-        inputs = sorted([str(x) for x in params['inputs']])
-        print('{}: {}'.format(cls.__name__, ', '.join(inputs)))
+    def __init__(self, params):
+        tc = self._create_trace_class()
+        sc = tc.create_stream_class()
+
+        self._add_output_port('out', {'inputs': params['inputs'], 'sc': sc})
 
 
 @bt2.plugin_component_class
@@ -23,7 +53,7 @@ class TestSourceExt(Base, bt2._UserSourceComponent, message_iterator_class=TestI
     """
 
     def __init__(self, params, obj):
-        self._print_params(params)
+        super().__init__(params)
 
     @staticmethod
     def _user_query(priv_query_exec, obj, params, method_obj):
@@ -61,7 +91,7 @@ class TestSourceSomeDir(
     recurse in "some-dir"."""
 
     def __init__(self, params, obj):
-        self._print_params(params)
+        super().__init__(params)
 
     @staticmethod
     def _user_query(priv_query_exec, obj, params, method_obj):
@@ -80,7 +110,7 @@ class TestSourceABCDE(Base, bt2._UserSourceComponent, message_iterator_class=Tes
     """A source that recognizes the arbitrary string input "ABCDE"."""
 
     def __init__(self, params, obj):
-        self._print_params(params)
+        super().__init__(params)
 
     @staticmethod
     def _user_query(priv_query_exec, obj, params, method_obj):
