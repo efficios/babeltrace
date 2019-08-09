@@ -695,6 +695,8 @@ AC_CONFIG_FILES([
 	src/lib/trace-ir/Makefile
 	src/logging/Makefile
 	src/Makefile
+	src/plugins/common/Makefile
+	src/plugins/common/muxing/Makefile
 	src/plugins/ctf/common/bfcr/Makefile
 	src/plugins/ctf/common/Makefile
 	src/plugins/ctf/common/metadata/Makefile

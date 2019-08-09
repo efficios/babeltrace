@@ -1,4 +1,4 @@
-SUBDIRS = utils text ctf
+SUBDIRS = common utils text ctf
 
 if ENABLE_DEBUG_INFO
 SUBDIRS += lttng-utils
