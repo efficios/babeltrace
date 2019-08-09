@@ -833,8 +833,9 @@ int validate_new_stream_clock_class(struct muxer_msg_iter *muxer_msg_iter,
 			/* Expect no clock class */
 			muxer_msg_iter->clock_class_expectation =
 				MUXER_MSG_ITER_CLOCK_CLASS_EXPECTATION_NONE;
-		} else {
-			BT_COMP_LOGE("Expecting stream class with a default clock class: "
+		} else if (muxer_msg_iter->clock_class_expectation !=
+				MUXER_MSG_ITER_CLOCK_CLASS_EXPECTATION_NONE) {
+			BT_COMP_LOGE("Expecting stream class without a default clock class: "
 				"stream-class-addr=%p, stream-class-name=\"%s\", "
 				"stream-class-id=%" PRIu64,
 				stream_class, bt_stream_class_get_name(stream_class),
