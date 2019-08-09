@@ -15,8 +15,8 @@
 # this program; if not, write to the Free Software Foundation, Inc., 51
 # Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-# Test log level options are applied to sources auto-discovered by the convert
-# command.
+# Test how log level options are applied to sources auto-discovered by the
+# convert command.
 
 if [ "x${BT_TESTS_SRCDIR:-}" != "x" ]; then
 	UTILSSH="$BT_TESTS_SRCDIR/utils/utils.sh"
@@ -38,55 +38,119 @@ dir_b="${data_dir}/dir-b"
 dir_ab="${data_dir}/dir-ab"
 
 expected_file=$(mktemp -t expected.XXXXXX)
-stderr_expected=/dev/null
 
-print_log_level="--params print=\"log-level\""
+print_log_level="--params what=\"log-level\""
+details_sink=("-c" "sink.text.details" "--params=with-metadata=false")
 
 debug=2
 trace=1
 
 # Apply log level to two components from one non-option argument.
 cat > "$expected_file" <<END
-TestSourceA: ${debug}
-TestSourceB: ${debug}
+{Trace 0, Stream class ID 0, Stream ID 0}
+Stream beginning:
+  Name: TestSourceA: ${debug}
+  Trace:
+    Stream (ID 0, Class ID 0)
+
+{Trace 1, Stream class ID 0, Stream ID 0}
+Stream beginning:
+  Name: TestSourceB: ${debug}
+  Trace:
+    Stream (ID 0, Class ID 0)
+
+{Trace 0, Stream class ID 0, Stream ID 0}
+Stream end
+
+{Trace 1, Stream class ID 0, Stream ID 0}
+Stream end
 END
 
-bt_diff_cli_sorted "$expected_file" "$stderr_expected" \
+bt_diff_cli "$expected_file" "/dev/null" \
 	convert --plugin-path "${plugin_dir}" \
-	"${dir_ab}" --log-level DEBUG ${print_log_level}
+	"${dir_ab}" --log-level DEBUG ${print_log_level} \
+	${details_sink[@]}
 ok "$?" "apply log level to two components from one non-option argument"
 
 # Apply log level to two components from two distinct non-option arguments.
 cat > "$expected_file" <<END
-TestSourceA: ${debug}
-TestSourceB: ${trace}
+{Trace 0, Stream class ID 0, Stream ID 0}
+Stream beginning:
+  Name: TestSourceA: ${debug}
+  Trace:
+    Stream (ID 0, Class ID 0)
+
+{Trace 1, Stream class ID 0, Stream ID 0}
+Stream beginning:
+  Name: TestSourceB: ${trace}
+  Trace:
+    Stream (ID 0, Class ID 0)
+
+{Trace 0, Stream class ID 0, Stream ID 0}
+Stream end
+
+{Trace 1, Stream class ID 0, Stream ID 0}
+Stream end
 END
 
-bt_diff_cli_sorted "$expected_file" "$stderr_expected" \
+bt_diff_cli "$expected_file" "/dev/null" \
 	convert --plugin-path "${plugin_dir}" \
-	"${dir_a}" --log-level DEBUG ${print_log_level} "${dir_b}" --log-level TRACE ${print_log_level}
+	"${dir_a}" --log-level DEBUG ${print_log_level} "${dir_b}" --log-level TRACE ${print_log_level} \
+	${details_sink[@]}
 ok "$?" "apply log level to two non-option arguments"
 
 # Apply log level to one component coming from one non-option argument and one component coming from two non-option arguments (1).
 cat > "$expected_file" <<END
-TestSourceA: ${trace}
-TestSourceB: ${trace}
+{Trace 0, Stream class ID 0, Stream ID 0}
+Stream beginning:
+  Name: TestSourceA: ${trace}
+  Trace:
+    Stream (ID 0, Class ID 0)
+
+{Trace 1, Stream class ID 0, Stream ID 0}
+Stream beginning:
+  Name: TestSourceB: ${trace}
+  Trace:
+    Stream (ID 0, Class ID 0)
+
+{Trace 0, Stream class ID 0, Stream ID 0}
+Stream end
+
+{Trace 1, Stream class ID 0, Stream ID 0}
+Stream end
 END
 
-bt_diff_cli_sorted "$expected_file" "$stderr_expected" \
+bt_diff_cli "$expected_file" "/dev/null" \
 	convert --plugin-path "${plugin_dir}" \
-	"${dir_a}" --log-level DEBUG ${print_log_level} "${dir_ab}" --log-level TRACE ${print_log_level}
+	"${dir_a}" --log-level DEBUG ${print_log_level} "${dir_ab}" --log-level TRACE ${print_log_level} \
+	${details_sink[@]}
 ok "$?" "apply log level to one component coming from one non-option argument and one component coming from two non-option arguments (1)"
 
 # Apply log level to one component coming from one non-option argument and one component coming from two non-option arguments (2).
 cat > "$expected_file" <<END
-TestSourceA: ${trace}
-TestSourceB: ${debug}
+{Trace 0, Stream class ID 0, Stream ID 0}
+Stream beginning:
+  Name: TestSourceA: ${trace}
+  Trace:
+    Stream (ID 0, Class ID 0)
+
+{Trace 1, Stream class ID 0, Stream ID 0}
+Stream beginning:
+  Name: TestSourceB: ${debug}
+  Trace:
+    Stream (ID 0, Class ID 0)
+
+{Trace 0, Stream class ID 0, Stream ID 0}
+Stream end
+
+{Trace 1, Stream class ID 0, Stream ID 0}
+Stream end
 END
 
-bt_diff_cli_sorted "$expected_file" "$stderr_expected" \
+bt_diff_cli "$expected_file" "/dev/null" \
 	convert --plugin-path "${plugin_dir}" \
-	"${dir_ab}" --log-level DEBUG ${print_log_level} "${dir_a}" --log-level TRACE ${print_log_level}
+	"${dir_ab}" --log-level DEBUG ${print_log_level} "${dir_a}" --log-level TRACE ${print_log_level} \
+	${details_sink[@]}
 ok "$?" "apply log level to one component coming from one non-option argument and one component coming from two non-option arguments (2)"
 
 rm -f "$expected_file"
