@@ -42,6 +42,8 @@
 #include "compat/compiler.h"
 #include <babeltrace2/types.h>
 
+#include "plugins/common/muxing/muxing.h"
+
 #include "data-stream.h"
 #include "metadata.h"
 #include "lttng-live.h"
@@ -1162,6 +1164,8 @@ bt_component_class_message_iterator_next_method_status lttng_live_msg_iter_next(
 		bt_self_message_iterator_get_data(self_msg_it);
 	struct lttng_live_component *lttng_live =
 		lttng_live_msg_iter->lttng_live_comp;
+	bt_self_component *self_comp = lttng_live_msg_iter->self_comp;
+	bt_logging_level log_level = lttng_live_msg_iter->log_level;
 	enum lttng_live_iterator_status stream_iter_status;
 	uint64_t session_idx;
 
@@ -1273,9 +1277,38 @@ bt_component_class_message_iterator_next_method_status lttng_live_msg_iter_next(
 				goto end;
 			}
 
-			if (candidate_stream_iter->current_msg_ts_ns <= next_msg_ts_ns) {
+			if (G_UNLIKELY(next_stream_iter == NULL) ||
+					candidate_stream_iter->current_msg_ts_ns <= next_msg_ts_ns) {
 				next_msg_ts_ns = candidate_stream_iter->current_msg_ts_ns;
 				next_stream_iter = candidate_stream_iter;
+			} else if (candidate_stream_iter->current_msg_ts_ns == next_msg_ts_ns) {
+				/*
+				 * The currently selected message to be sent
+				 * downstream next has the exact same timestamp
+				 * that of the current candidate message. We
+				 * must break the tie in a predictable manner.
+				 */
+				BT_COMP_LOGD_STR("Two of the next message candidates have the same timestamps, pick one deterministically.");
+				/*
+				 * Order the messages in an arbitrary but
+				 * determinitic way.
+				 */
+				int ret = common_muxing_compare_messages(candidate_stream_iter->current_msg,
+					next_stream_iter->current_msg);
+				if (ret < 0) {
+					/*
+					 * The `candidate_stream_iter->current_msg`
+					 * should go first. Update the next
+					 * iterator and the current timestamp.
+					 */
+					next_msg_ts_ns = candidate_stream_iter->current_msg_ts_ns;
+					next_stream_iter = candidate_stream_iter;
+				} else if (ret == 0) {
+					/* Unable to pick which one should go first. */
+					BT_COMP_LOGW("Cannot deterministically pick next live stream message iterator because they have identical next messages: "
+						"next-stream-iter-addr=%p" "candidate-stream-iter-addr=%p",
+						next_stream_iter, candidate_stream_iter);
+				}
 			}
 
 			session_idx++;
