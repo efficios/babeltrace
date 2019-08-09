@@ -2531,9 +2531,7 @@ void print_error_causes(void)
 	}
 
 end:
-	if (folded) {
-		g_string_free(folded, TRUE);
-	}
+	BT_ASSERT(!folded);
 
 	if (error) {
 		bt_error_release(error);
