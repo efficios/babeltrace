@@ -1415,7 +1415,7 @@ struct bt_config *bt_config_help_from_args(int argc, const char *argv[],
 	struct bt_config *cfg = NULL;
 	const char *non_opt = NULL;
 	char *plugin_name = NULL, *comp_cls_name = NULL;
-	struct bt_argpar_parse_ret argpar_parse_ret;
+	struct bt_argpar_parse_ret argpar_parse_ret = { 0 };
 
 	*retcode = 0;
 	cfg = bt_config_help_create(initial_plugin_paths, default_log_level);
@@ -1584,7 +1584,7 @@ struct bt_config *bt_config_query_from_args(int argc, const char *argv[],
 	const char *query_object = NULL;
 	bt_value *params;
 	GString *error_str = NULL;
-	struct bt_argpar_parse_ret argpar_parse_ret;
+	struct bt_argpar_parse_ret argpar_parse_ret = { 0 };
 
 	params = bt_value_null;
 	bt_value_get_ref(bt_value_null);
