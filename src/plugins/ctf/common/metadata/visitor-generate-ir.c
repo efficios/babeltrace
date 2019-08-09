@@ -4714,7 +4714,9 @@ struct ctf_visitor_generate_ir *ctf_visitor_generate_ir_create(
 	/* Create visitor's context */
 	ctx = ctx_create(decoder_config);
 	if (!ctx) {
-		BT_COMP_LOGE_STR("Cannot create visitor's context.");
+		BT_COMP_LOG_CUR_LVL(BT_LOG_ERROR, decoder_config->log_level,
+			decoder_config->self_comp,
+			"Cannot create visitor's context.");
 		goto error;
 	}
 
