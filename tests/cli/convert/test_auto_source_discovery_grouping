@@ -30,7 +30,7 @@ NUM_TESTS=3
 
 plan_tests $NUM_TESTS
 
-data_dir="${BT_TESTS_DATADIR}/cli/convert/auto-source-discovery-grouping"
+data_dir="${BT_TESTS_DATADIR}/auto-source-discovery/grouping"
 plugin_dir="${data_dir}"
 trace_dir="${data_dir}/traces"
 
@@ -44,7 +44,7 @@ else
 	dir_sep='/'
 fi
 
-stdout_expected_file="${data_dir}/stdout.expect"
+stdout_expected_file="${BT_TESTS_DATADIR}/cli/convert/auto-source-discovery-grouping.expect"
 stdout_actual_file=$(mktemp -t stdout-actual.XXXXXX)
 stderr_actual_file=$(mktemp -t actual-stderr.XXXXXX)
 

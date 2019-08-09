@@ -31,7 +31,7 @@ NUM_TESTS=4
 
 plan_tests $NUM_TESTS
 
-data_dir="${BT_TESTS_DATADIR}/cli/convert/auto-source-discovery-params-log-level"
+data_dir="${BT_TESTS_DATADIR}/auto-source-discovery/params-log-level"
 plugin_dir="${data_dir}"
 dir_a="${data_dir}/dir-a"
 dir_b="${data_dir}/dir-b"
