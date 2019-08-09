@@ -232,39 +232,8 @@
 #define BT_LOG_SRCLOC_SHORT 1
 #define BT_LOG_SRCLOC_LONG  2
 
-/* Source location format is configured per compilation module (.c/.cpp/.m
- * file) by defining BT_LOG_DEF_SRCLOC or BT_LOG_SRCLOC. BT_LOG_SRCLOC has
- * higer priority and when defined overrides value provided by
- * BT_LOG_DEF_SRCLOC.
- *
- * Common practice is to define default format with BT_LOG_DEF_SRCLOC in
- * build script (e.g. Makefile, CMakeLists.txt, gyp, etc.) for the entire
- * project or target:
- *
- *   CC_ARGS := -DBT_LOG_DEF_SRCLOC=BT_LOG_SRCLOC_LONG
- *
- * And when necessary to override it with BT_LOG_SRCLOC in .c/.cpp/.m files
- * before including bt_log.h:
- *
- *   #define BT_LOG_SRCLOC BT_LOG_SRCLOC_NONE
- *   #include "logging.h"
- *
- * If both BT_LOG_DEF_SRCLOC and BT_LOG_SRCLOC are undefined, then
- * BT_LOG_SRCLOC_NONE will be used for release builds (BT_DEBUG_MODE is
- * NOT defined) and BT_LOG_SRCLOC_LONG otherwise (BT_DEBUG_MODE is
- * defined).
- */
-#if defined(BT_LOG_SRCLOC)
-	#define _BT_LOG_SRCLOC BT_LOG_SRCLOC
-#elif defined(BT_LOG_DEF_SRCLOC)
-	#define _BT_LOG_SRCLOC BT_LOG_DEF_SRCLOC
-#else
-	#ifdef BT_DEBUG_MODE
-		#define _BT_LOG_SRCLOC BT_LOG_SRCLOC_LONG
-	#else
-		#define _BT_LOG_SRCLOC BT_LOG_SRCLOC_NONE
-	#endif
-#endif
+#define _BT_LOG_SRCLOC BT_LOG_SRCLOC_LONG
+
 #if BT_LOG_SRCLOC_LONG == _BT_LOG_SRCLOC
 	#define _BT_LOG_SRCLOC_FUNCTION _BT_LOG_FUNCTION
 #else
