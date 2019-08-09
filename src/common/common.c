@@ -1780,9 +1780,7 @@ end:
 		g_strfreev(lines);
 	}
 
-	if (line_words) {
-		g_strfreev(line_words);
-	}
+	BT_ASSERT(!line_words);
 
 	if (tmp_line) {
 		g_string_free(tmp_line, TRUE);
