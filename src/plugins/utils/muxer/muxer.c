@@ -946,7 +946,13 @@ muxer_msg_iter_youngest_upstream_msg_iter(
 			goto end;
 		}
 
-		if (msg_ts_ns < youngest_ts_ns) {
+		/*
+		 * Update the current message iterator if it has not been set
+		 * yet, or if its current message has a timestamp smaller than
+		 * the previously selected youngest message.
+		 */
+		if (G_UNLIKELY(*muxer_upstream_msg_iter == NULL) ||
+				msg_ts_ns < youngest_ts_ns) {
 			*muxer_upstream_msg_iter =
 				cur_muxer_upstream_msg_iter;
 			youngest_ts_ns = msg_ts_ns;
