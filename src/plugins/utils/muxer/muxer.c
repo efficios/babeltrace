@@ -916,7 +916,7 @@ int compare_messages_by_type(struct messages_to_compare *msgs)
 static
 int compare_events(const bt_event *left_event, const bt_event *right_event)
 {
-	int ret;
+	int ret = 0;
 	const bt_event_class *left_event_class, *right_event_class;
 	uint64_t left_event_class_id, right_event_class_id;
 	const char *left_event_class_name, *right_event_class_name,
