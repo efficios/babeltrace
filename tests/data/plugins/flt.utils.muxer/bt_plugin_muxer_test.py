@@ -49,7 +49,7 @@ class DiffTraceName:
         stream = trace.create_stream(sc, 0)
 
         sb_msg = msg_iter._create_stream_beginning_message(stream, 0)
-        se_msg = msg_iter._create_stream_end_message(stream, iter_id*193)
+        se_msg = msg_iter._create_stream_end_message(stream, iter_id * 193)
 
         msg_iter._msgs = [sb_msg, se_msg]
 
@@ -76,7 +76,7 @@ class DiffStreamName:
         stream = trace.create_stream(sc, 0, stream_name)
 
         sb_msg = msg_iter._create_stream_beginning_message(stream, 0)
-        se_msg = msg_iter._create_stream_end_message(stream, iter_id*193)
+        se_msg = msg_iter._create_stream_end_message(stream, iter_id * 193)
 
         msg_iter._msgs = [sb_msg, se_msg]
 
@@ -103,7 +103,7 @@ class DiffStreamId:
         stream = trace.create_stream(sc, stream_id)
 
         sb_msg = msg_iter._create_stream_beginning_message(stream, 0)
-        se_msg = msg_iter._create_stream_end_message(stream, iter_id*193)
+        se_msg = msg_iter._create_stream_end_message(stream, iter_id * 193)
 
         msg_iter._msgs = [sb_msg, se_msg]
 
@@ -130,7 +130,7 @@ class DiffStreamNoName:
         stream = trace.create_stream(sc, 0, name=stream_no_name)
 
         sb_msg = msg_iter._create_stream_beginning_message(stream, 0)
-        se_msg = msg_iter._create_stream_end_message(stream, iter_id*193)
+        se_msg = msg_iter._create_stream_end_message(stream, iter_id * 193)
 
         msg_iter._msgs = [sb_msg, se_msg]
 
@@ -159,7 +159,7 @@ class DiffStreamClassId:
         stream = trace.create_stream(sc, 0)
 
         sb_msg = msg_iter._create_stream_beginning_message(stream, 0)
-        se_msg = msg_iter._create_stream_end_message(stream, iter_id*193)
+        se_msg = msg_iter._create_stream_end_message(stream, iter_id * 193)
 
         msg_iter._msgs = [sb_msg, se_msg]
 
@@ -189,7 +189,7 @@ class DiffStreamClassName:
         stream = trace.create_stream(sc, 0)
 
         sb_msg = msg_iter._create_stream_beginning_message(stream, 0)
-        se_msg = msg_iter._create_stream_end_message(stream, iter_id*193)
+        se_msg = msg_iter._create_stream_end_message(stream, iter_id * 193)
 
         msg_iter._msgs = [sb_msg, se_msg]
 
@@ -219,7 +219,7 @@ class DiffStreamClassNoName:
         stream = trace.create_stream(sc, 0)
 
         sb_msg = msg_iter._create_stream_beginning_message(stream, 0)
-        se_msg = msg_iter._create_stream_end_message(stream, iter_id*193)
+        se_msg = msg_iter._create_stream_end_message(stream, iter_id * 193)
 
         msg_iter._msgs = [sb_msg, se_msg]
 
@@ -244,7 +244,7 @@ class BasicTimestampOrdering:
         stream = trace.create_stream(sc)
 
         sb_msg = msg_iter._create_stream_beginning_message(stream, timestamp)
-        se_msg = msg_iter._create_stream_end_message(stream, iter_id*193)
+        se_msg = msg_iter._create_stream_end_message(stream, iter_id * 193)
 
         msg_iter._msgs = [sb_msg, se_msg]
 
@@ -284,7 +284,7 @@ class MultiIterOrdering:
                 msg_iter._create_event_message(
                     event_class, sc_0_stream_1, clock_snapshot_value
                 ),
-                msg_iter._create_stream_end_message(sc_0_stream_1, iter_id*193)
+                msg_iter._create_stream_end_message(sc_0_stream_1, iter_id * 193),
             ]
         elif iter_id == 2:
             # Packet beginning, 2500 ns, trace "meow", stream class 0, stream 1
@@ -303,8 +303,8 @@ class MultiIterOrdering:
             msg_iter._msgs = [
                 msg_iter._create_stream_beginning_message(sc_0_stream_1, 1),
                 msg_iter._create_packet_beginning_message(packet, clock_snapshot_value),
-                msg_iter._create_packet_end_message(packet, iter_id*79),
-                msg_iter._create_stream_end_message(sc_0_stream_1, iter_id*193)
+                msg_iter._create_packet_end_message(packet, iter_id * 79),
+                msg_iter._create_stream_end_message(sc_0_stream_1, iter_id * 193),
             ]
         elif iter_id == 3:
             # Stream beginning, 2500 ns, trace "hello", stream class 0, stream 0
@@ -318,7 +318,7 @@ class MultiIterOrdering:
                 msg_iter._create_stream_beginning_message(
                     sc_0_stream_0, clock_snapshot_value
                 ),
-                msg_iter._create_stream_end_message(sc_0_stream_0, iter_id*193)
+                msg_iter._create_stream_end_message(sc_0_stream_0, iter_id * 193),
             ]
         elif iter_id == 4:
             # Event, 2500 ns, trace "meow", stream class 1, stream 1
@@ -334,7 +334,7 @@ class MultiIterOrdering:
                 msg_iter._create_event_message(
                     event_class, sc_1_stream_1, clock_snapshot_value
                 ),
-                msg_iter._create_stream_end_message(sc_1_stream_1, iter_id*193)
+                msg_iter._create_stream_end_message(sc_1_stream_1, iter_id * 193),
             ]
 
 
@@ -369,7 +369,7 @@ class DiffEventClassName:
         # event message.
         sb_msg = msg_iter._create_stream_beginning_message(stream, len(ec.name))
         ev_msg = msg_iter._create_event_message(ec, stream, 50)
-        se_msg = msg_iter._create_stream_end_message(stream, iter_id*193)
+        se_msg = msg_iter._create_stream_end_message(stream, iter_id * 193)
 
         msg_iter._msgs = [sb_msg, ev_msg, se_msg]
 
@@ -405,7 +405,7 @@ class DiffEventClassId:
         # are not at the same time. This test is targetting event message.
         sb_msg = msg_iter._create_stream_beginning_message(stream, ec.id)
         ev_msg = msg_iter._create_event_message(ec, stream, 50)
-        se_msg = msg_iter._create_stream_end_message(stream, iter_id*193)
+        se_msg = msg_iter._create_stream_end_message(stream, iter_id * 193)
 
         msg_iter._msgs = [sb_msg, ev_msg, se_msg]
 
