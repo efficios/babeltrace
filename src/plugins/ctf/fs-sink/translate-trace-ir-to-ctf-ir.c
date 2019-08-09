@@ -709,8 +709,10 @@ end:
 }
 
 /*
- * This function indicates whether or not a given variant FC option name
- * must be protected (with the `_` prefix).
+ * This function protects a given variant FC option name (with the `_`
+ * prefix) if required. On success, `name_buf->str` contains the variant
+ * FC option name to use (original option name or protected if
+ * required).
  *
  * One of the goals of `sink.ctf.fs` is to write a CTF trace which is as
  * close as possible to an original CTF trace as decoded by
@@ -776,9 +778,9 @@ end:
  * FC options and enumeration FC mappings by range set.
  */
 static
-int must_protect_variant_option_name(const bt_field_class *ir_var_fc,
+int maybe_protect_variant_option_name(const bt_field_class *ir_var_fc,
 		const bt_field_class *ir_tag_fc, uint64_t opt_i,
-		GString *name_buf, bool *must_protect)
+		GString *name_buf)
 {
 	int ret = 0;
 	uint64_t i;
@@ -789,7 +791,6 @@ int must_protect_variant_option_name(const bt_field_class *ir_var_fc,
 	const bt_field_class_variant_option *base_var_opt;
 	bool force_protect = false;
 
-	*must_protect = false;
 	ir_var_fc_type = bt_field_class_get_type(ir_var_fc);
 	base_var_opt = bt_field_class_variant_borrow_option_by_index_const(
 		ir_var_fc, opt_i);
@@ -805,7 +806,6 @@ int must_protect_variant_option_name(const bt_field_class *ir_var_fc,
 	 */
 	force_protect = must_protect_identifier(ir_opt_name);
 	if (force_protect) {
-		*must_protect = true;
 		g_string_assign(name_buf, "_");
 		g_string_append(name_buf, ir_opt_name);
 	} else {
@@ -909,13 +909,6 @@ int must_protect_variant_option_name(const bt_field_class *ir_var_fc,
 			ret = -1;
 			goto end;
 		}
-
-		/*
-		 * If this comes from a `src.ctf.fs` source, it looks
-		 * like the variant FC option name was initially
-		 * protected: protect it again when going back to TSDL.
-		 */
-		*must_protect = true;
 	}
 
 end:
@@ -970,7 +963,7 @@ int translate_variant_field_class(struct ctx *ctx)
 		}
 
 		/*
-		 * Call must_protect_variant_option_name() for each
+		 * Call maybe_protect_variant_option_name() for each
 		 * option below. In that case we also want selector FC
 		 * to contain as many mappings as the variant FC has
 		 * options.
@@ -990,6 +983,7 @@ int translate_variant_field_class(struct ctx *ctx)
 		 * create the appropriate selector field class.
 		 */
 		fc->tag_is_before = true;
+		goto validate_opts;
 	}
 
 validate_opts:
@@ -1004,12 +998,13 @@ validate_opts:
 	 * cur_path_stack_push().
 	 */
 	for (i = 0; i < opt_count; i++) {
-		bool must_protect = false;
-
-		ret = must_protect_variant_option_name(fc->base.ir_fc,
-			tgt_fc->ir_fc, i, name_buf, &must_protect);
-		if (ret) {
-			fc->tag_is_before = true;
+		if (!fc->tag_is_before) {
+			BT_ASSERT(tgt_fc->ir_fc);
+			ret = maybe_protect_variant_option_name(fc->base.ir_fc,
+				tgt_fc->ir_fc, i, name_buf);
+			if (ret) {
+				fc->tag_is_before = true;
+			}
 		}
 
 		ret = bt_value_array_append_string_element(prot_opt_names,
