@@ -1286,6 +1286,7 @@ int bt_plugin_so_create_all_from_sections(
 	size_t cc_descr_attrs_count;
 	size_t i;
 
+	BT_ASSERT(shared_lib_handle);
 	BT_ASSERT(plugin_set_out);
 	*plugin_set_out = NULL;
 	descriptor_count = count_non_null_items_in_section(descriptors_begin, descriptors_end);
