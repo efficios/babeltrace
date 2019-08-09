@@ -634,11 +634,13 @@ end:
 static
 void destroy_dmesg_msg_iter(struct dmesg_msg_iter *dmesg_msg_iter)
 {
-	struct dmesg_component *dmesg_comp = dmesg_msg_iter->dmesg_comp;
+	struct dmesg_component *dmesg_comp;
 
 	if (!dmesg_msg_iter) {
 		return;
 	}
+
+	dmesg_comp = dmesg_msg_iter->dmesg_comp;
 
 	if (dmesg_msg_iter->fp && dmesg_msg_iter->fp != stdin) {
 		if (fclose(dmesg_msg_iter->fp)) {
