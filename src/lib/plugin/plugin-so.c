@@ -1350,7 +1350,7 @@ int bt_plugin_so_create_all_from_sections(
 			goto error;
 		}
 
-		if (shared_lib_handle && shared_lib_handle->path) {
+		if (shared_lib_handle->path) {
 			bt_plugin_set_path(plugin,
 				shared_lib_handle->path->str);
 		}
