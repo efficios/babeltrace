@@ -64,7 +64,7 @@ struct bt_argpar_item_opt *create_opt_item(
 
 	if (arg) {
 		opt_item->arg = g_strdup(arg);
-		if (!opt_item) {
+		if (!opt_item->arg) {
 			goto error;
 		}
 	}
