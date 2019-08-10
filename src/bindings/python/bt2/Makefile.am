@@ -57,6 +57,7 @@ STATIC_BINDINGS_DEPS =					\
 	bt2/clock_class.py				\
 	bt2/clock_snapshot.py				\
 	bt2/component.py				\
+	bt2/component_descriptor.py			\
 	bt2/connection.py				\
 	bt2/error.py					\
 	bt2/event.py					\
