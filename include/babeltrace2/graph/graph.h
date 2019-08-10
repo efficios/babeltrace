@@ -268,8 +268,8 @@ bt_graph_add_filter_sink_component_ports_connected_listener(
 		bt_listener_id *listener_id);
 
 typedef enum bt_graph_add_interrupter_status {
-	BT_GRAPH_ADD_INTERRUPTER_STATUS_OK	= __BT_FUNC_STATUS_OK,
-	BT_GRAPH_ADD_INTERRUPTER_MEMORY_ERROR	= __BT_FUNC_STATUS_MEMORY_ERROR,
+	BT_GRAPH_ADD_INTERRUPTER_STATUS_OK		= __BT_FUNC_STATUS_OK,
+	BT_GRAPH_ADD_INTERRUPTER_STATUS_MEMORY_ERROR	= __BT_FUNC_STATUS_MEMORY_ERROR,
 } bt_graph_add_interrupter_status;
 
 extern bt_graph_add_interrupter_status bt_graph_add_interrupter(bt_graph *graph,

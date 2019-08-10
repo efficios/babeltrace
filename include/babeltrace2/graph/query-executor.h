@@ -57,8 +57,8 @@ bt_query_executor_query_status bt_query_executor_query(
 		bt_query_executor *query_executor, const bt_value **result);
 
 typedef enum bt_query_executor_add_interrupter_status {
-	BT_QUERY_EXECUTOR_ADD_INTERRUPTER_STATUS_OK	= __BT_FUNC_STATUS_OK,
-	BT_QUERY_EXECUTOR_ADD_INTERRUPTER_MEMORY_ERROR	= __BT_FUNC_STATUS_MEMORY_ERROR,
+	BT_QUERY_EXECUTOR_ADD_INTERRUPTER_STATUS_OK		= __BT_FUNC_STATUS_OK,
+	BT_QUERY_EXECUTOR_ADD_INTERRUPTER_STATUS_MEMORY_ERROR	= __BT_FUNC_STATUS_MEMORY_ERROR,
 } bt_query_executor_add_interrupter_status;
 
 extern bt_query_executor_add_interrupter_status
