@@ -1266,7 +1266,7 @@ int add_component_with_init_method_data(
 		comp_init_method_t init_method,
 		const char *name, const struct bt_value *params,
 		void *init_method_data, bt_logging_level log_level,
-		struct bt_component **user_component)
+		const struct bt_component **user_component)
 {
 	int status = BT_FUNC_STATUS_OK;
 	enum bt_component_class_init_method_status init_status;
@@ -1410,7 +1410,7 @@ enum bt_graph_add_component_status bt_graph_add_source_component(
 		struct bt_graph *graph,
 		const struct bt_component_class_source *comp_cls,
 		const char *name, const struct bt_value *params,
-		bt_logging_level log_level,
+		enum bt_logging_level log_level,
 		const struct bt_component_source **component)
 {
 	return bt_graph_add_source_component_with_init_method_data(
@@ -1422,7 +1422,7 @@ bt_graph_add_filter_component_with_init_method_data(
 		struct bt_graph *graph,
 		const struct bt_component_class_filter *comp_cls,
 		const char *name, const struct bt_value *params,
-		void *init_method_data, bt_logging_level log_level,
+		void *init_method_data, enum bt_logging_level log_level,
 		const struct bt_component_filter **component)
 {
 	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
@@ -1435,7 +1435,7 @@ enum bt_graph_add_component_status bt_graph_add_filter_component(
 		struct bt_graph *graph,
 		const struct bt_component_class_filter *comp_cls,
 		const char *name, const struct bt_value *params,
-		bt_logging_level log_level,
+		enum bt_logging_level log_level,
 		const struct bt_component_filter **component)
 {
 	return bt_graph_add_filter_component_with_init_method_data(
@@ -1447,7 +1447,7 @@ bt_graph_add_sink_component_with_init_method_data(
 		struct bt_graph *graph,
 		const struct bt_component_class_sink *comp_cls,
 		const char *name, const struct bt_value *params,
-		void *init_method_data, bt_logging_level log_level,
+		void *init_method_data, enum bt_logging_level log_level,
 		const struct bt_component_sink **component)
 {
 	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
@@ -1460,7 +1460,7 @@ enum bt_graph_add_component_status bt_graph_add_sink_component(
 		struct bt_graph *graph,
 		const struct bt_component_class_sink *comp_cls,
 		const char *name, const struct bt_value *params,
-		bt_logging_level log_level,
+		enum bt_logging_level log_level,
 		const struct bt_component_sink **component)
 {
 	return bt_graph_add_sink_component_with_init_method_data(
