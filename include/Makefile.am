@@ -110,6 +110,7 @@ babeltrace2graphinclude_HEADERS = \
 	babeltrace2/graph/message-stream-const.h \
 	babeltrace2/graph/message-stream-end-const.h \
 	babeltrace2/graph/message-stream-end.h \
+	babeltrace2/graph/mip.h \
 	babeltrace2/graph/port-const.h \
 	babeltrace2/graph/port-input-const.h \
 	babeltrace2/graph/port-output-const.h \
