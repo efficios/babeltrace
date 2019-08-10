@@ -15,7 +15,7 @@ AC_DEFUN([PPRINT_INIT], [
   AC_PATH_PROG([pprint_tput], [tput])
 
   AS_IF([test -n "$pprint_tput"], [
-    AS_IF([test -n "$PS1" && test `"$pprint_tput" colors` -eq 256 && test -t 1], [
+    AS_IF([test -n "$PS1" && test `"$pprint_tput" colors` -ge 8 && test -t 1], [
       # interactive shell and colors supported and standard output
       # file descriptor is opened on a terminal
       PPRINT_COLOR_TXTBLK="`"$pprint_tput" setaf 0`"
