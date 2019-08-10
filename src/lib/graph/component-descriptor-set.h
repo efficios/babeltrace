@@ -38,10 +38,6 @@
 #include "connection.h"
 #include "lib/func-status.h"
 
-struct bt_component_descriptor_source;
-struct bt_component_descriptor_filter;
-struct bt_component_descriptor_sink;
-
 /*
  * This structure describes an eventual component instance.
  */

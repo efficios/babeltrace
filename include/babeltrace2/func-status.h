@@ -72,6 +72,11 @@
 # define __BT_FUNC_STATUS_INTERRUPTED		4
 #endif
 
+/* No match found */
+#ifndef __BT_FUNC_STATUS_NO_MATCH
+# define __BT_FUNC_STATUS_NO_MATCH		6
+#endif
+
 /* Try operation again later */
 #ifndef __BT_FUNC_STATUS_AGAIN
 # define __BT_FUNC_STATUS_AGAIN			11

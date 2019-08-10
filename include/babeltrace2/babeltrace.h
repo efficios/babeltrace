@@ -142,6 +142,7 @@
 #include <babeltrace2/graph/graph.h>
 #include <babeltrace2/graph/interrupter-const.h>
 #include <babeltrace2/graph/interrupter.h>
+#include <babeltrace2/graph/mip.h>
 #include <babeltrace2/graph/port-const.h>
 #include <babeltrace2/graph/port-input-const.h>
 #include <babeltrace2/graph/port-output-const.h>

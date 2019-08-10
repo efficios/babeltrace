@@ -25,6 +25,7 @@ libgraph_la_SOURCES = \
 	interrupter.c \
 	interrupter.h \
 	iterator.c \
+	mip.c \
 	port.c \
 	port.h \
 	query-executor.c \
