@@ -170,18 +170,19 @@ struct __bt_plugin_component_class_descriptor {
 enum __bt_plugin_component_class_descriptor_attribute_type {
 	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_DESCRIPTION					= 0,
 	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_HELP					= 1,
-	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_INIT_METHOD					= 2,
-	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_FINALIZE_METHOD				= 3,
-	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_QUERY_METHOD				= 4,
-	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_INPUT_PORT_CONNECTED_METHOD			= 5,
-	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_OUTPUT_PORT_CONNECTED_METHOD		= 6,
-	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_GRAPH_IS_CONFIGURED_METHOD			= 7,
-	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_MSG_ITER_INIT_METHOD			= 8,
-	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_MSG_ITER_FINALIZE_METHOD			= 9,
-	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_MSG_ITER_SEEK_NS_FROM_ORIGIN_METHOD		= 10,
-	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_MSG_ITER_SEEK_BEGINNING_METHOD		= 11,
-	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_MSG_ITER_CAN_SEEK_NS_FROM_ORIGIN_METHOD	= 12,
-	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_MSG_ITER_CAN_SEEK_BEGINNING_METHOD		= 13,
+	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_GET_SUPPORTED_MIP_VERSIONS_METHOD		= 2,
+	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_INIT_METHOD					= 3,
+	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_FINALIZE_METHOD				= 4,
+	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_QUERY_METHOD				= 5,
+	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_INPUT_PORT_CONNECTED_METHOD			= 6,
+	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_OUTPUT_PORT_CONNECTED_METHOD		= 7,
+	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_GRAPH_IS_CONFIGURED_METHOD			= 8,
+	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_MSG_ITER_INIT_METHOD			= 9,
+	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_MSG_ITER_FINALIZE_METHOD			= 10,
+	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_MSG_ITER_SEEK_NS_FROM_ORIGIN_METHOD		= 11,
+	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_MSG_ITER_SEEK_BEGINNING_METHOD		= 12,
+	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_MSG_ITER_CAN_SEEK_NS_FROM_ORIGIN_METHOD	= 13,
+	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_MSG_ITER_CAN_SEEK_BEGINNING_METHOD		= 14,
 };
 
 /* Component class attribute (internal use) */
@@ -205,6 +206,11 @@ struct __bt_plugin_component_class_descriptor_attribute {
 
 		/* BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_HELP */
 		const char *help;
+
+		/* BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_GET_SUPPORTED_MIP_VERSIONS_METHOD */
+		bt_component_class_source_get_supported_mip_versions_method source_get_supported_mip_versions_method;
+		bt_component_class_filter_get_supported_mip_versions_method filter_get_supported_mip_versions_method;
+		bt_component_class_sink_get_supported_mip_versions_method sink_get_supported_mip_versions_method;
 
 		/* BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_INIT_METHOD */
 		bt_component_class_source_init_method source_init_method;
@@ -694,6 +700,39 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
 	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(sink_init_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_INIT_METHOD, _id, _comp_class_id, sink, _x)
 
 /*
+ * Defines a "get supported MIP versions" attribute attached to a
+ * specific source component class descriptor.
+ *
+ * _id:            Plugin descriptor ID (C identifier).
+ * _comp_class_id: Component class descriptor ID (C identifier).
+ * _x:             "Get supported MIP versions" method (bt_component_class_source_get_supported_mip_versions_method).
+ */
+#define BT_PLUGIN_SOURCE_COMPONENT_CLASS_GET_SUPPORTED_MIP_VERSIONS_WITH_ID(_id, _comp_class_id, _x) \
+	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(source_get_supported_mip_versions_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_GET_SUPPORTED_MIP_VERSIONS, _id, _comp_class_id, source, _x)
+
+/*
+ * Defines a "get supported MIP versions" attribute attached to a
+ * specific filter component class descriptor.
+ *
+ * _id:            Plugin descriptor ID (C identifier).
+ * _comp_class_id: Component class descriptor ID (C identifier).
+ * _x:             "Get supported MIP versions" method (bt_component_class_filter_get_supported_mip_versions_method).
+ */
+#define BT_PLUGIN_FILTER_COMPONENT_CLASS_GET_SUPPORTED_MIP_VERSIONS_WITH_ID(_id, _comp_class_id, _x) \
+	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(filter_get_supported_mip_versions_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_GET_SUPPORTED_MIP_VERSIONS, _id, _comp_class_id, filter, _x)
+
+/*
+ * Defines a "get supported MIP versions" attribute attached to a
+ * specific sink component class descriptor.
+ *
+ * _id:            Plugin descriptor ID (C identifier).
+ * _comp_class_id: Component class descriptor ID (C identifier).
+ * _x:             "Get supported MIP versions" method (bt_component_class_sink_get_supported_mip_versions_method).
+ */
+#define BT_PLUGIN_SINK_COMPONENT_CLASS_GET_SUPPORTED_MIP_VERSIONS_WITH_ID(_id, _comp_class_id, _x) \
+	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(sink_get_supported_mip_versions_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_GET_SUPPORTED_MIP_VERSIONS, _id, _comp_class_id, sink, _x)
+
+/*
  * Defines a finalization method attribute attached to a specific source
  * component class descriptor.
  *
@@ -1149,6 +1188,39 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
  */
 #define BT_PLUGIN_SINK_COMPONENT_CLASS_INIT_METHOD(_name, _x) \
 	BT_PLUGIN_SINK_COMPONENT_CLASS_INIT_METHOD_WITH_ID(auto, _name, _x)
+
+/*
+ * Defines a "get supported MIP versions" method attribute attached to a
+ * source component class descriptor which is attached to the automatic
+ * plugin descriptor.
+ *
+ * _name: Component class name (C identifier).
+ * _x:    Initialization method (bt_component_class_source_get_supported_mip_versions_method).
+ */
+#define BT_PLUGIN_SOURCE_COMPONENT_CLASS_GET_SUPPORTED_MIP_VERSIONS_METHOD(_name, _x) \
+	BT_PLUGIN_SOURCE_COMPONENT_CLASS_GET_SUPPORTED_MIP_VERSIONS_METHOD_WITH_ID(auto, _name, _x)
+
+/*
+ * Defines a "get supported MIP versions" method attribute attached to a
+ * filter component class descriptor which is attached to the automatic
+ * plugin descriptor.
+ *
+ * _name: Component class name (C identifier).
+ * _x:    Initialization method (bt_component_class_filter_get_supported_mip_versions_method).
+ */
+#define BT_PLUGIN_FILTER_COMPONENT_CLASS_GET_SUPPORTED_MIP_VERSIONS_METHOD(_name, _x) \
+	BT_PLUGIN_FILTER_COMPONENT_CLASS_GET_SUPPORTED_MIP_VERSIONS_METHOD_WITH_ID(auto, _name, _x)
+
+/*
+ * Defines a "get supported MIP versions" method attribute attached to a
+ * sink component class descriptor which is attached to the automatic
+ * plugin descriptor.
+ *
+ * _name: Component class name (C identifier).
+ * _x:    Initialization method (bt_component_class_sink_get_supported_mip_versions_method).
+ */
+#define BT_PLUGIN_SINK_COMPONENT_CLASS_GET_SUPPORTED_MIP_VERSIONS_METHOD(_name, _x) \
+	BT_PLUGIN_SINK_COMPONENT_CLASS_GET_SUPPORTED_MIP_VERSIONS_METHOD_WITH_ID(auto, _name, _x)
 
 /*
  * Defines a finalization method attribute attached to a source component
