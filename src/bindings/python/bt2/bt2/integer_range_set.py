@@ -26,8 +26,12 @@ import bt2
 
 
 class _IntegerRange:
-    def __init__(self, lower, upper):
+    def __init__(self, lower, upper=None):
         self._check_type(lower)
+
+        if upper is None:
+            upper = lower
+
         self._check_type(upper)
 
         if lower > upper:
@@ -60,10 +64,12 @@ class _IntegerRange:
 
 
 class SignedIntegerRange(_IntegerRange):
+    _is_type = staticmethod(utils._is_int64)
     _check_type = staticmethod(utils._check_int64)
 
 
 class UnsignedIntegerRange(_IntegerRange):
+    _is_type = staticmethod(utils._is_uint64)
     _check_type = staticmethod(utils._check_uint64)
 
 
@@ -117,8 +123,11 @@ class _IntegerRangeSet(object._SharedObject, collections.abc.MutableSet):
 
     def add(self, rg):
         if type(rg) is not self._range_type:
-            # assume it's a simple pair (will raise if it's not)
-            rg = self._range_type(rg[0], rg[1])
+            if self._range_type._is_type(rg):
+                rg = self._range_type(rg)
+            else:
+                # assume it's a simple pair (will raise if it's not)
+                rg = self._range_type(rg[0], rg[1])
 
         status = self._add_range(self._ptr, rg.lower, rg.upper)
         utils._handle_func_status(status, 'cannot add range to range set object')
