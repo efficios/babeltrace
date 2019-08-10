@@ -135,6 +135,8 @@
 #include <babeltrace2/graph/message-stream-end.h>
 
 /* Graph API */
+#include <babeltrace2/graph/component-descriptor-set-const.h>
+#include <babeltrace2/graph/component-descriptor-set.h>
 #include <babeltrace2/graph/connection-const.h>
 #include <babeltrace2/graph/graph-const.h>
 #include <babeltrace2/graph/graph.h>

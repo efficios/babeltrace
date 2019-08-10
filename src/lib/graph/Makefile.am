@@ -8,6 +8,8 @@ libgraph_la_SOURCES = \
 	component-class-sink-simple.h \
 	component-class.c \
 	component-class.h \
+	component-descriptor-set.c \
+	component-descriptor-set.h \
 	component-filter.c \
 	component-filter.h \
 	component-sink.c \

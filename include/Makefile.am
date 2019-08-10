@@ -81,6 +81,8 @@ babeltrace2graphinclude_HEADERS = \
 	babeltrace2/graph/component-class-source.h \
 	babeltrace2/graph/component-class.h \
 	babeltrace2/graph/component-const.h \
+	babeltrace2/graph/component-descriptor-set-const.h \
+	babeltrace2/graph/component-descriptor-set.h \
 	babeltrace2/graph/component-filter-const.h \
 	babeltrace2/graph/component-sink-const.h \
 	babeltrace2/graph/component-source-const.h \
