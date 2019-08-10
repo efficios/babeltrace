@@ -183,6 +183,9 @@ class PackageTestCase(unittest.TestCase):
     def test_has__CurrentArrayElementFieldPathItem(self):
         self._assert_in_bt2('_CurrentArrayElementFieldPathItem')
 
+    def test_has_ComponentDescriptor(self):
+        self._assert_in_bt2('ComponentDescriptor')
+
     def test_has_Graph(self):
         self._assert_in_bt2('Graph')
 

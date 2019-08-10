@@ -33,6 +33,7 @@ from bt2.component import _SinkComponent
 from bt2.component import _UserSourceComponent
 from bt2.component import _UserFilterComponent
 from bt2.component import _UserSinkComponent
+from bt2.component_descriptor import ComponentDescriptor
 from bt2.error import ComponentClassType
 from bt2.error import _ErrorCause
 from bt2.error import _ComponentErrorCause
