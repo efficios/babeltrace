@@ -288,6 +288,7 @@ int bt_plugin_so_init(struct bt_plugin *plugin,
 
 		union {
 			struct {
+				bt_component_class_source_get_supported_mip_versions_method get_supported_mip_versions;
 				bt_component_class_source_init_method init;
 				bt_component_class_source_finalize_method finalize;
 				bt_component_class_source_query_method query;
@@ -301,6 +302,7 @@ int bt_plugin_so_init(struct bt_plugin *plugin,
 			} source;
 
 			struct {
+				bt_component_class_filter_get_supported_mip_versions_method get_supported_mip_versions;
 				bt_component_class_filter_init_method init;
 				bt_component_class_filter_finalize_method finalize;
 				bt_component_class_filter_query_method query;
@@ -315,6 +317,7 @@ int bt_plugin_so_init(struct bt_plugin *plugin,
 			} filter;
 
 			struct {
+				bt_component_class_sink_get_supported_mip_versions_method get_supported_mip_versions;
 				bt_component_class_sink_init_method init;
 				bt_component_class_sink_finalize_method finalize;
 				bt_component_class_sink_query_method query;
@@ -487,6 +490,24 @@ int bt_plugin_so_init(struct bt_plugin *plugin,
 			case BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_HELP:
 				cc_full_descr->help =
 					cur_cc_descr_attr->value.help;
+				break;
+			case BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_GET_SUPPORTED_MIP_VERSIONS_METHOD:
+				switch (cc_type) {
+				case BT_COMPONENT_CLASS_TYPE_SOURCE:
+					cc_full_descr->methods.source.get_supported_mip_versions =
+						cur_cc_descr_attr->value.source_get_supported_mip_versions_method;
+					break;
+				case BT_COMPONENT_CLASS_TYPE_FILTER:
+					cc_full_descr->methods.filter.get_supported_mip_versions =
+						cur_cc_descr_attr->value.filter_get_supported_mip_versions_method;
+					break;
+				case BT_COMPONENT_CLASS_TYPE_SINK:
+					cc_full_descr->methods.sink.get_supported_mip_versions =
+						cur_cc_descr_attr->value.sink_get_supported_mip_versions_method;
+					break;
+				default:
+					abort();
+				}
 				break;
 			case BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_INIT_METHOD:
 				switch (cc_type) {
@@ -846,6 +867,19 @@ int bt_plugin_so_init(struct bt_plugin *plugin,
 
 		switch (cc_full_descr->descriptor->type) {
 		case BT_COMPONENT_CLASS_TYPE_SOURCE:
+			if (cc_full_descr->methods.source.get_supported_mip_versions) {
+				ret = bt_component_class_source_set_get_supported_mip_versions_method(
+					src_comp_class,
+					cc_full_descr->methods.source.get_supported_mip_versions);
+				if (ret) {
+					BT_LIB_LOGE_APPEND_CAUSE(
+						"Cannot set source component class's \"get supported MIP versions\" method.");
+					status = BT_FUNC_STATUS_MEMORY_ERROR;
+					BT_OBJECT_PUT_REF_AND_RESET(src_comp_class);
+					goto end;
+				}
+			}
+
 			if (cc_full_descr->methods.source.init) {
 				ret = bt_component_class_source_set_init_method(
 					src_comp_class,
@@ -978,6 +1012,19 @@ int bt_plugin_so_init(struct bt_plugin *plugin,
 
 			break;
 		case BT_COMPONENT_CLASS_TYPE_FILTER:
+			if (cc_full_descr->methods.filter.get_supported_mip_versions) {
+				ret = bt_component_class_filter_set_get_supported_mip_versions_method(
+					flt_comp_class,
+					cc_full_descr->methods.filter.get_supported_mip_versions);
+				if (ret) {
+					BT_LIB_LOGE_APPEND_CAUSE(
+						"Cannot set filter component class's \"get supported MIP versions\" method.");
+					status = BT_FUNC_STATUS_MEMORY_ERROR;
+					BT_OBJECT_PUT_REF_AND_RESET(flt_comp_class);
+					goto end;
+				}
+			}
+
 			if (cc_full_descr->methods.filter.init) {
 				ret = bt_component_class_filter_set_init_method(
 					flt_comp_class,
@@ -1123,6 +1170,19 @@ int bt_plugin_so_init(struct bt_plugin *plugin,
 
 			break;
 		case BT_COMPONENT_CLASS_TYPE_SINK:
+			if (cc_full_descr->methods.sink.get_supported_mip_versions) {
+				ret = bt_component_class_sink_set_get_supported_mip_versions_method(
+					sink_comp_class,
+					cc_full_descr->methods.sink.get_supported_mip_versions);
+				if (ret) {
+					BT_LIB_LOGE_APPEND_CAUSE(
+						"Cannot set sink component class's \"get supported MIP versions\" method.");
+					status = BT_FUNC_STATUS_MEMORY_ERROR;
+					BT_OBJECT_PUT_REF_AND_RESET(sink_comp_class);
+					goto end;
+				}
+			}
+
 			if (cc_full_descr->methods.sink.init) {
 				ret = bt_component_class_sink_set_init_method(
 					sink_comp_class,

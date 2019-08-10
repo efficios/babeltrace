@@ -33,6 +33,12 @@
 extern "C" {
 #endif
 
+typedef enum bt_component_class_get_supported_mip_versions_method_status {
+	BT_COMPONENT_CLASS_GET_SUPPORTED_MIP_VERSIONS_METHOD_STATUS_OK			= __BT_FUNC_STATUS_OK,
+	BT_COMPONENT_CLASS_GET_SUPPORTED_MIP_VERSIONS_METHOD_STATUS_ERROR		= __BT_FUNC_STATUS_ERROR,
+	BT_COMPONENT_CLASS_GET_SUPPORTED_MIP_VERSIONS_METHOD_STATUS_MEMORY_ERROR	= __BT_FUNC_STATUS_MEMORY_ERROR,
+} bt_component_class_get_supported_mip_versions_method_status;
+
 typedef enum bt_component_class_init_method_status {
 	BT_COMPONENT_CLASS_INIT_METHOD_STATUS_OK		= __BT_FUNC_STATUS_OK,
 	BT_COMPONENT_CLASS_INIT_METHOD_STATUS_ERROR		= __BT_FUNC_STATUS_ERROR,

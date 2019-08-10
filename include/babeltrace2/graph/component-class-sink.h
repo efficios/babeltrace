@@ -37,6 +37,13 @@
 extern "C" {
 #endif
 
+typedef bt_component_class_get_supported_mip_versions_method_status
+(*bt_component_class_sink_get_supported_mip_versions_method)(
+		bt_self_component_class_sink *comp_class,
+		const bt_value *params, void *init_method_data,
+		bt_logging_level log_level,
+		bt_integer_range_set_unsigned *supported_versions);
+
 typedef bt_component_class_init_method_status
 (*bt_component_class_sink_init_method)(
 		bt_self_component_sink *self_component,
@@ -86,6 +93,11 @@ bt_component_class *bt_component_class_sink_as_component_class(
 {
 	return __BT_UPCAST(bt_component_class, comp_cls_sink);
 }
+
+extern bt_component_class_set_method_status
+bt_component_class_sink_set_get_supported_mip_versions_method(
+		bt_component_class_sink *comp_class,
+		bt_component_class_sink_get_supported_mip_versions_method method);
 
 extern
 bt_component_class_sink *bt_component_class_sink_create(

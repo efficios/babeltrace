@@ -262,6 +262,48 @@ end:
 }
 
 enum bt_component_class_set_method_status
+bt_component_class_source_set_get_supported_mip_versions_method(
+		struct bt_component_class_source *comp_cls,
+		bt_component_class_source_get_supported_mip_versions_method method)
+{
+	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
+	BT_ASSERT_PRE_NON_NULL(method, "Method");
+	BT_ASSERT_PRE_DEV_COMP_CLS_HOT(comp_cls);
+	comp_cls->methods.get_supported_mip_versions = method;
+	BT_LIB_LOGD("Set source component class's \"get supported MIP versions\" method: "
+		"%!+C", comp_cls);
+	return BT_FUNC_STATUS_OK;
+}
+
+enum bt_component_class_set_method_status
+bt_component_class_filter_set_get_supported_mip_versions_method(
+		struct bt_component_class_filter *comp_cls,
+		bt_component_class_filter_get_supported_mip_versions_method method)
+{
+	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
+	BT_ASSERT_PRE_NON_NULL(method, "Method");
+	BT_ASSERT_PRE_DEV_COMP_CLS_HOT(comp_cls);
+	comp_cls->methods.get_supported_mip_versions = method;
+	BT_LIB_LOGD("Set filter component class's \"get supported MIP versions\" method: "
+		"%!+C", comp_cls);
+	return BT_FUNC_STATUS_OK;
+}
+
+enum bt_component_class_set_method_status
+bt_component_class_sink_set_get_supported_mip_versions_method(
+		struct bt_component_class_sink *comp_cls,
+		bt_component_class_sink_get_supported_mip_versions_method method)
+{
+	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
+	BT_ASSERT_PRE_NON_NULL(method, "Method");
+	BT_ASSERT_PRE_DEV_COMP_CLS_HOT(comp_cls);
+	comp_cls->methods.get_supported_mip_versions = method;
+	BT_LIB_LOGD("Set sink component class's \"get supported MIP versions\" method: "
+		"%!+C", comp_cls);
+	return BT_FUNC_STATUS_OK;
+}
+
+enum bt_component_class_set_method_status
 bt_component_class_source_set_init_method(
 		struct bt_component_class_source *comp_cls,
 		bt_component_class_source_init_method method)

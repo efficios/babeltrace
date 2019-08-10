@@ -66,6 +66,7 @@ struct bt_component_class {
 struct bt_component_class_source {
 	struct bt_component_class parent;
 	struct {
+		bt_component_class_source_get_supported_mip_versions_method get_supported_mip_versions;
 		bt_component_class_source_init_method init;
 		bt_component_class_source_finalize_method finalize;
 		bt_component_class_source_message_iterator_init_method msg_iter_init;
@@ -83,6 +84,7 @@ struct bt_component_class_source {
 struct bt_component_class_sink {
 	struct bt_component_class parent;
 	struct {
+		bt_component_class_sink_get_supported_mip_versions_method get_supported_mip_versions;
 		bt_component_class_sink_init_method init;
 		bt_component_class_sink_finalize_method finalize;
 		bt_component_class_sink_query_method query;
@@ -95,6 +97,7 @@ struct bt_component_class_sink {
 struct bt_component_class_filter {
 	struct bt_component_class parent;
 	struct {
+		bt_component_class_filter_get_supported_mip_versions_method get_supported_mip_versions;
 		bt_component_class_filter_init_method init;
 		bt_component_class_filter_finalize_method finalize;
 		bt_component_class_filter_message_iterator_init_method msg_iter_init;

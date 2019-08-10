@@ -37,6 +37,13 @@
 extern "C" {
 #endif
 
+typedef bt_component_class_get_supported_mip_versions_method_status
+(*bt_component_class_source_get_supported_mip_versions_method)(
+		bt_self_component_class_source *comp_class,
+		const bt_value *params, void *init_method_data,
+		bt_logging_level log_level,
+		bt_integer_range_set_unsigned *supported_versions);
+
 typedef bt_component_class_init_method_status
 (*bt_component_class_source_init_method)(
 		bt_self_component_source *self_component,
@@ -103,6 +110,11 @@ extern
 bt_component_class_source *bt_component_class_source_create(
 		const char *name,
 		bt_component_class_source_message_iterator_next_method method);
+
+extern bt_component_class_set_method_status
+bt_component_class_source_set_get_supported_mip_versions_method(
+		bt_component_class_source *comp_class,
+		bt_component_class_source_get_supported_mip_versions_method method);
 
 extern bt_component_class_set_method_status
 bt_component_class_source_set_init_method(
