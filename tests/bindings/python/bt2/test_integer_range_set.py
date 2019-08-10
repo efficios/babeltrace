@@ -33,6 +33,11 @@ class _IntegerRangeTestCase:
         self.assertEqual(rg.lower, self._def_lower)
         self.assertEqual(rg.upper, self._def_lower)
 
+    def test_create_single(self):
+        rg = self._CLS(self._def_lower)
+        self.assertEqual(rg.lower, self._def_lower)
+        self.assertEqual(rg.upper, self._def_lower)
+
     def test_create_wrong_type_lower(self):
         with self.assertRaises(TypeError):
             rg = self._CLS(19.3, self._def_upper)
@@ -122,13 +127,18 @@ class _IntegerRangeSetTestCase:
         self.assertIn(self._range2, rs)
         self.assertIn(self._range3, rs)
 
+    def test_create_single(self):
+        rs = self._CLS((self._range_same.lower,))
+        self.assertEqual(len(rs), 1)
+        self.assertIn(self._range_same, rs)
+
     def test_create_non_iter(self):
         with self.assertRaises(TypeError):
             self._rs = self._CLS(23)
 
     def test_create_wrong_elem_type(self):
         with self.assertRaises(TypeError):
-            self._rs = self._CLS((self._range1, self._range2, 17))
+            self._rs = self._CLS((self._range1, self._range2, 'lel'))
 
     def test_len(self):
         self.assertEqual(len(self._rs), 3)
@@ -202,6 +212,7 @@ class UnsignedIntegerRangeSetTestCase(_IntegerRangeSetTestCase, unittest.TestCas
         self._range1 = bt2.UnsignedIntegerRange(4, 192)
         self._range2 = bt2.UnsignedIntegerRange(17, 228)
         self._range3 = bt2.UnsignedIntegerRange(1000, 2000)
+        self._range_same = bt2.UnsignedIntegerRange(1300, 1300)
         super().setUp()
 
 
@@ -212,4 +223,5 @@ class SignedIntegerRangeSetTestCase(_IntegerRangeSetTestCase, unittest.TestCase)
         self._range1 = bt2.SignedIntegerRange(-1484, -17)
         self._range2 = bt2.SignedIntegerRange(-101, 1500)
         self._range3 = bt2.SignedIntegerRange(1948, 2019)
+        self._range_same = bt2.SignedIntegerRange(-1300, -1300)
         super().setUp()
