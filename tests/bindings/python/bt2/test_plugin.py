@@ -84,7 +84,9 @@ class FindPluginTestCase(unittest.TestCase):
 
 class PluginTestCase(unittest.TestCase):
     def setUp(self):
-        self._plugin = bt2.find_plugin('ctf')
+        self._plugin = bt2.find_plugin(
+            'ctf', find_in_user_dir=False, find_in_sys_dir=False
+        )
 
     def tearDown(self):
         del self._plugin
@@ -131,7 +133,7 @@ class PluginTestCase(unittest.TestCase):
         self.assertEqual(plugins['lttng-live'].name, 'lttng-live')
 
     def test_filter_comp_classes_len(self):
-        plugin = bt2.find_plugin('utils')
+        plugin = bt2.find_plugin('utils', find_in_user_dir=False, find_in_sys_dir=False)
         self.assertEqual(len(plugin.filter_component_classes), 2)
 
     def test_sink_comp_classes_len(self):
