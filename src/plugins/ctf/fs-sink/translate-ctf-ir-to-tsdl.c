@@ -182,6 +182,20 @@ void append_end_block_semi_nl_nl(struct ctx *ctx)
 }
 
 static
+void append_bool_field_class(struct ctx *ctx,
+		__attribute__((unused)) struct fs_sink_ctf_field_class_bool *fc)
+{
+	/*
+	 * CTF 1.8 has no boolean field class type, so this component
+	 * translates it to an 8-bit unsigned integer field class.
+	 */
+	append_integer_field_class_from_props(ctx, fc->base.size,
+		fc->base.base.alignment, false,
+		BT_FIELD_CLASS_INTEGER_PREFERRED_DISPLAY_BASE_DECIMAL,
+		NULL, NULL, false);
+}
+
+static
 void append_integer_field_class(struct ctx *ctx,
 		struct fs_sink_ctf_field_class_int *fc)
 {
@@ -424,6 +438,10 @@ void append_struct_field_class_members(struct ctx *ctx,
 				g_string_append_printf(ctx->tsdl, " %s;\n",
 					var_fc->tag_ref->str);
 			}
+		} else if (fc->type == FS_SINK_CTF_FIELD_CLASS_TYPE_BOOL) {
+			append_indent(ctx);
+			g_string_append(ctx->tsdl,
+				"/* The integer field class below was a trace IR boolean field class. */\n");
 		}
 
 		append_indent(ctx);
@@ -469,6 +487,9 @@ static
 void append_field_class(struct ctx *ctx, struct fs_sink_ctf_field_class *fc)
 {
 	switch (fc->type) {
+	case FS_SINK_CTF_FIELD_CLASS_TYPE_BOOL:
+		append_bool_field_class(ctx, (void *) fc);
+		break;
 	case FS_SINK_CTF_FIELD_CLASS_TYPE_INT:
 		append_integer_field_class(ctx, (void *) fc);
 		break;
