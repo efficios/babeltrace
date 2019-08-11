@@ -31,7 +31,7 @@ class Interrupter(object._SharedObject):
         ptr = native_bt.interrupter_create()
 
         if ptr is None:
-            raise bt2.CreationError('cannot create interrupter object')
+            raise bt2._MemoryError('cannot create interrupter object')
 
         super().__init__(ptr)
 
