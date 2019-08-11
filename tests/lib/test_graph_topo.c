@@ -449,7 +449,7 @@ const bt_component_sink *create_sink(bt_graph *graph)
 static
 bt_graph *create_graph(void)
 {
-	bt_graph *graph = bt_graph_create();
+	bt_graph *graph = bt_graph_create(0);
 	int ret;
 
 	BT_ASSERT(graph);

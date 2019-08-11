@@ -50,6 +50,16 @@ class UserComponentTestCase(unittest.TestCase):
 
         comp = self._create_comp(MySink, 'yaes', bt2.LoggingLevel.INFO)
 
+    def test_graph_mip_version(self):
+        class MySink(bt2._UserSinkComponent):
+            def __init__(comp_self, params, obj):
+                self.assertEqual(comp_self._graph_mip_version, 0)
+
+            def _user_consume(self):
+                pass
+
+        comp = self._create_comp(MySink, 'yaes', bt2.LoggingLevel.INFO)
+
     def test_class(self):
         class MySink(bt2._UserSinkComponent):
             def __init__(comp_self, params, obj):

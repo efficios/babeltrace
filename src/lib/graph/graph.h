@@ -90,6 +90,8 @@ struct bt_graph {
 	/* Queue of pointers (weak references) to sink bt_components. */
 	GQueue *sinks_to_consume;
 
+	uint64_t mip_version;
+
 	/*
 	 * Array of `struct bt_interrupter *`, each one owned by this.
 	 * If any interrupter is set, then this graph is deemed

@@ -70,8 +70,13 @@ class Graph(object._SharedObject):
     _get_ref = staticmethod(native_bt.graph_get_ref)
     _put_ref = staticmethod(native_bt.graph_put_ref)
 
-    def __init__(self):
-        ptr = native_bt.graph_create()
+    def __init__(self, mip_version=0):
+        utils._check_uint64(mip_version)
+
+        if mip_version > bt2.get_maximal_mip_version():
+            raise ValueError('unknown MIP version {}'.format(mip_version))
+
+        ptr = native_bt.graph_create(mip_version)
 
         if ptr is None:
             raise bt2._MemoryError('cannot create graph object')

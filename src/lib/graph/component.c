@@ -605,6 +605,15 @@ bt_logging_level bt_component_get_logging_level(
 	return component->log_level;
 }
 
+uint64_t bt_self_component_get_graph_mip_version(
+		bt_self_component *self_component)
+{
+	struct bt_component *comp = (void *) self_component;
+
+	BT_ASSERT_PRE_NON_NULL(self_component, "Component");
+	return bt_component_borrow_graph(comp)->mip_version;
+}
+
 void bt_component_get_ref(const struct bt_component *component)
 {
 	bt_object_get_ref(component);
