@@ -31,6 +31,8 @@ SWIG_INTERFACE_FILES =					\
 	bt2/native_bt_message.i				\
 	bt2/native_bt_message_iterator.i		\
 	bt2/native_bt_message_iterator.i.h		\
+	bt2/native_bt_mip.i				\
+	bt2/native_bt_mip.i.h				\
 	bt2/native_bt_packet.i				\
 	bt2/native_bt_plugin.i				\
 	bt2/native_bt_plugin.i.h			\
@@ -71,6 +73,7 @@ STATIC_BINDINGS_DEPS =					\
 	bt2/logging.py					\
 	bt2/message.py					\
 	bt2/message_iterator.py				\
+	bt2/mip.py					\
 	bt2/object.py					\
 	bt2/packet.py					\
 	bt2/plugin.py					\
