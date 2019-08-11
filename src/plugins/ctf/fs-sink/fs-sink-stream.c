@@ -199,6 +199,20 @@ int write_field(struct fs_sink_stream *stream,
 		struct fs_sink_ctf_field_class *fc, const bt_field *field);
 
 static inline
+int write_bool_field(struct fs_sink_stream *stream,
+		struct fs_sink_ctf_field_class_int *fc, const bt_field *field)
+{
+	/*
+	 * CTF 1.8 has no boolean field class type, so this component
+	 * translates this boolean field to an 8-bit unsigned integer
+	 * field which has the value 0 (false) or 1 (true).
+	 */
+	return bt_ctfser_write_unsigned_int(&stream->ctfser,
+		bt_field_bool_get_value(field) ? 1 : 0,
+		fc->base.base.alignment, fc->base.size, BYTE_ORDER);
+}
+
+static inline
 int write_int_field(struct fs_sink_stream *stream,
 		struct fs_sink_ctf_field_class_int *fc, const bt_field *field)
 {
@@ -354,6 +368,9 @@ int write_field(struct fs_sink_stream *stream,
 	int ret;
 
 	switch (fc->type) {
+	case FS_SINK_CTF_FIELD_CLASS_TYPE_BOOL:
+		ret = write_bool_field(stream, (void *) fc, field);
+		break;
 	case FS_SINK_CTF_FIELD_CLASS_TYPE_INT:
 		ret = write_int_field(stream, (void *) fc, field);
 		break;

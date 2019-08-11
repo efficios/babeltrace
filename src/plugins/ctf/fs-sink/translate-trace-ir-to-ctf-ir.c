@@ -1167,6 +1167,19 @@ end:
 }
 
 static inline
+int translate_bool_field_class(struct ctx *ctx)
+{
+	struct fs_sink_ctf_field_class_bool *fc =
+		fs_sink_ctf_field_class_bool_create(
+			cur_path_stack_top(ctx)->ir_fc,
+			cur_path_stack_top(ctx)->index_in_parent);
+
+	BT_ASSERT(fc);
+	append_to_parent_field_class(ctx, (void *) fc);
+	return 0;
+}
+
+static inline
 int translate_integer_field_class(struct ctx *ctx)
 {
 	struct fs_sink_ctf_field_class_int *fc =
@@ -1218,6 +1231,9 @@ int translate_field_class(struct ctx *ctx)
 	int ret;
 
 	switch (bt_field_class_get_type(cur_path_stack_top(ctx)->ir_fc)) {
+	case BT_FIELD_CLASS_TYPE_BOOL:
+		ret = translate_bool_field_class(ctx);
+		break;
 	case BT_FIELD_CLASS_TYPE_UNSIGNED_INTEGER:
 	case BT_FIELD_CLASS_TYPE_SIGNED_INTEGER:
 	case BT_FIELD_CLASS_TYPE_UNSIGNED_ENUMERATION:
