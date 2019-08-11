@@ -154,6 +154,21 @@ void field_class_integer_set_props(const bt_field_class *input_fc,
 }
 
 static inline
+int field_class_bool_copy(
+		struct trace_ir_metadata_maps *md_maps,
+		const bt_field_class *in_field_class,
+		bt_field_class *out_field_class)
+{
+	BT_COMP_LOGD("Copying content of boolean field class: "
+			"in-fc-addr=%p, out-fc-addr=%p",
+			in_field_class, out_field_class);
+	BT_COMP_LOGD("Copied content of boolean field class: "
+			"in-fc-addr=%p, out-fc-addr=%p",
+			in_field_class, out_field_class);
+	return 0;
+}
+
+static inline
 int field_class_unsigned_integer_copy(
 		struct trace_ir_metadata_maps *md_maps,
 		const bt_field_class *in_field_class,
@@ -561,6 +576,10 @@ bt_field_class *create_field_class_copy_internal(struct trace_ir_metadata_maps *
 			in_field_class);
 
 	switch (fc_type) {
+	case BT_FIELD_CLASS_TYPE_BOOL:
+		out_field_class = bt_field_class_bool_create(
+				md_maps->output_trace_class);
+		break;
 	case BT_FIELD_CLASS_TYPE_UNSIGNED_INTEGER:
 		out_field_class = bt_field_class_integer_unsigned_create(
 				md_maps->output_trace_class);
@@ -700,6 +719,10 @@ int copy_field_class_content_internal(
 {
 	int ret = 0;
 	switch(bt_field_class_get_type(in_field_class)) {
+	case BT_FIELD_CLASS_TYPE_BOOL:
+		ret = field_class_bool_copy(md_maps,
+				in_field_class, out_field_class);
+		break;
 	case BT_FIELD_CLASS_TYPE_UNSIGNED_INTEGER:
 		ret = field_class_unsigned_integer_copy(md_maps,
 				in_field_class, out_field_class);
