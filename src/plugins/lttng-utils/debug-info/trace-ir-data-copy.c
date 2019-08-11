@@ -219,6 +219,10 @@ void copy_field_content(const bt_field *in_field, bt_field *out_field,
 	BT_COMP_LOGT("Copying content of field: in-f-addr=%p, out-f-addr=%p",
 			in_field, out_field);
 	switch (in_fc_type) {
+	case BT_FIELD_CLASS_TYPE_BOOL:
+		bt_field_bool_set_value(out_field,
+			bt_field_bool_get_value(in_field));
+		break;
 	case BT_FIELD_CLASS_TYPE_UNSIGNED_INTEGER:
 	case BT_FIELD_CLASS_TYPE_UNSIGNED_ENUMERATION:
 		bt_field_integer_unsigned_set_value(out_field,
