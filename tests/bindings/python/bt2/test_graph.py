@@ -51,8 +51,19 @@ class GraphTestCase(unittest.TestCase):
     def tearDown(self):
         del self._graph
 
-    def test_create_empty(self):
-        graph = bt2.Graph()
+    def test_create_default(self):
+        bt2.Graph()
+
+    def test_create_known_mip_version(self):
+        bt2.Graph(0)
+
+    def test_create_invalid_mip_version_type(self):
+        with self.assertRaises(TypeError):
+            bt2.Graph('')
+
+    def test_create_unknown_mip_version(self):
+        with self.assertRaisesRegex(ValueError, 'unknown MIP version'):
+            bt2.Graph(1)
 
     def test_add_component_user_cls(self):
         class MySink(bt2._UserSinkComponent):

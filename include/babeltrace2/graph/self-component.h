@@ -46,6 +46,9 @@ const bt_component *bt_self_component_as_component(
 	return __BT_UPCAST(bt_component, self_component);
 }
 
+extern
+uint64_t bt_self_component_get_graph_mip_version(bt_self_component *self_component);
+
 extern void *bt_self_component_get_data(
 		const bt_self_component *self_component);
 

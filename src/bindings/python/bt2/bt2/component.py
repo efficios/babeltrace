@@ -677,6 +677,11 @@ class _UserComponent(metaclass=_UserComponentType):
     def addr(self):
         return int(self._bt_ptr)
 
+    @property
+    def _graph_mip_version(self):
+        ptr = self._bt_as_self_component_ptr(self._bt_ptr)
+        return native_bt.self_component_get_graph_mip_version(ptr)
+
     def __init__(self, params=None, obj=None):
         pass
 

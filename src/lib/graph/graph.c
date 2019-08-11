@@ -262,11 +262,15 @@ void notify_message_graph_is_destroyed(struct bt_message *msg)
 	bt_message_unlink_graph(msg);
 }
 
-struct bt_graph *bt_graph_create(void)
+struct bt_graph *bt_graph_create(uint64_t mip_version)
 {
 	struct bt_graph *graph;
 	int ret;
 
+	BT_ASSERT_PRE(mip_version <= bt_get_maximal_mip_version(),
+		"Unknown MIP version: mip-version=%" PRIu64 ", "
+		"max-mip-version=%" PRIu64,
+		mip_version, bt_get_maximal_mip_version());
 	BT_LOGI_STR("Creating graph object.");
 	graph = g_new0(struct bt_graph, 1);
 	if (!graph) {
@@ -275,6 +279,7 @@ struct bt_graph *bt_graph_create(void)
 	}
 
 	bt_object_init_shared(&graph->base, destroy_graph);
+	graph->mip_version = mip_version;
 	graph->connections = g_ptr_array_new_with_free_func(
 		(GDestroyNotify) bt_object_try_spec_release);
 	if (!graph->connections) {

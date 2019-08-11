@@ -94,7 +94,7 @@ bt_graph *create_graph_with_source(const bt_port_output **out_port)
 	set_method_status = bt_component_class_source_set_init_method(
 		src_comp_cls, src_init);
 	BT_ASSERT(set_method_status == BT_COMPONENT_CLASS_SET_METHOD_STATUS_OK);
-	graph = bt_graph_create();
+	graph = bt_graph_create(0);
 	BT_ASSERT(graph);
 	add_comp_status = bt_graph_add_source_component(graph, src_comp_cls,
 		"src", NULL, BT_LOGGING_LEVEL_NONE, &src_comp);

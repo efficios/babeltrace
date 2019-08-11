@@ -1745,7 +1745,7 @@ int cmd_run_ctx_init(struct cmd_run_ctx *ctx, struct bt_config *cfg)
 		}
 	}
 
-	ctx->graph = bt_graph_create();
+	ctx->graph = bt_graph_create(0);
 	if (!ctx->graph) {
 		goto error;
 	}

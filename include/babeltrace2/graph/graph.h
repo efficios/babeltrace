@@ -117,7 +117,7 @@ typedef bt_graph_simple_sink_component_consume_func_status
 
 typedef void (*bt_graph_simple_sink_component_finalize_func)(void *data);
 
-extern bt_graph *bt_graph_create(void);
+extern bt_graph *bt_graph_create(uint64_t mip_version);
 
 typedef enum bt_graph_add_component_status {
 	BT_GRAPH_ADD_COMPONENT_STATUS_OK		= __BT_FUNC_STATUS_OK,

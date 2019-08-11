@@ -199,7 +199,7 @@ static void test_sfs(const char *plugin_dir)
 	bt_component_class_sink_get_ref(sink_comp_class);
 	diag("> putting the plugin set object here");
 	BT_PLUGIN_SET_PUT_REF_AND_RESET(plugin_set);
-	graph = bt_graph_create();
+	graph = bt_graph_create(0);
 	BT_ASSERT(graph);
 	graph_ret = bt_graph_add_sink_component(graph, sink_comp_class,
 		"the-sink", NULL, BT_LOGGING_LEVEL_NONE, &sink_component);
