@@ -94,6 +94,8 @@ from bt2.message import _MessageIteratorInactivityMessage
 from bt2.message import _DiscardedEventsMessage
 from bt2.message import _DiscardedPacketsMessage
 from bt2.message_iterator import _UserMessageIterator
+from bt2.mip import get_greatest_operative_mip_version
+from bt2.mip import get_maximal_mip_version
 from bt2.plugin import find_plugins_in_path
 from bt2.plugin import find_plugins
 from bt2.plugin import find_plugin
