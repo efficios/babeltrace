@@ -65,6 +65,40 @@ void init_field_class(struct bt_field_class *fc, enum bt_field_class_type type,
 }
 
 static
+void destroy_bool_field_class(struct bt_object *obj)
+{
+	BT_ASSERT(obj);
+	BT_LIB_LOGD("Destroying boolean field class object: %!+F", obj);
+	g_free(obj);
+}
+
+struct bt_field_class *bt_field_class_bool_create(
+		bt_trace_class *trace_class)
+{
+	struct bt_field_class_bool *bool_fc = NULL;
+
+	BT_ASSERT_PRE_NON_NULL(trace_class, "Trace class");
+	BT_LOGD("Creating default boolean field class object.");
+	bool_fc = g_new0(struct bt_field_class_bool, 1);
+	if (!bool_fc) {
+		BT_LIB_LOGE_APPEND_CAUSE(
+			"Failed to allocate one boolean field class.");
+		goto error;
+	}
+
+	init_field_class((void *) bool_fc, BT_FIELD_CLASS_TYPE_BOOL,
+		destroy_bool_field_class);
+	BT_LIB_LOGD("Created boolean field class object: %!+F", bool_fc);
+	goto end;
+
+error:
+	BT_OBJECT_PUT_REF_AND_RESET(bool_fc);
+
+end:
+	return (void *) bool_fc;
+}
+
+static
 void init_integer_field_class(struct bt_field_class_integer *fc,
 		enum bt_field_class_type type,
 		bt_object_release_func release_func)

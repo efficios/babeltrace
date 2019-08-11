@@ -105,6 +105,11 @@ struct bt_field {
 	bool frozen;
 };
 
+struct bt_field_bool {
+	struct bt_field common;
+	bool value;
+};
+
 struct bt_field_integer {
 	struct bt_field common;
 

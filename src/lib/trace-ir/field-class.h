@@ -186,6 +186,10 @@ struct bt_field_class {
 	bool part_of_trace_class;
 };
 
+struct bt_field_class_bool {
+	struct bt_field_class common;
+};
+
 struct bt_field_class_integer {
 	struct bt_field_class common;
 

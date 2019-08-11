@@ -75,6 +75,13 @@ static
 bool variant_field_is_set(const struct bt_field *field);
 
 static
+struct bt_field_methods bool_field_methods = {
+	.set_is_frozen = set_single_field_is_frozen,
+	.is_set = single_field_is_set,
+	.reset = reset_single_field,
+};
+
+static
 struct bt_field_methods integer_field_methods = {
 	.set_is_frozen = set_single_field_is_frozen,
 	.is_set = single_field_is_set,
@@ -117,6 +124,9 @@ struct bt_field_methods variant_field_methods = {
 };
 
 static
+struct bt_field *create_bool_field(struct bt_field_class *);
+
+static
 struct bt_field *create_integer_field(struct bt_field_class *);
 
 static
@@ -139,6 +149,7 @@ struct bt_field *create_variant_field(struct bt_field_class *);
 
 static
 struct bt_field *(* const field_create_funcs[])(struct bt_field_class *) = {
+	[BT_FIELD_CLASS_TYPE_BOOL]				= create_bool_field,
 	[BT_FIELD_CLASS_TYPE_UNSIGNED_INTEGER]			= create_integer_field,
 	[BT_FIELD_CLASS_TYPE_SIGNED_INTEGER]			= create_integer_field,
 	[BT_FIELD_CLASS_TYPE_UNSIGNED_ENUMERATION]		= create_integer_field,
@@ -152,6 +163,9 @@ struct bt_field *(* const field_create_funcs[])(struct bt_field_class *) = {
 	[BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_SELECTOR]	= create_variant_field,
 	[BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_SELECTOR]	= create_variant_field,
 };
+
+static
+void destroy_bool_field(struct bt_field *field);
 
 static
 void destroy_integer_field(struct bt_field *field);
@@ -173,6 +187,7 @@ void destroy_variant_field(struct bt_field *field);
 
 static
 void (* const field_destroy_funcs[])(struct bt_field *) = {
+	[BT_FIELD_CLASS_TYPE_BOOL]				= destroy_bool_field,
 	[BT_FIELD_CLASS_TYPE_UNSIGNED_INTEGER]			= destroy_integer_field,
 	[BT_FIELD_CLASS_TYPE_SIGNED_INTEGER]			= destroy_integer_field,
 	[BT_FIELD_CLASS_TYPE_UNSIGNED_ENUMERATION]		= destroy_integer_field,
@@ -233,6 +248,26 @@ void init_field(struct bt_field *field, struct bt_field_class *fc,
 	field->methods = methods;
 	field->class = fc;
 	bt_object_get_no_null_check(fc);
+}
+
+static
+struct bt_field *create_bool_field(struct bt_field_class *fc)
+{
+	struct bt_field_bool *bool_field;
+
+	BT_LIB_LOGD("Creating boolean field object: %![fc-]+F", fc);
+	bool_field = g_new0(struct bt_field_bool, 1);
+	if (!bool_field) {
+		BT_LIB_LOGE_APPEND_CAUSE(
+			"Failed to allocate one boolean field.");
+		goto end;
+	}
+
+	init_field((void *) bool_field, fc, &bool_field_methods);
+	BT_LIB_LOGD("Created boolean field object: %!+f", bool_field);
+
+end:
+	return (void *) bool_field;
 }
 
 static
@@ -492,6 +527,29 @@ struct bt_field *create_dynamic_array_field(struct bt_field_class *fc)
 
 end:
 	return (void *) array_field;
+}
+
+bt_bool bt_field_bool_get_value(const struct bt_field *field)
+{
+	const struct bt_field_bool *bool_field = (const void *) field;
+
+	BT_ASSERT_PRE_DEV_NON_NULL(field, "Field");
+	BT_ASSERT_PRE_DEV_FIELD_IS_SET(field, "Field");
+	BT_ASSERT_PRE_DEV_FIELD_HAS_CLASS_TYPE(field, BT_FIELD_CLASS_TYPE_BOOL,
+		"Field");
+	return (bt_bool) bool_field->value;
+}
+
+void bt_field_bool_set_value(struct bt_field *field, bt_bool value)
+{
+	struct bt_field_bool *bool_field = (void *) field;
+
+	BT_ASSERT_PRE_DEV_NON_NULL(field, "Field");
+	BT_ASSERT_PRE_DEV_FIELD_HAS_CLASS_TYPE(field, BT_FIELD_CLASS_TYPE_BOOL,
+		"Field");
+	BT_ASSERT_PRE_DEV_FIELD_HOT(field, "Field");
+	bool_field->value = (bool) value;
+	bt_field_set_single(field, true);
 }
 
 int64_t bt_field_integer_signed_get_value(const struct bt_field *field)
@@ -950,6 +1008,15 @@ void bt_field_finalize(struct bt_field *field)
 	BT_ASSERT(field);
 	BT_LOGD_STR("Putting field's class.");
 	BT_OBJECT_PUT_REF_AND_RESET(field->class);
+}
+
+static
+void destroy_bool_field(struct bt_field *field)
+{
+	BT_ASSERT(field);
+	BT_LIB_LOGD("Destroying boolean field object: %!+f", field);
+	bt_field_finalize(field);
+	g_free(field);
 }
 
 static

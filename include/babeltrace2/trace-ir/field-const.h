@@ -42,6 +42,8 @@ extern const bt_field_class *bt_field_borrow_class_const(
 extern bt_field_class_type bt_field_get_class_type(
 		const bt_field *field);
 
+extern bt_bool bt_field_bool_get_value(const bt_field *field);
+
 extern int64_t bt_field_integer_signed_get_value(const bt_field *field);
 
 extern uint64_t bt_field_integer_unsigned_get_value(

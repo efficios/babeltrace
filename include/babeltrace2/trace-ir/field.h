@@ -35,6 +35,8 @@
 extern "C" {
 #endif
 
+extern void bt_field_bool_set_value(bt_field *field, bt_bool value);
+
 extern void bt_field_integer_signed_set_value(bt_field *field,
 		int64_t value);
 
