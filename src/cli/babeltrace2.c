@@ -1711,10 +1711,137 @@ void cmd_run_ctx_destroy(struct cmd_run_ctx *ctx)
 }
 
 static
+int add_descriptor_to_component_descriptor_set(
+		bt_component_descriptor_set *comp_descr_set,
+		const char *plugin_name, const char *comp_cls_name,
+		bt_component_class_type comp_cls_type,
+		const bt_value *params)
+{
+	const bt_component_class *comp_cls;
+	int status = 0;
+
+	comp_cls = find_component_class(plugin_name, comp_cls_name,
+		comp_cls_type);
+	if (!comp_cls) {
+		BT_CLI_LOGE_APPEND_CAUSE(
+			"Cannot find component class: plugin-name=\"%s\", "
+			"comp-cls-name=\"%s\", comp-cls-type=%d",
+			plugin_name, comp_cls_name, comp_cls_type);
+		status = -1;
+		goto end;
+	}
+
+	status = bt_component_descriptor_set_add_descriptor(
+		comp_descr_set, comp_cls, params);
+	if (status != BT_COMPONENT_DESCRIPTOR_SET_ADD_DESCRIPTOR_STATUS_OK) {
+		BT_CLI_LOGE_APPEND_CAUSE(
+			"Cannot append descriptor to component descriptor set: "
+			"status=%s", bt_common_func_status_string(status));
+		goto end;
+	}
+
+end:
+	bt_component_class_put_ref(comp_cls);
+	return status;
+}
+
+static
+int append_descriptors_from_bt_config_component_array(
+		bt_component_descriptor_set *comp_descr_set,
+		GPtrArray *component_configs)
+{
+	int ret = 0;
+	uint64_t i;
+
+	for (i = 0; i < component_configs->len; i++) {
+		struct bt_config_component *cfg_comp =
+			component_configs->pdata[i];
+
+		ret = add_descriptor_to_component_descriptor_set(
+			comp_descr_set,
+			cfg_comp->plugin_name->str,
+			cfg_comp->comp_cls_name->str,
+			cfg_comp->type, cfg_comp->params);
+		if (ret) {
+			goto end;
+		}
+	}
+
+end:
+	return ret;
+}
+
+static
+bt_get_greatest_operative_mip_version_status get_greatest_operative_mip_version(
+		struct bt_config *cfg, uint64_t *mip_version)
+{
+	bt_get_greatest_operative_mip_version_status status =
+		BT_GET_GREATEST_OPERATIVE_MIP_VERSION_STATUS_OK;
+	bt_component_descriptor_set *comp_descr_set = NULL;
+	int ret;
+
+	BT_ASSERT(cfg);
+	BT_ASSERT(mip_version);
+	comp_descr_set = bt_component_descriptor_set_create();
+	if (!comp_descr_set) {
+		BT_CLI_LOGE_APPEND_CAUSE(
+			"Failed to create a component descriptor set object.");
+		status = BT_GET_GREATEST_OPERATIVE_MIP_VERSION_STATUS_MEMORY_ERROR;
+		goto end;
+	}
+
+	ret = append_descriptors_from_bt_config_component_array(
+		comp_descr_set, cfg->cmd_data.run.sources);
+	if (ret) {
+		status = BT_GET_GREATEST_OPERATIVE_MIP_VERSION_STATUS_ERROR;
+		goto end;
+	}
+
+	ret = append_descriptors_from_bt_config_component_array(
+		comp_descr_set, cfg->cmd_data.run.filters);
+	if (ret) {
+		status = BT_GET_GREATEST_OPERATIVE_MIP_VERSION_STATUS_ERROR;
+		goto end;
+	}
+
+	ret = append_descriptors_from_bt_config_component_array(
+		comp_descr_set, cfg->cmd_data.run.sinks);
+	if (ret) {
+		status = BT_GET_GREATEST_OPERATIVE_MIP_VERSION_STATUS_ERROR;
+		goto end;
+	}
+
+	if (cfg->cmd_data.run.stream_intersection_mode) {
+		/*
+		 * Stream intersection mode adds `flt.utils.trimmer`
+		 * components; we need to include this type of component
+		 * in the component descriptor set to get the real
+		 * greatest operative MIP version.
+		 */
+		ret = add_descriptor_to_component_descriptor_set(
+			comp_descr_set, "utils", "trimmer",
+			BT_COMPONENT_CLASS_TYPE_FILTER, NULL);
+		if (ret) {
+			status = BT_GET_GREATEST_OPERATIVE_MIP_VERSION_STATUS_ERROR;
+			goto end;
+		}
+	}
+
+	status = bt_get_greatest_operative_mip_version(comp_descr_set,
+		bt_cli_log_level, mip_version);
+
+end:
+	bt_component_descriptor_set_put_ref(comp_descr_set);
+	return status;
+}
+
+static
 int cmd_run_ctx_init(struct cmd_run_ctx *ctx, struct bt_config *cfg)
 {
 	int ret = 0;
 	bt_graph_add_listener_status add_listener_status;
+	bt_get_greatest_operative_mip_version_status mip_version_status;
+	uint64_t mip_version = UINT64_C(-1);
 
 	ctx->cfg = cfg;
 	ctx->connect_ports = false;
@@ -1745,7 +1872,32 @@ int cmd_run_ctx_init(struct cmd_run_ctx *ctx, struct bt_config *cfg)
 		}
 	}
 
-	ctx->graph = bt_graph_create(0);
+	/*
+	 * Get the greatest operative MIP version to use to configure
+	 * the graph to create.
+	 */
+	mip_version_status = get_greatest_operative_mip_version(
+		cfg, &mip_version);
+	if (mip_version_status == BT_GET_GREATEST_OPERATIVE_MIP_VERSION_STATUS_NO_MATCH) {
+		BT_CLI_LOGE_APPEND_CAUSE(
+			"Failed to find an operative message interchange "
+			"protocol version to use to create the `run` command's "
+			"graph (components are not interoperable).");
+		goto error;
+	} else if (mip_version_status < 0) {
+		BT_CLI_LOGE_APPEND_CAUSE(
+			"Cannot find an operative message interchange "
+			"protocol version to use to create the `run` command's "
+			"graph: status=%s",
+			bt_common_func_status_string(mip_version_status));
+		goto error;
+	}
+
+	BT_ASSERT(mip_version_status == BT_GET_GREATEST_OPERATIVE_MIP_VERSION_STATUS_OK);
+	BT_LOGI("Found operative message interchange protocol version to "
+		"configure the `run` command's graph: mip-version=%" PRIu64,
+		mip_version);
+	ctx->graph = bt_graph_create(mip_version);
 	if (!ctx->graph) {
 		goto error;
 	}
