@@ -352,6 +352,13 @@ static inline void format_field(char **buf_ch, bool extended,
 	}
 
 	switch (field->class->type) {
+	case BT_FIELD_CLASS_TYPE_BOOL:
+	{
+		const struct bt_field_bool *bool_field = (const void *) field;
+
+		BUF_APPEND(", %svalue=%d", PRFIELD(bool_field->value));
+		break;
+	}
 	case BT_FIELD_CLASS_TYPE_UNSIGNED_INTEGER:
 	case BT_FIELD_CLASS_TYPE_SIGNED_INTEGER:
 	case BT_FIELD_CLASS_TYPE_UNSIGNED_ENUMERATION:

@@ -37,6 +37,9 @@
 extern "C" {
 #endif
 
+extern bt_field_class *bt_field_class_bool_create(
+		bt_trace_class *trace_class);
+
 extern bt_field_class *bt_field_class_integer_unsigned_create(
 		bt_trace_class *trace_class);
 
