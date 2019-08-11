@@ -302,14 +302,11 @@ void write_int_str_prop_value(struct details_write_ctx *ctx, const char *value)
 }
 
 static inline
-void write_bool_prop_line(struct details_write_ctx *ctx, const char *prop_name,
-		bt_bool prop_value)
+void write_bool_prop_value(struct details_write_ctx *ctx, bt_bool prop_value)
 {
 	const char *str;
 
-	write_indent(ctx);
-	write_prop_name(ctx, prop_name);
-	g_string_append_printf(ctx->str, ": %s", color_bold(ctx));
+	g_string_append(ctx->str, color_bold(ctx));
 
 	if (prop_value) {
 		g_string_append(ctx->str, color_fg_green(ctx));
@@ -319,7 +316,18 @@ void write_bool_prop_line(struct details_write_ctx *ctx, const char *prop_name,
 		str = "No";
 	}
 
-	g_string_append_printf(ctx->str, "%s%s\n", str, color_reset(ctx));
+	g_string_append_printf(ctx->str, "%s%s", str, color_reset(ctx));
+}
+
+static inline
+void write_bool_prop_line(struct details_write_ctx *ctx, const char *prop_name,
+		bt_bool prop_value)
+{
+	write_indent(ctx);
+	write_prop_name(ctx, prop_name);
+	g_string_append(ctx->str, ": ");
+	write_bool_prop_value(ctx, prop_value);
+	write_nl(ctx);
 }
 
 static inline
@@ -761,6 +769,9 @@ void write_field_class(struct details_write_ctx *ctx, const bt_field_class *fc)
 
 	/* Write field class's type */
 	switch (fc_type) {
+	case BT_FIELD_CLASS_TYPE_BOOL:
+		type = "Boolean";
+		break;
 	case BT_FIELD_CLASS_TYPE_UNSIGNED_INTEGER:
 		type = "Unsigned integer";
 		break;
@@ -1473,6 +1484,10 @@ void write_field(struct details_write_ctx *ctx, const bt_field *field,
 
 	/* Write field's value */
 	switch (fc_type) {
+	case BT_FIELD_CLASS_TYPE_BOOL:
+		write_sp(ctx);
+		write_bool_prop_value(ctx, bt_field_bool_get_value(field));
+		break;
 	case BT_FIELD_CLASS_TYPE_UNSIGNED_INTEGER:
 	case BT_FIELD_CLASS_TYPE_UNSIGNED_ENUMERATION:
 	case BT_FIELD_CLASS_TYPE_SIGNED_INTEGER:
