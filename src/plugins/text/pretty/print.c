@@ -949,6 +949,26 @@ int print_field(struct pretty_component *pretty,
 
 	class_id = bt_field_get_class_type(field);
 	switch (class_id) {
+	case BT_FIELD_CLASS_TYPE_BOOL:
+	{
+		bt_bool v;
+		const char *text;
+
+		v = bt_field_bool_get_value(field);
+		if (pretty->use_colors) {
+			bt_common_g_string_append(pretty->string, COLOR_NUMBER_VALUE);
+		}
+		if (v) {
+			text = "true";
+		} else {
+			text = "false";
+		}
+		bt_common_g_string_append(pretty->string, text);
+		if (pretty->use_colors) {
+			bt_common_g_string_append(pretty->string, COLOR_RST);
+		}
+		return 0;
+	}
 	case BT_FIELD_CLASS_TYPE_UNSIGNED_INTEGER:
 	case BT_FIELD_CLASS_TYPE_SIGNED_INTEGER:
 		return print_integer(pretty, field);
