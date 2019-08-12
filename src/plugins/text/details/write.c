@@ -231,6 +231,14 @@ void write_str_prop_value(struct details_write_ctx *ctx, const char *value)
 }
 
 static inline
+void write_none_prop_value(struct details_write_ctx *ctx, const char *value)
+{
+	g_string_append_printf(ctx->str, "%s%s%s%s",
+		color_bold(ctx), color_fg_magenta(ctx),
+		value, color_reset(ctx));
+}
+
+static inline
 void write_uint_str_prop_value(struct details_write_ctx *ctx, const char *value)
 {
 	write_str_prop_value(ctx, value);
@@ -799,6 +807,9 @@ void write_field_class(struct details_write_ctx *ctx, const bt_field_class *fc)
 	case BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY:
 		type = "Dynamic array";
 		break;
+	case BT_FIELD_CLASS_TYPE_OPTION:
+		type = "Option";
+		break;
 	case BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR:
 		type = "Variant (no selector)";
 		break;
@@ -912,6 +923,27 @@ void write_field_class(struct details_write_ctx *ctx, const bt_field_class *fc)
 			bt_field_class_array_borrow_element_field_class_const(fc));
 		decr_indent(ctx);
 		break;
+	case BT_FIELD_CLASS_TYPE_OPTION:
+	{
+		const bt_field_path *selector_field_path =
+			bt_field_class_option_borrow_selector_field_path_const(fc);
+
+		if (selector_field_path) {
+			g_string_append(ctx->str, " (Selector field path ");
+			write_field_path(ctx, selector_field_path);
+			g_string_append_c(ctx->str, ')');
+		}
+
+		g_string_append_c(ctx->str, ':');
+		write_nl(ctx);
+		incr_indent(ctx);
+		write_compound_member_name(ctx, "Content");
+		write_sp(ctx);
+		write_field_class(ctx,
+			bt_field_class_option_borrow_field_class_const(fc));
+		decr_indent(ctx);
+		break;
+	}
 	case BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR:
 	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_SELECTOR:
 	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_SELECTOR:
@@ -1597,6 +1629,20 @@ void write_field(struct details_write_ctx *ctx, const bt_field *field,
 		}
 
 		decr_indent(ctx);
+		break;
+	}
+	case BT_FIELD_CLASS_TYPE_OPTION:
+	{
+		const bt_field *content_field =
+			bt_field_option_borrow_field_const(field);
+
+		if (!content_field) {
+			write_sp(ctx);
+			write_none_prop_value(ctx, "None");
+		} else {
+			write_field(ctx, content_field, NULL);
+		}
+
 		break;
 	}
 	case BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR:
