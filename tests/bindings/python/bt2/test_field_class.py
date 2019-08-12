@@ -21,6 +21,15 @@ import bt2
 from utils import get_default_trace_class
 
 
+class BoolFieldClassTestCase(unittest.TestCase):
+    def setUp(self):
+        tc = get_default_trace_class()
+        self._fc = tc.create_bool_field_class()
+
+    def test_create_default(self):
+        self.assertIsNotNone(self._fc)
+
+
 class _TestIntegerFieldClassProps:
     def test_create_default(self):
         fc = self._create_func()

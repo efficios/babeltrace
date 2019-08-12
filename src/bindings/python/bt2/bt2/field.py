@@ -71,8 +71,8 @@ class _Field(object._UniqueObject):
 class _NumericField(_Field):
     @staticmethod
     def _extract_value(other):
-        if isinstance(other, bool):
-            return other
+        if isinstance(other, _BoolField) or isinstance(other, bool):
+            return bool(other)
 
         if isinstance(other, numbers.Integral):
             return int(other)
@@ -206,6 +206,36 @@ class _IntegralField(_NumericField, numbers.Integral):
 
     def __invert__(self):
         return ~self._value
+
+
+class _BoolField(_IntegralField, _Field):
+    _NAME = 'Boolean'
+
+    def __bool__(self):
+        return self._value
+
+    def _value_to_bool(self, value):
+        if isinstance(value, _BoolField):
+            value = value._value
+
+        if not isinstance(value, bool):
+            raise TypeError(
+                "'{}' object is not a 'bool' or '_BoolField' object".format(
+                    value.__class__
+                )
+            )
+
+        return value
+
+    @property
+    def _value(self):
+        return bool(native_bt.field_bool_get_value(self._ptr))
+
+    def _set_value(self, value):
+        value = self._value_to_bool(value)
+        native_bt.field_bool_set_value(self._ptr, value)
+
+    value = property(fset=_set_value)
 
 
 class _IntegerField(_IntegralField, _Field):
@@ -591,6 +621,7 @@ class _DynamicArrayField(_ArrayField, _Field):
 
 
 _TYPE_ID_TO_OBJ = {
+    native_bt.FIELD_CLASS_TYPE_BOOL: _BoolField,
     native_bt.FIELD_CLASS_TYPE_UNSIGNED_INTEGER: _UnsignedIntegerField,
     native_bt.FIELD_CLASS_TYPE_SIGNED_INTEGER: _SignedIntegerField,
     native_bt.FIELD_CLASS_TYPE_REAL: _RealField,

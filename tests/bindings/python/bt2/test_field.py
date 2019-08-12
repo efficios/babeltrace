@@ -1077,6 +1077,52 @@ def _inject_numeric_testing_methods(cls):
         )
 
 
+class BoolFieldTestCase(_TestNumericField, unittest.TestCase):
+    def _create_fc(self, tc):
+        return tc.create_bool_field_class()
+
+    def setUp(self):
+        self._tc = get_default_trace_class()
+        self._def = _create_field(self._tc, self._create_fc(self._tc))
+        self._def.value = True
+        self._def_value = True
+        self._def_new_value = False
+
+    def test_assign_true(self):
+        raw = True
+        self._def.value = raw
+        self.assertEqual(self._def, raw)
+
+    def test_assign_false(self):
+        raw = False
+        self._def.value = raw
+        self.assertEqual(self._def, raw)
+
+    def test_assign_field_true(self):
+        field = _create_field(self._tc, self._create_fc(self._tc))
+        raw = True
+        field.value = raw
+        self._def.value = field
+        self.assertEqual(self._def, raw)
+
+    def test_assign_field_false(self):
+        field = _create_field(self._tc, self._create_fc(self._tc))
+        raw = False
+        field.value = raw
+        self._def.value = field
+        self.assertEqual(self._def, raw)
+
+    def test_assign_invalid_type(self):
+        with self.assertRaises(TypeError):
+            self._def.value = 17
+
+    def test_str_op(self):
+        self.assertEqual(str(self._def), str(self._def_value))
+
+
+_inject_numeric_testing_methods(BoolFieldTestCase)
+
+
 class _TestIntegerFieldCommon(_TestNumericField):
     def test_assign_true(self):
         raw = True

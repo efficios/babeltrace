@@ -50,6 +50,10 @@ class _FieldClass(object._SharedObject):
             )
 
 
+class _BoolFieldClass(_FieldClass):
+    _NAME = 'Boolean'
+
+
 class _IntegerFieldClass(_FieldClass):
     @property
     def field_value_range(self):
@@ -583,6 +587,7 @@ class _DynamicArrayFieldClass(_ArrayFieldClass):
 
 
 _FIELD_CLASS_TYPE_TO_OBJ = {
+    native_bt.FIELD_CLASS_TYPE_BOOL: _BoolFieldClass,
     native_bt.FIELD_CLASS_TYPE_UNSIGNED_INTEGER: _UnsignedIntegerFieldClass,
     native_bt.FIELD_CLASS_TYPE_SIGNED_INTEGER: _SignedIntegerFieldClass,
     native_bt.FIELD_CLASS_TYPE_REAL: _RealFieldClass,
