@@ -130,6 +130,8 @@ def _auto_discover_source_component_specs(auto_source_comp_specs, plugin_set):
     comp_specs_raw = res['results']
     assert type(comp_specs_raw) == bt2.ArrayValue
 
+    used_input_indices = set()
+
     for comp_spec_raw in comp_specs_raw:
         assert type(comp_spec_raw) == bt2.ArrayValue
         assert len(comp_spec_raw) == 4
@@ -171,6 +173,8 @@ def _auto_discover_source_component_specs(auto_source_comp_specs, plugin_set):
             if orig_spec.obj is not AutoSourceComponentSpec._no_obj:
                 obj = orig_spec.obj
 
+            used_input_indices.add(int(idx))
+
         params['inputs'] = comp_inputs
 
         comp_specs.append(
@@ -182,6 +186,17 @@ def _auto_discover_source_component_specs(auto_source_comp_specs, plugin_set):
                 logging_level=logging_level,
             )
         )
+
+    if len(used_input_indices) != len(inputs):
+        unused_input_indices = set(range(len(inputs))) - used_input_indices
+        unused_input_indices = sorted(unused_input_indices)
+        unused_inputs = [str(inputs[x]) for x in unused_input_indices]
+
+        msg = (
+            'Some auto source component specs did not produce any component: '
+            + ', '.join(unused_inputs)
+        )
+        raise RuntimeError(msg)
 
     return comp_specs
 
