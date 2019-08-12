@@ -1,101 +1,115 @@
-babeltrace2-filter.lttng-utils.debug-info(7)
-===========================================
+= babeltrace2-filter.lttng-utils.debug-info(7)
 :manpagetype: component class
-:revdate: 5 October 2017
-:comp: compcls:filter.lttng-utils.debug-info
+:revdate: 14 September 2019
+:compcls: compcls:filter.lttng-utils.debug-info
 :defdebuginfoname: `debug_info`
 
 
-NAME
-----
-babeltrace2-filter.lttng-utils.debug-info - Babeltrace's debugging
+== NAME
+
+babeltrace2-filter.lttng-utils.debug-info - Babeltrace 2's debugging
 information filter component class for LTTng traces
 
 
-DESCRIPTION
------------
-The Babeltrace {comp} component class, provided by the the
-man:babeltrace2-plugin-lttng-utils(7) plugin, once instantiated, receives
-events from http://lttng.org/[LTTng] traces and creates new ones
-which are copies of the original ones with extra debugging information
-when it's available and possible.
+== DESCRIPTION
 
-A {comp} component uses the LTTng state dump events as well as the event
-context's `ip` (instruction pointer) field to locate and read the
-corresponding debugging information. The component can find the extra
-debugging information in an executable file or in a directory containing
-debugging information created by the compiler.
+A Babeltrace~2 {compcls} message iterator creates and emits copies of
+upstream messages, augmenting LTTng event messages with debugging
+information when it's available and possible.
 
-The new events contain the exact same fields as the original ones and,
-when possible, a new event context's structure field (besides the `ip`
-field) named {defdebuginfoname} by default. This structure field
-contains the following fields:
+----
+Messages without
+debugging information
+  |
+  |  +----------------------------+
+  |  | flt.lttng-utils.debug-info |
+  |  |                            |
+  '->@ in                     out @--> Messages with
+     +----------------------------+    debugging information
+----
 
-`bin` (string field)::
-    Executable path or name followed by `@ADDR` or `+ADDR`, where
-    `ADDR` is the address where it was loaded while being traced.
-    `@ADDR` means `ADDR` is an absolute address, and `+ADDR` means
-    `ADDR` is a relative address.
+include::common-see-babeltrace2-intro.txt[]
+
+A {compcls} message iterator uses the LTTng state dump events as well as
+the event common context's `ip` (instruction pointer) and `vpid`
+(process ID) fields to locate and read the corresponding debugging
+information. The message iterator can find the extra debugging
+information in an executable file or in a directory containing debugging
+information which the compiler creates.
+
+The new LTTng events (copies of the original ones with added debugging
+information) contain, when possible, a new event common context's
+structure field (besides the `ip` field) named {defdebuginfoname} by
+default (you can use the param:debug-info-field-name parameter to choose
+another name). This structure field contains the following fields:
+
+`bin` vtype:[string]::
+    Executable path or name followed with `@ADDR` or `+ADDR`, where
+    `ADDR` is the address (hexadecimal) where it was loaded while being
+    traced.
 +
-Example: `my-program@0x401040`.
+`@ADDR` means `ADDR` is an absolute address, and `+ADDR` means `ADDR` is
+a relative address.
++
+Examples: `my-program@0x4b7fdd23`, `my-program+0x18d7c`.
 
-[[field-func]]`func` (string field)::
-    Function name followed by `+OFFSET`, where `OFFSET` is the
-    offset from the beginning of the function symbol in the executable
-    file.
+[[field-func]]`func` vtype:[string]::
+    Function name followed with `+OFFSET`, where `OFFSET` is the offset
+    (hexadecimal) from the beginning of the function symbol in the
+    executable file.
 +
 Example: `load_user_config+0x194`.
 
-[[field-src]]`src` (string field)::
-    Source file path or name followed by `:LINE`, where `LINE` is the
+[[field-src]]`src` vtype:[string]::
+    Source file path or name followed with `:LINE`, where `LINE` is the
     line number in this source file at which the event occured.
 +
 Example: `user-config.c:1025`.
 
-Any of those the previous fields can be an empty string if the
-debugging information was not available for the analyzed original
-LTTng event.
+Any of the previous fields can be an empty string if the debugging
+information was not available for the analyzed original LTTng event.
 
-When a filter component creates a new event with debugging
-information, it discards the original event. If the component receives a
-non-LTTng event, the component moves the event to its output port
-without alteration.
+A {compcls} message iterator systematically copies the upstream
+messages, but it only augments compatible LTTng event classes. This
+means that the message iterator copies messages of non-LTTng trace (see
+<<lttng-prereq,``LTTng prerequisites''>>) without alteration.
 
 
-Compile an executable for debugging information analysis
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-With GCC or Clang, you should compile the program or library source
+=== Compile an executable for debugging information analysis
+
+With GCC or Clang, you need to compile the program or library source
 files in debug mode with the nlopt:-g option. This option makes the
 compiler generate debugging information in the operating system's native
-format. This format is recognized by a {comp} component: it can
-translate the instruction pointer field of an event's context to a
-source file and line number, along with the name of the surrounding
+format. This format is recognized by a {compcls} component: it can
+translate the instruction pointer field of an event's common context to
+a source file and line number, along with the name of the surrounding
 function.
 
-NOTE: This component class only supports the debugging information in
-DWARF format, version{nbsp}2 or later. Use the nlopt:-gdwarf or
+IMPORTANT: This component class only supports the debugging information
+in DWARF format, version~2 or later. Use the nlopt:-gdwarf or
 nlopt:-gdwarf-VERSION (where `VERSION` is the DWARF version) compiler
 options to explicitly generate DWARF debugging information.
 
 If you don't compile the executable's source files with the nlopt:-g
 option or with an equivalent option, no DWARF information is available:
-the component uses ELF symbols from the executable file instead. In this
-case, the events that the component creates do not contain the source
-file and line number (<<field-src,`src` field>>), but only the name of
-the nearest function symbol with an offset in bytes to the location in
-the executable from which the LTTng event occured (<<field-func,`func`
-field>>).
+the message iterator uses ELF symbols from the executable file instead.
+In this case, the events that the message iterator creates do not
+contain the source file and line number (see the <<field-src,`src`
+field>>), but only the name of the nearest function symbol with an
+offset in bytes to the location in the executable from which the LTTng
+event occured (see the <<field-func,`func` field>>).
 
 If the executable file has neither ELF symbols nor DWARF information,
-the {comp} component cannot map the event to
-its source location: it emits the original LTTng event which has no
-special {defdebuginfoname} context field.
+the {compcls} message iterator cannot map the event to its source
+location: the message iterator still copies the upstream messages but
+without altering them.
 
 
-LTTng prerequisites
-~~~~~~~~~~~~~~~~~~~
-A {comp} component can only analyze user space events generated by
-http://lttng.org[LTTng]{nbsp}2.8.0 or later.
+[[lttng-prereq]]
+=== LTTng prerequisites
+
+A {compcls} message iterator can only analyze user space events which
+https://lttng.org[LTTng]~2.8.0 or later generates.
 
 To get debugging information for LTTng-UST events which occur in
 executables and libraries which the system's loader loads (what
@@ -151,20 +165,20 @@ $ LD_PRELOAD=liblttng-ust-dl.so my-app
 --
 
 
-Separate debugging information
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-It is possible to store DWARF debugging information outside the
-executable itself, whether it is to reduce the executable's file size,
-or simply to facilitate the sharing of the debugging information.
+=== Separate debugging information
+
+You can store DWARF debugging information outside the executable itself,
+whether it is to reduce the executable's file size or simply to
+facilitate sharing the debugging information.
 
 This is usually achieved via one of two mechanisms, namely _build ID_
 and _debug link_. Their use and operation is described in the
 https://sourceware.org/gdb/onlinedocs/gdb/Separate-Debug-Files.html[Debugging
 Information in Separate Files] section of GDB's documentation.
 
-A {comp} component can find separate debugging information files
-automatically, as long as they meet the requirements stated in this man
-page.
+A {compcls} message iterator can find separate debugging information
+files automatically, as long as they meet the requirements stated in
+this manual page.
 
 The debugging information lookup order is the same as GDB's, namely:
 
@@ -175,9 +189,10 @@ The debugging information lookup order is the same as GDB's, namely:
 
 . In the various possible debug link locations.
 
-The component uses the first debugging information file that it finds.
+The message iterator uses the first debugging information file that it
+finds.
 
-You can use the param:deubg-info-dir initialization parameter to
+You can use the param:debug-info-dir initialization parameter to
 override the default `/usr/lib/debug` directory used in the build ID and
 debug link methods.
 
@@ -185,11 +200,11 @@ NOTE: It is currently not possible to make this component search for
 debugging information in multiple directories.
 
 
-Target prefix
-~~~~~~~~~~~~~
-The debugging information analysis that a {comp} component performs uses
-the paths to the executables as collected during tracing as the default
-mechanism to resolve DWARF and ELF information.
+=== Target prefix
+
+The debugging information analysis that a {compcls} message iterator
+performs uses the paths to the executables as collected during tracing
+as the default mechanism to resolve DWARF and ELF information.
 
 If the trace was recorded on a separate machine, however, you can use
 the param:target-prefix parameter to specify a prefix directory, that
@@ -197,71 +212,62 @@ is, the root of the target file system.
 
 For example, if an instrumented executable's path is `/usr/bin/foo` on
 the target system, you can place this file at
-`/home/user/target/usr/bin/foo` on the system on which you use the
-component. In this case, the target prefix to use is
+`/home/user/target/usr/bin/foo` on the system on which you use a
+{compcls} component. In this case, the target prefix to use is
 `/home/user/target`.
 
 
-INITIALIZATION PARAMETERS
--------------------------
-The following parameters are optional.
+== INITIALIZATION PARAMETERS
 
-param:debug-info-dir='DIR' (string)::
+param:debug-info-dir='DIR' vtype:[optional string]::
     Use 'DIR' as the directory from which to load debugging information
     with the build ID and debug link methods instead of
     `/usr/lib/debug`.
 
-param:debug-info-field-name='NAME' (string)::
-    Name the debugging information structure field in the context of
-    the created events 'NAME' instead of the default {defdebuginfoname}.
+param:debug-info-field-name='NAME' vtype:[optional string]::
+    Name the debugging information structure field in the common context
+    of the created events 'NAME' instead of the default
+    {defdebuginfoname}.
 
-param:full-path=`yes` (boolean)::
+param:full-path=`yes` vtype:[optional boolean]::
     Use the full path when writing the executable name (`bin`) and
     source file name (`src`) fields in the {defdebuginfoname} context
     field of the created events.
 
-param:target-prefix='DIR' (string)::
+param:target-prefix='DIR' vtype:[optional string]::
     Use 'DIR' as the root directory of the target file system instead of
     `/`.
 
 
-PORTS
------
-Input
-~~~~~
+== PORTS
+
+----
++----------------------------+
+| flt.lttng-utils.debug-info |
+|                            |
+@ in                     out @
++----------------------------+
+----
+
+
+=== Input
+
 `in`::
-    Single input port from which the component receives the
-    notifications to augment with debugging information.
+    Single input port.
 
 
-Output
-~~~~~~
+=== Output
+
 `out`::
-    Single output port to which the component sends the augmented
-    or unaltered notifications.
-
-
-QUERY OBJECTS
--------------
-This component class has no objects to query.
-
-
-ENVIRONMENT VARIABLES
----------------------
-include::common-common-compat-env.txt[]
-
-`BABELTRACE_FLT_LTTNG_UTILS_DEBUG_INFO_LOG_LEVEL`::
-    Component class's log level. The available values are the
-    same as for the manopt:babeltrace2(1):--log-level option of
-    man:babeltrace2(1).
+    Single output port.
 
 
 include::common-footer.txt[]
 
 
-SEE ALSO
---------
+== SEE ALSO
+
+man:babeltrace2-intro(7),
 man:babeltrace2-plugin-lttng-utils(7),
 man:lttng(1),
-man:lttng-add-context(1),
-man:babeltrace2-intro(7)
+man:lttng-add-context(1)

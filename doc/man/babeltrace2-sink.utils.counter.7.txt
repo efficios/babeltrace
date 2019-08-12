@@ -1,87 +1,91 @@
-babeltrace2-sink.utils.counter(7)
-================================
+= babeltrace2-sink.utils.counter(7)
 :manpagetype: component class
-:revdate: 5 October 2017
+:revdate: 14 September 2019
 
 
-NAME
-----
-babeltrace2-sink.utils.counter - Babeltrace's notification counter sink
+== NAME
+
+babeltrace2-sink.utils.counter - Babeltrace 2's message counter sink
 component class
 
 
-DESCRIPTION
------------
-The Babeltrace compcls:sink.utils.counter component class, provided by
-the man:babeltrace2-plugin-utils(7) plugin, once instantiated, prints to
-the standard output the number of notifications it receives on its input
-port, with a count for each type.
+== DESCRIPTION
+
+A Babeltrace~2 compcls:sink.utils.counter component prints to the
+standard output the number of messages it consumes with a count for each
+type.
+
+----
+            +--------------------+
+            | sink.utils.counter |
+            |                    +--> Statistics to the
+Messages -->@ in                 |    standard output
+            +--------------------+
+----
+
+include::common-see-babeltrace2-intro.txt[]
 
 The component's output looks like this:
 
 ----
-         664891 events
-             12 stream beginnings
-              0 stream ends
-             93 packet beginnings
-             81 packet ends
-              0 inactivities
-              6 discarded events notifications
-         375378   known discarded events
-              2 discarded packets notifications
-              5   known discarded packets
-        1040455 notifications (TOTAL)
+        3842964 Event messages
+              4 Stream beginning messages
+              1 Stream end messages
+             18 Packet beginning messages
+             14 Packet end messages
+            189 Discarded event messages
+              0 Discarded packet messages
+              3 Message iterator inactivity messages
+        3843000 messages (TOTAL)
 ----
 
 By default, a compcls:sink.utils.counter component prints a new block of
-statistics every 1000 received notifications, whatever their types. You
-can use the param:step parameter to override this default period.
+statistics every 1000 consumed messages, whatever their types. You can
+use the param:step parameter to override this default period.
 
 The component always prints a block of statistics when there's no more
-notifications to receive from its input port and the last block was
-different.
+messages to consume from its upstream message iterator and the last
+block was different.
 
 By default, a compcls:sink.utils.counter component prints the count of
-notifications for each type, even if this count is 0. You can make it
-hide the zero counts with the param:hide-zero parameter.
+messages for each type, even if this count is 0. You can make it hide
+the zero counts with the param:hide-zero parameter.
 
 
-INITIALIZATION PARAMETERS
--------------------------
-The following parameters are optional.
+== INITIALIZATION PARAMETERS
 
-param:hide-zero=`yes` (boolean)::
+param:hide-zero=`yes` vtype:[optional boolean]::
     Do not print the statistics lines where the count is zero.
 
-param:step='STEP' (integer)::
-    Print a new block of statistics every 'STEP' received notifications
-    instead of 1000. If 'STEP' is 0, then the component only prints
-    statistics when there's no more notifications to receive.
+param:step='STEP' vtype:[optional unsigned integer]::
+    Print a new block of statistics every 'STEP' consumed messages
+    instead of 1000.
++
+If 'STEP' is 0, then the component only prints statistics when there's
+no more messages to consume.
 
 
-PORTS
------
-Input
-~~~~~
+== PORTS
+
+----
++--------------------+
+| sink.utils.counter |
+|                    |
+@ in                 |
++--------------------+
+----
+
+
+=== Input
+
 `in`::
-    Single input port from which the component receives the
-    notifications to count.
-
-
-QUERY OBJECTS
--------------
-This component class has no objects to query.
-
-
-ENVIRONMENT VARIABLES
----------------------
-include::common-common-compat-env.txt[]
+    Single input port.
 
 
 include::common-footer.txt[]
 
 
-SEE ALSO
---------
-man:babeltrace2-plugin-utils(7),
-man:babeltrace2-intro(7)
+== SEE ALSO
+
+man:babeltrace2-intro(7),
+man:babeltrace2-plugin-utils(7)

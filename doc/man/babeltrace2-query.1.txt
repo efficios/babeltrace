@@ -1,33 +1,29 @@
-babeltrace2-query(1)
-===================
+= babeltrace2-query(1)
 :manpagetype: command
-:revdate: 5 October 2017
+:revdate: 14 September 2019
 
 
-NAME
-----
-babeltrace2-query - Query object from a component class
+== NAME
+
+babeltrace2-query - Query an object from a Babeltrace 2 component class
 
 
-SYNOPSIS
---------
+== SYNOPSIS
+
 [verse]
-*babeltrace2 query* ['GENERAL OPTIONS'] [opt:--omit-home-plugin-path]
-                 [opt:--omit-system-plugin-path]
-                 [opt:--plugin-path='PATH'[:__PATH__]...]
-                 [opt:--params='PARAMS'] 'TYPE.PLUGIN.COMPCLS' 'OBJECT'
+*babeltrace2* [<<gen-opts,'GENERAL OPTIONS'>>] *query* [opt:--params='PARAMS']
+            'COMP-CLS-TYPE'.'PLUGIN-NAME'.'COMP-CLS-NAME' 'OBJECT'
 
 
-DESCRIPTION
------------
+== DESCRIPTION
+
 The `query` command queries the object named 'OBJECT' from the component
-class 'COMPCLS' of the type 'TYPE' found in the Babeltrace plugin
-'PLUGIN' and prints the results.
+class named 'COMP-CLS-NAME' of the type 'COMP-CLS-TYPE' found in the
+Babeltrace~2 plugin named 'PLUGIN-NAME' and prints the results.
 
-See man:babeltrace2-intro(7) to learn more about the Babeltrace
-project and its core concepts.
+include::common-see-babeltrace2-intro.txt[]
 
-The available values for 'TYPE' are:
+The available values for 'COMP-CLS-TYPE' are:
 
 `source`::
 `src`::
@@ -41,67 +37,63 @@ The available values for 'TYPE' are:
     Sink component class.
 
 The exact object names and the parameters that a given component class
-expects are described in its documentation. man:babeltrace2-help(1) can
-generally provide this information.
+expects are described in its own documentation. man:babeltrace2-help(1)
+can generally provide this information.
 
-You can use the opt:--params='PARAMS' option to pass parameters to the
-component class's query function. See <<params-fmt,Parameters format>>
-for the exact format of 'PARAMS'.
+You can use the opt:--params option to pass parameters to the component
+class's query operation.
 
-The output of the `query` command looks like YAML, although it is not
-guaranteed that it is YAML-compliant.
+The output of the `query` command can look like https://yaml.org/[YAML],
+but it's not guaranteed to be YAML-compliant.
 
-See <<examples,EXAMPLES>> for usage examples.
-
-
-include::common-cmd-params-format.txt[]
-
-include::common-cmd-plugin-path.txt[]
+See <<examples,``EXAMPLES''>> for usage examples.
 
 
-OPTIONS
--------
+== OPTIONS
+
 include::common-gen-options.txt[]
 
 
-Query parameters
-~~~~~~~~~~~~~~~~
-opt:-p 'PARAMS', opt:--params='PARAMS'::
-    Set the query parameters to 'PARAMS'. See <<params-fmt,Parameters
-    format>> for the exact format of 'PARAMS'.
+=== Query parameters
 
+opt:-p 'PARAMS'::
+opt:--params='PARAMS'::
+    Set the query parameters to 'PARAMS'.
++
+--
+include::common-cmd-params-format.txt[]
+--
 
-include::common-plugin-path-options.txt[]
 
 include::common-cmd-info-options.txt[]
 
 
 [[examples]]
-EXAMPLES
---------
-.Query the available sessions of the LTTng live source component class.
+== EXAMPLES
+
+.Query the available tracing sessions of a local LTTng relay daemon.
 ====
 [role="term"]
 ----
 $ babeltrace2 query src.ctf.lttng-live sessions \
-                   --params='url="net://RHOST/host/TGTHOST"'
+                    --params='url="net://localhost"'
 ----
 ====
 
-.Query the metadata info (includes the decoded text) of a CTF trace located on the local file system.
+.Query the metadata info (includes the decoded plain text) of a CTF trace located on the local file system.
 ====
 [role="term"]
 ----
 $ babeltrace2 query src.ctf.fs metadata-info \
-                   --params='path="/path/to/trace"'
+                    --params='path="/path/to/trace"'
 ----
 ====
 
-.Query the trace info of CTF traces located on the local file system.
+.Query the trace infos of a CTF trace located on the local file system.
 ====
 [role="term"]
 ----
-$ babeltrace2 query src.ctf.fs babeltrace.trace-info \
+$ babeltrace2 query src.ctf.fs babeltrace.trace-infos \
                     --params='path="/path/to/trace"'
 ----
 ====
@@ -117,12 +109,14 @@ $ babeltrace2 query sink.my-plugin.my-sink some-object
 
 include::common-cli-env.txt[]
 
+
 include::common-cli-files.txt[]
+
 
 include::common-cmd-footer.txt[]
 
 
-SEE ALSO
---------
-man:babeltrace2(1),
-man:babeltrace2-intro(7)
+== SEE ALSO
+
+man:babeltrace2-intro(7),
+man:babeltrace2(1)

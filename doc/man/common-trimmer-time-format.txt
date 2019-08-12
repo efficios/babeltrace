@@ -1,0 +1,28 @@
+[verse]
+__YYYY__-__MM__-__DD__ __HH__:__II__[:__SS__[.__NANO__]]
+__HH__:__II__[:__SS__[.__NANO__]]
+$$[$$-]__SEC__[.__NANO__]
+
+'YYYY'::
+    4-digit year.
+
+'MM'::
+    2-digit month (January is `01`).
+
+'DD'::
+    2-digit day.
+
+'HH'::
+    2-digit hour (24-hour format).
+
+'II'::
+    2-digit minute.
+
+'SS'::
+    2-digit second.
+
+'NANO'::
+    Nanoseconds (up to nine digits).
+
+'SEC'::
+    Seconds since origin.

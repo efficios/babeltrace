@@ -1,6 +1,0 @@
-Python plugin provider
-~~~~~~~~~~~~~~~~~~~~~~
-`BABELTRACE_PYTHON_PLUGIN_PROVIDER_LOG_LEVEL`::
-    Python plugin provider's log level. The available values are the
-    same as for the manopt:babeltrace2(1):--log-level option of
-    man:babeltrace2(1).

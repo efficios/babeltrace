@@ -1,7 +1,10 @@
-FILES
------
+== FILES
+
 `$HOME/.local/lib/babeltrace2/plugins`::
     User plugin directory.
 
 +{system_plugin_path}+::
     System plugin directory.
+
++{system_plugin_provider_path}+::
+    System plugin provider directory.

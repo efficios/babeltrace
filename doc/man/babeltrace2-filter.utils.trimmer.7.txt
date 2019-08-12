@@ -1,125 +1,111 @@
-babeltrace2-filter.utils.trimmer(7)
-==================================
+= babeltrace2-filter.utils.trimmer(7)
 :manpagetype: component class
-:revdate: 5 October 2017
+:revdate: 14 September 2019
 
 
-NAME
-----
-babeltrace2-filter.utils.trimmer - Babeltrace's trimmer filter
+== NAME
+
+babeltrace2-filter.utils.trimmer - Babeltrace 2's trimmer filter
 component class
 
 
-DESCRIPTION
------------
-The Babeltrace compcls:filter.utils.trimmer component class, provided by
-the man:babeltrace2-plugin-utils(7) plugin, once instantiated, discards
-all the received events with a time less than a given beginning time and
-greater than a given end time. It effectively ``cuts'', or trims traces.
+== DESCRIPTION
 
-A compcls:filter.utils.trimmer component modifies the `timestamp_begin`
-and `timestamp_end` fields of the packet contexts it receives to match
-the beggining and end times of the trimming range when needed.
+A Babeltrace~2 compcls:filter.utils.trimmer message iterator
+discards all the consumed messages with a time less than a given
+beginning time and greater than a given end time. It effectively
+``cuts'', or trims trace streams.
 
-The component used a notification's clock value with the highest
-priority to decide whether to discard it or not.
+----
+            +-------------------+
+            | flt.utils.trimmer |
+            |                   |
+Messages -->@ in            out @--> Less messages
+            +-------------------+
+----
 
+include::common-see-babeltrace2-intro.txt[]
 
-[[time-param-fmt]]
-Time parameter format
-~~~~~~~~~~~~~~~~~~~~~
-The format of the param:begin and param:end parameters is:
+A compcls:filter.utils.trimmer message iterator makes its upstream
+message iterator seek the configured beginning time (see the param:begin
+parameter) before it starts to consume messages. This seeking operation
+can have an effect on the times of stream beginning, packet beginning,
+discarded events, and discarded packets messages so that they fall
+within the configured trimming time range.
 
-[verse]
-$$[$$__YYYY__-__MM__-__DD__ [__hh__:__mm__:]]__ss__[.__nnnnnnnnn__]
+As such, when a compcls:filter.utils.trimmer message iterator consumes a
+message of which the time is greater than the configured end time (see
+the param:end parameter), it can alter the time of stream end, packet
+end, discarded events, and discarded packets messages so that they fall
+within the configured trimming time range.
 
-'YYYY'::
-    4-digit year.
-
-'MM'::
-    2-digit month (January is `01`).
-
-'DD'::
-    2-digit day.
-
-'hh'::
-    2-digit hour (24-hour format).
-
-'mm'::
-    2-digit minute.
-
-'ss'::
-    2-digit second.
-
-'nnnnnnnnn'::
-    9-digit nanosecond.
+A compcls:filter.utils.trimmer message iterator requires that all the
+upstream messages it consumes have times, except for stream beginning
+and end messages, returning an error status otherwise.
 
 
-INITIALIZATION PARAMETERS
--------------------------
-You must specify at least one of the param:begin and param:end
-parameters.
+== INITIALIZATION PARAMETERS
 
-param:begin='BEGIN' (string or integer)::
-    Set the trimmer's beginning time to 'BEGIN'.
+param:begin='TIME' vtype:[optional string or signed integer]::
+    Set the trimming time range's beginning time to 'TIME'.
 +
-If 'BEGIN' is a string, see <<time-param-fmt,Time parameter format>> for
-its format. If 'BEGIN' is an integer, it is the number of nanoseconds
-since Epoch.
+If 'TIME' is a string, see below for its format. If 'TIME' is a signed
+integer, the component converts it to a string and treats it as such.
 +
 If you don't specify this parameter, the component discards no events
-until the end of the trimming range.
+until the end of the trimming time range.
++
+The format of 'TIME' when it's a string is one of:
++
+--
+include::common-trimmer-time-format.txt[]
+--
++
+If 'TIME' has no date information, then the message iterator uses the
+first upstream message's time to determine the date.
 
-param:clock-gmt=`yes` (boolean)::
+param:end='TIME' vtype:[optional string or signed integer]::
+    Set the trimming time range's end time to 'TIME'.
++
+If 'TIME' is a string, see the param:begin parameter for its format. If
+'TIME' is a signed integer, the component converts it to a string and
+treats it as such.
++
+If you don't specify this parameter, the component discards no events
+from the beginning of the trimming time range.
+
+param:gmt=`yes` vtype:[optional boolean]::
     Set the time zone of the param:begin and param:end parameters
     to GMT instead of the local time zone.
 
-param:end='END' (string or integer)::
-    Set the trimmer's end time to 'END'.
-+
-If 'END' is a string, see <<time-param-fmt,Time parameter format>> for
-its format. If 'END' is an integer, it is the number of nanoseconds
-since Epoch.
-+
-If you don't specify this parameter, the component discards no events
-from the beginning of the trimming range.
+
+== PORTS
+
+----
++-------------------+
+| flt.utils.trimmer |
+|                   |
+@ in            out @
++-------------------+
+----
 
 
-PORTS
------
-Input
-~~~~~
+=== Input
+
 `in`::
-    Single input port from which the component receives the
-    notifications.
+    Single input port.
 
 
-Output
-~~~~~~
+=== Output
+
 `out`::
-    Single output port to which the components sends the notifications
-    of which the time is in the trimming range.
-
-
-QUERY OBJECTS
--------------
-This component class has no objects to query.
-
-
-ENVIRONMENT VARIABLES
----------------------
-include::common-common-compat-env.txt[]
-
-`BABELTRACE_FLT_UTILS_TRIMMER_LOG_LEVEL`::
-    Component class's log level. The available values are the
-    same as for the manopt:babeltrace2(1):--log-level option of
-    man:babeltrace2(1).
+    Single output port.
 
 
 include::common-footer.txt[]
 
 
-SEE ALSO
---------
-man:babeltrace2-plugin-utils(7),
-man:babeltrace2-intro(7)
+== SEE ALSO
+
+man:babeltrace2-intro(7),
+man:babeltrace2-plugin-utils(7)

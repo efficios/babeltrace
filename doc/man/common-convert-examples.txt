@@ -1,0 +1,132 @@
+.Pretty-print the events, in order, of one or more CTF traces.
+====
+[role="term"]
+----
+$ babeltrace2 my-ctf-traces
+----
+
+[role="term"]
+----
+$ babeltrace2 my-ctf-traces
+----
+
+[role="term"]
+----
+$ babeltrace2 my-ctf-trace-1 my-ctf-trace-2 my-ctf-trace-3
+----
+====
+
+.Trim a CTF trace and pretty-print the events.
+====
+[role="term"]
+----
+$ babeltrace2 my-ctf-trace --begin=22:55:43.658582931 \
+                           --end=22:55:46.967687564
+----
+
+[role="term"]
+----
+$ babeltrace2 my-trace --begin=22:55:43.658582931
+----
+
+[role="term"]
+----
+$ babeltrace2 my-trace --end=22:55:46.967687564
+----
+
+[role="term"]
+----
+$ babeltrace2 my-trace --timerange=22:55:43,22:55:46.967687564
+----
+====
+
+.Trim a CTF trace, enable the stream intersection mode, and write a CTF trace.
+====
+[role="term"]
+----
+$ babeltrace2 my-ctf-trace --stream-intersection \
+              --timerange=22:55:43,22:55:46.967687564 \
+              --output-format=ctf --output=out-ctf-trace
+----
+====
+
+.Print the available remote LTTng sessions (through LTTng live).
+====
+[role="term"]
+----
+$ babeltrace2 --input-format=lttng-live net://localhost
+----
+====
+
+.Pretty-print LTTng live events.
+====
+[role="term"]
+----
+$ babeltrace2 net://localhost/host/myhostname/my-session-name
+----
+====
+
+.Record LTTng live traces to the file system (as CTF traces).
+====
+[role="term"]
+----
+$ babeltrace2 net://localhost/host/myhostname/my-session-name \
+              --params=session-not-found-action=end \
+              --output-format=ctf --output=out-ctf-traces
+----
+====
+
+.Read a CTF trace as fast as possible using a dummy output.
+====
+[role="term"]
+----
+$ babeltrace2 my-trace --output-format=dummy
+----
+====
+
+.Read three CTF traces in stream intersection mode, add debugging information, and pretty-print them to a file.
+====
+[role="term"]
+----
+$ babeltrace2 ctf-trace1 ctf-trace2 ctf-trace3 --stream-intersection \
+              --debug-info --output=pretty-out
+----
+====
+
+.Pretty-print a CTF trace and traces from an explicit source component, with the event times showed in seconds since the Unix epoch.
+====
+[role="term"]
+----
+$ babeltrace2 ctf-trace --component=src.my-plugin.my-src \
+              --params='path="spec-trace",output-some-event-type=yes' \
+              --clock-seconds
+----
+====
+
+.Send LTTng live events to an explicit sink component.
+====
+[role="term"]
+----
+$ babeltrace2 net://localhost/host/myhostname/mysession \
+              --component=sink.my-plugin.my-sink
+----
+====
+
+.Trim a CTF trace, add debugging information, apply an explicit filter component, and write as a CTF trace.
+====
+[role="term"]
+----
+$ babeltrace2 /path/to/ctf/trace --timerange=22:14:38,22:15:07 \
+              --debug-info --component=filter.my-plugin.my-filter \
+              --params=criteria=xyz,ignore-abc=yes \
+              --output-format=ctf --output=out-ctf-trace
+----
+====
+
+.Print the metadata text of a CTF trace.
+====
+[role="term"]
+----
+$ babeltrace2 /path/to/ctf/trace --output-format=ctf-metadata
+----
+====

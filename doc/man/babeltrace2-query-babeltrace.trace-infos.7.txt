@@ -1,0 +1,113 @@
+= babeltrace2-query-babeltrace.trace-infos(7)
+:manpagetype: query object
+:revdate: 14 September 2019
+
+
+== NAME
+
+babeltrace2-query-babeltrace.trace-infos - Babeltrace 2's trace infos
+query object
+
+
+== DESCRIPTION
+
+The `babeltrace.trace-infos` Babeltrace~2 query object indicates
+time range information about specific traces and their streams, and
+which output ports of an eventual source component will serve the
+messages for a given stream.
+
+The man:babeltrace2-convert(1) command queries this object from all the
+source component classes to support the
+manopt:babeltrace2-convert(1):--stream-intersection feature.
+
+
+== PARAMETERS
+
+The parameters for this query operation are exactly the same as you
+would pass as the initialization parameters of a component created from
+the queried component class.
+
+
+== RESULT OBJECT
+
+The result object is an array of trace info maps (see
+<<trace-info-map,``Trace info map''>>).
+
+
+[[trace-info-map]]
+=== Trace info map
+
+A trace info map contains:
+
+nlqres:stream-infos='STREAM-INFOS' vtype:[array of stream info maps]::
+    Stream info maps (see <<stream-info-map,``Stream info map''>>) for
+    this trace.
+
+
+[[stream-info-map]]
+=== Stream info map
+
+A stream info map contains:
+
+nlqres:range-ns='RANGE' vtype:[range map]::
+    The time range of this stream, a map containing:
++
+--
+nlqres:begin='NS' vtype:[signed integer]::
+    Beginning time of this stream (nanoseconds since the stream
+    class's default clock class's origin).
+
+nlqres:end='NS' vtype:[signed integer]::
+    End time of this stream (nanoseconds since the stream class's
+    default clock class's origin).
+--
+
+nlqres:port-name='PORT-NAME' vtype:[string]::
+    For an eventual source component initialized with the same
+    parameters: name of the output port which serves the messages of
+    this stream.
+
+
+== EXAMPLES
+
+=== Result object
+
+.Two trace infos: one with three stream infos, one with two stream infos.
+====
+[source,yaml]
+----
+- stream-infos:
+  - range-ns:
+      begin: 1509556764975082000
+      end: 1509557102181554400
+    port-name: trace0-cpu0
+  - range-ns:
+      begin: 1509556764947050800
+      end: 1509557102182771000
+    port-name: trace0-cpu1
+  - range-ns:
+      begin: 1509556764956409300
+      end: 1509557102182770400
+    port-name: trace0-cpu2
+- stream-infos:
+  - range-ns:
+      begin: 1509556764918082000
+      end: 1509557103849928400
+    port-name: trace1-cpu0
+  - range-ns:
+      begin: 1509556761888820000
+      end: 1509557109928100400
+    port-name: trace1-cpu1
+
+----
+====
+
+
+include::common-footer.txt[]
+
+
+== SEE ALSO
+
+man:babeltrace2-intro(7),
+man:babeltrace2-query(1),
+man:babeltrace2-convert(1)

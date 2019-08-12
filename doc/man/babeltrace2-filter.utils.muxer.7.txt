@@ -1,86 +1,82 @@
-babeltrace2-filter.utils.muxer(7)
-================================
+= babeltrace2-filter.utils.muxer(7)
 :manpagetype: component class
-:revdate: 5 October 2017
+:revdate: 14 September 2019
 
 
-NAME
+== NAME
+
+babeltrace2-filter.utils.muxer - Babeltrace 2's message muxer filter
+component class
+
+
+== DESCRIPTION
+
+A Babeltrace~2 compcls:filter.utils.muxer message iterator muxes
+the messages that it consumes from one or more upstream message
+iterators into a linear sequence of messages ordered by time.
+
 ----
-babeltrace2-filter.utils.muxer - Babeltrace's notification multiplexer
-filter component class
+            +-----------------+
+            | flt.utils.muxer |
+            |                 |
+Messages -->@ in0         out @--> Sorted messages
+Messages -->@ in1             |
+Messages -->@ in2             |
+            @ in3             |
+            +-----------------+
+----
+
+include::common-see-babeltrace2-intro.txt[]
+
+A compcls:filter.utils.muxer message iterator does not alter the
+messages it consumes: it only sorts them.
+
+The message iterator creates one upstream message iterator per connected
+input port.
+
+NOTE: To support muxing messages with different default clock classes,
+the message iterator converts the message times to nanoseconds from the
+common origin (Unix epoch, for example). This means that the resulting
+message sequence could be incorrect if one or more clock classes have a
+frequency which is greater than 1~GHz.
 
 
-DESCRIPTION
------------
-The Babeltrace compcls:filter.utils.muxer component class, provided by
-the man:babeltrace2-plugin-utils(7) plugin, once instantiated,
-multiplexes the notifications that it receives from one or more input
-ports into a linear sequence of events ordered by time on its output
-port.
+== PORTS
 
-A compcls:filter.utils.muxer component does not alter the notifications
-it receives: it only sorts them.
-
-A compcls:filter.utils.muxer component can only work on notifications in
-which the clock value with the highest priority has an absolute clock
-class. You can use the param:assume-absolute-clock-classes parameter to
-make the component assume that all clock classes are absolute. In this
-case, you must ensure that, when more than one clock class exists, they
-are correlatable.
+----
++-----------------+
+| flt.utils.muxer |
+|                 |
+@ in0         out @
+@ ...             |
++-----------------+
+----
 
 
-INITIALIZATION PARAMETERS
--------------------------
-The following parameters are optional.
+=== Input
 
-param:assume-absolute-clock-classes=`yes` (boolean)::
-    Assume that all clock classes are absolute.
-
-
-PORTS
------
-Input
-~~~~~
 `inN`, where `N` is a decimal integer starting at 0::
-    Input port from which the component receives notifications to
-    multiplex.
+    Input port on which a compcls:filter.utils.muxer message iterator
+    creates an upstream message iterator to consumes messages from.
 +
-When you create the component, its only input port is
+When the component is initialized, its only input port is
 `in0`. When you connect the `in0` port, the component creates
-the `in1` input port, and so on. If you disconnect an input port,
-the component does not create a new input port: the disconnected
-input port is now available for a new connection.
+the `in1` input port, and so on.
 +
-In other words, a compcls:filter.utils.muxer component always makes sure
-that it has at least one available input port.
+In other words, a compcls:filter.utils.muxer component always has an
+available input port.
 
 
-Output
-~~~~~~
+=== Output
+
 `out`::
-    Single output port to which the component sends the
-    sorted notifications.
-
-
-QUERY OBJECTS
--------------
-This component class has no objects to query.
-
-
-ENVIRONMENT VARIABLES
----------------------
-include::common-common-compat-env.txt[]
-
-`BABELTRACE_FLT_UTILS_MUXER_LOG_LEVEL`::
-    Component class's log level. The available values are the
-    same as for the manopt:babeltrace2(1):--log-level option of
-    man:babeltrace2(1).
+    Single output port.
 
 
 include::common-footer.txt[]
 
 
-SEE ALSO
---------
-man:babeltrace2-plugin-utils(7),
-man:babeltrace2-intro(7)
+== SEE ALSO
+
+man:babeltrace2-intro(7),
+man:babeltrace2-plugin-utils(7)
