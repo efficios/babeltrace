@@ -433,7 +433,7 @@ class TraceCollectionMessageIterator(bt2_message_iterator._MessageIterator):
 
         return name
 
-    def _create_comp(self, comp_spec, comp_cls_type):
+    def _component_spec_class(self, comp_spec, comp_cls_type):
         plugin = bt2.find_plugin(comp_spec.plugin_name)
 
         if plugin is None:
@@ -452,7 +452,10 @@ class TraceCollectionMessageIterator(bt2_message_iterator._MessageIterator):
                 )
             )
 
-        comp_cls = comp_classes[comp_spec.class_name]
+        return comp_classes[comp_spec.class_name]
+
+    def _create_comp(self, comp_spec, comp_cls_type):
+        comp_cls = self._component_spec_class(comp_spec, comp_cls_type)
         name = self._get_unique_comp_name(comp_spec)
         comp = self._graph.add_component(
             comp_cls, name, comp_spec.params, comp_spec.obj, comp_spec.logging_level
@@ -495,8 +498,37 @@ class TraceCollectionMessageIterator(bt2_message_iterator._MessageIterator):
 
         self._connect_src_comp_port(component, port)
 
+    def _get_greatest_operative_mip_version(self):
+        def append_comp_specs_descriptors(descriptors, comp_specs, comp_cls_type):
+            for comp_spec in comp_specs:
+                comp_cls = self._component_spec_class(comp_spec, comp_cls_type)
+                descriptors.append(
+                    bt2.ComponentDescriptor(comp_cls, comp_spec.params, comp_spec.obj)
+                )
+
+        descriptors = []
+        append_comp_specs_descriptors(
+            descriptors, self._src_comp_specs, _CompClsType.SOURCE
+        )
+        append_comp_specs_descriptors(
+            descriptors, self._flt_comp_specs, _CompClsType.FILTER
+        )
+
+        if self._stream_intersection_mode:
+            # we also need at least one `flt.utils.trimmer` component
+            comp_spec = ComponentSpec('utils', 'trimmer')
+            append_comp_specs_descriptors(descriptors, [comp_spec], _CompClsType.FILTER)
+
+        mip_version = bt2.get_greatest_operative_mip_version(descriptors)
+
+        if mip_version is None:
+            msg = 'failed to find an operative message interchange protocol version (components are not interoperable)'
+            raise RuntimeError(msg)
+
+        return mip_version
+
     def _build_graph(self):
-        self._graph = bt2.Graph()
+        self._graph = bt2.Graph(self._get_greatest_operative_mip_version())
         self._graph.add_port_added_listener(self._graph_port_added)
         self._muxer_comp = self._create_muxer()
 
