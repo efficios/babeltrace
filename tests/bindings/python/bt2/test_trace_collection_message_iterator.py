@@ -215,6 +215,17 @@ class TraceCollectionMessageIteratorTestCase(unittest.TestCase):
         hist = _count_msgs_by_type(msgs)
         self.assertEqual(hist[bt2._EventMessage], 24)
 
+    def test_auto_source_component_non_existent(self):
+        with self.assertRaisesRegex(
+            RuntimeError,
+            'Some auto source component specs did not produce any component',
+        ):
+            # Test with one path known to contain a trace and one path known
+            # to not contain any trace.
+            bt2.TraceCollectionMessageIterator(
+                [_SEQUENCE_TRACE_PATH, '/this/path/better/not/exist']
+            )
+
 
 class _TestAutoDiscoverSourceComponentSpecs(unittest.TestCase):
     def setUp(self):
@@ -234,7 +245,6 @@ class TestAutoDiscoverSourceComponentSpecsGrouping(
         specs = [
             bt2.AutoSourceComponentSpec('ABCDE'),
             bt2.AutoSourceComponentSpec(_AUTO_SOURCE_DISCOVERY_GROUPING_PATH),
-            bt2.AutoSourceComponentSpec('does-not-exist'),
         ]
         it = bt2.TraceCollectionMessageIterator(specs)
         msgs = [x for x in it if type(x) is bt2._StreamBeginningMessage]
