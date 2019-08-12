@@ -226,56 +226,6 @@ bt_diff_cli() {
 	return $ret
 }
 
-# Checks the difference between:
-#
-#   1. What the CLI outputs on its standard output when given the arguments
-#   "$@" (excluding the first two arguments), sorted with the default "sort".
-#   2. The file with path "$1".
-#
-# And the difference between:
-#
-#   1. What the CLI outputs on its standard error when given the arguments
-#   "$@" (excluding the first two arguments).
-#   2. The file with path "$2".
-#
-# Returns 0 if there's no difference, and 1 if there is, also printing
-# said difference to the standard error.
-bt_diff_cli_sorted() {
-	local expected_stdout_file="$1"
-	local expected_stderr_file="$2"
-	shift 2
-	local args=("$@")
-
-	local temp_stdout_output_file
-	local temp_stderr_output_file
-	local ret=0
-	local ret_stdout
-	local ret_stderr
-
-	temp_stdout_output_file="$(mktemp -t actual_stdout.XXXXXX)"
-	temp_stderr_output_file="$(mktemp -t actual_stderr.XXXXXX)"
-
-	# Run the CLI to get a detailed file.
-	bt_cli "$temp_stdout_output_file" "$temp_stderr_output_file" "${args[@]}"
-
-	# Sort the stdout file, use a subshell to do it in-place
-	# shellcheck disable=SC2005
-	echo "$(LC_ALL=C sort "$temp_stdout_output_file")" > "$temp_stdout_output_file"
-
-	bt_diff "$expected_stdout_file" "$temp_stdout_output_file"
-	ret_stdout=$?
-	bt_diff "$expected_stderr_file" "$temp_stderr_output_file"
-	ret_stderr=$?
-
-	if ((ret_stdout != 0 || ret_stderr != 0)); then
-		ret=1
-	fi
-
-	rm -f "$temp_stdout_output_file" "$temp_stderr_output_file"
-
-	return $ret
-}
-
 # Checks the difference between the content of the file with path "$1"
 # and the output of the CLI when called on the directory path "$2" with
 # the arguments '-c sink.text.details' and the rest of the arguments to
