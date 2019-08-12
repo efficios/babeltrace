@@ -323,6 +323,26 @@ void copy_field_content(const bt_field *in_field, bt_field *out_field,
 		}
 		break;
 	}
+	case BT_FIELD_CLASS_TYPE_OPTION:
+	{
+		const bt_field *in_option_field;
+		bt_field *out_option_field;
+
+		in_option_field = bt_field_option_borrow_field_const(in_field);
+
+		if (in_option_field) {
+			bt_field_option_set_has_field(out_field, BT_TRUE);
+			out_option_field = bt_field_option_borrow_field(
+				out_field);
+			BT_ASSERT(out_option_field);
+			copy_field_content(in_option_field, out_option_field,
+				log_level, self_comp);
+		} else {
+			bt_field_option_set_has_field(out_field, BT_FALSE);
+		}
+
+		break;
+	}
 	case BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR:
 	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_SELECTOR:
 	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_SELECTOR:
