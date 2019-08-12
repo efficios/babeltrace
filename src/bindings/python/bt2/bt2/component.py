@@ -571,9 +571,29 @@ class _UserComponentType(type):
     def addr(cls):
         return int(cls._bt_cc_ptr)
 
+    def _bt_get_supported_mip_versions_from_native(cls, params_ptr, obj, log_level):
+        # this can raise, but the native side checks the exception
+        if params_ptr is not None:
+            params = bt2_value._create_from_ptr_and_get_ref(params_ptr)
+        else:
+            params = None
+
+        # this can raise, but the native side checks the exception
+        range_set = cls._user_get_supported_mip_versions(params, obj, log_level)
+
+        if type(range_set) is not bt2.UnsignedIntegerRangeSet:
+            # this can raise, but the native side checks the exception
+            range_set = bt2.UnsignedIntegerRangeSet(range_set)
+
+        # return new reference
+        range_set._get_ref(range_set._ptr)
+        return int(range_set._ptr)
+
+    def _user_get_supported_mip_versions(cls, params, obj, log_level):
+        return [0]
+
     def _bt_query_from_native(cls, priv_query_exec_ptr, object, params_ptr, method_obj):
-        # this can raise, in which case the native call to
-        # bt_component_class_query() returns NULL
+        # this can raise, but the native side checks the exception
         if params_ptr is not None:
             params = bt2_value._create_from_ptr_and_get_ref(params_ptr)
         else:
