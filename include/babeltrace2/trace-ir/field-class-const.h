@@ -47,6 +47,7 @@ typedef enum bt_field_class_type {
 	BT_FIELD_CLASS_TYPE_STRUCTURE,
 	BT_FIELD_CLASS_TYPE_STATIC_ARRAY,
 	BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY,
+	BT_FIELD_CLASS_TYPE_OPTION,
 	BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR,
 	BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_SELECTOR,
 	BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_SELECTOR,
@@ -162,6 +163,14 @@ extern uint64_t bt_field_class_array_static_get_length(
 
 extern const bt_field_path *
 bt_field_class_array_dynamic_borrow_length_field_path_const(
+		const bt_field_class *field_class);
+
+extern const bt_field_class *
+bt_field_class_option_borrow_field_class_const(
+		const bt_field_class *field_class);
+
+extern const bt_field_path *
+bt_field_class_option_borrow_selector_field_path_const(
 		const bt_field_class *field_class);
 
 extern uint64_t bt_field_class_variant_get_option_count(

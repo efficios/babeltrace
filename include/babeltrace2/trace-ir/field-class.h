@@ -116,6 +116,11 @@ extern bt_field_class *bt_field_class_array_dynamic_create(
 extern bt_field_class *bt_field_class_array_borrow_element_field_class(
 		bt_field_class *field_class);
 
+extern bt_field_class *bt_field_class_option_create(
+		bt_trace_class *trace_class,
+		bt_field_class *content_field_class,
+		bt_field_class *selector_field_class);
+
 extern bt_field_class *bt_field_class_variant_create(
 		bt_trace_class *trace_class,
 		bt_field_class *selector_field_class);

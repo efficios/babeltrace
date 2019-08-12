@@ -84,6 +84,10 @@ extern bt_field_array_dynamic_set_length_status
 bt_field_array_dynamic_set_length(
 		bt_field *field, uint64_t length);
 
+extern void bt_field_option_set_has_field(bt_field *field, bt_bool has_field);
+
+extern bt_field *bt_field_option_borrow_field(bt_field *field);
+
 typedef enum bt_field_variant_select_option_field_by_index_status {
 	BT_FIELD_VARIANT_SELECT_OPTION_FIELD_STATUS_OK		= __BT_FUNC_STATUS_OK,
 } bt_field_variant_select_option_field_by_index_status;

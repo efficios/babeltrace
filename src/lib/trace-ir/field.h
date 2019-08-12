@@ -131,6 +131,16 @@ struct bt_field_structure {
 	GPtrArray *fields;
 };
 
+struct bt_field_option {
+	struct bt_field common;
+
+	/* Owned by this */
+	struct bt_field *content_field;
+
+	/* Weak: equal to `content_field` above or `NULL` */
+	struct bt_field *selected_field;
+};
+
 struct bt_field_variant {
 	struct bt_field common;
 

@@ -38,6 +38,7 @@ extern "C" {
 typedef enum bt_field_path_item_type {
 	BT_FIELD_PATH_ITEM_TYPE_INDEX,
 	BT_FIELD_PATH_ITEM_TYPE_CURRENT_ARRAY_ELEMENT,
+	BT_FIELD_PATH_ITEM_TYPE_CURRENT_OPTION_CONTENT,
 } bt_field_path_item_type;
 
 typedef enum bt_field_path_scope {

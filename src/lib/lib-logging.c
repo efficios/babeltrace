@@ -260,6 +260,29 @@ static inline void format_field_class(char **buf_ch, bool extended,
 
 		break;
 	}
+	case BT_FIELD_CLASS_TYPE_OPTION:
+	{
+		const struct bt_field_class_option *opt_fc =
+			(const void *) field_class;
+
+		BUF_APPEND(", %scontent-fc-addr=%p, %scontent-fc-type=%s",
+			PRFIELD(opt_fc->content_fc),
+			PRFIELD(bt_common_field_class_type_string(opt_fc->content_fc->type)));
+
+		if (opt_fc->selector_fc) {
+			SET_TMP_PREFIX("selector-fc-");
+			format_field_class(buf_ch, extended, tmp_prefix,
+				opt_fc->selector_fc);
+		}
+
+		if (opt_fc->selector_field_path) {
+			SET_TMP_PREFIX("selector-field-path-");
+			format_field_path(buf_ch, extended, tmp_prefix,
+				opt_fc->selector_field_path);
+		}
+
+		break;
+	}
 	case BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR:
 	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_SELECTOR:
 	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_SELECTOR:

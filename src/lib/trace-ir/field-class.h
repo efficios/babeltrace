@@ -290,11 +290,24 @@ struct bt_field_class_array_static {
 struct bt_field_class_array_dynamic {
 	struct bt_field_class_array common;
 
-	/* Weak: never dereferenced, only use to find it elsewhere */
+	/* Owned by this */
 	struct bt_field_class *length_fc;
 
 	/* Owned by this */
 	struct bt_field_path *length_field_path;
+};
+
+struct bt_field_class_option {
+	struct bt_field_class common;
+
+	/* Owned by this */
+	struct bt_field_class *content_fc;
+
+	/* Owned by this */
+	struct bt_field_class *selector_fc;
+
+	/* Owned by this */
+	struct bt_field_path *selector_field_path;
 };
 
 /* Variant FC (with selector) option: named field class + range set */

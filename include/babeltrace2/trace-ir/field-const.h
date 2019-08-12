@@ -84,6 +84,9 @@ extern const bt_field *
 bt_field_array_borrow_element_field_by_index_const(
 		const bt_field *field, uint64_t index);
 
+extern const bt_field *
+bt_field_option_borrow_field_const(const bt_field *field);
+
 extern uint64_t bt_field_variant_get_selected_option_field_index(
 		const bt_field *field);
 

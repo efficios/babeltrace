@@ -1020,6 +1020,86 @@ bt_field_class_structure_member_borrow_field_class_const(
 }
 
 static
+void destroy_option_field_class(struct bt_object *obj)
+{
+	struct bt_field_class_option *fc = (void *) obj;
+
+	BT_ASSERT(fc);
+	BT_LIB_LOGD("Destroying option field class object: %!+F", fc);
+	BT_LOGD_STR("Putting content field class.");
+	BT_OBJECT_PUT_REF_AND_RESET(fc->content_fc);
+	BT_LOGD_STR("Putting selector field path.");
+	BT_OBJECT_PUT_REF_AND_RESET(fc->selector_field_path);
+	BT_LOGD_STR("Putting selector field class.");
+	BT_OBJECT_PUT_REF_AND_RESET(fc->selector_fc);
+	g_free(fc);
+}
+
+struct bt_field_class *bt_field_class_option_create(bt_trace_class *trace_class,
+		bt_field_class *content_fc, bt_field_class *selector_fc)
+{
+	struct bt_field_class_option *opt_fc = NULL;
+
+	BT_ASSERT_PRE_NON_NULL(trace_class, "Trace class");
+	BT_ASSERT_PRE_NON_NULL(content_fc, "Content field class");
+	BT_LIB_LOGD("Creating option field class: "
+		"%![content-fc-]+F, %![sel-fc-]+F", content_fc, selector_fc);
+	opt_fc = g_new0(struct bt_field_class_option, 1);
+	if (!opt_fc) {
+		BT_LIB_LOGE_APPEND_CAUSE(
+			"Failed to allocate one option field class.");
+		goto error;
+	}
+
+	init_field_class((void *) opt_fc, BT_FIELD_CLASS_TYPE_OPTION,
+		destroy_option_field_class);
+	opt_fc->content_fc = content_fc;
+	bt_object_get_no_null_check(opt_fc->content_fc);
+	bt_field_class_freeze(opt_fc->content_fc);
+
+	if (selector_fc) {
+		BT_ASSERT_PRE_FC_HAS_ID(selector_fc, BT_FIELD_CLASS_TYPE_BOOL,
+			"Selector field class");
+		opt_fc->selector_fc = selector_fc;
+		bt_object_get_no_null_check(opt_fc->selector_fc);
+		bt_field_class_freeze(selector_fc);
+	}
+
+	BT_LIB_LOGD("Created option field class object: "
+		"%![opt-fc-]+F, %![sel-fc-]+F", opt_fc, selector_fc);
+	goto end;
+
+error:
+	BT_OBJECT_PUT_REF_AND_RESET(opt_fc);
+
+end:
+	return (void *) opt_fc;
+}
+
+const struct bt_field_class *bt_field_class_option_borrow_field_class_const(
+			const struct bt_field_class *fc)
+{
+	struct bt_field_class_option *opt_fc = (void *) fc;
+
+	BT_ASSERT_PRE_NON_NULL(fc, "Field class");
+	BT_ASSERT_PRE_DEV_FC_HAS_ID(fc, BT_FIELD_CLASS_TYPE_OPTION,
+		"Field class");
+	return opt_fc->content_fc;
+}
+
+const struct bt_field_path *
+bt_field_class_option_borrow_selector_field_path_const(
+		const struct bt_field_class *fc)
+{
+	struct bt_field_class_option *opt_fc = (void *) fc;
+
+	BT_ASSERT_PRE_NON_NULL(fc, "Field class");
+	BT_ASSERT_PRE_DEV_FC_HAS_ID(fc, BT_FIELD_CLASS_TYPE_OPTION,
+		"Field class");
+	return opt_fc->selector_field_path;
+}
+
+static
 void finalize_variant_field_class(struct bt_field_class_variant *var_fc)
 {
 	BT_ASSERT(var_fc);
