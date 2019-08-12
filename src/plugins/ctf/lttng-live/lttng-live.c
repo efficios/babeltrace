@@ -872,7 +872,7 @@ end:
  * When disconnected from relayd: try to re-connect endlessly.
  */
 static
-enum lttng_live_iterator_status lttng_live_iterator_next_on_stream(
+enum lttng_live_iterator_status lttng_live_iterator_next_msg_on_stream(
 		struct lttng_live_msg_iter *lttng_live_msg_iter,
 		struct lttng_live_stream_iterator *stream_iter,
 		bt_message **curr_msg)
@@ -940,11 +940,11 @@ static
 enum lttng_live_iterator_status next_stream_iterator_for_trace(
 		struct lttng_live_msg_iter *lttng_live_msg_iter,
 		struct lttng_live_trace *live_trace,
-		struct lttng_live_stream_iterator **candidate_stream_iter)
+		struct lttng_live_stream_iterator **youngest_trace_stream_iter)
 {
-	struct lttng_live_stream_iterator *curr_candidate_stream_iter = NULL;
+	struct lttng_live_stream_iterator *youngest_candidate_stream_iter = NULL;
 	enum lttng_live_iterator_status stream_iter_status;;
-	int64_t curr_candidate_msg_ts = INT64_MAX;
+	int64_t youngest_candidate_msg_ts = INT64_MAX;
 	uint64_t stream_iter_idx;
 	bt_logging_level log_level = lttng_live_msg_iter->log_level;
 	bt_self_component *self_comp = lttng_live_msg_iter->self_comp;
@@ -969,7 +969,7 @@ enum lttng_live_iterator_status next_stream_iterator_for_trace(
 		 * iterate over it, it's possible to see the same element more
 		 * than once.
 		 */
-		if (stream_iter == curr_candidate_stream_iter) {
+		if (stream_iter == youngest_candidate_stream_iter) {
 			stream_iter_idx++;
 			continue;
 		}
@@ -981,7 +981,7 @@ enum lttng_live_iterator_status next_stream_iterator_for_trace(
 		while (!stream_iter->current_msg) {
 			bt_message *msg = NULL;
 			int64_t curr_msg_ts_ns = INT64_MAX;
-			stream_iter_status = lttng_live_iterator_next_on_stream(
+			stream_iter_status = lttng_live_iterator_next_msg_on_stream(
 					lttng_live_msg_iter, stream_iter, &msg);
 
 			BT_COMP_LOGD("live stream iterator returned status :%s",
@@ -1031,35 +1031,35 @@ enum lttng_live_iterator_status next_stream_iterator_for_trace(
 			}
 		}
 
-		BT_ASSERT(stream_iter != curr_candidate_stream_iter);
+		BT_ASSERT(stream_iter != youngest_candidate_stream_iter);
 
 		if (!stream_iter_is_ended) {
-			if (G_UNLIKELY(curr_candidate_stream_iter == NULL) ||
-					stream_iter->current_msg_ts_ns < curr_candidate_msg_ts) {
+			if (G_UNLIKELY(youngest_candidate_stream_iter == NULL) ||
+					stream_iter->current_msg_ts_ns < youngest_candidate_msg_ts) {
 				/*
 				 * Update the current best candidate message
 				 * for the stream iterator of this live trace
 				 * to be forwarded downstream.
 				 */
-				curr_candidate_msg_ts = stream_iter->current_msg_ts_ns;
-				curr_candidate_stream_iter = stream_iter;
-			} else if (stream_iter->current_msg_ts_ns == curr_candidate_msg_ts) {
+				youngest_candidate_msg_ts = stream_iter->current_msg_ts_ns;
+				youngest_candidate_stream_iter = stream_iter;
+			} else if (stream_iter->current_msg_ts_ns == youngest_candidate_msg_ts) {
 				/*
 				 * Order the messages in an arbitrary but
 				 * deterministic way.
 				 */
-				BT_ASSERT(stream_iter != curr_candidate_stream_iter);
+				BT_ASSERT(stream_iter != youngest_candidate_stream_iter);
 				int ret = common_muxing_compare_messages(
 					stream_iter->current_msg,
-					curr_candidate_stream_iter->current_msg);
+					youngest_candidate_stream_iter->current_msg);
 				if (ret < 0) {
 					/*
-					 * The `curr_candidate_stream_iter->current_msg`
+					 * The `youngest_candidate_stream_iter->current_msg`
 					 * should go first. Update the next
 					 * iterator and the current timestamp.
 					 */
-					curr_candidate_msg_ts = stream_iter->current_msg_ts_ns;
-					curr_candidate_stream_iter = stream_iter;
+					youngest_candidate_msg_ts = stream_iter->current_msg_ts_ns;
+					youngest_candidate_stream_iter = stream_iter;
 				} else if (ret == 0) {
 					/*
 					 * Unable to pick which one should go
@@ -1069,7 +1069,7 @@ enum lttng_live_iterator_status next_stream_iterator_for_trace(
 						"stream-iter-addr=%p"
 						"stream-iter-addr=%p",
 						stream_iter,
-						curr_candidate_stream_iter);
+						youngest_candidate_stream_iter);
 				}
 			}
 
@@ -1087,8 +1087,8 @@ enum lttng_live_iterator_status next_stream_iterator_for_trace(
 		}
 	}
 
-	if (curr_candidate_stream_iter) {
-		*candidate_stream_iter = curr_candidate_stream_iter;
+	if (youngest_candidate_stream_iter) {
+		*youngest_trace_stream_iter = youngest_candidate_stream_iter;
 		stream_iter_status = LTTNG_LIVE_ITERATOR_STATUS_OK;
 	} else {
 		/*
@@ -1107,14 +1107,14 @@ static
 enum lttng_live_iterator_status next_stream_iterator_for_session(
 		struct lttng_live_msg_iter *lttng_live_msg_iter,
 		struct lttng_live_session *session,
-		struct lttng_live_stream_iterator **candidate_session_stream_iter)
+		struct lttng_live_stream_iterator **youngest_session_stream_iter)
 {
 	bt_self_component *self_comp = lttng_live_msg_iter->self_comp;
 	bt_logging_level log_level = lttng_live_msg_iter->log_level;
 	enum lttng_live_iterator_status stream_iter_status;
 	uint64_t trace_idx = 0;
-	int64_t curr_candidate_msg_ts = INT64_MAX;
-	struct lttng_live_stream_iterator *curr_candidate_stream_iter = NULL;
+	int64_t youngest_candidate_msg_ts = INT64_MAX;
+	struct lttng_live_stream_iterator *youngest_candidate_stream_iter = NULL;
 
 	/*
 	 * Make sure we are attached to the session and look for new streams
@@ -1155,31 +1155,31 @@ enum lttng_live_iterator_status next_stream_iterator_for_session(
 		if (!trace_is_ended) {
 			BT_ASSERT(stream_iter);
 
-			if (G_UNLIKELY(curr_candidate_stream_iter == NULL) ||
-					stream_iter->current_msg_ts_ns < curr_candidate_msg_ts) {
-				curr_candidate_msg_ts = stream_iter->current_msg_ts_ns;
-				curr_candidate_stream_iter = stream_iter;
-			} else if (stream_iter->current_msg_ts_ns == curr_candidate_msg_ts) {
+			if (G_UNLIKELY(youngest_candidate_stream_iter == NULL) ||
+					stream_iter->current_msg_ts_ns < youngest_candidate_msg_ts) {
+				youngest_candidate_msg_ts = stream_iter->current_msg_ts_ns;
+				youngest_candidate_stream_iter = stream_iter;
+			} else if (stream_iter->current_msg_ts_ns == youngest_candidate_msg_ts) {
 				/*
 				 * Order the messages in an arbitrary but
 				 * deterministic way.
 				 */
 				int ret = common_muxing_compare_messages(
 					stream_iter->current_msg,
-					curr_candidate_stream_iter->current_msg);
+					youngest_candidate_stream_iter->current_msg);
 				if (ret < 0) {
 					/*
-					 * The `curr_candidate_stream_iter->current_msg`
+					 * The `youngest_candidate_stream_iter->current_msg`
 					 * should go first. Update the next iterator
 					 * and the current timestamp.
 					 */
-					curr_candidate_msg_ts = stream_iter->current_msg_ts_ns;
-					curr_candidate_stream_iter = stream_iter;
+					youngest_candidate_msg_ts = stream_iter->current_msg_ts_ns;
+					youngest_candidate_stream_iter = stream_iter;
 				} else if (ret == 0) {
 					/* Unable to pick which one should go first. */
 					BT_COMP_LOGW("Cannot deterministically pick next live stream message iterator because they have identical next messages: "
 						"stream-iter-addr=%p" "stream-iter-addr=%p",
-						stream_iter, curr_candidate_stream_iter);
+						stream_iter, youngest_candidate_stream_iter);
 				}
 			}
 			trace_idx++;
@@ -1188,8 +1188,8 @@ enum lttng_live_iterator_status next_stream_iterator_for_session(
 			trace_idx = 0;
 		}
 	}
-	if (curr_candidate_stream_iter) {
-		*candidate_session_stream_iter = curr_candidate_stream_iter;
+	if (youngest_candidate_stream_iter) {
+		*youngest_session_stream_iter = youngest_candidate_stream_iter;
 		stream_iter_status = LTTNG_LIVE_ITERATOR_STATUS_OK;
 	} else {
 		/*
@@ -1291,9 +1291,9 @@ bt_component_class_message_iterator_next_method_status lttng_live_msg_iter_next(
 	 * return it.
 	 */
 	while (*count < capacity) {
-		struct lttng_live_stream_iterator *next_stream_iter = NULL,
-						  *candidate_stream_iter = NULL;
-		int64_t next_msg_ts_ns = INT64_MAX;
+		struct lttng_live_stream_iterator *youngest_stream_iter = NULL,
+			  *candidate_stream_iter = NULL;
+		int64_t youngest_msg_ts_ns = INT64_MAX;
 
 		BT_ASSERT(lttng_live_msg_iter->sessions);
 		session_idx = 0;
@@ -1342,11 +1342,11 @@ bt_component_class_message_iterator_next_method_status lttng_live_msg_iter_next(
 				goto end;
 			}
 
-			if (G_UNLIKELY(next_stream_iter == NULL) ||
-					candidate_stream_iter->current_msg_ts_ns <= next_msg_ts_ns) {
-				next_msg_ts_ns = candidate_stream_iter->current_msg_ts_ns;
-				next_stream_iter = candidate_stream_iter;
-			} else if (candidate_stream_iter->current_msg_ts_ns == next_msg_ts_ns) {
+			if (G_UNLIKELY(youngest_stream_iter == NULL) ||
+					candidate_stream_iter->current_msg_ts_ns <= youngest_msg_ts_ns) {
+				youngest_msg_ts_ns = candidate_stream_iter->current_msg_ts_ns;
+				youngest_stream_iter = candidate_stream_iter;
+			} else if (candidate_stream_iter->current_msg_ts_ns == youngest_msg_ts_ns) {
 				/*
 				 * The currently selected message to be sent
 				 * downstream next has the exact same timestamp
@@ -1360,47 +1360,47 @@ bt_component_class_message_iterator_next_method_status lttng_live_msg_iter_next(
 				 */
 				int ret = common_muxing_compare_messages(
 					candidate_stream_iter->current_msg,
-					next_stream_iter->current_msg);
+					youngest_stream_iter->current_msg);
 				if (ret < 0) {
 					/*
 					 * The `candidate_stream_iter->current_msg`
 					 * should go first. Update the next
 					 * iterator and the current timestamp.
 					 */
-					next_msg_ts_ns = candidate_stream_iter->current_msg_ts_ns;
-					next_stream_iter = candidate_stream_iter;
+					youngest_msg_ts_ns = candidate_stream_iter->current_msg_ts_ns;
+					youngest_stream_iter = candidate_stream_iter;
 				} else if (ret == 0) {
 					/* Unable to pick which one should go first. */
 					BT_COMP_LOGW("Cannot deterministically pick next live stream message iterator because they have identical next messages: "
 						"next-stream-iter-addr=%p" "candidate-stream-iter-addr=%p",
-						next_stream_iter, candidate_stream_iter);
+						youngest_stream_iter, candidate_stream_iter);
 				}
 			}
 
 			session_idx++;
 		}
 
-		if (!next_stream_iter) {
+		if (!youngest_stream_iter) {
 			stream_iter_status = LTTNG_LIVE_ITERATOR_STATUS_AGAIN;
 			goto end;
 		}
 
-		BT_ASSERT(next_stream_iter->current_msg);
+		BT_ASSERT(youngest_stream_iter->current_msg);
 		/* Ensure monotonicity. */
 		BT_ASSERT(lttng_live_msg_iter->last_msg_ts_ns <=
-			next_stream_iter->current_msg_ts_ns);
+			youngest_stream_iter->current_msg_ts_ns);
 
 		/*
 		 * Insert the next message to the message batch. This will set
 		 * stream iterator current messsage to NULL so that next time
 		 * we fetch the next message of that stream iterator
 		 */
-		BT_MESSAGE_MOVE_REF(msgs[*count], next_stream_iter->current_msg);
+		BT_MESSAGE_MOVE_REF(msgs[*count], youngest_stream_iter->current_msg);
 		(*count)++;
 
 		/* Update the last timestamp in nanoseconds sent downstream. */
-		lttng_live_msg_iter->last_msg_ts_ns = next_msg_ts_ns;
-		next_stream_iter->current_msg_ts_ns = INT64_MAX;
+		lttng_live_msg_iter->last_msg_ts_ns = youngest_msg_ts_ns;
+		youngest_stream_iter->current_msg_ts_ns = INT64_MAX;
 
 		stream_iter_status = LTTNG_LIVE_ITERATOR_STATUS_OK;
 	}
