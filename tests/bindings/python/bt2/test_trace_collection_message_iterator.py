@@ -219,7 +219,7 @@ class TraceCollectionMessageIteratorTestCase(unittest.TestCase):
 class _TestAutoDiscoverSourceComponentSpecs(unittest.TestCase):
     def setUp(self):
         self._saved_babeltrace_plugin_path = os.environ['BABELTRACE_PLUGIN_PATH']
-        os.environ['BABELTRACE_PLUGIN_PATH'] += ':' + self._plugin_path
+        os.environ['BABELTRACE_PLUGIN_PATH'] += os.pathsep + self._plugin_path
 
     def tearDown(self):
         os.environ['BABELTRACE_PLUGIN_PATH'] = self._saved_babeltrace_plugin_path
