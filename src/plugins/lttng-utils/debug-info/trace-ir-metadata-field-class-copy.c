@@ -74,6 +74,14 @@ const bt_field_class *walk_field_path(struct trace_ir_metadata_maps *md_maps,
 				member);
 			break;
 		}
+		case BT_FIELD_CLASS_TYPE_OPTION:
+		{
+			BT_ASSERT(bt_field_path_item_get_type(fp_item) ==
+				BT_FIELD_PATH_ITEM_TYPE_CURRENT_OPTION_CONTENT);
+			curr_fc = bt_field_class_option_borrow_field_class_const(
+				curr_fc);
+			break;
+		}
 		case BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR:
 		case BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_SELECTOR:
 		case BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_SELECTOR:
@@ -522,6 +530,26 @@ int field_class_dynamic_array_copy(
 }
 
 static inline
+int field_class_option_copy(
+		struct trace_ir_metadata_maps *md_maps,
+		const bt_field_class *in_field_class,
+		bt_field_class *out_field_class)
+{
+	BT_COMP_LOGD("Copying content of option field class: "
+			"in-fc-addr=%p, out-fc-addr=%p",
+			in_field_class, out_field_class);
+
+	/*
+	 * There is no content to copy. Keep this function call anyway for
+	 * logging purposes.
+	 */
+	BT_COMP_LOGD("Copied option field class: in-fc-addr=%p, "
+			"out-fc-addr=%p", in_field_class, out_field_class);
+
+	return 0;
+}
+
+static inline
 int field_class_string_copy(struct trace_ir_metadata_maps *md_maps,
 		const bt_field_class *in_field_class,
 		bt_field_class *out_field_class)
@@ -661,6 +689,49 @@ bt_field_class *create_field_class_copy_internal(struct trace_ir_metadata_maps *
 				out_elem_fc, out_length_fc);
 		break;
 	}
+	case BT_FIELD_CLASS_TYPE_OPTION:
+	{
+		const bt_field_class *in_content_fc =
+			bt_field_class_option_borrow_field_class_const(
+					in_field_class);
+		const bt_field_path *in_selector_fp =
+			bt_field_class_option_borrow_selector_field_path_const(
+				in_field_class);
+		bt_field_class *out_selector_fc = NULL;
+		bt_field_class *out_content_fc;
+		int ret;
+
+		out_content_fc = create_field_class_copy_internal(
+				md_maps, in_content_fc);
+		if (!out_content_fc) {
+			BT_COMP_LOGE_STR("Cannot copy option's content field class.");
+			goto error;
+		}
+
+		ret = copy_field_class_content_internal(md_maps,
+			in_content_fc, out_content_fc);
+		if (ret) {
+			BT_COMP_LOGE_STR("Error copying content of option's "
+				"content field class");
+			goto error;
+		}
+
+		if (in_selector_fp) {
+			const bt_field_class *in_selector_fc =
+				resolve_field_path_to_field_class(
+					in_selector_fp, md_maps);
+
+			BT_ASSERT(in_selector_fc);
+			out_selector_fc = g_hash_table_lookup(
+				md_maps->field_class_map, in_selector_fc);
+			BT_ASSERT(out_selector_fc);
+		}
+
+		out_field_class = bt_field_class_option_create(
+				md_maps->output_trace_class,
+				out_content_fc, out_selector_fc);
+		break;
+	}
 	case BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR:
 	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_SELECTOR:
 	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_SELECTOR:
@@ -757,6 +828,10 @@ int copy_field_class_content_internal(
 		break;
 	case BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY:
 		ret = field_class_dynamic_array_copy(md_maps,
+				in_field_class, out_field_class);
+		break;
+	case BT_FIELD_CLASS_TYPE_OPTION:
+		ret = field_class_option_copy(md_maps,
 				in_field_class, out_field_class);
 		break;
 	case BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR:
