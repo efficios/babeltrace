@@ -1,58 +1,54 @@
-babeltrace2-plugin-utils(7)
-==========================
+= babeltrace2-plugin-utils(7)
 :manpagetype: plugin
-:revdate: 5 October 2017
+:revdate: 14 September 2019
 
 
-NAME
-----
-babeltrace2-plugin-utils - Babeltrace's utilities plugin
+== NAME
+
+babeltrace2-plugin-utils - Babeltrace 2's common graph utilities plugin
 
 
-DESCRIPTION
------------
-The Babeltrace `utils` plugin contains common, generic utility component
-classes which you can use in any processing graph.
+== DESCRIPTION
 
-See man:babeltrace2-intro(7) to learn more about the Babeltrace
-project and its core concepts.
+The Babeltrace~2 `utils` plugin contains common, generic utility
+component classes which you can use in any processing graph.
+
+include::common-see-babeltrace2-intro.txt[]
 
 
-COMPONENT CLASSES
------------------
+== COMPONENT CLASSES
+
 compcls:filter.utils.muxer::
-    Multiplexes the notifications received on its multiple input ports
-    by time to its single output port.
+    Muxes messages by time.
 +
 See man:babeltrace2-filter.utils.muxer(7).
 
 compcls:filter.utils.trimmer::
-    Discards all the received events with a timestamp less than a given
-    beginning timestamp and greater than a given end timestamp,
-    effectively ``cutting'' the traces.
+    Discards all the consumed messages with a time outside a given
+    time range, effectively ``cutting'' trace streams.
 +
 See man:babeltrace2-filter.utils.trimmer(7).
 
-compcls:sink.utils.dummy::
-    Receives the notifications from its single input port and discards
-    them (does absolutely nothing with them). This is useful for
-    testing and benchmarking a trace processing graph application,
-    for example man:babeltrace2(1).
-+
-See man:babeltrace2-sink.utils.dummy(7).
-
 compcls:sink.utils.counter::
-    Prints the number of notifications received from its single input
-    port, either once at the end or periodically.
+    Prints the number of consumed messages, either once at the end or
+    periodically.
 +
 See man:babeltrace2-sink.utils.counter(7).
+
+compcls:sink.utils.dummy::
+    Consumes messages and discards them (does nothing with them).
++
+This is useful for testing and benchmarking a trace processing graph
+application, for example.
++
+See man:babeltrace2-sink.utils.dummy(7).
 
 
 include::common-footer.txt[]
 
 
-SEE ALSO
---------
+== SEE ALSO
+
 man:babeltrace2-intro(7),
 man:babeltrace2-filter.utils.muxer(7),
 man:babeltrace2-filter.utils.trimmer(7),

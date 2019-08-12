@@ -1,5 +1,5 @@
-EXIT STATUS
------------
+== EXIT STATUS
+
 *0* on success, *1* otherwise.
 
 

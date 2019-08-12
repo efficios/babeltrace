@@ -1,0 +1,148 @@
+= babeltrace2-query-babeltrace.support-info(7)
+:manpagetype: query object
+:revdate: 14 September 2019
+
+
+== NAME
+
+babeltrace2-query-babeltrace.support-info - Babeltrace 2's support info
+query object
+
+
+== DESCRIPTION
+
+The `babeltrace.support-info` Babeltrace~2 query object indicates,
+for a given source component class, whether or not its instance can
+handle a given input, and if so, what's the confidence of this support.
+
+Said input can be a simple string, an existing file path, or an existing
+directory path. Components which expect some form of URI can handle a
+string input, while components which expect an existing file or
+directory can handle a file/directory path input.
+
+When the source component class's query method replies that its
+component can handle a given input, it can also specify the name of a
+group in which to put that input. All the inputs of a given group, for a
+given component class, should be passed when instantiating the component
+class as its nlparam:inputs initialization parameter (array of strings).
+
+The man:babeltrace2-convert(1) command queries this object from specific
+source component classes to find the most appropriate for a given
+non-option argument.
+
+
+== PARAMETERS
+
+param:input='INPUT' vtype:[string]::
+    Check input 'INPUT'.
++
+Depending on the param:type parameter, this is a simple string, a file
+path, or a directory path.
+
+param:type=(`string` | `file` | `directory`) vtype:[string]::
+    Input type, one of:
++
+--
+`string`::
+    param:input parameter is a simple string.
+
+`file`::
+    param:input parameter is a file path.
+
+`directory`::
+    param:input parameter is a directory path.
++
+It is expected that the query method does not recurse into this
+directory: the result object indicates whether or not the component
+class supports this specific directory (param:input).
+--
+
+
+== RESULT OBJECT
+
+The result object can be one of:
+
+* [[simple-real]]A simple real value which is the weight, between 0 and
+  1, of the support by the component class for the given input.
++
+A weight of 0 means the input is unsupported while a weight of 1 means
+it's fully supported. Any value in between shows how confident the
+component class is about the support of the given input.
+
+* A map with a weight and an optional group name.
+
+When it's a map, the expected entries are:
+
+qres:group='GROUP-NAME' vtype:[optional string]::
+    Put the given input into a group named 'GROUP-NAME' for this
+    component class.
++
+If this entry is missing, then the given input gets its own, unique
+group.
+
+qres:weight='WEIGHT' vtype:[real]::
+    Weight, between 0 and 1, of the support by the component class for
+    the given input.
++
+The semantics are the same as when the result object is a
+<<simple-real,simple real value>>.
+
+
+== EXAMPLES
+
+=== Query parameters
+
+.String input.
+====
+[source,yaml]
+----
+input: net://relayd177/host/node23/active
+type: string
+----
+====
+
+.File path input.
+====
+[source,yaml]
+----
+input: /home/user/traces/2019-08-26/quad.tr
+type: file
+----
+====
+
+=== Result object
+
+.Simple weight (unique group).
+====
+[source,yaml]
+----
+0.5
+----
+====
+
+.Weight and specific group.
+====
+[source,yaml]
+----
+group: 63a4b7e5-37f0-4254-a048-a0cff9e5b761
+weight: 0.75
+----
+====
+
+.Weight within a map (unique group).
+====
+[source,yaml]
+----
+weight: 0.6
+----
+====
+
+
+include::common-footer.txt[]
+
+
+== SEE ALSO
+
+man:babeltrace2-intro(7),
+man:babeltrace2-query(1),
+man:babeltrace2-convert(1)

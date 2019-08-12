@@ -1,0 +1,2 @@
+See man:babeltrace2-intro(7) to learn more about the Babeltrace~2
+project and its core concepts.

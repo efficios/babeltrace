@@ -1,80 +1,105 @@
-babeltrace2-source.text.dmesg(7)
-===============================
+= babeltrace2-source.text.dmesg(7)
 :manpagetype: component class
-:revdate: 5 October 2017
+:revdate: 14 September 2019
 
 
-NAME
-----
-babeltrace2-source.text.dmesg - Babeltrace's Linux kernel ring buffer
+== NAME
+
+babeltrace2-source.text.dmesg - Babeltrace 2's Linux kernel ring buffer
 source component class
 
 
-DESCRIPTION
------------
-The Babeltrace compcls:source.text.dmesg component class, provided by
-the man:babeltrace2-plugin-text(7) plugin, once instantiated, reads the
+== DESCRIPTION
+
+A Babeltrace~2 compcls:source.text.dmesg message iterator reads the
 lines of a Linux kernel ring buffer, as printed by the man:dmesg(1)
-tool, and emits corresponding event notifications on its output port.
+tool, and emits corresponding event messages.
 
-The events created by a compcls:source.text.dmesg component are named
-`string` and contain a single payload string field named `str` which
-contains the corresponding ring buffer line.
+----
+Linux kernel ring buffer
+lines (file or standard input)
+  |
+  |   +----------------+
+  |   | src.text.dmesg |
+  '-->|                |
+      |            out @--> Messages (single stream)
+      +----------------+
+----
 
-By default, a compcls:source.text.dmesg component reads the lines of the
-standard input stream. You can make the component read the lines of a
-text file instead with the param:path parameter.
+include::common-see-babeltrace2-intro.txt[]
 
-By default, the component tries to extract the timestamps of the kernel
-ring buffer lines and use them as the created events's timestamps. A
-typical man:dmesg(1) line looks like this:
+A compcls:source.text.dmesg message iterator names the events it creates
+`string`. Each event contain a single payload string field named `str`
+which contains the corresponding ring buffer line.
+
+By default, a compcls:source.text.dmesg message iterator reads the lines
+of the standard input stream. You can make the message iterator read the
+lines of a text file instead with the param:path parameter.
+
+By default, the message iterator tries to extract the timestamps of the
+kernel ring buffer lines and use them as the created events's
+timestamps. A typical man:dmesg(1) line looks like this:
 
 ----
 [87166.510937] PM: Finishing wakeup.
 ----
 
-In the last example, the `[87166.510937]` part is the timestamp to
-extract. You can make the component not extract timestamps from lines
-with the param:no-extract-timestamp parameter.
+The `[87166.510937]` part is the timestamp to extract. When this
+information is available, the component creates a clock class which does
+:not: have the Unix epoch as its origin.
+
+You can make the message iterator not extract timestamps from lines with
+the param:no-extract-timestamp parameter.
+
+[NOTE]
+====
+It is possible that the output of man:dmesg(1) contains unsorted lines,
+that is, their timestamps go back in time. You can see this with the
+nlopt:--show-delta option of man:dmesg(1): some time differences can be
+negative.
+
+This is due to a https://lwn.net/Articles/780556/[2019 change] to the
+kernel's ring buffer API.
+
+As of this version, a compcls:source.text.dmesg message iterator
+requires that the input kernel ring buffer lines be sorted by timestamp
+(when they have timestamps), failing otherwise.
+====
 
 
-INITIALIZATION PARAMETERS
--------------------------
-The following parameters are optional.
+== INITIALIZATION PARAMETERS
 
-param:no-extract-timestamp=`yes` (boolean)::
+param:no-extract-timestamp=`yes` vtype:[optional boolean]::
     Do :not: extract timestamps from the kernel ring buffer lines: set
     the created event's payload's `str` field to the whole line,
     including any timestamp prefix.
 
-param:path='PATH' (string)::
+param:path='PATH' vtype:[optional string]::
     Read the kernel ring buffer lines from the file 'PATH' instead of
     the standard input stream.
 
 
-PORTS
------
-Output
-~~~~~~
+== PORTS
+
+----
++----------------+
+| src.text.dmesg |
+|                |
+|            out @
++----------------+
+----
+
+
+=== Output
+
 `out`::
-    Single output port to which the component sends the created
-    notifications.
-
-
-QUERY OBJECTS
--------------
-This component class has no objects to query.
-
-
-ENVIRONMENT VARIABLES
----------------------
-include::common-common-compat-env.txt[]
+    Single output port.
 
 
 include::common-footer.txt[]
 
 
-SEE ALSO
---------
+== SEE ALSO
+
 man:babeltrace2-plugin-text(7),
 man:babeltrace2-intro(7)

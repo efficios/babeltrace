@@ -1,57 +1,57 @@
-babeltrace2-sink.utils.dummy(7)
-==============================
+= babeltrace2-sink.utils.dummy(7)
 :manpagetype: component class
-:revdate: 5 October 2017
+:revdate: 14 September 2019
 
 
-NAME
+== NAME
+
+babeltrace2-sink.utils.dummy - Babeltrace 2's dummy sink component class
+
+
+== DESCRIPTION
+
+A Babeltrace~2 compcls:sink.utils.dummy component consumes messages
+and discards them (does absolutely nothing with them).
+
 ----
-babeltrace2-sink.utils.dummy - Babeltrace's dummy sink component class
+            +------------------+
+            | sink.utils.dummy |
+            |                  |
+Messages -->@ in               |
+            +------------------+
+----
 
-
-DESCRIPTION
------------
-The Babeltrace compcls:sink.utils.dummy component class, provided by the
-man:babeltrace2-plugin-utils(7) plugin, once instantiated, receives
-notifications from its input port and discards them (does absolutely
-nothing with them).
+include::common-see-babeltrace2-intro.txt[]
 
 A compcls:sink.utils.dummy sink component can be useful to run a trace
 processing graph with no sink side effect, for example to perform
-benchmarks. You should prefer this component class for such tasks
-instead of, for example, using a compcls:sink.text.pretty component and
-sending its output to `/dev/null`, as a compcls:sink.text.pretty
-component still performs pretty-printing operations.
+benchmarks. Prefer a compcls:sink.utils.dummy component class for such
+tasks to, for example, a compcls:sink.text.pretty component and sending
+its output to `/dev/null`, as a compcls:sink.text.pretty component still
+performs formatting operations.
 
 
-INITIALIZATION PARAMETERS
--------------------------
-This component class has no initialization parameters.
+== PORTS
+
+----
++------------------+
+| sink.utils.dummy |
+|                  |
+@ in               |
++------------------+
+----
 
 
-PORTS
------
-Input
-~~~~~
+=== Input
+
 `in`::
-    Single input port from which the component receives the
-    notifications to discard.
-
-
-QUERY OBJECTS
--------------
-This component class has no objects to query.
-
-
-ENVIRONMENT VARIABLES
----------------------
-include::common-common-compat-env.txt[]
+    Single input port.
 
 
 include::common-footer.txt[]
 
 
-SEE ALSO
---------
-man:babeltrace2-plugin-utils(7),
-man:babeltrace2-intro(7)
+== SEE ALSO
+
+man:babeltrace2-intro(7),
+man:babeltrace2-plugin-utils(7)

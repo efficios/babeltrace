@@ -1,258 +1,257 @@
-babeltrace2-source.ctf.fs(7)
-===========================
+= babeltrace2-source.ctf.fs(7)
 :manpagetype: component class
-:revdate: 5 October 2017
+:revdate: 14 September 2019
 
 
-NAME
-----
-babeltrace2-source.ctf.fs - Babeltrace's file system CTF source
+== NAME
+
+babeltrace2-source.ctf.fs - Babeltrace 2's file system CTF source
 component class
 
 
-DESCRIPTION
------------
-The Babeltrace compcls:source.ctf.fs component class, provided by the
-man:babeltrace2-plugin-ctf(7) plugin, once instantiated, opens one or
-more http://diamon.org/ctf/[CTF] traces on the file system and emits the
-notifications of their data streams on its output ports.
+== DESCRIPTION
 
-
-Operation
-~~~~~~~~~
-A compcls:source.ctf.fs component recurses the directory given by the
-param:path parameter to find CTF traces. Note that, since a CTF trace
-directory cannot contain another CTF trace, if you need to open a single
-trace, set the param:path parameter to a directory which directly
-contains the `metadata` file.
-
-For each trace, the component creates one output port per effective data
-stream. Multiple data stream files can constitute a single effective
-data stream. The name of a data stream output port is the absolute path
-to the corresponding data stream file, or to one of the corresponding
-data stream files if there's more than one.
-
-The component skips the following files when looking for data stream
-files:
-
-* Any file which starts with `.`, including subdirectories.
-* Any non-regular file.
-
-
-[[trace-naming]]
-Trace naming
-~~~~~~~~~~~~
-A compcls:source.ctf.fs component names each trace `[HOSTNAME/]PATH`,
-with:
-
-`HOSTNAME`::
-    Value of the trace's `hostname` environment constant. If this
-    environment constant does not exist, or if its value is not a
-    string, then this part is omitted.
-
-`PATH`::
-    Relative path to the trace, starting at and including the basename
-    of the param:path parameter. This path is normalized, that is, it
-    doesn't contain path elements named `..` or `.`.
-
-For example, assume the following hierarchy:
+A Babeltrace~2 compcls:source.ctf.fs message iterator reads one or
+more https://diamon.org/ctf/[CTF]~1.8 streams on the file system
+and emits corresponding messages.
 
 ----
-/
-  home/
-    user/
-      my-traces/
-        trace1/
-          metadata
-          ...
-        node-traces/
-          server/
-            metadata
-            ...
-          client/
-            metadata
-            ...
+CTF streams on
+the file system
+  |
+  |   +---------------------+
+  |   |      src.ctf.fs     |
+  |   |                     |
+  '-->|    ...5c847 | 0 | 0 @--> Stream 0 messages
+      |    ...5c847 | 0 | 1 @--> Stream 1 messages
+      |    ...5c847 | 0 | 2 @--> Stream 2 messages
+      +---------------------+
 ----
 
-If you set the param:path parameter to `/home/user/my-traces`, and
-assuming the hostname of the `trace1` and `server` traces is `machine`,
-and the hostname of the `client` trace is `embedded`, then the trace
-names are:
-
-* `machine/my-traces/trace1`
-* `machine/my-traces/node-traces/server`
-* `embedded/my-traces/node-traces/client`
+include::common-see-babeltrace2-intro.txt[]
 
 
-Metadata quirks
-~~~~~~~~~~~~~~~
-A compcls:source.ctf.fs component makes some efforts to support as many
-CTF traces as possible, even those of which the metadata is malformed
-or implements specification bugs.
+[[input]]
+=== Input
 
-In particular:
+A compcls:source.ctf.fs component opens a single _logical_ CTF trace. A
+logical CTF trace contains one or more _physical_ CTF traces. A physical
+CTF trace on the file system is a directory which contains:
 
-* If the component detects that the trace was produced by LTTng, it sets
-  the `monotonic` clock class as absolute so that different LTTng traces
-  are directly correlatable. An LTTng trace has its `tracer_name`
-  environment constant starting with `lttng`.
+* One metadata stream file named `metadata`.
+* One or more data stream files, that is, any file with a name that does
+  not start with `.` and which is not `metadata`.
+* **Optional**: One https://lttng.org/[LTTng] index directory named
+  `index`.
 
-* If the `timestamp_begin` or `timestamp_end` packet context field
-  type exists, but it is not mapped to a clock class, and there's
-  only one clock class at this point in the metadata stream, the
-  component maps it to this unique clock class.
+If the logical CTF trace to handle contains more than one physical CTF
+trace, then all the physical CTF traces must have a trace UUID and all
+UUIDs must be the same. Opening more than one physical CTF trace to
+constitute a single logical CTF trace is needed to support LTTng's
+tracing session rotation feature, for example (see man:lttng-rotate(1)
+starting from LTTng~2.11).
 
-* If an enumeration field type's label starts with `_`, the component
-  removes the starting `_` character. This is needed to accomodate
-  an eventual variant field type which refers to the enumeration field type
-  as its tag and which has equivalent choice names also starting
-  with `_` (the `_` must be removed from field and choice names as
-  per CTF{nbsp}1.8.2).
+You specify which physical CTF traces to open and read with the
+param:inputs array parameter. Each entry in this array is the path to a
+physical CTF trace directory, that is, the directory directly containing
+the stream files.
+
+A compcls:source.ctf.fs component does not recurse into directories to
+find CTF traces. However, the component class provides the
+`babeltrace.support-info` query object which indicates whether or not a
+given directory looks like a CTF trace directory (see
+<<support-info,```babeltrace.support-info`''>>).
+
+The component creates one output port for each logical CTF data stream.
+More than one physical CTF data stream file can support a single logical
+CTF data stream (LTTng's trace file rotation and tracing session
+rotation can cause this).
 
 
-INITIALIZATION PARAMETERS
--------------------------
-The following parameters are optional unless indicated otherwise.
+=== Trace quirks
 
-param:clock-class-offset-ns (integer)::
-    Value to add, in nanoseconds, to the offset of all the clock classes
-    that the component creates.
+Many tracers produce CTF traces. A compcls:source.ctf.fs component makes
+some effort to support as many CTF traces as possible, even those with
+malformed streams.
+
+Generally:
+
+* If the `timestamp_begin` or `timestamp_end` packet context field class
+  exists, but it is not mapped to a clock class, and there's only one
+  clock class at this point in the metadata stream, the component maps
+  the field class to this unique clock class.
+
+A compcls:source.ctf.fs component has special quirk handling for some
+https://lttng.org/[LTTng] and https://lttng.org/[barectf] traces,
+depending on the tracer's version:
+
+All LTTng versions::
++
+--
+* The component sets the `monotonic` clock class's origin to the Unix
+  epoch so that different LTTng traces are always correlatable.
++
+This is the equivalent of setting the
+param:force-clock-class-origin-unix-epoch parameter to true.
+
+* For a given data stream, for all the contiguous last packets of which
+  the `timestamp_end` context field is 0, the message iterator uses the
+  packet's last event record's time as the packet end message's time.
++
+This is useful for the traces which man:lttng-crash(1) generates.
+--
+
+LTTng-UST up to, but excluding, 2.11.0::
+LTTng-modules up to, but excluding, 2.9.13::
+LTTng-modules from 2.10.0 to 2.10.9::
++
+--
+* For a given packet, the message iterator uses the packet's last
+  event record's time as the packet end message's time, ignoring the
+  packet context's `timestamp_end` field.
+--
+
+barectf up to, but excluding, 2.3.1::
++
+--
+* For a given packet, the message iterator uses the packet's first event
+  record's time as the packet beginning message's time, ignoring the
+  packet context's `timestamp_begin` field.
+--
+
+
+== INITIALIZATION PARAMETERS
+
+param:clock-class-offset-ns='NS' vtype:[optional signed integer]::
+    Add 'NS' nanoseconds to the offset of all the clock classes that the
+    component creates.
 +
 You can combine this parameter with the param:clock-class-offset-s
 parameter.
 
-param:clock-class-offset-s (integer)::
-    Value to add, in seconds, to the offset of all the clock classes
-    that the component creates.
+param:clock-class-offset-s='SEC' vtype:[optional signed integer]::
+    Add 'SEC' seconds to the offset of all the clock classes that the
+    component creates.
 +
 You can combine this parameter with the param:clock-class-offset-ns
 parameter.
 
-param:path='PATH' (string, mandatory)::
-    Path to the directory to recurse for CTF traces.
+param:force-clock-class-origin-unix-epoch=`yes` vtype:[optional boolean]::
+    Force the origin of all clock classes that the component creates to
+    have a Unix epoch origin, whatever the detected tracer.
+
+param:inputs='DIRS' vtype:[array of strings]::
+    Open and read the physical CTF traces located in 'DIRS'.
++
+Each element of 'DIRS' is the path to a physical CTF trace directory
+containing the trace's stream files.
++
+All the specified physical CTF traces must belong to the same logical
+CTF trace. See <<input,``Input''>> to learn more about logical and
+physical CTF traces.
+
+param:trace-name='NAME' vtype:[optional string]::
+    Set the name of the trace object that the component creates to
+    'NAME'.
 
 
-PORTS
------
-Output
-~~~~~~
-For each opened trace, the component creates one output port for each
-effective data stream. The name of a data stream output port is the
-normalized (no `..` or `.` elements) absolute path to the corresponding
-data stream file, or to one of the corresponding data stream files if
-there's more than one.
+== PORTS
+
+----
++--------------------+
+|     src.ctf.fs     |
+|                    |
+|   ...5c847 | 0 | 1 @
+|                ... @
++--------------------+
+----
 
 
-QUERY OBJECTS
--------------
-`metadata-info`
-~~~~~~~~~~~~~~~
+=== Output
+
+A compcls:source.ctf.fs component creates one output port for each
+logical CTF data stream. See <<input,``Input''>> to learn more about
+logical and physical CTF data streams.
+
+Each output port's name has one of the following forms:
+
+[verse]
+__TRACE-ID__ | __STREAM-CLASS-ID__ | __STREAM-ID__
+__TRACE-ID__ | __STREAM-ID__
+
+The component uses the second form when the stream class ID is not
+available.
+
+__TRACE-ID__::
+    Trace's UUID if available, otherwise trace's absolute directory
+    path.
+
+__STREAM-CLASS-ID__::
+    Stream class ID.
+
+__STREAM-ID__::
+    Stream ID if available, otherwise stream's absolute file path.
+
+
+[[query-objs]]
+== QUERY OBJECTS
+
+[[support-info]]
+=== `babeltrace.support-info`
+
+See man:babeltrace2-query-babeltrace.support-info(7) to learn more
+about this query object.
+
+For a directory input which is the path to a CTF trace directory,
+the result object contains:
+
+nlqres:weight::
+    0.75
+
+nlqres:group::
+    Trace's UUID if available, otherwise the entry does not exist.
+
+You can leverage this query object's nlqres:group entry to assemble many
+physical CTF traces as a single logical CTF trace (see
+<<input,``Input''>> to learn more about logical and physical CTF
+traces). This is how the man:babeltrace2-convert(1) command makes it
+possible to specify as non-option arguments the paths to multiple
+physical CTF traces which belong to the same logical CTF trace and
+create a single compcls:source.ctf.fs component.
+
+
+=== `babeltrace.trace-infos`
+
+See man:babeltrace2-query-babeltrace.trace-infos(7) to learn more
+about this query object.
+
+
+=== `metadata-info`
+
 You can query the `metadata-info` object for a specific CTF trace to get
 its plain text metadata stream as well as whether or not it is
 packetized.
 
 Parameters:
 
-`path` (string, mandatory)::
-    Path to the CTF trace directory which contains the `metadata` file.
+nlparam:path='PATH' vtype:[string]::
+    Path to the physical CTF trace directory which contains the
+    `metadata` file.
 
-Returned object (map):
+Result object (map):
 
-`text` (string)::
-    Plain text metadata.
+qres:is-packetized vtype:[boolean]::
+    True if the metadata stream file is packetized.
 
-`is-packetized` (boolean)::
-    True if the metadata stream is packetized.
-
-
-`babeltrace.trace-info`
-~~~~~~~~~~~~~~~~~~~~~~~
-You can query the `babeltrace.trace-info` object for a set of CTF traces
-to get information about the data streams they contain, their
-intersection time range, and more.
-
-This query object requires that the processed CTF traces have the
-`timestamp_begin` and `timestamp_end` fields in their packet context
-field types.
-
-Parameters:
-
-`path` (string, mandatory)::
-    Path to a directory to recurse to find CTF traces.
-
-Returned object (array of maps, one element for each found trace):
-
-`name` (string)::
-    Trace name, as per the explanations in the <<trace-naming,Trace
-    naming>> section.
-
-`path` (string)::
-    Trace path.
-
-`range-ns` (map)::
-    Full time range of the trace.
-+
---
-`begin` (integer)::
-    Beginning time (ns since Epoch) of the trace.
-
-`end` (integer)::
-    End time (ns since Epoch) of the trace.
---
-
-`intersection-range-ns` (map)::
-    This entry only exists if there is a data stream intersection range.
-+
---
-`begin` (integer)::
-    Beginning time (ns since Epoch) of the trace's data stream
-    intersection.
-
-`end` (integer)::
-    End time (ns since Epoch) of the trace's data stream intersection.
---
-
-`streams` (array of maps, one element for each trace's effective data stream)::
-+
---
-`paths` (array of strings)::
-    Absolute paths to the data stream files which are part of this
-    data stream.
-
-`class-id` (integer)::
-    Numeric ID of the data stream's class.
-
-`range-ns` (map)::
-    Full time range of the data stream.
-+
---
-`begin` (integer)::
-    Beginning time (ns since Epoch) of the data stream.
-
-`end` (integer)::
-    End time (ns since Epoch) of the data stream.
---
---
-
-ENVIRONMENT VARIABLES
----------------------
-include::common-ctf-plugin-env.txt[]
-
-
-Component class
-~~~~~~~~~~~~~~~
-include::common-common-compat-env.txt[]
-
-`BABELTRACE_SRC_CTF_FS_LOG_LEVEL`::
-    Component class's log level. The available values are the
-    same as for the manopt:babeltrace2(1):--log-level option of
-    man:babeltrace2(1).
+qres:text vtype:[string]::
+    Plain text metadata stream.
 
 
 include::common-footer.txt[]
 
 
-SEE ALSO
---------
+== SEE ALSO
+
+man:babeltrace2-intro(7),
 man:babeltrace2-plugin-ctf(7),
-man:babeltrace2-intro(7)
+man:lttng-crash(1)

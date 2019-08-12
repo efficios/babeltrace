@@ -1,0 +1,173 @@
+= babeltrace2-sink.text.details(7)
+:manpagetype: component class
+:revdate: 14 September 2019
+
+
+== NAME
+
+babeltrace2-sink.text.details - Babeltrace 2's detailed plain text sink
+component class
+
+
+== DESCRIPTION
+
+A Babeltrace~2 compcls:sink.text.details component
+deterministically prints the messages it consumes, with all the possible
+details, to the standard output.
+
+----
+            +-------------------+
+            | sink.text.details |
+            |                   +--> Detailed messages to the
+Messages -->@ in                |    standard output
+            +-------------------+
+----
+
+include::common-see-babeltrace2-intro.txt[]
+
+The purpose of a compcls:sink.text.details component is to always print
+the same text for the same sequence of consumed messages, whatever the
+build configuration of the Babeltrace~2 project. This can be
+helpful for testing, debugging, and support.
+
+The output format is optimized for human reading, with colors when the
+terminal supports it. You can control how the component prints color
+codes with the param:color parameter.
+
+To achieve a reproducible output, a compcls:sink.text.details component
+sorts the members of all unordered sets before it prints them. For
+example, the component sorts enumeration field class mappings by label
+and, for each mapping, sorts the contained ranges.
+
+In normal mode, each message has at least three lines, the three first
+being:
+
+. Timing information (cycles and nanoseconds since origin).
++
+Example:
++
+----
+[102,423,274,041,829 cycles, 1,441,852,841,550,867,846 ns from origin]
+----
+
+. Unique stream identifier.
++
+To be able to follow a specific trace object (the name and UUID
+properties of a trace object are optional), the component assigns a
+unique numeric ID to the trace object when it first encounters it in a
+stream beginning message.
++
+Example:
++
+----
+{Trace 1, Stream class ID 0, Stream ID 2}
+----
+
+. Message type and basic information.
++
+Examples:
++
+----
+Packet beginning:
+----
++
+----
+Event `lttng_ust_statedump:build_id` (Class ID 2):
+----
+
+What follows depend on the specific message type. The component prints
+all the available properties and fields in a human-readable, structured
+format.
+
+When a compcls:sink.text.details component consumes a stream beginning
+or an event message, it can print a metadata block for all the metadata
+objects which it did not print yet. You can use the param:with-metadata
+parameter to disable this.
+
+You can hide specific properties with the param:with-stream-class-name,
+param:with-stream-name, param:with-time, param:with-trace-name, and
+param:with-uuid parameters.
+
+To make the component hide many message details and print a single
+message per line, you can enable the compact mode with the param:compact
+parameter.
+
+
+== INITIALIZATION PARAMETERS
+
+param:color=(`never` | `auto` | `always`) vtype:[optional string]::
+    Force the terminal color support, one of:
++
+--
+`auto` (default)::
+    Only emit terminal color codes when the standard output and error
+    streams are connected to a color-capable terminal.
+
+`never`::
+    Never emit terminal color codes.
+
+`always`::
+    Always emit terminal color codes.
+--
++
+The `BABELTRACE_TERM_COLOR` environment variable overrides this
+parameter.
+
+param:compact=`yes` vtype:[optional boolean]::
+    Enable compact mode.
++
+In compact mode, the component prints one line per message, omitting
+many details about messages. This is useful if you only need the time,
+type, and very basic information of messages.
++
+In compact mode, the component still prints the full metadata blocks.
+You can remove such blocks with the param:with-metadata parameter.
+
+param:with-metadata=`no` vtype:[optional boolean]::
+    Do not print metadata blocks.
+
+param:with-stream-class-name=`no` vtype:[optional boolean]::
+    Do not print stream class names.
+
+param:with-stream-name=`no` vtype:[optional boolean]::
+    Do not print stream names.
+
+param:with-time=`no` vtype:[optional boolean]::
+    Do not print timing information.
+
+param:with-trace-name=`no` vtype:[optional boolean]::
+    Do not print trace names.
+
+param:with-uuid=`no` vtype:[optional boolean]::
+    Do not print UUIDs.
+
+
+== PORTS
+
+----
++-------------------+
+| sink.text.details |
+|                   |
+@ in                |
++-------------------+
+----
+
+
+=== Input
+
+`in`::
+    Single input port.
+
+
+== ENVIRONMENT VARIABLES
+
+include::common-common-env.txt[]
+
+
+include::common-footer.txt[]
+
+
+== SEE ALSO
+
+man:babeltrace2-intro(7),
+man:babeltrace2-plugin-text(7)

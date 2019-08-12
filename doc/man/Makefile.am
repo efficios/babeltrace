@@ -21,11 +21,14 @@ MAN7_NAMES = babeltrace2-filter.utils.muxer \
 	babeltrace2-plugin-utils \
 	babeltrace2-sink.ctf.fs \
 	babeltrace2-sink.text.pretty \
+	babeltrace2-sink.text.details \
 	babeltrace2-sink.utils.counter \
 	babeltrace2-sink.utils.dummy \
 	babeltrace2-source.ctf.fs \
 	babeltrace2-source.ctf.lttng-live \
-	babeltrace2-source.text.dmesg
+	babeltrace2-source.text.dmesg \
+	babeltrace2-query-babeltrace.support-info \
+	babeltrace2-query-babeltrace.trace-infos
 MAN1_NO_ASCIIDOC_NAMES =
 MAN7_NO_ASCIIDOC_NAMES =
 
@@ -48,14 +51,14 @@ COMMON_TXT = \
 	$(srcdir)/common-cmd-footer.txt \
 	$(srcdir)/common-cmd-info-options.txt \
 	$(srcdir)/common-cmd-params-format.txt \
-	$(srcdir)/common-cmd-plugin-path.txt \
-	$(srcdir)/common-common-compat-env.txt \
-	$(srcdir)/common-ctf-plugin-env.txt \
+	$(srcdir)/common-common-env.txt \
 	$(srcdir)/common-footer.txt \
 	$(srcdir)/common-gen-options.txt \
 	$(srcdir)/common-lib-env.txt \
-	$(srcdir)/common-plugin-path-options.txt \
-	$(srcdir)/common-ppp-env.txt
+	$(srcdir)/common-see-babeltrace2-intro.txt \
+	$(srcdir)/common-convert-examples.txt \
+	$(srcdir)/common-log-levels.txt \
+	$(srcdir)/common-trimmer-time-format.txt
 
 # config
 ASCIIDOC_CONF = $(srcdir)/bt-asciidoc.conf

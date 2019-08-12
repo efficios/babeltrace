@@ -1,20 +1,52 @@
-Babeltrace library
-~~~~~~~~~~~~~~~~~~
-include::common-common-compat-env.txt[]
+=== Babeltrace~2 library
 
-`BABELTRACE_DISABLE_PYTHON_PLUGINS`::
-    Set to `1` to disable the loading of any Babeltrace Python plugin.
+include::common-common-env.txt[]
 
-`BABELTRACE_LOGGING_GLOBAL_LEVEL`::
-    Babeltrace library's global log level. The available values are the
-    same as for the manopt:babeltrace2(1):--log-level option of
-    man:babeltrace2(1)
+`BABELTRACE_PLUGIN_PATH`='PATHS'::
+    Set the list of directories, in order, in which dynamic plugins can
+    be found before other directories are considered to 'PATHS'
+    (colon-separated, or semicolon on Windows).
 
-`BABELTRACE_NO_DLCLOSE`::
-    Set to `1` to make the Babeltrace library leave any dynamically
-    loaded modules (plugins and Python plugin provider) open at exit.
-    This can be useful for debugging purposes.
+`LIBBABELTRACE2_DISABLE_PYTHON_PLUGINS`=`1`::
+    Disable the loading of any Babeltrace~2 Python plugin.
 
-`BABELTRACE_PLUGIN_PATH`::
-    Colon-separated list of directories, in order, in which dynamic
-    plugins can be found before other directories are considered.
+`LIBBABELTRACE2_INIT_LOG_LEVEL`='LVL'::
+    Force the Babeltrace~2 library's initial log level to be 'LVL'.
++
+If this environment variable is set, it overrides the log level set by
+the manopt:babeltrace2(1):--log-level option for the Babeltrace~2
+library logger.
++
+The available values for 'LVL' are:
++
+--
+include::common-log-levels.txt[]
+--
+
+`LIBBABELTRACE2_NO_DLCLOSE`=`1`::
+    Make the Babeltrace~2 library leave any dynamically loaded
+    modules (plugins and plugin providers) open at exit. This can be
+    useful for debugging purposes.
+
+`LIBBABELTRACE2_PLUGIN_PROVIDER_DIR`='DIR'::
+    Set the directory from which the Babeltrace~2 library
+    dynamically loads plugin provider shared objects to 'DIR'.
++
+If this environment variable is set, it overrides the default plugin
+provider directory.
+
+
+=== Babeltrace~2 Python bindings
+
+`BABELTRACE_PYTHON_BT2_LOG_LEVEL`='LVL'::
+    Force the Babeltrace~2 Python bindings log level to be 'LVL'.
++
+If this environment variable is set, it overrides the log level set by
+the manopt:babeltrace2(1):--log-level option for the Python bindings
+logger.
++
+The available values for 'LVL' are:
++
+--
+include::common-log-levels.txt[]
+--

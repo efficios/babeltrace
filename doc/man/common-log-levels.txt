@@ -1,0 +1,46 @@
+`NONE`::
+`N`::
+    Logging is disabled.
+
+`FATAL`::
+`F`::
+    Severe errors that lead the execution to abort immediately.
++
+This level should be enabled in production.
+
+`ERROR`::
+`E`::
+    Errors that might still allow the execution to continue.
++
+Usually, once one or more errors are reported at this level, the
+application, plugin, or library won't perform any more useful task, but
+it should still exit cleanly.
++
+This level should be enabled in production.
+
+`WARN`::
+`WARNING`::
+`W`::
+    Unexpected situations which still allow the execution to continue.
++
+This level should be enabled in production.
+
+`INFO`::
+`I`::
+    Informational messages that highlight progress or important states
+    of the application, plugins, or library.
++
+This level can be enabled in production.
+
+`DEBUG`::
+`D`::
+    Debugging information, with a higher level of details than the
+    `TRACE` level.
++
+This level should :not: be enabled in production.
+
+`TRACE`::
+`T`::
+    Low-level debugging context information.
++
+This level should :not: be enabled in production.

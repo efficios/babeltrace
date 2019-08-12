@@ -1,115 +1,243 @@
-babeltrace2-sink.ctf.fs(7)
-=========================
+= babeltrace2-sink.ctf.fs(7)
 :manpagetype: component class
-:revdate: 5 October 2017
+:revdate: 14 September 2019
 
 
-NAME
-----
-babeltrace2-sink.ctf.fs - Babeltrace's file system CTF sink component
+== NAME
+
+babeltrace2-sink.ctf.fs - Babeltrace 2's file system CTF sink component
 class
 
 
-DESCRIPTION
------------
-The Babeltrace compcls:sink.ctf.fs component class, provided by the
-man:babeltrace2-plugin-ctf(7) plugin, once instantiated, writes the
-events it receives to one or more http://diamon.org/ctf/[CTF] traces on
+== DESCRIPTION
+
+A Babeltrace~2 compcls:sink.ctf.fs component writes the messages it
+consumes to one or more https://diamon.org/ctf/[CTF]~1.8 traces on
 the file system.
 
-A compcls:sink.ctf.fs component does not merge traces, in that it writes
-the notifications of different input traces to different output traces.
+----
+            +-------------+
+            | sink.ctf.fs |
+            |             +--> CTF trace(s) on
+Messages -->@ in          |    the file system
+            +-------------+
+----
 
-This component guarantees that the output traces are semantically
-equivalent to the input traces. This means that a given output CTF trace
-contains:
+include::common-see-babeltrace2-intro.txt[]
 
-* The original trace environment.
-* The original clock classes.
-* The original event class names, log levels, and other static
-  attributes, except for the numeric IDs.
-* The original field _values_, except for:
-** Timestamp fields, but the equivalent clock value remains the same.
-** Numeric ID fields.
-
-The component does not guarantee to keep:
-
-* The original field type attributes (for example, the sizes of the
-  integer field types).
-* The original stream class and event class numeric IDs.
+A compcls:sink.ctf.fs component does not merge traces: it writes the
+messages of different input traces to different output traces.
 
 
-Output path
-~~~~~~~~~~~
+=== Special trace IR to CTF translations
+
+A compcls:sink.ctf.fs component makes a best effort to write CTF traces
+that are semantically equivalent to the input traces. As of this
+version, the component writes CTF~1.8 traces, so the following
+field class translations can occur:
+
+* The component translates a boolean field class to a CTF unsigned 8-bit
+  integer field class.
++
+The unsigned integer field's value is 0 when the boolean field's value
+is false and 1 when the boolean field's value is true.
+
+* The component translates a bit array field to a CTF unsigned
+  integer field class having the same length.
+
+* The component translates an option field class to a CTF variant
+  field class where the options are an empty structure field class
+  and the optional field class itself.
++
+The empty structure field is selected when the option field has no
+field.
+
+In all the cases above, the component adds a comment in the metadata
+stream, above the field class, to indicate that a special translation
+occured.
+
+
+=== Input message constraints
+
+Because of limitations in CTF~1.8 regarding how discarded events
+and packets are encoded:
+
+* If a stream class supports discarded events and the
+  param:ignore-discarded-events parameter is :not: true:
+
+** The stream class must support packets.
+** Discarded events messages must have times.
+** Any discarded events message must occur between a packet end
+   and a packet beginning message.
+** The beginning time of a discarded events message must be the same
+   as the time of the last packet end message.
+** The end time of a discarded events message must be the same
+   as the time of the next packet end message.
+** Time ranges of discarded events messages must not overlap.
+
+* If a stream class supports discarded packets and the
+  param:ignore-discarded-packets parameter is :not: true:
+
+** The stream class must support packets.
+** Discarded packets messages must have times.
+** The beginning time of a discarded events message must be the same
+   as the time of the last packet end message.
+** The end time of a discarded events message must be the same
+   as the time of the next packet beginning message.
+** Time ranges of discarded packets messages must not overlap.
+
+The messages which a compcls:source.ctf.fs component creates satisfy all
+the requirements above.
+
+If a discarded events or packets message has no events/packets count,
+the compcls:sink.ctf.fs component adds 1 to the corresponding CTF
+stream's counter.
+
+
+=== Alignment and byte order
+
+A compcls:sink.ctf.fs component always aligns data fields as such:
+
+Integer fields with a size which is not a multiple of 8::
+    1-bit.
+
+All other scalar fields (integer, enumeration, real, string)::
+    8-bit.
+
+The component writes fields using the machine's native byte order. As of
+this version, there's no way to force a custom byte order.
+
+
+[[output-path]]
+=== Output path
+
 The path of a CTF trace is the directory which directly contains the
-metadata and data stream files as children.
+metadata and data stream files.
 
-The rules to determine the path of a generated CTF trace are:
+The current strategy to build a path in which to write the streams of
+a given input trace is, in this order:
 
-* If the param:single-trace parameter is true, use the value of the
+. If the param:assume-single-trace parameter is true, then the output
+  trace path to use for the single input trace is the directory
+  specified by the param:path parameter.
+
+. If the component recognizes the input trace as an LTTng (2.11 or
+  greater) trace, then it checks specific trace environment values to
+  build a trace path relative to the directory specified by the
+  param:path parameter:
++
+--
+
+Linux kernel domain::
++
+[verse]
+__HOST__/__SNAME__-__STIME__/kernel
+
+User space domain, per-UID buffering::
++
+[verse]
+__HOST__/__SNAME__-__STIME__/ust/uid/__UID__/__ARCHW__-bit
+
+User space domain, per-PID buffering::
++
+[verse]
+__HOST__/__SNAME__-__STIME__/ust/pid/__PNAME__-__PID__-__PTIME__
+
+--
++
+With:
++
+--
+__HOST__::
+    Target's hostname.
+
+__SNAME__::
+    Tracing session name.
+
+__STIME__::
+    Tracing session creation date/time.
+
+__UID__::
+    User ID.
+
+__ARCHW__::
+    Architecture's width (`32` or `64`).
+
+__PNAME__::
+    Process name.
+
+__PID__::
+    Process ID.
+
+__PTIME__::
+    Process's date/time.
+--
+
+. If the input trace has a name, then the component sanitizes this name
+  and uses it as a relative path to the directory specified by the
   param:path parameter.
 +
-Otherwise:
+The trace name sanitization operation:
 +
---
-* If the input trace has a name, use `OUTPUTPATH/TRACENAME[SUFFIX]`,
-  where `OUTPUTPATH` is the value of the param:path parameter,
-  `TRACENAME` is the input trace's name, and `SUFFIX` is an optional
-  numeric suffix if `OUTPUTPATH/TRACENAME` already exists.
+* Replaces `.` subdirectories with `_`.
+* Replaces `..` subdirectories with `__`.
+* Removes any trailing `/` character.
+
+. The component uses the subdirectory `trace` relative to the directory
+  specified by the param:path parameter.
+
+In all the cases above, if the effective output trace path already
+exists on the file system, the component appends a numeric suffix to the
+name of the last subdirectory. The suffix starts at 0 and increments
+until the path does not exist.
+
+
+== INITIALIZATION PARAMETERS
+
+param:assume-single-trace=`yes` vtype:[optional boolean]::
+    Assume that the component only receives messages related to a single
+    input trace.
 +
-Note that the name of a trace that a compcls:source.ctf.fs component
-creates includes its hostname and its relative path while making sure to
-avoid conflicts.
+This parameter affects how the component builds the output trace path
+(see <<output-path,``Output path''>>).
+
+param:ignore-discarded-events=`yes` vtype:[optional boolean]::
+    Ignore discarded events messages.
+
+param:ignore-discarded-packets=`yes` vtype:[optional boolean]::
+    Ignore discarded packets messages.
+
+param:path='PATH' vtype:[string]::
+    Base output path.
 +
-Otherwise, use `OUTPUTPATH/trace[SUFFIX]`, where `OUTPUTPATH` and
-`SUFFIX` are defined above.
---
+See <<output-path,``Output path''>> to learn how the component uses this
+parameter to build the output path for a given input trace.
+
+param:quiet=`yes` vtype:[optional boolean]::
+    Do not write anything to the standard output.
 
 
-INITIALIZATION PARAMETERS
--------------------------
-param:path='PATH' (string, mandatory)::
-    Depending on the value of the param:single-trace parameter, prefix
-    of output trace paths or full output trace path.
+== PORTS
 
-param:single-trace=`yes` (boolean, optional)::
-    Assume that the component only receives notifications related to
-    a single source trace.
+----
++-------------+
+| sink.ctf.fs |
+|             |
+@ in          |
++-------------+
+----
 
 
-PORTS
------
-Input
-~~~~~
+=== Input
+
 `in`::
-    Single input port from which the component receives the
-    notifications.
-
-
-QUERY OBJECTS
--------------
-This component class has no objects to query.
-
-
-ENVIRONMENT VARIABLES
----------------------
-include::common-ctf-plugin-env.txt[]
-
-
-Component class
-~~~~~~~~~~~~~~~
-include::common-common-compat-env.txt[]
-
-`BABELTRACE_SINK_CTF_FS_LOG_LEVEL`::
-    Component class's log level. The available values are the
-    same as for the manopt:babeltrace2(1):--log-level option of
-    man:babeltrace2(1).
+    Single input port.
 
 
 include::common-footer.txt[]
 
 
-SEE ALSO
---------
-man:babeltrace2-plugin-ctf(7),
-man:babeltrace2-intro(7)
+== SEE ALSO
+
+man:babeltrace2-intro(7),
+man:babeltrace2-plugin-ctf(7)

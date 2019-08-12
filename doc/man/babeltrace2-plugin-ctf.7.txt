@@ -1,49 +1,49 @@
-babeltrace2-plugin-ctf(7)
-========================
+= babeltrace2-plugin-ctf(7)
 :manpagetype: plugin
-:revdate: 5 October 2017
+:revdate: 14 September 2019
 
 
-NAME
-----
-babeltrace2-plugin-ctf - Babeltrace's CTF plugin
+== NAME
+
+babeltrace2-plugin-ctf - Babeltrace 2's CTF plugin
 
 
-DESCRIPTION
------------
-The Babeltrace `ctf` plugin contains component classes which can read
-and write the http://diamon.org/ctf/[Common Trace Format].
+== DESCRIPTION
 
-See man:babeltrace2-intro(7) to learn more about the Babeltrace
-project and its core concepts.
+The Babeltrace~2 `ctf` plugin contains component classes to read
+and write traces following the https://diamon.org/ctf/[Common Trace
+Format].
+
+include::common-see-babeltrace2-intro.txt[]
 
 
-COMPONENT CLASSES
------------------
-compcls:sink.ctf.fs::
-    Writes the received notifications as a CTF trace on the file system.
-+
-See man:babeltrace2-sink.ctf.fs(7).
+== COMPONENT CLASSES
 
 compcls:source.ctf.fs::
-    Opens one or more CTF traces on the file system and emits the
-    notifications of their data stream files.
+    Opens a CTF trace on the file system and emits the messages of their
+    data stream files.
 +
 See man:babeltrace2-source.ctf.fs(7).
 
 compcls:source.ctf.lttng-live::
-    Connects to an http://lttng.org/[LTTng] relay daemon and emits
-    the notifications of the received CTF data streams.
+    Connects to an https://lttng.org/[LTTng] relay daemon and emits
+    the messages of the received CTF data streams.
 +
 See man:babeltrace2-source.ctf.lttng-live(7).
+
+compcls:sink.ctf.fs::
+    Writes the consumed messages as one or more CTF traces on the file
+    system.
++
+See man:babeltrace2-sink.ctf.fs(7).
 
 
 include::common-footer.txt[]
 
 
-SEE ALSO
---------
-man:babeltrace2-sink.ctf.fs(7),
+== SEE ALSO
+
+man:babeltrace2-intro(7),
 man:babeltrace2-source.ctf.fs(7),
 man:babeltrace2-source.ctf.lttng-live(7),
-man:babeltrace2-intro(7)
+man:babeltrace2-sink.ctf.fs(7)

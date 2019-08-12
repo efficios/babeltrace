@@ -1,0 +1,17 @@
+`BABELTRACE_TERM_COLOR`=(`AUTO` | `NEVER` | `ALWAYS`)::
+    Force the terminal color support for the man:babeltrace2(1) program
+    and the project's plugins.
++
+The available values are:
++
+--
+`AUTO`::
+    Only emit terminal color codes when the standard output and error
+    streams are connected to a color-capable terminal.
+
+`NEVER`::
+    Never emit terminal color codes.
+
+`ALWAYS`::
+    Always emit terminal color codes.
+--

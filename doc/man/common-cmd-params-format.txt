@@ -1,14 +1,12 @@
-[[params-fmt]]
-Parameters format
-~~~~~~~~~~~~~~~~~
-The format of the 'PARAMS' option's argument is a comma-separated
-list of `NAME=VALUE` assignments:
+The format of 'PARAMS' is a comma-separated list of 'NAME'='VALUE'
+assignments:
 
 [verse]
 'NAME'='VALUE'[,'NAME'='VALUE']...
 
 'NAME'::
-    Parameter name (C{nbsp}identifier plus the `:`, `.`, and `-` characters).
+    Parameter name (C~identifier plus the `:`, `.`, and `-`
+    characters).
 
 'VALUE'::
     One of:
@@ -31,22 +29,29 @@ list of `NAME=VALUE` assignments:
 
 * Double-quoted string (accepts escape characters).
 
-* Array, formatted as an opening `[`, a list of comma-separated values
-  (as described by the current list) and a closing `]`.
+* Array, formatted as an opening `[`, a comma-separated list of 'VALUE',
+  and a closing `]`.
 
-You may put whitespaces around the individual `=` (assignment) and `,`
-(separator) characters.
+* Map, formatted as an opening `{`, a comma-separated list of
+  'NAME'='VALUE' assignments, and a closing `}`.
+
+You may put whitespaces around the individual `=` (assignment), `,`
+(separator), `[` (array beginning), `]` (array end), `{` (map
+beginning), and `}` (map end) characters.
 --
 
 Example:
 
+[role="term"]
 ----
-babeltrace2 ... --params='many=null, fresh=yes, condition=false,
-                         squirrel=-782329, play=+23, observe=3.14,
-                         simple=beef, needs-quotes="some string",
-                         escape.chars-are:allowed="a \" quote",
-                         things=[1, "2", 3]'
+--params='many=null, fresh=yes, condition=false, squirrel=-782329,
+          play=+23, observe=3.14, simple=beef,
+          needs-quotes="some string",
+          escape.chars-are:allowed="a \" quote",
+          things=[1, "hello", 2.71828],
+          frog={slow=2, bath=[bike, 23], blind=NO}'
 ----
 
 IMPORTANT: Like in the example above, make sure to single-quote the
-whole argument when you run this command from a shell.
+whole argument when you run this command from a shell, as it can contain
+many special characters.
