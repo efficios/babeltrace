@@ -916,6 +916,35 @@ end:
 }
 
 static
+int print_option(struct pretty_component *pretty,
+		const bt_field *option, bool print_names)
+{
+	int ret = 0;
+	const bt_field *field = NULL;
+
+	field = bt_field_option_borrow_field_const(option);
+	if (field) {
+		bt_common_g_string_append(pretty->string, "{ ");
+		pretty->depth++;
+		if (print_names) {
+			// TODO: find tag's name using field path
+			// print_field_name_equal(pretty, tag_choice);
+		}
+		ret = print_field(pretty, field, print_names);
+		if (ret != 0) {
+			goto end;
+		}
+		pretty->depth--;
+		bt_common_g_string_append(pretty->string, " }");
+	} else {
+		bt_common_g_string_append(pretty->string, "<none>");
+	}
+
+end:
+	return ret;
+}
+
+static
 int print_variant(struct pretty_component *pretty,
 		const bt_field *variant, bool print_names)
 {
@@ -1009,6 +1038,8 @@ int print_field(struct pretty_component *pretty,
 	}
 	case BT_FIELD_CLASS_TYPE_STRUCTURE:
 		return print_struct(pretty, field, print_names);
+	case BT_FIELD_CLASS_TYPE_OPTION:
+		return print_option(pretty, field, print_names);
 	case BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR:
 	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_SELECTOR:
 	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_SELECTOR:
