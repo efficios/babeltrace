@@ -34,8 +34,8 @@ void destroy_gstring(void *data)
 }
 
 /*
- * Extracts the various paths from the string arg, delimited by ':',
- * and appends them to the array value object plugin_paths.
+ * Extracts the various paths from the string arg, delimited by ':' on UNIX,
+ * ';' on Windows, and appends them to the array value object `plugin_paths`.
  */
 int bt_config_append_plugin_paths(
 		bt_value *plugin_paths, const char *arg)
