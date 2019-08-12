@@ -24,7 +24,6 @@ from bt2 import native_bt, object, utils
 import collections.abc
 from bt2 import component as bt2_component
 import os.path
-import bt2
 
 
 def find_plugins_in_path(path, recurse=True, fail_on_load_error=False):

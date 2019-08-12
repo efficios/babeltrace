@@ -26,7 +26,6 @@ import collections.abc
 import functools
 import numbers
 import math
-import bt2
 
 
 def _create_field_from_ptr(ptr, owner_ptr, owner_get_ref, owner_put_ref):

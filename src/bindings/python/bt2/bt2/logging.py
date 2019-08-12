@@ -21,7 +21,6 @@
 # THE SOFTWARE.
 
 from bt2 import native_bt
-import bt2
 
 
 class LoggingLevel:

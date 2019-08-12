@@ -23,7 +23,6 @@
 from bt2 import native_bt, object, utils
 from bt2 import message as bt2_message
 import collections.abc
-from bt2 import component as bt2_component
 from bt2 import stream as bt2_stream
 from bt2 import event_class as bt2_event_class
 from bt2 import packet as bt2_packet

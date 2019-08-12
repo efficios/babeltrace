@@ -17,7 +17,6 @@
 #
 
 import unittest
-import bt2
 from utils import run_in_component_init, get_default_trace_class
 
 

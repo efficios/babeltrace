@@ -21,13 +21,10 @@
 # THE SOFTWARE.
 
 from bt2 import native_bt, object, utils
-from bt2 import clock_class as bt2_clock_class
 from bt2 import event_class as bt2_event_class
 from bt2 import packet as bt2_packet
 from bt2 import stream as bt2_stream
 from bt2 import field as bt2_field
-from bt2 import clock_snapshot as bt2_clock_snapshot
-import bt2
 
 
 class _Event(object._UniqueObject):

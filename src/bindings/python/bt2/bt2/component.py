@@ -27,11 +27,9 @@ from bt2 import value as bt2_value
 from bt2 import trace_class as bt2_trace_class
 from bt2 import clock_class as bt2_clock_class
 from bt2 import query_executor as bt2_query_executor
-import traceback
 from bt2 import port as bt2_port
 import sys
 import bt2
-import os
 
 
 # This class wraps a component class pointer. This component class could

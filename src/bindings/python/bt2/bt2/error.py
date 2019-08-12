@@ -1,4 +1,4 @@
-from bt2 import utils, native_bt
+from bt2 import native_bt
 from collections import abc
 
 

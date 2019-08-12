@@ -17,7 +17,6 @@
 #
 
 import unittest
-import copy
 import bt2
 
 

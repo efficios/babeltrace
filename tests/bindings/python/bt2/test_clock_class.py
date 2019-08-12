@@ -18,7 +18,6 @@
 
 import unittest
 import uuid
-import copy
 import bt2
 from utils import run_in_component_init, TestOutputPortMessageIterator
 

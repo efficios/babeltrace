@@ -22,7 +22,6 @@
 
 from bt2 import native_bt, object, utils
 import numbers
-import bt2
 from bt2 import clock_class as bt2_clock_class
 import functools
 

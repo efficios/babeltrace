@@ -16,7 +16,6 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
 
-from collections import OrderedDict
 import unittest
 import bt2
 from utils import TestOutputPortMessageIterator

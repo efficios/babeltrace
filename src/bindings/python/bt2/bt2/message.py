@@ -25,7 +25,6 @@ from bt2 import clock_snapshot as bt2_clock_snapshot
 from bt2 import packet as bt2_packet
 from bt2 import stream as bt2_stream
 from bt2 import event as bt2_event
-import bt2
 
 
 def _create_from_ptr(ptr):

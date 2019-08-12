@@ -23,7 +23,6 @@
 from bt2 import native_bt, object
 from bt2 import field as bt2_field
 from bt2 import stream as bt2_stream
-import bt2
 
 
 class _Packet(object._SharedObject):

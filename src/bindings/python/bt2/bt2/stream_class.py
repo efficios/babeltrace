@@ -26,8 +26,6 @@ from bt2 import event_class as bt2_event_class
 from bt2 import trace_class as bt2_trace_class
 from bt2 import clock_class as bt2_clock_class
 import collections.abc
-from bt2 import stream as bt2_stream
-import bt2
 
 
 class _StreamClass(object._SharedObject, collections.abc.Mapping):

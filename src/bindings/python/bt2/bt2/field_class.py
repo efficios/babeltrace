@@ -22,7 +22,6 @@
 
 from bt2 import native_bt, object, utils
 import collections.abc
-from bt2 import field as bt2_field
 from bt2 import field_path as bt2_field_path
 from bt2 import integer_range_set as bt2_integer_range_set
 import bt2
