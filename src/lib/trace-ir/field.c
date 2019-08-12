@@ -48,6 +48,9 @@ static
 void reset_structure_field(struct bt_field *field);
 
 static
+void reset_option_field(struct bt_field *field);
+
+static
 void reset_variant_field(struct bt_field *field);
 
 static
@@ -60,6 +63,9 @@ static
 void set_structure_field_is_frozen(struct bt_field *field, bool is_frozen);
 
 static
+void set_option_field_is_frozen(struct bt_field *field, bool is_frozen);
+
+static
 void set_variant_field_is_frozen(struct bt_field *field, bool is_frozen);
 
 static
@@ -70,6 +76,9 @@ bool array_field_is_set(const struct bt_field *field);
 
 static
 bool structure_field_is_set(const struct bt_field *field);
+
+static
+bool option_field_is_set(const struct bt_field *field);
 
 static
 bool variant_field_is_set(const struct bt_field *field);
@@ -117,6 +126,13 @@ struct bt_field_methods array_field_methods = {
 };
 
 static
+struct bt_field_methods option_field_methods = {
+	.set_is_frozen = set_option_field_is_frozen,
+	.is_set = option_field_is_set,
+	.reset = reset_option_field,
+};
+
+static
 struct bt_field_methods variant_field_methods = {
 	.set_is_frozen = set_variant_field_is_frozen,
 	.is_set = variant_field_is_set,
@@ -145,6 +161,9 @@ static
 struct bt_field *create_dynamic_array_field(struct bt_field_class *);
 
 static
+struct bt_field *create_option_field(struct bt_field_class *);
+
+static
 struct bt_field *create_variant_field(struct bt_field_class *);
 
 static
@@ -159,6 +178,7 @@ struct bt_field *(* const field_create_funcs[])(struct bt_field_class *) = {
 	[BT_FIELD_CLASS_TYPE_STRUCTURE]				= create_structure_field,
 	[BT_FIELD_CLASS_TYPE_STATIC_ARRAY]			= create_static_array_field,
 	[BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY]			= create_dynamic_array_field,
+	[BT_FIELD_CLASS_TYPE_OPTION]				= create_option_field,
 	[BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR]		= create_variant_field,
 	[BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_SELECTOR]	= create_variant_field,
 	[BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_SELECTOR]	= create_variant_field,
@@ -183,6 +203,9 @@ static
 void destroy_array_field(struct bt_field *field);
 
 static
+void destroy_option_field(struct bt_field *field);
+
+static
 void destroy_variant_field(struct bt_field *field);
 
 static
@@ -197,6 +220,7 @@ void (* const field_destroy_funcs[])(struct bt_field *) = {
 	[BT_FIELD_CLASS_TYPE_STRUCTURE]				= destroy_structure_field,
 	[BT_FIELD_CLASS_TYPE_STATIC_ARRAY]			= destroy_array_field,
 	[BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY]			= destroy_array_field,
+	[BT_FIELD_CLASS_TYPE_OPTION]				= destroy_option_field,
 	[BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR]		= destroy_variant_field,
 	[BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_SELECTOR]	= destroy_variant_field,
 	[BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_SELECTOR]	= destroy_variant_field,
@@ -404,6 +428,37 @@ struct bt_field *create_structure_field(struct bt_field_class *fc)
 
 end:
 	return (void *) struct_field;
+}
+
+static
+struct bt_field *create_option_field(struct bt_field_class *fc)
+{
+	struct bt_field_option *opt_field;
+	struct bt_field_class_option *opt_fc = (void *) fc;
+
+	BT_LIB_LOGD("Creating option field object: %![fc-]+F", fc);
+	opt_field = g_new0(struct bt_field_option, 1);
+	if (!opt_field) {
+		BT_LIB_LOGE_APPEND_CAUSE(
+			"Failed to allocate one option field.");
+		goto end;
+	}
+
+	init_field((void *) opt_field, fc, &option_field_methods);
+	opt_field->content_field = bt_field_create(opt_fc->content_fc);
+	if (!opt_field->content_field) {
+		BT_LIB_LOGE_APPEND_CAUSE(
+			"Failed to create option field's content field: "
+			"%![opt-fc-]+F, %![content-fc-]+F",
+			opt_fc, opt_fc->content_fc);
+		BT_OBJECT_PUT_REF_AND_RESET(opt_field);
+		goto end;
+	}
+
+	BT_LIB_LOGD("Created option field object: %!+f", opt_field);
+
+end:
+	return (void *) opt_field;
 }
 
 static
@@ -907,6 +962,38 @@ const struct bt_field *bt_field_structure_borrow_member_field_by_name_const(
 		(void *) field, name);
 }
 
+void bt_field_option_set_has_field(struct bt_field *field, bt_bool has_field)
+{
+	struct bt_field_option *opt_field = (void *) field;
+
+	BT_ASSERT_PRE_DEV_NON_NULL(field, "Field");
+	BT_ASSERT_PRE_DEV_FIELD_HAS_CLASS_TYPE(field,
+		BT_FIELD_CLASS_TYPE_OPTION, "Field");
+	BT_ASSERT_PRE_DEV_FIELD_HOT(field, "Field");
+
+	if (has_field) {
+		opt_field->selected_field = opt_field->content_field;
+	} else {
+		opt_field->selected_field = NULL;
+	}
+}
+
+struct bt_field *bt_field_option_borrow_field(struct bt_field *field)
+{
+	struct bt_field_option *opt_field = (void *) field;
+
+	BT_ASSERT_PRE_DEV_NON_NULL(field, "Field");
+	BT_ASSERT_PRE_DEV_FIELD_HAS_CLASS_TYPE(field,
+		BT_FIELD_CLASS_TYPE_OPTION, "Field");
+	return opt_field->selected_field;
+}
+
+const struct bt_field *bt_field_option_borrow_field_const(
+		const struct bt_field *field)
+{
+	return (const void *) bt_field_option_borrow_field((void *) field);
+}
+
 static inline
 struct bt_field *borrow_variant_field_selected_option_field(
 		struct bt_field *field)
@@ -1055,6 +1142,22 @@ void destroy_structure_field(struct bt_field *field)
 }
 
 static
+void destroy_option_field(struct bt_field *field)
+{
+	struct bt_field_option *opt_field = (void *) field;
+
+	BT_ASSERT(field);
+	BT_LIB_LOGD("Destroying option field object: %!+f", field);
+	bt_field_finalize(field);
+
+	if (opt_field->content_field) {
+		bt_field_destroy(opt_field->content_field);
+	}
+
+	g_free(field);
+}
+
+static
 void destroy_variant_field(struct bt_field *field)
 {
 	struct bt_field_variant *var_field = (void *) field;
@@ -1133,6 +1236,16 @@ void reset_structure_field(struct bt_field *field)
 }
 
 static
+void reset_option_field(struct bt_field *field)
+{
+	struct bt_field_option *opt_field = (void *) field;
+
+	BT_ASSERT(opt_field);
+	bt_field_reset(opt_field->content_field);
+	opt_field->selected_field = NULL;
+}
+
+static
 void reset_variant_field(struct bt_field *field)
 {
 	uint64_t i;
@@ -1179,9 +1292,20 @@ void set_structure_field_is_frozen(struct bt_field *field, bool is_frozen)
 		BT_LIB_LOGD("Setting structure field's member field's "
 			"frozen state: %![field-]+f, index=%" PRIu64,
 			member_field, i);
-		bt_field_set_is_frozen(member_field, is_frozen);
+		_bt_field_set_is_frozen(member_field, is_frozen);
 	}
 
+	set_single_field_is_frozen(field, is_frozen);
+}
+
+static
+void set_option_field_is_frozen(struct bt_field *field, bool is_frozen)
+{
+	struct bt_field_option *opt_field = (void *) field;
+
+	BT_LIB_LOGD("Setting option field's frozen state: "
+		"%![field-]+f, is-frozen=%d", field, is_frozen);
+	_bt_field_set_is_frozen(opt_field->content_field, is_frozen);
 	set_single_field_is_frozen(field, is_frozen);
 }
 
@@ -1200,7 +1324,7 @@ void set_variant_field_is_frozen(struct bt_field *field, bool is_frozen)
 		BT_LIB_LOGD("Setting variant field's option field's "
 			"frozen state: %![field-]+f, index=%" PRIu64,
 			option_field, i);
-		bt_field_set_is_frozen(option_field, is_frozen);
+		_bt_field_set_is_frozen(option_field, is_frozen);
 	}
 
 	set_single_field_is_frozen(field, is_frozen);
@@ -1221,7 +1345,7 @@ void set_array_field_is_frozen(struct bt_field *field, bool is_frozen)
 		BT_LIB_LOGD("Setting array field's element field's "
 			"frozen state: %![field-]+f, index=%" PRIu64,
 			elem_field, i);
-		bt_field_set_is_frozen(elem_field, is_frozen);
+		_bt_field_set_is_frozen(elem_field, is_frozen);
 	}
 
 	set_single_field_is_frozen(field, is_frozen);
@@ -1262,6 +1386,21 @@ bool structure_field_is_set(const struct bt_field *field)
 	}
 
 end:
+	return is_set;
+}
+
+static
+bool option_field_is_set(const struct bt_field *field)
+{
+	const struct bt_field_option *opt_field = (const void *) field;
+	bool is_set = false;
+
+	BT_ASSERT(field);
+
+	if (opt_field->selected_field) {
+		is_set = bt_field_is_set(opt_field->selected_field);
+	}
+
 	return is_set;
 }
 
