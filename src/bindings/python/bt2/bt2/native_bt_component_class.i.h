@@ -297,6 +297,152 @@ end:
 	return status;
 }
 
+static
+bt_component_class_get_supported_mip_versions_method_status
+component_class_get_supported_mip_versions(
+		const bt_component_class *component_class,
+		bt_self_component_class *self_component_class,
+		const bt_value *params, void *init_method_data,
+		bt_logging_level log_level,
+		bt_integer_range_set_unsigned *supported_versions)
+{
+	uint64_t i;
+	PyObject *py_cls = NULL;
+	PyObject *py_params_ptr = NULL;
+	PyObject *py_range_set_addr = NULL;
+	bt_integer_range_set_unsigned *ret_range_set = NULL;
+	bt_component_class_get_supported_mip_versions_method_status status =
+		__BT_FUNC_STATUS_OK;
+
+	py_cls = lookup_cc_ptr_to_py_cls(component_class);
+	if (!py_cls) {
+		BT_LOG_WRITE_CUR_LVL(BT_LOG_ERROR, log_level, BT_LOG_TAG,
+			"Cannot find Python class associated to native component class: "
+			"comp-cls-addr=%p", component_class);
+		goto error;
+	}
+
+	py_params_ptr = SWIG_NewPointerObj(SWIG_as_voidptr(params),
+		SWIGTYPE_p_bt_value, 0);
+	if (!py_params_ptr) {
+		BT_LOG_WRITE_CUR_LVL(BT_LOG_ERROR, log_level, BT_LOG_TAG,
+			"Failed to create a SWIG pointer object.");
+		goto error;
+	}
+
+	/*
+	 * We don't take any reference on `init_method_data` which, if
+	 * not `NULL`, is assumed to be a `PyObject *`: the user's
+	 * _user_get_supported_mip_versions() function will eventually
+	 * take a reference if needed. If `init_method_data` is `NULL`,
+	 * then we pass `Py_None` as the initialization's Python object.
+	 */
+	py_range_set_addr = PyObject_CallMethod(py_cls,
+		"_bt_get_supported_mip_versions_from_native", "(OOi)",
+		py_params_ptr, init_method_data ? init_method_data : Py_None,
+		(int) log_level);
+	if (!py_range_set_addr) {
+		BT_LOG_WRITE_CUR_LVL(BT_LOG_WARNING, log_level, BT_LOG_TAG,
+			"Failed to call Python class's _bt_get_supported_mip_versions_from_native() method: "
+			"py-cls-addr=%p", py_cls);
+		status = py_exc_to_status_component_class(self_component_class,
+			log_level);
+		goto end;
+	}
+
+	/*
+	 * The returned object, on success, is an integer object
+	 * (PyLong) containing the address of a BT unsigned integer
+	 * range set object (new reference).
+	 */
+	ret_range_set = PyLong_AsVoidPtr(py_range_set_addr);
+	BT_ASSERT(!PyErr_Occurred());
+	BT_ASSERT(ret_range_set);
+
+	/* Copy returned ranges to input range set */
+	for (i = 0; i < bt_integer_range_set_get_range_count(
+			bt_integer_range_set_unsigned_as_range_set_const(ret_range_set));
+			i++) {
+		const bt_integer_range_unsigned *range =
+			bt_integer_range_set_unsigned_borrow_range_by_index_const(
+				ret_range_set, i);
+		bt_integer_range_set_add_range_status add_range_status;
+
+		add_range_status = bt_integer_range_set_unsigned_add_range(
+			supported_versions,
+			bt_integer_range_unsigned_get_lower(range),
+			bt_integer_range_unsigned_get_upper(range));
+		if (add_range_status) {
+			BT_LOG_WRITE_CUR_LVL(BT_LOG_ERROR, log_level, BT_LOG_TAG,
+				"Failed to add range to supported MIP versions range set.");
+			goto error;
+		}
+	}
+
+	goto end;
+
+error:
+	PyErr_Clear();
+	status = __BT_FUNC_STATUS_ERROR;
+
+end:
+	Py_XDECREF(py_params_ptr);
+	Py_XDECREF(py_range_set_addr);
+	bt_integer_range_set_unsigned_put_ref(ret_range_set);
+	return status;
+}
+
+static
+bt_component_class_get_supported_mip_versions_method_status
+component_class_source_get_supported_mip_versions(
+		bt_self_component_class_source *self_component_class_source,
+		const bt_value *params, void *init_method_data,
+		bt_logging_level log_level,
+		bt_integer_range_set_unsigned *supported_versions)
+{
+	const bt_component_class_source *component_class_source = bt_self_component_class_source_as_component_class_source(self_component_class_source);
+	const bt_component_class *component_class = bt_component_class_source_as_component_class_const(component_class_source);
+	bt_self_component_class *self_component_class = bt_self_component_class_source_as_self_component_class(self_component_class_source);
+
+	return component_class_get_supported_mip_versions(
+		component_class, self_component_class,
+		params, init_method_data, log_level, supported_versions);
+}
+
+static
+bt_component_class_get_supported_mip_versions_method_status
+component_class_filter_get_supported_mip_versions(
+		bt_self_component_class_filter *self_component_class_filter,
+		const bt_value *params, void *init_method_data,
+		bt_logging_level log_level,
+		bt_integer_range_set_unsigned *supported_versions)
+{
+	const bt_component_class_filter *component_class_filter = bt_self_component_class_filter_as_component_class_filter(self_component_class_filter);
+	const bt_component_class *component_class = bt_component_class_filter_as_component_class_const(component_class_filter);
+	bt_self_component_class *self_component_class = bt_self_component_class_filter_as_self_component_class(self_component_class_filter);
+
+	return component_class_get_supported_mip_versions(
+		component_class, self_component_class,
+		params, init_method_data, log_level, supported_versions);
+}
+
+static
+bt_component_class_get_supported_mip_versions_method_status
+component_class_sink_get_supported_mip_versions(
+		bt_self_component_class_sink *self_component_class_sink,
+		const bt_value *params, void *init_method_data,
+		bt_logging_level log_level,
+		bt_integer_range_set_unsigned *supported_versions)
+{
+	const bt_component_class_sink *component_class_sink = bt_self_component_class_sink_as_component_class_sink(self_component_class_sink);
+	const bt_component_class *component_class = bt_component_class_sink_as_component_class_const(component_class_sink);
+	bt_self_component_class *self_component_class = bt_self_component_class_sink_as_self_component_class(self_component_class_sink);
+
+	return component_class_get_supported_mip_versions(
+		component_class, self_component_class,
+		params, init_method_data, log_level, supported_versions);
+}
+
 /*
  * Method of bt_component_class_source to initialize a bt_self_component_source
  * of that class.
@@ -1055,6 +1201,8 @@ bt_component_class_source *bt_bt2_component_class_source_create(
 	BT_ASSERT(ret == 0);
 	ret = bt_component_class_source_set_query_method(component_class_source, component_class_source_query);
 	BT_ASSERT(ret == 0);
+	ret = bt_component_class_source_set_get_supported_mip_versions_method(component_class_source, component_class_source_get_supported_mip_versions);
+	BT_ASSERT(ret == 0);
 	ret = bt_component_class_source_set_message_iterator_init_method(
 		component_class_source, component_class_source_message_iterator_init);
 	BT_ASSERT(ret == 0);
@@ -1108,6 +1256,8 @@ bt_component_class_filter *bt_bt2_component_class_filter_create(
 	BT_ASSERT(ret == 0);
 	ret = bt_component_class_filter_set_query_method(component_class_filter, component_class_filter_query);
 	BT_ASSERT(ret == 0);
+	ret = bt_component_class_filter_set_get_supported_mip_versions_method(component_class_filter, component_class_filter_get_supported_mip_versions);
+	BT_ASSERT(ret == 0);
 	ret = bt_component_class_filter_set_message_iterator_init_method(
 		component_class_filter, component_class_filter_message_iterator_init);
 	BT_ASSERT(ret == 0);
@@ -1154,6 +1304,8 @@ bt_component_class_sink *bt_bt2_component_class_sink_create(
 		component_class_sink_graph_is_configured);
 	BT_ASSERT(ret == 0);
 	ret = bt_component_class_sink_set_query_method(component_class_sink, component_class_sink_query);
+	BT_ASSERT(ret == 0);
+	ret = bt_component_class_sink_set_get_supported_mip_versions_method(component_class_sink, component_class_sink_get_supported_mip_versions);
 	BT_ASSERT(ret == 0);
 	register_cc_ptr_to_py_cls(component_class, py_cls);
 
