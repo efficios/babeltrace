@@ -40,28 +40,135 @@ _AUTO_SOURCE_DISCOVERY_PARAMS_LOG_LEVEL_PATH = os.path.join(
 )
 
 
+class _SomeSource(
+    bt2._UserSourceComponent, message_iterator_class=bt2._UserMessageIterator
+):
+    pass
+
+
+class _SomeFilter(
+    bt2._UserFilterComponent, message_iterator_class=bt2._UserMessageIterator
+):
+    pass
+
+
+class _SomeSink(bt2._UserSinkComponent):
+    def _user_consume(self):
+        pass
+
+
 class ComponentSpecTestCase(unittest.TestCase):
-    def test_create_good_no_params(self):
-        bt2.ComponentSpec('plugin', 'compcls')
+    def setUp(self):
+        # A source CC from a plugin.
+        self._dmesg_cc = bt2.find_plugin('text').source_component_classes['dmesg']
+        assert self._dmesg_cc is not None
 
-    def test_create_good_with_params(self):
-        bt2.ComponentSpec('plugin', 'compcls', {'salut': 23})
+        # A filter CC from a plugin.
+        self._muxer_cc = bt2.find_plugin('utils').filter_component_classes['muxer']
+        assert self._muxer_cc is not None
 
-    def test_create_good_with_path_params(self):
-        spec = bt2.ComponentSpec('plugin', 'compcls', 'a path')
+        # A sink CC from a plugin.
+        self._pretty_cc = bt2.find_plugin('text').sink_component_classes['pretty']
+        assert self._pretty_cc is not None
+
+    def test_create_source_from_name(self):
+        spec = bt2.ComponentSpec.from_named_plugin_and_component_class('text', 'dmesg')
+        self.assertEqual(spec.component_class.name, 'dmesg')
+
+    def test_create_source_from_plugin(self):
+        spec = bt2.ComponentSpec(self._dmesg_cc)
+        self.assertEqual(spec.component_class.name, 'dmesg')
+
+    def test_create_source_from_user(self):
+        spec = bt2.ComponentSpec(_SomeSource)
+        self.assertEqual(spec.component_class.name, '_SomeSource')
+
+    def test_create_filter_from_name(self):
+        spec = bt2.ComponentSpec.from_named_plugin_and_component_class('utils', 'muxer')
+        self.assertEqual(spec.component_class.name, 'muxer')
+
+    def test_create_filter_from_object(self):
+        spec = bt2.ComponentSpec(self._muxer_cc)
+        self.assertEqual(spec.component_class.name, 'muxer')
+
+    def test_create_sink_from_name(self):
+        with self.assertRaisesRegex(
+            KeyError,
+            'source or filter component class `pretty` not found in plugin `text`',
+        ):
+            bt2.ComponentSpec.from_named_plugin_and_component_class('text', 'pretty')
+
+    def test_create_sink_from_object(self):
+        with self.assertRaisesRegex(
+            TypeError, "'_SinkComponentClass' is not a source or filter component class"
+        ):
+            bt2.ComponentSpec(self._pretty_cc)
+
+    def test_create_from_object_with_params(self):
+        spec = bt2.ComponentSpec(self._dmesg_cc, {'salut': 23})
+        self.assertEqual(spec.params['salut'], 23)
+
+    def test_create_from_name_with_params(self):
+        spec = bt2.ComponentSpec.from_named_plugin_and_component_class(
+            'text', 'dmesg', {'salut': 23}
+        )
+        self.assertEqual(spec.params['salut'], 23)
+
+    def test_create_from_object_with_path_params(self):
+        spec = spec = bt2.ComponentSpec(self._dmesg_cc, 'a path')
         self.assertEqual(spec.params['inputs'], ['a path'])
 
-    def test_create_wrong_plugin_name_type(self):
-        with self.assertRaises(TypeError):
-            bt2.ComponentSpec(23, 'compcls')
+    def test_create_from_name_with_path_params(self):
+        spec = spec = bt2.ComponentSpec.from_named_plugin_and_component_class(
+            'text', 'dmesg', 'a path'
+        )
+        self.assertEqual(spec.params['inputs'], ['a path'])
 
-    def test_create_wrong_component_class_name_type(self):
-        with self.assertRaises(TypeError):
-            bt2.ComponentSpec('plugin', 190)
+    def test_create_wrong_comp_class_type(self):
+        with self.assertRaisesRegex(
+            TypeError, "'int' is not a source or filter component class"
+        ):
+            bt2.ComponentSpec(18)
+
+    def test_create_from_name_wrong_plugin_name_type(self):
+        with self.assertRaisesRegex(TypeError, "'int' is not a 'str' object"):
+            bt2.ComponentSpec.from_named_plugin_and_component_class(23, 'compcls')
+
+    def test_create_from_name_non_existent_plugin(self):
+        with self.assertRaisesRegex(
+            ValueError, "no such plugin: this_plugin_does_not_exist"
+        ):
+            bt2.ComponentSpec.from_named_plugin_and_component_class(
+                'this_plugin_does_not_exist', 'compcls'
+            )
+
+    def test_create_from_name_wrong_component_class_name_type(self):
+        with self.assertRaisesRegex(TypeError, "'int' is not a 'str' object"):
+            bt2.ComponentSpec.from_named_plugin_and_component_class('utils', 190)
 
     def test_create_wrong_params_type(self):
-        with self.assertRaises(TypeError):
-            bt2.ComponentSpec('dwdw', 'compcls', datetime.datetime.now())
+        with self.assertRaisesRegex(
+            TypeError, "cannot create value object from 'datetime' object"
+        ):
+            bt2.ComponentSpec(self._dmesg_cc, params=datetime.datetime.now())
+
+    def test_create_from_name_wrong_params_type(self):
+        with self.assertRaisesRegex(
+            TypeError, "cannot create value object from 'datetime' object"
+        ):
+            bt2.ComponentSpec.from_named_plugin_and_component_class(
+                'text', 'dmesg', datetime.datetime.now()
+            )
+
+    def test_create_wrong_log_level_type(self):
+        with self.assertRaisesRegex(TypeError, "'str' is not an 'int' object"):
+            bt2.ComponentSpec(self._dmesg_cc, logging_level='banane')
+
+    def test_create_from_name_wrong_log_level_type(self):
+        with self.assertRaisesRegex(TypeError, "'str' is not an 'int' object"):
+            bt2.ComponentSpec.from_named_plugin_and_component_class(
+                'text', 'dmesg', logging_level='banane'
+            )
 
 
 # Return a map, msg type -> number of messages of this type.
@@ -80,47 +187,73 @@ def _count_msgs_by_type(msgs):
 
 class TraceCollectionMessageIteratorTestCase(unittest.TestCase):
     def test_create_wrong_stream_intersection_mode_type(self):
-        specs = [bt2.ComponentSpec('ctf', 'fs', _3EVENTS_INTERSECT_TRACE_PATH)]
+        specs = [
+            bt2.ComponentSpec.from_named_plugin_and_component_class(
+                'ctf', 'fs', _3EVENTS_INTERSECT_TRACE_PATH
+            )
+        ]
 
         with self.assertRaises(TypeError):
             bt2.TraceCollectionMessageIterator(specs, stream_intersection_mode=23)
 
     def test_create_wrong_begin_type(self):
-        specs = [bt2.ComponentSpec('ctf', 'fs', _3EVENTS_INTERSECT_TRACE_PATH)]
+        specs = [
+            bt2.ComponentSpec.from_named_plugin_and_component_class(
+                'ctf', 'fs', _3EVENTS_INTERSECT_TRACE_PATH
+            )
+        ]
 
         with self.assertRaises(TypeError):
             bt2.TraceCollectionMessageIterator(specs, begin='hi')
 
     def test_create_wrong_end_type(self):
-        specs = [bt2.ComponentSpec('ctf', 'fs', _3EVENTS_INTERSECT_TRACE_PATH)]
+        specs = [
+            bt2.ComponentSpec.from_named_plugin_and_component_class(
+                'ctf', 'fs', _3EVENTS_INTERSECT_TRACE_PATH
+            )
+        ]
 
         with self.assertRaises(TypeError):
             bt2.TraceCollectionMessageIterator(specs, begin='lel')
 
-    def test_create_no_such_plugin(self):
-        specs = [bt2.ComponentSpec('77', '101', _3EVENTS_INTERSECT_TRACE_PATH)]
-
-        with self.assertRaises(ValueError):
-            bt2.TraceCollectionMessageIterator(specs)
-
     def test_create_begin_s(self):
-        specs = [bt2.ComponentSpec('ctf', 'fs', _3EVENTS_INTERSECT_TRACE_PATH)]
+        specs = [
+            bt2.ComponentSpec.from_named_plugin_and_component_class(
+                'ctf', 'fs', _3EVENTS_INTERSECT_TRACE_PATH
+            )
+        ]
         bt2.TraceCollectionMessageIterator(specs, begin=19457.918232)
 
     def test_create_end_s(self):
-        specs = [bt2.ComponentSpec('ctf', 'fs', _3EVENTS_INTERSECT_TRACE_PATH)]
+        specs = [
+            bt2.ComponentSpec.from_named_plugin_and_component_class(
+                'ctf', 'fs', _3EVENTS_INTERSECT_TRACE_PATH
+            )
+        ]
         bt2.TraceCollectionMessageIterator(specs, end=123.12312)
 
     def test_create_begin_datetime(self):
-        specs = [bt2.ComponentSpec('ctf', 'fs', _3EVENTS_INTERSECT_TRACE_PATH)]
+        specs = [
+            bt2.ComponentSpec.from_named_plugin_and_component_class(
+                'ctf', 'fs', _3EVENTS_INTERSECT_TRACE_PATH
+            )
+        ]
         bt2.TraceCollectionMessageIterator(specs, begin=datetime.datetime.now())
 
     def test_create_end_datetime(self):
-        specs = [bt2.ComponentSpec('ctf', 'fs', _3EVENTS_INTERSECT_TRACE_PATH)]
+        specs = [
+            bt2.ComponentSpec.from_named_plugin_and_component_class(
+                'ctf', 'fs', _3EVENTS_INTERSECT_TRACE_PATH
+            )
+        ]
         bt2.TraceCollectionMessageIterator(specs, end=datetime.datetime.now())
 
     def test_iter_no_intersection(self):
-        specs = [bt2.ComponentSpec('ctf', 'fs', _3EVENTS_INTERSECT_TRACE_PATH)]
+        specs = [
+            bt2.ComponentSpec.from_named_plugin_and_component_class(
+                'ctf', 'fs', _3EVENTS_INTERSECT_TRACE_PATH
+            )
+        ]
         msg_iter = bt2.TraceCollectionMessageIterator(specs)
         msgs = list(msg_iter)
         self.assertEqual(len(msgs), 28)
@@ -129,7 +262,9 @@ class TraceCollectionMessageIteratorTestCase(unittest.TestCase):
 
     # Same as the above, but we pass a single spec instead of a spec list.
     def test_iter_specs_not_list(self):
-        spec = bt2.ComponentSpec('ctf', 'fs', _3EVENTS_INTERSECT_TRACE_PATH)
+        spec = bt2.ComponentSpec.from_named_plugin_and_component_class(
+            'ctf', 'fs', _3EVENTS_INTERSECT_TRACE_PATH
+        )
         msg_iter = bt2.TraceCollectionMessageIterator(spec)
         msgs = list(msg_iter)
         self.assertEqual(len(msgs), 28)
@@ -137,14 +272,22 @@ class TraceCollectionMessageIteratorTestCase(unittest.TestCase):
         self.assertEqual(hist[bt2._EventMessage], 8)
 
     def test_iter_custom_filter(self):
-        src_spec = bt2.ComponentSpec('ctf', 'fs', _3EVENTS_INTERSECT_TRACE_PATH)
-        flt_spec = bt2.ComponentSpec('utils', 'trimmer', {'end': '13515309.000000075'})
+        src_spec = bt2.ComponentSpec.from_named_plugin_and_component_class(
+            'ctf', 'fs', _3EVENTS_INTERSECT_TRACE_PATH
+        )
+        flt_spec = bt2.ComponentSpec.from_named_plugin_and_component_class(
+            'utils', 'trimmer', {'end': '13515309.000000075'}
+        )
         msg_iter = bt2.TraceCollectionMessageIterator(src_spec, flt_spec)
         hist = _count_msgs_by_type(msg_iter)
         self.assertEqual(hist[bt2._EventMessage], 5)
 
     def test_iter_intersection(self):
-        specs = [bt2.ComponentSpec('ctf', 'fs', _3EVENTS_INTERSECT_TRACE_PATH)]
+        specs = [
+            bt2.ComponentSpec.from_named_plugin_and_component_class(
+                'ctf', 'fs', _3EVENTS_INTERSECT_TRACE_PATH
+            )
+        ]
         msg_iter = bt2.TraceCollectionMessageIterator(
             specs, stream_intersection_mode=True
         )
@@ -154,13 +297,19 @@ class TraceCollectionMessageIteratorTestCase(unittest.TestCase):
         self.assertEqual(hist[bt2._EventMessage], 3)
 
     def test_iter_intersection_no_inputs_param(self):
-        specs = [bt2.ComponentSpec('text', 'dmesg', {'read-from-stdin': True})]
+        specs = [
+            bt2.ComponentSpec.from_named_plugin_and_component_class(
+                'text', 'dmesg', {'read-from-stdin': True}
+            )
+        ]
 
         with self.assertRaises(ValueError):
             bt2.TraceCollectionMessageIterator(specs, stream_intersection_mode=True)
 
     def test_iter_no_intersection_two_traces(self):
-        spec = bt2.ComponentSpec('ctf', 'fs', _3EVENTS_INTERSECT_TRACE_PATH)
+        spec = bt2.ComponentSpec.from_named_plugin_and_component_class(
+            'ctf', 'fs', _3EVENTS_INTERSECT_TRACE_PATH
+        )
         specs = [spec, spec]
         msg_iter = bt2.TraceCollectionMessageIterator(specs)
         msgs = list(msg_iter)
@@ -169,13 +318,21 @@ class TraceCollectionMessageIteratorTestCase(unittest.TestCase):
         self.assertEqual(hist[bt2._EventMessage], 16)
 
     def test_iter_no_intersection_begin(self):
-        specs = [bt2.ComponentSpec('ctf', 'fs', _3EVENTS_INTERSECT_TRACE_PATH)]
+        specs = [
+            bt2.ComponentSpec.from_named_plugin_and_component_class(
+                'ctf', 'fs', _3EVENTS_INTERSECT_TRACE_PATH
+            )
+        ]
         msg_iter = bt2.TraceCollectionMessageIterator(specs, begin=13515309.000000023)
         hist = _count_msgs_by_type(msg_iter)
         self.assertEqual(hist[bt2._EventMessage], 6)
 
     def test_iter_no_intersection_end(self):
-        specs = [bt2.ComponentSpec('ctf', 'fs', _3EVENTS_INTERSECT_TRACE_PATH)]
+        specs = [
+            bt2.ComponentSpec.from_named_plugin_and_component_class(
+                'ctf', 'fs', _3EVENTS_INTERSECT_TRACE_PATH
+            )
+        ]
         msg_iter = bt2.TraceCollectionMessageIterator(specs, end=13515309.000000075)
         hist = _count_msgs_by_type(msg_iter)
         self.assertEqual(hist[bt2._EventMessage], 5)
@@ -207,7 +364,9 @@ class TraceCollectionMessageIteratorTestCase(unittest.TestCase):
             [
                 _3EVENTS_INTERSECT_TRACE_PATH,
                 bt2.AutoSourceComponentSpec(_SEQUENCE_TRACE_PATH),
-                bt2.ComponentSpec('ctf', 'fs', _NOINTERSECT_TRACE_PATH),
+                bt2.ComponentSpec.from_named_plugin_and_component_class(
+                    'ctf', 'fs', _NOINTERSECT_TRACE_PATH
+                ),
             ]
         )
         msgs = list(msg_iter)
