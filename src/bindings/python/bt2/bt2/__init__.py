@@ -41,6 +41,7 @@ from bt2.error import _ComponentClassErrorCause
 from bt2.error import _MessageIteratorErrorCause
 from bt2.error import _Error
 from bt2.event_class import EventClassLogLevel
+from bt2.field import _BoolField
 from bt2.field import _IntegerField
 from bt2.field import _UnsignedIntegerField
 from bt2.field import _SignedIntegerField
@@ -55,6 +56,7 @@ from bt2.field import _ArrayField
 from bt2.field import _StaticArrayField
 from bt2.field import _DynamicArrayField
 from bt2.field_class import IntegerDisplayBase
+from bt2.field_class import _BoolFieldClass
 from bt2.field_class import _IntegerFieldClass
 from bt2.field_class import _UnsignedIntegerFieldClass
 from bt2.field_class import _SignedIntegerFieldClass

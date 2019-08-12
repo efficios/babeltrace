@@ -184,15 +184,21 @@ class _TraceClass(object._SharedObject, collections.abc.Mapping):
 
     # Field class creation methods.
 
-    def _check_create_status(self, ptr, type_name):
+    def _check_field_class_create_status(self, ptr, type_name):
         if ptr is None:
             raise bt2._MemoryError('cannot create {} field class'.format(type_name))
+
+    def create_bool_field_class(self):
+        field_class_ptr = native_bt.field_class_bool_create(self._ptr)
+        self._check_field_class_create_status(field_class_ptr, 'boolean')
+
+        return bt2_field_class._BoolFieldClass._create_from_ptr(field_class_ptr)
 
     def _create_integer_field_class(
         self, create_func, py_cls, type_name, field_value_range, preferred_display_base
     ):
         field_class_ptr = create_func(self._ptr)
-        self._check_create_status(field_class_ptr, type_name)
+        self._check_field_class_create_status(field_class_ptr, type_name)
 
         field_class = py_cls._create_from_ptr(field_class_ptr)
 
@@ -250,7 +256,7 @@ class _TraceClass(object._SharedObject, collections.abc.Mapping):
 
     def create_real_field_class(self, is_single_precision=False):
         field_class_ptr = native_bt.field_class_real_create(self._ptr)
-        self._check_create_status(field_class_ptr, 'real')
+        self._check_field_class_create_status(field_class_ptr, 'real')
 
         field_class = bt2_field_class._RealFieldClass._create_from_ptr(field_class_ptr)
 
@@ -260,13 +266,13 @@ class _TraceClass(object._SharedObject, collections.abc.Mapping):
 
     def create_structure_field_class(self):
         field_class_ptr = native_bt.field_class_structure_create(self._ptr)
-        self._check_create_status(field_class_ptr, 'structure')
+        self._check_field_class_create_status(field_class_ptr, 'structure')
 
         return bt2_field_class._StructureFieldClass._create_from_ptr(field_class_ptr)
 
     def create_string_field_class(self):
         field_class_ptr = native_bt.field_class_string_create(self._ptr)
-        self._check_create_status(field_class_ptr, 'string')
+        self._check_field_class_create_status(field_class_ptr, 'string')
 
         return bt2_field_class._StringFieldClass._create_from_ptr(field_class_ptr)
 
@@ -274,7 +280,7 @@ class _TraceClass(object._SharedObject, collections.abc.Mapping):
         utils._check_type(elem_fc, bt2_field_class._FieldClass)
         utils._check_uint64(length)
         ptr = native_bt.field_class_array_static_create(self._ptr, elem_fc._ptr, length)
-        self._check_create_status(ptr, 'static array')
+        self._check_field_class_create_status(ptr, 'static array')
 
         return bt2_field_class._StaticArrayFieldClass._create_from_ptr_and_get_ref(ptr)
 
@@ -289,7 +295,7 @@ class _TraceClass(object._SharedObject, collections.abc.Mapping):
         ptr = native_bt.field_class_array_dynamic_create(
             self._ptr, elem_fc._ptr, length_fc_ptr
         )
-        self._check_create_status(ptr, 'dynamic array')
+        self._check_field_class_create_status(ptr, 'dynamic array')
         return bt2_field_class._DynamicArrayFieldClass._create_from_ptr(ptr)
 
     def create_variant_field_class(self, selector_fc=None):
@@ -300,7 +306,7 @@ class _TraceClass(object._SharedObject, collections.abc.Mapping):
             selector_fc_ptr = selector_fc._ptr
 
         ptr = native_bt.field_class_variant_create(self._ptr, selector_fc_ptr)
-        self._check_create_status(ptr, 'variant')
+        self._check_field_class_create_status(ptr, 'variant')
         return bt2_field_class._create_field_class_from_ptr_and_get_ref(ptr)
 
     # Add a listener to be called when the trace class is destroyed.
