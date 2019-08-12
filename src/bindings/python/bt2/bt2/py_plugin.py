@@ -22,6 +22,11 @@
 
 from bt2 import utils
 from bt2 import component as bt2_component
+import sys
+
+
+# Python plugin path to `_PluginInfo` (cache)
+_plugin_infos = {}
 
 
 def plugin_component_class(component_class):
@@ -35,8 +40,6 @@ def plugin_component_class(component_class):
 def register_plugin(
     module_name, name, description=None, author=None, license=None, version=None
 ):
-    import sys
-
     if module_name not in sys.modules:
         raise RuntimeError(
             "cannot find module '{}' in loaded modules".format(module_name)
@@ -102,6 +105,10 @@ class _PluginInfo:
 
 # called by the BT plugin system
 def _try_load_plugin_module(path):
+    if path in _plugin_infos:
+        # do not load module and create plugin info twice for this path
+        return _plugin_infos[path]
+
     import importlib.machinery
     import inspect
     import hashlib
@@ -115,7 +122,7 @@ def _try_load_plugin_module(path):
     h = hashlib.sha256()
     h.update(path.encode())
     module_name = 'bt_plugin_{}'.format(h.hexdigest())
-
+    assert module_name not in sys.modules
     # try loading the module: any raised exception is catched by the caller
     mod = importlib.machinery.SourceFileLoader(module_name, path).load_module()
 
@@ -137,4 +144,5 @@ def _try_load_plugin_module(path):
 
     comp_class_entries = inspect.getmembers(mod, is_user_comp_class)
     plugin_info.comp_class_addrs = [entry[1].addr for entry in comp_class_entries]
+    _plugin_infos[path] = plugin_info
     return plugin_info
