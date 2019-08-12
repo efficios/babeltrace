@@ -20,11 +20,9 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-from bt2 import native_bt, utils
-from bt2 import message_iterator as bt2_message_iterator
+from bt2 import native_bt
 from bt2 import port as bt2_port
 from bt2 import object as bt2_object
-import bt2
 
 
 class _Connection(bt2_object._SharedObject):

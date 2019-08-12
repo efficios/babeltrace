@@ -23,7 +23,6 @@
 from bt2 import native_bt, utils
 from bt2 import object as bt2_object
 from bt2 import packet as bt2_packet
-from bt2 import event as bt2_event
 from bt2 import trace as bt2_trace
 from bt2 import stream_class as bt2_stream_class
 import bt2

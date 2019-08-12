@@ -23,7 +23,6 @@
 from bt2 import native_bt, object, utils
 from bt2 import interrupter as bt2_interrupter
 from bt2 import component as bt2_component
-from bt2 import logging as bt2_logging
 from bt2 import value as bt2_value
 import bt2
 

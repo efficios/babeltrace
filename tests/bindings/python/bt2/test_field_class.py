@@ -18,7 +18,6 @@
 
 import unittest
 import bt2
-import collections
 from utils import get_default_trace_class
 
 

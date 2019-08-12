@@ -21,7 +21,6 @@
 # THE SOFTWARE.
 
 from bt2 import native_bt, object, utils
-from bt2 import field_class as bt2_field_class
 import collections.abc
 from bt2 import value as bt2_value
 from bt2 import stream as bt2_stream
