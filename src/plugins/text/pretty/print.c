@@ -998,6 +998,21 @@ int print_field(struct pretty_component *pretty,
 		}
 		return 0;
 	}
+	case BT_FIELD_CLASS_TYPE_BIT_ARRAY:
+	{
+		uint64_t v = bt_field_bit_array_get_value_as_integer(field);
+
+		if (pretty->use_colors) {
+			bt_common_g_string_append(pretty->string,
+				COLOR_NUMBER_VALUE);
+		}
+		bt_common_g_string_append_printf(pretty->string, "0x%" PRIX64,
+			v);
+		if (pretty->use_colors) {
+			bt_common_g_string_append(pretty->string, COLOR_RST);
+		}
+		return 0;
+	}
 	case BT_FIELD_CLASS_TYPE_UNSIGNED_INTEGER:
 	case BT_FIELD_CLASS_TYPE_SIGNED_INTEGER:
 		return print_integer(pretty, field);
