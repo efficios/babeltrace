@@ -34,26 +34,6 @@ import collections.abc
 import functools
 
 
-class _StreamClassIterator(collections.abc.Iterator):
-    def __init__(self, trace_class):
-        self._trace_class = trace_class
-        self._at = 0
-
-    def __next__(self):
-        if self._at == len(self._trace_class):
-            raise StopIteration
-
-        borrow_stream_class_fn = (
-            native_bt.trace_class_borrow_stream_class_by_index_const
-        )
-        sc_ptr = borrow_stream_class_fn(self._trace_class._ptr, self._at)
-        assert sc_ptr
-        id = native_bt.stream_class_get_id(sc_ptr)
-        assert id >= 0
-        self._at += 1
-        return id
-
-
 def _trace_class_destruction_listener_from_native(user_listener, trace_class_ptr):
     trace_class = bt2_trace_class._TraceClass._create_from_ptr_and_get_ref(
         trace_class_ptr
