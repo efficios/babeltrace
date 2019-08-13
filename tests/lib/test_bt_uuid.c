@@ -24,7 +24,7 @@
 
 #include "common/uuid.h"
 
-#define NR_TESTS 21
+#define NR_TESTS 23
 
 static const char valid_str_1[] = "3d260c88-75ea-47b8-a7e2-d6077c0378d9";
 static const char valid_str_2[] = "611cf3a6-a68b-4515-834f-208bc2762592";
@@ -127,6 +127,9 @@ void run_test_bt_uuid_compare(void)
 	bt_uuid_from_str(valid_str_2, uuid2);
 	ret = bt_uuid_compare(uuid1, uuid2);
 	ok(ret != 0, "bt_uuid_compare - Compare different UUID, expect failure");
+	ok(ret < 0, "bt_uuid_compare - Compare different UUID, expect uuid1 smaller");
+	ret = bt_uuid_compare(uuid2, uuid1);
+	ok(ret > 0, "bt_uuid_compare - Compare different UUID, expect uuid2 bigger");
 }
 
 static
