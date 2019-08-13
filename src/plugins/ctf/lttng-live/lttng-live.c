@@ -1343,7 +1343,7 @@ bt_component_class_message_iterator_next_method_status lttng_live_msg_iter_next(
 			}
 
 			if (G_UNLIKELY(youngest_stream_iter == NULL) ||
-					candidate_stream_iter->current_msg_ts_ns <= youngest_msg_ts_ns) {
+					candidate_stream_iter->current_msg_ts_ns < youngest_msg_ts_ns) {
 				youngest_msg_ts_ns = candidate_stream_iter->current_msg_ts_ns;
 				youngest_stream_iter = candidate_stream_iter;
 			} else if (candidate_stream_iter->current_msg_ts_ns == youngest_msg_ts_ns) {
