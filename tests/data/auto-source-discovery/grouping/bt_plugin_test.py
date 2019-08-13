@@ -76,8 +76,8 @@ class TestSourceExt(Base, bt2._UserSourceComponent, message_iterator_class=TestI
                         return 1
                     else:
                         return 1.0
-            else:
-                return 0
+
+            return 0
         else:
             raise bt2.UnknownObject
 
