@@ -65,6 +65,54 @@ void init_field_class(struct bt_field_class *fc, enum bt_field_class_type type,
 }
 
 static
+void destroy_bit_array_field_class(struct bt_object *obj)
+{
+	BT_ASSERT(obj);
+	BT_LIB_LOGD("Destroying bit array field class object: %!+F", obj);
+	g_free(obj);
+}
+
+struct bt_field_class *bt_field_class_bit_array_create(
+		struct bt_trace_class *trace_class, uint64_t length)
+{
+	struct bt_field_class_bit_array *ba_fc = NULL;
+
+	BT_ASSERT_PRE_NON_NULL(trace_class, "Trace class");
+	BT_ASSERT_PRE(length > 0 && length <= 64,
+		"Unsupported length for bit array field class "
+		"(minimum is 1, maximum is 64): length=%" PRIu64, length);
+	BT_LOGD("Creating default bit array field class object.");
+	ba_fc = g_new0(struct bt_field_class_bit_array, 1);
+	if (!ba_fc) {
+		BT_LIB_LOGE_APPEND_CAUSE(
+			"Failed to allocate one bit array field class.");
+		goto error;
+	}
+
+	init_field_class((void *) ba_fc, BT_FIELD_CLASS_TYPE_BIT_ARRAY,
+		destroy_bit_array_field_class);
+	ba_fc->length = length;
+	BT_LIB_LOGD("Created bit array field class object: %!+F", ba_fc);
+	goto end;
+
+error:
+	BT_OBJECT_PUT_REF_AND_RESET(ba_fc);
+
+end:
+	return (void *) ba_fc;
+}
+
+uint64_t bt_field_class_bit_array_get_length(const struct bt_field_class *fc)
+{
+	const struct bt_field_class_bit_array *ba_fc = (const void *) fc;
+
+	BT_ASSERT_PRE_DEV_NON_NULL(fc, "Field class");
+	BT_ASSERT_PRE_DEV_FC_HAS_ID(fc, BT_FIELD_CLASS_TYPE_BIT_ARRAY,
+		"Field class");
+	return ba_fc->length;
+}
+
+static
 void destroy_bool_field_class(struct bt_object *obj)
 {
 	BT_ASSERT(obj);

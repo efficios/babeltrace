@@ -37,6 +37,9 @@ extern "C" {
 
 extern void bt_field_bool_set_value(bt_field *field, bt_bool value);
 
+extern void bt_field_bit_array_set_value_as_integer(bt_field *field,
+		uint64_t value);
+
 extern void bt_field_integer_signed_set_value(bt_field *field,
 		int64_t value);
 

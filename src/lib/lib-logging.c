@@ -193,6 +193,14 @@ static inline void format_field_class(char **buf_ch, bool extended,
 	}
 
 	switch (field_class->type) {
+	case BT_FIELD_CLASS_TYPE_BIT_ARRAY:
+	{
+		const struct bt_field_class_bit_array *ba_fc =
+			(const void *) field_class;
+
+		BUF_APPEND(", %slength=%" PRIu64, PRFIELD(ba_fc->length));
+		break;
+	}
 	case BT_FIELD_CLASS_TYPE_UNSIGNED_INTEGER:
 	case BT_FIELD_CLASS_TYPE_SIGNED_INTEGER:
 	{
@@ -380,6 +388,14 @@ static inline void format_field(char **buf_ch, bool extended,
 		const struct bt_field_bool *bool_field = (const void *) field;
 
 		BUF_APPEND(", %svalue=%d", PRFIELD(bool_field->value));
+		break;
+	}
+	case BT_FIELD_CLASS_TYPE_BIT_ARRAY:
+	{
+		const struct bt_field_bit_array *ba_field = (const void *) field;
+
+		BUF_APPEND(", %svalue-as-int=%" PRIx64,
+			PRFIELD(ba_field->value_as_int));
 		break;
 	}
 	case BT_FIELD_CLASS_TYPE_UNSIGNED_INTEGER:

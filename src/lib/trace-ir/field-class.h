@@ -190,6 +190,11 @@ struct bt_field_class_bool {
 	struct bt_field_class common;
 };
 
+struct bt_field_class_bit_array {
+	struct bt_field_class common;
+	uint64_t length;
+};
+
 struct bt_field_class_integer {
 	struct bt_field_class common;
 
