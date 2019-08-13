@@ -111,6 +111,9 @@ class PackageTestCase(unittest.TestCase):
     def test_has__StructureField(self):
         self._assert_in_bt2('_StructureField')
 
+    def test_has__OptionField(self):
+        self._assert_in_bt2('_VariantField')
+
     def test_has__VariantField(self):
         self._assert_in_bt2('_VariantField')
 
@@ -156,6 +159,9 @@ class PackageTestCase(unittest.TestCase):
     def test_has__StructureFieldClass(self):
         self._assert_in_bt2('_StructureFieldClass')
 
+    def test_has__OptionFieldClass(self):
+        self._assert_in_bt2('_OptionFieldClass')
+
     def test_has__VariantFieldClass(self):
         self._assert_in_bt2('_VariantFieldClass')
 
@@ -188,6 +194,9 @@ class PackageTestCase(unittest.TestCase):
 
     def test_has__CurrentArrayElementFieldPathItem(self):
         self._assert_in_bt2('_CurrentArrayElementFieldPathItem')
+
+    def test_has__CurrentOptionContentFieldPathItem(self):
+        self._assert_in_bt2('_CurrentOptionContentFieldPathItem')
 
     def test_has_ComponentDescriptor(self):
         self._assert_in_bt2('ComponentDescriptor')

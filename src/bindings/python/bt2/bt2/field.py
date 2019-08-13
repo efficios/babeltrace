@@ -37,16 +37,20 @@ def _create_field_from_ptr(ptr, owner_ptr, owner_get_ref, owner_put_ref):
     return field
 
 
-# Get the "effective" field of `field`.  If `field` is a variant, return the
-# currently selected field.  If `field` is of any other type, return `field`
+# Get the "effective" field of `field`.  If `field` is a variant, return
+# the currently selected field.  If `field` is an option, return the
+# content field.  If `field` is of any other type, return `field`
 # directly.
 
 
 def _get_leaf_field(field):
-    if not isinstance(field, _VariantField):
-        return field
+    if isinstance(field, _VariantField):
+        return _get_leaf_field(field.selected_option)
 
-    return _get_leaf_field(field.selected_option)
+    if isinstance(field, _OptionField):
+        return _get_leaf_field(field.field)
+
+    return field
 
 
 class _Field(object._UniqueObject):
@@ -480,6 +484,50 @@ class _StructureField(_ContainerField, collections.abc.MutableMapping):
         )
 
 
+class _OptionField(_Field):
+    _NAME = 'Option'
+
+    @property
+    def field(self):
+        field_ptr = native_bt.field_option_borrow_field_const(self._ptr)
+
+        if field_ptr is None:
+            return
+
+        return _create_field_from_ptr(
+            field_ptr, self._owner_ptr, self._owner_get_ref, self._owner_put_ref
+        )
+
+    @property
+    def has_field(self):
+        return self.field is not None
+
+    @has_field.setter
+    def has_field(self, value):
+        utils._check_bool(value)
+        native_bt.field_option_set_has_field(self._ptr, value)
+
+    def _spec_eq(self, other):
+        return _get_leaf_field(self) == other
+
+    def __bool__(self):
+        return self.has_field
+
+    def __str__(self):
+        return str(self.field)
+
+    def _repr(self):
+        return repr(self.field)
+
+    def _set_value(self, value):
+        self.has_field = True
+        field = self.field
+        assert field is not None
+        field.value = value
+
+    value = property(fset=_set_value)
+
+
 class _VariantField(_ContainerField, _Field):
     _NAME = 'Variant'
 
@@ -631,6 +679,7 @@ _TYPE_ID_TO_OBJ = {
     native_bt.FIELD_CLASS_TYPE_STRUCTURE: _StructureField,
     native_bt.FIELD_CLASS_TYPE_STATIC_ARRAY: _StaticArrayField,
     native_bt.FIELD_CLASS_TYPE_DYNAMIC_ARRAY: _DynamicArrayField,
+    native_bt.FIELD_CLASS_TYPE_OPTION: _OptionField,
     native_bt.FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR: _VariantField,
     native_bt.FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_SELECTOR: _VariantField,
     native_bt.FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_SELECTOR: _VariantField,

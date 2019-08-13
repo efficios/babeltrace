@@ -1823,6 +1823,77 @@ class StructureFieldTestCase(unittest.TestCase):
         self.assertTrue(expected_string_found)
 
 
+class OptionFieldTestCase(unittest.TestCase):
+    def _create_fc(self, tc):
+        fc = tc.create_option_field_class(tc.create_string_field_class())
+        top_fc = tc.create_structure_field_class()
+        top_fc.append_member('opt_field', fc)
+        return top_fc
+
+    def setUp(self):
+        self._tc = get_default_trace_class()
+        fld = _create_field(self._tc, self._create_fc(self._tc))
+        self._def = fld['opt_field']
+
+    def test_value_prop(self):
+        self._def.value = 'hiboux'
+        self.assertEqual(self._def.field, 'hiboux')
+        self.assertTrue(self._def.has_field)
+
+    def test_has_field_prop_true(self):
+        self._def.has_field = True
+        self.assertTrue(self._def.has_field)
+
+    def test_has_field_prop_true(self):
+        self._def.has_field = False
+        self.assertFalse(self._def.has_field)
+
+    def test_bool_op_true(self):
+        self._def.value = 'allo'
+        self.assertTrue(self._def)
+
+    def test_bool_op_true(self):
+        self._def.has_field = False
+        self.assertFalse(self._def)
+
+    def test_field_prop_existing(self):
+        self._def.value = 'meow'
+        field = self._def.field
+        self.assertEqual(field, 'meow')
+
+    def test_field_prop_none(self):
+        self._def.has_field = False
+        field = self._def.field
+        self.assertIsNone(field)
+
+    def test_field_prop_existing_then_none(self):
+        self._def.value = 'meow'
+        field = self._def.field
+        self.assertEqual(field, 'meow')
+        self._def.has_field = False
+        field = self._def.field
+        self.assertIsNone(field)
+
+    def test_eq(self):
+        field = _create_field(self._tc, self._create_fc(self._tc))
+        field = field['opt_field']
+        field.value = 'walk'
+        self._def.value = 'walk'
+        self.assertEqual(self._def, field)
+
+    def test_eq_invalid_type(self):
+        self._def.value = 'gerry'
+        self.assertNotEqual(self._def, 23)
+
+    def test_str_op(self):
+        self._def.value = 'marcel'
+        self.assertEqual(str(self._def), str(self._def.field))
+
+    def test_repr_op(self):
+        self._def.value = 'mireille'
+        self.assertEqual(repr(self._def), repr(self._def.field))
+
+
 class VariantFieldTestCase(unittest.TestCase):
     def _create_fc(self, tc):
         ft0 = tc.create_signed_integer_field_class(32)

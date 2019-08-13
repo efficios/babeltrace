@@ -51,6 +51,7 @@ from bt2.field import _UnsignedEnumerationField
 from bt2.field import _SignedEnumerationField
 from bt2.field import _StringField
 from bt2.field import _StructureField
+from bt2.field import _OptionField
 from bt2.field import _VariantField
 from bt2.field import _ArrayField
 from bt2.field import _StaticArrayField
@@ -66,6 +67,7 @@ from bt2.field_class import _UnsignedEnumerationFieldClass
 from bt2.field_class import _SignedEnumerationFieldClass
 from bt2.field_class import _StringFieldClass
 from bt2.field_class import _StructureFieldClass
+from bt2.field_class import _OptionFieldClass
 from bt2.field_class import _VariantFieldClass
 from bt2.field_class import _VariantFieldClassWithoutSelector
 from bt2.field_class import _VariantFieldClassWithSelector
@@ -77,6 +79,7 @@ from bt2.field_class import _DynamicArrayFieldClass
 from bt2.field_path import FieldPathScope
 from bt2.field_path import _IndexFieldPathItem
 from bt2.field_path import _CurrentArrayElementFieldPathItem
+from bt2.field_path import _CurrentOptionContentFieldPathItem
 from bt2.graph import Graph
 from bt2.integer_range_set import SignedIntegerRange
 from bt2.integer_range_set import UnsignedIntegerRange

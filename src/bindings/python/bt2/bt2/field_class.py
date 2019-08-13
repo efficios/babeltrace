@@ -361,6 +361,21 @@ class _StructureFieldClass(_FieldClass, collections.abc.Mapping):
         return self._create_member_from_ptr(member_ptr)
 
 
+class _OptionFieldClass(_FieldClass):
+    @property
+    def field_class(self):
+        elem_fc_ptr = native_bt.field_class_option_borrow_field_class_const(self._ptr)
+        return _create_field_class_from_ptr_and_get_ref(elem_fc_ptr)
+
+    @property
+    def selector_field_path(self):
+        ptr = native_bt.field_class_option_borrow_selector_field_path_const(self._ptr)
+        if ptr is None:
+            return
+
+        return bt2_field_path._FieldPath._create_from_ptr_and_get_ref(ptr)
+
+
 class _VariantFieldClassOption:
     def __init__(self, name, field_class):
         self._name = name
@@ -597,6 +612,7 @@ _FIELD_CLASS_TYPE_TO_OBJ = {
     native_bt.FIELD_CLASS_TYPE_STRUCTURE: _StructureFieldClass,
     native_bt.FIELD_CLASS_TYPE_STATIC_ARRAY: _StaticArrayFieldClass,
     native_bt.FIELD_CLASS_TYPE_DYNAMIC_ARRAY: _DynamicArrayFieldClass,
+    native_bt.FIELD_CLASS_TYPE_OPTION: _OptionFieldClass,
     native_bt.FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR: _VariantFieldClassWithoutSelector,
     native_bt.FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_SELECTOR: _VariantFieldClassWithUnsignedSelector,
     native_bt.FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_SELECTOR: _VariantFieldClassWithSignedSelector,

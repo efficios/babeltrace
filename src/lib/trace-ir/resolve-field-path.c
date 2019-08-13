@@ -50,7 +50,6 @@ bool find_field_class_recursive(struct bt_field_class *fc,
 	case BT_FIELD_CLASS_TYPE_OPTION:
 	{
 		struct bt_field_class_option *opt_fc = (void *) fc;
-
 		struct bt_field_path_item item = {
 			.type = BT_FIELD_PATH_ITEM_TYPE_CURRENT_OPTION_CONTENT,
 			.index = UINT64_C(-1),

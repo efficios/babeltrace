@@ -385,6 +385,78 @@ class StructureFieldClassTestCase(_TestElementContainer, unittest.TestCase):
         return self._tc.create_structure_field_class()
 
 
+class OptionFieldClassTestCase(unittest.TestCase):
+    def setUp(self):
+        self._tc = get_default_trace_class()
+        self._content_fc = self._tc.create_signed_integer_field_class(23)
+        self._tag_fc = self._tc.create_bool_field_class()
+
+    def test_create_default(self):
+        fc = self._tc.create_option_field_class(self._content_fc)
+        self.assertEqual(fc.field_class.addr, self._content_fc.addr)
+        self.assertIsNone(fc.selector_field_path, None)
+
+    def _create_field_class_for_field_path_test(self):
+        fc = self._tc.create_option_field_class(self._content_fc, self._tag_fc)
+
+        foo_fc = self._tc.create_real_field_class()
+        bar_fc = self._tc.create_string_field_class()
+        baz_fc = self._tc.create_string_field_class()
+
+        inner_struct_fc = self._tc.create_structure_field_class()
+        inner_struct_fc.append_member('bar', bar_fc)
+        inner_struct_fc.append_member('baz', baz_fc)
+        inner_struct_fc.append_member('tag', self._tag_fc)
+        inner_struct_fc.append_member('opt', fc)
+
+        opt_struct_array_fc = self._tc.create_option_field_class(inner_struct_fc)
+
+        outer_struct_fc = self._tc.create_structure_field_class()
+        outer_struct_fc.append_member('foo', foo_fc)
+        outer_struct_fc.append_member('inner_opt', opt_struct_array_fc)
+
+        # The path to the selector field class is resolved when the
+        # option field class is actually used, for example in a packet
+        # context.
+        self._tc.create_stream_class(
+            packet_context_field_class=outer_struct_fc, supports_packets=True
+        )
+
+        return fc
+
+    def test_field_path_len(self):
+        fc = self._create_field_class_for_field_path_test()
+        self.assertEqual(len(fc.selector_field_path), 3)
+
+    def test_field_path_iter(self):
+        fc = self._create_field_class_for_field_path_test()
+        path_items = list(fc.selector_field_path)
+
+        self.assertEqual(len(path_items), 3)
+
+        self.assertIsInstance(path_items[0], bt2._IndexFieldPathItem)
+        self.assertEqual(path_items[0].index, 1)
+
+        self.assertIsInstance(path_items[1], bt2._CurrentOptionContentFieldPathItem)
+
+        self.assertIsInstance(path_items[2], bt2._IndexFieldPathItem)
+        self.assertEqual(path_items[2].index, 2)
+
+    def test_field_path_root_scope(self):
+        fc = self._create_field_class_for_field_path_test()
+        self.assertEqual(
+            fc.selector_field_path.root_scope, bt2.FieldPathScope.PACKET_CONTEXT
+        )
+
+    def test_create_invalid_field_class(self):
+        with self.assertRaises(TypeError):
+            self._tc.create_option_field_class(object())
+
+    def test_create_invalid_selector_type(self):
+        with self.assertRaises(TypeError):
+            self._tc.create_option_field_class(self._content_fc, 17)
+
+
 class VariantFieldClassWithoutSelectorTestCase(
     _TestElementContainer, unittest.TestCase
 ):
