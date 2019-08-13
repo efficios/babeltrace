@@ -120,6 +120,7 @@ babeltrace2graphinclude_HEADERS = \
 	babeltrace2/graph/self-component-class-filter.h \
 	babeltrace2/graph/self-component-class-sink.h \
 	babeltrace2/graph/self-component-class-source.h \
+	babeltrace2/graph/self-component-class.h \
 	babeltrace2/graph/self-component-filter.h \
 	babeltrace2/graph/self-component-port-input-message-iterator.h \
 	babeltrace2/graph/self-component-port-input.h \

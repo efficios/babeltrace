@@ -95,6 +95,7 @@
 #include <babeltrace2/graph/self-component-class-filter.h>
 #include <babeltrace2/graph/self-component-class-sink.h>
 #include <babeltrace2/graph/self-component-class-source.h>
+#include <babeltrace2/graph/self-component-class.h>
 
 /* Component API */
 #include <babeltrace2/graph/component-const.h>
