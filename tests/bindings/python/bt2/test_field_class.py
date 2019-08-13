@@ -30,6 +30,30 @@ class BoolFieldClassTestCase(unittest.TestCase):
         self.assertIsNotNone(self._fc)
 
 
+class BitArrayFieldClassTestCase(unittest.TestCase):
+    def setUp(self):
+        self._tc = get_default_trace_class()
+        self._fc = self._tc.create_bit_array_field_class(17)
+
+    def test_create_default(self):
+        self.assertIsNotNone(self._fc)
+
+    def test_create_length_out_of_range(self):
+        with self.assertRaises(ValueError):
+            self._tc.create_bit_array_field_class(65)
+
+    def test_create_length_zero(self):
+        with self.assertRaises(ValueError):
+            self._tc.create_bit_array_field_class(0)
+
+    def test_create_length_invalid_type(self):
+        with self.assertRaises(TypeError):
+            self._tc.create_bit_array_field_class('lel')
+
+    def test_length_prop(self):
+        self.assertEqual(self._fc.length, 17)
+
+
 class _TestIntegerFieldClassProps:
     def test_create_default(self):
         fc = self._create_func()

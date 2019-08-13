@@ -71,6 +71,34 @@ class _Field(object._UniqueObject):
         return self._repr()
 
 
+class _BitArrayField(_Field):
+    _NAME = 'Bit array'
+
+    @property
+    def value_as_integer(self):
+        return native_bt.field_bit_array_get_value_as_integer(self._ptr)
+
+    @value_as_integer.setter
+    def value_as_integer(self, value):
+        utils._check_uint64(value)
+        native_bt.field_bit_array_set_value_as_integer(self._ptr, value)
+
+    def _spec_eq(self, other):
+        if type(other) is not type(self):
+            return False
+
+        return self.value_as_integer == other.value_as_integer
+
+    def _repr(self):
+        return repr(self.value_as_integer)
+
+    def __str__(self):
+        return str(self.value_as_integer)
+
+    def __len__(self):
+        return self.field_class.length
+
+
 @functools.total_ordering
 class _NumericField(_Field):
     @staticmethod
@@ -670,6 +698,7 @@ class _DynamicArrayField(_ArrayField, _Field):
 
 _TYPE_ID_TO_OBJ = {
     native_bt.FIELD_CLASS_TYPE_BOOL: _BoolField,
+    native_bt.FIELD_CLASS_TYPE_BIT_ARRAY: _BitArrayField,
     native_bt.FIELD_CLASS_TYPE_UNSIGNED_INTEGER: _UnsignedIntegerField,
     native_bt.FIELD_CLASS_TYPE_SIGNED_INTEGER: _SignedIntegerField,
     native_bt.FIELD_CLASS_TYPE_REAL: _RealField,

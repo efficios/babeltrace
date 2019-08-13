@@ -54,6 +54,16 @@ class _BoolFieldClass(_FieldClass):
     _NAME = 'Boolean'
 
 
+class _BitArrayFieldClass(_FieldClass):
+    _NAME = 'Bit array'
+
+    @property
+    def length(self):
+        length = native_bt.field_class_bit_array_get_length(self._ptr)
+        assert length >= 1
+        return length
+
+
 class _IntegerFieldClass(_FieldClass):
     @property
     def field_value_range(self):
@@ -603,6 +613,7 @@ class _DynamicArrayFieldClass(_ArrayFieldClass):
 
 _FIELD_CLASS_TYPE_TO_OBJ = {
     native_bt.FIELD_CLASS_TYPE_BOOL: _BoolFieldClass,
+    native_bt.FIELD_CLASS_TYPE_BIT_ARRAY: _BitArrayFieldClass,
     native_bt.FIELD_CLASS_TYPE_UNSIGNED_INTEGER: _UnsignedIntegerFieldClass,
     native_bt.FIELD_CLASS_TYPE_SIGNED_INTEGER: _SignedIntegerFieldClass,
     native_bt.FIELD_CLASS_TYPE_REAL: _RealFieldClass,

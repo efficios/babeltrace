@@ -194,6 +194,21 @@ class _TraceClass(object._SharedObject, collections.abc.Mapping):
 
         return bt2_field_class._BoolFieldClass._create_from_ptr(field_class_ptr)
 
+    def create_bit_array_field_class(self, length):
+        utils._check_uint64(length)
+
+        if length < 1 or length > 64:
+            raise ValueError(
+                'invalid length {}: expecting a value in the [1, 64] range'.format(
+                    length
+                )
+            )
+
+        field_class_ptr = native_bt.field_class_bit_array_create(self._ptr, length)
+        self._check_field_class_create_status(field_class_ptr, 'bit array')
+
+        return bt2_field_class._BitArrayFieldClass._create_from_ptr(field_class_ptr)
+
     def _create_integer_field_class(
         self, create_func, py_cls, type_name, field_value_range, preferred_display_base
     ):
