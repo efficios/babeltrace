@@ -103,13 +103,7 @@ end:
 BT_HIDDEN
 int bt_uuid_compare(const bt_uuid_t uuid_a, const bt_uuid_t uuid_b)
 {
-	int ret = 0;
-
-	if (memcmp(uuid_a, uuid_b, BT_UUID_LEN) != 0) {
-		ret = -1;
-	}
-
-	return ret;
+	return memcmp(uuid_a, uuid_b, BT_UUID_LEN);
 }
 
 BT_HIDDEN
