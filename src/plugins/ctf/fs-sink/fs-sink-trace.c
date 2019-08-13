@@ -178,9 +178,9 @@ int append_lttng_trace_path_ust_uid(const struct fs_sink_trace *trace,
 	g_string_append_printf(path, G_DIR_SEPARATOR_S "%" PRId64,
 		bt_value_integer_signed_get(v));
 
-	v = bt_trace_borrow_environment_entry_value_by_name_const(tc, "isa_length");
+	v = bt_trace_borrow_environment_entry_value_by_name_const(tc, "architecture_bit_width");
 	if (!v || !bt_value_is_signed_integer(v)) {
-		BT_COMP_LOGI_STR("Couldn't get environment value: name=\"isa_length\"");
+		BT_COMP_LOGI_STR("Couldn't get environment value: name=\"architecture_bit_width\"");
 		goto error;
 	}
 
