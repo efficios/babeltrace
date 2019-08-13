@@ -780,6 +780,9 @@ void write_field_class(struct details_write_ctx *ctx, const bt_field_class *fc)
 	case BT_FIELD_CLASS_TYPE_BOOL:
 		type = "Boolean";
 		break;
+	case BT_FIELD_CLASS_TYPE_BIT_ARRAY:
+		type = "Bit array";
+		break;
 	case BT_FIELD_CLASS_TYPE_UNSIGNED_INTEGER:
 		type = "Unsigned integer";
 		break;
@@ -1519,6 +1522,12 @@ void write_field(struct details_write_ctx *ctx, const bt_field *field,
 	case BT_FIELD_CLASS_TYPE_BOOL:
 		write_sp(ctx);
 		write_bool_prop_value(ctx, bt_field_bool_get_value(field));
+		break;
+	case BT_FIELD_CLASS_TYPE_BIT_ARRAY:
+		format_uint(buf, bt_field_bit_array_get_value_as_integer(field),
+			16);
+		write_sp(ctx);
+		write_uint_str_prop_value(ctx, buf);
 		break;
 	case BT_FIELD_CLASS_TYPE_UNSIGNED_INTEGER:
 	case BT_FIELD_CLASS_TYPE_UNSIGNED_ENUMERATION:
