@@ -235,12 +235,6 @@ class _StreamClass(object._SharedObject, collections.abc.Mapping):
 
         return id
 
-    @id.setter
-    def id(self, id):
-        utils._check_int64(id)
-        status = native_bt.stream_class_set_id(self._ptr, id)
-        utils._handle_func_status(status, "cannot set stream class object's ID")
-
     @property
     def packet_context_field_class(self):
         fc_ptr = native_bt.stream_class_borrow_packet_context_field_class_const(
