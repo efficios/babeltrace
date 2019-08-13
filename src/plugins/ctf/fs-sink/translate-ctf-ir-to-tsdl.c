@@ -349,6 +349,8 @@ void append_member(struct ctx *ctx, const char *name,
 	GString *lengths = NULL;
 	const char *lengths_str = "";
 
+	BT_ASSERT(fc);
+
 	while (fc->type == FS_SINK_CTF_FIELD_CLASS_TYPE_ARRAY ||
 			fc->type == FS_SINK_CTF_FIELD_CLASS_TYPE_SEQUENCE) {
 		if (!lengths) {
@@ -398,6 +400,11 @@ void append_struct_field_class_members(struct ctx *ctx,
 				struct_fc, i);
 		struct fs_sink_ctf_field_class *fc = named_fc->fc;
 
+		/*
+		 * For sequence, option, and variant field classes, if
+		 * the length/tag field class is generated before, write
+		 * it now before the dependent field class.
+		 */
 		if (fc->type == FS_SINK_CTF_FIELD_CLASS_TYPE_SEQUENCE) {
 			struct fs_sink_ctf_field_class_sequence *seq_fc =
 				(void *) fc;
@@ -409,6 +416,42 @@ void append_struct_field_class_members(struct ctx *ctx,
 					BT_FIELD_CLASS_INTEGER_PREFERRED_DISPLAY_BASE_DECIMAL,
 					NULL, seq_fc->length_ref->str, true);
 			}
+		} else if (fc->type == FS_SINK_CTF_FIELD_CLASS_TYPE_OPTION) {
+			struct fs_sink_ctf_field_class_option *opt_fc =
+				(void *) fc;
+
+			/*
+			 * CTF 1.8 does not support the option field
+			 * class type. To write something anyway, this
+			 * component translates this type to a variant
+			 * field class where the options are:
+			 *
+			 * * An empty structure field class.
+			 * * The optional field class itself.
+			 *
+			 * The "tag" is always generated/before in that
+			 * case (an 8-bit unsigned enumeration field
+			 * class).
+			 */
+			append_indent(ctx);
+			g_string_append(ctx->tsdl,
+				"/* The enumeration and variant field classes "
+				"below were a trace IR option field class. */\n");
+			append_indent(ctx);
+			g_string_append(ctx->tsdl, "enum : ");
+			append_integer_field_class_from_props(ctx,
+				8, 8, false,
+				BT_FIELD_CLASS_INTEGER_PREFERRED_DISPLAY_BASE_DECIMAL,
+				NULL, NULL, false);
+			g_string_append(ctx->tsdl, " {\n");
+			ctx->indent_level++;
+			append_indent(ctx);
+			g_string_append(ctx->tsdl, "none = 0,\n");
+			append_indent(ctx);
+			g_string_append(ctx->tsdl, "content = 1,\n");
+			append_end_block(ctx);
+			g_string_append_printf(ctx->tsdl, " %s;\n",
+				opt_fc->tag_ref->str);
 		} else if (fc->type == FS_SINK_CTF_FIELD_CLASS_TYPE_VARIANT) {
 			struct fs_sink_ctf_field_class_variant *var_fc =
 				(void *) fc;
@@ -462,6 +505,20 @@ void append_struct_field_class(struct ctx *ctx,
 }
 
 static
+void append_option_field_class(struct ctx *ctx,
+		struct fs_sink_ctf_field_class_option *opt_fc)
+{
+	g_string_append_printf(ctx->tsdl, "variant <%s> {\n",
+		opt_fc->tag_ref->str);
+	ctx->indent_level++;
+	append_indent(ctx);
+	g_string_append(ctx->tsdl, "struct { } none;\n");
+	append_indent(ctx);
+	append_member(ctx, "content", opt_fc->content_fc);
+	append_end_block(ctx);
+}
+
+static
 void append_variant_field_class(struct ctx *ctx,
 		struct fs_sink_ctf_field_class_variant *var_fc)
 {
@@ -501,6 +558,9 @@ void append_field_class(struct ctx *ctx, struct fs_sink_ctf_field_class *fc)
 		break;
 	case FS_SINK_CTF_FIELD_CLASS_TYPE_STRUCT:
 		append_struct_field_class(ctx, (void *) fc);
+		break;
+	case FS_SINK_CTF_FIELD_CLASS_TYPE_OPTION:
+		append_option_field_class(ctx, (void *) fc);
 		break;
 	case FS_SINK_CTF_FIELD_CLASS_TYPE_VARIANT:
 		append_variant_field_class(ctx, (void *) fc);

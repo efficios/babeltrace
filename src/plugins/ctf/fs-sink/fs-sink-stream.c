@@ -336,6 +336,40 @@ end:
 }
 
 static inline
+int write_option_field(struct fs_sink_stream *stream,
+		struct fs_sink_ctf_field_class_option *fc,
+		const bt_field *field)
+{
+	int ret;
+	const bt_field *content_field =
+		bt_field_option_borrow_field_const(field);
+
+	ret = bt_ctfser_write_unsigned_int(&stream->ctfser,
+		content_field ? 1 : 0, 8, 8, BYTE_ORDER);
+	if (G_UNLIKELY(ret)) {
+		goto end;
+	}
+
+	/*
+	 * CTF 1.8 has no option field class type, so this component
+	 * translates the option field class to a variant field class
+	 * where the options are:
+	 *
+	 * * An empty structure field class (field occupies 0 bits).
+	 * * The optional field class itself.
+	 *
+	 * If `content_field` is `NULL`, do not write anything (empty
+	 * structure).
+	 */
+	if (content_field) {
+		ret = write_field(stream, fc->content_fc, content_field);
+	}
+
+end:
+	return ret;
+}
+
+static inline
 int write_variant_field(struct fs_sink_stream *stream,
 		struct fs_sink_ctf_field_class_variant *fc,
 		const bt_field *field)
@@ -388,6 +422,9 @@ int write_field(struct fs_sink_stream *stream,
 		break;
 	case FS_SINK_CTF_FIELD_CLASS_TYPE_SEQUENCE:
 		ret = write_sequence_field(stream, (void *) fc, field);
+		break;
+	case FS_SINK_CTF_FIELD_CLASS_TYPE_OPTION:
+		ret = write_option_field(stream, (void *) fc, field);
 		break;
 	case FS_SINK_CTF_FIELD_CLASS_TYPE_VARIANT:
 		ret = write_variant_field(stream, (void *) fc, field);

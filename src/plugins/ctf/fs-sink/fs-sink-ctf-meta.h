@@ -33,6 +33,7 @@ enum fs_sink_ctf_field_class_type {
 	FS_SINK_CTF_FIELD_CLASS_TYPE_STRUCT,
 	FS_SINK_CTF_FIELD_CLASS_TYPE_ARRAY,
 	FS_SINK_CTF_FIELD_CLASS_TYPE_SEQUENCE,
+	FS_SINK_CTF_FIELD_CLASS_TYPE_OPTION,
 	FS_SINK_CTF_FIELD_CLASS_TYPE_VARIANT,
 };
 
@@ -82,6 +83,12 @@ struct fs_sink_ctf_field_class_struct {
 
 	/* Array of `struct fs_sink_ctf_named_field_class` */
 	GArray *members;
+};
+
+struct fs_sink_ctf_field_class_option {
+	struct fs_sink_ctf_field_class base;
+	struct fs_sink_ctf_field_class *content_fc;
+	GString *tag_ref;
 };
 
 struct fs_sink_ctf_field_class_variant {
@@ -319,6 +326,22 @@ struct fs_sink_ctf_field_class_struct *fs_sink_ctf_field_class_struct_create_emp
 }
 
 static inline
+struct fs_sink_ctf_field_class_option *fs_sink_ctf_field_class_option_create_empty(
+		const bt_field_class *ir_fc, uint64_t index_in_parent)
+{
+	struct fs_sink_ctf_field_class_option *fc =
+		g_new0(struct fs_sink_ctf_field_class_option, 1);
+
+	BT_ASSERT(fc);
+	_fs_sink_ctf_field_class_init((void *) fc,
+		FS_SINK_CTF_FIELD_CLASS_TYPE_OPTION, ir_fc,
+		1, index_in_parent);
+	fc->tag_ref = g_string_new(NULL);
+	BT_ASSERT(fc->tag_ref);
+	return fc;
+}
+
+static inline
 struct fs_sink_ctf_field_class_variant *fs_sink_ctf_field_class_variant_create_empty(
 		const bt_field_class *ir_fc, uint64_t index_in_parent)
 {
@@ -486,6 +509,22 @@ void _fs_sink_ctf_field_class_sequence_destroy(
 }
 
 static inline
+void _fs_sink_ctf_field_class_option_destroy(
+		struct fs_sink_ctf_field_class_option *fc)
+{
+	BT_ASSERT(fc);
+	_fs_sink_ctf_field_class_fini((void *) fc);
+	fs_sink_ctf_field_class_destroy(fc->content_fc);
+
+	if (fc->tag_ref) {
+		g_string_free(fc->tag_ref, TRUE);
+		fc->tag_ref = NULL;
+	}
+
+	g_free(fc);
+}
+
+static inline
 void _fs_sink_ctf_field_class_variant_destroy(
 		struct fs_sink_ctf_field_class_variant *fc)
 {
@@ -543,6 +582,9 @@ void fs_sink_ctf_field_class_destroy(struct fs_sink_ctf_field_class *fc)
 		break;
 	case FS_SINK_CTF_FIELD_CLASS_TYPE_SEQUENCE:
 		_fs_sink_ctf_field_class_sequence_destroy((void *) fc);
+		break;
+	case FS_SINK_CTF_FIELD_CLASS_TYPE_OPTION:
+		_fs_sink_ctf_field_class_option_destroy((void *) fc);
 		break;
 	case FS_SINK_CTF_FIELD_CLASS_TYPE_VARIANT:
 		_fs_sink_ctf_field_class_variant_destroy((void *) fc);
