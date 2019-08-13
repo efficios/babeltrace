@@ -210,7 +210,7 @@ test_list_sessions() {
 
 	local test_text="CLI prints the expected session list"
 	local cli_args_template="-i lttng-live net://localhost:@PORT@"
-	local server_args="'multi-domains,0,hostname,1,0,${trace_dir}/multi-domains/kernel/,${trace_dir}/multi-domains/ust/' 'trace-with-index,1,hostname,1,0,${trace_dir}/trace-with-index/'"
+	local server_args="'multi-domains,0,hostname,1,0,${trace_dir}/multi-domains/ust/' 'multi-domains,1,hostname,1,0,${trace_dir}/multi-domains/kernel/' 'trace-with-index,2,hostname,1,0,${trace_dir}/trace-with-index/' "
 
 	template_expected=$(<"$test_data_dir/cli-list-sessions.expect")
 	cli_stderr="$(mktemp)"
@@ -297,23 +297,28 @@ test_rate_limited() {
 test_compare_to_ctf_fs() {
 	# Compare the details text sink or ctf.fs and ctf.lttng-live to ensure
 	# that the trace is parsed the same way.
+	# Do the same with the session swapped on the relayd side. This validate
+	# that ordering is consistent between live and ctf fs.
 	local test_text="CLI src.ctf.fs vs src.ctf.lttng-live"
-	local cli_args_template="-i lttng-live net://localhost:@PORT@/host/hostname/trace-with-index -c sink.text.details --params with-trace-name=false,with-stream-name=false"
-	local server_args="'trace-with-index,0,hostname,1,0,${trace_dir}/trace-with-index/'"
+	local cli_args_template="-i lttng-live net://localhost:@PORT@/host/hostname/multi-domains -c sink.text.details --params with-trace-name=false,with-stream-name=false"
+	local server_args="'multi-domains,0,hostname,1,0,${trace_dir}/multi-domains/kernel/' 'multi-domains,1,hostname,1,0,${trace_dir}/multi-domains/ust/'"
+	local server_args_inverse="'multi-domains,0,hostname,1,0,${trace_dir}/multi-domains/ust/' 'multi-domains,1,hostname,1,0,${trace_dir}/multi-domains/kernel/'"
 	local expected_stdout
 	local expected_stderr
 
 	expected_stdout=$(mktemp)
 	expected_stderr=$(mktemp)
 
-	bt_cli "$expected_stdout" "$expected_stderr" "${trace_dir}/trace-with-index/" -c sink.text.details --params "with-trace-name=false,with-stream-name=false"
+	bt_cli "$expected_stdout" "$expected_stderr" "${trace_dir}/multi-domains" -c sink.text.details --params "with-trace-name=false,with-stream-name=false"
 	run_test "$test_text" "$cli_args_template" "$server_args" "$expected_stdout" "$expected_stderr"
+	diag "Inverse session order from lttng-relayd"
+	run_test "$test_text" "$cli_args_template" "$server_args_inverse" "$expected_stdout" "$expected_stderr"
 
 	rm -f "$expected_stdout"
 	rm -f "$expected_stderr"
 }
 
-plan_tests 10
+plan_tests 12
 
 test_list_sessions
 test_base
