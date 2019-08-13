@@ -319,6 +319,13 @@ int create_relative_field_ref(struct ctx *ctx,
 		BT_ASSERT(tgt_fc);
 		BT_ASSERT(fp_item);
 
+		if (bt_field_path_item_get_type(fp_item) ==
+				BT_FIELD_PATH_ITEM_TYPE_CURRENT_OPTION_CONTENT) {
+			/* Not supported by CTF 1.8 */
+			ret = -1;
+			goto end;
+		}
+
 		switch (tgt_fc->type) {
 		case FS_SINK_CTF_FIELD_CLASS_TYPE_STRUCT:
 			BT_ASSERT(bt_field_path_item_get_type(fp_item) ==
@@ -599,6 +606,16 @@ void append_to_parent_field_class(struct ctx *ctx,
 		fs_sink_ctf_field_class_struct_append_member((void *) parent_fc,
 			cur_path_stack_top(ctx)->name->str, fc);
 		break;
+	case FS_SINK_CTF_FIELD_CLASS_TYPE_OPTION:
+	{
+		struct fs_sink_ctf_field_class_option *opt_fc =
+			(void *) parent_fc;
+
+		BT_ASSERT(!opt_fc->content_fc);
+		opt_fc->content_fc = fc;
+		opt_fc->base.alignment = fc->alignment;
+		break;
+	}
 	case FS_SINK_CTF_FIELD_CLASS_TYPE_VARIANT:
 		fs_sink_ctf_field_class_variant_append_option((void *) parent_fc,
 			cur_path_stack_top(ctx)->name->str, fc);
@@ -910,6 +927,51 @@ int maybe_protect_variant_option_name(const bt_field_class *ir_var_fc,
 			goto end;
 		}
 	}
+
+end:
+	return ret;
+}
+
+static inline
+int translate_option_field_class(struct ctx *ctx)
+{
+	struct fs_sink_ctf_field_class_option *fc =
+		fs_sink_ctf_field_class_option_create_empty(
+			cur_path_stack_top(ctx)->ir_fc,
+			cur_path_stack_top(ctx)->index_in_parent);
+	const bt_field_class *content_ir_fc =
+		bt_field_class_option_borrow_field_class_const(fc->base.ir_fc);
+	int ret;
+
+	BT_ASSERT(fc);
+
+	/*
+	 * CTF 1.8 does not support the option field class type. To
+	 * write something anyway, this component translates this type
+	 * to a variant field class where the options are:
+	 *
+	 * * An empty structure field class.
+	 * * The optional field class itself.
+	 *
+	 * The "tag" is always generated/before in that case (an 8-bit
+	 * unsigned enumeration field class).
+	 */
+	append_to_parent_field_class(ctx, (void *) fc);
+	ret = cur_path_stack_push(ctx, UINT64_C(-1), NULL, false, content_ir_fc,
+		(void *) fc);
+	if (ret) {
+		BT_COMP_LOGE_STR("Cannot translate option field class content.");
+		goto end;
+	}
+
+	ret = translate_field_class(ctx);
+	if (ret) {
+		BT_COMP_LOGE_STR("Cannot translate option field class content.");
+		goto end;
+	}
+
+	cur_path_stack_pop(ctx);
+	update_parent_field_class_alignment(ctx, fc->base.alignment);
 
 end:
 	return ret;
@@ -1255,6 +1317,9 @@ int translate_field_class(struct ctx *ctx)
 	case BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY:
 		ret = translate_dynamic_array_field_class(ctx);
 		break;
+	case BT_FIELD_CLASS_TYPE_OPTION:
+		ret = translate_option_field_class(ctx);
+		break;
 	case BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR:
 	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_SELECTOR:
 	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_SELECTOR:
@@ -1288,6 +1353,30 @@ int set_field_ref(struct fs_sink_ctf_field_class *fc, const char *fc_name,
 	}
 
 	switch (fc->type) {
+	case FS_SINK_CTF_FIELD_CLASS_TYPE_OPTION:
+	{
+		/*
+		 * CTF 1.8 does not support the option field class type.
+		 * To write something anyway, this component translates
+		 * this type to a variant field class where the options
+		 * are:
+		 *
+		 * * An empty structure field class.
+		 * * The optional field class itself.
+		 *
+		 * Because the option field class becomes a CTF variant
+		 * field class, we use the term "tag" too here.
+		 *
+		 * The "tag" is always generated/before in that case (an
+		 * 8-bit unsigned enumeration field class).
+		 */
+		struct fs_sink_ctf_field_class_option *opt_fc = (void *) fc;
+
+		field_ref = opt_fc->tag_ref;
+		is_before = true;
+		tgt_type = "tag";
+		break;
+	}
 	case FS_SINK_CTF_FIELD_CLASS_TYPE_SEQUENCE:
 	{
 		struct fs_sink_ctf_field_class_sequence *seq_fc = (void *) fc;
@@ -1375,6 +1464,22 @@ int set_field_refs(struct fs_sink_ctf_field_class * const fc,
 	fc_type = fc->type;
 
 	switch (fc_type) {
+	case FS_SINK_CTF_FIELD_CLASS_TYPE_OPTION:
+	{
+		struct fs_sink_ctf_field_class_option *opt_fc = (void *) fc;
+
+		ret = set_field_ref(fc, fc_name, parent_fc);
+		if (ret) {
+			goto end;
+		}
+
+		ret = set_field_refs(opt_fc->content_fc, NULL, fc);
+		if (ret) {
+			goto end;
+		}
+
+		break;
+	}
 	case FS_SINK_CTF_FIELD_CLASS_TYPE_STRUCT:
 	case FS_SINK_CTF_FIELD_CLASS_TYPE_VARIANT:
 	{
