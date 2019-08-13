@@ -110,6 +110,11 @@ struct bt_field_bool {
 	bool value;
 };
 
+struct bt_field_bit_array {
+	struct bt_field common;
+	uint64_t value_as_int;
+};
+
 struct bt_field_integer {
 	struct bt_field common;
 

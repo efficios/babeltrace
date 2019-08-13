@@ -40,6 +40,9 @@ extern "C" {
 extern bt_field_class *bt_field_class_bool_create(
 		bt_trace_class *trace_class);
 
+extern bt_field_class *bt_field_class_bit_array_create(
+		bt_trace_class *trace_class, uint64_t length);
+
 extern bt_field_class *bt_field_class_integer_unsigned_create(
 		bt_trace_class *trace_class);
 

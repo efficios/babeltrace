@@ -44,6 +44,9 @@ extern bt_field_class_type bt_field_get_class_type(
 
 extern bt_bool bt_field_bool_get_value(const bt_field *field);
 
+extern uint64_t bt_field_bit_array_get_value_as_integer(
+		const bt_field *field);
+
 extern int64_t bt_field_integer_signed_get_value(const bt_field *field);
 
 extern uint64_t bt_field_integer_unsigned_get_value(

@@ -91,6 +91,13 @@ struct bt_field_methods bool_field_methods = {
 };
 
 static
+struct bt_field_methods bit_array_field_methods = {
+	.set_is_frozen = set_single_field_is_frozen,
+	.is_set = single_field_is_set,
+	.reset = reset_single_field,
+};
+
+static
 struct bt_field_methods integer_field_methods = {
 	.set_is_frozen = set_single_field_is_frozen,
 	.is_set = single_field_is_set,
@@ -143,6 +150,9 @@ static
 struct bt_field *create_bool_field(struct bt_field_class *);
 
 static
+struct bt_field *create_bit_array_field(struct bt_field_class *);
+
+static
 struct bt_field *create_integer_field(struct bt_field_class *);
 
 static
@@ -169,6 +179,7 @@ struct bt_field *create_variant_field(struct bt_field_class *);
 static
 struct bt_field *(* const field_create_funcs[])(struct bt_field_class *) = {
 	[BT_FIELD_CLASS_TYPE_BOOL]				= create_bool_field,
+	[BT_FIELD_CLASS_TYPE_BIT_ARRAY]				= create_bit_array_field,
 	[BT_FIELD_CLASS_TYPE_UNSIGNED_INTEGER]			= create_integer_field,
 	[BT_FIELD_CLASS_TYPE_SIGNED_INTEGER]			= create_integer_field,
 	[BT_FIELD_CLASS_TYPE_UNSIGNED_ENUMERATION]		= create_integer_field,
@@ -186,6 +197,9 @@ struct bt_field *(* const field_create_funcs[])(struct bt_field_class *) = {
 
 static
 void destroy_bool_field(struct bt_field *field);
+
+static
+void destroy_bit_array_field(struct bt_field *field);
 
 static
 void destroy_integer_field(struct bt_field *field);
@@ -211,6 +225,7 @@ void destroy_variant_field(struct bt_field *field);
 static
 void (* const field_destroy_funcs[])(struct bt_field *) = {
 	[BT_FIELD_CLASS_TYPE_BOOL]				= destroy_bool_field,
+	[BT_FIELD_CLASS_TYPE_BIT_ARRAY]				= destroy_bit_array_field,
 	[BT_FIELD_CLASS_TYPE_UNSIGNED_INTEGER]			= destroy_integer_field,
 	[BT_FIELD_CLASS_TYPE_SIGNED_INTEGER]			= destroy_integer_field,
 	[BT_FIELD_CLASS_TYPE_UNSIGNED_ENUMERATION]		= destroy_integer_field,
@@ -292,6 +307,26 @@ struct bt_field *create_bool_field(struct bt_field_class *fc)
 
 end:
 	return (void *) bool_field;
+}
+
+static
+struct bt_field *create_bit_array_field(struct bt_field_class *fc)
+{
+	struct bt_field_bit_array *ba_field;
+
+	BT_LIB_LOGD("Creating bit array field object: %![fc-]+F", fc);
+	ba_field = g_new0(struct bt_field_bit_array, 1);
+	if (!ba_field) {
+		BT_LIB_LOGE_APPEND_CAUSE(
+			"Failed to allocate one bit array field.");
+		goto end;
+	}
+
+	init_field((void *) ba_field, fc, &bit_array_field_methods);
+	BT_LIB_LOGD("Created bit array field object: %!+f", ba_field);
+
+end:
+	return (void *) ba_field;
 }
 
 static
@@ -604,6 +639,38 @@ void bt_field_bool_set_value(struct bt_field *field, bt_bool value)
 		"Field");
 	BT_ASSERT_PRE_DEV_FIELD_HOT(field, "Field");
 	bool_field->value = (bool) value;
+	bt_field_set_single(field, true);
+}
+
+uint64_t bt_field_bit_array_get_value_as_integer(const struct bt_field *field)
+{
+	const struct bt_field_bit_array *ba_field = (const void *) field;
+
+	BT_ASSERT_PRE_DEV_NON_NULL(field, "Field");
+	BT_ASSERT_PRE_DEV_FIELD_IS_SET(field, "Field");
+	BT_ASSERT_PRE_DEV_FIELD_HAS_CLASS_TYPE(field,
+		BT_FIELD_CLASS_TYPE_BIT_ARRAY, "Field");
+	return ba_field->value_as_int;
+}
+
+void bt_field_bit_array_set_value_as_integer(struct bt_field *field,
+		uint64_t value)
+{
+	struct bt_field_bit_array *ba_field = (void *) field;
+	struct bt_field_class_bit_array *ba_fc;
+
+	BT_ASSERT_PRE_DEV_NON_NULL(field, "Field");
+	BT_ASSERT_PRE_DEV_FIELD_HAS_CLASS_TYPE(field,
+		BT_FIELD_CLASS_TYPE_BIT_ARRAY, "Field");
+	BT_ASSERT_PRE_DEV_FIELD_HOT(field, "Field");
+	ba_fc = (void *) field->class;
+	ba_field->value_as_int = value;
+
+	if (ba_fc->length < 64) {
+		/* Apply mask */
+		ba_field->value_as_int &= ((UINT64_C(1) << ba_fc->length) - 1);
+	}
+
 	bt_field_set_single(field, true);
 }
 
@@ -1102,6 +1169,15 @@ void destroy_bool_field(struct bt_field *field)
 {
 	BT_ASSERT(field);
 	BT_LIB_LOGD("Destroying boolean field object: %!+f", field);
+	bt_field_finalize(field);
+	g_free(field);
+}
+
+static
+void destroy_bit_array_field(struct bt_field *field)
+{
+	BT_ASSERT(field);
+	BT_LIB_LOGD("Destroying bit array field object: %!+f", field);
 	bt_field_finalize(field);
 	g_free(field);
 }

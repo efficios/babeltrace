@@ -38,6 +38,7 @@ extern "C" {
 
 typedef enum bt_field_class_type {
 	BT_FIELD_CLASS_TYPE_BOOL,
+	BT_FIELD_CLASS_TYPE_BIT_ARRAY,
 	BT_FIELD_CLASS_TYPE_UNSIGNED_INTEGER,
 	BT_FIELD_CLASS_TYPE_SIGNED_INTEGER,
 	BT_FIELD_CLASS_TYPE_UNSIGNED_ENUMERATION,
@@ -61,6 +62,9 @@ typedef enum bt_field_class_integer_preferred_display_base {
 } bt_field_class_integer_preferred_display_base;
 
 extern bt_field_class_type bt_field_class_get_type(
+		const bt_field_class *field_class);
+
+extern uint64_t bt_field_class_bit_array_get_length(
 		const bt_field_class *field_class);
 
 extern uint64_t bt_field_class_integer_get_field_value_range(
