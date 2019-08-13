@@ -126,6 +126,52 @@ def _create_struct_array_field(tc, length):
     return packet.context_field[field_name]
 
 
+class BitArrayFieldTestCase(unittest.TestCase):
+    def _create_field(self):
+        return _create_field(self._tc, self._tc.create_bit_array_field_class(24))
+
+    def setUp(self):
+        self._tc = get_default_trace_class()
+        self._def_value = 15497
+        self._def = self._create_field()
+        self._def.value_as_integer = self._def_value
+        self._def_new_value = 101542
+
+    def test_assign_invalid_type(self):
+        with self.assertRaises(TypeError):
+            self._def.value_as_integer = 'onze'
+
+    def test_assign(self):
+        self._def.value_as_integer = 199
+        self.assertEqual(self._def.value_as_integer, 199)
+
+    def test_assign_masked(self):
+        self._def.value_as_integer = 0xE1549BB
+        self.assertEqual(self._def.value_as_integer, 0xE1549BB & ((1 << 24) - 1))
+
+    def test_eq(self):
+        other = self._create_field()
+        other.value_as_integer = self._def_value
+        self.assertEqual(self._def, other)
+
+    def test_ne_same_type(self):
+        other = self._create_field()
+        other.value_as_integer = self._def_value - 1
+        self.assertNotEqual(self._def, other)
+
+    def test_ne_diff_type(self):
+        self.assertNotEqual(self._def, self._def_value)
+
+    def test_len(self):
+        self.assertEqual(len(self._def), 24)
+
+    def test_str(self):
+        self.assertEqual(str(self._def), str(self._def_value))
+
+    def test_repr(self):
+        self.assertEqual(repr(self._def), repr(self._def_value))
+
+
 # Base class for numeric field test cases.
 #
 # To be compatible with this base class, a derived class must, in its

@@ -84,6 +84,9 @@ class PackageTestCase(unittest.TestCase):
     def test_has__BoolField(self):
         self._assert_in_bt2('_BoolField')
 
+    def test_has__BitArrayField(self):
+        self._assert_in_bt2('_BitArrayField')
+
     def test_has__IntegerField(self):
         self._assert_in_bt2('_IntegerField')
 
@@ -131,6 +134,9 @@ class PackageTestCase(unittest.TestCase):
 
     def test_has__BoolFieldClass(self):
         self._assert_in_bt2('_BoolFieldClass')
+
+    def test_has__BitArrayFieldClass(self):
+        self._assert_in_bt2('_BitArrayFieldClass')
 
     def test_has__IntegerFieldClass(self):
         self._assert_in_bt2('_IntegerFieldClass')
