@@ -298,6 +298,21 @@ class _TraceClass(object._SharedObject, collections.abc.Mapping):
         self._check_field_class_create_status(ptr, 'dynamic array')
         return bt2_field_class._DynamicArrayFieldClass._create_from_ptr(ptr)
 
+    def create_option_field_class(self, content_fc, selector_fc=None):
+        utils._check_type(content_fc, bt2_field_class._FieldClass)
+
+        selector_fc_ptr = None
+
+        if selector_fc is not None:
+            utils._check_type(selector_fc, bt2_field_class._BoolFieldClass)
+            selector_fc_ptr = selector_fc._ptr
+
+        ptr = native_bt.field_class_option_create(
+            self._ptr, content_fc._ptr, selector_fc_ptr
+        )
+        self._check_field_class_create_status(ptr, 'option')
+        return bt2_field_class._create_field_class_from_ptr_and_get_ref(ptr)
+
     def create_variant_field_class(self, selector_fc=None):
         selector_fc_ptr = None
 

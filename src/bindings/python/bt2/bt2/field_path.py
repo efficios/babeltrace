@@ -48,6 +48,10 @@ class _CurrentArrayElementFieldPathItem(_FieldPathItem):
     pass
 
 
+class _CurrentOptionContentFieldPathItem(_FieldPathItem):
+    pass
+
+
 class _FieldPath(object._SharedObject, collections.abc.Iterable):
     _get_ref = staticmethod(native_bt.field_path_get_ref)
     _put_ref = staticmethod(native_bt.field_path_put_ref)
@@ -70,6 +74,8 @@ class _FieldPath(object._SharedObject, collections.abc.Iterable):
                 yield _IndexFieldPathItem(idx)
             elif item_type == native_bt.FIELD_PATH_ITEM_TYPE_CURRENT_ARRAY_ELEMENT:
                 yield _CurrentArrayElementFieldPathItem()
+            elif item_type == native_bt.FIELD_PATH_ITEM_TYPE_CURRENT_OPTION_CONTENT:
+                yield _CurrentOptionContentFieldPathItem()
             else:
                 assert False
 
