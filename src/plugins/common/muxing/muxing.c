@@ -856,14 +856,14 @@ int common_muxing_compare_messages(const bt_message *left_msg,
 	msgs.right.trace = borrow_trace(right_msg);
 	msgs.right.stream = borrow_stream(right_msg);
 
-	/* Same timestamp: compare trace names. */
-	ret = compare_messages_by_trace_name(&msgs);
+	/* Same timestamp: compare trace UUIDs. */
+	ret = compare_messages_by_trace_uuid(&msgs);
 	if (ret) {
 		goto end;
 	}
 
-	/* Same timestamp and trace name: compare trace UUIDs. */
-	ret = compare_messages_by_trace_uuid(&msgs);
+	/* Same timestamp and trace UUID: compare trace names. */
+	ret = compare_messages_by_trace_name(&msgs);
 	if (ret) {
 		goto end;
 	}
