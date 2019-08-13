@@ -43,6 +43,13 @@
 			_BT_COMP_LOG_COMP_NA_STR,			\
 		##__VA_ARGS__)
 
+/* Logs with level `_lvl` for self component class `_self_comp_class` */
+#define BT_COMP_CLASS_LOG(_lvl, _self_comp_class, _fmt, ...)		\
+	BT_LOG_WRITE((_lvl), BT_LOG_TAG, _BT_COMP_LOG_COMP_PREFIX _fmt,	\
+		bt_component_class_get_name(				\
+			bt_self_component_class_as_component_class(	\
+				_self_comp_class)), ##__VA_ARGS__)
+
 #define BT_COMP_LOG_CUR_LVL(_lvl, _cur_lvl, _self_comp, _fmt, ...)	\
 	BT_LOG_WRITE_CUR_LVL((_lvl), (_cur_lvl), BT_LOG_TAG,		\
 		_BT_COMP_LOG_COMP_PREFIX _fmt,				\
@@ -130,5 +137,65 @@
 	BT_COMP_LOG_MEM(BT_LOG_TRACE, (BT_COMP_LOG_SELF_COMP), (_data_ptr), (_data_sz), _fmt, ##__VA_ARGS__)
 
 #define BT_COMP_LOG_SUPPORTED
+
+/* Logs and appends error cause from component context. */
+#define BT_COMP_LOG_APPEND_CAUSE(_self_comp, _lvl, _fmt, ...)			\
+	do {									\
+		BT_COMP_LOG(_lvl, _self_comp, _fmt, ##__VA_ARGS__);		\
+		(void) BT_CURRENT_THREAD_ERROR_APPEND_CAUSE_FROM_COMPONENT( 	\
+			_self_comp, _fmt, ##__VA_ARGS__);			\
+	} while (0)
+
+/* Logs error and appends error cause from component context. */
+#define BT_COMP_LOGE_APPEND_CAUSE(_self_comp, _fmt, ...)			\
+	BT_COMP_LOG_APPEND_CAUSE(_self_comp, BT_LOG_ERROR, _fmt, ##__VA_ARGS__)
+
+/* Logs and appends error cause from component class context. */
+#define BT_COMP_CLASS_LOG_APPEND_CAUSE(_self_comp_class, _lvl, _fmt, ...)		\
+	do {										\
+		BT_COMP_CLASS_LOG(_lvl, _self_comp_class, _fmt, ##__VA_ARGS__);		\
+		(void) BT_CURRENT_THREAD_ERROR_APPEND_CAUSE_FROM_COMPONENT_CLASS(	\
+			_self_comp_class, _fmt, ##__VA_ARGS__);				\
+	} while (0)
+
+/* Logs error and appends error cause from component class context. */
+#define BT_COMP_CLASS_LOGE_APPEND_CAUSE(_self_comp_class, _fmt, ...)				\
+	BT_COMP_CLASS_LOG_APPEND_CAUSE(_self_comp_class, BT_LOG_ERROR, _fmt, ##__VA_ARGS__)
+
+/*
+ * Logs and appends error cause from component class context - the errno
+ * edition.
+ */
+#define BT_COMP_CLASS_LOG_APPEND_CAUSE_ERRNO(_self_comp_class, _lvl, _msg, _fmt, ...)	\
+	do {										\
+		const char *error_str = g_strerror(errno);				\
+		BT_COMP_CLASS_LOG(_lvl, _self_comp_class, _msg ": %s" _fmt, error_str,	\
+			##__VA_ARGS__);							\
+		(void) BT_CURRENT_THREAD_ERROR_APPEND_CAUSE_FROM_COMPONENT_CLASS(	\
+			_self_comp_class, _msg ": %s" _fmt, error_str, ##__VA_ARGS__);	\
+	} while (0)
+
+/*
+ * Logs error and appends error cause from component class context - the errno
+ * edition.
+ */
+#define BT_COMP_CLASS_LOGE_APPEND_CAUSE_ERRNO(_self_comp_class, _fmt, ...)		\
+	BT_COMP_CLASS_LOG_APPEND_CAUSE_ERRNO(_self_comp_class, BT_LOG_ERROR, _fmt,	\
+		##__VA_ARGS__)
+
+/*
+ * Logs error and appends error cause from component or component class context,
+ * depending on whichever is set.
+ */
+#define BT_COMP_OR_COMP_CLASS_LOGE_APPEND_CAUSE(_self_comp, _self_comp_class, _fmt, ...)	\
+	do {											\
+		/* Only one of `_self_comp` and `_self_comp_class` must be set. */		\
+		BT_ASSERT((!!(_self_comp) != (!!_self_comp_class)));				\
+		if (_self_comp) {								\
+			BT_COMP_LOGE_APPEND_CAUSE(_self_comp, _fmt, ##__VA_ARGS__);		\
+		} else {									\
+			BT_COMP_CLASS_LOGE_APPEND_CAUSE(_self_comp_class, _fmt, ##__VA_ARGS__);	\
+		}										\
+	} while (0)
 
 #endif /* BABELTRACE_LOGGING_COMP_LOGGING_H */

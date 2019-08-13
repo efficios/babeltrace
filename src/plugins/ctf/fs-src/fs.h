@@ -72,12 +72,6 @@ struct ctf_fs_metadata {
 struct ctf_fs_component {
 	bt_logging_level log_level;
 
-	/* Weak, guaranteed to exist */
-	bt_self_component_source *self_comp_src;
-
-	/* Weak */
-	bt_self_component *self_comp;
-
 	/* Array of struct ctf_fs_port_data *, owned by this */
 	GPtrArray *port_data;
 
@@ -249,12 +243,17 @@ struct ctf_fs_component *ctf_fs_component_create(bt_logging_level log_level,
  * Search recursively under all paths in `paths_value` (an array of strings),
  * for CTF traces. For each CTF trace found, create a ctf_fs_trace in
  * `ctf_fs` representing that trace.
+ *
+ * `self_comp` and `self_comp_class` are used for logging, only one of them
+ * should be set.
  */
 
 BT_HIDDEN
-int ctf_fs_component_create_ctf_fs_traces(bt_self_component_source *self_comp,
+int ctf_fs_component_create_ctf_fs_traces(
 		struct ctf_fs_component *ctf_fs,
-		const bt_value *paths_value);
+		const bt_value *paths_value,
+		bt_self_component *self_comp,
+		bt_self_component_class *self_comp_class);
 
 /* Free `ctf_fs` and everything it owns. */
 
@@ -268,12 +267,17 @@ void ctf_fs_destroy(struct ctf_fs_component *ctf_fs);
  *  - The optional `clock-class-offset-s` and `clock-class-offset-ns`, if
  *    present, are recorded in the `ctf_fs` structure.
  *
+ * `self_comp` and `self_comp_class` are used for logging, only one of them
+ * should be set.
+ *
  * Return true on success, false if any parameter didn't pass validation.
  */
 
 BT_HIDDEN
 bool read_src_fs_parameters(const bt_value *params,
-		const bt_value **paths, struct ctf_fs_component *ctf_fs);
+		const bt_value **paths, struct ctf_fs_component *ctf_fs,
+		bt_self_component *self_comp,
+		bt_self_component_class *self_comp_class);
 
 /*
  * Generate the port name to be used for a given data stream file group.
