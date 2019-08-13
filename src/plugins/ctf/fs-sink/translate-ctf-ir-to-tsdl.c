@@ -196,6 +196,21 @@ void append_bool_field_class(struct ctx *ctx,
 }
 
 static
+void append_bit_array_field_class(struct ctx *ctx,
+		struct fs_sink_ctf_field_class_bit_array *fc)
+{
+	/*
+	 * CTF 1.8 has no bit array field class type, so this component
+	 * translates it to an unsigned integer field class with an
+	 * hexadecimal base.
+	 */
+	append_integer_field_class_from_props(ctx, fc->size,
+		fc->base.alignment, false,
+		BT_FIELD_CLASS_INTEGER_PREFERRED_DISPLAY_BASE_HEXADECIMAL,
+		NULL, NULL, false);
+}
+
+static
 void append_integer_field_class(struct ctx *ctx,
 		struct fs_sink_ctf_field_class_int *fc)
 {
@@ -485,6 +500,10 @@ void append_struct_field_class_members(struct ctx *ctx,
 			append_indent(ctx);
 			g_string_append(ctx->tsdl,
 				"/* The integer field class below was a trace IR boolean field class. */\n");
+		} else if (fc->type == FS_SINK_CTF_FIELD_CLASS_TYPE_BIT_ARRAY) {
+			append_indent(ctx);
+			g_string_append(ctx->tsdl,
+				"/* The integer field class below was a trace IR bit array field class. */\n");
 		}
 
 		append_indent(ctx);
@@ -546,6 +565,9 @@ void append_field_class(struct ctx *ctx, struct fs_sink_ctf_field_class *fc)
 	switch (fc->type) {
 	case FS_SINK_CTF_FIELD_CLASS_TYPE_BOOL:
 		append_bool_field_class(ctx, (void *) fc);
+		break;
+	case FS_SINK_CTF_FIELD_CLASS_TYPE_BIT_ARRAY:
+		append_bit_array_field_class(ctx, (void *) fc);
 		break;
 	case FS_SINK_CTF_FIELD_CLASS_TYPE_INT:
 		append_integer_field_class(ctx, (void *) fc);

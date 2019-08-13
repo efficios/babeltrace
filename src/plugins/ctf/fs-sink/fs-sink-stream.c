@@ -213,6 +213,20 @@ int write_bool_field(struct fs_sink_stream *stream,
 }
 
 static inline
+int write_bit_array_field(struct fs_sink_stream *stream,
+		struct fs_sink_ctf_field_class_bit_array *fc,
+		const bt_field *field)
+{
+	/*
+	 * CTF 1.8 has no bit array field class type, so this component
+	 * translates this bit array field to an unsigned integer field.
+	 */
+	return bt_ctfser_write_unsigned_int(&stream->ctfser,
+		bt_field_bit_array_get_value_as_integer(field),
+		fc->base.alignment, fc->size, BYTE_ORDER);
+}
+
+static inline
 int write_int_field(struct fs_sink_stream *stream,
 		struct fs_sink_ctf_field_class_int *fc, const bt_field *field)
 {
@@ -404,6 +418,9 @@ int write_field(struct fs_sink_stream *stream,
 	switch (fc->type) {
 	case FS_SINK_CTF_FIELD_CLASS_TYPE_BOOL:
 		ret = write_bool_field(stream, (void *) fc, field);
+		break;
+	case FS_SINK_CTF_FIELD_CLASS_TYPE_BIT_ARRAY:
+		ret = write_bit_array_field(stream, (void *) fc, field);
 		break;
 	case FS_SINK_CTF_FIELD_CLASS_TYPE_INT:
 		ret = write_int_field(stream, (void *) fc, field);

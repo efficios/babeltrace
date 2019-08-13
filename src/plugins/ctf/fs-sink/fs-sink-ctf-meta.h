@@ -27,6 +27,7 @@
 
 enum fs_sink_ctf_field_class_type {
 	FS_SINK_CTF_FIELD_CLASS_TYPE_BOOL,
+	FS_SINK_CTF_FIELD_CLASS_TYPE_BIT_ARRAY,
 	FS_SINK_CTF_FIELD_CLASS_TYPE_INT,
 	FS_SINK_CTF_FIELD_CLASS_TYPE_FLOAT,
 	FS_SINK_CTF_FIELD_CLASS_TYPE_STRING,
@@ -249,6 +250,22 @@ void _fs_sink_ctf_named_field_class_fini(
 }
 
 static inline
+struct fs_sink_ctf_field_class_bit_array *
+fs_sink_ctf_field_class_bit_array_create(
+		const bt_field_class *ir_fc, uint64_t index_in_parent)
+{
+	struct fs_sink_ctf_field_class_bit_array *fc =
+		g_new0(struct fs_sink_ctf_field_class_bit_array, 1);
+
+	BT_ASSERT(fc);
+	_fs_sink_ctf_field_class_bit_array_init((void *) fc,
+		FS_SINK_CTF_FIELD_CLASS_TYPE_BIT_ARRAY, ir_fc,
+		(unsigned int) bt_field_class_bit_array_get_length(ir_fc),
+		index_in_parent);
+	return fc;
+}
+
+static inline
 struct fs_sink_ctf_field_class_bool *fs_sink_ctf_field_class_bool_create(
 		const bt_field_class *ir_fc, uint64_t index_in_parent)
 {
@@ -414,6 +431,15 @@ void _fs_sink_ctf_field_class_fini(struct fs_sink_ctf_field_class *fc)
 }
 
 static inline
+void _fs_sink_ctf_field_class_bit_array_destroy(
+		struct fs_sink_ctf_field_class_int *fc)
+{
+	BT_ASSERT(fc);
+	_fs_sink_ctf_field_class_fini((void *) fc);
+	g_free(fc);
+}
+
+static inline
 void _fs_sink_ctf_field_class_bool_destroy(
 		struct fs_sink_ctf_field_class_int *fc)
 {
@@ -564,6 +590,9 @@ void fs_sink_ctf_field_class_destroy(struct fs_sink_ctf_field_class *fc)
 	switch (fc->type) {
 	case FS_SINK_CTF_FIELD_CLASS_TYPE_BOOL:
 		_fs_sink_ctf_field_class_bool_destroy((void *) fc);
+		break;
+	case FS_SINK_CTF_FIELD_CLASS_TYPE_BIT_ARRAY:
+		_fs_sink_ctf_field_class_bit_array_destroy((void *) fc);
 		break;
 	case FS_SINK_CTF_FIELD_CLASS_TYPE_INT:
 		_fs_sink_ctf_field_class_int_destroy((void *) fc);
