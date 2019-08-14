@@ -48,7 +48,7 @@ class _TraceClass(object._SharedObject, collections.abc.Mapping):
 
     # Instantiate a trace of this class.
 
-    def __call__(self, name=None, user_attributes=None, uuid=None, env=None):
+    def __call__(self, name=None, user_attributes=None, uuid=None, environment=None):
         trace_ptr = native_bt.trace_create(self._ptr)
 
         if trace_ptr is None:
@@ -65,9 +65,9 @@ class _TraceClass(object._SharedObject, collections.abc.Mapping):
         if uuid is not None:
             trace._uuid = uuid
 
-        if env is not None:
-            for key, value in env.items():
-                trace.env[key] = value
+        if environment is not None:
+            for key, value in environment.items():
+                trace.environment[key] = value
 
         return trace
 
