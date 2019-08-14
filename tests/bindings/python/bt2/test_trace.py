@@ -30,10 +30,23 @@ class TraceTestCase(unittest.TestCase):
         self.assertIsNone(trace.name)
         self.assertIsNone(trace.uuid)
         self.assertEqual(len(trace.env), 0)
+        self.assertEqual(len(trace.user_attributes), 0)
 
     def test_create_invalid_name(self):
         with self.assertRaises(TypeError):
             self._tc(name=17)
+
+    def test_create_user_attributes(self):
+        trace = self._tc(user_attributes={'salut': 23})
+        self.assertEqual(trace.user_attributes, {'salut': 23})
+
+    def test_create_invalid_user_attributes(self):
+        with self.assertRaises(TypeError):
+            self._tc(user_attributes=object())
+
+    def test_create_invalid_user_attributes_value_type(self):
+        with self.assertRaises(TypeError):
+            self._tc(user_attributes=23)
 
     def test_attr_trace_class(self):
         trace = self._tc()

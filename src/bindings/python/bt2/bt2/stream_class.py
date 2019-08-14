@@ -25,6 +25,7 @@ from bt2 import field_class as bt2_field_class
 from bt2 import event_class as bt2_event_class
 from bt2 import trace_class as bt2_trace_class
 from bt2 import clock_class as bt2_clock_class
+from bt2 import value as bt2_value
 import collections.abc
 
 
@@ -62,6 +63,7 @@ class _StreamClass(object._SharedObject, collections.abc.Mapping):
         self,
         id=None,
         name=None,
+        user_attributes=None,
         log_level=None,
         emf_uri=None,
         specific_context_field_class=None,
@@ -88,6 +90,9 @@ class _StreamClass(object._SharedObject, collections.abc.Mapping):
         if name is not None:
             event_class._name = name
 
+        if user_attributes is not None:
+            event_class._user_attributes = user_attributes
+
         if log_level is not None:
             event_class._log_level = log_level
 
@@ -108,6 +113,19 @@ class _StreamClass(object._SharedObject, collections.abc.Mapping):
 
         if tc_ptr is not None:
             return bt2_trace_class._TraceClass._create_from_ptr_and_get_ref(tc_ptr)
+
+    @property
+    def user_attributes(self):
+        ptr = native_bt.stream_class_borrow_user_attributes(self._ptr)
+        assert ptr is not None
+        return bt2_value._create_from_ptr_and_get_ref(ptr)
+
+    def _user_attributes(self, user_attributes):
+        value = bt2_value.create_value(user_attributes)
+        utils._check_type(value, bt2_value.MapValue)
+        native_bt.stream_class_set_user_attributes(self._ptr, value._ptr)
+
+    _user_attributes = property(fset=_user_attributes)
 
     @property
     def name(self):

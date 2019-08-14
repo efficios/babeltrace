@@ -21,34 +21,59 @@ import bt2
 from utils import get_default_trace_class
 
 
-class BoolFieldClassTestCase(unittest.TestCase):
-    def setUp(self):
+class _TestFieldClass:
+    def test_create_user_attributes(self):
+        fc = self._create_default_field_class(user_attributes={'salut': 23})
+        self.assertEqual(fc.user_attributes, {'salut': 23})
+
+    def test_create_invalid_user_attributes(self):
+        with self.assertRaises(TypeError):
+            self._create_default_field_class(user_attributes=object())
+
+    def test_create_invalid_user_attributes_value_type(self):
+        with self.assertRaises(TypeError):
+            self._create_default_field_class(user_attributes=23)
+
+
+class BoolFieldClassTestCase(_TestFieldClass, unittest.TestCase):
+    def _create_default_field_class(self, **kwargs):
         tc = get_default_trace_class()
-        self._fc = tc.create_bool_field_class()
+        return tc.create_bool_field_class(**kwargs)
 
-    def test_create_default(self):
-        self.assertIsNotNone(self._fc)
-
-
-class BitArrayFieldClassTestCase(unittest.TestCase):
     def setUp(self):
-        self._tc = get_default_trace_class()
-        self._fc = self._tc.create_bit_array_field_class(17)
+        self._fc = self._create_default_field_class()
 
     def test_create_default(self):
         self.assertIsNotNone(self._fc)
+        self.assertEqual(len(self._fc.user_attributes), 0)
+
+
+class BitArrayFieldClassTestCase(_TestFieldClass, unittest.TestCase):
+    def _create_field_class(self, *args, **kwargs):
+        tc = get_default_trace_class()
+        return tc.create_bit_array_field_class(*args, **kwargs)
+
+    def _create_default_field_class(self, **kwargs):
+        return self._create_field_class(17, **kwargs)
+
+    def setUp(self):
+        self._fc = self._create_default_field_class()
+
+    def test_create_default(self):
+        self.assertIsNotNone(self._fc)
+        self.assertEqual(len(self._fc.user_attributes), 0)
 
     def test_create_length_out_of_range(self):
         with self.assertRaises(ValueError):
-            self._tc.create_bit_array_field_class(65)
+            self._create_field_class(65)
 
     def test_create_length_zero(self):
         with self.assertRaises(ValueError):
-            self._tc.create_bit_array_field_class(0)
+            self._create_field_class(0)
 
     def test_create_length_invalid_type(self):
         with self.assertRaises(TypeError):
-            self._tc.create_bit_array_field_class('lel')
+            self._create_field_class('lel')
 
     def test_length_prop(self):
         self.assertEqual(self._fc.length, 17)
@@ -56,71 +81,92 @@ class BitArrayFieldClassTestCase(unittest.TestCase):
 
 class _TestIntegerFieldClassProps:
     def test_create_default(self):
-        fc = self._create_func()
+        fc = self._create_default_field_class()
         self.assertEqual(fc.field_value_range, 64)
         self.assertEqual(fc.preferred_display_base, bt2.IntegerDisplayBase.DECIMAL)
+        self.assertEqual(len(fc.user_attributes), 0)
 
     def test_create_range(self):
-        fc = self._create_func(field_value_range=35)
+        fc = self._create_field_class(field_value_range=35)
         self.assertEqual(fc.field_value_range, 35)
 
-        fc = self._create_func(36)
+        fc = self._create_field_class(36)
         self.assertEqual(fc.field_value_range, 36)
 
     def test_create_invalid_range(self):
         with self.assertRaises(TypeError):
-            self._create_func('yes')
+            self._create_field_class('yes')
 
         with self.assertRaises(TypeError):
-            self._create_func(field_value_range='yes')
+            self._create_field_class(field_value_range='yes')
 
         with self.assertRaises(ValueError):
-            self._create_func(field_value_range=-2)
+            self._create_field_class(field_value_range=-2)
 
         with self.assertRaises(ValueError):
-            self._create_func(field_value_range=0)
+            self._create_field_class(field_value_range=0)
 
     def test_create_base(self):
-        fc = self._create_func(
+        fc = self._create_field_class(
             preferred_display_base=bt2.IntegerDisplayBase.HEXADECIMAL
         )
         self.assertEqual(fc.preferred_display_base, bt2.IntegerDisplayBase.HEXADECIMAL)
 
     def test_create_invalid_base_type(self):
         with self.assertRaises(TypeError):
-            self._create_func(preferred_display_base='yes')
+            self._create_field_class(preferred_display_base='yes')
 
     def test_create_invalid_base_value(self):
         with self.assertRaises(ValueError):
-            self._create_func(preferred_display_base=444)
+            self._create_field_class(preferred_display_base=444)
 
     def test_create_full(self):
-        fc = self._create_func(24, preferred_display_base=bt2.IntegerDisplayBase.OCTAL)
+        fc = self._create_field_class(
+            24, preferred_display_base=bt2.IntegerDisplayBase.OCTAL
+        )
         self.assertEqual(fc.field_value_range, 24)
         self.assertEqual(fc.preferred_display_base, bt2.IntegerDisplayBase.OCTAL)
 
 
-class IntegerFieldClassTestCase(_TestIntegerFieldClassProps, unittest.TestCase):
-    def setUp(self):
-        self._tc = get_default_trace_class()
-        self._create_func = self._tc.create_signed_integer_field_class
+class SignedIntegerFieldClassTestCase(
+    _TestIntegerFieldClassProps, _TestFieldClass, unittest.TestCase
+):
+    def _create_field_class(self, *args, **kwargs):
+        tc = get_default_trace_class()
+        return tc.create_signed_integer_field_class(*args, **kwargs)
+
+    _create_default_field_class = _create_field_class
 
 
-class RealFieldClassTestCase(unittest.TestCase):
-    def setUp(self):
-        self._tc = get_default_trace_class()
+class UnsignedIntegerFieldClassTestCase(
+    _TestIntegerFieldClassProps, _TestFieldClass, unittest.TestCase
+):
+    def _create_field_class(self, *args, **kwargs):
+        tc = get_default_trace_class()
+        return tc.create_unsigned_integer_field_class(*args, **kwargs)
+
+    _create_default_field_class = _create_field_class
+
+
+class RealFieldClassTestCase(_TestFieldClass, unittest.TestCase):
+    def _create_field_class(self, *args, **kwargs):
+        tc = get_default_trace_class()
+        return tc.create_real_field_class(*args, **kwargs)
+
+    _create_default_field_class = _create_field_class
 
     def test_create_default(self):
-        fc = self._tc.create_real_field_class()
+        fc = self._create_field_class()
         self.assertFalse(fc.is_single_precision)
+        self.assertEqual(len(fc.user_attributes), 0)
 
     def test_create_is_single_precision(self):
-        fc = self._tc.create_real_field_class(is_single_precision=True)
+        fc = self._create_field_class(is_single_precision=True)
         self.assertTrue(fc.is_single_precision)
 
     def test_create_invalid_is_single_precision(self):
         with self.assertRaises(TypeError):
-            self._tc.create_real_field_class(is_single_precision='hohoho')
+            self._create_field_class(is_single_precision='hohoho')
 
 
 # Converts an _EnumerationFieldClassMapping to a list of ranges:
@@ -134,13 +180,12 @@ def enum_mapping_to_set(mapping):
 
 class _EnumerationFieldClassTestCase(_TestIntegerFieldClassProps):
     def setUp(self):
-        self._tc = get_default_trace_class()
         self._spec_set_up()
-        self._fc = self._create_func()
+        self._fc = self._create_default_field_class()
 
     def test_create_from_invalid_type(self):
         with self.assertRaises(TypeError):
-            self._create_func('coucou')
+            self._create_field_class('coucou')
 
     def test_add_mapping_simple(self):
         self._fc.add_mapping('hello', self._ranges1)
@@ -228,7 +273,7 @@ class _EnumerationFieldClassTestCase(_TestIntegerFieldClassProps):
 
 
 class UnsignedEnumerationFieldClassTestCase(
-    _EnumerationFieldClassTestCase, unittest.TestCase
+    _EnumerationFieldClassTestCase, _TestFieldClass, unittest.TestCase
 ):
     def _spec_set_up(self):
         self._ranges1 = bt2.UnsignedIntegerRangeSet([(1, 4), (18, 47)])
@@ -236,11 +281,16 @@ class UnsignedEnumerationFieldClassTestCase(
         self._ranges3 = bt2.UnsignedIntegerRangeSet([(8, 22), (48, 99)])
         self._inval_ranges = bt2.SignedIntegerRangeSet([(-8, -5), (48, 1928)])
         self._value_in_range_1_and_3 = 20
-        self._create_func = self._tc.create_unsigned_enumeration_field_class
+
+    def _create_field_class(self, *args, **kwargs):
+        tc = get_default_trace_class()
+        return tc.create_unsigned_enumeration_field_class(*args, **kwargs)
+
+    _create_default_field_class = _create_field_class
 
 
 class SignedEnumerationFieldClassTestCase(
-    _EnumerationFieldClassTestCase, unittest.TestCase
+    _EnumerationFieldClassTestCase, _TestFieldClass, unittest.TestCase
 ):
     def _spec_set_up(self):
         self._ranges1 = bt2.SignedIntegerRangeSet([(-10, -4), (18, 47)])
@@ -248,25 +298,37 @@ class SignedEnumerationFieldClassTestCase(
         self._ranges3 = bt2.SignedIntegerRangeSet([(-100, -1), (8, 16), (48, 99)])
         self._inval_ranges = bt2.UnsignedIntegerRangeSet([(8, 16), (48, 99)])
         self._value_in_range_1_and_3 = -7
-        self._create_func = self._tc.create_signed_enumeration_field_class
 
-
-class StringFieldClassTestCase(unittest.TestCase):
-    def setUp(self):
+    def _create_field_class(self, *args, **kwargs):
         tc = get_default_trace_class()
-        self._fc = tc.create_string_field_class()
+        return tc.create_signed_enumeration_field_class(*args, **kwargs)
+
+    _create_default_field_class = _create_field_class
+
+
+class StringFieldClassTestCase(_TestFieldClass, unittest.TestCase):
+    def _create_field_class(self, *args, **kwargs):
+        tc = get_default_trace_class()
+        return tc.create_string_field_class(*args, **kwargs)
+
+    _create_default_field_class = _create_field_class
+
+    def setUp(self):
+        self._fc = self._create_default_field_class()
 
     def test_create_default(self):
         self.assertIsNotNone(self._fc)
+        self.assertEqual(len(self._fc.user_attributes), 0)
 
 
 class _TestElementContainer:
     def setUp(self):
         self._tc = get_default_trace_class()
-        self._fc = self._create_default_fc()
+        self._fc = self._create_default_field_class()
 
     def test_create_default(self):
         self.assertIsNotNone(self._fc)
+        self.assertEqual(len(self._fc.user_attributes), 0)
 
     def test_append_element(self):
         int_field_class = self._tc.create_signed_integer_field_class(32)
@@ -299,7 +361,7 @@ class _TestElementContainer:
             self._append_element_method(self._fc, 'yes', sub_fc2)
 
     def test_iadd(self):
-        other_fc = self._create_default_fc()
+        other_fc = self._create_default_field_class()
         a_field_class = self._tc.create_real_field_class()
         b_field_class = self._tc.create_signed_integer_field_class(17)
         self._append_element_method(self._fc, 'a_float', a_field_class)
@@ -372,6 +434,7 @@ class _TestElementContainer:
             self.assertEqual(element.name, test_elem[0])
             self.assertEqual(name, element.name)
             self.assertEqual(element.field_class.addr, test_elem[1].addr)
+            self.assertEqual(len(element.user_attributes), 0)
 
     def test_at_index(self):
         a_fc = self._tc.create_signed_integer_field_class(32)
@@ -400,28 +463,61 @@ class _TestElementContainer:
         with self.assertRaises(IndexError):
             self._at_index_method(self._fc, len(self._fc))
 
+    def test_user_attributes(self):
+        self._append_element_method(
+            self._fc,
+            'c',
+            self._tc.create_string_field_class(),
+            user_attributes={'salut': 23},
+        )
+        self.assertEqual(self._fc['c'].user_attributes, {'salut': 23})
 
-class StructureFieldClassTestCase(_TestElementContainer, unittest.TestCase):
+    def test_invalid_user_attributes(self):
+        with self.assertRaises(TypeError):
+            self._append_element_method(
+                self._fc,
+                'c',
+                self._tc.create_string_field_class(),
+                user_attributes=object(),
+            )
+
+    def test_invalid_user_attributes_value_type(self):
+        with self.assertRaises(TypeError):
+            self._append_element_method(
+                self._fc, 'c', self._tc.create_string_field_class(), user_attributes=23
+            )
+
+
+class StructureFieldClassTestCase(
+    _TestFieldClass, _TestElementContainer, unittest.TestCase
+):
     _append_element_method = staticmethod(bt2._StructureFieldClass.append_member)
     _at_index_method = staticmethod(bt2._StructureFieldClass.member_at_index)
 
-    def _create_default_fc(self):
-        return self._tc.create_structure_field_class()
+    def _create_field_class(self, *args, **kwargs):
+        tc = get_default_trace_class()
+        return tc.create_structure_field_class(*args, **kwargs)
+
+    _create_default_field_class = _create_field_class
 
 
-class OptionFieldClassTestCase(unittest.TestCase):
+class OptionFieldClassTestCase(_TestFieldClass, unittest.TestCase):
+    def _create_default_field_class(self, *args, **kwargs):
+        return self._tc.create_option_field_class(self._content_fc, **kwargs)
+
     def setUp(self):
         self._tc = get_default_trace_class()
         self._content_fc = self._tc.create_signed_integer_field_class(23)
         self._tag_fc = self._tc.create_bool_field_class()
 
     def test_create_default(self):
-        fc = self._tc.create_option_field_class(self._content_fc)
+        fc = self._create_default_field_class()
         self.assertEqual(fc.field_class.addr, self._content_fc.addr)
         self.assertIsNone(fc.selector_field_path, None)
+        self.assertEqual(len(fc.user_attributes), 0)
 
     def _create_field_class_for_field_path_test(self):
-        fc = self._tc.create_option_field_class(self._content_fc, self._tag_fc)
+        fc = self._create_default_field_class(selector_fc=self._tag_fc)
 
         foo_fc = self._tc.create_real_field_class()
         bar_fc = self._tc.create_string_field_class()
@@ -482,7 +578,7 @@ class OptionFieldClassTestCase(unittest.TestCase):
 
 
 class VariantFieldClassWithoutSelectorTestCase(
-    _TestElementContainer, unittest.TestCase
+    _TestFieldClass, _TestElementContainer, unittest.TestCase
 ):
     _append_element_method = staticmethod(
         bt2._VariantFieldClassWithoutSelector.append_option
@@ -491,21 +587,27 @@ class VariantFieldClassWithoutSelectorTestCase(
         bt2._VariantFieldClassWithoutSelector.option_at_index
     )
 
-    def _create_default_fc(self):
-        return self._tc.create_variant_field_class()
+    def _create_field_class(self, *args, **kwargs):
+        tc = get_default_trace_class()
+        return tc.create_variant_field_class(*args, **kwargs)
+
+    _create_default_field_class = _create_field_class
 
 
 class _VariantFieldClassWithSelectorTestCase:
+    def _create_default_field_class(self, *args, **kwargs):
+        return self._tc.create_variant_field_class(
+            *args, selector_fc=self._selector_fc, **kwargs
+        )
+
     def setUp(self):
         self._tc = get_default_trace_class()
         self._spec_set_up()
-        self._fc = self._create_default_fc()
-
-    def _create_default_fc(self):
-        return self._tc.create_variant_field_class(self._selector_fc)
+        self._fc = self._create_default_field_class()
 
     def test_create_default(self):
         self.assertIsNotNone(self._fc)
+        self.assertEqual(len(self._fc.user_attributes), 0)
 
     def test_append_element(self):
         str_field_class = self._tc.create_string_field_class()
@@ -555,8 +657,35 @@ class _VariantFieldClassWithSelectorTestCase:
         with self.assertRaises(TypeError):
             self._fc.append_option(self._fc, sub_fc, self._inval_ranges)
 
+    def test_user_attributes(self):
+        self._fc.append_option(
+            'c',
+            self._tc.create_string_field_class(),
+            self._ranges1,
+            user_attributes={'salut': 23},
+        )
+        self.assertEqual(self._fc['c'].user_attributes, {'salut': 23})
+
+    def test_invalid_user_attributes(self):
+        with self.assertRaises(TypeError):
+            self._fc.append_option(
+                'c',
+                self._tc.create_string_field_class(),
+                self._ranges1,
+                user_attributes=object(),
+            )
+
+    def test_invalid_user_attributes_value_type(self):
+        with self.assertRaises(TypeError):
+            self._fc.append_option(
+                'c',
+                self._tc.create_string_field_class(),
+                self._ranges1,
+                user_attributes=23,
+            )
+
     def test_iadd(self):
-        other_fc = self._create_default_fc()
+        other_fc = self._create_default_field_class()
         a_field_class = self._tc.create_real_field_class()
         self._fc.append_option('a_float', a_field_class, self._ranges1)
         c_field_class = self._tc.create_string_field_class()
@@ -762,6 +891,7 @@ class StaticArrayFieldClassTestCase(unittest.TestCase):
         fc = self._tc.create_static_array_field_class(self._elem_fc, 45)
         self.assertEqual(fc.element_field_class.addr, self._elem_fc.addr)
         self.assertEqual(fc.length, 45)
+        self.assertEqual(len(fc.user_attributes), 0)
 
     def test_create_invalid_elem_field_class(self):
         with self.assertRaises(TypeError):
@@ -790,6 +920,7 @@ class DynamicArrayFieldClassTestCase(unittest.TestCase):
         fc = self._tc.create_dynamic_array_field_class(self._elem_fc)
         self.assertEqual(fc.element_field_class.addr, self._elem_fc.addr)
         self.assertIsNone(fc.length_field_path, None)
+        self.assertEqual(len(fc.user_attributes), 0)
 
     def _create_field_class_for_field_path_test(self):
         # Create something a field class that is equivalent to:

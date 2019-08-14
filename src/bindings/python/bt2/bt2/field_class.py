@@ -24,6 +24,7 @@ from bt2 import native_bt, object, utils
 import collections.abc
 from bt2 import field_path as bt2_field_path
 from bt2 import integer_range_set as bt2_integer_range_set
+from bt2 import value as bt2_value
 import bt2
 
 
@@ -48,6 +49,19 @@ class _FieldClass(object._SharedObject):
             raise bt2._MemoryError(
                 'cannot create {} field class object'.format(self._NAME.lower())
             )
+
+    @property
+    def user_attributes(self):
+        ptr = native_bt.field_class_borrow_user_attributes(self._ptr)
+        assert ptr is not None
+        return bt2_value._create_from_ptr_and_get_ref(ptr)
+
+    def _user_attributes(self, user_attributes):
+        value = bt2_value.create_value(user_attributes)
+        utils._check_type(value, bt2_value.MapValue)
+        native_bt.field_class_set_user_attributes(self._ptr, value._ptr)
+
+    _user_attributes = property(fset=_user_attributes)
 
 
 class _BoolFieldClass(_FieldClass):
@@ -283,28 +297,57 @@ class _StringFieldClass(_FieldClass):
 
 
 class _StructureFieldClassMember:
-    def __init__(self, name, field_class):
-        self._name = name
-        self._field_class = field_class
+    def __init__(self, owning_struct_fc, member_ptr):
+        # this field class owns the member; keeping it here maintains
+        # the member alive as members are not shared objects
+        self._owning_struct_fc = owning_struct_fc
+        self._ptr = member_ptr
 
     @property
     def name(self):
-        return self._name
+        name = native_bt.field_class_structure_member_get_name(self._ptr)
+        assert name is not None
+        return name
 
     @property
     def field_class(self):
-        return self._field_class
+        fc_ptr = native_bt.field_class_structure_member_borrow_field_class_const(
+            self._ptr
+        )
+        assert fc_ptr is not None
+        return _create_field_class_from_ptr_and_get_ref(fc_ptr)
+
+    @property
+    def user_attributes(self):
+        ptr = native_bt.field_class_structure_member_borrow_user_attributes(self._ptr)
+        assert ptr is not None
+        return bt2_value._create_from_ptr_and_get_ref(ptr)
+
+    def _user_attributes(self, user_attributes):
+        value = bt2_value.create_value(user_attributes)
+        utils._check_type(value, bt2_value.MapValue)
+        native_bt.field_class_structure_member_set_user_attributes(
+            self._ptr, value._ptr
+        )
+
+    _user_attributes = property(fset=_user_attributes)
 
 
 class _StructureFieldClass(_FieldClass, collections.abc.Mapping):
     _NAME = 'Structure'
 
-    def append_member(self, name, field_class):
+    def append_member(self, name, field_class, user_attributes=None):
         utils._check_str(name)
         utils._check_type(field_class, _FieldClass)
 
         if name in self:
             raise ValueError("duplicate member name '{}'".format(name))
+
+        user_attributes_value = None
+
+        if user_attributes is not None:
+            # check now that user attributes are valid
+            user_attributes_value = bt2.create_value(user_attributes)
 
         status = native_bt.field_class_structure_append_member(
             self._ptr, name, field_class._ptr
@@ -313,21 +356,16 @@ class _StructureFieldClass(_FieldClass, collections.abc.Mapping):
             status, 'cannot append member to structure field class object'
         )
 
+        if user_attributes is not None:
+            self[name]._user_attributes = user_attributes_value
+
     def __len__(self):
         count = native_bt.field_class_structure_get_member_count(self._ptr)
         assert count >= 0
         return count
 
-    @staticmethod
-    def _create_member_from_ptr(member_ptr):
-        name = native_bt.field_class_structure_member_get_name(member_ptr)
-        assert name is not None
-        fc_ptr = native_bt.field_class_structure_member_borrow_field_class_const(
-            member_ptr
-        )
-        assert fc_ptr is not None
-        fc = _create_field_class_from_ptr_and_get_ref(fc_ptr)
-        return _StructureFieldClassMember(name, fc)
+    def _create_member_from_ptr(self, member_ptr):
+        return _StructureFieldClassMember(self, member_ptr)
 
     def __getitem__(self, key):
         if not isinstance(key, str):
@@ -387,27 +425,38 @@ class _OptionFieldClass(_FieldClass):
 
 
 class _VariantFieldClassOption:
-    def __init__(self, name, field_class):
-        self._name = name
-        self._field_class = field_class
+    def __init__(self, owning_var_fc, option_ptr):
+        # this field class owns the option; keeping it here maintains
+        # the option alive as options are not shared objects
+        self._owning_var_fc = owning_var_fc
+        self._ptr = option_ptr
 
     @property
     def name(self):
-        return self._name
+        name = native_bt.field_class_variant_option_get_name(self._ptr)
+        assert name is not None
+        return name
 
     @property
     def field_class(self):
-        return self._field_class
-
-
-class _VariantFieldClassWithSelectorOption(_VariantFieldClassOption):
-    def __init__(self, name, field_class, ranges):
-        super().__init__(name, field_class)
-        self._ranges = ranges
+        fc_ptr = native_bt.field_class_variant_option_borrow_field_class_const(
+            self._ptr
+        )
+        assert fc_ptr is not None
+        return _create_field_class_from_ptr_and_get_ref(fc_ptr)
 
     @property
-    def ranges(self):
-        return self._ranges
+    def user_attributes(self):
+        ptr = native_bt.field_class_variant_option_borrow_user_attributes(self._ptr)
+        assert ptr is not None
+        return bt2_value._create_from_ptr_and_get_ref(ptr)
+
+    def _user_attributes(self, user_attributes):
+        value = bt2_value.create_value(user_attributes)
+        utils._check_type(value, bt2_value.MapValue)
+        native_bt.field_class_variant_option_set_user_attributes(self._ptr, value._ptr)
+
+    _user_attributes = property(fset=_user_attributes)
 
 
 class _VariantFieldClass(_FieldClass, collections.abc.Mapping):
@@ -424,12 +473,7 @@ class _VariantFieldClass(_FieldClass, collections.abc.Mapping):
         return opt_ptr
 
     def _create_option_from_ptr(self, opt_ptr):
-        name = native_bt.field_class_variant_option_get_name(opt_ptr)
-        assert name is not None
-        fc_ptr = native_bt.field_class_variant_option_borrow_field_class_const(opt_ptr)
-        assert fc_ptr is not None
-        fc = _create_field_class_from_ptr_and_get_ref(fc_ptr)
-        return _VariantFieldClassOption(name, fc)
+        return _VariantFieldClassOption(self, opt_ptr)
 
     def __len__(self):
         count = native_bt.field_class_variant_get_option_count(self._ptr)
@@ -470,12 +514,18 @@ class _VariantFieldClass(_FieldClass, collections.abc.Mapping):
 class _VariantFieldClassWithoutSelector(_VariantFieldClass):
     _NAME = 'Variant (without selector)'
 
-    def append_option(self, name, field_class):
+    def append_option(self, name, field_class, user_attributes=None):
         utils._check_str(name)
         utils._check_type(field_class, _FieldClass)
 
         if name in self:
             raise ValueError("duplicate option name '{}'".format(name))
+
+        user_attributes_value = None
+
+        if user_attributes is not None:
+            # check now that user attributes are valid
+            user_attributes_value = bt2.create_value(user_attributes)
 
         status = native_bt.field_class_variant_without_selector_append_option(
             self._ptr, name, field_class._ptr
@@ -484,6 +534,9 @@ class _VariantFieldClassWithoutSelector(_VariantFieldClass):
             status, 'cannot append option to variant field class object'
         )
 
+        if user_attributes is not None:
+            self[name]._user_attributes = user_attributes_value
+
     def __iadd__(self, options):
         for name, field_class in options:
             self.append_option(name, field_class)
@@ -491,22 +544,45 @@ class _VariantFieldClassWithoutSelector(_VariantFieldClass):
         return self
 
 
+class _VariantFieldClassWithSelectorOption(_VariantFieldClassOption):
+    def __init__(self, owning_var_fc, spec_opt_ptr):
+        self._spec_ptr = spec_opt_ptr
+        super().__init__(owning_var_fc, self._as_option_ptr(spec_opt_ptr))
+
+    @property
+    def ranges(self):
+        range_set_ptr = self._borrow_ranges_ptr(self._spec_ptr)
+        assert range_set_ptr is not None
+        return self._range_set_type._create_from_ptr_and_get_ref(range_set_ptr)
+
+
+class _VariantFieldClassWithSignedSelectorOption(_VariantFieldClassWithSelectorOption):
+    _as_option_ptr = staticmethod(
+        native_bt.field_class_variant_with_selector_signed_option_as_option_const
+    )
+    _borrow_ranges_ptr = staticmethod(
+        native_bt.field_class_variant_with_selector_signed_option_borrow_ranges_const
+    )
+    _range_set_type = bt2_integer_range_set.SignedIntegerRangeSet
+
+
+class _VariantFieldClassWithUnsignedSelectorOption(
+    _VariantFieldClassWithSelectorOption
+):
+    _as_option_ptr = staticmethod(
+        native_bt.field_class_variant_with_selector_unsigned_option_as_option_const
+    )
+    _borrow_ranges_ptr = staticmethod(
+        native_bt.field_class_variant_with_selector_unsigned_option_borrow_ranges_const
+    )
+    _range_set_type = bt2_integer_range_set.UnsignedIntegerRangeSet
+
+
 class _VariantFieldClassWithSelector(_VariantFieldClass):
     _NAME = 'Variant (with selector)'
 
     def _create_option_from_ptr(self, opt_ptr):
-        base_opt_ptr = self._as_option_ptr(opt_ptr)
-        name = native_bt.field_class_variant_option_get_name(base_opt_ptr)
-        assert name is not None
-        fc_ptr = native_bt.field_class_variant_option_borrow_field_class_const(
-            base_opt_ptr
-        )
-        assert fc_ptr is not None
-        fc = _create_field_class_from_ptr_and_get_ref(fc_ptr)
-        range_set_ptr = self._option_borrow_ranges_ptr(opt_ptr)
-        assert range_set_ptr is not None
-        range_set = self._range_set_type._create_from_ptr_and_get_ref(range_set_ptr)
-        return _VariantFieldClassWithSelectorOption(name, fc, range_set)
+        return self._option_type(self, opt_ptr)
 
     @property
     def selector_field_path(self):
@@ -519,10 +595,10 @@ class _VariantFieldClassWithSelector(_VariantFieldClass):
 
         return bt2_field_path._FieldPath._create_from_ptr_and_get_ref(ptr)
 
-    def append_option(self, name, field_class, ranges):
+    def append_option(self, name, field_class, ranges, user_attributes=None):
         utils._check_str(name)
         utils._check_type(field_class, _FieldClass)
-        utils._check_type(ranges, self._range_set_type)
+        utils._check_type(ranges, self._option_type._range_set_type)
 
         if name in self:
             raise ValueError("duplicate option name '{}'".format(name))
@@ -530,12 +606,21 @@ class _VariantFieldClassWithSelector(_VariantFieldClass):
         if len(ranges) == 0:
             raise ValueError('range set is empty')
 
+        user_attributes_value = None
+
+        if user_attributes is not None:
+            # check now that user attributes are valid
+            user_attributes_value = bt2.create_value(user_attributes)
+
         # TODO: check overlaps (precondition of self._append_option())
 
         status = self._append_option(self._ptr, name, field_class._ptr, ranges._ptr)
         utils._handle_func_status(
             status, 'cannot append option to variant field class object'
         )
+
+        if user_attributes is not None:
+            self[name]._user_attributes = user_attributes_value
 
     def __iadd__(self, options):
         for name, field_class, ranges in options:
@@ -552,16 +637,11 @@ class _VariantFieldClassWithUnsignedSelector(_VariantFieldClassWithSelector):
     _borrow_member_by_index_ptr = staticmethod(
         native_bt.field_class_variant_with_selector_unsigned_borrow_option_by_index_const
     )
-    _as_option_ptr = staticmethod(
-        native_bt.field_class_variant_with_selector_unsigned_option_as_option_const
-    )
     _append_option = staticmethod(
         native_bt.field_class_variant_with_selector_unsigned_append_option
     )
-    _option_borrow_ranges_ptr = staticmethod(
-        native_bt.field_class_variant_with_selector_unsigned_option_borrow_ranges_const
-    )
-    _range_set_type = bt2_integer_range_set.UnsignedIntegerRangeSet
+    _option_type = _VariantFieldClassWithUnsignedSelectorOption
+    _as_option_ptr = staticmethod(_option_type._as_option_ptr)
 
 
 class _VariantFieldClassWithSignedSelector(_VariantFieldClassWithSelector):
@@ -572,16 +652,11 @@ class _VariantFieldClassWithSignedSelector(_VariantFieldClassWithSelector):
     _borrow_member_by_index_ptr = staticmethod(
         native_bt.field_class_variant_with_selector_signed_borrow_option_by_index_const
     )
-    _as_option_ptr = staticmethod(
-        native_bt.field_class_variant_with_selector_signed_option_as_option_const
-    )
     _append_option = staticmethod(
         native_bt.field_class_variant_with_selector_signed_append_option
     )
-    _option_borrow_ranges_ptr = staticmethod(
-        native_bt.field_class_variant_with_selector_signed_option_borrow_ranges_const
-    )
-    _range_set_type = bt2_integer_range_set.SignedIntegerRangeSet
+    _option_type = _VariantFieldClassWithSignedSelectorOption
+    _as_option_ptr = staticmethod(_option_type._as_option_ptr)
 
 
 class _ArrayFieldClass(_FieldClass):

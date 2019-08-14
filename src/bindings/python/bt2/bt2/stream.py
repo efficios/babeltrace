@@ -25,6 +25,7 @@ from bt2 import object as bt2_object
 from bt2 import packet as bt2_packet
 from bt2 import trace as bt2_trace
 from bt2 import stream_class as bt2_stream_class
+from bt2 import value as bt2_value
 import bt2
 
 
@@ -49,6 +50,19 @@ class _Stream(bt2_object._SharedObject):
         native_bt.stream_set_name(self._ptr, name)
 
     _name = property(fset=_name)
+
+    @property
+    def user_attributes(self):
+        ptr = native_bt.stream_borrow_user_attributes(self._ptr)
+        assert ptr is not None
+        return bt2_value._create_from_ptr_and_get_ref(ptr)
+
+    def _user_attributes(self, user_attributes):
+        value = bt2_value.create_value(user_attributes)
+        utils._check_type(value, bt2_value.MapValue)
+        native_bt.stream_set_user_attributes(self._ptr, value._ptr)
+
+    _user_attributes = property(fset=_user_attributes)
 
     @property
     def id(self):
