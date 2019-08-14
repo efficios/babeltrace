@@ -31,7 +31,7 @@ import functools
 import uuid as uuidp
 
 
-class _TraceEnv(collections.abc.MutableMapping):
+class _TraceEnvironment(collections.abc.MutableMapping):
     def __init__(self, trace):
         self._trace = trace
 
@@ -154,8 +154,8 @@ class _Trace(object._SharedObject, collections.abc.Mapping):
     _uuid = property(fset=_uuid)
 
     @property
-    def env(self):
-        return _TraceEnv(self)
+    def environment(self):
+        return _TraceEnvironment(self)
 
     def create_stream(self, stream_class, id=None, name=None, user_attributes=None):
         utils._check_type(stream_class, bt2_stream_class._StreamClass)

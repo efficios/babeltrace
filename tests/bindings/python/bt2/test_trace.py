@@ -29,7 +29,7 @@ class TraceTestCase(unittest.TestCase):
         trace = self._tc()
         self.assertIsNone(trace.name)
         self.assertIsNone(trace.uuid)
-        self.assertEqual(len(trace.env), 0)
+        self.assertEqual(len(trace.environment), 0)
         self.assertEqual(len(trace.user_attributes), 0)
 
     def test_create_invalid_name(self):
@@ -61,15 +61,15 @@ class TraceTestCase(unittest.TestCase):
         self.assertEqual(trace.uuid, uuid.UUID('da7d6b6f-3108-4706-89bd-ab554732611b'))
 
     def test_env_get(self):
-        trace = self._tc(env={'hello': 'you', 'foo': -5})
-        self.assertEqual(trace.env['hello'], 'you')
-        self.assertEqual(trace.env['foo'], -5)
+        trace = self._tc(environment={'hello': 'you', 'foo': -5})
+        self.assertEqual(trace.environment['hello'], 'you')
+        self.assertEqual(trace.environment['foo'], -5)
 
     def test_env_get_non_existent(self):
-        trace = self._tc(env={'hello': 'you', 'foo': -5})
+        trace = self._tc(environment={'hello': 'you', 'foo': -5})
 
         with self.assertRaises(KeyError):
-            trace.env['lel']
+            trace.environment['lel']
 
     def test_len(self):
         trace = self._tc()
