@@ -163,9 +163,11 @@ int load_dynamic_plugins(const bt_value *plugin_paths)
 		status = bt_plugin_find_all_from_dir(plugin_path, BT_FALSE,
 			BT_FALSE, &plugin_set);
 		if (status < 0) {
-			BT_LOGE("Unable to load dynamic plugins from directory: "
+			BT_CLI_LOGE_APPEND_CAUSE(
+				"Unable to load dynamic plugins from directory: "
 				"path=\"%s\"", plugin_path);
-			continue;
+			ret = status;
+			goto end;
 		} else if (status ==
 				BT_PLUGIN_FIND_ALL_FROM_DIR_STATUS_NOT_FOUND) {
 			BT_LOGI("No plugins found in directory: path=\"%s\"",
