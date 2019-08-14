@@ -42,6 +42,9 @@
 struct bt_clock_class {
 	struct bt_object base;
 
+	/* Owned by this */
+	struct bt_value *user_attributes;
+
 	struct {
 		GString *str;
 

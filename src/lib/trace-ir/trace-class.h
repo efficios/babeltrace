@@ -43,6 +43,9 @@
 struct bt_trace_class {
 	struct bt_object base;
 
+	/* Owned by this */
+	struct bt_value *user_attributes;
+
 	/* Array of `struct bt_stream_class *` */
 	GPtrArray *stream_classes;
 

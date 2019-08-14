@@ -38,6 +38,9 @@ extern "C" {
 typedef void (* bt_trace_class_destruction_listener_func)(
 		const bt_trace_class *trace_class, void *data);
 
+extern const bt_value *bt_trace_class_borrow_user_attributes_const(
+		const bt_trace_class *trace_class);
+
 extern bt_bool bt_trace_class_assigns_automatic_stream_class_id(
 		const bt_trace_class *trace_class);
 

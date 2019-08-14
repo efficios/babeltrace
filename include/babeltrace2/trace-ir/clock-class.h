@@ -37,6 +37,12 @@ extern "C" {
 
 extern bt_clock_class *bt_clock_class_create(bt_self_component *self_comp);
 
+extern bt_value *bt_clock_class_borrow_user_attributes(
+		bt_clock_class *clock_class);
+
+extern void bt_clock_class_set_user_attributes(
+		bt_clock_class *clock_class, const bt_value *user_attributes);
+
 typedef enum bt_clock_class_set_name_status {
 	BT_CLOCK_CLASS_SET_NAME_STATUS_MEMORY_ERROR	= __BT_FUNC_STATUS_MEMORY_ERROR,
 	BT_CLOCK_CLASS_SET_NAME_STATUS_OK		= __BT_FUNC_STATUS_OK,

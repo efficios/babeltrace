@@ -46,6 +46,9 @@ struct bt_event_class {
 	struct bt_field_class *specific_context_fc;
 	struct bt_field_class *payload_fc;
 
+	/* Owned by this */
+	struct bt_value *user_attributes;
+
 	struct {
 		GString *str;
 

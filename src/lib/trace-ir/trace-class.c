@@ -53,6 +53,7 @@
 #include "stream.h"
 #include "trace.h"
 #include "utils.h"
+#include "lib/value.h"
 #include "lib/func-status.h"
 
 struct bt_trace_class_destruction_listener_elem {
@@ -69,6 +70,8 @@ void destroy_trace_class(struct bt_object *obj)
 	struct bt_trace_class *tc = (void *) obj;
 
 	BT_LIB_LOGD("Destroying trace class object: %!+T", tc);
+	BT_OBJECT_PUT_REF_AND_RESET(tc->user_attributes);
+
 	/*
 	 * Call destruction listener functions so that everything else
 	 * still exists in the trace class.
@@ -131,6 +134,12 @@ struct bt_trace_class *bt_trace_class_create(bt_self_component *self_comp)
 	}
 
 	bt_object_init_shared_with_parent(&tc->base, destroy_trace_class);
+	tc->user_attributes = bt_value_map_create();
+	if (!tc->user_attributes) {
+		BT_LIB_LOGE_APPEND_CAUSE(
+			"Failed to create a map value object.");
+		goto error;
+	}
 
 	tc->stream_classes = g_ptr_array_new_with_free_func(
 		(GDestroyNotify) bt_object_try_spec_release);
@@ -303,6 +312,33 @@ void bt_trace_class_set_assigns_automatic_stream_class_id(struct bt_trace_class 
 	tc->assigns_automatic_stream_class_id = (bool) value;
 	BT_LIB_LOGD("Set trace class's automatic stream class ID "
 		"assignment property: %!+T", tc);
+}
+
+const struct bt_value *bt_trace_class_borrow_user_attributes_const(
+		const struct bt_trace_class *trace_class)
+{
+	BT_ASSERT_PRE_DEV_NON_NULL(trace_class, "Trace class");
+	return trace_class->user_attributes;
+}
+
+struct bt_value *bt_trace_class_borrow_user_attributes(
+		struct bt_trace_class *trace_class)
+{
+	return (void *) bt_trace_class_borrow_user_attributes_const(
+		(void *) trace_class);
+}
+
+void bt_trace_class_set_user_attributes(struct bt_trace_class *trace_class,
+		const struct bt_value *user_attributes)
+{
+	BT_ASSERT_PRE_NON_NULL(trace_class, "Trace class");
+	BT_ASSERT_PRE_NON_NULL(user_attributes, "User attributes");
+	BT_ASSERT_PRE(user_attributes->type == BT_VALUE_TYPE_MAP,
+		"User attributes object is not a map value object.");
+	BT_ASSERT_PRE_DEV_TRACE_CLASS_HOT(trace_class);
+	bt_object_put_no_null_check(trace_class->user_attributes);
+	trace_class->user_attributes = (void *) user_attributes;
+	bt_object_get_no_null_check(trace_class->user_attributes);
 }
 
 void bt_trace_class_get_ref(const struct bt_trace_class *trace_class)

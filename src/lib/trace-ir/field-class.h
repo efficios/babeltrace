@@ -179,6 +179,9 @@ struct bt_field_class {
 	enum bt_field_class_type type;
 	bool frozen;
 
+	/* Owned by this */
+	struct bt_value *user_attributes;
+
 	/*
 	 * This flag indicates whether or not this field class is part
 	 * of a trace class.
@@ -251,6 +254,9 @@ struct bt_field_class_string {
 /* A named field class is a (name, field class) pair */
 struct bt_named_field_class {
 	GString *name;
+
+	/* Owned by this */
+	struct bt_value *user_attributes;
 
 	/* Owned by this */
 	struct bt_field_class *fc;

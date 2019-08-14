@@ -37,6 +37,12 @@
 extern "C" {
 #endif
 
+extern void bt_field_class_set_user_attributes(
+		bt_field_class *field_class, const bt_value *user_attributes);
+
+extern bt_value *bt_field_class_borrow_user_attributes(
+		bt_field_class *field_class);
+
 extern bt_field_class *bt_field_class_bool_create(
 		bt_trace_class *trace_class);
 
@@ -107,6 +113,13 @@ extern bt_field_class_structure_member *
 bt_field_class_structure_borrow_member_by_name(
 		bt_field_class *field_class, const char *name);
 
+extern bt_value *bt_field_class_structure_member_borrow_user_attributes(
+		bt_field_class_structure_member *member);
+
+extern void bt_field_class_structure_member_set_user_attributes(
+		bt_field_class_structure_member *member,
+		const bt_value *user_attributes);
+
 extern bt_field_class *bt_field_class_array_static_create(
 		bt_trace_class *trace_class,
 		bt_field_class *elem_field_class, uint64_t length);
@@ -162,6 +175,13 @@ bt_field_class_variant_borrow_option_by_index(
 extern bt_field_class_variant_option *
 bt_field_class_variant_borrow_option_by_name(
 		bt_field_class *field_class, const char *name);
+
+extern bt_value *bt_field_class_variant_option_borrow_user_attributes(
+		bt_field_class_variant_option *option);
+
+extern void bt_field_class_variant_option_set_user_attributes(
+		bt_field_class_variant_option *option,
+		const bt_value *user_attributes);
 
 #ifdef __cplusplus
 }

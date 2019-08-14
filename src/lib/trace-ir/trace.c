@@ -55,6 +55,7 @@
 #include "trace-class.h"
 #include "trace.h"
 #include "utils.h"
+#include "lib/value.h"
 #include "lib/func-status.h"
 
 struct bt_trace_destruction_listener_elem {
@@ -71,6 +72,7 @@ void destroy_trace(struct bt_object *obj)
 	struct bt_trace *trace = (void *) obj;
 
 	BT_LIB_LOGD("Destroying trace object: %!+t", trace);
+	BT_OBJECT_PUT_REF_AND_RESET(trace->user_attributes);
 
 	/*
 	 * Call destruction listener functions so that everything else
@@ -153,6 +155,13 @@ struct bt_trace *bt_trace_create(struct bt_trace_class *tc)
 	}
 
 	bt_object_init_shared(&trace->base, destroy_trace);
+	trace->user_attributes = bt_value_map_create();
+	if (!trace->user_attributes) {
+		BT_LIB_LOGE_APPEND_CAUSE(
+			"Failed to create a map value object.");
+		goto error;
+	}
+
 	trace->streams = g_ptr_array_new_with_free_func(
 		(GDestroyNotify) bt_object_try_spec_release);
 	if (!trace->streams) {
@@ -482,6 +491,9 @@ void _bt_trace_freeze(const struct bt_trace *trace)
 	BT_ASSERT(trace);
 	BT_LIB_LOGD("Freezing trace's class: %!+T", trace->class);
 	bt_trace_class_freeze(trace->class);
+	BT_LIB_LOGD("Freezing trace's user attributes: %!+v",
+		trace->user_attributes);
+	bt_value_freeze(trace->user_attributes);
 	BT_LIB_LOGD("Freezing trace: %!+t", trace);
 	((struct bt_trace *) trace)->frozen = true;
 }
@@ -533,6 +545,32 @@ const struct bt_trace_class *bt_trace_borrow_class_const(
 		const struct bt_trace *trace)
 {
 	return bt_trace_borrow_class((void *) trace);
+}
+
+const struct bt_value *bt_trace_borrow_user_attributes_const(
+		const struct bt_trace *trace)
+{
+	BT_ASSERT_PRE_DEV_NON_NULL(trace, "Trace");
+	return trace->user_attributes;
+}
+
+struct bt_value *bt_trace_borrow_user_attributes(struct bt_trace *trace)
+{
+	return (void *) bt_trace_borrow_user_attributes_const((void *) trace);
+}
+
+void bt_trace_set_user_attributes(
+		struct bt_trace *trace,
+		const struct bt_value *user_attributes)
+{
+	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
+	BT_ASSERT_PRE_NON_NULL(user_attributes, "User attributes");
+	BT_ASSERT_PRE(user_attributes->type == BT_VALUE_TYPE_MAP,
+		"User attributes object is not a map value object.");
+	BT_ASSERT_PRE_DEV_TRACE_HOT(trace);
+	bt_object_put_no_null_check(trace->user_attributes);
+	trace->user_attributes = (void *) user_attributes;
+	bt_object_get_no_null_check(trace->user_attributes);
 }
 
 void bt_trace_get_ref(const struct bt_trace *trace)

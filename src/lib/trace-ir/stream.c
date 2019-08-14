@@ -40,6 +40,7 @@
 #include "stream-class.h"
 #include "stream.h"
 #include "trace.h"
+#include "lib/value.h"
 #include "lib/func-status.h"
 
 #define BT_ASSERT_PRE_DEV_STREAM_HOT(_stream) \
@@ -51,6 +52,7 @@ void destroy_stream(struct bt_object *obj)
 	struct bt_stream *stream = (void *) obj;
 
 	BT_LIB_LOGD("Destroying stream object: %!+s", stream);
+	BT_OBJECT_PUT_REF_AND_RESET(stream->user_attributes);
 
 	if (stream->name.str) {
 		g_string_free(stream->name.str, TRUE);
@@ -118,6 +120,13 @@ struct bt_stream *create_stream_with_id(struct bt_stream_class *stream_class,
 	}
 
 	bt_object_init_shared_with_parent(&stream->base, destroy_stream);
+	stream->user_attributes = bt_value_map_create();
+	if (!stream->user_attributes) {
+		BT_LIB_LOGE_APPEND_CAUSE(
+			"Failed to create a map value object.");
+		goto error;
+	}
+
 	stream->name.str = g_string_new(NULL);
 	if (!stream->name.str) {
 		BT_LIB_LOGE_APPEND_CAUSE("Failed to allocate a GString.");
@@ -229,8 +238,36 @@ BT_HIDDEN
 void _bt_stream_freeze(const struct bt_stream *stream)
 {
 	BT_ASSERT(stream);
+	BT_LIB_LOGD("Freezing stream's user attributes: %!+v",
+		stream->user_attributes);
+	bt_value_freeze(stream->user_attributes);
 	BT_LIB_LOGD("Freezing stream: %!+s", stream);
 	((struct bt_stream *) stream)->frozen = true;
+}
+
+const struct bt_value *bt_stream_borrow_user_attributes_const(
+		const struct bt_stream *stream)
+{
+	BT_ASSERT_PRE_DEV_NON_NULL(stream, "Stream");
+	return stream->user_attributes;
+}
+
+struct bt_value *bt_stream_borrow_user_attributes(struct bt_stream *stream)
+{
+	return (void *) bt_stream_borrow_user_attributes_const((void *) stream);
+}
+
+void bt_stream_set_user_attributes(struct bt_stream *stream,
+		const struct bt_value *user_attributes)
+{
+	BT_ASSERT_PRE_NON_NULL(stream, "Stream");
+	BT_ASSERT_PRE_NON_NULL(user_attributes, "User attributes");
+	BT_ASSERT_PRE(user_attributes->type == BT_VALUE_TYPE_MAP,
+		"User attributes object is not a map value object.");
+	BT_ASSERT_PRE_DEV_STREAM_HOT(stream);
+	bt_object_put_no_null_check(stream->user_attributes);
+	stream->user_attributes = (void *) user_attributes;
+	bt_object_get_no_null_check(stream->user_attributes);
 }
 
 void bt_stream_get_ref(const struct bt_stream *stream)

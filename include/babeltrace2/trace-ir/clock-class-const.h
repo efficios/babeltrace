@@ -35,6 +35,9 @@
 extern "C" {
 #endif
 
+extern const bt_value *bt_clock_class_borrow_user_attributes_const(
+		const bt_clock_class *clock_class);
+
 extern const char *bt_clock_class_get_name(
 		const bt_clock_class *clock_class);
 

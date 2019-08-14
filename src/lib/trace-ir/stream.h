@@ -39,6 +39,9 @@ struct bt_stream {
 	struct bt_object base;
 
 	/* Owned by this */
+	struct bt_value *user_attributes;
+
+	/* Owned by this */
 	struct bt_stream_class *class;
 
 	struct {

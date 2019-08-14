@@ -44,6 +44,7 @@
 #include "stream-class.h"
 #include "trace.h"
 #include "utils.h"
+#include "lib/value.h"
 #include "lib/func-status.h"
 
 #define BT_ASSERT_PRE_DEV_STREAM_CLASS_HOT(_sc) \
@@ -56,6 +57,7 @@ void destroy_stream_class(struct bt_object *obj)
 
 	BT_LIB_LOGD("Destroying stream class: %!+S", stream_class);
 	BT_LOGD_STR("Putting default clock class.");
+	BT_OBJECT_PUT_REF_AND_RESET(stream_class->user_attributes);
 	BT_OBJECT_PUT_REF_AND_RESET(stream_class->default_clock_class);
 
 	if (stream_class->event_classes) {
@@ -126,12 +128,17 @@ struct bt_stream_class *create_stream_class_with_id(
 
 	bt_object_init_shared_with_parent(&stream_class->base,
 		destroy_stream_class);
+	stream_class->user_attributes = bt_value_map_create();
+	if (!stream_class->user_attributes) {
+		BT_LIB_LOGE_APPEND_CAUSE(
+			"Failed to create a map value object.");
+		goto error;
+	}
 
 	stream_class->name.str = g_string_new(NULL);
 	if (!stream_class->name.str) {
 		BT_LIB_LOGE_APPEND_CAUSE("Failed to allocate a GString.");
-		ret = -1;
-		goto end;
+		goto error;
 	}
 
 	stream_class->id = id;
@@ -406,6 +413,9 @@ void _bt_stream_class_freeze(const struct bt_stream_class *stream_class)
 {
 	/* The field classes and default clock class are already frozen */
 	BT_ASSERT(stream_class);
+	BT_LIB_LOGD("Freezing stream class's user attributes: %!+v",
+		stream_class->user_attributes);
+	bt_value_freeze(stream_class->user_attributes);
 	BT_LIB_LOGD("Freezing stream class: %!+S", stream_class);
 	((struct bt_stream_class *) stream_class)->frozen = true;
 }
@@ -606,6 +616,34 @@ void bt_stream_class_set_assigns_automatic_stream_id(
 	stream_class->assigns_automatic_stream_id = (bool) value;
 	BT_LIB_LOGD("Set stream class's automatic stream ID "
 		"assignment property: %!+S", stream_class);
+}
+
+const struct bt_value *bt_stream_class_borrow_user_attributes_const(
+		const struct bt_stream_class *stream_class)
+{
+	BT_ASSERT_PRE_DEV_NON_NULL(stream_class, "Stream class");
+	return stream_class->user_attributes;
+}
+
+struct bt_value *bt_stream_class_borrow_user_attributes(
+		struct bt_stream_class *stream_class)
+{
+	return (void *) bt_stream_class_borrow_user_attributes_const(
+		(void *) stream_class);
+}
+
+void bt_stream_class_set_user_attributes(
+		struct bt_stream_class *stream_class,
+		const struct bt_value *user_attributes)
+{
+	BT_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
+	BT_ASSERT_PRE_NON_NULL(user_attributes, "User attributes");
+	BT_ASSERT_PRE(user_attributes->type == BT_VALUE_TYPE_MAP,
+		"User attributes object is not a map value object.");
+	BT_ASSERT_PRE_DEV_STREAM_CLASS_HOT(stream_class);
+	bt_object_put_no_null_check(stream_class->user_attributes);
+	stream_class->user_attributes = (void *) user_attributes;
+	bt_object_get_no_null_check(stream_class->user_attributes);
 }
 
 void bt_stream_class_get_ref(const struct bt_stream_class *stream_class)

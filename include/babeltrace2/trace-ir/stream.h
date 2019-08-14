@@ -42,6 +42,11 @@ extern bt_stream *bt_stream_create_with_id(
 		bt_stream_class *stream_class,
 		bt_trace *trace, uint64_t id);
 
+extern bt_value *bt_stream_borrow_user_attributes(bt_stream *stream);
+
+extern void bt_stream_set_user_attributes(
+		bt_stream *stream, const bt_value *user_attributes);
+
 extern bt_trace *bt_stream_borrow_trace(bt_stream *stream);
 
 extern bt_stream_class *bt_stream_borrow_class(bt_stream *stream);

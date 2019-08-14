@@ -46,6 +46,9 @@ struct bt_trace {
 	struct bt_object base;
 
 	/* Owned by this */
+	struct bt_value *user_attributes;
+
+	/* Owned by this */
 	struct bt_trace_class *class;
 
 	struct {
