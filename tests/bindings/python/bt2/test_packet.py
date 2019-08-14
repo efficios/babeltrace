@@ -90,7 +90,7 @@ class PacketTestCase(unittest.TestCase):
 
     def test_context_field(self):
         packet, stream, pc_fc = self._create_packet(with_pc=True)
-        self.assertEqual(packet.context_field.field_class.addr, pc_fc.addr)
+        self.assertEqual(packet.context_field.cls.addr, pc_fc.addr)
 
     def test_no_context_field(self):
         packet, _, _ = self._create_packet(with_pc=False)

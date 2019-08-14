@@ -59,7 +59,7 @@ class _Field(object._UniqueObject):
         return self._spec_eq(other)
 
     @property
-    def field_class(self):
+    def cls(self):
         field_class_ptr = native_bt.field_borrow_class_const(self._ptr)
         assert field_class_ptr is not None
         return bt2_field_class._create_field_class_from_ptr_and_get_ref(field_class_ptr)
@@ -96,7 +96,7 @@ class _BitArrayField(_Field):
         return str(self.value_as_integer)
 
     def __len__(self):
-        return self.field_class.length
+        return self.cls.length
 
 
 @functools.total_ordering
@@ -440,7 +440,7 @@ class _StructureField(_ContainerField, collections.abc.MutableMapping):
     _NAME = 'Structure'
 
     def _count(self):
-        return len(self.field_class)
+        return len(self.cls)
 
     def __setitem__(self, key, value):
         # raises if key is somehow invalid
@@ -452,7 +452,7 @@ class _StructureField(_ContainerField, collections.abc.MutableMapping):
 
     def __iter__(self):
         # same name iterator
-        return iter(self.field_class)
+        return iter(self.cls)
 
     def _spec_eq(self, other):
         if not isinstance(other, collections.abc.Mapping):
