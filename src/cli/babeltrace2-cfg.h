@@ -63,8 +63,6 @@ struct bt_config_connection {
 
 struct bt_config {
 	bt_object base;
-	bool debug;
-	bool verbose;
 	bt_value *plugin_paths;
 	bool omit_system_plugin_path;
 	bool omit_home_plugin_path;

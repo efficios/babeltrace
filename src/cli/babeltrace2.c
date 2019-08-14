@@ -38,22 +38,12 @@
 #include "babeltrace2-cfg.h"
 #include "babeltrace2-cfg-cli-args.h"
 #include "babeltrace2-cfg-cli-args-default.h"
+#include "babeltrace2-log-level.h"
 #include "babeltrace2-plugins.h"
 #include "babeltrace2-query.h"
 
 #define ENV_BABELTRACE_WARN_COMMAND_NAME_DIRECTORY_CLASH "BABELTRACE_CLI_WARN_COMMAND_NAME_DIRECTORY_CLASH"
-#define ENV_BABELTRACE_CLI_LOG_LEVEL "BABELTRACE_CLI_LOG_LEVEL"
 #define NSEC_PER_SEC	1000000000LL
-
-/*
- * Known environment variable names for the log levels of the project's
- * modules.
- */
-static const char* log_level_env_var_names[] = {
-	"BABELTRACE_PLUGIN_CTF_METADATA_LOG_LEVEL",
-	"BABELTRACE_PYTHON_BT2_LOG_LEVEL",
-	NULL,
-};
 
 /* Application's interrupter (owned by this) */
 static bt_interrupter *the_interrupter;
@@ -569,8 +559,6 @@ void print_cfg(struct bt_config *cfg)
 	}
 
 	BT_LOGI_STR("CLI configuration:");
-	BT_LOGI("  Debug mode: %s\n", cfg->debug ? "yes" : "no");
-	BT_LOGI("  Verbose mode: %s\n", cfg->verbose ? "yes" : "no");
 
 	switch (cfg->command) {
 	case BT_CONFIG_COMMAND_RUN:
@@ -2495,87 +2483,6 @@ void init_log_level(void)
 }
 
 static
-void set_auto_log_levels(struct bt_config *cfg)
-{
-	const char **env_var_name;
-
-	/*
-	 * Override the configuration's default log level if
-	 * BABELTRACE_VERBOSE or BABELTRACE_DEBUG environment variables
-	 * are found for backward compatibility with legacy Babetrace 1.
-	 */
-	if (getenv("BABELTRACE_DEBUG") &&
-			strcmp(getenv("BABELTRACE_DEBUG"), "1") == 0) {
-		cfg->log_level = BT_LOG_TRACE;
-	} else if (getenv("BABELTRACE_VERBOSE") &&
-			strcmp(getenv("BABELTRACE_VERBOSE"), "1") == 0) {
-		cfg->log_level = BT_LOG_INFO;
-	}
-
-	/*
-	 * Set log levels according to --debug or --verbose. For
-	 * backward compatibility, --debug is more verbose than
-	 * --verbose. So:
-	 *
-	 *     --verbose: INFO log level
-	 *     --debug:   TRACE log level (includes DEBUG, which is
-	 *                is less verbose than TRACE in the internal
-	 *                logging framework)
-	 */
-	if (!getenv("LIBBABELTRACE2_INIT_LOG_LEVEL")) {
-		if (cfg->verbose) {
-			bt_logging_set_global_level(BT_LOG_INFO);
-		} else if (cfg->debug) {
-			bt_logging_set_global_level(BT_LOG_TRACE);
-		} else {
-			/*
-			 * Set library's default log level if not
-			 * explicitly specified.
-			 */
-			bt_logging_set_global_level(cfg->log_level);
-		}
-	}
-
-	if (!getenv(ENV_BABELTRACE_CLI_LOG_LEVEL)) {
-		if (cfg->verbose) {
-			bt_cli_log_level = BT_LOG_INFO;
-		} else if (cfg->debug) {
-			bt_cli_log_level = BT_LOG_TRACE;
-		} else {
-			/*
-			 * Set CLI's default log level if not explicitly
-			 * specified.
-			 */
-			bt_cli_log_level = cfg->log_level;
-		}
-	}
-
-	env_var_name = log_level_env_var_names;
-
-	while (*env_var_name) {
-		if (!getenv(*env_var_name)) {
-			if (cfg->verbose) {
-				g_setenv(*env_var_name, "INFO", 1);
-			} else if (cfg->debug) {
-				g_setenv(*env_var_name, "TRACE", 1);
-			} else {
-				char val[2] = { 0 };
-
-				/*
-				 * Set module's default log level if not
-				 * explicitly specified.
-				 */
-				val[0] = bt_log_get_letter_from_level(
-					cfg->log_level);
-				g_setenv(*env_var_name, val, 1);
-			}
-		}
-
-		env_var_name++;
-	}
-}
-
-static
 void print_error_causes(void)
 {
 	const bt_error *error = bt_current_thread_take_error();
@@ -2721,7 +2628,6 @@ int main(int argc, const char **argv)
 		goto end;
 	}
 
-	set_auto_log_levels(cfg);
 	print_cfg(cfg);
 
 	if (cfg->command_needs_plugins) {
