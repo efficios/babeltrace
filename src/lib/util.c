@@ -31,13 +31,15 @@
 #include <babeltrace2/babeltrace.h>
 #include "lib/trace-ir/utils.h"
 
-bt_util_status bt_util_clock_cycles_to_ns_from_origin(uint64_t cycles,
+bt_util_clock_cycles_to_ns_from_origin_status
+bt_util_clock_cycles_to_ns_from_origin(uint64_t cycles,
 		uint64_t frequency, int64_t offset_seconds,
 		uint64_t offset_cycles, int64_t *ns)
 {
 	bool overflows;
 	int64_t base_offset_ns;
-	bt_util_status status = BT_UTIL_STATUS_OK;
+	bt_util_clock_cycles_to_ns_from_origin_status status =
+		BT_FUNC_STATUS_OK;
 	int ret;
 
 	BT_ASSERT_PRE_NON_NULL(ns, "Nanoseconds (output)");
@@ -51,7 +53,7 @@ bt_util_status bt_util_clock_cycles_to_ns_from_origin(uint64_t cycles,
 	overflows = bt_util_get_base_offset_ns(offset_seconds, offset_cycles,
 		frequency, &base_offset_ns);
 	if (overflows) {
-		status = BT_UTIL_STATUS_OVERFLOW_ERROR;
+		status = BT_FUNC_STATUS_OVERFLOW_ERROR;
 		goto end;
 	}
 
@@ -59,7 +61,7 @@ bt_util_status bt_util_clock_cycles_to_ns_from_origin(uint64_t cycles,
 		offset_seconds, offset_cycles,
 		frequency, cycles, ns);
 	if (ret) {
-		status = BT_UTIL_STATUS_OVERFLOW_ERROR;
+		status = BT_FUNC_STATUS_OVERFLOW_ERROR;
 	}
 
 end:

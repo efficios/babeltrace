@@ -33,12 +33,13 @@
 extern "C" {
 #endif
 
-typedef enum bt_util_status {
-	BT_UTIL_STATUS_OK = 0,
-	BT_UTIL_STATUS_OVERFLOW_ERROR = -75,
-} bt_util_status;
+typedef enum bt_util_clock_cycles_to_ns_from_origin_status {
+	BT_UTIL_CLOCK_CYCLES_TO_NS_FROM_ORIGIN_STATUS_OK		= __BT_FUNC_STATUS_OK,
+	BT_UTIL_CLOCK_CYCLES_TO_NS_FROM_ORIGIN_STATUS_OVERFLOW_ERROR	= __BT_FUNC_STATUS_OVERFLOW_ERROR,
+} bt_util_clock_cycles_to_ns_from_origin_status;
 
-bt_util_status bt_util_clock_cycles_to_ns_from_origin(uint64_t cycles,
+bt_util_clock_cycles_to_ns_from_origin_status
+bt_util_clock_cycles_to_ns_from_origin(uint64_t cycles,
 		uint64_t frequency, int64_t offset_seconds,
 		uint64_t offset_cycles, int64_t *ns);
 
