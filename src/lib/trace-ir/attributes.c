@@ -79,7 +79,7 @@ void bt_attributes_destroy(struct bt_value *attr_obj)
 BT_HIDDEN
 int64_t bt_attributes_get_count(const struct bt_value *attr_obj)
 {
-	return bt_value_array_get_size(attr_obj);
+	return bt_value_array_get_length(attr_obj);
 }
 
 BT_HIDDEN
@@ -91,7 +91,7 @@ const char *bt_attributes_get_field_name(const struct bt_value *attr_obj,
 	const struct bt_value *attr_field_name_obj = NULL;
 
 	BT_ASSERT(attr_obj);
-	BT_ASSERT(index < bt_value_array_get_size(attr_obj));
+	BT_ASSERT(index < bt_value_array_get_length(attr_obj));
 	attr_field_obj = bt_value_array_borrow_element_by_index_const(
 		attr_obj, index);
 	if (!attr_field_obj) {
@@ -126,7 +126,7 @@ struct bt_value *bt_attributes_borrow_field_value(
 	struct bt_value *attr_field_obj = NULL;
 
 	BT_ASSERT(attr_obj);
-	BT_ASSERT(index < bt_value_array_get_size(attr_obj));
+	BT_ASSERT(index < bt_value_array_get_length(attr_obj));
 	attr_field_obj =
 		bt_value_array_borrow_element_by_index(attr_obj, index);
 	if (!attr_field_obj) {
@@ -158,7 +158,7 @@ struct bt_value *bt_attributes_borrow_field_by_name(
 	struct bt_value *value_obj = NULL;
 	struct bt_value *attr_field_name_obj = NULL;
 
-	attr_size = bt_value_array_get_size(attr_obj);
+	attr_size = bt_value_array_get_length(attr_obj);
 	if (attr_size < 0) {
 		BT_LIB_LOGE_APPEND_CAUSE(
 			"Cannot get array value's size: %![value-]+v",
@@ -294,7 +294,7 @@ int bt_attributes_freeze(const struct bt_value *attr_obj)
 
 	BT_ASSERT(attr_obj);
 	BT_LOGD("Freezing attributes object: value-addr=%p", attr_obj);
-	count = bt_value_array_get_size(attr_obj);
+	count = bt_value_array_get_length(attr_obj);
 	BT_ASSERT(count >= 0);
 
 	/*

@@ -80,7 +80,7 @@ void bt_ctf_attributes_destroy(struct bt_ctf_private_value *attr_obj)
 BT_HIDDEN
 int64_t bt_ctf_attributes_get_count(struct bt_ctf_private_value *attr_obj)
 {
-	return bt_ctf_value_array_get_size(bt_ctf_private_value_as_value(attr_obj));
+	return bt_ctf_value_array_get_length(bt_ctf_private_value_as_value(attr_obj));
 }
 
 BT_HIDDEN
@@ -96,10 +96,10 @@ const char *bt_ctf_attributes_get_field_name(struct bt_ctf_private_value *attr_o
 		goto end;
 	}
 
-	if (index >= bt_ctf_value_array_get_size(bt_ctf_private_value_as_value(attr_obj))) {
+	if (index >= bt_ctf_value_array_get_length(bt_ctf_private_value_as_value(attr_obj))) {
 		BT_LOGW("Invalid parameter: index is out of bounds: "
 			"index=%" PRIu64 ", count=%" PRId64,
-			index, bt_ctf_value_array_get_size(bt_ctf_private_value_as_value(attr_obj)));
+			index, bt_ctf_value_array_get_length(bt_ctf_private_value_as_value(attr_obj)));
 		goto end;
 	}
 
@@ -140,10 +140,10 @@ struct bt_ctf_private_value *bt_ctf_attributes_borrow_field_value(struct bt_ctf_
 		goto end;
 	}
 
-	if (index >= bt_ctf_value_array_get_size(bt_ctf_private_value_as_value(attr_obj))) {
+	if (index >= bt_ctf_value_array_get_length(bt_ctf_private_value_as_value(attr_obj))) {
 		BT_LOGW("Invalid parameter: index is out of bounds: "
 			"index=%" PRIu64 ", count=%" PRId64,
-			index, bt_ctf_value_array_get_size(bt_ctf_private_value_as_value(attr_obj)));
+			index, bt_ctf_value_array_get_length(bt_ctf_private_value_as_value(attr_obj)));
 		goto end;
 	}
 
@@ -176,7 +176,7 @@ struct bt_ctf_private_value *bt_ctf_attributes_borrow_field_by_name(
 	struct bt_ctf_private_value *value_obj = NULL;
 	struct bt_ctf_private_value *attr_field_name_obj = NULL;
 
-	attr_size = bt_ctf_value_array_get_size(bt_ctf_private_value_as_value(attr_obj));
+	attr_size = bt_ctf_value_array_get_length(bt_ctf_private_value_as_value(attr_obj));
 	if (attr_size < 0) {
 		BT_LOGE("Cannot get array value's size: value-addr=%p",
 			attr_obj);
@@ -318,7 +318,7 @@ int bt_ctf_attributes_freeze(struct bt_ctf_private_value *attr_obj)
 	}
 
 	BT_LOGD("Freezing attributes object: value-addr=%p", attr_obj);
-	count = bt_ctf_value_array_get_size(bt_ctf_private_value_as_value(attr_obj));
+	count = bt_ctf_value_array_get_length(bt_ctf_private_value_as_value(attr_obj));
 	BT_ASSERT(count >= 0);
 
 	/*

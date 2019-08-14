@@ -905,7 +905,7 @@ static inline void format_value(char **buf_ch, bool extended,
 	}
 	case BT_VALUE_TYPE_ARRAY:
 	{
-		int64_t count = bt_value_array_get_size(value);
+		int64_t count = bt_value_array_get_length(value);
 
 		BT_ASSERT(count >= 0);
 		BUF_APPEND(", %selement-count=%" PRId64, PRFIELD(count));

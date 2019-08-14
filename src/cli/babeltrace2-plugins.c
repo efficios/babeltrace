@@ -128,7 +128,7 @@ int load_dynamic_plugins(const bt_value *plugin_paths)
 {
 	int nr_paths, i, ret = 0;
 
-	nr_paths = bt_value_array_get_size(plugin_paths);
+	nr_paths = bt_value_array_get_length(plugin_paths);
 	if (nr_paths < 0) {
 		BT_CLI_LOGE_APPEND_CAUSE(
 			"Cannot load dynamic plugins: no plugin path.");

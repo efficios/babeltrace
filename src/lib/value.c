@@ -386,14 +386,14 @@ bt_bool bt_value_array_compare(const struct bt_value *object_a,
 	const struct bt_value_array *array_obj_a =
 		BT_VALUE_TO_ARRAY(object_a);
 
-	if (bt_value_array_get_size(object_a) !=
-			bt_value_array_get_size(object_b)) {
+	if (bt_value_array_get_length(object_a) !=
+			bt_value_array_get_length(object_b)) {
 		BT_LOGT("Array values are different: size mismatch "
 			"value-a-addr=%p, value-b-addr=%p, "
 			"value-a-size=%" PRId64 ", value-b-size=%" PRId64,
 			object_a, object_b,
-			bt_value_array_get_size(object_a),
-			bt_value_array_get_size(object_b));
+			bt_value_array_get_length(object_a),
+			bt_value_array_get_length(object_b));
 		ret = BT_FALSE;
 		goto end;
 	}
@@ -879,7 +879,7 @@ enum bt_value_string_set_status bt_value_string_set(
 	return BT_FUNC_STATUS_OK;
 }
 
-uint64_t bt_value_array_get_size(const struct bt_value *array_obj)
+uint64_t bt_value_array_get_length(const struct bt_value *array_obj)
 {
 	BT_ASSERT_PRE_DEV_NON_NULL(array_obj, "Value object");
 	BT_ASSERT_PRE_DEV_VALUE_IS_TYPE(array_obj, BT_VALUE_TYPE_ARRAY);
