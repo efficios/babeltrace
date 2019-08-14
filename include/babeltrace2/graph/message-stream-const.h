@@ -33,7 +33,7 @@ extern "C" {
 
 typedef enum bt_message_stream_clock_snapshot_state {
 	BT_MESSAGE_STREAM_CLOCK_SNAPSHOT_STATE_UNKNOWN = 0,
-	BT_MESSAGE_STREAM_CLOCK_SNAPSHOT_STATE_KNOWN,
+	BT_MESSAGE_STREAM_CLOCK_SNAPSHOT_STATE_KNOWN = 1,
 } bt_message_stream_clock_snapshot_state;
 
 #ifdef __cplusplus
