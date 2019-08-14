@@ -42,6 +42,12 @@ extern bt_event_class *bt_event_class_create(
 extern bt_event_class *bt_event_class_create_with_id(
 		bt_stream_class *stream_class, uint64_t id);
 
+extern bt_value *bt_event_class_borrow_user_attributes(
+		bt_event_class *event_class);
+
+extern void bt_event_class_set_user_attributes(
+		bt_event_class *event_class, const bt_value *user_attributes);
+
 extern bt_stream_class *bt_event_class_borrow_stream_class(
 		bt_event_class *event_class);
 

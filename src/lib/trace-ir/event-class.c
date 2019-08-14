@@ -59,6 +59,7 @@ void destroy_event_class(struct bt_object *obj)
 	struct bt_event_class *event_class = (void *) obj;
 
 	BT_LIB_LOGD("Destroying event class: %!+E", event_class);
+	BT_OBJECT_PUT_REF_AND_RESET(event_class->user_attributes);
 
 	if (event_class->name.str) {
 		g_string_free(event_class->name.str, TRUE);
@@ -127,21 +128,26 @@ struct bt_event_class *create_event_class_with_id(
 
 	bt_object_init_shared_with_parent(&event_class->base,
 		destroy_event_class);
+	event_class->user_attributes = bt_value_map_create();
+	if (!event_class->user_attributes) {
+		BT_LIB_LOGE_APPEND_CAUSE(
+			"Failed to create a map value object.");
+		goto error;
+	}
+
 	event_class->id = id;
 	bt_property_uint_init(&event_class->log_level,
 			BT_PROPERTY_AVAILABILITY_NOT_AVAILABLE, 0);
 	event_class->name.str = g_string_new(NULL);
 	if (!event_class->name.str) {
 		BT_LIB_LOGE_APPEND_CAUSE("Failed to allocate a GString.");
-		ret = -1;
-		goto end;
+		goto error;
 	}
 
 	event_class->emf_uri.str = g_string_new(NULL);
 	if (!event_class->emf_uri.str) {
 		BT_LIB_LOGE_APPEND_CAUSE("Failed to allocate a GString.");
-		ret = -1;
-		goto end;
+		goto error;
 	}
 
 	ret = bt_object_pool_initialize(&event_class->event_pool,
@@ -402,8 +408,39 @@ void _bt_event_class_freeze(const struct bt_event_class *event_class)
 {
 	/* The field classes are already frozen */
 	BT_ASSERT(event_class);
+	BT_LIB_LOGD("Freezing event class's user attributes: %!+v",
+		event_class->user_attributes);
+	bt_value_freeze(event_class->user_attributes);
 	BT_LIB_LOGD("Freezing event class: %!+E", event_class);
 	((struct bt_event_class *) event_class)->frozen = true;
+}
+
+const struct bt_value *bt_event_class_borrow_user_attributes_const(
+		const struct bt_event_class *event_class)
+{
+	BT_ASSERT_PRE_DEV_NON_NULL(event_class, "Event class");
+	return event_class->user_attributes;
+}
+
+struct bt_value *bt_event_class_borrow_user_attributes(
+		struct bt_event_class *event_class)
+{
+	return (void *) bt_event_class_borrow_user_attributes_const(
+		(void *) event_class);
+}
+
+void bt_event_class_set_user_attributes(
+		struct bt_event_class *event_class,
+		const struct bt_value *user_attributes)
+{
+	BT_ASSERT_PRE_NON_NULL(event_class, "Event class");
+	BT_ASSERT_PRE_NON_NULL(user_attributes, "User attributes");
+	BT_ASSERT_PRE(user_attributes->type == BT_VALUE_TYPE_MAP,
+		"User attributes object is not a map value object.");
+	BT_ASSERT_PRE_DEV_EVENT_CLASS_HOT(event_class);
+	bt_object_put_no_null_check(event_class->user_attributes);
+	event_class->user_attributes = (void *) user_attributes;
+	bt_object_get_no_null_check(event_class->user_attributes);
 }
 
 void bt_event_class_get_ref(const struct bt_event_class *event_class)

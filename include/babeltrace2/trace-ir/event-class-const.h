@@ -55,6 +55,9 @@ typedef enum bt_event_class_log_level {
 	BT_EVENT_CLASS_LOG_LEVEL_DEBUG,
 } bt_event_class_log_level;
 
+extern const bt_value *bt_event_class_borrow_user_attributes_const(
+		const bt_event_class *event_class);
+
 extern const bt_stream_class *bt_event_class_borrow_stream_class_const(
 		const bt_event_class *event_class);
 

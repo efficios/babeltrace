@@ -38,6 +38,7 @@
 #include "lib/object.h"
 #include "common/assert.h"
 #include "lib/func-status.h"
+#include "lib/value.h"
 
 #define BT_ASSERT_PRE_DEV_CLOCK_CLASS_HOT(_cc) \
 	BT_ASSERT_PRE_DEV_HOT((_cc), "Clock class", ": %!+K", (_cc))
@@ -48,6 +49,7 @@ void destroy_clock_class(struct bt_object *obj)
 	struct bt_clock_class *clock_class = (void *) obj;
 
 	BT_LIB_LOGD("Destroying clock class: %!+K", clock_class);
+	BT_OBJECT_PUT_REF_AND_RESET(clock_class->user_attributes);
 
 	if (clock_class->name.str) {
 		g_string_free(clock_class->name.str, TRUE);
@@ -95,6 +97,14 @@ struct bt_clock_class *bt_clock_class_create(bt_self_component *self_comp)
 	}
 
 	bt_object_init_shared(&clock_class->base, destroy_clock_class);
+
+	clock_class->user_attributes = bt_value_map_create();
+	if (!clock_class->user_attributes) {
+		BT_LIB_LOGE_APPEND_CAUSE(
+			"Failed to create a map value object.");
+		goto error;
+	}
+
 	clock_class->name.str = g_string_new(NULL);
 	if (!clock_class->name.str) {
 		BT_LIB_LOGE_APPEND_CAUSE("Failed to allocate a GString.");
@@ -276,6 +286,9 @@ void _bt_clock_class_freeze(const struct bt_clock_class *clock_class)
 		return;
 	}
 
+	BT_LIB_LOGD("Freezing clock class's user attributes: %!+v",
+		clock_class->user_attributes);
+	bt_value_freeze(clock_class->user_attributes);
 	BT_LIB_LOGD("Freezing clock class: %!+K", clock_class);
 	((struct bt_clock_class *) clock_class)->frozen = 1;
 }
@@ -300,6 +313,34 @@ bt_clock_class_cycles_to_ns_from_origin(
 	}
 
 	return ret;
+}
+
+const struct bt_value *bt_clock_class_borrow_user_attributes_const(
+		const struct bt_clock_class *clock_class)
+{
+	BT_ASSERT_PRE_DEV_NON_NULL(clock_class, "Clock class");
+	return clock_class->user_attributes;
+}
+
+struct bt_value *bt_clock_class_borrow_user_attributes(
+		struct bt_clock_class *clock_class)
+{
+	return (void *) bt_clock_class_borrow_user_attributes_const(
+		(void *) clock_class);
+}
+
+void bt_clock_class_set_user_attributes(
+		struct bt_clock_class *clock_class,
+		const struct bt_value *user_attributes)
+{
+	BT_ASSERT_PRE_NON_NULL(clock_class, "Clock class");
+	BT_ASSERT_PRE_NON_NULL(user_attributes, "User attributes");
+	BT_ASSERT_PRE(user_attributes->type == BT_VALUE_TYPE_MAP,
+		"User attributes object is not a map value object.");
+	BT_ASSERT_PRE_DEV_CLOCK_CLASS_HOT(clock_class);
+	bt_object_put_no_null_check(clock_class->user_attributes);
+	clock_class->user_attributes = (void *) user_attributes;
+	bt_object_get_no_null_check(clock_class->user_attributes);
 }
 
 void bt_clock_class_get_ref(const struct bt_clock_class *clock_class)

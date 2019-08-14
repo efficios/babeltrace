@@ -37,6 +37,12 @@ extern "C" {
 
 extern bt_trace_class *bt_trace_class_create(bt_self_component *self_comp);
 
+extern bt_value *bt_trace_class_borrow_user_attributes(
+		bt_trace_class *trace_class);
+
+extern void bt_trace_class_set_user_attributes(
+		bt_trace_class *trace_class, const bt_value *user_attributes);
+
 extern void bt_trace_class_set_assigns_automatic_stream_class_id(
 		bt_trace_class *trace_class, bt_bool value);
 

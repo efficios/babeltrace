@@ -64,6 +64,9 @@ typedef enum bt_field_class_integer_preferred_display_base {
 extern bt_field_class_type bt_field_class_get_type(
 		const bt_field_class *field_class);
 
+extern const bt_value *bt_field_class_borrow_user_attributes_const(
+		const bt_field_class *field_class);
+
 extern uint64_t bt_field_class_bit_array_get_length(
 		const bt_field_class *field_class);
 
@@ -158,6 +161,9 @@ extern const bt_field_class *
 bt_field_class_structure_member_borrow_field_class_const(
 		const bt_field_class_structure_member *member);
 
+extern const bt_value *bt_field_class_structure_member_borrow_user_attributes_const(
+		const bt_field_class_structure_member *member);
+
 extern const bt_field_class *
 bt_field_class_array_borrow_element_field_class_const(
 		const bt_field_class *field_class);
@@ -209,6 +215,9 @@ extern const char *bt_field_class_variant_option_get_name(
 
 extern const bt_field_class *
 bt_field_class_variant_option_borrow_field_class_const(
+		const bt_field_class_variant_option *option);
+
+extern const bt_value *bt_field_class_variant_option_borrow_user_attributes_const(
 		const bt_field_class_variant_option *option);
 
 extern const bt_field_path *

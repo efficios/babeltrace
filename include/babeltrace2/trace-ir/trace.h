@@ -39,6 +39,11 @@ extern bt_trace_class *bt_trace_borrow_class(bt_trace *trace);
 
 extern bt_trace *bt_trace_create(bt_trace_class *trace_class);
 
+extern bt_value *bt_trace_borrow_user_attributes(bt_trace *trace);
+
+extern void bt_trace_set_user_attributes(
+		bt_trace *trace, const bt_value *user_attributes);
+
 typedef enum bt_trace_set_name_status {
 	BT_TRACE_SET_NAME_STATUS_MEMORY_ERROR	= __BT_FUNC_STATUS_MEMORY_ERROR,
 	BT_TRACE_SET_NAME_STATUS_OK		= __BT_FUNC_STATUS_OK,

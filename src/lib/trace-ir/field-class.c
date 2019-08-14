@@ -46,6 +46,7 @@
 #include "utils.h"
 #include "lib/func-status.h"
 #include "lib/integer-range-set.h"
+#include "lib/value.h"
 
 enum bt_field_class_type bt_field_class_get_type(
 		const struct bt_field_class *fc)
@@ -55,13 +56,31 @@ enum bt_field_class_type bt_field_class_get_type(
 }
 
 static
-void init_field_class(struct bt_field_class *fc, enum bt_field_class_type type,
+int init_field_class(struct bt_field_class *fc, enum bt_field_class_type type,
 		bt_object_release_func release_func)
 {
+	int ret = 0;
+
 	BT_ASSERT(fc);
 	BT_ASSERT(release_func);
 	bt_object_init_shared(&fc->base, release_func);
 	fc->type = type;
+	fc->user_attributes = bt_value_map_create();
+	if (!fc->user_attributes) {
+		BT_LIB_LOGE_APPEND_CAUSE(
+			"Failed to create a map value object.");
+		ret = -1;
+		goto end;
+	}
+
+end:
+	return ret;
+}
+
+static
+void finalize_field_class(struct bt_field_class *fc)
+{
+	BT_OBJECT_PUT_REF_AND_RESET(fc->user_attributes);
 }
 
 static
@@ -69,6 +88,7 @@ void destroy_bit_array_field_class(struct bt_object *obj)
 {
 	BT_ASSERT(obj);
 	BT_LIB_LOGD("Destroying bit array field class object: %!+F", obj);
+	finalize_field_class((void *) obj);
 	g_free(obj);
 }
 
@@ -89,8 +109,11 @@ struct bt_field_class *bt_field_class_bit_array_create(
 		goto error;
 	}
 
-	init_field_class((void *) ba_fc, BT_FIELD_CLASS_TYPE_BIT_ARRAY,
-		destroy_bit_array_field_class);
+	if (init_field_class((void *) ba_fc, BT_FIELD_CLASS_TYPE_BIT_ARRAY,
+			destroy_bit_array_field_class)) {
+		goto error;
+	}
+
 	ba_fc->length = length;
 	BT_LIB_LOGD("Created bit array field class object: %!+F", ba_fc);
 	goto end;
@@ -117,6 +140,7 @@ void destroy_bool_field_class(struct bt_object *obj)
 {
 	BT_ASSERT(obj);
 	BT_LIB_LOGD("Destroying boolean field class object: %!+F", obj);
+	finalize_field_class((void *) obj);
 	g_free(obj);
 }
 
@@ -134,8 +158,11 @@ struct bt_field_class *bt_field_class_bool_create(
 		goto error;
 	}
 
-	init_field_class((void *) bool_fc, BT_FIELD_CLASS_TYPE_BOOL,
-		destroy_bool_field_class);
+	if (init_field_class((void *) bool_fc, BT_FIELD_CLASS_TYPE_BOOL,
+			destroy_bool_field_class)) {
+		goto error;
+	}
+
 	BT_LIB_LOGD("Created boolean field class object: %!+F", bool_fc);
 	goto end;
 
@@ -147,13 +174,22 @@ end:
 }
 
 static
-void init_integer_field_class(struct bt_field_class_integer *fc,
+int init_integer_field_class(struct bt_field_class_integer *fc,
 		enum bt_field_class_type type,
 		bt_object_release_func release_func)
 {
-	init_field_class((void *) fc, type, release_func);
+	int ret;
+
+	ret = init_field_class((void *) fc, type, release_func);
+	if (ret) {
+		goto end;
+	}
+
 	fc->range = 64;
 	fc->base = BT_FIELD_CLASS_INTEGER_PREFERRED_DISPLAY_BASE_DECIMAL;
+
+end:
+	return ret;
 }
 
 static
@@ -161,6 +197,7 @@ void destroy_integer_field_class(struct bt_object *obj)
 {
 	BT_ASSERT(obj);
 	BT_LIB_LOGD("Destroying integer field class object: %!+F", obj);
+	finalize_field_class((void *) obj);
 	g_free(obj);
 }
 
@@ -180,7 +217,11 @@ struct bt_field_class *create_integer_field_class(bt_trace_class *trace_class,
 		goto error;
 	}
 
-	init_integer_field_class(int_fc, type, destroy_integer_field_class);
+	if (init_integer_field_class(int_fc, type,
+			destroy_integer_field_class)) {
+		goto error;
+	}
+
 	BT_LIB_LOGD("Created integer field class object: %!+F", int_fc);
 	goto end;
 
@@ -289,6 +330,7 @@ void destroy_enumeration_field_class(struct bt_object *obj)
 
 	BT_ASSERT(fc);
 	BT_LIB_LOGD("Destroying enumeration field class object: %!+F", fc);
+	finalize_field_class((void *) obj);
 
 	if (fc->mappings) {
 		uint64_t i;
@@ -326,8 +368,11 @@ struct bt_field_class *create_enumeration_field_class(
 		goto error;
 	}
 
-	init_integer_field_class((void *) enum_fc, type,
-		destroy_enumeration_field_class);
+	if (init_integer_field_class((void *) enum_fc, type,
+			destroy_enumeration_field_class)) {
+		goto error;
+	}
+
 	enum_fc->mappings = g_array_new(FALSE, TRUE,
 		sizeof(struct bt_field_class_enumeration_mapping));
 	if (!enum_fc->mappings) {
@@ -645,6 +690,7 @@ void destroy_real_field_class(struct bt_object *obj)
 {
 	BT_ASSERT(obj);
 	BT_LIB_LOGD("Destroying real field class object: %!+F", obj);
+	finalize_field_class((void *) obj);
 	g_free(obj);
 }
 
@@ -660,8 +706,11 @@ struct bt_field_class *bt_field_class_real_create(bt_trace_class *trace_class)
 		goto error;
 	}
 
-	init_field_class((void *) real_fc, BT_FIELD_CLASS_TYPE_REAL,
-		destroy_real_field_class);
+	if (init_field_class((void *) real_fc, BT_FIELD_CLASS_TYPE_REAL,
+			destroy_real_field_class)) {
+		goto error;
+	}
+
 	BT_LIB_LOGD("Created real field class object: %!+F", real_fc);
 	goto end;
 
@@ -703,7 +752,11 @@ int init_named_field_classes_container(
 {
 	int ret = 0;
 
-	init_field_class((void *) fc, type, fc_release_func);
+	ret = init_field_class((void *) fc, type, fc_release_func);
+	if (ret) {
+		goto end;
+	}
+
 	fc->named_fcs = g_ptr_array_new_with_free_func(named_fc_destroy_func);
 	if (!fc->named_fcs) {
 		BT_LIB_LOGE_APPEND_CAUSE("Failed to allocate a GPtrArray.");
@@ -730,6 +783,7 @@ void finalize_named_field_class(struct bt_named_field_class *named_fc)
 		"addr=%p, name=\"%s\", %![fc-]+F",
 		named_fc, named_fc->name ? named_fc->name->str : NULL,
 		named_fc->fc);
+	BT_OBJECT_PUT_REF_AND_RESET(named_fc->user_attributes);
 
 	if (named_fc->name) {
 		g_string_free(named_fc->name, TRUE);
@@ -743,6 +797,10 @@ void finalize_named_field_class(struct bt_named_field_class *named_fc)
 static
 void destroy_named_field_class(gpointer ptr)
 {
+	struct bt_named_field_class *named_fc = ptr;
+
+	BT_OBJECT_PUT_REF_AND_RESET(named_fc->user_attributes);
+
 	if (ptr) {
 		finalize_named_field_class(ptr);
 		g_free(ptr);
@@ -784,6 +842,7 @@ void destroy_structure_field_class(struct bt_object *obj)
 {
 	BT_ASSERT(obj);
 	BT_LIB_LOGD("Destroying structure field class object: %!+F", obj);
+	finalize_field_class((void *) obj);
 	finalize_named_field_classes_container((void *) obj);
 	g_free(obj);
 }
@@ -837,9 +896,16 @@ int init_named_field_class(struct bt_named_field_class *named_fc,
 		goto end;
 	}
 
+	named_fc->user_attributes = bt_value_map_create();
+	if (!named_fc->user_attributes) {
+		BT_LIB_LOGE_APPEND_CAUSE(
+			"Failed to create a map value object.");
+		status = BT_FUNC_STATUS_MEMORY_ERROR;
+		goto end;
+	}
+
 	named_fc->fc = fc;
 	bt_object_get_no_null_check(named_fc->fc);
-	bt_named_field_class_freeze(named_fc);
 
 end:
 	return status;
@@ -920,6 +986,13 @@ int append_named_field_class_to_container_field_class(
 		"Duplicate member/option name in structure/variant field class: "
 		"%![container-fc-]+F, name=\"%s\"", container_fc,
 		named_fc->name->str);
+
+	/*
+	 * Freeze the contained field class, but not the named field
+	 * class itself, as it's still possible afterwards to modify
+	 * properties of the member/option object.
+	 */
+	bt_field_class_freeze(named_fc->fc);
 	g_ptr_array_add(container_fc->named_fcs, named_fc);
 	g_hash_table_insert(container_fc->name_to_index, named_fc->name->str,
 		GUINT_TO_POINTER(container_fc->named_fcs->len - 1));
@@ -1074,6 +1147,7 @@ void destroy_option_field_class(struct bt_object *obj)
 
 	BT_ASSERT(fc);
 	BT_LIB_LOGD("Destroying option field class object: %!+F", fc);
+	finalize_field_class((void *) obj);
 	BT_LOGD_STR("Putting content field class.");
 	BT_OBJECT_PUT_REF_AND_RESET(fc->content_fc);
 	BT_LOGD_STR("Putting selector field path.");
@@ -1099,8 +1173,11 @@ struct bt_field_class *bt_field_class_option_create(bt_trace_class *trace_class,
 		goto error;
 	}
 
-	init_field_class((void *) opt_fc, BT_FIELD_CLASS_TYPE_OPTION,
-		destroy_option_field_class);
+	if (init_field_class((void *) opt_fc, BT_FIELD_CLASS_TYPE_OPTION,
+			destroy_option_field_class)) {
+		goto error;
+	}
+
 	opt_fc->content_fc = content_fc;
 	bt_object_get_no_null_check(opt_fc->content_fc);
 	bt_field_class_freeze(opt_fc->content_fc);
@@ -1152,6 +1229,7 @@ void finalize_variant_field_class(struct bt_field_class_variant *var_fc)
 {
 	BT_ASSERT(var_fc);
 	BT_LIB_LOGD("Finalizing variant field class object: %!+F", var_fc);
+	finalize_field_class((void *) var_fc);
 	finalize_named_field_classes_container((void *) var_fc);
 }
 
@@ -1606,15 +1684,24 @@ bt_field_class_variant_with_selector_borrow_selector_field_path_const(
 }
 
 static
-void init_array_field_class(struct bt_field_class_array *fc,
+int init_array_field_class(struct bt_field_class_array *fc,
 		enum bt_field_class_type type, bt_object_release_func release_func,
 		struct bt_field_class *element_fc)
 {
+	int ret;
+
 	BT_ASSERT(element_fc);
-	init_field_class((void *) fc, type, release_func);
+	ret = init_field_class((void *) fc, type, release_func);
+	if (ret) {
+		goto end;
+	}
+
 	fc->element_fc = element_fc;
 	bt_object_get_no_null_check(fc->element_fc);
 	bt_field_class_freeze(element_fc);
+
+end:
+	return ret;
 }
 
 static
@@ -1622,6 +1709,7 @@ void finalize_array_field_class(struct bt_field_class_array *array_fc)
 {
 	BT_ASSERT(array_fc);
 	BT_LOGD_STR("Putting element field class.");
+	finalize_field_class((void *) array_fc);
 	BT_OBJECT_PUT_REF_AND_RESET(array_fc->element_fc);
 }
 
@@ -1650,8 +1738,12 @@ bt_field_class_array_static_create(bt_trace_class *trace_class,
 		goto error;
 	}
 
-	init_array_field_class((void *) array_fc, BT_FIELD_CLASS_TYPE_STATIC_ARRAY,
-		destroy_static_array_field_class, element_fc);
+	if (init_array_field_class((void *) array_fc,
+			BT_FIELD_CLASS_TYPE_STATIC_ARRAY,
+			destroy_static_array_field_class, element_fc)) {
+		goto error;
+	}
+
 	array_fc->length = length;
 	BT_LIB_LOGD("Created static array field class object: %!+F", array_fc);
 	goto end;
@@ -1726,9 +1818,11 @@ struct bt_field_class *bt_field_class_array_dynamic_create(
 		goto error;
 	}
 
-	init_array_field_class((void *) array_fc,
-		BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY,
-		destroy_dynamic_array_field_class, element_fc);
+	if (init_array_field_class((void *) array_fc,
+			BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY,
+			destroy_dynamic_array_field_class, element_fc)) {
+		goto error;
+	}
 
 	if (length_fc) {
 		BT_ASSERT_PRE_FC_IS_UNSIGNED_INT(length_fc,
@@ -1765,6 +1859,7 @@ void destroy_string_field_class(struct bt_object *obj)
 {
 	BT_ASSERT(obj);
 	BT_LIB_LOGD("Destroying string field class object: %!+F", obj);
+	finalize_field_class((void *) obj);
 	g_free(obj);
 }
 
@@ -1781,8 +1876,11 @@ struct bt_field_class *bt_field_class_string_create(bt_trace_class *trace_class)
 		goto error;
 	}
 
-	init_field_class((void *) string_fc, BT_FIELD_CLASS_TYPE_STRING,
-		destroy_string_field_class);
+	if (init_field_class((void *) string_fc, BT_FIELD_CLASS_TYPE_STRING,
+			destroy_string_field_class)) {
+		goto error;
+	}
+
 	BT_LIB_LOGD("Created string field class object: %!+F", string_fc);
 	goto end;
 
@@ -1803,6 +1901,7 @@ void _bt_field_class_freeze(const struct bt_field_class *c_fc)
 	 * their owner.
 	 */
 	BT_ASSERT(fc);
+	bt_value_freeze(fc->user_attributes);
 	fc->frozen = true;
 
 	switch (fc->type) {
@@ -1831,8 +1930,11 @@ BT_HIDDEN
 void _bt_named_field_class_freeze(const struct bt_named_field_class *named_fc)
 {
 	BT_ASSERT(named_fc);
+	BT_ASSERT(named_fc->fc->frozen);
+	BT_LIB_LOGD("Freezing named field class's user attributes: %!+v",
+		named_fc->user_attributes);
+	bt_value_freeze(named_fc->user_attributes);
 	((struct bt_named_field_class *) named_fc)->frozen = true;
-	bt_field_class_freeze(named_fc->fc);
 }
 
 BT_HIDDEN
@@ -1875,6 +1977,110 @@ void bt_field_class_make_part_of_trace_class(const struct bt_field_class *c_fc)
 	default:
 		break;
 	}
+}
+
+const struct bt_value *bt_field_class_borrow_user_attributes_const(
+		const struct bt_field_class *fc)
+{
+	BT_ASSERT_PRE_DEV_NON_NULL(fc, "Field class");
+	return fc->user_attributes;
+}
+
+struct bt_value *bt_field_class_borrow_user_attributes(
+		struct bt_field_class *field_class)
+{
+	return (void *) bt_field_class_borrow_user_attributes_const(
+		(void *) field_class);
+}
+
+
+void bt_field_class_set_user_attributes(
+		struct bt_field_class *fc,
+		const struct bt_value *user_attributes)
+{
+	BT_ASSERT_PRE_NON_NULL(fc, "Field class");
+	BT_ASSERT_PRE_NON_NULL(user_attributes, "User attributes");
+	BT_ASSERT_PRE(user_attributes->type == BT_VALUE_TYPE_MAP,
+		"User attributes object is not a map value object.");
+	BT_ASSERT_PRE_DEV_FC_HOT(fc, "Field class");
+	bt_object_put_no_null_check(fc->user_attributes);
+	fc->user_attributes = (void *) user_attributes;
+	bt_object_get_no_null_check(fc->user_attributes);
+}
+
+static
+const struct bt_value *bt_named_field_class_borrow_user_attributes_const(
+		const struct bt_named_field_class *named_fc)
+{
+	return named_fc->user_attributes;
+}
+
+static
+void bt_named_field_class_set_user_attributes(
+		struct bt_named_field_class *named_fc,
+		const struct bt_value *user_attributes)
+{
+	BT_ASSERT_PRE_NON_NULL(user_attributes, "User attributes");
+	BT_ASSERT_PRE(user_attributes->type == BT_VALUE_TYPE_MAP,
+		"User attributes object is not a map value object.");
+	BT_ASSERT_PRE_DEV_HOT(named_fc,
+		"Structure field class member or variant field class option",
+		".");
+	bt_object_put_no_null_check(named_fc->user_attributes);
+	named_fc->user_attributes = (void *) user_attributes;
+	bt_object_get_no_null_check(named_fc->user_attributes);
+}
+
+const struct bt_value *
+bt_field_class_structure_member_borrow_user_attributes_const(
+		const struct bt_field_class_structure_member *member)
+{
+	BT_ASSERT_PRE_NON_NULL(member, "Structure field class member");
+	return bt_named_field_class_borrow_user_attributes_const(
+		(const void *) member);
+}
+
+struct bt_value *
+bt_field_class_structure_member_borrow_user_attributes(
+		struct bt_field_class_structure_member *member)
+{
+	BT_ASSERT_PRE_NON_NULL(member, "Structure field class member");
+	return (void *) bt_named_field_class_borrow_user_attributes_const(
+		(void *) member);
+}
+
+void bt_field_class_structure_member_set_user_attributes(
+		struct bt_field_class_structure_member *member,
+		const struct bt_value *user_attributes)
+{
+	BT_ASSERT_PRE_NON_NULL(member, "Structure field class member");
+	bt_named_field_class_set_user_attributes((void *) member,
+		user_attributes);
+}
+
+const struct bt_value *bt_field_class_variant_option_borrow_user_attributes_const(
+		const struct bt_field_class_variant_option *option)
+{
+	BT_ASSERT_PRE_NON_NULL(option, "Variant field class option");
+	return bt_named_field_class_borrow_user_attributes_const(
+		(const void *) option);
+}
+
+struct bt_value *bt_field_class_variant_option_borrow_user_attributes(
+		struct bt_field_class_variant_option *option)
+{
+	BT_ASSERT_PRE_NON_NULL(option, "Variant field class option");
+	return (void *) bt_named_field_class_borrow_user_attributes_const(
+		(void *) option);
+}
+
+void bt_field_class_variant_option_set_user_attributes(
+		struct bt_field_class_variant_option *option,
+		const struct bt_value *user_attributes)
+{
+	BT_ASSERT_PRE_NON_NULL(option, "Variant field class option");
+	bt_named_field_class_set_user_attributes((void *) option,
+		user_attributes);
 }
 
 void bt_field_class_get_ref(const struct bt_field_class *field_class)

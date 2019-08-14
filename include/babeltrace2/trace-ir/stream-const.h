@@ -35,6 +35,9 @@
 extern "C" {
 #endif
 
+extern const bt_value *bt_stream_borrow_user_attributes_const(
+		const bt_stream *stream);
+
 extern const bt_stream_class *bt_stream_borrow_class_const(
 		const bt_stream *stream);
 
