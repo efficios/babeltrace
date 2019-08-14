@@ -375,7 +375,7 @@ void print_value_rec(FILE *fp, const bt_value *value, size_t indent)
 			bt_common_color_reset());
 		break;
 	case BT_VALUE_TYPE_ARRAY:
-		size = bt_value_array_get_size(value);
+		size = bt_value_array_get_length(value);
 		if (size < 0) {
 			goto error;
 		}
@@ -966,7 +966,7 @@ int cmd_print_lttng_live_sessions(struct bt_config *cfg)
 		}
 	}
 
-	array_size = bt_value_array_get_size(results);
+	array_size = bt_value_array_get_length(results);
 	for (i = 0; i < array_size; i++) {
 		const char *url_text;
 		int64_t timer_us, streams, clients;
@@ -1974,7 +1974,7 @@ int set_stream_intersections(struct cmd_run_ctx *ctx,
 		goto error;
 	}
 
-	trace_count = bt_value_array_get_size(query_result);
+	trace_count = bt_value_array_get_length(query_result);
 	if (trace_count < 0) {
 		ret = -1;
 		goto error;
@@ -2038,7 +2038,7 @@ int set_stream_intersections(struct cmd_run_ctx *ctx,
 			goto error;
 		}
 
-		stream_count = bt_value_array_get_size(stream_infos);
+		stream_count = bt_value_array_get_length(stream_infos);
 		if (stream_count < 0) {
 			ret = -1;
 			goto error;

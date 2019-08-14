@@ -693,7 +693,7 @@ int bt_config_cli_args_create_connections(struct bt_config *cfg,
 		goto error;
 	}
 
-	for (i = 0; i < bt_value_array_get_size(connection_args); i++) {
+	for (i = 0; i < bt_value_array_get_length(connection_args); i++) {
 		const bt_value *arg_value =
 			bt_value_array_borrow_element_by_index_const(
 				connection_args, i);

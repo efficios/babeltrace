@@ -230,7 +230,7 @@ void test_array(void)
 	ret |= bt_value_array_append_element(array_obj,
 		bt_value_null);
 	ok(!ret, "bt_value_array_append_element() succeeds");
-	ok(bt_value_array_get_size(array_obj) == 5,
+	ok(bt_value_array_get_length(array_obj) == 5,
 		"appending an element to an array value object increment its size");
 
 	obj = bt_value_array_borrow_element_by_index(array_obj, 0);
@@ -294,7 +294,7 @@ void test_array(void)
 	ret = bt_value_array_append_empty_map_element(array_obj);
 	ok(!ret, "bt_value_array_append_empty_map_element() succeeds");
 
-	ok(bt_value_array_get_size(array_obj) == 12,
+	ok(bt_value_array_get_length(array_obj) == 12,
 		"the bt_value_array_append_element_*() functions increment the array value object's size");
 	ok(!bt_value_array_is_empty(array_obj),
 		"map value object is not empty");
@@ -847,9 +847,9 @@ void test_compare_array(void)
 	BT_ASSERT(append_status == BT_VALUE_ARRAY_APPEND_ELEMENT_STATUS_OK);
 	append_status = bt_value_array_append_bool_element(array3, BT_FALSE);
 	BT_ASSERT(append_status == BT_VALUE_ARRAY_APPEND_ELEMENT_STATUS_OK);
-	BT_ASSERT(bt_value_array_get_size(array1) == 3);
-	BT_ASSERT(bt_value_array_get_size(array2) == 3);
-	BT_ASSERT(bt_value_array_get_size(array3) == 3);
+	BT_ASSERT(bt_value_array_get_length(array1) == 3);
+	BT_ASSERT(bt_value_array_get_length(array2) == 3);
+	BT_ASSERT(bt_value_array_get_length(array3) == 3);
 
 	ok(!bt_value_compare(bt_value_null,
 		array1),

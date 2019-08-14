@@ -131,7 +131,7 @@ end:
 static
 const bt_value *borrow_array_value_last_element_const(const bt_value *array)
 {
-	uint64_t last_index = bt_value_array_get_size(array) - 1;
+	uint64_t last_index = bt_value_array_get_length(array) - 1;
 
 	return bt_value_array_borrow_element_by_index_const(array, last_index);
 }
@@ -720,7 +720,7 @@ int auto_discover_source_components(
 	uint64_t i_inputs, input_count;
 	int status;
 
-	input_count = bt_value_array_get_size(inputs);
+	input_count = bt_value_array_get_length(inputs);
 
 	for (i_inputs = 0; i_inputs < input_count; i_inputs++) {
 		const bt_value *input_value;

@@ -1703,7 +1703,7 @@ int ctf_fs_component_create_ctf_fs_traces(bt_self_component_source *self_comp,
 	int ret = 0;
 	uint64_t i;
 
-	for (i = 0; i < bt_value_array_get_size(paths_value); i++) {
+	for (i = 0; i < bt_value_array_get_length(paths_value); i++) {
 		const bt_value *path_value = bt_value_array_borrow_element_by_index_const(paths_value, i);
 		const char *input = bt_value_string_get(path_value);
 
@@ -1847,7 +1847,7 @@ bool validate_inputs_parameter(struct ctf_fs_component *ctf_fs,
 		goto error;
 	}
 
-	for (i = 0; i < bt_value_array_get_size(inputs); i++) {
+	for (i = 0; i < bt_value_array_get_length(inputs); i++) {
 		const bt_value *elem;
 
 		elem = bt_value_array_borrow_element_by_index_const(inputs, i);

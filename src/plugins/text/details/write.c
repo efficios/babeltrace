@@ -424,7 +424,7 @@ void write_value(struct details_write_ctx *ctx, const bt_value *value,
 		break;
 	case BT_VALUE_TYPE_ARRAY:
 	{
-		uint64_t length = bt_value_array_get_size(value);
+		uint64_t length = bt_value_array_get_length(value);
 
 		if (length == 0) {
 			write_sp(ctx);

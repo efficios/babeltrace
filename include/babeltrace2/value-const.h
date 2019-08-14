@@ -133,12 +133,12 @@ extern double bt_value_real_get(const bt_value *real_obj);
 
 extern const char *bt_value_string_get(const bt_value *string_obj);
 
-extern uint64_t bt_value_array_get_size(const bt_value *array_obj);
+extern uint64_t bt_value_array_get_length(const bt_value *array_obj);
 
 static inline
 bt_bool bt_value_array_is_empty(const bt_value *array_obj)
 {
-	return bt_value_array_get_size(array_obj) == 0;
+	return bt_value_array_get_length(array_obj) == 0;
 }
 
 extern const bt_value *bt_value_array_borrow_element_by_index_const(

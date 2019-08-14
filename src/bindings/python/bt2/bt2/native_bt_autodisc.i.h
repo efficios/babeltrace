@@ -62,7 +62,7 @@ bt_value *bt_bt2_auto_discover_source_components(const bt_value *inputs,
 	bt_value_map_insert_entry_status insert_entry_status;
 
 	BT_ASSERT(bt_value_get_type(inputs) == BT_VALUE_TYPE_ARRAY);
-	for (i = 0; i < bt_value_array_get_size(inputs); i++) {
+	for (i = 0; i < bt_value_array_get_length(inputs); i++) {
 		const bt_value *elem = bt_value_array_borrow_element_by_index_const(inputs, i);
 		BT_ASSERT(bt_value_get_type(elem) == BT_VALUE_TYPE_STRING);
 	}

@@ -400,14 +400,14 @@ bt_ctf_bool bt_ctf_value_array_compare(const struct bt_ctf_value *object_a,
 	const struct bt_ctf_value_array *array_obj_a =
 		BT_CTF_VALUE_TO_ARRAY(object_a);
 
-	if (bt_ctf_value_array_get_size(object_a) !=
-			bt_ctf_value_array_get_size(object_b)) {
+	if (bt_ctf_value_array_get_length(object_a) !=
+			bt_ctf_value_array_get_length(object_b)) {
 		BT_LOGT("Array values are different: size mismatch "
 			"value-a-addr=%p, value-b-addr=%p, "
 			"value-a-size=%" PRId64 ", value-b-size=%" PRId64,
 			object_a, object_b,
-			bt_ctf_value_array_get_size(object_a),
-			bt_ctf_value_array_get_size(object_b));
+			bt_ctf_value_array_get_length(object_a),
+			bt_ctf_value_array_get_length(object_b));
 		ret = BT_CTF_FALSE;
 		goto end;
 	}
@@ -854,7 +854,7 @@ enum bt_ctf_value_status bt_ctf_private_value_string_set(
 }
 
 BT_HIDDEN
-uint64_t bt_ctf_value_array_get_size(const struct bt_ctf_value *array_obj)
+uint64_t bt_ctf_value_array_get_length(const struct bt_ctf_value *array_obj)
 {
 	BT_CTF_ASSERT_PRE_NON_NULL(array_obj, "Value object");
 	BT_CTF_ASSERT_PRE_VALUE_IS_TYPE(array_obj, BT_CTF_VALUE_TYPE_ARRAY);

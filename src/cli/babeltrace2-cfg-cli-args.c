@@ -798,7 +798,7 @@ int insert_flat_params_from_array(GString *params_arg,
 		goto end;
 	}
 
-	for (i = 0; i < bt_value_array_get_size(names_array); i++) {
+	for (i = 0; i < bt_value_array_get_length(names_array); i++) {
 		const bt_value *str_obj =
 			bt_value_array_borrow_element_by_index_const(names_array,
 								     i);
@@ -2271,7 +2271,7 @@ struct bt_config *bt_config_run_from_args_array(const bt_value *run_args,
 	struct bt_config *cfg = NULL;
 	const char **argv;
 	int64_t i, len;
-	const size_t argc = bt_value_array_get_size(run_args);
+	const size_t argc = bt_value_array_get_length(run_args);
 
 	argv = calloc(argc, sizeof(*argv));
 	if (!argv) {
@@ -2279,7 +2279,7 @@ struct bt_config *bt_config_run_from_args_array(const bt_value *run_args,
 		goto end;
 	}
 
-	len = bt_value_array_get_size(run_args);
+	len = bt_value_array_get_length(run_args);
 	if (len < 0) {
 		BT_CLI_LOGE_APPEND_CAUSE("Invalid executable arguments.");
 		goto end;
@@ -2606,7 +2606,7 @@ int append_run_args_for_implicit_component(
 		}
 	}
 
-	for (i = 0; i < bt_value_array_get_size(impl_args->extra_params);
+	for (i = 0; i < bt_value_array_get_length(impl_args->extra_params);
 			i++) {
 		const bt_value *elem;
 		const char *arg;
@@ -2814,7 +2814,7 @@ int bt_value_to_cli_param_value_append(const bt_value *value, GString *buf)
 	}
 	case BT_VALUE_TYPE_ARRAY: {
 		g_string_append_c(buf, '[');
-		uint64_t sz = bt_value_array_get_size(value);
+		uint64_t sz = bt_value_array_get_length(value);
 		for (uint64_t i = 0; i < sz; i++) {
 			const bt_value *item;
 			int ret;
@@ -3228,7 +3228,7 @@ int create_implicit_component_args_from_auto_discovered_sources(
 		 * non-option arguments that contributed to this
 		 * component instance coming into existence.
 		 */
-		orig_indices_count = bt_value_array_get_size(res->original_input_indices);
+		orig_indices_count = bt_value_array_get_length(res->original_input_indices);
 		for (orig_indices_i = 0; orig_indices_i < orig_indices_count; orig_indices_i++) {
 			const bt_value *orig_idx_value =
 				bt_value_array_borrow_element_by_index(
@@ -3240,7 +3240,7 @@ int create_implicit_component_args_from_auto_discovered_sources(
 			uint64_t params_i, params_count;
 			const bt_value *loglevel_value;
 
-			params_count = bt_value_array_get_size(params_array);
+			params_count = bt_value_array_get_length(params_array);
 			for (params_i = 0; params_i < params_count; params_i++) {
 				const bt_value *params_value =
 					bt_value_array_borrow_element_by_index_const(
@@ -3653,7 +3653,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 					 * it in `non_opt_params`.
 					 */
 					bt_value *array;
-					uint64_t idx = bt_value_array_get_size(non_opt_params) - 1;
+					uint64_t idx = bt_value_array_get_length(non_opt_params) - 1;
 
 					array = bt_value_array_borrow_element_by_index(non_opt_params, idx);
 					bt_value_array_append_string_element(array, arg);
@@ -3676,7 +3676,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 						goto error;
 					}
 				} else if (current_item_type == CONVERT_CURRENT_ITEM_TYPE_NON_OPT) {
-					uint64_t idx = bt_value_array_get_size(non_opt_loglevels) - 1;
+					uint64_t idx = bt_value_array_get_length(non_opt_loglevels) - 1;
 					bt_value *log_level_str_value;
 
 					log_level_str_value = bt_value_string_create_init(arg);
@@ -4136,7 +4136,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 			goto error;
 		}
 
-		if (bt_value_array_get_size(non_opts) > 1) {
+		if (bt_value_array_get_length(non_opts) > 1) {
 			BT_CLI_LOGE_APPEND_CAUSE("Too many paths specified for --output-format=ctf-metadata.");
 			goto error;
 		}
@@ -4214,11 +4214,11 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 	}
 
 	/* Decide where the non-option argument(s) go */
-	if (bt_value_array_get_size(non_opts) > 0) {
+	if (bt_value_array_get_length(non_opts) > 0) {
 		if (implicit_lttng_live_args.exists) {
 			const bt_value *bt_val_non_opt;
 
-			if (bt_value_array_get_size(non_opts) > 1) {
+			if (bt_value_array_get_length(non_opts) > 1) {
 				BT_CLI_LOGE_APPEND_CAUSE("Too many URLs specified for --input-format=lttng-live.");
 				goto error;
 			}
@@ -4520,7 +4520,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 			goto error;
 		}
 
-		for (i = 0; i < bt_value_array_get_size(run_args); i++) {
+		for (i = 0; i < bt_value_array_get_length(run_args); i++) {
 			const bt_value *arg_value =
 				bt_value_array_borrow_element_by_index(run_args,
 								       i);
@@ -4548,7 +4548,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 				g_string_free(quoted, TRUE);
 			}
 
-			if (i < bt_value_array_get_size(run_args) - 1) {
+			if (i < bt_value_array_get_length(run_args) - 1) {
 				if (print_run_args) {
 					putchar(' ');
 				} else {

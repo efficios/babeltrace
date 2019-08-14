@@ -145,12 +145,12 @@ BT_HIDDEN
 const char *bt_ctf_value_string_get(const struct bt_ctf_value *string_obj);
 
 BT_HIDDEN
-uint64_t bt_ctf_value_array_get_size(const struct bt_ctf_value *array_obj);
+uint64_t bt_ctf_value_array_get_length(const struct bt_ctf_value *array_obj);
 
 static inline
 bt_ctf_bool bt_ctf_value_array_is_empty(const struct bt_ctf_value *array_obj)
 {
-	return bt_ctf_value_array_get_size(array_obj) == 0;
+	return bt_ctf_value_array_get_length(array_obj) == 0;
 }
 
 BT_HIDDEN

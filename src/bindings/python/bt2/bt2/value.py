@@ -448,7 +448,7 @@ class ArrayValue(_Container, collections.abc.MutableSequence, _Value):
         return True
 
     def __len__(self):
-        size = native_bt.value_array_get_size(self._ptr)
+        size = native_bt.value_array_get_length(self._ptr)
         assert size >= 0
         return size
 

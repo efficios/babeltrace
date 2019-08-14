@@ -316,7 +316,7 @@ int list_update_session(bt_value *results,
 	int i, len;
 	bool found = false;
 
-	len = bt_value_array_get_size(results);
+	len = bt_value_array_get_length(results);
 	if (len < 0) {
 		BT_COMP_LOGE_STR("Error getting size of array.");
 		ret = -1;

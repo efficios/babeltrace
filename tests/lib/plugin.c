@@ -186,7 +186,7 @@ static void test_sfs(const char *plugin_dir)
 	BT_ASSERT(query_exec);
 	ret = bt_query_executor_query(query_exec, &results);
 	ok(ret == 0 && results, "bt_query_executor_query() succeeds");
-	BT_ASSERT(bt_value_is_array(results) && bt_value_array_get_size(results) == 2);
+	BT_ASSERT(bt_value_is_array(results) && bt_value_array_get_length(results) == 2);
 	object = bt_value_array_borrow_element_by_index_const(results, 0);
 	BT_ASSERT(object && bt_value_is_string(object));
 	object_str = bt_value_string_get(object);
