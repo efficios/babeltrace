@@ -1478,6 +1478,28 @@ bt_field_class_variant_borrow_option_by_index_const(
 			(void *) fc, index);
 }
 
+struct bt_field_class_variant_option *
+bt_field_class_variant_borrow_option_by_name(
+		struct bt_field_class *fc, const char *name)
+{
+	BT_ASSERT_PRE_DEV_NON_NULL(fc, "Field class");
+	BT_ASSERT_PRE_DEV_FC_IS_VARIANT(fc, "Field class");
+	return (void *)
+		borrow_named_field_class_from_container_field_class_by_name(
+			(void *) fc, name);
+}
+
+struct bt_field_class_variant_option *
+bt_field_class_variant_borrow_option_by_index(
+		struct bt_field_class *fc, uint64_t index)
+{
+	BT_ASSERT_PRE_DEV_NON_NULL(fc, "Field class");
+	BT_ASSERT_PRE_DEV_FC_IS_VARIANT(fc, "Field class");
+	return (void *)
+		borrow_named_field_class_from_container_field_class_at_index(
+			(void *) fc, index);
+}
+
 const struct bt_field_class_variant_with_selector_unsigned_option *
 bt_field_class_variant_with_selector_unsigned_borrow_option_by_name_const(
 		const struct bt_field_class *fc, const char *name)

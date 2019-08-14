@@ -155,6 +155,14 @@ bt_field_class_variant_with_selector_signed_append_option(
 		bt_field_class *field_class,
 		const bt_integer_range_set_signed *range_set);
 
+extern bt_field_class_variant_option *
+bt_field_class_variant_borrow_option_by_index(
+		bt_field_class *field_class, uint64_t index);
+
+extern bt_field_class_variant_option *
+bt_field_class_variant_borrow_option_by_name(
+		bt_field_class *field_class, const char *name);
+
 #ifdef __cplusplus
 }
 #endif
