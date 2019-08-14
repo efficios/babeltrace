@@ -199,14 +199,15 @@ void write_compound_member_name(struct details_write_ctx *ctx, const char *name)
 }
 
 static inline
-void write_array_index(struct details_write_ctx *ctx, uint64_t index)
+void write_array_index(struct details_write_ctx *ctx, uint64_t index,
+		const char *color)
 {
 	char buf[32];
 
 	write_indent(ctx);
 	format_uint(buf, index, 10);
 	g_string_append_printf(ctx->str, "%s[%s]%s:",
-		color_fg_cyan(ctx), buf, color_reset(ctx));
+		color, buf, color_reset(ctx));
 }
 
 static inline
@@ -220,6 +221,14 @@ static inline
 void write_prop_name(struct details_write_ctx *ctx, const char *prop_name)
 {
 	g_string_append_printf(ctx->str, "%s%s%s",
+		color_fg_magenta(ctx), prop_name, color_reset(ctx));
+}
+
+static inline
+void write_prop_name_line(struct details_write_ctx *ctx, const char *prop_name)
+{
+	write_indent(ctx);
+	g_string_append_printf(ctx->str, "%s%s%s:",
 		color_fg_magenta(ctx), prop_name, color_reset(ctx));
 }
 
@@ -350,6 +359,152 @@ void write_uuid_prop_line(struct details_write_ctx *ctx, const char *prop_name,
 		color_bold(ctx),
 		BT_UUID_FMT_VALUES(uuid),
 		color_reset(ctx));
+}
+
+static
+gint compare_strings(const char **a, const char **b)
+{
+	return strcmp(*a, *b);
+}
+
+static
+bt_bool map_value_foreach_add_key_to_array(const char *key,
+		const bt_value *object, void *data)
+{
+	GPtrArray *keys = data;
+
+	BT_ASSERT(keys);
+	g_ptr_array_add(keys, (void *) key);
+	return BT_TRUE;
+}
+
+static
+void write_value(struct details_write_ctx *ctx, const bt_value *value,
+		const char *name)
+{
+	uint64_t i;
+	bt_value_type value_type = bt_value_get_type(value);
+	GPtrArray *keys = g_ptr_array_new();
+	char buf[64];
+
+	BT_ASSERT(keys);
+
+	/* Write field's name */
+	if (name) {
+		write_prop_name_line(ctx, name);
+	}
+
+	/* Write field's value */
+	switch (value_type) {
+	case BT_VALUE_TYPE_NULL:
+		write_sp(ctx);
+		write_none_prop_value(ctx, "Null");
+		break;
+	case BT_VALUE_TYPE_BOOL:
+		write_sp(ctx);
+		write_bool_prop_value(ctx, bt_value_bool_get(value));
+		break;
+	case BT_VALUE_TYPE_UNSIGNED_INTEGER:
+		format_uint(buf, bt_value_integer_unsigned_get(value), 10);
+		write_sp(ctx);
+		write_uint_str_prop_value(ctx, buf);
+		break;
+	case BT_VALUE_TYPE_SIGNED_INTEGER:
+		format_int(buf, bt_value_integer_signed_get(value), 10);
+		write_sp(ctx);
+		write_int_str_prop_value(ctx, buf);
+		break;
+	case BT_VALUE_TYPE_REAL:
+		write_sp(ctx);
+		write_float_prop_value(ctx, bt_value_real_get(value));
+		break;
+	case BT_VALUE_TYPE_STRING:
+		write_sp(ctx);
+		write_str_prop_value(ctx, bt_value_string_get(value));
+		break;
+	case BT_VALUE_TYPE_ARRAY:
+	{
+		uint64_t length = bt_value_array_get_size(value);
+
+		if (length == 0) {
+			write_sp(ctx);
+			write_none_prop_value(ctx, "Empty");
+		} else {
+			g_string_append(ctx->str, " Length ");
+			write_uint_prop_value(ctx, length);
+			g_string_append_c(ctx->str, ':');
+		}
+
+		incr_indent(ctx);
+
+		for (i = 0; i < length; i++) {
+			const bt_value *elem_value =
+				bt_value_array_borrow_element_by_index_const(
+					value, i);
+
+			write_nl(ctx);
+			write_array_index(ctx, i, color_fg_magenta(ctx));
+			write_value(ctx, elem_value, NULL);
+		}
+
+		decr_indent(ctx);
+		break;
+	}
+	case BT_VALUE_TYPE_MAP:
+	{
+		bt_value_map_foreach_entry_const_status foreach_status =
+			bt_value_map_foreach_entry_const(value,
+				map_value_foreach_add_key_to_array, keys);
+
+		BT_ASSERT(foreach_status ==
+			BT_VALUE_MAP_FOREACH_ENTRY_CONST_STATUS_OK);
+		g_ptr_array_sort(keys, (GCompareFunc) compare_strings);
+
+		if (keys->len > 0) {
+			incr_indent(ctx);
+
+			for (i = 0; i < keys->len; i++) {
+				const char *key = keys->pdata[i];
+				const bt_value *entry_value =
+					bt_value_map_borrow_entry_value_const(
+						value, key);
+
+				write_nl(ctx);
+				write_value(ctx, entry_value, key);
+			}
+
+			decr_indent(ctx);
+		} else {
+			write_sp(ctx);
+			write_none_prop_value(ctx, "Empty");
+		}
+
+		break;
+	}
+	default:
+		abort();
+	}
+
+	g_ptr_array_free(keys, TRUE);
+}
+
+static
+void write_user_attributes(struct details_write_ctx *ctx,
+		const bt_value *user_attrs, bool write_newline, bool *written)
+{
+	BT_ASSERT(user_attrs);
+
+	if (!bt_value_map_is_empty(user_attrs)) {
+		write_value(ctx, user_attrs, "User attributes");
+
+		if (write_newline) {
+			write_nl(ctx);
+		}
+
+		if (written) {
+			*written = true;
+		}
+	}
 }
 
 static
@@ -597,7 +752,7 @@ void write_enum_field_class_mappings(struct details_write_ctx *ctx,
 		struct enum_field_class_mapping *mapping = mappings->pdata[i];
 
 		write_nl(ctx);
-		write_compound_member_name(ctx, mapping->label);
+		write_prop_name_line(ctx, mapping->label);
 
 		for (range_i = 0; range_i < mapping->ranges->len; range_i++) {
 			write_sp(ctx);
@@ -672,9 +827,14 @@ void write_variant_field_class_option(struct details_write_ctx *ctx,
 	const bt_field_class_variant_option *option =
 		bt_field_class_variant_borrow_option_by_index_const(
 			fc, index);
-	const void *orig_ranges;
+	const void *orig_ranges = NULL;
 	GArray *int_ranges = NULL;
 	bool is_signed;
+	const bt_value *user_attrs =
+		bt_field_class_variant_option_borrow_user_attributes_const(
+			option);
+	const bt_field_class *option_fc =
+		bt_field_class_variant_option_borrow_field_class_const(option);
 
 	write_nl(ctx);
 	write_compound_member_name(ctx,
@@ -689,7 +849,7 @@ void write_variant_field_class_option(struct details_write_ctx *ctx,
 			bt_field_class_variant_with_selector_unsigned_option_borrow_ranges_const(
 				spec_opt);
 		is_signed = false;
-	} else {
+	} else if (fc_type == BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_SELECTOR) {
 		const bt_field_class_variant_with_selector_signed_option *spec_opt =
 			bt_field_class_variant_with_selector_signed_borrow_option_by_index_const(
 				fc, index);
@@ -718,53 +878,27 @@ void write_variant_field_class_option(struct details_write_ctx *ctx,
 		write_sp(ctx);
 	}
 
-	write_field_class(ctx,
-		bt_field_class_variant_option_borrow_field_class_const(option));
+	if (bt_value_map_is_empty(user_attrs)) {
+		write_field_class(ctx, option_fc);
+	} else {
+		write_nl(ctx);
+		incr_indent(ctx);
+
+		/* Field class */
+		write_prop_name_line(ctx, "Field class");
+		write_sp(ctx);
+		write_field_class(ctx, option_fc);
+		write_nl(ctx);
+
+		/* User attributes */
+		write_user_attributes(ctx, user_attrs,
+			false, NULL);
+
+		decr_indent(ctx);
+	}
 
 	if (int_ranges) {
 		g_array_free(int_ranges, TRUE);
-	}
-}
-
-static
-void write_variant_field_class(struct details_write_ctx *ctx,
-		const bt_field_class *fc)
-{
-	bt_field_class_type fc_type = bt_field_class_get_type(fc);
-	uint64_t option_count =
-		bt_field_class_variant_get_option_count(fc);
-	const bt_field_path *sel_field_path = NULL;
-
-	if (fc_type == BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_SELECTOR) {
- 		sel_field_path =
- 			bt_field_class_variant_with_selector_borrow_selector_field_path_const(
-				fc);
- 		BT_ASSERT(sel_field_path);
-	}
-
-	g_string_append(ctx->str, " (");
-	write_uint_prop_value(ctx, option_count);
-	g_string_append_printf(ctx->str, " option%s, ",
-		plural(option_count));
-
-	if (sel_field_path) {
-		g_string_append(ctx->str, "Selector field path ");
-		write_field_path(ctx, sel_field_path);
-	}
-
-	g_string_append_c(ctx->str, ')');
-
-	if (option_count > 0) {
-		uint64_t i;
-
-		g_string_append_c(ctx->str, ':');
-		incr_indent(ctx);
-
-		for (i = 0; i < option_count; i++) {
-			write_variant_field_class_option(ctx, fc, i);
-		}
-
-		decr_indent(ctx);
 	}
 }
 
@@ -774,6 +908,8 @@ void write_field_class(struct details_write_ctx *ctx, const bt_field_class *fc)
 	uint64_t i;
 	const char *type;
 	bt_field_class_type fc_type = bt_field_class_get_type(fc);
+	const bt_value *user_attrs;
+	bool wrote_user_attrs = false;
 
 	/* Write field class's type */
 	switch (fc_type) {
@@ -829,7 +965,7 @@ void write_field_class(struct details_write_ctx *ctx, const bt_field_class *fc)
 	g_string_append_printf(ctx->str, "%s%s%s",
 		color_fg_blue(ctx), type, color_reset(ctx));
 
-	/* Write field class's properties */
+	/* Write field class's single-line properties */
 	switch (fc_type) {
 	case BT_FIELD_CLASS_TYPE_UNSIGNED_INTEGER:
 	case BT_FIELD_CLASS_TYPE_SIGNED_INTEGER:
@@ -848,14 +984,6 @@ void write_field_class(struct details_write_ctx *ctx, const bt_field_class *fc)
 		write_uint_prop_value(ctx, mapping_count);
 		g_string_append_printf(ctx->str, " mapping%s)",
 			plural(mapping_count));
-
-		if (mapping_count > 0) {
-			g_string_append_c(ctx->str, ':');
-			incr_indent(ctx);
-			write_enum_field_class_mappings(ctx, fc);
-			decr_indent(ctx);
-		}
-
 		break;
 	}
 	case BT_FIELD_CLASS_TYPE_REAL:
@@ -875,27 +1003,6 @@ void write_field_class(struct details_write_ctx *ctx, const bt_field_class *fc)
 		write_uint_prop_value(ctx, member_count);
 		g_string_append_printf(ctx->str, " member%s)",
 			plural(member_count));
-
-		if (member_count > 0) {
-			g_string_append_c(ctx->str, ':');
-			incr_indent(ctx);
-
-			for (i = 0; i < member_count; i++) {
-				const bt_field_class_structure_member *member =
-					bt_field_class_structure_borrow_member_by_index_const(
-						fc, i);
-
-				write_nl(ctx);
-				write_compound_member_name(ctx,
-					bt_field_class_structure_member_get_name(member));
-				write_sp(ctx);
-				write_field_class(ctx,
-					bt_field_class_structure_member_borrow_field_class_const(member));
-			}
-
-			decr_indent(ctx);
-		}
-
 		break;
 	}
 	case BT_FIELD_CLASS_TYPE_STATIC_ARRAY:
@@ -917,14 +1024,6 @@ void write_field_class(struct details_write_ctx *ctx, const bt_field_class *fc)
 			}
 		}
 
-		g_string_append_c(ctx->str, ':');
-		write_nl(ctx);
-		incr_indent(ctx);
-		write_compound_member_name(ctx, "Element");
-		write_sp(ctx);
-		write_field_class(ctx,
-			bt_field_class_array_borrow_element_field_class_const(fc));
-		decr_indent(ctx);
 		break;
 	case BT_FIELD_CLASS_TYPE_OPTION:
 	{
@@ -937,24 +1036,197 @@ void write_field_class(struct details_write_ctx *ctx, const bt_field_class *fc)
 			g_string_append_c(ctx->str, ')');
 		}
 
-		g_string_append_c(ctx->str, ':');
-		write_nl(ctx);
-		incr_indent(ctx);
-		write_compound_member_name(ctx, "Content");
-		write_sp(ctx);
-		write_field_class(ctx,
-			bt_field_class_option_borrow_field_class_const(fc));
-		decr_indent(ctx);
 		break;
 	}
 	case BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR:
 	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_SELECTOR:
 	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_SELECTOR:
-		write_variant_field_class(ctx, fc);
+	{
+		uint64_t option_count =
+			bt_field_class_variant_get_option_count(fc);
+		const bt_field_path *sel_field_path = NULL;
+
+		if (fc_type == BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_SELECTOR ||
+				fc_type == BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_SELECTOR) {
+			sel_field_path =
+				bt_field_class_variant_with_selector_borrow_selector_field_path_const(
+					fc);
+			BT_ASSERT(sel_field_path);
+		}
+
+		g_string_append(ctx->str, " (");
+		write_uint_prop_value(ctx, option_count);
+		g_string_append_printf(ctx->str, " option%s",
+			plural(option_count));
+
+		if (sel_field_path) {
+			g_string_append(ctx->str, ", Selector field path ");
+			write_field_path(ctx, sel_field_path);
+		}
+
+		g_string_append_c(ctx->str, ')');
 		break;
+	}
 	default:
 		break;
 	}
+
+	incr_indent(ctx);
+	user_attrs = bt_field_class_borrow_user_attributes_const(fc);
+	if (!bt_value_map_is_empty(user_attrs)) {
+		g_string_append(ctx->str, ":\n");
+		write_user_attributes(ctx, user_attrs, false, NULL);
+		wrote_user_attrs = true;
+	}
+
+	/* Write field class's complex properties */
+	switch (fc_type) {
+	case BT_FIELD_CLASS_TYPE_UNSIGNED_ENUMERATION:
+	case BT_FIELD_CLASS_TYPE_SIGNED_ENUMERATION:
+	{
+		uint64_t mapping_count =
+			bt_field_class_enumeration_get_mapping_count(fc);
+
+		if (mapping_count > 0) {
+			if (wrote_user_attrs) {
+				write_nl(ctx);
+				write_indent(ctx);
+				write_prop_name(ctx, "Mappings");
+				g_string_append_c(ctx->str, ':');
+				incr_indent(ctx);
+			} else {
+				/* Each mapping starts with its own newline */
+				g_string_append_c(ctx->str, ':');
+			}
+
+			write_enum_field_class_mappings(ctx, fc);
+
+			if (wrote_user_attrs) {
+				decr_indent(ctx);
+			}
+		}
+
+		break;
+	}
+	case BT_FIELD_CLASS_TYPE_STRUCTURE:
+	{
+		uint64_t member_count =
+			bt_field_class_structure_get_member_count(fc);
+
+		if (member_count > 0) {
+			if (wrote_user_attrs) {
+				write_nl(ctx);
+				write_indent(ctx);
+				write_prop_name(ctx, "Members");
+				g_string_append_c(ctx->str, ':');
+				incr_indent(ctx);
+			} else {
+				/* Each member starts with its own newline */
+				g_string_append_c(ctx->str, ':');
+			}
+
+			for (i = 0; i < member_count; i++) {
+				const bt_field_class_structure_member *member =
+					bt_field_class_structure_borrow_member_by_index_const(
+						fc, i);
+				const bt_value *user_attrs;
+				const bt_field_class *member_fc =
+					bt_field_class_structure_member_borrow_field_class_const(member);
+
+				write_nl(ctx);
+				write_compound_member_name(ctx,
+					bt_field_class_structure_member_get_name(member));
+				user_attrs = bt_field_class_structure_member_borrow_user_attributes_const(
+					member);
+
+				if (bt_value_map_is_empty(user_attrs)) {
+					write_sp(ctx);
+					write_field_class(ctx, member_fc);
+				} else {
+					write_nl(ctx);
+					incr_indent(ctx);
+
+					/* Field class */
+					write_prop_name_line(ctx, "Field class");
+					write_sp(ctx);
+					write_field_class(ctx, member_fc);
+					write_nl(ctx);
+
+					/* User attributes */
+					write_user_attributes(ctx, user_attrs,
+						false, NULL);
+
+					decr_indent(ctx);
+				}
+			}
+
+			if (wrote_user_attrs) {
+				decr_indent(ctx);
+			}
+		}
+
+		break;
+	}
+	case BT_FIELD_CLASS_TYPE_STATIC_ARRAY:
+	case BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY:
+		if (wrote_user_attrs) {
+			write_nl(ctx);
+		} else {
+			g_string_append(ctx->str, ":\n");
+		}
+
+		write_prop_name_line(ctx, "Element");
+		write_sp(ctx);
+		write_field_class(ctx,
+			bt_field_class_array_borrow_element_field_class_const(fc));
+		break;
+	case BT_FIELD_CLASS_TYPE_OPTION:
+		if (wrote_user_attrs) {
+			write_nl(ctx);
+		} else {
+			g_string_append(ctx->str, ":\n");
+		}
+
+		write_prop_name_line(ctx, "Content");
+		write_sp(ctx);
+		write_field_class(ctx,
+			bt_field_class_option_borrow_field_class_const(fc));
+		break;
+	case BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR:
+	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_SELECTOR:
+	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_SELECTOR:
+	{
+		uint64_t option_count =
+			bt_field_class_variant_get_option_count(fc);
+
+		if (option_count > 0) {
+			if (wrote_user_attrs) {
+				write_nl(ctx);
+				write_indent(ctx);
+				write_prop_name(ctx, "Options");
+				g_string_append_c(ctx->str, ':');
+				incr_indent(ctx);
+			} else {
+				/* Each option starts with its own newline */
+				g_string_append_c(ctx->str, ':');
+			}
+
+			for (i = 0; i < option_count; i++) {
+				write_variant_field_class_option(ctx, fc, i);
+			}
+
+			if (wrote_user_attrs) {
+				decr_indent(ctx);
+			}
+		}
+
+		break;
+	}
+	default:
+		break;
+	}
+
+	decr_indent(ctx);
 }
 
 static
@@ -993,6 +1265,10 @@ void write_event_class(struct details_write_ctx *ctx, const bt_event_class *ec)
 
 	/* Write properties */
 	incr_indent(ctx);
+
+	/* Write user attributes */
+	write_user_attributes(ctx,
+		bt_event_class_borrow_user_attributes_const(ec), true, NULL);
 
 	/* Write log level */
 	if (bt_event_class_get_log_level(ec, &log_level) ==
@@ -1086,6 +1362,8 @@ void write_clock_class_prop_lines(struct details_write_ctx *ctx,
 		write_str_prop_line(ctx, "Name", str);
 	}
 
+	write_user_attributes(ctx,
+		bt_clock_class_borrow_user_attributes_const(cc), true, NULL);
 	str = bt_clock_class_get_description(cc);
 	if (str) {
 		write_str_prop_line(ctx, "Description", str);
@@ -1153,6 +1431,10 @@ void write_stream_class(struct details_write_ctx *ctx,
 
 	/* Write properties */
 	incr_indent(ctx);
+
+	/* Write user attributes */
+	write_user_attributes(ctx,
+		bt_stream_class_borrow_user_attributes_const(sc), true, NULL);
 
 	/* Write configuration */
 	write_bool_prop_line(ctx,
@@ -1242,12 +1524,6 @@ gint compare_stream_classes(const bt_stream_class **a, const bt_stream_class **b
 }
 
 static
-gint compare_strings(const char **a, const char **b)
-{
-	return strcmp(*a, *b);
-}
-
-static
 void write_trace_class(struct details_write_ctx *ctx, const bt_trace_class *tc)
 {
 	GPtrArray *stream_classes = g_ptr_array_new();
@@ -1256,6 +1532,7 @@ void write_trace_class(struct details_write_ctx *ctx, const bt_trace_class *tc)
 
 	write_indent(ctx);
 	write_obj_type_name(ctx, "Trace class");
+
 
 	for (i = 0; i < bt_trace_class_get_stream_class_count(tc); i++) {
 		g_ptr_array_add(stream_classes,
@@ -1274,6 +1551,12 @@ void write_trace_class(struct details_write_ctx *ctx, const bt_trace_class *tc)
 
 	incr_indent(ctx);
 
+	/* Write user attributes */
+	write_user_attributes(ctx,
+		bt_trace_class_borrow_user_attributes_const(tc), true,
+		&printed_prop);
+
+	/* Write stream classes */
 	for (i = 0; i < stream_classes->len; i++) {
 		write_stream_class(ctx, stream_classes->pdata[i]);
 	}
@@ -1635,7 +1918,7 @@ void write_field(struct details_write_ctx *ctx, const bt_field *field,
 					field, i);
 
 			write_nl(ctx);
-			write_array_index(ctx, i);
+			write_array_index(ctx, i, color_fg_cyan(ctx));
 			write_field(ctx, elem_field, NULL);
 		}
 
