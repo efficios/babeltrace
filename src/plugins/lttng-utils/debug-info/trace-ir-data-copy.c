@@ -58,6 +58,13 @@ void copy_trace_content(const bt_trace *in_trace, bt_trace *out_trace,
 	}
 
 	/*
+	 * Safe to use the same value object because it's frozen at this
+	 * point.
+	 */
+	bt_trace_set_user_attributes(out_trace,
+		bt_trace_borrow_user_attributes_const(in_trace));
+
+	/*
 	 * Do not copy the trace UUID as it may be modified and should
 	 * no longer have the same UUID.
 	 */
@@ -133,6 +140,12 @@ void copy_stream_content(const bt_stream *in_stream, bt_stream *out_stream,
 		}
 	}
 
+	/*
+	 * Safe to use the same value object because it's frozen at this
+	 * point.
+	 */
+	bt_stream_set_user_attributes(out_stream,
+		bt_stream_borrow_user_attributes_const(in_stream));
 	BT_COMP_LOGD("Copied content of stream: in-s-addr=%p, out-s-addr=%p",
 			in_stream, out_stream);
 end:
