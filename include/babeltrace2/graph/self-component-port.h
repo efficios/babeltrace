@@ -33,10 +33,6 @@
 extern "C" {
 #endif
 
-typedef enum bt_self_component_port_status {
-	BT_SELF_PORT_STATUS_OK = 0,
-} bt_self_component_port_status;
-
 static inline
 const bt_port *bt_self_component_port_as_port(
 		bt_self_component_port *self_port)
