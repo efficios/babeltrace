@@ -47,6 +47,7 @@ class EventClassTestCase(unittest.TestCase):
         self.assertIsNone(ec.payload_field_class)
         self.assertIsNone(ec.emf_uri)
         self.assertIsNone(ec.log_level)
+        self.assertEqual(len(ec.user_attributes), 0)
 
     def test_create_invalid_id(self):
         sc = self._tc.create_stream_class(assigns_automatic_event_class_id=False)
@@ -96,6 +97,18 @@ class EventClassTestCase(unittest.TestCase):
     def test_create_invalid_log_level(self):
         with self.assertRaises(ValueError):
             self._stream_class.create_event_class(log_level='zoom')
+
+    def test_create_user_attributes(self):
+        ec = self._stream_class.create_event_class(user_attributes={'salut': 23})
+        self.assertEqual(ec.user_attributes, {'salut': 23})
+
+    def test_create_invalid_user_attributes(self):
+        with self.assertRaises(TypeError):
+            self._stream_class.create_event_class(user_attributes=object())
+
+    def test_create_invalid_user_attributes_value_type(self):
+        with self.assertRaises(TypeError):
+            self._stream_class.create_event_class(user_attributes=23)
 
     def test_stream_class(self):
         ec = self._stream_class.create_event_class()

@@ -32,6 +32,7 @@ class StreamTestCase(unittest.TestCase):
     def test_create_default(self):
         stream = self._tr.create_stream(self._sc)
         self.assertIsNone(stream.name)
+        self.assertEqual(len(stream.user_attributes), 0)
 
     def test_name(self):
         stream = self._tr.create_stream(self._sc, name='équidistant')
@@ -40,6 +41,18 @@ class StreamTestCase(unittest.TestCase):
     def test_invalid_name(self):
         with self.assertRaises(TypeError):
             self._tr.create_stream(self._sc, name=22)
+
+    def test_create_user_attributes(self):
+        stream = self._tr.create_stream(self._sc, user_attributes={'salut': 23})
+        self.assertEqual(stream.user_attributes, {'salut': 23})
+
+    def test_create_invalid_user_attributes(self):
+        with self.assertRaises(TypeError):
+            self._tr.create_stream(self._sc, user_attributes=object())
+
+    def test_create_invalid_user_attributes_value_type(self):
+        with self.assertRaises(TypeError):
+            self._tr.create_stream(self._sc, user_attributes=23)
 
     def test_stream_class(self):
         stream = self._tr.create_stream(self._sc)

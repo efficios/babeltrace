@@ -30,6 +30,7 @@ from bt2 import stream_class as bt2_stream_class
 from bt2 import field_class as bt2_field_class
 from bt2 import trace as bt2_trace
 from bt2 import trace_class as bt2_trace_class
+from bt2 import value as bt2_value
 import collections.abc
 import functools
 
@@ -47,7 +48,7 @@ class _TraceClass(object._SharedObject, collections.abc.Mapping):
 
     # Instantiate a trace of this class.
 
-    def __call__(self, name=None, uuid=None, env=None):
+    def __call__(self, name=None, user_attributes=None, uuid=None, env=None):
         trace_ptr = native_bt.trace_create(self._ptr)
 
         if trace_ptr is None:
@@ -57,6 +58,9 @@ class _TraceClass(object._SharedObject, collections.abc.Mapping):
 
         if name is not None:
             trace._name = name
+
+        if user_attributes is not None:
+            trace._user_attributes = user_attributes
 
         if uuid is not None:
             trace._uuid = uuid
@@ -101,6 +105,7 @@ class _TraceClass(object._SharedObject, collections.abc.Mapping):
         self,
         id=None,
         name=None,
+        user_attributes=None,
         packet_context_field_class=None,
         event_common_context_field_class=None,
         default_clock_class=None,
@@ -136,6 +141,9 @@ class _TraceClass(object._SharedObject, collections.abc.Mapping):
         if name is not None:
             sc._name = name
 
+        if user_attributes is not None:
+            sc._user_attributes = user_attributes
+
         if event_common_context_field_class is not None:
             sc._event_common_context_field_class = event_common_context_field_class
 
@@ -169,6 +177,19 @@ class _TraceClass(object._SharedObject, collections.abc.Mapping):
         return sc
 
     @property
+    def user_attributes(self):
+        ptr = native_bt.trace_class_borrow_user_attributes(self._ptr)
+        assert ptr is not None
+        return bt2_value._create_from_ptr_and_get_ref(ptr)
+
+    def _user_attributes(self, user_attributes):
+        value = bt2_value.create_value(user_attributes)
+        utils._check_type(value, bt2_value.MapValue)
+        native_bt.trace_class_set_user_attributes(self._ptr, value._ptr)
+
+    _user_attributes = property(fset=_user_attributes)
+
+    @property
     def assigns_automatic_stream_class_id(self):
         return native_bt.trace_class_assigns_automatic_stream_class_id(self._ptr)
 
@@ -188,13 +209,19 @@ class _TraceClass(object._SharedObject, collections.abc.Mapping):
         if ptr is None:
             raise bt2._MemoryError('cannot create {} field class'.format(type_name))
 
-    def create_bool_field_class(self):
+    @staticmethod
+    def _set_field_class_user_attrs(fc, user_attributes):
+        if user_attributes is not None:
+            fc._user_attributes = user_attributes
+
+    def create_bool_field_class(self, user_attributes=None):
         field_class_ptr = native_bt.field_class_bool_create(self._ptr)
         self._check_field_class_create_status(field_class_ptr, 'boolean')
+        fc = bt2_field_class._BoolFieldClass._create_from_ptr(field_class_ptr)
+        self._set_field_class_user_attrs(fc, user_attributes)
+        return fc
 
-        return bt2_field_class._BoolFieldClass._create_from_ptr(field_class_ptr)
-
-    def create_bit_array_field_class(self, length):
+    def create_bit_array_field_class(self, length, user_attributes=None):
         utils._check_uint64(length)
 
         if length < 1 or length > 64:
@@ -206,11 +233,18 @@ class _TraceClass(object._SharedObject, collections.abc.Mapping):
 
         field_class_ptr = native_bt.field_class_bit_array_create(self._ptr, length)
         self._check_field_class_create_status(field_class_ptr, 'bit array')
-
-        return bt2_field_class._BitArrayFieldClass._create_from_ptr(field_class_ptr)
+        fc = bt2_field_class._BitArrayFieldClass._create_from_ptr(field_class_ptr)
+        self._set_field_class_user_attrs(fc, user_attributes)
+        return fc
 
     def _create_integer_field_class(
-        self, create_func, py_cls, type_name, field_value_range, preferred_display_base
+        self,
+        create_func,
+        py_cls,
+        type_name,
+        field_value_range,
+        preferred_display_base,
+        user_attributes,
     ):
         field_class_ptr = create_func(self._ptr)
         self._check_field_class_create_status(field_class_ptr, type_name)
@@ -223,10 +257,11 @@ class _TraceClass(object._SharedObject, collections.abc.Mapping):
         if preferred_display_base is not None:
             field_class._preferred_display_base = preferred_display_base
 
+        self._set_field_class_user_attrs(field_class, user_attributes)
         return field_class
 
     def create_signed_integer_field_class(
-        self, field_value_range=None, preferred_display_base=None
+        self, field_value_range=None, preferred_display_base=None, user_attributes=None
     ):
         return self._create_integer_field_class(
             native_bt.field_class_integer_signed_create,
@@ -234,10 +269,11 @@ class _TraceClass(object._SharedObject, collections.abc.Mapping):
             'signed integer',
             field_value_range,
             preferred_display_base,
+            user_attributes,
         )
 
     def create_unsigned_integer_field_class(
-        self, field_value_range=None, preferred_display_base=None
+        self, field_value_range=None, preferred_display_base=None, user_attributes=None
     ):
         return self._create_integer_field_class(
             native_bt.field_class_integer_unsigned_create,
@@ -245,10 +281,11 @@ class _TraceClass(object._SharedObject, collections.abc.Mapping):
             'unsigned integer',
             field_value_range,
             preferred_display_base,
+            user_attributes,
         )
 
     def create_signed_enumeration_field_class(
-        self, field_value_range=None, preferred_display_base=None
+        self, field_value_range=None, preferred_display_base=None, user_attributes=None
     ):
         return self._create_integer_field_class(
             native_bt.field_class_enumeration_signed_create,
@@ -256,10 +293,11 @@ class _TraceClass(object._SharedObject, collections.abc.Mapping):
             'signed enumeration',
             field_value_range,
             preferred_display_base,
+            user_attributes,
         )
 
     def create_unsigned_enumeration_field_class(
-        self, field_value_range=None, preferred_display_base=None
+        self, field_value_range=None, preferred_display_base=None, user_attributes=None
     ):
         return self._create_integer_field_class(
             native_bt.field_class_enumeration_unsigned_create,
@@ -267,39 +305,46 @@ class _TraceClass(object._SharedObject, collections.abc.Mapping):
             'unsigned enumeration',
             field_value_range,
             preferred_display_base,
+            user_attributes,
         )
 
-    def create_real_field_class(self, is_single_precision=False):
+    def create_real_field_class(self, is_single_precision=False, user_attributes=None):
         field_class_ptr = native_bt.field_class_real_create(self._ptr)
         self._check_field_class_create_status(field_class_ptr, 'real')
 
         field_class = bt2_field_class._RealFieldClass._create_from_ptr(field_class_ptr)
 
         field_class._is_single_precision = is_single_precision
+        self._set_field_class_user_attrs(field_class, user_attributes)
 
         return field_class
 
-    def create_structure_field_class(self):
+    def create_structure_field_class(self, user_attributes=None):
         field_class_ptr = native_bt.field_class_structure_create(self._ptr)
         self._check_field_class_create_status(field_class_ptr, 'structure')
+        fc = bt2_field_class._StructureFieldClass._create_from_ptr(field_class_ptr)
+        self._set_field_class_user_attrs(fc, user_attributes)
+        return fc
 
-        return bt2_field_class._StructureFieldClass._create_from_ptr(field_class_ptr)
-
-    def create_string_field_class(self):
+    def create_string_field_class(self, user_attributes=None):
         field_class_ptr = native_bt.field_class_string_create(self._ptr)
         self._check_field_class_create_status(field_class_ptr, 'string')
+        fc = bt2_field_class._StringFieldClass._create_from_ptr(field_class_ptr)
+        self._set_field_class_user_attrs(fc, user_attributes)
+        return fc
 
-        return bt2_field_class._StringFieldClass._create_from_ptr(field_class_ptr)
-
-    def create_static_array_field_class(self, elem_fc, length):
+    def create_static_array_field_class(self, elem_fc, length, user_attributes=None):
         utils._check_type(elem_fc, bt2_field_class._FieldClass)
         utils._check_uint64(length)
         ptr = native_bt.field_class_array_static_create(self._ptr, elem_fc._ptr, length)
         self._check_field_class_create_status(ptr, 'static array')
+        fc = bt2_field_class._StaticArrayFieldClass._create_from_ptr_and_get_ref(ptr)
+        self._set_field_class_user_attrs(fc, user_attributes)
+        return fc
 
-        return bt2_field_class._StaticArrayFieldClass._create_from_ptr_and_get_ref(ptr)
-
-    def create_dynamic_array_field_class(self, elem_fc, length_fc=None):
+    def create_dynamic_array_field_class(
+        self, elem_fc, length_fc=None, user_attributes=None
+    ):
         utils._check_type(elem_fc, bt2_field_class._FieldClass)
         length_fc_ptr = None
 
@@ -311,9 +356,13 @@ class _TraceClass(object._SharedObject, collections.abc.Mapping):
             self._ptr, elem_fc._ptr, length_fc_ptr
         )
         self._check_field_class_create_status(ptr, 'dynamic array')
-        return bt2_field_class._DynamicArrayFieldClass._create_from_ptr(ptr)
+        fc = bt2_field_class._DynamicArrayFieldClass._create_from_ptr(ptr)
+        self._set_field_class_user_attrs(fc, user_attributes)
+        return fc
 
-    def create_option_field_class(self, content_fc, selector_fc=None):
+    def create_option_field_class(
+        self, content_fc, selector_fc=None, user_attributes=None
+    ):
         utils._check_type(content_fc, bt2_field_class._FieldClass)
 
         selector_fc_ptr = None
@@ -326,9 +375,11 @@ class _TraceClass(object._SharedObject, collections.abc.Mapping):
             self._ptr, content_fc._ptr, selector_fc_ptr
         )
         self._check_field_class_create_status(ptr, 'option')
-        return bt2_field_class._create_field_class_from_ptr_and_get_ref(ptr)
+        fc = bt2_field_class._create_field_class_from_ptr_and_get_ref(ptr)
+        self._set_field_class_user_attrs(fc, user_attributes)
+        return fc
 
-    def create_variant_field_class(self, selector_fc=None):
+    def create_variant_field_class(self, selector_fc=None, user_attributes=None):
         selector_fc_ptr = None
 
         if selector_fc is not None:
@@ -337,7 +388,9 @@ class _TraceClass(object._SharedObject, collections.abc.Mapping):
 
         ptr = native_bt.field_class_variant_create(self._ptr, selector_fc_ptr)
         self._check_field_class_create_status(ptr, 'variant')
-        return bt2_field_class._create_field_class_from_ptr_and_get_ref(ptr)
+        fc = bt2_field_class._create_field_class_from_ptr_and_get_ref(ptr)
+        self._set_field_class_user_attrs(fc, user_attributes)
+        return fc
 
     # Add a listener to be called when the trace class is destroyed.
 

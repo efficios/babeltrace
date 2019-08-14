@@ -706,7 +706,9 @@ class _UserComponent(metaclass=_UserComponentType):
         )
         self._user_port_connected(port, other_port)
 
-    def _create_trace_class(self, assigns_automatic_stream_class_id=True):
+    def _create_trace_class(
+        self, user_attributes=None, assigns_automatic_stream_class_id=True
+    ):
         ptr = self._bt_as_self_component_ptr(self._bt_ptr)
         tc_ptr = native_bt.trace_class_create(ptr)
 
@@ -716,12 +718,16 @@ class _UserComponent(metaclass=_UserComponentType):
         tc = bt2_trace_class._TraceClass._create_from_ptr(tc_ptr)
         tc._assigns_automatic_stream_class_id = assigns_automatic_stream_class_id
 
+        if user_attributes is not None:
+            tc._user_attributes = user_attributes
+
         return tc
 
     def _create_clock_class(
         self,
         frequency=None,
         name=None,
+        user_attributes=None,
         description=None,
         precision=None,
         offset=None,
@@ -741,6 +747,9 @@ class _UserComponent(metaclass=_UserComponentType):
 
         if name is not None:
             cc._name = name
+
+        if user_attributes is not None:
+            cc._user_attributes = user_attributes
 
         if description is not None:
             cc._description = description

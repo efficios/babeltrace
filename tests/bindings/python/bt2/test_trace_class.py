@@ -21,6 +21,17 @@ from utils import run_in_component_init, get_default_trace_class
 
 
 class TraceClassTestCase(unittest.TestCase):
+    def assertRaisesInComponentInit(self, expected_exc_type, user_code):
+        def f(comp_self):
+            try:
+                user_code(comp_self)
+            except Exception as exc:
+                return type(exc)
+
+        exc_type = run_in_component_init(f)
+        self.assertIsNotNone(exc_type)
+        self.assertEqual(exc_type, expected_exc_type)
+
     def test_create_default(self):
         def f(comp_self):
             return comp_self._create_trace_class()
@@ -29,6 +40,26 @@ class TraceClassTestCase(unittest.TestCase):
 
         self.assertEqual(len(tc), 0)
         self.assertTrue(tc.assigns_automatic_stream_class_id)
+        self.assertEqual(len(tc.user_attributes), 0)
+
+    def test_create_user_attributes(self):
+        def f(comp_self):
+            return comp_self._create_trace_class(user_attributes={'salut': 23})
+
+        tc = run_in_component_init(f)
+        self.assertEqual(tc.user_attributes, {'salut': 23})
+
+    def test_create_invalid_user_attributes(self):
+        def f(comp_self):
+            return comp_self._create_trace_class(user_attributes=object())
+
+        self.assertRaisesInComponentInit(TypeError, f)
+
+    def test_create_invalid_user_attributes_value_type(self):
+        def f(comp_self):
+            return comp_self._create_trace_class(user_attributes=23)
+
+        self.assertRaisesInComponentInit(TypeError, f)
 
     def test_automatic_stream_class_id(self):
         def f(comp_self):

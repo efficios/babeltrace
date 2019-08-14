@@ -116,6 +116,19 @@ class _Trace(object._SharedObject, collections.abc.Mapping):
         return bt2_trace_class._TraceClass._create_from_ptr_and_get_ref(trace_class_ptr)
 
     @property
+    def user_attributes(self):
+        ptr = native_bt.trace_borrow_user_attributes(self._ptr)
+        assert ptr is not None
+        return bt2_value._create_from_ptr_and_get_ref(ptr)
+
+    def _user_attributes(self, user_attributes):
+        value = bt2_value.create_value(user_attributes)
+        utils._check_type(value, bt2_value.MapValue)
+        native_bt.trace_set_user_attributes(self._ptr, value._ptr)
+
+    _user_attributes = property(fset=_user_attributes)
+
+    @property
     def name(self):
         return native_bt.trace_get_name(self._ptr)
 
@@ -144,7 +157,7 @@ class _Trace(object._SharedObject, collections.abc.Mapping):
     def env(self):
         return _TraceEnv(self)
 
-    def create_stream(self, stream_class, id=None, name=None):
+    def create_stream(self, stream_class, id=None, name=None, user_attributes=None):
         utils._check_type(stream_class, bt2_stream_class._StreamClass)
 
         if stream_class.assigns_automatic_stream_id:
@@ -172,6 +185,9 @@ class _Trace(object._SharedObject, collections.abc.Mapping):
 
         if name is not None:
             stream._name = name
+
+        if user_attributes is not None:
+            stream._user_attributes = user_attributes
 
         return stream
 

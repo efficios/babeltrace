@@ -21,6 +21,7 @@
 # THE SOFTWARE.
 
 from bt2 import native_bt, object, utils
+from bt2 import value as bt2_value
 import uuid as uuidp
 
 
@@ -50,6 +51,19 @@ class ClockClassOffset:
 class _ClockClass(object._SharedObject):
     _get_ref = staticmethod(native_bt.clock_class_get_ref)
     _put_ref = staticmethod(native_bt.clock_class_put_ref)
+
+    @property
+    def user_attributes(self):
+        ptr = native_bt.clock_class_borrow_user_attributes(self._ptr)
+        assert ptr is not None
+        return bt2_value._create_from_ptr_and_get_ref(ptr)
+
+    def _user_attributes(self, user_attributes):
+        value = bt2_value.create_value(user_attributes)
+        utils._check_type(value, bt2_value.MapValue)
+        native_bt.clock_class_set_user_attributes(self._ptr, value._ptr)
+
+    _user_attributes = property(fset=_user_attributes)
 
     @property
     def name(self):

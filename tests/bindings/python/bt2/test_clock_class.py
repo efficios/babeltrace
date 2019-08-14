@@ -87,6 +87,7 @@ class ClockClassTestCase(unittest.TestCase):
         self.assertEqual(cc.offset, bt2.ClockClassOffset())
         self.assertTrue(cc.origin_is_unix_epoch)
         self.assertIsNone(cc.uuid)
+        self.assertEqual(len(cc.user_attributes), 0)
 
     def test_create_name(self):
         def f(comp_self):
@@ -195,6 +196,25 @@ class ClockClassTestCase(unittest.TestCase):
     def test_create_invalid_uuid(self):
         def f(comp_self):
             return comp_self._create_clock_class(uuid=23)
+
+        self.assertRaisesInComponentInit(TypeError, f)
+
+    def test_create_user_attributes(self):
+        def f(comp_self):
+            return comp_self._create_clock_class(user_attributes={'salut': 23})
+
+        cc = run_in_component_init(f)
+        self.assertEqual(cc.user_attributes, {'salut': 23})
+
+    def test_create_invalid_user_attributes(self):
+        def f(comp_self):
+            return comp_self._create_clock_class(user_attributes=object())
+
+        self.assertRaisesInComponentInit(TypeError, f)
+
+    def test_create_invalid_user_attributes_value_type(self):
+        def f(comp_self):
+            return comp_self._create_clock_class(user_attributes=23)
 
         self.assertRaisesInComponentInit(TypeError, f)
 

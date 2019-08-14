@@ -46,6 +46,7 @@ class StreamClassTestCase(unittest.TestCase):
         self.assertFalse(sc.discarded_events_have_default_clock_snapshots)
         self.assertFalse(sc.supports_discarded_packets)
         self.assertFalse(sc.discarded_packets_have_default_clock_snapshots)
+        self.assertEqual(len(sc.user_attributes), 0)
 
     def test_create_name(self):
         sc = self._tc.create_stream_class(name='bozo')
@@ -88,6 +89,18 @@ class StreamClassTestCase(unittest.TestCase):
     def test_create_invalid_default_clock_class(self):
         with self.assertRaises(TypeError):
             self._tc.create_stream_class(default_clock_class=12)
+
+    def test_create_user_attributes(self):
+        sc = self._tc.create_stream_class(user_attributes={'salut': 23})
+        self.assertEqual(sc.user_attributes, {'salut': 23})
+
+    def test_create_invalid_user_attributes(self):
+        with self.assertRaises(TypeError):
+            self._tc.create_stream_class(user_attributes=object())
+
+    def test_create_invalid_user_attributes_value_type(self):
+        with self.assertRaises(TypeError):
+            self._tc.create_stream_class(user_attributes=23)
 
     def test_automatic_stream_ids(self):
         sc = self._tc.create_stream_class(assigns_automatic_stream_id=True)

@@ -58,6 +58,19 @@ class _EventClass(object._SharedObject):
             return bt2_stream_class._StreamClass._create_from_ptr_and_get_ref(sc_ptr)
 
     @property
+    def user_attributes(self):
+        ptr = native_bt.event_class_borrow_user_attributes(self._ptr)
+        assert ptr is not None
+        return bt2_value._create_from_ptr_and_get_ref(ptr)
+
+    def _user_attributes(self, user_attributes):
+        value = bt2_value.create_value(user_attributes)
+        utils._check_type(value, bt2_value.MapValue)
+        native_bt.event_class_set_user_attributes(self._ptr, value._ptr)
+
+    _user_attributes = property(fset=_user_attributes)
+
+    @property
     def name(self):
         return native_bt.event_class_get_name(self._ptr)
 
