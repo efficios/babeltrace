@@ -32,6 +32,8 @@ babeltrace2_bin_SOURCES = \
 	babeltrace2-cfg-cli-args-default.c \
 	babeltrace2-cfg-cli-params-arg.c \
 	babeltrace2-cfg-cli-params-arg.h \
+	babeltrace2-log-level.c \
+	babeltrace2-log-level.h \
 	babeltrace2-plugins.c \
 	babeltrace2-plugins.h \
 	babeltrace2-query.c \

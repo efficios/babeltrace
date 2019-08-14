@@ -41,12 +41,11 @@
 #include "babeltrace2-cfg-cli-args.h"
 #include "babeltrace2-cfg-cli-args-connect.h"
 #include "babeltrace2-cfg-cli-params-arg.h"
+#include "babeltrace2-log-level.h"
 #include "babeltrace2-plugins.h"
 #include "babeltrace2-query.h"
 #include "autodisc/autodisc.h"
 #include "common/version.h"
-
-static const int cli_default_log_level = BT_LOG_WARNING;
 
 /* INI-style parsing FSM states */
 enum ini_parsing_fsm_state {
@@ -3846,18 +3845,19 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 			stream_intersection_mode = true;
 			break;
 		case OPT_VERBOSE:
-			if (*default_log_level != BT_LOG_TRACE &&
-					*default_log_level != BT_LOG_DEBUG) {
-				*default_log_level = BT_LOG_INFO;
-			}
+			*default_log_level =
+				logging_level_min(*default_log_level, BT_LOG_INFO);
 			break;
 		case OPT_DEBUG:
-			*default_log_level = BT_LOG_TRACE;
+			*default_log_level =
+				logging_level_min(*default_log_level, BT_LOG_TRACE);
 			break;
 		default:
 			break;
 		}
 	}
+
+	set_auto_log_levels(default_log_level);
 
 	/*
 	 * Legacy behaviour: --verbose used to make the `text` output
@@ -4031,8 +4031,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 
 			status = auto_discover_source_components(non_opts, plugins, plugin_count,
 				auto_source_discovery_restrict_component_class_name,
-				*default_log_level >= 0 ? *default_log_level : cli_default_log_level,
-				&auto_disc);
+				*default_log_level, &auto_disc);
 
 			if (status != 0) {
 				goto error;
@@ -4312,14 +4311,6 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 		goto end;
 	}
 
-	/*
-	 * If the log level is still unset at this point, set it to
-	 * the program's default.
-	 */
-	if (*default_log_level < 0) {
-		*default_log_level = cli_default_log_level;
-	}
-
 	cfg = bt_config_run_from_args_array(run_args, retcode,
 		plugin_paths, *default_log_level);
 	if (!cfg) {
@@ -4334,14 +4325,6 @@ error:
 	BT_OBJECT_PUT_REF_AND_RESET(cfg);
 
 end:
-	/*
-	 * If the log level is still unset at this point, set it to
-	 * the program's default.
-	 */
-	if (*default_log_level < 0) {
-		*default_log_level = cli_default_log_level;
-	}
-
 	bt_argpar_parse_ret_fini(&argpar_parse_ret);
 
 	free(output);
@@ -4514,28 +4497,28 @@ struct bt_config *bt_config_cli_args_create(int argc, const char *argv[],
 
 			switch (item_opt->descr->id) {
 				case OPT_DEBUG:
-					default_log_level = BT_LOG_TRACE;
+					default_log_level =
+						logging_level_min(default_log_level, BT_LOG_TRACE);
 					break;
 				case OPT_VERBOSE:
-					/*
-					 * Legacy: do not override a previous
-					 * --debug because --verbose and --debug
-					 * can be specified together (in this
-					 * case we want the lowest log level to
-					 * apply, TRACE).
-					 */
-					default_log_level = BT_LOG_INFO;
+					default_log_level =
+						logging_level_min(default_log_level, BT_LOG_INFO);
 					break;
 				case OPT_LOG_LEVEL:
-					default_log_level =
-						bt_log_get_level_from_string(item_opt->arg);
-					if (default_log_level < 0) {
+				{
+					int level = bt_log_get_level_from_string(item_opt->arg);
+
+					if (level < 0) {
 						BT_CLI_LOGE_APPEND_CAUSE(
 							"Invalid argument for --log-level option:\n    %s",
 							item_opt->arg);
 						goto error;
 					}
+
+					default_log_level =
+						logging_level_min(default_log_level, level);
 					break;
+				}
 				case OPT_PLUGIN_PATH:
 					if (bt_config_append_plugin_paths_check_setuid_setgid(
 							plugin_paths, item_opt->arg)) {
@@ -4620,13 +4603,16 @@ struct bt_config *bt_config_cli_args_create(int argc, const char *argv[],
 	BT_ASSERT(command_argc >= 0);
 
 	/*
-	 * The convert command can set its own default log level for
-	 * backward compatibility reasons. It only does so if there's no
-	 * log level yet, so do not force one for this command.
+	 * For all commands other than `convert`, we now know the log level to
+	 * use, so we can apply it with `set_auto_log_levels`.
+	 *
+	 * The convert command has `--debug` and `--verbose` arguments that are
+	 * equivalent to the top-level arguments of the same name.  So after it
+	 * has parsed its arguments, `bt_config_convert_from_args` calls
+	 * `set_auto_log_levels` itself.
 	 */
-	if (command_type != COMMAND_TYPE_CONVERT && default_log_level < 0) {
-		/* Default log level */
-		default_log_level = cli_default_log_level;
+	if (command_type != COMMAND_TYPE_CONVERT) {
+		set_auto_log_levels(&default_log_level);
 	}
 
 	/*
