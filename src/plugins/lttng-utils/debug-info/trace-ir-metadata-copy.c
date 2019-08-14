@@ -46,6 +46,13 @@ int copy_trace_class_content(const bt_trace_class *in_trace_class,
 	BT_COMP_LOGD("Copying content of trace class: in-tc-addr=%p, out-tc-addr=%p",
 			in_trace_class, out_trace_class);
 
+	/*
+	 * Safe to use the same value object because it's frozen at this
+	 * point.
+	 */
+	bt_trace_class_set_user_attributes(out_trace_class,
+		bt_trace_class_borrow_user_attributes_const(in_trace_class));
+
 	/* Use the same stream class ids as in the origin trace class. */
 	bt_trace_class_set_assigns_automatic_stream_class_id(out_trace_class,
 			BT_FALSE);
@@ -80,6 +87,13 @@ int copy_clock_class_content(const bt_clock_class *in_clock_class,
 			goto error;
 		}
 	}
+
+	/*
+	 * Safe to use the same value object because it's frozen at this
+	 * point.
+	 */
+	bt_clock_class_set_user_attributes(out_clock_class,
+		bt_clock_class_borrow_user_attributes_const(in_clock_class));
 
 	clock_class_description = bt_clock_class_get_description(in_clock_class);
 
@@ -203,6 +217,13 @@ int copy_stream_class_content(struct trace_ir_maps *ir_maps,
 				out_clock_class);
 
 	}
+
+	/*
+	 * Safe to use the same value object because it's frozen at this
+	 * point.
+	 */
+	bt_stream_class_set_user_attributes(out_stream_class,
+		bt_stream_class_borrow_user_attributes_const(in_stream_class));
 
 	bt_stream_class_set_supports_packets(
 		out_stream_class,
@@ -344,6 +365,13 @@ int copy_event_class_content(struct trace_ir_maps *ir_maps,
 			goto error;
 		}
 	}
+
+	/*
+	 * Safe to use the same value object because it's frozen at this
+	 * point.
+	 */
+	bt_event_class_set_user_attributes(out_event_class,
+		bt_event_class_borrow_user_attributes_const(in_event_class));
 
 	/* Copy event class loglevel. */
 	prop_avail = bt_event_class_get_log_level(in_event_class,

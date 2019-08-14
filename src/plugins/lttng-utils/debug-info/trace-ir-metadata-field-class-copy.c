@@ -357,32 +357,33 @@ int field_class_structure_copy(
 
 	/* Iterate over all the members of the struct. */
 	for (i = 0; i < struct_member_count; i++) {
-		const bt_field_class_structure_member *member;
+		const bt_field_class_structure_member *in_member;
+		bt_field_class_structure_member *out_member;
 		const char *member_name;
-		const bt_field_class *member_fc;
+		const bt_field_class *in_member_fc;
 		bt_field_class *out_member_field_class;
 
-		member = bt_field_class_structure_borrow_member_by_index_const(
+		in_member = bt_field_class_structure_borrow_member_by_index_const(
 			in_field_class, i);
-		member_fc = bt_field_class_structure_member_borrow_field_class_const(
-			member);
-		member_name = bt_field_class_structure_member_get_name(member);
+		in_member_fc = bt_field_class_structure_member_borrow_field_class_const(
+			in_member);
+		member_name = bt_field_class_structure_member_get_name(in_member);
 		BT_COMP_LOGD("Copying structure field class's field: "
 			"index=%" PRId64 ", "
 			"member-fc-addr=%p, field-name=\"%s\"",
-			i, member_fc, member_name);
+			i, in_member_fc, member_name);
 
 		out_member_field_class = create_field_class_copy(md_maps,
-				member_fc);
+				in_member_fc);
 		if (!out_member_field_class) {
 			BT_COMP_LOGE("Cannot copy structure field class's field: "
 				"index=%" PRId64 ", "
 				"field-fc-addr=%p, field-name=\"%s\"",
-				i, member_fc, member_name);
+				i, in_member_fc, member_name);
 			ret = -1;
 			goto error;
 		}
-		ret = copy_field_class_content(md_maps, member_fc,
+		ret = copy_field_class_content(md_maps, in_member_fc,
 				out_member_field_class);
 		if (ret) {
 			goto error;
@@ -394,11 +395,24 @@ int field_class_structure_copy(
 			BT_COMP_LOGE("Cannot append structure field class's field: "
 				"index=%" PRId64 ", "
 				"field-fc-addr=%p, field-name=\"%s\"",
-				i, member_fc, member_name);
+				i, in_member_fc, member_name);
 			BT_FIELD_CLASS_PUT_REF_AND_RESET(out_member_field_class);
 			ret = -1;
 			goto error;
 		}
+
+		out_member = bt_field_class_structure_borrow_member_by_index(
+			out_field_class, i);
+		BT_ASSERT(out_member);
+
+		/*
+		 * Safe to use the same value object because it's frozen
+		 * at this point.
+		 */
+		bt_field_class_structure_member_set_user_attributes(
+			out_member,
+			bt_field_class_structure_member_borrow_user_attributes_const(
+				in_member));
 	}
 
 	BT_COMP_LOGD("Copied structure field class: original-fc-addr=%p, copy-fc-addr=%p",
@@ -425,24 +439,25 @@ int field_class_variant_copy(
 	variant_option_count =
 		bt_field_class_variant_get_option_count(in_field_class);
 	for (i = 0; i < variant_option_count; i++) {
-		const bt_field_class *option_fc;
+		const bt_field_class *in_option_fc;
 		const char *option_name;
 		bt_field_class *out_option_field_class;
-		const bt_field_class_variant_option *option;
+		const bt_field_class_variant_option *in_option;
+		bt_field_class_variant_option *out_option;
 
-		option = bt_field_class_variant_borrow_option_by_index_const(
+		in_option = bt_field_class_variant_borrow_option_by_index_const(
 			in_field_class, i);
-		option_fc = bt_field_class_variant_option_borrow_field_class_const(
-			option);
-		option_name = bt_field_class_variant_option_get_name(option);
+		in_option_fc = bt_field_class_variant_option_borrow_field_class_const(
+			in_option);
+		option_name = bt_field_class_variant_option_get_name(in_option);
 		out_option_field_class = create_field_class_copy_internal(
-				md_maps, option_fc);
+				md_maps, in_option_fc);
 		if (!out_option_field_class) {
 			BT_COMP_LOGE_STR("Cannot copy field class.");
 			ret = -1;
 			goto error;
 		}
-		ret = copy_field_class_content_internal(md_maps, option_fc,
+		ret = copy_field_class_content_internal(md_maps, in_option_fc,
 				out_option_field_class);
 		if (ret) {
 			BT_COMP_LOGE_STR("Error copying content of option variant "
@@ -497,6 +512,19 @@ int field_class_variant_copy(
 				goto error;
 			}
 		}
+
+		out_option = bt_field_class_variant_borrow_option_by_index(
+			out_field_class, i);
+		BT_ASSERT(out_option);
+
+		/*
+		 * Safe to use the same value object because it's frozen
+		 * at this point.
+		 */
+		bt_field_class_variant_option_set_user_attributes(
+			out_option,
+			bt_field_class_variant_option_borrow_user_attributes_const(
+				in_option));
 	}
 
 	BT_COMP_LOGD("Copied content of variant field class: in-fc-addr=%p, "
@@ -810,6 +838,14 @@ int copy_field_class_content_internal(
 		bt_field_class *out_field_class)
 {
 	int ret = 0;
+
+	/*
+	 * Safe to use the same value object because it's frozen at this
+	 * point.
+	 */
+	bt_field_class_set_user_attributes(out_field_class,
+		bt_field_class_borrow_user_attributes_const(in_field_class));
+
 	switch(bt_field_class_get_type(in_field_class)) {
 	case BT_FIELD_CLASS_TYPE_BOOL:
 		ret = field_class_bool_copy(md_maps,
