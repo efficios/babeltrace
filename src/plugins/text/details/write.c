@@ -1598,7 +1598,8 @@ void write_field(struct details_write_ctx *ctx, const bt_field *field,
 
 			decr_indent(ctx);
 		} else {
-			g_string_append(ctx->str, " Empty");
+			write_sp(ctx);
+			write_none_prop_value(ctx, "Empty");
 		}
 
 		break;
@@ -1609,7 +1610,8 @@ void write_field(struct details_write_ctx *ctx, const bt_field *field,
 		uint64_t length = bt_field_array_get_length(field);
 
 		if (length == 0) {
-			g_string_append(ctx->str, " Empty");
+			write_sp(ctx);
+			write_none_prop_value(ctx, "Empty");
 		} else {
 			g_string_append(ctx->str, " Length ");
 			write_uint_prop_value(ctx, length);
