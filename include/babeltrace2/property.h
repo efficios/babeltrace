@@ -32,8 +32,8 @@ extern "C" {
 #endif
 
 typedef enum bt_property_availability {
-	BT_PROPERTY_AVAILABILITY_AVAILABLE,
-	BT_PROPERTY_AVAILABILITY_NOT_AVAILABLE,
+	BT_PROPERTY_AVAILABILITY_NOT_AVAILABLE	= 0,
+	BT_PROPERTY_AVAILABILITY_AVAILABLE	= 1,
 } bt_property_availability;
 
 #ifdef __cplusplus
