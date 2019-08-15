@@ -320,6 +320,7 @@ bt_value *ini_parse_value(struct ini_parsing_state *state)
 		if (strcmp(id, "null") == 0 || strcmp(id, "NULL") == 0 ||
 				strcmp(id, "nul") == 0) {
 			value = bt_value_null;
+			bt_value_get_ref(value);
 		} else if (strcmp(id, "true") == 0 || strcmp(id, "TRUE") == 0 ||
 				strcmp(id, "yes") == 0 ||
 				strcmp(id, "YES") == 0) {
