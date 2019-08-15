@@ -1300,6 +1300,8 @@ void print_expected_params_format(FILE *fp)
 	fprintf(fp, "* Double-quoted string (accepts escape characters).\n");
 	fprintf(fp, "* Array, formatted as an opening `[`, a list of comma-separated values\n");
 	fprintf(fp, "  (as described by the current list) and a closing `]`.\n");
+	fprintf(fp, "* Map, formatted as an opening `{`, a comma-separated list of PARAM=VALUE\n");
+	fprintf(fp, "  assignments and a closing `}`.\n");
 	fprintf(fp, "\n");
 	fprintf(fp, "You can put whitespaces allowed around individual `=` and `,` symbols.\n");
 	fprintf(fp, "\n");

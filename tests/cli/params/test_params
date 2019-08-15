@@ -27,7 +27,7 @@ fi
 # shellcheck source=../../utils/utils.sh
 SH_TAP=1 source "$UTILSSH"
 
-NUM_TESTS=8
+NUM_TESTS=9
 
 plan_tests $NUM_TESTS
 
@@ -65,5 +65,7 @@ expect_success 'float scientific notation' 'a=10.5e6, b=10.5E6, c=10.5e-6, d=10.
 	'{a=10500000.0, b=10500000.0, c=1.05e-05, d=1.05e-05}'
 expect_success 'array' 'a=[1, [["hi",]]]' \
 	'{a=[1, [[hi]]]}'
+expect_success 'map' 'a={},b={salut="la gang",comment="ca va",oh={x=2}}' \
+	'{a={}, b={comment=ca va, oh={x=2}, salut=la gang}}'
 
 rm -f "$expected_file"
