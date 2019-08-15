@@ -37,7 +37,7 @@ extern "C" {
 extern const bt_stream *bt_message_stream_end_borrow_stream_const(
 		const bt_message *message);
 
-extern enum bt_message_stream_clock_snapshot_state
+extern bt_message_stream_clock_snapshot_state
 bt_message_stream_end_borrow_default_clock_snapshot_const(
 		const bt_message *message, const bt_clock_snapshot **snapshot);
 
