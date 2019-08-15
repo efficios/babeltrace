@@ -254,6 +254,110 @@ end:
 }
 
 /*
+ * Parses the current and following tokens as a map. Maps are
+ * formatted as an opening `{`, a list of comma-separated entries, and a
+ * closing `}`. And entry is a key (an unquoted string), an equal sign and
+ * a value. For convenience, this function supports an optional trailing comma
+ * after the last value.
+ *
+ * The current token of the parser must be the opening curly bracket
+ * (`{`) of the array.
+ */
+static
+bt_value *ini_parse_map(struct ini_parsing_state *state)
+{
+	bt_value *map_value;
+	GTokenType token_type;
+	gchar *key = NULL;
+
+	/* The `{` character must have already been ingested */
+	BT_ASSERT(g_scanner_cur_token(state->scanner) == G_TOKEN_CHAR);
+	BT_ASSERT(g_scanner_cur_value(state->scanner).v_char == '{');
+
+	map_value = bt_value_map_create ();
+	if (!map_value) {
+		ini_append_oom_error(state->ini_error);
+		goto error;
+	}
+
+	token_type = g_scanner_get_next_token(state->scanner);
+
+	/* While the current token is not a `}` */
+	while (!(token_type == G_TOKEN_CHAR &&
+			g_scanner_cur_value(state->scanner).v_char == '}')) {
+		bt_value *entry_value;
+		bt_value_map_insert_entry_status insert_entry_status;
+
+		/* Expect map key. */
+		if (token_type != G_TOKEN_IDENTIFIER) {
+			ini_append_error_expecting(state, state->scanner,
+				"unquoted map key");
+			goto error;
+		}
+
+		g_free(key);
+		key = g_strdup(g_scanner_cur_value(state->scanner).v_identifier);
+
+		token_type = g_scanner_get_next_token(state->scanner);
+
+		/* Expect equal sign. */
+		if (token_type != G_TOKEN_CHAR ||
+				g_scanner_cur_value(state->scanner).v_char != '=') {
+			ini_append_error_expecting(state,
+				state->scanner, "'='");
+			goto error;
+		}
+
+		token_type = g_scanner_get_next_token(state->scanner);
+
+		/* Parse the entry value... */
+		entry_value = ini_parse_value(state);
+		if (!entry_value) {
+			goto error;
+		}
+
+		/* ... and add it to the result map */
+		insert_entry_status =
+			bt_value_map_insert_entry(map_value, key, entry_value);
+		BT_VALUE_PUT_REF_AND_RESET(entry_value);
+		if (insert_entry_status != BT_VALUE_MAP_INSERT_ENTRY_STATUS_OK) {
+			goto error;
+		}
+
+		/*
+		 * Ingest the token following the value. It should be
+		 * either a comma or closing curly bracket.
+		 */
+		token_type = g_scanner_get_next_token(state->scanner);
+		if (token_type == G_TOKEN_CHAR &&
+				g_scanner_cur_value(state->scanner).v_char == ',') {
+			/*
+			 * Ingest the token following the comma. If it
+			 * happens to be a closing curly bracket, exit
+			 * the loop and we are done (we allow trailing
+			 * commas). Otherwise, we are ready for the next
+			 * ini_parse_value() call.
+			 */
+			token_type = g_scanner_get_next_token(state->scanner);
+		} else if (token_type != G_TOKEN_CHAR ||
+				g_scanner_cur_value(state->scanner).v_char != '}') {
+			ini_append_error_expecting(state, state->scanner,
+				"`,` or `}`");
+			goto error;
+		}
+	}
+
+	goto end;
+error:
+	BT_VALUE_PUT_REF_AND_RESET(map_value);
+
+end:
+	g_free(key);
+
+	return map_value;
+}
+
+/*
  * Parses the current token (and the following ones if needed) as a
  * value, returning it as a `bt_value *`.
  */
@@ -274,6 +378,9 @@ bt_value *ini_parse_value(struct ini_parsing_state *state)
 		} else if (state->scanner->value.v_char == '[') {
 			/* Array */
 			value = ini_parse_array(state);
+		} else if (state->scanner->value.v_char == '{') {
+			/* Map */
+			value = ini_parse_map(state);
 		} else {
 			ini_append_error_expecting(state, state->scanner, "value");
 			goto end;
