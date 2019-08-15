@@ -1,0 +1,69 @@
+#!/bin/bash
+#
+# Copyright (C) 2019 Simon Marchi <simon.marchi@efficios.com>
+#
+# This program is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License, version 2 only, as
+# published by the Free Software Foundation.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+# more details.
+#
+# You should have received a copy of the GNU General Public License along with
+# this program; if not, write to the Free Software Foundation, Inc., 51
+# Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+
+# Test how parameters are applied to sources auto-discovered by the convert
+# command.
+
+if [ "x${BT_TESTS_SRCDIR:-}" != "x" ]; then
+	UTILSSH="$BT_TESTS_SRCDIR/utils/utils.sh"
+else
+	UTILSSH="$(dirname "$0")/../../utils/utils.sh"
+fi
+
+# shellcheck source=../../utils/utils.sh
+SH_TAP=1 source "$UTILSSH"
+
+NUM_TESTS=8
+
+plan_tests $NUM_TESTS
+
+data_dir="${BT_TESTS_DATADIR}/cli/params"
+plugin_dir="${data_dir}"
+
+expected_file=$(mktemp -t expected.XXXXXX)
+
+function expect_success
+{
+	local test_name="$1"
+	local params_str="$2"
+	local expected_str="$3"
+
+	echo "$expected_str" > "$expected_file"
+
+	bt_diff_cli "$expected_file" /dev/null --plugin-path "$plugin_dir" -c "src.text.dmesg" \
+		-c "sink.params.SinkThatPrintsParams" --params "$params_str"
+	ok "$?" "$test_name"
+}
+
+expect_success 'null' 'a=null,b=nul,c=NULL' \
+	'{a=None, b=None, c=None}'
+expect_success 'bool' 'a=true,b=TRUE,c=yes,d=YES,e=false,f=FALSE,g=no,h=NO' \
+	'{a=True, b=True, c=True, d=True, e=False, f=False, g=False, h=False}'
+expect_success 'signed integer' 'a=0b110, b=022, c=22, d=0x22' \
+	'{a=6, b=18, c=22, d=34}'
+expect_success 'unsigned integer' 'a=+0b110, b=+022, c=+22, d=+0x22' \
+	'{a=6u, b=18u, c=22u, d=34u}'
+expect_success 'string' 'a="avril lavigne", b=patata, c="This\"is\\escaped"' \
+	'{a=avril lavigne, b=patata, c=This"is\escaped}'
+expect_success 'float' 'a=1.234, b=17., c=.28, d=-18.28' \
+	'{a=1.234, b=17.0, c=0.28, d=-18.28}'
+expect_success 'float scientific notation' 'a=10.5e6, b=10.5E6, c=10.5e-6, d=10.5E-6' \
+	'{a=10500000.0, b=10500000.0, c=1.05e-05, d=1.05e-05}'
+expect_success 'array' 'a=[1, [["hi",]]]' \
+	'{a=[1, [[hi]]]}'
+
+rm -f "$expected_file"
