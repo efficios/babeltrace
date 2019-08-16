@@ -4162,6 +4162,13 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 		goto error;
 	}
 
+	/* Make sure there's a single sink component */
+	if (g_list_length(sink_names) != 1) {
+		BT_CLI_LOGE_APPEND_CAUSE(
+			"More than one sink component specified.");
+		goto error;
+	}
+
 	/*
 	 * Prepend the muxer, the trimmer, and the debug info to the
 	 * filter chain so that we have:
