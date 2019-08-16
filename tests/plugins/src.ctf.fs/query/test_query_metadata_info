@@ -1,0 +1,63 @@
+#!/bin/bash
+#
+# Copyright (C) 2019 Simon Marchi <simon.marchi@efficios.com>
+# Copyright (C) 2019 Francis Deslauriers <francis.deslauriers@efficios.com>
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; only version 2
+# of the License.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+
+SH_TAP=1
+
+if [ "x${BT_TESTS_SRCDIR:-}" != "x" ]; then
+	UTILSSH="$BT_TESTS_SRCDIR/utils/utils.sh"
+else
+	UTILSSH="$(dirname "$0")/../../../utils/utils.sh"
+fi
+
+# shellcheck source=../../../utils/utils.sh
+source "$UTILSSH"
+
+this_dir_relative="plugins/src.ctf.fs/query"
+this_dir_build="$BT_TESTS_BUILDDIR/$this_dir_relative"
+succeed_trace_dir="$BT_CTF_TRACES_PATH/succeed"
+expect_dir="$BT_TESTS_DATADIR/$this_dir_relative"
+
+test_query_metadata_info() {
+	local name="$1"
+	local ret=0
+	local trace_path="$succeed_trace_dir/$name"
+	local expected_stdout="$expect_dir/metadata-info-$name.expect"
+	local temp_stdout_output_file="$(mktemp -t actual_stdout.XXXXXX)"
+	local temp_stderr_output_file="$(mktemp -t actual_stderr.XXXXXX)"
+	local query=("query" "src.ctf.fs" "metadata-info" "--params" "path=\"$trace_path\"")
+
+	bt_cli "$temp_stdout_output_file" "$temp_stderr_output_file" \
+		"${query[@]}"
+
+	bt_diff "$expected_stdout" "$temp_stdout_output_file"
+	ret_stdout=$?
+
+	bt_diff /dev/null "$temp_stderr_output_file"
+	ret_stderr=$?
+
+	if ((ret_stdout != 0 || ret_stderr != 0)); then
+		ret=1
+	fi
+
+	ok $ret "Trace '$name' \`metadata-info\` query gives the expected output"
+	rm -f "$temp_stdout_output_file" "$temp_stderr_output_file"
+}
+
+plan_tests 1
+test_query_metadata_info succeed1

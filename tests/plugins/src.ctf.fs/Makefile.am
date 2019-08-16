@@ -1,5 +1,6 @@
 SUBDIRS = succeed
 
 dist_check_SCRIPTS = \
-	query/test_query \
+	query/test_query_metadata_info \
+	query/test_query_trace_info \
 	query/test_query_trace_info.py
