@@ -799,11 +799,16 @@ bt_component_class_query_method_status component_class_query(
 		py_object, py_params_ptr,
 		method_data ? method_data : Py_None);
 	if (!py_results_addr) {
-		BT_LOG_WRITE_CUR_LVL(BT_LOG_WARNING, log_level, BT_LOG_TAG,
-			"Failed to call Python class's _bt_query_from_native() method: "
-			"py-cls-addr=%p", py_cls);
 		status = py_exc_to_status_component_class(self_component_class,
 			log_level);
+		if (status < 0) {
+			static const char *fmt =
+				"Failed to call Python class's _bt_query_from_native() method: py-cls-addr=%p";
+			BT_LOG_WRITE_CUR_LVL(BT_LOG_WARNING, log_level, BT_LOG_TAG,
+				fmt, py_cls);
+			BT_CURRENT_THREAD_ERROR_APPEND_CAUSE_FROM_COMPONENT_CLASS(
+				self_component_class, fmt, py_cls);
+		}
 		goto end;
 	}
 
