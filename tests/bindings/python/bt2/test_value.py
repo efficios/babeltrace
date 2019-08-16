@@ -1535,6 +1535,15 @@ class StringValueTestCase(_TestCopySimple, unittest.TestCase):
         s1 = bt2.StringValue('allo')
         self.assertGreaterEqual('bateau', s1)
 
+    def test_in_string(self):
+        s1 = bt2.StringValue('beau grand bateau')
+        self.assertIn('bateau', s1)
+
+    def test_in_vstring(self):
+        s1 = bt2.StringValue('beau grand bateau')
+        s2 = bt2.StringValue('bateau')
+        self.assertIn(s2, s1)
+
     def test_bool_op(self):
         self.assertEqual(bool(self._def), bool(self._def_value))
 
