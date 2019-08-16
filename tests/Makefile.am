@@ -32,6 +32,8 @@ dist_check_SCRIPTS = \
 	bindings/python/bt2/test_value.py \
 	bindings/python/bt2/utils.py \
 	cli/convert/test_auto_source_discovery_grouping \
+	cli/convert/test_auto_source_discovery_params \
+	cli/convert/test_auto_source_discovery_log_level \
 	cli/convert/test_convert_args \
 	cli/test_intersection \
 	cli/test_output_ctf_metadata \
@@ -106,7 +108,9 @@ endif
 
 if ENABLE_PYTHON_PLUGINS
 if ENABLE_PYTHON_BINDINGS
-TESTS_CLI += cli/convert/test_auto_source_discovery_grouping
+TESTS_CLI += cli/convert/test_auto_source_discovery_grouping \
+	cli/convert/test_auto_source_discovery_log_level \
+	cli/convert/test_auto_source_discovery_params
 TESTS_PLUGINS += plugins/flt.utils.trimmer/test_trimming \
 	plugins/flt.utils.muxer/succeed/test_succeed
 endif
