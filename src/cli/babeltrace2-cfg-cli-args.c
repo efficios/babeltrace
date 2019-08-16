@@ -3794,7 +3794,8 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 				goto error;
 			}
 
-			append_status = bt_value_array_append_empty_array_element(non_opt_params);
+			append_status = bt_value_array_append_empty_array_element(
+				non_opt_params, NULL);
 			if (append_status != BT_VALUE_ARRAY_APPEND_ELEMENT_STATUS_OK) {
 				BT_CLI_LOGE_APPEND_CAUSE_OOM();
 				goto error;
