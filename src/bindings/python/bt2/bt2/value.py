@@ -404,6 +404,9 @@ class StringValue(collections.abc.Sequence, _Value):
     def __len__(self):
         return len(self._value)
 
+    def __contains__(self, item):
+        return self._value_to_str(item) in self._value
+
     def __iadd__(self, value):
         curvalue = self._value
         curvalue += self._value_to_str(value)
