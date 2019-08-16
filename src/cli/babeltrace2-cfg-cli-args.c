@@ -1034,16 +1034,8 @@ error:
 }
 
 static
-int append_home_and_system_plugin_paths_cfg(struct bt_config *cfg)
-{
-	return append_home_and_system_plugin_paths(cfg->plugin_paths,
-		cfg->omit_system_plugin_path, cfg->omit_home_plugin_path);
-}
-
-static
 struct bt_config *bt_config_base_create(enum bt_config_command command,
-		const bt_value *initial_plugin_paths,
-		bool needs_plugins)
+		const bt_value *plugin_paths, bool needs_plugins)
 {
 	struct bt_config *cfg;
 
@@ -1058,12 +1050,12 @@ struct bt_config *bt_config_base_create(enum bt_config_command command,
 	cfg->command = command;
 	cfg->command_needs_plugins = needs_plugins;
 
-	if (initial_plugin_paths) {
-		bt_value *initial_plugin_paths_copy;
+	if (plugin_paths) {
+		bt_value *plugin_paths_copy;
 
-		(void) bt_value_copy(initial_plugin_paths,
-			&initial_plugin_paths_copy);
-		cfg->plugin_paths = initial_plugin_paths_copy;
+		(void) bt_value_copy(plugin_paths,
+			&plugin_paths_copy);
+		cfg->plugin_paths = plugin_paths_copy;
 	} else {
 		cfg->plugin_paths = bt_value_array_create();
 		if (!cfg->plugin_paths) {
@@ -1082,14 +1074,13 @@ end:
 }
 
 static
-struct bt_config *bt_config_run_create(
-		const bt_value *initial_plugin_paths)
+struct bt_config *bt_config_run_create(const bt_value *plugin_paths)
 {
 	struct bt_config *cfg;
 
 	/* Create config */
 	cfg = bt_config_base_create(BT_CONFIG_COMMAND_RUN,
-		initial_plugin_paths, true);
+		plugin_paths, true);
 	if (!cfg) {
 		goto error;
 	}
@@ -1132,37 +1123,21 @@ end:
 }
 
 static
-struct bt_config *bt_config_list_plugins_create(
-		const bt_value *initial_plugin_paths)
+struct bt_config *bt_config_list_plugins_create(const bt_value *plugin_paths)
 {
-	struct bt_config *cfg;
-
-	/* Create config */
-	cfg = bt_config_base_create(BT_CONFIG_COMMAND_LIST_PLUGINS,
-		initial_plugin_paths, true);
-	if (!cfg) {
-		goto error;
-	}
-
-	goto end;
-
-error:
-	BT_OBJECT_PUT_REF_AND_RESET(cfg);
-
-end:
-	return cfg;
+	return bt_config_base_create(BT_CONFIG_COMMAND_LIST_PLUGINS,
+		plugin_paths, true);
 }
 
 static
-struct bt_config *bt_config_help_create(
-		const bt_value *initial_plugin_paths,
+struct bt_config *bt_config_help_create(const bt_value *plugin_paths,
 		int default_log_level)
 {
 	struct bt_config *cfg;
 
 	/* Create config */
 	cfg = bt_config_base_create(BT_CONFIG_COMMAND_HELP,
-		initial_plugin_paths, true);
+		plugin_paths, true);
 	if (!cfg) {
 		goto error;
 	}
@@ -1183,14 +1158,13 @@ end:
 }
 
 static
-struct bt_config *bt_config_query_create(
-		const bt_value *initial_plugin_paths)
+struct bt_config *bt_config_query_create(const bt_value *plugin_paths)
 {
 	struct bt_config *cfg;
 
 	/* Create config */
 	cfg = bt_config_base_create(BT_CONFIG_COMMAND_QUERY,
-		initial_plugin_paths, true);
+		plugin_paths, true);
 	if (!cfg) {
 		goto error;
 	}
@@ -1212,13 +1186,13 @@ end:
 
 static
 struct bt_config *bt_config_print_ctf_metadata_create(
-		const bt_value *initial_plugin_paths)
+		const bt_value *plugin_paths)
 {
 	struct bt_config *cfg;
 
 	/* Create config */
 	cfg = bt_config_base_create(BT_CONFIG_COMMAND_PRINT_CTF_METADATA,
-		initial_plugin_paths, true);
+		plugin_paths, true);
 	if (!cfg) {
 		goto error;
 	}
@@ -1246,13 +1220,13 @@ end:
 
 static
 struct bt_config *bt_config_print_lttng_live_sessions_create(
-		const bt_value *initial_plugin_paths)
+		const bt_value *plugin_paths)
 {
 	struct bt_config *cfg;
 
 	/* Create config */
 	cfg = bt_config_base_create(BT_CONFIG_COMMAND_PRINT_LTTNG_LIVE_SESSIONS,
-		initial_plugin_paths, true);
+		plugin_paths, true);
 	if (!cfg) {
 		goto error;
 	}
@@ -1378,12 +1352,7 @@ void print_help_usage(FILE *fp)
 	fprintf(fp, "\n");
 	fprintf(fp, "Options:\n");
 	fprintf(fp, "\n");
-	fprintf(fp, "      --omit-home-plugin-path       Omit home plugins from plugin search path\n");
-	fprintf(fp, "                                    (~/.local/lib/babeltrace2/plugins)\n");
-	fprintf(fp, "      --omit-system-plugin-path     Omit system plugins from plugin search path\n");
-	fprintf(fp, "      --plugin-path=PATH[:PATH]...  Add PATH to the list of paths from which\n");
-	fprintf(fp, "                                    dynamic plugins can be loaded\n");
-	fprintf(fp, "  -h, --help                        Show this help and quit\n");
+	fprintf(fp, "  -h, --help  Show this help and quit\n");
 	fprintf(fp, "\n");
 	fprintf(fp, "See `babeltrace2 --help` for the list of general options.\n");
 	fprintf(fp, "\n");
@@ -1394,9 +1363,6 @@ static
 const struct bt_argpar_opt_descr help_options[] = {
 	/* id, short_name, long_name, with_arg */
 	{ OPT_HELP, 'h', "help", false },
-	{ OPT_OMIT_HOME_PLUGIN_PATH, '\0', "omit-home-plugin-path", false },
-	{ OPT_OMIT_SYSTEM_PLUGIN_PATH, '\0', "omit-system-plugin-path", false },
-	{ OPT_PLUGIN_PATH, '\0', "plugin-path", true },
 	BT_ARGPAR_OPT_DESCR_SENTINEL
 };
 
@@ -1408,26 +1374,17 @@ const struct bt_argpar_opt_descr help_options[] = {
  */
 static
 struct bt_config *bt_config_help_from_args(int argc, const char *argv[],
-		int *retcode, bool force_omit_system_plugin_path,
-		bool force_omit_home_plugin_path,
-		const bt_value *initial_plugin_paths, int default_log_level)
+		int *retcode, const bt_value *plugin_paths,
+		int default_log_level)
 {
-	int ret, i;
 	struct bt_config *cfg = NULL;
-	const char *non_opt = NULL;
 	char *plugin_name = NULL, *comp_cls_name = NULL;
 	struct bt_argpar_parse_ret argpar_parse_ret = { 0 };
+	struct bt_argpar_item_non_opt *non_opt;
 
 	*retcode = 0;
-	cfg = bt_config_help_create(initial_plugin_paths, default_log_level);
+	cfg = bt_config_help_create(plugin_paths, default_log_level);
 	if (!cfg) {
-		goto error;
-	}
-
-	cfg->omit_system_plugin_path = force_omit_system_plugin_path;
-	cfg->omit_home_plugin_path = force_omit_home_plugin_path;
-	ret = append_env_var_plugin_paths(cfg->plugin_paths);
-	if (ret) {
 		goto error;
 	}
 
@@ -1447,75 +1404,36 @@ struct bt_config *bt_config_help_from_args(int argc, const char *argv[],
 		goto end;
 	}
 
-	for (i = 0; i < argpar_parse_ret.items->len; i++) {
-		struct bt_argpar_item *argpar_item =
-			g_ptr_array_index(argpar_parse_ret.items, i);
-
-		if (argpar_item->type == BT_ARGPAR_ITEM_TYPE_OPT) {
-			struct bt_argpar_item_opt *argpar_item_opt;
-			const char *arg;
-			argpar_item_opt = (struct bt_argpar_item_opt *) argpar_item;
-			arg = argpar_item_opt->arg;
-
-			switch (argpar_item_opt->descr->id) {
-			case OPT_PLUGIN_PATH:
-				if (bt_config_append_plugin_paths_check_setuid_setgid(
-						cfg->plugin_paths, arg)) {
-					goto error;
-				}
-				break;
-			case OPT_OMIT_SYSTEM_PLUGIN_PATH:
-				cfg->omit_system_plugin_path = true;
-				break;
-			case OPT_OMIT_HOME_PLUGIN_PATH:
-				cfg->omit_home_plugin_path = true;
-				break;
-			default:
-				BT_CLI_LOGE_APPEND_CAUSE("Unknown command-line option specified (option code %d).",
-					argpar_item_opt->descr->id);
-				goto error;
-			}
-		} else {
-			struct bt_argpar_item_non_opt *argpar_item_non_opt
-				= (struct bt_argpar_item_non_opt *) argpar_item;
-
-			if (non_opt) {
-				BT_CLI_LOGE_APPEND_CAUSE("Extraneous command-line argument specified to `help` command: `%s`.",
-					argpar_item_non_opt->arg);
-				goto error;
-			}
-
-			non_opt = argpar_item_non_opt->arg;
-		}
-	}
-
-	if (non_opt) {
-		plugin_comp_cls_names(non_opt, NULL,
-			&plugin_name, &comp_cls_name,
-			&cfg->cmd_data.help.cfg_component->type);
-		if (plugin_name && comp_cls_name) {
-			/* Component class help */
-			g_string_assign(
-				cfg->cmd_data.help.cfg_component->plugin_name,
-				plugin_name);
-			g_string_assign(
-				cfg->cmd_data.help.cfg_component->comp_cls_name,
-				comp_cls_name);
-		} else {
-			/* Fall back to plugin help */
-			g_string_assign(
-				cfg->cmd_data.help.cfg_component->plugin_name,
-				non_opt);
-		}
-	} else {
-		print_help_usage(stdout);
-		*retcode = -1;
-		BT_OBJECT_PUT_REF_AND_RESET(cfg);
-		goto end;
-	}
-
-	if (append_home_and_system_plugin_paths_cfg(cfg)) {
+	if (argpar_parse_ret.items->len == 0) {
+		BT_CLI_LOGE_APPEND_CAUSE(
+			"Missing plugin name or component class descriptor.");
 		goto error;
+	} else if (argpar_parse_ret.items->len > 1) {
+		/*
+		 * At this point we know there are least two non-option
+		 * arguments because we don't reach here with `--help`,
+		 * the only option.
+		 */
+		non_opt = argpar_parse_ret.items->pdata[1];
+		BT_CLI_LOGE_APPEND_CAUSE(
+			"Extraneous command-line argument specified to `help` command: `%s`.",
+			non_opt->arg);
+		goto error;
+	}
+
+	non_opt = argpar_parse_ret.items->pdata[0];
+	plugin_comp_cls_names(non_opt->arg, NULL, &plugin_name, &comp_cls_name,
+		&cfg->cmd_data.help.cfg_component->type);
+	if (plugin_name && comp_cls_name) {
+		/* Component class help */
+		g_string_assign(cfg->cmd_data.help.cfg_component->plugin_name,
+			plugin_name);
+		g_string_assign(cfg->cmd_data.help.cfg_component->comp_cls_name,
+			comp_cls_name);
+	} else {
+		/* Fall back to plugin help */
+		g_string_assign(cfg->cmd_data.help.cfg_component->plugin_name,
+			non_opt->arg);
 	}
 
 	goto end;
@@ -1543,14 +1461,9 @@ void print_query_usage(FILE *fp)
 	fprintf(fp, "\n");
 	fprintf(fp, "Options:\n");
 	fprintf(fp, "\n");
-	fprintf(fp, "      --omit-home-plugin-path       Omit home plugins from plugin search path\n");
-	fprintf(fp, "                                    (~/.local/lib/babeltrace2/plugins)\n");
-	fprintf(fp, "      --omit-system-plugin-path     Omit system plugins from plugin search path\n");
-	fprintf(fp, "  -p, --params=PARAMS               Set the query parameters to PARAMS\n");
-	fprintf(fp, "                                    (see the expected format of PARAMS below)\n");
-	fprintf(fp, "      --plugin-path=PATH[:PATH]...  Add PATH to the list of paths from which\n");
-	fprintf(fp, "                                    dynamic plugins can be loaded\n");
-	fprintf(fp, "  -h, --help                        Show this help and quit\n");
+	fprintf(fp, "  -p, --params=PARAMS  Set the query parameters to PARAMS (see the expected\n");
+	fprintf(fp, "                       format of PARAMS below)\n");
+	fprintf(fp, "  -h, --help           Show this help and quit\n");
 	fprintf(fp, "\n\n");
 	print_expected_params_format(fp);
 }
@@ -1559,10 +1472,7 @@ static
 const struct bt_argpar_opt_descr query_options[] = {
 	/* id, short_name, long_name, with_arg */
 	{ OPT_HELP, 'h', "help", false },
-	{ OPT_OMIT_HOME_PLUGIN_PATH, '\0', "omit-home-plugin-path", false },
-	{ OPT_OMIT_SYSTEM_PLUGIN_PATH, '\0', "omit-system-plugin-path", false },
 	{ OPT_PARAMS, 'p', "params", true },
-	{ OPT_PLUGIN_PATH, '\0', "plugin-path", true },
 	BT_ARGPAR_OPT_DESCR_SENTINEL
 };
 
@@ -1574,12 +1484,10 @@ const struct bt_argpar_opt_descr query_options[] = {
  */
 static
 struct bt_config *bt_config_query_from_args(int argc, const char *argv[],
-		int *retcode, bool force_omit_system_plugin_path,
-		bool force_omit_home_plugin_path,
-		const bt_value *initial_plugin_paths,
+		int *retcode, const bt_value *plugin_paths,
 		int default_log_level)
 {
-	int ret, i;
+	int i;
 	struct bt_config *cfg = NULL;
 	const char *component_class_spec = NULL;
 	const char *query_object = NULL;
@@ -1591,7 +1499,7 @@ struct bt_config *bt_config_query_from_args(int argc, const char *argv[],
 	bt_value_get_ref(bt_value_null);
 
 	*retcode = 0;
-	cfg = bt_config_query_create(initial_plugin_paths);
+	cfg = bt_config_query_create(plugin_paths);
 	if (!cfg) {
 		goto error;
 	}
@@ -1599,13 +1507,6 @@ struct bt_config *bt_config_query_from_args(int argc, const char *argv[],
 	error_str = g_string_new(NULL);
 	if (!error_str) {
 		BT_CLI_LOGE_APPEND_CAUSE_OOM();
-		goto error;
-	}
-
-	cfg->omit_system_plugin_path = force_omit_system_plugin_path;
-	cfg->omit_home_plugin_path = force_omit_home_plugin_path;
-	ret = append_env_var_plugin_paths(cfg->plugin_paths);
-	if (ret) {
 		goto error;
 	}
 
@@ -1635,18 +1536,6 @@ struct bt_config *bt_config_query_from_args(int argc, const char *argv[],
 			const char *arg = argpar_item_opt->arg;
 
 			switch (argpar_item_opt->descr->id) {
-			case OPT_PLUGIN_PATH:
-				if (bt_config_append_plugin_paths_check_setuid_setgid(
-						cfg->plugin_paths, arg)) {
-					goto error;
-				}
-				break;
-			case OPT_OMIT_SYSTEM_PLUGIN_PATH:
-				cfg->omit_system_plugin_path = true;
-				break;
-			case OPT_OMIT_HOME_PLUGIN_PATH:
-				cfg->omit_home_plugin_path = true;
-				break;
 			case OPT_PARAMS:
 			{
 				bt_value_put_ref(params);
@@ -1709,11 +1598,6 @@ struct bt_config *bt_config_query_from_args(int argc, const char *argv[],
 	}
 
 	g_string_assign(cfg->cmd_data.query.object, query_object);
-
-	if (append_home_and_system_plugin_paths_cfg(cfg)) {
-		goto error;
-	}
-
 	goto end;
 
 error:
@@ -1741,11 +1625,6 @@ void print_list_plugins_usage(FILE *fp)
 	fprintf(fp, "\n");
 	fprintf(fp, "Options:\n");
 	fprintf(fp, "\n");
-	fprintf(fp, "      --omit-home-plugin-path       Omit home plugins from plugin search path\n");
-	fprintf(fp, "                                    (~/.local/lib/babeltrace2/plugins)\n");
-	fprintf(fp, "      --omit-system-plugin-path     Omit system plugins from plugin search path\n");
-	fprintf(fp, "      --plugin-path=PATH[:PATH]...  Add PATH to the list of paths from which\n");
-	fprintf(fp, "                                    dynamic plugins can be loaded\n");
 	fprintf(fp, "  -h, --help                        Show this help and quit\n");
 	fprintf(fp, "\n");
 	fprintf(fp, "See `babeltrace2 --help` for the list of general options.\n");
@@ -1757,9 +1636,6 @@ static
 const struct bt_argpar_opt_descr list_plugins_options[] = {
 	/* id, short_name, long_name, with_arg */
 	{ OPT_HELP, 'h', "help", false },
-	{ OPT_OMIT_HOME_PLUGIN_PATH, '\0', "omit-home-plugin-path", false },
-	{ OPT_OMIT_SYSTEM_PLUGIN_PATH, '\0', "omit-system-plugin-path", false },
-	{ OPT_PLUGIN_PATH, '\0', "plugin-path", true },
 	BT_ARGPAR_OPT_DESCR_SENTINEL
 };
 
@@ -1771,24 +1647,14 @@ const struct bt_argpar_opt_descr list_plugins_options[] = {
  */
 static
 struct bt_config *bt_config_list_plugins_from_args(int argc, const char *argv[],
-		int *retcode, bool force_omit_system_plugin_path,
-		bool force_omit_home_plugin_path,
-		const bt_value *initial_plugin_paths)
+		int *retcode, const bt_value *plugin_paths)
 {
-	int ret, i;
 	struct bt_config *cfg = NULL;
 	struct bt_argpar_parse_ret argpar_parse_ret = { 0 };
 
 	*retcode = 0;
-	cfg = bt_config_list_plugins_create(initial_plugin_paths);
+	cfg = bt_config_list_plugins_create(plugin_paths);
 	if (!cfg) {
-		goto error;
-	}
-
-	cfg->omit_system_plugin_path = force_omit_system_plugin_path;
-	cfg->omit_home_plugin_path = force_omit_home_plugin_path;
-	ret = append_env_var_plugin_paths(cfg->plugin_paths);
-	if (ret) {
 		goto error;
 	}
 
@@ -1808,45 +1674,18 @@ struct bt_config *bt_config_list_plugins_from_args(int argc, const char *argv[],
 		goto end;
 	}
 
-	for (i = 0; i < argpar_parse_ret.items->len; i++) {
-		struct bt_argpar_item *argpar_item =
-			g_ptr_array_index(argpar_parse_ret.items, i);
-		struct bt_argpar_item_opt *argpar_item_opt;
-		const char *arg;
+	if (argpar_parse_ret.items->len > 0) {
+		/*
+		 * At this point we know there's at least one non-option
+		 * argument because we don't reach here with `--help`,
+		 * the only option.
+		 */
+		struct bt_argpar_item_non_opt *non_opt =
+			argpar_parse_ret.items->pdata[0];
 
-		if (argpar_item->type == BT_ARGPAR_ITEM_TYPE_NON_OPT) {
-			struct bt_argpar_item_non_opt *argpar_item_non_opt
-				= (struct bt_argpar_item_non_opt *) argpar_item;
-
-			BT_CLI_LOGE_APPEND_CAUSE("Unexpected argument: `%s`.",
-				argpar_item_non_opt->arg);
-			goto error;
-		}
-
-		argpar_item_opt = (struct bt_argpar_item_opt *) argpar_item;
-		arg = argpar_item_opt->arg;
-
-		switch (argpar_item_opt->descr->id) {
-		case OPT_PLUGIN_PATH:
-			if (bt_config_append_plugin_paths_check_setuid_setgid(
-					cfg->plugin_paths, arg)) {
-				goto error;
-			}
-			break;
-		case OPT_OMIT_SYSTEM_PLUGIN_PATH:
-			cfg->omit_system_plugin_path = true;
-			break;
-		case OPT_OMIT_HOME_PLUGIN_PATH:
-			cfg->omit_home_plugin_path = true;
-			break;
-		default:
-			BT_CLI_LOGE_APPEND_CAUSE("Unknown command-line option specified (option code %d).",
-				argpar_item_opt->descr->id);
-			goto error;
-		}
-	}
-
-	if (append_home_and_system_plugin_paths_cfg(cfg)) {
+		BT_CLI_LOGE_APPEND_CAUSE(
+			"Extraneous command-line argument specified to `list-plugins` command: `%s`.",
+			non_opt->arg);
 		goto error;
 	}
 
@@ -1885,14 +1724,9 @@ void print_run_usage(FILE *fp)
 	fprintf(fp, "                                    expected format of CONNECTION below)\n");
 	fprintf(fp, "  -l, --log-level=LVL               Set the log level of the current component to LVL\n");
 	fprintf(fp, "                                    (`N`, `V`, `D`, `I`, `W`, `E`, or `F`)\n");
-	fprintf(fp, "      --omit-home-plugin-path       Omit home plugins from plugin search path\n");
-	fprintf(fp, "                                    (~/.local/lib/babeltrace2/plugins)\n");
-	fprintf(fp, "      --omit-system-plugin-path     Omit system plugins from plugin search path\n");
 	fprintf(fp, "  -p, --params=PARAMS               Add initialization parameters PARAMS to the\n");
 	fprintf(fp, "                                    current component (see the expected format\n");
 	fprintf(fp, "                                    of PARAMS below)\n");
-	fprintf(fp, "      --plugin-path=PATH[:PATH]...  Add PATH to the list of paths from which\n");
-	fprintf(fp, "                                    dynamic plugins can be loaded\n");
 	fprintf(fp, "  -r, --reset-base-params           Reset the current base parameters to an\n");
 	fprintf(fp, "                                    empty map\n");
 	fprintf(fp, "      --retry-duration=DUR          When babeltrace2(1) needs to retry to run\n");
@@ -1947,9 +1781,8 @@ void print_run_usage(FILE *fp)
  */
 static
 struct bt_config *bt_config_run_from_args(int argc, const char *argv[],
-		int *retcode, bool force_omit_system_plugin_path,
-		bool force_omit_home_plugin_path,
-		const bt_value *initial_plugin_paths, int default_log_level)
+		int *retcode, const bt_value *plugin_paths,
+		int default_log_level)
 {
 	struct bt_config_component *cur_cfg_comp = NULL;
 	bt_value *cur_base_params = NULL;
@@ -1970,10 +1803,7 @@ struct bt_config *bt_config_run_from_args(int argc, const char *argv[],
 		{ OPT_CONNECT, 'x', "connect", true },
 		{ OPT_HELP, 'h', "help", false },
 		{ OPT_LOG_LEVEL, 'l', "log-level", true },
-		{ OPT_OMIT_HOME_PLUGIN_PATH, '\0', "omit-home-plugin-path", false },
-		{ OPT_OMIT_SYSTEM_PLUGIN_PATH, '\0', "omit-system-plugin-path", false },
 		{ OPT_PARAMS, 'p', "params", true },
-		{ OPT_PLUGIN_PATH, '\0', "plugin-path", true },
 		{ OPT_RESET_BASE_PARAMS, 'r', "reset-base-params", false },
 		{ OPT_RETRY_DURATION, '\0', "retry-duration", true },
 		BT_ARGPAR_OPT_DESCR_SENTINEL
@@ -1993,14 +1823,12 @@ struct bt_config *bt_config_run_from_args(int argc, const char *argv[],
 		goto end;
 	}
 
-	cfg = bt_config_run_create(initial_plugin_paths);
+	cfg = bt_config_run_create(plugin_paths);
 	if (!cfg) {
 		goto error;
 	}
 
 	cfg->cmd_data.run.retry_duration_us = 100000;
-	cfg->omit_system_plugin_path = force_omit_system_plugin_path;
-	cfg->omit_home_plugin_path = force_omit_home_plugin_path;
 	cur_base_params = bt_value_map_create();
 	if (!cur_base_params) {
 		BT_CLI_LOGE_APPEND_CAUSE_OOM();
@@ -2016,11 +1844,6 @@ struct bt_config *bt_config_run_from_args(int argc, const char *argv[],
 	connection_args = bt_value_array_create();
 	if (!connection_args) {
 		BT_CLI_LOGE_APPEND_CAUSE_OOM();
-		goto error;
-	}
-
-	ret = append_env_var_plugin_paths(cfg->plugin_paths);
-	if (ret) {
 		goto error;
 	}
 
@@ -2060,18 +1883,6 @@ struct bt_config *bt_config_run_from_args(int argc, const char *argv[],
 		arg = argpar_item_opt->arg;
 
 		switch (argpar_item_opt->descr->id) {
-		case OPT_PLUGIN_PATH:
-			if (bt_config_append_plugin_paths_check_setuid_setgid(
-					cfg->plugin_paths, arg)) {
-				goto error;
-			}
-			break;
-		case OPT_OMIT_SYSTEM_PLUGIN_PATH:
-			cfg->omit_system_plugin_path = true;
-			break;
-		case OPT_OMIT_HOME_PLUGIN_PATH:
-			cfg->omit_home_plugin_path = true;
-			break;
 		case OPT_COMPONENT:
 		{
 			enum bt_config_component_dest dest;
@@ -2231,10 +2042,6 @@ struct bt_config *bt_config_run_from_args(int argc, const char *argv[],
 		goto error;
 	}
 
-	if (append_home_and_system_plugin_paths_cfg(cfg)) {
-		goto error;
-	}
-
 	ret = bt_config_cli_args_create_connections(cfg,
 		connection_args,
 		error_buf, 256);
@@ -2264,9 +2071,8 @@ end:
 
 static
 struct bt_config *bt_config_run_from_args_array(const bt_value *run_args,
-		int *retcode, bool force_omit_system_plugin_path,
-		bool force_omit_home_plugin_path,
-		const bt_value *initial_plugin_paths, int default_log_level)
+		int *retcode, const bt_value *plugin_paths,
+		int default_log_level)
 {
 	struct bt_config *cfg = NULL;
 	const char **argv;
@@ -2297,8 +2103,7 @@ struct bt_config *bt_config_run_from_args_array(const bt_value *run_args,
 	}
 
 	cfg = bt_config_run_from_args(argc, argv, retcode,
-		force_omit_system_plugin_path, force_omit_home_plugin_path,
-		initial_plugin_paths, default_log_level);
+		plugin_paths, default_log_level);
 
 end:
 	free(argv);
@@ -2323,14 +2128,9 @@ void print_convert_usage(FILE *fp)
 	fprintf(fp, "                                    NAME\n");
 	fprintf(fp, "  -l, --log-level=LVL               Set the log level of the current component to LVL\n");
 	fprintf(fp, "                                    (`N`, `V`, `D`, `I`, `W`, `E`, or `F`)\n");
-	fprintf(fp, "      --omit-home-plugin-path       Omit home plugins from plugin search path\n");
-	fprintf(fp, "                                    (~/.local/lib/babeltrace2/plugins)\n");
-	fprintf(fp, "      --omit-system-plugin-path     Omit system plugins from plugin search path\n");
 	fprintf(fp, "  -p, --params=PARAMS               Add initialization parameters PARAMS to the\n");
 	fprintf(fp, "                                    current component (see the expected format\n");
 	fprintf(fp, "                                    of PARAMS below)\n");
-	fprintf(fp, "      --plugin-path=PATH[:PATH]...  Add PATH to the list of paths from which\n");
-	fprintf(fp, "                                    dynamic plugins can be loaded\n");
 	fprintf(fp, "      --retry-duration=DUR          When babeltrace2(1) needs to retry to run\n");
 	fprintf(fp, "                                    the graph later, retry in DUR µs\n");
 	fprintf(fp, "                                    (default: 100000)\n");
@@ -3334,9 +3134,8 @@ enum convert_current_item_type {
  */
 static
 struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
-		int *retcode, bool force_omit_system_plugin_path,
-		bool force_omit_home_plugin_path,
-		const bt_value *initial_plugin_paths, int *default_log_level)
+		int *retcode, const bt_value *plugin_paths,
+		int *default_log_level)
 {
 	enum convert_current_item_type current_item_type =
 		CONVERT_CURRENT_ITEM_TYPE_NONE;
@@ -3365,7 +3164,6 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 	struct implicit_component_args implicit_debug_info_args = { 0 };
 	struct implicit_component_args implicit_muxer_args = { 0 };
 	struct implicit_component_args implicit_trimmer_args = { 0 };
-	bt_value *plugin_paths;
 	char error_buf[256] = { 0 };
 	size_t i;
 	struct bt_common_lttng_live_url_parts lttng_live_url_parts = { 0 };
@@ -3391,9 +3189,6 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 
 	gchar *ctf_fs_source_clock_class_offset_arg = NULL;
 	gchar *ctf_fs_source_clock_class_offset_ns_arg = NULL;
-
-	(void) bt_value_copy(initial_plugin_paths, &plugin_paths);
-
 	*retcode = 0;
 
 	if (argc < 1) {
@@ -3455,11 +3250,6 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 		goto error;
 	}
 
-	ret = append_env_var_plugin_paths(plugin_paths);
-	if (ret) {
-		goto error;
-	}
-
 	non_opts = bt_value_array_create();
 	if (!non_opts) {
 		BT_CLI_LOGE_APPEND_CAUSE_OOM();
@@ -3500,9 +3290,6 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 	 * as is to the run command. This pass can also add --name
 	 * arguments if needed to automatically name unnamed component
 	 * instances.
-	 *
-	 * Also it appends the plugin paths of --plugin-path to
-	 * `plugin_paths`.
 	 */
 	argpar_parse_ret = bt_argpar_parse(argc, argv, convert_options, true);
 	if (argpar_parse_ret.error) {
@@ -3699,44 +3486,9 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 				}
 
 				break;
-			case OPT_OMIT_HOME_PLUGIN_PATH:
-				force_omit_home_plugin_path = true;
-
-				if (bt_value_array_append_string_element(run_args,
-						"--omit-home-plugin-path")) {
-					BT_CLI_LOGE_APPEND_CAUSE_OOM();
-					goto error;
-				}
-				break;
 			case OPT_RETRY_DURATION:
 				if (bt_value_array_append_string_element(run_args,
 						"--retry-duration")) {
-					BT_CLI_LOGE_APPEND_CAUSE_OOM();
-					goto error;
-				}
-
-				if (bt_value_array_append_string_element(run_args, arg)) {
-					BT_CLI_LOGE_APPEND_CAUSE_OOM();
-					goto error;
-				}
-				break;
-			case OPT_OMIT_SYSTEM_PLUGIN_PATH:
-				force_omit_system_plugin_path = true;
-
-				if (bt_value_array_append_string_element(run_args,
-						"--omit-system-plugin-path")) {
-					BT_CLI_LOGE_APPEND_CAUSE_OOM();
-					goto error;
-				}
-				break;
-			case OPT_PLUGIN_PATH:
-				if (bt_config_append_plugin_paths_check_setuid_setgid(
-						plugin_paths, arg)) {
-					goto error;
-				}
-
-				if (bt_value_array_append_string_element(run_args,
-						"--plugin-path")) {
 					BT_CLI_LOGE_APPEND_CAUSE_OOM();
 					goto error;
 				}
@@ -4116,16 +3868,6 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 	if (*default_log_level == BT_LOG_INFO) {
 		append_implicit_component_param(&implicit_text_args,
 			"verbose", "yes");
-	}
-
-	/*
-	 * Append home and system plugin paths now that we possibly got
-	 * --plugin-path.
-	 */
-	if (append_home_and_system_plugin_paths(plugin_paths,
-			force_omit_system_plugin_path,
-			force_omit_home_plugin_path)) {
-		goto error;
 	}
 
 	/* Print CTF metadata or print LTTng live sessions */
@@ -4572,9 +4314,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 	}
 
 	cfg = bt_config_run_from_args_array(run_args, retcode,
-		force_omit_system_plugin_path,
-		force_omit_home_plugin_path,
-		initial_plugin_paths, *default_log_level);
+		plugin_paths, *default_log_level);
 	if (!cfg) {
 		goto error;
 	}
@@ -4622,7 +4362,6 @@ end:
 	finalize_implicit_component_args(&implicit_debug_info_args);
 	finalize_implicit_component_args(&implicit_muxer_args);
 	finalize_implicit_component_args(&implicit_trimmer_args);
-	bt_value_put_ref(plugin_paths);
 	bt_common_destroy_lttng_live_url_parts(&lttng_live_url_parts);
 	auto_source_discovery_fini(&auto_disc);
 
@@ -4650,12 +4389,17 @@ void print_gen_usage(FILE *fp)
 	fprintf(fp, "\n");
 	fprintf(fp, "General options:\n");
 	fprintf(fp, "\n");
-	fprintf(fp, "  -d, --debug          Enable debug mode (same as --log-level=V)\n");
-	fprintf(fp, "  -h, --help           Show this help and quit\n");
-	fprintf(fp, "  -l, --log-level=LVL  Set the default log level to LVL (`N`, `V`, `D`,\n");
-	fprintf(fp, "                       `I`, `W` (default), `E`, or `F`)\n");
-	fprintf(fp, "  -v, --verbose        Enable verbose mode (same as --log-level=I)\n");
-	fprintf(fp, "  -V, --version        Show version and quit\n");
+	fprintf(fp, "  -d, --debug          		 Enable debug mode (same as --log-level=V)\n");
+	fprintf(fp, "  -h, --help           		 Show this help and quit\n");
+	fprintf(fp, "  -l, --log-level=LVL  		 Set the default log level to LVL (`N`, `V`, `D`,\n");
+	fprintf(fp, "                       		 `I`, `W` (default), `E`, or `F`)\n");
+	fprintf(fp, "      --omit-home-plugin-path       Omit home plugins from plugin search path\n");
+	fprintf(fp, "                                    (~/.local/lib/babeltrace2/plugins)\n");
+	fprintf(fp, "      --omit-system-plugin-path     Omit system plugins from plugin search path\n");
+	fprintf(fp, "      --plugin-path=PATH[:PATH]...  Add PATH to the list of paths from which\n");
+	fprintf(fp, "                                    dynamic plugins can be loaded\n");
+	fprintf(fp, "  -v, --verbose        		 Enable verbose mode (same as --log-level=I)\n");
+	fprintf(fp, "  -V, --version        		 Show version and quit\n");
 	fprintf(fp, "\n");
 	fprintf(fp, "Available commands:\n");
 	fprintf(fp, "\n");
@@ -4669,8 +4413,8 @@ void print_gen_usage(FILE *fp)
 }
 
 struct bt_config *bt_config_cli_args_create(int argc, const char *argv[],
-		int *retcode, bool force_omit_system_plugin_path,
-		bool force_omit_home_plugin_path,
+		int *retcode, bool omit_system_plugin_path,
+		bool omit_home_plugin_path,
 		const bt_value *initial_plugin_paths)
 {
 	struct bt_config *config = NULL;
@@ -4682,6 +4426,7 @@ struct bt_config *bt_config_cli_args_create(int argc, const char *argv[],
 	const char *command_name = NULL;
 	int default_log_level = -1;
 	struct bt_argpar_parse_ret argpar_parse_ret = { 0 };
+	bt_value *plugin_paths = NULL;
 
 	/* Top-level option descriptions. */
 	static const struct bt_argpar_opt_descr descrs[] = {
@@ -4690,6 +4435,9 @@ struct bt_config *bt_config_cli_args_create(int argc, const char *argv[],
 		{ OPT_LOG_LEVEL, 'l', "log-level", true },
 		{ OPT_VERBOSE, 'v', "verbose", false },
 		{ OPT_VERSION, 'V', "version", false},
+		{ OPT_OMIT_HOME_PLUGIN_PATH, '\0', "omit-home-plugin-path", false },
+		{ OPT_OMIT_SYSTEM_PLUGIN_PATH, '\0', "omit-system-plugin-path", false },
+		{ OPT_PLUGIN_PATH, '\0', "plugin-path", true },
 		BT_ARGPAR_OPT_DESCR_SENTINEL
 	};
 
@@ -4705,13 +4453,27 @@ struct bt_config *bt_config_cli_args_create(int argc, const char *argv[],
 	*retcode = -1;
 
 	if (!initial_plugin_paths) {
-		initial_plugin_paths = bt_value_array_create();
-		if (!initial_plugin_paths) {
-			*retcode = 1;
-			goto end;
+		plugin_paths = bt_value_array_create();
+		if (!plugin_paths) {
+			goto error;
 		}
 	} else {
-		bt_value_get_ref(initial_plugin_paths);
+		bt_value_copy_status copy_status = bt_value_copy(
+			initial_plugin_paths, &plugin_paths);
+		if (copy_status) {
+			goto error;
+		}
+	}
+
+	BT_ASSERT(plugin_paths);
+
+	/*
+	 * The `BABELTRACE_PLUGIN_PATH` paths take precedence over the
+	 * `--plugin-path` option's paths, so append it now before
+	 * parsing the general options.
+	 */
+	if (append_env_var_plugin_paths(plugin_paths)) {
+		goto error;
 	}
 
 	if (argc <= 1) {
@@ -4766,6 +4528,18 @@ struct bt_config *bt_config_cli_args_create(int argc, const char *argv[],
 							item_opt->arg);
 						goto error;
 					}
+					break;
+				case OPT_PLUGIN_PATH:
+					if (bt_config_append_plugin_paths_check_setuid_setgid(
+							plugin_paths, item_opt->arg)) {
+						goto error;
+					}
+					break;
+				case OPT_OMIT_SYSTEM_PLUGIN_PATH:
+					omit_system_plugin_path = true;
+					break;
+				case OPT_OMIT_HOME_PLUGIN_PATH:
+					omit_home_plugin_path = true;
 					break;
 				case OPT_VERSION:
 					print_version();
@@ -4848,34 +4622,40 @@ struct bt_config *bt_config_cli_args_create(int argc, const char *argv[],
 		default_log_level = cli_default_log_level;
 	}
 
+	/*
+	 * At this point, `plugin_paths` contains the initial plugin
+	 * paths, the paths from the `BABELTRACE_PLUGIN_PATH` paths, and
+	 * the paths from the `--plugin-path` option.
+	 *
+	 * Now append the user and system plugin paths.
+	 */
+	if (append_home_and_system_plugin_paths(plugin_paths,
+			omit_system_plugin_path, omit_home_plugin_path)) {
+		goto error;
+	}
+
 	switch (command_type) {
 	case COMMAND_TYPE_RUN:
 		config = bt_config_run_from_args(command_argc, command_argv,
-			retcode, force_omit_system_plugin_path,
-			force_omit_home_plugin_path, initial_plugin_paths,
+			retcode, plugin_paths,
 			default_log_level);
 		break;
 	case COMMAND_TYPE_CONVERT:
 		config = bt_config_convert_from_args(command_argc, command_argv,
-			retcode, force_omit_system_plugin_path,
-			force_omit_home_plugin_path,
-			initial_plugin_paths, &default_log_level);
+			retcode, plugin_paths, &default_log_level);
 		break;
 	case COMMAND_TYPE_LIST_PLUGINS:
 		config = bt_config_list_plugins_from_args(command_argc,
-			command_argv, retcode, force_omit_system_plugin_path,
-			force_omit_home_plugin_path, initial_plugin_paths);
+			command_argv, retcode, plugin_paths);
 		break;
 	case COMMAND_TYPE_HELP:
 		config = bt_config_help_from_args(command_argc,
-			command_argv, retcode, force_omit_system_plugin_path,
-			force_omit_home_plugin_path, initial_plugin_paths,
+			command_argv, retcode, plugin_paths,
 			default_log_level);
 		break;
 	case COMMAND_TYPE_QUERY:
 		config = bt_config_query_from_args(command_argc,
-			command_argv, retcode, force_omit_system_plugin_path,
-			force_omit_home_plugin_path, initial_plugin_paths,
+			command_argv, retcode, plugin_paths,
 			default_log_level);
 		break;
 	default:
@@ -4895,6 +4675,6 @@ error:
 
 end:
 	bt_argpar_parse_ret_fini(&argpar_parse_ret);
-	bt_value_put_ref(initial_plugin_paths);
+	bt_value_put_ref(plugin_paths);
 	return config;
 }
