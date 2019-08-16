@@ -981,7 +981,7 @@ int cmd_print_lttng_live_sessions(struct bt_config *cfg)
 			BT_CLI_LOGE_APPEND_CAUSE("Missing `timer-us` entry.");
 			goto error;
 		}
-		timer_us = bt_value_integer_signed_get(v);
+		timer_us = bt_value_integer_unsigned_get(v);
 		fprintf(out_stream, " (timer = %" PRIu64 ", ", timer_us);
 		v = bt_value_map_borrow_entry_value_const(map, "stream-count");
 		if (!v) {
@@ -989,7 +989,7 @@ int cmd_print_lttng_live_sessions(struct bt_config *cfg)
 				"Missing `stream-count` entry.");
 			goto error;
 		}
-		streams = bt_value_integer_signed_get(v);
+		streams = bt_value_integer_unsigned_get(v);
 		fprintf(out_stream, "%" PRIu64 " stream(s), ", streams);
 		v = bt_value_map_borrow_entry_value_const(map, "client-count");
 		if (!v) {
@@ -997,7 +997,7 @@ int cmd_print_lttng_live_sessions(struct bt_config *cfg)
 				"Missing `client-count` entry.");
 			goto error;
 		}
-		clients = bt_value_integer_signed_get(v);
+		clients = bt_value_integer_unsigned_get(v);
 		fprintf(out_stream, "%" PRIu64 " client(s) connected)\n", clients);
 	}
 
