@@ -37,11 +37,11 @@ function run_test
 {
 	local test_name="$1"
 	local local_args=(
+		"--plugin-path" "$data_dir"
 		"-c" "src.test-muxer.TheSourceOfConfusion"
 		"-p" "test-name=$test_name"
 		"-c" "sink.text.details"
 		"--params=compact=false,with-metadata=false"
-		"--plugin-path=$data_dir"
 	)
 
 	stdout_expected="$data_dir/succeed/$test_name.expect"

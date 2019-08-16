@@ -64,7 +64,7 @@ Stream end
 END
 
 bt_diff_cli "$expected_file" "/dev/null" \
-	convert --plugin-path "${plugin_dir}" \
+	--plugin-path "${plugin_dir}" convert \
 	"${dir_ab}" --params 'test-allo="madame"' ${print_test_params} \
 	${details_sink[@]}
 ok "$?" "apply params to two components from one non-option argument"
@@ -91,7 +91,7 @@ Stream end
 END
 
 bt_diff_cli "$expected_file" "/dev/null" \
-	convert --plugin-path "${plugin_dir}" \
+	--plugin-path "${plugin_dir}" convert \
 	"${dir_a}" --params 'test-allo="madame"' ${print_test_params} "${dir_b}" --params 'test-bonjour="monsieur"' ${print_test_params} \
 	${details_sink[@]}
 ok "$?" "apply params to two non-option arguments"
@@ -118,7 +118,7 @@ Stream end
 END
 
 bt_diff_cli "$expected_file" "/dev/null" \
-	convert --plugin-path "${plugin_dir}" \
+	--plugin-path "${plugin_dir}" convert \
 	"${dir_a}" --params 'test-allo="madame"' ${print_test_params} "${dir_ab}" --params 'test-bonjour="monsieur"' ${print_test_params} \
 	${details_sink[@]}
 ok "$?" "apply params to one component coming from one non-option argument and one component coming from two non-option arguments (1)"
@@ -145,7 +145,7 @@ Stream end
 END
 
 bt_diff_cli "$expected_file" "/dev/null" \
-	convert --plugin-path "${plugin_dir}" \
+	--plugin-path "${plugin_dir}" convert \
 	"${dir_ab}" --params 'test-bonjour="madame",test-salut="les amis"' ${print_test_params} "${dir_a}" --params 'test-bonjour="monsieur"' ${print_test_params} \
 	${details_sink[@]}
 ok "$?" "apply params to one component coming from one non-option argument and one component coming from two non-option arguments (2)"

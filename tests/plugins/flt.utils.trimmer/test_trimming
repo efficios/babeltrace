@@ -41,11 +41,11 @@ function run_test
 	local begin_time="$1"
 	local end_time="$2"
 	local local_args=(
+		"--plugin-path" "$data_dir"
 		"-c" "src.test-trimmer.TheSourceOfAllEvil"
 		"-p" "with-stream-msgs-cs=$with_stream_msgs_cs"
 		"-c" "sink.text.details"
 		"--params=compact=true,with-metadata=false"
-		"--plugin-path=$data_dir"
 	)
 
 	if [ -n "$begin_time" ]; then
