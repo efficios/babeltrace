@@ -50,6 +50,7 @@
 
 #define MAX_QUERY_SIZE			    (256*1024)
 #define URL_PARAM			    "url"
+#define INPUTS_PARAM			    "inputs"
 #define SESS_NOT_FOUND_ACTION_PARAM	    "session-not-found-action"
 #define SESS_NOT_FOUND_ACTION_CONTINUE_STR  "continue"
 #define SESS_NOT_FOUND_ACTION_FAIL_STR	    "fail"
@@ -1599,6 +1600,81 @@ end:
 	return status;
 }
 
+static
+bt_component_class_query_method_status lttng_live_query_support_info(
+		const bt_value *params, const bt_value **result,
+		bt_logging_level log_level)
+{
+	bt_component_class_query_method_status status =
+		BT_COMPONENT_CLASS_QUERY_METHOD_STATUS_OK;
+	const bt_value *input_type_value;
+	const bt_value *input_value;
+	double weight = 0;
+	struct bt_common_lttng_live_url_parts parts = { 0 };
+
+	/* Used by the logging macros */
+	__attribute__((unused)) bt_self_component *self_comp = NULL;
+
+	*result = NULL;
+	input_type_value = bt_value_map_borrow_entry_value_const(params,
+		"type");
+	if (!input_type_value) {
+		BT_COMP_LOGE("Missing expected `type` parameter.");
+		goto error;
+	}
+
+	if (!bt_value_is_string(input_type_value)) {
+		BT_COMP_LOGE("`type` parameter is not a string value.");
+		goto error;
+	}
+
+	if (strcmp(bt_value_string_get(input_type_value), "string") != 0) {
+		/* We don't handle file system paths */
+		goto create_result;
+	}
+
+	input_value = bt_value_map_borrow_entry_value_const(params, "input");
+	if (!input_value) {
+		BT_COMP_LOGE("Missing expected `input` parameter.");
+		goto error;
+	}
+
+	if (!bt_value_is_string(input_value)) {
+		BT_COMP_LOGE("`input` parameter is not a string value.");
+		goto error;
+	}
+
+	parts = bt_common_parse_lttng_live_url(bt_value_string_get(input_value),
+		NULL, 0);
+	if (parts.session_name) {
+		/*
+		 * Looks pretty much like an LTTng live URL: we got the
+		 * session name part, which forms a complete URL.
+		 */
+		weight = .75;
+	}
+
+create_result:
+	*result = bt_value_real_create_init(weight);
+	if (!*result) {
+		status = BT_COMPONENT_CLASS_QUERY_METHOD_STATUS_MEMORY_ERROR;
+		goto error;
+	}
+
+	goto end;
+
+error:
+	if (status >= 0) {
+		status = BT_COMPONENT_CLASS_QUERY_METHOD_STATUS_ERROR;
+	}
+
+	BT_ASSERT(!*result);
+
+end:
+	bt_common_destroy_lttng_live_url_parts(&parts);
+	return status;
+}
+
 BT_HIDDEN
 bt_component_class_query_method_status lttng_live_query(
 		bt_self_component_class_source *comp_class,
@@ -1616,6 +1692,9 @@ bt_component_class_query_method_status lttng_live_query(
 
 	if (strcmp(object, "sessions") == 0) {
 		status = lttng_live_query_list_sessions(params, result,
+			log_level);
+	} else if (strcmp(object, "babeltrace.support-info") == 0) {
+		status = lttng_live_query_support_info(params, result,
 			log_level);
 	} else {
 		BT_COMP_LOGI("Unknown query object `%s`", object);
@@ -1675,7 +1754,9 @@ struct lttng_live_component *lttng_live_component_create(const bt_value *params,
 		bt_logging_level log_level, bt_self_component *self_comp)
 {
 	struct lttng_live_component *lttng_live;
-	const bt_value *value = NULL;
+	const bt_value *inputs_value;
+	const bt_value *url_value;
+	const bt_value *value;
 	const char *url;
 
 	lttng_live = g_new0(struct lttng_live_component, 1);
@@ -1687,13 +1768,36 @@ struct lttng_live_component *lttng_live_component_create(const bt_value *params,
 	lttng_live->max_query_size = MAX_QUERY_SIZE;
 	lttng_live->has_msg_iter = false;
 
-	value = bt_value_map_borrow_entry_value_const(params, URL_PARAM);
-	if (!value || !bt_value_is_string(value)) {
-		BT_COMP_LOGW("Mandatory `%s` parameter missing or not a string",
-			URL_PARAM);
+	inputs_value = bt_value_map_borrow_entry_value_const(params,
+		INPUTS_PARAM);
+	if (!inputs_value) {
+		BT_COMP_LOGE("Mandatory `%s` parameter missing", INPUTS_PARAM);
 		goto error;
 	}
-	url = bt_value_string_get(value);
+
+	if (!bt_value_is_array(inputs_value)) {
+		BT_COMP_LOGE("`%s` parameter is required to be an array value",
+			INPUTS_PARAM);
+		goto error;
+	}
+
+	if (bt_value_array_get_length(inputs_value) != 1) {
+		BT_COMP_LOGE("`%s` parameter's length is required to be 1",
+			INPUTS_PARAM);
+		goto error;
+	}
+
+	url_value = bt_value_array_borrow_element_by_index_const(inputs_value,
+		0);
+	BT_ASSERT(url_value);
+
+	if (!bt_value_is_string(url_value)) {
+		BT_COMP_LOGE("First element of `%s` parameter is required to be a string value (URL)",
+			INPUTS_PARAM);
+		goto error;
+	}
+
+	url = bt_value_string_get(url_value);
 	lttng_live->params.url = g_string_new(url);
 	if (!lttng_live->params.url) {
 		goto error;
@@ -1701,8 +1805,13 @@ struct lttng_live_component *lttng_live_component_create(const bt_value *params,
 
 	value = bt_value_map_borrow_entry_value_const(params,
 		SESS_NOT_FOUND_ACTION_PARAM);
+	if (value) {
+		if (!bt_value_is_string(value)) {
+			BT_COMP_LOGE("`%s` parameter is required to be a string value",
+				SESS_NOT_FOUND_ACTION_PARAM);
+			goto error;
+		}
 
-	if (value && bt_value_is_string(value)) {
 		lttng_live->params.sess_not_found_act =
 			parse_session_not_found_action_param(value);
 		if (lttng_live->params.sess_not_found_act == SESSION_NOT_FOUND_ACTION_UNKNOWN) {
@@ -1712,9 +1821,8 @@ struct lttng_live_component *lttng_live_component_create(const bt_value *params,
 			goto error;
 		}
 	} else {
-		BT_COMP_LOGW("Optional `%s` parameter is missing or "
-			"not a string value. Defaulting to %s=\"%s\".",
-			SESS_NOT_FOUND_ACTION_PARAM,
+		BT_COMP_LOGI("Optional `%s` parameter is missing: "
+			"defaulting to `%s`.",
 			SESS_NOT_FOUND_ACTION_PARAM,
 			SESS_NOT_FOUND_ACTION_CONTINUE_STR);
 		lttng_live->params.sess_not_found_act =
