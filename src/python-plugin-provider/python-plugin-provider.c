@@ -145,12 +145,14 @@ int init_python(void)
 
 	/*
 	 * User can disable Python plugin support with the
-	 * BABELTRACE_DISABLE_PYTHON_PLUGINS environment variable set to
-	 * 1.
+	 * `LIBBABELTRACE2_DISABLE_PYTHON_PLUGINS` environment variable
+	 * set to 1.
 	 */
-	dis_python_env = getenv("BABELTRACE_DISABLE_PYTHON_PLUGINS");
+	dis_python_env = getenv("LIBBABELTRACE2_DISABLE_PYTHON_PLUGINS");
 	if (dis_python_env && strcmp(dis_python_env, "1") == 0) {
-		BT_LOGI_STR("Python plugin support is disabled because `BABELTRACE_DISABLE_PYTHON_PLUGINS=1`.");
+		BT_LOGI_STR("Python plugin support is disabled because the "
+			"`LIBBABELTRACE2_DISABLE_PYTHON_PLUGINS` environment "
+			"variable is set to `1`.");
 		python_state = PYTHON_STATE_WONT_INITIALIZE;
 		ret = BT_FUNC_STATUS_NOT_FOUND;
 		goto end;
@@ -637,7 +639,9 @@ int bt_plugin_python_create_all_from_file(const char *path,
 		 * Python plugins are disabled, so it's simply not
 		 * found.
 		 */
-		BT_LOGI_STR("Python plugin support was disabled previously because `BABELTRACE_DISABLE_PYTHON_PLUGINS=1`.");
+		BT_LOGI_STR("Python plugin support was disabled previously "
+			"because the `LIBBABELTRACE2_DISABLE_PYTHON_PLUGINS` "
+			"environment variable is set to `1`.");
 		status = BT_FUNC_STATUS_NOT_FOUND;
 		goto error;
 	}
