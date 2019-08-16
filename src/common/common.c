@@ -512,6 +512,7 @@ set_end_pos:
 error:
 	if (output) {
 		g_string_free(output, TRUE);
+		output = NULL;
 	}
 
 end:
