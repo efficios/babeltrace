@@ -2716,7 +2716,7 @@ int main(int argc, const char **argv)
 
 	if (!cfg) {
 		BT_CLI_LOGE_APPEND_CAUSE(
-			"Failed to create a valid Babeltrace configuration.");
+			"Failed to create a valid Babeltrace CLI configuration.");
 		retcode = 1;
 		goto end;
 	}
