@@ -3174,6 +3174,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 	struct bt_argpar_parse_ret argpar_parse_ret = { 0 };
 	GString *name_gstr = NULL;
 	GString *component_arg_for_run = NULL;
+	bt_value *live_inputs_array_val = NULL;
 
 	/*
 	 * Array of `struct implicit_component_args *` created for the sources
@@ -3998,9 +3999,22 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 				goto end;
 			}
 
-			ret = append_implicit_component_extra_param(
-				&implicit_lttng_live_args, "url",
-				bt_value_string_get(bt_val_non_opt));
+			live_inputs_array_val = bt_value_array_create();
+			if (!live_inputs_array_val) {
+				BT_CLI_LOGE_APPEND_CAUSE_OOM();
+				goto error;
+			}
+
+			if (bt_value_array_append_string_element(
+					live_inputs_array_val,
+					bt_value_string_get(bt_val_non_opt))) {
+				BT_CLI_LOGE_APPEND_CAUSE_OOM();
+				goto error;
+			}
+
+			ret = append_parameter_to_args(
+				implicit_lttng_live_args.extra_params,
+				"inputs", live_inputs_array_val);
 			if (ret) {
 				goto error;
 			}
@@ -4339,6 +4353,7 @@ end:
 		g_string_free(name_gstr, TRUE);
 	}
 
+	bt_value_put_ref(live_inputs_array_val);
 	bt_value_put_ref(run_args);
 	bt_value_put_ref(all_names);
 	destroy_glist_of_gstring(source_names);
