@@ -105,10 +105,12 @@ extern bt_value_array_append_element_status
 bt_value_array_append_string_element(bt_value *array_obj, const char *val);
 
 extern bt_value_array_append_element_status
-bt_value_array_append_empty_array_element(bt_value *array_obj);
+bt_value_array_append_empty_array_element(bt_value *array_obj,
+		bt_value **element_obj);
 
 extern bt_value_array_append_element_status
-bt_value_array_append_empty_map_element(bt_value *array_obj);
+bt_value_array_append_empty_map_element(bt_value *array_obj,
+		bt_value **element_obj);
 
 typedef enum bt_value_array_set_element_by_index_status {
 	BT_VALUE_ARRAY_SET_ELEMENT_BY_INDEX_STATUS_MEMORY_ERROR	= __BT_FUNC_STATUS_MEMORY_ERROR,
@@ -164,10 +166,12 @@ bt_value_map_insert_string_entry(bt_value *map_obj, const char *key,
 		const char *val);
 
 extern bt_value_map_insert_entry_status
-bt_value_map_insert_empty_array_entry(bt_value *map_obj, const char *key);
+bt_value_map_insert_empty_array_entry(bt_value *map_obj, const char *key,
+		bt_value **entry_obj);
 
 extern bt_value_map_insert_entry_status
-bt_value_map_insert_empty_map_entry(bt_value *map_obj, const char *key);
+bt_value_map_insert_empty_map_entry(bt_value *map_obj, const char *key,
+		bt_value **entry_obj);
 
 #ifdef __cplusplus
 }

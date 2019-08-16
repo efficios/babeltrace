@@ -994,7 +994,8 @@ bt_value_array_append_string_element(struct bt_value *array_obj,
 }
 
 enum bt_value_array_append_element_status
-bt_value_array_append_empty_array_element(struct bt_value *array_obj)
+bt_value_array_append_empty_array_element(struct bt_value *array_obj,
+		struct bt_value **element_obj)
 {
 	enum bt_value_array_append_element_status ret;
 	struct bt_value *empty_array_obj = NULL;
@@ -1002,12 +1003,18 @@ bt_value_array_append_empty_array_element(struct bt_value *array_obj)
 	empty_array_obj = bt_value_array_create();
 	ret = bt_value_array_append_element(array_obj,
 		(void *) empty_array_obj);
+
+	if (element_obj) {
+		*element_obj = empty_array_obj;
+	}
+
 	bt_object_put_ref(empty_array_obj);
 	return ret;
 }
 
 enum bt_value_array_append_element_status
-bt_value_array_append_empty_map_element(struct bt_value *array_obj)
+bt_value_array_append_empty_map_element(struct bt_value *array_obj,
+		struct bt_value **element_obj)
 {
 	enum bt_value_array_append_element_status ret;
 	struct bt_value *map_obj = NULL;
@@ -1015,6 +1022,11 @@ bt_value_array_append_empty_map_element(struct bt_value *array_obj)
 	map_obj = bt_value_map_create();
 	ret = bt_value_array_append_element(array_obj,
 		(void *) map_obj);
+
+	if (element_obj) {
+		*element_obj = map_obj;
+	}
+
 	bt_object_put_ref(map_obj);
 	return ret;
 }
@@ -1160,7 +1172,8 @@ enum bt_value_map_insert_entry_status bt_value_map_insert_string_entry(
 
 enum bt_value_map_insert_entry_status
 bt_value_map_insert_empty_array_entry(
-		struct bt_value *map_obj, const char *key)
+		struct bt_value *map_obj, const char *key,
+		bt_value **entry_obj)
 {
 	enum bt_value_map_insert_entry_status ret;
 	struct bt_value *array_obj = NULL;
@@ -1168,12 +1181,18 @@ bt_value_map_insert_empty_array_entry(
 	array_obj = bt_value_array_create();
 	ret = bt_value_map_insert_entry(map_obj, key,
 		(void *) array_obj);
+
+	if (entry_obj) {
+		*entry_obj = array_obj;
+	}
+
 	bt_object_put_ref(array_obj);
 	return ret;
 }
 
 enum bt_value_map_insert_entry_status
-bt_value_map_insert_empty_map_entry(struct bt_value *map_obj, const char *key)
+bt_value_map_insert_empty_map_entry(struct bt_value *map_obj, const char *key,
+		bt_value **entry_obj)
 {
 	enum bt_value_map_insert_entry_status ret;
 	struct bt_value *empty_map_obj = NULL;
@@ -1181,6 +1200,11 @@ bt_value_map_insert_empty_map_entry(struct bt_value *map_obj, const char *key)
 	empty_map_obj = bt_value_map_create();
 	ret = bt_value_map_insert_entry(map_obj, key,
 		(void *) empty_map_obj);
+
+	if (entry_obj) {
+		*entry_obj = empty_map_obj;
+	}
+
 	bt_object_put_ref(empty_map_obj);
 	return ret;
 }

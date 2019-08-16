@@ -25,7 +25,7 @@
 #include <string.h>
 #include "tap/tap.h"
 
-#define NR_TESTS 166
+#define NR_TESTS 188
 
 static
 void test_null(void)
@@ -208,6 +208,7 @@ void test_array(void)
 	bt_value *obj;
 	const char *string_value;
 	bt_value *array_obj;
+	bt_value *appended_obj;
 
 	array_obj = bt_value_array_create();
 	ok(array_obj && bt_value_is_array(array_obj),
@@ -289,12 +290,24 @@ void test_array(void)
 	ret = bt_value_array_append_string_element(array_obj,
 		"bt_value");
 	ok(!ret, "bt_value_array_append_string_element() succeeds");
-	ret = bt_value_array_append_empty_array_element(array_obj);
+	ret = bt_value_array_append_empty_array_element(array_obj, NULL);
 	ok(!ret, "bt_value_array_append_empty_array_element() succeeds");
-	ret = bt_value_array_append_empty_map_element(array_obj);
+	ret = bt_value_array_append_empty_array_element(array_obj, &appended_obj);
+	ok(!ret, "bt_value_array_append_empty_array_element() with returned value object succeeds");
+	ok(appended_obj,
+		"object returned by bt_value_array_append_empty_array_element() is not NULL");
+	ok(bt_value_is_array(appended_obj),
+		"object returned by bt_value_array_append_empty_array_element() is an array value");
+	ret = bt_value_array_append_empty_map_element(array_obj, NULL);
 	ok(!ret, "bt_value_array_append_empty_map_element() succeeds");
+	ret = bt_value_array_append_empty_map_element(array_obj, &appended_obj);
+	ok(!ret, "bt_value_array_append_empty_map_element() with returned value object succeeds");
+	ok(appended_obj,
+		"object returned by bt_value_array_append_empty_map_element() is not NULL");
+	ok(bt_value_is_map(appended_obj),
+		"object returned by bt_value_array_append_empty_map_element() is an array value");
 
-	ok(bt_value_array_get_length(array_obj) == 12,
+	ok(bt_value_array_get_length(array_obj) == 14,
 		"the bt_value_array_append_element_*() functions increment the array value object's size");
 	ok(!bt_value_array_is_empty(array_obj),
 		"map value object is not empty");
@@ -335,6 +348,16 @@ void test_array(void)
 	ok(bt_value_array_is_empty(obj),
 		"bt_value_array_append_empty_array_element() an empty array value object");
 	obj = bt_value_array_borrow_element_by_index(array_obj, 11);
+	ok(obj && bt_value_is_array(obj),
+		"bt_value_array_append_empty_array_element() appends an array value object");
+	ok(bt_value_array_is_empty(obj),
+		"bt_value_array_append_empty_array_element() an empty array value object");
+	obj = bt_value_array_borrow_element_by_index(array_obj, 12);
+	ok(obj && bt_value_is_map(obj),
+		"bt_value_array_append_empty_map_element() appends a map value object");
+	ok(bt_value_map_is_empty(obj),
+		"bt_value_array_append_empty_map_element() an empty map value object");
+	obj = bt_value_array_borrow_element_by_index(array_obj, 13);
 	ok(obj && bt_value_is_map(obj),
 		"bt_value_array_append_empty_map_element() appends a map value object");
 	ok(bt_value_map_is_empty(obj),
@@ -370,7 +393,9 @@ struct map_foreach_checklist {
 	bt_bool real2;
 	bt_bool string2;
 	bt_bool array2;
+	bt_bool array3;
 	bt_bool map2;
+	bt_bool map3;
 };
 
 static
@@ -515,6 +540,24 @@ bt_bool test_map_foreach_cb_check(const char *key, bt_value *object,
 				"test_map_foreach_cb_check(): \"array2\" value object is empty");
 			checklist->array2 = BT_TRUE;
 		}
+	} else if (strcmp(key, "array3") == 0) {
+		if (checklist->array3) {
+			fail("test_map_foreach_cb_check(): duplicate key \"array3\"");
+		} else {
+			ok(bt_value_is_array(object), "test_map_foreach_cb_check(): success getting \"array3\" value object");
+			ok(bt_value_array_is_empty(object),
+				"test_map_foreach_cb_check(): \"array3\" value object is empty");
+			checklist->array3 = BT_TRUE;
+		}
+	} else if (strcmp(key, "map3") == 0) {
+		if (checklist->map3) {
+			fail("test_map_foreach_cb_check(): duplicate key \"map3\"");
+		} else {
+			ok(bt_value_is_map(object), "test_map_foreach_cb_check(): success getting \"map3\" value object");
+			ok(bt_value_map_is_empty(object),
+				"test_map_foreach_cb_check(): \"map3\" value object is empty");
+			checklist->map3 = BT_TRUE;
+		}
 	} else if (strcmp(key, "map2") == 0) {
 		if (checklist->map2) {
 			fail("test_map_foreach_cb_check(): duplicate key \"map2\"");
@@ -542,6 +585,7 @@ void test_map(void)
 	double real_value;
 	bt_value *obj;
 	bt_value *map_obj;
+	bt_value *inserted_obj;
 	struct map_foreach_checklist checklist;
 
 	map_obj = bt_value_map_create();
@@ -615,13 +659,24 @@ void test_map(void)
 	ret = bt_value_map_insert_string_entry(map_obj, "string2",
 		"bt_value");
 	ok(!ret, "bt_value_map_insert_string_entry() succeeds");
-	ret = bt_value_map_insert_empty_array_entry(map_obj,
-		"array2");
+	ret = bt_value_map_insert_empty_array_entry(map_obj, "array2", NULL);
 	ok(!ret, "bt_value_map_insert_empty_array_entry() succeeds");
-	ret = bt_value_map_insert_empty_map_entry(map_obj, "map2");
+	ret = bt_value_map_insert_empty_array_entry(map_obj, "array3", &inserted_obj);
+	ok(!ret, "bt_value_map_insert_empty_array_entry() with returned value object succeeds");
+	ok(inserted_obj,
+		"object returned by bt_value_map_insert_empty_array_entry() is not NULL");
+	ok(bt_value_is_array(inserted_obj),
+		"object returned by bt_value_map_insert_empty_array_entry() is an array value");
+	ret = bt_value_map_insert_empty_map_entry(map_obj, "map2", NULL);
 	ok(!ret, "bt_value_map_insert_empty_map_entry() succeeds");
+	ret = bt_value_map_insert_empty_map_entry(map_obj, "map3", &inserted_obj);
+	ok(!ret, "bt_value_map_insert_empty_map_entry() with returned value object succeeds");
+	ok(inserted_obj,
+		"object returned by bt_value_map_insert_empty_map_entry() is not NULL");
+	ok(bt_value_is_map(inserted_obj),
+		"object returned by bt_value_map_insert_empty_map_entry() is an array value");
 
-	ok(bt_value_map_get_size(map_obj) == 11,
+	ok(bt_value_map_get_size(map_obj) == 13,
 		"the bt_value_map_insert*() functions increment the map value object's size");
 
 	ok(!bt_value_map_has_entry(map_obj, "hello"),
@@ -646,8 +701,12 @@ void test_map(void)
 		"map value object has key \"string2\"");
 	ok(bt_value_map_has_entry(map_obj, "array2"),
 		"map value object has key \"array2\"");
+	ok(bt_value_map_has_entry(map_obj, "array3"),
+		"map value object has key \"array3\"");
 	ok(bt_value_map_has_entry(map_obj, "map2"),
 		"map value object has key \"map2\"");
+	ok(bt_value_map_has_entry(map_obj, "map3"),
+		"map value object has key \"map3\"");
 
 	ret = bt_value_map_foreach_entry(map_obj, test_map_foreach_cb_count,
 		&count);
