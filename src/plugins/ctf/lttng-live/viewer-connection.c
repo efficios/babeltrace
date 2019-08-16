@@ -1500,7 +1500,10 @@ struct live_viewer_connection *live_viewer_connection_create(
 error_report:
 	BT_COMP_LOGW("Failure to establish connection to url \"%s\"", url);
 error:
-	g_free(viewer_connection);
+	if (viewer_connection) {
+		live_viewer_connection_destroy(viewer_connection);
+	}
+
 	return NULL;
 }
 
@@ -1510,7 +1513,9 @@ void live_viewer_connection_destroy(
 {
 	BT_COMP_LOGI("Closing connection to url \"%s\"", viewer_connection->url->str);
 	lttng_live_disconnect_viewer(viewer_connection);
-	g_string_free(viewer_connection->url, true);
+	if (viewer_connection->url) {
+		g_string_free(viewer_connection->url, true);
+	}
 	if (viewer_connection->relay_hostname) {
 		g_string_free(viewer_connection->relay_hostname, true);
 	}
