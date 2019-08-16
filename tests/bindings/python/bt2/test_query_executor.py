@@ -171,7 +171,7 @@ class QueryExecutorTestCase(unittest.TestCase):
             res = bt2.QueryExecutor(MySink, 'obj', [17, 23]).query()
 
         exc = ctx.exception
-        self.assertEqual(len(exc), 2)
+        self.assertEqual(len(exc), 3)
         cause = exc[0]
         self.assertIsInstance(cause, bt2._ComponentClassErrorCause)
         self.assertIn('raise ValueError', cause.message)
