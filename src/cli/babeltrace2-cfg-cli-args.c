@@ -3442,10 +3442,16 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 					 * it in `non_opt_params`.
 					 */
 					bt_value *array;
+					bt_value_array_append_element_status append_element_status;
 					uint64_t idx = bt_value_array_get_length(non_opt_params) - 1;
 
 					array = bt_value_array_borrow_element_by_index(non_opt_params, idx);
-					bt_value_array_append_string_element(array, arg);
+
+					append_element_status = bt_value_array_append_string_element(array, arg);
+					if (append_element_status != BT_VALUE_ARRAY_APPEND_ELEMENT_STATUS_OK) {
+						BT_CLI_LOGE_APPEND_CAUSE_OOM();
+						goto error;
+					}
 				} else {
 					BT_CLI_LOGE_APPEND_CAUSE(
 						"No current component (--component option) or non-option argument of which to set parameters:\n    %s",
