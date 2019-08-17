@@ -673,7 +673,7 @@ struct bt_common_lttng_live_url_parts bt_common_parse_lttng_live_url(
 
 	at += end_pos;
 
-	/* :// */
+	/* `://` */
 	if (strncmp(at, "://", 3) != 0) {
 		if (error_buf) {
 			snprintf(error_buf, error_buf_size,
@@ -683,6 +683,7 @@ struct bt_common_lttng_live_url_parts bt_common_parse_lttng_live_url(
 		goto error;
 	}
 
+	/* Skip `://` */
 	at += 3;
 
 	/* Hostname */
@@ -732,12 +733,13 @@ struct bt_common_lttng_live_url_parts bt_common_parse_lttng_live_url(
 	}
 
 	if (at[end_pos] == '\0') {
+		/* Relay daemon hostname and ports provided only */
 		goto end;
 	}
 
 	at += end_pos;
 
-	/* /host/ */
+	/* `/host/` */
 	if (strncmp(at, "/host/", 6) != 0) {
 		if (error_buf) {
 			snprintf(error_buf, error_buf_size,
@@ -761,9 +763,16 @@ struct bt_common_lttng_live_url_parts bt_common_parse_lttng_live_url(
 	}
 
 	if (at[end_pos] == '\0') {
-		goto end;
+		if (error_buf) {
+			snprintf(error_buf, error_buf_size,
+				"Missing `/` after target hostname (`%s`)",
+				parts.target_hostname->str);
+		}
+
+		goto error;
 	}
 
+	/* Skip `/` */
 	at += end_pos + 1;
 
 	/* Session name */
