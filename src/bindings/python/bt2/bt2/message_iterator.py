@@ -184,9 +184,7 @@ class _UserMessageIterator(_MessageIterator):
 
         return _UserComponentInputPortMessageIterator(msg_iter_ptr)
 
-    def _create_event_message(
-        self, event_class, parent=None, default_clock_snapshot=None
-    ):
+    def _create_event_message(self, event_class, parent, default_clock_snapshot=None):
         utils._check_type(event_class, bt2_event_class._EventClass)
 
         if event_class.stream_class.supports_packets:
