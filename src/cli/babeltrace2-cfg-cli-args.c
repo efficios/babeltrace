@@ -1724,7 +1724,7 @@ void print_run_usage(FILE *fp)
 	fprintf(fp, "  -x, --connect=CONNECTION          Connect two created components (see the\n");
 	fprintf(fp, "                                    expected format of CONNECTION below)\n");
 	fprintf(fp, "  -l, --log-level=LVL               Set the log level of the current component to LVL\n");
-	fprintf(fp, "                                    (`N`, `V`, `D`, `I`, `W`, `E`, or `F`)\n");
+	fprintf(fp, "                                    (`N`, `T`, `D`, `I`, `W`, `E`, or `F`)\n");
 	fprintf(fp, "  -p, --params=PARAMS               Add initialization parameters PARAMS to the\n");
 	fprintf(fp, "                                    current component (see the expected format\n");
 	fprintf(fp, "                                    of PARAMS below)\n");
@@ -2128,7 +2128,7 @@ void print_convert_usage(FILE *fp)
 	fprintf(fp, "                                    conversion graph, and optionally name it\n");
 	fprintf(fp, "                                    NAME\n");
 	fprintf(fp, "  -l, --log-level=LVL               Set the log level of the current component to LVL\n");
-	fprintf(fp, "                                    (`N`, `V`, `D`, `I`, `W`, `E`, or `F`)\n");
+	fprintf(fp, "                                    (`N`, `T`, `D`, `I`, `W`, `E`, or `F`)\n");
 	fprintf(fp, "  -p, --params=PARAMS               Add initialization parameters PARAMS to the\n");
 	fprintf(fp, "                                    current component (see the expected format\n");
 	fprintf(fp, "                                    of PARAMS below)\n");
@@ -4396,9 +4396,9 @@ void print_gen_usage(FILE *fp)
 	fprintf(fp, "\n");
 	fprintf(fp, "General options:\n");
 	fprintf(fp, "\n");
-	fprintf(fp, "  -d, --debug          		 Enable debug mode (same as --log-level=V)\n");
+	fprintf(fp, "  -d, --debug          		 Enable debug mode (same as --log-level=T)\n");
 	fprintf(fp, "  -h, --help           		 Show this help and quit\n");
-	fprintf(fp, "  -l, --log-level=LVL  		 Set the default log level to LVL (`N`, `V`, `D`,\n");
+	fprintf(fp, "  -l, --log-level=LVL  		 Set the default log level to LVL (`N`, `T`, `D`,\n");
 	fprintf(fp, "                       		 `I`, `W` (default), `E`, or `F`)\n");
 	fprintf(fp, "      --omit-home-plugin-path       Omit home plugins from plugin search path\n");
 	fprintf(fp, "                                    (~/.local/lib/babeltrace2/plugins)\n");
