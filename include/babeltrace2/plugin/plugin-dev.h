@@ -452,7 +452,7 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
 		.plugin_descriptor = &__bt_plugin_descriptor_##_id,	\
 		.type_name = #_attr_name,				\
 		.type = _attr_type,					\
-		.value._attr_name = _x,					\
+		.value = { ._attr_name = _x },				\
 	};								\
 	static struct __bt_plugin_descriptor_attribute const * const __bt_plugin_descriptor_attribute_##_id##_##_attr_name##_ptr __BT_PLUGIN_DESCRIPTOR_ATTRIBUTES_ATTRS = &__bt_plugin_descriptor_attribute_##_id##_##_attr_name
 
@@ -530,13 +530,11 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
  */
 #define BT_PLUGIN_SOURCE_COMPONENT_CLASS_WITH_ID(_id, _comp_class_id, _name, _msg_iter_next_method) \
 	static struct __bt_plugin_component_class_descriptor __bt_plugin_source_component_class_descriptor_##_id##_##_comp_class_id = { \
-		.plugin_descriptor = &__bt_plugin_descriptor_##_id,	\
-		.name = _name,						\
-		.type = BT_COMPONENT_CLASS_TYPE_SOURCE,			\
-		.methods.source = {					\
-			.msg_iter_next = _msg_iter_next_method,	\
-		},							\
-	};								\
+		.plugin_descriptor = &__bt_plugin_descriptor_##_id,			\
+		.name = _name,								\
+		.type = BT_COMPONENT_CLASS_TYPE_SOURCE,					\
+		.methods = { .source = { .msg_iter_next = _msg_iter_next_method } },	\
+	};										\
 	static struct __bt_plugin_component_class_descriptor const * const __bt_plugin_source_component_class_descriptor_##_id##_##_comp_class_id##_ptr __BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRS = &__bt_plugin_source_component_class_descriptor_##_id##_##_comp_class_id
 
 /*
@@ -550,13 +548,11 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
  */
 #define BT_PLUGIN_FILTER_COMPONENT_CLASS_WITH_ID(_id, _comp_class_id, _name, _msg_iter_next_method) \
 	static struct __bt_plugin_component_class_descriptor __bt_plugin_filter_component_class_descriptor_##_id##_##_comp_class_id = { \
-		.plugin_descriptor = &__bt_plugin_descriptor_##_id,	\
-		.name = _name,						\
-		.type = BT_COMPONENT_CLASS_TYPE_FILTER,			\
-		.methods.filter = {					\
-			.msg_iter_next = _msg_iter_next_method,	\
-		},							\
-	};								\
+		.plugin_descriptor = &__bt_plugin_descriptor_##_id,			\
+		.name = _name,								\
+		.type = BT_COMPONENT_CLASS_TYPE_FILTER,					\
+		.methods = { .filter = { .msg_iter_next = _msg_iter_next_method } },	\
+	};										\
 	static struct __bt_plugin_component_class_descriptor const * const __bt_plugin_filter_component_class_descriptor_##_id##_##_comp_class_id##_ptr __BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRS = &__bt_plugin_filter_component_class_descriptor_##_id##_##_comp_class_id
 
 /*
@@ -573,9 +569,7 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
 		.plugin_descriptor = &__bt_plugin_descriptor_##_id,	\
 		.name = _name,						\
 		.type = BT_COMPONENT_CLASS_TYPE_SINK,			\
-		.methods.sink = {					\
-			.consume = _consume_method,			\
-		},							\
+		.methods = { .sink = { .consume = _consume_method } },	\
 	};								\
 	static struct __bt_plugin_component_class_descriptor const * const __bt_plugin_sink_component_class_descriptor_##_id##_##_comp_class_id##_ptr __BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRS = &__bt_plugin_sink_component_class_descriptor_##_id##_##_comp_class_id
 
@@ -596,7 +590,7 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
 		.comp_class_descriptor = &__bt_plugin_##_type##_component_class_descriptor_##_id##_##_comp_class_id, \
 		.type_name = #_attr_name,				\
 		.type = _attr_type,					\
-		.value._attr_name = _x,					\
+		.value = { ._attr_name = _x },				\
 	};								\
 	static struct __bt_plugin_component_class_descriptor_attribute const * const __bt_plugin_##_type##_component_class_descriptor_attribute_##_id##_##_comp_class_id##_##_attr_name##_ptr __BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTES_ATTRS = &__bt_plugin_##_type##_component_class_descriptor_attribute_##_id##_##_comp_class_id##_##_attr_name
 
