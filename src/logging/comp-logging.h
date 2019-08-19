@@ -150,6 +150,25 @@
 #define BT_COMP_LOGE_APPEND_CAUSE(_self_comp, _fmt, ...)			\
 	BT_COMP_LOG_APPEND_CAUSE(_self_comp, BT_LOG_ERROR, _fmt, ##__VA_ARGS__)
 
+/*
+ * Logs and appends error cause from component context - the errno edition.
+ */
+#define BT_COMP_LOG_APPEND_CAUSE_ERRNO(_self_comp, _lvl, _msg, _fmt, ...)		\
+	do {										\
+		const char *error_str = g_strerror(errno);				\
+		BT_COMP_LOG(_lvl, _self_comp, _msg ": %s" _fmt, error_str,		\
+			##__VA_ARGS__);							\
+		(void) BT_CURRENT_THREAD_ERROR_APPEND_CAUSE_FROM_COMPONENT(		\
+			_self_comp, _msg ": %s" _fmt, error_str, ##__VA_ARGS__);	\
+	} while (0)
+
+/*
+ * Logs error and appends error cause from component context - the errno
+ * edition.
+ */
+#define BT_COMP_LOGE_APPEND_CAUSE_ERRNO(_self_comp, _fmt, ...)				\
+	BT_COMP_LOG_APPEND_CAUSE_ERRNO(_self_comp, BT_LOG_ERROR, _fmt, ##__VA_ARGS__)
+
 /* Logs and appends error cause from component class context. */
 #define BT_COMP_CLASS_LOG_APPEND_CAUSE(_self_comp_class, _lvl, _fmt, ...)		\
 	do {										\
