@@ -528,14 +528,6 @@ void fs_sink_trace_destroy(struct fs_sink_trace *trace)
 		trace->path = NULL;
 	}
 
-	g_string_free(trace->metadata_path, TRUE);
-	trace->metadata_path = NULL;
-
-	fs_sink_ctf_trace_destroy(trace->trace);
-	trace->trace = NULL;
-	g_free(trace);
-
-end:
 	if (fh) {
 		int ret = fclose(fh);
 
@@ -546,10 +538,18 @@ end:
 		}
 	}
 
+	g_string_free(trace->metadata_path, TRUE);
+	trace->metadata_path = NULL;
+
+	fs_sink_ctf_trace_destroy(trace->trace);
+	trace->trace = NULL;
+	g_free(trace);
+
 	if (tsdl) {
 		g_string_free(tsdl, TRUE);
 	}
 
+end:
 	return;
 }
 
