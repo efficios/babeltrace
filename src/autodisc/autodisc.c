@@ -37,6 +37,18 @@
 #define BT_AUTODISC_LOGE_APPEND_CAUSE(_fmt, ...)				\
 	BT_AUTODISC_LOG_AND_APPEND(BT_LOG_ERROR, _fmt, ##__VA_ARGS__)
 
+/*
+ * Define a status enum for inside the auto source discovery code,
+ * as we don't want to return `NO_MATCH` to the caller.
+ */
+typedef enum auto_source_discovery_internal_status {
+	AUTO_SOURCE_DISCOVERY_INTERNAL_STATUS_OK		= AUTO_SOURCE_DISCOVERY_STATUS_OK,
+	AUTO_SOURCE_DISCOVERY_INTERNAL_STATUS_ERROR		= AUTO_SOURCE_DISCOVERY_STATUS_ERROR,
+	AUTO_SOURCE_DISCOVERY_INTERNAL_STATUS_MEMORY_ERROR	= AUTO_SOURCE_DISCOVERY_STATUS_MEMORY_ERROR,
+	AUTO_SOURCE_DISCOVERY_INTERNAL_STATUS_INTERRUPTED	= AUTO_SOURCE_DISCOVERY_STATUS_INTERRUPTED,
+	AUTO_SOURCE_DISCOVERY_INTERNAL_STATUS_NO_MATCH		= __BT_FUNC_STATUS_NO_MATCH,
+} auto_source_discovery_internal_status;
+
 /* Finalize and free a `struct auto_source_discovery_result`. */
 
 static
@@ -143,7 +155,8 @@ const bt_value *borrow_array_value_last_element_const(const bt_value *array)
  */
 
 static
-int auto_source_discovery_add(struct auto_source_discovery *auto_disc,
+auto_source_discovery_internal_status auto_source_discovery_add(
+		struct auto_source_discovery *auto_disc,
 		const char *plugin_name,
 		const char *source_cc_name,
 		const char *group,
@@ -151,7 +164,7 @@ int auto_source_discovery_add(struct auto_source_discovery *auto_disc,
 		uint64_t original_input_index,
 		bt_logging_level log_level)
 {
-	int status;
+	auto_source_discovery_internal_status status;
 	bt_value_array_append_element_status append_status;
 	guint len;
 	guint i;
@@ -228,11 +241,11 @@ int auto_source_discovery_add(struct auto_source_discovery *auto_disc,
 		}
 	}
 
-	status = 0;
+	status = AUTO_SOURCE_DISCOVERY_INTERNAL_STATUS_OK;
 	goto end;
 
 error:
-	status = -1;
+	status = AUTO_SOURCE_DISCOVERY_INTERNAL_STATUS_ERROR;
 
 end:
 	return status;
@@ -326,26 +339,22 @@ end:
  *
  * If `component_class_restrict` is non-NULL, only query source component classes
  * with that name.
- *
- * Return:
- *
- * - > 0 on success, if no source component class has reported that it handles `input`
- * -   0 on success, if a source component class has reported that it handles `input`
- * - < 0 on failure (e.g. memory error)
  */
 static
-int support_info_query_all_sources(const char *input,
+auto_source_discovery_internal_status support_info_query_all_sources(
+		const char *input,
 		const char *input_type,
 		uint64_t original_input_index,
 		const bt_plugin **plugins,
 		size_t plugin_count,
 		const char *component_class_restrict,
 		enum bt_logging_level log_level,
-		struct auto_source_discovery *auto_disc)
+		struct auto_source_discovery *auto_disc,
+		const bt_interrupter *interrupter)
 {
 	bt_value_map_insert_entry_status insert_status;
 	bt_value *query_params = NULL;
-	int status;
+	auto_source_discovery_internal_status status;
 	size_t i_plugins;
 	const struct bt_value *query_result = NULL;
 	struct {
@@ -354,6 +363,11 @@ int support_info_query_all_sources(const char *input,
 		const bt_value *group;
 		double weigth;
 	} winner = { NULL, NULL, NULL, 0 };
+
+	if (interrupter && bt_interrupter_is_set(interrupter)) {
+		status = AUTO_SOURCE_DISCOVERY_INTERNAL_STATUS_INTERRUPTED;
+		goto end;
+	}
 
 	query_params = bt_value_map_create();
 	if (!query_params) {
@@ -527,19 +541,19 @@ int support_info_query_all_sources(const char *input,
 
 		status = auto_source_discovery_add(auto_disc, plugin_name,
 			source_name, group, input, original_input_index, log_level);
-		if (status != 0) {
+		if (status != AUTO_SOURCE_DISCOVERY_INTERNAL_STATUS_OK) {
 			goto error;
 		}
 	} else {
 		BT_LOGI("Input %s (%s) was not recognized by any source component class.",
 			input, input_type);
-		status = 1;
+		status = AUTO_SOURCE_DISCOVERY_INTERNAL_STATUS_NO_MATCH;
 	}
 
 	goto end;
 
 error:
-	status = -1;
+	status = AUTO_SOURCE_DISCOVERY_INTERNAL_STATUS_ERROR;
 
 end:
 	bt_value_put_ref(query_result);
@@ -557,55 +571,62 @@ end:
  */
 
 static
-int auto_discover_source_for_input_as_string(const char *input,
+auto_source_discovery_internal_status auto_discover_source_for_input_as_string(
+		const char *input,
 		uint64_t original_input_index,
 		const bt_plugin **plugins,
 		size_t plugin_count,
 		const char *component_class_restrict,
 		enum bt_logging_level log_level,
-		struct auto_source_discovery *auto_disc)
+		struct auto_source_discovery *auto_disc,
+		const bt_interrupter *interrupter)
 {
 	return support_info_query_all_sources(input, "string",
 		original_input_index, plugins, plugin_count,
-		component_class_restrict, log_level, auto_disc);
+		component_class_restrict, log_level, auto_disc,
+		interrupter);
 }
 
 static
-int auto_discover_source_for_input_as_dir_or_file_rec(GString *input,
+auto_source_discovery_internal_status auto_discover_source_for_input_as_dir_or_file_rec(
+		GString *input,
 		uint64_t original_input_index,
 		const bt_plugin **plugins,
 		size_t plugin_count,
 		const char *component_class_restrict,
 		enum bt_logging_level log_level,
-		struct auto_source_discovery *auto_disc)
+		struct auto_source_discovery *auto_disc,
+		const bt_interrupter *interrupter)
 {
-	int status;
+	auto_source_discovery_internal_status status;
 	GError *error = NULL;
 
 	if (g_file_test(input->str, G_FILE_TEST_IS_REGULAR)) {
 		/* It's a file. */
 		status = support_info_query_all_sources(input->str,
 			"file", original_input_index, plugins, plugin_count,
-			component_class_restrict, log_level, auto_disc);
+			component_class_restrict, log_level, auto_disc,
+			interrupter);
 	} else if (g_file_test(input->str, G_FILE_TEST_IS_DIR)) {
 		GDir *dir;
 		const gchar *dirent;
 		gsize saved_input_len;
-		int dir_status = 1;
+		int dir_status = AUTO_SOURCE_DISCOVERY_INTERNAL_STATUS_NO_MATCH;
 
 		/* It's a directory. */
 		status = support_info_query_all_sources(input->str,
 			"directory", original_input_index, plugins,
 			plugin_count, component_class_restrict, log_level,
-			auto_disc);
+			auto_disc, interrupter);
 
 		if (status < 0) {
 			/* Fatal error. */
 			goto error;
-		} else if (status == 0) {
+		} else if (status == AUTO_SOURCE_DISCOVERY_INTERNAL_STATUS_OK ||
+				status == AUTO_SOURCE_DISCOVERY_INTERNAL_STATUS_INTERRUPTED) {
 			/*
 			 * A component class claimed this input as a directory,
-			 * don't recurse.
+			 * don't recurse.  Or, we got interrupted.
 			 */
 			goto end;
 		}
@@ -617,7 +638,7 @@ int auto_discover_source_for_input_as_dir_or_file_rec(GString *input,
 
 			if (error->code == G_FILE_ERROR_ACCES) {
 				/* This is not a fatal error, we just skip it. */
-				status = 1;
+				status = AUTO_SOURCE_DISCOVERY_INTERNAL_STATUS_NO_MATCH;
 				goto end;
 			} else {
 				BT_AUTODISC_LOGE_APPEND_CAUSE(fmt, input->str,
@@ -637,15 +658,18 @@ int auto_discover_source_for_input_as_dir_or_file_rec(GString *input,
 
 				status = auto_discover_source_for_input_as_dir_or_file_rec(
 					input, original_input_index, plugins, plugin_count,
-					component_class_restrict, log_level, auto_disc);
+					component_class_restrict, log_level, auto_disc,
+					interrupter);
 
 				g_string_truncate(input, saved_input_len);
 
 				if (status < 0) {
 					/* Fatal error. */
 					goto error;
-				} else if (status == 0) {
-					dir_status = 0;
+				} else if (status == AUTO_SOURCE_DISCOVERY_INTERNAL_STATUS_INTERRUPTED) {
+					goto end;
+				} else if (status == AUTO_SOURCE_DISCOVERY_INTERNAL_STATUS_OK) {
+					dir_status = AUTO_SOURCE_DISCOVERY_INTERNAL_STATUS_OK;
 				}
 			} else if (errno != 0) {
 				BT_LOGW_ERRNO("Failed to read directory entry", ": dir=%s", input->str);
@@ -658,13 +682,13 @@ int auto_discover_source_for_input_as_dir_or_file_rec(GString *input,
 		g_dir_close(dir);
 	} else {
 		BT_LOGD("Skipping %s, not a file or directory", input->str);
-		status = 1;
+		status = AUTO_SOURCE_DISCOVERY_INTERNAL_STATUS_NO_MATCH;
 	}
 
 	goto end;
 
 error:
-	status = -1;
+	status = AUTO_SOURCE_DISCOVERY_INTERNAL_STATUS_ERROR;
 
 end:
 
@@ -684,42 +708,47 @@ end:
  */
 
 static
-int auto_discover_source_for_input_as_dir_or_file(const char *input,
+auto_source_discovery_internal_status auto_discover_source_for_input_as_dir_or_file(
+		const char *input,
 		uint64_t original_input_index,
 		const bt_plugin **plugins,
 		size_t plugin_count,
 		const char *component_class_restrict,
 		enum bt_logging_level log_level,
-		struct auto_source_discovery *auto_disc)
+		struct auto_source_discovery *auto_disc,
+		const bt_interrupter *interrupter)
 {
 	GString *mutable_input;
-	int status;
+	auto_source_discovery_internal_status status;
 
 	mutable_input = g_string_new(input);
 	if (!mutable_input) {
-		status = -1;
+		status = AUTO_SOURCE_DISCOVERY_INTERNAL_STATUS_ERROR;
 		goto end;
 	}
 
 	status = auto_discover_source_for_input_as_dir_or_file_rec(
 		mutable_input, original_input_index, plugins, plugin_count,
-		component_class_restrict, log_level, auto_disc);
+		component_class_restrict, log_level, auto_disc,
+		interrupter);
 
 	g_string_free(mutable_input, TRUE);
 end:
 	return status;
 }
 
-int auto_discover_source_components(
+auto_source_discovery_status auto_discover_source_components(
 		const bt_value *inputs,
 		const bt_plugin **plugins,
 		size_t plugin_count,
 		const char *component_class_restrict,
 		enum bt_logging_level log_level,
-		struct auto_source_discovery *auto_disc)
+		struct auto_source_discovery *auto_disc,
+		const bt_interrupter *interrupter)
 {
 	uint64_t i_inputs, input_count;
-	int status;
+	auto_source_discovery_internal_status internal_status;
+	auto_source_discovery_status status;
 
 	input_count = bt_value_array_get_length(inputs);
 
@@ -729,24 +758,26 @@ int auto_discover_source_components(
 
 		input_value = bt_value_array_borrow_element_by_index_const(inputs, i_inputs);
 		input = bt_value_string_get(input_value);
-		status = auto_discover_source_for_input_as_string(input, i_inputs,
+		internal_status = auto_discover_source_for_input_as_string(input, i_inputs,
 			plugins, plugin_count, component_class_restrict,
-			log_level, auto_disc);
-		if (status < 0) {
-			/* Fatal error. */
+			log_level, auto_disc, interrupter);
+		if (internal_status < 0 || internal_status == AUTO_SOURCE_DISCOVERY_INTERNAL_STATUS_INTERRUPTED) {
+			/* Fatal error or we got interrupted. */
+			status = internal_status;
 			goto end;
-		} else if (status == 0) {
+		} else if (internal_status == AUTO_SOURCE_DISCOVERY_INTERNAL_STATUS_OK) {
 			/* A component class has claimed this input as an arbitrary string. */
 			continue;
 		}
 
-		status = auto_discover_source_for_input_as_dir_or_file(input,
+		internal_status = auto_discover_source_for_input_as_dir_or_file(input,
 			i_inputs, plugins, plugin_count,
-			component_class_restrict, log_level, auto_disc);
-		if (status < 0) {
-			/* Fatal error. */
+			component_class_restrict, log_level, auto_disc, interrupter);
+		if (internal_status < 0 || internal_status == AUTO_SOURCE_DISCOVERY_INTERNAL_STATUS_INTERRUPTED) {
+			/* Fatal error or we got interrupted. */
+			status = internal_status;
 			goto end;
-		} else if (status == 0) {
+		} else if (internal_status == 0) {
 			/*
 			 * This input (or something under it) was recognized.
 			 */
@@ -756,7 +787,7 @@ int auto_discover_source_components(
 		BT_LOGW("No trace was found based on input `%s`.", input);
 	}
 
-	status = 0;
+	status = AUTO_SOURCE_DISCOVERY_STATUS_OK;
 end:
 	return status;
 }

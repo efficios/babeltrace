@@ -2601,12 +2601,22 @@ int main(int argc, const char **argv)
 {
 	int ret;
 	int retcode;
-	struct bt_config *cfg;
+	struct bt_config *cfg = NULL;
 
 	init_log_level();
 	set_signal_handler();
 	init_loaded_plugins();
-	cfg = bt_config_cli_args_create_with_default(argc, argv, &retcode);
+
+	BT_ASSERT(!the_interrupter);
+	the_interrupter = bt_interrupter_create();
+	if (!the_interrupter) {
+		BT_CLI_LOGE_APPEND_CAUSE("Failed to create an interrupter object.");
+		retcode = 1;
+		goto end;
+	}
+
+	cfg = bt_config_cli_args_create_with_default(argc, argv, &retcode,
+		the_interrupter);
 
 	if (retcode < 0) {
 		/* Quit without errors; typically usage/version */
@@ -2638,14 +2648,6 @@ int main(int argc, const char **argv)
 			retcode = 1;
 			goto end;
 		}
-	}
-
-	BT_ASSERT(!the_interrupter);
-	the_interrupter = bt_interrupter_create();
-	if (!the_interrupter) {
-		BT_CLI_LOGE_APPEND_CAUSE("Failed to create an interrupter object.");
-		retcode = 1;
-		goto end;
 	}
 
 	BT_LOGI("Executing command: cmd=%d, command-name=\"%s\"",

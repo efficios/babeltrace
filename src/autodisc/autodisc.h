@@ -27,6 +27,10 @@
 
 #include <babeltrace2/babeltrace.h>
 
+#define __BT_IN_BABELTRACE_H
+#include <babeltrace2/func-status.h>
+#undef __BT_IN_BABELTRACE_H
+
 struct auto_source_discovery {
 	/* Array of `struct auto_source_discovery_result *`. */
 	GPtrArray *results;
@@ -59,22 +63,28 @@ struct auto_source_discovery_result {
 	bt_value *original_input_indices;
 };
 
+typedef enum auto_source_discovery_status {
+	AUTO_SOURCE_DISCOVERY_STATUS_OK			= __BT_FUNC_STATUS_OK,
+	AUTO_SOURCE_DISCOVERY_STATUS_ERROR		= __BT_FUNC_STATUS_ERROR,
+	AUTO_SOURCE_DISCOVERY_STATUS_MEMORY_ERROR	= __BT_FUNC_STATUS_MEMORY_ERROR,
+	AUTO_SOURCE_DISCOVERY_STATUS_INTERRUPTED	= __BT_FUNC_STATUS_INTERRUPTED,
+} auto_source_discovery_status;
+
 int auto_source_discovery_init(struct auto_source_discovery *auto_disc);
 void auto_source_discovery_fini(struct auto_source_discovery *auto_disc);
 
 /*
  * Given `inputs` a list of strings, query source component classes to discover
  * which source components should be instantiated to deal with these inputs.
- *
- * Return 0 if execution completed successfully, < 0 otherwise.
  */
 
-int auto_discover_source_components(
+auto_source_discovery_status auto_discover_source_components(
 		const bt_value *inputs,
 		const bt_plugin **plugins,
 		size_t plugin_count,
 		const char *component_class_restrict,
 		enum bt_logging_level log_level,
-		struct auto_source_discovery *auto_disc);
+		struct auto_source_discovery *auto_disc,
+		const bt_interrupter *interrupter);
 
 #endif /* AUTODISC_AUTODISC_H */

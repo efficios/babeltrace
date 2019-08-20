@@ -102,7 +102,8 @@ bt_value *bt_bt2_auto_discover_source_components(const bt_value *inputs,
 		plugin_count,
 		NULL,
 		bt_python_bindings_bt2_log_level,
-		&auto_disc);
+		&auto_disc,
+		NULL);
 	if (status != 0) {
 		BT_CURRENT_THREAD_ERROR_APPEND_CAUSE_FROM_UNKNOWN(module_name,
                 	"Failed to auto discover sources.");

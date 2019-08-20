@@ -3136,7 +3136,7 @@ enum convert_current_item_type {
 static
 struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 		int *retcode, const bt_value *plugin_paths,
-		int *default_log_level)
+		int *default_log_level, const bt_interrupter *interrupter)
 {
 	enum convert_current_item_type current_item_type =
 		CONVERT_CURRENT_ITEM_TYPE_NONE;
@@ -4053,9 +4053,13 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 
 			status = auto_discover_source_components(non_opts, plugins, plugin_count,
 				auto_source_discovery_restrict_component_class_name,
-				*default_log_level, &auto_disc);
+				*default_log_level, &auto_disc, interrupter);
 
 			if (status != 0) {
+				if (status == AUTO_SOURCE_DISCOVERY_STATUS_INTERRUPTED) {
+					BT_CURRENT_THREAD_ERROR_APPEND_CAUSE_FROM_UNKNOWN(
+						"Babeltrace CLI", "Automatic source discovery interrupted by the user");
+				}
 				goto error;
 			}
 
@@ -4428,7 +4432,8 @@ void print_gen_usage(FILE *fp)
 struct bt_config *bt_config_cli_args_create(int argc, const char *argv[],
 		int *retcode, bool omit_system_plugin_path,
 		bool omit_home_plugin_path,
-		const bt_value *initial_plugin_paths)
+		const bt_value *initial_plugin_paths,
+		const bt_interrupter *interrupter)
 {
 	struct bt_config *config = NULL;
 	int i;
@@ -4658,7 +4663,7 @@ struct bt_config *bt_config_cli_args_create(int argc, const char *argv[],
 		break;
 	case COMMAND_TYPE_CONVERT:
 		config = bt_config_convert_from_args(command_argc, command_argv,
-			retcode, plugin_paths, &default_log_level);
+			retcode, plugin_paths, &default_log_level, interrupter);
 		break;
 	case COMMAND_TYPE_LIST_PLUGINS:
 		config = bt_config_list_plugins_from_args(command_argc,
