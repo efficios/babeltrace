@@ -114,8 +114,11 @@ void try_print_last(struct counter *counter)
 
 void destroy_private_counter_data(struct counter *counter)
 {
-	bt_self_component_port_input_message_iterator_put_ref(counter->msg_iter);
-	g_free(counter);
+	if (counter) {
+		bt_self_component_port_input_message_iterator_put_ref(
+			counter->msg_iter);
+		g_free(counter);
+	}
 }
 
 BT_HIDDEN
