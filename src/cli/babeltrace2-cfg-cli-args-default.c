@@ -37,7 +37,8 @@
 #ifdef BT_SET_DEFAULT_IN_TREE_CONFIGURATION
 
 struct bt_config *bt_config_cli_args_create_with_default(int argc,
-		const char *argv[], int *retcode)
+		const char *argv[], int *retcode,
+		const bt_interrupter *interrupter)
 {
 	bt_value *initial_plugin_paths;
 	struct bt_config *cfg = NULL;
@@ -71,7 +72,7 @@ struct bt_config *bt_config_cli_args_create_with_default(int argc,
 #endif
 
 	cfg = bt_config_cli_args_create(argc, argv, retcode, true, true,
-		initial_plugin_paths);
+		initial_plugin_paths, interrupter);
 	goto end;
 
 error:
@@ -86,10 +87,11 @@ end:
 #else /* BT_SET_DEFAULT_IN_TREE_CONFIGURATION */
 
 struct bt_config *bt_config_cli_args_create_with_default(int argc,
-		const char *argv[], int *retcode)
+		const char *argv[], int *retcode,
+		const bt_interrupter *interrupter)
 {
 	return bt_config_cli_args_create(argc, argv, retcode, false, false,
-		NULL);
+		NULL, interrupter);
 }
 
 #endif /* BT_SET_DEFAULT_IN_TREE_CONFIGURATION */
