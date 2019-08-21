@@ -405,9 +405,8 @@ struct ctf_fs_component *ctf_fs_component_create(bt_logging_level log_level,
 	goto end;
 
 error:
-	if (ctf_fs) {
-		ctf_fs_destroy(ctf_fs);
-	}
+	ctf_fs_destroy(ctf_fs);
+	ctf_fs = NULL;
 
 end:
 	return ctf_fs;
