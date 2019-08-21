@@ -89,6 +89,7 @@ struct auto_source_discovery_result *auto_source_discovery_result_create(
 	goto end;
 error:
 	auto_source_discovery_result_destroy(res);
+	res = NULL;
 
 end:
 	return res;
