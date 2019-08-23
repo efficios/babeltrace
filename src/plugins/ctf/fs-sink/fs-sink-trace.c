@@ -545,9 +545,7 @@ void fs_sink_trace_destroy(struct fs_sink_trace *trace)
 	trace->trace = NULL;
 	g_free(trace);
 
-	if (tsdl) {
-		g_string_free(tsdl, TRUE);
-	}
+	g_string_free(tsdl, TRUE);
 
 end:
 	return;
