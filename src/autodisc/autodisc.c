@@ -763,7 +763,7 @@ auto_source_discovery_status auto_discover_source_components(
 			log_level, auto_disc, interrupter);
 		if (internal_status < 0 || internal_status == AUTO_SOURCE_DISCOVERY_INTERNAL_STATUS_INTERRUPTED) {
 			/* Fatal error or we got interrupted. */
-			status = internal_status;
+			status = (auto_source_discovery_status) internal_status;
 			goto end;
 		} else if (internal_status == AUTO_SOURCE_DISCOVERY_INTERNAL_STATUS_OK) {
 			/* A component class has claimed this input as an arbitrary string. */
@@ -775,7 +775,7 @@ auto_source_discovery_status auto_discover_source_components(
 			component_class_restrict, log_level, auto_disc, interrupter);
 		if (internal_status < 0 || internal_status == AUTO_SOURCE_DISCOVERY_INTERNAL_STATUS_INTERRUPTED) {
 			/* Fatal error or we got interrupted. */
-			status = internal_status;
+			status = (auto_source_discovery_status) internal_status;
 			goto end;
 		} else if (internal_status == 0) {
 			/*
