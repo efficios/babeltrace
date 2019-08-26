@@ -458,17 +458,10 @@ auto_source_discovery_internal_status support_info_query_all_sources(
 					}
 
 					if (bt_value_map_has_entry(query_result, "group")) {
-						enum bt_value_type group_value_type;
-
 						group_value = bt_value_map_borrow_entry_value_const(query_result, "group");
 						BT_ASSERT(group_value);
 
-						group_value_type = bt_value_get_type(group_value);
-
-						if (group_value_type == BT_VALUE_TYPE_NULL) {
-							/* Do as if no value was passed. */
-							group_value = NULL;
-						} else if (bt_value_get_type(group_value) != BT_VALUE_TYPE_STRING) {
+						if (bt_value_get_type(group_value) != BT_VALUE_TYPE_STRING) {
 							BT_LOGW("babeltrace.support-info query: unexpected type for entry `group`: "
 								"component-class-name=source.%s.%s, input=%s, input-type=%s, "
 								"expected-entry-type=%s,%s, actual-entry-type=%s",

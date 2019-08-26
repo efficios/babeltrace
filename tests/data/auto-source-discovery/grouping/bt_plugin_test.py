@@ -66,13 +66,8 @@ class TestSourceExt(Base, bt2._UserSourceComponent, message_iterator_class=TestI
                 elif name.startswith('bbb'):
                     return {'weight': 0.5, 'group': 'bbb'}
                 elif name.startswith('ccc'):
-                    # Try two different ways of returning "no group", and two
-                    # different ways of returning 1 (an int and a float).
+                    # Try two different ways of returning 1 (an int and a float).
                     if name[3] == '1':
-                        return {'weight': 1, 'group': None}
-                    elif name[3] == '2':
-                        return {'weight': 1.0, 'group': None}
-                    elif name[3] == '3':
                         return 1
                     else:
                         return 1.0
