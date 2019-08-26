@@ -496,9 +496,9 @@ auto_source_discovery_internal_status support_info_query_all_sources(
 				}
 
 				BT_LOGD("babeltrace.support-info query: success: component-class-name=source.%s.%s, input=%s, "
-					"type=%s, weight=%f\n",
+					"type=%s, weight=%f, group=%s\n",
 					bt_plugin_get_name(plugin), bt_component_class_get_name(cc), input,
-					input_type, weight);
+					input_type, weight, group_value ? bt_value_string_get(group_value) : "(none)");
 
 				if (weight > winner.weigth) {
 					winner.source = source_cc;
@@ -536,8 +536,8 @@ auto_source_discovery_internal_status support_info_query_all_sources(
 		plugin_name = bt_plugin_get_name(winner.plugin);
 		group = winner.group ? bt_value_string_get(winner.group) : NULL;
 
-		BT_LOGI("Input %s is awarded to component class source.%s.%s with weight %f",
-			input, plugin_name, source_name, winner.weigth);
+		BT_LOGI("Input awarded: input=%s, type=%s, component-class-name=source.%s.%s, weight=%f, group=%s",
+			input, input_type, plugin_name, source_name, winner.weigth, group ? group : "(none)");
 
 		status = auto_source_discovery_add(auto_disc, plugin_name,
 			source_name, group, input, original_input_index, log_level);
@@ -545,7 +545,7 @@ auto_source_discovery_internal_status support_info_query_all_sources(
 			goto error;
 		}
 	} else {
-		BT_LOGI("Input %s (%s) was not recognized by any source component class.",
+		BT_LOGI("Input not recognized: input=%s, type=%s",
 			input, input_type);
 		status = AUTO_SOURCE_DISCOVERY_INTERNAL_STATUS_NO_MATCH;
 	}
