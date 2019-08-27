@@ -40,23 +40,23 @@ class _IntegerRangeTestCase:
 
     def test_create_wrong_type_lower(self):
         with self.assertRaises(TypeError):
-            rg = self._CLS(19.3, self._def_upper)
+            self._CLS(19.3, self._def_upper)
 
     def test_create_wrong_type_lower(self):
         with self.assertRaises(TypeError):
-            rg = self._CLS(self._def_lower, 19.3)
+            self._CLS(self._def_lower, 19.3)
 
     def test_create_out_of_bound_lower(self):
         with self.assertRaises(ValueError):
-            rg = self._CLS(self._oob_lower, self._def_upper)
+            self._CLS(self._oob_lower, self._def_upper)
 
     def test_create_out_of_bound_upper(self):
         with self.assertRaises(ValueError):
-            rg = self._CLS(self._def_lower, self._oob_upper)
+            self._CLS(self._def_lower, self._oob_upper)
 
     def test_create_lower_gt_upper(self):
         with self.assertRaises(ValueError):
-            rg = self._CLS(self._def_lower, self._def_lower - 1)
+            self._CLS(self._def_lower, self._def_lower - 1)
 
     def test_contains_lower(self):
         self.assertTrue(self._rg.contains(self._def_lower))

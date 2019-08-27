@@ -88,7 +88,7 @@ class ErrorTestCase(unittest.TestCase):
     def test_current_thread_error_none(self):
         # When a bt2._Error is raised, it steals the current thread's error.
         # Verify that it is now NULL.
-        exc = self._run_failing_graph(SourceWithFailingInit, WorkingSink)
+        self._run_failing_graph(SourceWithFailingInit, WorkingSink)
         self.assertIsNone(native_bt.current_thread_take_error())
 
     def test_len(self):

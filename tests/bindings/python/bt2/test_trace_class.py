@@ -82,7 +82,7 @@ class TraceClassTestCase(unittest.TestCase):
         self.assertTrue(tc.assigns_automatic_stream_class_id)
 
         with self.assertRaises(ValueError):
-            sc1 = tc.create_stream_class(23)
+            tc.create_stream_class(23)
 
     def test_no_assigns_automatic_stream_class_id(self):
         def f(comp_self):

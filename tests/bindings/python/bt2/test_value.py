@@ -1082,8 +1082,8 @@ class CreateValueFuncTestCase(unittest.TestCase):
 
         with self.assertRaisesRegex(
             TypeError, "cannot create value object from 'A' object"
-        ) as cm:
-            v = bt2.create_value(a)
+        ):
+            bt2.create_value(a)
 
 
 class BoolValueTestCase(_TestNumericValue, unittest.TestCase):
@@ -1122,11 +1122,11 @@ class BoolValueTestCase(_TestNumericValue, unittest.TestCase):
 
     def test_create_from_int_non_zero(self):
         with self.assertRaises(TypeError):
-            b = bt2.BoolValue(23)
+            bt2.BoolValue(23)
 
     def test_create_from_int_zero(self):
         with self.assertRaises(TypeError):
-            b = bt2.BoolValue(0)
+            bt2.BoolValue(0)
 
     def test_assign_true(self):
         b = bt2.BoolValue()
@@ -1234,11 +1234,11 @@ class _TestIntegerValue(_TestNumericValue):
             pass
 
         with self._assert_expecting_int():
-            i = self._CLS(A())
+            self._CLS(A())
 
     def test_create_from_varray(self):
         with self._assert_expecting_int():
-            i = self._CLS(bt2.ArrayValue())
+            self._CLS(bt2.ArrayValue())
 
     def test_assign_true(self):
         raw = True
@@ -1279,11 +1279,11 @@ class SignedIntegerValueTestCase(_TestIntegerValue, unittest.TestCase):
 
     def test_create_pos_too_big(self):
         with self._assert_expecting_int64():
-            i = self._CLS(2 ** 63)
+            self._CLS(2 ** 63)
 
     def test_create_neg_too_big(self):
         with self._assert_expecting_int64():
-            i = self._CLS(-(2 ** 63) - 1)
+            self._CLS(-(2 ** 63) - 1)
 
     def test_assign_neg_int(self):
         raw = -13
@@ -1306,11 +1306,11 @@ class UnsignedIntegerValueTestCase(_TestIntegerValue, unittest.TestCase):
 
     def test_create_pos_too_big(self):
         with self._assert_expecting_uint64():
-            i = self._CLS(2 ** 64)
+            self._CLS(2 ** 64)
 
     def test_create_neg(self):
         with self._assert_expecting_uint64():
-            i = self._CLS(-1)
+            self._CLS(-1)
 
 
 _inject_numeric_testing_methods(UnsignedIntegerValueTestCase)
@@ -1381,11 +1381,11 @@ class RealValueTestCase(_TestNumericValue, unittest.TestCase):
             pass
 
         with self._assert_expecting_float():
-            f = bt2.RealValue(A())
+            bt2.RealValue(A())
 
     def test_create_from_varray(self):
         with self._assert_expecting_float():
-            f = bt2.RealValue(bt2.ArrayValue())
+            bt2.RealValue(bt2.ArrayValue())
 
     def test_assign_true(self):
         self._def.value = True
@@ -1473,11 +1473,11 @@ class StringValueTestCase(_TestCopySimple, unittest.TestCase):
             pass
 
         with self._assert_expecting_str():
-            i = bt2.StringValue(A())
+            bt2.StringValue(A())
 
     def test_create_from_varray(self):
         with self._assert_expecting_str():
-            i = bt2.StringValue(bt2.ArrayValue())
+            bt2.StringValue(bt2.ArrayValue())
 
     def test_assign_int(self):
         with self._assert_expecting_str():
@@ -1605,7 +1605,7 @@ class ArrayValueTestCase(_TestCopySimple, unittest.TestCase):
             pass
 
         with self._assert_type_error():
-            a = bt2.ArrayValue(A())
+            bt2.ArrayValue(A())
 
     def test_bool_op_true(self):
         self.assertTrue(bool(self._def))
@@ -1752,7 +1752,7 @@ class MapValueTestCase(_TestCopySimple, unittest.TestCase):
             pass
 
         with self.assertRaises(AttributeError):
-            m = bt2.MapValue(A())
+            bt2.MapValue(A())
 
     def test_bool_op_true(self):
         self.assertTrue(bool(self._def))

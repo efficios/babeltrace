@@ -80,6 +80,7 @@ class FindPluginTestCase(unittest.TestCase):
 
     def test_find_existing(self):
         plugin = bt2.find_plugin('ctf', find_in_user_dir=False, find_in_sys_dir=False)
+        self.assertIsNotNone(plugin)
 
 
 class PluginTestCase(unittest.TestCase):

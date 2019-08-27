@@ -361,7 +361,6 @@ class _TestElementContainer:
             self._append_element_method(self._fc, 'yes', sub_fc2)
 
     def test_iadd(self):
-        other_fc = self._create_default_field_class()
         a_field_class = self._tc.create_real_field_class()
         b_field_class = self._tc.create_signed_integer_field_class(17)
         self._append_element_method(self._fc, 'a_float', a_field_class)
@@ -685,7 +684,6 @@ class _VariantFieldClassWithSelectorTestCase:
             )
 
     def test_iadd(self):
-        other_fc = self._create_default_field_class()
         a_field_class = self._tc.create_real_field_class()
         self._fc.append_option('a_float', a_field_class, self._ranges1)
         c_field_class = self._tc.create_string_field_class()

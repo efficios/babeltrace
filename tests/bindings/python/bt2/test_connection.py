@@ -40,7 +40,7 @@ class ConnectionTestCase(unittest.TestCase):
         graph = bt2.Graph()
         src = graph.add_component(MySource, 'src')
         sink = graph.add_component(MySink, 'sink')
-        conn = graph.connect_ports(src.output_ports['out'], sink.input_ports['in'])
+        graph.connect_ports(src.output_ports['out'], sink.input_ports['in'])
 
     def test_downstream_port(self):
         class MyIter(bt2._UserMessageIterator):
