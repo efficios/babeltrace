@@ -19,6 +19,7 @@
 import bt2
 import collections.abc
 
+
 # Run callable `func` in the context of a component's __init__ method.  The
 # callable is passed the Component being instantiated.
 #
