@@ -31,7 +31,11 @@ import functools
 import uuid as uuidp
 
 
-class _TraceEnvironment(collections.abc.MutableMapping):
+class _TraceEnvironmentConst(collections.abc.Mapping):
+    _create_value_from_ptr_and_get_ref = staticmethod(
+        bt2_value._create_from_const_ptr_and_get_ref
+    )
+
     def __init__(self, trace):
         self._trace = trace
 
@@ -44,7 +48,27 @@ class _TraceEnvironment(collections.abc.MutableMapping):
         if value_ptr is None:
             raise KeyError(key)
 
-        return bt2_value._create_from_ptr_and_get_ref(value_ptr)
+        return self._create_value_from_ptr_and_get_ref(value_ptr)
+
+    def __len__(self):
+        count = native_bt.trace_get_environment_entry_count(self._trace._ptr)
+        assert count >= 0
+        return count
+
+    def __iter__(self):
+        trace_ptr = self._trace._ptr
+
+        for idx in range(len(self)):
+            borrow_entry_fn = native_bt.trace_borrow_environment_entry_by_index_const
+            entry_name, _ = borrow_entry_fn(trace_ptr, idx)
+            assert entry_name is not None
+            yield entry_name
+
+
+class _TraceEnvironment(_TraceEnvironmentConst, collections.abc.MutableMapping):
+    _create_value_from_ptr_and_get_ref = staticmethod(
+        bt2_value._create_from_ptr_and_get_ref
+    )
 
     def __setitem__(self, key, value):
         if isinstance(value, str):
@@ -60,29 +84,24 @@ class _TraceEnvironment(collections.abc.MutableMapping):
     def __delitem__(self, key):
         raise NotImplementedError
 
-    def __len__(self):
-        count = native_bt.trace_get_environment_entry_count(self._trace._ptr)
-        assert count >= 0
-        return count
 
-    def __iter__(self):
-        trace_ptr = self._trace_env._trace._ptr
-
-        for idx in range(len(self)):
-            borrow_entry_fn = native_bt.trace_borrow_environment_entry_by_index_const
-            entry_name, _ = borrow_entry_fn(trace_ptr, idx)
-            assert entry_name is not None
-            yield entry_name
-
-
-def _trace_destruction_listener_from_native(user_listener, trace_ptr):
-    trace = _Trace._create_from_ptr_and_get_ref(trace_ptr)
-    user_listener(trace)
-
-
-class _Trace(object._SharedObject, collections.abc.Mapping):
+class _TraceConst(object._SharedObject, collections.abc.Mapping):
     _get_ref = staticmethod(native_bt.trace_get_ref)
     _put_ref = staticmethod(native_bt.trace_put_ref)
+    _borrow_stream_ptr_by_id = staticmethod(native_bt.trace_borrow_stream_by_id_const)
+    _borrow_stream_ptr_by_index = staticmethod(
+        native_bt.trace_borrow_stream_by_index_const
+    )
+    _borrow_class_ptr = staticmethod(native_bt.trace_borrow_class_const)
+    _borrow_user_attributes_ptr = staticmethod(
+        native_bt.trace_borrow_user_attributes_const
+    )
+    _create_value_from_ptr_and_get_ref = staticmethod(
+        bt2_value._create_from_const_ptr_and_get_ref
+    )
+    _stream_pycls = property(lambda _: bt2_stream._StreamConst)
+    _trace_class_pycls = property(lambda _: bt2_trace_class._TraceClassConst)
+    _trace_env_pycls = property(lambda _: _TraceEnvironmentConst)
 
     def __len__(self):
         count = native_bt.trace_get_stream_count(self._ptr)
@@ -92,16 +111,16 @@ class _Trace(object._SharedObject, collections.abc.Mapping):
     def __getitem__(self, id):
         utils._check_uint64(id)
 
-        stream_ptr = native_bt.trace_borrow_stream_by_id_const(self._ptr, id)
+        stream_ptr = self._borrow_stream_ptr_by_id(self._ptr, id)
 
         if stream_ptr is None:
             raise KeyError(id)
 
-        return bt2_stream._Stream._create_from_ptr_and_get_ref(stream_ptr)
+        return self._stream_pycls._create_from_ptr_and_get_ref(stream_ptr)
 
     def __iter__(self):
         for idx in range(len(self)):
-            stream_ptr = native_bt.trace_borrow_stream_by_index_const(self._ptr, idx)
+            stream_ptr = self._borrow_stream_ptr_by_index(self._ptr, idx)
             assert stream_ptr is not None
 
             id = native_bt.stream_get_id(stream_ptr)
@@ -111,33 +130,19 @@ class _Trace(object._SharedObject, collections.abc.Mapping):
 
     @property
     def cls(self):
-        trace_class_ptr = native_bt.trace_borrow_class(self._ptr)
+        trace_class_ptr = self._borrow_class_ptr(self._ptr)
         assert trace_class_ptr is not None
-        return bt2_trace_class._TraceClass._create_from_ptr_and_get_ref(trace_class_ptr)
+        return self._trace_class_pycls._create_from_ptr_and_get_ref(trace_class_ptr)
 
     @property
     def user_attributes(self):
-        ptr = native_bt.trace_borrow_user_attributes(self._ptr)
+        ptr = self._borrow_user_attributes_ptr(self._ptr)
         assert ptr is not None
-        return bt2_value._create_from_ptr_and_get_ref(ptr)
-
-    def _user_attributes(self, user_attributes):
-        value = bt2_value.create_value(user_attributes)
-        utils._check_type(value, bt2_value.MapValue)
-        native_bt.trace_set_user_attributes(self._ptr, value._ptr)
-
-    _user_attributes = property(fset=_user_attributes)
+        return self._create_value_from_ptr_and_get_ref(ptr)
 
     @property
     def name(self):
         return native_bt.trace_get_name(self._ptr)
-
-    def _name(self, name):
-        utils._check_str(name)
-        status = native_bt.trace_set_name(self._ptr, name)
-        utils._handle_func_status(status, "cannot set trace class object's name")
-
-    _name = property(fset=_name)
 
     @property
     def uuid(self):
@@ -147,15 +152,59 @@ class _Trace(object._SharedObject, collections.abc.Mapping):
 
         return uuidp.UUID(bytes=uuid_bytes)
 
+    @property
+    def environment(self):
+        return self._trace_env_pycls(self)
+
+    def add_destruction_listener(self, listener):
+        '''Add a listener to be called when the trace is destroyed.'''
+        if not callable(listener):
+            raise TypeError("'listener' parameter is not callable")
+
+        fn = native_bt.bt2_trace_add_destruction_listener
+        listener_from_native = functools.partial(
+            _trace_destruction_listener_from_native, listener
+        )
+
+        status, listener_id = fn(self._ptr, listener_from_native)
+        utils._handle_func_status(
+            status, 'cannot add destruction listener to trace object'
+        )
+
+        return utils._ListenerHandle(listener_id, self)
+
+
+class _Trace(_TraceConst):
+    _borrow_stream_ptr_by_id = staticmethod(native_bt.trace_borrow_stream_by_id)
+    _borrow_stream_ptr_by_index = staticmethod(native_bt.trace_borrow_stream_by_index)
+    _borrow_class_ptr = staticmethod(native_bt.trace_borrow_class)
+    _borrow_user_attributes_ptr = staticmethod(native_bt.trace_borrow_user_attributes)
+    _create_value_from_ptr_and_get_ref = staticmethod(
+        bt2_value._create_from_ptr_and_get_ref
+    )
+    _stream_pycls = property(lambda _: bt2_stream._Stream)
+    _trace_class_pycls = property(lambda _: bt2_trace_class._TraceClass)
+    _trace_env_pycls = property(lambda _: _TraceEnvironment)
+
+    def _name(self, name):
+        utils._check_str(name)
+        status = native_bt.trace_set_name(self._ptr, name)
+        utils._handle_func_status(status, "cannot set trace class object's name")
+
+    _name = property(fset=_name)
+
+    def _user_attributes(self, user_attributes):
+        value = bt2_value.create_value(user_attributes)
+        utils._check_type(value, bt2_value.MapValue)
+        native_bt.trace_set_user_attributes(self._ptr, value._ptr)
+
+    _user_attributes = property(fset=_user_attributes)
+
     def _uuid(self, uuid):
         utils._check_type(uuid, uuidp.UUID)
         native_bt.trace_set_uuid(self._ptr, uuid.bytes)
 
     _uuid = property(fset=_uuid)
-
-    @property
-    def environment(self):
-        return _TraceEnvironment(self)
 
     def create_stream(self, stream_class, id=None, name=None, user_attributes=None):
         utils._check_type(stream_class, bt2_stream_class._StreamClass)
@@ -191,19 +240,7 @@ class _Trace(object._SharedObject, collections.abc.Mapping):
 
         return stream
 
-    def add_destruction_listener(self, listener):
-        '''Add a listener to be called when the trace is destroyed.'''
-        if not callable(listener):
-            raise TypeError("'listener' parameter is not callable")
 
-        fn = native_bt.bt2_trace_add_destruction_listener
-        listener_from_native = functools.partial(
-            _trace_destruction_listener_from_native, listener
-        )
-
-        status, listener_id = fn(self._ptr, listener_from_native)
-        utils._handle_func_status(
-            status, 'cannot add destruction listener to trace object'
-        )
-
-        return utils._ListenerHandle(listener_id, self)
+def _trace_destruction_listener_from_native(user_listener, trace_ptr):
+    trace = _TraceConst._create_from_ptr_and_get_ref(trace_ptr)
+    user_listener(trace)

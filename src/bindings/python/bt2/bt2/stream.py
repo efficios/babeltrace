@@ -29,45 +29,57 @@ from bt2 import value as bt2_value
 import bt2
 
 
-class _Stream(bt2_object._SharedObject):
+class _StreamConst(bt2_object._SharedObject):
     _get_ref = staticmethod(native_bt.stream_get_ref)
     _put_ref = staticmethod(native_bt.stream_put_ref)
+    _borrow_class_ptr = staticmethod(native_bt.stream_borrow_class_const)
+    _borrow_user_attributes_ptr = staticmethod(
+        native_bt.stream_borrow_user_attributes_const
+    )
+    _create_value_from_ptr_and_get_ref = staticmethod(
+        bt2_value._create_from_const_ptr_and_get_ref
+    )
+    _borrow_trace_ptr = staticmethod(native_bt.stream_borrow_trace_const)
+    _stream_class_pycls = bt2_stream_class._StreamClassConst
+    _trace_pycls = bt2_trace._TraceConst
 
     @property
     def cls(self):
-        stream_class_ptr = native_bt.stream_borrow_class(self._ptr)
+        stream_class_ptr = self._borrow_class_ptr(self._ptr)
         assert stream_class_ptr is not None
-        return bt2_stream_class._StreamClass._create_from_ptr_and_get_ref(
-            stream_class_ptr
-        )
+        return self._stream_class_pycls._create_from_ptr_and_get_ref(stream_class_ptr)
 
     @property
     def name(self):
         return native_bt.stream_get_name(self._ptr)
 
-    def _name(self, name):
-        utils._check_str(name)
-        native_bt.stream_set_name(self._ptr, name)
-
-    _name = property(fset=_name)
-
     @property
     def user_attributes(self):
-        ptr = native_bt.stream_borrow_user_attributes(self._ptr)
+        ptr = self._borrow_user_attributes_ptr(self._ptr)
         assert ptr is not None
-        return bt2_value._create_from_ptr_and_get_ref(ptr)
-
-    def _user_attributes(self, user_attributes):
-        value = bt2_value.create_value(user_attributes)
-        utils._check_type(value, bt2_value.MapValue)
-        native_bt.stream_set_user_attributes(self._ptr, value._ptr)
-
-    _user_attributes = property(fset=_user_attributes)
+        return self._create_value_from_ptr_and_get_ref(ptr)
 
     @property
     def id(self):
         id = native_bt.stream_get_id(self._ptr)
         return id if id >= 0 else None
+
+    @property
+    def trace(self):
+        trace_ptr = self._borrow_trace_ptr(self._ptr)
+        assert trace_ptr is not None
+        return self._trace_pycls._create_from_ptr_and_get_ref(trace_ptr)
+
+
+class _Stream(_StreamConst):
+    _borrow_class_ptr = staticmethod(native_bt.stream_borrow_class)
+    _borrow_user_attributes_ptr = staticmethod(native_bt.stream_borrow_user_attributes)
+    _create_value_from_ptr_and_get_ref = staticmethod(
+        bt2_value._create_from_ptr_and_get_ref
+    )
+    _borrow_trace_ptr = staticmethod(native_bt.stream_borrow_trace)
+    _stream_class_pycls = bt2_stream_class._StreamClass
+    _trace_pycls = bt2_trace._Trace
 
     def create_packet(self):
         if not self.cls.supports_packets:
@@ -82,8 +94,17 @@ class _Stream(bt2_object._SharedObject):
 
         return bt2_packet._Packet._create_from_ptr(packet_ptr)
 
-    @property
-    def trace(self):
-        trace_ptr = native_bt.stream_borrow_trace(self._ptr)
-        assert trace_ptr is not None
-        return bt2_trace._Trace._create_from_ptr_and_get_ref(trace_ptr)
+    def _user_attributes(self, user_attributes):
+        value = bt2_value.create_value(user_attributes)
+        utils._check_type(value, bt2_value.MapValue)
+        native_bt.stream_set_user_attributes(self._ptr, value._ptr)
+
+    _user_attributes = property(
+        fget=_StreamConst.user_attributes.fget, fset=_user_attributes
+    )
+
+    def _name(self, name):
+        utils._check_str(name)
+        native_bt.stream_set_name(self._ptr, name)
+
+    _name = property(fget=_StreamConst.name.fget, fset=_name)

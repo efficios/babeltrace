@@ -27,12 +27,28 @@ from bt2 import stream as bt2_stream
 from bt2 import field as bt2_field
 
 
-class _Event(object._UniqueObject):
+class _EventConst(object._UniqueObject):
+    _borrow_class_ptr = staticmethod(native_bt.event_borrow_class_const)
+    _borrow_packet_ptr = staticmethod(native_bt.event_borrow_packet_const)
+    _borrow_stream_ptr = staticmethod(native_bt.event_borrow_stream_const)
+    _borrow_common_context_field_ptr = staticmethod(
+        native_bt.event_borrow_common_context_field_const
+    )
+    _borrow_specific_context_field_ptr = staticmethod(
+        native_bt.event_borrow_specific_context_field_const
+    )
+    _borrow_payload_field_ptr = staticmethod(native_bt.event_borrow_payload_field_const)
+    _create_field_from_ptr = staticmethod(bt2_field._create_field_from_const_ptr)
+
+    _event_class_pycls = property(lambda _: bt2_event_class._EventClassConst)
+    _packet_pycls = property(lambda _: bt2_packet._PacketConst)
+    _stream_pycls = property(lambda _: bt2_stream._StreamConst)
+
     @property
     def cls(self):
-        event_class_ptr = native_bt.event_borrow_class(self._ptr)
+        event_class_ptr = self._borrow_class_ptr(self._ptr)
         assert event_class_ptr is not None
-        return bt2_event_class._EventClass._create_from_ptr_and_get_ref(event_class_ptr)
+        return self._event_class_pycls._create_from_ptr_and_get_ref(event_class_ptr)
 
     @property
     def name(self):
@@ -44,49 +60,49 @@ class _Event(object._UniqueObject):
 
     @property
     def packet(self):
-        packet_ptr = native_bt.event_borrow_packet(self._ptr)
+        packet_ptr = self._borrow_packet_ptr(self._ptr)
 
         if packet_ptr is None:
             return
 
-        return bt2_packet._Packet._create_from_ptr_and_get_ref(packet_ptr)
+        return self._packet_pycls._create_from_ptr_and_get_ref(packet_ptr)
 
     @property
     def stream(self):
-        stream_ptr = native_bt.event_borrow_stream(self._ptr)
+        stream_ptr = self._borrow_stream_ptr(self._ptr)
         assert stream_ptr is not None
-        return bt2_stream._Stream._create_from_ptr_and_get_ref(stream_ptr)
+        return self._stream_pycls._create_from_ptr_and_get_ref(stream_ptr)
 
     @property
     def common_context_field(self):
-        field_ptr = native_bt.event_borrow_common_context_field(self._ptr)
+        field_ptr = self._borrow_common_context_field_ptr(self._ptr)
 
         if field_ptr is None:
             return
 
-        return bt2_field._create_field_from_ptr(
+        return self._create_field_from_ptr(
             field_ptr, self._owner_ptr, self._owner_get_ref, self._owner_put_ref
         )
 
     @property
     def specific_context_field(self):
-        field_ptr = native_bt.event_borrow_specific_context_field(self._ptr)
+        field_ptr = self._borrow_specific_context_field_ptr(self._ptr)
 
         if field_ptr is None:
             return
 
-        return bt2_field._create_field_from_ptr(
+        return self._create_field_from_ptr(
             field_ptr, self._owner_ptr, self._owner_get_ref, self._owner_put_ref
         )
 
     @property
     def payload_field(self):
-        field_ptr = native_bt.event_borrow_payload_field(self._ptr)
+        field_ptr = self._borrow_payload_field_ptr(self._ptr)
 
         if field_ptr is None:
             return
 
-        return bt2_field._create_field_from_ptr(
+        return self._create_field_from_ptr(
             field_ptr, self._owner_ptr, self._owner_get_ref, self._owner_put_ref
         )
 
@@ -113,3 +129,21 @@ class _Event(object._UniqueObject):
             return packet_context_field[key]
 
         raise KeyError(key)
+
+
+class _Event(_EventConst):
+    _borrow_class_ptr = staticmethod(native_bt.event_borrow_class)
+    _borrow_packet_ptr = staticmethod(native_bt.event_borrow_packet)
+    _borrow_stream_ptr = staticmethod(native_bt.event_borrow_stream)
+    _borrow_common_context_field_ptr = staticmethod(
+        native_bt.event_borrow_common_context_field
+    )
+    _borrow_specific_context_field_ptr = staticmethod(
+        native_bt.event_borrow_specific_context_field
+    )
+    _borrow_payload_field_ptr = staticmethod(native_bt.event_borrow_payload_field)
+    _create_field_from_ptr = staticmethod(bt2_field._create_field_from_ptr)
+
+    _event_class_pycls = property(lambda _: bt2_event_class._EventClass)
+    _packet_pycls = property(lambda _: bt2_packet._Packet)
+    _stream_pycls = property(lambda _: bt2_stream._Stream)

@@ -258,7 +258,7 @@ class TraceCollectionMessageIteratorTestCase(unittest.TestCase):
         msgs = list(msg_iter)
         self.assertEqual(len(msgs), 28)
         hist = _count_msgs_by_type(msgs)
-        self.assertEqual(hist[bt2._EventMessage], 8)
+        self.assertEqual(hist[bt2._EventMessageConst], 8)
 
     # Same as the above, but we pass a single spec instead of a spec list.
     def test_iter_specs_not_list(self):
@@ -269,7 +269,7 @@ class TraceCollectionMessageIteratorTestCase(unittest.TestCase):
         msgs = list(msg_iter)
         self.assertEqual(len(msgs), 28)
         hist = _count_msgs_by_type(msgs)
-        self.assertEqual(hist[bt2._EventMessage], 8)
+        self.assertEqual(hist[bt2._EventMessageConst], 8)
 
     def test_iter_custom_filter(self):
         src_spec = bt2.ComponentSpec.from_named_plugin_and_component_class(
@@ -280,7 +280,7 @@ class TraceCollectionMessageIteratorTestCase(unittest.TestCase):
         )
         msg_iter = bt2.TraceCollectionMessageIterator(src_spec, flt_spec)
         hist = _count_msgs_by_type(msg_iter)
-        self.assertEqual(hist[bt2._EventMessage], 5)
+        self.assertEqual(hist[bt2._EventMessageConst], 5)
 
     def test_iter_intersection(self):
         specs = [
@@ -294,7 +294,7 @@ class TraceCollectionMessageIteratorTestCase(unittest.TestCase):
         msgs = list(msg_iter)
         self.assertEqual(len(msgs), 15)
         hist = _count_msgs_by_type(msgs)
-        self.assertEqual(hist[bt2._EventMessage], 3)
+        self.assertEqual(hist[bt2._EventMessageConst], 3)
 
     def test_iter_intersection_params(self):
         # Check that all params used to create the source component are passed
@@ -314,7 +314,7 @@ class TraceCollectionMessageIteratorTestCase(unittest.TestCase):
             specs, stream_intersection_mode=True
         )
 
-        event_msgs = [x for x in msg_iter if type(x) is bt2._EventMessage]
+        event_msgs = [x for x in msg_iter if type(x) is bt2._EventMessageConst]
         self.assertEqual(len(event_msgs), 3)
         self.assertEqual(
             event_msgs[0].default_clock_snapshot.ns_from_origin, 13516309000000071
@@ -335,7 +335,7 @@ class TraceCollectionMessageIteratorTestCase(unittest.TestCase):
         msgs = list(msg_iter)
         self.assertEqual(len(msgs), 56)
         hist = _count_msgs_by_type(msgs)
-        self.assertEqual(hist[bt2._EventMessage], 16)
+        self.assertEqual(hist[bt2._EventMessageConst], 16)
 
     def test_iter_no_intersection_begin(self):
         specs = [
@@ -345,7 +345,7 @@ class TraceCollectionMessageIteratorTestCase(unittest.TestCase):
         ]
         msg_iter = bt2.TraceCollectionMessageIterator(specs, begin=13515309.000000023)
         hist = _count_msgs_by_type(msg_iter)
-        self.assertEqual(hist[bt2._EventMessage], 6)
+        self.assertEqual(hist[bt2._EventMessageConst], 6)
 
     def test_iter_no_intersection_end(self):
         specs = [
@@ -355,7 +355,7 @@ class TraceCollectionMessageIteratorTestCase(unittest.TestCase):
         ]
         msg_iter = bt2.TraceCollectionMessageIterator(specs, end=13515309.000000075)
         hist = _count_msgs_by_type(msg_iter)
-        self.assertEqual(hist[bt2._EventMessage], 5)
+        self.assertEqual(hist[bt2._EventMessageConst], 5)
 
     def test_iter_auto_source_component_spec(self):
         specs = [bt2.AutoSourceComponentSpec(_3EVENTS_INTERSECT_TRACE_PATH)]
@@ -363,21 +363,21 @@ class TraceCollectionMessageIteratorTestCase(unittest.TestCase):
         msgs = list(msg_iter)
         self.assertEqual(len(msgs), 28)
         hist = _count_msgs_by_type(msgs)
-        self.assertEqual(hist[bt2._EventMessage], 8)
+        self.assertEqual(hist[bt2._EventMessageConst], 8)
 
     def test_iter_auto_source_component_spec_list_of_strings(self):
         msg_iter = bt2.TraceCollectionMessageIterator([_3EVENTS_INTERSECT_TRACE_PATH])
         msgs = list(msg_iter)
         self.assertEqual(len(msgs), 28)
         hist = _count_msgs_by_type(msgs)
-        self.assertEqual(hist[bt2._EventMessage], 8)
+        self.assertEqual(hist[bt2._EventMessageConst], 8)
 
     def test_iter_auto_source_component_spec_string(self):
         msg_iter = bt2.TraceCollectionMessageIterator(_3EVENTS_INTERSECT_TRACE_PATH)
         msgs = list(msg_iter)
         self.assertEqual(len(msgs), 28)
         hist = _count_msgs_by_type(msgs)
-        self.assertEqual(hist[bt2._EventMessage], 8)
+        self.assertEqual(hist[bt2._EventMessageConst], 8)
 
     def test_iter_mixed_inputs(self):
         msg_iter = bt2.TraceCollectionMessageIterator(
@@ -392,7 +392,7 @@ class TraceCollectionMessageIteratorTestCase(unittest.TestCase):
         msgs = list(msg_iter)
         self.assertEqual(len(msgs), 76)
         hist = _count_msgs_by_type(msgs)
-        self.assertEqual(hist[bt2._EventMessage], 24)
+        self.assertEqual(hist[bt2._EventMessageConst], 24)
 
     def test_auto_source_component_non_existent(self):
         with self.assertRaisesRegex(
@@ -426,7 +426,7 @@ class TestAutoDiscoverSourceComponentSpecsGrouping(
             bt2.AutoSourceComponentSpec(_AUTO_SOURCE_DISCOVERY_GROUPING_PATH),
         ]
         it = bt2.TraceCollectionMessageIterator(specs)
-        msgs = [x for x in it if type(x) is bt2._StreamBeginningMessage]
+        msgs = [x for x in it if type(x) is bt2._StreamBeginningMessageConst]
 
         self.assertEqual(len(msgs), 8)
 
@@ -456,7 +456,7 @@ class TestAutoDiscoverSourceComponentSpecsParamsObjLogLevel(
             )
         ]
         it = bt2.TraceCollectionMessageIterator(specs)
-        msgs = [x for x in it if type(x) is bt2._StreamBeginningMessage]
+        msgs = [x for x in it if type(x) is bt2._StreamBeginningMessageConst]
 
         self.assertEqual(len(msgs), 2)
 
@@ -508,7 +508,7 @@ class TestAutoDiscoverSourceComponentSpecsParamsObjLogLevel(
             ),
         ]
         it = bt2.TraceCollectionMessageIterator(specs)
-        msgs = [x for x in it if type(x) is bt2._StreamBeginningMessage]
+        msgs = [x for x in it if type(x) is bt2._StreamBeginningMessageConst]
 
         self.assertEqual(len(msgs), 2)
 
@@ -572,7 +572,7 @@ class TestAutoDiscoverSourceComponentSpecsParamsObjLogLevel(
             ),
         ]
         it = bt2.TraceCollectionMessageIterator(specs)
-        msgs = [x for x in it if type(x) is bt2._StreamBeginningMessage]
+        msgs = [x for x in it if type(x) is bt2._StreamBeginningMessageConst]
 
         self.assertEqual(len(msgs), 2)
 
@@ -639,7 +639,7 @@ class TestAutoDiscoverSourceComponentSpecsParamsObjLogLevel(
             ),
         ]
         it = bt2.TraceCollectionMessageIterator(specs)
-        msgs = [x for x in it if type(x) is bt2._StreamBeginningMessage]
+        msgs = [x for x in it if type(x) is bt2._StreamBeginningMessageConst]
 
         self.assertEqual(len(msgs), 2)
 
@@ -700,7 +700,7 @@ class TestAutoDiscoverSourceComponentSpecsParamsObjLogLevel(
             ),
         ]
         it = bt2.TraceCollectionMessageIterator(specs)
-        msgs = [x for x in it if type(x) is bt2._StreamBeginningMessage]
+        msgs = [x for x in it if type(x) is bt2._StreamBeginningMessageConst]
 
         self.assertEqual(len(msgs), 2)
         self.assertEqual(msgs[0].stream.name, "TestSourceA: None")
@@ -714,7 +714,7 @@ class TestAutoDiscoverSourceComponentSpecsParamsObjLogLevel(
             bt2.AutoSourceComponentSpec(self._dir_a, params={'what': 'python-obj'}),
         ]
         it = bt2.TraceCollectionMessageIterator(specs)
-        msgs = [x for x in it if type(x) is bt2._StreamBeginningMessage]
+        msgs = [x for x in it if type(x) is bt2._StreamBeginningMessageConst]
 
         self.assertEqual(len(msgs), 2)
         self.assertEqual(msgs[0].stream.name, "TestSourceA: deore")

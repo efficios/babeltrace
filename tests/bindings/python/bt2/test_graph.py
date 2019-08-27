@@ -328,16 +328,16 @@ class GraphTestCase(unittest.TestCase):
                 msg = next(comp_self._msg_iter)
 
                 if comp_self._at == 0:
-                    self.assertIsInstance(msg, bt2._StreamBeginningMessage)
+                    self.assertIs(type(msg), bt2._StreamBeginningMessageConst)
                 elif comp_self._at == 1:
-                    self.assertIsInstance(msg, bt2._PacketBeginningMessage)
+                    self.assertIs(type(msg), bt2._PacketBeginningMessageConst)
                 elif comp_self._at >= 2 and comp_self._at <= 6:
-                    self.assertIsInstance(msg, bt2._EventMessage)
+                    self.assertIs(type(msg), bt2._EventMessageConst)
                     self.assertEqual(msg.event.cls.name, 'salut')
                 elif comp_self._at == 7:
-                    self.assertIsInstance(msg, bt2._PacketEndMessage)
+                    self.assertIs(type(msg), bt2._PacketEndMessageConst)
                 elif comp_self._at == 8:
-                    self.assertIsInstance(msg, bt2._StreamEndMessage)
+                    self.assertIs(type(msg), bt2._StreamEndMessageConst)
 
                 comp_self._at += 1
 
@@ -428,11 +428,11 @@ class GraphTestCase(unittest.TestCase):
             def _user_consume(comp_self):
                 msg = next(comp_self._msg_iter)
                 if comp_self._at == 0:
-                    self.assertIsInstance(msg, bt2._StreamBeginningMessage)
+                    self.assertIs(type(msg), bt2._StreamBeginningMessageConst)
                 elif comp_self._at == 1:
-                    self.assertIsInstance(msg, bt2._PacketBeginningMessage)
+                    self.assertIs(type(msg), bt2._PacketBeginningMessageConst)
                 elif comp_self._at == 2:
-                    self.assertIsInstance(msg, bt2._EventMessage)
+                    self.assertIs(type(msg), bt2._EventMessageConst)
                     raise bt2.TryAgain
                 else:
                     pass
@@ -484,11 +484,11 @@ class GraphTestCase(unittest.TestCase):
             def _user_consume(comp_self):
                 msg = next(comp_self._msg_iter)
                 if comp_self._at == 0:
-                    self.assertIsInstance(msg, bt2._StreamBeginningMessage)
+                    self.assertIs(type(msg), bt2._StreamBeginningMessageConst)
                 elif comp_self._at == 1:
-                    self.assertIsInstance(msg, bt2._PacketBeginningMessage)
+                    self.assertIs(type(msg), bt2._PacketBeginningMessageConst)
                 elif comp_self._at == 2:
-                    self.assertIsInstance(msg, bt2._EventMessage)
+                    self.assertIs(type(msg), bt2._EventMessageConst)
                 elif comp_self._at == 3:
                     nonlocal raised_in_sink
                     raised_in_sink = True

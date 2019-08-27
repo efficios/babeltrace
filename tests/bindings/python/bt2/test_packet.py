@@ -17,7 +17,10 @@
 #
 
 import unittest
+import utils
 from utils import run_in_component_init
+from bt2 import stream as bt2_stream
+from bt2 import field as bt2_field
 
 
 class PacketTestCase(unittest.TestCase):
@@ -87,10 +90,20 @@ class PacketTestCase(unittest.TestCase):
     def test_attr_stream(self):
         packet, stream, _ = self._create_packet(with_pc=True)
         self.assertEqual(packet.stream.addr, stream.addr)
+        self.assertIs(type(packet.stream), bt2_stream._Stream)
+
+    def test_const_attr_stream(self):
+        packet = utils.get_const_packet_beginning_message().packet
+        self.assertIs(type(packet.stream), bt2_stream._StreamConst)
 
     def test_context_field(self):
         packet, stream, pc_fc = self._create_packet(with_pc=True)
         self.assertEqual(packet.context_field.cls.addr, pc_fc.addr)
+        self.assertIs(type(packet.context_field), bt2_field._StructureField)
+
+    def test_const_context_field(self):
+        packet = utils.get_const_packet_beginning_message().packet
+        self.assertIs(type(packet.context_field), bt2_field._StructureFieldConst)
 
     def test_no_context_field(self):
         packet, _, _ = self._create_packet(with_pc=False)

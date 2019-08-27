@@ -22,9 +22,6 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-__all__ = ['_TraceClass']
-
-import bt2
 from bt2 import native_bt, utils, object
 from bt2 import stream_class as bt2_stream_class
 from bt2 import field_class as bt2_field_class
@@ -33,18 +30,97 @@ from bt2 import trace_class as bt2_trace_class
 from bt2 import value as bt2_value
 import collections.abc
 import functools
+import bt2
 
 
 def _trace_class_destruction_listener_from_native(user_listener, trace_class_ptr):
-    trace_class = bt2_trace_class._TraceClass._create_from_ptr_and_get_ref(
-        trace_class_ptr
-    )
+    trace_class = _TraceClass._create_from_ptr_and_get_ref(trace_class_ptr)
     user_listener(trace_class)
 
 
-class _TraceClass(object._SharedObject, collections.abc.Mapping):
+class _TraceClassConst(object._SharedObject, collections.abc.Mapping):
     _get_ref = staticmethod(native_bt.trace_class_get_ref)
     _put_ref = staticmethod(native_bt.trace_class_put_ref)
+    _borrow_stream_class_ptr_by_index = staticmethod(
+        native_bt.trace_class_borrow_stream_class_by_index_const
+    )
+    _borrow_stream_class_ptr_by_id = staticmethod(
+        native_bt.trace_class_borrow_stream_class_by_id_const
+    )
+    _stream_class_pycls = bt2_stream_class._StreamClassConst
+    _create_value_from_ptr_and_get_ref = staticmethod(
+        bt2_value._create_from_const_ptr_and_get_ref
+    )
+
+    @property
+    def user_attributes(self):
+        ptr = native_bt.trace_class_borrow_user_attributes(self._ptr)
+        assert ptr is not None
+        return self._create_value_from_ptr_and_get_ref(ptr)
+
+    # Number of stream classes in this trace class.
+
+    def __len__(self):
+        count = native_bt.trace_class_get_stream_class_count(self._ptr)
+        assert count >= 0
+        return count
+
+    # Get a stream class by stream id.
+
+    def __getitem__(self, key):
+        utils._check_uint64(key)
+
+        sc_ptr = self._borrow_stream_class_ptr_by_id(self._ptr, key)
+        if sc_ptr is None:
+            raise KeyError(key)
+
+        return self._stream_class_pycls._create_from_ptr_and_get_ref(sc_ptr)
+
+    def __iter__(self):
+        for idx in range(len(self)):
+            sc_ptr = self._borrow_stream_class_ptr_by_index(self._ptr, idx)
+            assert sc_ptr is not None
+
+            id = native_bt.stream_class_get_id(sc_ptr)
+            assert id >= 0
+
+            yield id
+
+    @property
+    def assigns_automatic_stream_class_id(self):
+        return native_bt.trace_class_assigns_automatic_stream_class_id(self._ptr)
+
+    # Add a listener to be called when the trace class is destroyed.
+
+    def add_destruction_listener(self, listener):
+
+        if not callable(listener):
+            raise TypeError("'listener' parameter is not callable")
+
+        fn = native_bt.bt2_trace_class_add_destruction_listener
+        listener_from_native = functools.partial(
+            _trace_class_destruction_listener_from_native, listener
+        )
+
+        status, listener_id = fn(self._ptr, listener_from_native)
+        utils._handle_func_status(
+            status, 'cannot add destruction listener to trace class object'
+        )
+
+        return utils._ListenerHandle(listener_id, self)
+
+
+class _TraceClass(_TraceClassConst):
+    _borrow_stream_class_ptr_by_index = staticmethod(
+        native_bt.trace_class_borrow_stream_class_by_index
+    )
+    _borrow_stream_class_ptr_by_id = staticmethod(
+        native_bt.trace_class_borrow_stream_class_by_id
+    )
+    _stream_class_pycls = bt2_stream_class._StreamClass
+    _create_value_from_ptr_and_get_ref = staticmethod(
+        bt2_value._create_from_ptr_and_get_ref
+    )
 
     # Instantiate a trace of this class.
 
@@ -70,36 +146,6 @@ class _TraceClass(object._SharedObject, collections.abc.Mapping):
                 trace.environment[key] = value
 
         return trace
-
-    # Number of stream classes in this trace class.
-
-    def __len__(self):
-        count = native_bt.trace_class_get_stream_class_count(self._ptr)
-        assert count >= 0
-        return count
-
-    # Get a stream class by stream id.
-
-    def __getitem__(self, key):
-        utils._check_uint64(key)
-
-        sc_ptr = native_bt.trace_class_borrow_stream_class_by_id_const(self._ptr, key)
-        if sc_ptr is None:
-            raise KeyError(key)
-
-        return bt2_stream_class._StreamClass._create_from_ptr_and_get_ref(sc_ptr)
-
-    def __iter__(self):
-        for idx in range(len(self)):
-            sc_ptr = native_bt.trace_class_borrow_stream_class_by_index_const(
-                self._ptr, idx
-            )
-            assert sc_ptr is not None
-
-            id = native_bt.stream_class_get_id(sc_ptr)
-            assert id >= 0
-
-            yield id
 
     def create_stream_class(
         self,
@@ -176,22 +222,12 @@ class _TraceClass(object._SharedObject, collections.abc.Mapping):
         )
         return sc
 
-    @property
-    def user_attributes(self):
-        ptr = native_bt.trace_class_borrow_user_attributes(self._ptr)
-        assert ptr is not None
-        return bt2_value._create_from_ptr_and_get_ref(ptr)
-
     def _user_attributes(self, user_attributes):
         value = bt2_value.create_value(user_attributes)
         utils._check_type(value, bt2_value.MapValue)
         native_bt.trace_class_set_user_attributes(self._ptr, value._ptr)
 
     _user_attributes = property(fset=_user_attributes)
-
-    @property
-    def assigns_automatic_stream_class_id(self):
-        return native_bt.trace_class_assigns_automatic_stream_class_id(self._ptr)
 
     def _assigns_automatic_stream_class_id(self, auto_id):
         utils._check_bool(auto_id)
@@ -391,22 +427,3 @@ class _TraceClass(object._SharedObject, collections.abc.Mapping):
         fc = bt2_field_class._create_field_class_from_ptr_and_get_ref(ptr)
         self._set_field_class_user_attrs(fc, user_attributes)
         return fc
-
-    # Add a listener to be called when the trace class is destroyed.
-
-    def add_destruction_listener(self, listener):
-
-        if not callable(listener):
-            raise TypeError("'listener' parameter is not callable")
-
-        fn = native_bt.bt2_trace_class_add_destruction_listener
-        listener_from_native = functools.partial(
-            _trace_class_destruction_listener_from_native, listener
-        )
-
-        status, listener_id = fn(self._ptr, listener_from_native)
-        utils._handle_func_status(
-            status, 'cannot add destruction listener to trace class object'
-        )
-
-        return utils._ListenerHandle(listener_id, self)
