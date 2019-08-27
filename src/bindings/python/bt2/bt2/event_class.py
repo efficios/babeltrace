@@ -23,9 +23,7 @@
 from bt2 import native_bt, object, utils
 from bt2 import field_class as bt2_field_class
 from bt2 import value as bt2_value
-from bt2 import event as bt2_event
 from bt2 import stream_class as bt2_stream_class
-import bt2
 
 
 class EventClassLogLevel:

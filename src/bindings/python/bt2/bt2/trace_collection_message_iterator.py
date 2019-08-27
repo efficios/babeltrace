@@ -24,7 +24,6 @@ from bt2 import utils, native_bt
 import bt2
 import itertools
 from bt2 import message_iterator as bt2_message_iterator
-from bt2 import logging as bt2_logging
 from bt2 import port as bt2_port
 from bt2 import component as bt2_component
 from bt2 import value as bt2_value
