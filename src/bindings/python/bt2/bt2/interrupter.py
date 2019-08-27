@@ -21,6 +21,7 @@
 # THE SOFTWARE.
 
 from bt2 import native_bt, object
+import bt2
 
 
 class Interrupter(object._SharedObject):
