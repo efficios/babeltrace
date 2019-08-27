@@ -1086,6 +1086,20 @@ class CreateValueFuncTestCase(unittest.TestCase):
             bt2.create_value(a)
 
 
+def _create_const_value(value):
+    class MySink(bt2._UserSinkComponent):
+        def _user_consume(self):
+            pass
+
+        @classmethod
+        def _user_query(cls, priv_query_exec, obj, params, method_obj):
+            nonlocal value
+            return {'my_value': value}
+
+    res = bt2.QueryExecutor(MySink, 'obj', None).query()
+    return res['my_value']
+
+
 class BoolValueTestCase(_TestNumericValue, unittest.TestCase):
     def setUp(self):
         self._f = bt2.BoolValue(False)
@@ -1446,6 +1460,7 @@ class StringValueTestCase(_TestCopySimple, unittest.TestCase):
     def setUp(self):
         self._def_value = 'Hello, World!'
         self._def = bt2.StringValue(self._def_value)
+        self._def_const = _create_const_value(self._def_value)
         self._def_new_value = 'Yes!'
 
     def tearDown(self):
@@ -1496,7 +1511,10 @@ class StringValueTestCase(_TestCopySimple, unittest.TestCase):
     def test_eq(self):
         self.assertEqual(self._def, self._def_value)
 
-    def test_eq(self):
+    def test_const_eq(self):
+        self.assertEqual(self._def_const, self._def_value)
+
+    def test_eq_raw(self):
         self.assertNotEqual(self._def, 23)
 
     def test_lt_vstring(self):
@@ -1556,11 +1574,21 @@ class StringValueTestCase(_TestCopySimple, unittest.TestCase):
     def test_getitem(self):
         self.assertEqual(self._def[5], self._def_value[5])
 
-    def test_append_str(self):
+    def test_const_getitem(self):
+        self.assertEqual(self._def_const[5], self._def_value[5])
+
+    def test_iadd_str(self):
         to_append = 'meow meow meow'
         self._def += to_append
         self._def_value += to_append
         self.assertEqual(self._def, self._def_value)
+
+    def test_const_iadd_str(self):
+        to_append = 'meow meow meow'
+        with self.assertRaises(TypeError):
+            self._def_const += to_append
+
+        self.assertEqual(self._def_const, self._def_value)
 
     def test_append_vstr(self):
         to_append = 'meow meow meow'
@@ -1573,6 +1601,7 @@ class ArrayValueTestCase(_TestCopySimple, unittest.TestCase):
     def setUp(self):
         self._def_value = [None, False, True, -23, 0, 42, -42.4, 23.17, 'yes']
         self._def = bt2.ArrayValue(copy.deepcopy(self._def_value))
+        self._def_const = _create_const_value(copy.deepcopy(self._def_value))
 
     def tearDown(self):
         del self._def
@@ -1619,9 +1648,16 @@ class ArrayValueTestCase(_TestCopySimple, unittest.TestCase):
     def test_eq_int(self):
         self.assertNotEqual(self._def, 23)
 
+    def test_const_eq(self):
+        a1 = _create_const_value([1, 2, 3])
+        a2 = [1, 2, 3]
+        self.assertEqual(a1, a2)
+
     def test_eq_diff_len(self):
         a1 = bt2.create_value([1, 2, 3])
         a2 = bt2.create_value([1, 2])
+        self.assertIs(type(a1), bt2.ArrayValue)
+        self.assertIs(type(a2), bt2.ArrayValue)
         self.assertNotEqual(a1, a2)
 
     def test_eq_diff_content_same_len(self):
@@ -1655,6 +1691,10 @@ class ArrayValueTestCase(_TestCopySimple, unittest.TestCase):
         self._def[2] = None
         self.assertIsNone(self._def[2])
 
+    def test_setitem_none(self):
+        self._def[2] = None
+        self.assertIsNone(self._def[2])
+
     def test_setitem_index_wrong_type(self):
         with self._assert_type_error():
             self._def['yes'] = 23
@@ -1667,6 +1707,10 @@ class ArrayValueTestCase(_TestCopySimple, unittest.TestCase):
         with self.assertRaises(IndexError):
             self._def[len(self._def)] = 23
 
+    def test_const_setitem(self):
+        with self.assertRaises(TypeError):
+            self._def_const[2] = 19
+
     def test_append_none(self):
         self._def.append(None)
         self.assertIsNone(self._def[len(self._def) - 1])
@@ -1675,6 +1719,10 @@ class ArrayValueTestCase(_TestCopySimple, unittest.TestCase):
         raw = 145
         self._def.append(raw)
         self.assertEqual(self._def[len(self._def) - 1], raw)
+
+    def test_const_append(self):
+        with self.assertRaises(AttributeError):
+            self._def_const.append(12194)
 
     def test_append_vint(self):
         raw = 145
@@ -1695,6 +1743,10 @@ class ArrayValueTestCase(_TestCopySimple, unittest.TestCase):
         self.assertEqual(self._def[len(self._def) - 2], raw[1])
         self.assertEqual(self._def[len(self._def) - 1], raw[2])
 
+    def test_const_iadd(self):
+        with self.assertRaises(TypeError):
+            self._def_const += 12194
+
     def test_iadd_unknown(self):
         class A:
             pass
@@ -1713,6 +1765,31 @@ class ArrayValueTestCase(_TestCopySimple, unittest.TestCase):
         for velem, elem in zip(self._def, self._def_value):
             self.assertEqual(velem, elem)
 
+    def test_const_iter(self):
+        for velem, elem in zip(self._def_const, self._def_value):
+            self.assertEqual(velem, elem)
+
+    def test_const_get_item(self):
+        item1 = self._def_const[0]
+        item2 = self._def_const[2]
+        item3 = self._def_const[5]
+        item4 = self._def_const[7]
+        item5 = self._def_const[8]
+
+        self.assertEqual(item1, None)
+
+        self.assertIs(type(item2), bt2._BoolValueConst)
+        self.assertEqual(item2, True)
+
+        self.assertIs(type(item3), bt2._SignedIntegerValueConst)
+        self.assertEqual(item3, 42)
+
+        self.assertIs(type(item4), bt2._RealValueConst)
+        self.assertEqual(item4, 23.17)
+
+        self.assertIs(type(item5), bt2._StringValueConst)
+        self.assertEqual(item5, 'yes')
+
 
 class MapValueTestCase(_TestCopySimple, unittest.TestCase):
     def setUp(self):
@@ -1728,6 +1805,7 @@ class MapValueTestCase(_TestCopySimple, unittest.TestCase):
             'str': 'yes',
         }
         self._def = bt2.MapValue(copy.deepcopy(self._def_value))
+        self._def_const = _create_const_value(self._def_value)
 
     def tearDown(self):
         del self._def
@@ -1763,6 +1841,11 @@ class MapValueTestCase(_TestCopySimple, unittest.TestCase):
     def test_len(self):
         self.assertEqual(len(self._def), len(self._def_value))
 
+    def test_const_eq(self):
+        a1 = _create_const_value({'a': 1, 'b': 2, 'c': 3})
+        a2 = {'a': 1, 'b': 2, 'c': 3}
+        self.assertEqual(a1, a2)
+
     def test_eq_int(self):
         self.assertNotEqual(self._def, 23)
 
@@ -1771,14 +1854,29 @@ class MapValueTestCase(_TestCopySimple, unittest.TestCase):
         a2 = bt2.create_value({'a': 1, 'b': 2})
         self.assertNotEqual(a1, a2)
 
+    def test_const_eq_diff_len(self):
+        a1 = _create_const_value({'a': 1, 'b': 2, 'c': 3})
+        a2 = _create_const_value({'a': 1, 'b': 2})
+        self.assertNotEqual(a1, a2)
+
     def test_eq_diff_content_same_len(self):
         a1 = bt2.create_value({'a': 1, 'b': 2, 'c': 3})
         a2 = bt2.create_value({'a': 4, 'b': 2, 'c': 3})
         self.assertNotEqual(a1, a2)
 
+    def test_const_eq_diff_content_same_len(self):
+        a1 = _create_const_value({'a': 1, 'b': 2, 'c': 3})
+        a2 = _create_const_value({'a': 4, 'b': 2, 'c': 3})
+        self.assertNotEqual(a1, a2)
+
     def test_eq_same_content_diff_keys(self):
         a1 = bt2.create_value({'a': 1, 'b': 2, 'c': 3})
         a2 = bt2.create_value({'a': 1, 'k': 2, 'c': 3})
+        self.assertNotEqual(a1, a2)
+
+    def test_const_eq_same_content_diff_keys(self):
+        a1 = _create_const_value({'a': 1, 'b': 2, 'c': 3})
+        a2 = _create_const_value({'a': 1, 'k': 2, 'c': 3})
         self.assertNotEqual(a1, a2)
 
     def test_eq_same_content_same_len(self):
@@ -1788,10 +1886,21 @@ class MapValueTestCase(_TestCopySimple, unittest.TestCase):
         self.assertEqual(a1, a2)
         self.assertEqual(a1, raw)
 
+    def test_const_eq_same_content_same_len(self):
+        raw = {'3': 3, 'True': True, 'array': [1, 2.5, None, {'a': 17.6, 'b': None}]}
+        a1 = _create_const_value(raw)
+        a2 = _create_const_value(copy.deepcopy(raw))
+        self.assertEqual(a1, a2)
+        self.assertEqual(a1, raw)
+
     def test_setitem_int(self):
         raw = 19
         self._def['pos-int'] = raw
         self.assertEqual(self._def['pos-int'], raw)
+
+    def test_const_setitem_int(self):
+        with self.assertRaises(TypeError):
+            self._def_const['pos-int'] = 19
 
     def test_setitem_vint(self):
         raw = 19
@@ -1816,6 +1925,37 @@ class MapValueTestCase(_TestCopySimple, unittest.TestCase):
         for vkey, vval in self._def.items():
             val = self._def_value[vkey]
             self.assertEqual(vval, val)
+
+    def test_const_iter(self):
+        for vkey, vval in self._def_const.items():
+            val = self._def_value[vkey]
+            self.assertEqual(vval, val)
+
+    def test_get_item(self):
+        i = self._def['pos-float']
+        self.assertIs(type(i), bt2.RealValue)
+        self.assertEqual(i, 23.17)
+
+    def test_const_get_item(self):
+        item1 = self._def_const['none']
+        item2 = self._def_const['true']
+        item3 = self._def_const['pos-int']
+        item4 = self._def_const['pos-float']
+        item5 = self._def_const['str']
+
+        self.assertEqual(item1, None)
+
+        self.assertIs(type(item2), bt2._BoolValueConst)
+        self.assertEqual(item2, True)
+
+        self.assertIs(type(item3), bt2._SignedIntegerValueConst)
+        self.assertEqual(item3, 42)
+
+        self.assertIs(type(item4), bt2._RealValueConst)
+        self.assertEqual(item4, 23.17)
+
+        self.assertIs(type(item5), bt2._StringValueConst)
+        self.assertEqual(item5, 'yes')
 
     def test_getitem_wrong_key(self):
         with self.assertRaises(KeyError):

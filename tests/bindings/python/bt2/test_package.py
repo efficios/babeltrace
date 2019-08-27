@@ -318,5 +318,29 @@ class PackageTestCase(unittest.TestCase):
     def test_has_MapValue(self):
         self._assert_in_bt2('MapValue')
 
+    def test_has_BoolValueConst(self):
+        self._assert_in_bt2('_BoolValueConst')
+
+    def test_has__IntegerValueConst(self):
+        self._assert_in_bt2('_IntegerValueConst')
+
+    def test_has_UnsignedIntegerValueConst(self):
+        self._assert_in_bt2('_UnsignedIntegerValueConst')
+
+    def test_has_SignedIntegerValueConst(self):
+        self._assert_in_bt2('_SignedIntegerValueConst')
+
+    def test_has_RealValueConst(self):
+        self._assert_in_bt2('_RealValueConst')
+
+    def test_has_StringValueConst(self):
+        self._assert_in_bt2('_StringValueConst')
+
+    def test_has_ArrayValueConst(self):
+        self._assert_in_bt2('_ArrayValueConst')
+
+    def test_has_MapValueConst(self):
+        self._assert_in_bt2('_MapValueConst')
+
     def test_has___version__(self):
         self._assert_in_bt2('__version__')

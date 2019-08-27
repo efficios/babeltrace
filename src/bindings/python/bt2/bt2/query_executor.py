@@ -120,7 +120,7 @@ class QueryExecutor(object._SharedObject, _QueryExecutorCommon):
         status, result_ptr = native_bt.query_executor_query(self._ptr)
         utils._handle_func_status(status, 'cannot query component class')
         assert result_ptr is not None
-        return bt2_value._create_from_ptr(result_ptr)
+        return bt2_value._create_from_const_ptr(result_ptr)
 
 
 class _PrivateQueryExecutor(_QueryExecutorCommon):

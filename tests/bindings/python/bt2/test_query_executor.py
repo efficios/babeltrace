@@ -41,6 +41,8 @@ class QueryExecutorTestCase(unittest.TestCase):
         }
 
         res = bt2.QueryExecutor(MySink, 'obj', params).query()
+        self.assertIs(type(res), bt2._MapValueConst)
+        self.assertIs(type(res['bt2']), bt2._StringValueConst)
         self.assertEqual(query_params, params)
         self.assertEqual(res, {'null': None, 'bt2': 'BT2'})
         del query_params

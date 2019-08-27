@@ -515,7 +515,7 @@ class _UserComponentType(type):
 
         # call user's __init__() method
         if params_ptr is not None:
-            params = bt2_value._create_from_ptr_and_get_ref(params_ptr)
+            params = bt2_value._create_from_const_ptr_and_get_ref(params_ptr)
         else:
             params = None
 
@@ -574,7 +574,7 @@ class _UserComponentType(type):
     def _bt_get_supported_mip_versions_from_native(cls, params_ptr, obj, log_level):
         # this can raise, but the native side checks the exception
         if params_ptr is not None:
-            params = bt2_value._create_from_ptr_and_get_ref(params_ptr)
+            params = bt2_value._create_from_const_ptr_and_get_ref(params_ptr)
         else:
             params = None
 
@@ -595,7 +595,7 @@ class _UserComponentType(type):
     def _bt_query_from_native(cls, priv_query_exec_ptr, object, params_ptr, method_obj):
         # this can raise, but the native side checks the exception
         if params_ptr is not None:
-            params = bt2_value._create_from_ptr_and_get_ref(params_ptr)
+            params = bt2_value._create_from_const_ptr_and_get_ref(params_ptr)
         else:
             params = None
 
