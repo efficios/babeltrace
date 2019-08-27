@@ -31,7 +31,7 @@ def _is_source_comp_cls(comp_cls):
 
     try:
         return issubclass(comp_cls, bt2_component._UserSourceComponent)
-    except:
+    except Exception:
         return False
 
 
@@ -41,7 +41,7 @@ def _is_filter_comp_cls(comp_cls):
 
     try:
         return issubclass(comp_cls, bt2_component._UserFilterComponent)
-    except:
+    except Exception:
         return False
 
 
@@ -51,7 +51,7 @@ def _is_sink_comp_cls(comp_cls):
 
     try:
         return issubclass(comp_cls, bt2_component._UserSinkComponent)
-    except:
+    except Exception:
         return False
 
 
