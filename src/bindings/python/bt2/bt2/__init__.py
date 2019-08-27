@@ -121,6 +121,14 @@ from bt2.value import RealValue
 from bt2.value import StringValue
 from bt2.value import ArrayValue
 from bt2.value import MapValue
+from bt2.value import _BoolValueConst
+from bt2.value import _IntegerValueConst
+from bt2.value import _UnsignedIntegerValueConst
+from bt2.value import _SignedIntegerValueConst
+from bt2.value import _RealValueConst
+from bt2.value import _StringValueConst
+from bt2.value import _ArrayValueConst
+from bt2.value import _MapValueConst
 from bt2.version import __version__
 
 
