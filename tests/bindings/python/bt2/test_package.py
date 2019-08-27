@@ -129,6 +129,54 @@ class PackageTestCase(unittest.TestCase):
     def test_has__DynamicArrayField(self):
         self._assert_in_bt2('_DynamicArrayField')
 
+    def test_has__BoolFieldConst(self):
+        self._assert_in_bt2('_BoolFieldConst')
+
+    def test_has__BitArrayFieldConst(self):
+        self._assert_in_bt2('_BitArrayFieldConst')
+
+    def test_has__IntegerFieldConst(self):
+        self._assert_in_bt2('_IntegerFieldConst')
+
+    def test_has__UnsignedIntegerFieldConst(self):
+        self._assert_in_bt2('_UnsignedIntegerFieldConst')
+
+    def test_has__SignedIntegerFieldConst(self):
+        self._assert_in_bt2('_SignedIntegerFieldConst')
+
+    def test_has__RealFieldConst(self):
+        self._assert_in_bt2('_RealFieldConst')
+
+    def test_has__EnumerationFieldConst(self):
+        self._assert_in_bt2('_EnumerationFieldConst')
+
+    def test_has__UnsignedEnumerationFieldConst(self):
+        self._assert_in_bt2('_UnsignedEnumerationFieldConst')
+
+    def test_has__SignedEnumerationFieldConst(self):
+        self._assert_in_bt2('_SignedEnumerationFieldConst')
+
+    def test_has__StringFieldConst(self):
+        self._assert_in_bt2('_StringFieldConst')
+
+    def test_has__StructureFieldConst(self):
+        self._assert_in_bt2('_StructureFieldConst')
+
+    def test_has__OptionFieldConst(self):
+        self._assert_in_bt2('_VariantFieldConst')
+
+    def test_has__VariantFieldConst(self):
+        self._assert_in_bt2('_VariantFieldConst')
+
+    def test_has__ArrayFieldConst(self):
+        self._assert_in_bt2('_ArrayFieldConst')
+
+    def test_has__StaticArrayFieldConst(self):
+        self._assert_in_bt2('_StaticArrayFieldConst')
+
+    def test_has__DynamicArrayFieldConst(self):
+        self._assert_in_bt2('_DynamicArrayFieldConst')
+
     def test_has_IntegerDisplayBase(self):
         self._assert_in_bt2('IntegerDisplayBase')
 
@@ -191,6 +239,66 @@ class PackageTestCase(unittest.TestCase):
 
     def test_has__DynamicArrayFieldClass(self):
         self._assert_in_bt2('_DynamicArrayFieldClass')
+
+    def test_has__BoolFieldClassConst(self):
+        self._assert_in_bt2('_BoolFieldClassConst')
+
+    def test_has__BitArrayFieldClassConst(self):
+        self._assert_in_bt2('_BitArrayFieldClassConst')
+
+    def test_has__IntegerFieldClassConst(self):
+        self._assert_in_bt2('_IntegerFieldClassConst')
+
+    def test_has__UnsignedIntegerFieldClassConst(self):
+        self._assert_in_bt2('_UnsignedIntegerFieldClassConst')
+
+    def test_has__SignedIntegerFieldClassConst(self):
+        self._assert_in_bt2('_SignedIntegerFieldClassConst')
+
+    def test_has__RealFieldClassConst(self):
+        self._assert_in_bt2('_RealFieldClassConst')
+
+    def test_has__EnumerationFieldClassConst(self):
+        self._assert_in_bt2('_EnumerationFieldClassConst')
+
+    def test_has__UnsignedEnumerationFieldClassConst(self):
+        self._assert_in_bt2('_UnsignedEnumerationFieldClassConst')
+
+    def test_has__SignedEnumerationFieldClassConst(self):
+        self._assert_in_bt2('_SignedEnumerationFieldClassConst')
+
+    def test_has__StringFieldClassConst(self):
+        self._assert_in_bt2('_StringFieldClassConst')
+
+    def test_has__StructureFieldClassConst(self):
+        self._assert_in_bt2('_StructureFieldClassConst')
+
+    def test_has__OptionFieldClassConst(self):
+        self._assert_in_bt2('_OptionFieldClassConst')
+
+    def test_has__VariantFieldClassConst(self):
+        self._assert_in_bt2('_VariantFieldClassConst')
+
+    def test_has__VariantFieldClassWithoutSelectorConst(self):
+        self._assert_in_bt2('_VariantFieldClassWithoutSelectorConst')
+
+    def test_has__VariantFieldClassWithSelectorConst(self):
+        self._assert_in_bt2('_VariantFieldClassWithSelectorConst')
+
+    def test_has__VariantFieldClassWithUnsignedSelectorConst(self):
+        self._assert_in_bt2('_VariantFieldClassWithUnsignedSelectorConst')
+
+    def test_has__VariantFieldClassWithSignedSelectorConst(self):
+        self._assert_in_bt2('_VariantFieldClassWithSignedSelectorConst')
+
+    def test_has__ArrayFieldClassConst(self):
+        self._assert_in_bt2('_ArrayFieldClassConst')
+
+    def test_has__StaticArrayFieldClassConst(self):
+        self._assert_in_bt2('_StaticArrayFieldClassConst')
+
+    def test_has__DynamicArrayFieldClassConst(self):
+        self._assert_in_bt2('_DynamicArrayFieldClassConst')
 
     def test_has_FieldPathScope(self):
         self._assert_in_bt2('FieldPathScope')
@@ -260,6 +368,30 @@ class PackageTestCase(unittest.TestCase):
 
     def test_has__DiscardedPacketsMessage(self):
         self._assert_in_bt2('_DiscardedPacketsMessage')
+
+    def test_has__EventMessageConst(self):
+        self._assert_in_bt2('_EventMessageConst')
+
+    def test_has__PacketBeginningMessageConst(self):
+        self._assert_in_bt2('_PacketBeginningMessageConst')
+
+    def test_has__PacketEndMessageConst(self):
+        self._assert_in_bt2('_PacketEndMessageConst')
+
+    def test_has__StreamBeginningMessageConst(self):
+        self._assert_in_bt2('_StreamBeginningMessageConst')
+
+    def test_has__StreamEndMessageConst(self):
+        self._assert_in_bt2('_StreamEndMessageConst')
+
+    def test_has__MessageIteratorInactivityMessageConst(self):
+        self._assert_in_bt2('_MessageIteratorInactivityMessageConst')
+
+    def test_has__DiscardedEventsMessageConst(self):
+        self._assert_in_bt2('_DiscardedEventsMessageConst')
+
+    def test_has__DiscardedPacketsMessageConst(self):
+        self._assert_in_bt2('_DiscardedPacketsMessageConst')
 
     def test_has__UserMessageIterator(self):
         self._assert_in_bt2('_UserMessageIterator')

@@ -238,15 +238,15 @@ class UserMessageIteratorTestCase(unittest.TestCase):
 
         # Skip beginning messages.
         msg = next(it)
-        self.assertIsInstance(msg, bt2._StreamBeginningMessage)
+        self.assertIs(type(msg), bt2._StreamBeginningMessageConst)
         msg = next(it)
-        self.assertIsInstance(msg, bt2._PacketBeginningMessage)
+        self.assertIs(type(msg), bt2._PacketBeginningMessageConst)
 
         msg_ev1 = next(it)
         msg_ev2 = next(it)
 
-        self.assertIsInstance(msg_ev1, bt2._EventMessage)
-        self.assertIsInstance(msg_ev2, bt2._EventMessage)
+        self.assertIs(type(msg_ev1), bt2._EventMessageConst)
+        self.assertIs(type(msg_ev2), bt2._EventMessageConst)
         self.assertEqual(msg_ev1.addr, msg_ev2.addr)
 
     @staticmethod
@@ -394,14 +394,14 @@ class UserMessageIteratorTestCase(unittest.TestCase):
         msg = None
         MySourceIter, graph = self._setup_seek_beginning_test(MySink)
         graph.run_once()
-        self.assertIsInstance(msg, bt2._StreamBeginningMessage)
+        self.assertIs(type(msg), bt2._StreamBeginningMessageConst)
         graph.run_once()
-        self.assertIsInstance(msg, bt2._PacketBeginningMessage)
+        self.assertIs(type(msg), bt2._PacketBeginningMessageConst)
         do_seek_beginning = True
         graph.run_once()
         do_seek_beginning = False
         graph.run_once()
-        self.assertIsInstance(msg, bt2._StreamBeginningMessage)
+        self.assertIs(type(msg), bt2._StreamBeginningMessageConst)
 
     def test_seek_beginning_user_error(self):
         class MySink(bt2._UserSinkComponent):

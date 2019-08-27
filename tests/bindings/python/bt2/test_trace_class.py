@@ -17,7 +17,13 @@
 #
 
 import unittest
-from utils import run_in_component_init, get_default_trace_class
+from utils import (
+    run_in_component_init,
+    get_default_trace_class,
+    get_const_stream_beginning_message,
+)
+from bt2 import stream_class as bt2_stream_class
+from bt2 import trace_class as bt2_trace_class
 
 
 class TraceClassTestCase(unittest.TestCase):
@@ -39,6 +45,7 @@ class TraceClassTestCase(unittest.TestCase):
         tc = run_in_component_init(f)
 
         self.assertEqual(len(tc), 0)
+        self.assertIs(type(tc), bt2_trace_class._TraceClass)
         self.assertTrue(tc.assigns_automatic_stream_class_id)
         self.assertEqual(len(tc.user_attributes), 0)
 
@@ -72,6 +79,8 @@ class TraceClassTestCase(unittest.TestCase):
         sc1 = tc.create_stream_class()
         sc2 = tc.create_stream_class()
 
+        self.assertIs(type(sc1), bt2_stream_class._StreamClass)
+        self.assertIs(type(sc2), bt2_stream_class._StreamClass)
         self.assertNotEqual(sc1.id, sc2.id)
 
     def test_automatic_stream_class_id_raises(self):
@@ -124,7 +133,12 @@ class TraceClassTestCase(unittest.TestCase):
 
     def test_getitem(self):
         tc, _, _, sc3 = self._create_trace_class_with_some_stream_classes()
+        self.assertIs(type(tc[2018]), bt2_stream_class._StreamClass)
         self.assertEqual(tc[2018].addr, sc3.addr)
+
+    def test_const_getitem(self):
+        const_tc = get_const_stream_beginning_message().stream.trace.cls
+        self.assertIs(type(const_tc[0]), bt2_stream_class._StreamClassConst)
 
     def test_getitem_wrong_key_type(self):
         tc, _, _, _ = self._create_trace_class_with_some_stream_classes()
@@ -147,11 +161,17 @@ class TraceClassTestCase(unittest.TestCase):
 
         for sc_id, stream_class in tc.items():
             if sc_id == 12:
+                self.assertIs(type(stream_class), bt2_stream_class._StreamClass)
                 self.assertEqual(stream_class.addr, sc1.addr)
             elif sc_id == 54:
                 self.assertEqual(stream_class.addr, sc2.addr)
             elif sc_id == 2018:
                 self.assertEqual(stream_class.addr, sc3.addr)
+
+    def test_const_iter(self):
+        const_tc = get_const_stream_beginning_message().stream.trace.cls
+        const_sc = list(const_tc.values())[0]
+        self.assertIs(type(const_sc), bt2_stream_class._StreamClassConst)
 
     def test_destruction_listener(self):
         def on_trace_class_destruction(trace_class):

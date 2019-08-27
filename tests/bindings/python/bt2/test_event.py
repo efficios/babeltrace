@@ -18,11 +18,17 @@
 
 import unittest
 import bt2
+import utils
 from utils import TestOutputPortMessageIterator
+
+from bt2 import field as bt2_field
+from bt2 import stream as bt2_stream
+from bt2 import event_class as bt2_event_class
+from bt2 import clock_snapshot as bt2_clock_snapshot
 
 
 class EventTestCase(unittest.TestCase):
-    def _create_test_event_message(
+    def _create_test_const_event_message(
         self,
         packet_fields_config=None,
         event_fields_config=None,
@@ -158,87 +164,127 @@ class EventTestCase(unittest.TestCase):
         )
 
         for msg in self._msg_iter:
-            if type(msg) is bt2._EventMessage:
+            if type(msg) is bt2._EventMessageConst:
+                self._event_msg = msg
                 return msg
 
-    def test_attr_event_class(self):
-        msg = self._create_test_event_message()
+    def test_const_attr_event_class(self):
+        msg = self._create_test_const_event_message()
         self.assertEqual(msg.event.cls.addr, self.event_class.addr)
+        self.assertIs(type(msg.event.cls), bt2_event_class._EventClassConst)
 
-    def test_attr_name(self):
-        msg = self._create_test_event_message()
+    def test_attr_event_class(self):
+        msg = utils.get_event_message()
+        self.assertIs(type(msg.event.cls), bt2_event_class._EventClass)
+
+    def test_const_attr_name(self):
+        msg = self._create_test_const_event_message()
         self.assertEqual(msg.event.name, self.event_class.name)
 
-    def test_attr_id(self):
-        msg = self._create_test_event_message()
+    def test_const_attr_id(self):
+        msg = self._create_test_const_event_message()
         self.assertEqual(msg.event.id, self.event_class.id)
 
-    def test_get_common_context_field(self):
+    def test_const_get_common_context_field(self):
         def event_fields_config(event):
             event.common_context_field['cpu_id'] = 1
             event.common_context_field['stuff'] = 13.194
 
-        msg = self._create_test_event_message(
+        msg = self._create_test_const_event_message(
             event_fields_config=event_fields_config, with_cc=True
         )
 
         self.assertEqual(msg.event.common_context_field['cpu_id'], 1)
         self.assertEqual(msg.event.common_context_field['stuff'], 13.194)
+        self.assertIs(
+            type(msg.event.common_context_field), bt2_field._StructureFieldConst
+        )
 
-    def test_no_common_context_field(self):
-        msg = self._create_test_event_message(with_cc=False)
+    def test_attr_common_context_field(self):
+        msg = utils.get_event_message()
+        self.assertIs(type(msg.event.common_context_field), bt2_field._StructureField)
+
+    def test_const_no_common_context_field(self):
+        msg = self._create_test_const_event_message(with_cc=False)
         self.assertIsNone(msg.event.common_context_field)
 
-    def test_get_specific_context_field(self):
+    def test_const_get_specific_context_field(self):
         def event_fields_config(event):
             event.specific_context_field['ant'] = -1
             event.specific_context_field['msg'] = 'hellooo'
 
-        msg = self._create_test_event_message(
+        msg = self._create_test_const_event_message(
             event_fields_config=event_fields_config, with_sc=True
         )
 
         self.assertEqual(msg.event.specific_context_field['ant'], -1)
         self.assertEqual(msg.event.specific_context_field['msg'], 'hellooo')
+        self.assertIs(
+            type(msg.event.specific_context_field), bt2_field._StructureFieldConst
+        )
 
-    def test_no_specific_context_field(self):
-        msg = self._create_test_event_message(with_sc=False)
+    def test_attr_specific_context_field(self):
+        msg = utils.get_event_message()
+        self.assertIs(type(msg.event.specific_context_field), bt2_field._StructureField)
+
+    def test_const_no_specific_context_field(self):
+        msg = self._create_test_const_event_message(with_sc=False)
         self.assertIsNone(msg.event.specific_context_field)
 
-    def test_get_event_payload_field(self):
+    def test_const_get_event_payload_field(self):
         def event_fields_config(event):
             event.payload_field['giraffe'] = 1
             event.payload_field['gnu'] = 23
             event.payload_field['mosquito'] = 42
 
-        msg = self._create_test_event_message(
+        msg = self._create_test_const_event_message(
             event_fields_config=event_fields_config, with_ep=True
         )
 
         self.assertEqual(msg.event.payload_field['giraffe'], 1)
         self.assertEqual(msg.event.payload_field['gnu'], 23)
         self.assertEqual(msg.event.payload_field['mosquito'], 42)
+        self.assertIs(type(msg.event.payload_field), bt2_field._StructureFieldConst)
 
-    def test_no_payload_field(self):
-        msg = self._create_test_event_message(with_ep=False)
+    def test_attr_payload_field(self):
+        msg = utils.get_event_message()
+        self.assertIs(type(msg.event.payload_field), bt2_field._StructureField)
+
+    def test_const_no_payload_field(self):
+        msg = self._create_test_const_event_message(with_ep=False)
         self.assertIsNone(msg.event.payload_field)
 
-    def test_clock_value(self):
-        msg = self._create_test_event_message(with_clockclass=True)
+    def test_const_clock_value(self):
+        msg = self._create_test_const_event_message(with_clockclass=True)
         self.assertEqual(msg.default_clock_snapshot.value, 789)
+        self.assertIs(
+            type(msg.default_clock_snapshot), bt2_clock_snapshot._ClockSnapshotConst
+        )
 
-    def test_no_clock_value(self):
-        msg = self._create_test_event_message(with_clockclass=False)
+    def test_clock_value(self):
+        msg = utils.get_event_message()
+        self.assertEqual(msg.default_clock_snapshot.value, 789)
+        self.assertIs(
+            type(msg.default_clock_snapshot), bt2_clock_snapshot._ClockSnapshotConst
+        )
+
+    def test_const_no_clock_value(self):
+        msg = self._create_test_const_event_message(with_clockclass=False)
         with self.assertRaisesRegex(
             ValueError, 'stream class has no default clock class'
         ):
             msg.default_clock_snapshot
 
-    def test_stream(self):
-        msg = self._create_test_event_message()
+    def test_const_stream(self):
+        msg = self._create_test_const_event_message()
         self.assertEqual(msg.event.stream.addr, self.stream.addr)
+        self.assertIs(type(msg.event.stream), bt2_stream._StreamConst)
 
-    def test_getitem(self):
+    def test_stream(self):
+        msg = utils.get_event_message()
+        self.assertIs(type(msg.event.stream), bt2_stream._Stream)
+
+    def test_const_getitem(self):
         def event_fields_config(event):
             event.payload_field['giraffe'] = 1
             event.payload_field['gnu'] = 23
@@ -252,7 +298,7 @@ class EventTestCase(unittest.TestCase):
             packet.context_field['something'] = 154
             packet.context_field['something_else'] = 17.2
 
-        msg = self._create_test_event_message(
+        msg = self._create_test_const_event_message(
             packet_fields_config=packet_fields_config,
             event_fields_config=event_fields_config,
             with_cc=True,
@@ -264,19 +310,35 @@ class EventTestCase(unittest.TestCase):
 
         # Test event fields
         self.assertEqual(ev['giraffe'], 1)
+        self.assertIs(type(ev['giraffe']), bt2_field._SignedIntegerFieldConst)
         self.assertEqual(ev['gnu'], 23)
         self.assertEqual(ev['mosquito'], 42)
         self.assertEqual(ev['ant'], -1)
+        self.assertIs(type(ev['ant']), bt2_field._SignedIntegerFieldConst)
         self.assertEqual(ev['msg'], 'hellooo')
         self.assertEqual(ev['cpu_id'], 1)
+        self.assertIs(type(ev['cpu_id']), bt2_field._SignedIntegerFieldConst)
         self.assertEqual(ev['stuff'], 13.194)
 
         # Test packet fields
         self.assertEqual(ev['something'], 154)
+        self.assertIs(type(ev['something']), bt2_field._UnsignedIntegerFieldConst)
         self.assertEqual(ev['something_else'], 17.2)
 
         with self.assertRaises(KeyError):
             ev['yes']
+
+    def test_getitem(self):
+        msg = utils.get_event_message()
+        ev = msg.event
+        self.assertEqual(ev['giraffe'], 1)
+        self.assertIs(type(ev['giraffe']), bt2_field._SignedIntegerField)
+        self.assertEqual(ev['ant'], -1)
+        self.assertIs(type(ev['ant']), bt2_field._SignedIntegerField)
+        self.assertEqual(ev['cpu_id'], 1)
+        self.assertIs(type(ev['cpu_id']), bt2_field._SignedIntegerField)
+        self.assertEqual(ev['something'], 154)
+        self.assertIs(type(ev['something']), bt2_field._UnsignedIntegerField)
 
 
 if __name__ == "__main__":

@@ -146,7 +146,7 @@ class _UserMessageIterator(_MessageIterator):
         except Exception:
             raise
 
-        utils._check_type(msg, bt2_message._Message)
+        utils._check_type(msg, bt2_message._MessageConst)
 
         # The reference we return will be given to the message array.
         # However, the `msg` Python object may stay alive, if the user has kept

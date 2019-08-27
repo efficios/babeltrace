@@ -25,23 +25,36 @@ from bt2 import field as bt2_field
 from bt2 import stream as bt2_stream
 
 
-class _Packet(object._SharedObject):
+class _PacketConst(object._SharedObject):
     _get_ref = staticmethod(native_bt.packet_get_ref)
     _put_ref = staticmethod(native_bt.packet_put_ref)
+    _borrow_stream_ptr = staticmethod(native_bt.packet_borrow_stream_const)
+    _borrow_context_field_ptr = staticmethod(
+        native_bt.packet_borrow_context_field_const
+    )
+    _stream_pycls = property(lambda _: bt2_stream._StreamConst)
+    _create_field_from_ptr = staticmethod(bt2_field._create_field_from_const_ptr)
 
     @property
     def stream(self):
-        stream_ptr = native_bt.packet_borrow_stream(self._ptr)
+        stream_ptr = self._borrow_stream_ptr(self._ptr)
         assert stream_ptr is not None
-        return bt2_stream._Stream._create_from_ptr_and_get_ref(stream_ptr)
+        return self._stream_pycls._create_from_ptr_and_get_ref(stream_ptr)
 
     @property
     def context_field(self):
-        field_ptr = native_bt.packet_borrow_context_field(self._ptr)
+        field_ptr = self._borrow_context_field_ptr(self._ptr)
 
         if field_ptr is None:
             return
 
-        return bt2_field._create_field_from_ptr(
+        return self._create_field_from_ptr(
             field_ptr, self._ptr, self._get_ref, self._put_ref
         )
+
+
+class _Packet(_PacketConst):
+    _borrow_stream_ptr = staticmethod(native_bt.packet_borrow_stream)
+    _borrow_context_field_ptr = staticmethod(native_bt.packet_borrow_context_field)
+    _stream_pycls = property(lambda _: bt2_stream._Stream)
+    _create_field_from_ptr = staticmethod(bt2_field._create_field_from_ptr)

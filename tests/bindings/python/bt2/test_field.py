@@ -24,7 +24,7 @@ import copy
 import itertools
 import collections
 import bt2
-from utils import get_default_trace_class
+from utils import get_default_trace_class, TestOutputPortMessageIterator
 
 
 _COMP_BINOPS = (operator.eq, operator.ne)
@@ -61,6 +61,50 @@ def _create_field(tc, field_class):
     stream = _create_stream(tc, [(field_name, field_class)])
     packet = stream.create_packet()
     return packet.context_field[field_name]
+
+
+# Create a const field of the given field class.
+#
+# The field is part of a dummy stream, itself part of a dummy trace created
+# from trace class `tc`.
+
+
+def _create_const_field(tc, field_class, field_value_setter_fn):
+    field_name = 'const field'
+
+    class MyIter(bt2._UserMessageIterator):
+        def __init__(self, self_port_output):
+            nonlocal field_class
+            nonlocal field_value_setter_fn
+            stream = _create_stream(tc, [(field_name, field_class)])
+            packet = stream.create_packet()
+
+            field_value_setter_fn(packet.context_field[field_name])
+
+            self._msgs = [
+                self._create_stream_beginning_message(stream),
+                self._create_packet_beginning_message(packet),
+            ]
+
+        def __next__(self):
+            if len(self._msgs) == 0:
+                raise StopIteration
+
+            return self._msgs.pop(0)
+
+    class MySrc(bt2._UserSourceComponent, message_iterator_class=MyIter):
+        def __init__(self, params, obj):
+            self._add_output_port('out', params)
+
+    graph = bt2.Graph()
+    src_comp = graph.add_component(MySrc, 'my_source', None)
+    msg_iter = TestOutputPortMessageIterator(graph, src_comp.output_ports['out'])
+
+    # Ignore first message, stream beginning
+    _ = next(msg_iter)
+    packet_beg_msg = next(msg_iter)
+
+    return packet_beg_msg.packet.context_field[field_name]
 
 
 # Create a field of type string.
@@ -1124,6 +1168,10 @@ def _inject_numeric_testing_methods(cls):
 
 
 class BoolFieldTestCase(_TestNumericField, unittest.TestCase):
+    @staticmethod
+    def _const_value_setter(field):
+        field.value = True
+
     def _create_fc(self, tc):
         return tc.create_bool_field_class()
 
@@ -1132,7 +1180,14 @@ class BoolFieldTestCase(_TestNumericField, unittest.TestCase):
         self._def = _create_field(self._tc, self._create_fc(self._tc))
         self._def.value = True
         self._def_value = True
+        self._def_const = _create_const_field(
+            self._tc, self._tc.create_bool_field_class(), self._const_value_setter
+        )
         self._def_new_value = False
+
+    def test_classes(self):
+        self.assertIs(type(self._def), bt2._BoolField)
+        self.assertIs(type(self._def_const), bt2._BoolFieldConst)
 
     def test_assign_true(self):
         raw = True
@@ -1370,10 +1425,17 @@ _inject_numeric_testing_methods(RealFieldTestCase)
 
 
 class StringFieldTestCase(unittest.TestCase):
+    @staticmethod
+    def _const_value_setter(field):
+        field.value = 'Hello, World!'
+
     def setUp(self):
         self._tc = get_default_trace_class()
         self._def_value = 'Hello, World!'
         self._def = _create_string_field(self._tc)
+        self._def_const = _create_const_field(
+            self._tc, self._tc.create_string_field_class(), self._const_value_setter
+        )
         self._def.value = self._def_value
         self._def_new_value = 'Yes!'
 
@@ -1389,6 +1451,9 @@ class StringFieldTestCase(unittest.TestCase):
 
     def test_eq(self):
         self.assertEqual(self._def, self._def_value)
+
+    def test_const_eq(self):
+        self.assertEqual(self._def_const, self._def_value)
 
     def test_not_eq(self):
         self.assertNotEqual(self._def, 23)
@@ -1453,11 +1518,20 @@ class StringFieldTestCase(unittest.TestCase):
     def test_getitem(self):
         self.assertEqual(self._def[5], self._def_value[5])
 
+    def test_const_getitem(self):
+        self.assertEqual(self._def_const[5], self._def_value[5])
+
     def test_append_str(self):
         to_append = 'meow meow meow'
         self._def += to_append
         self._def_value += to_append
         self.assertEqual(self._def, self._def_value)
+
+    def test_const_append_str(self):
+        to_append = 'meow meow meow'
+        with self.assertRaises(TypeError):
+            self._def_const += to_append
+        self.assertEqual(self._def_const, self._def_value)
 
     def test_append_string_field(self):
         field = _create_string_field(self._tc)
@@ -1484,6 +1558,11 @@ class _TestArrayFieldCommon:
     def test_getitem(self):
         field = self._def[1]
         self.assertIs(type(field), bt2._SignedIntegerField)
+        self.assertEqual(field, 1847)
+
+    def test_const_getitem(self):
+        field = self._def_const[1]
+        self.assertIs(type(field), bt2._SignedIntegerFieldConst)
         self.assertEqual(field, 1847)
 
     def test_eq(self):
@@ -1550,8 +1629,16 @@ class _TestArrayFieldCommon:
         with self.assertRaises(IndexError):
             self._def[len(self._def)] = 134679
 
+    def test_const_setitem(self):
+        with self.assertRaises(TypeError):
+            self._def_const[0] = 134679
+
     def test_iter(self):
         for field, value in zip(self._def, (45, 1847, 1948754)):
+            self.assertEqual(field, value)
+
+    def test_const_iter(self):
+        for field, value in zip(self._def_const, (45, 1847, 1948754)):
             self.assertEqual(field, value)
 
     def test_value_int_field(self):
@@ -1599,6 +1686,10 @@ class _TestArrayFieldCommon:
 
 
 class StaticArrayFieldTestCase(_TestArrayFieldCommon, unittest.TestCase):
+    @staticmethod
+    def _const_value_setter(field):
+        field.value = [45, 1847, 1948754]
+
     def setUp(self):
         self._tc = get_default_trace_class()
         self._def = _create_int_array_field(self._tc, 3)
@@ -1606,6 +1697,13 @@ class StaticArrayFieldTestCase(_TestArrayFieldCommon, unittest.TestCase):
         self._def[1] = 1847
         self._def[2] = 1948754
         self._def_value = [45, 1847, 1948754]
+        self._def_const = _create_const_field(
+            self._tc,
+            self._tc.create_static_array_field_class(
+                self._tc.create_signed_integer_field_class(32), 3
+            ),
+            self._const_value_setter,
+        )
 
     def test_value_wrong_len(self):
         values = [45, 1847]
@@ -1614,6 +1712,10 @@ class StaticArrayFieldTestCase(_TestArrayFieldCommon, unittest.TestCase):
 
 
 class DynamicArrayFieldTestCase(_TestArrayFieldCommon, unittest.TestCase):
+    @staticmethod
+    def _const_value_setter(field):
+        field.value = [45, 1847, 1948754]
+
     def setUp(self):
         self._tc = get_default_trace_class()
         self._def = _create_dynamic_array(self._tc)
@@ -1621,6 +1723,13 @@ class DynamicArrayFieldTestCase(_TestArrayFieldCommon, unittest.TestCase):
         self._def[1] = 1847
         self._def[2] = 1948754
         self._def_value = [45, 1847, 1948754]
+        self._def_const = _create_const_field(
+            self._tc,
+            self._tc.create_dynamic_array_field_class(
+                self._tc.create_signed_integer_field_class(32)
+            ),
+            self._const_value_setter,
+        )
 
     def test_value_resize(self):
         new_values = [1, 2, 3, 4]
@@ -1632,12 +1741,28 @@ class DynamicArrayFieldTestCase(_TestArrayFieldCommon, unittest.TestCase):
         self._def[3] = 0
         self.assertEqual(len(self._def), 4)
 
+    def test_const_set_length(self):
+        with self.assertRaises(AttributeError):
+            self._def_const.length = 4
+        self.assertEqual(len(self._def), 3)
+
     def test_set_invalid_length(self):
         with self.assertRaises(TypeError):
             self._def.length = 'cheval'
 
 
 class StructureFieldTestCase(unittest.TestCase):
+    @staticmethod
+    def _const_value_setter(field):
+        field.value = {
+            'A': -1872,
+            'B': 'salut',
+            'C': 17.5,
+            'D': 16497,
+            'E': {},
+            'F': {'F_1': 52},
+        }
+
     def _create_fc(self, tc):
         fc = tc.create_structure_field_class()
         fc.append_member('A', self._fc0_fn())
@@ -1677,6 +1802,10 @@ class StructureFieldTestCase(unittest.TestCase):
             'F': {'F_1': 52},
         }
 
+        self._def_const = _create_const_field(
+            self._tc, self._create_fc(self._tc), self._const_value_setter
+        )
+
     def _modify_def(self):
         self._def['B'] = 'hola'
 
@@ -1691,9 +1820,56 @@ class StructureFieldTestCase(unittest.TestCase):
         self.assertEqual(len(self._def), len(self._def_value))
 
     def test_getitem(self):
-        field = self._def['A']
-        self.assertIs(type(field), bt2._SignedIntegerField)
-        self.assertEqual(field, -1872)
+        field1 = self._def['A']
+        field2 = self._def['B']
+        field3 = self._def['C']
+        field4 = self._def['D']
+        field5 = self._def['E']
+        field6 = self._def['F']
+
+        self.assertIs(type(field1), bt2._SignedIntegerField)
+        self.assertEqual(field1, -1872)
+
+        self.assertIs(type(field2), bt2._StringField)
+        self.assertEqual(field2, 'salut')
+
+        self.assertIs(type(field3), bt2._RealField)
+        self.assertEqual(field3, 17.5)
+
+        self.assertIs(type(field4), bt2._SignedIntegerField)
+        self.assertEqual(field4, 16497)
+
+        self.assertIs(type(field5), bt2._StructureField)
+        self.assertEqual(field5, {})
+
+        self.assertIs(type(field6), bt2._StructureField)
+        self.assertEqual(field6, {'F_1': 52})
+
+    def test_const_getitem(self):
+        field1 = self._def_const['A']
+        field2 = self._def_const['B']
+        field3 = self._def_const['C']
+        field4 = self._def_const['D']
+        field5 = self._def_const['E']
+        field6 = self._def_const['F']
+
+        self.assertIs(type(field1), bt2._SignedIntegerFieldConst)
+        self.assertEqual(field1, -1872)
+
+        self.assertIs(type(field2), bt2._StringFieldConst)
+        self.assertEqual(field2, 'salut')
+
+        self.assertIs(type(field3), bt2._RealFieldConst)
+        self.assertEqual(field3, 17.5)
+
+        self.assertIs(type(field4), bt2._SignedIntegerFieldConst)
+        self.assertEqual(field4, 16497)
+
+        self.assertIs(type(field5), bt2._StructureFieldConst)
+        self.assertEqual(field5, {})
+
+        self.assertIs(type(field6), bt2._StructureFieldConst)
+        self.assertEqual(field6, {'F_1': 52})
 
     def test_member_at_index_out_of_bounds_after(self):
         with self.assertRaises(IndexError):
@@ -1708,6 +1884,16 @@ class StructureFieldTestCase(unittest.TestCase):
         field['E'] = {}
         field['F'] = {'F_1': 52}
         self.assertEqual(self._def, field)
+
+    def test_const_eq(self):
+        field = _create_field(self._tc, self._create_fc(self._tc))
+        field['A'] = -1872
+        field['B'] = 'salut'
+        field['C'] = 17.5
+        field['D'] = 16497
+        field['E'] = {}
+        field['F'] = {'F_1': 52}
+        self.assertEqual(self._def_const, field)
 
     def test_eq_invalid_type(self):
         self.assertNotEqual(self._def, 23)
@@ -1772,6 +1958,10 @@ class StructureFieldTestCase(unittest.TestCase):
         self._def['C'] = -18.47
         self.assertEqual(self._def['C'], -18.47)
 
+    def test_const_setitem(self):
+        with self.assertRaises(TypeError):
+            self._def_const['A'] = 134679
+
     def test_setitem_int_field(self):
         int_fc = self._tc.create_signed_integer_field_class(32)
         int_field = _create_field(self._tc, int_fc)
@@ -1803,6 +1993,9 @@ class StructureFieldTestCase(unittest.TestCase):
 
     def test_member_at_index(self):
         self.assertEqual(self._def.member_at_index(1), 'salut')
+
+    def test_const_member_at_index(self):
+        self.assertEqual(self._def_const.member_at_index(1), 'salut')
 
     def test_iter(self):
         orig_values = {
@@ -1870,6 +2063,10 @@ class StructureFieldTestCase(unittest.TestCase):
 
 
 class OptionFieldTestCase(unittest.TestCase):
+    @staticmethod
+    def _const_value_setter(field):
+        field.value = {'opt_field': 'hiboux'}
+
     def _create_fc(self, tc):
         fc = tc.create_option_field_class(tc.create_string_field_class())
         top_fc = tc.create_structure_field_class()
@@ -1880,11 +2077,23 @@ class OptionFieldTestCase(unittest.TestCase):
         self._tc = get_default_trace_class()
         fld = _create_field(self._tc, self._create_fc(self._tc))
         self._def = fld['opt_field']
+        self._def_value = 'hiboux'
+        self._def_const = _create_const_field(
+            self._tc, self._create_fc(self._tc), self._const_value_setter
+        )['opt_field']
 
     def test_value_prop(self):
         self._def.value = 'hiboux'
         self.assertEqual(self._def.field, 'hiboux')
+        self.assertIs(type(self._def), bt2._OptionField)
+        self.assertIs(type(self._def.field), bt2._StringField)
         self.assertTrue(self._def.has_field)
+
+    def test_const_value_prop(self):
+        self.assertEqual(self._def_const.field, 'hiboux')
+        self.assertIs(type(self._def_const), bt2._OptionFieldConst)
+        self.assertIs(type(self._def_const.field), bt2._StringFieldConst)
+        self.assertTrue(self._def_const.has_field)
 
     def test_has_field_prop_true(self):
         self._def.has_field = True
@@ -1912,6 +2121,13 @@ class OptionFieldTestCase(unittest.TestCase):
         field = self._def.field
         self.assertIsNone(field)
 
+    def test_const_field_prop(self):
+        with self.assertRaises(AttributeError):
+            self._def_const.has_field = False
+
+        self.assertEqual(self._def_const, self._def_value)
+        self.assertTrue(self._def_const.has_field)
+
     def test_field_prop_existing_then_none(self):
         self._def.value = 'meow'
         field = self._def.field
@@ -1927,6 +2143,13 @@ class OptionFieldTestCase(unittest.TestCase):
         self._def.value = 'walk'
         self.assertEqual(self._def, field)
 
+    def test_const_eq(self):
+        field = _create_field(self._tc, self._create_fc(self._tc))
+        field = field['opt_field']
+        field.value = 'hiboux'
+        self.assertEqual(self._def_const, field)
+        self.assertEqual(self._def_const, self._def_value)
+
     def test_eq_invalid_type(self):
         self._def.value = 'gerry'
         self.assertNotEqual(self._def, 23)
@@ -1941,6 +2164,11 @@ class OptionFieldTestCase(unittest.TestCase):
 
 
 class VariantFieldTestCase(unittest.TestCase):
+    @staticmethod
+    def _const_value_setter(field):
+        field.selected_option_index = 3
+        field.value = 1334
+
     def _create_fc(self, tc):
         ft0 = tc.create_signed_integer_field_class(32)
         ft1 = tc.create_string_field_class()
@@ -1960,6 +2188,15 @@ class VariantFieldTestCase(unittest.TestCase):
         fld = _create_field(self._tc, self._create_fc(self._tc))
         self._def = fld['variant_field']
 
+        self._def_value = 1334
+        self._def_selected_index = 3
+        const_fc = self._create_fc(self._tc)['variant_field']
+
+        fld_const = _create_const_field(
+            self._tc, const_fc.field_class, self._const_value_setter
+        )
+        self._def_const = fld_const
+
     def test_bool_op(self):
         self._def.selected_option_index = 2
         self._def.value = -17.34
@@ -1978,14 +2215,27 @@ class VariantFieldTestCase(unittest.TestCase):
         with self.assertRaises(IndexError):
             self._def.selected_option_index = -1
 
+    def test_const_selected_option_index(self):
+        with self.assertRaises(AttributeError):
+            self._def_const.selected_option_index = 2
+        self.assertEqual(self._def_const.selected_option_index, 3)
+
     def test_selected_option(self):
         self._def.selected_option_index = 2
         self._def.value = -17.34
         self.assertEqual(self._def.selected_option, -17.34)
+        self.assertEqual(type(self._def.selected_option), bt2._RealField)
 
         self._def.selected_option_index = 3
         self._def.value = 1921
         self.assertEqual(self._def.selected_option, 1921)
+        self.assertEqual(type(self._def.selected_option), bt2._SignedIntegerField)
+
+    def test_const_selected_option(self):
+        self.assertEqual(self._def_const.selected_option, 1334)
+        self.assertEqual(
+            type(self._def_const.selected_option), bt2._SignedIntegerFieldConst
+        )
 
     def test_eq(self):
         field = _create_field(self._tc, self._create_fc(self._tc))
@@ -1995,6 +2245,13 @@ class VariantFieldTestCase(unittest.TestCase):
         self._def.selected_option_index = 0
         self._def.value = 1774
         self.assertEqual(self._def, field)
+
+    def test_const_eq(self):
+        field = _create_field(self._tc, self._create_fc(self._tc))
+        field = field['variant_field']
+        field.selected_option_index = 3
+        field.value = 1334
+        self.assertEqual(self._def_const, field)
 
     def test_len(self):
         self.assertEqual(len(self._def), 4)

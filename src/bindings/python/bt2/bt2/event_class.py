@@ -44,39 +44,45 @@ class EventClassLogLevel:
     DEBUG = native_bt.EVENT_CLASS_LOG_LEVEL_DEBUG
 
 
-class _EventClass(object._SharedObject):
+class _EventClassConst(object._SharedObject):
     _get_ref = staticmethod(native_bt.event_class_get_ref)
     _put_ref = staticmethod(native_bt.event_class_put_ref)
+    _borrow_stream_class_ptr = staticmethod(
+        native_bt.event_class_borrow_stream_class_const
+    )
+    _borrow_specific_context_field_class_ptr = staticmethod(
+        native_bt.event_class_borrow_specific_context_field_class_const
+    )
+    _borrow_payload_field_class_ptr = staticmethod(
+        native_bt.event_class_borrow_payload_field_class_const
+    )
+    _borrow_user_attributes_ptr = staticmethod(
+        native_bt.event_class_borrow_user_attributes_const
+    )
+    _create_field_class_from_ptr_and_get_ref = staticmethod(
+        bt2_field_class._create_field_class_from_const_ptr_and_get_ref
+    )
+    _create_value_from_ptr_and_get_ref = staticmethod(
+        bt2_value._create_from_const_ptr_and_get_ref
+    )
+    _stream_class_pycls = property(lambda s: bt2_stream_class._StreamClassConst)
 
     @property
     def stream_class(self):
-        sc_ptr = native_bt.event_class_borrow_stream_class(self._ptr)
+        sc_ptr = self._borrow_stream_class_ptr(self._ptr)
 
         if sc_ptr is not None:
-            return bt2_stream_class._StreamClass._create_from_ptr_and_get_ref(sc_ptr)
+            return self._stream_class_pycls._create_from_ptr_and_get_ref(sc_ptr)
 
     @property
     def user_attributes(self):
-        ptr = native_bt.event_class_borrow_user_attributes(self._ptr)
+        ptr = self._borrow_user_attributes_ptr(self._ptr)
         assert ptr is not None
-        return bt2_value._create_from_ptr_and_get_ref(ptr)
-
-    def _user_attributes(self, user_attributes):
-        value = bt2_value.create_value(user_attributes)
-        utils._check_type(value, bt2_value.MapValue)
-        native_bt.event_class_set_user_attributes(self._ptr, value._ptr)
-
-    _user_attributes = property(fset=_user_attributes)
+        return self._create_value_from_ptr_and_get_ref(ptr)
 
     @property
     def name(self):
         return native_bt.event_class_get_name(self._ptr)
-
-    def _name(self, name):
-        utils._check_str(name)
-        return native_bt.event_class_set_name(self._ptr, name)
-
-    _name = property(fset=_name)
 
     @property
     def id(self):
@@ -91,6 +97,61 @@ class _EventClass(object._SharedObject):
             return None
 
         return _EVENT_CLASS_LOG_LEVEL_TO_OBJ[log_level]
+
+    @property
+    def emf_uri(self):
+        return native_bt.event_class_get_emf_uri(self._ptr)
+
+    @property
+    def specific_context_field_class(self):
+        fc_ptr = self._borrow_specific_context_field_class_ptr(self._ptr)
+
+        if fc_ptr is None:
+            return
+
+        return self._create_field_class_from_ptr_and_get_ref(fc_ptr)
+
+    @property
+    def payload_field_class(self):
+        fc_ptr = self._borrow_payload_field_class_ptr(self._ptr)
+
+        if fc_ptr is None:
+            return
+
+        return self._create_field_class_from_ptr_and_get_ref(fc_ptr)
+
+
+class _EventClass(_EventClassConst):
+    _borrow_stream_class_ptr = staticmethod(native_bt.event_class_borrow_stream_class)
+    _borrow_specific_context_field_class_ptr = staticmethod(
+        native_bt.event_class_borrow_specific_context_field_class
+    )
+    _borrow_payload_field_class_ptr = staticmethod(
+        native_bt.event_class_borrow_payload_field_class
+    )
+    _borrow_user_attributes_ptr = staticmethod(
+        native_bt.event_class_borrow_user_attributes
+    )
+    _create_field_class_from_ptr_and_get_ref = staticmethod(
+        bt2_field_class._create_field_class_from_ptr_and_get_ref
+    )
+    _create_value_from_ptr_and_get_ref = staticmethod(
+        bt2_value._create_from_ptr_and_get_ref
+    )
+    _stream_class_pycls = property(lambda s: bt2_stream_class._StreamClass)
+
+    def _user_attributes(self, user_attributes):
+        value = bt2_value.create_value(user_attributes)
+        utils._check_type(value, bt2_value.MapValue)
+        native_bt.event_class_set_user_attributes(self._ptr, value._ptr)
+
+    _user_attributes = property(fset=_user_attributes)
+
+    def _name(self, name):
+        utils._check_str(name)
+        return native_bt.event_class_set_name(self._ptr, name)
+
+    _name = property(fset=_name)
 
     def _log_level(self, log_level):
         log_levels = (
@@ -118,27 +179,12 @@ class _EventClass(object._SharedObject):
 
     _log_level = property(fset=_log_level)
 
-    @property
-    def emf_uri(self):
-        return native_bt.event_class_get_emf_uri(self._ptr)
-
     def _emf_uri(self, emf_uri):
         utils._check_str(emf_uri)
         status = native_bt.event_class_set_emf_uri(self._ptr, emf_uri)
         utils._handle_func_status(status, "cannot set event class object's EMF URI")
 
     _emf_uri = property(fset=_emf_uri)
-
-    @property
-    def specific_context_field_class(self):
-        fc_ptr = native_bt.event_class_borrow_specific_context_field_class_const(
-            self._ptr
-        )
-
-        if fc_ptr is None:
-            return
-
-        return bt2_field_class._create_field_class_from_ptr_and_get_ref(fc_ptr)
 
     def _specific_context_field_class(self, context_field_class):
         if context_field_class is not None:
@@ -151,15 +197,6 @@ class _EventClass(object._SharedObject):
             )
 
     _specific_context_field_class = property(fset=_specific_context_field_class)
-
-    @property
-    def payload_field_class(self):
-        fc_ptr = native_bt.event_class_borrow_payload_field_class_const(self._ptr)
-
-        if fc_ptr is None:
-            return
-
-        return bt2_field_class._create_field_class_from_ptr_and_get_ref(fc_ptr)
 
     def _payload_field_class(self, payload_field_class):
         if payload_field_class is not None:

@@ -28,13 +28,28 @@ import numbers
 import math
 
 
-def _create_field_from_ptr(ptr, owner_ptr, owner_get_ref, owner_put_ref):
+def _create_field_from_ptr_template(
+    object_map, ptr, owner_ptr, owner_get_ref, owner_put_ref
+):
+
     field_class_ptr = native_bt.field_borrow_class_const(ptr)
     typeid = native_bt.field_class_get_type(field_class_ptr)
-    field = _TYPE_ID_TO_OBJ[typeid]._create_from_ptr_and_get_ref(
+    field = object_map[typeid]._create_from_ptr_and_get_ref(
         ptr, owner_ptr, owner_get_ref, owner_put_ref
     )
     return field
+
+
+def _create_field_from_ptr(ptr, owner_ptr, owner_get_ref, owner_put_ref):
+    return _create_field_from_ptr_template(
+        _TYPE_ID_TO_OBJ, ptr, owner_ptr, owner_get_ref, owner_put_ref
+    )
+
+
+def _create_field_from_const_ptr(ptr, owner_ptr, owner_get_ref, owner_put_ref):
+    return _create_field_from_ptr_template(
+        _TYPE_ID_TO_CONST_OBJ, ptr, owner_ptr, owner_get_ref, owner_put_ref
+    )
 
 
 # Get the "effective" field of `field`.  If `field` is a variant, return
@@ -44,25 +59,31 @@ def _create_field_from_ptr(ptr, owner_ptr, owner_get_ref, owner_put_ref):
 
 
 def _get_leaf_field(field):
-    if isinstance(field, _VariantField):
+    if isinstance(field, _VariantFieldConst):
         return _get_leaf_field(field.selected_option)
 
-    if isinstance(field, _OptionField):
+    if isinstance(field, _OptionFieldConst):
         return _get_leaf_field(field.field)
 
     return field
 
 
-class _Field(object._UniqueObject):
+class _FieldConst(object._UniqueObject):
+    _create_field_from_ptr = staticmethod(_create_field_from_const_ptr)
+    _create_field_class_from_ptr_and_get_ref = staticmethod(
+        bt2_field_class._create_field_class_from_const_ptr_and_get_ref
+    )
+    _borrow_class_ptr = staticmethod(native_bt.field_borrow_class_const)
+
     def __eq__(self, other):
         other = _get_leaf_field(other)
         return self._spec_eq(other)
 
     @property
     def cls(self):
-        field_class_ptr = native_bt.field_borrow_class_const(self._ptr)
+        field_class_ptr = self._borrow_class_ptr(self._ptr)
         assert field_class_ptr is not None
-        return bt2_field_class._create_field_class_from_ptr_and_get_ref(field_class_ptr)
+        return self._create_field_class_from_ptr_and_get_ref(field_class_ptr)
 
     def _repr(self):
         raise NotImplementedError
@@ -71,17 +92,20 @@ class _Field(object._UniqueObject):
         return self._repr()
 
 
-class _BitArrayField(_Field):
-    _NAME = 'Bit array'
+class _Field(_FieldConst):
+    _create_field_from_ptr = staticmethod(_create_field_from_ptr)
+    _create_field_class_from_ptr_and_get_ref = staticmethod(
+        bt2_field_class._create_field_class_from_ptr_and_get_ref
+    )
+    _borrow_class_ptr = staticmethod(native_bt.field_borrow_class)
+
+
+class _BitArrayFieldConst(_FieldConst):
+    _NAME = 'Const bit array'
 
     @property
     def value_as_integer(self):
         return native_bt.field_bit_array_get_value_as_integer(self._ptr)
-
-    @value_as_integer.setter
-    def value_as_integer(self, value):
-        utils._check_uint64(value)
-        native_bt.field_bit_array_set_value_as_integer(self._ptr, value)
 
     def _spec_eq(self, other):
         if type(other) is not type(self):
@@ -99,11 +123,23 @@ class _BitArrayField(_Field):
         return self.cls.length
 
 
+class _BitArrayField(_BitArrayFieldConst, _Field):
+    _NAME = 'Bit array'
+
+    def _value_as_integer(self, value):
+        utils._check_uint64(value)
+        native_bt.field_bit_array_set_value_as_integer(self._ptr, value)
+
+    value_as_integer = property(
+        fget=_BitArrayFieldConst.value_as_integer.fget, fset=_value_as_integer
+    )
+
+
 @functools.total_ordering
-class _NumericField(_Field):
+class _NumericFieldConst(_FieldConst):
     @staticmethod
     def _extract_value(other):
-        if isinstance(other, _BoolField) or isinstance(other, bool):
+        if isinstance(other, _BoolFieldConst) or isinstance(other, bool):
             return bool(other)
 
         if isinstance(other, numbers.Integral):
@@ -205,7 +241,11 @@ class _NumericField(_Field):
         return self._extract_value(base) ** self._value
 
 
-class _IntegralField(_NumericField, numbers.Integral):
+class _NumericField(_NumericFieldConst, _Field):
+    pass
+
+
+class _IntegralFieldConst(_NumericFieldConst, numbers.Integral):
     def __lshift__(self, other):
         return self._value << self._extract_value(other)
 
@@ -240,19 +280,24 @@ class _IntegralField(_NumericField, numbers.Integral):
         return ~self._value
 
 
-class _BoolField(_IntegralField, _Field):
-    _NAME = 'Boolean'
+class _IntegralField(_IntegralFieldConst, _NumericField):
+    pass
+
+
+class _BoolFieldConst(_IntegralFieldConst, _FieldConst):
+    _NAME = 'Const boolean'
 
     def __bool__(self):
         return self._value
 
-    def _value_to_bool(self, value):
-        if isinstance(value, _BoolField):
+    @classmethod
+    def _value_to_bool(cls, value):
+        if isinstance(value, _BoolFieldConst):
             value = value._value
 
         if not isinstance(value, bool):
             raise TypeError(
-                "'{}' object is not a 'bool' or '_BoolField' object".format(
+                "'{}' object is not a 'bool', '_BoolFieldConst', or '_BoolField' object".format(
                     value.__class__
                 )
             )
@@ -263,6 +308,10 @@ class _BoolField(_IntegralField, _Field):
     def _value(self):
         return bool(native_bt.field_bool_get_value(self._ptr))
 
+
+class _BoolField(_BoolFieldConst, _IntegralField, _Field):
+    _NAME = 'Boolean'
+
     def _set_value(self, value):
         value = self._value_to_bool(value)
         native_bt.field_bool_set_value(self._ptr, value)
@@ -270,14 +319,19 @@ class _BoolField(_IntegralField, _Field):
     value = property(fset=_set_value)
 
 
-class _IntegerField(_IntegralField, _Field):
+class _IntegerFieldConst(_IntegralFieldConst, _FieldConst):
     pass
 
 
-class _UnsignedIntegerField(_IntegerField, _Field):
-    _NAME = 'Unsigned integer'
+class _IntegerField(_IntegerFieldConst, _IntegralField, _Field):
+    pass
 
-    def _value_to_int(self, value):
+
+class _UnsignedIntegerFieldConst(_IntegerFieldConst, _FieldConst):
+    _NAME = 'Const unsigned integer'
+
+    @classmethod
+    def _value_to_int(cls, value):
         if not isinstance(value, numbers.Integral):
             raise TypeError('expecting an integral number object')
 
@@ -290,6 +344,10 @@ class _UnsignedIntegerField(_IntegerField, _Field):
     def _value(self):
         return native_bt.field_integer_unsigned_get_value(self._ptr)
 
+
+class _UnsignedIntegerField(_UnsignedIntegerFieldConst, _IntegerField, _Field):
+    _NAME = 'Unsigned integer'
+
     def _set_value(self, value):
         value = self._value_to_int(value)
         native_bt.field_integer_unsigned_set_value(self._ptr, value)
@@ -297,10 +355,11 @@ class _UnsignedIntegerField(_IntegerField, _Field):
     value = property(fset=_set_value)
 
 
-class _SignedIntegerField(_IntegerField, _Field):
-    _NAME = 'Signed integer'
+class _SignedIntegerFieldConst(_IntegerFieldConst, _FieldConst):
+    _NAME = 'Const signed integer'
 
-    def _value_to_int(self, value):
+    @classmethod
+    def _value_to_int(cls, value):
         if not isinstance(value, numbers.Integral):
             raise TypeError('expecting an integral number object')
 
@@ -313,6 +372,10 @@ class _SignedIntegerField(_IntegerField, _Field):
     def _value(self):
         return native_bt.field_integer_signed_get_value(self._ptr)
 
+
+class _SignedIntegerField(_SignedIntegerFieldConst, _IntegerField, _Field):
+    _NAME = 'Signed integer'
+
     def _set_value(self, value):
         value = self._value_to_int(value)
         native_bt.field_integer_signed_set_value(self._ptr, value)
@@ -320,10 +383,11 @@ class _SignedIntegerField(_IntegerField, _Field):
     value = property(fset=_set_value)
 
 
-class _RealField(_NumericField, numbers.Real):
-    _NAME = 'Real'
+class _RealFieldConst(_NumericFieldConst, numbers.Real):
+    _NAME = 'Const real'
 
-    def _value_to_float(self, value):
+    @classmethod
+    def _value_to_float(cls, value):
         if not isinstance(value, numbers.Real):
             raise TypeError("expecting a real number object")
 
@@ -333,6 +397,10 @@ class _RealField(_NumericField, numbers.Real):
     def _value(self):
         return native_bt.field_real_get_value(self._ptr)
 
+
+class _RealField(_RealFieldConst, _NumericField):
+    _NAME = 'Real'
+
     def _set_value(self, value):
         value = self._value_to_float(value)
         native_bt.field_real_set_value(self._ptr, value)
@@ -340,7 +408,7 @@ class _RealField(_NumericField, numbers.Real):
     value = property(fset=_set_value)
 
 
-class _EnumerationField(_IntegerField):
+class _EnumerationFieldConst(_IntegerFieldConst):
     def _repr(self):
         return '{} ({})'.format(self._value, ', '.join(self.labels))
 
@@ -353,26 +421,45 @@ class _EnumerationField(_IntegerField):
         return labels
 
 
-class _UnsignedEnumerationField(_EnumerationField, _UnsignedIntegerField):
-    _NAME = 'Unsigned Enumeration'
+class _EnumerationField(_EnumerationFieldConst, _IntegerField):
+    pass
+
+
+class _UnsignedEnumerationFieldConst(
+    _EnumerationFieldConst, _UnsignedIntegerFieldConst
+):
+    _NAME = 'Const unsigned Enumeration'
     _get_mapping_labels = staticmethod(
         native_bt.field_enumeration_unsigned_get_mapping_labels
     )
 
 
-class _SignedEnumerationField(_EnumerationField, _SignedIntegerField):
-    _NAME = 'Signed Enumeration'
+class _UnsignedEnumerationField(
+    _UnsignedEnumerationFieldConst, _EnumerationField, _UnsignedIntegerField
+):
+    _NAME = 'Unsigned enumeration'
+
+
+class _SignedEnumerationFieldConst(_EnumerationFieldConst, _SignedIntegerFieldConst):
+    _NAME = 'Const signed Enumeration'
     _get_mapping_labels = staticmethod(
         native_bt.field_enumeration_signed_get_mapping_labels
     )
 
 
-@functools.total_ordering
-class _StringField(_Field):
-    _NAME = 'String'
+class _SignedEnumerationField(
+    _SignedEnumerationFieldConst, _EnumerationField, _SignedIntegerField
+):
+    _NAME = 'Signed enumeration'
 
-    def _value_to_str(self, value):
-        if isinstance(value, self.__class__):
+
+@functools.total_ordering
+class _StringFieldConst(_FieldConst):
+    _NAME = 'Const string'
+
+    @classmethod
+    def _value_to_str(cls, value):
+        if isinstance(value, _StringFieldConst):
             value = value._value
 
         if not isinstance(value, str):
@@ -383,12 +470,6 @@ class _StringField(_Field):
     @property
     def _value(self):
         return native_bt.field_string_get_value(self._ptr)
-
-    def _set_value(self, value):
-        value = self._value_to_str(value)
-        native_bt.field_string_set_value(self._ptr, value)
-
-    value = property(fset=_set_value)
 
     def _spec_eq(self, other):
         try:
@@ -414,6 +495,16 @@ class _StringField(_Field):
     def __len__(self):
         return native_bt.field_string_get_length(self._ptr)
 
+
+class _StringField(_StringFieldConst, _Field):
+    _NAME = 'String'
+
+    def _set_value(self, value):
+        value = self._value_to_str(value)
+        native_bt.field_string_set_value(self._ptr, value)
+
+    value = property(fset=_set_value)
+
     def __iadd__(self, value):
         value = self._value_to_str(value)
         status = native_bt.field_string_append(self._ptr, value)
@@ -423,9 +514,12 @@ class _StringField(_Field):
         return self
 
 
-class _ContainerField(_Field):
+class _ContainerFieldConst(_FieldConst):
     def __bool__(self):
         return len(self) != 0
+
+    def _count(self):
+        return len(self.cls)
 
     def __len__(self):
         count = self._count()
@@ -435,20 +529,27 @@ class _ContainerField(_Field):
     def __delitem__(self, index):
         raise NotImplementedError
 
+    def __setitem__(self, index, value):
+        raise TypeError(
+            '\'{}\' object does not support item assignment'.format(self.__class__)
+        )
 
-class _StructureField(_ContainerField, collections.abc.MutableMapping):
-    _NAME = 'Structure'
+
+class _ContainerField(_ContainerFieldConst, _Field):
+    pass
+
+
+class _StructureFieldConst(_ContainerFieldConst, collections.abc.Mapping):
+    _NAME = 'Const structure'
+    _borrow_member_field_ptr_by_index = staticmethod(
+        native_bt.field_structure_borrow_member_field_by_index_const
+    )
+    _borrow_member_field_ptr_by_name = staticmethod(
+        native_bt.field_structure_borrow_member_field_by_name_const
+    )
 
     def _count(self):
         return len(self.cls)
-
-    def __setitem__(self, key, value):
-        # raises if key is somehow invalid
-        field = self[key]
-
-        # the field's property does the appropriate conversion or raises
-        # the appropriate exception
-        field.value = value
 
     def __iter__(self):
         # same name iterator
@@ -471,6 +572,52 @@ class _StructureField(_ContainerField, collections.abc.MutableMapping):
 
         return True
 
+    def _repr(self):
+        items = ['{}: {}'.format(repr(k), repr(v)) for k, v in self.items()]
+        return '{{{}}}'.format(', '.join(items))
+
+    def __getitem__(self, key):
+        utils._check_str(key)
+        field_ptr = self._borrow_member_field_ptr_by_name(self._ptr, key)
+
+        if field_ptr is None:
+            raise KeyError(key)
+
+        return self._create_field_from_ptr(
+            field_ptr, self._owner_ptr, self._owner_get_ref, self._owner_put_ref
+        )
+
+    def member_at_index(self, index):
+        utils._check_uint64(index)
+
+        if index >= len(self):
+            raise IndexError
+        field_ptr = self._borrow_member_field_ptr_by_index(self._ptr, index)
+        assert field_ptr is not None
+        return self._create_field_from_ptr(
+            field_ptr, self._owner_ptr, self._owner_get_ref, self._owner_put_ref
+        )
+
+
+class _StructureField(
+    _StructureFieldConst, _ContainerField, collections.abc.MutableMapping
+):
+    _NAME = 'Structure'
+    _borrow_member_field_ptr_by_index = staticmethod(
+        native_bt.field_structure_borrow_member_field_by_index
+    )
+    _borrow_member_field_ptr_by_name = staticmethod(
+        native_bt.field_structure_borrow_member_field_by_name
+    )
+
+    def __setitem__(self, key, value):
+        # raises if key is somehow invalid
+        field = self[key]
+
+        # the field's property does the appropriate conversion or raises
+        # the appropriate exception
+        field.value = value
+
     def _set_value(self, values):
         try:
             for key, value in values.items():
@@ -480,60 +627,25 @@ class _StructureField(_ContainerField, collections.abc.MutableMapping):
 
     value = property(fset=_set_value)
 
-    def _repr(self):
-        items = ['{}: {}'.format(repr(k), repr(v)) for k, v in self.items()]
-        return '{{{}}}'.format(', '.join(items))
 
-    def __getitem__(self, key):
-        utils._check_str(key)
-        field_ptr = native_bt.field_structure_borrow_member_field_by_name(
-            self._ptr, key
-        )
-
-        if field_ptr is None:
-            raise KeyError(key)
-
-        return _create_field_from_ptr(
-            field_ptr, self._owner_ptr, self._owner_get_ref, self._owner_put_ref
-        )
-
-    def member_at_index(self, index):
-        utils._check_uint64(index)
-
-        if index >= len(self):
-            raise IndexError
-
-        field_ptr = native_bt.field_structure_borrow_member_field_by_index(
-            self._ptr, index
-        )
-        assert field_ptr is not None
-        return _create_field_from_ptr(
-            field_ptr, self._owner_ptr, self._owner_get_ref, self._owner_put_ref
-        )
-
-
-class _OptionField(_Field):
-    _NAME = 'Option'
+class _OptionFieldConst(_FieldConst):
+    _NAME = 'Const option'
+    _borrow_field_ptr = staticmethod(native_bt.field_option_borrow_field_const)
 
     @property
     def field(self):
-        field_ptr = native_bt.field_option_borrow_field_const(self._ptr)
+        field_ptr = self._borrow_field_ptr(self._ptr)
 
         if field_ptr is None:
             return
 
-        return _create_field_from_ptr(
+        return self._create_field_from_ptr(
             field_ptr, self._owner_ptr, self._owner_get_ref, self._owner_put_ref
         )
 
     @property
     def has_field(self):
         return self.field is not None
-
-    @has_field.setter
-    def has_field(self, value):
-        utils._check_bool(value)
-        native_bt.field_option_set_has_field(self._ptr, value)
 
     def _spec_eq(self, other):
         return _get_leaf_field(self) == other
@@ -547,6 +659,17 @@ class _OptionField(_Field):
     def _repr(self):
         return repr(self.field)
 
+
+class _OptionField(_OptionFieldConst, _Field):
+    _NAME = 'Option'
+    _borrow_field_ptr = staticmethod(native_bt.field_option_borrow_field)
+
+    def _has_field(self, value):
+        utils._check_bool(value)
+        native_bt.field_option_set_has_field(self._ptr, value)
+
+    has_field = property(fget=_OptionFieldConst.has_field.fget, fset=_has_field)
+
     def _set_value(self, value):
         self.has_field = True
         field = self.field
@@ -556,8 +679,11 @@ class _OptionField(_Field):
     value = property(fset=_set_value)
 
 
-class _VariantField(_ContainerField, _Field):
-    _NAME = 'Variant'
+class _VariantFieldConst(_ContainerFieldConst, _FieldConst):
+    _NAME = 'Const variant'
+    _borrow_selected_option_field_ptr = staticmethod(
+        native_bt.field_variant_borrow_selected_option_field_const
+    )
 
     def _count(self):
         return len(self.cls)
@@ -566,21 +692,14 @@ class _VariantField(_ContainerField, _Field):
     def selected_option_index(self):
         return native_bt.field_variant_get_selected_option_field_index(self._ptr)
 
-    @selected_option_index.setter
-    def selected_option_index(self, index):
-        if index < 0 or index >= len(self):
-            raise IndexError('{} field object index is out of range'.format(self._NAME))
-
-        native_bt.field_variant_select_option_field_by_index(self._ptr, index)
-
     @property
     def selected_option(self):
         # TODO: Is there a way to check if the variant field has a selected_option,
         # so we can raise an exception instead of hitting a pre-condition check?
         # If there is something, that check should be added to selected_option_index too.
-        field_ptr = native_bt.field_variant_borrow_selected_option_field(self._ptr)
+        field_ptr = self._borrow_selected_option_field_ptr(self._ptr)
 
-        return _create_field_from_ptr(
+        return self._create_field_from_ptr(
             field_ptr, self._owner_ptr, self._owner_get_ref, self._owner_put_ref
         )
 
@@ -596,13 +715,34 @@ class _VariantField(_ContainerField, _Field):
     def _repr(self):
         return repr(self.selected_option)
 
+
+class _VariantField(_VariantFieldConst, _ContainerField, _Field):
+    _NAME = 'Variant'
+    _borrow_selected_option_field_ptr = staticmethod(
+        native_bt.field_variant_borrow_selected_option_field
+    )
+
+    def _selected_option_index(self, index):
+        if index < 0 or index >= len(self):
+            raise IndexError('{} field object index is out of range'.format(self._NAME))
+
+        native_bt.field_variant_select_option_field_by_index(self._ptr, index)
+
+    selected_option_index = property(
+        fget=_VariantFieldConst.selected_option_index.fget, fset=_selected_option_index
+    )
+
     def _set_value(self, value):
         self.selected_option.value = value
 
     value = property(fset=_set_value)
 
 
-class _ArrayField(_ContainerField, _Field, collections.abc.MutableSequence):
+class _ArrayFieldConst(_ContainerFieldConst, _FieldConst, collections.abc.Sequence):
+    _borrow_element_field_ptr_by_index = staticmethod(
+        native_bt.field_array_borrow_element_field_by_index_const
+    )
+
     def _get_length(self):
         return native_bt.field_array_get_length(self._ptr)
 
@@ -621,24 +761,11 @@ class _ArrayField(_ContainerField, _Field, collections.abc.MutableSequence):
         if index < 0 or index >= len(self):
             raise IndexError('{} field object index is out of range'.format(self._NAME))
 
-        field_ptr = native_bt.field_array_borrow_element_field_by_index(
-            self._ptr, index
-        )
+        field_ptr = self._borrow_element_field_ptr_by_index(self._ptr, index)
         assert field_ptr
-        return _create_field_from_ptr(
+        return self._create_field_from_ptr(
             field_ptr, self._owner_ptr, self._owner_get_ref, self._owner_put_ref
         )
-
-    def __setitem__(self, index, value):
-        # raises if index is somehow invalid
-        field = self[index]
-
-        if not isinstance(field, (_NumericField, _StringField)):
-            raise TypeError('can only set the value of a number or string field')
-
-        # the field's property does the appropriate conversion or raises
-        # the appropriate exception
-        field.value = value
 
     def insert(self, index, value):
         raise NotImplementedError
@@ -661,11 +788,34 @@ class _ArrayField(_ContainerField, _Field, collections.abc.MutableSequence):
         return '[{}]'.format(', '.join([repr(v) for v in self]))
 
 
-class _StaticArrayField(_ArrayField, _Field):
-    _NAME = 'Static array'
+class _ArrayField(
+    _ArrayFieldConst, _ContainerField, _Field, collections.abc.MutableSequence
+):
+    _borrow_element_field_ptr_by_index = staticmethod(
+        native_bt.field_array_borrow_element_field_by_index
+    )
+
+    def __setitem__(self, index, value):
+        # raises if index is somehow invalid
+        field = self[index]
+
+        if not isinstance(field, (_NumericField, _StringField)):
+            raise TypeError('can only set the value of a number or string field')
+
+        # the field's property does the appropriate conversion or raises
+        # the appropriate exception
+        field.value = value
+
+
+class _StaticArrayFieldConst(_ArrayFieldConst, _FieldConst):
+    _NAME = 'Const static array'
 
     def _count(self):
         return native_bt.field_array_get_length(self._ptr)
+
+
+class _StaticArrayField(_StaticArrayFieldConst, _ArrayField, _Field):
+    _NAME = 'Static array'
 
     def _set_value(self, values):
         if len(self) != len(values):
@@ -678,11 +828,15 @@ class _StaticArrayField(_ArrayField, _Field):
     value = property(fset=_set_value)
 
 
-class _DynamicArrayField(_ArrayField, _Field):
-    _NAME = 'Dynamic array'
+class _DynamicArrayFieldConst(_ArrayFieldConst, _FieldConst):
+    _NAME = 'Const dynamic array'
 
     def _count(self):
         return self.length
+
+
+class _DynamicArrayField(_DynamicArrayFieldConst, _ArrayField, _Field):
+    _NAME = 'Dynamic array'
 
     def _set_length(self, length):
         utils._check_uint64(length)
@@ -701,6 +855,24 @@ class _DynamicArrayField(_ArrayField, _Field):
 
     value = property(fset=_set_value)
 
+
+_TYPE_ID_TO_CONST_OBJ = {
+    native_bt.FIELD_CLASS_TYPE_BOOL: _BoolFieldConst,
+    native_bt.FIELD_CLASS_TYPE_BIT_ARRAY: _BitArrayFieldConst,
+    native_bt.FIELD_CLASS_TYPE_UNSIGNED_INTEGER: _UnsignedIntegerFieldConst,
+    native_bt.FIELD_CLASS_TYPE_SIGNED_INTEGER: _SignedIntegerFieldConst,
+    native_bt.FIELD_CLASS_TYPE_REAL: _RealFieldConst,
+    native_bt.FIELD_CLASS_TYPE_UNSIGNED_ENUMERATION: _UnsignedEnumerationFieldConst,
+    native_bt.FIELD_CLASS_TYPE_SIGNED_ENUMERATION: _SignedEnumerationFieldConst,
+    native_bt.FIELD_CLASS_TYPE_STRING: _StringFieldConst,
+    native_bt.FIELD_CLASS_TYPE_STRUCTURE: _StructureFieldConst,
+    native_bt.FIELD_CLASS_TYPE_STATIC_ARRAY: _StaticArrayFieldConst,
+    native_bt.FIELD_CLASS_TYPE_DYNAMIC_ARRAY: _DynamicArrayFieldConst,
+    native_bt.FIELD_CLASS_TYPE_OPTION: _OptionFieldConst,
+    native_bt.FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR: _VariantFieldConst,
+    native_bt.FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_SELECTOR: _VariantFieldConst,
+    native_bt.FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_SELECTOR: _VariantFieldConst,
+}
 
 _TYPE_ID_TO_OBJ = {
     native_bt.FIELD_CLASS_TYPE_BOOL: _BoolField,

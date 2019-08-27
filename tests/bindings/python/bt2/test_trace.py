@@ -18,7 +18,12 @@
 
 import uuid
 import unittest
+import utils
 from utils import get_default_trace_class
+from bt2 import trace_class as bt2_trace_class
+from bt2 import value as bt2_value
+from bt2 import trace as bt2_trace
+from bt2 import stream as bt2_stream
 
 
 class TraceTestCase(unittest.TestCase):
@@ -39,6 +44,7 @@ class TraceTestCase(unittest.TestCase):
     def test_create_user_attributes(self):
         trace = self._tc(user_attributes={'salut': 23})
         self.assertEqual(trace.user_attributes, {'salut': 23})
+        self.assertIs(type(trace.user_attributes), bt2_value.MapValue)
 
     def test_create_invalid_user_attributes(self):
         with self.assertRaises(TypeError):
@@ -51,6 +57,11 @@ class TraceTestCase(unittest.TestCase):
     def test_attr_trace_class(self):
         trace = self._tc()
         self.assertEqual(trace.cls.addr, self._tc.addr)
+        self.assertIs(type(trace.cls), bt2_trace_class._TraceClass)
+
+    def test_const_attr_trace_class(self):
+        trace = utils.get_const_stream_beginning_message().stream.trace
+        self.assertIs(type(trace.cls), bt2_trace_class._TraceClassConst)
 
     def test_attr_name(self):
         trace = self._tc(name='mein trace')
@@ -62,8 +73,32 @@ class TraceTestCase(unittest.TestCase):
 
     def test_env_get(self):
         trace = self._tc(environment={'hello': 'you', 'foo': -5})
+        self.assertIs(type(trace.environment), bt2_trace._TraceEnvironment)
+        self.assertIs(type(trace.environment['foo']), bt2_value.SignedIntegerValue)
         self.assertEqual(trace.environment['hello'], 'you')
         self.assertEqual(trace.environment['foo'], -5)
+
+    def test_env_iter(self):
+        trace = self._tc(environment={'hello': 'you', 'foo': -5})
+        values = set(trace.environment)
+        self.assertEqual(values, {'hello', 'foo'})
+
+    def test_const_env_get(self):
+        trace = utils.get_const_stream_beginning_message().stream.trace
+        self.assertIs(type(trace.environment), bt2_trace._TraceEnvironmentConst)
+        self.assertIs(
+            type(trace.environment['patate']), bt2_value._SignedIntegerValueConst
+        )
+
+    def test_env_iter(self):
+        trace = utils.get_const_stream_beginning_message().stream.trace
+        values = set(trace.environment)
+        self.assertEqual(values, {'patate'})
+
+    def test_const_env_set(self):
+        trace = utils.get_const_stream_beginning_message().stream.trace
+        with self.assertRaises(TypeError):
+            trace.environment['patate'] = 33
 
     def test_env_get_non_existent(self):
         trace = self._tc(environment={'hello': 'you', 'foo': -5})
@@ -95,8 +130,12 @@ class TraceTestCase(unittest.TestCase):
 
     def test_getitem(self):
         trace = self._create_trace_with_some_streams()
-
         self.assertEqual(trace[12].id, 12)
+        self.assertIs(type(trace[12]), bt2_stream._Stream)
+
+    def test_const_getitem(self):
+        trace = utils.get_const_stream_beginning_message().stream.trace
+        self.assertIs(type(trace[0]), bt2_stream._StreamConst)
 
     def test_getitem_invalid_key(self):
         trace = self._create_trace_with_some_streams()

@@ -18,6 +18,11 @@
 
 import unittest
 from utils import run_in_component_init
+from bt2 import stream_class as bt2_stream_class
+from bt2 import trace_class as bt2_trace_class
+from bt2 import clock_class as bt2_clock_class
+from bt2 import event_class as bt2_event_class
+from bt2 import field_class as bt2_field_class
 
 
 class StreamClassTestCase(unittest.TestCase):
@@ -33,6 +38,7 @@ class StreamClassTestCase(unittest.TestCase):
     def test_create_default(self):
         sc = self._tc.create_stream_class()
 
+        self.assertIs(type(sc), bt2_stream_class._StreamClass)
         self.assertIsNone(sc.name)
         self.assertIsNone(sc.packet_context_field_class)
         self.assertIsNone(sc.event_common_context_field_class)
@@ -62,6 +68,9 @@ class StreamClassTestCase(unittest.TestCase):
             packet_context_field_class=fc, supports_packets=True
         )
         self.assertEqual(sc.packet_context_field_class, fc)
+        self.assertIs(
+            type(sc.packet_context_field_class), bt2_field_class._StructureFieldClass
+        )
 
     def test_create_invalid_packet_context_field_class(self):
         with self.assertRaises(TypeError):
@@ -77,6 +86,10 @@ class StreamClassTestCase(unittest.TestCase):
         fc = self._tc.create_structure_field_class()
         sc = self._tc.create_stream_class(event_common_context_field_class=fc)
         self.assertEqual(sc.event_common_context_field_class, fc)
+        self.assertIs(
+            type(sc.event_common_context_field_class),
+            bt2_field_class._StructureFieldClass,
+        )
 
     def test_create_invalid_event_common_context_field_class(self):
         with self.assertRaises(TypeError):
@@ -85,6 +98,7 @@ class StreamClassTestCase(unittest.TestCase):
     def test_create_default_clock_class(self):
         sc = self._tc.create_stream_class(default_clock_class=self._cc)
         self.assertEqual(sc.default_clock_class.addr, self._cc.addr)
+        self.assertIs(type(sc.default_clock_class), bt2_clock_class._ClockClass)
 
     def test_create_invalid_default_clock_class(self):
         with self.assertRaises(TypeError):
@@ -307,6 +321,7 @@ class StreamClassTestCase(unittest.TestCase):
     def test_trace_class(self):
         sc = self._tc.create_stream_class()
         self.assertEqual(sc.trace_class.addr, self._tc.addr)
+        self.assertIs(type(sc.trace_class), bt2_trace_class._TraceClass)
 
     def _create_stream_class_with_event_classes(self):
         sc = self._tc.create_stream_class(assigns_automatic_event_class_id=False)
@@ -318,7 +333,9 @@ class StreamClassTestCase(unittest.TestCase):
         sc, ec1, ec2 = self._create_stream_class_with_event_classes()
 
         self.assertEqual(sc[23].addr, ec1.addr)
+        self.assertEqual(type(sc[23]), bt2_event_class._EventClass)
         self.assertEqual(sc[17].addr, ec2.addr)
+        self.assertEqual(type(sc[17]), bt2_event_class._EventClass)
 
     def test_getitem_wrong_key_type(self):
         sc, _, _ = self._create_stream_class_with_event_classes()
