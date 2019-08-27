@@ -141,7 +141,7 @@ class _NumericField(_Field):
     def _spec_eq(self, other):
         try:
             return self._value == self._extract_value(other)
-        except:
+        except Exception:
             return False
 
     def __rmod__(self, other):
@@ -393,7 +393,7 @@ class _StringField(_Field):
     def _spec_eq(self, other):
         try:
             return self._value == self._value_to_str(other)
-        except:
+        except Exception:
             return False
 
     def __lt__(self, other):

@@ -143,7 +143,7 @@ class _UserMessageIterator(_MessageIterator):
             msg = next(self)
         except StopIteration:
             raise bt2.Stop
-        except:
+        except Exception:
             raise
 
         utils._check_type(msg, bt2_message._Message)
