@@ -782,7 +782,7 @@ class PortTestCase(unittest.TestCase):
 
         user_datas = []
 
-        comp = self._create_comp(MySource)
+        self._create_comp(MySource)
         self.assertEqual(user_datas, [None, 2])
 
     def test_filter_self_port_user_data(self):
@@ -806,7 +806,7 @@ class PortTestCase(unittest.TestCase):
 
         user_datas = []
 
-        comp = self._create_comp(MyFilter)
+        self._create_comp(MyFilter)
         self.assertEqual(
             user_datas, [None, 'user data string', None, {'user data': 'dict'}]
         )
@@ -827,5 +827,5 @@ class PortTestCase(unittest.TestCase):
 
         user_datas = []
 
-        comp = self._create_comp(MySink)
+        self._create_comp(MySink)
         self.assertEqual(user_datas, [None, set()])

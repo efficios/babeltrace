@@ -20,8 +20,6 @@ class TheSourceOfConfusion(
     bt2._UserSourceComponent, message_iterator_class=TheIteratorOfConfusion
 ):
     def __init__(self, params, obj):
-        tc = self._create_trace_class()
-
         test_name = str(params['test-name'])
 
         TEST_CASES[test_name].source_setup(self, test_name)

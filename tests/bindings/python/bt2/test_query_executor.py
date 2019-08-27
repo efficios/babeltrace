@@ -56,7 +56,7 @@ class QueryExecutorTestCase(unittest.TestCase):
                 query_params = params
 
         query_params = 23
-        res = bt2.QueryExecutor(MySink, 'obj', None).query()
+        bt2.QueryExecutor(MySink, 'obj', None).query()
         self.assertIs(query_params, None)
         del query_params
 
@@ -71,7 +71,7 @@ class QueryExecutorTestCase(unittest.TestCase):
                 query_params = params
 
         query_params = 23
-        res = bt2.QueryExecutor(MySink, 'obj').query()
+        bt2.QueryExecutor(MySink, 'obj').query()
         self.assertIs(query_params, None)
         del query_params
 
@@ -87,7 +87,7 @@ class QueryExecutorTestCase(unittest.TestCase):
 
         query_method_obj = None
         method_obj = object()
-        res = bt2.QueryExecutor(MySink, 'obj', method_obj=method_obj).query()
+        bt2.QueryExecutor(MySink, 'obj', method_obj=method_obj).query()
         self.assertIs(query_method_obj, method_obj)
         del query_method_obj
 
@@ -125,7 +125,7 @@ class QueryExecutorTestCase(unittest.TestCase):
                 query_method_obj = method_obj
 
         query_method_obj = object()
-        res = bt2.QueryExecutor(MySink, 'obj').query()
+        bt2.QueryExecutor(MySink, 'obj').query()
         self.assertIsNone(query_method_obj)
         del query_method_obj
 
@@ -168,7 +168,7 @@ class QueryExecutorTestCase(unittest.TestCase):
                 raise ValueError
 
         with self.assertRaises(bt2._Error) as ctx:
-            res = bt2.QueryExecutor(MySink, 'obj', [17, 23]).query()
+            bt2.QueryExecutor(MySink, 'obj', [17, 23]).query()
 
         exc = ctx.exception
         self.assertEqual(len(exc), 3)
@@ -188,7 +188,7 @@ class QueryExecutorTestCase(unittest.TestCase):
                 raise bt2.UnknownObject
 
         with self.assertRaises(bt2.UnknownObject):
-            res = bt2.QueryExecutor(MySink, 'obj', [17, 23]).query()
+            bt2.QueryExecutor(MySink, 'obj', [17, 23]).query()
 
     def test_query_logging_level_invalid_type(self):
         class MySink(bt2._UserSinkComponent):
@@ -228,7 +228,7 @@ class QueryExecutorTestCase(unittest.TestCase):
                 raise bt2.TryAgain
 
         with self.assertRaises(bt2.TryAgain):
-            res = bt2.QueryExecutor(MySink, 'obj', [17, 23]).query()
+            bt2.QueryExecutor(MySink, 'obj', [17, 23]).query()
 
     def test_query_add_interrupter(self):
         class MySink(bt2._UserSinkComponent):

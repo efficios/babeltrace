@@ -95,7 +95,7 @@ class GraphTestCase(unittest.TestCase):
                 pass
 
         params = {'hello': 23, 'path': '/path/to/stuff'}
-        comp = self._graph.add_component(MySink, 'salut', params)
+        self._graph.add_component(MySink, 'salut', params)
         self.assertEqual(params, comp_params)
         del comp_params
 
@@ -111,7 +111,7 @@ class GraphTestCase(unittest.TestCase):
                 pass
 
         obj = object()
-        comp = self._graph.add_component(MySink, 'salut', obj=obj)
+        self._graph.add_component(MySink, 'salut', obj=obj)
         self.assertIs(comp_obj, obj)
         del comp_obj
 
@@ -126,20 +126,18 @@ class GraphTestCase(unittest.TestCase):
             def _user_consume(self):
                 pass
 
-        comp = self._graph.add_component(MySink, 'salut')
+        self._graph.add_component(MySink, 'salut')
         self.assertIsNone(comp_obj)
         del comp_obj
 
     def test_add_component_obj_non_python_comp_cls(self):
-        comp_obj = None
-
         plugin = bt2.find_plugin('text', find_in_user_dir=False, find_in_sys_dir=False)
         assert plugin is not None
         cc = plugin.source_component_classes['dmesg']
         assert cc is not None
 
         with self.assertRaises(ValueError):
-            comp = self._graph.add_component(cc, 'salut', obj=57)
+            self._graph.add_component(cc, 'salut', obj=57)
 
     def test_add_component_invalid_cls_type(self):
         with self.assertRaises(TypeError):
@@ -218,9 +216,7 @@ class GraphTestCase(unittest.TestCase):
         sink = self._graph.add_component(MySink, 'sink')
 
         with self.assertRaises(TypeError):
-            conn = self._graph.connect_ports(
-                sink.input_ports['in'], src.output_ports['out']
-            )
+            self._graph.connect_ports(sink.input_ports['in'], src.output_ports['out'])
 
     def test_add_interrupter(self):
         class MyIter(bt2._UserMessageIterator):
@@ -352,9 +348,7 @@ class GraphTestCase(unittest.TestCase):
 
         src = self._graph.add_component(MySource, 'src')
         sink = self._graph.add_component(MySink, 'sink')
-        conn = self._graph.connect_ports(
-            src.output_ports['out'], sink.input_ports['in']
-        )
+        self._graph.connect_ports(src.output_ports['out'], sink.input_ports['in'])
         self._graph.run()
 
     def test_run_once(self):
@@ -377,9 +371,7 @@ class GraphTestCase(unittest.TestCase):
         run_count = 0
         src = self._graph.add_component(MySource, 'src')
         sink = self._graph.add_component(MySink, 'sink')
-        conn = self._graph.connect_ports(
-            src.output_ports['out'], sink.input_ports['in']
-        )
+        self._graph.connect_ports(src.output_ports['out'], sink.input_ports['in'])
 
         with self.assertRaises(bt2.TryAgain):
             self._graph.run_once()
@@ -403,9 +395,7 @@ class GraphTestCase(unittest.TestCase):
 
         src = self._graph.add_component(MySource, 'src')
         sink = self._graph.add_component(MySink, 'sink')
-        conn = self._graph.connect_ports(
-            src.output_ports['out'], sink.input_ports['in']
-        )
+        self._graph.connect_ports(src.output_ports['out'], sink.input_ports['in'])
 
         with self.assertRaises(bt2.Stop):
             self._graph.run_once()
@@ -456,9 +446,7 @@ class GraphTestCase(unittest.TestCase):
 
         src = self._graph.add_component(MySource, 'src')
         sink = self._graph.add_component(MySink, 'sink')
-        conn = self._graph.connect_ports(
-            src.output_ports['out'], sink.input_ports['in']
-        )
+        self._graph.connect_ports(src.output_ports['out'], sink.input_ports['in'])
 
         with self.assertRaises(bt2.TryAgain):
             self._graph.run()
@@ -515,9 +503,7 @@ class GraphTestCase(unittest.TestCase):
 
         src = self._graph.add_component(MySource, 'src')
         sink = self._graph.add_component(MySink, 'sink')
-        conn = self._graph.connect_ports(
-            src.output_ports['out'], sink.input_ports['in']
-        )
+        self._graph.connect_ports(src.output_ports['out'], sink.input_ports['in'])
 
         with self.assertRaises(bt2._Error):
             self._graph.run()
