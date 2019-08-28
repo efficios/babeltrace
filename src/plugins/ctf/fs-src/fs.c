@@ -1099,182 +1099,18 @@ end:
 	return ret;
 }
 
-static
-int add_trace_path(GList **trace_paths, const char *path,
-		bt_logging_level log_level, bt_self_component *self_comp)
-{
-	GString *norm_path = NULL;
-	int ret = 0;
-
-	norm_path = bt_common_normalize_path(path, NULL);
-	if (!norm_path) {
-		BT_COMP_LOGE_APPEND_CAUSE(self_comp, "Failed to normalize path `%s`.", path);
-		ret = -1;
-		goto end;
-	}
-
-	// FIXME: Remove or ifdef for __MINGW32__
-	if (strcmp(norm_path->str, "/") == 0) {
-		BT_COMP_LOGE_APPEND_CAUSE(self_comp, "Opening a trace in `/` is not supported.");
-		ret = -1;
-		goto end;
-	}
-
-	*trace_paths = g_list_prepend(*trace_paths, norm_path);
-	BT_ASSERT(*trace_paths);
-	norm_path = NULL;
-
-end:
-	if (norm_path) {
-		g_string_free(norm_path, TRUE);
-	}
-
-	return ret;
-}
+/* Helper for ctf_fs_component_create_ctf_fs_traces, to handle a single path. */
 
 static
-int ctf_fs_find_traces(GList **trace_paths, const char *start_path,
-		bt_logging_level log_level, bt_self_component *self_comp)
-{
-	int ret;
-	GError *error = NULL;
-	GDir *dir = NULL;
-	const char *basename = NULL;
-
-	/* Check if the starting path is a CTF trace itself */
-	ret = path_is_ctf_trace(start_path);
-	if (ret < 0) {
-		goto end;
-	}
-
-	if (ret) {
-		/*
-		 * Stop recursion: a CTF trace cannot contain another
-		 * CTF trace.
-		 */
-		ret = add_trace_path(trace_paths, start_path, log_level,
-			self_comp);
-		goto end;
-	}
-
-	/* Look for subdirectories */
-	if (!g_file_test(start_path, G_FILE_TEST_IS_DIR)) {
-		/* Starting path is not a directory: end of recursion */
-		goto end;
-	}
-
-	dir = g_dir_open(start_path, 0, &error);
-	if (!dir) {
-		if (error->code == G_FILE_ERROR_ACCES) {
-			BT_COMP_LOGI("Cannot open directory `%s`: %s (code %d): continuing",
-				start_path, error->message, error->code);
-			goto end;
-		}
-
-		BT_COMP_LOGE_APPEND_CAUSE(self_comp, "Cannot open directory `%s`: %s (code %d)",
-			start_path, error->message, error->code);
-		ret = -1;
-		goto end;
-	}
-
-	while ((basename = g_dir_read_name(dir))) {
-		GString *sub_path = g_string_new(NULL);
-
-		if (!sub_path) {
-			ret = -1;
-			goto end;
-		}
-
-		g_string_printf(sub_path, "%s" G_DIR_SEPARATOR_S "%s", start_path, basename);
-		ret = ctf_fs_find_traces(trace_paths, sub_path->str,
-			log_level, self_comp);
-		g_string_free(sub_path, TRUE);
-		if (ret) {
-			goto end;
-		}
-	}
-
-end:
-	if (dir) {
-		g_dir_close(dir);
-	}
-
-	if (error) {
-		g_error_free(error);
-	}
-
-	return ret;
-}
-
-static
-GList *ctf_fs_create_trace_names(GList *trace_paths, const char *base_path) {
-	GList *trace_names = NULL;
-	GList *node;
-	const char *last_sep;
-	size_t base_dist;
-
-	/*
-	 * At this point we know that all the trace paths are
-	 * normalized, and so is the base path. This means that
-	 * they are absolute and they don't end with a separator.
-	 * We can simply find the location of the last separator
-	 * in the base path, which gives us the name of the actual
-	 * directory to look into, and use this location as the
-	 * start of each trace name within each trace path.
-	 *
-	 * For example:
-	 *
-	 *     Base path: /home/user/my-traces/some-trace
-	 *     Trace paths:
-	 *       - /home/user/my-traces/some-trace/host1/trace1
-	 *       - /home/user/my-traces/some-trace/host1/trace2
-	 *       - /home/user/my-traces/some-trace/host2/trace
-	 *       - /home/user/my-traces/some-trace/other-trace
-	 *
-	 * In this case the trace names are:
-	 *
-	 *       - some-trace/host1/trace1
-	 *       - some-trace/host1/trace2
-	 *       - some-trace/host2/trace
-	 *       - some-trace/other-trace
-	 */
-	last_sep = strrchr(base_path, G_DIR_SEPARATOR);
-
-	/* We know there's at least one separator */
-	BT_ASSERT(last_sep);
-
-	/* Distance to base */
-	base_dist = last_sep - base_path + 1;
-
-	/* Create the trace names */
-	for (node = trace_paths; node; node = g_list_next(node)) {
-		GString *trace_name = g_string_new(NULL);
-		GString *trace_path = node->data;
-
-		BT_ASSERT(trace_name);
-		g_string_assign(trace_name, &trace_path->str[base_dist]);
-		trace_names = g_list_append(trace_names, trace_name);
-	}
-
-	return trace_names;
-}
-
-/* Helper for ctf_fs_component_create_ctf_fs_traces, to handle a single path/root. */
-
-static
-int ctf_fs_component_create_ctf_fs_traces_one_root(
+int ctf_fs_component_create_ctf_fs_traces_one_path(
 		struct ctf_fs_component *ctf_fs,
 		const char *path_param,
 		bt_self_component *self_comp,
 		bt_self_component_class *self_comp_class)
 {
-	struct ctf_fs_trace *ctf_fs_trace = NULL;
-	int ret = 0;
-	GString *norm_path = NULL;
-	GList *trace_paths = NULL;
-	GList *trace_names = NULL;
-	GList *tp_node;
-	GList *tn_node;
+	struct ctf_fs_trace *ctf_fs_trace;
+	int ret;
+	GString *norm_path;
 	bt_logging_level log_level = ctf_fs->log_level;
 
 	norm_path = bt_common_normalize_path(path_param, NULL);
@@ -1284,72 +1120,43 @@ int ctf_fs_component_create_ctf_fs_traces_one_root(
 		goto error;
 	}
 
-	ret = ctf_fs_find_traces(&trace_paths, norm_path->str, log_level,
-		self_comp);
-	if (ret) {
-		goto error;
-	}
-
-	if (!trace_paths) {
+	ret = path_is_ctf_trace(norm_path->str);
+	if (ret < 0) {
 		BT_COMP_OR_COMP_CLASS_LOGE_APPEND_CAUSE(self_comp, self_comp_class,
-			"No CTF traces recursively found in `%s`.", path_param);
+			"Failed to check if path is a CTF trace: path=%s", norm_path->str);
+		goto error;
+	} else if (ret == 0) {
+		BT_COMP_OR_COMP_CLASS_LOGE_APPEND_CAUSE(self_comp, self_comp_class,
+			"Path is not a CTF trace (does not contain a metadata file): `%s`.", norm_path->str);
 		goto error;
 	}
 
-	trace_names = ctf_fs_create_trace_names(trace_paths, norm_path->str);
-	if (!trace_names) {
-		BT_COMP_LOGE_APPEND_CAUSE(self_comp,
-			"Cannot create trace names from trace paths.");
+	// FIXME: Remove or ifdef for __MINGW32__
+	if (strcmp(norm_path->str, "/") == 0) {
+		BT_COMP_OR_COMP_CLASS_LOGE_APPEND_CAUSE(self_comp, self_comp_class,
+			"Opening a trace in `/` is not supported.");
+		ret = -1;
+		goto end;
+	}
+
+	ctf_fs_trace = ctf_fs_trace_create(self_comp, norm_path->str,
+		norm_path->str, &ctf_fs->metadata_config, log_level);
+	if (!ctf_fs_trace) {
+		BT_COMP_LOGE_APPEND_CAUSE(self_comp, "Cannot create trace for `%s`.",
+			norm_path->str);
 		goto error;
 	}
 
-	for (tp_node = trace_paths, tn_node = trace_names; tp_node;
-			tp_node = g_list_next(tp_node),
-			tn_node = g_list_next(tn_node)) {
-		GString *trace_path = tp_node->data;
-		GString *trace_name = tn_node->data;
+	g_ptr_array_add(ctf_fs->traces, ctf_fs_trace);
+	ctf_fs_trace = NULL;
 
-		ctf_fs_trace = ctf_fs_trace_create(self_comp,
-				trace_path->str, trace_name->str,
-				&ctf_fs->metadata_config,
-				log_level);
-		if (!ctf_fs_trace) {
-			BT_COMP_LOGE_APPEND_CAUSE(self_comp, "Cannot create trace for `%s`.",
-				trace_path->str);
-			goto error;
-		}
-
-		g_ptr_array_add(ctf_fs->traces, ctf_fs_trace);
-		ctf_fs_trace = NULL;
-	}
-
+	ret = 0;
 	goto end;
 
 error:
 	ret = -1;
-	ctf_fs_trace_destroy(ctf_fs_trace);
 
 end:
-	for (tp_node = trace_paths; tp_node; tp_node = g_list_next(tp_node)) {
-		if (tp_node->data) {
-			g_string_free(tp_node->data, TRUE);
-		}
-	}
-
-	for (tn_node = trace_names; tn_node; tn_node = g_list_next(tn_node)) {
-		if (tn_node->data) {
-			g_string_free(tn_node->data, TRUE);
-		}
-	}
-
-	if (trace_paths) {
-		g_list_free(trace_paths);
-	}
-
-	if (trace_names) {
-		g_list_free(trace_names);
-	}
-
 	if (norm_path) {
 		g_string_free(norm_path, TRUE);
 	}
@@ -2278,7 +2085,7 @@ int ctf_fs_component_create_ctf_fs_traces(
 		const bt_value *path_value = bt_value_array_borrow_element_by_index_const(paths_value, i);
 		const char *input = bt_value_string_get(path_value);
 
-		ret = ctf_fs_component_create_ctf_fs_traces_one_root(ctf_fs,
+		ret = ctf_fs_component_create_ctf_fs_traces_one_path(ctf_fs,
 			input, self_comp, self_comp_class);
 		if (ret) {
 			goto end;
