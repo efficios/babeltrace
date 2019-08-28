@@ -361,7 +361,8 @@ bt_component_class_query_method_status trace_info_query(
 	bt_value *result = NULL;
 	const bt_value *inputs_value = NULL;
 	int ret = 0;
-	guint i;
+	bt_value *trace_info = NULL;
+	bt_value_array_append_element_status append_status;
 
 	BT_ASSERT(params);
 
@@ -383,7 +384,7 @@ bt_component_class_query_method_status trace_info_query(
 		goto error;
 	}
 
-	if (ctf_fs_component_create_ctf_fs_traces(ctf_fs, inputs_value, NULL,
+	if (ctf_fs_component_create_ctf_fs_trace(ctf_fs, inputs_value, NULL,
 			self_comp_class)) {
 		goto error;
 	}
@@ -394,26 +395,17 @@ bt_component_class_query_method_status trace_info_query(
 		goto error;
 	}
 
-	for (i = 0; i < ctf_fs->traces->len; i++) {
-		struct ctf_fs_trace *trace;
-		bt_value *trace_info;
-		bt_value_array_append_element_status append_status;
+	append_status = bt_value_array_append_empty_map_element(result,
+		&trace_info);
+	if (append_status != BT_VALUE_ARRAY_APPEND_ELEMENT_STATUS_OK) {
+		BT_COMP_CLASS_LOGE_APPEND_CAUSE(self_comp_class,
+			"Failed to create trace info map.");
+		goto error;
+	}
 
-		trace = g_ptr_array_index(ctf_fs->traces, i);
-		BT_ASSERT(trace);
-
-		append_status = bt_value_array_append_empty_map_element(result,
-			&trace_info);
-		if (append_status != BT_VALUE_ARRAY_APPEND_ELEMENT_STATUS_OK) {
-			BT_COMP_CLASS_LOGE_APPEND_CAUSE(self_comp_class,
-				"Failed to create trace info map.");
-			goto error;
-		}
-
-		ret = populate_trace_info(trace, trace_info);
-		if (ret) {
-			goto error;
-		}
+	ret = populate_trace_info(ctf_fs->trace, trace_info);
+	if (ret) {
+		goto error;
 	}
 
 	goto end;

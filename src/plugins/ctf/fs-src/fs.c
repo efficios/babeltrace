@@ -309,39 +309,6 @@ end:
 	return ret;
 }
 
-BT_HIDDEN
-void ctf_fs_destroy(struct ctf_fs_component *ctf_fs)
-{
-	if (!ctf_fs) {
-		return;
-	}
-
-	if (ctf_fs->traces) {
-		g_ptr_array_free(ctf_fs->traces, TRUE);
-	}
-
-	if (ctf_fs->port_data) {
-		g_ptr_array_free(ctf_fs->port_data, TRUE);
-	}
-
-	g_free(ctf_fs);
-}
-
-static
-void port_data_destroy(struct ctf_fs_port_data *port_data)
-{
-	if (!port_data) {
-		return;
-	}
-
-	g_free(port_data);
-}
-
-static
-void port_data_destroy_notifier(void *data) {
-	port_data_destroy(data);
-}
-
 static
 void ctf_fs_trace_destroy(struct ctf_fs_trace *ctf_fs_trace)
 {
@@ -367,6 +334,37 @@ void ctf_fs_trace_destroy(struct ctf_fs_trace *ctf_fs_trace)
 	g_free(ctf_fs_trace);
 }
 
+BT_HIDDEN
+void ctf_fs_destroy(struct ctf_fs_component *ctf_fs)
+{
+	if (!ctf_fs) {
+		return;
+	}
+
+	ctf_fs_trace_destroy(ctf_fs->trace);
+
+	if (ctf_fs->port_data) {
+		g_ptr_array_free(ctf_fs->port_data, TRUE);
+	}
+
+	g_free(ctf_fs);
+}
+
+static
+void port_data_destroy(struct ctf_fs_port_data *port_data)
+{
+	if (!port_data) {
+		return;
+	}
+
+	g_free(port_data);
+}
+
+static
+void port_data_destroy_notifier(void *data) {
+	port_data_destroy(data);
+}
+
 static
 void ctf_fs_trace_destroy_notifier(void *data)
 {
@@ -388,12 +386,6 @@ struct ctf_fs_component *ctf_fs_component_create(bt_logging_level log_level,
 	ctf_fs->port_data =
 		g_ptr_array_new_with_free_func(port_data_destroy_notifier);
 	if (!ctf_fs->port_data) {
-		goto error;
-	}
-
-	ctf_fs->traces =
-		g_ptr_array_new_with_free_func(ctf_fs_trace_destroy_notifier);
-	if (!ctf_fs->traces) {
 		goto error;
 	}
 
@@ -1099,12 +1091,13 @@ end:
 	return ret;
 }
 
-/* Helper for ctf_fs_component_create_ctf_fs_traces, to handle a single path. */
+/* Helper for ctf_fs_component_create_ctf_fs_trace, to handle a single path. */
 
 static
-int ctf_fs_component_create_ctf_fs_traces_one_path(
+int ctf_fs_component_create_ctf_fs_trace_one_path(
 		struct ctf_fs_component *ctf_fs,
 		const char *path_param,
+		GPtrArray *traces,
 		bt_self_component *self_comp,
 		bt_self_component_class *self_comp_class)
 {
@@ -1147,7 +1140,7 @@ int ctf_fs_component_create_ctf_fs_traces_one_path(
 		goto error;
 	}
 
-	g_ptr_array_add(ctf_fs->traces, ctf_fs_trace);
+	g_ptr_array_add(traces, ctf_fs_trace);
 	ctf_fs_trace = NULL;
 
 	ret = 0;
@@ -1159,32 +1152,6 @@ error:
 end:
 	if (norm_path) {
 		g_string_free(norm_path, TRUE);
-	}
-
-	return ret;
-}
-
-/* GCompareFunc to sort traces by UUID. */
-
-static
-gint sort_traces_by_uuid(gconstpointer a, gconstpointer b)
-{
-	const struct ctf_fs_trace *trace_a = *((const struct ctf_fs_trace **) a);
-	const struct ctf_fs_trace *trace_b = *((const struct ctf_fs_trace **) b);
-
-	bool trace_a_has_uuid = trace_a->metadata->tc->is_uuid_set;
-	bool trace_b_has_uuid = trace_b->metadata->tc->is_uuid_set;
-	gint ret;
-
-	/* Order traces without uuid first. */
-	if (!trace_a_has_uuid && trace_b_has_uuid) {
-		ret = -1;
-	} else if (trace_a_has_uuid && !trace_b_has_uuid) {
-		ret = 1;
-	} else if (!trace_a_has_uuid && !trace_b_has_uuid) {
-		ret = 0;
-	} else {
-		ret = bt_uuid_compare(trace_a->metadata->tc->uuid, trace_b->metadata->tc->uuid);
 	}
 
 	return ret;
@@ -1351,17 +1318,19 @@ end:
  */
 
 static
-int merge_ctf_fs_traces(struct ctf_fs_trace **traces, unsigned int num_traces)
+int merge_ctf_fs_traces(struct ctf_fs_trace **traces, unsigned int num_traces,
+		struct ctf_fs_trace **out_trace)
 {
 	unsigned int winner_count;
 	struct ctf_fs_trace *winner;
-	guint i;
+	guint i, winner_i;
 	int ret = 0;
 
 	BT_ASSERT(num_traces >= 2);
 
 	winner_count = metadata_count_stream_and_event_classes(traces[0]);
 	winner = traces[0];
+	winner_i = 0;
 
 	/* Find the trace with the largest metadata. */
 	for (i = 1; i < num_traces; i++) {
@@ -1378,6 +1347,7 @@ int merge_ctf_fs_traces(struct ctf_fs_trace **traces, unsigned int num_traces)
 		if (candidate_count > winner_count) {
 			winner_count = candidate_count;
 			winner = candidate;
+			winner_i = i;
 		}
 	}
 
@@ -1395,76 +1365,13 @@ int merge_ctf_fs_traces(struct ctf_fs_trace **traces, unsigned int num_traces)
 		if (ret) {
 			goto end;
 		}
-
-		/* Free the trace that got merged into winner, clear the slot in the array. */
-		ctf_fs_trace_destroy(trace);
-		traces[i] = NULL;
 	}
 
-end:
-	return ret;
-}
-
-/*
- * Merge all traces of `ctf_fs` that share the same UUID in a single trace.
- * Traces with no UUID are not merged.
- */
-
-static
-int merge_traces_with_same_uuid(struct ctf_fs_component *ctf_fs)
-{
-	GPtrArray *traces = ctf_fs->traces;
-	guint range_start_idx = 0;
-	unsigned int num_traces = 0;
-	guint i;
-	int ret = 0;
-
-	/* Sort the traces by uuid, then collapse traces with the same uuid in a single one. */
-	g_ptr_array_sort(traces, sort_traces_by_uuid);
-
-	/* Find ranges of consecutive traces that share the same UUID.  */
-	while (range_start_idx < traces->len) {
-		guint range_len;
-		struct ctf_fs_trace *range_start_trace = g_ptr_array_index(traces, range_start_idx);
-
-		/* Exclusive end of range. */
-		guint range_end_exc_idx = range_start_idx + 1;
-
-		while (range_end_exc_idx < traces->len) {
-			struct ctf_fs_trace *this_trace = g_ptr_array_index(traces, range_end_exc_idx);
-
-			if (!range_start_trace->metadata->tc->is_uuid_set ||
-				(bt_uuid_compare(range_start_trace->metadata->tc->uuid, this_trace->metadata->tc->uuid) != 0)) {
-				break;
-			}
-
-			range_end_exc_idx++;
-		}
-
-		/* If we have two or more traces with matching UUIDs, merge them. */
-		range_len = range_end_exc_idx - range_start_idx;
-		if (range_len > 1) {
-			struct ctf_fs_trace **range_start = (struct ctf_fs_trace **) &traces->pdata[range_start_idx];
-			ret = merge_ctf_fs_traces(range_start, range_len);
-			if (ret) {
-				goto end;
-			}
-		}
-
-		num_traces++;
-		range_start_idx = range_end_exc_idx;
-	}
-
-	/* Clear any NULL slot (traces that got merged in another one) in the array.  */
-	for (i = 0; i < traces->len;) {
-		if (!g_ptr_array_index(traces, i)) {
-			g_ptr_array_remove_index_fast(traces, i);
-		} else {
-			i++;
-		}
-	}
-
-	BT_ASSERT(num_traces == traces->len);
+	/*
+	 * Move the winner out of the array, into `*out_trace`.
+	 */
+	*out_trace = winner;
+	traces[winner_i] = NULL;
 
 end:
 	return ret;
@@ -2004,74 +1911,64 @@ int fix_packet_index_tracer_bugs(struct ctf_fs_component *ctf_fs,
 		bt_self_component *self_comp)
 {
 	int ret = 0;
-	guint trace_i;
 	struct tracer_info current_tracer_info;
-	GPtrArray *traces = ctf_fs->traces;
 	bt_logging_level log_level = ctf_fs->log_level;
 
-	/*
-	 * Iterate over all the traces of this component and check for
-	 * possible indexing bugs.
-	 */
-	for (trace_i = 0; trace_i < traces->len; trace_i++) {
-		struct ctf_fs_trace *trace = g_ptr_array_index(traces,
-			trace_i);
-
-		ret = extract_tracer_info(trace, &current_tracer_info);
-		if (ret) {
-			/*
-			 * A trace may not have all the necessary environment
-			 * entries to do the tracer version comparison.
-			 * At least, the tracer name and major version number
-			 * are needed. Failing to extract these entries is not
-			 * an error.
-			 */
-			ret = 0;
-			BT_LOGI_STR("Cannot extract tracer information necessary to compare with buggy versions.");
-			continue;
-		}
-
-		/* Check if the trace may be affected by old tracer bugs. */
-		if (is_tracer_affected_by_lttng_event_after_packet_bug(
-				&current_tracer_info)) {
-			BT_LOGI_STR("Trace may be affected by LTTng tracer packet timestamp bug. Fixing up.");
-			ret = fix_index_lttng_event_after_packet_bug(trace);
-			if (ret) {
-				BT_COMP_LOGE_APPEND_CAUSE(self_comp,
-					"Failed to fix LTTng event-after-packet bug.");
-				goto end;
-			}
-			trace->metadata->tc->quirks.lttng_event_after_packet = true;
-		}
-
-		if (is_tracer_affected_by_barectf_event_before_packet_bug(
-				&current_tracer_info)) {
-			BT_LOGI_STR("Trace may be affected by barectf tracer packet timestamp bug. Fixing up.");
-			ret = fix_index_barectf_event_before_packet_bug(trace);
-			if (ret) {
-				BT_COMP_LOGE_APPEND_CAUSE(self_comp,
-					"Failed to fix barectf event-before-packet bug.");
-				goto end;
-			}
-			trace->metadata->tc->quirks.barectf_event_before_packet = true;
-		}
-
-		if (is_tracer_affected_by_lttng_crash_quirk(
-				&current_tracer_info)) {
-			ret = fix_index_lttng_crash_quirk(trace);
-			if (ret) {
-				BT_COMP_LOGE_APPEND_CAUSE(self_comp,
-					"Failed to fix lttng-crash timestamp quirks.");
-				goto end;
-			}
-			trace->metadata->tc->quirks.lttng_crash = true;
-		}
+	ret = extract_tracer_info(ctf_fs->trace, &current_tracer_info);
+	if (ret) {
+		/*
+		 * A trace may not have all the necessary environment
+		 * entries to do the tracer version comparison.
+		 * At least, the tracer name and major version number
+		 * are needed. Failing to extract these entries is not
+		 * an error.
+		 */
+		ret = 0;
+		BT_LOGI_STR("Cannot extract tracer information necessary to compare with buggy versions.");
+		goto end;;
 	}
+
+	/* Check if the trace may be affected by old tracer bugs. */
+	if (is_tracer_affected_by_lttng_event_after_packet_bug(
+			&current_tracer_info)) {
+		BT_LOGI_STR("Trace may be affected by LTTng tracer packet timestamp bug. Fixing up.");
+		ret = fix_index_lttng_event_after_packet_bug(ctf_fs->trace);
+		if (ret) {
+			BT_COMP_LOGE_APPEND_CAUSE(self_comp,
+				"Failed to fix LTTng event-after-packet bug.");
+			goto end;
+		}
+		ctf_fs->trace->metadata->tc->quirks.lttng_event_after_packet = true;
+	}
+
+	if (is_tracer_affected_by_barectf_event_before_packet_bug(
+			&current_tracer_info)) {
+		BT_LOGI_STR("Trace may be affected by barectf tracer packet timestamp bug. Fixing up.");
+		ret = fix_index_barectf_event_before_packet_bug(ctf_fs->trace);
+		if (ret) {
+			BT_COMP_LOGE_APPEND_CAUSE(self_comp,
+				"Failed to fix barectf event-before-packet bug.");
+			goto end;
+		}
+		ctf_fs->trace->metadata->tc->quirks.barectf_event_before_packet = true;
+	}
+
+	if (is_tracer_affected_by_lttng_crash_quirk(
+			&current_tracer_info)) {
+		ret = fix_index_lttng_crash_quirk(ctf_fs->trace);
+		if (ret) {
+			BT_COMP_LOGE_APPEND_CAUSE(self_comp,
+				"Failed to fix lttng-crash timestamp quirks.");
+			goto end;
+		}
+		ctf_fs->trace->metadata->tc->quirks.lttng_crash = true;
+	}
+
 end:
 	return ret;
 }
 
-int ctf_fs_component_create_ctf_fs_traces(
+int ctf_fs_component_create_ctf_fs_trace(
 		struct ctf_fs_component *ctf_fs,
 		const bt_value *paths_value,
 		bt_self_component *self_comp,
@@ -2080,22 +1977,81 @@ int ctf_fs_component_create_ctf_fs_traces(
 	int ret = 0;
 	uint64_t i;
 	bt_logging_level log_level = ctf_fs->log_level;
+	GPtrArray *traces;
 
+	BT_ASSERT(bt_value_get_type(paths_value) == BT_VALUE_TYPE_ARRAY);
+	BT_ASSERT(!bt_value_array_is_empty(paths_value));
+
+	traces = g_ptr_array_new_with_free_func(ctf_fs_trace_destroy_notifier);
+	if (!traces) {
+		BT_COMP_OR_COMP_CLASS_LOGE_APPEND_CAUSE(self_comp, self_comp_class,
+			"Failed to allocate a GPtrArray.");
+		goto error;
+	}
+
+	/* Start by creating a separate ctf_fs_trace object for each path. */
 	for (i = 0; i < bt_value_array_get_length(paths_value); i++) {
 		const bt_value *path_value = bt_value_array_borrow_element_by_index_const(paths_value, i);
 		const char *input = bt_value_string_get(path_value);
 
-		ret = ctf_fs_component_create_ctf_fs_traces_one_path(ctf_fs,
-			input, self_comp, self_comp_class);
+		ret = ctf_fs_component_create_ctf_fs_trace_one_path(ctf_fs,
+			input, traces, self_comp, self_comp_class);
 		if (ret) {
 			goto end;
 		}
 	}
 
-	ret = merge_traces_with_same_uuid(ctf_fs);
-	if (ret) {
-		BT_COMP_OR_COMP_CLASS_LOGE_APPEND_CAUSE(self_comp, self_comp_class,
-			"Failed to merge traces with the same UUID.");
+	if (traces->len > 1) {
+		struct ctf_fs_trace *first_trace = (struct ctf_fs_trace *) traces->pdata[0];
+		const uint8_t *first_trace_uuid = first_trace->metadata->tc->uuid;
+		struct ctf_fs_trace *trace;
+
+		/*
+		 * We have more than one trace, they must all share the same
+		 * UUID, verify that.
+		 */
+		for (i = 0; i < traces->len; i++) {
+			struct ctf_fs_trace *this_trace =
+				(struct ctf_fs_trace *) traces->pdata[i];
+			const uint8_t *this_trace_uuid = this_trace->metadata->tc->uuid;
+
+			if (!this_trace->metadata->tc->is_uuid_set) {
+				BT_COMP_OR_COMP_CLASS_LOGE_APPEND_CAUSE(self_comp, self_comp_class,
+					"Multiple traces given, but a trace does not have a UUID: path=%s",
+					this_trace->path->str);
+				goto error;
+			}
+
+			if (bt_uuid_compare(first_trace_uuid, this_trace_uuid) != 0) {
+				char first_trace_uuid_str[BT_UUID_STR_LEN + 1];
+				char this_trace_uuid_str[BT_UUID_STR_LEN + 1];
+
+				bt_uuid_to_str(first_trace_uuid, first_trace_uuid_str);
+				bt_uuid_to_str(this_trace_uuid, this_trace_uuid_str);
+
+				BT_COMP_OR_COMP_CLASS_LOGE_APPEND_CAUSE(self_comp, self_comp_class,
+					"Multiple traces given, but UUIDs don't match: "
+					"first-trace-uuid=%s, first-trace-path=%s, "
+					"trace-uuid=%s, trace-path=%s",
+					first_trace_uuid_str, first_trace->path->str,
+					this_trace_uuid_str, this_trace->path->str);
+				goto error;
+			}
+		}
+
+		ret = merge_ctf_fs_traces((struct ctf_fs_trace **) traces->pdata,
+			traces->len, &trace);
+		if (ret) {
+			BT_COMP_OR_COMP_CLASS_LOGE_APPEND_CAUSE(self_comp, self_comp_class,
+				"Failed to merge traces with the same UUID.");
+			goto error;
+		}
+
+		ctf_fs->trace = trace;
+	} else {
+		/* Just one trace, it may or may not have a UUID, both are fine. */
+		ctf_fs->trace = traces->pdata[0];
+		traces->pdata[0] = NULL;
 	}
 
 	ret = fix_packet_index_tracer_bugs(ctf_fs, self_comp);
@@ -2103,7 +2059,13 @@ int ctf_fs_component_create_ctf_fs_traces(
 		BT_COMP_OR_COMP_CLASS_LOGE_APPEND_CAUSE(self_comp, self_comp_class,
 			"Failed to fix packet index tracer bugs.");
 	}
+
+	goto end;
+error:
+	ret = -1;
+
 end:
+	g_ptr_array_free(traces, TRUE);
 	return ret;
 }
 
@@ -2237,6 +2199,12 @@ bool validate_inputs_parameter(struct ctf_fs_component *ctf_fs,
 		goto error;
 	}
 
+	if (bt_value_array_is_empty(inputs)) {
+		BT_COMP_OR_COMP_CLASS_LOGE_APPEND_CAUSE(self_comp,
+			self_comp_class, "`inputs` parameter must not be empty");
+		goto error;
+	}
+
 	for (i = 0; i < bt_value_array_get_length(inputs); i++) {
 		const bt_value *elem;
 
@@ -2318,7 +2286,6 @@ struct ctf_fs_component *ctf_fs_create(
 	bt_self_component_class *self_comp_class)
 {
 	struct ctf_fs_component *ctf_fs = NULL;
-	guint i;
 	const bt_value *inputs_value;
 	bt_self_component *self_comp =
 		bt_self_component_source_as_self_component(self_comp_src);
@@ -2336,21 +2303,17 @@ struct ctf_fs_component *ctf_fs_create(
 
 	bt_self_component_set_data(self_comp, ctf_fs);
 
-	if (ctf_fs_component_create_ctf_fs_traces(ctf_fs, inputs_value,
+	if (ctf_fs_component_create_ctf_fs_trace(ctf_fs, inputs_value,
 			self_comp, self_comp_class)) {
 		goto error;
 	}
 
-	for (i = 0; i < ctf_fs->traces->len; i++) {
-		struct ctf_fs_trace *trace = g_ptr_array_index(ctf_fs->traces, i);
+	if (create_streams_for_trace(ctf_fs->trace)) {
+		goto error;
+	}
 
-		if (create_streams_for_trace(trace)) {
-			goto error;
-		}
-
-		if (create_ports_for_trace(ctf_fs, trace, self_comp_src)) {
-			goto error;
-		}
+	if (create_ports_for_trace(ctf_fs, ctf_fs->trace, self_comp_src)) {
+		goto error;
 	}
 
 	goto end;

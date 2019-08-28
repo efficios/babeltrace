@@ -75,8 +75,8 @@ struct ctf_fs_component {
 	/* Array of struct ctf_fs_port_data *, owned by this */
 	GPtrArray *port_data;
 
-	/* Array of struct ctf_fs_trace *, owned by this */
-	GPtrArray *traces;
+	/* Owned by this */
+	struct ctf_fs_trace *trace;
 
 	struct ctf_fs_metadata_config metadata_config;
 };
@@ -237,16 +237,19 @@ struct ctf_fs_component *ctf_fs_component_create(bt_logging_level log_level,
 		bt_self_component *self_comp);
 
 /*
- * Search recursively under all paths in `paths_value` (an array of strings),
- * for CTF traces. For each CTF trace found, create a ctf_fs_trace in
- * `ctf_fs` representing that trace.
+ * Create one `struct ctf_fs_trace` from one trace, or multiple traces sharing
+ * the same UUID.
+ *
+ * `paths_value` must be an array of strings,
+ *
+ * The created `struct ctf_fs_trace` is assigned to `ctf_fs->trace`.
  *
  * `self_comp` and `self_comp_class` are used for logging, only one of them
  * should be set.
  */
 
 BT_HIDDEN
-int ctf_fs_component_create_ctf_fs_traces(
+int ctf_fs_component_create_ctf_fs_trace(
 		struct ctf_fs_component *ctf_fs,
 		const bt_value *paths_value,
 		bt_self_component *self_comp,
