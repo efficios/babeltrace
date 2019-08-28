@@ -99,9 +99,6 @@ struct ctf_fs_trace {
 	/* Owned by this */
 	GString *path;
 
-	/* Owned by this */
-	GString *name;
-
 	/* Next automatic stream ID when not provided by packet header */
 	uint64_t next_stream_id;
 };

@@ -359,10 +359,6 @@ void ctf_fs_trace_destroy(struct ctf_fs_trace *ctf_fs_trace)
 		g_string_free(ctf_fs_trace->path, TRUE);
 	}
 
-	if (ctf_fs_trace->name) {
-		g_string_free(ctf_fs_trace->name, TRUE);
-	}
-
 	if (ctf_fs_trace->metadata) {
 		ctf_fs_metadata_fini(ctf_fs_trace->metadata);
 		g_free(ctf_fs_trace->metadata);
@@ -1025,11 +1021,6 @@ struct ctf_fs_trace *ctf_fs_trace_create(bt_self_component *self_comp,
 		goto error;
 	}
 
-	ctf_fs_trace->name = g_string_new(name);
-	if (!ctf_fs_trace->name) {
-		goto error;
-	}
-
 	ctf_fs_trace->metadata = g_new0(struct ctf_fs_metadata, 1);
 	if (!ctf_fs_trace->metadata) {
 		goto error;
@@ -1559,7 +1550,6 @@ int merge_ctf_fs_traces(struct ctf_fs_trace **traces, unsigned int num_traces)
 	struct ctf_fs_trace *winner;
 	guint i;
 	int ret = 0;
-	char uuid_str[BT_UUID_STR_LEN + 1];
 
 	BT_ASSERT(num_traces >= 2);
 
@@ -1603,10 +1593,6 @@ int merge_ctf_fs_traces(struct ctf_fs_trace **traces, unsigned int num_traces)
 		ctf_fs_trace_destroy(trace);
 		traces[i] = NULL;
 	}
-
-	/* Use the string representation of the UUID as the trace name. */
-	bt_uuid_to_str(winner->metadata->tc->uuid, uuid_str);
-	g_string_printf(winner->name, "%s", uuid_str);
 
 end:
 	return ret;
