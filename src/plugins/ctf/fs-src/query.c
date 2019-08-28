@@ -285,11 +285,6 @@ int populate_trace_info(const struct ctf_fs_trace *trace, bt_value *trace_info)
 	bt_value_map_insert_entry_status insert_status;
 	bt_value_array_append_element_status append_status;
 	bt_value *file_groups = NULL;
-	struct range trace_intersection = {
-		.begin_ns = 0,
-		.end_ns = INT64_MAX,
-		.set = false,
-	};
 
 	BT_ASSERT(trace->ds_file_groups);
 	/* Add trace range info only if it contains streams. */
@@ -321,22 +316,6 @@ int populate_trace_info(const struct ctf_fs_trace *trace, bt_value *trace_info)
 		}
 
 		ret = populate_stream_info(group, group_info, &group_range);
-		if (ret) {
-			goto end;
-		}
-
-		if (group_range.set) {
-			trace_intersection.begin_ns = MAX(trace_intersection.begin_ns,
-					group_range.begin_ns);
-			trace_intersection.end_ns = MIN(trace_intersection.end_ns,
-					group_range.end_ns);
-			trace_intersection.set = true;
-		}
-	}
-
-	if (trace_intersection.begin_ns < trace_intersection.end_ns) {
-		ret = add_range(trace_info, &trace_intersection,
-				"intersection-range-ns");
 		if (ret) {
 			goto end;
 		}
