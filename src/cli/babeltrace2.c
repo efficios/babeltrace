@@ -1927,7 +1927,6 @@ int set_stream_intersections(struct cmd_run_ctx *ctx,
 	int ret = 0;
 	uint64_t trace_idx;
 	int64_t trace_count;
-	const char *path = NULL;
 	const bt_value *query_result = NULL;
 	const bt_value *trace_info = NULL;
 	const bt_value *intersection_range = NULL;
@@ -2098,8 +2097,7 @@ int set_stream_intersections(struct cmd_run_ctx *ctx,
 
 error:
 	BT_CLI_LOGE_APPEND_CAUSE(
-		"Cannot determine stream intersection of trace: path=\"%s\"",
-		path ? path : "(unknown)");
+		"Cannot determine stream intersection of trace.");
 
 end:
 	bt_value_put_ref(query_result);
