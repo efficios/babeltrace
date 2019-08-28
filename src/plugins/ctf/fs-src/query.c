@@ -255,61 +255,13 @@ end:
 }
 
 static
-int add_stream_ids(bt_value *info, struct ctf_fs_ds_file_group *ds_file_group)
-{
-	int ret = 0;
-	bt_value_map_insert_entry_status status;
-
-	if (ds_file_group->stream_id != UINT64_C(-1)) {
-		status = bt_value_map_insert_unsigned_integer_entry(info, "id",
-			ds_file_group->stream_id);
-		if (status != BT_VALUE_MAP_INSERT_ENTRY_STATUS_OK) {
-			ret = -1;
-			goto end;
-		}
-	}
-
-	status = bt_value_map_insert_unsigned_integer_entry(info, "class-id",
-		ds_file_group->sc->id);
-	if (status != BT_VALUE_MAP_INSERT_ENTRY_STATUS_OK) {
-		ret = -1;
-		goto end;
-	}
-
-end:
-	return ret;
-}
-
-static
 int populate_stream_info(struct ctf_fs_ds_file_group *group,
 		bt_value *group_info, struct range *stream_range)
 {
 	int ret = 0;
-	size_t file_idx;
 	bt_value_map_insert_entry_status insert_status;
-	bt_value_array_append_element_status append_status;
-	bt_value *file_paths;
 	struct ctf_fs_ds_index_entry *first_ds_index_entry, *last_ds_index_entry;
 	gchar *port_name = NULL;
-
-	file_paths = bt_value_array_create();
-	if (!file_paths) {
-		ret = -1;
-		goto end;
-	}
-
-	for (file_idx = 0; file_idx < group->ds_file_infos->len; file_idx++) {
-		struct ctf_fs_ds_file_info *info =
-			g_ptr_array_index(group->ds_file_infos,
-				file_idx);
-
-		append_status = bt_value_array_append_string_element(file_paths,
-				info->path->str);
-		if (append_status != BT_VALUE_ARRAY_APPEND_ELEMENT_STATUS_OK) {
-			ret = -1;
-			goto end;
-		}
-	}
 
 	/*
 	 * Since each `struct ctf_fs_ds_file_group` has a sorted array of
@@ -345,18 +297,6 @@ int populate_stream_info(struct ctf_fs_ds_file_group *group,
 		goto end;
 	}
 
-	insert_status = bt_value_map_insert_entry(group_info, "paths",
-		file_paths);
-	if (insert_status != BT_VALUE_MAP_INSERT_ENTRY_STATUS_OK) {
-		ret = -1;
-		goto end;
-	}
-
-	ret = add_stream_ids(group_info, group);
-	if (ret) {
-		goto end;
-	}
-
 	port_name = ctf_fs_make_port_name(group);
 	if (!port_name) {
 		ret = -1;
@@ -372,7 +312,6 @@ int populate_stream_info(struct ctf_fs_ds_file_group *group,
 
 end:
 	g_free(port_name);
-	bt_value_put_ref(file_paths);
 	return ret;
 }
 
@@ -384,11 +323,6 @@ int populate_trace_info(const struct ctf_fs_trace *trace, bt_value *trace_info)
 	bt_value_map_insert_entry_status insert_status;
 	bt_value_array_append_element_status append_status;
 	bt_value *file_groups = NULL;
-	struct range trace_range = {
-		.begin_ns = INT64_MAX,
-		.end_ns = 0,
-		.set = false,
-	};
 	struct range trace_intersection = {
 		.begin_ns = 0,
 		.end_ns = INT64_MAX,
@@ -404,19 +338,6 @@ int populate_trace_info(const struct ctf_fs_trace *trace, bt_value *trace_info)
 
 	file_groups = bt_value_array_create();
 	if (!file_groups) {
-		goto end;
-	}
-
-	insert_status = bt_value_map_insert_string_entry(trace_info, "name",
-		trace->name->str);
-	if (insert_status != BT_VALUE_MAP_INSERT_ENTRY_STATUS_OK) {
-		ret = -1;
-		goto end;
-	}
-	insert_status = bt_value_map_insert_string_entry(trace_info, "path",
-		trace->path->str);
-	if (insert_status != BT_VALUE_MAP_INSERT_ENTRY_STATUS_OK) {
-		ret = -1;
 		goto end;
 	}
 
@@ -448,23 +369,12 @@ int populate_trace_info(const struct ctf_fs_trace *trace, bt_value *trace_info)
 		}
 
 		if (group_range.set) {
-			trace_range.begin_ns = MIN(trace_range.begin_ns,
-					group_range.begin_ns);
-			trace_range.end_ns = MAX(trace_range.end_ns,
-					group_range.end_ns);
-			trace_range.set = true;
-
 			trace_intersection.begin_ns = MAX(trace_intersection.begin_ns,
 					group_range.begin_ns);
 			trace_intersection.end_ns = MIN(trace_intersection.end_ns,
 					group_range.end_ns);
 			trace_intersection.set = true;
 		}
-	}
-
-	ret = add_range(trace_info, &trace_range, "range-ns");
-	if (ret) {
-		goto end;
 	}
 
 	if (trace_intersection.begin_ns < trace_intersection.end_ns) {
