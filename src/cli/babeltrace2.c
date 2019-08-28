@@ -1919,6 +1919,118 @@ end:
 	return ret;
 }
 
+/*
+ * Compute the intersection of all streams in the array `streams`, write it
+ * in `range`.
+ */
+
+static
+int compute_stream_intersection(const bt_value *streams,
+		struct trace_range *range)
+{
+	unsigned int i;
+	unsigned int stream_count;
+	int ret;
+
+	BT_ASSERT(bt_value_get_type(streams) == BT_VALUE_TYPE_ARRAY);
+
+	stream_count = bt_value_array_get_length(streams);
+
+	BT_ASSERT(stream_count > 0);
+
+	range->intersection_range_begin_ns = 0;
+	range->intersection_range_end_ns = UINT64_MAX;
+
+	for (i = 0; i < stream_count; i++) {
+		int64_t begin_ns, end_ns;
+		uint64_t begin_ns_u, end_ns_u;
+		const bt_value *stream_value;
+		const bt_value *range_ns_value;
+		const bt_value *begin_value;
+		const bt_value *end_value;
+
+		stream_value = bt_value_array_borrow_element_by_index_const(streams, i);
+		if (bt_value_get_type(stream_value) != BT_VALUE_TYPE_MAP) {
+			BT_CLI_LOGE_APPEND_CAUSE("Unexpected format of `babeltrace.trace-info` query result: "
+				"expected streams array element to be a map, got %s.",
+				bt_common_value_type_string(bt_value_get_type(stream_value)));
+			goto error;
+		}
+
+		range_ns_value = bt_value_map_borrow_entry_value_const(
+			stream_value, "range-ns");
+		if (!range_ns_value) {
+			BT_CLI_LOGE_APPEND_CAUSE("Unexpected format of `babeltrace.trace-info` query result: "
+				"missing expected `range-ns` key in stream map.");
+			goto error;
+		}
+
+		if (bt_value_get_type(range_ns_value) != BT_VALUE_TYPE_MAP) {
+			BT_CLI_LOGE_APPEND_CAUSE("Unexpected format of `babeltrace.trace-info` query result: "
+				"expected `range-ns` entry value of stream map to be a map, got %s.",
+				bt_common_value_type_string(bt_value_get_type(range_ns_value)));
+			goto error;
+		}
+
+		begin_value = bt_value_map_borrow_entry_value_const(range_ns_value, "begin");
+		if (!begin_value) {
+			BT_CLI_LOGE_APPEND_CAUSE("Unexpected format of `babeltrace.trace-info` query result: "
+				"missing expected `begin` key in range-ns map.");
+			goto error;
+		}
+
+		if (bt_value_get_type(begin_value) != BT_VALUE_TYPE_SIGNED_INTEGER) {
+			BT_CLI_LOGE_APPEND_CAUSE("Unexpected format of `babeltrace.trace-info` query result: "
+				"expected `begin` entry value of range-ns map to be a signed integer, got %s.",
+				bt_common_value_type_string(bt_value_get_type(range_ns_value)));
+			goto error;
+		}
+
+		end_value = bt_value_map_borrow_entry_value_const(range_ns_value, "end");
+		if (!end_value) {
+			BT_CLI_LOGE_APPEND_CAUSE("Unexpected format of `babeltrace.trace-info` query result: "
+				"missing expected `end` key in range-ns map.");
+			goto error;
+		}
+
+		if (bt_value_get_type(end_value) != BT_VALUE_TYPE_SIGNED_INTEGER) {
+			BT_CLI_LOGE_APPEND_CAUSE("Unexpected format of `babeltrace.trace-info` query result: "
+				"expected `end` entry value of range-ns map to be a signed integer, got %s.",
+				bt_common_value_type_string(bt_value_get_type(range_ns_value)));
+			goto error;
+		}
+
+		begin_ns = bt_value_integer_signed_get(begin_value);
+		end_ns = bt_value_integer_signed_get(end_value);
+
+		if (begin_ns < 0 || end_ns < 0 || end_ns < begin_ns) {
+			BT_CLI_LOGE_APPEND_CAUSE(
+				"Invalid stream range values: "
+				"range-ns:begin=%" PRId64 ", "
+				"range-ns:end=%" PRId64,
+				begin_ns, end_ns);
+			ret = -1;
+			goto error;
+		}
+
+		begin_ns_u = begin_ns;
+		end_ns_u = end_ns;
+
+		range->intersection_range_begin_ns =
+			MAX(range->intersection_range_begin_ns, begin_ns_u);
+		range->intersection_range_end_ns =
+			MIN(range->intersection_range_end_ns, end_ns_u);
+	}
+
+	ret = 0;
+	goto end;
+error:
+	ret = -1;
+
+end:
+	return ret;
+}
+
 static
 int set_stream_intersections(struct cmd_run_ctx *ctx,
 		struct bt_config_component *cfg_comp,
@@ -1929,13 +2041,10 @@ int set_stream_intersections(struct cmd_run_ctx *ctx,
 	int64_t trace_count;
 	const bt_value *query_result = NULL;
 	const bt_value *trace_info = NULL;
-	const bt_value *intersection_range = NULL;
-	const bt_value *intersection_begin = NULL;
-	const bt_value *intersection_end = NULL;
 	const bt_value *stream_infos = NULL;
 	const bt_value *stream_info = NULL;
 	struct port_id *port_id = NULL;
-	struct trace_range *trace_range = NULL;
+	struct trace_range *stream_intersection = NULL;
 	const char *fail_reason = NULL;
 	const bt_component_class *comp_cls =
 		bt_component_class_source_as_component_class_const(src_comp_cls);
@@ -1968,52 +2077,15 @@ int set_stream_intersections(struct cmd_run_ctx *ctx,
 	}
 
 	for (trace_idx = 0; trace_idx < trace_count; trace_idx++) {
-		int64_t begin, end;
 		uint64_t stream_idx;
 		int64_t stream_count;
+		struct trace_range trace_intersection;
 
 		trace_info = bt_value_array_borrow_element_by_index_const(
 			query_result, trace_idx);
 		if (!trace_info || !bt_value_is_map(trace_info)) {
 			ret = -1;
 			BT_LOGD_STR("Cannot retrieve trace from query result.");
-			goto error;
-		}
-
-		intersection_range = bt_value_map_borrow_entry_value_const(
-			trace_info, "intersection-range-ns");
-		if (!intersection_range) {
-			ret = -1;
-			BT_LOGD_STR("Cannot retrieve \'intersetion-range-ns\' field from query result.");
-			goto error;
-		}
-
-		intersection_begin = bt_value_map_borrow_entry_value_const(intersection_range,
-									   "begin");
-		if (!intersection_begin) {
-			ret = -1;
-			BT_LOGD_STR("Cannot retrieve intersection-range-ns \'begin\' field from query result.");
-			goto error;
-		}
-
-		intersection_end = bt_value_map_borrow_entry_value_const(intersection_range,
-									 "end");
-		if (!intersection_end) {
-			ret = -1;
-			BT_LOGD_STR("Cannot retrieve intersection-range-ns \'end\' field from query result.");
-			goto error;
-		}
-
-		begin = bt_value_integer_signed_get(intersection_begin);
-		end = bt_value_integer_signed_get(intersection_end);
-
-		if (begin < 0 || end < 0 || end < begin) {
-			BT_CLI_LOGE_APPEND_CAUSE(
-				"Invalid trace stream intersection values: "
-				"intersection-range-ns:begin=%" PRId64
-				", intersection-range-ns:end=%" PRId64,
-				begin, end);
-			ret = -1;
 			goto error;
 		}
 
@@ -2028,6 +2100,12 @@ int set_stream_intersections(struct cmd_run_ctx *ctx,
 		stream_count = bt_value_array_get_length(stream_infos);
 		if (stream_count < 0) {
 			ret = -1;
+			goto error;
+		}
+
+		ret = compute_stream_intersection(stream_infos, &trace_intersection);
+		if (ret != 0) {
+			BT_CLI_LOGE_APPEND_CAUSE("Failed to compute trace streams intersection.");
 			goto error;
 		}
 
@@ -2049,15 +2127,15 @@ int set_stream_intersections(struct cmd_run_ctx *ctx,
 				goto error;
 			}
 
-			trace_range = g_new0(struct trace_range, 1);
-			if (!trace_range) {
+			stream_intersection = g_new0(struct trace_range, 1);
+			if (!stream_intersection) {
 				ret = -1;
 				BT_CLI_LOGE_APPEND_CAUSE(
 					"Cannot allocate memory for trace_range structure.");
 				goto error;
 			}
-			trace_range->intersection_range_begin_ns = begin;
-			trace_range->intersection_range_end_ns = end;
+
+			*stream_intersection = trace_intersection;
 
 			stream_info = bt_value_array_borrow_element_by_index_const(
 				stream_infos, stream_idx);
@@ -2086,10 +2164,10 @@ int set_stream_intersections(struct cmd_run_ctx *ctx,
 
 			BT_LOGD("Inserting stream intersection ");
 
-			g_hash_table_insert(ctx->intersections, port_id, trace_range);
+			g_hash_table_insert(ctx->intersections, port_id, stream_intersection);
 
 			port_id = NULL;
-			trace_range = NULL;
+			stream_intersection = NULL;
 		}
 	}
 
@@ -2102,7 +2180,7 @@ error:
 end:
 	bt_value_put_ref(query_result);
 	g_free(port_id);
-	g_free(trace_range);
+	g_free(stream_intersection);
 	return ret;
 }
 

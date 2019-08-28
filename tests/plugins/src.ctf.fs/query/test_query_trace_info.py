@@ -39,13 +39,6 @@ class QueryTraceInfoClockOffsetTestCase(unittest.TestCase):
         ]
 
     def _check(self, trace, offset):
-        self.assertEqual(
-            trace['intersection-range-ns']['begin'], 13515309000000070 + offset
-        )
-        self.assertEqual(
-            trace['intersection-range-ns']['end'], 13515309000000100 + offset
-        )
-
         streams = sorted(trace['streams'], key=sort_predictably)
         self.assertEqual(streams[0]['range-ns']['begin'], 13515309000000000 + offset)
         self.assertEqual(streams[0]['range-ns']['end'], 13515309000000100 + offset)
