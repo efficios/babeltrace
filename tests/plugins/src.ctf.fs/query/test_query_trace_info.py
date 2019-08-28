@@ -26,10 +26,7 @@ test_ctf_traces_path = os.environ['BT_CTF_TRACES_PATH']
 
 # Key to sort streams in a predictable order.
 def sort_predictably(stream):
-    if 'range-ns' in stream:
-        return stream['range-ns']['begin']
-    else:
-        return stream['paths'][0]
+    return stream['port-name']
 
 
 class QueryTraceInfoClockOffsetTestCase(unittest.TestCase):
@@ -42,8 +39,6 @@ class QueryTraceInfoClockOffsetTestCase(unittest.TestCase):
         ]
 
     def _check(self, trace, offset):
-        self.assertEqual(trace['range-ns']['begin'], 13515309000000000 + offset)
-        self.assertEqual(trace['range-ns']['end'], 13515309000000120 + offset)
         self.assertEqual(
             trace['intersection-range-ns']['begin'], 13515309000000070 + offset
         )
