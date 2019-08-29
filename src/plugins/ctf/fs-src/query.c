@@ -215,15 +215,16 @@ int add_range(bt_value *info, struct range *range,
 {
 	int ret = 0;
 	bt_value_map_insert_entry_status status;
-	bt_value *range_map = NULL;
+	bt_value *range_map;
 
 	if (!range->set) {
 		/* Not an error. */
 		goto end;
 	}
 
-	range_map = bt_value_map_create();
-	if (!range_map) {
+	status = bt_value_map_insert_empty_map_entry(info, range_name,
+		&range_map);
+	if (status != BT_VALUE_MAP_INSERT_ENTRY_STATUS_OK) {
 		ret = -1;
 		goto end;
 	}
@@ -242,15 +243,7 @@ int add_range(bt_value *info, struct range *range,
 		goto end;
 	}
 
-	status = bt_value_map_insert_entry(info, range_name,
-		range_map);
-	if (status != BT_VALUE_MAP_INSERT_ENTRY_STATUS_OK) {
-		ret = -1;
-		goto end;
-	}
-
 end:
-	bt_value_put_ref(range_map);
 	return ret;
 }
 
@@ -336,8 +329,10 @@ int populate_trace_info(const struct ctf_fs_trace *trace, bt_value *trace_info)
 		goto end;
 	}
 
-	file_groups = bt_value_array_create();
-	if (!file_groups) {
+	insert_status = bt_value_map_insert_empty_array_entry(trace_info,
+		"streams", &file_groups);
+	if (insert_status != BT_VALUE_MAP_INSERT_ENTRY_STATUS_OK) {
+		ret = -1;
 		goto end;
 	}
 
@@ -349,22 +344,15 @@ int populate_trace_info(const struct ctf_fs_trace *trace, bt_value *trace_info)
 		struct ctf_fs_ds_file_group *group = g_ptr_array_index(
 				trace->ds_file_groups, group_idx);
 
-		group_info = bt_value_map_create();
-		if (!group_info) {
+		append_status = bt_value_array_append_empty_map_element(
+			file_groups, &group_info);
+		if (append_status != BT_VALUE_ARRAY_APPEND_ELEMENT_STATUS_OK) {
 			ret = -1;
 			goto end;
 		}
 
 		ret = populate_stream_info(group, group_info, &group_range);
 		if (ret) {
-			bt_value_put_ref(group_info);
-			goto end;
-		}
-
-		append_status = bt_value_array_append_element(file_groups,
-			group_info);
-		bt_value_put_ref(group_info);
-		if (append_status != BT_VALUE_ARRAY_APPEND_ELEMENT_STATUS_OK) {
 			goto end;
 		}
 
@@ -385,16 +373,7 @@ int populate_trace_info(const struct ctf_fs_trace *trace, bt_value *trace_info)
 		}
 	}
 
-	insert_status = bt_value_map_insert_entry(trace_info, "streams",
-		file_groups);
-	BT_VALUE_PUT_REF_AND_RESET(file_groups);
-	if (insert_status != BT_VALUE_MAP_INSERT_ENTRY_STATUS_OK) {
-		ret = -1;
-		goto end;
-	}
-
 end:
-	bt_value_put_ref(file_groups);
 	return ret;
 }
 
@@ -454,8 +433,9 @@ bt_component_class_query_method_status trace_info_query(
 		trace = g_ptr_array_index(ctf_fs->traces, i);
 		BT_ASSERT(trace);
 
-		trace_info = bt_value_map_create();
-		if (!trace_info) {
+		append_status = bt_value_array_append_empty_map_element(result,
+			&trace_info);
+		if (append_status != BT_VALUE_ARRAY_APPEND_ELEMENT_STATUS_OK) {
 			BT_COMP_CLASS_LOGE_APPEND_CAUSE(self_comp_class,
 				"Failed to create trace info map.");
 			goto error;
@@ -463,14 +443,6 @@ bt_component_class_query_method_status trace_info_query(
 
 		ret = populate_trace_info(trace, trace_info);
 		if (ret) {
-			bt_value_put_ref(trace_info);
-			goto error;
-		}
-
-		append_status = bt_value_array_append_element(result,
-			trace_info);
-		bt_value_put_ref(trace_info);
-		if (append_status != BT_VALUE_ARRAY_APPEND_ELEMENT_STATUS_OK) {
 			goto error;
 		}
 	}
