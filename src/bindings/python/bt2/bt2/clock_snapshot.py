@@ -27,12 +27,12 @@ import functools
 
 
 @functools.total_ordering
-class _ClockSnapshot(object._UniqueObject):
+class _ClockSnapshotConst(object._UniqueObject):
     @property
     def clock_class(self):
         cc_ptr = native_bt.clock_snapshot_borrow_clock_class_const(self._ptr)
         assert cc_ptr is not None
-        return bt2_clock_class._ClockClass._create_from_ptr_and_get_ref(cc_ptr)
+        return bt2_clock_class._ClockClassConst._create_from_ptr_and_get_ref(cc_ptr)
 
     @property
     def value(self):

@@ -27,8 +27,8 @@ class PackageTestCase(unittest.TestCase):
     def test_has_ClockClassOffset(self):
         self._assert_in_bt2('ClockClassOffset')
 
-    def test_has__ClockSnapshot(self):
-        self._assert_in_bt2('_ClockSnapshot')
+    def test_has__ClockSnapshotConst(self):
+        self._assert_in_bt2('_ClockSnapshotConst')
 
     def test_has__UnknownClockSnapshot(self):
         self._assert_in_bt2('_UnknownClockSnapshot')

@@ -48,7 +48,7 @@ class _MessageWithDefaultClockSnapshot:
     def _get_default_clock_snapshot(self, borrow_clock_snapshot_ptr):
         snapshot_ptr = borrow_clock_snapshot_ptr(self._ptr)
 
-        return bt2_clock_snapshot._ClockSnapshot._create_from_ptr_and_get_ref(
+        return bt2_clock_snapshot._ClockSnapshotConst._create_from_ptr_and_get_ref(
             snapshot_ptr, self._ptr, self._get_ref, self._put_ref
         )
 
@@ -115,7 +115,7 @@ class _StreamMessage(_Message, _MessageWithDefaultClockSnapshot):
         if status == native_bt.MESSAGE_STREAM_CLOCK_SNAPSHOT_STATE_UNKNOWN:
             return bt2_clock_snapshot._UnknownClockSnapshot()
 
-        return bt2_clock_snapshot._ClockSnapshot._create_from_ptr_and_get_ref(
+        return bt2_clock_snapshot._ClockSnapshotConst._create_from_ptr_and_get_ref(
             snapshot_ptr, self._ptr, self._get_ref, self._put_ref
         )
 
