@@ -48,88 +48,44 @@ class ClockClassOffset:
         return (self.seconds, self.cycles) == (other.seconds, other.cycles)
 
 
-class _ClockClass(object._SharedObject):
+class _ClockClassConst(object._SharedObject):
     _get_ref = staticmethod(native_bt.clock_class_get_ref)
     _put_ref = staticmethod(native_bt.clock_class_put_ref)
+    _create_value_from_ptr_and_get_ref = staticmethod(
+        bt2_value._create_from_const_ptr_and_get_ref
+    )
 
     @property
     def user_attributes(self):
         ptr = native_bt.clock_class_borrow_user_attributes(self._ptr)
         assert ptr is not None
-        return bt2_value._create_from_ptr_and_get_ref(ptr)
-
-    def _user_attributes(self, user_attributes):
-        value = bt2_value.create_value(user_attributes)
-        utils._check_type(value, bt2_value.MapValue)
-        native_bt.clock_class_set_user_attributes(self._ptr, value._ptr)
-
-    _user_attributes = property(fset=_user_attributes)
+        return self._create_value_from_ptr_and_get_ref(ptr)
 
     @property
     def name(self):
         return native_bt.clock_class_get_name(self._ptr)
 
-    def _name(self, name):
-        utils._check_str(name)
-        status = native_bt.clock_class_set_name(self._ptr, name)
-        utils._handle_func_status(status, "cannot set clock class object's name")
-
-    _name = property(fset=_name)
-
     @property
     def description(self):
         return native_bt.clock_class_get_description(self._ptr)
 
-    def _description(self, description):
-        utils._check_str(description)
-        status = native_bt.clock_class_set_description(self._ptr, description)
-        utils._handle_func_status(status, "cannot set clock class object's description")
-
-    _description = property(fset=_description)
-
     @property
     def frequency(self):
         return native_bt.clock_class_get_frequency(self._ptr)
-
-    def _frequency(self, frequency):
-        utils._check_uint64(frequency)
-        native_bt.clock_class_set_frequency(self._ptr, frequency)
-
-    _frequency = property(fset=_frequency)
 
     @property
     def precision(self):
         precision = native_bt.clock_class_get_precision(self._ptr)
         return precision
 
-    def _precision(self, precision):
-        utils._check_uint64(precision)
-        native_bt.clock_class_set_precision(self._ptr, precision)
-
-    _precision = property(fset=_precision)
-
     @property
     def offset(self):
         offset_s, offset_cycles = native_bt.clock_class_get_offset(self._ptr)
         return ClockClassOffset(offset_s, offset_cycles)
 
-    def _offset(self, offset):
-        utils._check_type(offset, ClockClassOffset)
-        native_bt.clock_class_set_offset(self._ptr, offset.seconds, offset.cycles)
-
-    _offset = property(fset=_offset)
-
     @property
     def origin_is_unix_epoch(self):
         return native_bt.clock_class_origin_is_unix_epoch(self._ptr)
-
-    def _origin_is_unix_epoch(self, origin_is_unix_epoch):
-        utils._check_bool(origin_is_unix_epoch)
-        native_bt.clock_class_set_origin_is_unix_epoch(
-            self._ptr, int(origin_is_unix_epoch)
-        )
-
-    _origin_is_unix_epoch = property(fset=_origin_is_unix_epoch)
 
     @property
     def uuid(self):
@@ -140,15 +96,68 @@ class _ClockClass(object._SharedObject):
 
         return uuidp.UUID(bytes=uuid_bytes)
 
-    def _uuid(self, uuid):
-        utils._check_type(uuid, uuidp.UUID)
-        native_bt.clock_class_set_uuid(self._ptr, uuid.bytes)
-
-    _uuid = property(fset=_uuid)
-
     def cycles_to_ns_from_origin(self, cycles):
         utils._check_uint64(cycles)
         status, ns = native_bt.clock_class_cycles_to_ns_from_origin(self._ptr, cycles)
         error_msg = "cannot convert clock value to nanoseconds from origin for given clock class"
         utils._handle_func_status(status, error_msg)
         return ns
+
+
+class _ClockClass(_ClockClassConst):
+    _create_value_from_ptr_and_get_ref = staticmethod(
+        bt2_value._create_from_ptr_and_get_ref
+    )
+
+    def _user_attributes(self, user_attributes):
+        value = bt2_value.create_value(user_attributes)
+        utils._check_type(value, bt2_value.MapValue)
+        native_bt.clock_class_set_user_attributes(self._ptr, value._ptr)
+
+    _user_attributes = property(fset=_user_attributes)
+
+    def _name(self, name):
+        utils._check_str(name)
+        status = native_bt.clock_class_set_name(self._ptr, name)
+        utils._handle_func_status(status, "cannot set clock class object's name")
+
+    _name = property(fset=_name)
+
+    def _description(self, description):
+        utils._check_str(description)
+        status = native_bt.clock_class_set_description(self._ptr, description)
+        utils._handle_func_status(status, "cannot set clock class object's description")
+
+    _description = property(fset=_description)
+
+    def _frequency(self, frequency):
+        utils._check_uint64(frequency)
+        native_bt.clock_class_set_frequency(self._ptr, frequency)
+
+    _frequency = property(fset=_frequency)
+
+    def _precision(self, precision):
+        utils._check_uint64(precision)
+        native_bt.clock_class_set_precision(self._ptr, precision)
+
+    _precision = property(fset=_precision)
+
+    def _offset(self, offset):
+        utils._check_type(offset, ClockClassOffset)
+        native_bt.clock_class_set_offset(self._ptr, offset.seconds, offset.cycles)
+
+    _offset = property(fset=_offset)
+
+    def _origin_is_unix_epoch(self, origin_is_unix_epoch):
+        utils._check_bool(origin_is_unix_epoch)
+        native_bt.clock_class_set_origin_is_unix_epoch(
+            self._ptr, int(origin_is_unix_epoch)
+        )
+
+    _origin_is_unix_epoch = property(fset=_origin_is_unix_epoch)
+
+    def _uuid(self, uuid):
+        utils._check_type(uuid, uuidp.UUID)
+        native_bt.clock_class_set_uuid(self._ptr, uuid.bytes)
+
+    _uuid = property(fset=_uuid)

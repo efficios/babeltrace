@@ -22,7 +22,7 @@
 
 # import all public names
 from bt2.clock_class import ClockClassOffset
-from bt2.clock_snapshot import _ClockSnapshot
+from bt2.clock_snapshot import _ClockSnapshotConst
 from bt2.clock_snapshot import _UnknownClockSnapshot
 from bt2.component import _SourceComponentClass
 from bt2.component import _FilterComponentClass

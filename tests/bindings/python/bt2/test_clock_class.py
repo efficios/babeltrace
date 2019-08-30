@@ -20,6 +20,8 @@ import unittest
 import uuid
 import bt2
 from utils import run_in_component_init, TestOutputPortMessageIterator
+from bt2 import value as bt2_value
+from bt2 import clock_class as bt2_clock_class
 
 
 class ClockClassOffsetTestCase(unittest.TestCase):
@@ -205,6 +207,7 @@ class ClockClassTestCase(unittest.TestCase):
 
         cc = run_in_component_init(f)
         self.assertEqual(cc.user_attributes, {'salut': 23})
+        self.assertIs(type(cc.user_attributes), bt2_value.MapValue)
 
     def test_create_invalid_user_attributes(self):
         def f(comp_self):
@@ -285,9 +288,9 @@ class ClockSnapshotTestCase(unittest.TestCase):
         self.assertEqual(self._msg.default_clock_snapshot.value, 123)
 
     def test_clock_class(self):
-        self.assertEqual(
-            self._msg.default_clock_snapshot.clock_class.addr, self._cc.addr
-        )
+        cc = self._msg.default_clock_snapshot.clock_class
+        self.assertEqual(cc.addr, self._cc.addr)
+        self.assertIs(type(cc), bt2_clock_class._ClockClassConst)
 
     def test_ns_from_origin(self):
         s_from_origin = 45 + ((354 + 123) / 1000)
