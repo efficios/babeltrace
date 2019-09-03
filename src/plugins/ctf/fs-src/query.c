@@ -294,7 +294,7 @@ int populate_trace_info(const struct ctf_fs_trace *trace, bt_value *trace_info)
 	}
 
 	insert_status = bt_value_map_insert_empty_array_entry(trace_info,
-		"streams", &file_groups);
+		"stream-infos", &file_groups);
 	if (insert_status != BT_VALUE_MAP_INSERT_ENTRY_STATUS_OK) {
 		ret = -1;
 		goto end;
@@ -326,7 +326,7 @@ end:
 }
 
 BT_HIDDEN
-bt_component_class_query_method_status trace_info_query(
+bt_component_class_query_method_status trace_infos_query(
 		bt_self_component_class_source *self_comp_class_src,
 		const bt_value *params, bt_logging_level log_level,
 		const bt_value **user_result)

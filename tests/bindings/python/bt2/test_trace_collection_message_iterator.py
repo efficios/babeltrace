@@ -298,7 +298,7 @@ class TraceCollectionMessageIteratorTestCase(unittest.TestCase):
 
     def test_iter_intersection_params(self):
         # Check that all params used to create the source component are passed
-        # to the `babeltrace.trace-info` query.
+        # to the `babeltrace.trace-infos` query.
         specs = [
             bt2.ComponentSpec.from_named_plugin_and_component_class(
                 'ctf',

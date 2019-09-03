@@ -3849,7 +3849,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 		case OPT_STREAM_INTERSECTION:
 			/*
 			 * Applies to all traces implementing the
-			 * babeltrace.trace-info query.
+			 * babeltrace.trace-infos query.
 			 */
 			stream_intersection_mode = true;
 			break;

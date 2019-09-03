@@ -2361,8 +2361,8 @@ bt_component_class_query_method_status ctf_fs_query(
 	if (strcmp(object, "metadata-info") == 0) {
 		status = metadata_info_query(comp_class, params, log_level,
 			result);
-	} else if (strcmp(object, "babeltrace.trace-info") == 0) {
-		status = trace_info_query(comp_class, params, log_level,
+	} else if (strcmp(object, "babeltrace.trace-infos") == 0) {
+		status = trace_infos_query(comp_class, params, log_level,
 			result);
 	} else if (!strcmp(object, "babeltrace.support-info")) {
 		status = support_info_query(comp_class, params, log_level, result);
