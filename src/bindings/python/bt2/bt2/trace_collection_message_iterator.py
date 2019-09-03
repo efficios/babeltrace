@@ -345,20 +345,13 @@ class TraceCollectionMessageIterator(bt2_message_iterator._MessageIterator):
         self._stream_inter_port_to_range = {}
 
         for src_comp_and_spec in self._src_comps_and_specs:
-            try:
-                inputs = src_comp_and_spec.spec.params['inputs']
-            except KeyError as e:
-                raise ValueError(
-                    'all source components must be created with an "inputs" parameter in stream intersection mode'
-                ) from e
-
-            params = {'inputs': inputs}
-
             # query the port's component for the `babeltrace.trace-info`
             # object which contains the range for each stream, from which we can
             # compute the intersection of the streams in each trace.
             query_exec = bt2.QueryExecutor(
-                src_comp_and_spec.spec.component_class, 'babeltrace.trace-info', params
+                src_comp_and_spec.spec.component_class,
+                'babeltrace.trace-info',
+                src_comp_and_spec.spec.params,
             )
             trace_infos = query_exec.query()
 
