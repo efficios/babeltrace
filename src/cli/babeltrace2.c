@@ -1951,7 +1951,7 @@ int compute_stream_intersection(const bt_value *streams,
 
 		stream_value = bt_value_array_borrow_element_by_index_const(streams, i);
 		if (bt_value_get_type(stream_value) != BT_VALUE_TYPE_MAP) {
-			BT_CLI_LOGE_APPEND_CAUSE("Unexpected format of `babeltrace.trace-info` query result: "
+			BT_CLI_LOGE_APPEND_CAUSE("Unexpected format of `babeltrace.trace-infos` query result: "
 				"expected streams array element to be a map, got %s.",
 				bt_common_value_type_string(bt_value_get_type(stream_value)));
 			goto error;
@@ -1960,13 +1960,13 @@ int compute_stream_intersection(const bt_value *streams,
 		range_ns_value = bt_value_map_borrow_entry_value_const(
 			stream_value, "range-ns");
 		if (!range_ns_value) {
-			BT_CLI_LOGE_APPEND_CAUSE("Unexpected format of `babeltrace.trace-info` query result: "
+			BT_CLI_LOGE_APPEND_CAUSE("Unexpected format of `babeltrace.trace-infos` query result: "
 				"missing expected `range-ns` key in stream map.");
 			goto error;
 		}
 
 		if (bt_value_get_type(range_ns_value) != BT_VALUE_TYPE_MAP) {
-			BT_CLI_LOGE_APPEND_CAUSE("Unexpected format of `babeltrace.trace-info` query result: "
+			BT_CLI_LOGE_APPEND_CAUSE("Unexpected format of `babeltrace.trace-infos` query result: "
 				"expected `range-ns` entry value of stream map to be a map, got %s.",
 				bt_common_value_type_string(bt_value_get_type(range_ns_value)));
 			goto error;
@@ -1974,13 +1974,13 @@ int compute_stream_intersection(const bt_value *streams,
 
 		begin_value = bt_value_map_borrow_entry_value_const(range_ns_value, "begin");
 		if (!begin_value) {
-			BT_CLI_LOGE_APPEND_CAUSE("Unexpected format of `babeltrace.trace-info` query result: "
+			BT_CLI_LOGE_APPEND_CAUSE("Unexpected format of `babeltrace.trace-infos` query result: "
 				"missing expected `begin` key in range-ns map.");
 			goto error;
 		}
 
 		if (bt_value_get_type(begin_value) != BT_VALUE_TYPE_SIGNED_INTEGER) {
-			BT_CLI_LOGE_APPEND_CAUSE("Unexpected format of `babeltrace.trace-info` query result: "
+			BT_CLI_LOGE_APPEND_CAUSE("Unexpected format of `babeltrace.trace-infos` query result: "
 				"expected `begin` entry value of range-ns map to be a signed integer, got %s.",
 				bt_common_value_type_string(bt_value_get_type(range_ns_value)));
 			goto error;
@@ -1988,13 +1988,13 @@ int compute_stream_intersection(const bt_value *streams,
 
 		end_value = bt_value_map_borrow_entry_value_const(range_ns_value, "end");
 		if (!end_value) {
-			BT_CLI_LOGE_APPEND_CAUSE("Unexpected format of `babeltrace.trace-info` query result: "
+			BT_CLI_LOGE_APPEND_CAUSE("Unexpected format of `babeltrace.trace-infos` query result: "
 				"missing expected `end` key in range-ns map.");
 			goto error;
 		}
 
 		if (bt_value_get_type(end_value) != BT_VALUE_TYPE_SIGNED_INTEGER) {
-			BT_CLI_LOGE_APPEND_CAUSE("Unexpected format of `babeltrace.trace-info` query result: "
+			BT_CLI_LOGE_APPEND_CAUSE("Unexpected format of `babeltrace.trace-infos` query result: "
 				"expected `end` entry value of range-ns map to be a signed integer, got %s.",
 				bt_common_value_type_string(bt_value_get_type(range_ns_value)));
 			goto error;
@@ -2049,11 +2049,11 @@ int set_stream_intersections(struct cmd_run_ctx *ctx,
 	const bt_component_class *comp_cls =
 		bt_component_class_source_as_component_class_const(src_comp_cls);
 
-	ret = query(ctx->cfg, comp_cls, "babeltrace.trace-info",
+	ret = query(ctx->cfg, comp_cls, "babeltrace.trace-infos",
 		cfg_comp->params, &query_result,
 		&fail_reason);
 	if (ret) {
-		BT_CLI_LOGE_APPEND_CAUSE("Component class does not support the `babeltrace.trace-info` query: %s: "
+		BT_CLI_LOGE_APPEND_CAUSE("Component class does not support the `babeltrace.trace-infos` query: %s: "
 			"comp-class-name=\"%s\"", fail_reason,
 			bt_component_class_get_name(comp_cls));
 		ret = -1;
@@ -2063,7 +2063,7 @@ int set_stream_intersections(struct cmd_run_ctx *ctx,
 	BT_ASSERT(query_result);
 
 	if (!bt_value_is_array(query_result)) {
-		BT_CLI_LOGE_APPEND_CAUSE("`babeltrace.trace-info` query: expecting result to be an array: "
+		BT_CLI_LOGE_APPEND_CAUSE("`babeltrace.trace-infos` query: expecting result to be an array: "
 			"component-class-name=%s, actual-type=%s",
 			bt_component_class_get_name(comp_cls),
 			bt_common_value_type_string(bt_value_get_type(query_result)));
@@ -2073,7 +2073,7 @@ int set_stream_intersections(struct cmd_run_ctx *ctx,
 
 	trace_count = bt_value_array_get_length(query_result);
 	if (trace_count < 0) {
-		BT_CLI_LOGE_APPEND_CAUSE("`babeltrace.trace-info` query: result is empty: "
+		BT_CLI_LOGE_APPEND_CAUSE("`babeltrace.trace-infos` query: result is empty: "
 			"component-class-name=%s", bt_component_class_get_name(comp_cls));
 		ret = -1;
 		goto end;
@@ -2089,7 +2089,7 @@ int set_stream_intersections(struct cmd_run_ctx *ctx,
 		BT_ASSERT(trace_info);
 		if (!bt_value_is_map(trace_info)) {
 			ret = -1;
-			BT_CLI_LOGE_APPEND_CAUSE("`babeltrace.trace-info` query: expecting element to be a map: "
+			BT_CLI_LOGE_APPEND_CAUSE("`babeltrace.trace-infos` query: expecting element to be a map: "
 				"component-class-name=%s, actual-type=%s",
 				bt_component_class_get_name(comp_cls),
 				bt_common_value_type_string(bt_value_get_type(trace_info)));
@@ -2097,10 +2097,10 @@ int set_stream_intersections(struct cmd_run_ctx *ctx,
 		}
 
 		stream_infos = bt_value_map_borrow_entry_value_const(
-			trace_info, "streams");
+			trace_info, "stream-infos");
 		if (!stream_infos) {
 			ret = -1;
-			BT_CLI_LOGE_APPEND_CAUSE("`babeltrace.trace-info` query: missing `streams` key in trace info map: "
+			BT_CLI_LOGE_APPEND_CAUSE("`babeltrace.trace-infos` query: missing `streams` key in trace info map: "
 				"component-class-name=%s",
 				bt_component_class_get_name(comp_cls));
 			goto end;
@@ -2108,7 +2108,7 @@ int set_stream_intersections(struct cmd_run_ctx *ctx,
 
 		if (!bt_value_is_array(stream_infos)) {
 			ret = -1;
-			BT_CLI_LOGE_APPEND_CAUSE("`babeltrace.trace-info` query: expecting `streams` entry of trace info map to be an array: "
+			BT_CLI_LOGE_APPEND_CAUSE("`babeltrace.trace-infos` query: expecting `streams` entry of trace info map to be an array: "
 				"component-class-name=%s, actual-type=%s",
 				bt_component_class_get_name(comp_cls),
 				bt_common_value_type_string(bt_value_get_type(stream_infos)));
@@ -2118,7 +2118,7 @@ int set_stream_intersections(struct cmd_run_ctx *ctx,
 		stream_count = bt_value_array_get_length(stream_infos);
 		if (stream_count < 0) {
 			ret = -1;
-			BT_CLI_LOGE_APPEND_CAUSE("`babeltrace.trace-info` query: list of streams is empty: "
+			BT_CLI_LOGE_APPEND_CAUSE("`babeltrace.trace-infos` query: list of streams is empty: "
 				"component-class-name=%s",
 				bt_component_class_get_name(comp_cls));
 			goto end;
@@ -2163,7 +2163,7 @@ int set_stream_intersections(struct cmd_run_ctx *ctx,
 			BT_ASSERT(stream_info);
 			if (!bt_value_is_map(stream_info)) {
 				ret = -1;
-				BT_CLI_LOGE_APPEND_CAUSE("`babeltrace.trace-info` query: "
+				BT_CLI_LOGE_APPEND_CAUSE("`babeltrace.trace-infos` query: "
 					"expecting element of stream list to be a map: "
 					"component-class-name=%s, actual-type=%s",
 					bt_component_class_get_name(comp_cls),
@@ -2174,7 +2174,7 @@ int set_stream_intersections(struct cmd_run_ctx *ctx,
 			port_name = bt_value_map_borrow_entry_value_const(stream_info, "port-name");
 			if (!port_name) {
 				ret = -1;
-				BT_CLI_LOGE_APPEND_CAUSE("`babeltrace.trace-info` query: "
+				BT_CLI_LOGE_APPEND_CAUSE("`babeltrace.trace-infos` query: "
 					"missing `port-name` key in stream info map: "
 					"component-class-name=%s",
 					bt_component_class_get_name(comp_cls));
@@ -2183,7 +2183,7 @@ int set_stream_intersections(struct cmd_run_ctx *ctx,
 
 			if (!bt_value_is_string(port_name)) {
 				ret = -1;
-				BT_CLI_LOGE_APPEND_CAUSE("`babeltrace.trace-info` query: "
+				BT_CLI_LOGE_APPEND_CAUSE("`babeltrace.trace-infos` query: "
 					"expecting `port-name` entry of stream info map to be a string: "
 					"component-class-name=%s, actual-type=%s",
 					bt_component_class_get_name(comp_cls),

@@ -345,27 +345,30 @@ class TraceCollectionMessageIterator(bt2_message_iterator._MessageIterator):
         self._stream_inter_port_to_range = {}
 
         for src_comp_and_spec in self._src_comps_and_specs:
-            # query the port's component for the `babeltrace.trace-info`
+            # Query the port's component for the `babeltrace.trace-infos`
             # object which contains the range for each stream, from which we can
             # compute the intersection of the streams in each trace.
             query_exec = bt2.QueryExecutor(
                 src_comp_and_spec.spec.component_class,
-                'babeltrace.trace-info',
+                'babeltrace.trace-infos',
                 src_comp_and_spec.spec.params,
             )
             trace_infos = query_exec.query()
 
             for trace_info in trace_infos:
                 begin = max(
-                    [stream['range-ns']['begin'] for stream in trace_info['streams']]
+                    [
+                        stream['range-ns']['begin']
+                        for stream in trace_info['stream-infos']
+                    ]
                 )
                 end = min(
-                    [stream['range-ns']['end'] for stream in trace_info['streams']]
+                    [stream['range-ns']['end'] for stream in trace_info['stream-infos']]
                 )
 
                 # Each port associated to this trace will have this computed
                 # range.
-                for stream in trace_info['streams']:
+                for stream in trace_info['stream-infos']:
                     # A port name is unique within a component, but not
                     # necessarily across all components.  Use a component
                     # and port name pair to make it unique across the graph.

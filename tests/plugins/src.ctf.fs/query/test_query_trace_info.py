@@ -39,20 +39,20 @@ class QueryTraceInfoClockOffsetTestCase(unittest.TestCase):
         ]
 
     def _check(self, trace, offset):
-        streams = sorted(trace['streams'], key=sort_predictably)
+        streams = sorted(trace['stream-infos'], key=sort_predictably)
         self.assertEqual(streams[0]['range-ns']['begin'], 13515309000000000 + offset)
         self.assertEqual(streams[0]['range-ns']['end'], 13515309000000100 + offset)
         self.assertEqual(streams[1]['range-ns']['begin'], 13515309000000070 + offset)
         self.assertEqual(streams[1]['range-ns']['end'], 13515309000000120 + offset)
 
     # Test various cominations of the clock-class-offset-s and
-    # clock-class-offset-ns parameters to babeltrace.trace-info queries.
+    # clock-class-offset-ns parameters to babeltrace.trace-infos queries.
 
     # Without clock class offset
 
     def test_no_clock_class_offset(self):
         res = bt2.QueryExecutor(
-            self._fs, 'babeltrace.trace-info', {'inputs': self._inputs}
+            self._fs, 'babeltrace.trace-infos', {'inputs': self._inputs}
         ).query()
         trace = res[0]
         self._check(trace, 0)
@@ -62,7 +62,7 @@ class QueryTraceInfoClockOffsetTestCase(unittest.TestCase):
     def test_clock_class_offset_s(self):
         res = bt2.QueryExecutor(
             self._fs,
-            'babeltrace.trace-info',
+            'babeltrace.trace-infos',
             {'inputs': self._inputs, 'clock-class-offset-s': 2},
         ).query()
         trace = res[0]
@@ -73,7 +73,7 @@ class QueryTraceInfoClockOffsetTestCase(unittest.TestCase):
     def test_clock_class_offset_ns(self):
         res = bt2.QueryExecutor(
             self._fs,
-            'babeltrace.trace-info',
+            'babeltrace.trace-infos',
             {'inputs': self._inputs, 'clock-class-offset-ns': 2},
         ).query()
         trace = res[0]
@@ -84,7 +84,7 @@ class QueryTraceInfoClockOffsetTestCase(unittest.TestCase):
     def test_clock_class_offset_both(self):
         res = bt2.QueryExecutor(
             self._fs,
-            'babeltrace.trace-info',
+            'babeltrace.trace-infos',
             {
                 'inputs': self._inputs,
                 'clock-class-offset-s': -2,
@@ -98,7 +98,7 @@ class QueryTraceInfoClockOffsetTestCase(unittest.TestCase):
         with self.assertRaises(bt2._Error):
             bt2.QueryExecutor(
                 self._fs,
-                'babeltrace.trace-info',
+                'babeltrace.trace-infos',
                 {'inputs': self._inputs, 'clock-class-offset-s': "2"},
             ).query()
 
@@ -106,7 +106,7 @@ class QueryTraceInfoClockOffsetTestCase(unittest.TestCase):
         with self.assertRaises(bt2._Error):
             bt2.QueryExecutor(
                 self._fs,
-                'babeltrace.trace-info',
+                'babeltrace.trace-infos',
                 {'inputs': self._inputs, 'clock-class-offset-s': None},
             ).query()
 
@@ -114,7 +114,7 @@ class QueryTraceInfoClockOffsetTestCase(unittest.TestCase):
         with self.assertRaises(bt2._Error):
             bt2.QueryExecutor(
                 self._fs,
-                'babeltrace.trace-info',
+                'babeltrace.trace-infos',
                 {'inputs': self._inputs, 'clock-class-offset-ns': "2"},
             ).query()
 
@@ -122,7 +122,7 @@ class QueryTraceInfoClockOffsetTestCase(unittest.TestCase):
         with self.assertRaises(bt2._Error):
             bt2.QueryExecutor(
                 self._fs,
-                'babeltrace.trace-info',
+                'babeltrace.trace-infos',
                 {'inputs': self._inputs, 'clock-class-offset-ns': None},
             ).query()
 
@@ -135,7 +135,7 @@ class QueryTraceInfoPortNameTestCase(unittest.TestCase):
     def test_trace_uuid_stream_class_id_no_stream_id(self):
         res = bt2.QueryExecutor(
             self._fs,
-            "babeltrace.trace-info",
+            "babeltrace.trace-infos",
             {
                 "inputs": [
                     os.path.join(
@@ -153,7 +153,7 @@ class QueryTraceInfoPortNameTestCase(unittest.TestCase):
 
         self.assertEqual(len(res), 1)
         trace = res[0]
-        streams = sorted(trace["streams"], key=sort_predictably)
+        streams = sorted(trace["stream-infos"], key=sort_predictably)
         self.assertEqual(len(streams), 2)
         self.assertRegexpMatches(
             str(streams[0]["port-name"]),
@@ -171,7 +171,7 @@ class QueryTraceInfoPortNameTestCase(unittest.TestCase):
     def test_trace_uuid_no_stream_class_id_no_stream_id(self):
         res = bt2.QueryExecutor(
             self._fs,
-            "babeltrace.trace-info",
+            "babeltrace.trace-infos",
             {"inputs": [os.path.join(test_ctf_traces_path, "succeed", "succeed1")]},
         ).query()
 
@@ -183,7 +183,7 @@ class QueryTraceInfoPortNameTestCase(unittest.TestCase):
 
         self.assertEqual(len(res), 1)
         trace = res[0]
-        streams = sorted(trace["streams"], key=sort_predictably)
+        streams = sorted(trace["stream-infos"], key=sort_predictably)
         self.assertEqual(len(streams), 1)
         self.assertRegexpMatches(
             str(streams[0]["port-name"]),
@@ -200,19 +200,19 @@ class QueryTraceInfoRangeTestCase(unittest.TestCase):
 
     def test_trace_no_range(self):
         # This trace has no `timestamp_begin` and `timestamp_end` in its
-        # packet context. The `babeltrace.trace-info` query should omit
+        # packet context. The `babeltrace.trace-infos` query should omit
         # the `range-ns` fields in the `trace` and `stream` data
         # structures.
 
         res = bt2.QueryExecutor(
             self._fs,
-            "babeltrace.trace-info",
+            "babeltrace.trace-infos",
             {"inputs": [os.path.join(test_ctf_traces_path, "succeed", "succeed1")]},
         ).query()
 
         self.assertEqual(len(res), 1)
         trace = res[0]
-        streams = trace["streams"]
+        streams = trace["stream-infos"]
         self.assertEqual(len(streams), 1)
 
         self.assertRaises(KeyError, lambda: trace['range-ns'])
@@ -228,7 +228,7 @@ class QueryTraceInfoPacketTimestampQuirksTestCase(unittest.TestCase):
     def _test_lttng_quirks(self, trace_name):
         res = bt2.QueryExecutor(
             self._fs,
-            "babeltrace.trace-info",
+            "babeltrace.trace-infos",
             {"inputs": [os.path.join(self._path, trace_name)]},
         ).query()
 
@@ -237,7 +237,7 @@ class QueryTraceInfoPacketTimestampQuirksTestCase(unittest.TestCase):
 
     def test_event_after_packet(self):
         trace = self._test_lttng_quirks("lttng-event-after-packet")
-        streams = trace["streams"]
+        streams = trace["stream-infos"]
         self.assertEqual(len(streams), 1)
 
         self.assertEqual(streams[0]['range-ns']['begin'], 1565957300948091100)
@@ -245,7 +245,7 @@ class QueryTraceInfoPacketTimestampQuirksTestCase(unittest.TestCase):
 
     def test_lttng_crash(self):
         trace = self._test_lttng_quirks("lttng-crash")
-        streams = trace["streams"]
+        streams = trace["stream-infos"]
         self.assertEqual(len(streams), 1)
 
         self.assertEqual(streams[0]['range-ns']['begin'], 1565891729288866738)
