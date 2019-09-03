@@ -412,7 +412,6 @@ bt_component_class_query_method_status trace_info_query(
 
 error:
 	BT_VALUE_PUT_REF_AND_RESET(result);
-	result = NULL;
 
 	if (status >= 0) {
 		status = BT_COMPONENT_CLASS_QUERY_METHOD_STATUS_ERROR;
