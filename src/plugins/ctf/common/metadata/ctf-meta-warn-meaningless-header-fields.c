@@ -32,6 +32,7 @@ static inline
 void warn_meaningless_field(const char *name, const char *scope_name,
 		struct meta_log_config *log_cfg)
 {
+	BT_ASSERT(name);
 	BT_COMP_LOGW("User field found in %s: ignoring: name=\"%s\"",
 		scope_name, name);
 }
@@ -46,6 +47,11 @@ void warn_meaningless_fields(struct ctf_field_class *fc, const char *name,
 		goto end;
 	}
 
+	/*
+	 * 'name' is guaranteed to be non-NULL whenever the field class is not a
+	 * structure. In the case of a structure field class, its members' names
+	 * are used.
+	 */
 	switch (fc->type) {
 	case CTF_FIELD_CLASS_TYPE_FLOAT:
 	case CTF_FIELD_CLASS_TYPE_STRING:
