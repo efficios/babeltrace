@@ -175,12 +175,11 @@ class _UserMessageIterator(_MessageIterator):
     def _create_input_port_message_iterator(self, input_port):
         utils._check_type(input_port, bt2_port._UserComponentInputPort)
 
-        msg_iter_ptr = native_bt.self_component_port_input_message_iterator_create_from_message_iterator(
+        status, msg_iter_ptr = native_bt.bt2_self_component_port_input_message_iterator_create_from_message_iterator(
             self._bt_ptr, input_port._ptr
         )
-
-        if msg_iter_ptr is None:
-            raise bt2._MemoryError('cannot create message iterator object')
+        utils._handle_func_status(status, 'cannot create message iterator object')
+        assert msg_iter_ptr is not None
 
         return _UserComponentInputPortMessageIterator(msg_iter_ptr)
 

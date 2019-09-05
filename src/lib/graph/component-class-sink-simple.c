@@ -109,7 +109,9 @@ enum bt_component_class_sink_graph_is_configured_method_status
 simple_sink_graph_is_configured(
 	bt_self_component_sink *self_comp)
 {
-	int status = BT_FUNC_STATUS_OK;
+	bt_component_class_sink_graph_is_configured_method_status status;
+	bt_self_component_port_input_message_iterator_create_from_sink_component_status
+		msg_iter_status;
 	struct simple_sink_data *data = bt_self_component_get_data(
 		bt_self_component_sink_as_self_component(self_comp));
 
@@ -122,35 +124,39 @@ simple_sink_graph_is_configured(
 		BT_LIB_LOGE_APPEND_CAUSE(
 			"Simple sink component's input port is not connected: "
 			"%![comp-]+c, %![port-]+p", self_comp, self_port);
-		status = BT_FUNC_STATUS_ERROR;
+		status = BT_COMPONENT_CLASS_SINK_GRAPH_IS_CONFIGURED_METHOD_STATUS_ERROR;
 		goto end;
 	}
 
 	BT_ASSERT(data);
-	data->msg_iter =
-		bt_self_component_port_input_message_iterator_create_from_sink_component(
-			self_comp, self_port);
-	if (!data->msg_iter) {
+	msg_iter_status = bt_self_component_port_input_message_iterator_create_from_sink_component(
+		self_comp, self_port, &data->msg_iter);
+	if (msg_iter_status != BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_CREATE_FROM_SINK_COMPONENT_STATUS_OK) {
 		BT_LIB_LOGE_APPEND_CAUSE(
 			"Cannot create input port message iterator: "
 			"%![comp-]+c, %![port-]+p", self_comp, self_port);
-		status = BT_FUNC_STATUS_MEMORY_ERROR;
+		status = (int) msg_iter_status;
 		goto end;
 	}
 
 	if (data->init_method_data.init_func) {
+		bt_graph_simple_sink_component_init_func_status init_status;
+
 		/* Call user's initialization function */
-		status = data->init_method_data.init_func(data->msg_iter,
+		init_status = data->init_method_data.init_func(data->msg_iter,
 			data->init_method_data.user_data);
-		if (status != BT_FUNC_STATUS_OK) {
+		if (init_status != BT_GRAPH_SIMPLE_SINK_COMPONENT_INIT_FUNC_STATUS_OK) {
 			BT_LIB_LOGW_APPEND_CAUSE(
 				"Simple sink component's user's initialization function failed: "
 				"status=%s, %![comp-]+c, %![port-]+p",
-				bt_common_func_status_string(status),
+				bt_common_func_status_string(init_status),
 				self_comp, self_port);
+			status = (int) init_status;
 			goto end;
 		}
 	}
+
+	status = BT_COMPONENT_CLASS_SINK_GRAPH_IS_CONFIGURED_METHOD_STATUS_OK;
 
 end:
 	return status;
