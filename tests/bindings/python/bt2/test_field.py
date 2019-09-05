@@ -1988,6 +1988,9 @@ class VariantFieldTestCase(unittest.TestCase):
         self._def.value = 1774
         self.assertEqual(self._def, field)
 
+    def test_len(self):
+        self.assertEqual(len(self._def), 4)
+
     def test_eq_invalid_type(self):
         self._def.selected_option_index = 1
         self._def.value = 'gerry'

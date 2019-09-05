@@ -559,6 +559,9 @@ class _OptionField(_Field):
 class _VariantField(_ContainerField, _Field):
     _NAME = 'Variant'
 
+    def _count(self):
+        return len(self.cls)
+
     @property
     def selected_option_index(self):
         return native_bt.field_variant_get_selected_option_field_index(self._ptr)
