@@ -113,6 +113,10 @@ extern bt_field_class_structure_member *
 bt_field_class_structure_borrow_member_by_name(
 		bt_field_class *field_class, const char *name);
 
+extern bt_field_class *
+bt_field_class_structure_member_borrow_field_class(
+		bt_field_class_structure_member *member);
+
 extern bt_value *bt_field_class_structure_member_borrow_user_attributes(
 		bt_field_class_structure_member *member);
 
@@ -136,6 +140,9 @@ extern bt_field_class *bt_field_class_option_create(
 		bt_trace_class *trace_class,
 		bt_field_class *content_field_class,
 		bt_field_class *selector_field_class);
+
+extern bt_field_class *bt_field_class_option_borrow_field_class(
+		bt_field_class *field_class);
 
 extern bt_field_class *bt_field_class_variant_create(
 		bt_trace_class *trace_class,
@@ -175,6 +182,9 @@ bt_field_class_variant_borrow_option_by_index(
 extern bt_field_class_variant_option *
 bt_field_class_variant_borrow_option_by_name(
 		bt_field_class *field_class, const char *name);
+
+extern bt_field_class *bt_field_class_variant_option_borrow_field_class(
+		bt_field_class_variant_option *option);
 
 extern bt_value *bt_field_class_variant_option_borrow_user_attributes(
 		bt_field_class_variant_option *option);

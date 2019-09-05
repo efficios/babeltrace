@@ -1139,6 +1139,16 @@ bt_field_class_structure_member_borrow_field_class_const(
 	return named_fc->fc;
 }
 
+struct bt_field_class *
+bt_field_class_structure_member_borrow_field_class(
+		struct bt_field_class_structure_member *member)
+{
+	struct bt_named_field_class *named_fc = (void *) member;
+
+	BT_ASSERT_PRE_DEV_NON_NULL(member, "Structure field class member");
+	return named_fc->fc;
+}
+
 static
 void destroy_option_field_class(struct bt_object *obj)
 {
@@ -1202,6 +1212,17 @@ end:
 
 const struct bt_field_class *bt_field_class_option_borrow_field_class_const(
 			const struct bt_field_class *fc)
+{
+	struct bt_field_class_option *opt_fc = (void *) fc;
+
+	BT_ASSERT_PRE_NON_NULL(fc, "Field class");
+	BT_ASSERT_PRE_DEV_FC_HAS_ID(fc, BT_FIELD_CLASS_TYPE_OPTION,
+		"Field class");
+	return opt_fc->content_fc;
+}
+
+struct bt_field_class *bt_field_class_option_borrow_field_class(
+			struct bt_field_class *fc)
 {
 	struct bt_field_class_option *opt_fc = (void *) fc;
 
@@ -1643,6 +1664,16 @@ bt_field_class_variant_option_borrow_field_class_const(
 		const struct bt_field_class_variant_option *option)
 {
 	const struct bt_named_field_class *named_fc = (const void *) option;
+
+	BT_ASSERT_PRE_DEV_NON_NULL(option, "Variant field class option");
+	return named_fc->fc;
+}
+
+struct bt_field_class *
+bt_field_class_variant_option_borrow_field_class(
+		struct bt_field_class_variant_option *option)
+{
+	struct bt_named_field_class *named_fc = (void *) option;
 
 	BT_ASSERT_PRE_DEV_NON_NULL(option, "Variant field class option");
 	return named_fc->fc;
