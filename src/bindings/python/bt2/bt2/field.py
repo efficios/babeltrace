@@ -568,6 +568,9 @@ class _VariantField(_ContainerField, _Field):
 
     @selected_option_index.setter
     def selected_option_index(self, index):
+        if index < 0 or index >= len(self):
+            raise IndexError('{} field object index is out of range'.format(self._NAME))
+
         native_bt.field_variant_select_option_field_by_index(self._ptr, index)
 
     @property
