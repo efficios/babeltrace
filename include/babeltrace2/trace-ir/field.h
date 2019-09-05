@@ -35,6 +35,8 @@
 extern "C" {
 #endif
 
+extern bt_field_class *bt_field_borrow_class(bt_field *field);
+
 extern void bt_field_bool_set_value(bt_field *field, bt_bool value);
 
 extern void bt_field_bit_array_set_value_as_integer(bt_field *field,

@@ -241,7 +241,7 @@ void (* const field_destroy_funcs[])(struct bt_field *) = {
 	[BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_SELECTOR]	= destroy_variant_field,
 };
 
-struct bt_field_class *bt_field_borrow_class(const struct bt_field *field)
+struct bt_field_class *bt_field_borrow_class(struct bt_field *field)
 {
 	BT_ASSERT_PRE_DEV_NON_NULL(field, "Field");
 	return field->class;
