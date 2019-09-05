@@ -2053,27 +2053,30 @@ int set_stream_intersections(struct cmd_run_ctx *ctx,
 		cfg_comp->params, &query_result,
 		&fail_reason);
 	if (ret) {
-		BT_LOGD("Component class does not support the `babeltrace.trace-info` query: %s: "
+		BT_CLI_LOGE_APPEND_CAUSE("Component class does not support the `babeltrace.trace-info` query: %s: "
 			"comp-class-name=\"%s\"", fail_reason,
 			bt_component_class_get_name(comp_cls));
 		ret = -1;
-		goto error;
+		goto end;
 	}
 
 	BT_ASSERT(query_result);
 
 	if (!bt_value_is_array(query_result)) {
-		BT_LOGD("Unexpected format of `babeltrace.trace-info` query result: "
-			"component-class-name=%s",
-			bt_component_class_get_name(comp_cls));
+		BT_CLI_LOGE_APPEND_CAUSE("`babeltrace.trace-info` query: expecting result to be an array: "
+			"component-class-name=%s, actual-type=%s",
+			bt_component_class_get_name(comp_cls),
+			bt_common_value_type_string(bt_value_get_type(query_result)));
 		ret = -1;
-		goto error;
+		goto end;
 	}
 
 	trace_count = bt_value_array_get_length(query_result);
 	if (trace_count < 0) {
+		BT_CLI_LOGE_APPEND_CAUSE("`babeltrace.trace-info` query: result is empty: "
+			"component-class-name=%s", bt_component_class_get_name(comp_cls));
 		ret = -1;
-		goto error;
+		goto end;
 	}
 
 	for (trace_idx = 0; trace_idx < trace_count; trace_idx++) {
@@ -2083,30 +2086,48 @@ int set_stream_intersections(struct cmd_run_ctx *ctx,
 
 		trace_info = bt_value_array_borrow_element_by_index_const(
 			query_result, trace_idx);
-		if (!trace_info || !bt_value_is_map(trace_info)) {
+		BT_ASSERT(trace_info);
+		if (!bt_value_is_map(trace_info)) {
 			ret = -1;
-			BT_LOGD_STR("Cannot retrieve trace from query result.");
-			goto error;
+			BT_CLI_LOGE_APPEND_CAUSE("`babeltrace.trace-info` query: expecting element to be a map: "
+				"component-class-name=%s, actual-type=%s",
+				bt_component_class_get_name(comp_cls),
+				bt_common_value_type_string(bt_value_get_type(trace_info)));
+			goto end;
 		}
 
-		stream_infos = bt_value_map_borrow_entry_value_const(trace_info,
-								     "streams");
-		if (!stream_infos || !bt_value_is_array(stream_infos)) {
+		stream_infos = bt_value_map_borrow_entry_value_const(
+			trace_info, "streams");
+		if (!stream_infos) {
 			ret = -1;
-			BT_LOGD_STR("Cannot retrieve stream information from trace in query result.");
-			goto error;
+			BT_CLI_LOGE_APPEND_CAUSE("`babeltrace.trace-info` query: missing `streams` key in trace info map: "
+				"component-class-name=%s",
+				bt_component_class_get_name(comp_cls));
+			goto end;
+		}
+
+		if (!bt_value_is_array(stream_infos)) {
+			ret = -1;
+			BT_CLI_LOGE_APPEND_CAUSE("`babeltrace.trace-info` query: expecting `streams` entry of trace info map to be an array: "
+				"component-class-name=%s, actual-type=%s",
+				bt_component_class_get_name(comp_cls),
+				bt_common_value_type_string(bt_value_get_type(stream_infos)));
+			goto end;
 		}
 
 		stream_count = bt_value_array_get_length(stream_infos);
 		if (stream_count < 0) {
 			ret = -1;
-			goto error;
+			BT_CLI_LOGE_APPEND_CAUSE("`babeltrace.trace-info` query: list of streams is empty: "
+				"component-class-name=%s",
+				bt_component_class_get_name(comp_cls));
+			goto end;
 		}
 
 		ret = compute_stream_intersection(stream_infos, &trace_intersection);
 		if (ret != 0) {
 			BT_CLI_LOGE_APPEND_CAUSE("Failed to compute trace streams intersection.");
-			goto error;
+			goto end;
 		}
 
 		for (stream_idx = 0; stream_idx < stream_count; stream_idx++) {
@@ -2117,14 +2138,14 @@ int set_stream_intersections(struct cmd_run_ctx *ctx,
 				ret = -1;
 				BT_CLI_LOGE_APPEND_CAUSE(
 					"Cannot allocate memory for port_id structure.");
-				goto error;
+				goto end;
 			}
 			port_id->instance_name = strdup(cfg_comp->instance_name->str);
 			if (!port_id->instance_name) {
 				ret = -1;
 				BT_CLI_LOGE_APPEND_CAUSE(
 					"Cannot allocate memory for port_id component instance name.");
-				goto error;
+				goto end;
 			}
 
 			stream_intersection = g_new0(struct trace_range, 1);
@@ -2132,26 +2153,42 @@ int set_stream_intersections(struct cmd_run_ctx *ctx,
 				ret = -1;
 				BT_CLI_LOGE_APPEND_CAUSE(
 					"Cannot allocate memory for trace_range structure.");
-				goto error;
+				goto end;
 			}
 
 			*stream_intersection = trace_intersection;
 
 			stream_info = bt_value_array_borrow_element_by_index_const(
 				stream_infos, stream_idx);
-			if (!stream_info || !bt_value_is_map(stream_info)) {
+			BT_ASSERT(stream_info);
+			if (!bt_value_is_map(stream_info)) {
 				ret = -1;
-				BT_CLI_LOGE_APPEND_CAUSE(
-					"Cannot retrieve stream informations from trace in query result.");
-				goto error;
+				BT_CLI_LOGE_APPEND_CAUSE("`babeltrace.trace-info` query: "
+					"expecting element of stream list to be a map: "
+					"component-class-name=%s, actual-type=%s",
+					bt_component_class_get_name(comp_cls),
+					bt_common_value_type_string(bt_value_get_type(stream_info)));
+				goto end;
 			}
 
 			port_name = bt_value_map_borrow_entry_value_const(stream_info, "port-name");
-			if (!port_name || !bt_value_is_string(port_name)) {
+			if (!port_name) {
 				ret = -1;
-				BT_CLI_LOGE_APPEND_CAUSE(
-					"Cannot retrieve port name in query result.");
-				goto error;
+				BT_CLI_LOGE_APPEND_CAUSE("`babeltrace.trace-info` query: "
+					"missing `port-name` key in stream info map: "
+					"component-class-name=%s",
+					bt_component_class_get_name(comp_cls));
+				goto end;
+			}
+
+			if (!bt_value_is_string(port_name)) {
+				ret = -1;
+				BT_CLI_LOGE_APPEND_CAUSE("`babeltrace.trace-info` query: "
+					"expecting `port-name` entry of stream info map to be a string: "
+					"component-class-name=%s, actual-type=%s",
+					bt_component_class_get_name(comp_cls),
+					bt_common_value_type_string(bt_value_get_type(port_name)));
+				goto end;
 			}
 
 			port_id->port_name = g_strdup(bt_value_string_get(port_name));
@@ -2159,7 +2196,7 @@ int set_stream_intersections(struct cmd_run_ctx *ctx,
 				ret = -1;
 				BT_CLI_LOGE_APPEND_CAUSE(
 					"Cannot allocate memory for port_id port_name.");
-				goto error;
+				goto end;
 			}
 
 			BT_LOGD("Inserting stream intersection ");
@@ -2171,11 +2208,7 @@ int set_stream_intersections(struct cmd_run_ctx *ctx,
 		}
 	}
 
-	goto end;
-
-error:
-	BT_CLI_LOGE_APPEND_CAUSE(
-		"Cannot determine stream intersection of trace.");
+	ret = 0;
 
 end:
 	bt_value_put_ref(query_result);
@@ -2268,6 +2301,8 @@ int cmd_run_ctx_create_components_from_config_components(
 				cfg_comp->type == BT_COMPONENT_CLASS_TYPE_SOURCE) {
 			ret = set_stream_intersections(ctx, cfg_comp, comp_cls);
 			if (ret) {
+				BT_CLI_LOGE_APPEND_CAUSE(
+					"Cannot determine stream intersection of trace.");
 				goto error;
 			}
 		}
