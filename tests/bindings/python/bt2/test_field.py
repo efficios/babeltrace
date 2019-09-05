@@ -1970,6 +1970,14 @@ class VariantFieldTestCase(unittest.TestCase):
         self._def.selected_option_index = 2
         self.assertEqual(self._def.selected_option_index, 2)
 
+    def test_selected_option_index_above_range(self):
+        with self.assertRaises(IndexError):
+            self._def.selected_option_index = 4
+
+    def test_selected_option_index_below_range(self):
+        with self.assertRaises(IndexError):
+            self._def.selected_option_index = -1
+
     def test_selected_option(self):
         self._def.selected_option_index = 2
         self._def.value = -17.34
