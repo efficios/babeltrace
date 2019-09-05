@@ -288,10 +288,10 @@ bt_bool can_seek_beginning_true(
 }
 
 static
-struct bt_self_component_port_input_message_iterator *
-create_self_component_input_port_message_iterator(
+int create_self_component_input_port_message_iterator(
 		struct bt_self_message_iterator *self_downstream_msg_iter,
-		struct bt_self_component_port_input *self_port)
+		struct bt_self_component_port_input *self_port,
+		struct bt_self_component_port_input_message_iterator **message_iterator)
 {
 	typedef enum bt_component_class_message_iterator_init_method_status (*init_method_t)(
 			void *, void *, void *);
@@ -306,7 +306,9 @@ create_self_component_input_port_message_iterator(
 	struct bt_component *comp;
 	struct bt_component *upstream_comp;
 	struct bt_component_class *upstream_comp_cls;
+	int status;
 
+	BT_ASSERT_PRE_NON_NULL(message_iterator, "Created message iterator");
 	BT_ASSERT_PRE_NON_NULL(port, "Input port");
 	comp = bt_port_borrow_component_inline(port);
 	BT_ASSERT_PRE(bt_port_is_connected(port),
@@ -338,6 +340,7 @@ create_self_component_input_port_message_iterator(
 		BT_LIB_LOGE_APPEND_CAUSE(
 			"Failed to allocate one self component input port "
 			"message iterator.");
+		status = BT_FUNC_STATUS_MEMORY_ERROR;
 		goto error;
 	}
 
@@ -346,6 +349,7 @@ create_self_component_input_port_message_iterator(
 	iterator->msgs = g_ptr_array_new();
 	if (!iterator->msgs) {
 		BT_LIB_LOGE_APPEND_CAUSE("Failed to allocate a GPtrArray.");
+		status = BT_FUNC_STATUS_MEMORY_ERROR;
 		goto error;
 	}
 
@@ -354,12 +358,14 @@ create_self_component_input_port_message_iterator(
 	iterator->auto_seek.msgs = g_queue_new();
 	if (!iterator->auto_seek.msgs) {
 		BT_LIB_LOGE_APPEND_CAUSE("Failed to allocate a GQueue.");
+		status = BT_FUNC_STATUS_MEMORY_ERROR;
 		goto error;
 	}
 
 	iterator->upstream_msg_iters = g_ptr_array_new();
 	if (!iterator->upstream_msg_iters) {
 		BT_LIB_LOGE_APPEND_CAUSE("Failed to allocate a GPtrArray.");
+		status = BT_FUNC_STATUS_MEMORY_ERROR;
 		goto error;
 	}
 
@@ -471,6 +477,7 @@ create_self_component_input_port_message_iterator(
 				"%![iter-]+i, status=%s",
 				iterator,
 				bt_common_func_status_string(iter_status));
+			status = iter_status;
 			goto error;
 		}
 	}
@@ -493,33 +500,38 @@ create_self_component_input_port_message_iterator(
 	BT_LIB_LOGI("Created message iterator on self component input port: "
 		"%![up-port-]+p, %![up-comp-]+c, %![iter-]+i",
 		upstream_port, upstream_comp, iterator);
+
+	*message_iterator = iterator;
+	status = BT_FUNC_STATUS_OK;
 	goto end;
 
 error:
 	BT_OBJECT_PUT_REF_AND_RESET(iterator);
 
 end:
-	return iterator;
+	return status;
 }
 
-struct bt_self_component_port_input_message_iterator *
+bt_self_component_port_input_message_iterator_create_from_message_iterator_status
 bt_self_component_port_input_message_iterator_create_from_message_iterator(
 		struct bt_self_message_iterator *self_msg_iter,
-		struct bt_self_component_port_input *input_port)
+		struct bt_self_component_port_input *input_port,
+		struct bt_self_component_port_input_message_iterator **message_iterator)
 {
 	BT_ASSERT_PRE_NON_NULL(self_msg_iter, "Message iterator");
 	return create_self_component_input_port_message_iterator(self_msg_iter,
-		input_port);
+		input_port, message_iterator);
 }
 
-struct bt_self_component_port_input_message_iterator *
+bt_self_component_port_input_message_iterator_create_from_sink_component_status
 bt_self_component_port_input_message_iterator_create_from_sink_component(
 		struct bt_self_component_sink *self_comp,
-		struct bt_self_component_port_input *input_port)
+		struct bt_self_component_port_input *input_port,
+		struct bt_self_component_port_input_message_iterator **message_iterator)
 {
 	BT_ASSERT_PRE_NON_NULL(self_comp, "Sink component");
 	return create_self_component_input_port_message_iterator(NULL,
-		input_port);
+		input_port, message_iterator);
 }
 
 void *bt_self_message_iterator_get_data(

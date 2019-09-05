@@ -1095,24 +1095,27 @@ end:
 }
 
 BT_HIDDEN
-bt_component_class_sink_graph_is_configured_method_status ctf_fs_sink_graph_is_configured(
+bt_component_class_sink_graph_is_configured_method_status
+ctf_fs_sink_graph_is_configured(
 		bt_self_component_sink *self_comp)
 {
-	bt_component_class_sink_graph_is_configured_method_status status =
-		BT_COMPONENT_CLASS_SINK_GRAPH_IS_CONFIGURED_METHOD_STATUS_OK;
+	bt_component_class_sink_graph_is_configured_method_status status;
+	bt_self_component_port_input_message_iterator_create_from_sink_component_status
+		msg_iter_status;
 	struct fs_sink_comp *fs_sink = bt_self_component_get_data(
 			bt_self_component_sink_as_self_component(self_comp));
 
-	fs_sink->upstream_iter =
+	msg_iter_status =
 		bt_self_component_port_input_message_iterator_create_from_sink_component(
 			self_comp,
 			bt_self_component_sink_borrow_input_port_by_name(
-				self_comp, in_port_name));
-	if (!fs_sink->upstream_iter) {
-		status = BT_COMPONENT_CLASS_SINK_GRAPH_IS_CONFIGURED_METHOD_STATUS_ERROR;
+				self_comp, in_port_name), &fs_sink->upstream_iter);
+	if (msg_iter_status != BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_CREATE_FROM_SINK_COMPONENT_STATUS_OK) {
+		status = (int) msg_iter_status;
 		goto end;
 	}
 
+	status = BT_COMPONENT_CLASS_SINK_GRAPH_IS_CONFIGURED_METHOD_STATUS_OK;
 end:
 	return status;
 }

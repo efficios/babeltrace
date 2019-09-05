@@ -1960,8 +1960,9 @@ bt_component_class_message_iterator_init_method_status debug_info_msg_iter_init(
 		bt_self_component_filter *self_comp_flt,
 		bt_self_component_port_output *self_port)
 {
-	bt_component_class_message_iterator_init_method_status status =
-		BT_COMPONENT_CLASS_MESSAGE_ITERATOR_INIT_METHOD_STATUS_OK;
+	bt_component_class_message_iterator_init_method_status status;
+	bt_self_component_port_input_message_iterator_create_from_message_iterator_status
+		msg_iter_status;
 	struct bt_self_component_port_input *input_port = NULL;
 	bt_self_component_port_input_message_iterator *upstream_iterator = NULL;
 	struct debug_info_msg_iter *debug_info_msg_iter = NULL;
@@ -1990,10 +1991,10 @@ bt_component_class_message_iterator_init_method_status debug_info_msg_iter_init(
 	debug_info_msg_iter->self_comp = self_comp;
 
 	/* Create an iterator on the upstream component. */
-	upstream_iterator = bt_self_component_port_input_message_iterator_create_from_message_iterator(
-		self_msg_iter, input_port);
-	if (!upstream_iterator) {
-		status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_INIT_METHOD_STATUS_MEMORY_ERROR;
+	msg_iter_status = bt_self_component_port_input_message_iterator_create_from_message_iterator(
+		self_msg_iter, input_port, &upstream_iterator);
+	if (msg_iter_status != BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_CREATE_FROM_MESSAGE_ITERATOR_STATUS_OK) {
+		status = (int) msg_iter_status;
 		goto error;
 	}
 
@@ -2031,6 +2032,7 @@ bt_component_class_message_iterator_init_method_status debug_info_msg_iter_init(
 	bt_self_message_iterator_set_data(self_msg_iter, debug_info_msg_iter);
 	debug_info_msg_iter->input_iterator = self_msg_iter;
 
+	status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_INIT_METHOD_STATUS_OK;
 	goto end;
 
 error:

@@ -22,6 +22,44 @@
  * THE SOFTWARE.
  */
 
+bt_self_component_port_input_message_iterator_create_from_message_iterator_status
+bt_bt2_self_component_port_input_message_iterator_create_from_message_iterator(
+		bt_self_message_iterator *self_msg_iter,
+		bt_self_component_port_input *input_port,
+		bt_self_component_port_input_message_iterator **message_iterator)
+{
+	bt_self_component_port_input_message_iterator_create_from_message_iterator_status
+		status;
+
+	status = bt_self_component_port_input_message_iterator_create_from_message_iterator(
+		self_msg_iter, input_port, message_iterator);
+
+	if (status != BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_CREATE_FROM_MESSAGE_ITERATOR_STATUS_OK) {
+		*message_iterator = NULL;
+	}
+
+	return status;
+}
+
+bt_self_component_port_input_message_iterator_create_from_sink_component_status
+bt_bt2_self_component_port_input_message_iterator_create_from_sink_component(
+		bt_self_component_sink *self_comp,
+		bt_self_component_port_input *input_port,
+		bt_self_component_port_input_message_iterator **message_iterator)
+{
+	bt_self_component_port_input_message_iterator_create_from_sink_component_status
+		status;
+
+	status = bt_self_component_port_input_message_iterator_create_from_sink_component(
+		self_comp, input_port, message_iterator);
+
+	if (status != BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_CREATE_FROM_SINK_COMPONENT_STATUS_OK) {
+		*message_iterator = NULL;
+	}
+
+	return status;
+}
+
 static PyObject *bt_bt2_get_user_component_from_user_msg_iter(
 		bt_self_message_iterator *self_message_iterator)
 {

@@ -115,6 +115,45 @@ class UserMessageIteratorTestCase(unittest.TestCase):
         self.assertTrue(src_iter_initialized)
         self.assertTrue(flt_iter_initialized)
 
+    def test_create_user_error(self):
+        # This tests both error handling by
+        # _UserSinkComponent._create_input_port_message_iterator
+        # and _UserMessageIterator._create_input_port_message_iterator, as they
+        # are both used in the graph.
+        class MySourceIter(bt2._UserMessageIterator):
+            def __init__(self, self_port_output):
+                raise ValueError('Very bad error')
+
+        class MySource(bt2._UserSourceComponent, message_iterator_class=MySourceIter):
+            def __init__(self, params, obj):
+                self._add_output_port('out')
+
+        class MyFilterIter(bt2._UserMessageIterator):
+            def __init__(self, self_port_output):
+                # This is expected to raise because of the error in
+                # MySourceIter.__init__.
+                self._create_input_port_message_iterator(
+                    self._component._input_ports['in']
+                )
+
+        class MyFilter(bt2._UserFilterComponent, message_iterator_class=MyFilterIter):
+            def __init__(self, params, obj):
+                self._add_input_port('in')
+                self._add_output_port('out')
+
+        graph = self._create_graph(MySource, MyFilter)
+
+        with self.assertRaises(bt2._Error) as ctx:
+            graph.run()
+
+        exc = ctx.exception
+        cause = exc[0]
+
+        self.assertIsInstance(cause, bt2._MessageIteratorErrorCause)
+        self.assertEqual(cause.component_name, 'src')
+        self.assertEqual(cause.component_output_port_name, 'out')
+        self.assertIn('ValueError: Very bad error', cause.message)
+
     def test_finalize(self):
         class MyIter(bt2._UserMessageIterator):
             def _user_finalize(self):
