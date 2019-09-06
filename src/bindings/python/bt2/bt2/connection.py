@@ -25,7 +25,7 @@ from bt2 import port as bt2_port
 from bt2 import object as bt2_object
 
 
-class _Connection(bt2_object._SharedObject):
+class _ConnectionConst(bt2_object._SharedObject):
     _get_ref = staticmethod(native_bt.connection_get_ref)
     _put_ref = staticmethod(native_bt.connection_put_ref)
 
