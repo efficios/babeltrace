@@ -998,14 +998,25 @@ bt_component_class_message_iterator_next_method_status state_seek_initially(
 		struct trimmer_iterator *trimmer_it)
 {
 	struct trimmer_comp *trimmer_comp = trimmer_it->trimmer_comp;
-	bt_component_class_message_iterator_next_method_status status =
-		BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_OK;
+	bt_component_class_message_iterator_next_method_status status;
 
 	BT_ASSERT(trimmer_it->begin.is_set);
 
 	if (trimmer_it->begin.is_infinite) {
-		if (!bt_self_component_port_input_message_iterator_can_seek_beginning(
-				trimmer_it->upstream_iter)) {
+		bt_bool can_seek;
+
+		status = (int) bt_self_component_port_input_message_iterator_can_seek_beginning(
+			trimmer_it->upstream_iter, &can_seek);
+		if (status != BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_OK) {
+			if (status < 0) {
+				BT_COMP_LOGE_APPEND_CAUSE(trimmer_comp->self_comp,
+					"Cannot make upstream message iterator initially seek its beginning.");
+			}
+
+			goto end;
+		}
+
+		if (!can_seek) {
 			BT_COMP_LOGE_APPEND_CAUSE(trimmer_comp->self_comp,
 				"Cannot make upstream message iterator initially seek its beginning.");
 			status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_ERROR;
@@ -1015,9 +1026,23 @@ bt_component_class_message_iterator_next_method_status state_seek_initially(
 		status = (int) bt_self_component_port_input_message_iterator_seek_beginning(
 			trimmer_it->upstream_iter);
 	} else {
-		if (!bt_self_component_port_input_message_iterator_can_seek_ns_from_origin(
-				trimmer_it->upstream_iter,
-				trimmer_it->begin.ns_from_origin)) {
+		bt_bool can_seek;
+
+		status = (int) bt_self_component_port_input_message_iterator_can_seek_ns_from_origin(
+			trimmer_it->upstream_iter, trimmer_it->begin.ns_from_origin,
+			&can_seek);
+
+		if (status != BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_OK) {
+			if (status < 0) {
+				BT_COMP_LOGE_APPEND_CAUSE(trimmer_comp->self_comp,
+					"Cannot make upstream message iterator initially seek: seek-ns-from-origin=%" PRId64,
+					trimmer_it->begin.ns_from_origin);
+			}
+
+			goto end;
+		}
+
+		if (!can_seek) {
 			BT_COMP_LOGE_APPEND_CAUSE(trimmer_comp->self_comp,
 				"Cannot make upstream message iterator initially seek: seek-ns-from-origin=%" PRId64,
 				trimmer_it->begin.ns_from_origin);

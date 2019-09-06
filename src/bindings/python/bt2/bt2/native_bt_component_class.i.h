@@ -538,13 +538,13 @@ void component_class_sink_finalize(bt_self_component_sink *self_component_sink)
 }
 
 static
-bt_bool component_class_can_seek_beginning(
-		bt_self_message_iterator *self_message_iterator)
+bt_component_class_message_iterator_can_seek_beginning_method_status
+component_class_can_seek_beginning(
+		bt_self_message_iterator *self_message_iterator, bt_bool *can_seek)
 {
 	PyObject *py_iter;
 	PyObject *py_result = NULL;
-	bt_bool can_seek_beginning = false;
-
+	bt_component_class_message_iterator_can_seek_beginning_method_status status;
 	py_iter = bt_self_message_iterator_get_data(self_message_iterator);
 	BT_ASSERT(py_iter);
 
@@ -553,19 +553,16 @@ bt_bool component_class_can_seek_beginning(
 	BT_ASSERT(!py_result || PyBool_Check(py_result));
 
 	if (py_result) {
-		can_seek_beginning = PyObject_IsTrue(py_result);
+		*can_seek = PyObject_IsTrue(py_result);
+		status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_CAN_SEEK_BEGINNING_METHOD_STATUS_OK;
 	} else {
-		/*
-		 * Once can_seek_beginning can report errors, convert the
-		 * exception to a status.  For now, log and return false;
-		 */
-		loge_exception_message_iterator(self_message_iterator);
-		PyErr_Clear();
+		status = py_exc_to_status_message_iterator(self_message_iterator);
+		BT_ASSERT(status != __BT_FUNC_STATUS_OK);
 	}
 
 	Py_XDECREF(py_result);
 
-	return can_seek_beginning;
+	return status;
 }
 
 static

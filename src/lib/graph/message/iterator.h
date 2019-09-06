@@ -77,13 +77,13 @@ typedef enum bt_component_class_message_iterator_seek_beginning_method_status
 (*bt_self_component_port_input_message_iterator_seek_beginning_method)(
 		void *);
 
-typedef bt_bool
+typedef enum bt_component_class_message_iterator_can_seek_ns_from_origin_method_status
 (*bt_self_component_port_input_message_iterator_can_seek_ns_from_origin_method)(
-		void *, int64_t);
+		void *, int64_t, bt_bool *);
 
-typedef bt_bool
+typedef enum bt_component_class_message_iterator_can_seek_beginning_method_status
 (*bt_self_component_port_input_message_iterator_can_seek_beginning_method)(
-		void *);
+		void *, bt_bool *);
 
 struct bt_self_component_port_input_message_iterator {
 	struct bt_object base;

@@ -59,8 +59,9 @@ bt_component_class_port_connected_method_status muxer_input_port_connected(
 		const bt_port_output *other_port);
 
 BT_HIDDEN
-bt_bool muxer_msg_iter_can_seek_beginning(
-		bt_self_message_iterator *message_iterator);
+bt_component_class_message_iterator_can_seek_beginning_method_status
+muxer_msg_iter_can_seek_beginning(
+		bt_self_message_iterator *message_iterator, bt_bool *can_seek);
 
 BT_HIDDEN
 bt_component_class_message_iterator_seek_beginning_method_status muxer_msg_iter_seek_beginning(

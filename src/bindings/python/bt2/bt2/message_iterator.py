@@ -58,7 +58,11 @@ class _GenericMessageIterator(object._SharedObject, _MessageIterator):
 
     @property
     def can_seek_beginning(self):
-        res = self._can_seek_beginning(self._ptr)
+        status, res = self._can_seek_beginning(self._ptr)
+        utils._handle_func_status(
+            status,
+            'cannot check whether or not message iterator can seek its beginning',
+        )
         return res != 0
 
     def seek_beginning(self):

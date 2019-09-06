@@ -866,14 +866,17 @@ bt_component_class_message_iterator_next_method_status dmesg_msg_iter_next(
 }
 
 BT_HIDDEN
-bt_bool dmesg_msg_iter_can_seek_beginning(
-		bt_self_message_iterator *self_msg_iter)
+bt_component_class_message_iterator_can_seek_beginning_method_status
+dmesg_msg_iter_can_seek_beginning(
+		bt_self_message_iterator *self_msg_iter, bt_bool *can_seek)
 {
 	struct dmesg_msg_iter *dmesg_msg_iter =
 		bt_self_message_iterator_get_data(self_msg_iter);
 
 	/* Can't seek the beginning of the standard input stream */
-	return !dmesg_msg_iter->dmesg_comp->params.read_from_stdin;
+	*can_seek = !dmesg_msg_iter->dmesg_comp->params.read_from_stdin;
+
+	return BT_COMPONENT_CLASS_MESSAGE_ITERATOR_CAN_SEEK_BEGINNING_METHOD_STATUS_OK;
 }
 
 BT_HIDDEN

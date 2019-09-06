@@ -2043,15 +2043,16 @@ end:
 }
 
 BT_HIDDEN
-bt_bool debug_info_msg_iter_can_seek_beginning(
-		bt_self_message_iterator *self_msg_iter)
+bt_component_class_message_iterator_can_seek_beginning_method_status
+debug_info_msg_iter_can_seek_beginning(
+	bt_self_message_iterator *self_msg_iter, bt_bool *can_seek)
 {
 	struct debug_info_msg_iter *debug_info_msg_iter =
 		bt_self_message_iterator_get_data(self_msg_iter);
 	BT_ASSERT(debug_info_msg_iter);
 
-	return bt_self_component_port_input_message_iterator_can_seek_beginning(
-			debug_info_msg_iter->msg_iter);
+	return (int) bt_self_component_port_input_message_iterator_can_seek_beginning(
+		debug_info_msg_iter->msg_iter, can_seek);
 }
 
 BT_HIDDEN
