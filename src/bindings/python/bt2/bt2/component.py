@@ -247,7 +247,7 @@ class _GenericSourceComponent(object._SharedObject, _SourceComponent):
             native_bt.component_source_borrow_output_port_by_name_const,
             native_bt.component_source_borrow_output_port_by_index_const,
             native_bt.component_source_get_output_port_count,
-            bt2_port._OutputPort,
+            bt2_port._OutputPortConst,
         )
 
 
@@ -264,7 +264,7 @@ class _GenericFilterComponent(object._SharedObject, _FilterComponent):
             native_bt.component_filter_borrow_output_port_by_name_const,
             native_bt.component_filter_borrow_output_port_by_index_const,
             native_bt.component_filter_get_output_port_count,
-            bt2_port._OutputPort,
+            bt2_port._OutputPortConst,
         )
 
     @property
@@ -274,7 +274,7 @@ class _GenericFilterComponent(object._SharedObject, _FilterComponent):
             native_bt.component_filter_borrow_input_port_by_name_const,
             native_bt.component_filter_borrow_input_port_by_index_const,
             native_bt.component_filter_get_input_port_count,
-            bt2_port._InputPort,
+            bt2_port._InputPortConst,
         )
 
 
@@ -291,7 +291,7 @@ class _GenericSinkComponent(object._SharedObject, _SinkComponent):
             native_bt.component_sink_borrow_input_port_by_name_const,
             native_bt.component_sink_borrow_input_port_by_index_const,
             native_bt.component_sink_get_input_port_count,
-            bt2_port._InputPort,
+            bt2_port._InputPortConst,
         )
 
 
@@ -701,7 +701,7 @@ class _UserComponent(metaclass=_UserComponentType):
         else:
             other_port_type = native_bt.PORT_TYPE_OUTPUT
 
-        other_port = bt2_port._create_from_ptr_and_get_ref(
+        other_port = bt2_port._create_from_const_ptr_and_get_ref(
             other_port_ptr, other_port_type
         )
         self._user_port_connected(port, other_port)

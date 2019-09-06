@@ -18,6 +18,7 @@
 
 import unittest
 import bt2
+from bt2 import port as bt2_port
 
 
 class PortTestCase(unittest.TestCase):
@@ -42,6 +43,7 @@ class PortTestCase(unittest.TestCase):
 
         comp = self._create_comp(MySource)
         self.assertEqual(len(comp.output_ports), 1)
+        self.assertIs(type(comp.output_ports['out']), bt2_port._OutputPortConst)
 
     def test_flt_add_output_port(self):
         class MyIter(bt2._UserMessageIterator):
@@ -68,6 +70,7 @@ class PortTestCase(unittest.TestCase):
 
         comp = self._create_comp(MyFilter)
         self.assertEqual(len(comp.input_ports), 1)
+        self.assertIs(type(comp.input_ports['in']), bt2_port._InputPortConst)
 
     def test_sink_add_input_port(self):
         class MySink(bt2._UserSinkComponent):
