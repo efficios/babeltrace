@@ -43,7 +43,7 @@ import bt2
 #     pointer to a 'bt_component_class *'.
 
 
-class _ComponentClass(object._SharedObject):
+class _ComponentClassConst(object._SharedObject):
     @property
     def name(self):
         ptr = self._bt_as_component_class_ptr(self._ptr)
@@ -65,7 +65,7 @@ class _ComponentClass(object._SharedObject):
         return self._bt_as_component_class_ptr(self._ptr)
 
     def __eq__(self, other):
-        if not isinstance(other, _ComponentClass):
+        if not isinstance(other, _ComponentClassConst):
             try:
                 if not issubclass(other, _UserComponent):
                     return False
@@ -75,7 +75,7 @@ class _ComponentClass(object._SharedObject):
         return self.addr == other.addr
 
 
-class _SourceComponentClass(_ComponentClass):
+class _SourceComponentClassConst(_ComponentClassConst):
     _get_ref = staticmethod(native_bt.component_class_source_get_ref)
     _put_ref = staticmethod(native_bt.component_class_source_put_ref)
     _bt_as_component_class_ptr = staticmethod(
@@ -83,7 +83,7 @@ class _SourceComponentClass(_ComponentClass):
     )
 
 
-class _FilterComponentClass(_ComponentClass):
+class _FilterComponentClassConst(_ComponentClassConst):
     _get_ref = staticmethod(native_bt.component_class_filter_get_ref)
     _put_ref = staticmethod(native_bt.component_class_filter_put_ref)
     _bt_as_component_class_ptr = staticmethod(
@@ -91,7 +91,7 @@ class _FilterComponentClass(_ComponentClass):
     )
 
 
-class _SinkComponentClass(_ComponentClass):
+class _SinkComponentClassConst(_ComponentClassConst):
     _get_ref = staticmethod(native_bt.component_class_sink_get_ref)
     _put_ref = staticmethod(native_bt.component_class_sink_put_ref)
     _bt_as_component_class_ptr = staticmethod(
@@ -173,7 +173,7 @@ class _ComponentPorts(collections.abc.Mapping):
 #     component pointer (e.g. 'bt_component_sink *') as a 'bt_component *'.
 
 
-class _Component:
+class _ComponentConst:
     @property
     def name(self):
         ptr = self._bt_as_component_ptr(self._ptr)
@@ -190,7 +190,7 @@ class _Component:
     def cls(self):
         cc_ptr = self._bt_borrow_component_class_ptr(self._ptr)
         assert cc_ptr is not None
-        return _create_component_class_from_ptr_and_get_ref(
+        return _create_component_class_from_const_ptr_and_get_ref(
             cc_ptr, self._bt_comp_cls_type
         )
 
@@ -201,7 +201,7 @@ class _Component:
         return self.addr == other.addr
 
 
-class _SourceComponent(_Component):
+class _SourceComponentConst(_ComponentConst):
     _bt_borrow_component_class_ptr = staticmethod(
         native_bt.component_source_borrow_class_const
     )
@@ -212,7 +212,7 @@ class _SourceComponent(_Component):
     _bt_as_component_ptr = staticmethod(native_bt.component_source_as_component_const)
 
 
-class _FilterComponent(_Component):
+class _FilterComponentConst(_ComponentConst):
     _bt_borrow_component_class_ptr = staticmethod(
         native_bt.component_filter_borrow_class_const
     )
@@ -223,7 +223,7 @@ class _FilterComponent(_Component):
     _bt_as_component_ptr = staticmethod(native_bt.component_filter_as_component_const)
 
 
-class _SinkComponent(_Component):
+class _SinkComponentConst(_ComponentConst):
     _bt_borrow_component_class_ptr = staticmethod(
         native_bt.component_sink_borrow_class_const
     )
@@ -234,9 +234,9 @@ class _SinkComponent(_Component):
     _bt_as_component_ptr = staticmethod(native_bt.component_sink_as_component_const)
 
 
-# This is analogous to _SourceComponentClass, but for source
+# This is analogous to _SourceComponentClassConst, but for source
 # component objects.
-class _GenericSourceComponent(object._SharedObject, _SourceComponent):
+class _GenericSourceComponentConst(object._SharedObject, _SourceComponentConst):
     _get_ref = staticmethod(native_bt.component_source_get_ref)
     _put_ref = staticmethod(native_bt.component_source_put_ref)
 
@@ -251,9 +251,9 @@ class _GenericSourceComponent(object._SharedObject, _SourceComponent):
         )
 
 
-# This is analogous to _FilterComponentClass, but for filter
+# This is analogous to _FilterComponentClassConst, but for filter
 # component objects.
-class _GenericFilterComponent(object._SharedObject, _FilterComponent):
+class _GenericFilterComponentConst(object._SharedObject, _FilterComponentConst):
     _get_ref = staticmethod(native_bt.component_filter_get_ref)
     _put_ref = staticmethod(native_bt.component_filter_put_ref)
 
@@ -278,9 +278,9 @@ class _GenericFilterComponent(object._SharedObject, _FilterComponent):
         )
 
 
-# This is analogous to _SinkComponentClass, but for sink
+# This is analogous to _SinkComponentClassConst, but for sink
 # component objects.
-class _GenericSinkComponent(object._SharedObject, _SinkComponent):
+class _GenericSinkComponentConst(object._SharedObject, _SinkComponentConst):
     _get_ref = staticmethod(native_bt.component_sink_get_ref)
     _put_ref = staticmethod(native_bt.component_sink_put_ref)
 
@@ -296,27 +296,27 @@ class _GenericSinkComponent(object._SharedObject, _SinkComponent):
 
 
 _COMP_CLS_TYPE_TO_GENERIC_COMP_PYCLS = {
-    native_bt.COMPONENT_CLASS_TYPE_SOURCE: _GenericSourceComponent,
-    native_bt.COMPONENT_CLASS_TYPE_FILTER: _GenericFilterComponent,
-    native_bt.COMPONENT_CLASS_TYPE_SINK: _GenericSinkComponent,
+    native_bt.COMPONENT_CLASS_TYPE_SOURCE: _GenericSourceComponentConst,
+    native_bt.COMPONENT_CLASS_TYPE_FILTER: _GenericFilterComponentConst,
+    native_bt.COMPONENT_CLASS_TYPE_SINK: _GenericSinkComponentConst,
 }
 
 
 _COMP_CLS_TYPE_TO_GENERIC_COMP_CLS_PYCLS = {
-    native_bt.COMPONENT_CLASS_TYPE_SOURCE: _SourceComponentClass,
-    native_bt.COMPONENT_CLASS_TYPE_FILTER: _FilterComponentClass,
-    native_bt.COMPONENT_CLASS_TYPE_SINK: _SinkComponentClass,
+    native_bt.COMPONENT_CLASS_TYPE_SOURCE: _SourceComponentClassConst,
+    native_bt.COMPONENT_CLASS_TYPE_FILTER: _FilterComponentClassConst,
+    native_bt.COMPONENT_CLASS_TYPE_SINK: _SinkComponentClassConst,
 }
 
 
-# Create a component Python object of type _GenericSourceComponent,
-# _GenericFilterComponent or _GenericSinkComponent, depending on
+# Create a component Python object of type _GenericSourceComponentConst,
+# _GenericFilterComponentConst or _GenericSinkComponentConst, depending on
 # comp_cls_type.
 #
 #    Steals the reference to ptr from the caller.
 
 
-def _create_component_from_ptr(ptr, comp_cls_type):
+def _create_component_from_const_ptr(ptr, comp_cls_type):
     return _COMP_CLS_TYPE_TO_GENERIC_COMP_PYCLS[comp_cls_type]._create_from_ptr(ptr)
 
 
@@ -324,20 +324,20 @@ def _create_component_from_ptr(ptr, comp_cls_type):
 # reference from the caller.
 
 
-def _create_component_from_ptr_and_get_ref(ptr, comp_cls_type):
+def _create_component_from_const_ptr_and_get_ref(ptr, comp_cls_type):
     return _COMP_CLS_TYPE_TO_GENERIC_COMP_PYCLS[
         comp_cls_type
     ]._create_from_ptr_and_get_ref(ptr)
 
 
 # Create a component class Python object of type
-# _SourceComponentClass, _FilterComponentClass or
-# _SinkComponentClass, depending on comp_cls_type.
+# _SourceComponentClassConst, _FilterComponentClassConst or
+# _SinkComponentClassConst, depending on comp_cls_type.
 #
 # Acquires a new reference to ptr.
 
 
-def _create_component_class_from_ptr_and_get_ref(ptr, comp_cls_type):
+def _create_component_class_from_const_ptr_and_get_ref(ptr, comp_cls_type):
     return _COMP_CLS_TYPE_TO_GENERIC_COMP_CLS_PYCLS[
         comp_cls_type
     ]._create_from_ptr_and_get_ref(ptr)
@@ -380,7 +380,7 @@ def _trim_docstring(docstring):
 # creates a native BT component class of the corresponding type and
 # associates it with this user-defined class. The metaclass also defines
 # class methods like the `name` and `description` properties to match
-# the _ComponentClass interface.
+# the _ComponentClassConst interface.
 #
 # The component class name which is used is either:
 #
@@ -669,7 +669,7 @@ class _UserComponent(metaclass=_UserComponentType):
     def cls(self):
         comp_ptr = self._bt_as_not_self_specific_component_ptr(self._bt_ptr)
         cc_ptr = self._bt_borrow_component_class_ptr(comp_ptr)
-        return _create_component_class_from_ptr_and_get_ref(
+        return _create_component_class_from_const_ptr_and_get_ref(
             cc_ptr, self._bt_comp_cls_type
         )
 
@@ -768,7 +768,7 @@ class _UserComponent(metaclass=_UserComponentType):
         return cc
 
 
-class _UserSourceComponent(_UserComponent, _SourceComponent):
+class _UserSourceComponent(_UserComponent, _SourceComponentConst):
     _bt_as_not_self_specific_component_ptr = staticmethod(
         native_bt.self_component_source_as_component_source
     )
@@ -801,7 +801,7 @@ class _UserSourceComponent(_UserComponent, _SourceComponent):
         return bt2_port._UserComponentOutputPort._create_from_ptr(self_port_ptr)
 
 
-class _UserFilterComponent(_UserComponent, _FilterComponent):
+class _UserFilterComponent(_UserComponent, _FilterComponentConst):
     _bt_as_not_self_specific_component_ptr = staticmethod(
         native_bt.self_component_filter_as_component_filter
     )
@@ -858,7 +858,7 @@ class _UserFilterComponent(_UserComponent, _FilterComponent):
         return bt2_port._UserComponentInputPort._create_from_ptr(self_port_ptr)
 
 
-class _UserSinkComponent(_UserComponent, _SinkComponent):
+class _UserSinkComponent(_UserComponent, _SinkComponentConst):
     _bt_as_not_self_specific_component_ptr = staticmethod(
         native_bt.self_component_sink_as_component_sink
     )

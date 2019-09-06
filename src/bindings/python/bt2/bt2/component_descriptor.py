@@ -26,7 +26,7 @@ import bt2
 
 
 def _is_source_comp_cls(comp_cls):
-    if isinstance(comp_cls, bt2_component._SourceComponentClass):
+    if isinstance(comp_cls, bt2_component._SourceComponentClassConst):
         return True
 
     try:
@@ -36,7 +36,7 @@ def _is_source_comp_cls(comp_cls):
 
 
 def _is_filter_comp_cls(comp_cls):
-    if isinstance(comp_cls, bt2_component._FilterComponentClass):
+    if isinstance(comp_cls, bt2_component._FilterComponentClassConst):
         return True
 
     try:
@@ -46,7 +46,7 @@ def _is_filter_comp_cls(comp_cls):
 
 
 def _is_sink_comp_cls(comp_cls):
-    if isinstance(comp_cls, bt2_component._SinkComponentClass):
+    if isinstance(comp_cls, bt2_component._SinkComponentClassConst):
         return True
 
     try:

@@ -100,7 +100,8 @@ class ComponentSpecTestCase(unittest.TestCase):
 
     def test_create_sink_from_object(self):
         with self.assertRaisesRegex(
-            TypeError, "'_SinkComponentClass' is not a source or filter component class"
+            TypeError,
+            "'_SinkComponentClassConst' is not a source or filter component class",
         ):
             bt2.ComponentSpec(self._pretty_cc)
 

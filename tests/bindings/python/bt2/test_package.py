@@ -33,23 +33,23 @@ class PackageTestCase(unittest.TestCase):
     def test_has__UnknownClockSnapshot(self):
         self._assert_in_bt2('_UnknownClockSnapshot')
 
-    def test_has__SourceComponentClass(self):
-        self._assert_in_bt2('_SourceComponentClass')
+    def test_has__SourceComponentClassConst(self):
+        self._assert_in_bt2('_SourceComponentClassConst')
 
-    def test_has__FilterComponentClass(self):
-        self._assert_in_bt2('_FilterComponentClass')
+    def test_has__FilterComponentClassConst(self):
+        self._assert_in_bt2('_FilterComponentClassConst')
 
-    def test_has__SinkComponentClass(self):
-        self._assert_in_bt2('_SinkComponentClass')
+    def test_has__SinkComponentClassConst(self):
+        self._assert_in_bt2('_SinkComponentClassConst')
 
-    def test_has__SourceComponent(self):
-        self._assert_in_bt2('_SourceComponent')
+    def test_has__SourceComponentConst(self):
+        self._assert_in_bt2('_SourceComponentConst')
 
-    def test_has__FilterComponent(self):
-        self._assert_in_bt2('_FilterComponent')
+    def test_has__FilterComponentConst(self):
+        self._assert_in_bt2('_FilterComponentConst')
 
-    def test_has__SinkComponent(self):
-        self._assert_in_bt2('_SinkComponent')
+    def test_has__SinkComponentConst(self):
+        self._assert_in_bt2('_SinkComponentConst')
 
     def test_has__UserSourceComponent(self):
         self._assert_in_bt2('_UserSourceComponent')
