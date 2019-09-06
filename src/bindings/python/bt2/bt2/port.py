@@ -68,7 +68,7 @@ class _Port(object._SharedObject):
         if conn_ptr is None:
             return
 
-        return bt2_connection._Connection._create_from_ptr_and_get_ref(conn_ptr)
+        return bt2_connection._ConnectionConst._create_from_ptr_and_get_ref(conn_ptr)
 
     @property
     def is_connected(self):
@@ -97,7 +97,7 @@ class _UserComponentPort(_Port):
         if conn_ptr is None:
             return
 
-        return bt2_connection._Connection._create_from_ptr_and_get_ref(conn_ptr)
+        return bt2_connection._ConnectionConst._create_from_ptr_and_get_ref(conn_ptr)
 
     @property
     def user_data(self):
