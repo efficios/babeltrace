@@ -457,6 +457,60 @@ class UserMessageIteratorSeekBeginningTestCase(unittest.TestCase):
         graph.run_once()
         self.assertFalse(can_seek_beginning)
 
+    def test_can_seek_beginning_user_error(self):
+        class MySink(bt2._UserSinkComponent):
+            def __init__(self, params, obj):
+                self._add_input_port('in')
+
+            def _user_graph_is_configured(self):
+                self._msg_iter = self._create_input_port_message_iterator(
+                    self._input_ports['in']
+                )
+
+            def _user_consume(self):
+                # This is expected to raise.
+                self._msg_iter.can_seek_beginning
+
+        def _user_can_seek_beginning(self):
+            raise ValueError('moustiquaire')
+
+        graph = _setup_seek_test(
+            MySink, user_can_seek_beginning=_user_can_seek_beginning
+        )
+
+        with self.assertRaises(bt2._Error) as ctx:
+            graph.run_once()
+
+        cause = ctx.exception[0]
+        self.assertIn('ValueError: moustiquaire', cause.message)
+
+    def test_can_seek_beginning_wrong_return_value(self):
+        class MySink(bt2._UserSinkComponent):
+            def __init__(self, params, obj):
+                self._add_input_port('in')
+
+            def _user_graph_is_configured(self):
+                self._msg_iter = self._create_input_port_message_iterator(
+                    self._input_ports['in']
+                )
+
+            def _user_consume(self):
+                # This is expected to raise.
+                self._msg_iter.can_seek_beginning
+
+        def _user_can_seek_beginning(self):
+            return 'Amqui'
+
+        graph = _setup_seek_test(
+            MySink, user_can_seek_beginning=_user_can_seek_beginning
+        )
+
+        with self.assertRaises(bt2._Error) as ctx:
+            graph.run_once()
+
+        cause = ctx.exception[0]
+        self.assertIn("TypeError: 'str' is not a 'bool' object", cause.message)
+
     def test_seek_beginning(self):
         class MySink(bt2._UserSinkComponent):
             def __init__(self, params, obj):

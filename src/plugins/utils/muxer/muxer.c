@@ -1488,49 +1488,57 @@ end:
 }
 
 static inline
-bt_bool muxer_upstream_msg_iters_can_all_seek_beginning(
-		GPtrArray *muxer_upstream_msg_iters)
+bt_component_class_message_iterator_can_seek_beginning_method_status
+muxer_upstream_msg_iters_can_all_seek_beginning(
+		GPtrArray *muxer_upstream_msg_iters, bt_bool *can_seek)
 {
+	bt_component_class_message_iterator_can_seek_beginning_method_status status;
 	uint64_t i;
-	bt_bool ret = BT_TRUE;
 
 	for (i = 0; i < muxer_upstream_msg_iters->len; i++) {
 		struct muxer_upstream_msg_iter *upstream_msg_iter =
 			muxer_upstream_msg_iters->pdata[i];
+		status = (int) bt_self_component_port_input_message_iterator_can_seek_beginning(
+			upstream_msg_iter->msg_iter, can_seek);
+		if (status != BT_COMPONENT_CLASS_MESSAGE_ITERATOR_CAN_SEEK_BEGINNING_METHOD_STATUS_OK) {
+			goto end;
+		}
 
-		if (!bt_self_component_port_input_message_iterator_can_seek_beginning(
-				upstream_msg_iter->msg_iter)) {
-			ret = BT_FALSE;
+		if (!*can_seek) {
 			goto end;
 		}
 	}
 
+	*can_seek = BT_TRUE;
+
 end:
-	return ret;
+	return status;
 }
 
 BT_HIDDEN
-bt_bool muxer_msg_iter_can_seek_beginning(
-		bt_self_message_iterator *self_msg_iter)
+bt_component_class_message_iterator_can_seek_beginning_method_status
+muxer_msg_iter_can_seek_beginning(
+		bt_self_message_iterator *self_msg_iter, bt_bool *can_seek)
 {
 	struct muxer_msg_iter *muxer_msg_iter =
 		bt_self_message_iterator_get_data(self_msg_iter);
-	bt_bool ret = BT_TRUE;
+	bt_component_class_message_iterator_can_seek_beginning_method_status status;
 
-	if (!muxer_upstream_msg_iters_can_all_seek_beginning(
-			muxer_msg_iter->active_muxer_upstream_msg_iters)) {
-		ret = BT_FALSE;
+	status = muxer_upstream_msg_iters_can_all_seek_beginning(
+		muxer_msg_iter->active_muxer_upstream_msg_iters, can_seek);
+	if (status != BT_COMPONENT_CLASS_MESSAGE_ITERATOR_CAN_SEEK_BEGINNING_METHOD_STATUS_OK) {
 		goto end;
 	}
 
-	if (!muxer_upstream_msg_iters_can_all_seek_beginning(
-			muxer_msg_iter->ended_muxer_upstream_msg_iters)) {
-		ret = BT_FALSE;
+	if (!*can_seek) {
 		goto end;
 	}
+
+	status = muxer_upstream_msg_iters_can_all_seek_beginning(
+		muxer_msg_iter->ended_muxer_upstream_msg_iters, can_seek);
 
 end:
-	return ret;
+	return status;
 }
 
 BT_HIDDEN

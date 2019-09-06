@@ -273,18 +273,23 @@ void bt_self_component_port_input_message_iterator_set_connection(
 }
 
 static
-bt_bool can_seek_ns_from_origin_true(
+enum bt_message_iterator_can_seek_beginning_status can_seek_ns_from_origin_true(
 		struct bt_self_component_port_input_message_iterator *iterator,
-		int64_t ns_from_origin)
+		int64_t ns_from_origin, bt_bool *can_seek)
 {
-	return BT_TRUE;
+	*can_seek = BT_TRUE;
+
+	return BT_FUNC_STATUS_OK;
 }
 
 static
-bt_bool can_seek_beginning_true(
-		struct bt_self_component_port_input_message_iterator *iterator)
+enum bt_message_iterator_can_seek_beginning_status can_seek_beginning_true(
+		struct bt_self_component_port_input_message_iterator *iterator,
+		bt_bool *can_seek)
 {
-	return BT_TRUE;
+	*can_seek = BT_TRUE;
+
+	return BT_FUNC_STATUS_OK;
 }
 
 static
@@ -961,13 +966,15 @@ struct bt_self_component_port_output *bt_self_message_iterator_borrow_port(
 	return (void *) iterator->upstream_port;
 }
 
-bt_bool bt_self_component_port_input_message_iterator_can_seek_ns_from_origin(
+enum bt_message_iterator_can_seek_ns_from_origin_status
+bt_self_component_port_input_message_iterator_can_seek_ns_from_origin(
 		struct bt_self_component_port_input_message_iterator *iterator,
-		int64_t ns_from_origin)
+		int64_t ns_from_origin, bt_bool *can_seek)
 {
-	bt_bool can = BT_FALSE;
+	enum bt_message_iterator_can_seek_ns_from_origin_status status;
 
 	BT_ASSERT_PRE_NON_NULL(iterator, "Message iterator");
+	BT_ASSERT_PRE_NON_NULL(can_seek, "Result (output)");
 	BT_ASSERT_PRE_ITER_HAS_STATE_TO_SEEK(iterator);
 	BT_ASSERT_PRE(
 		bt_component_borrow_graph(iterator->upstream_component)->config_state !=
@@ -976,8 +983,22 @@ bt_bool bt_self_component_port_input_message_iterator_can_seek_ns_from_origin(
 		bt_component_borrow_graph(iterator->upstream_component));
 
 	if (iterator->methods.can_seek_ns_from_origin) {
-		can = iterator->methods.can_seek_ns_from_origin(iterator,
-			ns_from_origin);
+		/*
+		 * Initialize to an invalid value, so we can post-assert that
+		 * the method returned a valid value.
+		 */
+		*can_seek = -1;
+
+		status = (int) iterator->methods.can_seek_ns_from_origin(iterator,
+			ns_from_origin, can_seek);
+
+		BT_ASSERT_POST(
+			status != BT_FUNC_STATUS_OK ||
+				*can_seek == BT_TRUE ||
+				*can_seek == BT_FALSE,
+			"Unexpected boolean value returned from user's \"can seek ns from origin\" method: val=%d, %![iter-]+i",
+			*can_seek, iterator);
+
 		goto end;
 	}
 
@@ -985,20 +1006,22 @@ bt_bool bt_self_component_port_input_message_iterator_can_seek_ns_from_origin(
 	 * Automatic seeking fall back: if we can seek to the beginning,
 	 * then we can automatically seek to any message.
 	 */
-	if (iterator->methods.can_seek_beginning) {
-		can = iterator->methods.can_seek_beginning(iterator);
-	}
+	status = (int) bt_self_component_port_input_message_iterator_can_seek_beginning(
+		iterator, can_seek);
 
 end:
-	return can;
+	return status;
 }
 
-bt_bool bt_self_component_port_input_message_iterator_can_seek_beginning(
-		struct bt_self_component_port_input_message_iterator *iterator)
+enum bt_message_iterator_can_seek_beginning_status
+bt_self_component_port_input_message_iterator_can_seek_beginning(
+		struct bt_self_component_port_input_message_iterator *iterator,
+		bt_bool *can_seek)
 {
-	bt_bool can = BT_FALSE;
+	enum bt_message_iterator_can_seek_beginning_status status;
 
 	BT_ASSERT_PRE_NON_NULL(iterator, "Message iterator");
+	BT_ASSERT_PRE_NON_NULL(can_seek, "Result (output)");
 	BT_ASSERT_PRE_ITER_HAS_STATE_TO_SEEK(iterator);
 	BT_ASSERT_PRE(
 		bt_component_borrow_graph(iterator->upstream_component)->config_state !=
@@ -1007,10 +1030,26 @@ bt_bool bt_self_component_port_input_message_iterator_can_seek_beginning(
 		bt_component_borrow_graph(iterator->upstream_component));
 
 	if (iterator->methods.can_seek_beginning) {
-		can = iterator->methods.can_seek_beginning(iterator);
+		/*
+		 * Initialize to an invalid value, so we can post-assert that
+		 * the method returned a valid value.
+		 */
+		*can_seek = -1;
+
+		status = (int) iterator->methods.can_seek_beginning(iterator, can_seek);
+
+		BT_ASSERT_POST(
+			status != BT_FUNC_STATUS_OK ||
+				*can_seek == BT_TRUE ||
+				*can_seek == BT_FALSE,
+			"Unexpected boolean value returned from user's \"can seek beginning\" method: val=%d, %![iter-]+i",
+			*can_seek, iterator);
+	} else {
+		*can_seek = BT_FALSE;
+		status = BT_FUNC_STATUS_OK;
 	}
 
-	return can;
+	return status;
 }
 
 static inline
@@ -1050,6 +1089,22 @@ void reset_iterator_expectations(
 	iterator->clock_expectation.type = CLOCK_EXPECTATION_UNSET;
 }
 
+static
+bool message_iterator_can_seek_beginning(
+		struct bt_self_component_port_input_message_iterator *iterator)
+{
+	enum bt_message_iterator_can_seek_beginning_status status;
+	bt_bool can_seek;
+
+	status = bt_self_component_port_input_message_iterator_can_seek_beginning(
+		iterator, &can_seek);
+	if (status != BT_FUNC_STATUS_OK) {
+		can_seek = BT_FALSE;
+	}
+
+	return can_seek;
+}
+
 enum bt_message_iterator_seek_beginning_status
 bt_self_component_port_input_message_iterator_seek_beginning(
 		struct bt_self_component_port_input_message_iterator *iterator)
@@ -1063,9 +1118,7 @@ bt_self_component_port_input_message_iterator_seek_beginning(
 			BT_GRAPH_CONFIGURATION_STATE_CONFIGURING,
 		"Graph is not configured: %!+g",
 		bt_component_borrow_graph(iterator->upstream_component));
-	BT_ASSERT_PRE(
-		bt_self_component_port_input_message_iterator_can_seek_beginning(
-			iterator),
+	BT_ASSERT_PRE(message_iterator_can_seek_beginning(iterator),
 		"Message iterator cannot seek beginning: %!+i", iterator);
 
 	/*
@@ -1588,6 +1641,22 @@ int clock_raw_value_from_ns_from_origin(const bt_clock_class *clock_class,
 		cc_offset_cycles, cc_freq, ns_from_origin, raw_value);
 }
 
+static
+bool message_iterator_can_seek_ns_from_origin(
+		struct bt_self_component_port_input_message_iterator *iterator,
+		int64_t ns_from_origin)
+{
+	enum bt_message_iterator_can_seek_ns_from_origin_status status;
+	bt_bool can_seek;
+
+	status = bt_self_component_port_input_message_iterator_can_seek_ns_from_origin(
+		iterator, ns_from_origin, &can_seek);
+	if (status != BT_FUNC_STATUS_OK) {
+		can_seek = BT_FALSE;
+	}
+
+	return can_seek;
+}
 
 enum bt_message_iterator_seek_ns_from_origin_status
 bt_self_component_port_input_message_iterator_seek_ns_from_origin(
@@ -1605,8 +1674,7 @@ bt_self_component_port_input_message_iterator_seek_ns_from_origin(
 		"Graph is not configured: %!+g",
 		bt_component_borrow_graph(iterator->upstream_component));
 	BT_ASSERT_PRE(
-		bt_self_component_port_input_message_iterator_can_seek_ns_from_origin(
-			iterator, ns_from_origin),
+		message_iterator_can_seek_ns_from_origin(iterator, ns_from_origin),
 		"Message iterator cannot seek nanoseconds from origin: %!+i, "
 		"ns-from-origin=%" PRId64, iterator, ns_from_origin);
 	set_self_comp_port_input_msg_iterator_state(iterator,
@@ -1643,7 +1711,15 @@ bt_self_component_port_input_message_iterator_seek_ns_from_origin(
 		 * The iterator doesn't know how to seek to a particular time.  We will
 		 * seek to the beginning and fast forward to the right place.
 		 */
-		BT_ASSERT(iterator->methods.can_seek_beginning(iterator));
+		enum bt_component_class_message_iterator_can_seek_beginning_method_status
+			can_seek_status;
+		bt_bool can_seek_beginning;
+
+		can_seek_status = iterator->methods.can_seek_beginning(iterator,
+			&can_seek_beginning);
+		BT_ASSERT(can_seek_status == BT_FUNC_STATUS_OK);
+		BT_ASSERT(can_seek_beginning);
+
 		BT_ASSERT(iterator->methods.seek_beginning);
 		BT_LIB_LOGD("Calling user's \"seek beginning\" method: %!+i",
 			iterator);

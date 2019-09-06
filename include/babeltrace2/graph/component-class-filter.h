@@ -77,14 +77,14 @@ typedef bt_component_class_message_iterator_seek_beginning_method_status
 (*bt_component_class_filter_message_iterator_seek_beginning_method)(
 		bt_self_message_iterator *message_iterator);
 
-typedef bt_bool
+typedef bt_component_class_message_iterator_can_seek_ns_from_origin_method_status
 (*bt_component_class_filter_message_iterator_can_seek_ns_from_origin_method)(
 		bt_self_message_iterator *message_iterator,
-		int64_t ns_from_origin);
+		int64_t ns_from_origin, bt_bool *can_seek);
 
-typedef bt_bool
+typedef bt_component_class_message_iterator_can_seek_beginning_method_status
 (*bt_component_class_filter_message_iterator_can_seek_beginning_method)(
-		bt_self_message_iterator *message_iterator);
+		bt_self_message_iterator *message_iterator, bt_bool *can_seek);
 
 typedef bt_component_class_query_method_status
 (*bt_component_class_filter_query_method)(

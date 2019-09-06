@@ -232,17 +232,6 @@ void loge_exception(const char *module_name, int active_log_level)
 		true, NULL, NULL, NULL, module_name);
 }
 
-static
-void loge_exception_message_iterator(
-		bt_self_message_iterator *self_message_iterator)
-{
-	bt_logging_level log_level = get_self_message_iterator_log_level(
-		self_message_iterator);
-
-	log_exception_and_maybe_append_error(BT_LOG_ERROR, log_level,
-		true, NULL, NULL, self_message_iterator, NULL);
-}
-
 static inline
 void logw_exception(int active_log_level)
 {

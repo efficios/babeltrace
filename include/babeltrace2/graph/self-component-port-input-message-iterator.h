@@ -77,13 +77,15 @@ bt_self_component_port_input_message_iterator_next(
 		bt_self_component_port_input_message_iterator *iterator,
 		bt_message_array_const *msgs, uint64_t *count);
 
-extern bt_bool
+extern bt_message_iterator_can_seek_ns_from_origin_status
 bt_self_component_port_input_message_iterator_can_seek_ns_from_origin(
 		bt_self_component_port_input_message_iterator *iterator,
-		int64_t ns_from_origin);
+		int64_t ns_from_origin, bt_bool *can_seek);
 
-extern bt_bool bt_self_component_port_input_message_iterator_can_seek_beginning(
-		bt_self_component_port_input_message_iterator *iterator);
+extern bt_message_iterator_can_seek_beginning_status
+bt_self_component_port_input_message_iterator_can_seek_beginning(
+		bt_self_component_port_input_message_iterator *iterator,
+		bt_bool *can_seek);
 
 extern bt_message_iterator_seek_ns_from_origin_status
 bt_self_component_port_input_message_iterator_seek_ns_from_origin(

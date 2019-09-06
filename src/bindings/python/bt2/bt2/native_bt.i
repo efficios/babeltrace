@@ -139,6 +139,16 @@ typedef uint64_t bt_listener_id;
 			SWIG_From_unsigned_SS_long_SS_long((uint64_t) (*$1)));
 }
 
+/* Output argument typemap for initialized bt_boot output parameter (always appends) */
+%typemap(in, numinputs=0) (bt_bool *) (bt_bool temp) {
+	$1 = &temp;
+}
+
+%typemap(argout) bt_bool * {
+	$result = SWIG_Python_AppendOutput(resultobj,
+			SWIG_From_bool(*$1));
+}
+
 /* Input argument typemap for UUID bytes */
 %typemap(in) bt_uuid {
 	$1 = (unsigned char *) PyBytes_AsString($input);

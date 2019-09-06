@@ -55,8 +55,10 @@ bt_component_class_message_iterator_next_method_status debug_info_msg_iter_next(
 		uint64_t *count);
 
 BT_HIDDEN
-bt_bool debug_info_msg_iter_can_seek_beginning(
-		bt_self_message_iterator *message_iterator);
+bt_component_class_message_iterator_can_seek_beginning_method_status
+debug_info_msg_iter_can_seek_beginning(
+		bt_self_message_iterator *message_iterator,
+		bt_bool *can_seek);
 
 BT_HIDDEN
 bt_component_class_message_iterator_seek_beginning_method_status debug_info_msg_iter_seek_beginning(
