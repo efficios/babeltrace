@@ -19,6 +19,7 @@
 import unittest
 import bt2
 from bt2 import connection as bt2_connection
+from bt2 import port as bt2_port
 
 
 class ConnectionTestCase(unittest.TestCase):
@@ -66,6 +67,7 @@ class ConnectionTestCase(unittest.TestCase):
         conn = graph.connect_ports(src.output_ports['out'], sink.input_ports['in'])
         self.assertEqual(conn.downstream_port.addr, sink.input_ports['in'].addr)
         self.assertIs(type(conn), bt2_connection._ConnectionConst)
+        self.assertIs(type(conn.downstream_port), bt2_port._InputPortConst)
 
     def test_upstream_port(self):
         class MyIter(bt2._UserMessageIterator):
@@ -88,3 +90,4 @@ class ConnectionTestCase(unittest.TestCase):
         sink = graph.add_component(MySink, 'sink')
         conn = graph.connect_ports(src.output_ports['out'], sink.input_ports['in'])
         self.assertEqual(conn.upstream_port.addr, src.output_ports['out'].addr)
+        self.assertIs(type(conn.upstream_port), bt2_port._OutputPortConst)

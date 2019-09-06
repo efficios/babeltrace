@@ -24,7 +24,7 @@ from bt2 import native_bt, object
 from bt2 import connection as bt2_connection
 
 
-def _create_from_ptr_and_get_ref(ptr, port_type):
+def _create_from_const_ptr_and_get_ref(ptr, port_type):
     cls = _PORT_TYPE_TO_PYCLS.get(port_type, None)
 
     if cls is None:
@@ -42,7 +42,7 @@ def _create_self_from_ptr_and_get_ref(ptr, port_type):
     return cls._create_from_ptr_and_get_ref(ptr)
 
 
-class _Port(object._SharedObject):
+class _PortConst(object._SharedObject):
     @classmethod
     def _get_ref(cls, ptr):
         ptr = cls._as_port_ptr(ptr)
@@ -75,15 +75,15 @@ class _Port(object._SharedObject):
         return self.connection is not None
 
 
-class _InputPort(_Port):
+class _InputPortConst(_PortConst):
     _as_port_ptr = staticmethod(native_bt.port_input_as_port_const)
 
 
-class _OutputPort(_Port):
+class _OutputPortConst(_PortConst):
     _as_port_ptr = staticmethod(native_bt.port_output_as_port_const)
 
 
-class _UserComponentPort(_Port):
+class _UserComponentPort(_PortConst):
     @classmethod
     def _as_port_ptr(cls, ptr):
         ptr = cls._as_self_port_ptr(ptr)
@@ -105,21 +105,21 @@ class _UserComponentPort(_Port):
         return native_bt.self_component_port_get_data(ptr)
 
 
-class _UserComponentInputPort(_UserComponentPort, _InputPort):
+class _UserComponentInputPort(_UserComponentPort, _InputPortConst):
     _as_self_port_ptr = staticmethod(
         native_bt.self_component_port_input_as_self_component_port
     )
 
 
-class _UserComponentOutputPort(_UserComponentPort, _OutputPort):
+class _UserComponentOutputPort(_UserComponentPort, _OutputPortConst):
     _as_self_port_ptr = staticmethod(
         native_bt.self_component_port_output_as_self_component_port
     )
 
 
 _PORT_TYPE_TO_PYCLS = {
-    native_bt.PORT_TYPE_INPUT: _InputPort,
-    native_bt.PORT_TYPE_OUTPUT: _OutputPort,
+    native_bt.PORT_TYPE_INPUT: _InputPortConst,
+    native_bt.PORT_TYPE_OUTPUT: _OutputPortConst,
 }
 
 

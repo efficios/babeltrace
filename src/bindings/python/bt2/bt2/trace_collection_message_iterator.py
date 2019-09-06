@@ -497,7 +497,7 @@ class TraceCollectionMessageIterator(bt2_message_iterator._MessageIterator):
         if not self._connect_ports:
             return
 
-        if type(port) is bt2_port._InputPort:
+        if type(port) is bt2_port._InputPortConst:
             return
 
         if component not in [comp.comp for comp in self._src_comps_and_specs]:
