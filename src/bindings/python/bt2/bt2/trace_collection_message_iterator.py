@@ -76,7 +76,8 @@ class ComponentSpec(_BaseComponentSpec):
         super().__init__(params, obj, logging_level)
 
         is_cc_object = isinstance(
-            component_class, (bt2._SourceComponentClass, bt2._FilterComponentClass)
+            component_class,
+            (bt2._SourceComponentClassConst, bt2._FilterComponentClassConst),
         )
         is_user_cc_type = isinstance(
             component_class, bt2_component._UserComponentType

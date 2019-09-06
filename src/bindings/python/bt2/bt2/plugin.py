@@ -199,7 +199,7 @@ class _PluginComponentClasses(collections.abc.Mapping):
         if cc_ptr is None:
             raise KeyError(key)
 
-        return bt2_component._create_component_class_from_ptr_and_get_ref(
+        return bt2_component._create_component_class_from_const_ptr_and_get_ref(
             cc_ptr, self._comp_cls_type
         )
 

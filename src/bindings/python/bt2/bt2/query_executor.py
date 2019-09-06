@@ -50,7 +50,7 @@ class QueryExecutor(object._SharedObject, _QueryExecutorCommon):
         return self._ptr
 
     def __init__(self, component_class, object, params=None, method_obj=None):
-        if not isinstance(component_class, bt2_component._ComponentClass):
+        if not isinstance(component_class, bt2_component._ComponentClassConst):
             err = False
 
             try:

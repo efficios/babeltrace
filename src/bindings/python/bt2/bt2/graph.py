@@ -33,7 +33,7 @@ import bt2
 def _graph_port_added_listener_from_native(
     user_listener, component_ptr, component_type, port_ptr, port_type
 ):
-    component = bt2_component._create_component_from_ptr_and_get_ref(
+    component = bt2_component._create_component_from_const_ptr_and_get_ref(
         component_ptr, component_type
     )
     port = bt2_port._create_from_const_ptr_and_get_ref(port_ptr, port_type)
@@ -49,13 +49,13 @@ def _graph_ports_connected_listener_from_native(
     downstream_component_type,
     downstream_port_ptr,
 ):
-    upstream_component = bt2_component._create_component_from_ptr_and_get_ref(
+    upstream_component = bt2_component._create_component_from_const_ptr_and_get_ref(
         upstream_component_ptr, upstream_component_type
     )
     upstream_port = bt2_port._create_from_const_ptr_and_get_ref(
         upstream_port_ptr, native_bt.PORT_TYPE_OUTPUT
     )
-    downstream_component = bt2_component._create_component_from_ptr_and_get_ref(
+    downstream_component = bt2_component._create_component_from_const_ptr_and_get_ref(
         downstream_component_ptr, downstream_component_type
     )
     downstream_port = bt2_port._create_from_const_ptr_and_get_ref(
@@ -91,15 +91,15 @@ class Graph(object._SharedObject):
         obj=None,
         logging_level=bt2_logging.LoggingLevel.NONE,
     ):
-        if isinstance(component_class, bt2_component._SourceComponentClass):
+        if isinstance(component_class, bt2_component._SourceComponentClassConst):
             cc_ptr = component_class._ptr
             add_fn = native_bt.bt2_graph_add_source_component
             cc_type = native_bt.COMPONENT_CLASS_TYPE_SOURCE
-        elif isinstance(component_class, bt2_component._FilterComponentClass):
+        elif isinstance(component_class, bt2_component._FilterComponentClassConst):
             cc_ptr = component_class._ptr
             add_fn = native_bt.bt2_graph_add_filter_component
             cc_type = native_bt.COMPONENT_CLASS_TYPE_FILTER
-        elif isinstance(component_class, bt2_component._SinkComponentClass):
+        elif isinstance(component_class, bt2_component._SinkComponentClassConst):
             cc_ptr = component_class._ptr
             add_fn = native_bt.bt2_graph_add_sink_component
             cc_type = native_bt.COMPONENT_CLASS_TYPE_SINK
@@ -137,7 +137,7 @@ class Graph(object._SharedObject):
         )
         utils._handle_func_status(status, 'cannot add component to graph')
         assert comp_ptr
-        return bt2_component._create_component_from_ptr(comp_ptr, cc_type)
+        return bt2_component._create_component_from_const_ptr(comp_ptr, cc_type)
 
     def connect_ports(self, upstream_port, downstream_port):
         utils._check_type(upstream_port, bt2_port._OutputPortConst)
