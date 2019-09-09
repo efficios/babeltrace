@@ -252,6 +252,7 @@ BT_HIDDEN
 int ctf_fs_component_create_ctf_fs_trace(
 		struct ctf_fs_component *ctf_fs,
 		const bt_value *paths_value,
+		const bt_value *trace_name_value,
 		bt_self_component *self_comp,
 		bt_self_component_class *self_comp_class);
 
@@ -266,6 +267,8 @@ void ctf_fs_destroy(struct ctf_fs_component *ctf_fs);
  *  - The mandatory `paths` parameter is returned in `*paths`.
  *  - The optional `clock-class-offset-s` and `clock-class-offset-ns`, if
  *    present, are recorded in the `ctf_fs` structure.
+ *  - The optional `trace-name` parameter is returned in `*trace_name` if
+ *    present, else `*trace_name` is set to NULL.
  *
  * `self_comp` and `self_comp_class` are used for logging, only one of them
  * should be set.
@@ -275,7 +278,9 @@ void ctf_fs_destroy(struct ctf_fs_component *ctf_fs);
 
 BT_HIDDEN
 bool read_src_fs_parameters(const bt_value *params,
-		const bt_value **paths, struct ctf_fs_component *ctf_fs,
+		const bt_value **paths,
+		const bt_value **trace_name,
+		struct ctf_fs_component *ctf_fs,
 		bt_self_component *self_comp,
 		bt_self_component_class *self_comp_class);
 
