@@ -56,7 +56,6 @@ class _GenericMessageIterator(object._SharedObject, _MessageIterator):
 
         return bt2_message._create_from_ptr(msg_ptr)
 
-    @property
     def can_seek_beginning(self):
         status, res = self._can_seek_beginning(self._ptr)
         utils._handle_func_status(
@@ -166,16 +165,15 @@ class _UserMessageIterator(_MessageIterator):
         msg._get_ref(msg._ptr)
         return int(msg._ptr)
 
-    @property
     def _bt_can_seek_beginning_from_native(self):
         # Here, we mimic the behavior of the C API:
         #
-        # - If the iterator has a _user_can_seek_beginning attribute,
+        # - If the iterator has a _user_can_seek_beginning method,
         #   read it and use that result.
         # - Otherwise, the presence or absence of a `_user_seek_beginning`
         #   method indicates whether the iterator can seek beginning.
         if hasattr(self, '_user_can_seek_beginning'):
-            can_seek_beginning = self._user_can_seek_beginning
+            can_seek_beginning = self._user_can_seek_beginning()
             utils._check_bool(can_seek_beginning)
             return can_seek_beginning
         else:
