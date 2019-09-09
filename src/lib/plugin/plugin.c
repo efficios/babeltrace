@@ -470,6 +470,7 @@ enum bt_plugin_find_status bt_plugin_find(const char *plugin_name,
 		find_in_sys_dir, find_in_static, fail_on_load_error,
 		&plugin_set);
 	if (status != BT_FUNC_STATUS_OK) {
+		BT_ASSERT(!plugin_set);
 		goto end;
 	}
 
@@ -496,6 +497,8 @@ end:
 		BT_LOGI("No plugin found in standard directories and built-in plugins: "
 			"name=\"%s\"", plugin_name);
 	}
+
+	bt_plugin_set_put_ref(plugin_set);
 
 	return status;
 }
