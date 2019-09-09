@@ -36,7 +36,14 @@ class _MessageIterator(collections.abc.Iterator):
         raise NotImplementedError
 
 
-class _GenericMessageIterator(object._SharedObject, _MessageIterator):
+class _UserComponentInputPortMessageIterator(object._SharedObject, _MessageIterator):
+    _get_ref = staticmethod(
+        native_bt.self_component_port_input_message_iterator_get_ref
+    )
+    _put_ref = staticmethod(
+        native_bt.self_component_port_input_message_iterator_put_ref
+    )
+
     def __init__(self, ptr):
         self._current_msgs = []
         self._at = 0
@@ -44,7 +51,9 @@ class _GenericMessageIterator(object._SharedObject, _MessageIterator):
 
     def __next__(self):
         if len(self._current_msgs) == self._at:
-            status, msgs = self._get_msg_range(self._ptr)
+            status, msgs = native_bt.bt2_self_component_port_input_get_msg_range(
+                self._ptr
+            )
             utils._handle_func_status(
                 status, 'unexpected error: cannot advance the message iterator'
             )
@@ -57,7 +66,9 @@ class _GenericMessageIterator(object._SharedObject, _MessageIterator):
         return bt2_message._create_from_ptr(msg_ptr)
 
     def can_seek_beginning(self):
-        status, res = self._can_seek_beginning(self._ptr)
+        status, res = native_bt.self_component_port_input_message_iterator_can_seek_beginning(
+            self._ptr
+        )
         utils._handle_func_status(
             status,
             'cannot check whether or not message iterator can seek its beginning',
@@ -69,25 +80,10 @@ class _GenericMessageIterator(object._SharedObject, _MessageIterator):
         self._current_msgs.clear()
         self._at = 0
 
-        status = self._seek_beginning(self._ptr)
+        status = native_bt.self_component_port_input_message_iterator_seek_beginning(
+            self._ptr
+        )
         utils._handle_func_status(status, 'cannot seek message iterator beginning')
-
-
-# This is created when a component wants to iterate on one of its input ports.
-class _UserComponentInputPortMessageIterator(_GenericMessageIterator):
-    _get_msg_range = staticmethod(native_bt.bt2_self_component_port_input_get_msg_range)
-    _get_ref = staticmethod(
-        native_bt.self_component_port_input_message_iterator_get_ref
-    )
-    _put_ref = staticmethod(
-        native_bt.self_component_port_input_message_iterator_put_ref
-    )
-    _can_seek_beginning = staticmethod(
-        native_bt.self_component_port_input_message_iterator_can_seek_beginning
-    )
-    _seek_beginning = staticmethod(
-        native_bt.self_component_port_input_message_iterator_seek_beginning
-    )
 
 
 # This is extended by the user to implement component classes in Python.  It
