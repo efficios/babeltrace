@@ -1097,6 +1097,7 @@ static
 int ctf_fs_component_create_ctf_fs_trace_one_path(
 		struct ctf_fs_component *ctf_fs,
 		const char *path_param,
+		const char *trace_name,
 		GPtrArray *traces,
 		bt_self_component *self_comp,
 		bt_self_component_class *self_comp_class)
@@ -1133,7 +1134,7 @@ int ctf_fs_component_create_ctf_fs_trace_one_path(
 	}
 
 	ctf_fs_trace = ctf_fs_trace_create(self_comp, norm_path->str,
-		norm_path->str, &ctf_fs->metadata_config, log_level);
+		trace_name, &ctf_fs->metadata_config, log_level);
 	if (!ctf_fs_trace) {
 		BT_COMP_LOGE_APPEND_CAUSE(self_comp, "Cannot create trace for `%s`.",
 			norm_path->str);
@@ -1971,6 +1972,7 @@ end:
 int ctf_fs_component_create_ctf_fs_trace(
 		struct ctf_fs_component *ctf_fs,
 		const bt_value *paths_value,
+		const bt_value *trace_name_value,
 		bt_self_component *self_comp,
 		bt_self_component_class *self_comp_class)
 {
@@ -1978,6 +1980,7 @@ int ctf_fs_component_create_ctf_fs_trace(
 	uint64_t i;
 	bt_logging_level log_level = ctf_fs->log_level;
 	GPtrArray *traces;
+	const char *trace_name;
 
 	BT_ASSERT(bt_value_get_type(paths_value) == BT_VALUE_TYPE_ARRAY);
 	BT_ASSERT(!bt_value_array_is_empty(paths_value));
@@ -1989,13 +1992,15 @@ int ctf_fs_component_create_ctf_fs_trace(
 		goto error;
 	}
 
+	trace_name = trace_name_value ? bt_value_string_get(trace_name_value) : NULL;
+
 	/* Start by creating a separate ctf_fs_trace object for each path. */
 	for (i = 0; i < bt_value_array_get_length(paths_value); i++) {
 		const bt_value *path_value = bt_value_array_borrow_element_by_index_const(paths_value, i);
 		const char *input = bt_value_string_get(path_value);
 
 		ret = ctf_fs_component_create_ctf_fs_trace_one_path(ctf_fs,
-			input, traces, self_comp, self_comp_class);
+			input, trace_name, traces, self_comp, self_comp_class);
 		if (ret) {
 			goto end;
 		}
@@ -2229,7 +2234,9 @@ end:
 }
 
 bool read_src_fs_parameters(const bt_value *params,
-		const bt_value **inputs, struct ctf_fs_component *ctf_fs,
+		const bt_value **inputs,
+		const bt_value **trace_name,
+		struct ctf_fs_component *ctf_fs,
 		bt_self_component *self_comp,
 		bt_self_component_class *self_comp_class) {
 	bool ret;
@@ -2268,6 +2275,15 @@ bool read_src_fs_parameters(const bt_value *params,
 			bt_value_integer_signed_get(value);
 	}
 
+	/* trace-name parameter */
+	*trace_name = bt_value_map_borrow_entry_value_const(params, "trace-name");
+	if (*trace_name) {
+		if (!bt_value_is_string(*trace_name)) {
+			BT_COMP_OR_COMP_CLASS_LOGE_APPEND_CAUSE(self_comp, self_comp_class,
+				"trace-name must be a string");
+			goto error;
+		}
+	}
 
 	ret = true;
 	goto end;
@@ -2287,6 +2303,7 @@ struct ctf_fs_component *ctf_fs_create(
 {
 	struct ctf_fs_component *ctf_fs = NULL;
 	const bt_value *inputs_value;
+	const bt_value *trace_name_value;
 	bt_self_component *self_comp =
 		bt_self_component_source_as_self_component(self_comp_src);
 
@@ -2296,15 +2313,15 @@ struct ctf_fs_component *ctf_fs_create(
 		goto error;
 	}
 
-	if (!read_src_fs_parameters(params, &inputs_value, ctf_fs,
-			self_comp, self_comp_class)) {
+	if (!read_src_fs_parameters(params, &inputs_value, &trace_name_value,
+			ctf_fs, self_comp, self_comp_class)) {
 		goto error;
 	}
 
 	bt_self_component_set_data(self_comp, ctf_fs);
 
 	if (ctf_fs_component_create_ctf_fs_trace(ctf_fs, inputs_value,
-			self_comp, self_comp_class)) {
+			trace_name_value, self_comp, self_comp_class)) {
 		goto error;
 	}
 

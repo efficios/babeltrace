@@ -339,6 +339,7 @@ bt_component_class_query_method_status trace_infos_query(
 			self_comp_class_src);
 	bt_value *result = NULL;
 	const bt_value *inputs_value = NULL;
+	const bt_value *trace_name_value;
 	int ret = 0;
 	bt_value *trace_info = NULL;
 	bt_value_array_append_element_status append_status;
@@ -357,14 +358,14 @@ bt_component_class_query_method_status trace_infos_query(
 		goto error;
 	}
 
-	if (!read_src_fs_parameters(params, &inputs_value, ctf_fs, NULL,
-			self_comp_class)) {
+	if (!read_src_fs_parameters(params, &inputs_value, &trace_name_value,
+			ctf_fs, NULL, self_comp_class)) {
 		status = BT_COMPONENT_CLASS_QUERY_METHOD_STATUS_ERROR;
 		goto error;
 	}
 
-	if (ctf_fs_component_create_ctf_fs_trace(ctf_fs, inputs_value, NULL,
-			self_comp_class)) {
+	if (ctf_fs_component_create_ctf_fs_trace(ctf_fs, inputs_value,
+			trace_name_value, NULL, self_comp_class)) {
 		goto error;
 	}
 

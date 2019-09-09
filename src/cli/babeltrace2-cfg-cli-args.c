@@ -2981,6 +2981,9 @@ end:
  * Create `struct implicit_component_args` structures for each of the
  * source components we identified.  Add them to `component_args`.
  *
+ * `non_opts` is an array of the non-option arguments passed on the command
+ * line.
+ *
  * `non_opt_params` is an array where each element is an array of
  * strings containing all the arguments to `--params` that apply to the
  * non-option argument at the same index.  For example, if, for a
@@ -2996,6 +2999,7 @@ end:
 static
 int create_implicit_component_args_from_auto_discovered_sources(
 		const struct auto_source_discovery *auto_disc,
+		const bt_value *non_opts,
 		const bt_value *non_opt_params,
 		const bt_value *non_opt_loglevels,
 		GPtrArray *component_args)
@@ -3083,6 +3087,42 @@ int create_implicit_component_args_from_auto_discovered_sources(
 					BT_CLI_LOGE_APPEND_CAUSE("Failed to append array element.");
 					goto error;
 				}
+			}
+		}
+
+		/*
+		 * If single input and a src.ctf.fs component, provide the
+		 * relative path from the path passed on the command line to the
+		 * found trace.
+		 */
+		if (bt_value_array_get_length(res->inputs) == 1 &&
+				strcmp(res->plugin_name, "ctf") == 0 &&
+				strcmp(res->source_cc_name, "fs") == 0) {
+			const bt_value *orig_idx_value =
+				bt_value_array_borrow_element_by_index(
+					res->original_input_indices, 0);
+			uint64_t orig_idx = bt_value_integer_unsigned_get(orig_idx_value);
+			const bt_value *non_opt_value =
+				bt_value_array_borrow_element_by_index_const(
+					non_opts, orig_idx);
+			const char *non_opt = bt_value_string_get(non_opt_value);
+			const bt_value *input_value =
+				bt_value_array_borrow_element_by_index_const(
+					res->inputs, 0);
+			const char *input = bt_value_string_get(input_value);
+
+			BT_ASSERT(orig_indices_count == 1);
+			BT_ASSERT(g_str_has_prefix(input, non_opt));
+
+			input += strlen(non_opt);
+
+			while (G_IS_DIR_SEPARATOR(*input)) {
+				input++;
+			}
+
+			if (strlen(input) > 0) {
+				append_string_parameter_to_args(comp->extra_params,
+					"trace-name", input);
 			}
 		}
 
@@ -4064,7 +4104,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 			}
 
 			status = create_implicit_component_args_from_auto_discovered_sources(
-				&auto_disc, non_opt_params, non_opt_loglevels,
+				&auto_disc, non_opts, non_opt_params, non_opt_loglevels,
 				discovered_source_args);
 			if (status != 0) {
 				goto error;
