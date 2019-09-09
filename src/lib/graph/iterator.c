@@ -435,7 +435,7 @@ int create_self_component_input_port_message_iterator(
 	if (iterator->methods.seek_beginning &&
 			!iterator->methods.can_seek_beginning) {
 		iterator->methods.can_seek_beginning =
-			(bt_self_component_port_input_message_iterator_seek_beginning_method)
+			(bt_self_component_port_input_message_iterator_can_seek_beginning_method)
 				can_seek_beginning_true;
 	}
 
