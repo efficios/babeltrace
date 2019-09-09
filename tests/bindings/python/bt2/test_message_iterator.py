@@ -403,12 +403,12 @@ class UserMessageIteratorSeekBeginningTestCase(unittest.TestCase):
         input_port_iter_can_seek_beginning = True
         can_seek_beginning = None
         graph.run_once()
-        self.assertTrue(can_seek_beginning)
+        self.assertIs(can_seek_beginning, True)
 
         input_port_iter_can_seek_beginning = False
         can_seek_beginning = None
         graph.run_once()
-        self.assertFalse(can_seek_beginning)
+        self.assertIs(can_seek_beginning, False)
 
     def test_no_can_seek_beginning_with_seek_beginning(self):
         # Test an iterator without a _user_can_seek_beginning method, but with
@@ -432,7 +432,7 @@ class UserMessageIteratorSeekBeginningTestCase(unittest.TestCase):
         graph = _setup_seek_test(MySink, user_seek_beginning=_user_seek_beginning)
         can_seek_beginning = None
         graph.run_once()
-        self.assertTrue(can_seek_beginning)
+        self.assertIs(can_seek_beginning, True)
 
     def test_no_can_seek_beginning(self):
         # Test an iterator without a _user_can_seek_beginning method, without
@@ -453,7 +453,7 @@ class UserMessageIteratorSeekBeginningTestCase(unittest.TestCase):
         graph = _setup_seek_test(MySink)
         can_seek_beginning = None
         graph.run_once()
-        self.assertFalse(can_seek_beginning)
+        self.assertIs(can_seek_beginning, False)
 
     def test_can_seek_beginning_user_error(self):
         class MySink(bt2._UserSinkComponent):
