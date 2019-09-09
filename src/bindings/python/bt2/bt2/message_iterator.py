@@ -62,7 +62,7 @@ class _GenericMessageIterator(object._SharedObject, _MessageIterator):
         return res != 0
 
     def seek_beginning(self):
-        # Forget about buffered messages, they won't be valid after seeking..
+        # Forget about buffered messages, they won't be valid after seeking.
         self._current_msgs.clear()
         self._at = 0
 
