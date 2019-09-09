@@ -548,7 +548,8 @@ component_class_can_seek_beginning(
 	py_iter = bt_self_message_iterator_get_data(self_message_iterator);
 	BT_ASSERT(py_iter);
 
-	py_result = PyObject_GetAttrString(py_iter, "_bt_can_seek_beginning_from_native");
+	py_result = PyObject_CallMethod(py_iter,
+		"_bt_can_seek_beginning_from_native", NULL);
 
 	BT_ASSERT(!py_result || PyBool_Check(py_result));
 
