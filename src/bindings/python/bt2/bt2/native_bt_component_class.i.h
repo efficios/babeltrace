@@ -585,6 +585,56 @@ component_class_seek_beginning(bt_self_message_iterator *self_message_iterator)
 }
 
 static
+bt_component_class_message_iterator_can_seek_ns_from_origin_method_status
+component_class_can_seek_ns_from_origin(
+		bt_self_message_iterator *self_message_iterator,
+		int64_t ns_from_origin, bt_bool *can_seek)
+{
+	PyObject *py_iter;
+	PyObject *py_result = NULL;
+	bt_component_class_message_iterator_can_seek_ns_from_origin_method_status status;
+	py_iter = bt_self_message_iterator_get_data(self_message_iterator);
+	BT_ASSERT(py_iter);
+
+	py_result = PyObject_CallMethod(py_iter,
+		"_bt_can_seek_ns_from_origin_from_native", "L", ns_from_origin);
+
+	BT_ASSERT(!py_result || PyBool_Check(py_result));
+
+	if (py_result) {
+		*can_seek = PyObject_IsTrue(py_result);
+		status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_CAN_SEEK_NS_FROM_ORIGIN_METHOD_STATUS_OK;
+	} else {
+		status = py_exc_to_status_message_iterator(self_message_iterator);
+		BT_ASSERT(status != BT_COMPONENT_CLASS_MESSAGE_ITERATOR_CAN_SEEK_NS_FROM_ORIGIN_METHOD_STATUS_OK);
+	}
+
+	Py_XDECREF(py_result);
+
+	return status;
+}
+
+static
+bt_component_class_message_iterator_seek_ns_from_origin_method_status
+component_class_seek_ns_from_origin(
+		bt_self_message_iterator *self_message_iterator,
+		int64_t ns_from_origin)
+{
+	PyObject *py_iter;
+	PyObject *py_result;
+	bt_component_class_message_iterator_seek_ns_from_origin_method_status status;
+
+	py_iter = bt_self_message_iterator_get_data(self_message_iterator);
+	BT_ASSERT(py_iter);
+	py_result = PyObject_CallMethod(py_iter,
+		"_bt_seek_ns_from_origin_from_native", "L", ns_from_origin);
+	BT_ASSERT(!py_result || py_result == Py_None);
+	status = py_exc_to_status_message_iterator(self_message_iterator);
+	Py_XDECREF(py_result);
+	return status;
+}
+
+static
 bt_component_class_port_connected_method_status component_class_port_connected(
 		bt_self_component *self_component,
 		void *self_component_port,
@@ -1198,6 +1248,11 @@ bt_component_class_source *bt_bt2_component_class_source_create(
 	BT_ASSERT(ret == 0);
 	ret = bt_component_class_source_set_message_iterator_seek_beginning_method(component_class_source,
 		component_class_seek_beginning);
+	ret = bt_component_class_source_set_message_iterator_can_seek_ns_from_origin_method(
+		component_class_source, component_class_can_seek_ns_from_origin);
+	BT_ASSERT(ret == 0);
+	ret = bt_component_class_source_set_message_iterator_seek_ns_from_origin_method(
+		component_class_source, component_class_seek_ns_from_origin);
 	BT_ASSERT(ret == 0);
 	ret = bt_component_class_source_set_output_port_connected_method(component_class_source,
 		component_class_source_output_port_connected);
@@ -1251,6 +1306,11 @@ bt_component_class_filter *bt_bt2_component_class_filter_create(
 	ret = bt_component_class_filter_set_message_iterator_seek_beginning_method(component_class_filter,
 		component_class_seek_beginning);
 	BT_ASSERT(ret == 0);
+	ret = bt_component_class_filter_set_message_iterator_can_seek_ns_from_origin_method(
+		component_class_filter, component_class_can_seek_ns_from_origin);
+	BT_ASSERT(ret == 0);
+	ret = bt_component_class_filter_set_message_iterator_seek_ns_from_origin_method(
+		component_class_filter, component_class_seek_ns_from_origin);
 	ret = bt_component_class_filter_set_input_port_connected_method(component_class_filter,
 		component_class_filter_input_port_connected);
    	BT_ASSERT(ret == 0);

@@ -85,6 +85,31 @@ class _UserComponentInputPortMessageIterator(object._SharedObject, _MessageItera
         )
         utils._handle_func_status(status, 'cannot seek message iterator beginning')
 
+    def can_seek_ns_from_origin(self, ns_from_origin):
+        utils._check_int64(ns_from_origin)
+        status, res = native_bt.self_component_port_input_message_iterator_can_seek_ns_from_origin(
+            self._ptr, ns_from_origin
+        )
+        utils._handle_func_status(
+            status,
+            'cannot check whether or not message iterator can seek given ns from origin',
+        )
+        return res != 0
+
+    def seek_ns_from_origin(self, ns_from_origin):
+        utils._check_int64(ns_from_origin)
+
+        # Forget about buffered messages, they won't be valid after seeking.
+        self._current_msgs.clear()
+        self._at = 0
+
+        status = native_bt.self_component_port_input_message_iterator_seek_ns_from_origin(
+            self._ptr, ns_from_origin
+        )
+        utils._handle_func_status(
+            status, 'message iterator cannot seek given ns from origin'
+        )
+
 
 # This is extended by the user to implement component classes in Python.  It
 # is created for a given output port when an input port message iterator is
@@ -177,6 +202,27 @@ class _UserMessageIterator(_MessageIterator):
 
     def _bt_seek_beginning_from_native(self):
         self._user_seek_beginning()
+
+    def _bt_can_seek_ns_from_origin_from_native(self, ns_from_origin):
+        # Here, we mimic the behavior of the C API:
+        #
+        # - If the iterator has a _user_can_seek_ns_from_origin method,
+        #   call it and use its return value.
+        # - Otherwise, if there is a `_user_seek_ns_from_origin` method,
+        #   we presume it's possible.
+        # - Otherwise, check if we can seek to beginning (which allows us to
+        #   seek to beginning and then fast forward - aka auto-seek).
+        if hasattr(self, '_user_can_seek_ns_from_origin'):
+            can_seek_ns_from_origin = self._user_can_seek_ns_from_origin(ns_from_origin)
+            utils._check_bool(can_seek_ns_from_origin)
+            return can_seek_ns_from_origin
+        elif hasattr(self, '_user_seek_ns_from_origin'):
+            return True
+        else:
+            return self._bt_can_seek_beginning_from_native()
+
+    def _bt_seek_ns_from_origin_from_native(self, ns_from_origin):
+        self._user_seek_ns_from_origin(ns_from_origin)
 
     def _create_input_port_message_iterator(self, input_port):
         utils._check_type(input_port, bt2_port._UserComponentInputPort)

@@ -314,7 +314,13 @@ class UserMessageIteratorTestCase(unittest.TestCase):
                 next(it)
 
 
-def _setup_seek_test(sink_cls, user_seek_beginning=None, user_can_seek_beginning=None):
+def _setup_seek_test(
+    sink_cls,
+    user_seek_beginning=None,
+    user_can_seek_beginning=None,
+    user_seek_ns_from_origin=None,
+    user_can_seek_ns_from_origin=None,
+):
     class MySourceIter(bt2._UserMessageIterator):
         def __init__(self, port):
             tc, sc, ec = port.user_data
@@ -346,6 +352,12 @@ def _setup_seek_test(sink_cls, user_seek_beginning=None, user_can_seek_beginning
     if user_can_seek_beginning is not None:
         MySourceIter._user_can_seek_beginning = user_can_seek_beginning
 
+    if user_seek_ns_from_origin is not None:
+        MySourceIter._user_seek_ns_from_origin = user_seek_ns_from_origin
+
+    if user_can_seek_ns_from_origin is not None:
+        MySourceIter._user_can_seek_ns_from_origin = user_can_seek_ns_from_origin
+
     class MySource(bt2._UserSourceComponent, message_iterator_class=MySourceIter):
         def __init__(self, params, obj):
             tc = self._create_trace_class()
@@ -368,6 +380,12 @@ def _setup_seek_test(sink_cls, user_seek_beginning=None, user_can_seek_beginning
 
         def _user_seek_beginning(self):
             self._upstream_iter.seek_beginning()
+
+        def _user_can_seek_ns_from_origin(self, ns_from_origin):
+            return self._upstream_iter.can_seek_ns_from_origin(ns_from_origin)
+
+        def _user_seek_ns_from_origin(self, ns_from_origin):
+            self._upstream_iter.seek_ns_from_origin(ns_from_origin)
 
     class MyFilter(bt2._UserFilterComponent, message_iterator_class=MyFilterIter):
         def __init__(self, params, obj):
@@ -573,6 +591,210 @@ class UserMessageIteratorSeekBeginningTestCase(unittest.TestCase):
 
         with self.assertRaises(bt2._Error):
             graph.run_once()
+
+
+class UserMessageIteratorSeekNsFromOriginTestCase(unittest.TestCase):
+    def test_can_seek_ns_from_origin(self):
+        class MySink(bt2._UserSinkComponent):
+            def __init__(self, params, obj):
+                self._add_input_port('in')
+
+            def _user_graph_is_configured(self):
+                self._msg_iter = self._create_input_port_message_iterator(
+                    self._input_ports['in']
+                )
+
+            def _user_consume(self):
+                nonlocal can_seek_ns_from_origin
+                nonlocal test_ns_from_origin
+                can_seek_ns_from_origin = self._msg_iter.can_seek_ns_from_origin(
+                    test_ns_from_origin
+                )
+
+        def _user_can_seek_ns_from_origin(iter_self, ns_from_origin):
+            nonlocal input_port_iter_can_seek_ns_from_origin
+            nonlocal test_ns_from_origin
+            self.assertEqual(ns_from_origin, test_ns_from_origin)
+            return input_port_iter_can_seek_ns_from_origin
+
+        graph = _setup_seek_test(
+            MySink, user_can_seek_ns_from_origin=_user_can_seek_ns_from_origin
+        )
+
+        input_port_iter_can_seek_ns_from_origin = True
+        can_seek_ns_from_origin = None
+        test_ns_from_origin = 1
+        graph.run_once()
+        self.assertIs(can_seek_ns_from_origin, True)
+
+        input_port_iter_can_seek_ns_from_origin = False
+        can_seek_ns_from_origin = None
+        test_ns_from_origin = 2
+        graph.run_once()
+        self.assertIs(can_seek_ns_from_origin, False)
+
+    def test_no_can_seek_ns_from_origin_with_seek_ns_from_origin(self):
+        # Test an iterator without a _user_can_seek_ns_from_origin method, but
+        # with a _user_seek_ns_from_origin method.
+        class MySink(bt2._UserSinkComponent):
+            def __init__(self, params, obj):
+                self._add_input_port('in')
+
+            def _user_graph_is_configured(self):
+                self._msg_iter = self._create_input_port_message_iterator(
+                    self._input_ports['in']
+                )
+
+            def _user_consume(self):
+                nonlocal can_seek_ns_from_origin
+                nonlocal test_ns_from_origin
+                can_seek_ns_from_origin = self._msg_iter.can_seek_ns_from_origin(
+                    test_ns_from_origin
+                )
+
+        def _user_seek_ns_from_origin(self):
+            pass
+
+        graph = _setup_seek_test(
+            MySink, user_seek_ns_from_origin=_user_seek_ns_from_origin
+        )
+        can_seek_ns_from_origin = None
+        test_ns_from_origin = 2
+        graph.run_once()
+        self.assertIs(can_seek_ns_from_origin, True)
+
+    def test_no_can_seek_ns_from_origin_with_seek_beginning(self):
+        # Test an iterator without a _user_can_seek_ns_from_origin method, but
+        # with a _user_seek_beginning method.
+        class MySink(bt2._UserSinkComponent):
+            def __init__(self, params, obj):
+                self._add_input_port('in')
+
+            def _user_graph_is_configured(self):
+                self._msg_iter = self._create_input_port_message_iterator(
+                    self._input_ports['in']
+                )
+
+            def _user_consume(self):
+                nonlocal can_seek_ns_from_origin
+                nonlocal test_ns_from_origin
+                can_seek_ns_from_origin = self._msg_iter.can_seek_ns_from_origin(
+                    test_ns_from_origin
+                )
+
+        def _user_seek_beginning(self):
+            pass
+
+        graph = _setup_seek_test(MySink, user_seek_beginning=_user_seek_beginning)
+        can_seek_ns_from_origin = None
+        test_ns_from_origin = 2
+        graph.run_once()
+        self.assertIs(can_seek_ns_from_origin, True)
+
+    def test_no_can_seek_ns_from_origin(self):
+        # Test an iterator without a _user_can_seek_ns_from_origin method
+        # and no other related method.
+        class MySink(bt2._UserSinkComponent):
+            def __init__(self, params, obj):
+                self._add_input_port('in')
+
+            def _user_graph_is_configured(self):
+                self._msg_iter = self._create_input_port_message_iterator(
+                    self._input_ports['in']
+                )
+
+            def _user_consume(self):
+                nonlocal can_seek_ns_from_origin
+                nonlocal test_ns_from_origin
+                can_seek_ns_from_origin = self._msg_iter.can_seek_ns_from_origin(
+                    test_ns_from_origin
+                )
+
+        graph = _setup_seek_test(MySink)
+        can_seek_ns_from_origin = None
+        test_ns_from_origin = 2
+        graph.run_once()
+        self.assertIs(can_seek_ns_from_origin, False)
+
+    def test_can_seek_ns_from_origin_user_error(self):
+        class MySink(bt2._UserSinkComponent):
+            def __init__(self, params, obj):
+                self._add_input_port('in')
+
+            def _user_graph_is_configured(self):
+                self._msg_iter = self._create_input_port_message_iterator(
+                    self._input_ports['in']
+                )
+
+            def _user_consume(self):
+                # This is expected to raise.
+                self._msg_iter.can_seek_ns_from_origin(2)
+
+        def _user_can_seek_ns_from_origin(self, ns_from_origin):
+            raise ValueError('Joutel')
+
+        graph = _setup_seek_test(
+            MySink, user_can_seek_ns_from_origin=_user_can_seek_ns_from_origin
+        )
+
+        with self.assertRaises(bt2._Error) as ctx:
+            graph.run_once()
+
+        cause = ctx.exception[0]
+        self.assertIn('ValueError: Joutel', cause.message)
+
+    def test_can_seek_ns_from_origin_wrong_return_value(self):
+        class MySink(bt2._UserSinkComponent):
+            def __init__(self, params, obj):
+                self._add_input_port('in')
+
+            def _user_graph_is_configured(self):
+                self._msg_iter = self._create_input_port_message_iterator(
+                    self._input_ports['in']
+                )
+
+            def _user_consume(self):
+                # This is expected to raise.
+                self._msg_iter.can_seek_ns_from_origin(2)
+
+        def _user_can_seek_ns_from_origin(self, ns_from_origin):
+            return 'Nitchequon'
+
+        graph = _setup_seek_test(
+            MySink, user_can_seek_ns_from_origin=_user_can_seek_ns_from_origin
+        )
+
+        with self.assertRaises(bt2._Error) as ctx:
+            graph.run_once()
+
+        cause = ctx.exception[0]
+        self.assertIn("TypeError: 'str' is not a 'bool' object", cause.message)
+
+    def test_seek_ns_from_origin(self):
+        class MySink(bt2._UserSinkComponent):
+            def __init__(self, params, obj):
+                self._add_input_port('in')
+
+            def _user_graph_is_configured(self):
+                self._msg_iter = self._create_input_port_message_iterator(
+                    self._input_ports['in']
+                )
+
+            def _user_consume(self):
+                self._msg_iter.seek_ns_from_origin(17)
+
+        def _user_seek_ns_from_origin(self, ns_from_origin):
+            nonlocal actual_ns_from_origin
+            actual_ns_from_origin = ns_from_origin
+
+        msg = None
+        graph = _setup_seek_test(
+            MySink, user_seek_ns_from_origin=_user_seek_ns_from_origin
+        )
+
+        actual_ns_from_origin = None
+        graph.run_once()
+        self.assertEqual(actual_ns_from_origin, 17)
 
 
 if __name__ == '__main__':
