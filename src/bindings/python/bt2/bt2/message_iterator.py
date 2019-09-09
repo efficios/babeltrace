@@ -160,7 +160,7 @@ class _UserMessageIterator(_MessageIterator):
         #
         # - If the iterator has a _user_can_seek_beginning attribute,
         #   read it and use that result.
-        # - Otherwise, the presence or absence of a `_seek_beginning`
+        # - Otherwise, the presence or absence of a `_user_seek_beginning`
         #   method indicates whether the iterator can seek beginning.
         if hasattr(self, '_user_can_seek_beginning'):
             can_seek_beginning = self._user_can_seek_beginning
