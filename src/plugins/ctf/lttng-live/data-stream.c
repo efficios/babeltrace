@@ -172,6 +172,11 @@ enum lttng_live_iterator_status lttng_live_lazy_msg_init(
 			if (!stream_iter->msg_iter) {
 				goto error;
 			}
+
+			bt_msg_iter_set_emit_stream_end_message(
+				stream_iter->msg_iter, true);
+			bt_msg_iter_set_emit_stream_beginning_message(
+				stream_iter->msg_iter, true);
 		}
 	}
 
@@ -232,6 +237,11 @@ struct lttng_live_stream_iterator *lttng_live_stream_iterator_create(
 		if (!stream_iter->msg_iter) {
 			goto error;
 		}
+
+		bt_msg_iter_set_emit_stream_end_message(
+			stream_iter->msg_iter, true);
+		bt_msg_iter_set_emit_stream_beginning_message(
+			stream_iter->msg_iter, true);
 	}
 	stream_iter->buf = g_new0(uint8_t, lttng_live->max_query_size);
 	if (!stream_iter->buf) {
