@@ -3,7 +3,7 @@
 trace {
 	major = 1;
 	minor = 8;
-	uuid = "a967fbc0-c89b-4b92-b5df-30688d576ddf";
+	uuid = "a8d0738a-4a6d-466b-83a7-8ab3c387d5bb";
 	byte_order = be;
 	packet.header := struct {
 		integer { size = 32; align = 8; signed = false; encoding = none; base = decimal; byte_order = be; } magic;
@@ -18,7 +18,7 @@ env {
 
 clock {
 	name = test_clock;
-	uuid = "fb759646-b2b9-42d7-9013-f790694dd902";
+	uuid = "1fb54d69-571c-49a1-9a34-084c7f3a5b33";
 	description = "This is a test clock";
 	freq = 1000000000;
 	precision = 10;
