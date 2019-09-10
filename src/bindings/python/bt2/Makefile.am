@@ -126,7 +126,9 @@ swig_verbose_ = $(swig_verbose_@AM_DEFAULT_V@)
 swig_verbose_0 = @echo "  SWIG     " $@;
 
 $(builddir)/bt2/native_bt.c: $(SWIG_INTERFACE_FILES)
-	$(swig_verbose)$(SWIG) -python -I"$(top_srcdir)/include" -o "$@" "$<"
+	$(swig_verbose)$(SWIG) -MD -python -I"$(top_srcdir)/include" -o "$@" "$<"
+
+-include bt2/native_bt.d
 
 install-exec-local: build-python-bindings.stamp
 	@opts="--prefix=$(prefix) --record $(INSTALLED_FILES) --verbose --no-compile $(DISTSETUPOPTS)"; \
