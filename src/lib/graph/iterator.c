@@ -951,7 +951,7 @@ struct bt_self_component *bt_self_message_iterator_borrow_component(
 	return (void *) iterator->upstream_component;
 }
 
-struct bt_self_port_output *bt_self_message_iterator_borrow_port(
+struct bt_self_component_port_output *bt_self_message_iterator_borrow_port(
 		struct bt_self_message_iterator *self_iterator)
 {
 	struct bt_self_component_port_input_message_iterator *iterator =
