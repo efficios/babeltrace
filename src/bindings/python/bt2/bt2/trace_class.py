@@ -47,6 +47,9 @@ class _TraceClassConst(object._SharedObject, collections.abc.Mapping):
     _borrow_stream_class_ptr_by_id = staticmethod(
         native_bt.trace_class_borrow_stream_class_by_id_const
     )
+    _borrow_user_attributes_ptr = staticmethod(
+        native_bt.trace_class_borrow_user_attributes_const
+    )
     _stream_class_pycls = bt2_stream_class._StreamClassConst
     _create_value_from_ptr_and_get_ref = staticmethod(
         bt2_value._create_from_const_ptr_and_get_ref
@@ -54,7 +57,7 @@ class _TraceClassConst(object._SharedObject, collections.abc.Mapping):
 
     @property
     def user_attributes(self):
-        ptr = native_bt.trace_class_borrow_user_attributes(self._ptr)
+        ptr = self._borrow_user_attributes_ptr(self._ptr)
         assert ptr is not None
         return self._create_value_from_ptr_and_get_ref(ptr)
 
@@ -116,6 +119,9 @@ class _TraceClass(_TraceClassConst):
     )
     _borrow_stream_class_ptr_by_id = staticmethod(
         native_bt.trace_class_borrow_stream_class_by_id
+    )
+    _borrow_user_attributes_ptr = staticmethod(
+        native_bt.trace_class_borrow_user_attributes
     )
     _stream_class_pycls = bt2_stream_class._StreamClass
     _create_value_from_ptr_and_get_ref = staticmethod(

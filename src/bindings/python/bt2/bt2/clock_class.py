@@ -54,10 +54,13 @@ class _ClockClassConst(object._SharedObject):
     _create_value_from_ptr_and_get_ref = staticmethod(
         bt2_value._create_from_const_ptr_and_get_ref
     )
+    _borrow_user_attributes_ptr = staticmethod(
+        native_bt.clock_class_borrow_user_attributes_const
+    )
 
     @property
     def user_attributes(self):
-        ptr = native_bt.clock_class_borrow_user_attributes(self._ptr)
+        ptr = self._borrow_user_attributes_ptr(self._ptr)
         assert ptr is not None
         return self._create_value_from_ptr_and_get_ref(ptr)
 
@@ -107,6 +110,9 @@ class _ClockClassConst(object._SharedObject):
 class _ClockClass(_ClockClassConst):
     _create_value_from_ptr_and_get_ref = staticmethod(
         bt2_value._create_from_ptr_and_get_ref
+    )
+    _borrow_user_attributes_ptr = staticmethod(
+        native_bt.clock_class_borrow_user_attributes
     )
 
     def _user_attributes(self, user_attributes):

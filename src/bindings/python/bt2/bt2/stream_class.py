@@ -50,6 +50,9 @@ class _StreamClassConst(object._SharedObject, collections.abc.Mapping):
     _borrow_default_clock_class_ptr = staticmethod(
         native_bt.stream_class_borrow_default_clock_class_const
     )
+    _borrow_user_attributes_ptr = staticmethod(
+        native_bt.stream_class_borrow_user_attributes_const
+    )
 
     _event_class_cls = property(lambda _: bt2_event_class._EventClassConst)
     _trace_class_cls = property(lambda _: bt2_trace_class._TraceClassConst)
@@ -88,7 +91,7 @@ class _StreamClassConst(object._SharedObject, collections.abc.Mapping):
 
     @property
     def user_attributes(self):
-        ptr = native_bt.stream_class_borrow_user_attributes(self._ptr)
+        ptr = self._borrow_user_attributes_ptr(self._ptr)
         assert ptr is not None
         return bt2_value._create_from_ptr_and_get_ref(ptr)
 
@@ -193,6 +196,10 @@ class _StreamClass(_StreamClassConst):
     _borrow_default_clock_class_ptr = staticmethod(
         native_bt.stream_class_borrow_default_clock_class
     )
+    _borrow_user_attributes_ptr = staticmethod(
+        native_bt.stream_class_borrow_user_attributes
+    )
+
     _event_class_cls = property(lambda s: bt2_event_class._EventClass)
     _trace_class_cls = property(lambda s: bt2_trace_class._TraceClass)
     _clock_class_cls = property(lambda s: bt2_clock_class._ClockClass)
