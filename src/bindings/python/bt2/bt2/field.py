@@ -180,6 +180,9 @@ class _NumericFieldConst(_FieldConst):
         except Exception:
             return False
 
+    def __hash__(self):
+        return hash(self._value)
+
     def __rmod__(self, other):
         return self._extract_value(other) % self._value
 
@@ -242,7 +245,10 @@ class _NumericFieldConst(_FieldConst):
 
 
 class _NumericField(_NumericFieldConst, _Field):
-    pass
+    def __hash__(self):
+        # Non const field are not hashable as their value may be modified
+        # without changing the underlying Python object.
+        raise TypeError('unhashable type: \'{}\''.format(self._NAME))
 
 
 class _IntegralFieldConst(_NumericFieldConst, numbers.Integral):
@@ -483,6 +489,9 @@ class _StringFieldConst(_FieldConst):
     def __bool__(self):
         return bool(self._value)
 
+    def __hash__(self):
+        return hash(self._value)
+
     def _repr(self):
         return repr(self._value)
 
@@ -512,6 +521,11 @@ class _StringField(_StringFieldConst, _Field):
             status, "cannot append to string field object's value"
         )
         return self
+
+    def __hash__(self):
+        # Non const field are not hashable as their value may be modified
+        # without changing the underlying Python object.
+        raise TypeError('unhashable type: \'{}\''.format(self._NAME))
 
 
 class _ContainerFieldConst(_FieldConst):

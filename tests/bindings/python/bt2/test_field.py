@@ -660,6 +660,18 @@ class _TestNumericField:
     def test_str_op(self):
         self.assertEqual(str(self._def), str(self._def_value))
 
+    def test_hash_op(self):
+        with self.assertRaises(TypeError):
+            hash(self._def)
+
+    def test_const_hash_op(self):
+        self.assertEqual(hash(self._def_const), hash(self._def_value))
+
+    def test_const_hash_dict(self):
+        my_dict = {}
+        my_dict[self._def_const] = 'my_value'
+        self.assertEqual(my_dict[self._def_value], 'my_value')
+
     def test_eq_none(self):
         # Ignore this lint error:
         #   E711 comparison to None should be 'if cond is None:'
@@ -1287,6 +1299,10 @@ _inject_numeric_testing_methods(_TestIntegerFieldCommon)
 
 
 class SignedIntegerFieldTestCase(_TestIntegerFieldCommon, unittest.TestCase):
+    @staticmethod
+    def _const_value_setter(field):
+        field.value = 17
+
     def _create_fc(self, tc):
         return tc.create_signed_integer_field_class(25)
 
@@ -1297,10 +1313,17 @@ class SignedIntegerFieldTestCase(_TestIntegerFieldCommon, unittest.TestCase):
         self._def = _create_field(self._tc, self._create_fc(self._tc))
         self._def.value = 17
         self._def_value = 17
+        self._def_const = _create_const_field(
+            self._tc, self._create_fc(self._tc), self._const_value_setter
+        )
         self._def_new_value = -101
 
 
 class SignedEnumerationFieldTestCase(_TestIntegerFieldCommon, unittest.TestCase):
+    @staticmethod
+    def _const_value_setter(field):
+        field.value = 17
+
     def _create_fc(self, tc):
         fc = tc.create_signed_enumeration_field_class(32)
         fc.add_mapping('something', bt2.SignedIntegerRangeSet([(17, 17)]))
@@ -1318,6 +1341,9 @@ class SignedEnumerationFieldTestCase(_TestIntegerFieldCommon, unittest.TestCase)
         self._def = _create_field(self._tc, self._create_fc(self._tc))
         self._def.value = 17
         self._def_value = 17
+        self._def_const = _create_const_field(
+            self._tc, self._create_fc(self._tc), self._const_value_setter
+        )
         self._def_new_value = -101
 
     def test_str_op(self):
@@ -1342,6 +1368,10 @@ class SignedEnumerationFieldTestCase(_TestIntegerFieldCommon, unittest.TestCase)
 
 
 class RealFieldTestCase(_TestNumericField, unittest.TestCase):
+    @staticmethod
+    def _const_value_setter(field):
+        field.value = 52.7
+
     def _create_fc(self, tc):
         return tc.create_real_field_class()
 
@@ -1349,6 +1379,9 @@ class RealFieldTestCase(_TestNumericField, unittest.TestCase):
         self._tc = get_default_trace_class()
         self._field = _create_field(self._tc, self._create_fc(self._tc))
         self._def = _create_field(self._tc, self._create_fc(self._tc))
+        self._def_const = _create_const_field(
+            self._tc, self._tc.create_real_field_class(), self._const_value_setter
+        )
         self._def.value = 52.7
         self._def_value = 52.7
         self._def_new_value = -17.164857
@@ -1540,6 +1573,18 @@ class StringFieldTestCase(unittest.TestCase):
         self._def += field
         self._def_value += to_append
         self.assertEqual(self._def, self._def_value)
+
+    def test_hash_op(self):
+        with self.assertRaises(TypeError):
+            hash(self._def)
+
+    def test_const_hash_op(self):
+        self.assertEqual(hash(self._def_const), hash(self._def_value))
+
+    def test_const_hash_dict(self):
+        my_dict = {}
+        my_dict[self._def_const] = 'my_value'
+        self.assertEqual(my_dict[self._def_value], 'my_value')
 
 
 class _TestArrayFieldCommon:
