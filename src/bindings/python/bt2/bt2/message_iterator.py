@@ -124,6 +124,14 @@ class _UserMessageIterator(_MessageIterator):
         return native_bt.bt2_get_user_component_from_user_msg_iter(self._bt_ptr)
 
     @property
+    def _port(self):
+        port_ptr = native_bt.self_message_iterator_borrow_port(self._bt_ptr)
+        assert port_ptr is not None
+        return bt2_port._create_self_from_ptr_and_get_ref(
+            port_ptr, native_bt.PORT_TYPE_OUTPUT
+        )
+
+    @property
     def addr(self):
         return int(self._bt_ptr)
 

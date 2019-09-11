@@ -20,6 +20,7 @@ import unittest
 import bt2
 import sys
 from utils import TestOutputPortMessageIterator
+from bt2 import port as bt2_port
 
 
 class UserMessageIteratorTestCase(unittest.TestCase):
@@ -185,6 +186,25 @@ class UserMessageIteratorTestCase(unittest.TestCase):
         graph = self._create_graph(MySource)
         graph.run()
         self.assertEqual(salut, 23)
+
+    def test_port(self):
+        class MyIter(bt2._UserMessageIterator):
+            def __init__(self_iter, self_port_output):
+                nonlocal called
+                called = True
+                port = self_iter._port
+                self.assertIs(type(self_port_output), bt2_port._UserComponentOutputPort)
+                self.assertIs(type(port), bt2_port._UserComponentOutputPort)
+                self.assertEqual(self_port_output.addr, port.addr)
+
+        class MySource(bt2._UserSourceComponent, message_iterator_class=MyIter):
+            def __init__(self, params, obj):
+                self._add_output_port('out')
+
+        called = False
+        graph = self._create_graph(MySource)
+        graph.run()
+        self.assertTrue(called)
 
     def test_addr(self):
         class MyIter(bt2._UserMessageIterator):
