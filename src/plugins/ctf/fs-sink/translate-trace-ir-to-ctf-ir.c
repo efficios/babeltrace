@@ -370,8 +370,8 @@ int create_relative_field_ref(struct ctx *ctx,
 	/* Find target field class having this name in current context */
 	for (si = ctx->cur_path->len - 1; si >= 0; si--) {
 		struct fs_sink_ctf_field_class *fc;
-		struct fs_sink_ctf_field_class_struct *struct_fc;
-		struct fs_sink_ctf_field_class_variant *var_fc;
+		struct fs_sink_ctf_field_class_struct *struct_fc = NULL;
+		struct fs_sink_ctf_field_class_variant *var_fc = NULL;
 		struct fs_sink_ctf_named_field_class *named_fc;
 		uint64_t len;
 
