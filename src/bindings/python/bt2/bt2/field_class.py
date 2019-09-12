@@ -811,9 +811,6 @@ class _VariantFieldClassWithUnsignedSelectorConst(_VariantFieldClassWithSelector
     _borrow_option_ptr_by_index = staticmethod(
         native_bt.field_class_variant_with_selector_unsigned_borrow_option_by_index_const
     )
-    _append_option = staticmethod(
-        native_bt.field_class_variant_with_selector_unsigned_append_option
-    )
     _variant_option_pycls = _VariantFieldClassWithUnsignedSelectorOptionConst
     _as_option_ptr = staticmethod(_variant_option_pycls._as_option_ptr)
 
@@ -824,6 +821,9 @@ class _VariantFieldClassWithUnsignedSelector(
     _NAME = 'Variant (with unsigned selector)'
     _variant_option_pycls = _VariantFieldClassWithUnsignedSelectorOption
     _as_option_ptr = staticmethod(_variant_option_pycls._as_option_ptr)
+    _append_option = staticmethod(
+        native_bt.field_class_variant_with_selector_unsigned_append_option
+    )
 
 
 class _VariantFieldClassWithSignedSelectorConst(_VariantFieldClassWithSelectorConst):
@@ -833,9 +833,6 @@ class _VariantFieldClassWithSignedSelectorConst(_VariantFieldClassWithSelectorCo
     )
     _borrow_option_ptr_by_index = staticmethod(
         native_bt.field_class_variant_with_selector_signed_borrow_option_by_index_const
-    )
-    _append_option = staticmethod(
-        native_bt.field_class_variant_with_selector_signed_append_option
     )
     _variant_option_pycls = _VariantFieldClassWithSignedSelectorOptionConst
     _as_option_ptr = staticmethod(_variant_option_pycls._as_option_ptr)
@@ -847,6 +844,9 @@ class _VariantFieldClassWithSignedSelector(
     _NAME = 'Variant (with signed selector)'
     _variant_option_pycls = _VariantFieldClassWithSignedSelectorOption
     _as_option_ptr = staticmethod(_variant_option_pycls._as_option_ptr)
+    _append_option = staticmethod(
+        native_bt.field_class_variant_with_selector_signed_append_option
+    )
 
 
 class _ArrayFieldClassConst(_FieldClassConst):
