@@ -202,7 +202,7 @@ class _EnumerationFieldClassMapping:
         assert self._label is not None
         ranges_ptr = self._mapping_borrow_ranges_ptr(mapping_ptr)
         assert ranges_ptr is not None
-        self._ranges = self._ranges_type._create_from_ptr_and_get_ref(ranges_ptr)
+        self._ranges = self._range_set_pycls._create_from_ptr_and_get_ref(ranges_ptr)
 
     @property
     def label(self):
@@ -214,7 +214,7 @@ class _EnumerationFieldClassMapping:
 
 
 class _UnsignedEnumerationFieldClassMappingConst(_EnumerationFieldClassMapping):
-    _ranges_type = bt2_integer_range_set.UnsignedIntegerRangeSet
+    _range_set_pycls = bt2_integer_range_set.UnsignedIntegerRangeSet
     _as_enumeration_field_class_mapping_ptr = staticmethod(
         native_bt.field_class_enumeration_unsigned_mapping_as_mapping_const
     )
@@ -224,7 +224,7 @@ class _UnsignedEnumerationFieldClassMappingConst(_EnumerationFieldClassMapping):
 
 
 class _SignedEnumerationFieldClassMappingConst(_EnumerationFieldClassMapping):
-    _ranges_type = bt2_integer_range_set.SignedIntegerRangeSet
+    _range_set_pycls = bt2_integer_range_set.SignedIntegerRangeSet
     _as_enumeration_field_class_mapping_ptr = staticmethod(
         native_bt.field_class_enumeration_signed_mapping_as_mapping_const
     )
@@ -266,7 +266,7 @@ class _EnumerationFieldClassConst(_IntegerFieldClassConst, collections.abc.Mappi
 class _EnumerationFieldClass(_EnumerationFieldClassConst, _IntegerFieldClass):
     def add_mapping(self, label, ranges):
         utils._check_str(label)
-        utils._check_type(ranges, self._range_set_type)
+        utils._check_type(ranges, self._range_set_pycls)
 
         if label in self:
             raise ValueError("duplicate mapping label '{}'".format(label))
@@ -287,7 +287,7 @@ class _UnsignedEnumerationFieldClassConst(
     _EnumerationFieldClassConst, _UnsignedIntegerFieldClassConst
 ):
     _NAME = 'Const nsigned enumeration'
-    _range_set_type = bt2_integer_range_set.UnsignedIntegerRangeSet
+    _range_set_pycls = bt2_integer_range_set.UnsignedIntegerRangeSet
     _borrow_mapping_ptr_by_label = staticmethod(
         native_bt.field_class_enumeration_unsigned_borrow_mapping_by_label_const
     )
@@ -314,7 +314,7 @@ class _SignedEnumerationFieldClassConst(
     _EnumerationFieldClassConst, _SignedIntegerFieldClassConst
 ):
     _NAME = 'Const signed enumeration'
-    _range_set_type = bt2_integer_range_set.SignedIntegerRangeSet
+    _range_set_pycls = bt2_integer_range_set.SignedIntegerRangeSet
     _borrow_mapping_ptr_by_label = staticmethod(
         native_bt.field_class_enumeration_signed_borrow_mapping_by_label_const
     )
@@ -599,7 +599,7 @@ class _VariantFieldClassWithSelectorOptionConst(_VariantFieldClassOptionConst):
     def ranges(self):
         range_set_ptr = self._borrow_ranges_ptr(self._spec_ptr)
         assert range_set_ptr is not None
-        return self._range_set_type._create_from_ptr_and_get_ref(range_set_ptr)
+        return self._range_set_pycls._create_from_ptr_and_get_ref(range_set_ptr)
 
 
 class _VariantFieldClassWithSelectorOption(
@@ -617,7 +617,7 @@ class _VariantFieldClassWithSignedSelectorOptionConst(
     _borrow_ranges_ptr = staticmethod(
         native_bt.field_class_variant_with_selector_signed_option_borrow_ranges_const
     )
-    _range_set_type = bt2_integer_range_set.SignedIntegerRangeSet
+    _range_set_pycls = bt2_integer_range_set.SignedIntegerRangeSet
 
 
 class _VariantFieldClassWithSignedSelectorOption(
@@ -636,7 +636,7 @@ class _VariantFieldClassWithUnsignedSelectorOptionConst(
     _borrow_ranges_ptr = staticmethod(
         native_bt.field_class_variant_with_selector_unsigned_option_borrow_ranges_const
     )
-    _range_set_type = bt2_integer_range_set.UnsignedIntegerRangeSet
+    _range_set_pycls = bt2_integer_range_set.UnsignedIntegerRangeSet
 
 
 class _VariantFieldClassWithUnsignedSelectorOption(
@@ -772,7 +772,7 @@ class _VariantFieldClassWithSelector(
     def append_option(self, name, field_class, ranges, user_attributes=None):
         utils._check_str(name)
         utils._check_type(field_class, _FieldClass)
-        utils._check_type(ranges, self._variant_option_pycls._range_set_type)
+        utils._check_type(ranges, self._variant_option_pycls._range_set_pycls)
 
         if name in self:
             raise ValueError("duplicate option name '{}'".format(name))
