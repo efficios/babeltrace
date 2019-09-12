@@ -576,7 +576,7 @@ class _VariantFieldClassOption(_VariantFieldClassOptionConst):
         native_bt.field_class_variant_option_borrow_field_class
     )
     _borrow_user_attributes_ptr = staticmethod(
-        native_bt.field_class_variant_option_borrow_user_attributes_const
+        native_bt.field_class_variant_option_borrow_user_attributes
     )
     _create_value_from_ptr_and_get_ref = staticmethod(
         bt2_value._create_from_ptr_and_get_ref
