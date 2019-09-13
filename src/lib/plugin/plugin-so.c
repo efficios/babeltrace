@@ -1522,9 +1522,19 @@ int bt_plugin_so_create_all_from_file(const char *path,
 	BT_ASSERT(plugin_set_out);
 	*plugin_set_out = NULL;
 	path_len = strlen(path);
-	BT_ASSERT_PRE(path_len > PLUGIN_SUFFIX_LEN,
-		"Path length is too short: path-length=%zu, min-length=%zu",
-		path_len, PLUGIN_SUFFIX_LEN);
+
+	/*
+	 * An SO plugin file must have a known plugin file suffix. So the file
+	 * path must be longer than the suffix length.
+	 */
+	if (path_len <= PLUGIN_SUFFIX_LEN) {
+		BT_LOGI("Path is too short to be an `.so` or `.la` plugin file:"
+			"path=%s, path-length=%zu, min-length=%zu",
+			path, path_len, PLUGIN_SUFFIX_LEN);
+		status = BT_FUNC_STATUS_NOT_FOUND;
+		goto end;
+	}
+
 	BT_LOGI("Trying to create all SO plugins from file: path=\"%s\"", path);
 	path_len++;
 
