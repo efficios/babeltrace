@@ -120,13 +120,17 @@ int bt_fd_cache_init(struct bt_fd_cache *fdc, int log_level)
 BT_HIDDEN
 void bt_fd_cache_fini(struct bt_fd_cache *fdc)
 {
-	BT_ASSERT(fdc->cache);
+	if (!fdc->cache) {
+		goto end;
+	}
+
 	/*
 	 * All handle should have been removed for the hashtable at this point.
 	 */
 	BT_ASSERT(g_hash_table_size(fdc->cache) == 0);
 	g_hash_table_destroy(fdc->cache);
 
+end:
 	return;
 }
 
