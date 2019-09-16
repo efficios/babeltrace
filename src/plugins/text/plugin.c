@@ -30,8 +30,8 @@ BT_PLUGIN_MODULE();
 #endif
 
 BT_PLUGIN(text);
-BT_PLUGIN_DESCRIPTION("Plain text component classes");
-BT_PLUGIN_AUTHOR("Julien Desfossez, Mathieu Desnoyers, Philippe Proulx");
+BT_PLUGIN_DESCRIPTION("Plain text input and output");
+BT_PLUGIN_AUTHOR("EfficiOS <https://www.efficios.com/>");
 BT_PLUGIN_LICENSE("MIT");
 
 /* pretty sink */
@@ -42,11 +42,15 @@ BT_PLUGIN_SINK_COMPONENT_CLASS_GRAPH_IS_CONFIGURED_METHOD(pretty,
 	pretty_graph_is_configured);
 BT_PLUGIN_SINK_COMPONENT_CLASS_DESCRIPTION(pretty,
 	"Pretty-print messages (`text` format of Babeltrace 1).");
+BT_PLUGIN_SINK_COMPONENT_CLASS_HELP(pretty,
+	"See the babeltrace2-sink.text.pretty(7) manual page.");
 
 /* dmesg source */
 BT_PLUGIN_SOURCE_COMPONENT_CLASS(dmesg, dmesg_msg_iter_next);
 BT_PLUGIN_SOURCE_COMPONENT_CLASS_DESCRIPTION(dmesg,
-	"Read a dmesg output from a file or from standard input.");
+	"Read Linux ring buffer lines (dmesg(1) output) from a file or from standard input.");
+BT_PLUGIN_SOURCE_COMPONENT_CLASS_HELP(dmesg,
+	"See the babeltrace2-source.text.dmesg(7) manual page.");
 BT_PLUGIN_SOURCE_COMPONENT_CLASS_INIT_METHOD(dmesg, dmesg_init);
 BT_PLUGIN_SOURCE_COMPONENT_CLASS_FINALIZE_METHOD(dmesg, dmesg_finalize);
 BT_PLUGIN_SOURCE_COMPONENT_CLASS_MESSAGE_ITERATOR_INIT_METHOD(dmesg,
@@ -66,3 +70,5 @@ BT_PLUGIN_SINK_COMPONENT_CLASS_GRAPH_IS_CONFIGURED_METHOD(details,
 	details_graph_is_configured);
 BT_PLUGIN_SINK_COMPONENT_CLASS_DESCRIPTION(details,
 	"Print messages with details.");
+BT_PLUGIN_SINK_COMPONENT_CLASS_HELP(details,
+	"See the babeltrace2-sink.text.details(7) manual page.");

@@ -35,14 +35,16 @@ BT_PLUGIN_MODULE();
 
 /* Initialize plug-in entry points. */
 BT_PLUGIN_WITH_ID(lttng_utils, "lttng-utils");
-BT_PLUGIN_DESCRIPTION_WITH_ID(lttng_utils, "LTTng utilities");
-BT_PLUGIN_AUTHOR_WITH_ID(lttng_utils, "Julien Desfossez");
+BT_PLUGIN_DESCRIPTION_WITH_ID(lttng_utils, "LTTng-specific graph utilities");
+BT_PLUGIN_AUTHOR_WITH_ID(lttng_utils, "EfficiOS <https://www.efficios.com/>");
 BT_PLUGIN_LICENSE_WITH_ID(lttng_utils, "MIT");
 
 BT_PLUGIN_FILTER_COMPONENT_CLASS_WITH_ID(lttng_utils, debug_info, "debug-info",
 	debug_info_msg_iter_next);
 BT_PLUGIN_FILTER_COMPONENT_CLASS_DESCRIPTION_WITH_ID(lttng_utils, debug_info,
 	"Augment compatible events with debugging information.");
+BT_PLUGIN_FILTER_COMPONENT_CLASS_HELP_WITH_ID(lttng_utils, debug_info,
+	"See the babeltrace2-filter.lttng-utils.debug-info(7) manual page.");
 BT_PLUGIN_FILTER_COMPONENT_CLASS_INIT_METHOD_WITH_ID(lttng_utils,
 	debug_info, debug_info_comp_init);
 BT_PLUGIN_FILTER_COMPONENT_CLASS_FINALIZE_METHOD_WITH_ID(lttng_utils,
