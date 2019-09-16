@@ -83,20 +83,12 @@ struct bt_clock_snapshot *bt_clock_snapshot_create(
 		BT_LIB_LOGE_APPEND_CAUSE(
 			"Cannot allocate one clock snapshot from clock class's clock snapshot pool: "
 			"%![cc-]+K", clock_class);
-		goto error;
+		goto end;
 	}
 
 	if (G_LIKELY(!clock_snapshot->clock_class)) {
 		clock_snapshot->clock_class = clock_class;
 		bt_object_get_no_null_check(clock_class);
-	}
-
-	goto end;
-
-error:
-	if (clock_snapshot) {
-		bt_clock_snapshot_recycle(clock_snapshot);
-		clock_snapshot = NULL;
 	}
 
 end:
