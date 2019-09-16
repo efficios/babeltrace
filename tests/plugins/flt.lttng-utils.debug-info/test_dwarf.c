@@ -63,7 +63,10 @@ void test_bt_no_dwarf(const char *data_dir)
 	if (dwarf_info) {
 		dwarf_end(dwarf_info);
 	}
-	close(fd);
+
+	if (fd >= 0) {
+		close(fd);
+	}
 	g_free(path);
 }
 
