@@ -52,7 +52,7 @@ class _CurrentOptionContentFieldPathItem(_FieldPathItem):
     pass
 
 
-class _FieldPath(object._SharedObject, collections.abc.Iterable):
+class _FieldPathConst(object._SharedObject, collections.abc.Iterable):
     _get_ref = staticmethod(native_bt.field_path_get_ref)
     _put_ref = staticmethod(native_bt.field_path_put_ref)
 

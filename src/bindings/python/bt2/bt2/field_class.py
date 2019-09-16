@@ -516,7 +516,7 @@ class _OptionFieldClassConst(_FieldClassConst):
         if ptr is None:
             return
 
-        return bt2_field_path._FieldPath._create_from_ptr_and_get_ref(ptr)
+        return bt2_field_path._FieldPathConst._create_from_ptr_and_get_ref(ptr)
 
 
 class _OptionFieldClass(_OptionFieldClassConst, _FieldClass):
@@ -761,7 +761,7 @@ class _VariantFieldClassWithSelectorConst(_VariantFieldClassConst):
         if ptr is None:
             return
 
-        return bt2_field_path._FieldPath._create_from_ptr_and_get_ref(ptr)
+        return bt2_field_path._FieldPathConst._create_from_ptr_and_get_ref(ptr)
 
 
 class _VariantFieldClassWithSelector(
@@ -895,7 +895,7 @@ class _DynamicArrayFieldClassConst(_ArrayFieldClassConst):
         if ptr is None:
             return
 
-        return bt2_field_path._FieldPath._create_from_ptr_and_get_ref(ptr)
+        return bt2_field_path._FieldPathConst._create_from_ptr_and_get_ref(ptr)
 
 
 class _DynamicArrayFieldClass(_DynamicArrayFieldClassConst, _ArrayFieldClass):
