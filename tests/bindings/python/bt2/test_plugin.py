@@ -101,13 +101,13 @@ class PluginTestCase(unittest.TestCase):
         self.assertTrue(plugin_path.startswith(plugin_path_env))
 
     def test_author(self):
-        self.assertTrue('Philippe Proulx' in self._plugin.author)
+        self.assertEqual(self._plugin.author, 'EfficiOS <https://www.efficios.com/>')
 
     def test_license(self):
-        self.assertTrue('MIT' in self._plugin.license)
+        self.assertEqual(self._plugin.license, 'MIT')
 
     def test_description(self):
-        self.assertTrue('CTF source and sink support' in self._plugin.description)
+        self.assertEqual(self._plugin.description, 'CTF input and output')
 
     def test_version(self):
         self.assertIsNone(self._plugin.version)
