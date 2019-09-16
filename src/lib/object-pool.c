@@ -35,6 +35,7 @@ int bt_object_pool_initialize(struct bt_object_pool *pool,
 {
 	int ret = 0;
 
+	BT_ASSERT(pool);
 	BT_ASSERT(new_object_func);
 	BT_ASSERT(destroy_object_func);
 	BT_LOGD("Initializing object pool: addr=%p, data-addr=%p",
@@ -53,10 +54,7 @@ int bt_object_pool_initialize(struct bt_object_pool *pool,
 	goto end;
 
 error:
-	if (pool) {
-		bt_object_pool_finalize(pool);
-	}
-
+	bt_object_pool_finalize(pool);
 	ret = -1;
 
 end:
