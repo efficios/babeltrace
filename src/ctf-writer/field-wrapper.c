@@ -70,17 +70,10 @@ struct bt_ctf_field_wrapper *bt_ctf_field_wrapper_create(
 	field_wrapper = bt_ctf_object_pool_create_object(pool);
 	if (!field_wrapper) {
 		BT_LOGE("Cannot allocate one field wrapper");
-		goto error;
+		goto end;
 	}
 
 	BT_ASSERT(field_wrapper->field);
-	goto end;
-
-error:
-	if (field_wrapper) {
-		bt_ctf_field_wrapper_destroy(field_wrapper);
-		field_wrapper = NULL;
-	}
 
 end:
 	return field_wrapper;
