@@ -776,6 +776,8 @@ int try_map_clock_class(struct bt_ctf_stream_class *stream_class,
 		if (!ft_copy) {
 			BT_LOGE("Failed to copy integer field type: ft-addr=%p",
 				ft);
+			ret = -1;
+			goto end;
 		}
 
 		ret = bt_ctf_field_type_common_integer_set_mapped_clock_class_no_check_frozen(
