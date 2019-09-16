@@ -488,7 +488,9 @@ int bin_info_set_dwarf_info_from_path(struct bin_info *bin, char *path)
 	return 0;
 
 error:
-	bt_fd_cache_put_handle(bin->fd_cache, dwarf_handle);
+	if (bin) {
+		bt_fd_cache_put_handle(bin->fd_cache, dwarf_handle);
+	}
 	dwarf_end(dwarf_info);
 	g_free(dwarf_info);
 	free(cu);
