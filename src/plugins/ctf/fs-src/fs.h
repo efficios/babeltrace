@@ -199,6 +199,7 @@ struct ctf_fs_msg_iter_data {
 BT_HIDDEN
 bt_component_class_init_method_status ctf_fs_init(
 		bt_self_component_source *source,
+		bt_self_component_source_configuration *config,
 		const bt_value *params, void *init_method_data);
 
 BT_HIDDEN

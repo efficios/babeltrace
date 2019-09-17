@@ -27,7 +27,7 @@ class SimpleSink(bt2._UserSinkComponent):
     # Straightforward sink that creates one input port (`in`) and consumes from
     # it.
 
-    def __init__(self, params, obj):
+    def __init__(self, config, params, obj):
         self._add_input_port('in')
 
     def _user_consume(self):
@@ -68,7 +68,7 @@ class UserMessageIteratorTestCase(unittest.TestCase):
                 the_output_port_from_iter = self_port_output
 
         class MySource(bt2._UserSourceComponent, message_iterator_class=MyIter):
-            def __init__(self, params, obj):
+            def __init__(self, config, params, obj):
                 nonlocal the_output_port_from_source
                 the_output_port_from_source = self._add_output_port('out', 'user data')
 
@@ -88,7 +88,7 @@ class UserMessageIteratorTestCase(unittest.TestCase):
                 src_iter_initialized = True
 
         class MySource(bt2._UserSourceComponent, message_iterator_class=MySourceIter):
-            def __init__(self, params, obj):
+            def __init__(self, config, params, obj):
                 self._add_output_port('out')
 
         class MyFilterIter(bt2._UserMessageIterator):
@@ -103,7 +103,7 @@ class UserMessageIteratorTestCase(unittest.TestCase):
                 return next(self._up_iter)
 
         class MyFilter(bt2._UserFilterComponent, message_iterator_class=MyFilterIter):
-            def __init__(self, params, obj):
+            def __init__(self, config, params, obj):
                 self._add_input_port('in')
                 self._add_output_port('out')
 
@@ -124,7 +124,7 @@ class UserMessageIteratorTestCase(unittest.TestCase):
                 raise ValueError('Very bad error')
 
         class MySource(bt2._UserSourceComponent, message_iterator_class=MySourceIter):
-            def __init__(self, params, obj):
+            def __init__(self, config, params, obj):
                 self._add_output_port('out')
 
         class MyFilterIter(bt2._UserMessageIterator):
@@ -136,7 +136,7 @@ class UserMessageIteratorTestCase(unittest.TestCase):
                 )
 
         class MyFilter(bt2._UserFilterComponent, message_iterator_class=MyFilterIter):
-            def __init__(self, params, obj):
+            def __init__(self, config, params, obj):
                 self._add_input_port('in')
                 self._add_output_port('out')
 
@@ -160,7 +160,7 @@ class UserMessageIteratorTestCase(unittest.TestCase):
                 finalized = True
 
         class MySource(bt2._UserSourceComponent, message_iterator_class=MyIter):
-            def __init__(self, params, obj):
+            def __init__(self, config, params, obj):
                 self._add_output_port('out')
 
         finalized = False
@@ -176,7 +176,7 @@ class UserMessageIteratorTestCase(unittest.TestCase):
                 salut = self._component._salut
 
         class MySource(bt2._UserSourceComponent, message_iterator_class=MyIter):
-            def __init__(self, params, obj):
+            def __init__(self, config, params, obj):
                 self._add_output_port('out')
                 self._salut = 23
 
@@ -196,7 +196,7 @@ class UserMessageIteratorTestCase(unittest.TestCase):
                 self.assertEqual(self_port_output.addr, port.addr)
 
         class MySource(bt2._UserSourceComponent, message_iterator_class=MyIter):
-            def __init__(self, params, obj):
+            def __init__(self, config, params, obj):
                 self._add_output_port('out')
 
         called = False
@@ -211,7 +211,7 @@ class UserMessageIteratorTestCase(unittest.TestCase):
                 addr = self.addr
 
         class MySource(bt2._UserSourceComponent, message_iterator_class=MyIter):
-            def __init__(self, params, obj):
+            def __init__(self, config, params, obj):
                 self._add_output_port('out')
 
         addr = None
@@ -244,7 +244,7 @@ class UserMessageIteratorTestCase(unittest.TestCase):
                 return self._msgs.pop(0)
 
         class MySource(bt2._UserSourceComponent, message_iterator_class=MyIter):
-            def __init__(self, params, obj):
+            def __init__(self, config, params, obj):
                 tc = self._create_trace_class()
                 sc = tc.create_stream_class(supports_packets=True)
                 ec = sc.create_event_class()
@@ -276,7 +276,7 @@ class UserMessageIteratorTestCase(unittest.TestCase):
                 raise bt2.TryAgain
 
         class MySource(bt2._UserSourceComponent, message_iterator_class=MyIter):
-            def __init__(self, params, obj):
+            def __init__(self, config, params, obj):
                 self._add_output_port('out')
 
         class MyFilterIter(bt2._UserMessageIterator):
@@ -296,7 +296,7 @@ class UserMessageIteratorTestCase(unittest.TestCase):
                 return self._upstream_iter.can_seek_beginning()
 
         class MyFilter(bt2._UserFilterComponent, message_iterator_class=MyFilterIter):
-            def __init__(self, params, obj):
+            def __init__(self, config, params, obj):
                 input_port = self._add_input_port('in')
                 self._add_output_port('out', input_port)
 
@@ -359,7 +359,7 @@ def _setup_seek_test(
         MySourceIter._user_can_seek_ns_from_origin = user_can_seek_ns_from_origin
 
     class MySource(bt2._UserSourceComponent, message_iterator_class=MySourceIter):
-        def __init__(self, params, obj):
+        def __init__(self, config, params, obj):
             tc = self._create_trace_class()
             sc = tc.create_stream_class(supports_packets=True)
             ec = sc.create_event_class()
@@ -388,7 +388,7 @@ def _setup_seek_test(
             self._upstream_iter.seek_ns_from_origin(ns_from_origin)
 
     class MyFilter(bt2._UserFilterComponent, message_iterator_class=MyFilterIter):
-        def __init__(self, params, obj):
+        def __init__(self, config, params, obj):
             self._add_input_port('in')
             self._add_output_port('out')
 
@@ -398,7 +398,7 @@ def _setup_seek_test(
 class UserMessageIteratorSeekBeginningTestCase(unittest.TestCase):
     def test_can_seek_beginning(self):
         class MySink(bt2._UserSinkComponent):
-            def __init__(self, params, obj):
+            def __init__(self, config, params, obj):
                 self._add_input_port('in')
 
             def _user_graph_is_configured(self):
@@ -432,7 +432,7 @@ class UserMessageIteratorSeekBeginningTestCase(unittest.TestCase):
         # Test an iterator without a _user_can_seek_beginning method, but with
         # a _user_seek_beginning method.
         class MySink(bt2._UserSinkComponent):
-            def __init__(self, params, obj):
+            def __init__(self, config, params, obj):
                 self._add_input_port('in')
 
             def _user_graph_is_configured(self):
@@ -456,7 +456,7 @@ class UserMessageIteratorSeekBeginningTestCase(unittest.TestCase):
         # Test an iterator without a _user_can_seek_beginning method, without
         # a _user_seek_beginning method.
         class MySink(bt2._UserSinkComponent):
-            def __init__(self, params, obj):
+            def __init__(self, config, params, obj):
                 self._add_input_port('in')
 
             def _user_graph_is_configured(self):
@@ -475,7 +475,7 @@ class UserMessageIteratorSeekBeginningTestCase(unittest.TestCase):
 
     def test_can_seek_beginning_user_error(self):
         class MySink(bt2._UserSinkComponent):
-            def __init__(self, params, obj):
+            def __init__(self, config, params, obj):
                 self._add_input_port('in')
 
             def _user_graph_is_configured(self):
@@ -502,7 +502,7 @@ class UserMessageIteratorSeekBeginningTestCase(unittest.TestCase):
 
     def test_can_seek_beginning_wrong_return_value(self):
         class MySink(bt2._UserSinkComponent):
-            def __init__(self, params, obj):
+            def __init__(self, config, params, obj):
                 self._add_input_port('in')
 
             def _user_graph_is_configured(self):
@@ -529,7 +529,7 @@ class UserMessageIteratorSeekBeginningTestCase(unittest.TestCase):
 
     def test_seek_beginning(self):
         class MySink(bt2._UserSinkComponent):
-            def __init__(self, params, obj):
+            def __init__(self, config, params, obj):
                 self._add_input_port('in')
 
             def _user_graph_is_configured(self):
@@ -573,7 +573,7 @@ class UserMessageIteratorSeekBeginningTestCase(unittest.TestCase):
 
     def test_seek_beginning_user_error(self):
         class MySink(bt2._UserSinkComponent):
-            def __init__(self, params, obj):
+            def __init__(self, config, params, obj):
                 self._add_input_port('in')
 
             def _user_graph_is_configured(self):
@@ -596,7 +596,7 @@ class UserMessageIteratorSeekBeginningTestCase(unittest.TestCase):
 class UserMessageIteratorSeekNsFromOriginTestCase(unittest.TestCase):
     def test_can_seek_ns_from_origin(self):
         class MySink(bt2._UserSinkComponent):
-            def __init__(self, params, obj):
+            def __init__(self, config, params, obj):
                 self._add_input_port('in')
 
             def _user_graph_is_configured(self):
@@ -637,7 +637,7 @@ class UserMessageIteratorSeekNsFromOriginTestCase(unittest.TestCase):
         # Test an iterator without a _user_can_seek_ns_from_origin method, but
         # with a _user_seek_ns_from_origin method.
         class MySink(bt2._UserSinkComponent):
-            def __init__(self, params, obj):
+            def __init__(self, config, params, obj):
                 self._add_input_port('in')
 
             def _user_graph_is_configured(self):
@@ -667,7 +667,7 @@ class UserMessageIteratorSeekNsFromOriginTestCase(unittest.TestCase):
         # Test an iterator without a _user_can_seek_ns_from_origin method, but
         # with a _user_seek_beginning method.
         class MySink(bt2._UserSinkComponent):
-            def __init__(self, params, obj):
+            def __init__(self, config, params, obj):
                 self._add_input_port('in')
 
             def _user_graph_is_configured(self):
@@ -695,7 +695,7 @@ class UserMessageIteratorSeekNsFromOriginTestCase(unittest.TestCase):
         # Test an iterator without a _user_can_seek_ns_from_origin method
         # and no other related method.
         class MySink(bt2._UserSinkComponent):
-            def __init__(self, params, obj):
+            def __init__(self, config, params, obj):
                 self._add_input_port('in')
 
             def _user_graph_is_configured(self):
@@ -718,7 +718,7 @@ class UserMessageIteratorSeekNsFromOriginTestCase(unittest.TestCase):
 
     def test_can_seek_ns_from_origin_user_error(self):
         class MySink(bt2._UserSinkComponent):
-            def __init__(self, params, obj):
+            def __init__(self, config, params, obj):
                 self._add_input_port('in')
 
             def _user_graph_is_configured(self):
@@ -745,7 +745,7 @@ class UserMessageIteratorSeekNsFromOriginTestCase(unittest.TestCase):
 
     def test_can_seek_ns_from_origin_wrong_return_value(self):
         class MySink(bt2._UserSinkComponent):
-            def __init__(self, params, obj):
+            def __init__(self, config, params, obj):
                 self._add_input_port('in')
 
             def _user_graph_is_configured(self):
@@ -772,7 +772,7 @@ class UserMessageIteratorSeekNsFromOriginTestCase(unittest.TestCase):
 
     def test_seek_ns_from_origin(self):
         class MySink(bt2._UserSinkComponent):
-            def __init__(self, params, obj):
+            def __init__(self, config, params, obj):
                 self._add_input_port('in')
 
             def _user_graph_is_configured(self):

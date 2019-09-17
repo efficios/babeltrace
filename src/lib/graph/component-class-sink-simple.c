@@ -52,7 +52,8 @@ struct simple_sink_data {
 
 static
 enum bt_component_class_init_method_status simple_sink_init(
-		struct bt_self_component_sink *self_comp,
+		bt_self_component_sink *self_comp,
+		bt_self_component_sink_configuration *config,
 		const struct bt_value *params, void *init_method_data)
 {
 	int status = BT_FUNC_STATUS_OK;

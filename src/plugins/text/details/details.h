@@ -163,6 +163,7 @@ struct details_comp {
 BT_HIDDEN
 bt_component_class_init_method_status details_init(
 		bt_self_component_sink *component,
+		bt_self_component_sink_configuration *config,
 		const bt_value *params, void *init_method_data);
 
 BT_HIDDEN

@@ -37,6 +37,7 @@
 BT_HIDDEN
 bt_component_class_init_method_status debug_info_comp_init(
 		bt_self_component_filter *self_comp,
+		bt_self_component_filter_configuration *config,
 		const bt_value *params, void *init_method_data);
 
 BT_HIDDEN

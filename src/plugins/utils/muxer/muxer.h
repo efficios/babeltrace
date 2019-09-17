@@ -31,6 +31,7 @@
 BT_HIDDEN
 bt_component_class_init_method_status muxer_init(
 		bt_self_component_filter *self_comp,
+		bt_self_component_filter_configuration *config,
 		const bt_value *params, void *init_data);
 
 BT_HIDDEN

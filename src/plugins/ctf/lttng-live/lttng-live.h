@@ -262,6 +262,7 @@ enum lttng_live_iterator_status {
 
 bt_component_class_init_method_status lttng_live_component_init(
 		bt_self_component_source *self_comp,
+		bt_self_component_source_configuration *config,
 		const bt_value *params, void *init_method_data);
 
 bt_component_class_query_method_status lttng_live_query(

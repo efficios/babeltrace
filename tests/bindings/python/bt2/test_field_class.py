@@ -61,7 +61,7 @@ def _create_const_field_class(tc, field_class, value_setter_fn):
             return self._msgs.pop(0)
 
     class MySrc(bt2._UserSourceComponent, message_iterator_class=MyIter):
-        def __init__(self, params, obj):
+        def __init__(self, config, params, obj):
             self._add_output_port('out', params)
 
     graph = bt2.Graph()

@@ -138,6 +138,7 @@ void counter_finalize(bt_self_component_sink *comp)
 BT_HIDDEN
 bt_component_class_init_method_status counter_init(
 		bt_self_component_sink *component,
+		bt_self_component_sink_configuration *config,
 		const bt_value *params,
 		__attribute__((unused)) void *init_method_data)
 {

@@ -19,7 +19,7 @@ class TheIteratorOfConfusion(bt2._UserMessageIterator):
 class TheSourceOfConfusion(
     bt2._UserSourceComponent, message_iterator_class=TheIteratorOfConfusion
 ):
-    def __init__(self, params, obj):
+    def __init__(self, config, params, obj):
         test_name = str(params['test-name'])
 
         TEST_CASES[test_name].source_setup(self, test_name)

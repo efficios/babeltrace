@@ -29,11 +29,11 @@ class ConnectionTestCase(unittest.TestCase):
                 raise bt2.Stop
 
         class MySource(bt2._UserSourceComponent, message_iterator_class=MyIter):
-            def __init__(self, params, obj):
+            def __init__(self, config, params, obj):
                 self._add_output_port('out')
 
         class MySink(bt2._UserSinkComponent):
-            def __init__(self, params, obj):
+            def __init__(self, config, params, obj):
                 self._add_input_port('in')
 
             def _user_consume(self):
@@ -51,11 +51,11 @@ class ConnectionTestCase(unittest.TestCase):
                 raise bt2.Stop
 
         class MySource(bt2._UserSourceComponent, message_iterator_class=MyIter):
-            def __init__(self, params, obj):
+            def __init__(self, config, params, obj):
                 self._add_output_port('out')
 
         class MySink(bt2._UserSinkComponent):
-            def __init__(self, params, obj):
+            def __init__(self, config, params, obj):
                 self._add_input_port('in')
 
             def _user_consume(self):
@@ -75,11 +75,11 @@ class ConnectionTestCase(unittest.TestCase):
                 raise bt2.Stop
 
         class MySource(bt2._UserSourceComponent, message_iterator_class=MyIter):
-            def __init__(self, params, obj):
+            def __init__(self, config, params, obj):
                 self._add_output_port('out')
 
         class MySink(bt2._UserSinkComponent):
-            def __init__(self, params, obj):
+            def __init__(self, config, params, obj):
                 self._add_input_port('in')
 
             def _user_consume(self):

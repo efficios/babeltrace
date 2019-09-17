@@ -35,7 +35,9 @@ BT_HIDDEN
 void trimmer_finalize(bt_self_component_filter *self_comp);
 
 BT_HIDDEN
-bt_component_class_init_method_status trimmer_init(bt_self_component_filter *self_comp,
+bt_component_class_init_method_status trimmer_init(
+		bt_self_component_filter *self_comp,
+		bt_self_component_filter_configuration *config,
 		const bt_value *params, void *init_data);
 
 BT_HIDDEN
