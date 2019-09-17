@@ -50,9 +50,16 @@ void *bt_mmap(void *addr, size_t length, int prot, int flags, int fd,
 
 int bt_munmap(void *addr, size_t length);
 
+/*
+ * On Windows the memory mapping offset must be aligned to the memory
+ * allocator allocation granularity and not the page size.
+ */
+size_t bt_mmap_get_offset_align_size(int log_level);
+
 #else /* __MINGW32__ */
 
 #include <sys/mman.h>
+#include "common/common.h"
 
 static inline
 void *bt_mmap(void *addr, size_t length, int prot, int flags, int fd,
@@ -65,6 +72,16 @@ static inline
 int bt_munmap(void *addr, size_t length)
 {
 	return munmap(addr, length);
+}
+
+/*
+ * On other platforms the memory mapping offset must be aligned to the
+ * page size.
+ */
+static inline
+size_t bt_mmap_get_offset_align_size(int log_level)
+{
+	return bt_common_get_page_size(log_level);
 }
 #endif /* __MINGW32__ */
 

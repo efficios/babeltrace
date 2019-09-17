@@ -46,29 +46,11 @@ struct mmap_align {
 	size_t length;			/* virtual mmap length */
 };
 
-#ifdef __WIN32__
-#include <windows.h>
-
-/*
- * On windows the memory mapping offset must be aligned to the memory
- * allocator allocation granularity and not the page size.
- */
 static inline
-off_t get_page_aligned_offset(off_t offset, size_t page_size)
+off_t get_page_aligned_offset(off_t offset, int log_level)
 {
-       SYSTEM_INFO sysinfo;
-
-       GetNativeSystemInfo(&sysinfo);
-
-       return ALIGN_FLOOR(offset, sysinfo.dwAllocationGranularity);
+       return ALIGN_FLOOR(offset, bt_mmap_get_offset_align_size(log_level));
 }
-#else
-static inline
-off_t get_page_aligned_offset(off_t offset, size_t page_size)
-{
-       return ALIGN_FLOOR(offset, page_size);
-}
-#endif
 
 static inline
 struct mmap_align *mmap_align(size_t length, int prot,
@@ -84,7 +66,7 @@ struct mmap_align *mmap_align(size_t length, int prot,
 	if (!mma)
 		return MAP_FAILED;
 	mma->length = length;
-	page_aligned_offset = get_page_aligned_offset(offset, page_size);
+	page_aligned_offset = get_page_aligned_offset(offset, log_level);
 	/*
 	 * Page aligned length needs to contain the requested range.
 	 * E.g., for a small range that fits within a single page, we might
