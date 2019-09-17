@@ -160,4 +160,9 @@ uninstall-local:
 EXTRA_DIST = $(STATIC_BINDINGS_DEPS) $(SWIG_INTERFACE_FILES) $(STATIC_NATIVE_LIB_SRCS)
 
 # clean: generated C and Python files (by SWIG)
-CLEANFILES = bt2/native_bt.py bt2/native_bt.c build-python-bindings.stamp copy-static-deps.stamp
+CLEANFILES = \
+	build-python-bindings.stamp \
+	bt2/native_bt.c \
+	bt2/native_bt.d \
+	bt2/native_bt.py \
+	copy-static-deps.stamp
