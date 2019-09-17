@@ -26,7 +26,7 @@ import collections.abc
 # The value returned by the callable is returned by run_in_component_init.
 def run_in_component_init(func):
     class MySink(bt2._UserSinkComponent):
-        def __init__(self, params, obj):
+        def __init__(self, config, params, obj):
             nonlocal res_bound
             res_bound = func(self)
 
@@ -125,7 +125,7 @@ def _get_all_message_types(with_packet=True):
             return msg
 
     class MySrc(bt2._UserSourceComponent, message_iterator_class=MyIter):
-        def __init__(self, params, obj):
+        def __init__(self, config, params, obj):
             tc = self._create_trace_class()
             clock_class = self._create_clock_class(frequency=1000)
 
@@ -251,7 +251,7 @@ def get_const_event_message():
 # from this port, it puts the returned message in the initialization
 # list as the first item.
 class TestProxySink(bt2._UserSinkComponent):
-    def __init__(self, params, msg_list):
+    def __init__(self, config, params, msg_list):
         assert msg_list is not None
         self._msg_list = msg_list
         self._add_input_port('in')

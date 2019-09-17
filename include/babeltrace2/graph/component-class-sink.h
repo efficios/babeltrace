@@ -47,6 +47,7 @@ typedef bt_component_class_get_supported_mip_versions_method_status
 typedef bt_component_class_init_method_status
 (*bt_component_class_sink_init_method)(
 		bt_self_component_sink *self_component,
+		bt_self_component_sink_configuration *config,
 		const bt_value *params, void *init_method_data);
 
 typedef void (*bt_component_class_sink_finalize_method)(

@@ -259,7 +259,7 @@ def _get_ns(obj):
 
 
 class _TraceCollectionMessageIteratorProxySink(bt2_component._UserSinkComponent):
-    def __init__(self, params, msg_list):
+    def __init__(self, config, params, msg_list):
         assert type(msg_list) is list
         self._msg_list = msg_list
         self._add_input_port('in')

@@ -510,6 +510,9 @@ class _UserComponentType(type):
         # create instance, not user-initialized yet
         self = cls.__new__(cls)
 
+        # config object
+        config = cls._config_pycls()
+
         # pointer to native self component object (weak/borrowed)
         self._bt_ptr = comp_ptr
 
@@ -519,7 +522,7 @@ class _UserComponentType(type):
         else:
             params = None
 
-        self.__init__(params, obj)
+        self.__init__(config, params, obj)
         return self
 
     def __call__(cls, *args, **kwargs):
@@ -638,6 +641,29 @@ class _UserComponentType(type):
             native_bt.bt2_unregister_cc_ptr_to_py_cls(cc_ptr)
 
 
+# Configuration objects for components.
+#
+# These are passed in __init__ to allow components to change some configuration
+# parameters during initialization and not after. As you can see, they are not
+# used at the moment, but are there in case we want to add such parameters.
+
+
+class _UserComponentConfiguration:
+    pass
+
+
+class _UserSourceComponentConfiguration(_UserComponentConfiguration):
+    pass
+
+
+class _UserFilterComponentConfiguration(_UserComponentConfiguration):
+    pass
+
+
+class _UserSinkComponentConfiguration(_UserComponentConfiguration):
+    pass
+
+
 # Subclasses must provide these methods or property:
 #
 #   - _bt_as_not_self_specific_component_ptr: static method, must return the passed
@@ -682,7 +708,7 @@ class _UserComponent(metaclass=_UserComponentType):
         ptr = self._bt_as_self_component_ptr(self._bt_ptr)
         return native_bt.self_component_get_graph_mip_version(ptr)
 
-    def __init__(self, params=None, obj=None):
+    def __init__(self, config, params, obj):
         pass
 
     def _user_finalize(self):
@@ -775,6 +801,7 @@ class _UserSourceComponent(_UserComponent, _SourceComponentConst):
     _bt_as_self_component_ptr = staticmethod(
         native_bt.self_component_source_as_self_component
     )
+    _config_pycls = _UserSourceComponentConfiguration
 
     @property
     def _output_ports(self):
@@ -808,6 +835,7 @@ class _UserFilterComponent(_UserComponent, _FilterComponentConst):
     _bt_as_self_component_ptr = staticmethod(
         native_bt.self_component_filter_as_self_component
     )
+    _config_pycls = _UserFilterComponentConfiguration
 
     @property
     def _output_ports(self):
@@ -865,6 +893,7 @@ class _UserSinkComponent(_UserComponent, _SinkComponentConst):
     _bt_as_self_component_ptr = staticmethod(
         native_bt.self_component_sink_as_self_component
     )
+    _config_pycls = _UserSinkComponentConfiguration
 
     def _bt_graph_is_configured_from_native(self):
         self._user_graph_is_configured()

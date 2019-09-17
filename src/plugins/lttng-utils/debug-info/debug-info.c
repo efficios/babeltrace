@@ -1748,6 +1748,7 @@ int init_from_params(struct debug_info_component *debug_info_component,
 BT_HIDDEN
 bt_component_class_init_method_status debug_info_comp_init(
 		bt_self_component_filter *self_comp_flt,
+		bt_self_component_filter_configuration *config,
 		const bt_value *params, __attribute__((unused)) void *init_method_data)
 {
 	int ret;

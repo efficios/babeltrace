@@ -40,7 +40,7 @@ def to_string(p):
 
 @bt2.plugin_component_class
 class SinkThatPrintsParams(bt2._UserSinkComponent):
-    def __init__(self, params, obj):
+    def __init__(self, config, params, obj):
         self._add_input_port('in')
         print(to_string(params))
 

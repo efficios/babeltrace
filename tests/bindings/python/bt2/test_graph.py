@@ -87,7 +87,7 @@ class GraphTestCase(unittest.TestCase):
         comp_params = None
 
         class MySink(bt2._UserSinkComponent):
-            def __init__(self, params, obj):
+            def __init__(self, config, params, obj):
                 nonlocal comp_params
                 comp_params = params
 
@@ -103,7 +103,7 @@ class GraphTestCase(unittest.TestCase):
         comp_obj = None
 
         class MySink(bt2._UserSinkComponent):
-            def __init__(self, params, obj):
+            def __init__(self, config, params, obj):
                 nonlocal comp_obj
                 comp_obj = obj
 
@@ -119,7 +119,7 @@ class GraphTestCase(unittest.TestCase):
         comp_obj = None
 
         class MySink(bt2._UserSinkComponent):
-            def __init__(self, params, obj):
+            def __init__(self, config, params, obj):
                 nonlocal comp_obj
                 comp_obj = obj
 
@@ -175,11 +175,11 @@ class GraphTestCase(unittest.TestCase):
                 raise bt2.Stop
 
         class MySource(bt2._UserSourceComponent, message_iterator_class=MyIter):
-            def __init__(self, params, obj):
+            def __init__(self, config, params, obj):
                 self._add_output_port('out')
 
         class MySink(bt2._UserSinkComponent):
-            def __init__(self, params, obj):
+            def __init__(self, config, params, obj):
                 self._add_input_port('in')
 
             def _user_consume(self):
@@ -202,11 +202,11 @@ class GraphTestCase(unittest.TestCase):
                 raise bt2.Stop
 
         class MySource(bt2._UserSourceComponent, message_iterator_class=MyIter):
-            def __init__(self, params, obj):
+            def __init__(self, config, params, obj):
                 self._add_output_port('out')
 
         class MySink(bt2._UserSinkComponent):
-            def __init__(self, params, obj):
+            def __init__(self, config, params, obj):
                 self._add_input_port('in')
 
             def _user_consume(self):
@@ -224,11 +224,11 @@ class GraphTestCase(unittest.TestCase):
                 raise TypeError
 
         class MySource(bt2._UserSourceComponent, message_iterator_class=MyIter):
-            def __init__(self, params, obj):
+            def __init__(self, config, params, obj):
                 self._add_output_port('out')
 
         class MySink(bt2._UserSinkComponent):
-            def __init__(self, params, obj):
+            def __init__(self, config, params, obj):
                 self._add_input_port('in')
 
             def _user_consume(self):
@@ -269,11 +269,11 @@ class GraphTestCase(unittest.TestCase):
                 return self._create_stream_beginning_message(self._stream)
 
         class MySource(bt2._UserSourceComponent, message_iterator_class=MyIter):
-            def __init__(self, params, obj):
+            def __init__(self, config, params, obj):
                 self._add_output_port('out')
 
         class MySink(bt2._UserSinkComponent):
-            def __init__(self, params, obj):
+            def __init__(self, config, params, obj):
                 self._add_input_port('in')
 
             def _user_consume(self):
@@ -316,11 +316,11 @@ class GraphTestCase(unittest.TestCase):
                 return msg
 
         class MySource(bt2._UserSourceComponent, message_iterator_class=MyIter):
-            def __init__(self, params, obj):
+            def __init__(self, config, params, obj):
                 self._add_output_port('out')
 
         class MySink(bt2._UserSinkComponent):
-            def __init__(self, params, obj):
+            def __init__(self, config, params, obj):
                 self._input_port = self._add_input_port('in')
                 self._at = 0
 
@@ -356,11 +356,11 @@ class GraphTestCase(unittest.TestCase):
             pass
 
         class MySource(bt2._UserSourceComponent, message_iterator_class=MyIter):
-            def __init__(self, params, obj):
+            def __init__(self, config, params, obj):
                 self._add_output_port('out')
 
         class MySink(bt2._UserSinkComponent):
-            def __init__(self, params, obj):
+            def __init__(self, config, params, obj):
                 self._input_port = self._add_input_port('in')
 
             def _user_consume(comp_self):
@@ -383,11 +383,11 @@ class GraphTestCase(unittest.TestCase):
             pass
 
         class MySource(bt2._UserSourceComponent, message_iterator_class=MyIter):
-            def __init__(self, params, obj):
+            def __init__(self, config, params, obj):
                 self._add_output_port('out')
 
         class MySink(bt2._UserSinkComponent):
-            def __init__(self, params, obj):
+            def __init__(self, config, params, obj):
                 self._input_port = self._add_input_port('in')
 
             def _user_consume(comp_self):
@@ -417,11 +417,11 @@ class GraphTestCase(unittest.TestCase):
                 return msg
 
         class MySource(bt2._UserSourceComponent, message_iterator_class=MyIter):
-            def __init__(self, params, obj):
+            def __init__(self, config, params, obj):
                 self._add_output_port('out')
 
         class MySink(bt2._UserSinkComponent):
-            def __init__(self, params, obj):
+            def __init__(self, config, params, obj):
                 self._input_port = self._add_input_port('in')
                 self._at = 0
 
@@ -473,11 +473,11 @@ class GraphTestCase(unittest.TestCase):
                 return msg
 
         class MySource(bt2._UserSourceComponent, message_iterator_class=MyIter):
-            def __init__(self, params, obj):
+            def __init__(self, config, params, obj):
                 self._add_output_port('out')
 
         class MySink(bt2._UserSinkComponent):
-            def __init__(self, params, obj):
+            def __init__(self, config, params, obj):
                 self._input_port = self._add_input_port('in')
                 self._at = 0
 
@@ -514,12 +514,12 @@ class GraphTestCase(unittest.TestCase):
                 raise bt2.Stop
 
         class MySource(bt2._UserSourceComponent, message_iterator_class=MyIter):
-            def __init__(self, params, obj):
+            def __init__(self, config, params, obj):
                 self._add_output_port('out')
                 self._add_output_port('zero')
 
         class MySink(bt2._UserSinkComponent):
-            def __init__(self, params, obj):
+            def __init__(self, config, params, obj):
                 self._add_input_port('in')
 
             def _user_consume(self):
@@ -583,12 +583,12 @@ class GraphTestCase(unittest.TestCase):
                 raise bt2.Stop
 
         class MySource(bt2._UserSourceComponent, message_iterator_class=MyIter):
-            def __init__(self, params, obj):
+            def __init__(self, config, params, obj):
                 self._add_output_port('out')
                 self._add_output_port('zero')
 
         class MySink(bt2._UserSinkComponent):
-            def __init__(self, params, obj):
+            def __init__(self, config, params, obj):
                 self._add_input_port('in')
 
             def _user_consume(self):
@@ -604,7 +604,7 @@ class GraphTestCase(unittest.TestCase):
 
     def test_raise_in_component_init(self):
         class MySink(bt2._UserSinkComponent):
-            def __init__(self, params, obj):
+            def __init__(self, config, params, obj):
                 raise ValueError('oops!')
 
             def _user_consume(self):
@@ -617,7 +617,7 @@ class GraphTestCase(unittest.TestCase):
 
     def test_raise_in_port_added_listener(self):
         class MySink(bt2._UserSinkComponent):
-            def __init__(self, params, obj):
+            def __init__(self, config, params, obj):
                 self._add_input_port('in')
 
             def _user_consume(self):
@@ -638,11 +638,11 @@ class GraphTestCase(unittest.TestCase):
                 raise bt2.Stop
 
         class MySource(bt2._UserSourceComponent, message_iterator_class=MyIter):
-            def __init__(self, params, obj):
+            def __init__(self, config, params, obj):
                 self._add_output_port('out')
 
         class MySink(bt2._UserSinkComponent):
-            def __init__(self, params, obj):
+            def __init__(self, config, params, obj):
                 self._add_input_port('in')
 
             def _user_consume(self):

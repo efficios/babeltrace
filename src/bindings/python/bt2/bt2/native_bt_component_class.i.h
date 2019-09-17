@@ -451,6 +451,7 @@ component_class_sink_get_supported_mip_versions(
 static
 bt_component_class_init_method_status component_class_source_init(
 		bt_self_component_source *self_component_source,
+		bt_self_component_source_configuration *config,
 		const bt_value *params, void *init_method_data)
 {
 	bt_self_component *self_component = bt_self_component_source_as_self_component(self_component_source);
@@ -464,6 +465,7 @@ bt_component_class_init_method_status component_class_source_init(
 static
 bt_component_class_init_method_status component_class_filter_init(
 		bt_self_component_filter *self_component_filter,
+		bt_self_component_filter_configuration *config,
 		const bt_value *params, void *init_method_data)
 {
 	bt_self_component *self_component = bt_self_component_filter_as_self_component(self_component_filter);
@@ -477,6 +479,7 @@ bt_component_class_init_method_status component_class_filter_init(
 static
 bt_component_class_init_method_status component_class_sink_init(
 		bt_self_component_sink *self_component_sink,
+		bt_self_component_sink_configuration *config,
 		const bt_value *params, void *init_method_data)
 {
 	bt_self_component *self_component = bt_self_component_sink_as_self_component(self_component_sink);

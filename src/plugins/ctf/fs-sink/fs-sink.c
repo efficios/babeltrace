@@ -169,7 +169,9 @@ end:
 
 BT_HIDDEN
 bt_component_class_init_method_status ctf_fs_sink_init(
-		bt_self_component_sink *self_comp_sink, const bt_value *params,
+		bt_self_component_sink *self_comp_sink,
+		bt_self_component_sink_configuration *config,
+		const bt_value *params,
 		void *init_method_data)
 {
 	bt_component_class_init_method_status status =

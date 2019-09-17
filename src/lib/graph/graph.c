@@ -59,7 +59,7 @@ typedef enum bt_graph_listener_func_status
 		const void *, void *);
 
 typedef enum bt_component_class_init_method_status
-(*comp_init_method_t)(const void *, const void *, void *);
+(*comp_init_method_t)(const void *, void *, const void *, void *);
 
 struct bt_graph_listener {
 	bt_graph_listener_removed_func removed;
@@ -1330,8 +1330,12 @@ int add_component_with_init_method_data(
 	bt_value_freeze(params);
 
 	if (init_method) {
+		/*
+		 * There is no use for config objects right now, so just pass
+		 * NULL.
+		 */
 		BT_LOGD_STR("Calling user's initialization method.");
-		init_status = init_method(component, params, init_method_data);
+		init_status = init_method(component, NULL, params, init_method_data);
 		BT_LOGD("User method returned: status=%s",
 			bt_common_func_status_string(init_status));
 		if (init_status != BT_FUNC_STATUS_OK) {

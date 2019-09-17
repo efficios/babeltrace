@@ -614,7 +614,9 @@ void set_use_colors(struct pretty_component *pretty)
 
 BT_HIDDEN
 bt_component_class_init_method_status pretty_init(
-		bt_self_component_sink *comp, const bt_value *params,
+		bt_self_component_sink *comp,
+		bt_self_component_sink_configuration *config,
+		const bt_value *params,
 		__attribute__((unused)) void *init_method_data)
 {
 	bt_component_class_init_method_status ret =

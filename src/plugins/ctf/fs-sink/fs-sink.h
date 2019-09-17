@@ -68,6 +68,7 @@ struct fs_sink_comp {
 BT_HIDDEN
 bt_component_class_init_method_status ctf_fs_sink_init(
 		bt_self_component_sink *component,
+		bt_self_component_sink_configuration *config,
 		const bt_value *params,
 		void *init_method_data);
 

@@ -18,6 +18,7 @@
 
 import unittest
 import bt2
+from bt2 import component as bt2_component
 
 
 class UserComponentTestCase(unittest.TestCase):
@@ -32,7 +33,7 @@ class UserComponentTestCase(unittest.TestCase):
 
     def test_name(self):
         class MySink(bt2._UserSinkComponent):
-            def __init__(comp_self, params, obj):
+            def __init__(comp_self, config, params, obj):
                 self.assertEqual(comp_self.name, 'yaes')
 
             def _user_consume(self):
@@ -42,7 +43,7 @@ class UserComponentTestCase(unittest.TestCase):
 
     def test_logging_level(self):
         class MySink(bt2._UserSinkComponent):
-            def __init__(comp_self, params, obj):
+            def __init__(comp_self, config, params, obj):
                 self.assertEqual(comp_self.logging_level, bt2.LoggingLevel.INFO)
 
             def _user_consume(self):
@@ -52,7 +53,7 @@ class UserComponentTestCase(unittest.TestCase):
 
     def test_graph_mip_version(self):
         class MySink(bt2._UserSinkComponent):
-            def __init__(comp_self, params, obj):
+            def __init__(comp_self, config, params, obj):
                 self.assertEqual(comp_self._graph_mip_version, 0)
 
             def _user_consume(self):
@@ -62,7 +63,7 @@ class UserComponentTestCase(unittest.TestCase):
 
     def test_class(self):
         class MySink(bt2._UserSinkComponent):
-            def __init__(comp_self, params, obj):
+            def __init__(comp_self, config, params, obj):
                 self.assertEqual(comp_self.cls, MySink)
 
             def _user_consume(self):
@@ -72,7 +73,7 @@ class UserComponentTestCase(unittest.TestCase):
 
     def test_addr(self):
         class MySink(bt2._UserSinkComponent):
-            def __init__(comp_self, params, obj):
+            def __init__(comp_self, config, params, obj):
                 self.assertIsInstance(comp_self.addr, int)
                 self.assertNotEqual(comp_self.addr, 0)
 
@@ -98,6 +99,43 @@ class UserComponentTestCase(unittest.TestCase):
         del graph
         del comp
         self.assertTrue(finalized)
+
+    def test_source_component_config(self):
+        class MySource(
+            bt2._UserSourceComponent, message_iterator_class=bt2._UserMessageIterator
+        ):
+            def __init__(comp_self, config, params, obj):
+                nonlocal cfg_type
+                cfg_type = type(config)
+
+        cfg_type = None
+        self._create_comp(MySource)
+        self.assertIs(cfg_type, bt2_component._UserSourceComponentConfiguration)
+
+    def test_filter_component_config(self):
+        class MyFilter(
+            bt2._UserFilterComponent, message_iterator_class=bt2._UserMessageIterator
+        ):
+            def __init__(comp_self, config, params, obj):
+                nonlocal cfg_type
+                cfg_type = type(config)
+
+        cfg_type = None
+        self._create_comp(MyFilter)
+        self.assertIs(cfg_type, bt2_component._UserFilterComponentConfiguration)
+
+    def test_sink_component_config(self):
+        class MySink(bt2._UserSinkComponent):
+            def __init__(comp_self, config, params, obj):
+                nonlocal cfg_type
+                cfg_type = type(config)
+
+            def _user_consume(self):
+                pass
+
+        cfg_type = None
+        self._create_comp(MySink)
+        self.assertIs(cfg_type, bt2_component._UserSinkComponentConfiguration)
 
 
 class GenericComponentTestCase(unittest.TestCase):

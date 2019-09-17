@@ -2391,6 +2391,7 @@ end:
 BT_HIDDEN
 bt_component_class_init_method_status ctf_fs_init(
 		bt_self_component_source *self_comp_src,
+		bt_self_component_source_configuration *config,
 		const bt_value *params, __attribute__((unused)) void *init_method_data)
 {
 	struct ctf_fs_component *ctf_fs;

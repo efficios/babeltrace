@@ -60,6 +60,7 @@ void simple_fini_func(void *data)
 static
 bt_component_class_init_method_status src_init(
 		bt_self_component_source *self_comp,
+		bt_self_component_source_configuration *config,
 		const bt_value *params, void *init_method_data)
 {
 	bt_self_component_add_port_status status;

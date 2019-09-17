@@ -30,6 +30,7 @@
 BT_HIDDEN
 bt_component_class_init_method_status dmesg_init(
 		bt_self_component_source *self_comp,
+		bt_self_component_source_configuration *config,
 		const bt_value *params, void *init_method_data);
 
 BT_HIDDEN

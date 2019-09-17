@@ -94,7 +94,9 @@ struct pretty_component {
 
 BT_HIDDEN
 bt_component_class_init_method_status pretty_init(
-		bt_self_component_sink *component, const bt_value *params,
+		bt_self_component_sink *component,
+		bt_self_component_sink_configuration *config,
+		const bt_value *params,
 		void *init_method_data);
 
 BT_HIDDEN

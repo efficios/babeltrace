@@ -249,6 +249,7 @@ void destroy_muxer_comp(struct muxer_comp *muxer_comp)
 BT_HIDDEN
 bt_component_class_init_method_status muxer_init(
 		bt_self_component_filter *self_comp_flt,
+		bt_self_component_filter_configuration *config,
 		const bt_value *params, void *init_data)
 {
 	bt_component_class_init_method_status status =

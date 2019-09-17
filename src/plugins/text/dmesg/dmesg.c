@@ -383,6 +383,7 @@ bt_component_class_init_method_status create_port(
 BT_HIDDEN
 bt_component_class_init_method_status dmesg_init(
 		bt_self_component_source *self_comp_src,
+		bt_self_component_source_configuration *config,
 		bt_value *params, void *init_method_data)
 {
 	int ret = 0;

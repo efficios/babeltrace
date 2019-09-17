@@ -119,7 +119,7 @@ class AllMessagesTestCase(unittest.TestCase):
                 return msg
 
         class MySrc(bt2._UserSourceComponent, message_iterator_class=MyIter):
-            def __init__(self, params, obj):
+            def __init__(self, config, params, obj):
                 self._add_output_port('out', params)
 
                 with_cc = bool(params['with_cc'])

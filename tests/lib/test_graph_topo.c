@@ -295,6 +295,7 @@ bt_component_class_port_connected_method_status sink_input_port_connected(
 static
 bt_component_class_init_method_status src_init(
 	bt_self_component_source *self_comp,
+	bt_self_component_source_configuration *config,
 	const bt_value *params, void *init_method_data)
 {
 	int ret;
@@ -308,6 +309,7 @@ bt_component_class_init_method_status src_init(
 static
 bt_component_class_init_method_status sink_init(
 	bt_self_component_sink *self_comp,
+	bt_self_component_sink_configuration *config,
 	const bt_value *params, void *init_method_data)
 {
 	int ret;

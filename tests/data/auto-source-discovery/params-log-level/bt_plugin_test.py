@@ -57,7 +57,7 @@ class Base:
 
 @bt2.plugin_component_class
 class TestSourceA(Base, bt2._UserSourceComponent, message_iterator_class=TestIter):
-    def __init__(self, params, obj):
+    def __init__(self, config, params, obj):
         super().__init__(params, obj)
 
     @staticmethod
@@ -80,7 +80,7 @@ class TestSourceA(Base, bt2._UserSourceComponent, message_iterator_class=TestIte
 
 @bt2.plugin_component_class
 class TestSourceB(Base, bt2._UserSourceComponent, message_iterator_class=TestIter):
-    def __init__(self, params, obj):
+    def __init__(self, config, params, obj):
         super().__init__(params, obj)
 
     @staticmethod
