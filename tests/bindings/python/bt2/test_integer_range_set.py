@@ -225,3 +225,7 @@ class SignedIntegerRangeSetTestCase(_IntegerRangeSetTestCase, unittest.TestCase)
         self._range3 = bt2.SignedIntegerRange(1948, 2019)
         self._range_same = bt2.SignedIntegerRange(-1300, -1300)
         super().setUp()
+
+
+if __name__ == '__main__':
+    unittest.main()

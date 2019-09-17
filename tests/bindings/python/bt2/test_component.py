@@ -142,3 +142,7 @@ class GenericComponentTestCase(unittest.TestCase):
         comp = self._create_comp(MySink)
         self.assertIsInstance(comp.addr, int)
         self.assertNotEqual(comp.addr, 0)
+
+
+if __name__ == '__main__':
+    unittest.main()

@@ -302,3 +302,7 @@ class CtfWriterClockTestCase(unittest.TestCase):
 
     def test_eq_invalid(self):
         self.assertFalse(self._clock == 23)
+
+
+if __name__ == '__main__':
+    unittest.main()

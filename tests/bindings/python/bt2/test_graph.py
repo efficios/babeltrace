@@ -660,3 +660,7 @@ class GraphTestCase(unittest.TestCase):
 
         with self.assertRaises(bt2._Error):
             graph.connect_ports(up.output_ports['out'], down.input_ports['in'])
+
+
+if __name__ == '__main__':
+    unittest.main()

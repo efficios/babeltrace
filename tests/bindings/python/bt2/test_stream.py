@@ -89,3 +89,7 @@ class StreamTestCase(unittest.TestCase):
 
         with self.assertRaises(TypeError):
             self._tr.create_stream(sc, id='string')
+
+
+if __name__ == '__main__':
+    unittest.main()

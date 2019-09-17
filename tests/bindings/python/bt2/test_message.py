@@ -405,3 +405,7 @@ class AllMessagesTestCase(unittest.TestCase):
     def test_event_msg(self):
         msg = utils.get_event_message()
         self.assertIs(type(msg.event), bt2_event._Event)
+
+
+if __name__ == '__main__':
+    unittest.main()

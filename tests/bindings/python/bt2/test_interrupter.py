@@ -45,3 +45,7 @@ class InterrupterTestCase(unittest.TestCase):
         self.assertTrue(self._interrupter)
         self._interrupter.reset()
         self.assertFalse(self._interrupter)
+
+
+if __name__ == '__main__':
+    unittest.main()
