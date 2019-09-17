@@ -108,3 +108,7 @@ class PacketTestCase(unittest.TestCase):
     def test_no_context_field(self):
         packet, _, _ = self._create_packet(with_pc=False)
         self.assertIsNone(packet.context_field)
+
+
+if __name__ == '__main__':
+    unittest.main()

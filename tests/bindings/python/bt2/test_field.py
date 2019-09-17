@@ -2338,3 +2338,7 @@ class VariantFieldTestCase(unittest.TestCase):
         other_field.selected_option_index = 2
         other_field.value = 14.4245
         self.assertEqual(str(field), str(other_field))
+
+
+if __name__ == '__main__':
+    unittest.main()

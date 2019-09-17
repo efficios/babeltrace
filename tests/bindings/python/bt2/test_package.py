@@ -476,3 +476,7 @@ class PackageTestCase(unittest.TestCase):
 
     def test_has___version__(self):
         self._assert_in_bt2('__version__')
+
+
+if __name__ == '__main__':
+    unittest.main()

@@ -326,3 +326,7 @@ class ClockSnapshotTestCase(unittest.TestCase):
 
         self.assertTrue(self._msg.default_clock_snapshot <= 123)
         self.assertFalse(self._msg.default_clock_snapshot <= 100)
+
+
+if __name__ == '__main__':
+    unittest.main()

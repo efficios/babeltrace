@@ -139,3 +139,7 @@ class PluginTestCase(unittest.TestCase):
 
     def test_sink_comp_classes_len(self):
         self.assertEqual(len(self._plugin.sink_component_classes), 1)
+
+
+if __name__ == '__main__':
+    unittest.main()

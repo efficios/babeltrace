@@ -188,3 +188,7 @@ class EventClassTestCase(unittest.TestCase):
     def test_const_stream_class(self):
         ec_const = _create_const_event_class(self._tc, self._stream_class)
         self.assertIs(type(ec_const.stream_class), bt2_stream_class._StreamClassConst)
+
+
+if __name__ == '__main__':
+    unittest.main()

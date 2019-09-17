@@ -66,3 +66,7 @@ class ComponentDescriptorTestCase(unittest.TestCase):
 
     def test_attr_obj(self):
         self.assertIs(self._comp_descr.obj, self._obj)
+
+
+if __name__ == '__main__':
+    unittest.main()

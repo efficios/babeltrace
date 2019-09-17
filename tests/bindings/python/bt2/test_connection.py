@@ -91,3 +91,7 @@ class ConnectionTestCase(unittest.TestCase):
         conn = graph.connect_ports(src.output_ports['out'], sink.input_ports['in'])
         self.assertEqual(conn.upstream_port.addr, src.output_ports['out'].addr)
         self.assertIs(type(conn.upstream_port), bt2_port._OutputPortConst)
+
+
+if __name__ == '__main__':
+    unittest.main()

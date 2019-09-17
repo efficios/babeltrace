@@ -832,3 +832,7 @@ class PortTestCase(unittest.TestCase):
 
         self._create_comp(MySink)
         self.assertEqual(user_datas, [None, set()])
+
+
+if __name__ == '__main__':
+    unittest.main()

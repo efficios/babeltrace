@@ -288,3 +288,7 @@ class QueryExecutorTestCase(unittest.TestCase):
             test_priv_query_exec.logging_level
 
         del test_priv_query_exec
+
+
+if __name__ == '__main__':
+    unittest.main()

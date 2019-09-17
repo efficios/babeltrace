@@ -204,3 +204,7 @@ class ErrorTestCase(unittest.TestCase):
         self.assertEqual(cause.component_class_type, bt2.ComponentClassType.SOURCE)
         self.assertEqual(cause.component_class_name, 'SourceWithFailingIter')
         self.assertIsNone(cause.plugin_name)
+
+
+if __name__ == '__main__':
+    unittest.main()

@@ -358,3 +358,7 @@ class ComponentClassTestCase(unittest.TestCase):
         ).query()
         expected = ['an object', {'yes': 'no', 'book': -17}, 23]
         self.assertEqual(res, expected)
+
+
+if __name__ == '__main__':
+    unittest.main()

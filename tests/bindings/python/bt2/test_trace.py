@@ -184,3 +184,7 @@ class TraceTestCase(unittest.TestCase):
 
         self.assertTrue(trace_class_destroyed)
         self.assertTrue(trace_destroyed)
+
+
+if __name__ == '__main__':
+    unittest.main()

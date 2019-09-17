@@ -359,3 +359,7 @@ class StreamClassTestCase(unittest.TestCase):
 
         ec_ids = sorted(sc)
         self.assertEqual(ec_ids, [17, 23])
+
+
+if __name__ == '__main__':
+    unittest.main()
