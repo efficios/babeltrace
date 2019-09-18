@@ -34,7 +34,7 @@ def _create_const_event_class(tc, stream_class):
     )
 
     class MyIter(bt2._UserMessageIterator):
-        def __init__(self, self_port_output):
+        def __init__(self, config, self_port_output):
 
             trace = tc()
             stream = trace.create_stream(stream_class)

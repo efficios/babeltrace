@@ -935,6 +935,7 @@ static
 bt_component_class_message_iterator_init_method_status
 component_class_message_iterator_init(
 		bt_self_message_iterator *self_message_iterator,
+		bt_self_message_iterator_configuration *config,
 		bt_self_component *self_component,
 		bt_self_component_port_output *self_component_port_output)
 {
@@ -942,6 +943,7 @@ component_class_message_iterator_init(
 	PyObject *py_comp_cls = NULL;
 	PyObject *py_iter_cls = NULL;
 	PyObject *py_iter_ptr = NULL;
+	PyObject *py_config_ptr = NULL;
 	PyObject *py_component_port_output_ptr = NULL;
 	PyObject *py_init_method_result = NULL;
 	PyObject *py_iter = NULL;
@@ -996,15 +998,27 @@ component_class_message_iterator_init(
 	/*
 	 * Initialize object:
 	 *
-	 *     py_iter.__init__(self_output_port)
+	 *     py_iter.__init__(config, self_output_port)
 	 *
-	 * through the _init_for_native helper static method.
+	 * through the _init_from_native helper static method.
 	 *
 	 * At this point, py_iter._ptr is set, so this initialization
 	 * function has access to self._component (which gives it the
 	 * user Python component object from which the iterator was
 	 * created).
 	 */
+	py_config_ptr = SWIG_NewPointerObj(SWIG_as_voidptr(config),
+		SWIGTYPE_p_bt_self_message_iterator_configuration, 0);
+	if (!py_config_ptr) {
+		const char *err = "Failed to create a SWIG pointer object";
+
+		BT_COMP_LOG_CUR_LVL(BT_LOG_ERROR, log_level, self_component,
+			"%s", err);
+		BT_CURRENT_THREAD_ERROR_APPEND_CAUSE_FROM_MESSAGE_ITERATOR(
+			self_message_iterator, err);
+		goto error;
+	}
+
 	py_component_port_output_ptr = SWIG_NewPointerObj(
 		SWIG_as_voidptr(self_component_port_output),
 		SWIGTYPE_p_bt_self_component_port_output, 0);
@@ -1019,7 +1033,8 @@ component_class_message_iterator_init(
 	}
 
 	py_init_method_result = PyObject_CallMethod(py_iter,
-		"_bt_init_from_native", "O", py_component_port_output_ptr);
+		"_bt_init_from_native", "OO", py_config_ptr,
+		py_component_port_output_ptr);
 	if (!py_init_method_result) {
 		BT_COMP_LOG_CUR_LVL(BT_LOG_ERROR, log_level, self_component,
 			"User's __init__() method failed:");
@@ -1074,24 +1089,30 @@ static
 bt_component_class_message_iterator_init_method_status
 component_class_source_message_iterator_init(
 		bt_self_message_iterator *self_message_iterator,
+		bt_self_message_iterator_configuration *config,
 		bt_self_component_source *self_component_source,
 		bt_self_component_port_output *self_component_port_output)
 {
-	bt_self_component *self_component = bt_self_component_source_as_self_component(self_component_source);
+	bt_self_component *self_component =
+		bt_self_component_source_as_self_component(self_component_source);
 
-	return component_class_message_iterator_init(self_message_iterator, self_component, self_component_port_output);
+	return component_class_message_iterator_init(self_message_iterator,
+		config, self_component, self_component_port_output);
 }
 
 static
 bt_component_class_message_iterator_init_method_status
 component_class_filter_message_iterator_init(
 		bt_self_message_iterator *self_message_iterator,
+		bt_self_message_iterator_configuration *config,
 		bt_self_component_filter *self_component_filter,
 		bt_self_component_port_output *self_component_port_output)
 {
-	bt_self_component *self_component = bt_self_component_filter_as_self_component(self_component_filter);
+	bt_self_component *self_component =
+		bt_self_component_filter_as_self_component(self_component_filter);
 
-	return component_class_message_iterator_init(self_message_iterator, self_component, self_component_port_output);
+	return component_class_message_iterator_init(self_message_iterator,
+		config, self_component, self_component_port_output);
 }
 
 static

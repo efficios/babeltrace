@@ -280,6 +280,7 @@ bt_component_class_message_iterator_next_method_status lttng_live_msg_iter_next(
 
 bt_component_class_message_iterator_init_method_status lttng_live_msg_iter_init(
 		bt_self_message_iterator *self_msg_it,
+		bt_self_message_iterator_configuration *config,
 		bt_self_component_source *self_comp,
 		bt_self_component_port_output *self_port);
 

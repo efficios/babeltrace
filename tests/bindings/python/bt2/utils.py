@@ -65,7 +65,7 @@ def _get_all_message_types(with_packet=True):
     _msgs = None
 
     class MyIter(bt2._UserMessageIterator):
-        def __init__(self, self_output_port):
+        def __init__(self, config, self_output_port):
 
             nonlocal _msgs
             self._at = 0

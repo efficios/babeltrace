@@ -34,7 +34,7 @@ from bt2 import trace_class as bt2_trace_class
 class AllMessagesTestCase(unittest.TestCase):
     def setUp(self):
         class MyIter(bt2._UserMessageIterator):
-            def __init__(self, self_port_output):
+            def __init__(self, config, self_port_output):
                 self._at = 0
                 self._with_stream_msgs_clock_snapshots = self_port_output.user_data.get(
                     'with_stream_msgs_clock_snapshots', False

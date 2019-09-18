@@ -110,6 +110,25 @@ class _UserComponentInputPortMessageIterator(object._SharedObject, _MessageItera
             status, 'message iterator cannot seek given ns from origin'
         )
 
+    @property
+    def can_seek_forward(self):
+        return native_bt.self_component_port_input_message_iterator_can_seek_forward(
+            self._ptr
+        )
+
+
+class _MessageIteratorConfiguration:
+    def __init__(self, ptr):
+        self._ptr = ptr
+
+    def can_seek_forward(self, value):
+        utils._check_bool(value)
+        native_bt.self_message_iterator_configuration_set_can_seek_forward(
+            self._ptr, value
+        )
+
+    can_seek_forward = property(fset=can_seek_forward)
+
 
 # This is extended by the user to implement component classes in Python.  It
 # is created for a given output port when an input port message iterator is
@@ -134,13 +153,14 @@ class _UserMessageIterator(_MessageIterator):
         self._bt_ptr = ptr
         return self
 
-    def _bt_init_from_native(self, self_output_port_ptr):
+    def _bt_init_from_native(self, config_ptr, self_output_port_ptr):
         self_output_port = bt2_port._create_self_from_ptr_and_get_ref(
             self_output_port_ptr, native_bt.PORT_TYPE_OUTPUT
         )
-        self.__init__(self_output_port)
+        config = _MessageIteratorConfiguration(config_ptr)
+        self.__init__(config, self_output_port)
 
-    def __init__(self, output_port):
+    def __init__(self, config, self_output_port):
         pass
 
     @property

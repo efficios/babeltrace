@@ -247,7 +247,7 @@ class ClockSnapshotTestCase(unittest.TestCase):
         self._cc = _cc
 
         class MyIter(bt2._UserMessageIterator):
-            def __init__(self, self_port_output):
+            def __init__(self, config, self_port_output):
                 self._at = 0
 
             def __next__(self):

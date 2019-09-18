@@ -8,7 +8,7 @@ import os
 
 
 class TestIter(bt2._UserMessageIterator):
-    def __init__(self, output_port):
+    def __init__(self, config, output_port):
         inputs = output_port.user_data['inputs']
         sc = output_port.user_data['sc']
         tc = sc.trace_class

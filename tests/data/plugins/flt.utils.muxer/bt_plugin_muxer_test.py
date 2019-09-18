@@ -2,7 +2,7 @@ import bt2
 
 
 class TheIteratorOfConfusion(bt2._UserMessageIterator):
-    def __init__(self, port):
+    def __init__(self, config, port):
         self._at = 0
         test_name = port.user_data[0]
         TEST_CASES[test_name].create_msgs(self, port.user_data[1:])

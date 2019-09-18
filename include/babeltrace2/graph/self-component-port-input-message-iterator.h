@@ -96,6 +96,10 @@ extern bt_message_iterator_seek_beginning_status
 bt_self_component_port_input_message_iterator_seek_beginning(
 		bt_self_component_port_input_message_iterator *iterator);
 
+extern bt_bool
+bt_self_component_port_input_message_iterator_can_seek_forward(
+		bt_self_component_port_input_message_iterator *iterator);
+
 extern void bt_self_component_port_input_message_iterator_get_ref(
 		const bt_self_component_port_input_message_iterator *self_component_port_input_message_iterator);
 

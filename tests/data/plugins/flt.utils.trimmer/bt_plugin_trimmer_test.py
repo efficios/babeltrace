@@ -2,7 +2,7 @@ import bt2
 
 
 class TheIteratorOfAllEvil(bt2._UserMessageIterator):
-    def __init__(self, port):
+    def __init__(self, config, port):
         tc, sc, ec1, ec2, params = port.user_data
         trace = tc()
         stream = trace.create_stream(sc)

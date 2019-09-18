@@ -39,7 +39,7 @@ class EventTestCase(unittest.TestCase):
         with_packet=False,
     ):
         class MyIter(bt2._UserMessageIterator):
-            def __init__(self, self_output_port):
+            def __init__(self, config, self_output_port):
                 self._at = 0
                 self._msgs = [self._create_stream_beginning_message(test_obj.stream)]
 

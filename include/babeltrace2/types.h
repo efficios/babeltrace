@@ -148,6 +148,7 @@ typedef struct bt_self_component_sink_configuration bt_self_component_sink_confi
 typedef struct bt_self_component_source bt_self_component_source;
 typedef struct bt_self_component_source_configuration bt_self_component_source_configuration;
 typedef struct bt_self_message_iterator bt_self_message_iterator;
+typedef struct bt_self_message_iterator_configuration bt_self_message_iterator_configuration;
 typedef struct bt_self_plugin bt_self_plugin;
 typedef struct bt_stream bt_stream;
 typedef struct bt_stream_class bt_stream_class;
