@@ -224,22 +224,21 @@ class _UserMessageIterator(_MessageIterator):
         self._user_seek_beginning()
 
     def _bt_can_seek_ns_from_origin_from_native(self, ns_from_origin):
-        # Here, we mimic the behavior of the C API:
+        # Return whether the iterator can seek ns from origin using the
+        # user-implemented seek_ns_from_origin method.  We mimic the behavior
+        # of the C API:
         #
         # - If the iterator has a _user_can_seek_ns_from_origin method,
         #   call it and use its return value.
         # - Otherwise, if there is a `_user_seek_ns_from_origin` method,
         #   we presume it's possible.
-        # - Otherwise, check if we can seek to beginning (which allows us to
-        #   seek to beginning and then fast forward - aka auto-seek).
+
         if hasattr(self, '_user_can_seek_ns_from_origin'):
             can_seek_ns_from_origin = self._user_can_seek_ns_from_origin(ns_from_origin)
             utils._check_bool(can_seek_ns_from_origin)
             return can_seek_ns_from_origin
-        elif hasattr(self, '_user_seek_ns_from_origin'):
-            return True
         else:
-            return self._bt_can_seek_beginning_from_native()
+            return hasattr(self, '_user_seek_ns_from_origin')
 
     def _bt_seek_ns_from_origin_from_native(self, ns_from_origin):
         self._user_seek_ns_from_origin(ns_from_origin)

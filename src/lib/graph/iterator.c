@@ -1001,25 +1001,46 @@ bt_self_component_port_input_message_iterator_can_seek_ns_from_origin(
 		 */
 		*can_seek = -1;
 
+		BT_LIB_LOGD("Calling user's \"can seek nanoseconds from origin\" method: %!+i",
+			iterator);
+
 		status = (int) iterator->methods.can_seek_ns_from_origin(iterator,
 			ns_from_origin, can_seek);
 
-		BT_ASSERT_POST(
-			status != BT_FUNC_STATUS_OK ||
-				*can_seek == BT_TRUE ||
-				*can_seek == BT_FALSE,
+		if (status != BT_FUNC_STATUS_OK) {
+			BT_LIB_LOGW_APPEND_CAUSE(
+				"Component input port message iterator's \"can seek nanoseconds from origin\" method failed: "
+				"%![iter-]+i, status=%s",
+				iterator, bt_common_func_status_string(status));
+			goto end;
+		}
+
+		BT_ASSERT_POST(*can_seek == BT_TRUE || *can_seek == BT_FALSE,
 			"Unexpected boolean value returned from user's \"can seek ns from origin\" method: val=%d, %![iter-]+i",
 			*can_seek, iterator);
 
-		goto end;
+		BT_LIB_LOGD(
+			"User's \"can seek nanoseconds from origin\" returned successfully: "
+			"%![iter-]+i, can-seek=%d",
+			iterator, *can_seek);
+
+		if (*can_seek) {
+			goto end;
+		}
 	}
 
 	/*
-	 * Automatic seeking fall back: if we can seek to the beginning,
-	 * then we can automatically seek to any message.
+	 * Automatic seeking fall back: if we can seek to the beginning and the
+	 * iterator supports forward seeking then we can automatically seek to
+	 * any timestamp.
 	 */
 	status = (int) bt_self_component_port_input_message_iterator_can_seek_beginning(
 		iterator, can_seek);
+	if (status != BT_FUNC_STATUS_OK) {
+		goto end;
+	}
+
+	*can_seek = *can_seek && iterator->config.can_seek_forward;
 
 end:
 	return status;
@@ -1686,6 +1707,7 @@ bt_self_component_port_input_message_iterator_seek_ns_from_origin(
 {
 	int status;
 	GHashTable *stream_states = NULL;
+	bt_bool can_seek_by_itself;
 
 	BT_ASSERT_PRE_NON_NULL(iterator, "Message iterator");
 	BT_ASSERT_PRE_ITER_HAS_STATE_TO_SEEK(iterator);
@@ -1694,6 +1716,7 @@ bt_self_component_port_input_message_iterator_seek_ns_from_origin(
 			BT_GRAPH_CONFIGURATION_STATE_CONFIGURING,
 		"Graph is not configured: %!+g",
 		bt_component_borrow_graph(iterator->upstream_component));
+	/* The iterator must be able to seek ns from origin one way or another. */
 	BT_ASSERT_PRE(
 		message_iterator_can_seek_ns_from_origin(iterator, ns_from_origin),
 		"Message iterator cannot seek nanoseconds from origin: %!+i, "
@@ -1707,8 +1730,27 @@ bt_self_component_port_input_message_iterator_seek_ns_from_origin(
 	 */
 	reset_iterator_expectations(iterator);
 
-	if (iterator->methods.seek_ns_from_origin) {
+	/* Check if the iterator can seek by itself.  If not we'll use autoseek. */
+	if (iterator->methods.can_seek_ns_from_origin) {
+		bt_component_class_message_iterator_can_seek_ns_from_origin_method_status
+			can_seek_status;
+
+		can_seek_status =
+			iterator->methods.can_seek_ns_from_origin(
+				iterator, ns_from_origin, &can_seek_by_itself);
+		if (can_seek_status != BT_FUNC_STATUS_OK) {
+			status = can_seek_status;
+			goto end;
+		}
+	} else {
+		can_seek_by_itself = false;
+	}
+
+	if (can_seek_by_itself) {
 		/* The iterator knows how to seek to a particular time, let it handle this. */
+		BT_ASSERT_PRE_DEV(iterator->methods.seek_ns_from_origin,
+			"Message iterator does not implement `seek_ns_from_origin` method: %!+i",
+			iterator);
 		BT_LIB_LOGD("Calling user's \"seek nanoseconds from origin\" method: "
 			"%![iter-]+i, ns=%" PRId64, iterator, ns_from_origin);
 		status = iterator->methods.seek_ns_from_origin(iterator,
@@ -1729,8 +1771,9 @@ bt_self_component_port_input_message_iterator_seek_ns_from_origin(
 		}
 	} else {
 		/*
-		 * The iterator doesn't know how to seek to a particular time.  We will
-		 * seek to the beginning and fast forward to the right place.
+		 * The iterator doesn't know how to seek by itself to a
+		 * particular time.  We will seek to the beginning and fast
+		 * forward to the right place.
 		 */
 		enum bt_component_class_message_iterator_can_seek_beginning_method_status
 			can_seek_status;

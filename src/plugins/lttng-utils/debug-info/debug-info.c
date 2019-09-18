@@ -2031,6 +2031,10 @@ bt_component_class_message_iterator_initialize_method_status debug_info_msg_iter
 		goto error;
 	}
 
+	bt_self_message_iterator_configuration_set_can_seek_forward(config,
+		bt_self_component_port_input_message_iterator_can_seek_forward(
+			debug_info_msg_iter->msg_iter));
+
 	bt_self_message_iterator_set_data(self_msg_iter, debug_info_msg_iter);
 	debug_info_msg_iter->input_iterator = self_msg_iter;
 
