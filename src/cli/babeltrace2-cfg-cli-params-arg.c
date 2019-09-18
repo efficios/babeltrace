@@ -34,7 +34,6 @@
 #include "babeltrace2-cfg.h"
 #include "babeltrace2-cfg-cli-args.h"
 #include "babeltrace2-cfg-cli-args-connect.h"
-#include "common/version.h"
 
 /* INI-style parsing FSM states */
 enum ini_parsing_fsm_state {
