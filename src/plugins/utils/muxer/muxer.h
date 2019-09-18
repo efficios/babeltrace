@@ -40,6 +40,7 @@ void muxer_finalize(bt_self_component_filter *self_comp);
 BT_HIDDEN
 bt_component_class_message_iterator_init_method_status muxer_msg_iter_init(
 		bt_self_message_iterator *self_msg_iter,
+		bt_self_message_iterator_configuration *config,
 		bt_self_component_filter *self_comp,
 		bt_self_component_port_output *self_port);
 

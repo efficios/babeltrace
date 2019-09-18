@@ -21,7 +21,7 @@ import bt2
 
 
 class _MyIter(bt2._UserMessageIterator):
-    def __init__(self, self_output_port):
+    def __init__(self, config, self_output_port):
         self._build_meta()
         self._at = 0
 

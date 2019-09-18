@@ -215,6 +215,7 @@ bt_component_class_query_method_status ctf_fs_query(
 BT_HIDDEN
 bt_component_class_message_iterator_init_method_status ctf_fs_iterator_init(
 		bt_self_message_iterator *self_msg_iter,
+		bt_self_message_iterator_configuration *config,
 		bt_self_component_source *self_comp,
 		bt_self_component_port_output *self_port);
 

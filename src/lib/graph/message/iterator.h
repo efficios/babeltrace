@@ -85,6 +85,11 @@ typedef enum bt_component_class_message_iterator_can_seek_beginning_method_statu
 (*bt_self_component_port_input_message_iterator_can_seek_beginning_method)(
 		void *, bt_bool *);
 
+struct bt_self_message_iterator_configuration {
+	bool frozen;
+	bool can_seek_forward;
+};
+
 struct bt_self_component_port_input_message_iterator {
 	struct bt_object base;
 	GPtrArray *msgs;
@@ -92,6 +97,7 @@ struct bt_self_component_port_input_message_iterator {
 	struct bt_port *upstream_port; /* Weak */
 	struct bt_connection *connection; /* Weak */
 	struct bt_graph *graph; /* Weak */
+	struct bt_self_message_iterator_configuration config;
 
 	/*
 	 * Array of

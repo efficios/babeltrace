@@ -51,6 +51,10 @@ extern void bt_self_message_iterator_set_data(
 extern void *bt_self_message_iterator_get_data(
 		const bt_self_message_iterator *message_iterator);
 
+extern void bt_self_message_iterator_configuration_set_can_seek_forward(
+		bt_self_message_iterator_configuration *config,
+		bt_bool can_seek_forward);
+
 #ifdef __cplusplus
 }
 #endif

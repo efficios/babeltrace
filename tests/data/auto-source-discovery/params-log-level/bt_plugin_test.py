@@ -12,7 +12,7 @@ import os
 
 
 class TestIter(bt2._UserMessageIterator):
-    def __init__(self, output_port):
+    def __init__(self, config, output_port):
         params = output_port.user_data['params']
         obj = output_port.user_data['obj']
 

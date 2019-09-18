@@ -56,6 +56,7 @@ typedef void (*bt_component_class_filter_finalize_method)(
 typedef bt_component_class_message_iterator_init_method_status
 (*bt_component_class_filter_message_iterator_init_method)(
 		bt_self_message_iterator *message_iterator,
+		bt_self_message_iterator_configuration *config,
 		bt_self_component_filter *self_component,
 		bt_self_component_port_output *port);
 

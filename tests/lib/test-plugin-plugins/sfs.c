@@ -27,6 +27,7 @@ static bt_component_class_sink_consume_method_status sink_consume(
 static bt_component_class_message_iterator_init_method_status
 src_dummy_iterator_init_method(
 		bt_self_message_iterator *self_msg_iter,
+		bt_self_message_iterator_configuration *config,
 		bt_self_component_source *self_comp,
 		bt_self_component_port_output *self_port)
 {
@@ -36,6 +37,7 @@ src_dummy_iterator_init_method(
 static bt_component_class_message_iterator_init_method_status
 flt_dummy_iterator_init_method(
 		bt_self_message_iterator *self_msg_iter,
+		bt_self_message_iterator_configuration *config,
 		bt_self_component_filter *self_comp,
 		bt_self_component_port_output *self_port)
 {
