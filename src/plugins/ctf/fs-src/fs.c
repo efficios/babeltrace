@@ -293,12 +293,20 @@ bt_component_class_message_iterator_initialize_method_status ctf_fs_iterator_ini
 		goto error;
 	}
 
+	/*
+	 * This iterator can seek forward if its stream class has a default
+	 * clock class.
+	 */
+	if (msg_iter_data->ds_file_group->sc->default_clock_class) {
+		bt_self_message_iterator_configuration_set_can_seek_forward(
+			config, true);
+	}
+
 	bt_self_message_iterator_set_data(self_msg_iter,
 		msg_iter_data);
 	if (ret != BT_COMPONENT_CLASS_MESSAGE_ITERATOR_INITIALIZE_METHOD_STATUS_OK) {
 		goto error;
 	}
-
 	msg_iter_data = NULL;
 	goto end;
 

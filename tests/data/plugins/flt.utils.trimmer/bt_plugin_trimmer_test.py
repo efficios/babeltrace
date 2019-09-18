@@ -32,6 +32,7 @@ class TheIteratorOfAllEvil(bt2._UserMessageIterator):
             se_msg,
         ]
         self._at = 0
+        config.can_seek_forward = True
 
     def _user_seek_beginning(self):
         self._at = 0

@@ -720,6 +720,13 @@ bt_component_class_message_iterator_initialize_method_status trimmer_msg_iter_in
 		goto error;
 	}
 
+	/*
+	 * The trimmer requires upstream messages to have times, so it can
+	 * always seek forward.
+	 */
+	bt_self_message_iterator_configuration_set_can_seek_forward(
+		config, BT_TRUE);
+
 	trimmer_it->self_msg_iter = self_msg_iter;
 	bt_self_message_iterator_set_data(self_msg_iter, trimmer_it);
 

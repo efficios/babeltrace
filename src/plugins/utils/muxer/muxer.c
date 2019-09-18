@@ -1148,11 +1148,13 @@ void destroy_muxer_msg_iter(struct muxer_msg_iter *muxer_msg_iter)
 static
 bt_component_class_message_iterator_initialize_method_status
 muxer_msg_iter_init_upstream_iterators(struct muxer_comp *muxer_comp,
-		struct muxer_msg_iter *muxer_msg_iter)
+		struct muxer_msg_iter *muxer_msg_iter,
+		struct bt_self_message_iterator_configuration *config)
 {
 	int64_t count;
 	int64_t i;
 	bt_component_class_message_iterator_initialize_method_status status;
+	bool can_seek_forward = true;
 
 	count = bt_component_filter_get_input_port_count(
 		bt_self_component_filter_as_component_filter(
@@ -1203,7 +1205,18 @@ muxer_msg_iter_init_upstream_iterators(struct muxer_comp *muxer_comp,
 			/* muxer_msg_iter_add_upstream_msg_iter() logs errors */
 			goto end;
 		}
+
+		can_seek_forward = can_seek_forward &&
+			bt_self_component_port_input_message_iterator_can_seek_forward(
+				upstream_msg_iter);
 	}
+
+	/*
+	 * This iterator can seek forward if all of its iterators can seek
+	 * forward.
+	 */
+	bt_self_message_iterator_configuration_set_can_seek_forward(
+		config, can_seek_forward);
 
 	status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_INITIALIZE_METHOD_STATUS_OK;
 
@@ -1272,7 +1285,7 @@ bt_component_class_message_iterator_initialize_method_status muxer_msg_iter_init
 	}
 
 	status = muxer_msg_iter_init_upstream_iterators(muxer_comp,
-		muxer_msg_iter);
+		muxer_msg_iter, config);
 	if (status) {
 		BT_COMP_LOGE("Cannot initialize connected input ports for muxer component's message iterator: "
 			"comp-addr=%p, muxer-comp-addr=%p, "
