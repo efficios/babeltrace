@@ -278,7 +278,9 @@ end:
 }
 
 static
-int populate_trace_info(const struct ctf_fs_trace *trace, bt_value *trace_info)
+int populate_trace_info(const struct ctf_fs_trace *trace, bt_value *trace_info,
+		bt_logging_level log_level,
+		bt_self_component_class *self_comp_class)
 {
 	int ret = 0;
 	size_t group_idx;
@@ -290,6 +292,8 @@ int populate_trace_info(const struct ctf_fs_trace *trace, bt_value *trace_info)
 	/* Add trace range info only if it contains streams. */
 	if (trace->ds_file_groups->len == 0) {
 		ret = -1;
+		BT_COMP_CLASS_LOGE_APPEND_CAUSE(self_comp_class,
+			"Trace has no streams: trace-path=%s", trace->path->str);
 		goto end;
 	}
 
@@ -383,7 +387,8 @@ bt_component_class_query_method_status trace_infos_query(
 		goto error;
 	}
 
-	ret = populate_trace_info(ctf_fs->trace, trace_info);
+	ret = populate_trace_info(ctf_fs->trace, trace_info, log_level,
+		self_comp_class);
 	if (ret) {
 		goto error;
 	}
