@@ -1,0 +1,64 @@
+Trace class:
+  Stream class (ID 0):
+    Supports packets: Yes
+    Packets have beginning default clock snapshot: Yes
+    Packets have end default clock snapshot: Yes
+    Supports discarded events: Yes
+    Discarded events have default clock snapshots: Yes
+    Supports discarded packets: Yes
+    Discarded packets have default clock snapshots: Yes
+    Default clock class:
+      Name: monotonic
+      Description: Monotonic Clock
+      Frequency (Hz): 1,000,000,000
+      Precision (cycles): 0
+      Offset (s): 1,561,498,843
+      Offset (cycles): 433,067,926
+      Origin is Unix epoch: Yes
+      UUID: db965ea1-f862-45a3-ab65-602642fdad90
+    Packet context field class: Structure (1 member):
+      cpu_id: Unsigned integer (32-bit, Base 10)
+    Event common context field class: Structure (1 member):
+      vpid: Signed integer (32-bit, Base 10)
+    Event class `lttng_ust_statedump:procname` (ID 0):
+      Log level: Debug (line)
+      Payload field class: Structure (1 member):
+        procname: String
+
+[Unknown] {0 0 2} Stream beginning
+
+Trace class:
+  Stream class (ID 0):
+    Supports packets: Yes
+    Packets have beginning default clock snapshot: Yes
+    Packets have end default clock snapshot: Yes
+    Supports discarded events: Yes
+    Discarded events have default clock snapshots: Yes
+    Supports discarded packets: No
+    Default clock class:
+      Name: default
+      Frequency (Hz): 1,000,000,000
+      Precision (cycles): 0
+      Offset (s): 1,434,072,888
+      Offset (cycles): 0
+      Origin is Unix epoch: Yes
+    Event class `simple_uint32` (ID 0):
+      Log level: Critical
+      Payload field class: Structure (1 member):
+        value: Unsigned integer (32-bit, Base 10)
+
+[Unknown] {1 0 0} Stream beginning
+[1,048,932,916,574,076 1,435,121,820,916,574,076] {1 0 0} Packet beginning
+[1,048,932,916,580,091 1,435,121,820,916,580,091] {1 0 0} Event `simple_uint32` (0)
+[1,048,932,916,584,407 1,435,121,820,916,584,407] {1 0 0} Packet end
+[1,048,932,916,605,259 1,435,121,820,916,605,259] {1 0 0} Packet beginning
+[1,048,932,916,605,259 1,435,121,820,916,605,259] {1 0 0} Event `simple_uint32` (0)
+[1,048,932,916,609,657 1,435,121,820,916,609,657] {1 0 0} Packet end
+[Unknown] {1 0 0} Stream end
+[257,960,472,138,367 1,561,756,803,905,206,293] {0 0 2} Packet beginning
+[257,960,490,358,932 1,561,756,803,923,426,858] {0 0 2} Event `lttng_ust_statedump:procname` (0)
+[257,963,419,223,089 1,561,756,806,852,291,015] {0 0 2} Packet end
+[257,971,894,873,186 1,561,756,815,327,941,112] {0 0 2} Packet beginning
+[257,971,894,873,186 1,561,756,815,327,941,112] {0 0 2} Event `lttng_ust_statedump:procname` (0)
+[257,974,030,386,677 1,561,756,817,463,454,603] {0 0 2} Packet end
+[Unknown] {0 0 2} Stream end

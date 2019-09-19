@@ -49,6 +49,7 @@ struct ctf_metadata_decoder_config {
 	/* Additional clock class offset to apply */
 	int64_t clock_class_offset_s;
 	int64_t clock_class_offset_ns;
+	bool force_clock_class_origin_unix_epoch;
 
 	/* True to create trace class objects */
 	bool create_trace_class;
