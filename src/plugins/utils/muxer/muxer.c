@@ -40,8 +40,6 @@
 
 #include "muxer.h"
 
-#define ASSUME_ABSOLUTE_CLOCK_CLASSES_PARAM_NAME	"assume-absolute-clock-classes"
-
 struct muxer_comp {
 	/* Weak refs */
 	bt_self_component_filter *self_comp_flt;
@@ -50,7 +48,6 @@ struct muxer_comp {
 	unsigned int next_port_num;
 	size_t available_input_ports;
 	bool initializing_muxer_msg_iter;
-	bool assume_absolute_clock_classes;
 	bt_logging_level log_level;
 };
 
@@ -249,94 +246,11 @@ void destroy_muxer_comp(struct muxer_comp *muxer_comp)
 	g_free(muxer_comp);
 }
 
-static
-bt_value *get_default_params(struct muxer_comp *muxer_comp)
-{
-	bt_value *params;
-	int ret;
-
-	params = bt_value_map_create();
-	if (!params) {
-		BT_COMP_LOGE_STR("Cannot create a map value object.");
-		goto error;
-	}
-
-	ret = bt_value_map_insert_bool_entry(params,
-		ASSUME_ABSOLUTE_CLOCK_CLASSES_PARAM_NAME, false);
-	if (ret) {
-		BT_COMP_LOGE_STR("Cannot add boolean value to map value object.");
-		goto error;
-	}
-
-	goto end;
-
-error:
-	BT_VALUE_PUT_REF_AND_RESET(params);
-
-end:
-	return params;
-}
-
-static
-int configure_muxer_comp(struct muxer_comp *muxer_comp,
-		const bt_value *params)
-{
-	bt_value *default_params = NULL;
-	bt_value *real_params = NULL;
-	const bt_value *assume_absolute_clock_classes = NULL;
-	int ret = 0;
-	bt_bool bool_val;
-
-	default_params = get_default_params(muxer_comp);
-	if (!default_params) {
-		BT_COMP_LOGE("Cannot get default parameters: "
-			"muxer-comp-addr=%p", muxer_comp);
-		goto error;
-	}
-
-	ret = bt_value_map_extend(default_params, params, &real_params);
-	if (ret) {
-		BT_COMP_LOGE("Cannot extend default parameters map value: "
-			"muxer-comp-addr=%p, def-params-addr=%p, "
-			"params-addr=%p", muxer_comp, default_params,
-			params);
-		goto error;
-	}
-
-	assume_absolute_clock_classes = bt_value_map_borrow_entry_value(real_params,
-									ASSUME_ABSOLUTE_CLOCK_CLASSES_PARAM_NAME);
-	if (assume_absolute_clock_classes &&
-			!bt_value_is_bool(assume_absolute_clock_classes)) {
-		BT_COMP_LOGE("Expecting a boolean value for the `%s` parameter: "
-			"muxer-comp-addr=%p, value-type=%s",
-			ASSUME_ABSOLUTE_CLOCK_CLASSES_PARAM_NAME, muxer_comp,
-			bt_common_value_type_string(
-				bt_value_get_type(assume_absolute_clock_classes)));
-		goto error;
-	}
-
-	bool_val = bt_value_bool_get(assume_absolute_clock_classes);
-	muxer_comp->assume_absolute_clock_classes = (bool) bool_val;
-	BT_COMP_LOGI("Configured muxer component: muxer-comp-addr=%p, "
-		"assume-absolute-clock-classes=%d",
-		muxer_comp, muxer_comp->assume_absolute_clock_classes);
-	goto end;
-
-error:
-	ret = -1;
-
-end:
-	bt_value_put_ref(default_params);
-	bt_value_put_ref(real_params);
-	return ret;
-}
-
 BT_HIDDEN
 bt_component_class_init_method_status muxer_init(
 		bt_self_component_filter *self_comp_flt,
 		const bt_value *params, void *init_data)
 {
-	int ret;
 	bt_component_class_init_method_status status =
 		BT_COMPONENT_CLASS_INIT_METHOD_STATUS_OK;
 	bt_self_component_add_port_status add_port_status;
@@ -359,13 +273,6 @@ bt_component_class_init_method_status muxer_init(
 	muxer_comp->log_level = log_level;
 	muxer_comp->self_comp = self_comp;
 	muxer_comp->self_comp_flt = self_comp_flt;
-	ret = configure_muxer_comp(muxer_comp, params);
-	if (ret) {
-		BT_COMP_LOGE("Cannot configure muxer component: "
-			"muxer-comp-addr=%p, params-addr=%p",
-			muxer_comp, params);
-		goto error;
-	}
 
 	bt_self_component_set_data(self_comp, muxer_comp);
 	add_port_status = add_available_input_port(self_comp_flt);
@@ -707,11 +614,9 @@ int validate_clock_class(struct muxer_msg_iter *muxer_msg_iter,
 	if (muxer_msg_iter->clock_class_expectation ==
 			MUXER_MSG_ITER_CLOCK_CLASS_EXPECTATION_ANY) {
 		/*
-		 * This is the first clock class that this muxer
-		 * message iterator encounters. Its properties
-		 * determine what to expect for the whole lifetime of
-		 * the iterator without a true
-		 * `assume-absolute-clock-classes` parameter.
+		 * This is the first clock class that this muxer message
+		 * iterator encounters. Its properties determine what to expect
+		 * for the whole lifetime of the iterator.
 		 */
 		if (bt_clock_class_origin_is_unix_epoch(clock_class)) {
 			/* Expect absolute clock classes */
@@ -737,76 +642,74 @@ int validate_clock_class(struct muxer_msg_iter *muxer_msg_iter,
 		}
 	}
 
-	if (!muxer_comp->assume_absolute_clock_classes) {
-		switch (muxer_msg_iter->clock_class_expectation) {
-		case MUXER_MSG_ITER_CLOCK_CLASS_EXPECTATION_ABSOLUTE:
-			if (!bt_clock_class_origin_is_unix_epoch(clock_class)) {
-				BT_COMP_LOGE("Expecting an absolute clock class, "
-					"but got a non-absolute one: "
-					"clock-class-addr=%p, clock-class-name=\"%s\"",
-					clock_class, cc_name);
-				goto error;
-			}
-			break;
-		case MUXER_MSG_ITER_CLOCK_CLASS_EXPECTATION_NOT_ABS_NO_UUID:
-			if (bt_clock_class_origin_is_unix_epoch(clock_class)) {
-				BT_COMP_LOGE("Expecting a non-absolute clock class with no UUID, "
-					"but got an absolute one: "
-					"clock-class-addr=%p, clock-class-name=\"%s\"",
-					clock_class, cc_name);
-				goto error;
-			}
-
-			if (cc_uuid) {
-				BT_COMP_LOGE("Expecting a non-absolute clock class with no UUID, "
-					"but got one with a UUID: "
-					"clock-class-addr=%p, clock-class-name=\"%s\", "
-					"uuid=\"" BT_UUID_FMT "\"",
-					clock_class, cc_name, BT_UUID_FMT_VALUES(cc_uuid));
-				goto error;
-			}
-			break;
-		case MUXER_MSG_ITER_CLOCK_CLASS_EXPECTATION_NOT_ABS_SPEC_UUID:
-			if (bt_clock_class_origin_is_unix_epoch(clock_class)) {
-				BT_COMP_LOGE("Expecting a non-absolute clock class with a specific UUID, "
-					"but got an absolute one: "
-					"clock-class-addr=%p, clock-class-name=\"%s\"",
-					clock_class, cc_name);
-				goto error;
-			}
-
-			if (!cc_uuid) {
-				BT_COMP_LOGE("Expecting a non-absolute clock class with a specific UUID, "
-					"but got one with no UUID: "
-					"clock-class-addr=%p, clock-class-name=\"%s\"",
-					clock_class, cc_name);
-				goto error;
-			}
-
-			if (bt_uuid_compare(muxer_msg_iter->expected_clock_class_uuid, cc_uuid) != 0) {
-				BT_COMP_LOGE("Expecting a non-absolute clock class with a specific UUID, "
-					"but got one with different UUID: "
-					"clock-class-addr=%p, clock-class-name=\"%s\", "
-					"expected-uuid=\"" BT_UUID_FMT "\", "
-					"uuid=\"" BT_UUID_FMT "\"",
-					clock_class, cc_name,
-					BT_UUID_FMT_VALUES(muxer_msg_iter->expected_clock_class_uuid),
-					BT_UUID_FMT_VALUES(cc_uuid));
-				goto error;
-			}
-			break;
-		case MUXER_MSG_ITER_CLOCK_CLASS_EXPECTATION_NONE:
-			BT_COMP_LOGE("Expecting no clock class, but got one: "
+	switch (muxer_msg_iter->clock_class_expectation) {
+	case MUXER_MSG_ITER_CLOCK_CLASS_EXPECTATION_ABSOLUTE:
+		if (!bt_clock_class_origin_is_unix_epoch(clock_class)) {
+			BT_COMP_LOGE("Expecting an absolute clock class, "
+				"but got a non-absolute one: "
 				"clock-class-addr=%p, clock-class-name=\"%s\"",
 				clock_class, cc_name);
 			goto error;
-		default:
-			/* Unexpected */
-			BT_COMP_LOGF("Unexpected clock class expectation: "
-				"expectation-code=%d",
-				muxer_msg_iter->clock_class_expectation);
-			abort();
 		}
+		break;
+	case MUXER_MSG_ITER_CLOCK_CLASS_EXPECTATION_NOT_ABS_NO_UUID:
+		if (bt_clock_class_origin_is_unix_epoch(clock_class)) {
+			BT_COMP_LOGE("Expecting a non-absolute clock class with no UUID, "
+				"but got an absolute one: "
+				"clock-class-addr=%p, clock-class-name=\"%s\"",
+				clock_class, cc_name);
+			goto error;
+		}
+
+		if (cc_uuid) {
+			BT_COMP_LOGE("Expecting a non-absolute clock class with no UUID, "
+				"but got one with a UUID: "
+				"clock-class-addr=%p, clock-class-name=\"%s\", "
+				"uuid=\"" BT_UUID_FMT "\"",
+				clock_class, cc_name, BT_UUID_FMT_VALUES(cc_uuid));
+			goto error;
+		}
+		break;
+	case MUXER_MSG_ITER_CLOCK_CLASS_EXPECTATION_NOT_ABS_SPEC_UUID:
+		if (bt_clock_class_origin_is_unix_epoch(clock_class)) {
+			BT_COMP_LOGE("Expecting a non-absolute clock class with a specific UUID, "
+				"but got an absolute one: "
+				"clock-class-addr=%p, clock-class-name=\"%s\"",
+				clock_class, cc_name);
+			goto error;
+		}
+
+		if (!cc_uuid) {
+			BT_COMP_LOGE("Expecting a non-absolute clock class with a specific UUID, "
+				"but got one with no UUID: "
+				"clock-class-addr=%p, clock-class-name=\"%s\"",
+				clock_class, cc_name);
+			goto error;
+		}
+
+		if (bt_uuid_compare(muxer_msg_iter->expected_clock_class_uuid, cc_uuid) != 0) {
+			BT_COMP_LOGE("Expecting a non-absolute clock class with a specific UUID, "
+				"but got one with different UUID: "
+				"clock-class-addr=%p, clock-class-name=\"%s\", "
+				"expected-uuid=\"" BT_UUID_FMT "\", "
+				"uuid=\"" BT_UUID_FMT "\"",
+				clock_class, cc_name,
+				BT_UUID_FMT_VALUES(muxer_msg_iter->expected_clock_class_uuid),
+				BT_UUID_FMT_VALUES(cc_uuid));
+			goto error;
+		}
+		break;
+	case MUXER_MSG_ITER_CLOCK_CLASS_EXPECTATION_NONE:
+		BT_COMP_LOGE("Expecting no clock class, but got one: "
+			"clock-class-addr=%p, clock-class-name=\"%s\"",
+			clock_class, cc_name);
+		goto error;
+	default:
+		/* Unexpected */
+		BT_COMP_LOGF("Unexpected clock class expectation: "
+			"expectation-code=%d",
+			muxer_msg_iter->clock_class_expectation);
+		abort();
 	}
 
 	goto end;
