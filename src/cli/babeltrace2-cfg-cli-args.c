@@ -2148,6 +2148,8 @@ void print_convert_usage(FILE *fp)
 	fprintf(fp, "\n");
 	fprintf(fp, "Implicit `source.ctf.fs` component options:\n");
 	fprintf(fp, "\n");
+	fprintf(fp, "      --clock-force-correlate       Force the origin of all clocks\n");
+	fprintf(fp, "                                    to the Unix epoch\n");
 	fprintf(fp, "      --clock-offset=SEC            Set clock offset to SEC seconds\n");
 	fprintf(fp, "      --clock-offset-ns=NS          Set clock offset to NS ns\n");
 	fprintf(fp, "\n");
@@ -2174,11 +2176,6 @@ void print_convert_usage(FILE *fp)
 	fprintf(fp, "                                    consecutive events\n");
 	fprintf(fp, "  -w, --output=PATH                 Write output text to PATH instead of\n");
 	fprintf(fp, "                                    the standard output\n");
-	fprintf(fp, "\n");
-	fprintf(fp, "Implicit `filter.utils.muxer` component options:\n");
-	fprintf(fp, "\n");
-	fprintf(fp, "      --clock-force-correlate       Assume that clocks are inherently\n");
-	fprintf(fp, "                                    correlated across traces\n");
 	fprintf(fp, "\n");
 	fprintf(fp, "Implicit `filter.utils.trimmer` component options:\n");
 	fprintf(fp, "\n");
@@ -3229,6 +3226,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 	const char *auto_source_discovery_restrict_plugin_name = NULL;
 	const char *auto_source_discovery_restrict_component_class_name = NULL;
 
+	bool ctf_fs_source_force_clock_class_unix_epoch_origin = false;
 	gchar *ctf_fs_source_clock_class_offset_arg = NULL;
 	gchar *ctf_fs_source_clock_class_offset_ns_arg = NULL;
 	*retcode = 0;
@@ -3701,9 +3699,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 			implicit_text_args.exists = true;
 			break;
 		case OPT_CLOCK_FORCE_CORRELATE:
-			append_implicit_component_param(
-				&implicit_muxer_args,
-				"assume-absolute-clock-classes", "yes");
+			ctf_fs_source_force_clock_class_unix_epoch_origin = true;
 			break;
 		case OPT_CLOCK_GMT:
 			append_implicit_component_param(
@@ -4109,6 +4105,23 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 			if (status != 0) {
 				goto error;
 			}
+		}
+	}
+
+
+	/*
+	 * If --clock-force-correlated was given, apply it to any src.ctf.fs
+	 * component.
+	 */
+	if (ctf_fs_source_force_clock_class_unix_epoch_origin) {
+		int n;
+
+		n = append_multiple_implicit_components_param(
+			discovered_source_args, "source.ctf.fs", "force-clock-class-origin-unix-epoch",
+			"yes");
+		if (n == 0) {
+			BT_CLI_LOGE_APPEND_CAUSE("--clock-force-correlate specified, but no source.ctf.fs component instantiated.");
+			goto error;
 		}
 	}
 
