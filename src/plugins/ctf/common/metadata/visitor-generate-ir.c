@@ -4424,6 +4424,17 @@ void calibrate_clock_class_offsets(int64_t *offset_seconds,
 }
 
 static
+void apply_clock_class_is_absolute(struct ctx *ctx,
+		struct ctf_clock_class *clock)
+{
+	if (ctx->decoder_config.force_clock_class_origin_unix_epoch) {
+		clock->is_absolute = true;
+	}
+
+	return;
+}
+
+static
 void apply_clock_class_offset(struct ctx *ctx,
 		struct ctf_clock_class *clock)
 {
@@ -4550,6 +4561,7 @@ int visit_clock_decl(struct ctx *ctx, struct ctf_node *clock_node)
 	clock->offset_seconds = offset_seconds;
 	clock->offset_cycles = offset_cycles;
 	apply_clock_class_offset(ctx, clock);
+	apply_clock_class_is_absolute(ctx, clock);
 	g_ptr_array_add(ctx->ctf_tc->clock_classes, clock);
 	clock = NULL;
 

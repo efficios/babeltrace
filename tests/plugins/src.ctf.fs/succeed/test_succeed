@@ -90,8 +90,48 @@ test_packet_end() {
 	rm -f "$temp_stdout_output_file" "$temp_stderr_output_file" "$temp_greped_stdout_output_file"
 }
 
-plan_tests 7
+test_force_origin_unix_epoch() {
+	local name1="$1"
+	local name2="$2"
+	local expected_stdout="$expect_dir/trace-$name1-$name2.expect"
+	local ret=0
+	local ret_stdout
+	local ret_stderr
+	local src_ctf_fs_args=("-p" "force-clock-class-origin-unix-epoch=true")
+	local details_comp=("-c" "sink.text.details")
+	local details_args=("-p" "with-trace-name=no,with-stream-name=no,with-metadata=yes,compact=yes")
+	local temp_stdout_output_file="$(mktemp -t actual_stdout.XXXXXX)"
+	local temp_stderr_output_file="$(mktemp -t actual_stderr.XXXXXX)"
 
+	bt_cli "$temp_stdout_output_file" "$temp_stderr_output_file" \
+		"$succeed_trace_dir/$name1" "${src_ctf_fs_args[@]}" \
+		"$succeed_trace_dir/$name2" "${src_ctf_fs_args[@]}" \
+		"${details_comp[@]}" "${details_args[@]}"
+
+	bt_diff "$expected_stdout" "$temp_stdout_output_file"
+	ret_stdout=$?
+
+	if ((ret_stdout != 0)); then
+		ret=1
+	fi
+
+	ok $ret "Trace '$name1' and '$name2' give the expected stdout"
+
+	bt_diff /dev/null "$temp_stderr_output_file"
+	ret_stderr=$?
+
+	if ((ret_stderr != 0)); then
+		ret=1
+	fi
+
+	ok $ret "Trace '$name1' and '$name2' give the expected stderr"
+
+	rm -f "$temp_stdout_output_file" "$temp_stderr_output_file"
+}
+
+plan_tests 9
+
+test_force_origin_unix_epoch 2packets barectf-event-before-packet
 test_ctf_gen_single simple
 test_ctf_single smalltrace
 test_ctf_single 2packets

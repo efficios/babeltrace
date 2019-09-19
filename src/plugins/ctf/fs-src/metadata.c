@@ -102,6 +102,8 @@ int ctf_fs_metadata_set_trace_class(
 		.self_comp = self_comp,
 		.clock_class_offset_s = config ? config->clock_class_offset_s : 0,
 		.clock_class_offset_ns = config ? config->clock_class_offset_ns : 0,
+		.force_clock_class_origin_unix_epoch =
+			config ? config->force_clock_class_origin_unix_epoch : false,
 		.create_trace_class = true,
 	};
 	bt_logging_level log_level = ctf_fs_trace->log_level;

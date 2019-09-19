@@ -2275,6 +2275,20 @@ bool read_src_fs_parameters(const bt_value *params,
 			bt_value_integer_signed_get(value);
 	}
 
+	/* force-clock-class-origin-unix-epoch parameter */
+	value = bt_value_map_borrow_entry_value_const(params,
+		"force-clock-class-origin-unix-epoch");
+	if (value) {
+		if (!bt_value_is_bool(value)) {
+			BT_COMP_OR_COMP_CLASS_LOGE_APPEND_CAUSE(self_comp, self_comp_class,
+				"force-clock-class-origin-unix-epoch must be a boolean");
+			goto error;
+		}
+
+		ctf_fs->metadata_config.force_clock_class_origin_unix_epoch =
+			bt_value_bool_get(value);
+	}
+
 	/* trace-name parameter */
 	*trace_name = bt_value_map_borrow_entry_value_const(params, "trace-name");
 	if (*trace_name) {
