@@ -26,9 +26,10 @@ fi
 # shellcheck source=../utils/utils.sh
 source "$UTILSSH"
 
-NUM_TESTS=10
+plan_tests 20
 
-plan_tests $NUM_TESTS
+stdout=$(mktemp -t test_intersection_stdout.XXXXXX)
+stderr=$(mktemp -t test_intersection_stderr.XXXXXX)
 
 test_intersect() {
 	local trace="$1"
@@ -37,13 +38,38 @@ test_intersect() {
 
 	local cnt
 
-	cnt=$("${BT_TESTS_BT2_BIN}" "$trace" | wc -l)
+	bt_cli "${stdout}" "/dev/null" "${trace}"
+	ok $? "run without --stream-intersection"
+
+	cnt=$(wc -l < "${stdout}")
 	test "${cnt// /}" = "$totalevents"
 	ok $? "$totalevents events in the whole trace"
 
-	cnt=$("${BT_TESTS_BT2_BIN}" --stream-intersection "$trace" 2>/dev/null| wc -l)
+	bt_cli "${stdout}" "/dev/null" --stream-intersection "${trace}"
+	ok $? "run with --stream-intersection"
+
+	cnt=$(wc -l < "${stdout}")
 	test "${cnt// /}" = "$intersect"
-	ok $? "$intersect events in packets intersecting"
+	ok $? "$intersect events in streams intersecting"
+}
+
+test_intersect_fails() {
+	local trace="$1"
+	local totalevents="$2"
+	local expected_error_message="$3"
+
+	bt_cli "${stdout}" "/dev/null" "${trace}"
+	ok $? "run without --stream-intersection"
+
+	cnt=$(wc -l < "${stdout}")
+	test "${cnt// /}" = "$totalevents"
+	ok $? "$totalevents events in the whole trace"
+
+	bt_cli "${stdout}" "${stderr}" --stream-intersection "${trace}"
+	isnt "$?" 0 "run with --stream-intersection fails"
+
+	grep --silent "${expected_error_message}" "${stderr}"
+	ok $? "stderr contains expected error message"
 }
 
 diag "Test the stream intersection feature"
@@ -54,11 +80,15 @@ test_intersect "${BT_CTF_TRACES_PATH}/intersection/3eventsintersect" 8 3
 diag "2 streams offsetted with 3 packets intersecting (exchanged file names)"
 test_intersect "${BT_CTF_TRACES_PATH}/intersection/3eventsintersectreverse" 8 3
 
-diag "No intersection between 2 streams"
-test_intersect "${BT_CTF_TRACES_PATH}/intersection/nointersect" 6 0
-
 diag "Only 1 stream"
 test_intersect "${BT_CTF_TRACES_PATH}/intersection/onestream" 3 3
 
+diag "No intersection between 2 streams"
+test_intersect_fails "${BT_CTF_TRACES_PATH}/intersection/nointersect" 6 \
+	"Trimming time range's beginning time is greater than end time: "
+
 diag "No stream at all"
-test_intersect "${BT_CTF_TRACES_PATH}/intersection/nostream" 0 0
+test_intersect_fails "${BT_CTF_TRACES_PATH}/intersection/nostream" 0 \
+	"Trace has no streams: "
+
+rm -f "${stdout}" "${stderr}"
