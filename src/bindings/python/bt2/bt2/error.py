@@ -168,6 +168,8 @@ class _Error(Exception, abc.Sequence):
         self._ptr = native_bt.current_thread_take_error()
         assert self._ptr is not None
 
+        self._msg = msg
+
         # Read everything we might need from the error pointer, so we don't
         # depend on it.  It's possible for the user to keep an Error object
         # and to want to read its causes after the error pointer has been
@@ -208,3 +210,9 @@ class _Error(Exception, abc.Sequence):
 
     def __len__(self):
         return len(self._causes)
+
+    def __str__(self):
+        s = self._msg + '\n'
+        for c in self:
+            s += str(c) + '\n'
+        return s

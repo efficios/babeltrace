@@ -205,6 +205,15 @@ class ErrorTestCase(unittest.TestCase):
         self.assertEqual(cause.component_class_name, 'SourceWithFailingIter')
         self.assertIsNone(cause.plugin_name)
 
+    def test_str(self):
+        # Test __str__.  We don't need to test the precise format used, but
+        # just that it doesn't miserably crash and that it contains some
+        # expected bits.
+        exc = self._run_failing_graph(SourceWithFailingIter, SinkWithExceptionChaining)
+        s = str(exc)
+        self.assertIn('[src (out): src.SourceWithFailingIter]', s)
+        self.assertIn('ValueError: oops', s)
+
 
 if __name__ == '__main__':
     unittest.main()
