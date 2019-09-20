@@ -26,7 +26,6 @@ from bt2 import native_bt, utils, object
 from bt2 import stream_class as bt2_stream_class
 from bt2 import field_class as bt2_field_class
 from bt2 import trace as bt2_trace
-from bt2 import trace_class as bt2_trace_class
 from bt2 import value as bt2_value
 import collections.abc
 import functools
