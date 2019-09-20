@@ -1395,7 +1395,8 @@ bt_component_class_message_iterator_can_seek_beginning_method_status
 muxer_upstream_msg_iters_can_all_seek_beginning(
 		GPtrArray *muxer_upstream_msg_iters, bt_bool *can_seek)
 {
-	bt_component_class_message_iterator_can_seek_beginning_method_status status;
+	bt_component_class_message_iterator_can_seek_beginning_method_status status =
+		BT_COMPONENT_CLASS_MESSAGE_ITERATOR_CAN_SEEK_BEGINNING_METHOD_STATUS_OK;
 	uint64_t i;
 
 	for (i = 0; i < muxer_upstream_msg_iters->len; i++) {
