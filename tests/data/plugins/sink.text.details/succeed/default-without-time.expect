@@ -1,0 +1,442 @@
+Trace class:
+  Stream class (ID 0):
+    Supports packets: Yes
+    Packets have beginning default clock snapshot: Yes
+    Packets have end default clock snapshot: Yes
+    Supports discarded events: Yes
+    Discarded events have default clock snapshots: Yes
+    Supports discarded packets: No
+    Default clock class:
+      Name: monotonic
+      Description: Monotonic Clock
+      Frequency (Hz): 1,000,000,000
+      Precision (cycles): 0
+      Offset (s): 1,351,530,929
+      Offset (cycles): 945,824,323
+      Origin is Unix epoch: Yes
+      UUID: c19b5ac9-b8e6-4f78-be95-a605d04e34c6
+    Packet context field class: Structure (1 member):
+      cpu_id: Unsigned integer (32-bit, Base 10)
+    Event common context field class: Structure (2 members):
+      vtid: Signed integer (32-bit, Base 10)
+      vpid: Signed integer (32-bit, Base 10)
+    Event class `heartbeat:msg` (ID 0):
+      Log level: Debug (line)
+      Payload field class: Structure (1 member):
+        msg: String
+
+{Trace 0, Stream class ID 0, Stream ID 0}
+Stream beginning:
+  Trace `the-trace`:
+    UUID: 624b19d9-19cd-4eae-bab8-8342e1b96a5d
+    Environment (7 entries):
+      domain: ust
+      procname: wk-heartbeat
+      tracer_major: 2
+      tracer_minor: 0
+      tracer_name: lttng-ust
+      tracer_patchlevel: 2
+      vpid: 3208
+    Stream (ID 0, Class ID 0)
+    Stream (ID 1, Class ID 0)
+    Stream (ID 2, Class ID 0)
+    Stream (ID 3, Class ID 0)
+    Stream (ID 4, Class ID 0)
+    Stream (ID 5, Class ID 0)
+    Stream (ID 6, Class ID 0)
+    Stream (ID 7, Class ID 0)
+
+{Trace 0, Stream class ID 0, Stream ID 1}
+Stream beginning:
+  Trace `the-trace`:
+    UUID: 624b19d9-19cd-4eae-bab8-8342e1b96a5d
+    Environment (7 entries):
+      domain: ust
+      procname: wk-heartbeat
+      tracer_major: 2
+      tracer_minor: 0
+      tracer_name: lttng-ust
+      tracer_patchlevel: 2
+      vpid: 3208
+    Stream (ID 0, Class ID 0)
+    Stream (ID 1, Class ID 0)
+    Stream (ID 2, Class ID 0)
+    Stream (ID 3, Class ID 0)
+    Stream (ID 4, Class ID 0)
+    Stream (ID 5, Class ID 0)
+    Stream (ID 6, Class ID 0)
+    Stream (ID 7, Class ID 0)
+
+{Trace 0, Stream class ID 0, Stream ID 2}
+Stream beginning:
+  Trace `the-trace`:
+    UUID: 624b19d9-19cd-4eae-bab8-8342e1b96a5d
+    Environment (7 entries):
+      domain: ust
+      procname: wk-heartbeat
+      tracer_major: 2
+      tracer_minor: 0
+      tracer_name: lttng-ust
+      tracer_patchlevel: 2
+      vpid: 3208
+    Stream (ID 0, Class ID 0)
+    Stream (ID 1, Class ID 0)
+    Stream (ID 2, Class ID 0)
+    Stream (ID 3, Class ID 0)
+    Stream (ID 4, Class ID 0)
+    Stream (ID 5, Class ID 0)
+    Stream (ID 6, Class ID 0)
+    Stream (ID 7, Class ID 0)
+
+{Trace 0, Stream class ID 0, Stream ID 3}
+Stream beginning:
+  Trace `the-trace`:
+    UUID: 624b19d9-19cd-4eae-bab8-8342e1b96a5d
+    Environment (7 entries):
+      domain: ust
+      procname: wk-heartbeat
+      tracer_major: 2
+      tracer_minor: 0
+      tracer_name: lttng-ust
+      tracer_patchlevel: 2
+      vpid: 3208
+    Stream (ID 0, Class ID 0)
+    Stream (ID 1, Class ID 0)
+    Stream (ID 2, Class ID 0)
+    Stream (ID 3, Class ID 0)
+    Stream (ID 4, Class ID 0)
+    Stream (ID 5, Class ID 0)
+    Stream (ID 6, Class ID 0)
+    Stream (ID 7, Class ID 0)
+
+{Trace 0, Stream class ID 0, Stream ID 4}
+Stream beginning:
+  Trace `the-trace`:
+    UUID: 624b19d9-19cd-4eae-bab8-8342e1b96a5d
+    Environment (7 entries):
+      domain: ust
+      procname: wk-heartbeat
+      tracer_major: 2
+      tracer_minor: 0
+      tracer_name: lttng-ust
+      tracer_patchlevel: 2
+      vpid: 3208
+    Stream (ID 0, Class ID 0)
+    Stream (ID 1, Class ID 0)
+    Stream (ID 2, Class ID 0)
+    Stream (ID 3, Class ID 0)
+    Stream (ID 4, Class ID 0)
+    Stream (ID 5, Class ID 0)
+    Stream (ID 6, Class ID 0)
+    Stream (ID 7, Class ID 0)
+
+{Trace 0, Stream class ID 0, Stream ID 5}
+Stream beginning:
+  Trace `the-trace`:
+    UUID: 624b19d9-19cd-4eae-bab8-8342e1b96a5d
+    Environment (7 entries):
+      domain: ust
+      procname: wk-heartbeat
+      tracer_major: 2
+      tracer_minor: 0
+      tracer_name: lttng-ust
+      tracer_patchlevel: 2
+      vpid: 3208
+    Stream (ID 0, Class ID 0)
+    Stream (ID 1, Class ID 0)
+    Stream (ID 2, Class ID 0)
+    Stream (ID 3, Class ID 0)
+    Stream (ID 4, Class ID 0)
+    Stream (ID 5, Class ID 0)
+    Stream (ID 6, Class ID 0)
+    Stream (ID 7, Class ID 0)
+
+{Trace 0, Stream class ID 0, Stream ID 6}
+Stream beginning:
+  Trace `the-trace`:
+    UUID: 624b19d9-19cd-4eae-bab8-8342e1b96a5d
+    Environment (7 entries):
+      domain: ust
+      procname: wk-heartbeat
+      tracer_major: 2
+      tracer_minor: 0
+      tracer_name: lttng-ust
+      tracer_patchlevel: 2
+      vpid: 3208
+    Stream (ID 0, Class ID 0)
+    Stream (ID 1, Class ID 0)
+    Stream (ID 2, Class ID 0)
+    Stream (ID 3, Class ID 0)
+    Stream (ID 4, Class ID 0)
+    Stream (ID 5, Class ID 0)
+    Stream (ID 6, Class ID 0)
+    Stream (ID 7, Class ID 0)
+
+{Trace 0, Stream class ID 0, Stream ID 7}
+Stream beginning:
+  Trace `the-trace`:
+    UUID: 624b19d9-19cd-4eae-bab8-8342e1b96a5d
+    Environment (7 entries):
+      domain: ust
+      procname: wk-heartbeat
+      tracer_major: 2
+      tracer_minor: 0
+      tracer_name: lttng-ust
+      tracer_patchlevel: 2
+      vpid: 3208
+    Stream (ID 0, Class ID 0)
+    Stream (ID 1, Class ID 0)
+    Stream (ID 2, Class ID 0)
+    Stream (ID 3, Class ID 0)
+    Stream (ID 4, Class ID 0)
+    Stream (ID 5, Class ID 0)
+    Stream (ID 6, Class ID 0)
+    Stream (ID 7, Class ID 0)
+
+{Trace 0, Stream class ID 0, Stream ID 0}
+Packet beginning:
+  Context:
+    cpu_id: 0
+
+{Trace 0, Stream class ID 0, Stream ID 1}
+Packet beginning:
+  Context:
+    cpu_id: 1
+
+{Trace 0, Stream class ID 0, Stream ID 2}
+Packet beginning:
+  Context:
+    cpu_id: 2
+
+{Trace 0, Stream class ID 0, Stream ID 3}
+Packet beginning:
+  Context:
+    cpu_id: 3
+
+{Trace 0, Stream class ID 0, Stream ID 4}
+Packet beginning:
+  Context:
+    cpu_id: 4
+
+{Trace 0, Stream class ID 0, Stream ID 5}
+Packet beginning:
+  Context:
+    cpu_id: 5
+
+{Trace 0, Stream class ID 0, Stream ID 6}
+Packet beginning:
+  Context:
+    cpu_id: 6
+
+{Trace 0, Stream class ID 0, Stream ID 7}
+Packet beginning:
+  Context:
+    cpu_id: 7
+
+{Trace 0, Stream class ID 0, Stream ID 2}
+Event `heartbeat:msg` (Class ID 0):
+  Common context:
+    vtid: 3214
+    vpid: 3208
+  Payload:
+    msg: heartbeat
+
+{Trace 0, Stream class ID 0, Stream ID 4}
+Event `heartbeat:msg` (Class ID 0):
+  Common context:
+    vtid: 3215
+    vpid: 3208
+  Payload:
+    msg: heartbeat
+
+{Trace 0, Stream class ID 0, Stream ID 4}
+Event `heartbeat:msg` (Class ID 0):
+  Common context:
+    vtid: 3215
+    vpid: 3208
+  Payload:
+    msg: heartbeat
+
+{Trace 0, Stream class ID 0, Stream ID 2}
+Event `heartbeat:msg` (Class ID 0):
+  Common context:
+    vtid: 3214
+    vpid: 3208
+  Payload:
+    msg: heartbeat
+
+{Trace 0, Stream class ID 0, Stream ID 4}
+Event `heartbeat:msg` (Class ID 0):
+  Common context:
+    vtid: 3215
+    vpid: 3208
+  Payload:
+    msg: heartbeat
+
+{Trace 0, Stream class ID 0, Stream ID 2}
+Event `heartbeat:msg` (Class ID 0):
+  Common context:
+    vtid: 3214
+    vpid: 3208
+  Payload:
+    msg: heartbeat
+
+{Trace 0, Stream class ID 0, Stream ID 4}
+Event `heartbeat:msg` (Class ID 0):
+  Common context:
+    vtid: 3215
+    vpid: 3208
+  Payload:
+    msg: heartbeat
+
+{Trace 0, Stream class ID 0, Stream ID 4}
+Event `heartbeat:msg` (Class ID 0):
+  Common context:
+    vtid: 3215
+    vpid: 3208
+  Payload:
+    msg: heartbeat
+
+{Trace 0, Stream class ID 0, Stream ID 2}
+Event `heartbeat:msg` (Class ID 0):
+  Common context:
+    vtid: 3214
+    vpid: 3208
+  Payload:
+    msg: heartbeat
+
+{Trace 0, Stream class ID 0, Stream ID 4}
+Event `heartbeat:msg` (Class ID 0):
+  Common context:
+    vtid: 3215
+    vpid: 3208
+  Payload:
+    msg: heartbeat
+
+{Trace 0, Stream class ID 0, Stream ID 2}
+Event `heartbeat:msg` (Class ID 0):
+  Common context:
+    vtid: 3214
+    vpid: 3208
+  Payload:
+    msg: heartbeat
+
+{Trace 0, Stream class ID 0, Stream ID 4}
+Event `heartbeat:msg` (Class ID 0):
+  Common context:
+    vtid: 3215
+    vpid: 3208
+  Payload:
+    msg: heartbeat
+
+{Trace 0, Stream class ID 0, Stream ID 2}
+Event `heartbeat:msg` (Class ID 0):
+  Common context:
+    vtid: 3214
+    vpid: 3208
+  Payload:
+    msg: heartbeat
+
+{Trace 0, Stream class ID 0, Stream ID 2}
+Event `heartbeat:msg` (Class ID 0):
+  Common context:
+    vtid: 3214
+    vpid: 3208
+  Payload:
+    msg: heartbeat
+
+{Trace 0, Stream class ID 0, Stream ID 4}
+Event `heartbeat:msg` (Class ID 0):
+  Common context:
+    vtid: 3215
+    vpid: 3208
+  Payload:
+    msg: heartbeat
+
+{Trace 0, Stream class ID 0, Stream ID 2}
+Event `heartbeat:msg` (Class ID 0):
+  Common context:
+    vtid: 3214
+    vpid: 3208
+  Payload:
+    msg: heartbeat
+
+{Trace 0, Stream class ID 0, Stream ID 4}
+Event `heartbeat:msg` (Class ID 0):
+  Common context:
+    vtid: 3215
+    vpid: 3208
+  Payload:
+    msg: heartbeat
+
+{Trace 0, Stream class ID 0, Stream ID 6}
+Event `heartbeat:msg` (Class ID 0):
+  Common context:
+    vtid: 3215
+    vpid: 3208
+  Payload:
+    msg: heartbeat
+
+{Trace 0, Stream class ID 0, Stream ID 2}
+Event `heartbeat:msg` (Class ID 0):
+  Common context:
+    vtid: 3214
+    vpid: 3208
+  Payload:
+    msg: heartbeat
+
+{Trace 0, Stream class ID 0, Stream ID 2}
+Event `heartbeat:msg` (Class ID 0):
+  Common context:
+    vtid: 3214
+    vpid: 3208
+  Payload:
+    msg: heartbeat
+
+{Trace 0, Stream class ID 0, Stream ID 0}
+Packet end
+
+{Trace 0, Stream class ID 0, Stream ID 0}
+Stream end
+
+{Trace 0, Stream class ID 0, Stream ID 5}
+Packet end
+
+{Trace 0, Stream class ID 0, Stream ID 5}
+Stream end
+
+{Trace 0, Stream class ID 0, Stream ID 3}
+Packet end
+
+{Trace 0, Stream class ID 0, Stream ID 3}
+Stream end
+
+{Trace 0, Stream class ID 0, Stream ID 2}
+Packet end
+
+{Trace 0, Stream class ID 0, Stream ID 2}
+Stream end
+
+{Trace 0, Stream class ID 0, Stream ID 1}
+Packet end
+
+{Trace 0, Stream class ID 0, Stream ID 1}
+Stream end
+
+{Trace 0, Stream class ID 0, Stream ID 4}
+Packet end
+
+{Trace 0, Stream class ID 0, Stream ID 4}
+Stream end
+
+{Trace 0, Stream class ID 0, Stream ID 6}
+Packet end
+
+{Trace 0, Stream class ID 0, Stream ID 6}
+Stream end
+
+{Trace 0, Stream class ID 0, Stream ID 7}
+Packet end
+
+{Trace 0, Stream class ID 0, Stream ID 7}
+Stream end

@@ -42,6 +42,7 @@ dist_check_SCRIPTS = \
 	cli/test_trace_copy \
 	cli/test_trace_read \
 	cli/test_trimmer \
+	plugins/sink.text.details/succeed/test_succeed \
 	plugins/src.ctf.lttng-live/test_live \
 	python-plugin-provider/bt_plugin_test_python_plugin_provider.py \
 	python-plugin-provider/test_python_plugin_provider \
@@ -84,7 +85,8 @@ endif
 
 TESTS_PLUGINS = \
 	plugins/src.ctf.fs/succeed/test_succeed \
-	plugins/sink.ctf.fs/succeed/test_succeed
+	plugins/sink.ctf.fs/succeed/test_succeed \
+	plugins/sink.text.details/succeed/test_succeed
 
 if !ENABLE_BUILT_IN_PLUGINS
 if ENABLE_PYTHON_BINDINGS

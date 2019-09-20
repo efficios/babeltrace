@@ -1,0 +1,39 @@
+Trace class:
+  Stream class (ID 0):
+    Supports packets: Yes
+    Packets have beginning default clock snapshot: No
+    Packets have end default clock snapshot: No
+    Supports discarded events: No
+    Supports discarded packets: No
+    Event class `ev` (ID 0):
+      Payload field class: Structure (1 member):
+        s: String
+
+{Trace 0, Stream class ID 0, Stream ID 0}
+Stream beginning:
+  Trace `the-trace`:
+    Stream (ID 0, Class ID 0)
+
+{Trace 0, Stream class ID 0, Stream ID 0}
+Packet beginning
+
+{Trace 0, Stream class ID 0, Stream ID 0}
+Event `ev` (Class ID 0):
+  Payload:
+    s: hello
+
+{Trace 0, Stream class ID 0, Stream ID 0}
+Event `ev` (Class ID 0):
+  Payload:
+    s: how are you?
+
+{Trace 0, Stream class ID 0, Stream ID 0}
+Event `ev` (Class ID 0):
+  Payload:
+    s: I'm fine, you?
+
+{Trace 0, Stream class ID 0, Stream ID 0}
+Packet end
+
+{Trace 0, Stream class ID 0, Stream ID 0}
+Stream end
