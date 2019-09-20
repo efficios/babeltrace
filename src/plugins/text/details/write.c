@@ -1596,7 +1596,6 @@ int try_write_meta(struct details_write_ctx *ctx, const bt_trace_class *tc,
 		 * rewrite `sc`.
 		 */
 		write_trace_class(ctx, tc);
-		write_nl(ctx);
 
 		/*
 		 * Mark this trace class as written, as well as all
@@ -1648,7 +1647,6 @@ int try_write_meta(struct details_write_ctx *ctx, const bt_trace_class *tc,
 		 * classes, so we don't need to rewrite `ec`.
 		 */
 		write_stream_class(ctx, sc);
-		write_nl(ctx);
 
 		/*
 		 * Mark this stream class as written, as well as all its
@@ -1681,7 +1679,6 @@ int try_write_meta(struct details_write_ctx *ctx, const bt_trace_class *tc,
 		}
 
 		write_event_class(ctx, ec);
-		write_nl(ctx);
 		details_did_write_meta_object(ctx, tc, ec);
 		goto end;
 	}
@@ -1982,6 +1979,18 @@ int write_event_message(struct details_write_ctx *ctx,
 		goto end;
 	}
 
+	if (!ctx->details_comp->cfg.with_data) {
+		goto end;
+	}
+
+	if (ctx->str->len > 0) {
+		/*
+		 * Output buffer contains metadata: separate blocks with
+		 * newline.
+		 */
+		write_nl(ctx);
+	}
+
 	/* Write time */
 	if (bt_stream_class_borrow_default_clock_class_const(sc)) {
 		write_time(ctx,
@@ -2038,7 +2047,6 @@ int write_event_message(struct details_write_ctx *ctx,
 	decr_indent(ctx);
 
 end:
-
 	return ret;
 }
 
@@ -2219,6 +2227,18 @@ int write_stream_beginning_message(struct details_write_ctx *ctx,
 		goto end;
 	}
 
+	if (!ctx->details_comp->cfg.with_data) {
+		goto end;
+	}
+
+	if (ctx->str->len > 0) {
+		/*
+		 * Output buffer contains metadata: separate blocks with
+		 * newline.
+		 */
+		write_nl(ctx);
+	}
+
 	/* Write time */
 	if (cc) {
 		const bt_clock_snapshot *cs;
@@ -2282,6 +2302,10 @@ int write_stream_end_message(struct details_write_ctx *ctx,
 	const bt_clock_class *cc =
 		bt_stream_class_borrow_default_clock_class_const(sc);
 
+	if (!ctx->details_comp->cfg.with_data) {
+		goto end;
+	}
+
 	/* Write time */
 	if (cc) {
 		const bt_clock_snapshot *cs;
@@ -2318,6 +2342,10 @@ int write_packet_beginning_message(struct details_write_ctx *ctx,
 	const bt_stream *stream = bt_packet_borrow_stream_const(packet);
 	const bt_stream_class *sc = bt_stream_borrow_class_const(stream);
 	const bt_field *field;
+
+	if (!ctx->details_comp->cfg.with_data) {
+		goto end;
+	}
 
 	/* Write time */
 	if (bt_stream_class_packets_have_beginning_default_clock_snapshot(sc)) {
@@ -2396,12 +2424,17 @@ static
 int write_discarded_events_message(struct details_write_ctx *ctx,
 		const bt_message *msg)
 {
+	int ret = 0;
 	const bt_stream *stream = bt_message_discarded_events_borrow_stream_const(
 		msg);
 	const bt_stream_class *sc = bt_stream_borrow_class_const(stream);
 	const bt_clock_snapshot *beginning_cs = NULL;
 	const bt_clock_snapshot *end_cs = NULL;
 	uint64_t count;
+
+	if (!ctx->details_comp->cfg.with_data) {
+		goto end;
+	}
 
 	if (bt_stream_class_discarded_events_have_default_clock_snapshots(sc)) {
 		beginning_cs =
@@ -2417,20 +2450,28 @@ int write_discarded_events_message(struct details_write_ctx *ctx,
 		count = UINT64_C(-1);
 	}
 
-	return write_discarded_items_message(ctx, "events", stream,
+	ret = write_discarded_items_message(ctx, "events", stream,
 		beginning_cs, end_cs, count);
+
+end:
+	return ret;
 }
 
 static
 int write_discarded_packets_message(struct details_write_ctx *ctx,
 		const bt_message *msg)
 {
+	int ret = 0;
 	const bt_stream *stream = bt_message_discarded_packets_borrow_stream_const(
 		msg);
 	const bt_stream_class *sc = bt_stream_borrow_class_const(stream);
 	const bt_clock_snapshot *beginning_cs = NULL;
 	const bt_clock_snapshot *end_cs = NULL;
 	uint64_t count;
+
+	if (!ctx->details_comp->cfg.with_data) {
+		goto end;
+	}
 
 	if (bt_stream_class_discarded_packets_have_default_clock_snapshots(sc)) {
 		beginning_cs =
@@ -2446,8 +2487,11 @@ int write_discarded_packets_message(struct details_write_ctx *ctx,
 		count = UINT64_C(-1);
 	}
 
-	return write_discarded_items_message(ctx, "packets", stream,
+	ret = write_discarded_items_message(ctx, "packets", stream,
 		beginning_cs, end_cs, count);
+
+end:
+	return ret;
 }
 
 static
@@ -2459,6 +2503,10 @@ int write_packet_end_message(struct details_write_ctx *ctx,
 		bt_message_packet_end_borrow_packet_const(msg);
 	const bt_stream *stream = bt_packet_borrow_stream_const(packet);
 	const bt_stream_class *sc = bt_stream_borrow_class_const(stream);
+
+	if (!ctx->details_comp->cfg.with_data) {
+		goto end;
+	}
 
 	/* Write time */
 	if (bt_stream_class_packets_have_end_default_clock_snapshot(sc)) {
@@ -2528,10 +2576,6 @@ int details_write_message(struct details_comp *details_comp,
 	/* Reset output buffer */
 	g_string_assign(details_comp->str, "");
 
-	if (details_comp->printed_something && !details_comp->cfg.compact) {
-		write_nl(&ctx);
-	}
-
 	switch (bt_message_get_type(msg)) {
 	case BT_MESSAGE_TYPE_EVENT:
 		ret = write_event_message(&ctx, msg);
@@ -2559,6 +2603,18 @@ int details_write_message(struct details_comp *details_comp,
 		break;
 	default:
 		abort();
+	}
+
+	/*
+	 * If this component printed at least one character so far, and
+	 * we're not in compact mode, and there's something in the
+	 * output buffer for this message, then prepend a newline to the
+	 * output buffer to visually separate message blocks.
+	 */
+	if (details_comp->printed_something && !details_comp->cfg.compact &&
+			details_comp->str->len > 0) {
+		/* TODO: Optimize this */
+		g_string_prepend_c(details_comp->str, '\n');
 	}
 
 	return ret;

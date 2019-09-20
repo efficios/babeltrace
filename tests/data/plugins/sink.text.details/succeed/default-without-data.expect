@@ -1,0 +1,26 @@
+Trace class:
+  Stream class (ID 0):
+    Supports packets: Yes
+    Packets have beginning default clock snapshot: Yes
+    Packets have end default clock snapshot: Yes
+    Supports discarded events: Yes
+    Discarded events have default clock snapshots: Yes
+    Supports discarded packets: No
+    Default clock class:
+      Name: monotonic
+      Description: Monotonic Clock
+      Frequency (Hz): 1,000,000,000
+      Precision (cycles): 0
+      Offset (s): 1,351,530,929
+      Offset (cycles): 945,824,323
+      Origin is Unix epoch: Yes
+      UUID: c19b5ac9-b8e6-4f78-be95-a605d04e34c6
+    Packet context field class: Structure (1 member):
+      cpu_id: Unsigned integer (32-bit, Base 10)
+    Event common context field class: Structure (2 members):
+      vtid: Signed integer (32-bit, Base 10)
+      vpid: Signed integer (32-bit, Base 10)
+    Event class `heartbeat:msg` (ID 0):
+      Log level: Debug (line)
+      Payload field class: Structure (1 member):
+        msg: String

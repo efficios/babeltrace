@@ -56,12 +56,14 @@ test_details_no_stream_name() {
 		"${details_args[@]+${details_args[@]}}" -p with-stream-name=no
 }
 
-plan_tests 10
+plan_tests 12
 
 test_details_no_stream_name default wk-heartbeat-u
 test_details_no_stream_name default-compact wk-heartbeat-u -p compact=yes
 test_details_no_stream_name default-compact-without-metadata wk-heartbeat-u -p compact=yes,with-metadata=no
 test_details_no_stream_name default-compact-without-time wk-heartbeat-u -p compact=yes,with-time=no
+test_details_no_stream_name default-without-data wk-heartbeat-u -p with-data=no
+test_details_no_stream_name default-without-data-without-metadata wk-heartbeat-u -p with-data=no,with-metadata=no
 test_details_no_stream_name default-without-metadata wk-heartbeat-u -p with-metadata=no
 test_details_no_stream_name default-without-names wk-heartbeat-u -p with-stream-name=no,with-trace-name=no,with-stream-class-name=no
 test_details_no_stream_name default-without-time wk-heartbeat-u -p with-time=no

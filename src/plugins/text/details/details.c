@@ -51,6 +51,9 @@ static
 const char * const with_metadata_param_name = "with-metadata";
 
 static
+const char * const with_data_param_name = "with-data";
+
+static
 const char * const with_time_param_name = "with-time";
 
 static
@@ -301,6 +304,13 @@ int configure_details_comp(struct details_comp *details_comp,
 	/* With metadata objects? */
 	ret = configure_bool_opt(details_comp, params, with_metadata_param_name,
 		true, &details_comp->cfg.with_meta);
+	if (ret) {
+		goto error;
+	}
+
+	/* With data objects? */
+	ret = configure_bool_opt(details_comp, params, with_data_param_name,
+		true, &details_comp->cfg.with_data);
 	if (ret) {
 		goto error;
 	}
