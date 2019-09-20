@@ -28,7 +28,7 @@ Event `saumon atlantique` (Class ID 0):
 
 [25 cycles, 25,000,000,000 ns from origin]
 {Trace 1, Stream class ID 0, Stream ID 1}
-Packet beginning:
+Packet beginning
 
 [25 cycles, 25,000,000,000 ns from origin]
 {Trace 2, Stream class ID 1, Stream ID 1}

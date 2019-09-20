@@ -73,7 +73,7 @@ Stream beginning:
     Stream (ID 0, Class ID 0)
 
 {Trace 0, Stream class ID 0, Stream ID 0}
-Packet beginning:
+Packet beginning
 
 {Trace 0, Stream class ID 0, Stream ID 0}
 Event `yo` (Class ID 0):
