@@ -34,7 +34,7 @@ Stream beginning:
 
 [1,048,932,916,574,076 cycles, 1,435,121,820,916,574,076 ns from origin]
 {Trace 0, Stream class ID 0, Stream ID 0}
-Packet beginning:
+Packet beginning
 
 [1,048,932,916,580,091 cycles, 1,435,121,820,916,580,091 ns from origin]
 {Trace 0, Stream class ID 0, Stream ID 0}
@@ -48,7 +48,7 @@ Packet end
 
 [1,048,932,916,605,259 cycles, 1,435,121,820,916,605,259 ns from origin]
 {Trace 0, Stream class ID 0, Stream ID 0}
-Packet beginning:
+Packet beginning
 
 [1,048,932,916,605,259 cycles, 1,435,121,820,916,605,259 ns from origin]
 {Trace 0, Stream class ID 0, Stream ID 0}

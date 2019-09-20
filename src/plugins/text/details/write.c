@@ -2340,14 +2340,15 @@ int write_packet_beginning_message(struct details_write_ctx *ctx,
 	}
 
 	/* Write field */
-	g_string_append(ctx->str, ":\n");
-	incr_indent(ctx);
 	field = bt_packet_borrow_context_field_const(packet);
 	if (field) {
+		g_string_append(ctx->str, ":\n");
+		incr_indent(ctx);
 		write_root_field(ctx, "Context", field);
+		decr_indent(ctx);
+	} else {
+		write_nl(ctx);
 	}
-
-	decr_indent(ctx);
 
 end:
 	return ret;
