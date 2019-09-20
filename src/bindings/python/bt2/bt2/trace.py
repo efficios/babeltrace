@@ -178,6 +178,23 @@ class _TraceConst(object._SharedObject, collections.abc.Mapping):
 
         return utils._ListenerHandle(listener_id, self)
 
+    def remove_destruction_listener(self, listener_handle):
+        utils._check_type(listener_handle, utils._ListenerHandle)
+
+        if listener_handle._obj.addr != self.addr:
+            raise ValueError(
+                'This trace destruction listener does not match the trace object.'
+            )
+
+        if listener_handle._listener_id is None:
+            raise ValueError('This trace destruction listener was already removed.')
+
+        status = native_bt.trace_remove_destruction_listener(
+            self._ptr, listener_handle._listener_id
+        )
+        utils._handle_func_status(status)
+        listener_handle._listener_id = None
+
 
 class _Trace(_TraceConst):
     _borrow_stream_ptr_by_id = staticmethod(native_bt.trace_borrow_stream_by_id)
