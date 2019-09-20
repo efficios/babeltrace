@@ -79,6 +79,9 @@ struct details_comp {
 
 	/* Component's configuration */
 	struct {
+		/* Write data objects */
+		bool with_data;
+
 		/* Write metadata objects */
 		bool with_meta;
 
