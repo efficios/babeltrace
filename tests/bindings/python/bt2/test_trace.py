@@ -24,6 +24,7 @@ from bt2 import trace_class as bt2_trace_class
 from bt2 import value as bt2_value
 from bt2 import trace as bt2_trace
 from bt2 import stream as bt2_stream
+from bt2 import utils as bt2_utils
 
 
 class TraceTestCase(unittest.TestCase):
@@ -144,15 +145,15 @@ class TraceTestCase(unittest.TestCase):
 
     def test_destruction_listener(self):
         def on_trace_class_destruction(trace_class):
-            nonlocal trace_class_destroyed
-            trace_class_destroyed = True
+            nonlocal num_trace_class_destroyed_calls
+            num_trace_class_destroyed_calls += 1
 
         def on_trace_destruction(trace):
-            nonlocal trace_destroyed
-            trace_destroyed = True
+            nonlocal num_trace_destroyed_calls
+            num_trace_destroyed_calls += 1
 
-        trace_destroyed = False
-        trace_class_destroyed = False
+        num_trace_class_destroyed_calls = 0
+        num_trace_destroyed_calls = 0
 
         trace_class = get_default_trace_class()
         stream_class = trace_class.create_stream_class()
@@ -160,30 +161,79 @@ class TraceTestCase(unittest.TestCase):
         stream = trace.create_stream(stream_class)
 
         trace_class.add_destruction_listener(on_trace_class_destruction)
-        trace.add_destruction_listener(on_trace_destruction)
+        td_handle1 = trace.add_destruction_listener(on_trace_destruction)
+        td_handle2 = trace.add_destruction_listener(on_trace_destruction)
 
-        self.assertFalse(trace_class_destroyed)
-        self.assertFalse(trace_destroyed)
+        self.assertIs(type(td_handle1), bt2_utils._ListenerHandle)
+
+        trace.remove_destruction_listener(td_handle2)
+
+        del td_handle1
+        del td_handle2
+
+        self.assertEqual(num_trace_class_destroyed_calls, 0)
+        self.assertEqual(num_trace_destroyed_calls, 0)
 
         del trace
 
-        self.assertFalse(trace_class_destroyed)
-        self.assertFalse(trace_destroyed)
+        self.assertEqual(num_trace_class_destroyed_calls, 0)
+        self.assertEqual(num_trace_destroyed_calls, 0)
 
         del stream
 
-        self.assertFalse(trace_class_destroyed)
-        self.assertTrue(trace_destroyed)
+        self.assertEqual(num_trace_class_destroyed_calls, 0)
+        self.assertEqual(num_trace_destroyed_calls, 1)
 
         del trace_class
 
-        self.assertFalse(trace_class_destroyed)
-        self.assertTrue(trace_destroyed)
+        self.assertEqual(num_trace_class_destroyed_calls, 0)
+        self.assertEqual(num_trace_destroyed_calls, 1)
 
         del stream_class
 
-        self.assertTrue(trace_class_destroyed)
-        self.assertTrue(trace_destroyed)
+        self.assertEqual(num_trace_class_destroyed_calls, 1)
+        self.assertEqual(num_trace_destroyed_calls, 1)
+
+    def test_remove_destruction_listener_wrong_type(self):
+        trace_class = get_default_trace_class()
+        trace = trace_class()
+
+        with self.assertRaisesRegex(
+            TypeError, r"'int' is not a '<class 'bt2.utils._ListenerHandle'>' object"
+        ):
+            trace.remove_destruction_listener(123)
+
+    def test_remove_destruction_listener_wrong_object(self):
+        def on_trace_destruction(trace):
+            pass
+
+        trace_class_1 = get_default_trace_class()
+        trace1 = trace_class_1()
+        trace_class_2 = get_default_trace_class()
+        trace2 = trace_class_2()
+
+        handle1 = trace1.add_destruction_listener(on_trace_destruction)
+
+        with self.assertRaisesRegex(
+            ValueError,
+            r'This trace destruction listener does not match the trace object\.',
+        ):
+            trace2.remove_destruction_listener(handle1)
+
+    def test_remove_destruction_listener_twice(self):
+        def on_trace_destruction(trace_class):
+            pass
+
+        trace_class = get_default_trace_class()
+        trace = trace_class()
+        handle = trace.add_destruction_listener(on_trace_destruction)
+
+        trace.remove_destruction_listener(handle)
+
+        with self.assertRaisesRegex(
+            ValueError, r'This trace destruction listener was already removed\.'
+        ):
+            trace.remove_destruction_listener(handle)
 
 
 if __name__ == '__main__':

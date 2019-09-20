@@ -24,6 +24,7 @@ from utils import (
 )
 from bt2 import stream_class as bt2_stream_class
 from bt2 import trace_class as bt2_trace_class
+from bt2 import utils as bt2_utils
 
 
 class TraceClassTestCase(unittest.TestCase):
@@ -175,19 +176,65 @@ class TraceClassTestCase(unittest.TestCase):
 
     def test_destruction_listener(self):
         def on_trace_class_destruction(trace_class):
-            nonlocal trace_class_destroyed
-            trace_class_destroyed = True
+            nonlocal num_destruct_calls
+            num_destruct_calls += 1
 
-        trace_class_destroyed = False
+        num_destruct_calls = 0
 
         trace_class = get_default_trace_class()
-        trace_class.add_destruction_listener(on_trace_class_destruction)
 
-        self.assertFalse(trace_class_destroyed)
+        handle1 = trace_class.add_destruction_listener(on_trace_class_destruction)
+        self.assertIs(type(handle1), bt2_utils._ListenerHandle)
+
+        handle2 = trace_class.add_destruction_listener(on_trace_class_destruction)
+
+        trace_class.remove_destruction_listener(handle2)
+
+        del handle1
+        del handle2
+
+        self.assertEqual(num_destruct_calls, 0)
 
         del trace_class
 
-        self.assertTrue(trace_class_destroyed)
+        self.assertEqual(num_destruct_calls, 1)
+
+    def test_remove_destruction_listener_wrong_type(self):
+        trace_class = get_default_trace_class()
+
+        with self.assertRaisesRegex(
+            TypeError, r"'int' is not a '<class 'bt2.utils._ListenerHandle'>' object"
+        ):
+            trace_class.remove_destruction_listener(123)
+
+    def test_remove_destruction_listener_wrong_object(self):
+        def on_trace_class_destruction(trace_class):
+            pass
+
+        trace_class_1 = get_default_trace_class()
+        trace_class_2 = get_default_trace_class()
+
+        handle1 = trace_class_1.add_destruction_listener(on_trace_class_destruction)
+
+        with self.assertRaisesRegex(
+            ValueError,
+            r'This trace class destruction listener does not match the trace object\.',
+        ):
+            trace_class_2.remove_destruction_listener(handle1)
+
+    def test_remove_destruction_listener_twice(self):
+        def on_trace_class_destruction(trace_class):
+            pass
+
+        trace_class = get_default_trace_class()
+        handle = trace_class.add_destruction_listener(on_trace_class_destruction)
+
+        trace_class.remove_destruction_listener(handle)
+
+        with self.assertRaisesRegex(
+            ValueError, r'This trace class destruction listener was already removed\.'
+        ):
+            trace_class.remove_destruction_listener(handle)
 
 
 if __name__ == '__main__':
