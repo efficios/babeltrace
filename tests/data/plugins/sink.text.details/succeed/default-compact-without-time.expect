@@ -1,0 +1,79 @@
+Trace class:
+  Stream class (ID 0):
+    Supports packets: Yes
+    Packets have beginning default clock snapshot: Yes
+    Packets have end default clock snapshot: Yes
+    Supports discarded events: Yes
+    Discarded events have default clock snapshots: Yes
+    Supports discarded packets: No
+    Default clock class:
+      Name: monotonic
+      Description: Monotonic Clock
+      Frequency (Hz): 1,000,000,000
+      Precision (cycles): 0
+      Offset (s): 1,351,530,929
+      Offset (cycles): 945,824,323
+      Origin is Unix epoch: Yes
+      UUID: c19b5ac9-b8e6-4f78-be95-a605d04e34c6
+    Packet context field class: Structure (1 member):
+      cpu_id: Unsigned integer (32-bit, Base 10)
+    Event common context field class: Structure (2 members):
+      vtid: Signed integer (32-bit, Base 10)
+      vpid: Signed integer (32-bit, Base 10)
+    Event class `heartbeat:msg` (ID 0):
+      Log level: Debug (line)
+      Payload field class: Structure (1 member):
+        msg: String
+
+{0 0 0} Stream beginning
+{0 0 1} Stream beginning
+{0 0 2} Stream beginning
+{0 0 3} Stream beginning
+{0 0 4} Stream beginning
+{0 0 5} Stream beginning
+{0 0 6} Stream beginning
+{0 0 7} Stream beginning
+{0 0 0} Packet beginning
+{0 0 1} Packet beginning
+{0 0 2} Packet beginning
+{0 0 3} Packet beginning
+{0 0 4} Packet beginning
+{0 0 5} Packet beginning
+{0 0 6} Packet beginning
+{0 0 7} Packet beginning
+{0 0 2} Event `heartbeat:msg` (0)
+{0 0 4} Event `heartbeat:msg` (0)
+{0 0 4} Event `heartbeat:msg` (0)
+{0 0 2} Event `heartbeat:msg` (0)
+{0 0 4} Event `heartbeat:msg` (0)
+{0 0 2} Event `heartbeat:msg` (0)
+{0 0 4} Event `heartbeat:msg` (0)
+{0 0 4} Event `heartbeat:msg` (0)
+{0 0 2} Event `heartbeat:msg` (0)
+{0 0 4} Event `heartbeat:msg` (0)
+{0 0 2} Event `heartbeat:msg` (0)
+{0 0 4} Event `heartbeat:msg` (0)
+{0 0 2} Event `heartbeat:msg` (0)
+{0 0 2} Event `heartbeat:msg` (0)
+{0 0 4} Event `heartbeat:msg` (0)
+{0 0 2} Event `heartbeat:msg` (0)
+{0 0 4} Event `heartbeat:msg` (0)
+{0 0 6} Event `heartbeat:msg` (0)
+{0 0 2} Event `heartbeat:msg` (0)
+{0 0 2} Event `heartbeat:msg` (0)
+{0 0 0} Packet end
+{0 0 0} Stream end
+{0 0 5} Packet end
+{0 0 5} Stream end
+{0 0 3} Packet end
+{0 0 3} Stream end
+{0 0 2} Packet end
+{0 0 2} Stream end
+{0 0 1} Packet end
+{0 0 1} Stream end
+{0 0 4} Packet end
+{0 0 4} Stream end
+{0 0 6} Packet end
+{0 0 6} Stream end
+{0 0 7} Packet end
+{0 0 7} Stream end

@@ -1,0 +1,467 @@
+[Unknown]
+{Trace 0, Stream class ID 0, Stream ID 0}
+Stream beginning:
+  Trace `the-trace`:
+    UUID: 624b19d9-19cd-4eae-bab8-8342e1b96a5d
+    Environment (7 entries):
+      domain: ust
+      procname: wk-heartbeat
+      tracer_major: 2
+      tracer_minor: 0
+      tracer_name: lttng-ust
+      tracer_patchlevel: 2
+      vpid: 3208
+    Stream (ID 0, Class ID 0)
+    Stream (ID 1, Class ID 0)
+    Stream (ID 2, Class ID 0)
+    Stream (ID 3, Class ID 0)
+    Stream (ID 4, Class ID 0)
+    Stream (ID 5, Class ID 0)
+    Stream (ID 6, Class ID 0)
+    Stream (ID 7, Class ID 0)
+
+[Unknown]
+{Trace 0, Stream class ID 0, Stream ID 1}
+Stream beginning:
+  Trace `the-trace`:
+    UUID: 624b19d9-19cd-4eae-bab8-8342e1b96a5d
+    Environment (7 entries):
+      domain: ust
+      procname: wk-heartbeat
+      tracer_major: 2
+      tracer_minor: 0
+      tracer_name: lttng-ust
+      tracer_patchlevel: 2
+      vpid: 3208
+    Stream (ID 0, Class ID 0)
+    Stream (ID 1, Class ID 0)
+    Stream (ID 2, Class ID 0)
+    Stream (ID 3, Class ID 0)
+    Stream (ID 4, Class ID 0)
+    Stream (ID 5, Class ID 0)
+    Stream (ID 6, Class ID 0)
+    Stream (ID 7, Class ID 0)
+
+[Unknown]
+{Trace 0, Stream class ID 0, Stream ID 2}
+Stream beginning:
+  Trace `the-trace`:
+    UUID: 624b19d9-19cd-4eae-bab8-8342e1b96a5d
+    Environment (7 entries):
+      domain: ust
+      procname: wk-heartbeat
+      tracer_major: 2
+      tracer_minor: 0
+      tracer_name: lttng-ust
+      tracer_patchlevel: 2
+      vpid: 3208
+    Stream (ID 0, Class ID 0)
+    Stream (ID 1, Class ID 0)
+    Stream (ID 2, Class ID 0)
+    Stream (ID 3, Class ID 0)
+    Stream (ID 4, Class ID 0)
+    Stream (ID 5, Class ID 0)
+    Stream (ID 6, Class ID 0)
+    Stream (ID 7, Class ID 0)
+
+[Unknown]
+{Trace 0, Stream class ID 0, Stream ID 3}
+Stream beginning:
+  Trace `the-trace`:
+    UUID: 624b19d9-19cd-4eae-bab8-8342e1b96a5d
+    Environment (7 entries):
+      domain: ust
+      procname: wk-heartbeat
+      tracer_major: 2
+      tracer_minor: 0
+      tracer_name: lttng-ust
+      tracer_patchlevel: 2
+      vpid: 3208
+    Stream (ID 0, Class ID 0)
+    Stream (ID 1, Class ID 0)
+    Stream (ID 2, Class ID 0)
+    Stream (ID 3, Class ID 0)
+    Stream (ID 4, Class ID 0)
+    Stream (ID 5, Class ID 0)
+    Stream (ID 6, Class ID 0)
+    Stream (ID 7, Class ID 0)
+
+[Unknown]
+{Trace 0, Stream class ID 0, Stream ID 4}
+Stream beginning:
+  Trace `the-trace`:
+    UUID: 624b19d9-19cd-4eae-bab8-8342e1b96a5d
+    Environment (7 entries):
+      domain: ust
+      procname: wk-heartbeat
+      tracer_major: 2
+      tracer_minor: 0
+      tracer_name: lttng-ust
+      tracer_patchlevel: 2
+      vpid: 3208
+    Stream (ID 0, Class ID 0)
+    Stream (ID 1, Class ID 0)
+    Stream (ID 2, Class ID 0)
+    Stream (ID 3, Class ID 0)
+    Stream (ID 4, Class ID 0)
+    Stream (ID 5, Class ID 0)
+    Stream (ID 6, Class ID 0)
+    Stream (ID 7, Class ID 0)
+
+[Unknown]
+{Trace 0, Stream class ID 0, Stream ID 5}
+Stream beginning:
+  Trace `the-trace`:
+    UUID: 624b19d9-19cd-4eae-bab8-8342e1b96a5d
+    Environment (7 entries):
+      domain: ust
+      procname: wk-heartbeat
+      tracer_major: 2
+      tracer_minor: 0
+      tracer_name: lttng-ust
+      tracer_patchlevel: 2
+      vpid: 3208
+    Stream (ID 0, Class ID 0)
+    Stream (ID 1, Class ID 0)
+    Stream (ID 2, Class ID 0)
+    Stream (ID 3, Class ID 0)
+    Stream (ID 4, Class ID 0)
+    Stream (ID 5, Class ID 0)
+    Stream (ID 6, Class ID 0)
+    Stream (ID 7, Class ID 0)
+
+[Unknown]
+{Trace 0, Stream class ID 0, Stream ID 6}
+Stream beginning:
+  Trace `the-trace`:
+    UUID: 624b19d9-19cd-4eae-bab8-8342e1b96a5d
+    Environment (7 entries):
+      domain: ust
+      procname: wk-heartbeat
+      tracer_major: 2
+      tracer_minor: 0
+      tracer_name: lttng-ust
+      tracer_patchlevel: 2
+      vpid: 3208
+    Stream (ID 0, Class ID 0)
+    Stream (ID 1, Class ID 0)
+    Stream (ID 2, Class ID 0)
+    Stream (ID 3, Class ID 0)
+    Stream (ID 4, Class ID 0)
+    Stream (ID 5, Class ID 0)
+    Stream (ID 6, Class ID 0)
+    Stream (ID 7, Class ID 0)
+
+[Unknown]
+{Trace 0, Stream class ID 0, Stream ID 7}
+Stream beginning:
+  Trace `the-trace`:
+    UUID: 624b19d9-19cd-4eae-bab8-8342e1b96a5d
+    Environment (7 entries):
+      domain: ust
+      procname: wk-heartbeat
+      tracer_major: 2
+      tracer_minor: 0
+      tracer_name: lttng-ust
+      tracer_patchlevel: 2
+      vpid: 3208
+    Stream (ID 0, Class ID 0)
+    Stream (ID 1, Class ID 0)
+    Stream (ID 2, Class ID 0)
+    Stream (ID 3, Class ID 0)
+    Stream (ID 4, Class ID 0)
+    Stream (ID 5, Class ID 0)
+    Stream (ID 6, Class ID 0)
+    Stream (ID 7, Class ID 0)
+
+[1,967,630,439,868 cycles, 1,351,532,897,576,264,191 ns from origin]
+{Trace 0, Stream class ID 0, Stream ID 0}
+Packet beginning:
+  Context:
+    cpu_id: 0
+
+[1,967,630,514,179 cycles, 1,351,532,897,576,338,502 ns from origin]
+{Trace 0, Stream class ID 0, Stream ID 1}
+Packet beginning:
+  Context:
+    cpu_id: 1
+
+[1,967,630,597,709 cycles, 1,351,532,897,576,422,032 ns from origin]
+{Trace 0, Stream class ID 0, Stream ID 2}
+Packet beginning:
+  Context:
+    cpu_id: 2
+
+[1,967,630,652,186 cycles, 1,351,532,897,576,476,509 ns from origin]
+{Trace 0, Stream class ID 0, Stream ID 3}
+Packet beginning:
+  Context:
+    cpu_id: 3
+
+[1,967,630,732,363 cycles, 1,351,532,897,576,556,686 ns from origin]
+{Trace 0, Stream class ID 0, Stream ID 4}
+Packet beginning:
+  Context:
+    cpu_id: 4
+
+[1,967,630,781,252 cycles, 1,351,532,897,576,605,575 ns from origin]
+{Trace 0, Stream class ID 0, Stream ID 5}
+Packet beginning:
+  Context:
+    cpu_id: 5
+
+[1,967,630,859,475 cycles, 1,351,532,897,576,683,798 ns from origin]
+{Trace 0, Stream class ID 0, Stream ID 6}
+Packet beginning:
+  Context:
+    cpu_id: 6
+
+[1,967,630,908,922 cycles, 1,351,532,897,576,733,245 ns from origin]
+{Trace 0, Stream class ID 0, Stream ID 7}
+Packet beginning:
+  Context:
+    cpu_id: 7
+
+[1,967,640,734,196 cycles, 1,351,532,897,586,558,519 ns from origin]
+{Trace 0, Stream class ID 0, Stream ID 2}
+Event `heartbeat:msg` (Class ID 0):
+  Common context:
+    vtid: 3214
+    vpid: 3208
+  Payload:
+    msg: heartbeat
+
+[1,967,640,810,463 cycles, 1,351,532,897,586,634,786 ns from origin]
+{Trace 0, Stream class ID 0, Stream ID 4}
+Event `heartbeat:msg` (Class ID 0):
+  Common context:
+    vtid: 3215
+    vpid: 3208
+  Payload:
+    msg: heartbeat
+
+[1,967,641,205,206 cycles, 1,351,532,897,587,029,529 ns from origin]
+{Trace 0, Stream class ID 0, Stream ID 4}
+Event `heartbeat:msg` (Class ID 0):
+  Common context:
+    vtid: 3215
+    vpid: 3208
+  Payload:
+    msg: heartbeat
+
+[1,967,641,294,603 cycles, 1,351,532,897,587,118,926 ns from origin]
+{Trace 0, Stream class ID 0, Stream ID 2}
+Event `heartbeat:msg` (Class ID 0):
+  Common context:
+    vtid: 3214
+    vpid: 3208
+  Payload:
+    msg: heartbeat
+
+[1,967,641,618,387 cycles, 1,351,532,897,587,442,710 ns from origin]
+{Trace 0, Stream class ID 0, Stream ID 4}
+Event `heartbeat:msg` (Class ID 0):
+  Common context:
+    vtid: 3215
+    vpid: 3208
+  Payload:
+    msg: heartbeat
+
+[1,967,641,825,676 cycles, 1,351,532,897,587,649,999 ns from origin]
+{Trace 0, Stream class ID 0, Stream ID 2}
+Event `heartbeat:msg` (Class ID 0):
+  Common context:
+    vtid: 3214
+    vpid: 3208
+  Payload:
+    msg: heartbeat
+
+[1,967,642,034,082 cycles, 1,351,532,897,587,858,405 ns from origin]
+{Trace 0, Stream class ID 0, Stream ID 4}
+Event `heartbeat:msg` (Class ID 0):
+  Common context:
+    vtid: 3215
+    vpid: 3208
+  Payload:
+    msg: heartbeat
+
+[1,967,642,404,241 cycles, 1,351,532,897,588,228,564 ns from origin]
+{Trace 0, Stream class ID 0, Stream ID 4}
+Event `heartbeat:msg` (Class ID 0):
+  Common context:
+    vtid: 3215
+    vpid: 3208
+  Payload:
+    msg: heartbeat
+
+[1,967,642,855,695 cycles, 1,351,532,897,588,680,018 ns from origin]
+{Trace 0, Stream class ID 0, Stream ID 2}
+Event `heartbeat:msg` (Class ID 0):
+  Common context:
+    vtid: 3214
+    vpid: 3208
+  Payload:
+    msg: heartbeat
+
+[1,967,642,893,409 cycles, 1,351,532,897,588,717,732 ns from origin]
+{Trace 0, Stream class ID 0, Stream ID 4}
+Event `heartbeat:msg` (Class ID 0):
+  Common context:
+    vtid: 3215
+    vpid: 3208
+  Payload:
+    msg: heartbeat
+
+[1,967,643,224,457 cycles, 1,351,532,897,589,048,780 ns from origin]
+{Trace 0, Stream class ID 0, Stream ID 2}
+Event `heartbeat:msg` (Class ID 0):
+  Common context:
+    vtid: 3214
+    vpid: 3208
+  Payload:
+    msg: heartbeat
+
+[1,967,643,244,013 cycles, 1,351,532,897,589,068,336 ns from origin]
+{Trace 0, Stream class ID 0, Stream ID 4}
+Event `heartbeat:msg` (Class ID 0):
+  Common context:
+    vtid: 3215
+    vpid: 3208
+  Payload:
+    msg: heartbeat
+
+[1,967,643,554,667 cycles, 1,351,532,897,589,378,990 ns from origin]
+{Trace 0, Stream class ID 0, Stream ID 2}
+Event `heartbeat:msg` (Class ID 0):
+  Common context:
+    vtid: 3214
+    vpid: 3208
+  Payload:
+    msg: heartbeat
+
+[1,967,643,897,727 cycles, 1,351,532,897,589,722,050 ns from origin]
+{Trace 0, Stream class ID 0, Stream ID 2}
+Event `heartbeat:msg` (Class ID 0):
+  Common context:
+    vtid: 3214
+    vpid: 3208
+  Payload:
+    msg: heartbeat
+
+[1,967,643,936,280 cycles, 1,351,532,897,589,760,603 ns from origin]
+{Trace 0, Stream class ID 0, Stream ID 4}
+Event `heartbeat:msg` (Class ID 0):
+  Common context:
+    vtid: 3215
+    vpid: 3208
+  Payload:
+    msg: heartbeat
+
+[1,967,644,416,509 cycles, 1,351,532,897,590,240,832 ns from origin]
+{Trace 0, Stream class ID 0, Stream ID 2}
+Event `heartbeat:msg` (Class ID 0):
+  Common context:
+    vtid: 3214
+    vpid: 3208
+  Payload:
+    msg: heartbeat
+
+[1,967,644,443,328 cycles, 1,351,532,897,590,267,651 ns from origin]
+{Trace 0, Stream class ID 0, Stream ID 4}
+Event `heartbeat:msg` (Class ID 0):
+  Common context:
+    vtid: 3215
+    vpid: 3208
+  Payload:
+    msg: heartbeat
+
+[1,967,644,995,912 cycles, 1,351,532,897,590,820,235 ns from origin]
+{Trace 0, Stream class ID 0, Stream ID 6}
+Event `heartbeat:msg` (Class ID 0):
+  Common context:
+    vtid: 3215
+    vpid: 3208
+  Payload:
+    msg: heartbeat
+
+[1,967,645,166,884 cycles, 1,351,532,897,590,991,207 ns from origin]
+{Trace 0, Stream class ID 0, Stream ID 2}
+Event `heartbeat:msg` (Class ID 0):
+  Common context:
+    vtid: 3214
+    vpid: 3208
+  Payload:
+    msg: heartbeat
+
+[1,967,645,506,871 cycles, 1,351,532,897,591,331,194 ns from origin]
+{Trace 0, Stream class ID 0, Stream ID 2}
+Event `heartbeat:msg` (Class ID 0):
+  Common context:
+    vtid: 3214
+    vpid: 3208
+  Payload:
+    msg: heartbeat
+
+[1,967,647,072,992 cycles, 1,351,532,897,592,897,315 ns from origin]
+{Trace 0, Stream class ID 0, Stream ID 0}
+Packet end
+
+[Unknown]
+{Trace 0, Stream class ID 0, Stream ID 0}
+Stream end
+
+[1,967,651,262,073 cycles, 1,351,532,897,597,086,396 ns from origin]
+{Trace 0, Stream class ID 0, Stream ID 5}
+Packet end
+
+[Unknown]
+{Trace 0, Stream class ID 0, Stream ID 5}
+Stream end
+
+[1,967,651,296,715 cycles, 1,351,532,897,597,121,038 ns from origin]
+{Trace 0, Stream class ID 0, Stream ID 3}
+Packet end
+
+[Unknown]
+{Trace 0, Stream class ID 0, Stream ID 3}
+Stream end
+
+[1,967,651,374,099 cycles, 1,351,532,897,597,198,422 ns from origin]
+{Trace 0, Stream class ID 0, Stream ID 2}
+Packet end
+
+[Unknown]
+{Trace 0, Stream class ID 0, Stream ID 2}
+Stream end
+
+[1,967,651,624,689 cycles, 1,351,532,897,597,449,012 ns from origin]
+{Trace 0, Stream class ID 0, Stream ID 1}
+Packet end
+
+[Unknown]
+{Trace 0, Stream class ID 0, Stream ID 1}
+Stream end
+
+[1,967,652,165,820 cycles, 1,351,532,897,597,990,143 ns from origin]
+{Trace 0, Stream class ID 0, Stream ID 4}
+Packet end
+
+[Unknown]
+{Trace 0, Stream class ID 0, Stream ID 4}
+Stream end
+
+[1,967,655,287,446 cycles, 1,351,532,897,601,111,769 ns from origin]
+{Trace 0, Stream class ID 0, Stream ID 6}
+Packet end
+
+[Unknown]
+{Trace 0, Stream class ID 0, Stream ID 6}
+Stream end
+
+[1,967,655,586,926 cycles, 1,351,532,897,601,411,249 ns from origin]
+{Trace 0, Stream class ID 0, Stream ID 7}
+Packet end
+
+[Unknown]
+{Trace 0, Stream class ID 0, Stream ID 7}
+Stream end

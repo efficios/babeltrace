@@ -1,0 +1,79 @@
+Trace class:
+  Stream class (ID 0):
+    Supports packets: Yes
+    Packets have beginning default clock snapshot: Yes
+    Packets have end default clock snapshot: Yes
+    Supports discarded events: Yes
+    Discarded events have default clock snapshots: Yes
+    Supports discarded packets: No
+    Default clock class:
+      Name: monotonic
+      Description: Monotonic Clock
+      Frequency (Hz): 1,000,000,000
+      Precision (cycles): 0
+      Offset (s): 1,351,530,929
+      Offset (cycles): 945,824,323
+      Origin is Unix epoch: Yes
+      UUID: c19b5ac9-b8e6-4f78-be95-a605d04e34c6
+    Packet context field class: Structure (1 member):
+      cpu_id: Unsigned integer (32-bit, Base 10)
+    Event common context field class: Structure (2 members):
+      vtid: Signed integer (32-bit, Base 10)
+      vpid: Signed integer (32-bit, Base 10)
+    Event class `heartbeat:msg` (ID 0):
+      Log level: Debug (line)
+      Payload field class: Structure (1 member):
+        msg: String
+
+[Unknown] {0 0 0} Stream beginning
+[Unknown] {0 0 1} Stream beginning
+[Unknown] {0 0 2} Stream beginning
+[Unknown] {0 0 3} Stream beginning
+[Unknown] {0 0 4} Stream beginning
+[Unknown] {0 0 5} Stream beginning
+[Unknown] {0 0 6} Stream beginning
+[Unknown] {0 0 7} Stream beginning
+[1,967,630,439,868 1,351,532,897,576,264,191] {0 0 0} Packet beginning
+[1,967,630,514,179 1,351,532,897,576,338,502] {0 0 1} Packet beginning
+[1,967,630,597,709 1,351,532,897,576,422,032] {0 0 2} Packet beginning
+[1,967,630,652,186 1,351,532,897,576,476,509] {0 0 3} Packet beginning
+[1,967,630,732,363 1,351,532,897,576,556,686] {0 0 4} Packet beginning
+[1,967,630,781,252 1,351,532,897,576,605,575] {0 0 5} Packet beginning
+[1,967,630,859,475 1,351,532,897,576,683,798] {0 0 6} Packet beginning
+[1,967,630,908,922 1,351,532,897,576,733,245] {0 0 7} Packet beginning
+[1,967,640,734,196 1,351,532,897,586,558,519] {0 0 2} Event `heartbeat:msg` (0)
+[1,967,640,810,463 1,351,532,897,586,634,786] {0 0 4} Event `heartbeat:msg` (0)
+[1,967,641,205,206 1,351,532,897,587,029,529] {0 0 4} Event `heartbeat:msg` (0)
+[1,967,641,294,603 1,351,532,897,587,118,926] {0 0 2} Event `heartbeat:msg` (0)
+[1,967,641,618,387 1,351,532,897,587,442,710] {0 0 4} Event `heartbeat:msg` (0)
+[1,967,641,825,676 1,351,532,897,587,649,999] {0 0 2} Event `heartbeat:msg` (0)
+[1,967,642,034,082 1,351,532,897,587,858,405] {0 0 4} Event `heartbeat:msg` (0)
+[1,967,642,404,241 1,351,532,897,588,228,564] {0 0 4} Event `heartbeat:msg` (0)
+[1,967,642,855,695 1,351,532,897,588,680,018] {0 0 2} Event `heartbeat:msg` (0)
+[1,967,642,893,409 1,351,532,897,588,717,732] {0 0 4} Event `heartbeat:msg` (0)
+[1,967,643,224,457 1,351,532,897,589,048,780] {0 0 2} Event `heartbeat:msg` (0)
+[1,967,643,244,013 1,351,532,897,589,068,336] {0 0 4} Event `heartbeat:msg` (0)
+[1,967,643,554,667 1,351,532,897,589,378,990] {0 0 2} Event `heartbeat:msg` (0)
+[1,967,643,897,727 1,351,532,897,589,722,050] {0 0 2} Event `heartbeat:msg` (0)
+[1,967,643,936,280 1,351,532,897,589,760,603] {0 0 4} Event `heartbeat:msg` (0)
+[1,967,644,416,509 1,351,532,897,590,240,832] {0 0 2} Event `heartbeat:msg` (0)
+[1,967,644,443,328 1,351,532,897,590,267,651] {0 0 4} Event `heartbeat:msg` (0)
+[1,967,644,995,912 1,351,532,897,590,820,235] {0 0 6} Event `heartbeat:msg` (0)
+[1,967,645,166,884 1,351,532,897,590,991,207] {0 0 2} Event `heartbeat:msg` (0)
+[1,967,645,506,871 1,351,532,897,591,331,194] {0 0 2} Event `heartbeat:msg` (0)
+[1,967,647,072,992 1,351,532,897,592,897,315] {0 0 0} Packet end
+[Unknown] {0 0 0} Stream end
+[1,967,651,262,073 1,351,532,897,597,086,396] {0 0 5} Packet end
+[Unknown] {0 0 5} Stream end
+[1,967,651,296,715 1,351,532,897,597,121,038] {0 0 3} Packet end
+[Unknown] {0 0 3} Stream end
+[1,967,651,374,099 1,351,532,897,597,198,422] {0 0 2} Packet end
+[Unknown] {0 0 2} Stream end
+[1,967,651,624,689 1,351,532,897,597,449,012] {0 0 1} Packet end
+[Unknown] {0 0 1} Stream end
+[1,967,652,165,820 1,351,532,897,597,990,143] {0 0 4} Packet end
+[Unknown] {0 0 4} Stream end
+[1,967,655,287,446 1,351,532,897,601,111,769] {0 0 6} Packet end
+[Unknown] {0 0 6} Stream end
+[1,967,655,586,926 1,351,532,897,601,411,249] {0 0 7} Packet end
+[Unknown] {0 0 7} Stream end
