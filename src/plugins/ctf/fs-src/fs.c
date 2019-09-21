@@ -1969,6 +1969,22 @@ end:
 	return ret;
 }
 
+static
+gint compare_ds_file_groups_by_first_path(gconstpointer a, gconstpointer b)
+{
+	struct ctf_fs_ds_file_group * const *ds_file_group_a = a;
+	struct ctf_fs_ds_file_group * const *ds_file_group_b = b;
+	const struct ctf_fs_ds_file_info *first_ds_file_info_a;
+	const struct ctf_fs_ds_file_info *first_ds_file_info_b;
+
+	BT_ASSERT((*ds_file_group_a)->ds_file_infos->len > 0);
+	BT_ASSERT((*ds_file_group_b)->ds_file_infos->len > 0);
+	first_ds_file_info_a = (*ds_file_group_a)->ds_file_infos->pdata[0];
+	first_ds_file_info_b = (*ds_file_group_b)->ds_file_infos->pdata[0];
+	return strcmp(first_ds_file_info_a->path->str,
+		first_ds_file_info_b->path->str);
+}
+
 int ctf_fs_component_create_ctf_fs_trace(
 		struct ctf_fs_component *ctf_fs,
 		const bt_value *paths_value,
@@ -2065,6 +2081,20 @@ int ctf_fs_component_create_ctf_fs_trace(
 			"Failed to fix packet index tracer bugs.");
 	}
 
+	/*
+	 * Sort data stream file groups by first data stream file info
+	 * path to get a deterministic order. This order influences the
+	 * order of the output ports. It also influences the order of
+	 * the automatic stream IDs if the trace's packet headers do not
+	 * contain a `stream_instance_id` field, in which case the data
+	 * stream file to stream ID association is always the same,
+	 * whatever the build and the system.
+	 *
+	 * Having a deterministic order here can help debugging and
+	 * testing.
+	 */
+	g_ptr_array_sort(ctf_fs->trace->ds_file_groups,
+		compare_ds_file_groups_by_first_path);
 	goto end;
 error:
 	ret = -1;
