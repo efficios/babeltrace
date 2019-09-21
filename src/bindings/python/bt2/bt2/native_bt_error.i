@@ -25,9 +25,7 @@
  * We include current-thread.h here, because for now, it only contains
  * error-related things.
  */
-%include <babeltrace2/current-thread.h>
-%include <babeltrace2/error-const.h>
-%include <babeltrace2/error-cause-const.h>
+%include <babeltrace2/error-reporting.h>
 
 %{
 #include "native_bt_error.i.h"

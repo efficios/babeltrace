@@ -101,7 +101,6 @@
 	}
 }
 
-%include <babeltrace2/graph/graph-const.h>
 %include <babeltrace2/graph/graph.h>
 
 /* Helper functions for Python */

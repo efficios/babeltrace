@@ -31,9 +31,9 @@
 #include "common/macros.h"
 #include "compat/compiler.h"
 #include "common/common.h"
-#include <babeltrace2/plugin/plugin-const.h>
-#include <babeltrace2/graph/component-class-const.h>
-#include <babeltrace2/current-thread.h>
+#include <babeltrace2/plugin/plugin-loading.h>
+#include <babeltrace2/graph/component-class.h>
+#include <babeltrace2/error-reporting.h>
 #include "lib/graph/component-class.h"
 #include <babeltrace2/types.h>
 #include <glib.h>

@@ -64,8 +64,7 @@
 	}
 }
 
-%include <babeltrace2/plugin/plugin-const.h>
-%include <babeltrace2/plugin/plugin-set-const.h>
+%include <babeltrace2/plugin/plugin-loading.h>
 
 /* Helpers */
 

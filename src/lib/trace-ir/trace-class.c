@@ -27,13 +27,11 @@
 #include "lib/assert-pre.h"
 #include "lib/assert-post.h"
 #include <babeltrace2/trace-ir/trace-class.h>
-#include <babeltrace2/trace-ir/trace-class-const.h>
 #include <babeltrace2/trace-ir/event-class.h>
 #include "ctf-writer/functor.h"
 #include "ctf-writer/clock.h"
 #include "compat/compiler.h"
 #include <babeltrace2/value.h>
-#include <babeltrace2/value-const.h>
 #include "lib/value.h"
 #include <babeltrace2/types.h>
 #include "compat/endian.h"

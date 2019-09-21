@@ -28,7 +28,7 @@
 
 #include "common/macros.h"
 #include "compat/compiler.h"
-#include <babeltrace2/graph/component-sink-const.h>
+#include <babeltrace2/graph/component.h>
 
 #include "component-class.h"
 #include "component.h"

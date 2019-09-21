@@ -27,7 +27,7 @@
 #include "common/assert.h"
 #include "lib/assert-pre.h"
 #include "lib/assert-post.h"
-#include <babeltrace2/graph/message-const.h>
+#include <babeltrace2/graph/message.h>
 #include "lib/graph/message/message.h"
 #include "lib/graph/graph.h"
 
@@ -37,7 +37,6 @@ void bt_message_init(struct bt_message *message,
 		bt_object_release_func release,
 		struct bt_graph *graph)
 {
-	BT_ASSERT(type >= 0 && type <= BT_MESSAGE_TYPE_DISCARDED_PACKETS);
 	message->type = type;
 	bt_object_init_shared(&message->base, release);
 	message->graph = graph;

@@ -33,55 +33,6 @@
 extern "C" {
 #endif
 
-/**
-@defgroup ctypes Babeltrace C types
-@ingroup apiref
-@brief Babeltrace C types.
-
-@code
-#include <babeltrace2/types.h>
-@endcode
-
-This header contains custom type definitions used across the library.
-
-@file
-@brief Babeltrace C types.
-@sa ctypes
-
-@addtogroup ctypes
-@{
-*/
-
-/// False boolean value for the #bt_bool type.
-#define BT_FALSE	0
-
-/// True boolean value for the #bt_bool type.
-#define BT_TRUE		1
-
-/**
-@brief	Babeltrace's boolean type.
-
-Use only the #BT_FALSE and #BT_TRUE definitions for #bt_bool parameters.
-It is guaranteed that the library functions which return a #bt_bool
-value return either #BT_FALSE or #BT_TRUE.
-
-You can always test the truthness of a #bt_bool value directly, without
-comparing it to #BT_TRUE directly:
-
-@code
-bt_bool ret = bt_some_function(...);
-
-if (ret) {
-	// ret is true
-}
-@endcode
-*/
-typedef int bt_bool;
-
-typedef uint64_t bt_listener_id;
-
-typedef const uint8_t *bt_uuid;
-
 typedef struct bt_clock_class bt_clock_class;
 typedef struct bt_clock_snapshot bt_clock_snapshot;
 typedef struct bt_component bt_component;
@@ -155,10 +106,96 @@ typedef struct bt_trace bt_trace;
 typedef struct bt_trace_class bt_trace_class;
 typedef struct bt_value bt_value;
 
-typedef const char * const *bt_field_class_enumeration_mapping_label_array;
-typedef const struct bt_message **bt_message_array_const;
+/*!
+@defgroup api-common-types Common C types
 
-/** @} */
+@brief
+    C types common to many parts of the API.
+*/
+
+/*! @{ */
+
+/*!
+@brief
+    \em True value for #bt_bool.
+*/
+#define BT_TRUE		1
+
+/*!
+@brief
+    \em False value for #bt_bool.
+*/
+#define BT_FALSE	0
+
+/*!
+@brief
+    \bt_name boolean type.
+
+The API uses #bt_bool instead of the C99 \c bool type for
+<a href="https://en.wikipedia.org/wiki/Application_binary_interface">application binary interface</a>
+reasons.
+
+Use #BT_TRUE and #BT_FALSE to set and compare #bt_bool variables.
+*/
+typedef int bt_bool;
+
+/*!
+@brief
+    Numeric ID which identifies a user listener function.
+
+Some functions, such as bt_trace_add_destruction_listener(), return a
+listener ID when you add a user listener function to some object. You
+can then use this listener ID to remove the listener from the object.
+*/
+typedef uint64_t bt_listener_id;
+
+/*!
+@brief
+    A
+    <a href="https://en.wikipedia.org/wiki/Universally_unique_identifier">UUID</a>,
+    that is, an array of 16&nbsp;constant bytes.
+*/
+typedef uint8_t const *bt_uuid;
+
+/*!
+@brief
+    Availability of an object's property.
+
+Some getter functions of the API, such as
+bt_event_class_get_log_level(), return, by output parameter, an optional
+object property which is not a pointer. In that case, the function
+either:
+
+- Returns #BT_PROPERTY_AVAILABILITY_AVAILABLE and sets an output
+  parameter to the property's value.
+- Returns #BT_PROPERTY_AVAILABILITY_NOT_AVAILABLE.
+*/
+typedef enum bt_property_availability {
+	/*!
+	@brief
+	    Property is available.
+	*/
+	BT_PROPERTY_AVAILABILITY_AVAILABLE  = 1,
+
+	/*!
+	@brief
+	    Property is not available.
+	*/
+	BT_PROPERTY_AVAILABILITY_NOT_AVAILABLE	= 0,
+} bt_property_availability;
+
+/*!
+@brief
+    Array of constant \bt_p_msg.
+
+Such an array is filled by the
+\link api-msg-iter-cls-meth-next "next" method\endlink of a
+\bt_msg_iter and consumed with bt_message_iterator_next() by another
+message iterator or by a \bt_sink_comp.
+*/
+typedef bt_message const **bt_message_array_const;
+
+/*! @} */
 
 #ifdef __cplusplus
 }

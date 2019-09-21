@@ -24,7 +24,7 @@
  * SOFTWARE.
  */
 
-#include <babeltrace2/graph/connection-const.h>
+#include <babeltrace2/graph/connection.h>
 #include "lib/object.h"
 #include "common/assert.h"
 #include "common/macros.h"

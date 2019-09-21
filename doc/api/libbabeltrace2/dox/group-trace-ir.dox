@@ -1,0 +1,108 @@
+/*!
+@defgroup api-tir Trace IR
+@ingroup api-msg
+
+@brief
+    Intermediate representation of
+    <a href="https://en.wikipedia.org/wiki/Tracing_(software)">tracing</a>
+    domain objects and concepts (contents of \bt_p_msg).
+
+The \bt_name
+<strong><em>trace IR</em></strong> (intermediate representation) modules
+contain everything you need to represent tracing domain concepts and
+objects so that many \bt_p_comp, written by different authors, can
+exchange trace metadata and data.
+
+The trace IR objects are divided into two main categories:
+
+<dl>
+  <dt>Metadata</dt>
+  <dd>
+    Classes of data objects.
+
+    A metadata object describes many data objects.
+
+    For example, an \bt_ev_cls describes the numeric ID, name, logging
+    level, and \ref api-tir-fc "classes" of payload \bt_p_field of all
+    the \bt_p_ev you create from it.
+
+    Metadata objects are one of the most valuable concepts of
+    \bt_name: because they describe the structures of many
+    data objects at once, they enable great space and time
+    optimizations.
+
+    For example, a \bt_sink_comp which writes a trace following a
+    metadata-supporting format, such as the
+    <a href="https://diamon.org/ctf/">Common Trace Format</a>, can
+    serialize the metadata objects once so that the data objects are
+    more compact and take less time to write.
+
+    The metadata objects are:
+
+    - \bt_c_clock_cls
+    - \bt_c_ev_cls
+    - \bt_cp_fc
+    - \bt_c_field_path
+    - \bt_c_stream_cls
+    - \bt_c_trace_cls
+  </dd>
+
+  <dt>Data</dt>
+  <dd>
+    Instances of metadata objects.
+
+    For example, a \bt_stream is an instance of a \bt_stream_cls.
+
+    The data objects are:
+
+    - \bt_c_cs
+    - \bt_c_ev
+    - \bt_cp_field
+    - \bt_c_pkt
+    - \bt_c_stream
+    - \bt_c_trace
+  </dd>
+</dl>
+
+The trace IR metadata to data object association is:
+
+<table>
+  <tr>
+    <th>Metadata object
+    <th>Data object
+  <tr>
+    <td>\bt_c_clock_cls
+    <td>Stream clock (see \ref api-tir-cs)
+  <tr>
+    <td>\bt_c_ev_cls
+    <td>\bt_c_ev
+  <tr>
+    <td>\bt_c_fc
+    <td>\bt_c_field
+  <tr>
+    <td>\bt_c_stream_cls
+    <td>\bt_c_stream
+  <tr>
+    <td>\bt_c_trace_cls
+    <td>\bt_c_trace
+</table>
+
+Within a trace processing \bt_graph, \bt_p_msg carry data objects from
+\bt_comp to component.
+
+You need to create metadata objects \em before you create data objects.
+You can then use the data objects to create messages.
+
+For example, you need a \bt_stream_cls to create a \bt_stream. With
+a \bt_stream, you can create a \bt_p_sb_msg, \bt_p_se_msg, \bt_p_ev_msg,
+and other types of messages.
+
+Usually, when you create a data object from a metadata object, the
+metadata object becomes \ref api-fund-freezing "frozen": you cannot
+modify it for the rest of its lifetime.
+
+All metadata objects and some data objects have an optional <em>user
+attributes</em> property (a \bt_map_val): you can use it to attach
+custom attributes, without any semantics specified by the \bt_name
+project, to those objects.
+*/

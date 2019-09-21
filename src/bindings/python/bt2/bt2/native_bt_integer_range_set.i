@@ -23,4 +23,3 @@
  */
 
 %include <babeltrace2/integer-range-set.h>
-%include <babeltrace2/integer-range-set-const.h>

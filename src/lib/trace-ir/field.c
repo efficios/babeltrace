@@ -26,7 +26,6 @@
 
 #include "lib/assert-pre.h"
 #include <babeltrace2/trace-ir/field.h>
-#include <babeltrace2/trace-ir/field-const.h>
 #include "lib/object.h"
 #include "compat/compiler.h"
 #include "compat/fcntl.h"

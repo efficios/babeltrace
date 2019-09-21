@@ -25,7 +25,6 @@
 #include "lib/logging.h"
 
 #include "lib/assert-pre.h"
-#include <babeltrace2/trace-ir/stream-const.h>
 #include <babeltrace2/trace-ir/stream.h>
 #include <babeltrace2/trace-ir/stream-class.h>
 #include <babeltrace2/trace-ir/trace.h>

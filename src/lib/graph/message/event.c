@@ -36,8 +36,7 @@
 #include <babeltrace2/trace-ir/trace.h>
 #include "lib/trace-ir/clock-snapshot.h"
 #include "lib/graph/graph.h"
-#include <babeltrace2/graph/message-event-const.h>
-#include <babeltrace2/graph/message-event.h>
+#include <babeltrace2/graph/message.h>
 #include <babeltrace2/types.h>
 #include <stdbool.h>
 #include <inttypes.h>

@@ -34,10 +34,6 @@
 #include "lib/trace-ir/stream.h"
 #include "lib/property.h"
 #include "lib/graph/message/message.h"
-#include <babeltrace2/graph/message-discarded-events.h>
-#include <babeltrace2/graph/message-discarded-events-const.h>
-#include <babeltrace2/graph/message-discarded-packets.h>
-#include <babeltrace2/graph/message-discarded-packets-const.h>
 
 #include "discarded-items.h"
 

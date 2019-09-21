@@ -24,7 +24,7 @@
  * SOFTWARE.
  */
 
-#include <babeltrace2/graph/message-stream-const.h>
+#include <babeltrace2/graph/message.h>
 
 #include "compat/compiler.h"
 #include "lib/trace-ir/stream.h"

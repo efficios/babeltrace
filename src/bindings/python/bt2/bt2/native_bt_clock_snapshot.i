@@ -22,4 +22,4 @@
  * THE SOFTWARE.
  */
 
-%include <babeltrace2/trace-ir/clock-snapshot-const.h>
+%include <babeltrace2/trace-ir/clock-snapshot.h>

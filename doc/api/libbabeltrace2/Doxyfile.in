@@ -1,0 +1,776 @@
+DOXYFILE_ENCODING       = UTF-8
+PROJECT_NAME            = "Babeltrace 2 C API"
+PROJECT_NUMBER          = @PACKAGE_VERSION@
+PROJECT_BRIEF           = "Open-source trace manipulation framework"
+CREATE_SUBDIRS          = NO
+ALLOW_UNICODE_NAMES     = NO
+OUTPUT_LANGUAGE         = English
+BRIEF_MEMBER_DESC       = YES
+REPEAT_BRIEF            = YES
+ALWAYS_DETAILED_SEC     = NO
+INLINE_INHERITED_MEMB   = NO
+FULL_PATH_NAMES         = YES
+STRIP_FROM_PATH         = "@top_srcdir@/include"
+STRIP_FROM_INC_PATH     =
+SHORT_NAMES             = NO
+JAVADOC_AUTOBRIEF       = NO
+QT_AUTOBRIEF            = NO
+MULTILINE_CPP_IS_BRIEF  = YES
+INHERIT_DOCS            = YES
+SEPARATE_MEMBER_PAGES   = NO
+TAB_SIZE                = 4
+ALIASES                 =
+
+# Aliases: general
+ALIASES                += bt_version_min_maj="2.0"
+ALIASES                += bt_version="@PACKAGE_VERSION@"
+ALIASES                += bt_max_mip_version="0"
+ALIASES                += bt_name="Babeltrace&nbsp;2"
+ALIASES                += bt_name_version_min_maj="Babeltrace&nbsp;\bt_version_min_maj"
+ALIASES                += bt_api="Babeltrace&nbsp;2&nbsp;C&nbsp;API"
+ALIASES                += bt_p{1}="<span class="bt-param">\1</span>"
+ALIASES                += bt_dt_opt="<strong><em>Optional</em></strong>:"
+ALIASES                += bt_man{2}="<a href=\"https://babeltrace.org/docs/v\bt_version_min_maj/man\2/\1.\2/\"><code><strong>\1</strong>(\2)</code></a>"
+ALIASES                += bt_cli="<a href=\"https://babeltrace.org/docs/v\bt_version_min_maj/man1/babeltrace2.1\"><code>babeltrace2</code></a>"
+ALIASES                += bt_voidp="<code>void&nbsp;*</code>"
+
+# Aliases: preconditions: general
+ALIASES                += bt_pre_not_null{1}="@pre \bt_p{\1} is \em not \c NULL."
+ALIASES                += bt_pre_hot{1}="@pre \bt_p{\1} is \em not \link api-fund-freezing frozen\endlink."
+ALIASES                += bt_pre_assign_expr{1}="@pre \bt_p{\1} is an assignable expression."
+ALIASES                += bt_pre_valid_fmt{1}="@pre \bt_p{\1} is a valid <code>printf()</code>-like format string."
+ALIASES                += bt_pre_fc_not_in_tc{1}="@pre \bt_p{\1} is not already part of another field class, an \bt_ev_cls, or a \bt_stream_cls."
+
+# Aliases: postconditions
+ALIASES                += bt_post_success_frozen{1}="@post <strong>On success</strong>, \bt_p{\1} is \link api-fund-freezing frozen\endlink."
+ALIASES                += bt_post_no_error="@post The current thread has no \link api-error error\endlink."
+
+# Aliases: preconditions: graph
+ALIASES                += bt_pre_graph_not_configured{1}="@pre \bt_p{\1} is \em not completely \link api-graph-lc configured\endlink yet (you didn't call bt_graph_run() or bt_graph_run_once() with it)."
+ALIASES                += bt_pre_graph_not_faulty{1}="@pre \bt_p{\1} is \em not faulty: no previous \link api-graph-lc-add component adding\endlink or component \link api-graph-lc-connect port connecting\endlink functions failed with it."
+ALIASES                += bt_pre_hot{1}="@pre \bt_p{\1} is \em not \link api-fund-freezing frozen\endlink."
+ALIASES                += bt_pre_assign_expr{1}="@pre \bt_p{\1} is an assignable expression."
+ALIASES                += bt_pre_valid_fmt{1}="@pre \bt_p{\1} is a valid <code>printf()</code>-like format string."
+ALIASES                += bt_pre_fc_not_in_tc{1}="@pre \bt_p{\1} is not already part of another field class, an \bt_ev_cls, or a \bt_stream_cls."
+
+# Aliases: preconditions: field class object type
+ALIASES                += bt_pre_is_ba_fc{1}="@pre \bt_p{\1} is a \link api-tir-fc-ba bit array field class\endlink."
+ALIASES                += bt_pre_is_bool_fc{1}="@pre \bt_p{\1} is a \link api-tir-fc-bool boolean field class\endlink."
+ALIASES                += bt_pre_is_int_fc{1}="@pre \bt_p{\1} is an \link api-tir-fc-int integer field class\endlink."
+ALIASES                += bt_pre_is_real_fc{1}="@pre \bt_p{\1} is a \link api-tir-fc-real real field class\endlink."
+ALIASES                += bt_pre_is_enum_fc{1}="@pre \bt_p{\1} is an \link api-tir-fc-enum enumeration field class\endlink."
+ALIASES                += bt_pre_is_uenum_fc{1}="@pre \bt_p{\1} is an unsigned \link api-tir-fc-enum enumeration field class\endlink."
+ALIASES                += bt_pre_is_senum_fc{1}="@pre \bt_p{\1} is a signed \link api-tir-fc-enum enumeration field class\endlink."
+ALIASES                += bt_pre_is_string_fc{1}="@pre \bt_p{\1} is a \link api-tir-fc-string string field class\endlink."
+ALIASES                += bt_pre_is_struct_fc{1}="@pre \bt_p{\1} is a \link api-tir-fc-struct structure field class\endlink."
+ALIASES                += bt_pre_is_array_fc{1}="@pre \bt_p{\1} is an array \link api-tir-fc-array field class\endlink."
+ALIASES                += bt_pre_is_sarray_fc{1}="@pre \bt_p{\1} is a static \link api-tir-fc-array array field class\endlink."
+ALIASES                += bt_pre_is_darray_fc{1}="@pre \bt_p{\1} is a dynamic \link api-tir-fc-array array field class\endlink."
+ALIASES                += bt_pre_is_darray_wl_fc{1}="@pre \bt_p{\1} is a dynamic \link api-tir-fc-array array field class\endlink (with a length field)."
+ALIASES                += bt_pre_is_opt_fc{1}="@pre \bt_p{\1} is an \link api-tir-fc-opt option field class\endlink."
+ALIASES                += bt_pre_is_opt_ws_fc{1}="@pre \bt_p{\1} is an \link api-tir-fc-opt option field class\endlink (with a selector field)."
+ALIASES                += bt_pre_is_opt_wbs_fc{1}="@pre \bt_p{\1} is an \link api-tir-fc-opt option field class\endlink (with a boolean selector field)."
+ALIASES                += bt_pre_is_opt_wsis_fc{1}="@pre \bt_p{\1} is an \link api-tir-fc-opt option field class\endlink (with a signed integer selector field)."
+ALIASES                += bt_pre_is_opt_wuis_fc{1}="@pre \bt_p{\1} is an \link api-tir-fc-opt option field class\endlink (with an unsigned integer selector field)."
+ALIASES                += bt_pre_is_var_fc{1}="@pre \bt_p{\1} is a \link api-tir-fc-var variant field class\endlink."
+ALIASES                += bt_pre_is_var_wos_fc{1}="@pre \bt_p{\1} is a \link api-tir-fc-var variant field class\endlink (without a selector field)."
+ALIASES                += bt_pre_is_var_ws_fc{1}="@pre \bt_p{\1} is a \link api-tir-fc-var variant field class\endlink (with a selector field)."
+ALIASES                += bt_pre_is_var_wuis_fc{1}="@pre \bt_p{\1} is a \link api-tir-fc-var variant field class\endlink (with an unsigned integer selector field)."
+ALIASES                += bt_pre_is_var_wsis_fc{1}="@pre \bt_p{\1} is a \link api-tir-fc-var variant field class\endlink (with a signed integer selector field)."
+
+# Aliases: preconditions: field object type
+ALIASES                += bt_pre_is_ba_field{1}="@pre \bt_p{\1} is a \link api-tir-field-ba bit array field\endlink."
+ALIASES                += bt_pre_is_bool_field{1}="@pre \bt_p{\1} is a \link api-tir-field-bool boolean field\endlink."
+ALIASES                += bt_pre_is_sint_field{1}="@pre \bt_p{\1} is a signed \link api-tir-field-int integer field\endlink."
+ALIASES                += bt_pre_is_uint_field{1}="@pre \bt_p{\1} is an unsigned \link api-tir-field-int integer field\endlink."
+ALIASES                += bt_pre_is_sreal_field{1}="@pre \bt_p{\1} is a single-precision \link api-tir-field-real real field\endlink."
+ALIASES                += bt_pre_is_dreal_field{1}="@pre \bt_p{\1} is a double-precision \link api-tir-field-real real field\endlink."
+ALIASES                += bt_pre_is_enum_field{1}="@pre \bt_p{\1} is an \link api-tir-field-enum enumeration field\endlink."
+ALIASES                += bt_pre_is_uenum_field{1}="@pre \bt_p{\1} is an unsigned \link api-tir-field-enum enumeration field\endlink."
+ALIASES                += bt_pre_is_senum_field{1}="@pre \bt_p{\1} is a signed \link api-tir-field-enum enumeration field\endlink."
+ALIASES                += bt_pre_is_string_field{1}="@pre \bt_p{\1} is a \link api-tir-field-string string field\endlink."
+ALIASES                += bt_pre_is_struct_field{1}="@pre \bt_p{\1} is a \link api-tir-field-struct structure field\endlink."
+ALIASES                += bt_pre_is_array_field{1}="@pre \bt_p{\1} is an \link api-tir-field-array array field\endlink."
+ALIASES                += bt_pre_is_sarray_field{1}="@pre \bt_p{\1} is a static \link api-tir-field-array array field\endlink."
+ALIASES                += bt_pre_is_darray_field{1}="@pre \bt_p{\1} is a dynamic \link api-tir-field-array array field\endlink."
+ALIASES                += bt_pre_is_opt_field{1}="@pre \bt_p{\1} is an \link api-tir-field-opt option field\endlink."
+ALIASES                += bt_pre_is_var_field{1}="@pre \bt_p{\1} is a \link api-tir-field-var variant field\endlink."
+ALIASES                += bt_pre_is_var_wuis_field{1}="@pre \bt_p{\1} is a \link api-tir-field-var variant field\endlink (with an unsigned integer selector field)."
+ALIASES                += bt_pre_is_var_wsis_field{1}="@pre \bt_p{\1} is a \link api-tir-field-var variant field\endlink (with a signed integer selector field)."
+
+# Aliases: preconditions: value object type
+ALIASES                += bt_pre_is_null_val{1}="@pre \bt_p{\1} is a null \link api-val value\endlink (\bt_p{\1} is equal to #bt_value_null)."
+ALIASES                += bt_pre_is_bool_val{1}="@pre \bt_p{\1} is a boolean \link api-val value\endlink (bt_value_is_bool() returns #BT_TRUE)."
+ALIASES                += bt_pre_is_sint_val{1}="@pre \bt_p{\1} is a signed integer \link api-val value\endlink (bt_value_is_signed_integer() returns #BT_TRUE)."
+ALIASES                += bt_pre_is_uint_val{1}="@pre \bt_p{\1} is an unsigned integer \link api-val value\endlink (bt_value_is_unsigned_integer() returns #BT_TRUE)."
+ALIASES                += bt_pre_is_real_val{1}="@pre \bt_p{\1} is a real \link api-val value\endlink (bt_value_is_real() returns #BT_TRUE)."
+ALIASES                += bt_pre_is_string_val{1}="@pre \bt_p{\1} is a string \link api-val value\endlink (bt_value_is_string() returns #BT_TRUE)."
+ALIASES                += bt_pre_is_array_val{1}="@pre \bt_p{\1} is an array \link api-val value\endlink (bt_value_is_array() returns #BT_TRUE)."
+ALIASES                += bt_pre_is_map_val{1}="@pre \bt_p{\1} is a map \link api-val value\endlink (bt_value_is_map() returns #BT_TRUE)."
+
+# Aliases: preconditions: message object type
+ALIASES                += bt_pre_is_disc_ev_msg{1}="@pre \bt_p{\1} is a \link api-msg-disc-ev discarded events message\endlink."
+ALIASES                += bt_pre_is_disc_pkt_msg{1}="@pre \bt_p{\1} is a \link api-msg-disc-pkt discarded packets message\endlink."
+ALIASES                += bt_pre_is_ev_msg{1}="@pre \bt_p{\1} is an \link api-msg-ev event message\endlink."
+ALIASES                += bt_pre_is_inac_msg{1}="@pre \bt_p{\1} is a \link api-msg-inac message iterator inactivity message\endlink."
+ALIASES                += bt_pre_is_pb_msg{1}="@pre \bt_p{\1} is a \link api-msg-pb packet beginning message\endlink."
+ALIASES                += bt_pre_is_pe_msg{1}="@pre \bt_p{\1} is a \link api-msg-pe packet end message\endlink."
+ALIASES                += bt_pre_is_sb_msg{1}="@pre \bt_p{\1} is a \link api-msg-sb stream beginning message\endlink."
+ALIASES                += bt_pre_is_se_msg{1}="@pre \bt_p{\1} is a \link api-msg-se stream end message\endlink."
+
+# Aliases: field class object types: singular
+ALIASES                += bt_fc="\link api-tir-fc field class\endlink"
+ALIASES                += bt_ba_fc="\link api-tir-fc-ba bit array field class\endlink"
+ALIASES                += bt_bool_fc="\link api-tir-fc-bool boolean field class\endlink"
+ALIASES                += bt_int_fc="\link api-tir-fc-int integer field class\endlink"
+ALIASES                += bt_sint_fc="signed \link api-tir-fc-int integer field class\endlink"
+ALIASES                += bt_uint_fc="unsigned \link api-tir-fc-int integer field class\endlink"
+ALIASES                += bt_real_fc="\link api-tir-fc-real real field class\endlink"
+ALIASES                += bt_enum_fc="\link api-tir-fc-enum enumeration field class\endlink"
+ALIASES                += bt_senum_fc="signed \link api-tir-fc-enum enumeration field class\endlink"
+ALIASES                += bt_uenum_fc="unsigned \link api-tir-fc-enum enumeration field class\endlink"
+ALIASES                += bt_string_fc="\link api-tir-fc-string string field class\endlink"
+ALIASES                += bt_struct_fc="\link api-tir-fc-struct structure field class\endlink"
+ALIASES                += bt_array_fc="\link api-tir-fc-array array field class\endlink"
+ALIASES                += bt_sarray_fc="static \link api-tir-fc-array array field class\endlink"
+ALIASES                += bt_darray_fc="dynamic \link api-tir-fc-array array field class\endlink"
+ALIASES                += bt_opt_fc="\link api-tir-fc-opt option field class\endlink"
+ALIASES                += bt_var_fc="\link api-tir-fc-var variant field class\endlink"
+
+# Aliases: field class object types: singular, capitalized
+ALIASES                += bt_c_fc="\link api-tir-fc Field class\endlink"
+ALIASES                += bt_c_ba_fc="\link api-tir-fc-ba Bit array field class\endlink"
+ALIASES                += bt_c_bool_fc="\link api-tir-fc-bool Boolean field class\endlink"
+ALIASES                += bt_c_int_fc="\link api-tir-fc-int Integer field class\endlink"
+ALIASES                += bt_c_sint_fc="Signed \link api-tir-fc-int integer field class\endlink"
+ALIASES                += bt_c_uint_fc="Unsigned \link api-tir-fc-int integer field class\endlink"
+ALIASES                += bt_c_real_fc="\link api-tir-fc-real Real field class\endlink"
+ALIASES                += bt_c_enum_fc="\link api-tir-fc-enum Enumeration field class\endlink"
+ALIASES                += bt_c_senum_fc="Signed \link api-tir-fc-enum enumeration field class\endlink"
+ALIASES                += bt_c_uenum_fc="Unsigned \link api-tir-fc-enum enumeration field class\endlink"
+ALIASES                += bt_c_string_fc="\link api-tir-fc-string String field class\endlink"
+ALIASES                += bt_c_struct_fc="\link api-tir-fc-struct Structure field class\endlink"
+ALIASES                += bt_c_array_fc="\link api-tir-fc-array Array field class\endlink"
+ALIASES                += bt_c_sarray_fc="Static \link api-tir-fc-array array field class\endlink"
+ALIASES                += bt_c_darray_fc="Dynamic \link api-tir-fc-array array field class\endlink"
+ALIASES                += bt_c_opt_fc="\link api-tir-fc-opt Option field class\endlink"
+ALIASES                += bt_c_var_fc="\link api-tir-fc-var Variant field class\endlink"
+
+# Aliases: field class object types: plural
+ALIASES                += bt_p_fc="\link api-tir-fc field classes\endlink"
+ALIASES                += bt_p_ba_fc="\link api-tir-fc-ba bit array field classes\endlink"
+ALIASES                += bt_p_bool_fc="\link api-tir-fc-bool boolean field classes\endlink"
+ALIASES                += bt_p_int_fc="\link api-tir-fc-int integer field classes\endlink"
+ALIASES                += bt_p_sint_fc="signed \link api-tir-fc-int integer field classes\endlink"
+ALIASES                += bt_p_uint_fc="unsigned \link api-tir-fc-int integer field classes\endlink"
+ALIASES                += bt_p_real_fc="\link api-tir-fc-real real field classes\endlink"
+ALIASES                += bt_p_enum_fc="\link api-tir-fc-enum enumeration field classes\endlink"
+ALIASES                += bt_p_senum_fc="signed \link api-tir-fc-enum enumeration field classes\endlink"
+ALIASES                += bt_p_uenum_fc="unsigned \link api-tir-fc-enum enumeration field classes\endlink"
+ALIASES                += bt_p_string_fc="\link api-tir-fc-string string field classes\endlink"
+ALIASES                += bt_p_struct_fc="\link api-tir-fc-struct structure field classes\endlink"
+ALIASES                += bt_p_array_fc="\link api-tir-fc-array array field classes\endlink"
+ALIASES                += bt_p_sarray_fc="static \link api-tir-fc-array array field classes\endlink"
+ALIASES                += bt_p_darray_fc="dynamic \link api-tir-fc-array array field classes\endlink"
+ALIASES                += bt_p_opt_fc="\link api-tir-fc-opt option field classes\endlink"
+ALIASES                += bt_p_var_fc="\link api-tir-fc-var variant field classes\endlink"
+
+# Aliases: field class object types: plural, capitalized
+ALIASES                += bt_cp_fc="\link api-tir-fc Field classes\endlink"
+ALIASES                += bt_cp_ba_fc="\link api-tir-fc-ba Bit array field classes\endlink"
+ALIASES                += bt_cp_bool_fc="\link api-tir-fc-bool Boolean field classes\endlink"
+ALIASES                += bt_cp_int_fc="\link api-tir-fc-int Integer field classes\endlink"
+ALIASES                += bt_cp_sint_fc="Signed \link api-tir-fc-int integer field classes\endlink"
+ALIASES                += bt_cp_uint_fc="Unsigned \link api-tir-fc-int integer field classes\endlink"
+ALIASES                += bt_cp_real_fc="\link api-tir-fc-real Real field classes\endlink"
+ALIASES                += bt_cp_enum_fc="\link api-tir-fc-enum Enumeration field classes\endlink"
+ALIASES                += bt_cp_senum_fc="Signed \link api-tir-fc-enum enumeration field classes\endlink"
+ALIASES                += bt_cp_uenum_fc="Unsigned \link api-tir-fc-enum enumeration field classes\endlink"
+ALIASES                += bt_cp_string_fc="\link api-tir-fc-string String field classes\endlink"
+ALIASES                += bt_cp_struct_fc="\link api-tir-fc-struct Structure field classes\endlink"
+ALIASES                += bt_cp_array_fc="\link api-tir-fc-array Array field classes\endlink"
+ALIASES                += bt_cp_sarray_fc="Static \link api-tir-fc-array array field classes\endlink"
+ALIASES                += bt_cp_darray_fc="Dynamic \link api-tir-fc-array array field classes\endlink"
+ALIASES                += bt_cp_opt_fc="\link api-tir-fc-opt Option field classes\endlink"
+ALIASES                += bt_cp_var_fc="\link api-tir-fc-var Variant field classes\endlink"
+
+# Aliases: field object types: singular
+ALIASES                += bt_field="\link api-tir-field field\endlink"
+ALIASES                += bt_ba_field="\link api-tir-field-ba bit array field\endlink"
+ALIASES                += bt_bool_field="\link api-tir-field-bool boolean field\endlink"
+ALIASES                += bt_int_field="\link api-tir-field-int integer field\endlink"
+ALIASES                += bt_sint_field="signed \link api-tir-field-int integer field\endlink"
+ALIASES                += bt_uint_field="unsigned \link api-tir-field-int integer field\endlink"
+ALIASES                += bt_real_field="\link api-tir-field-real real field\endlink"
+ALIASES                += bt_sreal_field="single-precision \link api-tir-field-real real field\endlink"
+ALIASES                += bt_dreal_field="double-precision \link api-tir-field-real real field\endlink"
+ALIASES                += bt_enum_field="\link api-tir-field-enum enumeration field\endlink"
+ALIASES                += bt_senum_field="signed \link api-tir-field-enum enumeration field\endlink"
+ALIASES                += bt_uenum_field="unsigned \link api-tir-field-enum enumeration field\endlink"
+ALIASES                += bt_string_field="\link api-tir-field-string string field\endlink"
+ALIASES                += bt_struct_field="\link api-tir-field-struct structure field\endlink"
+ALIASES                += bt_array_field="\link api-tir-field-array array field\endlink"
+ALIASES                += bt_sarray_field="static \link api-tir-field-array array field\endlink"
+ALIASES                += bt_darray_field="dynamic \link api-tir-field-array array field\endlink"
+ALIASES                += bt_opt_field="\link api-tir-field-opt option field\endlink"
+ALIASES                += bt_var_field="\link api-tir-field-var variant field\endlink"
+
+# Aliases: field object types: singular, capitalized
+ALIASES                += bt_c_field="\link api-tir-field Field\endlink"
+ALIASES                += bt_c_ba_field="\link api-tir-field-ba Bit array field\endlink"
+ALIASES                += bt_c_bool_field="\link api-tir-field-bool Boolean field\endlink"
+ALIASES                += bt_c_int_field="\link api-tir-field-int Integer field\endlink"
+ALIASES                += bt_c_sint_field="Signed \link api-tir-field-int integer field\endlink"
+ALIASES                += bt_c_uint_field="Unsigned \link api-tir-field-int integer field\endlink"
+ALIASES                += bt_c_real_field="\link api-tir-field-real Real field\endlink"
+ALIASES                += bt_c_sreal_field="Single-precision \link api-tir-field-real real field\endlink"
+ALIASES                += bt_c_dreal_field="Double-precision \link api-tir-field-real real field\endlink"
+ALIASES                += bt_c_enum_field="\link api-tir-field-enum Enumeration field\endlink"
+ALIASES                += bt_c_senum_field="Signed \link api-tir-field-enum enumeration field\endlink"
+ALIASES                += bt_c_uenum_field="Unsigned \link api-tir-field-enum enumeration field\endlink"
+ALIASES                += bt_c_string_field="\link api-tir-field-string String field\endlink"
+ALIASES                += bt_c_struct_field="\link api-tir-field-struct Structure field\endlink"
+ALIASES                += bt_c_array_field="\link api-tir-field-array Array field\endlink"
+ALIASES                += bt_c_sarray_field="Static \link api-tir-field-array array field\endlink"
+ALIASES                += bt_c_darray_field="Dynamic \link api-tir-field-array array field\endlink"
+ALIASES                += bt_c_opt_field="\link api-tir-field-opt Option field\endlink"
+ALIASES                += bt_c_var_field="\link api-tir-field-var Variant field\endlink"
+
+# Aliases: field object types: plural
+ALIASES                += bt_p_field="\link api-tir-field fields\endlink"
+ALIASES                += bt_p_ba_field="\link api-tir-field-ba bit array fields\endlink"
+ALIASES                += bt_p_bool_field="\link api-tir-field-bool boolean fields\endlink"
+ALIASES                += bt_p_int_field="\link api-tir-field-int integer fields\endlink"
+ALIASES                += bt_p_sint_field="signed \link api-tir-field-int integer fields\endlink"
+ALIASES                += bt_p_uint_field="unsigned \link api-tir-field-int integer fields\endlink"
+ALIASES                += bt_p_real_field="\link api-tir-field-real real fields\endlink"
+ALIASES                += bt_p_sreal_field="single-precision \link api-tir-field-real real fields\endlink"
+ALIASES                += bt_p_dreal_field="double-precision \link api-tir-field-real real fields\endlink"
+ALIASES                += bt_p_enum_field="\link api-tir-field-enum enumeration fields\endlink"
+ALIASES                += bt_p_senum_field="signed \link api-tir-field-enum enumeration fields\endlink"
+ALIASES                += bt_p_uenum_field="unsigned \link api-tir-field-enum enumeration fields\endlink"
+ALIASES                += bt_p_string_field="\link api-tir-field-string string fields\endlink"
+ALIASES                += bt_p_struct_field="\link api-tir-field-struct structure fields\endlink"
+ALIASES                += bt_p_array_field="\link api-tir-field-array array fields\endlink"
+ALIASES                += bt_p_sarray_field="static \link api-tir-field-array array fields\endlink"
+ALIASES                += bt_p_darray_field="dynamic \link api-tir-field-array array fields\endlink"
+ALIASES                += bt_p_opt_field="\link api-tir-field-opt option fields\endlink"
+ALIASES                += bt_p_var_field="\link api-tir-field-var variant fields\endlink"
+
+# Aliases: field object types: plural, capitalized
+ALIASES                += bt_cp_field="\link api-tir-field Fields\endlink"
+ALIASES                += bt_cp_ba_field="\link api-tir-field-ba Bit array fields\endlink"
+ALIASES                += bt_cp_bool_field="\link api-tir-field-bool Boolean fields\endlink"
+ALIASES                += bt_cp_int_field="\link api-tir-field-int Integer fields\endlink"
+ALIASES                += bt_cp_sint_field="Signed \link api-tir-field-int integer fields\endlink"
+ALIASES                += bt_cp_uint_field="Unsigned \link api-tir-field-int integer fields\endlink"
+ALIASES                += bt_cp_real_field="\link api-tir-field-real Real fields\endlink"
+ALIASES                += bt_cp_sreal_field="Single-precision \link api-tir-field-real real fields\endlink"
+ALIASES                += bt_cp_dreal_field="Double-precision \link api-tir-field-real real fields\endlink"
+ALIASES                += bt_cp_enum_field="\link api-tir-field-enum Enumeration fields\endlink"
+ALIASES                += bt_cp_senum_field="Signed \link api-tir-field-enum enumeration fields\endlink"
+ALIASES                += bt_cp_uenum_field="Unsigned \link api-tir-field-enum enumeration fields\endlink"
+ALIASES                += bt_cp_string_field="\link api-tir-field-string String fields\endlink"
+ALIASES                += bt_cp_struct_field="\link api-tir-field-struct Structure fields\endlink"
+ALIASES                += bt_cp_array_field="\link api-tir-field-array Array fields\endlink"
+ALIASES                += bt_cp_sarray_field="Static \link api-tir-field-array array fields\endlink"
+ALIASES                += bt_cp_darray_field="Dynamic \link api-tir-field-array array fields\endlink"
+ALIASES                += bt_cp_opt_field="\link api-tir-field-opt Option fields\endlink"
+ALIASES                += bt_cp_var_field="\link api-tir-field-var Variant fields\endlink"
+
+# Aliases: trace IR objects: singular
+ALIASES                += bt_clock_cls="\link api-tir-clock-cls clock class\endlink"
+ALIASES                += bt_cs="\link api-tir-cs clock snapshot\endlink"
+ALIASES                += bt_ev_cls="\link api-tir-ev-cls event class\endlink"
+ALIASES                += bt_ev="\link api-tir-ev event\endlink"
+ALIASES                += bt_field_path="\link api-tir-field-path field path\endlink"
+ALIASES                += bt_pkt="\link api-tir-pkt packet\endlink"
+ALIASES                += bt_stream_cls="\link api-tir-stream-cls stream class\endlink"
+ALIASES                += bt_stream="\link api-tir-stream stream\endlink"
+ALIASES                += bt_trace="\link api-tir-trace trace\endlink"
+ALIASES                += bt_trace_cls="\link api-tir-trace-cls trace class\endlink"
+
+# Aliases: trace IR objects: singular, capitalized
+ALIASES                += bt_c_clock_cls="\link api-tir-clock-cls Clock class\endlink"
+ALIASES                += bt_c_cs="\link api-tir-cs Clock snapshot\endlink"
+ALIASES                += bt_c_ev_cls="\link api-tir-ev-cls Event class\endlink"
+ALIASES                += bt_c_ev="\link api-tir-ev Event\endlink"
+ALIASES                += bt_c_field_path="\link api-tir-field-path Field path\endlink"
+ALIASES                += bt_c_pkt="\link api-tir-pkt Packet\endlink"
+ALIASES                += bt_c_stream_cls="\link api-tir-stream-cls Stream class\endlink"
+ALIASES                += bt_c_stream="\link api-tir-stream Stream\endlink"
+ALIASES                += bt_c_trace="\link api-tir-trace Trace\endlink"
+ALIASES                += bt_c_trace_cls="\link api-tir-trace-cls Trace class\endlink"
+
+# Aliases: trace IR objects: plural
+ALIASES                += bt_p_clock_cls="\link api-tir-clock-cls clock classes\endlink"
+ALIASES                += bt_p_cs="\link api-tir-cs clock snapshots\endlink"
+ALIASES                += bt_p_ev_cls="\link api-tir-ev-cls event classes\endlink"
+ALIASES                += bt_p_ev="\link api-tir-ev events\endlink"
+ALIASES                += bt_p_field_path="\link api-tir-field-path field paths\endlink"
+ALIASES                += bt_p_pkt="\link api-tir-pkt packets\endlink"
+ALIASES                += bt_p_stream_cls="\link api-tir-stream-cls stream classes\endlink"
+ALIASES                += bt_p_stream="\link api-tir-stream streams\endlink"
+ALIASES                += bt_p_trace="\link api-tir-trace traces\endlink"
+ALIASES                += bt_p_trace_cls="\link api-tir-trace-cls trace classes\endlink"
+
+# Aliases: trace IR objects: plural, capitalized
+ALIASES                += bt_cp_clock_cls="\link api-tir-clock-cls Clock classes\endlink"
+ALIASES                += bt_cp_cs="\link api-tir-cs Clock snapshots\endlink"
+ALIASES                += bt_cp_ev_cls="\link api-tir-ev-cls event classes\endlink"
+ALIASES                += bt_cp_ev="\link api-tir-ev Events\endlink"
+ALIASES                += bt_cp_field_path="\link api-tir-field-path Field paths\endlink"
+ALIASES                += bt_cp_pkt="\link api-tir-pkt Packets\endlink"
+ALIASES                += bt_cp_stream_cls="\link api-tir-stream-cls Stream classes\endlink"
+ALIASES                += bt_cp_stream="\link api-tir-stream Streams\endlink"
+ALIASES                += bt_cp_trace="\link api-tir-trace Traces\endlink"
+ALIASES                += bt_cp_trace_cls="\link api-tir-trace-cls Trace classes\endlink"
+
+# Aliases: graph objects: singular
+ALIASES                += bt_comp="\link api-comp component\endlink"
+ALIASES                += bt_comp_cls="\link api-comp-cls component class\endlink"
+ALIASES                += bt_comp_descr_set="\link api-comp-descr-set component descriptor set\endlink"
+ALIASES                += bt_conn="\link api-conn connection\endlink"
+ALIASES                += bt_flt_comp="\link api-comp-flt filter component\endlink"
+ALIASES                += bt_flt_comp_cls="\link api-comp-cls-flt filter component class\endlink"
+ALIASES                += bt_graph="\link api-graph graph\endlink"
+ALIASES                += bt_intr="\link api-intr interrupter\endlink"
+ALIASES                += bt_ip_msg_iter="\link api-ip-msg-iter self component input port message iterator\endlink"
+ALIASES                += bt_iport="\link api-port-in input port\endlink"
+ALIASES                += bt_mip="\link api-msg-mip Message Interchange Protocol\endlink"
+ALIASES                += bt_msg_iter="\link api-msg-iter message iterator\endlink"
+ALIASES                += bt_msg_iter_cls="\link api-msg-iter-cls message iterator class\endlink"
+ALIASES                += bt_oport="\link api-port-out output port\endlink"
+ALIASES                += bt_port="\link api-port port\endlink"
+ALIASES                += bt_priv_qexec="\link api-priv-qexec private query executor\endlink"
+ALIASES                += bt_qexec="\link api-qexec query executor\endlink"
+ALIASES                += bt_self_comp="\link api-self-comp self component\endlink"
+ALIASES                += bt_self_comp_port="\link api-self-comp-port self component port\endlink"
+ALIASES                += bt_self_comp_iport="\link api-self-comp-port self component input port\endlink"
+ALIASES                += bt_self_comp_oport="\link api-self-comp-port self component output port\endlink"
+ALIASES                += bt_self_comp_cls="\link api-self-comp-cls self component class\endlink"
+ALIASES                += bt_self_flt_comp="\link api-self-comp self filter component\endlink"
+ALIASES                += bt_self_flt_comp_cls="\link api-self-comp-cls self filter component class\endlink"
+ALIASES                += bt_self_msg_iter="\link api-self-msg-iter self message iterator\endlink"
+ALIASES                += bt_self_sink_comp="\link api-self-comp self sink component\endlink"
+ALIASES                += bt_self_sink_comp_cls="\link api-self-comp-cls self sink component class\endlink"
+ALIASES                += bt_self_src_comp="\link api-self-comp self source component\endlink"
+ALIASES                += bt_self_src_comp_cls="\link api-self-comp-cls self source component class\endlink"
+ALIASES                += bt_sink_comp="\link api-comp-sink sink component\endlink"
+ALIASES                += bt_sink_comp_cls="\link api-comp-cls-sink sink component class\endlink"
+ALIASES                += bt_src_comp="\link api-comp-src source component\endlink"
+ALIASES                += bt_src_comp_cls="\link api-comp-cls-src source component class\endlink"
+
+# Aliases: graph objects: singular, capitalized
+ALIASES                += bt_c_comp="\link api-comp Component\endlink"
+ALIASES                += bt_c_comp_cls="\link api-comp-cls Component class\endlink"
+ALIASES                += bt_c_comp_descr="\link api-comp-descr-set Component descriptor set\endlink"
+ALIASES                += bt_c_conn="\link api-conn Connection\endlink"
+ALIASES                += bt_c_flt_comp="\link api-comp-flt Filter component\endlink"
+ALIASES                += bt_c_flt_comp_cls="\link api-comp-cls-flt Filter component class\endlink"
+ALIASES                += bt_c_graph="\link api-graph Graph\endlink"
+ALIASES                += bt_c_intr="\link api-intr Interrupter\endlink"
+ALIASES                += bt_c_ip_msg_iter="\link api-ip-msg-iter Self component input port message iterator\endlink"
+ALIASES                += bt_c_iport="\link api-port-in Input port\endlink"
+ALIASES                += bt_c_msg_iter="\link api-msg-iter Message iterator\endlink"
+ALIASES                += bt_c_msg_iter_cls="\link api-msg-iter-cls Message iterator class\endlink"
+ALIASES                += bt_c_oport="\link api-port-out Output port\endlink"
+ALIASES                += bt_c_port="\link api-port Port\endlink"
+ALIASES                += bt_c_priv_qexec="\link api-priv-qexec Private query executor\endlink"
+ALIASES                += bt_c_qexec="\link api-qexec Query executor\endlink"
+ALIASES                += bt_c_self_comp="\link api-self-comp Self component\endlink"
+ALIASES                += bt_c_self_comp_port="\link api-self-comp-port Self component port\endlink"
+ALIASES                += bt_c_self_comp_iport="\link api-self-comp-port Self component input port\endlink"
+ALIASES                += bt_c_self_comp_oport="\link api-self-comp-port Self component output port\endlink"
+ALIASES                += bt_c_self_comp_cls="\link api-self-comp-cls Self component class\endlink"
+ALIASES                += bt_c_self_flt_comp="\link api-self-comp Self filter component\endlink"
+ALIASES                += bt_c_self_flt_comp_cls="\link api-self-comp-cls Self filter component class\endlink"
+ALIASES                += bt_c_self_msg_iter="\link api-self-msg-iter Self message iterator\endlink"
+ALIASES                += bt_c_self_sink_comp="\link api-self-comp Self sink component\endlink"
+ALIASES                += bt_c_self_sink_comp_cls="\link api-self-comp-cls Self sink component class\endlink"
+ALIASES                += bt_c_self_src_comp="\link api-self-comp Self source component\endlink"
+ALIASES                += bt_c_self_src_comp_cls="\link api-self-comp-cls Self source component class\endlink"
+ALIASES                += bt_c_sink_comp="\link api-comp-sink Sink component\endlink"
+ALIASES                += bt_c_sink_comp_cls="\link api-comp-cls-sink Sink component class\endlink"
+ALIASES                += bt_c_src_comp="\link api-comp-src Source component\endlink"
+ALIASES                += bt_c_src_comp_cls="\link api-comp-cls-src Source component class\endlink"
+
+# Aliases: graph objects: plural
+ALIASES                += bt_p_comp="\link api-comp components\endlink"
+ALIASES                += bt_p_comp_cls="\link api-comp-cls component classes\endlink"
+ALIASES                += bt_p_comp_descr="\link api-comp-descr-set component descriptor sets\endlink"
+ALIASES                += bt_p_conn="\link api-conn connections\endlink"
+ALIASES                += bt_p_flt_comp="\link api-comp-flt filter components\endlink"
+ALIASES                += bt_p_flt_comp_cls="\link api-comp-cls-flt filter component classes\endlink"
+ALIASES                += bt_p_graph="\link api-graph graphs\endlink"
+ALIASES                += bt_p_intr="\link api-intr interrupters\endlink"
+ALIASES                += bt_p_ip_msg_iter="\link api-ip-msg-iter self component input port message iterators\endlink"
+ALIASES                += bt_p_iport="\link api-port-in input ports\endlink"
+ALIASES                += bt_p_msg_iter="\link api-msg-iter message iterators\endlink"
+ALIASES                += bt_p_msg_iter_cls="\link api-msg-iter-cls message iterator classes\endlink"
+ALIASES                += bt_p_oport="\link api-port-out output ports\endlink"
+ALIASES                += bt_p_port="\link api-port ports\endlink"
+ALIASES                += bt_p_priv_qexec="\link api-priv-qexec private query executors\endlink"
+ALIASES                += bt_p_qexec="\link api-qexec query executors\endlink"
+ALIASES                += bt_p_self_comp="\link api-self-comp self components\endlink"
+ALIASES                += bt_p_self_comp_port="\link api-self-comp-port self component ports\endlink"
+ALIASES                += bt_p_self_comp_iport="\link api-self-comp-port self component input ports\endlink"
+ALIASES                += bt_p_self_comp_oport="\link api-self-comp-port self component output ports\endlink"
+ALIASES                += bt_p_self_comp_cls="\link api-self-comp-cls self component classes\endlink"
+ALIASES                += bt_p_self_flt_comp="\link api-self-comp self filter components\endlink"
+ALIASES                += bt_p_self_flt_comp_cls="\link api-self-comp-cls self filter component classes\endlink"
+ALIASES                += bt_p_self_msg_iter="\link api-self-msg-iter self message iterators\endlink"
+ALIASES                += bt_p_self_sink_comp="\link api-self-comp self sink components\endlink"
+ALIASES                += bt_p_self_sink_comp_cls="\link api-self-comp-cls self sink component classes\endlink"
+ALIASES                += bt_p_self_src_comp="\link api-self-comp self source components\endlink"
+ALIASES                += bt_p_self_src_comp_cls="\link api-self-comp-cls self source component classes\endlink"
+ALIASES                += bt_p_sink_comp="\link api-comp-sink sink components\endlink"
+ALIASES                += bt_p_sink_comp_cls="\link api-comp-cls-sink sink component classes\endlink"
+ALIASES                += bt_p_src_comp="\link api-comp-src source components\endlink"
+ALIASES                += bt_p_src_comp_cls="\link api-comp-cls-src source component classes\endlink"
+
+# Aliases: graph objects: plural, capitalized
+ALIASES                += bt_cp_comp="\link api-comp Components\endlink"
+ALIASES                += bt_cp_comp_cls="\link api-comp-cls Component classes\endlink"
+ALIASES                += bt_cp_comp_descr="\link api-comp-descr-set Component descriptor sets\endlink"
+ALIASES                += bt_cp_conn="\link api-conn Connections\endlink"
+ALIASES                += bt_cp_flt_comp="\link api-comp-flt Filter components\endlink"
+ALIASES                += bt_cp_flt_comp_cls="\link api-comp-cls-flt Filter component classes\endlink"
+ALIASES                += bt_cp_graph="\link api-graph Graphs\endlink"
+ALIASES                += bt_cp_intr="\link api-intr Interrupters\endlink"
+ALIASES                += bt_cp_ip_msg_iter="\link api-ip-msg-iter Self component input port message iterators\endlink"
+ALIASES                += bt_cp_iport="\link api-port-in Input ports\endlink"
+ALIASES                += bt_cp_msg_iter="\link api-msg-iter Message iterators\endlink"
+ALIASES                += bt_cp_msg_iter_cls="\link api-msg-iter-cls Message iterator classes\endlink"
+ALIASES                += bt_cp_oport="\link api-port-out Output ports\endlink"
+ALIASES                += bt_cp_port="\link api-port Ports\endlink"
+ALIASES                += bt_cp_priv_qexec="\link api-priv-qexec Private query executors\endlink"
+ALIASES                += bt_cp_qexec="\link api-qexec Query executors\endlink"
+ALIASES                += bt_cp_self_comp="\link api-self-comp Self components\endlink"
+ALIASES                += bt_cp_self_comp_port="\link api-self-comp-port Self component ports\endlink"
+ALIASES                += bt_cp_self_comp_iport="\link api-self-comp-port Self component input ports\endlink"
+ALIASES                += bt_cp_self_comp_oport="\link api-self-comp-port Self component output ports\endlink"
+ALIASES                += bt_cp_self_comp_cls="\link api-self-comp-cls Self component classes\endlink"
+ALIASES                += bt_cp_self_flt_comp="\link api-self-comp Self filter components\endlink"
+ALIASES                += bt_cp_self_flt_comp_cls="\link api-self-comp-cls Self filter component classes\endlink"
+ALIASES                += bt_cp_self_msg_iter="\link api-self-msg-iter Self message iterators\endlink"
+ALIASES                += bt_cp_self_sink_comp="\link api-self-comp Self sink components\endlink"
+ALIASES                += bt_cp_self_sink_comp_cls="\link api-self-comp-cls Self sink component classes\endlink"
+ALIASES                += bt_cp_self_src_comp="\link api-self-comp Self source components\endlink"
+ALIASES                += bt_cp_self_src_comp_cls="\link api-self-comp-cls Self source component classes\endlink"
+ALIASES                += bt_cp_sink_comp="\link api-comp-sink Sink components\endlink"
+ALIASES                += bt_cp_sink_comp_cls="\link api-comp-cls-sink Sink component classes\endlink"
+ALIASES                += bt_cp_src_comp="\link api-comp-src Source components\endlink"
+ALIASES                += bt_cp_src_comp_cls="\link api-comp-cls-src Source component classes\endlink"
+
+# Aliases: message objects: singular
+ALIASES                += bt_disc_ev_msg="\link api-msg-disc-ev discarded events message\endlink"
+ALIASES                += bt_disc_pkt_msg="\link api-msg-disc-pkt discarded packets message\endlink"
+ALIASES                += bt_ev_msg="\link api-msg-ev event message\endlink"
+ALIASES                += bt_inac_msg="\link api-msg-inac message iterator inactivity message\endlink"
+ALIASES                += bt_msg="\link api-msg message\endlink"
+ALIASES                += bt_pb_msg="\link api-msg-pb packet beginning message\endlink"
+ALIASES                += bt_pe_msg="\link api-msg-pe packet end message\endlink"
+ALIASES                += bt_sb_msg="\link api-msg-sb stream beginning message\endlink"
+ALIASES                += bt_se_msg="\link api-msg-se stream end message\endlink"
+
+# Aliases: message objects: singular, capitalized
+ALIASES                += bt_c_disc_ev_msg="\link api-msg-disc-ev Discarded events message\endlink"
+ALIASES                += bt_c_disc_pkt_msg="\link api-msg-disc-pkt Discarded packets message\endlink"
+ALIASES                += bt_c_ev_msg="\link api-msg-ev Event message\endlink"
+ALIASES                += bt_c_inac_msg="\link api-msg-inac Message iterator inactivity message\endlink"
+ALIASES                += bt_c_msg="\link api-msg Message\endlink"
+ALIASES                += bt_c_pb_msg="\link api-msg-pb Packet beginning message\endlink"
+ALIASES                += bt_c_pe_msg="\link api-msg-pe Packet end message\endlink"
+ALIASES                += bt_c_sb_msg="\link api-msg-sb Stream beginning message\endlink"
+ALIASES                += bt_c_se_msg="\link api-msg-se Stream end message\endlink"
+
+# Aliases: message objects: plural
+ALIASES                += bt_p_disc_ev_msg="\link api-msg-disc-ev discarded events messages\endlink"
+ALIASES                += bt_p_disc_pkt_msg="\link api-msg-disc-pkt discarded packets messages\endlink"
+ALIASES                += bt_p_ev_msg="\link api-msg-ev event messages\endlink"
+ALIASES                += bt_p_inac_msg="\link api-msg-inac message iterator inactivity messages\endlink"
+ALIASES                += bt_p_msg="\link api-msg messages\endlink"
+ALIASES                += bt_p_pb_msg="\link api-msg-pb packet beginning messages\endlink"
+ALIASES                += bt_p_pe_msg="\link api-msg-pe packet end messages\endlink"
+ALIASES                += bt_p_sb_msg="\link api-msg-sb stream beginning messages\endlink"
+ALIASES                += bt_p_se_msg="\link api-msg-se stream end messages\endlink"
+
+# Aliases: message objects: plural, capitalized
+ALIASES                += bt_cp_disc_ev_msg="\link api-msg-disc-ev Discarded events messages\endlink"
+ALIASES                += bt_cp_disc_pkt_msg="\link api-msg-disc-pkt Discarded packets messages\endlink"
+ALIASES                += bt_cp_ev_msg="\link api-msg-ev Event messages\endlink"
+ALIASES                += bt_cp_inac_msg="\link api-msg-inac Message iterator inactivity messages\endlink"
+ALIASES                += bt_cp_msg="\link api-msg Messages\endlink"
+ALIASES                += bt_cp_pb_msg="\link api-msg-pb Packet beginning messages\endlink"
+ALIASES                += bt_cp_pe_msg="\link api-msg-pe Packet end messages\endlink"
+ALIASES                += bt_cp_sb_msg="\link api-msg-sb Stream beginning messages\endlink"
+ALIASES                += bt_cp_se_msg="\link api-msg-se Stream end messages\endlink"
+
+# Aliases: plugin objects: singular
+ALIASES                += bt_plugin="\link api-plugin plugin\endlink"
+ALIASES                += bt_plugin_set="\link api-plugin plugin set\endlink"
+
+# Aliases: plugin objects: singular, capitalized
+ALIASES                += bt_c_plugin="\link api-plugin Plugin\endlink"
+ALIASES                += bt_c_plugin_set="\link api-plugin Plugin set\endlink"
+
+# Aliases: plugin objects: plural
+ALIASES                += bt_p_plugin="\link api-plugin plugins\endlink"
+ALIASES                += bt_p_plugin_set="\link api-plugin plugin sets\endlink"
+
+# Aliases: plugin objects: plural, capitalized
+ALIASES                += bt_cp_plugin="\link api-plugin Plugins\endlink"
+ALIASES                += bt_cp_plugin_set="\link api-plugin Plugin sets\endlink"
+
+# Aliases: value objects: singular
+ALIASES                += bt_val="\link api-val value\endlink"
+ALIASES                += bt_null_val="null \link api-val value\endlink"
+ALIASES                += bt_bool_val="boolean \link api-val value\endlink"
+ALIASES                += bt_sint_val="signed integer \link api-val value\endlink"
+ALIASES                += bt_uint_val="unsigned integer \link api-val value\endlink"
+ALIASES                += bt_real_val="real \link api-val value\endlink"
+ALIASES                += bt_string_val="string \link api-val value\endlink"
+ALIASES                += bt_map_val="map \link api-val value\endlink"
+ALIASES                += bt_array_val="array \link api-val value\endlink"
+
+# Aliases: value objects: singular, capitalized
+ALIASES                += bt_c_val="\link api-val Value\endlink"
+ALIASES                += bt_c_null_val="Null \link api-val value\endlink"
+ALIASES                += bt_c_bool_val="Boolean \link api-val value\endlink"
+ALIASES                += bt_c_sint_val="Signed integer \link api-val value\endlink"
+ALIASES                += bt_c_uint_val="Unsigned integer \link api-val value\endlink"
+ALIASES                += bt_c_real_val="Real \link api-val value\endlink"
+ALIASES                += bt_c_string_val="String \link api-val value\endlink"
+ALIASES                += bt_c_map_val="Map \link api-val value\endlink"
+ALIASES                += bt_c_array_val="Array \link api-val value\endlink"
+
+# Aliases: value objects: plural
+ALIASES                += bt_p_val="\link api-val values\endlink"
+ALIASES                += bt_p_null_val="null \link api-val values\endlink"
+ALIASES                += bt_p_bool_val="boolean \link api-val values\endlink"
+ALIASES                += bt_p_sint_val="signed integer \link api-val values\endlink"
+ALIASES                += bt_p_uint_val="unsigned integer \link api-val values\endlink"
+ALIASES                += bt_p_real_val="real \link api-val values\endlink"
+ALIASES                += bt_p_string_val="string \link api-val values\endlink"
+ALIASES                += bt_p_map_val="map \link api-val values\endlink"
+ALIASES                += bt_p_array_val="array \link api-val values\endlink"
+
+# Aliases: value objects: plural, capitalized
+ALIASES                += bt_cp_val="\link api-val Values\endlink"
+ALIASES                += bt_cp_null_val="Null \link api-val values\endlink"
+ALIASES                += bt_cp_bool_val="Boolean \link api-val values\endlink"
+ALIASES                += bt_cp_sint_val="Signed integer \link api-val values\endlink"
+ALIASES                += bt_cp_uint_val="Unsigned integer \link api-val values\endlink"
+ALIASES                += bt_cp_real_val="Real \link api-val values\endlink"
+ALIASES                += bt_cp_string_val="String \link api-val values\endlink"
+ALIASES                += bt_cp_map_val="Map \link api-val values\endlink"
+ALIASES                += bt_cp_array_val="Array \link api-val values\endlink"
+
+# Aliases: integer range set objects: singular
+ALIASES                += bt_sint_rg="\link api-int-rs signed integer range\endlink"
+ALIASES                += bt_uint_rg="\link api-int-rs unsigned integer range\endlink"
+ALIASES                += bt_int_rs="\link api-int-rs integer range set\endlink"
+ALIASES                += bt_sint_rs="\link api-int-rs signed integer range set\endlink"
+ALIASES                += bt_uint_rs="\link api-int-rs unsigned integer range set\endlink"
+
+# Aliases: integer range set objects: singular, capitalized
+ALIASES                += bt_c_sint_rg="\link api-int-rs Signed integer range\endlink"
+ALIASES                += bt_c_uint_rg="\link api-int-rs Unsigned integer range\endlink"
+ALIASES                += bt_c_int_rs="\link api-int-rs Integer range set\endlink"
+ALIASES                += bt_c_sint_rs="\link api-int-rs Signed integer range set\endlink"
+ALIASES                += bt_c_uint_rs="\link api-int-rs Unsigned integer range set\endlink"
+
+# Aliases: integer range set objects: plural
+ALIASES                += bt_p_sint_rg="\link api-int-rs signed integer ranges\endlink"
+ALIASES                += bt_p_uint_rg="\link api-int-rs unsigned integer ranges\endlink"
+ALIASES                += bt_p_int_rs="\link api-int-rs integer range sets\endlink"
+ALIASES                += bt_p_sint_rs="\link api-int-rs signed integer range sets\endlink"
+ALIASES                += bt_p_uint_rs="\link api-int-rs unsigned integer range sets\endlink"
+
+# Aliases: integer range set objects: plural, capitalized
+ALIASES                += bt_cp_sint_rg="\link api-int-rs Signed integer ranges\endlink"
+ALIASES                += bt_cp_uint_rg="\link api-int-rs Unsigned integer ranges\endlink"
+ALIASES                += bt_cp_int_rs="\link api-int-rs Integer range sets\endlink"
+ALIASES                += bt_cp_sint_rs="\link api-int-rs Signed integer range sets\endlink"
+ALIASES                += bt_cp_uint_rs="\link api-int-rs Unsigned integer range sets\endlink"
+
+OPTIMIZE_OUTPUT_FOR_C   = YES
+MARKDOWN_SUPPORT        = NO
+TOC_INCLUDE_HEADINGS    = 0
+AUTOLINK_SUPPORT        = YES
+SUBGROUPING             = YES
+INLINE_GROUPED_CLASSES  = NO
+INLINE_SIMPLE_STRUCTS   = NO
+TYPEDEF_HIDES_STRUCT    = NO
+LOOKUP_CACHE_SIZE       = 0
+
+EXTRACT_ALL             = NO
+EXTRACT_PRIVATE         = NO
+EXTRACT_PACKAGE         = NO
+EXTRACT_STATIC          = YES
+EXTRACT_LOCAL_CLASSES   = YES
+EXTRACT_LOCAL_METHODS   = NO
+EXTRACT_ANON_NSPACES    = NO
+HIDE_UNDOC_MEMBERS      = YES
+HIDE_UNDOC_CLASSES      = YES
+HIDE_FRIEND_COMPOUNDS   = NO
+HIDE_IN_BODY_DOCS       = YES
+INTERNAL_DOCS           = NO
+CASE_SENSE_NAMES        = NO
+HIDE_SCOPE_NAMES        = NO
+HIDE_COMPOUND_REFERENCE = NO
+SHOW_INCLUDE_FILES      = NO
+SHOW_GROUPED_MEMB_INC   = NO
+FORCE_LOCAL_INCLUDES    = NO
+INLINE_INFO             = YES
+SORT_MEMBER_DOCS        = NO
+SORT_BRIEF_DOCS         = NO
+SORT_MEMBERS_CTORS_1ST  = NO
+SORT_GROUP_NAMES        = NO
+SORT_BY_SCOPE_NAME      = NO
+STRICT_PROTO_MATCHING   = NO
+GENERATE_TODOLIST       = YES
+GENERATE_TESTLIST       = YES
+GENERATE_BUGLIST        = YES
+GENERATE_DEPRECATEDLIST = YES
+ENABLED_SECTIONS        =
+MAX_INITIALIZER_LINES   = 0
+SHOW_USED_FILES         = NO
+SHOW_FILES              = NO
+SHOW_NAMESPACES         = NO
+FILE_VERSION_FILTER     =
+LAYOUT_FILE             = "@srcdir@/DoxygenLayout.xml"
+CITE_BIB_FILES          =
+
+QUIET                   = NO
+WARNINGS                = YES
+WARN_IF_UNDOCUMENTED    = YES
+WARN_IF_DOC_ERROR       = YES
+WARN_NO_PARAMDOC        = YES
+WARN_AS_ERROR           = NO
+WARN_FORMAT             = "$file:$line: $text"
+WARN_LOGFILE            =
+
+INPUT                   = "@srcdir@/dox/main-page.dox" \
+                          "@srcdir@/dox/api-fund.dox" \
+                          "@srcdir@/dox/guides.dox" \
+                          "@srcdir@/dox/examples.dox" \
+                          "@top_srcdir@/include/babeltrace2/types.h" \
+                          "@top_srcdir@/include/babeltrace2/error-reporting.h" \
+                          "@top_srcdir@/include/babeltrace2/util.h" \
+                          "@top_srcdir@/include/babeltrace2/graph/graph.h" \
+                          "@top_srcdir@/include/babeltrace2/graph/component-class-dev.h" \
+                          "@top_srcdir@/include/babeltrace2/graph/message.h" \
+                          "@srcdir@/dox/group-trace-ir.dox" \
+                          "@top_srcdir@/include/babeltrace2/trace-ir/clock-class.h" \
+                          "@top_srcdir@/include/babeltrace2/trace-ir/clock-snapshot.h" \
+                          "@top_srcdir@/include/babeltrace2/trace-ir/event.h" \
+                          "@top_srcdir@/include/babeltrace2/trace-ir/event-class.h" \
+                          "@top_srcdir@/include/babeltrace2/trace-ir/field.h" \
+                          "@top_srcdir@/include/babeltrace2/trace-ir/field-class.h" \
+                          "@top_srcdir@/include/babeltrace2/trace-ir/field-path.h" \
+                          "@top_srcdir@/include/babeltrace2/trace-ir/packet.h" \
+                          "@top_srcdir@/include/babeltrace2/trace-ir/stream.h" \
+                          "@top_srcdir@/include/babeltrace2/trace-ir/stream-class.h" \
+                          "@top_srcdir@/include/babeltrace2/trace-ir/trace.h" \
+                          "@top_srcdir@/include/babeltrace2/trace-ir/trace-class.h" \
+                          "@top_srcdir@/include/babeltrace2/graph/message-iterator.h" \
+                          "@top_srcdir@/include/babeltrace2/graph/message-iterator-class.h" \
+                          "@top_srcdir@/include/babeltrace2/graph/self-message-iterator.h" \
+                          "@top_srcdir@/include/babeltrace2/graph/private-query-executor.h" \
+                          "@top_srcdir@/include/babeltrace2/graph/self-component.h" \
+                          "@top_srcdir@/include/babeltrace2/graph/self-component-port.h" \
+                          "@top_srcdir@/include/babeltrace2/graph/self-component-class.h" \
+                          "@top_srcdir@/include/babeltrace2/graph/component.h" \
+                          "@top_srcdir@/include/babeltrace2/graph/component-class.h" \
+                          "@top_srcdir@/include/babeltrace2/graph/component-descriptor-set.h" \
+                          "@top_srcdir@/include/babeltrace2/graph/connection.h" \
+                          "@top_srcdir@/include/babeltrace2/graph/port.h" \
+                          "@top_srcdir@/include/babeltrace2/graph/interrupter.h" \
+                          "@top_srcdir@/include/babeltrace2/graph/query-executor.h" \
+                          "@top_srcdir@/include/babeltrace2/integer-range-set.h" \
+                          "@top_srcdir@/include/babeltrace2/version.h" \
+                          "@top_srcdir@/include/babeltrace2/logging.h" \
+                          "@top_srcdir@/include/babeltrace2/plugin/plugin-dev.h" \
+                          "@top_srcdir@/include/babeltrace2/plugin/plugin-loading.h" \
+                          "@top_srcdir@/include/babeltrace2/value.h"
+INPUT_ENCODING          = UTF-8
+FILE_PATTERNS           = *.h *.hh *.hpp *.dox
+RECURSIVE               = NO
+EXCLUDE                 =
+EXCLUDE_SYMLINKS        = NO
+EXCLUDE_PATTERNS        =
+EXCLUDE_SYMBOLS         =
+EXAMPLE_PATH            = "@srcdir@/examples"
+EXAMPLE_PATTERNS        = *
+EXAMPLE_RECURSIVE       = NO
+IMAGE_PATH              = "@srcdir@/images"
+INPUT_FILTER            =
+FILTER_PATTERNS         =
+FILTER_SOURCE_FILES     = NO
+FILTER_SOURCE_PATTERNS  =
+USE_MDFILE_AS_MAINPAGE  =
+
+SOURCE_BROWSER          = NO
+INLINE_SOURCES          = NO
+STRIP_CODE_COMMENTS     = YES
+REFERENCED_BY_RELATION  = NO
+REFERENCES_RELATION     = NO
+REFERENCES_LINK_SOURCE  = YES
+SOURCE_TOOLTIPS         = YES
+USE_HTAGS               = NO
+VERBATIM_HEADERS        = YES
+
+ALPHABETICAL_INDEX      = YES
+COLS_IN_ALPHA_INDEX     = 5
+IGNORE_PREFIX           =
+
+OUTPUT_DIRECTORY        = @builddir@/output
+
+GENERATE_HTML           = YES
+HTML_FILE_EXTENSION     = .html
+HTML_HEADER             =
+HTML_FOOTER             =
+HTML_STYLESHEET         =
+HTML_EXTRA_STYLESHEET   = @srcdir@/style.css
+HTML_EXTRA_FILES        =
+HTML_COLORSTYLE_HUE     = 220
+HTML_COLORSTYLE_SAT     = 100
+HTML_COLORSTYLE_GAMMA   = 120
+HTML_TIMESTAMP          = NO
+HTML_DYNAMIC_SECTIONS   = NO
+HTML_DYNAMIC_MENUS      = NO
+HTML_INDEX_NUM_ENTRIES  = 100
+
+GENERATE_DOCSET         = NO
+GENERATE_HTMLHELP       = NO
+GENERATE_CHI            = NO
+GENERATE_QHP            = NO
+GENERATE_ECLIPSEHELP    = NO
+
+DISABLE_INDEX           = NO
+GENERATE_TREEVIEW       = NO
+ENUM_VALUES_PER_LINE    = 1
+TREEVIEW_WIDTH          = 250
+EXT_LINKS_IN_WINDOW     = NO
+FORMULA_FONTSIZE        = 10
+FORMULA_TRANSPARENT     = YES
+USE_MATHJAX             = NO
+MATHJAX_FORMAT          = HTML-CSS
+MATHJAX_RELPATH         = http://cdn.mathjax.org/mathjax/latest
+MATHJAX_EXTENSIONS      =
+MATHJAX_CODEFILE        =
+SEARCHENGINE            = YES
+SERVER_BASED_SEARCH     = NO
+EXTERNAL_SEARCH         = NO
+SEARCHENGINE_URL        =
+SEARCHDATA_FILE         = searchdata.xml
+EXTERNAL_SEARCH_ID      =
+EXTRA_SEARCH_MAPPINGS   =
+
+GENERATE_LATEX          = NO
+GENERATE_RTF            = NO
+GENERATE_MAN            = NO
+GENERATE_XML            = NO
+GENERATE_PERLMOD        = NO

@@ -24,7 +24,7 @@
  * SOFTWARE.
  */
 
-#include <babeltrace2/graph/port-const.h>
+#include <babeltrace2/graph/port.h>
 #include "common/macros.h"
 
 struct bt_port {

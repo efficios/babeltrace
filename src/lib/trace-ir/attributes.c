@@ -28,7 +28,7 @@
 #include <babeltrace2/value.h>
 #include "lib/assert-pre.h"
 #include "lib/object.h"
-#include <babeltrace2/value-const.h>
+#include <babeltrace2/value.h>
 #include "lib/value.h"
 #include "attributes.h"
 #include <inttypes.h>

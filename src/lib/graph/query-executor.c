@@ -27,11 +27,10 @@
 #include "common/common.h"
 #include "lib/assert-pre.h"
 #include "lib/assert-post.h"
-#include <babeltrace2/graph/query-executor-const.h>
 #include <babeltrace2/graph/query-executor.h>
 #include <babeltrace2/graph/component-class.h>
+#include <babeltrace2/graph/query-executor.h>
 #include <babeltrace2/value.h>
-#include <babeltrace2/value-const.h>
 #include "lib/object.h"
 #include "compat/compiler.h"
 

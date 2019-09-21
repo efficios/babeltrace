@@ -22,5 +22,4 @@
  * THE SOFTWARE.
  */
 
-%include <babeltrace2/trace-ir/clock-class-const.h>
 %include <babeltrace2/trace-ir/clock-class.h>

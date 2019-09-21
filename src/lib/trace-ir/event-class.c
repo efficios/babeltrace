@@ -27,7 +27,6 @@
 #include "lib/assert-pre.h"
 #include <babeltrace2/trace-ir/field-class.h>
 #include <babeltrace2/trace-ir/event-class.h>
-#include <babeltrace2/trace-ir/event-class-const.h>
 #include <babeltrace2/trace-ir/stream-class.h>
 #include "compat/compiler.h"
 #include "compat/endian.h"

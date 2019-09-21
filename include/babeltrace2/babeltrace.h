@@ -44,119 +44,43 @@
 # define __BT_UPCAST_CONST(_type, _p)	((const _type *) (_p))
 #endif
 
-/* Core API */
-#include <babeltrace2/current-thread.h>
-#include <babeltrace2/error-cause-const.h>
-#include <babeltrace2/error-const.h>
-#include <babeltrace2/integer-range-set-const.h>
+#include <babeltrace2/error-reporting.h>
+#include <babeltrace2/graph/component-class-dev.h>
+#include <babeltrace2/graph/component-class.h>
+#include <babeltrace2/graph/component-descriptor-set.h>
+#include <babeltrace2/graph/component.h>
+#include <babeltrace2/graph/connection.h>
+#include <babeltrace2/graph/graph.h>
+#include <babeltrace2/graph/interrupter.h>
+#include <babeltrace2/graph/message-iterator.h>
+#include <babeltrace2/graph/message.h>
+#include <babeltrace2/graph/port.h>
+#include <babeltrace2/graph/private-query-executor.h>
+#include <babeltrace2/graph/query-executor.h>
+#include <babeltrace2/graph/self-component-class.h>
+#include <babeltrace2/graph/self-component-port.h>
+#include <babeltrace2/graph/self-component.h>
+#include <babeltrace2/graph/self-message-iterator.h>
 #include <babeltrace2/integer-range-set.h>
 #include <babeltrace2/logging.h>
-#include <babeltrace2/property.h>
+#include <babeltrace2/plugin/plugin-dev.h>
+#include <babeltrace2/plugin/plugin-loading.h>
+#include <babeltrace2/trace-ir/clock-class.h>
+#include <babeltrace2/trace-ir/clock-snapshot.h>
+#include <babeltrace2/trace-ir/event-class.h>
+#include <babeltrace2/trace-ir/event.h>
+#include <babeltrace2/trace-ir/field-class.h>
+#include <babeltrace2/trace-ir/field-path.h>
+#include <babeltrace2/trace-ir/field.h>
+#include <babeltrace2/trace-ir/packet.h>
+#include <babeltrace2/trace-ir/stream-class.h>
+#include <babeltrace2/trace-ir/stream.h>
+#include <babeltrace2/trace-ir/trace-class.h>
+#include <babeltrace2/trace-ir/trace.h>
 #include <babeltrace2/types.h>
 #include <babeltrace2/util.h>
-#include <babeltrace2/value-const.h>
 #include <babeltrace2/value.h>
 #include <babeltrace2/version.h>
-
-/* Trace IR API */
-#include <babeltrace2/trace-ir/clock-class-const.h>
-#include <babeltrace2/trace-ir/clock-class.h>
-#include <babeltrace2/trace-ir/clock-snapshot-const.h>
-#include <babeltrace2/trace-ir/event-class-const.h>
-#include <babeltrace2/trace-ir/event-class.h>
-#include <babeltrace2/trace-ir/event-const.h>
-#include <babeltrace2/trace-ir/event.h>
-#include <babeltrace2/trace-ir/field-class-const.h>
-#include <babeltrace2/trace-ir/field-class.h>
-#include <babeltrace2/trace-ir/field-const.h>
-#include <babeltrace2/trace-ir/field-path-const.h>
-#include <babeltrace2/trace-ir/field.h>
-#include <babeltrace2/trace-ir/packet-const.h>
-#include <babeltrace2/trace-ir/packet.h>
-#include <babeltrace2/trace-ir/stream-class-const.h>
-#include <babeltrace2/trace-ir/stream-class.h>
-#include <babeltrace2/trace-ir/stream-const.h>
-#include <babeltrace2/trace-ir/stream.h>
-#include <babeltrace2/trace-ir/trace-class-const.h>
-#include <babeltrace2/trace-ir/trace-class.h>
-#include <babeltrace2/trace-ir/trace-const.h>
-#include <babeltrace2/trace-ir/trace.h>
-
-/* Component class API */
-#include <babeltrace2/graph/component-class-const.h>
-#include <babeltrace2/graph/component-class-filter-const.h>
-#include <babeltrace2/graph/component-class-filter.h>
-#include <babeltrace2/graph/component-class-sink-const.h>
-#include <babeltrace2/graph/component-class-sink.h>
-#include <babeltrace2/graph/component-class-source-const.h>
-#include <babeltrace2/graph/component-class-source.h>
-#include <babeltrace2/graph/component-class.h>
-#include <babeltrace2/graph/self-component-class-filter.h>
-#include <babeltrace2/graph/self-component-class-sink.h>
-#include <babeltrace2/graph/self-component-class-source.h>
-#include <babeltrace2/graph/self-component-class.h>
-
-/* Component API */
-#include <babeltrace2/graph/component-const.h>
-#include <babeltrace2/graph/component-filter-const.h>
-#include <babeltrace2/graph/component-sink-const.h>
-#include <babeltrace2/graph/component-source-const.h>
-#include <babeltrace2/graph/self-component-filter.h>
-#include <babeltrace2/graph/self-component-port-input.h>
-#include <babeltrace2/graph/self-component-port-output.h>
-#include <babeltrace2/graph/self-component-port.h>
-#include <babeltrace2/graph/self-component-sink.h>
-#include <babeltrace2/graph/self-component-source.h>
-#include <babeltrace2/graph/self-component.h>
-
-/* Message iterator API */
-#include <babeltrace2/graph/message-iterator.h>
-#include <babeltrace2/graph/self-message-iterator.h>
-
-/* Message API */
-#include <babeltrace2/graph/message-const.h>
-#include <babeltrace2/graph/message-discarded-events-const.h>
-#include <babeltrace2/graph/message-discarded-events.h>
-#include <babeltrace2/graph/message-discarded-packets-const.h>
-#include <babeltrace2/graph/message-discarded-packets.h>
-#include <babeltrace2/graph/message-event-const.h>
-#include <babeltrace2/graph/message-event.h>
-#include <babeltrace2/graph/message-message-iterator-inactivity-const.h>
-#include <babeltrace2/graph/message-message-iterator-inactivity.h>
-#include <babeltrace2/graph/message-packet-beginning-const.h>
-#include <babeltrace2/graph/message-packet-beginning.h>
-#include <babeltrace2/graph/message-packet-end-const.h>
-#include <babeltrace2/graph/message-packet-end.h>
-#include <babeltrace2/graph/message-stream-beginning-const.h>
-#include <babeltrace2/graph/message-stream-beginning.h>
-#include <babeltrace2/graph/message-stream-const.h>
-#include <babeltrace2/graph/message-stream-end-const.h>
-#include <babeltrace2/graph/message-stream-end.h>
-
-/* Graph API */
-#include <babeltrace2/graph/component-descriptor-set-const.h>
-#include <babeltrace2/graph/component-descriptor-set.h>
-#include <babeltrace2/graph/connection-const.h>
-#include <babeltrace2/graph/graph-const.h>
-#include <babeltrace2/graph/graph.h>
-#include <babeltrace2/graph/interrupter-const.h>
-#include <babeltrace2/graph/interrupter.h>
-#include <babeltrace2/graph/mip.h>
-#include <babeltrace2/graph/port-const.h>
-#include <babeltrace2/graph/port-input-const.h>
-#include <babeltrace2/graph/port-output-const.h>
-
-/* Query executor API */
-#include <babeltrace2/graph/private-query-executor.h>
-#include <babeltrace2/graph/query-executor-const.h>
-#include <babeltrace2/graph/query-executor.h>
-
-/* Plugin API */
-#include <babeltrace2/plugin/plugin-const.h>
-#include <babeltrace2/plugin/plugin-set-const.h>
-
-/* Plugin development */
-#include <babeltrace2/plugin/plugin-dev.h>
 
 /* Cancel private definitions */
 #undef __BT_FUNC_STATUS_AGAIN

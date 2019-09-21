@@ -25,7 +25,7 @@
 #include "lib/logging.h"
 
 #include "lib/assert-pre.h"
-#include <babeltrace2/trace-ir/trace-const.h>
+#include <babeltrace2/trace-ir/trace.h>
 #include "compat/compiler.h"
 #include "common/align.h"
 #include "compat/endian.h"

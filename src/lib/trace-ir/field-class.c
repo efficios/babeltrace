@@ -26,8 +26,6 @@
 
 #include "lib/assert-pre.h"
 #include <babeltrace2/trace-ir/field-class.h>
-#include <babeltrace2/trace-ir/field-class-const.h>
-#include <babeltrace2/trace-ir/field-const.h>
 #include <babeltrace2/trace-ir/field.h>
 #include <babeltrace2/trace-ir/clock-class.h>
 #include "lib/object.h"

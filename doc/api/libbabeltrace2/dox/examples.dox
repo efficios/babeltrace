@@ -1,0 +1,233 @@
+/*!
+@page examples Examples
+
+The examples of this section apply the different parts of the
+libbabeltrace2 API to accomplish real tasks.
+
+The available examples are:
+
+- \subpage example-simple-plugin-def-file
+- \subpage example-simple-src-cmp-cls
+- \subpage example-simple-flt-cmp-cls
+- \subpage example-simple-sink-cmp-cls
+
+@page example-simple-plugin-def-file Simple shared object plugin definition C file
+
+This example shows a basic \bt_name
+\ref api-plugin-dev "shared object plugin" definition C file.
+
+The shared object plugin's name is <code>vestige</code>. Therefore
+the \c input and \c output \bt_p_comp_cls would be identified in the
+\bt_cli command-line tool as \c source.vestige.input and
+<code>sink.vestige.output</code>.
+
+Assume that \c vestige.c contains the actual source and sink component
+classes's code, and that \c vestige.h contains its declarations.
+
+<code>vestige-plugin.c</code>:
+
+@include vestige-plugin.c
+
+See \ref guide-comp-link-plugin-so to learn how you could compile and
+link those files as a \bt_name shared object plugin.
+
+@page example-simple-src-cmp-cls Simple source component class
+
+This example shows a basic \bt_src_comp_cls packaged as a
+\ref api-plugin-dev "shared object plugin".
+
+The name of the plugin is <code>dust</code> and the name of the source
+component class is <code>input</code>. Therefore the
+component class is identified in the \bt_cli
+command-line tool as <code>source.dust.input</code>.
+
+A <code>source.dust.input</code> \bt_comp reads a text file having this
+fictitious format:
+
+@verbinclude dust
+
+That is:
+
+- Each line represents an event record.
+- For a given line:
+  - The first token is the
+    <a href="https://en.wikipedia.org/wiki/Unix_time">Unix timestamp</a>
+    (seconds since the Unix epoch) of the record.
+  - The second token is a number of microseconds to add to the Unix
+    timestamp.
+  - The third token is the event record's name: only \c send-msg and
+    \c recv-msg are possible.
+  - The remaining characters form the event record's message (payload).
+
+A <code>source.dust.input</code> component accepts a single
+\ref api-comp-cls-dev-meth-init "initialization parameter",
+<code>path</code>, which is the path of the file to open and read.
+
+A <code>source.dust.input</code> component creates a single
+\bt_oport named <code>out</code>.
+
+For each line of the input file, a <code>source.dust.input</code>
+component's \bt_msg_iter emits an \bt_ev_msg.
+
+To simplify this example, a <code>source.dust.input</code> component is
+not resilient and needs a valid input and valid initialization
+parameters. The code also doesn't check the return status codes of API
+functions for simplicity, but you must check them in production code.
+
+The source component class implementation and the shared object plugin
+macros are in the same file, <code>dust.c</code>:
+
+@include dust.c
+
+As per the \ref guide-comp-link-plugin-so guide, you can build the
+shared object plugin as such:
+
+@code{.unparsed}
+$ cc dust.c -fPIC -c $(pkg-config --cflags babeltrace2)
+$ ld dust.o -o dust.so -shared $(pkg-config --libs babeltrace2)
+@endcode
+
+With the \bt_cli tool, assuming you have a valid input file named
+<code>dust</code>, you can view the event messages that a
+<code>source.dust.input</code> message iterator emits:
+
+@code{.unparsed}
+$ babeltrace2 --plugin-path=. --component=source.dust.input --params='path="dust"'
+@endcode
+
+The output is similar to:
+
+@code{.unparsed}
+[17:10:37.154215000] (+?.?????????) send-msg: { msg = "Jowl pig filet mignon, turducken capicola." }
+[17:10:37.200774000] (+0.046559000) recv-msg: { msg = "Pork belly pig burgdoggen venison bacon." }
+[17:10:41.001831000] (+3.801057000) send-msg: { msg = "Bacon ipsum dolor amet strip steak." }
+[17:10:41.944187000] (+0.942356000) send-msg: { msg = "Spare ribs filet mignon boudin bresaola." }
+[17:10:45.115406000] (+3.171219000) recv-msg: { msg = "Rump cow t-bone hamburger short tenderloin." }
+@endcode
+
+You can also view more details with
+
+@code{.unparsed}
+$ babeltrace2 --plugin-path=. --component=source.dust.input --params='path="dust"' \
+                              --component=sink.text.details
+@endcode
+
+@page example-simple-flt-cmp-cls Simple filter component class
+
+This example shows a basic \bt_flt_comp_cls packaged as a
+\ref api-plugin-dev "shared object plugin".
+
+The name of the plugin is <code>distill</code> and the name of the
+filter component class is <code>theone</code>. Therefore the
+component class is identified in the \bt_cli
+command-line tool as <code>filter.distill.theone</code>.
+
+A <code>filter.distill.theone</code> \bt_comp removes specific
+\bt_p_ev_msg from a \bt_stream based on their \bt_ev_cls's name.
+
+A <code>filter.distill.theone</code> component accepts a single
+\ref api-comp-cls-dev-meth-init "initialization parameter",
+<code>names</code>, which is an \bt_array_val of string values. The
+array value contains the names of the classes of the events to discard.
+
+A <code>filter.distill.theone</code> component creates a single
+\bt_iport named <code>in</code> and a single \bt_oport named
+<code>out</code>.
+
+To simplify this example, a <code>filter.distill.theone</code> component
+is not resilient and needs a valid input and valid initialization
+parameters. The code also doesn't check the return status codes of API
+functions for simplicity, but you must check them in production code.
+
+The filter component class implementation and the shared object plugin
+macros are in the same file, <code>distill.c</code>:
+
+@include distill.c
+
+As per the \ref guide-comp-link-plugin-so guide, you can build the
+shared object plugin as such:
+
+@code{.unparsed}
+$ cc distill.c -fPIC -c $(pkg-config --cflags babeltrace2)
+$ ld distill.o -o distill.so -shared $(pkg-config --libs babeltrace2)
+@endcode
+
+With the \bt_cli tool, you can use a
+<code>filter.distill.theone</code> component, reading a
+<a href="https://diamon.org/ctf/">CTF</a> trace
+(see \bt_man{babeltrace2-source.ctf.fs,7}) for example:
+
+@code{.unparsed}
+$ babeltrace2 --plugin-path=. /path/to/ctf/trace \
+              --component=filter.distill.theone \
+              --params='names=["sched_switch", "rcu_utilization", "kmem_kfree"]'
+@endcode
+
+@page example-simple-sink-cmp-cls Simple sink component class
+
+This example shows a basic \bt_sink_comp_cls packaged as a
+\ref api-plugin-dev "shared object plugin".
+
+The name of the plugin is <code>epitome</code> and the name of the
+sink component class is <code>output</code>. Therefore the component
+class is identified in the \bt_cli
+command-line tool as <code>sink.epitome.output</code>.
+
+A <code>sink.epitome.output</code> \bt_comp prints one text line to
+the standard output for each \bt_ev_msg it consumes, for
+example:
+
+@code{.unparsed}
+#1: kmem_kmalloc (5 payload members)
+#2: kmem_kfree (2 payload members)
+#3: sched_waking (4 payload members)
+#4: sched_migrate_task (5 payload members)
+#5: sched_stat_runtime (4 payload members)
+#6: sched_wakeup (4 payload members)
+#7: rcu_utilization (1 payload member)
+#8: rcu_utilization (1 payload member)
+#9: sched_switch (7 payload members)
+#10: syscall_entry_write (3 payload members)
+...
+@endcode
+
+For each line, there is:
+
+- The event message's index (simple counter).
+- The event message's \bt_ev_cls \ref api-tir-ev-cls-prop-name "name".
+- The number of members in the event message's \bt_ev's
+  \ref api-tir-ev-prop-payload "payload field".
+
+A <code>sink.epitome.output</code> component does not need any
+\ref api-comp-cls-dev-meth-init "initialization parameter": it just
+prints to the standard output.
+
+A <code>sink.epitome.output</code> component creates a single
+\bt_iport named <code>in</code>.
+
+To simplify this example, a <code>sink.epitome.output</code> component
+doesn't check the return status codes of API functions,
+but you must check them in production code.
+
+The sink component class implementation and the shared object plugin
+macros are in the same file, <code>epitome.c</code>:
+
+@include epitome.c
+
+As per the \ref guide-comp-link-plugin-so guide, you can build the
+shared object plugin as such:
+
+@code{.unparsed}
+$ cc epitome.c -fPIC -c $(pkg-config --cflags babeltrace2)
+$ ld epitome.o -o epitome.so -shared $(pkg-config --libs babeltrace2)
+@endcode
+
+With the \bt_cli tool, you can use a
+<code>sink.epitome.output</code> component, reading a
+<a href="https://diamon.org/ctf/">CTF</a> trace
+(see \bt_man{babeltrace2-source.ctf.fs,7}) for example:
+
+@code{.unparsed}
+$ babeltrace2 --plugin-path=. /path/to/ctf/trace --component=sink.epitome.output
+@endcode
+*/

@@ -1,0 +1,386 @@
+// Render with Asciidoctor
+
+= Babeltrace{nbsp}2 C API documentation guidelines
+Philippe Proulx <pproulx@efficios.com>
+6 October 2019
+
+This document explains how to write documentation for the
+Babeltrace{nbsp}2 C API.
+
+
+== General rules
+
+* Use four spaces to indent.
+
+* Try to stay behind the 72^th^ column mark if possible.
+
+* Use `+&nbsp;+` wherever needed.
+
+* Refer to a function using the `func()` form and to an enumerator or
+  type using the `#name` syntax.
+
+* When you refer to any keyword or definition, use the `\c` command if
+  it's a single word, otherwise surround the words with `<code>` and
+  `</code>`:
++
+--
+----
+@returns
+    Event class on success, or \c NULL on error.
+----
+--
+
+* Use the `\command` style in text and the `@command` style for other
+  locations (for example, `@brief`, `@param`, `@sa`, `@file`).
+
+* Use a `@code{.unparsed}` block for a plain text block (shell input,
+  for example):
++
+----
+@code{.unparsed}
+$ BABELTRACE_DEV_MODE=1 BABELTRACE_MINIMAL_LOG_LEVEL=TRACE ./configure
+@endcode
+----
+
+* In the text, use `\bt_p{__param__}` to refer to the parameter named
+  `__param__`.
+
+
+== Function documentation
+
+Full example:
+
+----
+/*!
+@brief
+    Does something (third person singular, simple present) with some
+    parameter \bt_p{param} unless some other parameter
+    \bt_p{other_param} is some value.
+
+Full documentation goes here and adds any relevant information that's
+not in the brief description.
+
+@code
+/* If needed, put any C code in a code block. */
+@endcode
+
+Crucifix scenester vegan organic neutra palo santo glossier occupy
+truffaut. Meh fixie taiyaki single-origin coffee wayfarers. Thundercats
+farm-to-table shoreditch vinyl.
+
+@remarks
+    This is where you would put some remarks. Occupy flexitarian neutra,
+    edison bulb bespoke sriracha post-ironic. Mlkshk plaid pop-up
+    polaroid chillwave, ennui neutra.
+
+See this image:
+
+@image html mein-illustration.png "In elit et."
+
+@note
+    @parblock
+    This is a multiparagraph note.
+
+    Tote bag sartorial distillery, try-hard succulents wayfarers DIY
+    YOLO four loko jianbing farm-to-table unicorn vice.
+
+    Mumblecore semiotics raw denim palo santo chartreuse helvetica
+    shabby chic, distillery pabst poke swag copper mug blue bottle.
+    @endpar
+
+@attention
+    Use an attention command if this message is really important.
+
+@attention
+    @parblock
+    An attention block with more than one paragraph:
+
+    @code
+    some_code(23)
+    @endcode
+
+    Elit dolore pariatur ex anim officia cupidatat adipisicing mollit
+    incididunt irure anim nostrud.
+    @endparblock
+
+@param[in] param
+    Description of this parameter.
+@param[in] other_param
+    @parblock
+    Description of this other parameter. Nulla consequat tempus libero,
+    sed finibus velit.
+
+    Offal actually vinyl taiyaki kickstarter etsy.
+    @endparblock
+@param[out] out_param
+    <strong>On success</strong>, \bt_p{*out_param} contains to something
+    useful.
+
+@retval #SOME_STATUS_OK
+    Success.
+@retval #SOME_STATUS_MEMORY_ERROR
+    Out of memory.
+@retval #SOME_STATUS_ERROR
+    @parblock
+    Longer description for this specific status.
+
+    Organic locavore sartorial 3 wolf moon brooklyn, VHS pug distillery
+    schlitz tofu banjo chambray you probably haven't heard of them hot
+    chicken copper mug.
+
+    Neutra kale chips kombucha, salvia green juice live-edge swag
+    biodiesel scenester austin yuccie dreamcatcher cronut small batch.
+    @endparblock
+
+@bt_pre_not_null{param}
+@bt_pre_not_null{other_param}
+@bt_pre_hot{param}
+@pre
+    \bt_p{param} is like this or like that.
+
+@bt_post_ref_cnt_same{other_param}
+@post
+    \bt_p{other_param} is still in some state, and woke jean waistcoat.
+
+@sa bt_some_other_function() &mdash;
+    Does something else with a parameter.
+@sa bt_another_function() &mdash;
+    Cardigan celiac palo santo, tacos chicharrones pitchfork chambray
+    photo booth subway tile 90's street.
+*/
+----
+
+Parts:
+
+. **Opening Doxygen comment**.
++
+Use `/*!`.
+
+. **Brief description**.
++
+Use third person singular in the simple present tense: you are
+documenting what the function does. Assume that the sentence implicitly
+starts with "`This function`".
++
+Try to mention, briefly, all the parameters (with `\bt_p`) and what the
+function returns.
++
+End the sentence with a period.
+
+
+. **Detailed description**.
++
+Write complete sentences.
++
+Refer to parameters (with `\bt_p`) as much as possible.
++
+In general, keep paragraphs short: often, a single sentence is enough.
++
+Write notes (`@note` command), remarks (`@remark` command), or
+attentions (`@attention` command) when appropriate. Most notes and
+remarks, however, can be simple paragraphs. Use `@parblock` end
+`@endparblock` to have more than one note/remark/warning paragraph.
+
+. **Parameter descriptions** (if any).
++
+Use the `@param[in]`, `@param[out]`, and `@param[in,out]` commands
+depending on the parameter direction.
++
+Document parameters in the declaration order.
++
+Refer to other parameters (with `\bt_p`) when useful for the reader.
++
+End each description with a period.
++
+Use `@parblock` end `@endparblock` to have more than one paragraph for a
+given parameter description.
++
+Make sure there's no blank line, except within a `@parblock` block,
+within the parameter description block so that Doxygen puts all the
+descriptions in the same section. For example, **do not** write this:
++
+----
+@param[in] hexagon
+    Ugh literally +1 aesthetic, fashion axe try-hard mixtape pork belly
+    four loko.
+
+@param[in] selfies
+    Brooklyn ethical migas, viral edison bulb meggings butcher
+    flexitarian letterpress humblebrag kombucha pour-over etsy sriracha
+    blog.
+----
+
+
+. **Return value** (if any).
++
+--
+* If the function returns a status code, use the `@retval` command
+  multiple times to document each status:
++
+----
+@retval #BT_VALUE_COPY_STATUS_OK
+    Success.
+@retval #BT_VALUE_COPY_STATUS_MEMORY_ERROR
+    Out of memory.
+----
++
+End each description with a period.
++
+Use `@parblock` end `@endparblock` to have more than one paragraph
+for a given return value description.
++
+Make sure there's no blank line, except within a `@parblock` block,
+within the return value description block so that Doxygen puts all the
+descriptions in the same section. For example, **do not** write this:
++
+----
+@retval #BT_VALUE_COPY_STATUS_OK
+    Success.
+
+@retval #BT_VALUE_COPY_STATUS_MEMORY_ERROR
+    Out of memory.
+----
+
+* If the function returns a simple value, use the `@returns` command
+  to document it.
++
+Refer to parameters (with `\bt_p`) when useful for the reader.
++
+End the description with a period.
+--
+
+. **Preconditions** (if any).
++
+List all the function's preconditions with the `@pre` command or any
+alias which starts with `@bt_pre`.
++
+Use the simple present tense.
++
+Do not write the word "`must`" as a precondition is already a
+requirement.
++
+End the description with a period.
++
+Make sure there's no blank line within the precondition description
+block so that Doxygen puts all the descriptions in the same section. For
+example, **do not** write this:
++
+----
+@bt_pre_hot{param}
+
+@pre
+    \bt_p{param} is like this or like that.
+----
+
+. **Postconditions** (if any).
++
+List all the function's _relevant_ postconditions with the `@post`
+command or any alias which starts with `@bt_post`.
++
+Anything that the function's documentation body describes and which
+forms the nature of the function does not need to be written as an
+explicit postcondition. For example, if a function adds some object A
+to some object B, do not write the postcondition "B contains A".
++
+Use the simple present tense.
++
+End the description with a period.
++
+Make sure there's no blank line within the postcondition description
+block so that Doxygen puts all the descriptions in the same section. For
+example, **do not** write this:
++
+----
+@bt_post_ref_cnt_same{other_param}
+
+@post
+    \bt_p{other_param} is still in some state, and woke jean waistcoat.
+----
+
+. **Items to see also** (if any).
++
+Use the `@sa` command, multiple times if needed, to refer to related
+functions or types.
++
+This is a way for you to inform the reader about other existing, related
+items. Keep in mind that the reader does not always know where to look
+for things.
++
+In the referred item's brief description, do _not_ mention its
+parameters, if any.
++
+End each brief description with a period.
++
+Make sure there's no blank line within the "`see also`" description
+block so that Doxygen puts all the descriptions in the same section. For
+example, **do not** write this:
++
+----
+@sa bt_some_other_function() &mdash;
+    Does something else with a parameter.
+
+@sa bt_another_function() &mdash;
+    Cardigan celiac palo santo, tacos chicharrones pitchfork chambray
+    photo booth subway tile 90's street.
+----
+
+
+== Writing style
+
+The ultimate goal of the Babeltrace{nbsp}2 C API documentation is to
+make the layman write code using this API as fast and correct as
+possible without having to ask for help. For this purpose, the
+documentation must be as clear as possible, just like the function and
+type names try to be.
+
+Do not hesitate to repeat technical terms, even in the same sentence, if
+needed. For example, if you document a "`value object`", then always use
+the term "`value object`" in the documentation, not "`value`", nor
+"`object`", since they are ambiguous.
+
+You can use light emphasis to show the importance of a part of the text
+with the `\em` command (one word) or by surrounding the text to
+emphasize with `<em>` and `</em>`. Likewise, you can use strong emphasis
+when needed with the `\b` command (one word) or with `<strong>` and
+`</strong>`. In general, prefer light emphasis to strong emphasis, and
+use it economically.
+
+Links to other parts of the documentation are very important. Consider
+that the reader never knows that other functions exist other than the
+one she's reading. Use as many internal links as possible. Use the
+following forms of links:
+
+`__func__()`::
+    Automatic link to the function or macro named `__func__`.
+
+`#__name__`::
+    Automatic link to the type or enumerator named `__name__`.
+
+`\ref __ref__`::
+    Link to `__ref__` (page name, group name, function or macro name,
+    type name, variable name, etc.) using its default text.
+
+`\ref __ref__ "__some text__"`::
+    Link to `__ref__` (page name, group name, function or macro name,
+    type name, variable name, etc.) using the text `__some text__`.
+
+See Doxygen's http://www.doxygen.nl/manual/autolink.html[Automatic link
+generation] for other ways to create automatic links.
+
+Follow, as much as possible, the
+https://docs.microsoft.com/en-ca/style-guide/welcome/[Microsoft Style
+Guide] when you document the API. This includes:
+
+* Use an active voice.
+* Use a gender-neutral language.
+* Use the present tense (you almost never need the future tense).
+* Address your reader directly (use "`you`").
+* Use contractions ("`it's`", "`you're`", "`don't`", and the rest).
+* Avoid anthropomorphism.
+* Ensure parallelism in lists, procedures, and sentences.
+* Terminate list items with a period.
+* Do not use Latin abbreviations.
+* Use "`and`" or "`or`" instead of a slash.
+* Avoid using negatives.
+* Avoid using "`should`": most of the time, you mean "`must`", and
+  that's very clear for the reader.

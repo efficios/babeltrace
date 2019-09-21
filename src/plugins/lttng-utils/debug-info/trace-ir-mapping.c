@@ -32,8 +32,6 @@
 
 #include "common/assert.h"
 #include <babeltrace2/babeltrace.h>
-/* For bt_property_availability */
-#include <babeltrace2/property.h>
 
 #include "debug-info.h"
 #include "trace-ir-data-copy.h"

@@ -22,5 +22,4 @@
  * THE SOFTWARE.
  */
 
-%include <babeltrace2/trace-ir/stream-class-const.h>
 %include <babeltrace2/trace-ir/stream-class.h>

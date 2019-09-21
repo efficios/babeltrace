@@ -22,7 +22,6 @@
  * THE SOFTWARE.
  */
 
-%include <babeltrace2/trace-ir/trace-const.h>
 %include <babeltrace2/trace-ir/trace.h>
 
 %{

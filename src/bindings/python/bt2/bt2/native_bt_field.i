@@ -25,5 +25,4 @@
 /* For label type mappings. */
 %include "native_bt_field_class.i"
 
-%include <babeltrace2/trace-ir/field-const.h>
 %include <babeltrace2/trace-ir/field.h>

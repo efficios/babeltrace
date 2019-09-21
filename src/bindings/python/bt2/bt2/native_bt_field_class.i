@@ -24,14 +24,14 @@
 
 /* Parameter names seem to be required for multi-argument typemaps to match. */
 %typemap(in, numinputs=0)
-	(bt_field_class_enumeration_mapping_label_array *label_array, uint64_t *count)
+	(bt_field_class_enumeration_mapping_label_array *labels, uint64_t *count)
 	(bt_field_class_enumeration_mapping_label_array temp_array, uint64_t temp_label_count = 0) {
 	$1 = &temp_array;
 	$2 = &temp_label_count;
 }
 
 %typemap(argout)
-	(bt_field_class_enumeration_mapping_label_array *label_array, uint64_t *count) {
+	(bt_field_class_enumeration_mapping_label_array *labels, uint64_t *count) {
 	if (*$1) {
 		PyObject *py_label_list = PyList_New(*$2);
 		uint64_t i;
@@ -47,5 +47,4 @@
 	}
 }
 
-%include <babeltrace2/trace-ir/field-class-const.h>
 %include <babeltrace2/trace-ir/field-class.h>
