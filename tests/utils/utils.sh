@@ -241,7 +241,8 @@ bt_diff_details_ctf_single() {
 	expected_stderr_file="/dev/null"
 
 	# Compare using the CLI with `sink.text.details`
-	bt_diff_cli "$expected_stdout_file" "$expected_stderr_file" "$trace_dir" "-c" "sink.text.details" "${extra_details_args[@]}"
+	bt_diff_cli "$expected_stdout_file" "$expected_stderr_file" "$trace_dir" \
+		"-c" "sink.text.details" "${extra_details_args[@]+${extra_details_args[@]}}"
 }
 
 # Calls bt_diff_details_ctf_single(), except that "$1" is the path to a
@@ -267,7 +268,8 @@ bt_diff_details_ctf_gen_single() {
 	fi
 
 	# Compare using the CLI with `sink.text.details`
-	bt_diff_details_ctf_single "$expected_stdout_file" "$temp_trace_dir" "${extra_details_args[@]}"
+	bt_diff_details_ctf_single "$expected_stdout_file" "$temp_trace_dir" \
+		"${extra_details_args[@]+${extra_details_args[@]}}"
 	ret=$?
 	rm -rf "$temp_trace_dir"
 	return $ret
