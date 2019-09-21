@@ -36,10 +36,7 @@
 #include "lib/trace-ir/stream.h"
 #include "lib/trace-ir/stream-class.h"
 #include "lib/graph/graph.h"
-#include <babeltrace2/graph/message-packet-beginning-const.h>
-#include <babeltrace2/graph/message-packet-end-const.h>
-#include <babeltrace2/graph/message-packet-beginning.h>
-#include <babeltrace2/graph/message-packet-end.h>
+#include <babeltrace2/graph/message.h>
 #include "common/assert.h"
 #include "lib/object.h"
 #include <inttypes.h>

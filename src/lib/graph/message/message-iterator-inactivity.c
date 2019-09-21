@@ -29,8 +29,7 @@
 #include <babeltrace2/trace-ir/clock-class.h>
 #include "lib/trace-ir/clock-snapshot.h"
 #include "lib/graph/message/message.h"
-#include <babeltrace2/graph/message-message-iterator-inactivity-const.h>
-#include <babeltrace2/graph/message-message-iterator-inactivity.h>
+#include <babeltrace2/graph/message.h>
 
 #include "message-iterator-inactivity.h"
 

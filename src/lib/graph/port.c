@@ -26,12 +26,8 @@
 
 #include "common/assert.h"
 #include "lib/assert-pre.h"
-#include <babeltrace2/graph/port-const.h>
-#include <babeltrace2/graph/port-input-const.h>
-#include <babeltrace2/graph/port-output-const.h>
+#include <babeltrace2/graph/port.h>
 #include <babeltrace2/graph/self-component-port.h>
-#include <babeltrace2/graph/self-component-port-input.h>
-#include <babeltrace2/graph/self-component-port-output.h>
 #include "lib/object.h"
 #include "compat/compiler.h"
 

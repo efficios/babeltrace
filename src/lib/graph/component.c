@@ -29,11 +29,8 @@
 #include "lib/assert-pre.h"
 #include "lib/assert-post.h"
 #include <babeltrace2/graph/self-component.h>
-#include <babeltrace2/graph/component-const.h>
-#include <babeltrace2/graph/component-source-const.h>
-#include <babeltrace2/graph/component-filter-const.h>
-#include <babeltrace2/graph/component-sink-const.h>
-#include <babeltrace2/graph/graph-const.h>
+#include <babeltrace2/graph/component.h>
+#include <babeltrace2/graph/graph.h>
 #include "common/macros.h"
 #include "compat/compiler.h"
 #include <babeltrace2/types.h>

@@ -36,5 +36,4 @@
 	$result = SWIG_Python_AppendOutput($result, SWIG_From_int(*$1));
 }
 
-%include <babeltrace2/trace-ir/event-class-const.h>
 %include <babeltrace2/trace-ir/event-class.h>

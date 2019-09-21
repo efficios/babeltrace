@@ -31,10 +31,78 @@
 extern "C" {
 #endif
 
+/*!
+@defgroup api-version Library version
+
+@brief
+    Library version getters.
+
+This module contains four functions to get the four parts of the
+library's version:
+
+<dl>
+  <dt>Major version</dt>
+  <dd>bt_version_get_major()</dd>
+
+  <dt>Minor version</dt>
+  <dd>bt_version_get_minor()</dd>
+
+  <dt>Patch version</dt>
+  <dd>bt_version_get_patch()</dd>
+
+  <dt>Extra information</dt>
+  <dd>bt_version_get_extra()</dd>
+</dl>
+*/
+
+/*! @{ */
+
+/*!
+@brief
+    Returns the major version of libbabeltrace2.
+
+@returns
+    Major version of the library.
+*/
 extern unsigned int bt_version_get_major(void);
+
+/*!
+@brief
+    Returns the minor version of libbabeltrace2.
+
+@returns
+    Minor version of the library.
+*/
 extern unsigned int bt_version_get_minor(void);
+
+/*!
+@brief
+    Returns the patch version of libbabeltrace2.
+
+@returns
+    Patch version of the library.
+*/
 extern unsigned int bt_version_get_patch(void);
+
+/*!
+@brief
+    Returns extra information about the version of libbabeltrace2.
+
+This extra information can contain a version suffix such as
+<code>-pre5</code> or <code>-rc1</code>.
+
+@returns
+    @parblock
+    Extra information about the library's version.
+
+    Cannot be \c NULL.
+
+    Can be an empty string if there's no extra information.
+    @endparblock
+*/
 extern const char *bt_version_get_extra(void);
+
+/*! @} */
 
 #ifdef __cplusplus
 }

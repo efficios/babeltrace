@@ -30,7 +30,6 @@
 #include "common/common.h"
 #include <babeltrace2/types.h>
 #include <babeltrace2/value.h>
-#include <babeltrace2/value-const.h>
 #include <unistd.h>
 #include <glib.h>
 

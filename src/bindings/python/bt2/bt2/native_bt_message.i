@@ -44,21 +44,4 @@
 	}
 }
 
-%include <babeltrace2/graph/message-const.h>
-%include <babeltrace2/graph/message-discarded-events-const.h>
-%include <babeltrace2/graph/message-discarded-events.h>
-%include <babeltrace2/graph/message-discarded-packets-const.h>
-%include <babeltrace2/graph/message-discarded-packets.h>
-%include <babeltrace2/graph/message-event-const.h>
-%include <babeltrace2/graph/message-event.h>
-%include <babeltrace2/graph/message-message-iterator-inactivity-const.h>
-%include <babeltrace2/graph/message-message-iterator-inactivity.h>
-%include <babeltrace2/graph/message-packet-beginning-const.h>
-%include <babeltrace2/graph/message-packet-beginning.h>
-%include <babeltrace2/graph/message-packet-end-const.h>
-%include <babeltrace2/graph/message-packet-end.h>
-%include <babeltrace2/graph/message-stream-const.h>
-%include <babeltrace2/graph/message-stream-beginning-const.h>
-%include <babeltrace2/graph/message-stream-beginning.h>
-%include <babeltrace2/graph/message-stream-end-const.h>
-%include <babeltrace2/graph/message-stream-end.h>
+%include <babeltrace2/graph/message.h>

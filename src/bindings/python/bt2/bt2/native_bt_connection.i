@@ -22,4 +22,4 @@
  * THE SOFTWARE.
  */
 
-%include <babeltrace2/graph/connection-const.h>
+%include <babeltrace2/graph/connection.h>

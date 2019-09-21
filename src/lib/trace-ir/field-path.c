@@ -26,7 +26,7 @@
 
 #include "lib/assert-pre.h"
 #include <babeltrace2/trace-ir/field-class.h>
-#include <babeltrace2/trace-ir/field-path-const.h>
+#include <babeltrace2/trace-ir/field-path.h>
 #include <limits.h>
 #include <stdint.h>
 #include <inttypes.h>

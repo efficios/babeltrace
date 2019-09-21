@@ -25,7 +25,7 @@
 
 #include <stdbool.h>
 #include "common/assert.h"
-#include <babeltrace2/trace-ir/clock-snapshot-const.h>
+#include <babeltrace2/trace-ir/clock-snapshot.h>
 #include <babeltrace2/trace-ir/packet.h>
 #include <babeltrace2/trace-ir/field.h>
 #include <babeltrace2/trace-ir/stream.h>

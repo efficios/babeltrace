@@ -27,7 +27,7 @@
  */
 
 #include "lib/object.h"
-#include <babeltrace2/trace-ir/field-path-const.h>
+#include <babeltrace2/trace-ir/field-path.h>
 #include "common/assert.h"
 #include "common/macros.h"
 #include <glib.h>

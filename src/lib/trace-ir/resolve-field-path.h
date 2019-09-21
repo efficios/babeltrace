@@ -28,8 +28,8 @@
 
 #include "common/macros.h"
 #include "lib/object.h"
-#include <babeltrace2/trace-ir/field-class-const.h>
-#include <babeltrace2/trace-ir/field-path-const.h>
+#include <babeltrace2/trace-ir/field-class.h>
+#include <babeltrace2/trace-ir/field-path.h>
 #include <glib.h>
 
 struct bt_resolve_field_path_context {

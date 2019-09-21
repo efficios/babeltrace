@@ -33,7 +33,7 @@
 #include "lib/object.h"
 #include "common/assert.h"
 #include <babeltrace2/graph/graph.h>
-#include <babeltrace2/graph/message-const.h>
+#include <babeltrace2/graph/message.h>
 #include <babeltrace2/trace-ir/stream.h>
 #include "lib/object-pool.h"
 #include <babeltrace2/types.h>

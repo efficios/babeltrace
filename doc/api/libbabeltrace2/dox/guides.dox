@@ -1,0 +1,211 @@
+/*!
+@page guides Guides
+
+The guides in this section are step-by-step procedures to accomplish
+common tasks with libbabeltrace2.
+
+Guides help you navigate through the most important features of
+the library and its API.
+
+Make sure to eventually read \ref api-fund before you use the \bt_api
+seriously.
+
+The available guides are:
+
+- \subpage guide-build-bt2-dev
+- \subpage guide-comp-link-plugin-so
+- \subpage guide-comp-link-app
+
+@if meow
+
+- \subpage guide-create-graph
+- \subpage guide-write-min-src-comp-cls
+- \subpage guide-write-min-flt-comp-cls
+- \subpage guide-write-min-sink-comp-cls
+- \subpage guide-write-simple-sink-comp-cls
+- \subpage guide-create-plugin
+- \subpage guide-write-full-src-comp-cls
+- \subpage guide-write-full-flt-comp-cls
+- \subpage guide-write-full-sink-comp-cls
+- \subpage guide-query
+- \subpage guide-seek-msg-iter
+- \subpage guide-intr-graph
+- \subpage guide-intr-query
+- \subpage guide-graph-listeners
+
+@endif
+
+@page guide-build-bt2-dev Build Babeltrace 2 for development
+
+If you are developing a \bt_name \bt_plugin or an application which uses
+libbabeltrace2, we recommend that:
+
+- You build \bt_name from source in <em>developer mode</em>.
+
+  The \bt_name developer mode enables more \ref api-fund-pre-post
+  "precondition and postcondition" assertions to detect
+  programming errors.
+
+- You use \em TRACE as the minimal logging level at build time to have
+  access to more \ref api-fund-logging "logging", should you need it
+  to debug your plugin or application.
+
+To build \bt_name from source in developer mode and using \em TRACE
+as the minimal logging level:
+
+<ol>
+  <li>
+    <a href="https://babeltrace.org/#bt2-get">Download the
+    \bt_name tarball</a> and extract it.
+
+    See the project's
+    <a href="https://github.com/efficios/babeltrace/blob/stable-\bt_version_min_maj/README.adoc">README</a>
+    for build-time requirements and detailed build instructions.
+  <li>
+    Configure the build in developer mode and with the \em TRACE
+    minimal logging level:
+
+@code{.unparsed}
+$ BABELTRACE_DEV_MODE=1 BABELTRACE_MINIMAL_LOG_LEVEL=TRACE ./configure
+@endcode
+  <li>
+    Build and install the project:
+
+@code{.unparsed}
+$ make
+# make install
+@endcode
+</ol>
+
+\bt_name developer mode build configuration command line examples:
+
+@code{.unparsed}
+$ BABELTRACE_DEV_MODE=1 BABELTRACE_MINIMAL_LOG_LEVEL=TRACE ./configure \
+  --enable-python-bindings --enable-python-plugins
+@endcode
+
+@code{.unparsed}
+$ BABELTRACE_DEV_MODE=1 BABELTRACE_MINIMAL_LOG_LEVEL=TRACE ./configure \
+  --prefix="$PWD/install" --disable-man-pages --disable-debug-info
+@endcode
+
+@note
+    @parblock
+    The development build creates a libbabeltrace2 library which is
+    slower to execute than a production (default) build.
+
+    We believe that, during the development process, a less efficient,
+    but more strict library is more desirable than the opposite.
+    @endparblock
+
+@page guide-comp-link-plugin-so Compile and link a Babeltrace 2 shared object plugin
+
+To compile and link a \bt_name shared object plugin:
+
+<ol>
+  <li>
+    Compile the plugin's C/C++ source files with the
+    <a href="https://gcc.gnu.org/onlinedocs/gcc/Code-Gen-Options.html"><code>\-fPIC</code></a>
+    and
+    <a href="https://gcc.gnu.org/onlinedocs/gcc/Overall-Options.html"><code>\-c</code></a>
+    compiler options to produce position-independent code and
+    to compile without linking:
+
+    @code{.unparsed}
+    $ cc my-plugin.c analysis.c -fPIC -c $(pkg-config --cflags babeltrace2)
+    @endcode
+  </li>
+
+  <li>
+    Link the resulting object files with the
+    <a href="https://gcc.gnu.org/onlinedocs/gcc/Link-Options.html"><code>\-shared</code></a>
+    linker option and with the \bt_name library:
+
+    @code{.unparsed}
+    $ ld my-plugin.o analysis.o -o my-plugin.so -shared $(pkg-config --libs babeltrace2)
+    @endcode
+  </li>
+</ol>
+
+@note
+    At least one of your C/C++ files must declare a \bt_name plugin
+    and one or more \bt_p_comp_cls using the \ref api-plugin-dev macros.
+
+@page guide-comp-link-app Compile and link an application which uses libbabeltrace2
+
+To compile and link an application which uses libbabeltrace2:
+
+<ol>
+  <li>
+    Compile your C/C++ files as usual.
+  </li>
+
+  <li>
+    Link the resulting object files with the \bt_name library:
+
+    @code{.unparsed}
+    $ ld my-app.o analysis.o -o my-app $(pkg-config --libs babeltrace2)
+    @endcode
+  </li>
+</ol>
+
+@if meow
+
+@page guide-create-graph Create a graph from existing component classes and run it
+
+TODO!
+
+@page guide-write-min-src-comp-cls Write a minimal source component class
+
+TODO!
+
+@page guide-write-min-flt-comp-cls Write a minimal filter component class
+
+TODO!
+
+@page guide-write-min-sink-comp-cls Write a minimal sink component class
+
+TODO!
+
+@page guide-write-simple-sink-comp-cls Write a simple sink component class
+
+TODO!
+
+@page guide-create-plugin Create a Babeltrace 2 plugin
+
+TODO!
+
+@page guide-write-full-src-comp-cls Write a complete source component class
+
+TODO!
+
+@page guide-write-full-flt-comp-cls Write a complete filter component class
+
+TODO!
+
+@page guide-write-full-sink-comp-cls Write a complete sink component class
+
+TODO!
+
+@page guide-query Query an object from a component class
+
+TODO!
+
+@page guide-seek-msg-iter Make a message iterator seek
+
+TODO!
+
+@page guide-intr-graph Interrupt a running graph
+
+TODO!
+
+@page guide-intr-query Interrupt a query operation
+
+TODO!
+
+@page guide-graph-listeners Use graph listeners to react to topology events
+
+TODO!
+
+@endif
+*/

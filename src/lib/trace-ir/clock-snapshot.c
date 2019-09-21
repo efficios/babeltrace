@@ -27,7 +27,7 @@
 #include "common/uuid.h"
 #include "clock-class.h"
 #include "clock-snapshot.h"
-#include <babeltrace2/trace-ir/clock-snapshot-const.h>
+#include <babeltrace2/trace-ir/clock-snapshot.h>
 #include "compat/compiler.h"
 #include <babeltrace2/types.h>
 #include "compat/string.h"

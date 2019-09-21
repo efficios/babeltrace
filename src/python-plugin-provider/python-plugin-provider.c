@@ -31,10 +31,10 @@
 
 #include "common/macros.h"
 #include "compat/compiler.h"
-#include <babeltrace2/plugin/plugin-const.h>
+#include <babeltrace2/plugin/plugin-loading.h>
 #include "lib/plugin/plugin.h"
 #include <babeltrace2/graph/component-class.h>
-#include <babeltrace2/current-thread.h>
+#include <babeltrace2/error-reporting.h>
 #include "lib/graph/component-class.h"
 #include "py-common/py-common.h"
 #include <stdbool.h>

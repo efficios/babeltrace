@@ -29,8 +29,8 @@
 #include "lib/assert-post.h"
 #include "compat/compiler.h"
 #include <babeltrace2/value.h>
-#include <babeltrace2/graph/self-component-sink.h>
-#include <babeltrace2/graph/component-sink-const.h>
+#include <babeltrace2/graph/self-component.h>
+#include <babeltrace2/graph/component.h>
 #include <babeltrace2/graph/graph.h>
 
 #include "component-sink.h"

@@ -27,7 +27,7 @@
 #include "common/macros.h"
 #include "common/common.h"
 #include "lib/graph/component-class.h"
-#include <babeltrace2/plugin/plugin-const.h>
+#include <babeltrace2/plugin/plugin-loading.h>
 #include <babeltrace2/plugin/plugin-dev.h>
 #include "lib/object.h"
 #include <babeltrace2/types.h>

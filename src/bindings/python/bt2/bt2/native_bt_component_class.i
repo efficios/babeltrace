@@ -23,16 +23,8 @@
  */
 
 %include <babeltrace2/graph/component-class.h>
-%include <babeltrace2/graph/component-class-const.h>
-%include <babeltrace2/graph/component-class-source-const.h>
-%include <babeltrace2/graph/component-class-source.h>
-%include <babeltrace2/graph/component-class-filter-const.h>
-%include <babeltrace2/graph/component-class-filter.h>
-%include <babeltrace2/graph/component-class-sink-const.h>
-%include <babeltrace2/graph/component-class-sink.h>
-%include <babeltrace2/graph/self-component-class-source.h>
-%include <babeltrace2/graph/self-component-class-filter.h>
-%include <babeltrace2/graph/self-component-class-sink.h>
+%include <babeltrace2/graph/component-class-dev.h>
+%include <babeltrace2/graph/self-component-class.h>
 
 %{
 #include "native_bt_component_class.i.h"

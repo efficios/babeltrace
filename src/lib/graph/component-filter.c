@@ -28,8 +28,8 @@
 #include "lib/assert-pre.h"
 #include "compat/compiler.h"
 #include <babeltrace2/value.h>
-#include <babeltrace2/graph/self-component-filter.h>
-#include <babeltrace2/graph/component-filter-const.h>
+#include <babeltrace2/graph/self-component.h>
+#include <babeltrace2/graph/component.h>
 #include <babeltrace2/graph/graph.h>
 
 #include "component-filter.h"

@@ -1,0 +1,569 @@
+/*!
+@page api-fund API fundamentals
+
+This page explains the basic principles of the \bt_api.
+
+You \em must understand what the API expects before you create a
+\bt_name \bt_plugin or an application which uses the API.
+
+@section api-fund-header Header file
+
+To use the \bt_api, include <code>%babeltrace2/babeltrace.h</code>:
+
+@code
+#include <babeltrace2/babeltrace.h>
+@endcode
+
+Do \em not include any other header file found in the \c babeltrace2
+directory: the compiler prints an error when you try to.
+
+@section api-fund-ns Namespace
+
+- All libbabeltrace2 functions and types start with \c bt_.
+
+- All libbabeltrace2 definitions, macros, and enumerators start
+  with \c BT_.
+
+@section api-fund-pre-post Function precondition and postcondition checking
+
+All the functions of libbabeltrace2 which have parameters check that
+the caller meets their
+<a href="https://en.wikipedia.org/wiki/Precondition">preconditions</a>.
+
+All the functions of libbabeltrace2 which call a user function which
+returns something check that the returned value meets their
+<a href="https://en.wikipedia.org/wiki/Postcondition">postconditions</a>.
+
+The function descriptions in the
+<a class="el" href="modules.html">API reference modules</a>
+list all their preconditions and postconditions, if any.
+
+libbabeltrace2 is very strict regarding function preconditions and
+postconditions: when you break any of them, the library prints how the
+precondition or postcondition was not satisfied, with details, and then
+calls <code>abort()</code>.
+
+Here's an example of what the library prints to the standard error
+before aborting when you break a precondition:
+
+@code{.unparsed}
+10-06 09:12:20.228 62362 62362 F LIB/VALUE bt_value_array_get_length@value.c:887 Babeltrace 2 library precondition not satisfied; error is:
+10-06 09:12:20.228 62362 62362 F LIB/VALUE bt_value_array_get_length@value.c:887 Value object is NULL:
+10-06 09:12:20.228 62362 62362 F LIB/VALUE bt_value_array_get_length@value.c:887 Aborting...
+@endcode
+
+Because precondition and postcondition checks detect programming errors,
+libbabeltrace2's approach is to abort as soon as possible so that you
+fix the error. Therefore, the libbabeltrace2 functions never return a
+programming error status (like what \c EINVAL means on Unix systems, for
+example).
+
+@attention
+    Some precondition and postcondition checks which occur on the fast
+    path and which would therefore significantly impact performance
+    during a typical trace processing \bt_graph run are only enabled in
+    \ref guide-build-bt2-dev "developer mode".
+
+Common function preconditions are:
+
+- A pointer parameter is not \c NULL.
+
+- An index parameter is not ouf of bounds.
+
+- A string or container parameter is not empty.
+
+- An object parameter has a given conceptual type. For example, you
+  cannot call bt_value_array_get_length() with a
+  \bt_bool_val.
+
+- An object parameter is not \ref api-fund-freezing "frozen".
+
+- An object parameter has some specific state.
+
+@section api-fund-object Object model
+
+The \bt_api is
+<a href="https://en.wikipedia.org/wiki/Object-oriented_programming">object-oriented</a>.
+
+With a few exceptions, API functions are actually
+<a href="https://en.wikipedia.org/wiki/Method_(computer_programming)"><em>methods</em></a>
+which operate on objects: their first parameter points to said object.
+For example:
+
+@code
+uint64_t bt_value_array_get_length(const bt_value *value);
+@endcode
+
+You can create some types of objects with functions that contain the
+word \c create, while for some other types, only the library can create
+them behind the scenes. For example, you can create a
+\bt_bool_val object with bt_value_bool_create(), but you cannot directly
+create a \bt_ev object: you need to borrow one from a \bt_ev_msg which
+contains it.
+
+Each type of object has its own C type. Learn more about typing in
+\ref api-fund-c-typing below.
+
+Some types of objects conceptually inherit other types of objects. If an
+object type A inherits an object type B, then you can use both the A and
+B API functions with an object of type A. For example, because an
+\bt_enum_fc \em is conceptually an \bt_int_fc, you can use any integer
+field class function with an enumeration field class.
+The <a class="el" href="modules.html">API reference modules</a> always
+indicate the inheritance relations.
+
+@subsection api-fund-object-shared-unique Shared vs. unique objects
+
+Some \bt_name objects are \em shared while some others are \em unique:
+
+<dl>
+  <dt>\anchor api-fund-shared-object Shared object</dt>
+  <dd>
+    A \em shared object has a <a
+    href="https://en.wikipedia.org/wiki/Reference_counting">reference
+    count</a>.
+
+    A shared object's creation function returns a \em new reference.
+
+    The API of a given shared object type contains:
+
+    - A function to get a new reference, increasing the reference count,
+      which ends with \c _get_ref.
+
+    - A function to put an existing reference, decreasing the reference
+      count, which ends with \c _put_ref.
+
+    - A macro to put an existing reference and then set the passed
+      expression to \c NULL. This macro ends with \c _PUT_REF_AND_RESET.
+
+    - A macro to move an existing reference from a source expression to
+      a destination expression, putting the destination expression's
+      existing reference, and setting the source expression to \c NULL.
+      This macro ends with \c _MOVE_REF.
+
+    For example, bt_value_get_ref() and bt_value_put_ref() get and put
+    \bt_val object references, BT_VALUE_PUT_REF_AND_RESET() puts a
+    value reference and sets the expression to \c NULL, and
+    BT_VALUE_MOVE_REF() moves a value reference.
+
+    All <code>*_get_ref()</code> and <code>*_put_ref()</code> functions,
+    and all <code>*_PUT_REF_AND_RESET()</code> macros accept a \c NULL
+    parameter.
+
+    When the reference count of a given object reaches zero, it \em can
+    be destroyed. Some shared objects, however, have a lifetime that is
+    managed by another shared object. For example, an \bt_ev_cls is not
+    destroyed until its parent \bt_stream_cls is also destroyed, even if
+    its reference count technically reaches zero.
+
+    A function which accepts a shared object never "takes" or steals the
+    caller's reference unless its name contains the word \c move: you
+    still have your own reference when the function returns. For
+    example:
+
+    @code
+    bt_event_class *event_class = bt_event_class_create(stream_class);
+
+    /*
+     * At this point, we still have a reference of `stream_class`.
+     * We need to put it with bt_stream_class_put_ref() at some point.
+     */
+    @endcode
+
+    A function which contains the word \c borrow returns a
+    <em>borrowed reference</em>: if you need your own reference, get
+    one with the appropriate <code>*_get_ref()</code> function.
+  </dd>
+
+  <dt>\anchor api-fund-unique-object Unique object</dt>
+  <dd>
+    A \em unique object does not have a reference count: another object
+    is always its sole owner.
+
+    Because you cannot get a new unique object reference, you \em must
+    ensure that you own the unique object's owner to keep it alive. The
+    <a class="el" href="modules.html">API reference modules</a> make it
+    clear, depending on the context, which
+    shared object is the ultimate owner of a given unique object.
+
+    In general, you cannot create a unique object: the library creates
+    it, and then you \em borrow it from another object (shared or unique
+    itself).
+
+    Unique objects exist for performance reasons: some optimizations are
+    challenging to implement without this concept.
+  </dd>
+</dl>
+
+In the <a class="el" href="modules.html">API reference</a>, each module
+indicates whether the documented objects are shared or unique.
+
+@subsection api-fund-freezing Object freezing
+
+The library can \em freeze some types of \bt_name objects when specific
+functions succeed.
+
+A frozen object is immutable: trying to set an object's property once
+it's frozen represents a \ref api-fund-pre-post "precondition" break.
+
+For example, the library freezes the source \bt_comp initialization
+parameters when you call bt_graph_add_source_component(): this
+guarantees to the component's
+\ref api-comp-cls-dev-meth-init "initialization method" that the
+parameters will never change for the rest of their lifetime.
+
+When an object becomes frozen, its contained objects, if any, also
+become frozen, recursively.
+
+There's no function to check whether or not a given object is frozen.
+Because the <a class="el" href="modules.html">API reference modules</a>
+document which functions freeze which objects,
+the "frozen" property is only useful for libbabeltrace2 to catch
+programming errors (\ref api-fund-pre-post "precondition checks").
+
+@attention
+    Some "frozen" property checks which occur on the fast path and which
+    would therefore significantly impact performance during a typical trace
+    processing \bt_graph run are only enabled in
+    \ref guide-build-bt2-dev "developer mode".
+
+@section api-fund-c-typing C typing
+
+The \bt_api typing system is very strict to catch many programming
+errors at compile time.
+
+Each type of object has its own C type. Consequently, functions accept
+and return specific C types. For example, all the \bt_ev functions
+accept a #bt_event pointer.
+
+The API uses
+<a href="https://en.wikipedia.org/wiki/Opaque_pointer">opaque pointers</a>,
+so that you don't having access to the object type's actual C structure.
+This helps with the development of features and fixes in future releases
+of \bt_name.
+
+Some objects share the same C type when different conceptual types can
+be contained in some collection. For example, all \bt_val objects have
+the type #bt_value because an \bt_array_val can contain different
+types of values. You must be careful to only call the functions which
+apply to a specific type of such objects.
+The <a class="el" href="modules.html">API reference modules</a> make
+this clear in the precondition section. Such objects always have a
+<code>*_get_type()</code> function to get the object's exact type
+enumerator. For example, bt_value_get_type() returns the type enumerator
+of a given \bt_val object.
+
+When an object type A conceptually inherits an object type B, and when A
+and B have different C types, the API offers a dedicated, inline
+upcasting function named <code>bt_A_as_B()</code> to have access to the B
+API at no cost. For example, an \bt_uenum_fc mapping \em is conceptually
+an \bt_enum_fc mapping, but they have different C types:
+#bt_field_class_enumeration_unsigned_mapping and
+#bt_field_class_enumeration_mapping. Get the latter from the former with
+bt_field_class_enumeration_unsigned_mapping_as_mapping_const().
+The <code>bt_A_as_B()</code> functions do not change the object's
+reference count and they accept \c NULL.
+
+@attention
+    \b Never directly cast a \bt_name object pointer from some C type to
+    another C type: the API is designed so that you never need to do
+    that.
+
+@subsection api-fund-const const correctness
+
+The \bt_api is <code>const</code>-correct: when a function has a
+\c const object pointer parameter, it never modifies that object from
+the user's viewpoint.
+
+As such, when a function returns a \c const object pointer, directly or
+through an output parameter, you can't modify the object.
+
+@attention
+    \b Never remove a \bt_name object pointer's \c const qualifier. The
+    API is designed so that you never need to do that.
+
+Functions which accept or return a \c const object pointer end with
+\c _const when they have (or could have in the future) a non \c const
+equivalent. For example, bt_value_map_borrow_entry_value_const() is the
+\c const version of bt_value_map_borrow_entry_value().
+
+Simple property getter functions do not end with \c _const.
+
+\ref api-fund-shared-object "Reference count" changing functions, ending
+with \c _get_ref and \c _put_ref(), accept a \c const object pointer
+parameter: the library does not consider that an object's nature is
+altered when its reference count changes.
+
+@subsection api-fund-int-types C integer types
+
+The API only uses \c uint64_t and \c int64_t as C integer types for
+clarity and consistency.
+
+@subsection api-fund-common-types Common C types and definitions
+
+There are a few C types and definitions which are common to many parts
+of the \bt_api.
+
+See \ref api-common-types.
+
+@section api-fund-func-status Function return
+
+libbabeltrace2 functions which cannot fail return a property or an
+object pointer directly. For example, bt_value_array_get_length()
+returns the length of an \bt_array_val, and
+bt_value_array_borrow_element_by_index_const() returns a \bt_val
+contained in an \bt_array_val. Both functions cannot fail: any
+programming error \ref api-fund-pre-post "makes the program abort".
+
+When a function returns an optional property or object:
+
+<dl>
+  <dt>If it's a pointer</dt>
+  <dd>
+    The function returns \c NULL if the property/object is missing.
+  </dd>
+
+  <dt>If it's not a pointer</dt>
+  <dd>
+    <dl>
+      <dt>If the property is available</dt>
+      <dd>
+        The function returns the property by output parameter and returns
+        #BT_PROPERTY_AVAILABILITY_AVAILABLE.
+      </dd>
+
+      <dt>If the property is not available</dt>
+      <dd>
+        The function returns #BT_PROPERTY_AVAILABILITY_NOT_AVAILABLE.
+      </dd>
+    </dl>
+  </dd>
+</dl>
+
+Many libbabeltrace2 functions return a status code, that is, a C
+enumerator containing the word \c STATUS. For example,
+bt_value_copy() returns either #BT_VALUE_COPY_STATUS_OK or
+#BT_VALUE_COPY_STATUS_MEMORY_ERROR.
+
+Although the API guarantees that any status enumerator which has the
+\c _OK status has the value 0, we recommend that you compare the
+returned value to exact status enumerators for clarity, for example:
+
+@code
+bt_value_copy_status status = bt_value_copy(obj, &val_copy);
+
+if (status != BT_VALUE_COPY_STATUS_OK) {
+    /* handle error */
+}
+@endcode
+
+The <a class="el" href="modules.html">API reference modules</a>
+document, for each function, what each return status enumerator means.
+
+Some functions return properties or objects by output parameter. When
+such a function which accepts a property or object pointer \c ptr fails,
+the library does \em not guarantee that <code>*ptr</code> remains
+unchanged. Therefore, such a pattern is \em not safe:
+
+@code
+bt_some_object *some_object = NULL;
+
+status = bt_get_some_object(obj, &some_object);
+
+if (some_object) {
+    /* ... */
+}
+@endcode
+
+Always rely on the returned status code:
+
+@code
+bt_some_object *some_object;
+
+status = bt_get_some_object(obj, &some_object);
+
+if (status == BT_GET_SOME_OBJECT_STATUS_OK) {
+    /* ... */
+}
+@endcode
+
+@section api-fund-user-classes User classes
+
+The whole \bt_name project is about extensibility: you can implement
+\bt_p_comp_cls, and then package and distribute them as
+\bt_p_plugin.
+
+When you implement a \bt_name \bt_comp_cls, you override protected
+methods, just like you would do in any
+<a href="https://en.wikipedia.org/wiki/Object-oriented_programming">object-oriented programming</a>
+(OOP) language.
+
+Here's the mapping of typical OOP language features to the
+\bt_name library domain:
+
+<table>
+  <tr>
+    <th>OOP concept
+    <th>\bt_name equivalent
+  <tr>
+    <td>User class.
+    <td>
+      Class object with implemented user functions.
+
+      For example: #bt_component_class_source.
+  <tr>
+    <td>User class instance.
+    <td>
+      Instance object, created from a class object.
+
+      For example: #bt_component_source.
+  <tr>
+    <td>
+      Instance pointer (\c this keyword in C++/Java and \c self variable
+      in Python, for example).
+    <td>
+      "Self" (private) object.
+
+      A "self" object has a specific, dedicated C type which starts
+      with <code>bt_self_</code>.
+
+      For example: #bt_self_component_source.
+  <tr>
+    <td>Protected, final method.
+    <td>
+      Library function accepting an instance pointer ("self" object) as
+      its first parameter.
+
+      Those functions always start with <code>bt_self_</code>.
+
+      For example: bt_self_component_source_add_output_port().
+  <tr>
+    <td>Protected, overridable method.
+    <td>
+      User function with a specific signature, accepting an instance
+      pointer ("self" object) as its first parameter.
+
+      For example: #bt_component_class_source_initialize_method.
+  <tr>
+    <td>Private user method.
+    <td>
+      Custom \c static user function having access to the instance
+      pointer ("self" object) somehow.
+  <tr>
+    <td>Private user property or attribute.
+    <td>
+      Custom \bt_voidp data which you set and get using
+      dedicated protected methods (for example,
+      bt_self_component_set_data() and bt_self_component_get_data()).
+</table>
+
+@section api-fund-error Error reporting
+
+libbabeltrace2 features a rich \ref api-error "error reporting"
+mechanism to augment an error with custom causes without having to
+explicitly pass an error object to the library functions.
+
+When a library function or \ref api-fund-user-classes "user method"
+returns an error status code (any status enumerator which contains
+the word \c ERROR), it \em can add one or more error causes to the
+current thread's error object.
+
+This makes it possible for the end user to understand the contexts which
+lead to the error, possibly across many \bt_p_plugin written by
+different developers.
+
+An error cause contains information about the source location where the
+error occured, the actor involved in the error, and a message.
+
+When you "catch" an error, that is, react to a function returning an
+error status code without returning an error status code yourself,
+you can:
+
+- Take the current thread's error with bt_current_thread_take_error() to
+  get its causes, possibly presenting them to the end user.
+
+  You then need to release the error with bt_error_release().
+
+- Clear the current thread's error with bt_current_thread_clear_error().
+
+@attention
+    You \em cannot call any libbabeltrace2 function when the current
+    thread has an error, except the
+    \ref api-fund-shared-object "reference counting" functions (ending
+    with <code>_get_ref()</code> or <code>_put_ref()</code>).
+
+The
+<a href="https://babeltrace.org/docs/v\bt_version_min_maj/man1/babeltrace2.1"><code>babeltrace2</code></a>
+CLI uses this feature to pretty-print an error's causes to the end user,
+for example:
+
+@code{.unparsed}
+ERROR:    [Babeltrace CLI] (babeltrace2.c:2521)
+  Cannot create components.
+CAUSED BY [Babeltrace CLI] (babeltrace2.c:2336)
+  Cannot create component: plugin-name="ctf", comp-cls-name="fs", comp-cls-type=0,
+  comp-name="auto-disc-source-ctf-fs"
+CAUSED BY [libbabeltrace2] (graph.c:1343)
+  Component initialization method failed: status=ERROR, comp-addr=0x562fbd275f40,
+  comp-name="auto-disc-source-ctf-fs", comp-log-level=WARNING, comp-class-type=SOURCE,
+  comp-class-name="fs", comp-class-partial-descr="Read CTF traces from the file sy",
+  comp-class-is-frozen=1, comp-class-so-handle-addr=0x562fbd285810,
+  comp-class-so-handle-path="/usr/lib/babeltrace2/plugins/babeltrace-plugin-ctf.so",
+  comp-input-port-count=0, comp-output-port-count=0
+CAUSED BY [auto-disc-source-ctf-fs: 'source.ctf.fs'] (fs.c:1148)
+  Cannot create trace for `/path/to/trace`.
+CAUSED BY [auto-disc-source-ctf-fs: 'source.ctf.fs'] (fs.c:928)
+  Cannot add stream file `/path/to/trace/channel0_1` to stream file group
+CAUSED BY [auto-disc-source-ctf-fs: 'source.ctf.fs'] (fs.c:734)
+  Cannot get stream file's first packet's header and context fields (`/path/to/trace/channel0_1`).
+@endcode
+
+@section api-fund-logging Logging
+
+libbabeltrace2 contains many hundreds of logging statements to help you
+follow and debug your \bt_plugin or program.
+
+By default, the library's logging is disabled. To enable it, use
+bt_logging_set_global_level().
+
+To set the library's initial logging level (checked once at library
+loading time), set the \c LIBBABELTRACE2_INIT_LOG_LEVEL environment
+variable, with one of:
+
+- \c N or \c NONE
+- \c F or \c FATAL
+- \c E or \c ERROR
+- \c W, \c WARN, or \c WARNING
+- \c I or \c INFO
+- \c D or \c DEBUG
+- \c T or \c TRACE
+
+By default, the minimal, build-time logging level is \em DEBUG. We
+recommend that you build libbabeltrace2 with the \em TRACE minimal
+logging level for development. See \ref guide-build-bt2-dev.
+
+libbabeltrace2 writes its logging statements to the standard error
+stream.
+
+A libbabeltrace2 (and \bt_name project plugin) logging line looks like
+this:
+
+@code{.unparsed}
+05-11 00:58:03.691 23402 23402 D VALUES bt_value_destroy@values.c:498 Destroying value: addr=0xb9c3eb0
+@endcode
+
+The line contains, in order:
+
+-# The date and time (<code>05-11 00:58:03.691</code>).
+
+-# The process and thread IDs (<code>23402 23402</code>).
+
+-# The logging level (\c D for \em DEBUG).
+
+-# The function logging (\c bt_value_destroy).
+
+-# The file and line number logging (<code>values.c:498</code>).
+
+-# The message, which typically ends with a list of fields adding
+   details.
+*/

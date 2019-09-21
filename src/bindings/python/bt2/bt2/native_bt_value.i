@@ -22,7 +22,6 @@
  * THE SOFTWARE.
  */
 
-%include <babeltrace2/value-const.h>
 %include <babeltrace2/value.h>
 
 %{

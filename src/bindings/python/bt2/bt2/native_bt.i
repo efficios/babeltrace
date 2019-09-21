@@ -207,8 +207,8 @@ void bt_bt2_exit_handler(void);
  */
 #define __BT_IN_BABELTRACE_H
 
-/* Property enumeration */
-%include <babeltrace2/property.h>
+/* Common types */
+%include <babeltrace2/types.h>
 
 /* Common function status codes */
 %include <babeltrace2/func-status.h>

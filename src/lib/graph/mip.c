@@ -28,7 +28,7 @@
 #include <stdbool.h>
 #include <unistd.h>
 #include <glib.h>
-#include <babeltrace2/graph/mip.h>
+#include <babeltrace2/graph/graph.h>
 
 #include "common/assert.h"
 #include "compat/compiler.h"

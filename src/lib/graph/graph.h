@@ -30,7 +30,7 @@
 #endif
 
 #include <babeltrace2/graph/graph.h>
-#include <babeltrace2/graph/message-const.h>
+#include <babeltrace2/graph/message.h>
 #include "common/macros.h"
 #include "lib/object.h"
 #include "lib/object-pool.h"

@@ -25,7 +25,7 @@
 
 #include <glib.h>
 #include "lib/trace-ir/clock-snapshot.h"
-#include <babeltrace2/graph/message-const.h>
+#include <babeltrace2/graph/message.h>
 
 struct bt_message_message_iterator_inactivity {
 	struct bt_message parent;

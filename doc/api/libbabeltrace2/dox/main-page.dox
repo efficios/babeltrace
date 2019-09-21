@@ -1,0 +1,124 @@
+/*!
+@mainpage Välkommen!
+
+@note
+This documentation (text and illustrations) is licensed under a
+<a href="https://creativecommons.org/licenses/by-sa/4.0/legalcode">Creative
+Commons Attribution-ShareAlike 4.0 International</a> license.
+
+Welcome to the
+<strong><em>\bt_api</em></strong> (libbabeltrace2) documentation!
+
+To get an idea of how to use the libbabeltrace2 API, have a look at
+the \ref guides "guides" and \ref examples "examples".
+That being said, we recommend that you read the \ref api-fund to
+understand what the API expects exactly.
+
+If you are developing a \bt_name \bt_plugin or an application which
+uses libbabeltrace2, we recommend that you
+\ref guide-build-bt2-dev "build the \bt_name library for development".
+
+@section main-bt2-nutshell \bt_name in a nutshell
+
+<a href="https://babeltrace.org/"><strong><em>\bt_name</em></strong></a>
+is an open-source software project by
+<a href="https://www.efficios.com/">EfficiOS</a>; its purpose is to
+process or convert
+<a href="https://en.wikipedia.org/wiki/Tracing_(software)">traces</a>.
+
+The \bt_name project contains:
+
+- A library, libbabeltrace2, which all the other parts rely on.
+
+  libbabeltrace2 offers a
+  <a href="https://en.wikipedia.org/wiki/C99">C99</a> interface.
+
+  This documentation is about libbabeltrace2's API.
+
+- A command-line program, \bt_cli, which can convert and manipulate
+  traces.
+
+- Python&nbsp;3 bindings which offer a Pythonic interface of
+  libbabeltrace2.
+
+- "Standard" plugins which ship with the project.
+
+  <a href="https://diamon.org/ctf/">Common Trace Format</a> (CTF) input
+  and output, plain text input and output, and various utilities are
+  part of those plugins.
+
+With the \bt_name library, you can:
+
+- Write custom \ref api-comp-cls-src "source",
+  \ref api-comp-cls-flt "filter", \ref api-comp-cls-sink "sink"
+  component classes which you can package as \bt_p_plugin.
+
+  Component classes are instantiated as \bt_p_comp within a trace
+  processing \bt_graph and components are assembled to accomplish a
+  trace manipulation or conversion job.
+
+- Load \bt_p_plugin, instantiate their component classes within a
+  trace processing \bt_graph, connect the components as needed, and
+  run the graph to accomplish a trace manipulation or conversion job.
+
+  This is what the \bt_cli CLI tool's
+  <a href="https://babeltrace.org/docs/v\bt_version_min_maj/man1/babeltrace2-convert.1"><code>convert</code></a>
+  and
+  <a href="https://babeltrace.org/docs/v\bt_version_min_maj/man1/babeltrace2-run.1"><code>run</code></a>
+  commands do, for example.
+
+A trace processing \bt_graph contains connected components. The specific
+component topology determines the trace processing task to realize.
+
+@image html basic-convert-graph.png "A conversion graph, a specific trace processing graph."
+
+Between the components of a trace processing graph, \bt_p_msg flow from
+\bt_p_oport to \bt_p_iport following the configured \bt_p_conn through
+\bt_p_msg_iter. There are many types of messages, chief amongst which is
+the \bt_ev_msg.
+
+With libbabeltrace2, you can also \ref api-qexec "query" some specific
+object from a component class (for example, the available LTTng live sessions
+of an <a href="https://lttng.org">LTTng</a> relay daemon).
+This is what the \bt_cli CLI tool's
+<a href="https://babeltrace.org/docs/v\bt_version_min_maj/man1/babeltrace2-query.1"><code>query</code></a>
+command does, for example.
+
+Make sure to read \bt_man{babeltrace2-intro,7}
+to learn even more about the \bt_name project and its core concepts.
+
+@section main-contents What's in this documentation?
+
+<dl>
+  <dt>\ref api-fund</dt>
+  <dd>
+    Explains the basic principles of the \bt_api.
+
+    Make sure you understand this section as you need this knowledge to
+    use the API correctly.
+  </dd>
+
+  <dt>\ref guides</dt>
+  <dd>
+    Shows how to achieve common tasks with libbabeltrace2.
+
+    Guides help you navigate through the most important features of
+    the library and its API.
+  </dd>
+
+  <dt>\ref examples</dt>
+  <dd>
+    Contains simple and more complex examples which apply the different
+    parts of the API to accomplish real tasks.
+  </dd>
+
+  <dt><a class="el" href="modules.html">API reference</a></dt>
+  <dd>
+    Documents all the \bt_name C functions, definitions, macros,
+    enumerators, and types.
+
+    Each documentation module describes its API thoroughly and how it's
+    related to other modules.
+  </dd>
+</dl>
+*/

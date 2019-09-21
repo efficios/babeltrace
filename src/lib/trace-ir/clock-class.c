@@ -26,7 +26,6 @@
 
 #include "lib/assert-pre.h"
 #include "common/uuid.h"
-#include <babeltrace2/trace-ir/clock-class-const.h>
 #include <babeltrace2/trace-ir/clock-class.h>
 #include "clock-class.h"
 #include "clock-snapshot.h"

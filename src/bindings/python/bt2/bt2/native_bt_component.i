@@ -82,14 +82,8 @@
 	}
 }
 
-%include <babeltrace2/graph/component-const.h>
-%include <babeltrace2/graph/component-source-const.h>
-%include <babeltrace2/graph/component-filter-const.h>
-%include <babeltrace2/graph/component-sink-const.h>
+%include <babeltrace2/graph/component.h>
 %include <babeltrace2/graph/self-component.h>
-%include <babeltrace2/graph/self-component-source.h>
-%include <babeltrace2/graph/self-component-filter.h>
-%include <babeltrace2/graph/self-component-sink.h>
 
 /*
  * This type map relies on the rather common "user_data" name, so don't pollute

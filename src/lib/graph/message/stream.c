@@ -26,14 +26,11 @@
 
 #include "lib/assert-pre.h"
 #include "compat/compiler.h"
-#include <babeltrace2/trace-ir/clock-snapshot-const.h>
+#include <babeltrace2/trace-ir/clock-snapshot.h>
 #include "lib/trace-ir/stream.h"
 #include <babeltrace2/trace-ir/stream-class.h>
 #include "lib/trace-ir/stream-class.h"
-#include <babeltrace2/graph/message-stream-beginning.h>
-#include <babeltrace2/graph/message-stream-end.h>
-#include <babeltrace2/graph/message-stream-beginning-const.h>
-#include <babeltrace2/graph/message-stream-end-const.h>
+#include <babeltrace2/graph/message.h>
 #include "common/assert.h"
 #include <inttypes.h>
 

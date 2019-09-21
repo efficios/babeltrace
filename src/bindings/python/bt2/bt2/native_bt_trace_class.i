@@ -22,7 +22,6 @@
  * THE SOFTWARE.
  */
 
-%include <babeltrace2/trace-ir/trace-class-const.h>
 %include <babeltrace2/trace-ir/trace-class.h>
 
 /* Helper functions for Python */

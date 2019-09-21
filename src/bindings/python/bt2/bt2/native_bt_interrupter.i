@@ -23,4 +23,3 @@
  */
 
 %include <babeltrace2/graph/interrupter.h>
-%include <babeltrace2/graph/interrupter-const.h>

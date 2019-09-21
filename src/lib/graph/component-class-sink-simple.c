@@ -27,10 +27,10 @@
 #include "common/common.h"
 #include "lib/assert-pre.h"
 #include "lib/object.h"
-#include <babeltrace2/graph/component-class-sink.h>
-#include <babeltrace2/graph/self-component-sink.h>
+#include <babeltrace2/graph/component-class.h>
 #include <babeltrace2/graph/self-component-port.h>
 #include <babeltrace2/graph/self-component.h>
+#include <babeltrace2/graph/message-iterator.h>
 #include <glib.h>
 
 #include "component-class-sink-simple.h"

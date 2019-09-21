@@ -28,13 +28,6 @@
 #include "lib/assert-pre.h"
 #include "compat/compiler.h"
 #include <babeltrace2/graph/component-class.h>
-#include <babeltrace2/graph/component-class-const.h>
-#include <babeltrace2/graph/component-class-source.h>
-#include <babeltrace2/graph/component-class-source-const.h>
-#include <babeltrace2/graph/component-class-filter.h>
-#include <babeltrace2/graph/component-class-filter-const.h>
-#include <babeltrace2/graph/component-class-sink.h>
-#include <babeltrace2/graph/component-class-sink-const.h>
 #include <babeltrace2/types.h>
 #include <glib.h>
 

@@ -25,7 +25,7 @@
  */
 
 #include "common/macros.h"
-#include <babeltrace2/graph/component-const.h>
+#include <babeltrace2/graph/component.h>
 #include <babeltrace2/graph/component-class.h>
 #include "lib/object.h"
 #include <babeltrace2/types.h>

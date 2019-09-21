@@ -35,12 +35,8 @@
 	$result = $1;
 }
 
-%include <babeltrace2/graph/port-const.h>
-%include <babeltrace2/graph/port-output-const.h>
-%include <babeltrace2/graph/port-input-const.h>
+%include <babeltrace2/graph/port.h>
 %include <babeltrace2/graph/self-component-port.h>
-%include <babeltrace2/graph/self-component-port-output.h>
-%include <babeltrace2/graph/self-component-port-input.h>
 
 /*
  * Clear this typemap, since it is a bit broad and could apply to something we

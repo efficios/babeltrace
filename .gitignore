@@ -61,7 +61,6 @@ __pycache__
 /src/babeltrace2-ctf-writer.pc
 TAGS
 cscope*
-doc/api/Doxyfile
 *.gcno
 *.gcda
 *.gcov

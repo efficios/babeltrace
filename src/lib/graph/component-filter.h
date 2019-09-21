@@ -25,7 +25,7 @@
  */
 
 #include "common/macros.h"
-#include <babeltrace2/graph/component-filter-const.h>
+#include <babeltrace2/graph/component.h>
 
 #include "component-class.h"
 #include "component.h"

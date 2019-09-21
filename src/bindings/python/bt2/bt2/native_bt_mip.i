@@ -23,8 +23,7 @@
  */
 
 %include <babeltrace2/graph/component-descriptor-set.h>
-%include <babeltrace2/graph/component-descriptor-set-const.h>
-%include <babeltrace2/graph/mip.h>
+%include <babeltrace2/graph/graph.h>
 
 %{
 #include "native_bt_mip.i.h"

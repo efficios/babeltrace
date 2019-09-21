@@ -1,0 +1,46 @@
+<doxygenlayout version="1.0">
+  <navindex>
+    <tab type="mainpage" visible="yes" title="Välkommen!"/>
+    <tab type="user" visible="yes" url="@ref api-fund" title="API fundamentals"/>
+    <tab type="user" visible="yes" url="@ref guides" title="Guides"/>
+    <tab type="user" visible="yes" url="@ref examples" title="Examples"/>
+    <tab type="pages" visible="yes" title="All pages" intro=""/>
+    <tab type="modules" visible="yes" title="API reference"
+      intro="List of all API reference modules:"/>
+  </navindex>
+
+  <group>
+    <detaileddescription/>
+    <briefdescription visible="no"/>
+    <memberdecl>
+      <nestedgroups visible="yes" title=""/>
+      <typedefs title=""/>
+      <enums title=""/>
+      <enumvalues title=""/>
+      <defines title=""/>
+      <variables title=""/>
+      <functions title=""/>
+      <membergroups visible="yes"/>
+    </memberdecl>
+    <memberdef>
+      <pagedocs/>
+      <typedefs title=""/>
+      <enums title=""/>
+      <enumvalues title=""/>
+      <defines title=""/>
+      <variables title=""/>
+      <functions title=""/>
+    </memberdef>
+    <authorsection visible="yes"/>
+  </group>
+
+  <directory>
+    <detaileddescription title=""/>
+    <briefdescription visible="no"/>
+    <directorygraph visible="yes"/>
+    <memberdecl>
+      <dirs visible="yes"/>
+      <files visible="yes"/>
+    </memberdecl>
+  </directory>
+</doxygenlayout>

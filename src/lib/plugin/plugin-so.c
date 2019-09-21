@@ -32,9 +32,6 @@
 #include <babeltrace2/plugin/plugin-dev.h>
 #include "lib/graph/component-class.h"
 #include <babeltrace2/graph/component-class.h>
-#include <babeltrace2/graph/component-class-source.h>
-#include <babeltrace2/graph/component-class-filter.h>
-#include <babeltrace2/graph/component-class-sink.h>
 #include <babeltrace2/types.h>
 #include "common/list.h"
 #include <string.h>

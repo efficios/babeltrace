@@ -26,11 +26,8 @@
  * SOFTWARE.
  */
 
-#include <babeltrace2/graph/component-const.h>
 #include <babeltrace2/graph/component-class.h>
-#include <babeltrace2/graph/component-class-source.h>
-#include <babeltrace2/graph/component-class-filter.h>
-#include <babeltrace2/graph/component-class-sink.h>
+#include <babeltrace2/graph/component.h>
 #include "common/macros.h"
 #include "lib/object.h"
 #include "common/list.h"

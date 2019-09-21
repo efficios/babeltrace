@@ -22,4 +22,4 @@
  * THE SOFTWARE.
  */
 
-%include <babeltrace2/trace-ir/field-path-const.h>
+%include <babeltrace2/trace-ir/field-path.h>

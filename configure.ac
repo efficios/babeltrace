@@ -563,7 +563,7 @@ AS_IF([test "x$enable_api_doc" = "xyes"],
     DX_XML_FEATURE(OFF)
     DX_PDF_FEATURE(OFF)
     DX_PS_FEATURE(OFF)
-    DX_INIT_DOXYGEN([Babeltrace], [$(srcdir)/Doxyfile], [output])
+    DX_INIT_DOXYGEN([Babeltrace 2], [$(builddir)/Doxyfile], [output])
     AS_IF([test -z "$DX_DOXYGEN"],
 	  [AC_MSG_ERROR([You need doxygen to enable the API documentation])]
     )
@@ -724,8 +724,9 @@ program_transform_name="s&babeltrace2\.bin&babeltrace2&;$program_transform_name"
 AC_SUBST(program_transform_name)
 
 AC_CONFIG_FILES([
-	doc/api/Doxyfile
 	doc/api/Makefile
+	doc/api/libbabeltrace2/Doxyfile
+	doc/api/libbabeltrace2/Makefile
 	doc/bindings/Makefile
 	doc/bindings/python/Makefile
 	doc/contributing-images/Makefile
