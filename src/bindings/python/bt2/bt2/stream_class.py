@@ -23,10 +23,15 @@
 from bt2 import native_bt, object, utils
 from bt2 import field_class as bt2_field_class
 from bt2 import event_class as bt2_event_class
-from bt2 import trace_class as bt2_trace_class
 from bt2 import clock_class as bt2_clock_class
 from bt2 import value as bt2_value
 import collections.abc
+
+
+def _bt2_trace_class():
+    from bt2 import trace_class as bt2_trace_class
+
+    return bt2_trace_class
 
 
 class _StreamClassConst(object._SharedObject, collections.abc.Mapping):
@@ -55,7 +60,7 @@ class _StreamClassConst(object._SharedObject, collections.abc.Mapping):
     )
 
     _event_class_cls = property(lambda _: bt2_event_class._EventClassConst)
-    _trace_class_cls = property(lambda _: bt2_trace_class._TraceClassConst)
+    _trace_class_cls = property(lambda _: _bt2_trace_class()._TraceClassConst)
     _clock_class_cls = property(lambda _: bt2_clock_class._ClockClassConst)
 
     def __getitem__(self, key):
@@ -201,7 +206,7 @@ class _StreamClass(_StreamClassConst):
     )
 
     _event_class_cls = property(lambda s: bt2_event_class._EventClass)
-    _trace_class_cls = property(lambda s: bt2_trace_class._TraceClass)
+    _trace_class_cls = property(lambda s: _bt2_trace_class()._TraceClass)
     _clock_class_cls = property(lambda s: bt2_clock_class._ClockClass)
 
     def create_event_class(

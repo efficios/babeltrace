@@ -23,10 +23,15 @@
 from bt2 import native_bt, utils
 from bt2 import object as bt2_object
 from bt2 import packet as bt2_packet
-from bt2 import trace as bt2_trace
 from bt2 import stream_class as bt2_stream_class
 from bt2 import value as bt2_value
 import bt2
+
+
+def _bt2_trace():
+    from bt2 import trace as bt2_trace
+
+    return bt2_trace
 
 
 class _StreamConst(bt2_object._SharedObject):
@@ -41,7 +46,7 @@ class _StreamConst(bt2_object._SharedObject):
     )
     _borrow_trace_ptr = staticmethod(native_bt.stream_borrow_trace_const)
     _stream_class_pycls = bt2_stream_class._StreamClassConst
-    _trace_pycls = bt2_trace._TraceConst
+    _trace_pycls = property(lambda _: _bt2_trace()._TraceConst)
 
     @property
     def cls(self):
@@ -79,7 +84,7 @@ class _Stream(_StreamConst):
     )
     _borrow_trace_ptr = staticmethod(native_bt.stream_borrow_trace)
     _stream_class_pycls = bt2_stream_class._StreamClass
-    _trace_pycls = bt2_trace._Trace
+    _trace_pycls = property(lambda _: _bt2_trace()._Trace)
 
     def create_packet(self):
         if not self.cls.supports_packets:

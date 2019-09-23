@@ -22,9 +22,14 @@
 
 from bt2 import native_bt, object, utils
 from bt2 import interrupter as bt2_interrupter
-from bt2 import component as bt2_component
 from bt2 import value as bt2_value
 import bt2
+
+
+def _bt2_component():
+    from bt2 import component as bt2_component
+
+    return bt2_component
 
 
 class _QueryExecutorCommon:
@@ -50,11 +55,11 @@ class QueryExecutor(object._SharedObject, _QueryExecutorCommon):
         return self._ptr
 
     def __init__(self, component_class, object, params=None, method_obj=None):
-        if not isinstance(component_class, bt2_component._ComponentClassConst):
+        if not isinstance(component_class, _bt2_component()._ComponentClassConst):
             err = False
 
             try:
-                if not issubclass(component_class, bt2_component._UserComponent):
+                if not issubclass(component_class, _bt2_component()._UserComponent):
                     err = True
             except TypeError:
                 err = True

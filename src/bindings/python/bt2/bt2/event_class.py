@@ -23,7 +23,12 @@
 from bt2 import native_bt, object, utils
 from bt2 import field_class as bt2_field_class
 from bt2 import value as bt2_value
-from bt2 import stream_class as bt2_stream_class
+
+
+def _bt2_stream_class():
+    from bt2 import stream_class as bt2_stream_class
+
+    return bt2_stream_class
 
 
 class EventClassLogLevel:
@@ -65,7 +70,7 @@ class _EventClassConst(object._SharedObject):
     _create_value_from_ptr_and_get_ref = staticmethod(
         bt2_value._create_from_const_ptr_and_get_ref
     )
-    _stream_class_pycls = property(lambda s: bt2_stream_class._StreamClassConst)
+    _stream_class_pycls = property(lambda s: _bt2_stream_class()._StreamClassConst)
 
     @property
     def stream_class(self):
@@ -138,7 +143,7 @@ class _EventClass(_EventClassConst):
     _create_value_from_ptr_and_get_ref = staticmethod(
         bt2_value._create_from_ptr_and_get_ref
     )
-    _stream_class_pycls = property(lambda s: bt2_stream_class._StreamClass)
+    _stream_class_pycls = property(lambda s: _bt2_stream_class()._StreamClass)
 
     def _user_attributes(self, user_attributes):
         value = bt2_value.create_value(user_attributes)
