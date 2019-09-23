@@ -330,7 +330,13 @@ class _IntegerFieldConst(_IntegralFieldConst, _FieldConst):
 
 
 class _IntegerField(_IntegerFieldConst, _IntegralField, _Field):
-    pass
+    def _check_range(self, value):
+        if not (value >= self._lower_bound and value <= self._upper_bound):
+            raise ValueError(
+                "Value {} is outside valid range [{}, {}]".format(
+                    value, self._lower_bound, self._upper_bound
+                )
+            )
 
 
 class _UnsignedIntegerFieldConst(_IntegerFieldConst, _FieldConst):
@@ -341,10 +347,7 @@ class _UnsignedIntegerFieldConst(_IntegerFieldConst, _FieldConst):
         if not isinstance(value, numbers.Integral):
             raise TypeError('expecting an integral number object')
 
-        value = int(value)
-        utils._check_uint64(value)
-
-        return value
+        return int(value)
 
     @property
     def _value(self):
@@ -356,9 +359,20 @@ class _UnsignedIntegerField(_UnsignedIntegerFieldConst, _IntegerField, _Field):
 
     def _set_value(self, value):
         value = self._value_to_int(value)
+
+        self._check_range(value)
+
         native_bt.field_integer_unsigned_set_value(self._ptr, value)
 
     value = property(fset=_set_value)
+
+    @property
+    def _lower_bound(self):
+        return 0
+
+    @property
+    def _upper_bound(self):
+        return (2 ** self.cls.field_value_range) - 1
 
 
 class _SignedIntegerFieldConst(_IntegerFieldConst, _FieldConst):
@@ -369,10 +383,7 @@ class _SignedIntegerFieldConst(_IntegerFieldConst, _FieldConst):
         if not isinstance(value, numbers.Integral):
             raise TypeError('expecting an integral number object')
 
-        value = int(value)
-        utils._check_int64(value)
-
-        return value
+        return int(value)
 
     @property
     def _value(self):
@@ -384,9 +395,20 @@ class _SignedIntegerField(_SignedIntegerFieldConst, _IntegerField, _Field):
 
     def _set_value(self, value):
         value = self._value_to_int(value)
+
+        self._check_range(value)
+
         native_bt.field_integer_signed_set_value(self._ptr, value)
 
     value = property(fset=_set_value)
+
+    @property
+    def _lower_bound(self):
+        return -1 * (2 ** (self.cls.field_value_range - 1))
+
+    @property
+    def _upper_bound(self):
+        return (2 ** (self.cls.field_value_range - 1)) - 1
 
 
 class _RealFieldConst(_NumericFieldConst, numbers.Real):
