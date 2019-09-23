@@ -1284,12 +1284,35 @@ class _TestIntegerFieldCommon(_TestNumericField):
         field.value = (2 ** 53) + 1
         self.assertEqual(field, raw)
 
-    def test_assign_uint_invalid_neg(self):
-        uint_fc = self._tc.create_unsigned_integer_field_class(32)
+    def test_assign_uint_out_of_range(self):
+        uint_fc = self._tc.create_unsigned_integer_field_class(8)
         field = _create_field(self._tc, uint_fc)
 
-        with self.assertRaises(ValueError):
-            field.value = -23
+        with self.assertRaises(ValueError) as ctx:
+            field.value = 256
+        self.assertEqual(
+            str(ctx.exception), 'Value 256 is outside valid range [0, 255]'
+        )
+
+        with self.assertRaises(ValueError) as ctx:
+            field.value = -1
+        self.assertEqual(str(ctx.exception), 'Value -1 is outside valid range [0, 255]')
+
+    def test_assign_int_out_of_range(self):
+        int_fc = self._tc.create_signed_integer_field_class(8)
+        field = _create_field(self._tc, int_fc)
+
+        with self.assertRaises(ValueError) as ctx:
+            field.value = 128
+        self.assertEqual(
+            str(ctx.exception), 'Value 128 is outside valid range [-128, 127]'
+        )
+
+        with self.assertRaises(ValueError) as ctx:
+            field.value = -129
+        self.assertEqual(
+            str(ctx.exception), 'Value -129 is outside valid range [-128, 127]'
+        )
 
     def test_str_op(self):
         self.assertEqual(str(self._def), str(self._def_value))
