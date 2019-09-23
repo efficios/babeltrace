@@ -22,7 +22,12 @@
 
 from bt2 import native_bt, object
 from bt2 import field as bt2_field
-from bt2 import stream as bt2_stream
+
+
+def _bt2_stream():
+    from bt2 import stream as bt2_stream
+
+    return bt2_stream
 
 
 class _PacketConst(object._SharedObject):
@@ -32,7 +37,7 @@ class _PacketConst(object._SharedObject):
     _borrow_context_field_ptr = staticmethod(
         native_bt.packet_borrow_context_field_const
     )
-    _stream_pycls = property(lambda _: bt2_stream._StreamConst)
+    _stream_pycls = property(lambda _: _bt2_stream()._StreamConst)
     _create_field_from_ptr = staticmethod(bt2_field._create_field_from_const_ptr)
 
     @property
@@ -56,5 +61,5 @@ class _PacketConst(object._SharedObject):
 class _Packet(_PacketConst):
     _borrow_stream_ptr = staticmethod(native_bt.packet_borrow_stream)
     _borrow_context_field_ptr = staticmethod(native_bt.packet_borrow_context_field)
-    _stream_pycls = property(lambda _: bt2_stream._Stream)
+    _stream_pycls = property(lambda _: _bt2_stream()._Stream)
     _create_field_from_ptr = staticmethod(bt2_field._create_field_from_ptr)

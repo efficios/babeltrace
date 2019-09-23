@@ -21,7 +21,12 @@
 # THE SOFTWARE.
 
 from bt2 import native_bt, object
-from bt2 import connection as bt2_connection
+
+
+def _bt2_connection():
+    from bt2 import connection as bt2_connection
+
+    return bt2_connection
 
 
 def _create_from_const_ptr_and_get_ref(ptr, port_type):
@@ -68,7 +73,7 @@ class _PortConst(object._SharedObject):
         if conn_ptr is None:
             return
 
-        return bt2_connection._ConnectionConst._create_from_ptr_and_get_ref(conn_ptr)
+        return _bt2_connection()._ConnectionConst._create_from_ptr_and_get_ref(conn_ptr)
 
     @property
     def is_connected(self):
@@ -97,7 +102,7 @@ class _UserComponentPort(_PortConst):
         if conn_ptr is None:
             return
 
-        return bt2_connection._ConnectionConst._create_from_ptr_and_get_ref(conn_ptr)
+        return _bt2_connection()._ConnectionConst._create_from_ptr_and_get_ref(conn_ptr)
 
     @property
     def user_data(self):

@@ -24,11 +24,16 @@ from bt2 import native_bt, object, utils
 import collections.abc
 from bt2 import value as bt2_value
 from bt2 import stream as bt2_stream
-from bt2 import trace_class as bt2_trace_class
 from bt2 import stream_class as bt2_stream_class
 import bt2
 import functools
 import uuid as uuidp
+
+
+def _bt2_trace_class():
+    from bt2 import trace_class as bt2_trace_class
+
+    return bt2_trace_class
 
 
 class _TraceEnvironmentConst(collections.abc.Mapping):
@@ -100,7 +105,7 @@ class _TraceConst(object._SharedObject, collections.abc.Mapping):
         bt2_value._create_from_const_ptr_and_get_ref
     )
     _stream_pycls = property(lambda _: bt2_stream._StreamConst)
-    _trace_class_pycls = property(lambda _: bt2_trace_class._TraceClassConst)
+    _trace_class_pycls = property(lambda _: _bt2_trace_class()._TraceClassConst)
     _trace_env_pycls = property(lambda _: _TraceEnvironmentConst)
 
     def __len__(self):
@@ -183,7 +188,7 @@ class _Trace(_TraceConst):
         bt2_value._create_from_ptr_and_get_ref
     )
     _stream_pycls = property(lambda _: bt2_stream._Stream)
-    _trace_class_pycls = property(lambda _: bt2_trace_class._TraceClass)
+    _trace_class_pycls = property(lambda _: _bt2_trace_class()._TraceClass)
     _trace_env_pycls = property(lambda _: _TraceEnvironment)
 
     def _name(self, name):
