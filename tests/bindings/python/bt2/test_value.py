@@ -1363,10 +1363,6 @@ class RealValueTestCase(_TestNumericValue, unittest.TestCase):
     def test_create_neg(self):
         self.assertEqual(self._fn, self._nv)
 
-    def test_create_from_vint(self):
-        f = bt2.RealValue(self._fp)
-        self.assertEqual(f, self._pv)
-
     def test_create_from_false(self):
         f = bt2.RealValue(False)
         self.assertFalse(f)
