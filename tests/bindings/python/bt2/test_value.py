@@ -1691,10 +1691,6 @@ class ArrayValueTestCase(_TestCopySimple, unittest.TestCase):
         self._def[2] = None
         self.assertIsNone(self._def[2])
 
-    def test_setitem_none(self):
-        self._def[2] = None
-        self.assertIsNone(self._def[2])
-
     def test_setitem_index_wrong_type(self):
         with self._assert_type_error():
             self._def['yes'] = 23
