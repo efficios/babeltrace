@@ -871,6 +871,7 @@ class _VariantFieldClassWithSelectorTestCase:
 
     def test_const_append(self):
         fc_const = self._create_default_const_field_class()
+        str_field_class = self._tc.create_string_field_class()
         with self.assertRaises(AttributeError):
             fc_const.append_option('str', str_field_class, self._ranges1)
 
