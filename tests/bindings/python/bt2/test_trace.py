@@ -91,7 +91,7 @@ class TraceTestCase(unittest.TestCase):
             type(trace.environment['patate']), bt2_value._SignedIntegerValueConst
         )
 
-    def test_env_iter(self):
+    def test_const_env_iter(self):
         trace = utils.get_const_stream_beginning_message().stream.trace
         values = set(trace.environment)
         self.assertEqual(values, {'patate'})
