@@ -853,7 +853,6 @@ class UserMessageIteratorSeekNsFromOriginTestCase(unittest.TestCase):
             nonlocal actual_ns_from_origin
             actual_ns_from_origin = ns_from_origin
 
-        msg = None
         graph = _setup_seek_test(
             MySink, user_seek_ns_from_origin=_user_seek_ns_from_origin
         )
