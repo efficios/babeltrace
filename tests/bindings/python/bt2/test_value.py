@@ -482,10 +482,14 @@ class _TestNumericValue(_TestCopySimple):
         self.assertEqual(str(self._def), str(self._def_value))
 
     def test_eq_none(self):
-        self.assertFalse(self._def == None)
+        # Disable the "comparison to None" warning, as this is precisely what
+        # we want to test here.
+        self.assertFalse(self._def == None)  # noqa: E711
 
     def test_ne_none(self):
-        self.assertTrue(self._def != None)
+        # Disable the "comparison to None" warning, as this is precisely what
+        # we want to test here.
+        self.assertTrue(self._def != None)  # noqa: E711
 
 
 # This is a list of binary operators used for
@@ -1174,10 +1178,14 @@ class BoolValueTestCase(_TestNumericValue, unittest.TestCase):
         self.assertEqual(str(self._def), str(self._def_value))
 
     def test_eq_none(self):
-        self.assertFalse(self._def == None)
+        # Disable the "comparison to None" warning, as this is precisely what
+        # we want to test here.
+        self.assertFalse(self._def == None)  # noqa: E711
 
     def test_ne_none(self):
-        self.assertTrue(self._def != None)
+        # Disable the "comparison to None" warning, as this is precisely what
+        # we want to test here.
+        self.assertTrue(self._def != None)  # noqa: E711
 
     def test_vfalse_eq_false(self):
         self.assertEqual(self._f, False)
