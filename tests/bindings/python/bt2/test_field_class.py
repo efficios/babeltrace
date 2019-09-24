@@ -98,7 +98,7 @@ class _TestFieldClass:
 class BoolFieldClassTestCase(_TestFieldClass, unittest.TestCase):
     @staticmethod
     def _const_value_setter(field):
-        field = False
+        field.value = False
 
     def _create_default_field_class(self, **kwargs):
         tc = get_default_trace_class()
@@ -121,7 +121,7 @@ class BoolFieldClassTestCase(_TestFieldClass, unittest.TestCase):
 class BitArrayFieldClassTestCase(_TestFieldClass, unittest.TestCase):
     @staticmethod
     def _const_value_setter(field):
-        field = []
+        field.value = []
 
     def _create_field_class(self, *args, **kwargs):
         tc = get_default_trace_class()
@@ -212,7 +212,7 @@ class SignedIntegerFieldClassTestCase(
 ):
     @staticmethod
     def _const_value_setter(field):
-        field = -18
+        field.value = -18
 
     def _create_field_class(self, *args, **kwargs):
         tc = get_default_trace_class()
@@ -231,7 +231,7 @@ class UnsignedIntegerFieldClassTestCase(
 ):
     @staticmethod
     def _const_value_setter(field):
-        field = 18
+        field.value = 18
 
     def _create_field_class(self, *args, **kwargs):
         tc = get_default_trace_class()
@@ -248,7 +248,7 @@ class UnsignedIntegerFieldClassTestCase(
 class RealFieldClassTestCase(_TestFieldClass, unittest.TestCase):
     @staticmethod
     def _const_value_setter(field):
-        field = -18
+        field.value = -18
 
     def _create_field_class(self, *args, **kwargs):
         tc = get_default_trace_class()
@@ -399,7 +399,7 @@ class UnsignedEnumerationFieldClassTestCase(
 
     @staticmethod
     def _const_value_setter(field):
-        field = 0
+        field.value = 0
 
     def _create_field_class(self, *args, **kwargs):
         tc = get_default_trace_class()
@@ -425,7 +425,7 @@ class SignedEnumerationFieldClassTestCase(
 
     @staticmethod
     def _const_value_setter(field):
-        field = 0
+        field.value = 0
 
     def _create_field_class(self, *args, **kwargs):
         tc = get_default_trace_class()
@@ -442,7 +442,7 @@ class SignedEnumerationFieldClassTestCase(
 class StringFieldClassTestCase(_TestFieldClass, unittest.TestCase):
     @staticmethod
     def _const_value_setter(field):
-        field = 'chaine'
+        field.value = 'chaine'
 
     def _create_field_class(self, *args, **kwargs):
         tc = get_default_trace_class()
@@ -1180,7 +1180,7 @@ class _ArrayFieldClassTestCase:
 class StaticArrayFieldClassTestCase(_ArrayFieldClassTestCase, unittest.TestCase):
     @staticmethod
     def _const_value_setter(field):
-        field = []
+        field.value = [9] * 45
 
     def _create_array(self):
         return self._tc.create_static_array_field_class(self._elem_fc, 45)
@@ -1219,7 +1219,7 @@ class StaticArrayFieldClassTestCase(_ArrayFieldClassTestCase, unittest.TestCase)
 class DynamicArrayFieldClassTestCase(_ArrayFieldClassTestCase, unittest.TestCase):
     @staticmethod
     def _const_value_setter(field):
-        field = []
+        field.value = []
 
     def _create_array(self):
         return self._tc.create_dynamic_array_field_class(self._elem_fc)
