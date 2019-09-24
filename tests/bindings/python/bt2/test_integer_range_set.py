@@ -42,7 +42,7 @@ class _IntegerRangeTestCase:
         with self.assertRaises(TypeError):
             self._CLS(19.3, self._def_upper)
 
-    def test_create_wrong_type_lower(self):
+    def test_create_wrong_type_upper(self):
         with self.assertRaises(TypeError):
             self._CLS(self._def_lower, 19.3)
 
