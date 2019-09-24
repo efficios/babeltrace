@@ -2167,7 +2167,7 @@ class OptionFieldTestCase(unittest.TestCase):
         self._def.has_field = True
         self.assertTrue(self._def.has_field)
 
-    def test_has_field_prop_true(self):
+    def test_has_field_prop_false(self):
         self._def.has_field = False
         self.assertFalse(self._def.has_field)
 
@@ -2175,7 +2175,7 @@ class OptionFieldTestCase(unittest.TestCase):
         self._def.value = 'allo'
         self.assertTrue(self._def)
 
-    def test_bool_op_true(self):
+    def test_bool_op_false(self):
         self._def.has_field = False
         self.assertFalse(self._def)
 
