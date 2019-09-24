@@ -855,7 +855,11 @@ class _StaticArrayField(_StaticArrayFieldConst, _ArrayField, _Field):
 
     def _set_value(self, values):
         if len(self) != len(values):
-            raise ValueError('expected length of value and array field to match')
+            raise ValueError(
+                'expected length of value ({}) and array field ({}) to match'.format(
+                    len(values), len(self)
+                )
+            )
 
         for index, value in enumerate(values):
             if value is not None:
