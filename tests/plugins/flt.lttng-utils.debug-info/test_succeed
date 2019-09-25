@@ -54,6 +54,57 @@ test_debug_info() {
 	ok $? "Trace '$name' gives the expected output"
 }
 
-plan_tests 1
+test_compare_to_ctf_fs() {
+	# Compare the `sink.text.details` output of a graph with and without a
+	# `flt.lttng-utils.debug-info` component. Both should be identical for
+	# traces without LTTng debugging fields.
+	local test_name=$1
+	shift 1
+	local cli_args=("$@")
+	local debug_info_cli_args=("-c" "flt.lttng-utils.debug-info")
+	local details_cli_args=(
+		"-c" "sink.text.details"
+		"--params" "with-trace-name=false,with-stream-name=false,with-uuid=false"
+	)
+	local actual_stdout=$(mktemp -t test_debug_info_stdout_actual.XXXXXX)
+	local actual_stderr=$(mktemp -t test_debug_info_stderr_actual.XXXXXX)
+	local expected_stdout=$(mktemp -t test_debug_info_stdout_expected.XXXXXX)
+	local expected_stderr=$(mktemp -t test_debug_info_stderr_expected.XXXXXX)
+	local ret=0
+
+	# Create expected files using a graph without a `debug-info` component.
+	bt_cli "$expected_stdout" "$expected_stderr" "${cli_args[@]}" \
+		"${details_cli_args[@]}"
+
+	# Read the same trace with a `debug-info` component in the graph.
+	bt_cli "$actual_stdout" "$actual_stderr" "${cli_args[@]}" \
+		"${details_cli_args[@]}" "${debug_info_cli_args[@]}"
+
+	bt_diff "$expected_stdout" "$actual_stdout"
+	ok $? "Input '$test_name' gives the expected stdout"
+
+	bt_diff "$expected_stderr" "$actual_stderr"
+	ok $? "Input '$test_name' gives the expected stderr"
+
+	rm -f "$actual_stdout"
+	rm -f "$actual_stderr"
+	rm -f "$expected_stdout"
+	rm -f "$expected_stderr"
+}
+
+test_compare_ctf_src_trace() {
+	local trace_name=$1
+	local trace_path="$succeed_trace_dir/$trace_name"
+	local cli_args=("$trace_path")
+
+	diag "Comparing output with and without 'flt.lttng-utils.debug-info' on '$trace_name'"
+	test_compare_to_ctf_fs "src.ctf.fs with $trace_name trace" "${cli_args[@]}"
+}
+
+plan_tests 7
 
 test_debug_info debug-info
+
+test_compare_ctf_src_trace smalltrace
+test_compare_ctf_src_trace 2packets
+test_compare_ctf_src_trace session-rotation
