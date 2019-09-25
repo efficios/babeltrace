@@ -1320,7 +1320,9 @@ class LttngLiveServer:
 
     def _listen(self):
         logging.info('Listening: port={}'.format(self._server_port))
-        self._sock.listen()
+        # Backlog must be present for Python version < 3.5.
+        # 128 is an arbitrary number since we expect only 1 connection anyway.
+        self._sock.listen(128)
         self._conn, viewer_addr = self._sock.accept()
         logging.info(
             'Accepted viewer: addr={}:{}'.format(viewer_addr[0], viewer_addr[1])
