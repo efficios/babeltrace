@@ -368,13 +368,26 @@ class _TraceClass(_TraceClassConst):
             user_attributes,
         )
 
-    def create_real_field_class(self, is_single_precision=False, user_attributes=None):
-        field_class_ptr = native_bt.field_class_real_create(self._ptr)
-        self._check_field_class_create_status(field_class_ptr, 'real')
+    def create_single_precision_real_field_class(self, user_attributes=None):
+        field_class_ptr = native_bt.field_class_real_single_precision_create(self._ptr)
+        self._check_field_class_create_status(field_class_ptr, 'single-precision real')
 
-        field_class = bt2_field_class._RealFieldClass._create_from_ptr(field_class_ptr)
+        field_class = bt2_field_class._SinglePrecisionRealFieldClass._create_from_ptr(
+            field_class_ptr
+        )
 
-        field_class._is_single_precision = is_single_precision
+        self._set_field_class_user_attrs(field_class, user_attributes)
+
+        return field_class
+
+    def create_double_precision_real_field_class(self, user_attributes=None):
+        field_class_ptr = native_bt.field_class_real_double_precision_create(self._ptr)
+        self._check_field_class_create_status(field_class_ptr, 'double-precision real')
+
+        field_class = bt2_field_class._DoublePrecisionRealFieldClass._create_from_ptr(
+            field_class_ptr
+        )
+
         self._set_field_class_user_attrs(field_class, user_attributes)
 
         return field_class

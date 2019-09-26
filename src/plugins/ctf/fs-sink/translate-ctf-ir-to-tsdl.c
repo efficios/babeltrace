@@ -334,7 +334,7 @@ void append_float_field_class(struct ctx *ctx,
 {
 	unsigned int mant_dig, exp_dig;
 
-	if (bt_field_class_real_is_single_precision(fc->base.base.ir_fc)) {
+	if (bt_field_class_get_type(fc->base.base.ir_fc) == BT_FIELD_CLASS_TYPE_SINGLE_PRECISION_REAL) {
 		mant_dig = 24;
 		exp_dig = 8;
 	} else {

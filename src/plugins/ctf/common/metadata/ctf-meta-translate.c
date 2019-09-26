@@ -134,13 +134,12 @@ bt_field_class *ctf_field_class_float_to_ir(struct ctx *ctx,
 {
 	bt_field_class *ir_fc;
 
-	ir_fc = bt_field_class_real_create(ctx->ir_tc);
-	BT_ASSERT(ir_fc);
-
 	if (fc->base.size == 32) {
-		bt_field_class_real_set_is_single_precision(ir_fc,
-			BT_TRUE);
+		ir_fc = bt_field_class_real_single_precision_create(ctx->ir_tc);
+	} else {
+		ir_fc = bt_field_class_real_double_precision_create(ctx->ir_tc);
 	}
+	BT_ASSERT(ir_fc);
 
 	return ir_fc;
 }

@@ -250,12 +250,14 @@ int write_float_field(struct fs_sink_stream *stream,
 		struct fs_sink_ctf_field_class_float *fc, const bt_field *field)
 {
 	int ret;
-	double val = bt_field_real_get_value(field);
+	double val;
 
 	if (fc->base.size == 32) {
+		val = (double) bt_field_real_single_precision_get_value(field);
 		ret = bt_ctfser_write_float32(&stream->ctfser, val,
 			fc->base.base.alignment, BYTE_ORDER);
 	} else {
+		val = bt_field_real_double_precision_get_value(field);
 		ret = bt_ctfser_write_float64(&stream->ctfser, val,
 			fc->base.base.alignment, BYTE_ORDER);
 	}

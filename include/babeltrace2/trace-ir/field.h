@@ -48,7 +48,11 @@ extern void bt_field_integer_signed_set_value(bt_field *field,
 extern void bt_field_integer_unsigned_set_value(bt_field *field,
 		uint64_t value);
 
-extern void bt_field_real_set_value(bt_field *field, double value);
+extern void bt_field_real_single_precision_set_value(bt_field *field,
+		float value);
+
+extern void bt_field_real_double_precision_set_value(bt_field *field,
+		double value);
 
 typedef enum bt_field_string_set_value_status {
 	BT_FIELD_STRING_SET_VALUE_STATUS_MEMORY_ERROR	= __BT_FUNC_STATUS_MEMORY_ERROR,

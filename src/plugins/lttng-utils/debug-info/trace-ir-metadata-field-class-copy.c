@@ -321,20 +321,31 @@ error:
 }
 
 static inline
-int field_class_real_copy(
+int field_class_single_precision_real_copy(
 		struct trace_ir_metadata_maps *md_maps,
 		const bt_field_class *in_field_class,
 		bt_field_class *out_field_class)
 {
-	BT_COMP_LOGD("Copying content of real field class: "
-			"in-fc-addr=%p, out-fc-addr=%p",
-			in_field_class, out_field_class);
+	BT_COMP_LOGD("Copying content of single-precision real field class: "
+		"in-fc-addr=%p, out-fc-addr=%p", in_field_class, out_field_class);
 
-	bt_field_class_real_set_is_single_precision(out_field_class,
-			bt_field_class_real_is_single_precision(in_field_class));
+	BT_COMP_LOGD("Copied content single-precision real field class:"
+		"in-fc-addr=%p, out-fc-addr=%p", in_field_class, out_field_class);
 
-	BT_COMP_LOGD("Copied content real field class: in-fc-addr=%p, "
-			"out-fc-addr=%p", in_field_class, out_field_class);
+	return 0;
+}
+
+static inline
+int field_class_double_precision_real_copy(
+		struct trace_ir_metadata_maps *md_maps,
+		const bt_field_class *in_field_class,
+		bt_field_class *out_field_class)
+{
+	BT_COMP_LOGD("Copying content of double-precision real field class: "
+		"in-fc-addr=%p, out-fc-addr=%p", in_field_class, out_field_class);
+
+	BT_COMP_LOGD("Copied content double-precision real field class:"
+		"in-fc-addr=%p, out-fc-addr=%p", in_field_class, out_field_class);
 
 	return 0;
 }
@@ -673,8 +684,12 @@ bt_field_class *create_field_class_copy_internal(struct trace_ir_metadata_maps *
 		out_field_class = bt_field_class_enumeration_signed_create(
 				md_maps->output_trace_class);
 		break;
-	case BT_FIELD_CLASS_TYPE_REAL:
-		out_field_class = bt_field_class_real_create(
+	case BT_FIELD_CLASS_TYPE_SINGLE_PRECISION_REAL:
+		out_field_class = bt_field_class_real_single_precision_create(
+				md_maps->output_trace_class);
+		break;
+	case BT_FIELD_CLASS_TYPE_DOUBLE_PRECISION_REAL:
+		out_field_class = bt_field_class_real_double_precision_create(
 				md_maps->output_trace_class);
 		break;
 	case BT_FIELD_CLASS_TYPE_STRING:
@@ -871,8 +886,12 @@ int copy_field_class_content_internal(
 		ret = field_class_signed_enumeration_copy(md_maps,
 				in_field_class, out_field_class);
 		break;
-	case BT_FIELD_CLASS_TYPE_REAL:
-		ret = field_class_real_copy(md_maps,
+	case BT_FIELD_CLASS_TYPE_SINGLE_PRECISION_REAL:
+		ret = field_class_single_precision_real_copy(md_maps,
+				in_field_class, out_field_class);
+		break;
+	case BT_FIELD_CLASS_TYPE_DOUBLE_PRECISION_REAL:
+		ret = field_class_double_precision_real_copy(md_maps,
 				in_field_class, out_field_class);
 		break;
 	case BT_FIELD_CLASS_TYPE_STRING:

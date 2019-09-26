@@ -49,6 +49,8 @@ from bt2.field import _IntegerField
 from bt2.field import _UnsignedIntegerField
 from bt2.field import _SignedIntegerField
 from bt2.field import _RealField
+from bt2.field import _SinglePrecisionRealField
+from bt2.field import _DoublePrecisionRealField
 from bt2.field import _EnumerationField
 from bt2.field import _UnsignedEnumerationField
 from bt2.field import _SignedEnumerationField
@@ -65,6 +67,8 @@ from bt2.field import _IntegerFieldConst
 from bt2.field import _UnsignedIntegerFieldConst
 from bt2.field import _SignedIntegerFieldConst
 from bt2.field import _RealFieldConst
+from bt2.field import _SinglePrecisionRealFieldConst
+from bt2.field import _DoublePrecisionRealFieldConst
 from bt2.field import _EnumerationFieldConst
 from bt2.field import _UnsignedEnumerationFieldConst
 from bt2.field import _SignedEnumerationFieldConst

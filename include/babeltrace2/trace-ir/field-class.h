@@ -62,11 +62,11 @@ extern void bt_field_class_integer_set_preferred_display_base(
 		bt_field_class *field_class,
 		bt_field_class_integer_preferred_display_base base);
 
-extern bt_field_class *bt_field_class_real_create(bt_trace_class *trace_class);
+extern bt_field_class *bt_field_class_real_single_precision_create(
+		bt_trace_class *trace_class);
 
-extern void bt_field_class_real_set_is_single_precision(
-		bt_field_class *field_class,
-		bt_bool is_single_precision);
+extern bt_field_class *bt_field_class_real_double_precision_create(
+		bt_trace_class *trace_class);
 
 extern bt_field_class *bt_field_class_enumeration_unsigned_create(
 		bt_trace_class *trace_class);

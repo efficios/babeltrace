@@ -1318,7 +1318,8 @@ int translate_field_class(struct ctx *ctx)
 	case BT_FIELD_CLASS_TYPE_SIGNED_ENUMERATION:
 		ret = translate_integer_field_class(ctx);
 		break;
-	case BT_FIELD_CLASS_TYPE_REAL:
+	case BT_FIELD_CLASS_TYPE_SINGLE_PRECISION_REAL:
+	case BT_FIELD_CLASS_TYPE_DOUBLE_PRECISION_REAL:
 		ret = translate_real_field_class(ctx);
 		break;
 	case BT_FIELD_CLASS_TYPE_STRING:

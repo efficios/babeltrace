@@ -52,7 +52,9 @@ extern int64_t bt_field_integer_signed_get_value(const bt_field *field);
 extern uint64_t bt_field_integer_unsigned_get_value(
 		const bt_field *field);
 
-extern double bt_field_real_get_value(const bt_field *field);
+extern float bt_field_real_single_precision_get_value(const bt_field *field);
+
+extern double bt_field_real_double_precision_get_value(const bt_field *field);
 
 typedef enum bt_field_enumeration_get_mapping_labels_status {
 	BT_FIELD_ENUMERATION_GET_MAPPING_LABELS_STATUS_MEMORY_ERROR	= __BT_FUNC_STATUS_MEMORY_ERROR,

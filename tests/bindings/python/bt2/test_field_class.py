@@ -245,34 +245,46 @@ class UnsignedIntegerFieldClassTestCase(
     _create_default_field_class = _create_field_class
 
 
-class RealFieldClassTestCase(_TestFieldClass, unittest.TestCase):
+class SingleRealFieldClassTestCase(_TestFieldClass, unittest.TestCase):
     @staticmethod
     def _const_value_setter(field):
-        field.value = -18
+        field.value = -18.0
 
     def _create_field_class(self, *args, **kwargs):
         tc = get_default_trace_class()
-        return tc.create_real_field_class(*args, **kwargs)
+        return tc.create_single_precision_real_field_class(*args, **kwargs)
 
     def _create_default_const_field_class(self, *args, **kwargs):
         tc = get_default_trace_class()
-        fc = tc.create_real_field_class(*args, **kwargs)
+        fc = tc.create_single_precision_real_field_class(*args, **kwargs)
         return _create_const_field_class(tc, fc, self._const_value_setter)
 
     _create_default_field_class = _create_field_class
 
     def test_create_default(self):
         fc = self._create_field_class()
-        self.assertFalse(fc.is_single_precision)
         self.assertEqual(len(fc.user_attributes), 0)
 
-    def test_create_is_single_precision(self):
-        fc = self._create_field_class(is_single_precision=True)
-        self.assertTrue(fc.is_single_precision)
 
-    def test_create_invalid_is_single_precision(self):
-        with self.assertRaises(TypeError):
-            self._create_field_class(is_single_precision='hohoho')
+class DoubleRealFieldClassTestCase(_TestFieldClass, unittest.TestCase):
+    @staticmethod
+    def _const_value_setter(field):
+        field.value = -18.0
+
+    def _create_field_class(self, *args, **kwargs):
+        tc = get_default_trace_class()
+        return tc.create_double_precision_real_field_class(*args, **kwargs)
+
+    def _create_default_const_field_class(self, *args, **kwargs):
+        tc = get_default_trace_class()
+        fc = tc.create_double_precision_real_field_class(*args, **kwargs)
+        return _create_const_field_class(tc, fc, self._const_value_setter)
+
+    _create_default_field_class = _create_field_class
+
+    def test_create_default(self):
+        fc = self._create_field_class()
+        self.assertEqual(len(fc.user_attributes), 0)
 
 
 # Converts an _EnumerationFieldClassMapping to a list of ranges:
@@ -522,7 +534,7 @@ class _TestElementContainer:
         self.assertIs(type(field_class), bt2_field_class._SignedIntegerFieldClassConst)
 
     def test_iadd(self):
-        a_field_class = self._tc.create_real_field_class()
+        a_field_class = self._tc.create_single_precision_real_field_class()
         b_field_class = self._tc.create_signed_integer_field_class(17)
         self._append_element_method(self._fc, 'a_float', a_field_class)
         self._append_element_method(self._fc, 'b_int', b_field_class)
@@ -548,7 +560,7 @@ class _TestElementContainer:
         self.assertEqual(self._fc['e_struct'].name, 'e_struct')
 
     def test_const_iadd(self):
-        a_field_class = self._tc.create_real_field_class()
+        a_field_class = self._tc.create_single_precision_real_field_class()
         with self.assertRaises(TypeError):
             self._fc_const += a_field_class
 
@@ -566,7 +578,7 @@ class _TestElementContainer:
     def test_getitem(self):
         a_fc = self._tc.create_signed_integer_field_class(32)
         b_fc = self._tc.create_string_field_class()
-        c_fc = self._tc.create_real_field_class()
+        c_fc = self._tc.create_single_precision_real_field_class()
         self._append_element_method(self._fc, 'a', a_fc)
         self._append_element_method(self._fc, 'b', b_fc)
         self._append_element_method(self._fc, 'c', c_fc)
@@ -589,7 +601,7 @@ class _TestElementContainer:
     def test_iter(self):
         a_fc = self._tc.create_signed_integer_field_class(32)
         b_fc = self._tc.create_string_field_class()
-        c_fc = self._tc.create_real_field_class()
+        c_fc = self._tc.create_single_precision_real_field_class()
         elements = (('a', a_fc), ('b', b_fc), ('c', c_fc))
 
         for elem in elements:
@@ -604,7 +616,7 @@ class _TestElementContainer:
     def test_at_index(self):
         a_fc = self._tc.create_signed_integer_field_class(32)
         b_fc = self._tc.create_string_field_class()
-        c_fc = self._tc.create_real_field_class()
+        c_fc = self._tc.create_single_precision_real_field_class()
         self._append_element_method(self._fc, 'c', c_fc)
         self._append_element_method(self._fc, 'a', a_fc)
         self._append_element_method(self._fc, 'b', b_fc)
@@ -682,21 +694,24 @@ class StructureFieldClassTestCase(
 
         tc = get_default_trace_class()
         fc = tc.create_structure_field_class()
-        member_fc = self._tc.create_real_field_class()
+        member_fc = self._tc.create_single_precision_real_field_class()
         fc.append_member('real', member_fc)
         const_fc = _create_const_field_class(tc, fc, _real_value_setter)
 
         self.assertIs(
-            type(const_fc['real'].field_class), bt2_field_class._RealFieldClassConst
+            type(const_fc['real'].field_class),
+            bt2_field_class._SinglePrecisionRealFieldClassConst,
         )
 
     def test_member_field_class(self):
         tc = get_default_trace_class()
         fc = tc.create_structure_field_class()
-        member_fc = self._tc.create_real_field_class()
+        member_fc = self._tc.create_single_precision_real_field_class()
         fc.append_member('real', member_fc)
 
-        self.assertIs(type(fc['real'].field_class), bt2_field_class._RealFieldClass)
+        self.assertIs(
+            type(fc['real'].field_class), bt2_field_class._SinglePrecisionRealFieldClass
+        )
 
 
 class OptionFieldClassTestCase(_TestFieldClass, unittest.TestCase):
@@ -736,7 +751,7 @@ class OptionFieldClassTestCase(_TestFieldClass, unittest.TestCase):
     def _create_field_class_for_field_path_test(self):
         fc = self._create_default_field_class(selector_fc=self._tag_fc)
 
-        foo_fc = self._tc.create_real_field_class()
+        foo_fc = self._tc.create_single_precision_real_field_class()
         bar_fc = self._tc.create_string_field_class()
         baz_fc = self._tc.create_string_field_class()
 
@@ -948,7 +963,7 @@ class _VariantFieldClassWithSelectorTestCase:
             )
 
     def test_iadd(self):
-        a_field_class = self._tc.create_real_field_class()
+        a_field_class = self._tc.create_single_precision_real_field_class()
         self._fc.append_option('a_float', a_field_class, self._ranges1)
         c_field_class = self._tc.create_string_field_class()
         d_field_class = self._tc.create_signed_enumeration_field_class(
@@ -970,7 +985,7 @@ class _VariantFieldClassWithSelectorTestCase:
 
     def test_const_iadd(self):
         fc_const = self._create_default_const_field_class()
-        a_field_class = self._tc.create_real_field_class()
+        a_field_class = self._tc.create_single_precision_real_field_class()
         with self.assertRaises(TypeError):
             fc_const += [('a_float', a_field_class, self._ranges1)]
 
@@ -988,7 +1003,7 @@ class _VariantFieldClassWithSelectorTestCase:
     def test_getitem(self):
         a_fc = self._tc.create_signed_integer_field_class(32)
         b_fc = self._tc.create_string_field_class()
-        c_fc = self._tc.create_real_field_class()
+        c_fc = self._tc.create_single_precision_real_field_class()
         self._fc.append_option('a', a_fc, self._ranges1)
         self._fc.append_option('b', b_fc, self._ranges2)
         self._fc.append_option('c', c_fc, self._ranges3)
@@ -1026,7 +1041,7 @@ class _VariantFieldClassWithSelectorTestCase:
     def test_iter(self):
         a_fc = self._tc.create_signed_integer_field_class(32)
         b_fc = self._tc.create_string_field_class()
-        c_fc = self._tc.create_real_field_class()
+        c_fc = self._tc.create_single_precision_real_field_class()
         opts = (
             ('a', a_fc, self._ranges1),
             ('b', b_fc, self._ranges2),
@@ -1045,7 +1060,7 @@ class _VariantFieldClassWithSelectorTestCase:
     def test_at_index(self):
         a_fc = self._tc.create_signed_integer_field_class(32)
         b_fc = self._tc.create_string_field_class()
-        c_fc = self._tc.create_real_field_class()
+        c_fc = self._tc.create_single_precision_real_field_class()
         self._fc.append_option('c', c_fc, self._ranges1)
         self._fc.append_option('a', a_fc, self._ranges2)
         self._fc.append_option('b', b_fc, self._ranges3)
@@ -1085,7 +1100,9 @@ class _VariantFieldClassWithSelectorTestCase:
         #     } variant;
         #   } inner_struct[2];
         # };
-        self._fc.append_option('a', self._tc.create_real_field_class(), self._ranges1)
+        self._fc.append_option(
+            'a', self._tc.create_single_precision_real_field_class(), self._ranges1
+        )
         self._fc.append_option(
             'b', self._tc.create_signed_integer_field_class(21), self._ranges2
         )
@@ -1093,7 +1110,7 @@ class _VariantFieldClassWithSelectorTestCase:
             'c', self._tc.create_unsigned_integer_field_class(34), self._ranges3
         )
 
-        foo_fc = self._tc.create_real_field_class()
+        foo_fc = self._tc.create_single_precision_real_field_class()
         bar_fc = self._tc.create_string_field_class()
         baz_fc = self._tc.create_string_field_class()
 
@@ -1255,7 +1272,7 @@ class DynamicArrayFieldClassTestCase(_ArrayFieldClassTestCase, unittest.TestCase
 
         fc = self._tc.create_dynamic_array_field_class(self._elem_fc, self._len_fc)
 
-        foo_fc = self._tc.create_real_field_class()
+        foo_fc = self._tc.create_single_precision_real_field_class()
         bar_fc = self._tc.create_string_field_class()
         baz_fc = self._tc.create_string_field_class()
 

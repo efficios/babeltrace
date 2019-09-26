@@ -43,15 +43,16 @@ typedef enum bt_field_class_type {
 	BT_FIELD_CLASS_TYPE_SIGNED_INTEGER			= 3,
 	BT_FIELD_CLASS_TYPE_UNSIGNED_ENUMERATION		= 4,
 	BT_FIELD_CLASS_TYPE_SIGNED_ENUMERATION			= 5,
-	BT_FIELD_CLASS_TYPE_REAL				= 6,
-	BT_FIELD_CLASS_TYPE_STRING				= 7,
-	BT_FIELD_CLASS_TYPE_STRUCTURE				= 8,
-	BT_FIELD_CLASS_TYPE_STATIC_ARRAY			= 9,
-	BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY			= 10,
-	BT_FIELD_CLASS_TYPE_OPTION				= 11,
-	BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR		= 12,
-	BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_SELECTOR	= 13,
-	BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_SELECTOR	= 14,
+	BT_FIELD_CLASS_TYPE_SINGLE_PRECISION_REAL		= 6,
+	BT_FIELD_CLASS_TYPE_DOUBLE_PRECISION_REAL		= 7,
+	BT_FIELD_CLASS_TYPE_STRING				= 8,
+	BT_FIELD_CLASS_TYPE_STRUCTURE				= 9,
+	BT_FIELD_CLASS_TYPE_STATIC_ARRAY			= 10,
+	BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY			= 11,
+	BT_FIELD_CLASS_TYPE_OPTION				= 12,
+	BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR		= 13,
+	BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_SELECTOR	= 14,
+	BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_SELECTOR	= 15,
 } bt_field_class_type;
 
 typedef enum bt_field_class_integer_preferred_display_base {
@@ -75,9 +76,6 @@ extern uint64_t bt_field_class_integer_get_field_value_range(
 
 extern bt_field_class_integer_preferred_display_base
 bt_field_class_integer_get_preferred_display_base(
-		const bt_field_class *field_class);
-
-extern bt_bool bt_field_class_real_is_single_precision(
 		const bt_field_class *field_class);
 
 extern uint64_t bt_field_class_enumeration_get_mapping_count(

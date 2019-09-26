@@ -244,7 +244,6 @@ struct bt_field_class_enumeration {
 
 struct bt_field_class_real {
 	struct bt_field_class common;
-	bool is_single_precision;
 };
 
 struct bt_field_class_string {

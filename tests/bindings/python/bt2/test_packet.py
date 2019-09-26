@@ -37,7 +37,7 @@ class PacketTestCase(unittest.TestCase):
         sec = tc.create_structure_field_class()
         sec += [
             ('cpu_id', tc.create_signed_integer_field_class(8)),
-            ('stuff', tc.create_real_field_class()),
+            ('stuff', tc.create_double_precision_real_field_class()),
         ]
 
         # packet context
@@ -46,7 +46,7 @@ class PacketTestCase(unittest.TestCase):
             pc = tc.create_structure_field_class()
             pc += [
                 ('something', tc.create_signed_integer_field_class(8)),
-                ('something_else', tc.create_real_field_class()),
+                ('something_else', tc.create_double_precision_real_field_class()),
                 ('events_discarded', tc.create_unsigned_integer_field_class(64)),
                 ('packet_seq_num', tc.create_unsigned_integer_field_class(64)),
             ]

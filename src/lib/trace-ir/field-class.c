@@ -694,20 +694,22 @@ void destroy_real_field_class(struct bt_object *obj)
 	g_free(obj);
 }
 
-struct bt_field_class *bt_field_class_real_create(bt_trace_class *trace_class)
+static
+struct bt_field_class *create_real_field_class(bt_trace_class *trace_class,
+		enum bt_field_class_type type)
 {
 	struct bt_field_class_real *real_fc = NULL;
 
 	BT_ASSERT_PRE_NON_NULL(trace_class, "Trace class");
-	BT_LOGD_STR("Creating default real field class object.");
+	BT_LOGD("Creating default real field class object: type=%s",
+		bt_common_field_class_type_string(type));
 	real_fc = g_new0(struct bt_field_class_real, 1);
 	if (!real_fc) {
 		BT_LIB_LOGE_APPEND_CAUSE("Failed to allocate one real field class.");
 		goto error;
 	}
 
-	if (init_field_class((void *) real_fc, BT_FIELD_CLASS_TYPE_REAL,
-			destroy_real_field_class)) {
+	if (init_field_class((void *) real_fc, type, destroy_real_field_class)) {
 		goto error;
 	}
 
@@ -721,26 +723,18 @@ end:
 	return (void *) real_fc;
 }
 
-bt_bool bt_field_class_real_is_single_precision(const struct bt_field_class *fc)
+struct bt_field_class *bt_field_class_real_single_precision_create(
+	bt_trace_class *trace_class)
 {
-	const struct bt_field_class_real *real_fc = (const void *) fc;
-
-	BT_ASSERT_PRE_DEV_NON_NULL(fc, "Field class");
-	BT_ASSERT_PRE_DEV_FC_HAS_ID(fc, BT_FIELD_CLASS_TYPE_REAL, "Field class");
-	return real_fc->is_single_precision;
+	return create_real_field_class(trace_class,
+		BT_FIELD_CLASS_TYPE_SINGLE_PRECISION_REAL);
 }
 
-void bt_field_class_real_set_is_single_precision(struct bt_field_class *fc,
-		bt_bool is_single_precision)
+struct bt_field_class *bt_field_class_real_double_precision_create(
+	bt_trace_class *trace_class)
 {
-	struct bt_field_class_real *real_fc = (void *) fc;
-
-	BT_ASSERT_PRE_NON_NULL(fc, "Field class");
-	BT_ASSERT_PRE_FC_HAS_ID(fc, BT_FIELD_CLASS_TYPE_REAL, "Field class");
-	BT_ASSERT_PRE_DEV_FC_HOT(fc, "Field class");
-	real_fc->is_single_precision = (bool) is_single_precision;
-	BT_LIB_LOGD("Set real field class's \"is single precision\" property: "
-		"%!+F", fc);
+	return create_real_field_class(trace_class,
+		BT_FIELD_CLASS_TYPE_DOUBLE_PRECISION_REAL);
 }
 
 static

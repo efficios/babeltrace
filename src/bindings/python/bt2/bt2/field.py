@@ -421,17 +421,43 @@ class _RealFieldConst(_NumericFieldConst, numbers.Real):
 
         return float(value)
 
+
+class _SinglePrecisionRealFieldConst(_RealFieldConst):
+    _NAME = 'Const single-precision real'
+
     @property
     def _value(self):
-        return native_bt.field_real_get_value(self._ptr)
+        return native_bt.field_real_single_precision_get_value(self._ptr)
+
+
+class _DoublePrecisionRealFieldConst(_RealFieldConst):
+    _NAME = 'Const double-precision real'
+
+    @property
+    def _value(self):
+        return native_bt.field_real_double_precision_get_value(self._ptr)
 
 
 class _RealField(_RealFieldConst, _NumericField):
     _NAME = 'Real'
 
+
+class _SinglePrecisionRealField(_SinglePrecisionRealFieldConst, _RealField):
+    _NAME = 'Single-precision real'
+
     def _set_value(self, value):
         value = self._value_to_float(value)
-        native_bt.field_real_set_value(self._ptr, value)
+        native_bt.field_real_single_precision_set_value(self._ptr, value)
+
+    value = property(fset=_set_value)
+
+
+class _DoublePrecisionRealField(_DoublePrecisionRealFieldConst, _RealField):
+    _NAME = 'Double-precision real'
+
+    def _set_value(self, value):
+        value = self._value_to_float(value)
+        native_bt.field_real_double_precision_set_value(self._ptr, value)
 
     value = property(fset=_set_value)
 
@@ -901,7 +927,8 @@ _TYPE_ID_TO_CONST_OBJ = {
     native_bt.FIELD_CLASS_TYPE_BIT_ARRAY: _BitArrayFieldConst,
     native_bt.FIELD_CLASS_TYPE_UNSIGNED_INTEGER: _UnsignedIntegerFieldConst,
     native_bt.FIELD_CLASS_TYPE_SIGNED_INTEGER: _SignedIntegerFieldConst,
-    native_bt.FIELD_CLASS_TYPE_REAL: _RealFieldConst,
+    native_bt.FIELD_CLASS_TYPE_SINGLE_PRECISION_REAL: _SinglePrecisionRealFieldConst,
+    native_bt.FIELD_CLASS_TYPE_DOUBLE_PRECISION_REAL: _DoublePrecisionRealFieldConst,
     native_bt.FIELD_CLASS_TYPE_UNSIGNED_ENUMERATION: _UnsignedEnumerationFieldConst,
     native_bt.FIELD_CLASS_TYPE_SIGNED_ENUMERATION: _SignedEnumerationFieldConst,
     native_bt.FIELD_CLASS_TYPE_STRING: _StringFieldConst,
@@ -919,7 +946,8 @@ _TYPE_ID_TO_OBJ = {
     native_bt.FIELD_CLASS_TYPE_BIT_ARRAY: _BitArrayField,
     native_bt.FIELD_CLASS_TYPE_UNSIGNED_INTEGER: _UnsignedIntegerField,
     native_bt.FIELD_CLASS_TYPE_SIGNED_INTEGER: _SignedIntegerField,
-    native_bt.FIELD_CLASS_TYPE_REAL: _RealField,
+    native_bt.FIELD_CLASS_TYPE_SINGLE_PRECISION_REAL: _SinglePrecisionRealField,
+    native_bt.FIELD_CLASS_TYPE_DOUBLE_PRECISION_REAL: _DoublePrecisionRealField,
     native_bt.FIELD_CLASS_TYPE_UNSIGNED_ENUMERATION: _UnsignedEnumerationField,
     native_bt.FIELD_CLASS_TYPE_SIGNED_ENUMERATION: _SignedEnumerationField,
     native_bt.FIELD_CLASS_TYPE_STRING: _StringField,
