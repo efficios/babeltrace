@@ -465,6 +465,13 @@ def _setup_seek_test(
 
 
 class UserMessageIteratorSeekBeginningTestCase(unittest.TestCase):
+    def test_can_seek_beginning_without_seek_beginning(self):
+        with self.assertRaisesRegex(
+            bt2._IncompleteUserClass,
+            "cannot create component class 'MySource': message iterator class implements _user_can_seek_beginning but not _user_seek_beginning",
+        ):
+            _setup_seek_test(SimpleSink, user_can_seek_beginning=lambda: None)
+
     def test_can_seek_beginning(self):
         class MySink(bt2._UserSinkComponent):
             def __init__(self, config, params, obj):
@@ -484,7 +491,9 @@ class UserMessageIteratorSeekBeginningTestCase(unittest.TestCase):
             return input_port_iter_can_seek_beginning
 
         graph = _setup_seek_test(
-            MySink, user_can_seek_beginning=_user_can_seek_beginning
+            MySink,
+            user_can_seek_beginning=_user_can_seek_beginning,
+            user_seek_beginning=lambda: None,
         )
 
         input_port_iter_can_seek_beginning = True
@@ -560,7 +569,9 @@ class UserMessageIteratorSeekBeginningTestCase(unittest.TestCase):
             raise ValueError('moustiquaire')
 
         graph = _setup_seek_test(
-            MySink, user_can_seek_beginning=_user_can_seek_beginning
+            MySink,
+            user_can_seek_beginning=_user_can_seek_beginning,
+            user_seek_beginning=lambda: None,
         )
 
         with self.assertRaises(bt2._Error) as ctx:
@@ -587,7 +598,9 @@ class UserMessageIteratorSeekBeginningTestCase(unittest.TestCase):
             return 'Amqui'
 
         graph = _setup_seek_test(
-            MySink, user_can_seek_beginning=_user_can_seek_beginning
+            MySink,
+            user_can_seek_beginning=_user_can_seek_beginning,
+            user_seek_beginning=lambda: None,
         )
 
         with self.assertRaises(bt2._Error) as ctx:
@@ -663,25 +676,47 @@ class UserMessageIteratorSeekBeginningTestCase(unittest.TestCase):
 
 
 class UserMessageIteratorSeekNsFromOriginTestCase(unittest.TestCase):
+    def test_can_seek_ns_from_origin_without_seek_ns_from_origin(self):
+        # Test the case where:
+        #
+        #   - can_seek_ns_from_origin: Returns True (don't really care, as long
+        #     as it's provided)
+        #   - seek_ns_from_origin provided: No
+        #   - can the iterator seek beginning: Don't care
+        #   - can the iterator seek forward: Don't care
+        for can_seek_ns_from_origin in (False, True):
+            for iter_can_seek_beginning in (False, True):
+                for iter_can_seek_forward in (False, True):
+                    with self.assertRaisesRegex(
+                        bt2._IncompleteUserClass,
+                        "cannot create component class 'MySource': message iterator class implements _user_can_seek_ns_from_origin but not _user_seek_ns_from_origin",
+                    ):
+                        self._can_seek_ns_from_origin_test(
+                            None,
+                            user_can_seek_ns_from_origin_ret_val=True,
+                            user_seek_ns_from_origin_provided=False,
+                            iter_can_seek_beginning=iter_can_seek_beginning,
+                            iter_can_seek_forward=iter_can_seek_forward,
+                        )
+
     def test_can_seek_ns_from_origin_returns_true(self):
         # Test the case where:
         #
         #   - can_seek_ns_from_origin: returns True
-        #   - seek_ns_from_origin provided: Don't care
+        #   - seek_ns_from_origin provided: Yes
         #   - can the iterator seek beginning: Don't care
         #   - can the iterator seek forward: Don't care
         #
         # We expect iter.can_seek_ns_from_origin to return True.
-        for user_seek_ns_from_origin_provided in (False, True):
-            for iter_can_seek_beginning in (False, True):
-                for iter_can_seek_forward in (False, True):
-                    self._can_seek_ns_from_origin_test(
-                        expected_outcome=True,
-                        user_can_seek_ns_from_origin_ret_val=True,
-                        user_seek_ns_from_origin_provided=user_seek_ns_from_origin_provided,
-                        iter_can_seek_beginning=iter_can_seek_beginning,
-                        iter_can_seek_forward=iter_can_seek_forward,
-                    )
+        for iter_can_seek_beginning in (False, True):
+            for iter_can_seek_forward in (False, True):
+                self._can_seek_ns_from_origin_test(
+                    expected_outcome=True,
+                    user_can_seek_ns_from_origin_ret_val=True,
+                    user_seek_ns_from_origin_provided=True,
+                    iter_can_seek_beginning=iter_can_seek_beginning,
+                    iter_can_seek_forward=iter_can_seek_forward,
+                )
 
     def test_can_seek_ns_from_origin_returns_false_can_seek_beginning_forward_seekable(
         self
@@ -689,19 +724,18 @@ class UserMessageIteratorSeekNsFromOriginTestCase(unittest.TestCase):
         # Test the case where:
         #
         #   - can_seek_ns_from_origin: returns False
-        #   - seek_ns_from_origin provided: Don't care
+        #   - seek_ns_from_origin provided: Yes
         #   - can the iterator seek beginning: Yes
         #   - can the iterator seek forward: Yes
         #
         # We expect iter.can_seek_ns_from_origin to return True.
-        for user_seek_ns_from_origin_provided in (False, True):
-            self._can_seek_ns_from_origin_test(
-                expected_outcome=True,
-                user_can_seek_ns_from_origin_ret_val=False,
-                user_seek_ns_from_origin_provided=user_seek_ns_from_origin_provided,
-                iter_can_seek_beginning=True,
-                iter_can_seek_forward=True,
-            )
+        self._can_seek_ns_from_origin_test(
+            expected_outcome=True,
+            user_can_seek_ns_from_origin_ret_val=False,
+            user_seek_ns_from_origin_provided=True,
+            iter_can_seek_beginning=True,
+            iter_can_seek_forward=True,
+        )
 
     def test_can_seek_ns_from_origin_returns_false_can_seek_beginning_not_forward_seekable(
         self
@@ -709,19 +743,18 @@ class UserMessageIteratorSeekNsFromOriginTestCase(unittest.TestCase):
         # Test the case where:
         #
         #   - can_seek_ns_from_origin: returns False
-        #   - seek_ns_from_origin provided: Don't care
+        #   - seek_ns_from_origin provided: Yes
         #   - can the iterator seek beginning: Yes
         #   - can the iterator seek forward: No
         #
         # We expect iter.can_seek_ns_from_origin to return False.
-        for user_seek_ns_from_origin_provided in (False, True):
-            self._can_seek_ns_from_origin_test(
-                expected_outcome=False,
-                user_can_seek_ns_from_origin_ret_val=False,
-                user_seek_ns_from_origin_provided=user_seek_ns_from_origin_provided,
-                iter_can_seek_beginning=True,
-                iter_can_seek_forward=False,
-            )
+        self._can_seek_ns_from_origin_test(
+            expected_outcome=False,
+            user_can_seek_ns_from_origin_ret_val=False,
+            user_seek_ns_from_origin_provided=True,
+            iter_can_seek_beginning=True,
+            iter_can_seek_forward=False,
+        )
 
     def test_can_seek_ns_from_origin_returns_false_cant_seek_beginning_forward_seekable(
         self
@@ -729,16 +762,15 @@ class UserMessageIteratorSeekNsFromOriginTestCase(unittest.TestCase):
         # Test the case where:
         #
         #   - can_seek_ns_from_origin: returns False
-        #   - seek_ns_from_origin provided: Don't care
+        #   - seek_ns_from_origin provided: Yes
         #   - can the iterator seek beginning: No
         #   - can the iterator seek forward: Yes
         #
         # We expect iter.can_seek_ns_from_origin to return False.
-        # for user_seek_ns_from_origin_provided in (False, True):
         self._can_seek_ns_from_origin_test(
             expected_outcome=False,
             user_can_seek_ns_from_origin_ret_val=False,
-            user_seek_ns_from_origin_provided=False,
+            user_seek_ns_from_origin_provided=True,
             iter_can_seek_beginning=False,
             iter_can_seek_forward=True,
         )
@@ -749,19 +781,18 @@ class UserMessageIteratorSeekNsFromOriginTestCase(unittest.TestCase):
         # Test the case where:
         #
         #   - can_seek_ns_from_origin: returns False
-        #   - seek_ns_from_origin provided: Don't care
+        #   - seek_ns_from_origin provided: Yes
         #   - can the iterator seek beginning: No
         #   - can the iterator seek forward: No
         #
         # We expect iter.can_seek_ns_from_origin to return False.
-        for user_seek_ns_from_origin_provided in (False, True):
-            self._can_seek_ns_from_origin_test(
-                expected_outcome=False,
-                user_can_seek_ns_from_origin_ret_val=False,
-                user_seek_ns_from_origin_provided=user_seek_ns_from_origin_provided,
-                iter_can_seek_beginning=False,
-                iter_can_seek_forward=False,
-            )
+        self._can_seek_ns_from_origin_test(
+            expected_outcome=False,
+            user_can_seek_ns_from_origin_ret_val=False,
+            user_seek_ns_from_origin_provided=True,
+            iter_can_seek_beginning=False,
+            iter_can_seek_forward=False,
+        )
 
     def test_no_can_seek_ns_from_origin_seek_ns_from_origin(self):
         # Test the case where:
@@ -942,7 +973,9 @@ class UserMessageIteratorSeekNsFromOriginTestCase(unittest.TestCase):
             raise ValueError('Joutel')
 
         graph = _setup_seek_test(
-            MySink, user_can_seek_ns_from_origin=_user_can_seek_ns_from_origin
+            MySink,
+            user_can_seek_ns_from_origin=_user_can_seek_ns_from_origin,
+            user_seek_ns_from_origin=lambda: None,
         )
 
         with self.assertRaises(bt2._Error) as ctx:
@@ -969,7 +1002,9 @@ class UserMessageIteratorSeekNsFromOriginTestCase(unittest.TestCase):
             return 'Nitchequon'
 
         graph = _setup_seek_test(
-            MySink, user_can_seek_ns_from_origin=_user_can_seek_ns_from_origin
+            MySink,
+            user_can_seek_ns_from_origin=_user_can_seek_ns_from_origin,
+            user_seek_ns_from_origin=lambda: None,
         )
 
         with self.assertRaises(bt2._Error) as ctx:

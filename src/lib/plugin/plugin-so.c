@@ -959,12 +959,13 @@ int bt_plugin_so_init(struct bt_plugin *plugin,
 			}
 
 			if (cc_full_descr->methods.source.msg_iter_seek_ns_from_origin) {
-				ret = bt_component_class_source_set_message_iterator_seek_ns_from_origin_method(
+				ret = bt_component_class_source_set_message_iterator_seek_ns_from_origin_methods(
 					src_comp_class,
-					cc_full_descr->methods.source.msg_iter_seek_ns_from_origin);
+					cc_full_descr->methods.source.msg_iter_seek_ns_from_origin,
+					cc_full_descr->methods.source.msg_iter_can_seek_ns_from_origin);
 				if (ret) {
 					BT_LIB_LOGE_APPEND_CAUSE(
-						"Cannot set source component class's message iterator \"seek nanoseconds from origin\" method.");
+						"Cannot set source component class's message iterator \"seek nanoseconds from origin\" methods.");
 					status = BT_FUNC_STATUS_MEMORY_ERROR;
 					BT_OBJECT_PUT_REF_AND_RESET(src_comp_class);
 					goto end;
@@ -972,38 +973,13 @@ int bt_plugin_so_init(struct bt_plugin *plugin,
 			}
 
 			if (cc_full_descr->methods.source.msg_iter_seek_beginning) {
-				ret = bt_component_class_source_set_message_iterator_seek_beginning_method(
+				ret = bt_component_class_source_set_message_iterator_seek_beginning_methods(
 					src_comp_class,
-					cc_full_descr->methods.source.msg_iter_seek_beginning);
-				if (ret) {
-					BT_LIB_LOGE_APPEND_CAUSE(
-						"Cannot set source component class's message iterator \"seek beginning\" method.");
-					status = BT_FUNC_STATUS_MEMORY_ERROR;
-					BT_OBJECT_PUT_REF_AND_RESET(src_comp_class);
-					goto end;
-				}
-			}
-
-			if (cc_full_descr->methods.source.msg_iter_can_seek_ns_from_origin) {
-				ret = bt_component_class_source_set_message_iterator_can_seek_ns_from_origin_method(
-					src_comp_class,
-					cc_full_descr->methods.source.msg_iter_can_seek_ns_from_origin);
-				if (ret) {
-					BT_LIB_LOGE_APPEND_CAUSE(
-						"Cannot set source component class's message iterator \"can seek nanoseconds from origin\" method.");
-					status = BT_FUNC_STATUS_MEMORY_ERROR;
-					BT_OBJECT_PUT_REF_AND_RESET(src_comp_class);
-					goto end;
-				}
-			}
-
-			if (cc_full_descr->methods.source.msg_iter_can_seek_beginning) {
-				ret = bt_component_class_source_set_message_iterator_can_seek_beginning_method(
-					src_comp_class,
+					cc_full_descr->methods.source.msg_iter_seek_beginning,
 					cc_full_descr->methods.source.msg_iter_can_seek_beginning);
 				if (ret) {
 					BT_LIB_LOGE_APPEND_CAUSE(
-						"Cannot set source component class's message iterator \"can seek beginning\" method.");
+						"Cannot set source component class's message iterator \"seek beginning\" methods.");
 					status = BT_FUNC_STATUS_MEMORY_ERROR;
 					BT_OBJECT_PUT_REF_AND_RESET(src_comp_class);
 					goto end;
@@ -1117,12 +1093,13 @@ int bt_plugin_so_init(struct bt_plugin *plugin,
 			}
 
 			if (cc_full_descr->methods.filter.msg_iter_seek_ns_from_origin) {
-				ret = bt_component_class_filter_set_message_iterator_seek_ns_from_origin_method(
+				ret = bt_component_class_filter_set_message_iterator_seek_ns_from_origin_methods(
 					flt_comp_class,
-					cc_full_descr->methods.filter.msg_iter_seek_ns_from_origin);
+					cc_full_descr->methods.filter.msg_iter_seek_ns_from_origin,
+					cc_full_descr->methods.filter.msg_iter_can_seek_ns_from_origin);
 				if (ret) {
 					BT_LIB_LOGE_APPEND_CAUSE(
-						"Cannot set filter component class's message iterator \"seek nanoseconds from origin\" method.");
+						"Cannot set filter component class's message iterator \"seek nanoseconds from origin\" methods.");
 					status = BT_FUNC_STATUS_MEMORY_ERROR;
 					BT_OBJECT_PUT_REF_AND_RESET(flt_comp_class);
 					goto end;
@@ -1130,38 +1107,13 @@ int bt_plugin_so_init(struct bt_plugin *plugin,
 			}
 
 			if (cc_full_descr->methods.filter.msg_iter_seek_beginning) {
-				ret = bt_component_class_filter_set_message_iterator_seek_beginning_method(
+				ret = bt_component_class_filter_set_message_iterator_seek_beginning_methods(
 					flt_comp_class,
-					cc_full_descr->methods.filter.msg_iter_seek_beginning);
-				if (ret) {
-					BT_LIB_LOGE_APPEND_CAUSE(
-						"Cannot set filter component class's message iterator \"seek beginning\" method.");
-					status = BT_FUNC_STATUS_MEMORY_ERROR;
-					BT_OBJECT_PUT_REF_AND_RESET(flt_comp_class);
-					goto end;
-				}
-			}
-
-			if (cc_full_descr->methods.filter.msg_iter_can_seek_ns_from_origin) {
-				ret = bt_component_class_filter_set_message_iterator_can_seek_ns_from_origin_method(
-					flt_comp_class,
-					cc_full_descr->methods.filter.msg_iter_can_seek_ns_from_origin);
-				if (ret) {
-					BT_LIB_LOGE_APPEND_CAUSE(
-						"Cannot set filter component class's message iterator \"can seek nanoseconds from origin\" method.");
-					status = BT_FUNC_STATUS_MEMORY_ERROR;
-					BT_OBJECT_PUT_REF_AND_RESET(flt_comp_class);
-					goto end;
-				}
-			}
-
-			if (cc_full_descr->methods.filter.msg_iter_can_seek_beginning) {
-				ret = bt_component_class_filter_set_message_iterator_can_seek_beginning_method(
-					flt_comp_class,
+					cc_full_descr->methods.filter.msg_iter_seek_beginning,
 					cc_full_descr->methods.filter.msg_iter_can_seek_beginning);
 				if (ret) {
 					BT_LIB_LOGE_APPEND_CAUSE(
-						"Cannot set filter component class's message iterator \"can seek beginning\" method.");
+						"Cannot set filter component class's message iterator \"seek beginning\" methods.");
 					status = BT_FUNC_STATUS_MEMORY_ERROR;
 					BT_OBJECT_PUT_REF_AND_RESET(flt_comp_class);
 					goto end;

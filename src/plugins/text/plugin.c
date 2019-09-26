@@ -57,10 +57,8 @@ BT_PLUGIN_SOURCE_COMPONENT_CLASS_MESSAGE_ITERATOR_INITIALIZE_METHOD(dmesg,
 	dmesg_msg_iter_init);
 BT_PLUGIN_SOURCE_COMPONENT_CLASS_MESSAGE_ITERATOR_FINALIZE_METHOD(dmesg,
 	dmesg_msg_iter_finalize);
-BT_PLUGIN_SOURCE_COMPONENT_CLASS_MESSAGE_ITERATOR_SEEK_BEGINNING_METHOD(dmesg,
-	dmesg_msg_iter_seek_beginning);
-BT_PLUGIN_SOURCE_COMPONENT_CLASS_MESSAGE_ITERATOR_CAN_SEEK_BEGINNING_METHOD(dmesg,
-	dmesg_msg_iter_can_seek_beginning);
+BT_PLUGIN_SOURCE_COMPONENT_CLASS_MESSAGE_ITERATOR_SEEK_BEGINNING_METHODS(dmesg,
+	dmesg_msg_iter_seek_beginning, dmesg_msg_iter_can_seek_beginning);
 
 /* details sink */
 BT_PLUGIN_SINK_COMPONENT_CLASS(details, details_consume);

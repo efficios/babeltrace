@@ -556,113 +556,65 @@ bt_component_class_filter_set_message_iterator_finalize_method(
 }
 
 enum bt_component_class_set_method_status
-bt_component_class_filter_set_message_iterator_seek_ns_from_origin_method(
+bt_component_class_filter_set_message_iterator_seek_ns_from_origin_methods(
 		struct bt_component_class_filter *comp_cls,
-		bt_component_class_filter_message_iterator_seek_ns_from_origin_method method)
+		bt_component_class_filter_message_iterator_seek_ns_from_origin_method seek_method,
+		bt_component_class_filter_message_iterator_can_seek_ns_from_origin_method can_seek_method)
 {
 	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
-	BT_ASSERT_PRE_NON_NULL(method, "Method");
+	BT_ASSERT_PRE_NON_NULL(seek_method, "Seek method");
 	BT_ASSERT_PRE_DEV_COMP_CLS_HOT(comp_cls);
-	comp_cls->methods.msg_iter_seek_ns_from_origin = method;
+	comp_cls->methods.msg_iter_seek_ns_from_origin = seek_method;
+	comp_cls->methods.msg_iter_can_seek_ns_from_origin = can_seek_method;
 	BT_LIB_LOGD("Set filter component class's message iterator \"seek nanoseconds from origin\" method"
 		": %!+C", comp_cls);
 	return BT_FUNC_STATUS_OK;
 }
 
 enum bt_component_class_set_method_status
-bt_component_class_source_set_message_iterator_seek_ns_from_origin_method(
+bt_component_class_source_set_message_iterator_seek_ns_from_origin_methods(
 		struct bt_component_class_source *comp_cls,
-		bt_component_class_source_message_iterator_seek_ns_from_origin_method method)
+		bt_component_class_source_message_iterator_seek_ns_from_origin_method seek_method,
+		bt_component_class_source_message_iterator_can_seek_ns_from_origin_method can_seek_method)
 {
 	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
-	BT_ASSERT_PRE_NON_NULL(method, "Method");
+	BT_ASSERT_PRE_NON_NULL(seek_method, "Seek method");
 	BT_ASSERT_PRE_DEV_COMP_CLS_HOT(comp_cls);
-	comp_cls->methods.msg_iter_seek_ns_from_origin = method;
-	BT_LIB_LOGD("Set source component class's message iterator \"seek nanoseconds from origin\" method"
+	comp_cls->methods.msg_iter_seek_ns_from_origin = seek_method;
+	comp_cls->methods.msg_iter_can_seek_ns_from_origin = can_seek_method;
+	BT_LIB_LOGD("Set source component class's message iterator \"seek nanoseconds from origin\" methods"
 		": %!+C", comp_cls);
 	return BT_FUNC_STATUS_OK;
 }
 
 enum bt_component_class_set_method_status
-bt_component_class_filter_set_message_iterator_seek_beginning_method(
+bt_component_class_filter_set_message_iterator_seek_beginning_methods(
 		struct bt_component_class_filter *comp_cls,
-		bt_component_class_filter_message_iterator_seek_beginning_method method)
+		bt_component_class_filter_message_iterator_seek_beginning_method seek_method,
+		bt_component_class_filter_message_iterator_can_seek_beginning_method can_seek_method)
 {
 	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
-	BT_ASSERT_PRE_NON_NULL(method, "Method");
+	BT_ASSERT_PRE_NON_NULL(seek_method, "Seek method");
 	BT_ASSERT_PRE_DEV_COMP_CLS_HOT(comp_cls);
-	comp_cls->methods.msg_iter_seek_beginning = method;
-	BT_LIB_LOGD("Set filter component class's message iterator \"seek beginning\" method"
+	comp_cls->methods.msg_iter_seek_beginning = seek_method;
+	comp_cls->methods.msg_iter_can_seek_beginning = can_seek_method;
+	BT_LIB_LOGD("Set filter component class's message iterator \"seek beginning\" methods"
 		": %!+C", comp_cls);
 	return BT_FUNC_STATUS_OK;
 }
 
 enum bt_component_class_set_method_status
-bt_component_class_source_set_message_iterator_seek_beginning_method(
+bt_component_class_source_set_message_iterator_seek_beginning_methods(
 		struct bt_component_class_source *comp_cls,
-		bt_component_class_source_message_iterator_seek_beginning_method method)
+		bt_component_class_source_message_iterator_seek_beginning_method seek_method,
+		bt_component_class_source_message_iterator_can_seek_beginning_method can_seek_method)
 {
 	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
-	BT_ASSERT_PRE_NON_NULL(method, "Method");
+	BT_ASSERT_PRE_NON_NULL(seek_method, "Seek method");
 	BT_ASSERT_PRE_DEV_COMP_CLS_HOT(comp_cls);
-	comp_cls->methods.msg_iter_seek_beginning = method;
-	BT_LIB_LOGD("Set source component class's message iterator \"seek beginning\" method"
-		": %!+C", comp_cls);
-	return BT_FUNC_STATUS_OK;
-}
-
-enum bt_component_class_set_method_status
-bt_component_class_filter_set_message_iterator_can_seek_beginning_method(
-		struct bt_component_class_filter *comp_cls,
-		bt_component_class_filter_message_iterator_can_seek_beginning_method method)
-{
-	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
-	BT_ASSERT_PRE_NON_NULL(method, "Method");
-	BT_ASSERT_PRE_DEV_COMP_CLS_HOT(comp_cls);
-	comp_cls->methods.msg_iter_can_seek_beginning = method;
-	BT_LIB_LOGD("Set filter component class's message iterator \"can seek beginning\" method"
-		": %!+C", comp_cls);
-	return BT_FUNC_STATUS_OK;
-}
-
-enum bt_component_class_set_method_status
-bt_component_class_source_set_message_iterator_can_seek_beginning_method(
-		struct bt_component_class_source *comp_cls,
-		bt_component_class_source_message_iterator_can_seek_beginning_method method)
-{
-	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
-	BT_ASSERT_PRE_NON_NULL(method, "Method");
-	BT_ASSERT_PRE_DEV_COMP_CLS_HOT(comp_cls);
-	comp_cls->methods.msg_iter_can_seek_beginning = method;
-	BT_LIB_LOGD("Set source component class's message iterator \"can seek beginning\" method"
-		": %!+C", comp_cls);
-	return BT_FUNC_STATUS_OK;
-}
-
-enum bt_component_class_set_method_status
-bt_component_class_filter_set_message_iterator_can_seek_ns_from_origin_method(
-		struct bt_component_class_filter *comp_cls,
-		bt_component_class_filter_message_iterator_can_seek_ns_from_origin_method method)
-{
-	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
-	BT_ASSERT_PRE_NON_NULL(method, "Method");
-	BT_ASSERT_PRE_DEV_COMP_CLS_HOT(comp_cls);
-	comp_cls->methods.msg_iter_can_seek_ns_from_origin = method;
-	BT_LIB_LOGD("Set filter component class's message iterator \"can seek nanoseconds from origin\" method"
-		": %!+C", comp_cls);
-	return BT_FUNC_STATUS_OK;
-}
-
-enum bt_component_class_set_method_status
-bt_component_class_source_set_message_iterator_can_seek_ns_from_origin_method(
-		struct bt_component_class_source *comp_cls,
-		bt_component_class_source_message_iterator_can_seek_ns_from_origin_method method)
-{
-	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
-	BT_ASSERT_PRE_NON_NULL(method, "Method");
-	BT_ASSERT_PRE_DEV_COMP_CLS_HOT(comp_cls);
-	comp_cls->methods.msg_iter_can_seek_ns_from_origin = method;
-	BT_LIB_LOGD("Set source component class's message iterator \"can seek nanoseconds from origin\" method"
+	comp_cls->methods.msg_iter_seek_beginning = seek_method;
+	comp_cls->methods.msg_iter_can_seek_beginning = can_seek_method;
+	BT_LIB_LOGD("Set source component class's message iterator \"seek beginning\" methods"
 		": %!+C", comp_cls);
 	return BT_FUNC_STATUS_OK;
 }

@@ -553,6 +553,24 @@ class _UserComponentType(type):
                 )
             )
 
+        if hasattr(iter_cls, '_user_can_seek_ns_from_origin') and not hasattr(
+            iter_cls, '_user_seek_ns_from_origin'
+        ):
+            raise bt2._IncompleteUserClass(
+                "cannot create component class '{}': message iterator class implements _user_can_seek_ns_from_origin but not _user_seek_ns_from_origin".format(
+                    cls.__name__
+                )
+            )
+
+        if hasattr(iter_cls, '_user_can_seek_beginning') and not hasattr(
+            iter_cls, '_user_seek_beginning'
+        ):
+            raise bt2._IncompleteUserClass(
+                "cannot create component class '{}': message iterator class implements _user_can_seek_beginning but not _user_seek_beginning".format(
+                    cls.__name__
+                )
+            )
+
         cls._iter_cls = iter_cls
 
     @property

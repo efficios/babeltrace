@@ -1267,16 +1267,11 @@ bt_component_class_source *bt_bt2_component_class_source_create(
 	BT_ASSERT(ret == 0);
 	ret = bt_component_class_source_set_finalize_method(component_class_source, component_class_source_finalize);
 	BT_ASSERT(ret == 0);
-	ret = bt_component_class_source_set_message_iterator_can_seek_beginning_method(component_class_source,
-		component_class_can_seek_beginning);
-	BT_ASSERT(ret == 0);
-	ret = bt_component_class_source_set_message_iterator_seek_beginning_method(component_class_source,
-		component_class_seek_beginning);
-	ret = bt_component_class_source_set_message_iterator_can_seek_ns_from_origin_method(
-		component_class_source, component_class_can_seek_ns_from_origin);
-	BT_ASSERT(ret == 0);
-	ret = bt_component_class_source_set_message_iterator_seek_ns_from_origin_method(
-		component_class_source, component_class_seek_ns_from_origin);
+	ret = bt_component_class_source_set_message_iterator_seek_beginning_methods(component_class_source,
+		component_class_seek_beginning, component_class_can_seek_beginning);
+	ret = bt_component_class_source_set_message_iterator_seek_ns_from_origin_methods(
+		component_class_source, component_class_seek_ns_from_origin,
+		component_class_can_seek_ns_from_origin);
 	BT_ASSERT(ret == 0);
 	ret = bt_component_class_source_set_output_port_connected_method(component_class_source,
 		component_class_source_output_port_connected);
@@ -1324,17 +1319,12 @@ bt_component_class_filter *bt_bt2_component_class_filter_create(
 	BT_ASSERT(ret == 0);
 	ret = bt_component_class_filter_set_finalize_method (component_class_filter, component_class_filter_finalize);
 	BT_ASSERT(ret == 0);
-	ret = bt_component_class_filter_set_message_iterator_can_seek_beginning_method(component_class_filter,
-		component_class_can_seek_beginning);
+	ret = bt_component_class_filter_set_message_iterator_seek_beginning_methods(component_class_filter,
+		component_class_seek_beginning, component_class_can_seek_beginning);
 	BT_ASSERT(ret == 0);
-	ret = bt_component_class_filter_set_message_iterator_seek_beginning_method(component_class_filter,
-		component_class_seek_beginning);
-	BT_ASSERT(ret == 0);
-	ret = bt_component_class_filter_set_message_iterator_can_seek_ns_from_origin_method(
-		component_class_filter, component_class_can_seek_ns_from_origin);
-	BT_ASSERT(ret == 0);
-	ret = bt_component_class_filter_set_message_iterator_seek_ns_from_origin_method(
-		component_class_filter, component_class_seek_ns_from_origin);
+	ret = bt_component_class_filter_set_message_iterator_seek_ns_from_origin_methods(
+		component_class_filter, component_class_seek_ns_from_origin,
+		component_class_can_seek_ns_from_origin);
 	ret = bt_component_class_filter_set_input_port_connected_method(component_class_filter,
 		component_class_filter_input_port_connected);
    	BT_ASSERT(ret == 0);
