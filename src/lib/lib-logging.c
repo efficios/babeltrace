@@ -207,14 +207,6 @@ static inline void format_field_class(char **buf_ch, bool extended,
 		format_integer_field_class(buf_ch, extended, prefix, field_class);
 		break;
 	}
-	case BT_FIELD_CLASS_TYPE_REAL:
-	{
-		const struct bt_field_class_real *real_fc = (void *) field_class;
-
-		BUF_APPEND(", %sis-single-precision=%d",
-			PRFIELD(real_fc->is_single_precision));
-		break;
-	}
 	case BT_FIELD_CLASS_TYPE_UNSIGNED_ENUMERATION:
 	case BT_FIELD_CLASS_TYPE_SIGNED_ENUMERATION:
 	{
@@ -406,7 +398,8 @@ static inline void format_field(char **buf_ch, bool extended,
 		format_field_integer_extended(buf_ch, prefix, field);
 		break;
 	}
-	case BT_FIELD_CLASS_TYPE_REAL:
+	case BT_FIELD_CLASS_TYPE_SINGLE_PRECISION_REAL:
+	case BT_FIELD_CLASS_TYPE_DOUBLE_PRECISION_REAL:
 	{
 		const struct bt_field_real *real_field = (const void *) field;
 

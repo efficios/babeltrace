@@ -1016,11 +1016,17 @@ int print_field(struct pretty_component *pretty,
 	case BT_FIELD_CLASS_TYPE_UNSIGNED_INTEGER:
 	case BT_FIELD_CLASS_TYPE_SIGNED_INTEGER:
 		return print_integer(pretty, field);
-	case BT_FIELD_CLASS_TYPE_REAL:
+	case BT_FIELD_CLASS_TYPE_SINGLE_PRECISION_REAL:
+	case BT_FIELD_CLASS_TYPE_DOUBLE_PRECISION_REAL:
 	{
 		double v;
 
-		v = bt_field_real_get_value(field);
+		if (class_id == BT_FIELD_CLASS_TYPE_SINGLE_PRECISION_REAL) {
+			v = (float) bt_field_real_single_precision_get_value(field);
+		} else {
+			v = bt_field_real_double_precision_get_value(field);
+		}
+
 		if (pretty->use_colors) {
 			bt_common_g_string_append(pretty->string, COLOR_NUMBER_VALUE);
 		}

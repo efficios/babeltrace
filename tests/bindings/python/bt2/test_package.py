@@ -99,6 +99,12 @@ class PackageTestCase(unittest.TestCase):
     def test_has__RealField(self):
         self._assert_in_bt2('_RealField')
 
+    def test_has__SinglePrecisionRealField(self):
+        self._assert_in_bt2('_SinglePrecisionRealField')
+
+    def test_has__DoublePrecisionRealField(self):
+        self._assert_in_bt2('_DoublePrecisionRealField')
+
     def test_has__EnumerationField(self):
         self._assert_in_bt2('_EnumerationField')
 
@@ -146,6 +152,12 @@ class PackageTestCase(unittest.TestCase):
 
     def test_has__RealFieldConst(self):
         self._assert_in_bt2('_RealFieldConst')
+
+    def test_has__SinglePrecisionRealFieldConst(self):
+        self._assert_in_bt2('_SinglePrecisionRealFieldConst')
+
+    def test_has__DoublePrecisionRealFieldConst(self):
+        self._assert_in_bt2('_DoublePrecisionRealFieldConst')
 
     def test_has__EnumerationFieldConst(self):
         self._assert_in_bt2('_EnumerationFieldConst')

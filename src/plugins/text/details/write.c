@@ -931,8 +931,11 @@ void write_field_class(struct details_write_ctx *ctx, const bt_field_class *fc)
 	case BT_FIELD_CLASS_TYPE_SIGNED_ENUMERATION:
 		type = "Signed enumeration";
 		break;
-	case BT_FIELD_CLASS_TYPE_REAL:
-		type = "Real";
+	case BT_FIELD_CLASS_TYPE_SINGLE_PRECISION_REAL:
+		type = "Single-precision real";
+		break;
+	case BT_FIELD_CLASS_TYPE_DOUBLE_PRECISION_REAL:
+		type = "Double-precision real";
 		break;
 	case BT_FIELD_CLASS_TYPE_STRING:
 		type = "String";
@@ -986,14 +989,6 @@ void write_field_class(struct details_write_ctx *ctx, const bt_field_class *fc)
 			plural(mapping_count));
 		break;
 	}
-	case BT_FIELD_CLASS_TYPE_REAL:
-		if (bt_field_class_real_is_single_precision(fc)) {
-			g_string_append(ctx->str, " (Single precision)");
-		} else {
-			g_string_append(ctx->str, " (Double precision)");
-		}
-
-		break;
 	case BT_FIELD_CLASS_TYPE_STRUCTURE:
 	{
 		uint64_t member_count =
@@ -1854,9 +1849,13 @@ void write_field(struct details_write_ctx *ctx, const bt_field *field,
 
 		break;
 	}
-	case BT_FIELD_CLASS_TYPE_REAL:
+	case BT_FIELD_CLASS_TYPE_SINGLE_PRECISION_REAL:
 		write_sp(ctx);
-		write_float_prop_value(ctx, bt_field_real_get_value(field));
+		write_float_prop_value(ctx, bt_field_real_single_precision_get_value(field));
+		break;
+	case BT_FIELD_CLASS_TYPE_DOUBLE_PRECISION_REAL:
+		write_sp(ctx);
+		write_float_prop_value(ctx, bt_field_real_double_precision_get_value(field));
 		break;
 	case BT_FIELD_CLASS_TYPE_STRING:
 		write_sp(ctx);

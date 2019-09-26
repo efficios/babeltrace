@@ -95,7 +95,7 @@ class EventTestCase(unittest.TestCase):
                     cc = tc.create_structure_field_class()
                     cc += [
                         ('cpu_id', tc.create_signed_integer_field_class(8)),
-                        ('stuff', tc.create_real_field_class()),
+                        ('stuff', tc.create_double_precision_real_field_class()),
                     ]
 
                 # packet context (stream-class-defined)
@@ -105,7 +105,10 @@ class EventTestCase(unittest.TestCase):
                     pc = tc.create_structure_field_class()
                     pc += [
                         ('something', tc.create_unsigned_integer_field_class(8)),
-                        ('something_else', tc.create_real_field_class()),
+                        (
+                            'something_else',
+                            tc.create_double_precision_real_field_class(),
+                        ),
                     ]
 
                 stream_class = tc.create_stream_class(

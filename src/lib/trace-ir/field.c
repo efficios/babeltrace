@@ -163,7 +163,6 @@ struct bt_field *create_string_field(struct bt_field_class *);
 
 static
 struct bt_field *create_structure_field(struct bt_field_class *);
-
 static
 struct bt_field *create_static_array_field(struct bt_field_class *);
 
@@ -184,7 +183,8 @@ struct bt_field *(* const field_create_funcs[])(struct bt_field_class *) = {
 	[BT_FIELD_CLASS_TYPE_SIGNED_INTEGER]			= create_integer_field,
 	[BT_FIELD_CLASS_TYPE_UNSIGNED_ENUMERATION]		= create_integer_field,
 	[BT_FIELD_CLASS_TYPE_SIGNED_ENUMERATION]		= create_integer_field,
-	[BT_FIELD_CLASS_TYPE_REAL]				= create_real_field,
+	[BT_FIELD_CLASS_TYPE_SINGLE_PRECISION_REAL]		= create_real_field,
+	[BT_FIELD_CLASS_TYPE_DOUBLE_PRECISION_REAL]		= create_real_field,
 	[BT_FIELD_CLASS_TYPE_STRING]				= create_string_field,
 	[BT_FIELD_CLASS_TYPE_STRUCTURE]				= create_structure_field,
 	[BT_FIELD_CLASS_TYPE_STATIC_ARRAY]			= create_static_array_field,
@@ -230,7 +230,8 @@ void (* const field_destroy_funcs[])(struct bt_field *) = {
 	[BT_FIELD_CLASS_TYPE_SIGNED_INTEGER]			= destroy_integer_field,
 	[BT_FIELD_CLASS_TYPE_UNSIGNED_ENUMERATION]		= destroy_integer_field,
 	[BT_FIELD_CLASS_TYPE_SIGNED_ENUMERATION]		= destroy_integer_field,
-	[BT_FIELD_CLASS_TYPE_REAL]				= destroy_real_field,
+	[BT_FIELD_CLASS_TYPE_SINGLE_PRECISION_REAL]		= destroy_real_field,
+	[BT_FIELD_CLASS_TYPE_DOUBLE_PRECISION_REAL]		= destroy_real_field,
 	[BT_FIELD_CLASS_TYPE_STRING]				= destroy_string_field,
 	[BT_FIELD_CLASS_TYPE_STRUCTURE]				= destroy_structure_field,
 	[BT_FIELD_CLASS_TYPE_STATIC_ARRAY]			= destroy_array_field,
@@ -724,28 +725,53 @@ void bt_field_integer_unsigned_set_value(struct bt_field *field, uint64_t value)
 	bt_field_set_single(field, true);
 }
 
-double bt_field_real_get_value(const struct bt_field *field)
+float bt_field_real_single_precision_get_value(const struct bt_field *field)
 {
 	const struct bt_field_real *real_field = (const void *) field;
 
 	BT_ASSERT_PRE_DEV_NON_NULL(field, "Field");
 	BT_ASSERT_PRE_DEV_FIELD_IS_SET(field, "Field");
-	BT_ASSERT_PRE_DEV_FIELD_HAS_CLASS_TYPE(field, BT_FIELD_CLASS_TYPE_REAL, "Field");
+	BT_ASSERT_PRE_DEV_FIELD_HAS_CLASS_TYPE(field,
+		BT_FIELD_CLASS_TYPE_SINGLE_PRECISION_REAL, "Field");
+	return (float) real_field->value;
+}
+
+double bt_field_real_double_precision_get_value(const struct bt_field *field)
+{
+	const struct bt_field_real *real_field = (const void *) field;
+
+	BT_ASSERT_PRE_DEV_NON_NULL(field, "Field");
+	BT_ASSERT_PRE_DEV_FIELD_IS_SET(field, "Field");
+	BT_ASSERT_PRE_DEV_FIELD_HAS_CLASS_TYPE(field,
+		BT_FIELD_CLASS_TYPE_DOUBLE_PRECISION_REAL, "Field");
+
 	return real_field->value;
 }
 
-void bt_field_real_set_value(struct bt_field *field, double value)
+void bt_field_real_single_precision_set_value(struct bt_field *field,
+		float value)
 {
 	struct bt_field_real *real_field = (void *) field;
 
 	BT_ASSERT_PRE_DEV_NON_NULL(field, "Field");
-	BT_ASSERT_PRE_DEV_FIELD_HAS_CLASS_TYPE(field, BT_FIELD_CLASS_TYPE_REAL, "Field");
+	BT_ASSERT_PRE_DEV_FIELD_HAS_CLASS_TYPE(field,
+		BT_FIELD_CLASS_TYPE_SINGLE_PRECISION_REAL, "Field");
 	BT_ASSERT_PRE_DEV_FIELD_HOT(field, "Field");
-	BT_ASSERT_PRE_DEV(
-		!((struct bt_field_class_real *) field->class)->is_single_precision ||
-		(double) (float) value == value,
-		"Invalid value for a single-precision real number: value=%f, "
-		"%![fc-]+F", value, field->class);
+
+	real_field->value = (double) value;
+	bt_field_set_single(field, true);
+}
+
+void bt_field_real_double_precision_set_value(struct bt_field *field,
+		double value)
+{
+	struct bt_field_real *real_field = (void *) field;
+
+	BT_ASSERT_PRE_DEV_NON_NULL(field, "Field");
+	BT_ASSERT_PRE_DEV_FIELD_HAS_CLASS_TYPE(field,
+		BT_FIELD_CLASS_TYPE_DOUBLE_PRECISION_REAL, "Field");
+	BT_ASSERT_PRE_DEV_FIELD_HOT(field, "Field");
+
 	real_field->value = value;
 	bt_field_set_single(field, true);
 }

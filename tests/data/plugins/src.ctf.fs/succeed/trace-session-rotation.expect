@@ -227,8 +227,8 @@ Trace class:
         seqfield_network_3: Dynamic array (Length field path [Event payload: 17]):
           Element: Signed integer (64-bit, Base 10)
         stringfield: String
-        floatfield: Real (Single precision)
-        doublefield: Real (Double precision)
+        floatfield: Single-precision real
+        doublefield: Double-precision real
         boolfield: Unsigned integer (8-bit, Base 10)
     Event class `ust_tests_hello:tptest_sighandler` (ID 26):
       Log level: Debug (line)
@@ -539,8 +539,8 @@ Trace class:
         seqfield_network_3: Dynamic array (Length field path [Event payload: 17]):
           Element: Signed integer (64-bit, Base 10)
         stringfield: String
-        floatfield: Real (Single precision)
-        doublefield: Real (Double precision)
+        floatfield: Single-precision real
+        doublefield: Double-precision real
         boolfield: Unsigned integer (8-bit, Base 10)
     Event class `ust_tests_hello:tptest_sighandler` (ID 26):
       Log level: Debug (line)

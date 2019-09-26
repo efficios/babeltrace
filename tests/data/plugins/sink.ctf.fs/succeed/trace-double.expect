@@ -16,7 +16,7 @@ Trace class:
       Origin is Unix epoch: No
     Event class `ev` (ID 0):
       Payload field class: Structure (1 member):
-        dbl: Real (Double precision)
+        dbl: Double-precision real
 
 [Unknown]
 {Trace 0, Stream class ID 0, Stream ID 0}

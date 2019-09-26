@@ -172,23 +172,27 @@ class _SignedIntegerFieldClass(
 
 
 class _RealFieldClassConst(_FieldClassConst):
-    _NAME = 'Const real'
+    pass
 
-    @property
-    def is_single_precision(self):
-        return native_bt.field_class_real_is_single_precision(self._ptr)
+
+class _SinglePrecisionRealFieldClassConst(_RealFieldClassConst):
+    _NAME = 'Const single-precision real'
+
+
+class _DoublePrecisionRealFieldClassConst(_RealFieldClassConst):
+    _NAME = 'Const double-precision real'
 
 
 class _RealFieldClass(_FieldClass, _RealFieldClassConst):
-    _NAME = 'Real'
+    pass
 
-    def _is_single_precision(self, is_single_precision):
-        utils._check_bool(is_single_precision)
-        native_bt.field_class_real_set_is_single_precision(
-            self._ptr, is_single_precision
-        )
 
-    _is_single_precision = property(fset=_is_single_precision)
+class _SinglePrecisionRealFieldClass(_RealFieldClass):
+    _NAME = 'Single-precision real'
+
+
+class _DoublePrecisionRealFieldClass(_RealFieldClass):
+    _NAME = 'Double-precision real'
 
 
 # an enumeration field class mapping does not have a reference count, so
@@ -907,7 +911,8 @@ _FIELD_CLASS_TYPE_TO_CONST_OBJ = {
     native_bt.FIELD_CLASS_TYPE_BIT_ARRAY: _BitArrayFieldClassConst,
     native_bt.FIELD_CLASS_TYPE_UNSIGNED_INTEGER: _UnsignedIntegerFieldClassConst,
     native_bt.FIELD_CLASS_TYPE_SIGNED_INTEGER: _SignedIntegerFieldClassConst,
-    native_bt.FIELD_CLASS_TYPE_REAL: _RealFieldClassConst,
+    native_bt.FIELD_CLASS_TYPE_SINGLE_PRECISION_REAL: _SinglePrecisionRealFieldClassConst,
+    native_bt.FIELD_CLASS_TYPE_DOUBLE_PRECISION_REAL: _DoublePrecisionRealFieldClassConst,
     native_bt.FIELD_CLASS_TYPE_UNSIGNED_ENUMERATION: _UnsignedEnumerationFieldClassConst,
     native_bt.FIELD_CLASS_TYPE_SIGNED_ENUMERATION: _SignedEnumerationFieldClassConst,
     native_bt.FIELD_CLASS_TYPE_STRING: _StringFieldClassConst,
@@ -925,7 +930,8 @@ _FIELD_CLASS_TYPE_TO_OBJ = {
     native_bt.FIELD_CLASS_TYPE_BIT_ARRAY: _BitArrayFieldClass,
     native_bt.FIELD_CLASS_TYPE_UNSIGNED_INTEGER: _UnsignedIntegerFieldClass,
     native_bt.FIELD_CLASS_TYPE_SIGNED_INTEGER: _SignedIntegerFieldClass,
-    native_bt.FIELD_CLASS_TYPE_REAL: _RealFieldClass,
+    native_bt.FIELD_CLASS_TYPE_SINGLE_PRECISION_REAL: _SinglePrecisionRealFieldClass,
+    native_bt.FIELD_CLASS_TYPE_DOUBLE_PRECISION_REAL: _DoublePrecisionRealFieldClass,
     native_bt.FIELD_CLASS_TYPE_UNSIGNED_ENUMERATION: _UnsignedEnumerationFieldClass,
     native_bt.FIELD_CLASS_TYPE_SIGNED_ENUMERATION: _SignedEnumerationFieldClass,
     native_bt.FIELD_CLASS_TYPE_STRING: _StringFieldClass,

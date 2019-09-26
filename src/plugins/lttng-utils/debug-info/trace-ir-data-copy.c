@@ -250,9 +250,13 @@ void copy_field_content(const bt_field *in_field, bt_field *out_field,
 		bt_field_integer_signed_set_value(out_field,
 				bt_field_integer_signed_get_value(in_field));
 		break;
-	case BT_FIELD_CLASS_TYPE_REAL:
-		bt_field_real_set_value(out_field,
-				bt_field_real_get_value(in_field));
+	case BT_FIELD_CLASS_TYPE_SINGLE_PRECISION_REAL:
+		bt_field_real_single_precision_set_value(out_field,
+				bt_field_real_single_precision_get_value(in_field));
+		break;
+	case BT_FIELD_CLASS_TYPE_DOUBLE_PRECISION_REAL:
+		bt_field_real_double_precision_set_value(out_field,
+				bt_field_real_double_precision_get_value(in_field));
 		break;
 	case BT_FIELD_CLASS_TYPE_STRING:
 	{

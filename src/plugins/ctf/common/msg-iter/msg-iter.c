@@ -2113,11 +2113,17 @@ enum bt_bfcr_status bfcr_floating_point_cb(double value,
 	}
 
 	field = borrow_next_field(notit);
+	bt_field_class_type type = bt_field_get_class_type(field);
 	BT_ASSERT(field);
 	BT_ASSERT(bt_field_borrow_class_const(field) == fc->ir_fc);
-	BT_ASSERT(bt_field_get_class_type(field) ==
-		  BT_FIELD_CLASS_TYPE_REAL);
-	bt_field_real_set_value(field, value);
+	BT_ASSERT(type == BT_FIELD_CLASS_TYPE_DOUBLE_PRECISION_REAL ||
+		  type == BT_FIELD_CLASS_TYPE_SINGLE_PRECISION_REAL);
+
+	if (type == BT_FIELD_CLASS_TYPE_SINGLE_PRECISION_REAL) {
+		bt_field_real_single_precision_set_value(field, (float) value);
+	} else {
+		bt_field_real_double_precision_set_value(field, value);
+	}
 	stack_top(notit->stack)->index++;
 
 end:

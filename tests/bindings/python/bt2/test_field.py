@@ -1390,20 +1390,118 @@ class SignedEnumerationFieldTestCase(_TestIntegerFieldCommon, unittest.TestCase)
         self.assertEqual(labels, ['something', 'whole range', 'zip'])
 
 
-class RealFieldTestCase(_TestNumericField, unittest.TestCase):
+class SingleRealFieldTestCase(_TestNumericField, unittest.TestCase):
     @staticmethod
     def _const_value_setter(field):
-        field.value = 52.7
+        field.value = 52.0
 
     def _create_fc(self, tc):
-        return tc.create_real_field_class()
+        return tc.create_single_precision_real_field_class()
 
     def setUp(self):
         self._tc = get_default_trace_class()
         self._field = _create_field(self._tc, self._create_fc(self._tc))
         self._def = _create_field(self._tc, self._create_fc(self._tc))
         self._def_const = _create_const_field(
-            self._tc, self._tc.create_real_field_class(), self._const_value_setter
+            self._tc,
+            self._tc.create_single_precision_real_field_class(),
+            self._const_value_setter,
+        )
+        self._def.value = 52.0
+        self._def_value = 52.0
+        self._def_new_value = -17.0
+
+    def _test_invalid_op(self, cb):
+        with self.assertRaises(TypeError):
+            cb()
+
+    def test_assign_true(self):
+        self._def.value = True
+        self.assertTrue(self._def)
+
+    def test_assign_false(self):
+        self._def.value = False
+        self.assertFalse(self._def)
+
+    def test_assign_pos_int(self):
+        raw = 477
+        self._def.value = raw
+        self.assertEqual(self._def, float(raw))
+
+    def test_assign_neg_int(self):
+        raw = -13
+        self._def.value = raw
+        self.assertEqual(self._def, float(raw))
+
+    def test_assign_int_field(self):
+        int_fc = self._tc.create_signed_integer_field_class(32)
+        int_field = _create_field(self._tc, int_fc)
+        raw = 999
+        int_field.value = raw
+        self._def.value = int_field
+        self.assertEqual(self._def, float(raw))
+
+    def test_assign_float(self):
+        raw = -19.23
+        self._def.value = raw
+        # It's expected to have some lost of precision because of the field
+        # that is in single precision.
+        self.assertEqual(round(self._def, 5), raw)
+
+    def test_assign_float_field(self):
+        field = _create_field(self._tc, self._create_fc(self._tc))
+        raw = 101.32
+        field.value = raw
+        self._def.value = field
+        # It's expected to have some lost of precision because of the field
+        # that is in single precision.
+        self.assertEqual(round(self._def, 5), raw)
+
+    def test_assign_invalid_type(self):
+        with self.assertRaises(TypeError):
+            self._def.value = 'yes'
+
+    def test_invalid_lshift(self):
+        self._test_invalid_op(lambda: self._def << 23)
+
+    def test_invalid_rshift(self):
+        self._test_invalid_op(lambda: self._def >> 23)
+
+    def test_invalid_and(self):
+        self._test_invalid_op(lambda: self._def & 23)
+
+    def test_invalid_or(self):
+        self._test_invalid_op(lambda: self._def | 23)
+
+    def test_invalid_xor(self):
+        self._test_invalid_op(lambda: self._def ^ 23)
+
+    def test_invalid_invert(self):
+        self._test_invalid_op(lambda: ~self._def)
+
+    def test_str_op(self):
+        self.assertEqual(str(round(self._def, 5)), str(self._def_value))
+
+
+_inject_numeric_testing_methods(SingleRealFieldTestCase)
+
+
+class DoubleRealFieldTestCase(_TestNumericField, unittest.TestCase):
+    @staticmethod
+    def _const_value_setter(field):
+        field.value = 52.7
+
+    def _create_fc(self, tc):
+        return tc.create_double_precision_real_field_class()
+
+    def setUp(self):
+        self._tc = get_default_trace_class()
+        self._field = _create_field(self._tc, self._create_fc(self._tc))
+        self._def = _create_field(self._tc, self._create_fc(self._tc))
+        self._def_const = _create_const_field(
+            self._tc,
+            self._tc.create_double_precision_real_field_class(),
+            self._const_value_setter,
         )
         self._def.value = 52.7
         self._def_value = 52.7
@@ -1477,7 +1575,7 @@ class RealFieldTestCase(_TestNumericField, unittest.TestCase):
         self.assertEqual(str(self._def), str(self._def_value))
 
 
-_inject_numeric_testing_methods(RealFieldTestCase)
+_inject_numeric_testing_methods(DoubleRealFieldTestCase)
 
 
 class StringFieldTestCase(unittest.TestCase):
@@ -1847,7 +1945,7 @@ class StructureFieldTestCase(unittest.TestCase):
         self._tc = get_default_trace_class()
         self._fc0_fn = self._tc.create_signed_integer_field_class
         self._fc1_fn = self._tc.create_string_field_class
-        self._fc2_fn = self._tc.create_real_field_class
+        self._fc2_fn = self._tc.create_double_precision_real_field_class
         self._fc3_fn = self._tc.create_signed_integer_field_class
         self._fc4_fn = self._tc.create_structure_field_class
         self._fc5_fn = self._tc.create_structure_field_class
@@ -1901,7 +1999,7 @@ class StructureFieldTestCase(unittest.TestCase):
         self.assertIs(type(field2), bt2._StringField)
         self.assertEqual(field2, 'salut')
 
-        self.assertIs(type(field3), bt2._RealField)
+        self.assertIs(type(field3), bt2._DoublePrecisionRealField)
         self.assertEqual(field3, 17.5)
 
         self.assertIs(type(field4), bt2._SignedIntegerField)
@@ -1927,7 +2025,7 @@ class StructureFieldTestCase(unittest.TestCase):
         self.assertIs(type(field2), bt2._StringFieldConst)
         self.assertEqual(field2, 'salut')
 
-        self.assertIs(type(field3), bt2._RealFieldConst)
+        self.assertIs(type(field3), bt2._DoublePrecisionRealFieldConst)
         self.assertEqual(field3, 17.5)
 
         self.assertIs(type(field4), bt2._SignedIntegerFieldConst)
@@ -2240,7 +2338,7 @@ class VariantFieldTestCase(unittest.TestCase):
     def _create_fc(self, tc):
         ft0 = tc.create_signed_integer_field_class(32)
         ft1 = tc.create_string_field_class()
-        ft2 = tc.create_real_field_class()
+        ft2 = tc.create_double_precision_real_field_class()
         ft3 = tc.create_signed_integer_field_class(17)
         fc = tc.create_variant_field_class()
         fc.append_option('corner', ft0)
@@ -2292,7 +2390,7 @@ class VariantFieldTestCase(unittest.TestCase):
         self._def.selected_option_index = 2
         self._def.value = -17.34
         self.assertEqual(self._def.selected_option, -17.34)
-        self.assertEqual(type(self._def.selected_option), bt2._RealField)
+        self.assertEqual(type(self._def.selected_option), bt2._DoublePrecisionRealField)
 
         self._def.selected_option_index = 3
         self._def.value = 1921
