@@ -1443,14 +1443,14 @@ no_session:
 }
 
 BT_HIDDEN
-bt_component_class_message_iterator_init_method_status lttng_live_msg_iter_init(
+bt_component_class_message_iterator_initialize_method_status lttng_live_msg_iter_init(
 		bt_self_message_iterator *self_msg_it,
 		bt_self_message_iterator_configuration *config,
 		bt_self_component_source *self_comp_src,
 		bt_self_component_port_output *self_port)
 {
-	bt_component_class_message_iterator_init_method_status ret =
-		BT_COMPONENT_CLASS_MESSAGE_ITERATOR_INIT_METHOD_STATUS_OK;
+	bt_component_class_message_iterator_initialize_method_status ret =
+		BT_COMPONENT_CLASS_MESSAGE_ITERATOR_INITIALIZE_METHOD_STATUS_OK;
 	bt_self_component *self_comp =
 		bt_self_component_source_as_self_component(self_comp_src);
 	struct lttng_live_component *lttng_live;
@@ -1469,7 +1469,7 @@ bt_component_class_message_iterator_init_method_status lttng_live_msg_iter_init(
 
 	lttng_live_msg_iter = g_new0(struct lttng_live_msg_iter, 1);
 	if (!lttng_live_msg_iter) {
-		ret = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_INIT_METHOD_STATUS_ERROR;
+		ret = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_INITIALIZE_METHOD_STATUS_ERROR;
 		goto end;
 	}
 
@@ -1539,7 +1539,7 @@ bt_component_class_message_iterator_init_method_status lttng_live_msg_iter_init(
 
 	goto end;
 error:
-	ret = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_INIT_METHOD_STATUS_ERROR;
+	ret = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_INITIALIZE_METHOD_STATUS_ERROR;
 	lttng_live_msg_iter_destroy(lttng_live_msg_iter);
 end:
 	return ret;
@@ -1840,15 +1840,15 @@ end:
 }
 
 BT_HIDDEN
-bt_component_class_init_method_status lttng_live_component_init(
+bt_component_class_initialize_method_status lttng_live_component_init(
 		bt_self_component_source *self_comp_src,
 		bt_self_component_source_configuration *config,
 		const bt_value *params,
 		__attribute__((unused)) void *init_method_data)
 {
 	struct lttng_live_component *lttng_live;
-	bt_component_class_init_method_status ret =
-		BT_COMPONENT_CLASS_INIT_METHOD_STATUS_OK;
+	bt_component_class_initialize_method_status ret =
+		BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_OK;
 	bt_self_component *self_comp =
 		bt_self_component_source_as_self_component(self_comp_src);
 	bt_logging_level log_level = bt_component_get_logging_level(
@@ -1857,7 +1857,7 @@ bt_component_class_init_method_status lttng_live_component_init(
 
 	lttng_live = lttng_live_component_create(params, log_level, self_comp);
 	if (!lttng_live) {
-		ret = BT_COMPONENT_CLASS_INIT_METHOD_STATUS_MEMORY_ERROR;
+		ret = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_MEMORY_ERROR;
 		goto error;
 	}
 
@@ -1865,10 +1865,10 @@ bt_component_class_init_method_status lttng_live_component_init(
 		self_comp_src, "out", NULL, NULL);
 	switch (add_port_status) {
 	case BT_SELF_COMPONENT_ADD_PORT_STATUS_ERROR:
-		ret = BT_COMPONENT_CLASS_INIT_METHOD_STATUS_ERROR;
+		ret = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_ERROR;
 		goto error;
 	case BT_SELF_COMPONENT_ADD_PORT_STATUS_MEMORY_ERROR:
-		ret = BT_COMPONENT_CLASS_INIT_METHOD_STATUS_MEMORY_ERROR;
+		ret = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_MEMORY_ERROR;
 		goto error;
 	default:
 		break;

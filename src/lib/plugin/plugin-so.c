@@ -289,11 +289,11 @@ int bt_plugin_so_init(struct bt_plugin *plugin,
 		union {
 			struct {
 				bt_component_class_source_get_supported_mip_versions_method get_supported_mip_versions;
-				bt_component_class_source_init_method init;
+				bt_component_class_source_initialize_method init;
 				bt_component_class_source_finalize_method finalize;
 				bt_component_class_source_query_method query;
 				bt_component_class_source_output_port_connected_method output_port_connected;
-				bt_component_class_source_message_iterator_init_method msg_iter_init;
+				bt_component_class_source_message_iterator_initialize_method msg_iter_initialize;
 				bt_component_class_source_message_iterator_finalize_method msg_iter_finalize;
 				bt_component_class_source_message_iterator_seek_ns_from_origin_method msg_iter_seek_ns_from_origin;
 				bt_component_class_source_message_iterator_seek_beginning_method msg_iter_seek_beginning;
@@ -303,12 +303,12 @@ int bt_plugin_so_init(struct bt_plugin *plugin,
 
 			struct {
 				bt_component_class_filter_get_supported_mip_versions_method get_supported_mip_versions;
-				bt_component_class_filter_init_method init;
+				bt_component_class_filter_initialize_method init;
 				bt_component_class_filter_finalize_method finalize;
 				bt_component_class_filter_query_method query;
 				bt_component_class_filter_input_port_connected_method input_port_connected;
 				bt_component_class_filter_output_port_connected_method output_port_connected;
-				bt_component_class_filter_message_iterator_init_method msg_iter_init;
+				bt_component_class_filter_message_iterator_initialize_method msg_iter_initialize;
 				bt_component_class_filter_message_iterator_finalize_method msg_iter_finalize;
 				bt_component_class_filter_message_iterator_seek_ns_from_origin_method msg_iter_seek_ns_from_origin;
 				bt_component_class_filter_message_iterator_seek_beginning_method msg_iter_seek_beginning;
@@ -318,7 +318,7 @@ int bt_plugin_so_init(struct bt_plugin *plugin,
 
 			struct {
 				bt_component_class_sink_get_supported_mip_versions_method get_supported_mip_versions;
-				bt_component_class_sink_init_method init;
+				bt_component_class_sink_initialize_method init;
 				bt_component_class_sink_finalize_method finalize;
 				bt_component_class_sink_query_method query;
 				bt_component_class_sink_input_port_connected_method input_port_connected;
@@ -509,19 +509,19 @@ int bt_plugin_so_init(struct bt_plugin *plugin,
 					abort();
 				}
 				break;
-			case BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_INIT_METHOD:
+			case BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_INITIALIZE_METHOD:
 				switch (cc_type) {
 				case BT_COMPONENT_CLASS_TYPE_SOURCE:
 					cc_full_descr->methods.source.init =
-						cur_cc_descr_attr->value.source_init_method;
+						cur_cc_descr_attr->value.source_initialize_method;
 					break;
 				case BT_COMPONENT_CLASS_TYPE_FILTER:
 					cc_full_descr->methods.filter.init =
-						cur_cc_descr_attr->value.filter_init_method;
+						cur_cc_descr_attr->value.filter_initialize_method;
 					break;
 				case BT_COMPONENT_CLASS_TYPE_SINK:
 					cc_full_descr->methods.sink.init =
-						cur_cc_descr_attr->value.sink_init_method;
+						cur_cc_descr_attr->value.sink_initialize_method;
 					break;
 				default:
 					abort();
@@ -601,15 +601,15 @@ int bt_plugin_so_init(struct bt_plugin *plugin,
 					abort();
 				}
 				break;
-			case BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_MSG_ITER_INIT_METHOD:
+			case BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_MSG_ITER_INITIALIZE_METHOD:
 				switch (cc_type) {
 				case BT_COMPONENT_CLASS_TYPE_SOURCE:
-					cc_full_descr->methods.source.msg_iter_init =
-						cur_cc_descr_attr->value.source_msg_iter_init_method;
+					cc_full_descr->methods.source.msg_iter_initialize =
+						cur_cc_descr_attr->value.source_msg_iter_initialize_method;
 					break;
 				case BT_COMPONENT_CLASS_TYPE_FILTER:
-					cc_full_descr->methods.filter.msg_iter_init =
-						cur_cc_descr_attr->value.filter_msg_iter_init_method;
+					cc_full_descr->methods.filter.msg_iter_initialize =
+						cur_cc_descr_attr->value.filter_msg_iter_initialize_method;
 					break;
 				default:
 					abort();
@@ -733,7 +733,7 @@ int bt_plugin_so_init(struct bt_plugin *plugin,
 
 	/* Initialize plugin */
 	if (spec->init) {
-		enum bt_plugin_init_func_status init_status;
+		enum bt_plugin_initialize_func_status init_status;
 
 		BT_LOGD_STR("Calling user's plugin initialization function.");
 		init_status = spec->init((void *) plugin);
@@ -881,7 +881,7 @@ int bt_plugin_so_init(struct bt_plugin *plugin,
 			}
 
 			if (cc_full_descr->methods.source.init) {
-				ret = bt_component_class_source_set_init_method(
+				ret = bt_component_class_source_set_initialize_method(
 					src_comp_class,
 					cc_full_descr->methods.source.init);
 				if (ret) {
@@ -932,10 +932,10 @@ int bt_plugin_so_init(struct bt_plugin *plugin,
 				}
 			}
 
-			if (cc_full_descr->methods.source.msg_iter_init) {
-				ret = bt_component_class_source_set_message_iterator_init_method(
+			if (cc_full_descr->methods.source.msg_iter_initialize) {
+				ret = bt_component_class_source_set_message_iterator_initialize_method(
 					src_comp_class,
-					cc_full_descr->methods.source.msg_iter_init);
+					cc_full_descr->methods.source.msg_iter_initialize);
 				if (ret) {
 					BT_LIB_LOGE_APPEND_CAUSE(
 						"Cannot set source component class's message iterator initialization method.");
@@ -1026,7 +1026,7 @@ int bt_plugin_so_init(struct bt_plugin *plugin,
 			}
 
 			if (cc_full_descr->methods.filter.init) {
-				ret = bt_component_class_filter_set_init_method(
+				ret = bt_component_class_filter_set_initialize_method(
 					flt_comp_class,
 					cc_full_descr->methods.filter.init);
 				if (ret) {
@@ -1090,10 +1090,10 @@ int bt_plugin_so_init(struct bt_plugin *plugin,
 				}
 			}
 
-			if (cc_full_descr->methods.filter.msg_iter_init) {
-				ret = bt_component_class_filter_set_message_iterator_init_method(
+			if (cc_full_descr->methods.filter.msg_iter_initialize) {
+				ret = bt_component_class_filter_set_message_iterator_initialize_method(
 					flt_comp_class,
-					cc_full_descr->methods.filter.msg_iter_init);
+					cc_full_descr->methods.filter.msg_iter_initialize);
 				if (ret) {
 					BT_LIB_LOGE_APPEND_CAUSE(
 						"Cannot set filter component class's message iterator initialization method.");
@@ -1184,7 +1184,7 @@ int bt_plugin_so_init(struct bt_plugin *plugin,
 			}
 
 			if (cc_full_descr->methods.sink.init) {
-				ret = bt_component_class_sink_set_init_method(
+				ret = bt_component_class_sink_set_initialize_method(
 					sink_comp_class,
 					cc_full_descr->methods.sink.init);
 				if (ret) {

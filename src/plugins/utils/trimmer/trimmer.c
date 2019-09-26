@@ -561,20 +561,20 @@ end:
 	return ret;
 }
 
-bt_component_class_init_method_status trimmer_init(
+bt_component_class_initialize_method_status trimmer_init(
 		bt_self_component_filter *self_comp_flt,
 		bt_self_component_filter_configuration *config,
 		const bt_value *params, void *init_data)
 {
 	int ret;
-	bt_component_class_init_method_status status =
-		BT_COMPONENT_CLASS_INIT_METHOD_STATUS_OK;
+	bt_component_class_initialize_method_status status =
+		BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_OK;
 	bt_self_component_add_port_status add_port_status;
 	struct trimmer_comp *trimmer_comp = create_trimmer_comp();
 	bt_self_component *self_comp =
 		bt_self_component_filter_as_self_component(self_comp_flt);
 	if (!trimmer_comp) {
-		status = BT_COMPONENT_CLASS_INIT_METHOD_STATUS_MEMORY_ERROR;
+		status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_MEMORY_ERROR;
 		goto error;
 	}
 
@@ -585,10 +585,10 @@ bt_component_class_init_method_status trimmer_init(
 		self_comp_flt, in_port_name, NULL, NULL);
 	switch (add_port_status) {
 	case BT_SELF_COMPONENT_ADD_PORT_STATUS_ERROR:
-		status = BT_COMPONENT_CLASS_INIT_METHOD_STATUS_ERROR;
+		status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_ERROR;
 		goto error;
 	case BT_SELF_COMPONENT_ADD_PORT_STATUS_MEMORY_ERROR:
-		status = BT_COMPONENT_CLASS_INIT_METHOD_STATUS_MEMORY_ERROR;
+		status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_MEMORY_ERROR;
 		goto error;
 	default:
 		break;
@@ -598,10 +598,10 @@ bt_component_class_init_method_status trimmer_init(
 		self_comp_flt, "out", NULL, NULL);
 	switch (add_port_status) {
 	case BT_SELF_COMPONENT_ADD_PORT_STATUS_ERROR:
-		status = BT_COMPONENT_CLASS_INIT_METHOD_STATUS_ERROR;
+		status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_ERROR;
 		goto error;
 	case BT_SELF_COMPONENT_ADD_PORT_STATUS_MEMORY_ERROR:
-		status = BT_COMPONENT_CLASS_INIT_METHOD_STATUS_MEMORY_ERROR;
+		status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_MEMORY_ERROR;
 		goto error;
 	default:
 		break;
@@ -609,7 +609,7 @@ bt_component_class_init_method_status trimmer_init(
 
 	ret = init_trimmer_comp_from_params(trimmer_comp, params);
 	if (ret) {
-		status = BT_COMPONENT_CLASS_INIT_METHOD_STATUS_ERROR;
+		status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_ERROR;
 		goto error;
 	}
 
@@ -617,8 +617,8 @@ bt_component_class_init_method_status trimmer_init(
 	goto end;
 
 error:
-	if (status == BT_COMPONENT_CLASS_INIT_METHOD_STATUS_OK) {
-		status = BT_COMPONENT_CLASS_INIT_METHOD_STATUS_ERROR;
+	if (status == BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_OK) {
+		status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_ERROR;
 	}
 
 	if (trimmer_comp) {
@@ -662,20 +662,20 @@ void destroy_trimmer_iterator_stream_state(
 }
 
 BT_HIDDEN
-bt_component_class_message_iterator_init_method_status trimmer_msg_iter_init(
+bt_component_class_message_iterator_initialize_method_status trimmer_msg_iter_init(
 		bt_self_message_iterator *self_msg_iter,
 		bt_self_message_iterator_configuration *config,
 		bt_self_component_filter *self_comp,
 		bt_self_component_port_output *port)
 {
-	bt_component_class_message_iterator_init_method_status status;
+	bt_component_class_message_iterator_initialize_method_status status;
 	bt_self_component_port_input_message_iterator_create_from_message_iterator_status
 		msg_iter_status;
 	struct trimmer_iterator *trimmer_it;
 
 	trimmer_it = g_new0(struct trimmer_iterator, 1);
 	if (!trimmer_it) {
-		status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_INIT_METHOD_STATUS_MEMORY_ERROR;
+		status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_INITIALIZE_METHOD_STATUS_MEMORY_ERROR;
 		goto error;
 	}
 
@@ -708,7 +708,7 @@ bt_component_class_message_iterator_init_method_status trimmer_msg_iter_init(
 
 	trimmer_it->output_messages = g_queue_new();
 	if (!trimmer_it->output_messages) {
-		status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_INIT_METHOD_STATUS_MEMORY_ERROR;
+		status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_INITIALIZE_METHOD_STATUS_MEMORY_ERROR;
 		goto error;
 	}
 
@@ -716,14 +716,14 @@ bt_component_class_message_iterator_init_method_status trimmer_msg_iter_init(
 		g_direct_equal, NULL,
 		(GDestroyNotify) destroy_trimmer_iterator_stream_state);
 	if (!trimmer_it->stream_states) {
-		status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_INIT_METHOD_STATUS_MEMORY_ERROR;
+		status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_INITIALIZE_METHOD_STATUS_MEMORY_ERROR;
 		goto error;
 	}
 
 	trimmer_it->self_msg_iter = self_msg_iter;
 	bt_self_message_iterator_set_data(self_msg_iter, trimmer_it);
 
-	status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_INIT_METHOD_STATUS_OK;
+	status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_INITIALIZE_METHOD_STATUS_OK;
 	goto end;
 
 error:

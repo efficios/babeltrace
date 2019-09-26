@@ -45,11 +45,11 @@ BT_PLUGIN_FILTER_COMPONENT_CLASS_DESCRIPTION_WITH_ID(lttng_utils, debug_info,
 	"Augment compatible events with debugging information.");
 BT_PLUGIN_FILTER_COMPONENT_CLASS_HELP_WITH_ID(lttng_utils, debug_info,
 	"See the babeltrace2-filter.lttng-utils.debug-info(7) manual page.");
-BT_PLUGIN_FILTER_COMPONENT_CLASS_INIT_METHOD_WITH_ID(lttng_utils,
+BT_PLUGIN_FILTER_COMPONENT_CLASS_INITIALIZE_METHOD_WITH_ID(lttng_utils,
 	debug_info, debug_info_comp_init);
 BT_PLUGIN_FILTER_COMPONENT_CLASS_FINALIZE_METHOD_WITH_ID(lttng_utils,
 	debug_info, debug_info_comp_finalize);
-BT_PLUGIN_FILTER_COMPONENT_CLASS_MESSAGE_ITERATOR_INIT_METHOD_WITH_ID(
+BT_PLUGIN_FILTER_COMPONENT_CLASS_MESSAGE_ITERATOR_INITIALIZE_METHOD_WITH_ID(
 	lttng_utils, debug_info, debug_info_msg_iter_init);
 BT_PLUGIN_FILTER_COMPONENT_CLASS_MESSAGE_ITERATOR_SEEK_BEGINNING_METHOD_WITH_ID(
 	lttng_utils, debug_info, debug_info_msg_iter_seek_beginning);

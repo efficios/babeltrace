@@ -48,7 +48,7 @@ struct bt_plugin_so_spec_data {
 
 	/* Pointers to plugin's memory: do NOT free */
 	const struct __bt_plugin_descriptor *descriptor;
-	bt_plugin_init_func init;
+	bt_plugin_initialize_func init;
 	const struct __bt_plugin_descriptor_version *version;
 };
 

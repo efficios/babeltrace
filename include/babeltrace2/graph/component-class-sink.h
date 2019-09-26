@@ -44,8 +44,8 @@ typedef bt_component_class_get_supported_mip_versions_method_status
 		bt_logging_level log_level,
 		bt_integer_range_set_unsigned *supported_versions);
 
-typedef bt_component_class_init_method_status
-(*bt_component_class_sink_init_method)(
+typedef bt_component_class_initialize_method_status
+(*bt_component_class_sink_initialize_method)(
 		bt_self_component_sink *self_component,
 		bt_self_component_sink_configuration *config,
 		const bt_value *params, void *init_method_data);
@@ -107,9 +107,9 @@ bt_component_class_sink *bt_component_class_sink_create(
 
 extern
 bt_component_class_set_method_status
-bt_component_class_sink_set_init_method(
+bt_component_class_sink_set_initialize_method(
 		bt_component_class_sink *comp_class,
-		bt_component_class_sink_init_method method);
+		bt_component_class_sink_initialize_method method);
 
 extern
 bt_component_class_set_method_status

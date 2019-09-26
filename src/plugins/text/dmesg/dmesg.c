@@ -355,23 +355,23 @@ void destroy_dmesg_component(struct dmesg_component *dmesg_comp)
 }
 
 static
-bt_component_class_init_method_status create_port(
+bt_component_class_initialize_method_status create_port(
 		bt_self_component_source *self_comp)
 {
-	bt_component_class_init_method_status status;
+	bt_component_class_initialize_method_status status;
 	bt_self_component_add_port_status add_port_status;
 
 	add_port_status = bt_self_component_source_add_output_port(self_comp,
 		"out", NULL, NULL);
 	switch (add_port_status) {
 	case BT_SELF_COMPONENT_ADD_PORT_STATUS_OK:
-		status = BT_COMPONENT_CLASS_INIT_METHOD_STATUS_OK;
+		status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_OK;
 		break;
 	case BT_SELF_COMPONENT_ADD_PORT_STATUS_ERROR:
-		status = BT_COMPONENT_CLASS_INIT_METHOD_STATUS_ERROR;
+		status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_ERROR;
 		break;
 	case BT_SELF_COMPONENT_ADD_PORT_STATUS_MEMORY_ERROR:
-		status = BT_COMPONENT_CLASS_INIT_METHOD_STATUS_MEMORY_ERROR;
+		status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_MEMORY_ERROR;
 		break;
 	default:
 		abort();
@@ -381,15 +381,15 @@ bt_component_class_init_method_status create_port(
 }
 
 BT_HIDDEN
-bt_component_class_init_method_status dmesg_init(
+bt_component_class_initialize_method_status dmesg_init(
 		bt_self_component_source *self_comp_src,
 		bt_self_component_source_configuration *config,
 		bt_value *params, void *init_method_data)
 {
 	int ret = 0;
 	struct dmesg_component *dmesg_comp = g_new0(struct dmesg_component, 1);
-	bt_component_class_init_method_status status =
-		BT_COMPONENT_CLASS_INIT_METHOD_STATUS_OK;
+	bt_component_class_initialize_method_status status =
+		BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_OK;
 	bt_self_component *self_comp =
 		bt_self_component_source_as_self_component(self_comp_src);
 	const bt_component *comp = bt_self_component_as_component(self_comp);
@@ -427,7 +427,7 @@ bt_component_class_init_method_status dmesg_init(
 	}
 
 	status = create_port(self_comp_src);
-	if (status != BT_COMPONENT_CLASS_INIT_METHOD_STATUS_OK) {
+	if (status != BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_OK) {
 		goto error;
 	}
 
@@ -440,7 +440,7 @@ error:
 	bt_self_component_set_data(self_comp, NULL);
 
 	if (status >= 0) {
-		status = BT_COMPONENT_CLASS_INIT_METHOD_STATUS_ERROR;
+		status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_ERROR;
 	}
 
 end:
@@ -657,7 +657,7 @@ void destroy_dmesg_msg_iter(struct dmesg_msg_iter *dmesg_msg_iter)
 
 
 BT_HIDDEN
-bt_component_class_message_iterator_init_method_status dmesg_msg_iter_init(
+bt_component_class_message_iterator_initialize_method_status dmesg_msg_iter_init(
 		bt_self_message_iterator *self_msg_iter,
 		bt_self_message_iterator_configuration *config,
 		bt_self_component_source *self_comp,
@@ -667,8 +667,8 @@ bt_component_class_message_iterator_init_method_status dmesg_msg_iter_init(
 		bt_self_component_source_as_self_component(self_comp));
 	struct dmesg_msg_iter *dmesg_msg_iter =
 		g_new0(struct dmesg_msg_iter, 1);
-	bt_component_class_message_iterator_init_method_status status =
-		BT_COMPONENT_CLASS_MESSAGE_ITERATOR_INIT_METHOD_STATUS_OK;
+	bt_component_class_message_iterator_initialize_method_status status =
+		BT_COMPONENT_CLASS_MESSAGE_ITERATOR_INITIALIZE_METHOD_STATUS_OK;
 
 	if (!dmesg_msg_iter) {
 		BT_COMP_LOGE_STR("Failed to allocate on dmesg message iterator structure.");
@@ -698,7 +698,7 @@ error:
 	destroy_dmesg_msg_iter(dmesg_msg_iter);
 	bt_self_message_iterator_set_data(self_msg_iter, NULL);
 	if (status >= 0) {
-		status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_INIT_METHOD_STATUS_ERROR;
+		status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_INITIALIZE_METHOD_STATUS_ERROR;
 	}
 
 end:

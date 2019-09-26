@@ -93,7 +93,7 @@ struct pretty_component {
 };
 
 BT_HIDDEN
-bt_component_class_init_method_status pretty_init(
+bt_component_class_initialize_method_status pretty_init(
 		bt_self_component_sink *component,
 		bt_self_component_sink_configuration *config,
 		const bt_value *params,

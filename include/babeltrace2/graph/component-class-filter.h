@@ -44,8 +44,8 @@ typedef bt_component_class_get_supported_mip_versions_method_status
 		bt_logging_level log_level,
 		bt_integer_range_set_unsigned *supported_versions);
 
-typedef bt_component_class_init_method_status
-(*bt_component_class_filter_init_method)(
+typedef bt_component_class_initialize_method_status
+(*bt_component_class_filter_initialize_method)(
 		bt_self_component_filter *self_component,
 		bt_self_component_filter_configuration *config,
 		const bt_value *params, void *init_method_data);
@@ -53,8 +53,8 @@ typedef bt_component_class_init_method_status
 typedef void (*bt_component_class_filter_finalize_method)(
 		bt_self_component_filter *self_component);
 
-typedef bt_component_class_message_iterator_init_method_status
-(*bt_component_class_filter_message_iterator_init_method)(
+typedef bt_component_class_message_iterator_initialize_method_status
+(*bt_component_class_filter_message_iterator_initialize_method)(
 		bt_self_message_iterator *message_iterator,
 		bt_self_message_iterator_configuration *config,
 		bt_self_component_filter *self_component,
@@ -125,9 +125,9 @@ bt_component_class_filter_set_get_supported_mip_versions_method(
 		bt_component_class_filter_get_supported_mip_versions_method method);
 
 extern bt_component_class_set_method_status
-bt_component_class_filter_set_init_method(
+bt_component_class_filter_set_initialize_method(
 		bt_component_class_filter *comp_class,
-		bt_component_class_filter_init_method method);
+		bt_component_class_filter_initialize_method method);
 
 extern bt_component_class_set_method_status
 bt_component_class_filter_set_finalize_method(
@@ -150,9 +150,9 @@ bt_component_class_filter_set_query_method(
 		bt_component_class_filter_query_method method);
 
 extern bt_component_class_set_method_status
-bt_component_class_filter_set_message_iterator_init_method(
+bt_component_class_filter_set_message_iterator_initialize_method(
 		bt_component_class_filter *comp_class,
-		bt_component_class_filter_message_iterator_init_method method);
+		bt_component_class_filter_message_iterator_initialize_method method);
 
 extern bt_component_class_set_method_status
 bt_component_class_filter_set_message_iterator_finalize_method(

@@ -409,13 +409,13 @@ static void test_example_scenario(bt_self_component_source *self_comp)
 }
 
 static
-bt_component_class_init_method_status src_init(
+bt_component_class_initialize_method_status src_init(
 	bt_self_component_source *self_comp,
 	bt_self_component_source_configuration *config,
 	const bt_value *params, void *init_method_data)
 {
 	test_example_scenario(self_comp);
-	return BT_COMPONENT_CLASS_INIT_METHOD_STATUS_OK;
+	return BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_OK;
 }
 
 static
@@ -435,7 +435,7 @@ static void test_example_scenario_in_graph(void)
 
 	comp_cls = bt_component_class_source_create("src", src_iter_next);
 	BT_ASSERT(comp_cls);
-	ret = bt_component_class_source_set_init_method(comp_cls, src_init);
+	ret = bt_component_class_source_set_initialize_method(comp_cls, src_init);
 	BT_ASSERT(ret == 0);
 	graph = bt_graph_create(0);
 	ret = bt_graph_add_source_component(graph, comp_cls, "src-comp",

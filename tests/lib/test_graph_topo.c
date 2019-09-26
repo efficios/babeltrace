@@ -293,7 +293,7 @@ bt_component_class_port_connected_method_status sink_input_port_connected(
 }
 
 static
-bt_component_class_init_method_status src_init(
+bt_component_class_initialize_method_status src_init(
 	bt_self_component_source *self_comp,
 	bt_self_component_source_configuration *config,
 	const bt_value *params, void *init_method_data)
@@ -303,11 +303,11 @@ bt_component_class_init_method_status src_init(
 	ret = bt_self_component_source_add_output_port(
 		self_comp, "out", NULL, NULL);
 	BT_ASSERT(ret == 0);
-	return BT_COMPONENT_CLASS_INIT_METHOD_STATUS_OK;
+	return BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_OK;
 }
 
 static
-bt_component_class_init_method_status sink_init(
+bt_component_class_initialize_method_status sink_init(
 	bt_self_component_sink *self_comp,
 	bt_self_component_sink_configuration *config,
 	const bt_value *params, void *init_method_data)
@@ -317,7 +317,7 @@ bt_component_class_init_method_status sink_init(
 	ret = bt_self_component_sink_add_input_port(self_comp,
 		"in", NULL, NULL);
 	BT_ASSERT(ret == 0);
-	return BT_COMPONENT_CLASS_INIT_METHOD_STATUS_OK;
+	return BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_OK;
 }
 
 static
@@ -397,7 +397,7 @@ void init_test(void)
 	src_comp_class = bt_component_class_source_create(
 		"src", src_iter_next);
 	BT_ASSERT(src_comp_class);
-	ret = bt_component_class_source_set_init_method(
+	ret = bt_component_class_source_set_initialize_method(
 		src_comp_class, src_init);
 	BT_ASSERT(ret == 0);
 	ret = bt_component_class_source_set_output_port_connected_method(
@@ -406,7 +406,7 @@ void init_test(void)
 	sink_comp_class = bt_component_class_sink_create("sink",
 		sink_consume);
 	BT_ASSERT(sink_comp_class);
-	ret = bt_component_class_sink_set_init_method(sink_comp_class,
+	ret = bt_component_class_sink_set_initialize_method(sink_comp_class,
 		sink_init);
 	BT_ASSERT(ret == 0);
 	ret = bt_component_class_sink_set_input_port_connected_method(

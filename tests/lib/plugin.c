@@ -41,7 +41,7 @@ static int check_env_var(const char *name)
 
 static void reset_test_plugin_env_vars(void)
 {
-	g_setenv("BT_TEST_PLUGIN_INIT_CALLED", "0", 1);
+	g_setenv("BT_TEST_PLUGIN_INITIALIZE_CALLED", "0", 1);
 	g_setenv("BT_TEST_PLUGIN_EXIT_CALLED", "0", 1);
 }
 
@@ -79,7 +79,7 @@ static void test_minimal(const char *plugin_dir)
 		"bt_plugin_find_all_from_file() succeeds with a valid file");
 	ok(plugin_set,
 		"bt_plugin_find_all_from_file() returns a plugin set");
-	ok(check_env_var("BT_TEST_PLUGIN_INIT_CALLED") == 1,
+	ok(check_env_var("BT_TEST_PLUGIN_INITIALIZE_CALLED") == 1,
 		"plugin's initialization function is called during bt_plugin_find_all_from_file()");
 	ok(bt_plugin_set_get_plugin_count(plugin_set) == 1,
 		"bt_plugin_find_all_from_file() returns the expected number of plugins");

@@ -298,7 +298,7 @@ int create_self_component_input_port_message_iterator(
 		struct bt_self_component_port_input *self_port,
 		struct bt_self_component_port_input_message_iterator **message_iterator)
 {
-	typedef enum bt_component_class_message_iterator_init_method_status (*init_method_t)(
+	typedef enum bt_component_class_message_iterator_initialize_method_status (*init_method_t)(
 			void *, void *, void *, void *);
 
 	init_method_t init_method = NULL;
@@ -451,7 +451,7 @@ int create_self_component_input_port_message_iterator(
 			(void *) upstream_comp_cls;
 
 		init_method =
-			(init_method_t) src_comp_cls->methods.msg_iter_init;
+			(init_method_t) src_comp_cls->methods.msg_iter_initialize;
 		break;
 	}
 	case BT_COMPONENT_CLASS_TYPE_FILTER:
@@ -460,7 +460,7 @@ int create_self_component_input_port_message_iterator(
 			(void *) upstream_comp_cls;
 
 		init_method =
-			(init_method_t) flt_comp_cls->methods.msg_iter_init;
+			(init_method_t) flt_comp_cls->methods.msg_iter_initialize;
 		break;
 	}
 	default:
@@ -469,7 +469,7 @@ int create_self_component_input_port_message_iterator(
 	}
 
 	if (init_method) {
-		enum bt_component_class_message_iterator_init_method_status iter_status;
+		enum bt_component_class_message_iterator_initialize_method_status iter_status;
 
 		BT_LIB_LOGD("Calling user's initialization method: %!+i", iterator);
 		iter_status = init_method(iterator, &iterator->config, upstream_comp,

@@ -43,11 +43,11 @@ static
 const char * const in_port_name = "in";
 
 static
-bt_component_class_init_method_status ensure_output_dir_exists(
+bt_component_class_initialize_method_status ensure_output_dir_exists(
 		struct fs_sink_comp *fs_sink)
 {
-	bt_component_class_init_method_status status =
-		BT_COMPONENT_CLASS_INIT_METHOD_STATUS_OK;
+	bt_component_class_initialize_method_status status =
+		BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_OK;
 	int ret;
 
 	ret = g_mkdir_with_parents(fs_sink->output_dir_path->str, 0755);
@@ -56,7 +56,7 @@ bt_component_class_init_method_status ensure_output_dir_exists(
 			"Cannot create directories for output directory",
 			": output-dir-path=\"%s\"",
 			fs_sink->output_dir_path->str);
-		status = BT_COMPONENT_CLASS_INIT_METHOD_STATUS_ERROR;
+		status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_ERROR;
 		goto end;
 	}
 
@@ -65,24 +65,24 @@ end:
 }
 
 static
-bt_component_class_init_method_status
+bt_component_class_initialize_method_status
 configure_component(struct fs_sink_comp *fs_sink,
 		const bt_value *params)
 {
-	bt_component_class_init_method_status status =
-		BT_COMPONENT_CLASS_INIT_METHOD_STATUS_OK;
+	bt_component_class_initialize_method_status status =
+		BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_OK;
 	const bt_value *value;
 
 	value = bt_value_map_borrow_entry_value_const(params, "path");
 	if (!value) {
 		BT_COMP_LOGE_STR("Missing mandatory `path` parameter.");
-		status = BT_COMPONENT_CLASS_INIT_METHOD_STATUS_ERROR;
+		status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_ERROR;
 		goto end;
 	}
 
 	if (!bt_value_is_string(value)) {
 		BT_COMP_LOGE_STR("`path` parameter: expecting a string.");
-		status = BT_COMPONENT_CLASS_INIT_METHOD_STATUS_ERROR;
+		status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_ERROR;
 		goto end;
 	}
 
@@ -93,7 +93,7 @@ configure_component(struct fs_sink_comp *fs_sink,
 	if (value) {
 		if (!bt_value_is_bool(value)) {
 			BT_COMP_LOGE_STR("`assume-single-trace` parameter: expecting a boolean.");
-			status = BT_COMPONENT_CLASS_INIT_METHOD_STATUS_ERROR;
+			status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_ERROR;
 			goto end;
 		}
 
@@ -105,7 +105,7 @@ configure_component(struct fs_sink_comp *fs_sink,
 	if (value) {
 		if (!bt_value_is_bool(value)) {
 			BT_COMP_LOGE_STR("`ignore-discarded-events` parameter: expecting a boolean.");
-			status = BT_COMPONENT_CLASS_INIT_METHOD_STATUS_ERROR;
+			status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_ERROR;
 			goto end;
 		}
 
@@ -118,7 +118,7 @@ configure_component(struct fs_sink_comp *fs_sink,
 	if (value) {
 		if (!bt_value_is_bool(value)) {
 			BT_COMP_LOGE_STR("`ignore-discarded-packets` parameter: expecting a boolean.");
-			status = BT_COMPONENT_CLASS_INIT_METHOD_STATUS_ERROR;
+			status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_ERROR;
 			goto end;
 		}
 
@@ -131,7 +131,7 @@ configure_component(struct fs_sink_comp *fs_sink,
 	if (value) {
 		if (!bt_value_is_bool(value)) {
 			BT_COMP_LOGE_STR("`quiet` parameter: expecting a boolean.");
-			status = BT_COMPONENT_CLASS_INIT_METHOD_STATUS_ERROR;
+			status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_ERROR;
 			goto end;
 		}
 
@@ -168,14 +168,14 @@ end:
 }
 
 BT_HIDDEN
-bt_component_class_init_method_status ctf_fs_sink_init(
+bt_component_class_initialize_method_status ctf_fs_sink_init(
 		bt_self_component_sink *self_comp_sink,
 		bt_self_component_sink_configuration *config,
 		const bt_value *params,
 		void *init_method_data)
 {
-	bt_component_class_init_method_status status =
-		BT_COMPONENT_CLASS_INIT_METHOD_STATUS_OK;
+	bt_component_class_initialize_method_status status =
+		BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_OK;
 	bt_self_component_add_port_status add_port_status;
 	struct fs_sink_comp *fs_sink = NULL;
 	bt_self_component *self_comp =
@@ -187,7 +187,7 @@ bt_component_class_init_method_status ctf_fs_sink_init(
 	if (!fs_sink) {
 		BT_COMP_LOG_CUR_LVL(BT_LOG_ERROR, log_level, self_comp,
 			"Failed to allocate one CTF FS sink structure.");
-		status = BT_COMPONENT_CLASS_INIT_METHOD_STATUS_MEMORY_ERROR;
+		status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_MEMORY_ERROR;
 		goto end;
 	}
 
@@ -195,7 +195,7 @@ bt_component_class_init_method_status ctf_fs_sink_init(
 	fs_sink->self_comp = self_comp;
 	fs_sink->output_dir_path = g_string_new(NULL);
 	status = configure_component(fs_sink, params);
-	if (status != BT_COMPONENT_CLASS_INIT_METHOD_STATUS_OK) {
+	if (status != BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_OK) {
 		/* configure_component() logs errors */
 		goto end;
 	}
@@ -205,12 +205,12 @@ bt_component_class_init_method_status ctf_fs_sink_init(
 				G_FILE_TEST_EXISTS)) {
 		BT_COMP_LOGE("Single trace mode, but output path exists: "
 			"output-path=\"%s\"", fs_sink->output_dir_path->str);
-		status = BT_COMPONENT_CLASS_INIT_METHOD_STATUS_ERROR;
+		status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_ERROR;
 		goto end;
 	}
 
 	status = ensure_output_dir_exists(fs_sink);
-	if (status != BT_COMPONENT_CLASS_INIT_METHOD_STATUS_OK) {
+	if (status != BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_OK) {
 		/* ensure_output_dir_exists() logs errors */
 		goto end;
 	}
@@ -219,7 +219,7 @@ bt_component_class_init_method_status ctf_fs_sink_init(
 		NULL, (GDestroyNotify) fs_sink_trace_destroy);
 	if (!fs_sink->traces) {
 		BT_COMP_LOGE_STR("Failed to allocate one GHashTable.");
-		status = BT_COMPONENT_CLASS_INIT_METHOD_STATUS_MEMORY_ERROR;
+		status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_MEMORY_ERROR;
 		goto end;
 	}
 
@@ -227,10 +227,10 @@ bt_component_class_init_method_status ctf_fs_sink_init(
 		self_comp_sink, in_port_name, NULL, NULL);
 	switch (add_port_status) {
 	case BT_SELF_COMPONENT_ADD_PORT_STATUS_ERROR:
-		status = BT_COMPONENT_CLASS_INIT_METHOD_STATUS_ERROR;
+		status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_ERROR;
 		goto end;
 	case BT_SELF_COMPONENT_ADD_PORT_STATUS_MEMORY_ERROR:
-		status = BT_COMPONENT_CLASS_INIT_METHOD_STATUS_MEMORY_ERROR;
+		status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_MEMORY_ERROR;
 		goto end;
 	default:
 		break;
@@ -239,7 +239,7 @@ bt_component_class_init_method_status ctf_fs_sink_init(
 	bt_self_component_set_data(self_comp, fs_sink);
 
 end:
-	if (status != BT_COMPONENT_CLASS_INIT_METHOD_STATUS_OK) {
+	if (status != BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_OK) {
 		destroy_fs_sink_comp(fs_sink);
 	}
 

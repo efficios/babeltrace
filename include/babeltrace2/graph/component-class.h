@@ -39,11 +39,11 @@ typedef enum bt_component_class_get_supported_mip_versions_method_status {
 	BT_COMPONENT_CLASS_GET_SUPPORTED_MIP_VERSIONS_METHOD_STATUS_MEMORY_ERROR	= __BT_FUNC_STATUS_MEMORY_ERROR,
 } bt_component_class_get_supported_mip_versions_method_status;
 
-typedef enum bt_component_class_init_method_status {
-	BT_COMPONENT_CLASS_INIT_METHOD_STATUS_OK		= __BT_FUNC_STATUS_OK,
-	BT_COMPONENT_CLASS_INIT_METHOD_STATUS_ERROR		= __BT_FUNC_STATUS_ERROR,
-	BT_COMPONENT_CLASS_INIT_METHOD_STATUS_MEMORY_ERROR	= __BT_FUNC_STATUS_MEMORY_ERROR,
-} bt_component_class_init_method_status;
+typedef enum bt_component_class_initialize_method_status {
+	BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_OK			= __BT_FUNC_STATUS_OK,
+	BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_ERROR		= __BT_FUNC_STATUS_ERROR,
+	BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_MEMORY_ERROR	= __BT_FUNC_STATUS_MEMORY_ERROR,
+} bt_component_class_initialize_method_status;
 
 typedef enum bt_component_class_port_connected_method_status {
 	BT_COMPONENT_CLASS_PORT_CONNECTED_METHOD_STATUS_OK		= __BT_FUNC_STATUS_OK,
@@ -59,11 +59,11 @@ typedef enum bt_component_class_query_method_status {
 	BT_COMPONENT_CLASS_QUERY_METHOD_STATUS_UNKNOWN_OBJECT	= __BT_FUNC_STATUS_UNKNOWN_OBJECT,
 } bt_component_class_query_method_status;
 
-typedef enum bt_component_class_message_iterator_init_method_status {
-	BT_COMPONENT_CLASS_MESSAGE_ITERATOR_INIT_METHOD_STATUS_OK		= __BT_FUNC_STATUS_OK,
-	BT_COMPONENT_CLASS_MESSAGE_ITERATOR_INIT_METHOD_STATUS_ERROR		= __BT_FUNC_STATUS_ERROR,
-	BT_COMPONENT_CLASS_MESSAGE_ITERATOR_INIT_METHOD_STATUS_MEMORY_ERROR	= __BT_FUNC_STATUS_MEMORY_ERROR,
-} bt_component_class_message_iterator_init_method_status;
+typedef enum bt_component_class_message_iterator_initialize_method_status {
+	BT_COMPONENT_CLASS_MESSAGE_ITERATOR_INITIALIZE_METHOD_STATUS_OK			= __BT_FUNC_STATUS_OK,
+	BT_COMPONENT_CLASS_MESSAGE_ITERATOR_INITIALIZE_METHOD_STATUS_ERROR		= __BT_FUNC_STATUS_ERROR,
+	BT_COMPONENT_CLASS_MESSAGE_ITERATOR_INITIALIZE_METHOD_STATUS_MEMORY_ERROR	= __BT_FUNC_STATUS_MEMORY_ERROR,
+} bt_component_class_message_iterator_initialize_method_status;
 
 typedef enum bt_component_class_message_iterator_next_method_status {
 	BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_OK		= __BT_FUNC_STATUS_OK,

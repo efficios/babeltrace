@@ -48,19 +48,19 @@ void dummy_finalize(bt_self_component_sink *comp)
 }
 
 BT_HIDDEN
-bt_component_class_init_method_status dummy_init(
+bt_component_class_initialize_method_status dummy_init(
 		bt_self_component_sink *component,
 		bt_self_component_sink_configuration *config,
 		const bt_value *params,
 		__attribute__((unused)) void *init_method_data)
 {
-	bt_component_class_init_method_status status =
-		BT_COMPONENT_CLASS_INIT_METHOD_STATUS_OK;
+	bt_component_class_initialize_method_status status =
+		BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_OK;
 	bt_self_component_add_port_status add_port_status;
 	struct dummy *dummy = g_new0(struct dummy, 1);
 
 	if (!dummy) {
-		status = BT_COMPONENT_CLASS_INIT_METHOD_STATUS_MEMORY_ERROR;
+		status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_MEMORY_ERROR;
 		goto end;
 	}
 
@@ -68,10 +68,10 @@ bt_component_class_init_method_status dummy_init(
 		"in", NULL, NULL);
 	switch (add_port_status) {
 	case BT_SELF_COMPONENT_ADD_PORT_STATUS_ERROR:
-		status = BT_COMPONENT_CLASS_INIT_METHOD_STATUS_ERROR;
+		status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_ERROR;
 		goto error;
 	case BT_SELF_COMPONENT_ADD_PORT_STATUS_MEMORY_ERROR:
-		status = BT_COMPONENT_CLASS_INIT_METHOD_STATUS_MEMORY_ERROR;
+		status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_MEMORY_ERROR;
 		goto error;
 	default:
 		break;

@@ -193,7 +193,7 @@ bool bt_bt2_is_python_component_class(const bt_component_class *comp_cls)
 /* Component class proxy methods (delegate to the attached Python object) */
 
 static
-bt_component_class_init_method_status component_class_init(
+bt_component_class_initialize_method_status component_class_init(
 		bt_self_component *self_component,
 		void *self_component_v,
 		swig_type_info *self_comp_cls_type_swig_type,
@@ -202,7 +202,7 @@ bt_component_class_init_method_status component_class_init(
 {
 	const bt_component *component = bt_self_component_as_component(self_component);
 	const bt_component_class *component_class = bt_component_borrow_class_const(component);
-	bt_component_class_init_method_status status = __BT_FUNC_STATUS_OK;
+	bt_component_class_initialize_method_status status = __BT_FUNC_STATUS_OK;
 	PyObject *py_cls = NULL;
 	PyObject *py_comp = NULL;
 	PyObject *py_params_ptr = NULL;
@@ -449,7 +449,7 @@ component_class_sink_get_supported_mip_versions(
  */
 
 static
-bt_component_class_init_method_status component_class_source_init(
+bt_component_class_initialize_method_status component_class_source_init(
 		bt_self_component_source *self_component_source,
 		bt_self_component_source_configuration *config,
 		const bt_value *params, void *init_method_data)
@@ -463,7 +463,7 @@ bt_component_class_init_method_status component_class_source_init(
 }
 
 static
-bt_component_class_init_method_status component_class_filter_init(
+bt_component_class_initialize_method_status component_class_filter_init(
 		bt_self_component_filter *self_component_filter,
 		bt_self_component_filter_configuration *config,
 		const bt_value *params, void *init_method_data)
@@ -477,7 +477,7 @@ bt_component_class_init_method_status component_class_filter_init(
 }
 
 static
-bt_component_class_init_method_status component_class_sink_init(
+bt_component_class_initialize_method_status component_class_sink_init(
 		bt_self_component_sink *self_component_sink,
 		bt_self_component_sink_configuration *config,
 		const bt_value *params, void *init_method_data)
@@ -932,14 +932,14 @@ bt_component_class_query_method_status component_class_sink_query(
 }
 
 static
-bt_component_class_message_iterator_init_method_status
+bt_component_class_message_iterator_initialize_method_status
 component_class_message_iterator_init(
 		bt_self_message_iterator *self_message_iterator,
 		bt_self_message_iterator_configuration *config,
 		bt_self_component *self_component,
 		bt_self_component_port_output *self_component_port_output)
 {
-	bt_component_class_message_iterator_init_method_status status = __BT_FUNC_STATUS_OK;
+	bt_component_class_message_iterator_initialize_method_status status = __BT_FUNC_STATUS_OK;
 	PyObject *py_comp_cls = NULL;
 	PyObject *py_iter_cls = NULL;
 	PyObject *py_iter_ptr = NULL;
@@ -1086,7 +1086,7 @@ end:
 }
 
 static
-bt_component_class_message_iterator_init_method_status
+bt_component_class_message_iterator_initialize_method_status
 component_class_source_message_iterator_init(
 		bt_self_message_iterator *self_message_iterator,
 		bt_self_message_iterator_configuration *config,
@@ -1101,7 +1101,7 @@ component_class_source_message_iterator_init(
 }
 
 static
-bt_component_class_message_iterator_init_method_status
+bt_component_class_message_iterator_initialize_method_status
 component_class_filter_message_iterator_init(
 		bt_self_message_iterator *self_message_iterator,
 		bt_self_message_iterator_configuration *config,
@@ -1263,7 +1263,7 @@ bt_component_class_source *bt_bt2_component_class_source_create(
 		goto end;
 	}
 
-	ret = bt_component_class_source_set_init_method(component_class_source, component_class_source_init);
+	ret = bt_component_class_source_set_initialize_method(component_class_source, component_class_source_init);
 	BT_ASSERT(ret == 0);
 	ret = bt_component_class_source_set_finalize_method(component_class_source, component_class_source_finalize);
 	BT_ASSERT(ret == 0);
@@ -1285,7 +1285,7 @@ bt_component_class_source *bt_bt2_component_class_source_create(
 	BT_ASSERT(ret == 0);
 	ret = bt_component_class_source_set_get_supported_mip_versions_method(component_class_source, component_class_source_get_supported_mip_versions);
 	BT_ASSERT(ret == 0);
-	ret = bt_component_class_source_set_message_iterator_init_method(
+	ret = bt_component_class_source_set_message_iterator_initialize_method(
 		component_class_source, component_class_source_message_iterator_init);
 	BT_ASSERT(ret == 0);
 	ret = bt_component_class_source_set_message_iterator_finalize_method(
@@ -1320,7 +1320,7 @@ bt_component_class_filter *bt_bt2_component_class_filter_create(
 		goto end;
 	}
 
-	ret = bt_component_class_filter_set_init_method(component_class_filter, component_class_filter_init);
+	ret = bt_component_class_filter_set_initialize_method(component_class_filter, component_class_filter_init);
 	BT_ASSERT(ret == 0);
 	ret = bt_component_class_filter_set_finalize_method (component_class_filter, component_class_filter_finalize);
 	BT_ASSERT(ret == 0);
@@ -1345,7 +1345,7 @@ bt_component_class_filter *bt_bt2_component_class_filter_create(
 	BT_ASSERT(ret == 0);
 	ret = bt_component_class_filter_set_get_supported_mip_versions_method(component_class_filter, component_class_filter_get_supported_mip_versions);
 	BT_ASSERT(ret == 0);
-	ret = bt_component_class_filter_set_message_iterator_init_method(
+	ret = bt_component_class_filter_set_message_iterator_initialize_method(
 		component_class_filter, component_class_filter_message_iterator_init);
 	BT_ASSERT(ret == 0);
 	ret = bt_component_class_filter_set_message_iterator_finalize_method(
@@ -1380,7 +1380,7 @@ bt_component_class_sink *bt_bt2_component_class_sink_create(
 		goto end;
 	}
 
-	ret = bt_component_class_sink_set_init_method(component_class_sink, component_class_sink_init);
+	ret = bt_component_class_sink_set_initialize_method(component_class_sink, component_class_sink_init);
 	BT_ASSERT(ret == 0);
 	ret = bt_component_class_sink_set_finalize_method(component_class_sink, component_class_sink_finalize);
 	BT_ASSERT(ret == 0);
