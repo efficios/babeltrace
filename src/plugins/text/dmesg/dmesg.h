@@ -28,7 +28,7 @@
 #include <babeltrace2/babeltrace.h>
 
 BT_HIDDEN
-bt_component_class_init_method_status dmesg_init(
+bt_component_class_initialize_method_status dmesg_init(
 		bt_self_component_source *self_comp,
 		bt_self_component_source_configuration *config,
 		const bt_value *params, void *init_method_data);
@@ -37,7 +37,7 @@ BT_HIDDEN
 void dmesg_finalize(bt_self_component_source *self_comp);
 
 BT_HIDDEN
-bt_component_class_message_iterator_init_method_status dmesg_msg_iter_init(
+bt_component_class_message_iterator_initialize_method_status dmesg_msg_iter_init(
 		bt_self_message_iterator *self_msg_iter,
 		bt_self_message_iterator_configuration *config,
 		bt_self_component_source *self_comp,

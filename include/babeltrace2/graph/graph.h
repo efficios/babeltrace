@@ -91,14 +91,14 @@ typedef bt_graph_listener_func_status
 
 typedef void (* bt_graph_listener_removed_func)(void *data);
 
-typedef enum bt_graph_simple_sink_component_init_func_status {
-	BT_GRAPH_SIMPLE_SINK_COMPONENT_INIT_FUNC_STATUS_OK		= __BT_FUNC_STATUS_OK,
-	BT_GRAPH_SIMPLE_SINK_COMPONENT_INIT_FUNC_STATUS_ERROR		= __BT_FUNC_STATUS_ERROR,
-	BT_GRAPH_SIMPLE_SINK_COMPONENT_INIT_FUNC_STATUS_MEMORY_ERROR	= __BT_FUNC_STATUS_MEMORY_ERROR,
-} bt_graph_simple_sink_component_init_func_status;
+typedef enum bt_graph_simple_sink_component_initialize_func_status {
+	BT_GRAPH_SIMPLE_SINK_COMPONENT_INITIALIZE_FUNC_STATUS_OK		= __BT_FUNC_STATUS_OK,
+	BT_GRAPH_SIMPLE_SINK_COMPONENT_INITIALIZE_FUNC_STATUS_ERROR		= __BT_FUNC_STATUS_ERROR,
+	BT_GRAPH_SIMPLE_SINK_COMPONENT_INITIALIZE_FUNC_STATUS_MEMORY_ERROR	= __BT_FUNC_STATUS_MEMORY_ERROR,
+} bt_graph_simple_sink_component_initialize_func_status;
 
-typedef bt_graph_simple_sink_component_init_func_status
-(*bt_graph_simple_sink_component_init_func)(
+typedef bt_graph_simple_sink_component_initialize_func_status
+(*bt_graph_simple_sink_component_initialize_func)(
 		bt_self_component_port_input_message_iterator *iterator,
 		void *data);
 
@@ -132,7 +132,7 @@ bt_graph_add_source_component(bt_graph *graph,
 		bt_logging_level log_level, const bt_component_source **component);
 
 extern bt_graph_add_component_status
-bt_graph_add_source_component_with_init_method_data(
+bt_graph_add_source_component_with_initialize_method_data(
 		bt_graph *graph,
 		const bt_component_class_source *component_class,
 		const char *name, const bt_value *params,
@@ -147,7 +147,7 @@ bt_graph_add_filter_component(bt_graph *graph,
 		const bt_component_filter **component);
 
 extern bt_graph_add_component_status
-bt_graph_add_filter_component_with_init_method_data(
+bt_graph_add_filter_component_with_initialize_method_data(
 		bt_graph *graph,
 		const bt_component_class_filter *component_class,
 		const char *name, const bt_value *params,
@@ -162,7 +162,7 @@ bt_graph_add_sink_component(
 		const bt_component_sink **component);
 
 extern bt_graph_add_component_status
-bt_graph_add_sink_component_with_init_method_data(
+bt_graph_add_sink_component_with_initialize_method_data(
 		bt_graph *graph, const bt_component_class_sink *component_class,
 		const char *name, const bt_value *params,
 		void *init_method_data, bt_logging_level log_level,
@@ -170,7 +170,7 @@ bt_graph_add_sink_component_with_init_method_data(
 
 extern bt_graph_add_component_status
 bt_graph_add_simple_sink_component(bt_graph *graph, const char *name,
-		bt_graph_simple_sink_component_init_func init_func,
+		bt_graph_simple_sink_component_initialize_func init_func,
 		bt_graph_simple_sink_component_consume_func consume_func,
 		bt_graph_simple_sink_component_finalize_func finalize_func,
 		void *user_data, const bt_component_sink **component);

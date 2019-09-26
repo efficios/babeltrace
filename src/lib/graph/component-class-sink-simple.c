@@ -51,7 +51,7 @@ struct simple_sink_data {
 };
 
 static
-enum bt_component_class_init_method_status simple_sink_init(
+enum bt_component_class_initialize_method_status simple_sink_init(
 		bt_self_component_sink *self_comp,
 		bt_self_component_sink_configuration *config,
 		const struct bt_value *params, void *init_method_data)
@@ -141,12 +141,12 @@ simple_sink_graph_is_configured(
 	}
 
 	if (data->init_method_data.init_func) {
-		bt_graph_simple_sink_component_init_func_status init_status;
+		bt_graph_simple_sink_component_initialize_func_status init_status;
 
 		/* Call user's initialization function */
 		init_status = data->init_method_data.init_func(data->msg_iter,
 			data->init_method_data.user_data);
-		if (init_status != BT_GRAPH_SIMPLE_SINK_COMPONENT_INIT_FUNC_STATUS_OK) {
+		if (init_status != BT_GRAPH_SIMPLE_SINK_COMPONENT_INITIALIZE_FUNC_STATUS_OK) {
 			BT_LIB_LOGW_APPEND_CAUSE(
 				"Simple sink component's user's initialization function failed: "
 				"status=%s, %![comp-]+c, %![port-]+p",
@@ -204,7 +204,7 @@ struct bt_component_class_sink *bt_component_class_sink_simple_borrow(void)
 		goto end;
 	}
 
-	set_method_status = bt_component_class_sink_set_init_method(
+	set_method_status = bt_component_class_sink_set_initialize_method(
 		simple_comp_cls, simple_sink_init);
 	BT_ASSERT(set_method_status == BT_FUNC_STATUS_OK);
 	set_method_status = bt_component_class_sink_set_finalize_method(

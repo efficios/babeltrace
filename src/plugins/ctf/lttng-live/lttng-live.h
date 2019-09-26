@@ -260,7 +260,7 @@ enum lttng_live_iterator_status {
 	LTTNG_LIVE_ITERATOR_STATUS_UNSUPPORTED = -4,
 };
 
-bt_component_class_init_method_status lttng_live_component_init(
+bt_component_class_initialize_method_status lttng_live_component_init(
 		bt_self_component_source *self_comp,
 		bt_self_component_source_configuration *config,
 		const bt_value *params, void *init_method_data);
@@ -278,7 +278,7 @@ bt_component_class_message_iterator_next_method_status lttng_live_msg_iter_next(
 		bt_message_array_const msgs, uint64_t capacity,
 		uint64_t *count);
 
-bt_component_class_message_iterator_init_method_status lttng_live_msg_iter_init(
+bt_component_class_message_iterator_initialize_method_status lttng_live_msg_iter_init(
 		bt_self_message_iterator *self_msg_it,
 		bt_self_message_iterator_configuration *config,
 		bt_self_component_source *self_comp,

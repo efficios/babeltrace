@@ -613,24 +613,24 @@ void set_use_colors(struct pretty_component *pretty)
 }
 
 BT_HIDDEN
-bt_component_class_init_method_status pretty_init(
+bt_component_class_initialize_method_status pretty_init(
 		bt_self_component_sink *comp,
 		bt_self_component_sink_configuration *config,
 		const bt_value *params,
 		__attribute__((unused)) void *init_method_data)
 {
-	bt_component_class_init_method_status ret =
-		BT_COMPONENT_CLASS_INIT_METHOD_STATUS_OK;
+	bt_component_class_initialize_method_status ret =
+		BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_OK;
 	struct pretty_component *pretty = create_pretty();
 
 	if (!pretty) {
-		ret = BT_COMPONENT_CLASS_INIT_METHOD_STATUS_MEMORY_ERROR;
+		ret = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_MEMORY_ERROR;
 		goto end;
 	}
 
 	if (bt_self_component_sink_add_input_port(comp,
 			in_port_name, NULL, NULL) < 0) {
-		ret = BT_COMPONENT_CLASS_INIT_METHOD_STATUS_MEMORY_ERROR;
+		ret = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_MEMORY_ERROR;
 		goto error;
 	}
 
@@ -644,7 +644,7 @@ bt_component_class_init_method_status pretty_init(
 	pretty->last_real_timestamp = -1ULL;
 
 	if (apply_params(pretty, params)) {
-		ret = BT_COMPONENT_CLASS_INIT_METHOD_STATUS_ERROR;
+		ret = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_ERROR;
 		goto error;
 	}
 

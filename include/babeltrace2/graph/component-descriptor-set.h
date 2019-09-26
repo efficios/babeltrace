@@ -48,7 +48,7 @@ bt_component_descriptor_set_add_descriptor(
 		const bt_value *params);
 
 extern bt_component_descriptor_set_add_descriptor_status
-bt_component_descriptor_set_add_descriptor_with_init_method_data(
+bt_component_descriptor_set_add_descriptor_with_initialize_method_data(
 		bt_component_descriptor_set *comp_descriptor_set,
 		const bt_component_class *component_class,
 		const bt_value *params, void *init_method_data);

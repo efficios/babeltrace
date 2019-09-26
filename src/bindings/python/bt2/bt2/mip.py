@@ -47,7 +47,7 @@ def get_greatest_operative_mip_version(
             if descr.params is not None:
                 params_ptr = descr.params._ptr
 
-            status = native_bt.bt2_component_descriptor_set_add_descriptor_with_init_method_data(
+            status = native_bt.bt2_component_descriptor_set_add_descriptor_with_initialize_method_data(
                 comp_descr_set_ptr, base_cc_ptr, params_ptr, descr.obj
             )
             utils._handle_func_status(

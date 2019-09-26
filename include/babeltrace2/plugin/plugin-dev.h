@@ -58,13 +58,13 @@ extern "C" {
 #define __BT_PLUGIN_VERSION_MINOR	0
 
 /* Plugin initialization function type */
-typedef enum bt_plugin_init_func_status {
-	BT_PLUGIN_INIT_FUNC_STATUS_OK		= __BT_FUNC_STATUS_OK,
-	BT_PLUGIN_INIT_FUNC_STATUS_MEMORY_ERROR	= __BT_FUNC_STATUS_MEMORY_ERROR,
-	BT_PLUGIN_INIT_FUNC_STATUS_ERROR	= __BT_FUNC_STATUS_ERROR,
-} bt_plugin_init_func_status;
+typedef enum bt_plugin_initialize_func_status {
+	BT_PLUGIN_INITIALIZE_FUNC_STATUS_OK		= __BT_FUNC_STATUS_OK,
+	BT_PLUGIN_INITIALIZE_FUNC_STATUS_MEMORY_ERROR	= __BT_FUNC_STATUS_MEMORY_ERROR,
+	BT_PLUGIN_INITIALIZE_FUNC_STATUS_ERROR		= __BT_FUNC_STATUS_ERROR,
+} bt_plugin_initialize_func_status;
 
-typedef bt_plugin_init_func_status (*bt_plugin_init_func)(
+typedef bt_plugin_initialize_func_status (*bt_plugin_initialize_func)(
 		bt_self_plugin *plugin);
 
 /* Plugin exit function type */
@@ -114,7 +114,7 @@ struct __bt_plugin_descriptor_attribute {
 	/* Attribute's value (depends on attribute's type) */
 	union {
 		/* BT_PLUGIN_DESCRIPTOR_ATTRIBUTE_TYPE_INIT */
-		bt_plugin_init_func init;
+		bt_plugin_initialize_func init;
 
 		/* BT_PLUGIN_DESCRIPTOR_ATTRIBUTE_TYPE_EXIT */
 		bt_plugin_exit_func exit;
@@ -171,13 +171,13 @@ enum __bt_plugin_component_class_descriptor_attribute_type {
 	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_DESCRIPTION					= 0,
 	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_HELP					= 1,
 	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_GET_SUPPORTED_MIP_VERSIONS_METHOD		= 2,
-	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_INIT_METHOD					= 3,
+	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_INITIALIZE_METHOD					= 3,
 	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_FINALIZE_METHOD				= 4,
 	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_QUERY_METHOD				= 5,
 	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_INPUT_PORT_CONNECTED_METHOD			= 6,
 	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_OUTPUT_PORT_CONNECTED_METHOD		= 7,
 	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_GRAPH_IS_CONFIGURED_METHOD			= 8,
-	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_MSG_ITER_INIT_METHOD			= 9,
+	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_MSG_ITER_INITIALIZE_METHOD			= 9,
 	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_MSG_ITER_FINALIZE_METHOD			= 10,
 	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_MSG_ITER_SEEK_NS_FROM_ORIGIN_METHOD		= 11,
 	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_MSG_ITER_SEEK_BEGINNING_METHOD		= 12,
@@ -212,10 +212,10 @@ struct __bt_plugin_component_class_descriptor_attribute {
 		bt_component_class_filter_get_supported_mip_versions_method filter_get_supported_mip_versions_method;
 		bt_component_class_sink_get_supported_mip_versions_method sink_get_supported_mip_versions_method;
 
-		/* BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_INIT_METHOD */
-		bt_component_class_source_init_method source_init_method;
-		bt_component_class_filter_init_method filter_init_method;
-		bt_component_class_sink_init_method sink_init_method;
+		/* BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_INITIALIZE_METHOD */
+		bt_component_class_source_initialize_method source_initialize_method;
+		bt_component_class_filter_initialize_method filter_initialize_method;
+		bt_component_class_sink_initialize_method sink_initialize_method;
 
 		/* BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_FINALIZE_METHOD */
 		bt_component_class_source_finalize_method source_finalize_method;
@@ -238,9 +238,9 @@ struct __bt_plugin_component_class_descriptor_attribute {
 		/* BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_GRAPH_IS_CONFIGURED_METHOD */
 		bt_component_class_sink_graph_is_configured_method sink_graph_is_configured_method;
 
-		/* BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_MSG_ITER_INIT_METHOD */
-		bt_component_class_source_message_iterator_init_method source_msg_iter_init_method;
-		bt_component_class_filter_message_iterator_init_method filter_msg_iter_init_method;
+		/* BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_MSG_ITER_INITIALIZE_METHOD */
+		bt_component_class_source_message_iterator_initialize_method source_msg_iter_initialize_method;
+		bt_component_class_filter_message_iterator_initialize_method filter_msg_iter_initialize_method;
 
 		/* BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_MSG_ITER_FINALIZE_METHOD */
 		bt_component_class_source_message_iterator_finalize_method source_msg_iter_finalize_method;
@@ -461,9 +461,9 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
  * specific plugin descriptor.
  *
  * _id: Plugin descriptor ID (C identifier).
- * _x:  Initialization function (bt_plugin_init_func).
+ * _x:  Initialization function (bt_plugin_initialize_func).
  */
-#define BT_PLUGIN_INIT_WITH_ID(_id, _x) \
+#define BT_PLUGIN_INITIALIZE_WITH_ID(_id, _x) \
 	__BT_PLUGIN_DESCRIPTOR_ATTRIBUTE(init, BT_PLUGIN_DESCRIPTOR_ATTRIBUTE_TYPE_INIT, _id, _x)
 
 /*
@@ -666,10 +666,10 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
  *
  * _id:            Plugin descriptor ID (C identifier).
  * _comp_class_id: Component class descriptor ID (C identifier).
- * _x:             Initialization method (bt_component_class_source_init_method).
+ * _x:             Initialization method (bt_component_class_source_initialize_method).
  */
-#define BT_PLUGIN_SOURCE_COMPONENT_CLASS_INIT_METHOD_WITH_ID(_id, _comp_class_id, _x) \
-	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(source_init_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_INIT_METHOD, _id, _comp_class_id, source, _x)
+#define BT_PLUGIN_SOURCE_COMPONENT_CLASS_INITIALIZE_METHOD_WITH_ID(_id, _comp_class_id, _x) \
+	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(source_initialize_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_INITIALIZE_METHOD, _id, _comp_class_id, source, _x)
 
 /*
  * Defines an initialization method attribute attached to a specific
@@ -677,10 +677,10 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
  *
  * _id:            Plugin descriptor ID (C identifier).
  * _comp_class_id: Component class descriptor ID (C identifier).
- * _x:             Initialization method (bt_component_class_filter_init_method).
+ * _x:             Initialization method (bt_component_class_filter_initialize_method).
  */
-#define BT_PLUGIN_FILTER_COMPONENT_CLASS_INIT_METHOD_WITH_ID(_id, _comp_class_id, _x) \
-	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(filter_init_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_INIT_METHOD, _id, _comp_class_id, filter, _x)
+#define BT_PLUGIN_FILTER_COMPONENT_CLASS_INITIALIZE_METHOD_WITH_ID(_id, _comp_class_id, _x) \
+	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(filter_initialize_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_INITIALIZE_METHOD, _id, _comp_class_id, filter, _x)
 
 /*
  * Defines an initialization method attribute attached to a specific
@@ -688,10 +688,10 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
  *
  * _id:            Plugin descriptor ID (C identifier).
  * _comp_class_id: Component class descriptor ID (C identifier).
- * _x:             Initialization method (bt_component_class_sink_init_method).
+ * _x:             Initialization method (bt_component_class_sink_initialize_method).
  */
-#define BT_PLUGIN_SINK_COMPONENT_CLASS_INIT_METHOD_WITH_ID(_id, _comp_class_id, _x) \
-	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(sink_init_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_INIT_METHOD, _id, _comp_class_id, sink, _x)
+#define BT_PLUGIN_SINK_COMPONENT_CLASS_INITIALIZE_METHOD_WITH_ID(_id, _comp_class_id, _x) \
+	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(sink_initialize_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_INITIALIZE_METHOD, _id, _comp_class_id, sink, _x)
 
 /*
  * Defines a "get supported MIP versions" attribute attached to a
@@ -859,10 +859,10 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
  * _id:            Plugin descriptor ID (C identifier).
  * _comp_class_id: Component class descriptor ID (C identifier).
  * _x:             Iterator initialization method
- *                 (bt_component_class_source_message_iterator_init_method).
+ *                 (bt_component_class_source_message_iterator_initialize_method).
  */
-#define BT_PLUGIN_SOURCE_COMPONENT_CLASS_MESSAGE_ITERATOR_INIT_METHOD_WITH_ID(_id, _comp_class_id, _x) \
-	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(source_msg_iter_init_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_MSG_ITER_INIT_METHOD, _id, _comp_class_id, source, _x)
+#define BT_PLUGIN_SOURCE_COMPONENT_CLASS_MESSAGE_ITERATOR_INITIALIZE_METHOD_WITH_ID(_id, _comp_class_id, _x) \
+	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(source_msg_iter_initialize_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_MSG_ITER_INITIALIZE_METHOD, _id, _comp_class_id, source, _x)
 
 /*
  * Defines an iterator finalize method attribute attached to a specific
@@ -931,10 +931,10 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
  * _id:            Plugin descriptor ID (C identifier).
  * _comp_class_id: Component class descriptor ID (C identifier).
  * _x:             Iterator initialization method
- *                 (bt_component_class_filter_message_iterator_init_method).
+ *                 (bt_component_class_filter_message_iterator_initialize_method).
  */
-#define BT_PLUGIN_FILTER_COMPONENT_CLASS_MESSAGE_ITERATOR_INIT_METHOD_WITH_ID(_id, _comp_class_id, _x) \
-	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(filter_msg_iter_init_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_MSG_ITER_INIT_METHOD, _id, _comp_class_id, filter, _x)
+#define BT_PLUGIN_FILTER_COMPONENT_CLASS_MESSAGE_ITERATOR_INITIALIZE_METHOD_WITH_ID(_id, _comp_class_id, _x) \
+	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(filter_msg_iter_initialize_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_MSG_ITER_INITIALIZE_METHOD, _id, _comp_class_id, filter, _x)
 
 /*
  * Defines an iterator finalize method attribute attached to a specific
@@ -1007,9 +1007,9 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
  * Defines a plugin initialization function attribute attached to the
  * automatic plugin descriptor.
  *
- * _x: Initialization function (bt_plugin_init_func).
+ * _x: Initialization function (bt_plugin_initialize_func).
  */
-#define BT_PLUGIN_INIT(_x) 		BT_PLUGIN_INIT_WITH_ID(auto, _x)
+#define BT_PLUGIN_INITIALIZE(_x) 	BT_PLUGIN_INITIALIZE_WITH_ID(auto, _x)
 
  /*
  * Defines a plugin exit function attribute attached to the automatic
@@ -1156,10 +1156,10 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
  * descriptor.
  *
  * _name: Component class name (C identifier).
- * _x:    Initialization method (bt_component_class_source_init_method).
+ * _x:    Initialization method (bt_component_class_source_initialize_method).
  */
-#define BT_PLUGIN_SOURCE_COMPONENT_CLASS_INIT_METHOD(_name, _x) \
-	BT_PLUGIN_SOURCE_COMPONENT_CLASS_INIT_METHOD_WITH_ID(auto, _name, _x)
+#define BT_PLUGIN_SOURCE_COMPONENT_CLASS_INITIALIZE_METHOD(_name, _x) \
+	BT_PLUGIN_SOURCE_COMPONENT_CLASS_INITIALIZE_METHOD_WITH_ID(auto, _name, _x)
 
 /*
  * Defines an initialization method attribute attached to a filter
@@ -1167,10 +1167,10 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
  * descriptor.
  *
  * _name: Component class name (C identifier).
- * _x:    Initialization method (bt_component_class_filter_init_method).
+ * _x:    Initialization method (bt_component_class_filter_initialize_method).
  */
-#define BT_PLUGIN_FILTER_COMPONENT_CLASS_INIT_METHOD(_name, _x) \
-	BT_PLUGIN_FILTER_COMPONENT_CLASS_INIT_METHOD_WITH_ID(auto, _name, _x)
+#define BT_PLUGIN_FILTER_COMPONENT_CLASS_INITIALIZE_METHOD(_name, _x) \
+	BT_PLUGIN_FILTER_COMPONENT_CLASS_INITIALIZE_METHOD_WITH_ID(auto, _name, _x)
 
 /*
  * Defines an initialization method attribute attached to a sink
@@ -1178,10 +1178,10 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
  * descriptor.
  *
  * _name: Component class name (C identifier).
- * _x:    Initialization method (bt_component_class_sink_init_method).
+ * _x:    Initialization method (bt_component_class_sink_initialize_method).
  */
-#define BT_PLUGIN_SINK_COMPONENT_CLASS_INIT_METHOD(_name, _x) \
-	BT_PLUGIN_SINK_COMPONENT_CLASS_INIT_METHOD_WITH_ID(auto, _name, _x)
+#define BT_PLUGIN_SINK_COMPONENT_CLASS_INITIALIZE_METHOD(_name, _x) \
+	BT_PLUGIN_SINK_COMPONENT_CLASS_INITIALIZE_METHOD_WITH_ID(auto, _name, _x)
 
 /*
  * Defines a "get supported MIP versions" method attribute attached to a
@@ -1344,10 +1344,10 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
  *
  * _name: Component class name (C identifier).
  * _x:    Iterator initialization method
- *        (bt_component_class_source_message_iterator_init_method).
+ *        (bt_component_class_source_message_iterator_initialize_method).
  */
-#define BT_PLUGIN_SOURCE_COMPONENT_CLASS_MESSAGE_ITERATOR_INIT_METHOD(_name, _x) \
-	BT_PLUGIN_SOURCE_COMPONENT_CLASS_MESSAGE_ITERATOR_INIT_METHOD_WITH_ID(auto, _name, _x)
+#define BT_PLUGIN_SOURCE_COMPONENT_CLASS_MESSAGE_ITERATOR_INITIALIZE_METHOD(_name, _x) \
+	BT_PLUGIN_SOURCE_COMPONENT_CLASS_MESSAGE_ITERATOR_INITIALIZE_METHOD_WITH_ID(auto, _name, _x)
 
 /*
  * Defines an iterator finalize method attribute attached to a source
@@ -1416,10 +1416,10 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
  *
  * _name: Component class name (C identifier).
  * _x:    Iterator initialization method
- *        (bt_component_class_filter_message_iterator_init_method).
+ *        (bt_component_class_filter_message_iterator_initialize_method).
  */
-#define BT_PLUGIN_FILTER_COMPONENT_CLASS_MESSAGE_ITERATOR_INIT_METHOD(_name, _x) \
-	BT_PLUGIN_FILTER_COMPONENT_CLASS_MESSAGE_ITERATOR_INIT_METHOD_WITH_ID(auto, _name, _x)
+#define BT_PLUGIN_FILTER_COMPONENT_CLASS_MESSAGE_ITERATOR_INITIALIZE_METHOD(_name, _x) \
+	BT_PLUGIN_FILTER_COMPONENT_CLASS_MESSAGE_ITERATOR_INITIALIZE_METHOD_WITH_ID(auto, _name, _x)
 
 /*
  * Defines an iterator finalize method attribute attached to a filter

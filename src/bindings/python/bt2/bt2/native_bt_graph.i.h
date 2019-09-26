@@ -523,7 +523,7 @@ bt_bt2_graph_add_source_component(
 		PyObject *obj, bt_logging_level log_level,
 		const bt_component_source **component)
 {
-	return bt_graph_add_source_component_with_init_method_data(graph,
+	return bt_graph_add_source_component_with_initialize_method_data(graph,
 		component_class, name, params, obj == Py_None ? NULL : obj,
 		log_level, component);
 }
@@ -537,7 +537,7 @@ bt_bt2_graph_add_filter_component(
 		PyObject *obj, bt_logging_level log_level,
 		const bt_component_filter **component)
 {
-	return bt_graph_add_filter_component_with_init_method_data(graph,
+	return bt_graph_add_filter_component_with_initialize_method_data(graph,
 		component_class, name, params, obj == Py_None ? NULL : obj,
 		log_level, component);
 }
@@ -551,7 +551,7 @@ bt_bt2_graph_add_sink_component(
 		PyObject *obj, bt_logging_level log_level,
 		const bt_component_sink **component)
 {
-	return bt_graph_add_sink_component_with_init_method_data(graph,
+	return bt_graph_add_sink_component_with_initialize_method_data(graph,
 		component_class, name, params, obj == Py_None ? NULL : obj,
 		log_level, component);
 }

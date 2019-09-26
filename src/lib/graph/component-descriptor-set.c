@@ -129,7 +129,7 @@ end:
 }
 
 enum bt_component_descriptor_set_add_descriptor_status
-bt_component_descriptor_set_add_descriptor_with_init_method_data(
+bt_component_descriptor_set_add_descriptor_with_initialize_method_data(
 		struct bt_component_descriptor_set *comp_descr_set,
 		const struct bt_component_class *comp_cls,
 		const struct bt_value *params, void *init_method_data)
@@ -214,7 +214,7 @@ bt_component_descriptor_set_add_descriptor(
 		const struct bt_component_class *comp_cls,
 		const struct bt_value *params)
 {
-	return bt_component_descriptor_set_add_descriptor_with_init_method_data(
+	return bt_component_descriptor_set_add_descriptor_with_initialize_method_data(
 		comp_descr_set, comp_cls, params, NULL);
 }
 

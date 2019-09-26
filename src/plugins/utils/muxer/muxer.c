@@ -247,13 +247,13 @@ void destroy_muxer_comp(struct muxer_comp *muxer_comp)
 }
 
 BT_HIDDEN
-bt_component_class_init_method_status muxer_init(
+bt_component_class_initialize_method_status muxer_init(
 		bt_self_component_filter *self_comp_flt,
 		bt_self_component_filter_configuration *config,
 		const bt_value *params, void *init_data)
 {
-	bt_component_class_init_method_status status =
-		BT_COMPONENT_CLASS_INIT_METHOD_STATUS_OK;
+	bt_component_class_initialize_method_status status =
+		BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_OK;
 	bt_self_component_add_port_status add_port_status;
 	bt_self_component *self_comp =
 		bt_self_component_filter_as_self_component(self_comp_flt);
@@ -284,9 +284,9 @@ bt_component_class_init_method_status muxer_init(
 			bt_common_func_status_string(add_port_status));
 		if (add_port_status ==
 				BT_SELF_COMPONENT_ADD_PORT_STATUS_MEMORY_ERROR) {
-			status = BT_COMPONENT_CLASS_INIT_METHOD_STATUS_MEMORY_ERROR;
+			status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_MEMORY_ERROR;
 		} else {
-			status = BT_COMPONENT_CLASS_INIT_METHOD_STATUS_ERROR;
+			status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_ERROR;
 		}
 
 		goto error;
@@ -300,9 +300,9 @@ bt_component_class_init_method_status muxer_init(
 			bt_common_func_status_string(add_port_status));
 		if (add_port_status ==
 				BT_SELF_COMPONENT_ADD_PORT_STATUS_MEMORY_ERROR) {
-			status = BT_COMPONENT_CLASS_INIT_METHOD_STATUS_MEMORY_ERROR;
+			status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_MEMORY_ERROR;
 		} else {
-			status = BT_COMPONENT_CLASS_INIT_METHOD_STATUS_ERROR;
+			status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_ERROR;
 		}
 
 		goto error;
@@ -318,8 +318,8 @@ error:
 	destroy_muxer_comp(muxer_comp);
 	bt_self_component_set_data(self_comp, NULL);
 
-	if (status == BT_COMPONENT_CLASS_INIT_METHOD_STATUS_OK) {
-		status = BT_COMPONENT_CLASS_INIT_METHOD_STATUS_ERROR;
+	if (status == BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_OK) {
+		status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_ERROR;
 	}
 
 end:
@@ -1146,13 +1146,13 @@ void destroy_muxer_msg_iter(struct muxer_msg_iter *muxer_msg_iter)
 }
 
 static
-bt_component_class_message_iterator_init_method_status
+bt_component_class_message_iterator_initialize_method_status
 muxer_msg_iter_init_upstream_iterators(struct muxer_comp *muxer_comp,
 		struct muxer_msg_iter *muxer_msg_iter)
 {
 	int64_t count;
 	int64_t i;
-	bt_component_class_message_iterator_init_method_status status;
+	bt_component_class_message_iterator_initialize_method_status status;
 
 	count = bt_component_filter_get_input_port_count(
 		bt_self_component_filter_as_component_filter(
@@ -1161,7 +1161,7 @@ muxer_msg_iter_init_upstream_iterators(struct muxer_comp *muxer_comp,
 		BT_COMP_LOGD("No input port to initialize for muxer component's message iterator: "
 			"muxer-comp-addr=%p, muxer-msg-iter-addr=%p",
 			muxer_comp, muxer_msg_iter);
-		status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_INIT_METHOD_STATUS_OK;
+		status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_INITIALIZE_METHOD_STATUS_OK;
 		goto end;
 	}
 
@@ -1199,20 +1199,20 @@ muxer_msg_iter_init_upstream_iterators(struct muxer_comp *muxer_comp,
 		bt_self_component_port_input_message_iterator_put_ref(
 			upstream_msg_iter);
 		if (int_status) {
-			status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_INIT_METHOD_STATUS_ERROR;
+			status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_INITIALIZE_METHOD_STATUS_ERROR;
 			/* muxer_msg_iter_add_upstream_msg_iter() logs errors */
 			goto end;
 		}
 	}
 
-	status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_INIT_METHOD_STATUS_OK;
+	status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_INITIALIZE_METHOD_STATUS_OK;
 
 end:
 	return status;
 }
 
 BT_HIDDEN
-bt_component_class_message_iterator_init_method_status muxer_msg_iter_init(
+bt_component_class_message_iterator_initialize_method_status muxer_msg_iter_init(
 		bt_self_message_iterator *self_msg_iter,
 		bt_self_message_iterator_configuration *config,
 		bt_self_component_filter *self_comp,
@@ -1220,7 +1220,7 @@ bt_component_class_message_iterator_init_method_status muxer_msg_iter_init(
 {
 	struct muxer_comp *muxer_comp = NULL;
 	struct muxer_msg_iter *muxer_msg_iter = NULL;
-	bt_component_class_message_iterator_init_method_status status;
+	bt_component_class_message_iterator_initialize_method_status status;
 
 	muxer_comp = bt_self_component_get_data(
 		bt_self_component_filter_as_self_component(self_comp));
@@ -1238,7 +1238,7 @@ bt_component_class_message_iterator_init_method_status muxer_msg_iter_init(
 		BT_COMP_LOGE("Recursive initialization of muxer component's message iterator: "
 			"comp-addr=%p, muxer-comp-addr=%p, msg-iter-addr=%p",
 			self_comp, muxer_comp, self_msg_iter);
-		status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_INIT_METHOD_STATUS_ERROR;
+		status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_INITIALIZE_METHOD_STATUS_ERROR;
 		goto error;
 	}
 
@@ -1246,7 +1246,7 @@ bt_component_class_message_iterator_init_method_status muxer_msg_iter_init(
 	muxer_msg_iter = g_new0(struct muxer_msg_iter, 1);
 	if (!muxer_msg_iter) {
 		BT_COMP_LOGE_STR("Failed to allocate one muxer component's message iterator.");
-		status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_INIT_METHOD_STATUS_MEMORY_ERROR;
+		status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_INITIALIZE_METHOD_STATUS_MEMORY_ERROR;
 		goto error;
 	}
 
@@ -1258,7 +1258,7 @@ bt_component_class_message_iterator_init_method_status muxer_msg_iter_init(
 			(GDestroyNotify) destroy_muxer_upstream_msg_iter);
 	if (!muxer_msg_iter->active_muxer_upstream_msg_iters) {
 		BT_COMP_LOGE_STR("Failed to allocate a GPtrArray.");
-		status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_INIT_METHOD_STATUS_MEMORY_ERROR;
+		status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_INITIALIZE_METHOD_STATUS_MEMORY_ERROR;
 		goto error;
 	}
 
@@ -1267,7 +1267,7 @@ bt_component_class_message_iterator_init_method_status muxer_msg_iter_init(
 			(GDestroyNotify) destroy_muxer_upstream_msg_iter);
 	if (!muxer_msg_iter->ended_muxer_upstream_msg_iters) {
 		BT_COMP_LOGE_STR("Failed to allocate a GPtrArray.");
-		status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_INIT_METHOD_STATUS_MEMORY_ERROR;
+		status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_INITIALIZE_METHOD_STATUS_MEMORY_ERROR;
 		goto error;
 	}
 

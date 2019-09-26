@@ -23,12 +23,12 @@
 #define NR_TESTS 60
 
 struct test_data {
-	bt_graph_simple_sink_component_init_func_status init_status;
+	bt_graph_simple_sink_component_initialize_func_status init_status;
 	bt_graph_simple_sink_component_consume_func_status consume_status;
 };
 
 static
-bt_graph_simple_sink_component_init_func_status simple_init_func(
+bt_graph_simple_sink_component_initialize_func_status simple_INITIALIZE_func(
 		bt_self_component_port_input_message_iterator *iterator,
 		void *data)
 {
@@ -58,7 +58,7 @@ void simple_fini_func(void *data)
 }
 
 static
-bt_component_class_init_method_status src_init(
+bt_component_class_initialize_method_status src_init(
 		bt_self_component_source *self_comp,
 		bt_self_component_source_configuration *config,
 		const bt_value *params, void *init_method_data)
@@ -68,7 +68,7 @@ bt_component_class_init_method_status src_init(
 	status = bt_self_component_source_add_output_port(self_comp,
 		"out", NULL, NULL);
 	BT_ASSERT(status == BT_SELF_COMPONENT_ADD_PORT_STATUS_OK);
-	return BT_COMPONENT_CLASS_INIT_METHOD_STATUS_OK;
+	return BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_OK;
 }
 
 static
@@ -92,7 +92,7 @@ bt_graph *create_graph_with_source(const bt_port_output **out_port)
 	BT_ASSERT(out_port);
 	src_comp_cls = bt_component_class_source_create("src", src_iter_next);
 	BT_ASSERT(src_comp_cls);
-	set_method_status = bt_component_class_source_set_init_method(
+	set_method_status = bt_component_class_source_set_initialize_method(
 		src_comp_cls, src_init);
 	BT_ASSERT(set_method_status == BT_COMPONENT_CLASS_SET_METHOD_STATUS_OK);
 	graph = bt_graph_create(0);
@@ -111,7 +111,7 @@ bt_graph *create_graph_with_source(const bt_port_output **out_port)
 
 static
 void test_simple_expect_run_once_status(
-		bt_graph_simple_sink_component_init_func_status init_status,
+		bt_graph_simple_sink_component_initialize_func_status init_status,
 		bt_graph_simple_sink_component_consume_func_status consume_status,
 		bt_graph_run_once_status exp_run_once_status)
 {
@@ -131,7 +131,7 @@ void test_simple_expect_run_once_status(
 	BT_ASSERT(graph);
 	BT_ASSERT(src_out_port);
 	add_comp_status = bt_graph_add_simple_sink_component(graph, "sink",
-		simple_init_func, simple_consume_func, simple_fini_func,
+		simple_INITIALIZE_func, simple_consume_func, simple_fini_func,
 		&test_data, &sink_comp);
 	BT_ASSERT(add_comp_status == BT_GRAPH_ADD_COMPONENT_STATUS_OK);
 	BT_ASSERT(sink_comp);
@@ -157,37 +157,37 @@ int main(void)
 
 	/* Test initialization function status */
 	test_simple_expect_run_once_status(
-		BT_GRAPH_SIMPLE_SINK_COMPONENT_INIT_FUNC_STATUS_OK,
+		BT_GRAPH_SIMPLE_SINK_COMPONENT_INITIALIZE_FUNC_STATUS_OK,
 		BT_GRAPH_SIMPLE_SINK_COMPONENT_CONSUME_FUNC_STATUS_OK,
 		BT_GRAPH_RUN_ONCE_STATUS_OK);
 	test_simple_expect_run_once_status(
-		BT_GRAPH_SIMPLE_SINK_COMPONENT_INIT_FUNC_STATUS_ERROR,
+		BT_GRAPH_SIMPLE_SINK_COMPONENT_INITIALIZE_FUNC_STATUS_ERROR,
 		BT_GRAPH_SIMPLE_SINK_COMPONENT_CONSUME_FUNC_STATUS_OK,
 		BT_GRAPH_RUN_ONCE_STATUS_ERROR);
 	test_simple_expect_run_once_status(
-		BT_GRAPH_SIMPLE_SINK_COMPONENT_INIT_FUNC_STATUS_MEMORY_ERROR,
+		BT_GRAPH_SIMPLE_SINK_COMPONENT_INITIALIZE_FUNC_STATUS_MEMORY_ERROR,
 		BT_GRAPH_SIMPLE_SINK_COMPONENT_CONSUME_FUNC_STATUS_OK,
 		BT_GRAPH_RUN_ONCE_STATUS_MEMORY_ERROR);
 
 	/* Test "consume" function status */
 	test_simple_expect_run_once_status(
-		BT_GRAPH_SIMPLE_SINK_COMPONENT_INIT_FUNC_STATUS_OK,
+		BT_GRAPH_SIMPLE_SINK_COMPONENT_INITIALIZE_FUNC_STATUS_OK,
 		BT_GRAPH_SIMPLE_SINK_COMPONENT_CONSUME_FUNC_STATUS_OK,
 		BT_GRAPH_RUN_ONCE_STATUS_OK);
 	test_simple_expect_run_once_status(
-		BT_GRAPH_SIMPLE_SINK_COMPONENT_INIT_FUNC_STATUS_OK,
+		BT_GRAPH_SIMPLE_SINK_COMPONENT_INITIALIZE_FUNC_STATUS_OK,
 		BT_GRAPH_SIMPLE_SINK_COMPONENT_CONSUME_FUNC_STATUS_ERROR,
 		BT_GRAPH_RUN_ONCE_STATUS_ERROR);
 	test_simple_expect_run_once_status(
-		BT_GRAPH_SIMPLE_SINK_COMPONENT_INIT_FUNC_STATUS_OK,
+		BT_GRAPH_SIMPLE_SINK_COMPONENT_INITIALIZE_FUNC_STATUS_OK,
 		BT_GRAPH_SIMPLE_SINK_COMPONENT_CONSUME_FUNC_STATUS_MEMORY_ERROR,
 		BT_GRAPH_RUN_ONCE_STATUS_MEMORY_ERROR);
 	test_simple_expect_run_once_status(
-		BT_GRAPH_SIMPLE_SINK_COMPONENT_INIT_FUNC_STATUS_OK,
+		BT_GRAPH_SIMPLE_SINK_COMPONENT_INITIALIZE_FUNC_STATUS_OK,
 		BT_GRAPH_SIMPLE_SINK_COMPONENT_CONSUME_FUNC_STATUS_AGAIN,
 		BT_GRAPH_RUN_ONCE_STATUS_AGAIN);
 	test_simple_expect_run_once_status(
-		BT_GRAPH_SIMPLE_SINK_COMPONENT_INIT_FUNC_STATUS_OK,
+		BT_GRAPH_SIMPLE_SINK_COMPONENT_INITIALIZE_FUNC_STATUS_OK,
 		BT_GRAPH_SIMPLE_SINK_COMPONENT_CONSUME_FUNC_STATUS_END,
 		BT_GRAPH_RUN_ONCE_STATUS_END);
 
