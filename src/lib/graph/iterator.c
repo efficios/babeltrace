@@ -1748,9 +1748,7 @@ bt_self_component_port_input_message_iterator_seek_ns_from_origin(
 
 	if (can_seek_by_itself) {
 		/* The iterator knows how to seek to a particular time, let it handle this. */
-		BT_ASSERT_PRE_DEV(iterator->methods.seek_ns_from_origin,
-			"Message iterator does not implement `seek_ns_from_origin` method: %!+i",
-			iterator);
+		BT_ASSERT(iterator->methods.seek_ns_from_origin);
 		BT_LIB_LOGD("Calling user's \"seek nanoseconds from origin\" method: "
 			"%![iter-]+i, ns=%" PRId64, iterator, ns_from_origin);
 		status = iterator->methods.seek_ns_from_origin(iterator,

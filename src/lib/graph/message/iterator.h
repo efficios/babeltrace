@@ -122,9 +122,13 @@ struct bt_self_component_port_input_message_iterator {
 
 	struct {
 		bt_self_component_port_input_message_iterator_next_method next;
+
+		/* These two are always both set or both unset. */
 		bt_self_component_port_input_message_iterator_seek_ns_from_origin_method seek_ns_from_origin;
-		bt_self_component_port_input_message_iterator_seek_beginning_method seek_beginning;
 		bt_self_component_port_input_message_iterator_can_seek_ns_from_origin_method can_seek_ns_from_origin;
+
+		/* These two are always both set or both unset. */
+		bt_self_component_port_input_message_iterator_seek_beginning_method seek_beginning;
 		bt_self_component_port_input_message_iterator_can_seek_beginning_method can_seek_beginning;
 	} methods;
 
