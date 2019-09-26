@@ -35,6 +35,7 @@ dist_check_SCRIPTS = \
 	cli/convert/test_auto_source_discovery_params \
 	cli/convert/test_auto_source_discovery_log_level \
 	cli/convert/test_convert_args \
+	cli/test_help \
 	cli/test_intersection \
 	cli/test_output_ctf_metadata \
 	cli/test_output_path_ctf_non_lttng_trace \
@@ -59,6 +60,7 @@ TESTS_ARGPAR = \
 
 TESTS_CLI = \
 	cli/convert/test_convert_args \
+	cli/test_help \
 	cli/test_intersection \
 	cli/test_output_path_ctf_non_lttng_trace \
 	cli/test_packet_seq_num \

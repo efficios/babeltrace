@@ -1382,6 +1382,8 @@ struct bt_config *bt_config_help_from_args(int argc, const char *argv[],
 	char *plugin_name = NULL, *comp_cls_name = NULL;
 	struct bt_argpar_parse_ret argpar_parse_ret = { 0 };
 	struct bt_argpar_item_non_opt *non_opt;
+	GString *substring = NULL;
+	size_t end_pos;
 
 	*retcode = 0;
 	cfg = bt_config_help_create(plugin_paths, default_log_level);
@@ -1423,18 +1425,36 @@ struct bt_config *bt_config_help_from_args(int argc, const char *argv[],
 	}
 
 	non_opt = argpar_parse_ret.items->pdata[0];
-	plugin_comp_cls_names(non_opt->arg, NULL, &plugin_name, &comp_cls_name,
-		&cfg->cmd_data.help.cfg_component->type);
-	if (plugin_name && comp_cls_name) {
-		/* Component class help */
+
+	/* Look for unescaped dots in the argument. */
+	substring = bt_common_string_until(non_opt->arg, ".\\", ".", &end_pos);
+	if (!substring) {
+		BT_CLI_LOGE_APPEND_CAUSE("Could not consume argument: arg=%s",
+			non_opt->arg);
+		goto error;
+	}
+
+	if (end_pos == strlen(non_opt->arg)) {
+		/* Didn't find an unescaped dot, treat it as a plugin name. */
+		g_string_assign(cfg->cmd_data.help.cfg_component->plugin_name,
+			non_opt->arg);
+	} else {
+		/*
+		 * Found an unescaped dot, treat it as a component class name.
+		 */
+		plugin_comp_cls_names(non_opt->arg, NULL, &plugin_name, &comp_cls_name,
+			&cfg->cmd_data.help.cfg_component->type);
+		if (!plugin_name || !comp_cls_name) {
+			BT_CLI_LOGE_APPEND_CAUSE(
+				"Could not parse argument as a component class name: arg=%s",
+				non_opt->arg);
+			goto error;
+		}
+
 		g_string_assign(cfg->cmd_data.help.cfg_component->plugin_name,
 			plugin_name);
 		g_string_assign(cfg->cmd_data.help.cfg_component->comp_cls_name,
 			comp_cls_name);
-	} else {
-		/* Fall back to plugin help */
-		g_string_assign(cfg->cmd_data.help.cfg_component->plugin_name,
-			non_opt->arg);
 	}
 
 	goto end;
@@ -1446,6 +1466,10 @@ error:
 end:
 	g_free(plugin_name);
 	g_free(comp_cls_name);
+
+	if (substring) {
+		g_string_free(substring, TRUE);
+	}
 
 	bt_argpar_parse_ret_fini(&argpar_parse_ret);
 
