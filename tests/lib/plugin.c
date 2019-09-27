@@ -42,7 +42,7 @@ static int check_env_var(const char *name)
 static void reset_test_plugin_env_vars(void)
 {
 	g_setenv("BT_TEST_PLUGIN_INITIALIZE_CALLED", "0", 1);
-	g_setenv("BT_TEST_PLUGIN_EXIT_CALLED", "0", 1);
+	g_setenv("BT_TEST_PLUGIN_FINALIZE_CALLED", "0", 1);
 }
 
 static char *get_test_plugin_path(const char *plugin_dir,
@@ -105,8 +105,8 @@ static void test_minimal(const char *plugin_dir)
 	ok(bt_plugin_get_sink_component_class_count(plugin) == 0,
 		"bt_plugin_get_sink_component_class_count() returns the expected value");
 	bt_plugin_set_put_ref(plugin_set);
-	ok(check_env_var("BT_TEST_PLUGIN_EXIT_CALLED") == 1,
-		"plugin's exit function is called when the plugin is destroyed");
+	ok(check_env_var("BT_TEST_PLUGIN_FINALIZE_CALLED") == 1,
+		"plugin's finalize function is called when the plugin is destroyed");
 
 	free(minimal_path);
 }

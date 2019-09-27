@@ -39,7 +39,7 @@ struct bt_plugin_so_shared_lib_handle {
 
 	/* True if initialization function was called */
 	bt_bool init_called;
-	bt_plugin_exit_func exit;
+	bt_plugin_finalize_func exit;
 };
 
 struct bt_plugin_so_spec_data {

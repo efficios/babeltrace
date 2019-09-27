@@ -68,7 +68,7 @@ typedef bt_plugin_initialize_func_status (*bt_plugin_initialize_func)(
 		bt_self_plugin *plugin);
 
 /* Plugin exit function type */
-typedef void (*bt_plugin_exit_func)(void);
+typedef void (*bt_plugin_finalize_func)(void);
 
 /* Plugin descriptor: describes a single plugin (internal use) */
 struct __bt_plugin_descriptor {
@@ -117,7 +117,7 @@ struct __bt_plugin_descriptor_attribute {
 		bt_plugin_initialize_func init;
 
 		/* BT_PLUGIN_DESCRIPTOR_ATTRIBUTE_TYPE_EXIT */
-		bt_plugin_exit_func exit;
+		bt_plugin_finalize_func exit;
 
 		/* BT_PLUGIN_DESCRIPTOR_ATTRIBUTE_TYPE_AUTHOR */
 		const char *author;
@@ -471,9 +471,9 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
  * plugin descriptor.
  *
  * _id: Plugin descriptor ID (C identifier).
- * _x:  Exit function (bt_plugin_exit_func).
+ * _x:  Exit function (bt_plugin_finalize_func).
  */
-#define BT_PLUGIN_EXIT_WITH_ID(_id, _x) \
+#define BT_PLUGIN_FINALIZE_WITH_ID(_id, _x) \
 	__BT_PLUGIN_DESCRIPTOR_ATTRIBUTE(exit, BT_PLUGIN_DESCRIPTOR_ATTRIBUTE_TYPE_EXIT, _id, _x)
 
 /*
@@ -1015,9 +1015,9 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
  * Defines a plugin exit function attribute attached to the automatic
  * plugin descriptor.
  *
- * _x: Exit function (bt_plugin_exit_func).
+ * _x: Exit function (bt_plugin_finalize_func).
  */
-#define BT_PLUGIN_EXIT(_x) 		BT_PLUGIN_EXIT_WITH_ID(auto, _x)
+#define BT_PLUGIN_FINALIZE(_x) 		BT_PLUGIN_FINALIZE_WITH_ID(auto, _x)
 
 /*
  * Defines an author attribute attached to the automatic plugin
