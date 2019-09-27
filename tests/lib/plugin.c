@@ -197,7 +197,6 @@ static void test_sfs(const char *plugin_dir)
 		"bt_component_class_query() receives the expected parameters");
 
 	bt_component_class_sink_get_ref(sink_comp_class);
-	diag("> putting the plugin set object here");
 	BT_PLUGIN_SET_PUT_REF_AND_RESET(plugin_set);
 	graph = bt_graph_create(0);
 	BT_ASSERT(graph);
