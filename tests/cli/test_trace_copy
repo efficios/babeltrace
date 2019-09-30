@@ -27,7 +27,7 @@ fi
 source "$UTILSSH"
 
 clean_tmp() {
-	rm -rf "${out_path}" "${text_output1}" "${text_output2}"
+	rm -rf "${out_path}" "${text_output1}" "${text_output2_intermediary}" "${text_output2}"
 }
 
 SUCCESS_TRACES=(${BT_CTF_TRACES_PATH}/succeed/*)
@@ -40,11 +40,12 @@ plan_tests $NUM_TESTS
 for path in "${SUCCESS_TRACES[@]}"; do
 	out_path="$(mktemp -d)"
 	text_output1="$(mktemp)"
+	text_output2_intermediary="$(mktemp)"
 	text_output2="$(mktemp)"
 	trace="$(basename "${path}")"
 	sort_cmd="cat" # by default do not sort the trace
 
-	"${BT_TESTS_BT2_BIN}" --no-delta "${path}" 2>/dev/null >"${text_output1}"
+	bt_cli "${text_output1}" "/dev/null" --no-delta "${path}"
 	ret=$?
 	cnt="$(wc -l < "${text_output1}")"
 	if test "$ret" == 0 && test "${cnt// /}" == 0; then
@@ -73,13 +74,14 @@ for path in "${SUCCESS_TRACES[@]}"; do
 		fi
 	fi
 
-	"${BT_TESTS_BT2_BIN}" "${path}" --component sink.ctf.fs "--params=path=\"${out_path}\"" >/dev/null 2>&1
+	bt_cli "/dev/null" "/dev/null" "${path}" --component sink.ctf.fs "--params=path=\"${out_path}\""
 	ok $? "Copy trace ${trace} with ctf-fs sink"
 
-	"${BT_TESTS_BT2_BIN}" "${out_path}" >/dev/null 2>&1
+	bt_cli "/dev/null" "/dev/null" "${out_path}"
 	ok $? "Read the new trace in ${out_path}"
 
-	"${BT_TESTS_BT2_BIN}" --no-delta "${out_path}" 2>/dev/null | $sort_cmd >"${text_output2}"
+	bt_cli "${text_output2_intermediary}" "/dev/null" --no-delta "${out_path}"
+	$sort_cmd "${text_output2_intermediary}" > "${text_output2}"
 	cnt=$(diff "${text_output1}" "${text_output2}" | wc -l)
 	test "${cnt// /}" == 0
 	ok $? "Exact same content between the two traces"
