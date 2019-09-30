@@ -28,8 +28,8 @@ source "$UTILSSH"
 
 plan_tests 21
 
-stdout=$(mktemp test_help_stdout.XXXXXX)
-stderr=$(mktemp test_help_stderr.XXXXXX)
+stdout=$(mktemp -t test_help_stdout.XXXXXX)
+stderr=$(mktemp -t test_help_stderr.XXXXXX)
 
 # Return 0 if file "$1" exists and is empty, non-0 otherwise.
 
@@ -107,3 +107,5 @@ ok $? "help with unknown component class plugin produces expected error"
 
 is_empty "${stdout}"
 ok $? "help with unknown component class plugin produces no output"
+
+rm -f "${stdout}" "${stderr}"
