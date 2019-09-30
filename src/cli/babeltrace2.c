@@ -277,41 +277,53 @@ void print_value(FILE *, const bt_value *, size_t);
 static
 void print_value_rec(FILE *, const bt_value *, size_t);
 
-struct print_map_value_data {
-	size_t indent;
-	FILE *fp;
-};
-
 static
-bt_bool print_map_value(const char *key, const bt_value *object,
-		void *data)
+void print_map_value(const char *key, const bt_value *object, FILE *fp,
+		size_t indent)
 {
-	struct print_map_value_data *print_map_value_data = data;
-
-	print_indent(print_map_value_data->fp, print_map_value_data->indent);
-	fprintf(print_map_value_data->fp, "%s: ", key);
+	print_indent(fp, indent);
+	fprintf(fp, "%s: ", key);
 	BT_ASSERT(object);
 
 	if (bt_value_is_array(object) &&
 			bt_value_array_is_empty(object)) {
-		fprintf(print_map_value_data->fp, "[ ]\n");
-		return true;
+		fprintf(fp, "[ ]\n");
+		goto end;
 	}
 
 	if (bt_value_is_map(object) &&
 			bt_value_map_is_empty(object)) {
-		fprintf(print_map_value_data->fp, "{ }\n");
-		return true;
+		fprintf(fp, "{ }\n");
+		goto end;
 	}
 
 	if (bt_value_is_array(object) ||
 			bt_value_is_map(object)) {
-		fprintf(print_map_value_data->fp, "\n");
+		fprintf(fp, "\n");
 	}
 
-	print_value_rec(print_map_value_data->fp, object,
-		print_map_value_data->indent + 2);
+	print_value_rec(fp, object, indent + 2);
+
+end:
+	return;
+}
+
+static
+bt_bool collect_map_keys(const char *key, const bt_value *object, void *data)
+{
+	GPtrArray *map_keys = data;
+
+	g_ptr_array_add(map_keys, (gpointer *) key);
+
 	return BT_TRUE;
+}
+
+static
+gint g_ptr_array_sort_strings(gconstpointer a, gconstpointer b) {
+	const char *s1 = *((const char **) a);
+	const char *s2 = *((const char **) b);
+
+	return g_strcmp0(s1, s2);
 }
 
 static
@@ -324,9 +336,10 @@ void print_value_rec(FILE *fp, const bt_value *value, size_t indent)
 	const char *str_val;
 	int size;
 	int i;
+	GPtrArray *map_keys = NULL;
 
 	if (!value) {
-		return;
+		goto end;
 	}
 
 	switch (bt_value_get_type(value)) {
@@ -409,10 +422,8 @@ void print_value_rec(FILE *fp, const bt_value *value, size_t indent)
 		break;
 	case BT_VALUE_TYPE_MAP:
 	{
-		struct print_map_value_data data = {
-			.indent = indent,
-			.fp = fp,
-		};
+		guint i;
+		bt_value_map_foreach_entry_const_status foreach_status;
 
 		if (bt_value_map_is_empty(value)) {
 			print_indent(fp, indent);
@@ -420,17 +431,52 @@ void print_value_rec(FILE *fp, const bt_value *value, size_t indent)
 			break;
 		}
 
-		bt_value_map_foreach_entry_const(value, print_map_value, &data);
+		map_keys = g_ptr_array_new();
+		if (!map_keys) {
+			BT_CLI_LOGE_APPEND_CAUSE("Failed to allocated on GPtrArray.");
+			goto end;
+		}
+
+		/*
+		 * We want to print the map entries in a stable order.  Collect
+		 * all the map's keys in a GPtrArray, sort it, then print the
+		 * entries in that order.
+		 */
+		foreach_status = bt_value_map_foreach_entry_const(value,
+			collect_map_keys, map_keys);
+		if (foreach_status != BT_VALUE_MAP_FOREACH_ENTRY_CONST_STATUS_OK) {
+			BT_CLI_LOGE_APPEND_CAUSE("Failed to iterator on map value.");
+			goto end;
+		}
+
+		g_ptr_array_sort(map_keys, g_ptr_array_sort_strings);
+
+		for (i = 0; i < map_keys->len; i++) {
+			const char *map_key = g_ptr_array_index(map_keys, i);
+			const bt_value *map_value;
+
+			map_value = bt_value_map_borrow_entry_value_const(value, map_key);
+			BT_ASSERT(map_value);
+
+			print_map_value(map_key, map_value, fp, indent);
+		}
+
 		break;
 	}
 	default:
 		abort();
 	}
-	return;
+
+	goto end;
 
 error:
 	BT_LOGE("Error printing value of type %s.",
 		bt_common_value_type_string(bt_value_get_type(value)));
+
+end:
+	if (map_keys) {
+		g_ptr_array_free(map_keys, TRUE);
+	}
 }
 
 static
