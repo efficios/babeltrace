@@ -93,8 +93,8 @@ get_cli_output_with_lttng_live_server() {
 	local server_pid_file
 	local server_retcode_file
 
-	server_pid_file="$(mktemp)"
-	server_retcode_file="$(mktemp)"
+	server_pid_file="$(mktemp -t test_live_server_pid.XXXXXX)"
+	server_retcode_file="$(mktemp -t test_live_server_ret.XXXXX)"
 
 	diag "Starting LTTng live server mockup"
 
@@ -180,9 +180,9 @@ run_test() {
 	local port_file
         local port
 
-	cli_stderr="$(mktemp)"
-	cli_stdout="$(mktemp)"
-	port_file="$(mktemp)"
+	cli_stderr="$(mktemp -t test_live_stderr.XXXXXX)"
+	cli_stdout="$(mktemp -t test_live_stdout.XXXXXX)"
+	port_file="$(mktemp -t test_live_server_port.XXXXXX)"
 
 	get_cli_output_with_lttng_live_server "$cli_args_template" "$server_args" "$cli_stdout" "$cli_stderr" "$port_file"
 	port=$(<"$port_file")
@@ -213,11 +213,11 @@ test_list_sessions() {
 	local server_args="'multi-domains,0,hostname,1,0,${trace_dir}/multi-domains/ust/' 'multi-domains,1,hostname,1,0,${trace_dir}/multi-domains/kernel/' 'trace-with-index,2,hostname,1,0,${trace_dir}/trace-with-index/' "
 
 	template_expected=$(<"$test_data_dir/cli-list-sessions.expect")
-	cli_stderr="$(mktemp)"
-	cli_stdout="$(mktemp)"
-	empty_file="$(mktemp)"
-	port_file="$(mktemp)"
-	tmp_stdout_expected="$(mktemp)"
+	cli_stderr="$(mktemp -t test_live_list_sessions_stderr.XXXXXX)"
+	cli_stdout="$(mktemp -t test_live_list_sessions_stdout.XXXXXX)"
+	empty_file="$(mktemp -t test_live_list_sessions_empty.XXXXXX)"
+	port_file="$(mktemp -t test_live_list_sessions_server_port.XXXXXX)"
+	tmp_stdout_expected="$(mktemp -t test_live_list_sessions_stdout_expected.XXXXXX)"
 
 	get_cli_output_with_lttng_live_server "$cli_args_template" "$server_args" "$cli_stdout" "$cli_stderr" "$port_file"
 	port=$(<"$port_file")
@@ -250,7 +250,7 @@ test_base() {
 	local expected_stderr
 
 	# Empty file for stderr expected
-	expected_stderr=$(mktemp)
+	expected_stderr="$(mktemp -t test_live_base_stderr_expected.XXXXXX)"
 
 	run_test "$test_text" "$cli_args_template" "$server_args" "$expected_stdout" "$expected_stderr"
 
@@ -267,7 +267,7 @@ test_multi_domains() {
 	local expected_stderr
 
 	# Empty file for stderr expected
-	expected_stderr=$(mktemp)
+	expected_stderr="$(mktemp -t test_live_multi_domains_stderr_expected.XXXXXX)"
 
 	run_test "$test_text" "$cli_args_template" "$server_args" "$expected_stdout" "$expected_stderr"
 
@@ -287,7 +287,7 @@ test_rate_limited() {
 	local expected_stderr
 
 	# Empty file for stderr expected
-	expected_stderr="$(mktemp)"
+	expected_stderr="$(mktemp -t test_live_rate_limited_stderr_expected.XXXXXX)"
 
 	run_test "$test_text" "$cli_args_template" "$server_args" "$expected_stdout" "$expected_stderr"
 
@@ -306,8 +306,8 @@ test_compare_to_ctf_fs() {
 	local expected_stdout
 	local expected_stderr
 
-	expected_stdout=$(mktemp)
-	expected_stderr=$(mktemp)
+	expected_stdout="$(mktemp -t test_live_compare_stdout_expected.XXXXXX)"
+	expected_stderr="$(mktemp -t test_live_compare_stderr_expected.XXXXXX)"
 
 	bt_cli "$expected_stdout" "$expected_stderr" "${trace_dir}/multi-domains" -c sink.text.details --params "with-trace-name=false,with-stream-name=false"
 	run_test "$test_text" "$cli_args_template" "$server_args" "$expected_stdout" "$expected_stderr"
