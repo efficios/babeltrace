@@ -1339,7 +1339,7 @@ class LttngLiveServer:
             print(self._server_port, end='', file=tmp_port_file)
 
         # Rename temporary file to real file
-        os.rename(tmp_port_file.name, port_filename)
+        os.replace(tmp_port_file.name, port_filename)
         logging.info(
             'Renamed port file: src-path="{}", dst-path="{}"'.format(
                 tmp_port_file.name, port_filename
