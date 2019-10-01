@@ -134,6 +134,12 @@ export BT_TESTS_SED_BIN
 BT_TESTS_DATADIR="${BT_TESTS_SRCDIR}/data"
 BT_CTF_TRACES_PATH="${BT_TESTS_DATADIR}/ctf-traces"
 
+# Remove CR characters in file "$1".
+
+bt_remove_cr() {
+	"$BT_TESTS_SED_BIN" -i 's/\r//g' "$1"
+}
+
 # Run the Babeltrace CLI, redirecting stdout and stderr to specified files.
 #
 #   $1: file to redirect stdout to
@@ -173,7 +179,7 @@ bt_diff() {
 	# Strip any \r present due to Windows (\n -> \r\n).
 	# "diff --string-trailing-cr" is not used since it is not present on
 	# Solaris.
-	"$BT_TESTS_SED_BIN" -i 's/\r//g' "$actual_file"
+	bt_remove_cr "$actual_file"
 
 	diff -u "$expected_file" "$actual_file" 1>&2
 

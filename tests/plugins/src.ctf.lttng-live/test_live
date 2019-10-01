@@ -318,6 +318,8 @@ test_compare_to_ctf_fs() {
 	expected_stderr="$(mktemp -t test_live_compare_stderr_expected.XXXXXX)"
 
 	bt_cli "$expected_stdout" "$expected_stderr" "${trace_dir}/multi-domains" -c sink.text.details --params "with-trace-name=false,with-stream-name=false"
+	bt_remove_cr "${expected_stdout}"
+	bt_remove_cr "${expected_stderr}"
 	run_test "$test_text" "$cli_args_template" "$server_args" "$expected_stdout" "$expected_stderr"
 	diag "Inverse session order from lttng-relayd"
 	run_test "$test_text" "$cli_args_template" "$server_args_inverse" "$expected_stdout" "$expected_stderr"
