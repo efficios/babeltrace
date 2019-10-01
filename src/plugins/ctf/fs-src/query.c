@@ -447,7 +447,7 @@ bt_component_class_query_method_status support_info_query(
 		goto end;
 	}
 
-	metadata_file = g_fopen(metadata_path, "r");
+	metadata_file = g_fopen(metadata_path, "rb");
 	if (metadata_file) {
 		struct ctf_metadata_decoder_config metadata_decoder_config = { 0 };
 		enum ctf_metadata_decoder_status decoder_status;
