@@ -1542,7 +1542,7 @@ int find_message_ge_ns_from_origin(
 		struct bt_self_component_port_input_message_iterator *iterator,
 		int64_t ns_from_origin, GHashTable *stream_states)
 {
-	int status;
+	int status = BT_FUNC_STATUS_OK;
 	enum bt_self_component_port_input_message_iterator_state init_state =
 		iterator->state;
 	const struct bt_message *messages[MSG_BATCH_SIZE];
