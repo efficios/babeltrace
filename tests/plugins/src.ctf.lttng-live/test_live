@@ -49,6 +49,14 @@ this_dir_relative="plugins/src.ctf.lttng-live"
 test_data_dir="$BT_TESTS_DATADIR/$this_dir_relative"
 trace_dir="$BT_CTF_TRACES_PATH/succeed"
 
+if [ "$BT_OS_TYPE" = "mingw" ]; then
+	# Same as the above, but in Windows form (C:\foo\bar) instead of Unix form
+	# (/c/foo/bar).
+	trace_dir_native=$(cygpath -w "${trace_dir}")
+else
+	trace_dir_native="${trace_dir}"
+fi
+
 lttng_live_server() {
 	local port_file="$1"
 	local pid_file="$2"
@@ -210,7 +218,7 @@ test_list_sessions() {
 
 	local test_text="CLI prints the expected session list"
 	local cli_args_template="-i lttng-live net://localhost:@PORT@"
-	local server_args="'multi-domains,0,hostname,1,0,${trace_dir}/multi-domains/ust/' 'multi-domains,1,hostname,1,0,${trace_dir}/multi-domains/kernel/' 'trace-with-index,2,hostname,1,0,${trace_dir}/trace-with-index/' "
+	local server_args="'multi-domains,0,hostname,1,0,${trace_dir_native}/multi-domains/ust/' 'multi-domains,1,hostname,1,0,${trace_dir_native}/multi-domains/kernel/' 'trace-with-index,2,hostname,1,0,${trace_dir_native}/trace-with-index/' "
 
 	template_expected=$(<"$test_data_dir/cli-list-sessions.expect")
 	cli_stderr="$(mktemp -t test_live_list_sessions_stderr.XXXXXX)"
@@ -245,7 +253,7 @@ test_base() {
 	# discarded events.
 	local test_text="CLI attach and fetch from single-domains session - no discarded events"
 	local cli_args_template="-i lttng-live net://localhost:@PORT@/host/hostname/trace-with-index -c sink.text.details"
-	local server_args="'trace-with-index,0,hostname,1,0,${trace_dir}/trace-with-index/'"
+	local server_args="'trace-with-index,0,hostname,1,0,${trace_dir_native}/trace-with-index/'"
 	local expected_stdout="${test_data_dir}/cli-base.expect"
 	local expected_stderr
 
@@ -262,7 +270,7 @@ test_multi_domains() {
 	# events.
 	local test_text="CLI attach and fetch from multi-domains session - discarded events"
 	local cli_args_template="-i lttng-live net://localhost:@PORT@/host/hostname/multi-domains -c sink.text.details"
-	local server_args="'multi-domains,0,hostname,1,0,${trace_dir}/multi-domains/kernel/,${trace_dir}/multi-domains/ust/'"
+	local server_args="'multi-domains,0,hostname,1,0,${trace_dir_native}/multi-domains/kernel/,${trace_dir_native}/multi-domains/ust/'"
 	local expected_stdout="${test_data_dir}/cli-multi-domains.expect"
 	local expected_stderr
 
@@ -282,7 +290,7 @@ test_rate_limited() {
 	# The packet size of the test trace is 4k. Limit requests to 1k.
 	local test_text="CLI many requests per packet"
 	local cli_args_template="-i lttng-live net://localhost:@PORT@/host/hostname/trace-with-index -c sink.text.details"
-	local server_args="--max-query-data-response-size 1024 'trace-with-index,0,hostname,1,0,${trace_dir}/trace-with-index/'"
+	local server_args="--max-query-data-response-size 1024 'trace-with-index,0,hostname,1,0,${trace_dir_native}/trace-with-index/'"
 	local expected_stdout="${test_data_dir}/cli-base.expect"
 	local expected_stderr
 
@@ -301,8 +309,8 @@ test_compare_to_ctf_fs() {
 	# that ordering is consistent between live and ctf fs.
 	local test_text="CLI src.ctf.fs vs src.ctf.lttng-live"
 	local cli_args_template="-i lttng-live net://localhost:@PORT@/host/hostname/multi-domains -c sink.text.details --params with-trace-name=false,with-stream-name=false"
-	local server_args="'multi-domains,0,hostname,1,0,${trace_dir}/multi-domains/kernel/' 'multi-domains,1,hostname,1,0,${trace_dir}/multi-domains/ust/'"
-	local server_args_inverse="'multi-domains,0,hostname,1,0,${trace_dir}/multi-domains/ust/' 'multi-domains,1,hostname,1,0,${trace_dir}/multi-domains/kernel/'"
+	local server_args="'multi-domains,0,hostname,1,0,${trace_dir_native}/multi-domains/kernel/' 'multi-domains,1,hostname,1,0,${trace_dir_native}/multi-domains/ust/'"
+	local server_args_inverse="'multi-domains,0,hostname,1,0,${trace_dir_native}/multi-domains/ust/' 'multi-domains,1,hostname,1,0,${trace_dir_native}/multi-domains/kernel/'"
 	local expected_stdout
 	local expected_stderr
 
