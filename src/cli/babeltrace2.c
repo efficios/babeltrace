@@ -2099,7 +2099,7 @@ int set_stream_intersections(struct cmd_run_ctx *ctx,
 		cfg_comp->params, &query_result,
 		&fail_reason);
 	if (ret) {
-		BT_CLI_LOGE_APPEND_CAUSE("Component class does not support the `babeltrace.trace-infos` query: %s: "
+		BT_CLI_LOGE_APPEND_CAUSE("Failed to execute `babeltrace.trace-infos` query: %s: "
 			"comp-class-name=\"%s\"", fail_reason,
 			bt_component_class_get_name(comp_cls));
 		ret = -1;
