@@ -134,6 +134,15 @@ GString *make_unique_trace_path(const char *path)
 }
 
 /*
+ * Disable `deprecated-declarations` warnings for
+ * lttng_validate_datetime() because we're using `GTimeVal` and
+ * g_time_val_from_iso8601() which are deprecated since GLib 2.56
+ * (Babeltrace supports older versions too).
+ */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+
+/*
  * Validate that the input string `datetime` is an ISO8601-compliant string (the
  * format used by LTTng in the metadata).
  */
@@ -161,6 +170,8 @@ int lttng_validate_datetime(const struct fs_sink_trace *trace,
 end:
 	return ret;
 }
+
+#pragma GCC diagnostic pop
 
 static
 int append_lttng_trace_path_ust_uid(const struct fs_sink_trace *trace,
