@@ -344,7 +344,10 @@ void copy_field_content(const bt_field *in_field, bt_field *out_field,
 		}
 		break;
 	}
-	case BT_FIELD_CLASS_TYPE_OPTION:
+	case BT_FIELD_CLASS_TYPE_OPTION_WITHOUT_SELECTOR:
+	case BT_FIELD_CLASS_TYPE_OPTION_WITH_BOOL_SELECTOR:
+	case BT_FIELD_CLASS_TYPE_OPTION_WITH_UNSIGNED_INTEGER_SELECTOR:
+	case BT_FIELD_CLASS_TYPE_OPTION_WITH_SIGNED_INTEGER_SELECTOR:
 	{
 		const bt_field *in_option_field;
 		bt_field *out_option_field;

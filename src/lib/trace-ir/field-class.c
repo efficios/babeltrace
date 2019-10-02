@@ -1153,30 +1153,83 @@ void destroy_option_field_class(struct bt_object *obj)
 	finalize_field_class((void *) obj);
 	BT_LOGD_STR("Putting content field class.");
 	BT_OBJECT_PUT_REF_AND_RESET(fc->content_fc);
-	BT_LOGD_STR("Putting selector field path.");
-	BT_OBJECT_PUT_REF_AND_RESET(fc->selector_field_path);
-	BT_LOGD_STR("Putting selector field class.");
-	BT_OBJECT_PUT_REF_AND_RESET(fc->selector_fc);
+
+	if (fc->common.type != BT_FIELD_CLASS_TYPE_OPTION_WITHOUT_SELECTOR) {
+		struct bt_field_class_option_with_selector *with_sel_fc =
+			(void *) obj;
+
+		BT_LOGD_STR("Putting selector field path.");
+		BT_OBJECT_PUT_REF_AND_RESET(with_sel_fc->selector_field_path);
+		BT_LOGD_STR("Putting selector field class.");
+		BT_OBJECT_PUT_REF_AND_RESET(with_sel_fc->selector_fc);
+
+		if (fc->common.type != BT_FIELD_CLASS_TYPE_OPTION_WITH_BOOL_SELECTOR) {
+			struct bt_field_class_option_with_selector_integer *with_int_sel_fc =
+				(void *) obj;
+
+			BT_LOGD_STR("Putting integer range set.");
+			BT_OBJECT_PUT_REF_AND_RESET(with_int_sel_fc->range_set);
+		}
+	}
+
 	g_free(fc);
 }
 
-struct bt_field_class *bt_field_class_option_create(bt_trace_class *trace_class,
-		bt_field_class *content_fc, bt_field_class *selector_fc)
+static
+struct bt_field_class *create_option_field_class(
+		struct bt_trace_class *trace_class,
+		enum bt_field_class_type fc_type,
+		struct bt_field_class *content_fc,
+		struct bt_field_class *selector_fc)
 {
 	struct bt_field_class_option *opt_fc = NULL;
 
 	BT_ASSERT_PRE_NON_NULL(trace_class, "Trace class");
 	BT_ASSERT_PRE_NON_NULL(content_fc, "Content field class");
 	BT_LIB_LOGD("Creating option field class: "
-		"%![content-fc-]+F, %![sel-fc-]+F", content_fc, selector_fc);
-	opt_fc = g_new0(struct bt_field_class_option, 1);
-	if (!opt_fc) {
-		BT_LIB_LOGE_APPEND_CAUSE(
-			"Failed to allocate one option field class.");
-		goto error;
+		"type=%s, %![content-fc-]+F, %![sel-fc-]+F",
+		bt_common_field_class_type_string(fc_type),
+		content_fc, selector_fc);
+
+	if (fc_type != BT_FIELD_CLASS_TYPE_OPTION_WITHOUT_SELECTOR) {
+		struct bt_field_class_option_with_selector *opt_with_sel_fc = NULL;
+
+		BT_ASSERT_PRE_NON_NULL(selector_fc, "Selector field class");
+
+		if (fc_type == BT_FIELD_CLASS_TYPE_OPTION_WITH_BOOL_SELECTOR) {
+			BT_ASSERT_PRE_FC_HAS_ID(selector_fc,
+				BT_FIELD_CLASS_TYPE_BOOL,
+				"Selector field class");
+			opt_with_sel_fc = (void *) g_new0(
+				struct bt_field_class_option_with_selector_bool, 1);
+		} else {
+			BT_ASSERT_PRE_FC_IS_INT(selector_fc,
+				"Selector field class");
+			opt_with_sel_fc = (void *) g_new0(
+				struct bt_field_class_option_with_selector_integer, 1);
+		}
+
+		if (!opt_with_sel_fc) {
+			BT_LIB_LOGE_APPEND_CAUSE(
+				"Failed to allocate one option with selector field class.");
+			goto error;
+		}
+
+		opt_with_sel_fc->selector_fc = selector_fc;
+		bt_object_get_no_null_check(opt_with_sel_fc->selector_fc);
+		opt_fc = (void *) opt_with_sel_fc;
+	} else {
+		opt_fc = g_new0(struct bt_field_class_option, 1);
+		if (!opt_fc) {
+			BT_LIB_LOGE_APPEND_CAUSE(
+				"Failed to allocate one option field class.");
+			goto error;
+		}
 	}
 
-	if (init_field_class((void *) opt_fc, BT_FIELD_CLASS_TYPE_OPTION,
+	BT_ASSERT(opt_fc);
+
+	if (init_field_class((void *) opt_fc, fc_type,
 			destroy_option_field_class)) {
 		goto error;
 	}
@@ -1186,10 +1239,6 @@ struct bt_field_class *bt_field_class_option_create(bt_trace_class *trace_class,
 	bt_field_class_freeze(opt_fc->content_fc);
 
 	if (selector_fc) {
-		BT_ASSERT_PRE_FC_HAS_ID(selector_fc, BT_FIELD_CLASS_TYPE_BOOL,
-			"Selector field class");
-		opt_fc->selector_fc = selector_fc;
-		bt_object_get_no_null_check(opt_fc->selector_fc);
 		bt_field_class_freeze(selector_fc);
 	}
 
@@ -1204,14 +1253,100 @@ end:
 	return (void *) opt_fc;
 }
 
+struct bt_field_class *bt_field_class_option_without_selector_create(
+		struct bt_trace_class *trace_class,
+		struct bt_field_class *content_fc)
+{
+	return create_option_field_class(trace_class,
+		BT_FIELD_CLASS_TYPE_OPTION_WITHOUT_SELECTOR,
+		content_fc, NULL);
+}
+
+struct bt_field_class *bt_field_class_option_with_selector_bool_create(
+		struct bt_trace_class *trace_class,
+		struct bt_field_class *content_fc,
+		struct bt_field_class *selector_fc)
+{
+	struct bt_field_class_option_with_selector_bool *fc =
+		(void *) create_option_field_class(trace_class,
+			BT_FIELD_CLASS_TYPE_OPTION_WITH_BOOL_SELECTOR,
+			content_fc, selector_fc);
+
+	if (!fc) {
+		goto end;
+	}
+
+end:
+	return (void *) fc;
+}
+
+struct bt_field_class *
+bt_field_class_option_with_selector_integer_unsigned_create(
+		struct bt_trace_class *trace_class,
+		struct bt_field_class *content_fc,
+		struct bt_field_class *selector_fc,
+		const struct bt_integer_range_set_unsigned *u_range_set)
+{
+	struct bt_field_class_option_with_selector_integer *fc;
+	const struct bt_integer_range_set *range_set =
+		(const void *) u_range_set;
+
+	BT_ASSERT_PRE_NON_NULL(range_set, "Integer range set");
+	BT_ASSERT_PRE(range_set->ranges->len > 0,
+		"Integer range set is empty: %!+R", range_set);
+ 	fc = (void *) create_option_field_class(trace_class,
+		BT_FIELD_CLASS_TYPE_OPTION_WITH_UNSIGNED_INTEGER_SELECTOR,
+		content_fc, selector_fc);
+
+	if (!fc) {
+		goto end;
+	}
+
+	fc->range_set = range_set;
+	bt_object_get_no_null_check(fc->range_set);
+	bt_integer_range_set_freeze(range_set);
+
+end:
+	return (void *) fc;
+}
+
+struct bt_field_class *
+bt_field_class_option_with_selector_integer_signed_create(
+		struct bt_trace_class *trace_class,
+		struct bt_field_class *content_fc,
+		struct bt_field_class *selector_fc,
+		const struct bt_integer_range_set_signed *i_range_set)
+{
+	struct bt_field_class_option_with_selector_integer *fc;
+	const struct bt_integer_range_set *range_set =
+		(const void *) i_range_set;
+
+	BT_ASSERT_PRE_NON_NULL(range_set, "Integer range set");
+	BT_ASSERT_PRE(range_set->ranges->len > 0,
+		"Integer range set is empty: %!+R", range_set);
+ 	fc = (void *) create_option_field_class(trace_class,
+		BT_FIELD_CLASS_TYPE_OPTION_WITH_SIGNED_INTEGER_SELECTOR,
+		content_fc, selector_fc);
+
+	if (!fc) {
+		goto end;
+	}
+
+	fc->range_set = range_set;
+	bt_object_get_no_null_check(fc->range_set);
+	bt_integer_range_set_freeze(range_set);
+
+end:
+	return (void *) fc;
+}
+
 const struct bt_field_class *bt_field_class_option_borrow_field_class_const(
 			const struct bt_field_class *fc)
 {
 	struct bt_field_class_option *opt_fc = (void *) fc;
 
 	BT_ASSERT_PRE_NON_NULL(fc, "Field class");
-	BT_ASSERT_PRE_DEV_FC_HAS_ID(fc, BT_FIELD_CLASS_TYPE_OPTION,
-		"Field class");
+	BT_ASSERT_PRE_FC_IS_OPTION(fc, "Field class");
 	return opt_fc->content_fc;
 }
 
@@ -1221,21 +1356,67 @@ struct bt_field_class *bt_field_class_option_borrow_field_class(
 	struct bt_field_class_option *opt_fc = (void *) fc;
 
 	BT_ASSERT_PRE_NON_NULL(fc, "Field class");
-	BT_ASSERT_PRE_DEV_FC_HAS_ID(fc, BT_FIELD_CLASS_TYPE_OPTION,
-		"Field class");
+	BT_ASSERT_PRE_FC_IS_OPTION(fc, "Field class");
 	return opt_fc->content_fc;
 }
 
 const struct bt_field_path *
-bt_field_class_option_borrow_selector_field_path_const(
+bt_field_class_option_with_selector_borrow_selector_field_path_const(
 		const struct bt_field_class *fc)
 {
-	struct bt_field_class_option *opt_fc = (void *) fc;
+	const struct bt_field_class_option_with_selector *opt_fc =
+		(const void *) fc;
 
 	BT_ASSERT_PRE_NON_NULL(fc, "Field class");
-	BT_ASSERT_PRE_DEV_FC_HAS_ID(fc, BT_FIELD_CLASS_TYPE_OPTION,
-		"Field class");
+	BT_ASSERT_PRE_FC_IS_OPTION_WITH_SEL(fc, "Field class");
 	return opt_fc->selector_field_path;
+}
+
+void bt_field_class_option_with_selector_bool_set_selector_is_reversed(
+		struct bt_field_class *fc, bt_bool sel_is_reversed)
+{
+	struct bt_field_class_option_with_selector_bool *opt_fc = (void *) fc;
+
+	BT_ASSERT_PRE_NON_NULL(fc, "Field class");
+	BT_ASSERT_PRE_FC_HAS_ID(fc,
+		BT_FIELD_CLASS_TYPE_OPTION_WITH_BOOL_SELECTOR, "Field class");
+	BT_ASSERT_PRE_DEV_FC_HOT(fc, "Field class");
+	opt_fc->sel_is_reversed = sel_is_reversed;
+}
+
+bt_bool bt_field_class_option_with_selector_bool_selector_is_reversed(
+		const struct bt_field_class *fc)
+{
+	struct bt_field_class_option_with_selector_bool *opt_fc = (void *) fc;
+
+	BT_ASSERT_PRE_NON_NULL(fc, "Field class");
+	BT_ASSERT_PRE_FC_HAS_ID(fc,
+		BT_FIELD_CLASS_TYPE_OPTION_WITH_BOOL_SELECTOR, "Field class");
+	return opt_fc->sel_is_reversed;
+}
+
+const struct bt_integer_range_set_unsigned *
+bt_field_class_option_with_selector_integer_unsigned_borrow_selector_ranges_const(
+		const struct bt_field_class *fc)
+{
+	struct bt_field_class_option_with_selector_integer *opt_fc =
+		(void *) fc;
+
+	BT_ASSERT_PRE_NON_NULL(fc, "Field class");
+	BT_ASSERT_PRE_FC_IS_OPTION_WITH_INT_SEL(fc, "Field class");
+	return (const void *) opt_fc->range_set;
+}
+
+const struct bt_integer_range_set_signed *
+bt_field_class_option_with_selector_integer_signed_borrow_selector_ranges_const(
+		const struct bt_field_class *fc)
+{
+	struct bt_field_class_option_with_selector_integer *opt_fc =
+		(void *) fc;
+
+	BT_ASSERT_PRE_NON_NULL(fc, "Field class");
+	BT_ASSERT_PRE_FC_IS_OPTION_WITH_INT_SEL(fc, "Field class");
+	return (const void *) opt_fc->range_set;
 }
 
 static

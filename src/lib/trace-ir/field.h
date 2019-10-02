@@ -64,6 +64,14 @@
 		((const struct bt_field *) (_field))->class->type == BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY, \
 		_name " is not an array field: %![field-]+f", (_field))
 
+#define BT_ASSERT_PRE_DEV_FIELD_IS_OPTION(_field, _name)		\
+	BT_ASSERT_PRE_DEV(						\
+		((const struct bt_field *) (_field))->class->type == BT_FIELD_CLASS_TYPE_OPTION_WITHOUT_SELECTOR || \
+		((const struct bt_field *) (_field))->class->type == BT_FIELD_CLASS_TYPE_OPTION_WITH_BOOL_SELECTOR || \
+		((const struct bt_field *) (_field))->class->type == BT_FIELD_CLASS_TYPE_OPTION_WITH_UNSIGNED_INTEGER_SELECTOR || \
+		((const struct bt_field *) (_field))->class->type == BT_FIELD_CLASS_TYPE_OPTION_WITH_SIGNED_INTEGER_SELECTOR, \
+		_name " is not an option field: %![field-]+f", (_field))
+
 #define BT_ASSERT_PRE_DEV_FIELD_IS_VARIANT(_field, _name)		\
 	BT_ASSERT_PRE_DEV(						\
 		((const struct bt_field *) (_field))->class->type == BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR || \

@@ -228,6 +228,21 @@ class PackageTestCase(unittest.TestCase):
     def test_has__OptionFieldClass(self):
         self._assert_in_bt2('_OptionFieldClass')
 
+    def test_has__OptionWithSelectorFieldClass(self):
+        self._assert_in_bt2('_OptionWithSelectorFieldClass')
+
+    def test_has__OptionWithBoolSelectorFieldClass(self):
+        self._assert_in_bt2('_OptionWithBoolSelectorFieldClass')
+
+    def test_has__OptionWithIntegerSelectorFieldClass(self):
+        self._assert_in_bt2('_OptionWithIntegerSelectorFieldClass')
+
+    def test_has__OptionWithUnsignedIntegerSelectorFieldClass(self):
+        self._assert_in_bt2('_OptionWithUnsignedIntegerSelectorFieldClass')
+
+    def test_has__OptionWithSignedIntegerSelectorFieldClass(self):
+        self._assert_in_bt2('_OptionWithSignedIntegerSelectorFieldClass')
+
     def test_has__VariantFieldClass(self):
         self._assert_in_bt2('_VariantFieldClass')
 
@@ -287,6 +302,21 @@ class PackageTestCase(unittest.TestCase):
 
     def test_has__OptionFieldClassConst(self):
         self._assert_in_bt2('_OptionFieldClassConst')
+
+    def test_has__OptionWithSelectorFieldClassConst(self):
+        self._assert_in_bt2('_OptionWithSelectorFieldClassConst')
+
+    def test_has__OptionWithBoolSelectorFieldClassConst(self):
+        self._assert_in_bt2('_OptionWithBoolSelectorFieldClassConst')
+
+    def test_has__OptionWithIntegerSelectorFieldClassConst(self):
+        self._assert_in_bt2('_OptionWithIntegerSelectorFieldClassConst')
+
+    def test_has__OptionWithUnsignedIntegerSelectorFieldClassConst(self):
+        self._assert_in_bt2('_OptionWithUnsignedIntegerSelectorFieldClassConst')
+
+    def test_has__OptionWithSignedIntegerSelectorFieldClassConst(self):
+        self._assert_in_bt2('_OptionWithSignedIntegerSelectorFieldClassConst')
 
     def test_has__VariantFieldClassConst(self):
         self._assert_in_bt2('_VariantFieldClassConst')

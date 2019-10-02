@@ -25,6 +25,7 @@
 from bt2 import native_bt, utils, object
 from bt2 import stream_class as bt2_stream_class
 from bt2 import field_class as bt2_field_class
+from bt2 import integer_range_set as bt2_integer_range_set
 from bt2 import trace as bt2_trace
 from bt2 import value as bt2_value
 import collections.abc
@@ -433,20 +434,53 @@ class _TraceClass(_TraceClassConst):
         self._set_field_class_user_attrs(fc, user_attributes)
         return fc
 
-    def create_option_field_class(
-        self, content_fc, selector_fc=None, user_attributes=None
+    def create_option_without_selector_field_class(
+        self, content_fc, user_attributes=None
     ):
         utils._check_type(content_fc, bt2_field_class._FieldClass)
-
-        selector_fc_ptr = None
-
-        if selector_fc is not None:
-            utils._check_type(selector_fc, bt2_field_class._BoolFieldClass)
-            selector_fc_ptr = selector_fc._ptr
-
-        ptr = native_bt.field_class_option_create(
-            self._ptr, content_fc._ptr, selector_fc_ptr
+        ptr = native_bt.field_class_option_without_selector_create(
+            self._ptr, content_fc._ptr
         )
+        self._check_field_class_create_status(ptr, 'option')
+        fc = bt2_field_class._create_field_class_from_ptr_and_get_ref(ptr)
+        self._set_field_class_user_attrs(fc, user_attributes)
+        return fc
+
+    def create_option_with_bool_selector_field_class(
+        self, content_fc, selector_fc, selector_is_reversed=False, user_attributes=None
+    ):
+        utils._check_type(content_fc, bt2_field_class._FieldClass)
+        utils._check_bool(selector_is_reversed)
+        utils._check_type(selector_fc, bt2_field_class._BoolFieldClass)
+        ptr = native_bt.field_class_option_with_selector_bool_create(
+            self._ptr, content_fc._ptr, selector_fc._ptr
+        )
+        self._check_field_class_create_status(ptr, 'option')
+        fc = bt2_field_class._create_field_class_from_ptr_and_get_ref(ptr)
+        self._set_field_class_user_attrs(fc, user_attributes)
+        fc._selector_is_reversed = selector_is_reversed
+        return fc
+
+    def create_option_with_integer_selector_field_class(
+        self, content_fc, selector_fc, ranges, user_attributes=None
+    ):
+        utils._check_type(content_fc, bt2_field_class._FieldClass)
+        utils._check_type(selector_fc, bt2_field_class._IntegerFieldClass)
+
+        if len(ranges) == 0:
+            raise ValueError('integer range set is empty')
+
+        if isinstance(selector_fc, bt2_field_class._UnsignedIntegerFieldClass):
+            utils._check_type(ranges, bt2_integer_range_set.UnsignedIntegerRangeSet)
+            ptr = native_bt.field_class_option_with_selector_integer_unsigned_create(
+                self._ptr, content_fc._ptr, selector_fc._ptr, ranges._ptr
+            )
+        else:
+            utils._check_type(ranges, bt2_integer_range_set.SignedIntegerRangeSet)
+            ptr = native_bt.field_class_option_with_selector_integer_signed_create(
+                self._ptr, content_fc._ptr, selector_fc._ptr, ranges._ptr
+            )
+
         self._check_field_class_create_status(ptr, 'option')
         fc = bt2_field_class._create_field_class_from_ptr_and_get_ref(ptr)
         self._set_field_class_user_attrs(fc, user_attributes)

@@ -177,22 +177,25 @@ struct bt_field *create_variant_field(struct bt_field_class *);
 
 static
 struct bt_field *(* const field_create_funcs[])(struct bt_field_class *) = {
-	[BT_FIELD_CLASS_TYPE_BOOL]				= create_bool_field,
-	[BT_FIELD_CLASS_TYPE_BIT_ARRAY]				= create_bit_array_field,
-	[BT_FIELD_CLASS_TYPE_UNSIGNED_INTEGER]			= create_integer_field,
-	[BT_FIELD_CLASS_TYPE_SIGNED_INTEGER]			= create_integer_field,
-	[BT_FIELD_CLASS_TYPE_UNSIGNED_ENUMERATION]		= create_integer_field,
-	[BT_FIELD_CLASS_TYPE_SIGNED_ENUMERATION]		= create_integer_field,
-	[BT_FIELD_CLASS_TYPE_SINGLE_PRECISION_REAL]		= create_real_field,
-	[BT_FIELD_CLASS_TYPE_DOUBLE_PRECISION_REAL]		= create_real_field,
-	[BT_FIELD_CLASS_TYPE_STRING]				= create_string_field,
-	[BT_FIELD_CLASS_TYPE_STRUCTURE]				= create_structure_field,
-	[BT_FIELD_CLASS_TYPE_STATIC_ARRAY]			= create_static_array_field,
-	[BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY]			= create_dynamic_array_field,
-	[BT_FIELD_CLASS_TYPE_OPTION]				= create_option_field,
-	[BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR]		= create_variant_field,
-	[BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_SELECTOR]	= create_variant_field,
-	[BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_SELECTOR]	= create_variant_field,
+	[BT_FIELD_CLASS_TYPE_BOOL]					= create_bool_field,
+	[BT_FIELD_CLASS_TYPE_BIT_ARRAY]					= create_bit_array_field,
+	[BT_FIELD_CLASS_TYPE_UNSIGNED_INTEGER]				= create_integer_field,
+	[BT_FIELD_CLASS_TYPE_SIGNED_INTEGER]				= create_integer_field,
+	[BT_FIELD_CLASS_TYPE_UNSIGNED_ENUMERATION]			= create_integer_field,
+	[BT_FIELD_CLASS_TYPE_SIGNED_ENUMERATION]			= create_integer_field,
+	[BT_FIELD_CLASS_TYPE_SINGLE_PRECISION_REAL]			= create_real_field,
+	[BT_FIELD_CLASS_TYPE_DOUBLE_PRECISION_REAL]			= create_real_field,
+	[BT_FIELD_CLASS_TYPE_STRING]					= create_string_field,
+	[BT_FIELD_CLASS_TYPE_STRUCTURE]					= create_structure_field,
+	[BT_FIELD_CLASS_TYPE_STATIC_ARRAY]				= create_static_array_field,
+	[BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY]				= create_dynamic_array_field,
+	[BT_FIELD_CLASS_TYPE_OPTION_WITHOUT_SELECTOR]			= create_option_field,
+	[BT_FIELD_CLASS_TYPE_OPTION_WITH_BOOL_SELECTOR]			= create_option_field,
+	[BT_FIELD_CLASS_TYPE_OPTION_WITH_UNSIGNED_INTEGER_SELECTOR]	= create_option_field,
+	[BT_FIELD_CLASS_TYPE_OPTION_WITH_SIGNED_INTEGER_SELECTOR]	= create_option_field,
+	[BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR]			= create_variant_field,
+	[BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_SELECTOR]		= create_variant_field,
+	[BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_SELECTOR]		= create_variant_field,
 };
 
 static
@@ -224,22 +227,25 @@ void destroy_variant_field(struct bt_field *field);
 
 static
 void (* const field_destroy_funcs[])(struct bt_field *) = {
-	[BT_FIELD_CLASS_TYPE_BOOL]				= destroy_bool_field,
-	[BT_FIELD_CLASS_TYPE_BIT_ARRAY]				= destroy_bit_array_field,
-	[BT_FIELD_CLASS_TYPE_UNSIGNED_INTEGER]			= destroy_integer_field,
-	[BT_FIELD_CLASS_TYPE_SIGNED_INTEGER]			= destroy_integer_field,
-	[BT_FIELD_CLASS_TYPE_UNSIGNED_ENUMERATION]		= destroy_integer_field,
-	[BT_FIELD_CLASS_TYPE_SIGNED_ENUMERATION]		= destroy_integer_field,
-	[BT_FIELD_CLASS_TYPE_SINGLE_PRECISION_REAL]		= destroy_real_field,
-	[BT_FIELD_CLASS_TYPE_DOUBLE_PRECISION_REAL]		= destroy_real_field,
-	[BT_FIELD_CLASS_TYPE_STRING]				= destroy_string_field,
-	[BT_FIELD_CLASS_TYPE_STRUCTURE]				= destroy_structure_field,
-	[BT_FIELD_CLASS_TYPE_STATIC_ARRAY]			= destroy_array_field,
-	[BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY]			= destroy_array_field,
-	[BT_FIELD_CLASS_TYPE_OPTION]				= destroy_option_field,
-	[BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR]		= destroy_variant_field,
-	[BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_SELECTOR]	= destroy_variant_field,
-	[BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_SELECTOR]	= destroy_variant_field,
+	[BT_FIELD_CLASS_TYPE_BOOL]					= destroy_bool_field,
+	[BT_FIELD_CLASS_TYPE_BIT_ARRAY]					= destroy_bit_array_field,
+	[BT_FIELD_CLASS_TYPE_UNSIGNED_INTEGER]				= destroy_integer_field,
+	[BT_FIELD_CLASS_TYPE_SIGNED_INTEGER]				= destroy_integer_field,
+	[BT_FIELD_CLASS_TYPE_UNSIGNED_ENUMERATION]			= destroy_integer_field,
+	[BT_FIELD_CLASS_TYPE_SIGNED_ENUMERATION]			= destroy_integer_field,
+	[BT_FIELD_CLASS_TYPE_SINGLE_PRECISION_REAL]			= destroy_real_field,
+	[BT_FIELD_CLASS_TYPE_DOUBLE_PRECISION_REAL]			= destroy_real_field,
+	[BT_FIELD_CLASS_TYPE_STRING]					= destroy_string_field,
+	[BT_FIELD_CLASS_TYPE_STRUCTURE]					= destroy_structure_field,
+	[BT_FIELD_CLASS_TYPE_STATIC_ARRAY]				= destroy_array_field,
+	[BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY]				= destroy_array_field,
+	[BT_FIELD_CLASS_TYPE_OPTION_WITHOUT_SELECTOR]			= destroy_option_field,
+	[BT_FIELD_CLASS_TYPE_OPTION_WITH_BOOL_SELECTOR]			= destroy_option_field,
+	[BT_FIELD_CLASS_TYPE_OPTION_WITH_UNSIGNED_INTEGER_SELECTOR]	= destroy_option_field,
+	[BT_FIELD_CLASS_TYPE_OPTION_WITH_SIGNED_INTEGER_SELECTOR]	= destroy_option_field,
+	[BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR]			= destroy_variant_field,
+	[BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_SELECTOR]		= destroy_variant_field,
+	[BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_SELECTOR]		= destroy_variant_field,
 };
 
 struct bt_field_class *bt_field_borrow_class(struct bt_field *field)
@@ -1060,8 +1066,7 @@ void bt_field_option_set_has_field(struct bt_field *field, bt_bool has_field)
 	struct bt_field_option *opt_field = (void *) field;
 
 	BT_ASSERT_PRE_DEV_NON_NULL(field, "Field");
-	BT_ASSERT_PRE_DEV_FIELD_HAS_CLASS_TYPE(field,
-		BT_FIELD_CLASS_TYPE_OPTION, "Field");
+	BT_ASSERT_PRE_DEV_FIELD_IS_OPTION(field, "Field");
 	BT_ASSERT_PRE_DEV_FIELD_HOT(field, "Field");
 
 	if (has_field) {
@@ -1076,8 +1081,7 @@ struct bt_field *bt_field_option_borrow_field(struct bt_field *field)
 	struct bt_field_option *opt_field = (void *) field;
 
 	BT_ASSERT_PRE_DEV_NON_NULL(field, "Field");
-	BT_ASSERT_PRE_DEV_FIELD_HAS_CLASS_TYPE(field,
-		BT_FIELD_CLASS_TYPE_OPTION, "Field");
+	BT_ASSERT_PRE_DEV_FIELD_IS_OPTION(field, "Field");
 	return opt_field->selected_field;
 }
 

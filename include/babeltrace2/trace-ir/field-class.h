@@ -136,10 +136,31 @@ extern bt_field_class *bt_field_class_array_dynamic_create(
 extern bt_field_class *bt_field_class_array_borrow_element_field_class(
 		bt_field_class *field_class);
 
-extern bt_field_class *bt_field_class_option_create(
+extern bt_field_class *bt_field_class_option_without_selector_create(
+		bt_trace_class *trace_class,
+		bt_field_class *content_field_class);
+
+extern bt_field_class *bt_field_class_option_with_selector_bool_create(
 		bt_trace_class *trace_class,
 		bt_field_class *content_field_class,
 		bt_field_class *selector_field_class);
+
+extern void bt_field_class_option_with_selector_bool_set_selector_is_reversed(
+		bt_field_class *field_class, bt_bool selector_is_reversed);
+
+extern bt_field_class *
+bt_field_class_option_with_selector_integer_unsigned_create(
+		bt_trace_class *trace_class,
+		bt_field_class *content_field_class,
+		bt_field_class *selector_field_class,
+		const bt_integer_range_set_unsigned *range_set);
+
+extern bt_field_class *
+bt_field_class_option_with_selector_integer_signed_create(
+		bt_trace_class *trace_class,
+		bt_field_class *content_field_class,
+		bt_field_class *selector_field_class,
+		const bt_integer_range_set_signed *range_set);
 
 extern bt_field_class *bt_field_class_option_borrow_field_class(
 		bt_field_class *field_class);

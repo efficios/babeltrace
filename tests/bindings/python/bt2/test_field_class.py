@@ -724,29 +724,35 @@ class StructureFieldClassTestCase(
         )
 
 
-class OptionFieldClassTestCase(_TestFieldClass, unittest.TestCase):
+class OptionWithoutSelectorFieldClassTestCase(_TestFieldClass, unittest.TestCase):
     @staticmethod
     def _const_value_setter(field):
         field.has_field = True
         field.value = 12
 
     def _create_default_field_class(self, *args, **kwargs):
-        return self._tc.create_option_field_class(self._content_fc, **kwargs)
+        return self._tc.create_option_without_selector_field_class(
+            self._content_fc, *args, **kwargs
+        )
 
     def _create_default_const_field_class(self, *args, **kwargs):
-        fc = self._tc.create_option_field_class(self._content_fc, **kwargs)
+        fc = self._tc.create_option_without_selector_field_class(
+            self._content_fc, *args, **kwargs
+        )
         return _create_const_field_class(self._tc, fc, self._const_value_setter)
 
     def setUp(self):
         self._tc = get_default_trace_class()
         self._content_fc = self._tc.create_signed_integer_field_class(23)
-        self._tag_fc = self._tc.create_bool_field_class()
 
     def test_create_default(self):
         fc = self._create_default_field_class()
         self.assertEqual(fc.field_class.addr, self._content_fc.addr)
-        self.assertIsNone(fc.selector_field_path, None)
         self.assertEqual(len(fc.user_attributes), 0)
+
+    def test_create_invalid_field_class(self):
+        with self.assertRaises(TypeError):
+            self._tc.create_option_without_selector_field_class(object())
 
     def test_attr_field_class(self):
         fc = self._create_default_field_class()
@@ -758,8 +764,32 @@ class OptionFieldClassTestCase(_TestFieldClass, unittest.TestCase):
             type(fc.field_class), bt2_field_class._SignedIntegerFieldClassConst
         )
 
+
+class _OptionWithSelectorFieldClassTestCase(_TestFieldClass):
+    @staticmethod
+    def _const_value_setter(field):
+        field['opt'].has_field = True
+        field['opt'].value = 12
+
+    def _create_default_const_field_class(self, *args, **kwargs):
+        # Create a struct to contain the option and its selector else we can't
+        # create the non-const field necessary to get the the const field_class
+        struct_fc = self._tc.create_structure_field_class()
+        struct_fc.append_member('selecteux', self._tag_fc)
+        opt_fc = self._create_default_field_class(*args, **kwargs)
+        struct_fc.append_member('opt', opt_fc)
+
+        return _create_const_field_class(self._tc, struct_fc, self._const_value_setter)[
+            'opt'
+        ].field_class
+
+    def setUp(self):
+        self._tc = get_default_trace_class()
+        self._content_fc = self._tc.create_signed_integer_field_class(23)
+        self._tag_fc = self._create_tag_fc()
+
     def _create_field_class_for_field_path_test(self):
-        fc = self._create_default_field_class(selector_fc=self._tag_fc)
+        fc = self._create_default_field_class()
 
         foo_fc = self._tc.create_single_precision_real_field_class()
         bar_fc = self._tc.create_string_field_class()
@@ -771,7 +801,9 @@ class OptionFieldClassTestCase(_TestFieldClass, unittest.TestCase):
         inner_struct_fc.append_member('tag', self._tag_fc)
         inner_struct_fc.append_member('opt', fc)
 
-        opt_struct_array_fc = self._tc.create_option_field_class(inner_struct_fc)
+        opt_struct_array_fc = self._tc.create_option_without_selector_field_class(
+            inner_struct_fc
+        )
 
         outer_struct_fc = self._tc.create_structure_field_class()
         outer_struct_fc.append_member('foo', foo_fc)
@@ -810,13 +842,90 @@ class OptionFieldClassTestCase(_TestFieldClass, unittest.TestCase):
             fc.selector_field_path.root_scope, bt2.FieldPathScope.PACKET_CONTEXT
         )
 
-    def test_create_invalid_field_class(self):
+
+class OptionWithBoolSelectorFieldClassTestCase(
+    _OptionWithSelectorFieldClassTestCase, unittest.TestCase
+):
+    def _create_default_field_class(self, *args, **kwargs):
+        return self._tc.create_option_with_bool_selector_field_class(
+            self._content_fc, self._tag_fc, *args, **kwargs
+        )
+
+    def _create_tag_fc(self):
+        return self._tc.create_bool_field_class()
+
+    def test_create_default(self):
+        fc = self._create_default_field_class()
+        self.assertEqual(fc.field_class.addr, self._content_fc.addr)
+        self.assertFalse(fc.selector_is_reversed)
+        self.assertEqual(len(fc.user_attributes), 0)
+
+    def test_create_selector_is_reversed_wrong_type(self):
         with self.assertRaises(TypeError):
-            self._tc.create_option_field_class(object())
+            self._create_default_field_class(selector_is_reversed=23)
 
     def test_create_invalid_selector_type(self):
         with self.assertRaises(TypeError):
-            self._tc.create_option_field_class(self._content_fc, 17)
+            self._tc.create_option_with_bool_selector_field_class(self._content_fc, 17)
+
+    def test_attr_selector_is_reversed(self):
+        fc = self._create_default_field_class(selector_is_reversed=True)
+        self.assertTrue(fc.selector_is_reversed)
+
+    def test_const_attr_selector_is_reversed(self):
+        fc = self._create_default_const_field_class(selector_is_reversed=True)
+        self.assertTrue(fc.selector_is_reversed)
+
+
+class _OptionWithIntegerSelectorFieldClassTestCase(
+    _OptionWithSelectorFieldClassTestCase
+):
+    def _create_default_field_class(self, *args, **kwargs):
+        return self._tc.create_option_with_integer_selector_field_class(
+            self._content_fc, self._tag_fc, self._ranges, *args, **kwargs
+        )
+
+    def test_create_default(self):
+        fc = self._create_default_field_class()
+        self.assertEqual(fc.field_class.addr, self._content_fc.addr)
+        self.assertEqual(fc.ranges, self._ranges)
+        self.assertEqual(len(fc.user_attributes), 0)
+
+    def test_create_ranges_wrong_type(self):
+        with self.assertRaises(TypeError):
+            self._tc.create_option_with_integer_selector_field_class(
+                self._content_fc, self._tag_fc, 23
+            )
+
+    def test_create_ranges_empty(self):
+        with self.assertRaises(ValueError):
+            self._tc.create_option_with_integer_selector_field_class(
+                self._content_fc, self._tag_fc, type(self._ranges)()
+            )
+
+    def test_create_invalid_selector_type(self):
+        with self.assertRaises(TypeError):
+            self._tc.create_option_with_bool_selector_field_class(self._content_fc, 17)
+
+    def test_attr_ranges(self):
+        fc = self._create_default_field_class()
+        print(type(fc.ranges), type(self._ranges))
+        self.assertEqual(fc.ranges, self._ranges)
+
+    def test_const_attr_ranges(self):
+        fc = self._create_default_const_field_class()
+        self.assertEqual(fc.ranges, self._ranges)
+
+
+class OptionWithUnsignedIntegerSelectorFieldClassTestCase(
+    _OptionWithIntegerSelectorFieldClassTestCase, unittest.TestCase
+):
+    def setUp(self):
+        self._ranges = bt2.UnsignedIntegerRangeSet([(1, 3), (18, 44)])
+        super().setUp()
+
+    def _create_tag_fc(self):
+        return self._tc.create_unsigned_integer_field_class()
 
 
 class VariantFieldClassWithoutSelectorTestCase(

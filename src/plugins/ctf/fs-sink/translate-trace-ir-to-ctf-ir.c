@@ -1334,7 +1334,10 @@ int translate_field_class(struct ctx *ctx)
 	case BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY:
 		ret = translate_dynamic_array_field_class(ctx);
 		break;
-	case BT_FIELD_CLASS_TYPE_OPTION:
+	case BT_FIELD_CLASS_TYPE_OPTION_WITHOUT_SELECTOR:
+	case BT_FIELD_CLASS_TYPE_OPTION_WITH_BOOL_SELECTOR:
+	case BT_FIELD_CLASS_TYPE_OPTION_WITH_UNSIGNED_INTEGER_SELECTOR:
+	case BT_FIELD_CLASS_TYPE_OPTION_WITH_SIGNED_INTEGER_SELECTOR:
 		ret = translate_option_field_class(ctx);
 		break;
 	case BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR:

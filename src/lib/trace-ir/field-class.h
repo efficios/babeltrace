@@ -72,6 +72,30 @@
 #define _BT_ASSERT_PRE_FC_IS_ARRAY_FMT(_name)				\
 	_name " is not an array field class: %![fc-]+F"
 
+#define _BT_ASSERT_PRE_FC_IS_OPTION_COND(_fc)				\
+	(((const struct bt_field_class *) (_fc))->type == BT_FIELD_CLASS_TYPE_OPTION_WITHOUT_SELECTOR || \
+	((const struct bt_field_class *) (_fc))->type == BT_FIELD_CLASS_TYPE_OPTION_WITH_BOOL_SELECTOR || \
+	((const struct bt_field_class *) (_fc))->type == BT_FIELD_CLASS_TYPE_OPTION_WITH_UNSIGNED_INTEGER_SELECTOR || \
+	((const struct bt_field_class *) (_fc))->type == BT_FIELD_CLASS_TYPE_OPTION_WITH_SIGNED_INTEGER_SELECTOR)
+
+#define _BT_ASSERT_PRE_FC_IS_OPTION_FMT(_name)				\
+	_name " is not an option field class: %![fc-]+F"
+
+#define _BT_ASSERT_PRE_FC_IS_OPTION_WITH_SEL_COND(_fc)			\
+	(((const struct bt_field_class *) (_fc))->type == BT_FIELD_CLASS_TYPE_OPTION_WITH_BOOL_SELECTOR || \
+	((const struct bt_field_class *) (_fc))->type == BT_FIELD_CLASS_TYPE_OPTION_WITH_UNSIGNED_INTEGER_SELECTOR || \
+	((const struct bt_field_class *) (_fc))->type == BT_FIELD_CLASS_TYPE_OPTION_WITH_SIGNED_INTEGER_SELECTOR)
+
+#define _BT_ASSERT_PRE_FC_IS_OPTION_WITH_SEL_FMT(_name)		\
+	_name " is not an option field class with a selector: %![fc-]+F"
+
+#define _BT_ASSERT_PRE_FC_IS_OPTION_WITH_INT_SEL_COND(_fc)		\
+	(((const struct bt_field_class *) (_fc))->type == BT_FIELD_CLASS_TYPE_OPTION_WITH_UNSIGNED_INTEGER_SELECTOR || \
+	((const struct bt_field_class *) (_fc))->type == BT_FIELD_CLASS_TYPE_OPTION_WITH_SIGNED_INTEGER_SELECTOR)
+
+#define _BT_ASSERT_PRE_FC_IS_OPTION_WITH_INT_SEL_FMT(_name)		\
+	_name " is not an option field class with an integer selector: %![fc-]+F"
+
 #define _BT_ASSERT_PRE_FC_IS_VARIANT_COND(_fc)				\
 	(((const struct bt_field_class *) (_fc))->type == BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR || \
 	((const struct bt_field_class *) (_fc))->type == BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_SELECTOR || \
@@ -113,6 +137,18 @@
 	BT_ASSERT_PRE(_BT_ASSERT_PRE_FC_IS_ARRAY_COND(_fc),		\
 		_BT_ASSERT_PRE_FC_IS_ARRAY_FMT(_name), (_fc))
 
+#define BT_ASSERT_PRE_FC_IS_OPTION(_fc, _name)				\
+	BT_ASSERT_PRE(_BT_ASSERT_PRE_FC_IS_OPTION_COND(_fc),		\
+		_BT_ASSERT_PRE_FC_IS_OPTION_FMT(_name), (_fc))
+
+#define BT_ASSERT_PRE_FC_IS_OPTION_WITH_SEL(_fc, _name)			\
+	BT_ASSERT_PRE(_BT_ASSERT_PRE_FC_IS_OPTION_WITH_SEL_COND(_fc),	\
+		_BT_ASSERT_PRE_FC_IS_OPTION_WITH_SEL_FMT(_name), (_fc))
+
+#define BT_ASSERT_PRE_FC_IS_OPTION_WITH_INT_SEL(_fc, _name)		\
+	BT_ASSERT_PRE(_BT_ASSERT_PRE_FC_IS_OPTION_WITH_INT_SEL_COND(_fc), \
+		_BT_ASSERT_PRE_FC_IS_OPTION_WITH_INT_SEL_FMT(_name), (_fc))
+
 #define BT_ASSERT_PRE_FC_IS_VARIANT(_fc, _name)				\
 	BT_ASSERT_PRE(_BT_ASSERT_PRE_FC_IS_VARIANT_COND(_fc),		\
 		_BT_ASSERT_PRE_FC_IS_VARIANT_FMT(_name), (_fc))
@@ -145,6 +181,18 @@
 #define BT_ASSERT_PRE_DEV_FC_IS_ARRAY(_fc, _name)			\
 	BT_ASSERT_PRE_DEV(_BT_ASSERT_PRE_FC_IS_ARRAY_COND(_fc),		\
 		_BT_ASSERT_PRE_FC_IS_ARRAY_FMT(_name), (_fc))
+
+#define BT_ASSERT_PRE_DEV_FC_IS_OPTION(_fc, _name)			\
+	BT_ASSERT_PRE_DEV(_BT_ASSERT_PRE_FC_IS_OPTION_COND(_fc),	\
+		_BT_ASSERT_PRE_FC_IS_OPTION_FMT(_name), (_fc))
+
+#define BT_ASSERT_PRE_DEV_FC_IS_OPTION_WITH_SEL(_fc, _name)		\
+	BT_ASSERT_PRE_DEV(_BT_ASSERT_PRE_FC_IS_OPTION_WITH_SEL_COND(_fc), \
+		_BT_ASSERT_PRE_FC_IS_OPTION_WITH_SEL_FMT(_name), (_fc))
+
+#define BT_ASSERT_PRE_DEV_FC_IS_OPTION_WITH_INT_SEL(_fc, _name)		\
+	BT_ASSERT_PRE_DEV(_BT_ASSERT_PRE_FC_IS_OPTION_WITH_INT_SEL_COND(_fc), \
+		_BT_ASSERT_PRE_FC_IS_OPTION_WITH_INT_SEL_FMT(_name), (_fc))
 
 #define BT_ASSERT_PRE_DEV_FC_IS_VARIANT(_fc, _name)			\
 	BT_ASSERT_PRE_DEV(_BT_ASSERT_PRE_FC_IS_VARIANT_COND(_fc),	\
@@ -312,12 +360,30 @@ struct bt_field_class_option {
 
 	/* Owned by this */
 	struct bt_field_class *content_fc;
+};
+
+struct bt_field_class_option_with_selector {
+	struct bt_field_class_option common;
 
 	/* Owned by this */
 	struct bt_field_class *selector_fc;
 
 	/* Owned by this */
 	struct bt_field_path *selector_field_path;
+};
+
+struct bt_field_class_option_with_selector_bool {
+	struct bt_field_class_option_with_selector common;
+
+	/* Owned by this */
+	bool sel_is_reversed;
+};
+
+struct bt_field_class_option_with_selector_integer {
+	struct bt_field_class_option_with_selector common;
+
+	/* Owned by this */
+	const struct bt_integer_range_set *range_set;
 };
 
 /* Variant FC (with selector) option: named field class + range set */
