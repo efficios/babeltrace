@@ -47,7 +47,10 @@ bool find_field_class_recursive(struct bt_field_class *fc,
 	}
 
 	switch (fc->type) {
-	case BT_FIELD_CLASS_TYPE_OPTION:
+	case BT_FIELD_CLASS_TYPE_OPTION_WITHOUT_SELECTOR:
+	case BT_FIELD_CLASS_TYPE_OPTION_WITH_BOOL_SELECTOR:
+	case BT_FIELD_CLASS_TYPE_OPTION_WITH_UNSIGNED_INTEGER_SELECTOR:
+	case BT_FIELD_CLASS_TYPE_OPTION_WITH_SIGNED_INTEGER_SELECTOR:
 	{
 		struct bt_field_class_option *opt_fc = (void *) fc;
 		struct bt_field_path_item item = {
@@ -259,7 +262,10 @@ struct bt_field_class *borrow_child_field_class(
 	struct bt_field_class *child_fc = NULL;
 
 	switch (parent_fc->type) {
-	case BT_FIELD_CLASS_TYPE_OPTION:
+	case BT_FIELD_CLASS_TYPE_OPTION_WITHOUT_SELECTOR:
+	case BT_FIELD_CLASS_TYPE_OPTION_WITH_BOOL_SELECTOR:
+	case BT_FIELD_CLASS_TYPE_OPTION_WITH_UNSIGNED_INTEGER_SELECTOR:
+	case BT_FIELD_CLASS_TYPE_OPTION_WITH_SIGNED_INTEGER_SELECTOR:
 	{
 		struct bt_field_class_option *opt_fc = (void *) parent_fc;
 
@@ -323,7 +329,10 @@ bool target_field_path_in_different_scope_has_struct_fc_only(
 
 		if (fc->type == BT_FIELD_CLASS_TYPE_STATIC_ARRAY ||
 				fc->type == BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY ||
-				fc->type == BT_FIELD_CLASS_TYPE_OPTION ||
+				fc->type == BT_FIELD_CLASS_TYPE_OPTION_WITHOUT_SELECTOR ||
+				fc->type == BT_FIELD_CLASS_TYPE_OPTION_WITH_BOOL_SELECTOR ||
+				fc->type == BT_FIELD_CLASS_TYPE_OPTION_WITH_UNSIGNED_INTEGER_SELECTOR ||
+				fc->type == BT_FIELD_CLASS_TYPE_OPTION_WITH_SIGNED_INTEGER_SELECTOR ||
 				fc->type == BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR ||
 				fc->type == BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_SELECTOR ||
 				fc->type == BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_SELECTOR) {
@@ -443,7 +452,10 @@ bool lca_to_target_has_struct_fc_only(struct bt_field_path *src_field_path,
 
 		if (tgt_fc->type == BT_FIELD_CLASS_TYPE_STATIC_ARRAY ||
 				tgt_fc->type == BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY ||
-				tgt_fc->type == BT_FIELD_CLASS_TYPE_OPTION ||
+				tgt_fc->type == BT_FIELD_CLASS_TYPE_OPTION_WITHOUT_SELECTOR ||
+				tgt_fc->type == BT_FIELD_CLASS_TYPE_OPTION_WITH_BOOL_SELECTOR ||
+				tgt_fc->type == BT_FIELD_CLASS_TYPE_OPTION_WITH_UNSIGNED_INTEGER_SELECTOR ||
+				tgt_fc->type == BT_FIELD_CLASS_TYPE_OPTION_WITH_SIGNED_INTEGER_SELECTOR ||
 				tgt_fc->type == BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR ||
 				tgt_fc->type == BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_SELECTOR ||
 				tgt_fc->type == BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_SELECTOR) {
@@ -556,9 +568,11 @@ int bt_resolve_field_paths(struct bt_field_class *fc,
 
 	/* Resolving part for dynamic array and variant field classes */
 	switch (fc->type) {
-	case BT_FIELD_CLASS_TYPE_OPTION:
+	case BT_FIELD_CLASS_TYPE_OPTION_WITH_BOOL_SELECTOR:
+	case BT_FIELD_CLASS_TYPE_OPTION_WITH_UNSIGNED_INTEGER_SELECTOR:
+	case BT_FIELD_CLASS_TYPE_OPTION_WITH_SIGNED_INTEGER_SELECTOR:
 	{
-		struct bt_field_class_option *opt_fc = (void *) fc;
+		struct bt_field_class_option_with_selector *opt_fc = (void *) fc;
 
 		if (opt_fc->selector_fc) {
 			BT_ASSERT(!opt_fc->selector_field_path);
@@ -611,7 +625,10 @@ int bt_resolve_field_paths(struct bt_field_class *fc,
 
 	/* Recursive part */
 	switch (fc->type) {
-	case BT_FIELD_CLASS_TYPE_OPTION:
+	case BT_FIELD_CLASS_TYPE_OPTION_WITHOUT_SELECTOR:
+	case BT_FIELD_CLASS_TYPE_OPTION_WITH_BOOL_SELECTOR:
+	case BT_FIELD_CLASS_TYPE_OPTION_WITH_UNSIGNED_INTEGER_SELECTOR:
+	case BT_FIELD_CLASS_TYPE_OPTION_WITH_SIGNED_INTEGER_SELECTOR:
 	{
 		struct bt_field_class_option *opt_fc = (void *) fc;
 

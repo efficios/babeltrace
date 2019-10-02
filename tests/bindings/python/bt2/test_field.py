@@ -2194,7 +2194,9 @@ class OptionFieldTestCase(unittest.TestCase):
         field.value = {'opt_field': 'hiboux'}
 
     def _create_fc(self, tc):
-        fc = tc.create_option_field_class(tc.create_string_field_class())
+        fc = tc.create_option_without_selector_field_class(
+            tc.create_string_field_class()
+        )
         top_fc = tc.create_structure_field_class()
         top_fc.append_member('opt_field', fc)
         return top_fc

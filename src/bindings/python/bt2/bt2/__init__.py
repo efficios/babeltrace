@@ -92,6 +92,11 @@ from bt2.field_class import _SignedEnumerationFieldClass
 from bt2.field_class import _StringFieldClass
 from bt2.field_class import _StructureFieldClass
 from bt2.field_class import _OptionFieldClass
+from bt2.field_class import _OptionWithSelectorFieldClass
+from bt2.field_class import _OptionWithBoolSelectorFieldClass
+from bt2.field_class import _OptionWithIntegerSelectorFieldClass
+from bt2.field_class import _OptionWithUnsignedIntegerSelectorFieldClass
+from bt2.field_class import _OptionWithSignedIntegerSelectorFieldClass
 from bt2.field_class import _VariantFieldClass
 from bt2.field_class import _VariantFieldClassWithoutSelector
 from bt2.field_class import _VariantFieldClassWithSelector
@@ -112,6 +117,11 @@ from bt2.field_class import _SignedEnumerationFieldClassConst
 from bt2.field_class import _StringFieldClassConst
 from bt2.field_class import _StructureFieldClassConst
 from bt2.field_class import _OptionFieldClassConst
+from bt2.field_class import _OptionWithSelectorFieldClassConst
+from bt2.field_class import _OptionWithBoolSelectorFieldClassConst
+from bt2.field_class import _OptionWithIntegerSelectorFieldClassConst
+from bt2.field_class import _OptionWithUnsignedIntegerSelectorFieldClassConst
+from bt2.field_class import _OptionWithSignedIntegerSelectorFieldClassConst
 from bt2.field_class import _VariantFieldClassConst
 from bt2.field_class import _VariantFieldClassWithoutSelectorConst
 from bt2.field_class import _VariantFieldClassWithSelectorConst
