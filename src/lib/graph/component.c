@@ -307,7 +307,7 @@ int bt_component_create(struct bt_component_class *component_class,
 
 	bt_object_init_shared_with_parent(&component->base, destroy_component);
 	component->class = component_class;
-	bt_object_get_no_null_check(component->class);
+	bt_object_get_ref_no_null_check(component->class);
 	component->destroy = component_destroy_funcs[type];
 	component->name = g_string_new(name);
 	if (!component->name) {

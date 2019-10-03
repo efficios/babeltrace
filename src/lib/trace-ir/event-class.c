@@ -330,7 +330,7 @@ bt_event_class_set_specific_context_field_class(
 	bt_field_class_make_part_of_trace_class(field_class);
 	bt_object_put_ref(event_class->specific_context_fc);
 	event_class->specific_context_fc = field_class;
-	bt_object_get_no_null_check(event_class->specific_context_fc);
+	bt_object_get_ref_no_null_check(event_class->specific_context_fc);
 	bt_field_class_freeze(field_class);
 	BT_LIB_LOGD("Set event class's specific context field class: %!+E",
 		event_class);
@@ -395,7 +395,7 @@ bt_event_class_set_payload_field_class(
 	bt_field_class_make_part_of_trace_class(field_class);
 	bt_object_put_ref(event_class->payload_fc);
 	event_class->payload_fc = field_class;
-	bt_object_get_no_null_check(event_class->payload_fc);
+	bt_object_get_ref_no_null_check(event_class->payload_fc);
 	bt_field_class_freeze(field_class);
 	BT_LIB_LOGD("Set event class's payload field class: %!+E", event_class);
 
@@ -438,9 +438,9 @@ void bt_event_class_set_user_attributes(
 	BT_ASSERT_PRE(user_attributes->type == BT_VALUE_TYPE_MAP,
 		"User attributes object is not a map value object.");
 	BT_ASSERT_PRE_DEV_EVENT_CLASS_HOT(event_class);
-	bt_object_put_no_null_check(event_class->user_attributes);
+	bt_object_put_ref_no_null_check(event_class->user_attributes);
 	event_class->user_attributes = (void *) user_attributes;
-	bt_object_get_no_null_check(event_class->user_attributes);
+	bt_object_get_ref_no_null_check(event_class->user_attributes);
 }
 
 void bt_event_class_get_ref(const struct bt_event_class *event_class)

@@ -196,7 +196,7 @@ struct bt_trace *bt_trace_create(struct bt_trace_class *tc)
 	}
 
 	trace->class = tc;
-	bt_object_get_no_null_check(trace->class);
+	bt_object_get_ref_no_null_check(trace->class);
 	BT_LIB_LOGD("Created trace object: %!+t", trace);
 	goto end;
 
@@ -568,9 +568,9 @@ void bt_trace_set_user_attributes(
 	BT_ASSERT_PRE(user_attributes->type == BT_VALUE_TYPE_MAP,
 		"User attributes object is not a map value object.");
 	BT_ASSERT_PRE_DEV_TRACE_HOT(trace);
-	bt_object_put_no_null_check(trace->user_attributes);
+	bt_object_put_ref_no_null_check(trace->user_attributes);
 	trace->user_attributes = (void *) user_attributes;
-	bt_object_get_no_null_check(trace->user_attributes);
+	bt_object_get_ref_no_null_check(trace->user_attributes);
 }
 
 void bt_trace_get_ref(const struct bt_trace *trace)

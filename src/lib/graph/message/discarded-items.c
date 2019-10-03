@@ -121,7 +121,7 @@ struct bt_message *create_discarded_items_message(
 	bt_message_init(&message->parent, type,
 		destroy_discarded_items_message, NULL);
 	message->stream = stream;
-	bt_object_get_no_null_check(message->stream);
+	bt_object_get_ref_no_null_check(message->stream);
 
 	if (with_cs) {
 		BT_ASSERT(stream_class->default_clock_class);

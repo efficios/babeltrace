@@ -169,10 +169,10 @@ bt_component_descriptor_set_add_descriptor_with_initialize_method_data(
 	}
 
 	entry->comp_cls = (void *) comp_cls;
-	bt_object_get_no_null_check(entry->comp_cls);
+	bt_object_get_ref_no_null_check(entry->comp_cls);
 	bt_component_class_freeze(entry->comp_cls);
 	entry->params = (void *) params;
-	bt_object_get_no_null_check(entry->params);
+	bt_object_get_ref_no_null_check(entry->params);
 	bt_value_freeze(entry->params);
 	entry->init_method_data = init_method_data;
 

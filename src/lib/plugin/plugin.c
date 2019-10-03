@@ -481,7 +481,7 @@ enum bt_plugin_find_status bt_plugin_find(const char *plugin_name,
 
 		if (strcmp(plugin->info.name->str, plugin_name) == 0) {
 			*plugin_out = plugin;
-			bt_object_get_no_null_check(*plugin_out);
+			bt_object_get_ref_no_null_check(*plugin_out);
 			goto end;
 		}
 	}
