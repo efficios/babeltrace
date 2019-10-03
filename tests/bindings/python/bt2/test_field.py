@@ -24,7 +24,11 @@ import copy
 import itertools
 import collections
 import bt2
-from utils import get_default_trace_class, TestOutputPortMessageIterator
+from utils import (
+    get_default_trace_class,
+    TestOutputPortMessageIterator,
+    create_const_field,
+)
 
 
 _COMP_BINOPS = (operator.eq, operator.ne)
@@ -61,50 +65,6 @@ def _create_field(tc, field_class):
     stream = _create_stream(tc, [(field_name, field_class)])
     packet = stream.create_packet()
     return packet.context_field[field_name]
-
-
-# Create a const field of the given field class.
-#
-# The field is part of a dummy stream, itself part of a dummy trace created
-# from trace class `tc`.
-
-
-def _create_const_field(tc, field_class, field_value_setter_fn):
-    field_name = 'const field'
-
-    class MyIter(bt2._UserMessageIterator):
-        def __init__(self, config, self_port_output):
-            nonlocal field_class
-            nonlocal field_value_setter_fn
-            stream = _create_stream(tc, [(field_name, field_class)])
-            packet = stream.create_packet()
-
-            field_value_setter_fn(packet.context_field[field_name])
-
-            self._msgs = [
-                self._create_stream_beginning_message(stream),
-                self._create_packet_beginning_message(packet),
-            ]
-
-        def __next__(self):
-            if len(self._msgs) == 0:
-                raise StopIteration
-
-            return self._msgs.pop(0)
-
-    class MySrc(bt2._UserSourceComponent, message_iterator_class=MyIter):
-        def __init__(self, config, params, obj):
-            self._add_output_port('out', params)
-
-    graph = bt2.Graph()
-    src_comp = graph.add_component(MySrc, 'my_source', None)
-    msg_iter = TestOutputPortMessageIterator(graph, src_comp.output_ports['out'])
-
-    # Ignore first message, stream beginning
-    _ = next(msg_iter)
-    packet_beg_msg = next(msg_iter)
-
-    return packet_beg_msg.packet.context_field[field_name]
 
 
 # Create a field of type string.
@@ -1192,7 +1152,7 @@ class BoolFieldTestCase(_TestNumericField, unittest.TestCase):
         self._def = _create_field(self._tc, self._create_fc(self._tc))
         self._def.value = True
         self._def_value = True
-        self._def_const = _create_const_field(
+        self._def_const = create_const_field(
             self._tc, self._tc.create_bool_field_class(), self._const_value_setter
         )
         self._def_new_value = False
@@ -1336,7 +1296,7 @@ class SignedIntegerFieldTestCase(_TestIntegerFieldCommon, unittest.TestCase):
         self._def = _create_field(self._tc, self._create_fc(self._tc))
         self._def.value = 17
         self._def_value = 17
-        self._def_const = _create_const_field(
+        self._def_const = create_const_field(
             self._tc, self._create_fc(self._tc), self._const_value_setter
         )
         self._def_new_value = -101
@@ -1364,7 +1324,7 @@ class SignedEnumerationFieldTestCase(_TestIntegerFieldCommon, unittest.TestCase)
         self._def = _create_field(self._tc, self._create_fc(self._tc))
         self._def.value = 17
         self._def_value = 17
-        self._def_const = _create_const_field(
+        self._def_const = create_const_field(
             self._tc, self._create_fc(self._tc), self._const_value_setter
         )
         self._def_new_value = -101
@@ -1402,7 +1362,7 @@ class SingleRealFieldTestCase(_TestNumericField, unittest.TestCase):
         self._tc = get_default_trace_class()
         self._field = _create_field(self._tc, self._create_fc(self._tc))
         self._def = _create_field(self._tc, self._create_fc(self._tc))
-        self._def_const = _create_const_field(
+        self._def_const = create_const_field(
             self._tc,
             self._tc.create_single_precision_real_field_class(),
             self._const_value_setter,
@@ -1498,7 +1458,7 @@ class DoubleRealFieldTestCase(_TestNumericField, unittest.TestCase):
         self._tc = get_default_trace_class()
         self._field = _create_field(self._tc, self._create_fc(self._tc))
         self._def = _create_field(self._tc, self._create_fc(self._tc))
-        self._def_const = _create_const_field(
+        self._def_const = create_const_field(
             self._tc,
             self._tc.create_double_precision_real_field_class(),
             self._const_value_setter,
@@ -1587,7 +1547,7 @@ class StringFieldTestCase(unittest.TestCase):
         self._tc = get_default_trace_class()
         self._def_value = 'Hello, World!'
         self._def = _create_string_field(self._tc)
-        self._def_const = _create_const_field(
+        self._def_const = create_const_field(
             self._tc, self._tc.create_string_field_class(), self._const_value_setter
         )
         self._def.value = self._def_value
@@ -1863,7 +1823,7 @@ class StaticArrayFieldTestCase(_TestArrayFieldCommon, unittest.TestCase):
         self._def[1] = 1847
         self._def[2] = 1948754
         self._def_value = [45, 1847, 1948754]
-        self._def_const = _create_const_field(
+        self._def_const = create_const_field(
             self._tc,
             self._tc.create_static_array_field_class(
                 self._tc.create_signed_integer_field_class(32), 3
@@ -1889,7 +1849,7 @@ class DynamicArrayFieldTestCase(_TestArrayFieldCommon, unittest.TestCase):
         self._def[1] = 1847
         self._def[2] = 1948754
         self._def_value = [45, 1847, 1948754]
-        self._def_const = _create_const_field(
+        self._def_const = create_const_field(
             self._tc,
             self._tc.create_dynamic_array_field_class(
                 self._tc.create_signed_integer_field_class(32)
@@ -1968,7 +1928,7 @@ class StructureFieldTestCase(unittest.TestCase):
             'F': {'F_1': 52},
         }
 
-        self._def_const = _create_const_field(
+        self._def_const = create_const_field(
             self._tc, self._create_fc(self._tc), self._const_value_setter
         )
 
@@ -2244,7 +2204,7 @@ class OptionFieldTestCase(unittest.TestCase):
         fld = _create_field(self._tc, self._create_fc(self._tc))
         self._def = fld['opt_field']
         self._def_value = 'hiboux'
-        self._def_const = _create_const_field(
+        self._def_const = create_const_field(
             self._tc, self._create_fc(self._tc), self._const_value_setter
         )['opt_field']
 
@@ -2358,7 +2318,7 @@ class VariantFieldTestCase(unittest.TestCase):
         self._def_selected_index = 3
         const_fc = self._create_fc(self._tc)['variant_field']
 
-        fld_const = _create_const_field(
+        fld_const = create_const_field(
             self._tc, const_fc.field_class, self._const_value_setter
         )
         self._def_const = fld_const

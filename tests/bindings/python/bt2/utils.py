@@ -290,3 +290,51 @@ class TestOutputPortMessageIterator(collections.abc.Iterator):
         assert msg is not None
         self._msg_list[0] = None
         return msg
+
+
+# Create a const field of the given field class.
+#
+# The field is part of a dummy stream, itself part of a dummy trace created
+# from trace class `tc`.
+def create_const_field(tc, field_class, field_value_setter_fn):
+    field_name = 'const field'
+
+    class MyIter(bt2._UserMessageIterator):
+        def __init__(self, config, self_port_output):
+            nonlocal field_class
+            nonlocal field_value_setter_fn
+            trace = tc()
+            packet_context_fc = tc.create_structure_field_class()
+            packet_context_fc.append_member(field_name, field_class)
+            sc = tc.create_stream_class(
+                packet_context_field_class=packet_context_fc, supports_packets=True
+            )
+            stream = trace.create_stream(sc)
+            packet = stream.create_packet()
+
+            field_value_setter_fn(packet.context_field[field_name])
+
+            self._msgs = [
+                self._create_stream_beginning_message(stream),
+                self._create_packet_beginning_message(packet),
+            ]
+
+        def __next__(self):
+            if len(self._msgs) == 0:
+                raise StopIteration
+
+            return self._msgs.pop(0)
+
+    class MySrc(bt2._UserSourceComponent, message_iterator_class=MyIter):
+        def __init__(self, config, params, obj):
+            self._add_output_port('out', params)
+
+    graph = bt2.Graph()
+    src_comp = graph.add_component(MySrc, 'my_source', None)
+    msg_iter = TestOutputPortMessageIterator(graph, src_comp.output_ports['out'])
+
+    # Ignore first message, stream beginning
+    _ = next(msg_iter)
+    packet_beg_msg = next(msg_iter)
+
+    return packet_beg_msg.packet.context_field[field_name]
