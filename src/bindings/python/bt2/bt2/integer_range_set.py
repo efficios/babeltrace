@@ -25,7 +25,7 @@ import collections.abc
 import bt2
 
 
-class _IntegerRange:
+class _IntegerRangeConst:
     def __init__(self, lower, upper=None):
         self._check_type(lower)
 
@@ -57,36 +57,36 @@ class _IntegerRange:
         return value >= self._lower and value <= self._upper
 
     def __eq__(self, other):
-        if type(other) is not type(self):
+        if not isinstance(other, _IntegerRangeConst):
             return False
 
         return self.lower == other.lower and self.upper == other.upper
 
 
-class SignedIntegerRange(_IntegerRange):
+class _IntegerRange(_IntegerRangeConst):
+    def __init__(self, lower, upper=None):
+        super().__init__(lower, upper)
+
+
+class _SignedIntegerRangeConst(_IntegerRangeConst):
     _is_type = staticmethod(utils._is_int64)
     _check_type = staticmethod(utils._check_int64)
 
 
-class UnsignedIntegerRange(_IntegerRange):
+class SignedIntegerRange(_SignedIntegerRangeConst, _IntegerRange):
+    pass
+
+
+class _UnsignedIntegerRangeConst(_IntegerRangeConst):
     _is_type = staticmethod(utils._is_uint64)
     _check_type = staticmethod(utils._check_uint64)
 
 
-class _IntegerRangeSet(object._SharedObject, collections.abc.MutableSet):
-    def __init__(self, ranges=None):
-        ptr = self._create_range_set()
+class UnsignedIntegerRange(_UnsignedIntegerRangeConst, _IntegerRange):
+    pass
 
-        if ptr is None:
-            raise bt2._MemoryError('cannot create range set object')
 
-        super().__init__(ptr)
-
-        if ranges is not None:
-            # will raise if not iterable
-            for rg in ranges:
-                self.add(rg)
-
+class _IntegerRangeSetConst(object._SharedObject, collections.abc.Set):
     def __len__(self):
         range_set_ptr = self._as_range_set_ptr(self._ptr)
         count = native_bt.integer_range_set_get_range_count(range_set_ptr)
@@ -102,14 +102,15 @@ class _IntegerRangeSet(object._SharedObject, collections.abc.MutableSet):
 
     def __iter__(self):
         for idx in range(len(self)):
-            rg_ptr = self._borrow_range_by_index_ptr(self._ptr, idx)
+            rg_ptr = self._borrow_range_ptr_by_index(self._ptr, idx)
             assert rg_ptr is not None
             lower = self._range_get_lower(rg_ptr)
             upper = self._range_get_upper(rg_ptr)
-            yield self._range_type(lower, upper)
+            yield self._range_pycls(lower, upper)
 
     def __eq__(self, other):
-        if type(other) is not type(self):
+
+        if not isinstance(other, _IntegerRangeSetConst):
             return False
 
         return self._compare(self._ptr, other._ptr)
@@ -121,13 +122,28 @@ class _IntegerRangeSet(object._SharedObject, collections.abc.MutableSet):
 
         return False
 
+
+class _IntegerRangeSet(_IntegerRangeSetConst, collections.abc.MutableSet):
+    def __init__(self, ranges=None):
+        ptr = self._create_range_set()
+
+        if ptr is None:
+            raise bt2._MemoryError('cannot create range set object')
+
+        super().__init__(ptr)
+
+        if ranges is not None:
+            # will raise if not iterable
+            for rg in ranges:
+                self.add(rg)
+
     def add(self, rg):
-        if type(rg) is not self._range_type:
-            if self._range_type._is_type(rg):
-                rg = self._range_type(rg)
+        if type(rg) is not self._range_pycls:
+            if self._range_pycls._is_type(rg):
+                rg = self._range_pycls(rg)
             else:
                 # assume it's a simple pair (will raise if it's not)
-                rg = self._range_type(rg[0], rg[1])
+                rg = self._range_pycls(rg[0], rg[1])
 
         status = self._add_range(self._ptr, rg.lower, rg.upper)
         utils._handle_func_status(status, 'cannot add range to range set object')
@@ -136,35 +152,43 @@ class _IntegerRangeSet(object._SharedObject, collections.abc.MutableSet):
         raise NotImplementedError
 
 
-class SignedIntegerRangeSet(_IntegerRangeSet):
+class _SignedIntegerRangeSetConst(_IntegerRangeSetConst):
     _get_ref = staticmethod(native_bt.integer_range_set_signed_get_ref)
     _put_ref = staticmethod(native_bt.integer_range_set_signed_put_ref)
     _as_range_set_ptr = staticmethod(
         native_bt.integer_range_set_signed_as_range_set_const
     )
-    _create_range_set = staticmethod(native_bt.integer_range_set_signed_create)
-    _borrow_range_by_index_ptr = staticmethod(
+    _borrow_range_ptr_by_index = staticmethod(
         native_bt.integer_range_set_signed_borrow_range_by_index_const
     )
     _range_get_lower = staticmethod(native_bt.integer_range_signed_get_lower)
     _range_get_upper = staticmethod(native_bt.integer_range_signed_get_upper)
-    _add_range = staticmethod(native_bt.integer_range_set_signed_add_range)
     _compare = staticmethod(native_bt.integer_range_set_signed_compare)
-    _range_type = SignedIntegerRange
+    _range_pycls = _SignedIntegerRangeConst
 
 
-class UnsignedIntegerRangeSet(_IntegerRangeSet):
+class SignedIntegerRangeSet(_SignedIntegerRangeSetConst, _IntegerRangeSet):
+    _create_range_set = staticmethod(native_bt.integer_range_set_signed_create)
+    _add_range = staticmethod(native_bt.integer_range_set_signed_add_range)
+    _range_pycls = SignedIntegerRange
+
+
+class _UnsignedIntegerRangeSetConst(_IntegerRangeSetConst):
     _get_ref = staticmethod(native_bt.integer_range_set_unsigned_get_ref)
     _put_ref = staticmethod(native_bt.integer_range_set_unsigned_put_ref)
     _as_range_set_ptr = staticmethod(
         native_bt.integer_range_set_unsigned_as_range_set_const
     )
-    _create_range_set = staticmethod(native_bt.integer_range_set_unsigned_create)
-    _borrow_range_by_index_ptr = staticmethod(
+    _borrow_range_ptr_by_index = staticmethod(
         native_bt.integer_range_set_unsigned_borrow_range_by_index_const
     )
     _range_get_lower = staticmethod(native_bt.integer_range_unsigned_get_lower)
     _range_get_upper = staticmethod(native_bt.integer_range_unsigned_get_upper)
-    _add_range = staticmethod(native_bt.integer_range_set_unsigned_add_range)
     _compare = staticmethod(native_bt.integer_range_set_unsigned_compare)
-    _range_type = UnsignedIntegerRange
+    _range_pycls = _UnsignedIntegerRangeConst
+
+
+class UnsignedIntegerRangeSet(_UnsignedIntegerRangeSetConst, _IntegerRangeSet):
+    _create_range_set = staticmethod(native_bt.integer_range_set_unsigned_create)
+    _add_range = staticmethod(native_bt.integer_range_set_unsigned_add_range)
+    _range_pycls = UnsignedIntegerRange

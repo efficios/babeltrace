@@ -342,6 +342,18 @@ class PackageTestCase(unittest.TestCase):
     def test_has_UnsignedIntegerRangeSet(self):
         self._assert_in_bt2('UnsignedIntegerRangeSet')
 
+    def test_has__SignedIntegerRangeConst(self):
+        self._assert_in_bt2('_SignedIntegerRangeConst')
+
+    def test_has__UnsignedIntegerRangeConst(self):
+        self._assert_in_bt2('_UnsignedIntegerRangeConst')
+
+    def test_has__SignedIntegerRangeSetConst(self):
+        self._assert_in_bt2('_SignedIntegerRangeSetConst')
+
+    def test_has__UnsignedIntegerRangeSetConst(self):
+        self._assert_in_bt2('_UnsignedIntegerRangeSetConst')
+
     def test_has_Interrupter(self):
         self._assert_in_bt2('Interrupter')
 
