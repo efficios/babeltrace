@@ -218,7 +218,7 @@ class _EnumerationFieldClassMapping:
 
 
 class _UnsignedEnumerationFieldClassMappingConst(_EnumerationFieldClassMapping):
-    _range_set_pycls = bt2_integer_range_set.UnsignedIntegerRangeSet
+    _range_set_pycls = bt2_integer_range_set._UnsignedIntegerRangeSetConst
     _as_enumeration_field_class_mapping_ptr = staticmethod(
         native_bt.field_class_enumeration_unsigned_mapping_as_mapping_const
     )
@@ -228,7 +228,7 @@ class _UnsignedEnumerationFieldClassMappingConst(_EnumerationFieldClassMapping):
 
 
 class _SignedEnumerationFieldClassMappingConst(_EnumerationFieldClassMapping):
-    _range_set_pycls = bt2_integer_range_set.SignedIntegerRangeSet
+    _range_set_pycls = bt2_integer_range_set._SignedIntegerRangeSetConst
     _as_enumeration_field_class_mapping_ptr = staticmethod(
         native_bt.field_class_enumeration_signed_mapping_as_mapping_const
     )
@@ -291,7 +291,6 @@ class _UnsignedEnumerationFieldClassConst(
     _EnumerationFieldClassConst, _UnsignedIntegerFieldClassConst
 ):
     _NAME = 'Const unsigned enumeration'
-    _range_set_pycls = bt2_integer_range_set.UnsignedIntegerRangeSet
     _borrow_mapping_ptr_by_label = staticmethod(
         native_bt.field_class_enumeration_unsigned_borrow_mapping_by_label_const
     )
@@ -311,6 +310,7 @@ class _UnsignedEnumerationFieldClass(
     _UnsignedIntegerFieldClass,
 ):
     _NAME = 'Unsigned enumeration'
+    _range_set_pycls = bt2_integer_range_set.UnsignedIntegerRangeSet
     _add_mapping = staticmethod(native_bt.field_class_enumeration_unsigned_add_mapping)
 
 
@@ -318,7 +318,6 @@ class _SignedEnumerationFieldClassConst(
     _EnumerationFieldClassConst, _SignedIntegerFieldClassConst
 ):
     _NAME = 'Const signed enumeration'
-    _range_set_pycls = bt2_integer_range_set.SignedIntegerRangeSet
     _borrow_mapping_ptr_by_label = staticmethod(
         native_bt.field_class_enumeration_signed_borrow_mapping_by_label_const
     )
@@ -336,6 +335,7 @@ class _SignedEnumerationFieldClass(
     _SignedEnumerationFieldClassConst, _EnumerationFieldClass, _SignedIntegerFieldClass
 ):
     _NAME = 'Signed enumeration'
+    _range_set_pycls = bt2_integer_range_set.SignedIntegerRangeSet
     _add_mapping = staticmethod(native_bt.field_class_enumeration_signed_add_mapping)
 
 
@@ -621,7 +621,7 @@ class _VariantFieldClassWithSignedSelectorOptionConst(
     _borrow_ranges_ptr = staticmethod(
         native_bt.field_class_variant_with_selector_signed_option_borrow_ranges_const
     )
-    _range_set_pycls = bt2_integer_range_set.SignedIntegerRangeSet
+    _range_set_pycls = bt2_integer_range_set._SignedIntegerRangeSetConst
 
 
 class _VariantFieldClassWithSignedSelectorOption(
@@ -640,7 +640,7 @@ class _VariantFieldClassWithUnsignedSelectorOptionConst(
     _borrow_ranges_ptr = staticmethod(
         native_bt.field_class_variant_with_selector_unsigned_option_borrow_ranges_const
     )
-    _range_set_pycls = bt2_integer_range_set.UnsignedIntegerRangeSet
+    _range_set_pycls = bt2_integer_range_set._UnsignedIntegerRangeSetConst
 
 
 class _VariantFieldClassWithUnsignedSelectorOption(

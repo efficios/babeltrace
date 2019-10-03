@@ -129,6 +129,10 @@ from bt2.integer_range_set import SignedIntegerRange
 from bt2.integer_range_set import UnsignedIntegerRange
 from bt2.integer_range_set import SignedIntegerRangeSet
 from bt2.integer_range_set import UnsignedIntegerRangeSet
+from bt2.integer_range_set import _SignedIntegerRangeConst
+from bt2.integer_range_set import _UnsignedIntegerRangeConst
+from bt2.integer_range_set import _SignedIntegerRangeSetConst
+from bt2.integer_range_set import _UnsignedIntegerRangeSetConst
 from bt2.interrupter import Interrupter
 from bt2.logging import LoggingLevel
 from bt2.logging import get_minimal_logging_level

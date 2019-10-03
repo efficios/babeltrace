@@ -19,14 +19,51 @@
 import bt2
 import unittest
 
+from utils import (
+    get_default_trace_class,
+    TestOutputPortMessageIterator,
+    create_const_field,
+)
+
+
+def get_const_signed_integer_range(int_ranges):
+    def range_setter(field):
+        field.value = 12
+
+    tc = get_default_trace_class()
+    fc = tc.create_signed_enumeration_field_class(32)
+    fc.add_mapping('something', bt2.SignedIntegerRangeSet(int_ranges))
+
+    return create_const_field(tc, fc, range_setter).cls['something'].ranges
+
+
+def get_const_unsigned_integer_range(int_ranges):
+    def range_setter(field):
+        field.value = 12
+
+    tc = get_default_trace_class()
+    fc = tc.create_unsigned_enumeration_field_class(32)
+    fc.add_mapping('something', bt2.UnsignedIntegerRangeSet(int_ranges))
+
+    return create_const_field(tc, fc, range_setter).cls['something'].ranges
+
 
 class _IntegerRangeTestCase:
     def setUp(self):
         self._rg = self._CLS(self._def_lower, self._def_upper)
+        self._const_rg = list(
+            self._GET_CONST_RANGE_SET([(self._def_lower, self._def_upper)])
+        )[0]
 
     def test_create(self):
         self.assertEqual(self._rg.lower, self._def_lower)
         self.assertEqual(self._rg.upper, self._def_upper)
+        self.assertIs(type(self._rg), self._CLS)
+
+    def test_const_create(self):
+        self.assertEqual(self._const_rg.lower, self._def_lower)
+        self.assertEqual(self._const_rg.upper, self._def_upper)
+        self.assertIs(type(self._const_rg), self._CONST_CLS)
 
     def test_create_same(self):
         rg = self._CLS(self._def_lower, self._def_lower)
@@ -80,9 +117,22 @@ class _IntegerRangeTestCase:
         rg = self._CLS(self._def_lower, self._def_upper)
         self.assertEqual(rg, self._rg)
 
+    def test_const_eq(self):
+        rg = list(self._GET_CONST_RANGE_SET([(self._def_lower, self._def_upper)]))[0]
+        self.assertEqual(rg, self._const_rg)
+
+    def test_const_nonconst_eq(self):
+        self.assertEqual(self._rg, self._const_rg)
+
     def test_ne(self):
         rg = self._CLS(self._def_lower, self._def_upper - 1)
         self.assertNotEqual(rg, self._rg)
+
+    def test_const_ne(self):
+        rg = list(self._GET_CONST_RANGE_SET([(self._def_lower, self._def_upper - 1)]))[
+            0
+        ]
+        self.assertNotEqual(rg, self._const_rg)
 
     def test_ne_other_type(self):
         self.assertNotEqual(self._rg, 48)
@@ -90,6 +140,8 @@ class _IntegerRangeTestCase:
 
 class UnsignedIntegerRangeTestCase(_IntegerRangeTestCase, unittest.TestCase):
     _CLS = bt2.UnsignedIntegerRange
+    _CONST_CLS = bt2._UnsignedIntegerRangeConst
+    _GET_CONST_RANGE_SET = staticmethod(get_const_unsigned_integer_range)
     _def_lower = 23
     _def_upper = 18293
     _oob_lower = -1
@@ -98,6 +150,8 @@ class UnsignedIntegerRangeTestCase(_IntegerRangeTestCase, unittest.TestCase):
 
 class SignedIntegerRangeTestCase(_IntegerRangeTestCase, unittest.TestCase):
     _CLS = bt2.SignedIntegerRange
+    _CONST_CLS = bt2._SignedIntegerRangeConst
+    _GET_CONST_RANGE_SET = staticmethod(get_const_signed_integer_range)
     _def_lower = -184
     _def_upper = 11547
     _oob_lower = -(1 << 63) - 1
@@ -107,12 +161,23 @@ class SignedIntegerRangeTestCase(_IntegerRangeTestCase, unittest.TestCase):
 class _IntegerRangeSetTestCase:
     def setUp(self):
         self._rs = self._CLS((self._range1, self._range2, self._range3))
+        self._const_rs = self._GET_CONST_RANGE_SET(
+            [self._range1, self._range2, self._range3]
+        )
 
     def test_create(self):
         self.assertEqual(len(self._rs), 3)
         self.assertIn(self._range1, self._rs)
         self.assertIn(self._range2, self._rs)
         self.assertIn(self._range3, self._rs)
+        self.assertIs(type(self._range1), self._RANGE_CLS)
+
+    def test_const_create(self):
+        self.assertEqual(len(self._const_rs), 3)
+        self.assertIn(self._range1, self._const_rs)
+        self.assertIn(self._range2, self._const_rs)
+        self.assertIn(self._range3, self._const_rs)
+        self.assertIs(type(self._range1), self._RANGE_CLS)
 
     def test_create_tuples(self):
         rs = self._CLS(
@@ -165,6 +230,18 @@ class _IntegerRangeSetTestCase:
         self.assertIn(self._range2, range_list)
         self.assertIn(self._range3, range_list)
 
+        for rg in range_list:
+            self.assertIs(type(rg), self._RANGE_CLS)
+
+    def test_const_iter(self):
+        range_list = list(self._const_rs)
+        self.assertIn(self._range1, range_list)
+        self.assertIn(self._range2, range_list)
+        self.assertIn(self._range3, range_list)
+
+        for rg in range_list:
+            self.assertIs(type(rg), self._CONST_RANGE_CLS)
+
     def test_empty(self):
         rs = self._CLS()
         self.assertEqual(len(rs), 0)
@@ -176,6 +253,10 @@ class _IntegerRangeSetTestCase:
         rs.add(self._range2)
         self.assertEqual(len(rs), 2)
         self.assertIn(self._range2, rs)
+
+    def test_const_add_range_obj(self):
+        with self.assertRaises(AttributeError):
+            self._const_rs.add((12, 4434))
 
     def test_discard_not_implemented(self):
         with self.assertRaises(NotImplementedError):
@@ -207,6 +288,10 @@ class _IntegerRangeSetTestCase:
 
 class UnsignedIntegerRangeSetTestCase(_IntegerRangeSetTestCase, unittest.TestCase):
     _CLS = bt2.UnsignedIntegerRangeSet
+    _CONST_CLS = bt2._UnsignedIntegerRangeSetConst
+    _RANGE_CLS = bt2.UnsignedIntegerRange
+    _CONST_RANGE_CLS = bt2._UnsignedIntegerRangeConst
+    _GET_CONST_RANGE_SET = staticmethod(get_const_unsigned_integer_range)
 
     def setUp(self):
         self._range1 = bt2.UnsignedIntegerRange(4, 192)
@@ -218,6 +303,10 @@ class UnsignedIntegerRangeSetTestCase(_IntegerRangeSetTestCase, unittest.TestCas
 
 class SignedIntegerRangeSetTestCase(_IntegerRangeSetTestCase, unittest.TestCase):
     _CLS = bt2.SignedIntegerRangeSet
+    _CONST_CLS = bt2._SignedIntegerRangeSetConst
+    _RANGE_CLS = bt2.SignedIntegerRange
+    _CONST_RANGE_CLS = bt2._SignedIntegerRangeConst
+    _GET_CONST_RANGE_SET = staticmethod(get_const_signed_integer_range)
 
     def setUp(self):
         self._range1 = bt2.SignedIntegerRange(-1484, -17)

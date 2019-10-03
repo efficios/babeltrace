@@ -374,6 +374,8 @@ class _EnumerationFieldClassTestCase(_TestIntegerFieldClassProps):
         mapping = self._fc['a']
         self.assertEqual(mapping.label, 'a')
         self.assertEqual(mapping.ranges, self._ranges1)
+        self.assertIs(type(mapping), self._MAPPING_CLASS)
+        self.assertIs(type(mapping.ranges), self._CONST_RANGE_SET_CLASS)
 
     def test_getitem_nonexistent(self):
         with self.assertRaises(KeyError):
@@ -402,6 +404,10 @@ class _EnumerationFieldClassTestCase(_TestIntegerFieldClassProps):
 class UnsignedEnumerationFieldClassTestCase(
     _EnumerationFieldClassTestCase, _TestFieldClass, unittest.TestCase
 ):
+    _MAPPING_CLASS = bt2_field_class._UnsignedEnumerationFieldClassMappingConst
+    _RANGE_SET_CLASS = bt2.UnsignedIntegerRangeSet
+    _CONST_RANGE_SET_CLASS = bt2._UnsignedIntegerRangeSetConst
+
     def _spec_set_up(self):
         self._ranges1 = bt2.UnsignedIntegerRangeSet([(1, 4), (18, 47)])
         self._ranges2 = bt2.UnsignedIntegerRangeSet([(5, 5)])
@@ -428,6 +434,10 @@ class UnsignedEnumerationFieldClassTestCase(
 class SignedEnumerationFieldClassTestCase(
     _EnumerationFieldClassTestCase, _TestFieldClass, unittest.TestCase
 ):
+    _MAPPING_CLASS = bt2_field_class._SignedEnumerationFieldClassMappingConst
+    _RANGE_SET_CLASS = bt2.SignedIntegerRangeSet
+    _CONST_RANGE_SET_CLASS = bt2._SignedIntegerRangeSetConst
+
     def _spec_set_up(self):
         self._ranges1 = bt2.SignedIntegerRangeSet([(-10, -4), (18, 47)])
         self._ranges2 = bt2.SignedIntegerRangeSet([(-3, -3)])
