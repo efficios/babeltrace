@@ -1480,9 +1480,9 @@ struct bt_field_class *bt_field_class_variant_create(
 
 		if (selector_fc->type == BT_FIELD_CLASS_TYPE_UNSIGNED_INTEGER ||
 				selector_fc->type == BT_FIELD_CLASS_TYPE_UNSIGNED_ENUMERATION) {
-			fc_type = BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_SELECTOR;
+			fc_type = BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR;
 		} else {
-			fc_type = BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_SELECTOR;
+			fc_type = BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_INTEGER_SELECTOR;
 		}
 
 		ret = init_named_field_classes_container(
@@ -1666,7 +1666,7 @@ int append_option_to_variant_with_selector_field_class(
 	BT_ASSERT_PRE(range_set->ranges->len > 0,
 		"Integer range set is empty: %!+R", range_set);
 	status = ranges_overlap(var_fc->common.common.named_fcs, range_set,
-		expected_type == BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_SELECTOR,
+		expected_type == BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_INTEGER_SELECTOR,
 		&has_overlap);
 	if (status) {
 		/* ranges_overlap() logs errors */
@@ -1698,26 +1698,26 @@ end:
 	return status;
 }
 
-enum bt_field_class_variant_with_selector_append_option_status
-bt_field_class_variant_with_selector_unsigned_append_option(
+enum bt_field_class_variant_with_selector_integer_append_option_status
+bt_field_class_variant_with_selector_integer_unsigned_append_option(
 		struct bt_field_class *fc, const char *name,
 		struct bt_field_class *option_fc,
 		const struct bt_integer_range_set_unsigned *range_set)
 {
 	return append_option_to_variant_with_selector_field_class(fc,
 		name, option_fc, (const void *) range_set,
-		BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_SELECTOR);
+		BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR);
 }
 
-enum bt_field_class_variant_with_selector_append_option_status
-bt_field_class_variant_with_selector_signed_append_option(
+enum bt_field_class_variant_with_selector_integer_append_option_status
+bt_field_class_variant_with_selector_integer_signed_append_option(
 		struct bt_field_class *fc, const char *name,
 		struct bt_field_class *option_fc,
 		const struct bt_integer_range_set_signed *range_set)
 {
 	return append_option_to_variant_with_selector_field_class(fc,
 		name, option_fc, (const void *) range_set,
-		BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_SELECTOR);
+		BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_INTEGER_SELECTOR);
 }
 
 uint64_t bt_field_class_variant_get_option_count(const struct bt_field_class *fc)
@@ -1773,52 +1773,52 @@ bt_field_class_variant_borrow_option_by_index(
 			(void *) fc, index);
 }
 
-const struct bt_field_class_variant_with_selector_unsigned_option *
-bt_field_class_variant_with_selector_unsigned_borrow_option_by_name_const(
+const struct bt_field_class_variant_with_selector_integer_unsigned_option *
+bt_field_class_variant_with_selector_integer_unsigned_borrow_option_by_name_const(
 		const struct bt_field_class *fc, const char *name)
 {
 	BT_ASSERT_PRE_DEV_NON_NULL(fc, "Field class");
 	BT_ASSERT_PRE_DEV_FC_HAS_ID(fc,
-		BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_SELECTOR,
+		BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR,
 		"Field class");
 	return (const void *)
 		borrow_named_field_class_from_container_field_class_by_name(
 			(void *) fc, name);
 }
 
-const struct bt_field_class_variant_with_selector_unsigned_option *
-bt_field_class_variant_with_selector_unsigned_borrow_option_by_index_const(
+const struct bt_field_class_variant_with_selector_integer_unsigned_option *
+bt_field_class_variant_with_selector_integer_unsigned_borrow_option_by_index_const(
 		const struct bt_field_class *fc, uint64_t index)
 {
 	BT_ASSERT_PRE_DEV_NON_NULL(fc, "Field class");
 	BT_ASSERT_PRE_DEV_FC_HAS_ID(fc,
-		BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_SELECTOR,
+		BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR,
 		"Field class");
 	return (const void *)
 		borrow_named_field_class_from_container_field_class_at_index(
 			(void *) fc, index);
 }
 
-const struct bt_field_class_variant_with_selector_signed_option *
-bt_field_class_variant_with_selector_signed_borrow_option_by_name_const(
+const struct bt_field_class_variant_with_selector_integer_signed_option *
+bt_field_class_variant_with_selector_integer_signed_borrow_option_by_name_const(
 		const struct bt_field_class *fc, const char *name)
 {
 	BT_ASSERT_PRE_DEV_NON_NULL(fc, "Field class");
 	BT_ASSERT_PRE_DEV_FC_HAS_ID(fc,
-		BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_SELECTOR,
+		BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_INTEGER_SELECTOR,
 		"Field class");
 	return (const void *)
 		borrow_named_field_class_from_container_field_class_by_name(
 			(void *) fc, name);
 }
 
-const struct bt_field_class_variant_with_selector_signed_option *
-bt_field_class_variant_with_selector_signed_borrow_option_by_index_const(
+const struct bt_field_class_variant_with_selector_integer_signed_option *
+bt_field_class_variant_with_selector_integer_signed_borrow_option_by_index_const(
 		const struct bt_field_class *fc, uint64_t index)
 {
 	BT_ASSERT_PRE_DEV_NON_NULL(fc, "Field class");
 	BT_ASSERT_PRE_DEV_FC_HAS_ID(fc,
-		BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_SELECTOR,
+		BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_INTEGER_SELECTOR,
 		"Field class");
 	return (const void *)
 		borrow_named_field_class_from_container_field_class_at_index(
@@ -1855,8 +1855,8 @@ bt_field_class_variant_option_borrow_field_class(
 }
 
 const struct bt_integer_range_set_unsigned *
-bt_field_class_variant_with_selector_unsigned_option_borrow_ranges_const(
-		const struct bt_field_class_variant_with_selector_unsigned_option *option)
+bt_field_class_variant_with_selector_integer_unsigned_option_borrow_ranges_const(
+		const struct bt_field_class_variant_with_selector_integer_unsigned_option *option)
 {
 	const struct bt_field_class_variant_with_selector_option *opt =
 		(const void *) option;
@@ -1866,8 +1866,8 @@ bt_field_class_variant_with_selector_unsigned_option_borrow_ranges_const(
 }
 
 const struct bt_integer_range_set_signed *
-bt_field_class_variant_with_selector_signed_option_borrow_ranges_const(
-		const struct bt_field_class_variant_with_selector_signed_option *option)
+bt_field_class_variant_with_selector_integer_signed_option_borrow_ranges_const(
+		const struct bt_field_class_variant_with_selector_integer_signed_option *option)
 {
 	const struct bt_field_class_variant_with_selector_option *opt =
 		(const void *) option;
@@ -2112,8 +2112,8 @@ void _bt_field_class_freeze(const struct bt_field_class *c_fc)
 	switch (fc->type) {
 	case BT_FIELD_CLASS_TYPE_STRUCTURE:
 	case BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR:
-	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_SELECTOR:
-	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_SELECTOR:
+	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR:
+	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_INTEGER_SELECTOR:
 	{
 		struct bt_field_class_named_field_class_container *container_fc =
 			(void *) fc;
@@ -2155,8 +2155,8 @@ void bt_field_class_make_part_of_trace_class(const struct bt_field_class *c_fc)
 	switch (fc->type) {
 	case BT_FIELD_CLASS_TYPE_STRUCTURE:
 	case BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR:
-	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_SELECTOR:
-	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_SELECTOR:
+	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR:
+	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_INTEGER_SELECTOR:
 	{
 		struct bt_field_class_named_field_class_container *container_fc =
 			(void *) fc;

@@ -12,7 +12,7 @@ Trace class:
           COSSETTE: [0]
           PELCHAT: [1]
           VOISINE: [2]
-        var: Variant (unsigned selector) (3 options, Selector field path [Event payload: 0]):
+        var: Variant (unsigned integer selector) (3 options, Selector field path [Event payload: 0]):
           COSSETTE: [0]: String
           PELCHAT: [1]: String
           VOISINE: [2]: String

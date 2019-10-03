@@ -368,8 +368,8 @@ void copy_field_content(const bt_field *in_field, bt_field *out_field,
 		break;
 	}
 	case BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR:
-	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_SELECTOR:
-	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_SELECTOR:
+	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR:
+	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_INTEGER_SELECTOR:
 	{
 		bt_field_variant_select_option_field_by_index_status sel_opt_status;
 		uint64_t in_selected_option_idx;

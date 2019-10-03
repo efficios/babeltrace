@@ -98,15 +98,15 @@
 
 #define _BT_ASSERT_PRE_FC_IS_VARIANT_COND(_fc)				\
 	(((const struct bt_field_class *) (_fc))->type == BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR || \
-	((const struct bt_field_class *) (_fc))->type == BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_SELECTOR || \
-	((const struct bt_field_class *) (_fc))->type == BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_SELECTOR)
+	((const struct bt_field_class *) (_fc))->type == BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR || \
+	((const struct bt_field_class *) (_fc))->type == BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_INTEGER_SELECTOR)
 
 #define _BT_ASSERT_PRE_FC_IS_VARIANT_FMT(_name)				\
 	_name " is not a variant field class: %![fc-]+F"
 
 #define _BT_ASSERT_PRE_FC_IS_VARIANT_WITH_SEL_COND(_fc)			\
-	(((const struct bt_field_class *) (_fc))->type == BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_SELECTOR || \
-	((const struct bt_field_class *) (_fc))->type == BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_SELECTOR)
+	(((const struct bt_field_class *) (_fc))->type == BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR || \
+	((const struct bt_field_class *) (_fc))->type == BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_INTEGER_SELECTOR)
 
 #define _BT_ASSERT_PRE_FC_IS_VARIANT_WITH_SEL_FMT(_name)		\
 	_name " is not a variant field class with a selector: %![fc-]+F"
@@ -313,8 +313,8 @@ struct bt_named_field_class {
 
 struct bt_field_class_structure_member;
 struct bt_field_class_variant_option;
-struct bt_field_class_variant_with_selector_unsigned_option;
-struct bt_field_class_variant_with_selector_signed_option;
+struct bt_field_class_variant_with_selector_integer_unsigned_option;
+struct bt_field_class_variant_with_selector_integer_signed_option;
 
 struct bt_field_class_named_field_class_container {
 	struct bt_field_class common;

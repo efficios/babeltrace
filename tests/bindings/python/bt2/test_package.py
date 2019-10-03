@@ -249,14 +249,14 @@ class PackageTestCase(unittest.TestCase):
     def test_has__VariantFieldClassWithoutSelector(self):
         self._assert_in_bt2('_VariantFieldClassWithoutSelector')
 
-    def test_has__VariantFieldClassWithSelector(self):
-        self._assert_in_bt2('_VariantFieldClassWithSelector')
+    def test_has__VariantFieldClassWithIntegerSelector(self):
+        self._assert_in_bt2('_VariantFieldClassWithIntegerSelector')
 
-    def test_has__VariantFieldClassWithUnsignedSelector(self):
-        self._assert_in_bt2('_VariantFieldClassWithUnsignedSelector')
+    def test_has__VariantFieldClassWithUnsignedIntegerSelector(self):
+        self._assert_in_bt2('_VariantFieldClassWithUnsignedIntegerSelector')
 
-    def test_has__VariantFieldClassWithSignedSelector(self):
-        self._assert_in_bt2('_VariantFieldClassWithSignedSelector')
+    def test_has__VariantFieldClassWithSignedIntegerSelector(self):
+        self._assert_in_bt2('_VariantFieldClassWithSignedIntegerSelector')
 
     def test_has__ArrayFieldClass(self):
         self._assert_in_bt2('_ArrayFieldClass')
@@ -324,14 +324,14 @@ class PackageTestCase(unittest.TestCase):
     def test_has__VariantFieldClassWithoutSelectorConst(self):
         self._assert_in_bt2('_VariantFieldClassWithoutSelectorConst')
 
-    def test_has__VariantFieldClassWithSelectorConst(self):
-        self._assert_in_bt2('_VariantFieldClassWithSelectorConst')
+    def test_has__VariantFieldClassWithIntegerSelectorConst(self):
+        self._assert_in_bt2('_VariantFieldClassWithIntegerSelectorConst')
 
-    def test_has__VariantFieldClassWithUnsignedSelectorConst(self):
-        self._assert_in_bt2('_VariantFieldClassWithUnsignedSelectorConst')
+    def test_has__VariantFieldClassWithUnsignedIntegerSelectorConst(self):
+        self._assert_in_bt2('_VariantFieldClassWithUnsignedIntegerSelectorConst')
 
-    def test_has__VariantFieldClassWithSignedSelectorConst(self):
-        self._assert_in_bt2('_VariantFieldClassWithSignedSelectorConst')
+    def test_has__VariantFieldClassWithSignedIntegerSelectorConst(self):
+        self._assert_in_bt2('_VariantFieldClassWithSignedIntegerSelectorConst')
 
     def test_has__ArrayFieldClassConst(self):
         self._assert_in_bt2('_ArrayFieldClassConst')

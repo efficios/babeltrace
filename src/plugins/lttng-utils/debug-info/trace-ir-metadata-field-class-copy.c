@@ -86,8 +86,8 @@ const bt_field_class *walk_field_path(struct trace_ir_metadata_maps *md_maps,
 			break;
 		}
 		case BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR:
-		case BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_SELECTOR:
-		case BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_SELECTOR:
+		case BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR:
+		case BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_INTEGER_SELECTOR:
 		{
 			const bt_field_class_variant_option *option;
 
@@ -479,36 +479,36 @@ int field_class_variant_copy(
 			goto error;
 		}
 
-		if (fc_type == BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_SELECTOR) {
-			const bt_field_class_variant_with_selector_unsigned_option *spec_opt =
-				bt_field_class_variant_with_selector_unsigned_borrow_option_by_index_const(
+		if (fc_type == BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR) {
+			const bt_field_class_variant_with_selector_integer_unsigned_option *spec_opt =
+				bt_field_class_variant_with_selector_integer_unsigned_borrow_option_by_index_const(
 					in_field_class, i);
 			const bt_integer_range_set_unsigned *ranges =
-				bt_field_class_variant_with_selector_unsigned_option_borrow_ranges_const(
+				bt_field_class_variant_with_selector_integer_unsigned_option_borrow_ranges_const(
 					spec_opt);
 
-			if (bt_field_class_variant_with_selector_unsigned_append_option(
+			if (bt_field_class_variant_with_selector_integer_unsigned_append_option(
 					out_field_class, option_name,
 					out_option_field_class, ranges) !=
 					BT_FIELD_CLASS_VARIANT_WITH_SELECTOR_APPEND_OPTION_STATUS_OK) {
-				BT_COMP_LOGE_STR("Cannot append option to variant field class with unsigned selector'");
+				BT_COMP_LOGE_STR("Cannot append option to variant field class with unsigned integer selector'");
 				BT_FIELD_CLASS_PUT_REF_AND_RESET(out_tag_field_class);
 				ret = -1;
 				goto error;
 			}
-		} else if (fc_type == BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_SELECTOR) {
-			const bt_field_class_variant_with_selector_signed_option *spec_opt =
-				bt_field_class_variant_with_selector_signed_borrow_option_by_index_const(
+		} else if (fc_type == BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_INTEGER_SELECTOR) {
+			const bt_field_class_variant_with_selector_integer_signed_option *spec_opt =
+				bt_field_class_variant_with_selector_integer_signed_borrow_option_by_index_const(
 					in_field_class, i);
 			const bt_integer_range_set_signed *ranges =
-				bt_field_class_variant_with_selector_signed_option_borrow_ranges_const(
+				bt_field_class_variant_with_selector_integer_signed_option_borrow_ranges_const(
 					spec_opt);
 
-			if (bt_field_class_variant_with_selector_signed_append_option(
+			if (bt_field_class_variant_with_selector_integer_signed_append_option(
 					out_field_class, option_name,
 					out_option_field_class, ranges) !=
 					BT_FIELD_CLASS_VARIANT_WITH_SELECTOR_APPEND_OPTION_STATUS_OK) {
-				BT_COMP_LOGE_STR("Cannot append option to variant field class with signed selector'");
+				BT_COMP_LOGE_STR("Cannot append option to variant field class with signed integer selector'");
 				BT_FIELD_CLASS_PUT_REF_AND_RESET(out_tag_field_class);
 				ret = -1;
 				goto error;
@@ -840,13 +840,13 @@ bt_field_class *create_field_class_copy_internal(struct trace_ir_metadata_maps *
 		break;
 	}
 	case BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR:
-	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_SELECTOR:
-	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_SELECTOR:
+	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR:
+	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_INTEGER_SELECTOR:
 	{
 		bt_field_class *out_sel_fc = NULL;
 
-		if (fc_type == BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_SELECTOR ||
-				fc_type == BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_SELECTOR) {
+		if (fc_type == BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR ||
+				fc_type == BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_INTEGER_SELECTOR) {
 			const bt_field_class *in_sel_fc;
 			const bt_field_path *sel_fp =
 				bt_field_class_variant_with_selector_borrow_selector_field_path_const(
@@ -961,8 +961,8 @@ int copy_field_class_content_internal(
 				in_field_class, out_field_class);
 		break;
 	case BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR:
-	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_SELECTOR:
-	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_SELECTOR:
+	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR:
+	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_INTEGER_SELECTOR:
 		ret = field_class_variant_copy(md_maps,
 				in_field_class, out_field_class);
 		break;

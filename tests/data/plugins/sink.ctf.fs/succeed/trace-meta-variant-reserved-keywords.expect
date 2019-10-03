@@ -37,7 +37,7 @@ Trace class:
           _unsigned: [22]
           _variant: [23]
           _void: [24]
-        var: Variant (unsigned selector) (28 options, Selector field path [Event payload: 0]):
+        var: Variant (unsigned integer selector) (28 options, Selector field path [Event payload: 0]):
           align: [0]: String
           callsite: [1]: String
           const: [2]: String

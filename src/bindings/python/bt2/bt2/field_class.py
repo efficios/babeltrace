@@ -679,7 +679,7 @@ class _VariantFieldClassOption(_VariantFieldClassOptionConst):
     _user_attributes = property(fset=_user_attributes)
 
 
-class _VariantFieldClassWithSelectorOptionConst(_VariantFieldClassOptionConst):
+class _VariantFieldClassWithIntegerSelectorOptionConst(_VariantFieldClassOptionConst):
     def __init__(self, owning_var_fc, spec_opt_ptr):
         self._spec_ptr = spec_opt_ptr
         super().__init__(owning_var_fc, self._as_option_ptr(spec_opt_ptr))
@@ -691,46 +691,46 @@ class _VariantFieldClassWithSelectorOptionConst(_VariantFieldClassOptionConst):
         return self._range_set_pycls._create_from_ptr_and_get_ref(range_set_ptr)
 
 
-class _VariantFieldClassWithSelectorOption(
-    _VariantFieldClassWithSelectorOptionConst, _VariantFieldClassOption
+class _VariantFieldClassWithIntegerSelectorOption(
+    _VariantFieldClassWithIntegerSelectorOptionConst, _VariantFieldClassOption
 ):
     pass
 
 
-class _VariantFieldClassWithSignedSelectorOptionConst(
-    _VariantFieldClassWithSelectorOptionConst
+class _VariantFieldClassWithSignedIntegerSelectorOptionConst(
+    _VariantFieldClassWithIntegerSelectorOptionConst
 ):
     _as_option_ptr = staticmethod(
-        native_bt.field_class_variant_with_selector_signed_option_as_option_const
+        native_bt.field_class_variant_with_selector_integer_signed_option_as_option_const
     )
     _borrow_ranges_ptr = staticmethod(
-        native_bt.field_class_variant_with_selector_signed_option_borrow_ranges_const
+        native_bt.field_class_variant_with_selector_integer_signed_option_borrow_ranges_const
     )
     _range_set_pycls = bt2_integer_range_set._SignedIntegerRangeSetConst
 
 
-class _VariantFieldClassWithSignedSelectorOption(
-    _VariantFieldClassWithSignedSelectorOptionConst,
-    _VariantFieldClassWithSelectorOption,
+class _VariantFieldClassWithSignedIntegerSelectorOption(
+    _VariantFieldClassWithSignedIntegerSelectorOptionConst,
+    _VariantFieldClassWithIntegerSelectorOption,
 ):
     pass
 
 
-class _VariantFieldClassWithUnsignedSelectorOptionConst(
-    _VariantFieldClassWithSelectorOptionConst
+class _VariantFieldClassWithUnsignedIntegerSelectorOptionConst(
+    _VariantFieldClassWithIntegerSelectorOptionConst
 ):
     _as_option_ptr = staticmethod(
-        native_bt.field_class_variant_with_selector_unsigned_option_as_option_const
+        native_bt.field_class_variant_with_selector_integer_unsigned_option_as_option_const
     )
     _borrow_ranges_ptr = staticmethod(
-        native_bt.field_class_variant_with_selector_unsigned_option_borrow_ranges_const
+        native_bt.field_class_variant_with_selector_integer_unsigned_option_borrow_ranges_const
     )
     _range_set_pycls = bt2_integer_range_set._UnsignedIntegerRangeSetConst
 
 
-class _VariantFieldClassWithUnsignedSelectorOption(
-    _VariantFieldClassWithUnsignedSelectorOptionConst,
-    _VariantFieldClassWithSelectorOption,
+class _VariantFieldClassWithUnsignedIntegerSelectorOption(
+    _VariantFieldClassWithUnsignedIntegerSelectorOptionConst,
+    _VariantFieldClassWithIntegerSelectorOption,
 ):
     pass
 
@@ -838,7 +838,7 @@ class _VariantFieldClassWithoutSelector(
         return self
 
 
-class _VariantFieldClassWithSelectorConst(_VariantFieldClassConst):
+class _VariantFieldClassWithIntegerSelectorConst(_VariantFieldClassConst):
     _NAME = 'Const Variant (with selector)'
 
     @property
@@ -853,8 +853,8 @@ class _VariantFieldClassWithSelectorConst(_VariantFieldClassConst):
         return bt2_field_path._FieldPathConst._create_from_ptr_and_get_ref(ptr)
 
 
-class _VariantFieldClassWithSelector(
-    _VariantFieldClassWithSelectorConst, _VariantFieldClass
+class _VariantFieldClassWithIntegerSelector(
+    _VariantFieldClassWithIntegerSelectorConst, _VariantFieldClass
 ):
     _NAME = 'Variant (with selector)'
 
@@ -892,49 +892,55 @@ class _VariantFieldClassWithSelector(
         return self
 
 
-class _VariantFieldClassWithUnsignedSelectorConst(_VariantFieldClassWithSelectorConst):
-    _NAME = 'Const Variant (with unsigned selector)'
+class _VariantFieldClassWithUnsignedIntegerSelectorConst(
+    _VariantFieldClassWithIntegerSelectorConst
+):
+    _NAME = 'Const Variant (with unsigned integer selector)'
     _borrow_option_ptr_by_name = staticmethod(
-        native_bt.field_class_variant_with_selector_unsigned_borrow_option_by_name_const
+        native_bt.field_class_variant_with_selector_integer_unsigned_borrow_option_by_name_const
     )
     _borrow_option_ptr_by_index = staticmethod(
-        native_bt.field_class_variant_with_selector_unsigned_borrow_option_by_index_const
+        native_bt.field_class_variant_with_selector_integer_unsigned_borrow_option_by_index_const
     )
-    _variant_option_pycls = _VariantFieldClassWithUnsignedSelectorOptionConst
+    _variant_option_pycls = _VariantFieldClassWithUnsignedIntegerSelectorOptionConst
     _as_option_ptr = staticmethod(_variant_option_pycls._as_option_ptr)
 
 
-class _VariantFieldClassWithUnsignedSelector(
-    _VariantFieldClassWithUnsignedSelectorConst, _VariantFieldClassWithSelector
+class _VariantFieldClassWithUnsignedIntegerSelector(
+    _VariantFieldClassWithUnsignedIntegerSelectorConst,
+    _VariantFieldClassWithIntegerSelector,
 ):
-    _NAME = 'Variant (with unsigned selector)'
-    _variant_option_pycls = _VariantFieldClassWithUnsignedSelectorOption
+    _NAME = 'Variant (with unsigned integer selector)'
+    _variant_option_pycls = _VariantFieldClassWithUnsignedIntegerSelectorOption
     _as_option_ptr = staticmethod(_variant_option_pycls._as_option_ptr)
     _append_option = staticmethod(
-        native_bt.field_class_variant_with_selector_unsigned_append_option
+        native_bt.field_class_variant_with_selector_integer_unsigned_append_option
     )
 
 
-class _VariantFieldClassWithSignedSelectorConst(_VariantFieldClassWithSelectorConst):
-    _NAME = 'Const Variant (with signed selector)'
+class _VariantFieldClassWithSignedIntegerSelectorConst(
+    _VariantFieldClassWithIntegerSelectorConst
+):
+    _NAME = 'Const Variant (with signed integer selector)'
     _borrow_option_ptr_by_name = staticmethod(
-        native_bt.field_class_variant_with_selector_signed_borrow_option_by_name_const
+        native_bt.field_class_variant_with_selector_integer_signed_borrow_option_by_name_const
     )
     _borrow_option_ptr_by_index = staticmethod(
-        native_bt.field_class_variant_with_selector_signed_borrow_option_by_index_const
+        native_bt.field_class_variant_with_selector_integer_signed_borrow_option_by_index_const
     )
-    _variant_option_pycls = _VariantFieldClassWithSignedSelectorOptionConst
+    _variant_option_pycls = _VariantFieldClassWithSignedIntegerSelectorOptionConst
     _as_option_ptr = staticmethod(_variant_option_pycls._as_option_ptr)
 
 
-class _VariantFieldClassWithSignedSelector(
-    _VariantFieldClassWithSignedSelectorConst, _VariantFieldClassWithSelector
+class _VariantFieldClassWithSignedIntegerSelector(
+    _VariantFieldClassWithSignedIntegerSelectorConst,
+    _VariantFieldClassWithIntegerSelector,
 ):
-    _NAME = 'Variant (with signed selector)'
-    _variant_option_pycls = _VariantFieldClassWithSignedSelectorOption
+    _NAME = 'Variant (with signed integer selector)'
+    _variant_option_pycls = _VariantFieldClassWithSignedIntegerSelectorOption
     _as_option_ptr = staticmethod(_variant_option_pycls._as_option_ptr)
     _append_option = staticmethod(
-        native_bt.field_class_variant_with_selector_signed_append_option
+        native_bt.field_class_variant_with_selector_integer_signed_append_option
     )
 
 
@@ -1009,8 +1015,8 @@ _FIELD_CLASS_TYPE_TO_CONST_OBJ = {
     native_bt.FIELD_CLASS_TYPE_OPTION_WITH_UNSIGNED_INTEGER_SELECTOR: _OptionWithUnsignedIntegerSelectorFieldClassConst,
     native_bt.FIELD_CLASS_TYPE_OPTION_WITH_SIGNED_INTEGER_SELECTOR: _OptionWithSignedIntegerSelectorFieldClassConst,
     native_bt.FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR: _VariantFieldClassWithoutSelectorConst,
-    native_bt.FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_SELECTOR: _VariantFieldClassWithUnsignedSelectorConst,
-    native_bt.FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_SELECTOR: _VariantFieldClassWithSignedSelectorConst,
+    native_bt.FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR: _VariantFieldClassWithUnsignedIntegerSelectorConst,
+    native_bt.FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_INTEGER_SELECTOR: _VariantFieldClassWithSignedIntegerSelectorConst,
 }
 
 _FIELD_CLASS_TYPE_TO_OBJ = {
@@ -1031,6 +1037,6 @@ _FIELD_CLASS_TYPE_TO_OBJ = {
     native_bt.FIELD_CLASS_TYPE_OPTION_WITH_UNSIGNED_INTEGER_SELECTOR: _OptionWithUnsignedIntegerSelectorFieldClass,
     native_bt.FIELD_CLASS_TYPE_OPTION_WITH_SIGNED_INTEGER_SELECTOR: _OptionWithSignedIntegerSelectorFieldClass,
     native_bt.FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR: _VariantFieldClassWithoutSelector,
-    native_bt.FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_SELECTOR: _VariantFieldClassWithUnsignedSelector,
-    native_bt.FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_SELECTOR: _VariantFieldClassWithSignedSelector,
+    native_bt.FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR: _VariantFieldClassWithUnsignedIntegerSelector,
+    native_bt.FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_INTEGER_SELECTOR: _VariantFieldClassWithSignedIntegerSelector,
 }

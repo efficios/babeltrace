@@ -958,7 +958,7 @@ class VariantFieldClassWithoutSelectorTestCase(
     _create_default_field_class = _create_field_class
 
 
-class _VariantFieldClassWithSelectorTestCase:
+class _VariantFieldClassWithIntegerSelectorTestCase:
     @staticmethod
     def _const_value_setter(field):
         field['variant'].selected_option_index = 0
@@ -1279,7 +1279,7 @@ class _VariantFieldClassWithSelectorTestCase:
 
 
 class VariantFieldClassWithUnsignedSelectorTestCase(
-    _VariantFieldClassWithSelectorTestCase, unittest.TestCase
+    _VariantFieldClassWithIntegerSelectorTestCase, unittest.TestCase
 ):
     def _spec_set_up(self):
         self._ranges1 = bt2.UnsignedIntegerRangeSet([(1, 4), (18, 47)])
@@ -1290,7 +1290,7 @@ class VariantFieldClassWithUnsignedSelectorTestCase(
 
 
 class VariantFieldClassWithSignedSelectorTestCase(
-    _VariantFieldClassWithSelectorTestCase, unittest.TestCase
+    _VariantFieldClassWithIntegerSelectorTestCase, unittest.TestCase
 ):
     def _spec_set_up(self):
         self._ranges1 = bt2.SignedIntegerRangeSet([(-10, -4), (18, 47)])
