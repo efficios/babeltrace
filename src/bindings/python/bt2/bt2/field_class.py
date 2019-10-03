@@ -290,7 +290,7 @@ class _EnumerationFieldClass(_EnumerationFieldClassConst, _IntegerFieldClass):
 class _UnsignedEnumerationFieldClassConst(
     _EnumerationFieldClassConst, _UnsignedIntegerFieldClassConst
 ):
-    _NAME = 'Const nsigned enumeration'
+    _NAME = 'Const unsigned enumeration'
     _range_set_pycls = bt2_integer_range_set.UnsignedIntegerRangeSet
     _borrow_mapping_ptr_by_label = staticmethod(
         native_bt.field_class_enumeration_unsigned_borrow_mapping_by_label_const
