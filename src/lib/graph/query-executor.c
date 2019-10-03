@@ -87,7 +87,7 @@ struct bt_query_executor *bt_query_executor_create_with_method_data(
 	}
 
 	query_exec->interrupters = g_ptr_array_new_with_free_func(
-		(GDestroyNotify) bt_object_put_no_null_check);
+		(GDestroyNotify) bt_object_put_ref_no_null_check);
 	if (!query_exec->interrupters) {
 		BT_LIB_LOGE_APPEND_CAUSE("Failed to allocate one GPtrArray.");
 		BT_OBJECT_PUT_REF_AND_RESET(query_exec);
@@ -110,7 +110,7 @@ struct bt_query_executor *bt_query_executor_create_with_method_data(
 	}
 
 	query_exec->comp_cls = comp_cls;
-	bt_object_get_no_null_check(query_exec->comp_cls);
+	bt_object_get_ref_no_null_check(query_exec->comp_cls);
 
 	if (!params) {
 		query_exec->params = bt_value_null;
@@ -118,7 +118,7 @@ struct bt_query_executor *bt_query_executor_create_with_method_data(
 		query_exec->params = params;
 	}
 
-	bt_object_get_no_null_check(query_exec->params);
+	bt_object_get_ref_no_null_check(query_exec->params);
 	query_exec->method_data = method_data;
 	query_exec->log_level = BT_LOGGING_LEVEL_NONE;
 	bt_query_executor_add_interrupter(query_exec,
@@ -258,7 +258,7 @@ enum bt_query_executor_add_interrupter_status bt_query_executor_add_interrupter(
 	BT_ASSERT_PRE_NON_NULL(query_exec, "Query executor");
 	BT_ASSERT_PRE_NON_NULL(intr, "Interrupter");
 	g_ptr_array_add(query_exec->interrupters, (void *) intr);
-	bt_object_get_no_null_check(intr);
+	bt_object_get_ref_no_null_check(intr);
 	BT_LIB_LOGD("Added interrupter to query executor: "
 		"query-exec-addr=%p, %![intr-]+z",
 		query_exec, intr);

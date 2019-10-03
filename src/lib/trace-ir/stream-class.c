@@ -339,7 +339,7 @@ bt_stream_class_set_packet_context_field_class(
 	bt_field_class_make_part_of_trace_class(field_class);
 	bt_object_put_ref(stream_class->packet_context_fc);
 	stream_class->packet_context_fc = field_class;
-	bt_object_get_no_null_check(stream_class->packet_context_fc);
+	bt_object_get_ref_no_null_check(stream_class->packet_context_fc);
 	bt_field_class_freeze(field_class);
 	BT_LIB_LOGD("Set stream class's packet context field class: %!+S",
 		stream_class);
@@ -399,7 +399,7 @@ bt_stream_class_set_event_common_context_field_class(
 	bt_field_class_make_part_of_trace_class(field_class);
 	bt_object_put_ref(stream_class->event_common_context_fc);
 	stream_class->event_common_context_fc = field_class;
-	bt_object_get_no_null_check(stream_class->event_common_context_fc);
+	bt_object_get_ref_no_null_check(stream_class->event_common_context_fc);
 	bt_field_class_freeze(field_class);
 	BT_LIB_LOGD("Set stream class's event common context field class: %!+S",
 		stream_class);
@@ -430,7 +430,7 @@ bt_stream_class_set_default_clock_class(
 	BT_ASSERT_PRE_DEV_STREAM_CLASS_HOT(stream_class);
 	bt_object_put_ref(stream_class->default_clock_class);
 	stream_class->default_clock_class = clock_class;
-	bt_object_get_no_null_check(stream_class->default_clock_class);
+	bt_object_get_ref_no_null_check(stream_class->default_clock_class);
 	bt_clock_class_freeze(clock_class);
 	BT_LIB_LOGD("Set stream class's default clock class: %!+S",
 		stream_class);
@@ -641,9 +641,9 @@ void bt_stream_class_set_user_attributes(
 	BT_ASSERT_PRE(user_attributes->type == BT_VALUE_TYPE_MAP,
 		"User attributes object is not a map value object.");
 	BT_ASSERT_PRE_DEV_STREAM_CLASS_HOT(stream_class);
-	bt_object_put_no_null_check(stream_class->user_attributes);
+	bt_object_put_ref_no_null_check(stream_class->user_attributes);
 	stream_class->user_attributes = (void *) user_attributes;
-	bt_object_get_no_null_check(stream_class->user_attributes);
+	bt_object_get_ref_no_null_check(stream_class->user_attributes);
 }
 
 void bt_stream_class_get_ref(const struct bt_stream_class *stream_class)

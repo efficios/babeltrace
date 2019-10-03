@@ -336,9 +336,9 @@ void bt_trace_class_set_user_attributes(struct bt_trace_class *trace_class,
 	BT_ASSERT_PRE(user_attributes->type == BT_VALUE_TYPE_MAP,
 		"User attributes object is not a map value object.");
 	BT_ASSERT_PRE_DEV_TRACE_CLASS_HOT(trace_class);
-	bt_object_put_no_null_check(trace_class->user_attributes);
+	bt_object_put_ref_no_null_check(trace_class->user_attributes);
 	trace_class->user_attributes = (void *) user_attributes;
-	bt_object_get_no_null_check(trace_class->user_attributes);
+	bt_object_get_ref_no_null_check(trace_class->user_attributes);
 }
 
 void bt_trace_class_get_ref(const struct bt_trace_class *trace_class)

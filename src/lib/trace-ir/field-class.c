@@ -898,7 +898,7 @@ int init_named_field_class(struct bt_named_field_class *named_fc,
 	}
 
 	named_fc->fc = fc;
-	bt_object_get_no_null_check(named_fc->fc);
+	bt_object_get_ref_no_null_check(named_fc->fc);
 
 end:
 	return status;
@@ -954,7 +954,7 @@ create_variant_with_selector_option(
 	}
 
 	opt->range_set = range_set;
-	bt_object_get_no_null_check(opt->range_set);
+	bt_object_get_ref_no_null_check(opt->range_set);
 	bt_integer_range_set_freeze(range_set);
 	goto end;
 
@@ -1216,7 +1216,7 @@ struct bt_field_class *create_option_field_class(
 		}
 
 		opt_with_sel_fc->selector_fc = selector_fc;
-		bt_object_get_no_null_check(opt_with_sel_fc->selector_fc);
+		bt_object_get_ref_no_null_check(opt_with_sel_fc->selector_fc);
 		opt_fc = (void *) opt_with_sel_fc;
 	} else {
 		opt_fc = g_new0(struct bt_field_class_option, 1);
@@ -1235,7 +1235,7 @@ struct bt_field_class *create_option_field_class(
 	}
 
 	opt_fc->content_fc = content_fc;
-	bt_object_get_no_null_check(opt_fc->content_fc);
+	bt_object_get_ref_no_null_check(opt_fc->content_fc);
 	bt_field_class_freeze(opt_fc->content_fc);
 
 	if (selector_fc) {
@@ -1303,7 +1303,7 @@ bt_field_class_option_with_selector_integer_unsigned_create(
 	}
 
 	fc->range_set = range_set;
-	bt_object_get_no_null_check(fc->range_set);
+	bt_object_get_ref_no_null_check(fc->range_set);
 	bt_integer_range_set_freeze(range_set);
 
 end:
@@ -1333,7 +1333,7 @@ bt_field_class_option_with_selector_integer_signed_create(
 	}
 
 	fc->range_set = range_set;
-	bt_object_get_no_null_check(fc->range_set);
+	bt_object_get_ref_no_null_check(fc->range_set);
 	bt_integer_range_set_freeze(range_set);
 
 end:
@@ -1495,7 +1495,7 @@ struct bt_field_class *bt_field_class_variant_create(
 		}
 
 		var_with_sel_fc->selector_fc = selector_fc;
-		bt_object_get_no_null_check(var_with_sel_fc->selector_fc);
+		bt_object_get_ref_no_null_check(var_with_sel_fc->selector_fc);
 		bt_field_class_freeze(selector_fc);
 		var_fc = (void *) var_with_sel_fc;
 	} else {
@@ -1902,7 +1902,7 @@ int init_array_field_class(struct bt_field_class_array *fc,
 	}
 
 	fc->element_fc = element_fc;
-	bt_object_get_no_null_check(fc->element_fc);
+	bt_object_get_ref_no_null_check(fc->element_fc);
 	bt_field_class_freeze(element_fc);
 
 end:
@@ -2033,7 +2033,7 @@ struct bt_field_class *bt_field_class_array_dynamic_create(
 		BT_ASSERT_PRE_FC_IS_UNSIGNED_INT(length_fc,
 			"Length field class");
 		array_fc->length_fc = length_fc;
-		bt_object_get_no_null_check(array_fc->length_fc);
+		bt_object_get_ref_no_null_check(array_fc->length_fc);
 		bt_field_class_freeze(length_fc);
 	}
 
@@ -2208,9 +2208,9 @@ void bt_field_class_set_user_attributes(
 	BT_ASSERT_PRE(user_attributes->type == BT_VALUE_TYPE_MAP,
 		"User attributes object is not a map value object.");
 	BT_ASSERT_PRE_DEV_FC_HOT(fc, "Field class");
-	bt_object_put_no_null_check(fc->user_attributes);
+	bt_object_put_ref_no_null_check(fc->user_attributes);
 	fc->user_attributes = (void *) user_attributes;
-	bt_object_get_no_null_check(fc->user_attributes);
+	bt_object_get_ref_no_null_check(fc->user_attributes);
 }
 
 static
@@ -2231,9 +2231,9 @@ void bt_named_field_class_set_user_attributes(
 	BT_ASSERT_PRE_DEV_HOT(named_fc,
 		"Structure field class member or variant field class option",
 		".");
-	bt_object_put_no_null_check(named_fc->user_attributes);
+	bt_object_put_ref_no_null_check(named_fc->user_attributes);
 	named_fc->user_attributes = (void *) user_attributes;
-	bt_object_get_no_null_check(named_fc->user_attributes);
+	bt_object_get_ref_no_null_check(named_fc->user_attributes);
 }
 
 const struct bt_value *

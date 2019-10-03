@@ -338,9 +338,9 @@ void bt_clock_class_set_user_attributes(
 	BT_ASSERT_PRE(user_attributes->type == BT_VALUE_TYPE_MAP,
 		"User attributes object is not a map value object.");
 	BT_ASSERT_PRE_DEV_CLOCK_CLASS_HOT(clock_class);
-	bt_object_put_no_null_check(clock_class->user_attributes);
+	bt_object_put_ref_no_null_check(clock_class->user_attributes);
 	clock_class->user_attributes = (void *) user_attributes;
-	bt_object_get_no_null_check(clock_class->user_attributes);
+	bt_object_get_ref_no_null_check(clock_class->user_attributes);
 }
 
 void bt_clock_class_get_ref(const struct bt_clock_class *clock_class)

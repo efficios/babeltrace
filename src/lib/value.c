@@ -138,7 +138,7 @@ struct bt_value *bt_value_null_copy(const struct bt_value *null_obj)
 {
 	BT_ASSERT(null_obj == bt_value_null);
 
-	bt_object_get_no_null_check(bt_value_null);
+	bt_object_get_ref_no_null_check(bt_value_null);
 	return (void *) bt_value_null;
 }
 

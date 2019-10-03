@@ -121,11 +121,11 @@ void bt_event_reset(struct bt_event *event)
 	BT_ASSERT(event);
 	BT_LIB_LOGD("Resetting event: %!+e", event);
 	bt_event_set_is_frozen(event, false);
-	bt_object_put_no_null_check(&event->stream->base);
+	bt_object_put_ref_no_null_check(&event->stream->base);
 	event->stream = NULL;
 
 	if (event->packet) {
-		bt_object_put_no_null_check(&event->packet->base);
+		bt_object_put_ref_no_null_check(&event->packet->base);
 		event->packet = NULL;
 	}
 }
@@ -165,7 +165,7 @@ void bt_event_recycle(struct bt_event *event)
 	BT_ASSERT(event_class);
 	event->class = NULL;
 	bt_object_pool_recycle_object(&event_class->event_pool, event);
-	bt_object_put_no_null_check(&event_class->base);
+	bt_object_put_ref_no_null_check(&event_class->base);
 }
 
 static inline
@@ -181,7 +181,7 @@ void bt_event_set_packet(struct bt_event *event, struct bt_packet *packet)
 	BT_ASSERT(event->stream->class->supports_packets);
 	BT_ASSERT(!event->packet);
 	event->packet = packet;
-	bt_object_get_no_null_check_no_parent_check(&event->packet->base);
+	bt_object_get_ref_no_null_check_no_parent_check(&event->packet->base);
 	BT_LIB_LOGD("Set event's packet: %![event-]+e, %![packet-]+a",
 		event, packet);
 }
@@ -198,7 +198,7 @@ void bt_event_set_stream(struct bt_event *event, struct bt_stream *stream)
 		"%![event-]+e, %![stream-]+s", event, stream);
 	BT_ASSERT(!event->stream);
 	event->stream = stream;
-	bt_object_get_no_null_check_no_parent_check(&event->stream->base);
+	bt_object_get_ref_no_null_check_no_parent_check(&event->stream->base);
 	BT_LIB_LOGD("Set event's stream: %![event-]+e, %![stream-]+s",
 		event, stream);
 }
@@ -221,7 +221,7 @@ struct bt_event *bt_event_create(struct bt_event_class *event_class,
 
 	if (G_LIKELY(!event->class)) {
 		event->class = event_class;
-		bt_object_get_no_null_check(&event_class->base);
+		bt_object_get_ref_no_null_check(&event_class->base);
 	}
 
 	bt_event_set_stream(event, stream);

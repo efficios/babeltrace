@@ -143,7 +143,7 @@ struct bt_message *create_packet_message(
 		message->default_cs = bt_clock_snapshot_create(
 			stream_class->default_clock_class);
 		if (!message->default_cs) {
-			bt_object_put_no_null_check(message);
+			bt_object_put_ref_no_null_check(message);
 			message = NULL;
 			goto end;
 		}
@@ -153,7 +153,7 @@ struct bt_message *create_packet_message(
 
 	BT_ASSERT(!message->packet);
 	message->packet = packet;
-	bt_object_get_no_null_check_no_parent_check(
+	bt_object_get_ref_no_null_check_no_parent_check(
 		&message->packet->base);
 	bt_packet_set_is_frozen(packet, true);
 	BT_LIB_LOGD("Created packet message object: "
@@ -237,7 +237,7 @@ void recycle_packet_message(struct bt_message *msg, struct bt_object_pool *pool)
 
 	BT_LIB_LOGD("Recycling packet message: %!+n", msg);
 	bt_message_reset(msg);
-	bt_object_put_no_null_check(&packet_msg->packet->base);
+	bt_object_put_ref_no_null_check(&packet_msg->packet->base);
 
 	if (packet_msg->default_cs) {
 		bt_clock_snapshot_recycle(packet_msg->default_cs);

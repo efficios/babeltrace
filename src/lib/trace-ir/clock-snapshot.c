@@ -63,7 +63,7 @@ struct bt_clock_snapshot *bt_clock_snapshot_new(
 
 	bt_object_init_unique(&ret->base);
 	ret->clock_class = clock_class;
-	bt_object_get_no_null_check(clock_class);
+	bt_object_get_ref_no_null_check(clock_class);
 	bt_clock_class_freeze(clock_class);
 	BT_LIB_LOGD("Created clock snapshot object: %!+k", ret);
 
@@ -88,7 +88,7 @@ struct bt_clock_snapshot *bt_clock_snapshot_create(
 
 	if (G_LIKELY(!clock_snapshot->clock_class)) {
 		clock_snapshot->clock_class = clock_class;
-		bt_object_get_no_null_check(clock_class);
+		bt_object_get_ref_no_null_check(clock_class);
 	}
 
 end:

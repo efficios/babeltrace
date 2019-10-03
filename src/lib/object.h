@@ -47,10 +47,10 @@ typedef void (*bt_object_parent_is_owner_listener_func)(
 		struct bt_object *);
 
 static inline
-void bt_object_get_no_null_check(const void *obj);
+void bt_object_get_ref_no_null_check(const void *obj);
 
 static inline
-void bt_object_put_no_null_check(const void *obj);
+void bt_object_put_ref_no_null_check(const void *obj);
 
 /*
  * Babeltrace object base.
@@ -126,7 +126,7 @@ struct bt_object *bt_object_get_parent(const struct bt_object *c_obj)
 	struct bt_object *parent = bt_object_borrow_parent(obj);
 
 	if (parent) {
-		bt_object_get_no_null_check(parent);
+		bt_object_get_ref_no_null_check(parent);
 	}
 
 	return parent;
@@ -152,10 +152,10 @@ void bt_object_set_parent(struct bt_object *child, struct bt_object *parent)
 	if (parent) {
 		BT_ASSERT(!child->parent);
 		child->parent = parent;
-		bt_object_get_no_null_check(parent);
+		bt_object_get_ref_no_null_check(parent);
 	} else {
 		if (child->parent) {
-			bt_object_put_no_null_check(child->parent);
+			bt_object_put_ref_no_null_check(child->parent);
 		}
 
 		child->parent = NULL;
@@ -203,7 +203,7 @@ void bt_object_with_parent_release_func(struct bt_object *obj)
 		}
 
 		/* The release function will be invoked by the parent. */
-		bt_object_put_no_null_check(parent);
+		bt_object_put_ref_no_null_check(parent);
 	} else {
 		bt_object_try_spec_release(obj);
 	}
@@ -268,7 +268,7 @@ void bt_object_inc_ref_count(const struct bt_object *c_obj)
 }
 
 static inline
-void bt_object_get_no_null_check_no_parent_check(const struct bt_object *c_obj)
+void bt_object_get_ref_no_null_check_no_parent_check(const struct bt_object *c_obj)
 {
 	struct bt_object *obj = (void *) c_obj;
 
@@ -286,7 +286,7 @@ void bt_object_get_no_null_check_no_parent_check(const struct bt_object *c_obj)
 }
 
 static inline
-void bt_object_get_no_null_check(const void *c_obj)
+void bt_object_get_ref_no_null_check(const void *c_obj)
 {
 	struct bt_object *obj = (void *) c_obj;
 
@@ -299,7 +299,7 @@ void bt_object_get_no_null_check(const void *c_obj)
 			"addr=%p, parent-addr=%p", obj, obj->parent);
 #endif
 
-		bt_object_get_no_null_check(obj->parent);
+		bt_object_get_ref_no_null_check(obj->parent);
 	}
 
 #ifdef _BT_OBJECT_LOGGING_ENABLED
@@ -313,7 +313,7 @@ void bt_object_get_no_null_check(const void *c_obj)
 }
 
 static inline
-void bt_object_put_no_null_check(const void *c_obj)
+void bt_object_put_ref_no_null_check(const void *c_obj)
 {
 	struct bt_object *obj = (void *) c_obj;
 
@@ -349,7 +349,7 @@ void bt_object_get_ref(const void *ptr)
 	BT_ASSERT_PRE_DEV(obj->is_shared, "Object is not shared: %!+O", obj);
 #endif
 
-	bt_object_get_no_null_check(obj);
+	bt_object_get_ref_no_null_check(obj);
 }
 
 static inline
@@ -367,7 +367,7 @@ void bt_object_put_ref(const void *ptr)
 		"Decrementing a reference count set to 0: %!+O", ptr);
 #endif
 
-	bt_object_put_no_null_check(obj);
+	bt_object_put_ref_no_null_check(obj);
 }
 
 #define BT_OBJECT_PUT_REF_AND_RESET(_var)	\

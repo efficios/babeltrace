@@ -137,7 +137,7 @@ void bt_self_component_port_input_message_iterator_destroy(struct bt_object *obj
 
 	if (iterator->auto_seek.msgs) {
 		while (!g_queue_is_empty(iterator->auto_seek.msgs)) {
-			bt_object_put_no_null_check(
+			bt_object_put_ref_no_null_check(
 				g_queue_pop_tail(iterator->auto_seek.msgs));
 		}
 
@@ -1524,7 +1524,7 @@ skip_msg:
 		break;
 	}
 
-	bt_object_put_no_null_check(msg);
+	bt_object_put_ref_no_null_check(msg);
 	msg = NULL;
 	goto end;
 
@@ -1624,7 +1624,7 @@ int find_message_ge_ns_from_origin(
 end:
 	for (i = 0; i < user_count; i++) {
 		if (messages[i]) {
-			bt_object_put_no_null_check(messages[i]);
+			bt_object_put_ref_no_null_check(messages[i]);
 		}
 	}
 
@@ -1820,7 +1820,7 @@ bt_self_component_port_input_message_iterator_seek_ns_from_origin(
 		 * message queue.
 		 */
 		while (!g_queue_is_empty(iterator->auto_seek.msgs)) {
-			bt_object_put_no_null_check(
+			bt_object_put_ref_no_null_check(
 				g_queue_pop_tail(iterator->auto_seek.msgs));
 		}
 

@@ -145,7 +145,7 @@ struct bt_stream *create_stream_with_id(struct bt_stream_class *stream_class,
 	}
 
 	stream->class = stream_class;
-	bt_object_get_no_null_check(stream_class);
+	bt_object_get_ref_no_null_check(stream_class);
 
 	/* bt_trace_add_stream() sets the parent trace, and freezes the trace */
 	bt_trace_add_stream(trace, stream);
@@ -265,9 +265,9 @@ void bt_stream_set_user_attributes(struct bt_stream *stream,
 	BT_ASSERT_PRE(user_attributes->type == BT_VALUE_TYPE_MAP,
 		"User attributes object is not a map value object.");
 	BT_ASSERT_PRE_DEV_STREAM_HOT(stream);
-	bt_object_put_no_null_check(stream->user_attributes);
+	bt_object_put_ref_no_null_check(stream->user_attributes);
 	stream->user_attributes = (void *) user_attributes;
-	bt_object_get_no_null_check(stream->user_attributes);
+	bt_object_get_ref_no_null_check(stream->user_attributes);
 }
 
 void bt_stream_get_ref(const struct bt_stream *stream)

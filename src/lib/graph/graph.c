@@ -364,7 +364,7 @@ struct bt_graph *bt_graph_create(uint64_t mip_version)
 	}
 
 	graph->interrupters = g_ptr_array_new_with_free_func(
-		(GDestroyNotify) bt_object_put_no_null_check);
+		(GDestroyNotify) bt_object_put_ref_no_null_check);
 	if (!graph->interrupters) {
 		BT_LIB_LOGE_APPEND_CAUSE("Failed to allocate one GPtrArray.");
 		goto error;
@@ -1622,7 +1622,7 @@ enum bt_graph_add_interrupter_status bt_graph_add_interrupter(
 	BT_ASSERT_PRE_NON_NULL(graph, "Graph");
 	BT_ASSERT_PRE_NON_NULL(intr, "Interrupter");
 	g_ptr_array_add(graph->interrupters, (void *) intr);
-	bt_object_get_no_null_check(intr);
+	bt_object_get_ref_no_null_check(intr);
 	BT_LIB_LOGD("Added interrupter to graph: %![graph-]+g, %![intr-]+z",
 		graph, intr);
 	return BT_FUNC_STATUS_OK;

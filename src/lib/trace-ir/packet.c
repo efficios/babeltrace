@@ -144,7 +144,7 @@ void bt_packet_recycle(struct bt_packet *packet)
 	BT_ASSERT(stream);
 	packet->stream = NULL;
 	bt_object_pool_recycle_object(&stream->packet_pool, packet);
-	bt_object_put_no_null_check(&stream->base);
+	bt_object_put_ref_no_null_check(&stream->base);
 }
 
 BT_HIDDEN
@@ -187,7 +187,7 @@ struct bt_packet *bt_packet_new(struct bt_stream *stream)
 	bt_object_init_shared(&packet->base,
 		(bt_object_release_func) bt_packet_recycle);
 	packet->stream = stream;
-	bt_object_get_no_null_check(stream);
+	bt_object_get_ref_no_null_check(stream);
 	trace_class = bt_stream_class_borrow_trace_class_inline(stream->class);
 	BT_ASSERT(trace_class);
 
@@ -232,7 +232,7 @@ struct bt_packet *bt_packet_create(const struct bt_stream *c_stream)
 
 	if (G_LIKELY(!packet->stream)) {
 		packet->stream = stream;
-		bt_object_get_no_null_check_no_parent_check(
+		bt_object_get_ref_no_null_check_no_parent_check(
 			&packet->stream->base);
 	}
 
