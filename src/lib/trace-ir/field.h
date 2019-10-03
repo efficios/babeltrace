@@ -75,8 +75,8 @@
 #define BT_ASSERT_PRE_DEV_FIELD_IS_VARIANT(_field, _name)		\
 	BT_ASSERT_PRE_DEV(						\
 		((const struct bt_field *) (_field))->class->type == BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR || \
-		((const struct bt_field *) (_field))->class->type == BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_SELECTOR || \
-		((const struct bt_field *) (_field))->class->type == BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_SELECTOR, \
+		((const struct bt_field *) (_field))->class->type == BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR || \
+		((const struct bt_field *) (_field))->class->type == BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_INTEGER_SELECTOR, \
 		_name " is not a variant field: %![field-]+f", (_field))
 
 #define BT_ASSERT_PRE_DEV_FIELD_IS_SET(_field, _name)			\

@@ -1065,8 +1065,8 @@ int print_field(struct pretty_component *pretty,
 	case BT_FIELD_CLASS_TYPE_OPTION_WITH_SIGNED_INTEGER_SELECTOR:
 		return print_option(pretty, field, print_names);
 	case BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR:
-	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_SELECTOR:
-	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_SELECTOR:
+	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR:
+	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_INTEGER_SELECTOR:
 		return print_variant(pretty, field, print_names);
 	case BT_FIELD_CLASS_TYPE_STATIC_ARRAY:
 		return print_array(pretty, field, print_names);

@@ -99,9 +99,9 @@ from bt2.field_class import _OptionWithUnsignedIntegerSelectorFieldClass
 from bt2.field_class import _OptionWithSignedIntegerSelectorFieldClass
 from bt2.field_class import _VariantFieldClass
 from bt2.field_class import _VariantFieldClassWithoutSelector
-from bt2.field_class import _VariantFieldClassWithSelector
-from bt2.field_class import _VariantFieldClassWithUnsignedSelector
-from bt2.field_class import _VariantFieldClassWithSignedSelector
+from bt2.field_class import _VariantFieldClassWithIntegerSelector
+from bt2.field_class import _VariantFieldClassWithUnsignedIntegerSelector
+from bt2.field_class import _VariantFieldClassWithSignedIntegerSelector
 from bt2.field_class import _ArrayFieldClass
 from bt2.field_class import _StaticArrayFieldClass
 from bt2.field_class import _DynamicArrayFieldClass
@@ -124,9 +124,9 @@ from bt2.field_class import _OptionWithUnsignedIntegerSelectorFieldClassConst
 from bt2.field_class import _OptionWithSignedIntegerSelectorFieldClassConst
 from bt2.field_class import _VariantFieldClassConst
 from bt2.field_class import _VariantFieldClassWithoutSelectorConst
-from bt2.field_class import _VariantFieldClassWithSelectorConst
-from bt2.field_class import _VariantFieldClassWithUnsignedSelectorConst
-from bt2.field_class import _VariantFieldClassWithSignedSelectorConst
+from bt2.field_class import _VariantFieldClassWithIntegerSelectorConst
+from bt2.field_class import _VariantFieldClassWithUnsignedIntegerSelectorConst
+from bt2.field_class import _VariantFieldClassWithSignedIntegerSelectorConst
 from bt2.field_class import _ArrayFieldClassConst
 from bt2.field_class import _StaticArrayFieldClassConst
 from bt2.field_class import _DynamicArrayFieldClassConst

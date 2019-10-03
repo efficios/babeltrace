@@ -293,8 +293,8 @@ static inline void format_field_class(char **buf_ch, bool extended,
 		break;
 	}
 	case BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR:
-	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_SELECTOR:
-	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_SELECTOR:
+	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR:
+	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_INTEGER_SELECTOR:
 	{
 		const struct bt_field_class_variant *var_fc =
 			(const void *) field_class;
@@ -304,8 +304,8 @@ static inline void format_field_class(char **buf_ch, bool extended,
 				PRFIELD(var_fc->common.named_fcs->len));
 		}
 
-		if (field_class->type == BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_SELECTOR ||
-				field_class->type == BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_SELECTOR) {
+		if (field_class->type == BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR ||
+				field_class->type == BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_INTEGER_SELECTOR) {
 			const struct bt_field_class_variant_with_selector *var_with_sel_fc =
 				(const void *) var_fc;
 
@@ -442,8 +442,8 @@ static inline void format_field(char **buf_ch, bool extended,
 		break;
 	}
 	case BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR:
-	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_SELECTOR:
-	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_SELECTOR:
+	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR:
+	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_INTEGER_SELECTOR:
 	{
 		const struct bt_field_variant *var_field = (const void *) field;
 
