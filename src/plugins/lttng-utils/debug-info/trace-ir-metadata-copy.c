@@ -328,7 +328,6 @@ int copy_stream_class_content(struct trace_ir_maps *ir_maps,
 		}
 	}
 
-	/* Set packet snapshot boolean fields. */
 	BT_COMP_LOGD("Copied content of stream class: in-sc-addr=%p, out-sc-addr=%p",
 			in_stream_class, out_stream_class);
 error:
