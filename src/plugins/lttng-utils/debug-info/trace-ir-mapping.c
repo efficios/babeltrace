@@ -232,10 +232,6 @@ bt_stream *trace_ir_mapping_create_new_mapped_stream(
 		BT_COMP_LOGE_STR("Error creating output stream");
 		goto end;
 	}
-	/*
-	 * Release our ref since the trace object will be managing the life
-	 * time of the stream objects.
-	 */
 
 	copy_stream_content(in_stream, out_stream, ir_maps->log_level,
 		ir_maps->self_comp);
@@ -391,10 +387,6 @@ bt_packet *trace_ir_mapping_create_new_mapped_packet(
 		goto end;
 	}
 
-	/*
-	 * Release our ref since the stream object will be managing the life
-	 * time of the packet objects.
-	 */
 	copy_packet_content(in_packet, out_packet, ir_maps->log_level,
 		ir_maps->self_comp);
 
