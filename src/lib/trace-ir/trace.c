@@ -25,6 +25,7 @@
 #include "lib/logging.h"
 
 #include "lib/assert-pre.h"
+#include "lib/assert-post.h"
 #include <babeltrace2/trace-ir/trace.h>
 #include <babeltrace2/trace-ir/trace-const.h>
 #include <babeltrace2/trace-ir/event-class.h>
@@ -108,7 +109,7 @@ void destroy_trace(struct bt_object *obj)
 			 * The destruction listener should not have kept a
 			 * reference to the trace.
 			 */
-			BT_ASSERT_PRE(trace->base.ref_count == 1, "Destruction listener kept a reference to the trace being destroyed: %![trace-]+t", trace);
+			BT_ASSERT_POST(trace->base.ref_count == 1, "Destruction listener kept a reference to the trace being destroyed: %![trace-]+t", trace);
 		}
 		g_array_free(trace->destruction_listeners, TRUE);
 		trace->destruction_listeners = NULL;
