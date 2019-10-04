@@ -48,8 +48,8 @@ void fct(void)
 #define UNSIGNED_INT_WRITE_TEST_DESC_FMT_STR "Writing and reading back 0x%X, unsigned int source, varying write unit size"
 #define UNSIGNED_LONG_LONG_READ_TEST_DESC_FMT_STR "Writing and reading back 0x%llX, unsigned long long dest, varying read unit size"
 #define UNSIGNED_LONG_LONG_WRITE_TEST_DESC_FMT_STR "Writing and reading back 0x%llX, unsigned long long source, varying write unit size"
-#define DIAG_FMT_STR "Failed reading value written \"%s\"-wise, with start=%i" \
-	" and length=%i. Read %llX"
+#define DIAG_FMT_STR(val_type_fmt) "Failed reading value written \"%s\"-wise, with start=%i" \
+	" and length=%i. Read 0x" val_type_fmt
 
 static
 unsigned int fls_u64(uint64_t x)
@@ -136,16 +136,16 @@ do {					\
 		(c)[i] = (val);		\
 } while (0)
 
-#define check_result(ref, val, buffer, typename, start, len,		\
-		desc_fmt_str)						\
-({									\
-	if ((val) != (ref)) {						\
-		fail(desc_fmt_str, ref);				\
-		diag(DIAG_FMT_STR, #typename, start, len, val);		\
-		printf("# ");						\
-		print_byte_array(buffer, TEST_LEN);			\
-	}								\
-	(val) != (ref);							\
+#define check_result(ref, val, buffer, typename, start, len,			\
+		desc_fmt_str, val_type_fmt)					\
+({										\
+	if ((val) != (ref)) {							\
+		fail(desc_fmt_str, ref);					\
+		diag(DIAG_FMT_STR(val_type_fmt), #typename, start, len, val);	\
+		printf("# ");							\
+		print_byte_array(buffer, TEST_LEN);				\
+	}									\
+	(val) != (ref);								\
 })
 
 void run_test_unsigned_write(unsigned int src_ui, unsigned long long src_ull)
@@ -171,7 +171,8 @@ void run_test_unsigned_write(unsigned int src_ui, unsigned long long src_ull)
 			bt_bitfield_write(target.c, unsigned char, s, l, src_ui);
 			bt_bitfield_read(target.c, unsigned char, s, l, &readval);
 			if (check_result(src_ui, readval, target.c, unsigned char,
-					s, l, UNSIGNED_INT_WRITE_TEST_DESC_FMT_STR)) {
+					s, l, UNSIGNED_INT_WRITE_TEST_DESC_FMT_STR,
+					"%llX")) {
 				return;
 			}
 
@@ -179,7 +180,8 @@ void run_test_unsigned_write(unsigned int src_ui, unsigned long long src_ull)
 			bt_bitfield_write(target.s, unsigned short, s, l, src_ui);
 			bt_bitfield_read(target.c, unsigned char, s, l, &readval);
 			if (check_result(src_ui, readval, target.c, unsigned short,
-					s, l, UNSIGNED_INT_WRITE_TEST_DESC_FMT_STR)) {
+					s, l, UNSIGNED_INT_WRITE_TEST_DESC_FMT_STR,
+					"%llX")) {
 				return;
 			}
 
@@ -187,7 +189,8 @@ void run_test_unsigned_write(unsigned int src_ui, unsigned long long src_ull)
 			bt_bitfield_write(target.i, unsigned int, s, l, src_ui);
 			bt_bitfield_read(target.c, unsigned char, s, l, &readval);
 			if (check_result(src_ui, readval, target.c, unsigned int,
-					s, l, UNSIGNED_INT_WRITE_TEST_DESC_FMT_STR)) {
+					s, l, UNSIGNED_INT_WRITE_TEST_DESC_FMT_STR,
+					"%llX")) {
 				return;
 			}
 
@@ -195,7 +198,8 @@ void run_test_unsigned_write(unsigned int src_ui, unsigned long long src_ull)
 			bt_bitfield_write(target.l, unsigned long, s, l, src_ui);
 			bt_bitfield_read(target.c, unsigned char, s, l, &readval);
 			if (check_result(src_ui, readval, target.c, unsigned long,
-					s, l, UNSIGNED_INT_WRITE_TEST_DESC_FMT_STR)) {
+					s, l, UNSIGNED_INT_WRITE_TEST_DESC_FMT_STR,
+					"%llX")) {
 				return;
 			}
 
@@ -203,7 +207,8 @@ void run_test_unsigned_write(unsigned int src_ui, unsigned long long src_ull)
 			bt_bitfield_write(target.ll, unsigned long long, s, l, src_ui);
 			bt_bitfield_read(target.c, unsigned char, s, l, &readval);
 			if (check_result(src_ui, readval, target.c, unsigned long long,
-					s, l, UNSIGNED_INT_WRITE_TEST_DESC_FMT_STR)) {
+					s, l, UNSIGNED_INT_WRITE_TEST_DESC_FMT_STR,
+					"%llX")) {
 				return;
 			}
 		}
@@ -220,7 +225,8 @@ void run_test_unsigned_write(unsigned int src_ui, unsigned long long src_ull)
 			bt_bitfield_write(target.c, unsigned char, s, l, src_ull);
 			bt_bitfield_read(target.c, unsigned char, s, l, &readval);
 			if (check_result(src_ull, readval, target.c, unsigned char,
-					s, l, UNSIGNED_LONG_LONG_WRITE_TEST_DESC_FMT_STR)) {
+					s, l, UNSIGNED_LONG_LONG_WRITE_TEST_DESC_FMT_STR,
+					"%llX")) {
 				return;
 			}
 
@@ -228,7 +234,8 @@ void run_test_unsigned_write(unsigned int src_ui, unsigned long long src_ull)
 			bt_bitfield_write(target.s, unsigned short, s, l, src_ull);
 			bt_bitfield_read(target.c, unsigned char, s, l, &readval);
 			if (check_result(src_ull, readval, target.c, unsigned short,
-					s, l, UNSIGNED_LONG_LONG_WRITE_TEST_DESC_FMT_STR)) {
+					s, l, UNSIGNED_LONG_LONG_WRITE_TEST_DESC_FMT_STR,
+					"%llX")) {
 				return;
 			}
 
@@ -236,7 +243,8 @@ void run_test_unsigned_write(unsigned int src_ui, unsigned long long src_ull)
 			bt_bitfield_write(target.i, unsigned int, s, l, src_ull);
 			bt_bitfield_read(target.c, unsigned char, s, l, &readval);
 			if (check_result(src_ull, readval, target.c, unsigned int,
-					s, l, UNSIGNED_LONG_LONG_WRITE_TEST_DESC_FMT_STR)) {
+					s, l, UNSIGNED_LONG_LONG_WRITE_TEST_DESC_FMT_STR,
+					"%llX")) {
 				return;
 			}
 
@@ -244,7 +252,8 @@ void run_test_unsigned_write(unsigned int src_ui, unsigned long long src_ull)
 			bt_bitfield_write(target.l, unsigned long, s, l, src_ull);
 			bt_bitfield_read(target.c, unsigned char, s, l, &readval);
 			if (check_result(src_ull, readval, target.c, unsigned long,
-					s, l, UNSIGNED_LONG_LONG_WRITE_TEST_DESC_FMT_STR)) {
+					s, l, UNSIGNED_LONG_LONG_WRITE_TEST_DESC_FMT_STR,
+					"%llX")) {
 				return;
 			}
 
@@ -252,7 +261,8 @@ void run_test_unsigned_write(unsigned int src_ui, unsigned long long src_ull)
 			bt_bitfield_write(target.ll, unsigned long long, s, l, src_ull);
 			bt_bitfield_read(target.c, unsigned char, s, l, &readval);
 			if (check_result(src_ull, readval, target.c, unsigned long long,
-					s, l, UNSIGNED_LONG_LONG_WRITE_TEST_DESC_FMT_STR)) {
+					s, l, UNSIGNED_LONG_LONG_WRITE_TEST_DESC_FMT_STR,
+					"%llX")) {
 				return;
 			}
 		}
@@ -283,7 +293,8 @@ void run_test_unsigned_read(unsigned int src_ui, unsigned long long src_ull)
 			bt_bitfield_write(target.c, unsigned char, s, l, src_ui);
 			bt_bitfield_read(target.c, unsigned char, s, l, &readval_ui);
 			if (check_result(src_ui, readval_ui, target.c, unsigned char,
-					s, l, UNSIGNED_INT_READ_TEST_DESC_FMT_STR)) {
+					s, l, UNSIGNED_INT_READ_TEST_DESC_FMT_STR,
+					"%X")) {
 				return;
 			}
 
@@ -291,7 +302,8 @@ void run_test_unsigned_read(unsigned int src_ui, unsigned long long src_ull)
 			bt_bitfield_write(target.c, unsigned char, s, l, src_ui);
 			bt_bitfield_read(target.s, unsigned short, s, l, &readval_ui);
 			if (check_result(src_ui, readval_ui, target.c, unsigned short,
-					s, l, UNSIGNED_INT_READ_TEST_DESC_FMT_STR)) {
+					s, l, UNSIGNED_INT_READ_TEST_DESC_FMT_STR,
+					"%X")) {
 				return;
 			}
 
@@ -299,7 +311,8 @@ void run_test_unsigned_read(unsigned int src_ui, unsigned long long src_ull)
 			bt_bitfield_write(target.c, unsigned char, s, l, src_ui);
 			bt_bitfield_read(target.i, unsigned int, s, l, &readval_ui);
 			if (check_result(src_ui, readval_ui, target.c, unsigned int,
-					s, l, UNSIGNED_INT_READ_TEST_DESC_FMT_STR)) {
+					s, l, UNSIGNED_INT_READ_TEST_DESC_FMT_STR,
+					"%X")) {
 				return;
 			}
 
@@ -307,7 +320,8 @@ void run_test_unsigned_read(unsigned int src_ui, unsigned long long src_ull)
 			bt_bitfield_write(target.c, unsigned char, s, l, src_ui);
 			bt_bitfield_read(target.l, unsigned long, s, l, &readval_ui);
 			if (check_result(src_ui, readval_ui, target.c, unsigned long,
-					s, l, UNSIGNED_INT_READ_TEST_DESC_FMT_STR)) {
+					s, l, UNSIGNED_INT_READ_TEST_DESC_FMT_STR,
+					"%X")) {
 				return;
 			}
 
@@ -315,7 +329,8 @@ void run_test_unsigned_read(unsigned int src_ui, unsigned long long src_ull)
 			bt_bitfield_write(target.c, unsigned char, s, l, src_ui);
 			bt_bitfield_read(target.ll, unsigned long long, s, l, &readval_ui);
 			if (check_result(src_ui, readval_ui, target.c, unsigned long long,
-					s, l, UNSIGNED_INT_READ_TEST_DESC_FMT_STR)) {
+					s, l, UNSIGNED_INT_READ_TEST_DESC_FMT_STR,
+					"%X")) {
 				return;
 			}
 		}
@@ -332,7 +347,8 @@ void run_test_unsigned_read(unsigned int src_ui, unsigned long long src_ull)
 			bt_bitfield_write(target.c, unsigned char, s, l, src_ull);
 			bt_bitfield_read(target.c, unsigned char, s, l, &readval_ull);
 			if (check_result(src_ull, readval_ull, target.c, unsigned char,
-					s, l, UNSIGNED_LONG_LONG_READ_TEST_DESC_FMT_STR)) {
+					s, l, UNSIGNED_LONG_LONG_READ_TEST_DESC_FMT_STR,
+					"%llX")) {
 				return;
 			}
 
@@ -340,7 +356,8 @@ void run_test_unsigned_read(unsigned int src_ui, unsigned long long src_ull)
 			bt_bitfield_write(target.c, unsigned char, s, l, src_ull);
 			bt_bitfield_read(target.s, unsigned short, s, l, &readval_ull);
 			if (check_result(src_ull, readval_ull, target.c, unsigned short,
-					s, l, UNSIGNED_LONG_LONG_READ_TEST_DESC_FMT_STR)) {
+					s, l, UNSIGNED_LONG_LONG_READ_TEST_DESC_FMT_STR,
+					"%llX")) {
 				return;
 			}
 
@@ -348,7 +365,8 @@ void run_test_unsigned_read(unsigned int src_ui, unsigned long long src_ull)
 			bt_bitfield_write(target.c, unsigned char, s, l, src_ull);
 			bt_bitfield_read(target.i, unsigned int, s, l, &readval_ull);
 			if (check_result(src_ull, readval_ull, target.c, unsigned int,
-					s, l, UNSIGNED_LONG_LONG_READ_TEST_DESC_FMT_STR)) {
+					s, l, UNSIGNED_LONG_LONG_READ_TEST_DESC_FMT_STR,
+					"%llX")) {
 				return;
 			}
 
@@ -356,7 +374,8 @@ void run_test_unsigned_read(unsigned int src_ui, unsigned long long src_ull)
 			bt_bitfield_write(target.c, unsigned char, s, l, src_ull);
 			bt_bitfield_read(target.l, unsigned long, s, l, &readval_ull);
 			if (check_result(src_ull, readval_ull, target.c, unsigned long,
-					s, l, UNSIGNED_LONG_LONG_READ_TEST_DESC_FMT_STR)) {
+					s, l, UNSIGNED_LONG_LONG_READ_TEST_DESC_FMT_STR,
+					"%llX")) {
 				return;
 			}
 
@@ -364,7 +383,8 @@ void run_test_unsigned_read(unsigned int src_ui, unsigned long long src_ull)
 			bt_bitfield_write(target.c, unsigned char, s, l, src_ull);
 			bt_bitfield_read(target.ll, unsigned long long, s, l, &readval_ull);
 			if (check_result(src_ull, readval_ull, target.c, unsigned long long,
-					s, l, UNSIGNED_LONG_LONG_READ_TEST_DESC_FMT_STR)) {
+					s, l, UNSIGNED_LONG_LONG_READ_TEST_DESC_FMT_STR,
+					"%llX")) {
 				return;
 			}
 		}
@@ -405,7 +425,8 @@ void run_test_signed_write(int src_i, long long src_ll)
 			bt_bitfield_write(target.c, signed char, s, l, src_i);
 			bt_bitfield_read(target.c, signed char, s, l, &readval);
 			if (check_result(src_i, readval, target.c, signed char,
-					s, l, SIGNED_INT_WRITE_TEST_DESC_FMT_STR)) {
+					s, l, SIGNED_INT_WRITE_TEST_DESC_FMT_STR,
+					"%llX")) {
 				return;
 			}
 
@@ -413,7 +434,8 @@ void run_test_signed_write(int src_i, long long src_ll)
 			bt_bitfield_write(target.s, short, s, l, src_i);
 			bt_bitfield_read(target.c, signed char, s, l, &readval);
 			if (check_result(src_i, readval, target.c, short,
-					s, l, SIGNED_INT_WRITE_TEST_DESC_FMT_STR)) {
+					s, l, SIGNED_INT_WRITE_TEST_DESC_FMT_STR,
+					"%llX")) {
 				return;
 			}
 
@@ -421,7 +443,8 @@ void run_test_signed_write(int src_i, long long src_ll)
 			bt_bitfield_write(target.i, int, s, l, src_i);
 			bt_bitfield_read(target.c, signed char, s, l, &readval);
 			if (check_result(src_i, readval, target.c, int,
-					s, l, SIGNED_INT_WRITE_TEST_DESC_FMT_STR)) {
+					s, l, SIGNED_INT_WRITE_TEST_DESC_FMT_STR,
+					"%llX")) {
 				return;
 			}
 
@@ -429,7 +452,8 @@ void run_test_signed_write(int src_i, long long src_ll)
 			bt_bitfield_write(target.l, long, s, l, src_i);
 			bt_bitfield_read(target.c, signed char, s, l, &readval);
 			if (check_result(src_i, readval, target.c, long,
-					s, l, SIGNED_INT_WRITE_TEST_DESC_FMT_STR)) {
+					s, l, SIGNED_INT_WRITE_TEST_DESC_FMT_STR,
+					"%llX")) {
 				return;
 			}
 
@@ -437,7 +461,8 @@ void run_test_signed_write(int src_i, long long src_ll)
 			bt_bitfield_write(target.ll, long long, s, l, src_i);
 			bt_bitfield_read(target.c, signed char, s, l, &readval);
 			if (check_result(src_i, readval, target.c, long long,
-					s, l, SIGNED_INT_WRITE_TEST_DESC_FMT_STR)) {
+					s, l, SIGNED_INT_WRITE_TEST_DESC_FMT_STR,
+					"%llX")) {
 				return;
 			}
 		}
@@ -458,7 +483,8 @@ void run_test_signed_write(int src_i, long long src_ll)
 			bt_bitfield_write(target.c, signed char, s, l, src_ll);
 			bt_bitfield_read(target.c, signed char, s, l, &readval);
 			if (check_result(src_ll, readval, target.c, signed char,
-					s, l, SIGNED_LONG_LONG_WRITE_TEST_DESC_FMT_STR)) {
+					s, l, SIGNED_LONG_LONG_WRITE_TEST_DESC_FMT_STR,
+					"%llX")) {
 				return;
 			}
 
@@ -466,7 +492,8 @@ void run_test_signed_write(int src_i, long long src_ll)
 			bt_bitfield_write(target.s, short, s, l, src_ll);
 			bt_bitfield_read(target.c, signed char, s, l, &readval);
 			if (check_result(src_ll, readval, target.c, short,
-					s, l, SIGNED_LONG_LONG_WRITE_TEST_DESC_FMT_STR)) {
+					s, l, SIGNED_LONG_LONG_WRITE_TEST_DESC_FMT_STR,
+					"%llX")) {
 				return;
 			}
 
@@ -474,7 +501,8 @@ void run_test_signed_write(int src_i, long long src_ll)
 			bt_bitfield_write(target.i, int, s, l, src_ll);
 			bt_bitfield_read(target.c, signed char, s, l, &readval);
 			if (check_result(src_ll, readval, target.c, int,
-					s, l, SIGNED_LONG_LONG_WRITE_TEST_DESC_FMT_STR)) {
+					s, l, SIGNED_LONG_LONG_WRITE_TEST_DESC_FMT_STR,
+					"%llX")) {
 				return;
 			}
 
@@ -482,7 +510,8 @@ void run_test_signed_write(int src_i, long long src_ll)
 			bt_bitfield_write(target.l, long, s, l, src_ll);
 			bt_bitfield_read(target.c, signed char, s, l, &readval);
 			if (check_result(src_ll, readval, target.c, long,
-					s, l, SIGNED_LONG_LONG_WRITE_TEST_DESC_FMT_STR)) {
+					s, l, SIGNED_LONG_LONG_WRITE_TEST_DESC_FMT_STR,
+					"%llX")) {
 				return;
 			}
 
@@ -490,7 +519,8 @@ void run_test_signed_write(int src_i, long long src_ll)
 			bt_bitfield_write(target.ll, long long, s, l, src_ll);
 			bt_bitfield_read(target.c, signed char, s, l, &readval);
 			if (check_result(src_ll, readval, target.c, long long,
-					s, l, SIGNED_LONG_LONG_WRITE_TEST_DESC_FMT_STR)) {
+					s, l, SIGNED_LONG_LONG_WRITE_TEST_DESC_FMT_STR,
+					"%llX")) {
 				return;
 			}
 		}
@@ -526,7 +556,8 @@ void run_test_signed_read(int src_i, long long src_ll)
 			bt_bitfield_write(target.c, signed char, s, l, src_i);
 			bt_bitfield_read(target.c, signed char, s, l, &readval_i);
 			if (check_result(src_i, readval_i, target.c, signed char,
-					s, l, SIGNED_INT_READ_TEST_DESC_FMT_STR)) {
+					s, l, SIGNED_INT_READ_TEST_DESC_FMT_STR,
+					"%X")) {
 				return;
 			}
 
@@ -534,7 +565,8 @@ void run_test_signed_read(int src_i, long long src_ll)
 			bt_bitfield_write(target.c, signed char, s, l, src_i);
 			bt_bitfield_read(target.s, short, s, l, &readval_i);
 			if (check_result(src_i, readval_i, target.c, short,
-					s, l, SIGNED_INT_READ_TEST_DESC_FMT_STR)) {
+					s, l, SIGNED_INT_READ_TEST_DESC_FMT_STR,
+					"%X")) {
 				return;
 			}
 
@@ -542,7 +574,8 @@ void run_test_signed_read(int src_i, long long src_ll)
 			bt_bitfield_write(target.c, signed char, s, l, src_i);
 			bt_bitfield_read(target.i, int, s, l, &readval_i);
 			if (check_result(src_i, readval_i, target.c, int,
-					s, l, SIGNED_INT_READ_TEST_DESC_FMT_STR)) {
+					s, l, SIGNED_INT_READ_TEST_DESC_FMT_STR,
+					"%X")) {
 				return;
 			}
 
@@ -550,7 +583,8 @@ void run_test_signed_read(int src_i, long long src_ll)
 			bt_bitfield_write(target.c, signed char, s, l, src_i);
 			bt_bitfield_read(target.l, long, s, l, &readval_i);
 			if (check_result(src_i, readval_i, target.c, long,
-					s, l, SIGNED_INT_READ_TEST_DESC_FMT_STR)) {
+					s, l, SIGNED_INT_READ_TEST_DESC_FMT_STR,
+					"%X")) {
 				return;
 			}
 
@@ -558,7 +592,8 @@ void run_test_signed_read(int src_i, long long src_ll)
 			bt_bitfield_write(target.c, signed char, s, l, src_i);
 			bt_bitfield_read(target.ll, long long, s, l, &readval_i);
 			if (check_result(src_i, readval_i, target.c, long long,
-					s, l, SIGNED_INT_READ_TEST_DESC_FMT_STR)) {
+					s, l, SIGNED_INT_READ_TEST_DESC_FMT_STR,
+					"%X")) {
 				return;
 			}
 		}
@@ -579,7 +614,8 @@ void run_test_signed_read(int src_i, long long src_ll)
 			bt_bitfield_write(target.c, signed char, s, l, src_ll);
 			bt_bitfield_read(target.c, signed char, s, l, &readval_ll);
 			if (check_result(src_ll, readval_ll, target.c, signed char,
-					s, l, SIGNED_LONG_LONG_READ_TEST_DESC_FMT_STR)) {
+					s, l, SIGNED_LONG_LONG_READ_TEST_DESC_FMT_STR,
+					"%llX")) {
 				return;
 			}
 
@@ -587,7 +623,8 @@ void run_test_signed_read(int src_i, long long src_ll)
 			bt_bitfield_write(target.c, signed char, s, l, src_ll);
 			bt_bitfield_read(target.s, short, s, l, &readval_ll);
 			if (check_result(src_ll, readval_ll, target.c, short,
-					s, l, SIGNED_LONG_LONG_READ_TEST_DESC_FMT_STR)) {
+					s, l, SIGNED_LONG_LONG_READ_TEST_DESC_FMT_STR,
+					"%llX")) {
 				return;
 			}
 
@@ -595,7 +632,8 @@ void run_test_signed_read(int src_i, long long src_ll)
 			bt_bitfield_write(target.c, signed char, s, l, src_ll);
 			bt_bitfield_read(target.i, int, s, l, &readval_ll);
 			if (check_result(src_ll, readval_ll, target.c, int,
-					s, l, SIGNED_LONG_LONG_READ_TEST_DESC_FMT_STR)) {
+					s, l, SIGNED_LONG_LONG_READ_TEST_DESC_FMT_STR,
+					"%llX")) {
 				return;
 			}
 
@@ -603,7 +641,8 @@ void run_test_signed_read(int src_i, long long src_ll)
 			bt_bitfield_write(target.c, signed char, s, l, src_ll);
 			bt_bitfield_read(target.l, long, s, l, &readval_ll);
 			if (check_result(src_ll, readval_ll, target.c, long,
-					s, l, SIGNED_LONG_LONG_READ_TEST_DESC_FMT_STR)) {
+					s, l, SIGNED_LONG_LONG_READ_TEST_DESC_FMT_STR,
+					"%llX")) {
 				return;
 			}
 
@@ -611,7 +650,8 @@ void run_test_signed_read(int src_i, long long src_ll)
 			bt_bitfield_write(target.c, signed char, s, l, src_ll);
 			bt_bitfield_read(target.ll, long long, s, l, &readval_ll);
 			if (check_result(src_ll, readval_ll, target.c, long long,
-					s, l, SIGNED_LONG_LONG_READ_TEST_DESC_FMT_STR)) {
+					s, l, SIGNED_LONG_LONG_READ_TEST_DESC_FMT_STR,
+					"%llX")) {
 				return;
 			}
 		}
