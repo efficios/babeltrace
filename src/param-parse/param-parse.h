@@ -25,6 +25,8 @@
 
 #include <babeltrace2/babeltrace.h>
 
+#include <glib.h>
+
 #include "common/macros.h"
 
 BT_HIDDEN

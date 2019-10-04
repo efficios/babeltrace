@@ -698,6 +698,7 @@ AC_CONFIG_FILES([
 	src/Makefile
 	src/plugins/common/Makefile
 	src/plugins/common/muxing/Makefile
+	src/plugins/common/param-validation/Makefile
 	src/plugins/ctf/common/bfcr/Makefile
 	src/plugins/ctf/common/Makefile
 	src/plugins/ctf/common/metadata/Makefile
@@ -727,6 +728,7 @@ AC_CONFIG_FILES([
 	tests/lib/Makefile
 	tests/lib/test-plugin-plugins/Makefile
 	tests/Makefile
+	tests/param-validation/Makefile
 	tests/plugins/Makefile
 	tests/plugins/src.ctf.fs/Makefile
 	tests/plugins/src.ctf.fs/succeed/Makefile
