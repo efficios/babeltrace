@@ -90,7 +90,7 @@ static GOptionEntry entries[] = {
 	 "XXXXXXXXXXXXXXX"},
 	{"debug-info-dir", 0, 0, G_OPTION_ARG_STRING, &opt_debug_info_dir,
 	 "Debug info directory", NULL},
-	{NULL}};
+	{NULL, 0, 0, G_OPTION_ARG_NONE, NULL, NULL, NULL}};
 
 static
 int build_id_to_bin(void)
