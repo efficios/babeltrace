@@ -151,7 +151,7 @@ void subtest_lookup_function_name(struct bin_info *bin, uint64_t addr,
 	char *_func_name = NULL;
 
 	ret = bin_info_lookup_function_name(bin, addr, &_func_name);
-	ok(ret == 0, "bin_info_lookup_function_name successful at 0x%x", addr);
+	ok(ret == 0, "bin_info_lookup_function_name successful at 0x%" PRIx64, addr);
 	if (_func_name) {
 		ok(strcmp(_func_name, func_name) == 0,
 		   "bin_info_lookup_function_name - correct function name (%s == %s)",
@@ -178,11 +178,11 @@ void subtest_lookup_source_location(struct bin_info *bin, uint64_t addr,
 	struct source_location *src_loc = NULL;
 
 	ret = bin_info_lookup_source_location(bin, addr, &src_loc);
-	ok(ret == 0, "bin_info_lookup_source_location successful at 0x%x",
+	ok(ret == 0, "bin_info_lookup_source_location successful at 0x%" PRIx64,
 	   addr);
 	if (src_loc) {
 		ok(src_loc->line_no == line_no,
-		   "bin_info_lookup_source_location - correct line_no (%d == %d)",
+		   "bin_info_lookup_source_location - correct line_no (%" PRIu64 " == %" PRIu64 ")",
 		   line_no, src_loc->line_no);
 		ok(strcmp(src_loc->filename, filename) == 0,
 		   "bin_info_lookup_source_location - correct filename (%s == %s)",

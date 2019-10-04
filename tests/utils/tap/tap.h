@@ -74,17 +74,21 @@
 
 #define skip_end() } while(0);
 
+__attribute__((format(printf, 5, 6)))
 unsigned int _gen_result(int, const char *, char *, unsigned int, char *, ...);
 
 int plan_no_plan(void);
 int plan_skip_all(char *);
 int plan_tests(unsigned int);
 
+__attribute__((format(printf, 1, 2)))
 unsigned int diag(char *, ...);
 void diag_multiline(const char *);
 
+__attribute__((format(printf, 2, 3)))
 int skip(unsigned int, char *, ...);
 
+__attribute__((format(printf, 1, 2)))
 void todo_start(char *, ...);
 void todo_end(void);
 
