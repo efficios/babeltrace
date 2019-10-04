@@ -39,10 +39,11 @@
 #include "utils.h"
 
 BT_HIDDEN
-int copy_trace_class_content(const bt_trace_class *in_trace_class,
-		bt_trace_class *out_trace_class, bt_logging_level log_level,
-		bt_self_component *self_comp)
+int copy_trace_class_content(struct trace_ir_maps *ir_maps,
+		const bt_trace_class *in_trace_class, bt_trace_class *out_trace_class,
+		bt_logging_level log_level, bt_self_component *self_comp)
 {
+	uint64_t sc_number, sc_idx;
 	BT_COMP_LOGD("Copying content of trace class: in-tc-addr=%p, out-tc-addr=%p",
 		in_trace_class, out_trace_class);
 
@@ -56,6 +57,27 @@ int copy_trace_class_content(const bt_trace_class *in_trace_class,
 	/* Use the same stream class ids as in the origin trace class. */
 	bt_trace_class_set_assigns_automatic_stream_class_id(out_trace_class,
 		BT_FALSE);
+
+	/* Copy stream classes contained in the trace class. */
+	sc_number = bt_trace_class_get_stream_class_count(in_trace_class);
+	for (sc_idx = 0; sc_idx < sc_number; sc_idx++) {
+		bt_stream_class *out_stream_class;
+		const bt_stream_class *in_stream_class =
+			bt_trace_class_borrow_stream_class_by_index_const(
+				in_trace_class, sc_idx);
+
+		out_stream_class = trace_ir_mapping_borrow_mapped_stream_class(
+			ir_maps, in_stream_class);
+		if (!out_stream_class) {
+			/*
+			 * We don't need the new stream_class yet. We simply
+			 * want to create it and keep it in the map.
+			 */
+			(void) trace_ir_mapping_create_new_mapped_stream_class(
+				ir_maps, in_stream_class);
+		}
+	}
+
 	BT_COMP_LOGD("Copied content of trace class: in-tc-addr=%p, out-tc-addr=%p",
 		in_trace_class, out_trace_class);
 	return 0;
@@ -192,6 +214,7 @@ int copy_stream_class_content(struct trace_ir_maps *ir_maps,
 	const bt_field_class *in_packet_context_fc, *in_common_context_fc;
 	bt_field_class *out_packet_context_fc, *out_common_context_fc;
 	const char *in_name;
+	uint64_t ec_number, ec_idx;
 	bt_logging_level log_level = ir_maps->log_level;
 	bt_self_component *self_comp = ir_maps->self_comp;
 	int ret = 0;
@@ -321,6 +344,25 @@ int copy_stream_class_content(struct trace_ir_maps *ir_maps,
 				out_stream_class, out_common_context_fc);
 			ret = -1;
 			goto error;
+		}
+	}
+
+	/* Copy event classes contained in the stream class. */
+	ec_number = bt_stream_class_get_event_class_count(in_stream_class);
+	for (ec_idx = 0; ec_idx < ec_number; ec_idx++) {
+		bt_event_class *out_event_class;
+		const bt_event_class *in_event_class =
+			bt_stream_class_borrow_event_class_by_id_const(
+				in_stream_class, ec_idx);
+		out_event_class = trace_ir_mapping_borrow_mapped_event_class(
+			ir_maps, in_event_class);
+		if (!out_event_class) {
+			/*
+			 * We don't need the new event_class yet. We simply
+			 * want to create it and keep it in the map.
+			 */
+			(void) trace_ir_mapping_create_new_mapped_event_class(
+				ir_maps, in_event_class);
 		}
 	}
 

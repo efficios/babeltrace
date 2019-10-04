@@ -158,6 +158,16 @@ BT_HIDDEN
 void trace_ir_metadata_maps_destroy(struct trace_ir_metadata_maps *md_maps);
 
 BT_HIDDEN
+bt_stream_class *trace_ir_mapping_create_new_mapped_stream_class(
+		struct trace_ir_maps *ir_maps,
+		const bt_stream_class *in_stream_class);
+
+BT_HIDDEN
+bt_stream_class *trace_ir_mapping_borrow_mapped_stream_class(
+		struct trace_ir_maps *ir_maps,
+		const bt_stream_class *in_stream_class);
+
+BT_HIDDEN
 bt_stream *trace_ir_mapping_create_new_mapped_stream(
 		struct trace_ir_maps *ir_maps,
 		const bt_stream *in_stream);
