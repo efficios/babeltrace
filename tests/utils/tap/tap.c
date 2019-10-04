@@ -82,8 +82,8 @@ void funlockfile(FILE * filehandle) {
  * test_comment -- a comment to print afterwards, may be NULL
  */
 unsigned int
-_gen_result(int ok, const char *func, char *file, unsigned int line,
-	    char *test_name, ...)
+_gen_result(int ok, const char *func, const char *file, unsigned int line,
+	    const char *test_name, ...)
 {
 	va_list ap;
 	char *local_test_name = NULL;
@@ -228,7 +228,7 @@ plan_no_plan(void)
  * Note that the plan is to skip all tests
  */
 int
-plan_skip_all(char *reason)
+plan_skip_all(const char *reason)
 {
 
 	LOCK;
@@ -284,7 +284,7 @@ plan_tests(unsigned int tests)
 }
 
 unsigned int
-diag(char *fmt, ...)
+diag(const char *fmt, ...)
 {
 	va_list ap;
 
@@ -330,7 +330,7 @@ _expected_tests(unsigned int tests)
 }
 
 int
-skip(unsigned int n, char *fmt, ...)
+skip(unsigned int n, const char *fmt, ...)
 {
 	va_list ap;
 	char *skip_msg = NULL;
@@ -358,7 +358,7 @@ skip(unsigned int n, char *fmt, ...)
 }
 
 void
-todo_start(char *fmt, ...)
+todo_start(const char *fmt, ...)
 {
 	va_list ap;
 

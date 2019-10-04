@@ -75,21 +75,21 @@
 #define skip_end() } while(0);
 
 __attribute__((format(printf, 5, 6)))
-unsigned int _gen_result(int, const char *, char *, unsigned int, char *, ...);
+unsigned int _gen_result(int, const char *, const char *, unsigned int, const char *, ...);
 
 int plan_no_plan(void);
-int plan_skip_all(char *);
+int plan_skip_all(const char *);
 int plan_tests(unsigned int);
 
 __attribute__((format(printf, 1, 2)))
-unsigned int diag(char *, ...);
+unsigned int diag(const char *, ...);
 void diag_multiline(const char *);
 
 __attribute__((format(printf, 2, 3)))
-int skip(unsigned int, char *, ...);
+int skip(unsigned int, const char *, ...);
 
 __attribute__((format(printf, 1, 2)))
-void todo_start(char *, ...);
+void todo_start(const char *, ...);
 void todo_end(void);
 
 int exit_status(void);
