@@ -31,6 +31,7 @@
 #include <glib.h>
 #include "common/assert.h"
 #include "ctfser/ctfser.h"
+#include "plugins/common/param-validation/param-validation.h"
 
 #include "fs-sink.h"
 #include "fs-sink-trace.h"
@@ -64,51 +65,47 @@ end:
 	return status;
 }
 
+static struct bt_param_validation_map_value_entry_descr fs_sink_params_descr[] = {
+	{ "path", BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_MANDATORY, { .type = BT_VALUE_TYPE_STRING } },
+	{ "assume-single-trace", BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_OPTIONAL, { .type = BT_VALUE_TYPE_BOOL } },
+	{ "ignore-discarded-events", BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_OPTIONAL, { .type = BT_VALUE_TYPE_BOOL } },
+	{ "ignore-discarded-packets", BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_OPTIONAL, { .type = BT_VALUE_TYPE_BOOL } },
+	{ "quiet", BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_OPTIONAL, { .type = BT_VALUE_TYPE_BOOL } },
+	BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_END
+};
+
 static
 bt_component_class_initialize_method_status
-configure_component(struct fs_sink_comp *fs_sink,
-		const bt_value *params)
+configure_component(struct fs_sink_comp *fs_sink, const bt_value *params)
 {
-	bt_component_class_initialize_method_status status =
-		BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_OK;
+	bt_component_class_initialize_method_status status;
 	const bt_value *value;
+	enum bt_param_validation_status validation_status;
+	gchar *validation_error;
+
+	validation_status = bt_param_validation_validate(params,
+		fs_sink_params_descr, &validation_error);
+	if (validation_status == BT_PARAM_VALIDATION_STATUS_VALIDATION_ERROR) {
+		status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_ERROR;
+		goto end;
+	} else if (validation_status == BT_PARAM_VALIDATION_STATUS_MEMORY_ERROR) {
+		status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_MEMORY_ERROR;
+		goto end;
+	}
 
 	value = bt_value_map_borrow_entry_value_const(params, "path");
-	if (!value) {
-		BT_COMP_LOGE_STR("Missing mandatory `path` parameter.");
-		status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_ERROR;
-		goto end;
-	}
-
-	if (!bt_value_is_string(value)) {
-		BT_COMP_LOGE_STR("`path` parameter: expecting a string.");
-		status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_ERROR;
-		goto end;
-	}
-
 	g_string_assign(fs_sink->output_dir_path,
 		bt_value_string_get(value));
+
 	value = bt_value_map_borrow_entry_value_const(params,
 		"assume-single-trace");
 	if (value) {
-		if (!bt_value_is_bool(value)) {
-			BT_COMP_LOGE_STR("`assume-single-trace` parameter: expecting a boolean.");
-			status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_ERROR;
-			goto end;
-		}
-
 		fs_sink->assume_single_trace = (bool) bt_value_bool_get(value);
 	}
 
 	value = bt_value_map_borrow_entry_value_const(params,
 		"ignore-discarded-events");
 	if (value) {
-		if (!bt_value_is_bool(value)) {
-			BT_COMP_LOGE_STR("`ignore-discarded-events` parameter: expecting a boolean.");
-			status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_ERROR;
-			goto end;
-		}
-
 		fs_sink->ignore_discarded_events =
 			(bool) bt_value_bool_get(value);
 	}
@@ -116,12 +113,6 @@ configure_component(struct fs_sink_comp *fs_sink,
 	value = bt_value_map_borrow_entry_value_const(params,
 		"ignore-discarded-packets");
 	if (value) {
-		if (!bt_value_is_bool(value)) {
-			BT_COMP_LOGE_STR("`ignore-discarded-packets` parameter: expecting a boolean.");
-			status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_ERROR;
-			goto end;
-		}
-
 		fs_sink->ignore_discarded_packets =
 			(bool) bt_value_bool_get(value);
 	}
@@ -129,16 +120,13 @@ configure_component(struct fs_sink_comp *fs_sink,
 	value = bt_value_map_borrow_entry_value_const(params,
 		"quiet");
 	if (value) {
-		if (!bt_value_is_bool(value)) {
-			BT_COMP_LOGE_STR("`quiet` parameter: expecting a boolean.");
-			status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_ERROR;
-			goto end;
-		}
-
 		fs_sink->quiet = (bool) bt_value_bool_get(value);
 	}
 
+	status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_OK;
+
 end:
+	g_free(validation_error);
 	return status;
 }
 
