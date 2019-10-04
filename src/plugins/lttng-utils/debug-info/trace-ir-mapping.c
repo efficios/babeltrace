@@ -71,7 +71,7 @@ bt_trace_class *create_new_mapped_trace_class(struct trace_ir_maps *ir_maps,
 	}
 
 	BT_COMP_LOGD("Created new mapped trace class: in-tc-addr=%p, out-tc-addr=%p",
-			in_trace_class, out_trace_class);
+		in_trace_class, out_trace_class);
 
 end:
 	return out_trace_class;
@@ -91,7 +91,7 @@ bt_trace *create_new_mapped_trace(struct trace_ir_maps *ir_maps,
 
 	in_trace_class = bt_trace_borrow_class_const(in_trace);
 	metadata_maps = borrow_metadata_maps_from_input_trace_class(ir_maps,
-			in_trace_class);
+		in_trace_class);
 
 	if (!metadata_maps->output_trace_class) {
 		metadata_maps->output_trace_class =
@@ -113,7 +113,7 @@ bt_trace *create_new_mapped_trace(struct trace_ir_maps *ir_maps,
 		ir_maps->self_comp);
 
 	BT_COMP_LOGD("Created new mapped trace: in-t-addr=%p, out-t-addr=%p",
-			in_trace, out_trace);
+		in_trace, out_trace);
 end:
 	return out_trace;
 }
@@ -126,7 +126,7 @@ bt_stream_class *borrow_mapped_stream_class(struct trace_ir_metadata_maps *md_ma
 	BT_ASSERT(in_stream_class);
 
 	return g_hash_table_lookup(md_maps->stream_class_map,
-			(gpointer) in_stream_class);
+		(gpointer) in_stream_class);
 }
 
 static
@@ -138,10 +138,10 @@ bt_stream_class *create_new_mapped_stream_class(struct trace_ir_maps *ir_maps,
 	struct trace_ir_metadata_maps *md_maps;
 
 	BT_COMP_LOGD("Creating new mapped stream class: in-sc-addr=%p",
-			in_stream_class);
+		in_stream_class);
 
 	md_maps = borrow_metadata_maps_from_input_stream_class(ir_maps,
-			in_stream_class);
+		in_stream_class);
 
 	BT_ASSERT(md_maps);
 	BT_ASSERT(in_stream_class);
@@ -149,8 +149,8 @@ bt_stream_class *create_new_mapped_stream_class(struct trace_ir_maps *ir_maps,
 
 	/* Create an out_stream_class. */
 	out_stream_class = bt_stream_class_create_with_id(
-			md_maps->output_trace_class,
-			bt_stream_class_get_id(in_stream_class));
+		md_maps->output_trace_class,
+		bt_stream_class_get_id(in_stream_class));
 	if (!out_stream_class) {
 		BT_COMP_LOGE_STR("Error create output stream class");
 		goto end;
@@ -158,7 +158,7 @@ bt_stream_class *create_new_mapped_stream_class(struct trace_ir_maps *ir_maps,
 
 	/* If not, create a new one and add it to the mapping. */
 	ret = copy_stream_class_content(ir_maps, in_stream_class,
-			out_stream_class);
+		out_stream_class);
 	if (ret) {
 		BT_COMP_LOGE_STR("Error copy content to output stream class");
 		out_stream_class = NULL;
@@ -166,10 +166,10 @@ bt_stream_class *create_new_mapped_stream_class(struct trace_ir_maps *ir_maps,
 	}
 
 	g_hash_table_insert(md_maps->stream_class_map,
-			(gpointer) in_stream_class, out_stream_class);
+		(gpointer) in_stream_class, out_stream_class);
 
 	BT_COMP_LOGD("Created new mapped stream class: in-sc-addr=%p, out-sc-addr=%p",
-			in_stream_class, out_stream_class);
+		in_stream_class, out_stream_class);
 
 end:
 	return out_stream_class;
@@ -219,7 +219,7 @@ bt_stream *trace_ir_mapping_create_new_mapped_stream(
 	out_stream_class = borrow_mapped_stream_class(md_maps, in_stream_class);
 	if (!out_stream_class) {
 		out_stream_class = create_new_mapped_stream_class(ir_maps,
-				in_stream_class);
+			in_stream_class);
 		if (!out_stream_class) {
 			goto end;
 		}
@@ -237,10 +237,10 @@ bt_stream *trace_ir_mapping_create_new_mapped_stream(
 		ir_maps->self_comp);
 
 	g_hash_table_insert(d_maps->stream_map, (gpointer) in_stream,
-			out_stream);
+		out_stream);
 
 	BT_COMP_LOGD("Created new mapped stream: in-s-addr=%p, out-s-addr=%p",
-			in_stream, out_stream);
+		in_stream, out_stream);
 
 end:
 	return out_stream;
@@ -264,7 +264,7 @@ bt_event_class *borrow_mapped_event_class(struct trace_ir_metadata_maps *md_maps
 		const bt_event_class *in_event_class)
 {
 	return g_hash_table_lookup(md_maps->event_class_map,
-			(gpointer) in_event_class);
+		(gpointer) in_event_class);
 }
 
 BT_HIDDEN
@@ -285,10 +285,10 @@ bt_event_class *trace_ir_mapping_create_new_mapped_event_class(
 			in_event_class);
 
 	in_trace_class = bt_stream_class_borrow_trace_class_const(
-				bt_event_class_borrow_stream_class_const(
-					in_event_class));
+		bt_event_class_borrow_stream_class_const(in_event_class));
 
-	md_maps = borrow_metadata_maps_from_input_trace_class(ir_maps, in_trace_class);
+	md_maps = borrow_metadata_maps_from_input_trace_class(ir_maps,
+		in_trace_class);
 
 	BT_ASSERT(!borrow_mapped_event_class(md_maps, in_event_class));
 
@@ -302,7 +302,7 @@ bt_event_class *trace_ir_mapping_create_new_mapped_event_class(
 
 	/* Create an output event class. */
 	out_event_class = bt_event_class_create_with_id(out_stream_class,
-			bt_event_class_get_id(in_event_class));
+		bt_event_class_get_id(in_event_class));
 	if (!out_event_class) {
 		BT_COMP_LOGE_STR("Error creating output event class");
 		goto end;
@@ -310,7 +310,7 @@ bt_event_class *trace_ir_mapping_create_new_mapped_event_class(
 
 	/* If not, create a new one and add it to the mapping. */
 	ret = copy_event_class_content(ir_maps, in_event_class,
-			out_event_class);
+		out_event_class);
 	if (ret) {
 		BT_COMP_LOGE_STR("Error copy content to output event class");
 		out_event_class = NULL;
@@ -318,10 +318,10 @@ bt_event_class *trace_ir_mapping_create_new_mapped_event_class(
 	}
 
 	g_hash_table_insert(md_maps->event_class_map,
-			(gpointer) in_event_class, out_event_class);
+		(gpointer) in_event_class, out_event_class);
 
 	BT_COMP_LOGD("Created new mapped event class: in-ec-addr=%p, out-ec-addr=%p",
-			in_event_class, out_event_class);
+		in_event_class, out_event_class);
 
 end:
 	return out_event_class;
@@ -337,7 +337,8 @@ bt_event_class *trace_ir_mapping_borrow_mapped_event_class(
 	BT_ASSERT(ir_maps);
 	BT_ASSERT(in_event_class);
 
-	md_maps = borrow_metadata_maps_from_input_event_class(ir_maps, in_event_class);
+	md_maps = borrow_metadata_maps_from_input_event_class(ir_maps,
+		in_event_class);
 
 	/* Return the mapped event_class. */
 	return borrow_mapped_event_class(md_maps, in_event_class);
@@ -350,8 +351,7 @@ bt_packet *borrow_mapped_packet(struct trace_ir_data_maps *d_maps,
 	BT_ASSERT(d_maps);
 	BT_ASSERT(in_packet);
 
-	return g_hash_table_lookup(d_maps->packet_map,
-			(gpointer) in_packet);
+	return g_hash_table_lookup(d_maps->packet_map, (gpointer) in_packet);
 }
 
 BT_HIDDEN
@@ -391,10 +391,10 @@ bt_packet *trace_ir_mapping_create_new_mapped_packet(
 		ir_maps->self_comp);
 
 	g_hash_table_insert(d_maps->packet_map,
-			(gpointer) in_packet, out_packet);
+		(gpointer) in_packet, out_packet);
 
 	BT_COMP_LOGD("Created new mapped packet: in-p-addr=%p, out-p-addr=%p",
-			in_packet, out_packet);
+		in_packet, out_packet);
 
 end:
 	return out_packet;
@@ -455,7 +455,7 @@ void trace_ir_metadata_maps_remove_func(const bt_trace_class *in_trace_class,
 	if (maps->metadata_maps) {
 		gboolean ret;
 		ret = g_hash_table_remove(maps->metadata_maps,
-				(gpointer) in_trace_class);
+			(gpointer) in_trace_class);
 		BT_ASSERT(ret);
 	}
 }
@@ -474,8 +474,7 @@ void trace_ir_data_maps_remove_func(const bt_trace *in_trace, void *data)
 struct trace_ir_data_maps *trace_ir_data_maps_create(struct trace_ir_maps *ir_maps,
 		const bt_trace *in_trace)
 {
-	struct trace_ir_data_maps *d_maps =
-		g_new0(struct trace_ir_data_maps, 1);
+	struct trace_ir_data_maps *d_maps = g_new0(struct trace_ir_data_maps, 1);
 	bt_trace_add_listener_status add_listener_status;
 
 	if (!d_maps) {
@@ -532,20 +531,18 @@ struct trace_ir_metadata_maps *trace_ir_metadata_maps_create(
 
 	/* Create the hashtables used to map metadata objects. */
 	md_maps->stream_class_map = g_hash_table_new_full(g_direct_hash,
-			g_direct_equal, NULL, (GDestroyNotify) bt_stream_class_put_ref);
+		g_direct_equal, NULL, (GDestroyNotify) bt_stream_class_put_ref);
 	md_maps->event_class_map = g_hash_table_new_full(g_direct_hash,
-			g_direct_equal, NULL, (GDestroyNotify) bt_event_class_put_ref);
+		g_direct_equal, NULL, (GDestroyNotify) bt_event_class_put_ref);
 	md_maps->field_class_map = g_hash_table_new_full(g_direct_hash,
-			g_direct_equal, NULL, (GDestroyNotify) bt_field_class_put_ref);
+		g_direct_equal, NULL, (GDestroyNotify) bt_field_class_put_ref);
 	md_maps->clock_class_map = g_hash_table_new_full(g_direct_hash,
-			g_direct_equal, NULL, (GDestroyNotify) bt_clock_class_put_ref);
+		g_direct_equal, NULL, (GDestroyNotify) bt_clock_class_put_ref);
 
 	add_listener_status = bt_trace_class_add_destruction_listener(
-			in_trace_class,
-			trace_ir_metadata_maps_remove_func,
-			ir_maps, &md_maps->destruction_listener_id);
-	BT_ASSERT(add_listener_status ==
-		BT_TRACE_CLASS_ADD_LISTENER_STATUS_OK);
+		in_trace_class, trace_ir_metadata_maps_remove_func,
+		ir_maps, &md_maps->destruction_listener_id);
+	BT_ASSERT(add_listener_status == BT_TRACE_CLASS_ADD_LISTENER_STATUS_OK);
 
 error:
 	return md_maps;
@@ -616,8 +613,7 @@ void trace_ir_metadata_maps_destroy(struct trace_ir_metadata_maps *maps)
 	}
 
 	status = bt_trace_class_remove_destruction_listener(
-		maps->input_trace_class,
-		maps->destruction_listener_id);
+		maps->input_trace_class, maps->destruction_listener_id);
 	if (status != BT_TRACE_CLASS_REMOVE_LISTENER_STATUS_OK) {
 		BT_COMP_LOG_CUR_LVL(BT_LOG_DEBUG, maps->log_level,
 			maps->self_comp,
@@ -687,12 +683,12 @@ struct trace_ir_maps *trace_ir_maps_create(bt_self_component *self_comp,
 	ir_maps->self_comp = self_comp;
 
 	ir_maps->data_maps = g_hash_table_new_full(g_direct_hash,
-			g_direct_equal, (GDestroyNotify) NULL,
-			(GDestroyNotify) trace_ir_data_maps_destroy);
+		g_direct_equal, (GDestroyNotify) NULL,
+		(GDestroyNotify) trace_ir_data_maps_destroy);
 
 	ir_maps->metadata_maps = g_hash_table_new_full(g_direct_hash,
-			g_direct_equal, (GDestroyNotify) NULL,
-			(GDestroyNotify) trace_ir_metadata_maps_destroy);
+		g_direct_equal, (GDestroyNotify) NULL,
+		(GDestroyNotify) trace_ir_metadata_maps_destroy);
 
 	goto end;
 error:

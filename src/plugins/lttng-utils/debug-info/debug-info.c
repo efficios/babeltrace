@@ -215,7 +215,7 @@ struct debug_info_source *debug_info_source_create_from_bin(
 			}
 
 			debug_info_src->short_src_path = get_filename_from_path(
-					debug_info_src->src_path);
+				debug_info_src->src_path);
 		}
 		source_location_destroy(src_loc);
 	}
@@ -227,7 +227,7 @@ struct debug_info_source *debug_info_source_create_from_bin(
 		}
 
 		debug_info_src->short_bin_path = get_filename_from_path(
-				debug_info_src->bin_path);
+			debug_info_src->bin_path);
 
 		ret = bin_info_get_bin_loc(bin, ip, &(debug_info_src->bin_loc));
 		if (ret) {
@@ -273,15 +273,15 @@ struct proc_debug_info_sources *proc_debug_info_sources_create(void)
 	}
 
 	proc_dbg_info_src->baddr_to_bin_info = g_hash_table_new_full(
-			g_int64_hash, g_int64_equal, (GDestroyNotify) g_free,
-			(GDestroyNotify) bin_info_destroy);
+		g_int64_hash, g_int64_equal, (GDestroyNotify) g_free,
+		(GDestroyNotify) bin_info_destroy);
 	if (!proc_dbg_info_src->baddr_to_bin_info) {
 		goto error;
 	}
 
 	proc_dbg_info_src->ip_to_debug_info_src = g_hash_table_new_full(
-			g_int64_hash, g_int64_equal, (GDestroyNotify) g_free,
-			(GDestroyNotify) debug_info_source_destroy);
+		g_int64_hash, g_int64_equal, (GDestroyNotify) g_free,
+		(GDestroyNotify) debug_info_source_destroy);
 	if (!proc_dbg_info_src->ip_to_debug_info_src) {
 		goto error;
 	}
@@ -337,7 +337,7 @@ const bt_field *event_borrow_payload_field(const bt_event *event,
 	BT_ASSERT(event_payload);
 
 	field = bt_field_structure_borrow_member_field_by_name_const(
-			event_payload, field_name);
+		event_payload, field_name);
 	return field;
 }
 
@@ -353,7 +353,7 @@ const bt_field *event_borrow_common_context_field(const bt_event *event,
 	}
 
 	field = bt_field_structure_borrow_member_field_by_name_const(
-			event_common_ctx, field_name);
+		event_common_ctx, field_name);
 
 end:
 	return field;
@@ -364,7 +364,7 @@ void event_get_common_context_signed_integer_field_value(
 		const bt_event *event, const char *field_name, int64_t *value)
 {
 	*value = bt_field_integer_signed_get_value(
-			event_borrow_common_context_field(event, field_name));
+		event_borrow_common_context_field(event, field_name));
 }
 
 static inline
@@ -378,11 +378,11 @@ int event_get_payload_build_id_length(const bt_event *event,
 	build_id_field_class = bt_field_borrow_class_const(build_id_field);
 
 	BT_ASSERT(bt_field_class_get_type(build_id_field_class) ==
-			BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY);
+		BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY);
 	BT_ASSERT(bt_field_class_get_type(
-			bt_field_class_array_borrow_element_field_class_const(
-				build_id_field_class)) ==
-			BT_FIELD_CLASS_TYPE_UNSIGNED_INTEGER);
+		bt_field_class_array_borrow_element_field_class_const(
+			build_id_field_class)) ==
+		BT_FIELD_CLASS_TYPE_UNSIGNED_INTEGER);
 
 	*build_id_len = bt_field_array_get_length(build_id_field);
 
@@ -404,18 +404,17 @@ int event_get_payload_build_id_value(const bt_event *event,
 	build_id_field_class = bt_field_borrow_class_const(build_id_field);
 
 	BT_ASSERT(bt_field_class_get_type(build_id_field_class) ==
-			BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY);
+		BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY);
 	BT_ASSERT(bt_field_class_get_type(
-			bt_field_class_array_borrow_element_field_class_const(
-				build_id_field_class)) ==
-			BT_FIELD_CLASS_TYPE_UNSIGNED_INTEGER);
+		bt_field_class_array_borrow_element_field_class_const(
+			build_id_field_class)) ==
+		BT_FIELD_CLASS_TYPE_UNSIGNED_INTEGER);
 
 	build_id_len = bt_field_array_get_length(build_id_field);
 
 	for (i = 0; i < build_id_len; i++) {
-		curr_field =
-			bt_field_array_borrow_element_field_by_index_const(
-					build_id_field, i);
+		curr_field = bt_field_array_borrow_element_field_by_index_const(
+				build_id_field, i);
 
 		build_id[i] = bt_field_integer_unsigned_get_value(curr_field);
 	}
@@ -428,7 +427,7 @@ void event_get_payload_unsigned_integer_field_value(const bt_event *event,
 		const char *field_name, uint64_t *value)
 {
 	*value = bt_field_integer_unsigned_get_value(
-			event_borrow_payload_field(event, field_name));
+		event_borrow_payload_field(event, field_name));
 }
 
 static
@@ -436,7 +435,7 @@ void event_get_payload_string_field_value(const bt_event *event,
 		const char *field_name, const char **value)
 {
 	*value = bt_field_string_get_value(
-			event_borrow_payload_field(event, field_name));
+		event_borrow_payload_field(event, field_name));
 }
 
 static inline
@@ -464,8 +463,7 @@ struct debug_info_source *proc_debug_info_sources_get_entry(
 
 	/* Look in IP to debug infos hash table first. */
 	debug_info_src = g_hash_table_lookup(
-			proc_dbg_info_src->ip_to_debug_info_src,
-			key);
+		proc_dbg_info_src->ip_to_debug_info_src, key);
 	if (debug_info_src) {
 		goto end;
 	}
@@ -492,8 +490,8 @@ struct debug_info_source *proc_debug_info_sources_get_entry(
 			debug_info->self_comp);
 		if (debug_info_src) {
 			g_hash_table_insert(
-					proc_dbg_info_src->ip_to_debug_info_src,
-					key, debug_info_src);
+				proc_dbg_info_src->ip_to_debug_info_src, key,
+				debug_info_src);
 			/* Ownership passed to ht. */
 			key = NULL;
 		}
@@ -513,7 +511,7 @@ struct debug_info_source *debug_info_query(struct debug_info *debug_info,
 	struct proc_debug_info_sources *proc_dbg_info_src;
 
 	proc_dbg_info_src = proc_debug_info_sources_ht_get_entry(
-			debug_info->vpid_to_proc_dbg_info_src, vpid);
+		debug_info->vpid_to_proc_dbg_info_src, vpid);
 	if (!proc_dbg_info_src) {
 		goto end;
 	}
@@ -544,8 +542,8 @@ struct debug_info *debug_info_create(struct debug_info_component *comp,
 	debug_info->log_level = comp->log_level;
 	debug_info->self_comp = comp->self_comp;
 	debug_info->vpid_to_proc_dbg_info_src = g_hash_table_new_full(
-			g_int64_hash, g_int64_equal, (GDestroyNotify) g_free,
-			(GDestroyNotify) proc_debug_info_sources_destroy);
+		g_int64_hash, g_int64_equal, (GDestroyNotify) g_free,
+		(GDestroyNotify) proc_debug_info_sources_destroy);
 	if (!debug_info->vpid_to_proc_dbg_info_src) {
 		goto error;
 	}
@@ -584,8 +582,8 @@ void debug_info_destroy(struct debug_info *debug_info)
 	}
 
 	remove_listener_status = bt_trace_remove_destruction_listener(
-			debug_info->input_trace,
-			debug_info->destruction_listener_id);
+		debug_info->input_trace,
+		debug_info->destruction_listener_id);
 	if (remove_listener_status != BT_TRACE_REMOVE_LISTENER_STATUS_OK) {
 		BT_COMP_LOGE("Trace destruction listener removal failed.");
 		bt_current_thread_clear_error();
@@ -608,18 +606,18 @@ void handle_event_statedump_build_id(struct debug_info *debug_info,
 	int ret = 0;
 
 	event_get_common_context_signed_integer_field_value(event,
-			VPID_FIELD_NAME, &vpid);
+		VPID_FIELD_NAME, &vpid);
 	event_get_payload_unsigned_integer_field_value(event,
-			BADDR_FIELD_NAME, &baddr);
+		BADDR_FIELD_NAME, &baddr);
 
 	proc_dbg_info_src = proc_debug_info_sources_ht_get_entry(
-			debug_info->vpid_to_proc_dbg_info_src, vpid);
+		debug_info->vpid_to_proc_dbg_info_src, vpid);
 	if (!proc_dbg_info_src) {
 		goto end;
 	}
 
 	bin = g_hash_table_lookup(proc_dbg_info_src->baddr_to_bin_info,
-			(gpointer) &baddr);
+		(gpointer) &baddr);
 	if (!bin) {
 		/*
 		 * The build_id event comes after the bin has been
@@ -628,7 +626,7 @@ void handle_event_statedump_build_id(struct debug_info *debug_info,
 		goto end;
 	}
 	ret = event_get_payload_build_id_length(event, BUILD_ID_FIELD_NAME,
-			&build_id_len);
+		&build_id_len);
 
 	build_id = g_new0(uint8_t, build_id_len);
 	if (!build_id) {
@@ -636,7 +634,7 @@ void handle_event_statedump_build_id(struct debug_info *debug_info,
 	}
 
 	ret = event_get_payload_build_id_value(event, BUILD_ID_FIELD_NAME,
-			build_id);
+		build_id);
 	if (ret) {
 		goto end;
 	}
@@ -671,27 +669,27 @@ void handle_event_statedump_debug_link(struct debug_info *debug_info,
 	uint64_t crc_field_value;
 
 	event_get_common_context_signed_integer_field_value(event,
-			VPID_FIELD_NAME, &vpid);
+		VPID_FIELD_NAME, &vpid);
 
 	event_get_payload_unsigned_integer_field_value(event,
-			BADDR_FIELD_NAME, &baddr);
+		BADDR_FIELD_NAME, &baddr);
 
 	event_get_payload_unsigned_integer_field_value(event,
-			CRC32_FIELD_NAME, &crc_field_value);
+		CRC32_FIELD_NAME, &crc_field_value);
 
 	crc32 = (uint32_t) crc_field_value;
 
 	event_get_payload_string_field_value(event,
-			FILENAME_FIELD_NAME, &filename);
+		FILENAME_FIELD_NAME, &filename);
 
 	proc_dbg_info_src = proc_debug_info_sources_ht_get_entry(
-			debug_info->vpid_to_proc_dbg_info_src, vpid);
+		debug_info->vpid_to_proc_dbg_info_src, vpid);
 	if (!proc_dbg_info_src) {
 		goto end;
 	}
 
 	bin = g_hash_table_lookup(proc_dbg_info_src->baddr_to_bin_info,
-			(gpointer) &baddr);
+		(gpointer) &baddr);
 	if (!bin) {
 		/*
 		 * The debug_link event comes after the bin has been
@@ -719,14 +717,14 @@ void handle_bin_info_event(struct debug_info *debug_info,
 	bool is_pic;
 
 	event_get_payload_unsigned_integer_field_value(event,
-			MEMSZ_FIELD_NAME, &memsz);
+		MEMSZ_FIELD_NAME, &memsz);
 	if (memsz == 0) {
 		/* Ignore VDSO. */
 		goto end;
 	}
 
 	event_get_payload_unsigned_integer_field_value(event,
-			BADDR_FIELD_NAME, &baddr);
+		BADDR_FIELD_NAME, &baddr);
 
 	/*
 	 * This field is not produced by the dlopen event emitted before
@@ -813,13 +811,13 @@ void handle_event_lib_unload(struct debug_info *debug_info,
 	int64_t vpid;
 
 	event_get_payload_unsigned_integer_field_value(event, BADDR_FIELD_NAME,
-			&baddr);
+		&baddr);
 
 	event_get_common_context_signed_integer_field_value(event,
-			VPID_FIELD_NAME, &vpid);
+		VPID_FIELD_NAME, &vpid);
 
 	proc_dbg_info_src = proc_debug_info_sources_ht_get_entry(
-			debug_info->vpid_to_proc_dbg_info_src, vpid);
+		debug_info->vpid_to_proc_dbg_info_src, vpid);
 	if (!proc_dbg_info_src) {
 		/*
 		 * It's an unload event for a library for which no load event
@@ -829,7 +827,7 @@ void handle_event_lib_unload(struct debug_info *debug_info,
 	}
 
 	ret = g_hash_table_remove(proc_dbg_info_src->baddr_to_bin_info,
-			(gpointer) &baddr);
+		(gpointer) &baddr);
 	BT_ASSERT(ret);
 end:
 	return;
@@ -843,10 +841,10 @@ void handle_event_statedump_start(struct debug_info *debug_info,
 	int64_t vpid;
 
 	event_get_common_context_signed_integer_field_value(
-			event, VPID_FIELD_NAME, &vpid);
+		event, VPID_FIELD_NAME, &vpid);
 
 	proc_dbg_info_src = proc_debug_info_sources_ht_get_entry(
-			debug_info->vpid_to_proc_dbg_info_src, vpid);
+		debug_info->vpid_to_proc_dbg_info_src, vpid);
 	if (!proc_dbg_info_src) {
 		goto end;
 	}
@@ -864,7 +862,7 @@ void trace_debug_info_remove_func(const bt_trace *in_trace, void *data)
 	if (debug_it->debug_info_map) {
 		gboolean ret;
 		ret = g_hash_table_remove(debug_it->debug_info_map,
-				(gpointer) in_trace);
+			(gpointer) in_trace);
 		BT_ASSERT(ret);
 	}
 }
@@ -887,20 +885,19 @@ void handle_event_statedump(struct debug_info_msg_iter *debug_it,
 	event_name = bt_event_class_get_name(event_class);
 
 	trace = bt_stream_borrow_trace_const(
-			bt_event_borrow_stream_const(event));
+		bt_event_borrow_stream_const(event));
 
 	debug_info = g_hash_table_lookup(debug_it->debug_info_map, trace);
 	if (!debug_info) {
 		bt_trace_add_listener_status add_listener_status;
 
 		debug_info = debug_info_create(debug_it->debug_info_component,
-				trace, &debug_it->fd_cache);
+			trace, &debug_it->fd_cache);
 		g_hash_table_insert(debug_it->debug_info_map, (gpointer) trace,
-				debug_info);
+			debug_info);
 		add_listener_status = bt_trace_add_destruction_listener(
-				trace, trace_debug_info_remove_func,
-				debug_it,
-				&debug_info->destruction_listener_id);
+			trace, trace_debug_info_remove_func, debug_it,
+			&debug_info->destruction_listener_id);
 		BT_ASSERT(add_listener_status == BT_TRACE_ADD_LISTENER_STATUS_OK);
 	}
 
@@ -959,7 +956,7 @@ void fill_debug_info_bin_field(struct debug_info_source *dbg_info_src,
 	bt_field_string_append_status append_status;
 
 	BT_ASSERT(bt_field_get_class_type(curr_field) ==
-			BT_FIELD_CLASS_TYPE_STRING);
+		BT_FIELD_CLASS_TYPE_STRING);
 
 	if (dbg_info_src) {
 		if (full_path) {
@@ -1026,15 +1023,15 @@ void fill_debug_info_src_field(struct debug_info_source *dbg_info_src,
 	bt_field_string_append_status append_status;
 
 	BT_ASSERT(bt_field_get_class_type(curr_field) ==
-			BT_FIELD_CLASS_TYPE_STRING);
+		BT_FIELD_CLASS_TYPE_STRING);
 
 	if (dbg_info_src && dbg_info_src->src_path) {
 		if (full_path) {
 			set_status = bt_field_string_set_value(curr_field,
-					dbg_info_src->src_path);
+				dbg_info_src->src_path);
 		} else {
 			set_status = bt_field_string_set_value(curr_field,
-					dbg_info_src->short_src_path);
+				dbg_info_src->short_src_path);
 		}
 		if (set_status != BT_FIELD_STRING_SET_VALUE_STATUS_OK) {
 			BT_COMP_LOGE("Cannot set path component of \"src\" "
@@ -1077,21 +1074,21 @@ void fill_debug_info_field_empty(bt_field *debug_info_field,
 	bt_field *bin_field, *func_field, *src_field;
 
 	BT_ASSERT(bt_field_get_class_type(debug_info_field) ==
-			BT_FIELD_CLASS_TYPE_STRUCTURE);
+		BT_FIELD_CLASS_TYPE_STRUCTURE);
 
 	bin_field = bt_field_structure_borrow_member_field_by_name(
-			debug_info_field, "bin");
+		debug_info_field, "bin");
 	func_field = bt_field_structure_borrow_member_field_by_name(
-			debug_info_field, "func");
+		debug_info_field, "func");
 	src_field = bt_field_structure_borrow_member_field_by_name(
-			debug_info_field, "src");
+		debug_info_field, "src");
 
 	BT_ASSERT(bt_field_get_class_type(bin_field) ==
-			BT_FIELD_CLASS_TYPE_STRING);
+		BT_FIELD_CLASS_TYPE_STRING);
 	BT_ASSERT(bt_field_get_class_type(func_field) ==
-			BT_FIELD_CLASS_TYPE_STRING);
+		BT_FIELD_CLASS_TYPE_STRING);
 	BT_ASSERT(bt_field_get_class_type(src_field) ==
-			BT_FIELD_CLASS_TYPE_STRING);
+		BT_FIELD_CLASS_TYPE_STRING);
 
 	status = bt_field_string_set_value(bin_field, "");
 	if (status != BT_FIELD_STRING_SET_VALUE_STATUS_OK) {
@@ -1122,7 +1119,7 @@ void fill_debug_info_field(struct debug_info *debug_info, int64_t vpid,
 	const bt_field_class *debug_info_fc;
 
 	BT_ASSERT(bt_field_get_class_type(debug_info_field) ==
-			BT_FIELD_CLASS_TYPE_STRUCTURE);
+		BT_FIELD_CLASS_TYPE_STRUCTURE);
 
 	debug_info_fc = bt_field_borrow_class_const(debug_info_field);
 
@@ -1162,7 +1159,7 @@ void fill_debug_info_event_if_needed(struct debug_info_msg_iter *debug_it,
 	bt_self_component *self_comp = debug_it->self_comp;
 
 	in_common_ctx_field = bt_event_borrow_common_context_field_const(
-			in_event);
+		in_event);
 	if (!in_common_ctx_field) {
 		/*
 		 * There is no event common context so no need to add debug
@@ -1173,7 +1170,7 @@ void fill_debug_info_event_if_needed(struct debug_info_msg_iter *debug_it,
 
 	in_common_ctx_fc = bt_field_borrow_class_const(in_common_ctx_field);
 	if (!is_event_common_ctx_dbg_info_compatible(in_common_ctx_fc,
-				debug_it->ir_maps->debug_info_field_class_name)) {
+			debug_it->ir_maps->debug_info_field_class_name)) {
 		/*
 		 * The input event common context does not have the necessary
 		 * fields to resolve debug information.
@@ -1188,12 +1185,12 @@ void fill_debug_info_event_if_needed(struct debug_info_msg_iter *debug_it,
 	}
 
 	out_debug_info_field = bt_field_structure_borrow_member_field_by_name(
-				out_common_ctx_field, debug_info_field_name);
+		out_common_ctx_field, debug_info_field_name);
 
 	vpid_field = bt_field_structure_borrow_member_field_by_name_const(
-			out_common_ctx_field, VPID_FIELD_NAME);
+		out_common_ctx_field, VPID_FIELD_NAME);
 	ip_field = bt_field_structure_borrow_member_field_by_name_const(
-			out_common_ctx_field, IP_FIELD_NAME);
+		out_common_ctx_field, IP_FIELD_NAME);
 
 	vpid = bt_field_integer_signed_get_value(vpid_field);
 	ip = bt_field_integer_unsigned_get_value(ip_field);
@@ -1203,8 +1200,8 @@ void fill_debug_info_event_if_needed(struct debug_info_msg_iter *debug_it,
 	 * resolving.
 	 */
 	debug_info = g_hash_table_lookup(debug_it->debug_info_map,
-			bt_stream_borrow_trace_const(
-				bt_event_borrow_stream_const(in_event)));
+		bt_stream_borrow_trace_const(
+			bt_event_borrow_stream_const(in_event)));
 
 	if (debug_info) {
 		/*
@@ -1241,7 +1238,7 @@ void update_event_statedump_if_needed(struct debug_info_msg_iter *debug_it,
 
 	event_common_ctx_fc = bt_field_borrow_class_const(event_common_ctx);
 	if (is_event_common_ctx_dbg_info_compatible(event_common_ctx_fc,
-				debug_it->ir_maps->debug_info_field_class_name)) {
+			debug_it->ir_maps->debug_info_field_class_name)) {
 		/* Checkout if it might be a one of lttng ust statedump events. */
 		const char *in_event_name = bt_event_class_get_name(in_event_class);
 		if (strncmp(in_event_name, LTTNG_UST_STATEDUMP_PREFIX,
@@ -1283,7 +1280,7 @@ bt_message *handle_event_message(struct debug_info_msg_iter *debug_it,
 			debug_it->ir_maps, in_event_class);
 	if (!out_event_class) {
 		out_event_class = trace_ir_mapping_create_new_mapped_event_class(
-					debug_it->ir_maps, in_event_class);
+			debug_it->ir_maps, in_event_class);
 	}
 	BT_ASSERT(out_event_class);
 
@@ -1302,11 +1299,11 @@ bt_message *handle_event_message(struct debug_info_msg_iter *debug_it,
 	}
 
 	default_cc = bt_stream_class_borrow_default_clock_class_const(
-			bt_event_class_borrow_stream_class_const(in_event_class));
+		bt_event_class_borrow_stream_class_const(in_event_class));
 	if (default_cc) {
 		/* Borrow event clock snapshot. */
 		cs = bt_message_event_borrow_default_clock_snapshot_const(
-				in_message);
+			in_message);
 
 		/* Create an output event message. */
 		if (out_packet) {
@@ -1369,7 +1366,7 @@ bt_message *handle_stream_begin_message(struct debug_info_msg_iter *debug_it,
 
 	/* Create a duplicated output stream. */
 	out_stream = trace_ir_mapping_create_new_mapped_stream(
-			debug_it->ir_maps, in_stream);
+		debug_it->ir_maps, in_stream);
 	if (!out_stream) {
 		out_message = NULL;
 		goto error;
@@ -1377,7 +1374,7 @@ bt_message *handle_stream_begin_message(struct debug_info_msg_iter *debug_it,
 
 	/* Create an output stream beginning message. */
 	out_message = bt_message_stream_beginning_create(
-			debug_it->input_iterator, out_stream);
+		debug_it->input_iterator, out_stream);
 	if (!out_message) {
 		BT_COMP_LOGE("Error creating output stream beginning message: "
 			"out-s-addr=%p", out_stream);
@@ -1400,12 +1397,12 @@ bt_message *handle_stream_end_message(struct debug_info_msg_iter *debug_it,
 	BT_ASSERT(in_stream);
 
 	out_stream = trace_ir_mapping_borrow_mapped_stream(
-			debug_it->ir_maps, in_stream);
+		debug_it->ir_maps, in_stream);
 	BT_ASSERT(out_stream);
 
 	/* Create an output stream end message. */
 	out_message = bt_message_stream_end_create(debug_it->input_iterator,
-			out_stream);
+		out_stream);
 	if (!out_message) {
 		BT_COMP_LOGE("Error creating output stream end message: out-s-addr=%p",
 				out_stream);
@@ -1439,7 +1436,7 @@ bt_message *handle_packet_begin_message(struct debug_info_msg_iter *debug_it,
 				debug_it->ir_maps, in_packet));
 
 	out_packet = trace_ir_mapping_create_new_mapped_packet(debug_it->ir_maps,
-			in_packet);
+		in_packet);
 
 	BT_ASSERT(out_packet);
 
@@ -1450,15 +1447,15 @@ bt_message *handle_packet_begin_message(struct debug_info_msg_iter *debug_it,
 	if (has_default_clock_snapshot) {
 		/* Borrow clock snapshot. */
 		cs = bt_message_packet_beginning_borrow_default_clock_snapshot_const(
-					in_message);
+			in_message);
 
 		/* Create an output packet beginning message. */
 		out_message = bt_message_packet_beginning_create_with_default_clock_snapshot(
-				debug_it->input_iterator, out_packet,
-				bt_clock_snapshot_get_value(cs));
+			debug_it->input_iterator, out_packet,
+			bt_clock_snapshot_get_value(cs));
 	} else {
 		out_message = bt_message_packet_beginning_create(
-				debug_it->input_iterator, out_packet);
+			debug_it->input_iterator, out_packet);
 	}
 	if (!out_message) {
 		BT_COMP_LOGE("Error creating output packet beginning message: "
@@ -1493,15 +1490,15 @@ bt_message *handle_packet_end_message(struct debug_info_msg_iter *debug_it,
 	if (has_default_clock_snapshot) {
 		/* Borrow clock snapshot. */
 		cs = bt_message_packet_end_borrow_default_clock_snapshot_const(
-					in_message);
+			in_message);
 
 		/* Create an outpute packet end message. */
 		out_message = bt_message_packet_end_create_with_default_clock_snapshot(
-				debug_it->input_iterator, out_packet,
-				bt_clock_snapshot_get_value(cs));
+			debug_it->input_iterator, out_packet,
+			bt_clock_snapshot_get_value(cs));
 	} else {
 		out_message = bt_message_packet_end_create(
-				debug_it->input_iterator, out_packet);
+			debug_it->input_iterator, out_packet);
 	}
 
 	if (!out_message) {
@@ -1547,31 +1544,28 @@ bt_message *handle_discarded_events_message(struct debug_info_msg_iter *debug_it
 			in_message);
 	BT_ASSERT(in_stream);
 
-	out_stream = trace_ir_mapping_borrow_mapped_stream(
-				debug_it->ir_maps, in_stream);
+	out_stream = trace_ir_mapping_borrow_mapped_stream( debug_it->ir_maps,
+		in_stream);
 	BT_ASSERT(out_stream);
 
 	has_default_clock_snapshots =
 		bt_stream_class_discarded_events_have_default_clock_snapshots(
 			bt_stream_borrow_class_const(in_stream));
 	if (has_default_clock_snapshots) {
-		begin_cs =
-			bt_message_discarded_events_borrow_beginning_default_clock_snapshot_const(
-				in_message);
-		end_cs =
-			bt_message_discarded_events_borrow_end_default_clock_snapshot_const(
-				in_message);
+		begin_cs = bt_message_discarded_events_borrow_beginning_default_clock_snapshot_const(
+			in_message);
+		end_cs = bt_message_discarded_events_borrow_end_default_clock_snapshot_const(
+			in_message);
 
 		begin_cs_value = bt_clock_snapshot_get_value(begin_cs);
 		end_cs_value = bt_clock_snapshot_get_value(end_cs);
 
-		out_message =
-			bt_message_discarded_events_create_with_default_clock_snapshots(
-					debug_it->input_iterator, out_stream,
-					begin_cs_value, end_cs_value);
+		out_message = bt_message_discarded_events_create_with_default_clock_snapshots(
+			debug_it->input_iterator, out_stream,
+			begin_cs_value, end_cs_value);
 	} else {
 		out_message = bt_message_discarded_events_create(
-				debug_it->input_iterator, out_stream);
+			debug_it->input_iterator, out_stream);
 	}
 	if (!out_message) {
 		BT_COMP_LOGE("Error creating output discarded events message: "
@@ -1580,11 +1574,11 @@ bt_message *handle_discarded_events_message(struct debug_info_msg_iter *debug_it
 	}
 
 	prop_avail = bt_message_discarded_events_get_count(in_message,
-			&discarded_events);
+		&discarded_events);
 
 	if (prop_avail == BT_PROPERTY_AVAILABILITY_NOT_AVAILABLE) {
 		bt_message_discarded_events_set_count(out_message,
-				discarded_events);
+			discarded_events);
 	}
 
 error:
@@ -1606,34 +1600,32 @@ bt_message *handle_discarded_packets_message(struct debug_info_msg_iter *debug_i
 	bt_self_component *self_comp = debug_it->self_comp;
 
 	in_stream = bt_message_discarded_packets_borrow_stream_const(
-			in_message);
+		in_message);
 	BT_ASSERT(in_stream);
 
-	out_stream = trace_ir_mapping_borrow_mapped_stream(
-			debug_it->ir_maps, in_stream);
+	out_stream = trace_ir_mapping_borrow_mapped_stream( debug_it->ir_maps,
+		in_stream);
 	BT_ASSERT(out_stream);
 
 	has_default_clock_snapshots =
 		bt_stream_class_discarded_packets_have_default_clock_snapshots(
 			bt_stream_borrow_class_const(in_stream));
 	if (has_default_clock_snapshots) {
-		begin_cs =
-			bt_message_discarded_packets_borrow_beginning_default_clock_snapshot_const(
-				in_message);
+		begin_cs = bt_message_discarded_packets_borrow_beginning_default_clock_snapshot_const(
+			in_message);
 
-		end_cs =
-			bt_message_discarded_packets_borrow_end_default_clock_snapshot_const(
-				in_message);
+		end_cs = bt_message_discarded_packets_borrow_end_default_clock_snapshot_const(
+			in_message);
 
 		begin_cs_value = bt_clock_snapshot_get_value(begin_cs);
 		end_cs_value = bt_clock_snapshot_get_value(end_cs);
 
 		out_message = bt_message_discarded_packets_create_with_default_clock_snapshots(
-					debug_it->input_iterator, out_stream,
-					begin_cs_value, end_cs_value);
+			debug_it->input_iterator, out_stream,
+			begin_cs_value, end_cs_value);
 	} else {
 		out_message = bt_message_discarded_packets_create(
-				debug_it->input_iterator, out_stream);
+			debug_it->input_iterator, out_stream);
 	}
 	if (!out_message) {
 		BT_COMP_LOGE("Error creating output discarded packet message: "
@@ -1642,10 +1634,10 @@ bt_message *handle_discarded_packets_message(struct debug_info_msg_iter *debug_i
 	}
 
 	prop_avail = bt_message_discarded_packets_get_count(in_message,
-			&discarded_packets);
+		&discarded_packets);
 	if (prop_avail == BT_PROPERTY_AVAILABILITY_NOT_AVAILABLE) {
 		bt_message_discarded_packets_set_count(out_message,
-				discarded_packets);
+			discarded_packets);
 	}
 
 error:
@@ -1660,36 +1652,28 @@ const bt_message *handle_message(struct debug_info_msg_iter *debug_it,
 
 	switch (bt_message_get_type(in_message)) {
 	case BT_MESSAGE_TYPE_EVENT:
-		out_message = handle_event_message(debug_it,
-				in_message);
+		out_message = handle_event_message(debug_it, in_message);
 		break;
 	case BT_MESSAGE_TYPE_PACKET_BEGINNING:
-		out_message = handle_packet_begin_message(debug_it,
-				in_message);
+		out_message = handle_packet_begin_message(debug_it, in_message);
 		break;
 	case BT_MESSAGE_TYPE_PACKET_END:
-		out_message = handle_packet_end_message(debug_it,
-				in_message);
+		out_message = handle_packet_end_message(debug_it, in_message);
 		break;
 	case BT_MESSAGE_TYPE_STREAM_BEGINNING:
-		out_message = handle_stream_begin_message(debug_it,
-				in_message);
+		out_message = handle_stream_begin_message(debug_it, in_message);
 		break;
 	case BT_MESSAGE_TYPE_STREAM_END:
-		out_message = handle_stream_end_message(debug_it,
-				in_message);
+		out_message = handle_stream_end_message(debug_it, in_message);
 		break;
 	case BT_MESSAGE_TYPE_MESSAGE_ITERATOR_INACTIVITY:
-		out_message = handle_msg_iterator_inactivity(debug_it,
-				in_message);
+		out_message = handle_msg_iterator_inactivity(debug_it, in_message);
 		break;
 	case BT_MESSAGE_TYPE_DISCARDED_EVENTS:
-		out_message = handle_discarded_events_message(debug_it,
-				in_message);
+		out_message = handle_discarded_events_message(debug_it, in_message);
 		break;
 	case BT_MESSAGE_TYPE_DISCARDED_PACKETS:
-		out_message = handle_discarded_packets_message(debug_it,
-				in_message);
+		out_message = handle_discarded_packets_message(debug_it, in_message);
 		break;
 	default:
 		abort();
@@ -1789,7 +1773,7 @@ bt_component_class_initialize_method_status debug_info_comp_init(
 	}
 
 	add_port_status = bt_self_component_filter_add_output_port(
-			self_comp_flt, "out", NULL, NULL);
+		self_comp_flt, "out", NULL, NULL);
 	switch (add_port_status) {
 	case BT_SELF_COMPONENT_ADD_PORT_STATUS_ERROR:
 		status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_ERROR;
@@ -1827,8 +1811,8 @@ void debug_info_comp_finalize(bt_self_component_filter *self_comp_flt)
 {
 	struct debug_info_component *debug_info =
 		bt_self_component_get_data(
-				bt_self_component_filter_as_self_component(
-					self_comp_flt));
+			bt_self_component_filter_as_self_component(
+				self_comp_flt));
 	bt_logging_level log_level = debug_info->log_level;
 	bt_self_component *self_comp = debug_info->self_comp;
 
@@ -1870,7 +1854,7 @@ bt_component_class_message_iterator_next_method_status debug_info_msg_iter_next(
 
 	upstream_iterator_ret_status =
 		bt_self_component_port_input_message_iterator_next(
-				upstream_iterator, &input_msgs, count);
+			upstream_iterator, &input_msgs, count);
 	if (upstream_iterator_ret_status !=
 			BT_MESSAGE_ITERATOR_NEXT_STATUS_OK) {
 		/*
@@ -1937,7 +1921,7 @@ void debug_info_msg_iter_destroy(struct debug_info_msg_iter *debug_info_msg_iter
 
 	if (debug_info_msg_iter->msg_iter) {
 		bt_self_component_port_input_message_iterator_put_ref(
-				debug_info_msg_iter->msg_iter);
+			debug_info_msg_iter->msg_iter);
 	}
 
 	if (debug_info_msg_iter->ir_maps) {
@@ -2050,8 +2034,8 @@ end:
 
 BT_HIDDEN
 bt_component_class_message_iterator_can_seek_beginning_method_status
-debug_info_msg_iter_can_seek_beginning(
-	bt_self_message_iterator *self_msg_iter, bt_bool *can_seek)
+debug_info_msg_iter_can_seek_beginning(bt_self_message_iterator *self_msg_iter,
+		bt_bool *can_seek)
 {
 	struct debug_info_msg_iter *debug_info_msg_iter =
 		bt_self_message_iterator_get_data(self_msg_iter);
@@ -2062,8 +2046,8 @@ debug_info_msg_iter_can_seek_beginning(
 }
 
 BT_HIDDEN
-bt_component_class_message_iterator_seek_beginning_method_status debug_info_msg_iter_seek_beginning(
-		bt_self_message_iterator *self_msg_iter)
+bt_component_class_message_iterator_seek_beginning_method_status
+debug_info_msg_iter_seek_beginning(bt_self_message_iterator *self_msg_iter)
 {
 	struct debug_info_msg_iter *debug_info_msg_iter =
 		bt_self_message_iterator_get_data(self_msg_iter);

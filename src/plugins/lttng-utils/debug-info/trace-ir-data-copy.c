@@ -90,22 +90,18 @@ void copy_trace_content(const bt_trace *in_trace, bt_trace *out_trace,
 		BT_ASSERT(value);
 
 		if (bt_value_is_signed_integer(value)) {
-			set_env_status =
-				bt_trace_set_environment_entry_integer(
-						out_trace, value_name,
-						bt_value_integer_signed_get(
-							value));
+			set_env_status = bt_trace_set_environment_entry_integer(
+				out_trace, value_name,
+				bt_value_integer_signed_get( value));
 		} else if (bt_value_is_string(value)) {
-			set_env_status =
-				bt_trace_set_environment_entry_string(
-					out_trace, value_name,
-					bt_value_string_get(value));
+			set_env_status = bt_trace_set_environment_entry_string(
+				out_trace, value_name,
+				bt_value_string_get(value));
 		} else {
 			abort();
 		}
 
-		if (set_env_status !=
-				BT_TRACE_SET_ENVIRONMENT_ENTRY_STATUS_OK) {
+		if (set_env_status != BT_TRACE_SET_ENVIRONMENT_ENTRY_STATUS_OK) {
 			BT_COMP_LOGE("Cannot copy trace's environment: "
 				"trace-addr=%p, name=\"%s\"",
 				out_trace, trace_name);
@@ -299,10 +295,10 @@ void copy_field_content(const bt_field *in_field, bt_field *out_field,
 					member);
 			in_member_field =
 				bt_field_structure_borrow_member_field_by_name_const(
-						in_field, in_member_name);
+					in_field, in_member_name);
 			out_member_field =
 				bt_field_structure_borrow_member_field_by_name(
-						out_field, in_member_name);
+					out_field, in_member_name);
 
 			copy_field_content(in_member_field,
 				out_member_field, log_level, self_comp);
@@ -378,9 +374,9 @@ void copy_field_content(const bt_field *in_field, bt_field *out_field,
 
 		in_selected_option_idx =
 			bt_field_variant_get_selected_option_field_index(
-					in_field);
+				in_field);
 		sel_opt_status = bt_field_variant_select_option_field_by_index(out_field,
-				in_selected_option_idx);
+			in_selected_option_idx);
 		if (sel_opt_status !=
 				BT_FIELD_VARIANT_SELECT_OPTION_FIELD_STATUS_OK) {
 			BT_COMP_LOGE("Cannot select variant field's option field: "
