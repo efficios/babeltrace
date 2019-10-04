@@ -1,4 +1,11 @@
-SUBDIRS = utils lib bitfield ctf-writer plugins argpar
+SUBDIRS = \
+	utils \
+	lib \
+	bitfield \
+	ctf-writer \
+	plugins \
+	argpar \
+	param-validation
 
 # Directories added to EXTRA_DIST will be recursively copied to the distribution.
 EXTRA_DIST = $(srcdir)/data \
