@@ -45,6 +45,7 @@
 #include "../common/metadata/ctf-meta-configure-ir-trace.h"
 #include "../common/msg-iter/msg-iter.h"
 #include "query.h"
+#include "plugins/common/param-validation/param-validation.h"
 
 struct tracer_info {
 	const char *name;
@@ -2214,63 +2215,26 @@ end:
 	return ret;
 }
 
-/*
- * Validate the "paths" parameter passed to this component.  It must be
- * present, and it must be an array of strings.
- */
+static const struct bt_param_validation_value_descr inputs_elem_descr = {
+	.type = BT_VALUE_TYPE_STRING,
+};
 
-static
-bool validate_inputs_parameter(struct ctf_fs_component *ctf_fs,
-		const bt_value *inputs, bt_self_component *self_comp,
-		bt_self_component_class *self_comp_class)
-{
-	bool ret;
-	bt_value_type type;
-	uint64_t i;
-	bt_logging_level log_level = ctf_fs->log_level;
-
-	if (!inputs) {
-		BT_COMP_OR_COMP_CLASS_LOGE_APPEND_CAUSE(self_comp,
-			self_comp_class, "missing \"inputs\" parameter");
-		goto error;
-	}
-
-	type = bt_value_get_type(inputs);
-	if (type != BT_VALUE_TYPE_ARRAY) {
-		BT_COMP_OR_COMP_CLASS_LOGE_APPEND_CAUSE(self_comp,
-			self_comp_class, "`inputs` parameter: expecting array value: type=%s",
-			bt_common_value_type_string(type));
-		goto error;
-	}
-
-	if (bt_value_array_is_empty(inputs)) {
-		BT_COMP_OR_COMP_CLASS_LOGE_APPEND_CAUSE(self_comp,
-			self_comp_class, "`inputs` parameter must not be empty");
-		goto error;
-	}
-
-	for (i = 0; i < bt_value_array_get_length(inputs); i++) {
-		const bt_value *elem;
-
-		elem = bt_value_array_borrow_element_by_index_const(inputs, i);
-		type = bt_value_get_type(elem);
-		if (type != BT_VALUE_TYPE_STRING) {
-			BT_COMP_OR_COMP_CLASS_LOGE_APPEND_CAUSE(self_comp, self_comp_class,
-				"`inputs` parameter: expecting string value: index=%" PRIu64 ", type=%s",
-				i, bt_common_value_type_string(type));
-			goto error;
+static const struct bt_param_validation_map_value_entry_descr fs_params_entries_descr[] = {
+	{ "inputs", BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_MANDATORY, {
+		BT_VALUE_TYPE_ARRAY,
+		.array = {
+			.min_length = 1,
+			.max_length = BT_PARAM_VALIDATION_INFINITE,
+			.element_type = &inputs_elem_descr,
 		}
-	}
+	}},
+	{ "trace-name", BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_OPTIONAL, { .type = BT_VALUE_TYPE_STRING } },
+	{ "clock-class-offset-s", BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_OPTIONAL, { .type = BT_VALUE_TYPE_SIGNED_INTEGER } },
+	{ "clock-class-offset-ns", BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_OPTIONAL, { .type = BT_VALUE_TYPE_SIGNED_INTEGER } },
+	{ "force-clock-class-origin-unix-epoch", BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_OPTIONAL, { .type = BT_VALUE_TYPE_BOOL } },
+	BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_END
+};
 
-	ret = true;
-	goto end;
-
-error:
-	ret = false;
-
-end:
-	return ret;
-}
 
 bool read_src_fs_parameters(const bt_value *params,
 		const bt_value **inputs,
@@ -2281,22 +2245,25 @@ bool read_src_fs_parameters(const bt_value *params,
 	bool ret;
 	const bt_value *value;
 	bt_logging_level log_level = ctf_fs->log_level;
+	enum bt_param_validation_status validate_value_status;
+	gchar *error = NULL;
+
+	validate_value_status = bt_param_validation_validate(params,
+		fs_params_entries_descr, &error);
+	if (validate_value_status != BT_PARAM_VALIDATION_STATUS_OK) {
+		BT_COMP_OR_COMP_CLASS_LOGE_APPEND_CAUSE(self_comp, self_comp_class,
+			"%s", error);
+		ret = false;
+		goto end;
+	}
 
 	/* inputs parameter */
 	*inputs = bt_value_map_borrow_entry_value_const(params, "inputs");
-	if (!validate_inputs_parameter(ctf_fs, *inputs, self_comp, self_comp_class)) {
-		goto error;
-	}
 
 	/* clock-class-offset-s parameter */
 	value = bt_value_map_borrow_entry_value_const(params,
 		"clock-class-offset-s");
 	if (value) {
-		if (!bt_value_is_signed_integer(value)) {
-			BT_COMP_OR_COMP_CLASS_LOGE_APPEND_CAUSE(self_comp, self_comp_class,
-				"clock-class-offset-s must be an integer");
-			goto error;
-		}
 		ctf_fs->metadata_config.clock_class_offset_s =
 			bt_value_integer_signed_get(value);
 	}
@@ -2305,11 +2272,6 @@ bool read_src_fs_parameters(const bt_value *params,
 	value = bt_value_map_borrow_entry_value_const(params,
 		"clock-class-offset-ns");
 	if (value) {
-		if (!bt_value_is_signed_integer(value)) {
-			BT_COMP_OR_COMP_CLASS_LOGE_APPEND_CAUSE(self_comp, self_comp_class,
-				"clock-class-offset-ns must be an integer");
-			goto error;
-		}
 		ctf_fs->metadata_config.clock_class_offset_ns =
 			bt_value_integer_signed_get(value);
 	}
@@ -2318,33 +2280,17 @@ bool read_src_fs_parameters(const bt_value *params,
 	value = bt_value_map_borrow_entry_value_const(params,
 		"force-clock-class-origin-unix-epoch");
 	if (value) {
-		if (!bt_value_is_bool(value)) {
-			BT_COMP_OR_COMP_CLASS_LOGE_APPEND_CAUSE(self_comp, self_comp_class,
-				"force-clock-class-origin-unix-epoch must be a boolean");
-			goto error;
-		}
-
 		ctf_fs->metadata_config.force_clock_class_origin_unix_epoch =
 			bt_value_bool_get(value);
 	}
 
 	/* trace-name parameter */
 	*trace_name = bt_value_map_borrow_entry_value_const(params, "trace-name");
-	if (*trace_name) {
-		if (!bt_value_is_string(*trace_name)) {
-			BT_COMP_OR_COMP_CLASS_LOGE_APPEND_CAUSE(self_comp, self_comp_class,
-				"trace-name must be a string");
-			goto error;
-		}
-	}
 
 	ret = true;
-	goto end;
-
-error:
-	ret = false;
 
 end:
+	g_free(error);
 	return ret;
 }
 

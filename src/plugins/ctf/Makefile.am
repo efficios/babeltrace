@@ -17,7 +17,8 @@ babeltrace_plugin_ctf_la_LIBADD = \
 	common/libbabeltrace2-plugin-ctf-common.la \
 	fs-sink/libbabeltrace2-plugin-ctf-fs-sink.la \
 	fs-src/libbabeltrace2-plugin-ctf-fs-src.la \
-	lttng-live/libbabeltrace2-plugin-ctf-lttng-live.la
+	lttng-live/libbabeltrace2-plugin-ctf-lttng-live.la \
+	$(top_builddir)/src/plugins/common/param-validation/libbabeltrace2-param-validation.la
 
 if !ENABLE_BUILT_IN_PLUGINS
 babeltrace_plugin_ctf_la_LIBADD += \
