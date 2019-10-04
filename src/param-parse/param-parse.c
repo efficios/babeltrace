@@ -31,9 +31,6 @@
 #include "common/common.h"
 #include <glib.h>
 #include <sys/types.h>
-#include "babeltrace2-cfg.h"
-#include "babeltrace2-cfg-cli-args.h"
-#include "babeltrace2-cfg-cli-args-connect.h"
 
 /* INI-style parsing FSM states */
 enum ini_parsing_fsm_state {
@@ -579,7 +576,7 @@ end:
  * Return value is owned by the caller.
  */
 BT_HIDDEN
-bt_value *cli_value_from_arg(const char *arg, GString *ini_error)
+bt_value *bt_param_parse(const char *arg, GString *ini_error)
 {
 	/* Lexical scanner configuration */
 	GScannerConfig scanner_config = {

@@ -30,8 +30,6 @@ babeltrace2_bin_SOURCES = \
 	babeltrace2-cfg-cli-args-connect.h \
 	babeltrace2-cfg-cli-args-default.h \
 	babeltrace2-cfg-cli-args-default.c \
-	babeltrace2-cfg-cli-params-arg.c \
-	babeltrace2-cfg-cli-params-arg.h \
 	babeltrace2-log-level.c \
 	babeltrace2-log-level.h \
 	babeltrace2-plugins.c \
@@ -60,7 +58,8 @@ babeltrace2_bin_LDADD = \
 	$(top_builddir)/src/compat/libcompat.la \
 	$(top_builddir)/src/common/libbabeltrace2-common.la \
 	$(top_builddir)/src/logging/libbabeltrace2-logging.la \
-	$(top_builddir)/src/ctfser/libbabeltrace2-ctfser.la
+	$(top_builddir)/src/ctfser/libbabeltrace2-ctfser.la \
+	$(top_builddir)/src/param-parse/libbabeltrace2-param-parse.la
 
 if ENABLE_BUILT_IN_PLUGINS
 # Takes a plugin name and outputs the needed LDFLAGS to embed it.
