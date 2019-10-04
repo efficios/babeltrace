@@ -40,48 +40,12 @@
 #include "babeltrace2-cfg.h"
 #include "babeltrace2-cfg-cli-args.h"
 #include "babeltrace2-cfg-cli-args-connect.h"
-#include "babeltrace2-cfg-cli-params-arg.h"
+#include "param-parse/param-parse.h"
 #include "babeltrace2-log-level.h"
 #include "babeltrace2-plugins.h"
 #include "babeltrace2-query.h"
 #include "autodisc/autodisc.h"
 #include "common/version.h"
-
-/* INI-style parsing FSM states */
-enum ini_parsing_fsm_state {
-	/* Expect a map key (identifier) */
-	INI_EXPECT_MAP_KEY,
-
-	/* Expect an equal character ('=') */
-	INI_EXPECT_EQUAL,
-
-	/* Expect a value */
-	INI_EXPECT_VALUE,
-
-	/* Expect a comma character (',') */
-	INI_EXPECT_COMMA,
-};
-
-/* INI-style parsing state variables */
-struct ini_parsing_state {
-	/* Lexical scanner (owned by this) */
-	GScanner *scanner;
-
-	/* Output map value object being filled (owned by this) */
-	bt_value *params;
-
-	/* Next expected FSM state */
-	enum ini_parsing_fsm_state expecting;
-
-	/* Last decoded map key (owned by this) */
-	char *last_map_key;
-
-	/* Complete INI-style string to parse (not owned by this) */
-	const char *arg;
-
-	/* Error buffer (not owned by this) */
-	GString *ini_error;
-};
 
 /* Offset option with "is set" boolean */
 struct offset_opt {
@@ -1564,7 +1528,7 @@ struct bt_config *bt_config_query_from_args(int argc, const char *argv[],
 			case OPT_PARAMS:
 			{
 				bt_value_put_ref(params);
-				params = cli_value_from_arg(arg, error_str);
+				params = bt_param_parse(arg, error_str);
 				if (!params) {
 					BT_CLI_LOGE_APPEND_CAUSE("Invalid format for --params option's argument:\n    %s",
 						error_str->str);
@@ -1963,7 +1927,7 @@ struct bt_config *bt_config_run_from_args(int argc, const char *argv[],
 				goto error;
 			}
 
-			params = cli_value_from_arg(arg, error_str);
+			params = bt_param_parse(arg, error_str);
 			if (!params) {
 				BT_CLI_LOGE_APPEND_CAUSE("Invalid format for --params option's argument:\n    %s",
 					error_str->str);
@@ -1999,7 +1963,7 @@ struct bt_config *bt_config_run_from_args(int argc, const char *argv[],
 			break;
 		case OPT_BASE_PARAMS:
 		{
-			bt_value *params = cli_value_from_arg(arg, error_str);
+			bt_value *params = bt_param_parse(arg, error_str);
 
 			if (!params) {
 				BT_CLI_LOGE_APPEND_CAUSE("Invalid format for --base-params option's argument:\n    %s",

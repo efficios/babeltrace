@@ -720,6 +720,7 @@ AC_CONFIG_FILES([
 	src/plugins/utils/trimmer/Makefile
 	src/py-common/Makefile
 	src/python-plugin-provider/Makefile
+	src/param-parse/Makefile
 	tests/bitfield/Makefile
 	tests/ctf-writer/Makefile
 	tests/argpar/Makefile

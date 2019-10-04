@@ -11,6 +11,7 @@ SUBDIRS = \
 	lib \
 	python-plugin-provider \
 	plugins \
+	param-parse \
 	cli \
 	bindings
 

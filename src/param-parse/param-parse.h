@@ -1,5 +1,5 @@
-#ifndef CLI_BABELTRACE_CFG_CLI_PARAMS_ARG_H
-#define CLI_BABELTRACE_CFG_CLI_PARAMS_ARG_H
+#ifndef SRC_PARAMS_PARSE_VALUE_PARSE_H
+#define SRC_PARAMS_PARSE_VALUE_PARSE_H
 
 /*
  * Copyright 2016-2019 Philippe Proulx <pproulx@efficios.com>
@@ -28,6 +28,6 @@
 #include "common/macros.h"
 
 BT_HIDDEN
-bt_value *cli_value_from_arg(const char *arg, GString *ini_error);
+bt_value *bt_param_parse(const char *arg, GString *ini_error);
 
-#endif /* CLI_BABELTRACE_CFG_CLI_PARAMS_ARG_H */
+#endif /* SRC_VALUE_PARSE_VALUE_PARSE_H */
