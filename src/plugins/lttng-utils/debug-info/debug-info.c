@@ -1684,11 +1684,12 @@ const bt_message *handle_message(struct debug_info_msg_iter *debug_it,
 }
 
 static
-int init_from_params(struct debug_info_component *debug_info_component,
+bt_component_class_initialize_method_status init_from_params(
+		struct debug_info_component *debug_info_component,
 		const bt_value *params)
 {
-	const bt_value *value = NULL;
-	int ret = 0;
+	const bt_value *value;
+	bt_component_class_initialize_method_status status;
 
 	BT_ASSERT(params);
 
@@ -1726,7 +1727,9 @@ int init_from_params(struct debug_info_component *debug_info_component,
 		debug_info_component->arg_full_path = BT_FALSE;
 	}
 
-	return ret;
+	status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_OK;
+
+	return status;
 }
 
 BT_HIDDEN
@@ -1735,7 +1738,6 @@ bt_component_class_initialize_method_status debug_info_comp_init(
 		bt_self_component_filter_configuration *config,
 		const bt_value *params, __attribute__((unused)) void *init_method_data)
 {
-	int ret;
 	struct debug_info_component *debug_info_comp;
 	bt_component_class_initialize_method_status status =
 		BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_OK;
@@ -1744,7 +1746,6 @@ bt_component_class_initialize_method_status debug_info_comp_init(
 		bt_self_component_filter_as_self_component(self_comp_flt);
 	bt_logging_level log_level = bt_component_get_logging_level(
 		bt_self_component_as_component(self_comp));
-
 
 	BT_COMP_LOGI("Initializing debug_info component: "
 		"comp-addr=%p, params-addr=%p", self_comp, params);
@@ -1761,32 +1762,20 @@ bt_component_class_initialize_method_status debug_info_comp_init(
 
 	add_port_status = bt_self_component_filter_add_input_port(
 		self_comp_flt, "in", NULL, NULL);
-	switch (add_port_status) {
-	case BT_SELF_COMPONENT_ADD_PORT_STATUS_ERROR:
-		status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_ERROR;
+	if (add_port_status != BT_SELF_COMPONENT_ADD_PORT_STATUS_OK) {
+		status = (int) add_port_status;
 		goto error;
-	case BT_SELF_COMPONENT_ADD_PORT_STATUS_MEMORY_ERROR:
-		status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_MEMORY_ERROR;
-		goto error;
-	default:
-		break;
 	}
 
 	add_port_status = bt_self_component_filter_add_output_port(
-		self_comp_flt, "out", NULL, NULL);
-	switch (add_port_status) {
-	case BT_SELF_COMPONENT_ADD_PORT_STATUS_ERROR:
-		status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_ERROR;
+			self_comp_flt, "out", NULL, NULL);
+	if (add_port_status != BT_SELF_COMPONENT_ADD_PORT_STATUS_OK) {
+		status = (int) add_port_status;
 		goto error;
-	case BT_SELF_COMPONENT_ADD_PORT_STATUS_MEMORY_ERROR:
-		status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_MEMORY_ERROR;
-		goto error;
-	default:
-		break;
 	}
 
-	ret = init_from_params(debug_info_comp, params);
-	if (ret) {
+	status = init_from_params(debug_info_comp, params);
+	if (status != BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_OK) {
 		BT_COMP_LOGE("Cannot configure debug_info component: "
 			"debug_info-comp-addr=%p, params-addr=%p",
 			debug_info_comp, params);
