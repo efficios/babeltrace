@@ -39,8 +39,8 @@ source "$UTILSSH"
 
 plan_tests 3
 
-temp_input_dir=$(mktemp -d)
-temp_output_dir=$(mktemp -d)
+temp_input_dir=$(mktemp -t -d test_output_path_ctf_non_lttng_trace_input.XXXXXX)
+temp_output_dir=$(mktemp -t -d test_output_path_ctf_non_lttng_trace_output.XXXXXX)
 
 mkdir -p "${temp_input_dir}/a/b/c"
 cp -a "${BT_CTF_TRACES_PATH}/intersection/3eventsintersect" "${temp_input_dir}/a/b/c"
@@ -51,7 +51,7 @@ cp -a "${BT_CTF_TRACES_PATH}/intersection/3eventsintersectreverse" "${temp_input
 mkdir -p "${temp_input_dir}/d/e/f"
 cp -a "${BT_CTF_TRACES_PATH}/intersection/nointersect" "${temp_input_dir}/d/e/f"
 
-"${BT_TESTS_BT2_BIN}" "${temp_input_dir}" -c sink.ctf.fs -p "path=\"${temp_output_dir}\""
+bt_cli "/dev/null" "/dev/null" "${temp_input_dir}" -c sink.ctf.fs -p "path=\"${temp_output_dir}\""
 
 test -f "${temp_output_dir}/a/b/c/3eventsintersect/metadata"
 ok "$?" "3eventsintersect output trace exists"
