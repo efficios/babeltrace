@@ -535,7 +535,8 @@ int map_clock_classes_func(struct bt_ctf_stream_class_common *stream_class,
 }
 
 static
-void destroy_event_header_field(struct bt_ctf_field_wrapper *field_wrapper)
+void destroy_event_header_field(struct bt_ctf_field_wrapper *field_wrapper,
+		struct bt_ctf_stream_class *stream_class)
 {
 	BT_ASSERT(field_wrapper);
 	bt_ctf_object_put_ref(field_wrapper->field);
@@ -567,7 +568,7 @@ error:
 	bt_ctf_object_put_ref(field);
 
 	if (field_wrapper) {
-		destroy_event_header_field(field_wrapper);
+		destroy_event_header_field(field_wrapper, stream_class);
 		field_wrapper = NULL;
 	}
 
