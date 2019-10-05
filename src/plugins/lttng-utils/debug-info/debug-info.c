@@ -43,6 +43,7 @@
 #include "trace-ir-mapping.h"
 #include "trace-ir-metadata-copy.h"
 #include "utils.h"
+#include "plugins/common/param-validation/param-validation.h"
 
 #define DEFAULT_DEBUG_INFO_FIELD_NAME	"debug_info"
 #define LTTNG_UST_STATEDUMP_PREFIX	"lttng_ust"
@@ -1683,6 +1684,14 @@ const bt_message *handle_message(struct debug_info_msg_iter *debug_it,
 	return out_message;
 }
 
+struct bt_param_validation_map_value_entry_descr debug_info_params[] = {
+	{ "debug-info-field-name", BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_OPTIONAL, { .type = BT_VALUE_TYPE_STRING } },
+	{ "debug-info-dir", BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_OPTIONAL, { .type = BT_VALUE_TYPE_STRING } },
+	{ "target-prefix", BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_OPTIONAL, { .type = BT_VALUE_TYPE_STRING } },
+	{ "full-path", BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_OPTIONAL, { .type = BT_VALUE_TYPE_BOOL } },
+	BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_END
+};
+
 static
 bt_component_class_initialize_method_status init_from_params(
 		struct debug_info_component *debug_info_component,
@@ -1690,6 +1699,21 @@ bt_component_class_initialize_method_status init_from_params(
 {
 	const bt_value *value;
 	bt_component_class_initialize_method_status status;
+	bt_logging_level log_level = debug_info_component->log_level;
+	enum bt_param_validation_status validation_status;
+	gchar *validate_error = NULL;
+
+	validation_status = bt_param_validation_validate(params,
+		debug_info_params, &validate_error);
+	if (validation_status == BT_PARAM_VALIDATION_STATUS_MEMORY_ERROR) {
+		status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_MEMORY_ERROR;
+		goto end;
+	} else if (validation_status == BT_PARAM_VALIDATION_STATUS_VALIDATION_ERROR) {
+		status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_ERROR;
+		BT_COMP_LOGE_APPEND_CAUSE(debug_info_component->self_comp,
+			"%s", validate_error);
+		goto end;
+	}
 
 	BT_ASSERT(params);
 
@@ -1728,6 +1752,9 @@ bt_component_class_initialize_method_status init_from_params(
 	}
 
 	status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_OK;
+
+end:
+	g_free(validate_error);
 
 	return status;
 }
