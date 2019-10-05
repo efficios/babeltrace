@@ -43,6 +43,7 @@
 #include <babeltrace2/types.h>
 
 #include "plugins/common/muxing/muxing.h"
+#include "plugins/common/param-validation/param-validation.h"
 
 #include "data-stream.h"
 #include "metadata.h"
@@ -1521,17 +1522,8 @@ bt_component_class_message_iterator_initialize_method_status lttng_live_msg_iter
 				SESS_NOT_FOUND_ACTION_END_STR,
 				lttng_live->params.url->str);
 			break;
-		case SESSION_NOT_FOUND_ACTION_UNKNOWN:
 		default:
-			/* Fallthrough */
-			BT_COMP_LOGE("Unknown action for session not found"
-				"error. Fail the message iterator"
-				"initialization because of %s=\"%s\" "
-				"component parameter: url =\"%s\"",
-				SESS_NOT_FOUND_ACTION_PARAM,
-				SESS_NOT_FOUND_ACTION_FAIL_STR,
-				lttng_live->params.url->str);
-			break;
+			abort();
 		}
 	}
 
@@ -1545,42 +1537,47 @@ end:
 	return ret;
 }
 
+static struct bt_param_validation_map_value_entry_descr list_sessions_params[] = {
+	{ URL_PARAM, BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_MANDATORY, { .type = BT_VALUE_TYPE_STRING } },
+	BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_END
+};
+
 static
 bt_component_class_query_method_status lttng_live_query_list_sessions(
 		const bt_value *params, const bt_value **result,
+		bt_self_component_class *self_comp_class,
 		bt_logging_level log_level)
 {
-	bt_component_class_query_method_status status =
-		BT_COMPONENT_CLASS_QUERY_METHOD_STATUS_OK;
+	bt_component_class_query_method_status status;
 	const bt_value *url_value = NULL;
 	const char *url;
 	struct live_viewer_connection *viewer_connection = NULL;
-	bt_self_component *self_comp = NULL;
+	enum bt_param_validation_status validation_status;
+	gchar *validate_error = NULL;
+
+	validation_status = bt_param_validation_validate(params,
+		list_sessions_params, &validate_error);
+	if (validation_status == BT_PARAM_VALIDATION_STATUS_MEMORY_ERROR) {
+		status = BT_COMPONENT_CLASS_QUERY_METHOD_STATUS_MEMORY_ERROR;
+		goto error;
+	} else if (validation_status == BT_PARAM_VALIDATION_STATUS_VALIDATION_ERROR) {
+		status = BT_COMPONENT_CLASS_QUERY_METHOD_STATUS_ERROR;
+		BT_COMP_CLASS_LOGE_APPEND_CAUSE(self_comp_class, "%s", validate_error);
+		goto error;
+	}
 
 	url_value = bt_value_map_borrow_entry_value_const(params, URL_PARAM);
-	if (!url_value) {
-		BT_COMP_LOGE("Mandatory `%s` parameter missing", URL_PARAM);
-		status = BT_COMPONENT_CLASS_QUERY_METHOD_STATUS_ERROR;
-		goto error;
-	}
-
-	if (!bt_value_is_string(url_value)) {
-		BT_COMP_LOGE("`%s` parameter is required to be a string value",
-			URL_PARAM);
-		status = BT_COMPONENT_CLASS_QUERY_METHOD_STATUS_ERROR;
-		goto error;
-	}
-
 	url = bt_value_string_get(url_value);
 
 	viewer_connection = live_viewer_connection_create(url, true, NULL,
 		log_level);
 	if (!viewer_connection) {
+		status = BT_COMPONENT_CLASS_QUERY_METHOD_STATUS_ERROR;
 		goto error;
 	}
 
 	status = live_viewer_connection_list_sessions(viewer_connection,
-			result);
+		result);
 	if (status != BT_COMPONENT_CLASS_QUERY_METHOD_STATUS_OK) {
 		goto error;
 	}
@@ -1598,6 +1595,9 @@ end:
 	if (viewer_connection) {
 		live_viewer_connection_destroy(viewer_connection);
 	}
+
+	g_free(validate_error);
+
 	return status;
 }
 
@@ -1687,13 +1687,15 @@ bt_component_class_query_method_status lttng_live_query(
 	bt_component_class_query_method_status status =
 		BT_COMPONENT_CLASS_QUERY_METHOD_STATUS_OK;
 	bt_self_component *self_comp = NULL;
+	bt_self_component_class *self_comp_class =
+		bt_self_component_class_source_as_self_component_class(comp_class);
 	bt_logging_level log_level = bt_query_executor_get_logging_level(
 		bt_private_query_executor_as_query_executor_const(
 			priv_query_exec));
 
 	if (strcmp(object, "sessions") == 0) {
 		status = lttng_live_query_list_sessions(params, result,
-			log_level);
+			self_comp_class, log_level);
 	} else if (strcmp(object, "babeltrace.support-info") == 0) {
 		status = lttng_live_query_support_info(params, result,
 			log_level);
@@ -1736,33 +1738,72 @@ enum session_not_found_action parse_session_not_found_action_param(
 	const bt_value *no_session_param)
 {
 	enum session_not_found_action action;
-	const char *no_session_act_str;
-	no_session_act_str = bt_value_string_get(no_session_param);
+	const char *no_session_act_str = bt_value_string_get(no_session_param);
+
 	if (strcmp(no_session_act_str, SESS_NOT_FOUND_ACTION_CONTINUE_STR) == 0) {
 		action = SESSION_NOT_FOUND_ACTION_CONTINUE;
 	} else if (strcmp(no_session_act_str, SESS_NOT_FOUND_ACTION_FAIL_STR) == 0) {
 		action = SESSION_NOT_FOUND_ACTION_FAIL;
-	} else if (strcmp(no_session_act_str, SESS_NOT_FOUND_ACTION_END_STR) == 0) {
-		action = SESSION_NOT_FOUND_ACTION_END;
 	} else {
-		action = SESSION_NOT_FOUND_ACTION_UNKNOWN;
+		BT_ASSERT(strcmp(no_session_act_str, SESS_NOT_FOUND_ACTION_END_STR) == 0);
+		action = SESSION_NOT_FOUND_ACTION_END;
 	}
 
 	return action;
 }
 
+static struct bt_param_validation_value_descr inputs_elem_descr = {
+	.type = BT_VALUE_TYPE_STRING,
+};
+
+static const char *sess_not_found_action_choices[] = {
+	SESS_NOT_FOUND_ACTION_CONTINUE_STR,
+	SESS_NOT_FOUND_ACTION_FAIL_STR,
+	SESS_NOT_FOUND_ACTION_END_STR,
+};
+
+static struct bt_param_validation_map_value_entry_descr params_descr[] = {
+	{ INPUTS_PARAM, BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_MANDATORY, { BT_VALUE_TYPE_ARRAY, .array = {
+		.min_length = 1,
+		.max_length = 1,
+		.element_type = &inputs_elem_descr,
+	} } },
+	{ SESS_NOT_FOUND_ACTION_PARAM, BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_OPTIONAL, { BT_VALUE_TYPE_STRING, .string = {
+		.choices = sess_not_found_action_choices,
+	} } },
+	BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_END
+};
+
 static
-struct lttng_live_component *lttng_live_component_create(const bt_value *params,
-		bt_logging_level log_level, bt_self_component *self_comp)
+bt_component_class_initialize_method_status lttng_live_component_create(
+		const bt_value *params,
+		bt_logging_level log_level,
+		bt_self_component *self_comp,
+		struct lttng_live_component **component)
 {
-	struct lttng_live_component *lttng_live;
+	struct lttng_live_component *lttng_live = NULL;
 	const bt_value *inputs_value;
 	const bt_value *url_value;
 	const bt_value *value;
 	const char *url;
+	enum bt_param_validation_status validation_status;
+	gchar *validation_error = NULL;
+	bt_component_class_initialize_method_status status;
+
+	validation_status = bt_param_validation_validate(params, params_descr,
+		&validation_error);
+	if (validation_status == BT_PARAM_VALIDATION_STATUS_MEMORY_ERROR) {
+		status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_MEMORY_ERROR;
+		goto error;
+	} else if (validation_status == BT_PARAM_VALIDATION_STATUS_VALIDATION_ERROR) {
+		BT_COMP_LOGE_APPEND_CAUSE(self_comp, "%s", validation_error);
+		status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_ERROR;
+		goto error;
+	}
 
 	lttng_live = g_new0(struct lttng_live_component, 1);
 	if (!lttng_live) {
+		status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_MEMORY_ERROR;
 		goto end;
 	}
 	lttng_live->log_level = log_level;
@@ -1770,58 +1811,23 @@ struct lttng_live_component *lttng_live_component_create(const bt_value *params,
 	lttng_live->max_query_size = MAX_QUERY_SIZE;
 	lttng_live->has_msg_iter = false;
 
-	inputs_value = bt_value_map_borrow_entry_value_const(params,
-		INPUTS_PARAM);
-	if (!inputs_value) {
-		BT_COMP_LOGE("Mandatory `%s` parameter missing", INPUTS_PARAM);
-		goto error;
-	}
-
-	if (!bt_value_is_array(inputs_value)) {
-		BT_COMP_LOGE("`%s` parameter is required to be an array value",
-			INPUTS_PARAM);
-		goto error;
-	}
-
-	if (bt_value_array_get_length(inputs_value) != 1) {
-		BT_COMP_LOGE("`%s` parameter's length is required to be 1",
-			INPUTS_PARAM);
-		goto error;
-	}
-
-	url_value = bt_value_array_borrow_element_by_index_const(inputs_value,
-		0);
-	BT_ASSERT(url_value);
-
-	if (!bt_value_is_string(url_value)) {
-		BT_COMP_LOGE("First element of `%s` parameter is required to be a string value (URL)",
-			INPUTS_PARAM);
-		goto error;
-	}
-
+	inputs_value =
+		bt_value_map_borrow_entry_value_const(params, INPUTS_PARAM);
+	url_value =
+		bt_value_array_borrow_element_by_index_const(inputs_value, 0);
 	url = bt_value_string_get(url_value);
+
 	lttng_live->params.url = g_string_new(url);
 	if (!lttng_live->params.url) {
+		status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_MEMORY_ERROR;
 		goto error;
 	}
 
 	value = bt_value_map_borrow_entry_value_const(params,
 		SESS_NOT_FOUND_ACTION_PARAM);
 	if (value) {
-		if (!bt_value_is_string(value)) {
-			BT_COMP_LOGE("`%s` parameter is required to be a string value",
-				SESS_NOT_FOUND_ACTION_PARAM);
-			goto error;
-		}
-
 		lttng_live->params.sess_not_found_act =
 			parse_session_not_found_action_param(value);
-		if (lttng_live->params.sess_not_found_act == SESSION_NOT_FOUND_ACTION_UNKNOWN) {
-			BT_COMP_LOGE("Unexpected value for `%s` parameter: "
-				"value=\"%s\"", SESS_NOT_FOUND_ACTION_PARAM,
-				bt_value_string_get(value));
-			goto error;
-		}
 	} else {
 		BT_COMP_LOGI("Optional `%s` parameter is missing: "
 			"defaulting to `%s`.",
@@ -1831,13 +1837,17 @@ struct lttng_live_component *lttng_live_component_create(const bt_value *params,
 			SESSION_NOT_FOUND_ACTION_CONTINUE;
 	}
 
+	status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_OK;
 	goto end;
 
 error:
 	lttng_live_component_destroy_data(lttng_live);
 	lttng_live = NULL;
 end:
-	return lttng_live;
+	g_free(validation_error);
+
+	*component = lttng_live;
+	return status;
 }
 
 BT_HIDDEN
@@ -1848,31 +1858,23 @@ bt_component_class_initialize_method_status lttng_live_component_init(
 		__attribute__((unused)) void *init_method_data)
 {
 	struct lttng_live_component *lttng_live;
-	bt_component_class_initialize_method_status ret =
-		BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_OK;
+	bt_component_class_initialize_method_status ret;
 	bt_self_component *self_comp =
 		bt_self_component_source_as_self_component(self_comp_src);
 	bt_logging_level log_level = bt_component_get_logging_level(
 		bt_self_component_as_component(self_comp));
 	bt_self_component_add_port_status add_port_status;
 
-	lttng_live = lttng_live_component_create(params, log_level, self_comp);
-	if (!lttng_live) {
-		ret = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_MEMORY_ERROR;
+	ret = lttng_live_component_create(params, log_level, self_comp, &lttng_live);
+	if (ret != BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_OK) {
 		goto error;
 	}
 
 	add_port_status = bt_self_component_source_add_output_port(
 		self_comp_src, "out", NULL, NULL);
-	switch (add_port_status) {
-	case BT_SELF_COMPONENT_ADD_PORT_STATUS_ERROR:
-		ret = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_ERROR;
-		goto error;
-	case BT_SELF_COMPONENT_ADD_PORT_STATUS_MEMORY_ERROR:
-		ret = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_MEMORY_ERROR;
-		goto error;
-	default:
-		break;
+	if (add_port_status != BT_SELF_COMPONENT_ADD_PORT_STATUS_OK) {
+		ret = (int) add_port_status;
+		goto end;
 	}
 
 	bt_self_component_set_data(self_comp, lttng_live);
