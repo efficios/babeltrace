@@ -57,7 +57,7 @@
 #endif
 
 typedef void *(*bt_object_pool_new_object_func)(void *data);
-typedef void *(*bt_object_pool_destroy_object_func)(void *obj, void *data);
+typedef void (*bt_object_pool_destroy_object_func)(void *obj, void *data);
 
 struct bt_object_pool {
 	/*
