@@ -1751,6 +1751,7 @@ enum session_not_found_action parse_session_not_found_action_param(
 	return action;
 }
 
+static
 struct lttng_live_component *lttng_live_component_create(const bt_value *params,
 		bt_logging_level log_level, bt_self_component *self_comp)
 {
