@@ -24,11 +24,7 @@ import copy
 import itertools
 import collections
 import bt2
-from utils import (
-    get_default_trace_class,
-    TestOutputPortMessageIterator,
-    create_const_field,
-)
+from utils import get_default_trace_class, create_const_field
 
 
 _COMP_BINOPS = (operator.eq, operator.ne)
