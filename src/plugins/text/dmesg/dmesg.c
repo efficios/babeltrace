@@ -36,6 +36,7 @@
 #include "compat/utc.h"
 #include "compat/stdio.h"
 #include <glib.h>
+#include "plugins/common/param-validation/param-validation.h"
 
 #define NSEC_PER_USEC 1000UL
 #define NSEC_PER_MSEC 1000000UL
@@ -195,58 +196,56 @@ end:
 	return ret;
 }
 
+struct bt_param_validation_map_value_entry_descr dmesg_params[] = {
+	{ "no-extract-timestamp", BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_OPTIONAL, { .type = BT_VALUE_TYPE_BOOL } },
+	{ "path", BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_OPTIONAL, { .type = BT_VALUE_TYPE_STRING } },
+	BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_END
+};
+
 static
-int handle_params(struct dmesg_component *dmesg_comp,
+bt_component_class_initialize_method_status handle_params(
+		struct dmesg_component *dmesg_comp,
 		const bt_value *params)
 {
 	const bt_value *no_timestamp = NULL;
 	const bt_value *path = NULL;
-	const char *path_str;
-	int ret = 0;
+	bt_component_class_initialize_method_status status;
+	enum bt_param_validation_status validation_status;
+	gchar *validate_error = NULL;
+
+	validation_status = bt_param_validation_validate(params,
+		dmesg_params, &validate_error);
+	if (validation_status == BT_PARAM_VALIDATION_STATUS_MEMORY_ERROR) {
+		status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_MEMORY_ERROR;
+		goto end;
+	} else if (validation_status == BT_PARAM_VALIDATION_STATUS_VALIDATION_ERROR) {
+		status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_ERROR;
+		BT_COMP_LOGE_APPEND_CAUSE(dmesg_comp->self_comp,
+			"%s", validate_error);
+		goto end;
+	}
 
 	no_timestamp = bt_value_map_borrow_entry_value_const(params,
 		"no-extract-timestamp");
 	if (no_timestamp) {
-		if (!bt_value_is_bool(no_timestamp)) {
-			BT_COMP_LOGE("Expecting a boolean value for the `no-extract-timestamp` parameter: "
-				"type=%s",
-				bt_common_value_type_string(
-					bt_value_get_type(no_timestamp)));
-			goto error;
-		}
-
 		dmesg_comp->params.no_timestamp =
 			bt_value_bool_get(no_timestamp);
 	}
 
 	path = bt_value_map_borrow_entry_value_const(params, "path");
 	if (path) {
-		if (dmesg_comp->params.read_from_stdin) {
-			BT_COMP_LOGE_STR("Cannot specify both `read-from-stdin` and `path` parameters.");
-			goto error;
-		}
+		const char *path_str = bt_value_string_get(path);
 
-		if (!bt_value_is_string(path)) {
-			BT_COMP_LOGE("Expecting a string value for the `path` parameter: "
-				"type=%s",
-				bt_common_value_type_string(
-					bt_value_get_type(path)));
-			goto error;
-		}
-
-		path_str = bt_value_string_get(path);
 		g_string_assign(dmesg_comp->params.path, path_str);
 	} else {
 		dmesg_comp->params.read_from_stdin = true;
 	}
 
-	goto end;
-
-error:
-	ret = -1;
-
+	status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_OK;
 end:
-	return ret;
+	g_free(validate_error);
+
+	return status;
 }
 
 static
@@ -384,12 +383,10 @@ BT_HIDDEN
 bt_component_class_initialize_method_status dmesg_init(
 		bt_self_component_source *self_comp_src,
 		bt_self_component_source_configuration *config,
-		bt_value *params, void *init_method_data)
+		const bt_value *params, void *init_method_data)
 {
-	int ret = 0;
 	struct dmesg_component *dmesg_comp = g_new0(struct dmesg_component, 1);
-	bt_component_class_initialize_method_status status =
-		BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_OK;
+	bt_component_class_initialize_method_status status;
 	bt_self_component *self_comp =
 		bt_self_component_source_as_self_component(self_comp_src);
 	const bt_component *comp = bt_self_component_as_component(self_comp);
@@ -399,6 +396,7 @@ bt_component_class_initialize_method_status dmesg_init(
 		/* Implicit log level is not available here */
 		BT_COMP_LOG_CUR_LVL(BT_LOG_ERROR, log_level, self_comp,
 			"Failed to allocate one dmesg component structure.");
+		status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_ERROR;
 		goto error;
 	}
 
@@ -408,12 +406,14 @@ bt_component_class_initialize_method_status dmesg_init(
 	dmesg_comp->params.path = g_string_new(NULL);
 	if (!dmesg_comp->params.path) {
 		BT_COMP_LOGE_STR("Failed to allocate a GString.");
+		status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_ERROR;
 		goto error;
 	}
 
-	ret = handle_params(dmesg_comp, params);
-	if (ret) {
+	status = handle_params(dmesg_comp, params);
+	if (status != BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_OK) {
 		BT_COMP_LOGE("Invalid parameters: comp-addr=%p", self_comp);
+		status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_ERROR;
 		goto error;
 	}
 
@@ -423,6 +423,7 @@ bt_component_class_initialize_method_status dmesg_init(
 		BT_COMP_LOGE("Input path is not a regular file: "
 			"comp-addr=%p, path=\"%s\"", self_comp,
 			dmesg_comp->params.path->str);
+		status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_ERROR;
 		goto error;
 	}
 
@@ -433,15 +434,13 @@ bt_component_class_initialize_method_status dmesg_init(
 
 	bt_self_component_set_data(self_comp, dmesg_comp);
 	BT_COMP_LOGI_STR("Component initialized.");
+
+	status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_OK;
 	goto end;
 
 error:
 	destroy_dmesg_component(dmesg_comp);
 	bt_self_component_set_data(self_comp, NULL);
-
-	if (status >= 0) {
-		status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_ERROR;
-	}
 
 end:
 	return status;
