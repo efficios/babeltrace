@@ -862,7 +862,7 @@ int maybe_protect_variant_option_name(const bt_field_class *ir_var_fc,
 			mapping_ranges = bt_field_class_enumeration_unsigned_mapping_borrow_ranges_const(
 				mapping);
 
-			if (bt_integer_range_set_unsigned_compare(opt_ranges,
+			if (bt_integer_range_set_unsigned_is_equal(opt_ranges,
 					mapping_ranges)) {
 				/* We have a winner */
 				mapping_base =
@@ -883,7 +883,7 @@ int maybe_protect_variant_option_name(const bt_field_class *ir_var_fc,
 			mapping_ranges = bt_field_class_enumeration_signed_mapping_borrow_ranges_const(
 				mapping);
 
-			if (bt_integer_range_set_signed_compare(opt_ranges,
+			if (bt_integer_range_set_signed_is_equal(opt_ranges,
 					mapping_ranges)) {
 				/* We have a winner */
 				mapping_base =
@@ -1092,7 +1092,7 @@ validate_opts:
 			opt_name_b =
 				bt_value_array_borrow_element_by_index_const(
 					prot_opt_names, j);
-			if (bt_value_compare(opt_name_a, opt_name_b)) {
+			if (bt_value_is_equal(opt_name_a, opt_name_b)) {
 				/*
 				 * Variant FC option names are not
 				 * unique when protected.

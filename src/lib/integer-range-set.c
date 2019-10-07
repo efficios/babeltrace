@@ -73,7 +73,7 @@ bool compare_ranges(const struct bt_integer_range *range_a,
 		range_a->upper.u == range_b->upper.u;
 }
 
-bt_bool bt_integer_range_unsigned_compare(
+bt_bool bt_integer_range_unsigned_is_equal(
 		const struct bt_integer_range_unsigned *range_a,
 		const struct bt_integer_range_unsigned *range_b)
 {
@@ -83,7 +83,7 @@ bt_bool bt_integer_range_unsigned_compare(
 		(const void *) range_b);
 }
 
-bt_bool bt_integer_range_signed_compare(
+bt_bool bt_integer_range_signed_is_equal(
 		const struct bt_integer_range_signed *range_a,
 		const struct bt_integer_range_signed *range_b)
 {
@@ -353,7 +353,7 @@ end:
 	return is_equal;
 }
 
-bt_bool bt_integer_range_set_unsigned_compare(
+bt_bool bt_integer_range_set_unsigned_is_equal(
 		const struct bt_integer_range_set_unsigned *range_set_a,
 		const struct bt_integer_range_set_unsigned *range_set_b)
 {
@@ -363,7 +363,7 @@ bt_bool bt_integer_range_set_unsigned_compare(
 		(const void *) range_set_b);
 }
 
-bt_bool bt_integer_range_set_signed_compare(
+bt_bool bt_integer_range_set_signed_is_equal(
 		const struct bt_integer_range_set_signed *range_set_a,
 		const struct bt_integer_range_set_signed *range_set_b)
 {

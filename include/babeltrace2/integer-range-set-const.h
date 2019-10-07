@@ -48,11 +48,11 @@ extern int64_t bt_integer_range_signed_get_lower(
 extern int64_t bt_integer_range_signed_get_upper(
 		const bt_integer_range_signed *range);
 
-extern bt_bool bt_integer_range_unsigned_compare(
+extern bt_bool bt_integer_range_unsigned_is_equal(
 		const bt_integer_range_unsigned *range_a,
 		const bt_integer_range_unsigned *range_b);
 
-extern bt_bool bt_integer_range_signed_compare(
+extern bt_bool bt_integer_range_signed_is_equal(
 		const bt_integer_range_signed *range_a,
 		const bt_integer_range_signed *range_b);
 
@@ -80,11 +80,11 @@ extern const bt_integer_range_signed *
 bt_integer_range_set_signed_borrow_range_by_index_const(
 		const bt_integer_range_set_signed *range_set, uint64_t index);
 
-extern bt_bool bt_integer_range_set_unsigned_compare(
+extern bt_bool bt_integer_range_set_unsigned_is_equal(
 		const bt_integer_range_set_unsigned *range_set_a,
 		const bt_integer_range_set_unsigned *range_set_b);
 
-extern bt_bool bt_integer_range_set_signed_compare(
+extern bt_bool bt_integer_range_set_signed_is_equal(
 		const bt_integer_range_set_signed *range_set_a,
 		const bt_integer_range_set_signed *range_set_b);
 

@@ -113,7 +113,7 @@ class _IntegerRangeSetConst(object._SharedObject, collections.abc.Set):
         if not isinstance(other, _IntegerRangeSetConst):
             return False
 
-        return self._compare(self._ptr, other._ptr)
+        return self._is_equal(self._ptr, other._ptr)
 
     def contains_value(self, value):
         for rg in self:
@@ -163,7 +163,7 @@ class _SignedIntegerRangeSetConst(_IntegerRangeSetConst):
     )
     _range_get_lower = staticmethod(native_bt.integer_range_signed_get_lower)
     _range_get_upper = staticmethod(native_bt.integer_range_signed_get_upper)
-    _compare = staticmethod(native_bt.integer_range_set_signed_compare)
+    _is_equal = staticmethod(native_bt.integer_range_set_signed_is_equal)
     _range_pycls = _SignedIntegerRangeConst
 
 
@@ -184,7 +184,7 @@ class _UnsignedIntegerRangeSetConst(_IntegerRangeSetConst):
     )
     _range_get_lower = staticmethod(native_bt.integer_range_unsigned_get_lower)
     _range_get_upper = staticmethod(native_bt.integer_range_unsigned_get_upper)
-    _compare = staticmethod(native_bt.integer_range_set_unsigned_compare)
+    _is_equal = staticmethod(native_bt.integer_range_set_unsigned_is_equal)
     _range_pycls = _UnsignedIntegerRangeConst
 
 

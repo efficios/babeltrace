@@ -742,14 +742,14 @@ void test_types(void)
 }
 
 static
-void test_compare_null(void)
+void test_is_equal_null(void)
 {
-	ok(bt_value_compare(bt_value_null, bt_value_null),
+	ok(bt_value_is_equal(bt_value_null, bt_value_null),
 		"null value objects are equivalent");
 }
 
 static
-void test_compare_bool(void)
+void test_is_equal_bool(void)
 {
 	bt_value *bool1 =
 		bt_value_bool_create_init(BT_FALSE);
@@ -759,14 +759,11 @@ void test_compare_bool(void)
 		bt_value_bool_create_init(BT_FALSE);
 
 	BT_ASSERT(bool1 && bool2 && bool3);
-	ok(!bt_value_compare(bt_value_null,
-		bool1),
+	ok(!bt_value_is_equal(bt_value_null, bool1),
 		"cannot compare null value object and bt_bool value object");
-	ok(!bt_value_compare(bool1,
-			     bool2),
+	ok(!bt_value_is_equal(bool1, bool2),
 		"boolean value objects are not equivalent (BT_FALSE and BT_TRUE)");
-	ok(bt_value_compare(bool1,
-			    bool3),
+	ok(bt_value_is_equal(bool1, bool3),
 		"boolean value objects are equivalent (BT_FALSE and BT_FALSE)");
 
 	BT_VALUE_PUT_REF_AND_RESET(bool1);
@@ -775,7 +772,7 @@ void test_compare_bool(void)
 }
 
 static
-void test_compare_unsigned_integer(void)
+void test_is_equal_unsigned_integer(void)
 {
 	bt_value *int1 =
 		bt_value_integer_unsigned_create_init(10);
@@ -785,12 +782,11 @@ void test_compare_unsigned_integer(void)
 		bt_value_integer_unsigned_create_init(10);
 
 	BT_ASSERT(int1 && int2 && int3);
-	ok(!bt_value_compare(bt_value_null,
-		int1),
+	ok(!bt_value_is_equal(bt_value_null, int1),
 		"cannot compare null value object and unsigned integer value object");
-	ok(!bt_value_compare(int1, int2),
+	ok(!bt_value_is_equal(int1, int2),
 		"unsigned integer value objects are not equivalent (10 and 23)");
-	ok(bt_value_compare(int1, int3),
+	ok(bt_value_is_equal(int1, int3),
 		"unsigned integer value objects are equivalent (10 and 10)");
 
 	BT_VALUE_PUT_REF_AND_RESET(int1);
@@ -798,7 +794,7 @@ void test_compare_unsigned_integer(void)
 	BT_VALUE_PUT_REF_AND_RESET(int3);
 }
 
-void test_compare_signed_integer(void)
+void test_is_equal_signed_integer(void)
 {
 	bt_value *int1 =
 		bt_value_integer_signed_create_init(10);
@@ -808,12 +804,11 @@ void test_compare_signed_integer(void)
 		bt_value_integer_signed_create_init(10);
 
 	BT_ASSERT(int1 && int2 && int3);
-	ok(!bt_value_compare(bt_value_null,
-		int1),
+	ok(!bt_value_is_equal(bt_value_null, int1),
 		"cannot compare null value object and signed integer value object");
-	ok(!bt_value_compare(int1, int2),
+	ok(!bt_value_is_equal(int1, int2),
 		"signed integer value objects are not equivalent (10 and -23)");
-	ok(bt_value_compare(int1, int3),
+	ok(bt_value_is_equal(int1, int3),
 		"signed integer value objects are equivalent (10 and 10)");
 
 	BT_VALUE_PUT_REF_AND_RESET(int1);
@@ -822,7 +817,7 @@ void test_compare_signed_integer(void)
 }
 
 static
-void test_compare_real(void)
+void test_is_equal_real(void)
 {
 	bt_value *real1 =
 		bt_value_real_create_init(17.38);
@@ -833,14 +828,11 @@ void test_compare_real(void)
 
 	BT_ASSERT(real1 && real2 && real3);
 
-	ok(!bt_value_compare(bt_value_null,
-		real1),
+	ok(!bt_value_is_equal(bt_value_null, real1),
 		"cannot compare null value object and real number value object");
-	ok(!bt_value_compare(real1,
-			     real2),
+	ok(!bt_value_is_equal(real1, real2),
 		"real number value objects are not equivalent (17.38 and -14.23)");
-	ok(bt_value_compare(real1,
-			    real3),
+	ok(bt_value_is_equal(real1, real3),
 		"real number value objects are equivalent (17.38 and 17.38)");
 
 	BT_VALUE_PUT_REF_AND_RESET(real1);
@@ -849,7 +841,7 @@ void test_compare_real(void)
 }
 
 static
-void test_compare_string(void)
+void test_is_equal_string(void)
 {
 	bt_value *string1 =
 		bt_value_string_create_init("hello");
@@ -860,14 +852,11 @@ void test_compare_string(void)
 
 	BT_ASSERT(string1 && string2 && string3);
 
-	ok(!bt_value_compare(bt_value_null,
-		string1),
+	ok(!bt_value_is_equal(bt_value_null, string1),
 		"cannot compare null value object and string value object");
-	ok(!bt_value_compare(string1,
-			     string2),
+	ok(!bt_value_is_equal(string1, string2),
 		"string value objects are not equivalent (\"hello\" and \"bt_value\")");
-	ok(bt_value_compare(string1,
-			    string3),
+	ok(bt_value_is_equal(string1, string3),
 		"string value objects are equivalent (\"hello\" and \"hello\")");
 
 	BT_VALUE_PUT_REF_AND_RESET(string1);
@@ -876,7 +865,7 @@ void test_compare_string(void)
 }
 
 static
-void test_compare_array(void)
+void test_is_equal_array(void)
 {
 	bt_value *array1 = bt_value_array_create();
 	bt_value *array2 = bt_value_array_create();
@@ -885,7 +874,7 @@ void test_compare_array(void)
 
 	BT_ASSERT(array1 && array2 && array3);
 
-	ok(bt_value_compare(array1, array2),
+	ok(bt_value_is_equal(array1, array2),
 		"empty array value objects are equivalent");
 
 	append_status = bt_value_array_append_signed_integer_element(array1, 23);
@@ -910,14 +899,11 @@ void test_compare_array(void)
 	BT_ASSERT(bt_value_array_get_length(array2) == 3);
 	BT_ASSERT(bt_value_array_get_length(array3) == 3);
 
-	ok(!bt_value_compare(bt_value_null,
-		array1),
+	ok(!bt_value_is_equal(bt_value_null, array1),
 		"cannot compare null value object and array value object");
-	ok(!bt_value_compare(array1,
-			     array2),
+	ok(!bt_value_is_equal(array1, array2),
 		"array value objects are not equivalent ([23, 14.2, BT_FALSE] and [14.2, 23, BT_FALSE])");
-	ok(bt_value_compare(array1,
-			    array3),
+	ok(bt_value_is_equal(array1, array3),
 		"array value objects are equivalent ([23, 14.2, BT_FALSE] and [23, 14.2, BT_FALSE])");
 
 	BT_VALUE_PUT_REF_AND_RESET(array1);
@@ -926,7 +912,7 @@ void test_compare_array(void)
 }
 
 static
-void test_compare_map(void)
+void test_is_equal_map(void)
 {
 	bt_value *map1 = bt_value_map_create();
 	bt_value *map2 = bt_value_map_create();
@@ -935,8 +921,7 @@ void test_compare_map(void)
 
 	BT_ASSERT(map1 && map2 && map3);
 
-	ok(bt_value_compare(map1,
-			    map2),
+	ok(bt_value_is_equal(map1, map2),
 		"empty map value objects are equivalent");
 
 
@@ -965,14 +950,11 @@ void test_compare_map(void)
 	BT_ASSERT(bt_value_map_get_size(map2) == 3);
 	BT_ASSERT(bt_value_map_get_size(map3) == 3);
 
-	ok(!bt_value_compare(bt_value_null,
-		map1),
+	ok(!bt_value_is_equal(bt_value_null, map1),
 		"cannot compare null value object and map value object");
-	ok(!bt_value_compare(map1,
-			     map2),
+	ok(!bt_value_is_equal(map1, map2),
 		"map value objects are not equivalent");
-	ok(bt_value_compare(map1,
-			    map3),
+	ok(bt_value_is_equal(map1, map3),
 		"map value objects are equivalent");
 
 	BT_VALUE_PUT_REF_AND_RESET(map1);
@@ -981,16 +963,16 @@ void test_compare_map(void)
 }
 
 static
-void test_compare(void)
+void test_is_equal(void)
 {
-	test_compare_null();
-	test_compare_bool();
-	test_compare_unsigned_integer();
-	test_compare_signed_integer();
-	test_compare_real();
-	test_compare_string();
-	test_compare_array();
-	test_compare_map();
+	test_is_equal_null();
+	test_is_equal_bool();
+	test_is_equal_unsigned_integer();
+	test_is_equal_signed_integer();
+	test_is_equal_real();
+	test_is_equal_string();
+	test_is_equal_array();
+	test_is_equal_map();
 }
 
 static
@@ -999,9 +981,9 @@ void test_copy(void)
 	/*
 	 * Here's the deal here. If we make sure that each value object
 	 * of our deep copy has a different address than its source, and
-	 * that bt_value_compare() returns BT_TRUE for the top-level
+	 * that bt_value_is_equal() returns BT_TRUE for the top-level
 	 * value object, taking into account that we test the
-	 * correctness of bt_value_compare() elsewhere, then the deep
+	 * correctness of bt_value_is_equal() elsewhere, then the deep
 	 * copy is a success.
 	 */
 	bt_value *null_copy_obj;
@@ -1077,7 +1059,7 @@ void test_copy(void)
 	ok(null_copy_obj == bt_value_null,
 		"bt_value_copy() returns the same pointer (null)");
 
-	ok(bt_value_compare(map_obj, map_copy_obj),
+	ok(bt_value_is_equal(map_obj, map_copy_obj),
 		"source and destination value objects have the same content");
 
 	BT_VALUE_PUT_REF_AND_RESET(map_copy_obj);
@@ -1100,7 +1082,7 @@ bt_bool compare_map_elements(const bt_value *map_a, const bt_value *map_b,
 
 	elem_a = bt_value_map_borrow_entry_value_const(map_a, key);
 	elem_b = bt_value_map_borrow_entry_value_const(map_b, key);
-	equal = bt_value_compare(elem_a, elem_b);
+	equal = bt_value_is_equal(elem_a, elem_b);
 	return equal;
 }
 
@@ -1169,7 +1151,7 @@ int main(void)
 {
 	plan_tests(NR_TESTS);
 	test_types();
-	test_compare();
+	test_is_equal();
 	test_copy();
 	test_extend();
 	return 0;
