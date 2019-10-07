@@ -19,11 +19,7 @@
 import bt2
 import unittest
 
-from utils import (
-    get_default_trace_class,
-    TestOutputPortMessageIterator,
-    create_const_field,
-)
+from utils import get_default_trace_class, create_const_field
 
 
 def get_const_signed_integer_range(int_ranges):
