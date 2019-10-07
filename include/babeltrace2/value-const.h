@@ -120,7 +120,7 @@ typedef enum bt_value_copy_status {
 extern bt_value_copy_status bt_value_copy(const bt_value *object,
 		bt_value **copy);
 
-extern bt_bool bt_value_compare(const bt_value *object_a,
+extern bt_bool bt_value_is_equal(const bt_value *object_a,
 		const bt_value *object_b);
 
 extern bt_bool bt_value_bool_get(const bt_value *bool_obj);

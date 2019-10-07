@@ -193,7 +193,7 @@ static void test_sfs(const char *plugin_dir)
 	ok(strcmp(object_str, "get-something") == 0,
 		"bt_component_class_query() receives the expected object name");
 	res_params = bt_value_array_borrow_element_by_index_const(results, 1);
-	ok(bt_value_compare(res_params, params),
+	ok(bt_value_is_equal(res_params, params),
 		"bt_component_class_query() receives the expected parameters");
 
 	bt_component_class_sink_get_ref(sink_comp_class);

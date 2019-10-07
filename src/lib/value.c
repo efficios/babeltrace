@@ -297,11 +297,11 @@ struct bt_value *(* const copy_funcs[])(const struct bt_value *) = {
 };
 
 static
-bt_bool bt_value_null_compare(const struct bt_value *object_a,
+bt_bool bt_value_null_is_equal(const struct bt_value *object_a,
 		const struct bt_value *object_b)
 {
 	/*
-	 * Always BT_TRUE since bt_value_compare() already checks if both
+	 * Always BT_TRUE since bt_value_is_equal() already checks if both
 	 * object_a and object_b have the same type, and in the case of
 	 * null value objects, they're always the same if it is so.
 	 */
@@ -309,7 +309,7 @@ bt_bool bt_value_null_compare(const struct bt_value *object_a,
 }
 
 static
-bt_bool bt_value_bool_compare(const struct bt_value *object_a,
+bt_bool bt_value_bool_is_equal(const struct bt_value *object_a,
 		const struct bt_value *object_b)
 {
 	if (BT_VALUE_TO_BOOL(object_a)->value !=
@@ -325,7 +325,7 @@ bt_bool bt_value_bool_compare(const struct bt_value *object_a,
 }
 
 static
-bt_bool bt_value_integer_compare(const struct bt_value *object_a,
+bt_bool bt_value_integer_is_equal(const struct bt_value *object_a,
 		const struct bt_value *object_b)
 {
 	if (BT_VALUE_TO_INTEGER(object_a)->value.u !=
@@ -349,7 +349,7 @@ bt_bool bt_value_integer_compare(const struct bt_value *object_a,
 }
 
 static
-bt_bool bt_value_real_compare(const struct bt_value *object_a,
+bt_bool bt_value_real_is_equal(const struct bt_value *object_a,
 		const struct bt_value *object_b)
 {
 	if (BT_VALUE_TO_REAL(object_a)->value !=
@@ -365,7 +365,7 @@ bt_bool bt_value_real_compare(const struct bt_value *object_a,
 }
 
 static
-bt_bool bt_value_string_compare(const struct bt_value *object_a,
+bt_bool bt_value_string_is_equal(const struct bt_value *object_a,
 		const struct bt_value *object_b)
 {
 	if (strcmp(BT_VALUE_TO_STRING(object_a)->gstr->str,
@@ -381,7 +381,7 @@ bt_bool bt_value_string_compare(const struct bt_value *object_a,
 }
 
 static
-bt_bool bt_value_array_compare(const struct bt_value *object_a,
+bt_bool bt_value_array_is_equal(const struct bt_value *object_a,
 		const struct bt_value *object_b)
 {
 	int i;
@@ -410,7 +410,7 @@ bt_bool bt_value_array_compare(const struct bt_value *object_a,
 		element_obj_b = bt_value_array_borrow_element_by_index_const(
 			object_b, i);
 
-		if (!bt_value_compare(element_obj_a, element_obj_b)) {
+		if (!bt_value_is_equal(element_obj_a, element_obj_b)) {
 			BT_LOGT("Array values's elements are different: "
 				"value-a-addr=%p, value-b-addr=%p, index=%d",
 				element_obj_a, element_obj_b, i);
@@ -424,7 +424,7 @@ end:
 }
 
 static
-bt_bool bt_value_map_compare(const struct bt_value *object_a,
+bt_bool bt_value_map_is_equal(const struct bt_value *object_a,
 		const struct bt_value *object_b)
 {
 	bt_bool ret = BT_TRUE;
@@ -453,7 +453,7 @@ bt_bool bt_value_map_compare(const struct bt_value *object_a,
 		element_obj_b = bt_value_map_borrow_entry_value_const(object_b,
 			key_str);
 
-		if (!bt_value_compare(element_obj_a, element_obj_b)) {
+		if (!bt_value_is_equal(element_obj_a, element_obj_b)) {
 			BT_LOGT("Map values's elements are different: "
 				"value-a-addr=%p, value-b-addr=%p, key=\"%s\"",
 				element_obj_a, element_obj_b, key_str);
@@ -467,16 +467,16 @@ end:
 }
 
 static
-bt_bool (* const compare_funcs[])(const struct bt_value *,
+bt_bool (* const is_equal_funcs[])(const struct bt_value *,
 		const struct bt_value *) = {
-	[BT_VALUE_TYPE_NULL] =			bt_value_null_compare,
-	[BT_VALUE_TYPE_BOOL] =			bt_value_bool_compare,
-	[BT_VALUE_TYPE_UNSIGNED_INTEGER] =	bt_value_integer_compare,
-	[BT_VALUE_TYPE_SIGNED_INTEGER] =	bt_value_integer_compare,
-	[BT_VALUE_TYPE_REAL] =			bt_value_real_compare,
-	[BT_VALUE_TYPE_STRING] =		bt_value_string_compare,
-	[BT_VALUE_TYPE_ARRAY] =			bt_value_array_compare,
-	[BT_VALUE_TYPE_MAP] =			bt_value_map_compare,
+	[BT_VALUE_TYPE_NULL] =			bt_value_null_is_equal,
+	[BT_VALUE_TYPE_BOOL] =			bt_value_bool_is_equal,
+	[BT_VALUE_TYPE_UNSIGNED_INTEGER] =	bt_value_integer_is_equal,
+	[BT_VALUE_TYPE_SIGNED_INTEGER] =	bt_value_integer_is_equal,
+	[BT_VALUE_TYPE_REAL] =			bt_value_real_is_equal,
+	[BT_VALUE_TYPE_STRING] =		bt_value_string_is_equal,
+	[BT_VALUE_TYPE_ARRAY] =			bt_value_array_is_equal,
+	[BT_VALUE_TYPE_MAP] =			bt_value_map_is_equal,
 };
 
 static
@@ -1382,7 +1382,7 @@ enum bt_value_copy_status bt_value_copy(const struct bt_value *object,
 	return status;
 }
 
-bt_bool bt_value_compare(const struct bt_value *object_a,
+bt_bool bt_value_is_equal(const struct bt_value *object_a,
 	const struct bt_value *object_b)
 {
 	bt_bool ret = BT_FALSE;
@@ -1400,7 +1400,7 @@ bt_bool bt_value_compare(const struct bt_value *object_a,
 		goto end;
 	}
 
-	ret = compare_funcs[object_a->type](object_a, object_b);
+	ret = is_equal_funcs[object_a->type](object_a, object_b);
 
 end:
 	return ret;
