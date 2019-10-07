@@ -31,6 +31,7 @@
 #include "common/assert.h"
 #include "details.h"
 #include "write.h"
+#include "plugins/common/param-validation/param-validation.h"
 
 #define LOG_WRONG_PARAM_TYPE(_name, _value, _exp_type)			\
 	do {								\
@@ -41,35 +42,16 @@
 			bt_common_value_type_string(_exp_type));	\
 	} while (0)
 
-static
-const char * const in_port_name = "in";
-
-static
-const char * const color_param_name = "color";
-
-static
-const char * const with_metadata_param_name = "with-metadata";
-
-static
-const char * const with_data_param_name = "with-data";
-
-static
-const char * const with_time_param_name = "with-time";
-
-static
-const char * const with_trace_name_param_name = "with-trace-name";
-
-static
-const char * const with_stream_class_name_param_name = "with-stream-class-name";
-
-static
-const char * const with_stream_name_param_name = "with-stream-name";
-
-static
-const char * const with_uuid_param_name = "with-uuid";
-
-static
-const char * const compact_param_name = "compact";
+#define IN_PORT_NAME "in"
+#define COLOR_PARAM_NAME "color"
+#define WITH_METADATA_PARAM_NAME "with-metadata"
+#define WITH_DATA_PARAM_NAME "with-data"
+#define WITH_TIME_PARAM_NAME "with-time"
+#define WITH_TRACE_NAME_PARAM_NAME "with-trace-name"
+#define WITH_STREAM_CLASS_NAME_PARAM_NAME "with-stream-class-name"
+#define WITH_STREAM_NAME_PARAM_NAME "with-stream-name"
+#define WITH_UUID_PARAM_NAME "with-uuid"
+#define COMPACT_PARAM_NAME "compact"
 
 BT_HIDDEN
 void details_destroy_details_trace_class_meta(
@@ -242,48 +224,63 @@ void details_finalize(bt_self_component_sink *comp)
 }
 
 static
-int configure_bool_opt(struct details_comp *details_comp,
+void configure_bool_opt(struct details_comp *details_comp,
 		const bt_value *params, const char *param_name,
 		bool default_value, bool *opt_value)
 {
-	int ret = 0;
 	const bt_value *value;
 
 	*opt_value = default_value;
 	value = bt_value_map_borrow_entry_value_const(params, param_name);
 	if (value) {
-		if (!bt_value_is_bool(value)) {
-			LOG_WRONG_PARAM_TYPE(param_name, value,
-				BT_VALUE_TYPE_BOOL);
-			ret = -1;
-			goto end;
-		}
-
 		*opt_value = (bool) bt_value_bool_get(value);
 	}
-
-end:
-	return ret;
 }
 
+static const char *color_choices[] = { "never", "auto", "always", NULL };
+
+static const struct bt_param_validation_map_value_entry_descr details_params[] = {
+	{ COLOR_PARAM_NAME, BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_OPTIONAL, { BT_VALUE_TYPE_STRING, .string = {
+		.choices = color_choices,
+	} } },
+	{ WITH_METADATA_PARAM_NAME, BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_OPTIONAL, { .type = BT_VALUE_TYPE_BOOL } },
+	{ WITH_DATA_PARAM_NAME, BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_OPTIONAL, { .type = BT_VALUE_TYPE_BOOL } },
+	{ COMPACT_PARAM_NAME, BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_OPTIONAL, { .type = BT_VALUE_TYPE_BOOL } },
+	{ WITH_TIME_PARAM_NAME, BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_OPTIONAL, { .type = BT_VALUE_TYPE_BOOL } },
+	{ WITH_TRACE_NAME_PARAM_NAME, BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_OPTIONAL, { .type = BT_VALUE_TYPE_BOOL } },
+	{ WITH_STREAM_CLASS_NAME_PARAM_NAME, BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_OPTIONAL, { .type = BT_VALUE_TYPE_BOOL } },
+	{ WITH_STREAM_NAME_PARAM_NAME, BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_OPTIONAL, { .type = BT_VALUE_TYPE_BOOL } },
+	{ WITH_UUID_PARAM_NAME, BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_OPTIONAL, { .type = BT_VALUE_TYPE_BOOL } },
+	BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_END
+};
+
 static
-int configure_details_comp(struct details_comp *details_comp,
+bt_component_class_initialize_method_status configure_details_comp(
+		struct details_comp *details_comp,
 		const bt_value *params)
 {
-	int ret = 0;
+	bt_component_class_initialize_method_status status;
 	const bt_value *value;
 	const char *str;
+	enum bt_param_validation_status validation_status;
+	gchar *validate_error = NULL;
+
+	validation_status = bt_param_validation_validate(params,
+		details_params, &validate_error);
+	if (validation_status == BT_PARAM_VALIDATION_STATUS_MEMORY_ERROR) {
+		status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_MEMORY_ERROR;
+		goto end;
+	} else if (validation_status == BT_PARAM_VALIDATION_STATUS_VALIDATION_ERROR) {
+		status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_ERROR;
+		BT_COMP_LOGE_APPEND_CAUSE(details_comp->self_comp,
+			"%s", validate_error);
+		goto end;
+	}
 
 	/* Colorize output? */
 	details_comp->cfg.with_color = bt_common_colors_supported();
-	value = bt_value_map_borrow_entry_value_const(params, color_param_name);
+	value = bt_value_map_borrow_entry_value_const(params, COLOR_PARAM_NAME);
 	if (value) {
-		if (!bt_value_is_string(value)) {
-			LOG_WRONG_PARAM_TYPE(color_param_name, value,
-				BT_VALUE_TYPE_STRING);
-			goto error;
-		}
-
 		str = bt_value_string_get(value);
 
 		if (strcmp(str, "never") == 0) {
@@ -291,82 +288,55 @@ int configure_details_comp(struct details_comp *details_comp,
 		} else if (strcmp(str, "auto") == 0) {
 			details_comp->cfg.with_color =
 				bt_common_colors_supported();
-		} else if (strcmp(str, "always") == 0) {
-			details_comp->cfg.with_color = true;
 		} else {
-			BT_COMP_LOGE("Invalid `%s` parameter: unknown value "
-				"(expecting `never`, `auto`, or `always`): "
-				"value=\"%s\"", color_param_name, str);
-			goto error;
+			BT_ASSERT(strcmp(str, "always") == 0);
+
+			details_comp->cfg.with_color = true;
 		}
 	}
 
 	/* With metadata objects? */
-	ret = configure_bool_opt(details_comp, params, with_metadata_param_name,
+	configure_bool_opt(details_comp, params, WITH_METADATA_PARAM_NAME,
 		true, &details_comp->cfg.with_meta);
-	if (ret) {
-		goto error;
-	}
 
 	/* With data objects? */
-	ret = configure_bool_opt(details_comp, params, with_data_param_name,
+	configure_bool_opt(details_comp, params, WITH_DATA_PARAM_NAME,
 		true, &details_comp->cfg.with_data);
-	if (ret) {
-		goto error;
-	}
 
 	/* Compact? */
-	ret = configure_bool_opt(details_comp, params, compact_param_name,
+	configure_bool_opt(details_comp, params, COMPACT_PARAM_NAME,
 		false, &details_comp->cfg.compact);
-	if (ret) {
-		goto error;
-	}
 
 	/* With time? */
-	ret = configure_bool_opt(details_comp, params, with_time_param_name,
+	configure_bool_opt(details_comp, params, WITH_TIME_PARAM_NAME,
 		true, &details_comp->cfg.with_time);
-	if (ret) {
-		goto error;
-	}
 
 	/* With trace name? */
-	ret = configure_bool_opt(details_comp, params,
-		with_trace_name_param_name,
+	configure_bool_opt(details_comp, params,
+		WITH_TRACE_NAME_PARAM_NAME,
 		true, &details_comp->cfg.with_trace_name);
-	if (ret) {
-		goto error;
-	}
 
 	/* With stream class name? */
-	ret = configure_bool_opt(details_comp, params,
-		with_stream_class_name_param_name,
+	configure_bool_opt(details_comp, params,
+		WITH_STREAM_CLASS_NAME_PARAM_NAME,
 		true, &details_comp->cfg.with_stream_class_name);
-	if (ret) {
-		goto error;
-	}
 
 	/* With stream name? */
-	ret = configure_bool_opt(details_comp, params,
-		with_stream_name_param_name,
+	configure_bool_opt(details_comp, params,
+		WITH_STREAM_NAME_PARAM_NAME,
 		true, &details_comp->cfg.with_stream_name);
-	if (ret) {
-		goto error;
-	}
 
 	/* With UUID? */
-	ret = configure_bool_opt(details_comp, params,
-		with_uuid_param_name, true, &details_comp->cfg.with_uuid);
-	if (ret) {
-		goto error;
-	}
+	configure_bool_opt(details_comp, params,
+		WITH_UUID_PARAM_NAME, true, &details_comp->cfg.with_uuid);
 
+	status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_OK;
 	goto end;
 
-error:
-	ret = -1;
-
 end:
-	return ret;
+	g_free(validate_error);
+
+	return status;
 }
 
 static
@@ -400,7 +370,7 @@ bt_component_class_initialize_method_status details_init(
 	struct details_comp *details_comp = NULL;
 
 	add_port_status = bt_self_component_sink_add_input_port(comp,
-		in_port_name, NULL, NULL);
+		IN_PORT_NAME, NULL, NULL);
 	switch (add_port_status) {
 	case BT_SELF_COMPONENT_ADD_PORT_STATUS_OK:
 		status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_OK;
@@ -457,18 +427,18 @@ details_graph_is_configured(bt_self_component_sink *comp)
 		bt_self_component_sink_as_self_component(comp));
 	BT_ASSERT(details_comp);
 	in_port = bt_self_component_sink_borrow_input_port_by_name(comp,
-		in_port_name);
+		IN_PORT_NAME);
 	if (!bt_port_is_connected(bt_port_input_as_port_const(
 			bt_self_component_port_input_as_port_input(in_port)))) {
 		BT_COMP_LOGE("Single input port is not connected: "
-			"port-name=\"%s\"", in_port_name);
+			"port-name=\"%s\"", IN_PORT_NAME);
 		status = BT_COMPONENT_CLASS_SINK_GRAPH_IS_CONFIGURED_METHOD_STATUS_ERROR;
 		goto end;
 	}
 
 	msg_iter_status = bt_self_component_port_input_message_iterator_create_from_sink_component(
 		comp, bt_self_component_sink_borrow_input_port_by_name(comp,
-			in_port_name), &iterator);
+			IN_PORT_NAME), &iterator);
 	if (msg_iter_status != BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_CREATE_FROM_SINK_COMPONENT_STATUS_OK) {
 		status = (int) msg_iter_status;
 		goto end;
