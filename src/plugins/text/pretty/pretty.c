@@ -23,6 +23,11 @@
  * SOFTWARE.
  */
 
+#define BT_COMP_LOG_SELF_COMP self_comp
+#define BT_LOG_OUTPUT_LEVEL log_level
+#define BT_LOG_TAG "PLUGIN/SINK.TEXT.PRETTY"
+#include "logging/comp-logging.h"
+
 #include <babeltrace2/babeltrace.h>
 #include "compat/compiler.h"
 #include "common/common.h"
@@ -31,34 +36,9 @@
 #include <glib.h>
 #include <string.h>
 #include "common/assert.h"
+#include "plugins/common/param-validation/param-validation.h"
 
 #include "pretty.h"
-
-static
-const char *plugin_options[] = {
-	"color",
-	"path",
-	"no-delta",
-	"clock-cycles",
-	"clock-seconds",
-	"clock-date",
-	"clock-gmt",
-	"verbose",
-	"name-default",		/* show/hide */
-	"name-payload",
-	"name-context",
-	"name-scope",
-	"name-header",
-	"field-default",	/* show/hide */
-	"field-trace",
-	"field-trace:hostname",
-	"field-trace:domain",
-	"field-trace:procname",
-	"field-trace:vpid",
-	"field-loglevel",
-	"field-emf",
-	"field-callsite",
-};
 
 static
 const char * const in_port_name = "in";
@@ -232,40 +212,6 @@ end:
 }
 
 static
-int add_params_to_map(bt_value *plugin_opt_map)
-{
-	int ret = 0;
-	unsigned int i;
-
-	for (i = 0; i < BT_ARRAY_SIZE(plugin_options); i++) {
-		const char *key = plugin_options[i];
-
-		if (bt_value_map_insert_entry(plugin_opt_map, key,
-				bt_value_null) < 0) {
-			ret = -1;
-			goto end;
-		}
-	}
-
-end:
-	return ret;
-}
-
-static
-bt_bool check_param_exists(const char *key, const bt_value *object,
-		void *data)
-{
-	struct pretty_component *pretty = data;
-
-	if (!bt_value_map_has_entry(pretty->plugin_opt_map,
-				    key)) {
-		fprintf(pretty->err,
-			"[warning] Parameter \"%s\" unknown to \"text.pretty\" sink component\n", key);
-	}
-	return BT_TRUE;
-}
-
-static
 void apply_one_string(const char *key, const bt_value *params, char **option)
 {
 	const bt_value *value = NULL;
@@ -275,9 +221,7 @@ void apply_one_string(const char *key, const bt_value *params, char **option)
 	if (!value) {
 		goto end;
 	}
-	if (bt_value_is_null(value)) {
-		goto end;
-	}
+
 	str = bt_value_string_get(value);
 	*option = g_strdup(str);
 
@@ -285,32 +229,38 @@ end:
 	return;
 }
 
+/*
+ * Apply parameter with key `key` to `option`.  Use `def` as the value, if
+ * the parameter is not specified.
+ */
+
 static
-void apply_one_bool(const char *key, const bt_value *params, bool *option,
-		bool *found)
+void apply_one_bool_with_default(const char *key, const bt_value *params,
+		bool *option, bool def)
 {
-	const bt_value *value = NULL;
-	bt_bool bool_val;
+	const bt_value *value;
 
 	value = bt_value_map_borrow_entry_value_const(params, key);
-	if (!value) {
-		goto end;
-	}
-	bool_val = bt_value_bool_get(value);
-	*option = (bool) bool_val;
-	if (found) {
-		*found = true;
-	}
+	if (value) {
+		bt_bool bool_val = bt_value_bool_get(value);
 
-end:
-	return;
+		*option = (bool) bool_val;
+	} else {
+		*option = def;
+	}
 }
 
 static
-void warn_wrong_color_param(struct pretty_component *pretty)
+void apply_one_bool_if_specified(const char *key, const bt_value *params, bool *option)
 {
-	fprintf(pretty->err,
-		"[warning] Accepted values for the \"color\" parameter are:\n    \"always\", \"auto\", \"never\"\n");
+	const bt_value *value;
+
+	value = bt_value_map_borrow_entry_value_const(params, key);
+	if (value) {
+		bt_bool bool_val = bt_value_bool_get(value);
+
+		*option = (bool) bool_val;
+	}
 }
 
 static
@@ -336,98 +286,122 @@ end:
 	return ret;
 }
 
-static
-int apply_params(struct pretty_component *pretty, const bt_value *params)
-{
-	int ret = 0;
-	bool value, found;
-	char *str = NULL;
+static const char *color_choices[] = { "never", "auto", "always", NULL };
+static const char *show_hide_choices[] = { "show", "hide", NULL };
 
-	pretty->plugin_opt_map = bt_value_map_create();
-	if (!pretty->plugin_opt_map) {
-		ret = -1;
+struct bt_param_validation_map_value_entry_descr pretty_params[] = {
+	{ "color", BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_OPTIONAL, { BT_VALUE_TYPE_STRING, .string = {
+		.choices = color_choices,
+	} } },
+	{ "path", BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_OPTIONAL, { .type = BT_VALUE_TYPE_STRING } },
+	{ "no-delta", BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_OPTIONAL, { .type = BT_VALUE_TYPE_BOOL } },
+	{ "clock-cycles", BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_OPTIONAL, { .type = BT_VALUE_TYPE_BOOL } },
+	{ "clock-seconds", BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_OPTIONAL, { .type = BT_VALUE_TYPE_BOOL } },
+	{ "clock-date", BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_OPTIONAL, { .type = BT_VALUE_TYPE_BOOL } },
+	{ "clock-gmt", BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_OPTIONAL, { .type = BT_VALUE_TYPE_BOOL } },
+	{ "verbose", BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_OPTIONAL, { .type = BT_VALUE_TYPE_BOOL } },
+
+	{ "name-default", BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_OPTIONAL, { BT_VALUE_TYPE_STRING, .string = {
+		.choices = show_hide_choices,
+	} } },
+	{ "name-payload", BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_OPTIONAL, { .type = BT_VALUE_TYPE_BOOL } },
+	{ "name-context", BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_OPTIONAL, { .type = BT_VALUE_TYPE_BOOL } },
+	{ "name-scope", BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_OPTIONAL, { .type = BT_VALUE_TYPE_BOOL } },
+	{ "name-header", BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_OPTIONAL, { .type = BT_VALUE_TYPE_BOOL } },
+
+	{ "field-default", BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_OPTIONAL, { BT_VALUE_TYPE_STRING, .string = {
+		.choices = show_hide_choices,
+	} } },
+	{ "field-trace", BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_OPTIONAL, { .type = BT_VALUE_TYPE_BOOL } },
+	{ "field-trace:hostname", BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_OPTIONAL, { .type = BT_VALUE_TYPE_BOOL } },
+	{ "field-trace:domain", BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_OPTIONAL, { .type = BT_VALUE_TYPE_BOOL } },
+	{ "field-trace:procname", BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_OPTIONAL, { .type = BT_VALUE_TYPE_BOOL } },
+	{ "field-trace:vpid", BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_OPTIONAL, { .type = BT_VALUE_TYPE_BOOL } },
+	{ "field-loglevel", BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_OPTIONAL, { .type = BT_VALUE_TYPE_BOOL } },
+	{ "field-emf", BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_OPTIONAL, { .type = BT_VALUE_TYPE_BOOL } },
+	{ "field-callsite", BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_OPTIONAL, { .type = BT_VALUE_TYPE_BOOL } },
+	BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_END
+};
+
+static
+bt_component_class_initialize_method_status apply_params(
+		struct pretty_component *pretty, const bt_value *params,
+		bt_self_component *self_comp, bt_logging_level log_level)
+{
+	int ret;
+	const bt_value *value;
+	bt_component_class_initialize_method_status status;
+	enum bt_param_validation_status validation_status;
+	gchar *validate_error = NULL;
+
+	validation_status = bt_param_validation_validate(params,
+		pretty_params, &validate_error);
+	if (validation_status == BT_PARAM_VALIDATION_STATUS_MEMORY_ERROR) {
+		status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_MEMORY_ERROR;
 		goto end;
-	}
-	ret = add_params_to_map(pretty->plugin_opt_map);
-	if (ret) {
-		goto end;
-	}
-	/* Report unknown parameters. */
-	if (bt_value_map_foreach_entry_const(params,
-			check_param_exists, pretty) < 0) {
-		ret = -1;
+	} else if (validation_status == BT_PARAM_VALIDATION_STATUS_VALIDATION_ERROR) {
+		status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_ERROR;
+		BT_COMP_LOGE_APPEND_CAUSE(self_comp, "%s", validate_error);
 		goto end;
 	}
 
 	/* Known parameters. */
 	pretty->options.color = PRETTY_COLOR_OPT_AUTO;
-	if (bt_value_map_has_entry(params, "color")) {
-		const bt_value *color_value;
-		const char *color;
-
-		color_value = bt_value_map_borrow_entry_value_const(params,
-			"color");
-		if (!color_value) {
-			goto end;
-		}
-
-		color = bt_value_string_get(color_value);
+	value = bt_value_map_borrow_entry_value_const(params, "color");
+	if (value) {
+		const char *color = bt_value_string_get(value);
 
 		if (strcmp(color, "never") == 0) {
 			pretty->options.color = PRETTY_COLOR_OPT_NEVER;
 		} else if (strcmp(color, "auto") == 0) {
 			pretty->options.color = PRETTY_COLOR_OPT_AUTO;
-		} else if (strcmp(color, "always") == 0) {
-			pretty->options.color = PRETTY_COLOR_OPT_ALWAYS;
 		} else {
-			warn_wrong_color_param(pretty);
+			BT_ASSERT(strcmp(color, "always") == 0);
+			pretty->options.color = PRETTY_COLOR_OPT_ALWAYS;
 		}
 	}
 
 	apply_one_string("path", params, &pretty->options.output_path);
 	ret = open_output_file(pretty);
 	if (ret) {
+		status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_ERROR;
 		goto end;
 	}
 
-	value = false;		/* Default. */
-	apply_one_bool("no-delta", params, &value, NULL);
-	pretty->options.print_delta_field = !value;	/* Reverse logic. */
+	apply_one_bool_with_default("no-delta", params,
+		&pretty->options.print_delta_field, false);
+	/* Reverse logic. */
+	pretty->options.print_delta_field = !pretty->options.print_delta_field;
 
-	value = false;		/* Default. */
-	apply_one_bool("clock-cycles", params, &value, NULL);
-	pretty->options.print_timestamp_cycles = value;
+	apply_one_bool_with_default("clock-cycles", params,
+		&pretty->options.print_timestamp_cycles, false);
 
-	value = false;		/* Default. */
-	apply_one_bool("clock-seconds", params, &value, NULL);
-	pretty->options.clock_seconds = value;
+	apply_one_bool_with_default("clock-seconds", params,
+		&pretty->options.clock_seconds , false);
 
-	value = false;		/* Default. */
-	apply_one_bool("clock-date", params, &value, NULL);
-	pretty->options.clock_date = value;
+	apply_one_bool_with_default("clock-date", params,
+		&pretty->options.clock_date, false);
 
-	value = false;		/* Default. */
-	apply_one_bool("clock-gmt", params, &value, NULL);
-	pretty->options.clock_gmt = value;
+	apply_one_bool_with_default("clock-gmt", params,
+		&pretty->options.clock_gmt, false);
 
-	value = false;		/* Default. */
-	apply_one_bool("verbose", params, &value, NULL);
-	pretty->options.verbose = value;
+	apply_one_bool_with_default("verbose", params,
+		&pretty->options.verbose, false);
 
 	/* Names. */
-	apply_one_string("name-default", params, &str);
-	if (!str) {
-		pretty->options.name_default = PRETTY_DEFAULT_UNSET;
-	} else if (strcmp(str, "show") == 0) {
-		pretty->options.name_default = PRETTY_DEFAULT_SHOW;
-	} else if (strcmp(str, "hide") == 0) {
-		pretty->options.name_default = PRETTY_DEFAULT_HIDE;
+	value = bt_value_map_borrow_entry_value_const(params, "name-default");
+	if (value) {
+		const char *str = bt_value_string_get(value);
+
+		if (strcmp(str, "show") == 0) {
+			pretty->options.name_default = PRETTY_DEFAULT_SHOW;
+		} else {
+			BT_ASSERT(strcmp(str, "hide") == 0);
+			pretty->options.name_default = PRETTY_DEFAULT_HIDE;
+		}
 	} else {
-		ret = -1;
-		goto end;
+		pretty->options.name_default = PRETTY_DEFAULT_UNSET;
 	}
-	g_free(str);
-	str = NULL;
 
 	switch (pretty->options.name_default) {
 	case PRETTY_DEFAULT_UNSET:
@@ -449,52 +423,35 @@ int apply_params(struct pretty_component *pretty, const bt_value *params)
 		pretty->options.print_scope_field_names = false;
 		break;
 	default:
-		ret = -1;
-		goto end;
+		abort();
 	}
 
-	value = false;
-	found = false;
-	apply_one_bool("name-payload", params, &value, &found);
-	if (found) {
-		pretty->options.print_payload_field_names = value;
-	}
+	apply_one_bool_if_specified("name-payload", params,
+		&pretty->options.print_payload_field_names);
 
-	value = false;
-	found = false;
-	apply_one_bool("name-context", params, &value, &found);
-	if (found) {
-		pretty->options.print_context_field_names = value;
-	}
+	apply_one_bool_if_specified("name-context", params,
+		&pretty->options.print_context_field_names);
 
-	value = false;
-	found = false;
-	apply_one_bool("name-header", params, &value, &found);
-	if (found) {
-		pretty->options.print_header_field_names = value;
-	}
+	apply_one_bool_if_specified("name-header", params,
+		&pretty->options.print_header_field_names);
 
-	value = false;
-	found = false;
-	apply_one_bool("name-scope", params, &value, &found);
-	if (found) {
-		pretty->options.print_scope_field_names = value;
-	}
+	apply_one_bool_if_specified("name-scope", params,
+		&pretty->options.print_scope_field_names);
 
 	/* Fields. */
-	apply_one_string("field-default", params, &str);
-	if (!str) {
-		pretty->options.field_default = PRETTY_DEFAULT_UNSET;
-	} else if (strcmp(str, "show") == 0) {
-		pretty->options.field_default = PRETTY_DEFAULT_SHOW;
-	} else if (strcmp(str, "hide") == 0) {
-		pretty->options.field_default = PRETTY_DEFAULT_HIDE;
+	value = bt_value_map_borrow_entry_value_const(params, "field-default");
+	if (value) {
+		const char *str = bt_value_string_get(value);
+
+		if (strcmp(str, "show") == 0) {
+			pretty->options.field_default = PRETTY_DEFAULT_SHOW;
+		} else {
+			BT_ASSERT(strcmp(str, "hide") == 0);
+			pretty->options.field_default = PRETTY_DEFAULT_HIDE;
+		}
 	} else {
-		ret = -1;
-		goto end;
+		pretty->options.field_default = PRETTY_DEFAULT_UNSET;
 	}
-	g_free(str);
-	str = NULL;
 
 	switch (pretty->options.field_default) {
 	case PRETTY_DEFAULT_UNSET:
@@ -528,71 +485,39 @@ int apply_params(struct pretty_component *pretty, const bt_value *params)
 		pretty->options.print_callsite_field = false;
 		break;
 	default:
-		ret = -1;
-		goto end;
+		abort();
 	}
 
-	value = false;
-	found = false;
-	apply_one_bool("field-trace", params, &value, &found);
-	if (found) {
-		pretty->options.print_trace_field = value;
-	}
+	apply_one_bool_if_specified("field-trace", params,
+		&pretty->options.print_trace_field);
 
-	value = false;
-	found = false;
-	apply_one_bool("field-trace:hostname", params, &value, &found);
-	if (found) {
-		pretty->options.print_trace_hostname_field = value;
-	}
+	apply_one_bool_if_specified("field-trace:hostname", params,
+		&pretty->options.print_trace_hostname_field);
 
-	value = false;
-	found = false;
-	apply_one_bool("field-trace:domain", params, &value, &found);
-	if (found) {
-		pretty->options.print_trace_domain_field = value;
-	}
+	apply_one_bool_if_specified("field-trace:domain", params,
+		&pretty->options.print_trace_domain_field);
 
-	value = false;
-	found = false;
-	apply_one_bool("field-trace:procname", params, &value, &found);
-	if (found) {
-		pretty->options.print_trace_procname_field = value;
-	}
+	apply_one_bool_if_specified("field-trace:procname", params,
+		&pretty->options.print_trace_procname_field);
 
-	value = false;
-	found = false;
-	apply_one_bool("field-trace:vpid", params, &value, &found);
-	if (found) {
-		pretty->options.print_trace_vpid_field = value;
-	}
+	apply_one_bool_if_specified("field-trace:vpid", params,
+		&pretty->options.print_trace_vpid_field);
 
-	value = false;
-	found = false;
-	apply_one_bool("field-loglevel", params, &value, &found);
-	if (found) {
-		pretty->options.print_loglevel_field = value;
-	}
+	apply_one_bool_if_specified("field-loglevel", params,
+		&pretty->options.print_loglevel_field);
 
-	value = false;
-	found = false;
-	apply_one_bool("field-emf", params, &value, &found);
-	if (found) {
-		pretty->options.print_emf_field = value;
-	}
+	apply_one_bool_if_specified("field-emf", params,
+		&pretty->options.print_emf_field);
 
-	value = false;
-	found = false;
-	apply_one_bool("field-callsite", params, &value, &found);
-	if (found) {
-		pretty->options.print_callsite_field = value;
-	}
+	apply_one_bool_if_specified("field-callsite", params,
+		&pretty->options.print_callsite_field);
+
+	status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_OK;
 
 end:
-	bt_value_put_ref(pretty->plugin_opt_map);
-	pretty->plugin_opt_map = NULL;
-	g_free(str);
-	return ret;
+	g_free(validate_error);
+
+	return status;
 }
 
 static
@@ -614,23 +539,28 @@ void set_use_colors(struct pretty_component *pretty)
 
 BT_HIDDEN
 bt_component_class_initialize_method_status pretty_init(
-		bt_self_component_sink *comp,
+		bt_self_component_sink *self_comp_sink,
 		bt_self_component_sink_configuration *config,
 		const bt_value *params,
 		__attribute__((unused)) void *init_method_data)
 {
-	bt_component_class_initialize_method_status ret =
-		BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_OK;
+	bt_component_class_initialize_method_status status;
+	bt_self_component_add_port_status add_port_status;
 	struct pretty_component *pretty = create_pretty();
+	bt_self_component *self_comp =
+		bt_self_component_sink_as_self_component(self_comp_sink);
+	const bt_component *comp = bt_self_component_as_component(self_comp);
+	bt_logging_level log_level = bt_component_get_logging_level(comp);
 
 	if (!pretty) {
-		ret = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_MEMORY_ERROR;
-		goto end;
+		status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_MEMORY_ERROR;
+		goto error;
 	}
 
-	if (bt_self_component_sink_add_input_port(comp,
-			in_port_name, NULL, NULL) < 0) {
-		ret = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_MEMORY_ERROR;
+	add_port_status = bt_self_component_sink_add_input_port(self_comp_sink,
+		in_port_name, NULL, NULL);
+	if (add_port_status != BT_SELF_COMPONENT_ADD_PORT_STATUS_OK) {
+		status = (int) add_port_status;
 		goto error;
 	}
 
@@ -643,19 +573,20 @@ bt_component_class_initialize_method_status pretty_init(
 	pretty->delta_real_timestamp = -1ULL;
 	pretty->last_real_timestamp = -1ULL;
 
-	if (apply_params(pretty, params)) {
-		ret = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_ERROR;
+	status = apply_params(pretty, params, self_comp, log_level);
+	if (status != BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_OK) {
 		goto error;
 	}
 
 	set_use_colors(pretty);
-	bt_self_component_set_data(
-		bt_self_component_sink_as_self_component(comp), pretty);
+	bt_self_component_set_data(self_comp, pretty);
 
-end:
-	return ret;
+	status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_OK;
+	goto end;
 
 error:
 	destroy_pretty_data(pretty);
-	return ret;
+
+end:
+	return status;
 }
