@@ -31,6 +31,7 @@
 #include "common/assert.h"
 #include <inttypes.h>
 #include <stdint.h>
+#include "plugins/common/param-validation/param-validation.h"
 
 #include "counter.h"
 
@@ -135,6 +136,12 @@ void counter_finalize(bt_self_component_sink *comp)
 	g_free(counter);
 }
 
+struct bt_param_validation_map_value_entry_descr counter_params[] = {
+	{ "step", BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_OPTIONAL, { .type = BT_VALUE_TYPE_UNSIGNED_INTEGER } },
+	{ "hide-zero", BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_OPTIONAL, { .type = BT_VALUE_TYPE_BOOL } },
+	BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_END
+};
+
 BT_HIDDEN
 bt_component_class_initialize_method_status counter_init(
 		bt_self_component_sink *component,
@@ -142,12 +149,13 @@ bt_component_class_initialize_method_status counter_init(
 		const bt_value *params,
 		__attribute__((unused)) void *init_method_data)
 {
-	bt_component_class_initialize_method_status status =
-		BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_OK;
+	bt_component_class_initialize_method_status status;
 	bt_self_component_add_port_status add_port_status;
 	struct counter *counter = g_new0(struct counter, 1);
 	const bt_value *step = NULL;
 	const bt_value *hide_zero = NULL;
+	enum bt_param_validation_status validation_status;
+	gchar *validate_error = NULL;
 
 	if (!counter) {
 		status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_MEMORY_ERROR;
@@ -160,56 +168,47 @@ bt_component_class_initialize_method_status counter_init(
 		bt_self_component_as_component(counter->self_comp));
 	add_port_status = bt_self_component_sink_add_input_port(component,
 		"in", NULL, NULL);
-	switch (add_port_status) {
-	case BT_SELF_COMPONENT_ADD_PORT_STATUS_ERROR:
-		status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_ERROR;
+	if (add_port_status != BT_SELF_COMPONENT_ADD_PORT_STATUS_OK) {
+		status = (int) add_port_status;
 		goto error;
-	case BT_SELF_COMPONENT_ADD_PORT_STATUS_MEMORY_ERROR:
+	}
+
+	validation_status = bt_param_validation_validate(params,
+		counter_params, &validate_error);
+	if (validation_status == BT_PARAM_VALIDATION_STATUS_MEMORY_ERROR) {
 		status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_MEMORY_ERROR;
 		goto error;
-	default:
-		break;
+	} else if (validation_status == BT_PARAM_VALIDATION_STATUS_VALIDATION_ERROR) {
+		status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_ERROR;
+		BT_COMP_LOGE_APPEND_CAUSE(counter->self_comp,
+			"%s", validate_error);
+		goto error;
 	}
 
 	counter->last_printed_total = -1ULL;
 	counter->step = 10000;
 	step = bt_value_map_borrow_entry_value_const(params, "step");
 	if (step) {
-		if (!bt_value_is_unsigned_integer(step)) {
-			BT_COMP_LOGE("`step` parameter: expecting an unsigned integer value: "
-				"type=%s", bt_common_value_type_string(
-					bt_value_get_type(step)));
-			goto error;
-		}
-
 		counter->step = bt_value_integer_unsigned_get(step);
 	}
 
 	hide_zero = bt_value_map_borrow_entry_value_const(params, "hide-zero");
 	if (hide_zero) {
-		if (!bt_value_is_bool(hide_zero)) {
-			BT_COMP_LOGE("`hide-zero` parameter: expecting a boolean value: "
-				"type=%s", bt_common_value_type_string(
-					bt_value_get_type(hide_zero)));
-			goto error;
-		}
-
 		counter->hide_zero = (bool) bt_value_bool_get(hide_zero);
 	}
 
 	bt_self_component_set_data(
 		bt_self_component_sink_as_self_component(component),
 		counter);
+
+	status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_OK;
 	goto end;
 
 error:
 	destroy_private_counter_data(counter);
 
-	if (status == BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_OK) {
-		status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_ERROR;
-	}
-
 end:
+	g_free(validate_error);
 	return status;
 }
 
