@@ -20,10 +20,16 @@
  * SOFTWARE.
  */
 
+#define BT_COMP_LOG_SELF_COMP self_comp
+#define BT_LOG_OUTPUT_LEVEL log_level
+#define BT_LOG_TAG "PLUGIN/SINK.UTILS.DUMMY"
+#include "logging/comp-logging.h"
+
 #include <babeltrace2/babeltrace.h>
 #include "common/macros.h"
 #include "common/assert.h"
 #include "dummy.h"
+#include "plugins/common/param-validation/param-validation.h"
 
 static
 const char * const in_port_name = "in";
@@ -47,44 +53,61 @@ void dummy_finalize(bt_self_component_sink *comp)
 	destroy_private_dummy_data(dummy);
 }
 
+struct bt_param_validation_map_value_entry_descr dummy_params[] = {
+	BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_END
+};
+
 BT_HIDDEN
 bt_component_class_initialize_method_status dummy_init(
-		bt_self_component_sink *component,
+		bt_self_component_sink *self_comp_sink,
 		bt_self_component_sink_configuration *config,
 		const bt_value *params,
 		__attribute__((unused)) void *init_method_data)
 {
-	bt_component_class_initialize_method_status status =
-		BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_OK;
+	bt_self_component *self_comp =
+		bt_self_component_sink_as_self_component(self_comp_sink);
+	const bt_component *comp = bt_self_component_as_component(self_comp);
+	bt_logging_level log_level = bt_component_get_logging_level(comp);
+	bt_component_class_initialize_method_status status;
 	bt_self_component_add_port_status add_port_status;
 	struct dummy *dummy = g_new0(struct dummy, 1);
+	enum bt_param_validation_status validation_status;
+	gchar *validate_error = NULL;
 
 	if (!dummy) {
 		status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_MEMORY_ERROR;
 		goto end;
 	}
 
-	add_port_status = bt_self_component_sink_add_input_port(component,
-		"in", NULL, NULL);
-	switch (add_port_status) {
-	case BT_SELF_COMPONENT_ADD_PORT_STATUS_ERROR:
-		status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_ERROR;
-		goto error;
-	case BT_SELF_COMPONENT_ADD_PORT_STATUS_MEMORY_ERROR:
+	validation_status = bt_param_validation_validate(params,
+		dummy_params, &validate_error);
+	if (validation_status == BT_PARAM_VALIDATION_STATUS_MEMORY_ERROR) {
 		status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_MEMORY_ERROR;
 		goto error;
-	default:
-		break;
+	} else if (validation_status == BT_PARAM_VALIDATION_STATUS_VALIDATION_ERROR) {
+		status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_ERROR;
+		BT_COMP_LOGE_APPEND_CAUSE(self_comp, "%s", validate_error);
+		goto error;
 	}
 
-	bt_self_component_set_data(
-		bt_self_component_sink_as_self_component(component), dummy);
+	add_port_status = bt_self_component_sink_add_input_port(self_comp_sink,
+		"in", NULL, NULL);
+	if (add_port_status != BT_SELF_COMPONENT_ADD_PORT_STATUS_OK) {
+		status = (int) add_port_status;
+		goto error;
+	}
+
+	bt_self_component_set_data(self_comp, dummy);
+
+	status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_OK;
 	goto end;
 
 error:
 	destroy_private_dummy_data(dummy);
 
 end:
+	g_free(validate_error);
+
 	return status;
 }
 
