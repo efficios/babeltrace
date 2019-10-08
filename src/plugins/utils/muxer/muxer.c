@@ -37,6 +37,7 @@
 #include <string.h>
 
 #include "plugins/common/muxing/muxing.h"
+#include "plugins/common/param-validation/param-validation.h"
 
 #include "muxer.h"
 
@@ -246,20 +247,25 @@ void destroy_muxer_comp(struct muxer_comp *muxer_comp)
 	g_free(muxer_comp);
 }
 
+struct bt_param_validation_map_value_entry_descr muxer_params[] = {
+	BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_END
+};
+
 BT_HIDDEN
 bt_component_class_initialize_method_status muxer_init(
 		bt_self_component_filter *self_comp_flt,
 		bt_self_component_filter_configuration *config,
 		const bt_value *params, void *init_data)
 {
-	bt_component_class_initialize_method_status status =
-		BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_OK;
+	bt_component_class_initialize_method_status status;
 	bt_self_component_add_port_status add_port_status;
 	bt_self_component *self_comp =
 		bt_self_component_filter_as_self_component(self_comp_flt);
 	struct muxer_comp *muxer_comp = g_new0(struct muxer_comp, 1);
 	bt_logging_level log_level = bt_component_get_logging_level(
 		bt_self_component_as_component(self_comp));
+	enum bt_param_validation_status validation_status;
+	gchar *validate_error = NULL;
 
 	BT_COMP_LOG_CUR_LVL(BT_LOG_INFO, log_level, self_comp,
 		"Initializing muxer component: "
@@ -268,12 +274,24 @@ bt_component_class_initialize_method_status muxer_init(
 	if (!muxer_comp) {
 		BT_COMP_LOG_CUR_LVL(BT_LOG_ERROR, log_level, self_comp,
 			"Failed to allocate one muxer component.");
+		status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_MEMORY_ERROR;
 		goto error;
 	}
 
 	muxer_comp->log_level = log_level;
 	muxer_comp->self_comp = self_comp;
 	muxer_comp->self_comp_flt = self_comp_flt;
+
+	validation_status = bt_param_validation_validate(params,
+		muxer_params, &validate_error);
+	if (validation_status == BT_PARAM_VALIDATION_STATUS_MEMORY_ERROR) {
+		status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_MEMORY_ERROR;
+		goto error;
+	} else if (validation_status == BT_PARAM_VALIDATION_STATUS_VALIDATION_ERROR) {
+		status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_ERROR;
+		BT_COMP_LOGE_APPEND_CAUSE(self_comp, "%s", validate_error);
+		goto error;
+	}
 
 	bt_self_component_set_data(self_comp, muxer_comp);
 	add_port_status = add_available_input_port(self_comp_flt);
@@ -282,13 +300,7 @@ bt_component_class_initialize_method_status muxer_init(
 			"muxer-comp-addr=%p, status=%s",
 			muxer_comp,
 			bt_common_func_status_string(add_port_status));
-		if (add_port_status ==
-				BT_SELF_COMPONENT_ADD_PORT_STATUS_MEMORY_ERROR) {
-			status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_MEMORY_ERROR;
-		} else {
-			status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_ERROR;
-		}
-
+		status = (int) add_port_status;
 		goto error;
 	}
 
@@ -298,13 +310,7 @@ bt_component_class_initialize_method_status muxer_init(
 			"muxer-comp-addr=%p, status=%s",
 			muxer_comp,
 			bt_common_func_status_string(add_port_status));
-		if (add_port_status ==
-				BT_SELF_COMPONENT_ADD_PORT_STATUS_MEMORY_ERROR) {
-			status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_MEMORY_ERROR;
-		} else {
-			status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_ERROR;
-		}
-
+		status = (int) add_port_status;
 		goto error;
 	}
 
@@ -312,17 +318,15 @@ bt_component_class_initialize_method_status muxer_init(
 		"comp-addr=%p, params-addr=%p, muxer-comp-addr=%p",
 		self_comp, params, muxer_comp);
 
+	status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_OK;
 	goto end;
 
 error:
 	destroy_muxer_comp(muxer_comp);
 	bt_self_component_set_data(self_comp, NULL);
 
-	if (status == BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_OK) {
-		status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_ERROR;
-	}
-
 end:
+	g_free(validate_error);
 	return status;
 }
 
