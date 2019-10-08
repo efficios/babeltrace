@@ -303,7 +303,6 @@ struct bt_graph *bt_graph_create(uint64_t mip_version)
 		graph->listeners.source_output_port_added);
 
 	if (!graph->listeners.source_output_port_added) {
-		ret = -1;
 		goto error;
 	}
 
@@ -311,7 +310,6 @@ struct bt_graph *bt_graph_create(uint64_t mip_version)
 		graph->listeners.filter_output_port_added);
 
 	if (!graph->listeners.filter_output_port_added) {
-		ret = -1;
 		goto error;
 	}
 
@@ -319,7 +317,6 @@ struct bt_graph *bt_graph_create(uint64_t mip_version)
 		graph->listeners.filter_input_port_added);
 
 	if (!graph->listeners.filter_input_port_added) {
-		ret = -1;
 		goto error;
 	}
 
@@ -327,7 +324,6 @@ struct bt_graph *bt_graph_create(uint64_t mip_version)
 		graph->listeners.sink_input_port_added);
 
 	if (!graph->listeners.sink_input_port_added) {
-		ret = -1;
 		goto error;
 	}
 
@@ -335,7 +331,6 @@ struct bt_graph *bt_graph_create(uint64_t mip_version)
 		graph->listeners.source_filter_ports_connected);
 
 	if (!graph->listeners.source_filter_ports_connected) {
-		ret = -1;
 		goto error;
 	}
 
@@ -343,7 +338,6 @@ struct bt_graph *bt_graph_create(uint64_t mip_version)
 		graph->listeners.source_sink_ports_connected);
 
 	if (!graph->listeners.source_sink_ports_connected) {
-		ret = -1;
 		goto error;
 	}
 
@@ -351,7 +345,6 @@ struct bt_graph *bt_graph_create(uint64_t mip_version)
 		graph->listeners.filter_filter_ports_connected);
 
 	if (!graph->listeners.filter_filter_ports_connected) {
-		ret = -1;
 		goto error;
 	}
 
@@ -359,7 +352,6 @@ struct bt_graph *bt_graph_create(uint64_t mip_version)
 		graph->listeners.filter_sink_ports_connected);
 
 	if (!graph->listeners.filter_sink_ports_connected) {
-		ret = -1;
 		goto error;
 	}
 
