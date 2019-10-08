@@ -34,6 +34,7 @@
 #include <inttypes.h>
 #include <glib.h>
 #include "compat/glib.h"
+#include "plugins/common/param-validation/param-validation.h"
 
 #include "trimmer.h"
 
@@ -453,19 +454,13 @@ int set_bound_from_param(struct trimmer_comp *trimmer_comp,
 		 */
 		sprintf(tmp_arg, "%" PRId64, value);
 		arg = tmp_arg;
-	} else if (bt_value_is_string(param)) {
-		arg = bt_value_string_get(param);
 	} else {
-		BT_COMP_LOGE_APPEND_CAUSE(trimmer_comp->self_comp,
-			"`%s` parameter must be an integer or a string value.",
-			param_name);
-		ret = -1;
-		goto end;
+		BT_ASSERT(bt_value_is_string(param));
+		arg = bt_value_string_get(param);
 	}
 
 	ret = set_bound_from_str(trimmer_comp, arg, bound, is_gmt);
 
-end:
 	return ret;
 }
 
@@ -513,11 +508,52 @@ end:
 }
 
 static
-int init_trimmer_comp_from_params(struct trimmer_comp *trimmer_comp,
+enum bt_param_validation_status validate_bound_type(
+		const bt_value *value,
+		struct bt_param_validation_context *context)
+{
+	enum bt_param_validation_status status = BT_PARAM_VALIDATION_STATUS_OK;
+
+	if (!bt_value_is_signed_integer(value) &&
+			!bt_value_is_string(value)) {
+		status = bt_param_validation_error(context,
+			"unexpected type: expected-types=[%s, %s], actual-type=%s",
+			bt_common_value_type_string(BT_VALUE_TYPE_SIGNED_INTEGER),
+			bt_common_value_type_string(BT_VALUE_TYPE_STRING),
+			bt_common_value_type_string(bt_value_get_type(value)));
+	}
+
+	return status;
+}
+
+struct bt_param_validation_map_value_entry_descr trimmer_params[] = {
+	{ "gmt", BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_OPTIONAL, { .type = BT_VALUE_TYPE_BOOL } },
+	{ "begin", BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_OPTIONAL, { .validation_func = validate_bound_type } },
+	{ "end", BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_OPTIONAL, { .validation_func = validate_bound_type } },
+	BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_END
+};
+
+static
+bt_component_class_initialize_method_status init_trimmer_comp_from_params(
+		struct trimmer_comp *trimmer_comp,
 		const bt_value *params)
 {
 	const bt_value *value;
-	int ret = 0;
+	bt_component_class_initialize_method_status status;
+	enum bt_param_validation_status validation_status;
+	gchar *validate_error = NULL;
+
+	validation_status = bt_param_validation_validate(params,
+		trimmer_params, &validate_error);
+	if (validation_status == BT_PARAM_VALIDATION_STATUS_MEMORY_ERROR) {
+		status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_MEMORY_ERROR;
+		goto end;
+	} else if (validation_status == BT_PARAM_VALIDATION_STATUS_VALIDATION_ERROR) {
+		status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_ERROR;
+		BT_COMP_LOGE_APPEND_CAUSE(trimmer_comp->self_comp, "%s",
+			validate_error);
+		goto end;
+	}
 
 	BT_ASSERT(params);
         value = bt_value_map_borrow_entry_value_const(params, "gmt");
@@ -530,7 +566,7 @@ int init_trimmer_comp_from_params(struct trimmer_comp *trimmer_comp,
 		if (set_bound_from_param(trimmer_comp, "begin", value,
 				&trimmer_comp->begin, trimmer_comp->is_gmt)) {
 			/* set_bound_from_param() logs errors */
-			ret = -1;
+			status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_ERROR;
 			goto end;
 		}
 	} else {
@@ -543,7 +579,7 @@ int init_trimmer_comp_from_params(struct trimmer_comp *trimmer_comp,
 		if (set_bound_from_param(trimmer_comp, "end", value,
 				&trimmer_comp->end, trimmer_comp->is_gmt)) {
 			/* set_bound_from_param() logs errors */
-			ret = -1;
+			status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_ERROR;
 			goto end;
 		}
 	} else {
@@ -551,14 +587,21 @@ int init_trimmer_comp_from_params(struct trimmer_comp *trimmer_comp,
 		trimmer_comp->end.is_set = true;
 	}
 
-end:
 	if (trimmer_comp->begin.is_set && trimmer_comp->end.is_set) {
 		/* validate_trimmer_bounds() logs errors */
-		ret = validate_trimmer_bounds(trimmer_comp,
-			&trimmer_comp->begin, &trimmer_comp->end);
+		if (validate_trimmer_bounds(trimmer_comp,
+			&trimmer_comp->begin, &trimmer_comp->end)) {
+			status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_ERROR;
+			goto end;
+		}
 	}
 
-	return ret;
+	status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_OK;
+
+end:
+	g_free(validate_error);
+
+	return status;
 }
 
 bt_component_class_initialize_method_status trimmer_init(
@@ -566,13 +609,12 @@ bt_component_class_initialize_method_status trimmer_init(
 		bt_self_component_filter_configuration *config,
 		const bt_value *params, void *init_data)
 {
-	int ret;
-	bt_component_class_initialize_method_status status =
-		BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_OK;
+	bt_component_class_initialize_method_status status;
 	bt_self_component_add_port_status add_port_status;
 	struct trimmer_comp *trimmer_comp = create_trimmer_comp();
 	bt_self_component *self_comp =
 		bt_self_component_filter_as_self_component(self_comp_flt);
+
 	if (!trimmer_comp) {
 		status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_MEMORY_ERROR;
 		goto error;
@@ -581,46 +623,32 @@ bt_component_class_initialize_method_status trimmer_init(
 	trimmer_comp->log_level = bt_component_get_logging_level(
 		bt_self_component_as_component(self_comp));
 	trimmer_comp->self_comp = self_comp;
+
 	add_port_status = bt_self_component_filter_add_input_port(
 		self_comp_flt, in_port_name, NULL, NULL);
-	switch (add_port_status) {
-	case BT_SELF_COMPONENT_ADD_PORT_STATUS_ERROR:
-		status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_ERROR;
+	if (add_port_status != BT_SELF_COMPONENT_ADD_PORT_STATUS_OK) {
+		status = (int) add_port_status;
 		goto error;
-	case BT_SELF_COMPONENT_ADD_PORT_STATUS_MEMORY_ERROR:
-		status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_MEMORY_ERROR;
-		goto error;
-	default:
-		break;
 	}
 
 	add_port_status = bt_self_component_filter_add_output_port(
 		self_comp_flt, "out", NULL, NULL);
-	switch (add_port_status) {
-	case BT_SELF_COMPONENT_ADD_PORT_STATUS_ERROR:
-		status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_ERROR;
+	if (add_port_status != BT_SELF_COMPONENT_ADD_PORT_STATUS_OK) {
+		status = (int) add_port_status;
 		goto error;
-	case BT_SELF_COMPONENT_ADD_PORT_STATUS_MEMORY_ERROR:
-		status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_MEMORY_ERROR;
-		goto error;
-	default:
-		break;
 	}
 
-	ret = init_trimmer_comp_from_params(trimmer_comp, params);
-	if (ret) {
-		status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_ERROR;
+	status = init_trimmer_comp_from_params(trimmer_comp, params);
+	if (status != BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_OK) {
 		goto error;
 	}
 
 	bt_self_component_set_data(self_comp, trimmer_comp);
+
+	status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_OK;
 	goto end;
 
 error:
-	if (status == BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_OK) {
-		status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_ERROR;
-	}
-
 	if (trimmer_comp) {
 		destroy_trimmer_comp(trimmer_comp);
 	}
