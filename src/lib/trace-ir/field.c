@@ -393,7 +393,8 @@ struct bt_field *create_string_field(struct bt_field_class *fc)
 		sizeof(char), 1);
 	if (!string_field->buf) {
 		BT_LIB_LOGE_APPEND_CAUSE("Failed to allocate a GArray.");
-		BT_OBJECT_PUT_REF_AND_RESET(string_field);
+		bt_field_destroy((void *) string_field);
+		string_field = NULL;
 		goto end;
 	}
 
@@ -462,7 +463,8 @@ struct bt_field *create_structure_field(struct bt_field_class *fc)
 			&struct_field->fields)) {
 		BT_LIB_LOGE_APPEND_CAUSE(
 			"Cannot create structure member fields: %![fc-]+F", fc);
-		BT_OBJECT_PUT_REF_AND_RESET(struct_field);
+		bt_field_destroy((void *) struct_field);
+		struct_field = NULL;
 		goto end;
 	}
 
@@ -493,7 +495,8 @@ struct bt_field *create_option_field(struct bt_field_class *fc)
 			"Failed to create option field's content field: "
 			"%![opt-fc-]+F, %![content-fc-]+F",
 			opt_fc, opt_fc->content_fc);
-		BT_OBJECT_PUT_REF_AND_RESET(opt_field);
+		bt_field_destroy((void *) opt_field);
+		opt_field = NULL;
 		goto end;
 	}
 
@@ -522,7 +525,8 @@ struct bt_field *create_variant_field(struct bt_field_class *fc)
 			&var_field->fields)) {
 		BT_LIB_LOGE_APPEND_CAUSE("Cannot create variant member fields: "
 			"%![fc-]+F", fc);
-		BT_OBJECT_PUT_REF_AND_RESET(var_field);
+		bt_field_destroy((void *) var_field);
+		var_field = NULL;
 		goto end;
 	}
 
@@ -588,7 +592,8 @@ struct bt_field *create_static_array_field(struct bt_field_class *fc)
 	if (init_array_field_fields(array_field)) {
 		BT_LIB_LOGE_APPEND_CAUSE("Cannot create static array fields: "
 			"%![fc-]+F", fc);
-		BT_OBJECT_PUT_REF_AND_RESET(array_field);
+		bt_field_destroy((void *) array_field);
+		array_field = NULL;
 		goto end;
 	}
 
@@ -616,7 +621,8 @@ struct bt_field *create_dynamic_array_field(struct bt_field_class *fc)
 	if (init_array_field_fields(array_field)) {
 		BT_LIB_LOGE_APPEND_CAUSE("Cannot create dynamic array fields: "
 			"%![fc-]+F", fc);
-		BT_OBJECT_PUT_REF_AND_RESET(array_field);
+		bt_field_destroy((void *) array_field);
+		array_field = NULL;
 		goto end;
 	}
 
