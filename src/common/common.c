@@ -1413,10 +1413,8 @@ static inline void handle_conversion_specifier_std(char *buf, char **buf_ch,
 
 		switch (length_mod) {
 		case LENGTH_MOD_NONE:
-			BUF_STD_APPEND_SINGLE_ARG(int);
-			break;
 		case LENGTH_MOD_LOW_L:
-			BUF_STD_APPEND_SINGLE_ARG(wint_t);
+			BUF_STD_APPEND_SINGLE_ARG(int);
 			break;
 		default:
 			abort();
