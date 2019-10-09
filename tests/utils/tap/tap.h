@@ -74,21 +74,27 @@
 
 #define skip_end() } while(0);
 
-__attribute__((format(printf, 5, 6)))
+#ifdef __MINGW_PRINTF_FORMAT
+# define PRINT_FORMAT __MINGW_PRINTF_FORMAT
+#else
+# define PRINT_FORMAT printf
+#endif
+
+__attribute__((format(PRINT_FORMAT, 5, 6)))
 unsigned int _gen_result(int, const char *, const char *, unsigned int, const char *, ...);
 
 int plan_no_plan(void);
 int plan_skip_all(const char *);
 int plan_tests(unsigned int);
 
-__attribute__((format(printf, 1, 2)))
+__attribute__((format(PRINT_FORMAT, 1, 2)))
 unsigned int diag(const char *, ...);
 void diag_multiline(const char *);
 
-__attribute__((format(printf, 2, 3)))
+__attribute__((format(PRINT_FORMAT, 2, 3)))
 int skip(unsigned int, const char *, ...);
 
-__attribute__((format(printf, 1, 2)))
+__attribute__((format(PRINT_FORMAT, 1, 2)))
 void todo_start(const char *, ...);
 void todo_end(void);
 
