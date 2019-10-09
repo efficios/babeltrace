@@ -1094,6 +1094,7 @@ void test_extend(void)
 	bt_value *extended_map = NULL;
 	bt_value *array = bt_value_array_create();
 	bt_value_map_insert_entry_status insert_status;
+	bt_value_copy_status copy_status;
 	bt_value_map_extend_status extend_status;
 
 	BT_ASSERT(base_map);
@@ -1120,7 +1121,9 @@ void test_extend(void)
 	insert_status = bt_value_map_insert_real_entry(extension_map,
 		"project", -404);
 	BT_ASSERT(insert_status == BT_VALUE_MAP_INSERT_ENTRY_STATUS_OK);
-	extend_status = bt_value_map_extend(base_map, extension_map, &extended_map);
+	copy_status = bt_value_copy(base_map, &extended_map);
+	BT_ASSERT(copy_status == BT_VALUE_COPY_STATUS_OK);
+	extend_status = bt_value_map_extend(extended_map, extension_map);
 	ok(extend_status == BT_VALUE_MAP_EXTEND_STATUS_OK &&
 		extended_map, "bt_value_map_extend() succeeds");
 	ok(bt_value_map_get_size(extended_map) == 5,

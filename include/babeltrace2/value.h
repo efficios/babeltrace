@@ -130,7 +130,6 @@ typedef bt_bool (* bt_value_map_foreach_entry_func)(const char *key,
 		bt_value *object, void *data);
 
 typedef enum bt_value_map_foreach_entry_status {
-	BT_VALUE_MAP_FOREACH_ENTRY_STATUS_MEMORY_ERROR	= __BT_FUNC_STATUS_MEMORY_ERROR,
 	BT_VALUE_MAP_FOREACH_ENTRY_STATUS_OK		= __BT_FUNC_STATUS_OK,
 	BT_VALUE_MAP_FOREACH_ENTRY_STATUS_INTERRUPTED	= __BT_FUNC_STATUS_INTERRUPTED,
 } bt_value_map_foreach_entry_status;
@@ -172,6 +171,15 @@ bt_value_map_insert_empty_array_entry(bt_value *map_obj, const char *key,
 extern bt_value_map_insert_entry_status
 bt_value_map_insert_empty_map_entry(bt_value *map_obj, const char *key,
 		bt_value **entry_obj);
+
+typedef enum bt_value_map_extend_status {
+	BT_VALUE_MAP_EXTEND_STATUS_MEMORY_ERROR	= __BT_FUNC_STATUS_MEMORY_ERROR,
+	BT_VALUE_MAP_EXTEND_STATUS_OK		= __BT_FUNC_STATUS_OK,
+} bt_value_map_extend_status;
+
+extern bt_value_map_extend_status bt_value_map_extend(
+		bt_value *base_map_obj,
+		const bt_value *extension_map_obj);
 
 #ifdef __cplusplus
 }
