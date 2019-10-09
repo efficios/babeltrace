@@ -1524,6 +1524,7 @@ struct bt_field_class *bt_field_class_variant_create(
 
 error:
 	BT_OBJECT_PUT_REF_AND_RESET(var_fc);
+	BT_OBJECT_PUT_REF_AND_RESET(var_with_sel_fc);
 
 end:
 	return (void *) var_fc;
