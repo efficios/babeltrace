@@ -159,7 +159,6 @@ typedef bt_bool (* bt_value_map_foreach_entry_const_func)(const char *key,
 		const bt_value *object, void *data);
 
 typedef enum bt_value_map_foreach_entry_const_status {
-	BT_VALUE_MAP_FOREACH_ENTRY_CONST_STATUS_MEMORY_ERROR	= __BT_FUNC_STATUS_MEMORY_ERROR,
 	BT_VALUE_MAP_FOREACH_ENTRY_CONST_STATUS_OK		= __BT_FUNC_STATUS_OK,
 	BT_VALUE_MAP_FOREACH_ENTRY_CONST_STATUS_INTERRUPTED	= __BT_FUNC_STATUS_INTERRUPTED,
 } bt_value_map_foreach_entry_const_status;
@@ -170,16 +169,6 @@ extern bt_value_map_foreach_entry_const_status bt_value_map_foreach_entry_const(
 
 extern bt_bool bt_value_map_has_entry(const bt_value *map_obj,
 		const char *key);
-
-typedef enum bt_value_map_extend_status {
-	BT_VALUE_MAP_EXTEND_STATUS_MEMORY_ERROR	= __BT_FUNC_STATUS_MEMORY_ERROR,
-	BT_VALUE_MAP_EXTEND_STATUS_OK		= __BT_FUNC_STATUS_OK,
-} bt_value_map_extend_status;
-
-extern bt_value_map_extend_status bt_value_map_extend(
-		const bt_value *base_map_obj,
-		const bt_value *extension_map_obj,
-		bt_value **extended_map_obj);
 
 extern void bt_value_get_ref(const bt_value *value);
 

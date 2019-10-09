@@ -1919,7 +1919,6 @@ struct bt_config *bt_config_run_from_args(int argc, const char *argv[],
 		case OPT_PARAMS:
 		{
 			bt_value *params;
-			bt_value *params_to_set;
 
 			if (!cur_cfg_comp) {
 				BT_CLI_LOGE_APPEND_CAUSE("Cannot add parameters to unavailable component:\n    %s",
@@ -1934,8 +1933,8 @@ struct bt_config *bt_config_run_from_args(int argc, const char *argv[],
 				goto error;
 			}
 
-			extend_status = bt_value_map_extend(
-				cur_cfg_comp->params, params, &params_to_set);
+			extend_status = bt_value_map_extend(cur_cfg_comp->params,
+				params);
 			BT_VALUE_PUT_REF_AND_RESET(params);
 			if (extend_status != BT_VALUE_MAP_EXTEND_STATUS_OK) {
 				BT_CLI_LOGE_APPEND_CAUSE("Cannot extend current component parameters with --params option's argument:\n    %s",
@@ -1943,7 +1942,6 @@ struct bt_config *bt_config_run_from_args(int argc, const char *argv[],
 				goto error;
 			}
 
-			BT_OBJECT_MOVE_REF(cur_cfg_comp->params, params_to_set);
 			break;
 		}
 		case OPT_LOG_LEVEL:

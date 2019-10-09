@@ -1250,7 +1250,7 @@ enum bt_value_map_foreach_entry_const_status bt_value_map_foreach_entry_const(
 }
 
 struct extend_map_element_data {
-	struct bt_value *extended_obj;
+	struct bt_value *base_obj;
 	int status;
 };
 
@@ -1273,15 +1273,15 @@ bt_bool extend_map_element(const char *key,
 
 	BT_ASSERT(extension_obj_elem_copy);
 
-	/* Replace in extended object */
+	/* Replace in base map value. */
 	extend_data->status = bt_value_map_insert_entry(
-		extend_data->extended_obj, key,
+		extend_data->base_obj, key,
 		(void *) extension_obj_elem_copy);
 	if (extend_data->status) {
 		BT_LIB_LOGE_APPEND_CAUSE(
-			"Cannot replace value in extended value: key=\"%s\", "
-			"%![extended-value-]+v, %![element-value-]+v",
-			key, extend_data->extended_obj,
+			"Cannot replace value in base map value: key=\"%s\", "
+			"%![base-map-value-]+v, %![element-value-]+v",
+			key, extend_data->base_obj,
 			extension_obj_elem_copy);
 		goto error;
 	}
@@ -1298,66 +1298,35 @@ end:
 }
 
 enum bt_value_map_extend_status bt_value_map_extend(
-		const struct bt_value *base_map_obj,
-		const struct bt_value *extension_obj,
-		struct bt_value **extended_map_obj)
+		struct bt_value *base_map_obj,
+		const struct bt_value *extension_obj)
 {
 	struct extend_map_element_data extend_data = {
-		.extended_obj = NULL,
+		.base_obj = NULL,
 		.status = BT_FUNC_STATUS_OK,
 	};
 
 	BT_ASSERT_PRE_NON_NULL(base_map_obj, "Base value object");
+	BT_ASSERT_PRE_DEV_VALUE_HOT(base_map_obj, "Base value object");
 	BT_ASSERT_PRE_NON_NULL(extension_obj, "Extension value object");
-	BT_ASSERT_PRE_NON_NULL(extended_map_obj,
-		"Extended value object (output)");
 	BT_ASSERT_PRE_VALUE_IS_TYPE(base_map_obj, BT_VALUE_TYPE_MAP);
 	BT_ASSERT_PRE_VALUE_IS_TYPE(extension_obj, BT_VALUE_TYPE_MAP);
 	BT_LOGD("Extending map value: base-value-addr=%p, extension-value-addr=%p",
 		base_map_obj, extension_obj);
-	*extended_map_obj = NULL;
-
-	/* Create copy of base map object to start with */
-	extend_data.status = bt_value_copy(base_map_obj, extended_map_obj);
-	if (extend_data.status) {
-		BT_LIB_LOGE_APPEND_CAUSE(
-			"Cannot copy base value: %![base-value-]+v",
-			base_map_obj);
-		goto error;
-	}
-
-	BT_ASSERT(extended_map_obj);
 
 	/*
 	 * For each key in the extension map object, replace this key
-	 * in the copied map object.
+	 * in the base map object.
 	 */
-	extend_data.extended_obj = *extended_map_obj;
+	extend_data.base_obj = base_map_obj;
 
 	if (bt_value_map_foreach_entry_const(extension_obj, extend_map_element,
 			&extend_data)) {
 		BT_LIB_LOGE_APPEND_CAUSE(
 			"Cannot iterate on the extension object's elements: "
 			"%![extension-value-]+v", extension_obj);
-		goto error;
 	}
 
-	if (extend_data.status) {
-		BT_LIB_LOGE_APPEND_CAUSE(
-			"Failed to successfully iterate on the extension object's elements: "
-			"%![extension-value-]+v", extension_obj);
-		goto error;
-	}
-
-	BT_LOGD("Extended map value: extended-value-addr=%p",
-		*extended_map_obj);
-	goto end;
-
-error:
-	BT_OBJECT_PUT_REF_AND_RESET(*extended_map_obj);
-	*extended_map_obj = NULL;
-
-end:
 	return extend_data.status;
 }
 
