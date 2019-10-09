@@ -1498,6 +1498,8 @@ struct bt_field_class *bt_field_class_variant_create(
 		bt_object_get_ref_no_null_check(var_with_sel_fc->selector_fc);
 		bt_field_class_freeze(selector_fc);
 		var_fc = (void *) var_with_sel_fc;
+		BT_LIB_LOGD("Created default variant field class with selector object: "
+			"%![var-fc-]+F, %![sel-fc-]+F", var_fc, selector_fc);
 	} else {
 		var_fc = g_new0(struct bt_field_class_variant, 1);
 		if (!var_fc) {
@@ -1513,11 +1515,11 @@ struct bt_field_class *bt_field_class_variant_create(
 			/* init_named_field_classes_container() logs errors */
 			goto error;
 		}
+		BT_LIB_LOGD("Created default variant field class without selector object: "
+			"%![var-fc-]+F", var_fc);
 	}
 
 	BT_ASSERT(var_fc);
-	BT_LIB_LOGD("Created default variant field class with selector object: "
-		"%![var-fc-]+F, %![sel-fc-]+F", var_fc, selector_fc);
 	goto end;
 
 error:
