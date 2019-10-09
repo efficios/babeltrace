@@ -40,6 +40,7 @@ function run_test
 {
 	local begin_time="$1"
 	local end_time="$2"
+	# with_stream_msgs_cs is set to "true" or "false" by the tests.
 	local local_args=(
 		"--plugin-path" "$data_dir"
 		"-c" "src.test-trimmer.TheSourceOfAllEvil"
@@ -48,11 +49,17 @@ function run_test
 		"--params=compact=true,with-metadata=false"
 	)
 
+	if [ "$with_stream_msgs_cs" = "true" ]; then
+		test_name="with stream message clock snapshots"
+	else
+		test_name="without stream message clock snapshots"
+	fi
+
 	if [ -n "$begin_time" ]; then
 		local_args+=("--begin=$begin_time")
-		test_name="with --begin=$begin_time"
+		test_name="$test_name, with --begin=$begin_time"
 	else
-		test_name="without --begin"
+		test_name="$test_name, without --begin"
 	fi
 
 	if [ -n "$end_time" ]; then
@@ -61,8 +68,6 @@ function run_test
 	else
 		test_name="$test_name, without --end"
 	fi
-
-	# with_stream_msgs_cs is set to "true" or "false" by the tests.
 
 	bt_diff_cli "$temp_stdout_expected" "$temp_stderr_expected" "${local_args[@]}"
 	ok $? "$test_name"
