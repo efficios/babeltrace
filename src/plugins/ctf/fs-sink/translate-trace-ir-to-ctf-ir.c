@@ -999,8 +999,8 @@ int translate_variant_field_class(struct ctx *ctx)
 	ir_fc_type = bt_field_class_get_type(fc->base.ir_fc);
 	opt_count = bt_field_class_variant_get_option_count(fc->base.ir_fc);
 
-	if (ir_fc_type == BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR_FIELD ||
-			ir_fc_type == BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_INTEGER_SELECTOR_FIELD) {
+	if (bt_field_class_type_is(ir_fc_type,
+			BT_FIELD_CLASS_TYPE_VARIANT_WITH_SELECTOR_FIELD)) {
 		ir_selector_field_path = bt_field_class_variant_with_selector_field_borrow_selector_field_path_const(
 			fc->base.ir_fc);
 		BT_ASSERT(ir_selector_field_path);
@@ -1018,8 +1018,8 @@ int translate_variant_field_class(struct ctx *ctx)
 		bt_field_class_type type = bt_field_class_get_type(
 			tgt_fc->ir_fc);
 
-		if (type != BT_FIELD_CLASS_TYPE_UNSIGNED_ENUMERATION &&
-				type != BT_FIELD_CLASS_TYPE_SIGNED_ENUMERATION) {
+		if (!bt_field_class_type_is(type,
+				BT_FIELD_CLASS_TYPE_ENUMERATION)) {
 			fc->tag_is_before = true;
 			goto validate_opts;
 		}
@@ -1307,49 +1307,35 @@ static
 int translate_field_class(struct ctx *ctx)
 {
 	int ret;
+	bt_field_class_type ir_fc_type =
+		bt_field_class_get_type(cur_path_stack_top(ctx)->ir_fc);
 
-	switch (bt_field_class_get_type(cur_path_stack_top(ctx)->ir_fc)) {
-	case BT_FIELD_CLASS_TYPE_BOOL:
+	if (ir_fc_type == BT_FIELD_CLASS_TYPE_BOOL) {
 		ret = translate_bool_field_class(ctx);
-		break;
-	case BT_FIELD_CLASS_TYPE_BIT_ARRAY:
+	} else if (ir_fc_type == BT_FIELD_CLASS_TYPE_BIT_ARRAY) {
 		ret = translate_bit_array_field_class(ctx);
-		break;
-	case BT_FIELD_CLASS_TYPE_UNSIGNED_INTEGER:
-	case BT_FIELD_CLASS_TYPE_SIGNED_INTEGER:
-	case BT_FIELD_CLASS_TYPE_UNSIGNED_ENUMERATION:
-	case BT_FIELD_CLASS_TYPE_SIGNED_ENUMERATION:
+	} else if (bt_field_class_type_is(ir_fc_type,
+			BT_FIELD_CLASS_TYPE_INTEGER)) {
 		ret = translate_integer_field_class(ctx);
-		break;
-	case BT_FIELD_CLASS_TYPE_SINGLE_PRECISION_REAL:
-	case BT_FIELD_CLASS_TYPE_DOUBLE_PRECISION_REAL:
+	} else if (bt_field_class_type_is(ir_fc_type,
+			BT_FIELD_CLASS_TYPE_REAL)) {
 		ret = translate_real_field_class(ctx);
-		break;
-	case BT_FIELD_CLASS_TYPE_STRING:
+	} else if (ir_fc_type == BT_FIELD_CLASS_TYPE_STRING) {
 		ret = translate_string_field_class(ctx);
-		break;
-	case BT_FIELD_CLASS_TYPE_STRUCTURE:
+	} else if (ir_fc_type == BT_FIELD_CLASS_TYPE_STRUCTURE) {
 		ret = translate_structure_field_class(ctx);
-		break;
-	case BT_FIELD_CLASS_TYPE_STATIC_ARRAY:
+	} else if (ir_fc_type == BT_FIELD_CLASS_TYPE_STATIC_ARRAY) {
 		ret = translate_static_array_field_class(ctx);
-		break;
-	case BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITHOUT_LENGTH_FIELD:
-	case BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITH_LENGTH_FIELD:
+	} else if (bt_field_class_type_is(ir_fc_type,
+			BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY)) {
 		ret = translate_dynamic_array_field_class(ctx);
-		break;
-	case BT_FIELD_CLASS_TYPE_OPTION_WITHOUT_SELECTOR_FIELD:
-	case BT_FIELD_CLASS_TYPE_OPTION_WITH_BOOL_SELECTOR_FIELD:
-	case BT_FIELD_CLASS_TYPE_OPTION_WITH_UNSIGNED_INTEGER_SELECTOR_FIELD:
-	case BT_FIELD_CLASS_TYPE_OPTION_WITH_SIGNED_INTEGER_SELECTOR_FIELD:
+	} else if (bt_field_class_type_is(ir_fc_type,
+			BT_FIELD_CLASS_TYPE_OPTION)) {
 		ret = translate_option_field_class(ctx);
-		break;
-	case BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR_FIELD:
-	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR_FIELD:
-	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_INTEGER_SELECTOR_FIELD:
+	} else if (bt_field_class_type_is(ir_fc_type,
+			BT_FIELD_CLASS_TYPE_VARIANT)) {
 		ret = translate_variant_field_class(ctx);
-		break;
-	default:
+	} else {
 		abort();
 	}
 

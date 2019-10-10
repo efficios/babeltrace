@@ -981,15 +981,7 @@ void write_field_class(struct details_write_ctx *ctx, const bt_field_class *fc)
 		color_fg_blue(ctx), type, color_reset(ctx));
 
 	/* Write field class's single-line properties */
-	switch (fc_type) {
-	case BT_FIELD_CLASS_TYPE_UNSIGNED_INTEGER:
-	case BT_FIELD_CLASS_TYPE_SIGNED_INTEGER:
-		write_sp(ctx);
-		write_int_field_class_props(ctx, fc, true);
-		break;
-	case BT_FIELD_CLASS_TYPE_UNSIGNED_ENUMERATION:
-	case BT_FIELD_CLASS_TYPE_SIGNED_ENUMERATION:
-	{
+	if (bt_field_class_type_is(fc_type, BT_FIELD_CLASS_TYPE_ENUMERATION)) {
 		uint64_t mapping_count =
 			bt_field_class_enumeration_get_mapping_count(fc);
 
@@ -999,10 +991,11 @@ void write_field_class(struct details_write_ctx *ctx, const bt_field_class *fc)
 		write_uint_prop_value(ctx, mapping_count);
 		g_string_append_printf(ctx->str, " mapping%s)",
 			plural(mapping_count));
-		break;
-	}
-	case BT_FIELD_CLASS_TYPE_STRUCTURE:
-	{
+	} else if (bt_field_class_type_is(fc_type,
+			BT_FIELD_CLASS_TYPE_INTEGER)) {
+		write_sp(ctx);
+		write_int_field_class_props(ctx, fc, true);
+	} else if (fc_type == BT_FIELD_CLASS_TYPE_STRUCTURE) {
 		uint64_t member_count =
 			bt_field_class_structure_get_member_count(fc);
 
@@ -1010,31 +1003,21 @@ void write_field_class(struct details_write_ctx *ctx, const bt_field_class *fc)
 		write_uint_prop_value(ctx, member_count);
 		g_string_append_printf(ctx->str, " member%s)",
 			plural(member_count));
-		break;
-	}
-	case BT_FIELD_CLASS_TYPE_STATIC_ARRAY:
-	case BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITHOUT_LENGTH_FIELD:
-	case BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITH_LENGTH_FIELD:
-		if (fc_type == BT_FIELD_CLASS_TYPE_STATIC_ARRAY) {
-			g_string_append(ctx->str, " (Length ");
-			write_uint_prop_value(ctx,
-				bt_field_class_array_static_get_length(fc));
-			g_string_append_c(ctx->str, ')');
-		} else if (fc_type == BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITH_LENGTH_FIELD) {
-			const bt_field_path *length_field_path =
-				bt_field_class_array_dynamic_with_length_field_borrow_length_field_path_const(
-					fc);
+	} else if (fc_type == BT_FIELD_CLASS_TYPE_STATIC_ARRAY) {
+		g_string_append(ctx->str, " (Length ");
+		write_uint_prop_value(ctx,
+			bt_field_class_array_static_get_length(fc));
+		g_string_append_c(ctx->str, ')');
+	} else if (fc_type == BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITH_LENGTH_FIELD) {
+		const bt_field_path *length_field_path =
+			bt_field_class_array_dynamic_with_length_field_borrow_length_field_path_const(
+				fc);
 
-			g_string_append(ctx->str, " (Length field path ");
-			write_field_path(ctx, length_field_path);
-			g_string_append_c(ctx->str, ')');
-		}
-
-		break;
-	case BT_FIELD_CLASS_TYPE_OPTION_WITH_BOOL_SELECTOR_FIELD:
-	case BT_FIELD_CLASS_TYPE_OPTION_WITH_UNSIGNED_INTEGER_SELECTOR_FIELD:
-	case BT_FIELD_CLASS_TYPE_OPTION_WITH_SIGNED_INTEGER_SELECTOR_FIELD:
-	{
+		g_string_append(ctx->str, " (Length field path ");
+		write_field_path(ctx, length_field_path);
+		g_string_append_c(ctx->str, ')');
+	} else if (bt_field_class_type_is(fc_type,
+			BT_FIELD_CLASS_TYPE_OPTION_WITH_SELECTOR_FIELD)) {
 		const bt_field_path *selector_field_path =
 			bt_field_class_option_with_selector_field_borrow_selector_field_path_const(
 				fc);
@@ -1042,18 +1025,14 @@ void write_field_class(struct details_write_ctx *ctx, const bt_field_class *fc)
 		g_string_append(ctx->str, " (Selector field path ");
 		write_field_path(ctx, selector_field_path);
 		g_string_append_c(ctx->str, ')');
-		break;
-	}
-	case BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR_FIELD:
-	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR_FIELD:
-	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_INTEGER_SELECTOR_FIELD:
-	{
+	} else if (bt_field_class_type_is(fc_type,
+			BT_FIELD_CLASS_TYPE_VARIANT)) {
 		uint64_t option_count =
 			bt_field_class_variant_get_option_count(fc);
 		const bt_field_path *sel_field_path = NULL;
 
-		if (fc_type == BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR_FIELD ||
-				fc_type == BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_INTEGER_SELECTOR_FIELD) {
+		if (bt_field_class_type_is(fc_type,
+				BT_FIELD_CLASS_TYPE_VARIANT_WITH_SELECTOR_FIELD)) {
 			sel_field_path =
 				bt_field_class_variant_with_selector_field_borrow_selector_field_path_const(
 					fc);
@@ -1071,10 +1050,6 @@ void write_field_class(struct details_write_ctx *ctx, const bt_field_class *fc)
 		}
 
 		g_string_append_c(ctx->str, ')');
-		break;
-	}
-	default:
-		break;
 	}
 
 	incr_indent(ctx);
@@ -1086,10 +1061,7 @@ void write_field_class(struct details_write_ctx *ctx, const bt_field_class *fc)
 	}
 
 	/* Write field class's complex properties */
-	switch (fc_type) {
-	case BT_FIELD_CLASS_TYPE_UNSIGNED_ENUMERATION:
-	case BT_FIELD_CLASS_TYPE_SIGNED_ENUMERATION:
-	{
+	if (bt_field_class_type_is(fc_type, BT_FIELD_CLASS_TYPE_ENUMERATION)) {
 		uint64_t mapping_count =
 			bt_field_class_enumeration_get_mapping_count(fc);
 
@@ -1111,11 +1083,7 @@ void write_field_class(struct details_write_ctx *ctx, const bt_field_class *fc)
 				decr_indent(ctx);
 			}
 		}
-
-		break;
-	}
-	case BT_FIELD_CLASS_TYPE_STRUCTURE:
-	{
+	} else if (fc_type == BT_FIELD_CLASS_TYPE_STRUCTURE) {
 		uint64_t member_count =
 			bt_field_class_structure_get_member_count(fc);
 
@@ -1170,12 +1138,7 @@ void write_field_class(struct details_write_ctx *ctx, const bt_field_class *fc)
 				decr_indent(ctx);
 			}
 		}
-
-		break;
-	}
-	case BT_FIELD_CLASS_TYPE_STATIC_ARRAY:
-	case BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITHOUT_LENGTH_FIELD:
-	case BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITH_LENGTH_FIELD:
+	} else if (bt_field_class_type_is(fc_type, BT_FIELD_CLASS_TYPE_ARRAY)) {
 		if (wrote_user_attrs) {
 			write_nl(ctx);
 		} else {
@@ -1186,12 +1149,8 @@ void write_field_class(struct details_write_ctx *ctx, const bt_field_class *fc)
 		write_sp(ctx);
 		write_field_class(ctx,
 			bt_field_class_array_borrow_element_field_class_const(fc));
-		break;
-	case BT_FIELD_CLASS_TYPE_OPTION_WITHOUT_SELECTOR_FIELD:
-	case BT_FIELD_CLASS_TYPE_OPTION_WITH_BOOL_SELECTOR_FIELD:
-	case BT_FIELD_CLASS_TYPE_OPTION_WITH_UNSIGNED_INTEGER_SELECTOR_FIELD:
-	case BT_FIELD_CLASS_TYPE_OPTION_WITH_SIGNED_INTEGER_SELECTOR_FIELD:
-	{
+	} else if (bt_field_class_type_is(fc_type,
+			BT_FIELD_CLASS_TYPE_OPTION)) {
 		const void *ranges = NULL;
 		bool selector_is_signed = false;
 
@@ -1235,12 +1194,8 @@ void write_field_class(struct details_write_ctx *ctx, const bt_field_class *fc)
 		write_sp(ctx);
 		write_field_class(ctx,
 			bt_field_class_option_borrow_field_class_const(fc));
-		break;
-	}
-	case BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR_FIELD:
-	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR_FIELD:
-	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_INTEGER_SELECTOR_FIELD:
-	{
+	} else if (bt_field_class_type_is(fc_type,
+			BT_FIELD_CLASS_TYPE_VARIANT)) {
 		uint64_t option_count =
 			bt_field_class_variant_get_option_count(fc);
 
@@ -1264,11 +1219,6 @@ void write_field_class(struct details_write_ctx *ctx, const bt_field_class *fc)
 				decr_indent(ctx);
 			}
 		}
-
-		break;
-	}
-	default:
-		break;
 	}
 
 	decr_indent(ctx);
@@ -1843,22 +1793,16 @@ void write_field(struct details_write_ctx *ctx, const bt_field *field,
 	}
 
 	/* Write field's value */
-	switch (fc_type) {
-	case BT_FIELD_CLASS_TYPE_BOOL:
+	if (fc_type == BT_FIELD_CLASS_TYPE_BOOL) {
 		write_sp(ctx);
 		write_bool_prop_value(ctx, bt_field_bool_get_value(field));
-		break;
-	case BT_FIELD_CLASS_TYPE_BIT_ARRAY:
+	} else if (fc_type == BT_FIELD_CLASS_TYPE_BIT_ARRAY) {
 		format_uint(buf, bt_field_bit_array_get_value_as_integer(field),
 			16);
 		write_sp(ctx);
 		write_uint_str_prop_value(ctx, buf);
-		break;
-	case BT_FIELD_CLASS_TYPE_UNSIGNED_INTEGER:
-	case BT_FIELD_CLASS_TYPE_UNSIGNED_ENUMERATION:
-	case BT_FIELD_CLASS_TYPE_SIGNED_INTEGER:
-	case BT_FIELD_CLASS_TYPE_SIGNED_ENUMERATION:
-	{
+	} else if (bt_field_class_type_is(fc_type,
+			BT_FIELD_CLASS_TYPE_INTEGER)) {
 		unsigned int fmt_base;
 		bt_field_class_integer_preferred_display_base base;
 
@@ -1882,8 +1826,8 @@ void write_field(struct details_write_ctx *ctx, const bt_field *field,
 			abort();
 		}
 
-		if (fc_type == BT_FIELD_CLASS_TYPE_UNSIGNED_INTEGER ||
-				fc_type == BT_FIELD_CLASS_TYPE_UNSIGNED_ENUMERATION) {
+		if (bt_field_class_type_is(fc_type,
+				BT_FIELD_CLASS_TYPE_UNSIGNED_INTEGER)) {
 			format_uint(buf,
 				bt_field_integer_unsigned_get_value(field),
 				fmt_base);
@@ -1896,23 +1840,16 @@ void write_field(struct details_write_ctx *ctx, const bt_field *field,
 			write_sp(ctx);
 			write_int_str_prop_value(ctx, buf);
 		}
-
-		break;
-	}
-	case BT_FIELD_CLASS_TYPE_SINGLE_PRECISION_REAL:
+	} else if (fc_type == BT_FIELD_CLASS_TYPE_SINGLE_PRECISION_REAL) {
 		write_sp(ctx);
 		write_float_prop_value(ctx, bt_field_real_single_precision_get_value(field));
-		break;
-	case BT_FIELD_CLASS_TYPE_DOUBLE_PRECISION_REAL:
+	} else if (fc_type == BT_FIELD_CLASS_TYPE_DOUBLE_PRECISION_REAL) {
 		write_sp(ctx);
 		write_float_prop_value(ctx, bt_field_real_double_precision_get_value(field));
-		break;
-	case BT_FIELD_CLASS_TYPE_STRING:
+	} else if (fc_type == BT_FIELD_CLASS_TYPE_STRING) {
 		write_sp(ctx);
 		write_str_prop_value(ctx, bt_field_string_get_value(field));
-		break;
-	case BT_FIELD_CLASS_TYPE_STRUCTURE:
-	{
+	} else if (fc_type == BT_FIELD_CLASS_TYPE_STRUCTURE) {
 		uint64_t member_count;
 
 		fc = bt_field_borrow_class_const(field);
@@ -1939,13 +1876,7 @@ void write_field(struct details_write_ctx *ctx, const bt_field *field,
 			write_sp(ctx);
 			write_none_prop_value(ctx, "Empty");
 		}
-
-		break;
-	}
-	case BT_FIELD_CLASS_TYPE_STATIC_ARRAY:
-	case BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITHOUT_LENGTH_FIELD:
-	case BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITH_LENGTH_FIELD:
-	{
+	} else if (bt_field_class_type_is(fc_type, BT_FIELD_CLASS_TYPE_ARRAY)) {
 		uint64_t length = bt_field_array_get_length(field);
 
 		if (length == 0) {
@@ -1970,13 +1901,8 @@ void write_field(struct details_write_ctx *ctx, const bt_field *field,
 		}
 
 		decr_indent(ctx);
-		break;
-	}
-	case BT_FIELD_CLASS_TYPE_OPTION_WITHOUT_SELECTOR_FIELD:
-	case BT_FIELD_CLASS_TYPE_OPTION_WITH_BOOL_SELECTOR_FIELD:
-	case BT_FIELD_CLASS_TYPE_OPTION_WITH_UNSIGNED_INTEGER_SELECTOR_FIELD:
-	case BT_FIELD_CLASS_TYPE_OPTION_WITH_SIGNED_INTEGER_SELECTOR_FIELD:
-	{
+	} else if (bt_field_class_type_is(fc_type,
+			BT_FIELD_CLASS_TYPE_OPTION)) {
 		const bt_field *content_field =
 			bt_field_option_borrow_field_const(field);
 
@@ -1986,17 +1912,12 @@ void write_field(struct details_write_ctx *ctx, const bt_field *field,
 		} else {
 			write_field(ctx, content_field, NULL);
 		}
-
-		break;
-	}
-	case BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR_FIELD:
-	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR_FIELD:
-	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_INTEGER_SELECTOR_FIELD:
+	} else if (bt_field_class_type_is(fc_type,
+			BT_FIELD_CLASS_TYPE_VARIANT)) {
 		write_field(ctx,
 			bt_field_variant_borrow_selected_option_field_const(
 				field), NULL);
-		break;
-	default:
+	} else {
 		abort();
 	}
 }

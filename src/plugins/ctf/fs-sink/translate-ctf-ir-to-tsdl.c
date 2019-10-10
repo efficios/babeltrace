@@ -216,11 +216,10 @@ void append_integer_field_class(struct ctx *ctx,
 {
 	const bt_field_class *ir_fc = fc->base.base.ir_fc;
 	bt_field_class_type type = bt_field_class_get_type(ir_fc);
-	bool is_signed = type == BT_FIELD_CLASS_TYPE_SIGNED_ENUMERATION ||
-		type == BT_FIELD_CLASS_TYPE_SIGNED_INTEGER;
+	bool is_signed = bt_field_class_type_is(type,
+		BT_FIELD_CLASS_TYPE_SIGNED_INTEGER);
 
-	if (type == BT_FIELD_CLASS_TYPE_UNSIGNED_ENUMERATION ||
-			type == BT_FIELD_CLASS_TYPE_SIGNED_ENUMERATION) {
+	if (bt_field_class_type_is(type, BT_FIELD_CLASS_TYPE_ENUMERATION)) {
 		g_string_append(ctx->tsdl, "enum : ");
 	}
 
@@ -229,8 +228,7 @@ void append_integer_field_class(struct ctx *ctx,
 		bt_field_class_integer_get_preferred_display_base(ir_fc),
 		NULL, NULL, false);
 
-	if (type == BT_FIELD_CLASS_TYPE_UNSIGNED_ENUMERATION ||
-			type == BT_FIELD_CLASS_TYPE_SIGNED_ENUMERATION) {
+	if (bt_field_class_type_is(type, BT_FIELD_CLASS_TYPE_ENUMERATION)) {
 		uint64_t i;
 
 		g_string_append(ctx->tsdl, " {\n");
@@ -334,7 +332,8 @@ void append_float_field_class(struct ctx *ctx,
 {
 	unsigned int mant_dig, exp_dig;
 
-	if (bt_field_class_get_type(fc->base.base.ir_fc) == BT_FIELD_CLASS_TYPE_SINGLE_PRECISION_REAL) {
+	if (bt_field_class_get_type(fc->base.base.ir_fc) ==
+			BT_FIELD_CLASS_TYPE_SINGLE_PRECISION_REAL) {
 		mant_dig = 24;
 		exp_dig = 8;
 	} else {

@@ -530,8 +530,8 @@ int print_integer(struct pretty_component *pretty,
 	int_fc = bt_field_borrow_class_const(field);
 	BT_ASSERT(int_fc);
 	ft_type = bt_field_get_class_type(field);
-	if (ft_type == BT_FIELD_CLASS_TYPE_UNSIGNED_INTEGER ||
-			ft_type == BT_FIELD_CLASS_TYPE_UNSIGNED_ENUMERATION) {
+	if (bt_field_class_type_is(ft_type,
+			BT_FIELD_CLASS_TYPE_UNSIGNED_INTEGER)) {
 		v.u = bt_field_integer_unsigned_get_value(field);
 	} else {
 		v.s = bt_field_integer_signed_get_value(field);
@@ -560,8 +560,8 @@ int print_integer(struct pretty_component *pretty,
 	}
 	case BT_FIELD_CLASS_INTEGER_PREFERRED_DISPLAY_BASE_OCTAL:
 	{
-		if (ft_type == BT_FIELD_CLASS_TYPE_SIGNED_INTEGER ||
-				ft_type == BT_FIELD_CLASS_TYPE_SIGNED_ENUMERATION) {
+		if (bt_field_class_type_is(ft_type,
+				BT_FIELD_CLASS_TYPE_SIGNED_INTEGER)) {
 			int len;
 
 			len = bt_field_class_integer_get_field_value_range(
@@ -580,8 +580,8 @@ int print_integer(struct pretty_component *pretty,
 		break;
 	}
 	case BT_FIELD_CLASS_INTEGER_PREFERRED_DISPLAY_BASE_DECIMAL:
-		if (ft_type == BT_FIELD_CLASS_TYPE_UNSIGNED_INTEGER ||
-				ft_type == BT_FIELD_CLASS_TYPE_UNSIGNED_ENUMERATION) {
+		if (bt_field_class_type_is(ft_type,
+				BT_FIELD_CLASS_TYPE_UNSIGNED_INTEGER)) {
 			bt_common_g_string_append_printf(pretty->string, "%" PRIu64, v.u);
 		} else {
 			bt_common_g_string_append_printf(pretty->string, "%" PRId64, v.s);
@@ -977,9 +977,7 @@ int print_field(struct pretty_component *pretty,
 	bt_field_class_type class_id;
 
 	class_id = bt_field_get_class_type(field);
-	switch (class_id) {
-	case BT_FIELD_CLASS_TYPE_BOOL:
-	{
+	if (class_id == BT_FIELD_CLASS_TYPE_BOOL) {
 		bt_bool v;
 		const char *text;
 
@@ -997,9 +995,7 @@ int print_field(struct pretty_component *pretty,
 			bt_common_g_string_append(pretty->string, COLOR_RST);
 		}
 		return 0;
-	}
-	case BT_FIELD_CLASS_TYPE_BIT_ARRAY:
-	{
+	} else if (class_id == BT_FIELD_CLASS_TYPE_BIT_ARRAY) {
 		uint64_t v = bt_field_bit_array_get_value_as_integer(field);
 
 		if (pretty->use_colors) {
@@ -1012,17 +1008,18 @@ int print_field(struct pretty_component *pretty,
 			bt_common_g_string_append(pretty->string, COLOR_RST);
 		}
 		return 0;
-	}
-	case BT_FIELD_CLASS_TYPE_UNSIGNED_INTEGER:
-	case BT_FIELD_CLASS_TYPE_SIGNED_INTEGER:
+	} else if (bt_field_class_type_is(class_id,
+			BT_FIELD_CLASS_TYPE_ENUMERATION)) {
+		return print_enum(pretty, field);
+	} else if (bt_field_class_type_is(class_id,
+			BT_FIELD_CLASS_TYPE_INTEGER)) {
 		return print_integer(pretty, field);
-	case BT_FIELD_CLASS_TYPE_SINGLE_PRECISION_REAL:
-	case BT_FIELD_CLASS_TYPE_DOUBLE_PRECISION_REAL:
-	{
+	} else if (bt_field_class_type_is(class_id,
+			BT_FIELD_CLASS_TYPE_REAL)) {
 		double v;
 
 		if (class_id == BT_FIELD_CLASS_TYPE_SINGLE_PRECISION_REAL) {
-			v = (float) bt_field_real_single_precision_get_value(field);
+			v = bt_field_real_single_precision_get_value(field);
 		} else {
 			v = bt_field_real_double_precision_get_value(field);
 		}
@@ -1035,12 +1032,7 @@ int print_field(struct pretty_component *pretty,
 			bt_common_g_string_append(pretty->string, COLOR_RST);
 		}
 		return 0;
-	}
-	case BT_FIELD_CLASS_TYPE_UNSIGNED_ENUMERATION:
-	case BT_FIELD_CLASS_TYPE_SIGNED_ENUMERATION:
-		return print_enum(pretty, field);
-	case BT_FIELD_CLASS_TYPE_STRING:
-	{
+	} else if (class_id == BT_FIELD_CLASS_TYPE_STRING) {
 		const char *str;
 
 		str = bt_field_string_get_value(field);
@@ -1056,24 +1048,20 @@ int print_field(struct pretty_component *pretty,
 			bt_common_g_string_append(pretty->string, COLOR_RST);
 		}
 		return 0;
-	}
-	case BT_FIELD_CLASS_TYPE_STRUCTURE:
+	} else if (class_id == BT_FIELD_CLASS_TYPE_STRUCTURE) {
 		return print_struct(pretty, field, print_names);
-	case BT_FIELD_CLASS_TYPE_OPTION_WITHOUT_SELECTOR_FIELD:
-	case BT_FIELD_CLASS_TYPE_OPTION_WITH_BOOL_SELECTOR_FIELD:
-	case BT_FIELD_CLASS_TYPE_OPTION_WITH_UNSIGNED_INTEGER_SELECTOR_FIELD:
-	case BT_FIELD_CLASS_TYPE_OPTION_WITH_SIGNED_INTEGER_SELECTOR_FIELD:
+	} else if (bt_field_class_type_is(class_id,
+			BT_FIELD_CLASS_TYPE_OPTION)) {
 		return print_option(pretty, field, print_names);
-	case BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR_FIELD:
-	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR_FIELD:
-	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_INTEGER_SELECTOR_FIELD:
+	} else if (bt_field_class_type_is(class_id,
+			BT_FIELD_CLASS_TYPE_VARIANT)) {
 		return print_variant(pretty, field, print_names);
-	case BT_FIELD_CLASS_TYPE_STATIC_ARRAY:
+	} else if (class_id == BT_FIELD_CLASS_TYPE_STATIC_ARRAY) {
 		return print_array(pretty, field, print_names);
-	case BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITHOUT_LENGTH_FIELD:
-	case BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITH_LENGTH_FIELD:
+	} else if (bt_field_class_type_is(class_id,
+			BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY)) {
 		return print_sequence(pretty, field, print_names);
-	default:
+	} else {
 		// TODO: log instead
 		fprintf(pretty->err, "[error] Unknown type id: %d\n", (int) class_id);
 		return -1;

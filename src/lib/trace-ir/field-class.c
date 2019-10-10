@@ -1478,8 +1478,8 @@ struct bt_field_class *bt_field_class_variant_create(
 			goto error;
 		}
 
-		if (selector_fc->type == BT_FIELD_CLASS_TYPE_UNSIGNED_INTEGER ||
-				selector_fc->type == BT_FIELD_CLASS_TYPE_UNSIGNED_ENUMERATION) {
+		if (bt_field_class_type_is(selector_fc->type,
+				BT_FIELD_CLASS_TYPE_UNSIGNED_INTEGER)) {
 			fc_type = BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR_FIELD;
 		} else {
 			fc_type = BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_INTEGER_SELECTOR_FIELD;
@@ -2115,12 +2115,9 @@ void _bt_field_class_freeze(const struct bt_field_class *c_fc)
 	bt_value_freeze(fc->user_attributes);
 	fc->frozen = true;
 
-	switch (fc->type) {
-	case BT_FIELD_CLASS_TYPE_STRUCTURE:
-	case BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR_FIELD:
-	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR_FIELD:
-	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_INTEGER_SELECTOR_FIELD:
-	{
+	if (fc->type == BT_FIELD_CLASS_TYPE_STRUCTURE ||
+			bt_field_class_type_is(fc->type,
+				BT_FIELD_CLASS_TYPE_VARIANT)) {
 		struct bt_field_class_named_field_class_container *container_fc =
 			(void *) fc;
 		uint64_t i;
@@ -2129,11 +2126,6 @@ void _bt_field_class_freeze(const struct bt_field_class *c_fc)
 			bt_named_field_class_freeze(
 				container_fc->named_fcs->pdata[i]);
 		}
-
-		break;
-	}
-	default:
-		break;
 	}
 }
 
@@ -2158,12 +2150,9 @@ void bt_field_class_make_part_of_trace_class(const struct bt_field_class *c_fc)
 		"Field class is already part of a trace: %!+F", fc);
 	fc->part_of_trace_class = true;
 
-	switch (fc->type) {
-	case BT_FIELD_CLASS_TYPE_STRUCTURE:
-	case BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR_FIELD:
-	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR_FIELD:
-	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_INTEGER_SELECTOR_FIELD:
-	{
+	if (fc->type == BT_FIELD_CLASS_TYPE_STRUCTURE ||
+			bt_field_class_type_is(fc->type,
+				BT_FIELD_CLASS_TYPE_VARIANT)) {
 		struct bt_field_class_named_field_class_container *container_fc =
 			(void *) fc;
 		uint64_t i;
@@ -2174,20 +2163,11 @@ void bt_field_class_make_part_of_trace_class(const struct bt_field_class *c_fc)
 
 			bt_field_class_make_part_of_trace_class(named_fc->fc);
 		}
-
-		break;
-	}
-	case BT_FIELD_CLASS_TYPE_STATIC_ARRAY:
-	case BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITHOUT_LENGTH_FIELD:
-	case BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITH_LENGTH_FIELD:
-	{
+	} else if (bt_field_class_type_is(fc->type,
+			BT_FIELD_CLASS_TYPE_ARRAY)) {
 		struct bt_field_class_array *array_fc = (void *) fc;
 
 		bt_field_class_make_part_of_trace_class(array_fc->element_fc);
-		break;
-	}
-	default:
-		break;
 	}
 }
 
