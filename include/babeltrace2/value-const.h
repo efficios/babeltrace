@@ -38,31 +38,40 @@ extern "C" {
 
 typedef enum bt_value_type {
 	/// Null value object.
-	BT_VALUE_TYPE_NULL		= 0,
+	BT_VALUE_TYPE_NULL		= 1 << 0,
 
 	/// Boolean value object (holds #BT_TRUE or #BT_FALSE).
-	BT_VALUE_TYPE_BOOL		= 1,
+	BT_VALUE_TYPE_BOOL		= 1 << 1,
+
+	BT_VALUE_TYPE_INTEGER		= 1 << 2,
 
 	/// Unsigned integer value object (holds an unsigned 64-bit integer raw value).
-	BT_VALUE_TYPE_UNSIGNED_INTEGER	= 2,
+	BT_VALUE_TYPE_UNSIGNED_INTEGER	= (1 << 3) | BT_VALUE_TYPE_INTEGER,
 
 	/// Signed integer value object (holds a signed 64-bit integer raw value).
-	BT_VALUE_TYPE_SIGNED_INTEGER	= 3,
+	BT_VALUE_TYPE_SIGNED_INTEGER	= (1 << 4) | BT_VALUE_TYPE_INTEGER,
 
 	/// Floating point number value object (holds a \c double raw value).
-	BT_VALUE_TYPE_REAL		= 4,
+	BT_VALUE_TYPE_REAL		= 1 << 5,
 
 	/// String value object.
-	BT_VALUE_TYPE_STRING		= 5,
+	BT_VALUE_TYPE_STRING		= 1 << 6,
 
 	/// Array value object.
-	BT_VALUE_TYPE_ARRAY		= 6,
+	BT_VALUE_TYPE_ARRAY		= 1 << 7,
 
 	/// Map value object.
-	BT_VALUE_TYPE_MAP		= 7,
+	BT_VALUE_TYPE_MAP		= 1 << 8,
 } bt_value_type;
 
 extern bt_value_type bt_value_get_type(const bt_value *object);
+
+static inline
+bt_bool bt_value_type_is(const bt_value_type type,
+		const bt_value_type type_to_check)
+{
+	return (type & type_to_check) == type_to_check;
+}
 
 static inline
 bt_bool bt_value_is_null(const bt_value *object)

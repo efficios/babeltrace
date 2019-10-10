@@ -36,8 +36,8 @@ extern "C" {
 #endif
 
 typedef enum bt_port_type {
-	BT_PORT_TYPE_INPUT = 0,
-	BT_PORT_TYPE_OUTPUT = 1,
+	BT_PORT_TYPE_INPUT	= 1 << 0,
+	BT_PORT_TYPE_OUTPUT	= 1 << 1,
 } bt_port_type;
 
 extern const char *bt_port_get_name(const bt_port *port);

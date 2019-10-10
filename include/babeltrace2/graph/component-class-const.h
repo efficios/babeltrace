@@ -34,9 +34,9 @@ extern "C" {
 #endif
 
 typedef enum bt_component_class_type {
-	BT_COMPONENT_CLASS_TYPE_SOURCE = 0,
-	BT_COMPONENT_CLASS_TYPE_FILTER = 1,
-	BT_COMPONENT_CLASS_TYPE_SINK = 2,
+	BT_COMPONENT_CLASS_TYPE_SOURCE	= 1 << 0,
+	BT_COMPONENT_CLASS_TYPE_FILTER	= 1 << 1,
+	BT_COMPONENT_CLASS_TYPE_SINK	= 1 << 2,
 } bt_component_class_type;
 
 extern const char *bt_component_class_get_name(

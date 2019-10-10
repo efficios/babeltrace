@@ -36,9 +36,9 @@ extern "C" {
 #endif
 
 typedef enum bt_field_path_item_type {
-	BT_FIELD_PATH_ITEM_TYPE_INDEX				= 0,
-	BT_FIELD_PATH_ITEM_TYPE_CURRENT_ARRAY_ELEMENT		= 1,
-	BT_FIELD_PATH_ITEM_TYPE_CURRENT_OPTION_CONTENT		= 2,
+	BT_FIELD_PATH_ITEM_TYPE_INDEX				= 1 << 0,
+	BT_FIELD_PATH_ITEM_TYPE_CURRENT_ARRAY_ELEMENT		= 1 << 1,
+	BT_FIELD_PATH_ITEM_TYPE_CURRENT_OPTION_CONTENT		= 1 << 2,
 } bt_field_path_item_type;
 
 typedef enum bt_field_path_scope {
