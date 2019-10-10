@@ -67,7 +67,8 @@
 
 #define _BT_ASSERT_PRE_FC_IS_ARRAY_COND(_fc)				\
 	(((const struct bt_field_class *) (_fc))->type == BT_FIELD_CLASS_TYPE_STATIC_ARRAY || \
-	((const struct bt_field_class *) (_fc))->type == BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY)
+	((const struct bt_field_class *) (_fc))->type == BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITHOUT_LENGTH_FIELD || \
+	((const struct bt_field_class *) (_fc))->type == BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITH_LENGTH_FIELD)
 
 #define _BT_ASSERT_PRE_FC_IS_ARRAY_FMT(_name)				\
 	_name " is not an array field class: %![fc-]+F"

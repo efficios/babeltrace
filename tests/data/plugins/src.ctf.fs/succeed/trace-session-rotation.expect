@@ -35,7 +35,7 @@ Trace class:
       Payload field class: Structure (3 members):
         baddr: Unsigned integer (64-bit, Base 16)
         _build_id_length: Unsigned integer (64-bit, Base 10)
-        build_id: Dynamic array (Length field path [Event payload: 1]):
+        build_id: Dynamic array (with length field) (Length field path [Event payload: 1]):
           Element: Unsigned integer (8-bit, Base 16)
     Event class `lttng_ust_statedump:debug_link` (ID 3):
       Log level: Debug (line)
@@ -59,7 +59,7 @@ Trace class:
       Payload field class: Structure (3 members):
         baddr: Unsigned integer (64-bit, Base 16)
         _build_id_length: Unsigned integer (64-bit, Base 10)
-        build_id: Dynamic array (Length field path [Event payload: 1]):
+        build_id: Dynamic array (with length field) (Length field path [Event payload: 1]):
           Element: Unsigned integer (8-bit, Base 16)
     Event class `lttng_ust_lib:debug_link` (ID 7):
       Log level: Debug (line)
@@ -216,15 +216,15 @@ Trace class:
           Element: Signed integer (64-bit, Base 16)
         arrfield2: String
         _seqfield1_length: Unsigned integer (64-bit, Base 10)
-        seqfield1: Dynamic array (Length field path [Event payload: 11]):
+        seqfield1: Dynamic array (with length field) (Length field path [Event payload: 11]):
           Element: Signed integer (8-bit, Base 10)
         _seqfield1_hex_length: Unsigned integer (64-bit, Base 10)
-        seqfield1_hex: Dynamic array (Length field path [Event payload: 13]):
+        seqfield1_hex: Dynamic array (with length field) (Length field path [Event payload: 13]):
           Element: Signed integer (8-bit, Base 16)
         _seqfield2_length: Unsigned integer (64-bit, Base 10)
         seqfield2: String
         _seqfield_network_3_length: Unsigned integer (64-bit, Base 10)
-        seqfield_network_3: Dynamic array (Length field path [Event payload: 17]):
+        seqfield_network_3: Dynamic array (with length field) (Length field path [Event payload: 17]):
           Element: Signed integer (64-bit, Base 10)
         stringfield: String
         floatfield: Single-precision real
@@ -347,7 +347,7 @@ Trace class:
       Payload field class: Structure (3 members):
         baddr: Unsigned integer (64-bit, Base 16)
         _build_id_length: Unsigned integer (64-bit, Base 10)
-        build_id: Dynamic array (Length field path [Event payload: 1]):
+        build_id: Dynamic array (with length field) (Length field path [Event payload: 1]):
           Element: Unsigned integer (8-bit, Base 16)
     Event class `lttng_ust_statedump:debug_link` (ID 3):
       Log level: Debug (line)
@@ -371,7 +371,7 @@ Trace class:
       Payload field class: Structure (3 members):
         baddr: Unsigned integer (64-bit, Base 16)
         _build_id_length: Unsigned integer (64-bit, Base 10)
-        build_id: Dynamic array (Length field path [Event payload: 1]):
+        build_id: Dynamic array (with length field) (Length field path [Event payload: 1]):
           Element: Unsigned integer (8-bit, Base 16)
     Event class `lttng_ust_lib:debug_link` (ID 7):
       Log level: Debug (line)
@@ -528,15 +528,15 @@ Trace class:
           Element: Signed integer (64-bit, Base 16)
         arrfield2: String
         _seqfield1_length: Unsigned integer (64-bit, Base 10)
-        seqfield1: Dynamic array (Length field path [Event payload: 11]):
+        seqfield1: Dynamic array (with length field) (Length field path [Event payload: 11]):
           Element: Signed integer (8-bit, Base 10)
         _seqfield1_hex_length: Unsigned integer (64-bit, Base 10)
-        seqfield1_hex: Dynamic array (Length field path [Event payload: 13]):
+        seqfield1_hex: Dynamic array (with length field) (Length field path [Event payload: 13]):
           Element: Signed integer (8-bit, Base 16)
         _seqfield2_length: Unsigned integer (64-bit, Base 10)
         seqfield2: String
         _seqfield_network_3_length: Unsigned integer (64-bit, Base 10)
-        seqfield_network_3: Dynamic array (Length field path [Event payload: 17]):
+        seqfield_network_3: Dynamic array (with length field) (Length field path [Event payload: 17]):
           Element: Signed integer (64-bit, Base 10)
         stringfield: String
         floatfield: Single-precision real

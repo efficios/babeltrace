@@ -61,8 +61,15 @@
 #define BT_ASSERT_PRE_DEV_FIELD_IS_ARRAY(_field, _name)			\
 	BT_ASSERT_PRE_DEV(						\
 		((const struct bt_field *) (_field))->class->type == BT_FIELD_CLASS_TYPE_STATIC_ARRAY || \
-		((const struct bt_field *) (_field))->class->type == BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY, \
+		((const struct bt_field *) (_field))->class->type == BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITHOUT_LENGTH_FIELD || \
+		((const struct bt_field *) (_field))->class->type == BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITH_LENGTH_FIELD, \
 		_name " is not an array field: %![field-]+f", (_field))
+
+#define BT_ASSERT_PRE_DEV_FIELD_IS_DYNAMIC_ARRAY(_field, _name)			\
+	BT_ASSERT_PRE_DEV(						\
+		((const struct bt_field *) (_field))->class->type == BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITHOUT_LENGTH_FIELD || \
+		((const struct bt_field *) (_field))->class->type == BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITH_LENGTH_FIELD, \
+		_name " is not a dynamic array field: %![field-]+f", (_field))
 
 #define BT_ASSERT_PRE_DEV_FIELD_IS_OPTION(_field, _name)		\
 	BT_ASSERT_PRE_DEV(						\

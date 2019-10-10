@@ -56,6 +56,8 @@ _public_names = [
     '_DynamicArrayFieldClass',
     '_DynamicArrayFieldClassConst',
     '_DynamicArrayFieldConst',
+    '_DynamicArrayWithLengthFieldFieldClass',
+    '_DynamicArrayWithLengthFieldFieldClassConst',
     '_EnumerationField',
     '_EnumerationFieldClass',
     '_EnumerationFieldClassConst',

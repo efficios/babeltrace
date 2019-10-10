@@ -1857,7 +1857,8 @@ bt_field *borrow_next_field(struct bt_msg_iter *notit)
 		break;
 	}
 	case BT_FIELD_CLASS_TYPE_STATIC_ARRAY:
-	case BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY:
+	case BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITHOUT_LENGTH_FIELD:
+	case BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITH_LENGTH_FIELD:
 		BT_ASSERT(index < bt_field_array_get_length(base_field));
 		next_field = bt_field_array_borrow_element_field_by_index(
 			base_field, index);
@@ -2350,7 +2351,9 @@ int64_t bfcr_get_sequence_length_cb(struct ctf_field_class *fc, void *data)
 	 */
 	if (!seq_fc->base.is_text) {
 		BT_ASSERT(bt_field_get_class_type(seq_field) ==
-			BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY);
+			BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITHOUT_LENGTH_FIELD ||
+			bt_field_get_class_type(seq_field) ==
+			BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITH_LENGTH_FIELD);
 		ret = bt_field_array_dynamic_set_length(seq_field,
 			(uint64_t) length);
 		if (ret) {

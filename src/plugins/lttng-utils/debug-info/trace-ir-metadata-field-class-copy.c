@@ -101,7 +101,8 @@ const bt_field_class *walk_field_path(struct trace_ir_metadata_maps *md_maps,
 			break;
 		}
 		case BT_FIELD_CLASS_TYPE_STATIC_ARRAY:
-		case BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY:
+		case BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITHOUT_LENGTH_FIELD:
+		case BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITH_LENGTH_FIELD:
 		{
 			BT_ASSERT(bt_field_path_item_get_type(fp_item) ==
 				BT_FIELD_PATH_ITEM_TYPE_CURRENT_ARRAY_ELEMENT);
@@ -716,24 +717,25 @@ bt_field_class *create_field_class_copy_internal(struct trace_ir_metadata_maps *
 			out_elem_fc, array_len);
 		break;
 	}
-	case BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY:
+	case BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITHOUT_LENGTH_FIELD:
+	case BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITH_LENGTH_FIELD:
 	{
 		const bt_field_class *in_elem_fc =
 			bt_field_class_array_borrow_element_field_class_const(
 					in_field_class);
-		const bt_field_path *length_fp =
-			bt_field_class_array_dynamic_borrow_length_field_path_const(
-				in_field_class);
 		bt_field_class *out_length_fc = NULL;
-
 		bt_field_class *out_elem_fc = copy_field_class_array_element(
 			md_maps, in_elem_fc);
+
 		if (!out_elem_fc) {
 			out_field_class = NULL;
 			goto error;
 		}
 
-		if (length_fp) {
+		if (fc_type == BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITH_LENGTH_FIELD) {
+			const bt_field_path *length_fp =
+				bt_field_class_array_dynamic_with_length_field_borrow_length_field_path_const(
+					in_field_class);
 			const bt_field_class *in_length_fc =
 				resolve_field_path_to_field_class(length_fp,
 					md_maps);
@@ -938,7 +940,8 @@ int copy_field_class_content_internal(
 		ret = field_class_static_array_copy(md_maps,
 				in_field_class, out_field_class);
 		break;
-	case BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY:
+	case BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITHOUT_LENGTH_FIELD:
+	case BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITH_LENGTH_FIELD:
 		ret = field_class_dynamic_array_copy(md_maps,
 				in_field_class, out_field_class);
 		break;

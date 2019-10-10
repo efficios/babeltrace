@@ -239,7 +239,8 @@ static inline void format_field_class(char **buf_ch, bool extended,
 		BUF_APPEND(", %slength=%" PRIu64, PRFIELD(array_fc->length));
 		break;
 	}
-	case BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY:
+	case BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITHOUT_LENGTH_FIELD:
+	case BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITH_LENGTH_FIELD:
 	{
 		const struct bt_field_class_array_dynamic *array_fc =
 			(const void *) field_class;
@@ -428,7 +429,8 @@ static inline void format_field(char **buf_ch, bool extended,
 		break;
 	}
 	case BT_FIELD_CLASS_TYPE_STATIC_ARRAY:
-	case BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY:
+	case BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITHOUT_LENGTH_FIELD:
+	case BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITH_LENGTH_FIELD:
 	{
 		const struct bt_field_array *array_field = (const void *) field;
 

@@ -105,6 +105,7 @@ from bt2.field_class import _VariantFieldClassWithSignedIntegerSelector
 from bt2.field_class import _ArrayFieldClass
 from bt2.field_class import _StaticArrayFieldClass
 from bt2.field_class import _DynamicArrayFieldClass
+from bt2.field_class import _DynamicArrayWithLengthFieldFieldClass
 from bt2.field_class import _BoolFieldClassConst
 from bt2.field_class import _BitArrayFieldClassConst
 from bt2.field_class import _IntegerFieldClassConst
@@ -130,6 +131,7 @@ from bt2.field_class import _VariantFieldClassWithSignedIntegerSelectorConst
 from bt2.field_class import _ArrayFieldClassConst
 from bt2.field_class import _StaticArrayFieldClassConst
 from bt2.field_class import _DynamicArrayFieldClassConst
+from bt2.field_class import _DynamicArrayWithLengthFieldFieldClassConst
 from bt2.field_path import FieldPathScope
 from bt2.field_path import _IndexFieldPathItem
 from bt2.field_path import _CurrentArrayElementFieldPathItem
