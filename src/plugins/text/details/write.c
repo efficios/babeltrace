@@ -840,22 +840,22 @@ void write_variant_field_class_option(struct details_write_ctx *ctx,
 	write_compound_member_name(ctx,
 		bt_field_class_variant_option_get_name(option));
 
-	if (fc_type == BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR) {
-		const bt_field_class_variant_with_selector_integer_unsigned_option *spec_opt =
-			bt_field_class_variant_with_selector_integer_unsigned_borrow_option_by_index_const(
+	if (fc_type == BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR_FIELD) {
+		const bt_field_class_variant_with_selector_field_integer_unsigned_option *spec_opt =
+			bt_field_class_variant_with_selector_field_integer_unsigned_borrow_option_by_index_const(
 				fc, index);
 
 		orig_ranges =
-			bt_field_class_variant_with_selector_integer_unsigned_option_borrow_ranges_const(
+			bt_field_class_variant_with_selector_field_integer_unsigned_option_borrow_ranges_const(
 				spec_opt);
 		is_signed = false;
-	} else if (fc_type == BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_INTEGER_SELECTOR) {
-		const bt_field_class_variant_with_selector_integer_signed_option *spec_opt =
-			bt_field_class_variant_with_selector_integer_signed_borrow_option_by_index_const(
+	} else if (fc_type == BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_INTEGER_SELECTOR_FIELD) {
+		const bt_field_class_variant_with_selector_field_integer_signed_option *spec_opt =
+			bt_field_class_variant_with_selector_field_integer_signed_borrow_option_by_index_const(
 				fc, index);
 
 		orig_ranges =
-			bt_field_class_variant_with_selector_integer_signed_option_borrow_ranges_const(
+			bt_field_class_variant_with_selector_field_integer_signed_option_borrow_ranges_const(
 				spec_opt);
 		is_signed = true;
 	}
@@ -952,25 +952,25 @@ void write_field_class(struct details_write_ctx *ctx, const bt_field_class *fc)
 	case BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITH_LENGTH_FIELD:
 		type = "Dynamic array (with length field)";
 		break;
-	case BT_FIELD_CLASS_TYPE_OPTION_WITHOUT_SELECTOR:
+	case BT_FIELD_CLASS_TYPE_OPTION_WITHOUT_SELECTOR_FIELD:
 		type = "Option (no selector)";
 		break;
-	case BT_FIELD_CLASS_TYPE_OPTION_WITH_BOOL_SELECTOR:
+	case BT_FIELD_CLASS_TYPE_OPTION_WITH_BOOL_SELECTOR_FIELD:
 		type = "Option (boolean selector)";
 		break;
-	case BT_FIELD_CLASS_TYPE_OPTION_WITH_UNSIGNED_INTEGER_SELECTOR:
+	case BT_FIELD_CLASS_TYPE_OPTION_WITH_UNSIGNED_INTEGER_SELECTOR_FIELD:
 		type = "Option (unsigned integer selector)";
 		break;
-	case BT_FIELD_CLASS_TYPE_OPTION_WITH_SIGNED_INTEGER_SELECTOR:
+	case BT_FIELD_CLASS_TYPE_OPTION_WITH_SIGNED_INTEGER_SELECTOR_FIELD:
 		type = "Option (signed integer selector)";
 		break;
-	case BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR:
+	case BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR_FIELD:
 		type = "Variant (no selector)";
 		break;
-	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR:
+	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR_FIELD:
 		type = "Variant (unsigned integer selector)";
 		break;
-	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_INTEGER_SELECTOR:
+	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_INTEGER_SELECTOR_FIELD:
 		type = "Variant (signed integer selector)";
 		break;
 	default:
@@ -1031,12 +1031,12 @@ void write_field_class(struct details_write_ctx *ctx, const bt_field_class *fc)
 		}
 
 		break;
-	case BT_FIELD_CLASS_TYPE_OPTION_WITH_BOOL_SELECTOR:
-	case BT_FIELD_CLASS_TYPE_OPTION_WITH_UNSIGNED_INTEGER_SELECTOR:
-	case BT_FIELD_CLASS_TYPE_OPTION_WITH_SIGNED_INTEGER_SELECTOR:
+	case BT_FIELD_CLASS_TYPE_OPTION_WITH_BOOL_SELECTOR_FIELD:
+	case BT_FIELD_CLASS_TYPE_OPTION_WITH_UNSIGNED_INTEGER_SELECTOR_FIELD:
+	case BT_FIELD_CLASS_TYPE_OPTION_WITH_SIGNED_INTEGER_SELECTOR_FIELD:
 	{
 		const bt_field_path *selector_field_path =
-			bt_field_class_option_with_selector_borrow_selector_field_path_const(
+			bt_field_class_option_with_selector_field_borrow_selector_field_path_const(
 				fc);
 
 		g_string_append(ctx->str, " (Selector field path ");
@@ -1044,18 +1044,18 @@ void write_field_class(struct details_write_ctx *ctx, const bt_field_class *fc)
 		g_string_append_c(ctx->str, ')');
 		break;
 	}
-	case BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR:
-	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR:
-	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_INTEGER_SELECTOR:
+	case BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR_FIELD:
+	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR_FIELD:
+	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_INTEGER_SELECTOR_FIELD:
 	{
 		uint64_t option_count =
 			bt_field_class_variant_get_option_count(fc);
 		const bt_field_path *sel_field_path = NULL;
 
-		if (fc_type == BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR ||
-				fc_type == BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_INTEGER_SELECTOR) {
+		if (fc_type == BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR_FIELD ||
+				fc_type == BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_INTEGER_SELECTOR_FIELD) {
 			sel_field_path =
-				bt_field_class_variant_with_selector_borrow_selector_field_path_const(
+				bt_field_class_variant_with_selector_field_borrow_selector_field_path_const(
 					fc);
 			BT_ASSERT(sel_field_path);
 		}
@@ -1187,10 +1187,10 @@ void write_field_class(struct details_write_ctx *ctx, const bt_field_class *fc)
 		write_field_class(ctx,
 			bt_field_class_array_borrow_element_field_class_const(fc));
 		break;
-	case BT_FIELD_CLASS_TYPE_OPTION_WITHOUT_SELECTOR:
-	case BT_FIELD_CLASS_TYPE_OPTION_WITH_BOOL_SELECTOR:
-	case BT_FIELD_CLASS_TYPE_OPTION_WITH_UNSIGNED_INTEGER_SELECTOR:
-	case BT_FIELD_CLASS_TYPE_OPTION_WITH_SIGNED_INTEGER_SELECTOR:
+	case BT_FIELD_CLASS_TYPE_OPTION_WITHOUT_SELECTOR_FIELD:
+	case BT_FIELD_CLASS_TYPE_OPTION_WITH_BOOL_SELECTOR_FIELD:
+	case BT_FIELD_CLASS_TYPE_OPTION_WITH_UNSIGNED_INTEGER_SELECTOR_FIELD:
+	case BT_FIELD_CLASS_TYPE_OPTION_WITH_SIGNED_INTEGER_SELECTOR_FIELD:
 	{
 		const void *ranges = NULL;
 		bool selector_is_signed = false;
@@ -1201,13 +1201,13 @@ void write_field_class(struct details_write_ctx *ctx, const bt_field_class *fc)
 			g_string_append(ctx->str, ":\n");
 		}
 
-		if (fc_type == BT_FIELD_CLASS_TYPE_OPTION_WITH_BOOL_SELECTOR) {
+		if (fc_type == BT_FIELD_CLASS_TYPE_OPTION_WITH_BOOL_SELECTOR_FIELD) {
 			write_bool_prop_line(ctx, "Selector is reversed",
-				bt_field_class_option_with_selector_bool_selector_is_reversed(fc));
-		} else if (fc_type == BT_FIELD_CLASS_TYPE_OPTION_WITH_UNSIGNED_INTEGER_SELECTOR) {
-			ranges = bt_field_class_option_with_selector_integer_unsigned_borrow_selector_ranges_const(fc);
-		} else if (fc_type == BT_FIELD_CLASS_TYPE_OPTION_WITH_SIGNED_INTEGER_SELECTOR) {
-			ranges = bt_field_class_option_with_selector_integer_signed_borrow_selector_ranges_const(fc);
+				bt_field_class_option_with_selector_field_bool_selector_is_reversed(fc));
+		} else if (fc_type == BT_FIELD_CLASS_TYPE_OPTION_WITH_UNSIGNED_INTEGER_SELECTOR_FIELD) {
+			ranges = bt_field_class_option_with_selector_field_integer_unsigned_borrow_selector_ranges_const(fc);
+		} else if (fc_type == BT_FIELD_CLASS_TYPE_OPTION_WITH_SIGNED_INTEGER_SELECTOR_FIELD) {
+			ranges = bt_field_class_option_with_selector_field_integer_signed_borrow_selector_ranges_const(fc);
 			selector_is_signed = true;
 		}
 
@@ -1237,9 +1237,9 @@ void write_field_class(struct details_write_ctx *ctx, const bt_field_class *fc)
 			bt_field_class_option_borrow_field_class_const(fc));
 		break;
 	}
-	case BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR:
-	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR:
-	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_INTEGER_SELECTOR:
+	case BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR_FIELD:
+	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR_FIELD:
+	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_INTEGER_SELECTOR_FIELD:
 	{
 		uint64_t option_count =
 			bt_field_class_variant_get_option_count(fc);
@@ -1972,10 +1972,10 @@ void write_field(struct details_write_ctx *ctx, const bt_field *field,
 		decr_indent(ctx);
 		break;
 	}
-	case BT_FIELD_CLASS_TYPE_OPTION_WITHOUT_SELECTOR:
-	case BT_FIELD_CLASS_TYPE_OPTION_WITH_BOOL_SELECTOR:
-	case BT_FIELD_CLASS_TYPE_OPTION_WITH_UNSIGNED_INTEGER_SELECTOR:
-	case BT_FIELD_CLASS_TYPE_OPTION_WITH_SIGNED_INTEGER_SELECTOR:
+	case BT_FIELD_CLASS_TYPE_OPTION_WITHOUT_SELECTOR_FIELD:
+	case BT_FIELD_CLASS_TYPE_OPTION_WITH_BOOL_SELECTOR_FIELD:
+	case BT_FIELD_CLASS_TYPE_OPTION_WITH_UNSIGNED_INTEGER_SELECTOR_FIELD:
+	case BT_FIELD_CLASS_TYPE_OPTION_WITH_SIGNED_INTEGER_SELECTOR_FIELD:
 	{
 		const bt_field *content_field =
 			bt_field_option_borrow_field_const(field);
@@ -1989,9 +1989,9 @@ void write_field(struct details_write_ctx *ctx, const bt_field *field,
 
 		break;
 	}
-	case BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR:
-	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR:
-	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_INTEGER_SELECTOR:
+	case BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR_FIELD:
+	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR_FIELD:
+	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_INTEGER_SELECTOR_FIELD:
 		write_field(ctx,
 			bt_field_variant_borrow_selected_option_field_const(
 				field), NULL);

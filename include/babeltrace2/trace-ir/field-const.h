@@ -103,11 +103,11 @@ extern const bt_field_class_variant_option *
 bt_field_variant_borrow_selected_class_option_const(
 		const bt_field *field);
 
-extern const bt_field_class_variant_with_selector_integer_unsigned_option *
+extern const bt_field_class_variant_with_selector_field_integer_unsigned_option *
 bt_field_variant_with_unsigned_integer_selector_borrow_selected_class_option_const(
 		const bt_field *field);
 
-extern const bt_field_class_variant_with_selector_integer_signed_option *
+extern const bt_field_class_variant_with_selector_field_integer_signed_option *
 bt_field_variant_with_signed_integer_selector_borrow_selected_class_option_const(
 		const bt_field *field);
 

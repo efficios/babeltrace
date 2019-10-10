@@ -190,13 +190,13 @@ struct bt_field *(* const field_create_funcs[])(struct bt_field_class *) = {
 	[BT_FIELD_CLASS_TYPE_STATIC_ARRAY]				= create_static_array_field,
 	[BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITHOUT_LENGTH_FIELD]	= create_dynamic_array_field,
 	[BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITH_LENGTH_FIELD]		= create_dynamic_array_field,
-	[BT_FIELD_CLASS_TYPE_OPTION_WITHOUT_SELECTOR]			= create_option_field,
-	[BT_FIELD_CLASS_TYPE_OPTION_WITH_BOOL_SELECTOR]			= create_option_field,
-	[BT_FIELD_CLASS_TYPE_OPTION_WITH_UNSIGNED_INTEGER_SELECTOR]	= create_option_field,
-	[BT_FIELD_CLASS_TYPE_OPTION_WITH_SIGNED_INTEGER_SELECTOR]	= create_option_field,
-	[BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR]			= create_variant_field,
-	[BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR]	= create_variant_field,
-	[BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_INTEGER_SELECTOR]	= create_variant_field,
+	[BT_FIELD_CLASS_TYPE_OPTION_WITHOUT_SELECTOR_FIELD]			= create_option_field,
+	[BT_FIELD_CLASS_TYPE_OPTION_WITH_BOOL_SELECTOR_FIELD]			= create_option_field,
+	[BT_FIELD_CLASS_TYPE_OPTION_WITH_UNSIGNED_INTEGER_SELECTOR_FIELD]	= create_option_field,
+	[BT_FIELD_CLASS_TYPE_OPTION_WITH_SIGNED_INTEGER_SELECTOR_FIELD]	= create_option_field,
+	[BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR_FIELD]			= create_variant_field,
+	[BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR_FIELD]	= create_variant_field,
+	[BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_INTEGER_SELECTOR_FIELD]	= create_variant_field,
 };
 
 static
@@ -241,13 +241,13 @@ void (* const field_destroy_funcs[])(struct bt_field *) = {
 	[BT_FIELD_CLASS_TYPE_STATIC_ARRAY]				= destroy_array_field,
 	[BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITHOUT_LENGTH_FIELD]	= destroy_array_field,
 	[BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITH_LENGTH_FIELD]		= destroy_array_field,
-	[BT_FIELD_CLASS_TYPE_OPTION_WITHOUT_SELECTOR]			= destroy_option_field,
-	[BT_FIELD_CLASS_TYPE_OPTION_WITH_BOOL_SELECTOR]			= destroy_option_field,
-	[BT_FIELD_CLASS_TYPE_OPTION_WITH_UNSIGNED_INTEGER_SELECTOR]	= destroy_option_field,
-	[BT_FIELD_CLASS_TYPE_OPTION_WITH_SIGNED_INTEGER_SELECTOR]	= destroy_option_field,
-	[BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR]			= destroy_variant_field,
-	[BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR]	= destroy_variant_field,
-	[BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_INTEGER_SELECTOR]	= destroy_variant_field,
+	[BT_FIELD_CLASS_TYPE_OPTION_WITHOUT_SELECTOR_FIELD]			= destroy_option_field,
+	[BT_FIELD_CLASS_TYPE_OPTION_WITH_BOOL_SELECTOR_FIELD]			= destroy_option_field,
+	[BT_FIELD_CLASS_TYPE_OPTION_WITH_UNSIGNED_INTEGER_SELECTOR_FIELD]	= destroy_option_field,
+	[BT_FIELD_CLASS_TYPE_OPTION_WITH_SIGNED_INTEGER_SELECTOR_FIELD]	= destroy_option_field,
+	[BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR_FIELD]			= destroy_variant_field,
+	[BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR_FIELD]	= destroy_variant_field,
+	[BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_INTEGER_SELECTOR_FIELD]	= destroy_variant_field,
 };
 
 struct bt_field_class *bt_field_borrow_class(struct bt_field *field)
@@ -1146,23 +1146,23 @@ bt_field_variant_borrow_selected_class_option_const(
 	return borrow_variant_field_selected_class_option(field);
 }
 
-const struct bt_field_class_variant_with_selector_integer_unsigned_option *
+const struct bt_field_class_variant_with_selector_field_integer_unsigned_option *
 bt_field_variant_with_unsigned_integer_selector_borrow_selected_class_option_const(
 		const struct bt_field *field)
 {
 	BT_ASSERT_PRE_DEV_NON_NULL(field, "Field");
 	BT_ASSERT_PRE_DEV_FIELD_HAS_CLASS_TYPE(field,
-		BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR, "Field");
+		BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR_FIELD, "Field");
 	return (const void *) borrow_variant_field_selected_class_option(field);
 }
 
-const struct bt_field_class_variant_with_selector_integer_signed_option *
+const struct bt_field_class_variant_with_selector_field_integer_signed_option *
 bt_field_variant_with_signed_integer_selector_borrow_selected_class_option_const(
 		const struct bt_field *field)
 {
 	BT_ASSERT_PRE_DEV_NON_NULL(field, "Field");
 	BT_ASSERT_PRE_DEV_FIELD_HAS_CLASS_TYPE(field,
-		BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_INTEGER_SELECTOR, "Field");
+		BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_INTEGER_SELECTOR_FIELD, "Field");
 	return (const void *) borrow_variant_field_selected_class_option(field);
 }
 

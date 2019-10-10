@@ -377,7 +377,7 @@ struct fs_sink_ctf_field_class_variant *fs_sink_ctf_field_class_variant_create_e
 	BT_ASSERT(fc->tag_ref);
 	fc->tag_is_before =
 		bt_field_class_get_type(fc->base.ir_fc) ==
-		BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR;
+		BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR_FIELD;
 	return fc;
 }
 

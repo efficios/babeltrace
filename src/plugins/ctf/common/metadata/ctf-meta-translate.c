@@ -302,7 +302,7 @@ bt_field_class *ctf_field_class_variant_to_ir(struct ctx *ctx,
 					bt_field_class_enumeration_signed_mapping_borrow_ranges_const(
 						mapping);
 				BT_ASSERT(range_set);
-				ret = bt_field_class_variant_with_selector_integer_signed_append_option(
+				ret = bt_field_class_variant_with_selector_field_integer_signed_append_option(
 					ir_fc, named_fc->name->str,
 					option_ir_fc, range_set);
 			} else {
@@ -318,7 +318,7 @@ bt_field_class *ctf_field_class_variant_to_ir(struct ctx *ctx,
 					bt_field_class_enumeration_unsigned_mapping_borrow_ranges_const(
 						mapping);
 				BT_ASSERT(range_set);
-				ret = bt_field_class_variant_with_selector_integer_unsigned_append_option(
+				ret = bt_field_class_variant_with_selector_field_integer_unsigned_append_option(
 					ir_fc, named_fc->name->str,
 					option_ir_fc, range_set);
 			}

@@ -261,10 +261,10 @@ static inline void format_field_class(char **buf_ch, bool extended,
 
 		break;
 	}
-	case BT_FIELD_CLASS_TYPE_OPTION_WITHOUT_SELECTOR:
-	case BT_FIELD_CLASS_TYPE_OPTION_WITH_BOOL_SELECTOR:
-	case BT_FIELD_CLASS_TYPE_OPTION_WITH_UNSIGNED_INTEGER_SELECTOR:
-	case BT_FIELD_CLASS_TYPE_OPTION_WITH_SIGNED_INTEGER_SELECTOR:
+	case BT_FIELD_CLASS_TYPE_OPTION_WITHOUT_SELECTOR_FIELD:
+	case BT_FIELD_CLASS_TYPE_OPTION_WITH_BOOL_SELECTOR_FIELD:
+	case BT_FIELD_CLASS_TYPE_OPTION_WITH_UNSIGNED_INTEGER_SELECTOR_FIELD:
+	case BT_FIELD_CLASS_TYPE_OPTION_WITH_SIGNED_INTEGER_SELECTOR_FIELD:
 	{
 		const struct bt_field_class_option *opt_fc =
 			(const void *) field_class;
@@ -274,8 +274,8 @@ static inline void format_field_class(char **buf_ch, bool extended,
 			PRFIELD(bt_common_field_class_type_string(opt_fc->content_fc->type)));
 
 		if (field_class->type !=
-				BT_FIELD_CLASS_TYPE_OPTION_WITHOUT_SELECTOR) {
-			const struct bt_field_class_option_with_selector *opt_with_sel_fc =
+				BT_FIELD_CLASS_TYPE_OPTION_WITHOUT_SELECTOR_FIELD) {
+			const struct bt_field_class_option_with_selector_field *opt_with_sel_fc =
 				(const void *) field_class;
 
 			if (opt_with_sel_fc->selector_fc) {
@@ -293,9 +293,9 @@ static inline void format_field_class(char **buf_ch, bool extended,
 
 		break;
 	}
-	case BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR:
-	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR:
-	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_INTEGER_SELECTOR:
+	case BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR_FIELD:
+	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR_FIELD:
+	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_INTEGER_SELECTOR_FIELD:
 	{
 		const struct bt_field_class_variant *var_fc =
 			(const void *) field_class;
@@ -305,9 +305,9 @@ static inline void format_field_class(char **buf_ch, bool extended,
 				PRFIELD(var_fc->common.named_fcs->len));
 		}
 
-		if (field_class->type == BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR ||
-				field_class->type == BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_INTEGER_SELECTOR) {
-			const struct bt_field_class_variant_with_selector *var_with_sel_fc =
+		if (field_class->type == BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR_FIELD ||
+				field_class->type == BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_INTEGER_SELECTOR_FIELD) {
+			const struct bt_field_class_variant_with_selector_field *var_with_sel_fc =
 				(const void *) var_fc;
 
 			if (var_with_sel_fc->selector_fc) {
@@ -443,9 +443,9 @@ static inline void format_field(char **buf_ch, bool extended,
 
 		break;
 	}
-	case BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR:
-	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR:
-	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_INTEGER_SELECTOR:
+	case BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR_FIELD:
+	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR_FIELD:
+	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_INTEGER_SELECTOR_FIELD:
 	{
 		const struct bt_field_variant *var_field = (const void *) field;
 

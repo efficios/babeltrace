@@ -830,29 +830,29 @@ int maybe_protect_variant_option_name(const bt_field_class *ir_var_fc,
 	}
 
 	/* Borrow option's ranges */
-	if (ir_var_fc_type == BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR) {
+	if (ir_var_fc_type == BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR_FIELD) {
 		/* No ranges: we're done */
 		goto end;
-	} if (ir_var_fc_type == BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR) {
-		const bt_field_class_variant_with_selector_integer_unsigned_option *var_opt =
-			bt_field_class_variant_with_selector_integer_unsigned_borrow_option_by_index_const(
+	} if (ir_var_fc_type == BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR_FIELD) {
+		const bt_field_class_variant_with_selector_field_integer_unsigned_option *var_opt =
+			bt_field_class_variant_with_selector_field_integer_unsigned_borrow_option_by_index_const(
 				ir_var_fc, opt_i);
 		opt_ranges =
-			bt_field_class_variant_with_selector_integer_unsigned_option_borrow_ranges_const(
+			bt_field_class_variant_with_selector_field_integer_unsigned_option_borrow_ranges_const(
 				var_opt);
 	} else {
-		const bt_field_class_variant_with_selector_integer_signed_option *var_opt =
-			bt_field_class_variant_with_selector_integer_signed_borrow_option_by_index_const(
+		const bt_field_class_variant_with_selector_field_integer_signed_option *var_opt =
+			bt_field_class_variant_with_selector_field_integer_signed_borrow_option_by_index_const(
 				ir_var_fc, opt_i);
 		opt_ranges =
-			bt_field_class_variant_with_selector_integer_signed_option_borrow_ranges_const(
+			bt_field_class_variant_with_selector_field_integer_signed_option_borrow_ranges_const(
 				var_opt);
 	}
 
 	/* Find corresponding mapping by range set in selector FC */
 	for (i = 0; i < bt_field_class_enumeration_get_mapping_count(ir_tag_fc);
 			i++) {
-		if (ir_var_fc_type == BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR) {
+		if (ir_var_fc_type == BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR_FIELD) {
 			const bt_field_class_enumeration_mapping *mapping_base;
 			const bt_field_class_enumeration_unsigned_mapping *mapping;
 			const bt_integer_range_set_unsigned *mapping_ranges;
@@ -999,9 +999,9 @@ int translate_variant_field_class(struct ctx *ctx)
 	ir_fc_type = bt_field_class_get_type(fc->base.ir_fc);
 	opt_count = bt_field_class_variant_get_option_count(fc->base.ir_fc);
 
-	if (ir_fc_type == BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR ||
-			ir_fc_type == BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_INTEGER_SELECTOR) {
-		ir_selector_field_path = bt_field_class_variant_with_selector_borrow_selector_field_path_const(
+	if (ir_fc_type == BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR_FIELD ||
+			ir_fc_type == BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_INTEGER_SELECTOR_FIELD) {
+		ir_selector_field_path = bt_field_class_variant_with_selector_field_borrow_selector_field_path_const(
 			fc->base.ir_fc);
 		BT_ASSERT(ir_selector_field_path);
 	}
@@ -1338,15 +1338,15 @@ int translate_field_class(struct ctx *ctx)
 	case BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITH_LENGTH_FIELD:
 		ret = translate_dynamic_array_field_class(ctx);
 		break;
-	case BT_FIELD_CLASS_TYPE_OPTION_WITHOUT_SELECTOR:
-	case BT_FIELD_CLASS_TYPE_OPTION_WITH_BOOL_SELECTOR:
-	case BT_FIELD_CLASS_TYPE_OPTION_WITH_UNSIGNED_INTEGER_SELECTOR:
-	case BT_FIELD_CLASS_TYPE_OPTION_WITH_SIGNED_INTEGER_SELECTOR:
+	case BT_FIELD_CLASS_TYPE_OPTION_WITHOUT_SELECTOR_FIELD:
+	case BT_FIELD_CLASS_TYPE_OPTION_WITH_BOOL_SELECTOR_FIELD:
+	case BT_FIELD_CLASS_TYPE_OPTION_WITH_UNSIGNED_INTEGER_SELECTOR_FIELD:
+	case BT_FIELD_CLASS_TYPE_OPTION_WITH_SIGNED_INTEGER_SELECTOR_FIELD:
 		ret = translate_option_field_class(ctx);
 		break;
-	case BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR:
-	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR:
-	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_INTEGER_SELECTOR:
+	case BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR_FIELD:
+	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR_FIELD:
+	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_INTEGER_SELECTOR_FIELD:
 		ret = translate_variant_field_class(ctx);
 		break;
 	default:

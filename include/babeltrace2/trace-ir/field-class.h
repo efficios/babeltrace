@@ -140,23 +140,23 @@ extern bt_field_class *bt_field_class_option_without_selector_create(
 		bt_trace_class *trace_class,
 		bt_field_class *content_field_class);
 
-extern bt_field_class *bt_field_class_option_with_selector_bool_create(
+extern bt_field_class *bt_field_class_option_with_selector_field_bool_create(
 		bt_trace_class *trace_class,
 		bt_field_class *content_field_class,
 		bt_field_class *selector_field_class);
 
-extern void bt_field_class_option_with_selector_bool_set_selector_is_reversed(
+extern void bt_field_class_option_with_selector_field_bool_set_selector_is_reversed(
 		bt_field_class *field_class, bt_bool selector_is_reversed);
 
 extern bt_field_class *
-bt_field_class_option_with_selector_integer_unsigned_create(
+bt_field_class_option_with_selector_field_integer_unsigned_create(
 		bt_trace_class *trace_class,
 		bt_field_class *content_field_class,
 		bt_field_class *selector_field_class,
 		const bt_integer_range_set_unsigned *range_set);
 
 extern bt_field_class *
-bt_field_class_option_with_selector_integer_signed_create(
+bt_field_class_option_with_selector_field_integer_signed_create(
 		bt_trace_class *trace_class,
 		bt_field_class *content_field_class,
 		bt_field_class *selector_field_class,
@@ -170,8 +170,8 @@ extern bt_field_class *bt_field_class_variant_create(
 		bt_field_class *selector_field_class);
 
 typedef enum bt_field_class_variant_without_selector_append_option_status {
-	BT_FIELD_CLASS_VARIANT_WITHOUT_SELECTOR_APPEND_OPTION_STATUS_MEMORY_ERROR	= __BT_FUNC_STATUS_MEMORY_ERROR,
-	BT_FIELD_CLASS_VARIANT_WITHOUT_SELECTOR_APPEND_OPTION_STATUS_OK			= __BT_FUNC_STATUS_OK,
+	BT_FIELD_CLASS_VARIANT_WITHOUT_SELECTOR_FIELD_APPEND_OPTION_STATUS_MEMORY_ERROR	= __BT_FUNC_STATUS_MEMORY_ERROR,
+	BT_FIELD_CLASS_VARIANT_WITHOUT_SELECTOR_FIELD_APPEND_OPTION_STATUS_OK			= __BT_FUNC_STATUS_OK,
 } bt_field_class_variant_without_selector_append_option_status;
 
 extern bt_field_class_variant_without_selector_append_option_status
@@ -179,19 +179,19 @@ bt_field_class_variant_without_selector_append_option(
 		bt_field_class *var_field_class, const char *name,
 		bt_field_class *field_class);
 
-typedef enum bt_field_class_variant_with_selector_integer_append_option_status {
-	BT_FIELD_CLASS_VARIANT_WITH_SELECTOR_APPEND_OPTION_STATUS_MEMORY_ERROR	= __BT_FUNC_STATUS_MEMORY_ERROR,
-	BT_FIELD_CLASS_VARIANT_WITH_SELECTOR_APPEND_OPTION_STATUS_OK		= __BT_FUNC_STATUS_OK,
-} bt_field_class_variant_with_selector_integer_append_option_status;
+typedef enum bt_field_class_variant_with_selector_field_integer_append_option_status {
+	BT_FIELD_CLASS_VARIANT_WITH_SELECTOR_FIELD_APPEND_OPTION_STATUS_MEMORY_ERROR	= __BT_FUNC_STATUS_MEMORY_ERROR,
+	BT_FIELD_CLASS_VARIANT_WITH_SELECTOR_FIELD_APPEND_OPTION_STATUS_OK		= __BT_FUNC_STATUS_OK,
+} bt_field_class_variant_with_selector_field_integer_append_option_status;
 
-extern bt_field_class_variant_with_selector_integer_append_option_status
-bt_field_class_variant_with_selector_integer_unsigned_append_option(
+extern bt_field_class_variant_with_selector_field_integer_append_option_status
+bt_field_class_variant_with_selector_field_integer_unsigned_append_option(
 		bt_field_class *var_field_class, const char *name,
 		bt_field_class *field_class,
 		const bt_integer_range_set_unsigned *range_set);
 
-extern bt_field_class_variant_with_selector_integer_append_option_status
-bt_field_class_variant_with_selector_integer_signed_append_option(
+extern bt_field_class_variant_with_selector_field_integer_append_option_status
+bt_field_class_variant_with_selector_field_integer_signed_append_option(
 		bt_field_class *var_field_class, const char *name,
 		bt_field_class *field_class,
 		const bt_integer_range_set_signed *range_set);

@@ -452,7 +452,7 @@ class _TraceClass(_TraceClassConst):
         utils._check_type(content_fc, bt2_field_class._FieldClass)
         utils._check_bool(selector_is_reversed)
         utils._check_type(selector_fc, bt2_field_class._BoolFieldClass)
-        ptr = native_bt.field_class_option_with_selector_bool_create(
+        ptr = native_bt.field_class_option_with_selector_field_bool_create(
             self._ptr, content_fc._ptr, selector_fc._ptr
         )
         self._check_field_class_create_status(ptr, 'option')
@@ -472,12 +472,12 @@ class _TraceClass(_TraceClassConst):
 
         if isinstance(selector_fc, bt2_field_class._UnsignedIntegerFieldClass):
             utils._check_type(ranges, bt2_integer_range_set.UnsignedIntegerRangeSet)
-            ptr = native_bt.field_class_option_with_selector_integer_unsigned_create(
+            ptr = native_bt.field_class_option_with_selector_field_integer_unsigned_create(
                 self._ptr, content_fc._ptr, selector_fc._ptr, ranges._ptr
             )
         else:
             utils._check_type(ranges, bt2_integer_range_set.SignedIntegerRangeSet)
-            ptr = native_bt.field_class_option_with_selector_integer_signed_create(
+            ptr = native_bt.field_class_option_with_selector_field_integer_signed_create(
                 self._ptr, content_fc._ptr, selector_fc._ptr, ranges._ptr
             )
 
