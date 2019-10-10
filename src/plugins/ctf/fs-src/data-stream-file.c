@@ -547,7 +547,7 @@ struct ctf_fs_ds_index *build_index_from_stream_file(
 		goto error;
 	}
 
-	do {
+	while (true) {
 		off_t current_packet_size_bytes;
 		struct ctf_fs_ds_index_entry *index_entry;
 		struct bt_msg_iter_packet_properties props;
@@ -617,11 +617,6 @@ struct ctf_fs_ds_index *build_index_from_stream_file(
 			"next-packet-offset=%jd",
 			(intmax_t) (current_packet_offset_bytes - current_packet_size_bytes),
 			(intmax_t) current_packet_offset_bytes);
-
-	} while (iter_status == BT_MSG_ITER_STATUS_OK);
-
-	if (iter_status != BT_MSG_ITER_STATUS_OK) {
-		goto error;
 	}
 
 end:
