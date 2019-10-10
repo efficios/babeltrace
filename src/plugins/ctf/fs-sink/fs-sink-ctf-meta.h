@@ -221,8 +221,8 @@ void _fs_sink_ctf_field_class_int_init(struct fs_sink_ctf_field_class_int *fc,
 		(unsigned int) bt_field_class_integer_get_field_value_range(
 			ir_fc),
 		index_in_parent);
-	fc->is_signed = (ir_fc_type == BT_FIELD_CLASS_TYPE_SIGNED_INTEGER ||
-		ir_fc_type == BT_FIELD_CLASS_TYPE_SIGNED_ENUMERATION);
+	fc->is_signed = bt_field_class_type_is(ir_fc_type,
+		BT_FIELD_CLASS_TYPE_SIGNED_INTEGER);
 }
 
 static inline
@@ -308,7 +308,8 @@ struct fs_sink_ctf_field_class_float *fs_sink_ctf_field_class_float_create(
 	_fs_sink_ctf_field_class_bit_array_init((void *) fc,
 		FS_SINK_CTF_FIELD_CLASS_TYPE_FLOAT,
 		ir_fc,
-		bt_field_class_get_type(ir_fc) == BT_FIELD_CLASS_TYPE_SINGLE_PRECISION_REAL ? 32 : 64,
+		bt_field_class_get_type(ir_fc) ==
+			BT_FIELD_CLASS_TYPE_SINGLE_PRECISION_REAL ? 32 : 64,
 		index_in_parent);
 	return fc;
 }

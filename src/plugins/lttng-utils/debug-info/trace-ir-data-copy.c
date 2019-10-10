@@ -227,35 +227,28 @@ void copy_field_content(const bt_field *in_field, bt_field *out_field,
 
 	BT_COMP_LOGT("Copying content of field: in-f-addr=%p, out-f-addr=%p",
 			in_field, out_field);
-	switch (in_fc_type) {
-	case BT_FIELD_CLASS_TYPE_BOOL:
+
+	if (in_fc_type == BT_FIELD_CLASS_TYPE_BOOL) {
 		bt_field_bool_set_value(out_field,
 			bt_field_bool_get_value(in_field));
-		break;
-	case BT_FIELD_CLASS_TYPE_BIT_ARRAY:
+	} else if (in_fc_type == BT_FIELD_CLASS_TYPE_BIT_ARRAY) {
 		bt_field_bit_array_set_value_as_integer(out_field,
 			bt_field_bit_array_get_value_as_integer(in_field));
-		break;
-	case BT_FIELD_CLASS_TYPE_UNSIGNED_INTEGER:
-	case BT_FIELD_CLASS_TYPE_UNSIGNED_ENUMERATION:
+	} else if (bt_field_class_type_is(in_fc_type,
+			BT_FIELD_CLASS_TYPE_UNSIGNED_INTEGER)) {
 		bt_field_integer_unsigned_set_value(out_field,
 				bt_field_integer_unsigned_get_value(in_field));
-		break;
-	case BT_FIELD_CLASS_TYPE_SIGNED_INTEGER:
-	case BT_FIELD_CLASS_TYPE_SIGNED_ENUMERATION:
+	} else if (bt_field_class_type_is(in_fc_type,
+			BT_FIELD_CLASS_TYPE_SIGNED_INTEGER)) {
 		bt_field_integer_signed_set_value(out_field,
 				bt_field_integer_signed_get_value(in_field));
-		break;
-	case BT_FIELD_CLASS_TYPE_SINGLE_PRECISION_REAL:
+	} else if (in_fc_type == BT_FIELD_CLASS_TYPE_SINGLE_PRECISION_REAL) {
 		bt_field_real_single_precision_set_value(out_field,
 				bt_field_real_single_precision_get_value(in_field));
-		break;
-	case BT_FIELD_CLASS_TYPE_DOUBLE_PRECISION_REAL:
+	} else if (in_fc_type == BT_FIELD_CLASS_TYPE_DOUBLE_PRECISION_REAL) {
 		bt_field_real_double_precision_set_value(out_field,
 				bt_field_real_double_precision_get_value(in_field));
-		break;
-	case BT_FIELD_CLASS_TYPE_STRING:
-	{
+	} else if (in_fc_type == BT_FIELD_CLASS_TYPE_STRING) {
 		const char *str = bt_field_string_get_value(in_field);
 		bt_field_string_set_value_status status =
 			bt_field_string_set_value(out_field, str);
@@ -266,10 +259,7 @@ void copy_field_content(const bt_field *in_field, bt_field *out_field,
 			bt_current_thread_clear_error();
 
 		}
-		break;
-	}
-	case BT_FIELD_CLASS_TYPE_STRUCTURE:
-	{
+	} else if (in_fc_type == BT_FIELD_CLASS_TYPE_STRUCTURE) {
 		uint64_t i, nb_member_struct;
 		const bt_field *in_member_field;
 		bt_field *out_member_field;
@@ -303,13 +293,8 @@ void copy_field_content(const bt_field *in_field, bt_field *out_field,
 			copy_field_content(in_member_field,
 				out_member_field, log_level, self_comp);
 		}
-		break;
-	}
-	case BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITHOUT_LENGTH_FIELD:
-	case BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITH_LENGTH_FIELD:
-		/* fall through */
-	case BT_FIELD_CLASS_TYPE_STATIC_ARRAY:
-	{
+	} else if (bt_field_class_type_is(in_fc_type,
+			BT_FIELD_CLASS_TYPE_ARRAY)) {
 		const bt_field *in_element_field;
 		bt_field *out_element_field;
 		uint64_t i, array_len;
@@ -317,8 +302,8 @@ void copy_field_content(const bt_field *in_field, bt_field *out_field,
 
 		array_len = bt_field_array_get_length(in_field);
 
-		if (in_fc_type == BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITHOUT_LENGTH_FIELD ||
-				in_fc_type == BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITH_LENGTH_FIELD) {
+		if (bt_field_class_type_is(in_fc_type,
+				BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY)) {
 			set_len_status = bt_field_array_dynamic_set_length(
 				out_field, array_len);
 			if (set_len_status !=
@@ -340,13 +325,8 @@ void copy_field_content(const bt_field *in_field, bt_field *out_field,
 			copy_field_content(in_element_field, out_element_field,
 				log_level, self_comp);
 		}
-		break;
-	}
-	case BT_FIELD_CLASS_TYPE_OPTION_WITHOUT_SELECTOR_FIELD:
-	case BT_FIELD_CLASS_TYPE_OPTION_WITH_BOOL_SELECTOR_FIELD:
-	case BT_FIELD_CLASS_TYPE_OPTION_WITH_UNSIGNED_INTEGER_SELECTOR_FIELD:
-	case BT_FIELD_CLASS_TYPE_OPTION_WITH_SIGNED_INTEGER_SELECTOR_FIELD:
-	{
+	} else if (bt_field_class_type_is(in_fc_type,
+			BT_FIELD_CLASS_TYPE_OPTION)) {
 		const bt_field *in_option_field;
 		bt_field *out_option_field;
 
@@ -362,13 +342,8 @@ void copy_field_content(const bt_field *in_field, bt_field *out_field,
 		} else {
 			bt_field_option_set_has_field(out_field, BT_FALSE);
 		}
-
-		break;
-	}
-	case BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR_FIELD:
-	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR_FIELD:
-	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_INTEGER_SELECTOR_FIELD:
-	{
+	} else if (bt_field_class_type_is(in_fc_type,
+			BT_FIELD_CLASS_TYPE_VARIANT)) {
 		bt_field_variant_select_option_field_by_index_status sel_opt_status;
 		uint64_t in_selected_option_idx;
 		const bt_field *in_option_field;
@@ -392,12 +367,10 @@ void copy_field_content(const bt_field *in_field, bt_field *out_field,
 
 		copy_field_content(in_option_field, out_option_field,
 			log_level, self_comp);
-
-		break;
-	}
-	default:
+	} else {
 		abort();
 	}
+
 	BT_COMP_LOGT("Copied content of field: in-f-addr=%p, out-f-addr=%p",
 			in_field, out_field);
 }

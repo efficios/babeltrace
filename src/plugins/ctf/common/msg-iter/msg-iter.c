@@ -1835,6 +1835,7 @@ bt_field *borrow_next_field(struct bt_msg_iter *notit)
 	bt_field *next_field = NULL;
 	bt_field *base_field;
 	const bt_field_class *base_fc;
+	bt_field_class_type base_fc_type;
 	size_t index;
 
 	BT_ASSERT(!stack_empty(notit->stack));
@@ -1843,10 +1844,9 @@ bt_field *borrow_next_field(struct bt_msg_iter *notit)
 	BT_ASSERT(base_field);
 	base_fc = bt_field_borrow_class_const(base_field);
 	BT_ASSERT(base_fc);
+	base_fc_type = bt_field_class_get_type(base_fc);
 
-	switch (bt_field_class_get_type(base_fc)) {
-	case BT_FIELD_CLASS_TYPE_STRUCTURE:
-	{
+	if (base_fc_type == BT_FIELD_CLASS_TYPE_STRUCTURE) {
 		BT_ASSERT(index <
 			bt_field_class_structure_get_member_count(
 				bt_field_borrow_class_const(
@@ -1854,23 +1854,17 @@ bt_field *borrow_next_field(struct bt_msg_iter *notit)
 		next_field =
 			bt_field_structure_borrow_member_field_by_index(
 				base_field, index);
-		break;
-	}
-	case BT_FIELD_CLASS_TYPE_STATIC_ARRAY:
-	case BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITHOUT_LENGTH_FIELD:
-	case BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITH_LENGTH_FIELD:
+	} else if (bt_field_class_type_is(base_fc_type,
+			BT_FIELD_CLASS_TYPE_ARRAY)) {
 		BT_ASSERT(index < bt_field_array_get_length(base_field));
 		next_field = bt_field_array_borrow_element_field_by_index(
 			base_field, index);
-		break;
-	case BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR_FIELD:
-	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR_FIELD:
-	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_INTEGER_SELECTOR_FIELD:
+	} else if (bt_field_class_type_is(base_fc_type,
+			BT_FIELD_CLASS_TYPE_VARIANT)) {
 		BT_ASSERT(index == 0);
 		next_field = bt_field_variant_borrow_selected_option_field(
 			base_field);
-		break;
-	default:
+	} else {
 		abort();
 	}
 
@@ -1996,10 +1990,8 @@ update_def_clock:
 	field = borrow_next_field(notit);
 	BT_ASSERT(field);
 	BT_ASSERT(bt_field_borrow_class_const(field) == fc->ir_fc);
-	BT_ASSERT(bt_field_get_class_type(field) ==
-		  BT_FIELD_CLASS_TYPE_UNSIGNED_INTEGER ||
-		  bt_field_get_class_type(field) ==
-		  BT_FIELD_CLASS_TYPE_UNSIGNED_ENUMERATION);
+	BT_ASSERT(bt_field_class_type_is(bt_field_get_class_type(field),
+		BT_FIELD_CLASS_TYPE_UNSIGNED_INTEGER));
 	bt_field_integer_unsigned_set_value(field, value);
 	stack_top(notit->stack)->index++;
 
@@ -2041,7 +2033,7 @@ enum bt_bfcr_status bfcr_unsigned_int_char_cb(uint64_t value,
 
 	string_field = stack_top(notit->stack)->base;
 	BT_ASSERT(bt_field_get_class_type(string_field) ==
-		  BT_FIELD_CLASS_TYPE_STRING);
+		BT_FIELD_CLASS_TYPE_STRING);
 
 	/* Append character */
 	str[0] = (char) value;
@@ -2085,10 +2077,8 @@ enum bt_bfcr_status bfcr_signed_int_cb(int64_t value,
 	field = borrow_next_field(notit);
 	BT_ASSERT(field);
 	BT_ASSERT(bt_field_borrow_class_const(field) == fc->ir_fc);
-	BT_ASSERT(bt_field_get_class_type(field) ==
-		  BT_FIELD_CLASS_TYPE_SIGNED_INTEGER ||
-		  bt_field_get_class_type(field) ==
-		  BT_FIELD_CLASS_TYPE_SIGNED_ENUMERATION);
+	BT_ASSERT(bt_field_class_type_is(bt_field_get_class_type(field),
+		BT_FIELD_CLASS_TYPE_SIGNED_INTEGER));
 	bt_field_integer_signed_set_value(field, value);
 	stack_top(notit->stack)->index++;
 
@@ -2117,8 +2107,7 @@ enum bt_bfcr_status bfcr_floating_point_cb(double value,
 	bt_field_class_type type = bt_field_get_class_type(field);
 	BT_ASSERT(field);
 	BT_ASSERT(bt_field_borrow_class_const(field) == fc->ir_fc);
-	BT_ASSERT(type == BT_FIELD_CLASS_TYPE_DOUBLE_PRECISION_REAL ||
-		  type == BT_FIELD_CLASS_TYPE_SINGLE_PRECISION_REAL);
+	BT_ASSERT(bt_field_class_type_is(type, BT_FIELD_CLASS_TYPE_REAL));
 
 	if (type == BT_FIELD_CLASS_TYPE_SINGLE_PRECISION_REAL) {
 		bt_field_real_single_precision_set_value(field, (float) value);
@@ -2350,10 +2339,9 @@ int64_t bfcr_get_sequence_length_cb(struct ctf_field_class *fc, void *data)
 	 * is a sequence field.
 	 */
 	if (!seq_fc->base.is_text) {
-		BT_ASSERT(bt_field_get_class_type(seq_field) ==
-			BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITHOUT_LENGTH_FIELD ||
-			bt_field_get_class_type(seq_field) ==
-			BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITH_LENGTH_FIELD);
+		BT_ASSERT(bt_field_class_type_is(
+			bt_field_get_class_type(seq_field),
+				BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY));
 		ret = bt_field_array_dynamic_set_length(seq_field,
 			(uint64_t) length);
 		if (ret) {
