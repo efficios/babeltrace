@@ -117,15 +117,14 @@ int parse_url(struct live_viewer_connection *viewer_connection)
 		goto end;
 	}
 
-	lttng_live_url_parts = bt_common_parse_lttng_live_url(path,
-			error_buf, sizeof(error_buf));
+	lttng_live_url_parts = bt_common_parse_lttng_live_url(path, error_buf,
+		sizeof(error_buf));
 	if (!lttng_live_url_parts.proto) {
 		BT_COMP_LOGW("Invalid LTTng live URL format: %s", error_buf);
 		goto end;
 	}
 
-	viewer_connection->relay_hostname =
-			lttng_live_url_parts.hostname;
+	viewer_connection->relay_hostname = lttng_live_url_parts.hostname;
 	lttng_live_url_parts.hostname = NULL;
 
 	if (lttng_live_url_parts.port >= 0) {
@@ -134,26 +133,23 @@ int parse_url(struct live_viewer_connection *viewer_connection)
 		viewer_connection->port = LTTNG_DEFAULT_NETWORK_VIEWER_PORT;
 	}
 
-	viewer_connection->target_hostname =
-			lttng_live_url_parts.target_hostname;
+	viewer_connection->target_hostname = lttng_live_url_parts.target_hostname;
 	lttng_live_url_parts.target_hostname = NULL;
 
 	if (lttng_live_url_parts.session_name) {
-		viewer_connection->session_name =
-				lttng_live_url_parts.session_name;
+		viewer_connection->session_name = lttng_live_url_parts.session_name;
 		lttng_live_url_parts.session_name = NULL;
 	}
 
 	BT_COMP_LOGI("Connecting to hostname : %s, port : %d, "
-			"target hostname : %s, session name : %s, "
-			"proto : %s",
-			viewer_connection->relay_hostname->str,
-			viewer_connection->port,
-			!viewer_connection->target_hostname ?
-			"<none>" : viewer_connection->target_hostname->str,
-			!viewer_connection->session_name ?
-			"<none>" : viewer_connection->session_name->str,
-			lttng_live_url_parts.proto->str);
+		"target hostname : %s, session name : %s, proto : %s",
+		viewer_connection->relay_hostname->str,
+		viewer_connection->port,
+		!viewer_connection->target_hostname ?
+		"<none>" : viewer_connection->target_hostname->str,
+		!viewer_connection->session_name ?
+		"<none>" : viewer_connection->session_name->str,
+		lttng_live_url_parts.proto->str);
 	ret = 0;
 
 end:
@@ -308,12 +304,11 @@ int list_update_session(bt_value *results,
 		const struct lttng_viewer_session *session,
 		bool *_found, struct live_viewer_connection *viewer_connection)
 {
-	int ret = 0;
+	int i, len, ret = 0;
 	bt_value *map = NULL;
 	bt_value *hostname = NULL;
 	bt_value *session_name = NULL;
 	bt_value *btval = NULL;
-	int i, len;
 	bool found = false;
 
 	len = bt_value_array_get_length(results);
@@ -766,9 +761,9 @@ int receive_streams(struct lttng_live_session *session,
 	ssize_t ret_len;
 	uint32_t i;
 	struct lttng_live_msg_iter *lttng_live_msg_iter =
-			session->lttng_live_msg_iter;
+		session->lttng_live_msg_iter;
 	struct live_viewer_connection *viewer_connection =
-			lttng_live_msg_iter->viewer_connection;
+		lttng_live_msg_iter->viewer_connection;
 
 	BT_COMP_LOGI("Getting %" PRIu32 " new streams:", stream_count);
 	for (i = 0; i < stream_count; i++) {
@@ -794,8 +789,7 @@ int receive_streams(struct lttng_live_session *session,
 
 		if (stream.metadata_flag) {
 			BT_COMP_LOGI("    metadata stream %" PRIu64 " : %s/%s",
-					stream_id, stream.path_name,
-					stream.channel_name);
+				stream_id, stream.path_name, stream.channel_name);
 			if (lttng_live_metadata_create_stream(session,
 					ctf_trace_id, stream_id,
 					stream.path_name)) {
@@ -806,8 +800,7 @@ int receive_streams(struct lttng_live_session *session,
 			session->lazy_stream_msg_init = true;
 		} else {
 			BT_COMP_LOGI("    stream %" PRIu64 " : %s/%s",
-					stream_id, stream.path_name,
-					stream.channel_name);
+				stream_id, stream.path_name, stream.channel_name);
 			live_stream = lttng_live_stream_iterator_create(session,
 				ctf_trace_id, stream_id);
 			if (!live_stream) {
@@ -828,14 +821,15 @@ int lttng_live_attach_session(struct lttng_live_session *session)
 	struct lttng_viewer_cmd cmd;
 	struct lttng_viewer_attach_session_request rq;
 	struct lttng_viewer_attach_session_response rp;
-	ssize_t ret_len;
-	struct lttng_live_msg_iter *lttng_live_msg_iter = session->lttng_live_msg_iter;
+	struct lttng_live_msg_iter *lttng_live_msg_iter =
+		session->lttng_live_msg_iter;
 	struct live_viewer_connection *viewer_connection =
-			lttng_live_msg_iter->viewer_connection;
+		lttng_live_msg_iter->viewer_connection;
 	uint64_t session_id = session->id;
 	uint32_t streams_count;
 	const size_t cmd_buf_len = sizeof(cmd) + sizeof(rq);
 	char cmd_buf[cmd_buf_len];
+	ssize_t ret_len;
 
 	cmd.cmd = htobe32(LTTNG_VIEWER_ATTACH_SESSION);
 	cmd.data_size = htobe64((uint64_t) sizeof(rq));
@@ -914,9 +908,10 @@ int lttng_live_detach_session(struct lttng_live_session *session)
 	struct lttng_viewer_detach_session_request rq;
 	struct lttng_viewer_detach_session_response rp;
 	ssize_t ret_len;
-	struct lttng_live_msg_iter *lttng_live_msg_iter = session->lttng_live_msg_iter;
+	struct lttng_live_msg_iter *lttng_live_msg_iter =
+		session->lttng_live_msg_iter;
 	struct live_viewer_connection *viewer_connection =
-			lttng_live_msg_iter->viewer_connection;
+		lttng_live_msg_iter->viewer_connection;
 	uint64_t session_id = session->id;
 	const size_t cmd_buf_len = sizeof(cmd) + sizeof(rq);
 	char cmd_buf[cmd_buf_len];
@@ -991,10 +986,11 @@ ssize_t lttng_live_get_one_metadata_packet(struct lttng_live_trace *trace,
 	char *data = NULL;
 	ssize_t ret_len;
 	struct lttng_live_session *session = trace->session;
-	struct lttng_live_msg_iter *lttng_live_msg_iter = session->lttng_live_msg_iter;
+	struct lttng_live_msg_iter *lttng_live_msg_iter =
+		session->lttng_live_msg_iter;
 	struct lttng_live_metadata *metadata = trace->metadata;
 	struct live_viewer_connection *viewer_connection =
-			lttng_live_msg_iter->viewer_connection;
+		lttng_live_msg_iter->viewer_connection;
 	const size_t cmd_buf_len = sizeof(cmd) + sizeof(rq);
 	char cmd_buf[cmd_buf_len];
 
@@ -1111,16 +1107,15 @@ enum lttng_live_iterator_status lttng_live_get_next_index(
 {
 	struct lttng_viewer_cmd cmd;
 	struct lttng_viewer_get_next_index rq;
-	ssize_t ret_len;
 	struct lttng_viewer_index rp;
-	uint32_t flags, status;
-	enum lttng_live_iterator_status retstatus =
-			LTTNG_LIVE_ITERATOR_STATUS_OK;
+	enum lttng_live_iterator_status retstatus = LTTNG_LIVE_ITERATOR_STATUS_OK;
 	struct live_viewer_connection *viewer_connection =
 			lttng_live_msg_iter->viewer_connection;
 	struct lttng_live_trace *trace = stream->trace;
 	const size_t cmd_buf_len = sizeof(cmd) + sizeof(rq);
 	char cmd_buf[cmd_buf_len];
+	uint32_t flags, status;
+	ssize_t ret_len;
 
 	cmd.cmd = htobe32(LTTNG_VIEWER_GET_NEXT_INDEX);
 	cmd.data_size = htobe64((uint64_t) sizeof(rq));
@@ -1249,16 +1244,16 @@ enum bt_msg_iter_medium_status lttng_live_get_stream_bytes(
 		uint64_t offset, uint64_t req_len, uint64_t *recv_len)
 {
 	enum bt_msg_iter_medium_status retstatus = BT_MSG_ITER_MEDIUM_STATUS_OK;
+	struct lttng_viewer_trace_packet rp;
 	struct lttng_viewer_cmd cmd;
 	struct lttng_viewer_get_packet rq;
-	struct lttng_viewer_trace_packet rp;
-	ssize_t ret_len;
-	uint32_t flags, status;
 	struct live_viewer_connection *viewer_connection =
 			lttng_live_msg_iter->viewer_connection;
 	struct lttng_live_trace *trace = stream->trace;
 	const size_t cmd_buf_len = sizeof(cmd) + sizeof(rq);
 	char cmd_buf[cmd_buf_len];
+	uint32_t flags, status;
+	ssize_t ret_len;
 
 	BT_COMP_LOGD("lttng_live_get_stream_bytes: offset=%" PRIu64 ", req_len=%" PRIu64,
 			offset, req_len);
@@ -1377,7 +1372,6 @@ enum lttng_live_iterator_status lttng_live_get_new_streams(
 	struct lttng_viewer_cmd cmd;
 	struct lttng_viewer_new_streams_request rq;
 	struct lttng_viewer_new_streams_response rp;
-	ssize_t ret_len;
 	struct lttng_live_msg_iter *lttng_live_msg_iter =
 		session->lttng_live_msg_iter;
 	struct live_viewer_connection *viewer_connection =
@@ -1385,6 +1379,7 @@ enum lttng_live_iterator_status lttng_live_get_new_streams(
 	uint32_t streams_count;
 	const size_t cmd_buf_len = sizeof(cmd) + sizeof(rq);
 	char cmd_buf[cmd_buf_len];
+	ssize_t ret_len;
 
 	if (!session->new_streams_needed) {
 		return LTTNG_LIVE_ITERATOR_STATUS_OK;

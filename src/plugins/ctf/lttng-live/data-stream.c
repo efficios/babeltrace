@@ -159,16 +159,16 @@ enum lttng_live_iterator_status lttng_live_lazy_msg_init(
 			struct ctf_trace_class *ctf_tc;
 			struct lttng_live_stream_iterator *stream_iter =
 				g_ptr_array_index(trace->stream_iterators,
-						stream_iter_idx);
+					stream_iter_idx);
 
 			if (stream_iter->msg_iter) {
 				continue;
 			}
 			ctf_tc = ctf_metadata_decoder_borrow_ctf_trace_class(
-						trace->metadata->decoder);
+				trace->metadata->decoder);
 			stream_iter->msg_iter = bt_msg_iter_create(ctf_tc,
-					lttng_live->max_query_size, medops,
-					stream_iter, log_level, self_comp);
+				lttng_live->max_query_size, medops, stream_iter,
+				log_level, self_comp);
 			if (!stream_iter->msg_iter) {
 				goto error;
 			}
@@ -229,11 +229,11 @@ struct lttng_live_stream_iterator *lttng_live_stream_iterator_create(
 	if (trace->trace) {
 		struct ctf_trace_class *ctf_tc =
 			ctf_metadata_decoder_borrow_ctf_trace_class(
-					trace->metadata->decoder);
+				trace->metadata->decoder);
 		BT_ASSERT(!stream_iter->msg_iter);
 		stream_iter->msg_iter = bt_msg_iter_create(ctf_tc,
-				lttng_live->max_query_size, medops,
-				stream_iter, log_level, self_comp);
+			lttng_live->max_query_size, medops, stream_iter,
+			log_level, self_comp);
 		if (!stream_iter->msg_iter) {
 			goto error;
 		}
@@ -255,7 +255,7 @@ struct lttng_live_stream_iterator *lttng_live_stream_iterator_create(
 	}
 
 	g_string_printf(stream_iter->name, STREAM_NAME_PREFIX "%" PRIu64,
-			stream_iter->viewer_stream_id);
+		stream_iter->viewer_stream_id);
 	g_ptr_array_add(trace->stream_iterators, stream_iter);
 
 	/* Track the number of active stream iterator. */
