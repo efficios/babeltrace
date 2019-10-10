@@ -186,7 +186,7 @@ struct lttng_live_trace *lttng_live_create_trace(struct lttng_live_session *sess
 	trace->trace_class = NULL;
 	trace->trace = NULL;
 	trace->stream_iterators = g_ptr_array_new_with_free_func(
-			(GDestroyNotify) lttng_live_stream_iterator_destroy);
+		(GDestroyNotify) lttng_live_stream_iterator_destroy);
 	BT_ASSERT(trace->stream_iterators);
 	trace->new_metadata_needed = true;
 	g_ptr_array_add(session->traces, trace);
@@ -237,7 +237,7 @@ int lttng_live_add_session(struct lttng_live_msg_iter *lttng_live_msg_iter,
 	session->self_comp = lttng_live_msg_iter->self_comp;
 	session->id = session_id;
 	session->traces = g_ptr_array_new_with_free_func(
-			(GDestroyNotify) lttng_live_destroy_trace);
+		(GDestroyNotify) lttng_live_destroy_trace);
 	BT_ASSERT(session->traces);
 	session->lttng_live_msg_iter = lttng_live_msg_iter;
 	session->new_streams_needed = true;
@@ -378,10 +378,9 @@ enum lttng_live_iterator_status lttng_live_iterator_next_handle_one_no_data_stre
 {
 	bt_logging_level log_level = lttng_live_msg_iter->log_level;
 	bt_self_component *self_comp = lttng_live_msg_iter->self_comp;
-	enum lttng_live_iterator_status ret =
-			LTTNG_LIVE_ITERATOR_STATUS_OK;
-	struct packet_index index;
+	enum lttng_live_iterator_status ret = LTTNG_LIVE_ITERATOR_STATUS_OK;
 	enum lttng_live_stream_state orig_state = lttng_live_stream->state;
+	struct packet_index index;
 
 	if (lttng_live_stream->trace->new_metadata_needed) {
 		ret = LTTNG_LIVE_ITERATOR_STATUS_CONTINUE;
@@ -511,8 +510,7 @@ enum lttng_live_iterator_status
 lttng_live_iterator_handle_new_streams_and_metadata(
 		struct lttng_live_msg_iter *lttng_live_msg_iter)
 {
-	enum lttng_live_iterator_status ret =
-			LTTNG_LIVE_ITERATOR_STATUS_OK;
+	enum lttng_live_iterator_status ret = LTTNG_LIVE_ITERATOR_STATUS_OK;
 	uint64_t session_idx = 0, nr_sessions_opened = 0;
 	struct lttng_live_session *session;
 	enum session_not_found_action sess_not_found_act =
@@ -573,16 +571,14 @@ enum lttng_live_iterator_status emit_inactivity_message(
 		struct lttng_live_stream_iterator *stream_iter,
 		bt_message **message, uint64_t timestamp)
 {
-	enum lttng_live_iterator_status ret =
-			LTTNG_LIVE_ITERATOR_STATUS_OK;
+	enum lttng_live_iterator_status ret = LTTNG_LIVE_ITERATOR_STATUS_OK;
 	bt_message *msg = NULL;
 
 	BT_ASSERT(stream_iter->trace->clock_class);
 
 	msg = bt_message_message_iterator_inactivity_create(
-			lttng_live_msg_iter->self_msg_iter,
-			stream_iter->trace->clock_class,
-			timestamp);
+		lttng_live_msg_iter->self_msg_iter,
+		stream_iter->trace->clock_class, timestamp);
 	if (!msg) {
 		goto error;
 	}
@@ -603,8 +599,7 @@ enum lttng_live_iterator_status lttng_live_iterator_next_handle_one_quiescent_st
 		struct lttng_live_stream_iterator *lttng_live_stream,
 		bt_message **message)
 {
-	enum lttng_live_iterator_status ret =
-			LTTNG_LIVE_ITERATOR_STATUS_OK;
+	enum lttng_live_iterator_status ret = LTTNG_LIVE_ITERATOR_STATUS_OK;
 
 	if (lttng_live_stream->state != LTTNG_LIVE_STREAM_QUIESCENT) {
 		return LTTNG_LIVE_ITERATOR_STATUS_OK;
@@ -618,10 +613,10 @@ enum lttng_live_iterator_status lttng_live_iterator_next_handle_one_quiescent_st
 	}
 
 	ret = emit_inactivity_message(lttng_live_msg_iter, lttng_live_stream,
-			message, lttng_live_stream->current_inactivity_ts);
+		message, lttng_live_stream->current_inactivity_ts);
 
 	lttng_live_stream->last_inactivity_ts =
-			lttng_live_stream->current_inactivity_ts;
+		lttng_live_stream->current_inactivity_ts;
 end:
 	return ret;
 }
@@ -647,8 +642,7 @@ int live_get_msg_ts_ns(struct lttng_live_stream_iterator *stream_iter,
 
 	switch (bt_message_get_type(msg)) {
 	case BT_MESSAGE_TYPE_EVENT:
-		clock_class =
-			bt_message_event_borrow_stream_class_default_clock_class_const(
+		clock_class = bt_message_event_borrow_stream_class_default_clock_class_const(
 				msg);
 		BT_ASSERT(clock_class);
 
@@ -656,8 +650,7 @@ int live_get_msg_ts_ns(struct lttng_live_stream_iterator *stream_iter,
 			msg);
 		break;
 	case BT_MESSAGE_TYPE_PACKET_BEGINNING:
-		clock_class =
-			bt_message_packet_beginning_borrow_stream_class_default_clock_class_const(
+		clock_class = bt_message_packet_beginning_borrow_stream_class_default_clock_class_const(
 			msg);
 		BT_ASSERT(clock_class);
 
@@ -665,8 +658,7 @@ int live_get_msg_ts_ns(struct lttng_live_stream_iterator *stream_iter,
 			msg);
 		break;
 	case BT_MESSAGE_TYPE_PACKET_END:
-		clock_class =
-			bt_message_packet_end_borrow_stream_class_default_clock_class_const(
+		clock_class = bt_message_packet_end_borrow_stream_class_default_clock_class_const(
 			msg);
 		BT_ASSERT(clock_class);
 
@@ -674,8 +666,7 @@ int live_get_msg_ts_ns(struct lttng_live_stream_iterator *stream_iter,
 			msg);
 		break;
 	case BT_MESSAGE_TYPE_DISCARDED_EVENTS:
-		clock_class =
-			bt_message_discarded_events_borrow_stream_class_default_clock_class_const(
+		clock_class = bt_message_discarded_events_borrow_stream_class_default_clock_class_const(
 			msg);
 		BT_ASSERT(clock_class);
 
@@ -683,8 +674,7 @@ int live_get_msg_ts_ns(struct lttng_live_stream_iterator *stream_iter,
 			msg);
 		break;
 	case BT_MESSAGE_TYPE_DISCARDED_PACKETS:
-		clock_class =
-			bt_message_discarded_packets_borrow_stream_class_default_clock_class_const(
+		clock_class = bt_message_discarded_packets_borrow_stream_class_default_clock_class_const(
 			msg);
 		BT_ASSERT(clock_class);
 
@@ -692,9 +682,8 @@ int live_get_msg_ts_ns(struct lttng_live_stream_iterator *stream_iter,
 			msg);
 		break;
 	case BT_MESSAGE_TYPE_MESSAGE_ITERATOR_INACTIVITY:
-		clock_snapshot =
-			bt_message_message_iterator_inactivity_borrow_default_clock_snapshot_const(
-				msg);
+		clock_snapshot = bt_message_message_iterator_inactivity_borrow_default_clock_snapshot_const(
+			msg);
 		break;
 	default:
 		/* All the other messages have a higher priority */
@@ -736,10 +725,10 @@ enum lttng_live_iterator_status lttng_live_iterator_next_handle_one_active_data_
 		bt_message **message)
 {
 	enum lttng_live_iterator_status ret = LTTNG_LIVE_ITERATOR_STATUS_OK;
-	enum bt_msg_iter_status status;
-	uint64_t session_idx, trace_idx;
 	bt_logging_level log_level = lttng_live_msg_iter->log_level;
 	bt_self_component *self_comp = lttng_live_msg_iter->self_comp;
+	enum bt_msg_iter_status status;
+	uint64_t session_idx, trace_idx;
 
 	for (session_idx = 0; session_idx < lttng_live_msg_iter->sessions->len;
 			session_idx++) {
@@ -810,9 +799,9 @@ enum lttng_live_iterator_status lttng_live_iterator_close_stream(
 	 * `bt_msg_iter` should simply realize that it needs to close the
 	 * stream properly by emitting the necessary stream end message.
 	 */
-	enum bt_msg_iter_status status =
-		bt_msg_iter_get_next_message(stream_iter->msg_iter,
-			lttng_live_msg_iter->self_msg_iter, curr_msg);
+	enum bt_msg_iter_status status = bt_msg_iter_get_next_message(
+		stream_iter->msg_iter, lttng_live_msg_iter->self_msg_iter,
+		curr_msg);
 
 	if (status == BT_MSG_ITER_STATUS_ERROR) {
 		live_status = LTTNG_LIVE_ITERATOR_STATUS_ERROR;
@@ -897,12 +886,12 @@ enum lttng_live_iterator_status lttng_live_iterator_next_msg_on_stream(
 retry:
 	print_stream_state(stream_iter);
 	live_status = lttng_live_iterator_handle_new_streams_and_metadata(
-			lttng_live_msg_iter);
+		lttng_live_msg_iter);
 	if (live_status != LTTNG_LIVE_ITERATOR_STATUS_OK) {
 		goto end;
 	}
 	live_status = lttng_live_iterator_next_handle_one_no_data_stream(
-			lttng_live_msg_iter, stream_iter);
+		lttng_live_msg_iter, stream_iter);
 
 	if (live_status != LTTNG_LIVE_ITERATOR_STATUS_OK) {
 		if (live_status == LTTNG_LIVE_ITERATOR_STATUS_END) {
@@ -916,7 +905,7 @@ retry:
 		goto end;
 	}
 	live_status = lttng_live_iterator_next_handle_one_quiescent_stream(
-			lttng_live_msg_iter, stream_iter, curr_msg);
+		lttng_live_msg_iter, stream_iter, curr_msg);
 	if (live_status != LTTNG_LIVE_ITERATOR_STATUS_OK) {
 		BT_ASSERT(!*curr_msg);
 		goto end;
@@ -925,7 +914,7 @@ retry:
 		goto end;
 	}
 	live_status = lttng_live_iterator_next_handle_one_active_data_stream(
-			lttng_live_msg_iter, stream_iter, curr_msg);
+		lttng_live_msg_iter, stream_iter, curr_msg);
 	if (live_status != LTTNG_LIVE_ITERATOR_STATUS_OK) {
 		BT_ASSERT(!*curr_msg);
 	}
@@ -945,11 +934,11 @@ enum lttng_live_iterator_status next_stream_iterator_for_trace(
 		struct lttng_live_stream_iterator **youngest_trace_stream_iter)
 {
 	struct lttng_live_stream_iterator *youngest_candidate_stream_iter = NULL;
+	bt_logging_level log_level = lttng_live_msg_iter->log_level;
+	bt_self_component *self_comp = lttng_live_msg_iter->self_comp;
 	enum lttng_live_iterator_status stream_iter_status;;
 	int64_t youngest_candidate_msg_ts = INT64_MAX;
 	uint64_t stream_iter_idx;
-	bt_logging_level log_level = lttng_live_msg_iter->log_level;
-	bt_self_component *self_comp = lttng_live_msg_iter->self_comp;
 
 	BT_ASSERT(live_trace);
 	BT_ASSERT(live_trace->stream_iterators);
@@ -964,7 +953,7 @@ enum lttng_live_iterator_status next_stream_iterator_for_trace(
 		bool stream_iter_is_ended = false;
 		struct lttng_live_stream_iterator *stream_iter =
 			g_ptr_array_index(live_trace->stream_iterators,
-					stream_iter_idx);
+				stream_iter_idx);
 
 		/*
 		 * Since we may remove elements from the GPtrArray as we
@@ -984,10 +973,10 @@ enum lttng_live_iterator_status next_stream_iterator_for_trace(
 			bt_message *msg = NULL;
 			int64_t curr_msg_ts_ns = INT64_MAX;
 			stream_iter_status = lttng_live_iterator_next_msg_on_stream(
-					lttng_live_msg_iter, stream_iter, &msg);
+				lttng_live_msg_iter, stream_iter, &msg);
 
 			BT_COMP_LOGD("live stream iterator returned status :%s",
-					print_live_iterator_status(stream_iter_status));
+				print_live_iterator_status(stream_iter_status));
 			if (stream_iter_status == LTTNG_LIVE_ITERATOR_STATUS_END) {
 				stream_iter_is_ended = true;
 				break;
@@ -1725,7 +1714,7 @@ BT_HIDDEN
 void lttng_live_component_finalize(bt_self_component_source *component)
 {
 	void *data = bt_self_component_get_data(
-			bt_self_component_source_as_self_component(component));
+		bt_self_component_source_as_self_component(component));
 
 	if (!data) {
 		return;
