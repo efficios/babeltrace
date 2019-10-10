@@ -1480,12 +1480,14 @@ struct bt_config *bt_config_query_from_args(int argc, const char *argv[],
 	struct bt_config *cfg = NULL;
 	const char *component_class_spec = NULL;
 	const char *query_object = NULL;
-	bt_value *params;
 	GString *error_str = NULL;
 	struct bt_argpar_parse_ret argpar_parse_ret = { 0 };
 
-	params = bt_value_null;
-	bt_value_get_ref(bt_value_null);
+	bt_value *params = bt_value_map_create();
+	if (!params) {
+		BT_CLI_LOGE_APPEND_CAUSE_OOM();
+		goto error;
+	}
 
 	*retcode = 0;
 	cfg = bt_config_query_create(plugin_paths);
@@ -1527,11 +1529,19 @@ struct bt_config *bt_config_query_from_args(int argc, const char *argv[],
 			switch (argpar_item_opt->descr->id) {
 			case OPT_PARAMS:
 			{
-				bt_value_put_ref(params);
-				params = bt_param_parse(arg, error_str);
-				if (!params) {
+				bt_value *parsed_params = bt_param_parse(arg, error_str);
+				bt_value_map_extend_status extend_status;
+				if (!parsed_params) {
 					BT_CLI_LOGE_APPEND_CAUSE("Invalid format for --params option's argument:\n    %s",
 						error_str->str);
+					goto error;
+				}
+
+				extend_status = bt_value_map_extend(params, parsed_params);
+				BT_VALUE_PUT_REF_AND_RESET(parsed_params);
+				if (extend_status) {
+					BT_CLI_LOGE_APPEND_CAUSE("Cannot extend current parameters with --params option's argument:\n    %s",
+						arg);
 					goto error;
 				}
 				break;
