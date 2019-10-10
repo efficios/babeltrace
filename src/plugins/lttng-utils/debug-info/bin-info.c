@@ -163,10 +163,9 @@ int bin_info_set_elf_file(struct bin_info *bin)
 {
 	struct bt_fd_cache_handle *elf_handle = NULL;
 	Elf *elf_file = NULL;
+	int ret;
 
-	if (!bin) {
-		goto error;
-	}
+	BT_ASSERT(bin);
 
 	elf_handle = bt_fd_cache_get_handle(bin->fd_cache, bin->elf_path);
 	if (!elf_handle) {
@@ -189,12 +188,17 @@ int bin_info_set_elf_file(struct bin_info *bin)
 		goto error;
 	}
 
-	return 0;
+
+	ret = 0;
+	goto end;
 
 error:
 	bt_fd_cache_put_handle(bin->fd_cache, elf_handle);
 	elf_end(elf_file);
-	return -1;
+	ret = -1;
+
+end:
+	return ret;
 }
 
 /**
