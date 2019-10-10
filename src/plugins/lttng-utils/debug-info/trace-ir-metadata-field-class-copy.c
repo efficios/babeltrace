@@ -74,10 +74,10 @@ const bt_field_class *walk_field_path(struct trace_ir_metadata_maps *md_maps,
 				member);
 			break;
 		}
-		case BT_FIELD_CLASS_TYPE_OPTION_WITHOUT_SELECTOR:
-		case BT_FIELD_CLASS_TYPE_OPTION_WITH_BOOL_SELECTOR:
-		case BT_FIELD_CLASS_TYPE_OPTION_WITH_UNSIGNED_INTEGER_SELECTOR:
-		case BT_FIELD_CLASS_TYPE_OPTION_WITH_SIGNED_INTEGER_SELECTOR:
+		case BT_FIELD_CLASS_TYPE_OPTION_WITHOUT_SELECTOR_FIELD:
+		case BT_FIELD_CLASS_TYPE_OPTION_WITH_BOOL_SELECTOR_FIELD:
+		case BT_FIELD_CLASS_TYPE_OPTION_WITH_UNSIGNED_INTEGER_SELECTOR_FIELD:
+		case BT_FIELD_CLASS_TYPE_OPTION_WITH_SIGNED_INTEGER_SELECTOR_FIELD:
 		{
 			BT_ASSERT(bt_field_path_item_get_type(fp_item) ==
 				BT_FIELD_PATH_ITEM_TYPE_CURRENT_OPTION_CONTENT);
@@ -85,9 +85,9 @@ const bt_field_class *walk_field_path(struct trace_ir_metadata_maps *md_maps,
 				curr_fc);
 			break;
 		}
-		case BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR:
-		case BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR:
-		case BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_INTEGER_SELECTOR:
+		case BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR_FIELD:
+		case BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR_FIELD:
+		case BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_INTEGER_SELECTOR_FIELD:
 		{
 			const bt_field_class_variant_option *option;
 
@@ -472,47 +472,47 @@ int field_class_variant_copy(
 			goto error;
 		}
 
-		if (fc_type == BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR) {
-			const bt_field_class_variant_with_selector_integer_unsigned_option *spec_opt =
-				bt_field_class_variant_with_selector_integer_unsigned_borrow_option_by_index_const(
+		if (fc_type == BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR_FIELD) {
+			const bt_field_class_variant_with_selector_field_integer_unsigned_option *spec_opt =
+				bt_field_class_variant_with_selector_field_integer_unsigned_borrow_option_by_index_const(
 					in_field_class, i);
 			const bt_integer_range_set_unsigned *ranges =
-				bt_field_class_variant_with_selector_integer_unsigned_option_borrow_ranges_const(
+				bt_field_class_variant_with_selector_field_integer_unsigned_option_borrow_ranges_const(
 					spec_opt);
 
-			if (bt_field_class_variant_with_selector_integer_unsigned_append_option(
+			if (bt_field_class_variant_with_selector_field_integer_unsigned_append_option(
 					out_field_class, option_name,
 					out_option_field_class, ranges) !=
-					BT_FIELD_CLASS_VARIANT_WITH_SELECTOR_APPEND_OPTION_STATUS_OK) {
+					BT_FIELD_CLASS_VARIANT_WITH_SELECTOR_FIELD_APPEND_OPTION_STATUS_OK) {
 				BT_COMP_LOGE_STR("Cannot append option to variant field class with unsigned integer selector'");
 				BT_FIELD_CLASS_PUT_REF_AND_RESET(out_tag_field_class);
 				ret = -1;
 				goto error;
 			}
-		} else if (fc_type == BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_INTEGER_SELECTOR) {
-			const bt_field_class_variant_with_selector_integer_signed_option *spec_opt =
-				bt_field_class_variant_with_selector_integer_signed_borrow_option_by_index_const(
+		} else if (fc_type == BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_INTEGER_SELECTOR_FIELD) {
+			const bt_field_class_variant_with_selector_field_integer_signed_option *spec_opt =
+				bt_field_class_variant_with_selector_field_integer_signed_borrow_option_by_index_const(
 					in_field_class, i);
 			const bt_integer_range_set_signed *ranges =
-				bt_field_class_variant_with_selector_integer_signed_option_borrow_ranges_const(
+				bt_field_class_variant_with_selector_field_integer_signed_option_borrow_ranges_const(
 					spec_opt);
 
-			if (bt_field_class_variant_with_selector_integer_signed_append_option(
+			if (bt_field_class_variant_with_selector_field_integer_signed_append_option(
 					out_field_class, option_name,
 					out_option_field_class, ranges) !=
-					BT_FIELD_CLASS_VARIANT_WITH_SELECTOR_APPEND_OPTION_STATUS_OK) {
+					BT_FIELD_CLASS_VARIANT_WITH_SELECTOR_FIELD_APPEND_OPTION_STATUS_OK) {
 				BT_COMP_LOGE_STR("Cannot append option to variant field class with signed integer selector'");
 				BT_FIELD_CLASS_PUT_REF_AND_RESET(out_tag_field_class);
 				ret = -1;
 				goto error;
 			}
 		} else {
-			BT_ASSERT(fc_type == BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR);
+			BT_ASSERT(fc_type == BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR_FIELD);
 
 			if (bt_field_class_variant_without_selector_append_option(
 					out_field_class, option_name,
 					out_option_field_class) !=
-					BT_FIELD_CLASS_VARIANT_WITHOUT_SELECTOR_APPEND_OPTION_STATUS_OK) {
+					BT_FIELD_CLASS_VARIANT_WITHOUT_SELECTOR_FIELD_APPEND_OPTION_STATUS_OK) {
 				BT_COMP_LOGE_STR("Cannot append option to variant field class'");
 				BT_FIELD_CLASS_PUT_REF_AND_RESET(out_tag_field_class);
 				ret = -1;
@@ -587,10 +587,10 @@ int field_class_option_copy(
 		"in-fc-addr=%p, out-fc-addr=%p", in_field_class, out_field_class);
 
 	if (bt_field_class_get_type(out_field_class) ==
-			BT_FIELD_CLASS_TYPE_OPTION_WITH_BOOL_SELECTOR) {
-		bt_field_class_option_with_selector_bool_set_selector_is_reversed(
+			BT_FIELD_CLASS_TYPE_OPTION_WITH_BOOL_SELECTOR_FIELD) {
+		bt_field_class_option_with_selector_field_bool_set_selector_is_reversed(
 			out_field_class,
-			bt_field_class_option_with_selector_bool_selector_is_reversed(
+			bt_field_class_option_with_selector_field_bool_selector_is_reversed(
 				in_field_class));
 	}
 
@@ -751,10 +751,10 @@ bt_field_class *create_field_class_copy_internal(struct trace_ir_metadata_maps *
 			out_elem_fc, out_length_fc);
 		break;
 	}
-	case BT_FIELD_CLASS_TYPE_OPTION_WITHOUT_SELECTOR:
-	case BT_FIELD_CLASS_TYPE_OPTION_WITH_BOOL_SELECTOR:
-	case BT_FIELD_CLASS_TYPE_OPTION_WITH_UNSIGNED_INTEGER_SELECTOR:
-	case BT_FIELD_CLASS_TYPE_OPTION_WITH_SIGNED_INTEGER_SELECTOR:
+	case BT_FIELD_CLASS_TYPE_OPTION_WITHOUT_SELECTOR_FIELD:
+	case BT_FIELD_CLASS_TYPE_OPTION_WITH_BOOL_SELECTOR_FIELD:
+	case BT_FIELD_CLASS_TYPE_OPTION_WITH_UNSIGNED_INTEGER_SELECTOR_FIELD:
+	case BT_FIELD_CLASS_TYPE_OPTION_WITH_SIGNED_INTEGER_SELECTOR_FIELD:
 	{
 		const bt_field_class *in_content_fc =
 			bt_field_class_option_borrow_field_class_const(
@@ -778,14 +778,14 @@ bt_field_class *create_field_class_copy_internal(struct trace_ir_metadata_maps *
 			goto error;
 		}
 
-		if (fc_type == BT_FIELD_CLASS_TYPE_OPTION_WITHOUT_SELECTOR) {
+		if (fc_type == BT_FIELD_CLASS_TYPE_OPTION_WITHOUT_SELECTOR_FIELD) {
 			out_field_class =
 				bt_field_class_option_without_selector_create(
 					md_maps->output_trace_class,
 					out_content_fc);
 		} else {
 			const bt_field_path *in_selector_fp =
-				bt_field_class_option_with_selector_borrow_selector_field_path_const(
+				bt_field_class_option_with_selector_field_borrow_selector_field_path_const(
 					in_field_class);
 			const bt_field_class *in_selector_fc;
 
@@ -797,30 +797,30 @@ bt_field_class *create_field_class_copy_internal(struct trace_ir_metadata_maps *
 				md_maps->field_class_map, in_selector_fc);
 			BT_ASSERT(out_selector_fc);
 
-			if (fc_type == BT_FIELD_CLASS_TYPE_OPTION_WITH_BOOL_SELECTOR) {
+			if (fc_type == BT_FIELD_CLASS_TYPE_OPTION_WITH_BOOL_SELECTOR_FIELD) {
 				out_field_class =
-					bt_field_class_option_with_selector_bool_create(
+					bt_field_class_option_with_selector_field_bool_create(
 						md_maps->output_trace_class,
 						out_content_fc, out_selector_fc);
-			} else if (fc_type == BT_FIELD_CLASS_TYPE_OPTION_WITH_UNSIGNED_INTEGER_SELECTOR) {
+			} else if (fc_type == BT_FIELD_CLASS_TYPE_OPTION_WITH_UNSIGNED_INTEGER_SELECTOR_FIELD) {
 				const bt_integer_range_set_unsigned *ranges =
-					bt_field_class_option_with_selector_integer_unsigned_borrow_selector_ranges_const(
+					bt_field_class_option_with_selector_field_integer_unsigned_borrow_selector_ranges_const(
 						in_field_class);
 
 				BT_ASSERT(ranges);
 				out_field_class =
-					bt_field_class_option_with_selector_integer_unsigned_create(
+					bt_field_class_option_with_selector_field_integer_unsigned_create(
 						md_maps->output_trace_class,
 						out_content_fc, out_selector_fc,
 						ranges);
-			} else if (fc_type == BT_FIELD_CLASS_TYPE_OPTION_WITH_SIGNED_INTEGER_SELECTOR) {
+			} else if (fc_type == BT_FIELD_CLASS_TYPE_OPTION_WITH_SIGNED_INTEGER_SELECTOR_FIELD) {
 				const bt_integer_range_set_signed *ranges =
-					bt_field_class_option_with_selector_integer_signed_borrow_selector_ranges_const(
+					bt_field_class_option_with_selector_field_integer_signed_borrow_selector_ranges_const(
 						in_field_class);
 
 				BT_ASSERT(ranges);
 				out_field_class =
-					bt_field_class_option_with_selector_integer_signed_create(
+					bt_field_class_option_with_selector_field_integer_signed_create(
 						md_maps->output_trace_class,
 						out_content_fc, out_selector_fc,
 						ranges);
@@ -830,17 +830,17 @@ bt_field_class *create_field_class_copy_internal(struct trace_ir_metadata_maps *
 		BT_ASSERT(out_field_class);
 		break;
 	}
-	case BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR:
-	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR:
-	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_INTEGER_SELECTOR:
+	case BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR_FIELD:
+	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR_FIELD:
+	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_INTEGER_SELECTOR_FIELD:
 	{
 		bt_field_class *out_sel_fc = NULL;
 
-		if (fc_type == BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR ||
-				fc_type == BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_INTEGER_SELECTOR) {
+		if (fc_type == BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR_FIELD ||
+				fc_type == BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_INTEGER_SELECTOR_FIELD) {
 			const bt_field_class *in_sel_fc;
 			const bt_field_path *sel_fp =
-				bt_field_class_variant_with_selector_borrow_selector_field_path_const(
+				bt_field_class_variant_with_selector_field_borrow_selector_field_path_const(
 					in_field_class);
 
 			BT_ASSERT(sel_fp);
@@ -945,16 +945,16 @@ int copy_field_class_content_internal(
 		ret = field_class_dynamic_array_copy(md_maps,
 				in_field_class, out_field_class);
 		break;
-	case BT_FIELD_CLASS_TYPE_OPTION_WITHOUT_SELECTOR:
-	case BT_FIELD_CLASS_TYPE_OPTION_WITH_BOOL_SELECTOR:
-	case BT_FIELD_CLASS_TYPE_OPTION_WITH_UNSIGNED_INTEGER_SELECTOR:
-	case BT_FIELD_CLASS_TYPE_OPTION_WITH_SIGNED_INTEGER_SELECTOR:
+	case BT_FIELD_CLASS_TYPE_OPTION_WITHOUT_SELECTOR_FIELD:
+	case BT_FIELD_CLASS_TYPE_OPTION_WITH_BOOL_SELECTOR_FIELD:
+	case BT_FIELD_CLASS_TYPE_OPTION_WITH_UNSIGNED_INTEGER_SELECTOR_FIELD:
+	case BT_FIELD_CLASS_TYPE_OPTION_WITH_SIGNED_INTEGER_SELECTOR_FIELD:
 		ret = field_class_option_copy(md_maps,
 				in_field_class, out_field_class);
 		break;
-	case BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR:
-	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR:
-	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_INTEGER_SELECTOR:
+	case BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR_FIELD:
+	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR_FIELD:
+	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_INTEGER_SELECTOR_FIELD:
 		ret = field_class_variant_copy(md_maps,
 				in_field_class, out_field_class);
 		break;

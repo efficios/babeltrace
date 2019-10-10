@@ -37,26 +37,26 @@ extern "C" {
 #endif
 
 typedef enum bt_field_class_type {
-	BT_FIELD_CLASS_TYPE_BOOL					= 0,
-	BT_FIELD_CLASS_TYPE_BIT_ARRAY					= 1,
-	BT_FIELD_CLASS_TYPE_UNSIGNED_INTEGER				= 2,
-	BT_FIELD_CLASS_TYPE_SIGNED_INTEGER				= 3,
-	BT_FIELD_CLASS_TYPE_UNSIGNED_ENUMERATION			= 4,
-	BT_FIELD_CLASS_TYPE_SIGNED_ENUMERATION				= 5,
-	BT_FIELD_CLASS_TYPE_SINGLE_PRECISION_REAL			= 6,
-	BT_FIELD_CLASS_TYPE_DOUBLE_PRECISION_REAL			= 7,
-	BT_FIELD_CLASS_TYPE_STRING					= 8,
-	BT_FIELD_CLASS_TYPE_STRUCTURE					= 9,
-	BT_FIELD_CLASS_TYPE_STATIC_ARRAY				= 10,
-	BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITHOUT_LENGTH_FIELD		= 11,
-	BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITH_LENGTH_FIELD		= 12,
-	BT_FIELD_CLASS_TYPE_OPTION_WITHOUT_SELECTOR			= 13,
-	BT_FIELD_CLASS_TYPE_OPTION_WITH_BOOL_SELECTOR			= 14,
-	BT_FIELD_CLASS_TYPE_OPTION_WITH_UNSIGNED_INTEGER_SELECTOR	= 15,
-	BT_FIELD_CLASS_TYPE_OPTION_WITH_SIGNED_INTEGER_SELECTOR		= 16,
-	BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR			= 17,
-	BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR	= 18,
-	BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_INTEGER_SELECTOR	= 19,
+	BT_FIELD_CLASS_TYPE_BOOL						= 0,
+	BT_FIELD_CLASS_TYPE_BIT_ARRAY						= 1,
+	BT_FIELD_CLASS_TYPE_UNSIGNED_INTEGER					= 2,
+	BT_FIELD_CLASS_TYPE_SIGNED_INTEGER					= 3,
+	BT_FIELD_CLASS_TYPE_UNSIGNED_ENUMERATION				= 4,
+	BT_FIELD_CLASS_TYPE_SIGNED_ENUMERATION					= 5,
+	BT_FIELD_CLASS_TYPE_SINGLE_PRECISION_REAL				= 6,
+	BT_FIELD_CLASS_TYPE_DOUBLE_PRECISION_REAL				= 7,
+	BT_FIELD_CLASS_TYPE_STRING						= 8,
+	BT_FIELD_CLASS_TYPE_STRUCTURE						= 9,
+	BT_FIELD_CLASS_TYPE_STATIC_ARRAY					= 10,
+	BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITHOUT_LENGTH_FIELD			= 11,
+	BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITH_LENGTH_FIELD			= 12,
+	BT_FIELD_CLASS_TYPE_OPTION_WITHOUT_SELECTOR_FIELD			= 13,
+	BT_FIELD_CLASS_TYPE_OPTION_WITH_BOOL_SELECTOR_FIELD			= 14,
+	BT_FIELD_CLASS_TYPE_OPTION_WITH_UNSIGNED_INTEGER_SELECTOR_FIELD		= 15,
+	BT_FIELD_CLASS_TYPE_OPTION_WITH_SIGNED_INTEGER_SELECTOR_FIELD		= 16,
+	BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR_FIELD			= 17,
+	BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR_FIELD	= 18,
+	BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_INTEGER_SELECTOR_FIELD		= 19,
 } bt_field_class_type;
 
 typedef enum bt_field_class_integer_preferred_display_base {
@@ -182,19 +182,19 @@ bt_field_class_option_borrow_field_class_const(
 		const bt_field_class *field_class);
 
 extern const bt_field_path *
-bt_field_class_option_with_selector_borrow_selector_field_path_const(
+bt_field_class_option_with_selector_field_borrow_selector_field_path_const(
 		const bt_field_class *field_class);
 
 extern bt_bool
-bt_field_class_option_with_selector_bool_selector_is_reversed(
+bt_field_class_option_with_selector_field_bool_selector_is_reversed(
 		const bt_field_class *field_class);
 
 extern const bt_integer_range_set_unsigned *
-bt_field_class_option_with_selector_integer_unsigned_borrow_selector_ranges_const(
+bt_field_class_option_with_selector_field_integer_unsigned_borrow_selector_ranges_const(
 		const bt_field_class *field_class);
 
 extern const bt_integer_range_set_signed *
-bt_field_class_option_with_selector_integer_signed_borrow_selector_ranges_const(
+bt_field_class_option_with_selector_field_integer_signed_borrow_selector_ranges_const(
 		const bt_field_class *field_class);
 
 extern uint64_t bt_field_class_variant_get_option_count(
@@ -208,20 +208,20 @@ extern const bt_field_class_variant_option *
 bt_field_class_variant_borrow_option_by_name_const(
 		const bt_field_class *field_class, const char *name);
 
-extern const bt_field_class_variant_with_selector_integer_unsigned_option *
-bt_field_class_variant_with_selector_integer_unsigned_borrow_option_by_index_const(
+extern const bt_field_class_variant_with_selector_field_integer_unsigned_option *
+bt_field_class_variant_with_selector_field_integer_unsigned_borrow_option_by_index_const(
 		const bt_field_class *field_class, uint64_t index);
 
-extern const bt_field_class_variant_with_selector_integer_unsigned_option *
-bt_field_class_variant_with_selector_integer_unsigned_borrow_option_by_name_const(
+extern const bt_field_class_variant_with_selector_field_integer_unsigned_option *
+bt_field_class_variant_with_selector_field_integer_unsigned_borrow_option_by_name_const(
 		const bt_field_class *field_class, const char *name);
 
-extern const bt_field_class_variant_with_selector_integer_signed_option *
-bt_field_class_variant_with_selector_integer_signed_borrow_option_by_index_const(
+extern const bt_field_class_variant_with_selector_field_integer_signed_option *
+bt_field_class_variant_with_selector_field_integer_signed_borrow_option_by_index_const(
 		const bt_field_class *field_class, uint64_t index);
 
-extern const bt_field_class_variant_with_selector_integer_signed_option *
-bt_field_class_variant_with_selector_integer_signed_borrow_option_by_name_const(
+extern const bt_field_class_variant_with_selector_field_integer_signed_option *
+bt_field_class_variant_with_selector_field_integer_signed_borrow_option_by_name_const(
 		const bt_field_class *field_class, const char *name);
 
 extern const char *bt_field_class_variant_option_get_name(
@@ -235,29 +235,29 @@ extern const bt_value *bt_field_class_variant_option_borrow_user_attributes_cons
 		const bt_field_class_variant_option *option);
 
 extern const bt_field_path *
-bt_field_class_variant_with_selector_borrow_selector_field_path_const(
+bt_field_class_variant_with_selector_field_borrow_selector_field_path_const(
 		const bt_field_class *field_class);
 
 extern const bt_integer_range_set_unsigned *
-bt_field_class_variant_with_selector_integer_unsigned_option_borrow_ranges_const(
-		const bt_field_class_variant_with_selector_integer_unsigned_option *option);
+bt_field_class_variant_with_selector_field_integer_unsigned_option_borrow_ranges_const(
+		const bt_field_class_variant_with_selector_field_integer_unsigned_option *option);
 
 static inline
 const bt_field_class_variant_option *
-bt_field_class_variant_with_selector_integer_unsigned_option_as_option_const(
-		const bt_field_class_variant_with_selector_integer_unsigned_option *option)
+bt_field_class_variant_with_selector_field_integer_unsigned_option_as_option_const(
+		const bt_field_class_variant_with_selector_field_integer_unsigned_option *option)
 {
 	return __BT_UPCAST_CONST(bt_field_class_variant_option, option);
 }
 
 extern const bt_integer_range_set_signed *
-bt_field_class_variant_with_selector_integer_signed_option_borrow_ranges_const(
-		const bt_field_class_variant_with_selector_integer_signed_option *option);
+bt_field_class_variant_with_selector_field_integer_signed_option_borrow_ranges_const(
+		const bt_field_class_variant_with_selector_field_integer_signed_option *option);
 
 static inline
 const bt_field_class_variant_option *
-bt_field_class_variant_with_selector_integer_signed_option_as_option_const(
-		const bt_field_class_variant_with_selector_integer_signed_option *option)
+bt_field_class_variant_with_selector_field_integer_signed_option_as_option_const(
+		const bt_field_class_variant_with_selector_field_integer_signed_option *option)
 {
 	return __BT_UPCAST_CONST(bt_field_class_variant_option, option);
 }

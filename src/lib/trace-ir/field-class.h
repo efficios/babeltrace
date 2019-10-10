@@ -74,40 +74,40 @@
 	_name " is not an array field class: %![fc-]+F"
 
 #define _BT_ASSERT_PRE_FC_IS_OPTION_COND(_fc)				\
-	(((const struct bt_field_class *) (_fc))->type == BT_FIELD_CLASS_TYPE_OPTION_WITHOUT_SELECTOR || \
-	((const struct bt_field_class *) (_fc))->type == BT_FIELD_CLASS_TYPE_OPTION_WITH_BOOL_SELECTOR || \
-	((const struct bt_field_class *) (_fc))->type == BT_FIELD_CLASS_TYPE_OPTION_WITH_UNSIGNED_INTEGER_SELECTOR || \
-	((const struct bt_field_class *) (_fc))->type == BT_FIELD_CLASS_TYPE_OPTION_WITH_SIGNED_INTEGER_SELECTOR)
+	(((const struct bt_field_class *) (_fc))->type == BT_FIELD_CLASS_TYPE_OPTION_WITHOUT_SELECTOR_FIELD || \
+	((const struct bt_field_class *) (_fc))->type == BT_FIELD_CLASS_TYPE_OPTION_WITH_BOOL_SELECTOR_FIELD || \
+	((const struct bt_field_class *) (_fc))->type == BT_FIELD_CLASS_TYPE_OPTION_WITH_UNSIGNED_INTEGER_SELECTOR_FIELD || \
+	((const struct bt_field_class *) (_fc))->type == BT_FIELD_CLASS_TYPE_OPTION_WITH_SIGNED_INTEGER_SELECTOR_FIELD)
 
 #define _BT_ASSERT_PRE_FC_IS_OPTION_FMT(_name)				\
 	_name " is not an option field class: %![fc-]+F"
 
 #define _BT_ASSERT_PRE_FC_IS_OPTION_WITH_SEL_COND(_fc)			\
-	(((const struct bt_field_class *) (_fc))->type == BT_FIELD_CLASS_TYPE_OPTION_WITH_BOOL_SELECTOR || \
-	((const struct bt_field_class *) (_fc))->type == BT_FIELD_CLASS_TYPE_OPTION_WITH_UNSIGNED_INTEGER_SELECTOR || \
-	((const struct bt_field_class *) (_fc))->type == BT_FIELD_CLASS_TYPE_OPTION_WITH_SIGNED_INTEGER_SELECTOR)
+	(((const struct bt_field_class *) (_fc))->type == BT_FIELD_CLASS_TYPE_OPTION_WITH_BOOL_SELECTOR_FIELD || \
+	((const struct bt_field_class *) (_fc))->type == BT_FIELD_CLASS_TYPE_OPTION_WITH_UNSIGNED_INTEGER_SELECTOR_FIELD || \
+	((const struct bt_field_class *) (_fc))->type == BT_FIELD_CLASS_TYPE_OPTION_WITH_SIGNED_INTEGER_SELECTOR_FIELD)
 
 #define _BT_ASSERT_PRE_FC_IS_OPTION_WITH_SEL_FMT(_name)		\
 	_name " is not an option field class with a selector: %![fc-]+F"
 
 #define _BT_ASSERT_PRE_FC_IS_OPTION_WITH_INT_SEL_COND(_fc)		\
-	(((const struct bt_field_class *) (_fc))->type == BT_FIELD_CLASS_TYPE_OPTION_WITH_UNSIGNED_INTEGER_SELECTOR || \
-	((const struct bt_field_class *) (_fc))->type == BT_FIELD_CLASS_TYPE_OPTION_WITH_SIGNED_INTEGER_SELECTOR)
+	(((const struct bt_field_class *) (_fc))->type == BT_FIELD_CLASS_TYPE_OPTION_WITH_UNSIGNED_INTEGER_SELECTOR_FIELD || \
+	((const struct bt_field_class *) (_fc))->type == BT_FIELD_CLASS_TYPE_OPTION_WITH_SIGNED_INTEGER_SELECTOR_FIELD)
 
 #define _BT_ASSERT_PRE_FC_IS_OPTION_WITH_INT_SEL_FMT(_name)		\
 	_name " is not an option field class with an integer selector: %![fc-]+F"
 
 #define _BT_ASSERT_PRE_FC_IS_VARIANT_COND(_fc)				\
-	(((const struct bt_field_class *) (_fc))->type == BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR || \
-	((const struct bt_field_class *) (_fc))->type == BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR || \
-	((const struct bt_field_class *) (_fc))->type == BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_INTEGER_SELECTOR)
+	(((const struct bt_field_class *) (_fc))->type == BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR_FIELD || \
+	((const struct bt_field_class *) (_fc))->type == BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR_FIELD || \
+	((const struct bt_field_class *) (_fc))->type == BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_INTEGER_SELECTOR_FIELD)
 
 #define _BT_ASSERT_PRE_FC_IS_VARIANT_FMT(_name)				\
 	_name " is not a variant field class: %![fc-]+F"
 
 #define _BT_ASSERT_PRE_FC_IS_VARIANT_WITH_SEL_COND(_fc)			\
-	(((const struct bt_field_class *) (_fc))->type == BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR || \
-	((const struct bt_field_class *) (_fc))->type == BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_INTEGER_SELECTOR)
+	(((const struct bt_field_class *) (_fc))->type == BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR_FIELD || \
+	((const struct bt_field_class *) (_fc))->type == BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_INTEGER_SELECTOR_FIELD)
 
 #define _BT_ASSERT_PRE_FC_IS_VARIANT_WITH_SEL_FMT(_name)		\
 	_name " is not a variant field class with a selector: %![fc-]+F"
@@ -314,8 +314,8 @@ struct bt_named_field_class {
 
 struct bt_field_class_structure_member;
 struct bt_field_class_variant_option;
-struct bt_field_class_variant_with_selector_integer_unsigned_option;
-struct bt_field_class_variant_with_selector_integer_signed_option;
+struct bt_field_class_variant_with_selector_field_integer_unsigned_option;
+struct bt_field_class_variant_with_selector_field_integer_signed_option;
 
 struct bt_field_class_named_field_class_container {
 	struct bt_field_class common;
@@ -363,7 +363,7 @@ struct bt_field_class_option {
 	struct bt_field_class *content_fc;
 };
 
-struct bt_field_class_option_with_selector {
+struct bt_field_class_option_with_selector_field {
 	struct bt_field_class_option common;
 
 	/* Owned by this */
@@ -373,22 +373,22 @@ struct bt_field_class_option_with_selector {
 	struct bt_field_path *selector_field_path;
 };
 
-struct bt_field_class_option_with_selector_bool {
-	struct bt_field_class_option_with_selector common;
+struct bt_field_class_option_with_selector_field_bool {
+	struct bt_field_class_option_with_selector_field common;
 
 	/* Owned by this */
 	bool sel_is_reversed;
 };
 
-struct bt_field_class_option_with_selector_integer {
-	struct bt_field_class_option_with_selector common;
+struct bt_field_class_option_with_selector_field_integer {
+	struct bt_field_class_option_with_selector_field common;
 
 	/* Owned by this */
 	const struct bt_integer_range_set *range_set;
 };
 
 /* Variant FC (with selector) option: named field class + range set */
-struct bt_field_class_variant_with_selector_option {
+struct bt_field_class_variant_with_selector_field_option {
 	struct bt_named_field_class common;
 
 	/* Owned by this */
@@ -401,13 +401,13 @@ struct bt_field_class_variant {
 	 * named field classes are of type
 	 * `struct bt_named_field_class *` if the variant field class
 	 * doesn't have a selector, or
-	 * `struct bt_field_class_variant_with_selector_option *`
+	 * `struct bt_field_class_variant_with_selector_field_option *`
 	 * if it has.
 	 */
 	struct bt_field_class_named_field_class_container common;
 };
 
-struct bt_field_class_variant_with_selector {
+struct bt_field_class_variant_with_selector_field {
 	struct bt_field_class_variant common;
 
 	/*

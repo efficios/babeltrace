@@ -1863,9 +1863,9 @@ bt_field *borrow_next_field(struct bt_msg_iter *notit)
 		next_field = bt_field_array_borrow_element_field_by_index(
 			base_field, index);
 		break;
-	case BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR:
-	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR:
-	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_INTEGER_SELECTOR:
+	case BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR_FIELD:
+	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR_FIELD:
+	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_INTEGER_SELECTOR_FIELD:
 		BT_ASSERT(index == 0);
 		next_field = bt_field_variant_borrow_selected_option_field(
 			base_field);
