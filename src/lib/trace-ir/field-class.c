@@ -2027,7 +2027,9 @@ struct bt_field_class *bt_field_class_array_dynamic_create(
 	}
 
 	if (init_array_field_class((void *) array_fc,
-			BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY,
+			length_fc ?
+				BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITH_LENGTH_FIELD :
+				BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITHOUT_LENGTH_FIELD,
 			destroy_dynamic_array_field_class, element_fc)) {
 		goto error;
 	}
@@ -2051,13 +2053,14 @@ end:
 }
 
 const struct bt_field_path *
-bt_field_class_array_dynamic_borrow_length_field_path_const(
+bt_field_class_array_dynamic_with_length_field_borrow_length_field_path_const(
 		const struct bt_field_class *fc)
 {
 	const struct bt_field_class_array_dynamic *seq_fc = (const void *) fc;
 
 	BT_ASSERT_PRE_DEV_NON_NULL(fc, "Field class");
-	BT_ASSERT_PRE_DEV_FC_HAS_ID(fc, BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY,
+	BT_ASSERT_PRE_DEV_FC_HAS_ID(fc,
+		BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITH_LENGTH_FIELD,
 		"Field class");
 	return seq_fc->length_field_path;
 }
@@ -2175,7 +2178,8 @@ void bt_field_class_make_part_of_trace_class(const struct bt_field_class *c_fc)
 		break;
 	}
 	case BT_FIELD_CLASS_TYPE_STATIC_ARRAY:
-	case BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY:
+	case BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITHOUT_LENGTH_FIELD:
+	case BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITH_LENGTH_FIELD:
 	{
 		struct bt_field_class_array *array_fc = (void *) fc;
 

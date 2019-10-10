@@ -430,7 +430,7 @@ class _TraceClass(_TraceClassConst):
             self._ptr, elem_fc._ptr, length_fc_ptr
         )
         self._check_field_class_create_status(ptr, 'dynamic array')
-        fc = bt2_field_class._DynamicArrayFieldClass._create_from_ptr(ptr)
+        fc = bt2_field_class._create_field_class_from_ptr_and_get_ref(ptr)
         self._set_field_class_user_attrs(fc, user_attributes)
         return fc
 

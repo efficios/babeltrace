@@ -1202,10 +1202,13 @@ int translate_dynamic_array_field_class(struct ctx *ctx)
 	BT_ASSERT(fc);
 
 	/* Resolve length field class before appending to parent */
-	resolve_field_class(ctx,
-		bt_field_class_array_dynamic_borrow_length_field_path_const(
-			fc->base.base.ir_fc),
-		fc->length_ref, &fc->length_is_before, NULL);
+	if (bt_field_class_get_type(cur_path_stack_top(ctx)->ir_fc) ==
+			BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITH_LENGTH_FIELD) {
+		resolve_field_class(ctx,
+			bt_field_class_array_dynamic_with_length_field_borrow_length_field_path_const(
+				fc->base.base.ir_fc),
+			fc->length_ref, &fc->length_is_before, NULL);
+	}
 
 	append_to_parent_field_class(ctx, (void *) fc);
 	ret = cur_path_stack_push(ctx, UINT64_C(-1), NULL, false, elem_ir_fc,
@@ -1331,7 +1334,8 @@ int translate_field_class(struct ctx *ctx)
 	case BT_FIELD_CLASS_TYPE_STATIC_ARRAY:
 		ret = translate_static_array_field_class(ctx);
 		break;
-	case BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY:
+	case BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITHOUT_LENGTH_FIELD:
+	case BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITH_LENGTH_FIELD:
 		ret = translate_dynamic_array_field_class(ctx);
 		break;
 	case BT_FIELD_CLASS_TYPE_OPTION_WITHOUT_SELECTOR:

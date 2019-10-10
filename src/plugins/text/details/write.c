@@ -946,8 +946,11 @@ void write_field_class(struct details_write_ctx *ctx, const bt_field_class *fc)
 	case BT_FIELD_CLASS_TYPE_STATIC_ARRAY:
 		type = "Static array";
 		break;
-	case BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY:
-		type = "Dynamic array";
+	case BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITHOUT_LENGTH_FIELD:
+		type = "Dynamic array (no length field)";
+		break;
+	case BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITH_LENGTH_FIELD:
+		type = "Dynamic array (with length field)";
 		break;
 	case BT_FIELD_CLASS_TYPE_OPTION_WITHOUT_SELECTOR:
 		type = "Option (no selector)";
@@ -1010,22 +1013,21 @@ void write_field_class(struct details_write_ctx *ctx, const bt_field_class *fc)
 		break;
 	}
 	case BT_FIELD_CLASS_TYPE_STATIC_ARRAY:
-	case BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY:
+	case BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITHOUT_LENGTH_FIELD:
+	case BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITH_LENGTH_FIELD:
 		if (fc_type == BT_FIELD_CLASS_TYPE_STATIC_ARRAY) {
 			g_string_append(ctx->str, " (Length ");
 			write_uint_prop_value(ctx,
 				bt_field_class_array_static_get_length(fc));
 			g_string_append_c(ctx->str, ')');
-		} else {
+		} else if (fc_type == BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITH_LENGTH_FIELD) {
 			const bt_field_path *length_field_path =
-				bt_field_class_array_dynamic_borrow_length_field_path_const(
+				bt_field_class_array_dynamic_with_length_field_borrow_length_field_path_const(
 					fc);
 
-			if (length_field_path) {
-				g_string_append(ctx->str, " (Length field path ");
-				write_field_path(ctx, length_field_path);
-				g_string_append_c(ctx->str, ')');
-			}
+			g_string_append(ctx->str, " (Length field path ");
+			write_field_path(ctx, length_field_path);
+			g_string_append_c(ctx->str, ')');
 		}
 
 		break;
@@ -1172,7 +1174,8 @@ void write_field_class(struct details_write_ctx *ctx, const bt_field_class *fc)
 		break;
 	}
 	case BT_FIELD_CLASS_TYPE_STATIC_ARRAY:
-	case BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY:
+	case BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITHOUT_LENGTH_FIELD:
+	case BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITH_LENGTH_FIELD:
 		if (wrote_user_attrs) {
 			write_nl(ctx);
 		} else {
@@ -1940,7 +1943,8 @@ void write_field(struct details_write_ctx *ctx, const bt_field *field,
 		break;
 	}
 	case BT_FIELD_CLASS_TYPE_STATIC_ARRAY:
-	case BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY:
+	case BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITHOUT_LENGTH_FIELD:
+	case BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITH_LENGTH_FIELD:
 	{
 		uint64_t length = bt_field_array_get_length(field);
 

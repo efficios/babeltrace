@@ -982,9 +982,13 @@ class _StaticArrayFieldClass(_StaticArrayFieldClassConst, _ArrayFieldClass):
 class _DynamicArrayFieldClassConst(_ArrayFieldClassConst):
     _NAME = 'Const dynamic array'
 
+
+class _DynamicArrayWithLengthFieldFieldClassConst(_DynamicArrayFieldClassConst):
+    _NAME = 'Const dynamic array (with length field)'
+
     @property
     def length_field_path(self):
-        ptr = native_bt.field_class_array_dynamic_borrow_length_field_path_const(
+        ptr = native_bt.field_class_array_dynamic_with_length_field_borrow_length_field_path_const(
             self._ptr
         )
         if ptr is None:
@@ -995,6 +999,12 @@ class _DynamicArrayFieldClassConst(_ArrayFieldClassConst):
 
 class _DynamicArrayFieldClass(_DynamicArrayFieldClassConst, _ArrayFieldClass):
     _NAME = 'Dynamic array'
+
+
+class _DynamicArrayWithLengthFieldFieldClass(
+    _DynamicArrayWithLengthFieldFieldClassConst, _DynamicArrayFieldClass
+):
+    _NAME = 'Dynamic array (with length field)'
 
 
 _FIELD_CLASS_TYPE_TO_CONST_OBJ = {
@@ -1009,7 +1019,8 @@ _FIELD_CLASS_TYPE_TO_CONST_OBJ = {
     native_bt.FIELD_CLASS_TYPE_STRING: _StringFieldClassConst,
     native_bt.FIELD_CLASS_TYPE_STRUCTURE: _StructureFieldClassConst,
     native_bt.FIELD_CLASS_TYPE_STATIC_ARRAY: _StaticArrayFieldClassConst,
-    native_bt.FIELD_CLASS_TYPE_DYNAMIC_ARRAY: _DynamicArrayFieldClassConst,
+    native_bt.FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITHOUT_LENGTH_FIELD: _DynamicArrayFieldClassConst,
+    native_bt.FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITH_LENGTH_FIELD: _DynamicArrayWithLengthFieldFieldClassConst,
     native_bt.FIELD_CLASS_TYPE_OPTION_WITHOUT_SELECTOR: _OptionFieldClassConst,
     native_bt.FIELD_CLASS_TYPE_OPTION_WITH_BOOL_SELECTOR: _OptionWithBoolSelectorFieldClassConst,
     native_bt.FIELD_CLASS_TYPE_OPTION_WITH_UNSIGNED_INTEGER_SELECTOR: _OptionWithUnsignedIntegerSelectorFieldClassConst,
@@ -1031,7 +1042,8 @@ _FIELD_CLASS_TYPE_TO_OBJ = {
     native_bt.FIELD_CLASS_TYPE_STRING: _StringFieldClass,
     native_bt.FIELD_CLASS_TYPE_STRUCTURE: _StructureFieldClass,
     native_bt.FIELD_CLASS_TYPE_STATIC_ARRAY: _StaticArrayFieldClass,
-    native_bt.FIELD_CLASS_TYPE_DYNAMIC_ARRAY: _DynamicArrayFieldClass,
+    native_bt.FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITHOUT_LENGTH_FIELD: _DynamicArrayFieldClass,
+    native_bt.FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITH_LENGTH_FIELD: _DynamicArrayWithLengthFieldFieldClass,
     native_bt.FIELD_CLASS_TYPE_OPTION_WITHOUT_SELECTOR: _OptionFieldClass,
     native_bt.FIELD_CLASS_TYPE_OPTION_WITH_BOOL_SELECTOR: _OptionWithBoolSelectorFieldClass,
     native_bt.FIELD_CLASS_TYPE_OPTION_WITH_UNSIGNED_INTEGER_SELECTOR: _OptionWithUnsignedIntegerSelectorFieldClass,

@@ -1070,7 +1070,8 @@ int print_field(struct pretty_component *pretty,
 		return print_variant(pretty, field, print_names);
 	case BT_FIELD_CLASS_TYPE_STATIC_ARRAY:
 		return print_array(pretty, field, print_names);
-	case BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY:
+	case BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITHOUT_LENGTH_FIELD:
+	case BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITH_LENGTH_FIELD:
 		return print_sequence(pretty, field, print_names);
 	default:
 		// TODO: log instead

@@ -1307,6 +1307,8 @@ class _ArrayFieldClassTestCase:
             type(fc.element_field_class), bt2_field_class._SignedIntegerFieldClass
         )
 
+
+class _ArrayFieldClassConstTestCase:
     def test_const_attr_element_field_class(self):
         fc = self._create_const_array()
         self.assertIs(
@@ -1314,7 +1316,9 @@ class _ArrayFieldClassTestCase:
         )
 
 
-class StaticArrayFieldClassTestCase(_ArrayFieldClassTestCase, unittest.TestCase):
+class StaticArrayFieldClassTestCase(
+    _ArrayFieldClassTestCase, _ArrayFieldClassConstTestCase, unittest.TestCase
+):
     @staticmethod
     def _const_value_setter(field):
         field.value = [9] * 45
@@ -1353,7 +1357,9 @@ class StaticArrayFieldClassTestCase(_ArrayFieldClassTestCase, unittest.TestCase)
             )
 
 
-class DynamicArrayFieldClassTestCase(_ArrayFieldClassTestCase, unittest.TestCase):
+class DynamicArrayFieldClassTestCase(
+    _ArrayFieldClassTestCase, _ArrayFieldClassConstTestCase, unittest.TestCase
+):
     @staticmethod
     def _const_value_setter(field):
         field.value = []
@@ -1368,10 +1374,34 @@ class DynamicArrayFieldClassTestCase(_ArrayFieldClassTestCase, unittest.TestCase
     def setUp(self):
         self._tc = get_default_trace_class()
         self._elem_fc = self._tc.create_signed_integer_field_class(23)
-        self._len_fc = self._tc.create_unsigned_integer_field_class(12)
 
     def test_create_default(self):
         fc = self._tc.create_dynamic_array_field_class(self._elem_fc)
+        self.assertEqual(fc.element_field_class.addr, self._elem_fc.addr)
+        self.assertEqual(len(fc.user_attributes), 0)
+
+    def test_create_invalid_field_class(self):
+        with self.assertRaises(TypeError):
+            self._tc.create_dynamic_array_field_class(object())
+
+
+class DynamicArrayWithLengthFieldFieldClassTestCase(
+    _ArrayFieldClassTestCase, unittest.TestCase
+):
+    @staticmethod
+    def _const_value_setter(field):
+        field.value = []
+
+    def _create_array(self):
+        return self._tc.create_dynamic_array_field_class(self._elem_fc, self._len_fc)
+
+    def setUp(self):
+        self._tc = get_default_trace_class()
+        self._elem_fc = self._tc.create_signed_integer_field_class(23)
+        self._len_fc = self._tc.create_unsigned_integer_field_class(12)
+
+    def test_create_default(self):
+        fc = self._create_array()
         self.assertEqual(fc.element_field_class.addr, self._elem_fc.addr)
         self.assertIsNone(fc.length_field_path, None)
         self.assertEqual(len(fc.user_attributes), 0)
@@ -1389,7 +1419,7 @@ class DynamicArrayFieldClassTestCase(_ArrayFieldClassTestCase, unittest.TestCase
         #   } inner_struct[2];
         # };
 
-        fc = self._tc.create_dynamic_array_field_class(self._elem_fc, self._len_fc)
+        fc = self._create_array()
 
         foo_fc = self._tc.create_single_precision_real_field_class()
         bar_fc = self._tc.create_string_field_class()
@@ -1440,10 +1470,6 @@ class DynamicArrayFieldClassTestCase(_ArrayFieldClassTestCase, unittest.TestCase
         self.assertEqual(
             fc.length_field_path.root_scope, bt2.FieldPathScope.PACKET_CONTEXT
         )
-
-    def test_create_invalid_field_class(self):
-        with self.assertRaises(TypeError):
-            self._tc.create_dynamic_array_field_class(object())
 
     def test_create_invalid_length_type(self):
         with self.assertRaises(TypeError):

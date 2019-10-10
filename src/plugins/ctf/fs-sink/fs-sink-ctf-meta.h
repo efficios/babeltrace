@@ -410,8 +410,8 @@ struct fs_sink_ctf_field_class_sequence *fs_sink_ctf_field_class_sequence_create
 	fc->length_ref = g_string_new(NULL);
 	BT_ASSERT(fc->length_ref);
 	fc->length_is_before =
-		bt_field_class_array_dynamic_borrow_length_field_path_const(ir_fc) ==
-		NULL;
+		bt_field_class_get_type(ir_fc) ==
+			BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITHOUT_LENGTH_FIELD;
 	return fc;
 }
 

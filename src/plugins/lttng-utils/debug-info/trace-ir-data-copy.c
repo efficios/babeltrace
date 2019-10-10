@@ -305,7 +305,8 @@ void copy_field_content(const bt_field *in_field, bt_field *out_field,
 		}
 		break;
 	}
-	case BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY:
+	case BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITHOUT_LENGTH_FIELD:
+	case BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITH_LENGTH_FIELD:
 		/* fall through */
 	case BT_FIELD_CLASS_TYPE_STATIC_ARRAY:
 	{
@@ -316,7 +317,8 @@ void copy_field_content(const bt_field *in_field, bt_field *out_field,
 
 		array_len = bt_field_array_get_length(in_field);
 
-		if (in_fc_type == BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY) {
+		if (in_fc_type == BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITHOUT_LENGTH_FIELD ||
+				in_fc_type == BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITH_LENGTH_FIELD) {
 			set_len_status = bt_field_array_dynamic_set_length(
 				out_field, array_len);
 			if (set_len_status !=

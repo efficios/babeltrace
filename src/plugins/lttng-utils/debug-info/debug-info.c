@@ -379,7 +379,9 @@ int event_get_payload_build_id_length(const bt_event *event,
 	build_id_field_class = bt_field_borrow_class_const(build_id_field);
 
 	BT_ASSERT(bt_field_class_get_type(build_id_field_class) ==
-		BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY);
+		BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITHOUT_LENGTH_FIELD ||
+		bt_field_class_get_type(build_id_field_class) ==
+		BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITH_LENGTH_FIELD);
 	BT_ASSERT(bt_field_class_get_type(
 		bt_field_class_array_borrow_element_field_class_const(
 			build_id_field_class)) ==
@@ -405,7 +407,9 @@ int event_get_payload_build_id_value(const bt_event *event,
 	build_id_field_class = bt_field_borrow_class_const(build_id_field);
 
 	BT_ASSERT(bt_field_class_get_type(build_id_field_class) ==
-		BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY);
+		BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITHOUT_LENGTH_FIELD ||
+		bt_field_class_get_type(build_id_field_class) ==
+		BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITH_LENGTH_FIELD);
 	BT_ASSERT(bt_field_class_get_type(
 		bt_field_class_array_borrow_element_field_class_const(
 			build_id_field_class)) ==

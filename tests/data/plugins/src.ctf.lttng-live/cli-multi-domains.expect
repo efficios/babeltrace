@@ -162,21 +162,21 @@ Trace class:
         arrfield3: Static array (Length 3):
           Element: Unsigned integer (32-bit, Base 10)
         _seqfield1_length: Unsigned integer (64-bit, Base 10)
-        seqfield1: Dynamic array (Length field path [Event payload: 8]):
+        seqfield1: Dynamic array (with length field) (Length field path [Event payload: 8]):
           Element: Signed integer (8-bit, Base 10)
         _seqfield2_length: Unsigned integer (64-bit, Base 10)
         seqfield2: String
         _seqfield3_length: Unsigned integer (64-bit, Base 10)
-        seqfield3: Dynamic array (Length field path [Event payload: 12]):
+        seqfield3: Dynamic array (with length field) (Length field path [Event payload: 12]):
           Element: Unsigned integer (32-bit, Base 10)
         _seqfield4_length: Unsigned integer (64-bit, Base 10)
-        seqfield4: Dynamic array (Length field path [Event payload: 14]):
+        seqfield4: Dynamic array (with length field) (Length field path [Event payload: 14]):
           Element: Signed integer (64-bit, Base 10)
         stringfield: String
         stringfield2: String
         _bitfield_seq_length: Unsigned integer (8-bit, Base 10)
         bitfield_seq_padding: Structure (0 members)
-        bitfield_seq: Dynamic array (Length field path [Event payload: 18]):
+        bitfield_seq: Dynamic array (with length field) (Length field path [Event payload: 18]):
           Element: Unsigned integer (1-bit, Base 10)
         bitfield_array_padding: Structure (0 members)
         bitfield_array: Static array (Length 192):
