@@ -159,19 +159,21 @@ bt_bool validate_map_value_entry(const char *key,
 		const bt_value *value, void *v_data)
 {
 	struct validate_map_value_data *data = v_data;
-	const struct bt_param_validation_map_value_entry_descr *candidate;
+	const struct bt_param_validation_map_value_entry_descr *entry = NULL;
 	guint i;
 
 	/* Check if this key is in the available keys. */
 	for (i = 0; i < data->available_keys->len; i++) {
-		candidate = g_ptr_array_index(data->available_keys, i);
+		const struct bt_param_validation_map_value_entry_descr *candidate =
+			g_ptr_array_index(data->available_keys, i);
 
 		if (g_str_equal(key, candidate->key)) {
+			entry = candidate;
 			break;
 		}
 	}
 
-	if (i < data->available_keys->len) {
+	if (entry) {
 		/* Key was found in available keys. */
 		g_ptr_array_remove_index_fast(data->available_keys, i);
 
@@ -179,7 +181,7 @@ bt_bool validate_map_value_entry(const char *key,
 		validate_ctx_push_map_scope(data->ctx, key);
 
 		/* Validate the value of the entry. */
-		data->status = validate_value(value, &candidate->value_descr,
+		data->status = validate_value(value, &entry->value_descr,
 			data->ctx);
 
 		validate_ctx_pop_scope(data->ctx);
