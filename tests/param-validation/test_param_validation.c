@@ -340,7 +340,7 @@ void test_custom_validation_func_invalid(void)
 
 int main(void)
 {
-	plan_tests(34);
+	plan_tests(41);
 
 	test_map_valid();
 

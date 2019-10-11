@@ -142,6 +142,9 @@ if ENABLE_PYTHON_PLUGINS
 TESTS_PYTHON_PLUGIN_PROVIDER += python-plugin-provider/test_python_plugin_provider
 endif
 
+TESTS_PARAM_VALIDATION = \
+	param-validation/test_param_validation
+
 LOG_DRIVER_FLAGS = --merge --comments
 LOG_DRIVER = env AM_TAP_AWK='$(AWK)' \
 	     BT_TESTS_SRCDIR='$(abs_top_srcdir)/tests' \
@@ -159,6 +162,7 @@ TESTS_NO_BITFIELD = \
 	$(TESTS_CLI) \
 	$(TESTS_CTF_WRITER) \
 	$(TESTS_LIB) \
+	$(TESTS_PARAM_VALIDATION) \
 	$(TESTS_PLUGINS) \
 	$(TESTS_PYTHON_PLUGIN_PROVIDER)
 
