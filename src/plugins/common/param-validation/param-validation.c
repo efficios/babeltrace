@@ -223,15 +223,13 @@ enum bt_param_validation_status validate_map_value(
 
 	foreach_entry_status = bt_value_map_foreach_entry_const(map,
 		validate_map_value_entry, &data);
-	if (foreach_entry_status == BT_VALUE_MAP_FOREACH_ENTRY_CONST_STATUS_MEMORY_ERROR) {
-		status = BT_PARAM_VALIDATION_STATUS_MEMORY_ERROR;
-		goto end;
-	}
-
-	if (data.status != BT_PARAM_VALIDATION_STATUS_OK) {
+	if (foreach_entry_status == BT_VALUE_MAP_FOREACH_ENTRY_CONST_STATUS_INTERRUPTED) {
+		BT_ASSERT(data.status != BT_PARAM_VALIDATION_STATUS_OK);
 		status = data.status;
 		goto end;
 	}
+
+	BT_ASSERT(data.status == BT_PARAM_VALIDATION_STATUS_OK);
 
 	for (i = 0; i < data.available_keys->len; i++) {
 		const struct bt_param_validation_map_value_entry_descr *entry =
