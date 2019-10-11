@@ -7,6 +7,6 @@ SUBDIRS = \
 	tests
 
 dist_doc_DATA = ChangeLog LICENSE mit-license.txt gpl-2.0.txt \
-		std-ext-lib.txt README CONTRIBUTING.adoc
+		std-ext-lib.txt README.adoc CONTRIBUTING.adoc
 
 dist_noinst_DATA = CodingStyle

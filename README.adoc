@@ -1,0 +1,297 @@
+// Render with Asciidoctor
+
+= Babeltrace
+15 October 2019
+:btversion: 2.0
+:bt2: Babeltrace{nbsp}2
+
+
+Babeltrace /ˈbæbəltreɪs/, an
+https://efficios.com/[EfficiOS] project, is an open-source
+https://en.wikipedia.org/wiki/Tracing_(software)[trace]
+manipulation framework.
+
+https://ci.lttng.org/job/babeltrace_master_build[image:https://img.shields.io/jenkins/s/https/ci.lttng.org/babeltrace_master_build.svg[]]
+https://scan.coverity.com/projects/babeltrace[image:https://img.shields.io/coverity/scan/babeltrace.svg[]]
+
+The **_{bt2}_** project offers a library with a
+https://diamon.org/babeltrace/docs/v{btversion}/libbabeltrace2[C{nbsp}API],
+https://diamon.org/babeltrace/docs/v{btversion}/python/bt2[Python{nbsp}3 bindings],
+and a
+https://diamon.org/babeltrace/docs/v{btversion}/man1/babeltrace2.1/[command-line tool]
+(CLI) which makes it very easy for mere mortals to view, convert,
+transform, and analyze traces.
+
+{bt2} is also the reference parser implementation of the
+https://diamon.org/ctf/[Common Trace Format] (CTF), a versatile
+trace format produced by various tracers and tools such as
+https://lttng.org/[LTTng] and
+https://barectf.org/[barectf]. The {bt2} library and its Python bindings
+can read and write CTF traces.
+
+See Babeltrace's https://diamon.org/babeltrace[official website], in
+particular the
+https://diamon.org/babeltrace/docs/v{btversion}/man7/babeltrace2-intro.7[`**babeltrace2-intro**(7)`]
+manual page, to learn more about the project.
+
+[NOTE]
+.Babeltrace{nbsp}1 vs. {bt2}
+====
+The Babeltrace project exists since 2010. In 2019, {bt2} was
+released. {bt2} is a complete rewrite of the library, Python
+bindings, and CLI. It is plugin-based and offers much more features and
+potential than Babeltrace{nbsp}1 while showing comparable performance.
+
+Because {bt2} is still a young major release, some
+distributions still provide packages for the Babeltrace{nbsp}1 project.
+Both projects can coexist on the same system as there are no common
+files.
+
+This file documents the **{bt2}** project.
+====
+
+
+== Build Babeltrace{nbsp}{btversion} from source
+
+=== Build-time requirements
+
+To build Babeltrace{nbsp}{btversion}, you need:
+
+Compiler::
+    * Any https://gcc.gnu.org/[GCC]-like compiler with C99 and
+      https://gcc.gnu.org/onlinedocs/gcc/C-Extensions.html[GNU extension]
+      support.
++
+https://clang.llvm.org/[Clang] is one of those.
+
+Tools::
+    * https://www.gnu.org/software/make/[GNU Make]
+    * **If you build from a Git clone**:
+    ** https://www.gnu.org/software/automake/[GNU Automake]{nbsp}≥{nbsp}1.10
+    ** https://www.gnu.org/software/autoconf/[GNU Autoconf]{nbsp}≥{nbsp}2.64
+    ** https://www.gnu.org/software/libtool/[GNU Libtool]{nbsp}≥{nbsp}2.2
+    ** https://github.com/westes/flex[flex]{nbsp}≥{nbsp}2.5.35
+    ** https://www.gnu.org/software/bison/bison.html[GNU Bison]{nbsp}≥{nbsp}2.4
+
+Libraries::
+    * A C library (for example,
+      https://www.gnu.org/software/libc/[GNU{nbsp}C Library],
+      https://www.musl-libc.org/[musl libc])
+    * https://developer.gnome.org/glib/[GLib]{nbsp}≥{nbsp}2.22
+      (Debian/Ubuntu: `libglib2.0-dev`; Fedora: `glib2-devel`)
+
+_**If you need the `bt2` Python bindings**_::
+    * https://www.python.org[Python]{nbsp}≥{nbsp}3.4 (development
+      libraries and `python3-config`)
+      (Debian/Ubuntu: `python3-dev`; Fedora: `python3-devel`)
+    * http://www.swig.org[SWIG]{nbsp}≥{nbsp}3.0
+
+_**If you need the https://lttng.org/[LTTng] debug information filter component class (https://diamon.org/babeltrace/docs/v{btversion}/man7/babeltrace2-filter.lttng-utils.debug-info.7/[`filter.lttng-utils.debug-info`])**_::
+    * https://sourceware.org/elfutils/[elfutils]{nbsp}≥{nbsp}0.154
+      (Debian/Ubuntu: `libelf-dev` and `libdw-dev`;
+      Fedora: `elfutils-devel` and `elfutils-libelf-devel`)
+
+_**If you need the `bt2` Python bindings documentation**_::
+    * Python{nbsp}≥{nbsp}3.4
+      (Debian/Ubuntu/Fedora: `python3`)
+    * https://www.sphinx-doc.org/en/master/[Sphinx]{nbsp}≥{nbsp}1.6.5
+      for Python{nbsp}3 (Debian/Ubuntu/Fedora: `python3-sphinx`)
+
+_**If you need the {bt2}{nbsp}C{nbsp}API HTML documentation**_::
+    * http://www.doxygen.nl/[Doxygen]{nbsp}≥{nbsp}1.8.6
+
+_**If you need the {bt2} manual pages**_::
+    * https://www.methods.co.nz/asciidoc/[Asciidoc]{nbsp}≥{nbsp}8.6.8
+    * https://pagure.io/xmlto[xmlto]{nbsp}≥{nbsp}0.0.25
+
+
+=== Procedure
+
+To build {bt2}:
+
+. **If you build from a Git clone**, do:
++
+[role="term"]
+----
+$ ./bootstrap
+----
++
+This generates the `configure` script and other important files.
+
+. [[conf]]Configure the project:
++
+[role="term"]
+----
+$ ./configure
+----
++
+--
+The following options can modify the build:
+
+`--enable-api-doc`::
+    Build the {bt2}{nbsp}C{nbsp}API HTML documentation.
+
+`--enable-debug-info`::
+    Build the https://lttng.org/[LTTng] debug information filter
+    component class
+    (https://diamon.org/babeltrace/docs/v{btversion}/man7/babeltrace2-filter.lttng-utils.debug-info.7/[`filter.lttng-utils.debug-info`]).
+
+`--enable-man-pages`::
+    Build the {bt2} manual pages.
+
+`--enable-python-bindings`::
+    Build the `bt2` Python bindings.
++
+You can set the path to custom `python3` and `python3-config` programs
+with the `PYTHON` and `PYTHON_CONFIG` environment variable.
+
+`--enable-python-bindings-doc`::
+    Build the `bt2` Python bindings documentation.
+
+`--enable-python-plugins`::
+    Build support for {bt2} Python plugins.
+
+The following environment variables can modify the build:
+
+`BABELTRACE_DEBUG_MODE`::
+    Set to `1` to enable the debug mode.
++
+The debug mode enables more run-time assertions to detect bugs in the
+{bt2} project.
+
+`BABELTRACE_DEV_MODE`::
+    Set to `1` to enable the <<dev-mode,developer mode>>.
++
+The {bt2} developer mode enables more precondition and postcondition
+assertions to detect programming errors.
+
+`BABELTRACE_MINIMAL_LOG_LEVEL`::
+    Set the build-time, minimal logging level for all the project's
+    modules.
++
+Set to `TRACE`, `DEBUG`, or `INFO`.
+
+`BABELTRACE_PLUGIN_PROVIDERS_DIR`::
+    Installation directory of {bt2} plugin providers.
+
+`BABELTRACE_PLUGINS_DIR`::
+    Installation directory of {bt2} project plugins.
+
+See `./configure --help` to list all the available options and
+environment variables.
+--
+
+. Build {bt2}:
++
+[role="term"]
+----
+$ make
+----
+
+To install {bt2}:
+
+* Do:
++
+[role="term"]
+----
+# make install
+----
+
+
+[[dev-mode]]
+=== Build {bt2} for plugin or application development
+
+If you are developing a {bt2} plugin or an application which uses
+libbabeltrace2, we recommend that:
+
+* You build {bt2} from source in _developer mode_.
++
+The {bt2} developer mode enables more precondition and postcondition
+assertions to detect programming errors.
++
+Set `BABELTRACE_DEV_MODE=1` when you <<conf,configure>> the {bt2} build.
+
+* You use _TRACE_ as the minimal logging level at build time to have
+  access to more logging, should you need it to debug your plugin or
+  application.
++
+Set `BABELTRACE_MINIMAL_LOG_LEVEL=TRACE` when you <<conf,configure>>
+the {bt2} build.
+
+{bt2} development build configuration command line example:
+
+[role="term"]
+----
+$ BABELTRACE_DEV_MODE=1 BABELTRACE_MINIMAL_LOG_LEVEL=TRACE ./configure
+----
+
+{bt2} development build configuration with Python support example:
+
+[role="term"]
+----
+$ BABELTRACE_DEV_MODE=1 BABELTRACE_MINIMAL_LOG_LEVEL=TRACE ./configure \
+  --enable-python-bindings --enable-python-plugins
+----
+
+See the
+https://diamon.org/babeltrace/docs/v{btversion}/libbabeltrace2[{bt2}{nbsp}C{nbsp}API]
+documentation for more information.
+
+
+== Use Babeltrace{nbsp}{btversion}
+
+See the https://diamon.org/babeltrace[Babeltrace website] to learn how
+to use the different parts of the project.
+
+
+=== Run-time requirements
+
+Libraries::
+    * A C library (for example,
+      https://www.gnu.org/software/libc/[GNU{nbsp}C Library],
+      https://www.musl-libc.org/[musl libc])
+    * https://developer.gnome.org/glib/[GLib]{nbsp}≥{nbsp}2.22
+      (Debian/Ubuntu: `libglib2.0-0`; Fedora: `glib2`)
+
+_**If you need the `bt2` Python bindings**_::
+    * https://www.python.org[Python]{nbsp}≥{nbsp}3.4
+      (Debian/Ubuntu/Fedora: `python3`)
+
+_**If you need the https://lttng.org/[LTTng] debug information filter component class (https://diamon.org/babeltrace/docs/v{btversion}/man7/babeltrace2-filter.lttng-utils.debug-info.7/[`filter.lttng-utils.debug-info`])**_::
+    * https://sourceware.org/elfutils/[elfutils]{nbsp}≥{nbsp}0.154
+      (Debian/Ubuntu: `libelf` and `libdw`; Fedora: `elfutils-libs` and
+      `elfutils-libelf`)
+
+
+== Community
+
+[NOTE]
+====
+Babeltrace was born to parse CTF traces produced by LTTng{nbsp}2.0 and
+pretty-print their events.
+
+Even though Babeltrace is independant from the LTTng project today,
+their communities remain very close, which is why they share some
+communication channels and services.
+====
+
+Mailing list::
+    https://lists.lttng.org/cgi-bin/mailman/listinfo/lttng-dev[lttng-dev]
+    (mailto:lttng-dev@lists.lttng.org[lttng-dev@lists.lttng.org])
+
+IRC channel::
+    irc://irc.oftc.net/lttng[`#lttng`] on the OFTC network
+
+Bug tracker::
+    https://bugs.lttng.org/projects/babeltrace[Babeltrace bug tracker]
+
+GitHub project::
+    https://github.com/efficios/babeltrace/[efficios/babeltrace]
+
+Continuous integration::
+    https://ci.lttng.org/job/babeltrace_master_build/[Babeltrace's master build]
+    on LTTng's CI
+
+Code review::
+    https://review.lttng.org/q/project:babeltrace[_babeltrace_ project]
+    on LTTng Review
