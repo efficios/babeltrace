@@ -48,6 +48,10 @@ void destroy_pretty_data(struct pretty_component *pretty)
 {
 	bt_self_component_port_input_message_iterator_put_ref(pretty->iterator);
 
+	if (!pretty) {
+		goto end;
+	}
+
 	if (pretty->string) {
 		(void) g_string_free(pretty->string, TRUE);
 	}
@@ -66,6 +70,9 @@ void destroy_pretty_data(struct pretty_component *pretty)
 	}
 	g_free(pretty->options.output_path);
 	g_free(pretty);
+
+end:
+	return;
 }
 
 static
