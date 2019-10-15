@@ -197,7 +197,7 @@ enum lttng_live_iterator_status lttng_live_metadata_update(
 	if (bt_close_memstream(&metadata_buf, &size, fp)) {
 		BT_COMP_LOGE("bt_close_memstream: %s", strerror(errno));
 	}
-	ret = 0;
+
 	fp = NULL;
 
 	if (len_read == 0) {
