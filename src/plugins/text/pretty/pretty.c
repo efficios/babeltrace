@@ -46,11 +46,11 @@ const char * const in_port_name = "in";
 static
 void destroy_pretty_data(struct pretty_component *pretty)
 {
-	bt_self_component_port_input_message_iterator_put_ref(pretty->iterator);
-
 	if (!pretty) {
 		goto end;
 	}
+
+	bt_self_component_port_input_message_iterator_put_ref(pretty->iterator);
 
 	if (pretty->string) {
 		(void) g_string_free(pretty->string, TRUE);
