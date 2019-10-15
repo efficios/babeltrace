@@ -323,9 +323,8 @@ class _TestNumericField:
 
     # Tests that the binary operation `op`, when applied to `self._def`,
     # does not change its value.
-    @unittest.skip('copy is not implemented')
     def _test_binop_lhs_value_same(self, op, rhs):
-        value_before = copy.copy(self._def)
+        value_before = copy.copy(self._def_value)
         r, rv = self._binop(op, rhs)
         self.assertEqual(self._def, value_before)
 
