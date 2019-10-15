@@ -13,7 +13,8 @@ https://lttng.org/[LTTng project].
 * https://lists.lttng.org[Mailing list] for support and
   development: `lttng-dev@lists.lttng.org`
 * irc://irc.oftc.net/lttng[IRC channel]: `#lttng` on `irc.oftc.net`
-* https://bugs.lttng.org/projects/babeltrace[Git repository]
+* https://bugs.lttng.org/projects/babeltrace[Bug tracker]
+* https://git.efficios.com/?p=babeltrace.git[Git repository]
 * https://github.com/efficios/babeltrace[GitHub project]
 * https://ci.lttng.org/view/Babeltrace/[Continuous integration]
 * https://review.lttng.org/q/project:babeltrace[Code review]
