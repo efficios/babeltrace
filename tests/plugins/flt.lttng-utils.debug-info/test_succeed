@@ -39,6 +39,7 @@ this_dir_build="$BT_TESTS_BUILDDIR/$this_dir_relative"
 succeed_trace_dir="$BT_CTF_TRACES_PATH/succeed"
 expect_dir="$BT_TESTS_DATADIR/$this_dir_relative"
 binary_artefact_dir="$BT_TESTS_DATADIR/$this_dir_relative"
+data_dir="$BT_TESTS_DATADIR/$this_dir_relative"
 
 test_debug_info() {
 	local name="$1"
@@ -101,10 +102,19 @@ test_compare_ctf_src_trace() {
 	test_compare_to_ctf_fs "src.ctf.fs with $trace_name trace" "${cli_args[@]}"
 }
 
-plan_tests 7
+test_compare_complete_src_trace() {
+
+	local source_name="src.test_debug_info.CompleteSrc"
+	local cli_args=("--plugin-path=$data_dir" "-c" "$source_name")
+	test_compare_to_ctf_fs "$source_name" "${cli_args[@]}"
+}
+
+plan_tests 9
 
 test_debug_info debug-info
 
 test_compare_ctf_src_trace smalltrace
 test_compare_ctf_src_trace 2packets
 test_compare_ctf_src_trace session-rotation
+
+test_compare_complete_src_trace

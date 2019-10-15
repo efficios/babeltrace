@@ -103,11 +103,6 @@ TESTS_PLUGINS += plugins/src.ctf.fs/query/test_query_support_info
 TESTS_PLUGINS += plugins/src.ctf.fs/query/test_query_trace_info
 TESTS_PLUGINS += plugins/src.ctf.fs/query/test_query_metadata_info
 endif
-
-if ENABLE_DEBUG_INFO
-TESTS_PLUGINS += \
-	plugins/flt.lttng-utils.debug-info/test_succeed
-endif
 endif
 
 if ENABLE_DEBUG_INFO
@@ -140,6 +135,10 @@ TESTS_PYTHON_PLUGIN_PROVIDER =
 
 if ENABLE_PYTHON_PLUGINS
 TESTS_PYTHON_PLUGIN_PROVIDER += python-plugin-provider/test_python_plugin_provider
+if ENABLE_DEBUG_INFO
+TESTS_PLUGINS += \
+	plugins/flt.lttng-utils.debug-info/test_succeed
+endif
 endif
 
 TESTS_PARAM_VALIDATION = \
