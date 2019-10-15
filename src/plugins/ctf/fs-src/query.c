@@ -171,7 +171,11 @@ end:
 	ctf_metadata_decoder_destroy(decoder);
 
 	if (metadata_fp) {
-		fclose(metadata_fp);
+		ret = fclose(metadata_fp);
+		if (ret) {
+			BT_LOGE_ERRNO("Cannot close metatada file stream",
+				": path=\"%s\"", path);
+		}
 	}
 
 	*user_result = result;
