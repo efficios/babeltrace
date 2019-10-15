@@ -369,7 +369,7 @@ void event_get_common_context_signed_integer_field_value(
 }
 
 static inline
-int event_get_payload_build_id_length(const bt_event *event,
+void event_get_payload_build_id_length(const bt_event *event,
 		const char *field_name, uint64_t *build_id_len)
 {
 	const bt_field *build_id_field;
@@ -388,20 +388,15 @@ int event_get_payload_build_id_length(const bt_event *event,
 		BT_FIELD_CLASS_TYPE_UNSIGNED_INTEGER);
 
 	*build_id_len = bt_field_array_get_length(build_id_field);
-
-	return 0;
 }
 
 static inline
-int event_get_payload_build_id_value(const bt_event *event,
+void event_get_payload_build_id_value(const bt_event *event,
 		const char *field_name, uint8_t *build_id)
 {
 	const bt_field *curr_field, *build_id_field;
 	const bt_field_class *build_id_field_class;
 	uint64_t i, build_id_len;
-	int ret;
-
-	ret = 0;
 
 	build_id_field = event_borrow_payload_field(event, field_name);
 	build_id_field_class = bt_field_borrow_class_const(build_id_field);
@@ -419,12 +414,10 @@ int event_get_payload_build_id_value(const bt_event *event,
 
 	for (i = 0; i < build_id_len; i++) {
 		curr_field = bt_field_array_borrow_element_field_by_index_const(
-				build_id_field, i);
+			build_id_field, i);
 
 		build_id[i] = bt_field_integer_unsigned_get_value(curr_field);
 	}
-
-	return ret;
 }
 
 static
@@ -630,7 +623,8 @@ void handle_event_statedump_build_id(struct debug_info *debug_info,
 		 */
 		goto end;
 	}
-	ret = event_get_payload_build_id_length(event, BUILD_ID_FIELD_NAME,
+
+	event_get_payload_build_id_length(event, BUILD_ID_FIELD_NAME,
 		&build_id_len);
 
 	build_id = g_new0(uint8_t, build_id_len);
@@ -638,11 +632,7 @@ void handle_event_statedump_build_id(struct debug_info *debug_info,
 		goto end;
 	}
 
-	ret = event_get_payload_build_id_value(event, BUILD_ID_FIELD_NAME,
-		build_id);
-	if (ret) {
-		goto end;
-	}
+	event_get_payload_build_id_value(event, BUILD_ID_FIELD_NAME, build_id);
 
 	ret = bin_info_set_build_id(bin, build_id, build_id_len);
 	if (ret) {
