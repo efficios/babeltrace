@@ -343,22 +343,31 @@ class _TestNumericField:
     # `vint` and `vfloat` mean a signed integer value object and a real
     # value object.
 
-    def _test_binop_invalid_unknown(self, op):
-        if op in _COMP_BINOPS:
-            self.skipTest('not testing')
-
+    def _test_binop_unknown(self, op):
         class A:
             pass
 
-        with self.assertRaises(TypeError):
-            op(self._def, A())
+        # Operators == and != are defined when comparing the field to an
+        # arbitrary object.
+        if op is operator.eq:
+            self.assertIs(op(self._def, A()), False)
+        elif op is operator.ne:
+            self.assertIs(op(self._def, A()), True)
+        else:
+            # But not other operators.
+            with self.assertRaises(TypeError):
+                op(self._def, A())
 
-    def _test_binop_invalid_none(self, op):
-        if op in _COMP_BINOPS:
-            self.skipTest('not testing')
-
-        with self.assertRaises(TypeError):
-            op(self._def, None)
+    def _test_binop_none(self, op):
+        # Operators == and != are defined when comparing the field to None.
+        if op is operator.eq:
+            self.assertIs(op(self._def, None), False)
+        elif op is operator.ne:
+            self.assertIs(op(self._def, None), True)
+        else:
+            # But not other operators.
+            with self.assertRaises(TypeError):
+                op(self._def, None)
 
     def _test_binop_rhs_false(self, test_cb, op):
         test_cb(op, False)
@@ -725,13 +734,13 @@ def _inject_numeric_testing_methods(cls):
     for name, binop in _BINOPS:
         setattr(
             cls,
-            test_binop_name('invalid_unknown'),
-            partialmethod(_TestNumericField._test_binop_invalid_unknown, op=binop),
+            test_binop_name('unknown'),
+            partialmethod(_TestNumericField._test_binop_unknown, op=binop),
         )
         setattr(
             cls,
-            test_binop_name('invalid_none'),
-            partialmethod(_TestNumericField._test_binop_invalid_none, op=binop),
+            test_binop_name('none'),
+            partialmethod(_TestNumericField._test_binop_none, op=binop),
         )
         setattr(
             cls,
