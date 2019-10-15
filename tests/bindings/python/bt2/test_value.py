@@ -212,19 +212,23 @@ class _TestNumericValue(_TestCopySimple):
     # `vint` and `vfloat` mean a signed integer value object and a real
     # value object.
 
-    def _test_binop_invalid_unknown(self, op):
-        if op in _COMP_BINOPS:
-            self.skipTest('not testing')
+    def _test_binop_unknown(self, op):
+        if op is operator.eq:
+            self.assertIs(op(self._def, object()), False)
+        elif op is operator.ne:
+            self.assertIs(op(self._def, object()), True)
+        else:
+            with self.assertRaises(TypeError):
+                op(self._def, object())
 
-        with self.assertRaises(TypeError):
-            op(self._def, object())
-
-    def _test_binop_invalid_none(self, op):
-        if op in _COMP_BINOPS:
-            self.skipTest('not testing')
-
-        with self.assertRaises(TypeError):
-            op(self._def, None)
+    def _test_binop_none(self, op):
+        if op is operator.eq:
+            self.assertIs(op(self._def, None), False)
+        elif op is operator.ne:
+            self.assertIs(op(self._def, None), True)
+        else:
+            with self.assertRaises(TypeError):
+                op(self._def, None)
 
     def _test_binop_rhs_false(self, test_cb, op):
         test_cb(op, False)
@@ -577,13 +581,13 @@ def _inject_numeric_testing_methods(cls):
     for name, binop in _BINOPS:
         setattr(
             cls,
-            test_binop_name('invalid_unknown'),
-            partialmethod(_TestNumericValue._test_binop_invalid_unknown, op=binop),
+            test_binop_name('unknown'),
+            partialmethod(_TestNumericValue._test_binop_unknown, op=binop),
         )
         setattr(
             cls,
-            test_binop_name('invalid_none'),
-            partialmethod(_TestNumericValue._test_binop_invalid_none, op=binop),
+            test_binop_name('none'),
+            partialmethod(_TestNumericValue._test_binop_none, op=binop),
         )
         setattr(
             cls,
