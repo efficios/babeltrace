@@ -16,7 +16,6 @@ dist_check_SCRIPTS = \
 	bindings/python/bt2/test_component_class.py \
 	bindings/python/bt2/test_component.py \
 	bindings/python/bt2/test_connection.py \
-	bindings/python/bt2/test_ctf_writer_clock.py \
 	bindings/python/bt2/test_event_class.py \
 	bindings/python/bt2/test_event.py \
 	bindings/python/bt2/test_field_class.py \
