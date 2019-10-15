@@ -1,8 +1,7 @@
 == BUGS
 
 If you encounter any issue or usability problem, please report it on the
-https://bugs.linuxfoundation.org/buglist.cgi?product=Diamon&component=Babeltrace[Babeltrace
-bug tracker].
+https://bugs.lttng.org/projects/babeltrace[Babeltrace bug tracker].
 
 
 == RESOURCES
@@ -15,7 +14,7 @@ https://lttng.org/[LTTng project].
   development: `lttng-dev@lists.lttng.org`
 * irc://irc.oftc.net/lttng[IRC channel]: `#bt2` or `#lttng` on
   `irc.oftc.net`
-* http://git.linuxfoundation.org/?p=diamon/babeltrace.git[Git repository]
+* https://bugs.lttng.org/projects/babeltrace[Git repository]
 * https://github.com/efficios/babeltrace[GitHub project]
 * https://ci.lttng.org/view/Babeltrace/[Continuous integration]
 * https://review.lttng.org/q/project:babeltrace[Code review]
