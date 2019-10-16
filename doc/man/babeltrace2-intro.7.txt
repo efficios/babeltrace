@@ -101,28 +101,157 @@ This manual page is an introduction to Babeltrace~2, a rewrite of
 Babeltrace~1 with a focus on extensibility, flexibility, and
 interoperability.
 
-Babeltrace~1 exists since 2010. The major improvements brought by
-Babeltrace~2 are:
+Babeltrace~1 exists since 2010.
 
-* Full plugin support: any user can distribute a Babeltrace~2
+You can install both projects on the same file system as there are no
+file name conflicts.
+
+The major improvements brought by Babeltrace~2 are:
+
+General::
++
+--
+* Full <<plugin,plugin>> support: any user can distribute a Babeltrace~2
   plugin and, as long as <<libbabeltrace2,libbabeltrace2>> finds it, any
   application linked to libbabeltrace2 can load it and use it.
 +
-Plugins are not just trace format encoders and decoders: they provide
+Plugins are not just trace format encoders and decoders: they package
 source, filter, and sink <<comp-cls,component classes>> so that you can
-connect specialized, reusable components together in a trace processing
-graph to create a customized trace conversion or analysis device.
-
-* In order to support user components, many of the objects of
-  libbabeltrace2 have a reference count. The possible reference cycles
-  are handled internally so that the library's API is clean and
-  predictable.
+connect specialized, reusable <<comp,components>> together in a
+<<graph,trace processing graph>> to create a customized trace conversion
+or analysis device.
 +
-Objects which are often used on the "fast path" (for example, events,
-fields, and clock snapshots) are unique: they have no reference count.
+This modular strategy is much like how the
+https://www.ffmpeg.org/[FFmpeg],
+https://gstreamer.freedesktop.org/[GStreamer], and
+https://en.wikipedia.org/wiki/DirectShow[DirectShow] projects approach
+media stream processing.
 
 * All the parts of the Babeltrace~2 project run on the major
   operating systems, including Windows and macOS.
+
+* Some <<comp-cls,component classes>>, such as compcls:sink.text.pretty
+  (similar to the `text` output format of man:babeltrace(1)) and
+  compcls:sink.text.details, can write color codes to the standard
+  output when it's connected to a color-enabled terminal.
++
+The Babeltrace~2 log, printed to the standard output, can also be
+colorized.
+--
+
+Command-line interface::
++
+--
+* Whereas you can convert traces from one format to another with
+  Babeltrace~1's CLI tool, man:babeltrace(1), you can also execute a
+  custom trace manipulation task with man:babeltrace2(1) thanks to the
+  man:babeltrace2-run(1) command.
+
+* The man:babeltrace2-convert(1) command features an automatic source
+  component discovery algorithm to find the best suited components to
+  create for a given non-option argument (file or directory path, or
+  custom string like an https://lttng.org[LTTng live] URL).
++
+For example:
++
+[role="term"]
+----
+$ babeltrace2 /path/to/ctf/trace
+----
++
+[role="term"]
+----
+$ babeltrace2 net://localhost/host/myhost/my-session
+----
+--
+
+https://diamon.org/ctf/[CTF] input/output::
++
+--
+* The compcls:source.ctf.fs component class, which is more or less the
+  equivalent of Babeltrace~1's `ctf` input format, has features
+  not found in Babeltrace~1:
++
+--
+** The component handles many trace quirks which are the results of
+   known tracer bugs and corner cases (LTTng-UST, LTTng-modules, and
+   https://github.com/efficios/barectf[barectf]), making it possible to
+   decode malformed packets.
+
+** The component merges CTF traces sharing the same UUID into a single,
+   logical trace.
++
+This feature supports LTTng~2.11's tracing session rotation trace
+chunks.
+--
+
+* With a compcls:sink.ctf.fs component, you can create CTF traces on
+  the file system.
++
+With man:babeltrace2-convert(1), you can use the `--output-format=ctf`
+and manopt:babeltrace2-convert(1):--output options to create an implicit
+compcls:sink.ctf.fs component.
++
+For example:
++
+[role="term"]
+----
+$ babeltrace2 /path/to/input/trace \
+              --output-format=ctf --output=trace-dir
+----
+--
+
+https://lttng.org[LTTng live] input::
++
+--
+* The man:babeltrace(1) command exits successfully when it cannot find
+  an LTTng live (`--input-format=lttng-live` option) tracing session.
++
+The manparam:source.ctf.lttng-live:session-not-found-action
+initialization parameter controls what a compcls:source.ctf.lttng-live
+<<msg-iter,message iterator>> does when it cannot find the remote
+tracing session.
++
+If the action is `end`, the message iterator does like man:babeltrace(1)
+and simply ends successfully.
++
+If the action is `continue` (the default), the message iterator never
+ends: it keeps on trying until the tracing session exists, indeed
+subscribing to the session.
+--
+
+Library::
++
+--
+* <<libbabeltrace2,libbabeltrace2>> shares nothing with libbabeltrace.
++
+The Babeltrace~2 library C API has features such as:
++
+--
+* A single header file.
+* Function precondition and postcondition checking.
+* Object-oriented model with shared and unique objects.
+* Strict C typing and `const` correctness.
+* User-extensible classes.
+* Rich, thread-safe error reporting.
+* Per-<<comp,component>> and per-subsystem logging levels.
+* Trace intermediate representation (IR) objects to make the API
+  trace-format-agnostic.
+* A versioned protocol for message interchange between components to
+  enable forward and backward compatibility.
+--
+
+* You can build the library in developer mode to enable an extensive set
+  of function precondition and postcondition checks.
++
+The developer mode can help detect programming errors early when you
+develop a Babeltrace~2 <<plugin,plugin>> or an application using
+libbabeltrace2.
++
+See the project's `README` for build-time requirements and detailed
+build instructions.
+
+--
 
 
 [[concepts]]
