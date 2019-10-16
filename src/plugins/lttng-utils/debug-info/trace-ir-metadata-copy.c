@@ -39,11 +39,15 @@
 #include "utils.h"
 
 BT_HIDDEN
-int copy_trace_class_content(struct trace_ir_maps *ir_maps,
-		const bt_trace_class *in_trace_class, bt_trace_class *out_trace_class,
+enum debug_info_trace_ir_mapping_status copy_trace_class_content(
+		struct trace_ir_maps *ir_maps,
+		const bt_trace_class *in_trace_class,
+		bt_trace_class *out_trace_class,
 		bt_logging_level log_level, bt_self_component *self_comp)
 {
+	enum debug_info_trace_ir_mapping_status status;
 	uint64_t sc_number, sc_idx;
+
 	BT_COMP_LOGD("Copying content of trace class: in-tc-addr=%p, out-tc-addr=%p",
 		in_trace_class, out_trace_class);
 
@@ -69,30 +73,34 @@ int copy_trace_class_content(struct trace_ir_maps *ir_maps,
 		out_stream_class = trace_ir_mapping_borrow_mapped_stream_class(
 			ir_maps, in_stream_class);
 		if (!out_stream_class) {
-			/*
-			 * We don't need the new stream_class yet. We simply
-			 * want to create it and keep it in the map.
-			 */
-			(void) trace_ir_mapping_create_new_mapped_stream_class(
+			out_stream_class = trace_ir_mapping_create_new_mapped_stream_class(
 				ir_maps, in_stream_class);
+			if (!out_stream_class) {
+				status = DEBUG_INFO_TRACE_IR_MAPPING_STATUS_MEMORY_ERROR;
+				goto end;
+			}
 		}
 	}
 
 	BT_COMP_LOGD("Copied content of trace class: in-tc-addr=%p, out-tc-addr=%p",
 		in_trace_class, out_trace_class);
-	return 0;
+
+	status = DEBUG_INFO_TRACE_IR_MAPPING_STATUS_OK;
+end:
+	return status;
 }
 
 static
-int copy_clock_class_content(const bt_clock_class *in_clock_class,
+enum debug_info_trace_ir_mapping_status copy_clock_class_content(
+		const bt_clock_class *in_clock_class,
 		bt_clock_class *out_clock_class, bt_logging_level log_level,
 		bt_self_component *self_comp)
 {
+	enum debug_info_trace_ir_mapping_status status;
 	const char *clock_class_name, *clock_class_description;
 	int64_t seconds;
 	uint64_t cycles;
 	bt_uuid in_uuid;
-	int ret = 0;
 
 	BT_COMP_LOGD("Copying content of clock class: in-cc-addr=%p, out-cc-addr=%p",
 		in_clock_class, out_clock_class);
@@ -100,13 +108,15 @@ int copy_clock_class_content(const bt_clock_class *in_clock_class,
 	clock_class_name = bt_clock_class_get_name(in_clock_class);
 
 	if (clock_class_name) {
-		if (bt_clock_class_set_name(out_clock_class, clock_class_name)
-				!= BT_CLOCK_CLASS_SET_NAME_STATUS_OK) {
-			BT_COMP_LOGE("Error setting clock class' name cc-addr=%p, name=%p",
-				out_clock_class, clock_class_name);
-			out_clock_class = NULL;
-			ret = -1;
-			goto error;
+		enum bt_clock_class_set_name_status set_name_status =
+			bt_clock_class_set_name(out_clock_class, clock_class_name);
+		if (set_name_status != BT_CLOCK_CLASS_SET_NAME_STATUS_OK) {
+			BT_COMP_LOGE_APPEND_CAUSE(self_comp,
+				"Error setting clock class' name: "
+				"cc-addr=%p, name=%s", out_clock_class,
+				clock_class_name);
+			status = (int) set_name_status;
+			goto end;
 		}
 	}
 
@@ -120,14 +130,15 @@ int copy_clock_class_content(const bt_clock_class *in_clock_class,
 	clock_class_description = bt_clock_class_get_description(in_clock_class);
 
 	if (clock_class_description) {
-		if (bt_clock_class_set_description(out_clock_class,
-				clock_class_description) !=
-				BT_CLOCK_CLASS_SET_DESCRIPTION_STATUS_OK) {
-			BT_COMP_LOGE("Error setting clock class' description cc-addr=%p, "
-				"name=%p", out_clock_class, clock_class_description);
-			out_clock_class = NULL;
-			ret = -1;
-			goto error;
+		enum bt_clock_class_set_description_status set_desc_status =
+			bt_clock_class_set_description(out_clock_class, clock_class_description);
+		if (set_desc_status!= BT_CLOCK_CLASS_SET_DESCRIPTION_STATUS_OK) {
+			BT_COMP_LOGE_APPEND_CAUSE(self_comp,
+				"Error setting clock class' description: "
+				"cc-addr=%p, cc-desc=%s", out_clock_class,
+				clock_class_description);
+			status = (int) set_desc_status;
+			goto end;
 		}
 	}
 
@@ -148,8 +159,9 @@ int copy_clock_class_content(const bt_clock_class *in_clock_class,
 	BT_COMP_LOGD("Copied content of clock class: in-cc-addr=%p, out-cc-addr=%p",
 		in_clock_class, out_clock_class);
 
-error:
-	return ret;
+	status = DEBUG_INFO_TRACE_IR_MAPPING_STATUS_OK;
+end:
+	return status;
 }
 
 static
@@ -169,9 +181,9 @@ bt_clock_class *create_new_mapped_clock_class(bt_self_component *self_comp,
 		struct trace_ir_metadata_maps *md_maps,
 		const bt_clock_class *in_clock_class)
 {
+	enum debug_info_trace_ir_mapping_status status;
 	bt_clock_class *out_clock_class;
 	bt_logging_level log_level = md_maps->log_level;
-	int ret;
 
 	BT_COMP_LOGD("Creating new mapped clock class: in-cc-addr=%p",
 		in_clock_class);
@@ -183,14 +195,17 @@ bt_clock_class *create_new_mapped_clock_class(bt_self_component *self_comp,
 
 	out_clock_class = bt_clock_class_create(self_comp);
 	if (!out_clock_class) {
-		BT_COMP_LOGE_STR("Cannot create clock class");
+		BT_COMP_LOGE_APPEND_CAUSE(self_comp,
+			"Cannot create clock class");
 		goto end;
 	}
 	/* If not, create a new one and add it to the mapping. */
-	ret = copy_clock_class_content(in_clock_class, out_clock_class,
+	status = copy_clock_class_content(in_clock_class, out_clock_class,
 		log_level, self_comp);
-	if (ret) {
-		BT_COMP_LOGE_STR("Cannot copy clock class");
+	if (status != DEBUG_INFO_TRACE_IR_MAPPING_STATUS_OK) {
+		BT_COMP_LOGE_APPEND_CAUSE(self_comp,
+			"Cannot copy clock class");
+		BT_CLOCK_CLASS_PUT_REF_AND_RESET(out_clock_class);
 		goto end;
 	}
 
@@ -204,10 +219,12 @@ end:
 }
 
 BT_HIDDEN
-int copy_stream_class_content(struct trace_ir_maps *ir_maps,
+enum debug_info_trace_ir_mapping_status copy_stream_class_content(
+		struct trace_ir_maps *ir_maps,
 		const bt_stream_class *in_stream_class,
 		bt_stream_class *out_stream_class)
 {
+	enum debug_info_trace_ir_mapping_status status;
 	struct trace_ir_metadata_maps *md_maps;
 	const bt_clock_class *in_clock_class;
 	bt_clock_class *out_clock_class;
@@ -217,7 +234,6 @@ int copy_stream_class_content(struct trace_ir_maps *ir_maps,
 	uint64_t ec_number, ec_idx;
 	bt_logging_level log_level = ir_maps->log_level;
 	bt_self_component *self_comp = ir_maps->self_comp;
-	int ret = 0;
 
 	BT_COMP_LOGD("Copying content of stream class: in-sc-addr=%p, out-sc-addr=%p",
 		in_stream_class, out_stream_class);
@@ -227,15 +243,24 @@ int copy_stream_class_content(struct trace_ir_maps *ir_maps,
 			in_stream_class);
 
 	if (in_clock_class) {
+		enum bt_stream_class_set_default_clock_class_status set_def_cc_status;
 		/* Copy the clock class. */
 		out_clock_class = borrow_mapped_clock_class(md_maps,
 			in_clock_class);
 		if (!out_clock_class) {
 			out_clock_class = create_new_mapped_clock_class(
 				ir_maps->self_comp, md_maps, in_clock_class);
+			if (!out_clock_class) {
+				status = DEBUG_INFO_TRACE_IR_MAPPING_STATUS_MEMORY_ERROR;
+				goto end;
+			}
 		}
-		bt_stream_class_set_default_clock_class(out_stream_class,
-			out_clock_class);
+		set_def_cc_status = bt_stream_class_set_default_clock_class(
+			out_stream_class, out_clock_class);
+		if (set_def_cc_status != BT_STREAM_CLASS_SET_DEFAULT_CLOCK_CLASS_STATUS_OK) {
+			status = (int) set_def_cc_status;
+			goto end;
+		}
 	}
 
 	/*
@@ -265,12 +290,15 @@ int copy_stream_class_content(struct trace_ir_maps *ir_maps,
 
 	in_name = bt_stream_class_get_name(in_stream_class);
 	if (in_name) {
-		if (bt_stream_class_set_name(out_stream_class, in_name) !=
-				BT_STREAM_CLASS_SET_NAME_STATUS_OK) {
-			BT_COMP_LOGE("Error set stream class name: out-sc-addr=%p, "
-				"name=%s", out_stream_class, in_name);
-			ret = -1;
-			goto error;
+		enum bt_stream_class_set_name_status set_name_status =
+			bt_stream_class_set_name(out_stream_class, in_name);
+		if (set_name_status != BT_STREAM_CLASS_SET_NAME_STATUS_OK) {
+			BT_COMP_LOGE_APPEND_CAUSE(self_comp,
+				"Error set stream class name: "
+				"out-sc-addr=%p, name=%s", out_stream_class,
+				in_name);
+			status = (int) set_name_status;
+			goto end;
 		}
 	}
 
@@ -290,25 +318,30 @@ int copy_stream_class_content(struct trace_ir_maps *ir_maps,
 		in_packet_context_fc;
 
 	if (in_packet_context_fc) {
+		enum bt_stream_class_set_field_class_status set_fc_status;
 		/* Copy packet context. */
 		out_packet_context_fc = create_field_class_copy(md_maps,
 			in_packet_context_fc);
 
-		ret = copy_field_class_content(md_maps, in_packet_context_fc,
+		status = copy_field_class_content(md_maps, in_packet_context_fc,
 			out_packet_context_fc);
-		if (ret) {
-			ret = -1;
-			goto error;
+		if (status != DEBUG_INFO_TRACE_IR_MAPPING_STATUS_OK) {
+			BT_COMP_LOGE_APPEND_CAUSE(self_comp,
+				"Error copying stream class' packet context field class: "
+				"in-packet-ctx-fc-addr=%p, out-packet-ctx-fc-addr=%p",
+				in_packet_context_fc, out_packet_context_fc);
+			goto end;
 		}
 
-		if (bt_stream_class_set_packet_context_field_class(
-				out_stream_class, out_packet_context_fc) !=
-				BT_STREAM_CLASS_SET_FIELD_CLASS_STATUS_OK) {
-			BT_COMP_LOGE("Error setting stream class' packet context "
-				"field class: sc-addr=%p, packet-fc-addr=%p",
+		set_fc_status = bt_stream_class_set_packet_context_field_class(
+			out_stream_class, out_packet_context_fc);
+		if (set_fc_status != BT_STREAM_CLASS_SET_FIELD_CLASS_STATUS_OK) {
+			BT_COMP_LOGE_APPEND_CAUSE(self_comp,
+				"Error setting stream class' packet context field class: "
+				"out-sc-addr=%p, out-packet-ctx-fc-addr=%p",
 				out_stream_class, out_packet_context_fc);
-			ret = -1;
-			goto error;
+			status = (int) set_fc_status;
+			goto end;
 		}
 	}
 
@@ -322,28 +355,33 @@ int copy_stream_class_content(struct trace_ir_maps *ir_maps,
 	md_maps->fc_resolving_ctx->event_common_context = in_common_context_fc;
 
 	if (in_common_context_fc) {
+		enum bt_stream_class_set_field_class_status set_fc_status;
 		/* Copy common context. */
 		/* TODO: I find it a bit awkward to have this special function
 		 * here to add the debug-info field class. I would like to
 		 * abstract that.*/
 		out_common_context_fc = create_field_class_copy(md_maps,
 			in_common_context_fc);
-
-		ret = copy_event_common_context_field_class_content(md_maps,
+		status = copy_event_common_context_field_class_content(md_maps,
 			ir_maps->debug_info_field_class_name,
 			in_common_context_fc, out_common_context_fc);
-		if (ret) {
-			goto error;
+		if (status != DEBUG_INFO_TRACE_IR_MAPPING_STATUS_OK) {
+			BT_COMP_LOGE_APPEND_CAUSE(self_comp,
+				"Error copying stream class' common context field class: "
+				"in-comm-ctx-fc-addr=%p, out-comm-ctx-fc-addr=%p",
+				in_common_context_fc, out_common_context_fc);
+			goto end;
 		}
 
-		if (bt_stream_class_set_event_common_context_field_class(
-				out_stream_class, out_common_context_fc) !=
-				BT_STREAM_CLASS_SET_FIELD_CLASS_STATUS_OK) {
-			BT_COMP_LOGE("Error setting stream class' packet context "
-				"field class: sc-addr=%p, packet-fc-addr=%p",
+		set_fc_status = bt_stream_class_set_event_common_context_field_class(
+			out_stream_class, out_common_context_fc);
+		if (set_fc_status != BT_STREAM_CLASS_SET_FIELD_CLASS_STATUS_OK) {
+			BT_COMP_LOGE_APPEND_CAUSE(self_comp,
+				"Error setting stream class' common context field class: "
+				"out-sc-addr=%p, out-comm-ctx-fc-addr=%p",
 				out_stream_class, out_common_context_fc);
-			ret = -1;
-			goto error;
+			status = (int) set_fc_status;
+			goto end;
 		}
 	}
 
@@ -361,29 +399,36 @@ int copy_stream_class_content(struct trace_ir_maps *ir_maps,
 			 * We don't need the new event_class yet. We simply
 			 * want to create it and keep it in the map.
 			 */
-			(void) trace_ir_mapping_create_new_mapped_event_class(
+			out_event_class = trace_ir_mapping_create_new_mapped_event_class(
 				ir_maps, in_event_class);
+			if (!out_event_class) {
+				status = DEBUG_INFO_TRACE_IR_MAPPING_STATUS_MEMORY_ERROR;
+				goto end;
+			}
 		}
 	}
 
 	BT_COMP_LOGD("Copied content of stream class: in-sc-addr=%p, out-sc-addr=%p",
 		in_stream_class, out_stream_class);
-error:
-	return ret;
+
+	status = DEBUG_INFO_TRACE_IR_MAPPING_STATUS_OK;
+end:
+	return status;
 }
 
 BT_HIDDEN
-int copy_event_class_content(struct trace_ir_maps *ir_maps,
+enum debug_info_trace_ir_mapping_status copy_event_class_content(
+		struct trace_ir_maps *ir_maps,
 		const bt_event_class *in_event_class,
 		bt_event_class *out_event_class)
 {
+	enum debug_info_trace_ir_mapping_status status;
 	struct trace_ir_metadata_maps *md_maps;
 	const char *in_event_class_name, *in_emf_uri;
 	bt_property_availability prop_avail;
 	bt_event_class_log_level ec_log_level;
 	bt_field_class *out_specific_context_fc, *out_payload_fc;
 	const bt_field_class *in_event_specific_context, *in_event_payload;
-	int ret = 0;
 	bt_logging_level log_level = ir_maps->log_level;
 	bt_self_component *self_comp = ir_maps->self_comp;
 
@@ -393,13 +438,13 @@ int copy_event_class_content(struct trace_ir_maps *ir_maps,
 	/* Copy event class name. */
 	in_event_class_name = bt_event_class_get_name(in_event_class);
 	if (in_event_class_name) {
-		if (bt_event_class_set_name(out_event_class,
-				in_event_class_name) !=
-				BT_EVENT_CLASS_SET_NAME_STATUS_OK) {
-			BT_COMP_LOGE("Error setting event class' name: ec-addr=%p, "
+		enum bt_event_class_set_name_status set_name_status =
+			bt_event_class_set_name(out_event_class, in_event_class_name);
+		if (set_name_status != BT_EVENT_CLASS_SET_NAME_STATUS_OK) {
+			BT_COMP_LOGE_APPEND_CAUSE(self_comp, "Error setting event class' name: ec-addr=%p, "
 				"name=%s", out_event_class, in_event_class_name);
-			ret = -1;
-			goto error;
+			status = (int) set_name_status;
+			goto end;
 		}
 	}
 
@@ -420,12 +465,15 @@ int copy_event_class_content(struct trace_ir_maps *ir_maps,
 	/* Copy event class emf uri. */
 	in_emf_uri = bt_event_class_get_emf_uri(in_event_class);
 	if (in_emf_uri) {
-		if (bt_event_class_set_emf_uri(out_event_class, in_emf_uri) !=
-				BT_EVENT_CLASS_SET_EMF_URI_STATUS_OK) {
-			BT_COMP_LOGE("Error setting event class' emf uri: ec-addr=%p, "
-				"emf uri=%s", out_event_class, in_emf_uri);
-			ret = -1;
-			goto error;
+		enum bt_event_class_set_emf_uri_status set_emf_status =
+			bt_event_class_set_emf_uri(out_event_class, in_emf_uri);
+		if (set_emf_status != BT_EVENT_CLASS_SET_EMF_URI_STATUS_OK) {
+			BT_COMP_LOGE_APPEND_CAUSE(self_comp,
+				"Error setting event class' emf uri: "
+				"out-ec-addr=%p, emf-uri=\"%s\"",
+				out_event_class, in_emf_uri);
+			status = (int) set_emf_status;
+			goto end;
 		}
 	}
 
@@ -443,27 +491,33 @@ int copy_event_class_content(struct trace_ir_maps *ir_maps,
 		in_event_specific_context;
 
 	if (in_event_specific_context) {
+		enum bt_event_class_set_field_class_status set_fc_status;
 		/* Copy the specific context of this event class. */
 		out_specific_context_fc = create_field_class_copy(md_maps,
 			in_event_specific_context);
 
-		ret = copy_field_class_content(md_maps,
+		status = copy_field_class_content(md_maps,
 			in_event_specific_context, out_specific_context_fc);
-		if (ret) {
-			goto error;
+		if (status != DEBUG_INFO_TRACE_IR_MAPPING_STATUS_OK) {
+			BT_COMP_LOGE_APPEND_CAUSE(self_comp,
+				"Error copying event class' specific context field class:"
+				"in-spec-ctx-fc-addr=%p, out-spec-ctx-fc-addr=%p",
+				in_event_specific_context, out_specific_context_fc);
+			goto end;
 		}
 		/*
 		 * Add the output specific context to the output event
 		 * class.
 		 */
-		if (bt_event_class_set_specific_context_field_class(
-				out_event_class, out_specific_context_fc) !=
-				BT_EVENT_CLASS_SET_FIELD_CLASS_STATUS_OK) {
-			BT_COMP_LOGE("Error setting event class' specific context "
-				"field class: ec-addr=%p, ctx-fc-addr=%p",
+		set_fc_status = bt_event_class_set_specific_context_field_class(
 				out_event_class, out_specific_context_fc);
-			ret = -1;
-			goto error;
+		if (set_fc_status != BT_EVENT_CLASS_SET_FIELD_CLASS_STATUS_OK) {
+			BT_COMP_LOGE_APPEND_CAUSE(self_comp,
+				"Error setting event class' specific context field class:"
+				"out-ec-addr=%p, out-spec-ctx-fc-addr=%p",
+				out_event_class, out_specific_context_fc);
+			status = (int) set_fc_status;
+			goto end;
 		}
 	}
 
@@ -477,51 +531,64 @@ int copy_event_class_content(struct trace_ir_maps *ir_maps,
 	md_maps->fc_resolving_ctx->event_payload = in_event_payload;
 
 	if (in_event_payload) {
-	/* Copy the payload of this event class. */
+		enum bt_event_class_set_field_class_status set_fc_status;
+		/* Copy the payload of this event class. */
 		out_payload_fc = create_field_class_copy(md_maps,
 			in_event_payload);
-		ret = copy_field_class_content(md_maps, in_event_payload,
+		status = copy_field_class_content(md_maps, in_event_payload,
 			out_payload_fc);
-		if (ret) {
-			goto error;
+		if (status != DEBUG_INFO_TRACE_IR_MAPPING_STATUS_OK) {
+			BT_COMP_LOGE_APPEND_CAUSE(self_comp,
+				"Error copying event class' specific context field class:"
+				"in-payload-fc-addr=%p, out-payload-fc-addr=%p",
+				in_event_payload, out_payload_fc);
+			goto end;
 		}
 
 		/* Add the output payload to the output event class. */
-		if (bt_event_class_set_payload_field_class(out_event_class,
-				out_payload_fc) != BT_EVENT_CLASS_SET_FIELD_CLASS_STATUS_OK) {
-			BT_COMP_LOGE("Error setting event class' payload "
-				"field class: ec-addr=%p, payload-fc-addr=%p",
+		set_fc_status = bt_event_class_set_payload_field_class(
+			out_event_class, out_payload_fc);
+		if (set_fc_status != BT_EVENT_CLASS_SET_FIELD_CLASS_STATUS_OK) {
+			BT_COMP_LOGE_APPEND_CAUSE(self_comp, "Error setting event class' payload field class: "
+				"out-ec-addr=%p, out-payload-fc-addr=%p",
 				out_event_class, out_payload_fc);
-			ret = -1;
-			goto error;
+			status = (int) set_fc_status;
+			goto end;
 		}
 	}
 
 	BT_COMP_LOGD("Copied content of event class: in-ec-addr=%p, out-ec-addr=%p",
 		in_event_class, out_event_class);
-error:
-	return ret;
+
+	status = DEBUG_INFO_TRACE_IR_MAPPING_STATUS_OK;
+end:
+	return status;
 }
 
 BT_HIDDEN
-int copy_event_common_context_field_class_content(
+enum debug_info_trace_ir_mapping_status
+copy_event_common_context_field_class_content(
 		struct trace_ir_metadata_maps *md_maps,
 		const char *debug_info_fc_name,
 		const bt_field_class *in_field_class,
 		bt_field_class *out_field_class)
 {
+	enum debug_info_trace_ir_mapping_status status;
 	bt_field_class *debug_field_class = NULL, *bin_field_class = NULL,
 		       *func_field_class = NULL, *src_field_class = NULL;
 	bt_logging_level log_level = md_maps->log_level;
 	bt_self_component *self_comp = md_maps->self_comp;
-	int ret = 0;
 
 	BT_COMP_LOGD("Copying content of event common context field class: "
 		"in-fc-addr=%p, out-fc-addr=%p", in_field_class, out_field_class);
 
 	/* Copy the content of the input common context. */
-	ret = copy_field_class_content(md_maps, in_field_class, out_field_class);
-	if (ret) {
+	status = copy_field_class_content(md_maps, in_field_class, out_field_class);
+	if (status != DEBUG_INFO_TRACE_IR_MAPPING_STATUS_OK) {
+		BT_COMP_LOGE_APPEND_CAUSE(self_comp,
+			"Error copying content of event common context field class: "
+			"in-fc-addr=%p, out-fc-addr=%p", in_field_class,
+			out_field_class);
 		goto error;
 	}
 
@@ -531,6 +598,7 @@ int copy_event_common_context_field_class_content(
 	 * common context.
 	 */
 	if (is_event_common_ctx_dbg_info_compatible(in_field_class, debug_info_fc_name)) {
+		enum bt_field_class_structure_append_member_status append_member_status;
 		/*
 		 * The struct field and 3 sub-fields are not stored in the
 		 * field class map because they don't have input equivalent.
@@ -541,78 +609,91 @@ int copy_event_common_context_field_class_content(
 		debug_field_class = bt_field_class_structure_create(
 			md_maps->output_trace_class);
 		if (!debug_field_class) {
-			BT_COMP_LOGE_STR("Failed to create debug_info structure.");
-			ret = -1;
+			BT_COMP_LOGE_APPEND_CAUSE(self_comp,
+				"Failed to create debug_info structure.");
+			status = DEBUG_INFO_TRACE_IR_MAPPING_STATUS_MEMORY_ERROR;
 			goto error;
 		}
 
 		bin_field_class = bt_field_class_string_create(
 			md_maps->output_trace_class);
 		if (!bin_field_class) {
-			BT_COMP_LOGE_STR("Failed to create string for field=bin.");
-			ret = -1;
+			BT_COMP_LOGE_APPEND_CAUSE(self_comp,
+				"Failed to create string for field=\"bin\".");
+			status = DEBUG_INFO_TRACE_IR_MAPPING_STATUS_MEMORY_ERROR;
 			goto error;
 		}
 
 		func_field_class = bt_field_class_string_create(
 			md_maps->output_trace_class);
 		if (!func_field_class) {
-			BT_COMP_LOGE_STR("Failed to create string for field=func.");
-			ret = -1;
+			BT_COMP_LOGE_APPEND_CAUSE(self_comp,
+				"Failed to create string for field=\"func\".");
+			status = DEBUG_INFO_TRACE_IR_MAPPING_STATUS_MEMORY_ERROR;
 			goto error;
 		}
 
 		src_field_class = bt_field_class_string_create(
 			md_maps->output_trace_class);
 		if (!src_field_class) {
-			BT_COMP_LOGE_STR("Failed to create string for field=src.");
-			ret = -1;
+			BT_COMP_LOGE_APPEND_CAUSE(self_comp,
+				"Failed to create string for field=\"src\".");
+			status = DEBUG_INFO_TRACE_IR_MAPPING_STATUS_MEMORY_ERROR;
 			goto error;
 		}
 
-		if (bt_field_class_structure_append_member(debug_field_class,
-				"bin", bin_field_class) !=
+		append_member_status = bt_field_class_structure_append_member(
+			debug_field_class, "bin", bin_field_class);
+		if (append_member_status !=
 				BT_FIELD_CLASS_STRUCTURE_APPEND_MEMBER_STATUS_OK) {
-			BT_COMP_LOGE_STR("Failed to add a field to debug_info "
-					"struct: field=bin.");
-			ret = -1;
+			BT_COMP_LOGE_APPEND_CAUSE(self_comp,
+				"Failed to add a field to debug_info struct: "
+				"field=\"bin\".");
+			status = (int) append_member_status;
 			goto error;
 		}
 		BT_FIELD_CLASS_PUT_REF_AND_RESET(bin_field_class);
 
-		if (bt_field_class_structure_append_member(debug_field_class,
-				"func", func_field_class) !=
+		append_member_status = bt_field_class_structure_append_member(
+			debug_field_class, "func", func_field_class);
+		if (append_member_status !=
 				BT_FIELD_CLASS_STRUCTURE_APPEND_MEMBER_STATUS_OK) {
-			BT_COMP_LOGE_STR("Failed to add a field to debug_info "
-					"struct: field=func.");
-			ret = -1;
+			BT_COMP_LOGE_APPEND_CAUSE(self_comp,
+				"Failed to add a field to debug_info struct: "
+				"field=\"func\".");
+			status = (int) append_member_status;
 			goto error;
 		}
 		BT_FIELD_CLASS_PUT_REF_AND_RESET(func_field_class);
 
-		if (bt_field_class_structure_append_member(debug_field_class,
-				"src", src_field_class) !=
+		append_member_status = bt_field_class_structure_append_member(
+			debug_field_class, "src", src_field_class);
+		if (append_member_status !=
 				BT_FIELD_CLASS_STRUCTURE_APPEND_MEMBER_STATUS_OK) {
-			BT_COMP_LOGE_STR("Failed to add a field to debug_info "
-					"struct: field=src.");
-			ret = -1;
+			BT_COMP_LOGE_APPEND_CAUSE(self_comp,
+				"Failed to add a field to debug_info struct: "
+				"field=\"src\".");
+			status = (int) append_member_status;
 			goto error;
 		}
 		BT_FIELD_CLASS_PUT_REF_AND_RESET(src_field_class);
 
 		/*Add the filled debug-info field class to the common context. */
-		if (bt_field_class_structure_append_member(out_field_class,
-				debug_info_fc_name, debug_field_class) !=
+		append_member_status = bt_field_class_structure_append_member(
+			out_field_class, debug_info_fc_name, debug_field_class);
+		if (append_member_status !=
 				BT_FIELD_CLASS_STRUCTURE_APPEND_MEMBER_STATUS_OK) {
-			BT_COMP_LOGE_STR("Failed to add debug_info field to "
-					"event common context.");
-			ret = -1;
+			BT_COMP_LOGE_APPEND_CAUSE(self_comp,
+				"Failed to add debug_info field to event common context.");
+			status = (int) append_member_status;
 			goto error;
 		}
 		BT_FIELD_CLASS_PUT_REF_AND_RESET(debug_field_class);
 	}
 	BT_COMP_LOGD("Copied content of event common context field class: "
 		"in-fc-addr=%p, out-fc-addr=%p", in_field_class, out_field_class);
+
+	status = DEBUG_INFO_TRACE_IR_MAPPING_STATUS_OK;
 	goto end;
 
 error:
@@ -629,7 +710,7 @@ error:
 		bt_field_class_put_ref(src_field_class);
 	}
 end:
-	return ret;
+	return status;
 }
 
 BT_HIDDEN
@@ -640,7 +721,8 @@ bt_field_class *create_field_class_copy(struct trace_ir_metadata_maps *md_maps,
 }
 
 BT_HIDDEN
-int copy_field_class_content(struct trace_ir_metadata_maps *md_maps,
+enum debug_info_trace_ir_mapping_status copy_field_class_content(
+		struct trace_ir_metadata_maps *md_maps,
 		const bt_field_class *in_field_class,
 		bt_field_class *out_field_class)
 {

@@ -46,8 +46,9 @@ static
 bt_trace_class *create_new_mapped_trace_class(struct trace_ir_maps *ir_maps,
 		const bt_trace_class *in_trace_class)
 {
+	bt_self_component *self_comp = ir_maps->self_comp;
+	enum debug_info_trace_ir_mapping_status status;
 	struct trace_ir_metadata_maps *metadata_maps;
-	int ret;
 
 	BT_COMP_LOGD("Creating new mapped trace class: in-tc-addr=%p", in_trace_class);
 
@@ -63,24 +64,30 @@ bt_trace_class *create_new_mapped_trace_class(struct trace_ir_maps *ir_maps,
 	metadata_maps->output_trace_class  =
 		bt_trace_class_create(ir_maps->self_comp);
 	if (!metadata_maps->output_trace_class) {
-		BT_COMP_LOGE_STR("Error create output trace class");
-		goto end;
+		BT_COMP_LOGE_APPEND_CAUSE(self_comp,
+			"Error create output trace class");
+		goto error;
 	}
 
 	/* Copy the content over and add to the mapping. */
-	ret = copy_trace_class_content(ir_maps, in_trace_class,
+	status = copy_trace_class_content(ir_maps, in_trace_class,
 		metadata_maps->output_trace_class, ir_maps->log_level,
 		ir_maps->self_comp);
-	if (ret) {
-		BT_COMP_LOGE_STR("Error copy content to output trace class");
-		BT_TRACE_CLASS_PUT_REF_AND_RESET(metadata_maps->output_trace_class);
-		metadata_maps->output_trace_class = NULL;
-		goto end;
+	if (status != DEBUG_INFO_TRACE_IR_MAPPING_STATUS_OK) {
+		BT_COMP_LOGE_APPEND_CAUSE(self_comp,
+			"Error copy content to output trace class"
+			"in-tc-addr=%p, out-tc-addr=%p", in_trace_class,
+			metadata_maps->output_trace_class);
+		goto error;
 	}
 
-	BT_COMP_LOGD("Created new mapped trace class: in-tc-addr=%p, out-tc-addr=%p",
+	BT_COMP_LOGD("Created new mapped trace class: "
+		"in-tc-addr=%p, out-tc-addr=%p",
 		in_trace_class, metadata_maps->output_trace_class);
 
+	goto end;
+error:
+	BT_TRACE_CLASS_PUT_REF_AND_RESET(metadata_maps->output_trace_class);
 end:
 	return metadata_maps->output_trace_class;
 }
@@ -89,6 +96,8 @@ static
 bt_trace *create_new_mapped_trace(struct trace_ir_maps *ir_maps,
 		const bt_trace *in_trace)
 {
+	bt_self_component *self_comp = ir_maps->self_comp;
+	enum debug_info_trace_ir_mapping_status status;
 	struct trace_ir_metadata_maps *metadata_maps;
 	const bt_trace_class *in_trace_class;
 	bt_trace *out_trace;
@@ -109,6 +118,8 @@ bt_trace *create_new_mapped_trace(struct trace_ir_maps *ir_maps,
 		metadata_maps->output_trace_class =
 			create_new_mapped_trace_class(ir_maps, in_trace_class);
 		if (!metadata_maps->output_trace_class) {
+			BT_COMP_LOGE_APPEND_CAUSE(self_comp,
+				"Error create output trace class");
 			out_trace = NULL;
 			goto end;
 		}
@@ -117,16 +128,27 @@ bt_trace *create_new_mapped_trace(struct trace_ir_maps *ir_maps,
 	/* Create the output trace from the output trace class. */
 	out_trace = bt_trace_create(metadata_maps->output_trace_class);
 	if (!out_trace) {
-		BT_COMP_LOGE_STR("Error create output trace");
+		BT_COMP_LOGE_APPEND_CAUSE(self_comp,
+			"Error create output trace");
 		goto end;
 	}
 
 	/* Copy the content over to the output trace. */
-	copy_trace_content(in_trace, out_trace, ir_maps->log_level,
+	status = copy_trace_content(in_trace, out_trace, ir_maps->log_level,
 		ir_maps->self_comp);
+	if (status != DEBUG_INFO_TRACE_IR_MAPPING_STATUS_OK) {
+		BT_COMP_LOGE_APPEND_CAUSE(self_comp,
+			"Error copy content to output trace"
+			"in-t-addr=%p, out-t-addr=%p", in_trace, out_trace);
+		goto error;
+	}
 
 	BT_COMP_LOGD("Created new mapped trace: in-t-addr=%p, out-t-addr=%p",
 		in_trace, out_trace);
+	goto end;
+
+error:
+	BT_TRACE_PUT_REF_AND_RESET(out_trace);
 end:
 	return out_trace;
 }
@@ -151,9 +173,10 @@ bt_stream_class *trace_ir_mapping_create_new_mapped_stream_class(
 		struct trace_ir_maps *ir_maps,
 		const bt_stream_class *in_stream_class)
 {
+	bt_self_component *self_comp = ir_maps->self_comp;
+	enum debug_info_trace_ir_mapping_status status;
 	struct trace_ir_metadata_maps *md_maps;
 	bt_stream_class *out_stream_class;
-	int ret;
 
 	BT_COMP_LOGD("Creating new mapped stream class: in-sc-addr=%p",
 		in_stream_class);
@@ -173,26 +196,33 @@ bt_stream_class *trace_ir_mapping_create_new_mapped_stream_class(
 		md_maps->output_trace_class,
 		bt_stream_class_get_id(in_stream_class));
 	if (!out_stream_class) {
-		BT_COMP_LOGE_STR("Error create output stream class");
+		BT_COMP_LOGE_APPEND_CAUSE(self_comp,
+			"Error create output stream class");
 		goto end;
 	}
 
-	/* Add it to the mapping. */
+	/* Add it to the mapping. The mapping now owns out_stream_class. */
 	g_hash_table_insert(md_maps->stream_class_map,
 		(gpointer) in_stream_class, out_stream_class);
 
 	/* Copy the content over to the output stream class. */
-	ret = copy_stream_class_content(ir_maps, in_stream_class,
+	status = copy_stream_class_content(ir_maps, in_stream_class,
 		out_stream_class);
-	if (ret) {
-		BT_COMP_LOGE_STR("Error copy content to output stream class");
-		out_stream_class = NULL;
-		goto end;
+	if (status != DEBUG_INFO_TRACE_IR_MAPPING_STATUS_OK) {
+		BT_COMP_LOGE_APPEND_CAUSE(self_comp,
+			"Error copy content to output stream class: "
+			"in-sc-addr=%p, out-sc-addr=%p", in_stream_class,
+			out_stream_class);
+		goto error;
 	}
 
-	BT_COMP_LOGD("Created new mapped stream class: in-sc-addr=%p, out-sc-addr=%p",
+	BT_COMP_LOGD("Created new mapped stream class: "
+		"in-sc-addr=%p, out-sc-addr=%p",
 		in_stream_class, out_stream_class);
 
+	goto end;
+error:
+	out_stream_class = NULL;
 end:
 	return out_stream_class;
 }
@@ -211,6 +241,8 @@ BT_HIDDEN
 bt_stream *trace_ir_mapping_create_new_mapped_stream(
 		struct trace_ir_maps *ir_maps, const bt_stream *in_stream)
 {
+	bt_self_component *self_comp = ir_maps->self_comp;
+	enum debug_info_trace_ir_mapping_status status;
 	struct trace_ir_data_maps *d_maps;
 	const bt_stream_class *in_stream_class;
 	const bt_trace *in_trace;
@@ -228,7 +260,9 @@ bt_stream *trace_ir_mapping_create_new_mapped_stream(
 		/* Create the output trace for this input trace. */
 		d_maps->output_trace = create_new_mapped_trace(ir_maps, in_trace);
 		if (!d_maps->output_trace) {
-			goto end;
+			BT_COMP_LOGE_APPEND_CAUSE(self_comp,
+				"Error creating mapped trace");
+			goto error;
 		}
 	}
 
@@ -244,7 +278,9 @@ bt_stream *trace_ir_mapping_create_new_mapped_stream(
 		out_stream_class = trace_ir_mapping_create_new_mapped_stream_class(
 			ir_maps, in_stream_class);
 		if (!out_stream_class) {
-			goto end;
+			BT_COMP_LOGE_APPEND_CAUSE(self_comp,
+				"Error creating mapped stream class");
+			goto error;
 		}
 	}
 	BT_ASSERT(out_stream_class);
@@ -253,21 +289,31 @@ bt_stream *trace_ir_mapping_create_new_mapped_stream(
 	out_stream = bt_stream_create_with_id(out_stream_class,
 		d_maps->output_trace, bt_stream_get_id(in_stream));
 	if (!out_stream) {
-		BT_COMP_LOGE_STR("Error creating output stream");
-		goto end;
+		BT_COMP_LOGE_APPEND_CAUSE(self_comp,
+			"Error creating output stream");
+		goto error;
 	}
 
-	/* Add it to the mapping. */
+	/* Add it to the mapping. The mapping now owns out_stream.*/
 	g_hash_table_insert(d_maps->stream_map, (gpointer) in_stream,
 		out_stream);
 
 	/* Copy the content over to the output stream. */
-	copy_stream_content(in_stream, out_stream, ir_maps->log_level,
+	status = copy_stream_content(in_stream, out_stream, ir_maps->log_level,
 		ir_maps->self_comp);
+	if (status != DEBUG_INFO_TRACE_IR_MAPPING_STATUS_OK) {
+		BT_COMP_LOGE_APPEND_CAUSE(self_comp,
+			"Error copy content to output stream: "
+			"in-s-addr=%p, out-s-addr=%p", in_stream, out_stream);
+		goto error;
+	}
 
 	BT_COMP_LOGD("Created new mapped stream: in-s-addr=%p, out-s-addr=%p",
 		in_stream, out_stream);
 
+	goto end;
+error:
+	out_stream = NULL;
 end:
 	return out_stream;
 }
@@ -299,11 +345,12 @@ bt_event_class *trace_ir_mapping_create_new_mapped_event_class(
 		struct trace_ir_maps *ir_maps,
 		const bt_event_class *in_event_class)
 {
+	bt_self_component *self_comp = ir_maps->self_comp;
+	enum debug_info_trace_ir_mapping_status status;
 	struct trace_ir_metadata_maps *md_maps;
 	const bt_stream_class *in_stream_class;
 	bt_stream_class *out_stream_class;
 	bt_event_class *out_event_class;
-	int ret;
 
 	BT_COMP_LOGD("Creating new mapped event class: in-ec-addr=%p",
 		in_event_class);
@@ -330,26 +377,32 @@ bt_event_class *trace_ir_mapping_create_new_mapped_event_class(
 	out_event_class = bt_event_class_create_with_id(out_stream_class,
 		bt_event_class_get_id(in_event_class));
 	if (!out_event_class) {
-		BT_COMP_LOGE_STR("Error creating output event class");
+		BT_COMP_LOGE_APPEND_CAUSE(self_comp,
+			"Error creating output event class");
 		goto end;
 	}
 
-	/* Add it to the mapping. */
-	g_hash_table_insert(md_maps->event_class_map,
-			(gpointer) in_event_class, out_event_class);
+	/* Add it to the mapping. The mapping now owns out_event_class. */
+	g_hash_table_insert(md_maps->event_class_map, (gpointer) in_event_class,
+		out_event_class);
 
 	/* Copy the content over to the output event class. */
-	ret = copy_event_class_content(ir_maps, in_event_class,
+	status = copy_event_class_content(ir_maps, in_event_class,
 		out_event_class);
-	if (ret) {
-		BT_COMP_LOGE_STR("Error copy content to output event class");
-		out_event_class = NULL;
-		goto end;
+	if (status != DEBUG_INFO_TRACE_IR_MAPPING_STATUS_OK) {
+		BT_COMP_LOGE_APPEND_CAUSE(self_comp,
+			"Error copy content to output event class: "
+			"in-ec-addr=%p, out-ec-addr=%p", in_event_class,
+			out_event_class);
+		goto error;
 	}
 
 	BT_COMP_LOGD("Created new mapped event class: in-ec-addr=%p, out-ec-addr=%p",
 		in_event_class, out_event_class);
 
+	goto end;
+error:
+	out_event_class = NULL;
 end:
 	return out_event_class;
 }
@@ -386,6 +439,8 @@ bt_packet *trace_ir_mapping_create_new_mapped_packet(
 		struct trace_ir_maps *ir_maps,
 		const bt_packet *in_packet)
 {
+	bt_self_component *self_comp = ir_maps->self_comp;
+	enum debug_info_trace_ir_mapping_status status;
 	struct trace_ir_data_maps *d_maps;
 	const bt_stream *in_stream;
 	const bt_trace *in_trace;
@@ -409,21 +464,31 @@ bt_packet *trace_ir_mapping_create_new_mapped_packet(
 	/* Create the output packet. */
 	out_packet = bt_packet_create(out_stream);
 	if (!out_packet) {
-		BT_COMP_LOGE_STR("Error create output packet");
-		goto end;
+		BT_COMP_LOGE_APPEND_CAUSE(self_comp,
+			"Error create output packet");
+		goto error;
 	}
 
-	/* Add it to the mapping. */
-	g_hash_table_insert(d_maps->packet_map,
-		(gpointer) in_packet, out_packet);
+	/* Add it to the mapping. The mapping now owns out_packet. */
+	g_hash_table_insert(d_maps->packet_map, (gpointer) in_packet,
+		out_packet);
 
 	/* Copy the content over to the output packet. */
-	copy_packet_content(in_packet, out_packet, ir_maps->log_level,
+	status = copy_packet_content(in_packet, out_packet, ir_maps->log_level,
 		ir_maps->self_comp);
+	if (status != DEBUG_INFO_TRACE_IR_MAPPING_STATUS_OK) {
+		BT_COMP_LOGE_APPEND_CAUSE(self_comp,
+			"Error copy content to output packet: "
+			"in-p-addr=%p, out-p-addr=%p", in_packet, out_packet);
+		goto error;
+	}
 
 	BT_COMP_LOGD("Created new mapped packet: in-p-addr=%p, out-p-addr=%p",
 		in_packet, out_packet);
 
+	goto end;
+error:
+	out_packet = NULL;
 end:
 	return out_packet;
 }
@@ -502,11 +567,13 @@ void trace_ir_data_maps_remove_func(const bt_trace *in_trace, void *data)
 struct trace_ir_data_maps *trace_ir_data_maps_create(struct trace_ir_maps *ir_maps,
 		const bt_trace *in_trace)
 {
+	bt_self_component *self_comp = ir_maps->self_comp;
 	bt_trace_add_listener_status add_listener_status;
 	struct trace_ir_data_maps *d_maps = g_new0(struct trace_ir_data_maps, 1);
 
 	if (!d_maps) {
-		BT_COMP_LOGE_STR("Error allocating trace_ir_maps");
+		BT_COMP_LOGE_APPEND_CAUSE(self_comp,
+			"Error allocating trace_ir_maps");
 		goto error;
 	}
 
@@ -533,12 +600,14 @@ struct trace_ir_metadata_maps *trace_ir_metadata_maps_create(
 		struct trace_ir_maps *ir_maps,
 		const bt_trace_class *in_trace_class)
 {
+	bt_self_component *self_comp = ir_maps->self_comp;
 	bt_trace_class_add_listener_status add_listener_status;
 	struct trace_ir_metadata_maps *md_maps =
 		g_new0(struct trace_ir_metadata_maps, 1);
 
 	if (!md_maps) {
-		BT_COMP_LOGE_STR("Error allocating trace_ir_maps");
+		BT_COMP_LOGE_APPEND_CAUSE(self_comp,
+			"Error allocating trace_ir_maps");
 		goto error;
 	}
 
@@ -553,7 +622,8 @@ struct trace_ir_metadata_maps *trace_ir_metadata_maps_create(
 	md_maps->fc_resolving_ctx =
 		g_new0(struct field_class_resolving_context, 1);
 	if (!md_maps->fc_resolving_ctx) {
-		BT_COMP_LOGE_STR("Error allocating field_class_resolving_context");
+		BT_COMP_LOGE_APPEND_CAUSE(self_comp,
+			"Error allocating field_class_resolving_context");
 		goto error;
 	}
 
@@ -702,7 +772,8 @@ struct trace_ir_maps *trace_ir_maps_create(bt_self_component *self_comp,
 	/* Copy debug info field name received from the user. */
 	ir_maps->debug_info_field_class_name = g_strdup(debug_info_field_name);
 	if (!ir_maps->debug_info_field_class_name) {
-		BT_COMP_LOGE_STR("Cannot copy debug info field name");
+		BT_COMP_LOGE_APPEND_CAUSE(self_comp,
+			"Cannot copy debug info field name");
 		goto error;
 	}
 
