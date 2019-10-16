@@ -715,6 +715,7 @@ int add_ds_file_to_ds_file_group(struct ctf_fs_trace *ctf_fs_trace,
 	struct bt_msg_iter_packet_properties props;
 	bt_logging_level log_level = ctf_fs_trace->log_level;
 	bt_self_component *self_comp = ctf_fs_trace->self_comp;
+	bt_self_component_class *self_comp_class = ctf_fs_trace->self_comp_class;
 
 	msg_iter = bt_msg_iter_create(ctf_fs_trace->metadata->tc,
 		bt_common_get_page_size(log_level) * 8,
@@ -732,7 +733,7 @@ int add_ds_file_to_ds_file_group(struct ctf_fs_trace *ctf_fs_trace,
 
 	ret = bt_msg_iter_get_packet_properties(ds_file->msg_iter, &props);
 	if (ret) {
-		BT_COMP_LOGE_APPEND_CAUSE(self_comp,
+		BT_COMP_OR_COMP_CLASS_LOGE_APPEND_CAUSE(self_comp, self_comp_class,
 			"Cannot get stream file's first packet's header and context fields (`%s`).",
 			path);
 		goto error;
@@ -751,7 +752,7 @@ int add_ds_file_to_ds_file_group(struct ctf_fs_trace *ctf_fs_trace,
 			sc->default_clock_class->offset_seconds,
 			sc->default_clock_class->offset_cycles, &begin_ns);
 		if (ret) {
-			BT_COMP_LOGE_APPEND_CAUSE(self_comp,
+			BT_COMP_OR_COMP_CLASS_LOGE_APPEND_CAUSE(self_comp, self_comp_class,
 				"Cannot convert clock cycles to nanoseconds from origin (`%s`).",
 				path);
 			goto error;
@@ -863,11 +864,13 @@ int create_ds_file_groups(struct ctf_fs_trace *ctf_fs_trace)
 	GDir *dir = NULL;
 	bt_logging_level log_level = ctf_fs_trace->log_level;
 	bt_self_component *self_comp = ctf_fs_trace->self_comp;
+	bt_self_component_class *self_comp_class = ctf_fs_trace->self_comp_class;
 
 	/* Check each file in the path directory, except specific ones */
 	dir = g_dir_open(ctf_fs_trace->path->str, 0, &error);
 	if (!dir) {
-		BT_COMP_LOGE_APPEND_CAUSE(self_comp, "Cannot open directory `%s`: %s (code %d)",
+		BT_COMP_OR_COMP_CLASS_LOGE_APPEND_CAUSE(self_comp, self_comp_class,
+			"Cannot open directory `%s`: %s (code %d)",
 			ctf_fs_trace->path->str, error->message,
 			error->code);
 		goto error;
@@ -892,7 +895,7 @@ int create_ds_file_groups(struct ctf_fs_trace *ctf_fs_trace)
 		/* Create the file. */
 		file = ctf_fs_file_create(log_level, self_comp);
 		if (!file) {
-			BT_COMP_LOGE_APPEND_CAUSE(self_comp,
+			BT_COMP_OR_COMP_CLASS_LOGE_APPEND_CAUSE(self_comp, self_comp_class,
 				"Cannot create stream file object for file `%s" G_DIR_SEPARATOR_S "%s`",
 				ctf_fs_trace->path->str, basename);
 			goto error;
@@ -911,7 +914,8 @@ int create_ds_file_groups(struct ctf_fs_trace *ctf_fs_trace)
 
 		ret = ctf_fs_file_open(file, "rb");
 		if (ret) {
-			BT_COMP_LOGE_APPEND_CAUSE(self_comp, "Cannot open stream file `%s`",
+			BT_COMP_OR_COMP_CLASS_LOGE_APPEND_CAUSE(self_comp, self_comp_class,
+				"Cannot open stream file `%s`",
 				file->path->str);
 			goto error;
 		}
@@ -926,7 +930,7 @@ int create_ds_file_groups(struct ctf_fs_trace *ctf_fs_trace)
 		ret = add_ds_file_to_ds_file_group(ctf_fs_trace,
 			file->path->str);
 		if (ret) {
-			BT_COMP_LOGE_APPEND_CAUSE(self_comp,
+			BT_COMP_OR_COMP_CLASS_LOGE_APPEND_CAUSE(self_comp, self_comp_class,
 				"Cannot add stream file `%s` to stream file group",
 				file->path->str);
 			ctf_fs_file_destroy(file);
@@ -1003,13 +1007,18 @@ end:
 }
 
 static
-struct ctf_fs_trace *ctf_fs_trace_create(bt_self_component *self_comp,
+struct ctf_fs_trace *ctf_fs_trace_create(
+		bt_self_component *self_comp,
+		bt_self_component_class *self_comp_class,
 		const char *path, const char *name,
 		struct ctf_fs_metadata_config *metadata_config,
 		bt_logging_level log_level)
 {
 	struct ctf_fs_trace *ctf_fs_trace;
 	int ret;
+
+	/* Only one of them must be set. */
+	BT_ASSERT(!self_comp != !self_comp_class);
 
 	ctf_fs_trace = g_new0(struct ctf_fs_trace, 1);
 	if (!ctf_fs_trace) {
@@ -1018,6 +1027,7 @@ struct ctf_fs_trace *ctf_fs_trace_create(bt_self_component *self_comp,
 
 	ctf_fs_trace->log_level = log_level;
 	ctf_fs_trace->self_comp = self_comp;
+	ctf_fs_trace->self_comp_class = self_comp_class;
 	ctf_fs_trace->path = g_string_new(path);
 	if (!ctf_fs_trace->path) {
 		goto error;
@@ -1120,18 +1130,21 @@ int ctf_fs_component_create_ctf_fs_trace_one_path(
 	norm_path = bt_common_normalize_path(path_param, NULL);
 	if (!norm_path) {
 		BT_COMP_OR_COMP_CLASS_LOGE_APPEND_CAUSE(self_comp, self_comp_class,
-			"Failed to normalize path: `%s`.", path_param);
+			"Failed to normalize path: `%s`.",
+			path_param);
 		goto error;
 	}
 
 	ret = path_is_ctf_trace(norm_path->str);
 	if (ret < 0) {
 		BT_COMP_OR_COMP_CLASS_LOGE_APPEND_CAUSE(self_comp, self_comp_class,
-			"Failed to check if path is a CTF trace: path=%s", norm_path->str);
+			"Failed to check if path is a CTF trace: path=%s",
+			norm_path->str);
 		goto error;
 	} else if (ret == 0) {
 		BT_COMP_OR_COMP_CLASS_LOGE_APPEND_CAUSE(self_comp, self_comp_class,
-			"Path is not a CTF trace (does not contain a metadata file): `%s`.", norm_path->str);
+			"Path is not a CTF trace (does not contain a metadata file): `%s`.",
+			norm_path->str);
 		goto error;
 	}
 
@@ -1143,10 +1156,11 @@ int ctf_fs_component_create_ctf_fs_trace_one_path(
 		goto end;
 	}
 
-	ctf_fs_trace = ctf_fs_trace_create(self_comp, norm_path->str,
+	ctf_fs_trace = ctf_fs_trace_create(self_comp, self_comp_class, norm_path->str,
 		trace_name, &ctf_fs->metadata_config, log_level);
 	if (!ctf_fs_trace) {
-		BT_COMP_LOGE_APPEND_CAUSE(self_comp, "Cannot create trace for `%s`.",
+		BT_COMP_OR_COMP_CLASS_LOGE_APPEND_CAUSE(self_comp, self_comp_class,
+			"Cannot create trace for `%s`.",
 			norm_path->str);
 		goto error;
 	}
@@ -1919,7 +1933,8 @@ bool is_tracer_affected_by_lttng_crash_quirk(
  */
 static
 int fix_packet_index_tracer_bugs(struct ctf_fs_component *ctf_fs,
-		bt_self_component *self_comp)
+		bt_self_component *self_comp,
+		bt_self_component_class *self_comp_class)
 {
 	int ret = 0;
 	struct tracer_info current_tracer_info;
@@ -1945,7 +1960,8 @@ int fix_packet_index_tracer_bugs(struct ctf_fs_component *ctf_fs,
 		BT_LOGI_STR("Trace may be affected by LTTng tracer packet timestamp bug. Fixing up.");
 		ret = fix_index_lttng_event_after_packet_bug(ctf_fs->trace);
 		if (ret) {
-			BT_COMP_LOGE_APPEND_CAUSE(self_comp,
+			BT_COMP_OR_COMP_CLASS_LOGE_APPEND_CAUSE(
+				self_comp, self_comp_class,
 				"Failed to fix LTTng event-after-packet bug.");
 			goto end;
 		}
@@ -1957,7 +1973,8 @@ int fix_packet_index_tracer_bugs(struct ctf_fs_component *ctf_fs,
 		BT_LOGI_STR("Trace may be affected by barectf tracer packet timestamp bug. Fixing up.");
 		ret = fix_index_barectf_event_before_packet_bug(ctf_fs->trace);
 		if (ret) {
-			BT_COMP_LOGE_APPEND_CAUSE(self_comp,
+			BT_COMP_OR_COMP_CLASS_LOGE_APPEND_CAUSE(
+				self_comp, self_comp_class,
 				"Failed to fix barectf event-before-packet bug.");
 			goto end;
 		}
@@ -1968,7 +1985,8 @@ int fix_packet_index_tracer_bugs(struct ctf_fs_component *ctf_fs,
 			&current_tracer_info)) {
 		ret = fix_index_lttng_crash_quirk(ctf_fs->trace);
 		if (ret) {
-			BT_COMP_LOGE_APPEND_CAUSE(self_comp,
+			BT_COMP_OR_COMP_CLASS_LOGE_APPEND_CAUSE(
+				self_comp, self_comp_class,
 				"Failed to fix lttng-crash timestamp quirks.");
 			goto end;
 		}
@@ -2085,7 +2103,7 @@ int ctf_fs_component_create_ctf_fs_trace(
 		traces->pdata[0] = NULL;
 	}
 
-	ret = fix_packet_index_tracer_bugs(ctf_fs, self_comp);
+	ret = fix_packet_index_tracer_bugs(ctf_fs, self_comp, self_comp_class);
 	if (ret) {
 		BT_COMP_OR_COMP_CLASS_LOGE_APPEND_CAUSE(self_comp, self_comp_class,
 			"Failed to fix packet index tracer bugs.");
@@ -2297,8 +2315,7 @@ end:
 static
 struct ctf_fs_component *ctf_fs_create(
 	const bt_value *params,
-	bt_self_component_source *self_comp_src,
-	bt_self_component_class *self_comp_class)
+	bt_self_component_source *self_comp_src)
 {
 	struct ctf_fs_component *ctf_fs = NULL;
 	const bt_value *inputs_value;
@@ -2313,14 +2330,14 @@ struct ctf_fs_component *ctf_fs_create(
 	}
 
 	if (!read_src_fs_parameters(params, &inputs_value, &trace_name_value,
-			ctf_fs, self_comp, self_comp_class)) {
+			ctf_fs, self_comp, NULL)) {
 		goto error;
 	}
 
 	bt_self_component_set_data(self_comp, ctf_fs);
 
 	if (ctf_fs_component_create_ctf_fs_trace(ctf_fs, inputs_value,
-			trace_name_value, self_comp, self_comp_class)) {
+			trace_name_value, self_comp, NULL)) {
 		goto error;
 	}
 
@@ -2353,7 +2370,7 @@ bt_component_class_initialize_method_status ctf_fs_init(
 	bt_component_class_initialize_method_status ret =
 		BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_OK;
 
-	ctf_fs = ctf_fs_create(params, self_comp_src, NULL);
+	ctf_fs = ctf_fs_create(params, self_comp_src);
 	if (!ctf_fs) {
 		ret = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_ERROR;
 	}

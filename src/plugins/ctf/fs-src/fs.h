@@ -84,8 +84,13 @@ struct ctf_fs_component {
 struct ctf_fs_trace {
 	bt_logging_level log_level;
 
-	/* Weak */
+	/*
+	 * Weak. These are mostly used to generate log messages or to append
+	 * error causes. They are mutually exclusive, only one of them must is
+	 * set.
+	 */
 	bt_self_component *self_comp;
+	bt_self_component_class *self_comp_class;
 
 	/* Owned by this */
 	struct ctf_fs_metadata *metadata;
