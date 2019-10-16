@@ -248,9 +248,9 @@ AM_CONDITIONAL([HAVE_FLEX], [test "x$have_flex" = "xyes"])
 # Check what libraries are required on this platform to link sockets programs.
 AX_LIB_SOCKET_NSL
 
-# Check for glib >= 2.22 with gmodule support
-AM_PATH_GLIB_2_0([2.22.0], [],
-  AC_MSG_ERROR([glib >= 2.22 is required - download it from ftp://ftp.gtk.org/pub/gtk]),
+# Check for glib >= 2.28 with gmodule support
+AM_PATH_GLIB_2_0([2.28.0], [],
+  AC_MSG_ERROR([glib >= 2.28 is required - download it from ftp://ftp.gtk.org/pub/gtk]),
   [gmodule-no-export]
 )
 

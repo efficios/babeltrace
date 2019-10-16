@@ -77,7 +77,7 @@ Libraries::
     * A C library (for example,
       https://www.gnu.org/software/libc/[GNU{nbsp}C Library],
       https://www.musl-libc.org/[musl libc])
-    * https://developer.gnome.org/glib/[GLib]{nbsp}≥{nbsp}2.22
+    * https://developer.gnome.org/glib/[GLib]{nbsp}≥{nbsp}2.28
       (Debian/Ubuntu: `libglib2.0-dev`; Fedora: `glib2-devel`)
 
 _**If you need the `bt2` Python bindings**_::
@@ -250,7 +250,7 @@ Libraries::
     * A C library (for example,
       https://www.gnu.org/software/libc/[GNU{nbsp}C Library],
       https://www.musl-libc.org/[musl libc])
-    * https://developer.gnome.org/glib/[GLib]{nbsp}≥{nbsp}2.22
+    * https://developer.gnome.org/glib/[GLib]{nbsp}≥{nbsp}2.28
       (Debian/Ubuntu: `libglib2.0-0`; Fedora: `glib2`)
 
 _**If you need the `bt2` Python bindings**_::
