@@ -678,23 +678,42 @@ void ds_file_group_insert_ds_file_info_sorted(
 }
 
 static
-void ds_file_group_insert_ds_index_entry_sorted(
-	struct ctf_fs_ds_file_group *ds_file_group,
+void ds_index_insert_ds_index_entry_sorted(
+	struct ctf_fs_ds_index *index,
 	struct ctf_fs_ds_index_entry *entry)
 {
 	guint i;
 
 	/* Find the spot where to insert this index entry. */
-	for (i = 0; i < ds_file_group->index->entries->len; i++) {
-		struct ctf_fs_ds_index_entry *other_entry = g_ptr_array_index(
-			ds_file_group->index->entries, i);
+	for (i = 0; i < index->entries->len; i++) {
+		struct ctf_fs_ds_index_entry *other_entry =
+			g_ptr_array_index(index->entries, i);
 
 		if (entry->timestamp_begin_ns < other_entry->timestamp_begin_ns) {
 			break;
 		}
 	}
 
-	array_insert(ds_file_group->index->entries, entry, i);
+	array_insert(index->entries, entry, i);
+}
+
+static
+void merge_ctf_fs_ds_indexes(struct ctf_fs_ds_index *dest, struct ctf_fs_ds_index *src)
+{
+	guint i;
+
+	for (i = 0; i < src->entries->len; i++) {
+		struct ctf_fs_ds_index_entry *entry =
+			g_ptr_array_index(src->entries, i);
+
+		/*
+		* Ownership of the ctf_fs_ds_index_entry is transferred to
+		* dest.
+		*/
+		g_ptr_array_index(src->entries, i) = NULL;
+
+		ds_index_insert_ds_index_entry_sorted(dest, entry);
+	}
 }
 
 static
@@ -829,6 +848,8 @@ int add_ds_file_to_ds_file_group(struct ctf_fs_trace *ctf_fs_trace,
 		}
 
 		add_group = true;
+	} else {
+		merge_ctf_fs_ds_indexes(ds_file_group->index, index);
 	}
 
 	ds_file_group_insert_ds_file_info_sorted(ds_file_group, ds_file_info);
@@ -1226,18 +1247,7 @@ void merge_ctf_fs_ds_file_groups(struct ctf_fs_ds_file_group *dest, struct ctf_f
 	}
 
 	/* Merge both indexes. */
-	for (i = 0; i < src->index->entries->len; i++) {
-		struct ctf_fs_ds_index_entry *entry = g_ptr_array_index(
-			src->index->entries, i);
-
-		/*
-		 * Ownership of the ctf_fs_ds_index_entry is transferred to
-		 * dest.
-		 */
-		g_ptr_array_index(src->index->entries, i) = NULL;
-
-		ds_file_group_insert_ds_index_entry_sorted(dest, entry);
-	}
+	merge_ctf_fs_ds_indexes(dest->index, src->index);
 }
 /* Merge src_trace's data stream file groups into dest_trace's. */
 
