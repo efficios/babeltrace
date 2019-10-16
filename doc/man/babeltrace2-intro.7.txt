@@ -188,8 +188,8 @@ chunks.
 * With a compcls:sink.ctf.fs component, you can create CTF traces on
   the file system.
 +
-With man:babeltrace2-convert(1), you can use the `--output-format=ctf`
-and manopt:babeltrace2-convert(1):--output options to create an implicit
+With man:babeltrace2(1), you can use the `--output-format=ctf` and
+manopt:babeltrace2-convert(1):--output options to create an implicit
 compcls:sink.ctf.fs component.
 +
 For example:
