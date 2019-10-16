@@ -448,8 +448,11 @@ struct ctf_fs_ds_index *build_index_from_idx_file(
 		total_packets_size += packet_size;
 		file_pos += file_index_entry_size;
 
-		g_ptr_array_add(index->entries, index_entry);
 		prev_index_entry = index_entry;
+
+		/* Give ownership of `index_entry` to `index->entries`. */
+		g_ptr_array_add(index->entries, index_entry);
+		index_entry = NULL;
 	}
 
 	/* Validate that the index addresses the complete stream. */
