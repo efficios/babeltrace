@@ -132,7 +132,7 @@ struct ctf_fs_ds_index_entry {
 };
 
 struct ctf_fs_ds_index {
-	/* Array of pointer to struct ctf_fs_fd_index_entry. */
+	/* Array of pointer to struct ctf_fs_ds_index_entry. */
 	GPtrArray *entries;
 };
 

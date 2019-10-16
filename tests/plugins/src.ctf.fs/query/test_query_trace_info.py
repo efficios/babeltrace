@@ -218,6 +218,43 @@ class QueryTraceInfoRangeTestCase(unittest.TestCase):
         self.assertRaises(KeyError, lambda: trace['range-ns'])
         self.assertRaises(KeyError, lambda: streams[0]['range-ns'])
 
+    def test_trace_with_tracefile_rotation(self):
+        res = bt2.QueryExecutor(
+            self._fs,
+            "babeltrace.trace-infos",
+            {
+                "inputs": [
+                    os.path.join(
+                        test_ctf_traces_path,
+                        "succeed",
+                        "lttng-tracefile-rotation",
+                        "kernel",
+                    )
+                ]
+            },
+        ).query()
+
+        self.assertEqual(len(res), 1)
+        trace = res[0]
+        streams = trace["stream-infos"]
+        self.assertEqual(len(streams), 4)
+
+        # Note: the end timestamps are not the end timestamps found in the
+        # index files, because fix_index_lttng_event_after_packet_bug changes
+        # them based on the time of the last event in the stream.
+
+        self.assertEqual(streams[0]['range-ns']['begin'], 1571261795455986789)
+        self.assertEqual(streams[0]['range-ns']['end'], 1571261797582611840)
+
+        self.assertEqual(streams[1]['range-ns']['begin'], 1571261795456368232)
+        self.assertEqual(streams[1]['range-ns']['end'], 1571261797577754111)
+
+        self.assertEqual(streams[2]['range-ns']['begin'], 1571261795456748255)
+        self.assertEqual(streams[2]['range-ns']['end'], 1571261797577727795)
+
+        self.assertEqual(streams[3]['range-ns']['begin'], 1571261795457285142)
+        self.assertEqual(streams[3]['range-ns']['end'], 1571261797582522088)
+
 
 class QueryTraceInfoPacketTimestampQuirksTestCase(unittest.TestCase):
     def setUp(self):
