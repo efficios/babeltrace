@@ -205,7 +205,8 @@ struct debug_info_source *debug_info_source_create_from_bin(
 		debug_info_src->line_no =
 			g_strdup_printf("%"PRId64, src_loc->line_no);
 		if (!debug_info_src->line_no) {
-			BT_COMP_LOGE("Error occured when setting line_no field.");
+			BT_COMP_LOGE_APPEND_CAUSE(self_comp,
+				"Error occured when setting `line_no` field.");
 			goto error;
 		}
 
@@ -962,7 +963,7 @@ void fill_debug_info_bin_field(struct debug_info_source *dbg_info_src,
 				dbg_info_src->short_bin_path);
 		}
 		if (set_status != BT_FIELD_STRING_SET_VALUE_STATUS_OK) {
-			BT_COMP_LOGE("Cannot set path component of \"bin\" "
+			BT_COMP_LOGE("Cannot set path component of `bin` "
 				"curr_field field's value: str-fc-addr=%p",
 				curr_field);
 			bt_current_thread_clear_error();
@@ -971,7 +972,7 @@ void fill_debug_info_bin_field(struct debug_info_source *dbg_info_src,
 		append_status = bt_field_string_append(curr_field,
 			dbg_info_src->bin_loc);
 		if (append_status != BT_FIELD_STRING_APPEND_STATUS_OK) {
-			BT_COMP_LOGE("Cannot set bin location component of \"bin\" "
+			BT_COMP_LOGE("Cannot set bin location component of `bin` "
 				"curr_field field's value: str-fc-addr=%p",
 				curr_field);
 			bt_current_thread_clear_error();
@@ -979,7 +980,7 @@ void fill_debug_info_bin_field(struct debug_info_source *dbg_info_src,
 	} else {
 		set_status = bt_field_string_set_value(curr_field, "");
 		if (set_status != BT_FIELD_STRING_SET_VALUE_STATUS_OK) {
-			BT_COMP_LOGE("Cannot set \"bin\" curr_field field's value: "
+			BT_COMP_LOGE("Cannot set `bin` curr_field field's value: "
 				"str-fc-addr=%p", curr_field);
 			bt_current_thread_clear_error();
 		}
@@ -1002,7 +1003,7 @@ void fill_debug_info_func_field(struct debug_info_source *dbg_info_src,
 		status = bt_field_string_set_value(curr_field, "");
 	}
 	if (status != BT_FIELD_STRING_SET_VALUE_STATUS_OK) {
-		BT_COMP_LOGE("Cannot set \"func\" curr_field field's value: "
+		BT_COMP_LOGE("Cannot set `func` curr_field field's value: "
 			"str-fc-addr=%p", curr_field);
 		bt_current_thread_clear_error();
 	}
@@ -1029,7 +1030,7 @@ void fill_debug_info_src_field(struct debug_info_source *dbg_info_src,
 				dbg_info_src->short_src_path);
 		}
 		if (set_status != BT_FIELD_STRING_SET_VALUE_STATUS_OK) {
-			BT_COMP_LOGE("Cannot set path component of \"src\" "
+			BT_COMP_LOGE("Cannot set path component of `src` "
 				"curr_field field's value: str-fc-addr=%p",
 				curr_field);
 			bt_current_thread_clear_error();
@@ -1037,7 +1038,7 @@ void fill_debug_info_src_field(struct debug_info_source *dbg_info_src,
 
 		append_status = bt_field_string_append(curr_field, ":");
 		if (append_status != BT_FIELD_STRING_APPEND_STATUS_OK) {
-			BT_COMP_LOGE("Cannot set colon component of \"src\" "
+			BT_COMP_LOGE("Cannot set colon component of `src` "
 				"curr_field field's value: str-fc-addr=%p",
 				curr_field);
 			bt_current_thread_clear_error();
@@ -1046,7 +1047,7 @@ void fill_debug_info_src_field(struct debug_info_source *dbg_info_src,
 		append_status = bt_field_string_append(curr_field,
 			dbg_info_src->line_no);
 		if (append_status != BT_FIELD_STRING_APPEND_STATUS_OK) {
-			BT_COMP_LOGE("Cannot set line number component of \"src\" "
+			BT_COMP_LOGE("Cannot set line number component of `src` "
 				"curr_field field's value: str-fc-addr=%p",
 				curr_field);
 			bt_current_thread_clear_error();
@@ -1054,7 +1055,7 @@ void fill_debug_info_src_field(struct debug_info_source *dbg_info_src,
 	} else {
 		set_status = bt_field_string_set_value(curr_field, "");
 		if (set_status != BT_FIELD_STRING_SET_VALUE_STATUS_OK) {
-			BT_COMP_LOGE("Cannot set \"src\" curr_field field's value: "
+			BT_COMP_LOGE("Cannot set `src` curr_field field's value: "
 				"str-fc-addr=%p", curr_field);
 			bt_current_thread_clear_error();
 		}
@@ -1087,21 +1088,21 @@ void fill_debug_info_field_empty(bt_field *debug_info_field,
 
 	status = bt_field_string_set_value(bin_field, "");
 	if (status != BT_FIELD_STRING_SET_VALUE_STATUS_OK) {
-		BT_COMP_LOGE("Cannot set \"bin\" bin_field field's value: "
+		BT_COMP_LOGE("Cannot set `bin` field's value: "
 			"str-fc-addr=%p", bin_field);
 		bt_current_thread_clear_error();
 	}
 
 	status = bt_field_string_set_value(func_field, "");
 	if (status != BT_FIELD_STRING_SET_VALUE_STATUS_OK) {
-		BT_COMP_LOGE("Cannot set \"func\" func_field field's value: "
+		BT_COMP_LOGE("Cannot set `func` field's value: "
 			"str-fc-addr=%p", func_field);
 		bt_current_thread_clear_error();
 	}
 
 	status = bt_field_string_set_value(src_field, "");
 	if (status != BT_FIELD_STRING_SET_VALUE_STATUS_OK) {
-		BT_COMP_LOGE("Cannot set \"src\" src_field field's value: "
+		BT_COMP_LOGE("Cannot set `src` field's value: "
 			"str-fc-addr=%p", src_field);
 		bt_current_thread_clear_error();
 	}
@@ -1328,14 +1329,21 @@ bt_message *handle_event_message(struct debug_info_msg_iter *debug_it,
 	}
 
 	if (!out_message) {
-		BT_COMP_LOGE("Error creating output event message.");
+		BT_COMP_LOGE_APPEND_CAUSE(self_comp,
+			"Error creating output event message.");
 		goto error;
 	}
 
 	out_event = bt_message_event_borrow_event(out_message);
 
 	/* Copy the original fields to the output event. */
-	copy_event_content(in_event, out_event, log_level, self_comp);
+	if (copy_event_content(in_event, out_event, log_level, self_comp) !=
+			DEBUG_INFO_TRACE_IR_MAPPING_STATUS_OK) {
+		BT_COMP_LOGE_APPEND_CAUSE(self_comp,
+			"Error copying event message content output event message: "
+			"in-ev-addr=%p, out-ev-addr=%p", in_event, out_event);
+		goto error;
+	}
 
 	/*
 	 * Try to set the debug-info fields based on debug information that is
@@ -1343,7 +1351,11 @@ bt_message *handle_event_message(struct debug_info_msg_iter *debug_it,
 	 */
 	fill_debug_info_event_if_needed(debug_it, in_event, out_event);
 
+	goto end;
+
 error:
+	BT_MESSAGE_PUT_REF_AND_RESET(out_message);
+end:
 	return out_message;
 }
 
@@ -1372,7 +1384,8 @@ bt_message *handle_stream_begin_message(struct debug_info_msg_iter *debug_it,
 	out_message = bt_message_stream_beginning_create(
 		debug_it->input_iterator, out_stream);
 	if (!out_message) {
-		BT_COMP_LOGE("Error creating output stream beginning message: "
+		BT_COMP_LOGE_APPEND_CAUSE(self_comp,
+			"Error creating output stream beginning message: "
 			"out-s-addr=%p", out_stream);
 	}
 error:
@@ -1400,8 +1413,9 @@ bt_message *handle_stream_end_message(struct debug_info_msg_iter *debug_it,
 	out_message = bt_message_stream_end_create(debug_it->input_iterator,
 		out_stream);
 	if (!out_message) {
-		BT_COMP_LOGE("Error creating output stream end message: out-s-addr=%p",
-				out_stream);
+		BT_COMP_LOGE_APPEND_CAUSE(self_comp,
+			"Error creating output stream end message: "
+			"out-s-addr=%p", out_stream);
 		goto end;
 	}
 
@@ -1454,7 +1468,8 @@ bt_message *handle_packet_begin_message(struct debug_info_msg_iter *debug_it,
 			debug_it->input_iterator, out_packet);
 	}
 	if (!out_message) {
-		BT_COMP_LOGE("Error creating output packet beginning message: "
+		BT_COMP_LOGE_APPEND_CAUSE(self_comp,
+			"Error creating output packet beginning message: "
 			"out-p-addr=%p", out_packet);
 	}
 
@@ -1498,7 +1513,8 @@ bt_message *handle_packet_end_message(struct debug_info_msg_iter *debug_it,
 	}
 
 	if (!out_message) {
-		BT_COMP_LOGE("Error creating output packet end message: "
+		BT_COMP_LOGE_APPEND_CAUSE(self_comp,
+			"Error creating output packet end message: "
 			"out-p-addr=%p", out_packet);
 		goto end;
 	}
@@ -1564,7 +1580,8 @@ bt_message *handle_discarded_events_message(struct debug_info_msg_iter *debug_it
 			debug_it->input_iterator, out_stream);
 	}
 	if (!out_message) {
-		BT_COMP_LOGE("Error creating output discarded events message: "
+		BT_COMP_LOGE_APPEND_CAUSE(self_comp,
+			"Error creating output discarded events message: "
 			"out-s-addr=%p", out_stream);
 		goto error;
 	}
@@ -1624,7 +1641,8 @@ bt_message *handle_discarded_packets_message(struct debug_info_msg_iter *debug_i
 			debug_it->input_iterator, out_stream);
 	}
 	if (!out_message) {
-		BT_COMP_LOGE("Error creating output discarded packet message: "
+		BT_COMP_LOGE_APPEND_CAUSE(self_comp,
+			"Error creating output discarded packet message: "
 			"out-s-addr=%p", out_stream);
 		goto error;
 	}
@@ -1774,7 +1792,8 @@ bt_component_class_initialize_method_status debug_info_comp_init(
 
 	debug_info_comp = g_new0(struct debug_info_component, 1);
 	if (!debug_info_comp) {
-		BT_COMP_LOGE_STR("Failed to allocate one debug_info component.");
+		BT_COMP_LOGE_APPEND_CAUSE(self_comp,
+			"Failed to allocate one debug_info component.");
 		goto error;
 	}
 
@@ -1798,7 +1817,8 @@ bt_component_class_initialize_method_status debug_info_comp_init(
 
 	status = init_from_params(debug_info_comp, params);
 	if (status != BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_OK) {
-		BT_COMP_LOGE("Cannot configure debug_info component: "
+		BT_COMP_LOGE_APPEND_CAUSE(self_comp,
+			"Cannot configure debug_info component: "
 			"debug_info-comp-addr=%p, params-addr=%p",
 			debug_info_comp, params);
 		goto error;

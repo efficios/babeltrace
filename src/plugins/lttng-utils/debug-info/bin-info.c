@@ -177,14 +177,16 @@ int bin_info_set_elf_file(struct bin_info *bin)
 	elf_file = elf_begin(bt_fd_cache_handle_get_fd(bin->elf_handle),
 		ELF_C_READ, NULL);
 	if (!elf_file) {
-		BT_COMP_LOGE("elf_begin failed: %s", elf_errmsg(-1));
+		BT_COMP_LOGE_APPEND_CAUSE(bin->self_comp,
+			"elf_begin failed: %s", elf_errmsg(-1));
 		goto error;
 	}
 
 	bin->elf_file = elf_file;
 
 	if (elf_kind(elf_file) != ELF_K_ELF) {
-		BT_COMP_LOGE("Error: %s is not an ELF object", bin->elf_path);
+		BT_COMP_LOGE_APPEND_CAUSE(bin->self_comp,
+			"Error: %s is not an ELF object", bin->elf_path);
 		goto error;
 	}
 

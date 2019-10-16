@@ -30,6 +30,11 @@
 
 #include "debug-info.h"
 
+enum debug_info_trace_ir_mapping_status {
+	DEBUG_INFO_TRACE_IR_MAPPING_STATUS_OK = 0,
+	DEBUG_INFO_TRACE_IR_MAPPING_STATUS_MEMORY_ERROR = -12,
+};
+
 /* Used to resolve field paths for dynamic arrays and variant field classes. */
 struct field_class_resolving_context {
 	/* Weak reference. Owned by input stream class. */
