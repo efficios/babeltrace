@@ -161,12 +161,7 @@ struct ctf_fs_ds_file_group {
 	struct ctf_fs_trace *ctf_fs_trace;
 
 	/*
-	 * Owned by this. May be NULL.
-	 *
-	 * A stream cannot be assumed to be indexed as the indexing might have
-	 * been skipped. Moreover, the index's fields may not all be available
-	 * depending on the producer (e.g. timestamp_begin/end are not
-	 * mandatory).
+	 * Owned by this.
 	 */
 	struct ctf_fs_ds_index *index;
 };
