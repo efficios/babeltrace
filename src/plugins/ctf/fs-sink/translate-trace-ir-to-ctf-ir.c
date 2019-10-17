@@ -575,7 +575,6 @@ void resolve_field_class(struct ctx *ctx,
 				tgt_field_ref, user_tgt_fc);
 			if (ret) {
 				*create_before = true;
-				ret = 0;
 				goto end;
 			}
 		}
@@ -1772,7 +1771,6 @@ int translate_stream_class(struct fs_sink_comp *fs_sink,
 					(*out_sc)->default_clock_class_name->str)) {
 				/* Invalid: create a new name */
 				make_unique_default_clock_class_name(*out_sc);
-				ret = 0;
 			}
 		} else {
 			/* No name: create a name */
