@@ -2055,7 +2055,6 @@ int compute_stream_intersection(const bt_value *streams,
 				"range-ns:begin=%" PRId64 ", "
 				"range-ns:end=%" PRId64,
 				begin_ns, end_ns);
-			ret = -1;
 			goto error;
 		}
 
