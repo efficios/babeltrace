@@ -155,13 +155,13 @@ class QueryTraceInfoPortNameTestCase(unittest.TestCase):
         trace = res[0]
         streams = sorted(trace["stream-infos"], key=sort_predictably)
         self.assertEqual(len(streams), 2)
-        self.assertRegexpMatches(
+        self.assertRegex(
             str(streams[0]["port-name"]),
             r"^7afe8fbe-79b8-4f6a-bbc7-d0c782e7ddaf \| 0 \| .*"
             + re.escape(str(os_stream_path / "test_stream_0"))
             + r"$",
         )
-        self.assertRegexpMatches(
+        self.assertRegex(
             str(streams[1]["port-name"]),
             r"^7afe8fbe-79b8-4f6a-bbc7-d0c782e7ddaf \| 0 \| .*"
             + re.escape(str(os_stream_path / "test_stream_1"))
@@ -185,7 +185,7 @@ class QueryTraceInfoPortNameTestCase(unittest.TestCase):
         trace = res[0]
         streams = sorted(trace["stream-infos"], key=sort_predictably)
         self.assertEqual(len(streams), 1)
-        self.assertRegexpMatches(
+        self.assertRegex(
             str(streams[0]["port-name"]),
             r"^2a6422d0-6cee-11e0-8c08-cb07d7b3a564 \| .*"
             + re.escape(str(os_stream_path))
