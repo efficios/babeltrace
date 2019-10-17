@@ -785,8 +785,11 @@ int add_ds_file_to_ds_file_group(struct ctf_fs_trace *ctf_fs_trace,
 
 	index = ctf_fs_ds_file_build_index(ds_file, ds_file_info);
 	if (!index) {
-		BT_COMP_LOGW("Failed to index CTF stream file \'%s\'",
+		BT_COMP_OR_COMP_CLASS_LOGE_APPEND_CAUSE(
+			self_comp, self_comp_class,
+			"Failed to index CTF stream file \'%s\'",
 			ds_file->file->path->str);
+		goto error;
 	}
 
 	if (begin_ns == -1) {
