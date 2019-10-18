@@ -236,6 +236,15 @@ class TraceClassTestCase(unittest.TestCase):
         ):
             trace_class.remove_destruction_listener(handle)
 
+    def test_raise_in_destruction_listener(self):
+        def on_trace_class_destruction(trace_class):
+            raise ValueError('it hurts')
+
+        trace_class = get_default_trace_class()
+        trace_class.add_destruction_listener(on_trace_class_destruction)
+
+        del trace_class
+
 
 if __name__ == '__main__':
     unittest.main()
