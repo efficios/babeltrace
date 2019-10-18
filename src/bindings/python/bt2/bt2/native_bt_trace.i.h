@@ -39,7 +39,8 @@ trace_destroyed_listener(const bt_trace *trace, void *py_callable)
 	if (py_res) {
 		BT_ASSERT(py_res == Py_None);
 	} else {
-		loge_exception("Trace's destruction listener (Python)",
+		loge_exception_append_cause(
+			"Trace's destruction listener (Python)",
 			BT_LOG_OUTPUT_LEVEL);
 	}
 

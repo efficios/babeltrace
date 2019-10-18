@@ -104,7 +104,8 @@ void native_comp_class_dtor(void) {
 }
 
 static inline
-int py_exc_to_status(bt_self_component_class *self_component_class,
+int py_exc_to_status_clear(
+		bt_self_component_class *self_component_class,
 		bt_self_component *self_component,
 		bt_self_message_iterator *self_message_iterator,
 		const char *module_name, int active_log_level)
@@ -144,7 +145,7 @@ int py_exc_to_status(bt_self_component_class *self_component_class,
 		}
 
 		BT_ASSERT(active_log_level != -1);
-		log_exception_and_maybe_append_error(BT_LOG_WARNING,
+		log_exception_and_maybe_append_cause(BT_LOG_WARNING,
 			active_log_level, true,
 			self_component_class, self_component,
 			self_message_iterator, module_name);
@@ -163,25 +164,25 @@ end:
 }
 
 static
-int py_exc_to_status_component_class(
+int py_exc_to_status_component_class_clear(
 		bt_self_component_class *self_component_class,
 		int active_log_level)
 {
-	return py_exc_to_status(self_component_class, NULL, NULL, NULL,
+	return py_exc_to_status_clear(self_component_class, NULL, NULL, NULL,
 		active_log_level);
 }
 
 static
-int py_exc_to_status_component(bt_self_component *self_component)
+int py_exc_to_status_component_clear(bt_self_component *self_component)
 {
-	return py_exc_to_status(NULL, self_component, NULL, NULL, -1);
+	return py_exc_to_status_clear(NULL, self_component, NULL, NULL, -1);
 }
 
 static
-int py_exc_to_status_message_iterator(
+int py_exc_to_status_message_iterator_clear(
 		bt_self_message_iterator *self_message_iterator)
 {
-	return py_exc_to_status(NULL, NULL, self_message_iterator, NULL, -1);
+	return py_exc_to_status_clear(NULL, NULL, self_message_iterator, NULL, -1);
 }
 
 static
@@ -266,7 +267,7 @@ bt_component_class_initialize_method_status component_class_init(
 		BT_COMP_LOG_CUR_LVL(BT_LOG_WARNING, log_level, self_component,
 			"Failed to call Python class's _bt_init_from_native() method: "
 			"py-cls-addr=%p", py_cls);
-		status = py_exc_to_status_component(self_component);
+		status = py_exc_to_status_component_clear(self_component);
 		goto end;
 	}
 
@@ -345,7 +346,7 @@ component_class_get_supported_mip_versions(
 		BT_LOG_WRITE_CUR_LVL(BT_LOG_WARNING, log_level, BT_LOG_TAG,
 			"Failed to call Python class's _bt_get_supported_mip_versions_from_native() method: "
 			"py-cls-addr=%p", py_cls);
-		status = py_exc_to_status_component_class(self_component_class,
+		status = py_exc_to_status_component_class_clear(self_component_class,
 			log_level);
 		goto end;
 	}
@@ -560,7 +561,7 @@ component_class_can_seek_beginning(
 		*can_seek = PyObject_IsTrue(py_result);
 		status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_CAN_SEEK_BEGINNING_METHOD_STATUS_OK;
 	} else {
-		status = py_exc_to_status_message_iterator(self_message_iterator);
+		status = py_exc_to_status_message_iterator_clear(self_message_iterator);
 		BT_ASSERT(status != __BT_FUNC_STATUS_OK);
 	}
 
@@ -582,7 +583,7 @@ component_class_seek_beginning(bt_self_message_iterator *self_message_iterator)
 	py_result = PyObject_CallMethod(py_iter, "_bt_seek_beginning_from_native",
 		NULL);
 	BT_ASSERT(!py_result || py_result == Py_None);
-	status = py_exc_to_status_message_iterator(self_message_iterator);
+	status = py_exc_to_status_message_iterator_clear(self_message_iterator);
 	Py_XDECREF(py_result);
 	return status;
 }
@@ -608,7 +609,7 @@ component_class_can_seek_ns_from_origin(
 		*can_seek = PyObject_IsTrue(py_result);
 		status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_CAN_SEEK_NS_FROM_ORIGIN_METHOD_STATUS_OK;
 	} else {
-		status = py_exc_to_status_message_iterator(self_message_iterator);
+		status = py_exc_to_status_message_iterator_clear(self_message_iterator);
 		BT_ASSERT(status != BT_COMPONENT_CLASS_MESSAGE_ITERATOR_CAN_SEEK_NS_FROM_ORIGIN_METHOD_STATUS_OK);
 	}
 
@@ -632,7 +633,7 @@ component_class_seek_ns_from_origin(
 	py_result = PyObject_CallMethod(py_iter,
 		"_bt_seek_ns_from_origin_from_native", "L", ns_from_origin);
 	BT_ASSERT(!py_result || py_result == Py_None);
-	status = py_exc_to_status_message_iterator(self_message_iterator);
+	status = py_exc_to_status_message_iterator_clear(self_message_iterator);
 	Py_XDECREF(py_result);
 	return status;
 }
@@ -677,7 +678,7 @@ bt_component_class_port_connected_method_status component_class_port_connected(
 		"_bt_port_connected_from_native", "(OiO)", py_self_port_ptr,
 		self_component_port_type, py_other_port_ptr);
 	BT_ASSERT(!py_method_result || py_method_result == Py_None);
-	status = py_exc_to_status_component(self_component);
+	status = py_exc_to_status_component_clear(self_component);
 
 end:
 	Py_XDECREF(py_self_port_ptr);
@@ -772,7 +773,7 @@ component_class_sink_graph_is_configured(
 	py_method_result = PyObject_CallMethod(py_comp,
 		"_bt_graph_is_configured_from_native", NULL);
 	BT_ASSERT(!py_method_result || py_method_result == Py_None);
-	status = py_exc_to_status_component(self_component);
+	status = py_exc_to_status_component_clear(self_component);
 	Py_XDECREF(py_method_result);
 	return status;
 }
@@ -850,7 +851,7 @@ bt_component_class_query_method_status component_class_query(
 		py_object, py_params_ptr,
 		method_data ? method_data : Py_None);
 	if (!py_results_addr) {
-		status = py_exc_to_status_component_class(self_component_class,
+		status = py_exc_to_status_component_class_clear(self_component_class,
 			log_level);
 		if (status < 0) {
 			static const char *fmt =
@@ -1065,7 +1066,7 @@ component_class_message_iterator_init(
 
 python_error:
 	/* Handling of errors that cause a Python exception to be set. */
-	status = py_exc_to_status_message_iterator(self_message_iterator);
+	status = py_exc_to_status_message_iterator_clear(self_message_iterator);
 	BT_ASSERT(status != __BT_FUNC_STATUS_OK);
 	goto end;
 
@@ -1169,7 +1170,7 @@ component_class_message_iterator_next(
 	py_method_result = PyObject_CallMethod(py_message_iter,
 		"_bt_next_from_native", NULL);
 	if (!py_method_result) {
-		status = py_exc_to_status_message_iterator(message_iterator);
+		status = py_exc_to_status_message_iterator_clear(message_iterator);
 		BT_ASSERT(status != __BT_FUNC_STATUS_OK);
 		goto end;
 	}
@@ -1203,7 +1204,7 @@ component_class_sink_consume(bt_self_component_sink *self_component_sink)
 	BT_ASSERT(py_comp);
 	py_method_result = PyObject_CallMethod(py_comp,
 		"_user_consume", NULL);
-	status = py_exc_to_status_component(self_component);
+	status = py_exc_to_status_component_clear(self_component);
 	BT_ASSERT(py_method_result || status != __BT_FUNC_STATUS_OK);
 	Py_XDECREF(py_method_result);
 	return status;
