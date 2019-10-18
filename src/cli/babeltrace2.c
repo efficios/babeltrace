@@ -335,7 +335,6 @@ void print_value_rec(FILE *fp, const bt_value *value, size_t indent)
 	double dbl_val;
 	const char *str_val;
 	int size;
-	int i;
 	GPtrArray *map_keys = NULL;
 
 	if (!value) {
@@ -378,6 +377,8 @@ void print_value_rec(FILE *fp, const bt_value *value, size_t indent)
 			bt_common_color_reset());
 		break;
 	case BT_VALUE_TYPE_ARRAY:
+	{
+		guint i;
 		size = bt_value_array_get_length(value);
 		if (size < 0) {
 			goto error;
@@ -420,6 +421,7 @@ void print_value_rec(FILE *fp, const bt_value *value, size_t indent)
 			print_value_rec(fp, element, indent + 2);
 		}
 		break;
+	}
 	case BT_VALUE_TYPE_MAP:
 	{
 		guint i;

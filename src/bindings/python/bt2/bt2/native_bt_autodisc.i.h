@@ -127,7 +127,7 @@ bt_value *bt_bt2_auto_discover_source_components(const bt_value *inputs,
 	}
 
 	for (i = 0; i < auto_disc.results->len; i++) {
-		struct auto_source_discovery_result *result =
+		struct auto_source_discovery_result *autodisc_result =
 			g_ptr_array_index(auto_disc.results, i);
 		bt_value_array_append_element_status append_element_status;
 
@@ -140,7 +140,7 @@ bt_value *bt_bt2_auto_discover_source_components(const bt_value *inputs,
 		}
 
 		append_element_status = bt_value_array_append_string_element(
-			component_info, result->plugin_name);
+			component_info, autodisc_result->plugin_name);
 		if (append_element_status != BT_VALUE_ARRAY_APPEND_ELEMENT_STATUS_OK) {
 			BT_CURRENT_THREAD_ERROR_APPEND_CAUSE_FROM_UNKNOWN(module_name,
                 		"Failed to append one array element.");
@@ -149,7 +149,7 @@ bt_value *bt_bt2_auto_discover_source_components(const bt_value *inputs,
 		}
 
 		append_element_status = bt_value_array_append_string_element(
-			component_info, result->source_cc_name);
+			component_info, autodisc_result->source_cc_name);
 		if (append_element_status != BT_VALUE_ARRAY_APPEND_ELEMENT_STATUS_OK) {
 			BT_CURRENT_THREAD_ERROR_APPEND_CAUSE_FROM_UNKNOWN(module_name,
                 		"Failed to append one array element.");
@@ -158,7 +158,7 @@ bt_value *bt_bt2_auto_discover_source_components(const bt_value *inputs,
 		}
 
 		append_element_status = bt_value_array_append_element(
-			component_info, result->inputs);
+			component_info, autodisc_result->inputs);
 		if (append_element_status != BT_VALUE_ARRAY_APPEND_ELEMENT_STATUS_OK) {
 			BT_CURRENT_THREAD_ERROR_APPEND_CAUSE_FROM_UNKNOWN(module_name,
                 		"Failed to append one array element.");
@@ -167,7 +167,7 @@ bt_value *bt_bt2_auto_discover_source_components(const bt_value *inputs,
 		}
 
 		append_element_status = bt_value_array_append_element(
-			component_info, result->original_input_indices);
+			component_info, autodisc_result->original_input_indices);
 		if (append_element_status != BT_VALUE_ARRAY_APPEND_ELEMENT_STATUS_OK) {
 			BT_CURRENT_THREAD_ERROR_APPEND_CAUSE_FROM_UNKNOWN(module_name,
                 		"Failed to append one array element.");

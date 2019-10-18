@@ -91,19 +91,19 @@ int bt_ctf_field_common_structure_initialize(struct bt_ctf_field_common *field,
 
 	/* Create all fields contained in the structure field. */
 	for (i = 0; i < structure_type->fields->len; i++) {
-		struct bt_ctf_field_common *field;
+		struct bt_ctf_field_common *member_field;
 		struct bt_ctf_field_type_common_structure_field *struct_field =
 			BT_CTF_FIELD_TYPE_COMMON_STRUCTURE_FIELD_AT_INDEX(
 				structure_type, i);
-		field = field_create_func(struct_field->type);
-		if (!field) {
+		member_field = field_create_func(struct_field->type);
+		if (!member_field) {
 			BT_LOGE("Failed to create structure field's member: name=\"%s\", index=%zu",
 				g_quark_to_string(struct_field->name), i);
 			ret = -1;
 			goto end;
 		}
 
-		g_ptr_array_index(structure->fields, i) = field;
+		g_ptr_array_index(structure->fields, i) = member_field;
 	}
 
 	BT_LOGD("Initialized common structure field object: addr=%p, ft-addr=%p",
@@ -142,20 +142,20 @@ int bt_ctf_field_common_variant_initialize(struct bt_ctf_field_common *field,
 
 	/* Create all fields contained in the variant field. */
 	for (i = 0; i < variant_type->choices->len; i++) {
-		struct bt_ctf_field_common *field;
+		struct bt_ctf_field_common *member_field;
 		struct bt_ctf_field_type_common_variant_choice *var_choice =
 			BT_CTF_FIELD_TYPE_COMMON_VARIANT_CHOICE_AT_INDEX(
 				variant_type, i);
 
-		field = field_create_func(var_choice->type);
-		if (!field) {
+		member_field = field_create_func(var_choice->type);
+		if (!member_field) {
 			BT_LOGE("Failed to create variant field's member: name=\"%s\", index=%zu",
 				g_quark_to_string(var_choice->name), i);
 			ret = -1;
 			goto end;
 		}
 
-		g_ptr_array_index(variant->fields, i) = field;
+		g_ptr_array_index(variant->fields, i) = member_field;
 	}
 
 	BT_LOGD("Initialized common variant field object: addr=%p, ft-addr=%p",

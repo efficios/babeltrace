@@ -1103,17 +1103,17 @@ void write_field_class(struct details_write_ctx *ctx, const bt_field_class *fc)
 				const bt_field_class_structure_member *member =
 					bt_field_class_structure_borrow_member_by_index_const(
 						fc, i);
-				const bt_value *user_attrs;
+				const bt_value *member_user_attrs;
 				const bt_field_class *member_fc =
 					bt_field_class_structure_member_borrow_field_class_const(member);
 
 				write_nl(ctx);
 				write_compound_member_name(ctx,
 					bt_field_class_structure_member_get_name(member));
-				user_attrs = bt_field_class_structure_member_borrow_user_attributes_const(
+				member_user_attrs = bt_field_class_structure_member_borrow_user_attributes_const(
 					member);
 
-				if (bt_value_map_is_empty(user_attrs)) {
+				if (bt_value_map_is_empty(member_user_attrs)) {
 					write_sp(ctx);
 					write_field_class(ctx, member_fc);
 				} else {
@@ -1127,7 +1127,7 @@ void write_field_class(struct details_write_ctx *ctx, const bt_field_class *fc)
 					write_nl(ctx);
 
 					/* User attributes */
-					write_user_attributes(ctx, user_attrs,
+					write_user_attributes(ctx, member_user_attrs,
 						false, NULL);
 
 					decr_indent(ctx);
@@ -1173,7 +1173,6 @@ void write_field_class(struct details_write_ctx *ctx, const bt_field_class *fc)
 		if (ranges) {
 			GArray *sorted_ranges = range_set_to_int_ranges(
 				ranges, selector_is_signed);
-			uint64_t i;
 
 			BT_ASSERT_DBG(sorted_ranges);
 			BT_ASSERT_DBG(sorted_ranges->len > 0);
@@ -2053,7 +2052,6 @@ gint compare_streams(const bt_stream **a, const bt_stream **b)
 static
 void write_trace(struct details_write_ctx *ctx, const bt_trace *trace)
 {
-	const char *name;
 	GPtrArray *streams = g_ptr_array_new();
 	uint64_t i;
 	bool printed_prop = false;
@@ -2065,7 +2063,7 @@ void write_trace(struct details_write_ctx *ctx, const bt_trace *trace)
 
 	/* Write name */
 	if (ctx->details_comp->cfg.with_trace_name) {
-		name = bt_trace_get_name(trace);
+		const char *name = bt_trace_get_name(trace);
 		if (name) {
 			g_string_append(ctx->str, " `");
 			write_str_prop_value(ctx, name);
