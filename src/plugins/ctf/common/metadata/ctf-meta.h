@@ -691,8 +691,8 @@ static inline
 struct ctf_range *ctf_field_class_enum_mapping_borrow_range_by_index(
 		struct ctf_field_class_enum_mapping *mapping, uint64_t index)
 {
-	BT_ASSERT(mapping);
-	BT_ASSERT(index < mapping->ranges->len);
+	BT_ASSERT_DBG(mapping);
+	BT_ASSERT_DBG(index < mapping->ranges->len);
 	return &g_array_index(mapping->ranges, struct ctf_range, index);
 }
 
@@ -700,8 +700,8 @@ static inline
 struct ctf_field_class_enum_mapping *ctf_field_class_enum_borrow_mapping_by_index(
 		struct ctf_field_class_enum *fc, uint64_t index)
 {
-	BT_ASSERT(fc);
-	BT_ASSERT(index < fc->mappings->len);
+	BT_ASSERT_DBG(fc);
+	BT_ASSERT_DBG(index < fc->mappings->len);
 	return &g_array_index(fc->mappings, struct ctf_field_class_enum_mapping,
 		index);
 }
@@ -713,8 +713,8 @@ struct ctf_field_class_enum_mapping *ctf_field_class_enum_borrow_mapping_by_labe
 	struct ctf_field_class_enum_mapping *ret_mapping = NULL;
 	uint64_t i;
 
-	BT_ASSERT(fc);
-	BT_ASSERT(label);
+	BT_ASSERT_DBG(fc);
+	BT_ASSERT_DBG(label);
 
 	for (i = 0; i < fc->mappings->len; i++) {
 		struct ctf_field_class_enum_mapping *mapping =
@@ -772,8 +772,8 @@ static inline
 struct ctf_named_field_class *ctf_field_class_struct_borrow_member_by_index(
 		struct ctf_field_class_struct *fc, uint64_t index)
 {
-	BT_ASSERT(fc);
-	BT_ASSERT(index < fc->members->len);
+	BT_ASSERT_DBG(fc);
+	BT_ASSERT_DBG(index < fc->members->len);
 	return &g_array_index(fc->members, struct ctf_named_field_class,
 		index);
 }
@@ -785,8 +785,8 @@ struct ctf_named_field_class *ctf_field_class_struct_borrow_member_by_name(
 	uint64_t i;
 	struct ctf_named_field_class *ret_named_fc = NULL;
 
-	BT_ASSERT(fc);
-	BT_ASSERT(name);
+	BT_ASSERT_DBG(fc);
+	BT_ASSERT_DBG(name);
 
 	for (i = 0; i < fc->members->len; i++) {
 		struct ctf_named_field_class *named_fc =
@@ -887,8 +887,8 @@ static inline
 struct ctf_named_field_class *ctf_field_class_variant_borrow_option_by_index(
 		struct ctf_field_class_variant *fc, uint64_t index)
 {
-	BT_ASSERT(fc);
-	BT_ASSERT(index < fc->options->len);
+	BT_ASSERT_DBG(fc);
+	BT_ASSERT_DBG(index < fc->options->len);
 	return &g_array_index(fc->options, struct ctf_named_field_class,
 		index);
 }
@@ -900,8 +900,8 @@ struct ctf_named_field_class *ctf_field_class_variant_borrow_option_by_name(
 	uint64_t i;
 	struct ctf_named_field_class *ret_named_fc = NULL;
 
-	BT_ASSERT(fc);
-	BT_ASSERT(name);
+	BT_ASSERT_DBG(fc);
+	BT_ASSERT_DBG(name);
 
 	for (i = 0; i < fc->options->len; i++) {
 		struct ctf_named_field_class *named_fc =
@@ -922,8 +922,8 @@ struct ctf_field_class_variant_range *
 ctf_field_class_variant_borrow_range_by_index(
 		struct ctf_field_class_variant *fc, uint64_t index)
 {
-	BT_ASSERT(fc);
-	BT_ASSERT(index < fc->ranges->len);
+	BT_ASSERT_DBG(fc);
+	BT_ASSERT_DBG(index < fc->ranges->len);
 	return &g_array_index(fc->ranges, struct ctf_field_class_variant_range,
 		index);
 }
@@ -997,7 +997,7 @@ struct ctf_field_class *ctf_field_class_compound_borrow_field_class_by_index(
 			ctf_field_class_struct_borrow_member_by_index(
 				(void *) comp_fc, index);
 
-		BT_ASSERT(named_fc);
+		BT_ASSERT_DBG(named_fc);
 		fc = named_fc->fc;
 		break;
 	}
@@ -1007,7 +1007,7 @@ struct ctf_field_class *ctf_field_class_compound_borrow_field_class_by_index(
 			ctf_field_class_variant_borrow_option_by_index(
 				(void *) comp_fc, index);
 
-		BT_ASSERT(named_fc);
+		BT_ASSERT_DBG(named_fc);
 		fc = named_fc->fc;
 		break;
 	}
@@ -1122,8 +1122,8 @@ static inline
 int64_t ctf_field_path_borrow_index_by_index(struct ctf_field_path *fp,
 		uint64_t index)
 {
-	BT_ASSERT(fp);
-	BT_ASSERT(index < fp->path->len);
+	BT_ASSERT_DBG(fp);
+	BT_ASSERT_DBG(index < fp->path->len);
 	return g_array_index(fp->path, int64_t, index);
 }
 
@@ -1213,7 +1213,7 @@ struct ctf_field_class *ctf_field_path_borrow_field_class(
 		abort();
 	}
 
-	BT_ASSERT(fc);
+	BT_ASSERT_DBG(fc);
 
 	for (i = 0; i < field_path->path->len; i++) {
 		int64_t child_index =
@@ -1221,11 +1221,11 @@ struct ctf_field_class *ctf_field_path_borrow_field_class(
 		struct ctf_field_class *child_fc =
 			ctf_field_class_compound_borrow_field_class_by_index(
 				fc, child_index);
-		BT_ASSERT(child_fc);
+		BT_ASSERT_DBG(child_fc);
 		fc = child_fc;
 	}
 
-	BT_ASSERT(fc);
+	BT_ASSERT_DBG(fc);
 	return fc;
 }
 
@@ -1576,7 +1576,7 @@ static inline
 struct ctf_event_class *ctf_stream_class_borrow_event_class_by_id(
 		struct ctf_stream_class *sc, uint64_t type)
 {
-	BT_ASSERT(sc);
+	BT_ASSERT_DBG(sc);
 	return g_hash_table_lookup(sc->event_classes_by_id,
 		GUINT_TO_POINTER((guint) type));
 }
@@ -1720,7 +1720,7 @@ struct ctf_stream_class *ctf_trace_class_borrow_stream_class_by_id(
 	uint64_t i;
 	struct ctf_stream_class *ret_sc = NULL;
 
-	BT_ASSERT(tc);
+	BT_ASSERT_DBG(tc);
 
 	for (i = 0; i < tc->stream_classes->len; i++) {
 		struct ctf_stream_class *sc = tc->stream_classes->pdata[i];
@@ -1742,13 +1742,13 @@ struct ctf_clock_class *ctf_trace_class_borrow_clock_class_by_name(
 	uint64_t i;
 	struct ctf_clock_class *ret_cc = NULL;
 
-	BT_ASSERT(tc);
-	BT_ASSERT(name);
+	BT_ASSERT_DBG(tc);
+	BT_ASSERT_DBG(name);
 
 	for (i = 0; i < tc->clock_classes->len; i++) {
 		struct ctf_clock_class *cc = tc->clock_classes->pdata[i];
 
-		BT_ASSERT(cc->name);
+		BT_ASSERT_DBG(cc->name);
 		if (strcmp(cc->name->str, name) == 0) {
 			ret_cc = cc;
 			goto end;
@@ -1763,8 +1763,8 @@ static inline
 struct ctf_trace_class_env_entry *ctf_trace_class_borrow_env_entry_by_index(
 		struct ctf_trace_class *tc, uint64_t index)
 {
-	BT_ASSERT(tc);
-	BT_ASSERT(index < tc->env_entries->len);
+	BT_ASSERT_DBG(tc);
+	BT_ASSERT_DBG(index < tc->env_entries->len);
 	return &g_array_index(tc->env_entries, struct ctf_trace_class_env_entry,
 		index);
 }
@@ -1776,8 +1776,8 @@ struct ctf_trace_class_env_entry *ctf_trace_class_borrow_env_entry_by_name(
 	struct ctf_trace_class_env_entry *ret_entry = NULL;
 	uint64_t i;
 
-	BT_ASSERT(tc);
-	BT_ASSERT(name);
+	BT_ASSERT_DBG(tc);
+	BT_ASSERT_DBG(name);
 
 	for (i = 0; i < tc->env_entries->len; i++) {
 		struct ctf_trace_class_env_entry *env_entry =

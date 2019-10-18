@@ -407,7 +407,7 @@ bt_component_class_message_iterator_next_method_status muxer_upstream_msg_iter_n
 		 * valid: it must be considered for muxing operations.
 		 */
 		BT_COMP_LOGD_STR("Validated upstream message iterator wrapper.");
-		BT_ASSERT(count > 0);
+		BT_ASSERT_DBG(count > 0);
 
 		/* Move messages to our queue */
 		for (i = 0; i < count; i++) {
@@ -460,8 +460,8 @@ int get_msg_ts_ns(struct muxer_comp *muxer_comp,
 	const bt_stream_class *stream_class = NULL;
 	bt_message_type msg_type;
 
-	BT_ASSERT(msg);
-	BT_ASSERT(ts_ns);
+	BT_ASSERT_DBG(msg);
+	BT_ASSERT_DBG(ts_ns);
 	BT_COMP_LOGD("Getting message's timestamp: "
 		"muxer-msg-iter-addr=%p, msg-addr=%p, "
 		"last-returned-ts=%" PRId64,
@@ -495,7 +495,7 @@ int get_msg_ts_ns(struct muxer_comp *muxer_comp,
 
 	switch (msg_type) {
 	case BT_MESSAGE_TYPE_EVENT:
-		BT_ASSERT(bt_message_event_borrow_stream_class_default_clock_class_const(
+		BT_ASSERT_DBG(bt_message_event_borrow_stream_class_default_clock_class_const(
 				msg));
 		clock_snapshot = bt_message_event_borrow_default_clock_snapshot_const(
 			msg);
@@ -612,7 +612,7 @@ int validate_clock_class(struct muxer_msg_iter *muxer_msg_iter,
 	const uint8_t *cc_uuid;
 	const char *cc_name;
 
-	BT_ASSERT(clock_class);
+	BT_ASSERT_DBG(clock_class);
 	cc_uuid = bt_clock_class_get_uuid(clock_class);
 	cc_name = bt_clock_class_get_name(clock_class);
 
@@ -791,9 +791,9 @@ muxer_msg_iter_youngest_upstream_msg_iter(
 	bt_component_class_message_iterator_next_method_status status =
 		BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_OK;
 
-	BT_ASSERT(muxer_comp);
-	BT_ASSERT(muxer_msg_iter);
-	BT_ASSERT(muxer_upstream_msg_iter);
+	BT_ASSERT_DBG(muxer_comp);
+	BT_ASSERT_DBG(muxer_msg_iter);
+	BT_ASSERT_DBG(muxer_upstream_msg_iter);
 	*muxer_upstream_msg_iter = NULL;
 
 	for (i = 0; i < muxer_msg_iter->active_muxer_upstream_msg_iters->len;
@@ -813,9 +813,9 @@ muxer_msg_iter_youngest_upstream_msg_iter(
 			continue;
 		}
 
-		BT_ASSERT(cur_muxer_upstream_msg_iter->msgs->length > 0);
+		BT_ASSERT_DBG(cur_muxer_upstream_msg_iter->msgs->length > 0);
 		msg = g_queue_peek_head(cur_muxer_upstream_msg_iter->msgs);
-		BT_ASSERT(msg);
+		BT_ASSERT_DBG(msg);
 
 		if (G_UNLIKELY(bt_message_get_type(msg) ==
 				BT_MESSAGE_TYPE_STREAM_BEGINNING)) {
@@ -1067,15 +1067,16 @@ bt_component_class_message_iterator_next_method_status muxer_msg_iter_do_next_on
 		"muxer-upstream-msg-iter-wrap-addr=%p, "
 		"ts=%" PRId64,
 		muxer_msg_iter, muxer_upstream_msg_iter, next_return_ts);
-	BT_ASSERT(status == BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_OK);
-	BT_ASSERT(muxer_upstream_msg_iter);
+	BT_ASSERT_DBG(status ==
+		BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_OK);
+	BT_ASSERT_DBG(muxer_upstream_msg_iter);
 
 	/*
 	 * Consume from the queue's head: other side
 	 * (muxer_upstream_msg_iter_next()) writes to the tail.
 	 */
 	*msg = g_queue_pop_head(muxer_upstream_msg_iter->msgs);
-	BT_ASSERT(*msg);
+	BT_ASSERT_DBG(*msg);
 	muxer_msg_iter->last_returned_ts_ns = next_return_ts;
 
 end:
@@ -1349,12 +1350,12 @@ bt_component_class_message_iterator_next_method_status muxer_msg_iter_next(
 	bt_self_component *self_comp = NULL;
 	struct muxer_comp *muxer_comp = NULL;
 
-	BT_ASSERT(muxer_msg_iter);
+	BT_ASSERT_DBG(muxer_msg_iter);
 	self_comp = bt_self_message_iterator_borrow_component(
 		self_msg_iter);
-	BT_ASSERT(self_comp);
+	BT_ASSERT_DBG(self_comp);
 	muxer_comp = bt_self_component_get_data(self_comp);
-	BT_ASSERT(muxer_comp);
+	BT_ASSERT_DBG(muxer_comp);
 	BT_COMP_LOGT("Muxer component's message iterator's \"next\" method called: "
 		"comp-addr=%p, muxer-comp-addr=%p, muxer-msg-iter-addr=%p, "
 		"msg-iter-addr=%p",

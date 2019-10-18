@@ -48,7 +48,7 @@ void bt_port_set_connection(struct bt_port *port,
 static inline
 struct bt_component *bt_port_borrow_component_inline(const struct bt_port *port)
 {
-	BT_ASSERT(port);
+	BT_ASSERT_DBG(port);
 	return (void *) bt_object_borrow_parent(&port->base);
 }
 

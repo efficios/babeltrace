@@ -240,8 +240,8 @@ int stack_push(struct stack *stack, struct ctf_field_class *base_class,
 	struct stack_entry *entry;
 	struct bt_bfcr *bfcr;
 
-	BT_ASSERT(stack);
-	BT_ASSERT(base_class);
+	BT_ASSERT_DBG(stack);
+	BT_ASSERT_DBG(base_class);
 	bfcr = stack->bfcr;
 	BT_COMP_LOGT("Pushing field class on stack: stack-addr=%p, "
 		"fc-addr=%p, fc-type=%d, base-length=%zu, "
@@ -322,7 +322,7 @@ end:
 static inline
 unsigned int stack_size(struct stack *stack)
 {
-	BT_ASSERT(stack);
+	BT_ASSERT_DBG(stack);
 	return stack->size;
 }
 
@@ -331,8 +331,8 @@ void stack_pop(struct stack *stack)
 {
 	struct bt_bfcr *bfcr;
 
-	BT_ASSERT(stack);
-	BT_ASSERT(stack_size(stack));
+	BT_ASSERT_DBG(stack);
+	BT_ASSERT_DBG(stack_size(stack));
 	bfcr = stack->bfcr;
 	BT_COMP_LOGT("Popping from stack: "
 		"stack-addr=%p, stack-size-before=%u, stack-size-after=%u",
@@ -349,15 +349,15 @@ bool stack_empty(struct stack *stack)
 static
 void stack_clear(struct stack *stack)
 {
-	BT_ASSERT(stack);
+	BT_ASSERT_DBG(stack);
 	stack->size = 0;
 }
 
 static inline
 struct stack_entry *stack_top(struct stack *stack)
 {
-	BT_ASSERT(stack);
-	BT_ASSERT(stack_size(stack));
+	BT_ASSERT_DBG(stack);
+	BT_ASSERT_DBG(stack_size(stack));
 	return &g_array_index(stack->entries, struct stack_entry,
 		stack->size - 1);
 }
@@ -562,7 +562,7 @@ enum bt_bfcr_status read_basic_float_and_call_cb(struct bt_bfcr *bfcr,
 	enum bt_bfcr_status status = BT_BFCR_STATUS_OK;
 	struct ctf_field_class_float *fc = (void *) bfcr->cur_basic_field_class;
 
-	BT_ASSERT(fc);
+	BT_ASSERT_DBG(fc);
 	field_size = fc->base.size;
 	bo = fc->base.byte_order;
 	bfcr->cur_bo = bo;
@@ -754,7 +754,7 @@ enum bt_bfcr_status read_bit_array_class_and_call_begin(struct bt_bfcr *bfcr,
 
 	if (fc->size <= available) {
 		/* We have all the bits; decode and set now */
-		BT_ASSERT(bfcr->buf.addr);
+		BT_ASSERT_DBG(bfcr->buf.addr);
 		status = read_basic_and_call_cb(bfcr, bfcr->buf.addr,
 			buf_at_from_addr(bfcr));
 		if (status != BT_BFCR_STATUS_OK) {
@@ -837,10 +837,10 @@ enum bt_bfcr_status read_basic_string_class_and_call(
 		goto end;
 	}
 
-	BT_ASSERT(buf_at_from_addr(bfcr) % 8 == 0);
+	BT_ASSERT_DBG(buf_at_from_addr(bfcr) % 8 == 0);
 	available_bytes = BITS_TO_BYTES_FLOOR(available_bits(bfcr));
 	buf_at_bytes = BITS_TO_BYTES_FLOOR(buf_at_from_addr(bfcr));
-	BT_ASSERT(bfcr->buf.addr);
+	BT_ASSERT_DBG(bfcr->buf.addr);
 	first_chr = &bfcr->buf.addr[buf_at_bytes];
 	result = memchr(first_chr, '\0', available_bytes);
 
@@ -934,7 +934,7 @@ enum bt_bfcr_status read_basic_begin_state(struct bt_bfcr *bfcr)
 {
 	enum bt_bfcr_status status;
 
-	BT_ASSERT(bfcr->cur_basic_field_class);
+	BT_ASSERT_DBG(bfcr->cur_basic_field_class);
 
 	switch (bfcr->cur_basic_field_class->type) {
 	case CTF_FIELD_CLASS_TYPE_INT:
@@ -959,7 +959,7 @@ enum bt_bfcr_status read_basic_continue_state(struct bt_bfcr *bfcr)
 {
 	enum bt_bfcr_status status;
 
-	BT_ASSERT(bfcr->cur_basic_field_class);
+	BT_ASSERT_DBG(bfcr->cur_basic_field_class);
 
 	switch (bfcr->cur_basic_field_class->type) {
 	case CTF_FIELD_CLASS_TYPE_INT:
@@ -1003,7 +1003,7 @@ enum bt_bfcr_status align_class_state(struct bt_bfcr *bfcr,
 	 * 0 means "undefined" for variants; what we really want is 1
 	 * (always aligned)
 	 */
-	BT_ASSERT(field_alignment >= 1);
+	BT_ASSERT_DBG(field_alignment >= 1);
 
 	/* Compute how many bits we need to skip */
 	skip_bits = bits_to_skip_to_align_to(bfcr, (size_t) field_alignment);
@@ -1260,8 +1260,8 @@ size_t bt_bfcr_start(struct bt_bfcr *bfcr,
 	size_t offset, size_t packet_offset, size_t sz,
 	enum bt_bfcr_status *status)
 {
-	BT_ASSERT(bfcr);
-	BT_ASSERT(BYTES_TO_BITS(sz) >= offset);
+	BT_ASSERT_DBG(bfcr);
+	BT_ASSERT_DBG(BYTES_TO_BITS(sz) >= offset);
 	reset(bfcr);
 	bfcr->buf.addr = buf;
 	bfcr->buf.offset = offset;
@@ -1330,9 +1330,9 @@ BT_HIDDEN
 size_t bt_bfcr_continue(struct bt_bfcr *bfcr, const uint8_t *buf, size_t sz,
 		enum bt_bfcr_status *status)
 {
-	BT_ASSERT(bfcr);
-	BT_ASSERT(buf);
-	BT_ASSERT(sz > 0);
+	BT_ASSERT_DBG(bfcr);
+	BT_ASSERT_DBG(buf);
+	BT_ASSERT_DBG(sz > 0);
 	bfcr->buf.addr = buf;
 	bfcr->buf.offset = 0;
 	bfcr->buf.at = 0;
@@ -1363,7 +1363,7 @@ BT_HIDDEN
 void bt_bfcr_set_unsigned_int_cb(struct bt_bfcr *bfcr,
 		bt_bfcr_unsigned_int_cb_func cb)
 {
-	BT_ASSERT(bfcr);
-	BT_ASSERT(cb);
+	BT_ASSERT_DBG(bfcr);
+	BT_ASSERT_DBG(cb);
 	bfcr->user.cbs.classes.unsigned_int = cb;
 }

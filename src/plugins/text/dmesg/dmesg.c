@@ -509,7 +509,7 @@ bt_message *create_init_event_msg_from_line(
 	if (has_timestamp) {
 		/* Set new start for the message portion of the line */
 		*new_start = strchr(line, ']');
-		BT_ASSERT(*new_start);
+		BT_ASSERT_DBG(*new_start);
 		(*new_start)++;
 
 		if ((*new_start)[0] == ' ') {
@@ -545,7 +545,7 @@ skip_ts:
 	}
 
 	event = bt_message_event_borrow_event(msg);
-	BT_ASSERT(event);
+	BT_ASSERT_DBG(event);
 	goto end;
 
 error:
@@ -565,7 +565,7 @@ int fill_event_payload_from_line(struct dmesg_component *dmesg_comp,
 	int ret;
 
 	ep_field = bt_event_borrow_payload_field(event);
-	BT_ASSERT(ep_field);
+	BT_ASSERT_DBG(ep_field);
 	str_field = bt_field_structure_borrow_member_field_by_index(
 		ep_field, 0);
 	if (!str_field) {
@@ -614,7 +614,7 @@ bt_message *create_msg_from_line(
 	}
 
 	event = bt_message_event_borrow_event(msg);
-	BT_ASSERT(event);
+	BT_ASSERT_DBG(event);
 	ret = fill_event_payload_from_line(dmesg_comp, new_start, event);
 	if (ret) {
 		BT_COMP_LOGE("Cannot fill event payload field from line: "
@@ -722,9 +722,9 @@ bt_component_class_message_iterator_next_method_status dmesg_msg_iter_next_one(
 	bt_component_class_message_iterator_next_method_status status =
 		BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_OK;
 
-	BT_ASSERT(dmesg_msg_iter);
+	BT_ASSERT_DBG(dmesg_msg_iter);
 	dmesg_comp = dmesg_msg_iter->dmesg_comp;
-	BT_ASSERT(dmesg_comp);
+	BT_ASSERT_DBG(dmesg_comp);
 
 	if (dmesg_msg_iter->state == STATE_DONE) {
 		status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_END;
@@ -763,7 +763,7 @@ bt_component_class_message_iterator_next_method_status dmesg_msg_iter_next_one(
 			goto end;
 		}
 
-		BT_ASSERT(dmesg_msg_iter->linebuf);
+		BT_ASSERT_DBG(dmesg_msg_iter->linebuf);
 
 		/* Ignore empty lines, once trimmed */
 		for (ch = dmesg_msg_iter->linebuf; *ch != '\0'; ch++) {
@@ -788,17 +788,17 @@ bt_component_class_message_iterator_next_method_status dmesg_msg_iter_next_one(
 	}
 
 handle_state:
-	BT_ASSERT(dmesg_comp->trace);
+	BT_ASSERT_DBG(dmesg_comp->trace);
 
 	switch (dmesg_msg_iter->state) {
 	case STATE_EMIT_STREAM_BEGINNING:
-		BT_ASSERT(dmesg_msg_iter->tmp_event_msg);
+		BT_ASSERT_DBG(dmesg_msg_iter->tmp_event_msg);
 		*msg = bt_message_stream_beginning_create(
 			dmesg_msg_iter->pc_msg_iter, dmesg_comp->stream);
 		dmesg_msg_iter->state = STATE_EMIT_EVENT;
 		break;
 	case STATE_EMIT_EVENT:
-		BT_ASSERT(dmesg_msg_iter->tmp_event_msg);
+		BT_ASSERT_DBG(dmesg_msg_iter->tmp_event_msg);
 		*msg = dmesg_msg_iter->tmp_event_msg;
 		dmesg_msg_iter->tmp_event_msg = NULL;
 		break;

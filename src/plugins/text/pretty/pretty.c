@@ -116,7 +116,7 @@ bt_component_class_message_iterator_next_method_status handle_message(
 	bt_component_class_message_iterator_next_method_status ret =
 		BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_OK;
 
-	BT_ASSERT(pretty);
+	BT_ASSERT_DBG(pretty);
 
 	switch (bt_message_get_type(message)) {
 	case BT_MESSAGE_TYPE_EVENT:
@@ -199,7 +199,7 @@ bt_component_class_sink_consume_method_status pretty_consume(
 		goto end;
 	}
 
-	BT_ASSERT(next_status == BT_MESSAGE_ITERATOR_NEXT_STATUS_OK);
+	BT_ASSERT_DBG(next_status == BT_MESSAGE_ITERATOR_NEXT_STATUS_OK);
 
 	for (i = 0; i < count; i++) {
 		ret = (int) handle_message(pretty, msgs[i]);

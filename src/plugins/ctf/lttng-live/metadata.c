@@ -102,7 +102,7 @@ const bt_clock_class *borrow_any_clock_class(bt_trace_class *tc)
 	sc_count = bt_trace_class_get_stream_class_count(tc);
 	for (i = 0; i < sc_count; i++) {
 		sc = bt_trace_class_borrow_stream_class_by_index_const(tc, i);
-		BT_ASSERT(sc);
+		BT_ASSERT_DBG(sc);
 
 		cc = bt_stream_class_borrow_default_clock_class_const(sc);
 		if (cc) {
@@ -110,7 +110,7 @@ const bt_clock_class *borrow_any_clock_class(bt_trace_class *tc)
 		}
 	}
 end:
-	BT_ASSERT(cc);
+	BT_ASSERT_DBG(cc);
 	return cc;
 }
 

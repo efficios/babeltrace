@@ -473,7 +473,7 @@ bool packet_header_field_type_is_valid(struct bt_ctf_trace_common *trace,
 
 		ret = bt_ctf_field_type_common_structure_borrow_field_by_index(
 			packet_header_type, &field_name, NULL, 0);
-		BT_ASSERT(ret == 0);
+		BT_ASSERT_DBG(ret == 0);
 
 		if (strcmp(field_name, "magic") != 0) {
 			BT_LOGW("Invalid packet header field type: `magic` field must be the first field: "
@@ -509,7 +509,7 @@ bool packet_header_field_type_is_valid(struct bt_ctf_trace_common *trace,
 		}
 
 		elem_ft = bt_ctf_field_type_common_array_borrow_element_field_type(field_type);
-		BT_ASSERT(elem_ft);
+		BT_ASSERT_DBG(elem_ft);
 
 		if (elem_ft->id != BT_CTF_FIELD_TYPE_ID_INTEGER) {
 			BT_LOGW("Invalid packet header field type: `uuid` field's element field type must be an integer field type: "
@@ -829,7 +829,7 @@ bool event_header_field_type_is_valid(struct bt_ctf_trace_common *trace,
 			goto invalid;
 		}
 
-		BT_ASSERT(int_ft);
+		BT_ASSERT_DBG(int_ft);
 		if (bt_ctf_field_type_common_integer_is_signed(int_ft)) {
 			BT_LOGW("Invalid event header field type: `id` field must be an unsigned integer or enumeration field type: "
 				"id-ft-addr=%p", int_ft);
@@ -904,7 +904,7 @@ int bt_ctf_trace_common_add_stream_class(struct bt_ctf_trace_common *trace,
 	struct bt_ctf_clock_class *expected_clock_class =
 		bt_ctf_object_get_ref(init_expected_clock_class);
 
-	BT_ASSERT(copy_field_type_func);
+	BT_ASSERT_DBG(copy_field_type_func);
 
 	if (!trace) {
 		BT_LOGW_STR("Invalid parameter: trace is NULL.");
@@ -940,7 +940,7 @@ int bt_ctf_trace_common_add_stream_class(struct bt_ctf_trace_common *trace,
 
 	event_class_count =
 		bt_ctf_stream_class_common_get_event_class_count(stream_class);
-	BT_ASSERT(event_class_count >= 0);
+	BT_ASSERT_DBG(event_class_count >= 0);
 
 	if (!stream_class->frozen) {
 		/*
@@ -1261,8 +1261,8 @@ bt_ctf_bool bt_ctf_trace_common_has_clock_class(struct bt_ctf_trace_common *trac
 {
 	struct bt_ctf_search_query query = { .value = clock_class, .found = 0 };
 
-	BT_ASSERT(trace);
-	BT_ASSERT(clock_class);
+	BT_ASSERT_DBG(trace);
+	BT_ASSERT_DBG(clock_class);
 
 	g_ptr_array_foreach(trace->clock_classes, value_exists, &query);
 	return query.found;
@@ -1685,7 +1685,7 @@ int append_trace_metadata(struct bt_ctf_trace *trace,
 	g_string_append(context->string, "trace {\n");
 	g_string_append(context->string, "\tmajor = 1;\n");
 	g_string_append(context->string, "\tminor = 8;\n");
-	BT_ASSERT(trace->common.native_byte_order == BT_CTF_BYTE_ORDER_LITTLE_ENDIAN ||
+	BT_ASSERT_DBG(trace->common.native_byte_order == BT_CTF_BYTE_ORDER_LITTLE_ENDIAN ||
 		trace->common.native_byte_order == BT_CTF_BYTE_ORDER_BIG_ENDIAN ||
 		trace->common.native_byte_order == BT_CTF_BYTE_ORDER_NETWORK);
 
@@ -1740,8 +1740,8 @@ void append_env_metadata(struct bt_ctf_trace *trace,
 		env_field_value_obj = bt_ctf_attributes_borrow_field_value(
 			trace->common.environment, i);
 
-		BT_ASSERT(entry_name);
-		BT_ASSERT(env_field_value_obj);
+		BT_ASSERT_DBG(entry_name);
+		BT_ASSERT_DBG(env_field_value_obj);
 
 		switch (bt_ctf_value_get_type(
 			bt_ctf_private_value_as_value(env_field_value_obj))) {

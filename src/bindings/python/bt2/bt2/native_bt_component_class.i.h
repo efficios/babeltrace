@@ -1208,8 +1208,7 @@ component_class_message_iterator_next(
 	PyObject *py_message_iter = bt_self_message_iterator_get_data(message_iterator);
 	PyObject *py_method_result = NULL;
 
-	BT_ASSERT(py_message_iter);
-
+	BT_ASSERT_DBG(py_message_iter);
 	py_method_result = PyObject_CallMethod(py_message_iter,
 		"_bt_next_from_native", NULL);
 	if (!py_method_result) {
@@ -1226,7 +1225,7 @@ component_class_message_iterator_next(
 	*count = 1;
 
 	/* Overflow errors should never happen. */
-	BT_ASSERT(!PyErr_Occurred());
+	BT_ASSERT_DBG(!PyErr_Occurred());
 
 	status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_OK;
 
@@ -1244,7 +1243,7 @@ component_class_sink_consume(bt_self_component_sink *self_component_sink)
 	PyObject *py_method_result = NULL;
 	bt_component_class_sink_consume_method_status status;
 
-	BT_ASSERT(py_comp);
+	BT_ASSERT_DBG(py_comp);
 
 	py_method_result = PyObject_CallMethod(py_comp,
 		"_user_consume", NULL);

@@ -335,7 +335,7 @@ const bt_field *event_borrow_payload_field(const bt_event *event,
 	const bt_field *event_payload, *field;
 
 	event_payload =  bt_event_borrow_payload_field_const(event);
-	BT_ASSERT(event_payload);
+	BT_ASSERT_DBG(event_payload);
 
 	field = bt_field_structure_borrow_member_field_by_name_const(
 		event_payload, field_name);
@@ -950,7 +950,7 @@ void fill_debug_info_bin_field(struct debug_info_source *dbg_info_src,
 	bt_field_string_set_value_status set_status;
 	bt_field_string_append_status append_status;
 
-	BT_ASSERT(bt_field_get_class_type(curr_field) ==
+	BT_ASSERT_DBG(bt_field_get_class_type(curr_field) ==
 		BT_FIELD_CLASS_TYPE_STRING);
 
 	if (dbg_info_src) {
@@ -993,7 +993,7 @@ void fill_debug_info_func_field(struct debug_info_source *dbg_info_src,
 {
 	bt_field_string_set_value_status status;
 
-	BT_ASSERT(bt_field_get_class_type(curr_field) ==
+	BT_ASSERT_DBG(bt_field_get_class_type(curr_field) ==
 			BT_FIELD_CLASS_TYPE_STRING);
 	if (dbg_info_src && dbg_info_src->func) {
 		status = bt_field_string_set_value(curr_field,
@@ -1017,7 +1017,7 @@ void fill_debug_info_src_field(struct debug_info_source *dbg_info_src,
 	bt_field_string_set_value_status set_status;
 	bt_field_string_append_status append_status;
 
-	BT_ASSERT(bt_field_get_class_type(curr_field) ==
+	BT_ASSERT_DBG(bt_field_get_class_type(curr_field) ==
 		BT_FIELD_CLASS_TYPE_STRING);
 
 	if (dbg_info_src && dbg_info_src->src_path) {
@@ -1068,7 +1068,7 @@ void fill_debug_info_field_empty(bt_field *debug_info_field,
 	bt_field_string_set_value_status status;
 	bt_field *bin_field, *func_field, *src_field;
 
-	BT_ASSERT(bt_field_get_class_type(debug_info_field) ==
+	BT_ASSERT_DBG(bt_field_get_class_type(debug_info_field) ==
 		BT_FIELD_CLASS_TYPE_STRUCTURE);
 
 	bin_field = bt_field_structure_borrow_member_field_by_name(
@@ -1078,11 +1078,11 @@ void fill_debug_info_field_empty(bt_field *debug_info_field,
 	src_field = bt_field_structure_borrow_member_field_by_name(
 		debug_info_field, "src");
 
-	BT_ASSERT(bt_field_get_class_type(bin_field) ==
+	BT_ASSERT_DBG(bt_field_get_class_type(bin_field) ==
 		BT_FIELD_CLASS_TYPE_STRING);
-	BT_ASSERT(bt_field_get_class_type(func_field) ==
+	BT_ASSERT_DBG(bt_field_get_class_type(func_field) ==
 		BT_FIELD_CLASS_TYPE_STRING);
-	BT_ASSERT(bt_field_get_class_type(src_field) ==
+	BT_ASSERT_DBG(bt_field_get_class_type(src_field) ==
 		BT_FIELD_CLASS_TYPE_STRING);
 
 	status = bt_field_string_set_value(bin_field, "");
@@ -1113,12 +1113,13 @@ void fill_debug_info_field(struct debug_info *debug_info, int64_t vpid,
 	struct debug_info_source *dbg_info_src;
 	const bt_field_class *debug_info_fc;
 
-	BT_ASSERT(bt_field_get_class_type(debug_info_field) ==
+	BT_ASSERT_DBG(bt_field_get_class_type(debug_info_field) ==
 		BT_FIELD_CLASS_TYPE_STRUCTURE);
 
 	debug_info_fc = bt_field_borrow_class_const(debug_info_field);
 
-	BT_ASSERT(bt_field_class_structure_get_member_count(debug_info_fc) == 3);
+	BT_ASSERT_DBG(bt_field_class_structure_get_member_count(
+		debug_info_fc) == 3);
 
 	dbg_info_src = debug_info_query(debug_info, vpid, ip);
 
@@ -1277,14 +1278,14 @@ bt_message *handle_event_message(struct debug_info_msg_iter *debug_it,
 		out_event_class = trace_ir_mapping_create_new_mapped_event_class(
 			debug_it->ir_maps, in_event_class);
 	}
-	BT_ASSERT(out_event_class);
+	BT_ASSERT_DBG(out_event_class);
 
 	/* Borrow the input stream. */
 	in_stream = bt_event_borrow_stream_const(in_event);
-	BT_ASSERT(in_stream);
+	BT_ASSERT_DBG(in_stream);
 	out_stream = trace_ir_mapping_borrow_mapped_stream(debug_it->ir_maps,
 		in_stream);
-	BT_ASSERT(in_stream);
+	BT_ASSERT_DBG(in_stream);
 
 	/* Borrow the input and output packets. */
 	in_packet = bt_event_borrow_packet_const(in_event);
@@ -1851,16 +1852,16 @@ bt_component_class_message_iterator_next_method_status debug_info_msg_iter_next(
 	status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_OK;
 
 	self_comp = bt_self_message_iterator_borrow_component(self_msg_iter);
-	BT_ASSERT(self_comp);
+	BT_ASSERT_DBG(self_comp);
 
 	debug_info = bt_self_component_get_data(self_comp);
-	BT_ASSERT(debug_info);
+	BT_ASSERT_DBG(debug_info);
 
 	debug_info_msg_iter = bt_self_message_iterator_get_data(self_msg_iter);
-	BT_ASSERT(debug_info_msg_iter);
+	BT_ASSERT_DBG(debug_info_msg_iter);
 
 	upstream_iterator = debug_info_msg_iter->msg_iter;
-	BT_ASSERT(upstream_iterator);
+	BT_ASSERT_DBG(upstream_iterator);
 
 	upstream_iterator_ret_status =
 		bt_self_component_port_input_message_iterator_next(
@@ -1880,7 +1881,7 @@ bt_component_class_message_iterator_next_method_status debug_info_msg_iter_next(
 	 * There should never be more received messages than the capacity we
 	 * provided.
 	 */
-	BT_ASSERT(*count <= capacity);
+	BT_ASSERT_DBG(*count <= capacity);
 
 	for (curr_msg_idx = 0; curr_msg_idx < *count; curr_msg_idx++) {
 		out_message = handle_message(debug_info_msg_iter,

@@ -165,7 +165,7 @@ int parse_base_sequence(const char *src, size_t len, size_t pos,
 			return -1;
 		}
 	}
-	BT_ASSERT(nr_char > 0);
+	BT_ASSERT_DBG(nr_char > 0);
 	buffer[nr_char] = '\0';
 	*buf_len = nr_char;
 	return 0;

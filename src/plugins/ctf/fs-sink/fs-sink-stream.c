@@ -470,7 +470,7 @@ int write_event_header(struct fs_sink_stream *stream,
 
 	/* Time */
 	if (stream->sc->default_clock_class) {
-		BT_ASSERT(cs);
+		BT_ASSERT_DBG(cs);
 		ret = bt_ctfser_write_byte_aligned_unsigned_int(&stream->ctfser,
 			bt_clock_snapshot_get_value(cs), 8, 64, BYTE_ORDER);
 		if (G_UNLIKELY(ret)) {
@@ -499,7 +499,7 @@ int fs_sink_stream_write_event(struct fs_sink_stream *stream,
 	/* Common context */
 	if (stream->sc->event_common_context_fc) {
 		field = bt_event_borrow_common_context_field_const(event);
-		BT_ASSERT(field);
+		BT_ASSERT_DBG(field);
 		ret = write_struct_field(stream,
 			(void *) stream->sc->event_common_context_fc,
 			field, true);
@@ -511,7 +511,7 @@ int fs_sink_stream_write_event(struct fs_sink_stream *stream,
 	/* Specific context */
 	if (ec->spec_context_fc) {
 		field = bt_event_borrow_specific_context_field_const(event);
-		BT_ASSERT(field);
+		BT_ASSERT_DBG(field);
 		ret = write_struct_field(stream, (void *) ec->spec_context_fc,
 			field, true);
 		if (G_UNLIKELY(ret)) {
@@ -522,7 +522,7 @@ int fs_sink_stream_write_event(struct fs_sink_stream *stream,
 	/* Specific context */
 	if (ec->payload_fc) {
 		field = bt_event_borrow_payload_field_const(event);
-		BT_ASSERT(field);
+		BT_ASSERT_DBG(field);
 		ret = write_struct_field(stream, (void *) ec->payload_fc,
 			field, true);
 		if (G_UNLIKELY(ret)) {

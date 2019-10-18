@@ -85,7 +85,7 @@
  * arguments using BT_LOGF(), and abort.
  *
  * To assert that a postcondition is satisfied or that some internal
- * object/context/value is in the expected state, use BT_ASSERT().
+ * object/context/value is in the expected state, use BT_ASSERT_DBG().
  */
 # define BT_CTF_ASSERT_PRE(_cond, _fmt, ...)				\
 	do {								\

@@ -130,7 +130,7 @@ struct bt_stream *borrow_stream_message_stream(struct bt_message *message)
 {
 	struct bt_message_stream *stream_msg;
 
-	BT_ASSERT(message);
+	BT_ASSERT_DBG(message);
 	stream_msg = (void *) message;
 	return stream_msg->stream;
 }
@@ -213,13 +213,13 @@ bt_message_stream_borrow_default_clock_snapshot_const(
 	struct bt_message_stream *stream_msg = (void *) msg;
 	struct bt_stream_class *sc;
 
-	BT_ASSERT(msg);
+	BT_ASSERT_DBG(msg);
 	sc = stream_msg->stream->class;
-	BT_ASSERT(sc);
+	BT_ASSERT_DBG(sc);
 	BT_ASSERT_PRE_DEV(sc->default_clock_class,
 		"Message's stream's class has no default clock class: "
 		"%![msg-]+n, %![sc-]+S", msg, sc);
-	BT_ASSERT(stream_msg->default_cs);
+	BT_ASSERT_DBG(stream_msg->default_cs);
 
 	*snapshot = stream_msg->default_cs;
 
@@ -254,7 +254,7 @@ borrow_stream_message_stream_class_default_clock_class(
 {
 	struct bt_message_stream *stream_msg = (void *) msg;
 
-	BT_ASSERT(msg);
+	BT_ASSERT_DBG(msg);
 	return stream_msg->stream->class->default_clock_class;
 }
 

@@ -845,7 +845,7 @@ struct bt_component_class *borrow_component_class_by_name(
 		const char *comp_class_cand_name =
 			bt_component_class_get_name(comp_class_candidate);
 
-		BT_ASSERT(comp_class_cand_name);
+		BT_ASSERT_DBG(comp_class_cand_name);
 
 		if (strcmp(name, comp_class_cand_name) == 0) {
 			comp_class = comp_class_candidate;

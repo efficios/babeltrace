@@ -284,7 +284,7 @@ bt_ctf_bool bt_ctf_field_common_sequence_is_set_recursive(struct bt_ctf_field_co
 # define bt_ctf_field_common_set(_field, _val)
 #endif
 
-BT_ASSERT_FUNC
+BT_ASSERT_DBG_FUNC
 static inline bool field_type_common_has_known_id(
 		struct bt_ctf_field_type_common *ft)
 {
@@ -303,7 +303,7 @@ int _bt_ctf_field_common_validate_recursive(struct bt_ctf_field_common *field)
 		goto end;
 	}
 
-	BT_ASSERT(field_type_common_has_known_id(field->type));
+	BT_ASSERT_DBG(field_type_common_has_known_id(field->type));
 
 	if (field->methods->validate) {
 		ret = field->methods->validate(field);
@@ -316,15 +316,15 @@ end:
 static inline
 void _bt_ctf_field_common_reset_recursive(struct bt_ctf_field_common *field)
 {
-	BT_ASSERT(field);
-	BT_ASSERT(field->methods->reset);
+	BT_ASSERT_DBG(field);
+	BT_ASSERT_DBG(field->methods->reset);
 	field->methods->reset(field);
 }
 
 static inline
 void _bt_ctf_field_common_set(struct bt_ctf_field_common *field, bool value)
 {
-	BT_ASSERT(field);
+	BT_ASSERT_DBG(field);
 	field->payload_set = value;
 }
 
@@ -337,8 +337,8 @@ bt_ctf_bool _bt_ctf_field_common_is_set_recursive(struct bt_ctf_field_common *fi
 		goto end;
 	}
 
-	BT_ASSERT(field_type_common_has_known_id(field->type));
-	BT_ASSERT(field->methods->is_set);
+	BT_ASSERT_DBG(field_type_common_has_known_id(field->type));
+	BT_ASSERT_DBG(field->methods->is_set);
 	is_set = field->methods->is_set(field);
 
 end:
@@ -351,8 +351,8 @@ void bt_ctf_field_common_initialize(struct bt_ctf_field_common *field,
 		bt_ctf_object_release_func release_func,
 		struct bt_ctf_field_common_methods *methods)
 {
-	BT_ASSERT(field);
-	BT_ASSERT(ft);
+	BT_ASSERT_DBG(field);
+	BT_ASSERT_DBG(ft);
 	bt_ctf_object_init(&field->base, is_shared, release_func);
 	field->methods = methods;
 	field->type = (void *) bt_ctf_object_get_ref(ft);
@@ -411,7 +411,7 @@ int bt_ctf_field_common_sequence_set_length(struct bt_ctf_field_common *field,
 				goto end;
 			}
 
-			BT_ASSERT(!sequence->elements->pdata[i]);
+			BT_ASSERT_DBG(!sequence->elements->pdata[i]);
 			sequence->elements->pdata[i] = elem_field;
 		}
 	}
@@ -450,7 +450,7 @@ struct bt_ctf_field_common *bt_ctf_field_common_structure_borrow_field_by_name(
 	}
 
 	ret = structure->fields->pdata[index];
-	BT_ASSERT(ret);
+	BT_ASSERT_DBG(ret);
 
 error:
 	return ret;
@@ -525,7 +525,7 @@ int bt_ctf_field_common_variant_set_tag(struct bt_ctf_field_common *variant_fiel
 	}
 
 	/* Select corresponding field */
-	BT_ASSERT(choice_index < variant->fields->len);
+	BT_ASSERT_DBG(choice_index < variant->fields->len);
 	variant->current_field = variant->fields->pdata[choice_index];
 	variant->tag_value.u = tag_uval;
 
@@ -694,7 +694,7 @@ int bt_ctf_field_common_string_set_value(struct bt_ctf_field_common *field,
 static inline
 void bt_ctf_field_common_finalize(struct bt_ctf_field_common *field)
 {
-	BT_ASSERT(field);
+	BT_ASSERT_DBG(field);
 	BT_LOGD_STR("Putting field's type.");
 	bt_ctf_object_put_ref(field->type);
 }
@@ -702,7 +702,7 @@ void bt_ctf_field_common_finalize(struct bt_ctf_field_common *field)
 static inline
 void bt_ctf_field_common_integer_finalize(struct bt_ctf_field_common *field)
 {
-	BT_ASSERT(field);
+	BT_ASSERT_DBG(field);
 	BT_LOGD("Finalizing common integer field object: addr=%p", field);
 	bt_ctf_field_common_finalize(field);
 }
@@ -710,7 +710,7 @@ void bt_ctf_field_common_integer_finalize(struct bt_ctf_field_common *field)
 static inline
 void bt_ctf_field_common_floating_point_finalize(struct bt_ctf_field_common *field)
 {
-	BT_ASSERT(field);
+	BT_ASSERT_DBG(field);
 	BT_LOGD("Finalizing common floating point number field object: addr=%p", field);
 	bt_ctf_field_common_finalize(field);
 }
@@ -720,7 +720,7 @@ void bt_ctf_field_common_structure_finalize_recursive(struct bt_ctf_field_common
 {
 	struct bt_ctf_field_common_structure *structure = BT_CTF_FROM_COMMON(field);
 
-	BT_ASSERT(field);
+	BT_ASSERT_DBG(field);
 	BT_LOGD("Finalizing common structure field object: addr=%p", field);
 	bt_ctf_field_common_finalize(field);
 
@@ -734,7 +734,7 @@ void bt_ctf_field_common_variant_finalize_recursive(struct bt_ctf_field_common *
 {
 	struct bt_ctf_field_common_variant *variant = BT_CTF_FROM_COMMON(field);
 
-	BT_ASSERT(field);
+	BT_ASSERT_DBG(field);
 	BT_LOGD("Finalizing common variant field object: addr=%p", field);
 	bt_ctf_field_common_finalize(field);
 
@@ -748,7 +748,7 @@ void bt_ctf_field_common_array_finalize_recursive(struct bt_ctf_field_common *fi
 {
 	struct bt_ctf_field_common_array *array = BT_CTF_FROM_COMMON(field);
 
-	BT_ASSERT(field);
+	BT_ASSERT_DBG(field);
 	BT_LOGD("Finalizing common array field object: addr=%p", field);
 	bt_ctf_field_common_finalize(field);
 
@@ -762,7 +762,7 @@ void bt_ctf_field_common_sequence_finalize_recursive(struct bt_ctf_field_common 
 {
 	struct bt_ctf_field_common_sequence *sequence = BT_CTF_FROM_COMMON(field);
 
-	BT_ASSERT(field);
+	BT_ASSERT_DBG(field);
 	BT_LOGD("Finalizing common sequence field object: addr=%p", field);
 	bt_ctf_field_common_finalize(field);
 
@@ -776,7 +776,7 @@ void bt_ctf_field_common_string_finalize(struct bt_ctf_field_common *field)
 {
 	struct bt_ctf_field_common_string *string = BT_CTF_FROM_COMMON(field);
 
-	BT_ASSERT(field);
+	BT_ASSERT_DBG(field);
 	BT_LOGD("Finalizing common string field object: addr=%p", field);
 	bt_ctf_field_common_finalize(field);
 

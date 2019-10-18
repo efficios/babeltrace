@@ -62,7 +62,7 @@ void try_init_reserved_keywords(void)
 	}
 
 	reserved_keywords_set = g_hash_table_new(g_direct_hash, g_direct_equal);
-	BT_ASSERT(reserved_keywords_set);
+	BT_ASSERT_DBG(reserved_keywords_set);
 
 	for (i = 0; i < reserved_keywords_count; i++) {
 		gpointer quark = GINT_TO_POINTER(g_quark_from_string(

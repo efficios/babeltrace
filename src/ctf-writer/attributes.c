@@ -319,7 +319,7 @@ int bt_ctf_attributes_freeze(struct bt_ctf_private_value *attr_obj)
 
 	BT_LOGD("Freezing attributes object: value-addr=%p", attr_obj);
 	count = bt_ctf_value_array_get_length(bt_ctf_private_value_as_value(attr_obj));
-	BT_ASSERT(count >= 0);
+	BT_ASSERT_DBG(count >= 0);
 
 	/*
 	 * We do not freeze the array value object itself here, since

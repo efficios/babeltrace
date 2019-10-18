@@ -58,7 +58,7 @@ void bt_ctf_field_type_common_initialize(struct bt_ctf_field_type_common *ft,
 		bool init_bo, bt_ctf_object_release_func release_func,
 		struct bt_ctf_field_type_common_methods *methods)
 {
-	BT_ASSERT(ft && (ft->id > BT_CTF_FIELD_TYPE_ID_UNKNOWN) &&
+	BT_ASSERT_DBG(ft && (ft->id > BT_CTF_FIELD_TYPE_ID_UNKNOWN) &&
 		(ft->id < BT_CTF_FIELD_TYPE_ID_NR));
 
 	bt_ctf_object_init_shared(&ft->base, release_func);
@@ -71,7 +71,7 @@ void bt_ctf_field_type_common_initialize(struct bt_ctf_field_type_common *ft,
 		BT_LOGD("Setting initial field type's byte order: bo=%s",
 			bt_ctf_byte_order_string(bo));
 		ret = bt_ctf_field_type_common_set_byte_order(ft, bo);
-		BT_ASSERT(ret == 0);
+		BT_ASSERT_DBG(ret == 0);
 	}
 
 	ft->alignment = 1;
@@ -85,7 +85,7 @@ void bt_ctf_field_type_common_integer_initialize(
 {
 	struct bt_ctf_field_type_common_integer *int_ft = BT_CTF_FROM_COMMON(ft);
 
-	BT_ASSERT(size > 0);
+	BT_ASSERT_DBG(size > 0);
 	BT_LOGD("Initializing common integer field type object: size=%u",
 		size);
 	ft->id = BT_CTF_FIELD_TYPE_ID_INTEGER;
@@ -124,7 +124,7 @@ void bt_ctf_field_type_common_enumeration_initialize(
 {
 	struct bt_ctf_field_type_common_enumeration *enum_ft = BT_CTF_FROM_COMMON(ft);
 
-	BT_ASSERT(container_ft);
+	BT_ASSERT_DBG(container_ft);
 	BT_LOGD("Initializing common enumeration field type object: int-ft-addr=%p",
 		container_ft);
 	ft->id = BT_CTF_FIELD_TYPE_ID_ENUM;
@@ -179,7 +179,7 @@ void bt_ctf_field_type_common_array_initialize(
 {
 	struct bt_ctf_field_type_common_array *array_ft = BT_CTF_FROM_COMMON(ft);
 
-	BT_ASSERT(element_ft);
+	BT_ASSERT_DBG(element_ft);
 	BT_LOGD("Initializing common array field type object: element-ft-addr=%p, "
 		"length=%u", element_ft, length);
 	ft->id = BT_CTF_FIELD_TYPE_ID_ARRAY;
@@ -200,9 +200,9 @@ void bt_ctf_field_type_common_sequence_initialize(
 {
 	struct bt_ctf_field_type_common_sequence *seq_ft = BT_CTF_FROM_COMMON(ft);
 
-	BT_ASSERT(element_ft);
-	BT_ASSERT(length_field_name);
-	BT_ASSERT(bt_ctf_identifier_is_valid(length_field_name));
+	BT_ASSERT_DBG(element_ft);
+	BT_ASSERT_DBG(length_field_name);
+	BT_ASSERT_DBG(bt_ctf_identifier_is_valid(length_field_name));
 	BT_LOGD("Initializing common sequence field type object: element-ft-addr=%p, "
 		"length-field-name=\"%s\"", element_ft, length_field_name);
 	ft->id = BT_CTF_FIELD_TYPE_ID_SEQUENCE;
@@ -224,7 +224,7 @@ void bt_ctf_field_type_common_variant_initialize(
 {
 	struct bt_ctf_field_type_common_variant *var_ft = BT_CTF_FROM_COMMON(ft);
 
-	BT_ASSERT(!tag_name || bt_ctf_identifier_is_valid(tag_name));
+	BT_ASSERT_DBG(!tag_name || bt_ctf_identifier_is_valid(tag_name));
 	BT_LOGD("Initializing common variant field type object: "
 		"tag-ft-addr=%p, tag-field-name=\"%s\"",
 		tag_ft, tag_name);
@@ -556,10 +556,10 @@ int add_structure_variant_member(GArray *members,
 
 		member_ft = &choice->type;
 		member_name = &choice->name;
-		BT_ASSERT(!choice->ranges);
+		BT_ASSERT_DBG(!choice->ranges);
 		choice->ranges = g_array_new(FALSE, TRUE,
 			sizeof(struct bt_ctf_field_type_common_variant_choice_range));
-		BT_ASSERT(choice->ranges);
+		BT_ASSERT_DBG(choice->ranges);
 	} else {
 		struct bt_ctf_field_type_common_structure_field *field =
 			&g_array_index(members,
@@ -975,14 +975,14 @@ int bt_ctf_field_type_common_structure_validate_recursive(
 		bt_ctf_field_type_common_structure_get_field_count(ft);
 	int64_t i;
 
-	BT_ASSERT(field_count >= 0);
+	BT_ASSERT_DBG(field_count >= 0);
 
 	for (i = 0; i < field_count; ++i) {
 		const char *field_name;
 
 		ret = bt_ctf_field_type_common_structure_borrow_field_by_index(ft,
 			&field_name, &child_ft, i);
-		BT_ASSERT(ret == 0);
+		BT_ASSERT_DBG(ret == 0);
 		ret = bt_ctf_field_type_common_validate(child_ft);
 		if (ret) {
 			BT_LOGW("Invalid structure field type: "
@@ -1071,7 +1071,7 @@ int bt_ctf_field_type_common_variant_validate_recursive(
 
 		ret = bt_ctf_field_type_common_variant_borrow_field_by_index(ft,
 			&field_name, &child_ft, i);
-		BT_ASSERT(ret == 0);
+		BT_ASSERT_DBG(ret == 0);
 		ret = bt_ctf_field_type_common_validate(child_ft);
 		if (ret) {
 			BT_LOGW("Invalid variant field type: "
@@ -1100,7 +1100,7 @@ int bt_ctf_field_type_common_validate(struct bt_ctf_field_type_common *ft)
 {
 	int ret = 0;
 
-	BT_ASSERT(ft);
+	BT_ASSERT_DBG(ft);
 
 	if (ft->valid) {
 		/* Already marked as valid */
@@ -1443,7 +1443,7 @@ int bt_ctf_field_type_common_enumeration_signed_get_mapping_by_index(
 
 	if (mapping_name) {
 		*mapping_name = g_quark_to_string(mapping->string);
-		BT_ASSERT(*mapping_name);
+		BT_ASSERT_DBG(*mapping_name);
 	}
 
 	if (range_begin) {
@@ -1479,7 +1479,7 @@ int bt_ctf_field_type_common_enumeration_unsigned_get_mapping_by_index(
 
 	if (mapping_name) {
 		*mapping_name = g_quark_to_string(mapping->string);
-		BT_ASSERT(*mapping_name);
+		BT_ASSERT_DBG(*mapping_name);
 	}
 
 	if (range_begin) {
@@ -1824,10 +1824,10 @@ int bt_ctf_field_type_common_structure_replace_field(
 	GQuark name_quark;
 	uint64_t i;
 
-	BT_ASSERT(ft);
-	BT_ASSERT(field_name);
-	BT_ASSERT(field_type);
-	BT_ASSERT(ft->id == BT_CTF_FIELD_TYPE_ID_STRUCT);
+	BT_ASSERT_DBG(ft);
+	BT_ASSERT_DBG(field_name);
+	BT_ASSERT_DBG(field_type);
+	BT_ASSERT_DBG(ft->id == BT_CTF_FIELD_TYPE_ID_STRUCT);
 	name_quark = g_quark_from_string(field_name);
 
 	for (i = 0; i < struct_ft->fields->len; i++) {
@@ -1943,7 +1943,7 @@ int bt_ctf_field_type_common_structure_borrow_field_by_index(
 
 	if (field_name) {
 		*field_name = g_quark_to_string(field->name);
-		BT_ASSERT(*field_name);
+		BT_ASSERT_DBG(*field_name);
 	}
 
 	return 0;
@@ -2240,7 +2240,7 @@ int bt_ctf_field_type_common_variant_borrow_field_by_index(
 
 	if (field_name) {
 		*field_name = g_quark_to_string(choice->name);
-		BT_ASSERT(*field_name);
+		BT_ASSERT_DBG(*field_name);
 	}
 
 	return 0;
@@ -2255,8 +2255,8 @@ int64_t bt_ctf_field_type_common_variant_find_choice_index(
 	uint64_t i;
 	struct bt_ctf_field_type_common_variant *var_ft = BT_CTF_FROM_COMMON(ft);
 
-	BT_ASSERT(ft);
-	BT_ASSERT(ft->id == BT_CTF_FIELD_TYPE_ID_VARIANT);
+	BT_ASSERT_DBG(ft);
+	BT_ASSERT_DBG(ft->id == BT_CTF_FIELD_TYPE_ID_VARIANT);
 
 	if (bt_ctf_field_type_common_variant_update_choices(ft)) {
 		ret = INT64_C(-1);
@@ -2313,7 +2313,7 @@ bt_ctf_field_type_common_array_borrow_element_field_type(
 	BT_CTF_ASSERT_PRE_NON_NULL(ft, "Field type");
 	BT_CTF_ASSERT_PRE_CTF_FT_COMMON_HAS_ID(ft, BT_CTF_FIELD_TYPE_ID_ARRAY,
 		"Field type");
-	BT_ASSERT(array_ft && array_ft->element_ft);
+	BT_ASSERT_DBG(array_ft && array_ft->element_ft);
 	return array_ft->element_ft;
 }
 
@@ -2503,7 +2503,7 @@ int bt_ctf_field_type_common_get_alignment(struct bt_ctf_field_type_common *ft)
 		struct bt_ctf_field_type_common *element_ft =
 			bt_ctf_field_type_common_sequence_borrow_element_field_type(ft);
 
-		BT_ASSERT(element_ft);
+		BT_ASSERT_DBG(element_ft);
 		ret = bt_ctf_field_type_common_get_alignment(element_ft);
 		break;
 	}
@@ -2512,7 +2512,7 @@ int bt_ctf_field_type_common_get_alignment(struct bt_ctf_field_type_common *ft)
 		struct bt_ctf_field_type_common *element_ft =
 			bt_ctf_field_type_common_array_borrow_element_field_type(ft);
 
-		BT_ASSERT(element_ft);
+		BT_ASSERT_DBG(element_ft);
 		ret = bt_ctf_field_type_common_get_alignment(element_ft);
 		break;
 	}
@@ -2522,7 +2522,7 @@ int bt_ctf_field_type_common_get_alignment(struct bt_ctf_field_type_common *ft)
 
 		element_count = bt_ctf_field_type_common_structure_get_field_count(
 			ft);
-		BT_ASSERT(element_count >= 0);
+		BT_ASSERT_DBG(element_count >= 0);
 
 		for (i = 0; i < element_count; i++) {
 			struct bt_ctf_field_type_common *field = NULL;
@@ -2530,8 +2530,8 @@ int bt_ctf_field_type_common_get_alignment(struct bt_ctf_field_type_common *ft)
 
 			ret = bt_ctf_field_type_common_structure_borrow_field_by_index(
 				ft, NULL, &field, i);
-			BT_ASSERT(ret == 0);
-			BT_ASSERT(field);
+			BT_ASSERT_DBG(ret == 0);
+			BT_ASSERT_DBG(field);
 			field_alignment = bt_ctf_field_type_common_get_alignment(
 				field);
 			if (field_alignment < 0) {
@@ -2667,7 +2667,7 @@ enum bt_ctf_byte_order bt_ctf_field_type_common_get_byte_order(
 		goto end;
 	}
 
-	BT_ASSERT(ret == BT_CTF_BYTE_ORDER_NATIVE ||
+	BT_ASSERT_DBG(ret == BT_CTF_BYTE_ORDER_NATIVE ||
 		ret == BT_CTF_BYTE_ORDER_LITTLE_ENDIAN ||
 		ret == BT_CTF_BYTE_ORDER_BIG_ENDIAN ||
 		ret == BT_CTF_BYTE_ORDER_NETWORK);
@@ -2732,7 +2732,7 @@ void bt_ctf_field_type_common_freeze(struct bt_ctf_field_type_common *ft)
 		return;
 	}
 
-	BT_ASSERT(ft->methods->freeze);
+	BT_ASSERT_DBG(ft->methods->freeze);
 	ft->methods->freeze(ft);
 }
 
@@ -2817,7 +2817,7 @@ struct bt_ctf_field_type_common *bt_ctf_field_type_common_copy(
 	struct bt_ctf_field_type_common *ft_copy = NULL;
 
 	BT_CTF_ASSERT_PRE_NON_NULL(ft, "Field type");
-	BT_ASSERT(ft->methods->copy);
+	BT_ASSERT_DBG(ft->methods->copy);
 	ft_copy = ft->methods->copy(ft);
 	if (!ft_copy) {
 		BT_LOGE_STR("Cannot copy field type.");
@@ -3060,7 +3060,7 @@ int bt_ctf_field_type_common_variant_update_choices(struct bt_ctf_field_type_com
 		goto end;
 	}
 
-	BT_ASSERT(var_ft->tag_ft);
+	BT_ASSERT_DBG(var_ft->tag_ft);
 	is_signed = !!var_ft->tag_ft->container_ft->is_signed;
 
 	for (i = 0; i < var_ft->choices->len; i++) {
@@ -3076,7 +3076,7 @@ int bt_ctf_field_type_common_variant_update_choices(struct bt_ctf_field_type_com
 			goto end;
 		}
 
-		BT_ASSERT(choice->ranges);
+		BT_ASSERT_DBG(choice->ranges);
 		g_array_set_size(choice->ranges, 0);
 
 		while (bt_ctf_field_type_enumeration_mapping_iterator_next(iter) == 0) {
@@ -3092,7 +3092,7 @@ int bt_ctf_field_type_common_variant_update_choices(struct bt_ctf_field_type_com
 					&range.lower.u, &range.upper.u);
 			}
 
-			BT_ASSERT(ret == 0);
+			BT_ASSERT_DBG(ret == 0);
 			g_array_append_val(choice->ranges, range);
 		}
 
@@ -3740,7 +3740,7 @@ int bt_ctf_field_type_common_compare(struct bt_ctf_field_type_common *ft_a,
 		goto end;
 	}
 
-	BT_ASSERT(ft_a->methods->compare);
+	BT_ASSERT_DBG(ft_a->methods->compare);
 	ret = ft_a->methods->compare(ft_a, ft_b);
 	if (ret == 1) {
 		BT_LOGT("Field types differ: ft-a-addr=%p, ft-b-addr=%p",
@@ -3880,7 +3880,7 @@ int bt_ctf_field_type_common_validate_single_clock_class(
 		goto end;
 	}
 
-	BT_ASSERT(expected_clock_class);
+	BT_ASSERT_DBG(expected_clock_class);
 
 	switch (ft->id) {
 	case BT_CTF_FIELD_TYPE_ID_INTEGER:
@@ -3943,7 +3943,7 @@ int bt_ctf_field_type_common_validate_single_clock_class(
 			abort();
 		}
 
-		BT_ASSERT(sub_ft);
+		BT_ASSERT_DBG(sub_ft);
 		ret = bt_ctf_field_type_common_validate_single_clock_class(sub_ft,
 			expected_clock_class);
 		break;
@@ -3960,7 +3960,7 @@ int bt_ctf_field_type_common_validate_single_clock_class(
 
 			ret = bt_ctf_field_type_common_structure_borrow_field_by_index(
 				ft, &name, &member_type, i);
-			BT_ASSERT(ret == 0);
+			BT_ASSERT_DBG(ret == 0);
 			ret = bt_ctf_field_type_common_validate_single_clock_class(
 				member_type, expected_clock_class);
 			if (ret) {
@@ -3986,7 +3986,7 @@ int bt_ctf_field_type_common_validate_single_clock_class(
 
 			ret = bt_ctf_field_type_common_variant_borrow_field_by_index(
 				ft, &name, &member_type, i);
-			BT_ASSERT(ret == 0);
+			BT_ASSERT_DBG(ret == 0);
 			ret = bt_ctf_field_type_common_validate_single_clock_class(
 				member_type, expected_clock_class);
 			if (ret) {
@@ -4123,8 +4123,8 @@ int bt_ctf_field_type_serialize_recursive(struct bt_ctf_field_type *type,
 	struct bt_ctf_field_type_common *type_common = (void *) type;
 	bt_ctf_field_type_serialize_func serialize_func;
 
-	BT_ASSERT(type);
-	BT_ASSERT(context);
+	BT_ASSERT_DBG(type);
+	BT_ASSERT_DBG(context);
 
 	/* Make sure field type is valid before serializing it */
 	ret = bt_ctf_field_type_common_validate((void *) type);
@@ -4224,7 +4224,7 @@ int bt_ctf_field_type_integer_serialize(struct bt_ctf_field_type_common *type,
 		const char *clock_name = bt_ctf_clock_class_get_name(
 			integer->mapped_clock_class);
 
-		BT_ASSERT(clock_name);
+		BT_ASSERT_DBG(clock_name);
 		g_string_append_printf(context->string,
 			"; map = clock.%s.value", clock_name);
 	}
@@ -4249,10 +4249,10 @@ int bt_ctf_field_type_enumeration_serialize_recursive(
 		"ft-addr=%p, metadata-context-addr=%p", type, context);
 	container_type =
 		bt_ctf_field_type_common_enumeration_borrow_container_field_type(type);
-	BT_ASSERT(container_type);
+	BT_ASSERT_DBG(container_type);
 	container_signed = bt_ctf_field_type_common_integer_is_signed(
 		container_type);
-	BT_ASSERT(container_signed >= 0);
+	BT_ASSERT_DBG(container_signed >= 0);
 	g_string_append(context->string, "enum : ");
 	BT_LOGD_STR("Serializing CTF writer enumeration field type's container field type's metadata.");
 	ret = bt_ctf_field_type_serialize_recursive(
@@ -4961,14 +4961,14 @@ struct bt_ctf_field_type *bt_ctf_field_type_variant_get_field_type_from_tag(
 		"Tag field");
 
 	container = bt_ctf_field_enumeration_borrow_container(tag_field);
-	BT_ASSERT(container);
+	BT_ASSERT_DBG(container);
 
 	if (var_ft->tag_ft->container_ft->is_signed) {
 		int64_t val;
 
 		ret = bt_ctf_field_integer_signed_get_value(container,
 			&val);
-		BT_ASSERT(ret == 0);
+		BT_ASSERT_DBG(ret == 0);
 		choice_index = bt_ctf_field_type_common_variant_find_choice_index(
 			(void *) ft, (uint64_t) val, true);
 	} else {
@@ -4976,7 +4976,7 @@ struct bt_ctf_field_type *bt_ctf_field_type_variant_get_field_type_from_tag(
 
 		ret = bt_ctf_field_integer_unsigned_get_value(container,
 			&val);
-		BT_ASSERT(ret == 0);
+		BT_ASSERT_DBG(ret == 0);
 		choice_index = bt_ctf_field_type_common_variant_find_choice_index(
 			(void *) ft, val, false);
 	}
@@ -4989,7 +4989,7 @@ struct bt_ctf_field_type *bt_ctf_field_type_variant_get_field_type_from_tag(
 
 	ret = bt_ctf_field_type_variant_get_field_by_index(ft, NULL,
 		&ret_ft, choice_index);
-	BT_ASSERT(ret == 0);
+	BT_ASSERT_DBG(ret == 0);
 
 end:
 	return ret_ft;
@@ -5435,7 +5435,7 @@ struct bt_ctf_field_type *bt_ctf_field_type_variant_copy_recursive(
 		/* Copy ranges */
 		copy_entry->ranges = g_array_new(FALSE, TRUE,
 			sizeof(struct bt_ctf_field_type_common_variant_choice_range));
-		BT_ASSERT(copy_entry->ranges);
+		BT_ASSERT_DBG(copy_entry->ranges);
 		g_array_set_size(copy_entry->ranges, entry->ranges->len);
 
 		for (range_i = 0; range_i < entry->ranges->len; range_i++) {

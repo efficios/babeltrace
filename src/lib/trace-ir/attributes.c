@@ -90,8 +90,8 @@ const char *bt_attributes_get_field_name(const struct bt_value *attr_obj,
 	const struct bt_value *attr_field_obj = NULL;
 	const struct bt_value *attr_field_name_obj = NULL;
 
-	BT_ASSERT(attr_obj);
-	BT_ASSERT(index < bt_value_array_get_length(attr_obj));
+	BT_ASSERT_DBG(attr_obj);
+	BT_ASSERT_DBG(index < bt_value_array_get_length(attr_obj));
 	attr_field_obj = bt_value_array_borrow_element_by_index_const(
 		attr_obj, index);
 	if (!attr_field_obj) {
@@ -125,8 +125,8 @@ struct bt_value *bt_attributes_borrow_field_value(
 	struct bt_value *value_obj = NULL;
 	struct bt_value *attr_field_obj = NULL;
 
-	BT_ASSERT(attr_obj);
-	BT_ASSERT(index < bt_value_array_get_length(attr_obj));
+	BT_ASSERT_DBG(attr_obj);
+	BT_ASSERT_DBG(index < bt_value_array_get_length(attr_obj));
 	attr_field_obj =
 		bt_value_array_borrow_element_by_index(attr_obj, index);
 	if (!attr_field_obj) {
@@ -263,8 +263,8 @@ struct bt_value *bt_attributes_borrow_field_value_by_name(
 	struct bt_value *value_obj = NULL;
 	struct bt_value *attr_field_obj = NULL;
 
-	BT_ASSERT(attr_obj);
-	BT_ASSERT(name);
+	BT_ASSERT_DBG(attr_obj);
+	BT_ASSERT_DBG(name);
 	attr_field_obj = bt_attributes_borrow_field_by_name(attr_obj, name);
 	if (!attr_field_obj) {
 		BT_LOGD("Cannot find attributes object's field by name: "

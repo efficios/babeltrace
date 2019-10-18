@@ -55,8 +55,8 @@ struct bt_ctf_field_common *bt_ctf_field_common_copy(struct bt_ctf_field_common 
 	struct bt_ctf_field_common *copy = NULL;
 
 	BT_CTF_ASSERT_PRE_NON_NULL(field, "Field");
-	BT_ASSERT(field_type_common_has_known_id(field->type));
-	BT_ASSERT(field->methods->copy);
+	BT_ASSERT_DBG(field_type_common_has_known_id(field->type));
+	BT_ASSERT_DBG(field->methods->copy);
 	copy = field->methods->copy(field);
 	if (!copy) {
 		BT_LOGW("Cannot create field: ft-addr=%p", field->type);
@@ -206,7 +206,7 @@ int bt_ctf_field_common_array_initialize(struct bt_ctf_field_common *field,
 	uint64_t i;
 
 	BT_LOGD("Initializing common array field object: ft-addr=%p", type);
-	BT_ASSERT(type);
+	BT_ASSERT_DBG(type);
 	bt_ctf_field_common_initialize(field, type, is_shared,
 		release_func, methods);
 	array_length = array_type->length;
@@ -246,7 +246,7 @@ int bt_ctf_field_common_sequence_initialize(struct bt_ctf_field_common *field,
 	int ret = 0;
 
 	BT_LOGD("Initializing common sequence field object: ft-addr=%p", type);
-	BT_ASSERT(type);
+	BT_ASSERT_DBG(type);
 	bt_ctf_field_common_initialize(field, type, is_shared,
 		release_func, methods);
 	sequence->elements = g_ptr_array_new();
@@ -276,7 +276,7 @@ int bt_ctf_field_common_structure_validate_recursive(struct bt_ctf_field_common 
 	int ret = 0;
 	struct bt_ctf_field_common_structure *structure = BT_CTF_FROM_COMMON(field);
 
-	BT_ASSERT(field);
+	BT_ASSERT_DBG(field);
 
 	for (i = 0; i < structure->fields->len; i++) {
 		ret = bt_ctf_field_common_validate_recursive(
@@ -288,7 +288,7 @@ int bt_ctf_field_common_structure_validate_recursive(struct bt_ctf_field_common 
 
 			this_ret = bt_ctf_field_type_common_structure_borrow_field_by_index(
 				field->type, &name, NULL, i);
-			BT_ASSERT(this_ret == 0);
+			BT_ASSERT_DBG(this_ret == 0);
 			BT_CTF_ASSERT_PRE_MSG("Invalid structure field's field: "
 				"struct-field-addr=%p, field-name=\"%s\", "
 				"index=%" PRId64 ", field-addr=%p",
@@ -307,7 +307,7 @@ int bt_ctf_field_common_variant_validate_recursive(struct bt_ctf_field_common *f
 	int ret = 0;
 	struct bt_ctf_field_common_variant *variant = BT_CTF_FROM_COMMON(field);
 
-	BT_ASSERT(field);
+	BT_ASSERT_DBG(field);
 
 	if (!variant->current_field) {
 		ret = -1;
@@ -327,7 +327,7 @@ int bt_ctf_field_common_array_validate_recursive(struct bt_ctf_field_common *fie
 	int ret = 0;
 	struct bt_ctf_field_common_array *array = BT_CTF_FROM_COMMON(field);
 
-	BT_ASSERT(field);
+	BT_ASSERT_DBG(field);
 
 	for (i = 0; i < array->elements->len; i++) {
 		ret = bt_ctf_field_common_validate_recursive((void *) array->elements->pdata[i]);
@@ -351,7 +351,7 @@ int bt_ctf_field_common_sequence_validate_recursive(struct bt_ctf_field_common *
 	int ret = 0;
 	struct bt_ctf_field_common_sequence *sequence = BT_CTF_FROM_COMMON(field);
 
-	BT_ASSERT(field);
+	BT_ASSERT_DBG(field);
 
 	for (i = 0; i < sequence->elements->len; i++) {
 		ret = bt_ctf_field_common_validate_recursive(
@@ -371,7 +371,7 @@ end:
 BT_HIDDEN
 void bt_ctf_field_common_generic_reset(struct bt_ctf_field_common *field)
 {
-	BT_ASSERT(field);
+	BT_ASSERT_DBG(field);
 	field->payload_set = false;
 }
 
@@ -381,7 +381,7 @@ void bt_ctf_field_common_structure_reset_recursive(struct bt_ctf_field_common *f
 	int64_t i;
 	struct bt_ctf_field_common_structure *structure = BT_CTF_FROM_COMMON(field);
 
-	BT_ASSERT(field);
+	BT_ASSERT_DBG(field);
 
 	for (i = 0; i < structure->fields->len; i++) {
 		struct bt_ctf_field_common *member = structure->fields->pdata[i];
@@ -404,7 +404,7 @@ void bt_ctf_field_common_variant_reset_recursive(struct bt_ctf_field_common *fie
 {
 	struct bt_ctf_field_common_variant *variant = BT_CTF_FROM_COMMON(field);
 
-	BT_ASSERT(field);
+	BT_ASSERT_DBG(field);
 	variant->current_field = NULL;
 }
 
@@ -414,7 +414,7 @@ void bt_ctf_field_common_array_reset_recursive(struct bt_ctf_field_common *field
 	size_t i;
 	struct bt_ctf_field_common_array *array = BT_CTF_FROM_COMMON(field);
 
-	BT_ASSERT(field);
+	BT_ASSERT_DBG(field);
 
 	for (i = 0; i < array->elements->len; i++) {
 		struct bt_ctf_field_common *member = array->elements->pdata[i];
@@ -437,7 +437,7 @@ void bt_ctf_field_common_sequence_reset_recursive(struct bt_ctf_field_common *fi
 	struct bt_ctf_field_common_sequence *sequence = BT_CTF_FROM_COMMON(field);
 	uint64_t i;
 
-	BT_ASSERT(field);
+	BT_ASSERT_DBG(field);
 
 	for (i = 0; i < sequence->elements->len; i++) {
 		if (sequence->elements->pdata[i]) {
@@ -555,8 +555,8 @@ void _bt_ctf_field_common_set_is_frozen_recursive(struct bt_ctf_field_common *fi
 
 	BT_LOGD("Setting field object's frozen state: addr=%p, is-frozen=%d",
 		field, is_frozen);
-	BT_ASSERT(field_type_common_has_known_id(field->type));
-	BT_ASSERT(field->methods->set_is_frozen);
+	BT_ASSERT_DBG(field_type_common_has_known_id(field->type));
+	BT_ASSERT_DBG(field->methods->set_is_frozen);
 	field->methods->set_is_frozen(field, is_frozen);
 
 end:
@@ -577,7 +577,7 @@ bt_ctf_bool bt_ctf_field_common_structure_is_set_recursive(
 	size_t i;
 	struct bt_ctf_field_common_structure *structure = BT_CTF_FROM_COMMON(field);
 
-	BT_ASSERT(field);
+	BT_ASSERT_DBG(field);
 
 	for (i = 0; i < structure->fields->len; i++) {
 		is_set = bt_ctf_field_common_is_set_recursive(
@@ -597,7 +597,7 @@ bt_ctf_bool bt_ctf_field_common_variant_is_set_recursive(struct bt_ctf_field_com
 	struct bt_ctf_field_common_variant *variant = BT_CTF_FROM_COMMON(field);
 	bt_ctf_bool is_set = BT_CTF_FALSE;
 
-	BT_ASSERT(field);
+	BT_ASSERT_DBG(field);
 
 	if (variant->current_field) {
 		is_set = bt_ctf_field_common_is_set_recursive(
@@ -614,7 +614,7 @@ bt_ctf_bool bt_ctf_field_common_array_is_set_recursive(struct bt_ctf_field_commo
 	bt_ctf_bool is_set = BT_CTF_FALSE;
 	struct bt_ctf_field_common_array *array = BT_CTF_FROM_COMMON(field);
 
-	BT_ASSERT(field);
+	BT_ASSERT_DBG(field);
 
 	for (i = 0; i < array->elements->len; i++) {
 		is_set = bt_ctf_field_common_is_set_recursive(array->elements->pdata[i]);
@@ -634,7 +634,7 @@ bt_ctf_bool bt_ctf_field_common_sequence_is_set_recursive(struct bt_ctf_field_co
 	bt_ctf_bool is_set = BT_CTF_FALSE;
 	struct bt_ctf_field_common_sequence *sequence = BT_CTF_FROM_COMMON(field);
 
-	BT_ASSERT(field);
+	BT_ASSERT_DBG(field);
 
 	if (!sequence->elements) {
 		goto end;
@@ -865,9 +865,9 @@ int bt_ctf_field_serialize_recursive(struct bt_ctf_field *field,
 	struct bt_ctf_field_common *field_common = (void *) field;
 	bt_ctf_field_serialize_recursive_func serialize_func;
 
-	BT_ASSERT(ctfser);
+	BT_ASSERT_DBG(ctfser);
 	BT_CTF_ASSERT_PRE_NON_NULL(field, "Field");
-	BT_ASSERT(field_common->spec.writer.serialize_func);
+	BT_ASSERT_DBG(field_common->spec.writer.serialize_func);
 	serialize_func = field_common->spec.writer.serialize_func;
 	return serialize_func(field_common, ctfser,
 		native_byte_order);
@@ -1008,7 +1008,7 @@ int bt_ctf_field_structure_serialize_recursive(struct bt_ctf_field_common *field
 		if (G_UNLIKELY(!member)) {
 			ret = bt_ctf_field_type_common_structure_borrow_field_by_index(
 				field->type, &field_name, NULL, i);
-			BT_ASSERT(ret == 0);
+			BT_ASSERT_DBG(ret == 0);
 			BT_LOGW("Cannot serialize structure field's field: field is not set: "
 				"struct-field-addr=%p, "
 				"field-name=\"%s\", index=%" PRId64,
@@ -1022,7 +1022,7 @@ int bt_ctf_field_structure_serialize_recursive(struct bt_ctf_field_common *field
 		if (G_UNLIKELY(ret)) {
 			ret = bt_ctf_field_type_common_structure_borrow_field_by_index(
 				field->type, &field_name, NULL, i);
-			BT_ASSERT(ret == 0);
+			BT_ASSERT_DBG(ret == 0);
 			BT_LOGW("Cannot serialize structure field's field: "
 				"struct-field-addr=%p, field-addr=%p, "
 				"field-name=\"%s\", index=%" PRId64,
@@ -1144,7 +1144,7 @@ struct bt_ctf_field *bt_ctf_field_create(struct bt_ctf_field_type *type)
 	enum bt_ctf_field_type_id type_id;
 
 	BT_CTF_ASSERT_PRE_NON_NULL(type, "Field type");
-	BT_ASSERT(field_type_common_has_known_id((void *) type));
+	BT_ASSERT_DBG(field_type_common_has_known_id((void *) type));
 	BT_CTF_ASSERT_PRE(bt_ctf_field_type_common_validate((void *) type) == 0,
 		"Field type is invalid: ft-addr=%p", type);
 	type_id = bt_ctf_field_type_get_type_id(type);
@@ -1194,7 +1194,7 @@ int bt_ctf_field_sequence_set_length(struct bt_ctf_field *field,
 	}
 
 	ret = bt_ctf_field_integer_unsigned_get_value(length_field, &length);
-	BT_ASSERT(ret == 0);
+	BT_ASSERT_DBG(ret == 0);
 	return bt_ctf_field_common_sequence_set_length((void *) field,
 		length, (bt_ctf_field_common_create_func) bt_ctf_field_create);
 }
@@ -1271,7 +1271,7 @@ struct bt_ctf_field *bt_ctf_field_variant_get_field(struct bt_ctf_field *field,
 			(void *) enum_field->container, &tag_uval);
 	}
 
-	BT_ASSERT(ret == 0);
+	BT_ASSERT_DBG(ret == 0);
 	ret = bt_ctf_field_common_variant_set_tag((void *) field, tag_uval,
 		is_signed);
 	if (ret) {
@@ -1281,7 +1281,7 @@ struct bt_ctf_field *bt_ctf_field_variant_get_field(struct bt_ctf_field *field,
 	bt_ctf_object_put_ref(variant_field->tag);
 	variant_field->tag = bt_ctf_object_get_ref(tag_field);
 	current_field = bt_ctf_field_variant_get_current_field(field);
-	BT_ASSERT(current_field);
+	BT_ASSERT_DBG(current_field);
 
 end:
 	return current_field;
@@ -1303,7 +1303,7 @@ struct bt_ctf_field *bt_ctf_field_enumeration_borrow_container(
 	BT_CTF_ASSERT_PRE_NON_NULL(field, "Enumeration field");
 	BT_CTF_ASSERT_PRE_CTF_FIELD_COMMON_HAS_TYPE_ID((struct bt_ctf_field_common *) field,
 		BT_CTF_FIELD_TYPE_ID_ENUM, "Field");
-	BT_ASSERT(enumeration->container);
+	BT_ASSERT_DBG(enumeration->container);
 	return (void *) enumeration->container;
 }
 
@@ -1593,7 +1593,7 @@ struct bt_ctf_field *bt_ctf_field_array_create(struct bt_ctf_field_type *type)
 	int ret;
 
 	BT_LOGD("Creating CTF writer array field object: ft-addr=%p", type);
-	BT_ASSERT(type);
+	BT_ASSERT_DBG(type);
 
 	if (!array) {
 		BT_LOGE_STR("Failed to allocate one array field.");

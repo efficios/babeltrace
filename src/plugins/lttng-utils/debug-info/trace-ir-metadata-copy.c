@@ -135,8 +135,8 @@ bt_clock_class *borrow_mapped_clock_class(
 		struct trace_ir_metadata_maps *md_maps,
 		const bt_clock_class *in_clock_class)
 {
-	BT_ASSERT(md_maps);
-	BT_ASSERT(in_clock_class);
+	BT_ASSERT_DBG(md_maps);
+	BT_ASSERT_DBG(in_clock_class);
 
 	return g_hash_table_lookup(md_maps->clock_class_map,
 		(gpointer) in_clock_class);

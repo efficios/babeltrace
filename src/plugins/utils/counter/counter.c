@@ -256,7 +256,7 @@ bt_component_class_sink_consume_method_status counter_consume(
 
 	counter = bt_self_component_get_data(
 			bt_self_component_sink_as_self_component(comp));
-	BT_ASSERT(counter);
+	BT_ASSERT_DBG(counter);
 
 	if (G_UNLIKELY(!counter->msg_iter)) {
 		try_print_last(counter);
@@ -280,7 +280,7 @@ bt_component_class_sink_consume_method_status counter_consume(
 		for (i = 0; i < msg_count; i++) {
 			const bt_message *msg = msgs[i];
 
-			BT_ASSERT(msg);
+			BT_ASSERT_DBG(msg);
 			switch (bt_message_get_type(msg)) {
 			case BT_MESSAGE_TYPE_EVENT:
 				counter->count.event++;

@@ -630,8 +630,8 @@ struct fs_sink_ctf_named_field_class *
 fs_sink_ctf_field_class_struct_borrow_member_by_index(
 		struct fs_sink_ctf_field_class_struct *fc, uint64_t index)
 {
-	BT_ASSERT(fc);
-	BT_ASSERT(index < fc->members->len);
+	BT_ASSERT_DBG(fc);
+	BT_ASSERT_DBG(index < fc->members->len);
 	return &g_array_index(fc->members, struct fs_sink_ctf_named_field_class,
 		index);
 }
@@ -644,8 +644,8 @@ fs_sink_ctf_field_class_struct_borrow_member_by_name(
 	uint64_t i;
 	struct fs_sink_ctf_named_field_class *ret_named_fc = NULL;
 
-	BT_ASSERT(fc);
-	BT_ASSERT(name);
+	BT_ASSERT_DBG(fc);
+	BT_ASSERT_DBG(name);
 
 	for (i = 0; i < fc->members->len; i++) {
 		struct fs_sink_ctf_named_field_class *named_fc =
@@ -744,8 +744,8 @@ struct fs_sink_ctf_named_field_class *
 fs_sink_ctf_field_class_variant_borrow_option_by_index(
 		struct fs_sink_ctf_field_class_variant *fc, uint64_t index)
 {
-	BT_ASSERT(fc);
-	BT_ASSERT(index < fc->options->len);
+	BT_ASSERT_DBG(fc);
+	BT_ASSERT_DBG(index < fc->options->len);
 	return &g_array_index(fc->options, struct fs_sink_ctf_named_field_class,
 		index);
 }
@@ -758,8 +758,8 @@ fs_sink_ctf_field_class_variant_borrow_option_by_name(
 	uint64_t i;
 	struct fs_sink_ctf_named_field_class *ret_named_fc = NULL;
 
-	BT_ASSERT(fc);
-	BT_ASSERT(name);
+	BT_ASSERT_DBG(fc);
+	BT_ASSERT_DBG(name);
 
 	for (i = 0; i < fc->options->len; i++) {
 		struct fs_sink_ctf_named_field_class *named_fc =

@@ -104,8 +104,8 @@ unsigned long long bt_object_get_ref_count(const struct bt_object *c_obj)
 {
 	struct bt_object *obj = (void *) c_obj;
 
-	BT_ASSERT(obj);
-	BT_ASSERT(obj->is_shared);
+	BT_ASSERT_DBG(obj);
+	BT_ASSERT_DBG(obj->is_shared);
 	return obj->ref_count;
 }
 
@@ -114,8 +114,8 @@ struct bt_object *bt_object_borrow_parent(const struct bt_object *c_obj)
 {
 	struct bt_object *obj = (void *) c_obj;
 
-	BT_ASSERT(obj);
-	BT_ASSERT(obj->is_shared);
+	BT_ASSERT_DBG(obj);
+	BT_ASSERT_DBG(obj->is_shared);
 	return obj->parent;
 }
 
@@ -135,8 +135,8 @@ struct bt_object *bt_object_get_parent(const struct bt_object *c_obj)
 static inline
 void bt_object_set_parent(struct bt_object *child, struct bt_object *parent)
 {
-	BT_ASSERT(child);
-	BT_ASSERT(child->is_shared);
+	BT_ASSERT_DBG(child);
+	BT_ASSERT_DBG(child->is_shared);
 
 #ifdef _BT_OBJECT_LOGGING_ENABLED
 	BT_LOGT("Setting object's parent: addr=%p, parent-addr=%p",
@@ -150,7 +150,7 @@ void bt_object_set_parent(struct bt_object *child, struct bt_object *parent)
 	 * object's reference count falls to zero.
 	 */
 	if (parent) {
-		BT_ASSERT(!child->parent);
+		BT_ASSERT_DBG(!child->parent);
 		child->parent = parent;
 		bt_object_get_ref_no_null_check(parent);
 	} else {
@@ -165,9 +165,9 @@ void bt_object_set_parent(struct bt_object *child, struct bt_object *parent)
 static inline
 void bt_object_try_spec_release(struct bt_object *obj)
 {
-	BT_ASSERT(obj);
-	BT_ASSERT(obj->is_shared);
-	BT_ASSERT(obj->spec_release_func);
+	BT_ASSERT_DBG(obj);
+	BT_ASSERT_DBG(obj->is_shared);
+	BT_ASSERT_DBG(obj->spec_release_func);
 
 	if (bt_object_get_ref_count(obj) == 0) {
 		obj->spec_release_func(obj);
@@ -213,8 +213,8 @@ static inline
 void bt_object_init(struct bt_object *obj, bool is_shared,
 		bt_object_release_func release_func)
 {
-	BT_ASSERT(obj);
-	BT_ASSERT(!is_shared || release_func);
+	BT_ASSERT_DBG(obj);
+	BT_ASSERT_DBG(!is_shared || release_func);
 	obj->is_shared = is_shared;
 	obj->release_func = release_func;
 	obj->parent_is_owner_listener_func = NULL;
@@ -240,8 +240,8 @@ static inline
 void bt_object_init_shared_with_parent(struct bt_object *obj,
 		bt_object_release_func spec_release_func)
 {
-	BT_ASSERT(obj);
-	BT_ASSERT(spec_release_func);
+	BT_ASSERT_DBG(obj);
+	BT_ASSERT_DBG(spec_release_func);
 	bt_object_init_shared(obj, bt_object_with_parent_release_func);
 	obj->spec_release_func = spec_release_func;
 }
@@ -250,9 +250,9 @@ static inline
 void bt_object_set_parent_is_owner_listener_func(struct bt_object *obj,
 		bt_object_parent_is_owner_listener_func func)
 {
-	BT_ASSERT(obj);
-	BT_ASSERT(obj->is_shared);
-	BT_ASSERT(obj->spec_release_func);
+	BT_ASSERT_DBG(obj);
+	BT_ASSERT_DBG(obj->is_shared);
+	BT_ASSERT_DBG(obj->spec_release_func);
 	((struct bt_object *) obj)->parent_is_owner_listener_func = func;
 }
 
@@ -261,10 +261,10 @@ void bt_object_inc_ref_count(const struct bt_object *c_obj)
 {
 	struct bt_object *obj = (void *) c_obj;
 
-	BT_ASSERT(obj);
-	BT_ASSERT(obj->is_shared);
+	BT_ASSERT_DBG(obj);
+	BT_ASSERT_DBG(obj->is_shared);
 	obj->ref_count++;
-	BT_ASSERT(obj->ref_count != 0);
+	BT_ASSERT_DBG(obj->ref_count != 0);
 }
 
 static inline
@@ -272,8 +272,8 @@ void bt_object_get_ref_no_null_check_no_parent_check(const struct bt_object *c_o
 {
 	struct bt_object *obj = (void *) c_obj;
 
-	BT_ASSERT(obj);
-	BT_ASSERT(obj->is_shared);
+	BT_ASSERT_DBG(obj);
+	BT_ASSERT_DBG(obj->is_shared);
 
 #ifdef _BT_OBJECT_LOGGING_ENABLED
 	BT_LOGT("Incrementing object's reference count: %llu -> %llu: "
@@ -290,8 +290,8 @@ void bt_object_get_ref_no_null_check(const void *c_obj)
 {
 	struct bt_object *obj = (void *) c_obj;
 
-	BT_ASSERT(obj);
-	BT_ASSERT(obj->is_shared);
+	BT_ASSERT_DBG(obj);
+	BT_ASSERT_DBG(obj->is_shared);
 
 	if (G_UNLIKELY(obj->parent && bt_object_get_ref_count(obj) == 0)) {
 #ifdef _BT_OBJECT_LOGGING_ENABLED
@@ -317,9 +317,9 @@ void bt_object_put_ref_no_null_check(const void *c_obj)
 {
 	struct bt_object *obj = (void *) c_obj;
 
-	BT_ASSERT(obj);
-	BT_ASSERT(obj->is_shared);
-	BT_ASSERT(obj->ref_count > 0);
+	BT_ASSERT_DBG(obj);
+	BT_ASSERT_DBG(obj->is_shared);
+	BT_ASSERT_DBG(obj->ref_count > 0);
 
 #ifdef _BT_OBJECT_LOGGING_ENABLED
 	BT_LOGT("Decrementing object's reference count: %llu -> %llu: "
@@ -331,7 +331,7 @@ void bt_object_put_ref_no_null_check(const void *c_obj)
 	obj->ref_count--;
 
 	if (obj->ref_count == 0) {
-		BT_ASSERT(obj->release_func);
+		BT_ASSERT_DBG(obj->release_func);
 		obj->release_func(obj);
 	}
 }

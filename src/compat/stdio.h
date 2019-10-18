@@ -94,7 +94,7 @@ ssize_t bt_getline(char **lineptr, size_t *n, FILE *stream)
 				/* ferror() is set, errno set by fgetc(). */
 				return -1;
 			}
-			BT_ASSERT(feof(stream));
+			BT_ASSERT_DBG(feof(stream));
 			found_eof = 1;
 			break;
 		}

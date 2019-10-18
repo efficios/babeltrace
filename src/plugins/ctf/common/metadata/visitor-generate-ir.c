@@ -4674,7 +4674,7 @@ bt_trace_class *ctf_visitor_generate_ir_get_ir_trace_class(
 {
 	struct ctx *ctx = (void *) visitor;
 
-	BT_ASSERT(ctx);
+	BT_ASSERT_DBG(ctx);
 
 	if (ctx->trace_class) {
 		bt_trace_class_get_ref(ctx->trace_class);
@@ -4689,8 +4689,8 @@ struct ctf_trace_class *ctf_visitor_generate_ir_borrow_ctf_trace_class(
 {
 	struct ctx *ctx = (void *) visitor;
 
-	BT_ASSERT(ctx);
-	BT_ASSERT(ctx->ctf_tc);
+	BT_ASSERT_DBG(ctx);
+	BT_ASSERT_DBG(ctx->ctf_tc);
 	return ctx->ctf_tc;
 }
 

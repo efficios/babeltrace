@@ -54,7 +54,7 @@ BT_HIDDEN
 void bt_ctf_field_wrapper_destroy(struct bt_ctf_field_wrapper *field_wrapper)
 {
 	BT_LOGD("Destroying field wrapper: addr=%p", field_wrapper);
-	BT_ASSERT(!field_wrapper->field);
+	BT_ASSERT_DBG(!field_wrapper->field);
 	BT_LOGD_STR("Putting stream class.");
 	g_free(field_wrapper);
 }
@@ -65,15 +65,15 @@ struct bt_ctf_field_wrapper *bt_ctf_field_wrapper_create(
 {
 	struct bt_ctf_field_wrapper *field_wrapper = NULL;
 
-	BT_ASSERT(pool);
-	BT_ASSERT(ft);
+	BT_ASSERT_DBG(pool);
+	BT_ASSERT_DBG(ft);
 	field_wrapper = bt_ctf_object_pool_create_object(pool);
 	if (!field_wrapper) {
 		BT_LOGE("Cannot allocate one field wrapper");
 		goto end;
 	}
 
-	BT_ASSERT(field_wrapper->field);
+	BT_ASSERT_DBG(field_wrapper->field);
 
 end:
 	return field_wrapper;

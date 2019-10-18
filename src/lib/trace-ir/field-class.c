@@ -454,7 +454,7 @@ borrow_enumeration_field_class_mapping_by_label(
 	struct bt_field_class_enumeration_mapping *mapping = NULL;
 	uint64_t i;
 
-	BT_ASSERT(fc);
+	BT_ASSERT_DBG(fc);
 	BT_ASSERT_PRE_DEV_NON_NULL(label, "Label");
 
 	for (i = 0; i < fc->mappings->len; i++) {
@@ -1038,7 +1038,7 @@ borrow_named_field_class_from_container_field_class_at_index(
 		struct bt_field_class_named_field_class_container *fc,
 		uint64_t index)
 {
-	BT_ASSERT(fc);
+	BT_ASSERT_DBG(fc);
 	BT_ASSERT_PRE_DEV_VALID_INDEX(index, fc->named_fcs->len);
 	return fc->named_fcs->pdata[index];
 }
@@ -1077,7 +1077,7 @@ borrow_named_field_class_from_container_field_class_by_name(
 	gpointer orig_key;
 	gpointer value;
 
-	BT_ASSERT(fc);
+	BT_ASSERT_DBG(fc);
 	BT_ASSERT_PRE_DEV_NON_NULL(name, "Name");
 	if (!g_hash_table_lookup_extended(fc->name_to_index, name, &orig_key,
 			&value)) {

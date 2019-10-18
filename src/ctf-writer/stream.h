@@ -61,7 +61,7 @@ static inline
 struct bt_ctf_stream_class_common *bt_ctf_stream_common_borrow_class(
 		struct bt_ctf_stream_common *stream)
 {
-	BT_ASSERT(stream);
+	BT_ASSERT_DBG(stream);
 	return stream->stream_class;
 }
 

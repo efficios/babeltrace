@@ -853,7 +853,7 @@ void clear_string_field(struct bt_field *field)
 {
 	struct bt_field_string *string_field = (void *) field;
 
-	BT_ASSERT(field);
+	BT_ASSERT_DBG(field);
 	string_field->length = 0;
 	bt_field_set_single(field, true);
 }
@@ -961,7 +961,7 @@ enum bt_field_array_dynamic_set_length_status bt_field_array_dynamic_set_length(
 				goto end;
 			}
 
-			BT_ASSERT(!array_field->fields->pdata[i]);
+			BT_ASSERT_DBG(!array_field->fields->pdata[i]);
 			array_field->fields->pdata[i] = elem_field;
 		}
 	}
@@ -1047,7 +1047,7 @@ struct bt_field *borrow_structure_field_member_field_by_name(
 	}
 
 	ret_field = struct_field->fields->pdata[GPOINTER_TO_UINT(index)];
-	BT_ASSERT(ret_field);
+	BT_ASSERT_DBG(ret_field);
 
 end:
 	return ret_field;
@@ -1128,7 +1128,7 @@ borrow_variant_field_selected_class_option(const struct bt_field *field)
 	const struct bt_field_class_named_field_class_container *container_fc;
 	const struct bt_field_variant *var_field = (const void *) field;
 
-	BT_ASSERT(field);
+	BT_ASSERT_DBG(field);
 	BT_ASSERT_PRE_DEV(var_field->selected_field,
 		"Variant field has no selected field: %!+f", field);
 	container_fc = (const void *) field->class;
@@ -1371,7 +1371,7 @@ void bt_field_destroy(struct bt_field *field)
 static
 void reset_single_field(struct bt_field *field)
 {
-	BT_ASSERT(field);
+	BT_ASSERT_DBG(field);
 	field->is_set = false;
 }
 
@@ -1381,7 +1381,7 @@ void reset_structure_field(struct bt_field *field)
 	uint64_t i;
 	struct bt_field_structure *struct_field = (void *) field;
 
-	BT_ASSERT(field);
+	BT_ASSERT_DBG(field);
 
 	for (i = 0; i < struct_field->fields->len; i++) {
 		bt_field_reset(struct_field->fields->pdata[i]);
@@ -1393,7 +1393,7 @@ void reset_option_field(struct bt_field *field)
 {
 	struct bt_field_option *opt_field = (void *) field;
 
-	BT_ASSERT(opt_field);
+	BT_ASSERT_DBG(opt_field);
 	bt_field_reset(opt_field->content_field);
 	opt_field->selected_field = NULL;
 }
@@ -1404,7 +1404,7 @@ void reset_variant_field(struct bt_field *field)
 	uint64_t i;
 	struct bt_field_variant *var_field = (void *) field;
 
-	BT_ASSERT(field);
+	BT_ASSERT_DBG(field);
 
 	for (i = 0; i < var_field->fields->len; i++) {
 		bt_field_reset(var_field->fields->pdata[i]);
@@ -1417,7 +1417,7 @@ void reset_array_field(struct bt_field *field)
 	uint64_t i;
 	struct bt_field_array *array_field = (void *) field;
 
-	BT_ASSERT(field);
+	BT_ASSERT_DBG(field);
 
 	for (i = 0; i < array_field->fields->len; i++) {
 		bt_field_reset(array_field->fields->pdata[i]);
@@ -1508,17 +1508,17 @@ BT_HIDDEN
 void _bt_field_set_is_frozen(const struct bt_field *field,
 		bool is_frozen)
 {
-	BT_ASSERT(field);
+	BT_ASSERT_DBG(field);
 	BT_LIB_LOGD("Setting field object's frozen state: %!+f, is-frozen=%d",
 		field, is_frozen);
-	BT_ASSERT(field->methods->set_is_frozen);
+	BT_ASSERT_DBG(field->methods->set_is_frozen);
 	field->methods->set_is_frozen((void *) field, is_frozen);
 }
 
 static
 bool single_field_is_set(const struct bt_field *field)
 {
-	BT_ASSERT(field);
+	BT_ASSERT_DBG(field);
 	return field->is_set;
 }
 
@@ -1529,7 +1529,7 @@ bool structure_field_is_set(const struct bt_field *field)
 	uint64_t i;
 	const struct bt_field_structure *struct_field = (const void *) field;
 
-	BT_ASSERT(field);
+	BT_ASSERT_DBG(field);
 
 	for (i = 0; i < struct_field->fields->len; i++) {
 		is_set = bt_field_is_set(struct_field->fields->pdata[i]);
@@ -1548,7 +1548,7 @@ bool option_field_is_set(const struct bt_field *field)
 	const struct bt_field_option *opt_field = (const void *) field;
 	bool is_set = false;
 
-	BT_ASSERT(field);
+	BT_ASSERT_DBG(field);
 
 	if (opt_field->selected_field) {
 		is_set = bt_field_is_set(opt_field->selected_field);
@@ -1563,7 +1563,7 @@ bool variant_field_is_set(const struct bt_field *field)
 	const struct bt_field_variant *var_field = (const void *) field;
 	bool is_set = false;
 
-	BT_ASSERT(field);
+	BT_ASSERT_DBG(field);
 
 	if (var_field->selected_field) {
 		is_set = bt_field_is_set(var_field->selected_field);
@@ -1579,7 +1579,7 @@ bool array_field_is_set(const struct bt_field *field)
 	uint64_t i;
 	const struct bt_field_array *array_field = (const void *) field;
 
-	BT_ASSERT(field);
+	BT_ASSERT_DBG(field);
 
 	for (i = 0; i < array_field->length; i++) {
 		is_set = bt_field_is_set(array_field->fields->pdata[i]);

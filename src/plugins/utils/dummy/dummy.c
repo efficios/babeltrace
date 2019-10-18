@@ -155,7 +155,7 @@ bt_component_class_sink_consume_method_status dummy_consume(
 
 	dummy = bt_self_component_get_data(
 		bt_self_component_sink_as_self_component(component));
-	BT_ASSERT(dummy);
+	BT_ASSERT_DBG(dummy);
 
 	if (G_UNLIKELY(!dummy->msg_iter)) {
 		status = BT_COMPONENT_CLASS_SINK_CONSUME_METHOD_STATUS_END;

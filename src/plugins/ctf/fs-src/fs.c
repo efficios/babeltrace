@@ -118,7 +118,7 @@ bt_component_class_message_iterator_next_method_status ctf_fs_iterator_next_one(
 {
 	bt_component_class_message_iterator_next_method_status status;
 
-	BT_ASSERT(msg_iter_data->ds_file);
+	BT_ASSERT_DBG(msg_iter_data->ds_file);
 
 	while (true) {
 		bt_message *msg;

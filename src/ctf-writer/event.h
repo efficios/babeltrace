@@ -82,7 +82,7 @@ static inline
 struct bt_ctf_event_class_common *bt_ctf_event_common_borrow_class(
 		struct bt_ctf_event_common *event)
 {
-	BT_ASSERT(event);
+	BT_ASSERT_DBG(event);
 	return event->class;
 }
 

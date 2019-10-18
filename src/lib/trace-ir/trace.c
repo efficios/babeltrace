@@ -242,7 +242,6 @@ void bt_trace_set_uuid(struct bt_trace *trace, bt_uuid uuid)
 	BT_LIB_LOGD("Set trace's UUID: %!+t", trace);
 }
 
-BT_ASSERT_FUNC
 static
 bool trace_has_environment_entry(const struct bt_trace *trace, const char *name)
 {

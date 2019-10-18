@@ -101,7 +101,7 @@ struct bt_ctf_field_path *bt_ctf_field_path_copy(
 {
 	struct bt_ctf_field_path *new_path;
 
-	BT_ASSERT(path);
+	BT_ASSERT_DBG(path);
 	BT_LOGD("Copying field path: addr=%p, index-count=%u",
 		path, path->indexes->len);
 	new_path = bt_ctf_field_path_create();

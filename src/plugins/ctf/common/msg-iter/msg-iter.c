@@ -369,7 +369,7 @@ void stack_destroy(struct stack *stack)
 {
 	struct bt_msg_iter *notit;
 
-	BT_ASSERT(stack);
+	BT_ASSERT_DBG(stack);
 	notit = stack->notit;
 	BT_COMP_LOGD("Destroying stack: addr=%p", stack);
 
@@ -386,9 +386,9 @@ void stack_push(struct stack *stack, bt_field *base)
 	struct stack_entry *entry;
 	struct bt_msg_iter *notit;
 
-	BT_ASSERT(stack);
+	BT_ASSERT_DBG(stack);
 	notit = stack->notit;
-	BT_ASSERT(base);
+	BT_ASSERT_DBG(base);
 	BT_COMP_LOGT("Pushing base field on stack: stack-addr=%p, "
 		"stack-size-before=%zu, stack-size-after=%zu",
 		stack, stack->size, stack->size + 1);
@@ -406,7 +406,7 @@ void stack_push(struct stack *stack, bt_field *base)
 static inline
 unsigned int stack_size(struct stack *stack)
 {
-	BT_ASSERT(stack);
+	BT_ASSERT_DBG(stack);
 	return stack->size;
 }
 
@@ -415,8 +415,8 @@ void stack_pop(struct stack *stack)
 {
 	struct bt_msg_iter *notit;
 
-	BT_ASSERT(stack);
-	BT_ASSERT(stack_size(stack));
+	BT_ASSERT_DBG(stack);
+	BT_ASSERT_DBG(stack_size(stack));
 	notit = stack->notit;
 	BT_COMP_LOGT("Popping from stack: "
 		"stack-addr=%p, stack-size-before=%zu, stack-size-after=%zu",
@@ -427,8 +427,8 @@ void stack_pop(struct stack *stack)
 static inline
 struct stack_entry *stack_top(struct stack *stack)
 {
-	BT_ASSERT(stack);
-	BT_ASSERT(stack_size(stack));
+	BT_ASSERT_DBG(stack);
+	BT_ASSERT_DBG(stack_size(stack));
 	return &g_array_index(stack->entries, struct stack_entry,
 		stack->size - 1);
 }
@@ -442,7 +442,7 @@ bool stack_empty(struct stack *stack)
 static
 void stack_clear(struct stack *stack)
 {
-	BT_ASSERT(stack);
+	BT_ASSERT_DBG(stack);
 	stack->size = 0;
 }
 
@@ -1263,15 +1263,15 @@ enum bt_msg_iter_status set_current_event_message(
 	enum bt_msg_iter_status status = BT_MSG_ITER_STATUS_OK;
 	bt_message *msg = NULL;
 
-	BT_ASSERT(notit->meta.ec);
-	BT_ASSERT(notit->packet);
+	BT_ASSERT_DBG(notit->meta.ec);
+	BT_ASSERT_DBG(notit->packet);
 	BT_COMP_LOGD("Creating event message from event class and packet: "
 		"notit-addr=%p, ec-addr=%p, ec-name=\"%s\", packet-addr=%p",
 		notit, notit->meta.ec,
 		notit->meta.ec->name->str,
 		notit->packet);
-	BT_ASSERT(notit->msg_iter);
-	BT_ASSERT(notit->meta.sc);
+	BT_ASSERT_DBG(notit->msg_iter);
+	BT_ASSERT_DBG(notit->meta.sc);
 
 	if (bt_stream_class_borrow_default_clock_class(notit->meta.sc->ir_sc)) {
 		msg = bt_message_event_create_with_packet_and_default_clock_snapshot(
@@ -1325,7 +1325,7 @@ enum bt_msg_iter_status after_event_header_state(
 
 	notit->event = bt_message_event_borrow_event(
 		notit->event_msg);
-	BT_ASSERT(notit->event);
+	BT_ASSERT_DBG(notit->event);
 
 next_state:
 	notit->state = STATE_DSCOPE_EVENT_COMMON_CONTEXT_BEGIN;
@@ -1348,11 +1348,11 @@ enum bt_msg_iter_status read_event_common_context_begin_state(
 	}
 
 	if (event_common_context_fc->in_ir && !notit->dry_run) {
-		BT_ASSERT(!notit->dscopes.event_common_context);
+		BT_ASSERT_DBG(!notit->dscopes.event_common_context);
 		notit->dscopes.event_common_context =
 			bt_event_borrow_common_context_field(
 				notit->event);
-		BT_ASSERT(notit->dscopes.event_common_context);
+		BT_ASSERT_DBG(notit->dscopes.event_common_context);
 	}
 
 	BT_COMP_LOGT("Decoding event common context field: "
@@ -1401,11 +1401,11 @@ enum bt_msg_iter_status read_event_spec_context_begin_state(
 	}
 
 	if (event_spec_context_fc->in_ir && !notit->dry_run) {
-		BT_ASSERT(!notit->dscopes.event_spec_context);
+		BT_ASSERT_DBG(!notit->dscopes.event_spec_context);
 		notit->dscopes.event_spec_context =
 			bt_event_borrow_specific_context_field(
 				notit->event);
-		BT_ASSERT(notit->dscopes.event_spec_context);
+		BT_ASSERT_DBG(notit->dscopes.event_spec_context);
 	}
 
 	BT_COMP_LOGT("Decoding event specific context field: "
@@ -1457,11 +1457,11 @@ enum bt_msg_iter_status read_event_payload_begin_state(
 	}
 
 	if (event_payload_fc->in_ir && !notit->dry_run) {
-		BT_ASSERT(!notit->dscopes.event_payload);
+		BT_ASSERT_DBG(!notit->dscopes.event_payload);
 		notit->dscopes.event_payload =
 			bt_event_borrow_payload_field(
 				notit->event);
-		BT_ASSERT(notit->dscopes.event_payload);
+		BT_ASSERT_DBG(notit->dscopes.event_payload);
 	}
 
 	BT_COMP_LOGT("Decoding event payload field: "
@@ -1838,16 +1838,16 @@ bt_field *borrow_next_field(struct bt_msg_iter *notit)
 	bt_field_class_type base_fc_type;
 	size_t index;
 
-	BT_ASSERT(!stack_empty(notit->stack));
+	BT_ASSERT_DBG(!stack_empty(notit->stack));
 	index = stack_top(notit->stack)->index;
 	base_field = stack_top(notit->stack)->base;
-	BT_ASSERT(base_field);
+	BT_ASSERT_DBG(base_field);
 	base_fc = bt_field_borrow_class_const(base_field);
-	BT_ASSERT(base_fc);
+	BT_ASSERT_DBG(base_fc);
 	base_fc_type = bt_field_class_get_type(base_fc);
 
 	if (base_fc_type == BT_FIELD_CLASS_TYPE_STRUCTURE) {
-		BT_ASSERT(index <
+		BT_ASSERT_DBG(index <
 			bt_field_class_structure_get_member_count(
 				bt_field_borrow_class_const(
 						base_field)));
@@ -1856,19 +1856,19 @@ bt_field *borrow_next_field(struct bt_msg_iter *notit)
 				base_field, index);
 	} else if (bt_field_class_type_is(base_fc_type,
 			BT_FIELD_CLASS_TYPE_ARRAY)) {
-		BT_ASSERT(index < bt_field_array_get_length(base_field));
+		BT_ASSERT_DBG(index < bt_field_array_get_length(base_field));
 		next_field = bt_field_array_borrow_element_field_by_index(
 			base_field, index);
 	} else if (bt_field_class_type_is(base_fc_type,
 			BT_FIELD_CLASS_TYPE_VARIANT)) {
-		BT_ASSERT(index == 0);
+		BT_ASSERT_DBG(index == 0);
 		next_field = bt_field_variant_borrow_selected_option_field(
 			base_field);
 	} else {
 		abort();
 	}
 
-	BT_ASSERT(next_field);
+	BT_ASSERT_DBG(next_field);
 	return next_field;
 }
 
@@ -1879,7 +1879,7 @@ void update_default_clock(struct bt_msg_iter *notit, uint64_t new_val,
 	uint64_t new_val_mask;
 	uint64_t cur_value_masked;
 
-	BT_ASSERT(new_val_size > 0);
+	BT_ASSERT_DBG(new_val_size > 0);
 
 	/*
 	 * Special case for a 64-bit new value, which is the limit
@@ -1988,9 +1988,9 @@ update_def_clock:
 	}
 
 	field = borrow_next_field(notit);
-	BT_ASSERT(field);
-	BT_ASSERT(bt_field_borrow_class_const(field) == fc->ir_fc);
-	BT_ASSERT(bt_field_class_type_is(bt_field_get_class_type(field),
+	BT_ASSERT_DBG(field);
+	BT_ASSERT_DBG(bt_field_borrow_class_const(field) == fc->ir_fc);
+	BT_ASSERT_DBG(bt_field_class_type_is(bt_field_get_class_type(field),
 		BT_FIELD_CLASS_TYPE_UNSIGNED_INTEGER));
 	bt_field_integer_unsigned_set_value(field, value);
 	stack_top(notit->stack)->index++;
@@ -2014,9 +2014,9 @@ enum bt_bfcr_status bfcr_unsigned_int_char_cb(uint64_t value,
 		"notit-addr=%p, bfcr-addr=%p, fc-addr=%p, "
 		"fc-type=%d, fc-in-ir=%d, value=%" PRIu64,
 		notit, notit->bfcr, fc, fc->type, fc->in_ir, value);
-	BT_ASSERT(int_fc->meaning == CTF_FIELD_CLASS_MEANING_NONE);
-	BT_ASSERT(!int_fc->mapped_clock_class);
-	BT_ASSERT(int_fc->storing_index < 0);
+	BT_ASSERT_DBG(int_fc->meaning == CTF_FIELD_CLASS_MEANING_NONE);
+	BT_ASSERT_DBG(!int_fc->mapped_clock_class);
+	BT_ASSERT_DBG(int_fc->storing_index < 0);
 
 	if (G_UNLIKELY(!fc->in_ir || notit->dry_run)) {
 		goto end;
@@ -2032,7 +2032,7 @@ enum bt_bfcr_status bfcr_unsigned_int_char_cb(uint64_t value,
 	}
 
 	string_field = stack_top(notit->stack)->base;
-	BT_ASSERT(bt_field_get_class_type(string_field) ==
+	BT_ASSERT_DBG(bt_field_get_class_type(string_field) ==
 		BT_FIELD_CLASS_TYPE_STRING);
 
 	/* Append character */
@@ -2063,7 +2063,7 @@ enum bt_bfcr_status bfcr_signed_int_cb(int64_t value,
 		"notit-addr=%p, bfcr-addr=%p, fc-addr=%p, "
 		"fc-type=%d, fc-in-ir=%d, value=%" PRId64,
 		notit, notit->bfcr, fc, fc->type, fc->in_ir, value);
-	BT_ASSERT(int_fc->meaning == CTF_FIELD_CLASS_MEANING_NONE);
+	BT_ASSERT_DBG(int_fc->meaning == CTF_FIELD_CLASS_MEANING_NONE);
 
 	if (G_UNLIKELY(int_fc->storing_index >= 0)) {
 		g_array_index(notit->stored_values, uint64_t,
@@ -2075,9 +2075,9 @@ enum bt_bfcr_status bfcr_signed_int_cb(int64_t value,
 	}
 
 	field = borrow_next_field(notit);
-	BT_ASSERT(field);
-	BT_ASSERT(bt_field_borrow_class_const(field) == fc->ir_fc);
-	BT_ASSERT(bt_field_class_type_is(bt_field_get_class_type(field),
+	BT_ASSERT_DBG(field);
+	BT_ASSERT_DBG(bt_field_borrow_class_const(field) == fc->ir_fc);
+	BT_ASSERT_DBG(bt_field_class_type_is(bt_field_get_class_type(field),
 		BT_FIELD_CLASS_TYPE_SIGNED_INTEGER));
 	bt_field_integer_signed_set_value(field, value);
 	stack_top(notit->stack)->index++;
@@ -2105,9 +2105,9 @@ enum bt_bfcr_status bfcr_floating_point_cb(double value,
 
 	field = borrow_next_field(notit);
 	bt_field_class_type type = bt_field_get_class_type(field);
-	BT_ASSERT(field);
-	BT_ASSERT(bt_field_borrow_class_const(field) == fc->ir_fc);
-	BT_ASSERT(bt_field_class_type_is(type, BT_FIELD_CLASS_TYPE_REAL));
+	BT_ASSERT_DBG(field);
+	BT_ASSERT_DBG(bt_field_borrow_class_const(field) == fc->ir_fc);
+	BT_ASSERT_DBG(bt_field_class_type_is(type, BT_FIELD_CLASS_TYPE_REAL));
 
 	if (type == BT_FIELD_CLASS_TYPE_SINGLE_PRECISION_REAL) {
 		bt_field_real_single_precision_set_value(field, (float) value);
@@ -2137,9 +2137,9 @@ enum bt_bfcr_status bfcr_string_begin_cb(
 	}
 
 	field = borrow_next_field(notit);
-	BT_ASSERT(field);
-	BT_ASSERT(bt_field_borrow_class_const(field) == fc->ir_fc);
-	BT_ASSERT(bt_field_get_class_type(field) ==
+	BT_ASSERT_DBG(field);
+	BT_ASSERT_DBG(bt_field_borrow_class_const(field) == fc->ir_fc);
+	BT_ASSERT_DBG(bt_field_get_class_type(field) ==
 		  BT_FIELD_CLASS_TYPE_STRING);
 	bt_field_string_clear(field);
 
@@ -2174,7 +2174,7 @@ enum bt_bfcr_status bfcr_string_cb(const char *value,
 	}
 
 	field = stack_top(notit->stack)->base;
-	BT_ASSERT(field);
+	BT_ASSERT_DBG(field);
 
 	/* Append current substring */
 	ret = bt_field_string_append_with_length(field, value, len);
@@ -2236,12 +2236,12 @@ enum bt_bfcr_status bfcr_compound_begin_cb(
 		field = notit->cur_dscope_field;
 	} else {
 		field = borrow_next_field(notit);
-		BT_ASSERT(field);
+		BT_ASSERT_DBG(field);
 	}
 
 	/* Push field */
-	BT_ASSERT(field);
-	BT_ASSERT(bt_field_borrow_class_const(field) == fc->ir_fc);
+	BT_ASSERT_DBG(field);
+	BT_ASSERT_DBG(bt_field_borrow_class_const(field) == fc->ir_fc);
 	stack_push(notit->stack, field);
 
 	/*
@@ -2253,7 +2253,7 @@ enum bt_bfcr_status bfcr_compound_begin_cb(
 		struct ctf_field_class_array_base *array_fc = (void *) fc;
 
 		if (array_fc->is_text) {
-			BT_ASSERT(bt_field_get_class_type(field) ==
+			BT_ASSERT_DBG(bt_field_get_class_type(field) ==
 				  BT_FIELD_CLASS_TYPE_STRING);
 			notit->done_filling_string = false;
 			bt_field_string_clear(field);
@@ -2280,8 +2280,8 @@ enum bt_bfcr_status bfcr_compound_end_cb(
 		goto end;
 	}
 
-	BT_ASSERT(!stack_empty(notit->stack));
-	BT_ASSERT(bt_field_borrow_class_const(stack_top(notit->stack)->base) ==
+	BT_ASSERT_DBG(!stack_empty(notit->stack));
+	BT_ASSERT_DBG(bt_field_borrow_class_const(stack_top(notit->stack)->base) ==
 		fc->ir_fc);
 
 	/*
@@ -2293,7 +2293,7 @@ enum bt_bfcr_status bfcr_compound_end_cb(
 		struct ctf_field_class_array_base *array_fc = (void *) fc;
 
 		if (array_fc->is_text) {
-			BT_ASSERT(bt_field_get_class_type(
+			BT_ASSERT_DBG(bt_field_get_class_type(
 				stack_top(notit->stack)->base) ==
 				BT_FIELD_CLASS_TYPE_STRING);
 			bt_bfcr_set_unsigned_int_cb(notit->bfcr,
@@ -2330,7 +2330,7 @@ int64_t bfcr_get_sequence_length_cb(struct ctf_field_class *fc, void *data)
 	}
 
 	seq_field = stack_top(notit->stack)->base;
-	BT_ASSERT(seq_field);
+	BT_ASSERT_DBG(seq_field);
 
 	/*
 	 * bfcr_get_sequence_length_cb() also gets called back for a
@@ -2339,7 +2339,7 @@ int64_t bfcr_get_sequence_length_cb(struct ctf_field_class *fc, void *data)
 	 * is a sequence field.
 	 */
 	if (!seq_fc->base.is_text) {
-		BT_ASSERT(bt_field_class_type_is(
+		BT_ASSERT_DBG(bt_field_class_type_is(
 			bt_field_get_class_type(seq_field),
 				BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY));
 		ret = bt_field_array_dynamic_set_length(seq_field,
@@ -2848,8 +2848,8 @@ enum bt_msg_iter_status bt_msg_iter_get_next_message(
 {
 	enum bt_msg_iter_status status = BT_MSG_ITER_STATUS_OK;
 
-	BT_ASSERT(notit);
-	BT_ASSERT(message);
+	BT_ASSERT_DBG(notit);
+	BT_ASSERT_DBG(message);
 	notit->msg_iter = msg_iter;
 	notit->set_stream = true;
 	BT_COMP_LOGD("Getting next message: notit-addr=%p", notit);
@@ -2867,7 +2867,7 @@ enum bt_msg_iter_status bt_msg_iter_get_next_message(
 
 		switch (notit->state) {
 		case STATE_EMIT_MSG_EVENT:
-			BT_ASSERT(notit->event_msg);
+			BT_ASSERT_DBG(notit->event_msg);
 
 			/*
 			 * Check if we need to emit the delayed packet
@@ -2979,7 +2979,7 @@ enum bt_msg_iter_status decode_until_state( struct bt_msg_iter *notit,
 {
 	enum bt_msg_iter_status status = BT_MSG_ITER_STATUS_OK;
 
-	BT_ASSERT(notit);
+	BT_ASSERT_DBG(notit);
 	notit->set_stream = false;
 
 	do {
@@ -3125,8 +3125,8 @@ enum bt_msg_iter_status clock_snapshot_at_msg_iter_state(
 {
 	enum bt_msg_iter_status status = BT_MSG_ITER_STATUS_OK;
 
-	BT_ASSERT(notit);
-	BT_ASSERT(clock_snapshot);
+	BT_ASSERT_DBG(notit);
+	BT_ASSERT_DBG(clock_snapshot);
 	status = decode_until_state(notit, target_state_1, target_state_2);
 	if (status != BT_MSG_ITER_STATUS_OK) {
 		goto end;
@@ -3161,8 +3161,8 @@ enum bt_msg_iter_status bt_msg_iter_get_packet_properties(
 {
 	enum bt_msg_iter_status status;
 
-	BT_ASSERT(notit);
-	BT_ASSERT(props);
+	BT_ASSERT_DBG(notit);
+	BT_ASSERT_DBG(props);
 	status = read_packet_header_context_fields(notit);
 	if (status != BT_MSG_ITER_STATUS_OK) {
 		goto end;

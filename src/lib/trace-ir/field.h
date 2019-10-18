@@ -208,15 +208,15 @@ void _bt_field_set_is_frozen(const struct bt_field *field, bool is_frozen);
 static inline
 void _bt_field_reset(const struct bt_field *field)
 {
-	BT_ASSERT(field);
-	BT_ASSERT(field->methods->reset);
+	BT_ASSERT_DBG(field);
+	BT_ASSERT_DBG(field->methods->reset);
 	field->methods->reset((void *) field);
 }
 
 static inline
 void _bt_field_set_single(struct bt_field *field, bool value)
 {
-	BT_ASSERT(field);
+	BT_ASSERT_DBG(field);
 	field->is_set = value;
 }
 
@@ -229,7 +229,7 @@ bt_bool _bt_field_is_set(const struct bt_field *field)
 		goto end;
 	}
 
-	BT_ASSERT(field->methods->is_set);
+	BT_ASSERT_DBG(field->methods->is_set);
 	is_set = field->methods->is_set(field);
 
 end:

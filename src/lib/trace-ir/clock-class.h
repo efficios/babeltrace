@@ -114,8 +114,7 @@ int bt_clock_class_clock_value_from_ns_from_origin(
 		struct bt_clock_class *cc, int64_t ns_from_origin,
 		uint64_t *raw_value)
 {
-	BT_ASSERT(cc);
-
+	BT_ASSERT_DBG(cc);
 	return bt_common_clock_value_from_ns_from_origin(cc->offset_seconds,
 		cc->offset_cycles, cc->frequency, ns_from_origin,
 		raw_value) ? BT_FUNC_STATUS_OVERFLOW_ERROR : BT_FUNC_STATUS_OK;

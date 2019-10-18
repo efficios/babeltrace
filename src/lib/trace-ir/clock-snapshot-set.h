@@ -71,13 +71,13 @@ void bt_clock_snapshot_set_reset(struct bt_clock_snapshot_set *cs_set)
 {
 	uint64_t i;
 
-	BT_ASSERT(cs_set);
-	BT_ASSERT(cs_set->clock_snapshots);
+	BT_ASSERT_DBG(cs_set);
+	BT_ASSERT_DBG(cs_set->clock_snapshots);
 
 	for (i = 0; i < cs_set->clock_snapshots->len; i++) {
 		struct bt_clock_snapshot *cs = cs_set->clock_snapshots->pdata[i];
 
-		BT_ASSERT(cs);
+		BT_ASSERT_DBG(cs);
 		bt_clock_snapshot_reset(cs);
 	}
 
@@ -114,8 +114,8 @@ int bt_clock_snapshot_set_set_clock_snapshot(struct bt_clock_snapshot_set *cs_se
 	struct bt_clock_snapshot *clock_snapshot = NULL;
 	uint64_t i;
 
-	BT_ASSERT(cs_set);
-	BT_ASSERT(cc);
+	BT_ASSERT_DBG(cs_set);
+	BT_ASSERT_DBG(cc);
 
 	/*
 	 * Check if we already have a value for this clock class.
@@ -126,7 +126,7 @@ int bt_clock_snapshot_set_set_clock_snapshot(struct bt_clock_snapshot_set *cs_se
 	for (i = 0; i < cs_set->clock_snapshots->len; i++) {
 		struct bt_clock_snapshot *cs = cs_set->clock_snapshots->pdata[i];
 
-		BT_ASSERT(cs);
+		BT_ASSERT_DBG(cs);
 
 		if (cs->clock_class == cc) {
 			clock_snapshot = cs;
@@ -157,8 +157,8 @@ static inline
 void  bt_clock_snapshot_set_set_default_clock_snapshot(
 		struct bt_clock_snapshot_set *cs_set, uint64_t raw_value)
 {
-	BT_ASSERT(cs_set);
-	BT_ASSERT(cs_set->default_cs);
+	BT_ASSERT_DBG(cs_set);
+	BT_ASSERT_DBG(cs_set->default_cs);
 	bt_clock_snapshot_set_raw_value(cs_set->default_cs, raw_value);
 }
 

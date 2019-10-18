@@ -40,7 +40,7 @@ void check_heap(const struct ptr_heap *heap)
 		return;
 
 	for (i = 1; i < heap->len; i++)
-		BT_ASSERT(!heap->gt(heap->ptrs[i], heap->ptrs[0]));
+		BT_ASSERT_DBG(!heap->gt(heap->ptrs[i], heap->ptrs[0]));
 }
 #endif
 
