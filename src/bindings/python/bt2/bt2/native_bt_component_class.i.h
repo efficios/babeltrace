@@ -110,10 +110,11 @@ int py_exc_to_status_clear(
 		bt_self_message_iterator *self_message_iterator,
 		const char *module_name, int active_log_level)
 {
-	int status = __BT_FUNC_STATUS_OK;
+	int status;
 	PyObject *exc = PyErr_Occurred();
 
 	if (!exc) {
+		status = __BT_FUNC_STATUS_OK;
 		goto end;
 	}
 
@@ -203,7 +204,7 @@ bt_component_class_initialize_method_status component_class_init(
 {
 	const bt_component *component = bt_self_component_as_component(self_component);
 	const bt_component_class *component_class = bt_component_borrow_class_const(component);
-	bt_component_class_initialize_method_status status = __BT_FUNC_STATUS_OK;
+	bt_component_class_initialize_method_status status;
 	PyObject *py_cls = NULL;
 	PyObject *py_comp = NULL;
 	PyObject *py_params_ptr = NULL;
@@ -278,20 +279,17 @@ bt_component_class_initialize_method_status component_class_init(
 	 */
 	bt_self_component_set_data(self_component, py_comp);
 	py_comp = NULL;
+
+	status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_OK;
+
 	goto end;
 
 error:
-	status = __BT_FUNC_STATUS_ERROR;
-
-	/*
-	 * Clear any exception: we're returning a bad status anyway. If
-	 * this call originated from Python (creation from a plugin's
-	 * component class, for example), then the user gets an
-	 * appropriate creation error.
-	 */
-	PyErr_Clear();
+	/* This error path is for non-Python errors only. */
+	status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_ERROR;
 
 end:
+	BT_ASSERT(!PyErr_Occurred());
 	Py_XDECREF(py_comp);
 	Py_XDECREF(py_params_ptr);
 	Py_XDECREF(py_comp_ptr);
@@ -312,8 +310,7 @@ component_class_get_supported_mip_versions(
 	PyObject *py_params_ptr = NULL;
 	PyObject *py_range_set_addr = NULL;
 	bt_integer_range_set_unsigned *ret_range_set = NULL;
-	bt_component_class_get_supported_mip_versions_method_status status =
-		__BT_FUNC_STATUS_OK;
+	bt_component_class_get_supported_mip_versions_method_status status;
 
 	py_cls = lookup_cc_ptr_to_py_cls(component_class);
 	if (!py_cls) {
@@ -380,13 +377,16 @@ component_class_get_supported_mip_versions(
 		}
 	}
 
+	status = BT_COMPONENT_CLASS_GET_SUPPORTED_MIP_VERSIONS_METHOD_STATUS_OK;
+
 	goto end;
 
 error:
-	PyErr_Clear();
-	status = __BT_FUNC_STATUS_ERROR;
+	/* This error path is for non-Python errors only. */
+	status = BT_COMPONENT_CLASS_GET_SUPPORTED_MIP_VERSIONS_METHOD_STATUS_ERROR;
 
 end:
+	BT_ASSERT(!PyErr_Occurred());
 	Py_XDECREF(py_params_ptr);
 	Py_XDECREF(py_range_set_addr);
 	bt_integer_range_set_unsigned_put_ref(ret_range_set);
@@ -495,27 +495,32 @@ static
 void component_class_finalize(bt_self_component *self_component)
 {
 	PyObject *py_comp = bt_self_component_get_data(self_component);
+	PyObject *py_method_result;
+
 	BT_ASSERT(py_comp);
 
 	/* Call user's _user_finalize() method */
-	PyObject *py_method_result = PyObject_CallMethod(py_comp,
-		"_user_finalize", NULL);
-
-	if (PyErr_Occurred()) {
+	py_method_result = PyObject_CallMethod(py_comp, "_user_finalize", NULL);
+	if (!py_method_result) {
 		bt_logging_level log_level = get_self_component_log_level(
 			self_component);
 
 		BT_COMP_LOG_CUR_LVL(BT_LOG_WARNING, log_level, self_component,
 			"User component's _user_finalize() method raised an exception: ignoring:");
 		logw_exception(log_level);
+
+		/*
+		 * Ignore any exception raised by the _user_finalize() method
+		 * because it won't change anything at this point: the component
+		 * is being destroyed anyway.
+		 */
+		PyErr_Clear();
+		goto end;
 	}
 
-	/*
-	 * Ignore any exception raised by the _user_finalize() method
-	 * because it won't change anything at this point: the component
-	 * is being destroyed anyway.
-	 */
-	PyErr_Clear();
+	BT_ASSERT(py_method_result == Py_None);
+
+end:
 	Py_XDECREF(py_method_result);
 	Py_DECREF(py_comp);
 }
@@ -550,21 +555,22 @@ component_class_can_seek_beginning(
 	PyObject *py_result = NULL;
 	bt_component_class_message_iterator_can_seek_beginning_method_status status;
 	py_iter = bt_self_message_iterator_get_data(self_message_iterator);
+
 	BT_ASSERT(py_iter);
 
 	py_result = PyObject_CallMethod(py_iter,
 		"_bt_can_seek_beginning_from_native", NULL);
-
-	BT_ASSERT(!py_result || PyBool_Check(py_result));
-
-	if (py_result) {
-		*can_seek = PyObject_IsTrue(py_result);
-		status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_CAN_SEEK_BEGINNING_METHOD_STATUS_OK;
-	} else {
+	if (!py_result) {
 		status = py_exc_to_status_message_iterator_clear(self_message_iterator);
-		BT_ASSERT(status != __BT_FUNC_STATUS_OK);
+		goto end;
 	}
 
+	BT_ASSERT(PyBool_Check(py_result));
+	*can_seek = PyObject_IsTrue(py_result);
+
+	status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_CAN_SEEK_BEGINNING_METHOD_STATUS_OK;
+
+end:
 	Py_XDECREF(py_result);
 
 	return status;
@@ -580,11 +586,22 @@ component_class_seek_beginning(bt_self_message_iterator *self_message_iterator)
 
 	py_iter = bt_self_message_iterator_get_data(self_message_iterator);
 	BT_ASSERT(py_iter);
-	py_result = PyObject_CallMethod(py_iter, "_bt_seek_beginning_from_native",
+
+	py_result = PyObject_CallMethod(py_iter,
+		"_bt_seek_beginning_from_native",
 		NULL);
-	BT_ASSERT(!py_result || py_result == Py_None);
-	status = py_exc_to_status_message_iterator_clear(self_message_iterator);
+	if (!py_result) {
+		status = py_exc_to_status_message_iterator_clear(self_message_iterator);
+		goto end;
+	}
+
+	BT_ASSERT(py_result == Py_None);
+
+	status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_SEEK_BEGINNING_METHOD_STATUS_OK;
+
+end:
 	Py_XDECREF(py_result);
+
 	return status;
 }
 
@@ -597,22 +614,23 @@ component_class_can_seek_ns_from_origin(
 	PyObject *py_iter;
 	PyObject *py_result = NULL;
 	bt_component_class_message_iterator_can_seek_ns_from_origin_method_status status;
+
 	py_iter = bt_self_message_iterator_get_data(self_message_iterator);
 	BT_ASSERT(py_iter);
 
 	py_result = PyObject_CallMethod(py_iter,
 		"_bt_can_seek_ns_from_origin_from_native", "L", ns_from_origin);
-
-	BT_ASSERT(!py_result || PyBool_Check(py_result));
-
-	if (py_result) {
-		*can_seek = PyObject_IsTrue(py_result);
-		status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_CAN_SEEK_NS_FROM_ORIGIN_METHOD_STATUS_OK;
-	} else {
+	if (!py_result) {
 		status = py_exc_to_status_message_iterator_clear(self_message_iterator);
-		BT_ASSERT(status != BT_COMPONENT_CLASS_MESSAGE_ITERATOR_CAN_SEEK_NS_FROM_ORIGIN_METHOD_STATUS_OK);
+		goto end;
 	}
 
+	BT_ASSERT(PyBool_Check(py_result));
+	*can_seek = PyObject_IsTrue(py_result);
+
+	status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_CAN_SEEK_NS_FROM_ORIGIN_METHOD_STATUS_OK;
+
+end:
 	Py_XDECREF(py_result);
 
 	return status;
@@ -630,11 +648,22 @@ component_class_seek_ns_from_origin(
 
 	py_iter = bt_self_message_iterator_get_data(self_message_iterator);
 	BT_ASSERT(py_iter);
+
 	py_result = PyObject_CallMethod(py_iter,
 		"_bt_seek_ns_from_origin_from_native", "L", ns_from_origin);
-	BT_ASSERT(!py_result || py_result == Py_None);
-	status = py_exc_to_status_message_iterator_clear(self_message_iterator);
+	if (!py_result) {
+		status = py_exc_to_status_message_iterator_clear(self_message_iterator);
+		goto end;
+	}
+
+
+	BT_ASSERT(py_result == Py_None);
+
+	status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_SEEK_NS_FROM_ORIGIN_METHOD_STATUS_OK;
+
+end:
 	Py_XDECREF(py_result);
+
 	return status;
 }
 
@@ -672,18 +701,26 @@ bt_component_class_port_connected_method_status component_class_port_connected(
 		BT_COMP_LOG_CUR_LVL(BT_LOG_ERROR, log_level, self_component,
 			"Failed to create a SWIG pointer object.");
 		status = __BT_FUNC_STATUS_MEMORY_ERROR;
-		goto end;	}
+		goto end;
+	}
 
 	py_method_result = PyObject_CallMethod(py_comp,
 		"_bt_port_connected_from_native", "(OiO)", py_self_port_ptr,
 		self_component_port_type, py_other_port_ptr);
-	BT_ASSERT(!py_method_result || py_method_result == Py_None);
-	status = py_exc_to_status_component_clear(self_component);
+	if (!py_method_result) {
+		status = py_exc_to_status_component_clear(self_component);
+		goto end;
+	}
+
+	BT_ASSERT(py_method_result == Py_None);
+
+	status = BT_COMPONENT_CLASS_PORT_CONNECTED_METHOD_STATUS_OK;
 
 end:
 	Py_XDECREF(py_self_port_ptr);
 	Py_XDECREF(py_other_port_ptr);
 	Py_XDECREF(py_method_result);
+
 	return status;
 }
 
@@ -766,14 +803,23 @@ component_class_sink_graph_is_configured(
 {
 	PyObject *py_comp = NULL;
 	PyObject *py_method_result = NULL;
-	bt_component_class_sink_graph_is_configured_method_status status = __BT_FUNC_STATUS_OK;
+	bt_component_class_sink_graph_is_configured_method_status status;
 	bt_self_component *self_component = bt_self_component_sink_as_self_component(self_component_sink);
 
 	py_comp = bt_self_component_get_data(self_component);
+
 	py_method_result = PyObject_CallMethod(py_comp,
 		"_bt_graph_is_configured_from_native", NULL);
-	BT_ASSERT(!py_method_result || py_method_result == Py_None);
-	status = py_exc_to_status_component_clear(self_component);
+	if (!py_method_result) {
+		status = py_exc_to_status_component_clear(self_component);
+		goto end;
+	}
+
+	BT_ASSERT(py_method_result == Py_None);
+
+	status = BT_COMPONENT_CLASS_SINK_GRAPH_IS_CONFIGURED_METHOD_STATUS_OK;;
+
+end:
 	Py_XDECREF(py_method_result);
 	return status;
 }
@@ -1067,7 +1113,6 @@ component_class_message_iterator_init(
 python_error:
 	/* Handling of errors that cause a Python exception to be set. */
 	status = py_exc_to_status_message_iterator_clear(self_message_iterator);
-	BT_ASSERT(status != __BT_FUNC_STATUS_OK);
 	goto end;
 
 error:
@@ -1129,8 +1174,7 @@ void component_class_message_iterator_finalize(
 	/* Call user's _user_finalize() method */
 	py_method_result = PyObject_CallMethod(py_message_iter,
 		"_user_finalize", NULL);
-
-	if (PyErr_Occurred()) {
+	if (!py_method_result) {
 		bt_self_component *self_comp =
 			bt_self_message_iterator_borrow_component(
 				message_iterator);
@@ -1141,14 +1185,15 @@ void component_class_message_iterator_finalize(
 			"User's _user_finalize() method raised an exception: ignoring:");
 		logw_exception(get_self_message_iterator_log_level(
 			message_iterator));
+
+		/*
+		 * Ignore any exception raised by the _user_finalize() method
+		 * because it won't change anything at this point: the component
+		 * is being destroyed anyway.
+		 */
+		PyErr_Clear();
 	}
 
-	/*
-	 * Ignore any exception raised by the _user_finalize() method
-	 * because it won't change anything at this point: the component
-	 * is being destroyed anyway.
-	 */
-	PyErr_Clear();
 	Py_XDECREF(py_method_result);
 	Py_DECREF(py_message_iter);
 }
@@ -1162,16 +1207,16 @@ component_class_message_iterator_next(
 		bt_message_array_const msgs, uint64_t capacity,
 		uint64_t *count)
 {
-	bt_component_class_message_iterator_next_method_status status = __BT_FUNC_STATUS_OK;
+	bt_component_class_message_iterator_next_method_status status;
 	PyObject *py_message_iter = bt_self_message_iterator_get_data(message_iterator);
 	PyObject *py_method_result = NULL;
 
 	BT_ASSERT(py_message_iter);
+
 	py_method_result = PyObject_CallMethod(py_message_iter,
 		"_bt_next_from_native", NULL);
 	if (!py_method_result) {
 		status = py_exc_to_status_message_iterator_clear(message_iterator);
-		BT_ASSERT(status != __BT_FUNC_STATUS_OK);
 		goto end;
 	}
 
@@ -1183,9 +1228,10 @@ component_class_message_iterator_next(
 	msgs[0] = PyLong_AsVoidPtr(py_method_result);
 	*count = 1;
 
-	/* Clear potential overflow error; should never happen */
+	/* Overflow errors should never happen. */
 	BT_ASSERT(!PyErr_Occurred());
-	goto end;
+
+	status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_OK;
 
 end:
 	Py_XDECREF(py_method_result);
@@ -1202,10 +1248,17 @@ component_class_sink_consume(bt_self_component_sink *self_component_sink)
 	bt_component_class_sink_consume_method_status status;
 
 	BT_ASSERT(py_comp);
+
 	py_method_result = PyObject_CallMethod(py_comp,
 		"_user_consume", NULL);
-	status = py_exc_to_status_component_clear(self_component);
-	BT_ASSERT(py_method_result || status != __BT_FUNC_STATUS_OK);
+	if (!py_method_result) {
+		status = py_exc_to_status_component_clear(self_component);
+		goto end;
+	}
+
+	status = BT_COMPONENT_CLASS_SINK_CONSUME_METHOD_STATUS_OK;
+
+end:
 	Py_XDECREF(py_method_result);
 	return status;
 }
