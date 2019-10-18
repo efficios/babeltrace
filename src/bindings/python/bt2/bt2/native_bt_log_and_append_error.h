@@ -176,8 +176,10 @@ void restore_bt_error_and_append_current_exception_chain(
 }
 
 static inline
-void log_exception_and_maybe_append_error(int func_log_level,
-		int active_log_level, bool append_error,
+void log_exception_and_maybe_append_cause(
+		int func_log_level,
+		int active_log_level,
+		bool append_error,
 		bt_self_component_class *self_component_class,
 		bt_self_component *self_component,
 		bt_self_message_iterator *self_message_iterator,
@@ -226,15 +228,15 @@ bt_logging_level get_self_message_iterator_log_level(
 }
 
 static inline
-void loge_exception(const char *module_name, int active_log_level)
+void loge_exception_append_cause(const char *module_name, int active_log_level)
 {
-	log_exception_and_maybe_append_error(BT_LOG_ERROR, active_log_level,
+	log_exception_and_maybe_append_cause(BT_LOG_ERROR, active_log_level,
 		true, NULL, NULL, NULL, module_name);
 }
 
 static inline
 void logw_exception(int active_log_level)
 {
-	log_exception_and_maybe_append_error(BT_LOG_WARNING, active_log_level,
+	log_exception_and_maybe_append_cause(BT_LOG_WARNING, active_log_level,
 		false, NULL, NULL, NULL, NULL);
 }
