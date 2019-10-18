@@ -183,18 +183,6 @@ BT_HIDDEN
 void bt_graph_remove_connection(struct bt_graph *graph,
 		struct bt_connection *connection);
 
-/*
- * This only works with a component which is not connected at this
- * point.
- *
- * Also the reference count of `component` should be 0 when you call
- * this function, which means only `graph` owns the component, so it
- * is safe to destroy.
- */
-BT_HIDDEN
-int bt_graph_remove_unconnected_component(struct bt_graph *graph,
-		struct bt_component *component);
-
 BT_HIDDEN
 void bt_graph_add_message(struct bt_graph *graph,
 		struct bt_message *msg);
