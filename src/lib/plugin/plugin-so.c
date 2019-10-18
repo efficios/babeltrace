@@ -1336,25 +1336,8 @@ int bt_plugin_so_create_all_from_sections(
 			continue;
 		}
 
-		BT_LOGI("Creating plugin object for plugin: "
-			"name=\"%s\", abi-major=%d, abi-minor=%d",
-			descriptor->name, descriptor->major, descriptor->minor);
-
-		if (descriptor->major > __BT_PLUGIN_VERSION_MAJOR) {
-			if (fail_on_load_error) {
-				BT_LIB_LOGW_APPEND_CAUSE(
-					"Unknown ABI major version: abi-major=%d",
-						descriptor->major);
-				status = BT_FUNC_STATUS_ERROR;
-				goto error;
-			} else {
-				BT_LIB_LOGW(
-					"Unknown ABI major version: abi-major=%d",
-						descriptor->major);
-				continue;
-			}
-		}
-
+		BT_LOGI("Creating plugin object for plugin: name=\"%s\"",
+			descriptor->name);
 		plugin = bt_plugin_so_create_empty(shared_lib_handle);
 		if (!plugin) {
 			BT_LIB_LOGE_APPEND_CAUSE(
