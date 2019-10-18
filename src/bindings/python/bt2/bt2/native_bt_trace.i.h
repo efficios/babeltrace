@@ -37,9 +37,8 @@ trace_destroyed_listener(const bt_trace *trace, void *py_callable)
 
 	py_res = PyObject_CallFunction(py_callable, "(O)", py_trace_ptr);
 	if (!py_res) {
-		loge_exception_append_cause(
-			"Trace's destruction listener (Python)",
-			BT_LOG_OUTPUT_LEVEL);
+		logw_exception(BT_LOG_OUTPUT_LEVEL);
+		PyErr_Clear();
 		goto end;
 	}
 
