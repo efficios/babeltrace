@@ -50,13 +50,6 @@
 extern "C" {
 #endif
 
-/*
- * Plugin interface's version, not synced with Babeltrace's version
- * (internal use).
- */
-#define __BT_PLUGIN_VERSION_MAJOR	1
-#define __BT_PLUGIN_VERSION_MINOR	0
-
 /* Plugin initialization function type */
 typedef enum bt_plugin_initialize_func_status {
 	BT_PLUGIN_INITIALIZE_FUNC_STATUS_OK		= __BT_FUNC_STATUS_OK,
@@ -72,12 +65,6 @@ typedef void (*bt_plugin_finalize_func)(void);
 
 /* Plugin descriptor: describes a single plugin (internal use) */
 struct __bt_plugin_descriptor {
-	/* Plugin's interface major version number */
-	uint32_t major;
-
-	/* Plugin's interface minor version number */
-	uint32_t minor;
-
 	/* Plugin's name */
 	const char *name;
 } __attribute__((packed));
@@ -433,8 +420,6 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
  */
 #define BT_PLUGIN_WITH_ID(_id, _name)					\
 	struct __bt_plugin_descriptor __bt_plugin_descriptor_##_id = {	\
-		.major = __BT_PLUGIN_VERSION_MAJOR,			\
-		.minor = __BT_PLUGIN_VERSION_MINOR,			\
 		.name = _name,						\
 	};								\
 	static struct __bt_plugin_descriptor const * const __bt_plugin_descriptor_##_id##_ptr __BT_PLUGIN_DESCRIPTOR_ATTRS = &__bt_plugin_descriptor_##_id
