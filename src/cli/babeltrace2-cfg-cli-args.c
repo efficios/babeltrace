@@ -2611,7 +2611,6 @@ int bt_value_to_cli_param_value_append(const bt_value *value, GString *buf)
 		uint64_t sz = bt_value_array_get_length(value);
 		for (uint64_t i = 0; i < sz; i++) {
 			const bt_value *item;
-			int ret;
 
 			if (i > 0) {
 				g_string_append(buf, ", ");

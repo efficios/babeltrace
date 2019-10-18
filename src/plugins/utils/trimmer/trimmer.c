@@ -974,8 +974,6 @@ state_set_trimmer_iterator_bounds(
 		for (i = 0; i < count; i++) {
 			const bt_message *msg = msgs[i];
 			bool has_ns_from_origin;
-			int ret;
-
 			ret = get_msg_ns_from_origin(msg, &ns_from_origin,
 				&has_ns_from_origin);
 			if (ret) {

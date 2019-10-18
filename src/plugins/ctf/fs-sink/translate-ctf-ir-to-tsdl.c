@@ -481,14 +481,14 @@ void append_struct_field_class_members(struct ctx *ctx,
 				ctx->indent_level++;
 
 				for (i = 0; i < var_fc->options->len; i++) {
-					struct fs_sink_ctf_named_field_class *named_fc =
+					struct fs_sink_ctf_named_field_class *option_named_fc =
 						fs_sink_ctf_field_class_variant_borrow_option_by_index(
 							var_fc, i);
 
 					append_indent(ctx);
 					g_string_append_printf(ctx->tsdl,
 						"\"%s\" = %" PRIu64 ",\n",
-						named_fc->name->str, i);
+						option_named_fc->name->str, i);
 				}
 
 				append_end_block(ctx);
