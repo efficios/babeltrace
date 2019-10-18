@@ -7,7 +7,6 @@ libtrace_ir_la_SOURCES = \
 	clock-class.h \
 	clock-snapshot.c \
 	clock-snapshot.h \
-	clock-snapshot-set.h \
 	event.c \
 	event-class.c \
 	event-class.h \
