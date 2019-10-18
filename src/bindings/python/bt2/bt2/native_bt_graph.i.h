@@ -228,7 +228,6 @@ PyObject *bt_bt2_graph_add_port_added_listener(struct bt_graph *graph,
 		goto error;
 	}
 
-
 	PyTuple_SET_ITEM(py_listener_ids, 3, py_listener_id);
 	py_listener_id = NULL;
 
@@ -245,7 +244,6 @@ error:
 	Py_INCREF(py_listener_ids);
 
 end:
-
 	Py_XDECREF(py_listener_id);
 	return py_listener_ids;
 }

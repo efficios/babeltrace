@@ -36,14 +36,16 @@ trace_class_destroyed_listener(const bt_trace_class *trace_class, void *py_calla
 	}
 
 	py_res = PyObject_CallFunction(py_callable, "(O)", py_trace_class_ptr);
-	if (py_res) {
-		BT_ASSERT(py_res == Py_None);
-	} else {
+	if (!py_res) {
 		loge_exception_append_cause(
 			"Trace class's destruction listener (Python)",
 			BT_LOG_OUTPUT_LEVEL);
+		goto end;
 	}
 
+	BT_ASSERT(py_res == Py_None);
+
+end:
 	Py_DECREF(py_trace_class_ptr);
 	Py_XDECREF(py_res);
 }
@@ -57,6 +59,7 @@ int bt_bt2_trace_class_add_destruction_listener(
 
 	BT_ASSERT(trace_class);
 	BT_ASSERT(py_callable);
+
 	status = bt_trace_class_add_destruction_listener(
 		trace_class, trace_class_destroyed_listener, py_callable, id);
 	if (status == __BT_FUNC_STATUS_OK) {
