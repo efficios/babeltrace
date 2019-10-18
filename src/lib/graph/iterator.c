@@ -95,7 +95,7 @@ void set_self_comp_port_input_msg_iterator_state(
 		struct bt_self_component_port_input_message_iterator *iterator,
 		enum bt_self_component_port_input_message_iterator_state state)
 {
-	BT_ASSERT(iterator);
+	BT_ASSERT_DBG(iterator);
 	BT_LIB_LOGD("Updating message iterator's state: new-state=%s",
 		bt_self_component_port_input_message_iterator_state_string(state));
 	iterator->state = state;
@@ -848,7 +848,7 @@ call_iterator_next_method(
 {
 	enum bt_component_class_message_iterator_next_method_status status;
 
-	BT_ASSERT(iterator->methods.next);
+	BT_ASSERT_DBG(iterator->methods.next);
 	BT_LOGD_STR("Calling user's \"next\" method.");
 	status = iterator->methods.next(iterator, msgs, capacity, user_count);
 	BT_LOGD("User method returned: status=%s, msg-count=%" PRIu64,
@@ -878,8 +878,8 @@ bt_self_component_port_input_message_iterator_next(
 		BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_STATE_ACTIVE,
 		"Message iterator's \"next\" called, but "
 		"message iterator is in the wrong state: %!+i", iterator);
-	BT_ASSERT(iterator->upstream_component);
-	BT_ASSERT(iterator->upstream_component->class);
+	BT_ASSERT_DBG(iterator->upstream_component);
+	BT_ASSERT_DBG(iterator->upstream_component->class);
 	BT_ASSERT_PRE_DEV(
 		bt_component_borrow_graph(iterator->upstream_component)->config_state !=
 			BT_GRAPH_CONFIGURATION_STATE_CONFIGURING,
@@ -916,7 +916,7 @@ bt_self_component_port_input_message_iterator_next(
 	 * For the same reason, there is no way that this iterator could
 	 * have seeked (cannot seek a self message iterator).
 	 */
-	BT_ASSERT(iterator->state ==
+	BT_ASSERT_DBG(iterator->state ==
 		BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_STATE_ACTIVE);
 
 	switch (status) {
@@ -1275,8 +1275,8 @@ int auto_seek_handle_message(
 	const struct bt_clock_snapshot *clk_snapshot = NULL;
 	int ret;
 
-	BT_ASSERT(msg);
-	BT_ASSERT(got_first);
+	BT_ASSERT_DBG(msg);
+	BT_ASSERT_DBG(got_first);
 
 	switch (msg->type) {
 	case BT_MESSAGE_TYPE_EVENT:
@@ -1296,7 +1296,7 @@ int auto_seek_handle_message(
 			(const void *) msg;
 
 		clk_snapshot = inactivity_msg->default_cs;
-		BT_ASSERT(clk_snapshot);
+		BT_ASSERT_DBG(clk_snapshot);
 		break;
 	}
 	case BT_MESSAGE_TYPE_PACKET_BEGINNING:
@@ -1395,7 +1395,7 @@ int auto_seek_handle_message(
 		abort();
 	}
 
-	BT_ASSERT(clk_snapshot);
+	BT_ASSERT_DBG(clk_snapshot);
 	ret = bt_clock_snapshot_get_ns_from_origin(clk_snapshot,
 		&msg_ns_from_origin);
 	if (ret) {
@@ -1429,7 +1429,7 @@ skip_msg:
 			stream_state->seen_clock_snapshot = true;
 		}
 
-		BT_ASSERT(!bt_g_hash_table_contains(stream_states, stream_msg->stream));
+		BT_ASSERT_DBG(!bt_g_hash_table_contains(stream_states, stream_msg->stream));
 		g_hash_table_insert(stream_states, stream_msg->stream, stream_state);
 		break;
 	}
@@ -1441,11 +1441,10 @@ skip_msg:
 
 		/* Update stream's state: packet began. */
 		stream_state = g_hash_table_lookup(stream_states, packet_msg->packet->stream);
-		BT_ASSERT(stream_state);
-
-		BT_ASSERT(stream_state->state == AUTO_SEEK_STREAM_STATE_STREAM_BEGAN);
+		BT_ASSERT_DBG(stream_state);
+		BT_ASSERT_DBG(stream_state->state == AUTO_SEEK_STREAM_STATE_STREAM_BEGAN);
 		stream_state->state = AUTO_SEEK_STREAM_STATE_PACKET_BEGAN;
-		BT_ASSERT(!stream_state->packet);
+		BT_ASSERT_DBG(!stream_state->packet);
 		stream_state->packet = packet_msg->packet;
 
 		if (packet_msg->packet->stream->class->packets_have_beginning_default_clock_snapshot) {
@@ -1461,7 +1460,7 @@ skip_msg:
 
 		stream_state = g_hash_table_lookup(stream_states,
 			event_msg->event->packet->stream);
-		BT_ASSERT(stream_state);
+		BT_ASSERT_DBG(stream_state);
 
 		// HELPME: are we sure that event messages have clock snapshots at this point?
 		stream_state->seen_clock_snapshot = true;
@@ -1476,11 +1475,10 @@ skip_msg:
 
 		/* Update stream's state: packet ended. */
 		stream_state = g_hash_table_lookup(stream_states, packet_msg->packet->stream);
-		BT_ASSERT(stream_state);
-
-		BT_ASSERT(stream_state->state == AUTO_SEEK_STREAM_STATE_PACKET_BEGAN);
+		BT_ASSERT_DBG(stream_state);
+		BT_ASSERT_DBG(stream_state->state == AUTO_SEEK_STREAM_STATE_PACKET_BEGAN);
 		stream_state->state = AUTO_SEEK_STREAM_STATE_STREAM_BEGAN;
-		BT_ASSERT(stream_state->packet);
+		BT_ASSERT_DBG(stream_state->packet);
 		stream_state->packet = NULL;
 
 		if (packet_msg->packet->stream->class->packets_have_end_default_clock_snapshot) {
@@ -1495,9 +1493,9 @@ skip_msg:
 		struct auto_seek_stream_state *stream_state;
 
 		stream_state = g_hash_table_lookup(stream_states, stream_msg->stream);
-		BT_ASSERT(stream_state);
-		BT_ASSERT(stream_state->state == AUTO_SEEK_STREAM_STATE_STREAM_BEGAN);
-		BT_ASSERT(!stream_state->packet);
+		BT_ASSERT_DBG(stream_state);
+		BT_ASSERT_DBG(stream_state->state == AUTO_SEEK_STREAM_STATE_STREAM_BEGAN);
+		BT_ASSERT_DBG(!stream_state->packet);
 
 		/* Update stream's state: this stream doesn't exist anymore. */
 		g_hash_table_remove(stream_states, stream_msg->stream);
@@ -1511,7 +1509,7 @@ skip_msg:
 		struct auto_seek_stream_state *stream_state;
 
 		stream_state = g_hash_table_lookup(stream_states, discarded_msg->stream);
-		BT_ASSERT(stream_state);
+		BT_ASSERT_DBG(stream_state);
 
 		if ((msg->type == BT_MESSAGE_TYPE_DISCARDED_EVENTS && discarded_msg->stream->class->discarded_events_have_default_clock_snapshots) ||
 			(msg->type == BT_MESSAGE_TYPE_DISCARDED_PACKETS && discarded_msg->stream->class->discarded_packets_have_default_clock_snapshots)) {
@@ -1533,7 +1531,7 @@ push_msg:
 	msg = NULL;
 
 end:
-	BT_ASSERT(!msg || status != BT_FUNC_STATUS_OK);
+	BT_ASSERT_DBG(!msg || status != BT_FUNC_STATUS_OK);
 	return status;
 }
 
@@ -1550,7 +1548,7 @@ int find_message_ge_ns_from_origin(
 	uint64_t i;
 	bool got_first = false;
 
-	BT_ASSERT(iterator);
+	BT_ASSERT_DBG(iterator);
 	memset(&messages[0], 0, sizeof(messages[0]) * MSG_BATCH_SIZE);
 
 	/*
@@ -1560,7 +1558,7 @@ int find_message_ge_ns_from_origin(
 	set_self_comp_port_input_msg_iterator_state(iterator,
 		BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_STATE_ACTIVE);
 
-	BT_ASSERT(iterator->methods.next);
+	BT_ASSERT_DBG(iterator->methods.next);
 
 	while (!got_first) {
 		/*
@@ -1582,7 +1580,7 @@ int find_message_ge_ns_from_origin(
 		 * The user's "next" method must not do any action which
 		 * would change the iterator's state.
 		 */
-		BT_ASSERT(iterator->state ==
+		BT_ASSERT_DBG(iterator->state ==
 			BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_STATE_ACTIVE);
 
 		switch (status) {
@@ -1781,7 +1779,6 @@ bt_self_component_port_input_message_iterator_seek_ns_from_origin(
 			&can_seek_beginning);
 		BT_ASSERT(can_seek_status == BT_FUNC_STATUS_OK);
 		BT_ASSERT(can_seek_beginning);
-
 		BT_ASSERT(iterator->methods.seek_beginning);
 		BT_LIB_LOGD("Calling user's \"seek beginning\" method: %!+i",
 			iterator);

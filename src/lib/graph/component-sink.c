@@ -70,8 +70,8 @@ bt_component_sink_borrow_class_const(
 
 	cls = component->parent.class;
 
-	BT_ASSERT(cls);
-	BT_ASSERT(cls->type == BT_COMPONENT_CLASS_TYPE_SINK);
+	BT_ASSERT_DBG(cls);
+	BT_ASSERT_DBG(cls->type == BT_COMPONENT_CLASS_TYPE_SINK);
 
 	return (bt_component_class_sink *) cls;
 }

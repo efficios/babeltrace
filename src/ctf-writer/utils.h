@@ -200,7 +200,7 @@ GString *bt_ctf_field_path_string(struct bt_ctf_field_path *path)
 	GString *str = g_string_new(NULL);
 	size_t i;
 
-	BT_ASSERT(path);
+	BT_ASSERT_DBG(path);
 
 	if (!str) {
 		goto end;

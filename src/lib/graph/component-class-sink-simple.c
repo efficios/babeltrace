@@ -171,9 +171,9 @@ enum bt_component_class_sink_consume_method_status simple_sink_consume(
 	struct simple_sink_data *data = bt_self_component_get_data(
 		bt_self_component_sink_as_self_component(self_comp));
 
-	BT_ASSERT(data);
-	BT_ASSERT(data->init_method_data.consume_func);
-	BT_ASSERT(data->msg_iter);
+	BT_ASSERT_DBG(data);
+	BT_ASSERT_DBG(data->init_method_data.consume_func);
+	BT_ASSERT_DBG(data->msg_iter);
 
 	/* Call user's "consume" function */
 	status = data->init_method_data.consume_func(data->msg_iter,

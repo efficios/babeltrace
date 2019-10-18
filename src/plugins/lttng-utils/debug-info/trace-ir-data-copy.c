@@ -188,7 +188,7 @@ void copy_event_content(const bt_event *in_event, bt_event *out_event,
 	if (in_common_ctx_field) {
 		out_common_ctx_field =
 			bt_event_borrow_common_context_field(out_event);
-		BT_ASSERT(out_common_ctx_field);
+		BT_ASSERT_DBG(out_common_ctx_field);
 		copy_field_content(in_common_ctx_field,
 			out_common_ctx_field, log_level, self_comp);
 	}
@@ -198,7 +198,7 @@ void copy_event_content(const bt_event *in_event, bt_event *out_event,
 	if (in_specific_ctx_field) {
 		out_specific_ctx_field =
 			bt_event_borrow_specific_context_field(out_event);
-		BT_ASSERT(out_specific_ctx_field);
+		BT_ASSERT_DBG(out_specific_ctx_field);
 		copy_field_content(in_specific_ctx_field,
 			out_specific_ctx_field, log_level, self_comp);
 	}
@@ -206,7 +206,7 @@ void copy_event_content(const bt_event *in_event, bt_event *out_event,
 	in_payload_field = bt_event_borrow_payload_field_const(in_event);
 	if (in_payload_field) {
 		out_payload_field = bt_event_borrow_payload_field(out_event);
-		BT_ASSERT(out_payload_field);
+		BT_ASSERT_DBG(out_payload_field);
 		copy_field_content(in_payload_field,
 			out_payload_field, log_level, self_comp);
 	}
@@ -223,7 +223,7 @@ void copy_field_content(const bt_field *in_field, bt_field *out_field,
 
 	in_fc_type = bt_field_get_class_type(in_field);
 	out_fc_type = bt_field_get_class_type(out_field);
-	BT_ASSERT(in_fc_type == out_fc_type);
+	BT_ASSERT_DBG(in_fc_type == out_fc_type);
 
 	BT_COMP_LOGT("Copying content of field: in-f-addr=%p, out-f-addr=%p",
 			in_field, out_field);
@@ -336,7 +336,7 @@ void copy_field_content(const bt_field *in_field, bt_field *out_field,
 			bt_field_option_set_has_field(out_field, BT_TRUE);
 			out_option_field = bt_field_option_borrow_field(
 				out_field);
-			BT_ASSERT(out_option_field);
+			BT_ASSERT_DBG(out_option_field);
 			copy_field_content(in_option_field, out_option_field,
 				log_level, self_comp);
 		} else {

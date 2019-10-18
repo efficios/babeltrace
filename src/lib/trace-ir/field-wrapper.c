@@ -73,8 +73,8 @@ struct bt_field_wrapper *bt_field_wrapper_create(
 {
 	struct bt_field_wrapper *field_wrapper = NULL;
 
-	BT_ASSERT(pool);
-	BT_ASSERT(fc);
+	BT_ASSERT_DBG(pool);
+	BT_ASSERT_DBG(fc);
 	field_wrapper = bt_object_pool_create_object(pool);
 	if (!field_wrapper) {
 		BT_LIB_LOGE_APPEND_CAUSE(

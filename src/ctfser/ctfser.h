@@ -135,7 +135,7 @@ static inline
 uint8_t *_bt_ctfser_get_addr(struct bt_ctfser *ctfser)
 {
 	/* Only makes sense to get the address after aligning on byte */
-	BT_ASSERT(ctfser->offset_in_cur_packet_bits % 8 == 0);
+	BT_ASSERT_DBG(ctfser->offset_in_cur_packet_bits % 8 == 0);
 	return ((uint8_t *) mmap_align_addr(ctfser->base_mma)) +
 		ctfser->mmap_base_offset + _bt_ctfser_offset_bytes(ctfser);
 }
@@ -163,7 +163,7 @@ end:
 static inline
 void _bt_ctfser_incr_offset(struct bt_ctfser *ctfser, uint64_t size_bits)
 {
-	BT_ASSERT(_bt_ctfser_has_space_left(ctfser, size_bits));
+	BT_ASSERT_DBG(_bt_ctfser_has_space_left(ctfser, size_bits));
 	ctfser->offset_in_cur_packet_bits += size_bits;
 }
 
@@ -178,7 +178,7 @@ int bt_ctfser_align_offset_in_current_packet(struct bt_ctfser *ctfser,
 	int ret = 0;
 	uint64_t align_size_bits;
 
-	BT_ASSERT(alignment_bits > 0);
+	BT_ASSERT_DBG(alignment_bits > 0);
 	align_size_bits = ALIGN(ctfser->offset_in_cur_packet_bits,
 			alignment_bits) - ctfser->offset_in_cur_packet_bits;
 
@@ -205,8 +205,8 @@ int _bt_ctfser_write_byte_aligned_unsigned_int_no_align(
 	/* Reverse byte order? */
 	bool rbo = byte_order != BYTE_ORDER;
 
-	BT_ASSERT(size_bits % 8 == 0);
-	BT_ASSERT(_bt_ctfser_has_space_left(ctfser, size_bits));
+	BT_ASSERT_DBG(size_bits % 8 == 0);
+	BT_ASSERT_DBG(_bt_ctfser_has_space_left(ctfser, size_bits));
 
 	switch (size_bits) {
 	case 8:
@@ -267,8 +267,8 @@ int _bt_ctfser_write_byte_aligned_signed_int_no_align(
 	/* Reverse byte order? */
 	bool rbo = byte_order != BYTE_ORDER;
 
-	BT_ASSERT(size_bits % 8 == 0);
-	BT_ASSERT(_bt_ctfser_has_space_left(ctfser, size_bits));
+	BT_ASSERT_DBG(size_bits % 8 == 0);
+	BT_ASSERT_DBG(_bt_ctfser_has_space_left(ctfser, size_bits));
 
 	switch (size_bits) {
 	case 8:
@@ -331,7 +331,7 @@ int bt_ctfser_write_byte_aligned_unsigned_int(struct bt_ctfser *ctfser,
 {
 	int ret;
 
-	BT_ASSERT(alignment_bits % 8 == 0);
+	BT_ASSERT_DBG(alignment_bits % 8 == 0);
 	ret = bt_ctfser_align_offset_in_current_packet(ctfser, alignment_bits);
 	if (G_UNLIKELY(ret)) {
 		goto end;
@@ -366,7 +366,7 @@ int bt_ctfser_write_byte_aligned_signed_int(struct bt_ctfser *ctfser,
 {
 	int ret;
 
-	BT_ASSERT(alignment_bits % 8 == 0);
+	BT_ASSERT_DBG(alignment_bits % 8 == 0);
 	ret = bt_ctfser_align_offset_in_current_packet(ctfser, alignment_bits);
 	if (G_UNLIKELY(ret)) {
 		goto end;
@@ -568,7 +568,7 @@ static inline
 void bt_ctfser_set_offset_in_current_packet_bits(struct bt_ctfser *ctfser,
 		uint64_t offset_bits)
 {
-	BT_ASSERT(offset_bits <= _bt_ctfser_cur_packet_size_bits(ctfser));
+	BT_ASSERT_DBG(offset_bits <= _bt_ctfser_cur_packet_size_bits(ctfser));
 	ctfser->offset_in_cur_packet_bits = offset_bits;
 }
 

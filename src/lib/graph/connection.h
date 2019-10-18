@@ -76,7 +76,7 @@ void bt_connection_remove_iterator(struct bt_connection *conn,
 static inline
 struct bt_graph *bt_connection_borrow_graph(struct bt_connection *conn)
 {
-	BT_ASSERT(conn);
+	BT_ASSERT_DBG(conn);
 	return (void *) conn->base.parent;
 }
 

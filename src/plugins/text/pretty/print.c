@@ -440,7 +440,7 @@ int print_event_header(struct pretty_component *pretty,
 			&log_level);
 		if (prop_avail == BT_PROPERTY_AVAILABILITY_AVAILABLE) {
 			log_level_str = log_level_names[log_level];
-			BT_ASSERT(log_level_str);
+			BT_ASSERT_DBG(log_level_str);
 
 			if (!pretty->start_line) {
 				bt_common_g_string_append(pretty->string, ", ");
@@ -528,7 +528,7 @@ int print_integer(struct pretty_component *pretty,
 	bt_field_class_type ft_type;
 
 	int_fc = bt_field_borrow_class_const(field);
-	BT_ASSERT(int_fc);
+	BT_ASSERT_DBG(int_fc);
 	ft_type = bt_field_get_class_type(field);
 	if (bt_field_class_type_is(ft_type,
 			BT_FIELD_CLASS_TYPE_UNSIGNED_INTEGER)) {
@@ -569,7 +569,7 @@ int print_integer(struct pretty_component *pretty,
 			if (len < 64) {
 			        size_t rounded_len;
 
-				BT_ASSERT(len != 0);
+				BT_ASSERT_DBG(len != 0);
 				/* Round length to the nearest 3-bit */
 				rounded_len = (((len - 1) / 3) + 1) * 3;
 				v.u &= ((uint64_t) 1 << rounded_len) - 1;
@@ -836,7 +836,7 @@ int print_array_field(struct pretty_component *pretty,
 	}
 
 	field = bt_field_array_borrow_element_field_by_index_const(array, i);
-	BT_ASSERT(field);
+	BT_ASSERT_DBG(field);
 	return print_field(pretty, field, print_names);
 }
 
@@ -886,7 +886,7 @@ int print_sequence_field(struct pretty_component *pretty,
 	}
 
 	field = bt_field_array_borrow_element_field_by_index_const(seq, i);
-	BT_ASSERT(field);
+	BT_ASSERT_DBG(field);
 	return print_field(pretty, field, print_names);
 }
 
@@ -952,7 +952,7 @@ int print_variant(struct pretty_component *pretty,
 	const bt_field *field = NULL;
 
 	field = bt_field_variant_borrow_selected_option_field_const(variant);
-	BT_ASSERT(field);
+	BT_ASSERT_DBG(field);
 	bt_common_g_string_append(pretty->string, "{ ");
 	pretty->depth++;
 	if (print_names) {
@@ -1198,7 +1198,7 @@ int pretty_print_event(struct pretty_component *pretty,
 	const bt_event *event =
 		bt_message_event_borrow_event_const(event_msg);
 
-	BT_ASSERT(event);
+	BT_ASSERT_DBG(event);
 	pretty->start_line = true;
 	g_string_assign(pretty->string, "");
 	ret = print_event_header(pretty, event_msg);

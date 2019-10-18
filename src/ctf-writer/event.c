@@ -72,14 +72,14 @@ int bt_ctf_event_common_validate_types_for_create(
 	struct bt_ctf_private_value *environment = NULL;
 
 	stream_class = bt_ctf_event_class_common_borrow_stream_class(event_class);
-	BT_ASSERT(stream_class);
+	BT_ASSERT_DBG(stream_class);
 	trace = bt_ctf_stream_class_common_borrow_trace(stream_class);
 	if (trace) {
 		BT_LOGD_STR("Event class is part of a trace.");
 		packet_header_type =
 			bt_ctf_trace_common_borrow_packet_header_field_type(trace);
 		trace_valid = trace->valid;
-		BT_ASSERT(trace_valid);
+		BT_ASSERT_DBG(trace_valid);
 		environment = trace->environment;
 	}
 
@@ -219,7 +219,7 @@ int _bt_ctf_event_common_validate(struct bt_ctf_event_common *event)
 	int ret = 0;
 	struct bt_ctf_stream_class_common *stream_class;
 
-	BT_ASSERT(event);
+	BT_ASSERT_DBG(event);
 	if (event->header_field) {
 		ret = bt_ctf_field_common_validate_recursive(
 			event->header_field->field);
@@ -237,7 +237,7 @@ int _bt_ctf_event_common_validate(struct bt_ctf_event_common *event)
 	 * We should not have been able to create the event without associating
 	 * the event class to a stream class.
 	 */
-	BT_ASSERT(stream_class);
+	BT_ASSERT_DBG(stream_class);
 
 	if (stream_class->event_context_field_type) {
 		ret = bt_ctf_field_common_validate_recursive(
@@ -276,7 +276,7 @@ BT_HIDDEN
 void _bt_ctf_event_common_set_is_frozen(struct bt_ctf_event_common *event,
 		bool is_frozen)
 {
-	BT_ASSERT(event);
+	BT_ASSERT_DBG(event);
 	BT_LOGD("Freezing event: addr=%p, "
 		"event-class-name=\"%s\", event-class-id=%" PRId64,
 		event, bt_ctf_event_class_common_get_name(event->class),
@@ -348,7 +348,7 @@ int bt_ctf_event_common_initialize(struct bt_ctf_event_common *event,
 		event_class);
 
 	/* The event class was frozen when added to its stream class */
-	BT_ASSERT(event_class->frozen);
+	BT_ASSERT_DBG(event_class->frozen);
 	trace = bt_ctf_stream_class_common_borrow_trace(stream_class);
 
 	if (must_be_in_trace) {
@@ -538,7 +538,7 @@ static
 void destroy_event_header_field(struct bt_ctf_field_wrapper *field_wrapper,
 		struct bt_ctf_stream_class *stream_class)
 {
-	BT_ASSERT(field_wrapper);
+	BT_ASSERT_DBG(field_wrapper);
 	bt_ctf_object_put_ref(field_wrapper->field);
 	bt_ctf_field_wrapper_destroy(field_wrapper);
 }
@@ -580,7 +580,7 @@ static
 void release_event_header_field(struct bt_ctf_field_wrapper *field_wrapper,
 		struct bt_ctf_event_common *event_common)
 {
-	BT_ASSERT(field_wrapper);
+	BT_ASSERT_DBG(field_wrapper);
 	BT_CTF_OBJECT_PUT_REF_AND_RESET(field_wrapper->field);
 	bt_ctf_field_wrapper_destroy(field_wrapper);
 }
@@ -648,7 +648,7 @@ struct bt_ctf_event_class *bt_ctf_event_get_class(struct bt_ctf_event *event)
 BT_HIDDEN
 struct bt_ctf_stream *bt_ctf_event_borrow_stream(struct bt_ctf_event *event)
 {
-	BT_ASSERT(event);
+	BT_ASSERT_DBG(event);
 	return (struct bt_ctf_stream *)
 		bt_ctf_object_borrow_parent(&BT_CTF_TO_COMMON(event)->base);
 }
@@ -717,8 +717,8 @@ int bt_ctf_event_serialize(struct bt_ctf_event *event,
 {
 	int ret = 0;
 
-	BT_ASSERT(event);
-	BT_ASSERT(ctfser);
+	BT_ASSERT_DBG(event);
+	BT_ASSERT_DBG(ctfser);
 
 	BT_LOGT_STR("Serializing event's context field.");
 	if (event->common.context_field) {

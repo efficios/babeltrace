@@ -372,10 +372,10 @@ ssize_t bt_common_read(int fd, void *buf, size_t count, int log_level)
 	size_t i = 0;
 	ssize_t ret;
 
-	BT_ASSERT(buf);
+	BT_ASSERT_DBG(buf);
 
 	/* Never return an overflow value. */
-	BT_ASSERT(count <= SSIZE_MAX);
+	BT_ASSERT_DBG(count <= SSIZE_MAX);
 
 	do {
 		ret = read(fd, buf + i, count - i);
@@ -398,7 +398,7 @@ ssize_t bt_common_read(int fd, void *buf, size_t count, int log_level)
 			}
 		}
 		i += ret;
-		BT_ASSERT(i <= count);
+		BT_ASSERT_DBG(i <= count);
 	} while (count - i > 0 && ret > 0);
 
 end:
@@ -567,7 +567,7 @@ GString *bt_common_field_path_string(struct bt_field_path *path)
 	GString *str = g_string_new(NULL);
 	uint64_t i;
 
-	BT_ASSERT(path);
+	BT_ASSERT_DBG(path);
 
 	if (!str) {
 		goto end;
@@ -667,7 +667,7 @@ int bt_common_clock_value_from_ns_from_origin(
 	uint64_t value_period_cycles;
 	int64_t ns_to_add;
 
-	BT_ASSERT(raw_value);
+	BT_ASSERT_DBG(raw_value);
 
 	/* Compute offset part of requested value, in nanoseconds */
 	if (!bt_safe_to_mul_int64(cc_offset_seconds, NS_PER_S_I)) {

@@ -70,7 +70,7 @@ static inline
 struct bt_ctf_stream_class_common *bt_ctf_event_class_common_borrow_stream_class(
 		struct bt_ctf_event_class_common *event_class)
 {
-	BT_ASSERT(event_class);
+	BT_ASSERT_DBG(event_class);
 	return (void *) bt_ctf_object_borrow_parent(&event_class->base);
 }
 
@@ -94,7 +94,7 @@ const char *bt_ctf_event_class_common_get_name(
 		struct bt_ctf_event_class_common *event_class)
 {
 	BT_CTF_ASSERT_PRE_NON_NULL(event_class, "Event class");
-	BT_ASSERT(event_class->name);
+	BT_ASSERT_DBG(event_class->name);
 	return event_class->name->str;
 }
 

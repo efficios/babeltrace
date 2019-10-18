@@ -71,7 +71,7 @@ void _bt_stream_freeze(const struct bt_stream *stream);
 static inline
 struct bt_trace *bt_stream_borrow_trace_inline(const struct bt_stream *stream)
 {
-	BT_ASSERT(stream);
+	BT_ASSERT_DBG(stream);
 	return (void *) bt_object_borrow_parent(&stream->base);
 }
 

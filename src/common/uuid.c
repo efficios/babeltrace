@@ -70,8 +70,8 @@ void bt_uuid_generate(bt_uuid_t uuid_out)
 BT_HIDDEN
 void bt_uuid_to_str(const bt_uuid_t uuid_in, char *str_out)
 {
-	BT_ASSERT(uuid_in);
-	BT_ASSERT(str_out);
+	BT_ASSERT_DBG(uuid_in);
+	BT_ASSERT_DBG(str_out);
 
 	sprintf(str_out, BT_UUID_FMT, BT_UUID_FMT_VALUES(uuid_in));
 }
@@ -82,8 +82,8 @@ int bt_uuid_from_str(const char *str_in, bt_uuid_t uuid_out)
 	int ret = 0;
 	bt_uuid_t uuid_scan;
 
-	BT_ASSERT(uuid_out);
-	BT_ASSERT(str_in);
+	BT_ASSERT_DBG(uuid_out);
+	BT_ASSERT_DBG(str_in);
 
 	if (strnlen(str_in, BT_UUID_STR_LEN + 1) != BT_UUID_STR_LEN) {
 		ret = -1;

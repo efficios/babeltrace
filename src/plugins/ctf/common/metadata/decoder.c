@@ -359,8 +359,8 @@ BT_HIDDEN
 bt_trace_class *ctf_metadata_decoder_get_ir_trace_class(
 		struct ctf_metadata_decoder *mdec)
 {
-	BT_ASSERT(mdec);
-	BT_ASSERT(mdec->config.create_trace_class);
+	BT_ASSERT_DBG(mdec);
+	BT_ASSERT_DBG(mdec->config.create_trace_class);
 	return ctf_visitor_generate_ir_get_ir_trace_class(mdec->visitor);
 }
 
@@ -368,23 +368,23 @@ BT_HIDDEN
 struct ctf_trace_class *ctf_metadata_decoder_borrow_ctf_trace_class(
 		struct ctf_metadata_decoder *mdec)
 {
-	BT_ASSERT(mdec);
-	BT_ASSERT(mdec->config.create_trace_class);
+	BT_ASSERT_DBG(mdec);
+	BT_ASSERT_DBG(mdec->config.create_trace_class);
 	return ctf_visitor_generate_ir_borrow_ctf_trace_class(mdec->visitor);
 }
 
 BT_HIDDEN
 const char *ctf_metadata_decoder_get_text(struct ctf_metadata_decoder *mdec)
 {
-	BT_ASSERT(mdec);
-	BT_ASSERT(mdec->config.keep_plain_text);
+	BT_ASSERT_DBG(mdec);
+	BT_ASSERT_DBG(mdec->config.keep_plain_text);
 	return mdec->text->str;
 }
 
 BT_HIDDEN
 int ctf_metadata_decoder_get_byte_order(struct ctf_metadata_decoder *mdec)
 {
-	BT_ASSERT(mdec);
+	BT_ASSERT_DBG(mdec);
 	return mdec->bo;
 }
 
@@ -394,7 +394,7 @@ int ctf_metadata_decoder_get_uuid(struct ctf_metadata_decoder *mdec,
 {
 	int ret = 0;
 
-	BT_ASSERT(mdec);
+	BT_ASSERT_DBG(mdec);
 
 	if (!mdec->is_uuid_set) {
 		ret = -1;

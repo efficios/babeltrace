@@ -580,7 +580,7 @@ bool bt_common_string_is_printable(const char *input)
 {
 	const char *ch;
 	bool printable = true;
-	BT_ASSERT(input);
+	BT_ASSERT_DBG(input);
 
 	for (ch = input; *ch != '\0'; ch++) {
 		if (!isprint(*ch) && *ch != '\n' && *ch != '\r' &&
@@ -1271,7 +1271,7 @@ size_t bt_common_get_page_size(int log_level)
 		strncpy(_tmp_fmt, *out_fmt_ch, _tmp_fmt_size);		\
 		_tmp_fmt[_tmp_fmt_size] = '\0';				\
 		_count = snprintf(*buf_ch, _size, _tmp_fmt, __VA_ARGS__); \
-		BT_ASSERT(_count >= 0);					\
+		BT_ASSERT_DBG(_count >= 0);					\
 		*buf_ch += MIN(_count, _size);				\
 	} while (0)
 
@@ -1528,13 +1528,13 @@ void bt_common_custom_vsnprintf(char *buf, size_t buf_size,
 	const char *fmt_ch = fmt;
 	char *buf_ch = buf;
 
-	BT_ASSERT(buf);
-	BT_ASSERT(fmt);
+	BT_ASSERT_DBG(buf);
+	BT_ASSERT_DBG(fmt);
 
 	while (*fmt_ch != '\0') {
 		switch (*fmt_ch) {
 		case '%':
-			BT_ASSERT(fmt_ch[1] != '\0');
+			BT_ASSERT_DBG(fmt_ch[1] != '\0');
 
 			if (fmt_ch[1] == intro) {
 				handle_specifier(priv_data, &buf_ch,
@@ -1586,12 +1586,12 @@ void bt_common_sep_digits(char *str, unsigned int digits_per_group, char sep)
 	uint64_t sep_count;
 	uint64_t new_len;
 
-	BT_ASSERT(digits_per_group > 0);
-	BT_ASSERT(sep != '\0');
+	BT_ASSERT_DBG(digits_per_group > 0);
+	BT_ASSERT_DBG(sep != '\0');
 
 	/* Compute new length of `str` */
 	orig_len = strlen(str);
-	BT_ASSERT(orig_len > 0);
+	BT_ASSERT_DBG(orig_len > 0);
 	sep_count = (orig_len - 1) / digits_per_group;
 	new_len = strlen(str) + sep_count;
 
@@ -1691,10 +1691,10 @@ GString *bt_common_fold(const char *str, unsigned int total_length,
 	gchar * const *line;
 	unsigned int i;
 
-	BT_ASSERT(str);
-	BT_ASSERT(indent < total_length);
-	BT_ASSERT(tmp_line);
-	BT_ASSERT(folded);
+	BT_ASSERT_DBG(str);
+	BT_ASSERT_DBG(indent < total_length);
+	BT_ASSERT_DBG(tmp_line);
+	BT_ASSERT_DBG(folded);
 
 	if (strlen(str) == 0) {
 		/* Empty input string: empty output string */
@@ -1703,7 +1703,7 @@ GString *bt_common_fold(const char *str, unsigned int total_length,
 
 	/* Split lines */
 	lines = g_strsplit(str, "\n", 0);
-	BT_ASSERT(lines);
+	BT_ASSERT_DBG(lines);
 
 	/* For each source line */
 	for (line = lines; *line; line++) {
@@ -1720,7 +1720,7 @@ GString *bt_common_fold(const char *str, unsigned int total_length,
 
 		/* Split words */
 		line_words = g_strsplit(*line, " ", 0);
-		BT_ASSERT(line_words);
+		BT_ASSERT_DBG(line_words);
 
 		/*
 		 * Indent for first line (we know there's at least one
@@ -1788,7 +1788,7 @@ end:
 		g_strfreev(lines);
 	}
 
-	BT_ASSERT(!line_words);
+	BT_ASSERT_DBG(!line_words);
 
 	if (tmp_line) {
 		g_string_free(tmp_line, TRUE);

@@ -127,8 +127,8 @@ static
 bt_stream_class *borrow_mapped_stream_class(struct trace_ir_metadata_maps *md_maps,
 		const bt_stream_class *in_stream_class)
 {
-	BT_ASSERT(md_maps);
-	BT_ASSERT(in_stream_class);
+	BT_ASSERT_DBG(md_maps);
+	BT_ASSERT_DBG(in_stream_class);
 
 	return g_hash_table_lookup(md_maps->stream_class_map,
 		(gpointer) in_stream_class);
@@ -187,8 +187,8 @@ static
 bt_stream *borrow_mapped_stream(struct trace_ir_data_maps *d_maps,
 		const bt_stream *in_stream)
 {
-	BT_ASSERT(d_maps);
-	BT_ASSERT(in_stream);
+	BT_ASSERT_DBG(d_maps);
+	BT_ASSERT_DBG(in_stream);
 
 	return g_hash_table_lookup(d_maps->stream_map, (gpointer) in_stream);
 }
@@ -264,8 +264,8 @@ bt_stream *trace_ir_mapping_borrow_mapped_stream(struct trace_ir_maps *ir_maps,
 {
 	struct trace_ir_data_maps *d_maps;
 
-	BT_ASSERT(ir_maps);
-	BT_ASSERT(in_stream);
+	BT_ASSERT_DBG(ir_maps);
+	BT_ASSERT_DBG(in_stream);
 
 	d_maps = borrow_data_maps_from_input_stream(ir_maps, in_stream);
 	/* Return the mapped stream. */
@@ -346,8 +346,8 @@ bt_event_class *trace_ir_mapping_borrow_mapped_event_class(
 {
 	struct trace_ir_metadata_maps *md_maps;
 
-	BT_ASSERT(ir_maps);
-	BT_ASSERT(in_event_class);
+	BT_ASSERT_DBG(ir_maps);
+	BT_ASSERT_DBG(in_event_class);
 
 	md_maps = borrow_metadata_maps_from_input_event_class(ir_maps,
 		in_event_class);
@@ -360,8 +360,8 @@ static inline
 bt_packet *borrow_mapped_packet(struct trace_ir_data_maps *d_maps,
 		const bt_packet *in_packet)
 {
-	BT_ASSERT(d_maps);
-	BT_ASSERT(in_packet);
+	BT_ASSERT_DBG(d_maps);
+	BT_ASSERT_DBG(in_packet);
 
 	return g_hash_table_lookup(d_maps->packet_map, (gpointer) in_packet);
 }
@@ -418,8 +418,8 @@ bt_packet *trace_ir_mapping_borrow_mapped_packet(struct trace_ir_maps *ir_maps,
 		const bt_packet *in_packet)
 {
 	struct trace_ir_data_maps *d_maps;
-	BT_ASSERT(ir_maps);
-	BT_ASSERT(in_packet);
+	BT_ASSERT_DBG(ir_maps);
+	BT_ASSERT_DBG(in_packet);
 
 	d_maps = borrow_data_maps_from_input_packet(ir_maps, in_packet);
 

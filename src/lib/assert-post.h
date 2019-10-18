@@ -87,7 +87,7 @@
  * the user), use BT_ASSERT_PRE().
  *
  * To assert that an internal postcondition is satisfied, use
- * BT_ASSERT().
+ * BT_ASSERT() or BT_ASSERT_DBG().
  */
 #define BT_ASSERT_POST(_cond, _fmt, ...)				\
 	do {								\

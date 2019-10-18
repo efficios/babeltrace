@@ -155,7 +155,7 @@ static inline
 struct bt_ctf_trace_common *bt_ctf_stream_class_common_borrow_trace(
 		struct bt_ctf_stream_class_common *stream_class)
 {
-	BT_ASSERT(stream_class);
+	BT_ASSERT_DBG(stream_class);
 	return (void *) bt_ctf_object_borrow_parent(&stream_class->base);
 }
 
@@ -205,7 +205,7 @@ static inline
 void _bt_ctf_stream_class_common_set_id(
 		struct bt_ctf_stream_class_common *stream_class, int64_t id)
 {
-	BT_ASSERT(stream_class);
+	BT_ASSERT_DBG(stream_class);
 	stream_class->id = id;
 	stream_class->id_set = 1;
 	BT_LOGT("Set stream class's ID (internal): "

@@ -37,8 +37,8 @@ int bt_ctf_object_pool_initialize(struct bt_ctf_object_pool *pool,
 {
 	int ret = 0;
 
-	BT_ASSERT(new_object_func);
-	BT_ASSERT(destroy_object_func);
+	BT_ASSERT_DBG(new_object_func);
+	BT_ASSERT_DBG(destroy_object_func);
 	BT_LOGD("Initializing object pool: addr=%p, data-addr=%p",
 		pool, data);
 	pool->objects = g_ptr_array_new();
@@ -69,7 +69,7 @@ void bt_ctf_object_pool_finalize(struct bt_ctf_object_pool *pool)
 {
 	uint64_t i;
 
-	BT_ASSERT(pool);
+	BT_ASSERT_DBG(pool);
 	BT_LOGD("Finalizing object pool.");
 
 	if (pool->objects) {

@@ -52,8 +52,8 @@ static inline
 struct bt_field_path_item *bt_field_path_borrow_item_by_index_inline(
 		const struct bt_field_path *field_path, uint64_t index)
 {
-	BT_ASSERT(field_path);
-	BT_ASSERT(index < field_path->items->len);
+	BT_ASSERT_DBG(field_path);
+	BT_ASSERT_DBG(index < field_path->items->len);
 	return &g_array_index(field_path->items, struct bt_field_path_item,
 		index);
 }

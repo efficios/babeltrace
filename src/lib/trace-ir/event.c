@@ -49,7 +49,7 @@
 BT_HIDDEN
 void _bt_event_set_is_frozen(const struct bt_event *event, bool is_frozen)
 {
-	BT_ASSERT(event);
+	BT_ASSERT_DBG(event);
 	BT_LIB_LOGD("Setting event's frozen state: %!+e, is-frozen=%d",
 		event, is_frozen);
 

@@ -310,8 +310,8 @@ bool compare_range_sets(const struct bt_integer_range_set *range_set_a,
 	uint64_t a_i, b_i;
 	bool is_equal = true;
 
-	BT_ASSERT(range_set_a);
-	BT_ASSERT(range_set_b);
+	BT_ASSERT_DBG(range_set_a);
+	BT_ASSERT_DBG(range_set_b);
 
 	if (range_set_a == range_set_b) {
 		goto end;

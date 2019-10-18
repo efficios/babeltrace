@@ -221,7 +221,7 @@ struct bt_ctf_private_value *bt_ctf_value_array_copy(const struct bt_ctf_value *
 			bt_ctf_value_array_borrow_element_by_index(
 				array_obj, i);
 
-		BT_ASSERT(element_obj);
+		BT_ASSERT_DBG(element_obj);
 		BT_LOGD("Copying array value's element: element-addr=%p, "
 			"index=%d", element_obj, i);
 		ret = bt_ctf_value_copy(&element_obj_copy, element_obj);
@@ -233,7 +233,7 @@ struct bt_ctf_private_value *bt_ctf_value_array_copy(const struct bt_ctf_value *
 			goto end;
 		}
 
-		BT_ASSERT(element_obj_copy);
+		BT_ASSERT_DBG(element_obj_copy);
 		ret = bt_ctf_private_value_array_append_element(copy_obj,
 			(void *) element_obj_copy);
 		BT_CTF_OBJECT_PUT_REF_AND_RESET(element_obj_copy);
@@ -274,7 +274,7 @@ struct bt_ctf_private_value *bt_ctf_value_map_copy(const struct bt_ctf_value *ma
 	while (g_hash_table_iter_next(&iter, &key, &element_obj)) {
 		const char *key_str = g_quark_to_string(GPOINTER_TO_UINT(key));
 
-		BT_ASSERT(key_str);
+		BT_ASSERT_DBG(key_str);
 		BT_LOGD("Copying map value's element: element-addr=%p, "
 			"key=\"%s\"", element_obj, key_str);
 		ret = bt_ctf_value_copy(&element_obj_copy, element_obj);
@@ -286,7 +286,7 @@ struct bt_ctf_private_value *bt_ctf_value_map_copy(const struct bt_ctf_value *ma
 			goto end;
 		}
 
-		BT_ASSERT(element_obj_copy);
+		BT_ASSERT_DBG(element_obj_copy);
 		ret = bt_ctf_private_value_map_insert_entry(copy_obj, key_str,
 			(void *) element_obj_copy);
 		BT_CTF_OBJECT_PUT_REF_AND_RESET(element_obj_copy);
@@ -566,7 +566,7 @@ enum bt_ctf_value_status _bt_ctf_value_freeze(struct bt_ctf_value *object)
 {
 	enum bt_ctf_value_status ret = BT_CTF_VALUE_STATUS_OK;
 
-	BT_ASSERT(object);
+	BT_ASSERT_DBG(object);
 
 	if (object->frozen) {
 		goto end;
@@ -1212,7 +1212,7 @@ bt_ctf_bool extend_map_element(const char *key,
 		goto error;
 	}
 
-	BT_ASSERT(extension_obj_elem_copy);
+	BT_ASSERT_DBG(extension_obj_elem_copy);
 
 	/* Replace in extended object */
 	extend_data->status = bt_ctf_private_value_map_insert_entry(
@@ -1229,7 +1229,7 @@ bt_ctf_bool extend_map_element(const char *key,
 	goto end;
 
 error:
-	BT_ASSERT(extend_data->status != BT_CTF_VALUE_STATUS_OK);
+	BT_ASSERT_DBG(extend_data->status != BT_CTF_VALUE_STATUS_OK);
 	ret = BT_CTF_FALSE;
 
 end:
@@ -1266,7 +1266,7 @@ enum bt_ctf_value_status bt_ctf_value_map_extend(
 		goto error;
 	}
 
-	BT_ASSERT(extended_map_obj);
+	BT_ASSERT_DBG(extended_map_obj);
 
 	/*
 	 * For each key in the extension map object, replace this key

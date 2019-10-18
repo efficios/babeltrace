@@ -75,7 +75,7 @@ struct bt_component {
 static inline
 struct bt_graph *bt_component_borrow_graph(struct bt_component *comp)
 {
-	BT_ASSERT(comp);
+	BT_ASSERT_DBG(comp);
 	return (void *) bt_object_borrow_parent(&comp->base);
 }
 

@@ -85,7 +85,7 @@ static inline
 struct bt_trace_class *bt_stream_class_borrow_trace_class_inline(
 		const struct bt_stream_class *stream_class)
 {
-	BT_ASSERT(stream_class);
+	BT_ASSERT_DBG(stream_class);
 	return (void *) bt_object_borrow_parent(&stream_class->base);
 }
 

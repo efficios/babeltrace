@@ -49,7 +49,7 @@ static inline bool event_class_has_trace(struct bt_event_class *event_class)
 	struct bt_stream_class *stream_class;
 
 	stream_class = bt_event_class_borrow_stream_class_inline(event_class);
-	BT_ASSERT(stream_class);
+	BT_ASSERT_DBG(stream_class);
 	return bt_stream_class_borrow_trace_class(stream_class);
 }
 
@@ -94,13 +94,13 @@ struct bt_message *create_event_message(
 	struct bt_stream *stream = (void *) c_stream;
 	struct bt_event *event;
 
-	BT_ASSERT(stream);
+	BT_ASSERT_DBG(stream);
 	BT_ASSERT_PRE_NON_NULL(msg_iter, "Message iterator");
 	BT_ASSERT_PRE_NON_NULL(event_class, "Event class");
 	BT_ASSERT_PRE(event_class_has_trace(event_class),
 		"Event class is not part of a trace: %!+E", event_class);
 	stream_class = bt_event_class_borrow_stream_class_inline(event_class);
-	BT_ASSERT(stream_class);
+	BT_ASSERT_DBG(stream_class);
 	BT_ASSERT_PRE((with_cs && stream_class->default_clock_class) ||
 		(!with_cs && !stream_class->default_clock_class),
 		"Creating an event message with a default clock snapshot, but without "
@@ -141,7 +141,7 @@ struct bt_message *create_event_message(
 	}
 
 	if (with_cs) {
-		BT_ASSERT(stream_class->default_clock_class);
+		BT_ASSERT_DBG(stream_class->default_clock_class);
 		message->default_cs = bt_clock_snapshot_create(
 			stream_class->default_clock_class);
 		if (!message->default_cs) {
@@ -151,7 +151,7 @@ struct bt_message *create_event_message(
 		bt_clock_snapshot_set_raw_value(message->default_cs, raw_value);
 	}
 
-	BT_ASSERT(!message->event);
+	BT_ASSERT_DBG(!message->event);
 	message->event = event;
 
 	if (packet) {
@@ -241,7 +241,7 @@ void bt_message_event_recycle(struct bt_message *msg)
 	struct bt_message_event *event_msg = (void *) msg;
 	struct bt_graph *graph;
 
-	BT_ASSERT(event_msg);
+	BT_ASSERT_DBG(event_msg);
 
 	if (G_UNLIKELY(!msg->graph)) {
 		bt_message_event_destroy(msg);
@@ -251,7 +251,7 @@ void bt_message_event_recycle(struct bt_message *msg)
 	BT_LIB_LOGD("Recycling event message: %![msg-]+n, %![event-]+e",
 		msg, event_msg->event);
 	bt_message_reset(msg);
-	BT_ASSERT(event_msg->event);
+	BT_ASSERT_DBG(event_msg->event);
 	bt_event_recycle(event_msg->event);
 	event_msg->event = NULL;
 
@@ -300,7 +300,7 @@ bt_message_event_borrow_default_clock_snapshot_const(
 	BT_ASSERT_PRE_DEV_MSG_IS_TYPE(msg, BT_MESSAGE_TYPE_EVENT);
 	stream_class = bt_event_class_borrow_stream_class_inline(
 		event_msg->event->class);
-	BT_ASSERT(stream_class);
+	BT_ASSERT_DBG(stream_class);
 	BT_ASSERT_PRE_DEV(stream_class->default_clock_class,
 		"Message's stream's class has no default clock class: "
 		"%![msg-]+n, %![sc-]+S", msg, stream_class);
@@ -318,6 +318,6 @@ bt_message_event_borrow_stream_class_default_clock_class_const(
 	BT_ASSERT_PRE_DEV_MSG_IS_TYPE(msg, BT_MESSAGE_TYPE_EVENT);
 	stream_class = bt_event_class_borrow_stream_class_inline(
 		event_msg->event->class);
-	BT_ASSERT(stream_class);
+	BT_ASSERT_DBG(stream_class);
 	return stream_class->default_clock_class;
 }

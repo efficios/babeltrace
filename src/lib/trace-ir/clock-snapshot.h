@@ -45,14 +45,14 @@ struct bt_clock_snapshot {
 static inline
 void bt_clock_snapshot_set(struct bt_clock_snapshot *clock_snapshot)
 {
-	BT_ASSERT(clock_snapshot);
+	BT_ASSERT_DBG(clock_snapshot);
 	clock_snapshot->is_set = true;
 }
 
 static inline
 void bt_clock_snapshot_reset(struct bt_clock_snapshot *clock_snapshot)
 {
-	BT_ASSERT(clock_snapshot);
+	BT_ASSERT_DBG(clock_snapshot);
 	clock_snapshot->is_set = false;
 }
 
@@ -70,7 +70,7 @@ static inline
 void bt_clock_snapshot_set_raw_value(struct bt_clock_snapshot *clock_snapshot,
 		uint64_t cycles)
 {
-	BT_ASSERT(clock_snapshot);
+	BT_ASSERT_DBG(clock_snapshot);
 	clock_snapshot->value_cycles = cycles;
 	set_ns_from_origin(clock_snapshot);
 	bt_clock_snapshot_set(clock_snapshot);

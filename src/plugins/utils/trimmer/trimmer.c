@@ -776,9 +776,9 @@ int get_msg_ns_from_origin(const bt_message *msg, int64_t *ns_from_origin,
 	const bt_clock_snapshot *clock_snapshot = NULL;
 	int ret = 0;
 
-	BT_ASSERT(msg);
-	BT_ASSERT(ns_from_origin);
-	BT_ASSERT(has_clock_snapshot);
+	BT_ASSERT_DBG(msg);
+	BT_ASSERT_DBG(ns_from_origin);
+	BT_ASSERT_DBG(has_clock_snapshot);
 
 	switch (bt_message_get_type(msg)) {
 	case BT_MESSAGE_TYPE_EVENT:
@@ -986,7 +986,7 @@ state_set_trimmer_iterator_bounds(
 				continue;
 			}
 
-			BT_ASSERT(ns_from_origin != INT64_MIN &&
+			BT_ASSERT_DBG(ns_from_origin != INT64_MIN &&
 				ns_from_origin != INT64_MAX);
 			put_messages(msgs, count);
 			goto found;
@@ -1377,9 +1377,9 @@ struct trimmer_iterator_stream_state *get_stream_state_entry(
 {
 	struct trimmer_iterator_stream_state *sstate;
 
-	BT_ASSERT(stream);
+	BT_ASSERT_DBG(stream);
 	sstate = g_hash_table_lookup(trimmer_it->stream_states, stream);
-	BT_ASSERT(sstate);
+	BT_ASSERT_DBG(sstate);
 
 	return sstate;
 }
@@ -1428,7 +1428,7 @@ handle_message_with_stream(
 		 * class has a clock class. And we know it has, otherwise we
 		 * couldn't be using the trimmer component.
 		 */
-		BT_ASSERT(ns_from_origin);
+		BT_ASSERT_DBG(ns_from_origin);
 
 		if (G_UNLIKELY(!trimmer_it->end.is_infinite &&
 				*ns_from_origin > trimmer_it->end.ns_from_origin)) {
@@ -1766,7 +1766,7 @@ void fill_message_array_from_output_messages(
 		(*count)++;
 	}
 
-	BT_ASSERT(*count > 0);
+	BT_ASSERT_DBG(*count > 0);
 }
 
 static inline
@@ -1823,7 +1823,7 @@ state_trim(struct trimmer_iterator *trimmer_it,
 			goto end;
 		}
 
-		BT_ASSERT(my_count > 0);
+		BT_ASSERT_DBG(my_count > 0);
 
 		for (i = 0; i < my_count; i++) {
 			status = handle_message(trimmer_it, my_msgs[i],
@@ -1866,7 +1866,7 @@ state_trim(struct trimmer_iterator *trimmer_it,
 	 * There's at least one message in the output message queue:
 	 * move the messages to the output message array.
 	 */
-	BT_ASSERT(!g_queue_is_empty(trimmer_it->output_messages));
+	BT_ASSERT_DBG(!g_queue_is_empty(trimmer_it->output_messages));
 	fill_message_array_from_output_messages(trimmer_it, msgs,
 		capacity, count);
 
@@ -1885,7 +1885,7 @@ bt_component_class_message_iterator_next_method_status trimmer_msg_iter_next(
 	bt_component_class_message_iterator_next_method_status status =
 		BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_OK;
 
-	BT_ASSERT(trimmer_it);
+	BT_ASSERT_DBG(trimmer_it);
 
 	if (G_LIKELY(trimmer_it->state == TRIMMER_ITERATOR_STATE_TRIM)) {
 		status = state_trim(trimmer_it, msgs, capacity, count);

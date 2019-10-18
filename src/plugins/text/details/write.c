@@ -41,7 +41,7 @@ const char *plural(uint64_t value)
 static inline
 void incr_indent_by(struct details_write_ctx *ctx, unsigned int value)
 {
-	BT_ASSERT(ctx);
+	BT_ASSERT_DBG(ctx);
 	ctx->indent_level += value;
 }
 
@@ -54,8 +54,8 @@ void incr_indent(struct details_write_ctx *ctx)
 static inline
 void decr_indent_by(struct details_write_ctx *ctx, unsigned int value)
 {
-	BT_ASSERT(ctx);
-	BT_ASSERT(ctx->indent_level >= value);
+	BT_ASSERT_DBG(ctx);
+	BT_ASSERT_DBG(ctx->indent_level >= value);
 	ctx->indent_level -= value;
 }
 
@@ -167,14 +167,14 @@ void format_int(char *buf, int64_t value, unsigned int base)
 static inline
 void write_nl(struct details_write_ctx *ctx)
 {
-	BT_ASSERT(ctx);
+	BT_ASSERT_DBG(ctx);
 	g_string_append_c(ctx->str, '\n');
 }
 
 static inline
 void write_sp(struct details_write_ctx *ctx)
 {
-	BT_ASSERT(ctx);
+	BT_ASSERT_DBG(ctx);
 	g_string_append_c(ctx->str, ' ');
 }
 
@@ -183,7 +183,7 @@ void write_indent(struct details_write_ctx *ctx)
 {
 	uint64_t i;
 
-	BT_ASSERT(ctx);
+	BT_ASSERT_DBG(ctx);
 
 	for (i = 0; i < ctx->indent_level; i++) {
 		write_sp(ctx);
@@ -282,7 +282,7 @@ static inline
 void write_str_prop_line(struct details_write_ctx *ctx, const char *prop_name,
 		const char *prop_value)
 {
-	BT_ASSERT(prop_value);
+	BT_ASSERT_DBG(prop_value);
 	write_indent(ctx);
 	write_prop_name(ctx, prop_name);
 	g_string_append(ctx->str, ": ");
@@ -351,7 +351,7 @@ static inline
 void write_uuid_prop_line(struct details_write_ctx *ctx, const char *prop_name,
 		bt_uuid uuid)
 {
-	BT_ASSERT(uuid);
+	BT_ASSERT_DBG(uuid);
 	write_indent(ctx);
 	write_prop_name(ctx, prop_name);
 	g_string_append_printf(ctx->str,
@@ -373,7 +373,7 @@ bt_bool map_value_foreach_add_key_to_array(const char *key,
 {
 	GPtrArray *keys = data;
 
-	BT_ASSERT(keys);
+	BT_ASSERT_DBG(keys);
 	g_ptr_array_add(keys, (void *) key);
 	return BT_TRUE;
 }
@@ -387,7 +387,7 @@ void write_value(struct details_write_ctx *ctx, const bt_value *value,
 	GPtrArray *keys = g_ptr_array_new();
 	char buf[64];
 
-	BT_ASSERT(keys);
+	BT_ASSERT_DBG(keys);
 
 	/* Write field's name */
 	if (name) {
@@ -456,7 +456,7 @@ void write_value(struct details_write_ctx *ctx, const bt_value *value,
 			bt_value_map_foreach_entry_const(value,
 				map_value_foreach_add_key_to_array, keys);
 
-		BT_ASSERT(foreach_status ==
+		BT_ASSERT_DBG(foreach_status ==
 			BT_VALUE_MAP_FOREACH_ENTRY_CONST_STATUS_OK);
 		g_ptr_array_sort(keys, (GCompareFunc) compare_strings);
 
@@ -492,7 +492,7 @@ static
 void write_user_attributes(struct details_write_ctx *ctx,
 		const bt_value *user_attrs, bool write_newline, bool *written)
 {
-	BT_ASSERT(user_attrs);
+	BT_ASSERT_DBG(user_attrs);
 
 	if (!bt_value_map_is_empty(user_attrs)) {
 		write_value(ctx, user_attrs, "User attributes");
@@ -708,7 +708,7 @@ void write_enum_field_class_mappings(struct details_write_ctx *ctx,
 
 	mappings = g_ptr_array_new_with_free_func(
 		(GDestroyNotify) destroy_enum_field_class_mapping);
-	BT_ASSERT(mappings);
+	BT_ASSERT_DBG(mappings);
 
 	/*
 	 * Copy field class's mappings to our own arrays and structures
@@ -720,7 +720,7 @@ void write_enum_field_class_mappings(struct details_write_ctx *ctx,
 		struct enum_field_class_mapping *mapping = g_new0(
 			struct enum_field_class_mapping, 1);
 
-		BT_ASSERT(mapping);
+		BT_ASSERT_DBG(mapping);
 
 		if (is_signed) {
 			fc_mapping = bt_field_class_enumeration_signed_borrow_mapping_by_index_const(
@@ -739,7 +739,7 @@ void write_enum_field_class_mappings(struct details_write_ctx *ctx,
 				fc_mapping));
 		mapping->ranges = range_set_to_int_ranges(fc_range_set,
 			is_signed);
-		BT_ASSERT(mapping->ranges);
+		BT_ASSERT_DBG(mapping->ranges);
 		g_ptr_array_add(mappings, mapping);
 	}
 
@@ -864,7 +864,7 @@ void write_variant_field_class_option(struct details_write_ctx *ctx,
 		uint64_t i;
 
 		int_ranges = range_set_to_int_ranges(orig_ranges, is_signed);
-		BT_ASSERT(int_ranges);
+		BT_ASSERT_DBG(int_ranges);
 
 		for (i = 0; i < int_ranges->len; i++) {
 			struct int_range *range = int_range_at(int_ranges, i);
@@ -1036,7 +1036,7 @@ void write_field_class(struct details_write_ctx *ctx, const bt_field_class *fc)
 			sel_field_path =
 				bt_field_class_variant_with_selector_field_borrow_selector_field_path_const(
 					fc);
-			BT_ASSERT(sel_field_path);
+			BT_ASSERT_DBG(sel_field_path);
 		}
 
 		g_string_append(ctx->str, " (");
@@ -1175,8 +1175,8 @@ void write_field_class(struct details_write_ctx *ctx, const bt_field_class *fc)
 				ranges, selector_is_signed);
 			uint64_t i;
 
-			BT_ASSERT(sorted_ranges);
-			BT_ASSERT(sorted_ranges->len > 0);
+			BT_ASSERT_DBG(sorted_ranges);
+			BT_ASSERT_DBG(sorted_ranges->len > 0);
 			write_prop_name_line(ctx, "Selector ranges");
 
 			for (i = 0; i < sorted_ranges->len; i++) {
@@ -1228,8 +1228,8 @@ static
 void write_root_field_class(struct details_write_ctx *ctx, const char *name,
 		const bt_field_class *fc)
 {
-	BT_ASSERT(name);
-	BT_ASSERT(fc);
+	BT_ASSERT_DBG(name);
+	BT_ASSERT_DBG(fc);
 	write_indent(ctx);
 	write_prop_name(ctx, name);
 	g_string_append(ctx->str, ": ");
@@ -1570,7 +1570,7 @@ int try_write_meta(struct details_write_ctx *ctx, const bt_trace_class *tc,
 {
 	int ret = 0;
 
-	BT_ASSERT(tc);
+	BT_ASSERT_DBG(tc);
 
 	if (details_need_to_write_trace_class(ctx, tc)) {
 		uint64_t sc_i;
@@ -1625,7 +1625,7 @@ int try_write_meta(struct details_write_ctx *ctx, const bt_trace_class *tc,
 	if (sc && details_need_to_write_meta_object(ctx, tc, sc)) {
 		uint64_t ec_i;
 
-		BT_ASSERT(tc);
+		BT_ASSERT_DBG(tc);
 
 		if (ctx->details_comp->cfg.compact &&
 				ctx->details_comp->printed_something) {
@@ -1661,7 +1661,7 @@ int try_write_meta(struct details_write_ctx *ctx, const bt_trace_class *tc,
 	}
 
 	if (ec && details_need_to_write_meta_object(ctx, tc, ec)) {
-		BT_ASSERT(sc);
+		BT_ASSERT_DBG(sc);
 
 		if (ctx->details_comp->cfg.compact &&
 				ctx->details_comp->printed_something) {
@@ -1926,8 +1926,8 @@ static
 void write_root_field(struct details_write_ctx *ctx, const char *name,
 		const bt_field *field)
 {
-	BT_ASSERT(name);
-	BT_ASSERT(field);
+	BT_ASSERT_DBG(name);
+	BT_ASSERT_DBG(field);
 	write_indent(ctx);
 	write_prop_name(ctx, name);
 	g_string_append(ctx->str, ":");
@@ -2124,7 +2124,7 @@ void write_trace(struct details_write_ctx *ctx, const bt_trace *trace)
 				bt_trace_borrow_environment_entry_value_by_name_const(
 					trace, name);
 
-			BT_ASSERT(value);
+			BT_ASSERT_DBG(value);
 			write_compound_member_name(ctx, name);
 			write_sp(ctx);
 
@@ -2367,7 +2367,7 @@ int write_discarded_items_message(struct details_write_ctx *ctx,
 	/* Write times */
 	if (beginning_cs) {
 		write_time(ctx, beginning_cs);
-		BT_ASSERT(end_cs);
+		BT_ASSERT_DBG(end_cs);
 		write_time(ctx, end_cs);
 	}
 

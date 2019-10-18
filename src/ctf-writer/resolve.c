@@ -259,7 +259,7 @@ static
 struct bt_ctf_field_type_common *get_type_from_ctx(struct resolve_context *ctx,
 		enum bt_ctf_scope scope)
 {
-	BT_ASSERT(scope >= BT_CTF_SCOPE_TRACE_PACKET_HEADER &&
+	BT_ASSERT_DBG(scope >= BT_CTF_SCOPE_TRACE_PACKET_HEADER &&
 		scope <= BT_CTF_SCOPE_EVENT_FIELDS);
 
 	return ctx->scopes[scope - BT_CTF_SCOPE_TRACE_PACKET_HEADER];
@@ -838,7 +838,7 @@ int get_field_paths_lca_index(struct bt_ctf_field_path *field_path1,
 	/*
 	 * Start from both roots and find the first mismatch.
 	 */
-	BT_ASSERT(field_path1->root == field_path2->root);
+	BT_ASSERT_DBG(field_path1->root == field_path2->root);
 	field_path1_len = field_path1->indexes->len;
 	field_path2_len = field_path2->indexes->len;
 
@@ -1222,7 +1222,7 @@ int resolve_root_type(enum bt_ctf_scope root_scope, struct resolve_context *ctx)
 {
 	int ret;
 
-	BT_ASSERT(type_stack_size(ctx->type_stack) == 0);
+	BT_ASSERT_DBG(type_stack_size(ctx->type_stack) == 0);
 	ctx->root_scope = root_scope;
 	ret = resolve_type(get_type_from_ctx(ctx, root_scope), ctx);
 	ctx->root_scope = BT_CTF_SCOPE_UNKNOWN;

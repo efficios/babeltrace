@@ -87,7 +87,7 @@ __attribute__((unused))
 static inline
 void _bt_event_reset_dev_mode(struct bt_event *event)
 {
-	BT_ASSERT(event);
+	BT_ASSERT_DBG(event);
 
 	if (event->common_context_field) {
 		bt_field_set_is_frozen(
@@ -118,7 +118,7 @@ void _bt_event_reset_dev_mode(struct bt_event *event)
 static inline
 void bt_event_reset(struct bt_event *event)
 {
-	BT_ASSERT(event);
+	BT_ASSERT_DBG(event);
 	BT_LIB_LOGD("Resetting event: %!+e", event);
 	bt_event_set_is_frozen(event, false);
 	bt_object_put_ref_no_null_check(&event->stream->base);
@@ -135,7 +135,7 @@ void bt_event_recycle(struct bt_event *event)
 {
 	struct bt_event_class *event_class;
 
-	BT_ASSERT(event);
+	BT_ASSERT_DBG(event);
 	BT_LIB_LOGD("Recycling event: %!+e", event);
 
 	/*
@@ -162,7 +162,7 @@ void bt_event_recycle(struct bt_event *event)
 	 */
 	bt_event_reset(event);
 	event_class = event->class;
-	BT_ASSERT(event_class);
+	BT_ASSERT_DBG(event_class);
 	event->class = NULL;
 	bt_object_pool_recycle_object(&event_class->event_pool, event);
 	bt_object_put_ref_no_null_check(&event_class->base);
@@ -178,8 +178,8 @@ void bt_event_set_packet(struct bt_event *event, struct bt_packet *packet)
 		event->class) == packet->stream->class,
 		"Packet's stream class and event's stream class differ: "
 		"%![event-]+e, %![packet-]+a", event, packet);
-	BT_ASSERT(event->stream->class->supports_packets);
-	BT_ASSERT(!event->packet);
+	BT_ASSERT_DBG(event->stream->class->supports_packets);
+	BT_ASSERT_DBG(!event->packet);
 	event->packet = packet;
 	bt_object_get_ref_no_null_check_no_parent_check(&event->packet->base);
 	BT_LIB_LOGD("Set event's packet: %![event-]+e, %![packet-]+a",
@@ -196,7 +196,7 @@ void bt_event_set_stream(struct bt_event *event, struct bt_stream *stream)
 		event->class) == stream->class,
 		"Stream's class and event's stream class differ: "
 		"%![event-]+e, %![stream-]+s", event, stream);
-	BT_ASSERT(!event->stream);
+	BT_ASSERT_DBG(!event->stream);
 	event->stream = stream;
 	bt_object_get_ref_no_null_check_no_parent_check(&event->stream->base);
 	BT_LIB_LOGD("Set event's stream: %![event-]+e, %![stream-]+s",
@@ -209,8 +209,8 @@ struct bt_event *bt_event_create(struct bt_event_class *event_class,
 {
 	struct bt_event *event = NULL;
 
-	BT_ASSERT(event_class);
-	BT_ASSERT(stream);
+	BT_ASSERT_DBG(event_class);
+	BT_ASSERT_DBG(stream);
 	event = bt_object_pool_create_object(&event_class->event_pool);
 	if (G_UNLIKELY(!event)) {
 		BT_LIB_LOGE_APPEND_CAUSE(
@@ -227,7 +227,7 @@ struct bt_event *bt_event_create(struct bt_event_class *event_class,
 	bt_event_set_stream(event, stream);
 
 	if (packet) {
-		BT_ASSERT(packet);
+		BT_ASSERT_DBG(packet);
 		bt_event_set_packet(event, packet);
 	}
 

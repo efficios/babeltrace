@@ -69,8 +69,8 @@ bt_component_source_borrow_class_const(
 
 	cls = component->parent.class;
 
-	BT_ASSERT(cls);
-	BT_ASSERT(cls->type == BT_COMPONENT_CLASS_TYPE_SOURCE);
+	BT_ASSERT_DBG(cls);
+	BT_ASSERT_DBG(cls->type == BT_COMPONENT_CLASS_TYPE_SOURCE);
 
 	return (bt_component_class_source *) cls;
 }

@@ -467,8 +467,8 @@ details_consume(bt_self_component_sink *comp)
 
 	details_comp = bt_self_component_get_data(
 		bt_self_component_sink_as_self_component(comp));
-	BT_ASSERT(details_comp);
-	BT_ASSERT(details_comp->msg_iter);
+	BT_ASSERT_DBG(details_comp);
+	BT_ASSERT_DBG(details_comp->msg_iter);
 
 	/* Consume messages */
 	next_status = bt_self_component_port_input_message_iterator_next(

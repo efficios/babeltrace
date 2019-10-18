@@ -573,9 +573,9 @@ int consume_graph_sink(struct bt_component_sink *comp)
 	enum bt_component_class_sink_consume_method_status consume_status;
 	struct bt_component_class_sink *sink_class = NULL;
 
-	BT_ASSERT(comp);
+	BT_ASSERT_DBG(comp);
 	sink_class = (void *) comp->parent.class;
-	BT_ASSERT(sink_class->methods.consume);
+	BT_ASSERT_DBG(sink_class->methods.consume);
 	BT_LIB_LOGD("Calling user's consume method: %!+c", comp);
 	consume_status = sink_class->methods.consume((void *) comp);
 	BT_LOGD("User method returned: status=%s",
@@ -648,7 +648,7 @@ int bt_graph_consume_sink_no_check(struct bt_graph *graph,
 	int index;
 
 	BT_LIB_LOGD("Making specific sink consume: %![comp-]+c", sink);
-	BT_ASSERT(bt_component_borrow_graph((void *) sink) == graph);
+	BT_ASSERT_DBG(bt_component_borrow_graph((void *) sink) == graph);
 
 	if (g_queue_is_empty(graph->sinks_to_consume)) {
 		BT_LOGD_STR("Graph's sink queue is empty: end of graph.");
@@ -665,7 +665,7 @@ int bt_graph_consume_sink_no_check(struct bt_graph *graph,
 	}
 
 	sink_node = g_queue_pop_nth_link(graph->sinks_to_consume, index);
-	BT_ASSERT(sink_node);
+	BT_ASSERT_DBG(sink_node);
 	status = consume_sink_node(graph, sink_node);
 
 end:
@@ -1604,7 +1604,7 @@ void bt_graph_add_message(struct bt_graph *graph,
 BT_HIDDEN
 bool bt_graph_is_interrupted(const struct bt_graph *graph)
 {
-	BT_ASSERT(graph);
+	BT_ASSERT_DBG(graph);
 	return bt_interrupter_array_any_is_set(graph->interrupters);
 }
 

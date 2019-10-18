@@ -162,7 +162,7 @@ struct bt_graph {
 static inline
 void bt_graph_set_can_consume(struct bt_graph *graph, bool can_consume)
 {
-	BT_ASSERT(graph);
+	BT_ASSERT_DBG(graph);
 	graph->can_consume = can_consume;
 }
 
@@ -228,7 +228,8 @@ int bt_graph_configure(struct bt_graph *graph)
 	int status = BT_FUNC_STATUS_OK;
 	uint64_t i;
 
-	BT_ASSERT(graph->config_state != BT_GRAPH_CONFIGURATION_STATE_FAULTY);
+	BT_ASSERT_DBG(graph->config_state !=
+		BT_GRAPH_CONFIGURATION_STATE_FAULTY);
 
 	if (G_LIKELY(graph->config_state ==
 			BT_GRAPH_CONFIGURATION_STATE_CONFIGURED)) {

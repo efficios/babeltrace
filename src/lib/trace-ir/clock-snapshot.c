@@ -77,7 +77,7 @@ struct bt_clock_snapshot *bt_clock_snapshot_create(
 {
 	struct bt_clock_snapshot *clock_snapshot = NULL;
 
-	BT_ASSERT(clock_class);
+	BT_ASSERT_DBG(clock_class);
 	clock_snapshot = bt_object_pool_create_object(&clock_class->cs_pool);
 	if (!clock_snapshot) {
 		BT_LIB_LOGE_APPEND_CAUSE(
@@ -100,7 +100,7 @@ void bt_clock_snapshot_recycle(struct bt_clock_snapshot *clock_snapshot)
 {
 	struct bt_clock_class *clock_class;
 
-	BT_ASSERT(clock_snapshot);
+	BT_ASSERT_DBG(clock_snapshot);
 	BT_LIB_LOGD("Recycling clock snapshot: %!+k", clock_snapshot);
 
 	/*
@@ -127,7 +127,7 @@ void bt_clock_snapshot_recycle(struct bt_clock_snapshot *clock_snapshot)
 	 */
 	bt_clock_snapshot_reset(clock_snapshot);
 	clock_class = clock_snapshot->clock_class;
-	BT_ASSERT(clock_class);
+	BT_ASSERT_DBG(clock_class);
 	clock_snapshot->clock_class = NULL;
 	bt_object_pool_recycle_object(&clock_class->cs_pool, clock_snapshot);
 	bt_object_put_ref(clock_class);

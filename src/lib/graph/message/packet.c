@@ -318,7 +318,7 @@ borrow_packet_message_default_clock_snapshot_const(
 {
 	struct bt_message_packet *packet_msg = (void *) message;
 
-	BT_ASSERT(message);
+	BT_ASSERT_DBG(message);
 	BT_ASSERT_PRE_DEV(
 		packet_msg->packet->stream->class->default_clock_class,
 		"Message's stream's class has no default clock class: "
@@ -352,7 +352,7 @@ borrow_packet_message_stream_class_default_clock_class(
 {
 	struct bt_message_packet *packet_msg = (void *) msg;
 
-	BT_ASSERT(msg);
+	BT_ASSERT_DBG(msg);
 	return packet_msg->packet->stream->class->default_clock_class;
 }
 

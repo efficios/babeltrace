@@ -118,7 +118,7 @@ error:
 BT_HIDDEN
 void bt_ctf_event_class_common_freeze(struct bt_ctf_event_class_common *event_class)
 {
-	BT_ASSERT(event_class);
+	BT_ASSERT_DBG(event_class);
 
 	if (event_class->frozen) {
 		return;
@@ -141,8 +141,8 @@ int bt_ctf_event_class_common_validate_single_clock_class(
 {
 	int ret = 0;
 
-	BT_ASSERT(event_class);
-	BT_ASSERT(expected_clock_class);
+	BT_ASSERT_DBG(event_class);
+	BT_ASSERT_DBG(expected_clock_class);
 	ret = bt_ctf_field_type_common_validate_single_clock_class(
 		event_class->context_field_type,
 		expected_clock_class);
@@ -347,7 +347,7 @@ int bt_ctf_event_class_add_field(struct bt_ctf_event_class *event_class,
 		goto end;
 	}
 
-	BT_ASSERT(bt_ctf_field_type_common_get_type_id(
+	BT_ASSERT_DBG(bt_ctf_field_type_common_get_type_id(
 		event_class->common.payload_field_type) ==
 		BT_CTF_FIELD_TYPE_ID_STRUCT);
 	ret = bt_ctf_field_type_structure_add_field(
@@ -382,7 +382,7 @@ int64_t bt_ctf_event_class_get_payload_type_field_count(
 		goto end;
 	}
 
-	BT_ASSERT(bt_ctf_field_type_common_get_type_id(
+	BT_ASSERT_DBG(bt_ctf_field_type_common_get_type_id(
 		event_class->common.payload_field_type) ==
 			BT_CTF_FIELD_TYPE_ID_STRUCT);
 	ret = bt_ctf_field_type_common_structure_get_field_count(
@@ -413,7 +413,7 @@ int bt_ctf_event_class_get_payload_type_field_by_index(
 		goto end;
 	}
 
-	BT_ASSERT(bt_ctf_field_type_common_get_type_id(
+	BT_ASSERT_DBG(bt_ctf_field_type_common_get_type_id(
 		event_class->common.payload_field_type) ==
 			BT_CTF_FIELD_TYPE_ID_STRUCT);
 	ret = bt_ctf_field_type_structure_get_field_by_index(
@@ -446,7 +446,7 @@ bt_ctf_event_class_get_payload_type_field_type_by_name(
 		goto end;
 	}
 
-	BT_ASSERT(bt_ctf_field_type_common_get_type_id(
+	BT_ASSERT_DBG(bt_ctf_field_type_common_get_type_id(
 		event_class->common.payload_field_type) ==
 			BT_CTF_FIELD_TYPE_ID_STRUCT);
 	name_quark = g_quark_try_string(name);
@@ -474,8 +474,8 @@ int bt_ctf_event_class_serialize(struct bt_ctf_event_class *event_class,
 	int ret = 0;
 	struct bt_ctf_value *attr_value = NULL;
 
-	BT_ASSERT(event_class);
-	BT_ASSERT(context);
+	BT_ASSERT_DBG(event_class);
+	BT_ASSERT_DBG(context);
 	BT_LOGD("Serializing event class's metadata: "
 		"event-class-addr=%p, event-class-name=\"%s\", "
 		"event-class-id=%" PRId64 ", metadata-context-addr=%p",
@@ -488,7 +488,7 @@ int bt_ctf_event_class_serialize(struct bt_ctf_event_class *event_class,
 	/* Serialize attributes */
 	g_string_append_printf(context->string, "\tname = \"%s\";\n",
 		event_class->common.name->str);
-	BT_ASSERT(event_class->common.id >= 0);
+	BT_ASSERT_DBG(event_class->common.id >= 0);
 	g_string_append_printf(context->string, "\tid = %" PRId64 ";\n",
 		event_class->common.id);
 	g_string_append_printf(context->string, "\tstream_id = %" PRId64 ";\n",
@@ -567,7 +567,7 @@ struct bt_ctf_field_type *bt_ctf_event_class_get_field_by_name(
 		goto end;
 	}
 
-	BT_ASSERT(event_class->common.payload_field_type->id ==
+	BT_ASSERT_DBG(event_class->common.payload_field_type->id ==
 		BT_CTF_FIELD_TYPE_ID_STRUCT);
 	name_quark = g_quark_try_string(name);
 	if (!name_quark) {

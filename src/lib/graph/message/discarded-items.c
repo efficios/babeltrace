@@ -162,7 +162,7 @@ struct bt_stream *borrow_discarded_items_message_stream(
 {
 	struct bt_message_discarded_items *disc_items_msg = (void *) message;
 
-	BT_ASSERT(message);
+	BT_ASSERT_DBG(message);
 	return disc_items_msg->stream;
 }
 
@@ -184,7 +184,7 @@ enum bt_property_availability get_discarded_items_message_count(
 	struct bt_message_discarded_items *disc_items_msg = (void *) message;
 
 	BT_ASSERT_PRE_DEV_NON_NULL(count, "Count (output)");
-	BT_ASSERT(message);
+	BT_ASSERT_DBG(message);
 	*count = disc_items_msg->count.value;
 	return disc_items_msg->count.base.avail;
 }
@@ -196,7 +196,7 @@ borrow_discarded_items_message_beginning_default_clock_snapshot_const(
 {
 	struct bt_message_discarded_items *disc_items_msg = (void *) message;
 
-	BT_ASSERT(message);
+	BT_ASSERT_DBG(message);
 	BT_ASSERT_PRE_DEV(disc_items_msg->stream->class->default_clock_class,
 		"Message's stream's class has no default clock class: "
 		"%![msg-]+n, %![sc-]+S",
@@ -211,7 +211,7 @@ borrow_discarded_items_message_end_default_clock_snapshot_const(
 {
 	struct bt_message_discarded_items *disc_items_msg = (void *) message;
 
-	BT_ASSERT(message);
+	BT_ASSERT_DBG(message);
 	BT_ASSERT_PRE_DEV(disc_items_msg->stream->class->default_clock_class,
 		"Message's stream's class has no default clock class: "
 		"%![msg-]+n, %![sc-]+S",
@@ -369,7 +369,7 @@ borrow_discarded_items_message_stream_class_default_clock_class(
 {
 	struct bt_message_discarded_items *disc_items_msg = (void *) msg;
 
-	BT_ASSERT(msg);
+	BT_ASSERT_DBG(msg);
 	return disc_items_msg->stream->class->default_clock_class;
 }
 

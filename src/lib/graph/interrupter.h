@@ -39,7 +39,7 @@ bool bt_interrupter_array_any_is_set(const GPtrArray *interrupters)
 	bool is_set = false;
 	uint64_t i;
 
-	BT_ASSERT(interrupters);
+	BT_ASSERT_DBG(interrupters);
 
 	for (i = 0; i < interrupters->len; i++) {
 		const struct bt_interrupter *intr = interrupters->pdata[i];

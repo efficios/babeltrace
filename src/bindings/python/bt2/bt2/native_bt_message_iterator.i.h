@@ -66,9 +66,9 @@ static PyObject *bt_bt2_get_user_component_from_user_msg_iter(
 	bt_self_component *self_component = bt_self_message_iterator_borrow_component(self_message_iterator);
 	PyObject *py_comp;
 
-	BT_ASSERT(self_component);
+	BT_ASSERT_DBG(self_component);
 	py_comp = bt_self_component_get_data(self_component);
-	BT_ASSERT(py_comp);
+	BT_ASSERT_DBG(py_comp);
 
 	/* Return new reference */
 	Py_INCREF(py_comp);

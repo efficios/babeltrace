@@ -62,7 +62,7 @@ bool bt_util_get_base_offset_ns(int64_t offset_seconds, uint64_t offset_cycles,
 	bool overflows = false;
 	uint64_t offset_cycles_ns;
 
-	BT_ASSERT(base_offset_ns);
+	BT_ASSERT_DBG(base_offset_ns);
 
 	/* Initialize nanosecond timestamp to clock's offset in seconds */
 	if (offset_seconds <= (INT64_MIN / INT64_C(1000000000) - 1) ||
@@ -82,10 +82,10 @@ bool bt_util_get_base_offset_ns(int64_t offset_seconds, uint64_t offset_cycles,
 	*base_offset_ns = offset_seconds * INT64_C(1000000000);
 
 	/* Add offset in cycles */
-	BT_ASSERT(offset_cycles < frequency);
+	BT_ASSERT_DBG(offset_cycles < frequency);
 	offset_cycles_ns = bt_util_ns_from_value(frequency,
 		offset_cycles);
-	BT_ASSERT(offset_cycles_ns < 1000000000);
+	BT_ASSERT_DBG(offset_cycles_ns < 1000000000);
 	*base_offset_ns += (int64_t) offset_cycles_ns;
 
 end:
@@ -120,7 +120,7 @@ int bt_util_ns_from_origin_inline(int64_t base_offset_ns,
 	}
 
 	value_ns_signed = (int64_t) value_ns_unsigned;
-	BT_ASSERT(value_ns_signed >= 0);
+	BT_ASSERT_DBG(value_ns_signed >= 0);
 
 	if (*ns_from_origin <= 0) {
 		goto add_value;

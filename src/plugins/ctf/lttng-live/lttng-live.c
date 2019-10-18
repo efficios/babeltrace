@@ -399,7 +399,7 @@ enum lttng_live_iterator_status lttng_live_iterator_next_handle_one_no_data_stre
 	if (ret != LTTNG_LIVE_ITERATOR_STATUS_OK) {
 		goto end;
 	}
-	BT_ASSERT(lttng_live_stream->state != LTTNG_LIVE_STREAM_EOF);
+	BT_ASSERT_DBG(lttng_live_stream->state != LTTNG_LIVE_STREAM_EOF);
 	if (lttng_live_stream->state == LTTNG_LIVE_STREAM_QUIESCENT) {
 		uint64_t last_inact_ts = lttng_live_stream->last_inactivity_ts,
 			 curr_inact_ts = lttng_live_stream->current_inactivity_ts;
@@ -633,8 +633,8 @@ int live_get_msg_ts_ns(struct lttng_live_stream_iterator *stream_iter,
 	bt_logging_level log_level = lttng_live_msg_iter->log_level;
 	bt_self_component *self_comp = lttng_live_msg_iter->self_comp;
 
-	BT_ASSERT(msg);
-	BT_ASSERT(ts_ns);
+	BT_ASSERT_DBG(msg);
+	BT_ASSERT_DBG(ts_ns);
 
 	BT_COMP_LOGD("Getting message's timestamp: iter-data-addr=%p, msg-addr=%p, "
 		"last-msg-ts=%" PRId64, lttng_live_msg_iter, msg,
@@ -644,7 +644,7 @@ int live_get_msg_ts_ns(struct lttng_live_stream_iterator *stream_iter,
 	case BT_MESSAGE_TYPE_EVENT:
 		clock_class = bt_message_event_borrow_stream_class_default_clock_class_const(
 				msg);
-		BT_ASSERT(clock_class);
+		BT_ASSERT_DBG(clock_class);
 
 		clock_snapshot = bt_message_event_borrow_default_clock_snapshot_const(
 			msg);
@@ -693,7 +693,7 @@ int live_get_msg_ts_ns(struct lttng_live_stream_iterator *stream_iter,
 	}
 
 	clock_class = bt_clock_snapshot_borrow_clock_class_const(clock_snapshot);
-	BT_ASSERT(clock_class);
+	BT_ASSERT_DBG(clock_class);
 
 	ret = bt_clock_snapshot_get_ns_from_origin(clock_snapshot, ts_ns);
 	if (ret) {
@@ -940,8 +940,8 @@ enum lttng_live_iterator_status next_stream_iterator_for_trace(
 	int64_t youngest_candidate_msg_ts = INT64_MAX;
 	uint64_t stream_iter_idx;
 
-	BT_ASSERT(live_trace);
-	BT_ASSERT(live_trace->stream_iterators);
+	BT_ASSERT_DBG(live_trace);
+	BT_ASSERT_DBG(live_trace->stream_iterators);
 	/*
 	 * Update the current message of every stream iterators of this trace.
 	 * The current msg of every stream must have a timestamp equal or
@@ -986,7 +986,7 @@ enum lttng_live_iterator_status next_stream_iterator_for_trace(
 				goto end;
 			}
 
-			BT_ASSERT(msg);
+			BT_ASSERT_DBG(msg);
 
 			/*
 			 * Get the timestamp in nanoseconds from origin of this
@@ -1022,7 +1022,7 @@ enum lttng_live_iterator_status next_stream_iterator_for_trace(
 			}
 		}
 
-		BT_ASSERT(stream_iter != youngest_candidate_stream_iter);
+		BT_ASSERT_DBG(stream_iter != youngest_candidate_stream_iter);
 
 		if (!stream_iter_is_ended) {
 			if (G_UNLIKELY(youngest_candidate_stream_iter == NULL) ||
@@ -1039,7 +1039,7 @@ enum lttng_live_iterator_status next_stream_iterator_for_trace(
 				 * Order the messages in an arbitrary but
 				 * deterministic way.
 				 */
-				BT_ASSERT(stream_iter != youngest_candidate_stream_iter);
+				BT_ASSERT_DBG(stream_iter != youngest_candidate_stream_iter);
 				int ret = common_muxing_compare_messages(
 					stream_iter->current_msg,
 					youngest_candidate_stream_iter->current_msg);
@@ -1118,7 +1118,7 @@ enum lttng_live_iterator_status next_stream_iterator_for_session(
 		goto end;
 	}
 
-	BT_ASSERT(session->traces);
+	BT_ASSERT_DBG(session->traces);
 
 	/*
 	 * Use while loops here rather then for loops so we can restart the
@@ -1144,7 +1144,7 @@ enum lttng_live_iterator_status next_stream_iterator_for_session(
 		}
 
 		if (!trace_is_ended) {
-			BT_ASSERT(stream_iter);
+			BT_ASSERT_DBG(stream_iter);
 
 			if (G_UNLIKELY(youngest_candidate_stream_iter == NULL) ||
 					stream_iter->current_msg_ts_ns < youngest_candidate_msg_ts) {
@@ -1227,7 +1227,7 @@ bt_component_class_message_iterator_next_method_status lttng_live_msg_iter_next(
 
 	*count = 0;
 
-	BT_ASSERT(lttng_live_msg_iter);
+	BT_ASSERT_DBG(lttng_live_msg_iter);
 
 	/*
 	 * Clear all the invalid message reference that might be left over in
@@ -1286,7 +1286,7 @@ bt_component_class_message_iterator_next_method_status lttng_live_msg_iter_next(
 			  *candidate_stream_iter = NULL;
 		int64_t youngest_msg_ts_ns = INT64_MAX;
 
-		BT_ASSERT(lttng_live_msg_iter->sessions);
+		BT_ASSERT_DBG(lttng_live_msg_iter->sessions);
 		session_idx = 0;
 		/*
 		 * Use a while loop instead of a for loop so we can restart the
@@ -1376,9 +1376,9 @@ bt_component_class_message_iterator_next_method_status lttng_live_msg_iter_next(
 			goto end;
 		}
 
-		BT_ASSERT(youngest_stream_iter->current_msg);
+		BT_ASSERT_DBG(youngest_stream_iter->current_msg);
 		/* Ensure monotonicity. */
-		BT_ASSERT(lttng_live_msg_iter->last_msg_ts_ns <=
+		BT_ASSERT_DBG(lttng_live_msg_iter->last_msg_ts_ns <=
 			youngest_stream_iter->current_msg_ts_ns);
 
 		/*

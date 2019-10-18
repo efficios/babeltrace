@@ -70,7 +70,7 @@ struct bt_ctf_clock *bt_ctf_clock_create(const char *name)
 	bt_uuid_generate(cc_uuid);
 
 	ret = bt_ctf_clock_class_set_uuid(clock->clock_class, cc_uuid);
-	BT_ASSERT(ret == 0);
+	BT_ASSERT_DBG(ret == 0);
 	return clock;
 
 error:

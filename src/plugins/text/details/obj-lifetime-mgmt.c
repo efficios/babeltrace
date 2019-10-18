@@ -48,8 +48,8 @@ struct details_trace_class_meta *borrow_trace_class_meta(
 {
 	struct details_trace_class_meta *details_tc_meta;
 
-	BT_ASSERT(ctx->details_comp->cfg.with_meta);
-	BT_ASSERT(ctx->details_comp->meta);
+	BT_ASSERT_DBG(ctx->details_comp->cfg.with_meta);
+	BT_ASSERT_DBG(ctx->details_comp->meta);
 	details_tc_meta = g_hash_table_lookup(ctx->details_comp->meta, tc);
 	if (!details_tc_meta) {
 		/* Not found: create one */
@@ -93,9 +93,9 @@ bool details_need_to_write_meta_object(struct details_write_ctx *ctx,
 		goto end;
 	}
 
-	BT_ASSERT(ctx->details_comp->meta);
+	BT_ASSERT_DBG(ctx->details_comp->meta);
 	details_tc_meta = g_hash_table_lookup(ctx->details_comp->meta, tc);
-	BT_ASSERT(details_tc_meta);
+	BT_ASSERT_DBG(details_tc_meta);
 	need_to_write =
 		!g_hash_table_lookup(details_tc_meta->objects, obj);
 
@@ -128,7 +128,7 @@ bool details_need_to_write_trace_class(struct details_write_ctx *ctx,
 		goto end;
 	}
 
-	BT_ASSERT(ctx->details_comp->meta);
+	BT_ASSERT_DBG(ctx->details_comp->meta);
 	details_tc_meta = g_hash_table_lookup(ctx->details_comp->meta, tc);
 	need_to_write = !details_tc_meta;
 
@@ -190,8 +190,8 @@ int details_trace_unique_id(struct details_write_ctx *ctx,
 	int ret = 0;
 	struct details_trace *details_trace = NULL;
 
-	BT_ASSERT(unique_id);
-	BT_ASSERT(ctx->details_comp->traces);
+	BT_ASSERT_DBG(unique_id);
+	BT_ASSERT_DBG(ctx->details_comp->traces);
 	if (!bt_g_hash_table_contains(ctx->details_comp->traces,
 			trace)) {
 		/* Not found: create one */

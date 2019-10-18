@@ -111,7 +111,7 @@ void *bt_object_pool_create_object(struct bt_object_pool *pool)
 {
 	struct bt_object *obj;
 
-	BT_ASSERT(pool);
+	BT_ASSERT_DBG(pool);
 	BT_LOGT("Creating object from pool: pool-addr=%p, pool-size=%zu, pool-cap=%u",
 		pool, pool->size, pool->objects->len);
 
@@ -144,8 +144,8 @@ void bt_object_pool_recycle_object(struct bt_object_pool *pool, void *obj)
 {
 	struct bt_object *bt_obj = obj;
 
-	BT_ASSERT(pool);
-	BT_ASSERT(obj);
+	BT_ASSERT_DBG(pool);
+	BT_ASSERT_DBG(obj);
 	BT_LOGT("Recycling object: pool-addr=%p, pool-size=%zu, pool-cap=%u, obj-addr=%p",
 		pool, pool->size, pool->objects->len, obj);
 

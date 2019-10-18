@@ -48,7 +48,7 @@
 static inline
 size_t remaining_mmap_bytes(struct ctf_fs_ds_file *ds_file)
 {
-	BT_ASSERT(ds_file->mmap_len >= ds_file->request_offset);
+	BT_ASSERT_DBG(ds_file->mmap_len >= ds_file->request_offset);
 	return ds_file->mmap_len - ds_file->request_offset;
 }
 

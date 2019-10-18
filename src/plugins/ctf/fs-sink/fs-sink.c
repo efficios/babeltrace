@@ -296,7 +296,7 @@ bt_component_class_sink_consume_method_status handle_event_msg(
 		goto end;
 	}
 
-	BT_ASSERT(ec);
+	BT_ASSERT_DBG(ec);
 
 	if (stream->sc->default_clock_class) {
 		cs = bt_message_event_borrow_default_clock_snapshot_const(
@@ -338,7 +338,7 @@ bt_component_class_sink_consume_method_status handle_event_msg(
 		}
 	}
 
-	BT_ASSERT(stream->packet_state.is_open);
+	BT_ASSERT_DBG(stream->packet_state.is_open);
 	ret = fs_sink_stream_write_event(stream, cs, ir_event, ec);
 	if (G_UNLIKELY(ret)) {
 		status = BT_COMPONENT_CLASS_SINK_CONSUME_METHOD_STATUS_ERROR;
@@ -987,8 +987,8 @@ bt_component_class_sink_consume_method_status ctf_fs_sink_consume(
 
 	fs_sink = bt_self_component_get_data(
 			bt_self_component_sink_as_self_component(self_comp));
-	BT_ASSERT(fs_sink);
-	BT_ASSERT(fs_sink->upstream_iter);
+	BT_ASSERT_DBG(fs_sink);
+	BT_ASSERT_DBG(fs_sink->upstream_iter);
 
 	/* Consume messages */
 	next_status = bt_self_component_port_input_message_iterator_next(
@@ -1006,7 +1006,7 @@ bt_component_class_sink_consume_method_status ctf_fs_sink_consume(
 		for (i = 0; i < msg_count; i++) {
 			const bt_message *msg = msgs[i];
 
-			BT_ASSERT(msg);
+			BT_ASSERT_DBG(msg);
 
 			switch (bt_message_get_type(msg)) {
 			case BT_MESSAGE_TYPE_EVENT:

@@ -545,8 +545,8 @@ int bt_ctf_clock_class_compare(struct bt_ctf_clock_class *clock_class_a,
 		struct bt_ctf_clock_class *clock_class_b)
 {
 	int ret = 1;
-	BT_ASSERT(clock_class_a);
-	BT_ASSERT(clock_class_b);
+	BT_ASSERT_DBG(clock_class_a);
+	BT_ASSERT_DBG(clock_class_b);
 
 	/* Name */
 	if (strcmp(clock_class_a->name->str, clock_class_b->name->str) != 0) {

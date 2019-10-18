@@ -167,7 +167,7 @@ int bt_ctf_stream_class_common_add_event_class(
 		BT_CTF_VALIDATION_FLAG_EVENT;
 	struct bt_ctf_clock_class *expected_clock_class = NULL;
 
-	BT_ASSERT(copy_field_type_func);
+	BT_ASSERT_DBG(copy_field_type_func);
 
 	if (!stream_class || !event_class) {
 		BT_LOGW("Invalid parameter: stream class or event class is NULL: "
@@ -271,8 +271,8 @@ int bt_ctf_stream_class_common_add_event_class(
 		 * The trace and stream class should be valid at this
 		 * point.
 		 */
-		BT_ASSERT(trace->valid);
-		BT_ASSERT(stream_class->valid);
+		BT_ASSERT_DBG(trace->valid);
+		BT_ASSERT_DBG(stream_class->valid);
 		packet_header_type =
 			bt_ctf_trace_common_borrow_packet_header_field_type(trace);
 		packet_context_type =
@@ -371,7 +371,7 @@ int bt_ctf_stream_class_common_add_event_class(
 	 * now if the stream class is frozen.
 	 */
 	if (stream_class->frozen && expected_clock_class) {
-		BT_ASSERT(!stream_class->clock_class ||
+		BT_ASSERT_DBG(!stream_class->clock_class ||
 			stream_class->clock_class == expected_clock_class);
 		BT_CTF_OBJECT_MOVE_REF(stream_class->clock_class, expected_clock_class);
 	}
@@ -478,8 +478,8 @@ int bt_ctf_stream_class_common_validate_single_clock_class(
 	int ret;
 	uint64_t i;
 
-	BT_ASSERT(stream_class);
-	BT_ASSERT(expected_clock_class);
+	BT_ASSERT_DBG(stream_class);
+	BT_ASSERT_DBG(expected_clock_class);
 	ret = bt_ctf_field_type_common_validate_single_clock_class(
 		stream_class->packet_context_field_type,
 		expected_clock_class);
@@ -538,7 +538,7 @@ int bt_ctf_stream_class_common_validate_single_clock_class(
 		struct bt_ctf_event_class_common *event_class =
 			g_ptr_array_index(stream_class->event_classes, i);
 
-		BT_ASSERT(event_class);
+		BT_ASSERT_DBG(event_class);
 		ret = bt_ctf_event_class_common_validate_single_clock_class(
 			event_class, expected_clock_class);
 		if (ret) {
@@ -747,14 +747,14 @@ int try_map_clock_class(struct bt_ctf_stream_class *stream_class,
 		bt_ctf_field_type_structure_get_field_type_by_name(parent_ft,
 			field_name);
 
-	BT_ASSERT(stream_class->clock);
+	BT_ASSERT_DBG(stream_class->clock);
 
 	if (!ft) {
 		/* Field does not exist: not an error */
 		goto end;
 	}
 
-	BT_ASSERT(((struct bt_ctf_field_type_common *) ft)->id ==
+	BT_ASSERT_DBG(((struct bt_ctf_field_type_common *) ft)->id ==
 		BT_CTF_FIELD_TYPE_ID_INTEGER);
 	mapped_clock_class =
 		bt_ctf_field_type_integer_get_mapped_clock_class(ft);
@@ -782,7 +782,7 @@ int try_map_clock_class(struct bt_ctf_stream_class *stream_class,
 
 		ret = bt_ctf_field_type_common_integer_set_mapped_clock_class_no_check_frozen(
 			(void *) ft_copy, stream_class->clock->clock_class);
-		BT_ASSERT(ret == 0);
+		BT_ASSERT_DBG(ret == 0);
 
 		ret = bt_ctf_field_type_common_structure_replace_field(
 			(void *) parent_ft, field_name, (void *) ft_copy);
@@ -810,7 +810,7 @@ int bt_ctf_stream_class_map_clock_class(
 {
 	int ret = 0;
 
-	BT_ASSERT(stream_class);
+	BT_ASSERT_DBG(stream_class);
 
 	if (!stream_class->clock) {
 		/* No clock class to map to */
@@ -946,7 +946,7 @@ int bt_ctf_stream_class_serialize(struct bt_ctf_stream_class *stream_class,
 	 */
 	trace = BT_CTF_FROM_COMMON(bt_ctf_stream_class_common_borrow_trace(
 		BT_CTF_TO_COMMON(stream_class)));
-	BT_ASSERT(trace);
+	BT_ASSERT_DBG(trace);
 	packet_header_type = bt_ctf_trace_get_packet_header_field_type(trace);
 	trace = NULL;
 	if (packet_header_type) {

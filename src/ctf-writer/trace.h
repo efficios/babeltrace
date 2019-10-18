@@ -117,7 +117,7 @@ int64_t bt_ctf_trace_common_get_environment_field_count(
 
 	BT_CTF_ASSERT_PRE_NON_NULL(trace, "Trace");
 	ret = bt_ctf_attributes_get_count(trace->environment);
-	BT_ASSERT(ret >= 0);
+	BT_ASSERT_DBG(ret >= 0);
 	return ret;
 }
 

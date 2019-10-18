@@ -82,7 +82,7 @@ void bt_message_init(struct bt_message *message,
 static inline
 void bt_message_reset(struct bt_message *message)
 {
-	BT_ASSERT(message);
+	BT_ASSERT_DBG(message);
 
 #ifdef BT_DEV_MODE
 	message->frozen = BT_FALSE;

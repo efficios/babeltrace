@@ -85,7 +85,7 @@ static inline
 struct bt_stream_class *bt_event_class_borrow_stream_class_inline(
 		const struct bt_event_class *event_class)
 {
-	BT_ASSERT(event_class);
+	BT_ASSERT_DBG(event_class);
 	return (void *) bt_object_borrow_parent(&event_class->base);
 }
 
