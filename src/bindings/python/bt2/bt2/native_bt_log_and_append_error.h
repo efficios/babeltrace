@@ -228,15 +228,17 @@ bt_logging_level get_self_message_iterator_log_level(
 }
 
 static inline
-void loge_exception_append_cause(const char *module_name, int active_log_level)
+void loge_exception_append_cause_clear(const char *module_name, int active_log_level)
 {
 	log_exception_and_maybe_append_cause(BT_LOG_ERROR, active_log_level,
 		true, NULL, NULL, NULL, module_name);
+	PyErr_Clear();
 }
 
 static inline
-void logw_exception(int active_log_level)
+void logw_exception_clear(int active_log_level)
 {
 	log_exception_and_maybe_append_cause(BT_LOG_WARNING, active_log_level,
 		false, NULL, NULL, NULL, NULL);
+	PyErr_Clear();
 }

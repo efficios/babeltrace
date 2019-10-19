@@ -505,16 +505,15 @@ void component_class_finalize(bt_self_component *self_component)
 		bt_logging_level log_level = get_self_component_log_level(
 			self_component);
 
-		BT_COMP_LOG_CUR_LVL(BT_LOG_WARNING, log_level, self_component,
-			"User component's _user_finalize() method raised an exception: ignoring:");
-		logw_exception(log_level);
-
 		/*
 		 * Ignore any exception raised by the _user_finalize() method
 		 * because it won't change anything at this point: the component
 		 * is being destroyed anyway.
 		 */
-		PyErr_Clear();
+		BT_COMP_LOG_CUR_LVL(BT_LOG_WARNING, log_level, self_component,
+			"User component's _user_finalize() method raised an exception: ignoring:");
+		logw_exception_clear(log_level);
+
 		goto end;
 	}
 
@@ -1181,17 +1180,15 @@ void component_class_message_iterator_finalize(
 		bt_logging_level log_level = get_self_component_log_level(
 			self_comp);
 
-		BT_COMP_LOG_CUR_LVL(BT_LOG_WARNING, log_level, self_comp,
-			"User's _user_finalize() method raised an exception: ignoring:");
-		logw_exception(get_self_message_iterator_log_level(
-			message_iterator));
-
 		/*
 		 * Ignore any exception raised by the _user_finalize() method
 		 * because it won't change anything at this point: the component
 		 * is being destroyed anyway.
 		 */
-		PyErr_Clear();
+		BT_COMP_LOG_CUR_LVL(BT_LOG_WARNING, log_level, self_comp,
+			"User's _user_finalize() method raised an exception: ignoring:");
+		logw_exception_clear(get_self_message_iterator_log_level(
+			message_iterator));
 	}
 
 	Py_XDECREF(py_method_result);
