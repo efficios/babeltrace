@@ -60,10 +60,9 @@ static bt_graph_listener_func_status port_added_listener(
 	py_res = PyObject_CallFunction(py_callable, "(OiOi)",
 		py_component_ptr, component_class_type, py_port_ptr, port_type);
 	if (!py_res) {
-		loge_exception_append_cause(
+		loge_exception_append_cause_clear(
 			"Graph's port added listener (Python)",
 			BT_LOG_OUTPUT_LEVEL);
-		PyErr_Clear();
 		status = __BT_FUNC_STATUS_ERROR;
 		goto end;
 	}
@@ -305,10 +304,9 @@ bt_graph_listener_func_status ports_connected_listener(
 		py_downstream_component_ptr, downstream_component_class_type,
 		py_downstream_port_ptr);
 	if (!py_res) {
-		loge_exception_append_cause(
+		loge_exception_append_cause_clear(
 			"Graph's port connected listener (Python)",
 			BT_LOG_OUTPUT_LEVEL);
-		PyErr_Clear();
 		status = __BT_FUNC_STATUS_ERROR;
 		goto end;
 	}
