@@ -159,6 +159,48 @@ class GraphTestCase(unittest.TestCase):
         with self.assertRaises(ValueError):
             self._graph.add_component(MySink, 'salut', logging_level=12345)
 
+    def test_add_component_invalid_params_type(self):
+        class MySink(bt2._UserSinkComponent):
+            def _user_consume(self):
+                pass
+
+        with self.assertRaises(TypeError):
+            self._graph.add_component(MySink, 'salut', params=12)
+
+    def test_add_component_params_dict(self):
+        params_obj = None
+
+        class MySink(bt2._UserSinkComponent):
+            def __init__(self, config, params, obj):
+                nonlocal params_obj
+                params_obj = params
+
+            def _user_consume(self):
+                pass
+
+        params = {'plage': 12312}
+        self._graph.add_component(MySink, 'salut', params=params)
+
+        # Check equality and not identity because `add_component()` method
+        # converts the Python `dict` to a `bt2.MapValue`.
+        self.assertEqual(params, params_obj)
+
+    def test_add_component_params_mapvalue(self):
+        params_obj = None
+
+        class MySink(bt2._UserSinkComponent):
+            def __init__(self, config, params, obj):
+                nonlocal params_obj
+                params_obj = params
+
+            def _user_consume(self):
+                pass
+
+        params = bt2.MapValue({'beachclub': '121'})
+        self._graph.add_component(MySink, 'salut', params=params)
+
+        self.assertEqual(params, params_obj)
+
     def test_add_component_logging_level(self):
         class MySink(bt2._UserSinkComponent):
             def _user_consume(self):
