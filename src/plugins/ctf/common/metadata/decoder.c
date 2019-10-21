@@ -33,11 +33,9 @@
 #include "decoder.h"
 #include "scanner.h"
 #include "logging.h"
+#include "parser-wrap.h"
 
 #define TSDL_MAGIC	0x75d11d57
-
-extern
-int yydebug;
 
 struct ctf_metadata_decoder {
 	struct ctf_scanner *scanner;
@@ -271,9 +269,11 @@ enum ctf_metadata_decoder_status ctf_metadata_decoder_append_content(
 		}
 	}
 
+#if YYDEBUG
 	if (BT_LOG_ON_TRACE) {
 		yydebug = 1;
 	}
+#endif
 
 	/* Save the file's position: we'll seek back to append the plain text */
 	BT_ASSERT(fp);
@@ -341,7 +341,9 @@ enum ctf_metadata_decoder_status ctf_metadata_decoder_append_content(
 	}
 
 end:
+#if YYDEBUG
 	yydebug = 0;
+#endif
 
 	if (fp && close_fp) {
 		if (fclose(fp)) {

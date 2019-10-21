@@ -27,6 +27,8 @@
 # error "Please include <babeltrace2/babeltrace.h> instead."
 #endif
 
+#include <babeltrace2/logging-defs.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -62,19 +64,19 @@ current global log level and the minimal log level are not executed.
 */
 typedef enum bt_logging_level {
 	/// Additional, low-level debugging context information.
-	BT_LOGGING_LEVEL_TRACE		= 1,
+	BT_LOGGING_LEVEL_TRACE		= __BT_LOGGING_LEVEL_TRACE,
 
 	/**
 	Debugging information, only useful when searching for the
 	cause of a bug.
 	*/
-	BT_LOGGING_LEVEL_DEBUG		= 2,
+	BT_LOGGING_LEVEL_DEBUG		= __BT_LOGGING_LEVEL_DEBUG,
 
 	/**
 	Non-debugging information and failure to load optional
 	subsystems.
 	*/
-	BT_LOGGING_LEVEL_INFO		= 3,
+	BT_LOGGING_LEVEL_INFO		= __BT_LOGGING_LEVEL_INFO,
 
 	/**
 	Errors caused by a bad usage of the library, that is, a
@@ -83,23 +85,23 @@ typedef enum bt_logging_level {
 	The library's and object's states remain consistent when a
 	warning is issued.
 	*/
-	BT_LOGGING_LEVEL_WARNING		= 4,
+	BT_LOGGING_LEVEL_WARNING	= __BT_LOGGING_LEVEL_WARNING,
 
 	/**
 	An important error from which the library cannot recover, but
 	the executed stack of functions can still return cleanly.
 	*/
-	BT_LOGGING_LEVEL_ERROR		= 5,
+	BT_LOGGING_LEVEL_ERROR		= __BT_LOGGING_LEVEL_ERROR,
 
 	/**
 	The library cannot continue to work in this condition: it must
 	terminate immediately, without even returning to the user's
 	execution.
 	*/
-	BT_LOGGING_LEVEL_FATAL		= 6,
+	BT_LOGGING_LEVEL_FATAL		= __BT_LOGGING_LEVEL_FATAL,
 
 	/// Logging is disabled.
-	BT_LOGGING_LEVEL_NONE		= 0xff,
+	BT_LOGGING_LEVEL_NONE		= __BT_LOGGING_LEVEL_NONE,
 } bt_logging_level;
 
 /**

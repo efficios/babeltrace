@@ -36,9 +36,6 @@
 
 #define TSDL_MAGIC	0x75d11d57
 
-extern
-int yydebug;
-
 struct ctf_metadata_decoder {
 	struct ctf_visitor_generate_ir *visitor;
 	bt_uuid_t uuid;

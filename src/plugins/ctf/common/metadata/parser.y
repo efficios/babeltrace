@@ -41,16 +41,10 @@
 #include "common/list.h"
 #include "common/assert.h"
 #include "scanner.h"
-#include "parser.h"
 #include "ast.h"
 #include "objstack.h"
 
-#if BT_LOG_ENABLED_TRACE
-# define YYDEBUG 1
-# define YYFPRINTF(_stream, _fmt, args...) BT_LOGT(_fmt, ## args)
-#else
-# define YYDEBUG 0
-#endif
+#include "parser-wrap.h"
 
 /* Join two lists, put "add" at the end of "head".  */
 static inline void
@@ -1043,6 +1037,17 @@ void ctf_scanner_free(struct ctf_scanner *scanner)
 }
 
 %}
+
+/*
+ * This ends up in parser.h and makes sure those who want to include it pass
+ * through parser-wrap.h.
+ */
+%code requires {
+#ifndef ALLOW_INCLUDE_PARSER_H
+# error "Don't include parser.h directly, include parser-wrap.h instead."
+#endif
+}
+
 
 %define api.pure
 	/* %locations */

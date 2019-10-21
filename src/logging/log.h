@@ -15,6 +15,11 @@
 #include <string.h>
 #include <babeltrace2/babeltrace.h>
 
+/* Access private __BT_LOGGING_LEVEL_* macros. */
+#define __BT_IN_BABELTRACE_H
+#include <babeltrace2/logging-defs.h>
+#undef __BT_IN_BABELTRACE_H
+
 #include "common/macros.h"
 #include "common/assert.h"
 
@@ -55,13 +60,13 @@
  * should be empty or very small. Choosing a right log level is as important as
  * providing short and self descriptive log message.
  */
-#define BT_LOG_TRACE   BT_LOGGING_LEVEL_TRACE
-#define BT_LOG_DEBUG   BT_LOGGING_LEVEL_DEBUG
-#define BT_LOG_INFO    BT_LOGGING_LEVEL_INFO
-#define BT_LOG_WARNING BT_LOGGING_LEVEL_WARNING
-#define BT_LOG_ERROR   BT_LOGGING_LEVEL_ERROR
-#define BT_LOG_FATAL   BT_LOGGING_LEVEL_FATAL
-#define BT_LOG_NONE    BT_LOGGING_LEVEL_NONE
+#define BT_LOG_TRACE   __BT_LOGGING_LEVEL_TRACE
+#define BT_LOG_DEBUG   __BT_LOGGING_LEVEL_DEBUG
+#define BT_LOG_INFO    __BT_LOGGING_LEVEL_INFO
+#define BT_LOG_WARNING __BT_LOGGING_LEVEL_WARNING
+#define BT_LOG_ERROR   __BT_LOGGING_LEVEL_ERROR
+#define BT_LOG_FATAL   __BT_LOGGING_LEVEL_FATAL
+#define BT_LOG_NONE    __BT_LOGGING_LEVEL_NONE
 
 /* "Current" log level is a compile time check and has no runtime overhead. Log
  * level that is below current log level it said to be "disabled".

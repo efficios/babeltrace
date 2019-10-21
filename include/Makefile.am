@@ -9,6 +9,7 @@ babeltrace2include_HEADERS = \
 	babeltrace2/integer-range-set-const.h \
 	babeltrace2/integer-range-set.h \
 	babeltrace2/logging.h \
+	babeltrace2/logging-defs.h \
 	babeltrace2/property.h \
 	babeltrace2/types.h \
 	babeltrace2/util.h \
