@@ -818,7 +818,8 @@ int add_ds_file_to_ds_file_group(struct ctf_fs_trace *ctf_fs_trace,
 			goto error;
 		}
 
-		ds_file_group_insert_ds_file_info_sorted(ds_file_group, ds_file_info);
+		ds_file_group_insert_ds_file_info_sorted(ds_file_group,
+			BT_MOVE_REF(ds_file_info));
 
 		add_group = true;
 		goto end;
@@ -855,7 +856,8 @@ int add_ds_file_to_ds_file_group(struct ctf_fs_trace *ctf_fs_trace,
 		merge_ctf_fs_ds_indexes(ds_file_group->index, index);
 	}
 
-	ds_file_group_insert_ds_file_info_sorted(ds_file_group, ds_file_info);
+	ds_file_group_insert_ds_file_info_sorted(ds_file_group,
+		BT_MOVE_REF(ds_file_info));
 
 	goto end;
 
@@ -870,6 +872,7 @@ end:
 	}
 
 	ctf_fs_ds_file_destroy(ds_file);
+	ctf_fs_ds_file_info_destroy(ds_file_info);
 
 	if (msg_iter) {
 		bt_msg_iter_destroy(msg_iter);
