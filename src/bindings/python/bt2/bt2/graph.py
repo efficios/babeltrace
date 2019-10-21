@@ -129,7 +129,11 @@ class Graph(object._SharedObject):
         if obj is not None and not native_bt.bt2_is_python_component_class(base_cc_ptr):
             raise ValueError('cannot pass a Python object to a non-Python component')
 
+        if params is not None and not isinstance(params, (dict, bt2.MapValue)):
+            raise TypeError("'params' parameter is not a 'dict' or a 'bt2.MapValue'.")
+
         params = bt2.create_value(params)
+
         params_ptr = params._ptr if params is not None else None
 
         status, comp_ptr = add_fn(
