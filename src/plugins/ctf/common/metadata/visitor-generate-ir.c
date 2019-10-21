@@ -49,7 +49,6 @@
 
 #include "logging.h"
 #include "scanner.h"
-#include "parser.h"
 #include "ast.h"
 #include "decoder.h"
 #include "ctf-meta.h"

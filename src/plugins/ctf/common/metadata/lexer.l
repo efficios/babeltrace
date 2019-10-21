@@ -32,7 +32,7 @@
 #include <stdio.h>
 #include <ctype.h>
 #include "scanner.h"
-#include "parser.h"
+#include "parser-wrap.h"
 #include "ast.h"
 
 #define YY_FATAL_ERROR(_msg)	BT_LOGF_STR(_msg)

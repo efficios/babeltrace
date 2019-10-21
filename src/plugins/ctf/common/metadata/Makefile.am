@@ -19,6 +19,7 @@ libctf_ast_la_SOURCES = \
 	ast.h \
 	objstack.h \
 	parser.h \
+	parser-wrap.h \
 	scanner.h \
 	scanner-symbols.h \
 	decoder.c \

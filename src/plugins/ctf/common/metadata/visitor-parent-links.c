@@ -40,7 +40,6 @@
 #include "common/macros.h"
 #include "common/list.h"
 #include "scanner.h"
-#include "parser.h"
 #include "ast.h"
 #include "logging.h"
 
