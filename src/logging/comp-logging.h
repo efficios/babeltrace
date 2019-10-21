@@ -166,8 +166,8 @@
  * Logs error and appends error cause from component context - the errno
  * edition.
  */
-#define BT_COMP_LOGE_APPEND_CAUSE_ERRNO(_self_comp, _fmt, ...)				\
-	BT_COMP_LOG_APPEND_CAUSE_ERRNO(_self_comp, BT_LOG_ERROR, _fmt, ##__VA_ARGS__)
+#define BT_COMP_LOGE_APPEND_CAUSE_ERRNO(_self_comp, _msg, _fmt, ...)				\
+	BT_COMP_LOG_APPEND_CAUSE_ERRNO(_self_comp, BT_LOG_ERROR, _msg, _fmt, ##__VA_ARGS__)
 
 /* Logs and appends error cause from component class context. */
 #define BT_COMP_CLASS_LOG_APPEND_CAUSE(_self_comp_class, _lvl, _fmt, ...)		\
@@ -198,8 +198,8 @@
  * Logs error and appends error cause from component class context - the errno
  * edition.
  */
-#define BT_COMP_CLASS_LOGE_APPEND_CAUSE_ERRNO(_self_comp_class, _fmt, ...)		\
-	BT_COMP_CLASS_LOG_APPEND_CAUSE_ERRNO(_self_comp_class, BT_LOG_ERROR, _fmt,	\
+#define BT_COMP_CLASS_LOGE_APPEND_CAUSE_ERRNO(_self_comp_class, _msg, _fmt, ...)		\
+	BT_COMP_CLASS_LOG_APPEND_CAUSE_ERRNO(_self_comp_class, BT_LOG_ERROR, _msg, _fmt,	\
 		##__VA_ARGS__)
 
 /*
