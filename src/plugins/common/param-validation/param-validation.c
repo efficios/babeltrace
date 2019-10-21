@@ -400,10 +400,10 @@ enum bt_param_validation_status bt_param_validation_validate(
 	struct bt_param_validation_map_value_descr map_value_descr;
 	enum bt_param_validation_status status;
 
-	ctx.error = NULL;
+	memset(&ctx, '\0', sizeof(ctx));
+
 	ctx.scope_stack = g_array_new(FALSE, FALSE,
 		sizeof(struct validate_ctx_stack_element));
-			g_ptr_array_new_with_free_func(g_free);
 	if (!ctx.scope_stack) {
 		status = BT_PARAM_VALIDATION_STATUS_MEMORY_ERROR;
 		goto end;
@@ -416,6 +416,10 @@ enum bt_param_validation_status bt_param_validation_validate(
 end:
 	*error = ctx.error;
 	ctx.error = NULL;
+
+	if (ctx.scope_stack) {
+		g_array_free(ctx.scope_stack, TRUE);
+	}
 
 	return status;
 }
