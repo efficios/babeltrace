@@ -93,15 +93,18 @@ int ctf_fs_file_open(struct ctf_fs_file *file, const char *mode)
 	BT_COMP_LOGI("Opening file \"%s\" with mode \"%s\"", file->path->str, mode);
 	file->fp = fopen(file->path->str, mode);
 	if (!file->fp) {
-		BT_COMP_LOGE("Cannot open file \"%s\" with mode \"%s\": %s",
-			file->path->str, mode, strerror(errno));
+		BT_COMP_LOGE_APPEND_CAUSE_ERRNO(file->self_comp,
+			"Cannot open file", ": path=%s, mode=%s",
+			file->path->str, mode);
 		goto error;
 	}
 
 	BT_COMP_LOGI("Opened file: %p", file->fp);
 
 	if (fstat(fileno(file->fp), &stat)) {
-		BT_COMP_LOGE("Cannot get file information: %s", strerror(errno));
+		BT_COMP_LOGE_APPEND_CAUSE_ERRNO(file->self_comp,
+			"Cannot get file information",
+			": path=%s", file->path->str);
 		goto error;
 	}
 
