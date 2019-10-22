@@ -169,6 +169,10 @@
 #define BT_COMP_LOGE_APPEND_CAUSE_ERRNO(_self_comp, _msg, _fmt, ...)				\
 	BT_COMP_LOG_APPEND_CAUSE_ERRNO(_self_comp, BT_LOG_ERROR, _msg, _fmt, ##__VA_ARGS__)
 
+/* Logs error from component class context. */
+#define BT_COMP_CLASS_LOGE(_self_comp_class, _fmt, ...)					\
+	BT_COMP_CLASS_LOG(BT_LOG_ERROR,_self_comp_class, _fmt, ##__VA_ARGS__)
+
 /* Logs and appends error cause from component class context. */
 #define BT_COMP_CLASS_LOG_APPEND_CAUSE(_self_comp_class, _lvl, _fmt, ...)		\
 	do {										\
@@ -201,6 +205,21 @@
 #define BT_COMP_CLASS_LOGE_APPEND_CAUSE_ERRNO(_self_comp_class, _msg, _fmt, ...)		\
 	BT_COMP_CLASS_LOG_APPEND_CAUSE_ERRNO(_self_comp_class, BT_LOG_ERROR, _msg, _fmt,	\
 		##__VA_ARGS__)
+
+/*
+ * Logs error from component or component class context, depending on whichever
+ * is set.
+ */
+#define BT_COMP_OR_COMP_CLASS_LOGE(_self_comp, _self_comp_class, _fmt, ...)			\
+	do {											\
+		/* Only one of `_self_comp` and `_self_comp_class` must be set. */		\
+		BT_ASSERT((!!(_self_comp) != (!!_self_comp_class)));				\
+		if (_self_comp) {								\
+			BT_COMP_LOGE(_fmt, ##__VA_ARGS__);					\
+		} else {									\
+			BT_COMP_CLASS_LOGE(_self_comp_class, _fmt, ##__VA_ARGS__);		\
+		}										\
+	} while (0)
 
 /*
  * Logs error and appends error cause from component or component class context,

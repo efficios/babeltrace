@@ -113,7 +113,8 @@ bt_stream *medop_borrow_stream(bt_stream_class *stream_class,
 		}
 
 		if (!lttng_live_stream->stream) {
-			BT_COMP_LOGE("Cannot create stream %s (stream class ID "
+			BT_COMP_LOGE_APPEND_CAUSE(self_comp,
+				"Cannot create stream %s (stream class ID "
 				"%" PRId64 ", stream ID %" PRIu64 ")",
 				lttng_live_stream->name->str,
 				stream_class_id, stream_id);
@@ -169,6 +170,8 @@ enum lttng_live_iterator_status lttng_live_lazy_msg_init(
 				lttng_live->max_query_size, medops, stream_iter,
 				log_level, self_comp);
 			if (!stream_iter->msg_iter) {
+				BT_COMP_LOGE_APPEND_CAUSE(self_comp,
+					"Failed to create CTF message iterator");
 				goto error;
 			}
 
@@ -209,6 +212,8 @@ struct lttng_live_stream_iterator *lttng_live_stream_iterator_create(
 
 	stream_iter = g_new0(struct lttng_live_stream_iterator, 1);
 	if (!stream_iter) {
+		BT_COMP_LOGE_APPEND_CAUSE(self_comp,
+			"Failed to allocate struct lttng_live_stream_iterator");
 		goto error;
 	}
 
@@ -216,6 +221,8 @@ struct lttng_live_stream_iterator *lttng_live_stream_iterator_create(
 	stream_iter->self_comp = self_comp;
 	trace = lttng_live_borrow_trace(session, ctf_trace_id);
 	if (!trace) {
+		BT_COMP_LOGE_APPEND_CAUSE(self_comp,
+			"Failed to borrow CTF trace.");
 		goto error;
 	}
 
@@ -234,6 +241,8 @@ struct lttng_live_stream_iterator *lttng_live_stream_iterator_create(
 			lttng_live->max_query_size, medops, stream_iter,
 			log_level, self_comp);
 		if (!stream_iter->msg_iter) {
+			BT_COMP_LOGE_APPEND_CAUSE(self_comp,
+				"Failed to create CTF message iterator");
 			goto error;
 		}
 
@@ -244,12 +253,16 @@ struct lttng_live_stream_iterator *lttng_live_stream_iterator_create(
 	}
 	stream_iter->buf = g_new0(uint8_t, lttng_live->max_query_size);
 	if (!stream_iter->buf) {
+		BT_COMP_LOGE_APPEND_CAUSE(self_comp,
+			"Failed to allocate live stream iterator buffer");
 		goto error;
 	}
 
 	stream_iter->buflen = lttng_live->max_query_size;
 	stream_iter->name = g_string_new(NULL);
 	if (!stream_iter->name) {
+		BT_COMP_LOGE_APPEND_CAUSE(self_comp,
+			"Failed to allocate live stream iterator name buffer");
 		goto error;
 	}
 

@@ -178,6 +178,8 @@ struct lttng_live_trace *lttng_live_create_trace(struct lttng_live_session *sess
 
 	trace = g_new0(struct lttng_live_trace, 1);
 	if (!trace) {
+		BT_COMP_LOGE_APPEND_CAUSE(self_comp,
+			"Failed to allocate live trace");
 		goto error;
 	}
 	trace->log_level = session->log_level;
@@ -231,6 +233,8 @@ int lttng_live_add_session(struct lttng_live_msg_iter *lttng_live_msg_iter,
 
 	session = g_new0(struct lttng_live_session, 1);
 	if (!session) {
+		BT_COMP_LOGE_APPEND_CAUSE(self_comp,
+			"Failed to allocate live session");
 		goto error;
 	}
 
@@ -253,7 +257,7 @@ int lttng_live_add_session(struct lttng_live_msg_iter *lttng_live_msg_iter,
 	g_ptr_array_add(lttng_live_msg_iter->sessions, session);
 	goto end;
 error:
-	BT_COMP_LOGE("Error adding session");
+	BT_COMP_LOGE_APPEND_CAUSE(self_comp, "Error adding session");
 	g_free(session);
 	ret = -1;
 end:
@@ -435,6 +439,8 @@ enum lttng_live_iterator_status lttng_live_get_session(
 		struct lttng_live_msg_iter *lttng_live_msg_iter,
 		struct lttng_live_session *session)
 {
+	bt_logging_level log_level = lttng_live_msg_iter->log_level;
+	bt_self_component *self_comp = lttng_live_msg_iter->self_comp;
 	enum lttng_live_iterator_status status;
 	uint64_t trace_idx;
 
@@ -443,9 +449,18 @@ enum lttng_live_iterator_status lttng_live_get_session(
 			lttng_live_attach_session(session);
 		if (attach_status != LTTNG_LIVE_ATTACH_SESSION_STATUS_OK) {
 			if (lttng_live_graph_is_canceled(lttng_live_msg_iter)) {
+				/*
+				 * Clear any causes appended in
+				 * `lttng_live_attach_session()` as we want to
+				 * return gracefully since the graph was
+				 * cancelled.
+				 */
+				bt_current_thread_clear_error();
 				status = LTTNG_LIVE_ITERATOR_STATUS_AGAIN;
 			} else {
 				status = LTTNG_LIVE_ITERATOR_STATUS_ERROR;
+				BT_COMP_LOGE_APPEND_CAUSE(self_comp,
+					"Error attaching to LTTng live session");
 			}
 			goto end;
 		}
@@ -527,6 +542,8 @@ lttng_live_iterator_handle_new_streams_and_metadata(
 		struct lttng_live_msg_iter *lttng_live_msg_iter)
 {
 	enum lttng_live_iterator_status ret = LTTNG_LIVE_ITERATOR_STATUS_OK;
+	bt_logging_level log_level = lttng_live_msg_iter->log_level;
+	bt_self_component *self_comp = lttng_live_msg_iter->self_comp;
 	uint64_t session_idx = 0, nr_sessions_opened = 0;
 	struct lttng_live_session *session;
 	enum session_not_found_action sess_not_found_act =
@@ -549,6 +566,8 @@ lttng_live_iterator_handle_new_streams_and_metadata(
 			 */
 			if (lttng_live_create_viewer_session(lttng_live_msg_iter)) {
 				ret = LTTNG_LIVE_ITERATOR_STATUS_ERROR;
+				BT_COMP_LOGE_APPEND_CAUSE(self_comp,
+					"Error creating LTTng live viewer session");
 				goto end;
 			}
 		}
@@ -588,6 +607,8 @@ enum lttng_live_iterator_status emit_inactivity_message(
 		bt_message **message, uint64_t timestamp)
 {
 	enum lttng_live_iterator_status ret = LTTNG_LIVE_ITERATOR_STATUS_OK;
+	bt_logging_level log_level = lttng_live_msg_iter->log_level;
+	bt_self_component *self_comp = lttng_live_msg_iter->self_comp;
 	bt_message *msg = NULL;
 
 	BT_ASSERT(stream_iter->trace->clock_class);
@@ -596,6 +617,8 @@ enum lttng_live_iterator_status emit_inactivity_message(
 		lttng_live_msg_iter->self_msg_iter,
 		stream_iter->trace->clock_class, timestamp);
 	if (!msg) {
+		BT_COMP_LOGE_APPEND_CAUSE(self_comp,
+			"Error emitting message iterator inactivity message");
 		goto error;
 	}
 
@@ -713,7 +736,8 @@ int live_get_msg_ts_ns(struct lttng_live_stream_iterator *stream_iter,
 
 	ret = bt_clock_snapshot_get_ns_from_origin(clock_snapshot, ts_ns);
 	if (ret) {
-		BT_COMP_LOGE("Cannot get nanoseconds from Epoch of clock snapshot: "
+		BT_COMP_LOGE_APPEND_CAUSE(self_comp,
+			"Cannot get nanoseconds from Epoch of clock snapshot: "
 			"clock-snapshot-addr=%p", clock_snapshot);
 		goto error;
 	}
@@ -793,8 +817,9 @@ enum lttng_live_iterator_status lttng_live_iterator_next_handle_one_active_data_
 	case BT_MSG_ITER_STATUS_ERROR:
 	default:
 		ret = LTTNG_LIVE_ITERATOR_STATUS_ERROR;
-		BT_COMP_LOGW("CTF msg iterator return an error or failed msg_iter=%p",
-			lttng_live_stream->msg_iter);
+		BT_COMP_LOGE_APPEND_CAUSE(self_comp,
+			"CTF message iterator return an error or failed: "
+			"msg_iter=%p", lttng_live_stream->msg_iter);
 		break;
 	}
 
@@ -810,6 +835,8 @@ enum lttng_live_iterator_status lttng_live_iterator_close_stream(
 {
 	enum lttng_live_iterator_status live_status =
 		LTTNG_LIVE_ITERATOR_STATUS_OK;
+	bt_logging_level log_level = lttng_live_msg_iter->log_level;
+	bt_self_component *self_comp = lttng_live_msg_iter->self_comp;
 	/*
 	 * The viewer has hung up on us so we are closing the stream. The
 	 * `bt_msg_iter` should simply realize that it needs to close the
@@ -820,6 +847,8 @@ enum lttng_live_iterator_status lttng_live_iterator_close_stream(
 		curr_msg);
 
 	if (status == BT_MSG_ITER_STATUS_ERROR) {
+		BT_COMP_LOGE_APPEND_CAUSE(self_comp,
+			"Error getting the next message from CTF message iterator");
 		live_status = LTTNG_LIVE_ITERATOR_STATUS_ERROR;
 		goto end;
 	}
@@ -1016,7 +1045,8 @@ enum lttng_live_iterator_status next_stream_iterator_for_trace(
 				 * We received a message in the past. To ensure
 				 * monotonicity, we can't send it forward.
 				 */
-				BT_COMP_LOGE("Message's timestamp is less than "
+				BT_COMP_LOGE_APPEND_CAUSE(self_comp,
+					"Message's timestamp is less than "
 					"lttng-live's message iterator's last "
 					"returned timestamp: "
 					"lttng-live-msg-iter-addr=%p, ts=%" PRId64 ", "
@@ -1476,7 +1506,7 @@ bt_component_class_message_iterator_initialize_method_status lttng_live_msg_iter
 
 	lttng_live_msg_iter->viewer_connection =
 		live_viewer_connection_create(lttng_live->params.url->str, false,
-			lttng_live_msg_iter, log_level);
+			lttng_live_msg_iter, self_comp, NULL, log_level);
 	if (!lttng_live_msg_iter->viewer_connection) {
 		goto error;
 	}
@@ -1495,7 +1525,7 @@ bt_component_class_message_iterator_initialize_method_status lttng_live_msg_iter
 				lttng_live->params.url->str);
 			break;
 		case SESSION_NOT_FOUND_ACTION_FAIL:
-			BT_COMP_LOGE("Unable to connect to the requested live viewer "
+			BT_COMP_LOGE_APPEND_CAUSE(self_comp, "Unable to connect to the requested live viewer "
 				"session. Fail the message iterator"
 				"initialization because of %s=\"%s\" "
 				"component parameter: url =\"%s\"",
@@ -1551,7 +1581,8 @@ bt_component_class_query_method_status lttng_live_query_list_sessions(
 		goto error;
 	} else if (validation_status == BT_PARAM_VALIDATION_STATUS_VALIDATION_ERROR) {
 		status = BT_COMPONENT_CLASS_QUERY_METHOD_STATUS_ERROR;
-		BT_COMP_CLASS_LOGE_APPEND_CAUSE(self_comp_class, "%s", validate_error);
+		BT_COMP_CLASS_LOGE_APPEND_CAUSE(self_comp_class, "%s",
+			validate_error);
 		goto error;
 	}
 
@@ -1559,8 +1590,10 @@ bt_component_class_query_method_status lttng_live_query_list_sessions(
 	url = bt_value_string_get(url_value);
 
 	viewer_connection = live_viewer_connection_create(url, true, NULL,
-		log_level);
+		NULL, self_comp_class, log_level);
 	if (!viewer_connection) {
+		BT_COMP_CLASS_LOGE_APPEND_CAUSE(self_comp_class,
+			"Failed to create viewer connection");
 		status = BT_COMPONENT_CLASS_QUERY_METHOD_STATUS_ERROR;
 		goto error;
 	}
@@ -1568,6 +1601,8 @@ bt_component_class_query_method_status lttng_live_query_list_sessions(
 	status = live_viewer_connection_list_sessions(viewer_connection,
 		result);
 	if (status != BT_COMPONENT_CLASS_QUERY_METHOD_STATUS_OK) {
+		BT_COMP_CLASS_LOGE_APPEND_CAUSE(self_comp_class,
+			"Failed to list viewer sessions");
 		goto error;
 	}
 
@@ -1593,6 +1628,7 @@ end:
 static
 bt_component_class_query_method_status lttng_live_query_support_info(
 		const bt_value *params, const bt_value **result,
+		bt_self_component_class *self_comp_class,
 		bt_logging_level log_level)
 {
 	bt_component_class_query_method_status status =
@@ -1609,12 +1645,14 @@ bt_component_class_query_method_status lttng_live_query_support_info(
 	input_type_value = bt_value_map_borrow_entry_value_const(params,
 		"type");
 	if (!input_type_value) {
-		BT_COMP_LOGE("Missing expected `type` parameter.");
+		BT_COMP_CLASS_LOGE_APPEND_CAUSE(self_comp_class,
+			"Missing expected `type` parameter.");
 		goto error;
 	}
 
 	if (!bt_value_is_string(input_type_value)) {
-		BT_COMP_LOGE("`type` parameter is not a string value.");
+		BT_COMP_CLASS_LOGE_APPEND_CAUSE(self_comp_class,
+			"`type` parameter is not a string value.");
 		goto error;
 	}
 
@@ -1625,12 +1663,14 @@ bt_component_class_query_method_status lttng_live_query_support_info(
 
 	input_value = bt_value_map_borrow_entry_value_const(params, "input");
 	if (!input_value) {
-		BT_COMP_LOGE("Missing expected `input` parameter.");
+		BT_COMP_CLASS_LOGE_APPEND_CAUSE(self_comp_class,
+			"Missing expected `input` parameter.");
 		goto error;
 	}
 
 	if (!bt_value_is_string(input_value)) {
-		BT_COMP_LOGE("`input` parameter is not a string value.");
+		BT_COMP_CLASS_LOGE_APPEND_CAUSE(self_comp_class,
+			"`input` parameter is not a string value.");
 		goto error;
 	}
 
@@ -1687,7 +1727,7 @@ bt_component_class_query_method_status lttng_live_query(
 			self_comp_class, log_level);
 	} else if (strcmp(object, "babeltrace.support-info") == 0) {
 		status = lttng_live_query_support_info(params, result,
-			log_level);
+			self_comp_class, log_level);
 	} else {
 		BT_COMP_LOGI("Unknown query object `%s`", object);
 		status = BT_COMPONENT_CLASS_QUERY_METHOD_STATUS_UNKNOWN_OBJECT;

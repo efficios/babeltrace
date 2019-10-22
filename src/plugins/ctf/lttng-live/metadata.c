@@ -76,7 +76,8 @@ bool stream_classes_all_have_default_clock_class(bt_trace_class *tc,
 		cc = bt_stream_class_borrow_default_clock_class_const(sc);
 		if (!cc) {
 			ret = false;
-			BT_COMP_LOGE("Stream class doesn't have a default clock class: "
+			BT_COMP_LOGE_APPEND_CAUSE(self_comp,
+				"Stream class doesn't have a default clock class: "
 				"sc-id=%" PRIu64 ", sc-name=\"%s\"",
 				bt_stream_class_get_id(sc),
 				bt_stream_class_get_name(sc));
@@ -153,7 +154,8 @@ enum lttng_live_iterator_status lttng_live_metadata_update(
 	/* Open for writing */
 	fp = bt_open_memstream(&metadata_buf, &size);
 	if (!fp) {
-		BT_COMP_LOGE("Metadata open_memstream: %s", strerror(errno));
+		BT_COMP_LOGE_APPEND_CAUSE_ERRNO(self_comp,
+			"Metadata open_memstream", ".");
 		goto error;
 	}
 
@@ -203,7 +205,8 @@ enum lttng_live_iterator_status lttng_live_metadata_update(
 	}
 
 	if (bt_close_memstream(&metadata_buf, &size, fp)) {
-		BT_COMP_LOGE("bt_close_memstream: %s", strerror(errno));
+		BT_COMP_LOGE_APPEND_CAUSE_ERRNO(self_comp,
+			"Metadata bt_close_memstream", ".");
 	}
 
 	fp = NULL;
@@ -219,8 +222,8 @@ enum lttng_live_iterator_status lttng_live_metadata_update(
 
 	fp = bt_fmemopen(metadata_buf, len_read, "rb");
 	if (!fp) {
-		BT_COMP_LOGE("Cannot memory-open metadata buffer: %s",
-			strerror(errno));
+		BT_COMP_LOGE_APPEND_CAUSE_ERRNO(self_comp,
+			"Cannot memory-open metadata buffer", ".");
 		goto error;
 	}
 
@@ -242,10 +245,14 @@ enum lttng_live_iterator_status lttng_live_metadata_update(
 						metadata->decoder);
 			trace->trace = bt_trace_create(trace->trace_class);
 			if (!trace->trace) {
+				BT_COMP_LOGE_APPEND_CAUSE(self_comp,
+					"Failed to create bt_trace");
 				goto error;
 			}
 			if (ctf_trace_class_configure_ir_trace(tc,
 					trace->trace)) {
+				BT_COMP_LOGE_APPEND_CAUSE(self_comp,
+					"Failed to configure ctf trace class");
 				goto error;
 			}
 			if (!stream_classes_all_have_default_clock_class(
@@ -283,7 +290,8 @@ end:
 
 		closeret = fclose(fp);
 		if (closeret) {
-			BT_COMP_LOGE("Error on fclose");
+			BT_COMP_LOGE_APPEND_CAUSE_ERRNO(self_comp,
+				"Error on fclose", ".");
 		}
 	}
 	free(metadata_buf);
@@ -295,6 +303,8 @@ int lttng_live_metadata_create_stream(struct lttng_live_session *session,
 		uint64_t ctf_trace_id, uint64_t stream_id,
 		const char *trace_name)
 {
+	bt_self_component *self_comp = session->self_comp;
+	bt_logging_level log_level = session->log_level;
 	struct lttng_live_metadata *metadata = NULL;
 	struct lttng_live_trace *trace;
 	struct ctf_metadata_decoder_config cfg = {
@@ -315,10 +325,14 @@ int lttng_live_metadata_create_stream(struct lttng_live_session *session,
 
 	metadata->decoder = ctf_metadata_decoder_create(&cfg);
 	if (!metadata->decoder) {
+		BT_COMP_LOGE_APPEND_CAUSE(self_comp,
+			"Failed to create CTF metadata decoder");
 		goto error;
 	}
 	trace = lttng_live_borrow_trace(session, ctf_trace_id);
 	if (!trace) {
+		BT_COMP_LOGE_APPEND_CAUSE(self_comp,
+			"Failed to borrow trace");
 		goto error;
 	}
 	metadata->trace = trace;
