@@ -25,6 +25,7 @@
 
 #include <babeltrace2/babeltrace.h>
 #include <glib.h>
+#include <stdbool.h>
 
 #include <stdio.h> /* For __MINGW_PRINTF_FORMAT. */
 

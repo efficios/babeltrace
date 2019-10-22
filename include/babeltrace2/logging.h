@@ -27,10 +27,6 @@
 # error "Please include <babeltrace2/babeltrace.h> instead."
 #endif
 
-#include <stdint.h>
-#include <stdbool.h>
-#include <stddef.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif
