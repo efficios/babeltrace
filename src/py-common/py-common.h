@@ -27,6 +27,7 @@
 
 #include <glib.h>
 #include <Python.h>
+#include <stdbool.h>
 
 #include "common/macros.h"
 

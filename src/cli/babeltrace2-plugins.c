@@ -27,6 +27,7 @@
 
 #include "babeltrace2-plugins.h"
 
+#include <stdbool.h>
 #include <babeltrace2/babeltrace.h>
 
 /* Array of bt_plugin * */
