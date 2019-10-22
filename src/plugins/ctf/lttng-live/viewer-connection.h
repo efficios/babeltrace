@@ -49,6 +49,7 @@ struct live_viewer_connection {
 	bt_object obj;
 	bt_logging_level log_level;
 	bt_self_component *self_comp;
+	bt_self_component_class *self_comp_class;
 
 	GString *url;
 
@@ -88,6 +89,8 @@ struct packet_index {
 struct live_viewer_connection * live_viewer_connection_create(
 		const char *url, bool in_query,
 		struct lttng_live_msg_iter *lttng_live_msg_iter,
+		bt_self_component *self_comp,
+		bt_self_component_class *self_comp_class,
 		bt_logging_level log_level);
 
 void live_viewer_connection_destroy(
