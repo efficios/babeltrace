@@ -286,7 +286,7 @@ void bt_msg_iter_destroy(struct bt_msg_iter *msg_iter);
  */
 BT_HIDDEN
 enum bt_msg_iter_status bt_msg_iter_get_next_message(
-		struct bt_msg_iter *notit,
+		struct bt_msg_iter *msg_it,
 		bt_self_message_iterator *msg_iter,
 		bt_message **message);
 
@@ -306,24 +306,24 @@ struct bt_msg_iter_packet_properties {
 
 BT_HIDDEN
 enum bt_msg_iter_status bt_msg_iter_get_packet_properties(
-		struct bt_msg_iter *notit,
+		struct bt_msg_iter *msg_it,
 		struct bt_msg_iter_packet_properties *props);
 
 BT_HIDDEN
 enum bt_msg_iter_status bt_msg_iter_curr_packet_first_event_clock_snapshot(
-		struct bt_msg_iter *notit, uint64_t *first_event_cs);
+		struct bt_msg_iter *msg_it, uint64_t *first_event_cs);
 
 BT_HIDDEN
 enum bt_msg_iter_status bt_msg_iter_curr_packet_last_event_clock_snapshot(
-		struct bt_msg_iter *notit, uint64_t *last_event_cs);
+		struct bt_msg_iter *msg_it, uint64_t *last_event_cs);
 
 BT_HIDDEN
-void bt_msg_iter_set_medops_data(struct bt_msg_iter *notit,
+void bt_msg_iter_set_medops_data(struct bt_msg_iter *msg_it,
 		void *medops_data);
 
 BT_HIDDEN
 enum bt_msg_iter_status bt_msg_iter_seek(
-		struct bt_msg_iter *notit, off_t offset);
+		struct bt_msg_iter *msg_it, off_t offset);
 
 /*
  * Resets the iterator so that the next requested medium bytes are
@@ -333,24 +333,24 @@ enum bt_msg_iter_status bt_msg_iter_seek(
  * type `BT_MESSAGE_TYPE_STREAM_BEGINNING`.
  */
 BT_HIDDEN
-void bt_msg_iter_reset(struct bt_msg_iter *notit);
+void bt_msg_iter_reset(struct bt_msg_iter *msg_it);
 
 /*
  * Like bt_msg_iter_reset(), but preserves stream-dependent state.
  */
 BT_HIDDEN
-void bt_msg_iter_reset_for_next_stream_file(struct bt_msg_iter *notit);
+void bt_msg_iter_reset_for_next_stream_file(struct bt_msg_iter *msg_it);
 
 BT_HIDDEN
-void bt_msg_iter_set_emit_stream_beginning_message(struct bt_msg_iter *notit,
+void bt_msg_iter_set_emit_stream_beginning_message(struct bt_msg_iter *msg_it,
 		bool val);
 
 BT_HIDDEN
-void bt_msg_iter_set_emit_stream_end_message(struct bt_msg_iter *notit,
+void bt_msg_iter_set_emit_stream_end_message(struct bt_msg_iter *msg_it,
 		bool val);
 
 BT_HIDDEN
-void bt_msg_iter_set_dry_run(struct bt_msg_iter *notit,
+void bt_msg_iter_set_dry_run(struct bt_msg_iter *msg_it,
 		bool val);
 
 static inline
