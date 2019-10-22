@@ -21,13 +21,15 @@ from cli_params_to_string import to_string
 
 
 @bt2.plugin_component_class
-class SinkThatPrintsParams(bt2._UserSinkComponent):
-    def __init__(self, config, params, obj):
-        self._add_input_port('in')
-        print(to_string(params))
+class SourceWithQueryThatPrintsParams(
+    bt2._UserSourceComponent, message_iterator_class=bt2._UserMessageIterator
+):
+    @classmethod
+    def _user_query(cls, executor, obj, params, method_obj):
+        if obj == 'please-fail':
+            raise ValueError('catastrophic failure')
 
-    def _user_consume(self):
-        raise bt2.Stop
+        return obj + ':' + to_string(params)
 
 
-bt2.register_plugin(__name__, "params")
+bt2.register_plugin(__name__, "query")
