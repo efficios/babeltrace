@@ -924,8 +924,6 @@ enum bt_msg_iter_status set_current_packet(struct bt_msg_iter *notit)
 	enum bt_msg_iter_status status = BT_MSG_ITER_STATUS_OK;
 	bt_packet *packet = NULL;
 
-	BT_COMP_LOGD("Creating packet for packet message: "
-		"notit-addr=%p", notit);
 	BT_COMP_LOGD("Creating packet from stream: "
 		"notit-addr=%p, stream-addr=%p, "
 		"stream-class-addr=%p, "
