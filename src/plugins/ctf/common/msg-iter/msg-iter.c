@@ -765,19 +765,19 @@ enum bt_msg_iter_status read_packet_header_begin_state(
 		struct bt_msg_iter *notit)
 {
 	struct ctf_field_class *packet_header_fc = NULL;
-	enum bt_msg_iter_status ret = BT_MSG_ITER_STATUS_OK;
+	enum bt_msg_iter_status status = BT_MSG_ITER_STATUS_OK;
 
 	/*
 	 * Make sure at least one bit is available for this packet. An
 	 * empty packet is impossible. If we reach the end of the medium
 	 * at this point, then it's considered the end of the stream.
 	 */
-	ret = buf_ensure_available_bits(notit);
-	switch (ret) {
+	status = buf_ensure_available_bits(notit);
+	switch (status) {
 	case BT_MSG_ITER_STATUS_OK:
 		break;
 	case BT_MSG_ITER_STATUS_EOF:
-		ret = BT_MSG_ITER_STATUS_OK;
+		status = BT_MSG_ITER_STATUS_OK;
 		notit->state = STATE_CHECK_EMIT_MSG_STREAM_END;
 		goto end;
 	default:
@@ -797,10 +797,10 @@ enum bt_msg_iter_status read_packet_header_begin_state(
 	BT_COMP_LOGD("Decoding packet header field:"
 		"notit-addr=%p, trace-class-addr=%p, fc-addr=%p",
 		notit, notit->meta.tc, packet_header_fc);
-	ret = read_dscope_begin_state(notit, packet_header_fc,
+	status = read_dscope_begin_state(notit, packet_header_fc,
 		STATE_AFTER_TRACE_PACKET_HEADER,
 		STATE_DSCOPE_TRACE_PACKET_HEADER_CONTINUE, NULL);
-	if (ret < 0) {
+	if (status < 0) {
 		BT_COMP_LOGW("Cannot decode packet header field: "
 			"notit-addr=%p, trace-class-addr=%p, "
 			"fc-addr=%p",
@@ -808,7 +808,7 @@ enum bt_msg_iter_status read_packet_header_begin_state(
 	}
 
 end:
-	return ret;
+	return status;
 }
 
 static
@@ -3084,18 +3084,18 @@ BT_HIDDEN
 enum bt_msg_iter_status bt_msg_iter_seek(struct bt_msg_iter *notit,
 		off_t offset)
 {
-	enum bt_msg_iter_status ret = BT_MSG_ITER_STATUS_OK;
+	enum bt_msg_iter_status status = BT_MSG_ITER_STATUS_OK;
 	enum bt_msg_iter_medium_status medium_status;
 
 	BT_ASSERT(notit);
 	if (offset < 0) {
 		BT_COMP_LOGE("Cannot seek to negative offset: offset=%jd", (intmax_t) offset);
-		ret = BT_MSG_ITER_STATUS_INVAL;
+		status = BT_MSG_ITER_STATUS_INVAL;
 		goto end;
 	}
 
 	if (!notit->medium.medops.seek) {
-		ret = BT_MSG_ITER_STATUS_UNSUPPORTED;
+		status = BT_MSG_ITER_STATUS_UNSUPPORTED;
 		BT_COMP_LOGD("Aborting seek as the iterator's underlying media does not implement seek support.");
 		goto end;
 	}
@@ -3104,9 +3104,9 @@ enum bt_msg_iter_status bt_msg_iter_seek(struct bt_msg_iter *notit,
 		BT_MSG_ITER_SEEK_WHENCE_SET, offset, notit->medium.data);
 	if (medium_status != BT_MSG_ITER_MEDIUM_STATUS_OK) {
 		if (medium_status == BT_MSG_ITER_MEDIUM_STATUS_EOF) {
-			ret = BT_MSG_ITER_STATUS_EOF;
+			status = BT_MSG_ITER_STATUS_EOF;
 		} else {
-			ret = BT_MSG_ITER_STATUS_ERROR;
+			status = BT_MSG_ITER_STATUS_ERROR;
 			goto end;
 		}
 	}
@@ -3115,7 +3115,7 @@ enum bt_msg_iter_status bt_msg_iter_seek(struct bt_msg_iter *notit,
 	notit->cur_packet_offset = offset;
 
 end:
-	return ret;
+	return status;
 }
 
 static
