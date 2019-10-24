@@ -867,6 +867,7 @@ static _BT_LOG_INLINE void _bt_log_unused(const int dummy, ...) {(void)dummy;}
 			BT_LOG_WRITE_MEM(log, BT_LOG_TRACE, _BT_LOG_TAG, d, d_sz, __VA_ARGS__)
 #else
 	#define BT_LOGT(...) _BT_LOG_UNUSED(__VA_ARGS__)
+	#define BT_LOGT_ERRNO(...) _BT_LOG_UNUSED(__VA_ARGS__)
 	#define BT_LOGT_AUX(...) _BT_LOG_UNUSED(__VA_ARGS__)
 	#define BT_LOGT_MEM(...) _BT_LOG_UNUSED(__VA_ARGS__)
 	#define BT_LOGT_MEM_AUX(...) _BT_LOG_UNUSED(__VA_ARGS__)
@@ -885,6 +886,7 @@ static _BT_LOG_INLINE void _bt_log_unused(const int dummy, ...) {(void)dummy;}
 			BT_LOG_WRITE_MEM_AUX(log, BT_LOG_DEBUG, _BT_LOG_TAG, d, d_sz, __VA_ARGS__)
 #else
 	#define BT_LOGD(...) _BT_LOG_UNUSED(__VA_ARGS__)
+	#define BT_LOGD_ERRNO(...) _BT_LOG_UNUSED(__VA_ARGS__)
 	#define BT_LOGD_AUX(...) _BT_LOG_UNUSED(__VA_ARGS__)
 	#define BT_LOGD_MEM(...) _BT_LOG_UNUSED(__VA_ARGS__)
 	#define BT_LOGD_MEM_AUX(...) _BT_LOG_UNUSED(__VA_ARGS__)
@@ -903,6 +905,7 @@ static _BT_LOG_INLINE void _bt_log_unused(const int dummy, ...) {(void)dummy;}
 			BT_LOG_WRITE_MEM_AUX(log, BT_LOG_INFO, _BT_LOG_TAG, d, d_sz, __VA_ARGS__)
 #else
 	#define BT_LOGI(...) _BT_LOG_UNUSED(__VA_ARGS__)
+	#define BT_LOGI_ERRNO(...) _BT_LOG_UNUSED(__VA_ARGS__)
 	#define BT_LOGI_AUX(...) _BT_LOG_UNUSED(__VA_ARGS__)
 	#define BT_LOGI_MEM(...) _BT_LOG_UNUSED(__VA_ARGS__)
 	#define BT_LOGI_MEM_AUX(...) _BT_LOG_UNUSED(__VA_ARGS__)
@@ -921,6 +924,7 @@ static _BT_LOG_INLINE void _bt_log_unused(const int dummy, ...) {(void)dummy;}
 			BT_LOG_WRITE_MEM_AUX(log, BT_LOG_WARNING, _BT_LOG_TAG, d, d_sz, __VA_ARGS__)
 #else
 	#define BT_LOGW(...) _BT_LOG_UNUSED(__VA_ARGS__)
+	#define BT_LOGW_ERRNO(...) _BT_LOG_UNUSED(__VA_ARGS__)
 	#define BT_LOGW_AUX(...) _BT_LOG_UNUSED(__VA_ARGS__)
 	#define BT_LOGW_MEM(...) _BT_LOG_UNUSED(__VA_ARGS__)
 	#define BT_LOGW_MEM_AUX(...) _BT_LOG_UNUSED(__VA_ARGS__)
@@ -939,6 +943,7 @@ static _BT_LOG_INLINE void _bt_log_unused(const int dummy, ...) {(void)dummy;}
 			BT_LOG_WRITE_MEM_AUX(log, BT_LOG_ERROR, _BT_LOG_TAG, d, d_sz, __VA_ARGS__)
 #else
 	#define BT_LOGE(...) _BT_LOG_UNUSED(__VA_ARGS__)
+	#define BT_LOGE_ERRNO(...) _BT_LOG_UNUSED(__VA_ARGS__)
 	#define BT_LOGE_AUX(...) _BT_LOG_UNUSED(__VA_ARGS__)
 	#define BT_LOGE_MEM(...) _BT_LOG_UNUSED(__VA_ARGS__)
 	#define BT_LOGE_MEM_AUX(...) _BT_LOG_UNUSED(__VA_ARGS__)
@@ -957,6 +962,7 @@ static _BT_LOG_INLINE void _bt_log_unused(const int dummy, ...) {(void)dummy;}
 			BT_LOG_WRITE_MEM_AUX(log, BT_LOG_FATAL, _BT_LOG_TAG, d, d_sz, __VA_ARGS__)
 #else
 	#define BT_LOGF(...) _BT_LOG_UNUSED(__VA_ARGS__)
+	#define BT_LOGF_ERRNO(...) _BT_LOG_UNUSED(__VA_ARGS__)
 	#define BT_LOGF_AUX(...) _BT_LOG_UNUSED(__VA_ARGS__)
 	#define BT_LOGF_MEM(...) _BT_LOG_UNUSED(__VA_ARGS__)
 	#define BT_LOGF_MEM_AUX(...) _BT_LOG_UNUSED(__VA_ARGS__)
