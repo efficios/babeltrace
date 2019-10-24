@@ -764,7 +764,7 @@ int insert_flat_params_from_array(GString *params_arg,
 	for (i = 0; i < bt_value_array_get_length(names_array); i++) {
 		const bt_value *str_obj =
 			bt_value_array_borrow_element_by_index_const(names_array,
-								     i);
+				i);
 		const char *suffix;
 		bool is_default = false;
 
@@ -2079,7 +2079,7 @@ struct bt_config *bt_config_run_from_args_array(const bt_value *run_args,
 	for (i = 0; i < len; i++) {
 		const bt_value *arg_value =
 			bt_value_array_borrow_element_by_index_const(run_args,
-								     i);
+				i);
 		const char *arg;
 
 		arg = bt_value_string_get(arg_value);
