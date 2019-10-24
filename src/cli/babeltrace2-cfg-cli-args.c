@@ -735,7 +735,7 @@ int insert_flat_params_from_array(GString *params_arg,
 		const bt_value *names_array, const char *prefix)
 {
 	int ret = 0;
-	int i;
+	uint64_t i;
 	GString *tmpstr = NULL, *default_value = NULL;
 	bool default_set = false, non_default_set = false;
 
@@ -2073,20 +2073,15 @@ struct bt_config *bt_config_run_from_args_array(const bt_value *run_args,
 {
 	struct bt_config *cfg = NULL;
 	const char **argv;
-	int64_t i, len;
-	const size_t argc = bt_value_array_get_length(run_args);
+	uint64_t i, len = bt_value_array_get_length(run_args);
 
-	argv = calloc(argc, sizeof(*argv));
+	BT_ASSERT(len <= SIZE_MAX);
+	argv = calloc((size_t) len, sizeof(*argv));
 	if (!argv) {
 		BT_CLI_LOGE_APPEND_CAUSE_OOM();
 		goto end;
 	}
 
-	len = bt_value_array_get_length(run_args);
-	if (len < 0) {
-		BT_CLI_LOGE_APPEND_CAUSE("Invalid executable arguments.");
-		goto end;
-	}
 	for (i = 0; i < len; i++) {
 		const bt_value *arg_value =
 			bt_value_array_borrow_element_by_index_const(run_args,
@@ -2099,7 +2094,7 @@ struct bt_config *bt_config_run_from_args_array(const bt_value *run_args,
 		argv[i] = arg;
 	}
 
-	cfg = bt_config_run_from_args(argc, argv, retcode,
+	cfg = bt_config_run_from_args((int) len, argv, retcode,
 		plugin_paths, default_log_level);
 
 end:
@@ -2357,7 +2352,7 @@ int append_run_args_for_implicit_component(
 		bt_value *run_args)
 {
 	int ret = 0;
-	size_t i;
+	uint64_t i;
 	GString *component_arg_for_run = NULL;
 
 	if (!impl_args->exists) {
@@ -2400,8 +2395,7 @@ int append_run_args_for_implicit_component(
 		}
 	}
 
-	for (i = 0; i < bt_value_array_get_length(impl_args->extra_params);
-			i++) {
+	for (i = 0; i < bt_value_array_get_length(impl_args->extra_params); i++) {
 		const bt_value *elem;
 		const char *arg;
 
@@ -4338,15 +4332,17 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 	 * here.
 	 */
 	if (print_run_args || print_run_args_0) {
+		uint64_t args_idx, args_len;
 		if (stream_intersection_mode) {
 			BT_CLI_LOGE_APPEND_CAUSE("Cannot specify --stream-intersection with --run-args or --run-args-0.");
 			goto error;
 		}
 
-		for (i = 0; i < bt_value_array_get_length(run_args); i++) {
+		args_len = bt_value_array_get_length(run_args);
+		for (args_idx = 0; args_idx < args_len; args_idx++) {
 			const bt_value *arg_value =
 				bt_value_array_borrow_element_by_index(run_args,
-								       i);
+					args_idx);
 			const char *arg;
 			GString *quoted = NULL;
 			const char *arg_to_print;
@@ -4371,7 +4367,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 				g_string_free(quoted, TRUE);
 			}
 
-			if (i < bt_value_array_get_length(run_args) - 1) {
+			if (args_idx < args_len - 1) {
 				if (print_run_args) {
 					putchar(' ');
 				} else {

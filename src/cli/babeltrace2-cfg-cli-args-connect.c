@@ -685,7 +685,7 @@ int bt_config_cli_args_create_connections(struct bt_config *cfg,
 		char *error_buf, size_t error_buf_size)
 {
 	int ret;
-	size_t i;
+	uint64_t i;
 
 	if (!all_named_and_printable(cfg)) {
 		snprintf(error_buf, error_buf_size,

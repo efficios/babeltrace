@@ -304,7 +304,8 @@ int list_update_session(bt_value *results,
 		const struct lttng_viewer_session *session,
 		bool *_found, struct live_viewer_connection *viewer_connection)
 {
-	int i, len, ret = 0;
+	int ret = 0;
+	uint64_t i, len;
 	bt_value *map = NULL;
 	bt_value *hostname = NULL;
 	bt_value *session_name = NULL;
@@ -312,16 +313,11 @@ int list_update_session(bt_value *results,
 	bool found = false;
 
 	len = bt_value_array_get_length(results);
-	if (len < 0) {
-		BT_COMP_LOGE_STR("Error getting size of array.");
-		ret = -1;
-		goto end;
-	}
 	for (i = 0; i < len; i++) {
 		const char *hostname_str = NULL;
 		const char *session_name_str = NULL;
 
-		map = bt_value_array_borrow_element_by_index(results, (size_t) i);
+		map = bt_value_array_borrow_element_by_index(results, i);
 		if (!map) {
 			BT_COMP_LOGE_STR("Error borrowing map.");
 			ret = -1;

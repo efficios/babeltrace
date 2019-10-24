@@ -334,7 +334,6 @@ void print_value_rec(FILE *fp, const bt_value *value, size_t indent)
 	uint64_t uint_val;
 	double dbl_val;
 	const char *str_val;
-	int size;
 	GPtrArray *map_keys = NULL;
 
 	if (!value) {
@@ -378,12 +377,8 @@ void print_value_rec(FILE *fp, const bt_value *value, size_t indent)
 		break;
 	case BT_VALUE_TYPE_ARRAY:
 	{
-		guint i;
+		uint64_t i, size;
 		size = bt_value_array_get_length(value);
-		if (size < 0) {
-			goto error;
-		}
-
 		if (size == 0) {
 			print_indent(fp, indent);
 			fprintf(fp, "[ ]\n");
@@ -944,7 +939,7 @@ int cmd_print_lttng_live_sessions(struct bt_config *cfg)
 	static const char * const comp_cls_name = "lttng-live";
 	static const bt_component_class_type comp_cls_type =
 		BT_COMPONENT_CLASS_TYPE_SOURCE;
-	int64_t array_size, i;
+	uint64_t array_size, i;
 	const char *fail_reason = NULL;
 	FILE *out_stream = stdout;
 
@@ -1976,8 +1971,7 @@ static
 int compute_stream_intersection(const bt_value *streams,
 		struct trace_range *range)
 {
-	unsigned int i;
-	unsigned int stream_count;
+	uint64_t i, stream_count;
 	int ret;
 
 	BT_ASSERT(bt_value_get_type(streams) == BT_VALUE_TYPE_ARRAY);
@@ -2085,7 +2079,7 @@ int set_stream_intersections(struct cmd_run_ctx *ctx,
 {
 	int ret = 0;
 	uint64_t trace_idx;
-	int64_t trace_count;
+	uint64_t trace_count;
 	const bt_value *query_result = NULL;
 	const bt_value *trace_info = NULL;
 	const bt_value *stream_infos = NULL;
@@ -2119,7 +2113,7 @@ int set_stream_intersections(struct cmd_run_ctx *ctx,
 	}
 
 	trace_count = bt_value_array_get_length(query_result);
-	if (trace_count < 0) {
+	if (trace_count == 0) {
 		BT_CLI_LOGE_APPEND_CAUSE("`babeltrace.trace-infos` query: result is empty: "
 			"component-class-name=%s", bt_component_class_get_name(comp_cls));
 		ret = -1;
@@ -2163,7 +2157,7 @@ int set_stream_intersections(struct cmd_run_ctx *ctx,
 		}
 
 		stream_count = bt_value_array_get_length(stream_infos);
-		if (stream_count < 0) {
+		if (stream_count == 0) {
 			ret = -1;
 			BT_CLI_LOGE_APPEND_CAUSE("`babeltrace.trace-infos` query: list of streams is empty: "
 				"component-class-name=%s",
