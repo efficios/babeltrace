@@ -390,9 +390,6 @@ void print_value_rec(FILE *fp, const bt_value *value, size_t indent)
 				bt_value_array_borrow_element_by_index_const(
 					value, i);
 
-			if (!element) {
-				goto error;
-			}
 			print_indent(fp, indent);
 			fprintf(fp, "- ");
 
@@ -465,10 +462,6 @@ void print_value_rec(FILE *fp, const bt_value *value, size_t indent)
 	}
 
 	goto end;
-
-error:
-	BT_LOGE("Error printing value of type %s.",
-		bt_common_value_type_string(bt_value_get_type(value)));
 
 end:
 	if (map_keys) {
@@ -1003,10 +996,6 @@ int cmd_print_lttng_live_sessions(struct bt_config *cfg)
 		int64_t timer_us, streams, clients;
 
 		map = bt_value_array_borrow_element_by_index_const(results, i);
-		if (!map) {
-			BT_CLI_LOGE_APPEND_CAUSE("Unexpected empty array entry.");
-			goto error;
-		}
 		if (!bt_value_is_map(map)) {
 			BT_CLI_LOGE_APPEND_CAUSE("Unexpected entry type.");
 			goto error;
@@ -2127,7 +2116,6 @@ int set_stream_intersections(struct cmd_run_ctx *ctx,
 
 		trace_info = bt_value_array_borrow_element_by_index_const(
 			query_result, trace_idx);
-		BT_ASSERT(trace_info);
 		if (!bt_value_is_map(trace_info)) {
 			ret = -1;
 			BT_CLI_LOGE_APPEND_CAUSE("`babeltrace.trace-infos` query: expecting element to be a map: "
@@ -2201,7 +2189,6 @@ int set_stream_intersections(struct cmd_run_ctx *ctx,
 
 			stream_info = bt_value_array_borrow_element_by_index_const(
 				stream_infos, stream_idx);
-			BT_ASSERT(stream_info);
 			if (!bt_value_is_map(stream_info)) {
 				ret = -1;
 				BT_CLI_LOGE_APPEND_CAUSE("`babeltrace.trace-infos` query: "

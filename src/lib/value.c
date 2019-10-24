@@ -197,7 +197,6 @@ struct bt_value *bt_value_array_copy(const struct bt_value *array_obj)
 			bt_value_array_borrow_element_by_index_const(
 				array_obj, i);
 
-		BT_ASSERT(element_obj);
 		BT_LOGD("Copying array value's element: element-addr=%p, "
 			"index=%d", element_obj, i);
 		ret = bt_value_copy(element_obj, &element_obj_copy);

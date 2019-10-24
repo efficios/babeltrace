@@ -235,31 +235,31 @@ void test_array(void)
 		"appending an element to an array value object increment its size");
 
 	obj = bt_value_array_borrow_element_by_index(array_obj, 0);
-	ok(obj && bt_value_is_unsigned_integer(obj),
+	ok(bt_value_is_unsigned_integer(obj),
 		"bt_value_array_borrow_element_by_index() returns an value object with the appropriate type (unsigned integer)");
 	int_value = bt_value_integer_unsigned_get(obj);
 	ok(int_value == 345,
 		"bt_value_array_borrow_element_by_index() returns an value object with the appropriate value (unsigned integer)");
 	obj = bt_value_array_borrow_element_by_index(array_obj, 1);
-	ok(obj && bt_value_is_signed_integer(obj),
+	ok(bt_value_is_signed_integer(obj),
 		"bt_value_array_borrow_element_by_index() returns an value object with the appropriate type (signed integer)");
 	int_value = bt_value_integer_signed_get(obj);
 	ok(int_value == -507,
 		"bt_value_array_borrow_element_by_index() returns an value object with the appropriate value (signed integer)");
 	obj = bt_value_array_borrow_element_by_index(array_obj, 2);
-	ok(obj && bt_value_is_real(obj),
+	ok(bt_value_is_real(obj),
 		"bt_value_array_borrow_element_by_index() returns an value object with the appropriate type (real number)");
 	real_value = bt_value_real_get(obj);
 	ok(real_value == -17.45,
 		"bt_value_array_borrow_element_by_index() returns an value object with the appropriate value (real number)");
 	obj = bt_value_array_borrow_element_by_index(array_obj, 3);
-	ok(obj && bt_value_is_bool(obj),
+	ok(bt_value_is_bool(obj),
 		"bt_value_array_borrow_element_by_index() returns an value object with the appropriate type (boolean)");
 	bool_value = bt_value_bool_get(obj);
 	ok(bool_value,
 		"bt_value_array_borrow_element_by_index() returns an value object with the appropriate value (boolean)");
 	obj = bt_value_array_borrow_element_by_index(array_obj, 4);
-	ok(obj == bt_value_null,
+	ok(bt_value_null,
 		"bt_value_array_borrow_element_by_index() returns an value object with the appropriate type (null)");
 
 	obj = bt_value_integer_signed_create_init(1001);
@@ -268,7 +268,7 @@ void test_array(void)
 		"bt_value_array_set_element_by_index() succeeds");
 	BT_VALUE_PUT_REF_AND_RESET(obj);
 	obj = bt_value_array_borrow_element_by_index(array_obj, 2);
-	ok(obj && bt_value_is_signed_integer(obj),
+	ok(bt_value_is_signed_integer(obj),
 		"bt_value_array_set_element_by_index() inserts an value object with the appropriate type");
 	int_value = bt_value_integer_signed_get(obj);
 	BT_ASSERT(!ret);
@@ -313,52 +313,52 @@ void test_array(void)
 		"map value object is not empty");
 
 	obj = bt_value_array_borrow_element_by_index(array_obj, 5);
-	ok(obj && bt_value_is_bool(obj),
+	ok(bt_value_is_bool(obj),
 		"bt_value_array_append_bool_element() appends a boolean value object");
 	bool_value = bt_value_bool_get(obj);
 	ok(!bool_value,
 		"bt_value_array_append_bool_element() appends the appropriate value");
 	obj = bt_value_array_borrow_element_by_index(array_obj, 6);
-	ok(obj && bt_value_is_unsigned_integer(obj),
+	ok(bt_value_is_unsigned_integer(obj),
 		"bt_value_array_append_unsigned_integer_element() appends an unsigned integer value object");
 	int_value = bt_value_integer_unsigned_get(obj);
 	ok(int_value == 98765,
 		"bt_value_array_append_unsigned_integer_element() appends the appropriate value");
 	obj = bt_value_array_borrow_element_by_index(array_obj, 7);
-	ok(obj && bt_value_is_signed_integer(obj),
+	ok(bt_value_is_signed_integer(obj),
 		"bt_value_array_append_signed_integer_element() appends a signed integer value object");
 	int_value = bt_value_integer_signed_get(obj);
 	ok(int_value == -10101,
 		"bt_value_array_append_signed_integer_element() appends the appropriate value");
 	obj = bt_value_array_borrow_element_by_index(array_obj, 8);
-	ok(obj && bt_value_is_real(obj),
+	ok(bt_value_is_real(obj),
 		"bt_value_array_append_real_element() appends a real number value object");
 	real_value = bt_value_real_get(obj);
 	ok(real_value == 2.49578,
 		"bt_value_array_append_real_element() appends the appropriate value");
 	obj = bt_value_array_borrow_element_by_index(array_obj, 9);
-	ok(obj && bt_value_is_string(obj),
+	ok(bt_value_is_string(obj),
 		"bt_value_array_append_string_element() appends a string value object");
 	string_value = bt_value_string_get(obj);
 	ok(!ret && string_value && strcmp(string_value, "bt_value") == 0,
 		"bt_value_array_append_string_element() appends the appropriate value");
 	obj = bt_value_array_borrow_element_by_index(array_obj, 10);
-	ok(obj && bt_value_is_array(obj),
+	ok(bt_value_is_array(obj),
 		"bt_value_array_append_empty_array_element() appends an array value object");
 	ok(bt_value_array_is_empty(obj),
 		"bt_value_array_append_empty_array_element() an empty array value object");
 	obj = bt_value_array_borrow_element_by_index(array_obj, 11);
-	ok(obj && bt_value_is_array(obj),
+	ok(bt_value_is_array(obj),
 		"bt_value_array_append_empty_array_element() appends an array value object");
 	ok(bt_value_array_is_empty(obj),
 		"bt_value_array_append_empty_array_element() an empty array value object");
 	obj = bt_value_array_borrow_element_by_index(array_obj, 12);
-	ok(obj && bt_value_is_map(obj),
+	ok(bt_value_is_map(obj),
 		"bt_value_array_append_empty_map_element() appends a map value object");
 	ok(bt_value_map_is_empty(obj),
 		"bt_value_array_append_empty_map_element() an empty map value object");
 	obj = bt_value_array_borrow_element_by_index(array_obj, 13);
-	ok(obj && bt_value_is_map(obj),
+	ok(bt_value_is_map(obj),
 		"bt_value_array_append_empty_map_element() appends a map value object");
 	ok(bt_value_map_is_empty(obj),
 		"bt_value_array_append_empty_map_element() an empty map value object");

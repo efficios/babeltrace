@@ -86,7 +86,6 @@ BT_HIDDEN
 const char *bt_attributes_get_field_name(const struct bt_value *attr_obj,
 		uint64_t index)
 {
-	const char *ret = NULL;
 	const struct bt_value *attr_field_obj = NULL;
 	const struct bt_value *attr_field_name_obj = NULL;
 
@@ -94,59 +93,28 @@ const char *bt_attributes_get_field_name(const struct bt_value *attr_obj,
 	BT_ASSERT_DBG(index < bt_value_array_get_length(attr_obj));
 	attr_field_obj = bt_value_array_borrow_element_by_index_const(
 		attr_obj, index);
-	if (!attr_field_obj) {
-		BT_LIB_LOGE_APPEND_CAUSE(
-			"Cannot borrow attributes object's array value's element by index: "
-			"%![value-]+v, index=%" PRIu64, attr_obj, index);
-		goto end;
-	}
 
 	attr_field_name_obj =
 		bt_value_array_borrow_element_by_index_const(attr_field_obj,
 			BT_ATTR_NAME_INDEX);
-	if (!attr_field_name_obj) {
-		BT_LIB_LOGE_APPEND_CAUSE(
-			"Cannot get attribute array value's element by index: "
-			"%![value-]+v, index=%" PRIu64, attr_field_obj,
-			(uint64_t) BT_ATTR_NAME_INDEX);
-		goto end;
-	}
 
-	ret = bt_value_string_get(attr_field_name_obj);
-
-end:
-	return ret;
+	return bt_value_string_get(attr_field_name_obj);
 }
 
 BT_HIDDEN
 struct bt_value *bt_attributes_borrow_field_value(
 		struct bt_value *attr_obj, uint64_t index)
 {
-	struct bt_value *value_obj = NULL;
 	struct bt_value *attr_field_obj = NULL;
 
 	BT_ASSERT_DBG(attr_obj);
 	BT_ASSERT_DBG(index < bt_value_array_get_length(attr_obj));
+
 	attr_field_obj =
 		bt_value_array_borrow_element_by_index(attr_obj, index);
-	if (!attr_field_obj) {
-		BT_LIB_LOGE_APPEND_CAUSE(
-			"Cannot get attributes object's array value's element by index: "
-			"%![value-]+v, index=%" PRIu64, attr_obj, index);
-		goto end;
-	}
 
-	value_obj = bt_value_array_borrow_element_by_index(
-		attr_field_obj, BT_ATTR_VALUE_INDEX);
-	if (!value_obj) {
-		BT_LIB_LOGE_APPEND_CAUSE(
-			"Cannot get attribute array value's element by index: "
-			"%![value-]+v, index=%" PRIu64, attr_field_obj,
-			(uint64_t) BT_ATTR_VALUE_INDEX);
-	}
-
-end:
-	return value_obj;
+	return bt_value_array_borrow_element_by_index( attr_field_obj,
+		BT_ATTR_VALUE_INDEX);
 }
 
 static
@@ -163,23 +131,10 @@ struct bt_value *bt_attributes_borrow_field_by_name(
 
 		value_obj = bt_value_array_borrow_element_by_index(
 			attr_obj, i);
-		if (!value_obj) {
-			BT_LIB_LOGE_APPEND_CAUSE(
-				"Cannot get attributes object's array value's element by index: "
-				"%![value-]+v, index=%" PRIu64, attr_obj, i);
-			goto error;
-		}
 
 		attr_field_name_obj =
 			bt_value_array_borrow_element_by_index(
 				value_obj, BT_ATTR_NAME_INDEX);
-		if (!attr_field_name_obj) {
-			BT_LIB_LOGE_APPEND_CAUSE(
-				"Cannot get attribute array value's element by index: "
-				"%![value-]+v, index=%" PRIu64,
-				value_obj, (int64_t) BT_ATTR_NAME_INDEX);
-			goto error;
-		}
 
 		field_name = bt_value_string_get(attr_field_name_obj);
 
@@ -190,10 +145,6 @@ struct bt_value *bt_attributes_borrow_field_by_name(
 		value_obj = NULL;
 	}
 
-	return value_obj;
-
-error:
-	value_obj = NULL;
 	return value_obj;
 }
 
@@ -266,12 +217,6 @@ struct bt_value *bt_attributes_borrow_field_value_by_name(
 
 	value_obj = bt_value_array_borrow_element_by_index(
 		attr_field_obj, BT_ATTR_VALUE_INDEX);
-	if (!value_obj) {
-		BT_LIB_LOGE_APPEND_CAUSE(
-			"Cannot get attribute array value's element by index: "
-			"%![value-]+v, index=%" PRIu64, attr_field_obj,
-			(uint64_t) BT_ATTR_VALUE_INDEX);
-	}
 
 end:
 	return value_obj;

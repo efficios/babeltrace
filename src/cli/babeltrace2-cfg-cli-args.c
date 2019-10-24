@@ -768,12 +768,6 @@ int insert_flat_params_from_array(GString *params_arg,
 		const char *suffix;
 		bool is_default = false;
 
-		if (!str_obj) {
-			BT_CLI_LOGE_APPEND_CAUSE("Unexpected error.");
-			ret = -1;
-			goto end;
-		}
-
 		suffix = bt_value_string_get(str_obj);
 
 		g_string_assign(tmpstr, prefix);
@@ -2088,7 +2082,6 @@ struct bt_config *bt_config_run_from_args_array(const bt_value *run_args,
 								     i);
 		const char *arg;
 
-		BT_ASSERT(arg_value);
 		arg = bt_value_string_get(arg_value);
 		BT_ASSERT(arg);
 		argv[i] = arg;
@@ -2399,11 +2392,8 @@ int append_run_args_for_implicit_component(
 		const bt_value *elem;
 		const char *arg;
 
-		elem = bt_value_array_borrow_element_by_index(impl_args->extra_params,
-							      i);
-		if (!elem) {
-			goto error;
-		}
+		elem = bt_value_array_borrow_element_by_index(
+			impl_args->extra_params, i);
 
 		BT_ASSERT(bt_value_is_string(elem));
 		arg = bt_value_string_get(elem);
@@ -4347,7 +4337,6 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 			GString *quoted = NULL;
 			const char *arg_to_print;
 
-			BT_ASSERT(arg_value);
 			arg = bt_value_string_get(arg_value);
 
 			if (print_run_args) {

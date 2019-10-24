@@ -318,11 +318,6 @@ int list_update_session(bt_value *results,
 		const char *session_name_str = NULL;
 
 		map = bt_value_array_borrow_element_by_index(results, i);
-		if (!map) {
-			BT_COMP_LOGE_STR("Error borrowing map.");
-			ret = -1;
-			goto end;
-		}
 		hostname = bt_value_map_borrow_entry_value(map, "target-hostname");
 		if (!hostname) {
 			BT_COMP_LOGE_STR("Error borrowing \"target-hostname\" entry.");
