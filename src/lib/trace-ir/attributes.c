@@ -153,19 +153,11 @@ static
 struct bt_value *bt_attributes_borrow_field_by_name(
 		struct bt_value *attr_obj, const char *name)
 {
-	uint64_t i;
-	int64_t attr_size;
+	uint64_t i, attr_size;
 	struct bt_value *value_obj = NULL;
 	struct bt_value *attr_field_name_obj = NULL;
 
 	attr_size = bt_value_array_get_length(attr_obj);
-	if (attr_size < 0) {
-		BT_LIB_LOGE_APPEND_CAUSE(
-			"Cannot get array value's size: %![value-]+v",
-			attr_obj);
-		goto error;
-	}
-
 	for (i = 0; i < attr_size; ++i) {
 		const char *field_name;
 
@@ -288,14 +280,13 @@ end:
 BT_HIDDEN
 int bt_attributes_freeze(const struct bt_value *attr_obj)
 {
-	uint64_t i;
-	int64_t count;
+	uint64_t i, count;
 	int ret = 0;
 
 	BT_ASSERT(attr_obj);
 	BT_LOGD("Freezing attributes object: value-addr=%p", attr_obj);
+
 	count = bt_value_array_get_length(attr_obj);
-	BT_ASSERT(count >= 0);
 
 	/*
 	 * We do not freeze the array value object itself here, since
