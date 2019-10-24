@@ -39,7 +39,7 @@ BT_HIDDEN
 void bt_attributes_destroy(struct bt_value *attr_obj);
 
 BT_HIDDEN
-int64_t bt_attributes_get_count(const struct bt_value *attr_obj);
+uint64_t bt_attributes_get_count(const struct bt_value *attr_obj);
 
 BT_HIDDEN
 const char *bt_attributes_get_field_name(const struct bt_value *attr_obj,
