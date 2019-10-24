@@ -41,6 +41,7 @@ dist_check_SCRIPTS = \
 	cli/convert/test_auto_source_discovery_params \
 	cli/convert/test_auto_source_discovery_log_level \
 	cli/convert/test_convert_args \
+	cli/params/test_params \
 	cli/test_help \
 	cli/test_intersection \
 	cli/test_output_ctf_metadata \
@@ -119,9 +120,12 @@ endif
 
 if ENABLE_PYTHON_PLUGINS
 if ENABLE_PYTHON_BINDINGS
-TESTS_CLI += cli/convert/test_auto_source_discovery_grouping \
+TESTS_CLI += \
+	cli/convert/test_auto_source_discovery_grouping \
 	cli/convert/test_auto_source_discovery_log_level \
-	cli/convert/test_auto_source_discovery_params
+	cli/convert/test_auto_source_discovery_params \
+	cli/params/test_params
+
 TESTS_PLUGINS += plugins/flt.utils.trimmer/test_trimming \
 	plugins/flt.utils.muxer/succeed/test_succeed
 endif
