@@ -332,12 +332,8 @@ end:
 
 uint64_t bt_trace_get_environment_entry_count(const struct bt_trace *trace)
 {
-	int64_t ret;
-
 	BT_ASSERT_PRE_DEV_NON_NULL(trace, "Trace");
-	ret = bt_attributes_get_count(trace->environment);
-	BT_ASSERT(ret >= 0);
-	return (uint64_t) ret;
+	return bt_attributes_get_count(trace->environment);
 }
 
 void bt_trace_borrow_environment_entry_by_index_const(
