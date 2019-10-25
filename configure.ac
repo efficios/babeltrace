@@ -682,7 +682,6 @@ AX_COMPILER_FLAGS(
 		-Wno-missing-include-dirs dnl
 		-Wno-duplicated-cond dnl
 		-Wno-double-promotion dnl
-		-Wno-suggest-attribute=noreturn dnl
 		-Wno-cast-align dnl
 	])
 
