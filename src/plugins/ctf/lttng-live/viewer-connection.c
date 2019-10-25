@@ -74,8 +74,11 @@ ssize_t lttng_live_recv(struct live_viewer_connection *viewer_connection,
 			}
 		}
 	} while (ret > 0 && to_copy > 0);
-	if (ret > 0)
+
+	if (ret > 0) {
 		ret = copied;
+	}
+
 	/* ret = 0 means orderly shutdown, ret == BT_SOCKET_ERROR is error. */
 	return ret;
 }
