@@ -1281,16 +1281,6 @@ bt_component_class_message_iterator_next_method_status lttng_live_msg_iter_next(
 
 		BT_ASSERT_DBG(lttng_live_msg_iter->sessions);
 		session_idx = 0;
-		/*
-		 * Use a while loop instead of a for loop so we can restart the
-		 * iteration if we remove an element. We can safely call
-		 * next_stream_iterator_for_session() multiple times on the
-		 * same session as we only fetch a new message if there is no
-		 * current next message for each live stream iterator.
-		 * If all live stream iterator of that session already have a
-		 * current next message, the function will simply exit return
-		 * the same candidate live stream iterator every time.
-		 */
 		while (session_idx < lttng_live_msg_iter->sessions->len) {
 			struct lttng_live_session *session =
 				g_ptr_array_index(lttng_live_msg_iter->sessions,
@@ -1308,14 +1298,15 @@ bt_component_class_message_iterator_next_method_status lttng_live_msg_iter_next(
 			if (stream_iter_status == LTTNG_LIVE_ITERATOR_STATUS_END) {
 				if (session->closed && session->traces->len == 0) {
 					/*
-					 * Remove the session from the list and restart the
-					 * iteration at the beginning of the array since the
-					 * removal shuffle the elements of the array.
+					 * Remove the session from the list.
+					 * session_idx is not modified since
+					 * g_ptr_array_remove_index_fast
+					 * replaces the the removed element with
+					 * the array's last element.
 					 */
 					g_ptr_array_remove_index_fast(
 						lttng_live_msg_iter->sessions,
 						session_idx);
-					session_idx = 0;
 				} else {
 					session_idx++;
 				}
