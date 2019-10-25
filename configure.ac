@@ -684,7 +684,6 @@ AX_COMPILER_FLAGS(
 		-Wno-double-promotion dnl
 		-Wno-suggest-attribute=noreturn dnl
 		-Wno-cast-align dnl
-		-Wno-strict-prototypes dnl
 	])
 
 # CFLAGS from AX_COMPILER_FLAGS.
