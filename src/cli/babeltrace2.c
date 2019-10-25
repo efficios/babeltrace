@@ -336,9 +336,7 @@ void print_value_rec(FILE *fp, const bt_value *value, size_t indent)
 	const char *str_val;
 	GPtrArray *map_keys = NULL;
 
-	if (!value) {
-		goto end;
-	}
+	BT_ASSERT(value);
 
 	switch (bt_value_get_type(value)) {
 	case BT_VALUE_TYPE_NULL:
