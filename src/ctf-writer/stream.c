@@ -146,7 +146,7 @@ static
 void bt_ctf_stream_destroy(struct bt_ctf_object *obj);
 
 static
-int try_set_structure_field_integer(struct bt_ctf_field *, char *, uint64_t);
+int try_set_structure_field_integer(struct bt_ctf_field *, const char *, uint64_t);
 
 static
 int set_integer_field_value(struct bt_ctf_field* field, uint64_t value)
@@ -1871,7 +1871,7 @@ void bt_ctf_stream_destroy(struct bt_ctf_object *obj)
 }
 
 static
-int _set_structure_field_integer(struct bt_ctf_field *structure, char *name,
+int _set_structure_field_integer(struct bt_ctf_field *structure, const char *name,
 		uint64_t value, bt_ctf_bool force)
 {
 	int ret = 0;
@@ -1934,7 +1934,7 @@ end:
  * <0 if an error was encoutered
  */
 static
-int try_set_structure_field_integer(struct bt_ctf_field *structure, char *name,
+int try_set_structure_field_integer(struct bt_ctf_field *structure, const char *name,
 		uint64_t value)
 {
 	return _set_structure_field_integer(structure, name, value, BT_CTF_FALSE);

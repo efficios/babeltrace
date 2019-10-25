@@ -581,14 +581,14 @@ bt_value *bt_param_parse(const char *arg, GString *ini_error)
 	/* Lexical scanner configuration */
 	GScannerConfig scanner_config = {
 		/* Skip whitespaces */
-		.cset_skip_characters = " \t\n",
+		.cset_skip_characters = (gchar *) " \t\n",
 
 		/* Identifier syntax is: [a-zA-Z_][a-zA-Z0-9_.:-]* */
-		.cset_identifier_first =
+		.cset_identifier_first = (gchar *)
 			G_CSET_a_2_z
 			"_"
 			G_CSET_A_2_Z,
-		.cset_identifier_nth =
+		.cset_identifier_nth = (gchar *)
 			G_CSET_a_2_z
 			"_0123456789-.:"
 			G_CSET_A_2_Z,

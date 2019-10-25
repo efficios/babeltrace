@@ -172,7 +172,7 @@ void subtest_lookup_function_name(struct bin_info *bin, uint64_t addr,
 
 static
 void subtest_lookup_source_location(struct bin_info *bin, uint64_t addr,
-					   uint64_t line_no, char *filename)
+					   uint64_t line_no, const char *filename)
 {
 	int ret;
 	struct source_location *src_loc = NULL;

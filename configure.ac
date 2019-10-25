@@ -616,23 +616,19 @@ AS_IF([test "x$exec_prefix" = xNONE], [
 
 AC_SUBST(LIBDIR)
 
-
-# Set global CFLAGS in AM_CFLAGS
-AM_CFLAGS="-Wall -Wformat -Werror=implicit-function-declaration $PTHREAD_CFLAGS $GLIB_CFLAGS"
-AC_SUBST(AM_CFLAGS)
-
-# Set global CPPFLAGS in AM_CPPFLAGS
-AM_CPPFLAGS="-I\$(top_srcdir)/include -I\$(top_builddir)/src -I\$(top_srcdir)/src -include common/config.h"
-AC_SUBST(AM_CPPFLAGS)
-
-# Add glib to global link libs
-LIBS="$LIBS $GLIB_LIBS"
+# CFLAGS from libraries (the glib ones are needed for the following sizeof
+# test).
+AM_CFLAGS="${PTHREAD_CFLAGS} ${GLIB_CFLAGS}"
 
 # Check that the current size_t matches the size that glib thinks it should
 # be. This catches problems on multi-arch where people try to do a 32-bit
 # build while pointing at 64-bit glib headers. This is a common error because
 # glib.h is not platform specific but it includes glibconfig.h which is and
 # is usually installed in a non-standard path.
+
+# Do this before enabling all the warning flags, as the
+# AC_LANG_PROGRAM-generated program may generate some warning, which makes this
+# test fail unnecessarily.
 
 # Older versions of the pkg-config macros disallows PKG_* in the autoconf
 # output. Specifically allow pkg_config_libdir to be able to print the
@@ -656,6 +652,67 @@ target.
   ])
 ])
 CFLAGS=${save_CFLAGS}
+
+# Detect C and LD warning flags supported by the compiler.
+AX_COMPILER_FLAGS(
+	[WARN_CFLAGS], dnl CFLAGS variable name
+	[WARN_LDFLAGS], dnl LDFLAGS variable name (unused for now)
+	[], dnl is-release
+	[], dnl Extra base CFLAGS
+	[ dnl Extra "yes" CFLAGS
+		dnl Disable these flags, either because we don't want them
+		dnl or because we want them but are not ready to enable them
+		dnl yet.
+		-Wno-sign-compare dnl
+		-Wno-inline dnl
+		-Wno-declaration-after-statement dnl
+		-Wno-switch-enum dnl
+		-Wno-switch-default dnl
+		-Wno-packed dnl
+		-Wno-pointer-arith dnl
+		-Wno-format-nonliteral dnl
+		-Wno-undef dnl
+		-Wno-missing-prototypes dnl
+		-Wno-missing-declarations dnl
+		-Wno-redundant-decls dnl
+		-Wno-logical-op dnl
+		-Wno-shadow dnl
+		-Wno-null-dereference dnl
+		-Wno-jump-misses-init dnl
+		-Wno-missing-include-dirs dnl
+		-Wno-duplicated-cond dnl
+		-Wno-double-promotion dnl
+		-Wno-suggest-attribute=noreturn dnl
+		-Wno-cast-align dnl
+		-Wno-strict-prototypes dnl
+	])
+
+# CFLAGS from AX_COMPILER_FLAGS.
+AM_CFLAGS="${AM_CFLAGS} ${WARN_CFLAGS}"
+
+# The test used in AX_COMPILER_FLAGS, generated using AC_LANG_PROGRAM, is
+# written in such a way that it triggers a -Wold-style-definition warning.  So
+# if the user has -Werror in their CFLAGS, that warning flag will end up
+# disabled, because the test program will not build.
+#
+# Enable it here unconditionally.  It is supported by GCC >= 4.8 and by Clang
+# (it is accepted for compatibility although it has no effect), and there is
+# not reason to not want it.
+
+AM_CFLAGS="${AM_CFLAGS} -Wold-style-definition"
+
+# We want this one to always be an error.
+AM_CFLAGS="${AM_CFLAGS} -Werror=implicit-function-declaration"
+
+# Done for AM_CFLAGS.
+AC_SUBST(AM_CFLAGS)
+
+# Set global CPPFLAGS in AM_CPPFLAGS
+AM_CPPFLAGS="-I\$(top_srcdir)/include -I\$(top_builddir)/src -I\$(top_srcdir)/src -include common/config.h"
+AC_SUBST(AM_CPPFLAGS)
+
+# Add glib to global link libs
+LIBS="$LIBS $GLIB_LIBS"
 
 # Abuse autoconf's AC_ARG_PROGRAM output variable 'program_transform_name'
 # to rename babeltrace2.bin to babeltrace2 at install time.

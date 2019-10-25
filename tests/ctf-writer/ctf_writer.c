@@ -97,7 +97,7 @@ void validate_trace(char *parser_path, char *trace_path)
 {
 	int ret = 0;
 	gint exit_status;
-	char *argv[] = {parser_path, trace_path, "-o", "dummy", NULL};
+	const char *argv[] = {parser_path, trace_path, "-o", "dummy", NULL};
 
 	if (!parser_path || !trace_path) {
 		ret = -1;
@@ -105,7 +105,7 @@ void validate_trace(char *parser_path, char *trace_path)
 	}
 
 	if (!g_spawn_sync(NULL,
-			argv,
+			(gchar **) argv,
 			NULL,
 			G_SPAWN_STDOUT_TO_DEV_NULL,
 			NULL,
@@ -836,7 +836,7 @@ void append_complex_event(struct bt_ctf_stream_class *stream_class,
 }
 
 static
-void type_field_tests()
+void type_field_tests(void)
 {
 	struct bt_ctf_field *uint_12;
 	struct bt_ctf_field *int_16;
