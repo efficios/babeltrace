@@ -1310,7 +1310,7 @@ unary_expression:
 				$$->u.unary_expression.type = UNARY_SIGNED_CONSTANT;
 				$$->u.unary_expression.u.signed_constant =
 					-($$->u.unary_expression.u.unsigned_constant);
-			} else if ($$->u.unary_expression.type == UNARY_UNSIGNED_CONSTANT) {
+			} else if ($$->u.unary_expression.type == UNARY_SIGNED_CONSTANT) {
 				$$->u.unary_expression.u.signed_constant =
 					-($$->u.unary_expression.u.signed_constant);
 			} else {
