@@ -1120,11 +1120,6 @@ enum lttng_live_iterator_status next_stream_iterator_for_session(
 
 	BT_ASSERT_DBG(session->traces);
 
-	/*
-	 * Use while loops here rather then for loops so we can restart the
-	 * iteration if an element is removed from the array during the
-	 * looping.
-	 */
 	while (trace_idx < session->traces->len) {
 		bool trace_is_ended = false;
 		struct lttng_live_stream_iterator *stream_iter;
@@ -1175,8 +1170,13 @@ enum lttng_live_iterator_status next_stream_iterator_for_session(
 			}
 			trace_idx++;
 		} else {
-			g_ptr_array_remove_index_fast(session->traces, trace_idx);
-			trace_idx = 0;
+			/*
+			 * trace_idx is not incremented since
+			 * g_ptr_array_remove_index_fast replaces the
+			 * element at trace_idx with the array's last element.
+			 */
+			g_ptr_array_remove_index_fast(session->traces,
+				trace_idx);
 		}
 	}
 	if (youngest_candidate_stream_iter) {
