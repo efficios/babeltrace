@@ -956,16 +956,6 @@ enum lttng_live_iterator_status next_stream_iterator_for_trace(
 				stream_iter_idx);
 
 		/*
-		 * Since we may remove elements from the GPtrArray as we
-		 * iterate over it, it's possible to see the same element more
-		 * than once.
-		 */
-		if (stream_iter == youngest_candidate_stream_iter) {
-			stream_iter_idx++;
-			continue;
-		}
-
-		/*
 		 * Find if there is are now current message for this stream
 		 * iterator get it.
 		 */
@@ -1067,14 +1057,17 @@ enum lttng_live_iterator_status next_stream_iterator_for_trace(
 			stream_iter_idx++;
 		} else {
 			/*
-			 * The live stream iterator is ENDed. We remove that
-			 * iterator from the list and we restart the iteration
-			 * at the beginning of the live stream iterator array
-			 * to because the removal will shuffle the array.
+			 * The live stream iterator has ended. That
+			 * iterator is removed from the array, but
+			 * there is no need to increment
+			 * stream_iter_idx as
+			 * g_ptr_array_remove_index_fast replaces the
+			 * removed element with the array's last
+			 * element.
 			 */
-			g_ptr_array_remove_index_fast(live_trace->stream_iterators,
+			g_ptr_array_remove_index_fast(
+				live_trace->stream_iterators,
 				stream_iter_idx);
-			stream_iter_idx = 0;
 		}
 	}
 
