@@ -56,7 +56,7 @@
 
 #define BT_MOVE_REF(ref) 		\
 	({				\
-		__auto_type _ref = ref;	\
+		typeof(ref) _ref = ref;	\
 		ref = NULL;		\
 		_ref;			\
 	})
