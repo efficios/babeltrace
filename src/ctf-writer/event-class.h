@@ -74,7 +74,8 @@ struct bt_ctf_stream_class_common *bt_ctf_event_class_common_borrow_stream_class
 	return (void *) bt_ctf_object_borrow_parent(&event_class->base);
 }
 
-typedef struct bt_ctf_field_type_common *(*bt_ctf_field_type_structure_create_func)();
+typedef struct bt_ctf_field_type_common *
+	(*bt_ctf_field_type_structure_create_func)(void);
 
 BT_HIDDEN
 int bt_ctf_event_class_common_initialize(struct bt_ctf_event_class_common *event_class,
