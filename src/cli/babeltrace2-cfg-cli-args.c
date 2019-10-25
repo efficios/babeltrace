@@ -488,9 +488,9 @@ GScanner *create_csv_identifiers_scanner(void)
 {
 	GScanner *scanner;
 	GScannerConfig scanner_config = {
-		.cset_skip_characters = " \t\n",
-		.cset_identifier_first = G_CSET_a_2_z G_CSET_A_2_Z "_",
-		.cset_identifier_nth = G_CSET_a_2_z G_CSET_A_2_Z ":_-",
+		.cset_skip_characters = (gchar *) " \t\n",
+		.cset_identifier_first = (gchar *) G_CSET_a_2_z G_CSET_A_2_Z "_",
+		.cset_identifier_nth = (gchar *) G_CSET_a_2_z G_CSET_A_2_Z ":_-",
 		.case_sensitive = TRUE,
 		.cpair_comment_single = NULL,
 		.skip_comment_multi = TRUE,
