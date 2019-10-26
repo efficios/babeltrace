@@ -264,7 +264,7 @@ _**If you need the https://lttng.org/[LTTng] debug information filter component 
 Babeltrace was born to parse CTF traces produced by LTTng{nbsp}2.0 and
 pretty-print their events.
 
-Even though Babeltrace is independant from the LTTng project today,
+Even though Babeltrace is independent from the LTTng project today,
 their communities remain very close, which is why they share some
 communication channels and services.
 ====
