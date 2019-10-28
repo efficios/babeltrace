@@ -178,7 +178,11 @@ struct debug_info_source *debug_info_source_create_from_bin(
 	int ret;
 	struct debug_info_source *debug_info_src = NULL;
 	struct source_location *src_loc = NULL;
-	bt_logging_level log_level = bin->log_level;
+	bt_logging_level log_level;
+
+	BT_ASSERT(bin);
+
+	log_level = bin->log_level;
 
 	debug_info_src = g_new0(struct debug_info_source, 1);
 
