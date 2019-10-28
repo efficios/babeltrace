@@ -36,9 +36,6 @@ struct bt_ctf_search_query {
 	int found;
 };
 
-BT_HIDDEN
-const char *bt_ctf_get_byte_order_string(enum bt_ctf_byte_order byte_order);
-
 static inline
 const char *bt_ctf_field_type_id_string(enum bt_ctf_field_type_id type_id)
 {
