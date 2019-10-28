@@ -166,6 +166,7 @@ int bt_ctf_stream_class_common_add_event_class(
 	const enum bt_ctf_validation_flag validation_flags =
 		BT_CTF_VALIDATION_FLAG_EVENT;
 	struct bt_ctf_clock_class *expected_clock_class = NULL;
+	struct bt_ctf_search_query query = { .value = event_class, .found = 0 };
 
 	BT_ASSERT_DBG(copy_field_type_func);
 
@@ -238,7 +239,6 @@ int bt_ctf_stream_class_common_add_event_class(
 	}
 
 	/* Check for duplicate event classes */
-	struct bt_ctf_search_query query = { .value = event_class, .found = 0 };
 	g_ptr_array_foreach(stream_class->event_classes, event_class_exists,
 		&query);
 	if (query.found) {

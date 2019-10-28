@@ -407,6 +407,7 @@ static
 GString *make_trace_path_rel(const struct fs_sink_trace *trace)
 {
 	GString *path = NULL;
+	const char *trace_name;
 
 	if (trace->fs_sink->assume_single_trace) {
 		/* Use output directory directly */
@@ -421,7 +422,7 @@ GString *make_trace_path_rel(const struct fs_sink_trace *trace)
 	}
 
 	/* Otherwise, use the trace name, if available. */
-	const char *trace_name = bt_trace_get_name(trace->ir_trace);
+	trace_name = bt_trace_get_name(trace->ir_trace);
 	if (trace_name) {
 		path = g_string_new(trace_name);
 		goto end;
