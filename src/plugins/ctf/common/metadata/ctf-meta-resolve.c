@@ -181,15 +181,10 @@ size_t field_class_stack_size(field_class_stack *stack)
 static
 struct field_class_stack_frame *field_class_stack_peek(field_class_stack *stack)
 {
-	struct field_class_stack_frame *entry = NULL;
+	BT_ASSERT(stack);
+	BT_ASSERT(!field_class_stack_empty(stack));
 
-	if (!stack || field_class_stack_empty(stack)) {
-		goto end;
-	}
-
-	entry = g_ptr_array_index(stack, stack->len - 1);
-end:
-	return entry;
+	return g_ptr_array_index(stack, stack->len - 1);
 }
 
 /*
@@ -199,16 +194,10 @@ static
 struct field_class_stack_frame *field_class_stack_at(field_class_stack *stack,
 		size_t index)
 {
-	struct field_class_stack_frame *entry = NULL;
+	BT_ASSERT(stack);
+	BT_ASSERT(index < stack->len);
 
-	if (!stack || index >= stack->len) {
-		goto end;
-	}
-
-	entry = g_ptr_array_index(stack, index);
-
-end:
-	return entry;
+	return g_ptr_array_index(stack, index);
 }
 
 /*

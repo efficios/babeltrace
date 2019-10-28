@@ -201,15 +201,10 @@ size_t type_stack_size(type_stack *stack)
 static
 struct type_stack_frame *type_stack_peek(type_stack *stack)
 {
-	struct type_stack_frame *entry = NULL;
+	BT_ASSERT(stack);
+	BT_ASSERT(!type_stack_empty(stack));
 
-	if (!stack || type_stack_empty(stack)) {
-		goto end;
-	}
-
-	entry = g_ptr_array_index(stack, stack->len - 1);
-end:
-	return entry;
+	return g_ptr_array_index(stack, stack->len - 1);
 }
 
 /*
@@ -218,19 +213,12 @@ end:
  * Return value is owned by `stack`.
  */
 static
-struct type_stack_frame *type_stack_at(type_stack *stack,
-		size_t index)
+struct type_stack_frame *type_stack_at(type_stack *stack, size_t index)
 {
-	struct type_stack_frame *entry = NULL;
+	BT_ASSERT(stack);
+	BT_ASSERT(index < stack->len);
 
-	if (!stack || index >= stack->len) {
-		goto end;
-	}
-
-	entry = g_ptr_array_index(stack, index);
-
-end:
-	return entry;
+	return g_ptr_array_index(stack, index);
 }
 
 /*
