@@ -288,7 +288,7 @@ BT_ASSERT_DBG_FUNC
 static inline bool field_type_common_has_known_id(
 		struct bt_ctf_field_type_common *ft)
 {
-	return (int) ft->id > BT_CTF_FIELD_TYPE_ID_UNKNOWN ||
+	return (int) ft->id > BT_CTF_FIELD_TYPE_ID_UNKNOWN &&
 		(int) ft->id < BT_CTF_FIELD_TYPE_ID_NR;
 }
 
