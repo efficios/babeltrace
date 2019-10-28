@@ -1148,9 +1148,21 @@ static void put_ctx(bt_log_message *const msg)
 static void put_tag(bt_log_message *const msg, const char *const tag)
 {
 	_PP_MAP(_BT_LOG_MESSAGE_FORMAT_INIT, BT_LOG_MESSAGE_TAG_FORMAT)
+
+/*
+ * This generates a -Wundef warning.  The issue was reported upstream:
+ *
+ *   https://github.com/wonder-mice/zf_log/issues/40
+ *
+ * but there's not much we can do here, so just silence it.
+ */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wundef"
 #if !_BT_LOG_MESSAGE_FORMAT_CONTAINS(TAG, BT_LOG_MESSAGE_TAG_FORMAT)
 	VAR_UNUSED(tag);
 #endif
+#pragma GCC diagnostic pop
+
 #if !_BT_LOG_MESSAGE_FORMAT_FIELDS(BT_LOG_MESSAGE_TAG_FORMAT)
 	VAR_UNUSED(msg);
 #else
