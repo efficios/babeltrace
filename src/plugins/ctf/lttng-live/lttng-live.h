@@ -133,8 +133,6 @@ struct lttng_live_metadata {
 	uint64_t stream_id;
 	/* Weak reference. */
 	struct ctf_metadata_decoder *decoder;
-
-	bool closed;
 };
 
 struct lttng_live_trace {
@@ -296,8 +294,30 @@ int lttng_live_add_session(struct lttng_live_msg_iter *lttng_live_msg_iter,
 		const char *hostname,
 		const char *session_name);
 
-ssize_t lttng_live_get_one_metadata_packet(struct lttng_live_trace *trace,
-		FILE *fp);
+enum lttng_live_get_one_metadata_status {
+	/* The end of the metadata stream was reached. */
+	LTTNG_LIVE_GET_ONE_METADATA_STATUS_END	    = 1,
+	/* One metadata packet was received and written to file. */
+	LTTNG_LIVE_GET_ONE_METADATA_STATUS_OK	    = 0,
+	/* The metadata stream was not found on the relay. */
+	LTTNG_LIVE_GET_ONE_METADATA_STATUS_CLOSED   = -1,
+	/*
+	 * A critical error occurred when contacting the relay or while
+	 * handling its response.
+	 */
+	LTTNG_LIVE_GET_ONE_METADATA_STATUS_ERROR    = -2,
+};
+
+/*
+ * lttng_live_get_one_metadata_packet() asks the Relay Daemon for new metadata.
+ * If new metadata is received, the function writes it to the provided file
+ * handle and updates the reply_len output parameter. This function should be
+ * called in loop until _END status is received to ensure all metadata is
+ * written to the file.
+ */
+enum lttng_live_get_one_metadata_status lttng_live_get_one_metadata_packet(
+		struct lttng_live_trace *trace, FILE *fp, size_t *reply_len);
+
 enum lttng_live_iterator_status lttng_live_get_next_index(
 		struct lttng_live_msg_iter *lttng_live_msg_iter,
 		struct lttng_live_stream_iterator *stream,

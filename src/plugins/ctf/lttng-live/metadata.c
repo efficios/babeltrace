@@ -120,15 +120,16 @@ enum lttng_live_iterator_status lttng_live_metadata_update(
 {
 	struct lttng_live_session *session = trace->session;
 	struct lttng_live_metadata *metadata = trace->metadata;
-	ssize_t ret = 0;
 	size_t size, len_read = 0;
 	char *metadata_buf = NULL;
+	bool keep_receiving;
 	FILE *fp = NULL;
 	enum ctf_metadata_decoder_status decoder_status;
 	enum lttng_live_iterator_status status =
 		LTTNG_LIVE_ITERATOR_STATUS_OK;
 	bt_logging_level log_level = trace->log_level;
 	bt_self_component *self_comp = trace->self_comp;
+	enum lttng_live_get_one_metadata_status metadata_status;
 
 	/* No metadata stream yet. */
 	if (!metadata) {
@@ -156,42 +157,49 @@ enum lttng_live_iterator_status lttng_live_metadata_update(
 		goto error;
 	}
 
+	keep_receiving = true;
 	/* Grab all available metadata. */
-	do {
+	while (keep_receiving) {
+		size_t reply_len = 0;
 		/*
-		 * get_one_metadata_packet returns the number of bytes
-		 * received, 0 when we have received everything, a
-		 * negative value on error.
+		 * lttng_live_get_one_metadata_packet() asks the Relay Daemon
+		 * for new metadata. If new metadata is received, the function
+		 * writes it to the provided file handle and updates the
+		 * reply_len output parameter. We call this function in loop
+		 * until it returns _END meaning that no new metadata is
+		 * available.
+		 * We may receive a _CLOSED status if the metadata stream we
+		 * are requesting is no longer available on the relay.
+		 * If we receive an _ERROR status, it means there was a
+		 * networking, allocating, or some other unrecoverable error.
 		 */
-		ret = lttng_live_get_one_metadata_packet(trace, fp);
-		if (ret > 0) {
-			len_read += ret;
+		metadata_status = lttng_live_get_one_metadata_packet(trace, fp,
+			&reply_len);
+
+		switch (metadata_status) {
+		case LTTNG_LIVE_GET_ONE_METADATA_STATUS_OK:
+			len_read += reply_len;
+			break;
+		case LTTNG_LIVE_GET_ONE_METADATA_STATUS_END:
+			keep_receiving = false;
+			break;
+		case LTTNG_LIVE_GET_ONE_METADATA_STATUS_CLOSED:
+			keep_receiving = false;
+			break;
+		case LTTNG_LIVE_GET_ONE_METADATA_STATUS_ERROR:
+			goto error;
+		default:
+			abort();
 		}
-	} while (ret > 0);
+	}
 
 	/*
-	 * Consider metadata closed as soon as we get an error reading
-	 * it (e.g. cannot be found).
+	 * A closed metadata stream means the trace is no longer active. Return
+	 * _END so that the caller can remove the trace from its list.
 	 */
-	if (ret < 0) {
-		if (!metadata->closed) {
-			metadata->closed = true;
-			/*
-			 * Release our reference on the trace as soon as
-			 * we know the metadata stream is not available
-			 * anymore. This won't necessarily teardown the
-			 * metadata objects immediately, but only when
-			 * the data streams are done.
-			 */
-			metadata->trace = NULL;
-		}
-		if (errno == EINTR) {
-			if (lttng_live_graph_is_canceled(
-					session->lttng_live_msg_iter)) {
-				status = LTTNG_LIVE_ITERATOR_STATUS_AGAIN;
-				goto end;
-			}
-		}
+	if (metadata_status == LTTNG_LIVE_GET_ONE_METADATA_STATUS_CLOSED) {
+		status = LTTNG_LIVE_ITERATOR_STATUS_END;
+		goto end;
 	}
 
 	if (bt_close_memstream(&metadata_buf, &size, fp)) {
@@ -260,8 +268,15 @@ enum lttng_live_iterator_status lttng_live_metadata_update(
 	}
 
 	goto end;
+
 error:
-	status = LTTNG_LIVE_ITERATOR_STATUS_ERROR;
+	if (errno == EINTR) {
+		if (lttng_live_graph_is_canceled(session->lttng_live_msg_iter)) {
+			status = LTTNG_LIVE_ITERATOR_STATUS_AGAIN;
+		}
+	} else {
+		status = LTTNG_LIVE_ITERATOR_STATUS_ERROR;
+	}
 end:
 	if (fp) {
 		int closeret;
