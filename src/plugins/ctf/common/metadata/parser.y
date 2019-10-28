@@ -1036,6 +1036,17 @@ void ctf_scanner_free(struct ctf_scanner *scanner)
 	free(scanner);
 }
 
+/*
+ * The bison-provided version of strlen (yystrlen) generates a benign
+ * -Wnull-dereference warning.  That version is used when building on cygwin,
+ * for example, but you can also enable it by hand (to test) by removing the
+ * preprocessor conditional around it.
+ *
+ * Define yystrlen such that it will always use strlen.  As far as we know,
+ * strlen provided by all the platforms we use is reliable.
+ */
+#define yystrlen strlen
+
 %}
 
 /*
