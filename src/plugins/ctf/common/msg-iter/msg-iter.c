@@ -2093,6 +2093,7 @@ enum bt_bfcr_status bfcr_floating_point_cb(double value,
 	enum bt_bfcr_status status = BT_BFCR_STATUS_OK;
 	bt_field *field = NULL;
 	struct bt_msg_iter *notit = data;
+	bt_field_class_type type;
 
 	BT_COMP_LOGT("Floating point number function called from BFCR: "
 		"notit-addr=%p, bfcr-addr=%p, fc-addr=%p, "
@@ -2104,7 +2105,7 @@ enum bt_bfcr_status bfcr_floating_point_cb(double value,
 	}
 
 	field = borrow_next_field(notit);
-	bt_field_class_type type = bt_field_get_class_type(field);
+	type = bt_field_get_class_type(field);
 	BT_ASSERT_DBG(field);
 	BT_ASSERT_DBG(bt_field_borrow_class_const(field) == fc->ir_fc);
 	BT_ASSERT_DBG(bt_field_class_type_is(type, BT_FIELD_CLASS_TYPE_REAL));
