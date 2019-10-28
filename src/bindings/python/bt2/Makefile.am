@@ -101,8 +101,15 @@ GENERATED_BINDINGS_DEPS =	\
 	bt2/version.py		\
 	setup.py
 
+# Some versions of SWIG (like 3.0.12) generate code where a parameter called
+# `swig_this` shadows a global of the same name.  Later versions (like 4.0.1)
+# have renamed this global to `Swig_This_global`.
+#
+# Disable -Wshadow for that file.
+WARN_CFLAGS = -Wno-shadow
+
 BUILD_FLAGS=CC="$(CC)" \
-		CFLAGS="$(GLIB_CFLAGS) $(AM_CFLAGS) $(CFLAGS)" \
+		CFLAGS="$(GLIB_CFLAGS) $(AM_CFLAGS) $(CFLAGS) $(WARN_CFLAGS)" \
 		CPPFLAGS="$(AM_CPPFLAGS) $(CPPFLAGS) -I$(srcdir)/bt2" \
 		LDFLAGS="$(AM_LDFLAGS) $(LDFLAGS) $(GLIB_LIBS) $(LIBS)"
 
