@@ -22,6 +22,7 @@
  * THE SOFTWARE.
  */
 
+static
 bt_self_component_port_input_message_iterator_create_from_message_iterator_status
 bt_bt2_self_component_port_input_message_iterator_create_from_message_iterator(
 		bt_self_message_iterator *self_msg_iter,
@@ -41,6 +42,7 @@ bt_bt2_self_component_port_input_message_iterator_create_from_message_iterator(
 	return status;
 }
 
+static
 bt_self_component_port_input_message_iterator_create_from_sink_component_status
 bt_bt2_self_component_port_input_message_iterator_create_from_sink_component(
 		bt_self_component_sink *self_comp,

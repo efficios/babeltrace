@@ -668,6 +668,7 @@ end:
 	return ret;
 }
 
+static
 int visit_event_update_clock_value(struct bt_ctf_event *event, uint64_t *val)
 {
 	int ret = 0;

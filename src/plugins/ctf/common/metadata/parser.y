@@ -937,17 +937,11 @@ static int set_parent_node(struct ctf_node *node,
 	return 0;
 }
 
-BT_HIDDEN
+static
 void yyerror(struct ctf_scanner *scanner, yyscan_t yyscanner, const char *str)
 {
 	_BT_LOGE_LINENO(yyget_lineno(scanner->scanner),
 		"%s: token=\"%s\"", str, yyget_text(scanner->scanner));
-}
-
-BT_HIDDEN
-int yywrap(void)
-{
-	return 1;
 }
 
 #define reparent_error(scanner, str)				\
@@ -1057,6 +1051,13 @@ void ctf_scanner_free(struct ctf_scanner *scanner)
 #endif
 }
 
+%code provides {
+	BT_HIDDEN
+	void setstring(struct ctf_scanner *scanner, YYSTYPE *lvalp, const char *src);
+	
+	BT_HIDDEN
+	int import_string(struct ctf_scanner *scanner, YYSTYPE *lvalp, const char *src, char delim);
+}
 
 %define api.pure
 	/* %locations */

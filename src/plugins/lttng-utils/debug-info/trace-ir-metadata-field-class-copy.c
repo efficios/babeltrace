@@ -214,7 +214,7 @@ enum debug_info_trace_ir_mapping_status field_class_signed_integer_copy(
 	return DEBUG_INFO_TRACE_IR_MAPPING_STATUS_OK;
 }
 
-BT_HIDDEN
+static
 enum debug_info_trace_ir_mapping_status field_class_unsigned_enumeration_copy(
 		struct trace_ir_metadata_maps *md_maps,
 		const bt_field_class *in_field_class,

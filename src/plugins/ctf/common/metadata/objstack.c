@@ -28,6 +28,8 @@
 #define BT_LOG_TAG "PLUGIN/CTF/META/OBJSTACK"
 #include "logging.h"
 
+#include "objstack.h"
+
 #include <stdlib.h>
 #include "common/list.h"
 #include "common/macros.h"

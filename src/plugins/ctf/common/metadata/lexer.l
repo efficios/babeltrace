@@ -48,13 +48,6 @@
 			return CTF_ERROR;				\
 		}							\
 	} while (0)
-
-BT_HIDDEN
-void setstring(struct ctf_scanner *scanner, YYSTYPE *lvalp, const char *src);
-
-BT_HIDDEN
-int import_string(struct ctf_scanner *scanner, YYSTYPE *lvalp, const char *src, char delim);
-
 %}
 
 %x comment_ml comment_sl string_lit char_const

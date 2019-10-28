@@ -759,6 +759,7 @@ void get_ctx_stack_field_path(struct resolve_context *ctx,
  * Returns the index of the lowest common ancestor of two field path
  * objects having the same root scope.
  */
+static
 int64_t get_field_paths_lca_index(struct ctf_field_path *field_path1,
 		struct ctf_field_path *field_path2,
 		struct resolve_context *ctx)

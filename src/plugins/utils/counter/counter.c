@@ -113,6 +113,7 @@ void try_print_last(struct counter *counter)
 	}
 }
 
+static
 void destroy_private_counter_data(struct counter *counter)
 {
 	if (counter) {

@@ -30,8 +30,9 @@ unsigned int glob;
 
 /*
  * This function is only declared to show the size of a bitfield write in
- * objdump.
+ * objdump.  The declaration is there to avoid a -Wmissing-prototypes warning.
  */
+void fct(void);
 void fct(void)
 {
 	bt_bitfield_write(&glob, unsigned int, 12, 15, 0x12345678);
@@ -148,6 +149,7 @@ do {					\
 	(val) != (ref);								\
 })
 
+static
 void run_test_unsigned_write(unsigned int src_ui, unsigned long long src_ull)
 {
 	unsigned int nrbits_ui, nrbits_ull;
@@ -270,6 +272,7 @@ void run_test_unsigned_write(unsigned int src_ui, unsigned long long src_ull)
 	pass(UNSIGNED_LONG_LONG_WRITE_TEST_DESC_FMT_STR, src_ull);
 }
 
+static
 void run_test_unsigned_read(unsigned int src_ui, unsigned long long src_ull)
 {
 	unsigned int nrbits_ui, nrbits_ull, readval_ui;
@@ -392,12 +395,14 @@ void run_test_unsigned_read(unsigned int src_ui, unsigned long long src_ull)
 	pass(UNSIGNED_LONG_LONG_READ_TEST_DESC_FMT_STR, src_ull);
 }
 
+static
 void run_test_unsigned(unsigned int src_ui, unsigned long long src_ull)
 {
 	run_test_unsigned_write(src_ui, src_ull);
 	run_test_unsigned_read(src_ui, src_ull);
 }
 
+static
 void run_test_signed_write(int src_i, long long src_ll)
 {
 	unsigned int nrbits_i, nrbits_ll;
@@ -528,6 +533,7 @@ void run_test_signed_write(int src_i, long long src_ll)
 	pass(SIGNED_LONG_LONG_WRITE_TEST_DESC_FMT_STR, src_ll);
 }
 
+static
 void run_test_signed_read(int src_i, long long src_ll)
 {
 	unsigned int nrbits_i, nrbits_ll;
@@ -659,12 +665,14 @@ void run_test_signed_read(int src_i, long long src_ll)
 	pass(SIGNED_LONG_LONG_READ_TEST_DESC_FMT_STR, src_ll);
 }
 
+static
 void run_test_signed(int src_i, long long src_ll)
 {
 	run_test_signed_write(src_i, src_ll);
 	run_test_signed_read(src_i, src_ll);
 }
 
+static
 void run_test(void)
 {
 	int i;

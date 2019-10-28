@@ -185,6 +185,7 @@ struct bt_integer_range_set_signed *bt_integer_range_set_signed_create(void)
 	return (void *) create_range_set();
 }
 
+static
 void add_range_to_range_set(struct bt_integer_range_set *range_set,
 		uint64_t u_lower, uint64_t u_upper)
 {

@@ -20,6 +20,8 @@
  * SOFTWARE.
  */
 
+#include "param-parse.h"
+
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>

@@ -28,6 +28,8 @@
 #define BT_LOG_TAG "CTF-WRITER/ATTRS"
 #include "logging.h"
 
+#include "attributes.h"
+
 #include "common/assert.h"
 #include "common/macros.h"
 #include "compat/string.h"

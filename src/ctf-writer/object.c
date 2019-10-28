@@ -21,6 +21,7 @@
  */
 
 #include "object.h"
+#include <babeltrace2-ctf-writer/object.h>
 
 void *bt_ctf_object_get_ref(void *obj)
 {

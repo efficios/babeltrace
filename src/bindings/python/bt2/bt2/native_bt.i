@@ -243,3 +243,13 @@ void bt_bt2_exit_handler(void);
 %include "native_bt_trace_class.i"
 %include "native_bt_value.i"
 %include "native_bt_version.i"
+
+%{
+
+/*
+ * This function is defined by SWIG.  Declare here to avoid a
+ * -Wmissing-prototypes warning.
+ */
+PyObject *SWIG_init(void);
+
+%}

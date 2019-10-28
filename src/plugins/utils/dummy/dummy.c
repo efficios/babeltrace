@@ -34,6 +34,7 @@
 static
 const char * const in_port_name = "in";
 
+static
 void destroy_private_dummy_data(struct dummy *dummy)
 {
 	bt_self_component_port_input_message_iterator_put_ref(dummy->msg_iter);
