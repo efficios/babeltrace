@@ -456,13 +456,30 @@ enum lttng_live_iterator_status lttng_live_get_session(
 			status != LTTNG_LIVE_ITERATOR_STATUS_END) {
 		goto end;
 	}
-	for (trace_idx = 0; trace_idx < session->traces->len; trace_idx++) {
+	trace_idx = 0;
+	while (trace_idx < session->traces->len) {
 		struct lttng_live_trace *trace =
 			g_ptr_array_index(session->traces, trace_idx);
 
 		status = lttng_live_metadata_update(trace);
-		if (status != LTTNG_LIVE_ITERATOR_STATUS_OK &&
-				status != LTTNG_LIVE_ITERATOR_STATUS_END) {
+		switch (status) {
+		case LTTNG_LIVE_ITERATOR_STATUS_OK:
+			trace_idx++;
+			break;
+		case LTTNG_LIVE_ITERATOR_STATUS_END:
+			/*
+			 * The trace has ended. Remove it of the array an
+			 * continue the iteration.
+			 * We can remove the trace safely when using the
+			 * g_ptr_array_remove_index_fast because it replaces
+			 * the element at trace_idx with the array's last
+			 * element. trace_idx is not incremented because of
+			 * that.
+			 */
+			(void) g_ptr_array_remove_index_fast(session->traces,
+				trace_idx);
+			break;
+		default:
 			goto end;
 		}
 	}

@@ -969,11 +969,11 @@ error:
 }
 
 BT_HIDDEN
-ssize_t lttng_live_get_one_metadata_packet(struct lttng_live_trace *trace,
-		FILE *fp)
+enum lttng_live_get_one_metadata_status lttng_live_get_one_metadata_packet(
+		struct lttng_live_trace *trace, FILE *fp, size_t *reply_len)
 {
 	uint64_t len = 0;
-	int ret;
+	enum lttng_live_get_one_metadata_status metadata_status;
 	struct lttng_viewer_cmd cmd;
 	struct lttng_viewer_get_metadata rq;
 	struct lttng_viewer_metadata_packet rp;
@@ -1020,15 +1020,21 @@ ssize_t lttng_live_get_one_metadata_packet(struct lttng_live_trace *trace,
 
 	switch (be32toh(rp.status)) {
 		case LTTNG_VIEWER_METADATA_OK:
-			BT_COMP_LOGD("get_metadata : OK");
+			BT_COMP_LOGD("Received get_metadata response : OK");
 			break;
 		case LTTNG_VIEWER_NO_NEW_METADATA:
-			BT_COMP_LOGD("get_metadata : NO NEW");
-			ret = 0;
+			BT_COMP_LOGD("Received get_metadata response: no new");
+			metadata_status = LTTNG_LIVE_GET_ONE_METADATA_STATUS_END;
 			goto end;
 		case LTTNG_VIEWER_METADATA_ERR:
-			BT_COMP_LOGD("get_metadata : ERR");
-			goto error;
+			/*
+			 * The Relayd cannot find this stream id. Maybe its
+			 * gone already. This can happen in short lived UST app
+			 * in a per-pid session.
+			 */
+			BT_COMP_LOGD("Received get_metadata response: error");
+			metadata_status = LTTNG_LIVE_GET_ONE_METADATA_STATUS_CLOSED;
+			goto end;
 		default:
 			BT_COMP_LOGD("get_metadata : UNKNOWN");
 			goto error;
@@ -1065,14 +1071,18 @@ ssize_t lttng_live_get_one_metadata_packet(struct lttng_live_trace *trace,
 	}
 	BT_ASSERT(ret_len == len);
 	free(data);
-	ret = len;
-end:
-	return ret;
+	*reply_len = len;
+	metadata_status = LTTNG_LIVE_GET_ONE_METADATA_STATUS_OK;
+
+	goto end;
 
 error_free_data:
 	free(data);
 error:
-	return -1;
+	metadata_status = LTTNG_LIVE_GET_ONE_METADATA_STATUS_ERROR;
+
+end:
+	return metadata_status;
 }
 
 /*
