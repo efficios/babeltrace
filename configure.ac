@@ -676,7 +676,6 @@ AX_COMPILER_FLAGS(
 		-Wno-missing-declarations dnl
 		-Wno-redundant-decls dnl
 		-Wno-logical-op dnl
-		-Wno-shadow dnl
 		-Wno-double-promotion dnl
 		-Wno-cast-align dnl
 	])

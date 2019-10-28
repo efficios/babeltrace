@@ -132,10 +132,10 @@ static
 int bt_ctf_event_common_create_fields(
 		struct bt_ctf_stream_class_common *stream_class,
 		struct bt_ctf_validation_output *validation_output,
-		create_field_func create_field_func,
-		release_field_func release_field_func,
-		create_header_field_func create_header_field_func,
-		release_header_field_func release_header_field_func,
+		create_field_func_type create_field_func,
+		release_field_func_type release_field_func,
+		create_header_field_func_type create_header_field_func,
+		release_header_field_func_type release_header_field_func,
 		struct bt_ctf_field_wrapper **header_field,
 		struct bt_ctf_field_common **stream_event_context_field,
 		struct bt_ctf_field_common **context_field,
@@ -319,10 +319,10 @@ int bt_ctf_event_common_initialize(struct bt_ctf_event_common *event,
 		int (*map_clock_classes_func)(struct bt_ctf_stream_class_common *stream_class,
 			struct bt_ctf_field_type_common *packet_context_field_type,
 			struct bt_ctf_field_type_common *event_header_field_type),
-		create_field_func create_field_func,
-		release_field_func release_field_func,
-		create_header_field_func create_header_field_func,
-		release_header_field_func release_header_field_func)
+		create_field_func_type create_field_func,
+		release_field_func_type release_field_func,
+		create_header_field_func_type create_header_field_func,
+		release_header_field_func_type release_header_field_func)
 {
 	int ret;
 	struct bt_ctf_trace_common *trace = NULL;
@@ -621,10 +621,10 @@ struct bt_ctf_event *bt_ctf_event_create(struct bt_ctf_event_class *event_class)
 		(bt_ctf_validation_flag_copy_field_type_func)
 			bt_ctf_field_type_copy,
 		false, map_clock_classes_func,
-		(create_field_func) bt_ctf_field_create,
-		(release_field_func) bt_ctf_object_put_ref,
-		(create_header_field_func) create_event_header_field,
-		(release_header_field_func) destroy_event_header_field);
+		(create_field_func_type) bt_ctf_field_create,
+		(release_field_func_type) bt_ctf_object_put_ref,
+		(create_header_field_func_type) create_event_header_field,
+		(release_header_field_func_type) destroy_event_header_field);
 	if (ret) {
 		/* bt_ctf_event_common_initialize() logs errors */
 		goto error;
