@@ -60,8 +60,6 @@ _bt_list_splice_tail (struct bt_list_head *add, struct bt_list_head *head)
 }
 
 BT_HIDDEN
-int yyparse(struct ctf_scanner *scanner, yyscan_t yyscanner);
-BT_HIDDEN
 int yylex(union YYSTYPE *yyval, yyscan_t yyscanner);
 BT_HIDDEN
 int yylex_init_extra(struct ctf_scanner *scanner, yyscan_t * ptr_yy_globals);
