@@ -190,6 +190,23 @@ class _TraceClass(_TraceClassConst):
         supports_discarded_packets=False,
         discarded_packets_have_default_clock_snapshots=False,
     ):
+        # Validate parameters before we create the object.
+        bt2_stream_class._StreamClass._validate_create_params(
+            name,
+            user_attributes,
+            packet_context_field_class,
+            event_common_context_field_class,
+            default_clock_class,
+            assigns_automatic_event_class_id,
+            assigns_automatic_stream_id,
+            supports_packets,
+            packets_have_beginning_default_clock_snapshot,
+            packets_have_end_default_clock_snapshot,
+            supports_discarded_events,
+            discarded_events_have_default_clock_snapshots,
+            supports_discarded_packets,
+            discarded_packets_have_default_clock_snapshots,
+        )
 
         if self.assigns_automatic_stream_class_id:
             if id is not None:
