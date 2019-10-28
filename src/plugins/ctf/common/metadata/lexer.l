@@ -52,10 +52,6 @@
 BT_HIDDEN
 void setstring(struct ctf_scanner *scanner, YYSTYPE *lvalp, const char *src);
 
-static void yyunput (int c, register char * yy_bp , yyscan_t yyscanner)
-	__attribute__((unused));
-static int input (yyscan_t yyscanner) __attribute__((unused));
-
 BT_HIDDEN
 int import_string(struct ctf_scanner *scanner, YYSTYPE *lvalp, const char *src, char delim);
 
