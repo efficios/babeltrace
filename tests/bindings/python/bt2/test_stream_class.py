@@ -62,6 +62,8 @@ class StreamClassTestCase(unittest.TestCase):
         with self.assertRaisesRegex(TypeError, "'int' is not a 'str' object"):
             self._tc.create_stream_class(name=17)
 
+        self.assertEqual(len(self._tc), 0)
+
     def test_create_packet_context_field_class(self):
         fc = self._tc.create_structure_field_class()
         sc = self._tc.create_stream_class(
@@ -77,7 +79,11 @@ class StreamClassTestCase(unittest.TestCase):
             TypeError,
             "'int' is not a '<class 'bt2.field_class._StructureFieldClass'>' object",
         ):
-            self._tc.create_stream_class(packet_context_field_class=22)
+            self._tc.create_stream_class(
+                packet_context_field_class=22, supports_packets=True
+            )
+
+        self.assertEqual(len(self._tc), 0)
 
     def test_create_invalid_packet_context_field_class_no_packets(self):
         fc = self._tc.create_structure_field_class()
@@ -87,6 +93,8 @@ class StreamClassTestCase(unittest.TestCase):
             "cannot have a packet context field class without supporting packets",
         ):
             self._tc.create_stream_class(packet_context_field_class=fc)
+
+        self.assertEqual(len(self._tc), 0)
 
     def test_create_event_common_context_field_class(self):
         fc = self._tc.create_structure_field_class()
@@ -104,6 +112,8 @@ class StreamClassTestCase(unittest.TestCase):
         ):
             self._tc.create_stream_class(event_common_context_field_class=22)
 
+        self.assertEqual(len(self._tc), 0)
+
     def test_create_default_clock_class(self):
         sc = self._tc.create_stream_class(default_clock_class=self._cc)
         self.assertEqual(sc.default_clock_class.addr, self._cc.addr)
@@ -115,6 +125,8 @@ class StreamClassTestCase(unittest.TestCase):
         ):
             self._tc.create_stream_class(default_clock_class=12)
 
+        self.assertEqual(len(self._tc), 0)
+
     def test_create_user_attributes(self):
         sc = self._tc.create_stream_class(user_attributes={'salut': 23})
         self.assertEqual(sc.user_attributes, {'salut': 23})
@@ -125,12 +137,16 @@ class StreamClassTestCase(unittest.TestCase):
         ):
             self._tc.create_stream_class(user_attributes=object())
 
+        self.assertEqual(len(self._tc), 0)
+
     def test_create_invalid_user_attributes_value_type(self):
         with self.assertRaisesRegex(
             TypeError,
             "'SignedIntegerValue' is not a '<class 'bt2.value.MapValue'>' object",
         ):
             self._tc.create_stream_class(user_attributes=23)
+
+        self.assertEqual(len(self._tc), 0)
 
     def test_automatic_stream_ids(self):
         sc = self._tc.create_stream_class(assigns_automatic_stream_id=True)
@@ -147,6 +163,14 @@ class StreamClassTestCase(unittest.TestCase):
             ValueError, "id provided, but stream class assigns automatic stream ids"
         ):
             self._trace.create_stream(sc, id=123)
+
+        self.assertEqual(len(self._trace), 0)
+
+    def test_automatic_stream_ids_wrong_type(self):
+        with self.assertRaisesRegex(TypeError, "str' is not a 'bool' object"):
+            self._tc.create_stream_class(assigns_automatic_stream_id='True')
+
+        self.assertEqual(len(self._tc), 0)
 
     def test_no_automatic_stream_ids(self):
         sc = self._tc.create_stream_class(assigns_automatic_stream_id=False)
@@ -165,6 +189,8 @@ class StreamClassTestCase(unittest.TestCase):
         ):
             self._trace.create_stream(sc)
 
+        self.assertEqual(len(self._trace), 0)
+
     def test_automatic_event_class_ids(self):
         sc = self._tc.create_stream_class(assigns_automatic_event_class_id=True)
         self.assertTrue(sc.assigns_automatic_event_class_id)
@@ -182,6 +208,14 @@ class StreamClassTestCase(unittest.TestCase):
         ):
             sc.create_event_class(id=123)
 
+        self.assertEqual(len(sc), 0)
+
+    def test_automatic_event_class_ids_wrong_type(self):
+        with self.assertRaisesRegex(TypeError, "'str' is not a 'bool' object"):
+            self._tc.create_stream_class(assigns_automatic_event_class_id='True')
+
+        self.assertEqual(len(self._tc), 0)
+
     def test_no_automatic_event_class_ids(self):
         sc = self._tc.create_stream_class(assigns_automatic_event_class_id=False)
         self.assertFalse(sc.assigns_automatic_event_class_id)
@@ -198,6 +232,8 @@ class StreamClassTestCase(unittest.TestCase):
             "id not provided, but stream class does not assign automatic event class ids",
         ):
             sc.create_event_class()
+
+        self.assertEqual(len(sc), 0)
 
     def test_supports_packets_without_cs(self):
         sc = self._tc.create_stream_class(
@@ -233,6 +269,8 @@ class StreamClassTestCase(unittest.TestCase):
                 default_clock_class=self._cc, supports_packets=23
             )
 
+        self.assertEqual(len(self._tc), 0)
+
     def test_packets_have_begin_default_cs_raises_type_error(self):
         with self.assertRaisesRegex(TypeError, "'int' is not a 'bool' object"):
             self._tc.create_stream_class(
@@ -240,11 +278,15 @@ class StreamClassTestCase(unittest.TestCase):
                 packets_have_beginning_default_clock_snapshot=23,
             )
 
+        self.assertEqual(len(self._tc), 0)
+
     def test_packets_have_end_default_cs_raises_type_error(self):
         with self.assertRaisesRegex(TypeError, "'int' is not a 'bool' object"):
             self._tc.create_stream_class(
                 default_clock_class=self._cc, packets_have_end_default_clock_snapshot=23
             )
+
+        self.assertEqual(len(self._tc), 0)
 
     def test_does_not_support_packets_raises_with_begin_cs(self):
         with self.assertRaisesRegex(
@@ -256,6 +298,8 @@ class StreamClassTestCase(unittest.TestCase):
                 packets_have_beginning_default_clock_snapshot=True,
             )
 
+        self.assertEqual(len(self._tc), 0)
+
     def test_does_not_support_packets_raises_with_end_cs(self):
         with self.assertRaisesRegex(
             ValueError,
@@ -265,6 +309,8 @@ class StreamClassTestCase(unittest.TestCase):
                 default_clock_class=self._cc,
                 packets_have_end_default_clock_snapshot=True,
             )
+
+        self.assertEqual(len(self._tc), 0)
 
     def test_supports_discarded_events_without_cs(self):
         sc = self._tc.create_stream_class(
@@ -288,12 +334,16 @@ class StreamClassTestCase(unittest.TestCase):
                 default_clock_class=self._cc, supports_discarded_events=23
             )
 
+        self.assertEqual(len(self._tc), 0)
+
     def test_discarded_events_have_default_cs_raises_type_error(self):
         with self.assertRaisesRegex(TypeError, "'int' is not a 'bool' object"):
             self._tc.create_stream_class(
                 default_clock_class=self._cc,
                 discarded_events_have_default_clock_snapshots=23,
             )
+
+        self.assertEqual(len(self._tc), 0)
 
     def test_does_not_support_discarded_events_raises_with_cs(self):
         with self.assertRaisesRegex(
@@ -304,6 +354,8 @@ class StreamClassTestCase(unittest.TestCase):
                 default_clock_class=self._cc,
                 discarded_events_have_default_clock_snapshots=True,
             )
+
+        self.assertEqual(len(self._tc), 0)
 
     def test_supports_discarded_packets_without_cs(self):
         sc = self._tc.create_stream_class(
@@ -332,6 +384,8 @@ class StreamClassTestCase(unittest.TestCase):
                 default_clock_class=self._cc, supports_discarded_packets=True
             )
 
+        self.assertEqual(len(self._tc), 0)
+
     def test_supports_discarded_packets_raises_type_error(self):
         with self.assertRaisesRegex(TypeError, "'int' is not a 'bool' object"):
             self._tc.create_stream_class(
@@ -340,6 +394,8 @@ class StreamClassTestCase(unittest.TestCase):
                 supports_packets=True,
             )
 
+        self.assertEqual(len(self._tc), 0)
+
     def test_discarded_packets_have_default_cs_raises_type_error(self):
         with self.assertRaisesRegex(TypeError, "'int' is not a 'bool' object"):
             self._tc.create_stream_class(
@@ -347,6 +403,8 @@ class StreamClassTestCase(unittest.TestCase):
                 discarded_packets_have_default_clock_snapshots=23,
                 supports_packets=True,
             )
+
+        self.assertEqual(len(self._tc), 0)
 
     def test_does_not_support_discarded_packets_raises_with_cs(self):
         with self.assertRaisesRegex(
@@ -358,6 +416,8 @@ class StreamClassTestCase(unittest.TestCase):
                 discarded_packets_have_default_clock_snapshots=True,
                 supports_packets=True,
             )
+
+        self.assertEqual(len(self._tc), 0)
 
     def test_trace_class(self):
         sc = self._tc.create_stream_class()
