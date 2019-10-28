@@ -856,6 +856,7 @@ end:
 	return;
 }
 
+static
 void trace_debug_info_remove_func(const bt_trace *in_trace, void *data)
 {
 	struct debug_info_msg_iter *debug_it = data;

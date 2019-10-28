@@ -56,26 +56,31 @@
 
 #define APPEND_ALL_FROM_DIR_NFDOPEN_MAX	8
 
+/* Declare here to make sure definition in both ifdef branches are in sync. */
+static
+int init_python_plugin_provider(void);
+typedef int (*create_all_from_file_sym_type)(
+		const char *path,
+		bool fail_on_load_error,
+		struct bt_plugin_set **plugin_set_out);
+
 #ifdef BT_BUILT_IN_PYTHON_PLUGIN_SUPPORT
 #include <plugin/python-plugin-provider.h>
 
 static
-int (*bt_plugin_python_create_all_from_file_sym)(
-		const char *path, bool fail_on_load_error,
-		struct bt_plugin_set **plugin_set_out) =
-	bt_plugin_python_create_all_from_file;
+create_all_from_file_sym_type
+	bt_plugin_python_create_all_from_file_sym =
+			bt_plugin_python_create_all_from_file;
 
 static
-enum bt_plugin_status init_python_plugin_provider(void)
+int init_python_plugin_provider(void)
 {
 }
 #else /* BT_BUILT_IN_PYTHON_PLUGIN_SUPPORT */
 static GModule *python_plugin_provider_module;
 
 static
-int (*bt_plugin_python_create_all_from_file_sym)(
-		const char *path, bool fail_on_load_error,
-		 struct bt_plugin_set **plugin_set_out);
+create_all_from_file_sym_type bt_plugin_python_create_all_from_file_sym;
 
 static
 int init_python_plugin_provider(void) {

@@ -25,6 +25,8 @@
 #define BT_LOG_TAG "PLUGIN/SINK.CTF.FS/TRANSLATE-TRACE-IR-TO-CTF-IR"
 #include "logging/comp-logging.h"
 
+#include "translate-trace-ir-to-ctf-ir.h"
+
 #include <babeltrace2/babeltrace.h>
 #include "common/macros.h"
 #include "common/common.h"
@@ -1692,6 +1694,7 @@ end:
 	return ret;
 }
 
+static
 bool default_clock_class_name_exists(struct fs_sink_ctf_trace *trace,
 		const char *name)
 {

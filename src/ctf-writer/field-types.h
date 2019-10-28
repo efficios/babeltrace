@@ -450,6 +450,22 @@ bt_ctf_field_type_common_enumeration_unsigned_find_mappings_by_value(
 		struct bt_ctf_field_type_common *ft, uint64_t value);
 
 BT_HIDDEN
+int bt_ctf_field_type_enumeration_mapping_iterator_next(
+		struct bt_ctf_field_type_enumeration_mapping_iterator *iter);
+
+BT_HIDDEN
+int bt_ctf_field_type_enumeration_mapping_iterator_signed_get(
+		struct bt_ctf_field_type_enumeration_mapping_iterator *iter,
+		const char **mapping_name, int64_t *range_begin,
+		int64_t *range_end);
+
+BT_HIDDEN
+int bt_ctf_field_type_enumeration_mapping_iterator_unsigned_get(
+		struct bt_ctf_field_type_enumeration_mapping_iterator *iter,
+		const char **mapping_name, uint64_t *range_begin,
+		uint64_t *range_end);
+
+BT_HIDDEN
 int bt_ctf_field_type_common_enumeration_signed_get_mapping_by_index(
 		struct bt_ctf_field_type_common *ft, uint64_t index,
 		const char **mapping_name, int64_t *range_begin,

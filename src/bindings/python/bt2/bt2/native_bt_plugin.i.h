@@ -30,6 +30,7 @@
  * `*OUT`; it could point to unreadable memory.
  */
 
+static
 bt_property_availability bt_bt2_plugin_get_version(
 		const bt_plugin *plugin, unsigned int *major,
 		unsigned int *minor, unsigned int *patch, const char **extra)
@@ -45,6 +46,7 @@ bt_property_availability bt_bt2_plugin_get_version(
 	return ret;
 }
 
+static
 bt_plugin_find_status bt_bt2_plugin_find(const char *plugin_name,
 		bt_bool find_in_std_env_var, bt_bool find_in_user_dir,
 		bt_bool find_in_sys_dir, bt_bool find_in_static,
@@ -62,6 +64,7 @@ bt_plugin_find_status bt_bt2_plugin_find(const char *plugin_name,
 	return status;
 }
 
+static
 bt_plugin_find_all_status bt_bt2_plugin_find_all(bt_bool find_in_std_env_var,
 		bt_bool find_in_user_dir, bt_bool find_in_sys_dir,
 		bt_bool find_in_static, bt_bool fail_on_load_error,
@@ -79,6 +82,7 @@ bt_plugin_find_all_status bt_bt2_plugin_find_all(bt_bool find_in_std_env_var,
 	return status;
 }
 
+static
 bt_plugin_find_all_from_file_status bt_bt2_plugin_find_all_from_file(
 		const char *path, bt_bool fail_on_load_error,
 		const bt_plugin_set **plugin_set)
@@ -94,6 +98,7 @@ bt_plugin_find_all_from_file_status bt_bt2_plugin_find_all_from_file(
 	return status;
 }
 
+static
 bt_plugin_find_all_from_dir_status bt_bt2_plugin_find_all_from_dir(
 		const char *path, bt_bool recurse, bt_bool fail_on_load_error,
 		const bt_plugin_set **plugin_set)

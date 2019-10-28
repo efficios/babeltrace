@@ -179,6 +179,18 @@ extern int bt_ctf_event_class_set_context_field_type(
 extern struct bt_ctf_field_type *bt_ctf_event_class_get_payload_field_type(
 		struct bt_ctf_event_class *event_class);
 
+extern int64_t bt_ctf_event_class_get_payload_type_field_count(
+		struct bt_ctf_event_class *event_class);
+
+extern int bt_ctf_event_class_get_payload_type_field_by_index(
+		struct bt_ctf_event_class *event_class,
+		const char **field_name, struct bt_ctf_field_type **field_type,
+		uint64_t index);
+
+extern struct bt_ctf_field_type *
+bt_ctf_event_class_get_payload_type_field_type_by_name(
+		struct bt_ctf_event_class *event_class, const char *name);
+
 extern int bt_ctf_event_class_set_payload_field_type(
 		struct bt_ctf_event_class *event_class,
 		struct bt_ctf_field_type *payload_type);

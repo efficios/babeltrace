@@ -950,14 +950,6 @@ bt_self_component_port_input_message_iterator_borrow_component(
 	return iterator->upstream_component;
 }
 
-const struct bt_component *
-bt_self_component_port_input_message_iterator_borrow_component_const(
-		const struct bt_self_component_port_input_message_iterator *iterator)
-{
-	BT_ASSERT_PRE_DEV_NON_NULL(iterator, "Message iterator");
-	return iterator->upstream_component;
-}
-
 struct bt_self_component *bt_self_message_iterator_borrow_component(
 		struct bt_self_message_iterator *self_iterator)
 {

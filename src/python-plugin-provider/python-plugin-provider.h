@@ -23,10 +23,12 @@
  * SOFTWARE.
  */
 
-#include <babeltrace2/plugin/plugin-const.h>
+#include <babeltrace2/babeltrace.h>
+#include <stdbool.h>
 
 extern
-enum bt_plugin_status bt_plugin_python_create_all_from_file(const char *path,
+int bt_plugin_python_create_all_from_file(const char *path,
+		bool fail_on_load_error,
 		struct bt_plugin_set **plugin_set_out);
 
 #endif /* BABELTRACE_PLUGIN_PYTHON_PLUGIN_PROVIDER_INTERNAL_H */

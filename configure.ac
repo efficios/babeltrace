@@ -672,8 +672,6 @@ AX_COMPILER_FLAGS(
 		-Wno-pointer-arith dnl
 		-Wno-format-nonliteral dnl
 		-Wno-undef dnl
-		-Wno-missing-prototypes dnl
-		-Wno-missing-declarations dnl
 		-Wno-double-promotion dnl
 		-Wno-cast-align dnl
 	])

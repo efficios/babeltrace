@@ -363,6 +363,7 @@ end:
 	return cause;
 }
 
+static
 struct bt_error_cause_message_iterator_actor *
 create_error_cause_message_iterator_actor(struct bt_message_iterator *iter,
 		const char *file_name, uint64_t line_no)

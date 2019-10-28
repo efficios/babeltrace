@@ -868,6 +868,7 @@ end:
 	return ret;
 }
 
+static
 int get_unary_uuid(struct ctx *ctx, struct bt_list_head *head,
 		bt_uuid_t uuid)
 {

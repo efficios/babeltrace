@@ -811,6 +811,7 @@ typedef void *(* plugin_borrow_comp_cls_by_index_func_t)(const bt_plugin *,
 typedef const bt_component_class *(* spec_comp_cls_borrow_comp_cls_func_t)(
 	void *);
 
+static
 void cmd_list_plugins_print_component_classes(const bt_plugin *plugin,
 		const char *cc_type_name, uint64_t count,
 		plugin_borrow_comp_cls_by_index_func_t borrow_comp_cls_by_index_func,

@@ -17,6 +17,8 @@
 #define BT_LOG_TAG "PLUGIN/CTF/META/DECODER-DECODE-PACKET"
 #include "logging/comp-logging.h"
 
+#include "decoder-packetized-file-stream-to-buf.h"
+
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdint.h>

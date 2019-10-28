@@ -26,6 +26,8 @@
 #define BT_LOG_TAG "PLUGIN/SRC.TEXT.DMESG"
 #include "logging/comp-logging.h"
 
+#include "dmesg.h"
+
 #include <stdbool.h>
 #include <string.h>
 #include <ctype.h>

@@ -106,6 +106,10 @@ int bt_ctf_event_common_initialize(struct bt_ctf_event_common *event,
 		create_header_field_func_type create_header_field_func,
 		release_header_field_func_type release_header_field_func);
 
+BT_HIDDEN
+int bt_ctf_event_common_set_payload(struct bt_ctf_event *event,
+		struct bt_ctf_field *payload);
+
 static inline
 struct bt_ctf_field_common *bt_ctf_event_common_borrow_payload(
 		struct bt_ctf_event_common *event)

@@ -20,6 +20,8 @@
  * SOFTWARE.
  */
 
+#include "translate-ctf-ir-to-tsdl.h"
+
 #include <babeltrace2/babeltrace.h>
 #include "common/macros.h"
 #include <stdio.h>

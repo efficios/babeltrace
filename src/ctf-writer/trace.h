@@ -388,4 +388,8 @@ struct bt_ctf_value *
 bt_ctf_trace_get_environment_field_value_by_name(
 		struct bt_ctf_trace *trace, const char *name);
 
+BT_HIDDEN
+int bt_ctf_trace_visit(struct bt_ctf_trace *trace,
+		bt_ctf_visitor visitor, void *data);
+
 #endif /* BABELTRACE_CTF_WRITER_TRACE_INTERNAL_H */

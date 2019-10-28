@@ -794,6 +794,7 @@ void test_is_equal_unsigned_integer(void)
 	BT_VALUE_PUT_REF_AND_RESET(int3);
 }
 
+static
 void test_is_equal_signed_integer(void)
 {
 	bt_value *int1 =

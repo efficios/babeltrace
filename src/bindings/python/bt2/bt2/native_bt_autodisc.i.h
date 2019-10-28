@@ -47,6 +47,7 @@
  * This function can also return None, if it failed to allocate memory
  * for the return value and status code.
  */
+static
 bt_value *bt_bt2_auto_discover_source_components(const bt_value *inputs,
 		const bt_plugin_set *plugin_set)
 {

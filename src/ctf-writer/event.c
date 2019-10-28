@@ -518,6 +518,7 @@ end:
 	return ret;
 }
 
+static
 int map_clock_classes_func(struct bt_ctf_stream_class_common *stream_class,
 		struct bt_ctf_field_type_common *packet_context_type,
 		struct bt_ctf_field_type_common *event_header_type)
@@ -645,7 +646,7 @@ struct bt_ctf_event_class *bt_ctf_event_get_class(struct bt_ctf_event *event)
 	return bt_ctf_object_get_ref(bt_ctf_event_common_borrow_class(BT_CTF_TO_COMMON(event)));
 }
 
-BT_HIDDEN
+static
 struct bt_ctf_stream *bt_ctf_event_borrow_stream(struct bt_ctf_event *event)
 {
 	BT_ASSERT_DBG(event);
@@ -754,12 +755,6 @@ int bt_ctf_event_serialize(struct bt_ctf_event *event,
 
 end:
 	return ret;
-}
-
-BT_HIDDEN
-void _bt_ctf_event_freeze(struct bt_ctf_event *event)
-{
-	_bt_ctf_event_common_set_is_frozen(BT_CTF_TO_COMMON(event), true);
 }
 
 int bt_ctf_event_set_header(struct bt_ctf_event *event,

@@ -2216,6 +2216,7 @@ end:
 	return BT_BFCR_STATUS_OK;
 }
 
+static
 enum bt_bfcr_status bfcr_compound_begin_cb(
 		struct ctf_field_class *fc, void *data)
 {
@@ -2267,6 +2268,7 @@ end:
 	return BT_BFCR_STATUS_OK;
 }
 
+static
 enum bt_bfcr_status bfcr_compound_end_cb(
 		struct ctf_field_class *fc, void *data)
 {
