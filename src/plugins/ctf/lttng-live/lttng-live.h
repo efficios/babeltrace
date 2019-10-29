@@ -284,7 +284,15 @@ bt_component_class_message_iterator_initialize_method_status lttng_live_msg_iter
 void lttng_live_msg_iter_finalize(bt_self_message_iterator *it);
 
 int lttng_live_create_viewer_session(struct lttng_live_msg_iter *lttng_live_msg_iter);
-int lttng_live_attach_session(struct lttng_live_session *session);
+
+enum lttng_live_attach_session_status {
+	LTTNG_LIVE_ATTACH_SESSION_STATUS_OK	= 0,
+	LTTNG_LIVE_ATTACH_SESSION_STATUS_ERROR	= -2,
+};
+
+enum lttng_live_attach_session_status lttng_live_attach_session(
+		struct lttng_live_session *session);
+
 int lttng_live_detach_session(struct lttng_live_session *session);
 enum lttng_live_iterator_status lttng_live_get_new_streams(
 		struct lttng_live_session *session);

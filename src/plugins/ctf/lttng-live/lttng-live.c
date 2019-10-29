@@ -437,11 +437,11 @@ enum lttng_live_iterator_status lttng_live_get_session(
 {
 	enum lttng_live_iterator_status status;
 	uint64_t trace_idx;
-	int ret = 0;
 
 	if (!session->attached) {
-		ret = lttng_live_attach_session(session);
-		if (ret) {
+		enum lttng_live_attach_session_status attach_status =
+			lttng_live_attach_session(session);
+		if (attach_status != LTTNG_LIVE_ATTACH_SESSION_STATUS_OK) {
 			if (lttng_live_graph_is_canceled(lttng_live_msg_iter)) {
 				status = LTTNG_LIVE_ITERATOR_STATUS_AGAIN;
 			} else {

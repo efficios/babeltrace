@@ -810,9 +810,11 @@ error:
 }
 
 BT_HIDDEN
-int lttng_live_attach_session(struct lttng_live_session *session)
+enum lttng_live_attach_session_status lttng_live_attach_session(
+		struct lttng_live_session *session)
 {
 	struct lttng_viewer_cmd cmd;
+	enum lttng_live_attach_session_status attach_status;
 	struct lttng_viewer_attach_session_request rq;
 	struct lttng_viewer_attach_session_response rp;
 	struct lttng_live_msg_iter *lttng_live_msg_iter =
@@ -889,10 +891,14 @@ int lttng_live_attach_session(struct lttng_live_session *session)
 	session->attached = true;
 	session->new_streams_needed = false;
 
-	return 0;
+	attach_status = LTTNG_LIVE_ATTACH_SESSION_STATUS_OK;
+	goto end;
 
 error:
-	return -1;
+	attach_status = LTTNG_LIVE_ATTACH_SESSION_STATUS_ERROR;
+
+end:
+	return attach_status;
 }
 
 BT_HIDDEN
