@@ -35,6 +35,7 @@
 #include <babeltrace2/types.h>
 #include <glib.h>
 #include <sys/types.h>
+#include <stdbool.h>
 
 #include "stream-class.h"
 #include "attributes.h"

@@ -29,7 +29,6 @@
 #include "object-pool.h"
 #include "common/uuid.h"
 #include <babeltrace2-ctf-writer/types.h>
-#include <stdbool.h>
 #include <stdint.h>
 #include <glib.h>
 

@@ -26,6 +26,7 @@
  * http://www.efficios.com/ctf
  */
 
+#include <stdbool.h>
 #include <glib.h>
 #include <babeltrace2/babeltrace.h>
 

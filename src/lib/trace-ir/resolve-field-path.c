@@ -27,6 +27,7 @@
 #include "common/assert.h"
 #include <babeltrace2/trace-ir/field-path-const.h>
 #include <limits.h>
+#include <stdbool.h>
 #include <stdint.h>
 #include <inttypes.h>
 #include <glib.h>

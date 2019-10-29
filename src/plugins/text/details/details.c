@@ -25,6 +25,8 @@
 #define BT_LOG_TAG "PLUGIN/SINK.TEXT.DETAILS"
 #include "logging/comp-logging.h"
 
+#include <stdbool.h>
+
 #include <babeltrace2/babeltrace.h>
 
 #include "common/common.h"

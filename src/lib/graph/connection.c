@@ -30,6 +30,7 @@
 #include <babeltrace2/graph/connection-const.h>
 #include "lib/object.h"
 #include "compat/compiler.h"
+#include <stdbool.h>
 #include <stdlib.h>
 #include <glib.h>
 

@@ -28,6 +28,8 @@
  * http://www.efficios.com/ctf
  */
 
+#include <stdbool.h>
+
 #include "common/assert.h"
 #include "common/macros.h"
 #include <babeltrace2-ctf-writer/field-types.h>

@@ -29,6 +29,7 @@
 #include "lib/object-pool.h"
 #include "common/macros.h"
 #include <glib.h>
+#include <stdbool.h>
 
 #include "utils.h"
 

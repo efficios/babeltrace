@@ -25,6 +25,7 @@
 #include "logging.h"
 
 #include <inttypes.h>
+#include <stdbool.h>
 
 #include <babeltrace2-ctf-writer/event.h>
 #include <babeltrace2-ctf-writer/fields.h>

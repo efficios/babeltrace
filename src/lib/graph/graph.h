@@ -36,6 +36,7 @@
 #include "lib/object-pool.h"
 #include "common/assert.h"
 #include "common/common.h"
+#include <stdbool.h>
 #include <stdlib.h>
 #include <glib.h>
 

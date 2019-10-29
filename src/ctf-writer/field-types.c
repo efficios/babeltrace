@@ -27,6 +27,7 @@
 
 #include <float.h>
 #include <inttypes.h>
+#include <stdbool.h>
 #include <stdlib.h>
 
 #include <babeltrace2-ctf-writer/fields.h>

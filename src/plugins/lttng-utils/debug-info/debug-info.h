@@ -28,7 +28,10 @@
  */
 
 #include <stdint.h>
+#include <stdbool.h>
+
 #include <babeltrace2/babeltrace.h>
+
 #include "common/macros.h"
 
 #define VPID_FIELD_NAME		"vpid"

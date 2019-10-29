@@ -34,6 +34,7 @@
 #include <babeltrace2/value.h>
 #include <babeltrace2/types.h>
 #include <glib.h>
+#include <stdbool.h>
 #include <sys/types.h>
 #include "common/uuid.h"
 

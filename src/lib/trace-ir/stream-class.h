@@ -32,6 +32,7 @@
 #include "common/macros.h"
 #include <glib.h>
 #include <inttypes.h>
+#include <stdbool.h>
 
 #include "field-class.h"
 #include "utils.h"

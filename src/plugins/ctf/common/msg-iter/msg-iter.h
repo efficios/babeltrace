@@ -26,6 +26,7 @@
  * SOFTWARE.
  */
 
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stddef.h>

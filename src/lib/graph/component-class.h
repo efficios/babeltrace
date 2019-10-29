@@ -35,6 +35,7 @@
 #include "lib/object.h"
 #include "common/list.h"
 #include <babeltrace2/types.h>
+#include <stdbool.h>
 #include <glib.h>
 
 struct bt_component_class;

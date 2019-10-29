@@ -31,7 +31,6 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include <stdbool.h>
 #include <glib.h>
 #include <inttypes.h>
 #include "compat/mman.h"

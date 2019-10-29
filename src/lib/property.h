@@ -27,7 +27,6 @@
 #include <babeltrace2/babeltrace.h>
 #include <glib.h>
 #include <stdint.h>
-#include <stdbool.h>
 #include <string.h>
 
 struct bt_property {

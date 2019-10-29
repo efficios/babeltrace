@@ -38,6 +38,7 @@
 #include <babeltrace2/types.h>
 #include "common/list.h"
 #include <string.h>
+#include <stdbool.h>
 #include <stdlib.h>
 #include <glib.h>
 #include <gmodule.h>

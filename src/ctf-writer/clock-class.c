@@ -35,6 +35,7 @@
 #include "compat/compiler.h"
 #include <babeltrace2/types.h>
 #include "compat/string.h"
+#include <stdbool.h>
 #include <inttypes.h>
 #include "common/assert.h"
 

@@ -38,6 +38,7 @@
 #include <babeltrace2/types.h>
 #include <glib.h>
 #include <unistd.h>
+#include <stdbool.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <inttypes.h>

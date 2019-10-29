@@ -37,6 +37,7 @@
 #include <babeltrace2/current-thread.h>
 #include "lib/graph/component-class.h"
 #include "py-common/py-common.h"
+#include <stdbool.h>
 #include <stdlib.h>
 #include <signal.h>
 #include <Python.h>

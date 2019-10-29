@@ -39,6 +39,7 @@
 #include "lib/object.h"
 #include "common/assert.h"
 #include <glib.h>
+#include <stdbool.h>
 
 #include "event-class.h"
 #include "field.h"

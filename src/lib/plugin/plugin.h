@@ -32,6 +32,7 @@
 #include <babeltrace2/types.h>
 #include "common/assert.h"
 #include <glib.h>
+#include <stdbool.h>
 
 #include "plugin-so.h"
 #include "lib/func-status.h"

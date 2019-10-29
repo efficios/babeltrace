@@ -30,8 +30,6 @@
 #define BT_LOG_TAG "PLUGIN/FLT.LTTNG-UTILS.DEBUG-INFO/TRACE-IR-MAPPING"
 #include "logging/comp-logging.h"
 
-#include <stdbool.h>
-
 #include "common/assert.h"
 #include <babeltrace2/babeltrace.h>
 /* For bt_property_availability */

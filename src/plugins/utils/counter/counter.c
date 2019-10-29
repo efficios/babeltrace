@@ -30,6 +30,7 @@
 #include "common/common.h"
 #include "common/assert.h"
 #include <inttypes.h>
+#include <stdbool.h>
 #include <stdint.h>
 #include "plugins/common/param-validation/param-validation.h"
 

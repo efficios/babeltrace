@@ -25,6 +25,7 @@
 #include "logging.h"
 
 #include <inttypes.h>
+#include <stdbool.h>
 #include <stdint.h>
 #include <unistd.h>
 

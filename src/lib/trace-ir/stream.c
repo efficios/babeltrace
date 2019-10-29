@@ -34,6 +34,7 @@
 #include "common/assert.h"
 #include "lib/property.h"
 #include <inttypes.h>
+#include <stdbool.h>
 #include <unistd.h>
 
 #include "packet.h"

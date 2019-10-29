@@ -23,6 +23,7 @@
  * SOFTWARE.
  */
 
+#include <stdbool.h>
 #include <stdio.h>
 #include <glib.h>
 

@@ -31,7 +31,6 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include <stdbool.h>
 #include "common/assert.h"
 #include <glib.h>
 #include "common/uuid.h"
