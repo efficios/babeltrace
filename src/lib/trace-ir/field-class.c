@@ -37,6 +37,7 @@
 #include "compat/glib.h"
 #include <float.h>
 #include <inttypes.h>
+#include <stdbool.h>
 #include <stdlib.h>
 
 #include "clock-class.h"

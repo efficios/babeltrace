@@ -32,6 +32,7 @@
 #include "lib/object.h"
 #include "common/assert.h"
 #include <inttypes.h>
+#include <stdbool.h>
 
 #include "field.h"
 #include "field-wrapper.h"

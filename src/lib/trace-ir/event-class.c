@@ -35,6 +35,7 @@
 #include "lib/value.h"
 #include "common/assert.h"
 #include <inttypes.h>
+#include <stdbool.h>
 #include <stdlib.h>
 
 #include "attributes.h"

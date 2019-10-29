@@ -26,6 +26,8 @@
 #define BT_LOG_TAG "PY-COMMON"
 #include "logging/log.h"
 
+#include <stdbool.h>
+
 #include <Python.h>
 
 #include "common/assert.h"

@@ -31,6 +31,8 @@
 #define BT_LOG_TAG "PLUGIN/FLT.LTTNG-UTILS.DEBUG-INFO"
 #include "logging/comp-logging.h"
 
+#include <stdbool.h>
+
 #include <glib.h>
 
 #include "common/assert.h"

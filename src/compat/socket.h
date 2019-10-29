@@ -24,6 +24,8 @@
  * SOFTWARE.
  */
 
+#include <stdbool.h>
+
 #ifdef __MINGW32__
 
 #include <winsock2.h>
@@ -274,10 +276,13 @@ const char *bt_socket_errormsg(void)
 
 #else /* __MINGW32__ */
 
-#include <unistd.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
+#include <errno.h>
 #include <netdb.h>
+#include <netinet/in.h>
+#include <sys/socket.h>
+#include <unistd.h>
+
+#include <glib.h>
 
 #define BT_INVALID_SOCKET -1
 #define BT_SOCKET_ERROR -1

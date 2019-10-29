@@ -27,7 +27,6 @@
  * SOFTWARE.
  */
 
-#include <stdbool.h>
 #include "common/macros.h"
 #include <babeltrace2/babeltrace.h>
 

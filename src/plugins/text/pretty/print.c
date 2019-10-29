@@ -31,6 +31,7 @@
 #include "common/assert.h"
 #include <inttypes.h>
 #include <ctype.h>
+#include <stdbool.h>
 #include <string.h>
 #include "pretty.h"
 

@@ -25,6 +25,7 @@
 
 #include "lib/assert-pre.h"
 #include "lib/assert-post.h"
+#include <stdbool.h>
 #include <unistd.h>
 #include <glib.h>
 #include <babeltrace2/graph/mip.h>

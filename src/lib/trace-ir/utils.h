@@ -25,6 +25,7 @@
 
 #include "common/macros.h"
 #include <babeltrace2/trace-ir/field-class.h>
+#include <stdbool.h>
 #include <stdint.h>
 
 #include "clock-class.h"

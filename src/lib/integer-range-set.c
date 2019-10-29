@@ -23,7 +23,10 @@
 #define BT_LOG_TAG "LIB/INT-RANGE-SET"
 #include "lib/logging.h"
 
+#include <stdbool.h>
+
 #include <babeltrace2/babeltrace.h>
+
 #include "lib/assert-pre.h"
 #include "common/assert.h"
 #include "func-status.h"

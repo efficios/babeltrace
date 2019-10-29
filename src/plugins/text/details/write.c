@@ -21,6 +21,7 @@
  */
 
 #include <babeltrace2/babeltrace.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
 

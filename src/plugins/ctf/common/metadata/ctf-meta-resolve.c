@@ -23,6 +23,7 @@
 #include "common/assert.h"
 #include "common/common.h"
 #include <glib.h>
+#include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
 #include <inttypes.h>

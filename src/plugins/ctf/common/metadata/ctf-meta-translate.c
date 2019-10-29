@@ -16,6 +16,7 @@
 #include "common/macros.h"
 #include "common/assert.h"
 #include <glib.h>
+#include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
 #include <inttypes.h>

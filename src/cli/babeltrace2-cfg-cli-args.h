@@ -23,6 +23,7 @@
  * SOFTWARE.
  */
 
+#include <stdbool.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <babeltrace2/value.h>

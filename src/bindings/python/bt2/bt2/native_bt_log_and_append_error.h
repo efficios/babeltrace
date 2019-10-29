@@ -22,6 +22,8 @@
  * THE SOFTWARE.
  */
 
+#include <stdbool.h>
+
 #include "logging/comp-logging.h"
 
 static

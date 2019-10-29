@@ -28,6 +28,7 @@
  * http://www.efficios.com/ctf
  */
 
+#include <stdbool.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <limits.h>

@@ -24,6 +24,8 @@
 #define BT_LOG_OUTPUT_LEVEL log_level
 #include "logging/log.h"
 
+#include <stdbool.h>
+
 #include "autodisc.h"
 #include "common/common.h"
 

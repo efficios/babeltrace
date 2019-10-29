@@ -30,6 +30,7 @@
 #include <babeltrace2/babeltrace.h>
 #include "common/common.h"
 #include "common/assert.h"
+#include <stdbool.h>
 #include <stdint.h>
 #include <inttypes.h>
 #include <glib.h>

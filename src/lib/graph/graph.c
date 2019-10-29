@@ -40,6 +40,7 @@
 #include <babeltrace2/value-const.h>
 #include "lib/value.h"
 #include <unistd.h>
+#include <stdbool.h>
 #include <glib.h>
 
 #include "component-class-sink-simple.h"

@@ -34,6 +34,7 @@
 #include "common/assert.h"
 #include "compat/compiler.h"
 #include <inttypes.h>
+#include <stdbool.h>
 
 #include "field.h"
 #include "field-class.h"

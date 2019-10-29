@@ -31,6 +31,7 @@
 #include "common/common.h"
 #include "lib/object.h"
 #include <babeltrace2/types.h>
+#include <stdbool.h>
 #include <stdint.h>
 #include <glib.h>
 

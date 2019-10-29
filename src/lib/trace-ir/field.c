@@ -33,6 +33,7 @@
 #include "common/align.h"
 #include "common/assert.h"
 #include <inttypes.h>
+#include <stdbool.h>
 
 #include "field.h"
 #include "field-class.h"

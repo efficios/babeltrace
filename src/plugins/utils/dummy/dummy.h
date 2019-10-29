@@ -26,7 +26,6 @@
 #include <glib.h>
 #include <babeltrace2/babeltrace.h>
 #include "common/macros.h"
-#include <stdbool.h>
 
 struct dummy {
 	bt_self_component_port_input_message_iterator *msg_iter;

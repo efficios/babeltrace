@@ -26,7 +26,10 @@
  * SOFTWARE.
  */
 
+#include <stdbool.h>
+
 #include <glib.h>
+
 #include "dwarf.h"
 
 BT_HIDDEN

@@ -39,6 +39,7 @@
 # error Include "logging/log.h" before this header.
 #endif
 
+#include <stdbool.h>
 #include <stdlib.h>
 #include <inttypes.h>
 #include "common/macros.h"

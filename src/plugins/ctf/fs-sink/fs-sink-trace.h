@@ -27,7 +27,6 @@
 #include <babeltrace2/babeltrace.h>
 #include "ctfser/ctfser.h"
 #include <glib.h>
-#include <stdbool.h>
 #include <stdint.h>
 
 #include "fs-sink-ctf-meta.h"

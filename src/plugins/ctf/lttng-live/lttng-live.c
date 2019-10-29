@@ -35,6 +35,7 @@
 
 #include <glib.h>
 #include <inttypes.h>
+#include <stdbool.h>
 #include <unistd.h>
 
 #include "common/assert.h"

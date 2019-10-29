@@ -25,6 +25,7 @@
 #include <babeltrace2/babeltrace.h>
 #include <glib.h>
 #include <inttypes.h>
+#include <stdbool.h>
 
 #include "common/common.h"
 

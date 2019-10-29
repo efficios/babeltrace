@@ -17,6 +17,7 @@
 #include "common/assert.h"
 #include "compat/glib.h"
 #include <glib.h>
+#include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
 #include <inttypes.h>

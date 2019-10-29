@@ -32,6 +32,7 @@
 #include <babeltrace2/logging.h>
 #include "common/assert.h"
 #include <glib.h>
+#include <stdbool.h>
 #include <stdio.h>
 
 #include "component-class.h"

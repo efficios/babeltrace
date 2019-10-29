@@ -23,6 +23,8 @@
 #define BT_LOG_TAG "LIB/MSG-DISCARDED-ITEMS"
 #include "lib/logging.h"
 
+#include <stdbool.h>
+
 #include "lib/assert-pre.h"
 #include "lib/object.h"
 #include "compat/compiler.h"

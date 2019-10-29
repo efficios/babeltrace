@@ -20,6 +20,7 @@
 #include "common/uuid.h"
 #include "common/assert.h"
 #include <glib.h>
+#include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
 

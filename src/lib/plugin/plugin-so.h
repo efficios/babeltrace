@@ -26,6 +26,7 @@
 
 #include <glib.h>
 #include <gmodule.h>
+#include <stdbool.h>
 #include <babeltrace2/types.h>
 #include "common/macros.h"
 
