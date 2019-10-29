@@ -59,7 +59,7 @@ class StreamClassTestCase(unittest.TestCase):
         self.assertEqual(sc.name, 'bozo')
 
     def test_create_invalid_name(self):
-        with self.assertRaises(TypeError):
+        with self.assertRaisesRegex(TypeError, "'int' is not a 'str' object"):
             self._tc.create_stream_class(name=17)
 
     def test_create_packet_context_field_class(self):
@@ -73,13 +73,19 @@ class StreamClassTestCase(unittest.TestCase):
         )
 
     def test_create_invalid_packet_context_field_class(self):
-        with self.assertRaises(TypeError):
+        with self.assertRaisesRegex(
+            TypeError,
+            "'int' is not a '<class 'bt2.field_class._StructureFieldClass'>' object",
+        ):
             self._tc.create_stream_class(packet_context_field_class=22)
 
     def test_create_invalid_packet_context_field_class_no_packets(self):
         fc = self._tc.create_structure_field_class()
 
-        with self.assertRaises(ValueError):
+        with self.assertRaisesRegex(
+            ValueError,
+            "cannot have a packet context field class without supporting packets",
+        ):
             self._tc.create_stream_class(packet_context_field_class=fc)
 
     def test_create_event_common_context_field_class(self):
@@ -92,7 +98,10 @@ class StreamClassTestCase(unittest.TestCase):
         )
 
     def test_create_invalid_event_common_context_field_class(self):
-        with self.assertRaises(TypeError):
+        with self.assertRaisesRegex(
+            TypeError,
+            "'int' is not a '<class 'bt2.field_class._StructureFieldClass'>' object",
+        ):
             self._tc.create_stream_class(event_common_context_field_class=22)
 
     def test_create_default_clock_class(self):
@@ -101,7 +110,9 @@ class StreamClassTestCase(unittest.TestCase):
         self.assertIs(type(sc.default_clock_class), bt2_clock_class._ClockClass)
 
     def test_create_invalid_default_clock_class(self):
-        with self.assertRaises(TypeError):
+        with self.assertRaisesRegex(
+            TypeError, "'int' is not a '<class 'bt2.clock_class._ClockClass'>' object"
+        ):
             self._tc.create_stream_class(default_clock_class=12)
 
     def test_create_user_attributes(self):
@@ -109,11 +120,16 @@ class StreamClassTestCase(unittest.TestCase):
         self.assertEqual(sc.user_attributes, {'salut': 23})
 
     def test_create_invalid_user_attributes(self):
-        with self.assertRaises(TypeError):
+        with self.assertRaisesRegex(
+            TypeError, "cannot create value object from 'object' object"
+        ):
             self._tc.create_stream_class(user_attributes=object())
 
     def test_create_invalid_user_attributes_value_type(self):
-        with self.assertRaises(TypeError):
+        with self.assertRaisesRegex(
+            TypeError,
+            "'SignedIntegerValue' is not a '<class 'bt2.value.MapValue'>' object",
+        ):
             self._tc.create_stream_class(user_attributes=23)
 
     def test_automatic_stream_ids(self):
@@ -127,7 +143,9 @@ class StreamClassTestCase(unittest.TestCase):
         sc = self._tc.create_stream_class(assigns_automatic_stream_id=True)
         self.assertTrue(sc.assigns_automatic_stream_id)
 
-        with self.assertRaises(ValueError):
+        with self.assertRaisesRegex(
+            ValueError, "id provided, but stream class assigns automatic stream ids"
+        ):
             self._trace.create_stream(sc, id=123)
 
     def test_no_automatic_stream_ids(self):
@@ -141,7 +159,10 @@ class StreamClassTestCase(unittest.TestCase):
         sc = self._tc.create_stream_class(assigns_automatic_stream_id=False)
         self.assertFalse(sc.assigns_automatic_stream_id)
 
-        with self.assertRaises(ValueError):
+        with self.assertRaisesRegex(
+            ValueError,
+            "id not provided, but stream class does not assign automatic stream ids",
+        ):
             self._trace.create_stream(sc)
 
     def test_automatic_event_class_ids(self):
@@ -155,7 +176,10 @@ class StreamClassTestCase(unittest.TestCase):
         sc = self._tc.create_stream_class(assigns_automatic_event_class_id=True)
         self.assertTrue(sc.assigns_automatic_event_class_id)
 
-        with self.assertRaises(ValueError):
+        with self.assertRaisesRegex(
+            ValueError,
+            "id provided, but stream class assigns automatic event class ids",
+        ):
             sc.create_event_class(id=123)
 
     def test_no_automatic_event_class_ids(self):
@@ -169,7 +193,10 @@ class StreamClassTestCase(unittest.TestCase):
         sc = self._tc.create_stream_class(assigns_automatic_event_class_id=False)
         self.assertFalse(sc.assigns_automatic_event_class_id)
 
-        with self.assertRaises(ValueError):
+        with self.assertRaisesRegex(
+            ValueError,
+            "id not provided, but stream class does not assign automatic event class ids",
+        ):
             sc.create_event_class()
 
     def test_supports_packets_without_cs(self):
@@ -201,33 +228,39 @@ class StreamClassTestCase(unittest.TestCase):
         self.assertTrue(sc.packets_have_end_default_clock_snapshot)
 
     def test_supports_packets_raises_type_error(self):
-        with self.assertRaises(TypeError):
+        with self.assertRaisesRegex(TypeError, "'int' is not a 'bool' object"):
             self._tc.create_stream_class(
                 default_clock_class=self._cc, supports_packets=23
             )
 
     def test_packets_have_begin_default_cs_raises_type_error(self):
-        with self.assertRaises(TypeError):
+        with self.assertRaisesRegex(TypeError, "'int' is not a 'bool' object"):
             self._tc.create_stream_class(
                 default_clock_class=self._cc,
                 packets_have_beginning_default_clock_snapshot=23,
             )
 
     def test_packets_have_end_default_cs_raises_type_error(self):
-        with self.assertRaises(TypeError):
+        with self.assertRaisesRegex(TypeError, "'int' is not a 'bool' object"):
             self._tc.create_stream_class(
                 default_clock_class=self._cc, packets_have_end_default_clock_snapshot=23
             )
 
     def test_does_not_support_packets_raises_with_begin_cs(self):
-        with self.assertRaises(ValueError):
+        with self.assertRaisesRegex(
+            ValueError,
+            "cannot not support packets, but have packet beginning default clock snapshot",
+        ):
             self._tc.create_stream_class(
                 default_clock_class=self._cc,
                 packets_have_beginning_default_clock_snapshot=True,
             )
 
     def test_does_not_support_packets_raises_with_end_cs(self):
-        with self.assertRaises(ValueError):
+        with self.assertRaisesRegex(
+            ValueError,
+            "cannot not support packets, but have packet end default clock snapshots",
+        ):
             self._tc.create_stream_class(
                 default_clock_class=self._cc,
                 packets_have_end_default_clock_snapshot=True,
@@ -250,20 +283,23 @@ class StreamClassTestCase(unittest.TestCase):
         self.assertTrue(sc.discarded_events_have_default_clock_snapshots)
 
     def test_supports_discarded_events_raises_type_error(self):
-        with self.assertRaises(TypeError):
+        with self.assertRaisesRegex(TypeError, "'int' is not a 'bool' object"):
             self._tc.create_stream_class(
                 default_clock_class=self._cc, supports_discarded_events=23
             )
 
     def test_discarded_events_have_default_cs_raises_type_error(self):
-        with self.assertRaises(TypeError):
+        with self.assertRaisesRegex(TypeError, "'int' is not a 'bool' object"):
             self._tc.create_stream_class(
                 default_clock_class=self._cc,
                 discarded_events_have_default_clock_snapshots=23,
             )
 
     def test_does_not_support_discarded_events_raises_with_cs(self):
-        with self.assertRaises(ValueError):
+        with self.assertRaisesRegex(
+            ValueError,
+            "cannot not support discarded events, but have default clock snapshots for discarded event messages",
+        ):
             self._tc.create_stream_class(
                 default_clock_class=self._cc,
                 discarded_events_have_default_clock_snapshots=True,
@@ -289,13 +325,15 @@ class StreamClassTestCase(unittest.TestCase):
         self.assertTrue(sc.discarded_packets_have_default_clock_snapshots)
 
     def test_supports_discarded_packets_raises_without_packet_support(self):
-        with self.assertRaises(ValueError):
+        with self.assertRaisesRegex(
+            ValueError, "cannot support discarded packets, but not support packets"
+        ):
             self._tc.create_stream_class(
                 default_clock_class=self._cc, supports_discarded_packets=True
             )
 
     def test_supports_discarded_packets_raises_type_error(self):
-        with self.assertRaises(TypeError):
+        with self.assertRaisesRegex(TypeError, "'int' is not a 'bool' object"):
             self._tc.create_stream_class(
                 default_clock_class=self._cc,
                 supports_discarded_packets=23,
@@ -303,7 +341,7 @@ class StreamClassTestCase(unittest.TestCase):
             )
 
     def test_discarded_packets_have_default_cs_raises_type_error(self):
-        with self.assertRaises(TypeError):
+        with self.assertRaisesRegex(TypeError, "'int' is not a 'bool' object"):
             self._tc.create_stream_class(
                 default_clock_class=self._cc,
                 discarded_packets_have_default_clock_snapshots=23,
@@ -311,7 +349,10 @@ class StreamClassTestCase(unittest.TestCase):
             )
 
     def test_does_not_support_discarded_packets_raises_with_cs(self):
-        with self.assertRaises(ValueError):
+        with self.assertRaisesRegex(
+            ValueError,
+            "cannot not support discarded packets, but have default clock snapshots for discarded packet messages",
+        ):
             self._tc.create_stream_class(
                 default_clock_class=self._cc,
                 discarded_packets_have_default_clock_snapshots=True,
@@ -340,13 +381,13 @@ class StreamClassTestCase(unittest.TestCase):
     def test_getitem_wrong_key_type(self):
         sc, _, _ = self._create_stream_class_with_event_classes()
 
-        with self.assertRaises(TypeError):
+        with self.assertRaisesRegex(TypeError, "'str' is not an 'int' object"):
             sc['event23']
 
     def test_getitem_wrong_key(self):
         sc, _, _ = self._create_stream_class_with_event_classes()
 
-        with self.assertRaises(KeyError):
+        with self.assertRaisesRegex(KeyError, '19'):
             sc[19]
 
     def test_len(self):
