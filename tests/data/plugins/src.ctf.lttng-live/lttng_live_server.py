@@ -457,7 +457,7 @@ class _LttngLiveViewerProtocolCodec:
                 version, tracing_session_id, offset, seek_type
             )
         elif cmd_type == 4:
-            stream_id, = self._unpack_payload('Q', data)
+            (stream_id,) = self._unpack_payload('Q', data)
             return _LttngLiveViewerGetNextDataStreamIndexEntryCommand(
                 version, stream_id
             )
@@ -467,15 +467,15 @@ class _LttngLiveViewerProtocolCodec:
                 version, stream_id, offset, req_length
             )
         elif cmd_type == 6:
-            stream_id, = self._unpack_payload('Q', data)
+            (stream_id,) = self._unpack_payload('Q', data)
             return _LttngLiveViewerGetMetadataStreamDataCommand(version, stream_id)
         elif cmd_type == 7:
-            tracing_session_id, = self._unpack_payload('Q', data)
+            (tracing_session_id,) = self._unpack_payload('Q', data)
             return _LttngLiveViewerGetNewStreamInfosCommand(version, tracing_session_id)
         elif cmd_type == 8:
             return _LttngLiveViewerCreateViewerSessionCommand(version)
         elif cmd_type == 9:
-            tracing_session_id, = self._unpack_payload('Q', data)
+            (tracing_session_id,) = self._unpack_payload('Q', data)
             return _LttngLiveViewerDetachFromTracingSessionCommand(
                 version, tracing_session_id
             )
@@ -674,9 +674,15 @@ class _LttngDataStreamIndex(collections.abc.Sequence):
                     break
 
                 assert len(data) == size
-                offset_bytes, total_size_bits, content_size_bits, timestamp_begin, timestamp_end, events_discarded, stream_class_id = struct.unpack(
-                    fmt, data
-                )
+                (
+                    offset_bytes,
+                    total_size_bits,
+                    content_size_bits,
+                    timestamp_begin,
+                    timestamp_end,
+                    events_discarded,
+                    stream_class_id,
+                ) = struct.unpack(fmt, data)
 
                 self._entries.append(
                     _LttngDataStreamIndexEntry(

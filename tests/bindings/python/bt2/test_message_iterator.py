@@ -719,7 +719,7 @@ class UserMessageIteratorSeekNsFromOriginTestCase(unittest.TestCase):
                 )
 
     def test_can_seek_ns_from_origin_returns_false_can_seek_beginning_forward_seekable(
-        self
+        self,
     ):
         # Test the case where:
         #
@@ -738,7 +738,7 @@ class UserMessageIteratorSeekNsFromOriginTestCase(unittest.TestCase):
         )
 
     def test_can_seek_ns_from_origin_returns_false_can_seek_beginning_not_forward_seekable(
-        self
+        self,
     ):
         # Test the case where:
         #
@@ -757,7 +757,7 @@ class UserMessageIteratorSeekNsFromOriginTestCase(unittest.TestCase):
         )
 
     def test_can_seek_ns_from_origin_returns_false_cant_seek_beginning_forward_seekable(
-        self
+        self,
     ):
         # Test the case where:
         #
@@ -776,7 +776,7 @@ class UserMessageIteratorSeekNsFromOriginTestCase(unittest.TestCase):
         )
 
     def test_can_seek_ns_from_origin_returns_false_cant_seek_beginning_not_forward_seekable(
-        self
+        self,
     ):
         # Test the case where:
         #
@@ -814,7 +814,7 @@ class UserMessageIteratorSeekNsFromOriginTestCase(unittest.TestCase):
                 )
 
     def test_no_can_seek_ns_from_origin_no_seek_ns_from_origin_can_seek_beginning_forward_seekable(
-        self
+        self,
     ):
         # Test the case where:
         #
@@ -833,7 +833,7 @@ class UserMessageIteratorSeekNsFromOriginTestCase(unittest.TestCase):
         )
 
     def test_no_can_seek_ns_from_origin_no_seek_ns_from_origin_can_seek_beginning_not_forward_seekable(
-        self
+        self,
     ):
         # Test the case where:
         #
@@ -852,7 +852,7 @@ class UserMessageIteratorSeekNsFromOriginTestCase(unittest.TestCase):
         )
 
     def test_no_can_seek_ns_from_origin_no_seek_ns_from_origin_cant_seek_beginning_forward_seekable(
-        self
+        self,
     ):
         # Test the case where:
         #
@@ -871,7 +871,7 @@ class UserMessageIteratorSeekNsFromOriginTestCase(unittest.TestCase):
         )
 
     def test_no_can_seek_ns_from_origin_no_seek_ns_from_origin_cant_seek_beginning_not_forward_seekable(
-        self
+        self,
     ):
         # Test the case where:
         #

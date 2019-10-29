@@ -66,7 +66,10 @@ class _UserComponentInputPortMessageIterator(object._SharedObject, _MessageItera
         return bt2_message._create_from_ptr(msg_ptr)
 
     def can_seek_beginning(self):
-        status, res = native_bt.self_component_port_input_message_iterator_can_seek_beginning(
+        (
+            status,
+            res,
+        ) = native_bt.self_component_port_input_message_iterator_can_seek_beginning(
             self._ptr
         )
         utils._handle_func_status(
@@ -87,7 +90,10 @@ class _UserComponentInputPortMessageIterator(object._SharedObject, _MessageItera
 
     def can_seek_ns_from_origin(self, ns_from_origin):
         utils._check_int64(ns_from_origin)
-        status, res = native_bt.self_component_port_input_message_iterator_can_seek_ns_from_origin(
+        (
+            status,
+            res,
+        ) = native_bt.self_component_port_input_message_iterator_can_seek_ns_from_origin(
             self._ptr, ns_from_origin
         )
         utils._handle_func_status(
@@ -246,7 +252,10 @@ class _UserMessageIterator(_MessageIterator):
     def _create_input_port_message_iterator(self, input_port):
         utils._check_type(input_port, bt2_port._UserComponentInputPort)
 
-        status, msg_iter_ptr = native_bt.bt2_self_component_port_input_message_iterator_create_from_message_iterator(
+        (
+            status,
+            msg_iter_ptr,
+        ) = native_bt.bt2_self_component_port_input_message_iterator_create_from_message_iterator(
             self._bt_ptr, input_port._ptr
         )
         utils._handle_func_status(status, 'cannot create message iterator object')

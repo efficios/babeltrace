@@ -421,7 +421,7 @@ class DiffInactivityMsgCs:
         src._add_output_port('out2', (test_name, cc2))
 
     def create_msgs(msg_iter, params):
-        cc, = params
+        (cc,) = params
         sb_msg = msg_iter._create_message_iterator_inactivity_message(cc, 0)
         msg_iter._msgs = [sb_msg]
 
