@@ -2536,7 +2536,7 @@ int cmd_run(struct bt_config *cfg)
 
 		switch (run_status) {
 		case BT_GRAPH_RUN_STATUS_OK:
-			break;
+			goto end;
 		case BT_GRAPH_RUN_STATUS_AGAIN:
 			if (bt_interrupter_is_set(the_interrupter)) {
 				BT_CLI_LOGW_APPEND_CAUSE(
@@ -2558,8 +2558,6 @@ int cmd_run(struct bt_config *cfg)
 				}
 			}
 			break;
-		case BT_GRAPH_RUN_STATUS_END:
-			goto end;
 		default:
 			if (bt_interrupter_is_set(the_interrupter)) {
 				BT_CLI_LOGW_APPEND_CAUSE(

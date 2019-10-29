@@ -189,14 +189,7 @@ class Graph(object._SharedObject):
 
     def run(self):
         status = native_bt.graph_run(self._ptr)
-
-        try:
-            utils._handle_func_status(status, 'graph object stopped running')
-        except bt2.Stop:
-            # done
-            return
-        except Exception:
-            raise
+        utils._handle_func_status(status, 'graph object stopped running')
 
     def add_interrupter(self, interrupter):
         utils._check_type(interrupter, bt2_interrupter.Interrupter)
