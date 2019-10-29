@@ -292,13 +292,20 @@ class _StreamClass(_StreamClassConst):
         utils._check_bool(with_begin_cs)
         utils._check_bool(with_end_cs)
 
-        if not supports and (with_begin_cs or with_end_cs):
-            raise ValueError(
-                'cannot not support packets, but have default clock snapshots'
-            )
+        if not supports:
+            if with_begin_cs:
+                raise ValueError(
+                    'cannot not support packets, but have packet beginning default clock snapshot'
+                )
+            if with_end_cs:
+                raise ValueError(
+                    'cannot not support packets, but have packet end default clock snapshots'
+                )
 
         if not supports and self.packet_context_field_class is not None:
-            raise ValueError('stream class already has a packet context field class')
+            raise ValueError(
+                'cannot disable support for packets, stream class already has a packet context field class'
+            )
 
         native_bt.stream_class_set_supports_packets(
             self._ptr, supports, with_begin_cs, with_end_cs
@@ -310,7 +317,7 @@ class _StreamClass(_StreamClassConst):
 
         if not supports and with_cs:
             raise ValueError(
-                'cannot not support discarded events, but have default clock snapshots'
+                'cannot not support discarded events, but have default clock snapshots for discarded event messages'
             )
 
         native_bt.stream_class_set_supports_discarded_events(
@@ -330,7 +337,7 @@ class _StreamClass(_StreamClassConst):
 
         if not supports and with_cs:
             raise ValueError(
-                'cannot not support discarded packets, but have default clock snapshots'
+                'cannot not support discarded packets, but have default clock snapshots for discarded packet messages'
             )
 
         native_bt.stream_class_set_supports_discarded_packets(
@@ -346,7 +353,9 @@ class _StreamClass(_StreamClassConst):
             )
 
             if not self.supports_packets:
-                raise ValueError('stream class does not support packets')
+                raise ValueError(
+                    'cannot have a packet context field class without supporting packets'
+                )
 
             status = native_bt.stream_class_set_packet_context_field_class(
                 self._ptr, packet_context_field_class._ptr
