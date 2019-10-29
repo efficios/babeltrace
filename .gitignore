@@ -67,3 +67,4 @@ doc/api/Doxyfile
 *.stamp
 *.swp
 .theia
+compile_commands.json
