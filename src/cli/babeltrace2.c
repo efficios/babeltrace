@@ -45,6 +45,27 @@
 #define ENV_BABELTRACE_WARN_COMMAND_NAME_DIRECTORY_CLASH "BABELTRACE_CLI_WARN_COMMAND_NAME_DIRECTORY_CLASH"
 #define NSEC_PER_SEC	1000000000LL
 
+enum bt_cmd_status {
+	BT_CMD_STATUS_OK	    = 0,
+	BT_CMD_STATUS_ERROR	    = -1,
+	BT_CMD_STATUS_INTERRUPTED   = -2,
+};
+
+static
+const char *bt_cmd_status_string(enum bt_cmd_status cmd_status)
+{
+	switch (cmd_status) {
+	case BT_CMD_STATUS_OK:
+		return "OK";
+	case BT_CMD_STATUS_ERROR:
+		return "ERROR";
+	case BT_CMD_STATUS_INTERRUPTED:
+		return "INTERRUPTED";
+	default:
+		bt_common_abort();
+	}
+}
+
 /* Application's interrupter (owned by this) */
 static bt_interrupter *the_interrupter;
 
@@ -670,9 +691,10 @@ void print_plugin_info(const bt_plugin *plugin)
 }
 
 static
-int cmd_query(struct bt_config *cfg)
+enum bt_cmd_status cmd_query(struct bt_config *cfg)
 {
 	int ret = 0;
+	enum bt_cmd_status cmd_status;
 	const bt_component_class *comp_cls = NULL;
 	const bt_value *results = NULL;
 	const char *fail_reason = NULL;
@@ -688,8 +710,7 @@ int cmd_query(struct bt_config *cfg)
 			cfg->cmd_data.query.cfg_component->plugin_name->str,
 			cfg->cmd_data.query.cfg_component->comp_cls_name->str,
 			cfg->cmd_data.query.cfg_component->type);
-		ret = -1;
-		goto end;
+		goto error;
 	}
 
 	ret = query(cfg, comp_cls, cfg->cmd_data.query.object->str,
@@ -700,6 +721,7 @@ int cmd_query(struct bt_config *cfg)
 	}
 
 	print_value(stdout, results, 0);
+	cmd_status = BT_CMD_STATUS_OK;
 	goto end;
 
 failed:
@@ -711,12 +733,13 @@ failed:
 		cfg->cmd_data.query.cfg_component->comp_cls_name->str,
 		cfg->cmd_data.query.cfg_component->type,
 		cfg->cmd_data.query.object->str);
-	ret = -1;
+error:
+	cmd_status = BT_CMD_STATUS_ERROR;
 
 end:
 	bt_component_class_put_ref(comp_cls);
 	bt_value_put_ref(results);
-	return ret;
+	return cmd_status;
 }
 
 static
@@ -744,9 +767,9 @@ void print_component_class_help(const char *plugin_name,
 }
 
 static
-int cmd_help(struct bt_config *cfg)
+enum bt_cmd_status cmd_help(struct bt_config *cfg)
 {
-	int ret = 0;
+	enum bt_cmd_status cmd_status;
 	const bt_plugin *plugin = NULL;
 	const bt_component_class *needed_comp_cls = NULL;
 
@@ -755,8 +778,7 @@ int cmd_help(struct bt_config *cfg)
 		BT_CLI_LOGE_APPEND_CAUSE(
 			"Cannot find plugin: plugin-name=\"%s\"",
 			cfg->cmd_data.help.cfg_component->plugin_name->str);
-		ret = -1;
-		goto end;
+		goto error;
 	}
 
 	print_plugin_info(plugin);
@@ -775,6 +797,7 @@ int cmd_help(struct bt_config *cfg)
 
 	if (strlen(cfg->cmd_data.help.cfg_component->comp_cls_name->str) == 0) {
 		/* Plugin help only */
+		cmd_status = BT_CMD_STATUS_OK;
 		goto end;
 	}
 
@@ -789,19 +812,23 @@ int cmd_help(struct bt_config *cfg)
 			cfg->cmd_data.help.cfg_component->plugin_name->str,
 			cfg->cmd_data.help.cfg_component->comp_cls_name->str,
 			cfg->cmd_data.help.cfg_component->type);
-		ret = -1;
-		goto end;
+		goto error;
 	}
 
 	printf("\n");
 	print_component_class_help(
 		cfg->cmd_data.help.cfg_component->plugin_name->str,
 		needed_comp_cls);
+	cmd_status = BT_CMD_STATUS_OK;
+	goto end;
+
+error:
+	cmd_status = BT_CMD_STATUS_ERROR;
 
 end:
 	bt_component_class_put_ref(needed_comp_cls);
 	bt_plugin_put_ref(plugin);
-	return ret;
+	return cmd_status;
 }
 
 typedef void *(* plugin_borrow_comp_cls_by_index_func_t)(const bt_plugin *,
@@ -858,9 +885,8 @@ end:
 }
 
 static
-int cmd_list_plugins(struct bt_config *cfg)
+enum bt_cmd_status cmd_list_plugins(struct bt_config *cfg)
 {
-	int ret = 0;
 	int plugins_count, component_classes_count = 0, i;
 
 	printf("From the following plugin paths:\n\n");
@@ -915,13 +941,14 @@ int cmd_list_plugins(struct bt_config *cfg)
 	}
 
 end:
-	return ret;
+	return BT_CMD_STATUS_OK;
 }
 
 static
-int cmd_print_lttng_live_sessions(struct bt_config *cfg)
+enum bt_cmd_status cmd_print_lttng_live_sessions(struct bt_config *cfg)
 {
 	int ret = 0;
+	enum bt_cmd_status cmd_status;
 	const bt_component_class *comp_cls = NULL;
 	const bt_value *results = NULL;
 	bt_value *params = NULL;
@@ -977,7 +1004,6 @@ int cmd_print_lttng_live_sessions(struct bt_config *cfg)
 			fopen(cfg->cmd_data.print_lttng_live_sessions.output_path->str,
 				"w");
 		if (!out_stream) {
-			ret = -1;
 			BT_LOGE_ERRNO("Cannot open file for writing",
 				": path=\"%s\"",
 				cfg->cmd_data.print_lttng_live_sessions.output_path->str);
@@ -985,7 +1011,7 @@ int cmd_print_lttng_live_sessions(struct bt_config *cfg)
 				"Babeltrace CLI",
 				"Cannot open file for writing: path=\"%s\"",
 				cfg->cmd_data.print_lttng_live_sessions.output_path->str);
-			goto end;
+			goto error;
 		}
 	}
 
@@ -1032,6 +1058,7 @@ int cmd_print_lttng_live_sessions(struct bt_config *cfg)
 		fprintf(out_stream, "%" PRIu64 " client(s) connected)\n", clients);
 	}
 
+	cmd_status = BT_CMD_STATUS_OK;
 	goto end;
 
 failed:
@@ -1039,7 +1066,7 @@ failed:
 		fail_reason);
 
 error:
-	ret = -1;
+	cmd_status = BT_CMD_STATUS_ERROR;
 
 end:
 	bt_value_put_ref(results);
@@ -1056,13 +1083,14 @@ end:
 		}
 	}
 
-	return ret;
+	return cmd_status;
 }
 
 static
-int cmd_print_ctf_metadata(struct bt_config *cfg)
+enum bt_cmd_status cmd_print_ctf_metadata(struct bt_config *cfg)
 {
 	int ret = 0;
+	enum bt_cmd_status cmd_status;
 	const bt_component_class *comp_cls = NULL;
 	const bt_value *results = NULL;
 	bt_value *params = NULL;
@@ -1084,21 +1112,18 @@ int cmd_print_ctf_metadata(struct bt_config *cfg)
 			"comp-cls-name=\"%s\", comp-cls-type=%d",
 			plugin_name, comp_cls_name,
 			BT_COMPONENT_CLASS_TYPE_SOURCE);
-		ret = -1;
-		goto end;
+		goto error;
 	}
 
 	params = bt_value_map_create();
 	if (!params) {
-		ret = -1;
-		goto end;
+		goto error;
 	}
 
 	ret = bt_value_map_insert_string_entry(params, "path",
 		cfg->cmd_data.print_ctf_metadata.path->str);
 	if (ret) {
-		ret = -1;
-		goto end;
+		goto error;
 	}
 
 	ret = query(cfg, comp_cls, "metadata-info",
@@ -1112,8 +1137,7 @@ int cmd_print_ctf_metadata(struct bt_config *cfg)
 	if (!metadata_text_value) {
 		BT_CLI_LOGE_APPEND_CAUSE(
 			"Cannot find `text` string value in the resulting metadata info object.");
-		ret = -1;
-		goto end;
+		goto error;
 	}
 
 	metadata_text = bt_value_string_get(metadata_text_value);
@@ -1130,8 +1154,7 @@ int cmd_print_ctf_metadata(struct bt_config *cfg)
 				"Babeltrace CLI",
 				"Cannot open file for writing: path=\"%s\"",
 				cfg->cmd_data.print_ctf_metadata.output_path->str);
-			ret = -1;
-			goto end;
+			goto error;
 		}
 	}
 
@@ -1140,16 +1163,17 @@ int cmd_print_ctf_metadata(struct bt_config *cfg)
 		BT_CLI_LOGE_APPEND_CAUSE(
 			"Cannot write whole metadata text to output stream: "
 			"ret=%d", ret);
-		goto end;
+		goto error;
 	}
 
-	ret = 0;
+	cmd_status = BT_CMD_STATUS_OK;
 	goto end;
 
 failed:
-	ret = -1;
 	BT_CLI_LOGE_APPEND_CAUSE(
 		"Failed to query `metadata-info` object: %s", fail_reason);
+error:
+	cmd_status = BT_CMD_STATUS_ERROR;
 
 end:
 	bt_value_put_ref(results);
@@ -1166,7 +1190,7 @@ end:
 		}
 	}
 
-	return ret;
+	return cmd_status;
 }
 
 struct port_id {
@@ -2477,9 +2501,9 @@ end:
 }
 
 static
-int cmd_run(struct bt_config *cfg)
+enum bt_cmd_status cmd_run(struct bt_config *cfg)
 {
-	int ret = 0;
+	enum bt_cmd_status cmd_status;
 	struct cmd_run_ctx ctx = { 0 };
 
 	/* Initialize the command's context and the graph object */
@@ -2536,12 +2560,15 @@ int cmd_run(struct bt_config *cfg)
 
 		switch (run_status) {
 		case BT_GRAPH_RUN_STATUS_OK:
+			cmd_status = BT_CMD_STATUS_OK;
 			goto end;
 		case BT_GRAPH_RUN_STATUS_AGAIN:
 			if (bt_interrupter_is_set(the_interrupter)) {
-				BT_CLI_LOGW_APPEND_CAUSE(
-					"Graph was interrupted by user.");
-				goto error;
+				/*
+				 * The graph was interrupted by a SIGINT.
+				 */
+				cmd_status = BT_CMD_STATUS_INTERRUPTED;
+				goto end;
 			}
 
 			if (cfg->cmd_data.run.retry_duration_us > 0) {
@@ -2551,20 +2578,16 @@ int cmd_run(struct bt_config *cfg)
 
 				if (usleep(cfg->cmd_data.run.retry_duration_us)) {
 					if (bt_interrupter_is_set(the_interrupter)) {
-						BT_CLI_LOGW_APPEND_CAUSE(
-							"Graph was interrupted by user.");
-						goto error;
+						cmd_status = BT_CMD_STATUS_INTERRUPTED;
+						goto end;
 					}
 				}
 			}
 			break;
 		default:
 			if (bt_interrupter_is_set(the_interrupter)) {
-				BT_CLI_LOGW_APPEND_CAUSE(
-					"Graph was interrupted by user and failed: "
-					"status=%s",
-					bt_common_func_status_string(run_status));
-				goto error;
+				cmd_status = BT_CMD_STATUS_INTERRUPTED;
+				goto end;
 			}
 
 			BT_CLI_LOGE_APPEND_CAUSE(
@@ -2572,17 +2595,12 @@ int cmd_run(struct bt_config *cfg)
 			goto error;
 		}
 	}
-
-	goto end;
-
 error:
-	if (ret == 0) {
-		ret = -1;
-	}
+	cmd_status = BT_CMD_STATUS_ERROR;
 
 end:
 	cmd_run_ctx_destroy(&ctx);
-	return ret;
+	return cmd_status;
 }
 
 static
@@ -2735,8 +2753,8 @@ end:
 
 int main(int argc, const char **argv)
 {
-	int ret;
-	int retcode;
+	int ret, retcode;
+	enum bt_cmd_status cmd_status;
 	struct bt_config *cfg = NULL;
 
 	init_log_level();
@@ -2791,41 +2809,52 @@ int main(int argc, const char **argv)
 
 	switch (cfg->command) {
 	case BT_CONFIG_COMMAND_RUN:
-		ret = cmd_run(cfg);
+		cmd_status = cmd_run(cfg);
 		break;
 	case BT_CONFIG_COMMAND_LIST_PLUGINS:
-		ret = cmd_list_plugins(cfg);
+		cmd_status = cmd_list_plugins(cfg);
 		break;
 	case BT_CONFIG_COMMAND_HELP:
-		ret = cmd_help(cfg);
+		cmd_status = cmd_help(cfg);
 		break;
 	case BT_CONFIG_COMMAND_QUERY:
-		ret = cmd_query(cfg);
+		cmd_status = cmd_query(cfg);
 		break;
 	case BT_CONFIG_COMMAND_PRINT_CTF_METADATA:
-		ret = cmd_print_ctf_metadata(cfg);
+		cmd_status = cmd_print_ctf_metadata(cfg);
 		break;
 	case BT_CONFIG_COMMAND_PRINT_LTTNG_LIVE_SESSIONS:
-		ret = cmd_print_lttng_live_sessions(cfg);
+		cmd_status = cmd_print_lttng_live_sessions(cfg);
 		break;
 	default:
 		BT_LOGF("Invalid/unknown command: cmd=%d", cfg->command);
 		bt_common_abort();
 	}
 
-	BT_LOGI("Command completed: cmd=%d, command-name=\"%s\", ret=%d",
-		cfg->command, cfg->command_name, ret);
+	BT_LOGI("Command completed: cmd=%d, command-name=\"%s\", command-status=\"%s\"",
+		cfg->command, cfg->command_name, bt_cmd_status_string(cmd_status));
 	warn_command_name_and_directory_clash(cfg);
-	retcode = ret ? 1 : 0;
+
+	switch (cmd_status) {
+	case BT_CMD_STATUS_OK:
+		retcode = 0;
+		break;
+	case BT_CMD_STATUS_ERROR:
+		retcode = 1;
+		print_error_causes();
+		break;
+	case BT_CMD_STATUS_INTERRUPTED:
+		retcode = 2;
+		break;
+	default:
+		BT_LOGF("Invalid command status: cmd-status=%d", cmd_status);
+		bt_common_abort();
+	}
 
 end:
 	BT_OBJECT_PUT_REF_AND_RESET(cfg);
 	fini_loaded_plugins();
 	bt_interrupter_put_ref(the_interrupter);
-
-	if (retcode != 0) {
-		print_error_causes();
-	}
 
 	/*
 	 * Clear current thread's error in case there is one to avoid a
