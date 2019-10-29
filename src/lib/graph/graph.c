@@ -773,8 +773,15 @@ enum bt_graph_run_status bt_graph_run(struct bt_graph *graph)
 		}
 	} while (status == BT_FUNC_STATUS_OK);
 
-	if (g_queue_is_empty(graph->sinks_to_consume)) {
-		status = BT_FUNC_STATUS_END;
+	if (status == BT_FUNC_STATUS_END) {
+		/*
+		 * The last call to consume_no_check() returned
+		 * `BT_FUNC_STATUS_END`, but bt_graph_run() has no
+		 * `BT_GRAPH_RUN_STATUS_END` status: replace with
+		 * `BT_GRAPH_RUN_STATUS_OK` (success: graph ran
+		 * completely).
+		 */
+		status = BT_FUNC_STATUS_OK;
 	}
 
 end:

@@ -191,7 +191,6 @@ typedef enum bt_graph_run_status {
 	BT_GRAPH_RUN_STATUS_ERROR		= __BT_FUNC_STATUS_ERROR,
 	BT_GRAPH_RUN_STATUS_MEMORY_ERROR	= __BT_FUNC_STATUS_MEMORY_ERROR,
 	BT_GRAPH_RUN_STATUS_AGAIN		= __BT_FUNC_STATUS_AGAIN,
-	BT_GRAPH_RUN_STATUS_END			= __BT_FUNC_STATUS_END,
 } bt_graph_run_status;
 
 extern bt_graph_run_status bt_graph_run(bt_graph *graph);
