@@ -2438,55 +2438,54 @@ end:
 }
 
 static
-void create_msg_stream_beginning(struct bt_msg_iter *notit,
-		bt_message **message)
+bt_message *create_msg_stream_beginning(struct bt_msg_iter *notit)
 {
-	bt_message *ret = NULL;
+	bt_message *msg;
 
 	BT_ASSERT(notit->stream);
 	BT_ASSERT(notit->msg_iter);
-	ret = bt_message_stream_beginning_create(notit->msg_iter,
+	msg = bt_message_stream_beginning_create(notit->msg_iter,
 		notit->stream);
-	if (!ret) {
+	if (!msg) {
 		BT_COMP_LOGE("Cannot create stream beginning message: "
 			"notit-addr=%p, stream-addr=%p",
 			notit, notit->stream);
-		return;
 	}
 
-	*message = ret;
+	return msg;
 }
 
 static
-void create_msg_stream_end(struct bt_msg_iter *notit, bt_message **message)
+bt_message *create_msg_stream_end(struct bt_msg_iter *notit)
 {
-	bt_message *ret;
+	bt_message *msg;
 
 	if (!notit->stream) {
 		BT_COMP_LOGE("Cannot create stream for stream message: "
 			"notit-addr=%p", notit);
-		return;
+		msg = NULL;
+		goto end;
 	}
 
 	BT_ASSERT(notit->msg_iter);
-	ret = bt_message_stream_end_create(notit->msg_iter,
+	msg = bt_message_stream_end_create(notit->msg_iter,
 		notit->stream);
-	if (!ret) {
+	if (!msg) {
 		BT_COMP_LOGE("Cannot create stream end message: "
 			"notit-addr=%p, stream-addr=%p",
 			notit, notit->stream);
-		return;
 	}
 
-	*message = ret;
+end:
+	return msg;
 }
 
 static
-void create_msg_packet_beginning(struct bt_msg_iter *notit,
-		bt_message **message, bool use_default_cs)
+bt_message *create_msg_packet_beginning(struct bt_msg_iter *notit,
+		bool use_default_cs)
 {
 	int ret;
-	bt_message *msg = NULL;
+	bt_message *msg;
 	const bt_stream_class *sc = notit->meta.sc->ir_sc;
 
 	BT_ASSERT(notit->packet);
@@ -2496,6 +2495,7 @@ void create_msg_packet_beginning(struct bt_msg_iter *notit,
 		ret = bt_packet_move_context_field(
 			notit->packet, notit->packet_context_field);
 		if (ret) {
+			msg = NULL;
 			goto end;
 		}
 
@@ -2542,15 +2542,12 @@ void create_msg_packet_beginning(struct bt_msg_iter *notit,
 		goto end;
 	}
 
-	*message = msg;
-
 end:
-	return;
+	return msg;
 }
 
 static
-void emit_delayed_packet_beg_msg(struct bt_msg_iter *notit,
-		bt_message **message)
+bt_message *emit_delayed_packet_beg_msg(struct bt_msg_iter *notit)
 {
 	bool packet_beg_ts_need_fix_up;
 
@@ -2566,20 +2563,19 @@ void emit_delayed_packet_beg_msg(struct bt_msg_iter *notit,
 		notit->default_clock_snapshot < notit->snapshots.beginning_clock;
 
 	/* create_msg_packet_beginning() logs errors */
-	create_msg_packet_beginning(notit, message, packet_beg_ts_need_fix_up);
-
-	return;
+	return create_msg_packet_beginning(notit, packet_beg_ts_need_fix_up);
 }
 
 
 static
-void create_msg_packet_end(struct bt_msg_iter *notit, bt_message **message)
+bt_message *create_msg_packet_end(struct bt_msg_iter *notit)
 {
 	bt_message *msg;
 	bool update_default_cs = true;
 
 	if (!notit->packet) {
-		return;
+		msg = NULL;
+		goto end;
 	}
 
 	/*
@@ -2587,10 +2583,10 @@ void create_msg_packet_end(struct bt_msg_iter *notit, bt_message **message)
 	 * beginning message instead of the packet end message.
 	 */
 	if (G_UNLIKELY(notit->emit_delayed_packet_beginning_msg)) {
-		emit_delayed_packet_beg_msg(notit, message);
+		msg = emit_delayed_packet_beg_msg(notit);
 		/* Don't forget to emit the packet end message. */
 		notit->state = STATE_EMIT_QUEUED_MSG_PACKET_END;
-		return;
+		goto end;
 	}
 
 	/* Check if may be affected by lttng-crash timestamp_end quirk. */
@@ -2647,17 +2643,18 @@ void create_msg_packet_end(struct bt_msg_iter *notit, bt_message **message)
 		BT_COMP_LOGE("Cannot create packet end message: "
 			"notit-addr=%p, packet-addr=%p",
 			notit, notit->packet);
-		return;
+		goto end;
 
 	}
 
 	BT_PACKET_PUT_REF_AND_RESET(notit->packet);
-	*message = msg;
+
+end:
+	return msg;
 }
 
 static
-void create_msg_discarded_events(struct bt_msg_iter *notit,
-		bt_message **message)
+bt_message *create_msg_discarded_events(struct bt_msg_iter *notit)
 {
 	bt_message *msg;
 	uint64_t beginning_raw_value = UINT64_C(-1);
@@ -2695,7 +2692,7 @@ void create_msg_discarded_events(struct bt_msg_iter *notit,
 		BT_COMP_LOGE("Cannot create discarded events message: "
 			"notit-addr=%p, stream-addr=%p",
 			notit, notit->stream);
-		return;
+		goto end;
 	}
 
 	if (notit->prev_packet_snapshots.discarded_events != UINT64_C(-1)) {
@@ -2704,12 +2701,12 @@ void create_msg_discarded_events(struct bt_msg_iter *notit,
 			notit->prev_packet_snapshots.discarded_events);
 	}
 
-	*message = msg;
+end:
+	return msg;
 }
 
 static
-void create_msg_discarded_packets(struct bt_msg_iter *notit,
-		bt_message **message)
+bt_message *create_msg_discarded_packets(struct bt_msg_iter *notit)
 {
 	bt_message *msg;
 
@@ -2735,13 +2732,15 @@ void create_msg_discarded_packets(struct bt_msg_iter *notit,
 		BT_COMP_LOGE("Cannot create discarded packets message: "
 			"notit-addr=%p, stream-addr=%p",
 			notit, notit->stream);
-		return;
+		goto end;
 	}
 
 	bt_message_discarded_packets_set_count(msg,
 		notit->snapshots.packets -
 			notit->prev_packet_snapshots.packets - 1);
-	*message = msg;
+
+end:
+	return msg;
 }
 
 BT_HIDDEN
@@ -2877,7 +2876,7 @@ enum bt_msg_iter_status bt_msg_iter_get_next_message(
 			 * beginning message instead of the event message.
 			 */
 			if (G_UNLIKELY(notit->emit_delayed_packet_beginning_msg)) {
-				emit_delayed_packet_beg_msg(notit, message);
+				*message = emit_delayed_packet_beg_msg(notit);
 				if (!*message) {
 					status = BT_MSG_ITER_STATUS_ERROR;
 				}
@@ -2895,7 +2894,7 @@ enum bt_msg_iter_status bt_msg_iter_get_next_message(
 			goto end;
 		case STATE_EMIT_MSG_DISCARDED_EVENTS:
 			/* create_msg_discared_events() logs errors */
-			create_msg_discarded_events(notit, message);
+			*message = create_msg_discarded_events(notit);
 
 			if (!*message) {
 				status = BT_MSG_ITER_STATUS_ERROR;
@@ -2904,7 +2903,7 @@ enum bt_msg_iter_status bt_msg_iter_get_next_message(
 			goto end;
 		case STATE_EMIT_MSG_DISCARDED_PACKETS:
 			/* create_msg_discared_packets() logs errors */
-			create_msg_discarded_packets(notit, message);
+			*message = create_msg_discarded_packets(notit);
 
 			if (!*message) {
 				status = BT_MSG_ITER_STATUS_ERROR;
@@ -2928,7 +2927,7 @@ enum bt_msg_iter_status bt_msg_iter_get_next_message(
 				break;
 			} else {
 				/* create_msg_packet_beginning() logs errors */
-				create_msg_packet_beginning(notit, message, false);
+				*message = create_msg_packet_beginning(notit, false);
 				if (!*message) {
 					status = BT_MSG_ITER_STATUS_ERROR;
 				}
@@ -2938,7 +2937,7 @@ enum bt_msg_iter_status bt_msg_iter_get_next_message(
 		case STATE_EMIT_MSG_PACKET_END_SINGLE:
 		case STATE_EMIT_MSG_PACKET_END_MULTI:
 			/* create_msg_packet_end() logs errors */
-			create_msg_packet_end(notit, message);
+			*message = create_msg_packet_end(notit);
 
 			if (!*message) {
 				status = BT_MSG_ITER_STATUS_ERROR;
@@ -2947,7 +2946,7 @@ enum bt_msg_iter_status bt_msg_iter_get_next_message(
 			goto end;
 		case STATE_EMIT_MSG_STREAM_BEGINNING:
 			/* create_msg_stream_beginning() logs errors */
-			create_msg_stream_beginning(notit, message);
+			*message = create_msg_stream_beginning(notit);
 
 			if (!*message) {
 				status = BT_MSG_ITER_STATUS_ERROR;
@@ -2956,7 +2955,7 @@ enum bt_msg_iter_status bt_msg_iter_get_next_message(
 			goto end;
 		case STATE_EMIT_MSG_STREAM_END:
 			/* create_msg_stream_end() logs errors */
-			create_msg_stream_end(notit, message);
+			*message = create_msg_stream_end(notit);
 
 			if (!*message) {
 				status = BT_MSG_ITER_STATUS_ERROR;
