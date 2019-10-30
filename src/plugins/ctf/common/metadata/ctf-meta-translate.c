@@ -116,11 +116,11 @@ bt_field_class *ctf_field_class_enum_to_ir(struct ctx *ctx,
 		if (fc->base.is_signed) {
 			ret = bt_field_class_enumeration_signed_add_mapping(
 				ir_fc, mapping->label->str, range_set);
-			BT_RANGE_SET_SIGNED_PUT_REF_AND_RESET(range_set);
+			BT_INTEGER_RANGE_SET_SIGNED_PUT_REF_AND_RESET(range_set);
 		} else {
 			ret = bt_field_class_enumeration_unsigned_add_mapping(
 				ir_fc, mapping->label->str, range_set);
-			BT_RANGE_SET_UNSIGNED_PUT_REF_AND_RESET(range_set);
+			BT_INTEGER_RANGE_SET_UNSIGNED_PUT_REF_AND_RESET(range_set);
 		}
 
 		BT_ASSERT(ret == 0);

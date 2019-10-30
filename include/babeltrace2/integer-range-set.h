@@ -40,8 +40,8 @@ extern "C" {
 extern bt_integer_range_set_unsigned *bt_integer_range_set_unsigned_create(void);
 
 typedef enum bt_integer_range_set_add_range_status {
-	BT_RANGE_SET_ADD_RANGE_STATUS_MEMORY_ERROR	= __BT_FUNC_STATUS_MEMORY_ERROR,
-	BT_RANGE_SET_ADD_RANGE_STATUS_OK		= __BT_FUNC_STATUS_OK,
+	BT_INTEGER_RANGE_SET_ADD_RANGE_STATUS_MEMORY_ERROR  = __BT_FUNC_STATUS_MEMORY_ERROR,
+	BT_INTEGER_RANGE_SET_ADD_RANGE_STATUS_OK	    = __BT_FUNC_STATUS_OK,
 } bt_integer_range_set_add_range_status;
 
 extern bt_integer_range_set_add_range_status bt_integer_range_set_unsigned_add_range(
