@@ -31,9 +31,9 @@
 extern "C" {
 #endif
 
-extern int bt_version_get_major(void);
-extern int bt_version_get_minor(void);
-extern int bt_version_get_patch(void);
+extern unsigned int bt_version_get_major(void);
+extern unsigned int bt_version_get_minor(void);
+extern unsigned int bt_version_get_patch(void);
 extern const char *bt_version_get_extra(void);
 
 #ifdef __cplusplus

@@ -63,8 +63,8 @@ void __attribute__((constructor)) bt_logging_ctor(void)
 
 	bt_logging_set_global_level(
 		bt_log_get_level_from_env("LIBBABELTRACE2_INIT_LOG_LEVEL"));
-	BT_LOGI("Babeltrace %d.%d.%d%s library loaded: "
-		"major=%d, minor=%d, patch=%d, extra=\"%s\"",
+	BT_LOGI("Babeltrace %u.%u.%u%s library loaded: "
+		"major=%u, minor=%u, patch=%u, extra=\"%s\"",
 		bt_version_get_major(), bt_version_get_minor(),
 		bt_version_get_patch(), v_extra,
 		bt_version_get_major(), bt_version_get_minor(),
