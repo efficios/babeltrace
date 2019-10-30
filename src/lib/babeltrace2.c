@@ -25,17 +25,17 @@
 #include <babeltrace2/babeltrace.h>
 #include <stdlib.h>
 
-int bt_version_get_major(void)
+unsigned int bt_version_get_major(void)
 {
 	return BT_VERSION_MAJOR;
 }
 
-int bt_version_get_minor(void)
+unsigned int bt_version_get_minor(void)
 {
 	return BT_VERSION_MINOR;
 }
 
-int bt_version_get_patch(void) {
+unsigned int bt_version_get_patch(void) {
 	return BT_VERSION_PATCH;
 }
 
