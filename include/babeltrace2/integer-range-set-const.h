@@ -94,13 +94,13 @@ extern void bt_integer_range_set_unsigned_get_ref(
 extern void bt_integer_range_set_unsigned_put_ref(
 		const bt_integer_range_set_unsigned *range_set);
 
-#define BT_RANGE_SET_UNSIGNED_PUT_REF_AND_RESET(_var)			\
+#define BT_INTEGER_RANGE_SET_UNSIGNED_PUT_REF_AND_RESET(_var)		\
 	do {								\
 		bt_integer_range_set_unsigned_put_ref(_var);		\
 		(_var) = NULL;						\
 	} while (0)
 
-#define BT_RANGE_SET_UNSIGNED_MOVE_REF(_var_dst, _var_src)		\
+#define BT_INTEGER_RANGE_SET_UNSIGNED_MOVE_REF(_var_dst, _var_src)	\
 	do {								\
 		bt_integer_range_set_unsigned_put_ref(_var_dst);	\
 		(_var_dst) = (_var_src);				\
@@ -113,13 +113,13 @@ extern void bt_integer_range_set_signed_get_ref(
 extern void bt_integer_range_set_signed_put_ref(
 		const bt_integer_range_set_signed *range_set);
 
-#define BT_RANGE_SET_SIGNED_PUT_REF_AND_RESET(_var)			\
+#define BT_INTEGER_RANGE_SET_SIGNED_PUT_REF_AND_RESET(_var)		\
 	do {								\
 		bt_integer_range_set_signed_put_ref(_var);		\
 		(_var) = NULL;						\
 	} while (0)
 
-#define BT_RANGE_SET_SIGNED_MOVE_REF(_var_dst, _var_src)		\
+#define BT_INTEGER_RANGE_SET_SIGNED_MOVE_REF(_var_dst, _var_src)	\
 	do {								\
 		bt_integer_range_set_signed_put_ref(_var_dst);		\
 		(_var_dst) = (_var_src);				\
