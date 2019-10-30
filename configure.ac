@@ -673,6 +673,19 @@ AX_COMPILER_FLAGS(
 		-Wno-format-nonliteral dnl
 		-Wno-double-promotion dnl
 		-Wno-cast-align dnl
+		dnl
+		dnl Some versions of SWIG (like 3.0.12) generate code that produces
+		dnl -Wcast-function-type warnings.  This warning is present in gcc >= 8.  This
+		dnl combo happens on RHEL/Centos 8, for example.  Later versions of SWIG (like
+		dnl 4.0.1) have the correct function signatures to not produce this warning.
+		dnl It's simpler to just disable the warning globally.
+		dnl
+		dnl Note that the Debian/Ubuntu SWIG package 3.0.12-2 contains a local patch to
+		dnl fix this (python-fix-function-cast-warnings.patch), so you won't be able to
+		dnl reproduce the warning using that package.
+		dnl
+		dnl Ref: https://github.com/swig/swig/issues/1259
+		-Wno-cast-function-type dnl
 	])
 
 # CFLAGS from AX_COMPILER_FLAGS.
