@@ -30,13 +30,15 @@
  */
 
 #include <stdbool.h>
+#include <stdint.h>
 
-#include "common/macros.h"
+#include <glib.h>
+
 #include <babeltrace2/babeltrace.h>
 
+#include "common/macros.h"
 #include "../common/metadata/decoder.h"
 #include "../common/msg-iter/msg-iter.h"
-
 #include "viewer-connection.h"
 
 struct lttng_live_component;

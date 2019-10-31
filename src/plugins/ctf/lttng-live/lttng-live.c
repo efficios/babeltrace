@@ -33,10 +33,11 @@
 #define BT_LOG_TAG "PLUGIN/SRC.CTF.LTTNG-LIVE"
 #include "logging/comp-logging.h"
 
-#include <glib.h>
 #include <inttypes.h>
 #include <stdbool.h>
 #include <unistd.h>
+
+#include <glib.h>
 
 #include "common/assert.h"
 #include <babeltrace2/babeltrace.h>

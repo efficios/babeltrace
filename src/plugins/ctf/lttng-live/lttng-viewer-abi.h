@@ -25,6 +25,7 @@
  * SOFTWARE.
  */
 
+#include <stdint.h>
 #include "compat/limits.h"
 
 #define LTTNG_VIEWER_PATH_MAX		4096

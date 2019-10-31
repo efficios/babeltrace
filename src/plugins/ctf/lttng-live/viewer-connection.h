@@ -24,8 +24,12 @@
  */
 
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdio.h>
+
 #include <glib.h>
+
+#include <babeltrace2/babeltrace.h>
 
 #include "common/macros.h"
 #include "compat/socket.h"
