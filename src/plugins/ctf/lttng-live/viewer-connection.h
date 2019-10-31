@@ -30,14 +30,6 @@
 #include "common/macros.h"
 #include "compat/socket.h"
 
-/*
- * FIXME: This is an internal Babeltrace library header; it is not meant
- * to be generic as it is now. Make sure this included code does not
- * log because it won't find our local log level.
- */
-#define BT_OBJECT_DONT_LOG
-#include "lib/object.h"
-
 #define LTTNG_DEFAULT_NETWORK_VIEWER_PORT	5344
 
 #define LTTNG_LIVE_MAJOR			2
@@ -46,7 +38,6 @@
 struct lttng_live_component;
 
 struct live_viewer_connection {
-	bt_object obj;
 	bt_logging_level log_level;
 	bt_self_component *self_comp;
 	bt_self_component_class *self_comp_class;
