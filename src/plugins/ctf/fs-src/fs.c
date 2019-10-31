@@ -701,23 +701,68 @@ void ds_file_group_insert_ds_file_info_sorted(
 }
 
 static
+bool ds_index_entries_equal(
+	const struct ctf_fs_ds_index_entry *left,
+	const struct ctf_fs_ds_index_entry *right)
+{
+	if (left->packet_size != right->packet_size) {
+		return false;
+	}
+
+	if (left->timestamp_begin != right->timestamp_begin) {
+		return false;
+	}
+
+	if (left->timestamp_end != right->timestamp_end) {
+		return false;
+	}
+
+	if (left->packet_seq_num != right->packet_seq_num) {
+		return false;
+	}
+
+	return true;
+}
+
+/*
+ * Insert `entry` into `index`, without duplication.
+ *
+ * The entry is inserted only if there isn't an identical entry already.
+ *
+ * In any case, the ownership of `entry` is transferred to this function.  So if
+ * the entry is not inserted, it is freed.
+ */
+
+static
 void ds_index_insert_ds_index_entry_sorted(
 	struct ctf_fs_ds_index *index,
 	struct ctf_fs_ds_index_entry *entry)
 {
 	guint i;
+	struct ctf_fs_ds_index_entry *other_entry;
 
 	/* Find the spot where to insert this index entry. */
 	for (i = 0; i < index->entries->len; i++) {
-		struct ctf_fs_ds_index_entry *other_entry =
-			g_ptr_array_index(index->entries, i);
+		other_entry = g_ptr_array_index(index->entries, i);
 
-		if (entry->timestamp_begin_ns < other_entry->timestamp_begin_ns) {
+		if (entry->timestamp_begin_ns <= other_entry->timestamp_begin_ns) {
 			break;
 		}
 	}
 
-	array_insert(index->entries, entry, i);
+	/*
+	 * Insert the entry only if a duplicate doesn't already exist.
+	 *
+	 * There can be duplicate packets if reading multiple overlapping
+	 * snapshots of the same trace.  We then want the index to contain
+	 * a reference to only one copy of that packet.
+	 */
+	if (i == index->entries->len ||
+			!ds_index_entries_equal(entry, other_entry)) {
+		array_insert(index->entries, entry, i);
+	} else {
+		g_free(entry);
+	}
 }
 
 static
@@ -731,10 +776,9 @@ void merge_ctf_fs_ds_indexes(struct ctf_fs_ds_index *dest, struct ctf_fs_ds_inde
 
 		/*
 		* Ownership of the ctf_fs_ds_index_entry is transferred to
-		* dest.
+		* ds_index_insert_ds_index_entry_sorted.
 		*/
 		g_ptr_array_index(src->entries, i) = NULL;
-
 		ds_index_insert_ds_index_entry_sorted(dest, entry);
 	}
 }
