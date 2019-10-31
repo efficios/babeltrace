@@ -26,15 +26,15 @@
 #define BT_LOG_TAG "PLUGIN/SRC.CTF.LTTNG-LIVE/VIEWER"
 #include "logging/comp-logging.h"
 
-#include <stdio.h>
-#include <stdint.h>
-#include <stdlib.h>
-#include <stdbool.h>
-#include <unistd.h>
-#include <glib.h>
-#include <inttypes.h>
-#include <sys/types.h>
 #include <fcntl.h>
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/types.h>
+#include <unistd.h>
+
+#include <glib.h>
 
 #include "compat/socket.h"
 #include "compat/endian.h"

@@ -24,12 +24,12 @@
  */
 
 #include <stdio.h>
-#include <glib.h>
-#include "common/macros.h"
-#include <babeltrace2/babeltrace.h>
+#include <stdint.h>
 
-#include "lttng-live.h"
+#include <glib.h>
+
 #include "../common/msg-iter/msg-iter.h"
+#include "lttng-live.h"
 
 enum lttng_live_iterator_status lttng_live_lazy_msg_init(
 		struct lttng_live_session *session);

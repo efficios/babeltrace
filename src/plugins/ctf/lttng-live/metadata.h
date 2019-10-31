@@ -23,10 +23,9 @@
  * SOFTWARE.
  */
 
+#include <stdint.h>
 #include <stdio.h>
-#include <glib.h>
-#include "common/macros.h"
-#include <babeltrace2/babeltrace.h>
+
 #include "lttng-live.h"
 
 int lttng_live_metadata_create_stream(struct lttng_live_session *session,

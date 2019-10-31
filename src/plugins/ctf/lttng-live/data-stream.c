@@ -28,16 +28,17 @@
 #define BT_LOG_TAG "PLUGIN/SRC.CTF.LTTNG-LIVE/DS"
 #include "logging/comp-logging.h"
 
-#include <stdio.h>
-#include <stdint.h>
-#include <stdlib.h>
-#include <glib.h>
 #include <inttypes.h>
-#include "compat/mman.h"
+#include <stdio.h>
+#include <stdlib.h>
+
+#include <glib.h>
+
 #include <babeltrace2/babeltrace.h>
+
 #include "../common/msg-iter/msg-iter.h"
 #include "common/assert.h"
-
+#include "compat/mman.h"
 #include "data-stream.h"
 
 #define STREAM_NAME_PREFIX	"stream-"
