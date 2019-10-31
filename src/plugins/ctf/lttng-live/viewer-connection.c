@@ -317,15 +317,6 @@ void lttng_live_disconnect_viewer(
 }
 
 static
-void connection_release(bt_object *obj)
-{
-	struct live_viewer_connection *conn =
-		container_of(obj, struct live_viewer_connection, obj);
-
-	live_viewer_connection_destroy(conn);
-}
-
-static
 int list_update_session(bt_value *results,
 		const struct lttng_viewer_session *session,
 		bool *_found, struct live_viewer_connection *viewer_connection)
@@ -1611,7 +1602,6 @@ struct live_viewer_connection *live_viewer_connection_create(
 	viewer_connection->self_comp = self_comp;
 	viewer_connection->self_comp_class = self_comp_class;
 
-	bt_object_init_shared(&viewer_connection->obj, connection_release);
 	viewer_connection->control_sock = BT_INVALID_SOCKET;
 	viewer_connection->port = -1;
 	viewer_connection->in_query = in_query;
@@ -1646,20 +1636,33 @@ void live_viewer_connection_destroy(
 		struct live_viewer_connection *viewer_connection)
 {
 	BT_COMP_LOGI("Closing connection to url \"%s\"", viewer_connection->url->str);
+
+	if (!viewer_connection) {
+		goto end;
+	}
+
 	lttng_live_disconnect_viewer(viewer_connection);
+
 	if (viewer_connection->url) {
 		g_string_free(viewer_connection->url, true);
 	}
+
 	if (viewer_connection->relay_hostname) {
 		g_string_free(viewer_connection->relay_hostname, true);
 	}
+
 	if (viewer_connection->target_hostname) {
 		g_string_free(viewer_connection->target_hostname, true);
 	}
+
 	if (viewer_connection->session_name) {
 		g_string_free(viewer_connection->session_name, true);
 	}
+
 	g_free(viewer_connection);
 
 	bt_socket_fini();
+
+end:
+	return;
 }
