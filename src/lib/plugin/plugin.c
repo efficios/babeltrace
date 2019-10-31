@@ -621,7 +621,7 @@ int bt_plugin_create_append_all_from_dir(struct bt_plugin_set *plugin_set,
 			": path=\"%s\", recurse=%d",
 			path, recurse);
 		(void) BT_CURRENT_THREAD_ERROR_APPEND_CAUSE_FROM_UNKNOWN(
-			"Babeltrace library",
+			BT_LIB_LOG_LIBBABELTRACE2_NAME,
 			"Cannot open directory: path=\"%s\", recurse=%d",
 			path, recurse);
 		status = BT_FUNC_STATUS_ERROR;

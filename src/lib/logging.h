@@ -34,6 +34,8 @@
 
 #include "logging/log.h"
 
+#define BT_LIB_LOG_LIBBABELTRACE2_NAME "libbabeltrace2"
+
 extern
 int bt_lib_log_level;
 

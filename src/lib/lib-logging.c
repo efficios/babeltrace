@@ -1522,7 +1522,8 @@ void bt_lib_maybe_log_and_append_cause(const char *func, const char *file,
 	}
 
 	status = bt_current_thread_error_append_cause_from_unknown(
-		"Babeltrace library", file, line, "%s", lib_logging_buf);
+		BT_LIB_LOG_LIBBABELTRACE2_NAME, file, line, "%s",
+		lib_logging_buf);
 	if (status) {
 		/*
 		 * Worst case: this error cause is not appended to the

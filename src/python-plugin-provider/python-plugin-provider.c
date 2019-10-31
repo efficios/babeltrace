@@ -82,7 +82,7 @@ void append_python_traceback_error_cause(void)
 		}
 
 		(void) BT_CURRENT_THREAD_ERROR_APPEND_CAUSE_FROM_UNKNOWN(
-			"Babeltrace library", "%s", exc->str);
+			BT_LIB_LOG_LIBBABELTRACE2_NAME, "%s", exc->str);
 	}
 
 end:
