@@ -281,6 +281,24 @@ struct ctf_msg_iter_medium_ops ctf_fs_ds_file_medops = {
 };
 
 static
+struct ctf_fs_ds_index_entry *ctf_fs_ds_index_entry_create(
+		bt_self_component *self_comp, bt_logging_level log_level)
+{
+	struct ctf_fs_ds_index_entry *entry;
+
+	entry = g_new0(struct ctf_fs_ds_index_entry, 1);
+	if (!entry) {
+		BT_COMP_LOGE_APPEND_CAUSE(self_comp, "Failed to allocate a ctf_fs_ds_index_entry.");
+		goto end;
+	}
+
+	entry->packet_seq_num = UINT64_MAX;
+
+end:
+	return entry;
+}
+
+static
 int convert_cycles_to_ns(struct ctf_clock_class *clock_class,
 		uint64_t cycles, int64_t *ns)
 {
@@ -419,8 +437,11 @@ struct ctf_fs_ds_index *build_index_from_idx_file(
 			goto error;
 		}
 
-		index_entry = g_new0(struct ctf_fs_ds_index_entry, 1);
+		index_entry = ctf_fs_ds_index_entry_create(
+			ds_file->self_comp, ds_file->log_level);
 		if (!index_entry) {
+			BT_COMP_LOGE_APPEND_CAUSE(ds_file->self_comp,
+				"Failed to create a ctf_fs_ds_index_entry.");
 			goto error;
 		}
 
@@ -463,6 +484,10 @@ struct ctf_fs_ds_index *build_index_from_idx_file(
 		if (ret) {
 			BT_COMP_LOGI_STR("Failed to convert raw timestamp to nanoseconds since Epoch during LTTng trace index parsing");
 			goto error;
+		}
+
+		if (version_minor >= 1) {
+			index_entry->packet_seq_num = be64toh(file_index->packet_seq_num);
 		}
 
 		total_packets_size += packet_size;
@@ -621,9 +646,11 @@ struct ctf_fs_ds_index *build_index_from_stream_file(
 			goto error;
 		}
 
-		index_entry = g_new0(struct ctf_fs_ds_index_entry, 1);
+		index_entry = ctf_fs_ds_index_entry_create(
+			ds_file->self_comp, ds_file->log_level);
 		if (!index_entry) {
-			BT_COMP_LOGE_STR("Failed to allocate a new index entry.");
+			BT_COMP_LOGE_APPEND_CAUSE(ds_file->self_comp,
+				"Failed to create a ctf_fs_ds_index_entry.");
 			goto error;
 		}
 
