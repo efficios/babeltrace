@@ -258,7 +258,6 @@ int lttng_live_add_session(struct lttng_live_msg_iter *lttng_live_msg_iter,
 	g_ptr_array_add(lttng_live_msg_iter->sessions, session);
 	goto end;
 error:
-	BT_COMP_LOGE_APPEND_CAUSE(self_comp, "Error adding session");
 	g_free(session);
 	ret = -1;
 end:
