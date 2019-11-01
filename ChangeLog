@@ -1,3 +1,80 @@
+2019-11-01 babeltrace 2.0.0-rc2 (National Vinegar Day)
+	* Cleanup: src.ctf.lttng-live: add missing `#include <stdint.h>`
+	* Cleanup: src.ctf.lttng-live: remove usage of `bt_object`
+	* lib: lib-logging.c: `Babeltrace library` -> `libbabeltrace2`
+	* ctf: msg-iter.c: rename `notit` to `msg_it`
+	* ctf: msg-iter.c: use `_APPEND_CAUSE` variants of logging macros
+	* src.ctf.lttng-live: use `_APPEND_CAUSE` variants of logging macros
+	* src.ctf.lttng-live: make `lttng_live_attach_session()` return status
+	* src.ctf.lttng-live: make `lttng_live_get_one_metadata_packet()` return status
+	* logging: ignore -Wundef in log.c
+	* lib: Make `bt_version_get_*() return unsigned int
+	* Rename `BT_RANGE_SET_` to `BT_INTEGER_RANGE_SET_`
+	* bt2: validate parameters to _TraceClass.create_stream_class before creating the native object
+	* tests: use assertRaisesRegex instead of assertRaises in test_stream_class.py
+	* Cleanup: add `#include <stdbool.h>` whenever `bool` type is used
+	* lib: remove `BT_GRAPH_RUN_STATUS_END`
+	* Cleanup: ctf: msg-iter.c: rename `ret` to `status`
+	* Cleanup: ctf: remove duplicated logging statement
+	* Cleanup: msg-iter.c: make `create_msg_*()` return msg
+	* Cleanup: src.ctf.lttng-live: NULL check already done in `_is_canceled()` func
+	* cli: Remove unnecessary NULL check in print_value_rec
+	* source.ctf.lttng-live: clean-up: don't restart session iteration
+	* source.ctf.lttng-live: clean-up: don't restart stream iteration
+	* Fix: source.ctf.lttng-live: assertion on equal messages
+	* Add compile_commands.json to .gitignore
+	* Cleanup: src.ctf.lttng-live: coding style
+	* Fix: add missing decoder-packetized-file-stream-to-buf.h
+	* Fix -Wmissing-prototypes/-Wmissing-declarations warnings
+	* ctf: Remove redundant declarations of lexer/parser functions
+	* ctf-writer: Fix -Wredundant-decls warning
+	* Fix: ctf-writer: field_type_common_has_known_id always returns true
+	* Fix -Wshadow warnings
+	* debug-info: fix one -Wnull-dereference warning
+	* ctf: define yystrlen to strlen
+	* ctf: Fix one -Wnull-dereference warning
+	* ctf, ctf-writer: Fix -Wnull-dereference warnings
+	* Fix -Wjump-misses-init warnings
+	* Fix -Wmissing-include-dirs warnings
+	* Fix -Wduplicated-cond warnings
+	* black: run `black` version 19.10b0 on entire project
+	* Fix: log.h: missing defines of `_ERRNO()` macros to `_UNUSED()`
+	* Fix -Wsuggest-attribute warnings
+	* Fix -Wstrict-prototypes warnings
+	* configure: allow adding compiler-specific warning flags
+	* Fix: tests: add cli/params/test_params to Makefile and fix it
+	* Cleanup: babeltrace2-cfg-cli-args.c: coding style
+	* Cleanup: usages of bt_value_array_borrow_element_by_index{,_const}()
+	* Fix: usage of `bt_value_array_get_length()`
+	* lib: make `bt_attributes_get_count()` return uint64_t
+	* Use typeof instead of __auto_type
+	* Fix: src.ctf.fs: free ds_file_info when add_ds_file_to_ds_file_group fails
+	* Fix: define macros for logging levels
+	* Tests: debug-info: compare output of `CompleteSrc`
+	* Tests: debug-info: compare without `debug-info` component
+	* debug-info: have `copy_*_content()` function return _STATUS
+	* flt.lttng-utils.debug-info: add all SC and EC to output trace class ASAP
+	* Fix: param-validation: remove memory leaks
+	* Fix: shadowed variables
+	* src.ctf.fs: append error causes in ctf_fs_file_open
+	* lib: add _msg parameters to _ERRNO logging macros
+	* lib: remove plugin's ABI version
+	* Remove unused `src/lib/trace-ir/clock-snapshot-set.h`
+	* lib: remove unused bt_graph_remove_unconnected_component()
+	* Always evaluate BT_ASSERT(); add BT_ASSERT_DBG() for debug mode only
+	* lib: remove includes from logging.h
+	* bt2: make log functions clear error indicator
+	* Fix: bt2: clear Python error indicator in trace and trace class destruction listeners
+	* bt2: normalize the code to use some commonly used patterns
+	* bt2: rename exception handling functions
+	* src.ctf.fs: error out when failing to create index
+	* bt2: Force usage of MapValue object on component init
+	* Fix: consider index of all files for data stream groups with multiple files
+	* Use assertRegex instead of assertRegexpMatches
+	* Fix: src.ctf.fs: use BT_COMP_OR_COMP_CLASS_LOGE_APPEND_CAUSE when applicable
+	* Cleanup: Dead assignments
+	* Cleanup: flt.lttng-utils.debug-info: Dead assignment
+
 2019-10-17 babeltrace 2.0.0-rc1
 	* Fix: avoid double-free in build_index_from_idx_file
 	* Fix: ctf: query.c: Unchecked fclose() return value
