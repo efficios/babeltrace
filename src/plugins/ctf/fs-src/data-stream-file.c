@@ -22,8 +22,8 @@
  * SOFTWARE.
  */
 
-#define BT_COMP_LOG_SELF_COMP (ds_file->self_comp)
-#define BT_LOG_OUTPUT_LEVEL (ds_file->log_level)
+#define BT_COMP_LOG_SELF_COMP (self_comp)
+#define BT_LOG_OUTPUT_LEVEL (log_level)
 #define BT_LOG_TAG "PLUGIN/SRC.CTF.FS/DS"
 #include "logging/comp-logging.h"
 
@@ -55,6 +55,8 @@ static
 int ds_file_munmap(struct ctf_fs_ds_file *ds_file)
 {
 	int ret = 0;
+	bt_self_component *self_comp = ds_file->self_comp;
+	bt_logging_level log_level = ds_file->log_level;
 
 	if (!ds_file || !ds_file->mmap_addr) {
 		goto end;
@@ -82,6 +84,8 @@ enum ctf_msg_iter_medium_status ds_file_mmap_next(
 {
 	enum ctf_msg_iter_medium_status ret =
 			CTF_MSG_ITER_MEDIUM_STATUS_OK;
+	bt_self_component *self_comp = ds_file->self_comp;
+	bt_logging_level log_level = ds_file->log_level;
 
 	/* Unmap old region */
 	if (ds_file->mmap_addr) {
@@ -133,6 +137,8 @@ enum ctf_msg_iter_medium_status medop_request_bytes(
 	enum ctf_msg_iter_medium_status status =
 		CTF_MSG_ITER_MEDIUM_STATUS_OK;
 	struct ctf_fs_ds_file *ds_file = data;
+	bt_self_component *self_comp = ds_file->self_comp;
+	bt_logging_level log_level = ds_file->log_level;
 
 	if (request_sz == 0) {
 		goto end;
@@ -211,6 +217,8 @@ enum ctf_msg_iter_medium_status medop_seek(enum ctf_msg_iter_seek_whence whence,
 			CTF_MSG_ITER_MEDIUM_STATUS_OK;
 	struct ctf_fs_ds_file *ds_file = data;
 	off_t offset_in_mapping, file_size = ds_file->file->size;
+	bt_self_component *self_comp = ds_file->self_comp;
+	bt_logging_level log_level = ds_file->log_level;
 
 	if (whence != CTF_MSG_ITER_SEEK_WHENCE_SET ||
 		offset < 0 || offset > file_size) {
@@ -304,6 +312,8 @@ struct ctf_fs_ds_index *build_index_from_idx_file(
 	struct ctf_stream_class *sc;
 	struct ctf_msg_iter_packet_properties props;
 	uint32_t version_major, version_minor;
+	bt_self_component *self_comp = ds_file->self_comp;
+	bt_logging_level log_level = ds_file->log_level;
 
 	BT_COMP_LOGI("Building index from .idx file of stream file %s",
 			ds_file->file->path->str);
@@ -498,6 +508,8 @@ int init_index_entry(struct ctf_fs_ds_index_entry *entry,
 {
 	int ret = 0;
 	struct ctf_stream_class *sc;
+	bt_self_component *self_comp = ds_file->self_comp;
+	bt_logging_level log_level = ds_file->log_level;
 
 	sc = ctf_trace_class_borrow_stream_class_by_id(ds_file->metadata->tc,
 		props->stream_class_id);
@@ -552,6 +564,8 @@ struct ctf_fs_ds_index *build_index_from_stream_file(
 	struct ctf_fs_ds_index *index = NULL;
 	enum ctf_msg_iter_status iter_status = CTF_MSG_ITER_STATUS_OK;
 	off_t current_packet_offset_bytes = 0;
+	bt_self_component *self_comp = ds_file->self_comp;
+	bt_logging_level log_level = ds_file->log_level;
 
 	BT_COMP_LOGI("Indexing stream file %s", ds_file->file->path->str);
 
@@ -699,6 +713,8 @@ struct ctf_fs_ds_index *ctf_fs_ds_file_build_index(
 		struct ctf_fs_ds_file_info *file_info)
 {
 	struct ctf_fs_ds_index *index;
+	bt_self_component *self_comp = ds_file->self_comp;
+	bt_logging_level log_level = ds_file->log_level;
 
 	index = build_index_from_idx_file(ds_file, file_info);
 	if (index) {
