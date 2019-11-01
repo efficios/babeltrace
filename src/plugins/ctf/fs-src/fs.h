@@ -129,6 +129,11 @@ struct ctf_fs_ds_index_entry {
 	 * (in ns since EPOCH).
 	 */
 	int64_t timestamp_begin_ns, timestamp_end_ns;
+
+	/*
+	 * Packet sequence number, or UINT64_MAX if not present in the index.
+	 */
+	uint64_t packet_seq_num;
 };
 
 struct ctf_fs_ds_index {
