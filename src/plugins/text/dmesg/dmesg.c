@@ -375,7 +375,7 @@ bt_component_class_initialize_method_status create_port(
 		status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_MEMORY_ERROR;
 		break;
 	default:
-		abort();
+		bt_common_abort();
 	}
 
 	return status;

@@ -430,7 +430,7 @@ bt_component_class_initialize_method_status apply_params(
 		pretty->options.print_scope_field_names = false;
 		break;
 	default:
-		abort();
+		bt_common_abort();
 	}
 
 	apply_one_bool_if_specified("name-payload", params,
@@ -492,7 +492,7 @@ bt_component_class_initialize_method_status apply_params(
 		pretty->options.print_callsite_field = false;
 		break;
 	default:
-		abort();
+		bt_common_abort();
 	}
 
 	apply_one_bool_if_specified("field-trace", params,

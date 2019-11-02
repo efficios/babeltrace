@@ -708,7 +708,7 @@ int print_enum(struct pretty_component *pretty,
 			&label_array, &label_count);
 		break;
 	default:
-		abort();
+		bt_common_abort();
 	}
 
 	if (ret) {
@@ -1383,7 +1383,7 @@ int pretty_print_discarded_items(struct pretty_component *pretty,
 		elem_type = "packet";
 		break;
 	default:
-		abort();
+		bt_common_abort();
 	}
 
 	BT_ASSERT(stream);
@@ -1411,7 +1411,7 @@ int pretty_print_discarded_items(struct pretty_component *pretty,
 
 		break;
 	default:
-		abort();
+		bt_common_abort();
 	}
 
 	print_discarded_elements_msg(pretty, stream, begin, end,

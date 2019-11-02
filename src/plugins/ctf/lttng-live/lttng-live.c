@@ -82,7 +82,7 @@ const char *print_live_iterator_status(enum lttng_live_iterator_status status)
 	case LTTNG_LIVE_ITERATOR_STATUS_UNSUPPORTED:
 		return "LTTNG_LIVE_ITERATOR_STATUS_UNSUPPORTED";
 	default:
-		abort();
+		bt_common_abort();
 	}
 }
 
@@ -359,11 +359,11 @@ enum lttng_live_iterator_status lttng_live_iterator_next_check_stream_state(
 	case LTTNG_LIVE_STREAM_ACTIVE_NO_DATA:
 		/* Invalid state. */
 		BT_COMP_LOGF("Unexpected stream state \"ACTIVE_NO_DATA\"");
-		abort();
+		bt_common_abort();
 	case LTTNG_LIVE_STREAM_QUIESCENT_NO_DATA:
 		/* Invalid state. */
 		BT_COMP_LOGF("Unexpected stream state \"QUIESCENT_NO_DATA\"");
-		abort();
+		bt_common_abort();
 	case LTTNG_LIVE_STREAM_EOF:
 		break;
 	}
@@ -1458,7 +1458,7 @@ end:
 		put_messages(msgs, *count);
 		break;
 	default:
-		abort();
+		bt_common_abort();
 	}
 
 no_session:
@@ -1545,7 +1545,7 @@ bt_component_class_message_iterator_initialize_method_status lttng_live_msg_iter
 				lttng_live->params.url->str);
 			break;
 		default:
-			abort();
+			bt_common_abort();
 		}
 	}
 

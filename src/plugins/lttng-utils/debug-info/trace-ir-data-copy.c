@@ -32,6 +32,7 @@
 #include <stdint.h>
 
 #include "common/assert.h"
+#include "common/common.h"
 
 #include "trace-ir-data-copy.h"
 
@@ -103,7 +104,7 @@ enum debug_info_trace_ir_mapping_status copy_trace_content(
 				out_trace, value_name,
 				bt_value_string_get(value));
 		} else {
-			abort();
+			bt_common_abort();
 		}
 
 		if (set_env_status != BT_TRACE_SET_ENVIRONMENT_ENTRY_STATUS_OK) {
@@ -455,7 +456,7 @@ enum debug_info_trace_ir_mapping_status copy_field_content(
 			goto end;
 			}
 	} else {
-		abort();
+		bt_common_abort();
 	}
 
 	BT_COMP_LOGT("Copied content of field: in-f-addr=%p, out-f-addr=%p",

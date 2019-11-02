@@ -138,7 +138,7 @@ void append_integer_field_class_from_props(struct ctx *ctx, unsigned int size,
 			g_string_append(ctx->tsdl, "x");
 			break;
 		default:
-			abort();
+			bt_common_abort();
 		}
 
 		g_string_append_c(ctx->tsdl, ';');
@@ -589,7 +589,7 @@ void append_field_class(struct ctx *ctx, struct fs_sink_ctf_field_class *fc)
 		append_variant_field_class(ctx, (void *) fc);
 		break;
 	default:
-		abort();
+		bt_common_abort();
 	}
 }
 
@@ -683,7 +683,7 @@ void append_event_class(struct ctx *ctx, struct fs_sink_ctf_event_class *ec)
 			level = 14;
 			break;
 		default:
-			abort();
+			bt_common_abort();
 		}
 
 		g_string_append_printf(ctx->tsdl, "%u;\n", level);
@@ -976,7 +976,7 @@ void translate_trace_ctf_ir_to_tsdl(struct fs_sink_ctf_trace *trace,
 				 * This is checked in
 				 * translate_trace_trace_ir_to_ctf_ir().
 				 */
-				abort();
+				bt_common_abort();
 			}
 
 			g_string_append(tsdl, ";\n");

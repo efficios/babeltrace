@@ -261,7 +261,7 @@ void append_component_class_id_str(GString *str,
 		type_str = "sink";
 		break;
 	default:
-		abort();
+		bt_common_abort();
 	}
 
 	if (comp_class_id->plugin_name->len > 0) {

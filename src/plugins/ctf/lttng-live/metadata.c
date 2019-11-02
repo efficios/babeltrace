@@ -191,7 +191,7 @@ enum lttng_live_iterator_status lttng_live_metadata_update(
 		case LTTNG_LIVE_GET_ONE_METADATA_STATUS_ERROR:
 			goto error;
 		default:
-			abort();
+			bt_common_abort();
 		}
 	}
 

@@ -1697,7 +1697,7 @@ const bt_message *handle_message(struct debug_info_msg_iter *debug_it,
 		out_message = handle_discarded_packets_message(debug_it, in_message);
 		break;
 	default:
-		abort();
+		bt_common_abort();
 		break;
 	}
 

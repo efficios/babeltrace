@@ -27,6 +27,7 @@
 #include <string.h>
 
 #include "common/assert.h"
+#include "common/common.h"
 #include "common/macros.h"
 #include "common/uuid.h"
 
@@ -74,7 +75,7 @@ int message_type_weight(const bt_message_type msg_type)
 		weight = 0;
 		break;
 	default:
-		abort();
+		bt_common_abort();
 	}
 
 	return weight;
@@ -460,7 +461,7 @@ const bt_stream *borrow_stream(const bt_message *msg)
 	case BT_MESSAGE_TYPE_MESSAGE_ITERATOR_INACTIVITY:
 		goto end;
 	default:
-		abort();
+		bt_common_abort();
 	}
 
 end:
@@ -832,7 +833,7 @@ int compare_messages_same_type(struct messages_to_compare *msgs)
 		break;
 	}
 	default:
-		abort();
+		bt_common_abort();
 	}
 
 end:

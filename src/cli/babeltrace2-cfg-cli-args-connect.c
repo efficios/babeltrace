@@ -272,7 +272,7 @@ static struct bt_config_connection *cfg_connection_from_arg(const char *arg)
 			}
 			break;
 		default:
-			abort();
+			bt_common_abort();
 		}
 	}
 

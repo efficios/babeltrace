@@ -964,7 +964,7 @@ int bt_ctf_field_floating_point_serialize(struct bt_ctf_field_common *field,
 			byte_order == BT_CTF_BYTE_ORDER_LITTLE_ENDIAN ?
 				LITTLE_ENDIAN : BIG_ENDIAN);
 	} else {
-		abort();
+		bt_common_abort();
 	}
 
 	if (G_UNLIKELY(ret)) {

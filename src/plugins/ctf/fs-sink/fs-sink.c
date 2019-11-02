@@ -1041,7 +1041,7 @@ bt_component_class_sink_consume_method_status ctf_fs_sink_consume(
 					fs_sink, msg);
 				break;
 			default:
-				abort();
+				bt_common_abort();
 			}
 
 			BT_MESSAGE_PUT_REF_AND_RESET(msgs[i]);

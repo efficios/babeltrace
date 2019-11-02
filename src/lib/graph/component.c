@@ -100,7 +100,7 @@ void finalize_component(struct bt_component *comp)
 		break;
 	}
 	default:
-		abort();
+		bt_common_abort();
 	}
 
 	if (method) {
@@ -501,7 +501,7 @@ bt_component_port_connected(
 			method = (method_t) src_cc->methods.output_port_connected;
 			break;
 		default:
-			abort();
+			bt_common_abort();
 		}
 
 		break;
@@ -518,7 +518,7 @@ bt_component_port_connected(
 			method = (method_t) flt_cc->methods.output_port_connected;
 			break;
 		default:
-			abort();
+			bt_common_abort();
 		}
 
 		break;
@@ -532,13 +532,13 @@ bt_component_port_connected(
 			method = (method_t) sink_cc->methods.input_port_connected;
 			break;
 		default:
-			abort();
+			bt_common_abort();
 		}
 
 		break;
 	}
 	default:
-		abort();
+		bt_common_abort();
 	}
 
 	if (method) {

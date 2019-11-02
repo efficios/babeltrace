@@ -118,7 +118,7 @@ void warn_meaningless_fields(struct ctf_field_class *fc, const char *name,
 		break;
 	}
 	default:
-		abort();
+		bt_common_abort();
 	}
 
 end:

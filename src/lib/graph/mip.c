@@ -116,7 +116,7 @@ int validate_operative_mip_version_in_array(GPtrArray *descriptors,
 			break;
 		}
 		default:
-			abort();
+			bt_common_abort();
 		}
 
 		if (!method) {

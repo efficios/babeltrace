@@ -520,7 +520,7 @@ void fs_sink_trace_destroy(struct fs_sink_trace *trace)
 		BT_COMP_LOGF_ERRNO("In trace destruction listener: "
 			"cannot open metadata file for writing",
 			": path=\"%s\"", trace->metadata_path->str);
-		abort();
+		bt_common_abort();
 	}
 
 	len = fwrite(tsdl->str, sizeof(*tsdl->str), tsdl->len, fh);
@@ -528,7 +528,7 @@ void fs_sink_trace_destroy(struct fs_sink_trace *trace)
 		BT_COMP_LOGF_ERRNO("In trace destruction listener: "
 			"cannot write metadata file",
 			": path=\"%s\"", trace->metadata_path->str);
-		abort();
+		bt_common_abort();
 	}
 
 	if (!trace->fs_sink->quiet) {

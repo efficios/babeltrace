@@ -25,6 +25,7 @@
  */
 
 #include "common/macros.h"
+#include "common/common.h"
 #include "lib/graph/component-class.h"
 #include <babeltrace2/plugin/plugin-const.h>
 #include <babeltrace2/plugin/plugin-dev.h>
@@ -349,7 +350,7 @@ int bt_plugin_add_component_class(
 		comp_classes = plugin->sink_comp_classes;
 		break;
 	default:
-		abort();
+		bt_common_abort();
 	}
 
 	/* Set component class's original plugin name */

@@ -251,7 +251,7 @@ int _bt_ctfser_write_byte_aligned_unsigned_int_no_align(
 		break;
 	}
 	default:
-		abort();
+		bt_common_abort();
 	}
 
 	_bt_ctfser_incr_offset(ctfser, size_bits);
@@ -313,7 +313,7 @@ int _bt_ctfser_write_byte_aligned_signed_int_no_align(
 		break;
 	}
 	default:
-		abort();
+		bt_common_abort();
 	}
 
 	_bt_ctfser_incr_offset(ctfser, size_bits);

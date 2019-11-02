@@ -361,6 +361,9 @@ int bt_common_get_term_size(unsigned int *width, unsigned int *height);
 BT_HIDDEN
 int bt_common_append_file_content_to_g_string(GString *str, FILE *fp);
 
+BT_HIDDEN
+void bt_common_abort(void) __attribute__((noreturn));
+
 /*
  * Wraps read() function to handle EINTR and partial reads.
  * On success, it returns `count` received as parameter. On error, it returns a
@@ -589,7 +592,7 @@ GString *bt_common_field_path_string(struct bt_field_path *path)
 			g_string_append(str, ", <CUR>");
 			break;
 		default:
-			abort();
+			bt_common_abort();
 		}
 	}
 

@@ -1490,7 +1490,7 @@ int decode_clock_snapshot_after_event(struct ctf_fs_trace *ctf_fs_trace,
 			ds_file->msg_iter, cs);
 		break;
 	default:
-		abort();
+		bt_common_abort();
 	}
 	if (iter_status) {
 		ret = -1;

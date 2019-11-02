@@ -32,7 +32,7 @@ trace_destroyed_listener(const bt_trace *trace, void *py_callable)
 		SWIGTYPE_p_bt_trace, 0);
 	if (!py_trace_ptr) {
 		BT_LOGF_STR("Failed to create a SWIG pointer object.");
-		abort();
+		bt_common_abort();
 	}
 
 	py_res = PyObject_CallFunction(py_callable, "(O)", py_trace_ptr);

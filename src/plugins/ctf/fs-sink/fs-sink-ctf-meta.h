@@ -621,7 +621,7 @@ void fs_sink_ctf_field_class_destroy(struct fs_sink_ctf_field_class *fc)
 		_fs_sink_ctf_field_class_variant_destroy((void *) fc);
 		break;
 	default:
-		abort();
+		bt_common_abort();
 	}
 }
 

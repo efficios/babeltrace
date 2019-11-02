@@ -188,7 +188,7 @@ bt_component_descriptor_set_add_descriptor_with_initialize_method_data(
 		comp_descr_array = comp_descr_set->sinks;
 		break;
 	default:
-		abort();
+		bt_common_abort();
 	}
 
 	BT_ASSERT(comp_descr_array);

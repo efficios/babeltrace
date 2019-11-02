@@ -307,7 +307,7 @@ int create_relative_field_ref(struct ctx *ctx,
 		tgt_fc = ctx->cur_ec->payload_fc;
 		break;
 	default:
-		abort();
+		bt_common_abort();
 	}
 
 	i = 0;
@@ -355,7 +355,7 @@ int create_relative_field_ref(struct ctx *ctx,
 			break;
 		}
 		default:
-			abort();
+			bt_common_abort();
 		}
 
 		if (named_fc) {
@@ -479,7 +479,7 @@ int create_absolute_field_ref(struct ctx *ctx,
 		g_string_assign(tgt_field_ref, "event.fields");
 		break;
 	default:
-		abort();
+		bt_common_abort();
 	}
 
 	BT_ASSERT(fc);
@@ -513,7 +513,7 @@ int create_absolute_field_ref(struct ctx *ctx,
 				bt_field_path_item_index_get_index(fp_item));
 			break;
 		default:
-			abort();
+			bt_common_abort();
 		}
 
 		BT_ASSERT(named_fc);
@@ -633,7 +633,7 @@ void append_to_parent_field_class(struct ctx *ctx,
 		break;
 	}
 	default:
-		abort();
+		bt_common_abort();
 	}
 }
 
@@ -1337,7 +1337,7 @@ int translate_field_class(struct ctx *ctx)
 			BT_FIELD_CLASS_TYPE_VARIANT)) {
 		ret = translate_variant_field_class(ctx);
 	} else {
-		abort();
+		bt_common_abort();
 	}
 
 	return ret;
@@ -1407,7 +1407,7 @@ int set_field_ref(struct fs_sink_ctf_field_class *fc, const char *fc_name,
 		break;
 	}
 	default:
-		abort();
+		bt_common_abort();
 	}
 
 	BT_ASSERT(field_ref);

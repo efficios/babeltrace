@@ -240,7 +240,7 @@ struct ctf_field_class *borrow_class_from_ctx(struct resolve_context *ctx,
 	case CTF_SCOPE_EVENT_PAYLOAD:
 		return ctx->scopes.event_payload;
 	default:
-		abort();
+		bt_common_abort();
 	}
 
 	return NULL;
@@ -520,7 +520,7 @@ int absolute_ptokens_to_field_path(GList *ptokens,
 		break;
 
 	default:
-		abort();
+		bt_common_abort();
 	}
 
 	/* Skip absolute path tokens */
@@ -944,7 +944,7 @@ int validate_target_field_path(struct ctf_field_path *target_field_path,
 		break;
 	}
 	default:
-		abort();
+		bt_common_abort();
 	}
 
 end:
@@ -983,7 +983,7 @@ int resolve_sequence_or_variant_field_class(struct ctf_field_class *fc,
 		break;
 	}
 	default:
-		abort();
+		bt_common_abort();
 	}
 
 	if (!pathstr) {
@@ -1046,7 +1046,7 @@ int resolve_sequence_or_variant_field_class(struct ctf_field_class *fc,
 		break;
 	}
 	default:
-		abort();
+		bt_common_abort();
 	}
 
 end:

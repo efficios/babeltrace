@@ -551,7 +551,7 @@ int ini_handle_state(struct ini_parsing_state *state)
 		state->expecting = INI_EXPECT_MAP_KEY;
 		goto success;
 	default:
-		abort();
+		bt_common_abort();
 	}
 
 error:

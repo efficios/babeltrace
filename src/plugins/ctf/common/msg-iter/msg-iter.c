@@ -1805,7 +1805,7 @@ enum bt_msg_iter_status handle_state(struct bt_msg_iter *msg_it)
 	default:
 		BT_COMP_LOGF("Unknown CTF plugin message iterator state: "
 			"msg-it-addr=%p, state=%d", msg_it, msg_it->state);
-		abort();
+		bt_common_abort();
 	}
 
 	BT_COMP_LOGT("Handled state: msg-it-addr=%p, status=%s, "
@@ -1901,7 +1901,7 @@ bt_field *borrow_next_field(struct bt_msg_iter *msg_it)
 		next_field = bt_field_variant_borrow_selected_option_field(
 			base_field);
 	} else {
-		abort();
+		bt_common_abort();
 	}
 
 	BT_ASSERT_DBG(next_field);
@@ -2009,7 +2009,7 @@ enum bt_bfcr_status bfcr_unsigned_int_cb(uint64_t value,
 		msg_it->cur_exp_packet_content_size = value;
 		break;
 	default:
-		abort();
+		bt_common_abort();
 	}
 
 update_def_clock:
@@ -3114,7 +3114,7 @@ enum bt_msg_iter_status decode_until_state( struct bt_msg_iter *msg_it,
 			/* We should never get to the STATE_DONE state. */
 			BT_COMP_LOGF("Unexpected state: msg-it-addr=%p, state=%s",
 				msg_it, state_string(msg_it->state));
-			abort();
+			bt_common_abort();
 		}
 	} while (true);
 

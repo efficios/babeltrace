@@ -684,7 +684,7 @@ void ctf_field_class_destroy(struct ctf_field_class *fc)
 		_ctf_field_class_variant_destroy((void *) fc);
 		break;
 	default:
-		abort();
+		bt_common_abort();
 	}
 }
 
@@ -1056,7 +1056,7 @@ uint64_t ctf_field_class_compound_get_field_class_count(struct ctf_field_class *
 		field_count = 1;
 		break;
 	default:
-		abort();
+		bt_common_abort();
 	}
 
 	return field_count;
@@ -1152,7 +1152,7 @@ const char *ctf_scope_string(enum ctf_scope scope)
 	case CTF_SCOPE_EVENT_PAYLOAD:
 		return "EVENT_PAYLOAD";
 	default:
-		abort();
+		bt_common_abort();
 	}
 }
 
@@ -1211,7 +1211,7 @@ struct ctf_field_class *ctf_field_path_borrow_field_class(
 		fc = ec->payload_fc;
 		break;
 	default:
-		abort();
+		bt_common_abort();
 	}
 
 	BT_ASSERT_DBG(fc);
@@ -1474,7 +1474,7 @@ struct ctf_field_class *ctf_field_class_copy(struct ctf_field_class *fc)
 		copy_fc = (void *) _ctf_field_class_variant_copy((void *) fc);
 		break;
 	default:
-		abort();
+		bt_common_abort();
 	}
 
 	copy_fc->type = fc->type;

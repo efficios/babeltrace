@@ -26,6 +26,7 @@
 #include <glib.h>
 
 #include "common/assert.h"
+#include "common/common.h"
 
 #include "argpar.h"
 
@@ -423,7 +424,7 @@ struct bt_argpar_parse_ret bt_argpar_parse(unsigned int argc,
 				parse_ret.error, i, orig_arg);
 			goto error;
 		default:
-			abort();
+			bt_common_abort();
 		}
 
 		if (used_next_orig_arg) {

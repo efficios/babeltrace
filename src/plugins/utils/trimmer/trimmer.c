@@ -1934,7 +1934,7 @@ bt_component_class_message_iterator_next_method_status trimmer_msg_iter_next(
 			status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_END;
 			break;
 		default:
-			abort();
+			bt_common_abort();
 		}
 	}
 

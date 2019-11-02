@@ -52,5 +52,5 @@ void bt_common_assert_failed(const char *file, int line, const char *func,
 		bt_common_color_reset(),
 		bt_common_color_fg_red(),
 		bt_common_color_reset());
-	abort();
+	bt_common_abort();
 }
