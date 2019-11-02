@@ -127,7 +127,7 @@ struct bt_msg_iter {
 	struct stack *stack;
 
 	/* Current message iterator to create messages (weak) */
-	bt_self_message_iterator *msg_iter;
+	bt_self_message_iterator *self_msg_iter;
 
 	/* True to emit a stream beginning message. */
 	bool emit_stream_begin_msg;
@@ -1299,15 +1299,15 @@ enum bt_msg_iter_status set_current_event_message(
 		msg_it, msg_it->meta.ec,
 		msg_it->meta.ec->name->str,
 		msg_it->packet);
-	BT_ASSERT_DBG(msg_it->msg_iter);
+	BT_ASSERT_DBG(msg_it->self_msg_iter);
 	BT_ASSERT_DBG(msg_it->meta.sc);
 
 	if (bt_stream_class_borrow_default_clock_class(msg_it->meta.sc->ir_sc)) {
 		msg = bt_message_event_create_with_packet_and_default_clock_snapshot(
-			msg_it->msg_iter, msg_it->meta.ec->ir_ec,
+			msg_it->self_msg_iter, msg_it->meta.ec->ir_ec,
 			msg_it->packet, msg_it->default_clock_snapshot);
 	} else {
-		msg = bt_message_event_create_with_packet(msg_it->msg_iter,
+		msg = bt_message_event_create_with_packet(msg_it->self_msg_iter,
 			msg_it->meta.ec->ir_ec, msg_it->packet);
 	}
 
@@ -2495,8 +2495,8 @@ bt_message *create_msg_stream_beginning(struct bt_msg_iter *msg_it)
 	bt_message *msg;
 
 	BT_ASSERT(msg_it->stream);
-	BT_ASSERT(msg_it->msg_iter);
-	msg = bt_message_stream_beginning_create(msg_it->msg_iter,
+	BT_ASSERT(msg_it->self_msg_iter);
+	msg = bt_message_stream_beginning_create(msg_it->self_msg_iter,
 		msg_it->stream);
 	if (!msg) {
 		BT_COMP_LOGE_APPEND_CAUSE(self_comp,
@@ -2522,8 +2522,8 @@ bt_message *create_msg_stream_end(struct bt_msg_iter *msg_it)
 		goto end;
 	}
 
-	BT_ASSERT(msg_it->msg_iter);
-	msg = bt_message_stream_end_create(msg_it->msg_iter,
+	BT_ASSERT(msg_it->self_msg_iter);
+	msg = bt_message_stream_end_create(msg_it->self_msg_iter,
 		msg_it->stream);
 	if (!msg) {
 		BT_COMP_LOGE_APPEND_CAUSE(self_comp,
@@ -2568,7 +2568,7 @@ bt_message *create_msg_packet_beginning(struct bt_msg_iter *msg_it,
 			msg_it->dscopes.stream_packet_context);
 	}
 
-	BT_ASSERT(msg_it->msg_iter);
+	BT_ASSERT(msg_it->self_msg_iter);
 
 	if (msg_it->meta.sc->packets_have_ts_begin) {
 		BT_ASSERT(msg_it->snapshots.beginning_clock != UINT64_C(-1));
@@ -2585,10 +2585,10 @@ bt_message *create_msg_packet_beginning(struct bt_msg_iter *msg_it,
 		}
 
 		msg = bt_message_packet_beginning_create_with_default_clock_snapshot(
-			msg_it->msg_iter, msg_it->packet,
+			msg_it->self_msg_iter, msg_it->packet,
 			raw_cs_value);
 	} else {
-		msg = bt_message_packet_beginning_create(msg_it->msg_iter,
+		msg = bt_message_packet_beginning_create(msg_it->self_msg_iter,
 			msg_it->packet);
 	}
 
@@ -2686,15 +2686,15 @@ bt_message *create_msg_packet_end(struct bt_msg_iter *msg_it)
 		msg_it->default_clock_snapshot = msg_it->snapshots.end_clock;
 	}
 
-	BT_ASSERT(msg_it->msg_iter);
+	BT_ASSERT(msg_it->self_msg_iter);
 
 	if (msg_it->meta.sc->packets_have_ts_end) {
 		BT_ASSERT(msg_it->snapshots.end_clock != UINT64_C(-1));
 		msg = bt_message_packet_end_create_with_default_clock_snapshot(
-			msg_it->msg_iter, msg_it->packet,
+			msg_it->self_msg_iter, msg_it->packet,
 			msg_it->default_clock_snapshot);
 	} else {
-		msg = bt_message_packet_end_create(msg_it->msg_iter,
+		msg = bt_message_packet_end_create(msg_it->self_msg_iter,
 			msg_it->packet);
 	}
 
@@ -2721,7 +2721,7 @@ bt_message *create_msg_discarded_events(struct bt_msg_iter *msg_it)
 	uint64_t beginning_raw_value = UINT64_C(-1);
 	uint64_t end_raw_value = UINT64_C(-1);
 
-	BT_ASSERT(msg_it->msg_iter);
+	BT_ASSERT(msg_it->self_msg_iter);
 	BT_ASSERT(msg_it->stream);
 	BT_ASSERT(msg_it->meta.sc->has_discarded_events);
 
@@ -2742,10 +2742,10 @@ bt_message *create_msg_discarded_events(struct bt_msg_iter *msg_it)
 		BT_ASSERT(beginning_raw_value != UINT64_C(-1));
 		BT_ASSERT(end_raw_value != UINT64_C(-1));
 		msg = bt_message_discarded_events_create_with_default_clock_snapshots(
-			msg_it->msg_iter, msg_it->stream, beginning_raw_value,
+			msg_it->self_msg_iter, msg_it->stream, beginning_raw_value,
 			end_raw_value);
 	} else {
-		msg = bt_message_discarded_events_create(msg_it->msg_iter,
+		msg = bt_message_discarded_events_create(msg_it->self_msg_iter,
 			msg_it->stream);
 	}
 
@@ -2773,7 +2773,7 @@ bt_message *create_msg_discarded_packets(struct bt_msg_iter *msg_it)
 	bt_message *msg;
 	bt_self_component *self_comp = msg_it->self_comp;
 
-	BT_ASSERT(msg_it->msg_iter);
+	BT_ASSERT(msg_it->self_msg_iter);
 	BT_ASSERT(msg_it->stream);
 	BT_ASSERT(msg_it->meta.sc->has_discarded_packets);
 	BT_ASSERT(msg_it->prev_packet_snapshots.packets !=
@@ -2783,11 +2783,11 @@ bt_message *create_msg_discarded_packets(struct bt_msg_iter *msg_it)
 		BT_ASSERT(msg_it->prev_packet_snapshots.end_clock != UINT64_C(-1));
 		BT_ASSERT(msg_it->snapshots.beginning_clock != UINT64_C(-1));
 		msg = bt_message_discarded_packets_create_with_default_clock_snapshots(
-			msg_it->msg_iter, msg_it->stream,
+			msg_it->self_msg_iter, msg_it->stream,
 			msg_it->prev_packet_snapshots.end_clock,
 			msg_it->snapshots.beginning_clock);
 	} else {
-		msg = bt_message_discarded_packets_create(msg_it->msg_iter,
+		msg = bt_message_discarded_packets_create(msg_it->self_msg_iter,
 			msg_it->stream);
 	}
 
@@ -2912,14 +2912,14 @@ void bt_msg_iter_destroy(struct bt_msg_iter *msg_it)
 
 enum bt_msg_iter_status bt_msg_iter_get_next_message(
 		struct bt_msg_iter *msg_it,
-		bt_self_message_iterator *msg_iter, bt_message **message)
+		bt_self_message_iterator *self_msg_iter, bt_message **message)
 {
 	enum bt_msg_iter_status status = BT_MSG_ITER_STATUS_OK;
 	bt_self_component *self_comp = msg_it->self_comp;
 
 	BT_ASSERT_DBG(msg_it);
 	BT_ASSERT_DBG(message);
-	msg_it->msg_iter = msg_iter;
+	msg_it->self_msg_iter = self_msg_iter;
 	msg_it->set_stream = true;
 	BT_COMP_LOGD("Getting next message: msg-it-addr=%p", msg_it);
 
