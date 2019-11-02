@@ -1905,5 +1905,20 @@ end:
 BT_HIDDEN
 void bt_common_abort(void)
 {
+	static const char * const exec_on_abort_env_name =
+		"BABELTRACE_EXEC_ON_ABORT";
+	const char *env_exec_on_abort;
+
+	env_exec_on_abort = getenv(exec_on_abort_env_name);
+	if (env_exec_on_abort) {
+		if (bt_common_is_setuid_setgid()) {
+			goto do_abort;
+		}
+
+		(void) g_spawn_command_line_sync(env_exec_on_abort,
+                           NULL, NULL, NULL, NULL);
+	}
+
+do_abort:
 	abort();
 }

@@ -1,3 +1,13 @@
+`BABELTRACE_EXEC_ON_ABORT`='CMDLINE'::
+    Execute the command line 'CMDLINE', as parsed like a UNIX~98 shell,
+    when any part of the Babeltrace~2 project unexpectedly aborts.
++
+The application only aborts when the executed command returns, ignoring
+its exit status.
++
+This environment variable is ignored when the application has the
+`setuid` or the `setgid` access right flag set.
+
 `BABELTRACE_TERM_COLOR`=(`AUTO` | `NEVER` | `ALWAYS`)::
     Force the terminal color support for the man:babeltrace2(1) program
     and the project's plugins.
