@@ -94,7 +94,7 @@
 			BT_CTF_ASSERT_PRE_MSG("CTF writer precondition not satisfied; error is:"); \
 			BT_CTF_ASSERT_PRE_MSG((_fmt), ##__VA_ARGS__);	\
 			BT_CTF_ASSERT_PRE_MSG("Aborting...");		\
-			abort();					\
+			bt_common_abort();					\
 		}							\
 	} while (0)
 

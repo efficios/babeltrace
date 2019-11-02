@@ -975,7 +975,7 @@ int validate_target_field_path(struct bt_ctf_field_path *target_field_path,
 		}
 		break;
 	default:
-		abort();
+		bt_common_abort();
 	}
 
 end:
@@ -1012,7 +1012,7 @@ int resolve_sequence_or_variant_type(struct bt_ctf_field_type_common *type,
 			bt_ctf_field_type_common_variant_get_tag_name(type);
 		break;
 	default:
-		abort();
+		bt_common_abort();
 	}
 
 	if (!pathstr) {
@@ -1087,7 +1087,7 @@ int resolve_sequence_or_variant_type(struct bt_ctf_field_type_common *type,
 		}
 		break;
 	default:
-		abort();
+		bt_common_abort();
 	}
 
 end:

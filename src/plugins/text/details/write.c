@@ -102,7 +102,7 @@ void format_uint(char *buf, uint64_t value, unsigned int base)
 
 		break;
 	default:
-		abort();
+		bt_common_abort();
 	}
 
 	sprintf(buf_start, spec, value);
@@ -155,7 +155,7 @@ void format_int(char *buf, int64_t value, unsigned int base)
 
 		break;
 	default:
-		abort();
+		bt_common_abort();
 	}
 
 	sprintf(buf_start, spec, abs_value);
@@ -483,7 +483,7 @@ void write_value(struct details_write_ctx *ctx, const bt_value *value,
 		break;
 	}
 	default:
-		abort();
+		bt_common_abort();
 	}
 
 	g_ptr_array_free(keys, TRUE);
@@ -531,7 +531,7 @@ void write_int_field_class_props(struct details_write_ctx *ctx,
 		write_uint_prop_value(ctx, 16);
 		break;
 	default:
-		abort();
+		bt_common_abort();
 	}
 
 	if (close) {
@@ -788,7 +788,7 @@ void write_field_path(struct details_write_ctx *ctx,
 		write_str_prop_value(ctx, "Event payload");
 		break;
 	default:
-		abort();
+		bt_common_abort();
 	}
 
 	g_string_append(ctx->str, ": ");
@@ -810,7 +810,7 @@ void write_field_path(struct details_write_ctx *ctx,
 			write_str_prop_value(ctx, "<current>");
 			break;
 		default:
-			abort();
+			bt_common_abort();
 		}
 	}
 
@@ -975,7 +975,7 @@ void write_field_class(struct details_write_ctx *ctx, const bt_field_class *fc)
 		type = "Variant (signed integer selector)";
 		break;
 	default:
-		abort();
+		bt_common_abort();
 	}
 
 	g_string_append_printf(ctx->str, "%s%s%s",
@@ -1317,7 +1317,7 @@ void write_event_class(struct details_write_ctx *ctx, const bt_event_class *ec)
 			ll_str = "Debug";
 			break;
 		default:
-			abort();
+			bt_common_abort();
 		}
 
 		write_str_prop_line(ctx, "Log level", ll_str);
@@ -1823,7 +1823,7 @@ void write_field(struct details_write_ctx *ctx, const bt_field *field,
 			fmt_base = 16;
 			break;
 		default:
-			abort();
+			bt_common_abort();
 		}
 
 		if (bt_field_class_type_is(fc_type,
@@ -1918,7 +1918,7 @@ void write_field(struct details_write_ctx *ctx, const bt_field *field,
 			bt_field_variant_borrow_selected_option_field_const(
 				field), NULL);
 	} else {
-		abort();
+		bt_common_abort();
 	}
 }
 
@@ -2136,7 +2136,7 @@ void write_trace(struct details_write_ctx *ctx, const bt_trace *trace)
 				write_str_prop_value(ctx,
 					bt_value_string_get(value));
 			} else {
-				abort();
+				bt_common_abort();
 			}
 
 			write_nl(ctx);
@@ -2575,7 +2575,7 @@ int details_write_message(struct details_comp *details_comp,
 		ret = write_discarded_packets_message(&ctx, msg);
 		break;
 	default:
-		abort();
+		bt_common_abort();
 	}
 
 	/*

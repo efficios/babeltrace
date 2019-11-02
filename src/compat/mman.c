@@ -31,6 +31,7 @@
 #include "logging/log.h"
 
 #include "common/macros.h"
+#include "common/common.h"
 
 #ifdef __APPLE__
 /*
@@ -90,11 +91,11 @@ void mapping_clean(struct mmap_mapping *mapping)
 	if (mapping) {
 		if (!CloseHandle(mapping->map_handle)) {
 			BT_LOGF_STR("Failed to close mmap map_handle.");
-			abort();
+			bt_common_abort();
 		}
 		if (!CloseHandle(mapping->file_handle)) {
 			BT_LOGF_STR("Failed to close mmap file_handle.");
-			abort();
+			bt_common_abort();
 		}
 		free(mapping);
 		mapping = NULL;
@@ -112,7 +113,7 @@ void addr_clean(void *addr)
 		 */
 		BT_LOG_WRITE_CUR_LVL(BT_LOG_FATAL, BT_LOG_FATAL, BT_LOG_TAG,
 			"Failed to unmap mmap mapping.");
-		abort();
+		bt_common_abort();
 	}
 }
 
@@ -121,7 +122,7 @@ void mmap_lock(int log_level)
 {
 	if (pthread_mutex_lock(&mmap_mutex)) {
 		BT_LOG_WRITE_CUR_LVL(BT_LOG_FATAL, log_level, BT_LOG_TAG, "Failed to acquire mmap_mutex.");
-		abort();
+		bt_common_abort();
 	}
 }
 
@@ -130,7 +131,7 @@ void mmap_unlock(int log_level)
 {
 	if (pthread_mutex_unlock(&mmap_mutex)) {
 		BT_LOG_WRITE_CUR_LVL(BT_LOG_FATAL, log_level, BT_LOG_TAG, "Failed to release mmap_mutex.");
-		abort();
+		bt_common_abort();
 	}
 }
 
@@ -292,7 +293,7 @@ int bt_munmap(void *addr, size_t length)
 	/* Remove it. */
 	if (!g_hash_table_remove(mmap_mappings, addr)) {
 		BT_LOGF_STR("Failed to remove mapping from hashtable.");
-		abort();
+		bt_common_abort();
 	}
 
 end:

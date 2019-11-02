@@ -42,6 +42,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <inttypes.h>
+#include "common/common.h"
 #include "common/macros.h"
 
 /*
@@ -95,7 +96,7 @@
 			BT_ASSERT_PRE_MSG("Babeltrace 2 library precondition not satisfied; error is:"); \
 			BT_ASSERT_PRE_MSG(_fmt, ##__VA_ARGS__);	\
 			BT_ASSERT_PRE_MSG("Aborting...");		\
-			abort();					\
+			bt_common_abort();					\
 		}							\
 	} while (0)
 

@@ -272,7 +272,7 @@ struct bt_field *bt_field_create(struct bt_field_class *fc)
 		field = create_variant_field(fc);
 		break;
 	default:
-		abort();
+		bt_common_abort();
 	}
 
 	if (!field) {
@@ -1365,7 +1365,7 @@ void bt_field_destroy(struct bt_field *field)
 		destroy_variant_field(field);
 		break;
 	default:
-		abort();
+		bt_common_abort();
 	}
 }
 

@@ -46,7 +46,7 @@ int ctf_trace_class_configure_ir_trace(struct ctf_trace_class *tc,
 				env_entry->value.str->str);
 			break;
 		default:
-			abort();
+			bt_common_abort();
 		}
 
 		if (ret) {

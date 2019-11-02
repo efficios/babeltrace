@@ -1256,7 +1256,7 @@ size_t bt_common_get_page_size(int log_level)
 	if (page_size < 0) {
 		BT_LOGF("Cannot get system's page size: ret=%d",
 			page_size);
-		abort();
+		bt_common_abort();
 	}
 
 	return page_size;
@@ -1417,7 +1417,7 @@ static inline void handle_conversion_specifier_std(char *buf, char **buf_ch,
 			BUF_STD_APPEND_SINGLE_ARG(int);
 			break;
 		default:
-			abort();
+			bt_common_abort();
 		}
 		break;
 	}
@@ -1432,7 +1432,7 @@ static inline void handle_conversion_specifier_std(char *buf, char **buf_ch,
 			BUF_STD_APPEND_SINGLE_ARG(wchar_t *);
 			break;
 		default:
-			abort();
+			bt_common_abort();
 		}
 		break;
 	case 'd':
@@ -1455,7 +1455,7 @@ static inline void handle_conversion_specifier_std(char *buf, char **buf_ch,
 			BUF_STD_APPEND_SINGLE_ARG(size_t);
 			break;
 		default:
-			abort();
+			bt_common_abort();
 		}
 		break;
 	case 'o':
@@ -1480,7 +1480,7 @@ static inline void handle_conversion_specifier_std(char *buf, char **buf_ch,
 			BUF_STD_APPEND_SINGLE_ARG(size_t);
 			break;
 		default:
-			abort();
+			bt_common_abort();
 		}
 		break;
 	case 'f':
@@ -1499,7 +1499,7 @@ static inline void handle_conversion_specifier_std(char *buf, char **buf_ch,
 			BUF_STD_APPEND_SINGLE_ARG(long double);
 			break;
 		default:
-			abort();
+			bt_common_abort();
 		}
 		break;
 	case 'p':
@@ -1508,11 +1508,11 @@ static inline void handle_conversion_specifier_std(char *buf, char **buf_ch,
 		if (length_mod == LENGTH_MOD_NONE) {
 			BUF_STD_APPEND_SINGLE_ARG(void *);
 		} else {
-			abort();
+			bt_common_abort();
 		}
 		break;
 	default:
-		abort();
+		bt_common_abort();
 	}
 
 update_rw_fmt:
@@ -1900,4 +1900,10 @@ end:
 
 	g_free(buf);
 	return ret;
+}
+
+BT_HIDDEN
+void bt_common_abort(void)
+{
+	abort();
 }

@@ -384,7 +384,7 @@ bt_component_class_initialize_method_status details_init(
 		status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_MEMORY_ERROR;
 		break;
 	default:
-		abort();
+		bt_common_abort();
 	}
 
 	details_comp = create_details_comp(comp);
@@ -518,7 +518,7 @@ details_consume(bt_self_component_sink *comp)
 		ret = BT_COMPONENT_CLASS_SINK_CONSUME_METHOD_STATUS_MEMORY_ERROR;
 		goto end;
 	default:
-		abort();
+		bt_common_abort();
 	}
 
 end:

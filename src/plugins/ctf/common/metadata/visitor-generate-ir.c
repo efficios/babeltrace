@@ -3495,7 +3495,7 @@ int auto_map_fields_to_trace_clock_class(struct ctx *ctx,
 			named_fc = ctf_field_class_variant_borrow_option_by_index(
 				var_fc, i);
 		} else {
-			abort();
+			bt_common_abort();
 		}
 
 		if (strcmp(named_fc->name->str, field_name) == 0) {

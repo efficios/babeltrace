@@ -427,7 +427,7 @@ bt_field_class *ctf_field_class_to_ir(struct ctx *ctx,
 		ir_fc = ctf_field_class_variant_to_ir(ctx, (void *) fc);
 		break;
 	default:
-		abort();
+		bt_common_abort();
 	}
 
 	fc->ir_fc = ir_fc;
@@ -485,7 +485,7 @@ bt_field_class *scope_ctf_field_class_to_ir(struct ctx *ctx)
 		fc = ctx->ec->payload_fc;
 		break;
 	default:
-		abort();
+		bt_common_abort();
 	}
 
 	if (fc && ctf_field_class_struct_has_immediate_member_in_ir(

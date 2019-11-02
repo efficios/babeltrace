@@ -449,7 +449,7 @@ int write_field(struct fs_sink_stream *stream,
 		ret = write_variant_field(stream, (void *) fc, field);
 		break;
 	default:
-		abort();
+		bt_common_abort();
 	}
 
 	return ret;

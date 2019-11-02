@@ -94,7 +94,7 @@ const bt_field_class *walk_field_path(struct trace_ir_metadata_maps *md_maps,
 				curr_fc);
 			break;
 		} else {
-			abort();
+			bt_common_abort();
 		}
 	}
 
@@ -132,7 +132,7 @@ const bt_field_class *resolve_field_path_to_field_class(const bt_field_path *fp,
 			fc_resolving_ctx->event_payload);
 		break;
 	default:
-		abort();
+		bt_common_abort();
 	}
 
 	return fc;
@@ -962,7 +962,7 @@ enum debug_info_trace_ir_mapping_status copy_field_class_content_internal(
 		status = field_class_variant_copy(md_maps,
 			in_field_class, out_field_class);
 	} else {
-		abort();
+		bt_common_abort();
 	}
 
 	return status;

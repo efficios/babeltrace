@@ -740,7 +740,7 @@ int bt_ctf_field_type_enumeration_mapping_iterator_next(
 		default:
 			BT_LOGF("Invalid enumeration field type mapping iterator type: "
 				"type=%d", iter->type);
-			abort();
+			bt_common_abort();
 		}
 	}
 
@@ -3941,7 +3941,7 @@ int bt_ctf_field_type_common_validate_single_clock_class(
 			break;
 		default:
 			BT_LOGF("Unexpected field type ID: id=%d", ft->id);
-			abort();
+			bt_common_abort();
 		}
 
 		BT_ASSERT_DBG(sub_ft);

@@ -293,7 +293,7 @@ int64_t get_compound_field_class_length(struct bt_bfcr *bfcr,
 			bfcr->user.data);
 		break;
 	default:
-		abort();
+		bt_common_abort();
 	}
 
 	return length;
@@ -476,7 +476,7 @@ void read_unsigned_bitfield(struct bt_bfcr *bfcr, const uint8_t *buf, size_t at,
 		bt_bitfield_read_le(buf, uint8_t, at, field_size, v);
 		break;
 	default:
-		abort();
+		bt_common_abort();
 	}
 
 	BT_COMP_LOGT("Read unsigned bit array: cur=%zu, size=%u, "
@@ -495,7 +495,7 @@ void read_signed_bitfield(struct bt_bfcr *bfcr, const uint8_t *buf, size_t at,
 		bt_bitfield_read_le(buf, uint8_t, at, field_size, v);
 		break;
 	default:
-		abort();
+		bt_common_abort();
 	}
 
 	BT_COMP_LOGT("Read signed bit array: cur=%zu, size=%u, "
@@ -594,7 +594,7 @@ enum bt_bfcr_status read_basic_float_and_call_cb(struct bt_bfcr *bfcr,
 	}
 	default:
 		/* Only 32-bit and 64-bit fields are supported currently */
-		abort();
+		bt_common_abort();
 	}
 
 	BT_COMP_LOGT("Read floating point number value: bfcr=%p, cur=%zu, val=%f",
@@ -948,7 +948,7 @@ enum bt_bfcr_status read_basic_begin_state(struct bt_bfcr *bfcr)
 		status = read_basic_string_class_and_call(bfcr, true);
 		break;
 	default:
-		abort();
+		bt_common_abort();
 	}
 
 	return status;
@@ -973,7 +973,7 @@ enum bt_bfcr_status read_basic_continue_state(struct bt_bfcr *bfcr)
 		status = read_basic_string_class_and_call(bfcr, false);
 		break;
 	default:
-		abort();
+		bt_common_abort();
 	}
 
 	return status;

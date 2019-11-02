@@ -111,7 +111,7 @@ static __thread char lib_logging_buf[LIB_LOGGING_BUF_SIZE];
 				prefix, (_prefix2));			\
 									\
 		if (snprintf_ret < 0 || snprintf_ret >= TMP_PREFIX_LEN - 1) { \
-			abort();					\
+			bt_common_abort();					\
 		}							\
 									\
 		tmp_prefix[TMP_PREFIX_LEN - 1] = '\0';			\
@@ -490,7 +490,7 @@ static inline void format_field_path(char **buf_ch, bool extended,
 			BUF_APPEND("%s", ", <CUR>");
 			break;
 		default:
-			abort();
+			bt_common_abort();
 		}
 	}
 
@@ -1481,7 +1481,7 @@ static inline void handle_conversion_specifier_bt(void *priv_data,
 		format_error_cause(buf_ch, extended, prefix, obj);
 		break;
 	default:
-		abort();
+		bt_common_abort();
 	}
 
 update_fmt:

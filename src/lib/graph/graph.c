@@ -1100,7 +1100,7 @@ enum bt_graph_listener_func_status bt_graph_notify_port_added(
 			listeners = graph->listeners.source_output_port_added;
 			break;
 		default:
-			abort();
+			bt_common_abort();
 		}
 
 		break;
@@ -1115,7 +1115,7 @@ enum bt_graph_listener_func_status bt_graph_notify_port_added(
 			listeners = graph->listeners.filter_output_port_added;
 			break;
 		default:
-			abort();
+			bt_common_abort();
 		}
 
 		break;
@@ -1127,13 +1127,13 @@ enum bt_graph_listener_func_status bt_graph_notify_port_added(
 			listeners = graph->listeners.sink_input_port_added;
 			break;
 		default:
-			abort();
+			bt_common_abort();
 		}
 
 		break;
 	}
 	default:
-		abort();
+		bt_common_abort();
 	}
 
 	for (i = 0; i < listeners->len; i++) {
@@ -1188,7 +1188,7 @@ enum bt_graph_listener_func_status bt_graph_notify_ports_connected(
 				graph->listeners.source_sink_ports_connected;
 			break;
 		default:
-			abort();
+			bt_common_abort();
 		}
 
 		break;
@@ -1205,13 +1205,13 @@ enum bt_graph_listener_func_status bt_graph_notify_ports_connected(
 				graph->listeners.filter_sink_ports_connected;
 			break;
 		default:
-			abort();
+			bt_common_abort();
 		}
 
 		break;
 	}
 	default:
-		abort();
+		bt_common_abort();
 	}
 
 	for (i = 0; i < listeners->len; i++) {

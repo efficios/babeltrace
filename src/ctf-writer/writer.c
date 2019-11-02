@@ -447,7 +447,7 @@ const char *bt_ctf_get_byte_order_string(enum bt_ctf_byte_order byte_order)
 		string = "native";
 		break;
 	default:
-		abort();
+		bt_common_abort();
 	}
 
 	return string;

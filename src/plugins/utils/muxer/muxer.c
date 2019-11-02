@@ -714,7 +714,7 @@ int validate_clock_class(struct muxer_msg_iter *muxer_msg_iter,
 		BT_COMP_LOGF("Unexpected clock class expectation: "
 			"expectation-code=%d",
 			muxer_msg_iter->clock_class_expectation);
-		abort();
+		bt_common_abort();
 	}
 
 	goto end;

@@ -193,7 +193,7 @@ const bt_component_class *find_component_class(const char *plugin_name,
 		comp_cls = bt_component_class_sink_as_component_class_const(find_sink_component_class(plugin_name, comp_class_name));
 		break;
 	default:
-		abort();
+		bt_common_abort();
 	}
 
 	return comp_cls;
@@ -456,7 +456,7 @@ void print_value_rec(FILE *fp, const bt_value *value, size_t indent)
 		break;
 	}
 	default:
-		abort();
+		bt_common_abort();
 	}
 
 	goto end;
@@ -614,7 +614,7 @@ void print_cfg(struct bt_config *cfg)
 		print_cfg_print_lttng_live_sessions(cfg);
 		break;
 	default:
-		abort();
+		bt_common_abort();
 	}
 }
 
@@ -2275,7 +2275,7 @@ int cmd_run_ctx_create_components_from_config_components(
 				cfg_comp->comp_cls_name->str);
 			break;
 		default:
-			abort();
+			bt_common_abort();
 		}
 
 		if (!comp_cls) {
@@ -2310,7 +2310,7 @@ int cmd_run_ctx_create_components_from_config_components(
 				(void *) &comp);
 			break;
 		default:
-			abort();
+			bt_common_abort();
 		}
 
 		if (ret) {
@@ -2353,7 +2353,7 @@ int cmd_run_ctx_create_components_from_config_components(
 				GUINT_TO_POINTER(quark), (void *) comp);
 			break;
 		default:
-			abort();
+			bt_common_abort();
 		}
 
 		comp = NULL;
@@ -2697,7 +2697,7 @@ void print_error_causes(void)
 				bt_error_cause_message_iterator_actor_get_component_class_type(cause));
 			break;
 		default:
-			abort();
+			bt_common_abort();
 		}
 
 		/* Print file name and line number */
@@ -2810,7 +2810,7 @@ int main(int argc, const char **argv)
 		break;
 	default:
 		BT_LOGF("Invalid/unknown command: cmd=%d", cfg->command);
-		abort();
+		bt_common_abort();
 	}
 
 	BT_LOGI("Command completed: cmd=%d, command-name=\"%s\", ret=%d",

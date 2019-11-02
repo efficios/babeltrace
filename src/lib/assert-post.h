@@ -43,6 +43,7 @@
 #include <stdlib.h>
 #include <inttypes.h>
 #include "common/macros.h"
+#include "common/common.h"
 
 /*
  * Prints the details of an unsatisfied postcondition without
@@ -96,7 +97,7 @@
 			BT_ASSERT_POST_MSG("Babeltrace 2 library postcondition not satisfied; error is:"); \
 			BT_ASSERT_POST_MSG(_fmt, ##__VA_ARGS__);	\
 			BT_ASSERT_POST_MSG("Aborting...");		\
-			abort();					\
+			bt_common_abort();					\
 		}							\
 	} while (0)
 

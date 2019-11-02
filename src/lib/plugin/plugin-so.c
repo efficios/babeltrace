@@ -507,7 +507,7 @@ int bt_plugin_so_init(struct bt_plugin *plugin,
 						cur_cc_descr_attr->value.sink_get_supported_mip_versions_method;
 					break;
 				default:
-					abort();
+					bt_common_abort();
 				}
 				break;
 			case BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_INITIALIZE_METHOD:
@@ -525,7 +525,7 @@ int bt_plugin_so_init(struct bt_plugin *plugin,
 						cur_cc_descr_attr->value.sink_initialize_method;
 					break;
 				default:
-					abort();
+					bt_common_abort();
 				}
 				break;
 			case BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_FINALIZE_METHOD:
@@ -543,7 +543,7 @@ int bt_plugin_so_init(struct bt_plugin *plugin,
 						cur_cc_descr_attr->value.sink_finalize_method;
 					break;
 				default:
-					abort();
+					bt_common_abort();
 				}
 				break;
 			case BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_QUERY_METHOD:
@@ -561,7 +561,7 @@ int bt_plugin_so_init(struct bt_plugin *plugin,
 						cur_cc_descr_attr->value.sink_query_method;
 					break;
 				default:
-					abort();
+					bt_common_abort();
 				}
 				break;
 			case BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_INPUT_PORT_CONNECTED_METHOD:
@@ -575,7 +575,7 @@ int bt_plugin_so_init(struct bt_plugin *plugin,
 						cur_cc_descr_attr->value.sink_input_port_connected_method;
 					break;
 				default:
-					abort();
+					bt_common_abort();
 				}
 				break;
 			case BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_OUTPUT_PORT_CONNECTED_METHOD:
@@ -589,7 +589,7 @@ int bt_plugin_so_init(struct bt_plugin *plugin,
 						cur_cc_descr_attr->value.filter_output_port_connected_method;
 					break;
 				default:
-					abort();
+					bt_common_abort();
 				}
 				break;
 			case BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_GRAPH_IS_CONFIGURED_METHOD:
@@ -599,7 +599,7 @@ int bt_plugin_so_init(struct bt_plugin *plugin,
 						cur_cc_descr_attr->value.sink_graph_is_configured_method;
 					break;
 				default:
-					abort();
+					bt_common_abort();
 				}
 				break;
 			case BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_MSG_ITER_INITIALIZE_METHOD:
@@ -613,7 +613,7 @@ int bt_plugin_so_init(struct bt_plugin *plugin,
 						cur_cc_descr_attr->value.filter_msg_iter_initialize_method;
 					break;
 				default:
-					abort();
+					bt_common_abort();
 				}
 				break;
 			case BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_MSG_ITER_FINALIZE_METHOD:
@@ -627,7 +627,7 @@ int bt_plugin_so_init(struct bt_plugin *plugin,
 						cur_cc_descr_attr->value.filter_msg_iter_finalize_method;
 					break;
 				default:
-					abort();
+					bt_common_abort();
 				}
 				break;
 			case BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_MSG_ITER_SEEK_NS_FROM_ORIGIN_METHOD:
@@ -641,7 +641,7 @@ int bt_plugin_so_init(struct bt_plugin *plugin,
 						cur_cc_descr_attr->value.filter_msg_iter_seek_ns_from_origin_method;
 					break;
 				default:
-					abort();
+					bt_common_abort();
 				}
 				break;
 			case BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_MSG_ITER_SEEK_BEGINNING_METHOD:
@@ -655,7 +655,7 @@ int bt_plugin_so_init(struct bt_plugin *plugin,
 						cur_cc_descr_attr->value.filter_msg_iter_seek_beginning_method;
 					break;
 				default:
-					abort();
+					bt_common_abort();
 				}
 				break;
 			case BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_MSG_ITER_CAN_SEEK_NS_FROM_ORIGIN_METHOD:
@@ -669,7 +669,7 @@ int bt_plugin_so_init(struct bt_plugin *plugin,
 						cur_cc_descr_attr->value.filter_msg_iter_can_seek_ns_from_origin_method;
 					break;
 				default:
-					abort();
+					bt_common_abort();
 				}
 				break;
 			case BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_MSG_ITER_CAN_SEEK_BEGINNING_METHOD:
@@ -683,7 +683,7 @@ int bt_plugin_so_init(struct bt_plugin *plugin,
 						cur_cc_descr_attr->value.filter_msg_iter_can_seek_beginning_method;
 					break;
 				default:
-					abort();
+					bt_common_abort();
 				}
 				break;
 			default:
@@ -1203,7 +1203,7 @@ int bt_plugin_so_init(struct bt_plugin *plugin,
 
 			break;
 		default:
-			abort();
+			bt_common_abort();
 		}
 
 		/*

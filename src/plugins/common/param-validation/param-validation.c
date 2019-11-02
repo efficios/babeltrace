@@ -96,7 +96,7 @@ void append_scope_to_string(GString *str,
 		g_string_append_printf(str, "[%" PRIu64 "]", elem->array_index);
 		break;
 	default:
-		abort();
+		bt_common_abort();
 	}
 }
 

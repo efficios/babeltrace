@@ -230,7 +230,7 @@ struct bt_field_class *borrow_root_field_class(
 	case BT_FIELD_PATH_SCOPE_EVENT_PAYLOAD:
 		return ctx->event_payload;
 	default:
-		abort();
+		bt_common_abort();
 	}
 
 	return NULL;

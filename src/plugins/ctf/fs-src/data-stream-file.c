@@ -770,7 +770,7 @@ bt_component_class_message_iterator_next_method_status ctf_fs_ds_file_next(
 		 * medium-specific; there is nothing for the user to do
 		 * and it should have been handled upstream.
 		 */
-		abort();
+		bt_common_abort();
 	case BT_MSG_ITER_STATUS_INVAL:
 	case BT_MSG_ITER_STATUS_ERROR:
 	default:

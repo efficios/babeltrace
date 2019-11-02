@@ -191,7 +191,7 @@ void bt_self_component_port_input_message_iterator_try_finalize(
 		/* Finalizing */
 		BT_LIB_LOGF("Message iterator is already being finalized: "
 			"%!+i", iterator);
-		abort();
+		bt_common_abort();
 	default:
 		break;
 	}
@@ -222,7 +222,7 @@ void bt_self_component_port_input_message_iterator_try_finalize(
 	}
 	default:
 		/* Unreachable */
-		abort();
+		bt_common_abort();
 	}
 
 	if (method) {
@@ -428,7 +428,7 @@ int create_self_component_input_port_message_iterator(
 		break;
 	}
 	default:
-		abort();
+		bt_common_abort();
 	}
 
 	if (iterator->methods.seek_ns_from_origin &&
@@ -466,7 +466,7 @@ int create_self_component_input_port_message_iterator(
 	}
 	default:
 		/* Unreachable */
-		abort();
+		bt_common_abort();
 	}
 
 	if (init_method) {
@@ -936,7 +936,7 @@ bt_self_component_port_input_message_iterator_next(
 		goto end;
 	default:
 		/* Unknown non-error status */
-		abort();
+		bt_common_abort();
 	}
 
 end:
@@ -1101,7 +1101,7 @@ void set_iterator_state_after_seeking(
 		new_state = BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_STATE_ENDED;
 		break;
 	default:
-		abort();
+		bt_common_abort();
 	}
 
 	set_self_comp_port_input_msg_iterator_state(iterator, new_state);
@@ -1385,7 +1385,7 @@ int auto_seek_handle_message(
 		break;
 	}
 	default:
-		abort();
+		bt_common_abort();
 	}
 
 	BT_ASSERT_DBG(clk_snapshot);
@@ -1589,7 +1589,7 @@ int find_message_ge_ns_from_origin(
 		case BT_FUNC_STATUS_END:
 			goto end;
 		default:
-			abort();
+			bt_common_abort();
 		}
 
 		for (i = 0; i < user_count; i++) {
@@ -1799,7 +1799,7 @@ bt_self_component_port_input_message_iterator_seek_ns_from_origin(
 		case BT_FUNC_STATUS_AGAIN:
 			goto end;
 		default:
-			abort();
+			bt_common_abort();
 		}
 
 		/*
@@ -1943,7 +1943,7 @@ bt_self_component_port_input_message_iterator_seek_ns_from_origin(
 		case BT_FUNC_STATUS_AGAIN:
 			goto end;
 		default:
-			abort();
+			bt_common_abort();
 		}
 	}
 

@@ -209,7 +209,7 @@ enum bt_query_executor_query_status bt_query_executor_query(
 		break;
 	}
 	default:
-		abort();
+		bt_common_abort();
 	}
 
 	if (!method) {

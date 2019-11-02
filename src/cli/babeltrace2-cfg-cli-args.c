@@ -452,7 +452,7 @@ void bt_config_destroy(bt_object *obj)
 		}
 		break;
 	default:
-		abort();
+		bt_common_abort();
 	}
 
 	g_free(cfg);
@@ -886,7 +886,7 @@ void add_run_cfg_comp(struct bt_config *cfg,
 		g_ptr_array_add(cfg->cmd_data.run.sinks, cfg_comp);
 		break;
 	default:
-		abort();
+		bt_common_abort();
 	}
 }
 
@@ -1900,7 +1900,7 @@ struct bt_config *bt_config_run_from_args(int argc, const char *argv[],
 				dest = BT_CONFIG_COMPONENT_DEST_SINK;
 				break;
 			default:
-				abort();
+				bt_common_abort();
 			}
 
 			BT_ASSERT(cur_base_params);
@@ -2612,7 +2612,7 @@ int bt_value_to_cli_param_value_append(const bt_value *value, GString *buf)
 		break;
 	}
 	default:
-		abort();
+		bt_common_abort();
 	}
 
 	ret = 0;
@@ -3424,7 +3424,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 					sink_names = g_list_append(sink_names, name_gstr);
 					break;
 				default:
-					abort();
+					bt_common_abort();
 				}
 				name_gstr = NULL;
 
@@ -3584,7 +3584,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 				goto error;
 			}
 		} else {
-			abort();
+			bt_common_abort();
 		}
 	}
 
@@ -4713,7 +4713,7 @@ struct bt_config *bt_config_cli_args_create(int argc, const char *argv[],
 			default_log_level);
 		break;
 	default:
-		abort();
+		bt_common_abort();
 	}
 
 	if (config) {

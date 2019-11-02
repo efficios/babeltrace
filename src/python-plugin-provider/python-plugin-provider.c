@@ -143,7 +143,7 @@ int init_python(void)
 		ret = BT_FUNC_STATUS_ERROR;
 		goto end;
 	default:
-		abort();
+		bt_common_abort();
 	}
 
 	/*

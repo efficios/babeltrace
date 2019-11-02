@@ -25,6 +25,8 @@
  * SOFTWARE.
  */
 
+#include "common/common.h"
+
 #ifdef BABELTRACE_HAVE_POSIX_FALLOCATE
 
 #include <fcntl.h>
@@ -122,7 +124,7 @@ restore:
 	/* Restore the original file pointer position */
 	if (!SetFilePointerEx(handle, file_pos, NULL, FILE_BEGIN)) {
 		/* We moved the file pointer but failed to restore it. */
-		abort();
+		bt_common_abort();
 	}
 
 end:

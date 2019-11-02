@@ -124,7 +124,7 @@ bt_query_executor_query_status cli_query(const bt_component_class *comp_cls,
 		default:
 			BT_LOGF("Unknown query status: status=%s",
 				bt_common_func_status_string(status));
-			abort();
+			bt_common_abort();
 		}
 	}
 
