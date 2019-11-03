@@ -54,10 +54,10 @@ struct ctf_fs_ds_file {
 	bt_self_component *self_comp;
 
 	/* Weak */
-	struct ctf_fs_metadata *metadata;
+	bt_self_message_iterator *self_msg_iter;
 
 	/* Weak */
-	bt_self_message_iterator *pc_msg_iter;
+	struct ctf_fs_metadata *metadata;
 
 	/* Owned by this */
 	struct ctf_fs_file *file;

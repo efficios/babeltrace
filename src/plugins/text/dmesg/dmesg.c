@@ -49,7 +49,10 @@ struct dmesg_component;
 
 struct dmesg_msg_iter {
 	struct dmesg_component *dmesg_comp;
-	bt_self_message_iterator *pc_msg_iter; /* Weak */
+
+	/* Weak */
+	bt_self_message_iterator *self_msg_iter;
+
 	char *linebuf;
 	size_t linebuf_len;
 	FILE *fp;
@@ -533,11 +536,11 @@ skip_ts:
 
 	if (dmesg_comp->clock_class) {
 		msg = bt_message_event_create_with_default_clock_snapshot(
-			msg_iter->pc_msg_iter,
+			msg_iter->self_msg_iter,
 			dmesg_comp->event_class, dmesg_comp->stream, ts);
 		msg_iter->last_clock_value = ts;
 	} else {
-		msg = bt_message_event_create(msg_iter->pc_msg_iter,
+		msg = bt_message_event_create(msg_iter->self_msg_iter,
 			dmesg_comp->event_class, dmesg_comp->stream);
 	}
 
@@ -678,7 +681,7 @@ bt_component_class_message_iterator_initialize_method_status dmesg_msg_iter_init
 
 	BT_ASSERT(dmesg_comp);
 	dmesg_msg_iter->dmesg_comp = dmesg_comp;
-	dmesg_msg_iter->pc_msg_iter = self_msg_iter;
+	dmesg_msg_iter->self_msg_iter = self_msg_iter;
 
 	if (dmesg_comp->params.read_from_stdin) {
 		dmesg_msg_iter->fp = stdin;
@@ -796,7 +799,7 @@ handle_state:
 	case STATE_EMIT_STREAM_BEGINNING:
 		BT_ASSERT_DBG(dmesg_msg_iter->tmp_event_msg);
 		*msg = bt_message_stream_beginning_create(
-			dmesg_msg_iter->pc_msg_iter, dmesg_comp->stream);
+			dmesg_msg_iter->self_msg_iter, dmesg_comp->stream);
 		dmesg_msg_iter->state = STATE_EMIT_EVENT;
 		break;
 	case STATE_EMIT_EVENT:
@@ -806,7 +809,7 @@ handle_state:
 		break;
 	case STATE_EMIT_STREAM_END:
 		*msg = bt_message_stream_end_create(
-			dmesg_msg_iter->pc_msg_iter, dmesg_comp->stream);
+			dmesg_msg_iter->self_msg_iter, dmesg_comp->stream);
 		dmesg_msg_iter->state = STATE_DONE;
 		break;
 	default:
