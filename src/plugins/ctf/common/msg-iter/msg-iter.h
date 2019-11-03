@@ -252,10 +252,14 @@ struct ctf_msg_iter;
  *				success, or \c NULL on error
  */
 BT_HIDDEN
-struct ctf_msg_iter *ctf_msg_iter_create(struct ctf_trace_class *tc,
-	size_t max_request_sz, struct ctf_msg_iter_medium_ops medops,
-	void *medops_data, bt_logging_level log_level,
-	bt_self_component *self_comp);
+struct ctf_msg_iter *ctf_msg_iter_create(
+		struct ctf_trace_class *tc,
+		size_t max_request_sz,
+		struct ctf_msg_iter_medium_ops medops,
+		void *medops_data,
+		bt_logging_level log_level,
+		bt_self_component *self_comp,
+		bt_self_message_iterator *self_msg_iter);
 
 /**
  * Destroys a CTF message iterator, freeing all internal resources.
@@ -287,7 +291,6 @@ void ctf_msg_iter_destroy(struct ctf_msg_iter *msg_iter);
 BT_HIDDEN
 enum ctf_msg_iter_status ctf_msg_iter_get_next_message(
 		struct ctf_msg_iter *msg_it,
-		bt_self_message_iterator *msg_iter,
 		bt_message **message);
 
 struct ctf_msg_iter_packet_properties {

@@ -293,11 +293,13 @@ enum lttng_live_attach_session_status {
 };
 
 enum lttng_live_attach_session_status lttng_live_attach_session(
-		struct lttng_live_session *session);
+		struct lttng_live_session *session,
+		bt_self_message_iterator *self_msg_iter);
 
 int lttng_live_detach_session(struct lttng_live_session *session);
 enum lttng_live_iterator_status lttng_live_get_new_streams(
-		struct lttng_live_session *session);
+		struct lttng_live_session *session,
+		bt_self_message_iterator *self_msg_iter);
 
 int lttng_live_add_session(struct lttng_live_msg_iter *lttng_live_msg_iter,
 		uint64_t session_id,

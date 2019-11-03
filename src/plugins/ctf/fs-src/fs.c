@@ -281,7 +281,7 @@ bt_component_class_message_iterator_initialize_method_status ctf_fs_iterator_ini
 		port_data->ds_file_group->ctf_fs_trace->metadata->tc,
 		bt_common_get_page_size(msg_iter_data->log_level) * 8,
 		ctf_fs_ds_file_medops, NULL, msg_iter_data->log_level,
-		self_comp);
+		self_comp, self_msg_iter);
 	if (!msg_iter_data->msg_iter) {
 		BT_COMP_LOGE_APPEND_CAUSE(self_comp, "Cannot create a CTF message iterator.");
 		ret = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_INITIALIZE_METHOD_STATUS_MEMORY_ERROR;
@@ -738,7 +738,7 @@ int add_ds_file_to_ds_file_group(struct ctf_fs_trace *ctf_fs_trace,
 
 	msg_iter = ctf_msg_iter_create(ctf_fs_trace->metadata->tc,
 		bt_common_get_page_size(log_level) * 8,
-		ctf_fs_ds_file_medops, NULL, log_level, self_comp);
+		ctf_fs_ds_file_medops, NULL, log_level, self_comp, NULL);
 	if (!msg_iter) {
 		BT_COMP_LOGE_STR("Cannot create a CTF message iterator.");
 		goto error;
@@ -1442,7 +1442,7 @@ int decode_clock_snapshot_after_event(struct ctf_fs_trace *ctf_fs_trace,
 
 	msg_iter = ctf_msg_iter_create(ctf_fs_trace->metadata->tc,
 		bt_common_get_page_size(log_level) * 8, ctf_fs_ds_file_medops,
-		NULL, log_level, self_comp);
+		NULL, log_level, self_comp, NULL);
 	if (!msg_iter) {
 		/* ctf_msg_iter_create() logs errors. */
 		ret = -1;
