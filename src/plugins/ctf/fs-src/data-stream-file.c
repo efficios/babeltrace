@@ -648,7 +648,7 @@ struct ctf_fs_ds_file *ctf_fs_ds_file_create(
 
 	ds_file->log_level = log_level;
 	ds_file->self_comp = ctf_fs_trace->self_comp;
-	ds_file->pc_msg_iter = pc_msg_iter;
+	ds_file->self_msg_iter = pc_msg_iter;
 	ds_file->file = ctf_fs_file_create(log_level, ds_file->self_comp);
 	if (!ds_file->file) {
 		goto error;
@@ -755,7 +755,7 @@ bt_component_class_message_iterator_next_method_status ctf_fs_ds_file_next(
 	bt_component_class_message_iterator_next_method_status status;
 
 	msg_iter_status = bt_msg_iter_get_next_message(
-		ds_file->msg_iter, ds_file->pc_msg_iter, msg);
+		ds_file->msg_iter, ds_file->self_msg_iter, msg);
 
 	switch (msg_iter_status) {
 	case BT_MSG_ITER_STATUS_EOF:

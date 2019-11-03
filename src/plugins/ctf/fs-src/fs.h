@@ -181,7 +181,7 @@ struct ctf_fs_msg_iter_data {
 	bt_self_component *self_comp;
 
 	/* Weak */
-	bt_self_message_iterator *pc_msg_iter;
+	bt_self_message_iterator *self_msg_iter;
 
 	/* Weak, belongs to ctf_fs_trace */
 	struct ctf_fs_ds_file_group *ds_file_group;

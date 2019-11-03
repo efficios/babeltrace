@@ -69,7 +69,7 @@ int msg_iter_data_set_current_ds_file(struct ctf_fs_msg_iter_data *msg_iter_data
 	ctf_fs_ds_file_destroy(msg_iter_data->ds_file);
 	msg_iter_data->ds_file = ctf_fs_ds_file_create(
 		msg_iter_data->ds_file_group->ctf_fs_trace,
-		msg_iter_data->pc_msg_iter,
+		msg_iter_data->self_msg_iter,
 		msg_iter_data->msg_iter,
 		msg_iter_data->ds_file_group->stream,
 		ds_file_info->path->str,
@@ -276,7 +276,7 @@ bt_component_class_message_iterator_initialize_method_status ctf_fs_iterator_ini
 
 	msg_iter_data->log_level = log_level;
 	msg_iter_data->self_comp = self_comp;
-	msg_iter_data->pc_msg_iter = self_msg_iter;
+	msg_iter_data->self_msg_iter = self_msg_iter;
 	msg_iter_data->msg_iter = bt_msg_iter_create(
 		port_data->ds_file_group->ctf_fs_trace->metadata->tc,
 		bt_common_get_page_size(msg_iter_data->log_level) * 8,
