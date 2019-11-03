@@ -2808,10 +2808,13 @@ end:
 }
 
 BT_HIDDEN
-struct ctf_msg_iter *ctf_msg_iter_create(struct ctf_trace_class *tc,
+struct ctf_msg_iter *ctf_msg_iter_create(
+		struct ctf_trace_class *tc,
 		size_t max_request_sz,
 		struct ctf_msg_iter_medium_ops medops, void *data,
-		bt_logging_level log_level, bt_self_component *self_comp)
+		bt_logging_level log_level,
+		bt_self_component *self_comp,
+		bt_self_message_iterator *self_msg_iter)
 {
 	struct ctf_msg_iter *msg_it = NULL;
 	struct bt_bfcr_cbs cbs = {
@@ -2846,6 +2849,7 @@ struct ctf_msg_iter *ctf_msg_iter_create(struct ctf_trace_class *tc,
 		goto end;
 	}
 	msg_it->self_comp = self_comp;
+	msg_it->self_msg_iter = self_msg_iter;
 	msg_it->log_level = log_level;
 	msg_it->meta.tc = tc;
 	msg_it->medium.medops = medops;
@@ -2912,14 +2916,13 @@ void ctf_msg_iter_destroy(struct ctf_msg_iter *msg_it)
 
 enum ctf_msg_iter_status ctf_msg_iter_get_next_message(
 		struct ctf_msg_iter *msg_it,
-		bt_self_message_iterator *self_msg_iter, bt_message **message)
+		bt_message **message)
 {
 	enum ctf_msg_iter_status status = CTF_MSG_ITER_STATUS_OK;
 	bt_self_component *self_comp = msg_it->self_comp;
 
 	BT_ASSERT_DBG(msg_it);
 	BT_ASSERT_DBG(message);
-	msg_it->self_msg_iter = self_msg_iter;
 	msg_it->set_stream = true;
 	BT_COMP_LOGD("Getting next message: msg-it-addr=%p", msg_it);
 

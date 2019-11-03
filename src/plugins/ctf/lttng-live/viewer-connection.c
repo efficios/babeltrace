@@ -812,7 +812,8 @@ error:
 
 static
 int receive_streams(struct lttng_live_session *session,
-		uint32_t stream_count)
+		uint32_t stream_count,
+		bt_self_message_iterator *self_msg_iter)
 {
 	ssize_t ret_len;
 	uint32_t i;
@@ -862,7 +863,7 @@ int receive_streams(struct lttng_live_session *session,
 			BT_COMP_LOGI("    stream %" PRIu64 " : %s/%s",
 				stream_id, stream.path_name, stream.channel_name);
 			live_stream = lttng_live_stream_iterator_create(session,
-				ctf_trace_id, stream_id);
+				ctf_trace_id, stream_id, self_msg_iter);
 			if (!live_stream) {
 				BT_COMP_LOGE_APPEND_CAUSE(self_comp,
 					"Error creating stream");
@@ -878,7 +879,8 @@ error:
 
 BT_HIDDEN
 enum lttng_live_attach_session_status lttng_live_attach_session(
-		struct lttng_live_session *session)
+		struct lttng_live_session *session,
+		bt_self_message_iterator *self_msg_iter)
 {
 	struct lttng_viewer_cmd cmd;
 	enum lttng_live_attach_session_status attach_status;
@@ -960,7 +962,7 @@ enum lttng_live_attach_session_status lttng_live_attach_session(
 	}
 
 	/* We receive the initial list of streams. */
-	if (receive_streams(session, streams_count)) {
+	if (receive_streams(session, streams_count, self_msg_iter)) {
 		BT_COMP_LOGE_APPEND_CAUSE(self_comp, "Error receiving streams");
 		goto error;
 	}
@@ -1481,7 +1483,8 @@ error:
  */
 BT_HIDDEN
 enum lttng_live_iterator_status lttng_live_get_new_streams(
-		struct lttng_live_session *session)
+		struct lttng_live_session *session,
+		bt_self_message_iterator *self_msg_iter)
 {
 	enum lttng_live_iterator_status status =
 		LTTNG_LIVE_ITERATOR_STATUS_OK;
@@ -1562,7 +1565,7 @@ enum lttng_live_iterator_status lttng_live_get_new_streams(
 		goto error;
 	}
 
-	if (receive_streams(session, streams_count)) {
+	if (receive_streams(session, streams_count, self_msg_iter)) {
 		BT_COMP_LOGE_APPEND_CAUSE(self_comp, "Error receiving streams");
 		goto error;
 	}

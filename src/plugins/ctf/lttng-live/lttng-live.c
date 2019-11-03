@@ -449,7 +449,8 @@ enum lttng_live_iterator_status lttng_live_get_session(
 
 	if (!session->attached) {
 		enum lttng_live_attach_session_status attach_status =
-			lttng_live_attach_session(session);
+			lttng_live_attach_session(session,
+				lttng_live_msg_iter->self_msg_iter);
 		if (attach_status != LTTNG_LIVE_ATTACH_SESSION_STATUS_OK) {
 			if (lttng_live_graph_is_canceled(lttng_live_msg_iter)) {
 				/*
@@ -469,7 +470,8 @@ enum lttng_live_iterator_status lttng_live_get_session(
 		}
 	}
 
-	status = lttng_live_get_new_streams(session);
+	status = lttng_live_get_new_streams(session,
+		lttng_live_msg_iter->self_msg_iter);
 	if (status != LTTNG_LIVE_ITERATOR_STATUS_OK &&
 			status != LTTNG_LIVE_ITERATOR_STATUS_END) {
 		goto end;
@@ -501,7 +503,8 @@ enum lttng_live_iterator_status lttng_live_get_session(
 			goto end;
 		}
 	}
-	status = lttng_live_lazy_msg_init(session);
+	status = lttng_live_lazy_msg_init(session,
+		lttng_live_msg_iter->self_msg_iter);
 
 end:
 	return status;
@@ -798,8 +801,8 @@ enum lttng_live_iterator_status lttng_live_iterator_next_handle_one_active_data_
 		goto end;
 	}
 
-	status = ctf_msg_iter_get_next_message(lttng_live_stream->msg_iter,
-		lttng_live_msg_iter->self_msg_iter, message);
+	status = ctf_msg_iter_get_next_message(
+		lttng_live_stream->msg_iter, message);
 	switch (status) {
 	case CTF_MSG_ITER_STATUS_EOF:
 		ret = LTTNG_LIVE_ITERATOR_STATUS_END;
@@ -846,8 +849,7 @@ enum lttng_live_iterator_status lttng_live_iterator_close_stream(
 	 * stream properly by emitting the necessary stream end message.
 	 */
 	enum ctf_msg_iter_status status = ctf_msg_iter_get_next_message(
-		stream_iter->msg_iter, lttng_live_msg_iter->self_msg_iter,
-		curr_msg);
+		stream_iter->msg_iter, curr_msg);
 
 	if (status == CTF_MSG_ITER_STATUS_ERROR) {
 		BT_COMP_LOGE_APPEND_CAUSE(self_comp,

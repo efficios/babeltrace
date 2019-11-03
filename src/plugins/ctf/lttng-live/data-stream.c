@@ -138,7 +138,8 @@ static struct ctf_msg_iter_medium_ops medops = {
 
 BT_HIDDEN
 enum lttng_live_iterator_status lttng_live_lazy_msg_init(
-		struct lttng_live_session *session)
+		struct lttng_live_session *session,
+		bt_self_message_iterator *self_msg_iter)
 {
 	struct lttng_live_component *lttng_live =
 		session->lttng_live_msg_iter->lttng_live_comp;
@@ -169,7 +170,7 @@ enum lttng_live_iterator_status lttng_live_lazy_msg_init(
 				trace->metadata->decoder);
 			stream_iter->msg_iter = ctf_msg_iter_create(ctf_tc,
 				lttng_live->max_query_size, medops, stream_iter,
-				log_level, self_comp);
+				log_level, self_comp, self_msg_iter);
 			if (!stream_iter->msg_iter) {
 				BT_COMP_LOGE_APPEND_CAUSE(self_comp,
 					"Failed to create CTF message iterator");
@@ -195,7 +196,8 @@ BT_HIDDEN
 struct lttng_live_stream_iterator *lttng_live_stream_iterator_create(
 		struct lttng_live_session *session,
 		uint64_t ctf_trace_id,
-		uint64_t stream_id)
+		uint64_t stream_id,
+		bt_self_message_iterator *self_msg_iter)
 {
 	struct lttng_live_stream_iterator *stream_iter;
 	struct lttng_live_component *lttng_live;
@@ -240,7 +242,7 @@ struct lttng_live_stream_iterator *lttng_live_stream_iterator_create(
 		BT_ASSERT(!stream_iter->msg_iter);
 		stream_iter->msg_iter = ctf_msg_iter_create(ctf_tc,
 			lttng_live->max_query_size, medops, stream_iter,
-			log_level, self_comp);
+			log_level, self_comp, self_msg_iter);
 		if (!stream_iter->msg_iter) {
 			BT_COMP_LOGE_APPEND_CAUSE(self_comp,
 				"Failed to create CTF message iterator");
