@@ -86,7 +86,7 @@ struct ctf_fs_trace {
 
 	/*
 	 * Weak. These are mostly used to generate log messages or to append
-	 * error causes. They are mutually exclusive, only one of them must is
+	 * error causes. They are mutually exclusive, only one of them must be
 	 * set.
 	 */
 	bt_self_component *self_comp;
