@@ -151,11 +151,15 @@ enum lttng_live_iterator_status lttng_live_metadata_update(
 		goto end;
 	}
 
-	/* Open for writing */
+	/*
+	 * Open a new write only file handle to populate the `metadata_buf`
+	 * memory buffer so we can write in loop in it easily.
+	 */
 	fp = bt_open_memstream(&metadata_buf, &size);
 	if (!fp) {
 		if (errno == EINTR &&
 				lttng_live_graph_is_canceled(session->lttng_live_msg_iter)) {
+			session->lttng_live_msg_iter->was_interrupted = true;
 			status = LTTNG_LIVE_ITERATOR_STATUS_AGAIN;
 		} else {
 			BT_COMP_LOGE_APPEND_CAUSE_ERRNO(self_comp,
@@ -210,6 +214,7 @@ enum lttng_live_iterator_status lttng_live_metadata_update(
 		goto end;
 	}
 
+	/* The memory buffer `metadata_buf` contains all the metadata. */
 	if (bt_close_memstream(&metadata_buf, &size, fp)) {
 		BT_COMP_LOGE_APPEND_CAUSE_ERRNO(self_comp,
 			"Metadata bt_close_memstream", ".");
@@ -226,10 +231,15 @@ enum lttng_live_iterator_status lttng_live_metadata_update(
 		goto end;
 	}
 
+	/*
+	 * Open a new reading file handle on the `metadata_buf` and pass it to
+	 * the metadata decoder.
+	 */
 	fp = bt_fmemopen(metadata_buf, len_read, "rb");
 	if (!fp) {
 		if (errno == EINTR &&
 				lttng_live_graph_is_canceled(session->lttng_live_msg_iter)) {
+			session->lttng_live_msg_iter->was_interrupted = true;
 			status = LTTNG_LIVE_ITERATOR_STATUS_AGAIN;
 		} else {
 			BT_COMP_LOGE_APPEND_CAUSE_ERRNO(self_comp,
