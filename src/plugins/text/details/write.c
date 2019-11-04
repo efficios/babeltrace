@@ -215,7 +215,8 @@ static inline
 void write_obj_type_name(struct details_write_ctx *ctx, const char *name)
 {
 	g_string_append_printf(ctx->str, "%s%s%s%s",
-		color_fg_yellow(ctx), color_bold(ctx), name, color_reset(ctx));
+		color_bold(ctx), color_fg_bright_yellow(ctx), name,
+		color_reset(ctx));
 }
 
 static inline
@@ -244,7 +245,7 @@ static inline
 void write_none_prop_value(struct details_write_ctx *ctx, const char *value)
 {
 	g_string_append_printf(ctx->str, "%s%s%s%s",
-		color_bold(ctx), color_fg_magenta(ctx),
+		color_bold(ctx), color_fg_bright_magenta(ctx),
 		value, color_reset(ctx));
 }
 
@@ -327,10 +328,10 @@ void write_bool_prop_value(struct details_write_ctx *ctx, bt_bool prop_value)
 	g_string_append(ctx->str, color_bold(ctx));
 
 	if (prop_value) {
-		g_string_append(ctx->str, color_fg_green(ctx));
+		g_string_append(ctx->str, color_fg_bright_green(ctx));
 		str = "Yes";
 	} else {
-		g_string_append(ctx->str, color_fg_red(ctx));
+		g_string_append(ctx->str, color_fg_bright_red(ctx));
 		str = "No";
 	}
 
@@ -1690,7 +1691,8 @@ void write_time_str(struct details_write_ctx *ctx, const char *str)
 	}
 
 	g_string_append_printf(ctx->str, "[%s%s%s%s]",
-		color_bold(ctx), color_fg_blue(ctx), str, color_reset(ctx));
+		color_bold(ctx), color_fg_bright_blue(ctx), str,
+		color_reset(ctx));
 
 	if (ctx->details_comp->cfg.compact) {
 		write_sp(ctx);
@@ -1715,7 +1717,7 @@ void write_time(struct details_write_ctx *ctx, const bt_clock_snapshot *cs)
 
 	format_uint(buf, bt_clock_snapshot_get_value(cs), 10);
 	g_string_append_printf(ctx->str, "[%s%s%s%s%s",
-		color_bold(ctx), color_fg_blue(ctx), buf,
+		color_bold(ctx), color_fg_bright_blue(ctx), buf,
 		color_reset(ctx),
 		ctx->details_comp->cfg.compact ? "" : " cycles");
 	cs_status = bt_clock_snapshot_get_ns_from_origin(cs, &ns_from_origin);
@@ -1723,7 +1725,7 @@ void write_time(struct details_write_ctx *ctx, const bt_clock_snapshot *cs)
 		format_int(buf, ns_from_origin, 10);
 		g_string_append_printf(ctx->str, "%s %s%s%s%s%s",
 			ctx->details_comp->cfg.compact ? "" : ",",
-			color_bold(ctx), color_fg_blue(ctx), buf,
+			color_bold(ctx), color_fg_bright_blue(ctx), buf,
 			color_reset(ctx),
 			ctx->details_comp->cfg.compact ? "" : " ns from origin");
 	}
@@ -1756,22 +1758,25 @@ int write_message_follow_tag(struct details_write_ctx *ctx,
 
 	if (ctx->details_comp->cfg.compact) {
 		g_string_append_printf(ctx->str,
-			"%s{%s%" PRIu64 " %" PRIu64 " %" PRIu64 "%s%s}%s ",
+			"%s{%s%s%" PRIu64 " %" PRIu64 " %" PRIu64 "%s%s}%s ",
 			color_fg_cyan(ctx), color_bold(ctx),
+			color_fg_bright_cyan(ctx),
 			unique_trace_id, bt_stream_class_get_id(sc),
 			bt_stream_get_id(stream),
 			color_reset(ctx), color_fg_cyan(ctx), color_reset(ctx));
 	} else {
 		g_string_append_printf(ctx->str,
-			"%s{Trace %s%" PRIu64 "%s%s, Stream class ID %s%" PRIu64 "%s%s, Stream ID %s%" PRIu64 "%s%s}%s\n",
+			"%s{Trace %s%s%" PRIu64 "%s%s, Stream class ID %s%s%" PRIu64 "%s%s, Stream ID %s%s%" PRIu64 "%s%s}%s\n",
 			color_fg_cyan(ctx),
-			color_bold(ctx), unique_trace_id,
-			color_reset(ctx), color_fg_cyan(ctx),
-			color_bold(ctx), bt_stream_class_get_id(sc),
-			color_reset(ctx), color_fg_cyan(ctx),
-			color_bold(ctx), bt_stream_get_id(stream),
-			color_reset(ctx), color_fg_cyan(ctx),
-			color_reset(ctx));
+			color_bold(ctx), color_fg_bright_cyan(ctx),
+			unique_trace_id, color_reset(ctx),
+			color_fg_cyan(ctx),
+			color_bold(ctx), color_fg_bright_cyan(ctx),
+			bt_stream_class_get_id(sc), color_reset(ctx),
+			color_fg_cyan(ctx),
+			color_bold(ctx), color_fg_bright_cyan(ctx),
+			bt_stream_get_id(stream), color_reset(ctx),
+			color_fg_cyan(ctx), color_reset(ctx));
 	}
 
 end:

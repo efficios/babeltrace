@@ -519,6 +519,7 @@ bt_component_class_initialize_method_status apply_params(
 	apply_one_bool_if_specified("field-callsite", params,
 		&pretty->options.print_callsite_field);
 
+	pretty_print_init();
 	status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_OK;
 
 end:

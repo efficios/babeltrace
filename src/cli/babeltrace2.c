@@ -266,7 +266,7 @@ void print_plugin_comp_cls_opt(FILE *fh, const char *plugin_name,
 
 	fprintf(fh, "'%s%s%s%s",
 		bt_common_color_bold(),
-		bt_common_color_fg_cyan(),
+		bt_common_color_fg_bright_cyan(),
 		component_type_str(type),
 		bt_common_color_fg_default());
 
@@ -367,31 +367,31 @@ void print_value_rec(FILE *fp, const bt_value *value, size_t indent)
 	case BT_VALUE_TYPE_BOOL:
 		bool_val = bt_value_bool_get(value);
 		fprintf(fp, "%s%s%s%s\n", bt_common_color_bold(),
-			bt_common_color_fg_cyan(), bool_val ? "yes" : "no",
+			bt_common_color_fg_bright_cyan(), bool_val ? "yes" : "no",
 			bt_common_color_reset());
 		break;
 	case BT_VALUE_TYPE_UNSIGNED_INTEGER:
 		uint_val = bt_value_integer_unsigned_get(value);
 		fprintf(fp, "%s%s%" PRIu64 "%s\n", bt_common_color_bold(),
-			bt_common_color_fg_red(), uint_val,
+			bt_common_color_fg_bright_red(), uint_val,
 			bt_common_color_reset());
 		break;
 	case BT_VALUE_TYPE_SIGNED_INTEGER:
 		int_val = bt_value_integer_signed_get(value);
 		fprintf(fp, "%s%s%" PRId64 "%s\n", bt_common_color_bold(),
-			bt_common_color_fg_red(), int_val,
+			bt_common_color_fg_bright_red(), int_val,
 			bt_common_color_reset());
 		break;
 	case BT_VALUE_TYPE_REAL:
 		dbl_val = bt_value_real_get(value);
 		fprintf(fp, "%s%s%lf%s\n", bt_common_color_bold(),
-			bt_common_color_fg_red(), dbl_val,
+			bt_common_color_fg_bright_red(), dbl_val,
 			bt_common_color_reset());
 		break;
 	case BT_VALUE_TYPE_STRING:
 		str_val = bt_value_string_get(value);
 		fprintf(fp, "%s%s%s%s\n", bt_common_color_bold(),
-			bt_common_color_fg_green(), str_val,
+			bt_common_color_fg_bright_green(), str_val,
 			bt_common_color_reset());
 		break;
 	case BT_VALUE_TYPE_ARRAY:
@@ -659,7 +659,7 @@ void print_plugin_info(const bt_plugin *plugin)
 	version_avail = bt_plugin_get_version(plugin, &major, &minor,
 		&patch, &extra);
 	printf("%s%s%s%s:\n", bt_common_color_bold(),
-		bt_common_color_fg_blue(), plugin_name,
+		bt_common_color_fg_bright_blue(), plugin_name,
 		bt_common_color_reset());
 	if (path) {
 		printf("  %sPath%s: %s\n", bt_common_color_bold(),
@@ -2642,7 +2642,7 @@ void print_error_causes(void)
 
 	if (!error || bt_error_get_cause_count(error) == 0) {
 		fprintf(stderr, "%s%sUnknown command-line error.%s\n",
-			bt_common_color_bold(), bt_common_color_fg_red(),
+			bt_common_color_bold(), bt_common_color_fg_bright_red(),
 			bt_common_color_reset());
 		goto end;
 	}
@@ -2669,7 +2669,7 @@ void print_error_causes(void)
 
 		/* Print prefix */
 		fprintf(stderr, prefix_fmt,
-			bt_common_color_bold(), bt_common_color_fg_red(),
+			bt_common_color_bold(), bt_common_color_fg_bright_red(),
 			bt_common_color_reset());
 
 		/* Print actor name */
@@ -2717,7 +2717,7 @@ void print_error_causes(void)
 		/* Print file name and line number */
 		fprintf(stderr, "] (%s%s%s%s:%s%" PRIu64 "%s)\n",
 			bt_common_color_bold(),
-			bt_common_color_fg_magenta(),
+			bt_common_color_fg_bright_magenta(),
 			bt_error_cause_get_file_name(cause),
 			bt_common_color_reset(),
 			bt_common_color_fg_green(),

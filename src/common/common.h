@@ -44,24 +44,38 @@
 #include "common/macros.h"
 #include "common/safe.h"
 
-#define BT_COMMON_COLOR_RESET              "\033[0m"
-#define BT_COMMON_COLOR_BOLD               "\033[1m"
-#define BT_COMMON_COLOR_FG_DEFAULT         "\033[39m"
-#define BT_COMMON_COLOR_FG_RED             "\033[31m"
-#define BT_COMMON_COLOR_FG_GREEN           "\033[32m"
-#define BT_COMMON_COLOR_FG_YELLOW          "\033[33m"
-#define BT_COMMON_COLOR_FG_BLUE            "\033[34m"
-#define BT_COMMON_COLOR_FG_MAGENTA         "\033[35m"
-#define BT_COMMON_COLOR_FG_CYAN            "\033[36m"
-#define BT_COMMON_COLOR_FG_LIGHT_GRAY      "\033[37m"
-#define BT_COMMON_COLOR_BG_DEFAULT         "\033[49m"
-#define BT_COMMON_COLOR_BG_RED             "\033[41m"
-#define BT_COMMON_COLOR_BG_GREEN           "\033[42m"
-#define BT_COMMON_COLOR_BG_YELLOW          "\033[43m"
-#define BT_COMMON_COLOR_BG_BLUE            "\033[44m"
-#define BT_COMMON_COLOR_BG_MAGENTA         "\033[45m"
-#define BT_COMMON_COLOR_BG_CYAN            "\033[46m"
-#define BT_COMMON_COLOR_BG_LIGHT_GRAY      "\033[47m"
+#define BT_COMMON_COLOR_RESET			"\033[0m"
+#define BT_COMMON_COLOR_BOLD			"\033[1m"
+#define BT_COMMON_COLOR_FG_DEFAULT		"\033[39m"
+#define BT_COMMON_COLOR_FG_RED			"\033[31m"
+#define BT_COMMON_COLOR_FG_GREEN		"\033[32m"
+#define BT_COMMON_COLOR_FG_YELLOW		"\033[33m"
+#define BT_COMMON_COLOR_FG_BLUE			"\033[34m"
+#define BT_COMMON_COLOR_FG_MAGENTA		"\033[35m"
+#define BT_COMMON_COLOR_FG_CYAN			"\033[36m"
+#define BT_COMMON_COLOR_FG_LIGHT_GRAY		"\033[37m"
+#define BT_COMMON_COLOR_FG_BOLD_RED		"\033[1m\033[31m"
+#define BT_COMMON_COLOR_FG_BOLD_GREEN		"\033[1m\033[32m"
+#define BT_COMMON_COLOR_FG_BOLD_YELLOW		"\033[1m\033[33m"
+#define BT_COMMON_COLOR_FG_BOLD_BLUE		"\033[1m\033[34m"
+#define BT_COMMON_COLOR_FG_BOLD_MAGENTA		"\033[1m\033[35m"
+#define BT_COMMON_COLOR_FG_BOLD_CYAN		"\033[1m\033[36m"
+#define BT_COMMON_COLOR_FG_BOLD_LIGHT_GRAY	"\033[1m\033[37m"
+#define BT_COMMON_COLOR_FG_BRIGHT_RED		"\033[91m"
+#define BT_COMMON_COLOR_FG_BRIGHT_GREEN		"\033[92m"
+#define BT_COMMON_COLOR_FG_BRIGHT_YELLOW	"\033[93m"
+#define BT_COMMON_COLOR_FG_BRIGHT_BLUE		"\033[94m"
+#define BT_COMMON_COLOR_FG_BRIGHT_MAGENTA	"\033[95m"
+#define BT_COMMON_COLOR_FG_BRIGHT_CYAN		"\033[96m"
+#define BT_COMMON_COLOR_FG_BRIGHT_LIGHT_GRAY	"\033[97m"
+#define BT_COMMON_COLOR_BG_DEFAULT		"\033[49m"
+#define BT_COMMON_COLOR_BG_RED			"\033[41m"
+#define BT_COMMON_COLOR_BG_GREEN		"\033[42m"
+#define BT_COMMON_COLOR_BG_YELLOW		"\033[43m"
+#define BT_COMMON_COLOR_BG_BLUE			"\033[44m"
+#define BT_COMMON_COLOR_BG_MAGENTA		"\033[45m"
+#define BT_COMMON_COLOR_BG_CYAN			"\033[46m"
+#define BT_COMMON_COLOR_BG_LIGHT_GRAY		"\033[47m"
 
 struct bt_common_lttng_live_url_parts {
 	GString *proto;
@@ -139,6 +153,27 @@ const char *bt_common_color_fg_cyan(void);
 
 BT_HIDDEN
 const char *bt_common_color_fg_light_gray(void);
+
+BT_HIDDEN
+const char *bt_common_color_fg_bright_red(void);
+
+BT_HIDDEN
+const char *bt_common_color_fg_bright_green(void);
+
+BT_HIDDEN
+const char *bt_common_color_fg_bright_yellow(void);
+
+BT_HIDDEN
+const char *bt_common_color_fg_bright_blue(void);
+
+BT_HIDDEN
+const char *bt_common_color_fg_bright_magenta(void);
+
+BT_HIDDEN
+const char *bt_common_color_fg_bright_cyan(void);
+
+BT_HIDDEN
+const char *bt_common_color_fg_bright_light_gray(void);
 
 BT_HIDDEN
 const char *bt_common_color_bg_default(void);
