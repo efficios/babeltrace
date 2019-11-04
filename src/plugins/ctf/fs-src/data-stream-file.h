@@ -101,7 +101,7 @@ void ctf_fs_ds_file_destroy(struct ctf_fs_ds_file *stream);
 BT_HIDDEN
 bt_component_class_message_iterator_next_method_status ctf_fs_ds_file_next(
 		struct ctf_msg_iter *msg_iter,
-		bt_message **msg);
+		const bt_message **msg);
 
 BT_HIDDEN
 struct ctf_fs_ds_index *ctf_fs_ds_file_build_index(

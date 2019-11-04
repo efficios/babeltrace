@@ -291,7 +291,7 @@ void ctf_msg_iter_destroy(struct ctf_msg_iter *msg_iter);
 BT_HIDDEN
 enum ctf_msg_iter_status ctf_msg_iter_get_next_message(
 		struct ctf_msg_iter *msg_it,
-		bt_message **message);
+		const bt_message **message);
 
 struct ctf_msg_iter_packet_properties {
 	int64_t exp_packet_total_size;

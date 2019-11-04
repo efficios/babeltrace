@@ -110,7 +110,7 @@ struct lttng_live_stream_iterator {
 	 * The current message produced by this live stream iterator. Owned by
 	 * this.
 	 */
-	bt_message *current_msg;
+	const bt_message *current_msg;
 
 	/* Timestamp in nanoseconds of the current message (current_msg). */
 	int64_t current_msg_ts_ns;
