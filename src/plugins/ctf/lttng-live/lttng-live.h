@@ -238,6 +238,9 @@ struct lttng_live_msg_iter {
 
 	/* Timestamp in nanosecond of the last message sent downstream. */
 	int64_t last_msg_ts_ns;
+
+	/* True if the iterator was interrupted. */
+	bool was_interrupted;
 };
 
 enum lttng_live_iterator_status {
@@ -285,18 +288,16 @@ bt_component_class_message_iterator_initialize_method_status lttng_live_msg_iter
 
 void lttng_live_msg_iter_finalize(bt_self_message_iterator *it);
 
-int lttng_live_create_viewer_session(struct lttng_live_msg_iter *lttng_live_msg_iter);
+enum lttng_live_viewer_status lttng_live_create_viewer_session(
+		struct lttng_live_msg_iter *lttng_live_msg_iter);
 
-enum lttng_live_attach_session_status {
-	LTTNG_LIVE_ATTACH_SESSION_STATUS_OK	= 0,
-	LTTNG_LIVE_ATTACH_SESSION_STATUS_ERROR	= -2,
-};
-
-enum lttng_live_attach_session_status lttng_live_attach_session(
+enum lttng_live_viewer_status lttng_live_attach_session(
 		struct lttng_live_session *session,
 		bt_self_message_iterator *self_msg_iter);
 
-int lttng_live_detach_session(struct lttng_live_session *session);
+enum lttng_live_viewer_status lttng_live_detach_session(
+		struct lttng_live_session *session);
+
 enum lttng_live_iterator_status lttng_live_get_new_streams(
 		struct lttng_live_session *session,
 		bt_self_message_iterator *self_msg_iter);
@@ -305,20 +306,6 @@ int lttng_live_add_session(struct lttng_live_msg_iter *lttng_live_msg_iter,
 		uint64_t session_id,
 		const char *hostname,
 		const char *session_name);
-
-enum lttng_live_get_one_metadata_status {
-	/* The end of the metadata stream was reached. */
-	LTTNG_LIVE_GET_ONE_METADATA_STATUS_END	    = 1,
-	/* One metadata packet was received and written to file. */
-	LTTNG_LIVE_GET_ONE_METADATA_STATUS_OK	    = 0,
-	/* The metadata stream was not found on the relay. */
-	LTTNG_LIVE_GET_ONE_METADATA_STATUS_CLOSED   = -1,
-	/*
-	 * A critical error occurred when contacting the relay or while
-	 * handling its response.
-	 */
-	LTTNG_LIVE_GET_ONE_METADATA_STATUS_ERROR    = -2,
-};
 
 /*
  * lttng_live_get_one_metadata_packet() asks the Relay Daemon for new metadata.

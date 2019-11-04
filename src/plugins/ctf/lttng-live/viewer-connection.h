@@ -39,6 +39,29 @@
 #define LTTNG_LIVE_MAJOR			2
 #define LTTNG_LIVE_MINOR			4
 
+enum lttng_live_viewer_status {
+	LTTNG_LIVE_VIEWER_STATUS_OK		= 0,
+	LTTNG_LIVE_VIEWER_STATUS_ERROR		= -1,
+	LTTNG_LIVE_VIEWER_STATUS_INTERRUPTED	= -2,
+};
+
+enum lttng_live_get_one_metadata_status {
+	/* The end of the metadata stream was reached. */
+	LTTNG_LIVE_GET_ONE_METADATA_STATUS_END		= 1,
+	/* One metadata packet was received and written to file. */
+	LTTNG_LIVE_GET_ONE_METADATA_STATUS_OK		= LTTNG_LIVE_VIEWER_STATUS_OK,
+	/*
+	 * A critical error occurred when contacting the relay or while
+	 * handling its response.
+	 */
+	LTTNG_LIVE_GET_ONE_METADATA_STATUS_ERROR	= LTTNG_LIVE_VIEWER_STATUS_ERROR,
+
+	LTTNG_LIVE_GET_ONE_METADATA_STATUS_INTERRUPTED  = LTTNG_LIVE_VIEWER_STATUS_INTERRUPTED,
+
+	/* The metadata stream was not found on the relay. */
+	LTTNG_LIVE_GET_ONE_METADATA_STATUS_CLOSED	= -3,
+};
+
 struct lttng_live_component;
 
 struct live_viewer_connection {
@@ -81,12 +104,13 @@ struct packet_index {
 	uint64_t packet_seq_num;	/* packet sequence number */
 };
 
-struct live_viewer_connection * live_viewer_connection_create(
-		const char *url, bool in_query,
-		struct lttng_live_msg_iter *lttng_live_msg_iter,
+enum lttng_live_viewer_status live_viewer_connection_create(
 		bt_self_component *self_comp,
 		bt_self_component_class *self_comp_class,
-		bt_logging_level log_level);
+		bt_logging_level log_level,
+		const char *url, bool in_query,
+		struct lttng_live_msg_iter *lttng_live_msg_iter,
+		struct live_viewer_connection **viewer_connection);
 
 void live_viewer_connection_destroy(
 		struct live_viewer_connection *conn);
