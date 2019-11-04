@@ -770,7 +770,7 @@ enum lttng_live_iterator_status lttng_live_iterator_next_handle_one_active_data_
 	enum lttng_live_iterator_status ret = LTTNG_LIVE_ITERATOR_STATUS_OK;
 	bt_logging_level log_level = lttng_live_msg_iter->log_level;
 	bt_self_component *self_comp = lttng_live_msg_iter->self_comp;
-	enum bt_msg_iter_status status;
+	enum ctf_msg_iter_status status;
 	uint64_t session_idx, trace_idx;
 
 	for (session_idx = 0; session_idx < lttng_live_msg_iter->sessions->len;
@@ -798,16 +798,16 @@ enum lttng_live_iterator_status lttng_live_iterator_next_handle_one_active_data_
 		goto end;
 	}
 
-	status = bt_msg_iter_get_next_message(lttng_live_stream->msg_iter,
+	status = ctf_msg_iter_get_next_message(lttng_live_stream->msg_iter,
 		lttng_live_msg_iter->self_msg_iter, message);
 	switch (status) {
-	case BT_MSG_ITER_STATUS_EOF:
+	case CTF_MSG_ITER_STATUS_EOF:
 		ret = LTTNG_LIVE_ITERATOR_STATUS_END;
 		break;
-	case BT_MSG_ITER_STATUS_OK:
+	case CTF_MSG_ITER_STATUS_OK:
 		ret = LTTNG_LIVE_ITERATOR_STATUS_OK;
 		break;
-	case BT_MSG_ITER_STATUS_AGAIN:
+	case CTF_MSG_ITER_STATUS_AGAIN:
 		/*
 		 * Continue immediately (end of packet). The next
 		 * get_index may return AGAIN to delay the following
@@ -815,9 +815,9 @@ enum lttng_live_iterator_status lttng_live_iterator_next_handle_one_active_data_
 		 */
 		ret = LTTNG_LIVE_ITERATOR_STATUS_CONTINUE;
 		break;
-	case BT_MSG_ITER_STATUS_INVAL:
+	case CTF_MSG_ITER_STATUS_INVAL:
 		/* No argument provided by the user, so don't return INVAL. */
-	case BT_MSG_ITER_STATUS_ERROR:
+	case CTF_MSG_ITER_STATUS_ERROR:
 	default:
 		ret = LTTNG_LIVE_ITERATOR_STATUS_ERROR;
 		BT_COMP_LOGE_APPEND_CAUSE(self_comp,
@@ -842,21 +842,21 @@ enum lttng_live_iterator_status lttng_live_iterator_close_stream(
 	bt_self_component *self_comp = lttng_live_msg_iter->self_comp;
 	/*
 	 * The viewer has hung up on us so we are closing the stream. The
-	 * `bt_msg_iter` should simply realize that it needs to close the
+	 * `ctf_msg_iter` should simply realize that it needs to close the
 	 * stream properly by emitting the necessary stream end message.
 	 */
-	enum bt_msg_iter_status status = bt_msg_iter_get_next_message(
+	enum ctf_msg_iter_status status = ctf_msg_iter_get_next_message(
 		stream_iter->msg_iter, lttng_live_msg_iter->self_msg_iter,
 		curr_msg);
 
-	if (status == BT_MSG_ITER_STATUS_ERROR) {
+	if (status == CTF_MSG_ITER_STATUS_ERROR) {
 		BT_COMP_LOGE_APPEND_CAUSE(self_comp,
 			"Error getting the next message from CTF message iterator");
 		live_status = LTTNG_LIVE_ITERATOR_STATUS_ERROR;
 		goto end;
 	}
 
-	BT_ASSERT(status == BT_MSG_ITER_STATUS_OK);
+	BT_ASSERT(status == CTF_MSG_ITER_STATUS_OK);
 
 end:
 	return live_status;

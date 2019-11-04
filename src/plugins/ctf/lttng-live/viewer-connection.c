@@ -1343,12 +1343,12 @@ error:
 }
 
 BT_HIDDEN
-enum bt_msg_iter_medium_status lttng_live_get_stream_bytes(
+enum ctf_msg_iter_medium_status lttng_live_get_stream_bytes(
 		struct lttng_live_msg_iter *lttng_live_msg_iter,
 		struct lttng_live_stream_iterator *stream, uint8_t *buf,
 		uint64_t offset, uint64_t req_len, uint64_t *recv_len)
 {
-	enum bt_msg_iter_medium_status retstatus = BT_MSG_ITER_MEDIUM_STATUS_OK;
+	enum ctf_msg_iter_medium_status retstatus = CTF_MSG_ITER_MEDIUM_STATUS_OK;
 	struct lttng_viewer_trace_packet rp;
 	struct lttng_viewer_cmd cmd;
 	struct lttng_viewer_get_packet rq;
@@ -1418,7 +1418,7 @@ enum bt_msg_iter_medium_status lttng_live_get_stream_bytes(
 	case LTTNG_VIEWER_GET_PACKET_RETRY:
 		/* Unimplemented by relay daemon */
 		BT_COMP_LOGD("Received get_data_packet response: retry");
-		retstatus = BT_MSG_ITER_MEDIUM_STATUS_AGAIN;
+		retstatus = CTF_MSG_ITER_MEDIUM_STATUS_AGAIN;
 		goto end;
 	case LTTNG_VIEWER_GET_PACKET_ERR:
 		if (flags & LTTNG_VIEWER_FLAG_NEW_METADATA) {
@@ -1431,14 +1431,14 @@ enum bt_msg_iter_medium_status lttng_live_get_stream_bytes(
 		}
 		if (flags & (LTTNG_VIEWER_FLAG_NEW_METADATA
 				| LTTNG_VIEWER_FLAG_NEW_STREAM)) {
-			retstatus = BT_MSG_ITER_MEDIUM_STATUS_AGAIN;
+			retstatus = CTF_MSG_ITER_MEDIUM_STATUS_AGAIN;
 			goto end;
 		}
 		BT_COMP_LOGE_APPEND_CAUSE(self_comp,
 			"Received get_data_packet response: error");
 		goto error;
 	case LTTNG_VIEWER_GET_PACKET_EOF:
-		retstatus = BT_MSG_ITER_MEDIUM_STATUS_EOF;
+		retstatus = CTF_MSG_ITER_MEDIUM_STATUS_EOF;
 		goto end;
 	default:
 		BT_COMP_LOGE_APPEND_CAUSE(self_comp,
@@ -1469,9 +1469,9 @@ end:
 
 error:
 	if (lttng_live_graph_is_canceled(lttng_live_msg_iter)) {
-		retstatus = BT_MSG_ITER_MEDIUM_STATUS_AGAIN;
+		retstatus = CTF_MSG_ITER_MEDIUM_STATUS_AGAIN;
 	} else {
-		retstatus = BT_MSG_ITER_MEDIUM_STATUS_ERROR;
+		retstatus = CTF_MSG_ITER_MEDIUM_STATUS_ERROR;
 	}
 	return retstatus;
 }

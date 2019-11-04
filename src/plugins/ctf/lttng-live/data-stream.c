@@ -44,12 +44,12 @@
 #define STREAM_NAME_PREFIX	"stream-"
 
 static
-enum bt_msg_iter_medium_status medop_request_bytes(
+enum ctf_msg_iter_medium_status medop_request_bytes(
 		size_t request_sz, uint8_t **buffer_addr,
 		size_t *buffer_sz, void *data)
 {
-	enum bt_msg_iter_medium_status status =
-		BT_MSG_ITER_MEDIUM_STATUS_OK;
+	enum ctf_msg_iter_medium_status status =
+		CTF_MSG_ITER_MEDIUM_STATUS_OK;
 	struct lttng_live_stream_iterator *stream = data;
 	struct lttng_live_trace *trace = stream->trace;
 	struct lttng_live_session *session = trace->session;
@@ -59,14 +59,14 @@ enum bt_msg_iter_medium_status medop_request_bytes(
 	uint64_t read_len;
 
 	if (stream->has_stream_hung_up) {
-		status = BT_MSG_ITER_MEDIUM_STATUS_EOF;
+		status = CTF_MSG_ITER_MEDIUM_STATUS_EOF;
 		goto end;
 	}
 
 	len_left = stream->base_offset + stream->len - stream->offset;
 	if (!len_left) {
 		stream->state = LTTNG_LIVE_STREAM_ACTIVE_NO_DATA;
-		status = BT_MSG_ITER_MEDIUM_STATUS_AGAIN;
+		status = CTF_MSG_ITER_MEDIUM_STATUS_AGAIN;
 		goto end;
 	}
 
@@ -130,7 +130,7 @@ end:
 	return lttng_live_stream->stream;
 }
 
-static struct bt_msg_iter_medium_ops medops = {
+static struct ctf_msg_iter_medium_ops medops = {
 	.request_bytes = medop_request_bytes,
 	.seek = NULL,
 	.borrow_stream = medop_borrow_stream,
@@ -167,7 +167,7 @@ enum lttng_live_iterator_status lttng_live_lazy_msg_init(
 			}
 			ctf_tc = ctf_metadata_decoder_borrow_ctf_trace_class(
 				trace->metadata->decoder);
-			stream_iter->msg_iter = bt_msg_iter_create(ctf_tc,
+			stream_iter->msg_iter = ctf_msg_iter_create(ctf_tc,
 				lttng_live->max_query_size, medops, stream_iter,
 				log_level, self_comp);
 			if (!stream_iter->msg_iter) {
@@ -176,9 +176,9 @@ enum lttng_live_iterator_status lttng_live_lazy_msg_init(
 				goto error;
 			}
 
-			bt_msg_iter_set_emit_stream_end_message(
+			ctf_msg_iter_set_emit_stream_end_message(
 				stream_iter->msg_iter, true);
-			bt_msg_iter_set_emit_stream_beginning_message(
+			ctf_msg_iter_set_emit_stream_beginning_message(
 				stream_iter->msg_iter, true);
 		}
 	}
@@ -238,7 +238,7 @@ struct lttng_live_stream_iterator *lttng_live_stream_iterator_create(
 			ctf_metadata_decoder_borrow_ctf_trace_class(
 				trace->metadata->decoder);
 		BT_ASSERT(!stream_iter->msg_iter);
-		stream_iter->msg_iter = bt_msg_iter_create(ctf_tc,
+		stream_iter->msg_iter = ctf_msg_iter_create(ctf_tc,
 			lttng_live->max_query_size, medops, stream_iter,
 			log_level, self_comp);
 		if (!stream_iter->msg_iter) {
@@ -247,9 +247,9 @@ struct lttng_live_stream_iterator *lttng_live_stream_iterator_create(
 			goto error;
 		}
 
-		bt_msg_iter_set_emit_stream_end_message(
+		ctf_msg_iter_set_emit_stream_end_message(
 			stream_iter->msg_iter, true);
-		bt_msg_iter_set_emit_stream_beginning_message(
+		ctf_msg_iter_set_emit_stream_beginning_message(
 			stream_iter->msg_iter, true);
 	}
 	stream_iter->buf = g_new0(uint8_t, lttng_live->max_query_size);
@@ -295,7 +295,7 @@ void lttng_live_stream_iterator_destroy(
 	}
 
 	if (stream_iter->msg_iter) {
-		bt_msg_iter_destroy(stream_iter->msg_iter);
+		ctf_msg_iter_destroy(stream_iter->msg_iter);
 	}
 	g_free(stream_iter->buf);
 	if (stream_iter->name) {

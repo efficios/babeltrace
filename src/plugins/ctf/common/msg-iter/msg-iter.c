@@ -43,7 +43,7 @@
 #include "msg-iter.h"
 #include "../bfcr/bfcr.h"
 
-struct bt_msg_iter;
+struct ctf_msg_iter;
 
 /* A visit stack entry */
 struct stack_entry {
@@ -64,11 +64,11 @@ struct stack_entry {
 	size_t index;
 };
 
-struct bt_msg_iter;
+struct ctf_msg_iter;
 
 /* Visit stack */
 struct stack {
-	struct bt_msg_iter *msg_it;
+	struct ctf_msg_iter *msg_it;
 
 	/* Entries (struct stack_entry) */
 	GArray *entries;
@@ -122,7 +122,7 @@ struct end_of_packet_snapshots {
 };
 
 /* CTF message iterator */
-struct bt_msg_iter {
+struct ctf_msg_iter {
 	/* Visit stack */
 	struct stack *stack;
 
@@ -223,7 +223,7 @@ struct bt_msg_iter {
 
 	/* Current medium data */
 	struct {
-		struct bt_msg_iter_medium_ops medops;
+		struct ctf_msg_iter_medium_ops medops;
 		size_t max_request_sz;
 		void *data;
 	} medium;
@@ -336,7 +336,7 @@ const char *state_string(enum state state)
 }
 
 static
-struct stack *stack_new(struct bt_msg_iter *msg_it)
+struct stack *stack_new(struct ctf_msg_iter *msg_it)
 {
 	bt_self_component *self_comp = msg_it->self_comp;
 	struct stack *stack = NULL;
@@ -370,7 +370,7 @@ end:
 static
 void stack_destroy(struct stack *stack)
 {
-	struct bt_msg_iter *msg_it;
+	struct ctf_msg_iter *msg_it;
 
 	BT_ASSERT_DBG(stack);
 	msg_it = stack->msg_it;
@@ -387,7 +387,7 @@ static
 void stack_push(struct stack *stack, bt_field *base)
 {
 	struct stack_entry *entry;
-	struct bt_msg_iter *msg_it;
+	struct ctf_msg_iter *msg_it;
 
 	BT_ASSERT_DBG(stack);
 	msg_it = stack->msg_it;
@@ -416,7 +416,7 @@ unsigned int stack_size(struct stack *stack)
 static
 void stack_pop(struct stack *stack)
 {
-	struct bt_msg_iter *msg_it;
+	struct ctf_msg_iter *msg_it;
 
 	BT_ASSERT_DBG(stack);
 	BT_ASSERT_DBG(stack_size(stack));
@@ -450,33 +450,33 @@ void stack_clear(struct stack *stack)
 }
 
 static inline
-enum bt_msg_iter_status msg_iter_status_from_m_status(
-		enum bt_msg_iter_medium_status m_status)
+enum ctf_msg_iter_status msg_iter_status_from_m_status(
+		enum ctf_msg_iter_medium_status m_status)
 {
 	/* They are the same */
 	return (int) m_status;
 }
 
 static inline
-size_t buf_size_bits(struct bt_msg_iter *msg_it)
+size_t buf_size_bits(struct ctf_msg_iter *msg_it)
 {
 	return msg_it->buf.sz * 8;
 }
 
 static inline
-size_t buf_available_bits(struct bt_msg_iter *msg_it)
+size_t buf_available_bits(struct ctf_msg_iter *msg_it)
 {
 	return buf_size_bits(msg_it) - msg_it->buf.at;
 }
 
 static inline
-size_t packet_at(struct bt_msg_iter *msg_it)
+size_t packet_at(struct ctf_msg_iter *msg_it)
 {
 	return msg_it->buf.packet_offset + msg_it->buf.at;
 }
 
 static inline
-void buf_consume_bits(struct bt_msg_iter *msg_it, size_t incr)
+void buf_consume_bits(struct ctf_msg_iter *msg_it, size_t incr)
 {
 	BT_COMP_LOGT("Advancing cursor: msg-it-addr=%p, cur-before=%zu, cur-after=%zu",
 		msg_it, msg_it->buf.at, msg_it->buf.at + incr);
@@ -484,13 +484,13 @@ void buf_consume_bits(struct bt_msg_iter *msg_it, size_t incr)
 }
 
 static
-enum bt_msg_iter_status request_medium_bytes(
-		struct bt_msg_iter *msg_it)
+enum ctf_msg_iter_status request_medium_bytes(
+		struct ctf_msg_iter *msg_it)
 {
 	bt_self_component *self_comp = msg_it->self_comp;
 	uint8_t *buffer_addr = NULL;
 	size_t buffer_sz = 0;
-	enum bt_msg_iter_medium_status m_status;
+	enum ctf_msg_iter_medium_status m_status;
 
 	BT_COMP_LOGD("Calling user function (request bytes): msg-it-addr=%p, "
 		"request-size=%zu", msg_it, msg_it->medium.max_request_sz);
@@ -498,9 +498,9 @@ enum bt_msg_iter_status request_medium_bytes(
 		msg_it->medium.max_request_sz, &buffer_addr,
 		&buffer_sz, msg_it->medium.data);
 	BT_COMP_LOGD("User function returned: status=%s, buf-addr=%p, buf-size=%zu",
-		bt_msg_iter_medium_status_string(m_status),
+		ctf_msg_iter_medium_status_string(m_status),
 		buffer_addr, buffer_sz);
-	if (m_status == BT_MSG_ITER_MEDIUM_STATUS_OK) {
+	if (m_status == CTF_MSG_ITER_MEDIUM_STATUS_OK) {
 		BT_ASSERT(buffer_sz != 0);
 
 		/* New packet offset is old one + old size (in bits) */
@@ -522,7 +522,7 @@ enum bt_msg_iter_status request_medium_bytes(
 			msg_it->buf.sz, msg_it->buf.addr);
 		BT_COMP_LOGD_MEM(buffer_addr, buffer_sz, "Returned bytes at %p:",
 			buffer_addr);
-	} else if (m_status == BT_MSG_ITER_MEDIUM_STATUS_EOF) {
+	} else if (m_status == CTF_MSG_ITER_MEDIUM_STATUS_EOF) {
 		/*
 		 * User returned end of stream: validate that we're not
 		 * in the middle of a packet header, packet context, or
@@ -549,15 +549,15 @@ enum bt_msg_iter_status request_medium_bytes(
 			"User function returned %s, but message iterator is in an unexpected state: "
 			"state=%s, cur-packet-size=%" PRId64 ", cur=%zu, "
 			"packet-cur=%zu, last-eh-at=%zu",
-			bt_msg_iter_medium_status_string(m_status),
+			ctf_msg_iter_medium_status_string(m_status),
 			state_string(msg_it->state),
 			msg_it->cur_exp_packet_total_size,
 			msg_it->buf.at, packet_at(msg_it),
 			msg_it->buf.last_eh_at);
-		m_status = BT_MSG_ITER_MEDIUM_STATUS_ERROR;
+		m_status = CTF_MSG_ITER_MEDIUM_STATUS_ERROR;
 	} else if (m_status < 0) {
 		BT_COMP_LOGE_APPEND_CAUSE(self_comp, "User function failed: "
-			"status=%s", bt_msg_iter_medium_status_string(m_status));
+			"status=%s", ctf_msg_iter_medium_status_string(m_status));
 	}
 
 end:
@@ -565,14 +565,14 @@ end:
 }
 
 static inline
-enum bt_msg_iter_status buf_ensure_available_bits(
-		struct bt_msg_iter *msg_it)
+enum ctf_msg_iter_status buf_ensure_available_bits(
+		struct ctf_msg_iter *msg_it)
 {
-	enum bt_msg_iter_status status = BT_MSG_ITER_STATUS_OK;
+	enum ctf_msg_iter_status status = CTF_MSG_ITER_STATUS_OK;
 
 	if (G_UNLIKELY(buf_available_bits(msg_it) == 0)) {
 		/*
-		 * This _cannot_ return BT_MSG_ITER_STATUS_OK
+		 * This _cannot_ return CTF_MSG_ITER_STATUS_OK
 		 * _and_ no bits.
 		 */
 		status = request_medium_bytes(msg_it);
@@ -582,13 +582,13 @@ enum bt_msg_iter_status buf_ensure_available_bits(
 }
 
 static
-enum bt_msg_iter_status read_dscope_begin_state(
-		struct bt_msg_iter *msg_it,
+enum ctf_msg_iter_status read_dscope_begin_state(
+		struct ctf_msg_iter *msg_it,
 		struct ctf_field_class *dscope_fc,
 		enum state done_state, enum state continue_state,
 		bt_field *dscope_field)
 {
-	enum bt_msg_iter_status status = BT_MSG_ITER_STATUS_OK;
+	enum ctf_msg_iter_status status = CTF_MSG_ITER_STATUS_OK;
 	bt_self_component *self_comp = msg_it->self_comp;
 	enum bt_bfcr_status bfcr_status;
 	size_t consumed_bits;
@@ -616,7 +616,7 @@ enum bt_msg_iter_status read_dscope_begin_state(
 			"BFCR failed to start: msg-it-addr=%p, bfcr-addr=%p, "
 			"status=%s", msg_it, msg_it->bfcr,
 			bt_bfcr_status_string(bfcr_status));
-		status = BT_MSG_ITER_STATUS_ERROR;
+		status = CTF_MSG_ITER_STATUS_ERROR;
 		goto end;
 	}
 
@@ -628,10 +628,10 @@ end:
 }
 
 static
-enum bt_msg_iter_status read_dscope_continue_state(
-		struct bt_msg_iter *msg_it, enum state done_state)
+enum ctf_msg_iter_status read_dscope_continue_state(
+		struct ctf_msg_iter *msg_it, enum state done_state)
 {
-	enum bt_msg_iter_status status = BT_MSG_ITER_STATUS_OK;
+	enum ctf_msg_iter_status status = CTF_MSG_ITER_STATUS_OK;
 	bt_self_component *self_comp = msg_it->self_comp;
 	enum bt_bfcr_status bfcr_status;
 	size_t consumed_bits;
@@ -640,16 +640,16 @@ enum bt_msg_iter_status read_dscope_continue_state(
 		msg_it, msg_it->bfcr);
 
 	status = buf_ensure_available_bits(msg_it);
-	if (status != BT_MSG_ITER_STATUS_OK) {
+	if (status != CTF_MSG_ITER_STATUS_OK) {
 		if (status < 0) {
 			BT_COMP_LOGE_APPEND_CAUSE(self_comp,
 				"Cannot ensure that buffer has at least one byte: "
 				"msg-addr=%p, status=%s",
-				msg_it, bt_msg_iter_status_string(status));
+				msg_it, ctf_msg_iter_status_string(status));
 		} else {
 			BT_COMP_LOGT("Cannot ensure that buffer has at least one byte: "
 				"msg-addr=%p, status=%s",
-				msg_it, bt_msg_iter_status_string(status));
+				msg_it, ctf_msg_iter_status_string(status));
 		}
 
 		goto end;
@@ -674,7 +674,7 @@ enum bt_msg_iter_status read_dscope_continue_state(
 			"BFCR failed to continue: msg-it-addr=%p, bfcr-addr=%p, "
 			"status=%s", msg_it, msg_it->bfcr,
 			bt_bfcr_status_string(bfcr_status));
-		status = BT_MSG_ITER_STATUS_ERROR;
+		status = CTF_MSG_ITER_STATUS_ERROR;
 		goto end;
 	}
 
@@ -685,7 +685,7 @@ end:
 }
 
 static
-void release_event_dscopes(struct bt_msg_iter *msg_it)
+void release_event_dscopes(struct ctf_msg_iter *msg_it)
 {
 	msg_it->dscopes.event_common_context = NULL;
 	msg_it->dscopes.event_spec_context = NULL;
@@ -693,7 +693,7 @@ void release_event_dscopes(struct bt_msg_iter *msg_it)
 }
 
 static
-void release_all_dscopes(struct bt_msg_iter *msg_it)
+void release_all_dscopes(struct ctf_msg_iter *msg_it)
 {
 	msg_it->dscopes.stream_packet_context = NULL;
 
@@ -706,9 +706,9 @@ void release_all_dscopes(struct bt_msg_iter *msg_it)
 }
 
 static
-enum bt_msg_iter_status switch_packet_state(struct bt_msg_iter *msg_it)
+enum ctf_msg_iter_status switch_packet_state(struct ctf_msg_iter *msg_it)
 {
-	enum bt_msg_iter_status status = BT_MSG_ITER_STATUS_OK;
+	enum ctf_msg_iter_status status = CTF_MSG_ITER_STATUS_OK;
 	bt_self_component *self_comp = msg_it->self_comp;
 
 	/*
@@ -744,7 +744,7 @@ enum bt_msg_iter_status switch_packet_state(struct bt_msg_iter *msg_it)
 			BT_COMP_LOGE_APPEND_CAUSE(self_comp,
 				"Cannot switch packet: current position is not a multiple of 8: "
 				"msg-it-addr=%p, cur=%zu", msg_it, msg_it->buf.at);
-			status = BT_MSG_ITER_STATUS_ERROR;
+			status = CTF_MSG_ITER_STATUS_ERROR;
 			goto end;
 		}
 
@@ -773,12 +773,12 @@ end:
 }
 
 static
-enum bt_msg_iter_status read_packet_header_begin_state(
-		struct bt_msg_iter *msg_it)
+enum ctf_msg_iter_status read_packet_header_begin_state(
+		struct ctf_msg_iter *msg_it)
 {
 	struct ctf_field_class *packet_header_fc = NULL;
 	bt_self_component *self_comp = msg_it->self_comp;
-	enum bt_msg_iter_status status = BT_MSG_ITER_STATUS_OK;
+	enum ctf_msg_iter_status status = CTF_MSG_ITER_STATUS_OK;
 
 	/*
 	 * Make sure at least one bit is available for this packet. An
@@ -787,10 +787,10 @@ enum bt_msg_iter_status read_packet_header_begin_state(
 	 */
 	status = buf_ensure_available_bits(msg_it);
 	switch (status) {
-	case BT_MSG_ITER_STATUS_OK:
+	case CTF_MSG_ITER_STATUS_OK:
 		break;
-	case BT_MSG_ITER_STATUS_EOF:
-		status = BT_MSG_ITER_STATUS_OK;
+	case CTF_MSG_ITER_STATUS_EOF:
+		status = CTF_MSG_ITER_STATUS_OK;
 		msg_it->state = STATE_CHECK_EMIT_MSG_STREAM_END;
 		goto end;
 	default:
@@ -826,17 +826,17 @@ end:
 }
 
 static
-enum bt_msg_iter_status read_packet_header_continue_state(
-		struct bt_msg_iter *msg_it)
+enum ctf_msg_iter_status read_packet_header_continue_state(
+		struct ctf_msg_iter *msg_it)
 {
 	return read_dscope_continue_state(msg_it,
 		STATE_AFTER_TRACE_PACKET_HEADER);
 }
 
 static inline
-enum bt_msg_iter_status set_current_stream_class(struct bt_msg_iter *msg_it)
+enum ctf_msg_iter_status set_current_stream_class(struct ctf_msg_iter *msg_it)
 {
-	enum bt_msg_iter_status status = BT_MSG_ITER_STATUS_OK;
+	enum ctf_msg_iter_status status = CTF_MSG_ITER_STATUS_OK;
 	bt_self_component *self_comp = msg_it->self_comp;
 	struct ctf_stream_class *new_stream_class = NULL;
 
@@ -850,7 +850,7 @@ enum bt_msg_iter_status set_current_stream_class(struct bt_msg_iter *msg_it)
 				"Need exactly one stream class since there's "
 				"no stream class ID field: "
 				"msg-it-addr=%p", msg_it);
-			status = BT_MSG_ITER_STATUS_ERROR;
+			status = CTF_MSG_ITER_STATUS_ERROR;
 			goto end;
 		}
 
@@ -866,7 +866,7 @@ enum bt_msg_iter_status set_current_stream_class(struct bt_msg_iter *msg_it)
 			"msg-it-addr=%p, stream-class-id=%" PRIu64 ", "
 			"trace-class-addr=%p",
 			msg_it, msg_it->cur_stream_class_id, msg_it->meta.tc);
-		status = BT_MSG_ITER_STATUS_ERROR;
+		status = CTF_MSG_ITER_STATUS_ERROR;
 		goto end;
 	}
 
@@ -884,7 +884,7 @@ enum bt_msg_iter_status set_current_stream_class(struct bt_msg_iter *msg_it)
 				new_stream_class,
 				new_stream_class->id,
 				msg_it->meta.tc);
-			status = BT_MSG_ITER_STATUS_ERROR;
+			status = CTF_MSG_ITER_STATUS_ERROR;
 			goto end;
 		}
 	} else {
@@ -901,9 +901,9 @@ end:
 }
 
 static inline
-enum bt_msg_iter_status set_current_stream(struct bt_msg_iter *msg_it)
+enum ctf_msg_iter_status set_current_stream(struct ctf_msg_iter *msg_it)
 {
-	enum bt_msg_iter_status status = BT_MSG_ITER_STATUS_OK;
+	enum ctf_msg_iter_status status = CTF_MSG_ITER_STATUS_OK;
 	bt_self_component *self_comp = msg_it->self_comp;
 	bt_stream *stream = NULL;
 
@@ -919,14 +919,14 @@ enum bt_msg_iter_status set_current_stream(struct bt_msg_iter *msg_it)
 	if (!stream) {
 		BT_COMP_LOGE_APPEND_CAUSE(self_comp,
 			"User function failed to return a stream object for the given stream class.");
-		status = BT_MSG_ITER_STATUS_ERROR;
+		status = CTF_MSG_ITER_STATUS_ERROR;
 		goto end;
 	}
 
 	if (msg_it->stream && stream != msg_it->stream) {
 		BT_COMP_LOGE_APPEND_CAUSE(self_comp,
 			"User function returned a different stream than the previous one for the same sequence of packets.");
-		status = BT_MSG_ITER_STATUS_ERROR;
+		status = CTF_MSG_ITER_STATUS_ERROR;
 		goto end;
 	}
 
@@ -938,9 +938,9 @@ end:
 }
 
 static inline
-enum bt_msg_iter_status set_current_packet(struct bt_msg_iter *msg_it)
+enum ctf_msg_iter_status set_current_packet(struct ctf_msg_iter *msg_it)
 {
-	enum bt_msg_iter_status status = BT_MSG_ITER_STATUS_OK;
+	enum ctf_msg_iter_status status = CTF_MSG_ITER_STATUS_OK;
 	bt_self_component *self_comp = msg_it->self_comp;
 	bt_packet *packet = NULL;
 
@@ -969,7 +969,7 @@ enum bt_msg_iter_status set_current_packet(struct bt_msg_iter *msg_it)
 
 error:
 	BT_PACKET_PUT_REF_AND_RESET(packet);
-	status = BT_MSG_ITER_STATUS_ERROR;
+	status = CTF_MSG_ITER_STATUS_ERROR;
 
 end:
 	BT_PACKET_MOVE_REF(msg_it->packet, packet);
@@ -977,13 +977,13 @@ end:
 }
 
 static
-enum bt_msg_iter_status after_packet_header_state(
-		struct bt_msg_iter *msg_it)
+enum ctf_msg_iter_status after_packet_header_state(
+		struct ctf_msg_iter *msg_it)
 {
-	enum bt_msg_iter_status status;
+	enum ctf_msg_iter_status status;
 
 	status = set_current_stream_class(msg_it);
-	if (status != BT_MSG_ITER_STATUS_OK) {
+	if (status != CTF_MSG_ITER_STATUS_OK) {
 		goto end;
 	}
 
@@ -994,10 +994,10 @@ end:
 }
 
 static
-enum bt_msg_iter_status read_packet_context_begin_state(
-		struct bt_msg_iter *msg_it)
+enum ctf_msg_iter_status read_packet_context_begin_state(
+		struct ctf_msg_iter *msg_it)
 {
-	enum bt_msg_iter_status status = BT_MSG_ITER_STATUS_OK;
+	enum ctf_msg_iter_status status = CTF_MSG_ITER_STATUS_OK;
 	bt_self_component *self_comp = msg_it->self_comp;
 	struct ctf_field_class *packet_context_fc;
 
@@ -1023,7 +1023,7 @@ enum bt_msg_iter_status read_packet_context_begin_state(
 		 * packet is created from a stream, and this API must be
 		 * able to return the packet context properties without
 		 * creating a stream
-		 * (bt_msg_iter_get_packet_properties()).
+		 * (ctf_msg_iter_get_packet_properties()).
 		 */
 		msg_it->packet_context_field =
 			bt_packet_context_field_create(
@@ -1031,7 +1031,7 @@ enum bt_msg_iter_status read_packet_context_begin_state(
 		if (!msg_it->packet_context_field) {
 			BT_COMP_LOGE_APPEND_CAUSE(self_comp,
 				"Cannot create packet context field wrapper from stream class.");
-			status = BT_MSG_ITER_STATUS_ERROR;
+			status = CTF_MSG_ITER_STATUS_ERROR;
 			goto end;
 		}
 
@@ -1065,18 +1065,18 @@ end:
 }
 
 static
-enum bt_msg_iter_status read_packet_context_continue_state(
-		struct bt_msg_iter *msg_it)
+enum ctf_msg_iter_status read_packet_context_continue_state(
+		struct ctf_msg_iter *msg_it)
 {
 	return read_dscope_continue_state(msg_it,
 			STATE_AFTER_STREAM_PACKET_CONTEXT);
 }
 
 static
-enum bt_msg_iter_status set_current_packet_content_sizes(
-		struct bt_msg_iter *msg_it)
+enum ctf_msg_iter_status set_current_packet_content_sizes(
+		struct ctf_msg_iter *msg_it)
 {
-	enum bt_msg_iter_status status = BT_MSG_ITER_STATUS_OK;
+	enum ctf_msg_iter_status status = CTF_MSG_ITER_STATUS_OK;
 	bt_self_component *self_comp = msg_it->self_comp;
 
 	if (msg_it->cur_exp_packet_total_size == -1) {
@@ -1106,7 +1106,7 @@ enum bt_msg_iter_status set_current_packet_content_sizes(
 			msg_it, msg_it->dscopes.stream_packet_context,
 			msg_it->cur_exp_packet_total_size,
 			msg_it->cur_exp_packet_content_size);
-		status = BT_MSG_ITER_STATUS_ERROR;
+		status = CTF_MSG_ITER_STATUS_ERROR;
 		goto end;
 	}
 
@@ -1120,12 +1120,12 @@ end:
 }
 
 static
-enum bt_msg_iter_status after_packet_context_state(struct bt_msg_iter *msg_it)
+enum ctf_msg_iter_status after_packet_context_state(struct ctf_msg_iter *msg_it)
 {
-	enum bt_msg_iter_status status;
+	enum ctf_msg_iter_status status;
 
 	status = set_current_packet_content_sizes(msg_it);
-	if (status != BT_MSG_ITER_STATUS_OK) {
+	if (status != CTF_MSG_ITER_STATUS_OK) {
 		goto end;
 	}
 
@@ -1145,9 +1145,9 @@ end:
 }
 
 static
-enum bt_msg_iter_status read_event_header_begin_state(struct bt_msg_iter *msg_it)
+enum ctf_msg_iter_status read_event_header_begin_state(struct ctf_msg_iter *msg_it)
 {
-	enum bt_msg_iter_status status = BT_MSG_ITER_STATUS_OK;
+	enum ctf_msg_iter_status status = CTF_MSG_ITER_STATUS_OK;
 	bt_self_component *self_comp = msg_it->self_comp;
 	struct ctf_field_class *event_header_fc = NULL;
 
@@ -1172,7 +1172,7 @@ enum bt_msg_iter_status read_event_header_begin_state(struct bt_msg_iter *msg_it
 				"cur=%zu", msg_it,
 				msg_it->cur_exp_packet_content_size,
 				packet_at(msg_it));
-			status = BT_MSG_ITER_STATUS_ERROR;
+			status = CTF_MSG_ITER_STATUS_ERROR;
 			goto end;
 		}
 	} else {
@@ -1182,10 +1182,10 @@ enum bt_msg_iter_status read_event_header_begin_state(struct bt_msg_iter *msg_it
 		 */
 		status = buf_ensure_available_bits(msg_it);
 		switch (status) {
-		case BT_MSG_ITER_STATUS_OK:
+		case CTF_MSG_ITER_STATUS_OK:
 			break;
-		case BT_MSG_ITER_STATUS_EOF:
-			status = BT_MSG_ITER_STATUS_OK;
+		case CTF_MSG_ITER_STATUS_EOF:
+			status = CTF_MSG_ITER_STATUS_OK;
 			msg_it->state = STATE_EMIT_MSG_PACKET_END_SINGLE;
 			goto end;
 		default:
@@ -1226,17 +1226,17 @@ end:
 }
 
 static
-enum bt_msg_iter_status read_event_header_continue_state(
-		struct bt_msg_iter *msg_it)
+enum ctf_msg_iter_status read_event_header_continue_state(
+		struct ctf_msg_iter *msg_it)
 {
 	return read_dscope_continue_state(msg_it,
 		STATE_AFTER_EVENT_HEADER);
 }
 
 static inline
-enum bt_msg_iter_status set_current_event_class(struct bt_msg_iter *msg_it)
+enum ctf_msg_iter_status set_current_event_class(struct ctf_msg_iter *msg_it)
 {
-	enum bt_msg_iter_status status = BT_MSG_ITER_STATUS_OK;
+	enum ctf_msg_iter_status status = CTF_MSG_ITER_STATUS_OK;
 	bt_self_component *self_comp = msg_it->self_comp;
 
 	struct ctf_event_class *new_event_class = NULL;
@@ -1250,7 +1250,7 @@ enum bt_msg_iter_status set_current_event_class(struct bt_msg_iter *msg_it)
 			BT_COMP_LOGE_APPEND_CAUSE(self_comp,
 				"Need exactly one event class since there's no event class ID field: "
 				"msg-it-addr=%p", msg_it);
-			status = BT_MSG_ITER_STATUS_ERROR;
+			status = CTF_MSG_ITER_STATUS_ERROR;
 			goto end;
 		}
 
@@ -1268,7 +1268,7 @@ enum bt_msg_iter_status set_current_event_class(struct bt_msg_iter *msg_it)
 			"trace-class-addr=%p",
 			msg_it, msg_it->meta.sc->id, msg_it->cur_event_class_id,
 			msg_it->meta.tc);
-		status = BT_MSG_ITER_STATUS_ERROR;
+		status = CTF_MSG_ITER_STATUS_ERROR;
 		goto end;
 	}
 
@@ -1285,10 +1285,10 @@ end:
 }
 
 static inline
-enum bt_msg_iter_status set_current_event_message(
-		struct bt_msg_iter *msg_it)
+enum ctf_msg_iter_status set_current_event_message(
+		struct ctf_msg_iter *msg_it)
 {
-	enum bt_msg_iter_status status = BT_MSG_ITER_STATUS_OK;
+	enum ctf_msg_iter_status status = CTF_MSG_ITER_STATUS_OK;
 	bt_self_component *self_comp = msg_it->self_comp;
 	bt_message *msg = NULL;
 
@@ -1326,7 +1326,7 @@ enum bt_msg_iter_status set_current_event_message(
 
 error:
 	BT_MESSAGE_PUT_REF_AND_RESET(msg);
-	status = BT_MSG_ITER_STATUS_ERROR;
+	status = CTF_MSG_ITER_STATUS_ERROR;
 
 end:
 	BT_MESSAGE_MOVE_REF(msg_it->event_msg, msg);
@@ -1334,13 +1334,13 @@ end:
 }
 
 static
-enum bt_msg_iter_status after_event_header_state(
-		struct bt_msg_iter *msg_it)
+enum ctf_msg_iter_status after_event_header_state(
+		struct ctf_msg_iter *msg_it)
 {
-	enum bt_msg_iter_status status;
+	enum ctf_msg_iter_status status;
 
 	status = set_current_event_class(msg_it);
-	if (status != BT_MSG_ITER_STATUS_OK) {
+	if (status != CTF_MSG_ITER_STATUS_OK) {
 		goto end;
 	}
 
@@ -1349,7 +1349,7 @@ enum bt_msg_iter_status after_event_header_state(
 	}
 
 	status = set_current_event_message(msg_it);
-	if (status != BT_MSG_ITER_STATUS_OK) {
+	if (status != CTF_MSG_ITER_STATUS_OK) {
 		goto end;
 	}
 
@@ -1365,10 +1365,10 @@ end:
 }
 
 static
-enum bt_msg_iter_status read_event_common_context_begin_state(
-		struct bt_msg_iter *msg_it)
+enum ctf_msg_iter_status read_event_common_context_begin_state(
+		struct ctf_msg_iter *msg_it)
 {
-	enum bt_msg_iter_status status = BT_MSG_ITER_STATUS_OK;
+	enum ctf_msg_iter_status status = CTF_MSG_ITER_STATUS_OK;
 	bt_self_component *self_comp = msg_it->self_comp;
 	struct ctf_field_class *event_common_context_fc;
 
@@ -1412,18 +1412,18 @@ end:
 }
 
 static
-enum bt_msg_iter_status read_event_common_context_continue_state(
-		struct bt_msg_iter *msg_it)
+enum ctf_msg_iter_status read_event_common_context_continue_state(
+		struct ctf_msg_iter *msg_it)
 {
 	return read_dscope_continue_state(msg_it,
 		STATE_DSCOPE_EVENT_SPEC_CONTEXT_BEGIN);
 }
 
 static
-enum bt_msg_iter_status read_event_spec_context_begin_state(
-		struct bt_msg_iter *msg_it)
+enum ctf_msg_iter_status read_event_spec_context_begin_state(
+		struct ctf_msg_iter *msg_it)
 {
-	enum bt_msg_iter_status status = BT_MSG_ITER_STATUS_OK;
+	enum ctf_msg_iter_status status = CTF_MSG_ITER_STATUS_OK;
 	bt_self_component *self_comp = msg_it->self_comp;
 	struct ctf_field_class *event_spec_context_fc;
 
@@ -1470,18 +1470,18 @@ end:
 }
 
 static
-enum bt_msg_iter_status read_event_spec_context_continue_state(
-		struct bt_msg_iter *msg_it)
+enum ctf_msg_iter_status read_event_spec_context_continue_state(
+		struct ctf_msg_iter *msg_it)
 {
 	return read_dscope_continue_state(msg_it,
 		STATE_DSCOPE_EVENT_PAYLOAD_BEGIN);
 }
 
 static
-enum bt_msg_iter_status read_event_payload_begin_state(
-		struct bt_msg_iter *msg_it)
+enum ctf_msg_iter_status read_event_payload_begin_state(
+		struct ctf_msg_iter *msg_it)
 {
-	enum bt_msg_iter_status status = BT_MSG_ITER_STATUS_OK;
+	enum ctf_msg_iter_status status = CTF_MSG_ITER_STATUS_OK;
 	bt_self_component *self_comp = msg_it->self_comp;
 	struct ctf_field_class *event_payload_fc;
 
@@ -1528,16 +1528,16 @@ end:
 }
 
 static
-enum bt_msg_iter_status read_event_payload_continue_state(
-		struct bt_msg_iter *msg_it)
+enum ctf_msg_iter_status read_event_payload_continue_state(
+		struct ctf_msg_iter *msg_it)
 {
 	return read_dscope_continue_state(msg_it, STATE_EMIT_MSG_EVENT);
 }
 
 static
-enum bt_msg_iter_status skip_packet_padding_state(struct bt_msg_iter *msg_it)
+enum ctf_msg_iter_status skip_packet_padding_state(struct ctf_msg_iter *msg_it)
 {
-	enum bt_msg_iter_status status = BT_MSG_ITER_STATUS_OK;
+	enum ctf_msg_iter_status status = CTF_MSG_ITER_STATUS_OK;
 	size_t bits_to_skip;
 	const enum state next_state = STATE_SWITCH_PACKET;
 
@@ -1552,7 +1552,7 @@ enum bt_msg_iter_status skip_packet_padding_state(struct bt_msg_iter *msg_it)
 		BT_COMP_LOGD("Trying to skip %zu bits of padding: msg-it-addr=%p, size=%zu",
 			bits_to_skip, msg_it, bits_to_skip);
 		status = buf_ensure_available_bits(msg_it);
-		if (status != BT_MSG_ITER_STATUS_OK) {
+		if (status != CTF_MSG_ITER_STATUS_OK) {
 			goto end;
 		}
 
@@ -1573,14 +1573,14 @@ end:
 }
 
 static
-enum bt_msg_iter_status check_emit_msg_stream_beginning_state(
-		struct bt_msg_iter *msg_it)
+enum ctf_msg_iter_status check_emit_msg_stream_beginning_state(
+		struct ctf_msg_iter *msg_it)
 {
-	enum bt_msg_iter_status status = BT_MSG_ITER_STATUS_OK;
+	enum ctf_msg_iter_status status = CTF_MSG_ITER_STATUS_OK;
 
 	if (msg_it->set_stream) {
 		status = set_current_stream(msg_it);
-		if (status != BT_MSG_ITER_STATUS_OK) {
+		if (status != CTF_MSG_ITER_STATUS_OK) {
 			goto end;
 		}
 	}
@@ -1597,8 +1597,8 @@ end:
 }
 
 static
-enum bt_msg_iter_status check_emit_msg_discarded_events(
-		struct bt_msg_iter *msg_it)
+enum ctf_msg_iter_status check_emit_msg_discarded_events(
+		struct ctf_msg_iter *msg_it)
 {
 	msg_it->state = STATE_EMIT_MSG_DISCARDED_EVENTS;
 
@@ -1635,12 +1635,12 @@ enum bt_msg_iter_status check_emit_msg_discarded_events(
 	}
 
 end:
-	return BT_MSG_ITER_STATUS_OK;
+	return CTF_MSG_ITER_STATUS_OK;
 }
 
 static
-enum bt_msg_iter_status check_emit_msg_discarded_packets(
-		struct bt_msg_iter *msg_it)
+enum ctf_msg_iter_status check_emit_msg_discarded_packets(
+		struct ctf_msg_iter *msg_it)
 {
 	msg_it->state = STATE_EMIT_MSG_DISCARDED_PACKETS;
 
@@ -1677,12 +1677,12 @@ enum bt_msg_iter_status check_emit_msg_discarded_packets(
 	}
 
 end:
-	return BT_MSG_ITER_STATUS_OK;
+	return CTF_MSG_ITER_STATUS_OK;
 }
 
 static
-enum bt_msg_iter_status check_emit_msg_stream_end(
-		struct bt_msg_iter *msg_it)
+enum ctf_msg_iter_status check_emit_msg_stream_end(
+		struct ctf_msg_iter *msg_it)
 {
 	if (msg_it->emit_stream_end_msg) {
 		msg_it->state = STATE_EMIT_MSG_STREAM_END;
@@ -1690,13 +1690,13 @@ enum bt_msg_iter_status check_emit_msg_stream_end(
 		msg_it->state = STATE_DONE;
 	}
 
-	return BT_MSG_ITER_STATUS_OK;
+	return CTF_MSG_ITER_STATUS_OK;
 }
 
 static inline
-enum bt_msg_iter_status handle_state(struct bt_msg_iter *msg_it)
+enum ctf_msg_iter_status handle_state(struct ctf_msg_iter *msg_it)
 {
-	enum bt_msg_iter_status status = BT_MSG_ITER_STATUS_OK;
+	enum ctf_msg_iter_status status = CTF_MSG_ITER_STATUS_OK;
 	const enum state state = msg_it->state;
 
 	BT_COMP_LOGT("Handling state: msg-it-addr=%p, state=%s",
@@ -1810,13 +1810,13 @@ enum bt_msg_iter_status handle_state(struct bt_msg_iter *msg_it)
 
 	BT_COMP_LOGT("Handled state: msg-it-addr=%p, status=%s, "
 		"prev-state=%s, cur-state=%s",
-		msg_it, bt_msg_iter_status_string(status),
+		msg_it, ctf_msg_iter_status_string(status),
 		state_string(state), state_string(msg_it->state));
 	return status;
 }
 
 BT_HIDDEN
-void bt_msg_iter_reset_for_next_stream_file(struct bt_msg_iter *msg_it)
+void ctf_msg_iter_reset_for_next_stream_file(struct ctf_msg_iter *msg_it)
 {
 	BT_ASSERT(msg_it);
 	BT_COMP_LOGD("Resetting message iterator: addr=%p", msg_it);
@@ -1852,9 +1852,9 @@ void bt_msg_iter_reset_for_next_stream_file(struct bt_msg_iter *msg_it)
  * Resets the internal state of a CTF message iterator.
  */
 BT_HIDDEN
-void bt_msg_iter_reset(struct bt_msg_iter *msg_it)
+void ctf_msg_iter_reset(struct ctf_msg_iter *msg_it)
 {
-	bt_msg_iter_reset_for_next_stream_file(msg_it);
+	ctf_msg_iter_reset_for_next_stream_file(msg_it);
 	msg_it->cur_stream_class_id = -1;
 	msg_it->cur_data_stream_id = -1;
 	msg_it->snapshots.discarded_events = UINT64_C(-1);
@@ -1866,7 +1866,7 @@ void bt_msg_iter_reset(struct bt_msg_iter *msg_it)
 }
 
 static
-bt_field *borrow_next_field(struct bt_msg_iter *msg_it)
+bt_field *borrow_next_field(struct ctf_msg_iter *msg_it)
 {
 	bt_field *next_field = NULL;
 	bt_field *base_field;
@@ -1909,7 +1909,7 @@ bt_field *borrow_next_field(struct bt_msg_iter *msg_it)
 }
 
 static
-void update_default_clock(struct bt_msg_iter *msg_it, uint64_t new_val,
+void update_default_clock(struct ctf_msg_iter *msg_it, uint64_t new_val,
 		uint64_t new_val_size)
 {
 	uint64_t new_val_mask;
@@ -1954,7 +1954,7 @@ static
 enum bt_bfcr_status bfcr_unsigned_int_cb(uint64_t value,
 		struct ctf_field_class *fc, void *data)
 {
-	struct bt_msg_iter *msg_it = data;
+	struct ctf_msg_iter *msg_it = data;
 	bt_self_component *self_comp = msg_it->self_comp;
 	enum bt_bfcr_status status = BT_BFCR_STATUS_OK;
 
@@ -2043,7 +2043,7 @@ enum bt_bfcr_status bfcr_unsigned_int_char_cb(uint64_t value,
 		struct ctf_field_class *fc, void *data)
 {
 	int ret;
-	struct bt_msg_iter *msg_it = data;
+	struct ctf_msg_iter *msg_it = data;
 	bt_self_component *self_comp = msg_it->self_comp;
 	enum bt_bfcr_status status = BT_BFCR_STATUS_OK;
 	bt_field *string_field = NULL;
@@ -2097,7 +2097,7 @@ enum bt_bfcr_status bfcr_signed_int_cb(int64_t value,
 {
 	enum bt_bfcr_status status = BT_BFCR_STATUS_OK;
 	bt_field *field = NULL;
-	struct bt_msg_iter *msg_it = data;
+	struct ctf_msg_iter *msg_it = data;
 	struct ctf_field_class_int *int_fc = (void *) fc;
 
 	BT_COMP_LOGT("Signed integer function called from BFCR: "
@@ -2133,7 +2133,7 @@ enum bt_bfcr_status bfcr_floating_point_cb(double value,
 {
 	enum bt_bfcr_status status = BT_BFCR_STATUS_OK;
 	bt_field *field = NULL;
-	struct bt_msg_iter *msg_it = data;
+	struct ctf_msg_iter *msg_it = data;
 	bt_field_class_type type;
 
 	BT_COMP_LOGT("Floating point number function called from BFCR: "
@@ -2167,7 +2167,7 @@ enum bt_bfcr_status bfcr_string_begin_cb(
 		struct ctf_field_class *fc, void *data)
 {
 	bt_field *field = NULL;
-	struct bt_msg_iter *msg_it = data;
+	struct ctf_msg_iter *msg_it = data;
 
 	BT_COMP_LOGT("String (beginning) function called from BFCR: "
 		"msg-it-addr=%p, bfcr-addr=%p, fc-addr=%p, "
@@ -2202,7 +2202,7 @@ enum bt_bfcr_status bfcr_string_cb(const char *value,
 {
 	enum bt_bfcr_status status = BT_BFCR_STATUS_OK;
 	bt_field *field = NULL;
-	struct bt_msg_iter *msg_it = data;
+	struct ctf_msg_iter *msg_it = data;
 	bt_self_component *self_comp = msg_it->self_comp;
 	int ret;
 
@@ -2238,7 +2238,7 @@ static
 enum bt_bfcr_status bfcr_string_end_cb(
 		struct ctf_field_class *fc, void *data)
 {
-	struct bt_msg_iter *msg_it = data;
+	struct ctf_msg_iter *msg_it = data;
 
 	BT_COMP_LOGT("String (end) function called from BFCR: "
 		"msg-it-addr=%p, bfcr-addr=%p, fc-addr=%p, "
@@ -2263,7 +2263,7 @@ static
 enum bt_bfcr_status bfcr_compound_begin_cb(
 		struct ctf_field_class *fc, void *data)
 {
-	struct bt_msg_iter *msg_it = data;
+	struct ctf_msg_iter *msg_it = data;
 	bt_field *field;
 
 	BT_COMP_LOGT("Compound (beginning) function called from BFCR: "
@@ -2315,7 +2315,7 @@ static
 enum bt_bfcr_status bfcr_compound_end_cb(
 		struct ctf_field_class *fc, void *data)
 {
-	struct bt_msg_iter *msg_it = data;
+	struct ctf_msg_iter *msg_it = data;
 
 	BT_COMP_LOGT("Compound (end) function called from BFCR: "
 		"msg-it-addr=%p, bfcr-addr=%p, fc-addr=%p, "
@@ -2363,7 +2363,7 @@ static
 int64_t bfcr_get_sequence_length_cb(struct ctf_field_class *fc, void *data)
 {
 	bt_field *seq_field;
-	struct bt_msg_iter *msg_it = data;
+	struct ctf_msg_iter *msg_it = data;
 	bt_self_component *self_comp = msg_it->self_comp;
 	struct ctf_field_class_sequence *seq_fc = (void *) fc;
 	int64_t length;
@@ -2411,7 +2411,7 @@ struct ctf_field_class *bfcr_borrow_variant_selected_field_class_cb(
 	int ret;
 	uint64_t i;
 	int64_t option_index = -1;
-	struct bt_msg_iter *msg_it = data;
+	struct ctf_msg_iter *msg_it = data;
 	struct ctf_field_class_variant *var_fc = (void *) fc;
 	struct ctf_named_field_class *selected_option = NULL;
 	bt_self_component *self_comp = msg_it->self_comp;
@@ -2489,7 +2489,7 @@ end:
 }
 
 static
-bt_message *create_msg_stream_beginning(struct bt_msg_iter *msg_it)
+bt_message *create_msg_stream_beginning(struct ctf_msg_iter *msg_it)
 {
 	bt_self_component *self_comp = msg_it->self_comp;
 	bt_message *msg;
@@ -2509,7 +2509,7 @@ bt_message *create_msg_stream_beginning(struct bt_msg_iter *msg_it)
 }
 
 static
-bt_message *create_msg_stream_end(struct bt_msg_iter *msg_it)
+bt_message *create_msg_stream_end(struct ctf_msg_iter *msg_it)
 {
 	bt_self_component *self_comp = msg_it->self_comp;
 	bt_message *msg;
@@ -2537,7 +2537,7 @@ end:
 }
 
 static
-bt_message *create_msg_packet_beginning(struct bt_msg_iter *msg_it,
+bt_message *create_msg_packet_beginning(struct ctf_msg_iter *msg_it,
 		bool use_default_cs)
 {
 	bt_self_component *self_comp = msg_it->self_comp;
@@ -2605,7 +2605,7 @@ end:
 }
 
 static
-bt_message *emit_delayed_packet_beg_msg(struct bt_msg_iter *msg_it)
+bt_message *emit_delayed_packet_beg_msg(struct ctf_msg_iter *msg_it)
 {
 	bool packet_beg_ts_need_fix_up;
 
@@ -2626,7 +2626,7 @@ bt_message *emit_delayed_packet_beg_msg(struct bt_msg_iter *msg_it)
 
 
 static
-bt_message *create_msg_packet_end(struct bt_msg_iter *msg_it)
+bt_message *create_msg_packet_end(struct ctf_msg_iter *msg_it)
 {
 	bt_message *msg;
 	bool update_default_cs = true;
@@ -2714,7 +2714,7 @@ end:
 }
 
 static
-bt_message *create_msg_discarded_events(struct bt_msg_iter *msg_it)
+bt_message *create_msg_discarded_events(struct ctf_msg_iter *msg_it)
 {
 	bt_message *msg;
 	bt_self_component *self_comp = msg_it->self_comp;
@@ -2768,7 +2768,7 @@ end:
 }
 
 static
-bt_message *create_msg_discarded_packets(struct bt_msg_iter *msg_it)
+bt_message *create_msg_discarded_packets(struct ctf_msg_iter *msg_it)
 {
 	bt_message *msg;
 	bt_self_component *self_comp = msg_it->self_comp;
@@ -2808,12 +2808,12 @@ end:
 }
 
 BT_HIDDEN
-struct bt_msg_iter *bt_msg_iter_create(struct ctf_trace_class *tc,
+struct ctf_msg_iter *ctf_msg_iter_create(struct ctf_trace_class *tc,
 		size_t max_request_sz,
-		struct bt_msg_iter_medium_ops medops, void *data,
+		struct ctf_msg_iter_medium_ops medops, void *data,
 		bt_logging_level log_level, bt_self_component *self_comp)
 {
-	struct bt_msg_iter *msg_it = NULL;
+	struct ctf_msg_iter *msg_it = NULL;
 	struct bt_bfcr_cbs cbs = {
 		.classes = {
 			.signed_int = bfcr_signed_int_cb,
@@ -2839,7 +2839,7 @@ struct bt_msg_iter *bt_msg_iter_create(struct ctf_trace_class *tc,
 		"trace-addr=%p, max-request-size=%zu, "
 		"data=%p, log-level=%s", tc, max_request_sz, data,
 		bt_common_logging_level_string(log_level));
-	msg_it = g_new0(struct bt_msg_iter, 1);
+	msg_it = g_new0(struct ctf_msg_iter, 1);
 	if (!msg_it) {
 		BT_COMP_LOG_CUR_LVL(BT_LOG_ERROR, log_level, self_comp,
 			"Failed to allocate one CTF plugin message iterator.");
@@ -2868,7 +2868,7 @@ struct bt_msg_iter *bt_msg_iter_create(struct ctf_trace_class *tc,
 		goto error;
 	}
 
-	bt_msg_iter_reset(msg_it);
+	ctf_msg_iter_reset(msg_it);
 	BT_COMP_LOGD("Created CTF plugin message iterator: "
 		"trace-addr=%p, max-request-size=%zu, "
 		"data=%p, msg-it-addr=%p, log-level=%s",
@@ -2880,12 +2880,12 @@ end:
 	return msg_it;
 
 error:
-	bt_msg_iter_destroy(msg_it);
+	ctf_msg_iter_destroy(msg_it);
 	msg_it = NULL;
 	goto end;
 }
 
-void bt_msg_iter_destroy(struct bt_msg_iter *msg_it)
+void ctf_msg_iter_destroy(struct ctf_msg_iter *msg_it)
 {
 	BT_PACKET_PUT_REF_AND_RESET(msg_it->packet);
 	BT_STREAM_PUT_REF_AND_RESET(msg_it->stream);
@@ -2910,11 +2910,11 @@ void bt_msg_iter_destroy(struct bt_msg_iter *msg_it)
 	g_free(msg_it);
 }
 
-enum bt_msg_iter_status bt_msg_iter_get_next_message(
-		struct bt_msg_iter *msg_it,
+enum ctf_msg_iter_status ctf_msg_iter_get_next_message(
+		struct ctf_msg_iter *msg_it,
 		bt_self_message_iterator *self_msg_iter, bt_message **message)
 {
-	enum bt_msg_iter_status status = BT_MSG_ITER_STATUS_OK;
+	enum ctf_msg_iter_status status = CTF_MSG_ITER_STATUS_OK;
 	bt_self_component *self_comp = msg_it->self_comp;
 
 	BT_ASSERT_DBG(msg_it);
@@ -2925,10 +2925,10 @@ enum bt_msg_iter_status bt_msg_iter_get_next_message(
 
 	while (true) {
 		status = handle_state(msg_it);
-		if (G_UNLIKELY(status == BT_MSG_ITER_STATUS_AGAIN)) {
-			BT_COMP_LOGD_STR("Medium returned BT_MSG_ITER_STATUS_AGAIN.");
+		if (G_UNLIKELY(status == CTF_MSG_ITER_STATUS_AGAIN)) {
+			BT_COMP_LOGD_STR("Medium returned CTF_MSG_ITER_STATUS_AGAIN.");
 			goto end;
-		} else if (G_UNLIKELY(status != BT_MSG_ITER_STATUS_OK)) {
+		} else if (G_UNLIKELY(status != CTF_MSG_ITER_STATUS_OK)) {
 			BT_COMP_LOGE_APPEND_CAUSE(self_comp,
 				"Cannot handle state: msg-it-addr=%p, state=%s",
 				msg_it, state_string(msg_it->state));
@@ -2946,7 +2946,7 @@ enum bt_msg_iter_status bt_msg_iter_get_next_message(
 			if (G_UNLIKELY(msg_it->emit_delayed_packet_beginning_msg)) {
 				*message = emit_delayed_packet_beg_msg(msg_it);
 				if (!*message) {
-					status = BT_MSG_ITER_STATUS_ERROR;
+					status = CTF_MSG_ITER_STATUS_ERROR;
 				}
 
 				/*
@@ -2965,7 +2965,7 @@ enum bt_msg_iter_status bt_msg_iter_get_next_message(
 			*message = create_msg_discarded_events(msg_it);
 
 			if (!*message) {
-				status = BT_MSG_ITER_STATUS_ERROR;
+				status = CTF_MSG_ITER_STATUS_ERROR;
 			}
 
 			goto end;
@@ -2974,13 +2974,13 @@ enum bt_msg_iter_status bt_msg_iter_get_next_message(
 			*message = create_msg_discarded_packets(msg_it);
 
 			if (!*message) {
-				status = BT_MSG_ITER_STATUS_ERROR;
+				status = CTF_MSG_ITER_STATUS_ERROR;
 			}
 
 			goto end;
 		case STATE_EMIT_MSG_PACKET_BEGINNING:
 			status = set_current_packet(msg_it);
-			if (status != BT_MSG_ITER_STATUS_OK) {
+			if (status != CTF_MSG_ITER_STATUS_OK) {
 				goto end;
 			}
 
@@ -2997,7 +2997,7 @@ enum bt_msg_iter_status bt_msg_iter_get_next_message(
 				/* create_msg_packet_beginning() logs errors */
 				*message = create_msg_packet_beginning(msg_it, false);
 				if (!*message) {
-					status = BT_MSG_ITER_STATUS_ERROR;
+					status = CTF_MSG_ITER_STATUS_ERROR;
 				}
 			}
 
@@ -3008,7 +3008,7 @@ enum bt_msg_iter_status bt_msg_iter_get_next_message(
 			*message = create_msg_packet_end(msg_it);
 
 			if (!*message) {
-				status = BT_MSG_ITER_STATUS_ERROR;
+				status = CTF_MSG_ITER_STATUS_ERROR;
 			}
 
 			goto end;
@@ -3017,7 +3017,7 @@ enum bt_msg_iter_status bt_msg_iter_get_next_message(
 			*message = create_msg_stream_beginning(msg_it);
 
 			if (!*message) {
-				status = BT_MSG_ITER_STATUS_ERROR;
+				status = CTF_MSG_ITER_STATUS_ERROR;
 			}
 
 			goto end;
@@ -3026,12 +3026,12 @@ enum bt_msg_iter_status bt_msg_iter_get_next_message(
 			*message = create_msg_stream_end(msg_it);
 
 			if (!*message) {
-				status = BT_MSG_ITER_STATUS_ERROR;
+				status = CTF_MSG_ITER_STATUS_ERROR;
 			}
 
 			goto end;
 		case STATE_DONE:
-			status = BT_MSG_ITER_STATUS_EOF;
+			status = CTF_MSG_ITER_STATUS_EOF;
 			goto end;
 		default:
 			/* Non-emitting state: continue */
@@ -3044,10 +3044,10 @@ end:
 }
 
 static
-enum bt_msg_iter_status decode_until_state( struct bt_msg_iter *msg_it,
+enum ctf_msg_iter_status decode_until_state( struct ctf_msg_iter *msg_it,
 		enum state target_state_1, enum state target_state_2)
 {
-	enum bt_msg_iter_status status = BT_MSG_ITER_STATUS_OK;
+	enum ctf_msg_iter_status status = CTF_MSG_ITER_STATUS_OK;
 	bt_self_component *self_comp = msg_it->self_comp;
 
 	BT_ASSERT_DBG(msg_it);
@@ -3064,10 +3064,10 @@ enum bt_msg_iter_status decode_until_state( struct bt_msg_iter *msg_it,
 		}
 
 		status = handle_state(msg_it);
-		if (G_UNLIKELY(status == BT_MSG_ITER_STATUS_AGAIN)) {
-			BT_COMP_LOGD_STR("Medium returned BT_MSG_ITER_STATUS_AGAIN.");
+		if (G_UNLIKELY(status == CTF_MSG_ITER_STATUS_AGAIN)) {
+			BT_COMP_LOGD_STR("Medium returned CTF_MSG_ITER_STATUS_AGAIN.");
 			goto end;
-		} else if (G_UNLIKELY(status != BT_MSG_ITER_STATUS_OK)) {
+		} else if (G_UNLIKELY(status != CTF_MSG_ITER_STATUS_OK)) {
 			BT_COMP_LOGE_APPEND_CAUSE(self_comp,
 				"Cannot handle state: msg-it-addr=%p, state=%s",
 				msg_it, state_string(msg_it->state));
@@ -3123,20 +3123,20 @@ end:
 }
 
 static
-enum bt_msg_iter_status read_packet_header_context_fields(
-		struct bt_msg_iter *msg_it)
+enum ctf_msg_iter_status read_packet_header_context_fields(
+		struct ctf_msg_iter *msg_it)
 {
 	int ret;
-	enum bt_msg_iter_status status = BT_MSG_ITER_STATUS_OK;
+	enum ctf_msg_iter_status status = CTF_MSG_ITER_STATUS_OK;
 
 	status = decode_until_state(msg_it, STATE_EMIT_MSG_PACKET_BEGINNING, -1);
-	if (status != BT_MSG_ITER_STATUS_OK) {
+	if (status != CTF_MSG_ITER_STATUS_OK) {
 		goto end;
 	}
 
 	ret = set_current_packet_content_sizes(msg_it);
 	if (ret) {
-		status = BT_MSG_ITER_STATUS_ERROR;
+		status = CTF_MSG_ITER_STATUS_ERROR;
 		goto end;
 	}
 
@@ -3145,7 +3145,7 @@ end:
 }
 
 BT_HIDDEN
-void bt_msg_iter_set_medops_data(struct bt_msg_iter *msg_it,
+void ctf_msg_iter_set_medops_data(struct ctf_msg_iter *msg_it,
 		void *medops_data)
 {
 	BT_ASSERT(msg_it);
@@ -3153,40 +3153,40 @@ void bt_msg_iter_set_medops_data(struct bt_msg_iter *msg_it,
 }
 
 BT_HIDDEN
-enum bt_msg_iter_status bt_msg_iter_seek(struct bt_msg_iter *msg_it,
+enum ctf_msg_iter_status ctf_msg_iter_seek(struct ctf_msg_iter *msg_it,
 		off_t offset)
 {
-	enum bt_msg_iter_status status = BT_MSG_ITER_STATUS_OK;
+	enum ctf_msg_iter_status status = CTF_MSG_ITER_STATUS_OK;
 	bt_self_component *self_comp = msg_it->self_comp;
-	enum bt_msg_iter_medium_status medium_status;
+	enum ctf_msg_iter_medium_status medium_status;
 
 	BT_ASSERT(msg_it);
 	if (offset < 0) {
 		BT_COMP_LOGE_APPEND_CAUSE(self_comp,
 			"Cannot seek to negative offset: offset=%jd",
 			(intmax_t) offset);
-		status = BT_MSG_ITER_STATUS_INVAL;
+		status = CTF_MSG_ITER_STATUS_INVAL;
 		goto end;
 	}
 
 	if (!msg_it->medium.medops.seek) {
-		status = BT_MSG_ITER_STATUS_UNSUPPORTED;
+		status = CTF_MSG_ITER_STATUS_UNSUPPORTED;
 		BT_COMP_LOGD("Aborting seek as the iterator's underlying media does not implement seek support.");
 		goto end;
 	}
 
 	medium_status = msg_it->medium.medops.seek(
-		BT_MSG_ITER_SEEK_WHENCE_SET, offset, msg_it->medium.data);
-	if (medium_status != BT_MSG_ITER_MEDIUM_STATUS_OK) {
-		if (medium_status == BT_MSG_ITER_MEDIUM_STATUS_EOF) {
-			status = BT_MSG_ITER_STATUS_EOF;
+		CTF_MSG_ITER_SEEK_WHENCE_SET, offset, msg_it->medium.data);
+	if (medium_status != CTF_MSG_ITER_MEDIUM_STATUS_OK) {
+		if (medium_status == CTF_MSG_ITER_MEDIUM_STATUS_EOF) {
+			status = CTF_MSG_ITER_STATUS_EOF;
 		} else {
-			status = BT_MSG_ITER_STATUS_ERROR;
+			status = CTF_MSG_ITER_STATUS_ERROR;
 			goto end;
 		}
 	}
 
-	bt_msg_iter_reset(msg_it);
+	ctf_msg_iter_reset(msg_it);
 	msg_it->cur_packet_offset = offset;
 
 end:
@@ -3194,16 +3194,16 @@ end:
 }
 
 static
-enum bt_msg_iter_status clock_snapshot_at_msg_iter_state(
-		struct bt_msg_iter *msg_it, enum state target_state_1,
+enum ctf_msg_iter_status clock_snapshot_at_msg_iter_state(
+		struct ctf_msg_iter *msg_it, enum state target_state_1,
 		enum state target_state_2, uint64_t *clock_snapshot)
 {
-	enum bt_msg_iter_status status = BT_MSG_ITER_STATUS_OK;
+	enum ctf_msg_iter_status status = CTF_MSG_ITER_STATUS_OK;
 
 	BT_ASSERT_DBG(msg_it);
 	BT_ASSERT_DBG(clock_snapshot);
 	status = decode_until_state(msg_it, target_state_1, target_state_2);
-	if (status != BT_MSG_ITER_STATUS_OK) {
+	if (status != CTF_MSG_ITER_STATUS_OK) {
 		goto end;
 	}
 
@@ -3213,16 +3213,16 @@ end:
 }
 
 BT_HIDDEN
-enum bt_msg_iter_status bt_msg_iter_curr_packet_first_event_clock_snapshot(
-		struct bt_msg_iter *msg_it, uint64_t *first_clock_snapshot)
+enum ctf_msg_iter_status ctf_msg_iter_curr_packet_first_event_clock_snapshot(
+		struct ctf_msg_iter *msg_it, uint64_t *first_clock_snapshot)
 {
 	return clock_snapshot_at_msg_iter_state(msg_it,
 		STATE_AFTER_EVENT_HEADER, -1, first_clock_snapshot);
 }
 
 BT_HIDDEN
-enum bt_msg_iter_status bt_msg_iter_curr_packet_last_event_clock_snapshot(
-		struct bt_msg_iter *msg_it, uint64_t *last_clock_snapshot)
+enum ctf_msg_iter_status ctf_msg_iter_curr_packet_last_event_clock_snapshot(
+		struct ctf_msg_iter *msg_it, uint64_t *last_clock_snapshot)
 {
 	return clock_snapshot_at_msg_iter_state(msg_it,
 		STATE_EMIT_MSG_PACKET_END_SINGLE,
@@ -3230,16 +3230,16 @@ enum bt_msg_iter_status bt_msg_iter_curr_packet_last_event_clock_snapshot(
 }
 
 BT_HIDDEN
-enum bt_msg_iter_status bt_msg_iter_get_packet_properties(
-		struct bt_msg_iter *msg_it,
-		struct bt_msg_iter_packet_properties *props)
+enum ctf_msg_iter_status ctf_msg_iter_get_packet_properties(
+		struct ctf_msg_iter *msg_it,
+		struct ctf_msg_iter_packet_properties *props)
 {
-	enum bt_msg_iter_status status;
+	enum ctf_msg_iter_status status;
 
 	BT_ASSERT_DBG(msg_it);
 	BT_ASSERT_DBG(props);
 	status = read_packet_header_context_fields(msg_it);
-	if (status != BT_MSG_ITER_STATUS_OK) {
+	if (status != CTF_MSG_ITER_STATUS_OK) {
 		goto end;
 	}
 
@@ -3257,21 +3257,21 @@ end:
 }
 
 BT_HIDDEN
-void bt_msg_iter_set_emit_stream_beginning_message(struct bt_msg_iter *msg_it,
+void ctf_msg_iter_set_emit_stream_beginning_message(struct ctf_msg_iter *msg_it,
 		bool val)
 {
 	msg_it->emit_stream_begin_msg = val;
 }
 
 BT_HIDDEN
-void bt_msg_iter_set_emit_stream_end_message(struct bt_msg_iter *msg_it,
+void ctf_msg_iter_set_emit_stream_end_message(struct ctf_msg_iter *msg_it,
 		bool val)
 {
 	msg_it->emit_stream_end_msg = val;
 }
 
 BT_HIDDEN
-void bt_msg_iter_set_dry_run(struct bt_msg_iter *msg_it,
+void ctf_msg_iter_set_dry_run(struct ctf_msg_iter *msg_it,
 		bool val)
 {
 	msg_it->dry_run = val;
