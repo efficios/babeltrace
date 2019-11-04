@@ -4613,14 +4613,19 @@ struct bt_config *bt_config_cli_args_create(int argc, const char *argv[],
 
 			if (strcmp(item_non_opt->arg, "convert") == 0) {
 				command_type = COMMAND_TYPE_CONVERT;
+				command_name = "convert";
 			} else if (strcmp(item_non_opt->arg, "list-plugins") == 0) {
 				command_type = COMMAND_TYPE_LIST_PLUGINS;
+				command_name = "list-plugins";
 			} else if (strcmp(item_non_opt->arg, "help") == 0) {
 				command_type = COMMAND_TYPE_HELP;
+				command_name = "help";
 			} else if (strcmp(item_non_opt->arg, "query") == 0) {
 				command_type = COMMAND_TYPE_QUERY;
+				command_name = "query";
 			} else if (strcmp(item_non_opt->arg, "run") == 0) {
 				command_type = COMMAND_TYPE_RUN;
+				command_name = "run";
 			} else {
 				/*
 				 * Non-option argument, but not a known
