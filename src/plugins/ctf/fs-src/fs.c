@@ -127,17 +127,23 @@ bt_component_class_message_iterator_next_method_status ctf_fs_iterator_next_one(
 	BT_ASSERT_DBG(msg_iter_data->ds_file);
 
 	while (true) {
-		status = ctf_fs_ds_file_next(msg_iter_data->msg_iter, out_msg);
-		switch (status) {
-		case BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_OK:
-			goto end;
-		case BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_END:
-		{
-			int ret;
+		enum ctf_msg_iter_status msg_iter_status;
+		int ret;
 
+		msg_iter_status = ctf_msg_iter_get_next_message(
+			msg_iter_data->msg_iter, out_msg);
+
+		switch (msg_iter_status) {
+		case CTF_MSG_ITER_STATUS_OK:
+			/* Cool, message has been written to *out_msg. */
+			status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_OK;
+			goto end;
+
+		case CTF_MSG_ITER_STATUS_EOF:
 			if (msg_iter_data->ds_file_info_index ==
 					msg_iter_data->ds_file_group->ds_file_infos->len - 1) {
 				/* End of all group's stream files */
+				status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_END;
 				goto end;
 			}
 
@@ -157,10 +163,19 @@ bt_component_class_message_iterator_next_method_status ctf_fs_iterator_next_one(
 				goto end;
 			}
 
-			/* Continue the loop to get the next message */
+			/* Continue the loop to get the next message. */
 			break;
-		}
+
+		case CTF_MSG_ITER_STATUS_AGAIN:
+			/*
+			 * Should not make it this far as this is
+			 * medium-specific; there is nothing for the user to do
+			 * and it should have been handled upstream.
+			 */
+			bt_common_abort();
+
 		default:
+			status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_ERROR;
 			goto end;
 		}
 	}
