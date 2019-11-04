@@ -303,6 +303,7 @@ struct ctf_fs_ds_index *build_index_from_idx_file(
 	size_t i;
 	struct ctf_stream_class *sc;
 	struct ctf_msg_iter_packet_properties props;
+	uint32_t version_major, version_minor;
 
 	BT_COMP_LOGI("Building index from .idx file of stream file %s",
 			ds_file->file->path->str);
@@ -370,6 +371,16 @@ struct ctf_fs_ds_index *build_index_from_idx_file(
 	file_pos = g_mapped_file_get_contents(mapped_file) + sizeof(*header);
 	if (be32toh(header->magic) != CTF_INDEX_MAGIC) {
 		BT_COMP_LOGW_STR("Invalid LTTng trace index: \"magic\" field validation failed");
+		goto error;
+	}
+
+	version_major = be32toh(header->index_major);
+	version_minor = be32toh(header->index_minor);
+	if (version_major != 1) {
+		BT_COMP_LOGW(
+			"Unknown LTTng trace index version: "
+			"major=%" PRIu32 ", minor=%" PRIu32,
+			version_major, version_minor);
 		goto error;
 	}
 
