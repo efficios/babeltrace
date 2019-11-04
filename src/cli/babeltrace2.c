@@ -717,22 +717,21 @@ enum bt_cmd_status cmd_query(struct bt_config *cfg)
 		cfg->cmd_data.query.cfg_component->params,
 		&results, &fail_reason);
 	if (ret) {
-		goto failed;
+		BT_CLI_LOGE_APPEND_CAUSE(
+			"Failed to query component class: %s: plugin-name=\"%s\", "
+			"comp-cls-name=\"%s\", comp-cls-type=%d "
+			"object=\"%s\"", fail_reason,
+			cfg->cmd_data.query.cfg_component->plugin_name->str,
+			cfg->cmd_data.query.cfg_component->comp_cls_name->str,
+			cfg->cmd_data.query.cfg_component->type,
+			cfg->cmd_data.query.object->str);
+		goto error;
 	}
 
 	print_value(stdout, results, 0);
 	cmd_status = BT_CMD_STATUS_OK;
 	goto end;
 
-failed:
-	BT_CLI_LOGE_APPEND_CAUSE(
-		"Failed to query component class: %s: plugin-name=\"%s\", "
-		"comp-cls-name=\"%s\", comp-cls-type=%d "
-		"object=\"%s\"", fail_reason,
-		cfg->cmd_data.query.cfg_component->plugin_name->str,
-		cfg->cmd_data.query.cfg_component->comp_cls_name->str,
-		cfg->cmd_data.query.cfg_component->type,
-		cfg->cmd_data.query.object->str);
 error:
 	cmd_status = BT_CMD_STATUS_ERROR;
 
@@ -988,7 +987,9 @@ enum bt_cmd_status cmd_print_lttng_live_sessions(struct bt_config *cfg)
 	ret = query(cfg, comp_cls, "sessions", params,
 		    &results, &fail_reason);
 	if (ret) {
-		goto failed;
+		BT_CLI_LOGE_APPEND_CAUSE("Failed to query `sessions` object: %s",
+			fail_reason);
+		goto error;
 	}
 
 	BT_ASSERT(results);
@@ -1061,10 +1062,6 @@ enum bt_cmd_status cmd_print_lttng_live_sessions(struct bt_config *cfg)
 	cmd_status = BT_CMD_STATUS_OK;
 	goto end;
 
-failed:
-	BT_CLI_LOGE_APPEND_CAUSE("Failed to query `sessions` object: %s",
-		fail_reason);
-
 error:
 	cmd_status = BT_CMD_STATUS_ERROR;
 
@@ -1129,7 +1126,9 @@ enum bt_cmd_status cmd_print_ctf_metadata(struct bt_config *cfg)
 	ret = query(cfg, comp_cls, "metadata-info",
 		params, &results, &fail_reason);
 	if (ret) {
-		goto failed;
+		BT_CLI_LOGE_APPEND_CAUSE(
+			"Failed to query `metadata-info` object: %s", fail_reason);
+		goto error;
 	}
 
 	metadata_text_value = bt_value_map_borrow_entry_value_const(results,
@@ -1169,9 +1168,6 @@ enum bt_cmd_status cmd_print_ctf_metadata(struct bt_config *cfg)
 	cmd_status = BT_CMD_STATUS_OK;
 	goto end;
 
-failed:
-	BT_CLI_LOGE_APPEND_CAUSE(
-		"Failed to query `metadata-info` object: %s", fail_reason);
 error:
 	cmd_status = BT_CMD_STATUS_ERROR;
 
