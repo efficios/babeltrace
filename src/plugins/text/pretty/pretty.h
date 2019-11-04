@@ -117,4 +117,7 @@ BT_HIDDEN
 int pretty_print_discarded_items(struct pretty_component *pretty,
 		const bt_message *msg);
 
+BT_HIDDEN
+void pretty_print_init(void);
+
 #endif /* BABELTRACE_PLUGIN_TEXT_PRETTY_PRETTY_H */

@@ -37,15 +37,15 @@
 
 #define NSEC_PER_SEC 1000000000LL
 
-#define COLOR_NAME		BT_COMMON_COLOR_BOLD
-#define COLOR_FIELD_NAME	BT_COMMON_COLOR_FG_CYAN
-#define COLOR_RST		BT_COMMON_COLOR_RESET
-#define COLOR_STRING_VALUE	BT_COMMON_COLOR_BOLD
-#define COLOR_NUMBER_VALUE	BT_COMMON_COLOR_BOLD
-#define COLOR_ENUM_MAPPING_NAME	BT_COMMON_COLOR_BOLD
-#define COLOR_UNKNOWN		BT_COMMON_COLOR_BOLD BT_COMMON_COLOR_FG_RED
-#define COLOR_EVENT_NAME	BT_COMMON_COLOR_BOLD BT_COMMON_COLOR_FG_MAGENTA
-#define COLOR_TIMESTAMP		BT_COMMON_COLOR_BOLD BT_COMMON_COLOR_FG_YELLOW
+static char color_name[32];
+static char color_field_name[32];
+static char color_rst[32];
+static char color_string_value[32];
+static char color_number_value[32];
+static char color_enum_mapping_name[32];
+static char color_unknown[32];
+static char color_event_name[32];
+static char color_timestamp[32];
 
 struct timestamp {
 	int64_t real_timestamp;	/* Relative to UNIX epoch. */
@@ -60,9 +60,9 @@ static
 void print_name_equal(struct pretty_component *pretty, const char *name)
 {
 	if (pretty->use_colors) {
-		bt_common_g_string_append(pretty->string, COLOR_NAME);
+		bt_common_g_string_append(pretty->string, color_name);
 		bt_common_g_string_append(pretty->string, name);
-		bt_common_g_string_append(pretty->string, COLOR_RST);
+		bt_common_g_string_append(pretty->string, color_rst);
 	} else {
 		bt_common_g_string_append(pretty->string, name);
 	}
@@ -73,9 +73,9 @@ static
 void print_field_name_equal(struct pretty_component *pretty, const char *name)
 {
 	if (pretty->use_colors) {
-		bt_common_g_string_append(pretty->string, COLOR_FIELD_NAME);
+		bt_common_g_string_append(pretty->string, color_field_name);
 		bt_common_g_string_append(pretty->string, name);
-		bt_common_g_string_append(pretty->string, COLOR_RST);
+		bt_common_g_string_append(pretty->string, color_rst);
 	} else {
 		bt_common_g_string_append(pretty->string, name);
 	}
@@ -240,7 +240,7 @@ int print_event_timestamp(struct pretty_component *pretty,
 		bt_common_g_string_append(pretty->string, "[");
 	}
 	if (pretty->use_colors) {
-		bt_common_g_string_append(pretty->string, COLOR_TIMESTAMP);
+		bt_common_g_string_append(pretty->string, color_timestamp);
 	}
 	if (pretty->options.print_timestamp_cycles) {
 		print_timestamp_cycles(pretty, clock_snapshot, true);
@@ -248,7 +248,7 @@ int print_event_timestamp(struct pretty_component *pretty,
 		print_timestamp_wall(pretty, clock_snapshot, true);
 	}
 	if (pretty->use_colors) {
-		bt_common_g_string_append(pretty->string, COLOR_RST);
+		bt_common_g_string_append(pretty->string, color_rst);
 	}
 
 	if (!print_names)
@@ -490,10 +490,10 @@ int print_event_header(struct pretty_component *pretty,
 	if (pretty->use_colors) {
 		if (ev_name) {
 			bt_common_g_string_append(pretty->string,
-				COLOR_EVENT_NAME);
+				color_event_name);
 		} else {
 			bt_common_g_string_append(pretty->string,
-				COLOR_UNKNOWN);
+				color_unknown);
 		}
 	}
 	if (ev_name) {
@@ -502,7 +502,7 @@ int print_event_header(struct pretty_component *pretty,
 		bt_common_g_string_append(pretty->string, "<unknown>");
 	}
 	if (pretty->use_colors) {
-		bt_common_g_string_append(pretty->string, COLOR_RST);
+		bt_common_g_string_append(pretty->string, color_rst);
 	}
 	if (!print_names) {
 		bt_common_g_string_append(pretty->string, ": ");
@@ -539,7 +539,7 @@ int print_integer(struct pretty_component *pretty,
 	}
 
 	if (pretty->use_colors) {
-		bt_common_g_string_append(pretty->string, COLOR_NUMBER_VALUE);
+		bt_common_g_string_append(pretty->string, color_number_value);
 		rst_color = true;
 	}
 
@@ -609,7 +609,7 @@ int print_integer(struct pretty_component *pretty,
 	}
 end:
 	if (rst_color) {
-		bt_common_g_string_append(pretty->string, COLOR_RST);
+		bt_common_g_string_append(pretty->string, color_rst);
 	}
 	return ret;
 }
@@ -719,11 +719,11 @@ int print_enum(struct pretty_component *pretty,
 	bt_common_g_string_append(pretty->string, "( ");
 	if (label_count == 0) {
 		if (pretty->use_colors) {
-			bt_common_g_string_append(pretty->string, COLOR_UNKNOWN);
+			bt_common_g_string_append(pretty->string, color_unknown);
 		}
 		bt_common_g_string_append(pretty->string, "<unknown>");
 		if (pretty->use_colors) {
-			bt_common_g_string_append(pretty->string, COLOR_RST);
+			bt_common_g_string_append(pretty->string, color_rst);
 		}
 		goto skip_loop;
 	}
@@ -734,11 +734,11 @@ int print_enum(struct pretty_component *pretty,
 			bt_common_g_string_append(pretty->string, ", ");
 		}
 		if (pretty->use_colors) {
-			bt_common_g_string_append(pretty->string, COLOR_ENUM_MAPPING_NAME);
+			bt_common_g_string_append(pretty->string, color_enum_mapping_name);
 		}
 		print_escape_string(pretty, mapping_name);
 		if (pretty->use_colors) {
-			bt_common_g_string_append(pretty->string, COLOR_RST);
+			bt_common_g_string_append(pretty->string, color_rst);
 		}
 	}
 skip_loop:
@@ -984,7 +984,7 @@ int print_field(struct pretty_component *pretty,
 
 		v = bt_field_bool_get_value(field);
 		if (pretty->use_colors) {
-			bt_common_g_string_append(pretty->string, COLOR_NUMBER_VALUE);
+			bt_common_g_string_append(pretty->string, color_number_value);
 		}
 		if (v) {
 			text = "true";
@@ -993,7 +993,7 @@ int print_field(struct pretty_component *pretty,
 		}
 		bt_common_g_string_append(pretty->string, text);
 		if (pretty->use_colors) {
-			bt_common_g_string_append(pretty->string, COLOR_RST);
+			bt_common_g_string_append(pretty->string, color_rst);
 		}
 		return 0;
 	} else if (class_id == BT_FIELD_CLASS_TYPE_BIT_ARRAY) {
@@ -1001,12 +1001,12 @@ int print_field(struct pretty_component *pretty,
 
 		if (pretty->use_colors) {
 			bt_common_g_string_append(pretty->string,
-				COLOR_NUMBER_VALUE);
+				color_number_value);
 		}
 		bt_common_g_string_append_printf(pretty->string, "0x%" PRIX64,
 			v);
 		if (pretty->use_colors) {
-			bt_common_g_string_append(pretty->string, COLOR_RST);
+			bt_common_g_string_append(pretty->string, color_rst);
 		}
 		return 0;
 	} else if (bt_field_class_type_is(class_id,
@@ -1026,11 +1026,11 @@ int print_field(struct pretty_component *pretty,
 		}
 
 		if (pretty->use_colors) {
-			bt_common_g_string_append(pretty->string, COLOR_NUMBER_VALUE);
+			bt_common_g_string_append(pretty->string, color_number_value);
 		}
 		bt_common_g_string_append_printf(pretty->string, "%g", v);
 		if (pretty->use_colors) {
-			bt_common_g_string_append(pretty->string, COLOR_RST);
+			bt_common_g_string_append(pretty->string, color_rst);
 		}
 		return 0;
 	} else if (class_id == BT_FIELD_CLASS_TYPE_STRING) {
@@ -1042,11 +1042,11 @@ int print_field(struct pretty_component *pretty,
 		}
 
 		if (pretty->use_colors) {
-			bt_common_g_string_append(pretty->string, COLOR_STRING_VALUE);
+			bt_common_g_string_append(pretty->string, color_string_value);
 		}
 		print_escape_string(pretty, str);
 		if (pretty->use_colors) {
-			bt_common_g_string_append(pretty->string, COLOR_RST);
+			bt_common_g_string_append(pretty->string, color_rst);
 		}
 		return 0;
 	} else if (class_id == BT_FIELD_CLASS_TYPE_STRUCTURE) {
@@ -1417,4 +1417,21 @@ int pretty_print_discarded_items(struct pretty_component *pretty,
 	print_discarded_elements_msg(pretty, stream, begin, end,
 		count, elem_type);
 	return 0;
+}
+
+BT_HIDDEN
+void pretty_print_init(void)
+{
+	strcpy(color_name, bt_common_color_bold());
+	strcpy(color_field_name, bt_common_color_fg_cyan());
+	strcpy(color_rst, bt_common_color_reset());
+	strcpy(color_string_value, bt_common_color_bold());
+	strcpy(color_number_value, bt_common_color_bold());
+	strcpy(color_enum_mapping_name, bt_common_color_bold());
+	strcpy(color_unknown, bt_common_color_bold());
+	strcat(color_unknown, bt_common_color_fg_bright_red());
+	strcpy(color_event_name, bt_common_color_bold());
+	strcat(color_event_name, bt_common_color_fg_bright_magenta());
+	strcpy(color_timestamp, bt_common_color_bold());
+	strcat(color_timestamp, bt_common_color_fg_bright_yellow());
 }

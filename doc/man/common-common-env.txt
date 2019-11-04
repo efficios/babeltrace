@@ -25,3 +25,9 @@ The available values are:
 `ALWAYS`::
     Always emit terminal color codes.
 --
+
+`BABELTRACE_TERM_COLOR_BRIGHT_MEANS_BOLD`=`0`::
+    Set to `0` to emit
+    https://en.wikipedia.org/wiki/ANSI_escape_code[SGR]
+    codes 90 to 97 for bright colors instead of
+    bold (SGR code~1) and standard color codes (SGR codes 30 to 37).
