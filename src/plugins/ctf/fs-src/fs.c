@@ -92,7 +92,7 @@ void ctf_fs_msg_iter_data_destroy(
 	ctf_fs_ds_file_destroy(msg_iter_data->ds_file);
 
 	if (msg_iter_data->msg_iter) {
-		bt_msg_iter_destroy(msg_iter_data->msg_iter);
+		ctf_msg_iter_destroy(msg_iter_data->msg_iter);
 	}
 
 	g_free(msg_iter_data);
@@ -102,10 +102,10 @@ static
 void set_msg_iter_emits_stream_beginning_end_messages(
 		struct ctf_fs_msg_iter_data *msg_iter_data)
 {
-	bt_msg_iter_set_emit_stream_beginning_message(
+	ctf_msg_iter_set_emit_stream_beginning_message(
 		msg_iter_data->ds_file->msg_iter,
 		msg_iter_data->ds_file_info_index == 0);
-	bt_msg_iter_set_emit_stream_end_message(
+	ctf_msg_iter_set_emit_stream_end_message(
 		msg_iter_data->ds_file->msg_iter,
 		msg_iter_data->ds_file_info_index ==
 			msg_iter_data->ds_file_group->ds_file_infos->len - 1);
@@ -140,7 +140,7 @@ bt_component_class_message_iterator_next_method_status ctf_fs_iterator_next_one(
 			}
 
 			msg_iter_data->ds_file_info_index++;
-			bt_msg_iter_reset_for_next_stream_file(
+			ctf_msg_iter_reset_for_next_stream_file(
 				msg_iter_data->msg_iter);
 			set_msg_iter_emits_stream_beginning_end_messages(
 				msg_iter_data);
@@ -217,7 +217,7 @@ int ctf_fs_iterator_reset(struct ctf_fs_msg_iter_data *msg_iter_data)
 		goto end;
 	}
 
-	bt_msg_iter_reset(msg_iter_data->msg_iter);
+	ctf_msg_iter_reset(msg_iter_data->msg_iter);
 	set_msg_iter_emits_stream_beginning_end_messages(msg_iter_data);
 
 end:
@@ -277,7 +277,7 @@ bt_component_class_message_iterator_initialize_method_status ctf_fs_iterator_ini
 	msg_iter_data->log_level = log_level;
 	msg_iter_data->self_comp = self_comp;
 	msg_iter_data->self_msg_iter = self_msg_iter;
-	msg_iter_data->msg_iter = bt_msg_iter_create(
+	msg_iter_data->msg_iter = ctf_msg_iter_create(
 		port_data->ds_file_group->ctf_fs_trace->metadata->tc,
 		bt_common_get_page_size(msg_iter_data->log_level) * 8,
 		ctf_fs_ds_file_medops, NULL, msg_iter_data->log_level,
@@ -729,14 +729,14 @@ int add_ds_file_to_ds_file_group(struct ctf_fs_trace *ctf_fs_trace,
 	struct ctf_fs_ds_file *ds_file = NULL;
 	struct ctf_fs_ds_file_info *ds_file_info = NULL;
 	struct ctf_fs_ds_index *index = NULL;
-	struct bt_msg_iter *msg_iter = NULL;
+	struct ctf_msg_iter *msg_iter = NULL;
 	struct ctf_stream_class *sc = NULL;
-	struct bt_msg_iter_packet_properties props;
+	struct ctf_msg_iter_packet_properties props;
 	bt_logging_level log_level = ctf_fs_trace->log_level;
 	bt_self_component *self_comp = ctf_fs_trace->self_comp;
 	bt_self_component_class *self_comp_class = ctf_fs_trace->self_comp_class;
 
-	msg_iter = bt_msg_iter_create(ctf_fs_trace->metadata->tc,
+	msg_iter = ctf_msg_iter_create(ctf_fs_trace->metadata->tc,
 		bt_common_get_page_size(log_level) * 8,
 		ctf_fs_ds_file_medops, NULL, log_level, self_comp);
 	if (!msg_iter) {
@@ -750,7 +750,7 @@ int add_ds_file_to_ds_file_group(struct ctf_fs_trace *ctf_fs_trace,
 		goto error;
 	}
 
-	ret = bt_msg_iter_get_packet_properties(ds_file->msg_iter, &props);
+	ret = ctf_msg_iter_get_packet_properties(ds_file->msg_iter, &props);
 	if (ret) {
 		BT_COMP_OR_COMP_CLASS_LOGE_APPEND_CAUSE(self_comp, self_comp_class,
 			"Cannot get stream file's first packet's header and context fields (`%s`).",
@@ -875,7 +875,7 @@ end:
 	ctf_fs_ds_file_info_destroy(ds_file_info);
 
 	if (msg_iter) {
-		bt_msg_iter_destroy(msg_iter);
+		ctf_msg_iter_destroy(msg_iter);
 	}
 
 	ctf_fs_ds_index_destroy(index);
@@ -1429,9 +1429,9 @@ int decode_clock_snapshot_after_event(struct ctf_fs_trace *ctf_fs_trace,
 	struct ctf_fs_ds_index_entry *index_entry,
 	enum target_event target_event, uint64_t *cs, int64_t *ts_ns)
 {
-	enum bt_msg_iter_status iter_status = BT_MSG_ITER_STATUS_OK;
+	enum ctf_msg_iter_status iter_status = CTF_MSG_ITER_STATUS_OK;
 	struct ctf_fs_ds_file *ds_file = NULL;
-	struct bt_msg_iter *msg_iter = NULL;
+	struct ctf_msg_iter *msg_iter = NULL;
 	bt_logging_level log_level = ctf_fs_trace->log_level;
 	bt_self_component *self_comp = ctf_fs_trace->self_comp;
 	int ret = 0;
@@ -1440,11 +1440,11 @@ int decode_clock_snapshot_after_event(struct ctf_fs_trace *ctf_fs_trace,
 	BT_ASSERT(ctf_fs_trace->metadata);
 	BT_ASSERT(ctf_fs_trace->metadata->tc);
 
-	msg_iter = bt_msg_iter_create(ctf_fs_trace->metadata->tc,
+	msg_iter = ctf_msg_iter_create(ctf_fs_trace->metadata->tc,
 		bt_common_get_page_size(log_level) * 8, ctf_fs_ds_file_medops,
 		NULL, log_level, self_comp);
 	if (!msg_iter) {
-		/* bt_msg_iter_create() logs errors. */
+		/* ctf_msg_iter_create() logs errors. */
 		ret = -1;
 		goto end;
 	}
@@ -1464,12 +1464,12 @@ int decode_clock_snapshot_after_event(struct ctf_fs_trace *ctf_fs_trace,
 	 * Turn on dry run mode to prevent the creation and usage of Babeltrace
 	 * library objects (bt_field, bt_message_*, etc.).
 	 */
-	bt_msg_iter_set_dry_run(msg_iter, true);
+	ctf_msg_iter_set_dry_run(msg_iter, true);
 
 	/* Seek to the beginning of the target packet. */
-	iter_status = bt_msg_iter_seek(ds_file->msg_iter, index_entry->offset);
+	iter_status = ctf_msg_iter_seek(ds_file->msg_iter, index_entry->offset);
 	if (iter_status) {
-		/* bt_msg_iter_seek() logs errors. */
+		/* ctf_msg_iter_seek() logs errors. */
 		ret = -1;
 		goto end;
 	}
@@ -1481,12 +1481,12 @@ int decode_clock_snapshot_after_event(struct ctf_fs_trace *ctf_fs_trace,
 		 * the first event. To extract the first event's clock
 		 * snapshot.
 		 */
-		iter_status = bt_msg_iter_curr_packet_first_event_clock_snapshot(
+		iter_status = ctf_msg_iter_curr_packet_first_event_clock_snapshot(
 			ds_file->msg_iter, cs);
 		break;
 	case LAST_EVENT:
 		/* Decode the packet to extract the last event's clock snapshot. */
-		iter_status = bt_msg_iter_curr_packet_last_event_clock_snapshot(
+		iter_status = ctf_msg_iter_curr_packet_last_event_clock_snapshot(
 			ds_file->msg_iter, cs);
 		break;
 	default:
@@ -1512,7 +1512,7 @@ end:
 		ctf_fs_ds_file_destroy(ds_file);
 	}
 	if (msg_iter) {
-		bt_msg_iter_destroy(msg_iter);
+		ctf_msg_iter_destroy(msg_iter);
 	}
 
 	return ret;

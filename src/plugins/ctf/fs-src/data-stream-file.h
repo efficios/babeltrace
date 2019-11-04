@@ -66,7 +66,7 @@ struct ctf_fs_ds_file {
 	bt_stream *stream;
 
 	/* Weak */
-	struct bt_msg_iter *msg_iter;
+	struct ctf_msg_iter *msg_iter;
 
 	void *mmap_addr;
 
@@ -95,7 +95,7 @@ BT_HIDDEN
 struct ctf_fs_ds_file *ctf_fs_ds_file_create(
 		struct ctf_fs_trace *ctf_fs_trace,
 		bt_self_message_iterator *pc_msg_iter,
-		struct bt_msg_iter *msg_iter,
+		struct ctf_msg_iter *msg_iter,
 		bt_stream *stream, const char *path,
 		bt_logging_level log_level);
 
@@ -119,6 +119,6 @@ struct ctf_fs_ds_index *ctf_fs_ds_index_create(bt_logging_level log_level,
 BT_HIDDEN
 void ctf_fs_ds_index_destroy(struct ctf_fs_ds_index *index);
 
-extern struct bt_msg_iter_medium_ops ctf_fs_ds_file_medops;
+extern struct ctf_msg_iter_medium_ops ctf_fs_ds_file_medops;
 
 #endif /* CTF_FS_DS_FILE_H */

@@ -193,7 +193,7 @@ struct ctf_fs_msg_iter_data {
 	size_t ds_file_info_index;
 
 	/* Owned by this */
-	struct bt_msg_iter *msg_iter;
+	struct ctf_msg_iter *msg_iter;
 };
 
 BT_HIDDEN

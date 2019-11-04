@@ -77,11 +77,11 @@ end:
 }
 
 static
-enum bt_msg_iter_medium_status ds_file_mmap_next(
+enum ctf_msg_iter_medium_status ds_file_mmap_next(
 		struct ctf_fs_ds_file *ds_file)
 {
-	enum bt_msg_iter_medium_status ret =
-			BT_MSG_ITER_MEDIUM_STATUS_OK;
+	enum ctf_msg_iter_medium_status ret =
+			CTF_MSG_ITER_MEDIUM_STATUS_OK;
 
 	/* Unmap old region */
 	if (ds_file->mmap_addr) {
@@ -101,7 +101,7 @@ enum bt_msg_iter_medium_status ds_file_mmap_next(
 	ds_file->mmap_len = MIN(ds_file->file->size - ds_file->mmap_offset,
 			ds_file->mmap_max_len);
 	if (ds_file->mmap_len == 0) {
-		ret = BT_MSG_ITER_MEDIUM_STATUS_EOF;
+		ret = CTF_MSG_ITER_MEDIUM_STATUS_EOF;
 		goto end;
 	}
 	/* Map new region */
@@ -120,18 +120,18 @@ enum bt_msg_iter_medium_status ds_file_mmap_next(
 	goto end;
 error:
 	ds_file_munmap(ds_file);
-	ret = BT_MSG_ITER_MEDIUM_STATUS_ERROR;
+	ret = CTF_MSG_ITER_MEDIUM_STATUS_ERROR;
 end:
 	return ret;
 }
 
 static
-enum bt_msg_iter_medium_status medop_request_bytes(
+enum ctf_msg_iter_medium_status medop_request_bytes(
 		size_t request_sz, uint8_t **buffer_addr,
 		size_t *buffer_sz, void *data)
 {
-	enum bt_msg_iter_medium_status status =
-		BT_MSG_ITER_MEDIUM_STATUS_OK;
+	enum ctf_msg_iter_medium_status status =
+		CTF_MSG_ITER_MEDIUM_STATUS_OK;
 	struct ctf_fs_ds_file *ds_file = data;
 
 	if (request_sz == 0) {
@@ -147,15 +147,15 @@ enum bt_msg_iter_medium_status medop_request_bytes(
 		if (ds_file->mmap_offset >= ds_file->file->size) {
 			BT_COMP_LOGD("Reached end of file \"%s\" (%p)",
 				ds_file->file->path->str, ds_file->file->fp);
-			status = BT_MSG_ITER_MEDIUM_STATUS_EOF;
+			status = CTF_MSG_ITER_MEDIUM_STATUS_EOF;
 			goto end;
 		}
 
 		status = ds_file_mmap_next(ds_file);
 		switch (status) {
-		case BT_MSG_ITER_MEDIUM_STATUS_OK:
+		case CTF_MSG_ITER_MEDIUM_STATUS_OK:
 			break;
-		case BT_MSG_ITER_MEDIUM_STATUS_EOF:
+		case CTF_MSG_ITER_MEDIUM_STATUS_EOF:
 			goto end;
 		default:
 			BT_COMP_LOGE("Cannot memory-map next region of file \"%s\" (%p)",
@@ -172,7 +172,7 @@ enum bt_msg_iter_medium_status medop_request_bytes(
 	goto end;
 
 error:
-	status = BT_MSG_ITER_MEDIUM_STATUS_ERROR;
+	status = CTF_MSG_ITER_MEDIUM_STATUS_ERROR;
 
 end:
 	return status;
@@ -204,20 +204,20 @@ end:
 }
 
 static
-enum bt_msg_iter_medium_status medop_seek(enum bt_msg_iter_seek_whence whence,
+enum ctf_msg_iter_medium_status medop_seek(enum ctf_msg_iter_seek_whence whence,
 		off_t offset, void *data)
 {
-	enum bt_msg_iter_medium_status ret =
-			BT_MSG_ITER_MEDIUM_STATUS_OK;
+	enum ctf_msg_iter_medium_status ret =
+			CTF_MSG_ITER_MEDIUM_STATUS_OK;
 	struct ctf_fs_ds_file *ds_file = data;
 	off_t offset_in_mapping, file_size = ds_file->file->size;
 
-	if (whence != BT_MSG_ITER_SEEK_WHENCE_SET ||
+	if (whence != CTF_MSG_ITER_SEEK_WHENCE_SET ||
 		offset < 0 || offset > file_size) {
 		BT_COMP_LOGE("Invalid medium seek request: whence=%d, offset=%jd, "
 				"file-size=%jd", (int) whence, (intmax_t) offset,
 				(intmax_t) file_size);
-		ret = BT_MSG_ITER_MEDIUM_STATUS_INVAL;
+		ret = CTF_MSG_ITER_MEDIUM_STATUS_INVAL;
 		goto end;
 	}
 
@@ -239,7 +239,7 @@ enum bt_msg_iter_medium_status medop_seek(enum bt_msg_iter_seek_whence whence,
 				ds_file->mmap_len);
 		unmap_ret = ds_file_munmap(ds_file);
 		if (unmap_ret) {
-			ret = BT_MSG_ITER_MEDIUM_STATUS_ERROR;
+			ret = CTF_MSG_ITER_MEDIUM_STATUS_ERROR;
 			goto end;
 		}
 		goto map_requested_offset;
@@ -255,7 +255,7 @@ map_requested_offset:
 	ds_file->mmap_offset = offset - offset_in_mapping;
 	ds_file->request_offset = offset_in_mapping;
 	ret = ds_file_mmap_next(ds_file);
-	if (ret != BT_MSG_ITER_MEDIUM_STATUS_OK) {
+	if (ret != CTF_MSG_ITER_MEDIUM_STATUS_OK) {
 		goto end;
 	}
 
@@ -266,7 +266,7 @@ end:
 }
 
 BT_HIDDEN
-struct bt_msg_iter_medium_ops ctf_fs_ds_file_medops = {
+struct ctf_msg_iter_medium_ops ctf_fs_ds_file_medops = {
 	.request_bytes = medop_request_bytes,
 	.borrow_stream = medop_borrow_stream,
 	.seek = medop_seek,
@@ -302,11 +302,11 @@ struct ctf_fs_ds_index *build_index_from_idx_file(
 	size_t file_entry_count;
 	size_t i;
 	struct ctf_stream_class *sc;
-	struct bt_msg_iter_packet_properties props;
+	struct ctf_msg_iter_packet_properties props;
 
 	BT_COMP_LOGI("Building index from .idx file of stream file %s",
 			ds_file->file->path->str);
-	ret = bt_msg_iter_get_packet_properties(ds_file->msg_iter, &props);
+	ret = ctf_msg_iter_get_packet_properties(ds_file->msg_iter, &props);
 	if (ret) {
 		BT_COMP_LOGI_STR("Cannot read first packet's header and context fields.");
 		goto error;
@@ -482,7 +482,7 @@ error:
 static
 int init_index_entry(struct ctf_fs_ds_index_entry *entry,
 		struct ctf_fs_ds_file *ds_file,
-		struct bt_msg_iter_packet_properties *props,
+		struct ctf_msg_iter_packet_properties *props,
 		off_t packet_size, off_t packet_offset)
 {
 	int ret = 0;
@@ -539,7 +539,7 @@ struct ctf_fs_ds_index *build_index_from_stream_file(
 {
 	int ret;
 	struct ctf_fs_ds_index *index = NULL;
-	enum bt_msg_iter_status iter_status = BT_MSG_ITER_STATUS_OK;
+	enum ctf_msg_iter_status iter_status = CTF_MSG_ITER_STATUS_OK;
 	off_t current_packet_offset_bytes = 0;
 
 	BT_COMP_LOGI("Indexing stream file %s", ds_file->file->path->str);
@@ -552,7 +552,7 @@ struct ctf_fs_ds_index *build_index_from_stream_file(
 	while (true) {
 		off_t current_packet_size_bytes;
 		struct ctf_fs_ds_index_entry *index_entry;
-		struct bt_msg_iter_packet_properties props;
+		struct ctf_msg_iter_packet_properties props;
 
 		if (current_packet_offset_bytes < 0) {
 			BT_COMP_LOGE_STR("Cannot get the current packet's offset.");
@@ -565,15 +565,15 @@ struct ctf_fs_ds_index *build_index_from_stream_file(
 			break;
 		}
 
-		iter_status = bt_msg_iter_seek(ds_file->msg_iter,
+		iter_status = ctf_msg_iter_seek(ds_file->msg_iter,
 				current_packet_offset_bytes);
-		if (iter_status != BT_MSG_ITER_STATUS_OK) {
+		if (iter_status != CTF_MSG_ITER_STATUS_OK) {
 			goto error;
 		}
 
-		iter_status = bt_msg_iter_get_packet_properties(
+		iter_status = ctf_msg_iter_get_packet_properties(
 			ds_file->msg_iter, &props);
-		if (iter_status != BT_MSG_ITER_STATUS_OK) {
+		if (iter_status != CTF_MSG_ITER_STATUS_OK) {
 			goto error;
 		}
 
@@ -634,7 +634,7 @@ BT_HIDDEN
 struct ctf_fs_ds_file *ctf_fs_ds_file_create(
 		struct ctf_fs_trace *ctf_fs_trace,
 		bt_self_message_iterator *pc_msg_iter,
-		struct bt_msg_iter *msg_iter,
+		struct ctf_msg_iter *msg_iter,
 		bt_stream *stream, const char *path,
 		bt_logging_level log_level)
 {
@@ -664,7 +664,7 @@ struct ctf_fs_ds_file *ctf_fs_ds_file_create(
 	}
 
 	ds_file->msg_iter = msg_iter;
-	bt_msg_iter_set_medops_data(ds_file->msg_iter, ds_file);
+	ctf_msg_iter_set_medops_data(ds_file->msg_iter, ds_file);
 	if (!ds_file->msg_iter) {
 		goto error;
 	}
@@ -751,28 +751,28 @@ bt_component_class_message_iterator_next_method_status ctf_fs_ds_file_next(
 		struct ctf_fs_ds_file *ds_file,
 		bt_message **msg)
 {
-	enum bt_msg_iter_status msg_iter_status;
+	enum ctf_msg_iter_status msg_iter_status;
 	bt_component_class_message_iterator_next_method_status status;
 
-	msg_iter_status = bt_msg_iter_get_next_message(
+	msg_iter_status = ctf_msg_iter_get_next_message(
 		ds_file->msg_iter, ds_file->self_msg_iter, msg);
 
 	switch (msg_iter_status) {
-	case BT_MSG_ITER_STATUS_EOF:
+	case CTF_MSG_ITER_STATUS_EOF:
 		status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_END;
 		break;
-	case BT_MSG_ITER_STATUS_OK:
+	case CTF_MSG_ITER_STATUS_OK:
 		status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_OK;
 		break;
-	case BT_MSG_ITER_STATUS_AGAIN:
+	case CTF_MSG_ITER_STATUS_AGAIN:
 		/*
 		 * Should not make it this far as this is
 		 * medium-specific; there is nothing for the user to do
 		 * and it should have been handled upstream.
 		 */
 		bt_common_abort();
-	case BT_MSG_ITER_STATUS_INVAL:
-	case BT_MSG_ITER_STATUS_ERROR:
+	case CTF_MSG_ITER_STATUS_INVAL:
+	case CTF_MSG_ITER_STATUS_ERROR:
 	default:
 		status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_ERROR;
 		break;

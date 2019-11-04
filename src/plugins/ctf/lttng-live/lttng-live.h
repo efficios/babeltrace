@@ -79,7 +79,7 @@ struct lttng_live_stream_iterator {
 	 * Since only a single iterator per viewer connection, we have
 	 * only a single message iterator per stream.
 	 */
-	struct bt_msg_iter *msg_iter;
+	struct ctf_msg_iter *msg_iter;
 
 	uint64_t viewer_stream_id;
 
@@ -333,7 +333,7 @@ enum lttng_live_iterator_status lttng_live_get_next_index(
 		struct lttng_live_stream_iterator *stream,
 		struct packet_index *index);
 
-enum bt_msg_iter_medium_status lttng_live_get_stream_bytes(
+enum ctf_msg_iter_medium_status lttng_live_get_stream_bytes(
 		struct lttng_live_msg_iter *lttng_live_msg_iter,
 		struct lttng_live_stream_iterator *stream, uint8_t *buf,
 		uint64_t offset, uint64_t req_len, uint64_t *recv_len);
