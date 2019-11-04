@@ -799,7 +799,7 @@ void ctf_fs_ds_file_destroy(struct ctf_fs_ds_file *ds_file)
 BT_HIDDEN
 bt_component_class_message_iterator_next_method_status ctf_fs_ds_file_next(
 		struct ctf_msg_iter *msg_iter,
-		bt_message **msg)
+		const bt_message **msg)
 {
 	enum ctf_msg_iter_status msg_iter_status;
 	bt_component_class_message_iterator_next_method_status status;

@@ -2916,7 +2916,7 @@ void ctf_msg_iter_destroy(struct ctf_msg_iter *msg_it)
 
 enum ctf_msg_iter_status ctf_msg_iter_get_next_message(
 		struct ctf_msg_iter *msg_it,
-		bt_message **message)
+		const bt_message **message)
 {
 	enum ctf_msg_iter_status status = CTF_MSG_ITER_STATUS_OK;
 	bt_self_component *self_comp = msg_it->self_comp;
