@@ -797,39 +797,6 @@ void ctf_fs_ds_file_destroy(struct ctf_fs_ds_file *ds_file)
 }
 
 BT_HIDDEN
-bt_component_class_message_iterator_next_method_status ctf_fs_ds_file_next(
-		struct ctf_msg_iter *msg_iter,
-		const bt_message **msg)
-{
-	enum ctf_msg_iter_status msg_iter_status;
-	bt_component_class_message_iterator_next_method_status status;
-
-	msg_iter_status = ctf_msg_iter_get_next_message(msg_iter, msg);
-
-	switch (msg_iter_status) {
-	case CTF_MSG_ITER_STATUS_EOF:
-		status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_END;
-		break;
-	case CTF_MSG_ITER_STATUS_OK:
-		status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_OK;
-		break;
-	case CTF_MSG_ITER_STATUS_AGAIN:
-		/*
-		 * Should not make it this far as this is
-		 * medium-specific; there is nothing for the user to do
-		 * and it should have been handled upstream.
-		 */
-		bt_common_abort();
-	case CTF_MSG_ITER_STATUS_INVAL:
-	case CTF_MSG_ITER_STATUS_ERROR:
-	default:
-		status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_ERROR;
-		break;
-	}
-	return status;
-}
-
-BT_HIDDEN
 void ctf_fs_ds_index_destroy(struct ctf_fs_ds_index *index)
 {
 	if (!index) {
