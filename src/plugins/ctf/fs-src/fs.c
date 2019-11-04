@@ -66,17 +66,23 @@ int msg_iter_data_set_current_ds_file(struct ctf_fs_msg_iter_data *msg_iter_data
 		msg_iter_data->ds_file_group->ds_file_infos,
 		msg_iter_data->ds_file_info_index);
 
+	/* Destroy the previous ds file. */
 	ctf_fs_ds_file_destroy(msg_iter_data->ds_file);
+
+	/* Create the new ds file. */
 	msg_iter_data->ds_file = ctf_fs_ds_file_create(
 		msg_iter_data->ds_file_group->ctf_fs_trace,
 		msg_iter_data->self_msg_iter,
-		msg_iter_data->msg_iter,
 		msg_iter_data->ds_file_group->stream,
 		ds_file_info->path->str,
 		msg_iter_data->log_level);
 	if (!msg_iter_data->ds_file) {
 		ret = -1;
 	}
+
+	/* Tell the ctf message iterator to iterate on the new ds file. */
+	ctf_msg_iter_set_medops_data(msg_iter_data->msg_iter,
+		msg_iter_data->ds_file);
 
 	return ret;
 }
@@ -103,10 +109,10 @@ void set_msg_iter_emits_stream_beginning_end_messages(
 		struct ctf_fs_msg_iter_data *msg_iter_data)
 {
 	ctf_msg_iter_set_emit_stream_beginning_message(
-		msg_iter_data->ds_file->msg_iter,
+		msg_iter_data->msg_iter,
 		msg_iter_data->ds_file_info_index == 0);
 	ctf_msg_iter_set_emit_stream_end_message(
-		msg_iter_data->ds_file->msg_iter,
+		msg_iter_data->msg_iter,
 		msg_iter_data->ds_file_info_index ==
 			msg_iter_data->ds_file_group->ds_file_infos->len - 1);
 }
@@ -123,7 +129,7 @@ bt_component_class_message_iterator_next_method_status ctf_fs_iterator_next_one(
 	while (true) {
 		bt_message *msg;
 
-		status = ctf_fs_ds_file_next(msg_iter_data->ds_file, &msg);
+		status = ctf_fs_ds_file_next(msg_iter_data->msg_iter, &msg);
 		switch (status) {
 		case BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_OK:
 			*out_msg = msg;
@@ -803,21 +809,26 @@ int add_ds_file_to_ds_file_group(struct ctf_fs_trace *ctf_fs_trace,
 	bt_self_component *self_comp = ctf_fs_trace->self_comp;
 	bt_self_component_class *self_comp_class = ctf_fs_trace->self_comp_class;
 
+	/*
+	 * Create a temporary ds_file to read some properties about the data
+	 * stream file.
+	 */
+	ds_file = ctf_fs_ds_file_create(ctf_fs_trace, NULL, NULL, path,
+		log_level);
+	if (!ds_file) {
+		goto error;
+	}
+
+	/* Create a temporary iterator to read the ds_file. */
 	msg_iter = ctf_msg_iter_create(ctf_fs_trace->metadata->tc,
 		bt_common_get_page_size(log_level) * 8,
-		ctf_fs_ds_file_medops, NULL, log_level, self_comp, NULL);
+		ctf_fs_ds_file_medops, ds_file, log_level, self_comp, NULL);
 	if (!msg_iter) {
 		BT_COMP_LOGE_STR("Cannot create a CTF message iterator.");
 		goto error;
 	}
 
-	ds_file = ctf_fs_ds_file_create(ctf_fs_trace, NULL, msg_iter,
-		NULL, path, log_level);
-	if (!ds_file) {
-		goto error;
-	}
-
-	ret = ctf_msg_iter_get_packet_properties(ds_file->msg_iter, &props);
+	ret = ctf_msg_iter_get_packet_properties(msg_iter, &props);
 	if (ret) {
 		BT_COMP_OR_COMP_CLASS_LOGE_APPEND_CAUSE(self_comp, self_comp_class,
 			"Cannot get stream file's first packet's header and context fields (`%s`).",
@@ -850,7 +861,7 @@ int add_ds_file_to_ds_file_group(struct ctf_fs_trace *ctf_fs_trace,
 		goto error;
 	}
 
-	index = ctf_fs_ds_file_build_index(ds_file, ds_file_info);
+	index = ctf_fs_ds_file_build_index(ds_file, ds_file_info, msg_iter);
 	if (!index) {
 		BT_COMP_OR_COMP_CLASS_LOGE_APPEND_CAUSE(
 			self_comp, self_comp_class,
@@ -1504,25 +1515,25 @@ int decode_clock_snapshot_after_event(struct ctf_fs_trace *ctf_fs_trace,
 	int ret = 0;
 
 	BT_ASSERT(ctf_fs_trace);
+	BT_ASSERT(index_entry);
+	BT_ASSERT(index_entry->path);
+
+	ds_file = ctf_fs_ds_file_create(ctf_fs_trace, NULL,
+		NULL, index_entry->path, log_level);
+	if (!ds_file) {
+		BT_COMP_LOGE_APPEND_CAUSE(self_comp, "Failed to create a ctf_fs_ds_file");
+		ret = -1;
+		goto end;
+	}
+
 	BT_ASSERT(ctf_fs_trace->metadata);
 	BT_ASSERT(ctf_fs_trace->metadata->tc);
 
 	msg_iter = ctf_msg_iter_create(ctf_fs_trace->metadata->tc,
 		bt_common_get_page_size(log_level) * 8, ctf_fs_ds_file_medops,
-		NULL, log_level, self_comp, NULL);
+		ds_file, log_level, self_comp, NULL);
 	if (!msg_iter) {
 		/* ctf_msg_iter_create() logs errors. */
-		ret = -1;
-		goto end;
-	}
-
-	BT_ASSERT(index_entry);
-	BT_ASSERT(index_entry->path);
-
-	ds_file = ctf_fs_ds_file_create(ctf_fs_trace, NULL, msg_iter,
-		NULL, index_entry->path, log_level);
-	if (!ds_file) {
-		BT_COMP_LOGE_APPEND_CAUSE(self_comp, "Failed to create a ctf_fs_ds_file");
 		ret = -1;
 		goto end;
 	}
@@ -1534,7 +1545,7 @@ int decode_clock_snapshot_after_event(struct ctf_fs_trace *ctf_fs_trace,
 	ctf_msg_iter_set_dry_run(msg_iter, true);
 
 	/* Seek to the beginning of the target packet. */
-	iter_status = ctf_msg_iter_seek(ds_file->msg_iter, index_entry->offset);
+	iter_status = ctf_msg_iter_seek(msg_iter, index_entry->offset);
 	if (iter_status) {
 		/* ctf_msg_iter_seek() logs errors. */
 		ret = -1;
@@ -1549,12 +1560,12 @@ int decode_clock_snapshot_after_event(struct ctf_fs_trace *ctf_fs_trace,
 		 * snapshot.
 		 */
 		iter_status = ctf_msg_iter_curr_packet_first_event_clock_snapshot(
-			ds_file->msg_iter, cs);
+			msg_iter, cs);
 		break;
 	case LAST_EVENT:
 		/* Decode the packet to extract the last event's clock snapshot. */
 		iter_status = ctf_msg_iter_curr_packet_last_event_clock_snapshot(
-			ds_file->msg_iter, cs);
+			msg_iter, cs);
 		break;
 	default:
 		bt_common_abort();

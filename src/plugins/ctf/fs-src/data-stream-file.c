@@ -310,7 +310,8 @@ int convert_cycles_to_ns(struct ctf_clock_class *clock_class,
 static
 struct ctf_fs_ds_index *build_index_from_idx_file(
 		struct ctf_fs_ds_file *ds_file,
-		struct ctf_fs_ds_file_info *file_info)
+		struct ctf_fs_ds_file_info *file_info,
+		struct ctf_msg_iter *msg_iter)
 {
 	int ret;
 	gchar *directory = NULL;
@@ -335,7 +336,7 @@ struct ctf_fs_ds_index *build_index_from_idx_file(
 
 	BT_COMP_LOGI("Building index from .idx file of stream file %s",
 			ds_file->file->path->str);
-	ret = ctf_msg_iter_get_packet_properties(ds_file->msg_iter, &props);
+	ret = ctf_msg_iter_get_packet_properties(msg_iter, &props);
 	if (ret) {
 		BT_COMP_LOGI_STR("Cannot read first packet's header and context fields.");
 		goto error;
@@ -583,7 +584,8 @@ end:
 static
 struct ctf_fs_ds_index *build_index_from_stream_file(
 		struct ctf_fs_ds_file *ds_file,
-		struct ctf_fs_ds_file_info *file_info)
+		struct ctf_fs_ds_file_info *file_info,
+		struct ctf_msg_iter *msg_iter)
 {
 	int ret;
 	struct ctf_fs_ds_index *index = NULL;
@@ -615,14 +617,14 @@ struct ctf_fs_ds_index *build_index_from_stream_file(
 			break;
 		}
 
-		iter_status = ctf_msg_iter_seek(ds_file->msg_iter,
+		iter_status = ctf_msg_iter_seek(msg_iter,
 				current_packet_offset_bytes);
 		if (iter_status != CTF_MSG_ITER_STATUS_OK) {
 			goto error;
 		}
 
 		iter_status = ctf_msg_iter_get_packet_properties(
-			ds_file->msg_iter, &props);
+			msg_iter, &props);
 		if (iter_status != CTF_MSG_ITER_STATUS_OK) {
 			goto error;
 		}
@@ -686,7 +688,6 @@ BT_HIDDEN
 struct ctf_fs_ds_file *ctf_fs_ds_file_create(
 		struct ctf_fs_trace *ctf_fs_trace,
 		bt_self_message_iterator *self_msg_iter,
-		struct ctf_msg_iter *msg_iter,
 		bt_stream *stream, const char *path,
 		bt_logging_level log_level)
 {
@@ -715,12 +716,6 @@ struct ctf_fs_ds_file *ctf_fs_ds_file_create(
 		goto error;
 	}
 
-	ds_file->msg_iter = msg_iter;
-	ctf_msg_iter_set_medops_data(ds_file->msg_iter, ds_file);
-	if (!ds_file->msg_iter) {
-		goto error;
-	}
-
 	ds_file->mmap_max_len = offset_align * 2048;
 
 	goto end;
@@ -737,20 +732,21 @@ end:
 BT_HIDDEN
 struct ctf_fs_ds_index *ctf_fs_ds_file_build_index(
 		struct ctf_fs_ds_file *ds_file,
-		struct ctf_fs_ds_file_info *file_info)
+		struct ctf_fs_ds_file_info *file_info,
+		struct ctf_msg_iter *msg_iter)
 {
 	struct ctf_fs_ds_index *index;
 	bt_self_component *self_comp = ds_file->self_comp;
 	bt_logging_level log_level = ds_file->log_level;
 
-	index = build_index_from_idx_file(ds_file, file_info);
+	index = build_index_from_idx_file(ds_file, file_info, msg_iter);
 	if (index) {
 		goto end;
 	}
 
 	BT_COMP_LOGI("Failed to build index from .index file; "
 		"falling back to stream indexing.");
-	index = build_index_from_stream_file(ds_file, file_info);
+	index = build_index_from_stream_file(ds_file, file_info, msg_iter);
 end:
 	return index;
 }
@@ -802,14 +798,13 @@ void ctf_fs_ds_file_destroy(struct ctf_fs_ds_file *ds_file)
 
 BT_HIDDEN
 bt_component_class_message_iterator_next_method_status ctf_fs_ds_file_next(
-		struct ctf_fs_ds_file *ds_file,
+		struct ctf_msg_iter *msg_iter,
 		bt_message **msg)
 {
 	enum ctf_msg_iter_status msg_iter_status;
 	bt_component_class_message_iterator_next_method_status status;
 
-	msg_iter_status = ctf_msg_iter_get_next_message(
-		ds_file->msg_iter, msg);
+	msg_iter_status = ctf_msg_iter_get_next_message(msg_iter, msg);
 
 	switch (msg_iter_status) {
 	case CTF_MSG_ITER_STATUS_EOF:
