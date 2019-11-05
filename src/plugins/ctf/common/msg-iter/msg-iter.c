@@ -3164,12 +3164,7 @@ enum ctf_msg_iter_status ctf_msg_iter_seek(struct ctf_msg_iter *msg_it,
 
 	BT_ASSERT(msg_it);
 	BT_ASSERT(offset >= 0);
-
-	if (!msg_it->medium.medops.seek) {
-		status = CTF_MSG_ITER_STATUS_UNSUPPORTED;
-		BT_COMP_LOGD("Aborting seek as the iterator's underlying media does not implement seek support.");
-		goto end;
-	}
+	BT_ASSERT(msg_it->medium.medops.seek);
 
 	medium_status = msg_it->medium.medops.seek(offset, msg_it->medium.data);
 	if (medium_status != CTF_MSG_ITER_MEDIUM_STATUS_OK) {
