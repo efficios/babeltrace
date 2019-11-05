@@ -111,17 +111,6 @@ enum ctf_msg_iter_status {
 };
 
 /**
- * CTF message iterator seek operation directives.
- */
-enum ctf_msg_iter_seek_whence {
-	/**
-	 * Set the iterator's position to an absolute offset in the underlying
-	 * medium.
-	 */
-	CTF_MSG_ITER_SEEK_WHENCE_SET,
-};
-
-/**
  * Medium operations.
  *
  * Those user functions are called by the message iterator
@@ -201,17 +190,13 @@ struct ctf_msg_iter_medium_ops {
 	 * Repositions the underlying stream's position.
 	 *
 	 * This *optional* method repositions the underlying stream
-	 * to a given absolute or relative position, as indicated by
-	 * the whence directive.
+	 * to a given absolute position in the medium.
 	 *
-	 * @param whence	One of #ctf_msg_iter_seek_whence values
 	 * @param offset	Offset to use for the given directive
 	 * @param data		User data
 	 * @returns		One of #ctf_msg_iter_medium_status values
 	 */
-	enum ctf_msg_iter_medium_status (* seek)(
-			enum ctf_msg_iter_seek_whence whence,
-			off_t offset, void *data);
+	enum ctf_msg_iter_medium_status (* seek)(off_t offset, void *data);
 
 	/**
 	 * Returns a stream instance (weak reference) for the given
