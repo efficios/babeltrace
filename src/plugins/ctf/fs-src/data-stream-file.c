@@ -58,7 +58,9 @@ int ds_file_munmap(struct ctf_fs_ds_file *ds_file)
 	bt_self_component *self_comp = ds_file->self_comp;
 	bt_logging_level log_level = ds_file->log_level;
 
-	if (!ds_file || !ds_file->mmap_addr) {
+	BT_ASSERT(ds_file);
+
+	if (!ds_file->mmap_addr) {
 		goto end;
 	}
 
