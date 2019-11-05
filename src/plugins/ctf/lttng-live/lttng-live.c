@@ -835,8 +835,6 @@ enum lttng_live_iterator_status lttng_live_iterator_next_handle_one_active_data_
 		 */
 		ret = LTTNG_LIVE_ITERATOR_STATUS_CONTINUE;
 		break;
-	case CTF_MSG_ITER_STATUS_INVAL:
-		/* No argument provided by the user, so don't return INVAL. */
 	case CTF_MSG_ITER_STATUS_ERROR:
 	default:
 		ret = LTTNG_LIVE_ITERATOR_STATUS_ERROR;

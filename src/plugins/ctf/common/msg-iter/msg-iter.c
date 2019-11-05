@@ -3160,17 +3160,10 @@ enum ctf_msg_iter_status ctf_msg_iter_seek(struct ctf_msg_iter *msg_it,
 		off_t offset)
 {
 	enum ctf_msg_iter_status status = CTF_MSG_ITER_STATUS_OK;
-	bt_self_component *self_comp = msg_it->self_comp;
 	enum ctf_msg_iter_medium_status medium_status;
 
 	BT_ASSERT(msg_it);
-	if (offset < 0) {
-		BT_COMP_LOGE_APPEND_CAUSE(self_comp,
-			"Cannot seek to negative offset: offset=%jd",
-			(intmax_t) offset);
-		status = CTF_MSG_ITER_STATUS_INVAL;
-		goto end;
-	}
+	BT_ASSERT(offset >= 0);
 
 	if (!msg_it->medium.medops.seek) {
 		status = CTF_MSG_ITER_STATUS_UNSUPPORTED;
