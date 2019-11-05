@@ -3178,8 +3178,7 @@ enum ctf_msg_iter_status ctf_msg_iter_seek(struct ctf_msg_iter *msg_it,
 		goto end;
 	}
 
-	medium_status = msg_it->medium.medops.seek(
-		CTF_MSG_ITER_SEEK_WHENCE_SET, offset, msg_it->medium.data);
+	medium_status = msg_it->medium.medops.seek(offset, msg_it->medium.data);
 	if (medium_status != CTF_MSG_ITER_MEDIUM_STATUS_OK) {
 		if (medium_status == CTF_MSG_ITER_MEDIUM_STATUS_EOF) {
 			status = CTF_MSG_ITER_STATUS_EOF;

@@ -213,8 +213,7 @@ end:
 }
 
 static
-enum ctf_msg_iter_medium_status medop_seek(enum ctf_msg_iter_seek_whence whence,
-		off_t offset, void *data)
+enum ctf_msg_iter_medium_status medop_seek(off_t offset, void *data)
 {
 	enum ctf_msg_iter_medium_status status;
 	struct ctf_fs_ds_file *ds_file = data;
@@ -222,11 +221,9 @@ enum ctf_msg_iter_medium_status medop_seek(enum ctf_msg_iter_seek_whence whence,
 	bt_self_component *self_comp = ds_file->self_comp;
 	bt_logging_level log_level = ds_file->log_level;
 
-	if (whence != CTF_MSG_ITER_SEEK_WHENCE_SET ||
-		offset < 0 || offset > file_size) {
-		BT_COMP_LOGE("Invalid medium seek request: whence=%d, offset=%jd, "
-				"file-size=%jd", (int) whence, (intmax_t) offset,
-				(intmax_t) file_size);
+	if (offset < 0 || offset > file_size) {
+		BT_COMP_LOGE("Invalid medium seek request: offset=%jd, file-size=%jd",
+			(intmax_t) offset, (intmax_t) file_size);
 		status = CTF_MSG_ITER_MEDIUM_STATUS_INVAL;
 		goto end;
 	}
