@@ -221,12 +221,8 @@ enum ctf_msg_iter_medium_status medop_seek(off_t offset, void *data)
 	bt_self_component *self_comp = ds_file->self_comp;
 	bt_logging_level log_level = ds_file->log_level;
 
-	if (offset < 0 || offset > file_size) {
-		BT_COMP_LOGE("Invalid medium seek request: offset=%jd, file-size=%jd",
-			(intmax_t) offset, (intmax_t) file_size);
-		status = CTF_MSG_ITER_MEDIUM_STATUS_INVAL;
-		goto end;
-	}
+	BT_ASSERT(offset >= 0);
+	BT_ASSERT(offset < file_size);
 
 	/* If there is no current mapping, map the right file directly. */
 	if (!ds_file->mmap_addr) {

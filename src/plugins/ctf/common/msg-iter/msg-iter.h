@@ -64,9 +64,6 @@ enum ctf_msg_iter_medium_status {
 	/** Unsupported operation. */
 	CTF_MSG_ITER_MEDIUM_STATUS_UNSUPPORTED = -3,
 
-	/** Invalid argument. */
-	CTF_MSG_ITER_MEDIUM_STATUS_INVAL = -2,
-
 	/** General error. */
 	CTF_MSG_ITER_MEDIUM_STATUS_ERROR = -1,
 
@@ -96,9 +93,6 @@ enum ctf_msg_iter_status {
 	 * is resolved.
 	 */
 	CTF_MSG_ITER_STATUS_AGAIN = CTF_MSG_ITER_MEDIUM_STATUS_AGAIN,
-
-	/** Invalid argument. */
-	CTF_MSG_ITER_STATUS_INVAL = CTF_MSG_ITER_MEDIUM_STATUS_INVAL,
 
 	/** Unsupported operation. */
 	CTF_MSG_ITER_STATUS_UNSUPPORTED = CTF_MSG_ITER_MEDIUM_STATUS_UNSUPPORTED,
@@ -350,8 +344,6 @@ const char *ctf_msg_iter_medium_status_string(
 		return "EOF";
 	case CTF_MSG_ITER_MEDIUM_STATUS_AGAIN:
 		return "AGAIN";
-	case CTF_MSG_ITER_MEDIUM_STATUS_INVAL:
-		return "INVAL";
 	case CTF_MSG_ITER_MEDIUM_STATUS_ERROR:
 		return "ERROR";
 	case CTF_MSG_ITER_MEDIUM_STATUS_OK:
@@ -370,8 +362,6 @@ const char *ctf_msg_iter_status_string(
 		return "EOF";
 	case CTF_MSG_ITER_STATUS_AGAIN:
 		return "AGAIN";
-	case CTF_MSG_ITER_STATUS_INVAL:
-		return "INVAL";
 	case CTF_MSG_ITER_STATUS_ERROR:
 		return "ERROR";
 	case CTF_MSG_ITER_STATUS_OK:
