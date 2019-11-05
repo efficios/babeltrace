@@ -52,15 +52,17 @@ size_t remaining_mmap_bytes(struct ctf_fs_ds_file *ds_file)
 }
 
 static
-int ds_file_munmap(struct ctf_fs_ds_file *ds_file)
+enum ctf_msg_iter_medium_status ds_file_munmap(
+		struct ctf_fs_ds_file *ds_file)
 {
-	int ret = 0;
+	enum ctf_msg_iter_medium_status status;
 	bt_self_component *self_comp = ds_file->self_comp;
 	bt_logging_level log_level = ds_file->log_level;
 
 	BT_ASSERT(ds_file);
 
 	if (!ds_file->mmap_addr) {
+		status = CTF_MSG_ITER_MEDIUM_STATUS_OK;
 		goto end;
 	}
 
@@ -70,29 +72,30 @@ int ds_file_munmap(struct ctf_fs_ds_file *ds_file)
 			ds_file->mmap_addr, ds_file->mmap_len,
 			ds_file->file ? ds_file->file->path->str : "NULL",
 			ds_file->file ? ds_file->file->fp : NULL);
-		ret = -1;
+		status = CTF_MSG_ITER_MEDIUM_STATUS_ERROR;
 		goto end;
 	}
 
 	ds_file->mmap_addr = NULL;
 
+	status = CTF_MSG_ITER_MEDIUM_STATUS_OK;
 end:
-	return ret;
+	return status;
 }
 
 static
 enum ctf_msg_iter_medium_status ds_file_mmap_next(
 		struct ctf_fs_ds_file *ds_file)
 {
-	enum ctf_msg_iter_medium_status ret =
-			CTF_MSG_ITER_MEDIUM_STATUS_OK;
+	enum ctf_msg_iter_medium_status status;
 	bt_self_component *self_comp = ds_file->self_comp;
 	bt_logging_level log_level = ds_file->log_level;
 
 	/* Unmap old region */
 	if (ds_file->mmap_addr) {
-		if (ds_file_munmap(ds_file)) {
-			goto error;
+		status = ds_file_munmap(ds_file);
+		if (status != CTF_MSG_ITER_MEDIUM_STATUS_OK) {
+			goto end;
 		}
 
 		/*
@@ -107,7 +110,7 @@ enum ctf_msg_iter_medium_status ds_file_mmap_next(
 	ds_file->mmap_len = MIN(ds_file->file->size - ds_file->mmap_offset_in_file,
 			ds_file->mmap_max_len);
 	if (ds_file->mmap_len == 0) {
-		ret = CTF_MSG_ITER_MEDIUM_STATUS_EOF;
+		status = CTF_MSG_ITER_MEDIUM_STATUS_EOF;
 		goto end;
 	}
 	/* Map new region */
@@ -120,14 +123,13 @@ enum ctf_msg_iter_medium_status ds_file_mmap_next(
 				ds_file->mmap_len, ds_file->file->path->str,
 				ds_file->file->fp, (intmax_t) ds_file->mmap_offset_in_file,
 				strerror(errno));
-		goto error;
+		status = CTF_MSG_ITER_MEDIUM_STATUS_ERROR;
+		goto end;
 	}
 
-	goto end;
-error:
-	ret = CTF_MSG_ITER_MEDIUM_STATUS_ERROR;
+	status = CTF_MSG_ITER_MEDIUM_STATUS_OK;
 end:
-	return ret;
+	return status;
 }
 
 static
@@ -214,8 +216,7 @@ static
 enum ctf_msg_iter_medium_status medop_seek(enum ctf_msg_iter_seek_whence whence,
 		off_t offset, void *data)
 {
-	enum ctf_msg_iter_medium_status ret =
-			CTF_MSG_ITER_MEDIUM_STATUS_OK;
+	enum ctf_msg_iter_medium_status status;
 	struct ctf_fs_ds_file *ds_file = data;
 	off_t offset_in_mapping, file_size = ds_file->file->size;
 	bt_self_component *self_comp = ds_file->self_comp;
@@ -226,7 +227,7 @@ enum ctf_msg_iter_medium_status medop_seek(enum ctf_msg_iter_seek_whence whence,
 		BT_COMP_LOGE("Invalid medium seek request: whence=%d, offset=%jd, "
 				"file-size=%jd", (int) whence, (intmax_t) offset,
 				(intmax_t) file_size);
-		ret = CTF_MSG_ITER_MEDIUM_STATUS_INVAL;
+		status = CTF_MSG_ITER_MEDIUM_STATUS_INVAL;
 		goto end;
 	}
 
@@ -241,14 +242,12 @@ enum ctf_msg_iter_medium_status medop_seek(enum ctf_msg_iter_seek_whence whence,
 	 */
 	if (offset < ds_file->mmap_offset_in_file ||
 			offset >= ds_file->mmap_offset_in_file + ds_file->mmap_len) {
-		int unmap_ret;
 		BT_COMP_LOGD("Medium seek request cannot be accomodated by the current "
 				"file mapping: offset=%jd, mmap-offset=%jd, "
 				"mmap-len=%zu", (intmax_t) offset, (intmax_t) ds_file->mmap_offset_in_file,
 				ds_file->mmap_len);
-		unmap_ret = ds_file_munmap(ds_file);
-		if (unmap_ret) {
-			ret = CTF_MSG_ITER_MEDIUM_STATUS_ERROR;
+		status = ds_file_munmap(ds_file);
+		if (status != CTF_MSG_ITER_MEDIUM_STATUS_OK) {
 			goto end;
 		}
 		goto map_requested_offset;
@@ -263,15 +262,17 @@ map_requested_offset:
 
 	ds_file->mmap_offset_in_file = offset - offset_in_mapping;
 	ds_file->request_offset_in_mapping = offset_in_mapping;
-	ret = ds_file_mmap_next(ds_file);
-	if (ret != CTF_MSG_ITER_MEDIUM_STATUS_OK) {
+	status = ds_file_mmap_next(ds_file);
+	if (status != CTF_MSG_ITER_MEDIUM_STATUS_OK) {
 		goto end;
 	}
 
 test_end:
 	ds_file->end_reached = (offset == file_size);
+
+	status = CTF_MSG_ITER_MEDIUM_STATUS_OK;
 end:
-	return ret;
+	return status;
 }
 
 BT_HIDDEN
