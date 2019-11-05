@@ -61,9 +61,6 @@ enum ctf_msg_iter_medium_status {
 	 */
 	CTF_MSG_ITER_MEDIUM_STATUS_AGAIN = 11,
 
-	/** Unsupported operation. */
-	CTF_MSG_ITER_MEDIUM_STATUS_UNSUPPORTED = -3,
-
 	/** General error. */
 	CTF_MSG_ITER_MEDIUM_STATUS_ERROR = -1,
 
@@ -93,9 +90,6 @@ enum ctf_msg_iter_status {
 	 * is resolved.
 	 */
 	CTF_MSG_ITER_STATUS_AGAIN = CTF_MSG_ITER_MEDIUM_STATUS_AGAIN,
-
-	/** Unsupported operation. */
-	CTF_MSG_ITER_STATUS_UNSUPPORTED = CTF_MSG_ITER_MEDIUM_STATUS_UNSUPPORTED,
 
 	/** General error. */
 	CTF_MSG_ITER_STATUS_ERROR = CTF_MSG_ITER_MEDIUM_STATUS_ERROR,
