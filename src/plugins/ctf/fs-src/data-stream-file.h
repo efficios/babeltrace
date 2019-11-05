@@ -84,8 +84,6 @@ struct ctf_fs_ds_file {
 	 * request.
 	 */
 	off_t request_offset_in_mapping;
-
-	bool end_reached;
 };
 
 BT_HIDDEN
