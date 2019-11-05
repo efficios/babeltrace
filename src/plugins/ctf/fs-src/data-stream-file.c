@@ -247,7 +247,8 @@ enum ctf_msg_iter_medium_status medop_seek(off_t offset, void *data)
 		goto map_requested_offset;
 	} else {
 		ds_file->request_offset_in_mapping = offset - ds_file->mmap_offset_in_file;
-		goto test_end;
+		status = CTF_MSG_ITER_MEDIUM_STATUS_OK;
+		goto end;
 	}
 
 map_requested_offset:
@@ -260,9 +261,6 @@ map_requested_offset:
 	if (status != CTF_MSG_ITER_MEDIUM_STATUS_OK) {
 		goto end;
 	}
-
-test_end:
-	ds_file->end_reached = (offset == file_size);
 
 	status = CTF_MSG_ITER_MEDIUM_STATUS_OK;
 end:
