@@ -1505,6 +1505,40 @@ end:
 	return status;
 }
 
+static
+struct lttng_live_msg_iter *lttng_live_msg_iter_create(
+		struct lttng_live_component *lttng_live_comp,
+		bt_self_message_iterator *self_msg_it)
+{
+	bt_self_component *self_comp = lttng_live_comp->self_comp;
+	bt_logging_level log_level = lttng_live_comp->log_level;
+
+	struct lttng_live_msg_iter *lttng_live_msg_iter =
+		g_new0(struct lttng_live_msg_iter, 1);
+	if (!lttng_live_msg_iter) {
+		BT_COMP_LOGE_APPEND_CAUSE(self_comp,
+			"Failed to allocate lttng_live_msg_iter");
+		goto end;
+	}
+
+	lttng_live_msg_iter->log_level = lttng_live_comp->log_level;
+	lttng_live_msg_iter->self_comp = lttng_live_comp->self_comp;
+	lttng_live_msg_iter->lttng_live_comp = lttng_live_comp;
+	lttng_live_msg_iter->self_msg_iter = self_msg_it;
+
+	lttng_live_msg_iter->active_stream_iter = 0;
+	lttng_live_msg_iter->last_msg_ts_ns = INT64_MIN;
+	lttng_live_msg_iter->was_interrupted = false;
+
+	lttng_live_msg_iter->sessions = g_ptr_array_new_with_free_func(
+		(GDestroyNotify) lttng_live_destroy_session);
+	BT_ASSERT(lttng_live_msg_iter->sessions);
+
+end:
+	return lttng_live_msg_iter;
+
+}
+
 BT_HIDDEN
 bt_component_class_message_iterator_initialize_method_status lttng_live_msg_iter_init(
 		bt_self_message_iterator *self_msg_it,
@@ -1526,30 +1560,19 @@ bt_component_class_message_iterator_initialize_method_status lttng_live_msg_iter
 	log_level = lttng_live->log_level;
 	self_comp = lttng_live->self_comp;
 
+
 	/* There can be only one downstream iterator at the same time. */
 	BT_ASSERT(!lttng_live->has_msg_iter);
 	lttng_live->has_msg_iter = true;
 
-	lttng_live_msg_iter = g_new0(struct lttng_live_msg_iter, 1);
+	lttng_live_msg_iter = lttng_live_msg_iter_create(lttng_live,
+		self_msg_it);
 	if (!lttng_live_msg_iter) {
 		status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_INITIALIZE_METHOD_STATUS_MEMORY_ERROR;
 		BT_COMP_LOGE_APPEND_CAUSE(self_comp,
-			"Failed to allocate lttng_live_msg_iter");
-		goto end;
+			"Failed to create lttng_live_msg_iter");
+		goto error;
 	}
-
-	lttng_live_msg_iter->log_level = lttng_live->log_level;
-	lttng_live_msg_iter->self_comp = lttng_live->self_comp;
-	lttng_live_msg_iter->lttng_live_comp = lttng_live;
-	lttng_live_msg_iter->self_msg_iter = self_msg_it;
-
-	lttng_live_msg_iter->active_stream_iter = 0;
-	lttng_live_msg_iter->last_msg_ts_ns = INT64_MIN;
-	lttng_live_msg_iter->was_interrupted = false;
-
-	lttng_live_msg_iter->sessions = g_ptr_array_new_with_free_func(
-		(GDestroyNotify) lttng_live_destroy_session);
-	BT_ASSERT(lttng_live_msg_iter->sessions);
 
 	 viewer_status = live_viewer_connection_create(self_comp, NULL,
 		log_level, lttng_live->params.url->str, false,
