@@ -2837,6 +2837,8 @@ struct ctf_msg_iter *ctf_msg_iter_create(
 	BT_ASSERT(tc);
 	BT_ASSERT(medops.request_bytes);
 	BT_ASSERT(medops.borrow_stream);
+	BT_ASSERT(max_request_sz > 0);
+
 	BT_COMP_LOG_CUR_LVL(BT_LOG_DEBUG, log_level, self_comp,
 		"Creating CTF plugin message iterator: "
 		"trace-addr=%p, max-request-size=%zu, "
