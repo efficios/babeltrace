@@ -77,13 +77,13 @@ struct ctf_fs_ds_file {
 	size_t mmap_len;
 
 	/* Offset in the file where the current mapping starts. */
-	off_t mmap_offset;
+	off_t mmap_offset_in_file;
 
 	/*
 	 * Offset, in the current mapping, of the address to return on the next
 	 * request.
 	 */
-	off_t request_offset;
+	off_t request_offset_in_mapping;
 
 	bool end_reached;
 };

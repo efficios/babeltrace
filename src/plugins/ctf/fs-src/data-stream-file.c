@@ -47,8 +47,8 @@
 static inline
 size_t remaining_mmap_bytes(struct ctf_fs_ds_file *ds_file)
 {
-	BT_ASSERT_DBG(ds_file->mmap_len >= ds_file->request_offset);
-	return ds_file->mmap_len - ds_file->request_offset;
+	BT_ASSERT_DBG(ds_file->mmap_len >= ds_file->request_offset_in_mapping);
+	return ds_file->mmap_len - ds_file->request_offset_in_mapping;
 }
 
 static
@@ -98,11 +98,11 @@ enum ctf_msg_iter_medium_status ds_file_mmap_next(
 		 * last mapping where it may not be possible (since the file's
 		 * size itself may not be a page multiple).
 		 */
-		ds_file->mmap_offset += ds_file->mmap_len;
-		ds_file->request_offset = 0;
+		ds_file->mmap_offset_in_file += ds_file->mmap_len;
+		ds_file->request_offset_in_mapping = 0;
 	}
 
-	ds_file->mmap_len = MIN(ds_file->file->size - ds_file->mmap_offset,
+	ds_file->mmap_len = MIN(ds_file->file->size - ds_file->mmap_offset_in_file,
 			ds_file->mmap_max_len);
 	if (ds_file->mmap_len == 0) {
 		ret = CTF_MSG_ITER_MEDIUM_STATUS_EOF;
@@ -112,11 +112,11 @@ enum ctf_msg_iter_medium_status ds_file_mmap_next(
 	BT_ASSERT(ds_file->mmap_len);
 	ds_file->mmap_addr = bt_mmap((void *) 0, ds_file->mmap_len,
 			PROT_READ, MAP_PRIVATE, fileno(ds_file->file->fp),
-			ds_file->mmap_offset, ds_file->log_level);
+			ds_file->mmap_offset_in_file, ds_file->log_level);
 	if (ds_file->mmap_addr == MAP_FAILED) {
 		BT_COMP_LOGE("Cannot memory-map address (size %zu) of file \"%s\" (%p) at offset %jd: %s",
 				ds_file->mmap_len, ds_file->file->path->str,
-				ds_file->file->fp, (intmax_t) ds_file->mmap_offset,
+				ds_file->file->fp, (intmax_t) ds_file->mmap_offset_in_file,
 				strerror(errno));
 		goto error;
 	}
@@ -150,7 +150,7 @@ enum ctf_msg_iter_medium_status medop_request_bytes(
 	 */
 	if (remaining_mmap_bytes(ds_file) == 0) {
 		/* Are we at the end of the file? */
-		if (ds_file->mmap_offset >= ds_file->file->size) {
+		if (ds_file->mmap_offset_in_file >= ds_file->file->size) {
 			BT_COMP_LOGD("Reached end of file \"%s\" (%p)",
 				ds_file->file->path->str, ds_file->file->fp);
 			status = CTF_MSG_ITER_MEDIUM_STATUS_EOF;
@@ -173,8 +173,8 @@ enum ctf_msg_iter_medium_status medop_request_bytes(
 
 	*buffer_sz = MIN(remaining_mmap_bytes(ds_file), request_sz);
 	BT_ASSERT(ds_file->mmap_addr);
-	*buffer_addr = ((uint8_t *) ds_file->mmap_addr) + ds_file->request_offset;
-	ds_file->request_offset += *buffer_sz;
+	*buffer_addr = ((uint8_t *) ds_file->mmap_addr) + ds_file->request_offset_in_mapping;
+	ds_file->request_offset_in_mapping += *buffer_sz;
 	goto end;
 
 error:
@@ -238,12 +238,12 @@ enum ctf_msg_iter_medium_status medop_seek(enum ctf_msg_iter_seek_whence whence,
 	 * Determine whether or not the destination is contained within the
 	 * current mapping.
 	 */
-	if (offset < ds_file->mmap_offset ||
-			offset >= ds_file->mmap_offset + ds_file->mmap_len) {
+	if (offset < ds_file->mmap_offset_in_file ||
+			offset >= ds_file->mmap_offset_in_file + ds_file->mmap_len) {
 		int unmap_ret;
 		BT_COMP_LOGD("Medium seek request cannot be accomodated by the current "
 				"file mapping: offset=%jd, mmap-offset=%jd, "
-				"mmap-len=%zu", (intmax_t) offset, (intmax_t) ds_file->mmap_offset,
+				"mmap-len=%zu", (intmax_t) offset, (intmax_t) ds_file->mmap_offset_in_file,
 				ds_file->mmap_len);
 		unmap_ret = ds_file_munmap(ds_file);
 		if (unmap_ret) {
@@ -252,7 +252,7 @@ enum ctf_msg_iter_medium_status medop_seek(enum ctf_msg_iter_seek_whence whence,
 		}
 		goto map_requested_offset;
 	} else {
-		ds_file->request_offset = offset - ds_file->mmap_offset;
+		ds_file->request_offset_in_mapping = offset - ds_file->mmap_offset_in_file;
 		goto test_end;
 	}
 
@@ -260,8 +260,8 @@ map_requested_offset:
 	offset_in_mapping = offset %
 		bt_mmap_get_offset_align_size(ds_file->log_level);
 
-	ds_file->mmap_offset = offset - offset_in_mapping;
-	ds_file->request_offset = offset_in_mapping;
+	ds_file->mmap_offset_in_file = offset - offset_in_mapping;
+	ds_file->request_offset_in_mapping = offset_in_mapping;
 	ret = ds_file_mmap_next(ds_file);
 	if (ret != CTF_MSG_ITER_MEDIUM_STATUS_OK) {
 		goto end;
