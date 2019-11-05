@@ -51,6 +51,17 @@ size_t remaining_mmap_bytes(struct ctf_fs_ds_file *ds_file)
 	return ds_file->mmap_len - ds_file->request_offset_in_mapping;
 }
 
+/*
+ * Return true if `offset_in_file` is in the current mapping.
+ */
+
+static
+bool offset_ist_mapped(struct ctf_fs_ds_file *ds_file, off_t offset_in_file)
+{
+	return offset_in_file >= ds_file->mmap_offset_in_file &&
+		offset_in_file < (ds_file->mmap_offset_in_file + ds_file->mmap_len);
+}
+
 static
 enum ctf_msg_iter_medium_status ds_file_munmap(
 		struct ctf_fs_ds_file *ds_file)
@@ -83,38 +94,57 @@ end:
 	return status;
 }
 
+/*
+ * mmap a region of `ds_file` such that `requested_offset_in_file` is in the
+ * mapping.  If the currently mmap-ed region already contains
+ * `requested_offset_in_file`, the mapping is kept.
+ *
+ * Set `ds_file->requested_offset_in_mapping` based on `request_offset_in_file`
+ *
+ * `requested_offset_in_file` must be a valid offset in the file.
+ */
 static
-enum ctf_msg_iter_medium_status ds_file_mmap_next(
-		struct ctf_fs_ds_file *ds_file)
+enum ctf_msg_iter_medium_status ds_file_mmap(
+		struct ctf_fs_ds_file *ds_file, off_t requested_offset_in_file)
 {
 	enum ctf_msg_iter_medium_status status;
 	bt_self_component *self_comp = ds_file->self_comp;
 	bt_logging_level log_level = ds_file->log_level;
 
-	/* Unmap old region */
-	if (ds_file->mmap_addr) {
-		status = ds_file_munmap(ds_file);
-		if (status != CTF_MSG_ITER_MEDIUM_STATUS_OK) {
-			goto end;
-		}
+	/* Ensure the requested offset is in the file range. */
+	BT_ASSERT(requested_offset_in_file >= 0);
+	BT_ASSERT(requested_offset_in_file < ds_file->file->size);
 
-		/*
-		 * mmap_len is guaranteed to be page-aligned except on the
-		 * last mapping where it may not be possible (since the file's
-		 * size itself may not be a page multiple).
-		 */
-		ds_file->mmap_offset_in_file += ds_file->mmap_len;
-		ds_file->request_offset_in_mapping = 0;
-	}
-
-	ds_file->mmap_len = MIN(ds_file->file->size - ds_file->mmap_offset_in_file,
-			ds_file->mmap_max_len);
-	if (ds_file->mmap_len == 0) {
-		status = CTF_MSG_ITER_MEDIUM_STATUS_EOF;
+	/*
+	 * If the mapping already contains the requested offset, just adjust
+	 * requested_offset_in_mapping.
+	 */
+	if (offset_ist_mapped(ds_file, requested_offset_in_file)) {
+		ds_file->request_offset_in_mapping =
+			requested_offset_in_file - ds_file->mmap_offset_in_file;
+		status = CTF_MSG_ITER_MEDIUM_STATUS_OK;
 		goto end;
 	}
-	/* Map new region */
-	BT_ASSERT(ds_file->mmap_len);
+
+	/* Unmap old region */
+	status = ds_file_munmap(ds_file);
+	if (status != CTF_MSG_ITER_MEDIUM_STATUS_OK) {
+		goto end;
+	}
+
+	/*
+	 * Compute a mapping that has the required alignment properties and
+	 * contains `requested_offset_in_file`.
+	 */
+	ds_file->request_offset_in_mapping =
+		requested_offset_in_file % bt_mmap_get_offset_align_size(ds_file->log_level);
+	ds_file->mmap_offset_in_file =
+		requested_offset_in_file - ds_file->request_offset_in_mapping;
+	ds_file->mmap_len = MIN(ds_file->file->size - ds_file->mmap_offset_in_file,
+		ds_file->mmap_max_len);
+
+	BT_ASSERT(ds_file->mmap_len > 0);
+
 	ds_file->mmap_addr = bt_mmap((void *) 0, ds_file->mmap_len,
 			PROT_READ, MAP_PRIVATE, fileno(ds_file->file->fp),
 			ds_file->mmap_offset_in_file, ds_file->log_level);
@@ -128,6 +158,46 @@ enum ctf_msg_iter_medium_status ds_file_mmap_next(
 	}
 
 	status = CTF_MSG_ITER_MEDIUM_STATUS_OK;
+
+end:
+	return status;
+}
+
+/*
+ * Change the mapping of the file to read the region that follows the current
+ * mapping.
+ *
+ * If the file hasn't been mapped yet, then everything (mmap_offset_in_file,
+ * mmap_len, request_offset_in_mapping) should have the value 0, which will
+ * result in the beginning of the file getting mapped.
+ *
+ * return _EOF if the current mapping is the end of the file.
+ */
+
+static
+enum ctf_msg_iter_medium_status ds_file_mmap_next(
+		struct ctf_fs_ds_file *ds_file)
+{
+	enum ctf_msg_iter_medium_status status;
+
+	/*
+	 * If we're called, it's because more bytes are requested but we have
+	 * given all the bytes of the current mapping.
+	 */
+	BT_ASSERT(ds_file->request_offset_in_mapping == ds_file->mmap_len);
+
+	/*
+	 * If the current mapping coincides with the end of the file, there is
+	 * no next mapping.
+	 */
+	if (ds_file->mmap_offset_in_file + ds_file->mmap_len == ds_file->file->size) {
+		status = CTF_MSG_ITER_MEDIUM_STATUS_EOF;
+		goto end;
+	}
+
+	status = ds_file_mmap(ds_file,
+		ds_file->mmap_offset_in_file + ds_file->mmap_len);
+
 end:
 	return status;
 }
@@ -216,55 +286,12 @@ end:
 static
 enum ctf_msg_iter_medium_status medop_seek(off_t offset, void *data)
 {
-	enum ctf_msg_iter_medium_status status;
 	struct ctf_fs_ds_file *ds_file = data;
-	off_t offset_in_mapping, file_size = ds_file->file->size;
-	bt_self_component *self_comp = ds_file->self_comp;
-	bt_logging_level log_level = ds_file->log_level;
 
 	BT_ASSERT(offset >= 0);
-	BT_ASSERT(offset < file_size);
+	BT_ASSERT(offset < ds_file->file->size);
 
-	/* If there is no current mapping, map the right file directly. */
-	if (!ds_file->mmap_addr) {
-		goto map_requested_offset;
-	}
-
-	/*
-	 * Determine whether or not the destination is contained within the
-	 * current mapping.
-	 */
-	if (offset < ds_file->mmap_offset_in_file ||
-			offset >= ds_file->mmap_offset_in_file + ds_file->mmap_len) {
-		BT_COMP_LOGD("Medium seek request cannot be accomodated by the current "
-				"file mapping: offset=%jd, mmap-offset=%jd, "
-				"mmap-len=%zu", (intmax_t) offset, (intmax_t) ds_file->mmap_offset_in_file,
-				ds_file->mmap_len);
-		status = ds_file_munmap(ds_file);
-		if (status != CTF_MSG_ITER_MEDIUM_STATUS_OK) {
-			goto end;
-		}
-		goto map_requested_offset;
-	} else {
-		ds_file->request_offset_in_mapping = offset - ds_file->mmap_offset_in_file;
-		status = CTF_MSG_ITER_MEDIUM_STATUS_OK;
-		goto end;
-	}
-
-map_requested_offset:
-	offset_in_mapping = offset %
-		bt_mmap_get_offset_align_size(ds_file->log_level);
-
-	ds_file->mmap_offset_in_file = offset - offset_in_mapping;
-	ds_file->request_offset_in_mapping = offset_in_mapping;
-	status = ds_file_mmap_next(ds_file);
-	if (status != CTF_MSG_ITER_MEDIUM_STATUS_OK) {
-		goto end;
-	}
-
-	status = CTF_MSG_ITER_MEDIUM_STATUS_OK;
-end:
-	return status;
+	return ds_file_mmap(ds_file, offset);
 }
 
 BT_HIDDEN
