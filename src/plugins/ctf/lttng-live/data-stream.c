@@ -58,6 +58,8 @@ enum ctf_msg_iter_medium_status medop_request_bytes(
 	uint64_t len_left;
 	uint64_t read_len;
 
+	BT_ASSERT(request_sz);
+
 	if (stream->has_stream_hung_up) {
 		status = CTF_MSG_ITER_MEDIUM_STATUS_EOF;
 		goto end;

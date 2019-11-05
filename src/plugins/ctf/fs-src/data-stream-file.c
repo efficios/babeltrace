@@ -143,9 +143,7 @@ enum ctf_msg_iter_medium_status medop_request_bytes(
 	bt_self_component *self_comp = ds_file->self_comp;
 	bt_logging_level log_level = ds_file->log_level;
 
-	if (request_sz == 0) {
-		goto end;
-	}
+	BT_ASSERT(request_sz > 0);
 
 	/*
 	 * Check if we have at least one memory-mapped byte left. If we don't,
@@ -174,9 +172,12 @@ enum ctf_msg_iter_medium_status medop_request_bytes(
 		}
 	}
 
+	BT_ASSERT(remaining_mmap_bytes(ds_file) > 0);
 	*buffer_sz = MIN(remaining_mmap_bytes(ds_file), request_sz);
+
 	BT_ASSERT(ds_file->mmap_addr);
 	*buffer_addr = ((uint8_t *) ds_file->mmap_addr) + ds_file->request_offset_in_mapping;
+
 	ds_file->request_offset_in_mapping += *buffer_sz;
 	goto end;
 
