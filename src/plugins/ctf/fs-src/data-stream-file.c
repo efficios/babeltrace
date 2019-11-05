@@ -125,7 +125,6 @@ enum ctf_msg_iter_medium_status ds_file_mmap_next(
 
 	goto end;
 error:
-	ds_file_munmap(ds_file);
 	ret = CTF_MSG_ITER_MEDIUM_STATUS_ERROR;
 end:
 	return ret;
