@@ -154,9 +154,15 @@ enum lttng_live_iterator_status lttng_live_metadata_update(
 	/* Open for writing */
 	fp = bt_open_memstream(&metadata_buf, &size);
 	if (!fp) {
-		BT_COMP_LOGE_APPEND_CAUSE_ERRNO(self_comp,
-			"Metadata open_memstream", ".");
-		goto error;
+		if (errno == EINTR &&
+				lttng_live_graph_is_canceled(session->lttng_live_msg_iter)) {
+			status = LTTNG_LIVE_ITERATOR_STATUS_AGAIN;
+		} else {
+			BT_COMP_LOGE_APPEND_CAUSE_ERRNO(self_comp,
+				"Metadata open_memstream", ".");
+			status = LTTNG_LIVE_ITERATOR_STATUS_ERROR;
+		}
+		goto end;
 	}
 
 	keep_receiving = true;
@@ -222,9 +228,15 @@ enum lttng_live_iterator_status lttng_live_metadata_update(
 
 	fp = bt_fmemopen(metadata_buf, len_read, "rb");
 	if (!fp) {
-		BT_COMP_LOGE_APPEND_CAUSE_ERRNO(self_comp,
-			"Cannot memory-open metadata buffer", ".");
-		goto error;
+		if (errno == EINTR &&
+				lttng_live_graph_is_canceled(session->lttng_live_msg_iter)) {
+			status = LTTNG_LIVE_ITERATOR_STATUS_AGAIN;
+		} else {
+			BT_COMP_LOGE_APPEND_CAUSE_ERRNO(self_comp,
+				"Cannot memory-open metadata buffer", ".");
+			status = LTTNG_LIVE_ITERATOR_STATUS_ERROR;
+		}
+		goto end;
 	}
 
 	/*
@@ -277,13 +289,7 @@ enum lttng_live_iterator_status lttng_live_metadata_update(
 	goto end;
 
 error:
-	if (errno == EINTR) {
-		if (lttng_live_graph_is_canceled(session->lttng_live_msg_iter)) {
-			status = LTTNG_LIVE_ITERATOR_STATUS_AGAIN;
-		}
-	} else {
-		status = LTTNG_LIVE_ITERATOR_STATUS_ERROR;
-	}
+	status = LTTNG_LIVE_ITERATOR_STATUS_ERROR;
 end:
 	if (fp) {
 		int closeret;
