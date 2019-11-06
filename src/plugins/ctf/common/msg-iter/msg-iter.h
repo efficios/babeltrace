@@ -45,7 +45,8 @@
  */
 
 /**
- * Medium operations status codes.
+ * Medium operations status codes.  These use the same values as
+ * libbabeltrace2.
  */
 enum ctf_msg_iter_medium_status {
 	/**
@@ -63,6 +64,9 @@ enum ctf_msg_iter_medium_status {
 
 	/** General error. */
 	CTF_MSG_ITER_MEDIUM_STATUS_ERROR = -1,
+
+	/** Memory error. */
+	CTF_MSG_ITER_MEDIUM_STATUS_MEMORY_ERROR = -12,
 
 	/** Everything okay. */
 	CTF_MSG_ITER_MEDIUM_STATUS_OK = 0,
@@ -93,6 +97,9 @@ enum ctf_msg_iter_status {
 
 	/** General error. */
 	CTF_MSG_ITER_STATUS_ERROR = CTF_MSG_ITER_MEDIUM_STATUS_ERROR,
+
+	/** Memory error. */
+	CTF_MSG_ITER_STATUS_MEMORY_ERROR  = CTF_MSG_ITER_MEDIUM_STATUS_MEMORY_ERROR,
 
 	/** Everything okay. */
 	CTF_MSG_ITER_STATUS_OK = CTF_MSG_ITER_MEDIUM_STATUS_OK,
@@ -185,6 +192,15 @@ struct ctf_msg_iter_medium_ops {
 	 * @returns		One of #ctf_msg_iter_medium_status values
 	 */
 	enum ctf_msg_iter_medium_status (* seek)(off_t offset, void *data);
+
+	/**
+	 * Called when the message iterator wishes to inform the medium that it
+	 * is about to start a new packet.
+	 *
+	 * After the iterator has called switch_packet, the following call to
+	 * request_bytes must return the content at the start of the next
+	 * packet.	 */
+	enum ctf_msg_iter_medium_status (* switch_packet)(void *data);
 
 	/**
 	 * Returns a stream instance (weak reference) for the given
@@ -292,10 +308,6 @@ enum ctf_msg_iter_status ctf_msg_iter_curr_packet_first_event_clock_snapshot(
 BT_HIDDEN
 enum ctf_msg_iter_status ctf_msg_iter_curr_packet_last_event_clock_snapshot(
 		struct ctf_msg_iter *msg_it, uint64_t *last_event_cs);
-
-BT_HIDDEN
-void ctf_msg_iter_set_medops_data(struct ctf_msg_iter *msg_it,
-		void *medops_data);
 
 BT_HIDDEN
 enum ctf_msg_iter_status ctf_msg_iter_seek(

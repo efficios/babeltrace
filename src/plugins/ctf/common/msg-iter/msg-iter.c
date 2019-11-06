@@ -708,7 +708,7 @@ void release_all_dscopes(struct ctf_msg_iter *msg_it)
 static
 enum ctf_msg_iter_status switch_packet_state(struct ctf_msg_iter *msg_it)
 {
-	enum ctf_msg_iter_status status = CTF_MSG_ITER_STATUS_OK;
+	enum ctf_msg_iter_status status;
 	bt_self_component *self_comp = msg_it->self_comp;
 
 	/*
@@ -731,6 +731,30 @@ enum ctf_msg_iter_status switch_packet_state(struct ctf_msg_iter *msg_it)
 	BT_MESSAGE_PUT_REF_AND_RESET(msg_it->event_msg);
 	release_all_dscopes(msg_it);
 	msg_it->cur_dscope_field = NULL;
+
+	if (msg_it->medium.medops.switch_packet) {
+		enum ctf_msg_iter_medium_status medium_status;
+
+		medium_status = msg_it->medium.medops.switch_packet(msg_it->medium.data);
+		if (medium_status == CTF_MSG_ITER_MEDIUM_STATUS_EOF) {
+			/* No more packets. */
+			msg_it->state = STATE_CHECK_EMIT_MSG_STREAM_END;
+			status = CTF_MSG_ITER_STATUS_OK;
+			goto end;
+		} else if (medium_status != CTF_MSG_ITER_MEDIUM_STATUS_OK) {
+			status = (int) medium_status;
+			goto end;
+		}
+
+		/*
+		 * After the packet switch, the medium might want to give us a
+		 * different buffer for the new packet.
+		 */
+		status = request_medium_bytes(msg_it);
+		if (status != CTF_MSG_ITER_STATUS_OK) {
+			goto end;
+		}
+	}
 
 	/*
 	 * Adjust current buffer so that addr points to the beginning of the new
@@ -768,6 +792,7 @@ enum ctf_msg_iter_status switch_packet_state(struct ctf_msg_iter *msg_it)
 	msg_it->snapshots.end_clock = UINT64_C(-1);
 	msg_it->state = STATE_DSCOPE_TRACE_PACKET_HEADER_BEGIN;
 
+	status = CTF_MSG_ITER_STATUS_OK;
 end:
 	return status;
 }
@@ -3147,14 +3172,6 @@ enum ctf_msg_iter_status read_packet_header_context_fields(
 
 end:
 	return status;
-}
-
-BT_HIDDEN
-void ctf_msg_iter_set_medops_data(struct ctf_msg_iter *msg_it,
-		void *medops_data)
-{
-	BT_ASSERT(msg_it);
-	msg_it->medium.data = medops_data;
 }
 
 BT_HIDDEN

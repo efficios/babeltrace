@@ -36,6 +36,8 @@ struct ctf_fs_component;
 struct ctf_fs_file;
 struct ctf_fs_trace;
 struct ctf_fs_ds_file;
+struct ctf_fs_ds_file_group;
+struct ctf_fs_ds_group_medops_data;
 
 struct ctf_fs_ds_file_info {
 	/* Owned by this. */
@@ -109,6 +111,35 @@ struct ctf_fs_ds_index *ctf_fs_ds_index_create(bt_logging_level log_level,
 BT_HIDDEN
 void ctf_fs_ds_index_destroy(struct ctf_fs_ds_index *index);
 
+/*
+ * Medium operations to iterate on a single ctf_fs_ds_file.
+ *
+ * The data pointer when using this must be a pointer to the ctf_fs_ds_file.
+ */
 extern struct ctf_msg_iter_medium_ops ctf_fs_ds_file_medops;
+
+/*
+ * Medium operations to iterate on the packet of a ctf_fs_ds_group.
+ *
+ * The iteration is done based on the index of the group.
+ *
+ * The data pointer when using these medops must be a pointer to a ctf_fs_ds
+ * group_medops_data structure.
+ */
+extern struct ctf_msg_iter_medium_ops ctf_fs_ds_group_medops;
+
+BT_HIDDEN
+enum ctf_msg_iter_medium_status ctf_fs_ds_group_medops_data_create(
+		struct ctf_fs_ds_file_group *ds_file_group,
+		bt_self_message_iterator *self_msg_iter,
+		bt_logging_level log_level,
+		struct ctf_fs_ds_group_medops_data **out);
+
+BT_HIDDEN
+void ctf_fs_ds_group_medops_data_reset(struct ctf_fs_ds_group_medops_data *data);
+
+BT_HIDDEN
+void ctf_fs_ds_group_medops_data_destroy(
+		struct ctf_fs_ds_group_medops_data *data);
 
 #endif /* CTF_FS_DS_FILE_H */
