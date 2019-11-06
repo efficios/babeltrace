@@ -192,12 +192,6 @@ struct ctf_fs_msg_iter_data {
 	struct ctf_fs_ds_file_group *ds_file_group;
 
 	/* Owned by this */
-	struct ctf_fs_ds_file *ds_file;
-
-	/* Which file the iterator is _currently_ operating on */
-	size_t ds_file_info_index;
-
-	/* Owned by this */
 	struct ctf_msg_iter *msg_iter;
 
 	/*
@@ -207,6 +201,8 @@ struct ctf_fs_msg_iter_data {
 	 */
 	bt_component_class_message_iterator_next_method_status next_saved_status;
 	const struct bt_error *next_saved_error;
+
+	struct ctf_fs_ds_group_medops_data *msg_iter_medops_data;
 };
 
 BT_HIDDEN

@@ -271,4 +271,17 @@
 		}										\
 	} while (0)
 
+/*
+ * Logs error and appends error cause from message iterator context.
+ *
+ * There is no BT_SELF_MSG_LOGE yet, so use BT_COMP_LOGE for now.
+ */
+#define BT_MSG_ITER_LOGE_APPEND_CAUSE(_self_msg_iter, _fmt, ...)					\
+	do {												\
+		BT_COMP_LOG(BT_LOG_ERROR, bt_self_message_iterator_borrow_component(_self_msg_iter),	\
+			_fmt, ##__VA_ARGS__);								\
+		(void) BT_CURRENT_THREAD_ERROR_APPEND_CAUSE_FROM_MESSAGE_ITERATOR( 			\
+			_self_msg_iter, _fmt, ##__VA_ARGS__);						\
+	} while (0)
+
 #endif /* BABELTRACE_LOGGING_COMP_LOGGING_H */

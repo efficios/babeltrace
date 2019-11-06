@@ -55,39 +55,6 @@ struct tracer_info {
 };
 
 static
-int msg_iter_data_set_current_ds_file(struct ctf_fs_msg_iter_data *msg_iter_data)
-{
-	struct ctf_fs_ds_file_info *ds_file_info;
-	int ret = 0;
-
-	BT_ASSERT(msg_iter_data->ds_file_info_index <
-		msg_iter_data->ds_file_group->ds_file_infos->len);
-	ds_file_info = g_ptr_array_index(
-		msg_iter_data->ds_file_group->ds_file_infos,
-		msg_iter_data->ds_file_info_index);
-
-	/* Destroy the previous ds file. */
-	ctf_fs_ds_file_destroy(msg_iter_data->ds_file);
-
-	/* Create the new ds file. */
-	msg_iter_data->ds_file = ctf_fs_ds_file_create(
-		msg_iter_data->ds_file_group->ctf_fs_trace,
-		msg_iter_data->self_msg_iter,
-		msg_iter_data->ds_file_group->stream,
-		ds_file_info->path->str,
-		msg_iter_data->log_level);
-	if (!msg_iter_data->ds_file) {
-		ret = -1;
-	}
-
-	/* Tell the ctf message iterator to iterate on the new ds file. */
-	ctf_msg_iter_set_medops_data(msg_iter_data->msg_iter,
-		msg_iter_data->ds_file);
-
-	return ret;
-}
-
-static
 void ctf_fs_msg_iter_data_destroy(
 		struct ctf_fs_msg_iter_data *msg_iter_data)
 {
@@ -95,26 +62,16 @@ void ctf_fs_msg_iter_data_destroy(
 		return;
 	}
 
-	ctf_fs_ds_file_destroy(msg_iter_data->ds_file);
-
 	if (msg_iter_data->msg_iter) {
 		ctf_msg_iter_destroy(msg_iter_data->msg_iter);
 	}
 
-	g_free(msg_iter_data);
-}
+	if (msg_iter_data->msg_iter_medops_data) {
+		ctf_fs_ds_group_medops_data_destroy(
+			msg_iter_data->msg_iter_medops_data);
+	}
 
-static
-void set_msg_iter_emits_stream_beginning_end_messages(
-		struct ctf_fs_msg_iter_data *msg_iter_data)
-{
-	ctf_msg_iter_set_emit_stream_beginning_message(
-		msg_iter_data->msg_iter,
-		msg_iter_data->ds_file_info_index == 0);
-	ctf_msg_iter_set_emit_stream_end_message(
-		msg_iter_data->msg_iter,
-		msg_iter_data->ds_file_info_index ==
-			msg_iter_data->ds_file_group->ds_file_infos->len - 1);
+	g_free(msg_iter_data);
 }
 
 static
@@ -123,64 +80,46 @@ bt_component_class_message_iterator_next_method_status ctf_fs_iterator_next_one(
 		const bt_message **out_msg)
 {
 	bt_component_class_message_iterator_next_method_status status;
+	enum ctf_msg_iter_status msg_iter_status;
+	bt_logging_level log_level = msg_iter_data->log_level;
 
-	BT_ASSERT_DBG(msg_iter_data->ds_file);
+	msg_iter_status = ctf_msg_iter_get_next_message(
+		msg_iter_data->msg_iter, out_msg);
 
-	while (true) {
-		enum ctf_msg_iter_status msg_iter_status;
-		int ret;
+	switch (msg_iter_status) {
+	case CTF_MSG_ITER_STATUS_OK:
+		/* Cool, message has been written to *out_msg. */
+		status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_OK;
+		break;
 
-		msg_iter_status = ctf_msg_iter_get_next_message(
-			msg_iter_data->msg_iter, out_msg);
+	case CTF_MSG_ITER_STATUS_EOF:
+		status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_END;
+		break;
 
-		switch (msg_iter_status) {
-		case CTF_MSG_ITER_STATUS_OK:
-			/* Cool, message has been written to *out_msg. */
-			status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_OK;
-			goto end;
+	case CTF_MSG_ITER_STATUS_AGAIN:
+		/*
+		 * Should not make it this far as this is
+		 * medium-specific; there is nothing for the user to do
+		 * and it should have been handled upstream.
+		 */
+		bt_common_abort();
 
-		case CTF_MSG_ITER_STATUS_EOF:
-			if (msg_iter_data->ds_file_info_index ==
-					msg_iter_data->ds_file_group->ds_file_infos->len - 1) {
-				/* End of all group's stream files */
-				status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_END;
-				goto end;
-			}
+	case CTF_MSG_ITER_MEDIUM_STATUS_ERROR:
+		BT_MSG_ITER_LOGE_APPEND_CAUSE(msg_iter_data->self_msg_iter,
+			"Failed to get next message from CTF message iterator.");
+		status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_ERROR;
+		break;
 
-			msg_iter_data->ds_file_info_index++;
-			ctf_msg_iter_reset_for_next_stream_file(
-				msg_iter_data->msg_iter);
-			set_msg_iter_emits_stream_beginning_end_messages(
-				msg_iter_data);
+	case CTF_MSG_ITER_MEDIUM_STATUS_MEMORY_ERROR:
+		BT_MSG_ITER_LOGE_APPEND_CAUSE(msg_iter_data->self_msg_iter,
+			"Failed to get next message from CTF message iterator.");
+		status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_MEMORY_ERROR;
+		break;
 
-			/*
-			 * Open and start reading the next stream file
-			 * within our stream file group.
-			 */
-			ret = msg_iter_data_set_current_ds_file(msg_iter_data);
-			if (ret) {
-				status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_ERROR;
-				goto end;
-			}
-
-			/* Continue the loop to get the next message. */
-			break;
-
-		case CTF_MSG_ITER_STATUS_AGAIN:
-			/*
-			 * Should not make it this far as this is
-			 * medium-specific; there is nothing for the user to do
-			 * and it should have been handled upstream.
-			 */
-			bt_common_abort();
-
-		default:
-			status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_ERROR;
-			goto end;
-		}
+	default:
+		bt_common_abort();
 	}
 
-end:
 	return status;
 }
 
@@ -246,39 +185,19 @@ end:
 	return status;
 }
 
-static
-int ctf_fs_iterator_reset(struct ctf_fs_msg_iter_data *msg_iter_data)
-{
-	int ret;
-
-	msg_iter_data->ds_file_info_index = 0;
-	ret = msg_iter_data_set_current_ds_file(msg_iter_data);
-	if (ret) {
-		goto end;
-	}
-
-	ctf_msg_iter_reset(msg_iter_data->msg_iter);
-	set_msg_iter_emits_stream_beginning_end_messages(msg_iter_data);
-
-end:
-	return ret;
-}
-
 BT_HIDDEN
 bt_component_class_message_iterator_seek_beginning_method_status
 ctf_fs_iterator_seek_beginning(bt_self_message_iterator *it)
 {
 	struct ctf_fs_msg_iter_data *msg_iter_data =
 		bt_self_message_iterator_get_data(it);
-	bt_component_class_message_iterator_seek_beginning_method_status status =
-		BT_COMPONENT_CLASS_MESSAGE_ITERATOR_SEEK_BEGINNING_METHOD_STATUS_OK;
 
 	BT_ASSERT(msg_iter_data);
-	if (ctf_fs_iterator_reset(msg_iter_data)) {
-		status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_SEEK_BEGINNING_METHOD_STATUS_ERROR;
-	}
 
-	return status;
+	ctf_msg_iter_reset(msg_iter_data->msg_iter);
+	ctf_fs_ds_group_medops_data_reset(msg_iter_data->msg_iter_medops_data);
+
+	return BT_COMPONENT_CLASS_MESSAGE_ITERATOR_SEEK_BEGINNING_METHOD_STATUS_OK;
 }
 
 BT_HIDDEN
@@ -297,11 +216,11 @@ bt_component_class_message_iterator_initialize_method_status ctf_fs_iterator_ini
 {
 	struct ctf_fs_port_data *port_data;
 	struct ctf_fs_msg_iter_data *msg_iter_data = NULL;
-	bt_component_class_message_iterator_initialize_method_status ret =
-		BT_COMPONENT_CLASS_MESSAGE_ITERATOR_INITIALIZE_METHOD_STATUS_OK;
+	bt_component_class_message_iterator_initialize_method_status status;
 	bt_logging_level log_level;
 	bt_self_component *self_comp =
 		bt_self_component_source_as_self_component(self_comp_src);
+	enum ctf_msg_iter_medium_status medium_status;
 
 	port_data = bt_self_component_port_get_data(
 		bt_self_component_port_output_as_self_component_port(
@@ -310,29 +229,47 @@ bt_component_class_message_iterator_initialize_method_status ctf_fs_iterator_ini
 	log_level = port_data->ctf_fs->log_level;
 	msg_iter_data = g_new0(struct ctf_fs_msg_iter_data, 1);
 	if (!msg_iter_data) {
-		ret = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_INITIALIZE_METHOD_STATUS_MEMORY_ERROR;
+		status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_INITIALIZE_METHOD_STATUS_MEMORY_ERROR;
 		goto error;
 	}
 
 	msg_iter_data->log_level = log_level;
 	msg_iter_data->self_comp = self_comp;
 	msg_iter_data->self_msg_iter = self_msg_iter;
-	msg_iter_data->msg_iter = ctf_msg_iter_create(
-		port_data->ds_file_group->ctf_fs_trace->metadata->tc,
-		bt_common_get_page_size(msg_iter_data->log_level) * 8,
-		ctf_fs_ds_file_medops, NULL, msg_iter_data->log_level,
-		self_comp, self_msg_iter);
-	if (!msg_iter_data->msg_iter) {
-		BT_COMP_LOGE_APPEND_CAUSE(self_comp, "Cannot create a CTF message iterator.");
-		ret = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_INITIALIZE_METHOD_STATUS_MEMORY_ERROR;
+	msg_iter_data->ds_file_group = port_data->ds_file_group;
+
+	medium_status = ctf_fs_ds_group_medops_data_create(
+		msg_iter_data->ds_file_group, self_msg_iter, log_level,
+		&msg_iter_data->msg_iter_medops_data);
+	BT_ASSERT(
+		medium_status == CTF_MSG_ITER_MEDIUM_STATUS_OK ||
+		medium_status == CTF_MSG_ITER_MEDIUM_STATUS_ERROR ||
+		medium_status == CTF_MSG_ITER_MEDIUM_STATUS_MEMORY_ERROR);
+	if (medium_status != CTF_MSG_ITER_MEDIUM_STATUS_OK) {
+		BT_MSG_ITER_LOGE_APPEND_CAUSE(self_msg_iter,
+			"Failed to create ctf_fs_ds_group_medops");
+		status = (int) medium_status;
 		goto error;
 	}
 
-	msg_iter_data->ds_file_group = port_data->ds_file_group;
-	if (ctf_fs_iterator_reset(msg_iter_data)) {
-		ret = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_INITIALIZE_METHOD_STATUS_ERROR;
+	msg_iter_data->msg_iter = ctf_msg_iter_create(
+		msg_iter_data->ds_file_group->ctf_fs_trace->metadata->tc,
+		bt_common_get_page_size(msg_iter_data->log_level) * 8,
+		ctf_fs_ds_group_medops,
+		msg_iter_data->msg_iter_medops_data,
+		msg_iter_data->log_level,
+		self_comp, self_msg_iter);
+	if (!msg_iter_data->msg_iter) {
+		BT_COMP_LOGE_APPEND_CAUSE(self_comp, "Cannot create a CTF message iterator.");
+		status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_INITIALIZE_METHOD_STATUS_MEMORY_ERROR;
 		goto error;
 	}
+
+	/* FIXME: This is temporary, those functions will be removed. */
+	ctf_msg_iter_set_emit_stream_end_message(
+		msg_iter_data->msg_iter, true);
+	ctf_msg_iter_set_emit_stream_beginning_message(
+		msg_iter_data->msg_iter, true);
 
 	/*
 	 * This iterator can seek forward if its stream class has a default
@@ -345,10 +282,9 @@ bt_component_class_message_iterator_initialize_method_status ctf_fs_iterator_ini
 
 	bt_self_message_iterator_set_data(self_msg_iter,
 		msg_iter_data);
-	if (ret != BT_COMPONENT_CLASS_MESSAGE_ITERATOR_INITIALIZE_METHOD_STATUS_OK) {
-		goto error;
-	}
 	msg_iter_data = NULL;
+
+	status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_INITIALIZE_METHOD_STATUS_OK;
 	goto end;
 
 error:
@@ -356,7 +292,7 @@ error:
 
 end:
 	ctf_fs_msg_iter_data_destroy(msg_iter_data);
-	return ret;
+	return status;
 }
 
 static
