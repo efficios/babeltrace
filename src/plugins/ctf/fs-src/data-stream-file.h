@@ -94,7 +94,7 @@ struct ctf_fs_ds_file {
 BT_HIDDEN
 struct ctf_fs_ds_file *ctf_fs_ds_file_create(
 		struct ctf_fs_trace *ctf_fs_trace,
-		bt_self_message_iterator *pc_msg_iter,
+		bt_self_message_iterator *self_msg_iter,
 		struct ctf_msg_iter *msg_iter,
 		bt_stream *stream, const char *path,
 		bt_logging_level log_level);

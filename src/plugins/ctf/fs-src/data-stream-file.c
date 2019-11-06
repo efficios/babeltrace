@@ -658,7 +658,7 @@ error:
 BT_HIDDEN
 struct ctf_fs_ds_file *ctf_fs_ds_file_create(
 		struct ctf_fs_trace *ctf_fs_trace,
-		bt_self_message_iterator *pc_msg_iter,
+		bt_self_message_iterator *self_msg_iter,
 		struct ctf_msg_iter *msg_iter,
 		bt_stream *stream, const char *path,
 		bt_logging_level log_level)
@@ -673,7 +673,7 @@ struct ctf_fs_ds_file *ctf_fs_ds_file_create(
 
 	ds_file->log_level = log_level;
 	ds_file->self_comp = ctf_fs_trace->self_comp;
-	ds_file->self_msg_iter = pc_msg_iter;
+	ds_file->self_msg_iter = self_msg_iter;
 	ds_file->file = ctf_fs_file_create(log_level, ds_file->self_comp);
 	if (!ds_file->file) {
 		goto error;
