@@ -62,7 +62,8 @@
 #define print_dbg(fmt, ...)	BT_COMP_LOGD(fmt, ## __VA_ARGS__)
 
 static
-const char *print_live_iterator_status(enum lttng_live_iterator_status status)
+const char *lttng_live_iterator_status_string(
+		enum lttng_live_iterator_status status)
 {
 	switch (status) {
 	case LTTNG_LIVE_ITERATOR_STATUS_CONTINUE:
@@ -1026,7 +1027,7 @@ enum lttng_live_iterator_status next_stream_iterator_for_trace(
 				lttng_live_msg_iter, stream_iter, &msg);
 
 			BT_COMP_LOGD("live stream iterator returned status :%s",
-				print_live_iterator_status(stream_iter_status));
+				lttng_live_iterator_status_string(stream_iter_status));
 			if (stream_iter_status == LTTNG_LIVE_ITERATOR_STATUS_END) {
 				stream_iter_is_ended = true;
 				break;
@@ -1488,11 +1489,20 @@ return_status:
 		status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_END;
 		break;
 	case LTTNG_LIVE_ITERATOR_STATUS_NOMEM:
+		BT_COMP_LOGE_APPEND_CAUSE(self_comp,
+			"Memory error preparing the next batch of messages: "
+			"live-iter-status=%s",
+			lttng_live_iterator_status_string(stream_iter_status));
 		status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_MEMORY_ERROR;
 		break;
 	case LTTNG_LIVE_ITERATOR_STATUS_ERROR:
 	case LTTNG_LIVE_ITERATOR_STATUS_INVAL:
 	case LTTNG_LIVE_ITERATOR_STATUS_UNSUPPORTED:
+		BT_COMP_LOGE_APPEND_CAUSE(self_comp,
+			"Error preparing the next batch of messages: "
+			"live-iter-status=%s",
+			lttng_live_iterator_status_string(stream_iter_status));
+
 		status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_ERROR;
 		/* Put all existing messages on error. */
 		put_messages(msgs, *count);
