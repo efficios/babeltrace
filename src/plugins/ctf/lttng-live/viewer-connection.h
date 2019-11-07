@@ -74,6 +74,7 @@ struct live_viewer_connection {
 	GString *relay_hostname;
 	GString *target_hostname;
 	GString *session_name;
+	GString *proto;
 
 	BT_SOCKET control_sock;
 	int port;

@@ -132,6 +132,8 @@ enum lttng_live_iterator_status lttng_live_metadata_update(
 	bt_self_component *self_comp = trace->self_comp;
 	enum lttng_live_get_one_metadata_status metadata_status;
 
+	BT_COMP_LOGD("Updating metadata for trace: trace-id=%"PRIu64, trace->id);
+
 	/* No metadata stream yet. */
 	if (!metadata) {
 		if (session->new_streams_needed) {
@@ -196,9 +198,15 @@ enum lttng_live_iterator_status lttng_live_metadata_update(
 			keep_receiving = false;
 			break;
 		case LTTNG_LIVE_GET_ONE_METADATA_STATUS_CLOSED:
+			BT_COMP_LOGD("Metadata stream was closed by the Relay, the trace is no longer active: "
+				"trace-id=%"PRIu64", metadata-stream-id=%"PRIu64,
+				trace->id, metadata->stream_id);
 			keep_receiving = false;
 			break;
 		case LTTNG_LIVE_GET_ONE_METADATA_STATUS_ERROR:
+			BT_COMP_LOGE_APPEND_CAUSE(self_comp,
+				"Error getting one trace metadata packet: "
+				"trace-id=%"PRIu64, trace->id);
 			goto error;
 		default:
 			bt_common_abort();
@@ -216,8 +224,7 @@ enum lttng_live_iterator_status lttng_live_metadata_update(
 
 	/* The memory buffer `metadata_buf` contains all the metadata. */
 	if (bt_close_memstream(&metadata_buf, &size, fp)) {
-		BT_COMP_LOGE_APPEND_CAUSE_ERRNO(self_comp,
-			"Metadata bt_close_memstream", ".");
+		BT_COMP_LOGW_ERRNO("Metadata bt_close_memstream", ".");
 	}
 
 	fp = NULL;
@@ -253,6 +260,7 @@ enum lttng_live_iterator_status lttng_live_metadata_update(
 	 * The call to ctf_metadata_decoder_append_content() will append
 	 * new metadata to our current trace class.
 	 */
+	BT_COMP_LOGD("Appending new metadata to the ctf_trace class");
 	decoder_status = ctf_metadata_decoder_append_content(
 		metadata->decoder, fp);
 	switch (decoder_status) {
@@ -306,8 +314,7 @@ end:
 
 		closeret = fclose(fp);
 		if (closeret) {
-			BT_COMP_LOGE_APPEND_CAUSE_ERRNO(self_comp,
-				"Error on fclose", ".");
+			BT_COMP_LOGW_ERRNO("Error on fclose", ".");
 		}
 	}
 	free(metadata_buf);
