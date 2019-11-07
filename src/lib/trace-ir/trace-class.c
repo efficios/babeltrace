@@ -102,6 +102,7 @@ void destroy_trace_class(struct bt_object *obj)
 
 			if (elem.func) {
 				elem.func(tc, elem.data);
+				BT_ASSERT_POST_NO_ERROR();
 			}
 
 			/*

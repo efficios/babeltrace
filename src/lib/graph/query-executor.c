@@ -234,6 +234,7 @@ enum bt_query_executor_query_status bt_query_executor_query(
 		bt_common_func_status_string(query_status), *user_result);
 	BT_ASSERT_POST(query_status != BT_FUNC_STATUS_OK || *user_result,
 		"User method returned `BT_FUNC_STATUS_OK` without a result.");
+	BT_ASSERT_POST_NO_ERROR_IF_NO_ERROR_STATUS(query_status);
 	status = (int) query_status;
 
 	if (status < 0) {
