@@ -145,11 +145,7 @@ enum lttng_live_iterator_status lttng_live_metadata_update(
 		goto end;
 	}
 
-	if (!metadata->trace) {
-		trace->new_metadata_needed = false;
-	}
-
-	if (!trace->new_metadata_needed) {
+	if (trace->metadata_stream_state != LTTNG_LIVE_METADATA_STREAM_STATE_NEEDED) {
 		goto end;
 	}
 
@@ -201,7 +197,14 @@ enum lttng_live_iterator_status lttng_live_metadata_update(
 			BT_COMP_LOGD("Metadata stream was closed by the Relay, the trace is no longer active: "
 				"trace-id=%"PRIu64", metadata-stream-id=%"PRIu64,
 				trace->id, metadata->stream_id);
+			/*
+			 * The stream was closed and we received everything
+			 * there was to receive for this metadata stream.
+			 * We go on with the decoding of what we received. So
+			 * that data stream can be decoded.
+			 */
 			keep_receiving = false;
+			trace->metadata_stream_state = LTTNG_LIVE_METADATA_STREAM_STATE_CLOSED;
 			break;
 		case LTTNG_LIVE_GET_ONE_METADATA_STATUS_ERROR:
 			BT_COMP_LOGE_APPEND_CAUSE(self_comp,
@@ -211,15 +214,6 @@ enum lttng_live_iterator_status lttng_live_metadata_update(
 		default:
 			bt_common_abort();
 		}
-	}
-
-	/*
-	 * A closed metadata stream means the trace is no longer active. Return
-	 * _END so that the caller can remove the trace from its list.
-	 */
-	if (metadata_status == LTTNG_LIVE_GET_ONE_METADATA_STATUS_CLOSED) {
-		status = LTTNG_LIVE_ITERATOR_STATUS_END;
-		goto end;
 	}
 
 	/* The memory buffer `metadata_buf` contains all the metadata. */
@@ -234,7 +228,9 @@ enum lttng_live_iterator_status lttng_live_metadata_update(
 			status = LTTNG_LIVE_ITERATOR_STATUS_AGAIN;
 			goto end;
 		}
-		trace->new_metadata_needed = false;
+
+		/* The relay sent zero bytes of metdata. */
+		trace->metadata_stream_state = LTTNG_LIVE_METADATA_STREAM_STATE_NOT_NEEDED;
 		goto end;
 	}
 
@@ -294,7 +290,9 @@ enum lttng_live_iterator_status lttng_live_metadata_update(
 			trace->clock_class =
 				borrow_any_clock_class(trace->trace_class);
 		}
-		trace->new_metadata_needed = false;
+
+		/* The metadata was updated succesfully. */
+		trace->metadata_stream_state = LTTNG_LIVE_METADATA_STREAM_STATE_NOT_NEEDED;
 
 		break;
 	case CTF_METADATA_DECODER_STATUS_INCOMPLETE:
@@ -358,7 +356,6 @@ int lttng_live_metadata_create_stream(struct lttng_live_session *session,
 			"Failed to borrow trace");
 		goto error;
 	}
-	metadata->trace = trace;
 	trace->metadata = metadata;
 	return 0;
 

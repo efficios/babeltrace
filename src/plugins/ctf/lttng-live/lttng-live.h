@@ -129,12 +129,30 @@ struct lttng_live_metadata {
 	bt_logging_level log_level;
 	bt_self_component *self_comp;
 
-	/* Weak reference. */
-	struct lttng_live_trace *trace;
-
 	uint64_t stream_id;
 	/* Weak reference. */
 	struct ctf_metadata_decoder *decoder;
+};
+
+enum lttng_live_metadata_stream_state {
+	/*
+	 * The metadata needs to be updated. This is either because we just
+	 * created the trace and haven't asked yet, or the relay specifically
+	 * told us that new metadata is available.
+	 */
+	LTTNG_LIVE_METADATA_STREAM_STATE_NEEDED,
+	/*
+	 * The metadata was updated and the relay has not told us we need to
+	 * update it yet.
+	 */
+	LTTNG_LIVE_METADATA_STREAM_STATE_NOT_NEEDED,
+	/*
+	 * The relay has closed this metadata stream. We set this in reaction
+	 * to a LTTNG_VIEWER_METADATA_ERR reply to a LTTNG_VIEWER_GET_METADATA
+	 * command to the relay. If this field is set, we have received all the
+	 * metadata that we are ever going to get for that metadata stream.
+	 */
+	LTTNG_LIVE_METADATA_STREAM_STATE_CLOSED,
 };
 
 struct lttng_live_trace {
@@ -161,7 +179,7 @@ struct lttng_live_trace {
 	/* Owned by this. */
 	GPtrArray *stream_iterators;
 
-	bool new_metadata_needed;
+	enum lttng_live_metadata_stream_state metadata_stream_state;
 };
 
 struct lttng_live_session {

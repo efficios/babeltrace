@@ -317,10 +317,5 @@ void lttng_live_stream_iterator_destroy(
 	/* Track the number of active stream iterator. */
 	stream_iter->trace->session->lttng_live_msg_iter->active_stream_iter--;
 
-	/*
-	 * Ensure we poke the trace metadata in the future, which is
-	 * required to release the metadata reference on the trace.
-	 */
-	stream_iter->trace->new_metadata_needed = true;
 	g_free(stream_iter);
 }
