@@ -1,0 +1,22 @@
+Trace class:
+  Stream class (ID 0):
+    Supports packets: Yes
+    Packets have beginning default clock snapshot: No
+    Packets have end default clock snapshot: No
+    Supports discarded events: No
+    Supports discarded packets: No
+    Event class `gadoua` (ID 1):
+
+{Trace 0, Stream class ID 0, Stream ID 0}
+Stream beginning:
+  Trace:
+    Stream (ID 0, Class ID 0)
+
+{Trace 0, Stream class ID 0, Stream ID 0}
+Packet beginning
+
+{Trace 0, Stream class ID 0, Stream ID 0}
+Event `gadoua` (Class ID 1):
+
+{Trace 0, Stream class ID 0, Stream ID 0}
+Event `gadoua` (Class ID 1):

@@ -34,22 +34,42 @@ fail_trace_dir="$BT_CTF_TRACES_PATH/fail"
 
 stdout_file=$(mktemp -t test_ctf_fail_stdout.XXXXXX)
 stderr_file=$(mktemp -t test_ctf_fail_stderr.XXXXXX)
+data_dir="${BT_TESTS_SRCDIR}/data/plugins/src.ctf.fs/fail"
 
 test_fail() {
 	local name="$1"
-	local expected_error_msg="$2"
+	local expected_stdout_file="$2"
+	local expected_error_msg="$3"
 
 	bt_cli "${stdout_file}" "${stderr_file}" \
-		"${fail_trace_dir}/${name}"
+		-c sink.text.details -p "with-trace-name=no,with-stream-name=no" "${fail_trace_dir}/${name}"
 	isnt $? 0 "Trace ${name}: babeltrace exits with an error"
+
+	bt_diff "${expected_stdout_file}" "${stdout_file}"
+	ok $? "Trace ${name}: babeltrace produces the expected stdout"
+
+	# The expected error message will likely be found in the error stream
+	# even if Babeltrace aborts (e.g. hits an assert).  Check that the
+	# Babeltrace CLI finishes gracefully by checking that the error stream
+	# contains an error stack printed by the CLI.
+	grep --silent "^CAUSED BY " "${stderr_file}"
+	ok $? "Trace ${name}: babeltrace produces an error stack"
 
 	grep --silent "${expected_error_msg}" "${stderr_file}"
 	ok $? "Trace ${name}: babeltrace produces the expected error message"
 }
 
 
-plan_tests 2
+plan_tests 8
 
-test_fail "invalid-packet-size/trace" "Failed to index CTF stream file '.*channel0_3'"
+test_fail \
+	"invalid-packet-size/trace" \
+	"/dev/null" \
+	"Failed to index CTF stream file '.*channel0_3'"
+
+test_fail \
+	"valid-events-then-invalid-events" \
+	"${data_dir}/valid-events-then-invalid-events.expect" \
+	"No event class with ID of event class ID to use in stream class: .*stream-class-id=0, event-class-id=255"
 
 rm -f "${stdout_file}" "${stderr_file}"
