@@ -493,22 +493,13 @@ enum lttng_live_iterator_status lttng_live_get_session(
 
 		status = lttng_live_metadata_update(trace);
 		switch (status) {
+		case LTTNG_LIVE_ITERATOR_STATUS_END:
 		case LTTNG_LIVE_ITERATOR_STATUS_OK:
 			trace_idx++;
 			break;
-		case LTTNG_LIVE_ITERATOR_STATUS_END:
-			/*
-			 * The trace has ended. Remove it of the array an
-			 * continue the iteration.
-			 * We can remove the trace safely when using the
-			 * g_ptr_array_remove_index_fast because it replaces
-			 * the element at trace_idx with the array's last
-			 * element. trace_idx is not incremented because of
-			 * that.
-			 */
-			(void) g_ptr_array_remove_index_fast(session->traces,
-				trace_idx);
-			break;
+		case LTTNG_LIVE_ITERATOR_STATUS_CONTINUE:
+		case LTTNG_LIVE_ITERATOR_STATUS_AGAIN:
+			goto end;
 		default:
 			BT_COMP_LOGE_APPEND_CAUSE(self_comp,
 				"Error updating trace metadata: "
