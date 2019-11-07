@@ -553,6 +553,7 @@ bt_component_port_connected(
 			status == BT_FUNC_STATUS_MEMORY_ERROR,
 			"Unexpected returned component status: status=%s",
 			bt_common_func_status_string(status));
+		BT_ASSERT_POST_NO_ERROR_IF_NO_ERROR_STATUS(status);
 	}
 
 	return status;

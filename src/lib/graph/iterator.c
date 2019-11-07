@@ -477,6 +477,7 @@ int create_self_component_input_port_message_iterator(
 			upstream_port);
 		BT_LOGD("User method returned: status=%s",
 			bt_common_func_status_string(iter_status));
+		BT_ASSERT_POST_NO_ERROR_IF_NO_ERROR_STATUS(iter_status);
 		if (iter_status != BT_FUNC_STATUS_OK) {
 			BT_LIB_LOGW_APPEND_CAUSE(
 				"Component input port message iterator initialization method failed: "
@@ -869,6 +870,8 @@ call_iterator_next_method(
 			"Clock snapshots are not monotonic");
 	}
 
+	BT_ASSERT_POST_DEV_NO_ERROR_IF_NO_ERROR_STATUS(status);
+
 	return status;
 }
 
@@ -1007,6 +1010,8 @@ bt_self_component_port_input_message_iterator_can_seek_ns_from_origin(
 		status = (int) iterator->methods.can_seek_ns_from_origin(iterator,
 			ns_from_origin, can_seek);
 
+		BT_ASSERT_POST_NO_ERROR_IF_NO_ERROR_STATUS(status);
+
 		if (status != BT_FUNC_STATUS_OK) {
 			BT_LIB_LOGW_APPEND_CAUSE(
 				"Component input port message iterator's \"can seek nanoseconds from origin\" method failed: "
@@ -1077,6 +1082,7 @@ bt_self_component_port_input_message_iterator_can_seek_beginning(
 				*can_seek == BT_FALSE,
 			"Unexpected boolean value returned from user's \"can seek beginning\" method: val=%d, %![iter-]+i",
 			*can_seek, iterator);
+		BT_ASSERT_POST_NO_ERROR_IF_NO_ERROR_STATUS(status);
 	} else {
 		*can_seek = BT_FALSE;
 		status = BT_FUNC_STATUS_OK;
@@ -1172,6 +1178,7 @@ bt_self_component_port_input_message_iterator_seek_beginning(
 		status == BT_FUNC_STATUS_AGAIN,
 		"Unexpected status: %![iter-]+i, status=%s",
 		iterator, bt_common_func_status_string(status));
+	BT_ASSERT_POST_NO_ERROR_IF_NO_ERROR_STATUS(status);
 	if (status < 0) {
 		BT_LIB_LOGW_APPEND_CAUSE(
 			"Component input port message iterator's \"seek beginning\" method failed: "
@@ -1759,6 +1766,7 @@ bt_self_component_port_input_message_iterator_seek_ns_from_origin(
 			status == BT_FUNC_STATUS_AGAIN,
 			"Unexpected status: %![iter-]+i, status=%s",
 			iterator, bt_common_func_status_string(status));
+		BT_ASSERT_POST_NO_ERROR_IF_NO_ERROR_STATUS(status);
 		if (status < 0) {
 			BT_LIB_LOGW_APPEND_CAUSE(
 				"Component input port message iterator's \"seek nanoseconds from origin\" method failed: "

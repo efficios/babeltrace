@@ -102,6 +102,29 @@
 	} while (0)
 
 /*
+ * Asserts that if there's an error on the current thread, an error status code
+ * was returned.  Puts back the error in place (if there is one) such that if
+ * the assertion hits, it will be possible to inspect it with a debugger.
+ */
+#define BT_ASSERT_POST_NO_ERROR_IF_NO_ERROR_STATUS(_status)			\
+	do {									\
+		const struct bt_error *err = bt_current_thread_take_error();	\
+		if (err) {							\
+			bt_current_thread_move_error(err);			\
+		}								\
+		BT_ASSERT_POST(_status < 0 || !err,				\
+			"Current thread has an error, but user function "	\
+			"returned a non-error status: status=%s",		\
+			bt_common_func_status_string(_status));			\
+	} while (0)
+
+/*
+ * Asserts that the current thread has no error.
+ */
+#define BT_ASSERT_POST_NO_ERROR() \
+	BT_ASSERT_POST_NO_ERROR_IF_NO_ERROR_STATUS(0)
+
+/*
  * Marks a function as being only used within a BT_ASSERT_POST()
  * context.
  */
@@ -116,11 +139,17 @@
 # define BT_ASSERT_POST_DEV(_cond, _fmt, ...)				\
 	BT_ASSERT_POST((_cond), _fmt, ##__VA_ARGS__)
 
+/* Developer mode version of BT_ASSERT_POST_NO_ERROR_IF_NO_ERROR_STATUS(). */
+# define BT_ASSERT_POST_DEV_NO_ERROR_IF_NO_ERROR_STATUS(_status) \
+	BT_ASSERT_POST_NO_ERROR_IF_NO_ERROR_STATUS(_status)
+
 /* Developer mode version of `BT_ASSERT_POST_FUNC`. */
 # define BT_ASSERT_POST_DEV_FUNC BT_ASSERT_POST_FUNC
 #else
 # define BT_ASSERT_POST_DEV_MSG(_fmt, ...)
 # define BT_ASSERT_POST_DEV(_cond, _fmt, ...)	((void) sizeof((void) (_cond), 0))
+# define BT_ASSERT_POST_DEV_NO_ERROR_IF_NO_ERROR_STATUS(_status) \
+	((void) sizeof((void) (_status), 0))
 # define BT_ASSERT_POST_DEV_FUNC	__attribute__((unused))
 #endif /* BT_DEV_MODE */
 

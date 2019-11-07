@@ -257,6 +257,7 @@ int bt_graph_configure(struct bt_graph *graph)
 				comp_status == BT_FUNC_STATUS_MEMORY_ERROR,
 				"Unexpected returned status: status=%s",
 				bt_common_func_status_string(comp_status));
+			BT_ASSERT_POST_NO_ERROR_IF_NO_ERROR_STATUS(comp_status);
 			if (comp_status != BT_FUNC_STATUS_OK) {
 				if (comp_status < 0) {
 					BT_LIB_LOGW_APPEND_CAUSE(

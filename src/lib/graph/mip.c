@@ -146,6 +146,7 @@ int validate_operative_mip_version_in_array(GPtrArray *descriptors,
 			range_set->ranges->len > 0,
 			"User method returned `BT_FUNC_STATUS_OK` without "
 			"adding a range to the supported MIP version range set.");
+		BT_ASSERT_POST_NO_ERROR_IF_NO_ERROR_STATUS(method_status);
 		if (method_status < 0) {
 			BT_LIB_LOGW_APPEND_CAUSE(
 				"Component class's \"get supported MIP versions\" method failed: "

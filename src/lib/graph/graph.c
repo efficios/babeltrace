@@ -588,6 +588,7 @@ int consume_graph_sink(struct bt_component_sink *comp)
 		consume_status == BT_FUNC_STATUS_MEMORY_ERROR,
 		"Invalid component status returned by consuming method: "
 		"status=%s", bt_common_func_status_string(consume_status));
+	BT_ASSERT_POST_DEV_NO_ERROR_IF_NO_ERROR_STATUS(consume_status);
 	if (consume_status) {
 		if (consume_status < 0) {
 			BT_LIB_LOGW_APPEND_CAUSE(
@@ -1144,6 +1145,7 @@ enum bt_graph_listener_func_status bt_graph_notify_port_added(
 
 		BT_ASSERT(listener->func);
 		status = listener->func(comp, port, listener->base.data);
+		BT_ASSERT_POST_NO_ERROR_IF_NO_ERROR_STATUS(status);
 		if (status != BT_FUNC_STATUS_OK) {
 			goto end;
 		}
@@ -1222,6 +1224,7 @@ enum bt_graph_listener_func_status bt_graph_notify_ports_connected(
 		BT_ASSERT(listener->func);
 		status = listener->func(upstream_comp, downstream_comp,
 			upstream_port, downstream_port, listener->base.data);
+		BT_ASSERT_POST_DEV_NO_ERROR_IF_NO_ERROR_STATUS(status);
 		if (status != BT_FUNC_STATUS_OK) {
 			goto end;
 		}
@@ -1338,6 +1341,7 @@ int add_component_with_init_method_data(
 		init_status = init_method(component, NULL, params, init_method_data);
 		BT_LOGD("User method returned: status=%s",
 			bt_common_func_status_string(init_status));
+		BT_ASSERT_POST_DEV_NO_ERROR_IF_NO_ERROR_STATUS(init_status);
 		if (init_status != BT_FUNC_STATUS_OK) {
 			if (init_status < 0) {
 				BT_LIB_LOGW_APPEND_CAUSE(
