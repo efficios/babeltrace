@@ -107,6 +107,14 @@ struct muxer_msg_iter {
 	 * MUXER_MSG_ITER_CLOCK_CLASS_EXPECTATION_NOT_ABS_SPEC_UUID.
 	 */
 	bt_uuid_t expected_clock_class_uuid;
+
+	/*
+	 * Saved error.  If we hit an error in the _next method, but have some
+	 * messages ready to return, we save the error here and return it on
+	 * the next _next call.
+	 */
+	bt_component_class_message_iterator_next_method_status next_saved_status;
+	const struct bt_error *next_saved_error;
 };
 
 static
@@ -1101,17 +1109,27 @@ bt_component_class_message_iterator_next_method_status muxer_msg_iter_do_next(
 		bt_message_array_const msgs, uint64_t capacity,
 		uint64_t *count)
 {
-	bt_component_class_message_iterator_next_method_status status =
-		BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_OK;
+	bt_component_class_message_iterator_next_method_status status;
 	uint64_t i = 0;
 
-	while (i < capacity && status == BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_OK) {
+	if (G_UNLIKELY(muxer_msg_iter->next_saved_error)) {
+		/*
+		 * Last time we were called, we hit an error but had some
+		 * messages to deliver, so we stashed the error here.  Return
+		 * it now.
+		 */
+		BT_CURRENT_THREAD_MOVE_ERROR_AND_RESET(muxer_msg_iter->next_saved_error);
+		status = muxer_msg_iter->next_saved_status;
+		goto end;
+	}
+
+	do {
 		status = muxer_msg_iter_do_next_one(muxer_comp,
 			muxer_msg_iter, &msgs[i]);
 		if (status == BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_OK) {
 			i++;
 		}
-	}
+	} while (i < capacity && status == BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_OK);
 
 	if (i > 0) {
 		/*
@@ -1126,10 +1144,23 @@ bt_component_class_message_iterator_next_method_status muxer_msg_iter_do_next(
 		 * called, possibly without any accumulated
 		 * message, in which case we'll return it.
 		 */
+		if (status < 0) {
+			/*
+			 * Save this error for the next _next call.  Assume that
+			 * this component always appends error causes when
+			 * returning an error status code, which will cause the
+			 * current thread error to be non-NULL.
+			 */
+			muxer_msg_iter->next_saved_error = bt_current_thread_take_error();
+			BT_ASSERT(muxer_msg_iter->next_saved_error);
+			muxer_msg_iter->next_saved_status = status;
+		}
+
 		*count = i;
 		status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_OK;
 	}
 
+end:
 	return status;
 }
 

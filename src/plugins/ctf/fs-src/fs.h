@@ -194,6 +194,14 @@ struct ctf_fs_msg_iter_data {
 
 	/* Owned by this */
 	struct ctf_msg_iter *msg_iter;
+
+	/*
+	 * Saved error.  If we hit an error in the _next method, but have some
+	 * messages ready to return, we save the error here and return it on
+	 * the next _next call.
+	 */
+	bt_component_class_message_iterator_next_method_status next_saved_status;
+	const struct bt_error *next_saved_error;
 };
 
 BT_HIDDEN

@@ -173,19 +173,29 @@ bt_component_class_message_iterator_next_method_status ctf_fs_iterator_next(
 		bt_message_array_const msgs, uint64_t capacity,
 		uint64_t *count)
 {
-	bt_component_class_message_iterator_next_method_status status =
-		BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_OK;
+	bt_component_class_message_iterator_next_method_status status;
 	struct ctf_fs_msg_iter_data *msg_iter_data =
 		bt_self_message_iterator_get_data(iterator);
 	uint64_t i = 0;
 
-	while (i < capacity &&
-			status == BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_OK) {
+	if (G_UNLIKELY(msg_iter_data->next_saved_error)) {
+		/*
+		 * Last time we were called, we hit an error but had some
+		 * messages to deliver, so we stashed the error here.  Return
+		 * it now.
+		 */
+		BT_CURRENT_THREAD_MOVE_ERROR_AND_RESET(msg_iter_data->next_saved_error);
+		status = msg_iter_data->next_saved_status;
+		goto end;
+	}
+
+	do {
 		status = ctf_fs_iterator_next_one(msg_iter_data, &msgs[i]);
 		if (status == BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_OK) {
 			i++;
 		}
-	}
+	} while (i < capacity &&
+			status == BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_OK);
 
 	if (i > 0) {
 		/*
@@ -199,10 +209,23 @@ bt_component_class_message_iterator_next_method_status ctf_fs_iterator_next(
 		 * called, possibly without any accumulated
 		 * message, in which case we'll return it.
 		 */
+		if (status < 0) {
+			/*
+			 * Save this error for the next _next call.  Assume that
+			 * this component always appends error causes when
+			 * returning an error status code, which will cause the
+			 * current thread error to be non-NULL.
+			 */
+			msg_iter_data->next_saved_error = bt_current_thread_take_error();
+			BT_ASSERT(msg_iter_data->next_saved_error);
+			msg_iter_data->next_saved_status = status;
+		}
+
 		*count = i;
 		status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_OK;
 	}
 
+end:
 	return status;
 }
 
