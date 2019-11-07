@@ -151,6 +151,10 @@ enum lttng_live_iterator_status lttng_live_lazy_msg_init(
 		return LTTNG_LIVE_ITERATOR_STATUS_OK;
 	}
 
+	BT_COMP_LOGD("Lazily initializing self message iterator for live session: "
+		"session-id=%"PRIu64", self-msg-iter-addr=%p", session->id,
+		self_msg_iter);
+
 	for (trace_idx = 0; trace_idx < session->traces->len; trace_idx++) {
 		struct lttng_live_trace *trace =
 			g_ptr_array_index(session->traces, trace_idx);
@@ -168,6 +172,10 @@ enum lttng_live_iterator_status lttng_live_lazy_msg_init(
 			}
 			ctf_tc = ctf_metadata_decoder_borrow_ctf_trace_class(
 				trace->metadata->decoder);
+			BT_COMP_LOGD("Creating CTF message iterator: "
+				"session-id=%"PRIu64", ctf-tc-addr=%p, "
+				"stream-iter-name=%s, self-msg-iter-addr=%p",
+				session->id, ctf_tc, stream_iter->name->str, self_msg_iter);
 			stream_iter->msg_iter = ctf_msg_iter_create(ctf_tc,
 				lttng_live->max_query_size, medops, stream_iter,
 				log_level, self_comp, self_msg_iter);

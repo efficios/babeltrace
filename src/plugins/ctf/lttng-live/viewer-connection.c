@@ -281,6 +281,8 @@ int parse_url(struct live_viewer_connection *viewer_connection)
 			error_buf);
 		goto end;
 	}
+	viewer_connection->proto = lttng_live_url_parts.proto;
+	lttng_live_url_parts.proto = NULL;
 
 	viewer_connection->relay_hostname = lttng_live_url_parts.hostname;
 	lttng_live_url_parts.hostname = NULL;
@@ -299,15 +301,6 @@ int parse_url(struct live_viewer_connection *viewer_connection)
 		lttng_live_url_parts.session_name = NULL;
 	}
 
-	BT_COMP_LOGI("Connecting to hostname : %s, port : %d, "
-		"target hostname : %s, session name : %s, proto : %s",
-		viewer_connection->relay_hostname->str,
-		viewer_connection->port,
-		!viewer_connection->target_hostname ?
-		"<none>" : viewer_connection->target_hostname->str,
-		!viewer_connection->session_name ?
-		"<none>" : viewer_connection->session_name->str,
-		lttng_live_url_parts.proto->str);
 	ret = 0;
 
 end:
@@ -326,6 +319,11 @@ enum lttng_live_viewer_status lttng_live_handshake(
 	bt_self_component *self_comp = viewer_connection->self_comp;
 	const size_t cmd_buf_len = sizeof(cmd) + sizeof(connect);
 	char cmd_buf[cmd_buf_len];
+
+	BT_COMP_OR_COMP_CLASS_LOGD(self_comp, self_comp_class,
+		"Handshaking with the Relay: "
+		"major-version=%u, minor-version=%u",
+		LTTNG_LIVE_MAJOR, LTTNG_LIVE_MINOR);
 
 	cmd.cmd = htobe32(LTTNG_VIEWER_CONNECT);
 	cmd.data_size = htobe64((uint64_t) sizeof(connect));
@@ -358,10 +356,12 @@ enum lttng_live_viewer_status lttng_live_handshake(
 		goto end;
 	}
 
-	BT_COMP_LOGI("Received viewer session ID : %" PRIu64,
-			(uint64_t) be64toh(connect.viewer_session_id));
-	BT_COMP_LOGI("Relayd version : %u.%u", be32toh(connect.major),
-			be32toh(connect.minor));
+	BT_COMP_OR_COMP_CLASS_LOGI(self_comp, self_comp_class,
+		"Received viewer session ID : %" PRIu64,
+		(uint64_t) be64toh(connect.viewer_session_id));
+	BT_COMP_OR_COMP_CLASS_LOGI(self_comp, self_comp_class,
+		"Relayd version : %u.%u", be32toh(connect.major),
+		be32toh(connect.minor));
 
 	if (LTTNG_LIVE_MAJOR != be32toh(connect.major)) {
 		BT_COMP_OR_COMP_CLASS_LOGE_APPEND_CAUSE(self_comp,
@@ -401,6 +401,17 @@ enum lttng_live_viewer_status lttng_live_connect_viewer(
 		status = LTTNG_LIVE_VIEWER_STATUS_ERROR;
 		goto error;
 	}
+
+	BT_COMP_OR_COMP_CLASS_LOGD(self_comp, self_comp_class,
+		"Connecting to hostname : %s, port : %d, "
+		"target hostname : %s, session name : %s, proto : %s",
+		viewer_connection->relay_hostname->str,
+		viewer_connection->port,
+		!viewer_connection->target_hostname ?
+		"<none>" : viewer_connection->target_hostname->str,
+		!viewer_connection->session_name ?
+		"<none>" : viewer_connection->session_name->str,
+		viewer_connection->proto->str);
 
 	host = gethostbyname(viewer_connection->relay_hostname->str);
 	if (!host) {
@@ -451,8 +462,8 @@ enum lttng_live_viewer_status lttng_live_connect_viewer(
 error:
 	if (viewer_connection->control_sock != BT_INVALID_SOCKET) {
 		if (bt_socket_close(viewer_connection->control_sock) == BT_SOCKET_ERROR) {
-			BT_COMP_OR_COMP_CLASS_LOGE(self_comp, self_comp_class,
-				"Error closing socket: %s", bt_socket_errormsg());
+			BT_COMP_OR_COMP_CLASS_LOGW(self_comp, self_comp_class,
+				"Error closing socket: %s.", bt_socket_errormsg());
 		}
 	}
 	viewer_connection->control_sock = BT_INVALID_SOCKET;
@@ -464,12 +475,15 @@ static
 void lttng_live_disconnect_viewer(
 		struct live_viewer_connection *viewer_connection)
 {
+	bt_self_component_class *self_comp_class = viewer_connection->self_comp_class;
+	bt_self_component *self_comp = viewer_connection->self_comp;
+
 	if (viewer_connection->control_sock == BT_INVALID_SOCKET) {
 		return;
 	}
 	if (bt_socket_close(viewer_connection->control_sock) == BT_SOCKET_ERROR) {
-		BT_COMP_LOGE("Error closing socket: %s",
-			bt_socket_errormsg());
+		BT_COMP_OR_COMP_CLASS_LOGW(self_comp, self_comp_class,
+			"Error closing socket: %s", bt_socket_errormsg());
 		viewer_connection->control_sock = BT_INVALID_SOCKET;
 	}
 }
@@ -840,6 +854,8 @@ enum lttng_live_viewer_status lttng_live_query_session_ids(
 	bt_self_component_class *self_comp_class =
 		viewer_connection->self_comp_class;
 
+	BT_COMP_LOGD("Asking the Relay for the list of sessions");
+
 	cmd.cmd = htobe32(LTTNG_VIEWER_LIST_SESSIONS);
 	cmd.data_size = htobe64((uint64_t) 0);
 	cmd.cmd_version = htobe32(0);
@@ -871,7 +887,8 @@ enum lttng_live_viewer_status lttng_live_query_session_ids(
 		lsession.session_name[LTTNG_VIEWER_NAME_MAX - 1] = '\0';
 		session_id = be64toh(lsession.id);
 
-		BT_COMP_LOGI("Adding session %" PRIu64 " hostname: %s session_name: %s",
+		BT_COMP_LOGI("Adding session to internal list: "
+			"session-id=%" PRIu64 ", hostname=\"%s\", session-name=\"%s\"",
 			session_id, lsession.hostname, lsession.session_name);
 
 		if ((strncmp(lsession.session_name,
@@ -879,6 +896,7 @@ enum lttng_live_viewer_status lttng_live_query_session_ids(
 			LTTNG_VIEWER_NAME_MAX) == 0) && (strncmp(lsession.hostname,
 				viewer_connection->target_hostname->str,
 				LTTNG_VIEWER_HOST_NAME_MAX) == 0)) {
+
 			if (lttng_live_add_session(lttng_live_msg_iter, session_id,
 					lsession.hostname,
 					lsession.session_name)) {
@@ -908,6 +926,9 @@ enum lttng_live_viewer_status lttng_live_create_viewer_session(
 	bt_self_component *self_comp = viewer_connection->self_comp;
 	bt_self_component_class *self_comp_class =
 		viewer_connection->self_comp_class;
+
+	BT_COMP_OR_COMP_CLASS_LOGD(self_comp, self_comp_class,
+		"Creating a viewer session");
 
 	cmd.cmd = htobe32(LTTNG_VIEWER_CREATE_SESSION);
 	cmd.data_size = htobe64((uint64_t) 0);
@@ -1028,6 +1049,8 @@ enum lttng_live_viewer_status lttng_live_attach_session(
 	uint32_t streams_count;
 	const size_t cmd_buf_len = sizeof(cmd) + sizeof(rq);
 	char cmd_buf[cmd_buf_len];
+
+	BT_COMP_LOGD("Attaching to session: session-id=%"PRIu64, session_id);
 
 	cmd.cmd = htobe32(LTTNG_VIEWER_ATTACH_SESSION);
 	cmd.data_size = htobe64((uint64_t) sizeof(rq));
@@ -1206,6 +1229,10 @@ enum lttng_live_get_one_metadata_status lttng_live_get_one_metadata_packet(
 	const size_t cmd_buf_len = sizeof(cmd) + sizeof(rq);
 	char cmd_buf[cmd_buf_len];
 
+	BT_COMP_LOGD("Requesting new metadata for trace: "
+		"trace-id=%"PRIu64", metadata-stream-id=%"PRIu64,
+		trace->id, metadata->stream_id);
+
 	rq.stream_id = htobe64(metadata->stream_id);
 	cmd.cmd = htobe32(LTTNG_VIEWER_GET_METADATA);
 	cmd.data_size = htobe64((uint64_t) sizeof(rq));
@@ -1342,6 +1369,9 @@ enum lttng_live_iterator_status lttng_live_get_next_index(
 	const size_t cmd_buf_len = sizeof(cmd) + sizeof(rq);
 	char cmd_buf[cmd_buf_len];
 	uint32_t flags, rp_status;
+
+	BT_COMP_LOGD("Requesting next index for stream: "
+		"stream-id=%"PRIu64, stream->viewer_stream_id);
 
 	cmd.cmd = htobe32(LTTNG_VIEWER_GET_NEXT_INDEX);
 	cmd.data_size = htobe64((uint64_t) sizeof(rq));
@@ -1601,6 +1631,9 @@ enum lttng_live_iterator_status lttng_live_get_new_streams(
 		goto end;
 	}
 
+	BT_COMP_LOGD("Requesting new streams for session: "
+		"session-id=%"PRIu64, session->id);
+
 	cmd.cmd = htobe32(LTTNG_VIEWER_GET_NEW_STREAMS);
 	cmd.data_size = htobe64((uint64_t) sizeof(rq));
 	cmd.cmd_version = htobe32(0);
@@ -1708,7 +1741,8 @@ enum lttng_live_viewer_status live_viewer_connection_create(
 		goto error;
 	}
 
-	BT_COMP_LOGI("Establishing connection to url \"%s\"...", url);
+	BT_COMP_OR_COMP_CLASS_LOGD(self_comp, self_comp_class,
+		"Establishing connection to url \"%s\"...", url);
 	status = lttng_live_connect_viewer(viewer_connection);
 	/*
 	 * Only print error and append cause in case of error. not in case of
@@ -1722,7 +1756,8 @@ enum lttng_live_viewer_status live_viewer_connection_create(
 	} else if (status == LTTNG_LIVE_VIEWER_STATUS_INTERRUPTED) {
 		goto error;
 	}
-	BT_COMP_LOGI("Connection to url \"%s\" is established", url);
+	BT_COMP_OR_COMP_CLASS_LOGD(self_comp, self_comp_class,
+		"Connection to url \"%s\" is established", url);
 
 	*viewer = viewer_connection;
 	status = LTTNG_LIVE_VIEWER_STATUS_OK;
@@ -1740,11 +1775,16 @@ BT_HIDDEN
 void live_viewer_connection_destroy(
 		struct live_viewer_connection *viewer_connection)
 {
-	BT_COMP_LOGI("Closing connection to url \"%s\"", viewer_connection->url->str);
+	bt_self_component *self_comp = viewer_connection->self_comp;
+	bt_self_component_class *self_comp_class = viewer_connection->self_comp_class;
 
 	if (!viewer_connection) {
 		goto end;
 	}
+
+	BT_COMP_OR_COMP_CLASS_LOGD(self_comp, self_comp_class,
+		"Closing connection to relay:"
+		"relay-url=\"%s\"", viewer_connection->url->str);
 
 	lttng_live_disconnect_viewer(viewer_connection);
 
@@ -1762,6 +1802,10 @@ void live_viewer_connection_destroy(
 
 	if (viewer_connection->session_name) {
 		g_string_free(viewer_connection->session_name, true);
+	}
+
+	if (viewer_connection->proto) {
+		g_string_free(viewer_connection->proto, true);
 	}
 
 	g_free(viewer_connection);

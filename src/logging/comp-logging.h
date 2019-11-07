@@ -231,6 +231,12 @@
 
 #define BT_COMP_OR_COMP_CLASS_LOGE(_self_comp, _self_comp_class, _fmt, ...)			\
 	BT_COMP_OR_COMP_CLASS_LOG(BT_LOG_ERROR,_self_comp, _self_comp_class, _fmt, ##__VA_ARGS__)
+#define BT_COMP_OR_COMP_CLASS_LOGW(_self_comp, _self_comp_class, _fmt, ...)			\
+	BT_COMP_OR_COMP_CLASS_LOG(BT_LOG_WARNING,_self_comp, _self_comp_class, _fmt, ##__VA_ARGS__)
+#define BT_COMP_OR_COMP_CLASS_LOGI(_self_comp, _self_comp_class, _fmt, ...)			\
+	BT_COMP_OR_COMP_CLASS_LOG(BT_LOG_INFO,_self_comp, _self_comp_class, _fmt, ##__VA_ARGS__)
+#define BT_COMP_OR_COMP_CLASS_LOGD(_self_comp, _self_comp_class, _fmt, ...)			\
+	BT_COMP_OR_COMP_CLASS_LOG(BT_LOG_DEBUG,_self_comp, _self_comp_class, _fmt, ##__VA_ARGS__)
 
 /*
  * Logs error with errno string from component or component class context,
