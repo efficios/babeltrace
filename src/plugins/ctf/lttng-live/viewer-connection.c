@@ -1443,7 +1443,7 @@ enum lttng_live_iterator_status lttng_live_get_next_index(
 
 		if (flags & LTTNG_VIEWER_FLAG_NEW_METADATA) {
 			BT_COMP_LOGD("Received get_next_index response: new metadata needed");
-			trace->new_metadata_needed = true;
+			trace->metadata_stream_state = LTTNG_LIVE_METADATA_STREAM_STATE_NEEDED;
 		}
 		if (flags & LTTNG_VIEWER_FLAG_NEW_STREAM) {
 			BT_COMP_LOGD("Received get_next_index response: new streams needed");
@@ -1556,7 +1556,7 @@ enum ctf_msg_iter_medium_status lttng_live_get_stream_bytes(
 	case LTTNG_VIEWER_GET_PACKET_ERR:
 		if (flags & LTTNG_VIEWER_FLAG_NEW_METADATA) {
 			BT_COMP_LOGD("get_data_packet: new metadata needed, try again later");
-			trace->new_metadata_needed = true;
+			trace->metadata_stream_state = LTTNG_LIVE_METADATA_STREAM_STATE_NEEDED;
 		}
 		if (flags & LTTNG_VIEWER_FLAG_NEW_STREAM) {
 			BT_COMP_LOGD("get_data_packet: new streams needed, try again later");

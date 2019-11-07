@@ -196,7 +196,7 @@ struct lttng_live_trace *lttng_live_create_trace(struct lttng_live_session *sess
 	trace->stream_iterators = g_ptr_array_new_with_free_func(
 		(GDestroyNotify) lttng_live_stream_iterator_destroy);
 	BT_ASSERT(trace->stream_iterators);
-	trace->new_metadata_needed = true;
+	trace->metadata_stream_state = LTTNG_LIVE_METADATA_STREAM_STATE_NEEDED;
 	g_ptr_array_add(session->traces, trace);
 
 	goto end;
@@ -395,7 +395,8 @@ enum lttng_live_iterator_status lttng_live_iterator_next_handle_one_no_data_stre
 	enum lttng_live_stream_state orig_state = lttng_live_stream->state;
 	struct packet_index index;
 
-	if (lttng_live_stream->trace->new_metadata_needed) {
+	if (lttng_live_stream->trace->metadata_stream_state ==
+			LTTNG_LIVE_METADATA_STREAM_STATE_NEEDED) {
 		ret = LTTNG_LIVE_ITERATOR_STATUS_CONTINUE;
 		goto end;
 	}
@@ -543,7 +544,11 @@ void lttng_live_force_new_streams_and_metadata(struct lttng_live_msg_iter *lttng
 				trace_idx++) {
 			struct lttng_live_trace *trace =
 				g_ptr_array_index(session->traces, trace_idx);
-			trace->new_metadata_needed = true;
+
+			BT_ASSERT(trace->metadata_stream_state !=
+				LTTNG_LIVE_METADATA_STREAM_STATE_CLOSED);
+
+			trace->metadata_stream_state = LTTNG_LIVE_METADATA_STREAM_STATE_NEEDED;
 		}
 	}
 }
@@ -810,7 +815,7 @@ enum lttng_live_iterator_status lttng_live_iterator_next_handle_one_active_data_
 				trace_idx++) {
 			struct lttng_live_trace *trace =
 				g_ptr_array_index(session->traces, trace_idx);
-			if (trace->new_metadata_needed) {
+			if (trace->metadata_stream_state == LTTNG_LIVE_METADATA_STREAM_STATE_NEEDED) {
 				ret = LTTNG_LIVE_ITERATOR_STATUS_CONTINUE;
 				goto end;
 			}
