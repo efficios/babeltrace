@@ -86,6 +86,8 @@ struct bt_component_descriptor_set *bt_component_descriptor_set_create(void)
 {
 	struct bt_component_descriptor_set *comp_descr_set;
 
+	BT_ASSERT_PRE_NO_ERROR();
+
 	BT_LOGI_STR("Creating component descriptor set object.");
 	comp_descr_set = g_new0(struct bt_component_descriptor_set, 1);
 	if (!comp_descr_set) {
@@ -140,6 +142,7 @@ bt_component_descriptor_set_add_descriptor_with_initialize_method_data(
 	struct bt_component_descriptor_set_entry *entry = NULL;
 	GPtrArray *comp_descr_array = NULL;
 
+	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(comp_descr_set, "Component descriptor set");
 	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
 	BT_ASSERT_PRE(!params || bt_value_is_map(params),
@@ -214,6 +217,8 @@ bt_component_descriptor_set_add_descriptor(
 		const struct bt_component_class *comp_cls,
 		const struct bt_value *params)
 {
+	BT_ASSERT_PRE_NO_ERROR();
+
 	return bt_component_descriptor_set_add_descriptor_with_initialize_method_data(
 		comp_descr_set, comp_cls, params, NULL);
 }

@@ -48,6 +48,8 @@ struct bt_component *bt_component_filter_create(
 {
 	struct bt_component_filter *filter = NULL;
 
+	BT_ASSERT_PRE_NO_ERROR();
+
 	filter = g_new0(struct bt_component_filter, 1);
 	if (!filter) {
 		BT_LIB_LOGE_APPEND_CAUSE(
@@ -122,6 +124,8 @@ enum bt_self_component_add_port_status bt_self_component_filter_add_output_port(
 	enum bt_self_component_add_port_status status;
 	struct bt_port *port = NULL;
 
+	BT_ASSERT_PRE_NO_ERROR();
+
 	/* bt_component_add_output_port() logs details and errors */
 	status = bt_component_add_output_port(comp, name, user_data, &port);
 	if (status != BT_FUNC_STATUS_OK) {
@@ -189,6 +193,8 @@ enum bt_self_component_add_port_status bt_self_component_filter_add_input_port(
 	enum bt_self_component_add_port_status status;
 	struct bt_port *port = NULL;
 	struct bt_component *comp = (void *) self_comp;
+
+	BT_ASSERT_PRE_NO_ERROR();
 
 	/* bt_component_add_input_port() logs details/errors */
 	status = bt_component_add_input_port(comp, name, user_data, &port);

@@ -178,6 +178,7 @@ end:
 struct bt_event_class *bt_event_class_create(
 		struct bt_stream_class *stream_class)
 {
+	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
 	BT_ASSERT_PRE(stream_class->assigns_automatic_event_class_id,
 		"Stream class does not automatically assigns event class IDs: "
@@ -189,6 +190,7 @@ struct bt_event_class *bt_event_class_create(
 struct bt_event_class *bt_event_class_create_with_id(
 		struct bt_stream_class *stream_class, uint64_t id)
 {
+	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE(!stream_class->assigns_automatic_event_class_id,
 		"Stream class automatically assigns event class IDs: "
 		"%![sc-]+S", stream_class);
@@ -204,6 +206,7 @@ const char *bt_event_class_get_name(const struct bt_event_class *event_class)
 enum bt_event_class_set_name_status bt_event_class_set_name(
 		struct bt_event_class *event_class, const char *name)
 {
+	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(event_class, "Event class");
 	BT_ASSERT_PRE_NON_NULL(name, "Name");
 	BT_ASSERT_PRE_DEV_EVENT_CLASS_HOT(event_class);
@@ -251,6 +254,7 @@ enum bt_event_class_set_emf_uri_status bt_event_class_set_emf_uri(
 		struct bt_event_class *event_class,
 		const char *emf_uri)
 {
+	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(event_class, "Event class");
 	BT_ASSERT_PRE_NON_NULL(emf_uri, "EMF URI");
 	BT_ASSERT_PRE_DEV_EVENT_CLASS_HOT(event_class);
@@ -304,6 +308,7 @@ bt_event_class_set_specific_context_field_class(
 		.event_payload = NULL,
 	};
 
+	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(event_class, "Event class");
 	BT_ASSERT_PRE_NON_NULL(field_class, "Field class");
 	BT_ASSERT_PRE_DEV_EVENT_CLASS_HOT(event_class);
@@ -368,6 +373,7 @@ bt_event_class_set_payload_field_class(
 		.event_payload = field_class,
 	};
 
+	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(event_class, "Event class");
 	BT_ASSERT_PRE_NON_NULL(field_class, "Field class");
 	BT_ASSERT_PRE_DEV_EVENT_CLASS_HOT(event_class);

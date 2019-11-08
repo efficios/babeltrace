@@ -113,6 +113,8 @@ struct bt_message *bt_message_stream_beginning_create(
 		struct bt_self_message_iterator *self_msg_iter,
 		const struct bt_stream *stream)
 {
+	BT_ASSERT_PRE_DEV_NO_ERROR();
+
 	return create_stream_message(self_msg_iter, (void *) stream,
 		BT_MESSAGE_TYPE_STREAM_BEGINNING);
 }
@@ -121,6 +123,8 @@ struct bt_message *bt_message_stream_end_create(
 		struct bt_self_message_iterator *self_msg_iter,
 		const struct bt_stream *stream)
 {
+	BT_ASSERT_PRE_DEV_NO_ERROR();
+
 	return create_stream_message(self_msg_iter, (void *) stream,
 		BT_MESSAGE_TYPE_STREAM_END);
 }

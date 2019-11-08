@@ -188,6 +188,8 @@ enum bt_plugin_find_all_from_static_status bt_plugin_find_all_from_static(
 		bt_bool fail_on_load_error,
 		const struct bt_plugin_set **plugin_set_out)
 {
+	BT_ASSERT_PRE_NO_ERROR();
+
 	/* bt_plugin_so_create_all_from_static() logs errors */
 	return bt_plugin_so_create_all_from_static(fail_on_load_error,
 		(void *) plugin_set_out);
@@ -199,6 +201,7 @@ enum bt_plugin_find_all_from_file_status bt_plugin_find_all_from_file(
 {
 	enum bt_plugin_find_all_from_file_status status;
 
+	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(path, "Path");
 	BT_ASSERT_PRE_NON_NULL(path, "Plugin set (output)");
 	BT_LOGI("Creating plugins from file: path=\"%s\"", path);
@@ -282,6 +285,7 @@ enum bt_plugin_find_all_status bt_plugin_find_all(bt_bool find_in_std_env_var,
 	int status = BT_FUNC_STATUS_OK;
 	uint64_t dir_i, plugin_i;
 
+	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(plugin_set_out, "Plugin set (output)");
 	BT_LOGI("Finding all plugins in standard directories and built-in plugins: "
 		"find-in-std-env-var=%d, find-in-user-dir=%d, "
@@ -465,6 +469,7 @@ enum bt_plugin_find_status bt_plugin_find(const char *plugin_name,
 	const struct bt_plugin_set *plugin_set = NULL;
 	uint64_t i;
 
+	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(plugin_name, "Name");
 	BT_ASSERT_PRE_NON_NULL(plugin_out, "Plugin (output)");
 	BT_LOGI("Finding named plugin in standard directories and built-in plugins: "
@@ -666,6 +671,7 @@ enum bt_plugin_find_all_from_dir_status bt_plugin_find_all_from_dir(
 	enum bt_plugin_find_all_from_dir_status status =
 		BT_FUNC_STATUS_OK;
 
+	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(plugin_set_out, "Plugin set (output)");
 	BT_LOGI("Creating all plugins in directory: path=\"%s\", recurse=%d",
 		path, recurse);

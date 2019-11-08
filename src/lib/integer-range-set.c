@@ -180,11 +180,15 @@ end:
 
 struct bt_integer_range_set_unsigned *bt_integer_range_set_unsigned_create(void)
 {
+	BT_ASSERT_PRE_NO_ERROR();
+
 	return (void *) create_range_set();
 }
 
 struct bt_integer_range_set_signed *bt_integer_range_set_signed_create(void)
 {
+	BT_ASSERT_PRE_NO_ERROR();
+
 	return (void *) create_range_set();
 }
 
@@ -211,6 +215,7 @@ bt_integer_range_set_unsigned_add_range(
 		struct bt_integer_range_set_unsigned *range_set,
 		uint64_t lower, uint64_t upper)
 {
+	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE(lower <= upper,
 		"Range's upper bound is less than lower bound: "
 		"upper=%" PRIu64 ", lower=%" PRIu64, lower, upper);
@@ -223,6 +228,7 @@ bt_integer_range_set_signed_add_range(
 		struct bt_integer_range_set_signed *range_set,
 		int64_t lower, int64_t upper)
 {
+	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE(lower <= upper,
 		"Range's upper bound is less than lower bound: "
 		"upper=%" PRId64 ", lower=%" PRId64, lower, upper);

@@ -177,6 +177,7 @@ end:
 
 struct bt_stream_class *bt_stream_class_create(struct bt_trace_class *tc)
 {
+	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(tc, "Trace class");
 	BT_ASSERT_PRE(tc->assigns_automatic_stream_class_id,
 		"Trace class does not automatically assigns stream class IDs: "
@@ -188,6 +189,7 @@ struct bt_stream_class *bt_stream_class_create(struct bt_trace_class *tc)
 struct bt_stream_class *bt_stream_class_create_with_id(
 		struct bt_trace_class *tc, uint64_t id)
 {
+	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(tc, "Trace class");
 	BT_ASSERT_PRE(!tc->assigns_automatic_stream_class_id,
 		"Trace class automatically assigns stream class IDs: "
@@ -218,6 +220,7 @@ enum bt_stream_class_set_name_status bt_stream_class_set_name(
 		struct bt_stream_class *stream_class,
 		const char *name)
 {
+	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
 	BT_ASSERT_PRE_NON_NULL(name, "Name");
 	BT_ASSERT_PRE_DEV_STREAM_CLASS_HOT(stream_class);
@@ -315,6 +318,7 @@ bt_stream_class_set_packet_context_field_class(
 		.event_payload = NULL,
 	};
 
+	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
 	BT_ASSERT_PRE(stream_class->supports_packets,
 		"Stream class does not support packets: %![sc-]+S",
@@ -377,6 +381,7 @@ bt_stream_class_set_event_common_context_field_class(
 		.event_payload = NULL,
 	};
 
+	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
 	BT_ASSERT_PRE_NON_NULL(field_class, "Field class");
 	BT_ASSERT_PRE_DEV_STREAM_CLASS_HOT(stream_class);
@@ -425,6 +430,7 @@ bt_stream_class_set_default_clock_class(
 		struct bt_stream_class *stream_class,
 		struct bt_clock_class *clock_class)
 {
+	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
 	BT_ASSERT_PRE_NON_NULL(clock_class, "Clock class");
 	BT_ASSERT_PRE_DEV_STREAM_CLASS_HOT(stream_class);

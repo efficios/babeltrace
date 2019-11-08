@@ -797,6 +797,7 @@ bt_field_enumeration_unsigned_get_mapping_labels(
 {
 	const struct bt_field_integer *int_field = (const void *) field;
 
+	BT_ASSERT_PRE_DEV_NO_ERROR();
 	BT_ASSERT_PRE_DEV_NON_NULL(field, "Field");
 	BT_ASSERT_PRE_DEV_NON_NULL(label_array, "Label array (output)");
 	BT_ASSERT_PRE_DEV_NON_NULL(label_array, "Count (output)");
@@ -816,6 +817,7 @@ bt_field_enumeration_signed_get_mapping_labels(
 {
 	const struct bt_field_integer *int_field = (const void *) field;
 
+	BT_ASSERT_PRE_DEV_NO_ERROR();
 	BT_ASSERT_PRE_DEV_NON_NULL(field, "Field");
 	BT_ASSERT_PRE_DEV_NON_NULL(label_array, "Label array (output)");
 	BT_ASSERT_PRE_DEV_NON_NULL(label_array, "Count (output)");
@@ -862,6 +864,7 @@ void clear_string_field(struct bt_field *field)
 enum bt_field_string_set_value_status bt_field_string_set_value(
 		struct bt_field *field, const char *value)
 {
+	BT_ASSERT_PRE_DEV_NO_ERROR();
 	BT_ASSERT_PRE_DEV_NON_NULL(field, "Field");
 	BT_ASSERT_PRE_DEV_NON_NULL(value, "Value");
 	BT_ASSERT_PRE_DEV_FIELD_HOT(field, "Field");
@@ -875,6 +878,8 @@ enum bt_field_string_set_value_status bt_field_string_set_value(
 enum bt_field_string_append_status bt_field_string_append(
 		struct bt_field *field, const char *value)
 {
+	BT_ASSERT_PRE_DEV_NO_ERROR();
+
 	return bt_field_string_append_with_length(field,
 		value, (uint64_t) strlen(value));
 }
@@ -886,6 +891,7 @@ enum bt_field_string_append_status bt_field_string_append_with_length(
 	char *data;
 	uint64_t new_length;
 
+	BT_ASSERT_PRE_DEV_NO_ERROR();
 	BT_ASSERT_PRE_DEV_NON_NULL(field, "Field");
 	BT_ASSERT_PRE_DEV_NON_NULL(value, "Value");
 	BT_ASSERT_PRE_DEV_FIELD_HOT(field, "Field");
@@ -935,6 +941,7 @@ enum bt_field_array_dynamic_set_length_status bt_field_array_dynamic_set_length(
 	int ret = BT_FUNC_STATUS_OK;
 	struct bt_field_array *array_field = (void *) field;
 
+	BT_ASSERT_PRE_DEV_NO_ERROR();
 	BT_ASSERT_PRE_DEV_NON_NULL(field, "Field");
 	BT_ASSERT_PRE_DEV_FIELD_IS_DYNAMIC_ARRAY(field, "Field");
 	BT_ASSERT_PRE_DEV_FIELD_HOT(field, "Field");
@@ -1171,6 +1178,7 @@ bt_field_variant_select_option_field_by_index(
 {
 	struct bt_field_variant *var_field = (void *) field;
 
+	BT_ASSERT_PRE_DEV_NO_ERROR();
 	BT_ASSERT_PRE_DEV_NON_NULL(field, "Field");
 	BT_ASSERT_PRE_DEV_FIELD_IS_VARIANT(field, "Field");
 	BT_ASSERT_PRE_DEV_FIELD_HOT(field, "Field");

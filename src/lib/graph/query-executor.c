@@ -74,6 +74,7 @@ struct bt_query_executor *bt_query_executor_create_with_method_data(
 {
 	struct bt_query_executor *query_exec;
 
+	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
 	BT_ASSERT_PRE_NON_NULL(object, "Object");
 	BT_LIB_LOGD("Creating query executor: "
@@ -137,6 +138,7 @@ struct bt_query_executor *bt_query_executor_create(
 		const bt_component_class *comp_cls, const char *object,
 		const bt_value *params)
 {
+	BT_ASSERT_PRE_NO_ERROR();
 	return bt_query_executor_create_with_method_data(comp_cls,
 		object, params, NULL);
 }
@@ -157,6 +159,7 @@ enum bt_query_executor_query_status bt_query_executor_query(
 	enum bt_component_class_query_method_status query_status;
 	method_t method = NULL;
 
+	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(query_exec, "Query executor");
 	BT_ASSERT_PRE_NON_NULL(user_result, "Result (output)");
 
@@ -256,6 +259,7 @@ enum bt_query_executor_add_interrupter_status bt_query_executor_add_interrupter(
 		struct bt_query_executor *query_exec,
 		const struct bt_interrupter *intr)
 {
+	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(query_exec, "Query executor");
 	BT_ASSERT_PRE_NON_NULL(intr, "Interrupter");
 	g_ptr_array_add(query_exec->interrupters, (void *) intr);

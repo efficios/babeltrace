@@ -268,6 +268,7 @@ struct bt_graph *bt_graph_create(uint64_t mip_version)
 	struct bt_graph *graph;
 	int ret;
 
+	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE(mip_version <= bt_get_maximal_mip_version(),
 		"Unknown MIP version: mip-version=%" PRIu64 ", "
 		"max-mip-version=%" PRIu64,
@@ -432,6 +433,7 @@ enum bt_graph_connect_ports_status bt_graph_connect_ports(
 	enum bt_component_class_port_connected_method_status port_connected_status;
 	bool init_can_consume;
 
+	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(graph, "Graph");
 	BT_ASSERT_PRE_NON_NULL(upstream_port, "Upstream port");
 	BT_ASSERT_PRE_NON_NULL(downstream_port, "Downstream port port");
@@ -704,6 +706,7 @@ enum bt_graph_run_once_status bt_graph_run_once(struct bt_graph *graph)
 {
 	enum bt_graph_run_once_status status;
 
+	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_DEV_NON_NULL(graph, "Graph");
 	BT_ASSERT_PRE_DEV(graph->can_consume,
 		"Cannot consume graph in its current state: %!+g", graph);
@@ -728,6 +731,7 @@ enum bt_graph_run_status bt_graph_run(struct bt_graph *graph)
 {
 	enum bt_graph_run_status status;
 
+	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(graph, "Graph");
 	BT_ASSERT_PRE(graph->can_consume,
 		"Cannot consume graph in its current state: %!+g", graph);
@@ -809,6 +813,7 @@ bt_graph_add_source_component_output_port_added_listener(
 	};
 	bt_listener_id listener_id;
 
+	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(graph, "Graph");
 	BT_ASSERT_PRE_NON_NULL(func, "Listener");
 	BT_ASSERT_PRE_NON_NULL(func, "\"Listener removed\" listener");
@@ -844,6 +849,7 @@ bt_graph_add_filter_component_output_port_added_listener(
 	};
 	bt_listener_id listener_id;
 
+	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(graph, "Graph");
 	BT_ASSERT_PRE_NON_NULL(func, "Listener");
 	BT_ASSERT_PRE_NON_NULL(func, "\"Listener removed\" listener");
@@ -879,6 +885,7 @@ bt_graph_add_filter_component_input_port_added_listener(
 	};
 	bt_listener_id listener_id;
 
+	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(graph, "Graph");
 	BT_ASSERT_PRE_NON_NULL(func, "Listener");
 	BT_ASSERT_PRE_NON_NULL(func, "\"Listener removed\" listener");
@@ -914,6 +921,7 @@ bt_graph_add_sink_component_input_port_added_listener(
 	};
 	bt_listener_id listener_id;
 
+	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(graph, "Graph");
 	BT_ASSERT_PRE_NON_NULL(func, "Listener");
 	BT_ASSERT_PRE_NON_NULL(func, "\"Listener removed\" listener");
@@ -949,6 +957,7 @@ bt_graph_add_source_filter_component_ports_connected_listener(
 	};
 	bt_listener_id listener_id;
 
+	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(graph, "Graph");
 	BT_ASSERT_PRE_NON_NULL(func, "Listener");
 	BT_ASSERT_PRE_NON_NULL(func, "\"Listener removed\" listener");
@@ -985,6 +994,7 @@ bt_graph_add_source_sink_component_ports_connected_listener(
 	};
 	bt_listener_id listener_id;
 
+	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(graph, "Graph");
 	BT_ASSERT_PRE_NON_NULL(func, "Listener");
 	BT_ASSERT_PRE_NON_NULL(func, "\"Listener removed\" listener");
@@ -1021,6 +1031,7 @@ bt_graph_add_filter_filter_component_ports_connected_listener(
 	};
 	bt_listener_id listener_id;
 
+	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(graph, "Graph");
 	BT_ASSERT_PRE_NON_NULL(func, "Listener");
 	BT_ASSERT_PRE_NON_NULL(func, "\"Listener removed\" listener");
@@ -1057,6 +1068,7 @@ bt_graph_add_filter_sink_component_ports_connected_listener(
 	};
 	bt_listener_id listener_id;
 
+	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(graph, "Graph");
 	BT_ASSERT_PRE_NON_NULL(func, "Listener");
 	BT_ASSERT_PRE_NON_NULL(func, "\"Listener removed\" listener");
@@ -1413,6 +1425,7 @@ bt_graph_add_source_component_with_initialize_method_data(
 		void *init_method_data, bt_logging_level log_level,
 		const struct bt_component_source **component)
 {
+	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
 	return add_component_with_init_method_data(graph,
 		(void *) comp_cls, (comp_init_method_t) comp_cls->methods.init,
@@ -1426,6 +1439,7 @@ enum bt_graph_add_component_status bt_graph_add_source_component(
 		enum bt_logging_level log_level,
 		const struct bt_component_source **component)
 {
+	BT_ASSERT_PRE_NO_ERROR();
 	return bt_graph_add_source_component_with_initialize_method_data(
 		graph, comp_cls, name, params, NULL, log_level, component);
 }
@@ -1438,6 +1452,7 @@ bt_graph_add_filter_component_with_initialize_method_data(
 		void *init_method_data, enum bt_logging_level log_level,
 		const struct bt_component_filter **component)
 {
+	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
 	return add_component_with_init_method_data(graph,
 		(void *) comp_cls, (comp_init_method_t) comp_cls->methods.init,
@@ -1451,6 +1466,7 @@ enum bt_graph_add_component_status bt_graph_add_filter_component(
 		enum bt_logging_level log_level,
 		const struct bt_component_filter **component)
 {
+	BT_ASSERT_PRE_NO_ERROR();
 	return bt_graph_add_filter_component_with_initialize_method_data(
 		graph, comp_cls, name, params, NULL, log_level, component);
 }
@@ -1463,6 +1479,7 @@ bt_graph_add_sink_component_with_initialize_method_data(
 		void *init_method_data, enum bt_logging_level log_level,
 		const struct bt_component_sink **component)
 {
+	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
 	return add_component_with_init_method_data(graph,
 		(void *) comp_cls, (comp_init_method_t) comp_cls->methods.init,
@@ -1476,6 +1493,7 @@ enum bt_graph_add_component_status bt_graph_add_sink_component(
 		enum bt_logging_level log_level,
 		const struct bt_component_sink **component)
 {
+	BT_ASSERT_PRE_NO_ERROR();
 	return bt_graph_add_sink_component_with_initialize_method_data(
 		graph, comp_cls, name, params, NULL, log_level, component);
 }
@@ -1495,6 +1513,8 @@ bt_graph_add_simple_sink_component(struct bt_graph *graph, const char *name,
 		.finalize_func = finalize_func,
 		.user_data = user_data,
 	};
+
+	BT_ASSERT_PRE_NO_ERROR();
 
 	/*
 	 * Other preconditions are checked by
@@ -1546,6 +1566,7 @@ bool bt_graph_is_interrupted(const struct bt_graph *graph)
 enum bt_graph_add_interrupter_status bt_graph_add_interrupter(
 		struct bt_graph *graph, const struct bt_interrupter *intr)
 {
+	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(graph, "Graph");
 	BT_ASSERT_PRE_NON_NULL(intr, "Interrupter");
 	g_ptr_array_add(graph->interrupters, (void *) intr);

@@ -88,6 +88,7 @@ struct bt_clock_class *bt_clock_class_create(bt_self_component *self_comp)
 	int ret;
 	struct bt_clock_class *clock_class = NULL;
 
+	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(self_comp, "Self component");
 	BT_LOGD_STR("Creating default clock class object");
 
@@ -152,6 +153,7 @@ const char *bt_clock_class_get_name(const struct bt_clock_class *clock_class)
 enum bt_clock_class_set_name_status bt_clock_class_set_name(
 		struct bt_clock_class *clock_class, const char *name)
 {
+	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(clock_class, "Clock class");
 	BT_ASSERT_PRE_NON_NULL(name, "Name");
 	BT_ASSERT_PRE_DEV_CLOCK_CLASS_HOT(clock_class);
@@ -171,6 +173,7 @@ const char *bt_clock_class_get_description(
 enum bt_clock_class_set_description_status bt_clock_class_set_description(
 		struct bt_clock_class *clock_class, const char *descr)
 {
+	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(clock_class, "Clock class");
 	BT_ASSERT_PRE_NON_NULL(descr, "Description");
 	BT_ASSERT_PRE_DEV_CLOCK_CLASS_HOT(clock_class);
@@ -301,6 +304,7 @@ bt_clock_class_cycles_to_ns_from_origin(
 {
 	int ret;
 
+	BT_ASSERT_PRE_DEV_NO_ERROR();
 	BT_ASSERT_PRE_DEV_NON_NULL(clock_class, "Clock class");
 	BT_ASSERT_PRE_DEV_NON_NULL(ns, "Nanoseconds (output)");
 	ret = bt_util_ns_from_origin_clock_class(clock_class, cycles, ns);

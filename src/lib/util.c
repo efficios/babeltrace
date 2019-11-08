@@ -42,6 +42,7 @@ bt_util_clock_cycles_to_ns_from_origin(uint64_t cycles,
 		BT_FUNC_STATUS_OK;
 	int ret;
 
+	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(ns, "Nanoseconds (output)");
 	BT_ASSERT_PRE(frequency != UINT64_C(-1) && frequency != 0,
 		"Invalid frequency: freq=%" PRIu64, frequency);

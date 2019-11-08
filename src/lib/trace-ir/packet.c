@@ -219,6 +219,7 @@ struct bt_packet *bt_packet_create(const struct bt_stream *c_stream)
 	struct bt_packet *packet = NULL;
 	struct bt_stream *stream = (void *) c_stream;
 
+	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(stream, "Stream");
 	BT_ASSERT_PRE(stream->class->supports_packets,
 		"Stream class does not support packets: %![sc-]+S",
@@ -248,6 +249,7 @@ enum bt_packet_move_context_field_status bt_packet_move_context_field(
 	struct bt_stream_class *stream_class;
 	struct bt_field_wrapper *field_wrapper = (void *) context_field;
 
+	BT_ASSERT_PRE_DEV_NO_ERROR();
 	BT_ASSERT_PRE_DEV_NON_NULL(packet, "Packet");
 	BT_ASSERT_PRE_DEV_NON_NULL(field_wrapper, "Context field");
 	BT_ASSERT_PRE_DEV_HOT(packet, "Packet", ": %!+a", packet);

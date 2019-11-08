@@ -149,6 +149,7 @@ bt_clock_snapshot_get_ns_from_origin(
 {
 	int ret = BT_FUNC_STATUS_OK;
 
+	BT_ASSERT_PRE_DEV_NO_ERROR();
 	BT_ASSERT_PRE_DEV_NON_NULL(clock_snapshot, "Clock snapshot");
 	BT_ASSERT_PRE_DEV_NON_NULL(ret_value_ns, "Value (ns) (output)");
 	BT_ASSERT_PRE_DEV(clock_snapshot->is_set,
