@@ -178,7 +178,7 @@ enum bt_component_class_sink_consume_method_status simple_sink_consume(
 	/* Call user's "consume" function */
 	status = data->init_method_data.consume_func(data->msg_iter,
 		data->init_method_data.user_data);
-	if (status != BT_FUNC_STATUS_OK) {
+	if (status < 0) {
 		BT_LIB_LOGW_APPEND_CAUSE(
 			"Simple sink component's user's \"consume\" function failed: "
 			"status=%s, %![comp-]+c",
