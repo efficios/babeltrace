@@ -20,7 +20,7 @@
 #include <string.h>
 #include "tap/tap.h"
 
-#define NR_TESTS 60
+#define NR_TESTS 68
 
 struct test_data {
 	bt_graph_simple_sink_component_initialize_func_status init_status;
@@ -126,29 +126,42 @@ void test_simple_expect_run_once_status(
 		.init_status = init_status,
 		.consume_status = consume_status,
 	};
+	const struct bt_error *err;
 
 	graph = create_graph_with_source(&src_out_port);
 	BT_ASSERT(graph);
 	BT_ASSERT(src_out_port);
+
 	add_comp_status = bt_graph_add_simple_sink_component(graph, "sink",
 		simple_INITIALIZE_func, simple_consume_func, simple_fini_func,
 		&test_data, &sink_comp);
 	BT_ASSERT(add_comp_status == BT_GRAPH_ADD_COMPONENT_STATUS_OK);
 	BT_ASSERT(sink_comp);
+
 	sink_in_port = bt_component_sink_borrow_input_port_by_name_const(
 		sink_comp, "in");
 	ok(sink_in_port,
 		"Simple sink component has an input port named \"in\"");
+
 	connect_status = bt_graph_connect_ports(graph, src_out_port,
 		sink_in_port, NULL);
 	ok(connect_status == BT_GRAPH_CONNECT_PORTS_STATUS_OK,
 		"Simple sink component's \"in\" port is connectable");
+
 	run_once_status = bt_graph_run_once(graph);
 	ok(run_once_status == exp_run_once_status,
 		"Graph \"run once\" status is the expected one (status code: %d)",
 		run_once_status);
+
+	err = bt_current_thread_take_error();
+	ok((run_once_status < 0) == (err != NULL),
+		"Current thread error is set if bt_graph_run_once returned an error");
+
 	bt_component_sink_put_ref(sink_comp);
 	bt_graph_put_ref(graph);
+	if (err) {
+		bt_error_release(err);
+	}
 }
 
 int main(void)
