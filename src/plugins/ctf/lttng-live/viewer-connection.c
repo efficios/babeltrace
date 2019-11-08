@@ -1248,7 +1248,7 @@ enum lttng_live_get_one_metadata_status lttng_live_get_one_metadata_packet(
 	struct lttng_viewer_get_metadata rq;
 	struct lttng_viewer_metadata_packet rp;
 	char *data = NULL;
-	ssize_t ret_len;
+	ssize_t writelen;
 	struct lttng_live_session *session = trace->session;
 	struct lttng_live_msg_iter *lttng_live_msg_iter =
 		session->lttng_live_msg_iter;
@@ -1343,16 +1343,14 @@ enum lttng_live_get_one_metadata_status lttng_live_get_one_metadata_packet(
 	/*
 	 * Write the metadata to the file handle.
 	 */
-	do {
-		ret_len = fwrite(data, 1, len, fp);
-	} while (ret_len < 0 && errno == EINTR);
-	if (ret_len < 0) {
+	writelen = fwrite(data, sizeof(uint8_t), len, fp);
+	if (writelen != len) {
 		BT_COMP_LOGE_APPEND_CAUSE(self_comp,
 			"Writing in the metadata file stream");
 		status = LTTNG_LIVE_GET_ONE_METADATA_STATUS_ERROR;
 		goto error;
 	}
-	BT_ASSERT(ret_len == len);
+
 	*reply_len = len;
 	status = LTTNG_LIVE_GET_ONE_METADATA_STATUS_OK;
 
