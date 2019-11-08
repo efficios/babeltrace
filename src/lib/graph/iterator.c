@@ -643,8 +643,15 @@ bool clock_snapshots_are_monotonic_one(
 		goto end;
 	}
 
-	clock_snapshot_status = bt_clock_snapshot_get_ns_from_origin(clock_snapshot, &ns_from_origin);
+	clock_snapshot_status = bt_clock_snapshot_get_ns_from_origin(
+		clock_snapshot, &ns_from_origin);
 	if (clock_snapshot_status != BT_FUNC_STATUS_OK) {
+		/*
+		 * bt_clock_snapshot_get_ns_from_origin can return
+		 * OVERFLOW_ERROR.  We don't really want to report an error to
+		 * our caller, so just clear it.
+		 */
+		bt_current_thread_clear_error();
 		goto end;
 	}
 
