@@ -174,6 +174,7 @@ struct bt_message *bt_message_packet_beginning_create(
 	struct bt_self_component_port_input_message_iterator *msg_iter =
 		(void *) self_msg_iter;
 
+	BT_ASSERT_PRE_DEV_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(msg_iter, "Message iterator");
 	return create_packet_message(msg_iter, (void *) packet,
 		&msg_iter->graph->packet_begin_msg_pool, false, 0);
@@ -186,6 +187,7 @@ struct bt_message *bt_message_packet_beginning_create_with_default_clock_snapsho
 	struct bt_self_component_port_input_message_iterator *msg_iter =
 		(void *) self_msg_iter;
 
+	BT_ASSERT_PRE_DEV_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(msg_iter, "Message iterator");
 	return create_packet_message(msg_iter, (void *) packet,
 		&msg_iter->graph->packet_begin_msg_pool, true, raw_value);
@@ -198,6 +200,7 @@ struct bt_message *bt_message_packet_end_create(
 	struct bt_self_component_port_input_message_iterator *msg_iter =
 		(void *) self_msg_iter;
 
+	BT_ASSERT_PRE_DEV_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(msg_iter, "Message iterator");
 	return create_packet_message(msg_iter, (void *) packet,
 		&msg_iter->graph->packet_end_msg_pool, false, 0);
@@ -210,6 +213,7 @@ struct bt_message *bt_message_packet_end_create_with_default_clock_snapshot(
 	struct bt_self_component_port_input_message_iterator *msg_iter =
 		(void *) self_msg_iter;
 
+	BT_ASSERT_PRE_DEV_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(msg_iter, "Message iterator");
 	return create_packet_message(msg_iter, (void *) packet,
 		&msg_iter->graph->packet_end_msg_pool, true, raw_value);

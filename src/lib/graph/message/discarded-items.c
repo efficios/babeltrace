@@ -225,6 +225,8 @@ struct bt_message *bt_message_discarded_events_create(
 		struct bt_self_message_iterator *message_iterator,
 		const struct bt_stream *stream)
 {
+	BT_ASSERT_PRE_DEV_NO_ERROR();
+
 	return create_discarded_items_message(message_iterator,
 		BT_MESSAGE_TYPE_DISCARDED_EVENTS, (void *) stream,
 		false, 0, 0);
@@ -235,6 +237,8 @@ struct bt_message *bt_message_discarded_events_create_with_default_clock_snapsho
 		const struct bt_stream *stream, uint64_t beginning_raw_value,
 		uint64_t end_raw_value)
 {
+	BT_ASSERT_PRE_DEV_NO_ERROR();
+
 	return create_discarded_items_message(message_iterator,
 		BT_MESSAGE_TYPE_DISCARDED_EVENTS, (void *) stream,
 		true, beginning_raw_value, end_raw_value);
@@ -296,6 +300,8 @@ struct bt_message *bt_message_discarded_packets_create(
 		struct bt_self_message_iterator *message_iterator,
 		const struct bt_stream *stream)
 {
+	BT_ASSERT_PRE_DEV_NO_ERROR();
+
 	return create_discarded_items_message(message_iterator,
 		BT_MESSAGE_TYPE_DISCARDED_PACKETS, (void *) stream,
 		false, 0, 0);
@@ -306,6 +312,8 @@ struct bt_message *bt_message_discarded_packets_create_with_default_clock_snapsh
 		const struct bt_stream *stream, uint64_t beginning_raw_value,
 		uint64_t end_raw_value)
 {
+	BT_ASSERT_PRE_DEV_NO_ERROR();
+
 	return create_discarded_items_message(message_iterator,
 		BT_MESSAGE_TYPE_DISCARDED_PACKETS, (void *) stream,
 		true, beginning_raw_value, end_raw_value);

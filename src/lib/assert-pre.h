@@ -116,6 +116,20 @@
 		"Index is out of bounds: index=%" PRIu64 ", "		\
 		"count=%" PRIu64, (uint64_t) (_index), (uint64_t) (_length))
 
+/*
+ * Asserts that the current thread has no error set.
+ */
+#define BT_ASSERT_PRE_NO_ERROR() \
+	do {									\
+		const struct bt_error *err = bt_current_thread_take_error();	\
+		if (err) {							\
+			bt_current_thread_move_error(err);			\
+		}								\
+		BT_ASSERT_PRE(!err,						\
+			"API function called while current thread has an "	\
+			"error: function=%s", __func__);			\
+	} while (0)
+
 #ifdef BT_DEV_MODE
 /* Developer mode version of BT_ASSERT_PRE_MSG(). */
 # define BT_ASSERT_PRE_DEV_MSG(_fmt, ...)				\
@@ -146,6 +160,10 @@
 # define BT_ASSERT_PRE_DEV_VALID_INDEX(_index, _length)			\
 	BT_ASSERT_PRE_VALID_INDEX((_index), (_length))
 
+/* Developer mode version of BT_ASSERT_PRE_NO_ERROR(). */
+# define BT_ASSERT_PRE_DEV_NO_ERROR() \
+	BT_ASSERT_PRE_NO_ERROR()
+
 /*
  * Marks a function as being only used within a BT_ASSERT_PRE_DEV()
  * context.
@@ -160,6 +178,7 @@
 	((void) sizeof((void) (_obj), (void) (_obj_name), 0))
 # define BT_ASSERT_PRE_DEV_VALID_INDEX(_index, _length)			\
 	((void) sizeof((void) (_index), (void) (_length), 0))
+# define BT_ASSERT_PRE_DEV_NO_ERROR()
 # define BT_ASSERT_PRE_DEV_FUNC		__attribute__((unused))
 #endif /* BT_DEV_MODE */
 

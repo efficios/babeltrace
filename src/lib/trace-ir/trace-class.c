@@ -128,6 +128,7 @@ struct bt_trace_class *bt_trace_class_create(bt_self_component *self_comp)
 {
 	struct bt_trace_class *tc = NULL;
 
+	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(self_comp, "Self component");
 	BT_LOGD_STR("Creating default trace class object.");
 	tc = g_new0(struct bt_trace_class, 1);
@@ -181,6 +182,7 @@ enum bt_trace_class_add_listener_status bt_trace_class_add_destruction_listener(
 		.data = data,
 	};
 
+	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(tc, "Trace class");
 	BT_ASSERT_PRE_NON_NULL(listener, "Listener");
 
@@ -225,6 +227,7 @@ enum bt_trace_class_remove_listener_status bt_trace_class_remove_destruction_lis
 	struct bt_trace_class *tc = (void *) _tc;
 	struct bt_trace_class_destruction_listener_elem *elem;
 
+	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(tc, "Trace class");
 	BT_ASSERT_PRE(has_listener_id(tc, listener_id),
 		"Trace class has no such trace class destruction listener ID: "

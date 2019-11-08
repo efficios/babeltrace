@@ -61,6 +61,7 @@ struct bt_message *bt_message_message_iterator_inactivity_create(
 	struct bt_message_message_iterator_inactivity *message;
 	struct bt_message *ret_msg = NULL;
 
+	BT_ASSERT_PRE_DEV_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(msg_iter, "Message iterator");
 	BT_ASSERT_PRE_NON_NULL(default_clock_class, "Default clock class");
 	BT_LIB_LOGD("Creating message iterator inactivity message object: "

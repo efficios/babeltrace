@@ -98,6 +98,7 @@ struct bt_field_class *bt_field_class_bit_array_create(
 {
 	struct bt_field_class_bit_array *ba_fc = NULL;
 
+	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(trace_class, "Trace class");
 	BT_ASSERT_PRE(length > 0 && length <= 64,
 		"Unsupported length for bit array field class "
@@ -150,6 +151,7 @@ struct bt_field_class *bt_field_class_bool_create(
 {
 	struct bt_field_class_bool *bool_fc = NULL;
 
+	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(trace_class, "Trace class");
 	BT_LOGD("Creating default boolean field class object.");
 	bool_fc = g_new0(struct bt_field_class_bool, 1);
@@ -236,6 +238,8 @@ end:
 struct bt_field_class *bt_field_class_integer_unsigned_create(
 		bt_trace_class *trace_class)
 {
+	BT_ASSERT_PRE_NO_ERROR();
+
 	return create_integer_field_class(trace_class,
 		BT_FIELD_CLASS_TYPE_UNSIGNED_INTEGER);
 }
@@ -243,6 +247,8 @@ struct bt_field_class *bt_field_class_integer_unsigned_create(
 struct bt_field_class *bt_field_class_integer_signed_create(
 		bt_trace_class *trace_class)
 {
+	BT_ASSERT_PRE_NO_ERROR();
+
 	return create_integer_field_class(trace_class,
 		BT_FIELD_CLASS_TYPE_SIGNED_INTEGER);
 }
@@ -400,6 +406,8 @@ end:
 struct bt_field_class *bt_field_class_enumeration_unsigned_create(
 		bt_trace_class *trace_class)
 {
+	BT_ASSERT_PRE_NO_ERROR();
+
 	return create_enumeration_field_class(trace_class,
 		BT_FIELD_CLASS_TYPE_UNSIGNED_ENUMERATION);
 }
@@ -407,6 +415,8 @@ struct bt_field_class *bt_field_class_enumeration_unsigned_create(
 struct bt_field_class *bt_field_class_enumeration_signed_create(
 		bt_trace_class *trace_class)
 {
+	BT_ASSERT_PRE_NO_ERROR();
+
 	return create_enumeration_field_class(trace_class,
 		BT_FIELD_CLASS_TYPE_SIGNED_ENUMERATION);
 }
@@ -532,6 +542,7 @@ bt_field_class_enumeration_unsigned_get_mapping_labels_for_value(
 	const struct bt_field_class_enumeration *enum_fc = (const void *) fc;
 	uint64_t i;
 
+	BT_ASSERT_PRE_DEV_NO_ERROR();
 	BT_ASSERT_PRE_DEV_NON_NULL(fc, "Field class");
 	BT_ASSERT_PRE_DEV_NON_NULL(label_array, "Label array (output)");
 	BT_ASSERT_PRE_DEV_NON_NULL(count, "Count (output)");
@@ -572,6 +583,7 @@ bt_field_class_enumeration_signed_get_mapping_labels_for_value(
 	const struct bt_field_class_enumeration *enum_fc = (const void *) fc;
 	uint64_t i;
 
+	BT_ASSERT_PRE_DEV_NO_ERROR();
 	BT_ASSERT_PRE_DEV_NON_NULL(fc, "Field class");
 	BT_ASSERT_PRE_DEV_NON_NULL(label_array, "Label array (output)");
 	BT_ASSERT_PRE_DEV_NON_NULL(count, "Count (output)");
@@ -638,6 +650,7 @@ add_mapping_to_enumeration_field_class(struct bt_field_class *fc,
 	struct bt_field_class_enumeration *enum_fc = (void *) fc;
 	struct bt_field_class_enumeration_mapping mapping = { 0	};
 
+	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT(fc);
 	BT_ASSERT_PRE_NON_NULL(label, "Label");
 	BT_ASSERT_PRE_NON_NULL(range_set, "Integer range set");
@@ -667,6 +680,7 @@ bt_field_class_enumeration_unsigned_add_mapping(
 		struct bt_field_class *fc, const char *label,
 		const struct bt_integer_range_set_unsigned *range_set)
 {
+	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(fc, "Field class");
 	BT_ASSERT_PRE_FC_HAS_ID(fc, BT_FIELD_CLASS_TYPE_UNSIGNED_ENUMERATION,
 		"Field class");
@@ -679,6 +693,7 @@ bt_field_class_enumeration_signed_add_mapping(
 		struct bt_field_class *fc, const char *label,
 		const struct bt_integer_range_set_signed *range_set)
 {
+	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(fc, "Field class");
 	BT_ASSERT_PRE_FC_HAS_ID(fc, BT_FIELD_CLASS_TYPE_SIGNED_ENUMERATION,
 		"Field class");
@@ -727,6 +742,8 @@ end:
 struct bt_field_class *bt_field_class_real_single_precision_create(
 	bt_trace_class *trace_class)
 {
+	BT_ASSERT_PRE_NO_ERROR();
+
 	return create_real_field_class(trace_class,
 		BT_FIELD_CLASS_TYPE_SINGLE_PRECISION_REAL);
 }
@@ -734,6 +751,8 @@ struct bt_field_class *bt_field_class_real_single_precision_create(
 struct bt_field_class *bt_field_class_real_double_precision_create(
 	bt_trace_class *trace_class)
 {
+	BT_ASSERT_PRE_NO_ERROR();
+
 	return create_real_field_class(trace_class,
 		BT_FIELD_CLASS_TYPE_DOUBLE_PRECISION_REAL);
 }
@@ -847,6 +866,7 @@ struct bt_field_class *bt_field_class_structure_create(
 	int ret;
 	struct bt_field_class_structure *struct_fc = NULL;
 
+	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(trace_class, "Trace class");
 	BT_LOGD_STR("Creating default structure field class object.");
 	struct_fc = g_new0(struct bt_field_class_structure, 1);
@@ -1001,6 +1021,7 @@ bt_field_class_structure_append_member(
 	enum bt_field_class_structure_append_member_status status;
 	struct bt_named_field_class *named_fc = NULL;
 
+	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(fc, "Field class");
 	BT_ASSERT_PRE_FC_HAS_ID(fc, BT_FIELD_CLASS_TYPE_STRUCTURE,
 		"Field class");
@@ -1258,6 +1279,8 @@ struct bt_field_class *bt_field_class_option_without_selector_create(
 		struct bt_trace_class *trace_class,
 		struct bt_field_class *content_fc)
 {
+	BT_ASSERT_PRE_NO_ERROR();
+
 	return create_option_field_class(trace_class,
 		BT_FIELD_CLASS_TYPE_OPTION_WITHOUT_SELECTOR_FIELD,
 		content_fc, NULL);
@@ -1268,17 +1291,11 @@ struct bt_field_class *bt_field_class_option_with_selector_field_bool_create(
 		struct bt_field_class *content_fc,
 		struct bt_field_class *selector_fc)
 {
-	struct bt_field_class_option_with_selector_field_bool *fc =
-		(void *) create_option_field_class(trace_class,
-			BT_FIELD_CLASS_TYPE_OPTION_WITH_BOOL_SELECTOR_FIELD,
-			content_fc, selector_fc);
+	BT_ASSERT_PRE_NO_ERROR();
 
-	if (!fc) {
-		goto end;
-	}
-
-end:
-	return (void *) fc;
+	return create_option_field_class(trace_class,
+		BT_FIELD_CLASS_TYPE_OPTION_WITH_BOOL_SELECTOR_FIELD,
+		content_fc, selector_fc);
 }
 
 struct bt_field_class *
@@ -1292,6 +1309,7 @@ bt_field_class_option_with_selector_field_integer_unsigned_create(
 	const struct bt_integer_range_set *range_set =
 		(const void *) u_range_set;
 
+	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(range_set, "Integer range set");
 	BT_ASSERT_PRE(range_set->ranges->len > 0,
 		"Integer range set is empty: %!+R", range_set);
@@ -1322,6 +1340,7 @@ bt_field_class_option_with_selector_field_integer_signed_create(
 	const struct bt_integer_range_set *range_set =
 		(const void *) i_range_set;
 
+	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(range_set, "Integer range set");
 	BT_ASSERT_PRE(range_set->ranges->len > 0,
 		"Integer range set is empty: %!+R", range_set);
@@ -1461,6 +1480,7 @@ struct bt_field_class *bt_field_class_variant_create(
 	struct bt_field_class_variant_with_selector_field *var_with_sel_fc = NULL;
 	enum bt_field_class_type fc_type;
 
+	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(trace_class, "Trace class");
 
 	if (selector_fc) {
@@ -1538,6 +1558,7 @@ bt_field_class_variant_without_selector_append_option(struct bt_field_class *fc,
 	enum bt_field_class_variant_without_selector_append_option_status status;
 	struct bt_named_field_class *named_fc = NULL;
 
+	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(fc, "Field class");
 	BT_ASSERT_PRE_NON_NULL(name, "Name");
 	BT_ASSERT_PRE_NON_NULL(option_fc, "Option field class");
@@ -1708,6 +1729,8 @@ bt_field_class_variant_with_selector_field_integer_unsigned_append_option(
 		struct bt_field_class *option_fc,
 		const struct bt_integer_range_set_unsigned *range_set)
 {
+	BT_ASSERT_PRE_NO_ERROR();
+
 	return append_option_to_variant_with_selector_field_field_class(fc,
 		name, option_fc, (const void *) range_set,
 		BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR_FIELD);
@@ -1719,6 +1742,8 @@ bt_field_class_variant_with_selector_field_integer_signed_append_option(
 		struct bt_field_class *option_fc,
 		const struct bt_integer_range_set_signed *range_set)
 {
+	BT_ASSERT_PRE_NO_ERROR();
+
 	return append_option_to_variant_with_selector_field_field_class(fc,
 		name, option_fc, (const void *) range_set,
 		BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_INTEGER_SELECTOR_FIELD);
@@ -1937,6 +1962,7 @@ bt_field_class_array_static_create(bt_trace_class *trace_class,
 {
 	struct bt_field_class_array_static *array_fc = NULL;
 
+	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(trace_class, "Trace class");
 	BT_ASSERT_PRE_NON_NULL(element_fc, "Element field class");
 	BT_LOGD_STR("Creating default static array field class object.");
@@ -2017,6 +2043,7 @@ struct bt_field_class *bt_field_class_array_dynamic_create(
 {
 	struct bt_field_class_array_dynamic *array_fc = NULL;
 
+	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(trace_class, "Trace class");
 	BT_ASSERT_PRE_NON_NULL(element_fc, "Element field class");
 	BT_LOGD_STR("Creating default dynamic array field class object.");
@@ -2059,6 +2086,7 @@ bt_field_class_array_dynamic_with_length_field_borrow_length_field_path_const(
 {
 	const struct bt_field_class_array_dynamic *seq_fc = (const void *) fc;
 
+	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_DEV_NON_NULL(fc, "Field class");
 	BT_ASSERT_PRE_DEV_FC_HAS_ID(fc,
 		BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITH_LENGTH_FIELD,
@@ -2079,6 +2107,7 @@ struct bt_field_class *bt_field_class_string_create(bt_trace_class *trace_class)
 {
 	struct bt_field_class_string *string_fc = NULL;
 
+	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(trace_class, "Trace class");
 	BT_LOGD_STR("Creating default string field class object.");
 	string_fc = g_new0(struct bt_field_class_string, 1);

@@ -150,6 +150,8 @@ struct bt_trace *bt_trace_create(struct bt_trace_class *tc)
 {
 	struct bt_trace *trace = NULL;
 
+	BT_ASSERT_PRE_NO_ERROR();
+
 	BT_LIB_LOGD("Creating trace object: %![tc-]+T", tc);
 	trace = g_new0(struct bt_trace, 1);
 	if (!trace) {
@@ -219,6 +221,7 @@ const char *bt_trace_get_name(const struct bt_trace *trace)
 enum bt_trace_set_name_status bt_trace_set_name(struct bt_trace *trace,
 		const char *name)
 {
+	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
 	BT_ASSERT_PRE_NON_NULL(name, "Name");
 	BT_ASSERT_PRE_DEV_TRACE_HOT(trace);
@@ -289,9 +292,12 @@ bt_trace_set_environment_entry_string(
 {
 	int ret;
 	struct bt_value *value_obj;
+
+	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
 	BT_ASSERT_PRE_NON_NULL(name, "Name");
 	BT_ASSERT_PRE_NON_NULL(value, "Value");
+
 	value_obj = bt_value_string_create_init(value);
 	if (!value_obj) {
 		BT_LIB_LOGE_APPEND_CAUSE(
@@ -314,8 +320,11 @@ bt_trace_set_environment_entry_integer(
 {
 	int ret;
 	struct bt_value *value_obj;
+
+	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
 	BT_ASSERT_PRE_NON_NULL(name, "Name");
+
 	value_obj = bt_value_integer_signed_create_init(value);
 	if (!value_obj) {
 		BT_LIB_LOGE_APPEND_CAUSE(
@@ -422,6 +431,7 @@ enum bt_trace_add_listener_status bt_trace_add_destruction_listener(
 		.data = data,
 	};
 
+	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
 	BT_ASSERT_PRE_NON_NULL(listener, "Listener");
 
@@ -466,6 +476,7 @@ enum bt_trace_remove_listener_status bt_trace_remove_destruction_listener(
 	struct bt_trace *trace = (void *) c_trace;
 	struct bt_trace_destruction_listener_elem *elem;
 
+	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
 	BT_ASSERT_PRE(has_listener_id(trace, listener_id),
 		"Trace has no such trace destruction listener ID: "

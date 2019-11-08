@@ -40,6 +40,8 @@ extern struct bt_interrupter *bt_interrupter_create(void)
 {
 	struct bt_interrupter *intr = g_new0(struct bt_interrupter, 1);
 
+	BT_ASSERT_PRE_NO_ERROR();
+
 	if (!intr) {
 		BT_LIB_LOGE_APPEND_CAUSE("Failed to allocate one interrupter.");
 		goto error;

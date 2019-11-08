@@ -177,6 +177,7 @@ struct bt_message *bt_message_event_create(
 		const struct bt_event_class *event_class,
 		const struct bt_stream *stream)
 {
+	BT_ASSERT_PRE_DEV_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(stream, "Stream");
 	return create_event_message(msg_iter, event_class, NULL, stream, false, 0);
 }
@@ -186,6 +187,7 @@ struct bt_message *bt_message_event_create_with_packet(
 		const struct bt_event_class *event_class,
 		const struct bt_packet *packet)
 {
+	BT_ASSERT_PRE_DEV_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(packet, "Packet");
 	return create_event_message(msg_iter, event_class, packet,
 		packet->stream, false, 0);
@@ -197,6 +199,7 @@ struct bt_message *bt_message_event_create_with_default_clock_snapshot(
 		const struct bt_stream *stream,
 		uint64_t raw_value)
 {
+	BT_ASSERT_PRE_DEV_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(stream, "Stream");
 	return create_event_message(msg_iter, event_class, NULL, stream,
 		true, raw_value);
@@ -209,6 +212,7 @@ bt_message_event_create_with_packet_and_default_clock_snapshot(
 		const struct bt_packet *packet,
 		uint64_t raw_value)
 {
+	BT_ASSERT_PRE_DEV_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(packet, "Packet");
 	return create_event_message(msg_iter, event_class, packet,
 		packet->stream, true, raw_value);

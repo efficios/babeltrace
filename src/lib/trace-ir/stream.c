@@ -167,6 +167,7 @@ struct bt_stream *bt_stream_create(struct bt_stream_class *stream_class,
 {
 	uint64_t id;
 
+	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
 	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
 	BT_ASSERT_PRE(stream_class->assigns_automatic_stream_id,
@@ -179,6 +180,7 @@ struct bt_stream *bt_stream_create(struct bt_stream_class *stream_class,
 struct bt_stream *bt_stream_create_with_id(struct bt_stream_class *stream_class,
 		struct bt_trace *trace, uint64_t id)
 {
+	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
 	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
 	BT_ASSERT_PRE(!stream_class->assigns_automatic_stream_id,
@@ -220,6 +222,7 @@ const char *bt_stream_get_name(const struct bt_stream *stream)
 enum bt_stream_set_name_status bt_stream_set_name(struct bt_stream *stream,
 		const char *name)
 {
+	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(stream, "Stream");
 	BT_ASSERT_PRE_NON_NULL(name, "Name");
 	BT_ASSERT_PRE_DEV_STREAM_HOT(stream);

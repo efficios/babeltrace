@@ -48,6 +48,8 @@ struct bt_component *bt_component_source_create(
 {
 	struct bt_component_source *source = NULL;
 
+	BT_ASSERT_PRE_NO_ERROR();
+
 	source = g_new0(struct bt_component_source, 1);
 	if (!source) {
 		BT_LIB_LOGE_APPEND_CAUSE(
@@ -119,6 +121,8 @@ enum bt_self_component_add_port_status bt_self_component_source_add_output_port(
 	struct bt_component *comp = (void *) self_comp;
 	enum bt_self_component_add_port_status status;
 	struct bt_port *port = NULL;
+
+	BT_ASSERT_PRE_NO_ERROR();
 
 	/* bt_component_add_output_port() logs details and errors */
 	status = bt_component_add_output_port(comp, name, user_data, &port);

@@ -152,6 +152,7 @@ struct bt_component_class_source *bt_component_class_source_create(
 	struct bt_component_class_source *source_class = NULL;
 	int ret;
 
+	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(name, "Name");
 	BT_ASSERT_PRE_NON_NULL(method, "Message iterator next method");
 	BT_LOGI("Creating source component class: "
@@ -191,6 +192,7 @@ struct bt_component_class_filter *bt_component_class_filter_create(
 	struct bt_component_class_filter *filter_class = NULL;
 	int ret;
 
+	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(name, "Name");
 	BT_ASSERT_PRE_NON_NULL(method, "Message iterator next method");
 	BT_LOGI("Creating filter component class: "
@@ -229,6 +231,7 @@ struct bt_component_class_sink *bt_component_class_sink_create(
 	struct bt_component_class_sink *sink_class = NULL;
 	int ret;
 
+	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(name, "Name");
 	BT_ASSERT_PRE_NON_NULL(method, "Consume next method");
 	BT_LOGI("Creating sink component class: "
@@ -266,6 +269,7 @@ bt_component_class_source_set_get_supported_mip_versions_method(
 		struct bt_component_class_source *comp_cls,
 		bt_component_class_source_get_supported_mip_versions_method method)
 {
+	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
 	BT_ASSERT_PRE_NON_NULL(method, "Method");
 	BT_ASSERT_PRE_DEV_COMP_CLS_HOT(comp_cls);
@@ -280,6 +284,7 @@ bt_component_class_filter_set_get_supported_mip_versions_method(
 		struct bt_component_class_filter *comp_cls,
 		bt_component_class_filter_get_supported_mip_versions_method method)
 {
+	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
 	BT_ASSERT_PRE_NON_NULL(method, "Method");
 	BT_ASSERT_PRE_DEV_COMP_CLS_HOT(comp_cls);
@@ -294,6 +299,7 @@ bt_component_class_sink_set_get_supported_mip_versions_method(
 		struct bt_component_class_sink *comp_cls,
 		bt_component_class_sink_get_supported_mip_versions_method method)
 {
+	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
 	BT_ASSERT_PRE_NON_NULL(method, "Method");
 	BT_ASSERT_PRE_DEV_COMP_CLS_HOT(comp_cls);
@@ -308,6 +314,7 @@ bt_component_class_source_set_initialize_method(
 		struct bt_component_class_source *comp_cls,
 		bt_component_class_source_initialize_method method)
 {
+	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
 	BT_ASSERT_PRE_NON_NULL(method, "Method");
 	BT_ASSERT_PRE_DEV_COMP_CLS_HOT(comp_cls);
@@ -322,6 +329,7 @@ bt_component_class_filter_set_initialize_method(
 		struct bt_component_class_filter *comp_cls,
 		bt_component_class_filter_initialize_method method)
 {
+	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
 	BT_ASSERT_PRE_NON_NULL(method, "Method");
 	BT_ASSERT_PRE_DEV_COMP_CLS_HOT(comp_cls);
@@ -336,6 +344,7 @@ bt_component_class_sink_set_initialize_method(
 		struct bt_component_class_sink *comp_cls,
 		bt_component_class_sink_initialize_method method)
 {
+	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
 	BT_ASSERT_PRE_NON_NULL(method, "Method");
 	BT_ASSERT_PRE_DEV_COMP_CLS_HOT(comp_cls);
@@ -350,6 +359,7 @@ bt_component_class_source_set_finalize_method(
 		struct bt_component_class_source *comp_cls,
 		bt_component_class_source_finalize_method method)
 {
+	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
 	BT_ASSERT_PRE_NON_NULL(method, "Method");
 	BT_ASSERT_PRE_DEV_COMP_CLS_HOT(comp_cls);
@@ -364,6 +374,7 @@ bt_component_class_filter_set_finalize_method(
 		struct bt_component_class_filter *comp_cls,
 		bt_component_class_filter_finalize_method method)
 {
+	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
 	BT_ASSERT_PRE_NON_NULL(method, "Method");
 	BT_ASSERT_PRE_DEV_COMP_CLS_HOT(comp_cls);
@@ -378,6 +389,7 @@ bt_component_class_sink_set_finalize_method(
 		struct bt_component_class_sink *comp_cls,
 		bt_component_class_sink_finalize_method method)
 {
+	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
 	BT_ASSERT_PRE_NON_NULL(method, "Method");
 	BT_ASSERT_PRE_DEV_COMP_CLS_HOT(comp_cls);
@@ -392,6 +404,7 @@ bt_component_class_source_set_query_method(
 		struct bt_component_class_source *comp_cls,
 		bt_component_class_source_query_method method)
 {
+	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
 	BT_ASSERT_PRE_NON_NULL(method, "Method");
 	BT_ASSERT_PRE_DEV_COMP_CLS_HOT(comp_cls);
@@ -406,6 +419,7 @@ bt_component_class_filter_set_query_method(
 		struct bt_component_class_filter *comp_cls,
 		bt_component_class_filter_query_method method)
 {
+	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
 	BT_ASSERT_PRE_NON_NULL(method, "Method");
 	BT_ASSERT_PRE_DEV_COMP_CLS_HOT(comp_cls);
@@ -420,6 +434,7 @@ bt_component_class_sink_set_query_method(
 		struct bt_component_class_sink *comp_cls,
 		bt_component_class_sink_query_method method)
 {
+	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
 	BT_ASSERT_PRE_NON_NULL(method, "Method");
 	BT_ASSERT_PRE_DEV_COMP_CLS_HOT(comp_cls);
@@ -434,6 +449,7 @@ bt_component_class_filter_set_input_port_connected_method(
 		struct bt_component_class_filter *comp_cls,
 		bt_component_class_filter_input_port_connected_method method)
 {
+	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
 	BT_ASSERT_PRE_NON_NULL(method, "Method");
 	BT_ASSERT_PRE_DEV_COMP_CLS_HOT(comp_cls);
@@ -448,6 +464,7 @@ bt_component_class_sink_set_input_port_connected_method(
 		struct bt_component_class_sink *comp_cls,
 		bt_component_class_sink_input_port_connected_method method)
 {
+	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
 	BT_ASSERT_PRE_NON_NULL(method, "Method");
 	BT_ASSERT_PRE_DEV_COMP_CLS_HOT(comp_cls);
@@ -462,6 +479,7 @@ bt_component_class_source_set_output_port_connected_method(
 		struct bt_component_class_source *comp_cls,
 		bt_component_class_source_output_port_connected_method method)
 {
+	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
 	BT_ASSERT_PRE_NON_NULL(method, "Method");
 	BT_ASSERT_PRE_DEV_COMP_CLS_HOT(comp_cls);
@@ -476,6 +494,7 @@ bt_component_class_filter_set_output_port_connected_method(
 		struct bt_component_class_filter *comp_cls,
 		bt_component_class_filter_output_port_connected_method method)
 {
+	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
 	BT_ASSERT_PRE_NON_NULL(method, "Method");
 	BT_ASSERT_PRE_DEV_COMP_CLS_HOT(comp_cls);
@@ -490,6 +509,7 @@ bt_component_class_sink_set_graph_is_configured_method(
 		struct bt_component_class_sink *comp_cls,
 		bt_component_class_sink_graph_is_configured_method method)
 {
+	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
 	BT_ASSERT_PRE_NON_NULL(method, "Method");
 	BT_ASSERT_PRE_DEV_COMP_CLS_HOT(comp_cls);
@@ -504,6 +524,7 @@ bt_component_class_source_set_message_iterator_initialize_method(
 		struct bt_component_class_source *comp_cls,
 		bt_component_class_source_message_iterator_initialize_method method)
 {
+	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
 	BT_ASSERT_PRE_NON_NULL(method, "Method");
 	BT_ASSERT_PRE_DEV_COMP_CLS_HOT(comp_cls);
@@ -518,6 +539,7 @@ bt_component_class_filter_set_message_iterator_initialize_method(
 		struct bt_component_class_filter *comp_cls,
 		bt_component_class_filter_message_iterator_initialize_method method)
 {
+	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
 	BT_ASSERT_PRE_NON_NULL(method, "Method");
 	BT_ASSERT_PRE_DEV_COMP_CLS_HOT(comp_cls);
@@ -532,6 +554,7 @@ bt_component_class_source_set_message_iterator_finalize_method(
 		struct bt_component_class_source *comp_cls,
 		bt_component_class_source_message_iterator_finalize_method method)
 {
+	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
 	BT_ASSERT_PRE_NON_NULL(method, "Method");
 	BT_ASSERT_PRE_DEV_COMP_CLS_HOT(comp_cls);
@@ -546,6 +569,7 @@ bt_component_class_filter_set_message_iterator_finalize_method(
 		struct bt_component_class_filter *comp_cls,
 		bt_component_class_filter_message_iterator_finalize_method method)
 {
+	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
 	BT_ASSERT_PRE_NON_NULL(method, "Method");
 	BT_ASSERT_PRE_DEV_COMP_CLS_HOT(comp_cls);
@@ -561,6 +585,7 @@ bt_component_class_filter_set_message_iterator_seek_ns_from_origin_methods(
 		bt_component_class_filter_message_iterator_seek_ns_from_origin_method seek_method,
 		bt_component_class_filter_message_iterator_can_seek_ns_from_origin_method can_seek_method)
 {
+	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
 	BT_ASSERT_PRE_NON_NULL(seek_method, "Seek method");
 	BT_ASSERT_PRE_DEV_COMP_CLS_HOT(comp_cls);
@@ -577,6 +602,7 @@ bt_component_class_source_set_message_iterator_seek_ns_from_origin_methods(
 		bt_component_class_source_message_iterator_seek_ns_from_origin_method seek_method,
 		bt_component_class_source_message_iterator_can_seek_ns_from_origin_method can_seek_method)
 {
+	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
 	BT_ASSERT_PRE_NON_NULL(seek_method, "Seek method");
 	BT_ASSERT_PRE_DEV_COMP_CLS_HOT(comp_cls);
@@ -593,6 +619,7 @@ bt_component_class_filter_set_message_iterator_seek_beginning_methods(
 		bt_component_class_filter_message_iterator_seek_beginning_method seek_method,
 		bt_component_class_filter_message_iterator_can_seek_beginning_method can_seek_method)
 {
+	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
 	BT_ASSERT_PRE_NON_NULL(seek_method, "Seek method");
 	BT_ASSERT_PRE_DEV_COMP_CLS_HOT(comp_cls);
@@ -609,6 +636,7 @@ bt_component_class_source_set_message_iterator_seek_beginning_methods(
 		bt_component_class_source_message_iterator_seek_beginning_method seek_method,
 		bt_component_class_source_message_iterator_can_seek_beginning_method can_seek_method)
 {
+	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
 	BT_ASSERT_PRE_NON_NULL(seek_method, "Seek method");
 	BT_ASSERT_PRE_DEV_COMP_CLS_HOT(comp_cls);
@@ -624,6 +652,7 @@ bt_component_class_set_description(
 		struct bt_component_class *comp_cls,
 		const char *description)
 {
+	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
 	BT_ASSERT_PRE_NON_NULL(description, "Description");
 	BT_ASSERT_PRE_DEV_COMP_CLS_HOT(comp_cls);
@@ -640,6 +669,7 @@ enum bt_component_class_set_help_status bt_component_class_set_help(
 		struct bt_component_class *comp_cls,
 		const char *help)
 {
+	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
 	BT_ASSERT_PRE_NON_NULL(help, "Help");
 	BT_ASSERT_PRE_DEV_COMP_CLS_HOT(comp_cls);

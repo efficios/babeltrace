@@ -527,6 +527,7 @@ bt_self_component_port_input_message_iterator_create_from_message_iterator(
 		struct bt_self_component_port_input *input_port,
 		struct bt_self_component_port_input_message_iterator **message_iterator)
 {
+	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(self_msg_iter, "Message iterator");
 	return create_self_component_input_port_message_iterator(self_msg_iter,
 		input_port, message_iterator);
@@ -538,6 +539,7 @@ bt_self_component_port_input_message_iterator_create_from_sink_component(
 		struct bt_self_component_port_input *input_port,
 		struct bt_self_component_port_input_message_iterator **message_iterator)
 {
+	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(self_comp, "Sink component");
 	return create_self_component_input_port_message_iterator(NULL,
 		input_port, message_iterator);
@@ -882,6 +884,7 @@ bt_self_component_port_input_message_iterator_next(
 {
 	enum bt_message_iterator_next_status status = BT_FUNC_STATUS_OK;
 
+	BT_ASSERT_PRE_DEV_NO_ERROR();
 	BT_ASSERT_PRE_DEV_NON_NULL(iterator, "Message iterator");
 	BT_ASSERT_PRE_DEV_NON_NULL(msgs, "Message array (output)");
 	BT_ASSERT_PRE_DEV_NON_NULL(user_count, "Message count (output)");
@@ -988,6 +991,7 @@ bt_self_component_port_input_message_iterator_can_seek_ns_from_origin(
 {
 	enum bt_message_iterator_can_seek_ns_from_origin_status status;
 
+	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(iterator, "Message iterator");
 	BT_ASSERT_PRE_NON_NULL(can_seek, "Result (output)");
 	BT_ASSERT_PRE_ITER_HAS_STATE_TO_SEEK(iterator);
@@ -1058,6 +1062,7 @@ bt_self_component_port_input_message_iterator_can_seek_beginning(
 {
 	enum bt_message_iterator_can_seek_beginning_status status;
 
+	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(iterator, "Message iterator");
 	BT_ASSERT_PRE_NON_NULL(can_seek, "Result (output)");
 	BT_ASSERT_PRE_ITER_HAS_STATE_TO_SEEK(iterator);
@@ -1150,6 +1155,7 @@ bt_self_component_port_input_message_iterator_seek_beginning(
 {
 	int status;
 
+	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(iterator, "Message iterator");
 	BT_ASSERT_PRE_ITER_HAS_STATE_TO_SEEK(iterator);
 	BT_ASSERT_PRE(
@@ -1714,6 +1720,7 @@ bt_self_component_port_input_message_iterator_seek_ns_from_origin(
 	GHashTable *stream_states = NULL;
 	bt_bool can_seek_by_itself;
 
+	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(iterator, "Message iterator");
 	BT_ASSERT_PRE_ITER_HAS_STATE_TO_SEEK(iterator);
 	BT_ASSERT_PRE(

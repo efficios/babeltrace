@@ -49,6 +49,8 @@ struct bt_component *bt_component_sink_create(
 {
 	struct bt_component_sink *sink = NULL;
 
+	BT_ASSERT_PRE_NO_ERROR();
+
 	sink = g_new0(struct bt_component_sink, 1);
 	if (!sink) {
 		BT_LIB_LOGE_APPEND_CAUSE(
@@ -125,6 +127,8 @@ enum bt_self_component_add_port_status bt_self_component_sink_add_input_port(
 	enum bt_self_component_add_port_status status;
 	struct bt_port *port = NULL;
 	struct bt_component *comp = (void *) self_comp;
+
+	BT_ASSERT_PRE_NO_ERROR();
 
 	/* bt_component_add_input_port() logs details/errors */
 	status = bt_component_add_input_port(comp, name, user_data, &port);
