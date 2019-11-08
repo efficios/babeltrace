@@ -1247,7 +1247,7 @@ enum lttng_live_get_one_metadata_status lttng_live_get_one_metadata_packet(
 	struct lttng_viewer_cmd cmd;
 	struct lttng_viewer_get_metadata rq;
 	struct lttng_viewer_metadata_packet rp;
-	char *data = NULL;
+	gchar *data = NULL;
 	ssize_t writelen;
 	struct lttng_live_session *session = trace->session;
 	struct lttng_live_msg_iter *lttng_live_msg_iter =
@@ -1312,7 +1312,7 @@ enum lttng_live_get_one_metadata_status lttng_live_get_one_metadata_packet(
 			BT_COMP_LOGE_APPEND_CAUSE(self_comp,
 				"Received get_metadata response: unknown");
 			status = LTTNG_LIVE_GET_ONE_METADATA_STATUS_ERROR;
-			goto error;
+			goto end;
 	}
 
 	len = be64toh(rp.len);
@@ -1321,15 +1321,15 @@ enum lttng_live_get_one_metadata_status lttng_live_get_one_metadata_packet(
 		BT_COMP_LOGE_APPEND_CAUSE(self_comp,
 			"Erroneous response length");
 		status = LTTNG_LIVE_GET_ONE_METADATA_STATUS_ERROR;
-		goto error;
+		goto end;
 	}
 
-	data = calloc(1, len);
+	data = g_new0(gchar, len);
 	if (!data) {
 		BT_COMP_LOGE_APPEND_CAUSE_ERRNO(self_comp,
 			"Failed to allocate data buffer", ".");
 		status = LTTNG_LIVE_GET_ONE_METADATA_STATUS_ERROR;
-		goto error;
+		goto end;
 	}
 
 	viewer_status = lttng_live_recv(viewer_connection, data, len);
@@ -1337,7 +1337,7 @@ enum lttng_live_get_one_metadata_status lttng_live_get_one_metadata_packet(
 		viewer_handle_recv_status(self_comp, NULL,
 			viewer_status, "get metadata packet");
 		status = (enum lttng_live_get_one_metadata_status) viewer_status;
-		goto error;
+		goto end;
 	}
 
 	/*
@@ -1348,16 +1348,14 @@ enum lttng_live_get_one_metadata_status lttng_live_get_one_metadata_packet(
 		BT_COMP_LOGE_APPEND_CAUSE(self_comp,
 			"Writing in the metadata file stream");
 		status = LTTNG_LIVE_GET_ONE_METADATA_STATUS_ERROR;
-		goto error;
+		goto end;
 	}
 
 	*reply_len = len;
 	status = LTTNG_LIVE_GET_ONE_METADATA_STATUS_OK;
 
-error:
-	free(data);
-
 end:
+	g_free(data);
 	return status;
 }
 
