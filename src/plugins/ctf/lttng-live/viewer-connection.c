@@ -110,6 +110,24 @@ enum ctf_msg_iter_medium_status viewer_status_to_ctf_msg_iter_medium_status(
 	}
 }
 
+static inline
+void viewer_connection_close_socket(
+		struct live_viewer_connection *viewer_connection)
+{
+	bt_self_component_class *self_comp_class =
+		viewer_connection->self_comp_class;
+	bt_self_component *self_comp =
+		viewer_connection->self_comp;
+	int ret = bt_socket_close(viewer_connection->control_sock);
+	if (ret == -1) {
+		BT_COMP_OR_COMP_CLASS_LOGW_ERRNO(
+			self_comp, self_comp_class,
+			"Error closing viewer connection socket: ", ".");
+	}
+
+	viewer_connection->control_sock = BT_INVALID_SOCKET;
+}
+
 /*
  * This function receives a message from the Relay daemon.
  * If it received the entire message, it returns _OK,
@@ -157,12 +175,14 @@ enum lttng_live_viewer_status lttng_live_recv(
 				}
 			} else {
 				/*
-				 * For any other types of socket error, returng
-				 * an error.
+				 * For any other types of socket error, close
+				 * the socket and return an error.
 				 */
 				LTTNG_LIVE_COMP_OR_COMP_CLASS_LOGE_APPEND_CAUSE_ERRNO(
 					self_comp, self_comp_class,
 					"Error receiving from Relay", ".");
+
+				viewer_connection_close_socket(viewer_connection);
 				status = LTTNG_LIVE_VIEWER_STATUS_ERROR;
 				goto end;
 			}
@@ -172,10 +192,12 @@ enum lttng_live_viewer_status lttng_live_recv(
 			 * connection was orderly shutdown from the other peer.
 			 * If that happens when we are trying to receive
 			 * a message from it, it means something when wrong.
+			 * Close the socket and return an error.
 			 */
-			status = LTTNG_LIVE_VIEWER_STATUS_ERROR;
 			BT_COMP_OR_COMP_CLASS_LOGE_APPEND_CAUSE(self_comp,
 				self_comp_class, "Remote side has closed connection");
+			viewer_connection_close_socket(viewer_connection);
+			status = LTTNG_LIVE_VIEWER_STATUS_ERROR;
 			goto end;
 		}
 
@@ -236,11 +258,14 @@ enum lttng_live_viewer_status lttng_live_send(
 				}
 			} else {
 				/*
-				 * The send() call returned an error.
+				 * For any other types of socket error, close
+				 * the socket and return an error.
 				 */
 				LTTNG_LIVE_COMP_OR_COMP_CLASS_LOGE_APPEND_CAUSE_ERRNO(
 					self_comp, self_comp_class,
 					"Error sending to Relay", ".");
+
+				viewer_connection_close_socket(viewer_connection);
 				status = LTTNG_LIVE_VIEWER_STATUS_ERROR;
 				goto end;
 			}
@@ -1150,7 +1175,12 @@ enum lttng_live_viewer_status lttng_live_detach_session(
 	const size_t cmd_buf_len = sizeof(cmd) + sizeof(rq);
 	char cmd_buf[cmd_buf_len];
 
-	if (!session->attached) {
+	/*
+	 * The session might already be detached and the viewer socket might
+	 * already been closed. This happens when calling this function when
+	 * tearing down the graph after an error.
+	 */
+	if (!session->attached || viewer_connection->control_sock == BT_INVALID_SOCKET) {
 		return 0;
 	}
 
