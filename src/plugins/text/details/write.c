@@ -370,14 +370,14 @@ gint compare_strings(const char **a, const char **b)
 }
 
 static
-bt_bool map_value_foreach_add_key_to_array(const char *key,
-		const bt_value *object, void *data)
+bt_value_map_foreach_entry_const_func_status map_value_foreach_add_key_to_array(
+		const char *key, const bt_value *object, void *data)
 {
 	GPtrArray *keys = data;
 
 	BT_ASSERT_DBG(keys);
 	g_ptr_array_add(keys, (void *) key);
-	return BT_TRUE;
+	return BT_VALUE_MAP_FOREACH_ENTRY_CONST_FUNC_STATUS_OK;
 }
 
 static
