@@ -51,7 +51,7 @@ function expect_success()
 	local msg="$2"
 	shift 2
 
-	"${BT_TESTS_BT2_BIN}" "${TRACE_PATH}" "$@" 2>/dev/null > "${tmp_out}"
+	bt_cli "${tmp_out}" /dev/null "${TRACE_PATH}" "$@"
 	ok $? "trimmer: ${msg}: exit status"
 
 	num_events=$(wc -l < "${tmp_out}")
@@ -76,7 +76,7 @@ function expect_failure()
 
 	# We check the error message logged by the trimmer plugin, set the env
 	# var necessary for it to log errors.
-	BABELTRACE_FLT_UTILS_TRIMMER_LOG_LEVEL=E "${BT_TESTS_BT2_BIN}" "${TRACE_PATH}" "$@" 2> "${tmp_err}" > "${tmp_out}"
+	BABELTRACE_FLT_UTILS_TRIMMER_LOG_LEVEL=E bt_cli "${tmp_out}" "${tmp_err}" "${TRACE_PATH}" "$@"
 	isnt $? 0 "trimmer: ${msg}: exit status"
 
 	num_events=$(wc -l < "${tmp_out}")
