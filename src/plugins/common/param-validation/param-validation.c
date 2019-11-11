@@ -156,8 +156,8 @@ enum bt_param_validation_status validate_value(
 		struct bt_param_validation_context *ctx);
 
 static
-bt_bool validate_map_value_entry(const char *key,
-		const bt_value *value, void *v_data)
+bt_value_map_foreach_entry_const_func_status validate_map_value_entry(
+		const char *key, const bt_value *value, void *v_data)
 {
 	struct validate_map_value_data *data = v_data;
 	const struct bt_param_validation_map_value_entry_descr *entry = NULL;
@@ -192,7 +192,9 @@ bt_bool validate_map_value_entry(const char *key,
 	}
 
 	/* Continue iterating if everything is good so far. */
-	return data->status == BT_PARAM_VALIDATION_STATUS_OK;
+	return data->status == BT_PARAM_VALIDATION_STATUS_OK ?
+		BT_VALUE_MAP_FOREACH_ENTRY_CONST_FUNC_STATUS_OK :
+		BT_VALUE_MAP_FOREACH_ENTRY_CONST_FUNC_STATUS_INTERRUPT;
 }
 
 static

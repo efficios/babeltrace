@@ -330,13 +330,14 @@ end:
 }
 
 static
-bt_bool collect_map_keys(const char *key, const bt_value *object, void *data)
+bt_value_map_foreach_entry_const_func_status collect_map_keys(
+		const char *key, const bt_value *object, void *data)
 {
 	GPtrArray *map_keys = data;
 
 	g_ptr_array_add(map_keys, (gpointer *) key);
 
-	return BT_TRUE;
+	return BT_VALUE_MAP_FOREACH_ENTRY_CONST_FUNC_STATUS_OK;
 }
 
 static

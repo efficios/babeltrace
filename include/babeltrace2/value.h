@@ -126,11 +126,22 @@ extern bt_value *bt_value_map_create(void);
 extern bt_value *bt_value_map_borrow_entry_value(
 		bt_value *map_obj, const char *key);
 
-typedef bt_bool (* bt_value_map_foreach_entry_func)(const char *key,
-		bt_value *object, void *data);
+typedef enum bt_value_map_foreach_entry_func_status {
+	BT_VALUE_MAP_FOREACH_ENTRY_FUNC_STATUS_OK		= __BT_FUNC_STATUS_OK,
+	BT_VALUE_MAP_FOREACH_ENTRY_FUNC_STATUS_ERROR		= __BT_FUNC_STATUS_ERROR,
+	BT_VALUE_MAP_FOREACH_ENTRY_FUNC_STATUS_MEMORY_ERROR	= __BT_FUNC_STATUS_MEMORY_ERROR,
+	BT_VALUE_MAP_FOREACH_ENTRY_FUNC_STATUS_INTERRUPT	= __BT_FUNC_STATUS_INTERRUPTED,
+} bt_value_map_foreach_entry_func_status;
+
+typedef bt_value_map_foreach_entry_func_status
+		(* bt_value_map_foreach_entry_func)(const char *key,
+			bt_value *object, void *data);
 
 typedef enum bt_value_map_foreach_entry_status {
 	BT_VALUE_MAP_FOREACH_ENTRY_STATUS_OK		= __BT_FUNC_STATUS_OK,
+	BT_VALUE_MAP_FOREACH_ENTRY_STATUS_ERROR		= __BT_FUNC_STATUS_ERROR,
+	BT_VALUE_MAP_FOREACH_ENTRY_STATUS_MEMORY_ERROR	= __BT_FUNC_STATUS_MEMORY_ERROR,
+	BT_VALUE_MAP_FOREACH_ENTRY_STATUS_USER_ERROR	= __BT_FUNC_STATUS_USER_ERROR,
 	BT_VALUE_MAP_FOREACH_ENTRY_STATUS_INTERRUPTED	= __BT_FUNC_STATUS_INTERRUPTED,
 } bt_value_map_foreach_entry_status;
 

@@ -25,7 +25,7 @@
 #include <string.h>
 #include "tap/tap.h"
 
-#define NR_TESTS 188
+#define NR_TESTS 190
 
 static
 void test_null(void)
@@ -368,18 +368,23 @@ void test_array(void)
 }
 
 static
-bt_bool test_map_foreach_cb_count(const char *key, bt_value *object,
+bt_value_map_foreach_entry_func_status test_map_foreach_cb_count(
+		const char *key, bt_value *object,
 	void *data)
 {
 	int *count = data;
 
 	if (*count == 3) {
-		return BT_FALSE;
+		return BT_VALUE_MAP_FOREACH_ENTRY_FUNC_STATUS_INTERRUPT;
+	} else if (*count == 4) {
+		return BT_VALUE_MAP_FOREACH_ENTRY_FUNC_STATUS_ERROR;
+	} else if (*count == 5) {
+		return BT_VALUE_MAP_FOREACH_ENTRY_FUNC_STATUS_MEMORY_ERROR;
 	}
 
 	(*count)++;
 
-	return BT_TRUE;
+	return BT_VALUE_MAP_FOREACH_ENTRY_FUNC_STATUS_OK;
 }
 
 struct map_foreach_checklist {
@@ -399,8 +404,8 @@ struct map_foreach_checklist {
 };
 
 static
-bt_bool test_map_foreach_cb_check(const char *key, bt_value *object,
-	void *data)
+bt_value_map_foreach_entry_func_status test_map_foreach_cb_check(
+		const char *key, bt_value *object, void *data)
 {
 	struct map_foreach_checklist *checklist = data;
 
@@ -572,7 +577,7 @@ bt_bool test_map_foreach_cb_check(const char *key, bt_value *object,
 			key);
 	}
 
-	return BT_TRUE;
+	return BT_VALUE_MAP_FOREACH_ENTRY_FUNC_STATUS_OK;
 }
 
 static
@@ -711,7 +716,21 @@ void test_map(void)
 	ret = bt_value_map_foreach_entry(map_obj, test_map_foreach_cb_count,
 		&count);
 	ok(ret == BT_VALUE_MAP_FOREACH_ENTRY_STATUS_INTERRUPTED && count == 3,
-		"bt_value_map_foreach_entry() breaks the loop when the user function returns BT_FALSE");
+		"bt_value_map_foreach_entry() breaks the loop when the user function returns BT_VALUE_MAP_FOREACH_ENTRY_FUNC_STATUS_INTERRUPT");
+
+	count = 4;
+	ret = bt_value_map_foreach_entry(map_obj, test_map_foreach_cb_count,
+		&count);
+	ok(ret == BT_VALUE_MAP_FOREACH_ENTRY_STATUS_USER_ERROR,
+		"bt_value_map_foreach_entry() fails when the user function returns BT_VALUE_MAP_FOREACH_ENTRY_FUNC_STATUS_ERROR");
+	bt_current_thread_clear_error();
+
+	count = 5;
+	ret = bt_value_map_foreach_entry(map_obj, test_map_foreach_cb_count,
+		&count);
+	ok(ret == BT_VALUE_MAP_FOREACH_ENTRY_STATUS_MEMORY_ERROR,
+		"bt_value_map_foreach_entry() fails when the user function returns BT_VALUE_MAP_FOREACH_ENTRY_FUNC_STATUS_MEMORY_ERROR");
+	bt_current_thread_clear_error();
 
 	memset(&checklist, 0, sizeof(checklist));
 	ret = bt_value_map_foreach_entry(map_obj, test_map_foreach_cb_check,

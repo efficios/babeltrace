@@ -33,6 +33,7 @@
 #include "common/common.h"
 #include "compat/glib.h"
 #include "lib/assert-pre.h"
+#include "lib/assert-post.h"
 #include "lib/value.h"
 #include "common/assert.h"
 #include "func-status.h"
@@ -1271,7 +1272,7 @@ enum bt_value_map_foreach_entry_status bt_value_map_foreach_entry(
 		struct bt_value *map_obj, bt_value_map_foreach_entry_func func,
 		void *data)
 {
-	enum bt_value_map_foreach_entry_status ret = BT_FUNC_STATUS_OK;
+	int status = BT_FUNC_STATUS_OK;
 	gpointer key, element_obj;
 	GHashTableIter iter;
 	struct bt_value_map *typed_map_obj = BT_VALUE_TO_MAP(map_obj);
@@ -1286,16 +1287,40 @@ enum bt_value_map_foreach_entry_status bt_value_map_foreach_entry(
 	while (g_hash_table_iter_next(&iter, &key, &element_obj)) {
 		const char *key_str = g_quark_to_string(GPOINTER_TO_UINT(key));
 
-		if (!func(key_str, element_obj, data)) {
-			BT_LOGT("User interrupted the loop: key=\"%s\", "
-				"value-addr=%p, data=%p",
-				key_str, element_obj, data);
-			ret = BT_FUNC_STATUS_INTERRUPTED;
+		status = func(key_str, element_obj, data);
+		BT_ASSERT_POST_NO_ERROR_IF_NO_ERROR_STATUS(status);
+		if (status != BT_FUNC_STATUS_OK) {
+			if (status < 0) {
+				BT_LIB_LOGE_APPEND_CAUSE(
+					"User function failed while iterating "
+					"map value entries: "
+					"status=%s, key=\"%s\", "
+					"value-addr=%p, data=%p",
+					bt_common_func_status_string(status),
+					key_str, element_obj, data);
+
+				if (status == BT_FUNC_STATUS_ERROR) {
+					/*
+					 * User function error becomes a
+					 * user error from this
+					 * function's caller's
+					 * perspective.
+					 */
+					status = BT_FUNC_STATUS_USER_ERROR;
+				}
+			} else {
+				BT_ASSERT(status == BT_FUNC_STATUS_INTERRUPTED);
+				BT_LOGT("User interrupted the loop: status=%s, "
+					"key=\"%s\", value-addr=%p, data=%p",
+					bt_common_func_status_string(status),
+					key_str, element_obj, data);
+			}
+
 			break;
 		}
 	}
 
-	return ret;
+	return status;
 }
 
 enum bt_value_map_foreach_entry_const_status bt_value_map_foreach_entry_const(
@@ -1310,21 +1335,20 @@ enum bt_value_map_foreach_entry_const_status bt_value_map_foreach_entry_const(
 
 struct extend_map_element_data {
 	struct bt_value *base_obj;
-	int status;
 };
 
 static
-bt_bool extend_map_element(const char *key,
-		const struct bt_value *extension_obj_elem, void *data)
+bt_value_map_foreach_entry_const_func_status extend_map_element(
+		const char *key, const struct bt_value *extension_obj_elem,
+		void *data)
 {
-	bt_bool ret = BT_TRUE;
+	int status;
 	struct extend_map_element_data *extend_data = data;
 	struct bt_value *extension_obj_elem_copy = NULL;
 
 	/* Copy object which is to replace the current one */
-	extend_data->status = bt_value_copy(extension_obj_elem,
-		&extension_obj_elem_copy);
-	if (extend_data->status) {
+	status = bt_value_copy(extension_obj_elem, &extension_obj_elem_copy);
+	if (status) {
 		BT_LIB_LOGE_APPEND_CAUSE("Cannot copy map element: %!+v",
 			extension_obj_elem);
 		goto error;
@@ -1333,36 +1357,35 @@ bt_bool extend_map_element(const char *key,
 	BT_ASSERT(extension_obj_elem_copy);
 
 	/* Replace in base map value. */
-	extend_data->status = bt_value_map_insert_entry(
-		extend_data->base_obj, key,
+	status = bt_value_map_insert_entry(extend_data->base_obj, key,
 		(void *) extension_obj_elem_copy);
-	if (extend_data->status) {
+	if (status) {
 		BT_LIB_LOGE_APPEND_CAUSE(
 			"Cannot replace value in base map value: key=\"%s\", "
 			"%![base-map-value-]+v, %![element-value-]+v",
-			key, extend_data->base_obj,
-			extension_obj_elem_copy);
+			key, extend_data->base_obj, extension_obj_elem_copy);
 		goto error;
 	}
 
 	goto end;
 
 error:
-	BT_ASSERT(extend_data->status != BT_FUNC_STATUS_OK);
-	ret = BT_FALSE;
+	BT_ASSERT(status < 0);
 
 end:
 	BT_OBJECT_PUT_REF_AND_RESET(extension_obj_elem_copy);
-	return ret;
+	BT_ASSERT(status == BT_FUNC_STATUS_OK ||
+		status == BT_FUNC_STATUS_MEMORY_ERROR);
+	return status;
 }
 
 enum bt_value_map_extend_status bt_value_map_extend(
 		struct bt_value *base_map_obj,
 		const struct bt_value *extension_obj)
 {
+	int status = BT_FUNC_STATUS_OK;
 	struct extend_map_element_data extend_data = {
 		.base_obj = NULL,
-		.status = BT_FUNC_STATUS_OK,
 	};
 
 	BT_ASSERT_PRE_NO_ERROR();
@@ -1379,15 +1402,16 @@ enum bt_value_map_extend_status bt_value_map_extend(
 	 * in the base map object.
 	 */
 	extend_data.base_obj = base_map_obj;
-
-	if (bt_value_map_foreach_entry_const(extension_obj, extend_map_element,
-			&extend_data)) {
+	status = bt_value_map_foreach_entry_const(extension_obj,
+		extend_map_element, &extend_data);
+	if (status != BT_FUNC_STATUS_OK) {
+		BT_ASSERT(status == BT_FUNC_STATUS_MEMORY_ERROR);
 		BT_LIB_LOGE_APPEND_CAUSE(
 			"Cannot iterate on the extension object's elements: "
 			"%![extension-value-]+v", extension_obj);
 	}
 
-	return extend_data.status;
+	return status;
 }
 
 enum bt_value_copy_status bt_value_copy(const struct bt_value *object,

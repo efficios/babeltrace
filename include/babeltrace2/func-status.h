@@ -47,6 +47,11 @@
 # define __BT_FUNC_STATUS_MEMORY_ERROR		-12
 #endif
 
+/* User function error */
+#ifndef __BT_FUNC_STATUS_USER_ERROR
+# define __BT_FUNC_STATUS_USER_ERROR		-2
+#endif
+
 /* General error */
 #ifndef __BT_FUNC_STATUS_ERROR
 # define __BT_FUNC_STATUS_ERROR			-1
