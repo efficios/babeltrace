@@ -330,14 +330,6 @@ BT_HIDDEN
 void ctf_msg_iter_reset_for_next_stream_file(struct ctf_msg_iter *msg_it);
 
 BT_HIDDEN
-void ctf_msg_iter_set_emit_stream_beginning_message(struct ctf_msg_iter *msg_it,
-		bool val);
-
-BT_HIDDEN
-void ctf_msg_iter_set_emit_stream_end_message(struct ctf_msg_iter *msg_it,
-		bool val);
-
-BT_HIDDEN
 void ctf_msg_iter_set_dry_run(struct ctf_msg_iter *msg_it,
 		bool val);
 
