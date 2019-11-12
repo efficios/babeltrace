@@ -265,12 +265,6 @@ bt_component_class_message_iterator_initialize_method_status ctf_fs_iterator_ini
 		goto error;
 	}
 
-	/* FIXME: This is temporary, those functions will be removed. */
-	ctf_msg_iter_set_emit_stream_end_message(
-		msg_iter_data->msg_iter, true);
-	ctf_msg_iter_set_emit_stream_beginning_message(
-		msg_iter_data->msg_iter, true);
-
 	/*
 	 * This iterator can seek forward if its stream class has a default
 	 * clock class.

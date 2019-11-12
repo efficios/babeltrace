@@ -87,7 +87,6 @@ enum state {
 	STATE_DSCOPE_STREAM_PACKET_CONTEXT_BEGIN,
 	STATE_DSCOPE_STREAM_PACKET_CONTEXT_CONTINUE,
 	STATE_AFTER_STREAM_PACKET_CONTEXT,
-	STATE_CHECK_EMIT_MSG_STREAM_BEGINNING,
 	STATE_EMIT_MSG_STREAM_BEGINNING,
 	STATE_CHECK_EMIT_MSG_DISCARDED_EVENTS,
 	STATE_CHECK_EMIT_MSG_DISCARDED_PACKETS,
@@ -108,7 +107,6 @@ enum state {
 	STATE_SKIP_PACKET_PADDING,
 	STATE_EMIT_MSG_PACKET_END_MULTI,
 	STATE_EMIT_MSG_PACKET_END_SINGLE,
-	STATE_CHECK_EMIT_MSG_STREAM_END,
 	STATE_EMIT_QUEUED_MSG_PACKET_END,
 	STATE_EMIT_MSG_STREAM_END,
 	STATE_DONE,
@@ -128,12 +126,6 @@ struct ctf_msg_iter {
 
 	/* Current message iterator to create messages (weak) */
 	bt_self_message_iterator *self_msg_iter;
-
-	/* True to emit a stream beginning message. */
-	bool emit_stream_begin_msg;
-
-	/* True to emit a stream end message. */
-	bool emit_stream_end_msg;
 
 	/*
 	 * True if library objects are unavailable during the decoding and
@@ -738,7 +730,7 @@ enum ctf_msg_iter_status switch_packet_state(struct ctf_msg_iter *msg_it)
 		medium_status = msg_it->medium.medops.switch_packet(msg_it->medium.data);
 		if (medium_status == CTF_MSG_ITER_MEDIUM_STATUS_EOF) {
 			/* No more packets. */
-			msg_it->state = STATE_CHECK_EMIT_MSG_STREAM_END;
+			msg_it->state = STATE_EMIT_MSG_STREAM_END;
 			status = CTF_MSG_ITER_STATUS_OK;
 			goto end;
 		} else if (medium_status != CTF_MSG_ITER_MEDIUM_STATUS_OK) {
@@ -816,7 +808,7 @@ enum ctf_msg_iter_status read_packet_header_begin_state(
 		break;
 	case CTF_MSG_ITER_STATUS_EOF:
 		status = CTF_MSG_ITER_STATUS_OK;
-		msg_it->state = STATE_CHECK_EMIT_MSG_STREAM_END;
+		msg_it->state = STATE_EMIT_MSG_STREAM_END;
 		goto end;
 	default:
 		goto end;
@@ -1162,7 +1154,7 @@ enum ctf_msg_iter_status after_packet_context_state(struct ctf_msg_iter *msg_it)
 		 */
 		msg_it->state = STATE_CHECK_EMIT_MSG_DISCARDED_EVENTS;
 	} else {
-		msg_it->state = STATE_CHECK_EMIT_MSG_STREAM_BEGINNING;
+		msg_it->state = STATE_EMIT_MSG_STREAM_BEGINNING;
 	}
 
 end:
@@ -1598,30 +1590,6 @@ end:
 }
 
 static
-enum ctf_msg_iter_status check_emit_msg_stream_beginning_state(
-		struct ctf_msg_iter *msg_it)
-{
-	enum ctf_msg_iter_status status = CTF_MSG_ITER_STATUS_OK;
-
-	if (msg_it->set_stream) {
-		status = set_current_stream(msg_it);
-		if (status != CTF_MSG_ITER_STATUS_OK) {
-			goto end;
-		}
-	}
-
-	if (msg_it->emit_stream_begin_msg) {
-		msg_it->state = STATE_EMIT_MSG_STREAM_BEGINNING;
-	} else {
-		/* Stream's first packet */
-		msg_it->state = STATE_CHECK_EMIT_MSG_DISCARDED_EVENTS;
-	}
-
-end:
-	return status;
-}
-
-static
 enum ctf_msg_iter_status check_emit_msg_discarded_events(
 		struct ctf_msg_iter *msg_it)
 {
@@ -1705,19 +1673,6 @@ end:
 	return CTF_MSG_ITER_STATUS_OK;
 }
 
-static
-enum ctf_msg_iter_status check_emit_msg_stream_end(
-		struct ctf_msg_iter *msg_it)
-{
-	if (msg_it->emit_stream_end_msg) {
-		msg_it->state = STATE_EMIT_MSG_STREAM_END;
-	} else {
-		msg_it->state = STATE_DONE;
-	}
-
-	return CTF_MSG_ITER_STATUS_OK;
-}
-
 static inline
 enum ctf_msg_iter_status handle_state(struct ctf_msg_iter *msg_it)
 {
@@ -1752,9 +1707,6 @@ enum ctf_msg_iter_status handle_state(struct ctf_msg_iter *msg_it)
 		break;
 	case STATE_AFTER_STREAM_PACKET_CONTEXT:
 		status = after_packet_context_state(msg_it);
-		break;
-	case STATE_CHECK_EMIT_MSG_STREAM_BEGINNING:
-		status = check_emit_msg_stream_beginning_state(msg_it);
 		break;
 	case STATE_EMIT_MSG_STREAM_BEGINNING:
 		msg_it->state = STATE_CHECK_EMIT_MSG_DISCARDED_EVENTS;
@@ -1814,10 +1766,7 @@ enum ctf_msg_iter_status handle_state(struct ctf_msg_iter *msg_it)
 		msg_it->state = STATE_SKIP_PACKET_PADDING;
 		break;
 	case STATE_EMIT_MSG_PACKET_END_SINGLE:
-		msg_it->state = STATE_CHECK_EMIT_MSG_STREAM_END;
-		break;
-	case STATE_CHECK_EMIT_MSG_STREAM_END:
-		status = check_emit_msg_stream_end(msg_it);
+		msg_it->state = STATE_EMIT_MSG_STREAM_END;
 		break;
 	case STATE_EMIT_QUEUED_MSG_PACKET_END:
 		msg_it->state = STATE_EMIT_MSG_PACKET_END_SINGLE;
@@ -3043,6 +2992,12 @@ enum ctf_msg_iter_status ctf_msg_iter_get_next_message(
 
 			goto end;
 		case STATE_EMIT_MSG_STREAM_BEGINNING:
+			BT_ASSERT(!msg_it->stream);
+			status = set_current_stream(msg_it);
+			if (status != CTF_MSG_ITER_STATUS_OK) {
+				goto end;
+			}
+
 			/* create_msg_stream_beginning() logs errors */
 			*message = create_msg_stream_beginning(msg_it);
 
@@ -3113,7 +3068,6 @@ enum ctf_msg_iter_status decode_until_state( struct ctf_msg_iter *msg_it,
 		case STATE_DSCOPE_STREAM_PACKET_CONTEXT_BEGIN:
 		case STATE_DSCOPE_STREAM_PACKET_CONTEXT_CONTINUE:
 		case STATE_AFTER_STREAM_PACKET_CONTEXT:
-		case STATE_CHECK_EMIT_MSG_STREAM_BEGINNING:
 		case STATE_EMIT_MSG_STREAM_BEGINNING:
 		case STATE_CHECK_EMIT_MSG_DISCARDED_EVENTS:
 		case STATE_EMIT_MSG_DISCARDED_EVENTS:
@@ -3135,7 +3089,6 @@ enum ctf_msg_iter_status decode_until_state( struct ctf_msg_iter *msg_it,
 		case STATE_EMIT_MSG_PACKET_END_MULTI:
 		case STATE_EMIT_MSG_PACKET_END_SINGLE:
 		case STATE_EMIT_QUEUED_MSG_PACKET_END:
-		case STATE_CHECK_EMIT_MSG_STREAM_END:
 		case STATE_EMIT_MSG_STREAM_END:
 			break;
 		case STATE_DONE:
@@ -3263,20 +3216,6 @@ enum ctf_msg_iter_status ctf_msg_iter_get_packet_properties(
 
 end:
 	return status;
-}
-
-BT_HIDDEN
-void ctf_msg_iter_set_emit_stream_beginning_message(struct ctf_msg_iter *msg_it,
-		bool val)
-{
-	msg_it->emit_stream_begin_msg = val;
-}
-
-BT_HIDDEN
-void ctf_msg_iter_set_emit_stream_end_message(struct ctf_msg_iter *msg_it,
-		bool val)
-{
-	msg_it->emit_stream_end_msg = val;
 }
 
 BT_HIDDEN
