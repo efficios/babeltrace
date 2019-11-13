@@ -104,9 +104,18 @@ void finalize_component(struct bt_component *comp)
 	}
 
 	if (method) {
+		const struct bt_error *saved_error;
+
+		saved_error = bt_current_thread_take_error();
+
 		BT_LIB_LOGI("Calling user's component finalization method: "
 			"%![comp-]+c", comp);
 		method(comp);
+		BT_ASSERT_POST_NO_ERROR();
+
+		if (saved_error) {
+			BT_CURRENT_THREAD_MOVE_ERROR_AND_RESET(saved_error);
+		}
 	}
 }
 
