@@ -42,14 +42,6 @@ extern bt_stream *bt_packet_borrow_stream(bt_packet *packet);
 extern
 bt_field *bt_packet_borrow_context_field(bt_packet *packet);
 
-typedef enum bt_packet_move_context_field_status {
-	BT_PACKET_MOVE_CONTEXT_FIELD_STATUS_OK	= __BT_FUNC_STATUS_OK,
-} bt_packet_move_context_field_status;
-
-extern
-bt_packet_move_context_field_status bt_packet_move_context_field(
-		bt_packet *packet, bt_packet_context_field *context);
-
 #ifdef __cplusplus
 }
 #endif

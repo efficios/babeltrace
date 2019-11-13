@@ -121,8 +121,6 @@ typedef struct bt_message bt_message;
 typedef struct bt_message_iterator bt_message_iterator;
 typedef struct bt_object bt_object;
 typedef struct bt_packet bt_packet;
-typedef struct bt_packet_context_field bt_packet_context_field;
-typedef struct bt_packet_header_field bt_packet_header_field;
 typedef struct bt_plugin bt_plugin;
 typedef struct bt_plugin_set bt_plugin_set;
 typedef struct bt_plugin_so_shared_lib_handle bt_plugin_so_shared_lib_handle;
