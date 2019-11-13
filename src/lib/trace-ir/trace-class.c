@@ -80,6 +80,8 @@ void destroy_trace_class(struct bt_object *obj)
 	 */
 	if (tc->destruction_listeners) {
 		uint64_t i;
+		const struct bt_error *saved_error;
+
 		BT_LIB_LOGD("Calling trace class destruction listener(s): %!+T", tc);
 
 		/*
@@ -93,6 +95,8 @@ void destroy_trace_class(struct bt_object *obj)
 		* would be called again.
 		*/
 		tc->base.ref_count++;
+
+		saved_error = bt_current_thread_take_error();
 
 		/* Call all the trace class destruction listeners */
 		for (i = 0; i < tc->destruction_listeners->len; i++) {
@@ -113,6 +117,10 @@ void destroy_trace_class(struct bt_object *obj)
 		}
 		g_array_free(tc->destruction_listeners, TRUE);
 		tc->destruction_listeners = NULL;
+
+		if (saved_error) {
+			BT_CURRENT_THREAD_MOVE_ERROR_AND_RESET(saved_error);
+		}
 	}
 
 	if (tc->stream_classes) {

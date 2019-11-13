@@ -226,9 +226,17 @@ void bt_self_component_port_input_message_iterator_try_finalize(
 	}
 
 	if (method) {
+		const bt_error *saved_error;
+
+		saved_error = bt_current_thread_take_error();
+
 		BT_LIB_LOGD("Calling user's finalization method: %!+i",
 			iterator);
 		method(iterator);
+
+		if (saved_error) {
+			BT_CURRENT_THREAD_MOVE_ERROR_AND_RESET(saved_error);
+		}
 	}
 
 	/* Detach upstream message iterators */
