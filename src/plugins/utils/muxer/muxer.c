@@ -382,8 +382,7 @@ bt_component_class_message_iterator_next_method_status muxer_upstream_msg_iter_n
 		struct muxer_upstream_msg_iter *muxer_upstream_msg_iter,
 		bool *is_ended)
 {
-	struct muxer_comp *muxer_comp =
-		muxer_upstream_msg_iter->muxer_comp;
+	struct muxer_comp *muxer_comp = muxer_upstream_msg_iter->muxer_comp;
 	bt_component_class_message_iterator_next_method_status status;
 	bt_message_iterator_next_status input_port_iter_status;
 	bt_message_array_const msgs;
@@ -438,10 +437,19 @@ bt_component_class_message_iterator_next_method_status muxer_upstream_msg_iter_n
 		*is_ended = true;
 		status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_OK;
 		break;
+	case BT_MESSAGE_ITERATOR_NEXT_STATUS_ERROR:
+	case BT_MESSAGE_ITERATOR_NEXT_STATUS_MEMORY_ERROR:
+		/* Error status code */
+		BT_COMP_LOGE_APPEND_CAUSE(muxer_comp->self_comp,
+			"Upstream iterator's next method returned an error: status=%s",
+			bt_common_func_status_string(input_port_iter_status));
+		status = (int) input_port_iter_status;
+		break;
 	default:
-		/* Error or unsupported status code */
-		BT_COMP_LOGE("Error or unsupported status code: "
-			"status-code=%d", input_port_iter_status);
+		/* Unsupported status code */
+		BT_COMP_LOGE_APPEND_CAUSE(muxer_comp->self_comp,
+			"Unsupported status code: status=%s",
+			bt_common_func_status_string(input_port_iter_status));
 		status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_ERROR;
 		break;
 	}
@@ -917,10 +925,8 @@ validate_muxer_upstream_msg_iter(
 	struct muxer_upstream_msg_iter *muxer_upstream_msg_iter,
 	bool *is_ended)
 {
-	struct muxer_comp *muxer_comp =
-		muxer_upstream_msg_iter->muxer_comp;
-	bt_component_class_message_iterator_next_method_status status =
-		BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_OK;
+	struct muxer_comp *muxer_comp = muxer_upstream_msg_iter->muxer_comp;
+	bt_component_class_message_iterator_next_method_status status;
 
 	BT_COMP_LOGD("Validating muxer's upstream message iterator wrapper: "
 		"muxer-upstream-msg-iter-wrap-addr=%p",
@@ -932,6 +938,7 @@ validate_muxer_upstream_msg_iter(
 			"queue-len=%u, upstream-msg-iter-addr=%p",
 			muxer_upstream_msg_iter->msgs->length,
 			muxer_upstream_msg_iter->msg_iter);
+		status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_OK;
 		goto end;
 	}
 
@@ -949,8 +956,7 @@ validate_muxer_upstream_msg_iters(
 		struct muxer_msg_iter *muxer_msg_iter)
 {
 	struct muxer_comp *muxer_comp = muxer_msg_iter->muxer_comp;
-	bt_component_class_message_iterator_next_method_status status =
-		BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_OK;
+	bt_component_class_message_iterator_next_method_status status;
 	size_t i;
 
 	BT_COMP_LOGD("Validating muxer's upstream message iterator wrappers: "
@@ -968,7 +974,8 @@ validate_muxer_upstream_msg_iters(
 			muxer_upstream_msg_iter, &is_ended);
 		if (status != BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_OK) {
 			if (status < 0) {
-				BT_COMP_LOGE("Cannot validate muxer's upstream message iterator wrapper: "
+				BT_COMP_LOGE_APPEND_CAUSE(muxer_comp->self_comp,
+					"Cannot validate muxer's upstream message iterator wrapper: "
 					"muxer-msg-iter-addr=%p, "
 					"muxer-upstream-msg-iter-wrap-addr=%p",
 					muxer_msg_iter,
@@ -1009,6 +1016,8 @@ validate_muxer_upstream_msg_iters(
 		}
 	}
 
+	status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_OK;
+
 end:
 	return status;
 }
@@ -1040,7 +1049,8 @@ bt_component_class_message_iterator_next_method_status muxer_msg_iter_do_next_on
 			&next_return_ts);
 	if (status < 0 || status == BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_END) {
 		if (status < 0) {
-			BT_COMP_LOGE("Cannot find the youngest upstream message iterator wrapper: "
+			BT_COMP_LOGE_APPEND_CAUSE(muxer_comp->self_comp,
+				"Cannot find the youngest upstream message iterator wrapper: "
 				"status=%s",
 				bt_common_func_status_string(status));
 		} else {
@@ -1053,7 +1063,8 @@ bt_component_class_message_iterator_next_method_status muxer_msg_iter_do_next_on
 	}
 
 	if (next_return_ts < muxer_msg_iter->last_returned_ts_ns) {
-		BT_COMP_LOGE("Youngest upstream message iterator wrapper's timestamp is less than muxer's message iterator's last returned timestamp: "
+		BT_COMP_LOGE_APPEND_CAUSE(muxer_comp->self_comp,
+			"Youngest upstream message iterator wrapper's timestamp is less than muxer's message iterator's last returned timestamp: "
 			"muxer-msg-iter-addr=%p, ts=%" PRId64 ", "
 			"last-returned-ts=%" PRId64,
 			muxer_msg_iter, next_return_ts,
