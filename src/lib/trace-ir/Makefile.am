@@ -20,7 +20,6 @@ libtrace_ir_la_SOURCES = \
 	field-wrapper.c \
 	field-wrapper.h \
 	packet.c \
-	packet-context-field.c \
 	packet.h \
 	resolve-field-path.c \
 	resolve-field-path.h \

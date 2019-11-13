@@ -52,7 +52,6 @@ babeltrace2traceirinclude_HEADERS = \
 	babeltrace2/trace-ir/field-const.h \
 	babeltrace2/trace-ir/field.h \
 	babeltrace2/trace-ir/packet-const.h \
-	babeltrace2/trace-ir/packet-context-field.h \
 	babeltrace2/trace-ir/packet.h \
 	babeltrace2/trace-ir/stream-class-const.h \
 	babeltrace2/trace-ir/stream-class.h \

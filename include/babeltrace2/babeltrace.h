@@ -72,7 +72,6 @@
 #include <babeltrace2/trace-ir/field-path-const.h>
 #include <babeltrace2/trace-ir/field.h>
 #include <babeltrace2/trace-ir/packet-const.h>
-#include <babeltrace2/trace-ir/packet-context-field.h>
 #include <babeltrace2/trace-ir/packet.h>
 #include <babeltrace2/trace-ir/stream-class-const.h>
 #include <babeltrace2/trace-ir/stream-class.h>
