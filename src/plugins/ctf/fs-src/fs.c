@@ -560,12 +560,7 @@ void ctf_fs_ds_file_group_destroy(struct ctf_fs_ds_file_group *ds_file_group)
 		g_ptr_array_free(ds_file_group->ds_file_infos, TRUE);
 	}
 
-	if (ds_file_group->index) {
-		if (ds_file_group->index->entries) {
-			g_ptr_array_free(ds_file_group->index->entries, TRUE);
-		}
-		g_free(ds_file_group->index);
-	}
+	ctf_fs_ds_index_destroy(ds_file_group->index);
 
 	bt_stream_put_ref(ds_file_group->stream);
 	g_free(ds_file_group);
