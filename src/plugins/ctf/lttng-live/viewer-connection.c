@@ -412,7 +412,7 @@ end:
 
 static
 enum lttng_live_viewer_status lttng_live_connect_viewer(
-	struct live_viewer_connection *viewer_connection)
+		struct live_viewer_connection *viewer_connection)
 {
 	struct hostent *host;
 	struct sockaddr_in server_addr;
@@ -1057,7 +1057,7 @@ end:
 }
 
 BT_HIDDEN
-enum lttng_live_viewer_status lttng_live_attach_session(
+enum lttng_live_viewer_status lttng_live_session_attach(
 		struct lttng_live_session *session,
 		bt_self_message_iterator *self_msg_iter)
 {
@@ -1159,7 +1159,7 @@ end:
 }
 
 BT_HIDDEN
-enum lttng_live_viewer_status lttng_live_detach_session(
+enum lttng_live_viewer_status lttng_live_session_detach(
 		struct lttng_live_session *session)
 {
 	struct lttng_viewer_cmd cmd;
@@ -1375,6 +1375,19 @@ void lttng_index_to_packet_index(struct lttng_viewer_index *lindex,
 	pindex->ts_cycles.timestamp_begin = be64toh(lindex->timestamp_begin);
 	pindex->ts_cycles.timestamp_end = be64toh(lindex->timestamp_end);
 	pindex->events_discarded = be64toh(lindex->events_discarded);
+}
+
+static
+void lttng_live_need_new_streams(struct lttng_live_msg_iter *lttng_live_msg_iter)
+{
+	uint64_t session_idx;
+
+	for (session_idx = 0; session_idx < lttng_live_msg_iter->sessions->len;
+			session_idx++) {
+		struct lttng_live_session *session =
+			g_ptr_array_index(lttng_live_msg_iter->sessions, session_idx);
+		session->new_streams_needed = true;
+	}
 }
 
 BT_HIDDEN
@@ -1633,7 +1646,7 @@ end:
  * Request new streams for a session.
  */
 BT_HIDDEN
-enum lttng_live_iterator_status lttng_live_get_new_streams(
+enum lttng_live_iterator_status lttng_live_session_get_new_streams(
 		struct lttng_live_session *session,
 		bt_self_message_iterator *self_msg_iter)
 {

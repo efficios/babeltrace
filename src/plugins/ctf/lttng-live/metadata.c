@@ -350,7 +350,8 @@ int lttng_live_metadata_create_stream(struct lttng_live_session *session,
 			"Failed to create CTF metadata decoder");
 		goto error;
 	}
-	trace = lttng_live_borrow_trace(session, ctf_trace_id);
+	trace = lttng_live_session_borrow_or_create_trace_by_id(session,
+		ctf_trace_id);
 	if (!trace) {
 		BT_COMP_LOGE_APPEND_CAUSE(self_comp,
 			"Failed to borrow trace");

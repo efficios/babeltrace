@@ -306,19 +306,19 @@ bt_component_class_message_iterator_initialize_method_status lttng_live_msg_iter
 
 void lttng_live_msg_iter_finalize(bt_self_message_iterator *it);
 
-enum lttng_live_viewer_status lttng_live_create_viewer_session(
-		struct lttng_live_msg_iter *lttng_live_msg_iter);
-
-enum lttng_live_viewer_status lttng_live_attach_session(
+enum lttng_live_viewer_status lttng_live_session_attach(
 		struct lttng_live_session *session,
 		bt_self_message_iterator *self_msg_iter);
 
-enum lttng_live_viewer_status lttng_live_detach_session(
+enum lttng_live_viewer_status lttng_live_session_detach(
 		struct lttng_live_session *session);
 
-enum lttng_live_iterator_status lttng_live_get_new_streams(
+enum lttng_live_iterator_status lttng_live_session_get_new_streams(
 		struct lttng_live_session *session,
 		bt_self_message_iterator *self_msg_iter);
+
+struct lttng_live_trace *lttng_live_session_borrow_or_create_trace_by_id(
+		struct lttng_live_session *session, uint64_t trace_id);
 
 int lttng_live_add_session(struct lttng_live_msg_iter *lttng_live_msg_iter,
 		uint64_t session_id,
@@ -344,14 +344,6 @@ enum ctf_msg_iter_medium_status lttng_live_get_stream_bytes(
 		struct lttng_live_msg_iter *lttng_live_msg_iter,
 		struct lttng_live_stream_iterator *stream, uint8_t *buf,
 		uint64_t offset, uint64_t req_len, uint64_t *recv_len);
-void lttng_live_add_stream_iterator(struct lttng_live_msg_iter *lttng_live_msg_iter,
-		struct lttng_live_stream_iterator *stream_iter);
-void lttng_live_remove_stream_iterator(struct lttng_live_msg_iter *lttng_live_msg_iter,
-		struct lttng_live_stream_iterator *stream_iter);
-
-struct lttng_live_trace *lttng_live_borrow_trace(
-		struct lttng_live_session *session, uint64_t trace_id);
-void lttng_live_need_new_streams(struct lttng_live_msg_iter *lttng_live_msg_iter);
 
 bool lttng_live_graph_is_canceled(struct lttng_live_msg_iter *msg_iter);
 
