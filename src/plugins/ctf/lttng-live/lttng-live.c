@@ -133,7 +133,7 @@ end:
 }
 
 static
-struct lttng_live_trace *lttng_live_find_trace(struct lttng_live_session *session,
+struct lttng_live_trace *lttng_live_session_borrow_trace_by_id(struct lttng_live_session *session,
 		uint64_t trace_id)
 {
 	uint64_t trace_idx;
@@ -208,12 +208,12 @@ end:
 }
 
 BT_HIDDEN
-struct lttng_live_trace *lttng_live_borrow_trace(
+struct lttng_live_trace *lttng_live_session_borrow_or_create_trace_by_id(
 		struct lttng_live_session *session, uint64_t trace_id)
 {
 	struct lttng_live_trace *trace;
 
-	trace = lttng_live_find_trace(session, trace_id);
+	trace = lttng_live_session_borrow_trace_by_id(session, trace_id);
 	if (trace) {
 		goto end;
 	}
@@ -285,7 +285,7 @@ void lttng_live_destroy_session(struct lttng_live_session *session)
 		"session-id=%"PRIu64", session-name=\"%s\"",
 		session->id, session->session_name->str);
 	if (session->id != -1ULL) {
-		if (lttng_live_detach_session(session)) {
+		if (lttng_live_session_detach(session)) {
 			if (!lttng_live_graph_is_canceled(
 					session->lttng_live_msg_iter)) {
 				/* Old relayd cannot detach sessions. */
@@ -460,7 +460,7 @@ enum lttng_live_iterator_status lttng_live_get_session(
 
 	if (!session->attached) {
 		enum lttng_live_viewer_status attach_status =
-			lttng_live_attach_session(session,
+			lttng_live_session_attach(session,
 				lttng_live_msg_iter->self_msg_iter);
 		if (attach_status != LTTNG_LIVE_VIEWER_STATUS_OK) {
 			if (lttng_live_graph_is_canceled(lttng_live_msg_iter)) {
@@ -481,7 +481,7 @@ enum lttng_live_iterator_status lttng_live_get_session(
 		}
 	}
 
-	status = lttng_live_get_new_streams(session,
+	status = lttng_live_session_get_new_streams(session,
 		lttng_live_msg_iter->self_msg_iter);
 	if (status != LTTNG_LIVE_ITERATOR_STATUS_OK &&
 			status != LTTNG_LIVE_ITERATOR_STATUS_END) {
@@ -515,19 +515,6 @@ enum lttng_live_iterator_status lttng_live_get_session(
 
 end:
 	return status;
-}
-
-BT_HIDDEN
-void lttng_live_need_new_streams(struct lttng_live_msg_iter *lttng_live_msg_iter)
-{
-	uint64_t session_idx;
-
-	for (session_idx = 0; session_idx < lttng_live_msg_iter->sessions->len;
-			session_idx++) {
-		struct lttng_live_session *session =
-			g_ptr_array_index(lttng_live_msg_iter->sessions, session_idx);
-		session->new_streams_needed = true;
-	}
 }
 
 static

@@ -230,7 +230,7 @@ struct lttng_live_stream_iterator *lttng_live_stream_iterator_create(
 
 	stream_iter->log_level = log_level;
 	stream_iter->self_comp = self_comp;
-	trace = lttng_live_borrow_trace(session, ctf_trace_id);
+	trace = lttng_live_session_borrow_or_create_trace_by_id(session, ctf_trace_id);
 	if (!trace) {
 		BT_COMP_LOGE_APPEND_CAUSE(self_comp,
 			"Failed to borrow CTF trace.");
