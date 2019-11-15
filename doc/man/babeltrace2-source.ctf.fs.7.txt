@@ -67,6 +67,14 @@ More than one physical CTF data stream file can support a single logical
 CTF data stream (LTTng's trace file rotation and tracing session
 rotation can cause this).
 
+If two or more data stream files contain the same packets, a
+compcls:source.ctf.fs message iterator reads each of  them only once so
+that it never emits duplicated messages. This feature makes it possible,
+for example, to open overlapping
+https://lttng.org/docs/#doc-taking-a-snapshot[LTTng snapshots] with a
+single compcls:source.ctf.fs component and silently discard the
+duplicated packets.
+
 
 === Trace quirks
 
