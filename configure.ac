@@ -1,5 +1,5 @@
-dnl Process this file with autoconf to produce a configure script.
-dnl
+AC_PREREQ([2.50])
+AC_INIT([babeltrace],[2.0.0-rc3],[jeremie.galarneau@efficios.com],[],[https://diamon.org/babeltrace])
 dnl Copyright (c) 2017 EfficiOS, Inc.
 dnl
 dnl Permission is hereby granted, free of charge, to any person obtaining a copy
