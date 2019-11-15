@@ -97,6 +97,7 @@ endif
 TESTS_PLUGINS = \
 	plugins/src.ctf.fs/fail/test_fail \
 	plugins/src.ctf.fs/succeed/test_succeed \
+	plugins/src.ctf.fs/test_deterministic_ordering \
 	plugins/sink.ctf.fs/succeed/test_succeed \
 	plugins/sink.text.details/succeed/test_succeed
 
