@@ -2045,6 +2045,15 @@ gint compare_ds_file_groups_by_first_path(gconstpointer a, gconstpointer b)
 		first_ds_file_info_b->path->str);
 }
 
+static
+gint compare_strings(gconstpointer p_a, gconstpointer p_b)
+{
+	const char *a = *((const char **) p_a);
+	const char *b = *((const char **) p_b);
+
+	return strcmp(a, b);
+}
+
 int ctf_fs_component_create_ctf_fs_trace(
 		struct ctf_fs_component *ctf_fs,
 		const bt_value *paths_value,
@@ -2055,6 +2064,7 @@ int ctf_fs_component_create_ctf_fs_trace(
 	int ret = 0;
 	uint64_t i;
 	bt_logging_level log_level = ctf_fs->log_level;
+	GPtrArray *paths = NULL;
 	GPtrArray *traces;
 	const char *trace_name;
 
@@ -2068,15 +2078,43 @@ int ctf_fs_component_create_ctf_fs_trace(
 		goto error;
 	}
 
+	paths = g_ptr_array_new_with_free_func(g_free);
+	if (!paths) {
+		BT_COMP_OR_COMP_CLASS_LOGE_APPEND_CAUSE(self_comp, self_comp_class,
+			"Failed to allocate a GPtrArray.");
+		goto error;
+	}
+
 	trace_name = trace_name_value ? bt_value_string_get(trace_name_value) : NULL;
 
-	/* Start by creating a separate ctf_fs_trace object for each path. */
+	/*
+	 * Create a sorted array of the paths, to make the execution of this
+	 * component deterministic.
+	 */
 	for (i = 0; i < bt_value_array_get_length(paths_value); i++) {
-		const bt_value *path_value = bt_value_array_borrow_element_by_index_const(paths_value, i);
+		const bt_value *path_value =
+			bt_value_array_borrow_element_by_index_const(paths_value, i);
 		const char *input = bt_value_string_get(path_value);
+		gchar *input_copy;
+
+		input_copy = g_strdup(input);
+		if (!input_copy) {
+			BT_COMP_OR_COMP_CLASS_LOGE_APPEND_CAUSE(self_comp, self_comp_class,
+				"Failed to copy a string.");
+			goto error;
+		}
+
+		g_ptr_array_add(paths, input_copy);
+	}
+
+	g_ptr_array_sort(paths, compare_strings);
+
+	/* Create a separate ctf_fs_trace object for each path. */
+	for (i = 0; i < paths->len; i++) {
+		const char *path = g_ptr_array_index(paths, i);
 
 		ret = ctf_fs_component_create_ctf_fs_trace_one_path(ctf_fs,
-			input, trace_name, traces, self_comp, self_comp_class);
+			path, trace_name, traces, self_comp, self_comp_class);
 		if (ret) {
 			goto end;
 		}
@@ -2160,7 +2198,14 @@ error:
 	ret = -1;
 
 end:
-	g_ptr_array_free(traces, TRUE);
+	if (traces) {
+		g_ptr_array_free(traces, TRUE);
+	}
+
+	if (paths) {
+		g_ptr_array_free(paths, TRUE);
+	}
+
 	return ret;
 }
 
