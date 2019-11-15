@@ -764,6 +764,8 @@ int add_ds_file_to_ds_file_group(struct ctf_fs_trace *ctf_fs_trace,
 		goto error;
 	}
 
+	ctf_msg_iter_set_dry_run(msg_iter, true);
+
 	ret = ctf_msg_iter_get_packet_properties(msg_iter, &props);
 	if (ret) {
 		BT_COMP_OR_COMP_CLASS_LOGE_APPEND_CAUSE(self_comp, self_comp_class,
