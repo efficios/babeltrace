@@ -1,5 +1,5 @@
-AC_PREREQ([2.50])
-AC_INIT([babeltrace],[2.0.0-rc3],[jeremie.galarneau@efficios.com],[],[https://diamon.org/babeltrace])
+dnl Process this file with autoconf to produce a configure script.
+dnl
 dnl Copyright (c) 2017 EfficiOS, Inc.
 dnl
 dnl Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -29,7 +29,7 @@ AC_PREREQ([2.50])
 m4_define([bt_version_major], [2])
 m4_define([bt_version_minor], [0])
 m4_define([bt_version_patch], [0])
-m4_define([bt_version_extra], [-rc2])
+m4_define([bt_version_extra], [-rc4])
 m4_define([bt_version], bt_version_major[.]bt_version_minor[.]bt_version_patch[]bt_version_extra)
 
 AC_INIT([babeltrace], bt_version, [jeremie dot galarneau at efficios dot com], [], [https://efficios.com/babeltrace/])

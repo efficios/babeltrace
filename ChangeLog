@@ -1,3 +1,6 @@
+2019-11-15 babeltrace 2.0.0-rc4
+	* Update version string to match the rc4 tag
+
 2019-11-15 babeltrace 2.0.0-rc3 (National Clean Out Your Refrigerator Day)
 	* babeltrace2-source.ctf.fs(7): document the overlapping snapshot feature
 	* Revert "Notes de relâche du troisième candidat de relâche"
