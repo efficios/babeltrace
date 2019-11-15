@@ -1,3 +1,65 @@
+2019-11-15 babeltrace 2.0.0-rc3 (National Clean Out Your Refrigerator Day)
+	* babeltrace2-source.ctf.fs(7): document the overlapping snapshot feature
+	* Revert "Notes de relâche du troisième candidat de relâche"
+	* Notes de relâche du troisième candidat de relâche
+	* ctf: remove ctf_msg_iter_set_emit_stream_{beginning,end}_message functions
+	* src.ctf.fs: use ctf_fs_ds_index_destroy to free index
+	* src.ctf.fs: add and use medops to iterate on a ds_file_group using the index
+	* tests: make test_trimmer use bt_cli
+	* src.ctf.fs: factor out "ds_file_mmap" from "ds_file_mmap_next"
+	* src.ctf.fs: remove ctf_fs_ds_file::end_reached field
+	* ctf: assert that request_sz in medium ops request_bytes is greater than 0
+	* ctf: make ctf_msg_iter_seek assert that the seek callback is not NULL
+	* ctf: assert that msg iter and medium seek offset is valid
+	* src.ctf.fs: remove ctf_msg_iter_seek_whence parameter to medium ops seek
+	* src.ctf.fs: little status code cleanup
+	* src.ctf.fs: don't call ds_file_munmap on failure in ds_file_mmap_next
+	* src.ctf.fs: make ds_file_munmap assert that ds_file is not NULL
+	* src.ctf.fs: rename some ctf_fs_ds_file fields
+	* src.ctf.fs: remove ctf_fs_ds_file_next
+	* ctf: const-ify a few bt_message parameters
+	* ctf: remove ctf_fs_ds_file::msg_iter field
+	* ctf: de-duplicate index entries
+	* ctf: read packet sequence number from index
+	* Save and restore error in ctf_fs_iterator_next, muxer_msg_iter_do_next
+	* muxer: append causes on some _next iterator method code paths
+	* lib: save and restore current thread error when calling destruction listeners and finalize methods
+	* Cleanup: src.ctf.lttng-live: move function declarations around
+	* src.ctf.lttng-live: replace usage of `calloc()` by `g_new0()`
+	* Fix: src.ctf.lttng-live: `fwrite()` does not set `errno`
+	* src.ctf.lttng-live: don't try to detach after socket error
+	* Fix: src.ctf.lttng-live: decode metadata even on _STATUS_CLOSED
+	* Fix: src.ctf.lttng-live: removing trace when not all streams are done
+	* src.ctf.lttng-live: Add logging statements across the component class
+	* Cleanup: src.ctf.lttng-live: rename live_iterator_status printing function
+	* Cleanup: src.ctf.lttng-live: add `lttng_live_msg_iter_create()`
+	* src.ctf.lttng-live: make component class handle interruptions
+	* Fix: src.ctf.lttng-live: checking `errno` value on all errors
+	* Cleanup: comp-logging.h: template `BT_COMP_OR_COMP_CLASS_LOG*` macros
+	* lib: make bt_value_map_foreach_entry_{const_}func() return a status code
+	* Emit dedicated bright terminal color codes if supported
+	* lib: add pre condition asserts to check current thread has no error
+	* lib: add post condition assertions for current thread error after user functions
+	* lib: clear error in clock_snapshots_are_monotonic_one
+	* tests: clear error in test_simple_sink
+	* lib: append error in simple_sink_consume only if error status
+	* src.ctf.fs: rename pc_msg_iter parameter to self_msg_iter
+	* Cleanup: cli: move LOGE statements closer to the source
+	* cli: exit with status 2 when interrupted by SIGINT
+	* Ignore -Wcast-function-type warning
+	* Cleanup: src.ctf.lttng-live: remove redundant _APPEND_CAUSE()
+	* cli: set `bt_config::command_name` field for all commands
+	* src.ctf.fs: make log macros of data-stream-file.c more generic
+	* ctf: check version of LTTng trace index
+	* ctf: save self_msg_iter in ctf_msg_iter when creating it
+	* ctf: rename bt_msg_iter to ctf_msg_iter
+	* ctf: rename bt_msg_iter::msg_iter to self_msg_iter
+	* Rename pc_msg_iter fields to self_msg_iter
+	* bt_common_abort(): optionally execute a custom command before aborting
+	* Add bt_common_abort() and use it instead of abort() directly
+	* .gitignore: add missing `/tests/param-validation/test_param_validation`
+	* ctf: fix typo
+
 2019-11-01 babeltrace 2.0.0-rc2 (National Vinegar Day)
 	* Cleanup: src.ctf.lttng-live: add missing `#include <stdint.h>`
 	* Cleanup: src.ctf.lttng-live: remove usage of `bt_object`
