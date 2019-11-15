@@ -99,7 +99,7 @@ void ini_append_error_expecting(struct ini_parsing_state *state,
 		g_string_append_c(state->ini_error, ' ');
 	}
 
-	g_string_append_printf(state->ini_error, "^\n\n");
+	g_string_append_c(state->ini_error, '^');
 }
 
 static

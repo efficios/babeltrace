@@ -2838,7 +2838,6 @@ int main(int argc, const char **argv)
 		break;
 	case BT_CMD_STATUS_ERROR:
 		retcode = 1;
-		print_error_causes();
 		break;
 	case BT_CMD_STATUS_INTERRUPTED:
 		retcode = 2;
@@ -2849,6 +2848,10 @@ int main(int argc, const char **argv)
 	}
 
 end:
+	if (retcode == 1) {
+		print_error_causes();
+	}
+
 	BT_OBJECT_PUT_REF_AND_RESET(cfg);
 	fini_loaded_plugins();
 	bt_interrupter_put_ref(the_interrupter);

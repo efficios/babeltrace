@@ -24,7 +24,7 @@ fi
 # shellcheck source=../../utils/utils.sh
 SH_TAP=1 source "$UTILSSH"
 
-NUM_TESTS=11
+NUM_TESTS=15
 
 plan_tests $NUM_TESTS
 
@@ -92,6 +92,9 @@ expect_failure "ValueError: catastrophic failure" \
 expect_failure 'Cannot find component class: plugin-name="query", comp-cls-name="NonExistentSource", comp-cls-type=1' \
 	'src.query.NonExistentSource' 'the-object' '-p' 'a=2'
 
+# Wrong parameter syntax.
+expect_failure "Invalid format for --params option's argument:" \
+	'src.query.SourceWithQueryThatPrintsParams' 'please-fail' '-p' 'a=3,'
 
 rm -f "$stdout_expected_file"
 rm -f "$stdout_file"
