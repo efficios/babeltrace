@@ -157,9 +157,6 @@ struct ctf_msg_iter {
 		struct ctf_event_class *ec;
 	} meta;
 
-	/* Current packet context field wrapper (NULL if not created yet) */
-	bt_packet_context_field *packet_context_field;
-
 	/* Current packet (NULL if not created yet) */
 	bt_packet *packet;
 
@@ -177,6 +174,12 @@ struct ctf_msg_iter {
 	 * the next event message or the packet end message.
 	 */
 	bool emit_delayed_packet_beginning_msg;
+
+	/*
+	 * True if this is the first packet we are reading, and therefore if we
+	 * should emit a stream beginning message.
+	 */
+	bool emit_stream_beginning_message;
 
 	/* Database of current dynamic scopes */
 	struct {
@@ -686,11 +689,6 @@ void release_all_dscopes(struct ctf_msg_iter *msg_it)
 {
 	msg_it->dscopes.stream_packet_context = NULL;
 
-	if (msg_it->packet_context_field) {
-		bt_packet_context_field_release(msg_it->packet_context_field);
-		msg_it->packet_context_field = NULL;
-	}
-
 	release_event_dscopes(msg_it);
 }
 
@@ -1001,7 +999,21 @@ enum ctf_msg_iter_status after_packet_header_state(
 		goto end;
 	}
 
+	if (!msg_it->dry_run) {
+		status = set_current_stream(msg_it);
+		if (status != CTF_MSG_ITER_STATUS_OK) {
+			goto end;
+		}
+
+		status = set_current_packet(msg_it);
+		if (status != CTF_MSG_ITER_STATUS_OK) {
+			goto end;
+		}
+	}
+
 	msg_it->state = STATE_DSCOPE_STREAM_PACKET_CONTEXT_BEGIN;
+
+	status = CTF_MSG_ITER_STATUS_OK;
 
 end:
 	return status;
@@ -1027,31 +1039,11 @@ enum ctf_msg_iter_status read_packet_context_begin_state(
 		goto end;
 	}
 
-	BT_ASSERT(!msg_it->packet_context_field);
-
 	if (packet_context_fc->in_ir && !msg_it->dry_run) {
-		/*
-		 * Create free packet context field from stream class.
-		 * This field is going to be moved to the packet once we
-		 * create it. We cannot create the packet now because a
-		 * packet is created from a stream, and this API must be
-		 * able to return the packet context properties without
-		 * creating a stream
-		 * (ctf_msg_iter_get_packet_properties()).
-		 */
-		msg_it->packet_context_field =
-			bt_packet_context_field_create(
-				msg_it->meta.sc->ir_sc);
-		if (!msg_it->packet_context_field) {
-			BT_COMP_LOGE_APPEND_CAUSE(self_comp,
-				"Cannot create packet context field wrapper from stream class.");
-			status = CTF_MSG_ITER_STATUS_ERROR;
-			goto end;
-		}
-
+		BT_ASSERT(!msg_it->dscopes.stream_packet_context);
+		BT_ASSERT(msg_it->packet);
 		msg_it->dscopes.stream_packet_context =
-			bt_packet_context_field_borrow_field(
-				msg_it->packet_context_field);
+			bt_packet_borrow_context_field(msg_it->packet);
 		BT_ASSERT(msg_it->dscopes.stream_packet_context);
 	}
 
@@ -1143,15 +1135,10 @@ enum ctf_msg_iter_status after_packet_context_state(struct ctf_msg_iter *msg_it)
 		goto end;
 	}
 
-	if (msg_it->stream) {
-		/*
-		 * Stream exists, which means we already emitted at
-		 * least one packet beginning message, so the initial
-		 * stream beginning message was also emitted.
-		 */
-		msg_it->state = STATE_CHECK_EMIT_MSG_DISCARDED_EVENTS;
-	} else {
+	if (msg_it->emit_stream_beginning_message) {
 		msg_it->state = STATE_EMIT_MSG_STREAM_BEGINNING;
+	} else {
+		msg_it->state = STATE_CHECK_EMIT_MSG_DISCARDED_EVENTS;
 	}
 
 end:
@@ -1800,11 +1787,6 @@ void ctf_msg_iter_reset_for_next_stream_file(struct ctf_msg_iter *msg_it)
 	release_all_dscopes(msg_it);
 	msg_it->cur_dscope_field = NULL;
 
-	if (msg_it->packet_context_field) {
-		bt_packet_context_field_release(msg_it->packet_context_field);
-		msg_it->packet_context_field = NULL;
-	}
-
 	msg_it->buf.addr = NULL;
 	msg_it->buf.sz = 0;
 	msg_it->buf.at = 0;
@@ -1834,6 +1816,7 @@ void ctf_msg_iter_reset(struct ctf_msg_iter *msg_it)
 	msg_it->prev_packet_snapshots.packets = UINT64_C(-1);
 	msg_it->prev_packet_snapshots.beginning_clock = UINT64_C(-1);
 	msg_it->prev_packet_snapshots.end_clock = UINT64_C(-1);
+	msg_it->emit_stream_beginning_message = true;
 }
 
 static
@@ -2512,33 +2495,11 @@ bt_message *create_msg_packet_beginning(struct ctf_msg_iter *msg_it,
 		bool use_default_cs)
 {
 	bt_self_component *self_comp = msg_it->self_comp;
-	int ret;
 	bt_message *msg;
 	const bt_stream_class *sc = msg_it->meta.sc->ir_sc;
 
 	BT_ASSERT(msg_it->packet);
 	BT_ASSERT(sc);
-
-	if (msg_it->packet_context_field) {
-		ret = bt_packet_move_context_field(
-			msg_it->packet, msg_it->packet_context_field);
-		if (ret) {
-			msg = NULL;
-			goto end;
-		}
-
-		msg_it->packet_context_field = NULL;
-
-		/*
-		 * At this point msg_it->dscopes.stream_packet_context
-		 * has the same value as the packet context field within
-		 * msg_it->packet.
-		 */
-		BT_ASSERT(bt_packet_borrow_context_field(
-			msg_it->packet) ==
-			msg_it->dscopes.stream_packet_context);
-	}
-
 	BT_ASSERT(msg_it->self_msg_iter);
 
 	if (msg_it->meta.sc->packets_have_ts_begin) {
@@ -2954,11 +2915,6 @@ enum ctf_msg_iter_status ctf_msg_iter_get_next_message(
 
 			goto end;
 		case STATE_EMIT_MSG_PACKET_BEGINNING:
-			status = set_current_packet(msg_it);
-			if (status != CTF_MSG_ITER_STATUS_OK) {
-				goto end;
-			}
-
 			if (G_UNLIKELY(msg_it->meta.tc->quirks.barectf_event_before_packet)) {
 				msg_it->emit_delayed_packet_beginning_msg = true;
 				/*
@@ -2988,14 +2944,9 @@ enum ctf_msg_iter_status ctf_msg_iter_get_next_message(
 
 			goto end;
 		case STATE_EMIT_MSG_STREAM_BEGINNING:
-			BT_ASSERT(!msg_it->stream);
-			status = set_current_stream(msg_it);
-			if (status != CTF_MSG_ITER_STATUS_OK) {
-				goto end;
-			}
-
 			/* create_msg_stream_beginning() logs errors */
 			*message = create_msg_stream_beginning(msg_it);
+			msg_it->emit_stream_beginning_message = false;
 
 			if (!*message) {
 				status = CTF_MSG_ITER_STATUS_ERROR;
