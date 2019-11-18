@@ -133,9 +133,6 @@ struct ctf_msg_iter {
 	 */
 	bool dry_run;
 
-	/* True to set the stream */
-	bool set_stream;
-
 	/*
 	 * Current dynamic scope field pointer.
 	 *
@@ -2899,7 +2896,6 @@ enum ctf_msg_iter_status ctf_msg_iter_get_next_message(
 
 	BT_ASSERT_DBG(msg_it);
 	BT_ASSERT_DBG(message);
-	msg_it->set_stream = true;
 	BT_COMP_LOGD("Getting next message: msg-it-addr=%p", msg_it);
 
 	while (true) {
@@ -3036,7 +3032,6 @@ enum ctf_msg_iter_status decode_until_state( struct ctf_msg_iter *msg_it,
 	bt_self_component *self_comp = msg_it->self_comp;
 
 	BT_ASSERT_DBG(msg_it);
-	msg_it->set_stream = false;
 
 	do {
 		/*
