@@ -126,6 +126,7 @@ extern struct ctf_msg_iter_medium_ops ctf_fs_ds_file_medops;
  * The data pointer when using these medops must be a pointer to a ctf_fs_ds
  * group_medops_data structure.
  */
+BT_HIDDEN
 extern struct ctf_msg_iter_medium_ops ctf_fs_ds_group_medops;
 
 BT_HIDDEN
