@@ -61,6 +61,12 @@ BT_HIDDEN
 int bt_plugin_so_create_all_from_static(bool fail_on_load_error,
 		struct bt_plugin_set **plugin_set_out);
 
+/*
+ * This function would normally be BT_HIDDEN, but it is used by the Python
+ * plugin provider, which is conceptually part of libbabeltrace2, but
+ * implemented as a separate shared object, for modularity.  It is therefore
+ * exposed, but not part of the public ABI.
+ */
 void bt_plugin_so_on_add_component_class(struct bt_plugin *plugin,
 		struct bt_component_class *comp_class);
 
