@@ -40,8 +40,13 @@ struct ctf_scanner {
 	struct objstack *objstack;
 };
 
+BT_HIDDEN
 struct ctf_scanner *ctf_scanner_alloc(void);
+
+BT_HIDDEN
 void ctf_scanner_free(struct ctf_scanner *scanner);
+
+BT_HIDDEN
 int ctf_scanner_append_ast(struct ctf_scanner *scanner, FILE *input);
 
 static inline
