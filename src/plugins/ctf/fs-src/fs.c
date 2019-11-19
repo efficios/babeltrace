@@ -808,7 +808,7 @@ int add_ds_file_to_ds_file_group(struct ctf_fs_trace *ctf_fs_trace,
 
 	if (begin_ns == -1) {
 		/*
-		 * No beggining timestamp to sort the stream files
+		 * No beginning timestamp to sort the stream files
 		 * within a stream file group, so consider that this
 		 * file must be the only one within its group.
 		 */
