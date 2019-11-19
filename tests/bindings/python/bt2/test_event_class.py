@@ -99,6 +99,8 @@ class EventClassTestCase(unittest.TestCase):
         with self.assertRaises(TypeError):
             sc.create_event_class(id='lel')
 
+        self.assertEqual(len(sc), 0)
+
     def test_create_specific_context_field_class(self):
         fc = self._tc.create_structure_field_class()
         ec = self._stream_class.create_event_class(specific_context_field_class=fc)
@@ -117,6 +119,8 @@ class EventClassTestCase(unittest.TestCase):
     def test_create_invalid_specific_context_field_class(self):
         with self.assertRaises(TypeError):
             self._stream_class.create_event_class(specific_context_field_class='lel')
+
+        self.assertEqual(len(self._stream_class), 0)
 
     def test_create_payload_field_class(self):
         fc = self._tc.create_structure_field_class()
@@ -137,6 +141,8 @@ class EventClassTestCase(unittest.TestCase):
         with self.assertRaises(TypeError):
             self._stream_class.create_event_class(payload_field_class='lel')
 
+        self.assertEqual(len(self._stream_class), 0)
+
     def test_create_name(self):
         ec = self._stream_class.create_event_class(name='viande à chien')
         self.assertEqual(ec.name, 'viande à chien')
@@ -145,6 +151,8 @@ class EventClassTestCase(unittest.TestCase):
         with self.assertRaises(TypeError):
             self._stream_class.create_event_class(name=2)
 
+        self.assertEqual(len(self._stream_class), 0)
+
     def test_emf_uri(self):
         ec = self._stream_class.create_event_class(emf_uri='salut')
         self.assertEqual(ec.emf_uri, 'salut')
@@ -152,6 +160,8 @@ class EventClassTestCase(unittest.TestCase):
     def test_create_invalid_emf_uri(self):
         with self.assertRaises(TypeError):
             self._stream_class.create_event_class(emf_uri=23)
+
+        self.assertEqual(len(self._stream_class), 0)
 
     def test_create_log_level(self):
         ec = self._stream_class.create_event_class(
@@ -162,6 +172,8 @@ class EventClassTestCase(unittest.TestCase):
     def test_create_invalid_log_level(self):
         with self.assertRaises(ValueError):
             self._stream_class.create_event_class(log_level='zoom')
+
+        self.assertEqual(len(self._stream_class), 0)
 
     def test_create_user_attributes(self):
         ec = self._stream_class.create_event_class(user_attributes={'salut': 23})
@@ -176,9 +188,13 @@ class EventClassTestCase(unittest.TestCase):
         with self.assertRaises(TypeError):
             self._stream_class.create_event_class(user_attributes=object())
 
+        self.assertEqual(len(self._stream_class), 0)
+
     def test_create_invalid_user_attributes_value_type(self):
         with self.assertRaises(TypeError):
             self._stream_class.create_event_class(user_attributes=23)
+
+        self.assertEqual(len(self._stream_class), 0)
 
     def test_stream_class(self):
         ec = self._stream_class.create_event_class()
