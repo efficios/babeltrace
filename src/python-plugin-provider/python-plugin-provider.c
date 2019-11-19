@@ -49,7 +49,7 @@
 #define PYTHON_PLUGIN_FILE_EXT		".py"
 #define PYTHON_PLUGIN_FILE_EXT_LEN	(sizeof(PYTHON_PLUGIN_FILE_EXT) - 1)
 
-enum python_state {
+static enum python_state {
 	/* init_python() not called yet */
 	PYTHON_STATE_NOT_INITED,
 
