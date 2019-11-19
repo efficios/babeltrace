@@ -219,6 +219,16 @@ class _StreamClass(_StreamClassConst):
         specific_context_field_class=None,
         payload_field_class=None,
     ):
+        # Validate parameters before we create the object.
+        bt2_event_class._EventClass._validate_create_params(
+            name,
+            user_attributes,
+            log_level,
+            emf_uri,
+            specific_context_field_class,
+            payload_field_class,
+        )
+
         if self.assigns_automatic_event_class_id:
             if id is not None:
                 raise ValueError(

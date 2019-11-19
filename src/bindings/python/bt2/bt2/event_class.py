@@ -147,73 +147,94 @@ class _EventClass(_EventClassConst):
 
     def _user_attributes(self, user_attributes):
         value = bt2_value.create_value(user_attributes)
-        utils._check_type(value, bt2_value.MapValue)
         native_bt.event_class_set_user_attributes(self._ptr, value._ptr)
 
     _user_attributes = property(fset=_user_attributes)
 
     def _name(self, name):
-        utils._check_str(name)
         return native_bt.event_class_set_name(self._ptr, name)
 
     _name = property(fset=_name)
 
     def _log_level(self, log_level):
-        log_levels = (
-            EventClassLogLevel.EMERGENCY,
-            EventClassLogLevel.ALERT,
-            EventClassLogLevel.CRITICAL,
-            EventClassLogLevel.ERROR,
-            EventClassLogLevel.WARNING,
-            EventClassLogLevel.NOTICE,
-            EventClassLogLevel.INFO,
-            EventClassLogLevel.DEBUG_SYSTEM,
-            EventClassLogLevel.DEBUG_PROGRAM,
-            EventClassLogLevel.DEBUG_PROCESS,
-            EventClassLogLevel.DEBUG_MODULE,
-            EventClassLogLevel.DEBUG_UNIT,
-            EventClassLogLevel.DEBUG_FUNCTION,
-            EventClassLogLevel.DEBUG_LINE,
-            EventClassLogLevel.DEBUG,
-        )
-
-        if log_level not in log_levels:
-            raise ValueError("'{}' is not a valid log level".format(log_level))
-
         native_bt.event_class_set_log_level(self._ptr, log_level)
 
     _log_level = property(fset=_log_level)
 
     def _emf_uri(self, emf_uri):
-        utils._check_str(emf_uri)
         status = native_bt.event_class_set_emf_uri(self._ptr, emf_uri)
         utils._handle_func_status(status, "cannot set event class object's EMF URI")
 
     _emf_uri = property(fset=_emf_uri)
 
     def _specific_context_field_class(self, context_field_class):
-        if context_field_class is not None:
-            utils._check_type(context_field_class, bt2_field_class._StructureFieldClass)
-            status = native_bt.event_class_set_specific_context_field_class(
-                self._ptr, context_field_class._ptr
-            )
-            utils._handle_func_status(
-                status, "cannot set event class object's context field class"
-            )
+        status = native_bt.event_class_set_specific_context_field_class(
+            self._ptr, context_field_class._ptr
+        )
+        utils._handle_func_status(
+            status, "cannot set event class object's context field class"
+        )
 
     _specific_context_field_class = property(fset=_specific_context_field_class)
 
     def _payload_field_class(self, payload_field_class):
-        if payload_field_class is not None:
-            utils._check_type(payload_field_class, bt2_field_class._StructureFieldClass)
-            status = native_bt.event_class_set_payload_field_class(
-                self._ptr, payload_field_class._ptr
-            )
-            utils._handle_func_status(
-                status, "cannot set event class object's payload field class"
-            )
+        status = native_bt.event_class_set_payload_field_class(
+            self._ptr, payload_field_class._ptr
+        )
+        utils._handle_func_status(
+            status, "cannot set event class object's payload field class"
+        )
 
     _payload_field_class = property(fset=_payload_field_class)
+
+    @staticmethod
+    def _validate_create_params(
+        name,
+        user_attributes,
+        log_level,
+        emf_uri,
+        specific_context_field_class,
+        payload_field_class,
+    ):
+        if name is not None:
+            utils._check_str(name)
+
+        if user_attributes is not None:
+            value = bt2_value.create_value(user_attributes)
+            utils._check_type(value, bt2_value.MapValue)
+
+        if log_level is not None:
+            log_levels = (
+                EventClassLogLevel.EMERGENCY,
+                EventClassLogLevel.ALERT,
+                EventClassLogLevel.CRITICAL,
+                EventClassLogLevel.ERROR,
+                EventClassLogLevel.WARNING,
+                EventClassLogLevel.NOTICE,
+                EventClassLogLevel.INFO,
+                EventClassLogLevel.DEBUG_SYSTEM,
+                EventClassLogLevel.DEBUG_PROGRAM,
+                EventClassLogLevel.DEBUG_PROCESS,
+                EventClassLogLevel.DEBUG_MODULE,
+                EventClassLogLevel.DEBUG_UNIT,
+                EventClassLogLevel.DEBUG_FUNCTION,
+                EventClassLogLevel.DEBUG_LINE,
+                EventClassLogLevel.DEBUG,
+            )
+
+            if log_level not in log_levels:
+                raise ValueError("'{}' is not a valid log level".format(log_level))
+
+        if emf_uri is not None:
+            utils._check_str(emf_uri)
+
+        if specific_context_field_class is not None:
+            utils._check_type(
+                specific_context_field_class, bt2_field_class._StructureFieldClass
+            )
+
+        if payload_field_class is not None:
+            utils._check_type(payload_field_class, bt2_field_class._StructureFieldClass)
 
 
 _EVENT_CLASS_LOG_LEVEL_TO_OBJ = {
