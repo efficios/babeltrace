@@ -255,6 +255,7 @@ void destroy_muxer_comp(struct muxer_comp *muxer_comp)
 	g_free(muxer_comp);
 }
 
+static
 struct bt_param_validation_map_value_entry_descr muxer_params[] = {
 	BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_END
 };

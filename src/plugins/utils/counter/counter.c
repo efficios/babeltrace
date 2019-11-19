@@ -138,6 +138,7 @@ void counter_finalize(bt_self_component_sink *comp)
 	g_free(counter);
 }
 
+static
 struct bt_param_validation_map_value_entry_descr counter_params[] = {
 	{ "step", BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_OPTIONAL, { .type = BT_VALUE_TYPE_UNSIGNED_INTEGER } },
 	{ "hide-zero", BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_OPTIONAL, { .type = BT_VALUE_TYPE_BOOL } },

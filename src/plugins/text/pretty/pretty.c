@@ -296,6 +296,7 @@ end:
 static const char *color_choices[] = { "never", "auto", "always", NULL };
 static const char *show_hide_choices[] = { "show", "hide", NULL };
 
+static
 struct bt_param_validation_map_value_entry_descr pretty_params[] = {
 	{ "color", BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_OPTIONAL, { BT_VALUE_TYPE_STRING, .string = {
 		.choices = color_choices,

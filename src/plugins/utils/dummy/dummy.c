@@ -54,6 +54,7 @@ void dummy_finalize(bt_self_component_sink *comp)
 	destroy_private_dummy_data(dummy);
 }
 
+static
 struct bt_param_validation_map_value_entry_descr dummy_params[] = {
 	BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_END
 };

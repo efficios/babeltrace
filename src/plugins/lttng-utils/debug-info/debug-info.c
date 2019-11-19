@@ -1704,6 +1704,7 @@ const bt_message *handle_message(struct debug_info_msg_iter *debug_it,
 	return out_message;
 }
 
+static
 struct bt_param_validation_map_value_entry_descr debug_info_params[] = {
 	{ "debug-info-field-name", BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_OPTIONAL, { .type = BT_VALUE_TYPE_STRING } },
 	{ "debug-info-dir", BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_OPTIONAL, { .type = BT_VALUE_TYPE_STRING } },
