@@ -527,6 +527,7 @@ enum bt_param_validation_status validate_bound_type(
 	return status;
 }
 
+static
 struct bt_param_validation_map_value_entry_descr trimmer_params[] = {
 	{ "gmt", BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_OPTIONAL, { .type = BT_VALUE_TYPE_BOOL } },
 	{ "begin", BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_OPTIONAL, { .validation_func = validate_bound_type } },

@@ -201,6 +201,7 @@ end:
 	return ret;
 }
 
+static
 struct bt_param_validation_map_value_entry_descr dmesg_params[] = {
 	{ "no-extract-timestamp", BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_OPTIONAL, { .type = BT_VALUE_TYPE_BOOL } },
 	{ "path", BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_OPTIONAL, { .type = BT_VALUE_TYPE_STRING } },
