@@ -69,6 +69,14 @@ class TraceClassTestCase(unittest.TestCase):
 
         self.assertRaisesInComponentInit(TypeError, f)
 
+    def test_create_invalid_automatic_stream_class_id_type(self):
+        def f(comp_self):
+            return comp_self._create_trace_class(
+                assigns_automatic_stream_class_id='perchaude'
+            )
+
+        self.assertRaisesInComponentInit(TypeError, f)
+
     def test_automatic_stream_class_id(self):
         def f(comp_self):
             return comp_self._create_trace_class(assigns_automatic_stream_class_id=True)
