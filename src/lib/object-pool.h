@@ -88,6 +88,7 @@ struct bt_object_pool {
 /*
  * Initializes an object pool which is already allocated.
  */
+BT_HIDDEN
 int bt_object_pool_initialize(struct bt_object_pool *pool,
 		bt_object_pool_new_object_func new_object_func,
 		bt_object_pool_destroy_object_func destroy_object_func,
@@ -96,6 +97,7 @@ int bt_object_pool_initialize(struct bt_object_pool *pool,
 /*
  * Finalizes an object pool without deallocating it.
  */
+BT_HIDDEN
 void bt_object_pool_finalize(struct bt_object_pool *pool);
 
 /*
