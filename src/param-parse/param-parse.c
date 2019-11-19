@@ -96,7 +96,7 @@ void ini_append_error_expecting(struct ini_parsing_state *state,
 	}
 
 	for (i = 0; i < pos; ++i) {
-		g_string_append_printf(state->ini_error, " ");
+		g_string_append_c(state->ini_error, ' ');
 	}
 
 	g_string_append_printf(state->ini_error, "^\n\n");
