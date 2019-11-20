@@ -33,9 +33,12 @@ import functools
 import bt2
 
 
-def _trace_class_destruction_listener_from_native(user_listener, trace_class_ptr):
+def _trace_class_destruction_listener_from_native(
+    user_listener, handle, trace_class_ptr
+):
     trace_class = _TraceClass._create_from_ptr_and_get_ref(trace_class_ptr)
     user_listener(trace_class)
+    handle._invalidate()
 
 
 class _TraceClassConst(object._SharedObject, collections.abc.Mapping):
@@ -100,22 +103,26 @@ class _TraceClassConst(object._SharedObject, collections.abc.Mapping):
         if not callable(listener):
             raise TypeError("'listener' parameter is not callable")
 
-        fn = native_bt.bt2_trace_class_add_destruction_listener
+        handle = utils._ListenerHandle(self.addr)
+
         listener_from_native = functools.partial(
-            _trace_class_destruction_listener_from_native, listener
+            _trace_class_destruction_listener_from_native, listener, handle
         )
 
+        fn = native_bt.bt2_trace_class_add_destruction_listener
         status, listener_id = fn(self._ptr, listener_from_native)
         utils._handle_func_status(
             status, 'cannot add destruction listener to trace class object'
         )
 
-        return utils._ListenerHandle(listener_id, self)
+        handle._set_listener_id(listener_id)
+
+        return handle
 
     def remove_destruction_listener(self, listener_handle):
         utils._check_type(listener_handle, utils._ListenerHandle)
 
-        if listener_handle._obj.addr != self.addr:
+        if listener_handle._addr != self.addr:
             raise ValueError(
                 'This trace class destruction listener does not match the trace class object.'
             )
@@ -129,7 +136,7 @@ class _TraceClassConst(object._SharedObject, collections.abc.Mapping):
             self._ptr, listener_handle._listener_id
         )
         utils._handle_func_status(status)
-        listener_handle._listener_id = None
+        listener_handle._invalidate()
 
 
 class _TraceClass(_TraceClassConst):

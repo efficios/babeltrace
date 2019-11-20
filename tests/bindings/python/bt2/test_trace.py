@@ -168,9 +168,6 @@ class TraceTestCase(unittest.TestCase):
 
         trace.remove_destruction_listener(td_handle2)
 
-        del td_handle1
-        del td_handle2
-
         self.assertEqual(num_trace_class_destroyed_calls, 0)
         self.assertEqual(num_trace_destroyed_calls, 0)
 
