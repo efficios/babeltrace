@@ -166,8 +166,6 @@ class Graph(object._SharedObject):
         if listener_ids is None:
             raise bt2._Error('cannot add listener to graph object')
 
-        return utils._ListenerHandle(listener_ids, self)
-
     def add_ports_connected_listener(self, listener):
         if not callable(listener):
             raise TypeError("'listener' parameter is not callable")
@@ -180,8 +178,6 @@ class Graph(object._SharedObject):
         listener_ids = fn(self._ptr, listener_from_native)
         if listener_ids is None:
             raise bt2._Error('cannot add listener to graph object')
-
-        return utils._ListenerHandle(listener_ids, self)
 
     def run_once(self):
         status = native_bt.graph_run_once(self._ptr)
