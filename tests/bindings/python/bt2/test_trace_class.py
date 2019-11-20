@@ -198,9 +198,6 @@ class TraceClassTestCase(unittest.TestCase):
 
         trace_class.remove_destruction_listener(handle2)
 
-        del handle1
-        del handle2
-
         self.assertEqual(num_destruct_calls, 0)
 
         del trace_class

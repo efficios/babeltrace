@@ -166,9 +166,11 @@ class _TraceConst(object._SharedObject, collections.abc.Mapping):
         if not callable(listener):
             raise TypeError("'listener' parameter is not callable")
 
+        handle = utils._ListenerHandle(self.addr)
+
         fn = native_bt.bt2_trace_add_destruction_listener
         listener_from_native = functools.partial(
-            _trace_destruction_listener_from_native, listener
+            _trace_destruction_listener_from_native, listener, handle
         )
 
         status, listener_id = fn(self._ptr, listener_from_native)
@@ -176,12 +178,14 @@ class _TraceConst(object._SharedObject, collections.abc.Mapping):
             status, 'cannot add destruction listener to trace object'
         )
 
-        return utils._ListenerHandle(listener_id, self)
+        handle._set_listener_id(listener_id)
+
+        return handle
 
     def remove_destruction_listener(self, listener_handle):
         utils._check_type(listener_handle, utils._ListenerHandle)
 
-        if listener_handle._obj.addr != self.addr:
+        if listener_handle._addr != self.addr:
             raise ValueError(
                 'This trace destruction listener does not match the trace object.'
             )
@@ -193,7 +197,7 @@ class _TraceConst(object._SharedObject, collections.abc.Mapping):
             self._ptr, listener_handle._listener_id
         )
         utils._handle_func_status(status)
-        listener_handle._listener_id = None
+        listener_handle._invalidate()
 
 
 class _Trace(_TraceConst):
@@ -263,6 +267,7 @@ class _Trace(_TraceConst):
         return stream
 
 
-def _trace_destruction_listener_from_native(user_listener, trace_ptr):
+def _trace_destruction_listener_from_native(user_listener, handle, trace_ptr):
     trace = _TraceConst._create_from_ptr_and_get_ref(trace_ptr)
     user_listener(trace)
+    handle._invalidate()

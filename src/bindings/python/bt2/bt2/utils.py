@@ -166,6 +166,12 @@ def _handle_func_status(status, msg=None):
 
 
 class _ListenerHandle:
-    def __init__(self, listener_id, obj):
+    def __init__(self, addr):
+        self._addr = addr
+        self._listener_id = None
+
+    def _set_listener_id(self, listener_id):
         self._listener_id = listener_id
-        self._obj = obj
+
+    def _invalidate(self):
+        self._listener_id = None
