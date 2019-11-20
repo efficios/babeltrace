@@ -30,7 +30,7 @@ clean_tmp() {
 	rm -rf "${out_path}" "${text_output1}" "${text_output2_intermediary}" "${text_output2}"
 }
 
-SUCCESS_TRACES=(${BT_CTF_TRACES_PATH}/succeed/*)
+SUCCESS_TRACES=("${BT_CTF_TRACES_PATH}/succeed/"*)
 
 # -2 because there is an empty trace that we skip
 NUM_TESTS=$((${#SUCCESS_TRACES[@]} * 3 - 2))
