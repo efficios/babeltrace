@@ -60,6 +60,7 @@ for path in "${SUCCESS_TRACES[@]}"; do
 	# always the same.
 	head -1 "${text_output1}" | "${BT_TESTS_GREP_BIN}" "^\[" >/dev/null
 	if test $? = 0; then
+		# shellcheck disable=SC2016
 		uniq_ts_cnt="$("${BT_TESTS_AWK_BIN}" '{ print $1 }' < "${text_output1}" | sort | uniq | wc -l)"
 		# Extract only the timestamp columns and compare the number of
 		# unique lines with the total number of lines to see if there
