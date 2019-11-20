@@ -41,6 +41,7 @@ dist_check_SCRIPTS = \
 	cli/convert/test_auto_source_discovery_params \
 	cli/convert/test_auto_source_discovery_log_level \
 	cli/convert/test_convert_args \
+	cli/list-plugins/test_list_plugins \
 	cli/params/test_params \
 	cli/query/test_query \
 	cli/test_exit_status \
@@ -128,6 +129,7 @@ TESTS_CLI += \
 	cli/convert/test_auto_source_discovery_grouping \
 	cli/convert/test_auto_source_discovery_log_level \
 	cli/convert/test_auto_source_discovery_params \
+	cli/list-plugins/test_list_plugins \
 	cli/params/test_params \
 	cli/query/test_query \
 	cli/test_exit_status
