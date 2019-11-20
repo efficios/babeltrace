@@ -31,8 +31,11 @@ source_name="src.test_exit_status.StatusSrc"
 
 test_interrupted_graph() {
 	local cli_args=("--plugin-path=$data_dir" "-c" "$source_name" "-p" "case=\"INTERRUPTED\"")
-	local actual_stdout=$(mktemp -t test_cli_exit_status_stdout_actual.XXXXXX)
-	local actual_stderr=$(mktemp -t test_cli_exit_status_stderr_actual.XXXXXX)
+	local actual_stdout
+	local actual_stderr
+
+	actual_stdout=$(mktemp -t test_cli_exit_status_stdout_actual.XXXXXX)
+	actual_stderr=$(mktemp -t test_cli_exit_status_stderr_actual.XXXXXX)
 
 	bt_cli "$actual_stdout" "$actual_stderr" "${cli_args[@]}"
 
@@ -50,8 +53,11 @@ test_interrupted_graph() {
 
 test_error_graph() {
 	local cli_args=("--plugin-path=$data_dir" "-c" "$source_name" "-p" "case=\"ERROR\"")
-	local actual_stdout=$(mktemp -t test_cli_exit_status_stdout_actual.XXXXXX)
-	local actual_stderr=$(mktemp -t test_cli_exit_status_stderr_actual.XXXXXX)
+	local actual_stdout
+	local actual_stderr
+
+	actual_stdout=$(mktemp -t test_cli_exit_status_stdout_actual.XXXXXX)
+	actual_stderr=$(mktemp -t test_cli_exit_status_stderr_actual.XXXXXX)
 
 	bt_cli "$actual_stdout" "$actual_stderr" "${cli_args[@]}"
 
@@ -69,8 +75,11 @@ test_error_graph() {
 
 test_stop_graph() {
 	local cli_args=("--plugin-path=$data_dir" "-c" "$source_name" "-p" "case=\"STOP\"")
-	local actual_stdout=$(mktemp -t test_cli_exit_status_stdout_actual.XXXXXX)
-	local actual_stderr=$(mktemp -t test_cli_exit_status_stderr_actual.XXXXXX)
+	local actual_stdout
+	local actual_stderr
+
+	actual_stdout=$(mktemp -t test_cli_exit_status_stdout_actual.XXXXXX)
+	actual_stderr=$(mktemp -t test_cli_exit_status_stderr_actual.XXXXXX)
 
 	bt_cli "$actual_stdout" "$actual_stderr" "${cli_args[@]}"
 
