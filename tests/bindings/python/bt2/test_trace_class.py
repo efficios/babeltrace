@@ -226,7 +226,7 @@ class TraceClassTestCase(unittest.TestCase):
 
         with self.assertRaisesRegex(
             ValueError,
-            r'This trace class destruction listener does not match the trace object\.',
+            r'This trace class destruction listener does not match the trace class object\.',
         ):
             trace_class_2.remove_destruction_listener(handle1)
 
