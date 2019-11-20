@@ -117,7 +117,7 @@ class _TraceClassConst(object._SharedObject, collections.abc.Mapping):
 
         if listener_handle._obj.addr != self.addr:
             raise ValueError(
-                'This trace class destruction listener does not match the trace object.'
+                'This trace class destruction listener does not match the trace class object.'
             )
 
         if listener_handle._listener_id is None:
