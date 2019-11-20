@@ -34,16 +34,6 @@ data_dir="${BT_TESTS_DATADIR}/auto-source-discovery/grouping"
 plugin_dir="${data_dir}"
 trace_dir="${data_dir}/traces"
 
-if [ "$BT_OS_TYPE" = "mingw" ]; then
-	# Use Windows native paths for comparison because Unix
-	# paths are converted by the shell before they are passed
-	# to the native babeltrace2 binary.
-	trace_dir=$(cygpath -w "$trace_dir")
-	dir_sep='\'
-else
-	dir_sep='/'
-fi
-
 stdout_expected_file="${BT_TESTS_DATADIR}/cli/convert/auto-source-discovery-grouping.expect"
 stdout_actual_file=$(mktemp -t stdout-actual.XXXXXX)
 stderr_actual_file=$(mktemp -t actual-stderr.XXXXXX)
