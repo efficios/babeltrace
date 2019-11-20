@@ -500,14 +500,6 @@ int ini_handle_state(struct ini_parsing_state *state)
 		g_string_assign(state->last_map_key,
 			state->scanner->value.v_identifier);
 
-		if (bt_value_map_has_entry(state->params,
-					   state->last_map_key->str)) {
-			g_string_append_printf(state->ini_error,
-				"Duplicate parameter key: `%s`\n",
-				state->last_map_key->str);
-			goto error;
-		}
-
 		state->expecting = INI_EXPECT_EQUAL;
 		goto success;
 	case INI_EXPECT_EQUAL:
