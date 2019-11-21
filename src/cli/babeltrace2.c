@@ -27,6 +27,7 @@
 
 #include <babeltrace2/babeltrace.h>
 #include "common/common.h"
+#include "string-format/format-plugin-comp-cls-name.h"
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
@@ -227,68 +228,6 @@ void print_indent(FILE *fp, size_t indent)
 
 	for (i = 0; i < indent; i++) {
 		fprintf(fp, " ");
-	}
-}
-
-static
-const char *component_type_str(bt_component_class_type type)
-{
-	switch (type) {
-	case BT_COMPONENT_CLASS_TYPE_SOURCE:
-		return "source";
-	case BT_COMPONENT_CLASS_TYPE_SINK:
-		return "sink";
-	case BT_COMPONENT_CLASS_TYPE_FILTER:
-		return "filter";
-	default:
-		return "(unknown)";
-	}
-}
-
-static
-void print_plugin_comp_cls_opt(FILE *fh, const char *plugin_name,
-		const char *comp_cls_name, bt_component_class_type type)
-{
-	GString *shell_plugin_name = NULL;
-	GString *shell_comp_cls_name = NULL;
-
-	if (plugin_name) {
-		shell_plugin_name = bt_common_shell_quote(plugin_name, false);
-		if (!shell_plugin_name) {
-			goto end;
-		}
-	}
-
-	shell_comp_cls_name = bt_common_shell_quote(comp_cls_name, false);
-	if (!shell_comp_cls_name) {
-		goto end;
-	}
-
-	fprintf(fh, "'%s%s%s%s",
-		bt_common_color_bold(),
-		bt_common_color_fg_bright_cyan(),
-		component_type_str(type),
-		bt_common_color_fg_default());
-
-	if (shell_plugin_name) {
-		fprintf(fh, ".%s%s%s",
-			bt_common_color_fg_blue(),
-			shell_plugin_name->str,
-			bt_common_color_fg_default());
-	}
-
-	fprintf(fh, ".%s%s%s'",
-		bt_common_color_fg_yellow(),
-		shell_comp_cls_name->str,
-		bt_common_color_reset());
-
-end:
-	if (shell_plugin_name) {
-		g_string_free(shell_plugin_name, TRUE);
-	}
-
-	if (shell_comp_cls_name) {
-		g_string_free(shell_comp_cls_name, TRUE);
 	}
 }
 
@@ -502,11 +441,16 @@ void print_value(FILE *fp, const bt_value *value, size_t indent)
 static
 void print_bt_config_component(struct bt_config_component *bt_config_component)
 {
-	fprintf(stderr, "    ");
-	print_plugin_comp_cls_opt(stderr, bt_config_component->plugin_name->str,
+	gchar *comp_cls_str;
+
+	comp_cls_str = format_plugin_comp_cls_opt(
+		bt_config_component->plugin_name->str,
 		bt_config_component->comp_cls_name->str,
-		bt_config_component->type);
-	fprintf(stderr, ":\n");
+		bt_config_component->type,
+		BT_COMMON_COLOR_WHEN_AUTO);
+	BT_ASSERT(comp_cls_str);
+
+	fprintf(stderr, "    %s:\n", comp_cls_str);
 
 	if (bt_config_component->instance_name->len > 0) {
 		fprintf(stderr, "      Name: %s\n",
@@ -515,6 +459,8 @@ void print_bt_config_component(struct bt_config_component *bt_config_component)
 
 	fprintf(stderr, "      Parameters:\n");
 	print_value(stderr, bt_config_component->params, 8);
+
+	g_free(comp_cls_str);
 }
 
 static
@@ -754,9 +700,13 @@ void print_component_class_help(const char *plugin_name,
 		bt_component_class_get_help(comp_cls);
 	bt_component_class_type type =
 		bt_component_class_get_type(comp_cls);
+	gchar *comp_cls_str;
 
-	print_plugin_comp_cls_opt(stdout, plugin_name, comp_class_name, type);
-	printf("\n");
+	comp_cls_str = format_plugin_comp_cls_opt(plugin_name, comp_class_name,
+		type, BT_COMMON_COLOR_WHEN_AUTO);
+	BT_ASSERT(comp_cls_str);
+
+	printf("%s\n", comp_cls_str);
 	printf("  %sDescription%s: %s\n", bt_common_color_bold(),
 		bt_common_color_reset(),
 		comp_class_description ? comp_class_description : "(None)");
@@ -764,6 +714,8 @@ void print_component_class_help(const char *plugin_name,
 	if (comp_class_help) {
 		printf("\n%s\n", comp_class_help);
 	}
+
+	g_free(comp_cls_str);
 }
 
 static
@@ -843,6 +795,7 @@ void cmd_list_plugins_print_component_classes(const bt_plugin *plugin,
 		spec_comp_cls_borrow_comp_cls_func_t spec_comp_cls_borrow_comp_cls_func)
 {
 	uint64_t i;
+	gchar *comp_cls_str = NULL;
 
 	if (count == 0) {
 		printf("  %s%s component classes%s: (none)\n",
@@ -868,10 +821,11 @@ void cmd_list_plugins_print_component_classes(const bt_plugin *plugin,
 		bt_component_class_type type =
 			bt_component_class_get_type(comp_class);
 
-		printf("    ");
-		print_plugin_comp_cls_opt(stdout,
-			bt_plugin_get_name(plugin), comp_class_name,
-			type);
+		g_free(comp_cls_str);
+		comp_cls_str = format_plugin_comp_cls_opt(
+			bt_plugin_get_name(plugin), comp_class_name, type,
+			BT_COMMON_COLOR_WHEN_AUTO);
+		printf("    %s", comp_cls_str);
 
 		if (comp_class_description) {
 			printf(": %s", comp_class_description);
@@ -881,7 +835,7 @@ void cmd_list_plugins_print_component_classes(const bt_plugin *plugin,
 	}
 
 end:
-	return;
+	g_free(comp_cls_str);
 }
 
 static
@@ -2640,6 +2594,7 @@ void print_error_causes(void)
 	int64_t i;
 	GString *folded = NULL;
 	unsigned int columns;
+	gchar *comp_cls_str = NULL;
 
 	if (!error || bt_error_get_cause_count(error) == 0) {
 		fprintf(stderr, "%s%sUnknown command-line error.%s\n",
@@ -2683,33 +2638,45 @@ void print_error_causes(void)
 				bt_common_color_reset());
 			break;
 		case BT_ERROR_CAUSE_ACTOR_TYPE_COMPONENT:
-			fprintf(stderr, "%s%s%s: ",
-				bt_common_color_bold(),
-				bt_error_cause_component_actor_get_component_name(cause),
-				bt_common_color_reset());
-			print_plugin_comp_cls_opt(stderr,
+			comp_cls_str = format_plugin_comp_cls_opt(
 				bt_error_cause_component_actor_get_plugin_name(cause),
 				bt_error_cause_component_actor_get_component_class_name(cause),
-				bt_error_cause_component_actor_get_component_class_type(cause));
+				bt_error_cause_component_actor_get_component_class_type(cause),
+				BT_COMMON_COLOR_WHEN_AUTO);
+			BT_ASSERT(comp_cls_str);
+
+			fprintf(stderr, "%s%s%s: %s",
+				bt_common_color_bold(),
+				bt_error_cause_component_actor_get_component_name(cause),
+				bt_common_color_reset(),
+				comp_cls_str);
 			break;
 		case BT_ERROR_CAUSE_ACTOR_TYPE_COMPONENT_CLASS:
-			print_plugin_comp_cls_opt(stderr,
+			comp_cls_str = format_plugin_comp_cls_opt(
 				bt_error_cause_component_class_actor_get_plugin_name(cause),
 				bt_error_cause_component_class_actor_get_component_class_name(cause),
-				bt_error_cause_component_class_actor_get_component_class_type(cause));
+				bt_error_cause_component_class_actor_get_component_class_type(cause),
+				BT_COMMON_COLOR_WHEN_AUTO);
+			BT_ASSERT(comp_cls_str);
+
+			fputs(comp_cls_str, stderr);
 			break;
 		case BT_ERROR_CAUSE_ACTOR_TYPE_MESSAGE_ITERATOR:
-			fprintf(stderr, "%s%s%s (%s%s%s): ",
+			comp_cls_str = format_plugin_comp_cls_opt(
+				bt_error_cause_message_iterator_actor_get_plugin_name(cause),
+				bt_error_cause_message_iterator_actor_get_component_class_name(cause),
+				bt_error_cause_message_iterator_actor_get_component_class_type(cause)
+				,BT_COMMON_COLOR_WHEN_AUTO);
+			BT_ASSERT(comp_cls_str);
+
+			fprintf(stderr, "%s%s%s (%s%s%s): %s",
 				bt_common_color_bold(),
 				bt_error_cause_message_iterator_actor_get_component_name(cause),
 				bt_common_color_reset(),
 				bt_common_color_bold(),
 				bt_error_cause_message_iterator_actor_get_component_output_port_name(cause),
-				bt_common_color_reset());
-			print_plugin_comp_cls_opt(stderr,
-				bt_error_cause_message_iterator_actor_get_plugin_name(cause),
-				bt_error_cause_message_iterator_actor_get_component_class_name(cause),
-				bt_error_cause_message_iterator_actor_get_component_class_type(cause));
+				bt_common_color_reset(),
+				comp_cls_str);
 			break;
 		default:
 			bt_common_abort();
@@ -2746,6 +2713,8 @@ end:
 	if (error) {
 		bt_error_release(error);
 	}
+
+	g_free(comp_cls_str);
 }
 
 int main(int argc, const char **argv)

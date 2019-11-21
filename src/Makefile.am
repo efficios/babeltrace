@@ -9,6 +9,7 @@ SUBDIRS = \
 	logging \
 	ctf-writer \
 	lib \
+	string-format \
 	python-plugin-provider \
 	plugins \
 	param-parse \
