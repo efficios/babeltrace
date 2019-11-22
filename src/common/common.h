@@ -77,6 +77,40 @@
 #define BT_COMMON_COLOR_BG_CYAN			"\033[46m"
 #define BT_COMMON_COLOR_BG_LIGHT_GRAY		"\033[47m"
 
+enum bt_common_color_when {
+	BT_COMMON_COLOR_WHEN_AUTO,
+	BT_COMMON_COLOR_WHEN_ALWAYS,
+	BT_COMMON_COLOR_WHEN_NEVER,
+};
+
+struct bt_common_color_codes {
+	const char *reset;
+	const char *bold;
+	const char *fg_default;
+	const char *fg_red;
+	const char *fg_green;
+	const char *fg_yellow;
+	const char *fg_blue;
+	const char *fg_magenta;
+	const char *fg_cyan;
+	const char *fg_light_gray;
+	const char *fg_bright_red;
+	const char *fg_bright_green;
+	const char *fg_bright_yellow;
+	const char *fg_bright_blue;
+	const char *fg_bright_magenta;
+	const char *fg_bright_cyan;
+	const char *fg_bright_light_gray;
+	const char *bg_default;
+	const char *bg_red;
+	const char *bg_green;
+	const char *bg_yellow;
+	const char *bg_blue;
+	const char *bg_magenta;
+	const char *bg_cyan;
+	const char *bg_light_gray;
+};
+
 struct bt_common_lttng_live_url_parts {
 	GString *proto;
 	GString *hostname;
@@ -198,6 +232,10 @@ const char *bt_common_color_bg_cyan(void);
 
 BT_HIDDEN
 const char *bt_common_color_bg_light_gray(void);
+
+BT_HIDDEN
+void bt_common_color_get_codes(struct bt_common_color_codes *codes,
+		enum bt_common_color_when use_colors);
 
 /*
  * Returns the substring from `input` to the first character found

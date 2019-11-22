@@ -79,14 +79,107 @@ static const char *bt_common_color_code_bg_magenta = "";
 static const char *bt_common_color_code_bg_cyan = "";
 static const char *bt_common_color_code_bg_light_gray = "";
 
+/*
+ * A color codes structure always filled with the proper color codes for the
+ * terminal.
+ */
+static struct bt_common_color_codes color_codes;
+
+/*
+ * A color codes structure always filled with empty strings, for when we want no
+ * colors.
+ */
+static struct bt_common_color_codes no_color_codes = {
+	"", "", "", "", "", "", "", "", "", "",
+	"", "", "", "", "", "", "", "", "", "",
+	"", "", "", "", "",
+};
+
 static
 void __attribute__((constructor)) bt_common_color_ctor(void)
 {
-	if (bt_common_colors_supported()) {
-		const char *term_env_var;
-		const char *bright_means_bold_env_var;
-		bool bright_means_bold = true;
+	const char *term_env_var;
+	const char *bright_means_bold_env_var;
+	bool bright_means_bold = true;
+	const char *code_fg_bright_red;
+	const char *code_fg_bright_green;
+	const char *code_fg_bright_yellow;
+	const char *code_fg_bright_blue;
+	const char *code_fg_bright_magenta;
+	const char *code_fg_bright_cyan;
+	const char *code_fg_bright_light_gray;
 
+	/*
+	 * Check whether or not the terminal supports having
+	 * bold foreground colors which do _not_ become bright
+	 * colors, that is, the lines
+	 *
+	 *     $ echo -e "\033[31mTHIS\n\033[1mTHAT\033[0m"
+	 *
+	 * have the _same_ color, but `THAT` uses a bold font.
+	 *
+	 * This is the case of the kitty terminal emulator.
+	 *
+	 * It's also possible with GNOME Terminal since 3.27.2
+	 * and xfce4-terminal since 0.8.7 (and GNOME VTE since
+	 * 0.51.2), but it's user-configurable. Since we don't
+	 * have this configuration value here, assume it's not
+	 * the case to support old versions of GNOME Terminal.
+	 *
+	 * Any user can set the
+	 * `BABELTRACE_TERM_COLOR_BRIGHT_MEANS_BOLD` environment
+	 * variable to `0` to use the bright foreground color
+	 * codes instead of making the normal foreground color
+	 * codes bold.
+	 *
+	 * Summary:
+	 *
+	 * With kitty or when
+	 * `BABELTRACE_TERM_COLOR_BRIGHT_MEANS_BOLD` is `0`:
+	 *     Output bright colors using dedicated SGR codes
+	 *     90 to 97.
+	 *
+	 * Otherwise:
+	 *     Output bright colors with bold + SGR codes 30 to
+	 *     37.
+	 */
+	term_env_var = getenv("TERM");
+
+	if (term_env_var && strcmp(term_env_var, "xterm-kitty") == 0) {
+		/*
+		 * The kitty terminal emulator supports
+		 * non-bright bold foreground colors.
+		 */
+		bright_means_bold = false;
+	}
+
+	bright_means_bold_env_var =
+		getenv("BABELTRACE_TERM_COLOR_BRIGHT_MEANS_BOLD");
+
+	if (bright_means_bold_env_var) {
+		bright_means_bold =
+			!(strcmp(bright_means_bold_env_var, "0") == 0);
+	}
+
+	if (bright_means_bold) {
+		code_fg_bright_red = BT_COMMON_COLOR_FG_BOLD_RED;
+		code_fg_bright_green = BT_COMMON_COLOR_FG_BOLD_GREEN;
+		code_fg_bright_yellow = BT_COMMON_COLOR_FG_BOLD_YELLOW;
+		code_fg_bright_blue = BT_COMMON_COLOR_FG_BOLD_BLUE;
+		code_fg_bright_magenta = BT_COMMON_COLOR_FG_BOLD_MAGENTA;
+		code_fg_bright_cyan = BT_COMMON_COLOR_FG_BOLD_CYAN;
+		code_fg_bright_light_gray = BT_COMMON_COLOR_FG_BOLD_LIGHT_GRAY;
+	} else {
+		code_fg_bright_red = BT_COMMON_COLOR_FG_BRIGHT_RED;
+		code_fg_bright_green = BT_COMMON_COLOR_FG_BRIGHT_GREEN;
+		code_fg_bright_yellow = BT_COMMON_COLOR_FG_BRIGHT_YELLOW;
+		code_fg_bright_blue = BT_COMMON_COLOR_FG_BRIGHT_BLUE;
+		code_fg_bright_magenta = BT_COMMON_COLOR_FG_BRIGHT_MAGENTA;
+		code_fg_bright_cyan = BT_COMMON_COLOR_FG_BRIGHT_CYAN;
+		code_fg_bright_light_gray = BT_COMMON_COLOR_FG_BRIGHT_LIGHT_GRAY;
+	}
+
+	if (bt_common_colors_supported()) {
 		bt_common_color_code_reset = BT_COMMON_COLOR_RESET;
 		bt_common_color_code_bold = BT_COMMON_COLOR_BOLD;
 		bt_common_color_code_fg_default = BT_COMMON_COLOR_FG_DEFAULT;
@@ -98,76 +191,13 @@ void __attribute__((constructor)) bt_common_color_ctor(void)
 		bt_common_color_code_fg_cyan = BT_COMMON_COLOR_FG_CYAN;
 		bt_common_color_code_fg_light_gray = BT_COMMON_COLOR_FG_LIGHT_GRAY;
 
-		/*
-		 * Check whether or not the terminal supports having
-		 * bold foreground colors which do _not_ become bright
-		 * colors, that is, the lines
-		 *
-		 *     $ echo -e "\033[31mTHIS\n\033[1mTHAT\033[0m"
-		 *
-		 * have the _same_ color, but `THAT` uses a bold font.
-		 *
-		 * This is the case of the kitty terminal emulator.
-		 *
-		 * It's also possible with GNOME Terminal since 3.27.2
-		 * and xfce4-terminal since 0.8.7 (and GNOME VTE since
-		 * 0.51.2), but it's user-configurable. Since we don't
-		 * have this configuration value here, assume it's not
-		 * the case to support old versions of GNOME Terminal.
-		 *
-		 * Any user can set the
-		 * `BABELTRACE_TERM_COLOR_BRIGHT_MEANS_BOLD` environment
-		 * variable to `0` to use the bright foreground color
-		 * codes instead of making the normal foreground color
-		 * codes bold.
-		 *
-		 * Summary:
-		 *
-		 * With kitty or when
-		 * `BABELTRACE_TERM_COLOR_BRIGHT_MEANS_BOLD` is `0`:
-		 *     Output bright colors using dedicated SGR codes
-		 *     90 to 97.
-		 *
-		 * Otherwise:
-		 *     Output bright colors with bold + SGR codes 30 to
-		 *     37.
-		 */
-		term_env_var = getenv("TERM");
-		BT_ASSERT(term_env_var);
-
-		if (strcmp(term_env_var, "xterm-kitty") == 0) {
-			/*
-			 * The kitty terminal emulator supports
-			 * non-bright bold foreground colors.
-			 */
-			bright_means_bold = false;
-		}
-
-		bright_means_bold_env_var =
-			getenv("BABELTRACE_TERM_COLOR_BRIGHT_MEANS_BOLD");
-
-		if (bright_means_bold_env_var) {
-			bright_means_bold =
-				!(strcmp(bright_means_bold_env_var, "0") == 0);
-		}
-
-		if (bright_means_bold) {
-			bt_common_color_code_fg_bright_red = BT_COMMON_COLOR_FG_BOLD_RED;
-			bt_common_color_code_fg_bright_green = BT_COMMON_COLOR_FG_BOLD_GREEN;
-			bt_common_color_code_fg_bright_yellow = BT_COMMON_COLOR_FG_BOLD_YELLOW;
-			bt_common_color_code_fg_bright_blue = BT_COMMON_COLOR_FG_BOLD_BLUE;
-			bt_common_color_code_fg_bright_magenta = BT_COMMON_COLOR_FG_BOLD_MAGENTA;
-			bt_common_color_code_fg_bright_cyan = BT_COMMON_COLOR_FG_BOLD_CYAN;
-			bt_common_color_code_fg_bright_light_gray = BT_COMMON_COLOR_FG_BOLD_LIGHT_GRAY;
-		} else {
-			bt_common_color_code_fg_bright_red = BT_COMMON_COLOR_FG_BRIGHT_RED;
-			bt_common_color_code_fg_bright_green = BT_COMMON_COLOR_FG_BRIGHT_GREEN;
-			bt_common_color_code_fg_bright_yellow = BT_COMMON_COLOR_FG_BRIGHT_YELLOW;
-			bt_common_color_code_fg_bright_blue = BT_COMMON_COLOR_FG_BRIGHT_BLUE;
-			bt_common_color_code_fg_bright_magenta = BT_COMMON_COLOR_FG_BRIGHT_MAGENTA;
-			bt_common_color_code_fg_bright_cyan = BT_COMMON_COLOR_FG_BRIGHT_CYAN;
-			bt_common_color_code_fg_bright_light_gray = BT_COMMON_COLOR_FG_BRIGHT_LIGHT_GRAY;
-		}
+		bt_common_color_code_fg_bright_red = code_fg_bright_red;
+		bt_common_color_code_fg_bright_green = code_fg_bright_green;
+		bt_common_color_code_fg_bright_yellow = code_fg_bright_yellow;
+		bt_common_color_code_fg_bright_blue = code_fg_bright_blue;
+		bt_common_color_code_fg_bright_magenta = code_fg_bright_magenta;
+		bt_common_color_code_fg_bright_cyan = code_fg_bright_cyan;
+		bt_common_color_code_fg_bright_light_gray = code_fg_bright_light_gray;
 
 		bt_common_color_code_bg_default = BT_COMMON_COLOR_BG_DEFAULT;
 		bt_common_color_code_bg_red = BT_COMMON_COLOR_BG_RED;
@@ -178,6 +208,32 @@ void __attribute__((constructor)) bt_common_color_ctor(void)
 		bt_common_color_code_bg_cyan = BT_COMMON_COLOR_BG_CYAN;
 		bt_common_color_code_bg_light_gray = BT_COMMON_COLOR_BG_LIGHT_GRAY;
 	}
+
+	color_codes.reset = BT_COMMON_COLOR_RESET;
+	color_codes.bold = BT_COMMON_COLOR_BOLD;
+	color_codes.fg_default = BT_COMMON_COLOR_FG_DEFAULT;
+	color_codes.fg_red = BT_COMMON_COLOR_FG_RED;
+	color_codes.fg_green = BT_COMMON_COLOR_FG_GREEN;
+	color_codes.fg_yellow = BT_COMMON_COLOR_FG_YELLOW;
+	color_codes.fg_blue = BT_COMMON_COLOR_FG_BLUE;
+	color_codes.fg_magenta = BT_COMMON_COLOR_FG_MAGENTA;
+	color_codes.fg_cyan = BT_COMMON_COLOR_FG_CYAN;
+	color_codes.fg_light_gray = BT_COMMON_COLOR_FG_LIGHT_GRAY;
+	color_codes.fg_bright_red = code_fg_bright_red;
+	color_codes.fg_bright_green = code_fg_bright_green;
+	color_codes.fg_bright_yellow = code_fg_bright_yellow;
+	color_codes.fg_bright_blue = code_fg_bright_blue;
+	color_codes.fg_bright_magenta = code_fg_bright_magenta;
+	color_codes.fg_bright_cyan = code_fg_bright_cyan;
+	color_codes.fg_bright_light_gray = code_fg_bright_light_gray;
+	color_codes.bg_default = BT_COMMON_COLOR_BG_DEFAULT;
+	color_codes.bg_red = BT_COMMON_COLOR_BG_RED;
+	color_codes.bg_green = BT_COMMON_COLOR_BG_GREEN;
+	color_codes.bg_yellow = BT_COMMON_COLOR_BG_YELLOW;
+	color_codes.bg_blue = BT_COMMON_COLOR_BG_BLUE;
+	color_codes.bg_magenta = BT_COMMON_COLOR_BG_MAGENTA;
+	color_codes.bg_cyan = BT_COMMON_COLOR_BG_CYAN;
+	color_codes.bg_light_gray = BT_COMMON_COLOR_BG_LIGHT_GRAY;
 }
 
 BT_HIDDEN
@@ -559,6 +615,25 @@ BT_HIDDEN
 const char *bt_common_color_bg_light_gray(void)
 {
 	return bt_common_color_code_bg_light_gray;
+}
+
+BT_HIDDEN
+void bt_common_color_get_codes(struct bt_common_color_codes *codes,
+		enum bt_common_color_when use_colors)
+{
+	if (use_colors == BT_COMMON_COLOR_WHEN_ALWAYS) {
+		*codes = color_codes;
+	} else if (use_colors == BT_COMMON_COLOR_WHEN_NEVER) {
+		*codes = no_color_codes;
+	} else {
+		BT_ASSERT(use_colors == BT_COMMON_COLOR_WHEN_AUTO);
+
+		if (bt_common_colors_supported()) {
+			*codes = color_codes;
+		} else {
+			*codes = no_color_codes;
+		}
+	}
 }
 
 BT_HIDDEN
