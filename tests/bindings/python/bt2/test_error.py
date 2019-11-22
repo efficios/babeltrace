@@ -211,7 +211,7 @@ class ErrorTestCase(unittest.TestCase):
         # expected bits.
         exc = self._run_failing_graph(SourceWithFailingIter, SinkWithExceptionChaining)
         s = str(exc)
-        self.assertIn('[src (out): src.SourceWithFailingIter]', s)
+        self.assertIn("[src (out): 'source.SourceWithFailingIter']", s)
         self.assertIn('ValueError: oops', s)
 
 

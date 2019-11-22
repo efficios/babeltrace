@@ -17,6 +17,7 @@ SWIG_INTERFACE_FILES =					\
 	bt2/native_bt_component_class.i.h		\
 	bt2/native_bt_connection.i			\
 	bt2/native_bt_error.i				\
+	bt2/native_bt_error.i.h				\
 	bt2/native_bt_event.i				\
 	bt2/native_bt_event_class.i			\
 	bt2/native_bt_field.i				\
@@ -94,7 +95,8 @@ STATIC_LIBRARIES_DEPS = \
 	$(top_builddir)/src/autodisc/libbabeltrace2-autodisc.la \
 	$(top_builddir)/src/logging/libbabeltrace2-logging.la \
 	$(top_builddir)/src/common/libbabeltrace2-common.la \
-	$(top_builddir)/src/py-common/libbabeltrace2-py-common.la
+	$(top_builddir)/src/py-common/libbabeltrace2-py-common.la \
+	$(top_builddir)/src/string-format/libbabeltrace2-string-format.la
 
 GENERATED_BINDINGS_DEPS =	\
 	bt2/native_bt.c		\
