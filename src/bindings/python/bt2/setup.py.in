@@ -45,6 +45,7 @@ def main():
             '@top_builddir@/src/logging/.libs/libbabeltrace2-logging.a',
             '@top_builddir@/src/common/.libs/libbabeltrace2-common.a',
             '@top_builddir@/src/py-common/.libs/libbabeltrace2-py-common.a',
+            '@top_builddir@/src/string-format/.libs/libbabeltrace2-string-format.a',
         ],
     )
 
