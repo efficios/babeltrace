@@ -29,6 +29,105 @@
 #include <stdint.h>
 #include <string-format/format-plugin-comp-cls-name.h>
 
+gchar *format_bt_error_cause(
+		const bt_error_cause *error_cause,
+		unsigned int columns,
+		bt_logging_level log_level,
+		enum bt_common_color_when use_colors)
+{
+	GString *str;
+	gchar *comp_cls_str = NULL;
+	GString *folded = NULL;
+	struct bt_common_color_codes codes;
+
+	str = g_string_new(NULL);
+	BT_ASSERT(str);
+
+	bt_common_color_get_codes(&codes, use_colors);
+
+	/* Print actor name */
+	g_string_append_c(str, '[');
+	switch (bt_error_cause_get_actor_type(error_cause)) {
+	case BT_ERROR_CAUSE_ACTOR_TYPE_UNKNOWN:
+		g_string_append_printf(str, "%s%s%s",
+			codes.bold,
+			bt_error_cause_get_module_name(error_cause),
+			codes.reset);
+		break;
+	case BT_ERROR_CAUSE_ACTOR_TYPE_COMPONENT:
+		comp_cls_str = format_plugin_comp_cls_opt(
+			bt_error_cause_component_actor_get_plugin_name(error_cause),
+			bt_error_cause_component_actor_get_component_class_name(error_cause),
+			bt_error_cause_component_actor_get_component_class_type(error_cause),
+			use_colors);
+		BT_ASSERT(comp_cls_str);
+
+		g_string_append_printf(str, "%s%s%s: %s",
+			codes.bold,
+			bt_error_cause_component_actor_get_component_name(error_cause),
+			codes.reset,
+			comp_cls_str);
+
+		break;
+	case BT_ERROR_CAUSE_ACTOR_TYPE_COMPONENT_CLASS:
+		comp_cls_str = format_plugin_comp_cls_opt(
+			bt_error_cause_component_class_actor_get_plugin_name(error_cause),
+			bt_error_cause_component_class_actor_get_component_class_name(error_cause),
+			bt_error_cause_component_class_actor_get_component_class_type(error_cause),
+			use_colors);
+		BT_ASSERT(comp_cls_str);
+
+		g_string_append(str, comp_cls_str);
+		break;
+	case BT_ERROR_CAUSE_ACTOR_TYPE_MESSAGE_ITERATOR:
+		comp_cls_str = format_plugin_comp_cls_opt(
+			bt_error_cause_message_iterator_actor_get_plugin_name(error_cause),
+			bt_error_cause_message_iterator_actor_get_component_class_name(error_cause),
+			bt_error_cause_message_iterator_actor_get_component_class_type(error_cause),
+			use_colors);
+		BT_ASSERT(comp_cls_str);
+
+		g_string_append_printf(str, "%s%s%s (%s%s%s): %s",
+			codes.bold,
+			bt_error_cause_message_iterator_actor_get_component_name(error_cause),
+			codes.reset,
+			codes.bold,
+			bt_error_cause_message_iterator_actor_get_component_output_port_name(error_cause),
+			codes.reset,
+			comp_cls_str);
+
+		break;
+	default:
+		bt_common_abort();
+	}
+
+	/* Print file name and line number */
+	g_string_append_printf(str, "] (%s%s%s%s:%s%" PRIu64 "%s)\n",
+		codes.bold,
+		codes.fg_bright_magenta,
+		bt_error_cause_get_file_name(error_cause),
+		codes.reset,
+		codes.fg_green,
+		bt_error_cause_get_line_number(error_cause),
+		codes.reset);
+
+	/* Print message */
+	folded = bt_common_fold(bt_error_cause_get_message(error_cause),
+		columns, 2);
+	if (folded) {
+		g_string_append(str, folded->str);
+		g_string_free(folded, TRUE);
+		folded = NULL;
+	} else {
+		BT_LOGE_STR("Could not fold string.");
+		g_string_append(str, bt_error_cause_get_message(error_cause));
+	}
+
+	g_free(comp_cls_str);
+
+	return g_string_free(str, FALSE);
+}
+
 gchar *format_bt_error(
 		const bt_error *error,
 		unsigned int columns,
@@ -37,8 +136,7 @@ gchar *format_bt_error(
 {
 	GString *str;
 	int64_t i;
-	GString *folded = NULL;
-	gchar *comp_cls_str = NULL;
+	gchar *error_cause_str = NULL;
 	struct bt_common_color_codes codes;
 
 	BT_ASSERT(error);
@@ -61,83 +159,12 @@ gchar *format_bt_error(
 		g_string_append_printf(str, prefix_fmt,
 			codes.bold, codes.fg_bright_red, codes.reset);
 
-		/* Print actor name */
-		g_string_append_c(str, '[');
-		switch (bt_error_cause_get_actor_type(cause)) {
-		case BT_ERROR_CAUSE_ACTOR_TYPE_UNKNOWN:
-			g_string_append_printf(str, "%s%s%s",
-				codes.bold,
-				bt_error_cause_get_module_name(cause),
-				codes.reset);
-			break;
-		case BT_ERROR_CAUSE_ACTOR_TYPE_COMPONENT:
-			comp_cls_str = format_plugin_comp_cls_opt(
-				bt_error_cause_component_actor_get_plugin_name(cause),
-				bt_error_cause_component_actor_get_component_class_name(cause),
-				bt_error_cause_component_actor_get_component_class_type(cause),
-				use_colors);
-			BT_ASSERT(comp_cls_str);
+		g_free(error_cause_str);
+		error_cause_str = format_bt_error_cause(cause, columns,
+			log_level, use_colors);
+		BT_ASSERT(error_cause_str);
 
-			g_string_append_printf(str, "%s%s%s: %s",
-				codes.bold,
-				bt_error_cause_component_actor_get_component_name(cause),
-				codes.reset,
-				comp_cls_str);
-
-			break;
-		case BT_ERROR_CAUSE_ACTOR_TYPE_COMPONENT_CLASS:
-			comp_cls_str = format_plugin_comp_cls_opt(
-				bt_error_cause_component_class_actor_get_plugin_name(cause),
-				bt_error_cause_component_class_actor_get_component_class_name(cause),
-				bt_error_cause_component_class_actor_get_component_class_type(cause),
-				use_colors);
-			BT_ASSERT(comp_cls_str);
-
-			g_string_append(str, comp_cls_str);
-			break;
-		case BT_ERROR_CAUSE_ACTOR_TYPE_MESSAGE_ITERATOR:
-			comp_cls_str = format_plugin_comp_cls_opt(
-				bt_error_cause_message_iterator_actor_get_plugin_name(cause),
-				bt_error_cause_message_iterator_actor_get_component_class_name(cause),
-				bt_error_cause_message_iterator_actor_get_component_class_type(cause),
-				use_colors);
-			BT_ASSERT(comp_cls_str);
-
-			g_string_append_printf(str, "%s%s%s (%s%s%s): %s",
-				codes.bold,
-				bt_error_cause_message_iterator_actor_get_component_name(cause),
-				codes.reset,
-				codes.bold,
-				bt_error_cause_message_iterator_actor_get_component_output_port_name(cause),
-				codes.reset,
-				comp_cls_str);
-
-			break;
-		default:
-			bt_common_abort();
-		}
-
-		/* Print file name and line number */
-		g_string_append_printf(str, "] (%s%s%s%s:%s%" PRIu64 "%s)\n",
-			codes.bold,
-			codes.fg_bright_magenta,
-			bt_error_cause_get_file_name(cause),
-			codes.reset,
-			codes.fg_green,
-			bt_error_cause_get_line_number(cause),
-			codes.reset);
-
-		/* Print message */
-		folded = bt_common_fold(bt_error_cause_get_message(cause),
-			columns, 2);
-		if (folded) {
-			g_string_append(str, folded->str);
-			g_string_free(folded, TRUE);
-			folded = NULL;
-		} else {
-			BT_LOGE_STR("Could not fold string.");
-			g_string_append(str, bt_error_cause_get_message(cause));
-		}
+		g_string_append(str, error_cause_str);
 
 		/*
 		 * Don't append a newline at the end, since that is used to
@@ -149,7 +176,7 @@ gchar *format_bt_error(
 		}
 	}
 
-	g_free(comp_cls_str);
+	g_free(error_cause_str);
 
 	return g_string_free(str, FALSE);
 }
