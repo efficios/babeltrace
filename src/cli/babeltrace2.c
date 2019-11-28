@@ -27,6 +27,7 @@
 
 #include <babeltrace2/babeltrace.h>
 #include "common/common.h"
+#include "string-format/format-error.h"
 #include "string-format/format-plugin-comp-cls-name.h"
 #include <unistd.h>
 #include <stdlib.h>
@@ -2591,10 +2592,8 @@ static
 void print_error_causes(void)
 {
 	const bt_error *error = bt_current_thread_take_error();
-	int64_t i;
-	GString *folded = NULL;
 	unsigned int columns;
-	gchar *comp_cls_str = NULL;
+	gchar *error_str = NULL;
 
 	if (!error || bt_error_get_cause_count(error) == 0) {
 		fprintf(stderr, "%s%sUnknown command-line error.%s\n",
@@ -2613,108 +2612,20 @@ void print_error_causes(void)
 	 * This helps visually separate the error causes from the last
 	 * logging statement.
 	 */
-	fprintf(stderr, "\n");
+	fputc('\n',  stderr);
 
-	/* Reverse order: deepest (root) cause printed at the end */
-	for (i = bt_error_get_cause_count(error) - 1; i >= 0; i--) {
-		const bt_error_cause *cause =
-			bt_error_borrow_cause_by_index(error, (uint64_t) i);
-		const char *prefix_fmt =
-			i == bt_error_get_cause_count(error) - 1 ?
-				"%s%sERROR%s:    " : "%s%sCAUSED BY%s ";
+	error_str = format_bt_error(error, columns, bt_cli_log_level,
+		BT_COMMON_COLOR_WHEN_AUTO);
+	BT_ASSERT(error_str);
 
-		/* Print prefix */
-		fprintf(stderr, prefix_fmt,
-			bt_common_color_bold(), bt_common_color_fg_bright_red(),
-			bt_common_color_reset());
-
-		/* Print actor name */
-		fprintf(stderr, "[");
-		switch (bt_error_cause_get_actor_type(cause)) {
-		case BT_ERROR_CAUSE_ACTOR_TYPE_UNKNOWN:
-			fprintf(stderr, "%s%s%s",
-				bt_common_color_bold(),
-				bt_error_cause_get_module_name(cause),
-				bt_common_color_reset());
-			break;
-		case BT_ERROR_CAUSE_ACTOR_TYPE_COMPONENT:
-			comp_cls_str = format_plugin_comp_cls_opt(
-				bt_error_cause_component_actor_get_plugin_name(cause),
-				bt_error_cause_component_actor_get_component_class_name(cause),
-				bt_error_cause_component_actor_get_component_class_type(cause),
-				BT_COMMON_COLOR_WHEN_AUTO);
-			BT_ASSERT(comp_cls_str);
-
-			fprintf(stderr, "%s%s%s: %s",
-				bt_common_color_bold(),
-				bt_error_cause_component_actor_get_component_name(cause),
-				bt_common_color_reset(),
-				comp_cls_str);
-			break;
-		case BT_ERROR_CAUSE_ACTOR_TYPE_COMPONENT_CLASS:
-			comp_cls_str = format_plugin_comp_cls_opt(
-				bt_error_cause_component_class_actor_get_plugin_name(cause),
-				bt_error_cause_component_class_actor_get_component_class_name(cause),
-				bt_error_cause_component_class_actor_get_component_class_type(cause),
-				BT_COMMON_COLOR_WHEN_AUTO);
-			BT_ASSERT(comp_cls_str);
-
-			fputs(comp_cls_str, stderr);
-			break;
-		case BT_ERROR_CAUSE_ACTOR_TYPE_MESSAGE_ITERATOR:
-			comp_cls_str = format_plugin_comp_cls_opt(
-				bt_error_cause_message_iterator_actor_get_plugin_name(cause),
-				bt_error_cause_message_iterator_actor_get_component_class_name(cause),
-				bt_error_cause_message_iterator_actor_get_component_class_type(cause)
-				,BT_COMMON_COLOR_WHEN_AUTO);
-			BT_ASSERT(comp_cls_str);
-
-			fprintf(stderr, "%s%s%s (%s%s%s): %s",
-				bt_common_color_bold(),
-				bt_error_cause_message_iterator_actor_get_component_name(cause),
-				bt_common_color_reset(),
-				bt_common_color_bold(),
-				bt_error_cause_message_iterator_actor_get_component_output_port_name(cause),
-				bt_common_color_reset(),
-				comp_cls_str);
-			break;
-		default:
-			bt_common_abort();
-		}
-
-		/* Print file name and line number */
-		fprintf(stderr, "] (%s%s%s%s:%s%" PRIu64 "%s)\n",
-			bt_common_color_bold(),
-			bt_common_color_fg_bright_magenta(),
-			bt_error_cause_get_file_name(cause),
-			bt_common_color_reset(),
-			bt_common_color_fg_green(),
-			bt_error_cause_get_line_number(cause),
-			bt_common_color_reset());
-
-		/* Print message */
-		folded = bt_common_fold(bt_error_cause_get_message(cause),
-			columns, 2);
-		if (!folded) {
-			BT_LOGE_STR("Could not fold string.");
-			fprintf(stderr, "%s\n",
-				bt_error_cause_get_message(cause));
-			continue;
-		}
-
-		fprintf(stderr, "%s\n", folded->str);
-		g_string_free(folded, TRUE);
-		folded = NULL;
-	}
+	fprintf(stderr, "%s\n", error_str);
 
 end:
-	BT_ASSERT(!folded);
-
 	if (error) {
 		bt_error_release(error);
 	}
 
-	g_free(comp_cls_str);
+	g_free(error_str);
 }
 
 int main(int argc, const char **argv)
