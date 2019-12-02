@@ -32,6 +32,13 @@
 #include "common/macros.h"
 
 /*
+ * Formats the Python traceback `py_exc_tb` using traceback.format_tb, from the
+ * Python standard library, and return it as a Gstring.
+ */
+BT_HIDDEN
+GString *bt_py_common_format_tb(PyObject *py_exc_tb, int log_level);
+
+/*
  * Formats the Python exception described by `py_exc_type`, `py_exc_value`
  * and `py_exc_tb` and returns the formatted string, or `NULL` on error. The
  * returned string does NOT end with a newline.
