@@ -33,6 +33,130 @@
 #include "common/assert.h"
 #include "py-common.h"
 
+/*
+ * Concatenate strings in list `py_str_list`, returning the result as a
+ * GString.  Remove the trailing \n, if the last string ends with a \n.
+ */
+static
+GString *py_str_list_to_gstring(PyObject *py_str_list, int log_level)
+{
+	Py_ssize_t i;
+	GString *gstr;
+
+	gstr = g_string_new(NULL);
+	if (!gstr) {
+		BT_LOGE("Failed to allocate a GString.");
+		goto end;
+	}
+
+	for (i = 0; i < PyList_Size(py_str_list); i++) {
+		PyObject *py_str;
+		const char *str;
+
+		py_str = PyList_GetItem(py_str_list, i);
+		BT_ASSERT(py_str);
+		BT_ASSERT(PyUnicode_CheckExact(py_str));
+
+		/* `str` is owned by `py_str`, not by us */
+		str = PyUnicode_AsUTF8(py_str);
+		if (!str) {
+			if (BT_LOG_ON_ERROR) {
+				BT_LOGE_STR("PyUnicode_AsUTF8() failed:");
+				PyErr_Print();
+			}
+
+			goto error;
+		}
+
+		/* `str` has a trailing newline */
+		g_string_append(gstr, str);
+	}
+
+	if (gstr->len > 0) {
+		/* Remove trailing newline if any */
+		if (gstr->str[gstr->len - 1] == '\n') {
+			g_string_truncate(gstr, gstr->len - 1);
+		}
+	}
+
+	goto end;
+
+error:
+	g_string_free(gstr, TRUE);
+	gstr = NULL;
+
+end:
+	return gstr;
+}
+
+BT_HIDDEN
+GString *bt_py_common_format_tb(PyObject *py_exc_tb, int log_level)
+{
+	PyObject *traceback_module = NULL;
+	PyObject *format_tb_func = NULL;
+	PyObject *exc_str_list = NULL;
+	GString *msg_buf = NULL;
+
+	BT_ASSERT(py_exc_tb);
+
+	/*
+	 * Import the standard `traceback` module which contains the
+	 * functions to format a traceback.
+	 */
+	traceback_module = PyImport_ImportModule("traceback");
+	if (!traceback_module) {
+		BT_LOGE_STR("Failed to import `traceback` module.");
+		goto error;
+	}
+
+	format_tb_func = PyObject_GetAttrString(traceback_module,
+		"format_tb");
+	if (!format_tb_func) {
+		BT_LOGE("Cannot find `format_tb` attribute in `traceback` module.");
+		goto error;
+	}
+
+	if (!PyCallable_Check(format_tb_func)) {
+		BT_LOGE("`traceback.format_tb` attribute is not callable.");
+		goto error;
+	}
+
+	/*
+	 * If we are calling format_exception_only, `py_exc_tb` is NULL, so the
+	 * effective argument list is of length 2.
+	 */
+	exc_str_list = PyObject_CallFunctionObjArgs(
+		format_tb_func, py_exc_tb, NULL);
+	if (!exc_str_list) {
+		if (BT_LOG_ON_ERROR) {
+			BT_LOGE("Failed to call `traceback.format_tb` function:");
+			PyErr_Print();
+		}
+
+		goto error;
+	}
+
+	msg_buf = py_str_list_to_gstring(exc_str_list, log_level);
+	if (!msg_buf) {
+		goto error;
+	}
+
+	goto end;
+
+error:
+	if (msg_buf) {
+		g_string_free(msg_buf, TRUE);
+		msg_buf = NULL;
+	}
+
+end:
+	Py_XDECREF(traceback_module);
+	Py_XDECREF(format_tb_func);
+	Py_XDECREF(exc_str_list);
+
+	return msg_buf;
+}
+
 BT_HIDDEN
 GString *bt_py_common_format_exception(PyObject *py_exc_type,
 		PyObject *py_exc_value, PyObject *py_exc_tb,
@@ -43,7 +167,6 @@ GString *bt_py_common_format_exception(PyObject *py_exc_type,
 	PyObject *exc_str_list = NULL;
 	GString *msg_buf = NULL;
 	const char *format_exc_func_name;
-	Py_ssize_t i;
 
 	/*
 	 * Import the standard `traceback` module which contains the
@@ -94,35 +217,9 @@ GString *bt_py_common_format_exception(PyObject *py_exc_type,
 		goto error;
 	}
 
-	msg_buf = g_string_new(NULL);
-
-	for (i = 0; i < PyList_Size(exc_str_list); i++) {
-		PyObject *exc_str;
-		const char *str;
-
-		exc_str = PyList_GetItem(exc_str_list, i);
-		BT_ASSERT(exc_str);
-
-		/* `str` is owned by `exc_str`, not by us */
-		str = PyUnicode_AsUTF8(exc_str);
-		if (!str) {
-			if (BT_LOG_ON_ERROR) {
-				BT_LOGE_STR("PyUnicode_AsUTF8() failed:");
-				PyErr_Print();
-			}
-
-			goto error;
-		}
-
-		/* `str` has a trailing newline */
-		g_string_append(msg_buf, str);
-	}
-
-	if (msg_buf->len > 0) {
-		/* Remove trailing newline if any */
-		if (msg_buf->str[msg_buf->len - 1] == '\n') {
-			g_string_truncate(msg_buf, msg_buf->len - 1);
-		}
+	msg_buf = py_str_list_to_gstring(exc_str_list, log_level);
+	if (!msg_buf) {
+		goto error;
 	}
 
 	goto end;

@@ -37,9 +37,10 @@ void restore_current_thread_error_and_append_exception_chain_recursive(
 	PyObject *py_exc_cause_value;
 	PyObject *py_exc_type = NULL;
 	PyObject *py_exc_tb = NULL;
+	PyObject *py_bt_error_msg = NULL;
 	GString *gstr = NULL;
 
-	/* If this exception has a cause, handle that one first. */
+	/* If this exception has a (Python) cause, handle that one first. */
 	py_exc_cause_value = PyException_GetCause(py_exc_value);
 	if (py_exc_cause_value) {
 		restore_current_thread_error_and_append_exception_chain_recursive(
@@ -48,17 +49,20 @@ void restore_current_thread_error_and_append_exception_chain_recursive(
 			self_message_iterator, module_name);
 	}
 
-	/*
-	 * If the raised exception is a bt2._Error, restore the wrapped error.
-	 */
+	py_exc_tb = PyException_GetTraceback(py_exc_value);
+
 	if (PyErr_GivenExceptionMatches(py_exc_value, py_mod_bt2_exc_error_type)) {
+		/*
+		 * If the raised exception is a bt2._Error, restore the wrapped
+		 * error.
+		 */
 		PyObject *py_error_swig_ptr;
 		const bt_error *error;
 		int ret;
 
 		/*
-		 * We never raise a bt2._Error with a cause: it should be the
-		 * end of the chain.
+		 * We never raise a bt2._Error with a (Python) cause: it should
+		 * be the end of the chain.
 		 */
 		BT_ASSERT(!py_exc_cause_value);
 
@@ -76,19 +80,37 @@ void restore_current_thread_error_and_append_exception_chain_recursive(
 			SWIGTYPE_p_bt_error, 0);
 		BT_ASSERT(ret == 0);
 
+		Py_DECREF(py_error_swig_ptr);
+
 		BT_CURRENT_THREAD_MOVE_ERROR_AND_RESET(error);
 
-		Py_DECREF(py_error_swig_ptr);
-	}
+		/*
+		 * Append a cause with just the traceback and message, not the
+		 * full str() of the bt2._Error.  We don't want the causes of
+		 * this bt2._Error to be included in the cause we create.
+		 */
+		gstr = bt_py_common_format_tb(py_exc_tb, active_log_level);
+		if (!gstr) {
+			/* bt_py_common_format_tb has already warned. */
+			goto end;
+		}
 
-	py_exc_type = PyObject_Type(py_exc_value);
-	py_exc_tb = PyException_GetTraceback(py_exc_value);
+		g_string_prepend(gstr, "Traceback (most recent call last):\n");
 
-	gstr = bt_py_common_format_exception(py_exc_type, py_exc_value,
-			py_exc_tb, active_log_level, false);
-	if (!gstr) {
-		/* bt_py_common_format_exception has already warned. */
-		goto end;
+		py_bt_error_msg = PyObject_GetAttrString(py_exc_value, "_msg");
+		BT_ASSERT(py_bt_error_msg);
+
+		g_string_append_printf(gstr, "\nbt2._Error: %s",
+			PyUnicode_AsUTF8(py_bt_error_msg));
+	} else {
+		py_exc_type = PyObject_Type(py_exc_value);
+
+		gstr = bt_py_common_format_exception(py_exc_type, py_exc_value,
+				py_exc_tb, active_log_level, false);
+		if (!gstr) {
+			/* bt_py_common_format_exception has already warned. */
+			goto end;
+		}
 	}
 
 	if (self_component_class) {
@@ -113,6 +135,7 @@ end:
 	Py_XDECREF(py_exc_cause_value);
 	Py_XDECREF(py_exc_type);
 	Py_XDECREF(py_exc_tb);
+	Py_XDECREF(py_bt_error_msg);
 }
 
 /*
