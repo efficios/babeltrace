@@ -213,6 +213,6 @@ class _Error(Exception, abc.Sequence):
 
     def __str__(self):
         s = self._msg + '\n'
-        for c in self:
+        for c in reversed(self):
             s += str(c) + '\n'
         return s
