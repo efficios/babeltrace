@@ -162,7 +162,7 @@ class _Error(Exception, abc.Sequence):
     the ERROR or MEMORY_ERROR status codes.
     """
 
-    def __init__(self, msg, ptr=None):
+    def __init__(self, msg):
         super().__init__(msg)
         # Steal the current thread's error.
         self._ptr = native_bt.current_thread_take_error()
