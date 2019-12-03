@@ -92,7 +92,7 @@ bt_field_array_borrow_element_field_by_index_const(
 extern const bt_field *
 bt_field_option_borrow_field_const(const bt_field *field);
 
-extern uint64_t bt_field_variant_get_selected_option_field_index(
+extern uint64_t bt_field_variant_get_selected_option_index(
 		const bt_field *field);
 
 extern const bt_field *
@@ -100,15 +100,15 @@ bt_field_variant_borrow_selected_option_field_const(
 		const bt_field *field);
 
 extern const bt_field_class_variant_option *
-bt_field_variant_borrow_selected_class_option_const(
+bt_field_variant_borrow_selected_option_class_const(
 		const bt_field *field);
 
 extern const bt_field_class_variant_with_selector_field_integer_unsigned_option *
-bt_field_variant_with_unsigned_integer_selector_borrow_selected_class_option_const(
+bt_field_variant_with_selector_field_integer_unsigned_borrow_selected_option_class_const(
 		const bt_field *field);
 
 extern const bt_field_class_variant_with_selector_field_integer_signed_option *
-bt_field_variant_with_signed_integer_selector_borrow_selected_class_option_const(
+bt_field_variant_with_selector_field_integer_signed_borrow_selected_option_class_const(
 		const bt_field *field);
 
 #ifdef __cplusplus
