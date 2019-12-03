@@ -1144,7 +1144,7 @@ borrow_variant_field_selected_class_option(const struct bt_field *field)
 }
 
 const struct bt_field_class_variant_option *
-bt_field_variant_borrow_selected_class_option_const(
+bt_field_variant_borrow_selected_option_class_const(
 		const struct bt_field *field)
 {
 	BT_ASSERT_PRE_DEV_NON_NULL(field, "Field");
@@ -1153,7 +1153,7 @@ bt_field_variant_borrow_selected_class_option_const(
 }
 
 const struct bt_field_class_variant_with_selector_field_integer_unsigned_option *
-bt_field_variant_with_unsigned_integer_selector_borrow_selected_class_option_const(
+bt_field_variant_with_selector_field_integer_unsigned_borrow_selected_option_class_const(
 		const struct bt_field *field)
 {
 	BT_ASSERT_PRE_DEV_NON_NULL(field, "Field");
@@ -1163,7 +1163,7 @@ bt_field_variant_with_unsigned_integer_selector_borrow_selected_class_option_con
 }
 
 const struct bt_field_class_variant_with_selector_field_integer_signed_option *
-bt_field_variant_with_signed_integer_selector_borrow_selected_class_option_const(
+bt_field_variant_with_selector_field_integer_signed_borrow_selected_option_class_const(
 		const struct bt_field *field)
 {
 	BT_ASSERT_PRE_DEV_NON_NULL(field, "Field");
@@ -1172,8 +1172,8 @@ bt_field_variant_with_signed_integer_selector_borrow_selected_class_option_const
 	return (const void *) borrow_variant_field_selected_class_option(field);
 }
 
-enum bt_field_variant_select_option_field_by_index_status
-bt_field_variant_select_option_field_by_index(
+enum bt_field_variant_select_option_by_index_status
+bt_field_variant_select_option_by_index(
 		struct bt_field *field, uint64_t index)
 {
 	struct bt_field_variant *var_field = (void *) field;
@@ -1188,7 +1188,7 @@ bt_field_variant_select_option_field_by_index(
 	return BT_FUNC_STATUS_OK;
 }
 
-uint64_t bt_field_variant_get_selected_option_field_index(
+uint64_t bt_field_variant_get_selected_option_index(
 		const struct bt_field *field)
 {
 	const struct bt_field_variant *var_field = (const void *) field;

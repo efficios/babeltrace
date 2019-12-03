@@ -2423,7 +2423,7 @@ struct ctf_field_class *bfcr_borrow_variant_selected_field_class_cb(
 	if (selected_option->fc->in_ir && !msg_it->dry_run) {
 		bt_field *var_field = stack_top(msg_it->stack)->base;
 
-		ret = bt_field_variant_select_option_field_by_index(
+		ret = bt_field_variant_select_option_by_index(
 			var_field, option_index);
 		if (ret) {
 			BT_COMP_LOGE_APPEND_CAUSE(self_comp,

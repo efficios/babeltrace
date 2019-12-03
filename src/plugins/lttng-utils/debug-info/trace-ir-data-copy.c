@@ -423,18 +423,18 @@ enum debug_info_trace_ir_mapping_status copy_field_content(
 		}
 	} else if (bt_field_class_type_is(in_fc_type,
 			BT_FIELD_CLASS_TYPE_VARIANT)) {
-		bt_field_variant_select_option_field_by_index_status sel_opt_status;
+		bt_field_variant_select_option_by_index_status sel_opt_status;
 		uint64_t in_selected_option_idx;
 		const bt_field *in_option_field;
 		bt_field *out_option_field;
 
 		in_selected_option_idx =
-			bt_field_variant_get_selected_option_field_index(
+			bt_field_variant_get_selected_option_index(
 				in_field);
-		sel_opt_status = bt_field_variant_select_option_field_by_index(out_field,
+		sel_opt_status = bt_field_variant_select_option_by_index(out_field,
 			in_selected_option_idx);
 		if (sel_opt_status !=
-				BT_FIELD_VARIANT_SELECT_OPTION_FIELD_STATUS_OK) {
+				BT_FIELD_VARIANT_SELECT_OPTION_STATUS_OK) {
 			BT_COMP_LOGE_APPEND_CAUSE(self_comp,
 				"Cannot select variant field's option field: "
 				"out-var-f-addr=%p, opt-index=%" PRId64,

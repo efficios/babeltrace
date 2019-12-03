@@ -97,12 +97,12 @@ extern void bt_field_option_set_has_field(bt_field *field, bt_bool has_field);
 
 extern bt_field *bt_field_option_borrow_field(bt_field *field);
 
-typedef enum bt_field_variant_select_option_field_by_index_status {
-	BT_FIELD_VARIANT_SELECT_OPTION_FIELD_STATUS_OK		= __BT_FUNC_STATUS_OK,
-} bt_field_variant_select_option_field_by_index_status;
+typedef enum bt_field_variant_select_option_by_index_status {
+	BT_FIELD_VARIANT_SELECT_OPTION_STATUS_OK		= __BT_FUNC_STATUS_OK,
+} bt_field_variant_select_option_by_index_status;
 
-extern bt_field_variant_select_option_field_by_index_status
-bt_field_variant_select_option_field_by_index(
+extern bt_field_variant_select_option_by_index_status
+bt_field_variant_select_option_by_index(
 		bt_field *field, uint64_t index);
 
 extern bt_field *bt_field_variant_borrow_selected_option_field(

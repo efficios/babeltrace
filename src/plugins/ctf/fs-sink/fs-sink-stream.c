@@ -391,7 +391,7 @@ int write_variant_field(struct fs_sink_stream *stream,
 		const bt_field *field)
 {
 	uint64_t opt_index =
-		bt_field_variant_get_selected_option_field_index(field);
+		bt_field_variant_get_selected_option_index(field);
 	int ret;
 
 	if (fc->tag_is_before) {

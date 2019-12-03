@@ -752,7 +752,7 @@ class _VariantFieldConst(_ContainerFieldConst, _FieldConst):
 
     @property
     def selected_option_index(self):
-        return native_bt.field_variant_get_selected_option_field_index(self._ptr)
+        return native_bt.field_variant_get_selected_option_index(self._ptr)
 
     @property
     def selected_option(self):
@@ -788,7 +788,7 @@ class _VariantField(_VariantFieldConst, _ContainerField, _Field):
         if index < 0 or index >= len(self):
             raise IndexError('{} field object index is out of range'.format(self._NAME))
 
-        native_bt.field_variant_select_option_field_by_index(self._ptr, index)
+        native_bt.field_variant_select_option_by_index(self._ptr, index)
 
     selected_option_index = property(
         fget=_VariantFieldConst.selected_option_index.fget, fset=_selected_option_index
