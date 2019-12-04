@@ -1276,21 +1276,21 @@ void print_expected_params_format(FILE *fp)
 
 static
 bool help_option_is_specified(
-		const struct bt_argpar_parse_ret *argpar_parse_ret)
+		const struct argpar_parse_ret *argpar_parse_ret)
 {
 	int i;
 	bool specified = false;
 
-	for (i = 0; i < argpar_parse_ret->items->len; i++) {
-		struct bt_argpar_item *argpar_item =
-			g_ptr_array_index(argpar_parse_ret->items, i);
-		struct bt_argpar_item_opt *argpar_item_opt;
+	for (i = 0; i < argpar_parse_ret->items->n_items; i++) {
+		struct argpar_item *argpar_item =
+			argpar_parse_ret->items->items[i];
+		struct argpar_item_opt *argpar_item_opt;
 
-		if (argpar_item->type != BT_ARGPAR_ITEM_TYPE_OPT) {
+		if (argpar_item->type != ARGPAR_ITEM_TYPE_OPT) {
 			continue;
 		}
 
-		argpar_item_opt = (struct bt_argpar_item_opt *) argpar_item;
+		argpar_item_opt = (struct argpar_item_opt *) argpar_item;
 		if (argpar_item_opt->descr->id == OPT_HELP) {
 			specified = true;
 			break;
@@ -1319,10 +1319,10 @@ void print_help_usage(FILE *fp)
 }
 
 static
-const struct bt_argpar_opt_descr help_options[] = {
+const struct argpar_opt_descr help_options[] = {
 	/* id, short_name, long_name, with_arg */
 	{ OPT_HELP, 'h', "help", false },
-	BT_ARGPAR_OPT_DESCR_SENTINEL
+	ARGPAR_OPT_DESCR_SENTINEL
 };
 
 /*
@@ -1338,8 +1338,8 @@ struct bt_config *bt_config_help_from_args(int argc, const char *argv[],
 {
 	struct bt_config *cfg = NULL;
 	char *plugin_name = NULL, *comp_cls_name = NULL;
-	struct bt_argpar_parse_ret argpar_parse_ret = { 0 };
-	struct bt_argpar_item_non_opt *non_opt;
+	struct argpar_parse_ret argpar_parse_ret = { 0 };
+	struct argpar_item_non_opt *non_opt;
 	GString *substring = NULL;
 	size_t end_pos;
 
@@ -1350,11 +1350,11 @@ struct bt_config *bt_config_help_from_args(int argc, const char *argv[],
 	}
 
 	/* Parse options */
-	argpar_parse_ret = bt_argpar_parse(argc, argv, help_options, true);
+	argpar_parse_ret = argpar_parse(argc, argv, help_options, true);
 	if (argpar_parse_ret.error) {
 		BT_CLI_LOGE_APPEND_CAUSE(
 			"While parsing `help` command's command-line arguments: %s",
-			argpar_parse_ret.error->str);
+			argpar_parse_ret.error);
 		goto error;
 	}
 
@@ -1365,24 +1365,24 @@ struct bt_config *bt_config_help_from_args(int argc, const char *argv[],
 		goto end;
 	}
 
-	if (argpar_parse_ret.items->len == 0) {
+	if (argpar_parse_ret.items->n_items == 0) {
 		BT_CLI_LOGE_APPEND_CAUSE(
 			"Missing plugin name or component class descriptor.");
 		goto error;
-	} else if (argpar_parse_ret.items->len > 1) {
+	} else if (argpar_parse_ret.items->n_items > 1) {
 		/*
 		 * At this point we know there are least two non-option
 		 * arguments because we don't reach here with `--help`,
 		 * the only option.
 		 */
-		non_opt = argpar_parse_ret.items->pdata[1];
+		non_opt = (struct argpar_item_non_opt *) argpar_parse_ret.items->items[1];
 		BT_CLI_LOGE_APPEND_CAUSE(
 			"Extraneous command-line argument specified to `help` command: `%s`.",
 			non_opt->arg);
 		goto error;
 	}
 
-	non_opt = argpar_parse_ret.items->pdata[0];
+	non_opt = (struct argpar_item_non_opt *) argpar_parse_ret.items->items[0];
 
 	/* Look for unescaped dots in the argument. */
 	substring = bt_common_string_until(non_opt->arg, ".\\", ".", &end_pos);
@@ -1429,7 +1429,7 @@ end:
 		g_string_free(substring, TRUE);
 	}
 
-	bt_argpar_parse_ret_fini(&argpar_parse_ret);
+	argpar_parse_ret_fini(&argpar_parse_ret);
 
 	return cfg;
 }
@@ -1452,11 +1452,11 @@ void print_query_usage(FILE *fp)
 }
 
 static
-const struct bt_argpar_opt_descr query_options[] = {
+const struct argpar_opt_descr query_options[] = {
 	/* id, short_name, long_name, with_arg */
 	{ OPT_HELP, 'h', "help", false },
 	{ OPT_PARAMS, 'p', "params", true },
-	BT_ARGPAR_OPT_DESCR_SENTINEL
+	ARGPAR_OPT_DESCR_SENTINEL
 };
 
 /*
@@ -1475,7 +1475,7 @@ struct bt_config *bt_config_query_from_args(int argc, const char *argv[],
 	const char *component_class_spec = NULL;
 	const char *query_object = NULL;
 	GString *error_str = NULL;
-	struct bt_argpar_parse_ret argpar_parse_ret = { 0 };
+	struct argpar_parse_ret argpar_parse_ret = { 0 };
 
 	bt_value *params = bt_value_map_create();
 	if (!params) {
@@ -1496,11 +1496,11 @@ struct bt_config *bt_config_query_from_args(int argc, const char *argv[],
 	}
 
 	/* Parse options */
-	argpar_parse_ret = bt_argpar_parse(argc, argv, query_options, true);
+	argpar_parse_ret = argpar_parse(argc, argv, query_options, true);
 	if (argpar_parse_ret.error) {
 		BT_CLI_LOGE_APPEND_CAUSE(
 			"While parsing `query` command's command-line arguments: %s",
-			argpar_parse_ret.error->str);
+			argpar_parse_ret.error);
 		goto error;
 	}
 
@@ -1511,13 +1511,13 @@ struct bt_config *bt_config_query_from_args(int argc, const char *argv[],
 		goto end;
 	}
 
-	for (i = 0; i < argpar_parse_ret.items->len; i++) {
-		struct bt_argpar_item *argpar_item =
-			g_ptr_array_index(argpar_parse_ret.items, i);
+	for (i = 0; i < argpar_parse_ret.items->n_items; i++) {
+		struct argpar_item *argpar_item =
+			argpar_parse_ret.items->items[i];
 
-		if (argpar_item->type == BT_ARGPAR_ITEM_TYPE_OPT) {
-			struct bt_argpar_item_opt *argpar_item_opt =
-				(struct bt_argpar_item_opt *) argpar_item;
+		if (argpar_item->type == ARGPAR_ITEM_TYPE_OPT) {
+			struct argpar_item_opt *argpar_item_opt =
+				(struct argpar_item_opt *) argpar_item;
 			const char *arg = argpar_item_opt->arg;
 
 			switch (argpar_item_opt->descr->id) {
@@ -1546,8 +1546,8 @@ struct bt_config *bt_config_query_from_args(int argc, const char *argv[],
 				goto error;
 			}
 		} else {
-			struct bt_argpar_item_non_opt *argpar_item_non_opt
-				= (struct bt_argpar_item_non_opt *) argpar_item;
+			struct argpar_item_non_opt *argpar_item_non_opt
+				= (struct argpar_item_non_opt *) argpar_item;
 
 			/*
 			 * We need exactly two non-option arguments
@@ -1598,7 +1598,7 @@ error:
 	BT_OBJECT_PUT_REF_AND_RESET(cfg);
 
 end:
-	bt_argpar_parse_ret_fini(&argpar_parse_ret);
+	argpar_parse_ret_fini(&argpar_parse_ret);
 
 	if (error_str) {
 		g_string_free(error_str, TRUE);
@@ -1626,10 +1626,10 @@ void print_list_plugins_usage(FILE *fp)
 }
 
 static
-const struct bt_argpar_opt_descr list_plugins_options[] = {
+const struct argpar_opt_descr list_plugins_options[] = {
 	/* id, short_name, long_name, with_arg */
 	{ OPT_HELP, 'h', "help", false },
-	BT_ARGPAR_OPT_DESCR_SENTINEL
+	ARGPAR_OPT_DESCR_SENTINEL
 };
 
 /*
@@ -1643,7 +1643,7 @@ struct bt_config *bt_config_list_plugins_from_args(int argc, const char *argv[],
 		int *retcode, const bt_value *plugin_paths)
 {
 	struct bt_config *cfg = NULL;
-	struct bt_argpar_parse_ret argpar_parse_ret = { 0 };
+	struct argpar_parse_ret argpar_parse_ret = { 0 };
 
 	*retcode = 0;
 	cfg = bt_config_list_plugins_create(plugin_paths);
@@ -1652,11 +1652,11 @@ struct bt_config *bt_config_list_plugins_from_args(int argc, const char *argv[],
 	}
 
 	/* Parse options */
-	argpar_parse_ret = bt_argpar_parse(argc, argv, list_plugins_options, true);
+	argpar_parse_ret = argpar_parse(argc, argv, list_plugins_options, true);
 	if (argpar_parse_ret.error) {
 		BT_CLI_LOGE_APPEND_CAUSE(
 			"While parsing `list-plugins` command's command-line arguments: %s",
-			argpar_parse_ret.error->str);
+			argpar_parse_ret.error);
 		goto error;
 	}
 
@@ -1667,14 +1667,14 @@ struct bt_config *bt_config_list_plugins_from_args(int argc, const char *argv[],
 		goto end;
 	}
 
-	if (argpar_parse_ret.items->len > 0) {
+	if (argpar_parse_ret.items->n_items > 0) {
 		/*
 		 * At this point we know there's at least one non-option
 		 * argument because we don't reach here with `--help`,
 		 * the only option.
 		 */
-		struct bt_argpar_item_non_opt *non_opt =
-			argpar_parse_ret.items->pdata[0];
+		struct argpar_item_non_opt *non_opt =
+			(struct argpar_item_non_opt *) argpar_parse_ret.items->items[0];
 
 		BT_CLI_LOGE_APPEND_CAUSE(
 			"Extraneous command-line argument specified to `list-plugins` command: `%s`.",
@@ -1689,7 +1689,7 @@ error:
 	BT_OBJECT_PUT_REF_AND_RESET(cfg);
 
 end:
-	bt_argpar_parse_ret_fini(&argpar_parse_ret);
+	argpar_parse_ret_fini(&argpar_parse_ret);
 
 	return cfg;
 }
@@ -1787,10 +1787,10 @@ struct bt_config *bt_config_run_from_args(int argc, const char *argv[],
 	long retry_duration = -1;
 	bt_value_map_extend_status extend_status;
 	GString *error_str = NULL;
-	struct bt_argpar_parse_ret argpar_parse_ret = { 0 };
+	struct argpar_parse_ret argpar_parse_ret = { 0 };
 	int i;
 
-	static const struct bt_argpar_opt_descr run_options[] = {
+	static const struct argpar_opt_descr run_options[] = {
 		{ OPT_BASE_PARAMS, 'b', "base-params", true },
 		{ OPT_COMPONENT, 'c', "component", true },
 		{ OPT_CONNECT, 'x', "connect", true },
@@ -1799,7 +1799,7 @@ struct bt_config *bt_config_run_from_args(int argc, const char *argv[],
 		{ OPT_PARAMS, 'p', "params", true },
 		{ OPT_RESET_BASE_PARAMS, 'r', "reset-base-params", false },
 		{ OPT_RETRY_DURATION, '\0', "retry-duration", true },
-		BT_ARGPAR_OPT_DESCR_SENTINEL
+		ARGPAR_OPT_DESCR_SENTINEL
 	};
 
 	*retcode = 0;
@@ -1841,11 +1841,11 @@ struct bt_config *bt_config_run_from_args(int argc, const char *argv[],
 	}
 
 	/* Parse options */
-	argpar_parse_ret = bt_argpar_parse(argc, argv, run_options, true);
+	argpar_parse_ret = argpar_parse(argc, argv, run_options, true);
 	if (argpar_parse_ret.error) {
 		BT_CLI_LOGE_APPEND_CAUSE(
 			"While parsing `run` command's command-line arguments: %s",
-			argpar_parse_ret.error->str);
+			argpar_parse_ret.error);
 		goto error;
 	}
 
@@ -1856,23 +1856,23 @@ struct bt_config *bt_config_run_from_args(int argc, const char *argv[],
 		goto end;
 	}
 
-	for (i = 0; i < argpar_parse_ret.items->len; i++) {
-		struct bt_argpar_item *argpar_item =
-			g_ptr_array_index(argpar_parse_ret.items, i);
-		struct bt_argpar_item_opt *argpar_item_opt;
+	for (i = 0; i < argpar_parse_ret.items->n_items; i++) {
+		struct argpar_item *argpar_item =
+			argpar_parse_ret.items->items[i];
+		struct argpar_item_opt *argpar_item_opt;
 		const char *arg;
 
 		/* This command does not accept non-option arguments.*/
-		if (argpar_item->type == BT_ARGPAR_ITEM_TYPE_NON_OPT) {
-			struct bt_argpar_item_non_opt *argpar_nonopt_item =
-				(struct bt_argpar_item_non_opt *) argpar_item;
+		if (argpar_item->type == ARGPAR_ITEM_TYPE_NON_OPT) {
+			struct argpar_item_non_opt *argpar_nonopt_item =
+				(struct argpar_item_non_opt *) argpar_item;
 
 			BT_CLI_LOGE_APPEND_CAUSE("Unexpected argument: `%s`",
 				argpar_nonopt_item->arg);
 			goto error;
 		}
 
-		argpar_item_opt = (struct bt_argpar_item_opt *) argpar_item;
+		argpar_item_opt = (struct argpar_item_opt *) argpar_item;
 		arg = argpar_item_opt->arg;
 
 		switch (argpar_item_opt->descr->id) {
@@ -2052,7 +2052,7 @@ end:
 		g_string_free(error_str, TRUE);
 	}
 
-	bt_argpar_parse_ret_fini(&argpar_parse_ret);
+	argpar_parse_ret_fini(&argpar_parse_ret);
 	BT_OBJECT_PUT_REF_AND_RESET(cur_cfg_comp);
 	BT_VALUE_PUT_REF_AND_RESET(cur_base_params);
 	BT_VALUE_PUT_REF_AND_RESET(instance_names);
@@ -2219,7 +2219,7 @@ void print_convert_usage(FILE *fp)
 }
 
 static
-const struct bt_argpar_opt_descr convert_options[] = {
+const struct argpar_opt_descr convert_options[] = {
 	/* id, short_name, long_name, with_arg */
 	{ OPT_BEGIN, 'b', "begin", true },
 	{ OPT_CLOCK_CYCLES, '\0', "clock-cycles", false },
@@ -2255,7 +2255,7 @@ const struct bt_argpar_opt_descr convert_options[] = {
 	{ OPT_STREAM_INTERSECTION, '\0', "stream-intersection", false },
 	{ OPT_TIMERANGE, '\0', "timerange", true },
 	{ OPT_VERBOSE, 'v', "verbose", false },
-	BT_ARGPAR_OPT_DESCR_SENTINEL
+	ARGPAR_OPT_DESCR_SENTINEL
 };
 
 static
@@ -3187,7 +3187,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 	char *output = NULL;
 	struct auto_source_discovery auto_disc = { NULL };
 	GString *auto_disc_comp_name = NULL;
-	struct bt_argpar_parse_ret argpar_parse_ret = { 0 };
+	struct argpar_parse_ret argpar_parse_ret = { 0 };
 	GString *name_gstr = NULL;
 	GString *component_arg_for_run = NULL;
 	bt_value *live_inputs_array_val = NULL;
@@ -3310,11 +3310,11 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 	 * arguments if needed to automatically name unnamed component
 	 * instances.
 	 */
-	argpar_parse_ret = bt_argpar_parse(argc, argv, convert_options, true);
+	argpar_parse_ret = argpar_parse(argc, argv, convert_options, true);
 	if (argpar_parse_ret.error) {
 		BT_CLI_LOGE_APPEND_CAUSE(
 			"While parsing `convert` command's command-line arguments: %s",
-			argpar_parse_ret.error->str);
+			argpar_parse_ret.error);
 		goto error;
 	}
 
@@ -3325,17 +3325,17 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 		goto end;
 	}
 
-	for (i = 0; i < argpar_parse_ret.items->len; i++) {
-		struct bt_argpar_item *argpar_item =
-			g_ptr_array_index(argpar_parse_ret.items, i);
-		struct bt_argpar_item_opt *argpar_item_opt;
+	for (i = 0; i < argpar_parse_ret.items->n_items; i++) {
+		struct argpar_item *argpar_item =
+			argpar_parse_ret.items->items[i];
+		struct argpar_item_opt *argpar_item_opt;
 		char *name = NULL;
 		char *plugin_name = NULL;
 		char *comp_cls_name = NULL;
 		const char *arg;
 
-		if (argpar_item->type == BT_ARGPAR_ITEM_TYPE_OPT) {
-			argpar_item_opt = (struct bt_argpar_item_opt *) argpar_item;
+		if (argpar_item->type == ARGPAR_ITEM_TYPE_OPT) {
+			argpar_item_opt = (struct argpar_item_opt *) argpar_item;
 			arg = argpar_item_opt->arg;
 
 			switch (argpar_item_opt->descr->id) {
@@ -3556,13 +3556,13 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 					argpar_item_opt->descr->id);
 				goto error;
 			}
-		} else if (argpar_item->type == BT_ARGPAR_ITEM_TYPE_NON_OPT) {
-			struct bt_argpar_item_non_opt *argpar_item_non_opt;
+		} else if (argpar_item->type == ARGPAR_ITEM_TYPE_NON_OPT) {
+			struct argpar_item_non_opt *argpar_item_non_opt;
 			bt_value_array_append_element_status append_status;
 
 			current_item_type = CONVERT_CURRENT_ITEM_TYPE_NON_OPT;
 
-			argpar_item_non_opt = (struct bt_argpar_item_non_opt *) argpar_item;
+			argpar_item_non_opt = (struct argpar_item_non_opt *) argpar_item;
 
 			append_status = bt_value_array_append_string_element(non_opts,
 				argpar_item_non_opt->arg);
@@ -3593,17 +3593,17 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 	 * arguments into implicit component instances for the run
 	 * command.
 	 */
-	for (i = 0; i < argpar_parse_ret.items->len; i++) {
-		struct bt_argpar_item *argpar_item =
-			g_ptr_array_index(argpar_parse_ret.items, i);
-		struct bt_argpar_item_opt *argpar_item_opt;
+	for (i = 0; i < argpar_parse_ret.items->n_items; i++) {
+		struct argpar_item *argpar_item =
+			argpar_parse_ret.items->items[i];
+		struct argpar_item_opt *argpar_item_opt;
 		const char *arg;
 
-		if (argpar_item->type != BT_ARGPAR_ITEM_TYPE_OPT) {
+		if (argpar_item->type != ARGPAR_ITEM_TYPE_OPT) {
 			continue;
 		}
 
-		argpar_item_opt = (struct bt_argpar_item_opt *) argpar_item;
+		argpar_item_opt = (struct argpar_item_opt *) argpar_item;
 		arg = argpar_item_opt->arg;
 
 		switch (argpar_item_opt->descr->id) {
@@ -4384,7 +4384,7 @@ error:
 	BT_OBJECT_PUT_REF_AND_RESET(cfg);
 
 end:
-	bt_argpar_parse_ret_fini(&argpar_parse_ret);
+	argpar_parse_ret_fini(&argpar_parse_ret);
 
 	free(output);
 
@@ -4476,11 +4476,11 @@ struct bt_config *bt_config_cli_args_create(int argc, const char *argv[],
 	const char **command_argv = NULL;
 	const char *command_name = NULL;
 	int default_log_level = -1;
-	struct bt_argpar_parse_ret argpar_parse_ret = { 0 };
+	struct argpar_parse_ret argpar_parse_ret = { 0 };
 	bt_value *plugin_paths = NULL;
 
 	/* Top-level option descriptions. */
-	static const struct bt_argpar_opt_descr descrs[] = {
+	static const struct argpar_opt_descr descrs[] = {
 		{ OPT_DEBUG, 'd', "debug", false },
 		{ OPT_HELP, 'h', "help", false },
 		{ OPT_LOG_LEVEL, 'l', "log-level", true },
@@ -4489,7 +4489,7 @@ struct bt_config *bt_config_cli_args_create(int argc, const char *argv[],
 		{ OPT_OMIT_HOME_PLUGIN_PATH, '\0', "omit-home-plugin-path", false },
 		{ OPT_OMIT_SYSTEM_PLUGIN_PATH, '\0', "omit-system-plugin-path", false },
 		{ OPT_PLUGIN_PATH, '\0', "plugin-path", true },
-		BT_ARGPAR_OPT_DESCR_SENTINEL
+		ARGPAR_OPT_DESCR_SENTINEL
 	};
 
 	enum command_type {
@@ -4537,24 +4537,24 @@ struct bt_config *bt_config_cli_args_create(int argc, const char *argv[],
 	/* Skip first argument, the name of the program. */
 	top_level_argc = argc - 1;
 	top_level_argv = argv + 1;
-	argpar_parse_ret = bt_argpar_parse(top_level_argc, top_level_argv,
+	argpar_parse_ret = argpar_parse(top_level_argc, top_level_argv,
 		descrs, false);
 
 	if (argpar_parse_ret.error) {
 		BT_CLI_LOGE_APPEND_CAUSE(
 			"While parsing command-line arguments: %s",
-			argpar_parse_ret.error->str);
+			argpar_parse_ret.error);
 		goto error;
 	}
 
-	for (i = 0; i < argpar_parse_ret.items->len; i++) {
-		struct bt_argpar_item *item;
+	for (i = 0; i < argpar_parse_ret.items->n_items; i++) {
+		struct argpar_item *item;
 
-		item = g_ptr_array_index(argpar_parse_ret.items, i);
+		item = argpar_parse_ret.items->items[i];
 
-		if (item->type == BT_ARGPAR_ITEM_TYPE_OPT) {
-			struct bt_argpar_item_opt *item_opt =
-				(struct bt_argpar_item_opt *) item;
+		if (item->type == ARGPAR_ITEM_TYPE_OPT) {
+			struct argpar_item_opt *item_opt =
+				(struct argpar_item_opt *) item;
 
 			switch (item_opt->descr->id) {
 				case OPT_DEBUG:
@@ -4599,9 +4599,9 @@ struct bt_config *bt_config_cli_args_create(int argc, const char *argv[],
 					print_gen_usage(stdout);
 					goto end;
 			}
-		} else if (item->type == BT_ARGPAR_ITEM_TYPE_NON_OPT) {
-			struct bt_argpar_item_non_opt *item_non_opt =
-				(struct bt_argpar_item_non_opt *) item;
+		} else if (item->type == ARGPAR_ITEM_TYPE_NON_OPT) {
+			struct argpar_item_non_opt *item_non_opt =
+				(struct argpar_item_non_opt *) item;
 			/*
 			 * First unknown argument: is it a known command
 			 * name?
@@ -4733,7 +4733,7 @@ error:
 	*retcode = 1;
 
 end:
-	bt_argpar_parse_ret_fini(&argpar_parse_ret);
+	argpar_parse_ret_fini(&argpar_parse_ret);
 	bt_value_put_ref(plugin_paths);
 	return config;
 }

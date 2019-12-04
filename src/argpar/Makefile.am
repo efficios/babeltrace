@@ -1,3 +1,3 @@
-noinst_LTLIBRARIES = libbabeltrace2-argpar.la
+noinst_LTLIBRARIES = libargpar.la
 
-libbabeltrace2_argpar_la_SOURCES = argpar.c argpar.h
+libargpar_la_SOURCES = argpar.c argpar.h

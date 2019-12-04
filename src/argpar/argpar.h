@@ -23,16 +23,26 @@
  * SOFTWARE.
  */
 
-#include <glib.h>
 #include <stdbool.h>
 
-#include "common/macros.h"
-
 /* Sentinel for an option descriptor array */
-#define BT_ARGPAR_OPT_DESCR_SENTINEL	{ -1, '\0', NULL, false }
+#define ARGPAR_OPT_DESCR_SENTINEL	{ -1, '\0', NULL, false }
+
+/*
+ * ARGPAR_HIDDEN: if argpar is used in some shared library, we don't want them
+ * to be exported by that library, so mark them as "hidden".
+ *
+ * On Windows, symbols are local unless explicitly exported,
+ * see https://gcc.gnu.org/wiki/Visibility
+ */
+#if defined(_WIN32) || defined(__CYGWIN__)
+#define ARGPAR_HIDDEN
+#else
+#define ARGPAR_HIDDEN __attribute__((visibility("hidden")))
+#endif
 
 /* Option descriptor */
-struct bt_argpar_opt_descr {
+struct argpar_opt_descr {
 	/* Numeric ID for this option */
 	const int id;
 
@@ -47,33 +57,33 @@ struct bt_argpar_opt_descr {
 };
 
 /* Item type */
-enum bt_argpar_item_type {
+enum argpar_item_type {
 	/* Option */
-	BT_ARGPAR_ITEM_TYPE_OPT,
+	ARGPAR_ITEM_TYPE_OPT,
 
 	/* Non-option */
-	BT_ARGPAR_ITEM_TYPE_NON_OPT,
+	ARGPAR_ITEM_TYPE_NON_OPT,
 };
 
 /* Base item */
-struct bt_argpar_item {
-	enum bt_argpar_item_type type;
+struct argpar_item {
+	enum argpar_item_type type;
 };
 
 /* Option item */
-struct bt_argpar_item_opt {
-	struct bt_argpar_item base;
+struct argpar_item_opt {
+	struct argpar_item base;
 
 	/* Corresponding descriptor */
-	const struct bt_argpar_opt_descr *descr;
+	const struct argpar_opt_descr *descr;
 
 	/* Argument, or `NULL` if none */
 	const char *arg;
 };
 
 /* Non-option item */
-struct bt_argpar_item_non_opt {
-	struct bt_argpar_item base;
+struct argpar_item_non_opt {
+	struct argpar_item base;
 
 	/*
 	 * Complete argument, pointing to one of the entries of the
@@ -88,13 +98,24 @@ struct bt_argpar_item_non_opt {
 	unsigned int non_opt_index;
 };
 
-/* What is returned by bt_argpar_parse() */
-struct bt_argpar_parse_ret {
-	/* Array of `struct bt_argpar_item *`, or `NULL` on error */
-	GPtrArray *items;
+struct argpar_item_array {
+	/* Array of `struct argpar_item *`, or `NULL` on error */
+	struct argpar_item **items;
+
+	/* Number of used slots in `items`. */
+	unsigned int n_items;
+
+	/* Number of allocated slots in `items`. */
+	unsigned int n_alloc;
+};
+
+/* What is returned by argpar_parse() */
+struct argpar_parse_ret {
+	/* Array of `struct argpar_item *`, or `NULL` on error */
+	struct argpar_item_array *items;
 
 	/* Error string, or `NULL` if none */
-	GString *error;
+	char *error;
 
 	/* Number of original arguments (`argv`) ingested */
 	unsigned int ingested_orig_args;
@@ -102,7 +123,7 @@ struct bt_argpar_parse_ret {
 
 /*
  * Parses the arguments `argv` of which the count is `argc` using the
- * sentinel-terminated (use `BT_ARGPAR_OPT_DESCR_SENTINEL`) option
+ * sentinel-terminated (use `ARGPAR_OPT_DESCR_SENTINEL`) option
  * descriptor array `descrs`.
  *
  * This function considers ALL the elements of `argv`, including the
@@ -142,9 +163,9 @@ struct bt_argpar_parse_ret {
  * contains one entry for each instance).
  *
  * On success, this function returns an array of items
- * (`struct bt_argpar_item *`). Each item is to be casted to the
- * appropriate type (`struct bt_argpar_item_opt *` or
- * `struct bt_argpar_item_non_opt *`) depending on its type.
+ * (`struct argpar_item *`). Each item is to be casted to the
+ * appropriate type (`struct argpar_item_opt *` or
+ * `struct argpar_item_non_opt *`) depending on its type.
  *
  * The returned array contains the items in the same order that the
  * arguments were parsed, including non-option arguments. This means,
@@ -192,21 +213,21 @@ struct bt_argpar_parse_ret {
  * the `error` string member contains details about the error.
  *
  * You can finalize the returned structure with
- * bt_argpar_parse_ret_fini().
+ * argpar_parse_ret_fini().
  */
-BT_HIDDEN
-struct bt_argpar_parse_ret bt_argpar_parse(unsigned int argc,
+ARGPAR_HIDDEN
+struct argpar_parse_ret argpar_parse(unsigned int argc,
 		const char * const *argv,
-		const struct bt_argpar_opt_descr *descrs,
+		const struct argpar_opt_descr *descrs,
 		bool fail_on_unknown_opt);
 
 /*
- * Finalizes what is returned by bt_argpar_parse().
+ * Finalizes what is returned by argpar_parse().
  *
- * It is safe to call bt_argpar_parse() multiple times with the same
+ * It is safe to call argpar_parse() multiple times with the same
  * structure.
  */
-BT_HIDDEN
-void bt_argpar_parse_ret_fini(struct bt_argpar_parse_ret *ret);
+ARGPAR_HIDDEN
+void argpar_parse_ret_fini(struct argpar_parse_ret *ret);
 
 #endif /* BABELTRACE_ARGPAR_H */

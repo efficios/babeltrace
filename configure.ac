@@ -783,7 +783,6 @@ AC_CONFIG_FILES([
 	src/string-format/Makefile
 	tests/bitfield/Makefile
 	tests/ctf-writer/Makefile
-	tests/argpar/Makefile
 	tests/lib/Makefile
 	tests/lib/test-plugin-plugins/Makefile
 	tests/Makefile
