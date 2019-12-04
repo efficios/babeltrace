@@ -52,7 +52,7 @@ babeltrace2_bin_LDFLAGS = $(LD_NO_AS_NEEDED)
 # not discard the plugins since the CLI does not use their symbols
 # directly).
 babeltrace2_bin_LDADD = \
-	$(top_builddir)/src/argpar/libbabeltrace2-argpar.la \
+	$(top_builddir)/src/argpar/libargpar.la \
 	$(top_builddir)/src/autodisc/libbabeltrace2-autodisc.la \
 	$(top_builddir)/src/param-parse/libbabeltrace2-param-parse.la \
 	$(top_builddir)/src/string-format/libbabeltrace2-string-format.la \
