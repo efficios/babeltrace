@@ -1108,8 +1108,8 @@ retry:
 		viewer_stream->in_trace = 0;
 		bt_list_del(&viewer_stream->trace_stream_node);
 		bt_list_del(&viewer_stream->session_stream_node);
-		g_free(viewer_stream);
 		*stream_id = be64toh(rp->stream_id);
+		g_free(viewer_stream);
 		break;
 	case LTTNG_VIEWER_INDEX_ERR:
 		fprintf(stderr, "[error] get_next_index: error\n");
