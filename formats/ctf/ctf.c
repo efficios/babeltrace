@@ -2571,8 +2571,13 @@ int ctf_open_mmap_stream_read(struct ctf_trace *td,
 	}
 
 	ret = prepare_mmap_stream_definition(td, file_stream, packet_seek);
-	if (ret)
+	if (ret) {
+		/* We need to check for EOF here for empty files. */
+		if (unlikely(file_stream->pos.offset == EOF)) {
+			ret = 0;
+		}
 		goto error_index;
+	}
 
 	/*
 	 * For now, only a single clock per trace is supported.
