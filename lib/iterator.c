@@ -778,6 +778,8 @@ int bt_iter_init(struct bt_iter *iter,
 error:
 	bt_heap_free(iter->stream_heap);
 error_heap_init:
+	bt_context_put(ctx);
+	iter->ctx = NULL;
 	g_free(iter->stream_heap);
 	iter->stream_heap = NULL;
 error_ctx:
@@ -812,6 +814,7 @@ void bt_iter_fini(struct bt_iter *iter)
 	}
 	iter->ctx->current_iterator = NULL;
 	bt_context_put(iter->ctx);
+	iter->ctx = NULL;
 }
 
 void bt_iter_destroy(struct bt_iter *iter)
