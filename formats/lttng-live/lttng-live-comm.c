@@ -1276,7 +1276,11 @@ retry:
 				cur_index->packet_size, cur_index->offset,
 				cur_index->content_size,
 				cur_index->ts_cycles.timestamp_end);
-
+		if (cur_index->offset == EOF) {
+			pos->offset = EOF;
+			ret = -BT_PACKET_SEEK_ERROR;
+			goto end;
+		}
 	}
 
 	/*
