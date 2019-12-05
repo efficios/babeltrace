@@ -288,6 +288,7 @@ static int lttng_live_open_trace_read(const char *path)
 	}
 
 end_free:
+	g_array_free(ctx->session_ids, TRUE);
 	g_hash_table_destroy(ctx->session->ctf_traces);
 	free_session_streams(ctx->session);
 	g_free(ctx->session);
