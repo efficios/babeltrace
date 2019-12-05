@@ -76,7 +76,7 @@ static void clock_add(gpointer key, gpointer value, gpointer user_data)
 {
 	struct clock_match *clock_match = user_data;
 	GHashTable *tc_clocks = clock_match->clocks;
-	struct ctf_clock *t_clock = value;
+	struct ctf_clock *t_clock = value, *clock_copy;
 	GQuark v;
 
 	if (t_clock->absolute)
@@ -104,9 +104,14 @@ static void clock_add(gpointer key, gpointer value, gpointer user_data)
 				clock_match->tc->single_clock_offset_avg =
 					clock_match->tc->offset_first;
 			}
+			clock_copy = g_new0(struct ctf_clock, 1);
+			*clock_copy = *t_clock;
+			if (t_clock->description) {
+				clock_copy->description = g_strdup(t_clock->description);
+			}
 			g_hash_table_insert(tc_clocks,
 				(gpointer) (unsigned long) v,
-				value);
+				clock_copy);
 		} else if (!t_clock->absolute) {
 			int64_t diff_ns;
 
@@ -209,11 +214,21 @@ int bt_trace_collection_remove(struct trace_collection *tc,
 
 }
 
+static
+void clock_free(gpointer data)
+{
+	struct ctf_clock *clock = data;
+
+	g_free(clock->description);
+	g_free(clock);
+}
+
 void bt_init_trace_collection(struct trace_collection *tc)
 {
 	assert(tc);
 	tc->array = g_ptr_array_new();
-	tc->clocks = g_hash_table_new(g_direct_hash, g_direct_equal);
+	tc->clocks = g_hash_table_new_full(g_direct_hash, g_direct_equal,
+			NULL, clock_free);
 	tc->single_clock_offset_avg = 0;
 	tc->offset_first = 0;
 	tc->delta_offset_first_sum = 0;
