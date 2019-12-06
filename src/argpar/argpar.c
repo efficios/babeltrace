@@ -60,6 +60,7 @@ char *argpar_vasprintf(const char *fmt, va_list args)
 	ARGPAR_ASSERT(len1 == len2);
 
 end:
+	va_end(args2);
 	return str;
 }
 
