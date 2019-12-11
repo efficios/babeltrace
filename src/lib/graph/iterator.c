@@ -170,18 +170,24 @@ void bt_self_component_port_input_message_iterator_try_finalize(
 {
 	uint64_t i;
 	typedef void (*method_t)(void *);
-
-	struct bt_component_class *comp_class = NULL;
-	method_t method = NULL;
+	bool call_user_finalize = true;
 
 	BT_ASSERT(iterator);
 
 	switch (iterator->state) {
 	case BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_STATE_NON_INITIALIZED:
-		/* Skip user finalization if user initialization failed */
-		BT_LIB_LOGD("Not finalizing non-initialized message iterator: "
-			"%!+i", iterator);
-		goto end;
+		/*
+		 * If this function is called while the iterator is in the
+		 * NON_INITIALIZED state, it means the user initialization
+		 * method has either not been called, or has failed.  We
+		 * therefore don't want to call the user finalization method.
+		 * However, the initialization method might have created some
+		 * upstream message iterators before failing, so we want to
+		 * execute the rest of this function, which unlinks the related
+		 * iterators.
+		 */
+		call_user_finalize = false;
+		break;
 	case BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_STATE_FINALIZED:
 		/* Already finalized */
 		BT_LIB_LOGD("Not finalizing message iterator: already finalized: "
@@ -200,42 +206,47 @@ void bt_self_component_port_input_message_iterator_try_finalize(
 	set_self_comp_port_input_msg_iterator_state(iterator,
 		BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_STATE_FINALIZING);
 	BT_ASSERT(iterator->upstream_component);
-	comp_class = iterator->upstream_component->class;
 
 	/* Call user-defined destroy method */
-	switch (comp_class->type) {
-	case BT_COMPONENT_CLASS_TYPE_SOURCE:
-	{
-		struct bt_component_class_source *src_comp_cls =
-			(void *) comp_class;
+	if (call_user_finalize) {
+		method_t method = NULL;
+		struct bt_component_class *comp_class =
+			iterator->upstream_component->class;
 
-		method = (method_t) src_comp_cls->methods.msg_iter_finalize;
-		break;
-	}
-	case BT_COMPONENT_CLASS_TYPE_FILTER:
-	{
-		struct bt_component_class_filter *flt_comp_cls =
-			(void *) comp_class;
+		switch (comp_class->type) {
+		case BT_COMPONENT_CLASS_TYPE_SOURCE:
+		{
+			struct bt_component_class_source *src_comp_cls =
+				(void *) comp_class;
 
-		method = (method_t) flt_comp_cls->methods.msg_iter_finalize;
-		break;
-	}
-	default:
-		/* Unreachable */
-		bt_common_abort();
-	}
+			method = (method_t) src_comp_cls->methods.msg_iter_finalize;
+			break;
+		}
+		case BT_COMPONENT_CLASS_TYPE_FILTER:
+		{
+			struct bt_component_class_filter *flt_comp_cls =
+				(void *) comp_class;
 
-	if (method) {
-		const bt_error *saved_error;
+			method = (method_t) flt_comp_cls->methods.msg_iter_finalize;
+			break;
+		}
+		default:
+			/* Unreachable */
+			bt_common_abort();
+		}
 
-		saved_error = bt_current_thread_take_error();
+		if (method) {
+			const bt_error *saved_error;
 
-		BT_LIB_LOGD("Calling user's finalization method: %!+i",
-			iterator);
-		method(iterator);
+			saved_error = bt_current_thread_take_error();
 
-		if (saved_error) {
-			BT_CURRENT_THREAD_MOVE_ERROR_AND_RESET(saved_error);
+			BT_LIB_LOGD("Calling user's finalization method: %!+i",
+				iterator);
+			method(iterator);
+
+			if (saved_error) {
+				BT_CURRENT_THREAD_MOVE_ERROR_AND_RESET(saved_error);
+			}
 		}
 	}
 
