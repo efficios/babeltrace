@@ -113,9 +113,6 @@
 PyObject *bt_bt2_graph_add_port_added_listener(struct bt_graph *graph,
 		PyObject *py_callable);
 
-PyObject *bt_bt2_graph_add_ports_connected_listener(struct bt_graph *graph,
-		PyObject *py_callable);
-
 bt_graph_add_component_status
 bt_bt2_graph_add_source_component(
 		bt_graph *graph,
