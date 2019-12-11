@@ -401,10 +401,10 @@ bt_graph *create_graph(void)
 
 	BT_ASSERT(graph);
 	ret = bt_graph_add_source_component_output_port_added_listener(
-		graph, graph_src_output_port_added, NULL, NULL, NULL);
+		graph, graph_src_output_port_added, NULL, NULL);
 	BT_ASSERT(ret >= 0);
 	ret = bt_graph_add_sink_component_input_port_added_listener(
-		graph, graph_sink_input_port_added, NULL, NULL, NULL);
+		graph, graph_sink_input_port_added, NULL, NULL);
 	BT_ASSERT(ret >= 0);
 	return graph;
 }

@@ -89,8 +89,6 @@ typedef bt_graph_listener_func_status
 		const bt_port_output *upstream_port,
 		const bt_port_input *downstream_port, void *data);
 
-typedef void (* bt_graph_listener_removed_func)(void *data);
-
 typedef enum bt_graph_simple_sink_component_initialize_func_status {
 	BT_GRAPH_SIMPLE_SINK_COMPONENT_INITIALIZE_FUNC_STATUS_OK		= __BT_FUNC_STATUS_OK,
 	BT_GRAPH_SIMPLE_SINK_COMPONENT_INITIALIZE_FUNC_STATUS_ERROR		= __BT_FUNC_STATUS_ERROR,
@@ -214,29 +212,25 @@ extern bt_graph_add_listener_status
 bt_graph_add_filter_component_input_port_added_listener(
 		bt_graph *graph,
 		bt_graph_filter_component_input_port_added_listener_func listener,
-		bt_graph_listener_removed_func listener_removed, void *data,
-		bt_listener_id *listener_id);
+		void *data, bt_listener_id *listener_id);
 
 extern bt_graph_add_listener_status
 bt_graph_add_sink_component_input_port_added_listener(
 		bt_graph *graph,
 		bt_graph_sink_component_input_port_added_listener_func listener,
-		bt_graph_listener_removed_func listener_removed, void *data,
-		bt_listener_id *listener_id);
+		void *data, bt_listener_id *listener_id);
 
 extern bt_graph_add_listener_status
 bt_graph_add_source_component_output_port_added_listener(
 		bt_graph *graph,
 		bt_graph_source_component_output_port_added_listener_func listener,
-		bt_graph_listener_removed_func listener_removed, void *data,
-		bt_listener_id *listener_id);
+		void *data, bt_listener_id *listener_id);
 
 extern bt_graph_add_listener_status
 bt_graph_add_filter_component_output_port_added_listener(
 		bt_graph *graph,
 		bt_graph_filter_component_output_port_added_listener_func listener,
-		bt_graph_listener_removed_func listener_removed, void *data,
-		bt_listener_id *listener_id);
+		void *data, bt_listener_id *listener_id);
 
 typedef enum bt_graph_add_interrupter_status {
 	BT_GRAPH_ADD_INTERRUPTER_STATUS_OK		= __BT_FUNC_STATUS_OK,

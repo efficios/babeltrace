@@ -22,13 +22,6 @@
  * THE SOFTWARE.
  */
 
-static
-void graph_listener_removed(void *py_callable)
-{
-	BT_ASSERT(py_callable);
-	Py_DECREF(py_callable);
-}
-
 static bt_graph_listener_func_status port_added_listener(
 	const void *component,
 	swig_type_info *component_swig_type,
@@ -145,7 +138,7 @@ PyObject *bt_bt2_graph_add_port_added_listener(struct bt_graph *graph,
 	/* source output port */
 	status = bt_graph_add_source_component_output_port_added_listener(
 		graph, source_component_output_port_added_listener,
-		graph_listener_removed, py_callable, &listener_id);
+		py_callable, &listener_id);
 	if (status != __BT_FUNC_STATUS_OK) {
 		/*
 		 * bt_graph_add_source_component_output_port_added_listener has
@@ -167,7 +160,7 @@ PyObject *bt_bt2_graph_add_port_added_listener(struct bt_graph *graph,
 	/* filter input port */
 	status = bt_graph_add_filter_component_input_port_added_listener(
 		graph, filter_component_input_port_added_listener,
-		graph_listener_removed, py_callable, &listener_id);
+		py_callable, &listener_id);
 	if (status != __BT_FUNC_STATUS_OK) {
 		/*
 		 * bt_graph_add_filter_component_input_port_added_listener has
@@ -189,7 +182,7 @@ PyObject *bt_bt2_graph_add_port_added_listener(struct bt_graph *graph,
 	/* filter output port */
 	status = bt_graph_add_filter_component_output_port_added_listener(
 		graph, filter_component_output_port_added_listener,
-		graph_listener_removed, py_callable, &listener_id);
+		py_callable, &listener_id);
 	if (status != __BT_FUNC_STATUS_OK) {
 		/*
 		 * bt_graph_add_filter_component_output_port_added_listener has
@@ -211,7 +204,7 @@ PyObject *bt_bt2_graph_add_port_added_listener(struct bt_graph *graph,
 	/* sink input port */
 	status = bt_graph_add_sink_component_input_port_added_listener(
 		graph, sink_component_input_port_added_listener,
-		graph_listener_removed, py_callable, &listener_id);
+		py_callable, &listener_id);
 	if (status != __BT_FUNC_STATUS_OK) {
 		/*
 		 * bt_graph_add_sink_component_input_port_added_listener has
@@ -229,12 +222,6 @@ PyObject *bt_bt2_graph_add_port_added_listener(struct bt_graph *graph,
 
 	PyTuple_SET_ITEM(py_listener_ids, 3, py_listener_id);
 	py_listener_id = NULL;
-
-	Py_INCREF(py_callable);
-	Py_INCREF(py_callable);
-	Py_INCREF(py_callable);
-	Py_INCREF(py_callable);
-
 	goto end;
 
 error:
