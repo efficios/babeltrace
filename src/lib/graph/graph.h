@@ -106,7 +106,6 @@ struct bt_graph {
 	 */
 	struct bt_interrupter *default_interrupter;
 
-	bool in_remove_listener;
 	bool has_sink;
 
 	/*

@@ -1899,7 +1899,7 @@ int cmd_run_ctx_init(struct cmd_run_ctx *ctx, struct bt_config *cfg)
 
 	bt_graph_add_interrupter(ctx->graph, the_interrupter);
 	add_listener_status = bt_graph_add_source_component_output_port_added_listener(
-		ctx->graph, graph_source_output_port_added_listener, NULL, ctx,
+		ctx->graph, graph_source_output_port_added_listener, ctx,
 		NULL);
 	if (add_listener_status != BT_GRAPH_ADD_LISTENER_STATUS_OK) {
 		BT_CLI_LOGE_APPEND_CAUSE(
@@ -1908,7 +1908,7 @@ int cmd_run_ctx_init(struct cmd_run_ctx *ctx, struct bt_config *cfg)
 	}
 
 	add_listener_status = bt_graph_add_filter_component_output_port_added_listener(
-		ctx->graph, graph_filter_output_port_added_listener, NULL, ctx,
+		ctx->graph, graph_filter_output_port_added_listener, ctx,
 		NULL);
 	if (add_listener_status != BT_GRAPH_ADD_LISTENER_STATUS_OK) {
 		BT_CLI_LOGE_APPEND_CAUSE(

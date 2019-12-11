@@ -58,14 +58,9 @@ typedef enum bt_graph_listener_func_status
 typedef enum bt_component_class_initialize_method_status
 (*comp_init_method_t)(const void *, void *, const void *, void *);
 
-struct bt_graph_listener {
-	bt_graph_listener_removed_func removed;
-	void *data;
-};
-
 struct bt_graph_listener_port_added {
-	struct bt_graph_listener base;
 	port_added_func_t func;
+	void *data;
 };
 
 #define INIT_LISTENERS_ARRAY(_type, _listeners)				\
@@ -74,23 +69,6 @@ struct bt_graph_listener_port_added {
 		if (!(_listeners)) {					\
 			BT_LIB_LOGE_APPEND_CAUSE(			\
 				"Failed to allocate one GArray.");	\
-		}							\
-	} while (0)
-
-#define CALL_REMOVE_LISTENERS(_type, _listeners)			\
-	do {								\
-		size_t i;						\
-									\
-		if (!_listeners) {					\
-			break;						\
-		}							\
-		for (i = 0; i < (_listeners)->len; i++) {		\
-			_type *listener =				\
-				&g_array_index((_listeners), _type, i);	\
-									\
-			if (listener->base.removed) {			\
-				listener->base.removed(listener->base.data); \
-			}						\
 		}							\
 	} while (0)
 
@@ -128,16 +106,6 @@ void destroy_graph(struct bt_object *obj)
 	BT_LIB_LOGI("Destroying graph: %!+g", graph);
 	obj->ref_count++;
 	graph->config_state = BT_GRAPH_CONFIGURATION_STATE_DESTROYING;
-
-	/* Call all remove listeners */
-	CALL_REMOVE_LISTENERS(struct bt_graph_listener_port_added,
-		graph->listeners.source_output_port_added);
-	CALL_REMOVE_LISTENERS(struct bt_graph_listener_port_added,
-		graph->listeners.filter_output_port_added);
-	CALL_REMOVE_LISTENERS(struct bt_graph_listener_port_added,
-		graph->listeners.filter_input_port_added);
-	CALL_REMOVE_LISTENERS(struct bt_graph_listener_port_added,
-		graph->listeners.sink_input_port_added);
 
 	if (graph->messages) {
 		g_ptr_array_free(graph->messages, TRUE);
@@ -710,25 +678,17 @@ enum bt_graph_add_listener_status
 bt_graph_add_source_component_output_port_added_listener(
 		struct bt_graph *graph,
 		bt_graph_source_component_output_port_added_listener_func func,
-		bt_graph_listener_removed_func listener_removed, void *data,
-		bt_listener_id *out_listener_id)
+		void *data, bt_listener_id *out_listener_id)
 {
 	struct bt_graph_listener_port_added listener = {
-		.base = {
-			.removed = listener_removed,
-			.data = data,
-		},
 		.func = (port_added_func_t) func,
+		.data = data,
 	};
 	bt_listener_id listener_id;
 
 	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(graph, "Graph");
 	BT_ASSERT_PRE_NON_NULL(func, "Listener");
-	BT_ASSERT_PRE_NON_NULL(func, "\"Listener removed\" listener");
-	BT_ASSERT_PRE(!graph->in_remove_listener,
-		"Graph currently executing a \"listener removed\" listener: "
-		"%!+g", graph);
 	g_array_append_val(graph->listeners.source_output_port_added, listener);
 	listener_id = graph->listeners.source_output_port_added->len - 1;
 	BT_LIB_LOGD("Added \"source component output port added\" listener to graph: "
@@ -746,25 +706,17 @@ enum bt_graph_add_listener_status
 bt_graph_add_filter_component_output_port_added_listener(
 		struct bt_graph *graph,
 		bt_graph_filter_component_output_port_added_listener_func func,
-		bt_graph_listener_removed_func listener_removed, void *data,
-		bt_listener_id *out_listener_id)
+		void *data, bt_listener_id *out_listener_id)
 {
 	struct bt_graph_listener_port_added listener = {
-		.base = {
-			.removed = listener_removed,
-			.data = data,
-		},
 		.func = (port_added_func_t) func,
+		.data = data,
 	};
 	bt_listener_id listener_id;
 
 	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(graph, "Graph");
 	BT_ASSERT_PRE_NON_NULL(func, "Listener");
-	BT_ASSERT_PRE_NON_NULL(func, "\"Listener removed\" listener");
-	BT_ASSERT_PRE(!graph->in_remove_listener,
-		"Graph currently executing a \"listener removed\" listener: "
-		"%!+g", graph);
 	g_array_append_val(graph->listeners.filter_output_port_added, listener);
 	listener_id = graph->listeners.filter_output_port_added->len - 1;
 	BT_LIB_LOGD("Added \"filter component output port added\" listener to graph: "
@@ -782,25 +734,17 @@ enum bt_graph_add_listener_status
 bt_graph_add_filter_component_input_port_added_listener(
 		struct bt_graph *graph,
 		bt_graph_filter_component_input_port_added_listener_func func,
-		bt_graph_listener_removed_func listener_removed, void *data,
-		bt_listener_id *out_listener_id)
+		void *data, bt_listener_id *out_listener_id)
 {
 	struct bt_graph_listener_port_added listener = {
-		.base = {
-			.removed = listener_removed,
-			.data = data,
-		},
 		.func = (port_added_func_t) func,
+		.data = data,
 	};
 	bt_listener_id listener_id;
 
 	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(graph, "Graph");
 	BT_ASSERT_PRE_NON_NULL(func, "Listener");
-	BT_ASSERT_PRE_NON_NULL(func, "\"Listener removed\" listener");
-	BT_ASSERT_PRE(!graph->in_remove_listener,
-		"Graph currently executing a \"listener removed\" listener: "
-		"%!+g", graph);
 	g_array_append_val(graph->listeners.filter_input_port_added, listener);
 	listener_id = graph->listeners.filter_input_port_added->len - 1;
 	BT_LIB_LOGD("Added \"filter component input port added\" listener to graph: "
@@ -818,25 +762,17 @@ enum bt_graph_add_listener_status
 bt_graph_add_sink_component_input_port_added_listener(
 		struct bt_graph *graph,
 		bt_graph_sink_component_input_port_added_listener_func func,
-		bt_graph_listener_removed_func listener_removed, void *data,
-		bt_listener_id *out_listener_id)
+		void *data, bt_listener_id *out_listener_id)
 {
 	struct bt_graph_listener_port_added listener = {
-		.base = {
-			.removed = listener_removed,
-			.data = data,
-		},
 		.func = (port_added_func_t) func,
+		.data = data,
 	};
 	bt_listener_id listener_id;
 
 	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(graph, "Graph");
 	BT_ASSERT_PRE_NON_NULL(func, "Listener");
-	BT_ASSERT_PRE_NON_NULL(func, "\"Listener removed\" listener");
-	BT_ASSERT_PRE(!graph->in_remove_listener,
-		"Graph currently executing a \"listener removed\" listener: "
-		"%!+g", graph);
 	g_array_append_val(graph->listeners.sink_input_port_added, listener);
 	listener_id = graph->listeners.sink_input_port_added->len - 1;
 	BT_LIB_LOGD("Added \"sink component input port added\" listener to graph: "
@@ -917,7 +853,7 @@ enum bt_graph_listener_func_status bt_graph_notify_port_added(
 
 
 		BT_ASSERT(listener->func);
-		status = listener->func(comp, port, listener->base.data);
+		status = listener->func(comp, port, listener->data);
 		BT_ASSERT_POST_NO_ERROR_IF_NO_ERROR_STATUS(status);
 		if (status != BT_FUNC_STATUS_OK) {
 			goto end;

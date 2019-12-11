@@ -57,6 +57,10 @@ class Graph(object._SharedObject):
 
         super().__init__(ptr)
 
+        # list of listener partials to keep a reference as long as
+        # this graph exists
+        self._listener_partials = []
+
     def add_component(
         self,
         component_class,
@@ -139,6 +143,9 @@ class Graph(object._SharedObject):
         listener_ids = fn(self._ptr, listener_from_native)
         if listener_ids is None:
             raise bt2._Error('cannot add listener to graph object')
+
+        # keep the partial's reference
+        self._listener_partials.append(listener_from_native)
 
     def run_once(self):
         status = native_bt.graph_run_once(self._ptr)
