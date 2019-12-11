@@ -379,6 +379,63 @@ class UserMessageIteratorTestCase(unittest.TestCase):
             with self.assertRaises(bt2.TryAgain):
                 next(it)
 
+    def test_error_in_iterator_with_cycle_after_having_created_upstream_iterator(self):
+        # Test a failure that triggered an abort in libbabeltrace2, in this situation:
+        #
+        #   - The filter iterator creates an upstream iterator.
+        #   - The filter iterator creates a reference cycle, including itself.
+        #   - An exception is raised, causing the filter iterator's
+        #     initialization method to fail.
+        class MySourceIter(bt2._UserMessageIterator):
+            pass
+
+        class MySource(bt2._UserSourceComponent, message_iterator_class=MySourceIter):
+            def __init__(self, config, params, obj):
+                self._add_output_port('out')
+
+        class MyFilterIter(bt2._UserMessageIterator):
+            def __init__(self, config, port):
+                # First, create an upstream iterator.
+                self._upstream_iter = self._create_input_port_message_iterator(
+                    self._component._input_ports['in']
+                )
+
+                # Then, voluntarily make a reference cycle that will keep this
+                # Python object alive, which will keep the upstream iterator
+                # Babeltrace object alive.
+                self._self = self
+
+                # Finally, raise an exception to make __init__ fail.
+                raise ValueError('woops')
+
+        class MyFilter(bt2._UserFilterComponent, message_iterator_class=MyFilterIter):
+            def __init__(self, config, params, obj):
+                self._in = self._add_input_port('in')
+                self._out = self._add_output_port('out')
+
+        class MySink(bt2._UserSinkComponent):
+            def __init__(self, config, params, obj):
+                self._input_port = self._add_input_port('in')
+
+            def _user_graph_is_configured(self):
+                self._upstream_iter = self._create_input_port_message_iterator(
+                    self._input_port
+                )
+
+            def _user_consume(self):
+                # We should not reach this.
+                assert False
+
+        g = bt2.Graph()
+        src = g.add_component(MySource, 'src')
+        flt = g.add_component(MyFilter, 'flt')
+        snk = g.add_component(MySink, 'snk')
+        g.connect_ports(src.output_ports['out'], flt.input_ports['in'])
+        g.connect_ports(flt.output_ports['out'], snk.input_ports['in'])
+
+        with self.assertRaisesRegex(bt2._Error, 'ValueError: woops'):
+            g.run()
+
 
 def _setup_seek_test(
     sink_cls,
