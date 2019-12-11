@@ -40,32 +40,6 @@ def _graph_port_added_listener_from_native(
     user_listener(component, port)
 
 
-def _graph_ports_connected_listener_from_native(
-    user_listener,
-    upstream_component_ptr,
-    upstream_component_type,
-    upstream_port_ptr,
-    downstream_component_ptr,
-    downstream_component_type,
-    downstream_port_ptr,
-):
-    upstream_component = bt2_component._create_component_from_const_ptr_and_get_ref(
-        upstream_component_ptr, upstream_component_type
-    )
-    upstream_port = bt2_port._create_from_const_ptr_and_get_ref(
-        upstream_port_ptr, native_bt.PORT_TYPE_OUTPUT
-    )
-    downstream_component = bt2_component._create_component_from_const_ptr_and_get_ref(
-        downstream_component_ptr, downstream_component_type
-    )
-    downstream_port = bt2_port._create_from_const_ptr_and_get_ref(
-        downstream_port_ptr, native_bt.PORT_TYPE_INPUT
-    )
-    user_listener(
-        upstream_component, upstream_port, downstream_component, downstream_port
-    )
-
-
 class Graph(object._SharedObject):
     _get_ref = staticmethod(native_bt.graph_get_ref)
     _put_ref = staticmethod(native_bt.graph_put_ref)
@@ -160,19 +134,6 @@ class Graph(object._SharedObject):
         fn = native_bt.bt2_graph_add_port_added_listener
         listener_from_native = functools.partial(
             _graph_port_added_listener_from_native, listener
-        )
-
-        listener_ids = fn(self._ptr, listener_from_native)
-        if listener_ids is None:
-            raise bt2._Error('cannot add listener to graph object')
-
-    def add_ports_connected_listener(self, listener):
-        if not callable(listener):
-            raise TypeError("'listener' parameter is not callable")
-
-        fn = native_bt.bt2_graph_add_ports_connected_listener
-        listener_from_native = functools.partial(
-            _graph_ports_connected_listener_from_native, listener
         )
 
         listener_ids = fn(self._ptr, listener_from_native)

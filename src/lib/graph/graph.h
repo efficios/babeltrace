@@ -128,10 +128,6 @@ struct bt_graph {
 		GArray *filter_output_port_added;
 		GArray *filter_input_port_added;
 		GArray *sink_input_port_added;
-		GArray *source_filter_ports_connected;
-		GArray *source_sink_ports_connected;
-		GArray *filter_filter_ports_connected;
-		GArray *filter_sink_ports_connected;
 	} listeners;
 
 	/* Pool of `struct bt_message_event *` */
@@ -174,11 +170,6 @@ int bt_graph_consume_sink_no_check(struct bt_graph *graph,
 BT_HIDDEN
 enum bt_graph_listener_func_status bt_graph_notify_port_added(struct bt_graph *graph,
 		struct bt_port *port);
-
-BT_HIDDEN
-enum bt_graph_listener_func_status bt_graph_notify_ports_connected(
-		struct bt_graph *graph, struct bt_port *upstream_port,
-		struct bt_port *downstream_port);
 
 BT_HIDDEN
 void bt_graph_remove_connection(struct bt_graph *graph,

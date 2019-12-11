@@ -574,28 +574,13 @@ class GraphTestCase(unittest.TestCase):
             nonlocal calls
             calls.append((port_added_listener, component, port))
 
-        def ports_connected_listener(
-            upstream_component, upstream_port, downstream_component, downstream_port
-        ):
-            nonlocal calls
-            calls.append(
-                (
-                    ports_connected_listener,
-                    upstream_component,
-                    upstream_port,
-                    downstream_component,
-                    downstream_port,
-                )
-            )
-
         calls = []
         self._graph.add_port_added_listener(port_added_listener)
-        self._graph.add_ports_connected_listener(ports_connected_listener)
         src = self._graph.add_component(MySource, 'src')
         sink = self._graph.add_component(MySink, 'sink')
         self._graph.connect_ports(src.output_ports['out'], sink.input_ports['in'])
 
-        self.assertEqual(len(calls), 5)
+        self.assertEqual(len(calls), 4)
 
         self.assertIs(calls[0][0], port_added_listener)
         self.assertEqual(calls[0][1].name, 'src')
@@ -612,12 +597,6 @@ class GraphTestCase(unittest.TestCase):
         self.assertIs(calls[3][0], port_added_listener)
         self.assertEqual(calls[3][1].name, 'sink')
         self.assertEqual(calls[3][2].name, 'taste')
-
-        self.assertIs(calls[4][0], ports_connected_listener)
-        self.assertEqual(calls[4][1].name, 'src')
-        self.assertEqual(calls[4][2].name, 'out')
-        self.assertEqual(calls[4][3].name, 'sink')
-        self.assertEqual(calls[4][4].name, 'in')
 
     def test_invalid_listeners(self):
         class MyIter(bt2._UserMessageIterator):
@@ -641,8 +620,6 @@ class GraphTestCase(unittest.TestCase):
 
         with self.assertRaises(TypeError):
             self._graph.add_port_added_listener(1234)
-        with self.assertRaises(TypeError):
-            self._graph.add_ports_connected_listener(1234)
 
     def test_raise_in_component_init(self):
         class MySink(bt2._UserSinkComponent):
@@ -673,35 +650,6 @@ class GraphTestCase(unittest.TestCase):
 
         with self.assertRaises(bt2._Error):
             graph.add_component(MySink, 'comp')
-
-    def test_raise_in_ports_connected_listener(self):
-        class MyIter(bt2._UserMessageIterator):
-            def __next__(self):
-                raise bt2.Stop
-
-        class MySource(bt2._UserSourceComponent, message_iterator_class=MyIter):
-            def __init__(self, config, params, obj):
-                self._add_output_port('out')
-
-        class MySink(bt2._UserSinkComponent):
-            def __init__(self, config, params, obj):
-                self._add_input_port('in')
-
-            def _user_consume(self):
-                raise bt2.Stop
-
-        def ports_connected_listener(
-            upstream_component, upstream_port, downstream_component, downstream_port
-        ):
-            raise ValueError('oh noes!')
-
-        graph = bt2.Graph()
-        graph.add_ports_connected_listener(ports_connected_listener)
-        up = graph.add_component(MySource, 'down')
-        down = graph.add_component(MySink, 'up')
-
-        with self.assertRaises(bt2._Error):
-            graph.connect_ports(up.output_ports['out'], down.input_ports['in'])
 
 
 if __name__ == '__main__':

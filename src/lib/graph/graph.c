@@ -55,10 +55,6 @@
 typedef enum bt_graph_listener_func_status
 (*port_added_func_t)(const void *, const void *, void *);
 
-typedef enum bt_graph_listener_func_status
-(*ports_connected_func_t)(const void *, const void *, const void *,
-		const void *, void *);
-
 typedef enum bt_component_class_initialize_method_status
 (*comp_init_method_t)(const void *, void *, const void *, void *);
 
@@ -70,11 +66,6 @@ struct bt_graph_listener {
 struct bt_graph_listener_port_added {
 	struct bt_graph_listener base;
 	port_added_func_t func;
-};
-
-struct bt_graph_listener_ports_connected {
-	struct bt_graph_listener base;
-	ports_connected_func_t func;
 };
 
 #define INIT_LISTENERS_ARRAY(_type, _listeners)				\
@@ -147,14 +138,6 @@ void destroy_graph(struct bt_object *obj)
 		graph->listeners.filter_input_port_added);
 	CALL_REMOVE_LISTENERS(struct bt_graph_listener_port_added,
 		graph->listeners.sink_input_port_added);
-	CALL_REMOVE_LISTENERS(struct bt_graph_listener_ports_connected,
-		graph->listeners.source_filter_ports_connected);
-	CALL_REMOVE_LISTENERS(struct bt_graph_listener_ports_connected,
-		graph->listeners.filter_filter_ports_connected);
-	CALL_REMOVE_LISTENERS(struct bt_graph_listener_ports_connected,
-		graph->listeners.source_sink_ports_connected);
-	CALL_REMOVE_LISTENERS(struct bt_graph_listener_ports_connected,
-		graph->listeners.filter_sink_ports_connected);
 
 	if (graph->messages) {
 		g_ptr_array_free(graph->messages, TRUE);
@@ -204,30 +187,6 @@ void destroy_graph(struct bt_object *obj)
 	if (graph->listeners.sink_input_port_added) {
 		g_array_free(graph->listeners.sink_input_port_added, TRUE);
 		graph->listeners.sink_input_port_added = NULL;
-	}
-
-	if (graph->listeners.source_filter_ports_connected) {
-		g_array_free(graph->listeners.source_filter_ports_connected,
-			TRUE);
-		graph->listeners.source_filter_ports_connected = NULL;
-	}
-
-	if (graph->listeners.filter_filter_ports_connected) {
-		g_array_free(graph->listeners.filter_filter_ports_connected,
-			TRUE);
-		graph->listeners.filter_filter_ports_connected = NULL;
-	}
-
-	if (graph->listeners.source_sink_ports_connected) {
-		g_array_free(graph->listeners.source_sink_ports_connected,
-			TRUE);
-		graph->listeners.source_sink_ports_connected = NULL;
-	}
-
-	if (graph->listeners.filter_sink_ports_connected) {
-		g_array_free(graph->listeners.filter_sink_ports_connected,
-			TRUE);
-		graph->listeners.filter_sink_ports_connected = NULL;
 	}
 
 	bt_object_pool_finalize(&graph->event_msg_pool);
@@ -329,34 +288,6 @@ struct bt_graph *bt_graph_create(uint64_t mip_version)
 		goto error;
 	}
 
-	INIT_LISTENERS_ARRAY(struct bt_graph_listener_ports_connected,
-		graph->listeners.source_filter_ports_connected);
-
-	if (!graph->listeners.source_filter_ports_connected) {
-		goto error;
-	}
-
-	INIT_LISTENERS_ARRAY(struct bt_graph_listener_ports_connected,
-		graph->listeners.source_sink_ports_connected);
-
-	if (!graph->listeners.source_sink_ports_connected) {
-		goto error;
-	}
-
-	INIT_LISTENERS_ARRAY(struct bt_graph_listener_ports_connected,
-		graph->listeners.filter_filter_ports_connected);
-
-	if (!graph->listeners.filter_filter_ports_connected) {
-		goto error;
-	}
-
-	INIT_LISTENERS_ARRAY(struct bt_graph_listener_ports_connected,
-		graph->listeners.filter_sink_ports_connected);
-
-	if (!graph->listeners.filter_sink_ports_connected) {
-		goto error;
-	}
-
 	graph->interrupters = g_ptr_array_new_with_free_func(
 		(GDestroyNotify) bt_object_put_ref_no_null_check);
 	if (!graph->interrupters) {
@@ -424,7 +355,6 @@ enum bt_graph_connect_ports_status bt_graph_connect_ports(
 		const struct bt_connection **user_connection)
 {
 	enum bt_graph_connect_ports_status status = BT_FUNC_STATUS_OK;
-	enum bt_graph_listener_func_status listener_status;
 	struct bt_connection *connection = NULL;
 	struct bt_port *upstream_port = (void *) upstream_port_out;
 	struct bt_port *downstream_port = (void *) downstream_port_in;
@@ -526,27 +456,6 @@ enum bt_graph_connect_ports_status bt_graph_connect_ports(
 
 	connection->notified_downstream_port_connected = true;
 
-	/*
-	 * Notify the graph's creator that both ports are connected.
-	 */
-	BT_LOGD_STR("Notifying graph's user that new component ports are connected.");
-	listener_status = bt_graph_notify_ports_connected(graph, upstream_port, downstream_port);
-	if (listener_status != BT_FUNC_STATUS_OK) {
-		if (listener_status < 0) {
-			BT_LIB_LOGW_APPEND_CAUSE(
-				"Graph \"ports connected\" listener failed: "
-				"status=%d, %![graph-]+g, %![up-comp-]+c, "
-				"%![down-comp-]+c, %![up-port-]+p, %![down-port-]+p",
-				listener_status, graph,
-				upstream_component, downstream_component,
-				upstream_port, downstream_port);
-		}
-
-		status = (int) listener_status;
-		goto end;
-	}
-
-	connection->notified_graph_ports_connected = true;
 	BT_LIB_LOGI("Connected component ports within graph: "
 		"%![graph-]+g, %![up-comp-]+c, %![down-comp-]+c, "
 		"%![up-port-]+p, %![down-port-]+p",
@@ -941,154 +850,6 @@ bt_graph_add_sink_component_input_port_added_listener(
 	return BT_FUNC_STATUS_OK;
 }
 
-enum bt_graph_add_listener_status
-bt_graph_add_source_filter_component_ports_connected_listener(
-		struct bt_graph *graph,
-		bt_graph_source_filter_component_ports_connected_listener_func func,
-		bt_graph_listener_removed_func listener_removed, void *data,
-		bt_listener_id *out_listener_id)
-{
-	struct bt_graph_listener_ports_connected listener = {
-		.base = {
-			.removed = listener_removed,
-			.data = data,
-		},
-		.func = (ports_connected_func_t) func,
-	};
-	bt_listener_id listener_id;
-
-	BT_ASSERT_PRE_NO_ERROR();
-	BT_ASSERT_PRE_NON_NULL(graph, "Graph");
-	BT_ASSERT_PRE_NON_NULL(func, "Listener");
-	BT_ASSERT_PRE_NON_NULL(func, "\"Listener removed\" listener");
-	BT_ASSERT_PRE(!graph->in_remove_listener,
-		"Graph currently executing a \"listener removed\" listener: "
-		"%!+g", graph);
-	g_array_append_val(graph->listeners.source_filter_ports_connected,
-		listener);
-	listener_id = graph->listeners.source_filter_ports_connected->len - 1;
-	BT_LIB_LOGD("Added \"source to filter component ports connected\" listener to graph: "
-		"%![graph-]+g, listener-addr=%p, id=%d", graph, listener,
-		listener_id);
-
-	if (listener_id) {
-		*out_listener_id = listener_id;
-	}
-
-	return BT_FUNC_STATUS_OK;
-}
-
-enum bt_graph_add_listener_status
-bt_graph_add_source_sink_component_ports_connected_listener(
-		struct bt_graph *graph,
-		bt_graph_source_sink_component_ports_connected_listener_func func,
-		bt_graph_listener_removed_func listener_removed, void *data,
-		bt_listener_id *out_listener_id)
-{
-	struct bt_graph_listener_ports_connected listener = {
-		.base = {
-			.removed = listener_removed,
-			.data = data,
-		},
-		.func = (ports_connected_func_t) func,
-	};
-	bt_listener_id listener_id;
-
-	BT_ASSERT_PRE_NO_ERROR();
-	BT_ASSERT_PRE_NON_NULL(graph, "Graph");
-	BT_ASSERT_PRE_NON_NULL(func, "Listener");
-	BT_ASSERT_PRE_NON_NULL(func, "\"Listener removed\" listener");
-	BT_ASSERT_PRE(!graph->in_remove_listener,
-		"Graph currently executing a \"listener removed\" listener: "
-		"%!+g", graph);
-	g_array_append_val(graph->listeners.source_sink_ports_connected,
-		listener);
-	listener_id = graph->listeners.source_sink_ports_connected->len - 1;
-	BT_LIB_LOGD("Added \"source to sink component ports connected\" listener to graph: "
-		"%![graph-]+g, listener-addr=%p, id=%d", graph, listener,
-		listener_id);
-
-	if (listener_id) {
-		*out_listener_id = listener_id;
-	}
-
-	return BT_FUNC_STATUS_OK;
-}
-
-enum bt_graph_add_listener_status
-bt_graph_add_filter_filter_component_ports_connected_listener(
-		struct bt_graph *graph,
-		bt_graph_filter_filter_component_ports_connected_listener_func func,
-		bt_graph_listener_removed_func listener_removed, void *data,
-		bt_listener_id *out_listener_id)
-{
-	struct bt_graph_listener_ports_connected listener = {
-		.base = {
-			.removed = listener_removed,
-			.data = data,
-		},
-		.func = (ports_connected_func_t) func,
-	};
-	bt_listener_id listener_id;
-
-	BT_ASSERT_PRE_NO_ERROR();
-	BT_ASSERT_PRE_NON_NULL(graph, "Graph");
-	BT_ASSERT_PRE_NON_NULL(func, "Listener");
-	BT_ASSERT_PRE_NON_NULL(func, "\"Listener removed\" listener");
-	BT_ASSERT_PRE(!graph->in_remove_listener,
-		"Graph currently executing a \"listener removed\" listener: "
-		"%!+g", graph);
-	g_array_append_val(graph->listeners.filter_filter_ports_connected,
-		listener);
-	listener_id = graph->listeners.filter_filter_ports_connected->len - 1;
-	BT_LIB_LOGD("Added \"filter to filter component ports connected\" listener to graph: "
-		"%![graph-]+g, listener-addr=%p, id=%d", graph, listener,
-		listener_id);
-
-	if (listener_id) {
-		*out_listener_id = listener_id;
-	}
-
-	return BT_FUNC_STATUS_OK;
-}
-
-enum bt_graph_add_listener_status
-bt_graph_add_filter_sink_component_ports_connected_listener(
-		struct bt_graph *graph,
-		bt_graph_filter_sink_component_ports_connected_listener_func func,
-		bt_graph_listener_removed_func listener_removed, void *data,
-		bt_listener_id *out_listener_id)
-{
-	struct bt_graph_listener_ports_connected listener = {
-		.base = {
-			.removed = listener_removed,
-			.data = data,
-		},
-		.func = (ports_connected_func_t) func,
-	};
-	bt_listener_id listener_id;
-
-	BT_ASSERT_PRE_NO_ERROR();
-	BT_ASSERT_PRE_NON_NULL(graph, "Graph");
-	BT_ASSERT_PRE_NON_NULL(func, "Listener");
-	BT_ASSERT_PRE_NON_NULL(func, "\"Listener removed\" listener");
-	BT_ASSERT_PRE(!graph->in_remove_listener,
-		"Graph currently executing a \"listener removed\" listener: "
-		"%!+g", graph);
-	g_array_append_val(graph->listeners.filter_sink_ports_connected,
-		listener);
-	listener_id = graph->listeners.filter_sink_ports_connected->len - 1;
-	BT_LIB_LOGD("Added \"filter to sink component ports connected\" listener to graph: "
-		"%![graph-]+g, listener-addr=%p, id=%d", graph, listener,
-		listener_id);
-
-	if (listener_id) {
-		*out_listener_id = listener_id;
-	}
-
-	return BT_FUNC_STATUS_OK;
-}
-
 BT_HIDDEN
 enum bt_graph_listener_func_status bt_graph_notify_port_added(
 		struct bt_graph *graph, struct bt_port *port)
@@ -1158,85 +919,6 @@ enum bt_graph_listener_func_status bt_graph_notify_port_added(
 		BT_ASSERT(listener->func);
 		status = listener->func(comp, port, listener->base.data);
 		BT_ASSERT_POST_NO_ERROR_IF_NO_ERROR_STATUS(status);
-		if (status != BT_FUNC_STATUS_OK) {
-			goto end;
-		}
-	}
-
-end:
-	return status;
-}
-
-BT_HIDDEN
-enum bt_graph_listener_func_status bt_graph_notify_ports_connected(
-		struct bt_graph *graph, struct bt_port *upstream_port,
-		struct bt_port *downstream_port)
-{
-	uint64_t i;
-	GArray *listeners;
-	struct bt_component *upstream_comp;
-	struct bt_component *downstream_comp;
-	enum bt_graph_listener_func_status status = BT_FUNC_STATUS_OK;
-
-	BT_ASSERT(graph);
-	BT_ASSERT(upstream_port);
-	BT_ASSERT(downstream_port);
-	BT_LIB_LOGD("Notifying graph listeners that ports were connected: "
-		"%![graph-]+g, %![up-port-]+p, %![down-port-]+p",
-		graph, upstream_port, downstream_port);
-	upstream_comp = bt_port_borrow_component_inline(upstream_port);
-	BT_ASSERT(upstream_comp);
-	downstream_comp = bt_port_borrow_component_inline(downstream_port);
-	BT_ASSERT(downstream_comp);
-
-	switch (upstream_comp->class->type) {
-	case BT_COMPONENT_CLASS_TYPE_SOURCE:
-	{
-		switch (downstream_comp->class->type) {
-		case BT_COMPONENT_CLASS_TYPE_FILTER:
-			listeners =
-				graph->listeners.source_filter_ports_connected;
-			break;
-		case BT_COMPONENT_CLASS_TYPE_SINK:
-			listeners =
-				graph->listeners.source_sink_ports_connected;
-			break;
-		default:
-			bt_common_abort();
-		}
-
-		break;
-	}
-	case BT_COMPONENT_CLASS_TYPE_FILTER:
-	{
-		switch (downstream_comp->class->type) {
-		case BT_COMPONENT_CLASS_TYPE_FILTER:
-			listeners =
-				graph->listeners.filter_filter_ports_connected;
-			break;
-		case BT_COMPONENT_CLASS_TYPE_SINK:
-			listeners =
-				graph->listeners.filter_sink_ports_connected;
-			break;
-		default:
-			bt_common_abort();
-		}
-
-		break;
-	}
-	default:
-		bt_common_abort();
-	}
-
-	for (i = 0; i < listeners->len; i++) {
-		struct bt_graph_listener_ports_connected *listener =
-			&g_array_index(listeners,
-				struct bt_graph_listener_ports_connected, i);
-
-		BT_ASSERT(listener->func);
-		status = listener->func(upstream_comp, downstream_comp,
-			upstream_port, downstream_port, listener->base.data);
-		BT_ASSERT_POST_DEV_NO_ERROR_IF_NO_ERROR_STATUS(status);
 		if (status != BT_FUNC_STATUS_OK) {
 			goto end;
 		}

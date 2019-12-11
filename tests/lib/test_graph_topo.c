@@ -26,14 +26,13 @@
 
 #include "tap/tap.h"
 
-#define NR_TESTS	33
+#define NR_TESTS	26
 
 enum event_type {
 	SRC_COMP_OUTPUT_PORT_CONNECTED,
 	SINK_COMP_INPUT_PORT_CONNECTED,
 	GRAPH_SRC_OUTPUT_PORT_ADDED,
 	GRAPH_SINK_INPUT_PORT_ADDED,
-	GRAPH_SRC_SINK_PORTS_CONNECTED,
 };
 
 enum test {
@@ -69,13 +68,6 @@ struct event {
 			const bt_component *comp;
 			const bt_port *port;
 		} graph_sink_input_port_added;
-
-		struct {
-			const bt_component *upstream_comp;
-			const bt_component *downstream_comp;
-			const bt_port *upstream_port;
-			const bt_port *downstream_port;
-		} graph_src_sink_ports_connected;
 	} data;
 };
 
@@ -155,27 +147,6 @@ bool compare_events(struct event *ev_a, struct event *ev_b)
 
 			if (ev_a->data.graph_sink_input_port_added.port !=
 					ev_b->data.graph_sink_input_port_added.port) {
-				return false;
-			}
-			break;
-		case GRAPH_SRC_SINK_PORTS_CONNECTED:
-			if (ev_a->data.graph_src_sink_ports_connected.upstream_comp !=
-					ev_b->data.graph_src_sink_ports_connected.upstream_comp) {
-				return false;
-			}
-
-			if (ev_a->data.graph_src_sink_ports_connected.downstream_comp !=
-					ev_b->data.graph_src_sink_ports_connected.downstream_comp) {
-				return false;
-			}
-
-			if (ev_a->data.graph_src_sink_ports_connected.upstream_port !=
-					ev_b->data.graph_src_sink_ports_connected.upstream_port) {
-				return false;
-			}
-
-			if (ev_a->data.graph_src_sink_ports_connected.downstream_port !=
-					ev_b->data.graph_src_sink_ports_connected.downstream_port) {
 				return false;
 			}
 			break;
@@ -364,32 +335,6 @@ bt_graph_listener_func_status graph_sink_input_port_added(
 }
 
 static
-bt_graph_listener_func_status graph_src_sink_ports_connected(
-		const bt_component_source *upstream_comp,
-		const bt_component_sink *downstream_comp,
-		const bt_port_output *upstream_port,
-		const bt_port_input *downstream_port, void *data)
-{
-	struct event event = {
-		.type = GRAPH_SRC_SINK_PORTS_CONNECTED,
-		.data.graph_src_sink_ports_connected = {
-			.upstream_comp =
-				bt_component_source_as_component_const(upstream_comp),
-				.downstream_comp =
-				bt_component_sink_as_component_const(downstream_comp),
-				.upstream_port =
-				bt_port_output_as_port_const(upstream_port),
-				.downstream_port =
-				bt_port_input_as_port_const(downstream_port),
-		},
-	};
-
-	append_event(&event);
-
-	return BT_GRAPH_LISTENER_FUNC_STATUS_OK;
-}
-
-static
 void init_test(void)
 {
 	int ret;
@@ -461,9 +406,6 @@ bt_graph *create_graph(void)
 	ret = bt_graph_add_sink_component_input_port_added_listener(
 		graph, graph_sink_input_port_added, NULL, NULL, NULL);
 	BT_ASSERT(ret >= 0);
-	ret = bt_graph_add_source_sink_component_ports_connected_listener(
-		graph, graph_src_sink_ports_connected, NULL, NULL, NULL);
-	BT_ASSERT(ret >= 0);
 	return graph;
 }
 
@@ -492,8 +434,6 @@ void test_src_adds_port_in_port_connected(void)
 	struct event event;
 	bt_graph_connect_ports_status status;
 	size_t src_port_connected_pos;
-	size_t sink_port_connected_pos;
-	size_t graph_ports_connected_pos;
 	size_t graph_port_added_src_pos;
 
 	prepare_test(TEST_SRC_ADDS_PORT_IN_PORT_CONNECTED,
@@ -520,8 +460,8 @@ void test_src_adds_port_in_port_connected(void)
 	gsrc_hello_port = bt_port_output_as_port_const(src_hello_port);
 	gsink_def_port = bt_port_input_as_port_const(sink_def_port);
 
-	/* We're supposed to have 6 events */
-	ok(events->len == 6, "we have the expected number of events");
+	/* We're supposed to have 5 events */
+	ok(events->len == 5, "we have the expected number of events");
 
 	/* Source's port added */
 	event.type = GRAPH_SRC_OUTPUT_PORT_ADDED;
@@ -556,26 +496,10 @@ void test_src_adds_port_in_port_connected(void)
 	event.data.sink_comp_input_port_connected.self_port = gsink_def_port;
 	event.data.sink_comp_input_port_connected.other_port = gsrc_def_port;
 	ok(has_event(&event), "got the expected sink's port connected event");
-	sink_port_connected_pos = event_pos(&event);
-
-	/* Graph's ports connected */
-	event.type = GRAPH_SRC_SINK_PORTS_CONNECTED;
-	event.data.graph_src_sink_ports_connected.upstream_comp = gsrc;
-	event.data.graph_src_sink_ports_connected.downstream_comp = gsink;
-	event.data.graph_src_sink_ports_connected.upstream_port = gsrc_def_port;
-	event.data.graph_src_sink_ports_connected.downstream_port = gsink_def_port;
-	ok(has_event(&event), "got the expected graph's ports connected event");
-	graph_ports_connected_pos = event_pos(&event);
 
 	/* Order of events */
-	ok(src_port_connected_pos < graph_ports_connected_pos,
-		"event order is good (1)");
-	ok(sink_port_connected_pos < graph_ports_connected_pos,
-		"event order is good (2)");
 	ok(src_port_connected_pos < graph_port_added_src_pos,
-		"event order is good (3)");
-	ok(graph_port_added_src_pos < graph_ports_connected_pos,
-		"event order is good (4)");
+		"event order is good");
 
 	bt_component_source_put_ref(src);
 	bt_component_sink_put_ref(sink);
@@ -596,9 +520,6 @@ void test_simple(void)
 	const bt_port *gsink_def_port;
 	struct event event;
 	bt_graph_connect_ports_status status;
-	size_t src_port_connected_pos;
-	size_t sink_port_connected_pos;
-	size_t graph_ports_connected_pos;
 
 	prepare_test(TEST_SIMPLE, "simple");
 	graph = create_graph();
@@ -619,8 +540,8 @@ void test_simple(void)
 	gsrc_def_port = bt_port_output_as_port_const(src_def_port);
 	gsink_def_port = bt_port_input_as_port_const(sink_def_port);
 
-	/* We're supposed to have 5 events */
-	ok(events->len == 5, "we have the expected number of events");
+	/* We're supposed to have 4 events */
+	ok(events->len == 4, "we have the expected number of events");
 
 	/* Source's port added */
 	event.type = GRAPH_SRC_OUTPUT_PORT_ADDED;
@@ -640,7 +561,6 @@ void test_simple(void)
 	event.data.src_comp_output_port_connected.self_port = gsrc_def_port;
 	event.data.src_comp_output_port_connected.other_port = gsink_def_port;
 	ok(has_event(&event), "got the expected source's port connected event");
-	src_port_connected_pos = event_pos(&event);
 
 	/* Sink's port connected */
 	event.type = SINK_COMP_INPUT_PORT_CONNECTED;
@@ -648,22 +568,6 @@ void test_simple(void)
 	event.data.sink_comp_input_port_connected.self_port = gsink_def_port;
 	event.data.sink_comp_input_port_connected.other_port = gsrc_def_port;
 	ok(has_event(&event), "got the expected sink's port connected event");
-	sink_port_connected_pos = event_pos(&event);
-
-	/* Graph's ports connected */
-	event.type = GRAPH_SRC_SINK_PORTS_CONNECTED;
-	event.data.graph_src_sink_ports_connected.upstream_comp = gsrc;
-	event.data.graph_src_sink_ports_connected.downstream_comp = gsink;
-	event.data.graph_src_sink_ports_connected.upstream_port = gsrc_def_port;
-	event.data.graph_src_sink_ports_connected.downstream_port = gsink_def_port;
-	ok(has_event(&event), "got the expected graph's ports connected event");
-	graph_ports_connected_pos = event_pos(&event);
-
-	/* Order of events */
-	ok(src_port_connected_pos < graph_ports_connected_pos,
-		"event order is good (1)");
-	ok(sink_port_connected_pos < graph_ports_connected_pos,
-		"event order is good (2)");
 
 	bt_component_sink_put_ref(sink);
 	bt_graph_put_ref(graph);
