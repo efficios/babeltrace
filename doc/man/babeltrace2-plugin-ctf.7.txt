@@ -20,7 +20,7 @@ include::common-see-babeltrace2-intro.txt[]
 == COMPONENT CLASSES
 
 compcls:source.ctf.fs::
-    Opens a CTF trace on the file system and emits the messages of their
+    Opens a CTF trace on the file system and emits the messages of its
     data stream files.
 +
 See man:babeltrace2-source.ctf.fs(7).
