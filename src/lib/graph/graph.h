@@ -101,8 +101,7 @@ struct bt_graph {
 	GPtrArray *interrupters;
 
 	/*
-	 * Default interrupter to support bt_graph_interrupt(); owned
-	 * by this.
+	 * Default interrupter, owned by this.
 	 */
 	struct bt_interrupter *default_interrupter;
 

@@ -65,6 +65,10 @@ class GraphTestCase(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'unknown MIP version'):
             bt2.Graph(1)
 
+    def test_default_interrupter(self):
+        interrupter = self._graph.default_interrupter
+        self.assertIs(type(interrupter), bt2.Interrupter)
+
     def test_add_component_user_cls(self):
         class MySink(bt2._UserSinkComponent):
             def _user_consume(self):
@@ -321,7 +325,7 @@ class GraphTestCase(unittest.TestCase):
             def _user_consume(self):
                 # Pretend that somebody asynchronously interrupted the graph.
                 nonlocal graph
-                graph.interrupt()
+                graph.default_interrupter.set()
                 return next(self._msg_iter)
 
             def _user_graph_is_configured(self):
