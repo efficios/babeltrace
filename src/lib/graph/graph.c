@@ -1194,11 +1194,10 @@ enum bt_graph_add_interrupter_status bt_graph_add_interrupter(
 	return BT_FUNC_STATUS_OK;
 }
 
-void bt_graph_interrupt(struct bt_graph *graph)
+struct bt_interrupter *bt_graph_borrow_default_interrupter(bt_graph *graph)
 {
 	BT_ASSERT_PRE_NON_NULL(graph, "Graph");
-	bt_interrupter_set(graph->default_interrupter);
-	BT_LIB_LOGI("Interrupted graph: %!+g", graph);
+	return graph->default_interrupter;
 }
 
 void bt_graph_get_ref(const struct bt_graph *graph)

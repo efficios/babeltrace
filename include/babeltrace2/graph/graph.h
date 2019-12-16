@@ -240,7 +240,7 @@ typedef enum bt_graph_add_interrupter_status {
 extern bt_graph_add_interrupter_status bt_graph_add_interrupter(bt_graph *graph,
 		const bt_interrupter *interrupter);
 
-extern void bt_graph_interrupt(bt_graph *graph);
+extern bt_interrupter *bt_graph_borrow_default_interrupter(bt_graph *graph);
 
 #ifdef __cplusplus
 }

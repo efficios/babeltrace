@@ -159,5 +159,7 @@ class Graph(object._SharedObject):
         utils._check_type(interrupter, bt2_interrupter.Interrupter)
         native_bt.graph_add_interrupter(self._ptr, interrupter._ptr)
 
-    def interrupt(self):
-        native_bt.graph_interrupt(self._ptr)
+    @property
+    def default_interrupter(self):
+        ptr = native_bt.graph_borrow_default_interrupter(self._ptr)
+        return bt2_interrupter.Interrupter._create_from_ptr_and_get_ref(ptr)
