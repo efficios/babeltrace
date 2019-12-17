@@ -277,12 +277,11 @@ bt_bool bt_query_executor_is_interrupted(const struct bt_query_executor *query_e
 		query_exec->interrupters);
 }
 
-void bt_query_executor_interrupt(struct bt_query_executor *query_exec)
+struct bt_interrupter *bt_query_executor_borrow_default_interrupter(
+		struct bt_query_executor *query_exec)
 {
 	BT_ASSERT_PRE_NON_NULL(query_exec, "Query executor");
-	bt_interrupter_set(query_exec->default_interrupter);
-	BT_LIB_LOGI("Interrupted query executor: query-exec-addr=%p",
-		query_exec);
+	return query_exec->default_interrupter;
 }
 
 enum bt_query_executor_set_logging_level_status

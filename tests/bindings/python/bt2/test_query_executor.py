@@ -22,6 +22,15 @@ import re
 
 
 class QueryExecutorTestCase(unittest.TestCase):
+    def test_default_interrupter(self):
+        class MySink(bt2._UserSinkComponent):
+            def _user_consume(self):
+                pass
+
+        query_exec = bt2.QueryExecutor(MySink, 'obj')
+        interrupter = query_exec.default_interrupter
+        self.assertIs(type(interrupter), bt2.Interrupter)
+
     def test_query(self):
         class MySink(bt2._UserSinkComponent):
             def _user_consume(self):
@@ -262,7 +271,7 @@ class QueryExecutorTestCase(unittest.TestCase):
             @classmethod
             def _user_query(cls, priv_query_exec, obj, params, method_obj):
                 test_self.assertFalse(query_exec.is_interrupted)
-                query_exec.interrupt()
+                query_exec.default_interrupter.set()
                 test_self.assertTrue(query_exec.is_interrupted)
 
         test_self = self

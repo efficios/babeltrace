@@ -65,7 +65,8 @@ extern bt_query_executor_add_interrupter_status
 bt_query_executor_add_interrupter(bt_query_executor *query_executor,
 		const bt_interrupter *interrupter);
 
-extern void bt_query_executor_interrupt(bt_query_executor *query_executor);
+extern bt_interrupter *bt_query_executor_borrow_default_interrupter(
+		bt_query_executor *query_executor);
 
 typedef enum bt_query_executor_set_logging_level_status {
 	BT_QUERY_EXECUTOR_SET_LOGGING_LEVEL_STATUS_OK	= __BT_FUNC_STATUS_OK,
