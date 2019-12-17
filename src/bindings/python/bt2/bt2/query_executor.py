@@ -104,8 +104,10 @@ class QueryExecutor(object._SharedObject, _QueryExecutorCommon):
         utils._check_type(interrupter, bt2_interrupter.Interrupter)
         native_bt.query_executor_add_interrupter(self._ptr, interrupter._ptr)
 
-    def interrupt(self):
-        native_bt.query_executor_interrupt(self._ptr)
+    @property
+    def default_interrupter(self):
+        ptr = native_bt.query_executor_borrow_default_interrupter(self._ptr)
+        return bt2_interrupter.Interrupter._create_from_ptr_and_get_ref(ptr)
 
     def _set_logging_level(self, log_level):
         utils._check_log_level(log_level)
