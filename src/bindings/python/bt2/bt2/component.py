@@ -613,7 +613,9 @@ class _UserComponentType(type):
     def _user_get_supported_mip_versions(cls, params, obj, log_level):
         return [0]
 
-    def _bt_query_from_native(cls, priv_query_exec_ptr, object, params_ptr, method_obj):
+    def _bt_query_from_native(
+        cls, priv_query_exec_ptr, object_name, params_ptr, method_obj
+    ):
         # this can raise, but the native side checks the exception
         if params_ptr is not None:
             params = bt2_value._create_from_const_ptr_and_get_ref(params_ptr)
@@ -624,7 +626,7 @@ class _UserComponentType(type):
 
         try:
             # this can raise, but the native side checks the exception
-            results = cls._user_query(priv_query_exec, object, params, method_obj)
+            results = cls._user_query(priv_query_exec, object_name, params, method_obj)
         finally:
             # the private query executor is a private view on the query
             # executor; it's not a shared object (the library does not
@@ -646,7 +648,7 @@ class _UserComponentType(type):
         bt2_value._Value._get_ref(results_ptr)
         return int(results_ptr)
 
-    def _user_query(cls, priv_query_executor, object, params, method_obj):
+    def _user_query(cls, priv_query_executor, object_name, params, method_obj):
         raise bt2.UnknownObject
 
     def _bt_component_class_ptr(self):
