@@ -54,7 +54,7 @@ class QueryExecutor(object._SharedObject, _QueryExecutorCommon):
     def _as_query_executor_ptr(self):
         return self._ptr
 
-    def __init__(self, component_class, object, params=None, method_obj=None):
+    def __init__(self, component_class, object_name, params=None, method_obj=None):
         if not isinstance(component_class, _bt2_component()._ComponentClassConst):
             err = False
 
@@ -68,7 +68,7 @@ class QueryExecutor(object._SharedObject, _QueryExecutorCommon):
                 o = component_class
                 raise TypeError("'{}' is not a component class object".format(o))
 
-        utils._check_str(object)
+        utils._check_str(object_name)
 
         if params is None:
             params_ptr = native_bt.value_null
@@ -87,7 +87,7 @@ class QueryExecutor(object._SharedObject, _QueryExecutorCommon):
             )
 
         ptr = native_bt.bt2_query_executor_create(
-            cc_ptr, object, params_ptr, method_obj
+            cc_ptr, object_name, params_ptr, method_obj
         )
 
         if ptr is None:
