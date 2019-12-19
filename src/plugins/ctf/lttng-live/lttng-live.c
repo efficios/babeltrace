@@ -873,6 +873,10 @@ enum lttng_live_iterator_status lttng_live_iterator_close_stream(
 			"Error getting the next message from CTF message iterator");
 		live_status = LTTNG_LIVE_ITERATOR_STATUS_ERROR;
 		goto end;
+	} else if (status == CTF_MSG_ITER_STATUS_EOF) {
+		BT_COMP_LOGI("Reached the end of the live stream iterator.");
+		live_status = LTTNG_LIVE_ITERATOR_STATUS_END;
+		goto end;
 	}
 
 	BT_ASSERT(status == CTF_MSG_ITER_STATUS_OK);
