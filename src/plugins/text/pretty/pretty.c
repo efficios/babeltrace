@@ -109,25 +109,25 @@ void pretty_finalize(bt_self_component_sink *comp)
 }
 
 static
-bt_component_class_message_iterator_next_method_status handle_message(
+bt_message_iterator_class_next_method_status handle_message(
 		struct pretty_component *pretty,
 		const bt_message *message)
 {
-	bt_component_class_message_iterator_next_method_status ret =
-		BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_OK;
+	bt_message_iterator_class_next_method_status ret =
+		BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_OK;
 
 	BT_ASSERT_DBG(pretty);
 
 	switch (bt_message_get_type(message)) {
 	case BT_MESSAGE_TYPE_EVENT:
 		if (pretty_print_event(pretty, message)) {
-			ret = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_ERROR;
+			ret = BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_ERROR;
 		}
 		break;
 	case BT_MESSAGE_TYPE_DISCARDED_EVENTS:
 	case BT_MESSAGE_TYPE_DISCARDED_PACKETS:
 		if (pretty_print_discarded_items(pretty, message)) {
-			ret = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_ERROR;
+			ret = BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_ERROR;
 		}
 		break;
 	default:

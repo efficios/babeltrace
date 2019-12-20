@@ -662,18 +662,17 @@ void destroy_dmesg_msg_iter(struct dmesg_msg_iter *dmesg_msg_iter)
 
 
 BT_HIDDEN
-bt_component_class_message_iterator_initialize_method_status dmesg_msg_iter_init(
+bt_message_iterator_class_initialize_method_status dmesg_msg_iter_init(
 		bt_self_message_iterator *self_msg_iter,
 		bt_self_message_iterator_configuration *config,
-		bt_self_component_source *self_comp,
+		bt_self_component *self_comp,
 		bt_self_component_port_output *self_port)
 {
-	struct dmesg_component *dmesg_comp = bt_self_component_get_data(
-		bt_self_component_source_as_self_component(self_comp));
+	struct dmesg_component *dmesg_comp = bt_self_component_get_data(self_comp);
 	struct dmesg_msg_iter *dmesg_msg_iter =
 		g_new0(struct dmesg_msg_iter, 1);
-	bt_component_class_message_iterator_initialize_method_status status =
-		BT_COMPONENT_CLASS_MESSAGE_ITERATOR_INITIALIZE_METHOD_STATUS_OK;
+	bt_message_iterator_class_initialize_method_status status =
+		BT_MESSAGE_ITERATOR_CLASS_INITIALIZE_METHOD_STATUS_OK;
 
 	if (!dmesg_msg_iter) {
 		BT_COMP_LOGE_STR("Failed to allocate on dmesg message iterator structure.");
@@ -703,7 +702,7 @@ error:
 	destroy_dmesg_msg_iter(dmesg_msg_iter);
 	bt_self_message_iterator_set_data(self_msg_iter, NULL);
 	if (status >= 0) {
-		status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_INITIALIZE_METHOD_STATUS_ERROR;
+		status = BT_MESSAGE_ITERATOR_CLASS_INITIALIZE_METHOD_STATUS_ERROR;
 	}
 
 end:
@@ -719,21 +718,21 @@ void dmesg_msg_iter_finalize(
 }
 
 static
-bt_component_class_message_iterator_next_method_status dmesg_msg_iter_next_one(
+bt_message_iterator_class_next_method_status dmesg_msg_iter_next_one(
 		struct dmesg_msg_iter *dmesg_msg_iter,
 		bt_message **msg)
 {
 	ssize_t len;
 	struct dmesg_component *dmesg_comp;
-	bt_component_class_message_iterator_next_method_status status =
-		BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_OK;
+	bt_message_iterator_class_next_method_status status =
+		BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_OK;
 
 	BT_ASSERT_DBG(dmesg_msg_iter);
 	dmesg_comp = dmesg_msg_iter->dmesg_comp;
 	BT_ASSERT_DBG(dmesg_comp);
 
 	if (dmesg_msg_iter->state == STATE_DONE) {
-		status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_END;
+		status = BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_END;
 		goto end;
 	}
 
@@ -750,13 +749,13 @@ bt_component_class_message_iterator_next_method_status dmesg_msg_iter_next_one(
 			&dmesg_msg_iter->linebuf_len, dmesg_msg_iter->fp);
 		if (len < 0) {
 			if (errno == EINVAL) {
-				status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_ERROR;
+				status = BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_ERROR;
 			} else if (errno == ENOMEM) {
-				status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_MEMORY_ERROR;
+				status = BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_MEMORY_ERROR;
 			} else {
 				if (dmesg_msg_iter->state == STATE_EMIT_STREAM_BEGINNING) {
 					/* Stream did not even begin */
-					status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_END;
+					status = BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_END;
 					goto end;
 				} else {
 					/* End stream now */
@@ -820,7 +819,7 @@ handle_state:
 	if (!*msg) {
 		BT_COMP_LOGE("Cannot create message: dmesg-comp-addr=%p",
 			dmesg_comp);
-		status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_ERROR;
+		status = BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_ERROR;
 	}
 
 end:
@@ -828,7 +827,7 @@ end:
 }
 
 BT_HIDDEN
-bt_component_class_message_iterator_next_method_status dmesg_msg_iter_next(
+bt_message_iterator_class_next_method_status dmesg_msg_iter_next(
 		bt_self_message_iterator *self_msg_iter,
 		bt_message_array_const msgs, uint64_t capacity,
 		uint64_t *count)
@@ -836,18 +835,18 @@ bt_component_class_message_iterator_next_method_status dmesg_msg_iter_next(
 	struct dmesg_msg_iter *dmesg_msg_iter =
 		bt_self_message_iterator_get_data(
 			self_msg_iter);
-	bt_component_class_message_iterator_next_method_status status =
-		BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_OK;
+	bt_message_iterator_class_next_method_status status =
+		BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_OK;
 	uint64_t i = 0;
 
 	while (i < capacity &&
-			status == BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_OK) {
+			status == BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_OK) {
 		bt_message *priv_msg = NULL;
 
 		status = dmesg_msg_iter_next_one(dmesg_msg_iter,
 			&priv_msg);
 		msgs[i] = priv_msg;
-		if (status == BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_OK) {
+		if (status == BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_OK) {
 			i++;
 		}
 	}
@@ -866,14 +865,14 @@ bt_component_class_message_iterator_next_method_status dmesg_msg_iter_next(
 		 * message, in which case we'll return it.
 		 */
 		*count = i;
-		status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_OK;
+		status = BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_OK;
 	}
 
 	return status;
 }
 
 BT_HIDDEN
-bt_component_class_message_iterator_can_seek_beginning_method_status
+bt_message_iterator_class_can_seek_beginning_method_status
 dmesg_msg_iter_can_seek_beginning(
 		bt_self_message_iterator *self_msg_iter, bt_bool *can_seek)
 {
@@ -883,11 +882,11 @@ dmesg_msg_iter_can_seek_beginning(
 	/* Can't seek the beginning of the standard input stream */
 	*can_seek = !dmesg_msg_iter->dmesg_comp->params.read_from_stdin;
 
-	return BT_COMPONENT_CLASS_MESSAGE_ITERATOR_CAN_SEEK_BEGINNING_METHOD_STATUS_OK;
+	return BT_MESSAGE_ITERATOR_CLASS_CAN_SEEK_BEGINNING_METHOD_STATUS_OK;
 }
 
 BT_HIDDEN
-bt_component_class_message_iterator_seek_beginning_method_status
+bt_message_iterator_class_seek_beginning_method_status
 dmesg_msg_iter_seek_beginning(
 		bt_self_message_iterator *self_msg_iter)
 {
@@ -899,5 +898,5 @@ dmesg_msg_iter_seek_beginning(
 	BT_MESSAGE_PUT_REF_AND_RESET(dmesg_msg_iter->tmp_event_msg);
 	dmesg_msg_iter->last_clock_value = 0;
 	dmesg_msg_iter->state = STATE_EMIT_STREAM_BEGINNING;
-	return BT_COMPONENT_CLASS_MESSAGE_ITERATOR_SEEK_BEGINNING_METHOD_STATUS_OK;
+	return BT_MESSAGE_ITERATOR_CLASS_SEEK_BEGINNING_METHOD_STATUS_OK;
 }

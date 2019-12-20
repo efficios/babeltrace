@@ -199,7 +199,7 @@ struct ctf_fs_msg_iter_data {
 	 * messages ready to return, we save the error here and return it on
 	 * the next _next call.
 	 */
-	bt_component_class_message_iterator_next_method_status next_saved_status;
+	bt_message_iterator_class_next_method_status next_saved_status;
 	const struct bt_error *next_saved_error;
 
 	struct ctf_fs_ds_group_medops_data *msg_iter_medops_data;
@@ -222,23 +222,23 @@ bt_component_class_query_method_status ctf_fs_query(
 		void *method_data, const bt_value **result);
 
 BT_HIDDEN
-bt_component_class_message_iterator_initialize_method_status ctf_fs_iterator_init(
+bt_message_iterator_class_initialize_method_status ctf_fs_iterator_init(
 		bt_self_message_iterator *self_msg_iter,
 		bt_self_message_iterator_configuration *config,
-		bt_self_component_source *self_comp,
+		bt_self_component *self_comp,
 		bt_self_component_port_output *self_port);
 
 BT_HIDDEN
 void ctf_fs_iterator_finalize(bt_self_message_iterator *it);
 
 BT_HIDDEN
-bt_component_class_message_iterator_next_method_status ctf_fs_iterator_next(
+bt_message_iterator_class_next_method_status ctf_fs_iterator_next(
 		bt_self_message_iterator *iterator,
 		bt_message_array_const msgs, uint64_t capacity,
 		uint64_t *count);
 
 BT_HIDDEN
-bt_component_class_message_iterator_seek_beginning_method_status ctf_fs_iterator_seek_beginning(
+bt_message_iterator_class_seek_beginning_method_status ctf_fs_iterator_seek_beginning(
 		bt_self_message_iterator *message_iterator);
 
 /* Create and initialize a new, empty ctf_fs_component. */

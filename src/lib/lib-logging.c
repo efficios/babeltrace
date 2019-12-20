@@ -1198,6 +1198,13 @@ static inline void format_graph(char **buf_ch, bool extended,
 		&graph->packet_end_msg_pool);
 }
 
+static inline void format_message_iterator_class(char **buf_ch,
+		bool extended, const char *prefix,
+		const struct bt_message_iterator_class *iterator_class)
+{
+	/* Empty, the address is automatically printed. */
+}
+
 static inline void format_message_iterator(char **buf_ch,
 		bool extended, const char *prefix,
 		const struct bt_message_iterator *iterator)
@@ -1446,6 +1453,9 @@ static inline void handle_conversion_specifier_bt(void *priv_data,
 		break;
 	case 'n':
 		format_message(buf_ch, extended, prefix, obj);
+		break;
+	case 'I':
+		format_message_iterator_class(buf_ch, extended, prefix, obj);
 		break;
 	case 'i':
 		format_message_iterator(buf_ch, extended, prefix, obj);

@@ -65,23 +65,23 @@ enum bt_self_component_port_input_message_iterator_state {
 	BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_STATE_LAST_SEEKING_RETURNED_ERROR,
 };
 
-typedef enum bt_component_class_message_iterator_next_method_status
+typedef enum bt_message_iterator_class_next_method_status
 (*bt_self_component_port_input_message_iterator_next_method)(
 		void *, bt_message_array_const, uint64_t, uint64_t *);
 
-typedef enum bt_component_class_message_iterator_seek_ns_from_origin_method_status
+typedef enum bt_message_iterator_class_seek_ns_from_origin_method_status
 (*bt_self_component_port_input_message_iterator_seek_ns_from_origin_method)(
 		void *, int64_t);
 
-typedef enum bt_component_class_message_iterator_seek_beginning_method_status
+typedef enum bt_message_iterator_class_seek_beginning_method_status
 (*bt_self_component_port_input_message_iterator_seek_beginning_method)(
 		void *);
 
-typedef enum bt_component_class_message_iterator_can_seek_ns_from_origin_method_status
+typedef enum bt_message_iterator_class_can_seek_ns_from_origin_method_status
 (*bt_self_component_port_input_message_iterator_can_seek_ns_from_origin_method)(
 		void *, int64_t, bt_bool *);
 
-typedef enum bt_component_class_message_iterator_can_seek_beginning_method_status
+typedef enum bt_message_iterator_class_can_seek_beginning_method_status
 (*bt_self_component_port_input_message_iterator_can_seek_beginning_method)(
 		void *, bt_bool *);
 

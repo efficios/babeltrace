@@ -419,21 +419,25 @@ bt_component_class_initialize_method_status src_init(
 }
 
 static
-bt_component_class_message_iterator_next_method_status src_iter_next(
+bt_message_iterator_class_next_method_status src_iter_next(
 		bt_self_message_iterator *self_iterator,
 		bt_message_array_const msgs, uint64_t capacity,
 		uint64_t *count)
 {
-	return BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_ERROR;
+	return BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_ERROR;
 }
 
 static void test_example_scenario_in_graph(void)
 {
+	bt_message_iterator_class *msg_iter_cls;
 	bt_component_class_source *comp_cls;
 	bt_graph *graph;
 	int ret;
 
-	comp_cls = bt_component_class_source_create("src", src_iter_next);
+	msg_iter_cls = bt_message_iterator_class_create(src_iter_next);
+	BT_ASSERT(msg_iter_cls);
+
+	comp_cls = bt_component_class_source_create("src", msg_iter_cls);
 	BT_ASSERT(comp_cls);
 	ret = bt_component_class_source_set_initialize_method(comp_cls, src_init);
 	BT_ASSERT(ret == 0);
@@ -443,6 +447,7 @@ static void test_example_scenario_in_graph(void)
 	BT_ASSERT(ret == 0);
 	bt_graph_put_ref(graph);
 	bt_component_class_source_put_ref(comp_cls);
+	bt_message_iterator_class_put_ref(msg_iter_cls);
 }
 
 static void create_writer_user_full(struct writer_user *user)

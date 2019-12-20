@@ -24,24 +24,24 @@ static bt_component_class_sink_consume_method_status sink_consume(
 	return BT_COMPONENT_CLASS_SINK_CONSUME_METHOD_STATUS_OK;
 }
 
-static bt_component_class_message_iterator_initialize_method_status
+static bt_message_iterator_class_initialize_method_status
 src_dummy_iterator_init_method(
 		bt_self_message_iterator *self_msg_iter,
 		bt_self_message_iterator_configuration *config,
-		bt_self_component_source *self_comp,
+		bt_self_component *self_comp,
 		bt_self_component_port_output *self_port)
 {
-	return BT_COMPONENT_CLASS_MESSAGE_ITERATOR_INITIALIZE_METHOD_STATUS_OK;
+	return BT_MESSAGE_ITERATOR_CLASS_INITIALIZE_METHOD_STATUS_OK;
 }
 
-static bt_component_class_message_iterator_initialize_method_status
+static bt_message_iterator_class_initialize_method_status
 flt_dummy_iterator_init_method(
 		bt_self_message_iterator *self_msg_iter,
 		bt_self_message_iterator_configuration *config,
-		bt_self_component_filter *self_comp,
+		bt_self_component *self_comp,
 		bt_self_component_port_output *self_port)
 {
-	return BT_COMPONENT_CLASS_MESSAGE_ITERATOR_INITIALIZE_METHOD_STATUS_OK;
+	return BT_MESSAGE_ITERATOR_CLASS_INITIALIZE_METHOD_STATUS_OK;
 }
 
 static void dummy_iterator_finalize_method(
@@ -49,13 +49,13 @@ static void dummy_iterator_finalize_method(
 {
 }
 
-static bt_component_class_message_iterator_next_method_status
+static bt_message_iterator_class_next_method_status
 dummy_iterator_next_method(
 		bt_self_message_iterator *self_msg_iter,
 		bt_message_array_const msgs, uint64_t capacity,
 		uint64_t *count)
 {
-	return BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_OK;
+	return BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_OK;
 }
 
 static bt_component_class_query_method_status flt_query_method(

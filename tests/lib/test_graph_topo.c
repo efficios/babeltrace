@@ -72,6 +72,7 @@ struct event {
 };
 
 static GArray *events;
+static bt_message_iterator_class *msg_iter_class;
 static bt_component_class_source *src_comp_class;
 static bt_component_class_sink *sink_comp_class;
 static enum test current_test;
@@ -190,12 +191,12 @@ size_t event_pos(struct event *event)
 }
 
 static
-bt_component_class_message_iterator_next_method_status src_iter_next(
+bt_message_iterator_class_next_method_status src_iter_next(
 		bt_self_message_iterator *self_iterator,
 		bt_message_array_const msgs, uint64_t capacity,
 		uint64_t *count)
 {
-	return BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_ERROR;
+	return BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_ERROR;
 }
 
 static
@@ -339,8 +340,11 @@ void init_test(void)
 {
 	int ret;
 
+	msg_iter_class = bt_message_iterator_class_create(src_iter_next);
+	BT_ASSERT(msg_iter_class);
+
 	src_comp_class = bt_component_class_source_create(
-		"src", src_iter_next);
+		"src", msg_iter_class);
 	BT_ASSERT(src_comp_class);
 	ret = bt_component_class_source_set_initialize_method(
 		src_comp_class, src_init);

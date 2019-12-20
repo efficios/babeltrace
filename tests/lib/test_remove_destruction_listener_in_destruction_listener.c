@@ -240,18 +240,19 @@ bt_component_class_initialize_method_status hello_init(
 }
 
 static
-bt_component_class_message_iterator_next_method_status hello_iter_next(
+bt_message_iterator_class_next_method_status hello_iter_next(
 		bt_self_message_iterator *message_iterator,
 		bt_message_array_const msgs, uint64_t capacity,
 		uint64_t *count)
 {
 	BT_ASSERT(false);
-	return BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_OK;
+	return BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_OK;
 }
 
 int main(int argc, char **argv)
 {
 	bt_graph *graph;
+	bt_message_iterator_class *msg_iter_cls;
 	bt_component_class_source *source_cc;
 	bt_component_class_set_method_status set_method_status;
 	bt_graph_add_component_status add_component_status;
@@ -259,7 +260,10 @@ int main(int argc, char **argv)
 
 	plan_tests(NR_TESTS);
 
-	source_cc = bt_component_class_source_create("Hello", hello_iter_next);
+	msg_iter_cls = bt_message_iterator_class_create(hello_iter_next);
+	BT_ASSERT(msg_iter_cls);
+
+	source_cc = bt_component_class_source_create("Hello", msg_iter_cls);
 	BT_ASSERT(source_cc);
 
 	set_method_status = bt_component_class_source_set_initialize_method(
@@ -276,6 +280,7 @@ int main(int argc, char **argv)
 
 	bt_component_source_put_ref(source);
 	bt_component_class_source_put_ref(source_cc);
+	bt_message_iterator_class_put_ref(msg_iter_cls);
 	bt_graph_put_ref(graph);
 
 	return exit_status();
