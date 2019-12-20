@@ -1279,12 +1279,12 @@ void put_messages(bt_message_array_const msgs, uint64_t count)
 }
 
 BT_HIDDEN
-bt_component_class_message_iterator_next_method_status lttng_live_msg_iter_next(
+bt_message_iterator_class_next_method_status lttng_live_msg_iter_next(
 		bt_self_message_iterator *self_msg_it,
 		bt_message_array_const msgs, uint64_t capacity,
 		uint64_t *count)
 {
-	bt_component_class_message_iterator_next_method_status status;
+	bt_message_iterator_class_next_method_status status;
 	enum lttng_live_viewer_status viewer_status;
 	struct lttng_live_msg_iter *lttng_live_msg_iter =
 		bt_self_message_iterator_get_data(self_msg_it);
@@ -1308,7 +1308,7 @@ bt_component_class_message_iterator_next_method_status lttng_live_msg_iter_next(
 		 * is to prevent other graph users from using this live
 		 * iterator in an messed up internal state.
 		 */
-		status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_ERROR;
+		status = BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_ERROR;
 		BT_COMP_LOGE_APPEND_CAUSE(self_comp,
 			"Message iterator was interrupted during a previous call to the `next()` and currently does not support continuing after such event.");
 		goto end;
@@ -1328,7 +1328,7 @@ bt_component_class_message_iterator_next_method_status lttng_live_msg_iter_next(
 	if (lttng_live_msg_iter->sessions->len == 0) {
 		if (lttng_live->params.sess_not_found_act !=
 				SESSION_NOT_FOUND_ACTION_CONTINUE) {
-			status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_END;
+			status = BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_END;
 			goto end;
 		} else {
 			/*
@@ -1339,11 +1339,11 @@ bt_component_class_message_iterator_next_method_status lttng_live_msg_iter_next(
 			viewer_status = lttng_live_create_viewer_session(lttng_live_msg_iter);
 			if (viewer_status != LTTNG_LIVE_VIEWER_STATUS_OK) {
 				if (viewer_status == LTTNG_LIVE_VIEWER_STATUS_ERROR) {
-					status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_ERROR;
+					status = BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_ERROR;
 					BT_COMP_LOGE_APPEND_CAUSE(self_comp,
 						"Error creating LTTng live viewer session");
 				} else if (viewer_status == LTTNG_LIVE_VIEWER_STATUS_INTERRUPTED) {
-					status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_AGAIN;
+					status = BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_AGAIN;
 				} else {
 					bt_common_abort();
 				}
@@ -1494,20 +1494,20 @@ return_status:
 		 * doesn't support restarting after an interruption.
 		 */
 		if (*count > 0) {
-			status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_OK;
+			status = BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_OK;
 		} else {
-			status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_AGAIN;
+			status = BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_AGAIN;
 		}
 		break;
 	case LTTNG_LIVE_ITERATOR_STATUS_END:
-		status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_END;
+		status = BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_END;
 		break;
 	case LTTNG_LIVE_ITERATOR_STATUS_NOMEM:
 		BT_COMP_LOGE_APPEND_CAUSE(self_comp,
 			"Memory error preparing the next batch of messages: "
 			"live-iter-status=%s",
 			lttng_live_iterator_status_string(stream_iter_status));
-		status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_MEMORY_ERROR;
+		status = BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_MEMORY_ERROR;
 		break;
 	case LTTNG_LIVE_ITERATOR_STATUS_ERROR:
 	case LTTNG_LIVE_ITERATOR_STATUS_INVAL:
@@ -1517,7 +1517,7 @@ return_status:
 			"live-iter-status=%s",
 			lttng_live_iterator_status_string(stream_iter_status));
 
-		status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_ERROR;
+		status = BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_ERROR;
 		/* Put all existing messages on error. */
 		put_messages(msgs, *count);
 		break;
@@ -1564,15 +1564,13 @@ end:
 }
 
 BT_HIDDEN
-bt_component_class_message_iterator_initialize_method_status lttng_live_msg_iter_init(
+bt_message_iterator_class_initialize_method_status lttng_live_msg_iter_init(
 		bt_self_message_iterator *self_msg_it,
 		bt_self_message_iterator_configuration *config,
-		bt_self_component_source *self_comp_src,
+		bt_self_component *self_comp,
 		bt_self_component_port_output *self_port)
 {
-	bt_component_class_message_iterator_initialize_method_status status;
-	bt_self_component *self_comp =
-		bt_self_component_source_as_self_component(self_comp_src);
+	bt_message_iterator_class_initialize_method_status status;
 	struct lttng_live_component *lttng_live;
 	struct lttng_live_msg_iter *lttng_live_msg_iter;
 	enum lttng_live_viewer_status viewer_status;
@@ -1592,7 +1590,7 @@ bt_component_class_message_iterator_initialize_method_status lttng_live_msg_iter
 	lttng_live_msg_iter = lttng_live_msg_iter_create(lttng_live,
 		self_msg_it);
 	if (!lttng_live_msg_iter) {
-		status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_INITIALIZE_METHOD_STATUS_MEMORY_ERROR;
+		status = BT_MESSAGE_ITERATOR_CLASS_INITIALIZE_METHOD_STATUS_MEMORY_ERROR;
 		BT_COMP_LOGE_APPEND_CAUSE(self_comp,
 			"Failed to create lttng_live_msg_iter");
 		goto error;
@@ -1662,11 +1660,11 @@ bt_component_class_message_iterator_initialize_method_status lttng_live_msg_iter
 	}
 
 	bt_self_message_iterator_set_data(self_msg_it, lttng_live_msg_iter);
-	status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_INITIALIZE_METHOD_STATUS_OK;
+	status = BT_MESSAGE_ITERATOR_CLASS_INITIALIZE_METHOD_STATUS_OK;
 	goto end;
 
 error:
-	status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_INITIALIZE_METHOD_STATUS_ERROR;
+	status = BT_MESSAGE_ITERATOR_CLASS_INITIALIZE_METHOD_STATUS_ERROR;
 	lttng_live_msg_iter_destroy(lttng_live_msg_iter);
 end:
 	return status;

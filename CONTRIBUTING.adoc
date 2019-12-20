@@ -689,6 +689,10 @@ The available format specifiers are:
 |Message
 |`+const struct bt_message *+`
 
+|`I`
+|Message iterator class
+|`struct bt_message_iterator_class *`
+
 |`i`
 |Message iterator
 |`struct bt_message_iterator *`

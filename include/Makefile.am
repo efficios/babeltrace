@@ -101,6 +101,7 @@ babeltrace2graphinclude_HEADERS = \
 	babeltrace2/graph/message-message-iterator-inactivity-const.h \
 	babeltrace2/graph/message-message-iterator-inactivity.h \
 	babeltrace2/graph/message-iterator.h \
+	babeltrace2/graph/message-iterator-class.h \
 	babeltrace2/graph/message-packet-beginning-const.h \
 	babeltrace2/graph/message-packet-beginning.h \
 	babeltrace2/graph/message-packet-end-const.h \

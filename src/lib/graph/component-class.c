@@ -40,6 +40,7 @@
 
 #include "component-class.h"
 #include "lib/func-status.h"
+#include "lib/graph/message-iterator-class.h"
 
 #define BT_ASSERT_PRE_DEV_COMP_CLS_HOT(_cc) \
 	BT_ASSERT_PRE_DEV_HOT(((const struct bt_component_class *) (_cc)), \
@@ -91,6 +92,24 @@ void destroy_component_class(struct bt_object *obj)
 	if (class->destroy_listeners) {
 		g_array_free(class->destroy_listeners, TRUE);
 		class->destroy_listeners = NULL;
+	}
+
+	if (class->type == BT_COMPONENT_CLASS_TYPE_SOURCE) {
+		struct bt_component_class_source *class_src
+			= container_of(class, struct bt_component_class_source,
+				parent);
+
+		BT_ASSERT(class_src->msg_iter_cls);
+		bt_message_iterator_class_put_ref(class_src->msg_iter_cls);
+		class_src->msg_iter_cls = NULL;
+	} else if (class->type == BT_COMPONENT_CLASS_TYPE_FILTER) {
+		struct bt_component_class_filter *class_flt
+			= container_of(class, struct bt_component_class_filter,
+				parent);
+
+		BT_ASSERT(class_flt->msg_iter_cls);
+		bt_message_iterator_class_put_ref(class_flt->msg_iter_cls);
+		class_flt->msg_iter_cls = NULL;
 	}
 
 	g_free(class);
@@ -147,17 +166,17 @@ end:
 
 struct bt_component_class_source *bt_component_class_source_create(
 		const char *name,
-		bt_component_class_source_message_iterator_next_method method)
+		struct bt_message_iterator_class *message_iterator_class)
 {
 	struct bt_component_class_source *source_class = NULL;
 	int ret;
 
 	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(name, "Name");
-	BT_ASSERT_PRE_NON_NULL(method, "Message iterator next method");
-	BT_LOGI("Creating source component class: "
-		"name=\"%s\", msg-iter-next-method-addr=%p",
-		name, method);
+	BT_ASSERT_PRE_NON_NULL(message_iterator_class, "Message iterator class");
+	BT_LIB_LOGI("Creating source component class: "
+		"name=\"%s\", %![msg-iter-cls-]+I",
+		name, message_iterator_class);
 	source_class = g_new0(struct bt_component_class_source, 1);
 	if (!source_class) {
 		BT_LIB_LOGE_APPEND_CAUSE(
@@ -178,7 +197,10 @@ struct bt_component_class_source *bt_component_class_source_create(
 		goto end;
 	}
 
-	source_class->methods.msg_iter_next = method;
+	source_class->msg_iter_cls = message_iterator_class;
+	bt_message_iterator_class_get_ref(source_class->msg_iter_cls);
+	bt_message_iterator_class_freeze(source_class->msg_iter_cls);
+
 	BT_LIB_LOGI("Created source component class: %!+C", source_class);
 
 end:
@@ -187,17 +209,17 @@ end:
 
 struct bt_component_class_filter *bt_component_class_filter_create(
 		const char *name,
-		bt_component_class_filter_message_iterator_next_method method)
+		struct bt_message_iterator_class *message_iterator_class)
 {
 	struct bt_component_class_filter *filter_class = NULL;
 	int ret;
 
 	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(name, "Name");
-	BT_ASSERT_PRE_NON_NULL(method, "Message iterator next method");
-	BT_LOGI("Creating filter component class: "
-		"name=\"%s\", msg-iter-next-method-addr=%p",
-		name, method);
+	BT_ASSERT_PRE_NON_NULL(message_iterator_class, "Message iterator class");
+	BT_LIB_LOGI("Creating filter component class: "
+		"name=\"%s\", %![msg-iter-cls-]+I",
+		name, message_iterator_class);
 	filter_class = g_new0(struct bt_component_class_filter, 1);
 	if (!filter_class) {
 		BT_LIB_LOGE_APPEND_CAUSE(
@@ -218,7 +240,10 @@ struct bt_component_class_filter *bt_component_class_filter_create(
 		goto end;
 	}
 
-	filter_class->methods.msg_iter_next = method;
+	filter_class->msg_iter_cls = message_iterator_class;
+	bt_message_iterator_class_get_ref(filter_class->msg_iter_cls);
+	bt_message_iterator_class_freeze(filter_class->msg_iter_cls);
+
 	BT_LIB_LOGI("Created filter component class: %!+C", filter_class);
 
 end:
@@ -515,134 +540,6 @@ bt_component_class_sink_set_graph_is_configured_method(
 	BT_ASSERT_PRE_DEV_COMP_CLS_HOT(comp_cls);
 	comp_cls->methods.graph_is_configured = method;
 	BT_LIB_LOGD("Set sink component class's \"graph is configured\" method"
-		": %!+C", comp_cls);
-	return BT_FUNC_STATUS_OK;
-}
-
-enum bt_component_class_set_method_status
-bt_component_class_source_set_message_iterator_initialize_method(
-		struct bt_component_class_source *comp_cls,
-		bt_component_class_source_message_iterator_initialize_method method)
-{
-	BT_ASSERT_PRE_NO_ERROR();
-	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
-	BT_ASSERT_PRE_NON_NULL(method, "Method");
-	BT_ASSERT_PRE_DEV_COMP_CLS_HOT(comp_cls);
-	comp_cls->methods.msg_iter_initialize = method;
-	BT_LIB_LOGD("Set source component class's message iterator initialization method"
-		": %!+C", comp_cls);
-	return BT_FUNC_STATUS_OK;
-}
-
-enum bt_component_class_set_method_status
-bt_component_class_filter_set_message_iterator_initialize_method(
-		struct bt_component_class_filter *comp_cls,
-		bt_component_class_filter_message_iterator_initialize_method method)
-{
-	BT_ASSERT_PRE_NO_ERROR();
-	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
-	BT_ASSERT_PRE_NON_NULL(method, "Method");
-	BT_ASSERT_PRE_DEV_COMP_CLS_HOT(comp_cls);
-	comp_cls->methods.msg_iter_initialize = method;
-	BT_LIB_LOGD("Set filter component class's message iterator initialization method"
-		": %!+C", comp_cls);
-	return BT_FUNC_STATUS_OK;
-}
-
-enum bt_component_class_set_method_status
-bt_component_class_source_set_message_iterator_finalize_method(
-		struct bt_component_class_source *comp_cls,
-		bt_component_class_source_message_iterator_finalize_method method)
-{
-	BT_ASSERT_PRE_NO_ERROR();
-	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
-	BT_ASSERT_PRE_NON_NULL(method, "Method");
-	BT_ASSERT_PRE_DEV_COMP_CLS_HOT(comp_cls);
-	comp_cls->methods.msg_iter_finalize = method;
-	BT_LIB_LOGD("Set source component class's message iterator finalization method"
-		": %!+C", comp_cls);
-	return BT_FUNC_STATUS_OK;
-}
-
-enum bt_component_class_set_method_status
-bt_component_class_filter_set_message_iterator_finalize_method(
-		struct bt_component_class_filter *comp_cls,
-		bt_component_class_filter_message_iterator_finalize_method method)
-{
-	BT_ASSERT_PRE_NO_ERROR();
-	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
-	BT_ASSERT_PRE_NON_NULL(method, "Method");
-	BT_ASSERT_PRE_DEV_COMP_CLS_HOT(comp_cls);
-	comp_cls->methods.msg_iter_finalize = method;
-	BT_LIB_LOGD("Set filter component class's message iterator finalization method"
-		": %!+C", comp_cls);
-	return BT_FUNC_STATUS_OK;
-}
-
-enum bt_component_class_set_method_status
-bt_component_class_filter_set_message_iterator_seek_ns_from_origin_methods(
-		struct bt_component_class_filter *comp_cls,
-		bt_component_class_filter_message_iterator_seek_ns_from_origin_method seek_method,
-		bt_component_class_filter_message_iterator_can_seek_ns_from_origin_method can_seek_method)
-{
-	BT_ASSERT_PRE_NO_ERROR();
-	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
-	BT_ASSERT_PRE_NON_NULL(seek_method, "Seek method");
-	BT_ASSERT_PRE_DEV_COMP_CLS_HOT(comp_cls);
-	comp_cls->methods.msg_iter_seek_ns_from_origin = seek_method;
-	comp_cls->methods.msg_iter_can_seek_ns_from_origin = can_seek_method;
-	BT_LIB_LOGD("Set filter component class's message iterator \"seek nanoseconds from origin\" method"
-		": %!+C", comp_cls);
-	return BT_FUNC_STATUS_OK;
-}
-
-enum bt_component_class_set_method_status
-bt_component_class_source_set_message_iterator_seek_ns_from_origin_methods(
-		struct bt_component_class_source *comp_cls,
-		bt_component_class_source_message_iterator_seek_ns_from_origin_method seek_method,
-		bt_component_class_source_message_iterator_can_seek_ns_from_origin_method can_seek_method)
-{
-	BT_ASSERT_PRE_NO_ERROR();
-	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
-	BT_ASSERT_PRE_NON_NULL(seek_method, "Seek method");
-	BT_ASSERT_PRE_DEV_COMP_CLS_HOT(comp_cls);
-	comp_cls->methods.msg_iter_seek_ns_from_origin = seek_method;
-	comp_cls->methods.msg_iter_can_seek_ns_from_origin = can_seek_method;
-	BT_LIB_LOGD("Set source component class's message iterator \"seek nanoseconds from origin\" methods"
-		": %!+C", comp_cls);
-	return BT_FUNC_STATUS_OK;
-}
-
-enum bt_component_class_set_method_status
-bt_component_class_filter_set_message_iterator_seek_beginning_methods(
-		struct bt_component_class_filter *comp_cls,
-		bt_component_class_filter_message_iterator_seek_beginning_method seek_method,
-		bt_component_class_filter_message_iterator_can_seek_beginning_method can_seek_method)
-{
-	BT_ASSERT_PRE_NO_ERROR();
-	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
-	BT_ASSERT_PRE_NON_NULL(seek_method, "Seek method");
-	BT_ASSERT_PRE_DEV_COMP_CLS_HOT(comp_cls);
-	comp_cls->methods.msg_iter_seek_beginning = seek_method;
-	comp_cls->methods.msg_iter_can_seek_beginning = can_seek_method;
-	BT_LIB_LOGD("Set filter component class's message iterator \"seek beginning\" methods"
-		": %!+C", comp_cls);
-	return BT_FUNC_STATUS_OK;
-}
-
-enum bt_component_class_set_method_status
-bt_component_class_source_set_message_iterator_seek_beginning_methods(
-		struct bt_component_class_source *comp_cls,
-		bt_component_class_source_message_iterator_seek_beginning_method seek_method,
-		bt_component_class_source_message_iterator_can_seek_beginning_method can_seek_method)
-{
-	BT_ASSERT_PRE_NO_ERROR();
-	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
-	BT_ASSERT_PRE_NON_NULL(seek_method, "Seek method");
-	BT_ASSERT_PRE_DEV_COMP_CLS_HOT(comp_cls);
-	comp_cls->methods.msg_iter_seek_beginning = seek_method;
-	comp_cls->methods.msg_iter_can_seek_beginning = can_seek_method;
-	BT_LIB_LOGD("Set source component class's message iterator \"seek beginning\" methods"
 		": %!+C", comp_cls);
 	return BT_FUNC_STATUS_OK;
 }

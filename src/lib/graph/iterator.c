@@ -69,6 +69,7 @@
 #include "component-source.h"
 #include "connection.h"
 #include "graph.h"
+#include "message-iterator-class.h"
 #include "message/discarded-items.h"
 #include "message/event.h"
 #include "message/iterator.h"
@@ -169,7 +170,6 @@ void bt_self_component_port_input_message_iterator_try_finalize(
 		struct bt_self_component_port_input_message_iterator *iterator)
 {
 	uint64_t i;
-	typedef void (*method_t)(void *);
 	bool call_user_finalize = true;
 
 	BT_ASSERT(iterator);
@@ -209,6 +209,7 @@ void bt_self_component_port_input_message_iterator_try_finalize(
 
 	/* Call user-defined destroy method */
 	if (call_user_finalize) {
+		typedef void (*method_t)(void *);
 		method_t method = NULL;
 		struct bt_component_class *comp_class =
 			iterator->upstream_component->class;
@@ -219,7 +220,7 @@ void bt_self_component_port_input_message_iterator_try_finalize(
 			struct bt_component_class_source *src_comp_cls =
 				(void *) comp_class;
 
-			method = (method_t) src_comp_cls->methods.msg_iter_finalize;
+			method = (method_t) src_comp_cls->msg_iter_cls->methods.finalize;
 			break;
 		}
 		case BT_COMPONENT_CLASS_TYPE_FILTER:
@@ -227,7 +228,7 @@ void bt_self_component_port_input_message_iterator_try_finalize(
 			struct bt_component_class_filter *flt_comp_cls =
 				(void *) comp_class;
 
-			method = (method_t) flt_comp_cls->methods.msg_iter_finalize;
+			method = (method_t) flt_comp_cls->msg_iter_cls->methods.finalize;
 			break;
 		}
 		default:
@@ -318,10 +319,7 @@ int create_self_component_input_port_message_iterator(
 		struct bt_self_component_port_input *self_port,
 		struct bt_self_component_port_input_message_iterator **message_iterator)
 {
-	typedef enum bt_component_class_message_iterator_initialize_method_status (*init_method_t)(
-			void *, void *, void *, void *);
-
-	init_method_t init_method = NULL;
+	bt_message_iterator_class_initialize_method init_method = NULL;
 	struct bt_self_component_port_input_message_iterator *iterator =
 		NULL;
 	struct bt_self_component_port_input_message_iterator *downstream_msg_iter =
@@ -409,19 +407,19 @@ int create_self_component_input_port_message_iterator(
 
 		iterator->methods.next =
 			(bt_self_component_port_input_message_iterator_next_method)
-				src_comp_cls->methods.msg_iter_next;
+				src_comp_cls->msg_iter_cls->methods.next;
 		iterator->methods.seek_ns_from_origin =
 			(bt_self_component_port_input_message_iterator_seek_ns_from_origin_method)
-				src_comp_cls->methods.msg_iter_seek_ns_from_origin;
+				src_comp_cls->msg_iter_cls->methods.seek_ns_from_origin;
 		iterator->methods.seek_beginning =
 			(bt_self_component_port_input_message_iterator_seek_beginning_method)
-				src_comp_cls->methods.msg_iter_seek_beginning;
+				src_comp_cls->msg_iter_cls->methods.seek_beginning;
 		iterator->methods.can_seek_ns_from_origin =
 			(bt_self_component_port_input_message_iterator_can_seek_ns_from_origin_method)
-				src_comp_cls->methods.msg_iter_can_seek_ns_from_origin;
+				src_comp_cls->msg_iter_cls->methods.can_seek_ns_from_origin;
 		iterator->methods.can_seek_beginning =
 			(bt_self_component_port_input_message_iterator_can_seek_beginning_method)
-				src_comp_cls->methods.msg_iter_can_seek_beginning;
+				src_comp_cls->msg_iter_cls->methods.can_seek_beginning;
 		break;
 	}
 	case BT_COMPONENT_CLASS_TYPE_FILTER:
@@ -431,19 +429,19 @@ int create_self_component_input_port_message_iterator(
 
 		iterator->methods.next =
 			(bt_self_component_port_input_message_iterator_next_method)
-				flt_comp_cls->methods.msg_iter_next;
+				flt_comp_cls->msg_iter_cls->methods.next;
 		iterator->methods.seek_ns_from_origin =
 			(bt_self_component_port_input_message_iterator_seek_ns_from_origin_method)
-				flt_comp_cls->methods.msg_iter_seek_ns_from_origin;
+				flt_comp_cls->msg_iter_cls->methods.seek_ns_from_origin;
 		iterator->methods.seek_beginning =
 			(bt_self_component_port_input_message_iterator_seek_beginning_method)
-				flt_comp_cls->methods.msg_iter_seek_beginning;
+				flt_comp_cls->msg_iter_cls->methods.seek_beginning;
 		iterator->methods.can_seek_ns_from_origin =
 			(bt_self_component_port_input_message_iterator_can_seek_ns_from_origin_method)
-				flt_comp_cls->methods.msg_iter_can_seek_ns_from_origin;
+				flt_comp_cls->msg_iter_cls->methods.can_seek_ns_from_origin;
 		iterator->methods.can_seek_beginning =
 			(bt_self_component_port_input_message_iterator_can_seek_beginning_method)
-				flt_comp_cls->methods.msg_iter_can_seek_beginning;
+				flt_comp_cls->msg_iter_cls->methods.can_seek_beginning;
 		break;
 	}
 	default:
@@ -470,8 +468,7 @@ int create_self_component_input_port_message_iterator(
 		struct bt_component_class_source *src_comp_cls =
 			(void *) upstream_comp_cls;
 
-		init_method =
-			(init_method_t) src_comp_cls->methods.msg_iter_initialize;
+		init_method = src_comp_cls->msg_iter_cls->methods.initialize;
 		break;
 	}
 	case BT_COMPONENT_CLASS_TYPE_FILTER:
@@ -479,8 +476,7 @@ int create_self_component_input_port_message_iterator(
 		struct bt_component_class_filter *flt_comp_cls =
 			(void *) upstream_comp_cls;
 
-		init_method =
-			(init_method_t) flt_comp_cls->methods.msg_iter_initialize;
+		init_method = flt_comp_cls->msg_iter_cls->methods.initialize;
 		break;
 	}
 	default:
@@ -489,11 +485,14 @@ int create_self_component_input_port_message_iterator(
 	}
 
 	if (init_method) {
-		enum bt_component_class_message_iterator_initialize_method_status iter_status;
+		enum bt_message_iterator_class_initialize_method_status iter_status;
 
 		BT_LIB_LOGD("Calling user's initialization method: %!+i", iterator);
-		iter_status = init_method(iterator, &iterator->config, upstream_comp,
-			upstream_port);
+		iter_status = init_method(
+			(struct bt_self_message_iterator *) iterator,
+			&iterator->config,
+			(struct bt_self_component *) upstream_comp,
+			(struct bt_self_component_port_output *) upstream_port);
 		BT_LOGD("User method returned: status=%s",
 			bt_common_func_status_string(iter_status));
 		BT_ASSERT_POST_NO_ERROR_IF_NO_ERROR_STATUS(iter_status);
@@ -871,12 +870,12 @@ end:
  */
 
 static
-enum bt_component_class_message_iterator_next_method_status
+enum bt_message_iterator_class_next_method_status
 call_iterator_next_method(
 		struct bt_self_component_port_input_message_iterator *iterator,
 		bt_message_array_const msgs, uint64_t capacity, uint64_t *user_count)
 {
-	enum bt_component_class_message_iterator_next_method_status status;
+	enum bt_message_iterator_class_next_method_status status;
 
 	BT_ASSERT_DBG(iterator->methods.next);
 	BT_LOGD_STR("Calling user's \"next\" method.");
@@ -1670,7 +1669,7 @@ end:
  */
 
 static
-enum bt_component_class_message_iterator_next_method_status post_auto_seek_next(
+enum bt_message_iterator_class_next_method_status post_auto_seek_next(
 		struct bt_self_component_port_input_message_iterator *iterator,
 		bt_message_array_const msgs, uint64_t capacity,
 		uint64_t *count)
@@ -1763,7 +1762,7 @@ bt_self_component_port_input_message_iterator_seek_ns_from_origin(
 
 	/* Check if the iterator can seek by itself.  If not we'll use autoseek. */
 	if (iterator->methods.can_seek_ns_from_origin) {
-		bt_component_class_message_iterator_can_seek_ns_from_origin_method_status
+		bt_message_iterator_class_can_seek_ns_from_origin_method_status
 			can_seek_status;
 
 		can_seek_status =
@@ -1805,8 +1804,7 @@ bt_self_component_port_input_message_iterator_seek_ns_from_origin(
 		 * particular time.  We will seek to the beginning and fast
 		 * forward to the right place.
 		 */
-		enum bt_component_class_message_iterator_can_seek_beginning_method_status
-			can_seek_status;
+		enum bt_message_iterator_class_can_seek_beginning_method_status can_seek_status;
 		bt_bool can_seek_beginning;
 
 		can_seek_status = iterator->methods.can_seek_beginning(iterator,

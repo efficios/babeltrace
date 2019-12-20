@@ -119,6 +119,7 @@ typedef struct bt_integer_range_unsigned bt_integer_range_unsigned;
 typedef struct bt_interrupter bt_interrupter;
 typedef struct bt_message bt_message;
 typedef struct bt_message_iterator bt_message_iterator;
+typedef struct bt_message_iterator_class bt_message_iterator_class;
 typedef struct bt_object bt_object;
 typedef struct bt_packet bt_packet;
 typedef struct bt_plugin bt_plugin;

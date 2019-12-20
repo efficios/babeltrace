@@ -53,41 +53,6 @@ typedef bt_component_class_initialize_method_status
 typedef void (*bt_component_class_filter_finalize_method)(
 		bt_self_component_filter *self_component);
 
-typedef bt_component_class_message_iterator_initialize_method_status
-(*bt_component_class_filter_message_iterator_initialize_method)(
-		bt_self_message_iterator *message_iterator,
-		bt_self_message_iterator_configuration *config,
-		bt_self_component_filter *self_component,
-		bt_self_component_port_output *port);
-
-typedef void
-(*bt_component_class_filter_message_iterator_finalize_method)(
-		bt_self_message_iterator *message_iterator);
-
-typedef bt_component_class_message_iterator_next_method_status
-(*bt_component_class_filter_message_iterator_next_method)(
-		bt_self_message_iterator *message_iterator,
-		bt_message_array_const msgs, uint64_t capacity,
-		uint64_t *count);
-
-typedef bt_component_class_message_iterator_seek_ns_from_origin_method_status
-(*bt_component_class_filter_message_iterator_seek_ns_from_origin_method)(
-		bt_self_message_iterator *message_iterator,
-		int64_t ns_from_origin);
-
-typedef bt_component_class_message_iterator_seek_beginning_method_status
-(*bt_component_class_filter_message_iterator_seek_beginning_method)(
-		bt_self_message_iterator *message_iterator);
-
-typedef bt_component_class_message_iterator_can_seek_ns_from_origin_method_status
-(*bt_component_class_filter_message_iterator_can_seek_ns_from_origin_method)(
-		bt_self_message_iterator *message_iterator,
-		int64_t ns_from_origin, bt_bool *can_seek);
-
-typedef bt_component_class_message_iterator_can_seek_beginning_method_status
-(*bt_component_class_filter_message_iterator_can_seek_beginning_method)(
-		bt_self_message_iterator *message_iterator, bt_bool *can_seek);
-
 typedef bt_component_class_query_method_status
 (*bt_component_class_filter_query_method)(
 		bt_self_component_class_filter *comp_class,
@@ -117,7 +82,7 @@ bt_component_class *bt_component_class_filter_as_component_class(
 extern
 bt_component_class_filter *bt_component_class_filter_create(
 		const char *name,
-		bt_component_class_filter_message_iterator_next_method method);
+		bt_message_iterator_class *message_iterator_class);
 
 extern bt_component_class_set_method_status
 bt_component_class_filter_set_get_supported_mip_versions_method(
@@ -148,28 +113,6 @@ extern bt_component_class_set_method_status
 bt_component_class_filter_set_query_method(
 		bt_component_class_filter *comp_class,
 		bt_component_class_filter_query_method method);
-
-extern bt_component_class_set_method_status
-bt_component_class_filter_set_message_iterator_initialize_method(
-		bt_component_class_filter *comp_class,
-		bt_component_class_filter_message_iterator_initialize_method method);
-
-extern bt_component_class_set_method_status
-bt_component_class_filter_set_message_iterator_finalize_method(
-		bt_component_class_filter *comp_class,
-		bt_component_class_filter_message_iterator_finalize_method method);
-
-extern bt_component_class_set_method_status
-bt_component_class_filter_set_message_iterator_seek_ns_from_origin_methods(
-		bt_component_class_filter *comp_class,
-		bt_component_class_filter_message_iterator_seek_ns_from_origin_method seek_method,
-		bt_component_class_filter_message_iterator_can_seek_ns_from_origin_method can_seek_method);
-
-extern bt_component_class_set_method_status
-bt_component_class_filter_set_message_iterator_seek_beginning_methods(
-		bt_component_class_filter *comp_class,
-		bt_component_class_filter_message_iterator_seek_beginning_method seek_method,
-		bt_component_class_filter_message_iterator_can_seek_beginning_method can_seek_method);
 
 #ifdef __cplusplus
 }

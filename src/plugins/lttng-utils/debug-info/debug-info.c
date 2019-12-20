@@ -62,6 +62,7 @@
 struct debug_info_component {
 	bt_logging_level log_level;
 	bt_self_component *self_comp;
+	bt_self_component_filter *self_comp_filter;
 	gchar *arg_debug_dir;
 	gchar *arg_debug_info_field_name;
 	gchar *arg_target_prefix;
@@ -1807,6 +1808,7 @@ bt_component_class_initialize_method_status debug_info_comp_init(
 
 	debug_info_comp->log_level = log_level;
 	debug_info_comp->self_comp = self_comp;
+	debug_info_comp->self_comp_filter = self_comp_flt;
 	bt_self_component_set_data(self_comp, debug_info_comp);
 
 	add_port_status = bt_self_component_filter_add_input_port(
@@ -1862,7 +1864,7 @@ void debug_info_comp_finalize(bt_self_component_filter *self_comp_flt)
 }
 
 BT_HIDDEN
-bt_component_class_message_iterator_next_method_status debug_info_msg_iter_next(
+bt_message_iterator_class_next_method_status debug_info_msg_iter_next(
 		bt_self_message_iterator *self_msg_iter,
 		const bt_message_array_const msgs, uint64_t capacity,
 		uint64_t *count)
@@ -1871,13 +1873,13 @@ bt_component_class_message_iterator_next_method_status debug_info_msg_iter_next(
 	bt_message_iterator_next_status upstream_iterator_ret_status;
 	struct debug_info_msg_iter *debug_info_msg_iter;
 	struct debug_info_component *debug_info = NULL;
-	bt_component_class_message_iterator_next_method_status status;
+	bt_message_iterator_class_next_method_status status;
 	bt_self_component *self_comp = NULL;
 	bt_message_array_const input_msgs;
 	const bt_message *out_message;
 	uint64_t curr_msg_idx, i;
 
-	status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_OK;
+	status = BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_OK;
 
 	self_comp = bt_self_message_iterator_borrow_component(self_msg_iter);
 	BT_ASSERT_DBG(self_comp);
@@ -1945,7 +1947,7 @@ handle_msg_error:
 		bt_message_put_ref(input_msgs[i]);
 	}
 
-	status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_MEMORY_ERROR;
+	status = BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_MEMORY_ERROR;
 
 end:
 	return status;
@@ -1979,13 +1981,13 @@ end:
 }
 
 BT_HIDDEN
-bt_component_class_message_iterator_initialize_method_status debug_info_msg_iter_init(
+bt_message_iterator_class_initialize_method_status debug_info_msg_iter_init(
 		bt_self_message_iterator *self_msg_iter,
 		bt_self_message_iterator_configuration *config,
-		bt_self_component_filter *self_comp_flt,
+		bt_self_component *self_comp,
 		bt_self_component_port_output *self_port)
 {
-	bt_component_class_message_iterator_initialize_method_status status;
+	bt_message_iterator_class_initialize_method_status status;
 	bt_self_component_port_input_message_iterator_create_from_message_iterator_status
 		msg_iter_status;
 	struct bt_self_component_port_input *input_port = NULL;
@@ -1993,27 +1995,29 @@ bt_component_class_message_iterator_initialize_method_status debug_info_msg_iter
 	struct debug_info_msg_iter *debug_info_msg_iter = NULL;
 	gchar *debug_info_field_name;
 	int ret;
-	bt_self_component *self_comp =
-		bt_self_component_filter_as_self_component(self_comp_flt);
 	bt_logging_level log_level = bt_component_get_logging_level(
 		bt_self_component_as_component(self_comp));
 
-	/* Borrow the upstream input port. */
-	input_port = bt_self_component_filter_borrow_input_port_by_name(
-		self_comp_flt, "in");
-	if (!input_port) {
-		status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_INITIALIZE_METHOD_STATUS_ERROR;
-		goto error;
-	}
-
 	debug_info_msg_iter = g_new0(struct debug_info_msg_iter, 1);
 	if (!debug_info_msg_iter) {
-		status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_INITIALIZE_METHOD_STATUS_MEMORY_ERROR;
+		status = BT_MESSAGE_ITERATOR_CLASS_INITIALIZE_METHOD_STATUS_MEMORY_ERROR;
 		goto error;
 	}
 
 	debug_info_msg_iter->log_level = log_level;
 	debug_info_msg_iter->self_comp = self_comp;
+
+	debug_info_msg_iter->debug_info_component =
+		bt_self_component_get_data(self_comp);
+
+	/* Borrow the upstream input port. */
+	input_port = bt_self_component_filter_borrow_input_port_by_name(
+			debug_info_msg_iter->debug_info_component->self_comp_filter,
+			"in");
+	if (!input_port) {
+		status = BT_MESSAGE_ITERATOR_CLASS_INITIALIZE_METHOD_STATUS_ERROR;
+		goto error;
+	}
 
 	/* Create an iterator on the upstream component. */
 	msg_iter_status = bt_self_component_port_input_message_iterator_create_from_message_iterator(
@@ -2031,12 +2035,9 @@ bt_component_class_message_iterator_initialize_method_status debug_info_msg_iter
 		g_direct_hash, g_direct_equal, (GDestroyNotify) NULL,
 		(GDestroyNotify) debug_info_destroy);
 	if (!debug_info_msg_iter->debug_info_map) {
-		status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_INITIALIZE_METHOD_STATUS_MEMORY_ERROR;
+		status = BT_MESSAGE_ITERATOR_CLASS_INITIALIZE_METHOD_STATUS_MEMORY_ERROR;
 		goto error;
 	}
-
-	debug_info_msg_iter->debug_info_component =
-		bt_self_component_get_data(self_comp);
 
 	debug_info_field_name =
 		debug_info_msg_iter->debug_info_component->arg_debug_info_field_name;
@@ -2044,13 +2045,13 @@ bt_component_class_message_iterator_initialize_method_status debug_info_msg_iter
 	debug_info_msg_iter->ir_maps = trace_ir_maps_create(self_comp,
 		debug_info_field_name, log_level);
 	if (!debug_info_msg_iter->ir_maps) {
-		status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_INITIALIZE_METHOD_STATUS_MEMORY_ERROR;
+		status = BT_MESSAGE_ITERATOR_CLASS_INITIALIZE_METHOD_STATUS_MEMORY_ERROR;
 		goto error;
 	}
 
 	ret = bt_fd_cache_init(&debug_info_msg_iter->fd_cache, log_level);
 	if (ret) {
-		status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_INITIALIZE_METHOD_STATUS_MEMORY_ERROR;
+		status = BT_MESSAGE_ITERATOR_CLASS_INITIALIZE_METHOD_STATUS_MEMORY_ERROR;
 		goto error;
 	}
 
@@ -2061,7 +2062,7 @@ bt_component_class_message_iterator_initialize_method_status debug_info_msg_iter
 	bt_self_message_iterator_set_data(self_msg_iter, debug_info_msg_iter);
 	debug_info_msg_iter->input_iterator = self_msg_iter;
 
-	status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_INITIALIZE_METHOD_STATUS_OK;
+	status = BT_MESSAGE_ITERATOR_CLASS_INITIALIZE_METHOD_STATUS_OK;
 	goto end;
 
 error:
@@ -2072,7 +2073,7 @@ end:
 }
 
 BT_HIDDEN
-bt_component_class_message_iterator_can_seek_beginning_method_status
+bt_message_iterator_class_can_seek_beginning_method_status
 debug_info_msg_iter_can_seek_beginning(bt_self_message_iterator *self_msg_iter,
 		bt_bool *can_seek)
 {
@@ -2085,13 +2086,13 @@ debug_info_msg_iter_can_seek_beginning(bt_self_message_iterator *self_msg_iter,
 }
 
 BT_HIDDEN
-bt_component_class_message_iterator_seek_beginning_method_status
+bt_message_iterator_class_seek_beginning_method_status
 debug_info_msg_iter_seek_beginning(bt_self_message_iterator *self_msg_iter)
 {
 	struct debug_info_msg_iter *debug_info_msg_iter =
 		bt_self_message_iterator_get_data(self_msg_iter);
-	bt_component_class_message_iterator_seek_beginning_method_status status =
-		BT_COMPONENT_CLASS_MESSAGE_ITERATOR_SEEK_BEGINNING_METHOD_STATUS_OK;
+	bt_message_iterator_class_seek_beginning_method_status status =
+		BT_MESSAGE_ITERATOR_CLASS_SEEK_BEGINNING_METHOD_STATUS_OK;
 	bt_message_iterator_seek_beginning_status seek_beg_status;
 
 	BT_ASSERT(debug_info_msg_iter);

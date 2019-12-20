@@ -647,13 +647,13 @@ void component_class_sink_finalize(bt_self_component_sink *self_component_sink)
 }
 
 static
-bt_component_class_message_iterator_can_seek_beginning_method_status
+bt_message_iterator_class_can_seek_beginning_method_status
 component_class_can_seek_beginning(
 		bt_self_message_iterator *self_message_iterator, bt_bool *can_seek)
 {
 	PyObject *py_iter;
 	PyObject *py_result = NULL;
-	bt_component_class_message_iterator_can_seek_beginning_method_status status;
+	bt_message_iterator_class_can_seek_beginning_method_status status;
 	py_iter = bt_self_message_iterator_get_data(self_message_iterator);
 
 	BT_ASSERT(py_iter);
@@ -668,7 +668,7 @@ component_class_can_seek_beginning(
 	BT_ASSERT(PyBool_Check(py_result));
 	*can_seek = PyObject_IsTrue(py_result);
 
-	status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_CAN_SEEK_BEGINNING_METHOD_STATUS_OK;
+	status = BT_MESSAGE_ITERATOR_CLASS_CAN_SEEK_BEGINNING_METHOD_STATUS_OK;
 
 end:
 	Py_XDECREF(py_result);
@@ -677,12 +677,12 @@ end:
 }
 
 static
-bt_component_class_message_iterator_seek_beginning_method_status
+bt_message_iterator_class_seek_beginning_method_status
 component_class_seek_beginning(bt_self_message_iterator *self_message_iterator)
 {
 	PyObject *py_iter;
 	PyObject *py_result;
-	bt_component_class_message_iterator_seek_beginning_method_status status;
+	bt_message_iterator_class_seek_beginning_method_status status;
 
 	py_iter = bt_self_message_iterator_get_data(self_message_iterator);
 	BT_ASSERT(py_iter);
@@ -697,7 +697,7 @@ component_class_seek_beginning(bt_self_message_iterator *self_message_iterator)
 
 	BT_ASSERT(py_result == Py_None);
 
-	status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_SEEK_BEGINNING_METHOD_STATUS_OK;
+	status = BT_MESSAGE_ITERATOR_CLASS_SEEK_BEGINNING_METHOD_STATUS_OK;
 
 end:
 	Py_XDECREF(py_result);
@@ -706,14 +706,14 @@ end:
 }
 
 static
-bt_component_class_message_iterator_can_seek_ns_from_origin_method_status
+bt_message_iterator_class_can_seek_ns_from_origin_method_status
 component_class_can_seek_ns_from_origin(
 		bt_self_message_iterator *self_message_iterator,
 		int64_t ns_from_origin, bt_bool *can_seek)
 {
 	PyObject *py_iter;
 	PyObject *py_result = NULL;
-	bt_component_class_message_iterator_can_seek_ns_from_origin_method_status status;
+	bt_message_iterator_class_can_seek_ns_from_origin_method_status status;
 
 	py_iter = bt_self_message_iterator_get_data(self_message_iterator);
 	BT_ASSERT(py_iter);
@@ -728,7 +728,7 @@ component_class_can_seek_ns_from_origin(
 	BT_ASSERT(PyBool_Check(py_result));
 	*can_seek = PyObject_IsTrue(py_result);
 
-	status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_CAN_SEEK_NS_FROM_ORIGIN_METHOD_STATUS_OK;
+	status = BT_MESSAGE_ITERATOR_CLASS_CAN_SEEK_NS_FROM_ORIGIN_METHOD_STATUS_OK;
 
 end:
 	Py_XDECREF(py_result);
@@ -737,14 +737,14 @@ end:
 }
 
 static
-bt_component_class_message_iterator_seek_ns_from_origin_method_status
+bt_message_iterator_class_seek_ns_from_origin_method_status
 component_class_seek_ns_from_origin(
 		bt_self_message_iterator *self_message_iterator,
 		int64_t ns_from_origin)
 {
 	PyObject *py_iter;
 	PyObject *py_result;
-	bt_component_class_message_iterator_seek_ns_from_origin_method_status status;
+	bt_message_iterator_class_seek_ns_from_origin_method_status status;
 
 	py_iter = bt_self_message_iterator_get_data(self_message_iterator);
 	BT_ASSERT(py_iter);
@@ -759,7 +759,7 @@ component_class_seek_ns_from_origin(
 
 	BT_ASSERT(py_result == Py_None);
 
-	status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_SEEK_NS_FROM_ORIGIN_METHOD_STATUS_OK;
+	status = BT_MESSAGE_ITERATOR_CLASS_SEEK_NS_FROM_ORIGIN_METHOD_STATUS_OK;
 
 end:
 	Py_XDECREF(py_result);
@@ -1079,14 +1079,14 @@ bt_component_class_query_method_status component_class_sink_query(
 }
 
 static
-bt_component_class_message_iterator_initialize_method_status
+bt_message_iterator_class_initialize_method_status
 component_class_message_iterator_init(
 		bt_self_message_iterator *self_message_iterator,
 		bt_self_message_iterator_configuration *config,
 		bt_self_component *self_component,
 		bt_self_component_port_output *self_component_port_output)
 {
-	bt_component_class_message_iterator_initialize_method_status status = __BT_FUNC_STATUS_OK;
+	bt_message_iterator_class_initialize_method_status status = __BT_FUNC_STATUS_OK;
 	PyObject *py_comp_cls = NULL;
 	PyObject *py_iter_cls = NULL;
 	PyObject *py_iter_ptr = NULL;
@@ -1232,36 +1232,6 @@ end:
 }
 
 static
-bt_component_class_message_iterator_initialize_method_status
-component_class_source_message_iterator_init(
-		bt_self_message_iterator *self_message_iterator,
-		bt_self_message_iterator_configuration *config,
-		bt_self_component_source *self_component_source,
-		bt_self_component_port_output *self_component_port_output)
-{
-	bt_self_component *self_component =
-		bt_self_component_source_as_self_component(self_component_source);
-
-	return component_class_message_iterator_init(self_message_iterator,
-		config, self_component, self_component_port_output);
-}
-
-static
-bt_component_class_message_iterator_initialize_method_status
-component_class_filter_message_iterator_init(
-		bt_self_message_iterator *self_message_iterator,
-		bt_self_message_iterator_configuration *config,
-		bt_self_component_filter *self_component_filter,
-		bt_self_component_port_output *self_component_port_output)
-{
-	bt_self_component *self_component =
-		bt_self_component_filter_as_self_component(self_component_filter);
-
-	return component_class_message_iterator_init(self_message_iterator,
-		config, self_component, self_component_port_output);
-}
-
-static
 void component_class_message_iterator_finalize(
 		bt_self_message_iterator *message_iterator)
 {
@@ -1299,13 +1269,13 @@ void component_class_message_iterator_finalize(
 /* Valid for both sources and filters. */
 
 static
-bt_component_class_message_iterator_next_method_status
+bt_message_iterator_class_next_method_status
 component_class_message_iterator_next(
 		bt_self_message_iterator *message_iterator,
 		bt_message_array_const msgs, uint64_t capacity,
 		uint64_t *count)
 {
-	bt_component_class_message_iterator_next_method_status status;
+	bt_message_iterator_class_next_method_status status;
 	PyObject *py_message_iter = bt_self_message_iterator_get_data(message_iterator);
 	PyObject *py_method_result = NULL;
 
@@ -1328,7 +1298,7 @@ component_class_message_iterator_next(
 	/* Overflow errors should never happen. */
 	BT_ASSERT_DBG(!PyErr_Occurred());
 
-	status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_OK;
+	status = BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_OK;
 
 end:
 	Py_XDECREF(py_method_result);
@@ -1392,17 +1362,56 @@ end:
 }
 
 static
+bt_message_iterator_class *create_message_iterator_class(void)
+{
+	bt_message_iterator_class *message_iterator_class;
+	bt_message_iterator_class_set_method_status ret;
+
+	message_iterator_class = bt_message_iterator_class_create(
+		component_class_message_iterator_next);
+	if (!message_iterator_class) {
+		BT_LOGE_STR("Cannot create message iterator class.");
+		goto end;
+	}
+
+	ret = bt_message_iterator_class_set_seek_beginning_methods(
+		message_iterator_class, component_class_seek_beginning,
+		component_class_can_seek_beginning);
+	BT_ASSERT(ret == 0);
+	ret = bt_message_iterator_class_set_seek_ns_from_origin_methods(
+		message_iterator_class, component_class_seek_ns_from_origin,
+		component_class_can_seek_ns_from_origin);
+	BT_ASSERT(ret == 0);
+	ret = bt_message_iterator_class_set_initialize_method(
+		message_iterator_class, component_class_message_iterator_init);
+	BT_ASSERT(ret == 0);
+	ret = bt_message_iterator_class_set_finalize_method(
+		message_iterator_class, component_class_message_iterator_finalize);
+	BT_ASSERT(ret == 0);
+
+end:
+	return message_iterator_class;
+}
+
+static
 bt_component_class_source *bt_bt2_component_class_source_create(
 		PyObject *py_cls, const char *name, const char *description,
 		const char *help)
 {
-	bt_component_class_source *component_class_source;
+	bt_component_class_source *component_class_source = NULL;
+	bt_message_iterator_class *message_iterator_class;
 	bt_component_class *component_class;
 	int ret;
 
 	BT_ASSERT(py_cls);
+
+	message_iterator_class = create_message_iterator_class();
+	if (!message_iterator_class) {
+		goto end;
+	}
+
 	component_class_source = bt_component_class_source_create(name,
-		component_class_message_iterator_next);
+		message_iterator_class);
 	if (!component_class_source) {
 		BT_LOGE_STR("Cannot create source component class.");
 		goto end;
@@ -1418,12 +1427,6 @@ bt_component_class_source *bt_bt2_component_class_source_create(
 	BT_ASSERT(ret == 0);
 	ret = bt_component_class_source_set_finalize_method(component_class_source, component_class_source_finalize);
 	BT_ASSERT(ret == 0);
-	ret = bt_component_class_source_set_message_iterator_seek_beginning_methods(component_class_source,
-		component_class_seek_beginning, component_class_can_seek_beginning);
-	ret = bt_component_class_source_set_message_iterator_seek_ns_from_origin_methods(
-		component_class_source, component_class_seek_ns_from_origin,
-		component_class_can_seek_ns_from_origin);
-	BT_ASSERT(ret == 0);
 	ret = bt_component_class_source_set_output_port_connected_method(component_class_source,
 		component_class_source_output_port_connected);
 	BT_ASSERT(ret == 0);
@@ -1431,15 +1434,10 @@ bt_component_class_source *bt_bt2_component_class_source_create(
 	BT_ASSERT(ret == 0);
 	ret = bt_component_class_source_set_get_supported_mip_versions_method(component_class_source, component_class_source_get_supported_mip_versions);
 	BT_ASSERT(ret == 0);
-	ret = bt_component_class_source_set_message_iterator_initialize_method(
-		component_class_source, component_class_source_message_iterator_init);
-	BT_ASSERT(ret == 0);
-	ret = bt_component_class_source_set_message_iterator_finalize_method(
-		component_class_source, component_class_message_iterator_finalize);
-	BT_ASSERT(ret == 0);
 	register_cc_ptr_to_py_cls(component_class, py_cls);
 
 end:
+	bt_message_iterator_class_put_ref(message_iterator_class);
 	return component_class_source;
 }
 
@@ -1448,13 +1446,20 @@ bt_component_class_filter *bt_bt2_component_class_filter_create(
 		PyObject *py_cls, const char *name, const char *description,
 		const char *help)
 {
+	bt_component_class_filter *component_class_filter = NULL;
+	bt_message_iterator_class *message_iterator_class;
 	bt_component_class *component_class;
-	bt_component_class_filter *component_class_filter;
 	int ret;
 
 	BT_ASSERT(py_cls);
+
+	message_iterator_class = create_message_iterator_class();
+	if (!message_iterator_class) {
+		goto end;
+	}
+
 	component_class_filter = bt_component_class_filter_create(name,
-		component_class_message_iterator_next);
+		message_iterator_class);
 	if (!component_class_filter) {
 		BT_LOGE_STR("Cannot create filter component class.");
 		goto end;
@@ -1470,12 +1475,6 @@ bt_component_class_filter *bt_bt2_component_class_filter_create(
 	BT_ASSERT(ret == 0);
 	ret = bt_component_class_filter_set_finalize_method (component_class_filter, component_class_filter_finalize);
 	BT_ASSERT(ret == 0);
-	ret = bt_component_class_filter_set_message_iterator_seek_beginning_methods(component_class_filter,
-		component_class_seek_beginning, component_class_can_seek_beginning);
-	BT_ASSERT(ret == 0);
-	ret = bt_component_class_filter_set_message_iterator_seek_ns_from_origin_methods(
-		component_class_filter, component_class_seek_ns_from_origin,
-		component_class_can_seek_ns_from_origin);
 	ret = bt_component_class_filter_set_input_port_connected_method(component_class_filter,
 		component_class_filter_input_port_connected);
    	BT_ASSERT(ret == 0);
@@ -1486,15 +1485,10 @@ bt_component_class_filter *bt_bt2_component_class_filter_create(
 	BT_ASSERT(ret == 0);
 	ret = bt_component_class_filter_set_get_supported_mip_versions_method(component_class_filter, component_class_filter_get_supported_mip_versions);
 	BT_ASSERT(ret == 0);
-	ret = bt_component_class_filter_set_message_iterator_initialize_method(
-		component_class_filter, component_class_filter_message_iterator_init);
-	BT_ASSERT(ret == 0);
-	ret = bt_component_class_filter_set_message_iterator_finalize_method(
-		component_class_filter, component_class_message_iterator_finalize);
-	BT_ASSERT(ret == 0);
 	register_cc_ptr_to_py_cls(component_class, py_cls);
 
 end:
+	bt_message_iterator_class_put_ref(message_iterator_class);
 	return component_class_filter;
 }
 

@@ -72,17 +72,18 @@ bt_component_class_initialize_method_status src_init(
 }
 
 static
-bt_component_class_message_iterator_next_method_status src_iter_next(
+bt_message_iterator_class_next_method_status src_iter_next(
 		bt_self_message_iterator *message_iterator,
 		bt_message_array_const msgs, uint64_t capacity,
 		uint64_t *count)
 {
-	return BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_END;
+	return BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_END;
 }
 
 static
 bt_graph *create_graph_with_source(const bt_port_output **out_port)
 {
+	bt_message_iterator_class *msg_iter_cls;
 	bt_component_class_source *src_comp_cls;
 	bt_graph *graph;
 	const bt_component_source *src_comp = NULL;
@@ -90,7 +91,11 @@ bt_graph *create_graph_with_source(const bt_port_output **out_port)
 	bt_component_class_set_method_status set_method_status;
 
 	BT_ASSERT(out_port);
-	src_comp_cls = bt_component_class_source_create("src", src_iter_next);
+
+	msg_iter_cls = bt_message_iterator_class_create(src_iter_next);
+	BT_ASSERT(msg_iter_cls);
+
+	src_comp_cls = bt_component_class_source_create("src", msg_iter_cls);
 	BT_ASSERT(src_comp_cls);
 	set_method_status = bt_component_class_source_set_initialize_method(
 		src_comp_cls, src_init);
@@ -106,6 +111,7 @@ bt_graph *create_graph_with_source(const bt_port_output **out_port)
 	BT_ASSERT(*out_port);
 	bt_component_source_put_ref(src_comp);
 	bt_component_class_source_put_ref(src_comp_cls);
+	bt_message_iterator_class_put_ref(msg_iter_cls);
 	return graph;
 }
 

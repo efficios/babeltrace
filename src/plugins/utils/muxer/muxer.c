@@ -113,7 +113,7 @@ struct muxer_msg_iter {
 	 * messages ready to return, we save the error here and return it on
 	 * the next _next call.
 	 */
-	bt_component_class_message_iterator_next_method_status next_saved_status;
+	bt_message_iterator_class_next_method_status next_saved_status;
 	const struct bt_error *next_saved_error;
 };
 
@@ -387,12 +387,12 @@ end:
 }
 
 static
-bt_component_class_message_iterator_next_method_status muxer_upstream_msg_iter_next(
+bt_message_iterator_class_next_method_status muxer_upstream_msg_iter_next(
 		struct muxer_upstream_msg_iter *muxer_upstream_msg_iter,
 		bool *is_ended)
 {
 	struct muxer_comp *muxer_comp = muxer_upstream_msg_iter->muxer_comp;
-	bt_component_class_message_iterator_next_method_status status;
+	bt_message_iterator_class_next_method_status status;
 	bt_message_iterator_next_status input_port_iter_status;
 	bt_message_array_const msgs;
 	uint64_t i;
@@ -427,7 +427,7 @@ bt_component_class_message_iterator_next_method_status muxer_upstream_msg_iter_n
 			g_queue_push_tail(muxer_upstream_msg_iter->msgs,
 				(void *) msgs[i]);
 		}
-		status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_OK;
+		status = BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_OK;
 		break;
 	case BT_MESSAGE_ITERATOR_NEXT_STATUS_AGAIN:
 		/*
@@ -435,7 +435,7 @@ bt_component_class_message_iterator_next_method_status muxer_upstream_msg_iter_n
 		 * valid anymore. Return
 		 * BT_MESSAGE_ITERATOR_NEXT_STATUS_AGAIN immediately.
 		 */
-		status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_AGAIN;
+		status = BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_AGAIN;
 		break;
 	case BT_MESSAGE_ITERATOR_NEXT_STATUS_END:	/* Fall-through. */
 		/*
@@ -444,7 +444,7 @@ bt_component_class_message_iterator_next_method_status muxer_upstream_msg_iter_n
 		 * message.
 		 */
 		*is_ended = true;
-		status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_OK;
+		status = BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_OK;
 		break;
 	case BT_MESSAGE_ITERATOR_NEXT_STATUS_ERROR:
 	case BT_MESSAGE_ITERATOR_NEXT_STATUS_MEMORY_ERROR:
@@ -459,7 +459,7 @@ bt_component_class_message_iterator_next_method_status muxer_upstream_msg_iter_n
 		BT_COMP_LOGE_APPEND_CAUSE(muxer_comp->self_comp,
 			"Unsupported status code: status=%s",
 			bt_common_func_status_string(input_port_iter_status));
-		status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_ERROR;
+		status = BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_ERROR;
 		break;
 	}
 
@@ -795,7 +795,7 @@ end:
  * the youngest, and sets *ts_ns to its time.
  */
 static
-bt_component_class_message_iterator_next_method_status
+bt_message_iterator_class_next_method_status
 muxer_msg_iter_youngest_upstream_msg_iter(
 		struct muxer_comp *muxer_comp,
 		struct muxer_msg_iter *muxer_msg_iter,
@@ -805,8 +805,8 @@ muxer_msg_iter_youngest_upstream_msg_iter(
 	size_t i;
 	int ret;
 	int64_t youngest_ts_ns = INT64_MAX;
-	bt_component_class_message_iterator_next_method_status status =
-		BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_OK;
+	bt_message_iterator_class_next_method_status status =
+		BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_OK;
 
 	BT_ASSERT_DBG(muxer_comp);
 	BT_ASSERT_DBG(muxer_msg_iter);
@@ -845,7 +845,7 @@ muxer_msg_iter_youngest_upstream_msg_iter(
 				 * validate_new_stream_clock_class() logs
 				 * errors.
 				 */
-				status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_ERROR;
+				status = BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_ERROR;
 				goto end;
 			}
 		} else if (G_UNLIKELY(bt_message_get_type(msg) ==
@@ -858,7 +858,7 @@ muxer_msg_iter_youngest_upstream_msg_iter(
 				bt_clock_snapshot_borrow_clock_class_const(cs));
 			if (ret) {
 				/* validate_clock_class() logs errors */
-				status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_ERROR;
+				status = BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_ERROR;
 				goto end;
 			}
 		}
@@ -868,7 +868,7 @@ muxer_msg_iter_youngest_upstream_msg_iter(
 		if (ret) {
 			/* get_msg_ts_ns() logs errors */
 			*muxer_upstream_msg_iter = NULL;
-			status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_ERROR;
+			status = BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_ERROR;
 			goto end;
 		}
 
@@ -920,7 +920,7 @@ muxer_msg_iter_youngest_upstream_msg_iter(
 	}
 
 	if (!*muxer_upstream_msg_iter) {
-		status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_END;
+		status = BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_END;
 		*ts_ns = INT64_MIN;
 	}
 
@@ -929,13 +929,13 @@ end:
 }
 
 static
-bt_component_class_message_iterator_next_method_status
+bt_message_iterator_class_next_method_status
 validate_muxer_upstream_msg_iter(
 	struct muxer_upstream_msg_iter *muxer_upstream_msg_iter,
 	bool *is_ended)
 {
 	struct muxer_comp *muxer_comp = muxer_upstream_msg_iter->muxer_comp;
-	bt_component_class_message_iterator_next_method_status status;
+	bt_message_iterator_class_next_method_status status;
 
 	BT_COMP_LOGD("Validating muxer's upstream message iterator wrapper: "
 		"muxer-upstream-msg-iter-wrap-addr=%p",
@@ -947,7 +947,7 @@ validate_muxer_upstream_msg_iter(
 			"queue-len=%u, upstream-msg-iter-addr=%p",
 			muxer_upstream_msg_iter->msgs->length,
 			muxer_upstream_msg_iter->msg_iter);
-		status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_OK;
+		status = BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_OK;
 		goto end;
 	}
 
@@ -960,12 +960,12 @@ end:
 }
 
 static
-bt_component_class_message_iterator_next_method_status
+bt_message_iterator_class_next_method_status
 validate_muxer_upstream_msg_iters(
 		struct muxer_msg_iter *muxer_msg_iter)
 {
 	struct muxer_comp *muxer_comp = muxer_msg_iter->muxer_comp;
-	bt_component_class_message_iterator_next_method_status status;
+	bt_message_iterator_class_next_method_status status;
 	size_t i;
 
 	BT_COMP_LOGD("Validating muxer's upstream message iterator wrappers: "
@@ -981,7 +981,7 @@ validate_muxer_upstream_msg_iters(
 
 		status = validate_muxer_upstream_msg_iter(
 			muxer_upstream_msg_iter, &is_ended);
-		if (status != BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_OK) {
+		if (status != BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_OK) {
 			if (status < 0) {
 				BT_COMP_LOGE_APPEND_CAUSE(muxer_comp->self_comp,
 					"Cannot validate muxer's upstream message iterator wrapper: "
@@ -1025,24 +1025,24 @@ validate_muxer_upstream_msg_iters(
 		}
 	}
 
-	status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_OK;
+	status = BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_OK;
 
 end:
 	return status;
 }
 
 static inline
-bt_component_class_message_iterator_next_method_status muxer_msg_iter_do_next_one(
+bt_message_iterator_class_next_method_status muxer_msg_iter_do_next_one(
 		struct muxer_comp *muxer_comp,
 		struct muxer_msg_iter *muxer_msg_iter,
 		const bt_message **msg)
 {
-	bt_component_class_message_iterator_next_method_status status;
+	bt_message_iterator_class_next_method_status status;
 	struct muxer_upstream_msg_iter *muxer_upstream_msg_iter = NULL;
 	int64_t next_return_ts;
 
 	status = validate_muxer_upstream_msg_iters(muxer_msg_iter);
-	if (status != BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_OK) {
+	if (status != BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_OK) {
 		/* validate_muxer_upstream_msg_iters() logs details */
 		goto end;
 	}
@@ -1056,7 +1056,7 @@ bt_component_class_message_iterator_next_method_status muxer_msg_iter_do_next_on
 	status = muxer_msg_iter_youngest_upstream_msg_iter(muxer_comp,
 			muxer_msg_iter, &muxer_upstream_msg_iter,
 			&next_return_ts);
-	if (status < 0 || status == BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_END) {
+	if (status < 0 || status == BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_END) {
 		if (status < 0) {
 			BT_COMP_LOGE_APPEND_CAUSE(muxer_comp->self_comp,
 				"Cannot find the youngest upstream message iterator wrapper: "
@@ -1078,7 +1078,7 @@ bt_component_class_message_iterator_next_method_status muxer_msg_iter_do_next_on
 			"last-returned-ts=%" PRId64,
 			muxer_msg_iter, next_return_ts,
 			muxer_msg_iter->last_returned_ts_ns);
-		status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_ERROR;
+		status = BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_ERROR;
 		goto end;
 	}
 
@@ -1088,7 +1088,7 @@ bt_component_class_message_iterator_next_method_status muxer_msg_iter_do_next_on
 		"ts=%" PRId64,
 		muxer_msg_iter, muxer_upstream_msg_iter, next_return_ts);
 	BT_ASSERT_DBG(status ==
-		BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_OK);
+		BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_OK);
 	BT_ASSERT_DBG(muxer_upstream_msg_iter);
 
 	/*
@@ -1104,13 +1104,13 @@ end:
 }
 
 static
-bt_component_class_message_iterator_next_method_status muxer_msg_iter_do_next(
+bt_message_iterator_class_next_method_status muxer_msg_iter_do_next(
 		struct muxer_comp *muxer_comp,
 		struct muxer_msg_iter *muxer_msg_iter,
 		bt_message_array_const msgs, uint64_t capacity,
 		uint64_t *count)
 {
-	bt_component_class_message_iterator_next_method_status status;
+	bt_message_iterator_class_next_method_status status;
 	uint64_t i = 0;
 
 	if (G_UNLIKELY(muxer_msg_iter->next_saved_error)) {
@@ -1127,10 +1127,10 @@ bt_component_class_message_iterator_next_method_status muxer_msg_iter_do_next(
 	do {
 		status = muxer_msg_iter_do_next_one(muxer_comp,
 			muxer_msg_iter, &msgs[i]);
-		if (status == BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_OK) {
+		if (status == BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_OK) {
 			i++;
 		}
-	} while (i < capacity && status == BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_OK);
+	} while (i < capacity && status == BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_OK);
 
 	if (i > 0) {
 		/*
@@ -1158,7 +1158,7 @@ bt_component_class_message_iterator_next_method_status muxer_msg_iter_do_next(
 		}
 
 		*count = i;
-		status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_OK;
+		status = BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_OK;
 	}
 
 end:
@@ -1194,14 +1194,14 @@ void destroy_muxer_msg_iter(struct muxer_msg_iter *muxer_msg_iter)
 }
 
 static
-bt_component_class_message_iterator_initialize_method_status
+bt_message_iterator_class_initialize_method_status
 muxer_msg_iter_init_upstream_iterators(struct muxer_comp *muxer_comp,
 		struct muxer_msg_iter *muxer_msg_iter,
 		struct bt_self_message_iterator_configuration *config)
 {
 	int64_t count;
 	int64_t i;
-	bt_component_class_message_iterator_initialize_method_status status;
+	bt_message_iterator_class_initialize_method_status status;
 	bool can_seek_forward = true;
 
 	count = bt_component_filter_get_input_port_count(
@@ -1211,7 +1211,7 @@ muxer_msg_iter_init_upstream_iterators(struct muxer_comp *muxer_comp,
 		BT_COMP_LOGD("No input port to initialize for muxer component's message iterator: "
 			"muxer-comp-addr=%p, muxer-msg-iter-addr=%p",
 			muxer_comp, muxer_msg_iter);
-		status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_INITIALIZE_METHOD_STATUS_OK;
+		status = BT_MESSAGE_ITERATOR_CLASS_INITIALIZE_METHOD_STATUS_OK;
 		goto end;
 	}
 
@@ -1249,7 +1249,7 @@ muxer_msg_iter_init_upstream_iterators(struct muxer_comp *muxer_comp,
 		bt_self_component_port_input_message_iterator_put_ref(
 			upstream_msg_iter);
 		if (int_status) {
-			status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_INITIALIZE_METHOD_STATUS_ERROR;
+			status = BT_MESSAGE_ITERATOR_CLASS_INITIALIZE_METHOD_STATUS_ERROR;
 			/* muxer_msg_iter_add_upstream_msg_iter() logs errors */
 			goto end;
 		}
@@ -1266,25 +1266,24 @@ muxer_msg_iter_init_upstream_iterators(struct muxer_comp *muxer_comp,
 	bt_self_message_iterator_configuration_set_can_seek_forward(
 		config, can_seek_forward);
 
-	status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_INITIALIZE_METHOD_STATUS_OK;
+	status = BT_MESSAGE_ITERATOR_CLASS_INITIALIZE_METHOD_STATUS_OK;
 
 end:
 	return status;
 }
 
 BT_HIDDEN
-bt_component_class_message_iterator_initialize_method_status muxer_msg_iter_init(
+bt_message_iterator_class_initialize_method_status muxer_msg_iter_init(
 		bt_self_message_iterator *self_msg_iter,
 		bt_self_message_iterator_configuration *config,
-		bt_self_component_filter *self_comp,
+		bt_self_component *self_comp,
 		bt_self_component_port_output *port)
 {
 	struct muxer_comp *muxer_comp = NULL;
 	struct muxer_msg_iter *muxer_msg_iter = NULL;
-	bt_component_class_message_iterator_initialize_method_status status;
+	bt_message_iterator_class_initialize_method_status status;
 
-	muxer_comp = bt_self_component_get_data(
-		bt_self_component_filter_as_self_component(self_comp));
+	muxer_comp = bt_self_component_get_data(self_comp);
 	BT_ASSERT(muxer_comp);
 	BT_COMP_LOGD("Initializing muxer component's message iterator: "
 		"comp-addr=%p, muxer-comp-addr=%p, msg-iter-addr=%p",
@@ -1299,7 +1298,7 @@ bt_component_class_message_iterator_initialize_method_status muxer_msg_iter_init
 		BT_COMP_LOGE("Recursive initialization of muxer component's message iterator: "
 			"comp-addr=%p, muxer-comp-addr=%p, msg-iter-addr=%p",
 			self_comp, muxer_comp, self_msg_iter);
-		status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_INITIALIZE_METHOD_STATUS_ERROR;
+		status = BT_MESSAGE_ITERATOR_CLASS_INITIALIZE_METHOD_STATUS_ERROR;
 		goto error;
 	}
 
@@ -1307,7 +1306,7 @@ bt_component_class_message_iterator_initialize_method_status muxer_msg_iter_init
 	muxer_msg_iter = g_new0(struct muxer_msg_iter, 1);
 	if (!muxer_msg_iter) {
 		BT_COMP_LOGE_STR("Failed to allocate one muxer component's message iterator.");
-		status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_INITIALIZE_METHOD_STATUS_MEMORY_ERROR;
+		status = BT_MESSAGE_ITERATOR_CLASS_INITIALIZE_METHOD_STATUS_MEMORY_ERROR;
 		goto error;
 	}
 
@@ -1319,7 +1318,7 @@ bt_component_class_message_iterator_initialize_method_status muxer_msg_iter_init
 			(GDestroyNotify) destroy_muxer_upstream_msg_iter);
 	if (!muxer_msg_iter->active_muxer_upstream_msg_iters) {
 		BT_COMP_LOGE_STR("Failed to allocate a GPtrArray.");
-		status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_INITIALIZE_METHOD_STATUS_MEMORY_ERROR;
+		status = BT_MESSAGE_ITERATOR_CLASS_INITIALIZE_METHOD_STATUS_MEMORY_ERROR;
 		goto error;
 	}
 
@@ -1328,7 +1327,7 @@ bt_component_class_message_iterator_initialize_method_status muxer_msg_iter_init
 			(GDestroyNotify) destroy_muxer_upstream_msg_iter);
 	if (!muxer_msg_iter->ended_muxer_upstream_msg_iters) {
 		BT_COMP_LOGE_STR("Failed to allocate a GPtrArray.");
-		status = BT_COMPONENT_CLASS_MESSAGE_ITERATOR_INITIALIZE_METHOD_STATUS_MEMORY_ERROR;
+		status = BT_MESSAGE_ITERATOR_CLASS_INITIALIZE_METHOD_STATUS_MEMORY_ERROR;
 		goto error;
 	}
 
@@ -1382,12 +1381,12 @@ void muxer_msg_iter_finalize(bt_self_message_iterator *self_msg_iter)
 }
 
 BT_HIDDEN
-bt_component_class_message_iterator_next_method_status muxer_msg_iter_next(
+bt_message_iterator_class_next_method_status muxer_msg_iter_next(
 		bt_self_message_iterator *self_msg_iter,
 		bt_message_array_const msgs, uint64_t capacity,
 		uint64_t *count)
 {
-	bt_component_class_message_iterator_next_method_status status;
+	bt_message_iterator_class_next_method_status status;
 	struct muxer_msg_iter *muxer_msg_iter =
 		bt_self_message_iterator_get_data(self_msg_iter);
 	bt_self_component *self_comp = NULL;
@@ -1454,12 +1453,12 @@ end:
 }
 
 static inline
-bt_component_class_message_iterator_can_seek_beginning_method_status
+bt_message_iterator_class_can_seek_beginning_method_status
 muxer_upstream_msg_iters_can_all_seek_beginning(
 		GPtrArray *muxer_upstream_msg_iters, bt_bool *can_seek)
 {
-	bt_component_class_message_iterator_can_seek_beginning_method_status status =
-		BT_COMPONENT_CLASS_MESSAGE_ITERATOR_CAN_SEEK_BEGINNING_METHOD_STATUS_OK;
+	bt_message_iterator_class_can_seek_beginning_method_status status =
+		BT_MESSAGE_ITERATOR_CLASS_CAN_SEEK_BEGINNING_METHOD_STATUS_OK;
 	uint64_t i;
 
 	for (i = 0; i < muxer_upstream_msg_iters->len; i++) {
@@ -1467,7 +1466,7 @@ muxer_upstream_msg_iters_can_all_seek_beginning(
 			muxer_upstream_msg_iters->pdata[i];
 		status = (int) bt_self_component_port_input_message_iterator_can_seek_beginning(
 			upstream_msg_iter->msg_iter, can_seek);
-		if (status != BT_COMPONENT_CLASS_MESSAGE_ITERATOR_CAN_SEEK_BEGINNING_METHOD_STATUS_OK) {
+		if (status != BT_MESSAGE_ITERATOR_CLASS_CAN_SEEK_BEGINNING_METHOD_STATUS_OK) {
 			goto end;
 		}
 
@@ -1483,17 +1482,17 @@ end:
 }
 
 BT_HIDDEN
-bt_component_class_message_iterator_can_seek_beginning_method_status
+bt_message_iterator_class_can_seek_beginning_method_status
 muxer_msg_iter_can_seek_beginning(
 		bt_self_message_iterator *self_msg_iter, bt_bool *can_seek)
 {
 	struct muxer_msg_iter *muxer_msg_iter =
 		bt_self_message_iterator_get_data(self_msg_iter);
-	bt_component_class_message_iterator_can_seek_beginning_method_status status;
+	bt_message_iterator_class_can_seek_beginning_method_status status;
 
 	status = muxer_upstream_msg_iters_can_all_seek_beginning(
 		muxer_msg_iter->active_muxer_upstream_msg_iters, can_seek);
-	if (status != BT_COMPONENT_CLASS_MESSAGE_ITERATOR_CAN_SEEK_BEGINNING_METHOD_STATUS_OK) {
+	if (status != BT_MESSAGE_ITERATOR_CLASS_CAN_SEEK_BEGINNING_METHOD_STATUS_OK) {
 		goto end;
 	}
 
@@ -1509,13 +1508,13 @@ end:
 }
 
 BT_HIDDEN
-bt_component_class_message_iterator_seek_beginning_method_status muxer_msg_iter_seek_beginning(
+bt_message_iterator_class_seek_beginning_method_status muxer_msg_iter_seek_beginning(
 		bt_self_message_iterator *self_msg_iter)
 {
 	struct muxer_msg_iter *muxer_msg_iter =
 		bt_self_message_iterator_get_data(self_msg_iter);
-	bt_component_class_message_iterator_seek_beginning_method_status status =
-		BT_COMPONENT_CLASS_MESSAGE_ITERATOR_SEEK_BEGINNING_METHOD_STATUS_OK;
+	bt_message_iterator_class_seek_beginning_method_status status =
+		BT_MESSAGE_ITERATOR_CLASS_SEEK_BEGINNING_METHOD_STATUS_OK;
 	bt_message_iterator_seek_beginning_status seek_beg_status;
 	uint64_t i;
 
