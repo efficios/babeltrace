@@ -510,7 +510,10 @@ AM_PATH_PYTHON([3.0], [
 
     AS_IF([test -z "$PYTHON_LDFLAGS"], [
       AC_MSG_CHECKING([Python library flags])
-      PYTHON_LDFLAGS=`$PYTHON_CONFIG --ldflags`
+      # Python 3.8+ requires that we pass --embed to get the -lpython3.x flag.
+      AS_IF([! PYTHON_LDFLAGS=`$PYTHON_CONFIG --ldflags --embed`], [
+        PYTHON_LDFLAGS=`$PYTHON_CONFIG --ldflags`
+      ])
       AC_MSG_RESULT([$PYTHON_LDFLAGS])
     ])
   ])
