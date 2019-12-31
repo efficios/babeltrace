@@ -428,6 +428,8 @@ int set_bound_from_str(struct trimmer_comp *trimmer_comp,
 	ret = -1;
 
 end:
+	g_match_info_free(match_info);
+
 	return ret;
 }
 
