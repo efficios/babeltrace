@@ -1358,7 +1358,7 @@ bt_value_map_foreach_entry_const_func_status extend_map_element(
 
 	/* Replace in base map value. */
 	status = bt_value_map_insert_entry(extend_data->base_obj, key,
-		(void *) extension_obj_elem_copy);
+		extension_obj_elem_copy);
 	if (status) {
 		BT_LIB_LOGE_APPEND_CAUSE(
 			"Cannot replace value in base map value: key=\"%s\", "
