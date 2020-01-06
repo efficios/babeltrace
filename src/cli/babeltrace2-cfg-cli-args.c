@@ -47,55 +47,6 @@
 #include "autodisc/autodisc.h"
 #include "common/version.h"
 
-/* Offset option with "is set" boolean */
-struct offset_opt {
-	int64_t value;
-	bool is_set;
-};
-
-/* Legacy "ctf"/"lttng-live" format options */
-struct ctf_legacy_opts {
-	struct offset_opt offset_s;
-	struct offset_opt offset_ns;
-	bool stream_intersection;
-};
-
-/* Legacy "text" format options */
-struct text_legacy_opts {
-	/*
-	 * output, dbg_info_dir, dbg_info_target_prefix, names,
-	 * and fields are owned by this.
-	 */
-	GString *output;
-	GString *dbg_info_dir;
-	GString *dbg_info_target_prefix;
-	const bt_value *names;
-	const bt_value *fields;
-
-	/* Flags */
-	bool no_delta;
-	bool clock_cycles;
-	bool clock_seconds;
-	bool clock_date;
-	bool clock_gmt;
-	bool dbg_info_full_path;
-	bool verbose;
-};
-
-/* Legacy input format format */
-enum legacy_input_format {
-	LEGACY_INPUT_FORMAT_NONE = 0,
-	LEGACY_INPUT_FORMAT_CTF,
-	LEGACY_INPUT_FORMAT_LTTNG_LIVE,
-};
-
-/* Legacy output format format */
-enum legacy_output_format {
-	LEGACY_OUTPUT_FORMAT_NONE = 0,
-	LEGACY_OUTPUT_FORMAT_TEXT,
-	LEGACY_OUTPUT_FORMAT_DUMMY,
-};
-
 #define BT_CLI_LOGE_APPEND_CAUSE_OOM() BT_CLI_LOGE_APPEND_CAUSE("Out of memory.")
 
 /*
