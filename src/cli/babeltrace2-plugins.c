@@ -44,7 +44,7 @@ void fini_loaded_plugins(void)
 	g_ptr_array_free(loaded_plugins, TRUE);
 }
 
-const bt_plugin *find_loaded_plugin(const char *name)
+const bt_plugin *borrow_loaded_plugin_by_name(const char *name)
 {
 	int i;
 	const bt_plugin *plugin = NULL;
@@ -69,7 +69,6 @@ const bt_plugin *find_loaded_plugin(const char *name)
 		BT_LOGI("Cannot find plugin: name=\"%s\"", name);
 	}
 
-	bt_plugin_get_ref(plugin);
 	return plugin;
 }
 
@@ -83,7 +82,7 @@ const bt_plugin **borrow_loaded_plugins(void)
 	return (const bt_plugin **) loaded_plugins->pdata;
 }
 
-const bt_plugin *borrow_loaded_plugin(size_t index)
+const bt_plugin *borrow_loaded_plugin_by_index(size_t index)
 {
 	BT_ASSERT(index < loaded_plugins->len);
 	return g_ptr_array_index(loaded_plugins, index);
@@ -102,7 +101,7 @@ void add_to_loaded_plugins(const bt_plugin_set *plugin_set)
 		const bt_plugin *plugin =
 			bt_plugin_set_borrow_plugin_by_index_const(plugin_set, i);
 		const bt_plugin *loaded_plugin =
-			find_loaded_plugin(bt_plugin_get_name(plugin));
+			borrow_loaded_plugin_by_name(bt_plugin_get_name(plugin));
 
 		BT_ASSERT(plugin);
 
@@ -113,7 +112,6 @@ void add_to_loaded_plugins(const bt_plugin_set *plugin_set)
 				bt_plugin_get_name(plugin),
 				bt_plugin_get_path(plugin),
 				bt_plugin_get_path(loaded_plugin));
-			bt_plugin_put_ref(loaded_plugin);
 		} else {
 			/* Add to global array. */
 			BT_LOGD("Adding plugin to loaded plugins: plugin-path=\"%s\"",

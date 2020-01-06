@@ -4010,7 +4010,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 
 			if (auto_source_discovery_restrict_plugin_name) {
 				plugin_count = 1;
-				plugin = find_loaded_plugin(auto_source_discovery_restrict_plugin_name);
+				plugin = borrow_loaded_plugin_by_name(auto_source_discovery_restrict_plugin_name);
 				plugins = &plugin;
 			} else {
 				plugin_count = get_loaded_plugins_count();
