@@ -146,14 +146,13 @@ const void *find_component_class_from_plugin(const char *plugin_name,
 	BT_LOGI("Finding component class: plugin-name=\"%s\", "
 		"comp-cls-name=\"%s\"", plugin_name, comp_class_name);
 
-	plugin = find_loaded_plugin(plugin_name);
+	plugin = borrow_loaded_plugin_by_name(plugin_name);
 	if (!plugin) {
 		goto end;
 	}
 
 	comp_class = plugin_borrow_comp_cls_func(plugin, comp_class_name);
 	bt_object_get_ref(comp_class);
-	BT_PLUGIN_PUT_REF_AND_RESET(plugin);
 
 end:
 	if (comp_class) {
@@ -726,7 +725,7 @@ enum bt_cmd_status cmd_help(struct bt_config *cfg)
 	const bt_plugin *plugin = NULL;
 	const bt_component_class *needed_comp_cls = NULL;
 
-	plugin = find_loaded_plugin(cfg->cmd_data.help.cfg_component->plugin_name->str);
+	plugin = borrow_loaded_plugin_by_name(cfg->cmd_data.help.cfg_component->plugin_name->str);
 	if (!plugin) {
 		BT_CLI_LOGE_APPEND_CAUSE(
 			"Cannot find plugin: plugin-name=\"%s\"",
@@ -780,7 +779,6 @@ error:
 
 end:
 	bt_component_class_put_ref(needed_comp_cls);
-	bt_plugin_put_ref(plugin);
 	return cmd_status;
 }
 
@@ -854,7 +852,7 @@ enum bt_cmd_status cmd_list_plugins(struct bt_config *cfg)
 	}
 
 	for (i = 0; i < plugins_count; i++) {
-		const bt_plugin *plugin = borrow_loaded_plugin(i);
+		const bt_plugin *plugin = borrow_loaded_plugin_by_index(i);
 
 		component_classes_count +=
 			bt_plugin_get_source_component_class_count(plugin) +
@@ -871,7 +869,7 @@ enum bt_cmd_status cmd_list_plugins(struct bt_config *cfg)
 		bt_common_color_reset());
 
 	for (i = 0; i < plugins_count; i++) {
-		const bt_plugin *plugin = borrow_loaded_plugin(i);
+		const bt_plugin *plugin = borrow_loaded_plugin_by_index(i);
 
 		printf("\n");
 		print_plugin_info(plugin);

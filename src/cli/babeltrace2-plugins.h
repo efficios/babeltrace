@@ -33,9 +33,10 @@ BT_HIDDEN void fini_loaded_plugins(void);
 
 BT_HIDDEN int require_loaded_plugins(const bt_value *plugin_paths);
 
-BT_HIDDEN const bt_plugin *find_loaded_plugin(const char *name);
 BT_HIDDEN size_t get_loaded_plugins_count(void);
 BT_HIDDEN const bt_plugin **borrow_loaded_plugins(void);
-BT_HIDDEN const bt_plugin *borrow_loaded_plugin(size_t index);
+BT_HIDDEN const bt_plugin *borrow_loaded_plugin_by_index(size_t index);
+BT_HIDDEN const bt_plugin *borrow_loaded_plugin_by_name(const char *name);
+
 
 #endif /* CLI_BABELTRACE_PLUGINS_H */
