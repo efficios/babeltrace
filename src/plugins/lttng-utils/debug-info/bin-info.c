@@ -377,6 +377,9 @@ int bin_info_set_build_id(struct bin_info *bin, uint8_t *build_id,
 		goto error;
 	}
 
+	/* Free any previously set build id. */
+	g_free(bin->build_id);
+
 	/* Set the build id. */
 	bin->build_id = g_new0(uint8_t, build_id_len);
 	if (!bin->build_id) {
