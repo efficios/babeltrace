@@ -716,6 +716,11 @@ class PortTestCase(unittest.TestCase):
         self._create_comp(MySink)
 
     def test_source_self_port_user_data(self):
+        class MyUserData:
+            def __del__(self):
+                nonlocal objects_deleted
+                objects_deleted += 1
+
         class MySource(
             bt2._UserFilterComponent, message_iterator_class=bt2._UserMessageIterator
         ):
@@ -726,13 +731,30 @@ class PortTestCase(unittest.TestCase):
                 user_datas.append(p.user_data)
                 p = comp_self._add_output_port('port2', 2)
                 user_datas.append(p.user_data)
+                p = comp_self._add_output_port('port3', MyUserData())
+                user_datas.append(p.user_data)
 
         user_datas = []
+        objects_deleted = 0
 
-        self._create_comp(MySource)
-        self.assertEqual(user_datas, [None, 2])
+        comp = self._create_comp(MySource)
+        self.assertEqual(len(user_datas), 3)
+        self.assertIs(user_datas[0], None)
+        self.assertEqual(user_datas[1], 2)
+        self.assertIs(type(user_datas[2]), MyUserData)
+
+        # Verify that the user data gets freed.
+        self.assertEqual(objects_deleted, 0)
+        del user_datas
+        del comp
+        self.assertEqual(objects_deleted, 1)
 
     def test_filter_self_port_user_data(self):
+        class MyUserData:
+            def __del__(self):
+                nonlocal objects_deleted
+                objects_deleted += 1
+
         class MyFilter(
             bt2._UserFilterComponent, message_iterator_class=bt2._UserMessageIterator
         ):
@@ -743,36 +765,65 @@ class PortTestCase(unittest.TestCase):
                 user_datas.append(p.user_data)
                 p = comp_self._add_output_port('port2', 'user data string')
                 user_datas.append(p.user_data)
-
-                p = comp_self._add_input_port('port3')
+                p = comp_self._add_output_port('port3', MyUserData())
                 user_datas.append(p.user_data)
-                p = comp_self._add_input_port('port4', user_data={'user data': 'dict'})
+
+                p = comp_self._add_input_port('port4')
+                user_datas.append(p.user_data)
+                p = comp_self._add_input_port('port5', user_data={'user data': 'dict'})
+                user_datas.append(p.user_data)
+                p = comp_self._add_input_port('port6', MyUserData())
                 user_datas.append(p.user_data)
 
         user_datas = []
+        objects_deleted = 0
 
-        self._create_comp(MyFilter)
-        self.assertEqual(
-            user_datas, [None, 'user data string', None, {'user data': 'dict'}]
-        )
+        comp = self._create_comp(MyFilter)
+        self.assertEqual(len(user_datas), 6)
+        self.assertIs(user_datas[0], None)
+        self.assertEqual(user_datas[1], 'user data string')
+        self.assertIs(type(user_datas[2]), MyUserData)
+        self.assertIs(user_datas[3], None)
+        self.assertEqual(user_datas[4], {'user data': 'dict'})
+        self.assertIs(type(user_datas[5]), MyUserData)
+
+        # Verify that the user data gets freed.
+        self.assertEqual(objects_deleted, 0)
+        del user_datas
+        del comp
+        self.assertEqual(objects_deleted, 2)
 
     def test_sink_self_port_user_data(self):
+        class MyUserData:
+            def __del__(self):
+                nonlocal objects_deleted
+                objects_deleted += 1
+
         class MySink(bt2._UserSinkComponent):
             def __init__(comp_self, config, params, obj):
                 nonlocal user_datas
 
                 p = comp_self._add_input_port('port1')
                 user_datas.append(p.user_data)
-                p = comp_self._add_input_port('port2', set())
+                p = comp_self._add_input_port('port2', MyUserData())
                 user_datas.append(p.user_data)
 
             def _user_consume(self):
                 pass
 
         user_datas = []
+        objects_deleted = 0
 
-        self._create_comp(MySink)
-        self.assertEqual(user_datas, [None, set()])
+        comp = self._create_comp(MySink)
+        self.assertEqual(len(user_datas), 2)
+        self.assertIs(user_datas[0], None)
+        self.assertIs(type(user_datas[1]), MyUserData)
+
+        # Verify that the user data gets freed.
+        self.assertEqual(objects_deleted, 0)
+        del user_datas
+        del comp
+        self.assertEqual(objects_deleted, 1)
 
 
 if __name__ == '__main__':
