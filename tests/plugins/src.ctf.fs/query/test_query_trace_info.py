@@ -18,7 +18,6 @@ import unittest
 import bt2
 import os
 import re
-from pathlib import PureWindowsPath, PurePosixPath
 
 
 test_ctf_traces_path = os.environ['BT_CTF_TRACES_PATH']
@@ -145,11 +144,12 @@ class QueryTraceInfoPortNameTestCase(unittest.TestCase):
             },
         ).query()
 
-        os_stream_path = PurePosixPath(
-            '/tests/data/ctf-traces/intersection/3eventsintersect/'
-        )
         if os.environ['BT_OS_TYPE'] == 'mingw':
-            os_stream_path = PureWindowsPath(os_stream_path)
+            os_stream_path = (
+                '\\tests\\data\\ctf-traces\\intersection\\3eventsintersect\\'
+            )
+        else:
+            os_stream_path = '/tests/data/ctf-traces/intersection/3eventsintersect/'
 
         self.assertEqual(len(res), 1)
         trace = res[0]
@@ -158,13 +158,13 @@ class QueryTraceInfoPortNameTestCase(unittest.TestCase):
         self.assertRegex(
             str(streams[0]["port-name"]),
             r"^7afe8fbe-79b8-4f6a-bbc7-d0c782e7ddaf \| 0 \| .*"
-            + re.escape(str(os_stream_path / "test_stream_0"))
+            + re.escape(os_stream_path + "test_stream_0")
             + r"$",
         )
         self.assertRegex(
             str(streams[1]["port-name"]),
             r"^7afe8fbe-79b8-4f6a-bbc7-d0c782e7ddaf \| 0 \| .*"
-            + re.escape(str(os_stream_path / "test_stream_1"))
+            + re.escape(os_stream_path + "test_stream_1")
             + r"$",
         )
 
@@ -175,11 +175,10 @@ class QueryTraceInfoPortNameTestCase(unittest.TestCase):
             {"inputs": [os.path.join(test_ctf_traces_path, "succeed", "succeed1")]},
         ).query()
 
-        os_stream_path = PurePosixPath(
-            '/tests/data/ctf-traces/succeed/succeed1/dummystream'
-        )
         if os.environ['BT_OS_TYPE'] == 'mingw':
-            os_stream_path = PureWindowsPath(os_stream_path)
+            os_stream_path = '\\tests\\data\\ctf-traces\\succeed\\succeed1\\dummystream'
+        else:
+            os_stream_path = '/tests/data/ctf-traces/succeed/succeed1/dummystream'
 
         self.assertEqual(len(res), 1)
         trace = res[0]
@@ -188,7 +187,7 @@ class QueryTraceInfoPortNameTestCase(unittest.TestCase):
         self.assertRegex(
             str(streams[0]["port-name"]),
             r"^2a6422d0-6cee-11e0-8c08-cb07d7b3a564 \| .*"
-            + re.escape(str(os_stream_path))
+            + re.escape(os_stream_path)
             + r"$",
         )
 
