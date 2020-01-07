@@ -815,11 +815,7 @@ class PortTestCase(unittest.TestCase):
         )
 
     def test_sink_self_port_user_data(self):
-        class MyIter(bt2._UserMessageIterator):
-            def __next__(self):
-                raise bt2.Stop
-
-        class MySink(bt2._UserFilterComponent, message_iterator_class=MyIter):
+        class MySink(bt2._UserSinkComponent):
             def __init__(comp_self, config, params, obj):
                 nonlocal user_datas
 
@@ -827,6 +823,9 @@ class PortTestCase(unittest.TestCase):
                 user_datas.append(p.user_data)
                 p = comp_self._add_input_port('port2', set())
                 user_datas.append(p.user_data)
+
+            def _user_consume(self):
+                pass
 
         user_datas = []
 
