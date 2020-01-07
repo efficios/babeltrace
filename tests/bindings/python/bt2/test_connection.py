@@ -24,11 +24,9 @@ from bt2 import port as bt2_port
 
 class ConnectionTestCase(unittest.TestCase):
     def test_create(self):
-        class MyIter(bt2._UserMessageIterator):
-            def __next__(self):
-                raise bt2.Stop
-
-        class MySource(bt2._UserSourceComponent, message_iterator_class=MyIter):
+        class MySource(
+            bt2._UserSourceComponent, message_iterator_class=bt2._UserMessageIterator
+        ):
             def __init__(self, config, params, obj):
                 self._add_output_port('out')
 
@@ -46,11 +44,9 @@ class ConnectionTestCase(unittest.TestCase):
         self.assertIs(type(conn), bt2_connection._ConnectionConst)
 
     def test_downstream_port(self):
-        class MyIter(bt2._UserMessageIterator):
-            def __next__(self):
-                raise bt2.Stop
-
-        class MySource(bt2._UserSourceComponent, message_iterator_class=MyIter):
+        class MySource(
+            bt2._UserSourceComponent, message_iterator_class=bt2._UserMessageIterator
+        ):
             def __init__(self, config, params, obj):
                 self._add_output_port('out')
 
@@ -70,11 +66,9 @@ class ConnectionTestCase(unittest.TestCase):
         self.assertIs(type(conn.downstream_port), bt2_port._InputPortConst)
 
     def test_upstream_port(self):
-        class MyIter(bt2._UserMessageIterator):
-            def __next__(self):
-                raise bt2.Stop
-
-        class MySource(bt2._UserSourceComponent, message_iterator_class=MyIter):
+        class MySource(
+            bt2._UserSourceComponent, message_iterator_class=bt2._UserMessageIterator
+        ):
             def __init__(self, config, params, obj):
                 self._add_output_port('out')
 
