@@ -210,31 +210,15 @@ void bt_self_component_port_input_message_iterator_try_finalize(
 	/* Call user-defined destroy method */
 	if (call_user_finalize) {
 		typedef void (*method_t)(void *);
-		method_t method = NULL;
+		method_t method;
 		struct bt_component_class *comp_class =
 			iterator->upstream_component->class;
+		struct bt_component_class_with_iterator_class *class_with_iter_class;
 
-		switch (comp_class->type) {
-		case BT_COMPONENT_CLASS_TYPE_SOURCE:
-		{
-			struct bt_component_class_source *src_comp_cls =
-				(void *) comp_class;
-
-			method = (method_t) src_comp_cls->msg_iter_cls->methods.finalize;
-			break;
-		}
-		case BT_COMPONENT_CLASS_TYPE_FILTER:
-		{
-			struct bt_component_class_filter *flt_comp_cls =
-				(void *) comp_class;
-
-			method = (method_t) flt_comp_cls->msg_iter_cls->methods.finalize;
-			break;
-		}
-		default:
-			/* Unreachable */
-			bt_common_abort();
-		}
+		BT_ASSERT(bt_component_class_has_message_iterator_class(comp_class));
+		class_with_iter_class = container_of(comp_class,
+			struct bt_component_class_with_iterator_class, parent);
+		method = (method_t) class_with_iter_class->msg_iter_cls->methods.finalize;
 
 		if (method) {
 			const bt_error *saved_error;
@@ -329,6 +313,7 @@ int create_self_component_input_port_message_iterator(
 	struct bt_component *comp;
 	struct bt_component *upstream_comp;
 	struct bt_component_class *upstream_comp_cls;
+	struct bt_component_class_with_iterator_class *upstream_comp_cls_with_iter_cls;
 	int status;
 
 	BT_ASSERT_PRE_NON_NULL(message_iterator, "Created message iterator");
@@ -399,54 +384,26 @@ int create_self_component_input_port_message_iterator(
 	set_self_comp_port_input_msg_iterator_state(iterator,
 		BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_STATE_NON_INITIALIZED);
 
-	switch (iterator->upstream_component->class->type) {
-	case BT_COMPONENT_CLASS_TYPE_SOURCE:
-	{
-		struct bt_component_class_source *src_comp_cls =
-			(void *) iterator->upstream_component->class;
+	/* Copy methods from the message iterator class to the message iterator. */
+	BT_ASSERT(bt_component_class_has_message_iterator_class(upstream_comp_cls));
+	upstream_comp_cls_with_iter_cls = container_of(upstream_comp_cls,
+		struct bt_component_class_with_iterator_class, parent);
 
-		iterator->methods.next =
-			(bt_self_component_port_input_message_iterator_next_method)
-				src_comp_cls->msg_iter_cls->methods.next;
-		iterator->methods.seek_ns_from_origin =
-			(bt_self_component_port_input_message_iterator_seek_ns_from_origin_method)
-				src_comp_cls->msg_iter_cls->methods.seek_ns_from_origin;
-		iterator->methods.seek_beginning =
-			(bt_self_component_port_input_message_iterator_seek_beginning_method)
-				src_comp_cls->msg_iter_cls->methods.seek_beginning;
-		iterator->methods.can_seek_ns_from_origin =
-			(bt_self_component_port_input_message_iterator_can_seek_ns_from_origin_method)
-				src_comp_cls->msg_iter_cls->methods.can_seek_ns_from_origin;
-		iterator->methods.can_seek_beginning =
-			(bt_self_component_port_input_message_iterator_can_seek_beginning_method)
-				src_comp_cls->msg_iter_cls->methods.can_seek_beginning;
-		break;
-	}
-	case BT_COMPONENT_CLASS_TYPE_FILTER:
-	{
-		struct bt_component_class_filter *flt_comp_cls =
-			(void *) iterator->upstream_component->class;
-
-		iterator->methods.next =
-			(bt_self_component_port_input_message_iterator_next_method)
-				flt_comp_cls->msg_iter_cls->methods.next;
-		iterator->methods.seek_ns_from_origin =
-			(bt_self_component_port_input_message_iterator_seek_ns_from_origin_method)
-				flt_comp_cls->msg_iter_cls->methods.seek_ns_from_origin;
-		iterator->methods.seek_beginning =
-			(bt_self_component_port_input_message_iterator_seek_beginning_method)
-				flt_comp_cls->msg_iter_cls->methods.seek_beginning;
-		iterator->methods.can_seek_ns_from_origin =
-			(bt_self_component_port_input_message_iterator_can_seek_ns_from_origin_method)
-				flt_comp_cls->msg_iter_cls->methods.can_seek_ns_from_origin;
-		iterator->methods.can_seek_beginning =
-			(bt_self_component_port_input_message_iterator_can_seek_beginning_method)
-				flt_comp_cls->msg_iter_cls->methods.can_seek_beginning;
-		break;
-	}
-	default:
-		bt_common_abort();
-	}
+	iterator->methods.next =
+		(bt_self_component_port_input_message_iterator_next_method)
+			upstream_comp_cls_with_iter_cls->msg_iter_cls->methods.next;
+	iterator->methods.seek_ns_from_origin =
+		(bt_self_component_port_input_message_iterator_seek_ns_from_origin_method)
+			upstream_comp_cls_with_iter_cls->msg_iter_cls->methods.seek_ns_from_origin;
+	iterator->methods.seek_beginning =
+		(bt_self_component_port_input_message_iterator_seek_beginning_method)
+			upstream_comp_cls_with_iter_cls->msg_iter_cls->methods.seek_beginning;
+	iterator->methods.can_seek_ns_from_origin =
+		(bt_self_component_port_input_message_iterator_can_seek_ns_from_origin_method)
+			upstream_comp_cls_with_iter_cls->msg_iter_cls->methods.can_seek_ns_from_origin;
+	iterator->methods.can_seek_beginning =
+		(bt_self_component_port_input_message_iterator_can_seek_beginning_method)
+			upstream_comp_cls_with_iter_cls->msg_iter_cls->methods.can_seek_beginning;
 
 	if (iterator->methods.seek_ns_from_origin &&
 			!iterator->methods.can_seek_ns_from_origin) {
@@ -462,27 +419,8 @@ int create_self_component_input_port_message_iterator(
 				can_seek_beginning_true;
 	}
 
-	switch (upstream_comp_cls->type) {
-	case BT_COMPONENT_CLASS_TYPE_SOURCE:
-	{
-		struct bt_component_class_source *src_comp_cls =
-			(void *) upstream_comp_cls;
-
-		init_method = src_comp_cls->msg_iter_cls->methods.initialize;
-		break;
-	}
-	case BT_COMPONENT_CLASS_TYPE_FILTER:
-	{
-		struct bt_component_class_filter *flt_comp_cls =
-			(void *) upstream_comp_cls;
-
-		init_method = flt_comp_cls->msg_iter_cls->methods.initialize;
-		break;
-	}
-	default:
-		/* Unreachable */
-		bt_common_abort();
-	}
+	/* Call iterator's init method. */
+	init_method = upstream_comp_cls_with_iter_cls->msg_iter_cls->methods.initialize;
 
 	if (init_method) {
 		enum bt_message_iterator_class_initialize_method_status iter_status;

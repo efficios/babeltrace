@@ -94,22 +94,13 @@ void destroy_component_class(struct bt_object *obj)
 		class->destroy_listeners = NULL;
 	}
 
-	if (class->type == BT_COMPONENT_CLASS_TYPE_SOURCE) {
-		struct bt_component_class_source *class_src
-			= container_of(class, struct bt_component_class_source,
-				parent);
+	if (bt_component_class_has_message_iterator_class(class)) {
+		struct bt_component_class_with_iterator_class *class_with_iter_class =
+			container_of(class, struct bt_component_class_with_iterator_class, parent);
 
-		BT_ASSERT(class_src->msg_iter_cls);
-		bt_message_iterator_class_put_ref(class_src->msg_iter_cls);
-		class_src->msg_iter_cls = NULL;
-	} else if (class->type == BT_COMPONENT_CLASS_TYPE_FILTER) {
-		struct bt_component_class_filter *class_flt
-			= container_of(class, struct bt_component_class_filter,
-				parent);
-
-		BT_ASSERT(class_flt->msg_iter_cls);
-		bt_message_iterator_class_put_ref(class_flt->msg_iter_cls);
-		class_flt->msg_iter_cls = NULL;
+		BT_ASSERT(class_with_iter_class->msg_iter_cls);
+		bt_message_iterator_class_put_ref(class_with_iter_class->msg_iter_cls);
+		class_with_iter_class->msg_iter_cls = NULL;
 	}
 
 	g_free(class);
@@ -164,6 +155,27 @@ end:
 	return ret;
 }
 
+static
+int bt_component_class_with_iterator_class_init(
+		struct bt_component_class_with_iterator_class *class,
+		enum bt_component_class_type type, const char *name,
+		struct bt_message_iterator_class *message_iterator_class)
+{
+	int ret;
+
+	ret = bt_component_class_init(&class->parent, type, name);
+	if (ret != 0) {
+		goto end;
+	}
+
+	class->msg_iter_cls = message_iterator_class;
+	bt_message_iterator_class_get_ref(class->msg_iter_cls);
+	bt_message_iterator_class_freeze(class->msg_iter_cls);
+
+end:
+	return ret;
+}
+
 struct bt_component_class_source *bt_component_class_source_create(
 		const char *name,
 		struct bt_message_iterator_class *message_iterator_class)
@@ -185,8 +197,8 @@ struct bt_component_class_source *bt_component_class_source_create(
 	}
 
 	/* bt_component_class_init() logs errors */
-	ret = bt_component_class_init(&source_class->parent,
-		BT_COMPONENT_CLASS_TYPE_SOURCE, name);
+	ret = bt_component_class_with_iterator_class_init(&source_class->parent,
+		BT_COMPONENT_CLASS_TYPE_SOURCE, name, message_iterator_class);
 	if (ret) {
 		/*
 		 * If bt_component_class_init() fails, the component
@@ -196,10 +208,6 @@ struct bt_component_class_source *bt_component_class_source_create(
 		source_class = NULL;
 		goto end;
 	}
-
-	source_class->msg_iter_cls = message_iterator_class;
-	bt_message_iterator_class_get_ref(source_class->msg_iter_cls);
-	bt_message_iterator_class_freeze(source_class->msg_iter_cls);
 
 	BT_LIB_LOGI("Created source component class: %!+C", source_class);
 
@@ -228,8 +236,8 @@ struct bt_component_class_filter *bt_component_class_filter_create(
 	}
 
 	/* bt_component_class_init() logs errors */
-	ret = bt_component_class_init(&filter_class->parent,
-		BT_COMPONENT_CLASS_TYPE_FILTER, name);
+	ret = bt_component_class_with_iterator_class_init(&filter_class->parent,
+		BT_COMPONENT_CLASS_TYPE_FILTER, name, message_iterator_class);
 	if (ret) {
 		/*
 		 * If bt_component_class_init() fails, the component
@@ -239,10 +247,6 @@ struct bt_component_class_filter *bt_component_class_filter_create(
 		filter_class = NULL;
 		goto end;
 	}
-
-	filter_class->msg_iter_cls = message_iterator_class;
-	bt_message_iterator_class_get_ref(filter_class->msg_iter_cls);
-	bt_message_iterator_class_freeze(filter_class->msg_iter_cls);
 
 	BT_LIB_LOGI("Created filter component class: %!+C", filter_class);
 
