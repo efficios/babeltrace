@@ -415,12 +415,14 @@ int main(int argc, char **argv)
 	int ret;
 	GError *error = NULL;
 	GOptionContext *context;
+	int status;
 
 	context = g_option_context_new("- bin info test");
 	g_option_context_add_main_entries(context, entries, NULL);
 	if (!g_option_context_parse(context, &argc, &argv, &error)) {
 		fprintf(stderr, "option parsing failed: %s\n", error->message);
-		exit(EXIT_FAILURE);
+		status = EXIT_FAILURE;
+		goto end;
 	}
 
 	g_snprintf(func_foo_printf_name, FUNC_FOO_NAME_LEN,
@@ -432,7 +434,8 @@ int main(int argc, char **argv)
 
 	if (build_id_to_bin()) {
 		fprintf(stderr, "Failed to parse / missing build id\n");
-		exit(EXIT_FAILURE);
+		status = EXIT_FAILURE;
+		goto end;
 	}
 
 	plan_tests(NR_TESTS);
@@ -445,5 +448,10 @@ int main(int argc, char **argv)
 	test_bin_info_build_id(opt_debug_info_dir);
 	test_bin_info_debug_link(opt_debug_info_dir);
 
-	return EXIT_SUCCESS;
+	status = EXIT_SUCCESS;
+
+end:
+	g_option_context_free(context);
+
+	return status;
 }
