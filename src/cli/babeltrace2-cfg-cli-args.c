@@ -3440,6 +3440,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 					}
 				} else if (current_item_type == CONVERT_CURRENT_ITEM_TYPE_NON_OPT) {
 					uint64_t idx = bt_value_array_get_length(non_opt_loglevels) - 1;
+					enum bt_value_array_set_element_by_index_status set_element_status;
 					bt_value *log_level_str_value;
 
 					log_level_str_value = bt_value_string_create_init(arg);
@@ -3448,9 +3449,11 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 						goto error;
 					}
 
-					if (bt_value_array_set_element_by_index(non_opt_loglevels, idx,
-							log_level_str_value)) {
-						bt_value_put_ref(log_level_str_value);
+					set_element_status =
+						bt_value_array_set_element_by_index(non_opt_loglevels,
+							idx, log_level_str_value);
+					bt_value_put_ref(log_level_str_value);
+					if (set_element_status != BT_VALUE_ARRAY_SET_ELEMENT_BY_INDEX_STATUS_OK) {
 						BT_CLI_LOGE_APPEND_CAUSE_OOM();
 						goto error;
 					}
