@@ -64,8 +64,13 @@ struct bt_component_class {
 	struct bt_plugin_so_shared_lib_handle *so_handle;
 };
 
-struct bt_component_class_source {
+struct bt_component_class_with_iterator_class {
 	struct bt_component_class parent;
+	bt_message_iterator_class *msg_iter_cls;
+};
+
+struct bt_component_class_source {
+	struct bt_component_class_with_iterator_class parent;
 	struct {
 		bt_component_class_source_get_supported_mip_versions_method get_supported_mip_versions;
 		bt_component_class_source_initialize_method init;
@@ -73,7 +78,18 @@ struct bt_component_class_source {
 		bt_component_class_source_query_method query;
 		bt_component_class_source_output_port_connected_method output_port_connected;
 	} methods;
-	bt_message_iterator_class *msg_iter_cls;
+};
+
+struct bt_component_class_filter {
+	struct bt_component_class_with_iterator_class parent;
+	struct {
+		bt_component_class_filter_get_supported_mip_versions_method get_supported_mip_versions;
+		bt_component_class_filter_initialize_method init;
+		bt_component_class_filter_finalize_method finalize;
+		bt_component_class_filter_query_method query;
+		bt_component_class_filter_input_port_connected_method input_port_connected;
+		bt_component_class_filter_output_port_connected_method output_port_connected;
+	} methods;
 };
 
 struct bt_component_class_sink {
@@ -87,19 +103,6 @@ struct bt_component_class_sink {
 		bt_component_class_sink_graph_is_configured_method graph_is_configured;
 		bt_component_class_sink_consume_method consume;
 	} methods;
-};
-
-struct bt_component_class_filter {
-	struct bt_component_class parent;
-	struct {
-		bt_component_class_filter_get_supported_mip_versions_method get_supported_mip_versions;
-		bt_component_class_filter_initialize_method init;
-		bt_component_class_filter_finalize_method finalize;
-		bt_component_class_filter_query_method query;
-		bt_component_class_filter_input_port_connected_method input_port_connected;
-		bt_component_class_filter_output_port_connected_method output_port_connected;
-	} methods;
-	bt_message_iterator_class *msg_iter_cls;
 };
 
 BT_HIDDEN
@@ -129,6 +132,14 @@ const char *bt_component_class_type_string(enum bt_component_class_type type)
 	default:
 		return "(unknown)";
 	}
+}
+
+static inline
+bool bt_component_class_has_message_iterator_class(
+	struct bt_component_class *component_class)
+{
+	return component_class->type == BT_COMPONENT_CLASS_TYPE_SOURCE ||
+		component_class->type == BT_COMPONENT_CLASS_TYPE_FILTER;
 }
 
 #endif /* BABELTRACE_GRAPH_COMPONENT_CLASS_INTERNAL_H */
