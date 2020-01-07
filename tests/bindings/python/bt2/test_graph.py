@@ -216,11 +216,9 @@ class GraphTestCase(unittest.TestCase):
         self.assertEqual(comp.logging_level, bt2.LoggingLevel.DEBUG)
 
     def test_connect_ports(self):
-        class MyIter(bt2._UserMessageIterator):
-            def __next__(self):
-                raise bt2.Stop
-
-        class MySource(bt2._UserSourceComponent, message_iterator_class=MyIter):
+        class MySource(
+            bt2._UserSourceComponent, message_iterator_class=bt2._UserMessageIterator
+        ):
             def __init__(self, config, params, obj):
                 self._add_output_port('out')
 
@@ -243,11 +241,9 @@ class GraphTestCase(unittest.TestCase):
         self.assertEqual(sink.input_ports['in'].connection.addr, conn.addr)
 
     def test_connect_ports_invalid_direction(self):
-        class MyIter(bt2._UserMessageIterator):
-            def __next__(self):
-                raise bt2.Stop
-
-        class MySource(bt2._UserSourceComponent, message_iterator_class=MyIter):
+        class MySource(
+            bt2._UserSourceComponent, message_iterator_class=bt2._UserMessageIterator
+        ):
             def __init__(self, config, params, obj):
                 self._add_output_port('out')
 
@@ -555,11 +551,9 @@ class GraphTestCase(unittest.TestCase):
             self._graph.run()
 
     def test_listeners(self):
-        class MyIter(bt2._UserMessageIterator):
-            def __next__(self):
-                raise bt2.Stop
-
-        class MySource(bt2._UserSourceComponent, message_iterator_class=MyIter):
+        class MySource(
+            bt2._UserSourceComponent, message_iterator_class=bt2._UserMessageIterator
+        ):
             def __init__(self, config, params, obj):
                 self._add_output_port('out')
                 self._add_output_port('zero')
@@ -603,11 +597,9 @@ class GraphTestCase(unittest.TestCase):
         self.assertEqual(calls[3][2].name, 'taste')
 
     def test_invalid_listeners(self):
-        class MyIter(bt2._UserMessageIterator):
-            def __next__(self):
-                raise bt2.Stop
-
-        class MySource(bt2._UserSourceComponent, message_iterator_class=MyIter):
+        class MySource(
+            bt2._UserSourceComponent, message_iterator_class=bt2._UserMessageIterator
+        ):
             def __init__(self, config, params, obj):
                 self._add_output_port('out')
                 self._add_output_port('zero')
