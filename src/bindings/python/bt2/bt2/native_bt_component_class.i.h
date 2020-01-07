@@ -524,25 +524,126 @@ end:
 	Py_DECREF(py_comp);
 }
 
+/* Decref the Python object in the user data associated to `port`. */
+
+static
+void delete_port_user_data(bt_self_component_port *port)
+{
+	Py_DECREF(bt_self_component_port_get_data(port));
+}
+
+static
+void delete_port_input_user_data(bt_self_component_port_input *port_input)
+{
+	bt_self_component_port *port =
+		bt_self_component_port_input_as_self_component_port(port_input);
+
+	delete_port_user_data(port);
+}
+
+static
+void delete_port_output_user_data(bt_self_component_port_output *port_output)
+{
+	bt_self_component_port *port =
+		bt_self_component_port_output_as_self_component_port(port_output);
+
+	delete_port_user_data(port);
+}
+
 static
 void component_class_source_finalize(bt_self_component_source *self_component_source)
 {
-	bt_self_component *self_component = bt_self_component_source_as_self_component(self_component_source);
+	uint64_t i;
+	bt_self_component *self_component;
+	const bt_component_source *component_source;
+
+	self_component = bt_self_component_source_as_self_component(
+		self_component_source);
+	component_source = bt_self_component_source_as_component_source(
+		self_component_source);
+
 	component_class_finalize(self_component);
+
+	/*
+	 * Free the user data Python object attached to the port.  The
+	 * corresponding incref was done by the `void *` typemap in
+	 * native_bt_port.i.
+	 */
+	for (i = 0; i < bt_component_source_get_output_port_count(component_source); i++) {
+		bt_self_component_port_output *port_output;
+
+		port_output = bt_self_component_source_borrow_output_port_by_index(
+			self_component_source, i);
+
+		delete_port_output_user_data(port_output);
+	}
 }
 
 static
 void component_class_filter_finalize(bt_self_component_filter *self_component_filter)
 {
-	bt_self_component *self_component = bt_self_component_filter_as_self_component(self_component_filter);
+	uint64_t i;
+	bt_self_component *self_component;
+	const bt_component_filter *component_filter;
+
+	self_component = bt_self_component_filter_as_self_component(
+		self_component_filter);
+	component_filter = bt_self_component_filter_as_component_filter(
+		self_component_filter);
+
 	component_class_finalize(self_component);
+
+	/*
+	 * Free the user data Python object attached to the port.  The
+	 * corresponding incref was done by the `void *` typemap in
+	 * native_bt_port.i.
+	 */
+	for (i = 0; i < bt_component_filter_get_input_port_count(component_filter); i++) {
+		bt_self_component_port_input *port_input;
+
+		port_input = bt_self_component_filter_borrow_input_port_by_index(
+			self_component_filter, i);
+
+		delete_port_input_user_data(port_input);
+	}
+
+	for (i = 0; i < bt_component_filter_get_output_port_count(component_filter); i++) {
+		bt_self_component_port_output *port_output;
+
+		port_output = bt_self_component_filter_borrow_output_port_by_index(
+			self_component_filter, i);
+
+		delete_port_output_user_data(port_output);
+	}
 }
 
 static
 void component_class_sink_finalize(bt_self_component_sink *self_component_sink)
 {
-	bt_self_component *self_component = bt_self_component_sink_as_self_component(self_component_sink);
+	uint64_t i;
+	bt_self_component *self_component;
+	const bt_component_sink *component_sink;
+
+	self_component = bt_self_component_sink_as_self_component(
+		self_component_sink);
+	component_sink = bt_self_component_sink_as_component_sink(
+		self_component_sink);
+
 	component_class_finalize(self_component);
+
+	/*
+	 * Free the user data Python object attached to the port.  The
+	 * corresponding incref was done by the `void *` typemap in
+	 * native_bt_port.i.
+	 */
+	for (i = 0; i < bt_component_sink_get_input_port_count(component_sink); i++) {
+		bt_self_component_port_input *port_input;
+
+		port_input = bt_self_component_sink_borrow_input_port_by_index(
+			self_component_sink, i);
+
+		delete_port_input_user_data(port_input);
+	}
 }
 
 static
