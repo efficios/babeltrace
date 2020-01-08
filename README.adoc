@@ -15,10 +15,10 @@ https://ci.lttng.org/job/babeltrace_master_build[image:https://img.shields.io/je
 https://scan.coverity.com/projects/babeltrace[image:https://img.shields.io/coverity/scan/babeltrace.svg[]]
 
 The **_{bt2}_** project offers a library with a
-https://diamon.org/babeltrace/docs/v{btversion}/libbabeltrace2[C{nbsp}API],
-https://diamon.org/babeltrace/docs/v{btversion}/python/bt2[Python{nbsp}3 bindings],
+https://babeltrace.org/docs/v{btversion}/libbabeltrace2[C{nbsp}API],
+https://babeltrace.org/docs/v{btversion}/python/bt2[Python{nbsp}3 bindings],
 and a
-https://diamon.org/babeltrace/docs/v{btversion}/man1/babeltrace2.1/[command-line tool]
+https://babeltrace.org/docs/v{btversion}/man1/babeltrace2.1/[command-line tool]
 (CLI) which makes it very easy for mere mortals to view, convert,
 transform, and analyze traces.
 
@@ -29,9 +29,9 @@ https://lttng.org/[LTTng] and
 https://barectf.org/[barectf]. The {bt2} library and its Python bindings
 can read and write CTF traces.
 
-See Babeltrace's https://diamon.org/babeltrace[official website], in
+See Babeltrace's https://babeltrace.org[official website], in
 particular the
-https://diamon.org/babeltrace/docs/v{btversion}/man7/babeltrace2-intro.7[`**babeltrace2-intro**(7)`]
+https://babeltrace.org/docs/v{btversion}/man7/babeltrace2-intro.7[`**babeltrace2-intro**(7)`]
 manual page, to learn more about the project.
 
 [NOTE]
@@ -86,7 +86,7 @@ _**If you need the `bt2` Python bindings**_::
       (Debian/Ubuntu: `python3-dev`; Fedora: `python3-devel`)
     * http://www.swig.org[SWIG]{nbsp}≥{nbsp}3.0
 
-_**If you need the https://lttng.org/[LTTng] debug information filter component class (https://diamon.org/babeltrace/docs/v{btversion}/man7/babeltrace2-filter.lttng-utils.debug-info.7/[`filter.lttng-utils.debug-info`])**_::
+_**If you need the https://lttng.org/[LTTng] debug information filter component class (https://babeltrace.org/docs/v{btversion}/man7/babeltrace2-filter.lttng-utils.debug-info.7/[`filter.lttng-utils.debug-info`])**_::
     * https://sourceware.org/elfutils/[elfutils]{nbsp}≥{nbsp}0.154
       (Debian/Ubuntu: `libelf-dev` and `libdw-dev`;
       Fedora: `elfutils-devel` and `elfutils-libelf-devel`)
@@ -134,7 +134,7 @@ The following options can modify the build:
 `--enable-debug-info`::
     Build the https://lttng.org/[LTTng] debug information filter
     component class
-    (https://diamon.org/babeltrace/docs/v{btversion}/man7/babeltrace2-filter.lttng-utils.debug-info.7/[`filter.lttng-utils.debug-info`]).
+    (https://babeltrace.org/docs/v{btversion}/man7/babeltrace2-filter.lttng-utils.debug-info.7/[`filter.lttng-utils.debug-info`]).
 
 `--enable-man-pages`::
     Build the {bt2} manual pages.
@@ -234,13 +234,13 @@ $ BABELTRACE_DEV_MODE=1 BABELTRACE_MINIMAL_LOG_LEVEL=TRACE ./configure \
 ----
 
 See the
-https://diamon.org/babeltrace/docs/v{btversion}/libbabeltrace2[{bt2}{nbsp}C{nbsp}API]
+https://babeltrace.org/docs/v{btversion}/libbabeltrace2[{bt2}{nbsp}C{nbsp}API]
 documentation for more information.
 
 
 == Use Babeltrace{nbsp}{btversion}
 
-See the https://diamon.org/babeltrace[Babeltrace website] to learn how
+See the https://babeltrace.org[Babeltrace website] to learn how
 to use the different parts of the project.
 
 
@@ -257,7 +257,7 @@ _**If you need the `bt2` Python bindings**_::
     * https://www.python.org[Python]{nbsp}≥{nbsp}3.4
       (Debian/Ubuntu/Fedora: `python3`)
 
-_**If you need the https://lttng.org/[LTTng] debug information filter component class (https://diamon.org/babeltrace/docs/v{btversion}/man7/babeltrace2-filter.lttng-utils.debug-info.7/[`filter.lttng-utils.debug-info`])**_::
+_**If you need the https://lttng.org/[LTTng] debug information filter component class (https://babeltrace.org/docs/v{btversion}/man7/babeltrace2-filter.lttng-utils.debug-info.7/[`filter.lttng-utils.debug-info`])**_::
     * https://sourceware.org/elfutils/[elfutils]{nbsp}≥{nbsp}0.154
       (Debian/Ubuntu: `libelf` and `libdw`; Fedora: `elfutils-libs` and
       `elfutils-libelf`)

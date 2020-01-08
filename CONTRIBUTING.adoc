@@ -8,7 +8,7 @@ v0.2, 19 June 2019
 
 
 This is a partial contributor's guide for the
-http://diamon.org/babeltrace[Babeltrace] project. If you have any
+https://babeltrace.org[Babeltrace] project. If you have any
 questions that are not answered by this guide, please post them on
 https://lists.lttng.org/cgi-bin/mailman/listinfo/lttng-dev[Babeltrace's
 mailing list].
