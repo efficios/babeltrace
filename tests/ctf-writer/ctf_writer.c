@@ -659,11 +659,11 @@ void append_complex_event(struct bt_ctf_stream_class *stream_class,
 		"bt_ctf_event_class_set_log_level succeeds with a valid log level");
 	ok(bt_ctf_event_class_get_log_level(event_class) == BT_CTF_EVENT_CLASS_LOG_LEVEL_INFO,
 		"bt_ctf_event_class_get_log_level returns the expected log level");
-	ok(bt_ctf_event_class_set_emf_uri(NULL, "http://diamon.org/babeltrace/"),
+	ok(bt_ctf_event_class_set_emf_uri(NULL, "https://babeltrace.org/"),
 		"bt_ctf_event_class_set_emf_uri handles a NULL event class correctly");
-	ok(!bt_ctf_event_class_set_emf_uri(event_class, "http://diamon.org/babeltrace/"),
+	ok(!bt_ctf_event_class_set_emf_uri(event_class, "https://babeltrace.org/"),
 		"bt_ctf_event_class_set_emf_uri succeeds with a valid EMF URI");
-	ok(strcmp(bt_ctf_event_class_get_emf_uri(event_class), "http://diamon.org/babeltrace/") == 0,
+	ok(strcmp(bt_ctf_event_class_get_emf_uri(event_class), "https://babeltrace.org/") == 0,
 		"bt_ctf_event_class_get_emf_uri returns the expected EMF URI");
 	ok(!bt_ctf_event_class_set_emf_uri(event_class, NULL),
 		"bt_ctf_event_class_set_emf_uri succeeds with NULL (to reset)");

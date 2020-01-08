@@ -9,7 +9,7 @@ https://bugs.lttng.org/projects/babeltrace[Babeltrace bug tracker].
 The Babeltrace project shares some communication channels with the
 https://lttng.org/[LTTng project].
 
-* https://diamon.org/babeltrace[Babeltrace website]
+* https://babeltrace.org/[Babeltrace website]
 * https://lists.lttng.org[Mailing list] for support and
   development: `lttng-dev@lists.lttng.org`
 * irc://irc.oftc.net/lttng[IRC channel]: `#lttng` on `irc.oftc.net`

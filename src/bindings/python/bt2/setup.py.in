@@ -59,7 +59,7 @@ def main():
             'build': {'build_base': 'build', 'build_lib': 'build/build_lib'},
             'build_ext': {'build_lib': 'build/build_lib'},
         },
-        url='http://diamon.org/babeltrace',
+        url='https://babeltrace.org/',
         ext_modules=[babeltrace_ext],
         license='MIT',
         classifiers=[
