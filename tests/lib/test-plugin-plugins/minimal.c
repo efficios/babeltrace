@@ -35,5 +35,5 @@ BT_PLUGIN(test_minimal);
 BT_PLUGIN_DESCRIPTION("Minimal Babeltrace plugin with no component classes");
 BT_PLUGIN_AUTHOR("Janine Sutto");
 BT_PLUGIN_LICENSE("Beerware");
-BT_PLUGIN_INITIALIZE(plugin_init);
-BT_PLUGIN_FINALIZE(plugin_finalize);
+BT_PLUGIN_INITIALIZE_FUNC(plugin_init);
+BT_PLUGIN_FINALIZE_FUNC(plugin_finalize);
