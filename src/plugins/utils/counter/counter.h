@@ -30,7 +30,7 @@
 #include "common/macros.h"
 
 struct counter {
-	bt_self_component_port_input_message_iterator *msg_iter;
+	bt_message_iterator *msg_iter;
 	struct {
 		uint64_t event;
 		uint64_t stream_begin;

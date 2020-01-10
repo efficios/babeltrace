@@ -36,53 +36,53 @@
 struct bt_port;
 struct bt_graph;
 
-enum bt_self_component_port_input_message_iterator_state {
+enum bt_message_iterator_state {
 	/* Iterator is not initialized */
-	BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_STATE_NON_INITIALIZED,
+	BT_MESSAGE_ITERATOR_STATE_NON_INITIALIZED,
 
 	/* Iterator is active, not at the end yet, and not finalized */
-	BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_STATE_ACTIVE,
+	BT_MESSAGE_ITERATOR_STATE_ACTIVE,
 
 	/*
 	 * Iterator is ended, not finalized yet: the "next" method
 	 * returns BT_MESSAGE_ITERATOR_STATUS_END.
 	 */
-	BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_STATE_ENDED,
+	BT_MESSAGE_ITERATOR_STATE_ENDED,
 
 	/* Iterator is currently being finalized */
-	BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_STATE_FINALIZING,
+	BT_MESSAGE_ITERATOR_STATE_FINALIZING,
 
 	/* Iterator is finalized */
-	BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_STATE_FINALIZED,
+	BT_MESSAGE_ITERATOR_STATE_FINALIZED,
 
 	/* Iterator is seeking */
-	BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_STATE_SEEKING,
+	BT_MESSAGE_ITERATOR_STATE_SEEKING,
 
 	/* Iterator did seek, but returned `BT_MESSAGE_ITERATOR_STATUS_AGAIN` */
-	BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_STATE_LAST_SEEKING_RETURNED_AGAIN,
+	BT_MESSAGE_ITERATOR_STATE_LAST_SEEKING_RETURNED_AGAIN,
 
 	/* Iterator did seek, but returned error status */
-	BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_STATE_LAST_SEEKING_RETURNED_ERROR,
+	BT_MESSAGE_ITERATOR_STATE_LAST_SEEKING_RETURNED_ERROR,
 };
 
 typedef enum bt_message_iterator_class_next_method_status
-(*bt_self_component_port_input_message_iterator_next_method)(
+(*bt_message_iterator_next_method)(
 		void *, bt_message_array_const, uint64_t, uint64_t *);
 
 typedef enum bt_message_iterator_class_seek_ns_from_origin_method_status
-(*bt_self_component_port_input_message_iterator_seek_ns_from_origin_method)(
+(*bt_message_iterator_seek_ns_from_origin_method)(
 		void *, int64_t);
 
 typedef enum bt_message_iterator_class_seek_beginning_method_status
-(*bt_self_component_port_input_message_iterator_seek_beginning_method)(
+(*bt_message_iterator_seek_beginning_method)(
 		void *);
 
 typedef enum bt_message_iterator_class_can_seek_ns_from_origin_method_status
-(*bt_self_component_port_input_message_iterator_can_seek_ns_from_origin_method)(
+(*bt_message_iterator_can_seek_ns_from_origin_method)(
 		void *, int64_t, bt_bool *);
 
 typedef enum bt_message_iterator_class_can_seek_beginning_method_status
-(*bt_self_component_port_input_message_iterator_can_seek_beginning_method)(
+(*bt_message_iterator_can_seek_beginning_method)(
 		void *, bt_bool *);
 
 struct bt_self_message_iterator_configuration {
@@ -90,7 +90,7 @@ struct bt_self_message_iterator_configuration {
 	bool can_seek_forward;
 };
 
-struct bt_self_component_port_input_message_iterator {
+struct bt_message_iterator {
 	struct bt_object base;
 	GPtrArray *msgs;
 	struct bt_component *upstream_component; /* Weak */
@@ -101,7 +101,7 @@ struct bt_self_component_port_input_message_iterator {
 
 	/*
 	 * Array of
-	 * `struct bt_self_component_port_input_message_iterator *`
+	 * `struct bt_message_iterator *`
 	 * (weak).
 	 *
 	 * This is an array of upstream message iterators on which this
@@ -118,21 +118,21 @@ struct bt_self_component_port_input_message_iterator {
 	 * This can be `NULL` if this message iterator's owner is a sink
 	 * component.
 	 */
-	struct bt_self_component_port_input_message_iterator *downstream_msg_iter;
+	struct bt_message_iterator *downstream_msg_iter;
 
 	struct {
-		bt_self_component_port_input_message_iterator_next_method next;
+		bt_message_iterator_next_method next;
 
 		/* These two are always both set or both unset. */
-		bt_self_component_port_input_message_iterator_seek_ns_from_origin_method seek_ns_from_origin;
-		bt_self_component_port_input_message_iterator_can_seek_ns_from_origin_method can_seek_ns_from_origin;
+		bt_message_iterator_seek_ns_from_origin_method seek_ns_from_origin;
+		bt_message_iterator_can_seek_ns_from_origin_method can_seek_ns_from_origin;
 
 		/* These two are always both set or both unset. */
-		bt_self_component_port_input_message_iterator_seek_beginning_method seek_beginning;
-		bt_self_component_port_input_message_iterator_can_seek_beginning_method can_seek_beginning;
+		bt_message_iterator_seek_beginning_method seek_beginning;
+		bt_message_iterator_can_seek_beginning_method can_seek_beginning;
 	} methods;
 
-	enum bt_self_component_port_input_message_iterator_state state;
+	enum bt_message_iterator_state state;
 
 	/*
 	 * Timestamp of the last received message (or INT64_MIN in the
@@ -200,32 +200,32 @@ struct bt_self_component_port_input_message_iterator {
 };
 
 BT_HIDDEN
-void bt_self_component_port_input_message_iterator_try_finalize(
-		struct bt_self_component_port_input_message_iterator *iterator);
+void bt_message_iterator_try_finalize(
+		struct bt_message_iterator *iterator);
 
 BT_HIDDEN
-void bt_self_component_port_input_message_iterator_set_connection(
-		struct bt_self_component_port_input_message_iterator *iterator,
+void bt_message_iterator_set_connection(
+		struct bt_message_iterator *iterator,
 		struct bt_connection *connection);
 
 static inline
-const char *bt_self_component_port_input_message_iterator_state_string(
-		enum bt_self_component_port_input_message_iterator_state state)
+const char *bt_message_iterator_state_string(
+		enum bt_message_iterator_state state)
 {
 	switch (state) {
-	case BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_STATE_ACTIVE:
+	case BT_MESSAGE_ITERATOR_STATE_ACTIVE:
 		return "ACTIVE";
-	case BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_STATE_ENDED:
+	case BT_MESSAGE_ITERATOR_STATE_ENDED:
 		return "ENDED";
-	case BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_STATE_FINALIZING:
+	case BT_MESSAGE_ITERATOR_STATE_FINALIZING:
 		return "FINALIZING";
-	case BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_STATE_FINALIZED:
+	case BT_MESSAGE_ITERATOR_STATE_FINALIZED:
 		return "FINALIZED";
-	case BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_STATE_SEEKING:
+	case BT_MESSAGE_ITERATOR_STATE_SEEKING:
 		return "SEEKING";
-	case BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_STATE_LAST_SEEKING_RETURNED_AGAIN:
+	case BT_MESSAGE_ITERATOR_STATE_LAST_SEEKING_RETURNED_AGAIN:
 		return "LAST_SEEKING_RETURNED_AGAIN";
-	case BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_STATE_LAST_SEEKING_RETURNED_ERROR:
+	case BT_MESSAGE_ITERATOR_STATE_LAST_SEEKING_RETURNED_ERROR:
 		return "LAST_SEEKING_RETURNED_ERROR";
 	default:
 		return "(unknown)";

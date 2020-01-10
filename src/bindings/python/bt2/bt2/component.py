@@ -945,13 +945,13 @@ class _UserSinkComponent(_UserComponent, _SinkComponentConst):
         assert self_port_ptr
         return bt2_port._UserComponentInputPort._create_from_ptr(self_port_ptr)
 
-    def _create_input_port_message_iterator(self, input_port):
+    def _create_message_iterator(self, input_port):
         utils._check_type(input_port, bt2_port._UserComponentInputPort)
 
         (
             status,
             msg_iter_ptr,
-        ) = native_bt.bt2_self_component_port_input_message_iterator_create_from_sink_component(
+        ) = native_bt.bt2_message_iterator_create_from_sink_component(
             self._bt_ptr, input_port._ptr
         )
         utils._handle_func_status(status, 'cannot create message iterator object')

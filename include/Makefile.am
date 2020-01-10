@@ -123,7 +123,6 @@ babeltrace2graphinclude_HEADERS = \
 	babeltrace2/graph/self-component-class-source.h \
 	babeltrace2/graph/self-component-class.h \
 	babeltrace2/graph/self-component-filter.h \
-	babeltrace2/graph/self-component-port-input-message-iterator.h \
 	babeltrace2/graph/self-component-port-input.h \
 	babeltrace2/graph/self-component-port-output.h \
 	babeltrace2/graph/self-component-port.h \

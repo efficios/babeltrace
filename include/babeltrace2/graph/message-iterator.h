@@ -67,6 +67,89 @@ typedef enum bt_message_iterator_can_seek_ns_from_origin_status {
 	BT_MESSAGE_ITERATOR_CAN_SEEK_NS_FROM_ORIGIN_STATUS_MEMORY_ERROR	= __BT_FUNC_STATUS_MEMORY_ERROR,
 } bt_message_iterator_can_seek_ns_from_origin_status;
 
+typedef enum bt_message_iterator_create_from_message_iterator_status {
+	BT_MESSAGE_ITERATOR_CREATE_FROM_MESSAGE_ITERATOR_STATUS_OK		= __BT_FUNC_STATUS_OK,
+	BT_MESSAGE_ITERATOR_CREATE_FROM_MESSAGE_ITERATOR_STATUS_ERROR		= __BT_FUNC_STATUS_ERROR,
+	BT_MESSAGE_ITERATOR_CREATE_FROM_MESSAGE_ITERATOR_STATUS_MEMORY_ERROR	= __BT_FUNC_STATUS_MEMORY_ERROR,
+} bt_message_iterator_create_from_message_iterator_status;
+
+typedef enum bt_message_iterator_create_from_sink_component_status {
+	BT_MESSAGE_ITERATOR_CREATE_FROM_SINK_COMPONENT_STATUS_OK		= __BT_FUNC_STATUS_OK,
+	BT_MESSAGE_ITERATOR_CREATE_FROM_SINK_COMPONENT_STATUS_ERROR		= __BT_FUNC_STATUS_ERROR,
+	BT_MESSAGE_ITERATOR_CREATE_FROM_SINK_COMPONENT_STATUS_MEMORY_ERROR	= __BT_FUNC_STATUS_MEMORY_ERROR,
+} bt_message_iterator_create_from_sink_component_status;
+
+static inline
+bt_message_iterator *
+bt_message_iterator_as_message_iterator(
+		bt_message_iterator *iterator)
+{
+	return __BT_UPCAST(bt_message_iterator, iterator);
+}
+
+extern bt_message_iterator_create_from_message_iterator_status
+bt_message_iterator_create_from_message_iterator(
+		bt_self_message_iterator *self_msg_iter,
+		bt_self_component_port_input *input_port,
+		bt_message_iterator **message_iterator);
+
+extern bt_message_iterator_create_from_sink_component_status
+bt_message_iterator_create_from_sink_component(
+		bt_self_component_sink *self_comp,
+		bt_self_component_port_input *input_port,
+		bt_message_iterator **message_iterator);
+
+extern bt_component *
+bt_message_iterator_borrow_component(
+		bt_message_iterator *iterator);
+
+extern bt_message_iterator_next_status
+bt_message_iterator_next(
+		bt_message_iterator *iterator,
+		bt_message_array_const *msgs, uint64_t *count);
+
+extern bt_message_iterator_can_seek_ns_from_origin_status
+bt_message_iterator_can_seek_ns_from_origin(
+		bt_message_iterator *iterator,
+		int64_t ns_from_origin, bt_bool *can_seek);
+
+extern bt_message_iterator_can_seek_beginning_status
+bt_message_iterator_can_seek_beginning(
+		bt_message_iterator *iterator,
+		bt_bool *can_seek);
+
+extern bt_message_iterator_seek_ns_from_origin_status
+bt_message_iterator_seek_ns_from_origin(
+		bt_message_iterator *iterator,
+		int64_t ns_from_origin);
+
+extern bt_message_iterator_seek_beginning_status
+bt_message_iterator_seek_beginning(
+		bt_message_iterator *iterator);
+
+extern bt_bool
+bt_message_iterator_can_seek_forward(
+		bt_message_iterator *iterator);
+
+extern void bt_message_iterator_get_ref(
+		const bt_message_iterator *message_iterator);
+
+extern void bt_message_iterator_put_ref(
+		const bt_message_iterator *message_iterator);
+
+#define BT_MESSAGE_ITERATOR_PUT_REF_AND_RESET(_var) \
+	do {								\
+		bt_message_iterator_put_ref(_var); \
+		(_var) = NULL;						\
+	} while (0)
+
+#define BT_MESSAGE_ITERATOR_MOVE_REF(_var_dst, _var_src) \
+	do {								\
+		bt_message_iterator_put_ref(_var_dst); \
+		(_var_dst) = (_var_src);				\
+		(_var_src) = NULL;					\
+	} while (0)
+
 #ifdef __cplusplus
 }
 #endif

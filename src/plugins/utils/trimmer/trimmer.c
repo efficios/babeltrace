@@ -114,7 +114,7 @@ struct trimmer_iterator {
 	enum trimmer_iterator_state state;
 
 	/* Owned by this */
-	bt_self_component_port_input_message_iterator *upstream_iter;
+	bt_message_iterator *upstream_iter;
 	struct trimmer_bound begin, end;
 
 	/*
@@ -670,7 +670,7 @@ void destroy_trimmer_iterator(struct trimmer_iterator *trimmer_it)
 		goto end;
 	}
 
-	bt_self_component_port_input_message_iterator_put_ref(
+	bt_message_iterator_put_ref(
 		trimmer_it->upstream_iter);
 
 	if (trimmer_it->output_messages) {
@@ -703,7 +703,7 @@ bt_message_iterator_class_initialize_method_status trimmer_msg_iter_init(
 		bt_self_component_port_output *port)
 {
 	bt_message_iterator_class_initialize_method_status status;
-	bt_self_component_port_input_message_iterator_create_from_message_iterator_status
+	bt_message_iterator_create_from_message_iterator_status
 		msg_iter_status;
 	struct trimmer_iterator *trimmer_it;
 
@@ -730,12 +730,12 @@ bt_message_iterator_class_initialize_method_status trimmer_msg_iter_init(
 	trimmer_it->begin = trimmer_it->trimmer_comp->begin;
 	trimmer_it->end = trimmer_it->trimmer_comp->end;
 	msg_iter_status =
-		bt_self_component_port_input_message_iterator_create_from_message_iterator(
+		bt_message_iterator_create_from_message_iterator(
 			self_msg_iter,
 			bt_self_component_filter_borrow_input_port_by_name(
 				trimmer_it->trimmer_comp->self_comp_filter, in_port_name),
 			&trimmer_it->upstream_iter);
-	if (msg_iter_status != BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_CREATE_FROM_MESSAGE_ITERATOR_STATUS_OK) {
+	if (msg_iter_status != BT_MESSAGE_ITERATOR_CREATE_FROM_MESSAGE_ITERATOR_STATUS_OK) {
 		status = (int) msg_iter_status;
 		goto error;
 	}
@@ -971,7 +971,7 @@ state_set_trimmer_iterator_bounds(
 
 	while (true) {
 		upstream_iter_status =
-			bt_self_component_port_input_message_iterator_next(
+			bt_message_iterator_next(
 				trimmer_it->upstream_iter, &msgs, &count);
 		if (upstream_iter_status != BT_MESSAGE_ITERATOR_NEXT_STATUS_OK) {
 			goto end;
@@ -1046,7 +1046,7 @@ bt_message_iterator_class_next_method_status state_seek_initially(
 	if (trimmer_it->begin.is_infinite) {
 		bt_bool can_seek;
 
-		status = (int) bt_self_component_port_input_message_iterator_can_seek_beginning(
+		status = (int) bt_message_iterator_can_seek_beginning(
 			trimmer_it->upstream_iter, &can_seek);
 		if (status != BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_OK) {
 			if (status < 0) {
@@ -1064,12 +1064,12 @@ bt_message_iterator_class_next_method_status state_seek_initially(
 			goto end;
 		}
 
-		status = (int) bt_self_component_port_input_message_iterator_seek_beginning(
+		status = (int) bt_message_iterator_seek_beginning(
 			trimmer_it->upstream_iter);
 	} else {
 		bt_bool can_seek;
 
-		status = (int) bt_self_component_port_input_message_iterator_can_seek_ns_from_origin(
+		status = (int) bt_message_iterator_can_seek_ns_from_origin(
 			trimmer_it->upstream_iter, trimmer_it->begin.ns_from_origin,
 			&can_seek);
 
@@ -1091,7 +1091,7 @@ bt_message_iterator_class_next_method_status state_seek_initially(
 			goto end;
 		}
 
-		status = (int) bt_self_component_port_input_message_iterator_seek_ns_from_origin(
+		status = (int) bt_message_iterator_seek_ns_from_origin(
 			trimmer_it->upstream_iter, trimmer_it->begin.ns_from_origin);
 	}
 
@@ -1809,7 +1809,7 @@ state_trim(struct trimmer_iterator *trimmer_it,
 	bool reached_end = false;
 
 	while (g_queue_is_empty(trimmer_it->output_messages)) {
-		status = (int) bt_self_component_port_input_message_iterator_next(
+		status = (int) bt_message_iterator_next(
 			trimmer_it->upstream_iter, &my_msgs, &my_count);
 		if (G_UNLIKELY(status != BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_OK)) {
 			if (status == BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_END) {

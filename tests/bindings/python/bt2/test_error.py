@@ -45,7 +45,7 @@ class WorkingSink(bt2._UserSinkComponent):
         self._in = self._add_input_port('in')
 
     def _user_graph_is_configured(self):
-        self._iter = self._create_input_port_message_iterator(self._in)
+        self._iter = self._create_message_iterator(self._in)
 
     def _user_consume(self):
         next(self._iter)
@@ -56,7 +56,7 @@ class SinkWithExceptionChaining(bt2._UserSinkComponent):
         self._in = self._add_input_port('in')
 
     def _user_graph_is_configured(self):
-        self._iter = self._create_input_port_message_iterator(self._in)
+        self._iter = self._create_message_iterator(self._in)
 
     def _user_consume(self):
         try:

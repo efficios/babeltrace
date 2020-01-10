@@ -33,7 +33,7 @@ struct fs_sink_comp {
 	bt_self_component *self_comp;
 
 	/* Owned by this */
-	bt_self_component_port_input_message_iterator *upstream_iter;
+	bt_message_iterator *upstream_iter;
 
 	/* Base output directory path */
 	GString *output_dir_path;

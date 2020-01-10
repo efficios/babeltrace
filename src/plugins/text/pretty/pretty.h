@@ -74,7 +74,7 @@ struct pretty_options {
 
 struct pretty_component {
 	struct pretty_options options;
-	bt_self_component_port_input_message_iterator *iterator;
+	bt_message_iterator *iterator;
 	FILE *out, *err;
 	int depth;	/* nesting, used for tabulation alignment. */
 	bool start_line;

@@ -37,7 +37,7 @@ const char * const in_port_name = "in";
 static
 void destroy_private_dummy_data(struct dummy *dummy)
 {
-	bt_self_component_port_input_message_iterator_put_ref(dummy->msg_iter);
+	bt_message_iterator_put_ref(dummy->msg_iter);
 	g_free(dummy);
 
 }
@@ -118,23 +118,23 @@ bt_component_class_sink_graph_is_configured_method_status dummy_graph_is_configu
 		bt_self_component_sink *comp)
 {
 	bt_component_class_sink_graph_is_configured_method_status status;
-	bt_self_component_port_input_message_iterator_create_from_sink_component_status
+	bt_message_iterator_create_from_sink_component_status
 		msg_iter_status;
 	struct dummy *dummy;
-	bt_self_component_port_input_message_iterator *iterator;
+	bt_message_iterator *iterator;
 
 	dummy = bt_self_component_get_data(
 		bt_self_component_sink_as_self_component(comp));
 	BT_ASSERT(dummy);
-	msg_iter_status = bt_self_component_port_input_message_iterator_create_from_sink_component(
+	msg_iter_status = bt_message_iterator_create_from_sink_component(
 		comp, bt_self_component_sink_borrow_input_port_by_name(comp,
 			in_port_name), &iterator);
-	if (msg_iter_status != BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_CREATE_FROM_SINK_COMPONENT_STATUS_OK) {
+	if (msg_iter_status != BT_MESSAGE_ITERATOR_CREATE_FROM_SINK_COMPONENT_STATUS_OK) {
 		status = (int) msg_iter_status;
 		goto end;
 	}
 
-	BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_MOVE_REF(
+	BT_MESSAGE_ITERATOR_MOVE_REF(
 		dummy->msg_iter, iterator);
 
 	status = BT_COMPONENT_CLASS_SINK_GRAPH_IS_CONFIGURED_METHOD_STATUS_OK;
@@ -165,7 +165,7 @@ bt_component_class_sink_consume_method_status dummy_consume(
 	}
 
 	/* Consume one message  */
-	next_status = bt_self_component_port_input_message_iterator_next(
+	next_status = bt_message_iterator_next(
 		dummy->msg_iter, &msgs, &count);
 	switch (next_status) {
 	case BT_MESSAGE_ITERATOR_NEXT_STATUS_OK:

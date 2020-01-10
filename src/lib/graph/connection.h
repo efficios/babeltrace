@@ -71,7 +71,7 @@ void bt_connection_end(struct bt_connection *conn, bool try_remove_from_graph);
 
 BT_HIDDEN
 void bt_connection_remove_iterator(struct bt_connection *conn,
-		struct bt_self_component_port_input_message_iterator *iterator);
+		struct bt_message_iterator *iterator);
 
 static inline
 struct bt_graph *bt_connection_borrow_graph(struct bt_connection *conn)

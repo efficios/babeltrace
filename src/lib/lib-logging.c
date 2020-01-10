@@ -1210,7 +1210,7 @@ static inline void format_message_iterator(char **buf_ch,
 		const struct bt_message_iterator *iterator)
 {
 	char tmp_prefix[TMP_PREFIX_LEN];
-	const struct bt_self_component_port_input_message_iterator *
+	const struct bt_message_iterator *
 		port_in_iter = (const void *) iterator;
 
 	if (port_in_iter->upstream_component) {

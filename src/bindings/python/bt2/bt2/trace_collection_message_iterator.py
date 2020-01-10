@@ -265,9 +265,7 @@ class _TraceCollectionMessageIteratorProxySink(bt2_component._UserSinkComponent)
         self._add_input_port('in')
 
     def _user_graph_is_configured(self):
-        self._msg_iter = self._create_input_port_message_iterator(
-            self._input_ports['in']
-        )
+        self._msg_iter = self._create_message_iterator(self._input_ports['in'])
 
     def _user_consume(self):
         assert self._msg_list[0] is None
