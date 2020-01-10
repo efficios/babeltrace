@@ -146,7 +146,7 @@ struct details_comp {
 	uint32_t next_unique_trace_id;
 
 	/* Upstream message iterator */
-	bt_self_component_port_input_message_iterator *msg_iter;
+	bt_message_iterator *msg_iter;
 
 	/*
 	 * True if this component printed something. This is used to

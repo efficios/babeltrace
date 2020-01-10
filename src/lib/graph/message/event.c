@@ -85,7 +85,7 @@ struct bt_message *create_event_message(
 		const struct bt_stream *c_stream, bool with_cs,
 		uint64_t raw_value)
 {
-	struct bt_self_component_port_input_message_iterator *msg_iter =
+	struct bt_message_iterator *msg_iter =
 		(void *) self_msg_iter;
 	struct bt_message_event *message = NULL;
 	struct bt_event_class *event_class = (void *) c_event_class;

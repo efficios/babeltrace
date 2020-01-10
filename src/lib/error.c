@@ -369,7 +369,7 @@ create_error_cause_message_iterator_actor(struct bt_message_iterator *iter,
 		const char *file_name, uint64_t line_no)
 {
 	struct bt_error_cause_message_iterator_actor *cause;
-	struct bt_self_component_port_input_message_iterator *input_port_iter;
+	struct bt_message_iterator *input_port_iter;
 	int ret;
 
 	BT_LOGD_STR("Creating error cause object (message iterator actor).");

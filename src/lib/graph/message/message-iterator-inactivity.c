@@ -56,7 +56,7 @@ struct bt_message *bt_message_message_iterator_inactivity_create(
 		const struct bt_clock_class *default_clock_class,
 		uint64_t value_cycles)
 {
-	struct bt_self_component_port_input_message_iterator *msg_iter =
+	struct bt_message_iterator *msg_iter =
 		(void *) self_msg_iter;
 	struct bt_message_message_iterator_inactivity *message;
 	struct bt_message *ret_msg = NULL;

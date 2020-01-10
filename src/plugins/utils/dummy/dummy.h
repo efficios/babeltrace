@@ -28,7 +28,7 @@
 #include "common/macros.h"
 
 struct dummy {
-	bt_self_component_port_input_message_iterator *msg_iter;
+	bt_message_iterator *msg_iter;
 };
 
 BT_HIDDEN

@@ -30,7 +30,6 @@
 #include <babeltrace2/graph/component-class-sink.h>
 #include <babeltrace2/graph/self-component-sink.h>
 #include <babeltrace2/graph/self-component-port.h>
-#include <babeltrace2/graph/self-component-port-input-message-iterator.h>
 #include <babeltrace2/graph/self-component.h>
 #include <glib.h>
 
@@ -46,7 +45,7 @@ static
 struct bt_component_class_sink *simple_comp_cls;
 
 struct simple_sink_data {
-	bt_self_component_port_input_message_iterator *msg_iter;
+	bt_message_iterator *msg_iter;
 	struct simple_sink_init_method_data init_method_data;
 };
 
@@ -111,7 +110,7 @@ simple_sink_graph_is_configured(
 	bt_self_component_sink *self_comp)
 {
 	bt_component_class_sink_graph_is_configured_method_status status;
-	bt_self_component_port_input_message_iterator_create_from_sink_component_status
+	bt_message_iterator_create_from_sink_component_status
 		msg_iter_status;
 	struct simple_sink_data *data = bt_self_component_get_data(
 		bt_self_component_sink_as_self_component(self_comp));
@@ -130,9 +129,9 @@ simple_sink_graph_is_configured(
 	}
 
 	BT_ASSERT(data);
-	msg_iter_status = bt_self_component_port_input_message_iterator_create_from_sink_component(
+	msg_iter_status = bt_message_iterator_create_from_sink_component(
 		self_comp, self_port, &data->msg_iter);
-	if (msg_iter_status != BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_CREATE_FROM_SINK_COMPONENT_STATUS_OK) {
+	if (msg_iter_status != BT_MESSAGE_ITERATOR_CREATE_FROM_SINK_COMPONENT_STATUS_OK) {
 		BT_LIB_LOGE_APPEND_CAUSE(
 			"Cannot create input port message iterator: "
 			"%![comp-]+c, %![port-]+p", self_comp, self_port);

@@ -97,7 +97,7 @@ typedef enum bt_graph_simple_sink_component_initialize_func_status {
 
 typedef bt_graph_simple_sink_component_initialize_func_status
 (*bt_graph_simple_sink_component_initialize_func)(
-		bt_self_component_port_input_message_iterator *iterator,
+		bt_message_iterator *iterator,
 		void *data);
 
 typedef enum bt_graph_simple_sink_component_consume_func_status {
@@ -110,7 +110,7 @@ typedef enum bt_graph_simple_sink_component_consume_func_status {
 
 typedef bt_graph_simple_sink_component_consume_func_status
 (*bt_graph_simple_sink_component_consume_func)(
-		bt_self_component_port_input_message_iterator *iterator,
+		bt_message_iterator *iterator,
 		void *data);
 
 typedef void (*bt_graph_simple_sink_component_finalize_func)(void *data);

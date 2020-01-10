@@ -147,7 +147,7 @@ void destroy_fs_sink_comp(struct fs_sink_comp *fs_sink)
 		fs_sink->traces = NULL;
 	}
 
-	BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_PUT_REF_AND_RESET(
+	BT_MESSAGE_ITERATOR_PUT_REF_AND_RESET(
 		fs_sink->upstream_iter);
 	g_free(fs_sink);
 
@@ -991,7 +991,7 @@ bt_component_class_sink_consume_method_status ctf_fs_sink_consume(
 	BT_ASSERT_DBG(fs_sink->upstream_iter);
 
 	/* Consume messages */
-	next_status = bt_self_component_port_input_message_iterator_next(
+	next_status = bt_message_iterator_next(
 		fs_sink->upstream_iter, &msgs, &msg_count);
 	if (next_status < 0) {
 		status = (int) next_status;
@@ -1090,17 +1090,17 @@ ctf_fs_sink_graph_is_configured(
 		bt_self_component_sink *self_comp)
 {
 	bt_component_class_sink_graph_is_configured_method_status status;
-	bt_self_component_port_input_message_iterator_create_from_sink_component_status
+	bt_message_iterator_create_from_sink_component_status
 		msg_iter_status;
 	struct fs_sink_comp *fs_sink = bt_self_component_get_data(
 			bt_self_component_sink_as_self_component(self_comp));
 
 	msg_iter_status =
-		bt_self_component_port_input_message_iterator_create_from_sink_component(
+		bt_message_iterator_create_from_sink_component(
 			self_comp,
 			bt_self_component_sink_borrow_input_port_by_name(
 				self_comp, in_port_name), &fs_sink->upstream_iter);
-	if (msg_iter_status != BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_CREATE_FROM_SINK_COMPONENT_STATUS_OK) {
+	if (msg_iter_status != BT_MESSAGE_ITERATOR_CREATE_FROM_SINK_COMPONENT_STATUS_OK) {
 		status = (int) msg_iter_status;
 		goto end;
 	}

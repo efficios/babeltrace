@@ -50,7 +50,7 @@ void destroy_pretty_data(struct pretty_component *pretty)
 		goto end;
 	}
 
-	bt_self_component_port_input_message_iterator_put_ref(pretty->iterator);
+	bt_message_iterator_put_ref(pretty->iterator);
 
 	if (pretty->string) {
 		(void) g_string_free(pretty->string, TRUE);
@@ -142,7 +142,7 @@ bt_component_class_sink_graph_is_configured_method_status
 pretty_graph_is_configured(bt_self_component_sink *comp)
 {
 	bt_component_class_sink_graph_is_configured_method_status status;
-	bt_self_component_port_input_message_iterator_create_from_sink_component_status
+	bt_message_iterator_create_from_sink_component_status
 		msg_iter_status;
 	struct pretty_component *pretty;
 
@@ -150,10 +150,10 @@ pretty_graph_is_configured(bt_self_component_sink *comp)
 			bt_self_component_sink_as_self_component(comp));
 	BT_ASSERT(pretty);
 	BT_ASSERT(!pretty->iterator);
-	msg_iter_status = bt_self_component_port_input_message_iterator_create_from_sink_component(
+	msg_iter_status = bt_message_iterator_create_from_sink_component(
 		comp, bt_self_component_sink_borrow_input_port_by_name(comp,
 			in_port_name), &pretty->iterator);
-	if (msg_iter_status != BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_CREATE_FROM_SINK_COMPONENT_STATUS_OK) {
+	if (msg_iter_status != BT_MESSAGE_ITERATOR_CREATE_FROM_SINK_COMPONENT_STATUS_OK) {
 		status = (int) msg_iter_status;
 		goto end;
 	}
@@ -171,7 +171,7 @@ bt_component_class_sink_consume_method_status pretty_consume(
 	bt_component_class_sink_consume_method_status ret =
 		BT_COMPONENT_CLASS_SINK_CONSUME_METHOD_STATUS_OK;
 	bt_message_array_const msgs;
-	bt_self_component_port_input_message_iterator *it;
+	bt_message_iterator *it;
 	struct pretty_component *pretty = bt_self_component_get_data(
 		bt_self_component_sink_as_self_component(comp));
 	bt_message_iterator_next_status next_status;
@@ -179,7 +179,7 @@ bt_component_class_sink_consume_method_status pretty_consume(
 	uint64_t i = 0;
 
 	it = pretty->iterator;
-	next_status = bt_self_component_port_input_message_iterator_next(it,
+	next_status = bt_message_iterator_next(it,
 		&msgs, &count);
 
 	switch (next_status) {
@@ -191,7 +191,7 @@ bt_component_class_sink_consume_method_status pretty_consume(
 		goto end;
 	case BT_MESSAGE_ITERATOR_NEXT_STATUS_END:
 		ret = (int) next_status;
-		BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_PUT_REF_AND_RESET(
+		BT_MESSAGE_ITERATOR_PUT_REF_AND_RESET(
 			pretty->iterator);
 		goto end;
 	default:

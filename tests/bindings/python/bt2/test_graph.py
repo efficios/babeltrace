@@ -277,9 +277,7 @@ class GraphTestCase(unittest.TestCase):
                 next(self._msg_iter)
 
             def _user_graph_is_configured(self):
-                self._msg_iter = self._create_input_port_message_iterator(
-                    self._input_ports['in']
-                )
+                self._msg_iter = self._create_message_iterator(self._input_ports['in'])
 
         # add two interrupters, set one of them
         interrupter1 = bt2.Interrupter()
@@ -325,9 +323,7 @@ class GraphTestCase(unittest.TestCase):
                 return next(self._msg_iter)
 
             def _user_graph_is_configured(self):
-                self._msg_iter = self._create_input_port_message_iterator(
-                    self._input_ports['in']
-                )
+                self._msg_iter = self._create_message_iterator(self._input_ports['in'])
 
         graph = self._graph
         up = self._graph.add_component(MySource, 'down')
@@ -384,9 +380,7 @@ class GraphTestCase(unittest.TestCase):
                 comp_self._at += 1
 
             def _user_graph_is_configured(self):
-                self._msg_iter = self._create_input_port_message_iterator(
-                    self._input_port
-                )
+                self._msg_iter = self._create_message_iterator(self._input_port)
 
         src = self._graph.add_component(MySource, 'src')
         sink = self._graph.add_component(MySink, 'sink')
@@ -482,9 +476,7 @@ class GraphTestCase(unittest.TestCase):
                 comp_self._at += 1
 
             def _user_graph_is_configured(self):
-                self._msg_iter = self._create_input_port_message_iterator(
-                    self._input_port
-                )
+                self._msg_iter = self._create_message_iterator(self._input_port)
 
         src = self._graph.add_component(MySource, 'src')
         sink = self._graph.add_component(MySink, 'sink')
@@ -539,9 +531,7 @@ class GraphTestCase(unittest.TestCase):
                 comp_self._at += 1
 
             def _user_graph_is_configured(self):
-                self._msg_iter = self._create_input_port_message_iterator(
-                    self._input_port
-                )
+                self._msg_iter = self._create_message_iterator(self._input_port)
 
         src = self._graph.add_component(MySource, 'src')
         sink = self._graph.add_component(MySink, 'sink')

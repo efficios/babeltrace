@@ -74,7 +74,7 @@ struct debug_info_msg_iter {
 	struct debug_info_component *debug_info_component;
 	bt_self_message_iterator *input_iterator;
 	bt_self_component *self_comp;
-	bt_self_component_port_input_message_iterator *msg_iter;
+	bt_message_iterator *msg_iter;
 
 	struct trace_ir_maps *ir_maps;
 	/* in_trace -> debug_info_mapping. */
@@ -1869,7 +1869,7 @@ bt_message_iterator_class_next_method_status debug_info_msg_iter_next(
 		const bt_message_array_const msgs, uint64_t capacity,
 		uint64_t *count)
 {
-	bt_self_component_port_input_message_iterator *upstream_iterator = NULL;
+	bt_message_iterator *upstream_iterator = NULL;
 	bt_message_iterator_next_status upstream_iterator_ret_status;
 	struct debug_info_msg_iter *debug_info_msg_iter;
 	struct debug_info_component *debug_info = NULL;
@@ -1894,7 +1894,7 @@ bt_message_iterator_class_next_method_status debug_info_msg_iter_next(
 	BT_ASSERT_DBG(upstream_iterator);
 
 	upstream_iterator_ret_status =
-		bt_self_component_port_input_message_iterator_next(
+		bt_message_iterator_next(
 			upstream_iterator, &input_msgs, count);
 	if (upstream_iterator_ret_status !=
 			BT_MESSAGE_ITERATOR_NEXT_STATUS_OK) {
@@ -1961,7 +1961,7 @@ void debug_info_msg_iter_destroy(struct debug_info_msg_iter *debug_info_msg_iter
 	}
 
 	if (debug_info_msg_iter->msg_iter) {
-		bt_self_component_port_input_message_iterator_put_ref(
+		bt_message_iterator_put_ref(
 			debug_info_msg_iter->msg_iter);
 	}
 
@@ -1988,10 +1988,10 @@ bt_message_iterator_class_initialize_method_status debug_info_msg_iter_init(
 		bt_self_component_port_output *self_port)
 {
 	bt_message_iterator_class_initialize_method_status status;
-	bt_self_component_port_input_message_iterator_create_from_message_iterator_status
+	bt_message_iterator_create_from_message_iterator_status
 		msg_iter_status;
 	struct bt_self_component_port_input *input_port = NULL;
-	bt_self_component_port_input_message_iterator *upstream_iterator = NULL;
+	bt_message_iterator *upstream_iterator = NULL;
 	struct debug_info_msg_iter *debug_info_msg_iter = NULL;
 	gchar *debug_info_field_name;
 	int ret;
@@ -2020,14 +2020,14 @@ bt_message_iterator_class_initialize_method_status debug_info_msg_iter_init(
 	}
 
 	/* Create an iterator on the upstream component. */
-	msg_iter_status = bt_self_component_port_input_message_iterator_create_from_message_iterator(
+	msg_iter_status = bt_message_iterator_create_from_message_iterator(
 		self_msg_iter, input_port, &upstream_iterator);
-	if (msg_iter_status != BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_CREATE_FROM_MESSAGE_ITERATOR_STATUS_OK) {
+	if (msg_iter_status != BT_MESSAGE_ITERATOR_CREATE_FROM_MESSAGE_ITERATOR_STATUS_OK) {
 		status = (int) msg_iter_status;
 		goto error;
 	}
 
-	BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_MOVE_REF(
+	BT_MESSAGE_ITERATOR_MOVE_REF(
 		debug_info_msg_iter->msg_iter, upstream_iterator);
 
 	/* Create hashtable that will contain debug info mapping. */
@@ -2056,7 +2056,7 @@ bt_message_iterator_class_initialize_method_status debug_info_msg_iter_init(
 	}
 
 	bt_self_message_iterator_configuration_set_can_seek_forward(config,
-		bt_self_component_port_input_message_iterator_can_seek_forward(
+		bt_message_iterator_can_seek_forward(
 			debug_info_msg_iter->msg_iter));
 
 	bt_self_message_iterator_set_data(self_msg_iter, debug_info_msg_iter);
@@ -2081,7 +2081,7 @@ debug_info_msg_iter_can_seek_beginning(bt_self_message_iterator *self_msg_iter,
 		bt_self_message_iterator_get_data(self_msg_iter);
 	BT_ASSERT(debug_info_msg_iter);
 
-	return (int) bt_self_component_port_input_message_iterator_can_seek_beginning(
+	return (int) bt_message_iterator_can_seek_beginning(
 		debug_info_msg_iter->msg_iter, can_seek);
 }
 
@@ -2098,7 +2098,7 @@ debug_info_msg_iter_seek_beginning(bt_self_message_iterator *self_msg_iter)
 	BT_ASSERT(debug_info_msg_iter);
 
 	/* Ask the upstream component to seek to the beginning. */
-	seek_beg_status = bt_self_component_port_input_message_iterator_seek_beginning(
+	seek_beg_status = bt_message_iterator_seek_beginning(
 		debug_info_msg_iter->msg_iter);
 	if (seek_beg_status != BT_MESSAGE_ITERATOR_SEEK_BEGINNING_STATUS_OK) {
 		status = (int) seek_beg_status;

@@ -85,7 +85,7 @@ struct bt_message *bt_message_packet_end_new(struct bt_graph *graph)
 
 static inline
 struct bt_message *create_packet_message(
-		struct bt_self_component_port_input_message_iterator *msg_iter,
+		struct bt_message_iterator *msg_iter,
 		struct bt_packet *packet, struct bt_object_pool *pool,
 		bool with_cs, uint64_t raw_value)
 {
@@ -171,7 +171,7 @@ struct bt_message *bt_message_packet_beginning_create(
 		struct bt_self_message_iterator *self_msg_iter,
 		const struct bt_packet *packet)
 {
-	struct bt_self_component_port_input_message_iterator *msg_iter =
+	struct bt_message_iterator *msg_iter =
 		(void *) self_msg_iter;
 
 	BT_ASSERT_PRE_DEV_NO_ERROR();
@@ -184,7 +184,7 @@ struct bt_message *bt_message_packet_beginning_create_with_default_clock_snapsho
 		struct bt_self_message_iterator *self_msg_iter,
 		const struct bt_packet *packet, uint64_t raw_value)
 {
-	struct bt_self_component_port_input_message_iterator *msg_iter =
+	struct bt_message_iterator *msg_iter =
 		(void *) self_msg_iter;
 
 	BT_ASSERT_PRE_DEV_NO_ERROR();
@@ -197,7 +197,7 @@ struct bt_message *bt_message_packet_end_create(
 		struct bt_self_message_iterator *self_msg_iter,
 		const struct bt_packet *packet)
 {
-	struct bt_self_component_port_input_message_iterator *msg_iter =
+	struct bt_message_iterator *msg_iter =
 		(void *) self_msg_iter;
 
 	BT_ASSERT_PRE_DEV_NO_ERROR();
@@ -210,7 +210,7 @@ struct bt_message *bt_message_packet_end_create_with_default_clock_snapshot(
 		struct bt_self_message_iterator *self_msg_iter,
 		const struct bt_packet *packet, uint64_t raw_value)
 {
-	struct bt_self_component_port_input_message_iterator *msg_iter =
+	struct bt_message_iterator *msg_iter =
 		(void *) self_msg_iter;
 
 	BT_ASSERT_PRE_DEV_NO_ERROR();

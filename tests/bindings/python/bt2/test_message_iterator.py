@@ -35,9 +35,7 @@ class SimpleSink(bt2._UserSinkComponent):
         next(self._msg_iter)
 
     def _user_graph_is_configured(self):
-        self._msg_iter = self._create_input_port_message_iterator(
-            self._input_ports['in']
-        )
+        self._msg_iter = self._create_message_iterator(self._input_ports['in'])
 
 
 def _create_graph(src_comp_cls, sink_comp_cls, flt_comp_cls=None):
@@ -96,7 +94,7 @@ class UserMessageIteratorTestCase(unittest.TestCase):
             def __init__(self, config, self_port_output):
                 nonlocal flt_iter_initialized
                 flt_iter_initialized = True
-                self._up_iter = self._create_input_port_message_iterator(
+                self._up_iter = self._create_message_iterator(
                     self._component._input_ports['in']
                 )
 
@@ -117,8 +115,8 @@ class UserMessageIteratorTestCase(unittest.TestCase):
 
     def test_create_user_error(self):
         # This tests both error handling by
-        # _UserSinkComponent._create_input_port_message_iterator
-        # and _UserMessageIterator._create_input_port_message_iterator, as they
+        # _UserSinkComponent._create_message_iterator
+        # and _UserMessageIterator._create_message_iterator, as they
         # are both used in the graph.
         class MySourceIter(bt2._UserMessageIterator):
             def __init__(self, config, self_port_output):
@@ -132,9 +130,7 @@ class UserMessageIteratorTestCase(unittest.TestCase):
             def __init__(self, config, self_port_output):
                 # This is expected to raise because of the error in
                 # MySourceIter.__init__.
-                self._create_input_port_message_iterator(
-                    self._component._input_ports['in']
-                )
+                self._create_message_iterator(self._component._input_ports['in'])
 
         class MyFilter(bt2._UserFilterComponent, message_iterator_class=MyFilterIter):
             def __init__(self, config, params, obj):
@@ -200,9 +196,7 @@ class UserMessageIteratorTestCase(unittest.TestCase):
                 self._add_input_port('in')
 
             def _user_graph_is_configured(self):
-                self._msg_iter = self._create_input_port_message_iterator(
-                    self._input_ports['in']
-                )
+                self._msg_iter = self._create_message_iterator(self._input_ports['in'])
 
             def _user_consume(self):
                 nonlocal can_seek_forward
@@ -348,9 +342,7 @@ class UserMessageIteratorTestCase(unittest.TestCase):
         class MyFilterIter(bt2._UserMessageIterator):
             def __init__(self, port):
                 input_port = port.user_data
-                self._upstream_iter = self._create_input_port_message_iterator(
-                    input_port
-                )
+                self._upstream_iter = self._create_message_iterator(input_port)
 
             def __next__(self):
                 return next(self._upstream_iter)
@@ -396,7 +388,7 @@ class UserMessageIteratorTestCase(unittest.TestCase):
         class MyFilterIter(bt2._UserMessageIterator):
             def __init__(self, config, port):
                 # First, create an upstream iterator.
-                self._upstream_iter = self._create_input_port_message_iterator(
+                self._upstream_iter = self._create_message_iterator(
                     self._component._input_ports['in']
                 )
 
@@ -418,9 +410,7 @@ class UserMessageIteratorTestCase(unittest.TestCase):
                 self._input_port = self._add_input_port('in')
 
             def _user_graph_is_configured(self):
-                self._upstream_iter = self._create_input_port_message_iterator(
-                    self._input_port
-                )
+                self._upstream_iter = self._create_message_iterator(self._input_port)
 
             def _user_consume(self):
                 # We should not reach this.
@@ -493,7 +483,7 @@ def _setup_seek_test(
 
     class MyFilterIter(bt2._UserMessageIterator):
         def __init__(self, config, port):
-            self._upstream_iter = self._create_input_port_message_iterator(
+            self._upstream_iter = self._create_message_iterator(
                 self._component._input_ports['in']
             )
             config.can_seek_forward = self._upstream_iter.can_seek_forward
@@ -535,9 +525,7 @@ class UserMessageIteratorSeekBeginningTestCase(unittest.TestCase):
                 self._add_input_port('in')
 
             def _user_graph_is_configured(self):
-                self._msg_iter = self._create_input_port_message_iterator(
-                    self._input_ports['in']
-                )
+                self._msg_iter = self._create_message_iterator(self._input_ports['in'])
 
             def _user_consume(self):
                 nonlocal can_seek_beginning
@@ -571,9 +559,7 @@ class UserMessageIteratorSeekBeginningTestCase(unittest.TestCase):
                 self._add_input_port('in')
 
             def _user_graph_is_configured(self):
-                self._msg_iter = self._create_input_port_message_iterator(
-                    self._input_ports['in']
-                )
+                self._msg_iter = self._create_message_iterator(self._input_ports['in'])
 
             def _user_consume(self):
                 nonlocal can_seek_beginning
@@ -595,9 +581,7 @@ class UserMessageIteratorSeekBeginningTestCase(unittest.TestCase):
                 self._add_input_port('in')
 
             def _user_graph_is_configured(self):
-                self._msg_iter = self._create_input_port_message_iterator(
-                    self._input_ports['in']
-                )
+                self._msg_iter = self._create_message_iterator(self._input_ports['in'])
 
             def _user_consume(self):
                 nonlocal can_seek_beginning
@@ -614,9 +598,7 @@ class UserMessageIteratorSeekBeginningTestCase(unittest.TestCase):
                 self._add_input_port('in')
 
             def _user_graph_is_configured(self):
-                self._msg_iter = self._create_input_port_message_iterator(
-                    self._input_ports['in']
-                )
+                self._msg_iter = self._create_message_iterator(self._input_ports['in'])
 
             def _user_consume(self):
                 # This is expected to raise.
@@ -643,9 +625,7 @@ class UserMessageIteratorSeekBeginningTestCase(unittest.TestCase):
                 self._add_input_port('in')
 
             def _user_graph_is_configured(self):
-                self._msg_iter = self._create_input_port_message_iterator(
-                    self._input_ports['in']
-                )
+                self._msg_iter = self._create_message_iterator(self._input_ports['in'])
 
             def _user_consume(self):
                 # This is expected to raise.
@@ -672,9 +652,7 @@ class UserMessageIteratorSeekBeginningTestCase(unittest.TestCase):
                 self._add_input_port('in')
 
             def _user_graph_is_configured(self):
-                self._msg_iter = self._create_input_port_message_iterator(
-                    self._input_ports['in']
-                )
+                self._msg_iter = self._create_message_iterator(self._input_ports['in'])
 
             def _user_consume(self):
                 nonlocal do_seek_beginning
@@ -716,9 +694,7 @@ class UserMessageIteratorSeekBeginningTestCase(unittest.TestCase):
                 self._add_input_port('in')
 
             def _user_graph_is_configured(self):
-                self._msg_iter = self._create_input_port_message_iterator(
-                    self._input_ports['in']
-                )
+                self._msg_iter = self._create_message_iterator(self._input_ports['in'])
 
             def _user_consume(self):
                 self._msg_iter.seek_beginning()
@@ -959,9 +935,7 @@ class UserMessageIteratorSeekNsFromOriginTestCase(unittest.TestCase):
                 self._add_input_port('in')
 
             def _user_graph_is_configured(self):
-                self._msg_iter = self._create_input_port_message_iterator(
-                    self._input_ports['in']
-                )
+                self._msg_iter = self._create_message_iterator(self._input_ports['in'])
 
             def _user_consume(self):
                 nonlocal can_seek_ns_from_origin
@@ -1018,9 +992,7 @@ class UserMessageIteratorSeekNsFromOriginTestCase(unittest.TestCase):
                 self._add_input_port('in')
 
             def _user_graph_is_configured(self):
-                self._msg_iter = self._create_input_port_message_iterator(
-                    self._input_ports['in']
-                )
+                self._msg_iter = self._create_message_iterator(self._input_ports['in'])
 
             def _user_consume(self):
                 # This is expected to raise.
@@ -1047,9 +1019,7 @@ class UserMessageIteratorSeekNsFromOriginTestCase(unittest.TestCase):
                 self._add_input_port('in')
 
             def _user_graph_is_configured(self):
-                self._msg_iter = self._create_input_port_message_iterator(
-                    self._input_ports['in']
-                )
+                self._msg_iter = self._create_message_iterator(self._input_ports['in'])
 
             def _user_consume(self):
                 # This is expected to raise.
@@ -1076,9 +1046,7 @@ class UserMessageIteratorSeekNsFromOriginTestCase(unittest.TestCase):
                 self._add_input_port('in')
 
             def _user_graph_is_configured(self):
-                self._msg_iter = self._create_input_port_message_iterator(
-                    self._input_ports['in']
-                )
+                self._msg_iter = self._create_message_iterator(self._input_ports['in'])
 
             def _user_consume(self):
                 self._msg_iter.seek_ns_from_origin(17)

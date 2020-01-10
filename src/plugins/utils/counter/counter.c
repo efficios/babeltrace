@@ -118,7 +118,7 @@ static
 void destroy_private_counter_data(struct counter *counter)
 {
 	if (counter) {
-		bt_self_component_port_input_message_iterator_put_ref(
+		bt_message_iterator_put_ref(
 			counter->msg_iter);
 		g_free(counter);
 	}
@@ -134,7 +134,7 @@ void counter_finalize(bt_self_component_sink *comp)
 			bt_self_component_sink_as_self_component(comp));
 	BT_ASSERT(counter);
 	try_print_last(counter);
-	bt_self_component_port_input_message_iterator_put_ref(counter->msg_iter);
+	bt_message_iterator_put_ref(counter->msg_iter);
 	g_free(counter);
 }
 
@@ -221,24 +221,24 @@ counter_graph_is_configured(
 		bt_self_component_sink *comp)
 {
 	bt_component_class_sink_graph_is_configured_method_status status;
-	bt_self_component_port_input_message_iterator_create_from_sink_component_status
+	bt_message_iterator_create_from_sink_component_status
 		msg_iter_status;
 	struct counter *counter;
-	bt_self_component_port_input_message_iterator *iterator;
+	bt_message_iterator *iterator;
 
 	counter = bt_self_component_get_data(
 		bt_self_component_sink_as_self_component(comp));
 	BT_ASSERT(counter);
 
-	msg_iter_status = bt_self_component_port_input_message_iterator_create_from_sink_component(
+	msg_iter_status = bt_message_iterator_create_from_sink_component(
 		comp, bt_self_component_sink_borrow_input_port_by_name(comp,
 			in_port_name), &iterator);
-	if (msg_iter_status != BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_CREATE_FROM_SINK_COMPONENT_STATUS_OK) {
+	if (msg_iter_status != BT_MESSAGE_ITERATOR_CREATE_FROM_SINK_COMPONENT_STATUS_OK) {
 		status = (int) msg_iter_status;
 		goto end;
 	}
 
-	BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_MOVE_REF(
+	BT_MESSAGE_ITERATOR_MOVE_REF(
 		counter->msg_iter, iterator);
 
 	status = BT_COMPONENT_CLASS_SINK_GRAPH_IS_CONFIGURED_METHOD_STATUS_OK;
@@ -268,7 +268,7 @@ bt_component_class_sink_consume_method_status counter_consume(
 	}
 
 	/* Consume messages */
-	next_status = bt_self_component_port_input_message_iterator_next(
+	next_status = bt_message_iterator_next(
 		counter->msg_iter, &msgs, &msg_count);
 	if (next_status < 0) {
 		status = (int) next_status;

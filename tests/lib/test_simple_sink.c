@@ -29,7 +29,7 @@ struct test_data {
 
 static
 bt_graph_simple_sink_component_initialize_func_status simple_INITIALIZE_func(
-		bt_self_component_port_input_message_iterator *iterator,
+		bt_message_iterator *iterator,
 		void *data)
 {
 	struct test_data *test_data = data;
@@ -41,7 +41,7 @@ bt_graph_simple_sink_component_initialize_func_status simple_INITIALIZE_func(
 
 static
 bt_graph_simple_sink_component_consume_func_status simple_consume_func(
-		bt_self_component_port_input_message_iterator *iterator,
+		bt_message_iterator *iterator,
 		void *data)
 {
 	struct test_data *test_data = data;

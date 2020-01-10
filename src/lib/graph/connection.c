@@ -205,12 +205,12 @@ void bt_connection_end(struct bt_connection *conn, bool try_remove_from_graph)
 	 * which is on graph destruction.
 	 */
 	for (i = 0; i < conn->iterators->len; i++) {
-		struct bt_self_component_port_input_message_iterator *iterator =
+		struct bt_message_iterator *iterator =
 			g_ptr_array_index(conn->iterators, i);
 
 		BT_LIB_LOGD("Finalizing message iterator created by "
 			"this ended connection: %![iter-]+i", iterator);
-		bt_self_component_port_input_message_iterator_try_finalize(
+		bt_message_iterator_try_finalize(
 			iterator);
 
 		/*
@@ -218,7 +218,7 @@ void bt_connection_end(struct bt_connection *conn, bool try_remove_from_graph)
 		 * from this connection's iterators on destruction
 		 * because this connection won't exist anymore.
 		 */
-		bt_self_component_port_input_message_iterator_set_connection(
+		bt_message_iterator_set_connection(
 			iterator, NULL);
 	}
 
@@ -245,7 +245,7 @@ const struct bt_port_input *bt_connection_borrow_downstream_port_const(
 
 BT_HIDDEN
 void bt_connection_remove_iterator(struct bt_connection *conn,
-		struct bt_self_component_port_input_message_iterator *iterator)
+		struct bt_message_iterator *iterator)
 {
 	g_ptr_array_remove(conn->iterators, iterator);
 	BT_LIB_LOGD("Removed message iterator from connection: "

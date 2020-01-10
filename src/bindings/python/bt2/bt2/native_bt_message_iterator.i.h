@@ -23,19 +23,19 @@
  */
 
 static
-bt_self_component_port_input_message_iterator_create_from_message_iterator_status
-bt_bt2_self_component_port_input_message_iterator_create_from_message_iterator(
+bt_message_iterator_create_from_message_iterator_status
+bt_bt2_message_iterator_create_from_message_iterator(
 		bt_self_message_iterator *self_msg_iter,
 		bt_self_component_port_input *input_port,
-		bt_self_component_port_input_message_iterator **message_iterator)
+		bt_message_iterator **message_iterator)
 {
-	bt_self_component_port_input_message_iterator_create_from_message_iterator_status
+	bt_message_iterator_create_from_message_iterator_status
 		status;
 
-	status = bt_self_component_port_input_message_iterator_create_from_message_iterator(
+	status = bt_message_iterator_create_from_message_iterator(
 		self_msg_iter, input_port, message_iterator);
 
-	if (status != BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_CREATE_FROM_MESSAGE_ITERATOR_STATUS_OK) {
+	if (status != BT_MESSAGE_ITERATOR_CREATE_FROM_MESSAGE_ITERATOR_STATUS_OK) {
 		*message_iterator = NULL;
 	}
 
@@ -43,19 +43,19 @@ bt_bt2_self_component_port_input_message_iterator_create_from_message_iterator(
 }
 
 static
-bt_self_component_port_input_message_iterator_create_from_sink_component_status
-bt_bt2_self_component_port_input_message_iterator_create_from_sink_component(
+bt_message_iterator_create_from_sink_component_status
+bt_bt2_message_iterator_create_from_sink_component(
 		bt_self_component_sink *self_comp,
 		bt_self_component_port_input *input_port,
-		bt_self_component_port_input_message_iterator **message_iterator)
+		bt_message_iterator **message_iterator)
 {
-	bt_self_component_port_input_message_iterator_create_from_sink_component_status
+	bt_message_iterator_create_from_sink_component_status
 		status;
 
-	status = bt_self_component_port_input_message_iterator_create_from_sink_component(
+	status = bt_message_iterator_create_from_sink_component(
 		self_comp, input_port, message_iterator);
 
-	if (status != BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_CREATE_FROM_SINK_COMPONENT_STATUS_OK) {
+	if (status != BT_MESSAGE_ITERATOR_CREATE_FROM_SINK_COMPONENT_STATUS_OK) {
 		*message_iterator = NULL;
 	}
 
@@ -124,13 +124,13 @@ PyObject *get_msg_range_common(bt_message_iterator_next_status status,
 }
 
 static PyObject *bt_bt2_self_component_port_input_get_msg_range(
-		bt_self_component_port_input_message_iterator *iter)
+		bt_message_iterator *iter)
 {
 	bt_message_array_const messages;
 	uint64_t message_count = 0;
 	bt_message_iterator_next_status status;
 
-	status = bt_self_component_port_input_message_iterator_next(iter,
+	status = bt_message_iterator_next(iter,
 		&messages, &message_count);
 	return get_msg_range_common(status, messages, message_count);
 }

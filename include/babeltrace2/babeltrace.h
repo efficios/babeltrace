@@ -111,7 +111,6 @@
 
 /* Message iterator API */
 #include <babeltrace2/graph/message-iterator.h>
-#include <babeltrace2/graph/self-component-port-input-message-iterator.h>
 #include <babeltrace2/graph/self-message-iterator.h>
 
 /* Message API */
