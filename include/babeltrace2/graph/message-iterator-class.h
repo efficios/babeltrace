@@ -81,7 +81,6 @@ typedef bt_message_iterator_class_initialize_method_status
 (*bt_message_iterator_class_initialize_method)(
 		bt_self_message_iterator *message_iterator,
 		bt_self_message_iterator_configuration *config,
-		bt_self_component *self_component,
 		bt_self_component_port_output *port);
 
 typedef void

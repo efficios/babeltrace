@@ -301,7 +301,6 @@ bt_message_iterator_class_next_method_status lttng_live_msg_iter_next(
 bt_message_iterator_class_initialize_method_status lttng_live_msg_iter_init(
 		bt_self_message_iterator *self_msg_it,
 		bt_self_message_iterator_configuration *config,
-		bt_self_component *self_comp,
 		bt_self_component_port_output *self_port);
 
 void lttng_live_msg_iter_finalize(bt_self_message_iterator *it);

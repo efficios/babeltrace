@@ -1083,7 +1083,6 @@ bt_message_iterator_class_initialize_method_status
 component_class_message_iterator_init(
 		bt_self_message_iterator *self_message_iterator,
 		bt_self_message_iterator_configuration *config,
-		bt_self_component *self_component,
 		bt_self_component_port_output *self_component_port_output)
 {
 	bt_message_iterator_class_initialize_method_status status = __BT_FUNC_STATUS_OK;
@@ -1095,6 +1094,9 @@ component_class_message_iterator_init(
 	PyObject *py_init_method_result = NULL;
 	PyObject *py_iter = NULL;
 	PyObject *py_comp;
+	bt_self_component *self_component =
+		bt_self_message_iterator_borrow_component(
+			self_message_iterator);
 	bt_logging_level log_level = get_self_component_log_level(
 		self_component);
 

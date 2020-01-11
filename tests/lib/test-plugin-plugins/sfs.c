@@ -28,7 +28,6 @@ static bt_message_iterator_class_initialize_method_status
 src_dummy_iterator_init_method(
 		bt_self_message_iterator *self_msg_iter,
 		bt_self_message_iterator_configuration *config,
-		bt_self_component *self_comp,
 		bt_self_component_port_output *self_port)
 {
 	return BT_MESSAGE_ITERATOR_CLASS_INITIALIZE_METHOD_STATUS_OK;
@@ -38,7 +37,6 @@ static bt_message_iterator_class_initialize_method_status
 flt_dummy_iterator_init_method(
 		bt_self_message_iterator *self_msg_iter,
 		bt_self_message_iterator_configuration *config,
-		bt_self_component *self_comp,
 		bt_self_component_port_output *self_port)
 {
 	return BT_MESSAGE_ITERATOR_CLASS_INITIALIZE_METHOD_STATUS_OK;
