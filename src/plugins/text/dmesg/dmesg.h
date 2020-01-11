@@ -40,7 +40,6 @@ BT_HIDDEN
 bt_message_iterator_class_initialize_method_status dmesg_msg_iter_init(
 		bt_self_message_iterator *self_msg_iter,
 		bt_self_message_iterator_configuration *config,
-		bt_self_component *self_comp,
 		bt_self_component_port_output *self_port);
 
 BT_HIDDEN

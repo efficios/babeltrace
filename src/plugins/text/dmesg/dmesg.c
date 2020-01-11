@@ -665,9 +665,10 @@ BT_HIDDEN
 bt_message_iterator_class_initialize_method_status dmesg_msg_iter_init(
 		bt_self_message_iterator *self_msg_iter,
 		bt_self_message_iterator_configuration *config,
-		bt_self_component *self_comp,
 		bt_self_component_port_output *self_port)
 {
+	bt_self_component *self_comp =
+		bt_self_message_iterator_borrow_component(self_msg_iter);
 	struct dmesg_component *dmesg_comp = bt_self_component_get_data(self_comp);
 	struct dmesg_msg_iter *dmesg_msg_iter =
 		g_new0(struct dmesg_msg_iter, 1);

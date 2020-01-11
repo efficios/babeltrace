@@ -427,7 +427,6 @@ int create_self_component_input_port_message_iterator(
 		iter_status = init_method(
 			(struct bt_self_message_iterator *) iterator,
 			&iterator->config,
-			(struct bt_self_component *) upstream_comp,
 			(struct bt_self_component_port_output *) upstream_port);
 		BT_LOGD("User method returned: status=%s",
 			bt_common_func_status_string(iter_status));

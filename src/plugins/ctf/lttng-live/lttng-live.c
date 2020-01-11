@@ -1567,7 +1567,6 @@ BT_HIDDEN
 bt_message_iterator_class_initialize_method_status lttng_live_msg_iter_init(
 		bt_self_message_iterator *self_msg_it,
 		bt_self_message_iterator_configuration *config,
-		bt_self_component *self_comp,
 		bt_self_component_port_output *self_port)
 {
 	bt_message_iterator_class_initialize_method_status status;
@@ -1575,8 +1574,8 @@ bt_message_iterator_class_initialize_method_status lttng_live_msg_iter_init(
 	struct lttng_live_msg_iter *lttng_live_msg_iter;
 	enum lttng_live_viewer_status viewer_status;
 	bt_logging_level log_level;
-
-	BT_ASSERT(self_msg_it);
+	bt_self_component *self_comp =
+		bt_self_message_iterator_borrow_component(self_msg_it);
 
 	lttng_live = bt_self_component_get_data(self_comp);
 	log_level = lttng_live->log_level;

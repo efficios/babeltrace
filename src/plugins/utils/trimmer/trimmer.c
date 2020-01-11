@@ -699,13 +699,14 @@ BT_HIDDEN
 bt_message_iterator_class_initialize_method_status trimmer_msg_iter_init(
 		bt_self_message_iterator *self_msg_iter,
 		bt_self_message_iterator_configuration *config,
-		bt_self_component *self_comp,
 		bt_self_component_port_output *port)
 {
 	bt_message_iterator_class_initialize_method_status status;
 	bt_message_iterator_create_from_message_iterator_status
 		msg_iter_status;
 	struct trimmer_iterator *trimmer_it;
+	bt_self_component *self_comp =
+		bt_self_message_iterator_borrow_component(self_msg_iter);
 
 	trimmer_it = g_new0(struct trimmer_iterator, 1);
 	if (!trimmer_it) {

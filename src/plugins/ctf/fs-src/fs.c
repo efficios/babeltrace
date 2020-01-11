@@ -211,7 +211,6 @@ BT_HIDDEN
 bt_message_iterator_class_initialize_method_status ctf_fs_iterator_init(
 		bt_self_message_iterator *self_msg_iter,
 		bt_self_message_iterator_configuration *config,
-		bt_self_component *self_comp,
 		bt_self_component_port_output *self_port)
 {
 	struct ctf_fs_port_data *port_data;
@@ -219,6 +218,8 @@ bt_message_iterator_class_initialize_method_status ctf_fs_iterator_init(
 	bt_message_iterator_class_initialize_method_status status;
 	bt_logging_level log_level;
 	enum ctf_msg_iter_medium_status medium_status;
+	bt_self_component *self_comp =
+		bt_self_message_iterator_borrow_component(self_msg_iter);
 
 	port_data = bt_self_component_port_get_data(
 		bt_self_component_port_output_as_self_component_port(
