@@ -139,7 +139,6 @@ enum bt_self_component_add_port_status bt_self_component_sink_add_input_port(
 	if (self_port) {
 		/* Move reference to user */
 		*self_port = (void *) port;
-		port = NULL;
 	}
 
 end:

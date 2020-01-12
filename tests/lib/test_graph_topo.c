@@ -505,8 +505,6 @@ void test_src_adds_port_in_port_connected(void)
 	ok(src_port_connected_pos < graph_port_added_src_pos,
 		"event order is good");
 
-	bt_component_source_put_ref(src);
-	bt_component_sink_put_ref(sink);
 	bt_graph_put_ref(graph);
 }
 
@@ -573,9 +571,7 @@ void test_simple(void)
 	event.data.sink_comp_input_port_connected.other_port = gsrc_def_port;
 	ok(has_event(&event), "got the expected sink's port connected event");
 
-	bt_component_sink_put_ref(sink);
 	bt_graph_put_ref(graph);
-	bt_component_source_put_ref(src);
 }
 
 static
@@ -639,9 +635,6 @@ void test_src_port_connected_error(void)
 	ok(has_event(&event), "got the expected source's port connected event");
 
 	bt_graph_put_ref(graph);
-	bt_component_sink_put_ref(sink);
-	bt_component_source_put_ref(src);
-	bt_connection_put_ref(conn);
 }
 
 static
@@ -711,10 +704,7 @@ void test_sink_port_connected_error(void)
 	event.data.sink_comp_input_port_connected.other_port = gsrc_def_port;
 	ok(has_event(&event), "got the expected sink's port connected event");
 
-	bt_connection_put_ref(conn);
 	bt_graph_put_ref(graph);
-	bt_component_sink_put_ref(sink);
-	bt_component_source_put_ref(src);
 }
 
 static
