@@ -278,7 +278,6 @@ int main(int argc, char **argv)
 		BT_LOGGING_LEVEL_WARNING, &source);
 	BT_ASSERT(add_component_status == BT_GRAPH_ADD_COMPONENT_STATUS_OK);
 
-	bt_component_source_put_ref(source);
 	bt_component_class_source_put_ref(source_cc);
 	bt_message_iterator_class_put_ref(msg_iter_cls);
 	bt_graph_put_ref(graph);

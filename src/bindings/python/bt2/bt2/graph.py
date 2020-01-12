@@ -119,7 +119,9 @@ class Graph(object._SharedObject):
         )
         utils._handle_func_status(status, 'cannot add component to graph')
         assert comp_ptr
-        return bt2_component._create_component_from_const_ptr(comp_ptr, cc_type)
+        return bt2_component._create_component_from_const_ptr_and_get_ref(
+            comp_ptr, cc_type
+        )
 
     def connect_ports(self, upstream_port, downstream_port):
         utils._check_type(upstream_port, bt2_port._OutputPortConst)
@@ -129,7 +131,7 @@ class Graph(object._SharedObject):
         )
         utils._handle_func_status(status, 'cannot connect component ports within graph')
         assert conn_ptr
-        return bt2_connection._ConnectionConst._create_from_ptr(conn_ptr)
+        return bt2_connection._ConnectionConst._create_from_ptr_and_get_ref(conn_ptr)
 
     def add_port_added_listener(self, listener):
         if not callable(listener):

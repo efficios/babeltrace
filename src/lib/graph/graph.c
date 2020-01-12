@@ -433,7 +433,6 @@ enum bt_graph_connect_ports_status bt_graph_connect_ports(
 	if (user_connection) {
 		/* Move reference to user */
 		*user_connection = connection;
-		connection = NULL;
 	}
 
 end:
@@ -1020,7 +1019,6 @@ int add_component_with_init_method_data(
 	if (user_component) {
 		/* Move reference to user */
 		*user_component = component;
-		component = NULL;
 	}
 
 end:

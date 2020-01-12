@@ -109,7 +109,6 @@ bt_graph *create_graph_with_source(const bt_port_output **out_port)
 	*out_port = bt_component_source_borrow_output_port_by_index_const(
 		src_comp, 0);
 	BT_ASSERT(*out_port);
-	bt_component_source_put_ref(src_comp);
 	bt_component_class_source_put_ref(src_comp_cls);
 	bt_message_iterator_class_put_ref(msg_iter_cls);
 	return graph;
@@ -163,7 +162,6 @@ void test_simple_expect_run_once_status(
 	ok((run_once_status < 0) == (err != NULL),
 		"Current thread error is set if bt_graph_run_once returned an error");
 
-	bt_component_sink_put_ref(sink_comp);
 	bt_graph_put_ref(graph);
 	if (err) {
 		bt_error_release(err);

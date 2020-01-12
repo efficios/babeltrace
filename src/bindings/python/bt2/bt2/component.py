@@ -845,7 +845,9 @@ class _UserSourceComponent(_UserComponent, _SourceComponentConst):
             comp_status, 'cannot add output port to source component object'
         )
         assert self_port_ptr is not None
-        return bt2_port._UserComponentOutputPort._create_from_ptr(self_port_ptr)
+        return bt2_port._UserComponentOutputPort._create_from_ptr_and_get_ref(
+            self_port_ptr
+        )
 
 
 class _UserFilterComponent(_UserComponent, _FilterComponentConst):
@@ -893,7 +895,9 @@ class _UserFilterComponent(_UserComponent, _FilterComponentConst):
             comp_status, 'cannot add output port to filter component object'
         )
         assert self_port_ptr
-        return bt2_port._UserComponentOutputPort._create_from_ptr(self_port_ptr)
+        return bt2_port._UserComponentOutputPort._create_from_ptr_and_get_ref(
+            self_port_ptr
+        )
 
     def _add_input_port(self, name, user_data=None):
         utils._check_str(name)
@@ -903,7 +907,9 @@ class _UserFilterComponent(_UserComponent, _FilterComponentConst):
             comp_status, 'cannot add input port to filter component object'
         )
         assert self_port_ptr
-        return bt2_port._UserComponentInputPort._create_from_ptr(self_port_ptr)
+        return bt2_port._UserComponentInputPort._create_from_ptr_and_get_ref(
+            self_port_ptr
+        )
 
 
 class _UserSinkComponent(_UserComponent, _SinkComponentConst):
@@ -943,7 +949,9 @@ class _UserSinkComponent(_UserComponent, _SinkComponentConst):
             comp_status, 'cannot add input port to sink component object'
         )
         assert self_port_ptr
-        return bt2_port._UserComponentInputPort._create_from_ptr(self_port_ptr)
+        return bt2_port._UserComponentInputPort._create_from_ptr_and_get_ref(
+            self_port_ptr
+        )
 
     def _create_message_iterator(self, input_port):
         utils._check_type(input_port, bt2_port._UserComponentInputPort)
