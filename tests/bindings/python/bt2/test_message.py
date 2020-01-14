@@ -215,10 +215,9 @@ class AllMessagesTestCase(unittest.TestCase):
             elif i == 3:
                 self.assertIs(type(msg), bt2._MessageIteratorInactivityMessageConst)
                 self.assertIs(
-                    type(msg.default_clock_snapshot),
-                    bt2_clock_snapshot._ClockSnapshotConst,
+                    type(msg.clock_snapshot), bt2_clock_snapshot._ClockSnapshotConst
                 )
-                self.assertEqual(msg.default_clock_snapshot.value, i)
+                self.assertEqual(msg.clock_snapshot.value, i)
             elif i == 4:
                 self.assertIs(type(msg), bt2._DiscardedEventsMessageConst)
                 self.assertIs(type(msg.stream), bt2_stream._StreamConst)

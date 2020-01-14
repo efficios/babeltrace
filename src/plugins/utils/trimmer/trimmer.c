@@ -879,7 +879,7 @@ int get_msg_ns_from_origin(const bt_message *msg, int64_t *ns_from_origin,
 		break;
 	case BT_MESSAGE_TYPE_MESSAGE_ITERATOR_INACTIVITY:
 		clock_snapshot =
-			bt_message_message_iterator_inactivity_borrow_default_clock_snapshot_const(
+			bt_message_message_iterator_inactivity_borrow_clock_snapshot_const(
 				msg);
 		break;
 	default:

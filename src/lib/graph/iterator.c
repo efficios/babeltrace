@@ -563,7 +563,7 @@ bool clock_snapshots_are_monotonic_one(
 	{
 		struct bt_message_message_iterator_inactivity *inactivity_msg =
 			(struct bt_message_message_iterator_inactivity *) msg;
-		clock_snapshot = inactivity_msg->default_cs;
+		clock_snapshot = inactivity_msg->cs;
 		break;
 	}
 	case BT_MESSAGE_TYPE_PACKET_BEGINNING:
@@ -1261,7 +1261,7 @@ int auto_seek_handle_message(
 		const struct bt_message_message_iterator_inactivity *inactivity_msg =
 			(const void *) msg;
 
-		clk_snapshot = inactivity_msg->default_cs;
+		clk_snapshot = inactivity_msg->cs;
 		BT_ASSERT_DBG(clk_snapshot);
 		break;
 	}

@@ -43,9 +43,9 @@ void bt_message_message_iterator_inactivity_destroy(struct bt_object *obj)
 	BT_LIB_LOGD("Destroying message iterator inactivity message: %!+n",
 		message);
 
-	if (message->default_cs) {
-		bt_clock_snapshot_recycle(message->default_cs);
-		message->default_cs = NULL;
+	if (message->cs) {
+		bt_clock_snapshot_recycle(message->cs);
+		message->cs = NULL;
 	}
 
 	g_free(message);
@@ -53,7 +53,7 @@ void bt_message_message_iterator_inactivity_destroy(struct bt_object *obj)
 
 struct bt_message *bt_message_message_iterator_inactivity_create(
 		struct bt_self_message_iterator *self_msg_iter,
-		const struct bt_clock_class *default_clock_class,
+		const struct bt_clock_class *clock_class,
 		uint64_t value_cycles)
 {
 	struct bt_message_iterator *msg_iter =
@@ -63,10 +63,10 @@ struct bt_message *bt_message_message_iterator_inactivity_create(
 
 	BT_ASSERT_PRE_DEV_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(msg_iter, "Message iterator");
-	BT_ASSERT_PRE_NON_NULL(default_clock_class, "Default clock class");
+	BT_ASSERT_PRE_NON_NULL(clock_class, "Default clock class");
 	BT_LIB_LOGD("Creating message iterator inactivity message object: "
-		"%![iter-]+i, %![default-cc-]+K, value=%" PRIu64, msg_iter,
-		default_clock_class, value_cycles);
+		"%![iter-]+i, %![cc-]+K, value=%" PRIu64, msg_iter,
+		clock_class, value_cycles);
 	message = g_new0(struct bt_message_message_iterator_inactivity, 1);
 	if (!message) {
 		BT_LIB_LOGE_APPEND_CAUSE(
@@ -78,12 +78,12 @@ struct bt_message *bt_message_message_iterator_inactivity_create(
 		BT_MESSAGE_TYPE_MESSAGE_ITERATOR_INACTIVITY,
 		bt_message_message_iterator_inactivity_destroy, NULL);
 	ret_msg = &message->parent;
-	message->default_cs = bt_clock_snapshot_create(
-		(void *) default_clock_class);
-	if (!message->default_cs) {
+	message->cs = bt_clock_snapshot_create(
+		(void *) clock_class);
+	if (!message->cs) {
 		goto error;
 	}
-	bt_clock_snapshot_set_raw_value(message->default_cs, value_cycles);
+	bt_clock_snapshot_set_raw_value(message->cs, value_cycles);
 
 	BT_LIB_LOGD("Created message iterator inactivity message object: %!+n",
 		ret_msg);
@@ -97,7 +97,7 @@ end:
 }
 
 extern const struct bt_clock_snapshot *
-bt_message_message_iterator_inactivity_borrow_default_clock_snapshot_const(
+bt_message_message_iterator_inactivity_borrow_clock_snapshot_const(
 		const bt_message *msg)
 {
 	struct bt_message_message_iterator_inactivity *inactivity = (void *) msg;
@@ -105,5 +105,5 @@ bt_message_message_iterator_inactivity_borrow_default_clock_snapshot_const(
 	BT_ASSERT_PRE_DEV_NON_NULL(msg, "Message");
 	BT_ASSERT_PRE_DEV_MSG_IS_TYPE(msg,
 		BT_MESSAGE_TYPE_MESSAGE_ITERATOR_INACTIVITY);
-	return inactivity->default_cs;
+	return inactivity->cs;
 }

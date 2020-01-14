@@ -580,7 +580,7 @@ int get_msg_ts_ns(struct muxer_comp *muxer_comp,
 
 		break;
 	case BT_MESSAGE_TYPE_MESSAGE_ITERATOR_INACTIVITY:
-		clock_snapshot = bt_message_message_iterator_inactivity_borrow_default_clock_snapshot_const(
+		clock_snapshot = bt_message_message_iterator_inactivity_borrow_clock_snapshot_const(
 			msg);
 		break;
 	default:
@@ -852,7 +852,7 @@ muxer_msg_iter_youngest_upstream_msg_iter(
 				BT_MESSAGE_TYPE_MESSAGE_ITERATOR_INACTIVITY)) {
 			const bt_clock_snapshot *cs;
 
-			cs = bt_message_message_iterator_inactivity_borrow_default_clock_snapshot_const(
+			cs = bt_message_message_iterator_inactivity_borrow_clock_snapshot_const(
 				msg);
 			ret = validate_clock_class(muxer_msg_iter, muxer_comp,
 				bt_clock_snapshot_borrow_clock_class_const(cs));

@@ -34,7 +34,7 @@ extern "C" {
 #endif
 
 extern const bt_clock_snapshot *
-bt_message_message_iterator_inactivity_borrow_default_clock_snapshot_const(
+bt_message_message_iterator_inactivity_borrow_clock_snapshot_const(
 		const bt_message *msg);
 
 #ifdef __cplusplus
