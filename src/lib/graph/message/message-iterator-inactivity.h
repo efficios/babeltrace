@@ -29,7 +29,7 @@
 
 struct bt_message_message_iterator_inactivity {
 	struct bt_message parent;
-	struct bt_clock_snapshot *default_cs;
+	struct bt_clock_snapshot *cs;
 };
 
 #endif /* BABELTRACE_GRAPH_MESSAGE_MESSAGE_ITERATOR_INACTIVITY_INTERNAL_H */

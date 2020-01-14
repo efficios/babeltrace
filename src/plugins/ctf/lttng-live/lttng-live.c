@@ -740,7 +740,7 @@ int live_get_msg_ts_ns(struct lttng_live_stream_iterator *stream_iter,
 			msg);
 		break;
 	case BT_MESSAGE_TYPE_MESSAGE_ITERATOR_INACTIVITY:
-		clock_snapshot = bt_message_message_iterator_inactivity_borrow_default_clock_snapshot_const(
+		clock_snapshot = bt_message_message_iterator_inactivity_borrow_clock_snapshot_const(
 			msg);
 		break;
 	default:

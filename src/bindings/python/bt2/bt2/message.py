@@ -195,15 +195,15 @@ class _StreamEndMessage(_StreamMessage):
 class _MessageIteratorInactivityMessageConst(
     _MessageConst, _MessageWithDefaultClockSnapshot
 ):
-    _borrow_default_clock_snapshot_ptr = staticmethod(
-        native_bt.message_message_iterator_inactivity_borrow_default_clock_snapshot_const
+    _borrow_clock_snapshot_ptr = staticmethod(
+        native_bt.message_message_iterator_inactivity_borrow_clock_snapshot_const
     )
 
     @property
-    def default_clock_snapshot(self):
-        # This kind of message always has a default clock class: no
+    def clock_snapshot(self):
+        # This kind of message always has a clock class: no
         # need to call self._check_has_default_clock_class() here.
-        return self._get_default_clock_snapshot(self._borrow_default_clock_snapshot_ptr)
+        return self._get_default_clock_snapshot(self._borrow_clock_snapshot_ptr)
 
 
 class _MessageIteratorInactivityMessage(

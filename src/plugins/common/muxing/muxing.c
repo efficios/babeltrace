@@ -820,9 +820,9 @@ int compare_messages_same_type(struct messages_to_compare *msgs)
 	case BT_MESSAGE_TYPE_MESSAGE_ITERATOR_INACTIVITY:
 	{
 		const bt_clock_snapshot *left_cs =
-			bt_message_message_iterator_inactivity_borrow_default_clock_snapshot_const(msgs->left.msg);
+			bt_message_message_iterator_inactivity_borrow_clock_snapshot_const(msgs->left.msg);
 		const bt_clock_snapshot *right_cs =
-			bt_message_message_iterator_inactivity_borrow_default_clock_snapshot_const(msgs->right.msg);
+			bt_message_message_iterator_inactivity_borrow_clock_snapshot_const(msgs->right.msg);
 
 		ret = compare_clock_snapshots_and_clock_classes(
 			left_cs, right_cs);

@@ -2512,7 +2512,7 @@ int write_message_iterator_inactivity_message(struct details_write_ctx *ctx,
 {
 	int ret = 0;
 	const bt_clock_snapshot *cs =
-		bt_message_message_iterator_inactivity_borrow_default_clock_snapshot_const(
+		bt_message_message_iterator_inactivity_borrow_clock_snapshot_const(
 			msg);
 
 	/* Write time */
