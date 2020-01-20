@@ -44,3 +44,14 @@ const char *bt_version_get_extra(void)
 {
 	return strlen(BT_VERSION_EXTRA) == 0 ? NULL : BT_VERSION_EXTRA;
 }
+
+const char *bt_version_get_name(void)
+{
+	return strlen(BT_VERSION_NAME) == 0 ? NULL : BT_VERSION_NAME;
+}
+
+const char *bt_version_get_name_description(void)
+{
+	return strlen(BT_VERSION_DESCRIPTION) == 0 ? NULL :
+		BT_VERSION_DESCRIPTION;
+}
