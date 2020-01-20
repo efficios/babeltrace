@@ -53,6 +53,9 @@ library's version:
   <dt>Extra information</dt>
   <dd>bt_version_get_extra()</dd>
 </dl>
+
+You can also get the version's name and description if available with
+bt_version_get_name() and bt_version_get_name_description().
 */
 
 /*! @{ */
@@ -95,6 +98,36 @@ This extra information can contain a version suffix such as
     Extra information about the library's version, or \c NULL if none.
 */
 extern const char *bt_version_get_extra(void);
+
+/*!
+@brief
+    Returns libbabeltrace2's version name.
+
+If the version name is not available, which can be the case for a
+development build, this function returns \c NULL.
+
+@returns
+    Library's version name, or \c NULL if not available.
+
+@sa bt_version_get_name_description() &mdash;
+    Returns the description of libbabeltrace2's version name.
+*/
+extern const char *bt_version_get_name(void);
+
+/*!
+@brief
+    Returns libbabeltrace2's version name's description.
+
+If the version name's description is not available, which can be the
+case for a development build, this function returns \c NULL.
+
+@returns
+    Library's version name's description, or \c NULL if not available.
+
+@sa bt_version_get_name() &mdash;
+    Returns libbabeltrace2's version name.
+*/
+extern const char *bt_version_get_name_description(void);
 
 /*! @} */
 
