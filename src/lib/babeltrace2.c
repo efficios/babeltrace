@@ -24,6 +24,7 @@
 
 #include <babeltrace2/babeltrace.h>
 #include <stdlib.h>
+#include <string.h>
 
 unsigned int bt_version_get_major(void)
 {
@@ -41,5 +42,5 @@ unsigned int bt_version_get_patch(void) {
 
 const char *bt_version_get_extra(void)
 {
-	return BT_VERSION_EXTRA;
+	return strlen(BT_VERSION_EXTRA) == 0 ? NULL : BT_VERSION_EXTRA;
 }
