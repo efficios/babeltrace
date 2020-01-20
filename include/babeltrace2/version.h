@@ -92,13 +92,7 @@ This extra information can contain a version suffix such as
 <code>-pre5</code> or <code>-rc1</code>.
 
 @returns
-    @parblock
-    Extra information about the library's version.
-
-    Cannot be \c NULL.
-
-    Can be an empty string if there's no extra information.
-    @endparblock
+    Extra information about the library's version, or \c NULL if none.
 */
 extern const char *bt_version_get_extra(void);
 
