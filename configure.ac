@@ -31,6 +31,8 @@ m4_define([bt_version_minor], [0])
 m4_define([bt_version_patch], [0])
 m4_define([bt_version_extra], [-rc4])
 m4_define([bt_version], bt_version_major[.]bt_version_minor[.]bt_version_patch[]bt_version_extra)
+m4_define([bt_version_name], [])
+m4_define([bt_version_description], [])
 
 AC_INIT([babeltrace], bt_version, [jeremie dot galarneau at efficios dot com], [], [https://efficios.com/babeltrace/])
 
@@ -51,6 +53,8 @@ AC_DEFINE([BT_VERSION_MAJOR], bt_version_major, [Babeltrace major version])
 AC_DEFINE([BT_VERSION_MINOR], bt_version_minor, [Babeltrace minor version])
 AC_DEFINE([BT_VERSION_PATCH], bt_version_patch, [Babeltrace patch version])
 AC_DEFINE([BT_VERSION_EXTRA], ["]bt_version_extra["], [Babeltrace extra version])
+AC_DEFINE([BT_VERSION_NAME], ["]bt_version_name["], [Babeltrace version name])
+AC_DEFINE([BT_VERSION_DESCRIPTION], ["]bt_version_description["], [Babeltrace version description])
 
 AC_CANONICAL_TARGET
 AC_CANONICAL_HOST
@@ -192,6 +196,7 @@ LT_INIT([win32-dll])
 AC_PROG_MAKE_SET
 AC_PROG_MKDIR_P
 AC_PROG_LN_S
+AC_PATH_PROG([report_fold], [fold])
 
 # set $IN_GIT_REPO if we're in the Git repository; the `bootstrap` file
 # is not distributed in tarballs
@@ -815,8 +820,24 @@ PPRINT_SET_INDENT(1)
 PPRINT_SET_TS(38)
 
 AS_ECHO
-AS_ECHO("${PPRINT_COLOR_BLDBLU}Babeltrace $PACKAGE_VERSION$PPRINT_COLOR_RST")
+
+AS_IF([test -n "bt_version_name"], [
+	AS_ECHO("${PPRINT_COLOR_BLDBLU}Babeltrace $PACKAGE_VERSION \"bt_version_name\"$PPRINT_COLOR_RST")
+], [
+	AS_ECHO("${PPRINT_COLOR_BLDBLU}Babeltrace $PACKAGE_VERSION")
+])
+
 AS_ECHO
+
+AS_IF([test -n "bt_version_description"], [
+	AS_IF([test -n "$report_fold"], [
+		AS_ECHO("`AS_ECHO("bt_version_description") | $report_fold -s`")
+	], [
+		AS_ECHO("bt_version_description")
+	])
+
+	AS_ECHO
+])
 
 PPRINT_SUBTITLE([System])
 
