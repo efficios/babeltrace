@@ -1,0 +1,33 @@
+= Babeltrace's version extra information
+
+This directory contains files and a directory to add information to the
+version of a Babeltrace build. The CLI (`--version` option) and library
+can provide this information.
+
+The following directory and files are scanned at `src/common/version.i`
+generation time, which occurs at **every build**:
+
+`extra_version_name`::
+    If it exists, the first line of this file is the extra name of the
+    custom version.
+
+`extra_version_description`::
+    If it exists, the file's contents is the extra description of the
+    custom version.
++
+This should contain a description of local modifications applied to the
+source tree. A distribution packager can use this file, for example, to
+specify what changes were applied locally.
++
+All characters except alphanumeric ones, whitespaces, `.`, and `,` are
+replaced with `-`.
+
+`extra_patches`::
+    If it exists, this directory contains patch files applied to the
+    source tree.
++
+Each file name is included when generating `src/common/version.i`,
+except `README.adoc`.
++
+All characters except alphanumeric ones, whitespaces, and `.` are
+replaced with `-`.

@@ -1,0 +1,3 @@
+= Babeltrace's version extra information patches
+
+NOTE: See the parent directory's `README.adoc` file.
