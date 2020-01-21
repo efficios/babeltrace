@@ -29,12 +29,12 @@ AC_PREREQ([2.50])
 m4_define([bt_version_major], [2])
 m4_define([bt_version_minor], [0])
 m4_define([bt_version_patch], [0])
-m4_define([bt_version_dev_stage], [-rc4])
+m4_define([bt_version_dev_stage], [])
 m4_define([bt_version], bt_version_major[.]bt_version_minor[.]bt_version_patch[]bt_version_dev_stage)
-m4_define([bt_version_name], [])
-m4_define([bt_version_description], [])
+m4_define([bt_version_name], [Amqui])
 
 AC_INIT([babeltrace], bt_version, [jeremie dot galarneau at efficios dot com], [], [https://efficios.com/babeltrace/])
+AC_PROG_SED
 
 # Following the numbering scheme proposed by libtool for the library version
 # http://www.gnu.org/software/libtool/manual/html_node/Updating-version-info.html
@@ -42,6 +42,9 @@ m4_define([bt_lib_version_current], [0])
 m4_define([bt_lib_version_revision], [0])
 m4_define([bt_lib_version_age], [0])
 m4_define([bt_lib_version], bt_lib_version_current[:]bt_lib_version_revision[:]bt_lib_version_age)
+
+bt_version_description="Amqui (/ɒmkwiː/) is a town in eastern Québec, Canada, at the base of the Gaspé peninsula in Bas-Saint-Laurent. Located at the confluence of the Humqui and Matapédia Rivers, its proximity to woodlands makes it a great destination for outdoor activities such as camping, hiking, and mountain biking."
+bt_version_description_c_safe=$(echo $bt_version_description | $SED 's/"/\\"/g')
 
 AC_SUBST([BABELTRACE_LIBRARY_VERSION], bt_lib_version)
 
@@ -54,7 +57,7 @@ AC_DEFINE([BT_VERSION_MINOR], bt_version_minor, [Babeltrace minor version])
 AC_DEFINE([BT_VERSION_PATCH], bt_version_patch, [Babeltrace patch version])
 AC_DEFINE([BT_VERSION_DEV_STAGE], ["]bt_version_dev_stage["], [Babeltrace version development stage (can be empty)])
 AC_DEFINE([BT_VERSION_NAME], ["]bt_version_name["], [Babeltrace version name])
-AC_DEFINE([BT_VERSION_DESCRIPTION], ["]bt_version_description["], [Babeltrace version description])
+AC_DEFINE_UNQUOTED([BT_VERSION_DESCRIPTION], ["$bt_version_description_c_safe"], [Babeltrace version description])
 
 AC_CANONICAL_TARGET
 AC_CANONICAL_HOST
@@ -829,11 +832,11 @@ AS_IF([test -n "bt_version_name"], [
 
 AS_ECHO
 
-AS_IF([test -n "bt_version_description"], [
+AS_IF([test -n "$bt_version_description"], [
 	AS_IF([test -n "$report_fold"], [
-		AS_ECHO("`AS_ECHO("bt_version_description") | $report_fold -s`")
+		AS_ECHO("`AS_ECHO("$bt_version_description") | $report_fold -s`")
 	], [
-		AS_ECHO("bt_version_description")
+		AS_ECHO("$bt_version_description")
 	])
 
 	AS_ECHO
