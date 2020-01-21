@@ -36,13 +36,14 @@ unsigned int bt_version_get_minor(void)
 	return BT_VERSION_MINOR;
 }
 
-unsigned int bt_version_get_patch(void) {
+unsigned int bt_version_get_patch(void)
+{
 	return BT_VERSION_PATCH;
 }
 
-const char *bt_version_get_extra(void)
+const char *bt_version_get_development_stage(void)
 {
-	return strlen(BT_VERSION_EXTRA) == 0 ? NULL : BT_VERSION_EXTRA;
+	return strlen(BT_VERSION_DEV_STAGE) == 0 ? NULL : BT_VERSION_DEV_STAGE;
 }
 
 const char *bt_version_get_name(void)

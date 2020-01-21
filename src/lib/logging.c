@@ -58,8 +58,8 @@ void bt_logging_set_global_level(enum bt_logging_level log_level)
 static
 void __attribute__((constructor)) bt_logging_ctor(void)
 {
-	const char *v_extra = bt_version_get_extra() ? bt_version_get_extra() :
-		"";
+	const char *v_extra = bt_version_get_development_stage() ?
+		bt_version_get_development_stage() : "";
 
 	bt_logging_set_global_level(
 		bt_log_get_level_from_env("LIBBABELTRACE2_INIT_LOG_LEVEL"));
