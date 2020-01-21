@@ -26,6 +26,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "common/version.h"
+
 unsigned int bt_version_get_major(void)
 {
 	return BT_VERSION_MAJOR;
@@ -44,6 +46,11 @@ unsigned int bt_version_get_patch(void)
 const char *bt_version_get_development_stage(void)
 {
 	return strlen(BT_VERSION_DEV_STAGE) == 0 ? NULL : BT_VERSION_DEV_STAGE;
+}
+
+const char *bt_version_get_vcs_revision_description(void)
+{
+	return strlen(BT_VERSION_GIT) == 0 ? NULL : BT_VERSION_GIT;
 }
 
 const char *bt_version_get_name(void)
