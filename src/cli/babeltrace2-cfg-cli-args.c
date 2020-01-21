@@ -197,10 +197,10 @@ end:
 static
 void print_version(void)
 {
-	if (GIT_VERSION[0] == '\0') {
+	if (BT_VERSION_GIT[0] == '\0') {
 		puts("Babeltrace " VERSION);
 	} else {
-		puts("Babeltrace " VERSION  " - " GIT_VERSION);
+		puts("Babeltrace " VERSION  " - " BT_VERSION_GIT);
 	}
 }
 

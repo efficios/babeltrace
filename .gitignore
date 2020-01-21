@@ -69,3 +69,4 @@ cscope*
 *.swp
 .theia
 compile_commands.json
+/version
