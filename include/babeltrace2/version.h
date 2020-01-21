@@ -37,8 +37,8 @@ extern "C" {
 @brief
     Library version getters.
 
-This module contains four functions to get the four parts of the
-library's version:
+This module contains four functions to information about the library's
+version:
 
 <dl>
   <dt>Major version</dt>
@@ -50,12 +50,18 @@ library's version:
   <dt>Patch version</dt>
   <dd>bt_version_get_patch()</dd>
 
-  <dt>Development stage</dt>
+  <dt>\bt_dt_opt Development stage</dt>
   <dd>bt_version_get_development_stage()</dd>
-</dl>
 
-You can also get the version's name and description if available with
-bt_version_get_name() and bt_version_get_name_description().
+  <dt>\bt_dt_opt Version control system revision's description</dt>
+  <dd>bt_version_get_vcs_revision_description()</dd>
+
+  <dt>\bt_dt_opt Release name</dt>
+  <dd>bt_version_get_name()</dd>
+
+  <dt>\bt_dt_opt Release name's description</dt>
+  <dd>bt_version_get_name_description()</dd>
+</dl>
 */
 
 /*! @{ */
@@ -101,31 +107,45 @@ extern const char *bt_version_get_development_stage(void);
 
 /*!
 @brief
-    Returns libbabeltrace2's version name.
+    Returns the version control system (VCS) revision's description of
+    libbabeltrace2's version.
 
-If the version name is not available, which can be the case for a
+The VCS revision description is only available for a non-release build
+of the library.
+
+@returns
+    Version control system revision's description of the library's
+    version, or \c NULL if none.
+*/
+extern const char *bt_version_get_vcs_revision_description(void);
+
+/*!
+@brief
+    Returns libbabeltrace2's release name.
+
+If the release name is not available, which can be the case for a
 development build, this function returns \c NULL.
 
 @returns
-    Library's version name, or \c NULL if not available.
+    Library's release name, or \c NULL if not available.
 
 @sa bt_version_get_name_description() &mdash;
-    Returns the description of libbabeltrace2's version name.
+    Returns the description of libbabeltrace2's release name.
 */
 extern const char *bt_version_get_name(void);
 
 /*!
 @brief
-    Returns libbabeltrace2's version name's description.
+    Returns libbabeltrace2's release name's description.
 
-If the version name's description is not available, which can be the
+If the release name's description is not available, which can be the
 case for a development build, this function returns \c NULL.
 
 @returns
-    Library's version name's description, or \c NULL if not available.
+    Library's release name's description, or \c NULL if not available.
 
 @sa bt_version_get_name() &mdash;
-    Returns libbabeltrace2's version name.
+    Returns libbabeltrace2's release name.
 */
 extern const char *bt_version_get_name_description(void);
 
