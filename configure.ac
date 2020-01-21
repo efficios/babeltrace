@@ -27,11 +27,11 @@ dnl SOFTWARE.
 AC_PREREQ([2.50])
 
 m4_define([bt_version_major], [2])
-m4_define([bt_version_minor], [0])
+m4_define([bt_version_minor], [1])
 m4_define([bt_version_patch], [0])
-m4_define([bt_version_dev_stage], [])
+m4_define([bt_version_dev_stage], [-rc1])
 m4_define([bt_version], bt_version_major[.]bt_version_minor[.]bt_version_patch[]bt_version_dev_stage)
-m4_define([bt_version_name], [Amqui])
+m4_define([bt_version_name], [])
 
 AC_INIT([babeltrace], bt_version, [jeremie dot galarneau at efficios dot com], [], [https://efficios.com/babeltrace/])
 AC_PROG_SED
@@ -43,7 +43,7 @@ m4_define([bt_lib_version_revision], [0])
 m4_define([bt_lib_version_age], [0])
 m4_define([bt_lib_version], bt_lib_version_current[:]bt_lib_version_revision[:]bt_lib_version_age)
 
-bt_version_description="Amqui (/ɒmkwiː/) is a town in eastern Québec, Canada, at the base of the Gaspé peninsula in Bas-Saint-Laurent. Located at the confluence of the Humqui and Matapédia Rivers, its proximity to woodlands makes it a great destination for outdoor activities such as camping, hiking, and mountain biking."
+bt_version_description=""
 bt_version_description_c_safe=$(echo $bt_version_description | $SED 's/"/\\"/g')
 
 AC_SUBST([BABELTRACE_LIBRARY_VERSION], bt_lib_version)
