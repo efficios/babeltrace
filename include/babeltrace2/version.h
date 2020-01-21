@@ -50,8 +50,8 @@ library's version:
   <dt>Patch version</dt>
   <dd>bt_version_get_patch()</dd>
 
-  <dt>Extra information</dt>
-  <dd>bt_version_get_extra()</dd>
+  <dt>Development stage</dt>
+  <dd>bt_version_get_development_stage()</dd>
 </dl>
 
 You can also get the version's name and description if available with
@@ -89,15 +89,15 @@ extern unsigned int bt_version_get_patch(void);
 
 /*!
 @brief
-    Returns extra information about the version of libbabeltrace2.
+    Returns the development stage of libbabeltrace2's version.
 
-This extra information can contain a version suffix such as
+The development stage \em can contain a version suffix such as
 <code>-pre5</code> or <code>-rc1</code>.
 
 @returns
-    Extra information about the library's version, or \c NULL if none.
+    Development stage of the library's version, or \c NULL if none.
 */
-extern const char *bt_version_get_extra(void);
+extern const char *bt_version_get_development_stage(void);
 
 /*!
 @brief
