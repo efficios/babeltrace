@@ -63,3 +63,21 @@ const char *bt_version_get_name_description(void)
 	return strlen(BT_VERSION_DESCRIPTION) == 0 ? NULL :
 		BT_VERSION_DESCRIPTION;
 }
+
+const char *bt_version_get_extra_name(void)
+{
+	return strlen(BT_VERSION_EXTRA_NAME) == 0 ? NULL :
+		BT_VERSION_EXTRA_NAME;
+}
+
+const char *bt_version_get_extra_description(void)
+{
+	return strlen(BT_VERSION_EXTRA_DESCRIPTION) == 0 ? NULL :
+		BT_VERSION_EXTRA_DESCRIPTION;
+}
+
+const char *bt_version_get_extra_patch_names(void)
+{
+	return strlen(BT_VERSION_EXTRA_PATCHES) == 0 ? NULL :
+		BT_VERSION_EXTRA_PATCHES;
+}
