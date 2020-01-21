@@ -191,16 +191,79 @@ end:
 	return;
 }
 
+static
+void print_and_indent(const char *str)
+{
+	const char *ch = &str[0];
+
+	for (; *ch != '\0'; ch++) {
+		if (*ch == '\n') {
+			if (ch[1] != '\0') {
+				printf("\n  ");
+			}
+		} else {
+			printf("%c", *ch);
+		}
+	}
+
+	printf("\n");
+}
+
 /*
  * Prints the Babeltrace version.
  */
 static
 void print_version(void)
 {
-	if (BT_VERSION_GIT[0] == '\0') {
-		puts("Babeltrace " VERSION);
-	} else {
-		puts("Babeltrace " VERSION  " - " BT_VERSION_GIT);
+	bool has_extra_name = strlen(BT_VERSION_EXTRA_NAME) > 0;
+	bool has_extra_description = strlen(BT_VERSION_EXTRA_DESCRIPTION) > 0;
+	bool has_extra_patch_names = strlen(BT_VERSION_EXTRA_PATCHES) > 0;
+	bool has_extra = has_extra_name || has_extra_description ||
+		has_extra_patch_names;
+
+	printf("Babeltrace " VERSION);
+
+	if (strlen(BT_VERSION_NAME) > 0) {
+		printf(" \"%s\"", BT_VERSION_NAME);
+	}
+
+	if (strlen(BT_VERSION_GIT) > 0) {
+		printf(" [%s]", BT_VERSION_GIT);
+	}
+
+	printf("\n");
+
+	if (strlen(BT_VERSION_DESCRIPTION) > 0) {
+		unsigned int columns;
+		GString *descr;
+
+		if (bt_common_get_term_size(&columns, NULL) < 0) {
+			/* Width not found: default to 80 */
+			columns = 80;
+		}
+
+		descr = bt_common_fold(BT_VERSION_DESCRIPTION, columns, 0);
+		BT_ASSERT(descr);
+		printf("\n%s\n", descr->str);
+		g_string_free(descr, TRUE);
+	}
+
+	if (has_extra) {
+		printf("\n");
+
+		if (has_extra_name) {
+			printf("Extra name: %s\n", BT_VERSION_EXTRA_NAME);
+		}
+
+		if (has_extra_description) {
+			printf("Extra description:\n  ");
+			print_and_indent(BT_VERSION_EXTRA_DESCRIPTION);
+		}
+
+		if (has_extra_patch_names) {
+			printf("Extra patch names:\n  ");
+			print_and_indent(BT_VERSION_EXTRA_PATCHES);
+		}
 	}
 }
 
