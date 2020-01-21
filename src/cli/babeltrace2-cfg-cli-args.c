@@ -221,14 +221,24 @@ void print_version(void)
 	bool has_extra = has_extra_name || has_extra_description ||
 		has_extra_patch_names;
 
-	printf("Babeltrace " VERSION);
+	printf("%sBabeltrace %s%s",
+		bt_common_color_bold(),
+		VERSION,
+		bt_common_color_reset());
 
 	if (strlen(BT_VERSION_NAME) > 0) {
-		printf(" \"%s\"", BT_VERSION_NAME);
+		printf(" \"%s%s%s%s\"",
+			bt_common_color_fg_bright_blue(),
+			bt_common_color_bold(),
+			BT_VERSION_NAME,
+			bt_common_color_reset());
 	}
 
 	if (strlen(BT_VERSION_GIT) > 0) {
-		printf(" [%s]", BT_VERSION_GIT);
+		printf(" [%s%s%s]",
+			bt_common_color_fg_yellow(),
+			BT_VERSION_GIT,
+			bt_common_color_reset());
 	}
 
 	printf("\n");
@@ -252,16 +262,23 @@ void print_version(void)
 		printf("\n");
 
 		if (has_extra_name) {
-			printf("Extra name: %s\n", BT_VERSION_EXTRA_NAME);
+			printf("%sExtra name%s: %s\n",
+				bt_common_color_fg_cyan(),
+				bt_common_color_reset(),
+				BT_VERSION_EXTRA_NAME);
 		}
 
 		if (has_extra_description) {
-			printf("Extra description:\n  ");
+			printf("%sExtra description%s:\n  ",
+				bt_common_color_fg_cyan(),
+				bt_common_color_reset());
 			print_and_indent(BT_VERSION_EXTRA_DESCRIPTION);
 		}
 
 		if (has_extra_patch_names) {
-			printf("Extra patch names:\n  ");
+			printf("%sExtra patch names%s:\n  ",
+				bt_common_color_fg_cyan(),
+				bt_common_color_reset());
 			print_and_indent(BT_VERSION_EXTRA_PATCHES);
 		}
 	}
