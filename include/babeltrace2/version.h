@@ -37,7 +37,7 @@ extern "C" {
 @brief
     Library version getters.
 
-This module contains four functions to information about the library's
+This module contains functions to get information about the library's
 version:
 
 <dl>
@@ -61,6 +61,15 @@ version:
 
   <dt>\bt_dt_opt Release name's description</dt>
   <dd>bt_version_get_name_description()</dd>
+
+  <dt>\bt_dt_opt Extra name</dt>
+  <dd>bt_version_get_extra_name()</dd>
+
+  <dt>\bt_dt_opt Extra description</dt>
+  <dd>bt_version_get_extra_description()</dd>
+
+  <dt>\bt_dt_opt Extra patch names</dt>
+  <dd>bt_version_get_extra_patch_names()</dd>
 </dl>
 */
 
@@ -148,6 +157,51 @@ case for a development build, this function returns \c NULL.
     Returns libbabeltrace2's release name.
 */
 extern const char *bt_version_get_name_description(void);
+
+/*!
+@brief
+    Returns the extra name of libbabeltrace2's version.
+
+The extra name of the library's version can be set at build time for a
+custom build.
+
+@returns
+    Library's version extra name, or \c NULL if not available.
+*/
+extern const char *bt_version_get_extra_name(void);
+
+/*!
+@brief
+    Returns the extra description of libbabeltrace2's version.
+
+The extra description of the library's version can be set at build time
+for a custom build.
+
+@returns
+    @parblock
+    Library's version extra description, or \c NULL if not available.
+
+    Can contain newlines.
+    @endparblock
+*/
+extern const char *bt_version_get_extra_description(void);
+
+/*!
+@brief
+    Returns the extra patch names of libbabeltrace2's version.
+
+The extra patch names of the library's version can be set at build time
+for a custom build.
+
+@returns
+    @parblock
+    Library's version extra patch names, or \c NULL if not available.
+
+    Each line of the returned string contains the name of a patch
+    applied to Babeltrace's source tree for a custom build.
+    @endparblock
+*/
+extern const char *bt_version_get_extra_patch_names(void);
 
 /*! @} */
 
