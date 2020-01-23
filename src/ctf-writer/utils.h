@@ -203,7 +203,7 @@ GString *bt_ctf_field_path_string(struct bt_ctf_field_path *path)
 		goto end;
 	}
 
-	g_string_append_printf(str, "[%s", bt_common_scope_string(
+	g_string_append_printf(str, "[%s", bt_ctf_scope_string(
 		bt_ctf_field_path_get_root_scope(path)));
 
 	for (i = 0; i < bt_ctf_field_path_get_index_count(path); i++) {
