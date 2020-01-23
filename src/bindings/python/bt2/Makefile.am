@@ -110,6 +110,8 @@ GENERATED_BINDINGS_DEPS =	\
 # Disable -Wshadow for that file.
 WARN_CFLAGS = -Wno-shadow
 
+WARN_CFLAGS += -Wno-null-dereference
+
 BUILD_FLAGS=CC="$(CC)" \
 		CFLAGS="$(GLIB_CFLAGS) $(AM_CFLAGS) $(CFLAGS) $(WARN_CFLAGS)" \
 		CPPFLAGS="$(AM_CPPFLAGS) $(CPPFLAGS) -I$(srcdir)/bt2" \
