@@ -69,7 +69,7 @@ which can belong to different streams, as long as the stream clocks are
 \ref api-tir-clock-cls-origin "correlatable".
 
 A typical use case for streams is to use one for each traced CPU. Then
-the messages related to a given stream are the ones which occured on a
+the messages related to a given stream are the ones which occurred on a
 given CPU. Other schemes are possible: they are completely
 application-specific, and \bt_name does not enforce any specific
 stream arrangement pattern.
@@ -105,7 +105,7 @@ In the illustration above, notice that:
   stream's default clock.
 
   In other words, a default clock snapshot contains the value of the
-  stream's default clock when this message occured.
+  stream's default clock when this message occurred.
 
 To create a stream:
 

@@ -54,7 +54,7 @@ field.
 
 In all the cases above, the component adds a comment in the metadata
 stream, above the field class, to indicate that a special translation
-occured.
+occurred.
 
 
 === Input message constraints

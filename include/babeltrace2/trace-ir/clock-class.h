@@ -70,7 +70,7 @@ In the illustration above, notice that:
   stream's default clock.
 
   In other words, a default clock snapshot contains the value of the
-  stream's default clock when this message occured.
+  stream's default clock when this message occurred.
 
 The default clock class property of a \bt_stream_cls is optional:
 if a stream class has no default clock class, then its instances

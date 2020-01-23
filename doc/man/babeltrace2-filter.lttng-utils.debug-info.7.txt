@@ -62,7 +62,7 @@ Example: `load_user_config+0x194`.
 
 [[field-src]]`src` vtype:[string]::
     Source file path or name followed with `:LINE`, where `LINE` is the
-    line number in this source file at which the event occured.
+    line number in this source file at which the event occurred.
 +
 Example: `user-config.c:1025`.
 
@@ -97,7 +97,7 @@ In this case, the events that the message iterator creates do not
 contain the source file and line number (see the <<field-src,`src`
 field>>), but only the name of the nearest function symbol with an
 offset in bytes to the location in the executable from which the LTTng
-event occured (see the <<field-func,`func` field>>).
+event occurred (see the <<field-func,`func` field>>).
 
 If the executable file has neither ELF symbols nor DWARF information,
 the {compcls} message iterator cannot map the event to its source
