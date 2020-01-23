@@ -33,7 +33,7 @@ m4_define([bt_version_dev_stage], [])
 m4_define([bt_version], bt_version_major[.]bt_version_minor[.]bt_version_patch[]bt_version_dev_stage)
 m4_define([bt_version_name], [Amqui])
 
-AC_INIT([babeltrace], bt_version, [jeremie dot galarneau at efficios dot com], [], [https://efficios.com/babeltrace/])
+AC_INIT([babeltrace2], bt_version, [jeremie dot galarneau at efficios dot com], [], [https://efficios.com/babeltrace/])
 AC_PROG_SED
 
 # Following the numbering scheme proposed by libtool for the library version
