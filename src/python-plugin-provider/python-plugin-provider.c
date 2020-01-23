@@ -104,7 +104,7 @@ void log_python_traceback(int log_level)
 		}
 
 		BT_LOG_WRITE(log_level, BT_LOG_TAG,
-			"Exception occured: Python traceback:\n%s", exc->str);
+			"Exception occurred: Python traceback:\n%s", exc->str);
 	}
 
 end:

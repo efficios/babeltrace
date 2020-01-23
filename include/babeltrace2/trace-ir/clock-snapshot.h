@@ -67,7 +67,7 @@ In the illustration above, notice that:
   of the stream's default clock.
 
   In other words, a default clock snapshot contains the value of the
-  stream's default clock when this message occured.
+  stream's default clock when this message occurred.
 
 A clock snapshot is a \ref api-fund-unique-object "unique object": it
 belongs to a \bt_msg.

@@ -171,7 +171,7 @@ The available message iterator class methods to implement are:
   </dt>
   <dd>
     Called to check whether or not your \bt_msg_iter can currently
-    seek a message occuring at or after a specific time given in
+    seek a message occurring at or after a specific time given in
     nanoseconds from its
     \ref api-tir-clock-cls-origin "clock class origin".
 
@@ -187,7 +187,7 @@ The available message iterator class methods to implement are:
     If you don't implement this method, then, if you implement the
     \ref api-msg-iter-cls-meth-seek-ns "seek ns from origin" method, the
     library assumes that your message iterator can always seek any
-    message occuring at or after any time.
+    message occurring at or after any time.
 
     The message iterator of a \bt_flt_comp will typically consider
     the time seeking capability of its own upstream message
@@ -195,7 +195,7 @@ The available message iterator class methods to implement are:
     this method's implementation.
 
     If you need to block the thread to compute whether or not your
-    message iterator can seek a message occuring at or after a given
+    message iterator can seek a message occurring at or after a given
     time, you can instead report to try again later to the caller by
     returning
     #BT_MESSAGE_ITERATOR_CLASS_CAN_SEEK_NS_FROM_ORIGIN_METHOD_STATUS_AGAIN.
@@ -266,7 +266,7 @@ The available message iterator class methods to implement are:
     bt_message_iterator_seek_ns_from_origin() uses this configuration
     option and the beginning seeking capability of a message iterator
     (bt_message_iterator_can_seek_beginning())
-    to make it seek a message occuring at or after a specific time even
+    to make it seek a message occurring at or after a specific time even
     when the message iterator does not implement the
     \ref api-msg-iter-cls-meth-seek-ns "seek ns from origin" method.
 
@@ -417,7 +417,7 @@ The available message iterator class methods to implement are:
   </dt>
   <dd>
     Called within bt_message_iterator_seek_ns_from_origin() to make
-    your message iterator seek a message occuring at or after a specific
+    your message iterator seek a message occurring at or after a specific
     time given in nanoseconds from its
     \ref api-tir-clock-cls-origin "clock class origin".
 
@@ -465,7 +465,7 @@ The available message iterator class methods to implement are:
     later.
 
     If you need to block the thread to make your message iterator seek a
-    message occuring at or after a given time, you can instead report to
+    message occurring at or after a given time, you can instead report to
     try again later to the caller by returning
     #BT_MESSAGE_ITERATOR_CLASS_SEEK_NS_FROM_ORIGIN_METHOD_STATUS_AGAIN.
 
@@ -620,7 +620,7 @@ method.
 @param[out] can_seek_ns_from_origin
     <strong>On success</strong>, set \bt_p{*can_seek_ns_from_origin} to
     #BT_TRUE if \bt_p{self_message_iterator} can currently seek a
-    message occuring at or after \bt_p{ns_from_origin} nanoseconds from
+    message occurring at or after \bt_p{ns_from_origin} nanoseconds from
     its \ref api-tir-clock-cls-origin "clock class origin".
 
 @retval #BT_MESSAGE_ITERATOR_CLASS_CAN_SEEK_NS_FROM_ORIGIN_METHOD_STATUS_OK

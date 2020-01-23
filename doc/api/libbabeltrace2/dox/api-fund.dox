@@ -473,7 +473,7 @@ lead to the error, possibly across many \bt_p_plugin written by
 different developers.
 
 An error cause contains information about the source location where the
-error occured, the actor involved in the error, and a message.
+error occurred, the actor involved in the error, and a message.
 
 When you "catch" an error, that is, react to a function returning an
 error status code without returning an error status code yourself,

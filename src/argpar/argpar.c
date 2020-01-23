@@ -604,7 +604,7 @@ struct argpar_parse_ret argpar_parse(unsigned int argc,
 	goto end;
 
 error:
-	/* That's how we indicate that an error occured */
+	/* That's how we indicate that an error occurred */
 	destroy_item_array(parse_ret.items);
 	parse_ret.items = NULL;
 

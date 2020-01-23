@@ -466,7 +466,7 @@ bt_component_class_sink_consume_method_status handle_packet_beginning_msg(
 		 */
 		if (stream->prev_packet_state.end_cs == UINT64_C(-1)) {
 			BT_COMP_LOGE("Incompatible discarded packets message "
-				"occuring before the stream's first packet: "
+				"occurring before the stream's first packet: "
 				"stream-id=%" PRIu64 ", stream-name=\"%s\", "
 				"trace-name=\"%s\", path=\"%s/%s\"",
 				bt_stream_get_id(ir_stream),
@@ -645,7 +645,7 @@ bt_component_class_sink_consume_method_status handle_stream_beginning_msg(
 	/*
 	 * Not supported: discarded events or discarded packets support
 	 * without packets support. Packets are the way to know where
-	 * discarded events/packets occured in CTF 1.8.
+	 * discarded events/packets occurred in CTF 1.8.
 	 */
 	if (!bt_stream_class_supports_packets(ir_sc)) {
 		BT_ASSERT(!bt_stream_class_supports_discarded_packets(ir_sc));
@@ -820,7 +820,7 @@ bt_component_class_sink_consume_method_status handle_discarded_events_msg(
 	if (stream->packet_state.is_open &&
 			stream->sc->discarded_events_has_ts) {
 		BT_COMP_LOGE("Unsupported discarded events message with "
-			"default clock snapshots occuring within a packet: "
+			"default clock snapshots occurring within a packet: "
 			"stream-id=%" PRIu64 ", stream-name=\"%s\", "
 			"trace-name=\"%s\", path=\"%s/%s\"",
 			bt_stream_get_id(ir_stream),

@@ -162,7 +162,7 @@ operations:
 
   <dt>
     \anchor api-msg-iter-op-seek-ns
-    Make the message iterator seek a message occuring at or after a
+    Make the message iterator seek a message occurring at or after a
     given time (in nanoseconds) from its clock class origin
   </dt>
   <dd>
@@ -645,7 +645,7 @@ typedef enum bt_message_iterator_can_seek_ns_from_origin_status {
 /*!
 @brief
     Returns whether or not the message iterator \bt_p{message_iterator}
-    can currently seek a \bt_msg occuring at or after
+    can currently seek a \bt_msg occurring at or after
     \bt_p{ns_from_origin} nanoseconds from its
     \ref api-tir-clock-cls-origin "clock class origin".
 
@@ -663,7 +663,7 @@ call bt_message_iterator_seek_ns_from_origin().
     Requested time point to seek.
 @param[out] can_seek_ns_from_origin
     <strong>On success</strong>, \bt_p{*can_seek_ns_from_origin} is
-    #BT_TRUE if \bt_p{message_iterator} can seek a message occuring at
+    #BT_TRUE if \bt_p{message_iterator} can seek a message occurring at
     or after \bt_p{ns_from_origin} nanoseconds from its clock class
     origin.
 
@@ -680,7 +680,7 @@ call bt_message_iterator_seek_ns_from_origin().
 @bt_pre_not_null{can_seek_ns_from_origin}
 
 @sa bt_message_iterator_seek_ns_from_origin() &mdash;
-    Makes a message iterator seek a message occuring at or after
+    Makes a message iterator seek a message occurring at or after
     a given time from its clock class origin.
 */
 
@@ -722,7 +722,7 @@ typedef enum bt_message_iterator_seek_ns_from_origin_status {
 /*!
 @brief
     Makes the message iterator \bt_p{message_iterator} seek a \bt_msg
-    occuring at or after \bt_p{ns_from_origin} nanoseconds from its
+    occurring at or after \bt_p{ns_from_origin} nanoseconds from its
     \ref api-tir-clock-cls-origin "clock class origin".
 
 See \ref api-msg-iter-op-seek-ns "this operation's documentation".
@@ -732,7 +732,7 @@ without performing any other \ref api-msg-iter-ops "operation" on
 \bt_p{message_iterator}, before you call this function.
 
 @param[in] message_iterator
-    Message iterator to seek to a message occuring at or after
+    Message iterator to seek to a message occurring at or after
     \bt_p{ns_from_origin} nanoseconds from its clock class origin.
 @param[in] ns_from_origin
     Time point to seek.
@@ -753,7 +753,7 @@ without performing any other \ref api-msg-iter-ops "operation" on
 
 @sa bt_message_iterator_can_seek_ns_from_origin() &mdash;
     Returns whether or not a message iterator can currently seek a
-    message occuring at or after a given time from its clock class
+    message occurring at or after a given time from its clock class
     origin.
 */
 extern bt_message_iterator_seek_ns_from_origin_status

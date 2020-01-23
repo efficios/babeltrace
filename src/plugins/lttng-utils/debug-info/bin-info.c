@@ -300,7 +300,7 @@ end:
  *
  * @returns			1 on if the build id of stored in `bin` matches
  *				the build id of the ondisk file.
- *				0 on if they are different or an error occured.
+ *				0 on if they are different or an error occurred.
  */
 static
 int is_build_id_matching(struct bin_info *bin)

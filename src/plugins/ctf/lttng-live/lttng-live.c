@@ -1065,7 +1065,7 @@ enum lttng_live_iterator_status next_stream_iterator_for_trace(
 
 			/*
 			 * Check if the message of the current live stream
-			 * iterator occured at the exact same time or after the
+			 * iterator occurred at the exact same time or after the
 			 * last message returned by this component's message
 			 * iterator. If not, we return an error.
 			 */

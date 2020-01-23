@@ -213,7 +213,7 @@ struct debug_info_source *debug_info_source_create_from_bin(
 			g_strdup_printf("%"PRId64, src_loc->line_no);
 		if (!debug_info_src->line_no) {
 			BT_COMP_LOGE_APPEND_CAUSE(self_comp,
-				"Error occured when setting `line_no` field.");
+				"Error occurred when setting `line_no` field.");
 			goto error;
 		}
 

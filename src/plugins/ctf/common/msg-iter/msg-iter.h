@@ -164,7 +164,7 @@ struct ctf_msg_iter_medium_ops {
 	 *     #CTF_MSG_ITER_MEDIUM_STATUS_EOF on the \em following
 	 *     call.
 	 *   - <b>#CTF_MSG_ITER_MEDIUM_STATUS_ERROR</b>: A fatal
-	 *     error occured during this operation. In this case, the
+	 *     error occurred during this operation. In this case, the
 	 *     message iterator function called by the user returns
 	 *     #CTF_MSG_ITER_STATUS_ERROR.
 	 *
