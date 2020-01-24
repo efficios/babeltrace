@@ -37,7 +37,7 @@ manual page, to learn more about the project.
 [NOTE]
 .Babeltrace{nbsp}1 vs. {bt2}
 ====
-The Babeltrace project exists since 2010. In 2019, {bt2} was
+The Babeltrace project exists since 2010. In 2020, {bt2} was
 released. {bt2} is a complete rewrite of the library, Python
 bindings, and CLI. It is plugin-based and offers much more features and
 potential than Babeltrace{nbsp}1 while showing comparable performance.
