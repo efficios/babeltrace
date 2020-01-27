@@ -429,7 +429,7 @@ graph topologies. They are:
         to a file.
 
         This is equivalent to the \c text output format of the
-        <a href="http://man7.org/linux/man-pages/man1/babeltrace.1.html">Babeltrace&nbsp;1
+        <a href="https://manpages.debian.org/stretch/babeltrace/babeltrace.1.en.html">Babeltrace&nbsp;1
         command-line tool</a>.
 
         See \bt_man{babeltrace2-sink.text.pretty,7}.
