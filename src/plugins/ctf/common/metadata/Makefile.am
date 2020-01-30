@@ -10,7 +10,12 @@ libctf_parser_la_SOURCES = lexer.l parser.y objstack.c
 # with bt_.
 libctf_parser_la_CPPFLAGS = $(AM_CPPFLAGS) \
 		-include $(srcdir)/scanner-symbols.h
-libctf_parser_la_CFLAGS = $(AM_CFLAGS) -Wno-unused-function
+
+# This library contains (mostly) generated code, silence some warnings that it
+# produces.
+libctf_parser_la_CFLAGS = $(AM_CFLAGS) \
+	-Wno-unused-function \
+	-Wno-null-dereference
 
 libctf_ast_la_SOURCES = \
 	visitor-generate-ir.c \
