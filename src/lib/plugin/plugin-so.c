@@ -176,7 +176,7 @@ int bt_plugin_so_shared_lib_handle_create(
 	int status = BT_FUNC_STATUS_OK;
 
 	BT_ASSERT(shared_lib_handle);
-	BT_LOGI("Creating shared library handle: path=\"%s\"", path);
+	BT_LOGI("Creating shared library handle: path=\"%s\"", path ? path : "(null)");
 	*shared_lib_handle = g_new0(struct bt_plugin_so_shared_lib_handle, 1);
 	if (!*shared_lib_handle) {
 		BT_LIB_LOGE_APPEND_CAUSE("Failed to allocate one shared library handle.");
@@ -220,7 +220,7 @@ end:
 	BT_ASSERT(*shared_lib_handle || status != BT_FUNC_STATUS_OK);
 	if (*shared_lib_handle) {
 		BT_LOGI("Created shared library handle: path=\"%s\", addr=%p",
-			path, *shared_lib_handle);
+			path ? path : "(null)", *shared_lib_handle);
 	}
 
 	return status;
