@@ -84,6 +84,11 @@ BT_PLUGIN_MODULE();
  * component class is removed from this list, the shared library handle
  * object's reference count falls to zero and the shared library is
  * finally closed.
+ *
+ * We're not using a GLib linked list here because this destructor is
+ * called after GLib's thread-specific data is destroyed, which contains
+ * the allocated memory for GLib data structures (what's used by
+ * g_slice_alloc()).
  */
 
 static
