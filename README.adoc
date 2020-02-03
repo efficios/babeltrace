@@ -91,12 +91,6 @@ _**If you need the https://lttng.org/[LTTng] debug information filter component 
       (Debian/Ubuntu: `libelf-dev` and `libdw-dev`;
       Fedora: `elfutils-devel` and `elfutils-libelf-devel`)
 
-_**If you need the `bt2` Python bindings documentation**_::
-    * Python{nbsp}≥{nbsp}3.4
-      (Debian/Ubuntu/Fedora: `python3`)
-    * https://www.sphinx-doc.org/en/master/[Sphinx]{nbsp}≥{nbsp}1.6.5
-      for Python{nbsp}3 (Debian/Ubuntu/Fedora: `python3-sphinx`)
-
 _**If you need the {bt2}{nbsp}C{nbsp}API HTML documentation**_::
     * http://www.doxygen.nl/[Doxygen]{nbsp}≥{nbsp}1.8.6
 

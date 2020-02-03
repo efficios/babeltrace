@@ -366,14 +366,6 @@ AC_ARG_ENABLE([python-bindings],
   [enable_python_bindings=no]
 )
 
-# Python bindings documentation
-# Disabled by default
-AC_ARG_ENABLE([python-bindings-doc],
-  [AC_HELP_STRING([--enable-python-bindings-doc], [build the Python bindings documentation])],
-  [], dnl AC_ARG_ENABLE will fill enable_python_bindings_doc with the user choice
-  [enable_python_bindings_doc=no]
-)
-
 # Python plugins
 # Disabled by default
 AC_ARG_ENABLE([python-plugins],
@@ -425,7 +417,6 @@ AC_ARG_ENABLE([man-pages],
 
 # Set automake variables for optionnal feature conditionnals in Makefile.am
 AM_CONDITIONAL([ENABLE_PYTHON_BINDINGS], [test "x$enable_python_bindings" = xyes])
-AM_CONDITIONAL([ENABLE_PYTHON_BINDINGS_DOC], [test "x$enable_python_bindings_doc" = xyes])
 AM_CONDITIONAL([ENABLE_PYTHON_PLUGINS], [test "x$enable_python_plugins" = xyes])
 AM_CONDITIONAL([ENABLE_DEBUG_INFO], [test "x$enable_debug_info" = xyes])
 AM_CONDITIONAL([ENABLE_API_DOC], [test "x$enable_api_doc" = xyes])
@@ -462,12 +453,6 @@ AC_SUBST([ENABLE_DEBUG_INFO_VAL])
 
 
 # Check for conflicting optional features user choices
-
-AS_IF([test "x$enable_python_bindings" = xno],
-  [
-    AS_IF([test "x$enable_python_bindings_doc" = xyes], [AC_MSG_ERROR([--enable-python-bindings-doc was specified without --enable-python-bindings])])
-  ]
-)
 
 AS_IF([test "x$enable_built_in_plugins" = xyes],
   [
@@ -538,15 +523,6 @@ AS_IF([test "x$enable_python_bindings" = xyes || test "x$enable_python_plugins" 
     AC_MSG_ERROR([Cannot find a suitable python-config. You can override the python-config path with the PYTHON_CONFIG environment variable.])
   ])
 ])
-
-AS_IF([test "x$enable_python_bindings_doc" = xyes],
-  [
-    AM_CHECK_PYTHON_SPHINX([PYTHON])
-    AS_IF([test "x$PYTHON_SPHINX_EXISTS" = xno],
-      [AC_MSG_ERROR([The Sphinx package for Python 3 is required to build the Python bindings documentation])]
-    )
-  ]
-)
 
 AS_IF([test "x$enable_debug_info" = xyes],
   [
@@ -735,8 +711,6 @@ AC_CONFIG_FILES([
 	doc/api/Makefile
 	doc/api/libbabeltrace2/Doxyfile
 	doc/api/libbabeltrace2/Makefile
-	doc/bindings/Makefile
-	doc/bindings/python/Makefile
 	doc/contributing-images/Makefile
 	doc/Makefile
 	doc/man/asciidoc-attrs.conf
@@ -922,8 +896,6 @@ m4_popdef([build_man_pages_msg])
 
 test "x$enable_api_doc" = "xyes" && value=1 || value=0
 PPRINT_PROP_BOOL([HTML API documentation], $value)
-test "x$enable_python_bindings_doc" = "xyes" && value=1 || value=0
-PPRINT_PROP_BOOL([Python bindings documentation], $value)
 
 AS_ECHO
 PPRINT_SUBTITLE([Logging])
