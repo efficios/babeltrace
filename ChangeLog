@@ -1,3 +1,18 @@
+2020-02-04 Babeltrace 2.0.1
+	* fix: Remove empty python bindings documentation
+	* README: Babeltrace 2 was released in 2020
+	* fix: set autoconf package name to babeltrace2
+	* Typo: occured -> occurred
+	* .gitignore: Add missing bt2/native_bt.d
+	* fix: build failure on ppc64el with '-Werror=format-overflow='
+	* Silence -Wnull-dereference warning in generated CTF parser code
+	* plugin-so.c: add comment about why we're not using a GLib linked list
+	* doc: graph.h: do not link to `man7.org` for `babeltrace(1)`
+	* fix: common/list.h is LGPL-2.1
+	* fix: build Python bindings with GCC10
+	* fix: use correct function to print 'enum bt_ctf_scope'
+	* Update working version to Babeltrace 2.0.1
+
 2020-01-22 Babeltrace 2.0.0 (National Hot Sauce Day)
 	* cli: colorize version printing
 	* cli: print full version name
