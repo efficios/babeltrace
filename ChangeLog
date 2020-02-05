@@ -1,3 +1,13 @@
+2020-02-05 babeltrace 1.5.8 (National Chocolate Fondue Day)
+	* Fix: lttng-live format: do not error out on empty streams hang up
+	* Fix: lttng-live: ctf_live_packet_seek stream hang up handling
+	* Fix: lib/iterator.c: unbalanced ctx put (leak)
+	* Fix: lttng-live: lttng_live_open_trace_read memory leak
+	* Fix: trace-collection: trace clock use after free
+	* Fix: lttng-live: use-after-free in get_next_index()
+	* Do not use diagnostic pragma when GCC version is lower than 4.6.0
+	* Missing define when not building with gcc
+
 2019-06-25 lttng-tools 1.5.7 (Global Beatles Day)
 	* Cleanup: bitfields: streamline use of underscores
 	* Fix: bitfield: shift undefined/implementation defined behaviors
