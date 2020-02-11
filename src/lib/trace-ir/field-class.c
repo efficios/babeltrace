@@ -391,6 +391,8 @@ struct bt_field_class *create_enumeration_field_class(
 		goto error;
 	}
 
+	enum_fc->is_bit_field_enum = true;
+
 	BT_LIB_LOGD("Created enumeration field class object: %!+F", enum_fc);
 	goto end;
 
@@ -558,8 +560,8 @@ bt_field_class_enumeration_unsigned_get_mapping_labels_for_value(
 				BT_INTEGER_RANGE_SET_RANGE_AT_INDEX(
 					mapping->range_set, j);
 
-			if (value >= range->lower.u &&
-					value <= range->upper.u) {
+			if ((enum_fc->is_bit_field_enum && ((range->lower.u & value) != 0)) ||
+				(value >= range->lower.u &&	value <= range->upper.u)) {
 				g_ptr_array_add(enum_fc->label_buf,
 					mapping->label->str);
 				break;
@@ -599,11 +601,11 @@ bt_field_class_enumeration_signed_get_mapping_labels_for_value(
 				BT_INTEGER_RANGE_SET_RANGE_AT_INDEX(
 					mapping->range_set, j);
 
-			if (value >= range->lower.i &&
-					value <= range->upper.i) {
-				g_ptr_array_add(enum_fc->label_buf,
+			if ((enum_fc->is_bit_field_enum && ((range->lower.i & value) != 0)) ||
+				(value >= range->lower.i && value <= range->upper.i)) {
+					g_ptr_array_add(enum_fc->label_buf,
 					mapping->label->str);
-				break;
+					break;
 			}
 		}
 	}
@@ -668,6 +670,23 @@ add_mapping_to_enumeration_field_class(struct bt_field_class *fc,
 	g_array_append_val(enum_fc->mappings, mapping);
 	BT_LIB_LOGD("Added mapping to enumeration field class: "
 		"%![fc-]+F, label=\"%s\"", fc, label);
+
+	// See if this remains a bit field enum field
+	if (enum_fc->is_bit_field_enum) {
+		if (range_set->ranges->len != 1) {
+			enum_fc->is_bit_field_enum = false;
+		} else {
+			const struct bt_integer_range *range = (const void *)
+				BT_INTEGER_RANGE_SET_RANGE_AT_INDEX(
+					range_set, 0);
+			if ((range->lower.i != range->upper.i) ||
+				!(range->lower.i > 0 && (range->lower.i & (range->lower.i - 1)) == 0)) {
+				enum_fc->is_bit_field_enum = false;
+			}
+		}
+		BT_LIB_LOGD("Checking whether this enumeration field class remains a bit field enum: "
+		"%d", enum_fc->is_bit_field_enum);
+	}
 
 end:
 	return status;

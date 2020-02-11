@@ -290,6 +290,13 @@ struct bt_field_class_enumeration {
 	 * The actual strings are owned by the mappings above.
 	 */
 	GPtrArray *label_buf;
+
+	/*
+	 * This value caches whether the mapping values represent a bit field,
+	 * ie if all mappings have a unique value power of 2. In this case, the
+	 * mapping labels will correspond to the bits set to 1 in the value.
+	 */
+	uint8_t is_bit_field_enum;
 };
 
 struct bt_field_class_real {
