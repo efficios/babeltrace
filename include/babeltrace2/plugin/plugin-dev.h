@@ -2661,12 +2661,30 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
 	static struct __bt_plugin_component_class_descriptor_attribute const * const __bt_plugin_##_type##_component_class_descriptor_attribute_##_id##_##_component_class_id##_##_attr_name##_ptr __BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTES_ATTRS = &__bt_plugin_##_type##_component_class_descriptor_attribute_##_id##_##_component_class_id##_##_attr_name
 
 /*
+ * Clang supports the no_sanitize variable attribute on global variables.
+ * GCC only supports the no_sanitize_address function attribute, which is
+ * not what we need. This is fine because, as far as we have seen, gcc
+ * does not insert red zones around global variables.
+ */
+#if defined(__clang__)
+# if __has_feature(address_sanitizer)
+#  define __bt_plugin_variable_attribute_no_sanitize_address \
+	__attribute__((no_sanitize("address")))
+# else
+#  define __bt_plugin_variable_attribute_no_sanitize_address
+# endif
+#else
+#  define __bt_plugin_variable_attribute_no_sanitize_address
+#endif
+
+/*
  * Variable attributes for a plugin descriptor pointer to be added to
  * the plugin descriptor section (internal use).
  */
 #ifdef __APPLE__
 #define __BT_PLUGIN_DESCRIPTOR_ATTRS \
-	__attribute__((section("__DATA,btp_desc"), used))
+	__attribute__((section("__DATA,btp_desc"), used)) \
+	__bt_plugin_variable_attribute_no_sanitize_address
 
 #define __BT_PLUGIN_DESCRIPTOR_BEGIN_SYMBOL \
 	__start___bt_plugin_descriptors
@@ -2683,7 +2701,8 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
 #else
 
 #define __BT_PLUGIN_DESCRIPTOR_ATTRS \
-	__attribute__((section("__bt_plugin_descriptors"), used))
+	__attribute__((section("__bt_plugin_descriptors"), used)) \
+	__bt_plugin_variable_attribute_no_sanitize_address
 
 #define __BT_PLUGIN_DESCRIPTOR_BEGIN_SYMBOL \
 	__start___bt_plugin_descriptors
@@ -2702,7 +2721,8 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
  */
 #ifdef __APPLE__
 #define __BT_PLUGIN_DESCRIPTOR_ATTRIBUTES_ATTRS \
-	__attribute__((section("__DATA,btp_desc_att"), used))
+	__attribute__((section("__DATA,btp_desc_att"), used)) \
+	__bt_plugin_variable_attribute_no_sanitize_address
 
 #define __BT_PLUGIN_DESCRIPTOR_ATTRIBUTES_BEGIN_SYMBOL \
 	__start___bt_plugin_descriptor_attributes
@@ -2719,7 +2739,8 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
 #else
 
 #define __BT_PLUGIN_DESCRIPTOR_ATTRIBUTES_ATTRS \
-	__attribute__((section("__bt_plugin_descriptor_attributes"), used))
+	__attribute__((section("__bt_plugin_descriptor_attributes"), used)) \
+	__bt_plugin_variable_attribute_no_sanitize_address
 
 #define __BT_PLUGIN_DESCRIPTOR_ATTRIBUTES_BEGIN_SYMBOL \
 	__start___bt_plugin_descriptor_attributes
@@ -2738,7 +2759,8 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
  */
 #ifdef __APPLE__
 #define __BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRS \
-	__attribute__((section("__DATA,btp_cc_desc"), used))
+	__attribute__((section("__DATA,btp_cc_desc"), used)) \
+	__bt_plugin_variable_attribute_no_sanitize_address
 
 #define __BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_BEGIN_SYMBOL \
 	__start___bt_plugin_component_class_descriptors
@@ -2755,7 +2777,8 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
 #else
 
 #define __BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRS \
-	__attribute__((section("__bt_plugin_component_class_descriptors"), used))
+	__attribute__((section("__bt_plugin_component_class_descriptors"), used)) \
+	__bt_plugin_variable_attribute_no_sanitize_address
 
 #define __BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_BEGIN_SYMBOL \
 	__start___bt_plugin_component_class_descriptors
@@ -2775,7 +2798,8 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
  */
 #ifdef __APPLE__
 #define __BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTES_ATTRS \
-	__attribute__((section("__DATA,btp_cc_desc_att"), used))
+	__attribute__((section("__DATA,btp_cc_desc_att"), used)) \
+	__bt_plugin_variable_attribute_no_sanitize_address
 
 #define __BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTES_BEGIN_SYMBOL \
 	__start___bt_plugin_component_class_descriptor_attributes
@@ -2792,7 +2816,8 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
 #else
 
 #define __BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTES_ATTRS \
-	__attribute__((section("__bt_plugin_component_class_descriptor_attributes"), used))
+	__attribute__((section("__bt_plugin_component_class_descriptor_attributes"), used)) \
+	__bt_plugin_variable_attribute_no_sanitize_address
 
 #define __BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTES_BEGIN_SYMBOL \
 	__start___bt_plugin_component_class_descriptor_attributes
