@@ -1013,8 +1013,8 @@ enum lttng_live_iterator_status next_stream_iterator_for_trace(
 				stream_iter_idx);
 
 		/*
-		 * Find if there is are now current message for this stream
-		 * iterator get it.
+		 * If there is no current message for this stream, go fetch
+		 * one.
 		 */
 		while (!stream_iter->current_msg) {
 			const bt_message *msg = NULL;
