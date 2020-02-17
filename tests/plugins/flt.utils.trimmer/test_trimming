@@ -34,17 +34,19 @@ data_dir="$BT_TESTS_DATADIR/plugins/flt.utils.trimmer"
 temp_stdout_expected=$(mktemp)
 temp_stderr_expected="/dev/null"
 
-plan_tests 32
+plan_tests 56
 
 function run_test
 {
 	local begin_time="$1"
 	local end_time="$2"
-	# with_stream_msgs_cs is set to "true" or "false" by the tests.
+	# with_stream_msgs_cs and with_packet_msgs are set to "true" or "false"
+	# by the tests.
 	local local_args=(
 		"--plugin-path" "$data_dir"
 		"-c" "src.test-trimmer.TheSourceOfAllEvil"
 		"-p" "with-stream-msgs-cs=$with_stream_msgs_cs"
+		"-p" "with-packet-msgs=$with_packet_msgs"
 		"-c" "sink.text.details"
 		"--params=compact=true,with-metadata=false"
 	)
@@ -53,6 +55,12 @@ function run_test
 		test_name="with stream message clock snapshots"
 	else
 		test_name="without stream message clock snapshots"
+	fi
+
+	if [ "$with_packet_msgs" = "true" ]; then
+		test_name="$test_name, with packet messages"
+	else
+		test_name="$test_name, without packet messages"
 	fi
 
 	if [ -n "$begin_time" ]; then
@@ -73,8 +81,9 @@ function run_test
 	ok $? "$test_name"
 }
 
-function test_with_stream_msg_cs {
+function test_with_stream_msg_cs_with_packets {
 	with_stream_msgs_cs="true"
+	with_packet_msgs="true"
 
 	# Baseline (without trimming)
 	cat <<- 'END' > "$temp_stdout_expected"
@@ -236,8 +245,9 @@ function test_with_stream_msg_cs {
 	run_test "" 50
 }
 
-function test_without_stream_msg_cs {
+function test_without_stream_msg_cs_with_packets {
 	with_stream_msgs_cs="false"
+	with_packet_msgs="true"
 
 	# Baseline (without trimming)
 	cat <<- 'END' > "$temp_stdout_expected"
@@ -403,8 +413,223 @@ function test_without_stream_msg_cs {
 	run_test "" 50
 }
 
-test_with_stream_msg_cs
-test_without_stream_msg_cs
+function test_with_stream_msg_cs_without_packets {
+	with_stream_msgs_cs="true"
+	with_packet_msgs="false"
+
+	# Baseline (without trimming)
+	cat <<- 'END' > "$temp_stdout_expected"
+	[100 10,100,000,000,000] {0 0 0} Stream beginning
+	[300 10,300,000,000,000] {0 0 0} Event `event 1` (0)
+	[400 10,400,000,000,000] {0 0 0} Event `event 2` (1)
+	[1000 11,000,000,000,000] {0 0 0} Stream end
+	END
+	run_test "" ""
+
+	# Trim begin at a time before what the clock class can represent
+	cat <<- 'END' > "$temp_stdout_expected"
+	[100 10,100,000,000,000] {0 0 0} Stream beginning
+	[300 10,300,000,000,000] {0 0 0} Event `event 1` (0)
+	[400 10,400,000,000,000] {0 0 0} Event `event 2` (1)
+	[1000 11,000,000,000,000] {0 0 0} Stream end
+	END
+	run_test 50 ""
+
+	# Trim begin before stream beginning
+	cat <<- 'END' > "$temp_stdout_expected"
+	[100 10,100,000,000,000] {0 0 0} Stream beginning
+	[300 10,300,000,000,000] {0 0 0} Event `event 1` (0)
+	[400 10,400,000,000,000] {0 0 0} Event `event 2` (1)
+	[1000 11,000,000,000,000] {0 0 0} Stream end
+	END
+	run_test 10050 ""
+
+	# Trim begin before first event
+	cat <<- 'END' > "$temp_stdout_expected"
+	[250 10,250,000,000,000] {0 0 0} Stream beginning
+	[300 10,300,000,000,000] {0 0 0} Event `event 1` (0)
+	[400 10,400,000,000,000] {0 0 0} Event `event 2` (1)
+	[1000 11,000,000,000,000] {0 0 0} Stream end
+	END
+	run_test 10250 ""
+
+	# Trim begin before second event
+	cat <<- 'END' > "$temp_stdout_expected"
+	[350 10,350,000,000,000] {0 0 0} Stream beginning
+	[400 10,400,000,000,000] {0 0 0} Event `event 2` (1)
+	[1000 11,000,000,000,000] {0 0 0} Stream end
+	END
+
+	run_test 10350 ""
+
+	# Trim begin before packet end
+	cat <<- 'END' > "$temp_stdout_expected"
+	[850 10,850,000,000,000] {0 0 0} Stream beginning
+	[1000 11,000,000,000,000] {0 0 0} Stream end
+	END
+
+	run_test 10850 ""
+
+	# Trim begin after everything
+	cat <<- 'END' > "$temp_stdout_expected"
+	END
+
+	run_test 11050 ""
+
+	# Trim end after stream end
+	cat <<- 'END' > "$temp_stdout_expected"
+	[100 10,100,000,000,000] {0 0 0} Stream beginning
+	[300 10,300,000,000,000] {0 0 0} Event `event 1` (0)
+	[400 10,400,000,000,000] {0 0 0} Event `event 2` (1)
+	[1000 11,000,000,000,000] {0 0 0} Stream end
+	END
+
+	run_test "" 11050
+
+	# Trim end after packet end
+	cat <<- 'END' > "$temp_stdout_expected"
+	[100 10,100,000,000,000] {0 0 0} Stream beginning
+	[300 10,300,000,000,000] {0 0 0} Event `event 1` (0)
+	[400 10,400,000,000,000] {0 0 0} Event `event 2` (1)
+	[950 10,950,000,000,000] {0 0 0} Stream end
+	END
+
+	run_test "" 10950
+
+	# Trim end after second event
+	cat <<- 'END' > "$temp_stdout_expected"
+	[100 10,100,000,000,000] {0 0 0} Stream beginning
+	[300 10,300,000,000,000] {0 0 0} Event `event 1` (0)
+	[400 10,400,000,000,000] {0 0 0} Event `event 2` (1)
+	[450 10,450,000,000,000] {0 0 0} Stream end
+	END
+
+	run_test "" 10450
+
+	# Trim end after first event
+	cat <<- 'END' > "$temp_stdout_expected"
+	[100 10,100,000,000,000] {0 0 0} Stream beginning
+	[300 10,300,000,000,000] {0 0 0} Event `event 1` (0)
+	[350 10,350,000,000,000] {0 0 0} Stream end
+	END
+
+	run_test "" 10350
+
+	# Trim end after packet beginning
+	cat <<- 'END' > "$temp_stdout_expected"
+	[100 10,100,000,000,000] {0 0 0} Stream beginning
+	[250 10,250,000,000,000] {0 0 0} Stream end
+	END
+
+	run_test "" 10250
+
+	# Trim end after stream beginning
+	cat <<- 'END' > "$temp_stdout_expected"
+	[100 10,100,000,000,000] {0 0 0} Stream beginning
+	[150 10,150,000,000,000] {0 0 0} Stream end
+	END
+
+	run_test "" 10150
+
+	# Trim end before everything
+	cat <<- 'END' > "$temp_stdout_expected"
+	END
+
+	run_test "" 10050
+
+	# Trim end at a time before what the clock class can represent
+	cat <<- 'END' > "$temp_stdout_expected"
+	END
+
+	run_test "" 50
+}
+
+function test_without_stream_msg_cs_without_packets {
+	with_stream_msgs_cs="false"
+	with_packet_msgs="false"
+
+	# Baseline (without trimming)
+	cat <<- 'END' > "$temp_stdout_expected"
+	[Unknown] {0 0 0} Stream beginning
+	[300 10,300,000,000,000] {0 0 0} Event `event 1` (0)
+	[400 10,400,000,000,000] {0 0 0} Event `event 2` (1)
+	[Unknown] {0 0 0} Stream end
+	END
+	run_test "" ""
+
+	# Trim begin at a time before what the clock class can represent
+	cat <<- 'END' > "$temp_stdout_expected"
+	[Unknown] {0 0 0} Stream beginning
+	[300 10,300,000,000,000] {0 0 0} Event `event 1` (0)
+	[400 10,400,000,000,000] {0 0 0} Event `event 2` (1)
+	[Unknown] {0 0 0} Stream end
+	END
+	run_test 50 ""
+
+	# Trim begin before stream beginning
+	cat <<- 'END' > "$temp_stdout_expected"
+	[Unknown] {0 0 0} Stream beginning
+	[300 10,300,000,000,000] {0 0 0} Event `event 1` (0)
+	[400 10,400,000,000,000] {0 0 0} Event `event 2` (1)
+	[Unknown] {0 0 0} Stream end
+	END
+	run_test 10050 ""
+
+	# Trim begin before second event
+	cat <<- 'END' > "$temp_stdout_expected"
+	[350 10,350,000,000,000] {0 0 0} Stream beginning
+	[400 10,400,000,000,000] {0 0 0} Event `event 2` (1)
+	[Unknown] {0 0 0} Stream end
+	END
+
+	run_test 10350 ""
+
+	# Trim begin after everything
+	cat <<- 'END' > "$temp_stdout_expected"
+	END
+
+	run_test 11050 ""
+
+	# Trim end after stream end
+	cat <<- 'END' > "$temp_stdout_expected"
+	[Unknown] {0 0 0} Stream beginning
+	[300 10,300,000,000,000] {0 0 0} Event `event 1` (0)
+	[400 10,400,000,000,000] {0 0 0} Event `event 2` (1)
+	[Unknown] {0 0 0} Stream end
+	END
+
+	run_test "" 11050
+
+	# Trim end after first event
+	cat <<- 'END' > "$temp_stdout_expected"
+	[Unknown] {0 0 0} Stream beginning
+	[300 10,300,000,000,000] {0 0 0} Event `event 1` (0)
+	[350 10,350,000,000,000] {0 0 0} Stream end
+	END
+
+	run_test "" 10350
+
+	# Trim end after stream beginning
+	cat <<- 'END' > "$temp_stdout_expected"
+	[Unknown] {0 0 0} Stream beginning
+	[Unknown] {0 0 0} Stream end
+	END
+
+	run_test "" 10150
+
+	# Trim end at a time before what the clock class can represent
+	cat <<- 'END' > "$temp_stdout_expected"
+	[Unknown] {0 0 0} Stream beginning
+	[Unknown] {0 0 0} Stream end
+	END
+
+	run_test "" 50
+}
+
+test_with_stream_msg_cs_with_packets
+test_without_stream_msg_cs_with_packets
+test_with_stream_msg_cs_without_packets
+test_without_stream_msg_cs_without_packets
 
 # Do not `rm` $temp_stderr_expected because it's set to `/dev/null` right now
 # and that would print an error.
