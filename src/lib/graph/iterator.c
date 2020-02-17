@@ -1416,7 +1416,7 @@ skip_msg:
 		struct auto_seek_stream_state *stream_state;
 
 		stream_state = g_hash_table_lookup(stream_states,
-			event_msg->event->packet->stream);
+			event_msg->event->stream);
 		BT_ASSERT_DBG(stream_state);
 
 		// HELPME: are we sure that event messages have clock snapshots at this point?
