@@ -1304,50 +1304,52 @@ create_stream_state_entry(
 	 * the support for not having them is
 	 * implemented.
 	 */
-	if (!bt_stream_class_packets_have_beginning_default_clock_snapshot(
-			sc)) {
-		BT_COMP_LOGE_APPEND_CAUSE(trimmer_comp->self_comp,
-			"Unsupported stream: packets have no beginning clock snapshot: "
-			"stream-addr=%p, "
-			"stream-id=%" PRIu64 ", "
-			"stream-name=\"%s\"",
-			stream, bt_stream_get_id(stream),
-			bt_stream_get_name(stream));
-		status = BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_ERROR;
-		goto end;
-	}
+	if (bt_stream_class_supports_packets(sc)) {
+		if (!bt_stream_class_packets_have_beginning_default_clock_snapshot(
+				sc)) {
+			BT_COMP_LOGE_APPEND_CAUSE(trimmer_comp->self_comp,
+				"Unsupported stream: packets have no beginning clock snapshot: "
+				"stream-addr=%p, "
+				"stream-id=%" PRIu64 ", "
+				"stream-name=\"%s\"",
+				stream, bt_stream_get_id(stream),
+				bt_stream_get_name(stream));
+			status = BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_ERROR;
+			goto end;
+		}
 
-	if (!bt_stream_class_packets_have_end_default_clock_snapshot(
-			sc)) {
-		BT_COMP_LOGE_APPEND_CAUSE(trimmer_comp->self_comp,
-			"Unsupported stream: packets have no end clock snapshot: "
-			"stream-addr=%p, "
-			"stream-id=%" PRIu64 ", "
-			"stream-name=\"%s\"",
-			stream, bt_stream_get_id(stream),
-			bt_stream_get_name(stream));
-		status = BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_ERROR;
-		goto end;
+		if (!bt_stream_class_packets_have_end_default_clock_snapshot(
+				sc)) {
+			BT_COMP_LOGE_APPEND_CAUSE(trimmer_comp->self_comp,
+				"Unsupported stream: packets have no end clock snapshot: "
+				"stream-addr=%p, "
+				"stream-id=%" PRIu64 ", "
+				"stream-name=\"%s\"",
+				stream, bt_stream_get_id(stream),
+				bt_stream_get_name(stream));
+			status = BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_ERROR;
+			goto end;
+		}
+
+		if (bt_stream_class_supports_discarded_packets(sc) &&
+				!bt_stream_class_discarded_packets_have_default_clock_snapshots(sc)) {
+			BT_COMP_LOGE_APPEND_CAUSE(trimmer_comp->self_comp,
+				"Unsupported stream: discarded packets "
+				"have no clock snapshots: "
+				"stream-addr=%p, "
+				"stream-id=%" PRIu64 ", "
+				"stream-name=\"%s\"",
+				stream, bt_stream_get_id(stream),
+				bt_stream_get_name(stream));
+			status = BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_ERROR;
+			goto end;
+		}
 	}
 
 	if (bt_stream_class_supports_discarded_events(sc) &&
 			!bt_stream_class_discarded_events_have_default_clock_snapshots(sc)) {
 		BT_COMP_LOGE_APPEND_CAUSE(trimmer_comp->self_comp,
 			"Unsupported stream: discarded events have no clock snapshots: "
-			"stream-addr=%p, "
-			"stream-id=%" PRIu64 ", "
-			"stream-name=\"%s\"",
-			stream, bt_stream_get_id(stream),
-			bt_stream_get_name(stream));
-		status = BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_ERROR;
-		goto end;
-	}
-
-	if (bt_stream_class_supports_discarded_packets(sc) &&
-			!bt_stream_class_discarded_packets_have_default_clock_snapshots(sc)) {
-		BT_COMP_LOGE_APPEND_CAUSE(trimmer_comp->self_comp,
-			"Unsupported stream: discarded packets "
-			"have no clock snapshots: "
 			"stream-addr=%p, "
 			"stream-id=%" PRIu64 ", "
 			"stream-name=\"%s\"",
