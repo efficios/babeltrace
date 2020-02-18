@@ -660,25 +660,35 @@ target.
 CFLAGS=${save_CFLAGS}
 
 # Detect C and LD warning flags supported by the compiler.
-AX_COMPILER_FLAGS(
-	[WARN_CFLAGS], dnl CFLAGS variable name
-	[WARN_LDFLAGS], dnl LDFLAGS variable name (unused for now)
-	[], dnl is-release
-	[], dnl Extra base CFLAGS
-	[ dnl Extra "yes" CFLAGS
-		dnl Disable these flags, either because we don't want them
-		dnl or because we want them but are not ready to enable them
-		dnl yet.
-		-Wno-sign-compare dnl
-		-Wno-inline dnl
-		-Wno-declaration-after-statement dnl
-		-Wno-switch-enum dnl
-		-Wno-switch-default dnl
-		-Wno-packed dnl
-		-Wno-pointer-arith dnl
+
+# Detect warning flags supported by the compiler, append them to WARN_CFLAGS.
+#
+# Pass -Werror as an extra flag during the test: this is needed to make the
+# -Wunknown-warning-option diagnostic fatal with clang.
+AX_APPEND_COMPILE_FLAGS([ dnl
+		-Wall dnl
+		-Wextra dnl
+		-Wstrict-prototypes dnl
+		-Wmissing-prototypes dnl
+		-Wmissing-declarations dnl
+		-Wnull-dereference dnl
+		-Wundef dnl
+		-Wredundant-decls dnl
+		-Wshadow dnl
+		-Wjump-misses-init dnl
+		-Wtautological-constant-out-of-range-compare dnl
+		-Wnested-externs dnl
+		-Wwrite-strings dnl
+		-Wformat=2 dnl
 		-Wno-format-nonliteral dnl
-		-Wno-double-promotion dnl
-		-Wno-cast-align dnl
+		-Wstrict-aliasing dnl
+		-Wmissing-noreturn dnl
+		-Winit-self dnl
+		-Wduplicated-cond dnl
+		-Wduplicated-branches dnl
+		-Wlogical-op dnl
+		-Wno-unused-parameter dnl
+		-Wno-sign-compare dnl
 		dnl
 		dnl Some versions of SWIG (like 3.0.12) generate code that produces
 		dnl -Wcast-function-type warnings.  This warning is present in gcc >= 8.  This
@@ -692,24 +702,32 @@ AX_COMPILER_FLAGS(
 		dnl
 		dnl Ref: https://github.com/swig/swig/issues/1259
 		-Wno-cast-function-type dnl
-	])
+		-Wno-missing-field-initializers dnl
+	],
+	[WARN_CFLAGS],
+	[-Werror])
 
-# CFLAGS from AX_COMPILER_FLAGS.
-AM_CFLAGS="${AM_CFLAGS} ${WARN_CFLAGS}"
+# When given, add -Werror to WARN_CFLAGS.
+AC_ARG_ENABLE([Werror],
+	[AS_HELP_STRING([--enable-Werror], [Treat compiler warnings as errors.])]
+)
+AS_IF([test "x$enable_Werror" = "xyes"],
+	[WARN_CFLAGS="${WARN_CFLAGS} -Werror"]
+)
 
-# The test used in AX_COMPILER_FLAGS, generated using AC_LANG_PROGRAM, is
+# The test used in AX_APPEND_COMPILE_FLAGS, generated using AC_LANG_PROGRAM, is
 # written in such a way that it triggers a -Wold-style-definition warning.  So
-# if the user has -Werror in their CFLAGS, that warning flag will end up
-# disabled, because the test program will not build.
+# this warning always ends up disabled if we put it there, because the test
+# program does not build.
 #
 # Enable it here unconditionally.  It is supported by GCC >= 4.8 and by Clang
 # (it is accepted for compatibility although it has no effect), and there is
 # not reason to not want it.
 
-AM_CFLAGS="${AM_CFLAGS} -Wold-style-definition"
+WARN_CFLAGS="${WARN_CFLAGS} -Wold-style-definition"
 
-# We want this one to always be an error.
-AM_CFLAGS="${AM_CFLAGS} -Werror=implicit-function-declaration"
+# CFLAGS from AX_APPEND_COMPILE_FLAGS.
+AM_CFLAGS="${AM_CFLAGS} ${WARN_CFLAGS}"
 
 # Done for AM_CFLAGS.
 AC_SUBST(AM_CFLAGS)
