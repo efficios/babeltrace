@@ -41,7 +41,9 @@ succeed_traces="$BT_CTF_TRACES_PATH/succeed"
 test_ctf_single() {
 	local name="$1"
 	local in_trace_dir="$2"
-	local temp_out_trace_dir="$(mktemp -d)"
+	local temp_out_trace_dir
+
+	temp_out_trace_dir="$(mktemp -d)"
 
 	diag "Converting trace '$name' to CTF through 'sink.ctf.fs'"
 	"$BT_TESTS_BT2_BIN" >/dev/null "$in_trace_dir" -o ctf -w "$temp_out_trace_dir"
@@ -70,7 +72,9 @@ test_ctf_existing_single() {
 
 test_ctf_gen_single() {
 	local name="$1"
-	local temp_gen_trace_dir="$(mktemp -d)"
+	local temp_gen_trace_dir
+
+	temp_gen_trace_dir="$(mktemp -d)"
 
 	diag "Generating trace '$name'"
 
