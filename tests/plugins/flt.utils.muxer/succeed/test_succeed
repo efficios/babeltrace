@@ -26,7 +26,7 @@ else
 	UTILSSH="$(dirname "$0")/../../../utils/utils.sh"
 fi
 
-# shellcheck source=../../utils/utils.sh
+# shellcheck source=../../../utils/utils.sh
 source "$UTILSSH"
 
 data_dir="$BT_TESTS_DATADIR/plugins/flt.utils.muxer"
@@ -67,5 +67,5 @@ test_cases=(
 
 for i in "${test_cases[@]}"
 do
-	run_test $i
+	run_test "$i"
 done
