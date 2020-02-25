@@ -53,7 +53,7 @@ test_bt_convert_run_args() {
 test_bt_convert_fails() {
 	local what="$1"
 	local convert_args="$2"
-	local expected_error_str="${3:-}"
+	local expected_error_str="$3"
 
 	# Split argument string into array.
 	IFS=' ' read -ra convert_args_array <<< "$convert_args"
@@ -66,14 +66,13 @@ test_bt_convert_fails() {
 	bt_diff /dev/null "${tmp_stdout}"
 	ok $? "$what: nothing is printed on stdout"
 
-	if [ -n "${expected_error_str}" ]; then
-		grep --quiet "$expected_error_str" "$tmp_stderr"
-		status=$?
-		ok "$status" "FAILS: $what, error message"
-		if [ "$status" -ne 0 ]; then
-			diag "Expected error string '${expected_error_str}' not found in stderr:"
-			diag "$(cat ${tmp_stderr})"
-		fi
+	# Check for expected error string in stderr.
+	grep --quiet --fixed-strings -e "$expected_error_str" "$tmp_stderr"
+	local status=$?
+	ok "$status" "$what: expected error message"
+	if [ "$status" -ne 0 ]; then
+		diag "Expected error string '${expected_error_str}' not found in stderr:"
+		diag "$(cat "${tmp_stderr}")"
 	fi
 }
 
@@ -90,7 +89,7 @@ if [ "$BT_OS_TYPE" = "mingw" ]; then
 	output_path=$(cygpath -m "$output_path")
 fi
 
-plan_tests 130
+plan_tests 161
 
 test_bt_convert_run_args 'path non-option arg' "$path_to_trace" "--component auto-disc-source-ctf-fs:source.ctf.fs --params 'inputs=[\"$path_to_trace\"]' --component pretty:sink.text.pretty --component muxer:filter.utils.muxer --connect auto-disc-source-ctf-fs:muxer --connect muxer:pretty"
 test_bt_convert_run_args 'path non-option args' "$path_to_trace $path_to_trace2" "--component auto-disc-source-ctf-fs:source.ctf.fs --params 'inputs=[\"$path_to_trace\", \"${path_to_trace2}\"]' --component pretty:sink.text.pretty --component muxer:filter.utils.muxer --connect auto-disc-source-ctf-fs:muxer --connect muxer:pretty"
@@ -127,37 +126,164 @@ test_bt_convert_run_args 'path non-option arg + -o dummy' "$path_to_trace -o dum
 test_bt_convert_run_args 'path non-option arg + -o ctf + --output' "$path_to_trace -o ctf --output $output_path" "--component auto-disc-source-ctf-fs:source.ctf.fs --params 'inputs=[\"$path_to_trace\"]' --component sink-ctf-fs:sink.ctf.fs --params 'path=\"$output_path\"' --component muxer:filter.utils.muxer --connect auto-disc-source-ctf-fs:muxer --connect muxer:sink-ctf-fs"
 test_bt_convert_run_args 'path non-option arg + user sink with log level' "$path_to_trace -c sink.mein.sink -lW" "--component sink.mein.sink:sink.mein.sink --log-level W --component auto-disc-source-ctf-fs:source.ctf.fs --params 'inputs=[\"$path_to_trace\"]' --component muxer:filter.utils.muxer --connect auto-disc-source-ctf-fs:muxer --connect 'muxer:sink\.mein\.sink'"
 
-test_bt_convert_fails 'bad --component format (plugin only)' '--component salut'
-test_bt_convert_fails 'bad --component format (name and plugin only)' '--component name:salut'
-test_bt_convert_fails 'bad --component format (name only)' '--component name:'
-test_bt_convert_fails 'bad --component format (extra dot found)' '--component name:source.plugin.comp.cls'
-test_bt_convert_fails 'duplicate component name' '--component hello:sink.a.b --component hello:source.c.d'
-test_bt_convert_fails 'unknown option' '--component hello:sink.a.b --salut'
-test_bt_convert_fails '--params without current component' '--params lol=23'
-test_bt_convert_fails 'duplicate --begin' '--begin abc --clock-seconds --begin cde'
-test_bt_convert_fails 'duplicate --end' '--begin abc --end xyz --clock-seconds --end cde'
-test_bt_convert_fails '--begin and --timerange' '--begin abc --clock-seconds --timerange abc,def'
-test_bt_convert_fails '--end and --timerange' '--end abc --clock-seconds --timerange abc,def'
-test_bt_convert_fails 'bad --timerange format (1)' '--timerange abc'
-test_bt_convert_fails 'bad --timerange format (2)' '--timerange abc,'
-test_bt_convert_fails 'bad --timerange format (3)' '--timerange ,cde'
-test_bt_convert_fails 'bad --fields format' '--fields salut'
-test_bt_convert_fails 'bad --names format' '--names salut'
-test_bt_convert_fails 'unknown -i' '-i lol'
-test_bt_convert_fails 'duplicate -i' '-i lttng-live --clock-seconds --input-format=ctf'
-test_bt_convert_fails 'unknown -o' '-o lol'
-test_bt_convert_fails 'duplicate -o' '-o dummy --clock-seconds --output-format=text'
-test_bt_convert_fails '--run-args and --run-args-0' "$path_to_trace --run-args --run-args-0"
-test_bt_convert_fails '-o ctf-metadata without path' '-o ctf-metadata'
-test_bt_convert_fails '-i lttng-live and implicit source.ctf.fs' '-i lttng-live net://some-host/host/target/session --clock-offset=23'
-test_bt_convert_fails 'implicit source.ctf.fs without path' '--clock-offset=23'
-test_bt_convert_fails 'implicit source.ctf.lttng-live without URL' '-i lttng-live'
-test_bt_convert_fails 'no source' '-o text'
-test_bt_convert_fails '-o ctf without --output' 'my-trace -o ctf'
-test_bt_convert_fails '-o ctf + --output with implicit sink.text.pretty' "my-trace -o ctf --output $output_path --no-delta"
-test_bt_convert_fails '--stream-intersection' "$path_to_trace --stream-intersection"
-test_bt_convert_fails 'two sinks with -o dummy + --clock-seconds' "$path_to_trace -o dummy --clock-seconds"
-test_bt_convert_fails 'path non-option arg + user sink + -o text' "$path_to_trace --component=sink.abc.def -o text"
+test_bt_convert_fails \
+	'bad --component format (plugin only)' \
+	'--component salut' \
+	"Invalid format for --component option's argument:"
+
+test_bt_convert_fails \
+	'bad --component format (name and plugin only)' \
+	'--component name:salut' \
+	"Missing component class type (\`source\`, \`filter\`, or \`sink\`)."
+
+test_bt_convert_fails \
+	'bad --component format (name only)' \
+	'--component name:' \
+	"Missing component class type (\`source\`, \`filter\`, or \`sink\`)."
+
+test_bt_convert_fails \
+	'bad --component format (extra dot found)' \
+	'--component name:source.plugin.comp.cls' \
+	"Invalid format for --component option's argument:"
+
+test_bt_convert_fails \
+	'duplicate component name' \
+	'--component hello:sink.a.b --component hello:source.c.d' \
+	'Duplicate component instance name:'
+
+test_bt_convert_fails \
+	'unknown option' \
+	'--component hello:sink.a.b --salut' \
+	"Unknown option \`--salut\`"
+
+# The error string spans two lines in this error message, it's not convenient to
+# check for multiple lines, so we just check the first line.
+test_bt_convert_fails \
+	'--params without current component' \
+	'--params lol=23' \
+	"No current component (--component option) or non-option argument of which to"
+
+test_bt_convert_fails \
+	'duplicate --begin' \
+	'--begin abc --clock-seconds --begin cde' \
+	'At --begin option: --begin or --timerange option already specified'
+
+test_bt_convert_fails \
+	'duplicate --end' \
+	'--begin abc --end xyz --clock-seconds --end cde' \
+	'At --end option: --end or --timerange option already specified'
+
+test_bt_convert_fails \
+	'--begin and --timerange' \
+	'--begin abc --clock-seconds --timerange abc,def' \
+	'At --timerange option: --begin, --end, or --timerange option already specified'
+
+test_bt_convert_fails \
+	'--end and --timerange' \
+	'--end abc --clock-seconds --timerange abc,def' \
+	'At --timerange option: --begin, --end, or --timerange option already specified'
+
+test_bt_convert_fails \
+	'bad --timerange format (1)' \
+	'--timerange abc' \
+	"Invalid --timerange option's argument: expecting BEGIN,END or [BEGIN,END]:"
+
+test_bt_convert_fails \
+	'bad --timerange format (2)' \
+	'--timerange abc,' \
+	"Invalid --timerange option's argument: expecting BEGIN,END or [BEGIN,END]:"
+
+test_bt_convert_fails \
+	'bad --timerange format (3)' \
+	'--timerange ,cde' \
+	"Invalid --timerange option's argument: expecting BEGIN,END or [BEGIN,END]:"
+
+test_bt_convert_fails \
+	'bad --fields format' \
+	'--fields salut' \
+	"Unknown field: \`salut\`."
+
+test_bt_convert_fails \
+	'bad --names format' \
+	'--names salut' \
+	"Unknown name: \`salut\`."
+
+test_bt_convert_fails \
+	'unknown -i' \
+	'-i lol' \
+	'Unknown legacy input format:'
+
+test_bt_convert_fails \
+	'duplicate -i' \
+	'-i lttng-live --clock-seconds --input-format=ctf' \
+	'Duplicate --input-format option.'
+
+test_bt_convert_fails \
+	'unknown -o' \
+	'-o lol' \
+	'Unknown legacy output format:'
+
+test_bt_convert_fails \
+	'duplicate -o' \
+	'-o dummy --clock-seconds --output-format=text' \
+	'Duplicate --output-format option.'
+
+test_bt_convert_fails \
+	'--run-args and --run-args-0' \
+	"$path_to_trace --run-args --run-args-0" \
+	'Cannot specify --run-args and --run-args-0.'
+
+test_bt_convert_fails \
+	'-o ctf-metadata without path' \
+	'-o ctf-metadata' \
+	'--output-format=ctf-metadata specified without a path.'
+
+test_bt_convert_fails \
+	'-i lttng-live and implicit source.ctf.fs' \
+	'-i lttng-live net://some-host/host/target/session --clock-offset=23' \
+	'--clock-offset specified, but no source.ctf.fs component instantiated.'
+
+test_bt_convert_fails \
+	'implicit source.ctf.fs without path' \
+	'--clock-offset=23' \
+	'--clock-offset specified, but no source.ctf.fs component instantiated.'
+
+test_bt_convert_fails \
+	'implicit source.ctf.lttng-live without URL' \
+	'-i lttng-live' \
+	"Missing URL for implicit \`source.ctf.lttng-live\` component."
+
+test_bt_convert_fails \
+	'no source' \
+	'-o text' \
+	'No source component.'
+
+test_bt_convert_fails \
+	'-o ctf without --output' \
+	'my-trace -o ctf' \
+	'--output-format=ctf specified without --output (trace output path).'
+
+# The error string spans two lines in this error message, it's not convenient to
+# check for multiple lines, so we just check the first line.
+test_bt_convert_fails \
+	'-o ctf + --output with implicit sink.text.pretty' \
+	"my-trace -o ctf --output $output_path --no-delta" \
+	'Ambiguous --output option: --output-format=ctf specified but another option'
+
+test_bt_convert_fails \
+	'--stream-intersection' \
+	"$path_to_trace --stream-intersection" \
+	'Cannot specify --stream-intersection with --run-args or --run-args-0.'
+
+test_bt_convert_fails \
+	'two sinks with -o dummy + --clock-seconds' \
+	"$path_to_trace -o dummy --clock-seconds" \
+	'More than one sink component specified.'
+
+test_bt_convert_fails \
+	'path non-option arg + user sink + -o text' \
+	"$path_to_trace --component=sink.abc.def -o text" \
+	'More than one sink component specified.'
 
 rm -f "${tmp_stdout}"
 rm -f "${tmp_stderr}"
