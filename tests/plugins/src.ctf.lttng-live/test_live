@@ -139,8 +139,10 @@ get_cli_output_with_lttng_live_server() {
 
 	cli_args=${cli_args_template//@PORT@/$port}
 
-	diag "Running CLI: 'babeltrace2 $cli_args'"
-	if ! "$BT_TESTS_BT2_BIN" $cli_args 1>"$cli_stdout_file" 2>"$cli_stderr_file"; then
+	# Split argument string by spaces into an array.
+	IFS=' ' read -ra cli_args <<< "$cli_args"
+
+	if ! bt_cli "$cli_stdout_file" "$cli_stderr_file" "${cli_args[@]}"; then
 		# CLI failed: cancel everything else
 		kill_lttng_live_server "$server_pid_file"
 		wait
