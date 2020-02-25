@@ -13,6 +13,12 @@
 #include "common/macros.h"
 #include <babeltrace2/babeltrace.h>
 
+/*
+ * `bt_field_*_enumeration` are backed by 64 bits integers so the maximun
+ * number of bitflags in any enumeration is 64.
+ */
+#define ENUMERATION_MAX_BITFLAGS_COUNT (sizeof(uint64_t) * 8)
+
 enum pretty_default {
 	PRETTY_DEFAULT_UNSET,
 	PRETTY_DEFAULT_SHOW,
@@ -37,6 +43,7 @@ struct pretty_options {
 	bool print_payload_field_names;
 
 	bool print_delta_field;
+	bool print_enum_flags;
 	bool print_loglevel_field;
 	bool print_emf_field;
 	bool print_callsite_field;
@@ -71,6 +78,18 @@ struct pretty_component {
 	uint64_t delta_real_timestamp;
 
 	bool negative_timestamp_warning_done;
+
+	/*
+	 * For each bit of the integer backing the enumeration we have a list
+	 * (GPtrArray) of labels (char *) for that bit.
+	 *
+	 * Allocate all label arrays during the initialization of the component
+	 * and reuse the same set of arrays for all enumerations. This prevents
+	 * allocation and deallocation everytime the component encounters a
+	 * enumeration field. Allocating and deallocating that often could
+	 * severely impact performance.
+	 */
+	GPtrArray *enum_bit_labels[ENUMERATION_MAX_BITFLAGS_COUNT];
 
 	bt_logging_level log_level;
 	bt_self_component *self_comp;

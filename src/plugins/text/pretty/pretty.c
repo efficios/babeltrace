@@ -28,6 +28,7 @@ const char * const in_port_name = "in";
 static
 void destroy_pretty_data(struct pretty_component *pretty)
 {
+	uint64_t i;
 	if (!pretty) {
 		goto end;
 	}
@@ -50,6 +51,13 @@ void destroy_pretty_data(struct pretty_component *pretty)
 			perror("close output file");
 		}
 	}
+
+	for (i = 0; i < ENUMERATION_MAX_BITFLAGS_COUNT; i++) {
+		if (pretty->enum_bit_labels[i]) {
+			g_ptr_array_free(pretty->enum_bit_labels[i], true);
+		}
+	}
+
 	g_free(pretty->options.output_path);
 	g_free(pretty);
 
@@ -312,6 +320,7 @@ struct bt_param_validation_map_value_entry_descr pretty_params[] = {
 	{ "field-loglevel", BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_OPTIONAL, { .type = BT_VALUE_TYPE_BOOL } },
 	{ "field-emf", BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_OPTIONAL, { .type = BT_VALUE_TYPE_BOOL } },
 	{ "field-callsite", BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_OPTIONAL, { .type = BT_VALUE_TYPE_BOOL } },
+	{ "print-enum-flags", BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_OPTIONAL, { .type = BT_VALUE_TYPE_BOOL } },
 	BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_END
 };
 
@@ -380,6 +389,9 @@ bt_component_class_initialize_method_status apply_params(
 
 	apply_one_bool_with_default("verbose", params,
 		&pretty->options.verbose, false);
+
+	apply_one_bool_with_default("print-enum-flags", params,
+		&pretty->options.print_enum_flags, false);
 
 	/* Names. */
 	value = bt_value_map_borrow_entry_value_const(params, "name-default");
@@ -584,6 +596,18 @@ bt_component_class_initialize_method_status pretty_init(
 	}
 
 	set_use_colors(pretty);
+
+	if (pretty->options.print_enum_flags) {
+		uint64_t i;
+		/*
+		 * Allocate all label arrays during the initialization of the
+		 * component and reuse the same set of arrays for all
+		 * enumerations.
+		 */
+		for (i = 0; i < ENUMERATION_MAX_BITFLAGS_COUNT; i++) {
+			pretty->enum_bit_labels[i] = g_ptr_array_new();
+		}
+	}
 	bt_self_component_set_data(self_comp, pretty);
 
 	status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_OK;
