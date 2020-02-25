@@ -3643,7 +3643,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 		switch (argpar_item_opt->descr->id) {
 		case OPT_BEGIN:
 			if (trimmer_has_begin) {
-				printf("At --begin option: --begin or --timerange option already specified\n    %s\n",
+				BT_CLI_LOGE_APPEND_CAUSE("At --begin option: --begin or --timerange option already specified\n    %s\n",
 					arg);
 				goto error;
 			}
@@ -3658,7 +3658,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 			break;
 		case OPT_END:
 			if (trimmer_has_end) {
-				printf("At --end option: --end or --timerange option already specified\n    %s\n",
+				BT_CLI_LOGE_APPEND_CAUSE("At --end option: --end or --timerange option already specified\n    %s\n",
 					arg);
 				goto error;
 			}
@@ -3677,7 +3677,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 			char *end;
 
 			if (trimmer_has_begin || trimmer_has_end) {
-				printf("At --timerange option: --begin, --end, or --timerange option already specified\n    %s\n",
+				BT_CLI_LOGE_APPEND_CAUSE("At --timerange option: --begin, --end, or --timerange option already specified\n    %s\n",
 					arg);
 				goto error;
 			}
