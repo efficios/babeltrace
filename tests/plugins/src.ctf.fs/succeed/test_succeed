@@ -66,9 +66,13 @@ test_packet_end() {
 	local ret_stderr
 	local details_comp=("-c" "sink.text.details")
 	local details_args=("-p" "with-trace-name=no,with-stream-name=no,with-metadata=no,compact=yes")
-	local temp_stdout_output_file="$(mktemp -t actual_stdout.XXXXXX)"
-	local temp_greped_stdout_output_file="$(mktemp -t greped_stdout.XXXXXX)"
-	local temp_stderr_output_file="$(mktemp -t actual_stderr.XXXXXX)"
+	local temp_stdout_output_file
+	local temp_greped_stdout_output_file
+	local temp_stderr_output_file
+
+	temp_stdout_output_file="$(mktemp -t actual_stdout.XXXXXX)"
+	temp_greped_stdout_output_file="$(mktemp -t greped_stdout.XXXXXX)"
+	temp_stderr_output_file="$(mktemp -t actual_stderr.XXXXXX)"
 
 	bt_cli "$temp_stdout_output_file" "$temp_stderr_output_file" \
 		"$succeed_trace_dir/$name" "${details_comp[@]}" \
@@ -100,8 +104,11 @@ test_force_origin_unix_epoch() {
 	local src_ctf_fs_args=("-p" "force-clock-class-origin-unix-epoch=true")
 	local details_comp=("-c" "sink.text.details")
 	local details_args=("-p" "with-trace-name=no,with-stream-name=no,with-metadata=yes,compact=yes")
-	local temp_stdout_output_file="$(mktemp -t actual_stdout.XXXXXX)"
-	local temp_stderr_output_file="$(mktemp -t actual_stderr.XXXXXX)"
+	local temp_stdout_output_file
+	local temp_stderr_output_file
+
+	temp_stdout_output_file="$(mktemp -t actual_stdout.XXXXXX)"
+	temp_stderr_output_file="$(mktemp -t actual_stderr.XXXXXX)"
 
 	bt_cli "$temp_stdout_output_file" "$temp_stderr_output_file" \
 		"$succeed_trace_dir/$name1" "${src_ctf_fs_args[@]}" \
