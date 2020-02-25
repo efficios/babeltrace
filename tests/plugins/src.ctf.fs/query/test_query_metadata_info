@@ -29,7 +29,6 @@ fi
 source "$UTILSSH"
 
 this_dir_relative="plugins/src.ctf.fs/query"
-this_dir_build="$BT_TESTS_BUILDDIR/$this_dir_relative"
 succeed_trace_dir="$BT_CTF_TRACES_PATH/succeed"
 expect_dir="$BT_TESTS_DATADIR/$this_dir_relative"
 
@@ -38,9 +37,12 @@ test_query_metadata_info() {
 	local ret=0
 	local trace_path="$succeed_trace_dir/$name"
 	local expected_stdout="$expect_dir/metadata-info-$name.expect"
-	local temp_stdout_output_file="$(mktemp -t actual_stdout.XXXXXX)"
-	local temp_stderr_output_file="$(mktemp -t actual_stderr.XXXXXX)"
+	local temp_stdout_output_file
+	local temp_stderr_output_file
 	local query=("query" "src.ctf.fs" "metadata-info" "--params" "path=\"$trace_path\"")
+
+	temp_stdout_output_file="$(mktemp -t actual_stdout.XXXXXX)"
+	temp_stderr_output_file="$(mktemp -t actual_stderr.XXXXXX)"
 
 	bt_cli "$temp_stdout_output_file" "$temp_stderr_output_file" \
 		"${query[@]}"
