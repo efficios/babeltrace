@@ -39,7 +39,7 @@ dir_ab="${data_dir}/dir-ab"
 
 expected_file=$(mktemp -t expected.XXXXXX)
 
-print_log_level="--params what=\"log-level\""
+print_log_level=(--params 'what="log-level"')
 details_sink=("-c" "sink.text.details" "--params=with-metadata=false")
 
 debug=2
@@ -68,8 +68,8 @@ END
 
 bt_diff_cli "$expected_file" "/dev/null" \
 	--plugin-path "${plugin_dir}" convert \
-	"${dir_ab}" --log-level DEBUG ${print_log_level} \
-	${details_sink[@]}
+	"${dir_ab}" --log-level DEBUG "${print_log_level[@]}" \
+	"${details_sink[@]}"
 ok "$?" "apply log level to two components from one non-option argument"
 
 # Apply log level to two components from two distinct non-option arguments.
@@ -95,8 +95,8 @@ END
 
 bt_diff_cli "$expected_file" "/dev/null" \
 	--plugin-path "${plugin_dir}" convert \
-	"${dir_a}" --log-level DEBUG ${print_log_level} "${dir_b}" --log-level TRACE ${print_log_level} \
-	${details_sink[@]}
+	"${dir_a}" --log-level DEBUG "${print_log_level[@]}" "${dir_b}" --log-level TRACE "${print_log_level[@]}" \
+	"${details_sink[@]}"
 ok "$?" "apply log level to two non-option arguments"
 
 # Apply log level to one component coming from one non-option argument and one component coming from two non-option arguments (1).
@@ -122,8 +122,8 @@ END
 
 bt_diff_cli "$expected_file" "/dev/null" \
 	--plugin-path "${plugin_dir}" convert \
-	"${dir_a}" --log-level DEBUG ${print_log_level} "${dir_ab}" --log-level TRACE ${print_log_level} \
-	${details_sink[@]}
+	"${dir_a}" --log-level DEBUG "${print_log_level[@]}" "${dir_ab}" --log-level TRACE "${print_log_level[@]}" \
+	"${details_sink[@]}"
 ok "$?" "apply log level to one component coming from one non-option argument and one component coming from two non-option arguments (1)"
 
 # Apply log level to one component coming from one non-option argument and one component coming from two non-option arguments (2).
@@ -149,8 +149,8 @@ END
 
 bt_diff_cli "$expected_file" "/dev/null" \
 	--plugin-path "${plugin_dir}" convert \
-	"${dir_ab}" --log-level DEBUG ${print_log_level} "${dir_a}" --log-level TRACE ${print_log_level} \
-	${details_sink[@]}
+	"${dir_ab}" --log-level DEBUG "${print_log_level[@]}" "${dir_a}" --log-level TRACE "${print_log_level[@]}" \
+	"${details_sink[@]}"
 ok "$?" "apply log level to one component coming from one non-option argument and one component coming from two non-option arguments (2)"
 
 rm -f "$expected_file"
