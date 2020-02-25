@@ -31,11 +31,10 @@ else
 	UTILSSH="$(dirname "$0")/../../utils/utils.sh"
 fi
 
-# shellcheck source=../../../utils/utils.sh
+# shellcheck source=../../utils/utils.sh
 source "$UTILSSH"
 
 this_dir_relative="plugins/flt.lttng-utils.debug-info"
-this_dir_build="$BT_TESTS_BUILDDIR/$this_dir_relative"
 succeed_trace_dir="$BT_CTF_TRACES_PATH/succeed"
 expect_dir="$BT_TESTS_DATADIR/$this_dir_relative"
 binary_artefact_dir="$BT_TESTS_DATADIR/$this_dir_relative"
@@ -67,11 +66,16 @@ test_compare_to_ctf_fs() {
 		"-c" "sink.text.details"
 		"--params" "with-trace-name=false,with-stream-name=false,with-uuid=false"
 	)
-	local actual_stdout=$(mktemp -t test_debug_info_stdout_actual.XXXXXX)
-	local actual_stderr=$(mktemp -t test_debug_info_stderr_actual.XXXXXX)
-	local expected_stdout=$(mktemp -t test_debug_info_stdout_expected.XXXXXX)
-	local expected_stderr=$(mktemp -t test_debug_info_stderr_expected.XXXXXX)
+	local actual_stdout
+	local actual_stderr
+	local expected_stdout
+	local expected_stderr
 	local ret=0
+
+	actual_stdout=$(mktemp -t test_debug_info_stdout_actual.XXXXXX)
+	actual_stderr=$(mktemp -t test_debug_info_stderr_actual.XXXXXX)
+	expected_stdout=$(mktemp -t test_debug_info_stdout_expected.XXXXXX)
+	expected_stderr=$(mktemp -t test_debug_info_stderr_expected.XXXXXX)
 
 	# Create expected files using a graph without a `debug-info` component.
 	bt_cli "$expected_stdout" "$expected_stderr" "${cli_args[@]}" \
