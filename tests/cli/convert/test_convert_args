@@ -26,30 +26,28 @@ fi
 # shellcheck source=../../utils/utils.sh
 source "$UTILSSH"
 
-test_head_comment=0
-tmp_stderr=$(mktemp)
+tmp_stdout=$(mktemp -t test_convert_args_stdout.XXXXXX)
+tmp_stderr=$(mktemp -t test_convert_args_stderr.XXXXXX)
 
 test_bt_convert_run_args() {
 	local what="$1"
 	local convert_args="$2"
 	local expected_run_args="$3"
 
-	# execute convert command
-	local run_args="$("$BT_TESTS_BT2_BIN" convert --run-args $convert_args)"
+	local run_args
 
-	# check result
-	if [ "$test_head_comment" = 1 ]; then
-		comment "convert args: $convert_args"
-	fi
+	# Split argument string into array.
+	IFS=' ' read -ra convert_args_array <<< "$convert_args"
 
-	if [ "$run_args" = "$expected_run_args" ]; then
-		pass "ARGS: $what"
-	else
-		fail "ARGS: $what"
-		diag "ARGS:     $convert_args"
-		diag "EXPECTED: $expected_run_args"
-		diag "GOT:      $run_args"
-	fi
+	# Execute convert command.
+	bt_cli "${tmp_stdout}" "${tmp_stderr}" convert --run-args "${convert_args_array[@]}"
+	ok $? "${what}: success exit status"
+
+	run_args=$(cat "${tmp_stdout}")
+
+	# Verify output run args.
+	[ "$run_args" = "$expected_run_args" ]
+	ok $? "${what}: run arguments"
 }
 
 test_bt_convert_fails() {
@@ -57,22 +55,16 @@ test_bt_convert_fails() {
 	local convert_args="$2"
 	local expected_error_str="${3:-}"
 
-	# execute convert command
-	"$BT_TESTS_BT2_BIN" convert --run-args $convert_args >/dev/null 2>"${tmp_stderr}"
+	# Split argument string into array.
+	IFS=' ' read -ra convert_args_array <<< "$convert_args"
 
-	local status=$?
+	# Execute convert command.
+	bt_cli "${tmp_stdout}" "${tmp_stderr}" convert --run-args "${convert_args_array[@]}"
+	isnt "$?" 0 "failure exit status"
 
-	# check result
-	if [ "$test_head_comment" = 1 ]; then
-		comment "convert args: $convert_args"
-	fi
-
-	if [ "$status" = 0 ]; then
-		fail "SUCCEEDS (should fail): $what"
-		diag "ARGS: $convert_args"
-	else
-		pass "FAILS: $what"
-	fi
+	# Nothing should be printed on stdout.
+	bt_diff /dev/null "${tmp_stdout}"
+	ok $? "$what: nothing is printed on stdout"
 
 	if [ -n "${expected_error_str}" ]; then
 		grep --quiet "$expected_error_str" "$tmp_stderr"
@@ -83,10 +75,6 @@ test_bt_convert_fails() {
 			diag "$(cat ${tmp_stderr})"
 		fi
 	fi
-}
-
-comment() {
-	echo "### $1 ###"
 }
 
 path_to_trace="${BT_CTF_TRACES_PATH}/succeed/succeed1"
@@ -102,7 +90,7 @@ if [ "$BT_OS_TYPE" = "mingw" ]; then
 	output_path=$(cygpath -m "$output_path")
 fi
 
-plan_tests 65
+plan_tests 130
 
 test_bt_convert_run_args 'path non-option arg' "$path_to_trace" "--component auto-disc-source-ctf-fs:source.ctf.fs --params 'inputs=[\"$path_to_trace\"]' --component pretty:sink.text.pretty --component muxer:filter.utils.muxer --connect auto-disc-source-ctf-fs:muxer --connect muxer:pretty"
 test_bt_convert_run_args 'path non-option args' "$path_to_trace $path_to_trace2" "--component auto-disc-source-ctf-fs:source.ctf.fs --params 'inputs=[\"$path_to_trace\", \"${path_to_trace2}\"]' --component pretty:sink.text.pretty --component muxer:filter.utils.muxer --connect auto-disc-source-ctf-fs:muxer --connect muxer:pretty"
@@ -171,4 +159,5 @@ test_bt_convert_fails '--stream-intersection' "$path_to_trace --stream-intersect
 test_bt_convert_fails 'two sinks with -o dummy + --clock-seconds' "$path_to_trace -o dummy --clock-seconds"
 test_bt_convert_fails 'path non-option arg + user sink + -o text' "$path_to_trace --component=sink.abc.def -o text"
 
+rm -f "${tmp_stdout}"
 rm -f "${tmp_stderr}"
