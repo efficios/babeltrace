@@ -839,9 +839,9 @@ PPRINT_PROP_BOOL([Have Python interpreter], $value)
 test "x$have_python_dev" = "xyes" && value=1 || value=0
 PPRINT_PROP_BOOL([Have Python development libraries], $value)
 test "x$enable_python_bindings" = "xyes" && value=1 || value=0
-PPRINT_PROP_BOOL([Python bindings], $value)
+PPRINT_PROP_BOOL_CUSTOM([Python bindings], $value, [To enable, use --enable-python-bindings])
 test "x$enable_python_plugins" = "xyes" && value=1 || value=0
-PPRINT_PROP_BOOL([Python plugin support], $value)
+PPRINT_PROP_BOOL_CUSTOM([Python plugin support], $value, [To enable, use --enable-python-plugins])
 AS_IF([test "x$have_python" = "xyes"], [
   PPRINT_PROP_STRING([Python interpreter path], [$PYTHON])
 ])
@@ -859,16 +859,16 @@ AS_ECHO
 PPRINT_SUBTITLE([Plugins])
 PPRINT_PROP_BOOL(['ctf' plugin], 1)
 test "x$enable_debug_info" = "xyes" && value=1 || value=0
-PPRINT_PROP_BOOL(['lttng-utils' plugin], $value)
+PPRINT_PROP_BOOL_CUSTOM(['lttng-utils' plugin], $value, [To enable, use --enable-debug-info])
 PPRINT_PROP_BOOL(['text' plugin], 1)
 PPRINT_PROP_BOOL(['utils' plugin], 1)
 
 AS_ECHO
 PPRINT_SUBTITLE([Built-in features])
 test "x$enable_built_in_plugins" = "xyes" && value=1 || value=0
-PPRINT_PROP_BOOL([Built-in plugins], $value)
+PPRINT_PROP_BOOL_CUSTOM([Built-in plugins], $value, [To enable, use --enable-built-in-plugins])
 test "x$enable_built_in_python_plugin_support" = "xyes" && value=1 || value=0
-PPRINT_PROP_BOOL([Built-in Python plugin support], $value)
+PPRINT_PROP_BOOL_CUSTOM([Built-in Python plugin support], $value, [To enable, use --enable-built-in-python-plugin-support])
 
 AS_ECHO
 PPRINT_SUBTITLE([Documentation])
@@ -889,13 +889,13 @@ AS_IF([test "x$enable_man_pages" != "xno"], [
     ])
   ])
 ], [
-  PPRINT_PROP_BOOL([build_man_pages_msg], 0)
+  PPRINT_PROP_BOOL_CUSTOM([build_man_pages_msg], 0, [To build man pages, use --enable-man-pages])
 ])
 
 m4_popdef([build_man_pages_msg])
 
 test "x$enable_api_doc" = "xyes" && value=1 || value=0
-PPRINT_PROP_BOOL([HTML API documentation], $value)
+PPRINT_PROP_BOOL_CUSTOM([HTML API documentation], $value, [To build documentation, use --enable-api-doc])
 
 AS_ECHO
 PPRINT_SUBTITLE([Logging])
@@ -903,8 +903,8 @@ PPRINT_PROP_STRING([Minimal log level], $BABELTRACE_MINIMAL_LOG_LEVEL)
 
 AS_ECHO
 PPRINT_SUBTITLE([Special build modes])
-PPRINT_PROP_BOOL([Debug mode], $BABELTRACE_DEBUG_MODE)
-PPRINT_PROP_BOOL([Developer mode], $BABELTRACE_DEV_MODE)
+PPRINT_PROP_BOOL_CUSTOM([Debug mode], $BABELTRACE_DEBUG_MODE, [To enable, set the BABELTRACE_DEBUG_MODE environment variable to 1])
+PPRINT_PROP_BOOL_CUSTOM([Developer mode], $BABELTRACE_DEV_MODE, [To enable, set the BABELTRACE_DEV_MODE environment variable to 1])
 
 report_bindir="`eval eval echo $bindir`"
 report_libdir="`eval eval echo $libdir`"
