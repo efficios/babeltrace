@@ -55,8 +55,9 @@ dist_check_SCRIPTS = \
 	cli/test_trace_read \
 	cli/test_trimmer \
 	plugins/sink.text.details/succeed/test_succeed \
-	plugins/sink.text.pretty/test_pretty \
+	plugins/sink.text.pretty/test_enum \
 	plugins/sink.text.pretty/test_pretty.py \
+	plugins/sink.text.pretty/test_pretty_python \
 	plugins/src.ctf.lttng-live/test_live \
 	python-plugin-provider/bt_plugin_test_python_plugin_provider.py \
 	python-plugin-provider/test_python_plugin_provider \
@@ -135,7 +136,8 @@ TESTS_CLI += \
 	cli/test_exit_status
 
 TESTS_PLUGINS += plugins/flt.utils.trimmer/test_trimming \
-	plugins/flt.utils.muxer/succeed/test_succeed
+	plugins/flt.utils.muxer/succeed/test_succeed \
+	plugins/sink.text.pretty/test_enum
 endif
 endif
 
@@ -151,7 +153,7 @@ TESTS_PYTHON_PLUGIN_PROVIDER =
 
 if ENABLE_PYTHON_PLUGINS
 TESTS_PYTHON_PLUGIN_PROVIDER += python-plugin-provider/test_python_plugin_provider
-TESTS_PLUGINS += plugins/sink.text.pretty/test_pretty
+TESTS_PLUGINS += plugins/sink.text.pretty/test_pretty_python
 if ENABLE_DEBUG_INFO
 TESTS_PLUGINS += \
 	plugins/flt.lttng-utils.debug-info/test_succeed

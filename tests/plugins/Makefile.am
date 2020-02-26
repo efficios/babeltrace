@@ -5,4 +5,5 @@ SUBDIRS = \
 	src.ctf.fs \
 	flt.lttng-utils.debug-info \
 	flt.utils.muxer \
-	flt.utils.trimmer
+	flt.utils.trimmer \
+	sink.text.pretty
