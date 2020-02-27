@@ -361,17 +361,15 @@ AS_IF([test "x$BABELTRACE_DEBUG_MODE" = x1], [
 # Python bindings
 # Disabled by default
 AC_ARG_ENABLE([python-bindings],
-  [AC_HELP_STRING([--enable-python-bindings], [build the Python bindings])],
-  [], dnl AC_ARG_ENABLE will fill enable_python_bindings with the user choice
-  [enable_python_bindings=no]
+  [AC_HELP_STRING([--enable-python-bindings], [build the Python bindings])]
+  dnl AC_ARG_ENABLE will fill enable_python_bindings with the user choice
 )
 
 # Python plugins
 # Disabled by default
 AC_ARG_ENABLE([python-plugins],
-  [AC_HELP_STRING([--enable-python-plugins], [enable the Python plugins support for the library and converter])],
-  [], dnl AC_ARG_ENABLE will fill enable_python_plugins with the user choice
-  [enable_python_plugins=no]
+  [AC_HELP_STRING([--enable-python-plugins], [enable the Python plugins support for the library and converter])]
+  dnl AC_ARG_ENABLE will fill enable_python_plugins with the user choice
 )
 
 # Debug info
@@ -386,31 +384,28 @@ AC_ARG_ENABLE([debug-info],
 # Disabled by default
 AC_ARG_ENABLE([api-doc],
   [AC_HELP_STRING([--enable-api-doc], [build the HTML API documentation])],
-  [enable_api_doc=$enableval],
-  [enable_api_doc=no]
+  [enable_api_doc=$enableval]
 )
 
 # Built-in plugins
 # Disabled by default
 AC_ARG_ENABLE([built-in-plugins],
-  [AC_HELP_STRING([--enable-built-in-plugins], [Statically-link in-tree plug-ins into the babeltrace2 executable])],
-  [], dnl AC_ARG_ENABLE will fill enable_built_in_plugins with the user choice
-  [enable_built_in_plugins=no]
+  [AC_HELP_STRING([--enable-built-in-plugins], [Statically-link in-tree plug-ins into the babeltrace2 executable])]
+  dnl AC_ARG_ENABLE will fill enable_built_in_plugins with the user choice
 )
 
 # Built-in python plugin support
 # Disabled by default
 AC_ARG_ENABLE([built-in-python-plugin-support],
-  [AC_HELP_STRING([--enable-built-in-python-plugin-support], [Statically-link Python plugin support into the babeltrace library])],
-  [], dnl AC_ARG_ENABLE will fill enable_built_in_python_plugin_support with the user choice
-  [enable_built_in_python_plugin_support=no]
+  [AC_HELP_STRING([--enable-built-in-python-plugin-support], [Statically-link Python plugin support into the babeltrace library])]
+  dnl AC_ARG_ENABLE will fill enable_built_in_python_plugin_support with the user choice
 )
 
 # Man pages
 # Enabled by default
 AC_ARG_ENABLE([man-pages],
   [AS_HELP_STRING([--disable-man-pages], [Do not build and install man pages (already built in a distributed tarball])],
-  [], dnl AC_ARG_ENABLE will fill enable_built_in_plugins with the user choice
+  [], dnl AC_ARG_ENABLE will fill enable_man_pages with the user choice
   [enable_man_pages=yes]
 )
 
@@ -464,7 +459,7 @@ AS_IF([test "x$enable_built_in_plugins" = xyes],
 
 AS_IF([test "x$enable_built_in_python_plugin_support" = xyes],
   [
-    AS_IF([test "x$enable_python_plugins" = xno], [AC_MSG_ERROR([--enable-python-plugins must be used to bundle Python plugin support in the babeltrace2 executable])])
+    AS_IF([test "x$enable_python_plugins" != xyes], [AC_MSG_ERROR([--enable-python-plugins must be used to bundle Python plugin support in the babeltrace2 executable])])
     # Built-in plug-ins are only available when the --disable-shared --enable-static options are used.
     AS_IF([test "x$enable_static" != xyes], [AC_MSG_ERROR(--enable-static must be used to bundle Python plugin support in the babeltrace2 executable)])
     AS_IF([test "x$enable_shared" = xyes], [AC_MSG_ERROR(--disable-shared must be used to bundle Python plugin support in the babeltrace2 executable)])
