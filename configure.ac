@@ -361,8 +361,9 @@ AS_IF([test "x$BABELTRACE_DEBUG_MODE" = x1], [
 # Python bindings
 # Disabled by default
 AC_ARG_ENABLE([python-bindings],
-  [AC_HELP_STRING([--enable-python-bindings], [build the Python bindings])]
-  dnl AC_ARG_ENABLE will fill enable_python_bindings with the user choice
+  [AC_HELP_STRING([--enable-python-bindings], [build the Python bindings])],
+  [], dnl AC_ARG_ENABLE will fill enable_python_bindings with the user choice
+  [enable_python_bindings=unspecified]
 )
 
 # Python plugins
@@ -446,6 +447,29 @@ AS_IF([test "x$enable_debug_info" = xyes],
 
 AC_SUBST([ENABLE_DEBUG_INFO_VAL])
 
+# Check for conflicting Python related features user choices.
+AS_IF([test "x$enable_python_plugins" = xyes],
+  [
+    AS_IF([test "x$enable_python_bindings" = xunspecified],
+      [
+        # --enable-python-plugins was provided but --enable-python-bindings was
+        # omitted. Turn the Python bindings ON anyway because it's needed to
+        # use the Python plugins.
+        enable_python_bindings=yes
+      ],
+      [
+        AS_IF([test "x$enable_python_bindings" = xno],
+          [
+            # --enable-python-plugins _and_ --disable-python-bindings were
+            # used. This is invalid because Python plugins need the Python
+            # bindings to be useful.
+            AC_MSG_ERROR(--enable-python-bindings must be used to support Python plugins)
+          ]
+        )
+      ]
+    )
+  ]
+)
 
 # Check for conflicting optional features user choices
 
