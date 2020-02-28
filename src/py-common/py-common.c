@@ -141,15 +141,7 @@ GString *bt_py_common_format_tb(PyObject *py_exc_tb, int log_level)
 		goto error;
 	}
 
-	goto end;
-
 error:
-	if (msg_buf) {
-		g_string_free(msg_buf, TRUE);
-		msg_buf = NULL;
-	}
-
-end:
 	Py_XDECREF(traceback_module);
 	Py_XDECREF(format_tb_func);
 	Py_XDECREF(exc_str_list);
@@ -222,15 +214,7 @@ GString *bt_py_common_format_exception(PyObject *py_exc_type,
 		goto error;
 	}
 
-	goto end;
-
 error:
-	if (msg_buf) {
-		g_string_free(msg_buf, TRUE);
-		msg_buf = NULL;
-	}
-
-end:
 	Py_XDECREF(exc_str_list);
 	Py_XDECREF(format_exception_func);
 	Py_XDECREF(traceback_module);
