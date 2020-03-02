@@ -687,16 +687,9 @@ int print_enum(struct pretty_component *pretty,
 		const bt_field *field)
 {
 	int ret = 0;
-	const bt_field_class *enumeration_field_class = NULL;
 	bt_field_class_enumeration_mapping_label_array label_array;
 	uint64_t label_count;
 	uint64_t i;
-
-	enumeration_field_class = bt_field_borrow_class_const(field);
-	if (!enumeration_field_class) {
-		ret = -1;
-		goto end;
-	}
 
 	switch (bt_field_get_class_type(field)) {
 	case BT_FIELD_CLASS_TYPE_UNSIGNED_ENUMERATION:
@@ -797,11 +790,6 @@ int print_struct(struct pretty_component *pretty,
 	uint64_t nr_fields, i, nr_printed_fields;
 
 	struct_class = bt_field_borrow_class_const(_struct);
-	if (!struct_class) {
-		ret = -1;
-		goto end;
-	}
-
 	nr_fields = bt_field_class_structure_get_member_count(struct_class);
 
 	bt_common_g_string_append(pretty->string, "{");
@@ -846,15 +834,9 @@ int print_array(struct pretty_component *pretty,
 		const bt_field *array, bool print_names)
 {
 	int ret = 0;
-	const bt_field_class *array_class = NULL;
 	uint64_t len;
 	uint64_t i;
 
-	array_class = bt_field_borrow_class_const(array);
-	if (!array_class) {
-		ret = -1;
-		goto end;
-	}
 	len = bt_field_array_get_length(array);
 	bt_common_g_string_append(pretty->string, "[");
 	pretty->depth++;
