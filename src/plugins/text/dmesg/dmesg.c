@@ -773,7 +773,7 @@ bt_message_iterator_class_next_method_status dmesg_msg_iter_next_one(
 
 		/* Ignore empty lines, once trimmed */
 		for (ch = dmesg_msg_iter->linebuf; *ch != '\0'; ch++) {
-			if (!isspace(*ch)) {
+			if (!isspace((unsigned char) *ch)) {
 				only_spaces = false;
 				break;
 			}
