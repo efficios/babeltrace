@@ -639,7 +639,7 @@ void print_escape_string(struct pretty_component *pretty, const char *str)
 		}
 
 		/* Standard characters. */
-		if (!iscntrl(str[i])) {
+		if (!iscntrl((unsigned char) str[i])) {
 			bt_common_g_string_append_c(pretty->string, str[i]);
 			continue;
 		}

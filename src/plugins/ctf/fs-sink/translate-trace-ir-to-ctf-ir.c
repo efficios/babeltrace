@@ -154,14 +154,14 @@ bool ist_valid_identifier(const char *name)
 	}
 
 	/* Make sure the name starts with a letter or `_` */
-	if (!isalpha(name[0]) && name[0] != '_') {
+	if (!isalpha((unsigned char) name[0]) && name[0] != '_') {
 		ist_valid = false;
 		goto end;
 	}
 
 	/* Make sure the name only contains letters, digits, and `_` */
 	for (at = name; *at != '\0'; at++) {
-		if (!isalnum(*at) && *at != '_') {
+		if (!isalnum((unsigned char) *at) && *at != '_') {
 			ist_valid = false;
 			goto end;
 		}

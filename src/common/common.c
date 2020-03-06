@@ -783,7 +783,7 @@ bool bt_common_string_is_printable(const char *input)
 	BT_ASSERT_DBG(input);
 
 	for (ch = input; *ch != '\0'; ch++) {
-		if (!isprint(*ch) && *ch != '\n' && *ch != '\r' &&
+		if (!isprint((unsigned char) *ch) && *ch != '\n' && *ch != '\r' &&
 				*ch != '\t' && *ch != '\v') {
 			printable = false;
 			goto end;

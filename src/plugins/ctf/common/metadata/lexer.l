@@ -134,5 +134,5 @@ _Imaginary			setstring(yyextra, yylval, yytext); return CTF_IMAGINARY;
 
 {IDENTIFIER}			BT_LOGT("Got identifier: id=\"%s\"", yytext); setstring(yyextra, yylval, yytext); if (is_type(yyextra, yytext)) return ID_TYPE; else return IDENTIFIER;
 [ \t\r\n]			; /* ignore */
-.				_BT_LOGE_LINENO(yylineno, "Invalid character: char=\"%c\", val=0x%02x", isprint(yytext[0]) ? yytext[0] : '\0', yytext[0]); return CTF_ERROR;
+.				_BT_LOGE_LINENO(yylineno, "Invalid character: char=\"%c\", val=0x%02x", isprint((unsigned char) yytext[0]) ? yytext[0] : '\0', yytext[0]); return CTF_ERROR;
 %%
