@@ -1039,7 +1039,8 @@ bt_message_iterator_class_next_method_status muxer_msg_iter_do_next_one(
 {
 	bt_message_iterator_class_next_method_status status;
 	struct muxer_upstream_msg_iter *muxer_upstream_msg_iter = NULL;
-	int64_t next_return_ts;
+	/* Initialize to avoid -Wmaybe-uninitialized warning with gcc 4.8. */
+	int64_t next_return_ts = 0;
 
 	status = validate_muxer_upstream_msg_iters(muxer_msg_iter);
 	if (status != BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_OK) {
