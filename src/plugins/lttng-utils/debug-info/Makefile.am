@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MIT
+
 noinst_LTLIBRARIES = libdebug-info.la
 
 libdebug_info_la_LIBADD = \

@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MIT
+
 noinst_LTLIBRARIES = libprio-heap.la
 
 libprio_heap_la_SOURCES = \

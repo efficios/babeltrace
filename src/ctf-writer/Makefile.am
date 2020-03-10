@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MIT
+
 lib_LTLIBRARIES = libbabeltrace2-ctf-writer.la
 
 libbabeltrace2_ctf_writer_la_SOURCES = \

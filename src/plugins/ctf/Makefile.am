@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MIT
+
 SUBDIRS = common \
 	fs-src \
 	fs-sink \

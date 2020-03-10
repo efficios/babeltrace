@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MIT
+
 AM_CPPFLAGS += -I$(top_srcdir)/tests/utils -I$(top_srcdir)/src/plugins
 
 LIBTAP=$(top_builddir)/tests/utils/tap/libtap.la

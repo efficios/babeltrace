@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MIT
+
 SUBDIRS = tap
 
 noinst_LTLIBRARIES = libtestcommon.la

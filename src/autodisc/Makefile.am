@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MIT
+
 noinst_LTLIBRARIES = libbabeltrace2-autodisc.la
 
 libbabeltrace2_autodisc_la_SOURCES = \

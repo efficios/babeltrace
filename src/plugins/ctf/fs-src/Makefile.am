@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MIT
+
 noinst_LTLIBRARIES = libbabeltrace2-plugin-ctf-fs-src.la
 
 libbabeltrace2_plugin_ctf_fs_src_la_SOURCES = \

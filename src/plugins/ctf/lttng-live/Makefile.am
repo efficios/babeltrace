@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MIT
+
 libbabeltrace2_plugin_ctf_lttng_live_la_SOURCES = \
 		lttng-live.c \
 		lttng-live.h \

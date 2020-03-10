@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MIT
+
 if ENABLE_PYTHON_COMMON_DEPS
 AM_CPPFLAGS += $(PYTHON_INCLUDE)
 

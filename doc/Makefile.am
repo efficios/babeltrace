@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MIT
+
 SUBDIRS = contributing-images man
 
 if ENABLE_API_DOC

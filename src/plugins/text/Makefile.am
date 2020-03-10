@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MIT
+
 SUBDIRS = pretty dmesg details
 
 plugindir = "$(BABELTRACE_PLUGINS_DIR)"

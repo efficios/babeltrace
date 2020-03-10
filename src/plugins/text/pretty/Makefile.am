@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MIT
+
 noinst_LTLIBRARIES = libbabeltrace2-plugin-text-pretty-cc.la
 
 # ctf-text plugin

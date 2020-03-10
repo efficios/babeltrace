@@ -1,3 +1,7 @@
+# SPDX-License-Identifier: MIT
+#
+# Copyright (c) 2019 Simon Marchi <simon.marchi@efficios.com>
+
 from bt2 import native_bt
 from collections import abc
 

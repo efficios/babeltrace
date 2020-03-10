@@ -1,10 +1,8 @@
-# python_modules.m4 -- Get the Python modules install path
+# SPDX-License-Identifier: FSFULLR
 #
-# Copyright (C) 2014 - Jérémie Galarneau <jeremie.galarneau@efficios.com>
+# Copyright (C) 2014 Jérémie Galarneau <jeremie.galarneau@efficios.com>
 #
-# This file is free software; the Free Software Foundation gives
-# unlimited permission to copy and/or distribute it, with or without
-# modifications, as long as this notice is preserved.
+# bt_python_modules.m4 -- Get the Python modules install path
 
 # While extra Python modules are generaly installed in the Python
 # interpreter's "site-packages" directory, Debian prefers using the

@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MIT
+
 AM_CPPFLAGS += -I$(top_srcdir)/tests/utils
 
 noinst_PROGRAMS = test_param_validation

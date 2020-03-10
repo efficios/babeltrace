@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MIT
+
 # Since the shared object used by the python bindings is not built with
 # libtool, we need to add the directory containing libbabeltrace2 to the
 # linker path.

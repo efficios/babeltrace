@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MIT
+
 SUBDIRS = message
 
 noinst_LTLIBRARIES = libgraph.la

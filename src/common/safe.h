@@ -1,3 +1,8 @@
+/*
+ * SPDX-License-Identifier: MIT
+ *
+ * Copyright 2012 Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+ */
 
 #include <stdbool.h>
 #include <stdint.h>

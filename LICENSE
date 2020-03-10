@@ -1,27 +1,97 @@
-Common Trace Format - Licensing
-Mathieu Desnoyers
-September 26, 2010
+Babeltrace2 is provided under the terms of the MIT License:
+
+	SPDX-License-Identifier: MIT
+
+According with:
+
+	LICENSES/MIT
 
 
-* MIT license :
+The CRC32 code is provided under the terms of the BSD 4-Clause "Original" or
+"Old" License:
 
-This library is distributed under the MIT license. It is intended to allow use
-in both free and proprietary software. See mit-license.txt for details.
+	SPDX-License-Identifier: BSD-4-Clause
+
+According with:
+
+	LICENSES/BSD-4-Clause
+
+This applies to:
+
+	src/plugins/lttng-utils/debug-info/crc32.c
+	src/plugins/lttng-utils/debug-info/crc32.h
 
 
-* GPLv2
+The list header file is provided under the terms of the GNU Lesser General
+Public License v2.1 only:
 
-Library test code is distributed under the GPLv2 license, as specified in the
-per-file license. See gpl-2.0.txt for details.
+	SPDX-License-Identifier: LGPL-2.1-only
 
-* LGPLv2.1
+According with:
 
-The file src/common/list.h is licensed under LGPLv2.1. It only
-contains trivial static inline functions and macros, and, therefore,
-including it does not make babeltrace a derivative work on this header.
-Please refer to the LGPLv2.1 license for details.
+	LICENSES/LGPL-2.1
 
-* BSD 2-Clause
+It only contains trivial static inline functions and macros, and, therefore,
+including it does not make babeltrace a derivative work on this header. This
+applies to:
 
-The files in tests/utils/python/tap/ are licensed under the BSD 2-Clause. They
-are only used when running the tests in the source tree.
+	src/common/list.h
+
+
+The test code is provided under the terms of the GNU General Public License
+version 2 only:
+
+	SPDX-License-Identifier: GPL-2.0-only
+
+According with:
+
+	LICENSES/GPL-2.0
+
+
+The C and Python TAP test libraries are provided under the terms of the
+BSD 2-Clause "Simplified" License:
+
+	SPDX-License-Identifier: BSD-2-Clause
+
+According with:
+
+	LICENSES/BSD-2-Clause
+
+They are only used when running the tests in the source tree. This applies
+to:
+
+	tests/utils/python/tap/*
+	tests/utils/tap/tap.h
+	tests/utils/tap/tap.c
+
+
+The BASH TAP library is provided under the terms of the GNU General Public
+License v3.0 or later:
+
+	SPDX-License-Identifier: GPL-3.0-or-later
+
+According with:
+
+	LICENSES/GPL-3.0
+
+It's only used when running the tests in the source tree. This applies to:
+
+	tests/utils/tap/tap.sh
+
+
+The library documentation is provided under the terms of the Creative Commons
+Attribution Share Alike 4.0 International:
+
+	SPDX-License-Identifier: CC-BY-SA-4.0
+
+According with:
+
+	LICENSES/CC-BY-SA-4.0
+
+This applies to:
+
+	doc/api/libbabeltrace2/*
+
+
+In addition, other licenses may also apply, see SPDX-License-Identifier in
+individual files.

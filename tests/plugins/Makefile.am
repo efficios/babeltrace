@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MIT
+
 SUBDIRS = \
 	sink.ctf.fs \
 	src.ctf.fs \

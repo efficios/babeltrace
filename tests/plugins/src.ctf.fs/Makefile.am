@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MIT
+
 SUBDIRS = succeed
 
 dist_check_SCRIPTS = \

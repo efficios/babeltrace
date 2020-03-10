@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MIT
+
 SUBDIRS = metadata bfcr msg-iter
 
 noinst_LTLIBRARIES = libbabeltrace2-plugin-ctf-common.la

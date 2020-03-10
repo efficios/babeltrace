@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MIT
+
 noinst_LTLIBRARIES = libcompat.la
 
 libcompat_la_SOURCES = \

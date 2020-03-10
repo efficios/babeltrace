@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MIT
+
 API_DOC_INSTALL_DIR = "$(DESTDIR)$(docdir)/api"
 
 all-local: doxygen-doc

@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MIT
+#
 # Pretty printing macros.
 #
 # Author: Philippe Proulx <pproulx@efficios.com>

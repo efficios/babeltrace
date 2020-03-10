@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MIT
+
 noinst_LTLIBRARIES = libbabeltrace2-plugin-ctf-fs-sink.la
 
 libbabeltrace2_plugin_ctf_fs_sink_la_LIBADD =

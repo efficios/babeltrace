@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MIT
+
 SUBDIRS = dummy muxer counter trimmer
 
 plugindir = "$(BABELTRACE_PLUGINS_DIR)"

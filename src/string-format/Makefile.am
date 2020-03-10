@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MIT
+
 noinst_LTLIBRARIES = libbabeltrace2-string-format.la
 
 libbabeltrace2_string_format_la_SOURCES = \

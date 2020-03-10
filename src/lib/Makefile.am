@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MIT
+
 SUBDIRS = trace-ir prio-heap plugin graph
 
 lib_LTLIBRARIES = libbabeltrace2.la

@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MIT
+
 noinst_LTLIBRARIES = libtrace-ir.la
 
 libtrace_ir_la_SOURCES = \

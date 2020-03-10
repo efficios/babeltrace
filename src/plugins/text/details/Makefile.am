@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MIT
+
 noinst_LTLIBRARIES = libbabeltrace2-plugin-text-details-cc.la
 libbabeltrace2_plugin_text_details_cc_la_SOURCES = \
 	details.c details.h \

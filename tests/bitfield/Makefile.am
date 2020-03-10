@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MIT
+
 AM_CPPFLAGS += -I$(top_srcdir)/tests/utils
 
 test_bitfield_SOURCES = test_bitfield.c

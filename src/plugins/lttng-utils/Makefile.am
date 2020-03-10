@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MIT
+
 SUBDIRS =
 
 babeltrace_plugin_lttng_utils_la_LIBADD =

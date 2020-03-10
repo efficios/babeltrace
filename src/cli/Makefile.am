@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MIT
+
 PLUGINS_PATH = $(abs_top_builddir)/src/plugins
 LTTNG_UTILS_PLUGIN_PATH =
 

@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MIT
+
 noinst_LTLIBRARIES = plugin-minimal.la plugin-sfs.la
 
 # the minimal plugin

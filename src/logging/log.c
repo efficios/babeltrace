@@ -1,7 +1,10 @@
 /*
+ * SPDX-License-Identifier: MIT
+ *
+ * Copyright (c) 2016 wonder-mice
+ *
  * This is zf_log.c, modified with Babeltrace prefixes.
  * See <https://github.com/wonder-mice/zf_log/>.
- * See LICENSE.
  */
 
 #include "common/macros.h"

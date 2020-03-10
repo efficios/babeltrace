@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MIT
+
 # Core API
 babeltrace2includedir = "$(includedir)/babeltrace2"
 babeltrace2include_HEADERS = \
