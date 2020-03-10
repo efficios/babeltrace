@@ -1,3 +1,16 @@
+2020-03-10 Babeltrace 2.0.2 (International Bagpipe Day)
+	* common: cast arguments to character classification functions to unsigned char
+	* flt.utils.muxer: initialize variable to silence -Wmaybe-uninitialized warning
+	* Fix: configure.ac: silently accepting invalid Python configuration
+	* Cleanup: configure.ac: remove redundant `AC_ARG_ENABLE` parameters
+	* Fix: plugin-dev.h: Disable address sanitizer on pointer array section variables
+	* Fix: cli: use BT_CLI_LOGE_APPEND_CAUSE instead of printf to print errors
+	* tests: improve flt.utils.trimmer/test_trimming to test streams without packets
+	* Fix: flt-utils.trimmer: accept streams without packet support
+	* Fix: lib: don't assume that streams have packets in auto seek
+	* Fix: correct typo in README
+	* Update working version to Babeltrace 2.0.2
+
 2020-02-04 Babeltrace 2.0.1
 	* fix: Remove empty python bindings documentation
 	* README: Babeltrace 2 was released in 2020
