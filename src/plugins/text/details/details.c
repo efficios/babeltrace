@@ -35,15 +35,6 @@
 #include "write.h"
 #include "plugins/common/param-validation/param-validation.h"
 
-#define LOG_WRONG_PARAM_TYPE(_name, _value, _exp_type)			\
-	do {								\
-		BT_COMP_LOGE("Wrong `%s` parameter type: type=%s, "	\
-			"expected-type=%s",				\
-			(_name), bt_common_value_type_string(		\
-				bt_value_get_type(_value)),		\
-			bt_common_value_type_string(_exp_type));	\
-	} while (0)
-
 #define IN_PORT_NAME "in"
 #define COLOR_PARAM_NAME "color"
 #define WITH_METADATA_PARAM_NAME "with-metadata"
