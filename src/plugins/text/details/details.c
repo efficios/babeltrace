@@ -341,26 +341,40 @@ bt_component_class_initialize_method_status details_init(
 		const bt_value *params,
 		__attribute__((unused)) void *init_method_data)
 {
-	bt_component_class_initialize_method_status status =
-		BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_OK;
+	bt_component_class_initialize_method_status status;
 	bt_self_component_add_port_status add_port_status;
-	struct details_comp *details_comp = NULL;
-
-	add_port_status = bt_self_component_sink_add_input_port(comp,
-		IN_PORT_NAME, NULL, NULL);
-	if (add_port_status != BT_SELF_COMPONENT_ADD_PORT_STATUS_OK) {
-		status = (int) add_port_status;
-		goto error;
-	}
+	struct details_comp *details_comp;
+	bt_self_component *self_comp =
+		bt_self_component_sink_as_self_component(comp);
+	bt_logging_level log_level =
+		bt_component_get_logging_level(
+			bt_self_component_as_component(self_comp));
 
 	details_comp = create_details_comp(comp);
 	if (!details_comp) {
+		/*
+		 * Don't use BT_COMP_LOGE_APPEND_CAUSE, as `details_comp` is not
+		 * initialized yet.
+		 */
+		BT_COMP_LOG_CUR_LVL(BT_LOG_ERROR, log_level, self_comp,
+				"Failed to allocate component.");
+		BT_CURRENT_THREAD_ERROR_APPEND_CAUSE_FROM_COMPONENT(
+			self_comp, "Failed to allocate component.");
 		status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_MEMORY_ERROR;
 		goto error;
 	}
 
-	if (configure_details_comp(details_comp, params)) {
-		BT_COMP_LOGE_STR("Failed to configure component.");
+	add_port_status = bt_self_component_sink_add_input_port(comp,
+		IN_PORT_NAME, NULL, NULL);
+	if (add_port_status != BT_SELF_COMPONENT_ADD_PORT_STATUS_OK) {
+		BT_COMP_LOGE_APPEND_CAUSE(self_comp, "Failed to add input port.");
+		status = (int) add_port_status;
+		goto error;
+	}
+
+	status = configure_details_comp(details_comp, params);
+	if (status != BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_OK) {
+		BT_COMP_LOGE_APPEND_CAUSE(self_comp, "Failed to configure component.");
 		goto error;
 	}
 
@@ -370,10 +384,6 @@ bt_component_class_initialize_method_status details_init(
 	goto end;
 
 error:
-	if (status == BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_OK) {
-		status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_ERROR;
-	}
-
 	destroy_details_comp(details_comp);
 
 end:
@@ -388,26 +398,28 @@ details_graph_is_configured(bt_self_component_sink *comp)
 	bt_message_iterator_create_from_sink_component_status
 		msg_iter_status;
 	bt_message_iterator *iterator;
-	struct details_comp *details_comp;
 	bt_self_component_port_input *in_port;
+	bt_self_component *self_comp =
+		bt_self_component_sink_as_self_component(comp);
+	struct details_comp *details_comp = bt_self_component_get_data(self_comp);
 
-	details_comp = bt_self_component_get_data(
-		bt_self_component_sink_as_self_component(comp));
 	BT_ASSERT(details_comp);
+
 	in_port = bt_self_component_sink_borrow_input_port_by_name(comp,
 		IN_PORT_NAME);
 	if (!bt_port_is_connected(bt_port_input_as_port_const(
 			bt_self_component_port_input_as_port_input(in_port)))) {
-		BT_COMP_LOGE("Single input port is not connected: "
+		BT_COMP_LOGE_APPEND_CAUSE(self_comp, "Single input port is not connected: "
 			"port-name=\"%s\"", IN_PORT_NAME);
 		status = BT_COMPONENT_CLASS_SINK_GRAPH_IS_CONFIGURED_METHOD_STATUS_ERROR;
 		goto end;
 	}
 
 	msg_iter_status = bt_message_iterator_create_from_sink_component(
-		comp, bt_self_component_sink_borrow_input_port_by_name(comp,
-			IN_PORT_NAME), &iterator);
+		comp, in_port, &iterator);
 	if (msg_iter_status != BT_MESSAGE_ITERATOR_CREATE_FROM_SINK_COMPONENT_STATUS_OK) {
+		BT_COMP_LOGE_APPEND_CAUSE(self_comp, "Failed to create message iterator: "
+			"port-name=\"%s\"", IN_PORT_NAME);
 		status = (int) msg_iter_status;
 		goto end;
 	}
@@ -428,12 +440,11 @@ details_consume(bt_self_component_sink *comp)
 	bt_component_class_sink_consume_method_status status;
 	bt_message_array_const msgs;
 	uint64_t count;
-	struct details_comp *details_comp;
 	bt_message_iterator_next_status next_status;
 	uint64_t i;
+	bt_self_component *self_comp = bt_self_component_sink_as_self_component(comp);
+	struct details_comp *details_comp = bt_self_component_get_data(self_comp);
 
-	details_comp = bt_self_component_get_data(
-		bt_self_component_sink_as_self_component(comp));
 	BT_ASSERT_DBG(details_comp);
 	BT_ASSERT_DBG(details_comp->msg_iter);
 
@@ -455,6 +466,7 @@ details_consume(bt_self_component_sink *comp)
 				bt_message_put_ref(msgs[i]);
 			}
 
+			BT_COMP_LOGE_APPEND_CAUSE(self_comp, "Failed to write message.");
 			status = BT_COMPONENT_CLASS_SINK_CONSUME_METHOD_STATUS_ERROR;
 			goto end;
 		}
