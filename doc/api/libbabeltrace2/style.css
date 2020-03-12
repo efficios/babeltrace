@@ -77,3 +77,7 @@ table.params .paramname {
 .contents table.doxtable th {
     background-color: #5173b3;
 }
+
+.contents p.intertd {
+    font-weight: normal;
+}
