@@ -2320,7 +2320,10 @@ On success, if there's no mapping ranges containing the value
     The number of labels in \bt_p{*labels} is \bt_p{*count}.
 
     The array is owned by \bt_p{field_class} and remains valid as long
-    as \bt_p{field_class} is not modified.
+    as:
+
+    - \bt_p{field_class} is not modified.
+    - You don't call this function again with \bt_p{field_class}.
     @endparblock
 @param[out] count
     <strong>On success</strong>, \bt_p{*count} is the number of labels
@@ -2582,7 +2585,10 @@ On success, if there's no mapping ranges containing the value
     The number of labels in \bt_p{*labels} is \bt_p{*count}.
 
     The array is owned by \bt_p{field_class} and remains valid as long
-    as \bt_p{field_class} is not modified.
+    as:
+
+    - \bt_p{field_class} is not modified.
+    - You don't call this function again with \bt_p{field_class}.
     @endparblock
 @param[out] count
     <strong>On success</strong>, \bt_p{*count} is the number of labels
