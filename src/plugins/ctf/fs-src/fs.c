@@ -680,7 +680,7 @@ void ds_index_insert_ds_index_entry_sorted(
 	struct ctf_fs_ds_index_entry *entry)
 {
 	guint i;
-	struct ctf_fs_ds_index_entry *other_entry;
+	struct ctf_fs_ds_index_entry *other_entry = NULL;
 
 	/* Find the spot where to insert this index entry. */
 	for (i = 0; i < index->entries->len; i++) {
