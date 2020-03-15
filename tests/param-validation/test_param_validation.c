@@ -40,20 +40,19 @@ enum bt_param_validation_status run_test(
 	status = bt_param_validation_validate(params, entries, &validate_error);
 
 	if (expected_error) {
-		const char *fmt;
-
 		/* We expect a failure. */
 		ok(status == BT_PARAM_VALIDATION_STATUS_VALIDATION_ERROR,
 			"%s: validation fails", test_name);
 		ok(validate_error, "%s: error string is not NULL", test_name);
 
-		fmt = "%s: error string contains expected string";
+#define BT_FMT "%s: error string contains expected string"
 		if (validate_error && strstr(validate_error, expected_error)) {
-			pass(fmt, test_name);
+			pass(BT_FMT, test_name);
 		} else {
-			fail(fmt, test_name);
+			fail(BT_FMT, test_name);
 			diag("could not find `%s` in `%s`", expected_error, validate_error);
 		}
+#undef BT_FMT
 
 		g_free(validate_error);
 	} else {

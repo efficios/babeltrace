@@ -183,6 +183,15 @@ void bt_bt2_init_from_bt2(void);
 void bt_bt2_exit_handler(void);
 
 /*
+ * These functions cause some -Wformat-nonliteral warnings, but we don't need
+ * them.  Ignore them, so that we can keep the warning turned on.
+ */
+%ignore bt_current_thread_error_append_cause_from_component;
+%ignore bt_current_thread_error_append_cause_from_component_class;
+%ignore bt_current_thread_error_append_cause_from_message_iterator;
+%ignore bt_current_thread_error_append_cause_from_unknown;
+
+/*
  * Define `__BT_IN_BABELTRACE_H` to allow specific headers to be
  * included. This remains defined as long as we don't include the main
  * header, `<babeltrace2/babeltrace.h>`.

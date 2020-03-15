@@ -318,7 +318,7 @@ skip(unsigned int n, const char *fmt, ...)
 	LOCK;
 
 	va_start(ap, fmt);
-	if (asprintf(&skip_msg, fmt, ap) == -1) {
+	if (vasprintf(&skip_msg, fmt, ap) == -1) {
 		skip_msg = NULL;
 	}
 	va_end(ap);

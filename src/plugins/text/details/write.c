@@ -89,7 +89,10 @@ void format_uint(char *buf, uint64_t value, unsigned int base)
 		bt_common_abort();
 	}
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat-nonliteral"
 	sprintf(buf_start, spec, value);
+#pragma GCC diagnostic pop
 
 	if (sep_digits) {
 		bt_common_sep_digits(buf_start, digits_per_group, sep);
@@ -142,7 +145,10 @@ void format_int(char *buf, int64_t value, unsigned int base)
 		bt_common_abort();
 	}
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat-nonliteral"
 	sprintf(buf_start, spec, abs_value);
+#pragma GCC diagnostic pop
 
 	if (sep_digits) {
 		bt_common_sep_digits(buf_start, digits_per_group, sep);

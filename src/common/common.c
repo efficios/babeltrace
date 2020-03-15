@@ -1454,8 +1454,11 @@ size_t bt_common_get_page_size(int log_level)
 		size_t _tmp_fmt_size = (size_t) (fmt_ch - *out_fmt_ch);	\
 		strncpy(_tmp_fmt, *out_fmt_ch, _tmp_fmt_size);		\
 		_tmp_fmt[_tmp_fmt_size] = '\0';				\
+		_Pragma("GCC diagnostic push")				\
+		_Pragma("GCC diagnostic ignored \"-Wformat-nonliteral\"") \
 		_count = snprintf(*buf_ch, _size, _tmp_fmt, __VA_ARGS__); \
-		BT_ASSERT_DBG(_count >= 0);					\
+		_Pragma("GCC diagnostic pop")				\
+		BT_ASSERT_DBG(_count >= 0);				\
 		*buf_ch += MIN(_count, _size);				\
 	} while (0)
 

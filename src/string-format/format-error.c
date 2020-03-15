@@ -139,9 +139,12 @@ gchar *format_bt_error(
 			i == bt_error_get_cause_count(error) - 1 ?
 				"%s%sERROR%s:    " : "%s%sCAUSED BY%s ";
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat-nonliteral"
 		/* Print prefix */
 		g_string_append_printf(str, prefix_fmt,
 			codes.bold, codes.fg_bright_red, codes.reset);
+#pragma GCC diagnostic pop
 
 		g_free(error_cause_str);
 		error_cause_str = format_bt_error_cause(cause, columns,

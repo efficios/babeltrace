@@ -331,6 +331,8 @@ static inline void format_field_integer_extended(char **buf_ch,
 		fmt = ", %svalue=%" PRIx64;
 	}
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat-nonliteral"
 	if (field_class->common.type == BT_FIELD_CLASS_TYPE_SIGNED_INTEGER ||
 			field_class->common.type == BT_FIELD_CLASS_TYPE_SIGNED_ENUMERATION) {
 		if (!fmt) {
@@ -345,6 +347,7 @@ static inline void format_field_integer_extended(char **buf_ch,
 
 		BUF_APPEND(fmt, PRFIELD(integer->value.u));
 	}
+#pragma GCC diagnostic pop
 }
 
 static inline void format_field(char **buf_ch, bool extended,

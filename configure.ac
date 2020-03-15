@@ -665,7 +665,6 @@ AX_APPEND_COMPILE_FLAGS([ dnl
 		-Wnested-externs dnl
 		-Wwrite-strings dnl
 		-Wformat=2 dnl
-		-Wno-format-nonliteral dnl
 		-Wstrict-aliasing dnl
 		-Wmissing-noreturn dnl
 		-Winit-self dnl

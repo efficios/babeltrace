@@ -612,18 +612,19 @@ auto_source_discovery_internal_status auto_discover_source_for_input_as_dir_or_f
 
 		dir = g_dir_open(input->str, 0, &error);
 		if (!dir) {
-			const char *fmt = "Failed to open directory %s: %s";
-			BT_LOGW(fmt, input->str, error->message);
+#define BT_FMT "Failed to open directory %s: %s"
+			BT_LOGW(BT_FMT, input->str, error->message);
 
 			if (error->code == G_FILE_ERROR_ACCES) {
 				/* This is not a fatal error, we just skip it. */
 				status = AUTO_SOURCE_DISCOVERY_INTERNAL_STATUS_NO_MATCH;
 				goto end;
 			} else {
-				BT_AUTODISC_LOGE_APPEND_CAUSE(fmt, input->str,
+				BT_AUTODISC_LOGE_APPEND_CAUSE(BT_FMT, input->str,
 					error->message);
 				goto error;
 			}
+#undef BT_FMT
 		}
 
 		saved_input_len = input->len;
