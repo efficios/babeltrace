@@ -43,6 +43,8 @@
  * a BT component object instance.
  */
 
+#define BT_FMT_SWIG_ALLOC_FAILED "Failed to create a SWIG pointer object."
+
 static GHashTable *bt_cc_ptr_to_py_cls;
 
 static
@@ -234,7 +236,7 @@ bt_component_class_initialize_method_status component_class_init(
 		SWIGTYPE_p_bt_value, 0);
 	if (!py_params_ptr) {
 		BT_COMP_LOG_CUR_LVL(BT_LOG_ERROR, log_level, self_component,
-			"Failed to create a SWIG pointer object.");
+			BT_FMT_SWIG_ALLOC_FAILED);
 		goto error;
 	}
 
@@ -242,7 +244,7 @@ bt_component_class_initialize_method_status component_class_init(
 		self_comp_cls_type_swig_type, 0);
 	if (!py_comp_ptr) {
 		BT_COMP_LOG_CUR_LVL(BT_LOG_ERROR, log_level, self_component,
-			"Failed to create a SWIG pointer object.");
+			BT_FMT_SWIG_ALLOC_FAILED);
 		goto error;
 	}
 
@@ -324,7 +326,7 @@ component_class_get_supported_mip_versions(
 		SWIGTYPE_p_bt_value, 0);
 	if (!py_params_ptr) {
 		BT_LOG_WRITE_CUR_LVL(BT_LOG_ERROR, log_level, BT_LOG_TAG,
-			"Failed to create a SWIG pointer object.");
+			BT_FMT_SWIG_ALLOC_FAILED);
 		goto error;
 	}
 
@@ -790,7 +792,7 @@ bt_component_class_port_connected_method_status component_class_port_connected(
 		self_component_port_swig_type, 0);
 	if (!py_self_port_ptr) {
 		BT_COMP_LOG_CUR_LVL(BT_LOG_ERROR, log_level, self_component,
-			"Failed to create a SWIG pointer object.");
+			BT_FMT_SWIG_ALLOC_FAILED);
 		status = __BT_FUNC_STATUS_MEMORY_ERROR;
 		goto end;
 	}
@@ -799,7 +801,7 @@ bt_component_class_port_connected_method_status component_class_port_connected(
 		other_port_swig_type, 0);
 	if (!py_other_port_ptr) {
 		BT_COMP_LOG_CUR_LVL(BT_LOG_ERROR, log_level, self_component,
-			"Failed to create a SWIG pointer object.");
+			BT_FMT_SWIG_ALLOC_FAILED);
 		status = __BT_FUNC_STATUS_MEMORY_ERROR;
 		goto end;
 	}
@@ -965,7 +967,7 @@ bt_component_class_query_method_status component_class_query(
 		SWIGTYPE_p_bt_value, 0);
 	if (!py_params_ptr) {
 		BT_LOG_WRITE_CUR_LVL(BT_LOG_ERROR, log_level, BT_LOG_TAG,
-			"Failed to create a SWIG pointer object.");
+			BT_FMT_SWIG_ALLOC_FAILED);
 		goto error;
 	}
 
@@ -974,7 +976,7 @@ bt_component_class_query_method_status component_class_query(
 		SWIGTYPE_p_bt_private_query_executor, 0);
 	if (!py_priv_query_exec_ptr) {
 		BT_LOG_WRITE_CUR_LVL(BT_LOG_ERROR, log_level, BT_LOG_TAG,
-			"Failed to create a SWIG pointer object.");
+			BT_FMT_SWIG_ALLOC_FAILED);
 		goto error;
 	}
 
@@ -1120,12 +1122,10 @@ component_class_message_iterator_init(
 	py_iter_ptr = SWIG_NewPointerObj(SWIG_as_voidptr(self_message_iterator),
 		SWIGTYPE_p_bt_self_message_iterator, 0);
 	if (!py_iter_ptr) {
-		const char *err = "Failed to create a SWIG pointer object.";
-
 		BT_COMP_LOG_CUR_LVL(BT_LOG_ERROR, log_level, self_component,
-			"%s", err);
+			BT_FMT_SWIG_ALLOC_FAILED);
 		BT_CURRENT_THREAD_ERROR_APPEND_CAUSE_FROM_MESSAGE_ITERATOR(
-			self_message_iterator, err);
+			self_message_iterator, BT_FMT_SWIG_ALLOC_FAILED);
 		goto error;
 	}
 
@@ -1159,12 +1159,10 @@ component_class_message_iterator_init(
 	py_config_ptr = SWIG_NewPointerObj(SWIG_as_voidptr(config),
 		SWIGTYPE_p_bt_self_message_iterator_configuration, 0);
 	if (!py_config_ptr) {
-		const char *err = "Failed to create a SWIG pointer object";
-
 		BT_COMP_LOG_CUR_LVL(BT_LOG_ERROR, log_level, self_component,
-			"%s", err);
+			BT_FMT_SWIG_ALLOC_FAILED);
 		BT_CURRENT_THREAD_ERROR_APPEND_CAUSE_FROM_MESSAGE_ITERATOR(
-			self_message_iterator, err);
+			self_message_iterator, BT_FMT_SWIG_ALLOC_FAILED);
 		goto error;
 	}
 
@@ -1172,12 +1170,10 @@ component_class_message_iterator_init(
 		SWIG_as_voidptr(self_component_port_output),
 		SWIGTYPE_p_bt_self_component_port_output, 0);
 	if (!py_component_port_output_ptr) {
-		const char *err = "Failed to create a SWIG pointer object.";
-
 		BT_COMP_LOG_CUR_LVL(BT_LOG_ERROR, log_level, self_component,
-			"%s", err);
+			"%s", BT_FMT_SWIG_ALLOC_FAILED);
 		BT_CURRENT_THREAD_ERROR_APPEND_CAUSE_FROM_MESSAGE_ITERATOR(
-			self_message_iterator, err);
+			self_message_iterator, BT_FMT_SWIG_ALLOC_FAILED);
 		goto error;
 	}
 

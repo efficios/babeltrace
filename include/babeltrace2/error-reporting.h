@@ -629,7 +629,7 @@ if no \bt_plugin provides the class of \bt_p{self_component}, with:
     Calls this function with \c __FILE__ and \c __LINE__ as the
     \bt_p{file_name} and \bt_p{line_number} parameters.
 */
-extern
+extern __BT_ATTR_FORMAT_PRINTF(4, 5)
 bt_current_thread_error_append_cause_status
 bt_current_thread_error_append_cause_from_component(
 		bt_self_component *self_component, const char *file_name,
@@ -728,7 +728,7 @@ if no \bt_plugin provides the component class of
     Calls this function with \c __FILE__ and \c __LINE__ as the
     \bt_p{file_name} and \bt_p{line_number} parameters.
 */
-extern
+extern __BT_ATTR_FORMAT_PRINTF(4, 5)
 bt_current_thread_error_append_cause_status
 bt_current_thread_error_append_cause_from_message_iterator(
 		bt_self_message_iterator *self_message_iterator,
@@ -820,7 +820,7 @@ if no \bt_plugin provides \bt_p{self_component_class}, with:
     Calls this function with \c __FILE__ and \c __LINE__ as the
     \bt_p{file_name} and \bt_p{line_number} parameters.
 */
-extern
+extern __BT_ATTR_FORMAT_PRINTF(4, 5)
 bt_current_thread_error_append_cause_status
 bt_current_thread_error_append_cause_from_component_class(
 		bt_self_component_class *self_component_class,
@@ -884,7 +884,7 @@ format string parameter \bt_p{message_format}.
     Calls this function with \c __FILE__ and \c __LINE__ as the
     \bt_p{file_name} and \bt_p{line_number} parameters.
 */
-extern
+extern __BT_ATTR_FORMAT_PRINTF(4, 5)
 bt_current_thread_error_append_cause_status
 bt_current_thread_error_append_cause_from_unknown(
 		const char *module_name, const char *file_name,

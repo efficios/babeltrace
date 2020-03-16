@@ -35,7 +35,13 @@
 
 #define ARGPAR_ASSERT(_cond) assert(_cond)
 
-static
+#ifdef __MINGW_PRINTF_FORMAT
+# define ARGPAR_PRINTF_FORMAT __MINGW_PRINTF_FORMAT
+#else
+# define ARGPAR_PRINTF_FORMAT printf
+#endif
+
+static __attribute__((format(ARGPAR_PRINTF_FORMAT, 1, 0)))
 char *argpar_vasprintf(const char *fmt, va_list args)
 {
 	int len1, len2;
@@ -65,7 +71,7 @@ end:
 }
 
 
-static
+static __attribute__((format(ARGPAR_PRINTF_FORMAT, 1, 2)))
 char *argpar_asprintf(const char *fmt, ...)
 {
 	va_list args;
@@ -78,7 +84,7 @@ char *argpar_asprintf(const char *fmt, ...)
 	return str;
 }
 
-static
+static __attribute__((format(ARGPAR_PRINTF_FORMAT, 2, 3)))
 bool argpar_string_append_printf(char **str, const char *fmt, ...)
 {
 	char *new_str = NULL;

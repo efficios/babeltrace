@@ -1193,7 +1193,8 @@ static void put_src(bt_log_message *const msg, const src_location *const src)
 #endif
 }
 
-static void put_msg(bt_log_message *const msg,
+static _BT_LOG_PRINTFLIKE(2, 0)
+void put_msg(bt_log_message *const msg,
 					const char *const fmt, va_list va)
 {
 	int n;
@@ -1268,7 +1269,8 @@ void bt_log_set_output_v(const unsigned mask, void *const arg,
 	_bt_log_global_output.callback = callback;
 }
 
-static void _bt_log_write_imp(
+static _BT_LOG_PRINTFLIKE(6, 0)
+void _bt_log_write_imp(
 		const bt_log_spec *log,
 		const src_location *const src, const mem_block *const mem,
 		const int lvl, const char *const tag, const char *const fmt, va_list va)

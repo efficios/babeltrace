@@ -823,7 +823,7 @@ end:
  * bt_g_string_append_printf cannot be inlined because it expects a
  * variadic argument list.
  */
-BT_HIDDEN
+BT_HIDDEN __BT_ATTR_FORMAT_PRINTF(2, 3)
 int bt_common_g_string_append_printf(GString *str, const char *fmt, ...);
 
 static inline

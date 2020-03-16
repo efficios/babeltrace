@@ -70,9 +70,10 @@ bt_value *bt_bt2_auto_discover_source_components(const bt_value *inputs,
 
 	result = bt_value_map_create();
 	if (!result) {
-		static const char * const err = "Failed to create a map value.";
-		BT_LOGE_STR(err);
-		BT_CURRENT_THREAD_ERROR_APPEND_CAUSE_FROM_UNKNOWN(module_name, err);
+#define BT_FMT "Failed to create a map value."
+		BT_LOGE_STR(BT_FMT);
+		BT_CURRENT_THREAD_ERROR_APPEND_CAUSE_FROM_UNKNOWN(module_name, BT_FMT);
+#undef BT_FMT
 		PyErr_NoMemory();
 		goto end;
 	}

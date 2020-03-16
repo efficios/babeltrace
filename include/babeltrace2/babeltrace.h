@@ -44,6 +44,23 @@
 # define __BT_UPCAST_CONST(_type, _p)	((const _type *) (_p))
 #endif
 
+/*
+ * Internal: attribute suitable to tag functions as having printf()-like
+ * arguments.
+ *
+ * We always define `__USE_MINGW_ANSI_STDIO` when building with MinGW, so use
+ * `gnu_printf` directly rather than `__MINGW_PRINTF_FORMAT` (which would require
+ * including `stdio.h`).
+ */
+#ifdef __MINGW32__
+# define __BT_PRINTF_FORMAT gnu_printf
+#else
+# define __BT_PRINTF_FORMAT printf
+#endif
+
+#define __BT_ATTR_FORMAT_PRINTF(_string_index, _first_to_check) \
+		__attribute__((format(__BT_PRINTF_FORMAT, _string_index, _first_to_check)))
+
 #include <babeltrace2/error-reporting.h>
 #include <babeltrace2/graph/component-class-dev.h>
 #include <babeltrace2/graph/component-class.h>

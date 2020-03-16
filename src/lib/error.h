@@ -93,25 +93,25 @@ struct bt_error *bt_error_create(void);
 BT_HIDDEN
 void bt_error_destroy(struct bt_error *error);
 
-BT_HIDDEN
+BT_HIDDEN __BT_ATTR_FORMAT_PRINTF(5, 0)
 int bt_error_append_cause_from_unknown(struct bt_error *error,
 		const char *module_name, const char *file_name,
 		uint64_t line_no, const char *msg_fmt, va_list args);
 
-BT_HIDDEN
+BT_HIDDEN __BT_ATTR_FORMAT_PRINTF(5, 0)
 int bt_error_append_cause_from_component(
 		struct bt_error *error, bt_self_component *self_comp,
 		const char *file_name, uint64_t line_no,
 		const char *msg_fmt, va_list args);
 
-BT_HIDDEN
+BT_HIDDEN __BT_ATTR_FORMAT_PRINTF(5, 0)
 int bt_error_append_cause_from_component_class(
 		struct bt_error *error,
 		bt_self_component_class *self_comp_class,
 		const char *file_name, uint64_t line_no,
 		const char *msg_fmt, va_list args);
 
-BT_HIDDEN
+BT_HIDDEN __BT_ATTR_FORMAT_PRINTF(5, 0)
 int bt_error_append_cause_from_message_iterator(
 		struct bt_error *error, bt_self_message_iterator *self_iter,
 		const char *file_name, uint64_t line_no,

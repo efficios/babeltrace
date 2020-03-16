@@ -31,12 +31,6 @@
 
 #include <common/macros.h>
 
-#ifdef __MINGW_PRINTF_FORMAT
-# define BT_PRINTF_FORMAT __MINGW_PRINTF_FORMAT
-#else
-# define BT_PRINTF_FORMAT printf
-#endif
-
 struct bt_param_validation_context;
 struct bt_param_validation_value_descr;
 
@@ -106,8 +100,7 @@ enum bt_param_validation_status bt_param_validation_validate(
 		const struct bt_param_validation_map_value_entry_descr *entries,
 		gchar **error);
 
-BT_HIDDEN
-__attribute__((format(BT_PRINTF_FORMAT, 2, 3)))
+BT_HIDDEN __BT_ATTR_FORMAT_PRINTF(2, 3)
 enum bt_param_validation_status bt_param_validation_error(
 		struct bt_param_validation_context *ctx,
 		const char *format, ...);

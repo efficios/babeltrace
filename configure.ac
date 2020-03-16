@@ -676,6 +676,7 @@ AX_APPEND_COMPILE_FLAGS([ dnl
 		-Wredundant-decls dnl
 		-Wshadow dnl
 		-Wjump-misses-init dnl
+		-Wsuggest-attribute=format dnl
 		-Wtautological-constant-out-of-range-compare dnl
 		-Wnested-externs dnl
 		-Wwrite-strings dnl
