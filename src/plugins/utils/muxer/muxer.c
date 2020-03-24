@@ -148,7 +148,8 @@ int muxer_msg_iter_add_upstream_msg_iter(struct muxer_msg_iter *muxer_msg_iter,
 	struct muxer_comp *muxer_comp = muxer_msg_iter->muxer_comp;
 
 	if (!muxer_upstream_msg_iter) {
-		BT_COMP_LOGE_STR("Failed to allocate one muxer's upstream message iterator wrapper.");
+		BT_COMP_LOGE_APPEND_CAUSE(muxer_comp->self_comp,
+			"Failed to allocate one muxer's upstream message iterator wrapper.");
 		goto error;
 	}
 
@@ -157,7 +158,8 @@ int muxer_msg_iter_add_upstream_msg_iter(struct muxer_msg_iter *muxer_msg_iter,
 	bt_message_iterator_get_ref(muxer_upstream_msg_iter->msg_iter);
 	muxer_upstream_msg_iter->msgs = g_queue_new();
 	if (!muxer_upstream_msg_iter->msgs) {
-		BT_COMP_LOGE_STR("Failed to allocate a GQueue.");
+		BT_COMP_LOGE_APPEND_CAUSE(muxer_comp->self_comp,
+			"Failed to allocate a GQueue.");
 		goto error;
 	}
 
@@ -191,7 +193,7 @@ bt_self_component_add_port_status add_available_input_port(
 	BT_ASSERT(muxer_comp);
 	port_name = g_string_new("in");
 	if (!port_name) {
-		BT_COMP_LOGE_STR("Failed to allocate a GString.");
+		BT_COMP_LOGE_APPEND_CAUSE(muxer_comp->self_comp, "Failed to allocate a GString.");
 		status = BT_SELF_COMPONENT_ADD_PORT_STATUS_MEMORY_ERROR;
 		goto end;
 	}
@@ -200,7 +202,8 @@ bt_self_component_add_port_status add_available_input_port(
 	status = bt_self_component_filter_add_input_port(
 		self_comp, port_name->str, NULL, NULL);
 	if (status != BT_SELF_COMPONENT_ADD_PORT_STATUS_OK) {
-		BT_COMP_LOGE("Cannot add input port to muxer component: "
+		BT_COMP_LOGE_APPEND_CAUSE(muxer_comp->self_comp,
+			"Cannot add input port to muxer component: "
 			"port-name=\"%s\", comp-addr=%p, status=%s",
 			port_name->str, self_comp,
 			bt_common_func_status_string(status));
@@ -265,9 +268,15 @@ bt_component_class_initialize_method_status muxer_init(
 		"comp-addr=%p, params-addr=%p", self_comp, params);
 
 	if (!muxer_comp) {
+		/*
+		 * Don't use BT_COMP_LOGE_APPEND_CAUSE, as `muxer_comp` is not
+		 * initialized.
+		 */
 		BT_COMP_LOG_CUR_LVL(BT_LOG_ERROR, log_level, self_comp,
 			"Failed to allocate one muxer component.");
-		status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_MEMORY_ERROR;
+		BT_CURRENT_THREAD_ERROR_APPEND_CAUSE_FROM_COMPONENT(self_comp,
+			"Failed to allocate one muxer component.");
+			status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_MEMORY_ERROR;
 		goto error;
 	}
 
@@ -289,20 +298,20 @@ bt_component_class_initialize_method_status muxer_init(
 	bt_self_component_set_data(self_comp, muxer_comp);
 	add_port_status = add_available_input_port(self_comp_flt);
 	if (add_port_status != BT_SELF_COMPONENT_ADD_PORT_STATUS_OK) {
-		BT_COMP_LOGE("Cannot ensure that at least one muxer component's input port is available: "
+		BT_COMP_LOGE_APPEND_CAUSE(self_comp,
+			"Cannot ensure that at least one muxer component's input port is available: "
 			"muxer-comp-addr=%p, status=%s",
-			muxer_comp,
-			bt_common_func_status_string(add_port_status));
+			muxer_comp, bt_common_func_status_string(add_port_status));
 		status = (int) add_port_status;
 		goto error;
 	}
 
 	add_port_status = create_output_port(self_comp_flt);
 	if (add_port_status != BT_SELF_COMPONENT_ADD_PORT_STATUS_OK) {
-		BT_COMP_LOGE("Cannot create muxer component's output port: "
+		BT_COMP_LOGE_APPEND_CAUSE(self_comp,
+			"Cannot create muxer component's output port: "
 			"muxer-comp-addr=%p, status=%s",
-			muxer_comp,
-			bt_common_func_status_string(add_port_status));
+			muxer_comp, bt_common_func_status_string(add_port_status));
 		status = (int) add_port_status;
 		goto error;
 	}
@@ -356,7 +365,8 @@ create_msg_iter_on_input_port(struct muxer_comp *muxer_comp,
 	status = bt_message_iterator_create_from_message_iterator(
 		muxer_msg_iter->self_msg_iter, self_port, msg_iter);
 	if (status != BT_MESSAGE_ITERATOR_CREATE_FROM_MESSAGE_ITERATOR_STATUS_OK) {
-		BT_COMP_LOGE("Cannot create upstream message iterator on input port: "
+		BT_COMP_LOGE_APPEND_CAUSE(muxer_comp->self_comp,
+			"Cannot create upstream message iterator on input port: "
 			"port-addr=%p, port-name=\"%s\"",
 			port, bt_port_get_name(port));
 		goto end;
@@ -576,7 +586,8 @@ int get_msg_ts_ns(struct muxer_comp *muxer_comp,
 
 	ret = bt_clock_snapshot_get_ns_from_origin(clock_snapshot, ts_ns);
 	if (ret) {
-		BT_COMP_LOGE("Cannot get nanoseconds from Epoch of clock snapshot: "
+		BT_COMP_LOGE_APPEND_CAUSE(muxer_comp->self_comp,
+			"Cannot get nanoseconds from Epoch of clock snapshot: "
 			"clock-snapshot-addr=%p", clock_snapshot);
 		goto error;
 	}
@@ -651,7 +662,8 @@ int validate_clock_class(struct muxer_msg_iter *muxer_msg_iter,
 	switch (muxer_msg_iter->clock_class_expectation) {
 	case MUXER_MSG_ITER_CLOCK_CLASS_EXPECTATION_ABSOLUTE:
 		if (!bt_clock_class_origin_is_unix_epoch(clock_class)) {
-			BT_COMP_LOGE("Expecting an absolute clock class, "
+			BT_COMP_LOGE_APPEND_CAUSE(muxer_comp->self_comp,
+				"Expecting an absolute clock class, "
 				"but got a non-absolute one: "
 				"clock-class-addr=%p, clock-class-name=\"%s\"",
 				clock_class, cc_name);
@@ -660,7 +672,8 @@ int validate_clock_class(struct muxer_msg_iter *muxer_msg_iter,
 		break;
 	case MUXER_MSG_ITER_CLOCK_CLASS_EXPECTATION_NOT_ABS_NO_UUID:
 		if (bt_clock_class_origin_is_unix_epoch(clock_class)) {
-			BT_COMP_LOGE("Expecting a non-absolute clock class with no UUID, "
+			BT_COMP_LOGE_APPEND_CAUSE(muxer_comp->self_comp,
+				"Expecting a non-absolute clock class with no UUID, "
 				"but got an absolute one: "
 				"clock-class-addr=%p, clock-class-name=\"%s\"",
 				clock_class, cc_name);
@@ -668,7 +681,8 @@ int validate_clock_class(struct muxer_msg_iter *muxer_msg_iter,
 		}
 
 		if (cc_uuid) {
-			BT_COMP_LOGE("Expecting a non-absolute clock class with no UUID, "
+			BT_COMP_LOGE_APPEND_CAUSE(muxer_comp->self_comp,
+				"Expecting a non-absolute clock class with no UUID, "
 				"but got one with a UUID: "
 				"clock-class-addr=%p, clock-class-name=\"%s\", "
 				"uuid=\"" BT_UUID_FMT "\"",
@@ -678,7 +692,8 @@ int validate_clock_class(struct muxer_msg_iter *muxer_msg_iter,
 		break;
 	case MUXER_MSG_ITER_CLOCK_CLASS_EXPECTATION_NOT_ABS_SPEC_UUID:
 		if (bt_clock_class_origin_is_unix_epoch(clock_class)) {
-			BT_COMP_LOGE("Expecting a non-absolute clock class with a specific UUID, "
+			BT_COMP_LOGE_APPEND_CAUSE(muxer_comp->self_comp,
+				"Expecting a non-absolute clock class with a specific UUID, "
 				"but got an absolute one: "
 				"clock-class-addr=%p, clock-class-name=\"%s\"",
 				clock_class, cc_name);
@@ -686,7 +701,8 @@ int validate_clock_class(struct muxer_msg_iter *muxer_msg_iter,
 		}
 
 		if (!cc_uuid) {
-			BT_COMP_LOGE("Expecting a non-absolute clock class with a specific UUID, "
+			BT_COMP_LOGE_APPEND_CAUSE(muxer_comp->self_comp,
+				"Expecting a non-absolute clock class with a specific UUID, "
 				"but got one with no UUID: "
 				"clock-class-addr=%p, clock-class-name=\"%s\"",
 				clock_class, cc_name);
@@ -694,7 +710,8 @@ int validate_clock_class(struct muxer_msg_iter *muxer_msg_iter,
 		}
 
 		if (bt_uuid_compare(muxer_msg_iter->expected_clock_class_uuid, cc_uuid) != 0) {
-			BT_COMP_LOGE("Expecting a non-absolute clock class with a specific UUID, "
+			BT_COMP_LOGE_APPEND_CAUSE(muxer_comp->self_comp,
+				"Expecting a non-absolute clock class with a specific UUID, "
 				"but got one with different UUID: "
 				"clock-class-addr=%p, clock-class-name=\"%s\", "
 				"expected-uuid=\"" BT_UUID_FMT "\", "
@@ -706,7 +723,8 @@ int validate_clock_class(struct muxer_msg_iter *muxer_msg_iter,
 		}
 		break;
 	case MUXER_MSG_ITER_CLOCK_CLASS_EXPECTATION_NONE:
-		BT_COMP_LOGE("Expecting no clock class, but got one: "
+		BT_COMP_LOGE_APPEND_CAUSE(muxer_comp->self_comp,
+			"Expecting no clock class, but got one: "
 			"clock-class-addr=%p, clock-class-name=\"%s\"",
 			clock_class, cc_name);
 		goto error;
@@ -745,7 +763,8 @@ int validate_new_stream_clock_class(struct muxer_msg_iter *muxer_msg_iter,
 				MUXER_MSG_ITER_CLOCK_CLASS_EXPECTATION_NONE;
 		} else if (muxer_msg_iter->clock_class_expectation !=
 				MUXER_MSG_ITER_CLOCK_CLASS_EXPECTATION_NONE) {
-			BT_COMP_LOGE("Expecting stream class without a default clock class: "
+			BT_COMP_LOGE_APPEND_CAUSE(muxer_comp->self_comp,
+				"Expecting stream class without a default clock class: "
 				"stream-class-addr=%p, stream-class-name=\"%s\", "
 				"stream-class-id=%" PRIu64,
 				stream_class, bt_stream_class_get_name(stream_class),
@@ -1281,7 +1300,8 @@ bt_message_iterator_class_initialize_method_status muxer_msg_iter_init(
 		 * creates a muxer message iterator while creating
 		 * another muxer message iterator (same component).
 		 */
-		BT_COMP_LOGE("Recursive initialization of muxer component's message iterator: "
+		BT_COMP_LOGE_APPEND_CAUSE(muxer_comp->self_comp,
+			"Recursive initialization of muxer component's message iterator: "
 			"comp-addr=%p, muxer-comp-addr=%p, msg-iter-addr=%p",
 			self_comp, muxer_comp, self_msg_iter);
 		status = BT_MESSAGE_ITERATOR_CLASS_INITIALIZE_METHOD_STATUS_ERROR;
@@ -1291,7 +1311,8 @@ bt_message_iterator_class_initialize_method_status muxer_msg_iter_init(
 	muxer_comp->initializing_muxer_msg_iter = true;
 	muxer_msg_iter = g_new0(struct muxer_msg_iter, 1);
 	if (!muxer_msg_iter) {
-		BT_COMP_LOGE_STR("Failed to allocate one muxer component's message iterator.");
+		BT_COMP_LOGE_APPEND_CAUSE(muxer_comp->self_comp,
+			"Failed to allocate one muxer component's message iterator.");
 		status = BT_MESSAGE_ITERATOR_CLASS_INITIALIZE_METHOD_STATUS_MEMORY_ERROR;
 		goto error;
 	}
@@ -1303,7 +1324,7 @@ bt_message_iterator_class_initialize_method_status muxer_msg_iter_init(
 		g_ptr_array_new_with_free_func(
 			(GDestroyNotify) destroy_muxer_upstream_msg_iter);
 	if (!muxer_msg_iter->active_muxer_upstream_msg_iters) {
-		BT_COMP_LOGE_STR("Failed to allocate a GPtrArray.");
+		BT_COMP_LOGE_APPEND_CAUSE(muxer_comp->self_comp, "Failed to allocate a GPtrArray.");
 		status = BT_MESSAGE_ITERATOR_CLASS_INITIALIZE_METHOD_STATUS_MEMORY_ERROR;
 		goto error;
 	}
@@ -1312,7 +1333,7 @@ bt_message_iterator_class_initialize_method_status muxer_msg_iter_init(
 		g_ptr_array_new_with_free_func(
 			(GDestroyNotify) destroy_muxer_upstream_msg_iter);
 	if (!muxer_msg_iter->ended_muxer_upstream_msg_iters) {
-		BT_COMP_LOGE_STR("Failed to allocate a GPtrArray.");
+		BT_COMP_LOGE_APPEND_CAUSE(muxer_comp->self_comp, "Failed to allocate a GPtrArray.");
 		status = BT_MESSAGE_ITERATOR_CLASS_INITIALIZE_METHOD_STATUS_MEMORY_ERROR;
 		goto error;
 	}
@@ -1320,7 +1341,8 @@ bt_message_iterator_class_initialize_method_status muxer_msg_iter_init(
 	status = muxer_msg_iter_init_upstream_iterators(muxer_comp,
 		muxer_msg_iter, config);
 	if (status) {
-		BT_COMP_LOGE("Cannot initialize connected input ports for muxer component's message iterator: "
+		BT_COMP_LOGE_APPEND_CAUSE(muxer_comp->self_comp,
+			"Cannot initialize connected input ports for muxer component's message iterator: "
 			"comp-addr=%p, muxer-comp-addr=%p, "
 			"muxer-msg-iter-addr=%p, msg-iter-addr=%p, ret=%d",
 			self_comp, muxer_comp, muxer_msg_iter,
@@ -1392,7 +1414,8 @@ bt_message_iterator_class_next_method_status muxer_msg_iter_next(
 	status = muxer_msg_iter_do_next(muxer_comp, muxer_msg_iter,
 		msgs, capacity, count);
 	if (status < 0) {
-		BT_COMP_LOGE("Cannot get next message: "
+		BT_COMP_LOGE_APPEND_CAUSE(self_comp,
+			"Cannot get next message: "
 			"comp-addr=%p, muxer-comp-addr=%p, muxer-msg-iter-addr=%p, "
 			"msg-iter-addr=%p, status=%s",
 			self_comp, muxer_comp, muxer_msg_iter, self_msg_iter,
@@ -1420,9 +1443,9 @@ bt_component_class_port_connected_method_status muxer_input_port_connected(
 
 	add_port_status = add_available_input_port(self_comp);
 	if (add_port_status) {
-		BT_COMP_LOGE("Cannot add one muxer component's input port: "
-			"status=%s",
-			bt_common_func_status_string(status));
+		BT_COMP_LOGE_APPEND_CAUSE(muxer_comp->self_comp,
+			"Cannot add one muxer component's input port: status=%s",
+			bt_common_func_status_string(add_port_status));
 
 		if (add_port_status ==
 				BT_SELF_COMPONENT_ADD_PORT_STATUS_MEMORY_ERROR) {
@@ -1441,6 +1464,7 @@ end:
 static inline
 bt_message_iterator_class_can_seek_beginning_method_status
 muxer_upstream_msg_iters_can_all_seek_beginning(
+		struct muxer_comp *muxer_comp,
 		GPtrArray *muxer_upstream_msg_iters, bt_bool *can_seek)
 {
 	bt_message_iterator_class_can_seek_beginning_method_status status =
@@ -1453,6 +1477,9 @@ muxer_upstream_msg_iters_can_all_seek_beginning(
 		status = (int) bt_message_iterator_can_seek_beginning(
 			upstream_msg_iter->msg_iter, can_seek);
 		if (status != BT_MESSAGE_ITERATOR_CLASS_CAN_SEEK_BEGINNING_METHOD_STATUS_OK) {
+			BT_COMP_LOGE_APPEND_CAUSE(muxer_comp->self_comp,
+				"Failed to determine whether upstream message iterator can seek beginning: "
+				"msg-iter-addr=%p", upstream_msg_iter->msg_iter);
 			goto end;
 		}
 
@@ -1477,6 +1504,7 @@ muxer_msg_iter_can_seek_beginning(
 	bt_message_iterator_class_can_seek_beginning_method_status status;
 
 	status = muxer_upstream_msg_iters_can_all_seek_beginning(
+		muxer_msg_iter->muxer_comp,
 		muxer_msg_iter->active_muxer_upstream_msg_iters, can_seek);
 	if (status != BT_MESSAGE_ITERATOR_CLASS_CAN_SEEK_BEGINNING_METHOD_STATUS_OK) {
 		goto end;
@@ -1487,6 +1515,7 @@ muxer_msg_iter_can_seek_beginning(
 	}
 
 	status = muxer_upstream_msg_iters_can_all_seek_beginning(
+		muxer_msg_iter->muxer_comp,
 		muxer_msg_iter->ended_muxer_upstream_msg_iters, can_seek);
 
 end:
