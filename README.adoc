@@ -1,7 +1,7 @@
 // Render with Asciidoctor
 
 = Babeltrace
-15 October 2019
+13 April 2020
 :btversion: 2.0
 :bt2: Babeltrace{nbsp}2
 
@@ -97,6 +97,11 @@ _**If you need the {bt2}{nbsp}C{nbsp}API HTML documentation**_::
 _**If you need the {bt2} manual pages**_::
     * https://www.methods.co.nz/asciidoc/[Asciidoc]{nbsp}≥{nbsp}8.6.8
     * https://pagure.io/xmlto[xmlto]{nbsp}≥{nbsp}0.0.25
+
+_**If you need the `bt2` Python bindings documentation**_::
+    * https://www.sphinx-doc.org/[Sphinx]{nbsp}≥{nbsp}1.3 for
+      Python{nbsp}3
+      (Debian/Ubuntu/Fedora: `python3-sphinx`)
 
 
 === Procedure
