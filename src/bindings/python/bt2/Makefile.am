@@ -115,7 +115,7 @@ WARN_CFLAGS += -Wno-null-dereference
 BUILD_FLAGS=CC="$(CC)" \
 		CFLAGS="$(GLIB_CFLAGS) $(AM_CFLAGS) $(CFLAGS) $(WARN_CFLAGS)" \
 		CPPFLAGS="$(AM_CPPFLAGS) $(CPPFLAGS) -I$(srcdir)/bt2" \
-		LDFLAGS="$(AM_LDFLAGS) $(LDFLAGS) $(GLIB_LIBS) $(LIBS)"
+		LDFLAGS="$(AM_LDFLAGS) $(LDFLAGS) $(GLIB_LIBS) $(PYTHON_LDFLAGS) $(LIBS)"
 
 all-local: build-python-bindings.stamp
 

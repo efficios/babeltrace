@@ -1,6 +1,7 @@
 # The MIT License (MIT)
 #
 # Copyright (C) 2017 - Francis Deslauriers <francis.deslauriers@efficios.com>
+# Copyright (C) 2020 - Jérémie Galarneau <jeremie.galarneau@efficios.com>
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -21,6 +22,8 @@
 # THE SOFTWARE.
 
 import sys
+import os
+import distutils.sysconfig
 
 from distutils.core import setup, Extension
 
@@ -33,6 +36,71 @@ following command to your .bashrc/.zshrc:
     export PYTHONPATH="${{PYTHONPATH}}:{}"
 --------------------------------------------------------------------------------
 """
+
+original_get_config_vars = distutils.sysconfig.get_config_vars
+
+
+def get_cflags():
+    cflags = os.environ.get('CFLAGS')
+
+    if cflags is None:
+        [cflags] = original_get_config_vars('CFLAGS')
+
+    return cflags
+
+
+# distutils performs a similar transformation step on LDSHARED on
+# darwin to use the overriden CC as the default command for LDSHARED
+# (see distutils' customize_compiler() step in the sysconfig module).
+#
+# This takes it a step further by using our own LDFLAGS (when available)
+# along with the overriden compiler and ensure that flags that are unsupported
+# by either the Python interprter's CC or the overriden CC don't cause a
+# build failure.
+def get_ldshared():
+    cc = os.environ.get('CC')
+    ldflags = os.environ.get('LDFLAGS')
+    [py_cc] = original_get_config_vars('CC')
+    [py_ldshared] = original_get_config_vars('LDSHARED')
+
+    if not py_ldshared.startswith(py_cc):
+        return py_ldshared
+
+    if cc and ldflags:
+        return '{} -shared {}'.format(cc, ldflags)
+    elif cc:
+        return cc + py_ldshared[len(py_cc) :]
+    elif ldflags:
+        return py_cc + py_ldshared[len(py_cc) :]
+    else:
+        return py_ldshared
+
+
+def our_get_config_vars(*args):
+    overridden_config_vars = {
+        'CFLAGS': get_cflags(),
+        'LDSHARED': get_ldshared(),
+    }
+
+    if len(args) == 0:
+        all_config_vars = original_get_config_vars()
+        for name in overridden_config_vars:
+            all_config_vars[name] = overridden_config_vars[name]
+        return all_config_vars
+
+    subset_config_vars = []
+    for name in args:
+        if name not in overridden_config_vars:
+            [var] = original_get_config_vars(name)
+            subset_config_vars.append(var)
+            continue
+
+        subset_config_vars.append(overridden_config_vars[name])
+
+    return subset_config_vars
+
+
+distutils.sysconfig.get_config_vars = our_get_config_vars
 
 
 def main():
