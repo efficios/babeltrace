@@ -123,10 +123,11 @@ class _EventConst(object._UniqueObject):
         if common_context_field is not None and key in common_context_field:
             return common_context_field[key]
 
-        packet_context_field = self.packet.context_field
+        if self.packet:
+            packet_context_field = self.packet.context_field
 
-        if packet_context_field is not None and key in packet_context_field:
-            return packet_context_field[key]
+            if packet_context_field is not None and key in packet_context_field:
+                return packet_context_field[key]
 
         raise KeyError(key)
 
