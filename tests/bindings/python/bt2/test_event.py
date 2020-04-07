@@ -331,6 +331,20 @@ class EventTestCase(unittest.TestCase):
         with self.assertRaises(KeyError):
             ev['yes']
 
+    def test_const_getitem_no_packet(self):
+        def event_fields_config(event):
+            event.payload_field['giraffe'] = 1
+            event.payload_field['gnu'] = 23
+            event.payload_field['mosquito'] = 42
+
+        msg = self._create_test_const_event_message(
+            event_fields_config=event_fields_config, with_ep=True,
+        )
+        ev = msg.event
+
+        with self.assertRaises(KeyError):
+            ev['yes']
+
     def test_getitem(self):
         msg = utils.get_event_message()
         ev = msg.event
