@@ -25,9 +25,10 @@ from bt2 import event_class as bt2_event_class
 from bt2 import packet as bt2_packet
 from bt2 import stream as bt2_stream
 from bt2 import field as bt2_field
+import collections.abc
 
 
-class _EventConst(object._UniqueObject):
+class _EventConst(object._UniqueObject, collections.abc.Mapping):
     _borrow_class_ptr = staticmethod(native_bt.event_borrow_class_const)
     _borrow_packet_ptr = staticmethod(native_bt.event_borrow_packet_const)
     _borrow_stream_ptr = staticmethod(native_bt.event_borrow_stream_const)
@@ -130,6 +131,39 @@ class _EventConst(object._UniqueObject):
                 return packet_context_field[key]
 
         raise KeyError(key)
+
+    def __iter__(self):
+        # To only yield unique keys, keep a set of member names that are
+        # already yielded. Two root structure fields (for example,
+        # payload and common context) can contain immediate members
+        # which share the same name.
+        member_names = set()
+
+        if self.payload_field is not None:
+            for field_name in self.payload_field:
+                yield field_name
+                member_names.add(field_name)
+
+        if self.specific_context_field is not None:
+            for field_name in self.specific_context_field:
+                if field_name not in member_names:
+                    yield field_name
+                    member_names.add(field_name)
+
+        if self.common_context_field is not None:
+            for field_name in self.common_context_field:
+                if field_name not in member_names:
+                    yield field_name
+                    member_names.add(field_name)
+
+        if self.packet and self.packet.context_field is not None:
+            for field_name in self.packet.context_field:
+                if field_name not in member_names:
+                    yield field_name
+                    member_names.add(field_name)
+
+    def __len__(self):
+        return sum(1 for _ in self)
 
 
 class _Event(_EventConst):

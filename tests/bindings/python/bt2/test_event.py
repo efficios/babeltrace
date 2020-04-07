@@ -96,6 +96,7 @@ class EventTestCase(unittest.TestCase):
                     cc += [
                         ('cpu_id', tc.create_signed_integer_field_class(8)),
                         ('stuff', tc.create_double_precision_real_field_class()),
+                        ('gnu', tc.create_string_field_class()),
                     ]
 
                 # packet context (stream-class-defined)
@@ -192,6 +193,7 @@ class EventTestCase(unittest.TestCase):
         def event_fields_config(event):
             event.common_context_field['cpu_id'] = 1
             event.common_context_field['stuff'] = 13.194
+            event.common_context_field['gnu'] = 'salut'
 
         msg = self._create_test_const_event_message(
             event_fields_config=event_fields_config, with_cc=True
@@ -199,6 +201,7 @@ class EventTestCase(unittest.TestCase):
 
         self.assertEqual(msg.event.common_context_field['cpu_id'], 1)
         self.assertEqual(msg.event.common_context_field['stuff'], 13.194)
+        self.assertEqual(msg.event.common_context_field['gnu'], 'salut')
         self.assertIs(
             type(msg.event.common_context_field), bt2_field._StructureFieldConst
         )
@@ -287,23 +290,30 @@ class EventTestCase(unittest.TestCase):
         msg = utils.get_event_message()
         self.assertIs(type(msg.event.stream), bt2_stream._Stream)
 
+    @staticmethod
+    def _event_payload_fields_config(event):
+        event.payload_field['giraffe'] = 1
+        event.payload_field['gnu'] = 23
+        event.payload_field['mosquito'] = 42
+
+    @staticmethod
+    def _event_fields_config(event):
+        EventTestCase._event_payload_fields_config(event)
+        event.specific_context_field['ant'] = -1
+        event.specific_context_field['msg'] = 'hellooo'
+        event.common_context_field['cpu_id'] = 1
+        event.common_context_field['stuff'] = 13.194
+        event.common_context_field['gnu'] = 'salut'
+
+    @staticmethod
+    def _packet_fields_config(packet):
+        packet.context_field['something'] = 154
+        packet.context_field['something_else'] = 17.2
+
     def test_const_getitem(self):
-        def event_fields_config(event):
-            event.payload_field['giraffe'] = 1
-            event.payload_field['gnu'] = 23
-            event.payload_field['mosquito'] = 42
-            event.specific_context_field['ant'] = -1
-            event.specific_context_field['msg'] = 'hellooo'
-            event.common_context_field['cpu_id'] = 1
-            event.common_context_field['stuff'] = 13.194
-
-        def packet_fields_config(packet):
-            packet.context_field['something'] = 154
-            packet.context_field['something_else'] = 17.2
-
         msg = self._create_test_const_event_message(
-            packet_fields_config=packet_fields_config,
-            event_fields_config=event_fields_config,
+            packet_fields_config=self._packet_fields_config,
+            event_fields_config=self._event_fields_config,
             with_cc=True,
             with_sc=True,
             with_ep=True,
@@ -332,13 +342,8 @@ class EventTestCase(unittest.TestCase):
             ev['yes']
 
     def test_const_getitem_no_packet(self):
-        def event_fields_config(event):
-            event.payload_field['giraffe'] = 1
-            event.payload_field['gnu'] = 23
-            event.payload_field['mosquito'] = 42
-
         msg = self._create_test_const_event_message(
-            event_fields_config=event_fields_config, with_ep=True,
+            event_fields_config=self._event_payload_fields_config, with_ep=True,
         )
         ev = msg.event
 
@@ -356,6 +361,110 @@ class EventTestCase(unittest.TestCase):
         self.assertIs(type(ev['cpu_id']), bt2_field._SignedIntegerField)
         self.assertEqual(ev['something'], 154)
         self.assertIs(type(ev['something']), bt2_field._UnsignedIntegerField)
+
+    def test_iter_full(self):
+        msg = self._create_test_const_event_message(
+            packet_fields_config=self._packet_fields_config,
+            event_fields_config=self._event_fields_config,
+            with_cc=True,
+            with_sc=True,
+            with_ep=True,
+            with_packet=True,
+        )
+        expected_field_names = [
+            # payload
+            'giraffe',
+            'gnu',
+            'mosquito',
+            # specific context
+            'ant',
+            'msg',
+            # common context
+            'cpu_id',
+            'stuff',
+            # packet context
+            'something',
+            'something_else',
+        ]
+        self.assertEqual(list(msg.event), expected_field_names)
+
+    def test_iter_payload_only(self):
+        msg = self._create_test_const_event_message(
+            event_fields_config=self._event_payload_fields_config, with_ep=True,
+        )
+        expected_field_names = [
+            # payload
+            'giraffe',
+            'gnu',
+            'mosquito',
+        ]
+        self.assertEqual(list(msg.event), expected_field_names)
+
+    def test_len_full(self):
+        msg = self._create_test_const_event_message(
+            packet_fields_config=self._packet_fields_config,
+            event_fields_config=self._event_fields_config,
+            with_cc=True,
+            with_sc=True,
+            with_ep=True,
+            with_packet=True,
+        )
+        self.assertEqual(len(msg.event), 9)
+
+    def test_len_payload_only(self):
+        msg = self._create_test_const_event_message(
+            packet_fields_config=None,
+            event_fields_config=self._event_payload_fields_config,
+            with_ep=True,
+        )
+        self.assertEqual(len(msg.event), 3)
+
+    def test_in_full(self):
+        msg = self._create_test_const_event_message(
+            packet_fields_config=self._packet_fields_config,
+            event_fields_config=self._event_fields_config,
+            with_cc=True,
+            with_sc=True,
+            with_ep=True,
+            with_packet=True,
+        )
+        field_names = [
+            # payload
+            'giraffe',
+            'gnu',
+            'mosquito',
+            # specific context
+            'ant',
+            'msg',
+            # common context
+            'cpu_id',
+            'stuff',
+            # packet context
+            'something',
+            'something_else',
+        ]
+
+        for field_name in field_names:
+            self.assertTrue(field_name in msg.event)
+
+        self.assertFalse('lol' in msg.event)
+
+    def test_in_payload_only(self):
+        msg = self._create_test_const_event_message(
+            packet_fields_config=None,
+            event_fields_config=self._event_payload_fields_config,
+            with_ep=True,
+        )
+        field_names = [
+            'giraffe',
+            'gnu',
+            'mosquito',
+        ]
+
+        for field_name in field_names:
+            self.assertTrue(field_name in msg.event)
+
+        self.assertFalse('lol' in msg.event)
 
 
 if __name__ == "__main__":
