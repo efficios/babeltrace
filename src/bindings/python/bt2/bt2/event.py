@@ -108,26 +108,26 @@ class _EventConst(object._UniqueObject):
 
     def __getitem__(self, key):
         utils._check_str(key)
-        root_field = self.payload_field
+        payload_field = self.payload_field
 
-        if root_field is not None and key in root_field:
-            return root_field[key]
+        if payload_field is not None and key in payload_field:
+            return payload_field[key]
 
-        root_field = self.specific_context_field
+        specific_context_field = self.specific_context_field
 
-        if root_field is not None and key in root_field:
-            return root_field[key]
+        if specific_context_field is not None and key in specific_context_field:
+            return specific_context_field[key]
 
-        root_field = self.common_context_field
+        common_context_field = self.common_context_field
 
-        if root_field is not None and key in root_field:
-            return root_field[key]
+        if common_context_field is not None and key in common_context_field:
+            return common_context_field[key]
 
         if self.packet:
-            root_field = self.packet.context_field
+            packet_context_field = self.packet.context_field
 
-            if root_field is not None and key in root_field:
-                return root_field[key]
+            if packet_context_field is not None and key in packet_context_field:
+                return packet_context_field[key]
 
         raise KeyError(key)
 
