@@ -465,6 +465,27 @@ enum bt_self_component_add_port_status bt_component_add_output_port(
 }
 
 BT_HIDDEN
+bool bt_component_port_name_is_unique(GPtrArray *ports, const char *name)
+{
+	guint i;
+	bool unique;
+
+	for (i = 0; i < ports->len; i++) {
+		struct bt_port *port = g_ptr_array_index(ports, i);
+
+		if (strcmp(port->name->str, name) == 0) {
+			unique = false;
+			goto end;
+		}
+	}
+
+	unique = true;
+
+end:
+	return unique;
+}
+
+BT_HIDDEN
 enum bt_component_class_port_connected_method_status
 bt_component_port_connected(
 		struct bt_component *comp, struct bt_port *self_port,

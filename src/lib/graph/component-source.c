@@ -107,6 +107,7 @@ enum bt_self_component_add_port_status bt_self_component_source_add_output_port(
 	struct bt_port *port = NULL;
 
 	BT_ASSERT_PRE_NO_ERROR();
+	BT_ASSERT_PRE_OUTPUT_PORT_NAME_UNIQUE(comp, name);
 
 	/* bt_component_add_output_port() logs details and errors */
 	status = bt_component_add_output_port(comp, name, user_data, &port);

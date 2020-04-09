@@ -821,6 +821,14 @@ class _UserSourceComponent(_UserComponent, _SourceComponentConst):
 
     def _add_output_port(self, name, user_data=None):
         utils._check_str(name)
+
+        if name in self._output_ports:
+            raise ValueError(
+                'source component `{}` already contains an output port named `{}`'.format(
+                    self.name, name
+                )
+            )
+
         fn = native_bt.self_component_source_add_output_port
         comp_status, self_port_ptr = fn(self._bt_ptr, name, user_data)
         utils._handle_func_status(
@@ -871,6 +879,14 @@ class _UserFilterComponent(_UserComponent, _FilterComponentConst):
 
     def _add_output_port(self, name, user_data=None):
         utils._check_str(name)
+
+        if name in self._output_ports:
+            raise ValueError(
+                'filter component `{}` already contains an output port named `{}`'.format(
+                    self.name, name
+                )
+            )
+
         fn = native_bt.self_component_filter_add_output_port
         comp_status, self_port_ptr = fn(self._bt_ptr, name, user_data)
         utils._handle_func_status(
@@ -883,6 +899,14 @@ class _UserFilterComponent(_UserComponent, _FilterComponentConst):
 
     def _add_input_port(self, name, user_data=None):
         utils._check_str(name)
+
+        if name in self._input_ports:
+            raise ValueError(
+                'filter component `{}` already contains an input port named `{}`'.format(
+                    self.name, name
+                )
+            )
+
         fn = native_bt.self_component_filter_add_input_port
         comp_status, self_port_ptr = fn(self._bt_ptr, name, user_data)
         utils._handle_func_status(
@@ -925,6 +949,14 @@ class _UserSinkComponent(_UserComponent, _SinkComponentConst):
 
     def _add_input_port(self, name, user_data=None):
         utils._check_str(name)
+
+        if name in self._input_ports:
+            raise ValueError(
+                'sink component `{}` already contains an input port named `{}`'.format(
+                    self.name, name
+                )
+            )
+
         fn = native_bt.self_component_sink_add_input_port
         comp_status, self_port_ptr = fn(self._bt_ptr, name, user_data)
         utils._handle_func_status(

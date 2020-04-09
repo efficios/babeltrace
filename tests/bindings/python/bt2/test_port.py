@@ -30,6 +30,27 @@ class PortTestCase(unittest.TestCase):
         self.assertEqual(len(comp.output_ports), 1)
         self.assertIs(type(comp.output_ports['out']), bt2_port._OutputPortConst)
 
+    # Test adding output port with duplicate name to source.
+    def test_src_add_output_port_dup_name_raises(self):
+        class MySource(
+            bt2._UserSourceComponent, message_iterator_class=bt2._UserMessageIterator
+        ):
+            def __init__(comp_self, config, params, obj):
+                comp_self._add_output_port('out')
+
+                with self.assertRaisesRegex(
+                    ValueError,
+                    "source component `comp` already contains an output port named `out`",
+                ):
+                    comp_self._add_output_port('out')
+
+                nonlocal seen
+                seen = True
+
+        seen = False
+        self._create_comp(MySource)
+        self.assertTrue(seen)
+
     def test_flt_add_output_port(self):
         class MyFilter(
             bt2._UserFilterComponent, message_iterator_class=bt2._UserMessageIterator
@@ -40,6 +61,27 @@ class PortTestCase(unittest.TestCase):
 
         comp = self._create_comp(MyFilter)
         self.assertEqual(len(comp.output_ports), 1)
+
+    # Test adding output port with duplicate name to filter.
+    def test_flt_add_output_port_dup_name_raises(self):
+        class MyFilter(
+            bt2._UserFilterComponent, message_iterator_class=bt2._UserMessageIterator
+        ):
+            def __init__(comp_self, config, params, obj):
+                comp_self._add_output_port('out')
+
+                with self.assertRaisesRegex(
+                    ValueError,
+                    "filter component `comp` already contains an output port named `out`",
+                ):
+                    comp_self._add_output_port('out')
+
+                nonlocal seen
+                seen = True
+
+        seen = False
+        self._create_comp(MyFilter)
+        self.assertTrue(seen)
 
     def test_flt_add_input_port(self):
         class MyFilter(
@@ -53,6 +95,27 @@ class PortTestCase(unittest.TestCase):
         self.assertEqual(len(comp.input_ports), 1)
         self.assertIs(type(comp.input_ports['in']), bt2_port._InputPortConst)
 
+    # Test adding input port with duplicate name to filter.
+    def test_flt_add_input_port_dup_name_raises(self):
+        class MyFilter(
+            bt2._UserFilterComponent, message_iterator_class=bt2._UserMessageIterator
+        ):
+            def __init__(comp_self, config, params, obj):
+                comp_self._add_input_port('in')
+
+                with self.assertRaisesRegex(
+                    ValueError,
+                    "filter component `comp` already contains an input port named `in`",
+                ):
+                    comp_self._add_input_port('in')
+
+                nonlocal seen
+                seen = True
+
+        seen = False
+        self._create_comp(MyFilter)
+        self.assertTrue(seen)
+
     def test_sink_add_input_port(self):
         class MySink(bt2._UserSinkComponent):
             def __init__(comp_self, config, params, obj):
@@ -64,6 +127,28 @@ class PortTestCase(unittest.TestCase):
 
         comp = self._create_comp(MySink)
         self.assertEqual(len(comp.input_ports), 1)
+
+    # Test adding input port with duplicate name to sink.
+    def test_sink_add_input_port_dup_name_raises(self):
+        class MySink(bt2._UserSinkComponent):
+            def __init__(comp_self, config, params, obj):
+                comp_self._add_input_port('in')
+
+                with self.assertRaisesRegex(
+                    ValueError,
+                    "sink component `comp` already contains an input port named `in`",
+                ):
+                    comp_self._add_input_port('in')
+
+                nonlocal seen
+                seen = True
+
+            def _user_consume(self):
+                pass
+
+        seen = False
+        self._create_comp(MySink)
+        self.assertTrue(seen)
 
     def test_user_src_output_ports_getitem(self):
         class MySource(
