@@ -348,18 +348,9 @@ bt_component_class_initialize_method_status details_init(
 
 	add_port_status = bt_self_component_sink_add_input_port(comp,
 		IN_PORT_NAME, NULL, NULL);
-	switch (add_port_status) {
-	case BT_SELF_COMPONENT_ADD_PORT_STATUS_OK:
-		status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_OK;
-		break;
-	case BT_SELF_COMPONENT_ADD_PORT_STATUS_ERROR:
-		status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_ERROR;
-		break;
-	case BT_SELF_COMPONENT_ADD_PORT_STATUS_MEMORY_ERROR:
-		status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_MEMORY_ERROR;
-		break;
-	default:
-		bt_common_abort();
+	if (add_port_status != BT_SELF_COMPONENT_ADD_PORT_STATUS_OK) {
+		status = (int) add_port_status;
+		goto error;
 	}
 
 	details_comp = create_details_comp(comp);
