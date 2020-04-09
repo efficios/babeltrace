@@ -261,9 +261,9 @@ void bt_field_class_integer_set_field_value_range(
 	BT_ASSERT_PRE_NON_NULL(fc, "Field class");
 	BT_ASSERT_PRE_FC_IS_INT(fc, "Field class");
 	BT_ASSERT_PRE_DEV_FC_HOT(fc, "Field class");
-	BT_ASSERT_PRE(size <= 64,
+	BT_ASSERT_PRE(size >= 1 && size <= 64,
 		"Unsupported size for integer field class's field value range "
-		"(maximum is 64): size=%" PRIu64, size);
+		"(minimum is 1, maximum is 64): size=%" PRIu64, size);
 	BT_ASSERT_PRE(
 		int_fc->common.type == BT_FIELD_CLASS_TYPE_UNSIGNED_INTEGER ||
 		int_fc->common.type == BT_FIELD_CLASS_TYPE_SIGNED_INTEGER ||

@@ -1737,7 +1737,7 @@ See the \ref api-tir-fc-int-prop-size "field value range" property.
 @bt_pre_hot{field_class}
 @bt_pre_is_int_fc{field_class}
 @pre
-    \bt_p{n} ⩽ 64.
+    1 ⩽ \bt_p{n} ⩽ 64.
 
 @sa bt_field_class_integer_get_field_value_range() &mdash;
     Returns the field value range of an integer field class.
