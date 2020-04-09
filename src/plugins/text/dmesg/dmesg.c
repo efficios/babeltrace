@@ -725,8 +725,7 @@ bt_message_iterator_class_next_method_status dmesg_msg_iter_next_one(
 {
 	ssize_t len;
 	struct dmesg_component *dmesg_comp;
-	bt_message_iterator_class_next_method_status status =
-		BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_OK;
+	bt_message_iterator_class_next_method_status status;
 
 	BT_ASSERT_DBG(dmesg_msg_iter);
 	dmesg_comp = dmesg_msg_iter->dmesg_comp;
@@ -751,8 +750,10 @@ bt_message_iterator_class_next_method_status dmesg_msg_iter_next_one(
 		if (len < 0) {
 			if (errno == EINVAL) {
 				status = BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_ERROR;
+				goto end;
 			} else if (errno == ENOMEM) {
 				status = BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_MEMORY_ERROR;
+				goto end;
 			} else {
 				if (dmesg_msg_iter->state == STATE_EMIT_STREAM_BEGINNING) {
 					/* Stream did not even begin */
@@ -765,8 +766,6 @@ bt_message_iterator_class_next_method_status dmesg_msg_iter_next_one(
 					goto handle_state;
 				}
 			}
-
-			goto end;
 		}
 
 		BT_ASSERT_DBG(dmesg_msg_iter->linebuf);
@@ -790,6 +789,7 @@ bt_message_iterator_class_next_method_status dmesg_msg_iter_next_one(
 		BT_COMP_LOGE("Cannot create event message from line: "
 			"dmesg-comp-addr=%p, line=\"%s\"", dmesg_comp,
 			dmesg_msg_iter->linebuf);
+		status = BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_ERROR;
 		goto end;
 	}
 
@@ -821,8 +821,10 @@ handle_state:
 		BT_COMP_LOGE("Cannot create message: dmesg-comp-addr=%p",
 			dmesg_comp);
 		status = BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_ERROR;
+		goto end;
 	}
 
+	status = BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_OK;
 end:
 	return status;
 }
