@@ -238,6 +238,7 @@ void bt_message_discarded_events_set_count(struct bt_message *message,
 {
 	BT_ASSERT_PRE_NON_NULL(message, "Message");
 	BT_ASSERT_PRE_MSG_IS_TYPE(message, BT_MESSAGE_TYPE_DISCARDED_EVENTS);
+	BT_ASSERT_PRE(count > 0, "Discarded event count is 0.");
 	set_discarded_items_message_count(message, count);
 }
 
@@ -315,6 +316,7 @@ void bt_message_discarded_packets_set_count(struct bt_message *message,
 {
 	BT_ASSERT_PRE_NON_NULL(message, "Message");
 	BT_ASSERT_PRE_MSG_IS_TYPE(message, BT_MESSAGE_TYPE_DISCARDED_PACKETS);
+	BT_ASSERT_PRE(count > 0, "Discarded packet count is 0.");
 	set_discarded_items_message_count(message, count);
 }
 

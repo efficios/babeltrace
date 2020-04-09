@@ -233,6 +233,10 @@ class _DiscardedMessage(_DiscardedMessageConst, _Message):
 
     def _set_count(self, count):
         utils._check_uint64(count)
+
+        if count == 0:
+            raise ValueError('discarded {} count is 0'.format(self._item_name))
+
         self._set_count(self._ptr, count)
 
     _count = property(fget=_DiscardedMessageConst.count.fget, fset=_set_count)
@@ -258,6 +262,7 @@ class _DiscardedEventsMessageConst(_DiscardedMessageConst):
 class _DiscardedEventsMessage(_DiscardedEventsMessageConst, _DiscardedMessage):
     _borrow_stream_ptr = staticmethod(native_bt.message_discarded_events_borrow_stream)
     _set_count = staticmethod(native_bt.message_discarded_events_set_count)
+    _item_name = 'event'
 
 
 class _DiscardedPacketsMessageConst(_DiscardedMessageConst):
@@ -280,6 +285,7 @@ class _DiscardedPacketsMessageConst(_DiscardedMessageConst):
 class _DiscardedPacketsMessage(_DiscardedPacketsMessageConst, _DiscardedMessage):
     _borrow_stream_ptr = staticmethod(native_bt.message_discarded_packets_borrow_stream)
     _set_count = staticmethod(native_bt.message_discarded_packets_set_count)
+    _item_name = 'packet'
 
 
 _MESSAGE_TYPE_TO_CLS = {

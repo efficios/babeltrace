@@ -2568,6 +2568,8 @@ property.
 @bt_pre_not_null{message}
 @bt_pre_hot{message}
 @bt_pre_is_disc_ev_msg{message}
+@pre
+    \bt_p{count} > 0
 
 @sa bt_message_discarded_events_get_count() &mdash;
     Returns the number of discarded events of a discarded events
@@ -2886,6 +2888,8 @@ property.
 @bt_pre_not_null{message}
 @bt_pre_hot{message}
 @bt_pre_is_disc_pkt_msg{message}
+@pre
+    \bt_p{count} > 0
 
 @sa bt_message_discarded_packets_get_count() &mdash;
     Returns the number of discarded packets of a discarded packets

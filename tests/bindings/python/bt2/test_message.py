@@ -418,6 +418,22 @@ class CreateDiscardedEventMessageTestCase(unittest.TestCase):
         self.assertIs(type(msg), bt2._DiscardedEventsMessage)
         self.assertEqual(msg.count, 242)
 
+    # With event count == 0.
+    def test_create_with_count_zero_raises(self):
+        def create_stream_class(tc, cc):
+            return tc.create_stream_class(supports_discarded_events=True)
+
+        def msg_iter_next(msg_iter, stream):
+            with self.assertRaisesRegex(
+                ValueError, 'discarded event count is 0',
+            ):
+                msg_iter._create_discarded_events_message(stream, count=0)
+
+            return 123
+
+        res = utils.run_in_message_iterator_next(create_stream_class, msg_iter_next)
+        self.assertEqual(res, 123)
+
     # With clock snapshots.
     def test_create_with_clock_snapshots(self):
         def create_stream_class(tc, cc):
@@ -546,6 +562,24 @@ class CreateDiscardedPacketMessageTestCase(unittest.TestCase):
         msg = utils.run_in_message_iterator_next(create_stream_class, msg_iter_next)
         self.assertIs(type(msg), bt2._DiscardedPacketsMessage)
         self.assertEqual(msg.count, 242)
+
+    # With packet count == 0.
+    def test_create_with_count_zero_raises(self):
+        def create_stream_class(tc, cc):
+            return tc.create_stream_class(
+                supports_packets=True, supports_discarded_packets=True
+            )
+
+        def msg_iter_next(msg_iter, stream):
+            with self.assertRaisesRegex(
+                ValueError, 'discarded packet count is 0',
+            ):
+                msg_iter._create_discarded_packets_message(stream, count=0)
+
+            return 123
+
+        res = utils.run_in_message_iterator_next(create_stream_class, msg_iter_next)
+        self.assertEqual(res, 123)
 
     # With clock snapshots.
     def test_create_with_clock_snapshots(self):
