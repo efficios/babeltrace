@@ -2420,6 +2420,7 @@ property values:
 @pre
     <code>bt_stream_class_discarded_events_have_default_clock_snapshots(bt_stream_borrow_class_const(stream))</code>
     returns #BT_TRUE.
+    \bt_p{beginning_clock_snapshot_value} ⩽ \bt_p{end_clock_snapshot_value}
 
 @bt_post_success_frozen{stream}
 */
@@ -2738,6 +2739,7 @@ property values:
 @pre
     <code>bt_stream_class_discarded_packets_have_default_clock_snapshots(bt_stream_borrow_class_const(stream))</code>
     returns #BT_TRUE.
+    \bt_p{beginning_clock_snapshot_value} ⩽ \bt_p{end_clock_snapshot_value}
 
 @bt_post_success_frozen{stream}
 */

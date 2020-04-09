@@ -494,6 +494,29 @@ class CreateDiscardedEventMessageTestCase(unittest.TestCase):
         res = utils.run_in_message_iterator_next(create_stream_class, msg_iter_next)
         self.assertEqual(res, 123)
 
+    # End clock snapshot greater than beginning clock snapshot.
+    def test_create_clock_snapshots_end_gt_begin_raises(self):
+        def create_stream_class(tc, cc):
+            return tc.create_stream_class(
+                default_clock_class=cc,
+                supports_discarded_events=True,
+                discarded_events_have_default_clock_snapshots=True,
+            )
+
+        def msg_iter_next(msg_iter, stream):
+            with self.assertRaisesRegex(
+                ValueError,
+                r'beginning default clock snapshot value \(20\) is greater than end default clock snapshot value \(10\)',
+            ):
+                msg_iter._create_discarded_events_message(
+                    stream, beg_clock_snapshot=20, end_clock_snapshot=10
+                )
+
+            return 123
+
+        res = utils.run_in_message_iterator_next(create_stream_class, msg_iter_next)
+        self.assertEqual(res, 123)
+
 
 class CreateDiscardedPacketMessageTestCase(unittest.TestCase):
     # Most basic case.
@@ -598,6 +621,30 @@ class CreateDiscardedPacketMessageTestCase(unittest.TestCase):
                 'discarded packets have default clock snapshots for this stream class',
             ):
                 msg_iter._create_discarded_packets_message(stream)
+
+            return 123
+
+        res = utils.run_in_message_iterator_next(create_stream_class, msg_iter_next)
+        self.assertEqual(res, 123)
+
+    # End clock snapshot greater than beginning clock snapshot.
+    def test_create_clock_snapshots_end_gt_begin_raises(self):
+        def create_stream_class(tc, cc):
+            return tc.create_stream_class(
+                default_clock_class=cc,
+                supports_packets=True,
+                supports_discarded_packets=True,
+                discarded_packets_have_default_clock_snapshots=True,
+            )
+
+        def msg_iter_next(msg_iter, stream):
+            with self.assertRaisesRegex(
+                ValueError,
+                r'beginning default clock snapshot value \(20\) is greater than end default clock snapshot value \(10\)',
+            ):
+                msg_iter._create_discarded_packets_message(
+                    stream, beg_clock_snapshot=20, end_clock_snapshot=10
+                )
 
             return 123
 
