@@ -387,13 +387,16 @@ class _StreamClass(_StreamClassConst):
         utils._check_bool(supports_discarded_events)
         utils._check_bool(discarded_events_have_default_clock_snapshots)
 
-        if (
-            not supports_discarded_events
-            and discarded_events_have_default_clock_snapshots
-        ):
-            raise ValueError(
-                'cannot not support discarded events, but have default clock snapshots for discarded event messages'
-            )
+        if discarded_events_have_default_clock_snapshots:
+            if not supports_discarded_events:
+                raise ValueError(
+                    'cannot not support discarded events, but have default clock snapshots for discarded event messages'
+                )
+
+            if default_clock_class is None:
+                raise ValueError(
+                    'cannot have no default clock class, but have default clock snapshots for discarded event messages'
+                )
 
         # Discarded packets
         utils._check_bool(supports_discarded_packets)
@@ -404,10 +407,13 @@ class _StreamClass(_StreamClassConst):
                 'cannot support discarded packets, but not support packets'
             )
 
-        if (
-            not supports_discarded_packets
-            and discarded_packets_have_default_clock_snapshots
-        ):
-            raise ValueError(
-                'cannot not support discarded packets, but have default clock snapshots for discarded packet messages'
-            )
+        if discarded_packets_have_default_clock_snapshots:
+            if not supports_discarded_packets:
+                raise ValueError(
+                    'cannot not support discarded packets, but have default clock snapshots for discarded packet messages'
+                )
+
+            if default_clock_class is None:
+                raise ValueError(
+                    'cannot have no default clock class, but have default clock snapshots for discarded packet messages'
+                )
