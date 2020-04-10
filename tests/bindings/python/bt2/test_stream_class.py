@@ -357,6 +357,20 @@ class StreamClassTestCase(unittest.TestCase):
 
         self.assertEqual(len(self._tc), 0)
 
+    def test_supports_discarded_events_with_clock_snapshots_without_default_clock_class_raises(
+        self,
+    ):
+        with self.assertRaisesRegex(
+            ValueError,
+            'cannot have no default clock class, but have default clock snapshots for discarded event messages',
+        ):
+            self._tc.create_stream_class(
+                supports_discarded_events=True,
+                discarded_events_have_default_clock_snapshots=True,
+            )
+
+        self.assertEqual(len(self._tc), 0)
+
     def test_supports_discarded_packets_without_cs(self):
         sc = self._tc.create_stream_class(
             default_clock_class=self._cc,
@@ -415,6 +429,21 @@ class StreamClassTestCase(unittest.TestCase):
                 default_clock_class=self._cc,
                 discarded_packets_have_default_clock_snapshots=True,
                 supports_packets=True,
+            )
+
+        self.assertEqual(len(self._tc), 0)
+
+    def test_supports_discarded_packets_with_clock_snapshots_without_default_clock_class_raises(
+        self,
+    ):
+        with self.assertRaisesRegex(
+            ValueError,
+            'cannot have no default clock class, but have default clock snapshots for discarded packet messages',
+        ):
+            self._tc.create_stream_class(
+                supports_packets=True,
+                supports_discarded_packets=True,
+                discarded_packets_have_default_clock_snapshots=True,
             )
 
         self.assertEqual(len(self._tc), 0)
