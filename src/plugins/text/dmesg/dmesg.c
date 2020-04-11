@@ -343,32 +343,6 @@ void destroy_dmesg_component(struct dmesg_component *dmesg_comp)
 	g_free(dmesg_comp);
 }
 
-static
-bt_component_class_initialize_method_status create_port(
-		bt_self_component_source *self_comp)
-{
-	bt_component_class_initialize_method_status status;
-	bt_self_component_add_port_status add_port_status;
-
-	add_port_status = bt_self_component_source_add_output_port(self_comp,
-		"out", NULL, NULL);
-	switch (add_port_status) {
-	case BT_SELF_COMPONENT_ADD_PORT_STATUS_OK:
-		status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_OK;
-		break;
-	case BT_SELF_COMPONENT_ADD_PORT_STATUS_ERROR:
-		status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_ERROR;
-		break;
-	case BT_SELF_COMPONENT_ADD_PORT_STATUS_MEMORY_ERROR:
-		status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_MEMORY_ERROR;
-		break;
-	default:
-		bt_common_abort();
-	}
-
-	return status;
-}
-
 BT_HIDDEN
 bt_component_class_initialize_method_status dmesg_init(
 		bt_self_component_source *self_comp_src,
@@ -381,6 +355,7 @@ bt_component_class_initialize_method_status dmesg_init(
 		bt_self_component_source_as_self_component(self_comp_src);
 	const bt_component *comp = bt_self_component_as_component(self_comp);
 	bt_logging_level log_level = bt_component_get_logging_level(comp);
+	bt_self_component_add_port_status add_port_status;
 
 	if (!dmesg_comp) {
 		/* Implicit log level is not available here */
@@ -417,8 +392,10 @@ bt_component_class_initialize_method_status dmesg_init(
 		goto error;
 	}
 
-	status = create_port(self_comp_src);
-	if (status != BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_OK) {
+	add_port_status = bt_self_component_source_add_output_port(
+		self_comp_src, "out", NULL, NULL);
+	if (add_port_status != BT_SELF_COMPONENT_ADD_PORT_STATUS_OK) {
+		status = (int) add_port_status;
 		goto error;
 	}
 
