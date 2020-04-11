@@ -425,8 +425,7 @@ BT_HIDDEN
 bt_component_class_sink_consume_method_status
 details_consume(bt_self_component_sink *comp)
 {
-	bt_component_class_sink_consume_method_status ret =
-		BT_COMPONENT_CLASS_SINK_CONSUME_METHOD_STATUS_OK;
+	bt_component_class_sink_consume_method_status status;
 	bt_message_array_const msgs;
 	uint64_t count;
 	struct details_comp *details_comp;
@@ -441,52 +440,38 @@ details_consume(bt_self_component_sink *comp)
 	/* Consume messages */
 	next_status = bt_message_iterator_next(
 		details_comp->msg_iter, &msgs, &count);
-	switch (next_status) {
-	case BT_MESSAGE_ITERATOR_NEXT_STATUS_OK:
-		ret = BT_COMPONENT_CLASS_SINK_CONSUME_METHOD_STATUS_OK;
-
-		for (i = 0; i < count; i++) {
-			int print_ret = details_write_message(details_comp,
-				msgs[i]);
-
-			if (print_ret) {
-				for (; i < count; i++) {
-					/* Put all remaining messages */
-					bt_message_put_ref(msgs[i]);
-				}
-
-				ret = BT_COMPONENT_CLASS_SINK_CONSUME_METHOD_STATUS_ERROR;
-				goto end;
-			}
-
-			/* Print output buffer to standard output and flush */
-			if (details_comp->str->len > 0) {
-				printf("%s", details_comp->str->str);
-				fflush(stdout);
-				details_comp->printed_something = true;
-			}
-
-			/* Put this message */
-			bt_message_put_ref(msgs[i]);
-		}
-
-		break;
-	case BT_MESSAGE_ITERATOR_NEXT_STATUS_AGAIN:
-		ret = BT_COMPONENT_CLASS_SINK_CONSUME_METHOD_STATUS_AGAIN;
+	if (next_status != BT_MESSAGE_ITERATOR_NEXT_STATUS_OK) {
+		status = (int) next_status;
 		goto end;
-	case BT_MESSAGE_ITERATOR_NEXT_STATUS_END:
-		ret = BT_COMPONENT_CLASS_SINK_CONSUME_METHOD_STATUS_END;
-		goto end;
-	case BT_MESSAGE_ITERATOR_NEXT_STATUS_ERROR:
-		ret = BT_COMPONENT_CLASS_SINK_CONSUME_METHOD_STATUS_ERROR;
-		goto end;
-	case BT_MESSAGE_ITERATOR_NEXT_STATUS_MEMORY_ERROR:
-		ret = BT_COMPONENT_CLASS_SINK_CONSUME_METHOD_STATUS_MEMORY_ERROR;
-		goto end;
-	default:
-		bt_common_abort();
 	}
 
+	for (i = 0; i < count; i++) {
+		int print_ret = details_write_message(details_comp,
+			msgs[i]);
+
+		if (print_ret) {
+			for (; i < count; i++) {
+				/* Put all remaining messages */
+				bt_message_put_ref(msgs[i]);
+			}
+
+			status = BT_COMPONENT_CLASS_SINK_CONSUME_METHOD_STATUS_ERROR;
+			goto end;
+		}
+
+		/* Print output buffer to standard output and flush */
+		if (details_comp->str->len > 0) {
+			printf("%s", details_comp->str->str);
+			fflush(stdout);
+			details_comp->printed_something = true;
+		}
+
+		/* Put this message */
+		bt_message_put_ref(msgs[i]);
+	}
+
+	status = BT_COMPONENT_CLASS_SINK_CONSUME_METHOD_STATUS_OK;
+
 end:
-	return ret;
+	return status;
 }
