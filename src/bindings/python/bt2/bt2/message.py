@@ -255,7 +255,7 @@ class _DiscardedEventsMessageConst(_DiscardedMessageConst):
         return self.stream.cls.discarded_events_have_default_clock_snapshots
 
 
-class _DiscardedEventsMessage(_DiscardedMessage):
+class _DiscardedEventsMessage(_DiscardedEventsMessageConst, _DiscardedMessage):
     _borrow_stream_ptr = staticmethod(native_bt.message_discarded_events_borrow_stream)
     _set_count = staticmethod(native_bt.message_discarded_events_set_count)
 

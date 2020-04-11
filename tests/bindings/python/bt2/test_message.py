@@ -404,8 +404,7 @@ class CreateDiscardedEventMessageTestCase(unittest.TestCase):
 
         msg = utils.run_in_message_iterator_next(create_stream_class, msg_iter_next)
         self.assertIs(type(msg), bt2._DiscardedEventsMessage)
-        # Broken at the moment.
-        # self.assertIs(msg.count, None)
+        self.assertIs(msg.count, None)
 
     # With event count.
     def test_create_with_count(self):
@@ -417,8 +416,7 @@ class CreateDiscardedEventMessageTestCase(unittest.TestCase):
 
         msg = utils.run_in_message_iterator_next(create_stream_class, msg_iter_next)
         self.assertIs(type(msg), bt2._DiscardedEventsMessage)
-        # Broken at the moment.
-        # self.assertEqual(msg.count, 242)
+        self.assertEqual(msg.count, 242)
 
     # With clock snapshots.
     def test_create_with_clock_snapshots(self):
@@ -436,9 +434,8 @@ class CreateDiscardedEventMessageTestCase(unittest.TestCase):
 
         msg = utils.run_in_message_iterator_next(create_stream_class, msg_iter_next)
         self.assertIs(type(msg), bt2._DiscardedEventsMessage)
-        # Broken at the moment.
-        # self.assertEqual(msg.beginning_default_clock_snapshot, 10);
-        # self.assertEqual(msg.end_default_clock_snapshot, 20);
+        self.assertEqual(msg.beginning_default_clock_snapshot, 10)
+        self.assertEqual(msg.end_default_clock_snapshot, 20)
 
     # Trying to create when the stream does not support discarded events.
     def test_create_unsupported_raises(self):
