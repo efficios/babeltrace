@@ -187,7 +187,7 @@ int muxer_msg_iter_add_upstream_msg_iter(struct muxer_msg_iter *muxer_msg_iter,
 	goto end;
 
 error:
-	g_free(muxer_upstream_msg_iter);
+	destroy_muxer_upstream_msg_iter(muxer_upstream_msg_iter);
 	ret = -1;
 
 end:
