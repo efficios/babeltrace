@@ -970,6 +970,9 @@ class _UserSinkComponent(_UserComponent, _SinkComponentConst):
     def _create_message_iterator(self, input_port):
         utils._check_type(input_port, bt2_port._UserComponentInputPort)
 
+        if not input_port.is_connected:
+            raise ValueError('input port is not connected')
+
         (
             status,
             msg_iter_ptr,
