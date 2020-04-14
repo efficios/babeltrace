@@ -818,7 +818,7 @@ stream, a distant server, and so on. For example, the
 ``source.ctf.lttng-live`` component class (see
 :bt2man:`babeltrace2-source.ctf.lttng-live(7)`) offers the ``sessions``
 object to list the available
-`LTTng live <https://lttng.org/docs/v2.11/#doc-lttng-live>`_ tracing
+`LTTng live <https://lttng.org/docs/#doc-lttng-live>`_ tracing
 session names and other properties.
 
 The semantics of the query parameters and the returned object are
