@@ -8,6 +8,7 @@
 /tests/lib/test_trace_ir_ref
 /tests/lib/test_simple_sink
 /tests/lib/test_remove_destruction_listener_in_destruction_listener
+/tests/lib/conds/conds-triggers
 /tests/param-validation/test_param_validation
 /tests/plugins/flt.lttng-utils.debug-info/test_bin_info
 /tests/plugins/flt.lttng-utils.debug-info/test_dwarf

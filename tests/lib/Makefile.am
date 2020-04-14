@@ -54,3 +54,9 @@ SUBDIRS += test-plugin-plugins
 endif
 
 dist_check_SCRIPTS = test_plugin
+
+if HAVE_PYTHON
+if DEV_MODE
+SUBDIRS += conds
+endif
+endif

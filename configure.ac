@@ -330,6 +330,7 @@ AC_ARG_VAR([BABELTRACE_DEV_MODE], [Set to 1 to enable the Babeltrace developer m
 AS_IF([test "x$BABELTRACE_DEV_MODE" = x1], [
 	AC_DEFINE([BT_DEV_MODE], 1, [Babeltrace developer mode])
 ], [BABELTRACE_DEV_MODE=0])
+AM_CONDITIONAL([DEV_MODE], [test "x$BABELTRACE_DEV_MODE" = x1])
 
 # BABELTRACE_DEBUG_MODE:
 AC_ARG_VAR([BABELTRACE_DEBUG_MODE], [Set to 1 to enable the Babeltrace debug mode (enables internal assertions for Babeltrace maintainers)])
@@ -816,6 +817,7 @@ AC_CONFIG_FILES([
 	tests/ctf-writer/Makefile
 	tests/lib/Makefile
 	tests/lib/test-plugin-plugins/Makefile
+	tests/lib/conds/Makefile
 	tests/Makefile
 	tests/param-validation/Makefile
 	tests/plugins/Makefile

@@ -141,6 +141,10 @@ endif
 
 if HAVE_PYTHON
 TESTS_PLUGINS += plugins/src.ctf.lttng-live/test_live
+
+if DEV_MODE
+TESTS_LIB += lib/conds/test_conds
+endif
 endif
 
 TESTS_PYTHON_PLUGIN_PROVIDER =
