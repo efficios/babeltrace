@@ -162,8 +162,7 @@ BT_HIDDEN
 bt_component_class_sink_consume_method_status pretty_consume(
 		bt_self_component_sink *comp)
 {
-	bt_component_class_sink_consume_method_status ret =
-		BT_COMPONENT_CLASS_SINK_CONSUME_METHOD_STATUS_OK;
+	bt_component_class_sink_consume_method_status status;
 	bt_message_array_const msgs;
 	bt_message_iterator *it;
 	struct pretty_component *pretty = bt_self_component_get_data(
@@ -175,29 +174,14 @@ bt_component_class_sink_consume_method_status pretty_consume(
 	it = pretty->iterator;
 	next_status = bt_message_iterator_next(it,
 		&msgs, &count);
-
-	switch (next_status) {
-	case BT_MESSAGE_ITERATOR_NEXT_STATUS_OK:
-		break;
-	case BT_MESSAGE_ITERATOR_NEXT_STATUS_MEMORY_ERROR:
-	case BT_MESSAGE_ITERATOR_NEXT_STATUS_AGAIN:
-		ret = (int) next_status;
-		goto end;
-	case BT_MESSAGE_ITERATOR_NEXT_STATUS_END:
-		ret = (int) next_status;
-		BT_MESSAGE_ITERATOR_PUT_REF_AND_RESET(
-			pretty->iterator);
-		goto end;
-	default:
-		ret = BT_COMPONENT_CLASS_SINK_CONSUME_METHOD_STATUS_ERROR;
+	if (next_status != BT_MESSAGE_ITERATOR_NEXT_STATUS_OK) {
+		status = (int) next_status;
 		goto end;
 	}
 
-	BT_ASSERT_DBG(next_status == BT_MESSAGE_ITERATOR_NEXT_STATUS_OK);
-
 	for (i = 0; i < count; i++) {
-		ret = (int) handle_message(pretty, msgs[i]);
-		if (ret) {
+		status = (int) handle_message(pretty, msgs[i]);
+		if (status) {
 			goto end;
 		}
 
@@ -209,7 +193,7 @@ end:
 		bt_message_put_ref(msgs[i]);
 	}
 
-	return ret;
+	return status;
 }
 
 static
