@@ -103,12 +103,16 @@ bt_message_iterator_class_next_method_status handle_message(
 	switch (bt_message_get_type(message)) {
 	case BT_MESSAGE_TYPE_EVENT:
 		if (pretty_print_event(pretty, message)) {
+			BT_COMP_LOGE_APPEND_CAUSE(pretty->self_comp,
+				"Failed to print one event.");
 			ret = BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_ERROR;
 		}
 		break;
 	case BT_MESSAGE_TYPE_DISCARDED_EVENTS:
 	case BT_MESSAGE_TYPE_DISCARDED_PACKETS:
 		if (pretty_print_discarded_items(pretty, message)) {
+			BT_COMP_LOGE_APPEND_CAUSE(pretty->self_comp,
+				"Failed to print discarded items.");
 			ret = BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_ERROR;
 		}
 		break;
@@ -349,6 +353,8 @@ bt_component_class_initialize_method_status apply_params(
 	apply_one_string("path", params, &pretty->options.output_path);
 	ret = open_output_file(pretty);
 	if (ret) {
+		BT_COMP_LOGE_APPEND_CAUSE(pretty->self_comp,
+			"Failed to open output file: %s", validate_error);
 		status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_ERROR;
 		goto end;
 	}
@@ -539,6 +545,14 @@ bt_component_class_initialize_method_status pretty_init(
 	bt_logging_level log_level = bt_component_get_logging_level(comp);
 
 	if (!pretty) {
+		/*
+		 * Don't use BT_COMP_LOGE_APPEND_CAUSE, as `pretty` is not
+		 * initialized yet.
+		 */
+		BT_COMP_LOG_CUR_LVL(BT_LOG_ERROR, log_level, self_comp,
+			"Failed to allocate component.");
+		BT_CURRENT_THREAD_ERROR_APPEND_CAUSE_FROM_COMPONENT(
+			self_comp, "Failed to allocate component.");
 		status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_MEMORY_ERROR;
 		goto error;
 	}
