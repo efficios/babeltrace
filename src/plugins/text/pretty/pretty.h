@@ -71,6 +71,9 @@ struct pretty_component {
 	uint64_t delta_real_timestamp;
 
 	bool negative_timestamp_warning_done;
+
+	bt_logging_level log_level;
+	bt_self_component *self_comp;
 };
 
 BT_HIDDEN

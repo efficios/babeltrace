@@ -5,8 +5,8 @@
  * Copyright 2016 Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
  */
 
-#define BT_COMP_LOG_SELF_COMP self_comp
-#define BT_LOG_OUTPUT_LEVEL log_level
+#define BT_COMP_LOG_SELF_COMP (pretty->self_comp)
+#define BT_LOG_OUTPUT_LEVEL (pretty->log_level)
 #define BT_LOG_TAG "PLUGIN/SINK.TEXT.PRETTY"
 #include "logging/comp-logging.h"
 
@@ -129,9 +129,7 @@ pretty_graph_is_configured(bt_self_component_sink *self_comp_sink)
 	struct pretty_component *pretty;
 	bt_self_component *self_comp =
 		bt_self_component_sink_as_self_component(self_comp_sink);
-	const bt_component *comp = bt_self_component_as_component(self_comp);
 	bt_self_component_port_input *in_port;
-	bt_logging_level log_level = bt_component_get_logging_level(comp);
 
 	pretty = bt_self_component_get_data(self_comp);
 	BT_ASSERT(pretty);
@@ -329,8 +327,7 @@ struct bt_param_validation_map_value_entry_descr pretty_params[] = {
 
 static
 bt_component_class_initialize_method_status apply_params(
-		struct pretty_component *pretty, const bt_value *params,
-		bt_self_component *self_comp, bt_logging_level log_level)
+		struct pretty_component *pretty, const bt_value *params)
 {
 	int ret;
 	const bt_value *value;
@@ -345,7 +342,7 @@ bt_component_class_initialize_method_status apply_params(
 		goto end;
 	} else if (validation_status == BT_PARAM_VALIDATION_STATUS_VALIDATION_ERROR) {
 		status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_ERROR;
-		BT_COMP_LOGE_APPEND_CAUSE(self_comp, "%s", validate_error);
+		BT_COMP_LOGE_APPEND_CAUSE(pretty->self_comp, "%s", validate_error);
 		goto end;
 	}
 
@@ -562,6 +559,9 @@ bt_component_class_initialize_method_status pretty_init(
 		goto error;
 	}
 
+	pretty->self_comp = self_comp;
+	pretty->log_level = log_level;
+
 	add_port_status = bt_self_component_sink_add_input_port(self_comp_sink,
 		in_port_name, NULL, NULL);
 	if (add_port_status != BT_SELF_COMPONENT_ADD_PORT_STATUS_OK) {
@@ -578,7 +578,7 @@ bt_component_class_initialize_method_status pretty_init(
 	pretty->delta_real_timestamp = -1ULL;
 	pretty->last_real_timestamp = -1ULL;
 
-	status = apply_params(pretty, params, self_comp, log_level);
+	status = apply_params(pretty, params);
 	if (status != BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_OK) {
 		goto error;
 	}
