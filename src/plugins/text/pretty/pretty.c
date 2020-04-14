@@ -121,20 +121,34 @@ bt_message_iterator_class_next_method_status handle_message(
 
 BT_HIDDEN
 bt_component_class_sink_graph_is_configured_method_status
-pretty_graph_is_configured(bt_self_component_sink *comp)
+pretty_graph_is_configured(bt_self_component_sink *self_comp_sink)
 {
 	bt_component_class_sink_graph_is_configured_method_status status;
 	bt_message_iterator_create_from_sink_component_status
 		msg_iter_status;
 	struct pretty_component *pretty;
+	bt_self_component *self_comp =
+		bt_self_component_sink_as_self_component(self_comp_sink);
+	const bt_component *comp = bt_self_component_as_component(self_comp);
+	bt_self_component_port_input *in_port;
+	bt_logging_level log_level = bt_component_get_logging_level(comp);
 
-	pretty = bt_self_component_get_data(
-			bt_self_component_sink_as_self_component(comp));
+	pretty = bt_self_component_get_data(self_comp);
 	BT_ASSERT(pretty);
 	BT_ASSERT(!pretty->iterator);
+
+	in_port = bt_self_component_sink_borrow_input_port_by_name(self_comp_sink,
+		in_port_name);
+	if (!bt_port_is_connected(bt_port_input_as_port_const(
+			bt_self_component_port_input_as_port_input(in_port)))) {
+		BT_COMP_LOGE_APPEND_CAUSE(self_comp, "Single input port is not connected: "
+			"port-name=\"%s\"", in_port_name);
+		status = BT_COMPONENT_CLASS_SINK_GRAPH_IS_CONFIGURED_METHOD_STATUS_ERROR;
+		goto end;
+	}
+
 	msg_iter_status = bt_message_iterator_create_from_sink_component(
-		comp, bt_self_component_sink_borrow_input_port_by_name(comp,
-			in_port_name), &pretty->iterator);
+		self_comp_sink, in_port, &pretty->iterator);
 	if (msg_iter_status != BT_MESSAGE_ITERATOR_CREATE_FROM_SINK_COMPONENT_STATUS_OK) {
 		status = (int) msg_iter_status;
 		goto end;
