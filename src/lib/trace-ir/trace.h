@@ -8,7 +8,7 @@
 #ifndef BABELTRACE_TRACE_IR_TRACE_INTERNAL_H
 #define BABELTRACE_TRACE_IR_TRACE_INTERNAL_H
 
-#include "lib/assert-pre.h"
+#include "lib/assert-cond.h"
 #include <babeltrace2/trace-ir/trace.h>
 #include <babeltrace2/trace-ir/field-class.h>
 #include <babeltrace2/trace-ir/field.h>

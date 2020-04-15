@@ -13,7 +13,7 @@
 # error Please include "lib/logging.h" before including this file.
 #endif
 
-#include "lib/assert-pre.h"
+#include "lib/assert-cond.h"
 #include "common/macros.h"
 #include <babeltrace2/value.h>
 #include <babeltrace2/trace-ir/stream-class.h>

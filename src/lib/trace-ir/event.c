@@ -8,7 +8,7 @@
 #define BT_LOG_TAG "LIB/EVENT"
 #include "lib/logging.h"
 
-#include "lib/assert-pre.h"
+#include "lib/assert-cond.h"
 #include <babeltrace2/trace-ir/event.h>
 #include <babeltrace2/trace-ir/event-class.h>
 #include <babeltrace2/trace-ir/stream-class.h>

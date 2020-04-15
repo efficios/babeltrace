@@ -9,7 +9,7 @@
 #include "lib/logging.h"
 
 #include "common/assert.h"
-#include "lib/assert-pre.h"
+#include "lib/assert-cond.h"
 #include <babeltrace2/graph/port.h>
 #include <babeltrace2/graph/self-component-port.h>
 #include "lib/object.h"

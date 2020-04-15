@@ -13,7 +13,7 @@
 
 #include "error.h"
 #include "common/assert.h"
-#include "lib/assert-pre.h"
+#include "lib/assert-cond.h"
 #include "lib/func-status.h"
 
 /*

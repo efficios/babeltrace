@@ -7,8 +7,7 @@
 #define BT_LOG_TAG "LIB/MIP"
 #include "lib/logging.h"
 
-#include "lib/assert-pre.h"
-#include "lib/assert-post.h"
+#include "lib/assert-cond.h"
 #include <stdbool.h>
 #include <unistd.h>
 #include <glib.h>

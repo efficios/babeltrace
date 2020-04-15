@@ -8,7 +8,7 @@
 #ifndef BABELTRACE_TRACE_IR_FIELDS_INTERNAL_H
 #define BABELTRACE_TRACE_IR_FIELDS_INTERNAL_H
 
-#include "lib/assert-pre.h"
+#include "lib/assert-cond.h"
 #include "common/common.h"
 #include "lib/object.h"
 #include "common/macros.h"

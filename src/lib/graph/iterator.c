@@ -30,8 +30,7 @@
 #include <babeltrace2/graph/message-iterator.h>
 #include <babeltrace2/types.h>
 #include "common/assert.h"
-#include "lib/assert-pre.h"
-#include "lib/assert-post.h"
+#include "lib/assert-cond.h"
 #include <stdint.h>
 #include <inttypes.h>
 #include <stdbool.h>
@@ -510,7 +509,7 @@ void bt_self_message_iterator_configuration_set_can_seek_forward(
  * time.
  */
 
-BT_ASSERT_POST_DEV_FUNC
+BT_ASSERT_COND_DEV_FUNC
 static
 bool clock_snapshots_are_monotonic_one(
 		struct bt_message_iterator *iterator,
@@ -592,7 +591,7 @@ end:
 	return result;
 }
 
-BT_ASSERT_POST_DEV_FUNC
+BT_ASSERT_COND_DEV_FUNC
 static
 bool clock_snapshots_are_monotonic(
 		struct bt_message_iterator *iterator,
@@ -619,7 +618,7 @@ end:
  * stream is compatible with what we've seen before.
  */
 
-BT_ASSERT_POST_DEV_FUNC
+BT_ASSERT_COND_DEV_FUNC
 static
 bool clock_classes_are_compatible_one(struct bt_message_iterator *iterator,
 		const struct bt_message *msg)
@@ -659,7 +658,7 @@ bool clock_classes_are_compatible_one(struct bt_message_iterator *iterator,
 
 		case CLOCK_EXPECTATION_NONE:
 			if (clock_class) {
-				BT_ASSERT_POST_DEV_MSG(
+				BT_ASSERT_COND_DEV_MSG(
 					"Expecting no clock class, got one: %![cc-]+K",
 					clock_class);
 				result = false;
@@ -670,14 +669,14 @@ bool clock_classes_are_compatible_one(struct bt_message_iterator *iterator,
 
 		case CLOCK_EXPECTATION_ORIGIN_UNIX:
 			if (!clock_class) {
-				BT_ASSERT_POST_DEV_MSG(
+				BT_ASSERT_COND_DEV_MSG(
 					"Expecting a clock class, got none.");
 				result = false;
 				goto end;
 			}
 
 			if (!bt_clock_class_origin_is_unix_epoch(clock_class)) {
-				BT_ASSERT_POST_DEV_MSG(
+				BT_ASSERT_COND_DEV_MSG(
 					"Expecting a clock class with Unix epoch origin: %![cc-]+K",
 					clock_class);
 				result = false;
@@ -687,14 +686,14 @@ bool clock_classes_are_compatible_one(struct bt_message_iterator *iterator,
 
 		case CLOCK_EXPECTATION_ORIGIN_OTHER_UUID:
 			if (!clock_class) {
-				BT_ASSERT_POST_DEV_MSG(
+				BT_ASSERT_COND_DEV_MSG(
 					"Expecting a clock class, got none.");
 				result = false;
 				goto end;
 			}
 
 			if (bt_clock_class_origin_is_unix_epoch(clock_class)) {
-				BT_ASSERT_POST_DEV_MSG(
+				BT_ASSERT_COND_DEV_MSG(
 					"Expecting a clock class without Unix epoch origin: %![cc-]+K",
 					clock_class);
 				result = false;
@@ -702,7 +701,7 @@ bool clock_classes_are_compatible_one(struct bt_message_iterator *iterator,
 			}
 
 			if (!clock_class_uuid) {
-				BT_ASSERT_POST_DEV_MSG(
+				BT_ASSERT_COND_DEV_MSG(
 					"Expecting a clock class with UUID: %![cc-]+K",
 					clock_class);
 				result = false;
@@ -710,7 +709,7 @@ bool clock_classes_are_compatible_one(struct bt_message_iterator *iterator,
 			}
 
 			if (bt_uuid_compare(iterator->clock_expectation.uuid, clock_class_uuid)) {
-				BT_ASSERT_POST_DEV_MSG(
+				BT_ASSERT_COND_DEV_MSG(
 					"Expecting a clock class with UUID, got one "
 					"with a different UUID: %![cc-]+K, expected-uuid=%!u",
 					clock_class, iterator->clock_expectation.uuid);
@@ -721,14 +720,14 @@ bool clock_classes_are_compatible_one(struct bt_message_iterator *iterator,
 
 		case CLOCK_EXPECTATION_ORIGIN_OTHER_NO_UUID:
 			if (!clock_class) {
-				BT_ASSERT_POST_DEV_MSG(
+				BT_ASSERT_COND_DEV_MSG(
 					"Expecting a clock class, got none.");
 				result = false;
 				goto end;
 			}
 
 			if (bt_clock_class_origin_is_unix_epoch(clock_class)) {
-				BT_ASSERT_POST_DEV_MSG(
+				BT_ASSERT_COND_DEV_MSG(
 					"Expecting a clock class without Unix epoch origin: %![cc-]+K",
 					clock_class);
 				result = false;
@@ -736,7 +735,7 @@ bool clock_classes_are_compatible_one(struct bt_message_iterator *iterator,
 			}
 
 			if (clock_class_uuid) {
-				BT_ASSERT_POST_DEV_MSG(
+				BT_ASSERT_COND_DEV_MSG(
 					"Expecting a clock class without UUID: %![cc-]+K",
 					clock_class);
 				result = false;
@@ -752,7 +751,7 @@ end:
 	return result;
 }
 
-BT_ASSERT_POST_DEV_FUNC
+BT_ASSERT_COND_DEV_FUNC
 static
 bool clock_classes_are_compatible(
 		struct bt_message_iterator *iterator,

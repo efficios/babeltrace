@@ -9,7 +9,7 @@
 
 #include <stdint.h>
 #include "common/assert.h"
-#include "lib/assert-pre.h"
+#include "lib/assert-cond.h"
 #include "lib/object-pool.h"
 
 int bt_object_pool_initialize(struct bt_object_pool *pool,

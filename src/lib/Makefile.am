@@ -5,8 +5,7 @@ SUBDIRS = trace-ir prio-heap plugin graph
 lib_LTLIBRARIES = libbabeltrace2.la
 
 libbabeltrace2_la_SOURCES = \
-	assert-post.h \
-	assert-pre.h \
+	assert-cond.h \
 	babeltrace2.c \
 	current-thread.c \
 	error.c \

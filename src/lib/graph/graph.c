@@ -9,8 +9,7 @@
 #include "lib/logging.h"
 
 #include "common/assert.h"
-#include "lib/assert-pre.h"
-#include "lib/assert-post.h"
+#include "lib/assert-cond.h"
 #include <babeltrace2/graph/graph.h>
 #include <babeltrace2/graph/component.h>
 #include <babeltrace2/graph/port.h>
@@ -865,7 +864,7 @@ bool component_name_exists(struct bt_graph *graph, const char *name)
 		struct bt_component *other_comp = graph->components->pdata[i];
 
 		if (strcmp(name, bt_component_get_name(other_comp)) == 0) {
-			BT_ASSERT_PRE_MSG("Another component with the same name already exists in the graph: "
+			BT_ASSERT_COND_MSG("Another component with the same name already exists in the graph: "
 				"%![other-comp-]+c, name=\"%s\"",
 				other_comp, name);
 			exists = true;

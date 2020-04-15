@@ -8,7 +8,7 @@
 #define BT_LOG_TAG "LIB/STREAM-CLASS"
 #include "lib/logging.h"
 
-#include "lib/assert-pre.h"
+#include "lib/assert-cond.h"
 #include <babeltrace2/trace-ir/trace.h>
 #include "compat/compiler.h"
 #include "common/align.h"

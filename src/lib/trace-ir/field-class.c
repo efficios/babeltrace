@@ -8,7 +8,7 @@
 #define BT_LOG_TAG "LIB/FIELD-CLASS"
 #include "lib/logging.h"
 
-#include "lib/assert-pre.h"
+#include "lib/assert-cond.h"
 #include <babeltrace2/trace-ir/field-class.h>
 #include <babeltrace2/trace-ir/field.h>
 #include <babeltrace2/trace-ir/clock-class.h>

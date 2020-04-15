@@ -12,7 +12,7 @@
 #include <babeltrace2/babeltrace.h>
 
 #include "interrupter.h"
-#include "lib/assert-pre.h"
+#include "lib/assert-cond.h"
 
 static
 void destroy_interrupter(struct bt_object *obj)

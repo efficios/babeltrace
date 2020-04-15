@@ -7,7 +7,7 @@
 #define BT_LOG_TAG "LIB/RESOLVE-FIELD-PATH"
 #include "lib/logging.h"
 
-#include "lib/assert-pre.h"
+#include "lib/assert-cond.h"
 #include "common/assert.h"
 #include <babeltrace2/trace-ir/field-path.h>
 #include <limits.h>
@@ -155,7 +155,7 @@ end:
 	return field_path;
 }
 
-BT_ASSERT_PRE_DEV_FUNC
+BT_ASSERT_COND_DEV_FUNC
 static inline
 bool target_is_before_source(struct bt_field_path *src_field_path,
 		struct bt_field_path *tgt_field_path)
@@ -199,7 +199,7 @@ end:
 	return is_valid;
 }
 
-BT_ASSERT_PRE_DEV_FUNC
+BT_ASSERT_COND_DEV_FUNC
 static inline
 struct bt_field_class *borrow_root_field_class(
 		struct bt_resolve_field_path_context *ctx, enum bt_field_path_scope scope)
@@ -220,7 +220,7 @@ struct bt_field_class *borrow_root_field_class(
 	return NULL;
 }
 
-BT_ASSERT_PRE_DEV_FUNC
+BT_ASSERT_COND_DEV_FUNC
 static inline
 struct bt_field_class *borrow_child_field_class(
 		struct bt_field_class *parent_fc,
@@ -257,7 +257,7 @@ struct bt_field_class *borrow_child_field_class(
 	return child_fc;
 }
 
-BT_ASSERT_PRE_DEV_FUNC
+BT_ASSERT_COND_DEV_FUNC
 static inline
 bool target_field_path_in_different_scope_has_struct_fc_only(
 		struct bt_field_path *src_field_path,
@@ -297,7 +297,7 @@ end:
 	return is_valid;
 }
 
-BT_ASSERT_PRE_DEV_FUNC
+BT_ASSERT_COND_DEV_FUNC
 static inline
 bool lca_is_structure_field_class(struct bt_field_path *src_field_path,
 		struct bt_field_path *tgt_field_path,
@@ -353,7 +353,7 @@ end:
 	return is_valid;
 }
 
-BT_ASSERT_PRE_DEV_FUNC
+BT_ASSERT_COND_DEV_FUNC
 static inline
 bool lca_to_target_has_struct_fc_only(struct bt_field_path *src_field_path,
 		struct bt_field_path *tgt_field_path,
@@ -416,7 +416,7 @@ end:
 	return is_valid;
 }
 
-BT_ASSERT_PRE_DEV_FUNC
+BT_ASSERT_COND_DEV_FUNC
 static inline
 bool field_path_is_valid(struct bt_field_class *src_fc,
 		struct bt_field_class *tgt_fc,
@@ -429,14 +429,14 @@ bool field_path_is_valid(struct bt_field_class *src_fc,
 		tgt_fc, ctx);
 
 	if (!src_field_path) {
-		BT_ASSERT_PRE_DEV_MSG("Cannot find requesting field class in "
+		BT_ASSERT_COND_DEV_MSG("Cannot find requesting field class in "
 			"resolving context: %!+F", src_fc);
 		is_valid = false;
 		goto end;
 	}
 
 	if (!tgt_field_path) {
-		BT_ASSERT_PRE_DEV_MSG("Cannot find target field class in "
+		BT_ASSERT_COND_DEV_MSG("Cannot find target field class in "
 			"resolving context: %!+F", tgt_fc);
 		is_valid = false;
 		goto end;
@@ -444,7 +444,7 @@ bool field_path_is_valid(struct bt_field_class *src_fc,
 
 	/* Target must be before source */
 	if (!target_is_before_source(src_field_path, tgt_field_path)) {
-		BT_ASSERT_PRE_DEV_MSG("Target field class is located after "
+		BT_ASSERT_COND_DEV_MSG("Target field class is located after "
 			"requesting field class: %![req-fc-]+F, %![tgt-fc-]+F",
 			src_fc, tgt_fc);
 		is_valid = false;
@@ -457,7 +457,7 @@ bool field_path_is_valid(struct bt_field_class *src_fc,
 	 */
 	if (!target_field_path_in_different_scope_has_struct_fc_only(
 			src_field_path, tgt_field_path, ctx)) {
-		BT_ASSERT_PRE_DEV_MSG("Target field class is located in a "
+		BT_ASSERT_COND_DEV_MSG("Target field class is located in a "
 			"different scope than requesting field class, "
 			"but within an array or a variant field class: "
 			"%![req-fc-]+F, %![tgt-fc-]+F",
@@ -468,7 +468,7 @@ bool field_path_is_valid(struct bt_field_class *src_fc,
 
 	/* Same scope: LCA must be a structure field class */
 	if (!lca_is_structure_field_class(src_field_path, tgt_field_path, ctx)) {
-		BT_ASSERT_PRE_DEV_MSG("Lowest common ancestor of target and "
+		BT_ASSERT_COND_DEV_MSG("Lowest common ancestor of target and "
 			"requesting field classes is not a structure field class: "
 			"%![req-fc-]+F, %![tgt-fc-]+F",
 			src_fc, tgt_fc);
@@ -479,7 +479,7 @@ bool field_path_is_valid(struct bt_field_class *src_fc,
 	/* Same scope: path from LCA to target has no array/variant FTs */
 	if (!lca_to_target_has_struct_fc_only(src_field_path, tgt_field_path,
 			ctx)) {
-		BT_ASSERT_PRE_DEV_MSG("Path from lowest common ancestor of target "
+		BT_ASSERT_COND_DEV_MSG("Path from lowest common ancestor of target "
 			"and requesting field classes to target field class "
 			"contains an array or a variant field class: "
 			"%![req-fc-]+F, %![tgt-fc-]+F", src_fc, tgt_fc);

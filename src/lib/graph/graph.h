@@ -34,14 +34,12 @@
 # error Please include "lib/logging.h" before including this file.
 #endif
 
-/* Protection: this file uses BT_ASSERT_PRE*() macros directly */
-#ifndef BT_ASSERT_PRE_SUPPORTED
-# error Please include "lib/assert-pre.h" before including this file.
-#endif
-
-/* Protection: this file uses BT_ASSERT_POST*() macros directly */
-#ifndef BT_ASSERT_POST_SUPPORTED
-# error Please include "lib/assert-post.h" before including this file.
+/*
+ * Protection: this file uses precondition and postcondition assertion
+ * macros directly.
+ */
+#ifndef BT_ASSERT_COND_SUPPORTED
+# error Please include "lib/assert-cond.h" before including this file.
 #endif
 
 struct bt_component;

@@ -7,7 +7,7 @@
 #define BT_LOG_TAG "LIB/UTIL"
 #include "lib/logging.h"
 
-#include "lib/assert-pre.h"
+#include "lib/assert-cond.h"
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>

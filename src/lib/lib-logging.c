@@ -21,8 +21,7 @@
 #include <babeltrace2/babeltrace.h>
 
 #include "logging.h"
-#include "assert-pre.h"
-#include "assert-post.h"
+#include "assert-cond.h"
 #include "value.h"
 #include "integer-range-set.h"
 #include "object-pool.h"
@@ -58,7 +57,6 @@
 #include "trace-ir/trace.h"
 #include "trace-ir/utils.h"
 #include "error.h"
-#include "assert-pre.h"
 
 #define LIB_LOGGING_BUF_SIZE	(4096 * 4)
 

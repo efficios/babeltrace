@@ -8,7 +8,7 @@
 #define BT_LOG_TAG "LIB/CLOCK-CLASS"
 #include "lib/logging.h"
 
-#include "lib/assert-pre.h"
+#include "lib/assert-cond.h"
 #include "common/uuid.h"
 #include <babeltrace2/trace-ir/clock-class.h>
 #include "clock-class.h"

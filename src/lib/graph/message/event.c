@@ -9,8 +9,7 @@
 #include "lib/logging.h"
 
 #include "common/assert.h"
-#include "lib/assert-pre.h"
-#include "lib/assert-post.h"
+#include "lib/assert-cond.h"
 #include "compat/compiler.h"
 #include "lib/object.h"
 #include <babeltrace2/trace-ir/event.h>

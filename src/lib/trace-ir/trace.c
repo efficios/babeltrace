@@ -8,8 +8,7 @@
 #define BT_LOG_TAG "LIB/TRACE"
 #include "lib/logging.h"
 
-#include "lib/assert-pre.h"
-#include "lib/assert-post.h"
+#include "lib/assert-cond.h"
 #include <babeltrace2/trace-ir/trace.h>
 #include <babeltrace2/trace-ir/event-class.h>
 #include "ctf-writer/functor.h"

@@ -11,7 +11,7 @@
 
 #include <babeltrace2/babeltrace.h>
 
-#include "lib/assert-pre.h"
+#include "lib/assert-cond.h"
 #include "common/assert.h"
 #include "func-status.h"
 #include "integer-range-set.h"

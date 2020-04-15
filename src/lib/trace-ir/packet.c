@@ -7,7 +7,7 @@
 #define BT_LOG_TAG "LIB/PACKET"
 #include "lib/logging.h"
 
-#include "lib/assert-pre.h"
+#include "lib/assert-cond.h"
 #include <babeltrace2/trace-ir/packet.h>
 #include <babeltrace2/trace-ir/trace.h>
 #include <babeltrace2/trace-ir/stream-class.h>
