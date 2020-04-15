@@ -192,6 +192,8 @@ bt_component_class_sink_consume_method_status pretty_consume(
 		bt_message_put_ref(msgs[i]);
 	}
 
+	status = BT_COMPONENT_CLASS_SINK_CONSUME_METHOD_STATUS_OK;
+
 end:
 	for (; i < count; i++) {
 		bt_message_put_ref(msgs[i]);
