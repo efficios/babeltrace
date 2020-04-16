@@ -82,8 +82,8 @@ bt_message_iterator_class_set_initialize_method(
 	bt_message_iterator_class_initialize_method method)
 {
 	BT_ASSERT_PRE_NO_ERROR();
-	BT_ASSERT_PRE_NON_NULL(message_iterator_class, "Message iterator class");
-	BT_ASSERT_PRE_NON_NULL(method, "Method");
+	BT_ASSERT_PRE_MSG_ITER_CLS_NON_NULL(message_iterator_class);
+	BT_ASSERT_PRE_METHOD_NON_NULL(method);
 	BT_ASSERT_COND_DEV_MSG_ITER_CLS_HOT(message_iterator_class);
 	message_iterator_class->methods.initialize = method;
 	BT_LIB_LOGD("Set message iterator class's iterator initialization method"
@@ -97,8 +97,8 @@ bt_message_iterator_class_set_finalize_method(
 		bt_message_iterator_class_finalize_method method)
 {
 	BT_ASSERT_PRE_NO_ERROR();
-	BT_ASSERT_PRE_NON_NULL(message_iterator_class, "Message iterator class");
-	BT_ASSERT_PRE_NON_NULL(method, "Method");
+	BT_ASSERT_PRE_MSG_ITER_CLS_NON_NULL(message_iterator_class);
+	BT_ASSERT_PRE_METHOD_NON_NULL(method);
 	BT_ASSERT_COND_DEV_MSG_ITER_CLS_HOT(message_iterator_class);
 	message_iterator_class->methods.finalize = method;
 	BT_LIB_LOGD("Set message iterator class's finalization method"
@@ -113,7 +113,7 @@ bt_message_iterator_class_set_seek_ns_from_origin_methods(
 		bt_message_iterator_class_can_seek_ns_from_origin_method can_seek_method)
 {
 	BT_ASSERT_PRE_NO_ERROR();
-	BT_ASSERT_PRE_NON_NULL(message_iterator_class, "Message iterator class");
+	BT_ASSERT_PRE_MSG_ITER_CLS_NON_NULL(message_iterator_class);
 	BT_ASSERT_PRE_NON_NULL(seek_method, "Seek method");
 	BT_ASSERT_COND_DEV_MSG_ITER_CLS_HOT(message_iterator_class);
 	message_iterator_class->methods.seek_ns_from_origin = seek_method;
@@ -130,7 +130,7 @@ bt_message_iterator_class_set_seek_beginning_methods(
 		bt_message_iterator_class_can_seek_beginning_method can_seek_method)
 {
 	BT_ASSERT_PRE_NO_ERROR();
-	BT_ASSERT_PRE_NON_NULL(message_iterator_class, "Message iterator class");
+	BT_ASSERT_PRE_MSG_ITER_CLS_NON_NULL(message_iterator_class);
 	BT_ASSERT_PRE_NON_NULL(seek_method, "Seek method");
 	BT_ASSERT_COND_DEV_MSG_ITER_CLS_HOT(message_iterator_class);
 	message_iterator_class->methods.seek_beginning = seek_method;

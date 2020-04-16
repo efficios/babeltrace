@@ -179,7 +179,7 @@ void destroy_component(struct bt_object *obj)
 enum bt_component_class_type bt_component_get_class_type(
 		const struct bt_component *component)
 {
-	BT_ASSERT_PRE_DEV_NON_NULL(component, "Component");
+	BT_ASSERT_PRE_DEV_COMP_NON_NULL(component);
 	return component->class->type;
 }
 
@@ -193,8 +193,8 @@ enum bt_self_component_add_port_status add_port(
 	struct bt_graph *graph = NULL;
 	enum bt_self_component_add_port_status status;
 
-	BT_ASSERT_PRE_NON_NULL(component, "Component");
-	BT_ASSERT_PRE_NON_NULL(name, "Name");
+	BT_ASSERT_PRE_COMP_NON_NULL(component);
+	BT_ASSERT_PRE_NAME_NON_NULL(name);
 	BT_ASSERT_PRE(strlen(name) > 0, "Name is empty");
 	graph = bt_component_borrow_graph(component);
 	BT_ASSERT_PRE(
@@ -259,14 +259,14 @@ end:
 BT_HIDDEN
 uint64_t bt_component_get_input_port_count(const struct bt_component *comp)
 {
-	BT_ASSERT_PRE_DEV_NON_NULL(comp, "Component");
+	BT_ASSERT_PRE_DEV_COMP_NON_NULL(comp);
 	return (uint64_t) comp->input_ports->len;
 }
 
 BT_HIDDEN
 uint64_t bt_component_get_output_port_count(const struct bt_component *comp)
 {
-	BT_ASSERT_PRE_DEV_NON_NULL(comp, "Component");
+	BT_ASSERT_PRE_DEV_COMP_NON_NULL(comp);
 	return (uint64_t) comp->output_ports->len;
 }
 
@@ -341,14 +341,14 @@ end:
 
 const char *bt_component_get_name(const struct bt_component *component)
 {
-	BT_ASSERT_PRE_DEV_NON_NULL(component, "Component");
+	BT_ASSERT_PRE_DEV_COMP_NON_NULL(component);
 	return component->name->str;
 }
 
 const struct bt_component_class *bt_component_borrow_class_const(
 		const struct bt_component *component)
 {
-	BT_ASSERT_PRE_DEV_NON_NULL(component, "Component");
+	BT_ASSERT_PRE_DEV_COMP_NON_NULL(component);
 	return component->class;
 }
 
@@ -356,7 +356,7 @@ void *bt_self_component_get_data(const struct bt_self_component *self_comp)
 {
 	struct bt_component *component = (void *) self_comp;
 
-	BT_ASSERT_PRE_DEV_NON_NULL(component, "Component");
+	BT_ASSERT_PRE_DEV_COMP_NON_NULL(component);
 	return component->user_data;
 }
 
@@ -365,7 +365,7 @@ void bt_self_component_set_data(struct bt_self_component *self_comp,
 {
 	struct bt_component *component = (void *) self_comp;
 
-	BT_ASSERT_PRE_DEV_NON_NULL(component, "Component");
+	BT_ASSERT_PRE_DEV_COMP_NON_NULL(component);
 	component->user_data = data;
 	BT_LIB_LOGD("Set component's user data: %!+c", component);
 }
@@ -411,7 +411,7 @@ BT_HIDDEN
 struct bt_port_output *bt_component_borrow_output_port_by_name(
 		struct bt_component *comp, const char *name)
 {
-	BT_ASSERT_PRE_DEV_NON_NULL(comp, "Component");
+	BT_ASSERT_PRE_DEV_COMP_NON_NULL(comp);
 	return (void *)
 		borrow_port_by_name(comp->output_ports, name);
 }
@@ -427,7 +427,7 @@ BT_HIDDEN
 struct bt_port_input *bt_component_borrow_input_port_by_index(
 		struct bt_component *comp, uint64_t index)
 {
-	BT_ASSERT_PRE_DEV_NON_NULL(comp, "Component");
+	BT_ASSERT_PRE_DEV_COMP_NON_NULL(comp);
 	BT_ASSERT_PRE_DEV_VALID_INDEX(index, comp->input_ports->len);
 	return (void *)
 		borrow_port_by_index(comp->input_ports, index);
@@ -437,7 +437,7 @@ BT_HIDDEN
 struct bt_port_output *bt_component_borrow_output_port_by_index(
 		struct bt_component *comp, uint64_t index)
 {
-	BT_ASSERT_PRE_DEV_NON_NULL(comp, "Component");
+	BT_ASSERT_PRE_DEV_COMP_NON_NULL(comp);
 	BT_ASSERT_PRE_DEV_VALID_INDEX(index, comp->output_ports->len);
 	return (void *)
 		borrow_port_by_index(comp->output_ports, index);
@@ -612,7 +612,7 @@ void bt_component_remove_destroy_listener(struct bt_component *component,
 bt_logging_level bt_component_get_logging_level(
 		const struct bt_component *component)
 {
-	BT_ASSERT_PRE_DEV_NON_NULL(component, "Component");
+	BT_ASSERT_PRE_DEV_COMP_NON_NULL(component);
 	return component->log_level;
 }
 
@@ -621,7 +621,7 @@ uint64_t bt_self_component_get_graph_mip_version(
 {
 	struct bt_component *comp = (void *) self_component;
 
-	BT_ASSERT_PRE_NON_NULL(self_component, "Component");
+	BT_ASSERT_PRE_COMP_NON_NULL(self_component);
 	return bt_component_borrow_graph(comp)->mip_version;
 }
 

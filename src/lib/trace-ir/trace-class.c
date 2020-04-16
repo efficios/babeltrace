@@ -118,7 +118,7 @@ struct bt_trace_class *bt_trace_class_create(bt_self_component *self_comp)
 	struct bt_trace_class *tc = NULL;
 
 	BT_ASSERT_PRE_NO_ERROR();
-	BT_ASSERT_PRE_NON_NULL(self_comp, "Self component");
+	BT_ASSERT_PRE_COMP_NON_NULL(self_comp);
 	BT_LOGD_STR("Creating default trace class object.");
 	tc = g_new0(struct bt_trace_class, 1);
 	if (!tc) {
@@ -172,8 +172,8 @@ enum bt_trace_class_add_listener_status bt_trace_class_add_destruction_listener(
 	};
 
 	BT_ASSERT_PRE_NO_ERROR();
-	BT_ASSERT_PRE_NON_NULL(tc, "Trace class");
-	BT_ASSERT_PRE_NON_NULL(listener, "Listener");
+	BT_ASSERT_PRE_TC_NON_NULL(tc);
+	BT_ASSERT_PRE_LISTENER_FUNC_NON_NULL(listener);
 
 	/* Find the next available spot */
 	for (i = 0; i < tc->destruction_listeners->len; i++) {
@@ -217,7 +217,7 @@ enum bt_trace_class_remove_listener_status bt_trace_class_remove_destruction_lis
 	struct bt_trace_class_destruction_listener_elem *elem;
 
 	BT_ASSERT_PRE_NO_ERROR();
-	BT_ASSERT_PRE_NON_NULL(tc, "Trace class");
+	BT_ASSERT_PRE_TC_NON_NULL(tc);
 	BT_ASSERT_PRE(has_listener_id(tc, listener_id),
 		"Trace class has no such trace class destruction listener ID: "
 		"%![tc-]+T, %" PRIu64, tc, listener_id);
@@ -236,14 +236,14 @@ enum bt_trace_class_remove_listener_status bt_trace_class_remove_destruction_lis
 
 uint64_t bt_trace_class_get_stream_class_count(const struct bt_trace_class *tc)
 {
-	BT_ASSERT_PRE_DEV_NON_NULL(tc, "Trace class");
+	BT_ASSERT_PRE_DEV_TC_NON_NULL(tc);
 	return (uint64_t) tc->stream_classes->len;
 }
 
 struct bt_stream_class *bt_trace_class_borrow_stream_class_by_index(
 		struct bt_trace_class *tc, uint64_t index)
 {
-	BT_ASSERT_PRE_DEV_NON_NULL(tc, "Trace class");
+	BT_ASSERT_PRE_DEV_TC_NON_NULL(tc);
 	BT_ASSERT_PRE_DEV_VALID_INDEX(index, tc->stream_classes->len);
 	return g_ptr_array_index(tc->stream_classes, index);
 }
@@ -262,7 +262,7 @@ struct bt_stream_class *bt_trace_class_borrow_stream_class_by_id(
 	struct bt_stream_class *stream_class = NULL;
 	uint64_t i;
 
-	BT_ASSERT_PRE_DEV_NON_NULL(tc, "Trace class");
+	BT_ASSERT_PRE_DEV_TC_NON_NULL(tc);
 
 	for (i = 0; i < tc->stream_classes->len; i++) {
 		struct bt_stream_class *stream_class_candidate =
@@ -295,14 +295,14 @@ void _bt_trace_class_freeze(const struct bt_trace_class *tc)
 
 bt_bool bt_trace_class_assigns_automatic_stream_class_id(const struct bt_trace_class *tc)
 {
-	BT_ASSERT_PRE_DEV_NON_NULL(tc, "Trace class");
+	BT_ASSERT_PRE_DEV_TC_NON_NULL(tc);
 	return (bt_bool) tc->assigns_automatic_stream_class_id;
 }
 
 void bt_trace_class_set_assigns_automatic_stream_class_id(struct bt_trace_class *tc,
 		bt_bool value)
 {
-	BT_ASSERT_PRE_NON_NULL(tc, "Trace class");
+	BT_ASSERT_PRE_TC_NON_NULL(tc);
 	BT_ASSERT_PRE_DEV_TRACE_CLASS_HOT(tc);
 	tc->assigns_automatic_stream_class_id = (bool) value;
 	BT_LIB_LOGD("Set trace class's automatic stream class ID "
@@ -312,7 +312,7 @@ void bt_trace_class_set_assigns_automatic_stream_class_id(struct bt_trace_class 
 const struct bt_value *bt_trace_class_borrow_user_attributes_const(
 		const struct bt_trace_class *trace_class)
 {
-	BT_ASSERT_PRE_DEV_NON_NULL(trace_class, "Trace class");
+	BT_ASSERT_PRE_DEV_TC_NON_NULL(trace_class);
 	return trace_class->user_attributes;
 }
 
@@ -326,10 +326,9 @@ struct bt_value *bt_trace_class_borrow_user_attributes(
 void bt_trace_class_set_user_attributes(struct bt_trace_class *trace_class,
 		const struct bt_value *user_attributes)
 {
-	BT_ASSERT_PRE_NON_NULL(trace_class, "Trace class");
-	BT_ASSERT_PRE_NON_NULL(user_attributes, "User attributes");
-	BT_ASSERT_PRE(user_attributes->type == BT_VALUE_TYPE_MAP,
-		"User attributes object is not a map value object.");
+	BT_ASSERT_PRE_TC_NON_NULL(trace_class);
+	BT_ASSERT_PRE_USER_ATTRS_NON_NULL(user_attributes);
+	BT_ASSERT_PRE_USER_ATTRS_IS_MAP(user_attributes);
 	BT_ASSERT_PRE_DEV_TRACE_CLASS_HOT(trace_class);
 	bt_object_put_ref_no_null_check(trace_class->user_attributes);
 	trace_class->user_attributes = (void *) user_attributes;

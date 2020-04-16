@@ -203,7 +203,7 @@ end:
 
 const char *bt_trace_get_name(const struct bt_trace *trace)
 {
-	BT_ASSERT_PRE_DEV_NON_NULL(trace, "Trace");
+	BT_ASSERT_PRE_DEV_TRACE_NON_NULL(trace);
 	return trace->name.value;
 }
 
@@ -211,8 +211,8 @@ enum bt_trace_set_name_status bt_trace_set_name(struct bt_trace *trace,
 		const char *name)
 {
 	BT_ASSERT_PRE_NO_ERROR();
-	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
-	BT_ASSERT_PRE_NON_NULL(name, "Name");
+	BT_ASSERT_PRE_TRACE_NON_NULL(trace);
+	BT_ASSERT_PRE_NAME_NON_NULL(name);
 	BT_ASSERT_PRE_DEV_TRACE_HOT(trace);
 	g_string_assign(trace->name.str, name);
 	trace->name.value = trace->name.str->str;
@@ -222,14 +222,14 @@ enum bt_trace_set_name_status bt_trace_set_name(struct bt_trace *trace,
 
 bt_uuid bt_trace_get_uuid(const struct bt_trace *trace)
 {
-	BT_ASSERT_PRE_DEV_NON_NULL(trace, "Trace");
+	BT_ASSERT_PRE_DEV_TRACE_NON_NULL(trace);
 	return trace->uuid.value;
 }
 
 void bt_trace_set_uuid(struct bt_trace *trace, bt_uuid uuid)
 {
-	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
-	BT_ASSERT_PRE_NON_NULL(uuid, "UUID");
+	BT_ASSERT_PRE_TRACE_NON_NULL(trace);
+	BT_ASSERT_PRE_UUID_NON_NULL(uuid);
 	BT_ASSERT_PRE_DEV_TRACE_HOT(trace);
 	bt_uuid_copy(trace->uuid.uuid, uuid);
 	trace->uuid.value = trace->uuid.uuid;
@@ -283,8 +283,8 @@ bt_trace_set_environment_entry_string(
 	struct bt_value *value_obj;
 
 	BT_ASSERT_PRE_NO_ERROR();
-	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
-	BT_ASSERT_PRE_NON_NULL(name, "Name");
+	BT_ASSERT_PRE_TRACE_NON_NULL(trace);
+	BT_ASSERT_PRE_NAME_NON_NULL(name);
 	BT_ASSERT_PRE_NON_NULL(value, "Value");
 
 	value_obj = bt_value_string_create_init(value);
@@ -311,8 +311,8 @@ bt_trace_set_environment_entry_integer(
 	struct bt_value *value_obj;
 
 	BT_ASSERT_PRE_NO_ERROR();
-	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
-	BT_ASSERT_PRE_NON_NULL(name, "Name");
+	BT_ASSERT_PRE_TRACE_NON_NULL(trace);
+	BT_ASSERT_PRE_NAME_NON_NULL(name);
 
 	value_obj = bt_value_integer_signed_create_init(value);
 	if (!value_obj) {
@@ -332,7 +332,7 @@ end:
 
 uint64_t bt_trace_get_environment_entry_count(const struct bt_trace *trace)
 {
-	BT_ASSERT_PRE_DEV_NON_NULL(trace, "Trace");
+	BT_ASSERT_PRE_DEV_TRACE_NON_NULL(trace);
 	return bt_attributes_get_count(trace->environment);
 }
 
@@ -340,8 +340,8 @@ void bt_trace_borrow_environment_entry_by_index_const(
 		const struct bt_trace *trace, uint64_t index,
 		const char **name, const struct bt_value **value)
 {
-	BT_ASSERT_PRE_DEV_NON_NULL(trace, "Trace");
-	BT_ASSERT_PRE_DEV_NON_NULL(name, "Name");
+	BT_ASSERT_PRE_DEV_TRACE_NON_NULL(trace);
+	BT_ASSERT_PRE_DEV_NAME_NON_NULL(name);
 	BT_ASSERT_PRE_DEV_NON_NULL(value, "Value");
 	BT_ASSERT_PRE_DEV_VALID_INDEX(index,
 		bt_attributes_get_count(trace->environment));
@@ -354,22 +354,22 @@ void bt_trace_borrow_environment_entry_by_index_const(
 const struct bt_value *bt_trace_borrow_environment_entry_value_by_name_const(
 		const struct bt_trace *trace, const char *name)
 {
-	BT_ASSERT_PRE_DEV_NON_NULL(trace, "Trace");
-	BT_ASSERT_PRE_DEV_NON_NULL(name, "Name");
+	BT_ASSERT_PRE_DEV_TRACE_NON_NULL(trace);
+	BT_ASSERT_PRE_DEV_NAME_NON_NULL(name);
 	return bt_attributes_borrow_field_value_by_name(trace->environment,
 		name);
 }
 
 uint64_t bt_trace_get_stream_count(const struct bt_trace *trace)
 {
-	BT_ASSERT_PRE_DEV_NON_NULL(trace, "Trace");
+	BT_ASSERT_PRE_DEV_TRACE_NON_NULL(trace);
 	return (uint64_t) trace->streams->len;
 }
 
 struct bt_stream *bt_trace_borrow_stream_by_index(
 		struct bt_trace *trace, uint64_t index)
 {
-	BT_ASSERT_PRE_DEV_NON_NULL(trace, "Trace");
+	BT_ASSERT_PRE_DEV_TRACE_NON_NULL(trace);
 	BT_ASSERT_PRE_DEV_VALID_INDEX(index, trace->streams->len);
 	return g_ptr_array_index(trace->streams, index);
 }
@@ -386,7 +386,7 @@ struct bt_stream *bt_trace_borrow_stream_by_id(struct bt_trace *trace,
 	struct bt_stream *stream = NULL;
 	uint64_t i;
 
-	BT_ASSERT_PRE_DEV_NON_NULL(trace, "Trace");
+	BT_ASSERT_PRE_DEV_TRACE_NON_NULL(trace);
 
 	for (i = 0; i < trace->streams->len; i++) {
 		struct bt_stream *stream_candidate =
@@ -421,8 +421,8 @@ enum bt_trace_add_listener_status bt_trace_add_destruction_listener(
 	};
 
 	BT_ASSERT_PRE_NO_ERROR();
-	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
-	BT_ASSERT_PRE_NON_NULL(listener, "Listener");
+	BT_ASSERT_PRE_TRACE_NON_NULL(trace);
+	BT_ASSERT_PRE_LISTENER_FUNC_NON_NULL(listener);
 
 	/* Find the next available spot */
 	for (i = 0; i < trace->destruction_listeners->len; i++) {
@@ -466,7 +466,7 @@ enum bt_trace_remove_listener_status bt_trace_remove_destruction_listener(
 	struct bt_trace_destruction_listener_elem *elem;
 
 	BT_ASSERT_PRE_NO_ERROR();
-	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
+	BT_ASSERT_PRE_TRACE_NON_NULL(trace);
 	BT_ASSERT_PRE(has_listener_id(trace, listener_id),
 		"Trace has no such trace destruction listener ID: "
 		"%![trace-]+t, %" PRIu64, trace, listener_id);
@@ -535,7 +535,7 @@ uint64_t bt_trace_get_automatic_stream_id(const struct bt_trace *trace,
 
 struct bt_trace_class *bt_trace_borrow_class(struct bt_trace *trace)
 {
-	BT_ASSERT_PRE_DEV_NON_NULL(trace, "Trace");
+	BT_ASSERT_PRE_DEV_TRACE_NON_NULL(trace);
 	return trace->class;
 }
 
@@ -548,7 +548,7 @@ const struct bt_trace_class *bt_trace_borrow_class_const(
 const struct bt_value *bt_trace_borrow_user_attributes_const(
 		const struct bt_trace *trace)
 {
-	BT_ASSERT_PRE_DEV_NON_NULL(trace, "Trace");
+	BT_ASSERT_PRE_DEV_TRACE_NON_NULL(trace);
 	return trace->user_attributes;
 }
 
@@ -561,10 +561,9 @@ void bt_trace_set_user_attributes(
 		struct bt_trace *trace,
 		const struct bt_value *user_attributes)
 {
-	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
-	BT_ASSERT_PRE_NON_NULL(user_attributes, "User attributes");
-	BT_ASSERT_PRE(user_attributes->type == BT_VALUE_TYPE_MAP,
-		"User attributes object is not a map value object.");
+	BT_ASSERT_PRE_TRACE_NON_NULL(trace);
+	BT_ASSERT_PRE_USER_ATTRS_NON_NULL(user_attributes);
+	BT_ASSERT_PRE_USER_ATTRS_IS_MAP(user_attributes);
 	BT_ASSERT_PRE_DEV_TRACE_HOT(trace);
 	bt_object_put_ref_no_null_check(trace->user_attributes);
 	trace->user_attributes = (void *) user_attributes;

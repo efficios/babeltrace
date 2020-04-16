@@ -121,7 +121,7 @@ end:
 
 struct bt_event_class *bt_event_borrow_class(struct bt_event *event)
 {
-	BT_ASSERT_PRE_DEV_NON_NULL(event, "Event");
+	BT_ASSERT_PRE_DEV_EVENT_NON_NULL(event);
 	return event->class;
 }
 
@@ -133,7 +133,7 @@ const struct bt_event_class *bt_event_borrow_class_const(
 
 struct bt_stream *bt_event_borrow_stream(struct bt_event *event)
 {
-	BT_ASSERT_PRE_DEV_NON_NULL(event, "Event");
+	BT_ASSERT_PRE_DEV_EVENT_NON_NULL(event);
 	return event->stream;
 }
 
@@ -145,40 +145,40 @@ const struct bt_stream *bt_event_borrow_stream_const(
 
 struct bt_field *bt_event_borrow_common_context_field(struct bt_event *event)
 {
-	BT_ASSERT_PRE_DEV_NON_NULL(event, "Event");
+	BT_ASSERT_PRE_DEV_EVENT_NON_NULL(event);
 	return event->common_context_field;
 }
 
 const struct bt_field *bt_event_borrow_common_context_field_const(
 		const struct bt_event *event)
 {
-	BT_ASSERT_PRE_DEV_NON_NULL(event, "Event");
+	BT_ASSERT_PRE_DEV_EVENT_NON_NULL(event);
 	return event->common_context_field;
 }
 
 struct bt_field *bt_event_borrow_specific_context_field(struct bt_event *event)
 {
-	BT_ASSERT_PRE_DEV_NON_NULL(event, "Event");
+	BT_ASSERT_PRE_DEV_EVENT_NON_NULL(event);
 	return event->specific_context_field;
 }
 
 const struct bt_field *bt_event_borrow_specific_context_field_const(
 		const struct bt_event *event)
 {
-	BT_ASSERT_PRE_DEV_NON_NULL(event, "Event");
+	BT_ASSERT_PRE_DEV_EVENT_NON_NULL(event);
 	return event->specific_context_field;
 }
 
 struct bt_field *bt_event_borrow_payload_field(struct bt_event *event)
 {
-	BT_ASSERT_PRE_DEV_NON_NULL(event, "Event");
+	BT_ASSERT_PRE_DEV_EVENT_NON_NULL(event);
 	return event->payload_field;
 }
 
 const struct bt_field *bt_event_borrow_payload_field_const(
 		const struct bt_event *event)
 {
-	BT_ASSERT_PRE_DEV_NON_NULL(event, "Event");
+	BT_ASSERT_PRE_DEV_EVENT_NON_NULL(event);
 	return event->payload_field;
 }
 
@@ -217,7 +217,7 @@ void bt_event_destroy(struct bt_event *event)
 
 struct bt_packet *bt_event_borrow_packet(struct bt_event *event)
 {
-	BT_ASSERT_PRE_DEV_NON_NULL(event, "Event");
+	BT_ASSERT_PRE_DEV_EVENT_NON_NULL(event);
 	return event->packet;
 }
 

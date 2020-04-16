@@ -33,7 +33,7 @@
 #include "utils.h"
 #include "lib/func-status.h"
 
-#define BT_ASSERT_PRE_DEV_EVENT_CLASS_HOT(_ec) \
+#define BT_ASSERT_PRE_DEV_EVENT_CLASS_HOT(_ec)				\
 	BT_ASSERT_PRE_DEV_HOT(((const struct bt_event_class *) (_ec)),	\
 		"Event class", ": %!+E", (_ec))
 
@@ -162,7 +162,7 @@ struct bt_event_class *bt_event_class_create(
 		struct bt_stream_class *stream_class)
 {
 	BT_ASSERT_PRE_NO_ERROR();
-	BT_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
+	BT_ASSERT_PRE_SC_NON_NULL(stream_class);
 	BT_ASSERT_PRE(stream_class->assigns_automatic_event_class_id,
 		"Stream class does not automatically assigns event class IDs: "
 		"%![sc-]+S", stream_class);
@@ -182,7 +182,7 @@ struct bt_event_class *bt_event_class_create_with_id(
 
 const char *bt_event_class_get_name(const struct bt_event_class *event_class)
 {
-	BT_ASSERT_PRE_DEV_NON_NULL(event_class, "Event class");
+	BT_ASSERT_PRE_DEV_EC_NON_NULL(event_class);
 	return event_class->name.value;
 }
 
@@ -190,8 +190,8 @@ enum bt_event_class_set_name_status bt_event_class_set_name(
 		struct bt_event_class *event_class, const char *name)
 {
 	BT_ASSERT_PRE_NO_ERROR();
-	BT_ASSERT_PRE_NON_NULL(event_class, "Event class");
-	BT_ASSERT_PRE_NON_NULL(name, "Name");
+	BT_ASSERT_PRE_EC_NON_NULL(event_class);
+	BT_ASSERT_PRE_NAME_NON_NULL(name);
 	BT_ASSERT_PRE_DEV_EVENT_CLASS_HOT(event_class);
 	g_string_assign(event_class->name.str, name);
 	event_class->name.value = event_class->name.str->str;
@@ -201,7 +201,7 @@ enum bt_event_class_set_name_status bt_event_class_set_name(
 
 uint64_t bt_event_class_get_id(const struct bt_event_class *event_class)
 {
-	BT_ASSERT_PRE_DEV_NON_NULL(event_class, "Event class");
+	BT_ASSERT_PRE_DEV_EC_NON_NULL(event_class);
 	return event_class->id;
 }
 
@@ -209,7 +209,7 @@ enum bt_property_availability bt_event_class_get_log_level(
 		const struct bt_event_class *event_class,
 		enum bt_event_class_log_level *log_level)
 {
-	BT_ASSERT_PRE_DEV_NON_NULL(event_class, "Event class");
+	BT_ASSERT_PRE_DEV_EC_NON_NULL(event_class);
 	BT_ASSERT_PRE_DEV_NON_NULL(log_level, "Log level (output)");
 	*log_level = (enum bt_event_class_log_level)
 		event_class->log_level.value;
@@ -220,7 +220,7 @@ void bt_event_class_set_log_level(
 		struct bt_event_class *event_class,
 		enum bt_event_class_log_level log_level)
 {
-	BT_ASSERT_PRE_NON_NULL(event_class, "Event class");
+	BT_ASSERT_PRE_EC_NON_NULL(event_class);
 	BT_ASSERT_PRE_DEV_EVENT_CLASS_HOT(event_class);
 	bt_property_uint_set(&event_class->log_level,
 		(uint64_t) log_level);
@@ -229,7 +229,7 @@ void bt_event_class_set_log_level(
 
 const char *bt_event_class_get_emf_uri(const struct bt_event_class *event_class)
 {
-	BT_ASSERT_PRE_DEV_NON_NULL(event_class, "Event class");
+	BT_ASSERT_PRE_DEV_EC_NON_NULL(event_class);
 	return event_class->emf_uri.value;
 }
 
@@ -238,7 +238,7 @@ enum bt_event_class_set_emf_uri_status bt_event_class_set_emf_uri(
 		const char *emf_uri)
 {
 	BT_ASSERT_PRE_NO_ERROR();
-	BT_ASSERT_PRE_NON_NULL(event_class, "Event class");
+	BT_ASSERT_PRE_EC_NON_NULL(event_class);
 	BT_ASSERT_PRE_NON_NULL(emf_uri, "EMF URI");
 	BT_ASSERT_PRE_DEV_EVENT_CLASS_HOT(event_class);
 	g_string_assign(event_class->emf_uri.str, emf_uri);
@@ -250,7 +250,7 @@ enum bt_event_class_set_emf_uri_status bt_event_class_set_emf_uri(
 struct bt_stream_class *bt_event_class_borrow_stream_class(
 		struct bt_event_class *event_class)
 {
-	BT_ASSERT_PRE_DEV_NON_NULL(event_class, "Event class");
+	BT_ASSERT_PRE_DEV_EC_NON_NULL(event_class);
 	return bt_event_class_borrow_stream_class_inline(event_class);
 }
 
@@ -265,7 +265,7 @@ const struct bt_field_class *
 bt_event_class_borrow_specific_context_field_class_const(
 		const struct bt_event_class *event_class)
 {
-	BT_ASSERT_PRE_DEV_NON_NULL(event_class, "Event class");
+	BT_ASSERT_PRE_DEV_EC_NON_NULL(event_class);
 	return event_class->specific_context_fc;
 }
 
@@ -273,7 +273,7 @@ struct bt_field_class *
 bt_event_class_borrow_specific_context_field_class(
 		struct bt_event_class *event_class)
 {
-	BT_ASSERT_PRE_DEV_NON_NULL(event_class, "Event class");
+	BT_ASSERT_PRE_DEV_EC_NON_NULL(event_class);
 	return event_class->specific_context_fc;
 }
 
@@ -292,13 +292,10 @@ bt_event_class_set_specific_context_field_class(
 	};
 
 	BT_ASSERT_PRE_NO_ERROR();
-	BT_ASSERT_PRE_NON_NULL(event_class, "Event class");
-	BT_ASSERT_PRE_NON_NULL(field_class, "Field class");
+	BT_ASSERT_PRE_EC_NON_NULL(event_class);
+	BT_ASSERT_PRE_FC_NON_NULL(field_class);
 	BT_ASSERT_PRE_DEV_EVENT_CLASS_HOT(event_class);
-	BT_ASSERT_PRE(bt_field_class_get_type(field_class) ==
-		BT_FIELD_CLASS_TYPE_STRUCTURE,
-		"Specific context field class is not a structure field class: "
-		"%!+F", field_class);
+	BT_ASSERT_PRE_FC_IS_STRUCT(field_class, "Specific context field class");
 	stream_class = bt_event_class_borrow_stream_class_inline(
 		event_class);
 	resolve_ctx.packet_context = stream_class->packet_context_fc;
@@ -331,14 +328,14 @@ end:
 const struct bt_field_class *bt_event_class_borrow_payload_field_class_const(
 		const struct bt_event_class *event_class)
 {
-	BT_ASSERT_PRE_DEV_NON_NULL(event_class, "Event class");
+	BT_ASSERT_PRE_DEV_EC_NON_NULL(event_class);
 	return event_class->payload_fc;
 }
 
 struct bt_field_class *bt_event_class_borrow_payload_field_class(
 		struct bt_event_class *event_class)
 {
-	BT_ASSERT_PRE_DEV_NON_NULL(event_class, "Event class");
+	BT_ASSERT_PRE_DEV_EC_NON_NULL(event_class);
 	return event_class->payload_fc;
 }
 
@@ -357,13 +354,10 @@ bt_event_class_set_payload_field_class(
 	};
 
 	BT_ASSERT_PRE_NO_ERROR();
-	BT_ASSERT_PRE_NON_NULL(event_class, "Event class");
-	BT_ASSERT_PRE_NON_NULL(field_class, "Field class");
+	BT_ASSERT_PRE_EC_NON_NULL(event_class);
+	BT_ASSERT_PRE_FC_NON_NULL(field_class);
 	BT_ASSERT_PRE_DEV_EVENT_CLASS_HOT(event_class);
-	BT_ASSERT_PRE(bt_field_class_get_type(field_class) ==
-		BT_FIELD_CLASS_TYPE_STRUCTURE,
-		"Payload field class is not a structure field class: %!+F",
-		field_class);
+	BT_ASSERT_PRE_FC_IS_STRUCT(field_class, "Payload field class");
 	stream_class = bt_event_class_borrow_stream_class_inline(
 		event_class);
 	resolve_ctx.packet_context = stream_class->packet_context_fc;
@@ -408,7 +402,7 @@ void _bt_event_class_freeze(const struct bt_event_class *event_class)
 const struct bt_value *bt_event_class_borrow_user_attributes_const(
 		const struct bt_event_class *event_class)
 {
-	BT_ASSERT_PRE_DEV_NON_NULL(event_class, "Event class");
+	BT_ASSERT_PRE_DEV_EC_NON_NULL(event_class);
 	return event_class->user_attributes;
 }
 
@@ -423,11 +417,10 @@ void bt_event_class_set_user_attributes(
 		struct bt_event_class *event_class,
 		const struct bt_value *user_attributes)
 {
-	BT_ASSERT_PRE_NON_NULL(event_class, "Event class");
-	BT_ASSERT_PRE_NON_NULL(user_attributes, "User attributes");
-	BT_ASSERT_PRE(user_attributes->type == BT_VALUE_TYPE_MAP,
-		"User attributes object is not a map value object.");
+	BT_ASSERT_PRE_EC_NON_NULL(event_class);
 	BT_ASSERT_PRE_DEV_EVENT_CLASS_HOT(event_class);
+	BT_ASSERT_PRE_USER_ATTRS_NON_NULL(user_attributes);
+	BT_ASSERT_PRE_USER_ATTRS_IS_MAP(user_attributes);
 	bt_object_put_ref_no_null_check(event_class->user_attributes);
 	event_class->user_attributes = (void *) user_attributes;
 	bt_object_get_ref_no_null_check(event_class->user_attributes);

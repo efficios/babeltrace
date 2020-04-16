@@ -179,7 +179,7 @@ bt_get_greatest_operative_mip_version(
 	int status = BT_FUNC_STATUS_OK;
 
 	BT_ASSERT_PRE_NO_ERROR();
-	BT_ASSERT_PRE_NON_NULL(comp_descr_set, "Component descriptor set");
+	BT_ASSERT_PRE_COMP_DESCR_SET_NON_NULL(comp_descr_set);
 	BT_ASSERT_PRE_NON_NULL(operative_mip_version,
 		"Operative MIP version (output)");
 	BT_ASSERT_PRE(comp_descr_set->sources->len +

@@ -45,8 +45,8 @@ struct bt_message *bt_message_message_iterator_inactivity_create(
 	struct bt_message *ret_msg = NULL;
 
 	BT_ASSERT_PRE_DEV_NO_ERROR();
-	BT_ASSERT_PRE_NON_NULL(msg_iter, "Message iterator");
-	BT_ASSERT_PRE_NON_NULL(clock_class, "Default clock class");
+	BT_ASSERT_PRE_MSG_ITER_NON_NULL(msg_iter);
+	BT_ASSERT_PRE_DEF_CLK_CLS_NON_NULL(clock_class);
 	BT_LIB_LOGD("Creating message iterator inactivity message object: "
 		"%![iter-]+i, %![cc-]+K, value=%" PRIu64, msg_iter,
 		clock_class, value_cycles);
@@ -85,7 +85,7 @@ bt_message_message_iterator_inactivity_borrow_clock_snapshot_const(
 {
 	struct bt_message_message_iterator_inactivity *inactivity = (void *) msg;
 
-	BT_ASSERT_PRE_DEV_NON_NULL(msg, "Message");
+	BT_ASSERT_PRE_DEV_MSG_NON_NULL(msg);
 	BT_ASSERT_PRE_DEV_MSG_HAS_TYPE(msg,
 		BT_MESSAGE_TYPE_MESSAGE_ITERATOR_INACTIVITY);
 	return inactivity->cs;

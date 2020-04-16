@@ -19,7 +19,7 @@
 #include "lib/func-status.h"
 #include "lib/graph/message-iterator-class.h"
 
-#define BT_ASSERT_PRE_DEV_COMP_CLS_HOT(_cc) \
+#define BT_ASSERT_PRE_DEV_COMP_CLS_HOT(_cc)				\
 	BT_ASSERT_PRE_DEV_HOT(((const struct bt_component_class *) (_cc)), \
 		"Component class", ": %!+C", (_cc))
 
@@ -161,8 +161,8 @@ struct bt_component_class_source *bt_component_class_source_create(
 	int ret;
 
 	BT_ASSERT_PRE_NO_ERROR();
-	BT_ASSERT_PRE_NON_NULL(name, "Name");
-	BT_ASSERT_PRE_NON_NULL(message_iterator_class, "Message iterator class");
+	BT_ASSERT_PRE_NAME_NON_NULL(name);
+	BT_ASSERT_PRE_MSG_ITER_CLS_NON_NULL(message_iterator_class);
 	BT_LIB_LOGI("Creating source component class: "
 		"name=\"%s\", %![msg-iter-cls-]+I",
 		name, message_iterator_class);
@@ -200,8 +200,8 @@ struct bt_component_class_filter *bt_component_class_filter_create(
 	int ret;
 
 	BT_ASSERT_PRE_NO_ERROR();
-	BT_ASSERT_PRE_NON_NULL(name, "Name");
-	BT_ASSERT_PRE_NON_NULL(message_iterator_class, "Message iterator class");
+	BT_ASSERT_PRE_NAME_NON_NULL(name);
+	BT_ASSERT_PRE_MSG_ITER_CLS_NON_NULL(message_iterator_class);
 	BT_LIB_LOGI("Creating filter component class: "
 		"name=\"%s\", %![msg-iter-cls-]+I",
 		name, message_iterator_class);
@@ -238,7 +238,7 @@ struct bt_component_class_sink *bt_component_class_sink_create(
 	int ret;
 
 	BT_ASSERT_PRE_NO_ERROR();
-	BT_ASSERT_PRE_NON_NULL(name, "Name");
+	BT_ASSERT_PRE_NAME_NON_NULL(name);
 	BT_ASSERT_PRE_NON_NULL(method, "Consume next method");
 	BT_LOGI("Creating sink component class: "
 		"name=\"%s\", consume-method-addr=%p",
@@ -276,8 +276,8 @@ bt_component_class_source_set_get_supported_mip_versions_method(
 		bt_component_class_source_get_supported_mip_versions_method method)
 {
 	BT_ASSERT_PRE_NO_ERROR();
-	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
-	BT_ASSERT_PRE_NON_NULL(method, "Method");
+	BT_ASSERT_PRE_COMP_CLS_NON_NULL(comp_cls);
+	BT_ASSERT_PRE_METHOD_NON_NULL(method);
 	BT_ASSERT_PRE_DEV_COMP_CLS_HOT(comp_cls);
 	comp_cls->methods.get_supported_mip_versions = method;
 	BT_LIB_LOGD("Set source component class's \"get supported MIP versions\" method: "
@@ -291,8 +291,8 @@ bt_component_class_filter_set_get_supported_mip_versions_method(
 		bt_component_class_filter_get_supported_mip_versions_method method)
 {
 	BT_ASSERT_PRE_NO_ERROR();
-	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
-	BT_ASSERT_PRE_NON_NULL(method, "Method");
+	BT_ASSERT_PRE_COMP_CLS_NON_NULL(comp_cls);
+	BT_ASSERT_PRE_METHOD_NON_NULL(method);
 	BT_ASSERT_PRE_DEV_COMP_CLS_HOT(comp_cls);
 	comp_cls->methods.get_supported_mip_versions = method;
 	BT_LIB_LOGD("Set filter component class's \"get supported MIP versions\" method: "
@@ -306,8 +306,8 @@ bt_component_class_sink_set_get_supported_mip_versions_method(
 		bt_component_class_sink_get_supported_mip_versions_method method)
 {
 	BT_ASSERT_PRE_NO_ERROR();
-	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
-	BT_ASSERT_PRE_NON_NULL(method, "Method");
+	BT_ASSERT_PRE_COMP_CLS_NON_NULL(comp_cls);
+	BT_ASSERT_PRE_METHOD_NON_NULL(method);
 	BT_ASSERT_PRE_DEV_COMP_CLS_HOT(comp_cls);
 	comp_cls->methods.get_supported_mip_versions = method;
 	BT_LIB_LOGD("Set sink component class's \"get supported MIP versions\" method: "
@@ -321,8 +321,8 @@ bt_component_class_source_set_initialize_method(
 		bt_component_class_source_initialize_method method)
 {
 	BT_ASSERT_PRE_NO_ERROR();
-	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
-	BT_ASSERT_PRE_NON_NULL(method, "Method");
+	BT_ASSERT_PRE_COMP_CLS_NON_NULL(comp_cls);
+	BT_ASSERT_PRE_METHOD_NON_NULL(method);
 	BT_ASSERT_PRE_DEV_COMP_CLS_HOT(comp_cls);
 	comp_cls->methods.init = method;
 	BT_LIB_LOGD("Set source component class's initialization method: "
@@ -336,8 +336,8 @@ bt_component_class_filter_set_initialize_method(
 		bt_component_class_filter_initialize_method method)
 {
 	BT_ASSERT_PRE_NO_ERROR();
-	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
-	BT_ASSERT_PRE_NON_NULL(method, "Method");
+	BT_ASSERT_PRE_COMP_CLS_NON_NULL(comp_cls);
+	BT_ASSERT_PRE_METHOD_NON_NULL(method);
 	BT_ASSERT_PRE_DEV_COMP_CLS_HOT(comp_cls);
 	comp_cls->methods.init = method;
 	BT_LIB_LOGD("Set filter component class's initialization method: "
@@ -351,8 +351,8 @@ bt_component_class_sink_set_initialize_method(
 		bt_component_class_sink_initialize_method method)
 {
 	BT_ASSERT_PRE_NO_ERROR();
-	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
-	BT_ASSERT_PRE_NON_NULL(method, "Method");
+	BT_ASSERT_PRE_COMP_CLS_NON_NULL(comp_cls);
+	BT_ASSERT_PRE_METHOD_NON_NULL(method);
 	BT_ASSERT_PRE_DEV_COMP_CLS_HOT(comp_cls);
 	comp_cls->methods.init = method;
 	BT_LIB_LOGD("Set sink component class's initialization method: "
@@ -366,8 +366,8 @@ bt_component_class_source_set_finalize_method(
 		bt_component_class_source_finalize_method method)
 {
 	BT_ASSERT_PRE_NO_ERROR();
-	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
-	BT_ASSERT_PRE_NON_NULL(method, "Method");
+	BT_ASSERT_PRE_COMP_CLS_NON_NULL(comp_cls);
+	BT_ASSERT_PRE_METHOD_NON_NULL(method);
 	BT_ASSERT_PRE_DEV_COMP_CLS_HOT(comp_cls);
 	comp_cls->methods.finalize = method;
 	BT_LIB_LOGD("Set source component class's finalization method: "
@@ -381,8 +381,8 @@ bt_component_class_filter_set_finalize_method(
 		bt_component_class_filter_finalize_method method)
 {
 	BT_ASSERT_PRE_NO_ERROR();
-	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
-	BT_ASSERT_PRE_NON_NULL(method, "Method");
+	BT_ASSERT_PRE_COMP_CLS_NON_NULL(comp_cls);
+	BT_ASSERT_PRE_METHOD_NON_NULL(method);
 	BT_ASSERT_PRE_DEV_COMP_CLS_HOT(comp_cls);
 	comp_cls->methods.finalize = method;
 	BT_LIB_LOGD("Set filter component class's finalization method: "
@@ -396,8 +396,8 @@ bt_component_class_sink_set_finalize_method(
 		bt_component_class_sink_finalize_method method)
 {
 	BT_ASSERT_PRE_NO_ERROR();
-	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
-	BT_ASSERT_PRE_NON_NULL(method, "Method");
+	BT_ASSERT_PRE_COMP_CLS_NON_NULL(comp_cls);
+	BT_ASSERT_PRE_METHOD_NON_NULL(method);
 	BT_ASSERT_PRE_DEV_COMP_CLS_HOT(comp_cls);
 	comp_cls->methods.finalize = method;
 	BT_LIB_LOGD("Set sink component class's finalization method: "
@@ -411,8 +411,8 @@ bt_component_class_source_set_query_method(
 		bt_component_class_source_query_method method)
 {
 	BT_ASSERT_PRE_NO_ERROR();
-	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
-	BT_ASSERT_PRE_NON_NULL(method, "Method");
+	BT_ASSERT_PRE_COMP_CLS_NON_NULL(comp_cls);
+	BT_ASSERT_PRE_METHOD_NON_NULL(method);
 	BT_ASSERT_PRE_DEV_COMP_CLS_HOT(comp_cls);
 	comp_cls->methods.query = method;
 	BT_LIB_LOGD("Set source component class's query method: "
@@ -426,8 +426,8 @@ bt_component_class_filter_set_query_method(
 		bt_component_class_filter_query_method method)
 {
 	BT_ASSERT_PRE_NO_ERROR();
-	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
-	BT_ASSERT_PRE_NON_NULL(method, "Method");
+	BT_ASSERT_PRE_COMP_CLS_NON_NULL(comp_cls);
+	BT_ASSERT_PRE_METHOD_NON_NULL(method);
 	BT_ASSERT_PRE_DEV_COMP_CLS_HOT(comp_cls);
 	comp_cls->methods.query = method;
 	BT_LIB_LOGD("Set filter component class's query method: "
@@ -441,8 +441,8 @@ bt_component_class_sink_set_query_method(
 		bt_component_class_sink_query_method method)
 {
 	BT_ASSERT_PRE_NO_ERROR();
-	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
-	BT_ASSERT_PRE_NON_NULL(method, "Method");
+	BT_ASSERT_PRE_COMP_CLS_NON_NULL(comp_cls);
+	BT_ASSERT_PRE_METHOD_NON_NULL(method);
 	BT_ASSERT_PRE_DEV_COMP_CLS_HOT(comp_cls);
 	comp_cls->methods.query = method;
 	BT_LIB_LOGD("Set sink component class's query method: "
@@ -456,8 +456,8 @@ bt_component_class_filter_set_input_port_connected_method(
 		bt_component_class_filter_input_port_connected_method method)
 {
 	BT_ASSERT_PRE_NO_ERROR();
-	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
-	BT_ASSERT_PRE_NON_NULL(method, "Method");
+	BT_ASSERT_PRE_COMP_CLS_NON_NULL(comp_cls);
+	BT_ASSERT_PRE_METHOD_NON_NULL(method);
 	BT_ASSERT_PRE_DEV_COMP_CLS_HOT(comp_cls);
 	comp_cls->methods.input_port_connected = method;
 	BT_LIB_LOGD("Set filter component class's \"input port connected\" method"
@@ -471,8 +471,8 @@ bt_component_class_sink_set_input_port_connected_method(
 		bt_component_class_sink_input_port_connected_method method)
 {
 	BT_ASSERT_PRE_NO_ERROR();
-	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
-	BT_ASSERT_PRE_NON_NULL(method, "Method");
+	BT_ASSERT_PRE_COMP_CLS_NON_NULL(comp_cls);
+	BT_ASSERT_PRE_METHOD_NON_NULL(method);
 	BT_ASSERT_PRE_DEV_COMP_CLS_HOT(comp_cls);
 	comp_cls->methods.input_port_connected = method;
 	BT_LIB_LOGD("Set sink component class's \"input port connected\" method"
@@ -486,8 +486,8 @@ bt_component_class_source_set_output_port_connected_method(
 		bt_component_class_source_output_port_connected_method method)
 {
 	BT_ASSERT_PRE_NO_ERROR();
-	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
-	BT_ASSERT_PRE_NON_NULL(method, "Method");
+	BT_ASSERT_PRE_COMP_CLS_NON_NULL(comp_cls);
+	BT_ASSERT_PRE_METHOD_NON_NULL(method);
 	BT_ASSERT_PRE_DEV_COMP_CLS_HOT(comp_cls);
 	comp_cls->methods.output_port_connected = method;
 	BT_LIB_LOGD("Set source component class's \"output port connected\" method"
@@ -501,8 +501,8 @@ bt_component_class_filter_set_output_port_connected_method(
 		bt_component_class_filter_output_port_connected_method method)
 {
 	BT_ASSERT_PRE_NO_ERROR();
-	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
-	BT_ASSERT_PRE_NON_NULL(method, "Method");
+	BT_ASSERT_PRE_COMP_CLS_NON_NULL(comp_cls);
+	BT_ASSERT_PRE_METHOD_NON_NULL(method);
 	BT_ASSERT_PRE_DEV_COMP_CLS_HOT(comp_cls);
 	comp_cls->methods.output_port_connected = method;
 	BT_LIB_LOGD("Set filter component class's \"output port connected\" method"
@@ -516,8 +516,8 @@ bt_component_class_sink_set_graph_is_configured_method(
 		bt_component_class_sink_graph_is_configured_method method)
 {
 	BT_ASSERT_PRE_NO_ERROR();
-	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
-	BT_ASSERT_PRE_NON_NULL(method, "Method");
+	BT_ASSERT_PRE_COMP_CLS_NON_NULL(comp_cls);
+	BT_ASSERT_PRE_METHOD_NON_NULL(method);
 	BT_ASSERT_PRE_DEV_COMP_CLS_HOT(comp_cls);
 	comp_cls->methods.graph_is_configured = method;
 	BT_LIB_LOGD("Set sink component class's \"graph is configured\" method"
@@ -531,8 +531,8 @@ bt_component_class_set_description(
 		const char *description)
 {
 	BT_ASSERT_PRE_NO_ERROR();
-	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
-	BT_ASSERT_PRE_NON_NULL(description, "Description");
+	BT_ASSERT_PRE_COMP_CLS_NON_NULL(comp_cls);
+	BT_ASSERT_PRE_DESCR_NON_NULL(description);
 	BT_ASSERT_PRE_DEV_COMP_CLS_HOT(comp_cls);
 	g_string_assign(comp_cls->description, description);
 	BT_LIB_LOGD("Set component class's description: "
@@ -548,7 +548,7 @@ enum bt_component_class_set_help_status bt_component_class_set_help(
 		const char *help)
 {
 	BT_ASSERT_PRE_NO_ERROR();
-	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
+	BT_ASSERT_PRE_COMP_CLS_NON_NULL(comp_cls);
 	BT_ASSERT_PRE_NON_NULL(help, "Help");
 	BT_ASSERT_PRE_DEV_COMP_CLS_HOT(comp_cls);
 	g_string_assign(comp_cls->help, help);
@@ -558,21 +558,21 @@ enum bt_component_class_set_help_status bt_component_class_set_help(
 
 const char *bt_component_class_get_name(const struct bt_component_class *comp_cls)
 {
-	BT_ASSERT_PRE_DEV_NON_NULL(comp_cls, "Component class");
+	BT_ASSERT_PRE_DEV_COMP_CLS_NON_NULL(comp_cls);
 	return comp_cls->name->str;
 }
 
 enum bt_component_class_type bt_component_class_get_type(
 		const struct bt_component_class *comp_cls)
 {
-	BT_ASSERT_PRE_DEV_NON_NULL(comp_cls, "Component class");
+	BT_ASSERT_PRE_DEV_COMP_CLS_NON_NULL(comp_cls);
 	return comp_cls->type;
 }
 
 const char *bt_component_class_get_description(
 		const struct bt_component_class *comp_cls)
 {
-	BT_ASSERT_PRE_DEV_NON_NULL(comp_cls, "Component class");
+	BT_ASSERT_PRE_DEV_COMP_CLS_NON_NULL(comp_cls);
 	return comp_cls->description &&
 		comp_cls->description->str[0] != '\0' ?
 		comp_cls->description->str : NULL;
@@ -581,7 +581,7 @@ const char *bt_component_class_get_description(
 const char *bt_component_class_get_help(
 		const struct bt_component_class *comp_cls)
 {
-	BT_ASSERT_PRE_DEV_NON_NULL(comp_cls, "Component class");
+	BT_ASSERT_PRE_DEV_COMP_CLS_NON_NULL(comp_cls);
 	return comp_cls->help &&
 		comp_cls->help->str[0] != '\0' ? comp_cls->help->str : NULL;
 }

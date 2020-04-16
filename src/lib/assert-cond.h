@@ -437,9 +437,9 @@
 		((const struct bt_field *) (_field))->class->type == BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_INTEGER_SELECTOR_FIELD, \
 		_name " is not a variant field: %![field-]+f", (_field))
 
-#define BT_ASSERT_PRE_DEV_FIELD_IS_SET(_field, _name)			\
+#define BT_ASSERT_PRE_DEV_FIELD_IS_SET(_field)				\
 	BT_ASSERT_PRE_DEV(bt_field_is_set(_field),			\
-		_name " is not set: %!+f", (_field))
+		"Field is not set: %!+f", (_field))
 
 #define _BT_ASSERT_PRE_FIELD_NAME	"Field"
 

@@ -215,14 +215,14 @@ void bt_connection_end(struct bt_connection *conn, bool try_remove_from_graph)
 const struct bt_port_output *bt_connection_borrow_upstream_port_const(
 		const struct bt_connection *connection)
 {
-	BT_ASSERT_PRE_DEV_NON_NULL(connection, "Connection");
+	BT_ASSERT_PRE_DEV_CONN_NON_NULL(connection);
 	return (void *) connection->upstream_port;
 }
 
 const struct bt_port_input *bt_connection_borrow_downstream_port_const(
 		const struct bt_connection *connection)
 {
-	BT_ASSERT_PRE_DEV_NON_NULL(connection, "Connection");
+	BT_ASSERT_PRE_DEV_CONN_NON_NULL(connection);
 	return (void *) connection->downstream_port;
 }
 

@@ -60,7 +60,7 @@
 
 #define BT_ASSERT_PRE_ITER_HAS_STATE_TO_SEEK(_iter)			\
 	BT_ASSERT_PRE((_iter)->state == BT_MESSAGE_ITERATOR_STATE_ACTIVE || \
-		(_iter)->state == BT_MESSAGE_ITERATOR_STATE_ENDED || \
+		(_iter)->state == BT_MESSAGE_ITERATOR_STATE_ENDED ||	\
 		(_iter)->state == BT_MESSAGE_ITERATOR_STATE_LAST_SEEKING_RETURNED_AGAIN || \
 		(_iter)->state == BT_MESSAGE_ITERATOR_STATE_LAST_SEEKING_RETURNED_ERROR, \
 		"Message iterator is in the wrong state: %!+i", _iter)
@@ -288,7 +288,8 @@ int create_self_component_input_port_message_iterator(
 	struct bt_component_class_with_iterator_class *upstream_comp_cls_with_iter_cls;
 	int status;
 
-	BT_ASSERT_PRE_NON_NULL(message_iterator, "Created message iterator");
+	BT_ASSERT_PRE_NON_NULL(message_iterator,
+		"Created message iterator (output)");
 	BT_ASSERT_PRE_NON_NULL(port, "Input port");
 	comp = bt_port_borrow_component_inline(port);
 	BT_ASSERT_PRE(bt_port_is_connected(port),
@@ -455,7 +456,7 @@ bt_message_iterator_create_from_message_iterator(
 		struct bt_message_iterator **message_iterator)
 {
 	BT_ASSERT_PRE_NO_ERROR();
-	BT_ASSERT_PRE_NON_NULL(self_msg_iter, "Message iterator");
+	BT_ASSERT_PRE_MSG_ITER_NON_NULL(self_msg_iter);
 	return create_self_component_input_port_message_iterator(self_msg_iter,
 		input_port, message_iterator);
 }
@@ -478,7 +479,7 @@ void *bt_self_message_iterator_get_data(
 	struct bt_message_iterator *iterator =
 		(void *) self_iterator;
 
-	BT_ASSERT_PRE_DEV_NON_NULL(iterator, "Message iterator");
+	BT_ASSERT_PRE_DEV_MSG_ITER_NON_NULL(iterator);
 	return iterator->user_data;
 }
 
@@ -488,7 +489,7 @@ void bt_self_message_iterator_set_data(
 	struct bt_message_iterator *iterator =
 		(void *) self_iterator;
 
-	BT_ASSERT_PRE_DEV_NON_NULL(iterator, "Message iterator");
+	BT_ASSERT_PRE_DEV_MSG_ITER_NON_NULL(iterator);
 	iterator->user_data = data;
 	BT_LIB_LOGD("Set message iterator's user data: "
 		"%!+i, user-data-addr=%p", iterator, data);
@@ -812,7 +813,7 @@ bt_message_iterator_next(
 	enum bt_message_iterator_next_status status = BT_FUNC_STATUS_OK;
 
 	BT_ASSERT_PRE_DEV_NO_ERROR();
-	BT_ASSERT_PRE_DEV_NON_NULL(iterator, "Message iterator");
+	BT_ASSERT_PRE_DEV_MSG_ITER_NON_NULL(iterator);
 	BT_ASSERT_PRE_DEV_NON_NULL(msgs, "Message array (output)");
 	BT_ASSERT_PRE_DEV_NON_NULL(user_count, "Message count (output)");
 	BT_ASSERT_PRE_DEV(iterator->state ==
@@ -887,7 +888,7 @@ struct bt_component *
 bt_message_iterator_borrow_component(
 		struct bt_message_iterator *iterator)
 {
-	BT_ASSERT_PRE_DEV_NON_NULL(iterator, "Message iterator");
+	BT_ASSERT_PRE_DEV_MSG_ITER_NON_NULL(iterator);
 	return iterator->upstream_component;
 }
 
@@ -897,7 +898,7 @@ struct bt_self_component *bt_self_message_iterator_borrow_component(
 	struct bt_message_iterator *iterator =
 		(void *) self_iterator;
 
-	BT_ASSERT_PRE_DEV_NON_NULL(iterator, "Message iterator");
+	BT_ASSERT_PRE_DEV_MSG_ITER_NON_NULL(iterator);
 	return (void *) iterator->upstream_component;
 }
 
@@ -907,7 +908,7 @@ struct bt_self_component_port_output *bt_self_message_iterator_borrow_port(
 	struct bt_message_iterator *iterator =
 		(void *) self_iterator;
 
-	BT_ASSERT_PRE_DEV_NON_NULL(iterator, "Message iterator");
+	BT_ASSERT_PRE_DEV_MSG_ITER_NON_NULL(iterator);
 	return (void *) iterator->upstream_port;
 }
 
@@ -919,8 +920,8 @@ bt_message_iterator_can_seek_ns_from_origin(
 	enum bt_message_iterator_can_seek_ns_from_origin_status status;
 
 	BT_ASSERT_PRE_NO_ERROR();
-	BT_ASSERT_PRE_NON_NULL(iterator, "Message iterator");
-	BT_ASSERT_PRE_NON_NULL(can_seek, "Result (output)");
+	BT_ASSERT_PRE_MSG_ITER_NON_NULL(iterator);
+	BT_ASSERT_PRE_RES_OUT_NON_NULL(can_seek);
 	BT_ASSERT_PRE_ITER_HAS_STATE_TO_SEEK(iterator);
 	BT_ASSERT_PRE(
 		bt_component_borrow_graph(iterator->upstream_component)->config_state !=
@@ -990,8 +991,8 @@ bt_message_iterator_can_seek_beginning(
 	enum bt_message_iterator_can_seek_beginning_status status;
 
 	BT_ASSERT_PRE_NO_ERROR();
-	BT_ASSERT_PRE_NON_NULL(iterator, "Message iterator");
-	BT_ASSERT_PRE_NON_NULL(can_seek, "Result (output)");
+	BT_ASSERT_PRE_MSG_ITER_NON_NULL(iterator);
+	BT_ASSERT_PRE_RES_OUT_NON_NULL(can_seek);
 	BT_ASSERT_PRE_ITER_HAS_STATE_TO_SEEK(iterator);
 	BT_ASSERT_PRE(
 		bt_component_borrow_graph(iterator->upstream_component)->config_state !=
@@ -1083,7 +1084,7 @@ bt_message_iterator_seek_beginning(
 	int status;
 
 	BT_ASSERT_PRE_NO_ERROR();
-	BT_ASSERT_PRE_NON_NULL(iterator, "Message iterator");
+	BT_ASSERT_PRE_MSG_ITER_NON_NULL(iterator);
 	BT_ASSERT_PRE_ITER_HAS_STATE_TO_SEEK(iterator);
 	BT_ASSERT_PRE(
 		bt_component_borrow_graph(iterator->upstream_component)->config_state !=
@@ -1127,7 +1128,7 @@ bt_bool
 bt_message_iterator_can_seek_forward(
 		bt_message_iterator *iterator)
 {
-	BT_ASSERT_PRE_NON_NULL(iterator, "Message iterator");
+	BT_ASSERT_PRE_MSG_ITER_NON_NULL(iterator);
 
 	return iterator->config.can_seek_forward;
 }
@@ -1648,7 +1649,7 @@ bt_message_iterator_seek_ns_from_origin(
 	bt_bool can_seek_by_itself;
 
 	BT_ASSERT_PRE_NO_ERROR();
-	BT_ASSERT_PRE_NON_NULL(iterator, "Message iterator");
+	BT_ASSERT_PRE_MSG_ITER_NON_NULL(iterator);
 	BT_ASSERT_PRE_ITER_HAS_STATE_TO_SEEK(iterator);
 	BT_ASSERT_PRE(
 		bt_component_borrow_graph(iterator->upstream_component)->config_state !=
@@ -1917,7 +1918,7 @@ bt_bool bt_self_message_iterator_is_interrupted(
 	const struct bt_message_iterator *iterator =
 		(const void *) self_msg_iter;
 
-	BT_ASSERT_PRE_NON_NULL(iterator, "Message iterator");
+	BT_ASSERT_PRE_MSG_ITER_NON_NULL(iterator);
 	return (bt_bool) bt_graph_is_interrupted(iterator->graph);
 }
 

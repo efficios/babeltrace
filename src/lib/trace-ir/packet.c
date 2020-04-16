@@ -27,7 +27,7 @@
 
 struct bt_stream *bt_packet_borrow_stream(struct bt_packet *packet)
 {
-	BT_ASSERT_PRE_DEV_NON_NULL(packet, "Packet");
+	BT_ASSERT_PRE_DEV_PACKET_NON_NULL(packet);
 	return packet->stream;
 }
 
@@ -39,7 +39,7 @@ const struct bt_stream *bt_packet_borrow_stream_const(
 
 struct bt_field *bt_packet_borrow_context_field(struct bt_packet *packet)
 {
-	BT_ASSERT_PRE_DEV_NON_NULL(packet, "Packet");
+	BT_ASSERT_PRE_DEV_PACKET_NON_NULL(packet);
 	return packet->context_field ? packet->context_field->field : NULL;
 }
 
@@ -203,7 +203,7 @@ struct bt_packet *bt_packet_create(const struct bt_stream *c_stream)
 	struct bt_stream *stream = (void *) c_stream;
 
 	BT_ASSERT_PRE_NO_ERROR();
-	BT_ASSERT_PRE_NON_NULL(stream, "Stream");
+	BT_ASSERT_PRE_STREAM_NON_NULL(stream);
 	BT_ASSERT_PRE(stream->class->supports_packets,
 		"Stream class does not support packets: %![sc-]+S",
 		stream->class);

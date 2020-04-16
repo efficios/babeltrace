@@ -32,7 +32,7 @@ void bt_message_init(struct bt_message *message,
 enum bt_message_type bt_message_get_type(
 		const struct bt_message *message)
 {
-	BT_ASSERT_PRE_DEV_NON_NULL(message, "Message");
+	BT_ASSERT_PRE_DEV_MSG_NON_NULL(message);
 	return message->type;
 }
 

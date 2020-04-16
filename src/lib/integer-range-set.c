@@ -21,7 +21,7 @@ uint64_t bt_integer_range_unsigned_get_lower(
 {
 	const struct bt_integer_range *range = (const void *) u_range;
 
-	BT_ASSERT_PRE_DEV_NON_NULL(range, "Integer range");
+	BT_ASSERT_PRE_DEV_INT_RANGE_NON_NULL(range);
 	return range->lower.u;
 }
 
@@ -30,7 +30,7 @@ uint64_t bt_integer_range_unsigned_get_upper(
 {
 	const struct bt_integer_range *range = (const void *) u_range;
 
-	BT_ASSERT_PRE_DEV_NON_NULL(range, "Integer range");
+	BT_ASSERT_PRE_DEV_INT_RANGE_NON_NULL(range);
 	return range->upper.u;
 }
 
@@ -39,7 +39,7 @@ int64_t bt_integer_range_signed_get_lower(
 {
 	const struct bt_integer_range *range = (const void *) i_range;
 
-	BT_ASSERT_PRE_DEV_NON_NULL(range, "Integer range");
+	BT_ASSERT_PRE_DEV_INT_RANGE_NON_NULL(range);
 	return range->lower.i;
 }
 
@@ -48,7 +48,7 @@ int64_t bt_integer_range_signed_get_upper(
 {
 	const struct bt_integer_range *range = (const void *) i_range;
 
-	BT_ASSERT_PRE_DEV_NON_NULL(range, "Integer range");
+	BT_ASSERT_PRE_DEV_INT_RANGE_NON_NULL(range);
 	return range->upper.i;
 }
 
@@ -83,7 +83,7 @@ bt_bool bt_integer_range_signed_is_equal(
 uint64_t bt_integer_range_set_get_range_count(
 		const bt_integer_range_set *range_set)
 {
-	BT_ASSERT_PRE_DEV_NON_NULL(range_set, "Integer range set");
+	BT_ASSERT_PRE_DEV_INT_RANGE_SET_NON_NULL(range_set);
 	return (uint64_t) range_set->ranges->len;
 }
 
@@ -95,7 +95,7 @@ bt_integer_range_set_unsigned_borrow_range_by_index_const(
 	const struct bt_integer_range_set *range_set =
 		(const void *) u_range_set;
 
-	BT_ASSERT_PRE_DEV_NON_NULL(range_set, "Integer range set");
+	BT_ASSERT_PRE_DEV_INT_RANGE_SET_NON_NULL(range_set);
 	BT_ASSERT_PRE_DEV_VALID_INDEX(index, range_set->ranges->len);
 	return (const void *) BT_INTEGER_RANGE_SET_RANGE_AT_INDEX(range_set,
 		index);
@@ -108,7 +108,7 @@ bt_integer_range_set_signed_borrow_range_by_index_const(
 	const struct bt_integer_range_set *range_set =
 		(const void *) i_range_set;
 
-	BT_ASSERT_PRE_DEV_NON_NULL(range_set, "Integer range set");
+	BT_ASSERT_PRE_DEV_INT_RANGE_SET_NON_NULL(range_set);
 	BT_ASSERT_PRE_DEV_VALID_INDEX(index, range_set->ranges->len);
 	return (const void *) BT_INTEGER_RANGE_SET_RANGE_AT_INDEX(range_set,
 		index);
@@ -185,7 +185,7 @@ void add_range_to_range_set(struct bt_integer_range_set *range_set,
 		.upper.u = u_upper,
 	};
 
-	BT_ASSERT_PRE_NON_NULL(range_set, "Integer range set");
+	BT_ASSERT_PRE_INT_RANGE_SET_NON_NULL(range_set);
 	BT_ASSERT_PRE_DEV_HOT(range_set, "Integer range set", ": %!+R",
 		range_set);
 	g_array_append_val(range_set->ranges, range);

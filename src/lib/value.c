@@ -21,9 +21,9 @@
 #include "common/assert.h"
 #include "func-status.h"
 
-#define BT_ASSERT_PRE_DEV_VALUE_HOT(_value, _name)			\
-	BT_ASSERT_PRE_DEV_HOT(((struct bt_value *) (_value)), (_name),	\
-		": %!+v", (_value))
+#define BT_ASSERT_PRE_DEV_VALUE_HOT(_value)				\
+	BT_ASSERT_PRE_DEV_HOT(((struct bt_value *) (_value)),		\
+		"Value object", ": %!+v", (_value))
 
 #define BT_VALUE_TO_BOOL(_base) ((struct bt_value_bool *) (_base))
 #define BT_VALUE_TO_INTEGER(_base) ((struct bt_value_integer *) (_base))
@@ -537,7 +537,7 @@ end:
 
 enum bt_value_type bt_value_get_type(const struct bt_value *object)
 {
-	BT_ASSERT_PRE_DEV_NON_NULL(object, "Value object");
+	BT_ASSERT_PRE_DEV_VALUE_NON_NULL(object);
 	return object->type;
 }
 
@@ -680,7 +680,7 @@ struct bt_value *bt_value_string_create_init(const char *val)
 	struct bt_value_string *string_obj = NULL;
 
 	BT_ASSERT_PRE_NO_ERROR();
-	BT_ASSERT_PRE_NON_NULL(val, "Value");
+	BT_ASSERT_PRE_NON_NULL(val, "Raw value");
 
 	BT_LOGD("Creating string value object: val-len=%zu", strlen(val));
 	string_obj = g_new0(struct bt_value_string, 1);
@@ -777,16 +777,16 @@ end:
 
 bt_bool bt_value_bool_get(const struct bt_value *bool_obj)
 {
-	BT_ASSERT_PRE_DEV_NON_NULL(bool_obj, "Value object");
+	BT_ASSERT_PRE_DEV_VALUE_NON_NULL(bool_obj);
 	BT_ASSERT_PRE_DEV_VALUE_HAS_TYPE(bool_obj, BT_VALUE_TYPE_BOOL);
 	return BT_VALUE_TO_BOOL(bool_obj)->value;
 }
 
 void bt_value_bool_set(struct bt_value *bool_obj, bt_bool val)
 {
-	BT_ASSERT_PRE_NON_NULL(bool_obj, "Value object");
+	BT_ASSERT_PRE_VALUE_NON_NULL(bool_obj);
 	BT_ASSERT_PRE_VALUE_HAS_TYPE(bool_obj, BT_VALUE_TYPE_BOOL);
-	BT_ASSERT_PRE_DEV_VALUE_HOT(bool_obj, "Value object");
+	BT_ASSERT_PRE_DEV_VALUE_HOT(bool_obj);
 	BT_VALUE_TO_BOOL(bool_obj)->value = val;
 	BT_LOGT("Set boolean value's raw value: value-addr=%p, value=%d",
 		bool_obj, val);
@@ -794,7 +794,7 @@ void bt_value_bool_set(struct bt_value *bool_obj, bt_bool val)
 
 uint64_t bt_value_integer_unsigned_get(const struct bt_value *integer_obj)
 {
-	BT_ASSERT_PRE_DEV_NON_NULL(integer_obj, "Value object");
+	BT_ASSERT_PRE_DEV_VALUE_NON_NULL(integer_obj);
 	BT_ASSERT_PRE_DEV_VALUE_HAS_TYPE(integer_obj,
 		BT_VALUE_TYPE_UNSIGNED_INTEGER);
 	return BT_VALUE_TO_INTEGER(integer_obj)->value.u;
@@ -802,7 +802,7 @@ uint64_t bt_value_integer_unsigned_get(const struct bt_value *integer_obj)
 
 int64_t bt_value_integer_signed_get(const struct bt_value *integer_obj)
 {
-	BT_ASSERT_PRE_DEV_NON_NULL(integer_obj, "Value object");
+	BT_ASSERT_PRE_DEV_VALUE_NON_NULL(integer_obj);
 	BT_ASSERT_PRE_DEV_VALUE_HAS_TYPE(integer_obj,
 		BT_VALUE_TYPE_SIGNED_INTEGER);
 	return BT_VALUE_TO_INTEGER(integer_obj)->value.i;
@@ -812,9 +812,9 @@ static inline
 void bt_value_integer_set(struct bt_value *integer_obj,
 		enum bt_value_type expected_type, uint64_t uval)
 {
-	BT_ASSERT_PRE_NON_NULL(integer_obj, "Value object");
+	BT_ASSERT_PRE_VALUE_NON_NULL(integer_obj);
 	BT_ASSERT_PRE_VALUE_HAS_TYPE(integer_obj, expected_type);
-	BT_ASSERT_PRE_DEV_VALUE_HOT(integer_obj, "Value object");
+	BT_ASSERT_PRE_DEV_VALUE_HOT(integer_obj);
 	BT_VALUE_TO_INTEGER(integer_obj)->value.u = uval;
 }
 
@@ -837,16 +837,16 @@ void bt_value_integer_signed_set(struct bt_value *integer_obj,
 
 double bt_value_real_get(const struct bt_value *real_obj)
 {
-	BT_ASSERT_PRE_DEV_NON_NULL(real_obj, "Value object");
+	BT_ASSERT_PRE_DEV_VALUE_NON_NULL(real_obj);
 	BT_ASSERT_PRE_DEV_VALUE_HAS_TYPE(real_obj, BT_VALUE_TYPE_REAL);
 	return BT_VALUE_TO_REAL(real_obj)->value;
 }
 
 void bt_value_real_set(struct bt_value *real_obj, double val)
 {
-	BT_ASSERT_PRE_NON_NULL(real_obj, "Value object");
+	BT_ASSERT_PRE_VALUE_NON_NULL(real_obj);
 	BT_ASSERT_PRE_VALUE_HAS_TYPE(real_obj, BT_VALUE_TYPE_REAL);
-	BT_ASSERT_PRE_DEV_VALUE_HOT(real_obj, "Value object");
+	BT_ASSERT_PRE_DEV_VALUE_HOT(real_obj);
 	BT_VALUE_TO_REAL(real_obj)->value = val;
 	BT_LOGT("Set real number value's raw value: value-addr=%p, value=%f",
 		real_obj, val);
@@ -854,7 +854,7 @@ void bt_value_real_set(struct bt_value *real_obj, double val)
 
 const char *bt_value_string_get(const struct bt_value *string_obj)
 {
-	BT_ASSERT_PRE_DEV_NON_NULL(string_obj, "Value object");
+	BT_ASSERT_PRE_DEV_VALUE_NON_NULL(string_obj);
 	BT_ASSERT_PRE_DEV_VALUE_HAS_TYPE(string_obj, BT_VALUE_TYPE_STRING);
 	return BT_VALUE_TO_STRING(string_obj)->gstr->str;
 }
@@ -863,9 +863,9 @@ enum bt_value_string_set_status bt_value_string_set(
 		struct bt_value *string_obj, const char *val)
 {
 	BT_ASSERT_PRE_NO_ERROR();
-	BT_ASSERT_PRE_NON_NULL(string_obj, "Value object");
+	BT_ASSERT_PRE_VALUE_NON_NULL(string_obj);
 	BT_ASSERT_PRE_VALUE_HAS_TYPE(string_obj, BT_VALUE_TYPE_STRING);
-	BT_ASSERT_PRE_DEV_VALUE_HOT(string_obj, "Value object");
+	BT_ASSERT_PRE_DEV_VALUE_HOT(string_obj);
 	g_string_assign(BT_VALUE_TO_STRING(string_obj)->gstr, val);
 	BT_LOGT("Set string value's raw value: value-addr=%p, raw-value-addr=%p",
 		string_obj, val);
@@ -874,7 +874,7 @@ enum bt_value_string_set_status bt_value_string_set(
 
 uint64_t bt_value_array_get_length(const struct bt_value *array_obj)
 {
-	BT_ASSERT_PRE_DEV_NON_NULL(array_obj, "Value object");
+	BT_ASSERT_PRE_DEV_VALUE_NON_NULL(array_obj);
 	BT_ASSERT_PRE_DEV_VALUE_HAS_TYPE(array_obj, BT_VALUE_TYPE_ARRAY);
 	return (uint64_t) BT_VALUE_TO_ARRAY(array_obj)->garray->len;
 }
@@ -885,7 +885,7 @@ struct bt_value *bt_value_array_borrow_element_by_index(
 	struct bt_value_array *typed_array_obj =
 		BT_VALUE_TO_ARRAY(array_obj);
 
-	BT_ASSERT_PRE_DEV_NON_NULL(array_obj, "Value object");
+	BT_ASSERT_PRE_DEV_VALUE_NON_NULL(array_obj);
 	BT_ASSERT_PRE_DEV_VALUE_HAS_TYPE(array_obj, BT_VALUE_TYPE_ARRAY);
 	BT_ASSERT_PRE_DEV_VALID_INDEX(index, typed_array_obj->garray->len);
 	return g_ptr_array_index(typed_array_obj->garray, index);
@@ -910,7 +910,7 @@ enum bt_value_array_append_element_status bt_value_array_append_element(
 	BT_ASSERT_PRE_NON_NULL(array_obj, "Array value object");
 	BT_ASSERT_PRE_NON_NULL(element_obj, "Element value object");
 	BT_ASSERT_PRE_VALUE_HAS_TYPE(array_obj, BT_VALUE_TYPE_ARRAY);
-	BT_ASSERT_PRE_DEV_VALUE_HOT(array_obj, "Array value object");
+	BT_ASSERT_PRE_DEV_VALUE_HOT(array_obj);
 	g_ptr_array_add(typed_array_obj->garray, element_obj);
 	bt_object_get_ref(element_obj);
 	BT_LOGT("Appended element to array value: array-value-addr=%p, "
@@ -1050,7 +1050,7 @@ bt_value_array_set_element_by_index(struct bt_value *array_obj, uint64_t index,
 	BT_ASSERT_PRE_NON_NULL(array_obj, "Array value object");
 	BT_ASSERT_PRE_NON_NULL(element_obj, "Element value object");
 	BT_ASSERT_PRE_VALUE_HAS_TYPE(array_obj, BT_VALUE_TYPE_ARRAY);
-	BT_ASSERT_PRE_DEV_VALUE_HOT(array_obj, "Array value object");
+	BT_ASSERT_PRE_DEV_VALUE_HOT(array_obj);
 	BT_ASSERT_PRE_VALID_INDEX(index, typed_array_obj->garray->len);
 	bt_object_put_ref(g_ptr_array_index(typed_array_obj->garray, index));
 	g_ptr_array_index(typed_array_obj->garray, index) = element_obj;
@@ -1063,7 +1063,7 @@ bt_value_array_set_element_by_index(struct bt_value *array_obj, uint64_t index,
 
 uint64_t bt_value_map_get_size(const struct bt_value *map_obj)
 {
-	BT_ASSERT_PRE_DEV_NON_NULL(map_obj, "Value object");
+	BT_ASSERT_PRE_DEV_VALUE_NON_NULL(map_obj);
 	BT_ASSERT_PRE_DEV_VALUE_HAS_TYPE(map_obj, BT_VALUE_TYPE_MAP);
 	return (uint64_t) g_hash_table_size(BT_VALUE_TO_MAP(map_obj)->ght);
 }
@@ -1071,8 +1071,8 @@ uint64_t bt_value_map_get_size(const struct bt_value *map_obj)
 struct bt_value *bt_value_map_borrow_entry_value(struct bt_value *map_obj,
 		const char *key)
 {
-	BT_ASSERT_PRE_DEV_NON_NULL(map_obj, "Value object");
-	BT_ASSERT_PRE_DEV_NON_NULL(key, "Key");
+	BT_ASSERT_PRE_DEV_VALUE_NON_NULL(map_obj);
+	BT_ASSERT_PRE_DEV_KEY_NON_NULL(key);
 	BT_ASSERT_PRE_DEV_VALUE_HAS_TYPE(map_obj, BT_VALUE_TYPE_MAP);
 	return g_hash_table_lookup(BT_VALUE_TO_MAP(map_obj)->ght,
 		GUINT_TO_POINTER(g_quark_from_string(key)));
@@ -1086,8 +1086,8 @@ const struct bt_value *bt_value_map_borrow_entry_value_const(
 
 bt_bool bt_value_map_has_entry(const struct bt_value *map_obj, const char *key)
 {
-	BT_ASSERT_PRE_DEV_NON_NULL(map_obj, "Value object");
-	BT_ASSERT_PRE_DEV_NON_NULL(key, "Key");
+	BT_ASSERT_PRE_DEV_VALUE_NON_NULL(map_obj);
+	BT_ASSERT_PRE_DEV_KEY_NON_NULL(key);
 	BT_ASSERT_PRE_DEV_VALUE_HAS_TYPE(map_obj, BT_VALUE_TYPE_MAP);
 	return bt_g_hash_table_contains(BT_VALUE_TO_MAP(map_obj)->ght,
 		GUINT_TO_POINTER(g_quark_from_string(key)));
@@ -1099,10 +1099,10 @@ enum bt_value_map_insert_entry_status bt_value_map_insert_entry(
 {
 	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(map_obj, "Map value object");
-	BT_ASSERT_PRE_NON_NULL(key, "Key");
+	BT_ASSERT_PRE_KEY_NON_NULL(key);
 	BT_ASSERT_PRE_NON_NULL(element_obj, "Element value object");
 	BT_ASSERT_PRE_VALUE_HAS_TYPE(map_obj, BT_VALUE_TYPE_MAP);
-	BT_ASSERT_PRE_DEV_VALUE_HOT(map_obj, "Map value object");
+	BT_ASSERT_PRE_DEV_VALUE_HOT(map_obj);
 	g_hash_table_insert(BT_VALUE_TO_MAP(map_obj)->ght,
 		GUINT_TO_POINTER(g_quark_from_string(key)), element_obj);
 	bt_object_get_ref(element_obj);
@@ -1244,8 +1244,8 @@ enum bt_value_map_foreach_entry_status bt_value_map_foreach_entry(
 
 	BT_ASSERT_PRE_NO_ERROR();
 
-	BT_ASSERT_PRE_DEV_NON_NULL(map_obj, "Value object");
-	BT_ASSERT_PRE_DEV_NON_NULL(func, "Callback");
+	BT_ASSERT_PRE_DEV_VALUE_NON_NULL(map_obj);
+	BT_ASSERT_PRE_DEV_NON_NULL(func, "User function");
 	BT_ASSERT_PRE_DEV_VALUE_HAS_TYPE(map_obj, BT_VALUE_TYPE_MAP);
 	g_hash_table_iter_init(&iter, typed_map_obj->ght);
 
@@ -1355,7 +1355,7 @@ enum bt_value_map_extend_status bt_value_map_extend(
 
 	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_NON_NULL(base_map_obj, "Base value object");
-	BT_ASSERT_PRE_DEV_VALUE_HOT(base_map_obj, "Base value object");
+	BT_ASSERT_PRE_DEV_VALUE_HOT(base_map_obj);
 	BT_ASSERT_PRE_NON_NULL(extension_obj, "Extension value object");
 	BT_ASSERT_PRE_VALUE_HAS_TYPE(base_map_obj, BT_VALUE_TYPE_MAP);
 	BT_ASSERT_PRE_VALUE_HAS_TYPE(extension_obj, BT_VALUE_TYPE_MAP);
@@ -1385,7 +1385,7 @@ enum bt_value_copy_status bt_value_copy(const struct bt_value *object,
 	enum bt_value_copy_status status = BT_FUNC_STATUS_OK;
 
 	BT_ASSERT_PRE_NO_ERROR();
-	BT_ASSERT_PRE_NON_NULL(object, "Value object");
+	BT_ASSERT_PRE_VALUE_NON_NULL(object);
 	BT_ASSERT_PRE_NON_NULL(copy_obj, "Value object copy (output)");
 	BT_LOGD("Copying value object: addr=%p", object);
 	*copy_obj = copy_funcs[object->type](object);

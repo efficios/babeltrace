@@ -51,7 +51,7 @@ bt_component_sink_borrow_class_const(
 {
 	struct bt_component_class *cls;
 
-	BT_ASSERT_PRE_DEV_NON_NULL(component, "Component");
+	BT_ASSERT_PRE_DEV_COMP_NON_NULL(component);
 
 	cls = component->parent.class;
 
@@ -135,7 +135,7 @@ bt_bool bt_self_component_sink_is_interrupted(
 {
 	struct bt_component *comp = (void *) self_comp;
 
-	BT_ASSERT_PRE_NON_NULL(comp, "Component");
+	BT_ASSERT_PRE_COMP_NON_NULL(comp);
 	return (bt_bool) bt_graph_is_interrupted(
 		bt_component_borrow_graph(comp));
 }

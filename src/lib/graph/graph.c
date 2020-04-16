@@ -312,7 +312,7 @@ enum bt_graph_connect_ports_status bt_graph_connect_ports(
 	bool init_can_consume;
 
 	BT_ASSERT_PRE_NO_ERROR();
-	BT_ASSERT_PRE_NON_NULL(graph, "Graph");
+	BT_ASSERT_PRE_GRAPH_NON_NULL(graph);
 	BT_ASSERT_PRE_NON_NULL(upstream_port, "Upstream port");
 	BT_ASSERT_PRE_NON_NULL(downstream_port, "Downstream port port");
 	BT_ASSERT_PRE(
@@ -634,7 +634,7 @@ enum bt_graph_run_once_status bt_graph_run_once(struct bt_graph *graph)
 	enum bt_graph_run_once_status status;
 
 	BT_ASSERT_PRE_NO_ERROR();
-	BT_ASSERT_PRE_DEV_NON_NULL(graph, "Graph");
+	BT_ASSERT_PRE_DEV_GRAPH_NON_NULL(graph);
 	BT_ASSERT_PRE_DEV(graph->can_consume,
 		"Cannot consume graph in its current state: %!+g", graph);
 	BT_ASSERT_PRE_DEV(graph->config_state !=
@@ -659,7 +659,7 @@ enum bt_graph_run_status bt_graph_run(struct bt_graph *graph)
 	enum bt_graph_run_status status;
 
 	BT_ASSERT_PRE_NO_ERROR();
-	BT_ASSERT_PRE_NON_NULL(graph, "Graph");
+	BT_ASSERT_PRE_GRAPH_NON_NULL(graph);
 	BT_ASSERT_PRE(graph->can_consume,
 		"Cannot consume graph in its current state: %!+g", graph);
 	BT_ASSERT_PRE(graph->config_state != BT_GRAPH_CONFIGURATION_STATE_FAULTY,
@@ -737,8 +737,8 @@ bt_graph_add_source_component_output_port_added_listener(
 	bt_listener_id listener_id;
 
 	BT_ASSERT_PRE_NO_ERROR();
-	BT_ASSERT_PRE_NON_NULL(graph, "Graph");
-	BT_ASSERT_PRE_NON_NULL(func, "Listener");
+	BT_ASSERT_PRE_GRAPH_NON_NULL(graph);
+	BT_ASSERT_PRE_LISTENER_FUNC_NON_NULL(func);
 	g_array_append_val(graph->listeners.source_output_port_added, listener);
 	listener_id = graph->listeners.source_output_port_added->len - 1;
 	BT_LIB_LOGD("Added \"source component output port added\" listener to graph: "
@@ -765,8 +765,8 @@ bt_graph_add_filter_component_output_port_added_listener(
 	bt_listener_id listener_id;
 
 	BT_ASSERT_PRE_NO_ERROR();
-	BT_ASSERT_PRE_NON_NULL(graph, "Graph");
-	BT_ASSERT_PRE_NON_NULL(func, "Listener");
+	BT_ASSERT_PRE_GRAPH_NON_NULL(graph);
+	BT_ASSERT_PRE_LISTENER_FUNC_NON_NULL(func);
 	g_array_append_val(graph->listeners.filter_output_port_added, listener);
 	listener_id = graph->listeners.filter_output_port_added->len - 1;
 	BT_LIB_LOGD("Added \"filter component output port added\" listener to graph: "
@@ -793,8 +793,8 @@ bt_graph_add_filter_component_input_port_added_listener(
 	bt_listener_id listener_id;
 
 	BT_ASSERT_PRE_NO_ERROR();
-	BT_ASSERT_PRE_NON_NULL(graph, "Graph");
-	BT_ASSERT_PRE_NON_NULL(func, "Listener");
+	BT_ASSERT_PRE_GRAPH_NON_NULL(graph);
+	BT_ASSERT_PRE_LISTENER_FUNC_NON_NULL(func);
 	g_array_append_val(graph->listeners.filter_input_port_added, listener);
 	listener_id = graph->listeners.filter_input_port_added->len - 1;
 	BT_LIB_LOGD("Added \"filter component input port added\" listener to graph: "
@@ -821,8 +821,8 @@ bt_graph_add_sink_component_input_port_added_listener(
 	bt_listener_id listener_id;
 
 	BT_ASSERT_PRE_NO_ERROR();
-	BT_ASSERT_PRE_NON_NULL(graph, "Graph");
-	BT_ASSERT_PRE_NON_NULL(func, "Listener");
+	BT_ASSERT_PRE_GRAPH_NON_NULL(graph);
+	BT_ASSERT_PRE_LISTENER_FUNC_NON_NULL(func);
 	g_array_append_val(graph->listeners.sink_input_port_added, listener);
 	listener_id = graph->listeners.sink_input_port_added->len - 1;
 	BT_LIB_LOGD("Added \"sink component input port added\" listener to graph: "
@@ -964,15 +964,14 @@ int add_component_with_init_method_data(
 	struct bt_value *new_params = NULL;
 
 	BT_ASSERT(comp_cls);
-	BT_ASSERT_PRE_NON_NULL(graph, "Graph");
-	BT_ASSERT_PRE_NON_NULL(name, "Name");
+	BT_ASSERT_PRE_GRAPH_NON_NULL(graph);
+	BT_ASSERT_PRE_NAME_NON_NULL(name);
 	BT_ASSERT_PRE(
 		graph->config_state == BT_GRAPH_CONFIGURATION_STATE_CONFIGURING,
 		"Graph is not in the \"configuring\" state: %!+g", graph);
 	BT_ASSERT_PRE(!component_name_exists(graph, name),
 		"Duplicate component name: %!+g, name=\"%s\"", graph, name);
-	BT_ASSERT_PRE(!params || bt_value_is_map(params),
-		"Parameter value is not a map value: %!+v", params);
+	BT_ASSERT_PRE_PARAM_VALUE_IS_MAP(params);
 	init_can_consume = graph->can_consume;
 	bt_graph_set_can_consume(graph, false);
 	BT_LIB_LOGI("Adding component to graph: "
@@ -1093,7 +1092,7 @@ bt_graph_add_source_component_with_initialize_method_data(
 		const struct bt_component_source **component)
 {
 	BT_ASSERT_PRE_NO_ERROR();
-	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
+	BT_ASSERT_PRE_COMP_CLS_NON_NULL(comp_cls);
 	return add_component_with_init_method_data(graph,
 		(void *) comp_cls, (comp_init_method_t) comp_cls->methods.init,
 		name, params, init_method_data, log_level, (void *) component);
@@ -1120,7 +1119,7 @@ bt_graph_add_filter_component_with_initialize_method_data(
 		const struct bt_component_filter **component)
 {
 	BT_ASSERT_PRE_NO_ERROR();
-	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
+	BT_ASSERT_PRE_COMP_CLS_NON_NULL(comp_cls);
 	return add_component_with_init_method_data(graph,
 		(void *) comp_cls, (comp_init_method_t) comp_cls->methods.init,
 		name, params, init_method_data, log_level, (void *) component);
@@ -1147,7 +1146,7 @@ bt_graph_add_sink_component_with_initialize_method_data(
 		const struct bt_component_sink **component)
 {
 	BT_ASSERT_PRE_NO_ERROR();
-	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
+	BT_ASSERT_PRE_COMP_CLS_NON_NULL(comp_cls);
 	return add_component_with_init_method_data(graph,
 		(void *) comp_cls, (comp_init_method_t) comp_cls->methods.init,
 		name, params, init_method_data, log_level, (void *) component);
@@ -1234,8 +1233,8 @@ enum bt_graph_add_interrupter_status bt_graph_add_interrupter(
 		struct bt_graph *graph, const struct bt_interrupter *intr)
 {
 	BT_ASSERT_PRE_NO_ERROR();
-	BT_ASSERT_PRE_NON_NULL(graph, "Graph");
-	BT_ASSERT_PRE_NON_NULL(intr, "Interrupter");
+	BT_ASSERT_PRE_GRAPH_NON_NULL(graph);
+	BT_ASSERT_PRE_INTR_NON_NULL(intr);
 	g_ptr_array_add(graph->interrupters, (void *) intr);
 	bt_object_get_ref_no_null_check(intr);
 	BT_LIB_LOGD("Added interrupter to graph: %![graph-]+g, %![intr-]+z",
@@ -1245,7 +1244,7 @@ enum bt_graph_add_interrupter_status bt_graph_add_interrupter(
 
 struct bt_interrupter *bt_graph_borrow_default_interrupter(bt_graph *graph)
 {
-	BT_ASSERT_PRE_NON_NULL(graph, "Graph");
+	BT_ASSERT_PRE_GRAPH_NON_NULL(graph);
 	return graph->default_interrupter;
 }
 

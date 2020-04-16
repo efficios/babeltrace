@@ -43,19 +43,19 @@ end:
 
 void bt_interrupter_set(struct bt_interrupter *intr)
 {
-	BT_ASSERT_PRE_NON_NULL(intr, "Interrupter");
+	BT_ASSERT_PRE_INTR_NON_NULL(intr);
 	intr->is_set = true;
 }
 
 void bt_interrupter_reset(struct bt_interrupter *intr)
 {
-	BT_ASSERT_PRE_NON_NULL(intr, "Interrupter");
+	BT_ASSERT_PRE_INTR_NON_NULL(intr);
 	intr->is_set = false;
 }
 
 bt_bool bt_interrupter_is_set(const struct bt_interrupter *intr)
 {
-	BT_ASSERT_PRE_NON_NULL(intr, "Interrupter");
+	BT_ASSERT_PRE_INTR_NON_NULL(intr);
 	return (bt_bool) intr->is_set;
 }
 

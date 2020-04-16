@@ -66,20 +66,20 @@ end:
 enum bt_field_path_scope bt_field_path_get_root_scope(
 		const struct bt_field_path *field_path)
 {
-	BT_ASSERT_PRE_DEV_NON_NULL(field_path, "Field path");
+	BT_ASSERT_PRE_DEV_FP_NON_NULL(field_path);
 	return field_path->root;
 }
 
 uint64_t bt_field_path_get_item_count(const struct bt_field_path *field_path)
 {
-	BT_ASSERT_PRE_DEV_NON_NULL(field_path, "Field path");
+	BT_ASSERT_PRE_DEV_FP_NON_NULL(field_path);
 	return (uint64_t) field_path->items->len;
 }
 
 const struct bt_field_path_item *bt_field_path_borrow_item_by_index_const(
 		const struct bt_field_path *field_path, uint64_t index)
 {
-	BT_ASSERT_PRE_DEV_NON_NULL(field_path, "Field path");
+	BT_ASSERT_PRE_DEV_FP_NON_NULL(field_path);
 	BT_ASSERT_PRE_DEV_VALID_INDEX(index, field_path->items->len);
 	return bt_field_path_borrow_item_by_index_inline(field_path, index);
 }

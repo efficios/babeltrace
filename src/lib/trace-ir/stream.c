@@ -27,7 +27,7 @@
 #include "lib/value.h"
 #include "lib/func-status.h"
 
-#define BT_ASSERT_PRE_DEV_STREAM_HOT(_stream) \
+#define BT_ASSERT_PRE_DEV_STREAM_HOT(_stream)				\
 	BT_ASSERT_PRE_DEV_HOT((_stream), "Stream", ": %!+s", (_stream))
 
 static
@@ -151,8 +151,8 @@ struct bt_stream *bt_stream_create(struct bt_stream_class *stream_class,
 	uint64_t id;
 
 	BT_ASSERT_PRE_NO_ERROR();
-	BT_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
-	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
+	BT_ASSERT_PRE_SC_NON_NULL(stream_class);
+	BT_ASSERT_PRE_TRACE_NON_NULL(trace);
 	BT_ASSERT_PRE(stream_class->assigns_automatic_stream_id,
 		"Stream class does not automatically assigns stream IDs: "
 		"%![sc-]+S", stream_class);
@@ -164,8 +164,8 @@ struct bt_stream *bt_stream_create_with_id(struct bt_stream_class *stream_class,
 		struct bt_trace *trace, uint64_t id)
 {
 	BT_ASSERT_PRE_NO_ERROR();
-	BT_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
-	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
+	BT_ASSERT_PRE_SC_NON_NULL(stream_class);
+	BT_ASSERT_PRE_TRACE_NON_NULL(trace);
 	BT_ASSERT_PRE(!stream_class->assigns_automatic_stream_id,
 		"Stream class automatically assigns stream IDs: "
 		"%![sc-]+S", stream_class);
@@ -174,7 +174,7 @@ struct bt_stream *bt_stream_create_with_id(struct bt_stream_class *stream_class,
 
 struct bt_stream_class *bt_stream_borrow_class(struct bt_stream *stream)
 {
-	BT_ASSERT_PRE_DEV_NON_NULL(stream, "Stream");
+	BT_ASSERT_PRE_DEV_STREAM_NON_NULL(stream);
 	return stream->class;
 }
 
@@ -186,7 +186,7 @@ const struct bt_stream_class *bt_stream_borrow_class_const(
 
 struct bt_trace *bt_stream_borrow_trace(struct bt_stream *stream)
 {
-	BT_ASSERT_PRE_DEV_NON_NULL(stream, "Stream");
+	BT_ASSERT_PRE_DEV_STREAM_NON_NULL(stream);
 	return bt_stream_borrow_trace_inline(stream);
 }
 
@@ -198,7 +198,7 @@ const struct bt_trace *bt_stream_borrow_trace_const(
 
 const char *bt_stream_get_name(const struct bt_stream *stream)
 {
-	BT_ASSERT_PRE_DEV_NON_NULL(stream, "Stream");
+	BT_ASSERT_PRE_DEV_STREAM_NON_NULL(stream);
 	return stream->name.value;
 }
 
@@ -206,8 +206,8 @@ enum bt_stream_set_name_status bt_stream_set_name(struct bt_stream *stream,
 		const char *name)
 {
 	BT_ASSERT_PRE_NO_ERROR();
-	BT_ASSERT_PRE_NON_NULL(stream, "Stream");
-	BT_ASSERT_PRE_NON_NULL(name, "Name");
+	BT_ASSERT_PRE_STREAM_NON_NULL(stream);
+	BT_ASSERT_PRE_NAME_NON_NULL(name);
 	BT_ASSERT_PRE_DEV_STREAM_HOT(stream);
 	g_string_assign(stream->name.str, name);
 	stream->name.value = stream->name.str->str;
@@ -217,7 +217,7 @@ enum bt_stream_set_name_status bt_stream_set_name(struct bt_stream *stream,
 
 uint64_t bt_stream_get_id(const struct bt_stream *stream)
 {
-	BT_ASSERT_PRE_DEV_NON_NULL(stream, "Stream class");
+	BT_ASSERT_PRE_DEV_SC_NON_NULL(stream);
 	return stream->id;
 }
 
@@ -235,7 +235,7 @@ void _bt_stream_freeze(const struct bt_stream *stream)
 const struct bt_value *bt_stream_borrow_user_attributes_const(
 		const struct bt_stream *stream)
 {
-	BT_ASSERT_PRE_DEV_NON_NULL(stream, "Stream");
+	BT_ASSERT_PRE_DEV_STREAM_NON_NULL(stream);
 	return stream->user_attributes;
 }
 
@@ -247,10 +247,9 @@ struct bt_value *bt_stream_borrow_user_attributes(struct bt_stream *stream)
 void bt_stream_set_user_attributes(struct bt_stream *stream,
 		const struct bt_value *user_attributes)
 {
-	BT_ASSERT_PRE_NON_NULL(stream, "Stream");
-	BT_ASSERT_PRE_NON_NULL(user_attributes, "User attributes");
-	BT_ASSERT_PRE(user_attributes->type == BT_VALUE_TYPE_MAP,
-		"User attributes object is not a map value object.");
+	BT_ASSERT_PRE_STREAM_NON_NULL(stream);
+	BT_ASSERT_PRE_USER_ATTRS_NON_NULL(user_attributes);
+	BT_ASSERT_PRE_USER_ATTRS_IS_MAP(user_attributes);
 	BT_ASSERT_PRE_DEV_STREAM_HOT(stream);
 	bt_object_put_ref_no_null_check(stream->user_attributes);
 	stream->user_attributes = (void *) user_attributes;

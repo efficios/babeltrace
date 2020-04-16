@@ -126,10 +126,9 @@ bt_component_descriptor_set_add_descriptor_with_initialize_method_data(
 	GPtrArray *comp_descr_array = NULL;
 
 	BT_ASSERT_PRE_NO_ERROR();
-	BT_ASSERT_PRE_NON_NULL(comp_descr_set, "Component descriptor set");
-	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
-	BT_ASSERT_PRE(!params || bt_value_is_map(params),
-		"Parameter value is not a map value: %!+v", params);
+	BT_ASSERT_PRE_COMP_DESCR_SET_NON_NULL(comp_descr_set);
+	BT_ASSERT_PRE_COMP_CLS_NON_NULL(comp_cls);
+	BT_ASSERT_PRE_PARAM_VALUE_IS_MAP(params);
 	BT_LIB_LOGI("Adding component descriptor to set: "
 		"set-addr=%p, %![cc-]+C, "
 		"%![params-]+v, init-method-data-addr=%p",

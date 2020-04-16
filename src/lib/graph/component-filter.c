@@ -51,7 +51,7 @@ bt_component_filter_borrow_class_const(
 {
 	struct bt_component_class *cls;
 
-	BT_ASSERT_PRE_DEV_NON_NULL(component, "Component");
+	BT_ASSERT_PRE_DEV_COMP_NON_NULL(component);
 
 	cls = component->parent.class;
 

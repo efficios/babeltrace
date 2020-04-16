@@ -120,7 +120,7 @@ void bt_clock_snapshot_recycle(struct bt_clock_snapshot *clock_snapshot)
 uint64_t bt_clock_snapshot_get_value(
 		const struct bt_clock_snapshot *clock_snapshot)
 {
-	BT_ASSERT_PRE_DEV_NON_NULL(clock_snapshot, "Clock snapshot");
+	BT_ASSERT_PRE_DEV_CS_NON_NULL(clock_snapshot);
 	BT_ASSERT_PRE_DEV(clock_snapshot->is_set,
 		"Clock snapshot is not set: %!+k", clock_snapshot);
 	return clock_snapshot->value_cycles;
@@ -134,7 +134,7 @@ bt_clock_snapshot_get_ns_from_origin(
 	int ret = BT_FUNC_STATUS_OK;
 
 	BT_ASSERT_PRE_DEV_NO_ERROR();
-	BT_ASSERT_PRE_DEV_NON_NULL(clock_snapshot, "Clock snapshot");
+	BT_ASSERT_PRE_DEV_CS_NON_NULL(clock_snapshot);
 	BT_ASSERT_PRE_DEV_NON_NULL(ret_value_ns, "Value (ns) (output)");
 	BT_ASSERT_PRE_DEV(clock_snapshot->is_set,
 		"Clock snapshot is not set: %!+k", clock_snapshot);
@@ -157,6 +157,6 @@ end:
 const struct bt_clock_class *bt_clock_snapshot_borrow_clock_class_const(
 		const struct bt_clock_snapshot *clock_snapshot)
 {
-	BT_ASSERT_PRE_DEV_NON_NULL(clock_snapshot, "Clock snapshot");
+	BT_ASSERT_PRE_DEV_CS_NON_NULL(clock_snapshot);
 	return clock_snapshot->clock_class;
 }

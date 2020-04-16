@@ -57,7 +57,7 @@ struct bt_query_executor *bt_query_executor_create_with_method_data(
 	struct bt_query_executor *query_exec;
 
 	BT_ASSERT_PRE_NO_ERROR();
-	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
+	BT_ASSERT_PRE_COMP_CLS_NON_NULL(comp_cls);
 	BT_ASSERT_PRE_NON_NULL(object, "Object");
 	BT_LIB_LOGD("Creating query executor: "
 		"%![comp-cls-]+C, object=\"%s\", %![params-]+v",
@@ -142,8 +142,8 @@ enum bt_query_executor_query_status bt_query_executor_query(
 	method_t method = NULL;
 
 	BT_ASSERT_PRE_NO_ERROR();
-	BT_ASSERT_PRE_NON_NULL(query_exec, "Query executor");
-	BT_ASSERT_PRE_NON_NULL(user_result, "Result (output)");
+	BT_ASSERT_PRE_QUERY_EXEC_NON_NULL(query_exec);
+	BT_ASSERT_PRE_RES_OUT_NON_NULL(user_result);
 
 	/*
 	 * Initial check: is the query executor already interrupted? If
@@ -242,8 +242,8 @@ enum bt_query_executor_add_interrupter_status bt_query_executor_add_interrupter(
 		const struct bt_interrupter *intr)
 {
 	BT_ASSERT_PRE_NO_ERROR();
-	BT_ASSERT_PRE_NON_NULL(query_exec, "Query executor");
-	BT_ASSERT_PRE_NON_NULL(intr, "Interrupter");
+	BT_ASSERT_PRE_QUERY_EXEC_NON_NULL(query_exec);
+	BT_ASSERT_PRE_INTR_NON_NULL(intr);
 	g_ptr_array_add(query_exec->interrupters, (void *) intr);
 	bt_object_get_ref_no_null_check(intr);
 	BT_LIB_LOGD("Added interrupter to query executor: "
@@ -254,7 +254,7 @@ enum bt_query_executor_add_interrupter_status bt_query_executor_add_interrupter(
 
 bt_bool bt_query_executor_is_interrupted(const struct bt_query_executor *query_exec)
 {
-	BT_ASSERT_PRE_NON_NULL(query_exec, "Query executor");
+	BT_ASSERT_PRE_QUERY_EXEC_NON_NULL(query_exec);
 	return (bt_bool) bt_interrupter_array_any_is_set(
 		query_exec->interrupters);
 }
@@ -262,7 +262,7 @@ bt_bool bt_query_executor_is_interrupted(const struct bt_query_executor *query_e
 struct bt_interrupter *bt_query_executor_borrow_default_interrupter(
 		struct bt_query_executor *query_exec)
 {
-	BT_ASSERT_PRE_NON_NULL(query_exec, "Query executor");
+	BT_ASSERT_PRE_QUERY_EXEC_NON_NULL(query_exec);
 	return query_exec->default_interrupter;
 }
 
@@ -270,7 +270,7 @@ enum bt_query_executor_set_logging_level_status
 bt_query_executor_set_logging_level(struct bt_query_executor *query_exec,
 		enum bt_logging_level log_level)
 {
-	BT_ASSERT_PRE_NON_NULL(query_exec, "Query executor");
+	BT_ASSERT_PRE_QUERY_EXEC_NON_NULL(query_exec);
 	query_exec->log_level = log_level;
 	return BT_FUNC_STATUS_OK;
 }
@@ -278,7 +278,7 @@ bt_query_executor_set_logging_level(struct bt_query_executor *query_exec,
 enum bt_logging_level bt_query_executor_get_logging_level(
 		const struct bt_query_executor *query_exec)
 {
-	BT_ASSERT_PRE_NON_NULL(query_exec, "Query executor");
+	BT_ASSERT_PRE_QUERY_EXEC_NON_NULL(query_exec);
 	return query_exec->log_level;
 }
 
