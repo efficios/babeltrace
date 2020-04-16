@@ -21,34 +21,16 @@
 #include "common/assert.h"
 #include "func-status.h"
 
+#define BT_ASSERT_PRE_DEV_VALUE_HOT(_value, _name)			\
+	BT_ASSERT_PRE_DEV_HOT(((struct bt_value *) (_value)), (_name),	\
+		": %!+v", (_value))
+
 #define BT_VALUE_TO_BOOL(_base) ((struct bt_value_bool *) (_base))
 #define BT_VALUE_TO_INTEGER(_base) ((struct bt_value_integer *) (_base))
 #define BT_VALUE_TO_REAL(_base) ((struct bt_value_real *) (_base))
 #define BT_VALUE_TO_STRING(_base) ((struct bt_value_string *) (_base))
 #define BT_VALUE_TO_ARRAY(_base) ((struct bt_value_array *) (_base))
 #define BT_VALUE_TO_MAP(_base) ((struct bt_value_map *) (_base))
-
-#define _BT_ASSERT_PRE_VALUE_IS_TYPE_COND(_value, _type)		\
-	(((struct bt_value *) (_value))->type == (_type))
-
-#define _BT_ASSERT_PRE_VALUE_IS_TYPE_FMT				\
-	"Value has the wrong type ID: expected-type=%s, %![value-]+v"
-
-#define BT_ASSERT_PRE_VALUE_IS_TYPE(_value, _type)			\
-	BT_ASSERT_PRE(							\
-		_BT_ASSERT_PRE_VALUE_IS_TYPE_COND((_value), (_type)),	\
-		_BT_ASSERT_PRE_VALUE_IS_TYPE_FMT,			\
-		bt_common_value_type_string(_type), (_value))
-
-#define BT_ASSERT_PRE_DEV_VALUE_IS_TYPE(_value, _type)			\
-	BT_ASSERT_PRE_DEV(						\
-		_BT_ASSERT_PRE_VALUE_IS_TYPE_COND((_value), (_type)),	\
-		_BT_ASSERT_PRE_VALUE_IS_TYPE_FMT,			\
-		bt_common_value_type_string(_type), (_value))
-
-#define BT_ASSERT_PRE_DEV_VALUE_HOT(_value, _name)			\
-	BT_ASSERT_PRE_DEV_HOT(((struct bt_value *) (_value)), (_name),	\
-		": %!+v", (_value))
 
 static
 void bt_value_null_instance_release_func(struct bt_object *obj)

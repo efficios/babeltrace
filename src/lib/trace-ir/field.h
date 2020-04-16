@@ -22,62 +22,6 @@
 #include "field-class.h"
 #include "utils.h"
 
-#define BT_ASSERT_PRE_DEV_FIELD_HAS_CLASS_TYPE(_field, _cls_type, _name) \
-	BT_ASSERT_PRE_DEV(((const struct bt_field *) (_field))->class->type == (_cls_type), \
-		_name " has the wrong class type: expected-class-type=%s, " \
-		"%![field-]+f",						\
-		bt_common_field_class_type_string(_cls_type), (_field))
-
-#define BT_ASSERT_PRE_DEV_FIELD_IS_UNSIGNED_INT(_field, _name)		\
-	BT_ASSERT_PRE_DEV(						\
-		((const struct bt_field *) (_field))->class->type == BT_FIELD_CLASS_TYPE_UNSIGNED_INTEGER || \
-		((const struct bt_field *) (_field))->class->type == BT_FIELD_CLASS_TYPE_UNSIGNED_ENUMERATION, \
-		_name " is not an unsigned integer field: %![field-]+f", \
-		(_field))
-
-#define BT_ASSERT_PRE_DEV_FIELD_IS_SIGNED_INT(_field, _name)		\
-	BT_ASSERT_PRE_DEV(						\
-		((const struct bt_field *) (_field))->class->type == BT_FIELD_CLASS_TYPE_SIGNED_INTEGER || \
-		((const struct bt_field *) (_field))->class->type == BT_FIELD_CLASS_TYPE_SIGNED_ENUMERATION, \
-		_name " is not a signed integer field: %![field-]+f",	\
-		(_field))
-
-#define BT_ASSERT_PRE_DEV_FIELD_IS_ARRAY(_field, _name)			\
-	BT_ASSERT_PRE_DEV(						\
-		((const struct bt_field *) (_field))->class->type == BT_FIELD_CLASS_TYPE_STATIC_ARRAY || \
-		((const struct bt_field *) (_field))->class->type == BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITHOUT_LENGTH_FIELD || \
-		((const struct bt_field *) (_field))->class->type == BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITH_LENGTH_FIELD, \
-		_name " is not an array field: %![field-]+f", (_field))
-
-#define BT_ASSERT_PRE_DEV_FIELD_IS_DYNAMIC_ARRAY(_field, _name)			\
-	BT_ASSERT_PRE_DEV(						\
-		((const struct bt_field *) (_field))->class->type == BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITHOUT_LENGTH_FIELD || \
-		((const struct bt_field *) (_field))->class->type == BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITH_LENGTH_FIELD, \
-		_name " is not a dynamic array field: %![field-]+f", (_field))
-
-#define BT_ASSERT_PRE_DEV_FIELD_IS_OPTION(_field, _name)		\
-	BT_ASSERT_PRE_DEV(						\
-		((const struct bt_field *) (_field))->class->type == BT_FIELD_CLASS_TYPE_OPTION_WITHOUT_SELECTOR_FIELD || \
-		((const struct bt_field *) (_field))->class->type == BT_FIELD_CLASS_TYPE_OPTION_WITH_BOOL_SELECTOR_FIELD || \
-		((const struct bt_field *) (_field))->class->type == BT_FIELD_CLASS_TYPE_OPTION_WITH_UNSIGNED_INTEGER_SELECTOR_FIELD || \
-		((const struct bt_field *) (_field))->class->type == BT_FIELD_CLASS_TYPE_OPTION_WITH_SIGNED_INTEGER_SELECTOR_FIELD, \
-		_name " is not an option field: %![field-]+f", (_field))
-
-#define BT_ASSERT_PRE_DEV_FIELD_IS_VARIANT(_field, _name)		\
-	BT_ASSERT_PRE_DEV(						\
-		((const struct bt_field *) (_field))->class->type == BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR_FIELD || \
-		((const struct bt_field *) (_field))->class->type == BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR_FIELD || \
-		((const struct bt_field *) (_field))->class->type == BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_INTEGER_SELECTOR_FIELD, \
-		_name " is not a variant field: %![field-]+f", (_field))
-
-#define BT_ASSERT_PRE_DEV_FIELD_IS_SET(_field, _name)			\
-	BT_ASSERT_PRE_DEV(bt_field_is_set(_field),			\
-		_name " is not set: %!+f", (_field))
-
-#define BT_ASSERT_PRE_DEV_FIELD_HOT(_field, _name)			\
-	BT_ASSERT_PRE_DEV_HOT((const struct bt_field *) (_field), (_name), \
-		": %!+f", (_field))
-
 struct bt_field;
 
 typedef struct bt_field *(* bt_field_create_func)(struct bt_field_class *);

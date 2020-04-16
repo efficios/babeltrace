@@ -39,33 +39,6 @@ struct bt_message {
 	struct bt_graph *graph;
 };
 
-#define _BT_ASSERT_PRE_MSG_IS_TYPE_COND(_msg, _type)			\
-	(((struct bt_message *) (_msg))->type == (_type))
-
-#define _BT_ASSERT_PRE_MSG_IS_TYPE_FMT					\
-	"Message has the wrong type: expected-type=%s, %![msg-]+n"
-
-#define BT_ASSERT_PRE_MSG_IS_TYPE(_msg, _type)				\
-	BT_ASSERT_PRE(							\
-		_BT_ASSERT_PRE_MSG_IS_TYPE_COND((_msg), (_type)),	\
-		_BT_ASSERT_PRE_MSG_IS_TYPE_FMT,				\
-		bt_message_type_string(_type), (_msg))
-
-#define BT_ASSERT_PRE_DEV_MSG_IS_TYPE(_msg, _type)			\
-	BT_ASSERT_PRE_DEV(						\
-		_BT_ASSERT_PRE_MSG_IS_TYPE_COND((_msg), (_type)),	\
-		_BT_ASSERT_PRE_MSG_IS_TYPE_FMT,				\
-		bt_message_type_string(_type), (_msg))
-
-#define BT_ASSERT_PRE_BEGIN_LE_END(_msg_iter, _begin, _end) 		\
-	BT_ASSERT_PRE(							\
-		_begin <= _end,						\
-		"Beginning default clock snapshot value is greater "	\
-		"than end default clock snapshot value: "		\
-		"cs-begin-val=%" PRIu64 ", cs-end-val=%" PRIu64 ", " 	\
-		"%![msg-iter-]i",					\
-		_begin, _end, _msg_iter);
-
 BT_HIDDEN
 void bt_message_init(struct bt_message *message,
 		enum bt_message_type type,

@@ -22,6 +22,10 @@
 #include "field-class.h"
 #include "lib/func-status.h"
 
+#define BT_ASSERT_PRE_DEV_FIELD_HOT(_field, _name)			\
+	BT_ASSERT_PRE_DEV_HOT((const struct bt_field *) (_field), (_name), \
+		": %!+f", (_field))
+
 static
 void reset_single_field(struct bt_field *field);
 
