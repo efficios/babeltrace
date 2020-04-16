@@ -317,10 +317,7 @@ void bt_object_get_ref(const void *ptr)
 		return;
 	}
 
-#ifdef BT_ASSERT_PRE_DEV
-	BT_ASSERT_PRE_DEV(obj->is_shared, "Object is not shared: %!+O", obj);
-#endif
-
+	BT_ASSERT_DBG(obj->is_shared);
 	bt_object_get_ref_no_null_check(obj);
 }
 
@@ -333,12 +330,8 @@ void bt_object_put_ref(const void *ptr)
 		return;
 	}
 
-#ifdef BT_ASSERT_PRE_DEV
-	BT_ASSERT_PRE_DEV(obj->is_shared, "Object is not shared: %!+O", obj);
-	BT_ASSERT_PRE_DEV(bt_object_get_ref_count(obj) > 0,
-		"Decrementing a reference count set to 0: %!+O", ptr);
-#endif
-
+	BT_ASSERT_DBG(obj->is_shared);
+	BT_ASSERT_DBG(bt_object_get_ref_count(obj) > 0);
 	bt_object_put_ref_no_null_check(obj);
 }
 
