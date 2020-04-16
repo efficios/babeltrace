@@ -558,6 +558,77 @@ end:
 	return status;
 }
 
+static
+int configure_graph(struct bt_graph *graph)
+{
+	int status = BT_FUNC_STATUS_OK;
+	uint64_t i;
+
+	BT_ASSERT_DBG(graph->config_state !=
+		BT_GRAPH_CONFIGURATION_STATE_FAULTY);
+
+	if (G_LIKELY(graph->config_state ==
+			BT_GRAPH_CONFIGURATION_STATE_CONFIGURED)) {
+		goto end;
+	}
+
+	BT_ASSERT_PRE(graph->has_sink, "Graph has no sink component: %!+g", graph);
+	graph->config_state = BT_GRAPH_CONFIGURATION_STATE_PARTIALLY_CONFIGURED;
+
+	for (i = 0; i < graph->components->len; i++) {
+		struct bt_component *comp = graph->components->pdata[i];
+		struct bt_component_sink *comp_sink = (void *) comp;
+		struct bt_component_class_sink *comp_cls_sink =
+			(void *) comp->class;
+
+		if (comp->class->type != BT_COMPONENT_CLASS_TYPE_SINK) {
+			continue;
+		}
+
+		if (comp_sink->graph_is_configured_method_called) {
+			continue;
+		}
+
+		if (comp_cls_sink->methods.graph_is_configured) {
+			enum bt_component_class_sink_graph_is_configured_method_status comp_status;
+
+			BT_LIB_LOGD("Calling user's \"graph is configured\" method: "
+				"%![graph-]+g, %![comp-]+c",
+				graph, comp);
+			comp_status = comp_cls_sink->methods.graph_is_configured(
+				(void *) comp_sink);
+			BT_LIB_LOGD("User method returned: status=%s",
+				bt_common_func_status_string(comp_status));
+			BT_ASSERT_POST(comp_status == BT_FUNC_STATUS_OK ||
+				comp_status == BT_FUNC_STATUS_ERROR ||
+				comp_status == BT_FUNC_STATUS_MEMORY_ERROR,
+				"Unexpected returned status: status=%s",
+				bt_common_func_status_string(comp_status));
+			BT_ASSERT_POST_NO_ERROR_IF_NO_ERROR_STATUS(comp_status);
+			if (comp_status != BT_FUNC_STATUS_OK) {
+				if (comp_status < 0) {
+					BT_LIB_LOGW_APPEND_CAUSE(
+						"Component's \"graph is configured\" method failed: "
+						"%![comp-]+c, status=%s",
+						comp,
+						bt_common_func_status_string(
+							comp_status));
+				}
+
+				status = comp_status;
+				goto end;
+			}
+		}
+
+		comp_sink->graph_is_configured_method_called = true;
+	}
+
+	graph->config_state = BT_GRAPH_CONFIGURATION_STATE_CONFIGURED;
+
+end:
+	return status;
+}
+
 enum bt_graph_run_once_status bt_graph_run_once(struct bt_graph *graph)
 {
 	enum bt_graph_run_once_status status;
@@ -570,9 +641,9 @@ enum bt_graph_run_once_status bt_graph_run_once(struct bt_graph *graph)
 		BT_GRAPH_CONFIGURATION_STATE_FAULTY,
 		"Graph is in a faulty state: %!+g", graph);
 	bt_graph_set_can_consume(graph, false);
-	status = bt_graph_configure(graph);
+	status = configure_graph(graph);
 	if (G_UNLIKELY(status)) {
-		/* bt_graph_configure() logs errors */
+		/* configure_graph() logs errors */
 		goto end;
 	}
 
@@ -594,9 +665,9 @@ enum bt_graph_run_status bt_graph_run(struct bt_graph *graph)
 	BT_ASSERT_PRE(graph->config_state != BT_GRAPH_CONFIGURATION_STATE_FAULTY,
 		"Graph is in a faulty state: %!+g", graph);
 	bt_graph_set_can_consume(graph, false);
-	status = bt_graph_configure(graph);
+	status = configure_graph(graph);
 	if (G_UNLIKELY(status)) {
-		/* bt_graph_configure() logs errors */
+		/* configure_graph() logs errors */
 		goto end;
 	}
 
