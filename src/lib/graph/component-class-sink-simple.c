@@ -171,11 +171,10 @@ enum bt_component_class_sink_consume_method_status simple_sink_consume(
 	return status;
 }
 
+BT_HIDDEN
 struct bt_component_class_sink *bt_component_class_sink_simple_borrow(void)
 {
 	enum bt_component_class_set_method_status set_method_status;
-
-	BT_ASSERT_PRE_NO_ERROR();
 
 	if (simple_comp_cls) {
 		goto end;

@@ -18,7 +18,7 @@ struct simple_sink_init_method_data {
 	void *user_data;
 };
 
-extern struct bt_component_class_sink *
-bt_component_class_sink_simple_borrow(void);
+BT_HIDDEN
+struct bt_component_class_sink *bt_component_class_sink_simple_borrow(void);
 
 #endif /* BABELTRACE_GRAPH_COMPONENT_CLASS_SINK_SIMPLE_H */
