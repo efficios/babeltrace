@@ -59,6 +59,50 @@ end:
 	return (void *) message;
 }
 
+static
+struct bt_event *create_event(struct bt_event_class *event_class,
+		struct bt_packet *packet, struct bt_stream *stream)
+{
+	struct bt_event *event = NULL;
+
+	BT_ASSERT_DBG(event_class);
+	BT_ASSERT_DBG(stream);
+	event = bt_object_pool_create_object(&event_class->event_pool);
+	if (G_UNLIKELY(!event)) {
+		BT_LIB_LOGE_APPEND_CAUSE(
+			"Cannot allocate one event from event class's event pool: "
+			"%![ec-]+E", event_class);
+		goto end;
+	}
+
+	if (G_LIKELY(!event->class)) {
+		event->class = event_class;
+		bt_object_get_ref_no_null_check(&event_class->base);
+	}
+
+	BT_ASSERT_DBG(!event->stream);
+	event->stream = stream;
+	bt_object_get_ref_no_null_check_no_parent_check(&event->stream->base);
+	BT_LIB_LOGD("Set event's stream: %![event-]+e, %![stream-]+s",
+		event, stream);
+
+	if (packet) {
+		BT_ASSERT_PRE_DEV(bt_event_class_borrow_stream_class(
+			event_class) == packet->stream->class,
+			"Packet's stream class and event class's stream class differ: "
+			"%![ec-]+E, %![packet-]+a", event, packet);
+		BT_ASSERT_DBG(event->stream->class->supports_packets);
+		BT_ASSERT_DBG(!event->packet);
+		event->packet = packet;
+		bt_object_get_ref_no_null_check_no_parent_check(&event->packet->base);
+		BT_LIB_LOGD("Set event's packet: %![event-]+e, %![packet-]+a",
+			event, packet);
+	}
+
+end:
+	return event;
+}
+
 static inline
 struct bt_message *create_event_message(
 		struct bt_self_message_iterator *self_msg_iter,
@@ -81,6 +125,10 @@ struct bt_message *create_event_message(
 	BT_ASSERT_PRE_NON_NULL(event_class, "Event class");
 	BT_ASSERT_PRE(event_class_has_trace(event_class),
 		"Event class is not part of a trace: %!+E", event_class);
+	BT_ASSERT_PRE_DEV(bt_event_class_borrow_stream_class(event_class) ==
+		stream->class,
+		"Stream's class and event's stream class differ: "
+		"%![ec-]+E, %![stream-]+s", event_class, stream);
 	stream_class = bt_event_class_borrow_stream_class_inline(event_class);
 	BT_ASSERT_DBG(stream_class);
 	BT_ASSERT_PRE((with_cs && stream_class->default_clock_class) ||
@@ -92,7 +140,7 @@ struct bt_message *create_event_message(
 		"cs-val=%" PRIu64,
 		event_class, stream_class, with_cs, raw_value);
 	BT_LIB_LOGD("Creating event message object: %![ec-]+E", event_class);
-	event = bt_event_create(event_class, packet, stream);
+	event = create_event(event_class, packet, stream);
 	if (G_UNLIKELY(!event)) {
 		BT_LIB_LOGE_APPEND_CAUSE(
 			"Cannot create event from event class: "
