@@ -124,7 +124,7 @@ struct bt_stream *bt_message_stream_beginning_borrow_stream(
 		struct bt_message *message)
 {
 	BT_ASSERT_PRE_DEV_NON_NULL(message, "Message");
-	BT_ASSERT_PRE_DEV_MSG_IS_TYPE(message,
+	BT_ASSERT_PRE_DEV_MSG_HAS_TYPE(message,
 		BT_MESSAGE_TYPE_STREAM_BEGINNING);
 	return borrow_stream_message_stream(message);
 }
@@ -133,7 +133,7 @@ struct bt_stream *bt_message_stream_end_borrow_stream(
 		struct bt_message *message)
 {
 	BT_ASSERT_PRE_DEV_NON_NULL(message, "Message");
-	BT_ASSERT_PRE_DEV_MSG_IS_TYPE(message,
+	BT_ASSERT_PRE_DEV_MSG_HAS_TYPE(message,
 		BT_MESSAGE_TYPE_STREAM_END);
 	return borrow_stream_message_stream(message);
 }
@@ -177,7 +177,7 @@ void bt_message_stream_beginning_set_default_clock_snapshot(
 		struct bt_message *message, uint64_t raw_value)
 {
 	BT_ASSERT_PRE_NON_NULL(message, "Message");
-	BT_ASSERT_PRE_MSG_IS_TYPE(message, BT_MESSAGE_TYPE_STREAM_BEGINNING);
+	BT_ASSERT_PRE_MSG_HAS_TYPE(message, BT_MESSAGE_TYPE_STREAM_BEGINNING);
 
 	bt_message_stream_set_default_clock_snapshot(message, raw_value);
 }
@@ -186,7 +186,7 @@ void bt_message_stream_end_set_default_clock_snapshot(
 		struct bt_message *message, uint64_t raw_value)
 {
 	BT_ASSERT_PRE_NON_NULL(message, "Message");
-	BT_ASSERT_PRE_MSG_IS_TYPE(message, BT_MESSAGE_TYPE_STREAM_END);
+	BT_ASSERT_PRE_MSG_HAS_TYPE(message, BT_MESSAGE_TYPE_STREAM_END);
 
 	return bt_message_stream_set_default_clock_snapshot(message, raw_value);
 }
@@ -216,7 +216,7 @@ bt_message_stream_beginning_borrow_default_clock_snapshot_const(
 		const bt_message *message, const bt_clock_snapshot **snapshot)
 {
 	BT_ASSERT_PRE_DEV_NON_NULL(message, "Message");
-	BT_ASSERT_PRE_DEV_MSG_IS_TYPE(message,
+	BT_ASSERT_PRE_DEV_MSG_HAS_TYPE(message,
 		BT_MESSAGE_TYPE_STREAM_BEGINNING);
 	return bt_message_stream_borrow_default_clock_snapshot_const(
 		message, snapshot);
@@ -227,7 +227,7 @@ bt_message_stream_end_borrow_default_clock_snapshot_const(
 		const bt_message *message, const bt_clock_snapshot **snapshot)
 {
 	BT_ASSERT_PRE_DEV_NON_NULL(message, "Message");
-	BT_ASSERT_PRE_DEV_MSG_IS_TYPE(message, BT_MESSAGE_TYPE_STREAM_END);
+	BT_ASSERT_PRE_DEV_MSG_HAS_TYPE(message, BT_MESSAGE_TYPE_STREAM_END);
 	return bt_message_stream_borrow_default_clock_snapshot_const(
 		message, snapshot);
 }
@@ -248,7 +248,7 @@ bt_message_stream_beginning_borrow_stream_class_default_clock_class_const(
 		const struct bt_message *msg)
 {
 	BT_ASSERT_PRE_DEV_NON_NULL(msg, "Message");
-	BT_ASSERT_PRE_DEV_MSG_IS_TYPE(msg,
+	BT_ASSERT_PRE_DEV_MSG_HAS_TYPE(msg,
 		BT_MESSAGE_TYPE_STREAM_BEGINNING);
 	return borrow_stream_message_stream_class_default_clock_class(msg);
 }
@@ -258,6 +258,6 @@ bt_message_stream_end_borrow_stream_class_default_clock_class_const(
 		const struct bt_message *msg)
 {
 	BT_ASSERT_PRE_DEV_NON_NULL(msg, "Message");
-	BT_ASSERT_PRE_DEV_MSG_IS_TYPE(msg, BT_MESSAGE_TYPE_STREAM_END);
+	BT_ASSERT_PRE_DEV_MSG_HAS_TYPE(msg, BT_MESSAGE_TYPE_STREAM_END);
 	return borrow_stream_message_stream_class_default_clock_class(msg);
 }

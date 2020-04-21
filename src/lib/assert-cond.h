@@ -249,10 +249,10 @@
 #define _BT_ASSERT_PRE_FC_IS_VARIANT_WITH_SEL_FMT(_name)		\
 	_name " is not a variant field class with a selector: %![fc-]+F"
 
-#define _BT_ASSERT_PRE_FC_HAS_ID_COND(_fc, _type)			\
+#define _BT_ASSERT_PRE_FC_HAS_TYPE_COND(_fc, _type)			\
 	(((const struct bt_field_class *) (_fc))->type == (_type))
 
-#define _BT_ASSERT_PRE_FC_HAS_ID_FMT(_name)				\
+#define _BT_ASSERT_PRE_FC_HAS_TYPE_FMT(_name)				\
 	_name " has the wrong type: expected-type=%s, %![fc-]+F"
 
 #define BT_ASSERT_PRE_FC_IS_INT(_fc, _name)				\
@@ -299,9 +299,9 @@
 	BT_ASSERT_PRE(_BT_ASSERT_PRE_FC_IS_VARIANT_WITH_SEL_COND(_fc),	\
 		_BT_ASSERT_PRE_FC_IS_VARIANT_WITH_SEL_FMT(_name), (_fc))
 
-#define BT_ASSERT_PRE_FC_HAS_ID(_fc, _type, _name)			\
-	BT_ASSERT_PRE(_BT_ASSERT_PRE_FC_HAS_ID_COND((_fc), (_type)),	\
-		_BT_ASSERT_PRE_FC_HAS_ID_FMT(_name),			\
+#define BT_ASSERT_PRE_FC_HAS_TYPE(_fc, _type, _name)			\
+	BT_ASSERT_PRE(_BT_ASSERT_PRE_FC_HAS_TYPE_COND((_fc), (_type)),	\
+		_BT_ASSERT_PRE_FC_HAS_TYPE_FMT(_name),			\
 		bt_common_field_class_type_string(_type), (_fc))
 
 #define BT_ASSERT_PRE_DEV_FC_IS_INT(_fc, _name)				\
@@ -348,9 +348,9 @@
 	BT_ASSERT_PRE_DEV(_BT_ASSERT_PRE_FC_IS_VARIANT_WITH_SEL_COND(_fc), \
 		_BT_ASSERT_PRE_FC_IS_VARIANT_WITH_SEL_FMT(_name), (_fc))
 
-#define BT_ASSERT_PRE_DEV_FC_HAS_ID(_fc, _type, _name)			\
-	BT_ASSERT_PRE_DEV(_BT_ASSERT_PRE_FC_HAS_ID_COND((_fc), (_type)), \
-		_BT_ASSERT_PRE_FC_HAS_ID_FMT(_name),			\
+#define BT_ASSERT_PRE_DEV_FC_HAS_TYPE(_fc, _type, _name)		\
+	BT_ASSERT_PRE_DEV(_BT_ASSERT_PRE_FC_HAS_TYPE_COND((_fc), (_type)), \
+		_BT_ASSERT_PRE_FC_HAS_TYPE_FMT(_name),			\
 		bt_common_field_class_type_string(_type), (_fc))
 
 #define BT_ASSERT_PRE_DEV_FC_HOT(_fc, _name)				\
@@ -523,22 +523,22 @@
 		"Message's stream's class has no default clock class: "	\
 		"%![msg-]+n, %![sc-]+S", (_msg), (_sc));
 
-#define _BT_ASSERT_PRE_MSG_IS_TYPE_COND(_msg, _type)			\
+#define _BT_ASSERT_PRE_MSG_HAS_TYPE_COND(_msg, _type)			\
 	(((struct bt_message *) (_msg))->type == (_type))
 
-#define _BT_ASSERT_PRE_MSG_IS_TYPE_FMT					\
+#define _BT_ASSERT_PRE_MSG_HAS_TYPE_FMT					\
 	"Message has the wrong type: expected-type=%s, %![msg-]+n"
 
-#define BT_ASSERT_PRE_MSG_IS_TYPE(_msg, _type)				\
+#define BT_ASSERT_PRE_MSG_HAS_TYPE(_msg, _type)				\
 	BT_ASSERT_PRE(							\
-		_BT_ASSERT_PRE_MSG_IS_TYPE_COND((_msg), (_type)),	\
-		_BT_ASSERT_PRE_MSG_IS_TYPE_FMT,				\
+		_BT_ASSERT_PRE_MSG_HAS_TYPE_COND((_msg), (_type)),	\
+		_BT_ASSERT_PRE_MSG_HAS_TYPE_FMT,			\
 		bt_message_type_string(_type), (_msg))
 
-#define BT_ASSERT_PRE_DEV_MSG_IS_TYPE(_msg, _type)			\
+#define BT_ASSERT_PRE_DEV_MSG_HAS_TYPE(_msg, _type)			\
 	BT_ASSERT_PRE_DEV(						\
-		_BT_ASSERT_PRE_MSG_IS_TYPE_COND((_msg), (_type)),	\
-		_BT_ASSERT_PRE_MSG_IS_TYPE_FMT,				\
+		_BT_ASSERT_PRE_MSG_HAS_TYPE_COND((_msg), (_type)),	\
+		_BT_ASSERT_PRE_MSG_HAS_TYPE_FMT,			\
 		bt_message_type_string(_type), (_msg))
 
 #define _BT_ASSERT_PRE_MSG_NAME	"Message"
@@ -699,22 +699,22 @@
 #define BT_ASSERT_PRE_DEV_INT_RANGE_SET_NON_NULL(_int_range_set)	\
 	BT_ASSERT_PRE_DEV_NON_NULL(_int_range_set, _BT_ASSERT_PRE_INT_RANGE_SET_NAME)
 
-#define _BT_ASSERT_PRE_VALUE_IS_TYPE_COND(_value, _type)		\
+#define _BT_ASSERT_PRE_VALUE_HAS_TYPE_COND(_value, _type)		\
 	(((struct bt_value *) (_value))->type == (_type))
 
-#define _BT_ASSERT_PRE_VALUE_IS_TYPE_FMT				\
+#define _BT_ASSERT_PRE_VALUE_HAS_TYPE_FMT				\
 	"Value has the wrong type: expected-type=%s, %![value-]+v"
 
-#define BT_ASSERT_PRE_VALUE_IS_TYPE(_value, _type)			\
+#define BT_ASSERT_PRE_VALUE_HAS_TYPE(_value, _type)			\
 	BT_ASSERT_PRE(							\
-		_BT_ASSERT_PRE_VALUE_IS_TYPE_COND((_value), (_type)),	\
-		_BT_ASSERT_PRE_VALUE_IS_TYPE_FMT,			\
+		_BT_ASSERT_PRE_VALUE_HAS_TYPE_COND((_value), (_type)),	\
+		_BT_ASSERT_PRE_VALUE_HAS_TYPE_FMT,			\
 		bt_common_value_type_string(_type), (_value))
 
-#define BT_ASSERT_PRE_DEV_VALUE_IS_TYPE(_value, _type)			\
+#define BT_ASSERT_PRE_DEV_VALUE_HAS_TYPE(_value, _type)			\
 	BT_ASSERT_PRE_DEV(						\
-		_BT_ASSERT_PRE_VALUE_IS_TYPE_COND((_value), (_type)),	\
-		_BT_ASSERT_PRE_VALUE_IS_TYPE_FMT,			\
+		_BT_ASSERT_PRE_VALUE_HAS_TYPE_COND((_value), (_type)),	\
+		_BT_ASSERT_PRE_VALUE_HAS_TYPE_FMT,			\
 		bt_common_value_type_string(_type), (_value))
 
 #define _BT_ASSERT_PRE_VALUE_NAME	"Value object"
