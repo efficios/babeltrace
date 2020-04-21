@@ -32,8 +32,6 @@ struct bt_component *bt_component_sink_create(
 {
 	struct bt_component_sink *sink = NULL;
 
-	BT_ASSERT_PRE_NO_ERROR();
-
 	sink = g_new0(struct bt_component_sink, 1);
 	if (!sink) {
 		BT_LIB_LOGE_APPEND_CAUSE(
@@ -64,42 +62,55 @@ bt_component_sink_borrow_class_const(
 uint64_t bt_component_sink_get_input_port_count(
 		const struct bt_component_sink *component)
 {
-	/* bt_component_get_input_port_count() logs details/errors */
-	return bt_component_get_input_port_count((void *) component);
+	/* bt_component_get_input_port_count() checks preconditions */
+	return bt_component_get_input_port_count((void *) component, __func__);
 }
 
 const struct bt_port_input *
 bt_component_sink_borrow_input_port_by_name_const(
 		const struct bt_component_sink *component, const char *name)
 {
-	/* bt_component_borrow_input_port_by_name() logs details/errors */
-	return bt_component_borrow_input_port_by_name((void *) component, name);
+	/*
+	 * bt_component_borrow_input_port_by_name() logs details/errors
+	 * and checks preconditions.
+	 */
+	return bt_component_borrow_input_port_by_name((void *) component, name,
+		__func__);
 }
 
 struct bt_self_component_port_input *
 bt_self_component_sink_borrow_input_port_by_name(
 		struct bt_self_component_sink *component, const char *name)
 {
-	/* bt_component_borrow_input_port_by_name() logs details/errors */
+	/*
+	 * bt_component_borrow_input_port_by_name() logs details/errors
+	 * and checks preconditions.
+	 */
 	return (void *) bt_component_borrow_input_port_by_name(
-		(void *) component, name);
+		(void *) component, name, __func__);
 }
 
 const struct bt_port_input *bt_component_sink_borrow_input_port_by_index_const(
 		const struct bt_component_sink *component, uint64_t index)
 {
-	/* bt_component_borrow_input_port_by_index() logs details/errors */
+	/*
+	 * bt_component_borrow_input_port_by_index() logs details/errors
+	 * and checks preconditions.
+	 */
 	return bt_component_borrow_input_port_by_index(
-		(void *) component, index);
+		(void *) component, index, __func__);
 }
 
 struct bt_self_component_port_input *
 bt_self_component_sink_borrow_input_port_by_index(
 		struct bt_self_component_sink *component, uint64_t index)
 {
-	/* bt_component_borrow_input_port_by_index() logs details/errors */
+	/*
+	 * bt_component_borrow_input_port_by_index() logs details/errors
+	 * and checks preconditions.
+	 */
 	return (void *) bt_component_borrow_input_port_by_index(
-		(void *) component, index);
+		(void *) component, index, __func__);
 }
 
 enum bt_self_component_add_port_status bt_self_component_sink_add_input_port(
@@ -112,10 +123,13 @@ enum bt_self_component_add_port_status bt_self_component_sink_add_input_port(
 	struct bt_component *comp = (void *) self_comp;
 
 	BT_ASSERT_PRE_NO_ERROR();
-	BT_ASSERT_PRE_INPUT_PORT_NAME_UNIQUE(comp, name);
 
-	/* bt_component_add_input_port() logs details/errors */
-	status = bt_component_add_input_port(comp, name, user_data, &port);
+	/*
+	 * bt_component_add_input_port() logs details/errors and checks
+	 * preconditions.
+	 */
+	status = bt_component_add_input_port(comp, name, user_data, &port,
+		__func__);
 	if (status != BT_FUNC_STATUS_OK) {
 		goto end;
 	}

@@ -82,7 +82,7 @@ struct bt_field_class *bt_field_class_bit_array_create(
 
 	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_TC_NON_NULL(trace_class);
-	BT_ASSERT_PRE(length > 0 && length <= 64,
+	BT_ASSERT_PRE("valid-length", length > 0 && length <= 64,
 		"Unsupported length for bit array field class "
 		"(minimum is 1, maximum is 64): length=%" PRIu64, length);
 	BT_LOGD("Creating default bit array field class object.");
@@ -114,8 +114,8 @@ uint64_t bt_field_class_bit_array_get_length(const struct bt_field_class *fc)
 	const struct bt_field_class_bit_array *ba_fc = (const void *) fc;
 
 	BT_ASSERT_PRE_DEV_FC_NON_NULL(fc);
-	BT_ASSERT_PRE_DEV_FC_HAS_TYPE(fc, BT_FIELD_CLASS_TYPE_BIT_ARRAY,
-		"Field class");
+	BT_ASSERT_PRE_DEV_FC_HAS_TYPE("field-class", fc, "bit-array",
+		BT_FIELD_CLASS_TYPE_BIT_ARRAY, "Field class");
 	return ba_fc->length;
 }
 
@@ -241,7 +241,7 @@ uint64_t bt_field_class_integer_get_field_value_range(
 	const struct bt_field_class_integer *int_fc = (const void *) fc;
 
 	BT_ASSERT_PRE_DEV_FC_NON_NULL(fc);
-	BT_ASSERT_PRE_DEV_FC_IS_INT(fc, "Field class");
+	BT_ASSERT_PRE_DEV_FC_IS_INT("field-class", fc, "Field class");
 	return int_fc->range;
 }
 
@@ -259,12 +259,13 @@ void bt_field_class_integer_set_field_value_range(
 	struct bt_field_class_integer *int_fc = (void *) fc;
 
 	BT_ASSERT_PRE_FC_NON_NULL(fc);
-	BT_ASSERT_PRE_FC_IS_INT(fc, "Field class");
-	BT_ASSERT_PRE_DEV_FC_HOT(fc, "Field class");
-	BT_ASSERT_PRE(size >= 1 && size <= 64,
+	BT_ASSERT_PRE_FC_IS_INT("field-class", fc, "Field class");
+	BT_ASSERT_PRE_DEV_FC_HOT(fc);
+	BT_ASSERT_PRE("valid-n",
+		size >= 1 && size <= 64,
 		"Unsupported size for integer field class's field value range "
 		"(minimum is 1, maximum is 64): size=%" PRIu64, size);
-	BT_ASSERT_PRE(
+	BT_ASSERT_PRE("valid-n-for-enumeration-field-class",
 		int_fc->common.type == BT_FIELD_CLASS_TYPE_UNSIGNED_INTEGER ||
 		int_fc->common.type == BT_FIELD_CLASS_TYPE_SIGNED_INTEGER ||
 		size_is_valid_for_enumeration_field_class(fc, size),
@@ -281,7 +282,7 @@ bt_field_class_integer_get_preferred_display_base(const struct bt_field_class *f
 	const struct bt_field_class_integer *int_fc = (const void *) fc;
 
 	BT_ASSERT_PRE_DEV_FC_NON_NULL(fc);
-	BT_ASSERT_PRE_DEV_FC_IS_INT(fc, "Field class");
+	BT_ASSERT_PRE_DEV_FC_IS_INT("field-class", fc, "Field class");
 	return int_fc->base;
 }
 
@@ -292,8 +293,8 @@ void bt_field_class_integer_set_preferred_display_base(
 	struct bt_field_class_integer *int_fc = (void *) fc;
 
 	BT_ASSERT_PRE_FC_NON_NULL(fc);
-	BT_ASSERT_PRE_FC_IS_INT(fc, "Field class");
-	BT_ASSERT_PRE_DEV_FC_HOT(fc, "Field class");
+	BT_ASSERT_PRE_FC_IS_INT("field-class", fc, "Field class");
+	BT_ASSERT_PRE_DEV_FC_HOT(fc);
 	int_fc->base = base;
 	BT_LIB_LOGD("Set integer field class's preferred display base: %!+F", fc);
 }
@@ -409,7 +410,7 @@ uint64_t bt_field_class_enumeration_get_mapping_count(
 	const struct bt_field_class_enumeration *enum_fc = (const void *) fc;
 
 	BT_ASSERT_PRE_DEV_FC_NON_NULL(fc);
-	BT_ASSERT_PRE_DEV_FC_IS_ENUM(fc, "Field class");
+	BT_ASSERT_PRE_DEV_FC_IS_ENUM("field-class", fc, "Field class");
 	return (uint64_t) enum_fc->mappings->len;
 }
 
@@ -421,8 +422,8 @@ bt_field_class_enumeration_unsigned_borrow_mapping_by_index_const(
 
 	BT_ASSERT_PRE_DEV_FC_NON_NULL(fc);
 	BT_ASSERT_PRE_DEV_VALID_INDEX(index, enum_fc->mappings->len);
-	BT_ASSERT_PRE_DEV_FC_HAS_TYPE(fc, BT_FIELD_CLASS_TYPE_UNSIGNED_ENUMERATION,
-		"Field class");
+	BT_ASSERT_PRE_DEV_FC_HAS_TYPE("field-class", fc, "unsigned-enumeration",
+		BT_FIELD_CLASS_TYPE_UNSIGNED_ENUMERATION, "Field class");
 	return (const void *) BT_FIELD_CLASS_ENUM_MAPPING_AT_INDEX(fc, index);
 }
 
@@ -434,21 +435,23 @@ bt_field_class_enumeration_signed_borrow_mapping_by_index_const(
 
 	BT_ASSERT_PRE_DEV_FC_NON_NULL(fc);
 	BT_ASSERT_PRE_DEV_VALID_INDEX(index, enum_fc->mappings->len);
-	BT_ASSERT_PRE_DEV_FC_HAS_TYPE(fc, BT_FIELD_CLASS_TYPE_SIGNED_ENUMERATION,
-		"Field class");
+	BT_ASSERT_PRE_DEV_FC_HAS_TYPE("field-class", fc, "signed-enumeration",
+		BT_FIELD_CLASS_TYPE_SIGNED_ENUMERATION, "Field class");
 	return (const void *) BT_FIELD_CLASS_ENUM_MAPPING_AT_INDEX(fc, index);
 }
 
 static
 const struct bt_field_class_enumeration_mapping *
 borrow_enumeration_field_class_mapping_by_label(
-		const struct bt_field_class_enumeration *fc, const char *label)
+		const struct bt_field_class_enumeration *fc, const char *label,
+		const char *api_func)
 {
 	struct bt_field_class_enumeration_mapping *mapping = NULL;
 	uint64_t i;
 
 	BT_ASSERT_DBG(fc);
-	BT_ASSERT_PRE_DEV_NON_NULL(label, "Label");
+	BT_ASSERT_PRE_DEV_NON_NULL_FROM_FUNC(api_func, "label", label,
+		"Label");
 
 	for (i = 0; i < fc->mappings->len; i++) {
 		struct bt_field_class_enumeration_mapping *this_mapping =
@@ -469,10 +472,10 @@ bt_field_class_enumeration_signed_borrow_mapping_by_label_const(
 		const struct bt_field_class *fc, const char *label)
 {
 	BT_ASSERT_PRE_DEV_FC_NON_NULL(fc);
-	BT_ASSERT_PRE_DEV_FC_HAS_TYPE(fc, BT_FIELD_CLASS_TYPE_SIGNED_ENUMERATION,
-		"Field class");
+	BT_ASSERT_PRE_DEV_FC_HAS_TYPE("field-class", fc, "signed-enumeration",
+		BT_FIELD_CLASS_TYPE_SIGNED_ENUMERATION, "Field class");
 	return (const void *) borrow_enumeration_field_class_mapping_by_label(
-		(const void *) fc, label);
+		(const void *) fc, label, __func__);
 }
 
 const struct bt_field_class_enumeration_unsigned_mapping *
@@ -480,16 +483,17 @@ bt_field_class_enumeration_unsigned_borrow_mapping_by_label_const(
 		const struct bt_field_class *fc, const char *label)
 {
 	BT_ASSERT_PRE_DEV_FC_NON_NULL(fc);
-	BT_ASSERT_PRE_DEV_FC_HAS_TYPE(fc,
+	BT_ASSERT_PRE_DEV_FC_HAS_TYPE("field-class", fc, "unsigned-enumeration",
 		BT_FIELD_CLASS_TYPE_UNSIGNED_ENUMERATION, "Field class");
 	return (const void *) borrow_enumeration_field_class_mapping_by_label(
-		(const void *) fc, label);
+		(const void *) fc, label, __func__);
 }
 
 const char *bt_field_class_enumeration_mapping_get_label(
 		const struct bt_field_class_enumeration_mapping *mapping)
 {
-	BT_ASSERT_PRE_DEV_NON_NULL(mapping, "Enumeration field class mapping");
+	BT_ASSERT_PRE_DEV_NON_NULL("enumeration-field-class-mapping",
+		mapping, "Enumeration field class mapping");
 	return mapping->label->str;
 }
 
@@ -500,7 +504,8 @@ bt_field_class_enumeration_unsigned_mapping_borrow_ranges_const(
 	const struct bt_field_class_enumeration_mapping *mapping =
 		(const void *) u_mapping;
 
-	BT_ASSERT_PRE_DEV_NON_NULL(mapping, "Enumeration field class mapping");
+	BT_ASSERT_PRE_DEV_NON_NULL("enumeration-field-class-mapping",
+		mapping, "Enumeration field class mapping");
 	return (const void *) mapping->range_set;
 }
 
@@ -511,7 +516,8 @@ bt_field_class_enumeration_signed_mapping_borrow_ranges_const(
 	const struct bt_field_class_enumeration_mapping *mapping =
 		(const void *) s_mapping;
 
-	BT_ASSERT_PRE_DEV_NON_NULL(mapping, "Enumeration field class mapping");
+	BT_ASSERT_PRE_DEV_NON_NULL("enumeration-field-class-mapping",
+		mapping, "Enumeration field class mapping");
 	return (const void *) mapping->range_set;
 }
 
@@ -526,10 +532,11 @@ bt_field_class_enumeration_unsigned_get_mapping_labels_for_value(
 
 	BT_ASSERT_PRE_DEV_NO_ERROR();
 	BT_ASSERT_PRE_DEV_FC_NON_NULL(fc);
-	BT_ASSERT_PRE_DEV_NON_NULL(label_array, "Label array (output)");
-	BT_ASSERT_PRE_DEV_NON_NULL(count, "Count (output)");
-	BT_ASSERT_PRE_DEV_FC_HAS_TYPE(fc, BT_FIELD_CLASS_TYPE_UNSIGNED_ENUMERATION,
-		"Field class");
+	BT_ASSERT_PRE_DEV_NON_NULL("label-array-output", label_array,
+		"Label array (output)");
+	BT_ASSERT_PRE_DEV_NON_NULL("count-output", count, "Count (output)");
+	BT_ASSERT_PRE_DEV_FC_HAS_TYPE("field-class", fc, "unsigned-enumeration",
+		BT_FIELD_CLASS_TYPE_UNSIGNED_ENUMERATION, "Field class");
 	g_ptr_array_set_size(enum_fc->label_buf, 0);
 
 	for (i = 0; i < enum_fc->mappings->len; i++) {
@@ -567,10 +574,11 @@ bt_field_class_enumeration_signed_get_mapping_labels_for_value(
 
 	BT_ASSERT_PRE_DEV_NO_ERROR();
 	BT_ASSERT_PRE_DEV_FC_NON_NULL(fc);
-	BT_ASSERT_PRE_DEV_NON_NULL(label_array, "Label array (output)");
-	BT_ASSERT_PRE_DEV_NON_NULL(count, "Count (output)");
-	BT_ASSERT_PRE_DEV_FC_HAS_TYPE(fc, BT_FIELD_CLASS_TYPE_SIGNED_ENUMERATION,
-		"Field class");
+	BT_ASSERT_PRE_DEV_NON_NULL("label-array-output", label_array,
+		"Label array (output)");
+	BT_ASSERT_PRE_DEV_NON_NULL("count-output", count, "Count (output)");
+	BT_ASSERT_PRE_DEV_FC_HAS_TYPE("field-class", fc, "signed-enumeration",
+		BT_FIELD_CLASS_TYPE_SIGNED_ENUMERATION, "Field class");
 	g_ptr_array_set_size(enum_fc->label_buf, 0);
 
 	for (i = 0; i < enum_fc->mappings->len; i++) {
@@ -625,19 +633,22 @@ end:
 static inline
 enum bt_field_class_enumeration_add_mapping_status
 add_mapping_to_enumeration_field_class(struct bt_field_class *fc,
-		const char *label, const struct bt_integer_range_set *range_set)
+		const char *label, const struct bt_integer_range_set *range_set,
+		const char *api_func)
 {
 	enum bt_field_class_enumeration_add_mapping_status status =
 		BT_FUNC_STATUS_OK;
 	struct bt_field_class_enumeration *enum_fc = (void *) fc;
 	struct bt_field_class_enumeration_mapping mapping = { 0	};
 
-	BT_ASSERT_PRE_NO_ERROR();
+	BT_ASSERT_PRE_NO_ERROR_FROM_FUNC(api_func);
 	BT_ASSERT(fc);
-	BT_ASSERT_PRE_NON_NULL(label, "Label");
-	BT_ASSERT_PRE_INT_RANGE_SET_NON_NULL(range_set);
-	BT_ASSERT_PRE(!enumeration_field_class_has_mapping_with_label(
-		enum_fc, label),
+	BT_ASSERT_PRE_NON_NULL_FROM_FUNC(api_func, "label", label, "Label");
+	BT_ASSERT_PRE_INT_RANGE_SET_NON_NULL_FROM_FUNC(api_func, range_set);
+	BT_ASSERT_PRE_FROM_FUNC(api_func,
+		"enumeration-field-class-mapping-label-is-unique",
+		!enumeration_field_class_has_mapping_with_label(
+			enum_fc, label),
 		"Duplicate mapping name in enumeration field class: "
 		"%![enum-fc-]+F, label=\"%s\"", fc, label);
 	mapping.range_set = range_set;
@@ -664,10 +675,11 @@ bt_field_class_enumeration_unsigned_add_mapping(
 {
 	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_FC_NON_NULL(fc);
-	BT_ASSERT_PRE_FC_HAS_TYPE(fc, BT_FIELD_CLASS_TYPE_UNSIGNED_ENUMERATION,
-		"Field class");
+	BT_ASSERT_PRE_FC_HAS_TYPE("field-class", fc,
+		"unsigned-enumeration-field-class",
+		BT_FIELD_CLASS_TYPE_UNSIGNED_ENUMERATION, "Field class");
 	return add_mapping_to_enumeration_field_class(fc, label,
-		(const void *) range_set);
+		(const void *) range_set, __func__);
 }
 
 enum bt_field_class_enumeration_add_mapping_status
@@ -677,10 +689,11 @@ bt_field_class_enumeration_signed_add_mapping(
 {
 	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_FC_NON_NULL(fc);
-	BT_ASSERT_PRE_FC_HAS_TYPE(fc, BT_FIELD_CLASS_TYPE_SIGNED_ENUMERATION,
-		"Field class");
+	BT_ASSERT_PRE_FC_HAS_TYPE("field-class", fc,
+		"signed-enumeration-field-class",
+		BT_FIELD_CLASS_TYPE_SIGNED_ENUMERATION, "Field class");
 	return add_mapping_to_enumeration_field_class(fc, label,
-		(const void *) range_set);
+		(const void *) range_set, __func__);
 }
 
 static
@@ -972,13 +985,15 @@ end:
 static
 int append_named_field_class_to_container_field_class(
 		struct bt_field_class_named_field_class_container *container_fc,
-		struct bt_named_field_class *named_fc)
+		struct bt_named_field_class *named_fc, const char *api_func,
+		const char *unique_entry_precond_id)
 {
 	BT_ASSERT(container_fc);
 	BT_ASSERT(named_fc);
-	BT_ASSERT_PRE_DEV_FC_HOT(container_fc, "Field class");
-	BT_ASSERT_PRE(!bt_g_hash_table_contains(container_fc->name_to_index,
-		named_fc->name->str),
+	BT_ASSERT_PRE_DEV_FC_HOT_FROM_FUNC(api_func, container_fc);
+	BT_ASSERT_PRE_FROM_FUNC(api_func, unique_entry_precond_id,
+		!bt_g_hash_table_contains(container_fc->name_to_index,
+			named_fc->name->str),
 		"Duplicate member/option name in structure/variant field class: "
 		"%![container-fc-]+F, name=\"%s\"", container_fc,
 		named_fc->name->str);
@@ -1005,8 +1020,7 @@ bt_field_class_structure_append_member(
 
 	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_FC_NON_NULL(fc);
-	BT_ASSERT_PRE_FC_HAS_TYPE(fc, BT_FIELD_CLASS_TYPE_STRUCTURE,
-		"Field class");
+	BT_ASSERT_PRE_FC_IS_STRUCT("field-class", fc, "Field class");
 	named_fc = create_named_field_class(name, member_fc);
 	if (!named_fc) {
 		/* create_named_field_class() logs errors */
@@ -1015,7 +1029,8 @@ bt_field_class_structure_append_member(
 	}
 
 	status = append_named_field_class_to_container_field_class((void *) fc,
-		named_fc);
+		named_fc, __func__,
+		"structure-field-class-member-name-is-unique");
 	if (status == BT_FUNC_STATUS_OK) {
 		/* Moved to the container */
 		named_fc = NULL;
@@ -1031,8 +1046,7 @@ uint64_t bt_field_class_structure_get_member_count(
 	struct bt_field_class_structure *struct_fc = (void *) fc;
 
 	BT_ASSERT_PRE_DEV_FC_NON_NULL(fc);
-	BT_ASSERT_PRE_DEV_FC_HAS_TYPE(fc, BT_FIELD_CLASS_TYPE_STRUCTURE,
-		"Field class");
+	BT_ASSERT_PRE_FC_IS_STRUCT("field-class", fc, "Field class");
 	return (uint64_t) struct_fc->common.named_fcs->len;
 }
 
@@ -1040,10 +1054,11 @@ static
 struct bt_named_field_class *
 borrow_named_field_class_from_container_field_class_at_index(
 		struct bt_field_class_named_field_class_container *fc,
-		uint64_t index)
+		uint64_t index, const char *api_func)
 {
 	BT_ASSERT_DBG(fc);
-	BT_ASSERT_PRE_DEV_VALID_INDEX(index, fc->named_fcs->len);
+	BT_ASSERT_PRE_DEV_VALID_INDEX_FROM_FUNC(api_func, index,
+		fc->named_fcs->len);
 	return fc->named_fcs->pdata[index];
 }
 
@@ -1052,11 +1067,10 @@ bt_field_class_structure_borrow_member_by_index_const(
 		const struct bt_field_class *fc, uint64_t index)
 {
 	BT_ASSERT_PRE_DEV_FC_NON_NULL(fc);
-	BT_ASSERT_PRE_DEV_FC_HAS_TYPE(fc, BT_FIELD_CLASS_TYPE_STRUCTURE,
-		"Field class");
+	BT_ASSERT_PRE_FC_IS_STRUCT("field-class", fc, "Field class");
 	return (const void *)
 		borrow_named_field_class_from_container_field_class_at_index(
-			(void *) fc, index);
+			(void *) fc, index, __func__);
 }
 
 struct bt_field_class_structure_member *
@@ -1064,25 +1078,24 @@ bt_field_class_structure_borrow_member_by_index(
 		struct bt_field_class *fc, uint64_t index)
 {
 	BT_ASSERT_PRE_DEV_FC_NON_NULL(fc);
-	BT_ASSERT_PRE_DEV_FC_HAS_TYPE(fc, BT_FIELD_CLASS_TYPE_STRUCTURE,
-		"Field class");
+	BT_ASSERT_PRE_FC_IS_STRUCT("field-class", fc, "Field class");
 	return (void *)
 		borrow_named_field_class_from_container_field_class_at_index(
-			(void *) fc, index);
+			(void *) fc, index, __func__);
 }
 
 static
 struct bt_named_field_class *
 borrow_named_field_class_from_container_field_class_by_name(
 		struct bt_field_class_named_field_class_container *fc,
-		const char *name)
+		const char *name, const char *api_func)
 {
 	struct bt_named_field_class *named_fc = NULL;
 	gpointer orig_key;
 	gpointer value;
 
 	BT_ASSERT_DBG(fc);
-	BT_ASSERT_PRE_DEV_NAME_NON_NULL(name);
+	BT_ASSERT_PRE_DEV_NAME_NON_NULL_FROM_FUNC(api_func, name);
 	if (!g_hash_table_lookup_extended(fc->name_to_index, name, &orig_key,
 			&value)) {
 		goto end;
@@ -1099,11 +1112,10 @@ bt_field_class_structure_borrow_member_by_name_const(
 		const struct bt_field_class *fc, const char *name)
 {
 	BT_ASSERT_PRE_DEV_FC_NON_NULL(fc);
-	BT_ASSERT_PRE_DEV_FC_HAS_TYPE(fc, BT_FIELD_CLASS_TYPE_STRUCTURE,
-		"Field class");
+	BT_ASSERT_PRE_FC_IS_STRUCT("field-class", fc, "Field class");
 	return (const void *)
 		borrow_named_field_class_from_container_field_class_by_name(
-			(void *) fc, name);
+			(void *) fc, name, __func__);
 }
 
 struct bt_field_class_structure_member *
@@ -1111,11 +1123,10 @@ bt_field_class_structure_borrow_member_by_name(
 		struct bt_field_class *fc, const char *name)
 {
 	BT_ASSERT_PRE_DEV_FC_NON_NULL(fc);
-	BT_ASSERT_PRE_DEV_FC_HAS_TYPE(fc, BT_FIELD_CLASS_TYPE_STRUCTURE,
-		"Field class");
+	BT_ASSERT_PRE_FC_IS_STRUCT("field-class", fc, "Field class");
 	return (void *)
 		borrow_named_field_class_from_container_field_class_by_name(
-			(void *) fc, name);
+			(void *) fc, name, __func__);
 }
 
 const char *bt_field_class_structure_member_get_name(
@@ -1184,12 +1195,15 @@ struct bt_field_class *create_option_field_class(
 		struct bt_trace_class *trace_class,
 		enum bt_field_class_type fc_type,
 		struct bt_field_class *content_fc,
-		struct bt_field_class *selector_fc)
+		struct bt_field_class *selector_fc,
+		const char *api_func)
 {
 	struct bt_field_class_option *opt_fc = NULL;
 
-	BT_ASSERT_PRE_TC_NON_NULL(trace_class);
-	BT_ASSERT_PRE_NON_NULL(content_fc, "Content field class");
+	BT_ASSERT_PRE_NO_ERROR_FROM_FUNC(api_func);
+	BT_ASSERT_PRE_TC_NON_NULL_FROM_FUNC(api_func, trace_class);
+	BT_ASSERT_PRE_NON_NULL_FROM_FUNC(api_func, "content-field-class",
+		content_fc, "Content field class");
 	BT_LIB_LOGD("Creating option field class: "
 		"type=%s, %![content-fc-]+F, %![sel-fc-]+F",
 		bt_common_field_class_type_string(fc_type),
@@ -1198,17 +1212,21 @@ struct bt_field_class *create_option_field_class(
 	if (fc_type != BT_FIELD_CLASS_TYPE_OPTION_WITHOUT_SELECTOR_FIELD) {
 		struct bt_field_class_option_with_selector_field *opt_with_sel_fc = NULL;
 
-		BT_ASSERT_PRE_NON_NULL(selector_fc, "Selector field class");
+		BT_ASSERT_PRE_NON_NULL_FROM_FUNC(api_func,
+			"selector-field-class", selector_fc,
+			"Selector field class");
 
 		if (fc_type == BT_FIELD_CLASS_TYPE_OPTION_WITH_BOOL_SELECTOR_FIELD) {
-			BT_ASSERT_PRE_FC_HAS_TYPE(selector_fc,
-				BT_FIELD_CLASS_TYPE_BOOL,
+			BT_ASSERT_PRE_FC_HAS_TYPE_FROM_FUNC(api_func,
+				"selector-field-class", selector_fc,
+				"boolean-field-class", BT_FIELD_CLASS_TYPE_BOOL,
 				"Selector field class");
 			opt_with_sel_fc = (void *) g_new0(
 				struct bt_field_class_option_with_selector_field_bool, 1);
 		} else {
-			BT_ASSERT_PRE_FC_IS_INT(selector_fc,
-				"Selector field class");
+			BT_ASSERT_PRE_FC_IS_INT_FROM_FUNC(api_func,
+				"selector-field-class",
+				selector_fc, "Selector field class");
 			opt_with_sel_fc = (void *) g_new0(
 				struct bt_field_class_option_with_selector_field_integer, 1);
 		}
@@ -1261,11 +1279,9 @@ struct bt_field_class *bt_field_class_option_without_selector_create(
 		struct bt_trace_class *trace_class,
 		struct bt_field_class *content_fc)
 {
-	BT_ASSERT_PRE_NO_ERROR();
-
 	return create_option_field_class(trace_class,
 		BT_FIELD_CLASS_TYPE_OPTION_WITHOUT_SELECTOR_FIELD,
-		content_fc, NULL);
+		content_fc, NULL, __func__);
 }
 
 struct bt_field_class *bt_field_class_option_with_selector_field_bool_create(
@@ -1277,7 +1293,7 @@ struct bt_field_class *bt_field_class_option_with_selector_field_bool_create(
 
 	return create_option_field_class(trace_class,
 		BT_FIELD_CLASS_TYPE_OPTION_WITH_BOOL_SELECTOR_FIELD,
-		content_fc, selector_fc);
+		content_fc, selector_fc, __func__);
 }
 
 struct bt_field_class *
@@ -1293,11 +1309,10 @@ bt_field_class_option_with_selector_field_integer_unsigned_create(
 
 	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_INT_RANGE_SET_NON_NULL(range_set);
-	BT_ASSERT_PRE(range_set->ranges->len > 0,
-		"Integer range set is empty: %!+R", range_set);
+	BT_ASSERT_PRE_INT_RANGE_SET_NOT_EMPTY(range_set);
  	fc = (void *) create_option_field_class(trace_class,
 		BT_FIELD_CLASS_TYPE_OPTION_WITH_UNSIGNED_INTEGER_SELECTOR_FIELD,
-		content_fc, selector_fc);
+		content_fc, selector_fc, __func__);
 
 	if (!fc) {
 		goto end;
@@ -1324,11 +1339,10 @@ bt_field_class_option_with_selector_field_integer_signed_create(
 
 	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_INT_RANGE_SET_NON_NULL(range_set);
-	BT_ASSERT_PRE(range_set->ranges->len > 0,
-		"Integer range set is empty: %!+R", range_set);
+	BT_ASSERT_PRE_INT_RANGE_SET_NOT_EMPTY(range_set);
  	fc = (void *) create_option_field_class(trace_class,
 		BT_FIELD_CLASS_TYPE_OPTION_WITH_SIGNED_INTEGER_SELECTOR_FIELD,
-		content_fc, selector_fc);
+		content_fc, selector_fc, __func__);
 
 	if (!fc) {
 		goto end;
@@ -1348,7 +1362,7 @@ const struct bt_field_class *bt_field_class_option_borrow_field_class_const(
 	struct bt_field_class_option *opt_fc = (void *) fc;
 
 	BT_ASSERT_PRE_FC_NON_NULL(fc);
-	BT_ASSERT_PRE_FC_IS_OPTION(fc, "Field class");
+	BT_ASSERT_PRE_FC_IS_OPTION("field-class", fc, "Field class");
 	return opt_fc->content_fc;
 }
 
@@ -1358,7 +1372,7 @@ struct bt_field_class *bt_field_class_option_borrow_field_class(
 	struct bt_field_class_option *opt_fc = (void *) fc;
 
 	BT_ASSERT_PRE_FC_NON_NULL(fc);
-	BT_ASSERT_PRE_FC_IS_OPTION(fc, "Field class");
+	BT_ASSERT_PRE_FC_IS_OPTION("field-class", fc, "Field class");
 	return opt_fc->content_fc;
 }
 
@@ -1370,7 +1384,7 @@ bt_field_class_option_with_selector_field_borrow_selector_field_path_const(
 		(const void *) fc;
 
 	BT_ASSERT_PRE_FC_NON_NULL(fc);
-	BT_ASSERT_PRE_FC_IS_OPTION_WITH_SEL(fc, "Field class");
+	BT_ASSERT_PRE_FC_IS_OPTION_WITH_SEL("field-class", fc, "Field class");
 	return opt_fc->selector_field_path;
 }
 
@@ -1380,9 +1394,11 @@ void bt_field_class_option_with_selector_field_bool_set_selector_is_reversed(
 	struct bt_field_class_option_with_selector_field_bool *opt_fc = (void *) fc;
 
 	BT_ASSERT_PRE_FC_NON_NULL(fc);
-	BT_ASSERT_PRE_FC_HAS_TYPE(fc,
-		BT_FIELD_CLASS_TYPE_OPTION_WITH_BOOL_SELECTOR_FIELD, "Field class");
-	BT_ASSERT_PRE_DEV_FC_HOT(fc, "Field class");
+	BT_ASSERT_PRE_FC_HAS_TYPE("field-class", fc,
+		"option-field-class-with-boolean-selector-field",
+		BT_FIELD_CLASS_TYPE_OPTION_WITH_BOOL_SELECTOR_FIELD,
+		"Field class");
+	BT_ASSERT_PRE_DEV_FC_HOT(fc);
 	opt_fc->sel_is_reversed = sel_is_reversed;
 }
 
@@ -1392,8 +1408,10 @@ bt_bool bt_field_class_option_with_selector_field_bool_selector_is_reversed(
 	struct bt_field_class_option_with_selector_field_bool *opt_fc = (void *) fc;
 
 	BT_ASSERT_PRE_FC_NON_NULL(fc);
-	BT_ASSERT_PRE_FC_HAS_TYPE(fc,
-		BT_FIELD_CLASS_TYPE_OPTION_WITH_BOOL_SELECTOR_FIELD, "Field class");
+	BT_ASSERT_PRE_FC_HAS_TYPE("field-class", fc,
+		"option-field-class-with-boolean-selector-field",
+		BT_FIELD_CLASS_TYPE_OPTION_WITH_BOOL_SELECTOR_FIELD,
+		"Field class");
 	return opt_fc->sel_is_reversed;
 }
 
@@ -1405,7 +1423,8 @@ bt_field_class_option_with_selector_field_integer_unsigned_borrow_selector_range
 		(void *) fc;
 
 	BT_ASSERT_PRE_FC_NON_NULL(fc);
-	BT_ASSERT_PRE_FC_IS_OPTION_WITH_INT_SEL(fc, "Field class");
+	BT_ASSERT_PRE_FC_IS_OPTION_WITH_INT_SEL("field-class", fc,
+		"Field class");
 	return (const void *) opt_fc->range_set;
 }
 
@@ -1417,7 +1436,8 @@ bt_field_class_option_with_selector_field_integer_signed_borrow_selector_ranges_
 		(void *) fc;
 
 	BT_ASSERT_PRE_FC_NON_NULL(fc);
-	BT_ASSERT_PRE_FC_IS_OPTION_WITH_INT_SEL(fc, "Field class");
+	BT_ASSERT_PRE_FC_IS_OPTION_WITH_INT_SEL("field-class", fc,
+		"Field class");
 	return (const void *) opt_fc->range_set;
 }
 
@@ -1466,7 +1486,8 @@ struct bt_field_class *bt_field_class_variant_create(
 	BT_ASSERT_PRE_TC_NON_NULL(trace_class);
 
 	if (selector_fc) {
-		BT_ASSERT_PRE_FC_IS_INT(selector_fc, "Selector field class");
+		BT_ASSERT_PRE_FC_IS_INT("selector-field-class", selector_fc,
+			"Selector field class");
 	}
 
 	BT_LIB_LOGD("Creating default variant field class: %![sel-fc-]+F",
@@ -1533,6 +1554,9 @@ end:
 	return (void *) var_fc;
 }
 
+#define VAR_FC_OPT_NAME_IS_UNIQUE_ID					\
+	"variant-field-class-option-name-is-unique"
+
 enum bt_field_class_variant_without_selector_append_option_status
 bt_field_class_variant_without_selector_append_option(struct bt_field_class *fc,
 		const char *name, struct bt_field_class *option_fc)
@@ -1543,9 +1567,12 @@ bt_field_class_variant_without_selector_append_option(struct bt_field_class *fc,
 	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_FC_NON_NULL(fc);
 	BT_ASSERT_PRE_NAME_NON_NULL(name);
-	BT_ASSERT_PRE_NON_NULL(option_fc, "Option field class");
-	BT_ASSERT_PRE_FC_HAS_TYPE(fc,
-		BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR_FIELD, "Field class");
+	BT_ASSERT_PRE_NON_NULL("option-field-class", option_fc,
+		"Option field class");
+	BT_ASSERT_PRE_FC_HAS_TYPE("field-class", fc,
+		"variant-field-class-without-selector-field",
+		BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR_FIELD,
+		"Field class");
 	named_fc = create_named_field_class(name, option_fc);
 	if (!named_fc) {
 		/* create_named_field_class() logs errors */
@@ -1554,7 +1581,7 @@ bt_field_class_variant_without_selector_append_option(struct bt_field_class *fc,
 	}
 
 	status = append_named_field_class_to_container_field_class((void *) fc,
-		named_fc);
+		named_fc, __func__, VAR_FC_OPT_NAME_IS_UNIQUE_ID);
 	if (status == BT_FUNC_STATUS_OK) {
 		/* Moved to the container */
 		named_fc = NULL;
@@ -1658,20 +1685,20 @@ int append_option_to_variant_with_selector_field_field_class(
 		struct bt_field_class *fc, const char *name,
 		struct bt_field_class *option_fc,
 		const struct bt_integer_range_set *range_set,
-		enum bt_field_class_type expected_type)
+		enum bt_field_class_type expected_type,
+		const char *api_func)
 {
 	int status;
 	struct bt_field_class_variant_with_selector_field *var_fc = (void *) fc;
 	struct bt_field_class_variant_with_selector_field_option *opt = NULL;
 	bool has_overlap;
 
-	BT_ASSERT_PRE_FC_NON_NULL(fc);
-	BT_ASSERT_PRE_NAME_NON_NULL(name);
-	BT_ASSERT_PRE_NON_NULL(option_fc, "Option field class");
-	BT_ASSERT_PRE_INT_RANGE_SET_NON_NULL(range_set);
-	BT_ASSERT_PRE_FC_HAS_TYPE(fc, expected_type, "Field class");
-	BT_ASSERT_PRE(range_set->ranges->len > 0,
-		"Integer range set is empty: %!+R", range_set);
+	BT_ASSERT(fc);
+	BT_ASSERT_PRE_NAME_NON_NULL_FROM_FUNC(api_func, name);
+	BT_ASSERT_PRE_NON_NULL_FROM_FUNC(api_func, "option-field-class",
+		option_fc, "Option field class");
+	BT_ASSERT_PRE_INT_RANGE_SET_NON_NULL_FROM_FUNC(api_func, range_set);
+	BT_ASSERT_PRE_INT_RANGE_SET_NOT_EMPTY_FROM_FUNC(api_func, range_set);
 	status = ranges_overlap(var_fc->common.common.named_fcs, range_set,
 		expected_type == BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_INTEGER_SELECTOR_FIELD,
 		&has_overlap);
@@ -1680,7 +1707,8 @@ int append_option_to_variant_with_selector_field_field_class(
 		goto end;
 	}
 
-	BT_ASSERT_PRE(!has_overlap,
+	BT_ASSERT_PRE_FROM_FUNC(api_func, "ranges-do-not-overlap",
+		!has_overlap,
 		"Integer range set's ranges and existing ranges have an overlap: "
 		"%!+R", range_set);
 	opt = create_variant_with_selector_field_option(name, option_fc, range_set);
@@ -1691,7 +1719,7 @@ int append_option_to_variant_with_selector_field_field_class(
 	}
 
 	status = append_named_field_class_to_container_field_class((void *) fc,
-		&opt->common);
+		&opt->common, __func__, VAR_FC_OPT_NAME_IS_UNIQUE_ID);
 	if (status == BT_FUNC_STATUS_OK) {
 		/* Moved to the container */
 		opt = NULL;
@@ -1712,10 +1740,15 @@ bt_field_class_variant_with_selector_field_integer_unsigned_append_option(
 		const struct bt_integer_range_set_unsigned *range_set)
 {
 	BT_ASSERT_PRE_NO_ERROR();
-
+	BT_ASSERT_PRE_FC_NON_NULL(fc);
+	BT_ASSERT_PRE_FC_HAS_TYPE("field-class", fc,
+		"variant-field-class-with-unsigned-integer-selector-field",
+		BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR_FIELD,
+		"Field class");
 	return append_option_to_variant_with_selector_field_field_class(fc,
 		name, option_fc, (const void *) range_set,
-		BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR_FIELD);
+		BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR_FIELD,
+		__func__);
 }
 
 enum bt_field_class_variant_with_selector_field_integer_append_option_status
@@ -1725,10 +1758,15 @@ bt_field_class_variant_with_selector_field_integer_signed_append_option(
 		const struct bt_integer_range_set_signed *range_set)
 {
 	BT_ASSERT_PRE_NO_ERROR();
-
+	BT_ASSERT_PRE_FC_NON_NULL(fc);
+	BT_ASSERT_PRE_FC_HAS_TYPE("field-class", fc,
+		"variant-field-class-with-signed-integer-selector-field",
+		BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_INTEGER_SELECTOR_FIELD,
+		"Field class");
 	return append_option_to_variant_with_selector_field_field_class(fc,
 		name, option_fc, (const void *) range_set,
-		BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_INTEGER_SELECTOR_FIELD);
+		BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_INTEGER_SELECTOR_FIELD,
+		__func__);
 }
 
 uint64_t bt_field_class_variant_get_option_count(const struct bt_field_class *fc)
@@ -1736,7 +1774,7 @@ uint64_t bt_field_class_variant_get_option_count(const struct bt_field_class *fc
 	const struct bt_field_class_variant *var_fc = (const void *) fc;
 
 	BT_ASSERT_PRE_DEV_FC_NON_NULL(fc);
-	BT_ASSERT_PRE_DEV_FC_IS_VARIANT(fc, "Field class");
+	BT_ASSERT_PRE_DEV_FC_IS_VARIANT("field-class", fc, "Field class");
 	return (uint64_t) var_fc->common.named_fcs->len;
 }
 
@@ -1745,10 +1783,10 @@ bt_field_class_variant_borrow_option_by_name_const(
 		const struct bt_field_class *fc, const char *name)
 {
 	BT_ASSERT_PRE_DEV_FC_NON_NULL(fc);
-	BT_ASSERT_PRE_DEV_FC_IS_VARIANT(fc, "Field class");
+	BT_ASSERT_PRE_DEV_FC_IS_VARIANT("field-class", fc, "Field class");
 	return (const void *)
 		borrow_named_field_class_from_container_field_class_by_name(
-			(void *) fc, name);
+			(void *) fc, name, __func__);
 }
 
 const struct bt_field_class_variant_option *
@@ -1756,10 +1794,10 @@ bt_field_class_variant_borrow_option_by_index_const(
 		const struct bt_field_class *fc, uint64_t index)
 {
 	BT_ASSERT_PRE_DEV_FC_NON_NULL(fc);
-	BT_ASSERT_PRE_DEV_FC_IS_VARIANT(fc, "Field class");
+	BT_ASSERT_PRE_DEV_FC_IS_VARIANT("field-class", fc, "Field class");
 	return (const void *)
 		borrow_named_field_class_from_container_field_class_at_index(
-			(void *) fc, index);
+			(void *) fc, index, __func__);
 }
 
 struct bt_field_class_variant_option *
@@ -1767,10 +1805,10 @@ bt_field_class_variant_borrow_option_by_name(
 		struct bt_field_class *fc, const char *name)
 {
 	BT_ASSERT_PRE_DEV_FC_NON_NULL(fc);
-	BT_ASSERT_PRE_DEV_FC_IS_VARIANT(fc, "Field class");
+	BT_ASSERT_PRE_DEV_FC_IS_VARIANT("field-class", fc, "Field class");
 	return (void *)
 		borrow_named_field_class_from_container_field_class_by_name(
-			(void *) fc, name);
+			(void *) fc, name, __func__);
 }
 
 struct bt_field_class_variant_option *
@@ -1778,10 +1816,10 @@ bt_field_class_variant_borrow_option_by_index(
 		struct bt_field_class *fc, uint64_t index)
 {
 	BT_ASSERT_PRE_DEV_FC_NON_NULL(fc);
-	BT_ASSERT_PRE_DEV_FC_IS_VARIANT(fc, "Field class");
+	BT_ASSERT_PRE_DEV_FC_IS_VARIANT("field-class", fc, "Field class");
 	return (void *)
 		borrow_named_field_class_from_container_field_class_at_index(
-			(void *) fc, index);
+			(void *) fc, index, __func__);
 }
 
 const struct bt_field_class_variant_with_selector_field_integer_unsigned_option *
@@ -1789,12 +1827,13 @@ bt_field_class_variant_with_selector_field_integer_unsigned_borrow_option_by_nam
 		const struct bt_field_class *fc, const char *name)
 {
 	BT_ASSERT_PRE_DEV_FC_NON_NULL(fc);
-	BT_ASSERT_PRE_DEV_FC_HAS_TYPE(fc,
+	BT_ASSERT_PRE_FC_HAS_TYPE("field-class", fc,
+		"variant-field-class-with-unsigned-integer-selector-field",
 		BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR_FIELD,
 		"Field class");
 	return (const void *)
 		borrow_named_field_class_from_container_field_class_by_name(
-			(void *) fc, name);
+			(void *) fc, name, __func__);
 }
 
 const struct bt_field_class_variant_with_selector_field_integer_unsigned_option *
@@ -1802,12 +1841,13 @@ bt_field_class_variant_with_selector_field_integer_unsigned_borrow_option_by_ind
 		const struct bt_field_class *fc, uint64_t index)
 {
 	BT_ASSERT_PRE_DEV_FC_NON_NULL(fc);
-	BT_ASSERT_PRE_DEV_FC_HAS_TYPE(fc,
+	BT_ASSERT_PRE_FC_HAS_TYPE("field-class", fc,
+		"variant-field-class-with-unsigned-integer-selector-field",
 		BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR_FIELD,
 		"Field class");
 	return (const void *)
 		borrow_named_field_class_from_container_field_class_at_index(
-			(void *) fc, index);
+			(void *) fc, index, __func__);
 }
 
 const struct bt_field_class_variant_with_selector_field_integer_signed_option *
@@ -1815,12 +1855,13 @@ bt_field_class_variant_with_selector_field_integer_signed_borrow_option_by_name_
 		const struct bt_field_class *fc, const char *name)
 {
 	BT_ASSERT_PRE_DEV_FC_NON_NULL(fc);
-	BT_ASSERT_PRE_DEV_FC_HAS_TYPE(fc,
+	BT_ASSERT_PRE_FC_HAS_TYPE("field-class", fc,
+		"variant-field-class-with-signed-integer-selector-field",
 		BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_INTEGER_SELECTOR_FIELD,
 		"Field class");
 	return (const void *)
 		borrow_named_field_class_from_container_field_class_by_name(
-			(void *) fc, name);
+			(void *) fc, name, __func__);
 }
 
 const struct bt_field_class_variant_with_selector_field_integer_signed_option *
@@ -1828,12 +1869,13 @@ bt_field_class_variant_with_selector_field_integer_signed_borrow_option_by_index
 		const struct bt_field_class *fc, uint64_t index)
 {
 	BT_ASSERT_PRE_DEV_FC_NON_NULL(fc);
-	BT_ASSERT_PRE_DEV_FC_HAS_TYPE(fc,
+	BT_ASSERT_PRE_FC_HAS_TYPE("field-class", fc,
+		"variant-field-class-with-signed-integer-selector-field",
 		BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_INTEGER_SELECTOR_FIELD,
 		"Field class");
 	return (const void *)
 		borrow_named_field_class_from_container_field_class_at_index(
-			(void *) fc, index);
+			(void *) fc, index, __func__);
 }
 
 const char *bt_field_class_variant_option_get_name(
@@ -1895,7 +1937,8 @@ bt_field_class_variant_with_selector_field_borrow_selector_field_path_const(
 		(const void *) fc;
 
 	BT_ASSERT_PRE_DEV_FC_NON_NULL(fc);
-	BT_ASSERT_PRE_DEV_FC_IS_VARIANT_WITH_SEL(fc, "Field class");
+	BT_ASSERT_PRE_DEV_FC_IS_VARIANT_WITH_SEL("field-class", fc,
+		"Field class");
 	return var_fc->selector_field_path;
 }
 
@@ -1946,7 +1989,8 @@ bt_field_class_array_static_create(bt_trace_class *trace_class,
 
 	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_TC_NON_NULL(trace_class);
-	BT_ASSERT_PRE_NON_NULL(element_fc, "Element field class");
+	BT_ASSERT_PRE_NON_NULL("element-field-class", element_fc,
+		"Element field class");
 	BT_LOGD_STR("Creating default static array field class object.");
 	array_fc = g_new0(struct bt_field_class_array_static, 1);
 	if (!array_fc) {
@@ -1979,7 +2023,7 @@ bt_field_class_array_borrow_element_field_class_const(
 	const struct bt_field_class_array *array_fc = (const void *) fc;
 
 	BT_ASSERT_PRE_DEV_FC_NON_NULL(fc);
-	BT_ASSERT_PRE_DEV_FC_IS_ARRAY(fc, "Field class");
+	BT_ASSERT_PRE_DEV_FC_IS_ARRAY("field-class", fc, "Field class");
 	return array_fc->element_fc;
 }
 
@@ -1989,7 +2033,7 @@ bt_field_class_array_borrow_element_field_class(struct bt_field_class *fc)
 	struct bt_field_class_array *array_fc = (void *) fc;
 
 	BT_ASSERT_PRE_DEV_FC_NON_NULL(fc);
-	BT_ASSERT_PRE_DEV_FC_IS_ARRAY(fc, "Field class");
+	BT_ASSERT_PRE_DEV_FC_IS_ARRAY("field-class", fc, "Field class");
 	return array_fc->element_fc;
 }
 
@@ -1998,7 +2042,8 @@ uint64_t bt_field_class_array_static_get_length(const struct bt_field_class *fc)
 	const struct bt_field_class_array_static *array_fc = (const void *) fc;
 
 	BT_ASSERT_PRE_DEV_FC_NON_NULL(fc);
-	BT_ASSERT_PRE_DEV_FC_HAS_TYPE(fc, BT_FIELD_CLASS_TYPE_STATIC_ARRAY,
+	BT_ASSERT_PRE_FC_HAS_TYPE("field-class", fc,
+		"static-array-field-class", BT_FIELD_CLASS_TYPE_STATIC_ARRAY,
 		"Field class");
 	return (uint64_t) array_fc->length;
 }
@@ -2027,7 +2072,8 @@ struct bt_field_class *bt_field_class_array_dynamic_create(
 
 	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_TC_NON_NULL(trace_class);
-	BT_ASSERT_PRE_NON_NULL(element_fc, "Element field class");
+	BT_ASSERT_PRE_NON_NULL("element-field-class", element_fc,
+		"Element field class");
 	BT_LOGD_STR("Creating default dynamic array field class object.");
 	array_fc = g_new0(struct bt_field_class_array_dynamic, 1);
 	if (!array_fc) {
@@ -2045,8 +2091,8 @@ struct bt_field_class *bt_field_class_array_dynamic_create(
 	}
 
 	if (length_fc) {
-		BT_ASSERT_PRE_FC_IS_UNSIGNED_INT(length_fc,
-			"Length field class");
+		BT_ASSERT_PRE_FC_IS_UNSIGNED_INT("length-field-class",
+			length_fc, "Length field class");
 		array_fc->length_fc = length_fc;
 		bt_object_get_ref_no_null_check(array_fc->length_fc);
 		bt_field_class_freeze(length_fc);
@@ -2070,7 +2116,8 @@ bt_field_class_array_dynamic_with_length_field_borrow_length_field_path_const(
 
 	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_DEV_FC_NON_NULL(fc);
-	BT_ASSERT_PRE_DEV_FC_HAS_TYPE(fc,
+	BT_ASSERT_PRE_FC_HAS_TYPE("field-class", fc,
+		"dynamic-array-field-class-with-length-field",
 		BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITH_LENGTH_FIELD,
 		"Field class");
 	return seq_fc->length_field_path;
@@ -2158,8 +2205,9 @@ void bt_field_class_make_part_of_trace_class(const struct bt_field_class *c_fc)
 	struct bt_field_class *fc = (void *) c_fc;
 
 	BT_ASSERT(fc);
-	BT_ASSERT_PRE(!fc->part_of_trace_class,
-		"Field class is already part of a trace: %!+F", fc);
+	BT_ASSERT_PRE("field-class-is-not-part-of-trace-class",
+		!fc->part_of_trace_class,
+		"Field class is already part of a trace class: %!+F", fc);
 	fc->part_of_trace_class = true;
 
 	if (fc->type == BT_FIELD_CLASS_TYPE_STRUCTURE ||
@@ -2204,9 +2252,8 @@ void bt_field_class_set_user_attributes(
 {
 	BT_ASSERT_PRE_FC_NON_NULL(fc);
 	BT_ASSERT_PRE_USER_ATTRS_NON_NULL(user_attributes);
-	BT_ASSERT_PRE(user_attributes->type == BT_VALUE_TYPE_MAP,
-		"User attributes object is not a map value object.");
-	BT_ASSERT_PRE_DEV_FC_HOT(fc, "Field class");
+	BT_ASSERT_PRE_USER_ATTRS_IS_MAP(user_attributes);
+	BT_ASSERT_PRE_DEV_FC_HOT(fc);
 	bt_object_put_ref_no_null_check(fc->user_attributes);
 	fc->user_attributes = (void *) user_attributes;
 	bt_object_get_ref_no_null_check(fc->user_attributes);
@@ -2220,15 +2267,12 @@ const struct bt_value *bt_named_field_class_borrow_user_attributes_const(
 }
 
 static
-void bt_named_field_class_set_user_attributes(
+void set_named_field_class_user_attributes(
 		struct bt_named_field_class *named_fc,
-		const struct bt_value *user_attributes)
+		const struct bt_value *user_attributes, const char *api_func)
 {
-	BT_ASSERT_PRE_USER_ATTRS_NON_NULL(user_attributes);
-	BT_ASSERT_PRE_USER_ATTRS_IS_MAP(user_attributes);
-	BT_ASSERT_PRE_DEV_HOT(named_fc,
-		"Structure field class member or variant field class option",
-		".");
+	BT_ASSERT_PRE_USER_ATTRS_NON_NULL_FROM_FUNC(api_func, user_attributes);
+	BT_ASSERT_PRE_USER_ATTRS_NON_NULL_FROM_FUNC(api_func, user_attributes);
 	bt_object_put_ref_no_null_check(named_fc->user_attributes);
 	named_fc->user_attributes = (void *) user_attributes;
 	bt_object_get_ref_no_null_check(named_fc->user_attributes);
@@ -2257,8 +2301,11 @@ void bt_field_class_structure_member_set_user_attributes(
 		const struct bt_value *user_attributes)
 {
 	BT_ASSERT_PRE_STRUCT_FC_MEMBER_NON_NULL(member);
-	bt_named_field_class_set_user_attributes((void *) member,
-		user_attributes);
+	BT_ASSERT_PRE_DEV_HOT("structure-field-class-member",
+		(struct bt_named_field_class *) member,
+		"Structure field class member", ".");
+	set_named_field_class_user_attributes((void *) member,
+		user_attributes, __func__);
 }
 
 const struct bt_value *bt_field_class_variant_option_borrow_user_attributes_const(
@@ -2282,8 +2329,11 @@ void bt_field_class_variant_option_set_user_attributes(
 		const struct bt_value *user_attributes)
 {
 	BT_ASSERT_PRE_VAR_FC_OPT_NON_NULL(option);
-	bt_named_field_class_set_user_attributes((void *) option,
-		user_attributes);
+	BT_ASSERT_PRE_DEV_HOT("variant-field-class-option",
+		(struct bt_named_field_class *) option,
+		"Variant field class option", ".");
+	set_named_field_class_user_attributes((void *) option,
+		user_attributes, __func__);
 }
 
 void bt_field_class_get_ref(const struct bt_field_class *field_class)

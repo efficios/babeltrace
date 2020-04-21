@@ -52,6 +52,7 @@ static
 void finalize_component(struct bt_component *comp)
 {
 	typedef void (*method_t)(void *);
+	const char *method_name;
 
 	method_t method = NULL;
 
@@ -63,6 +64,7 @@ void finalize_component(struct bt_component *comp)
 		struct bt_component_class_source *src_cc = (void *) comp->class;
 
 		method = (method_t) src_cc->methods.finalize;
+		method_name = "bt_component_class_source_finalize_method";
 		break;
 	}
 	case BT_COMPONENT_CLASS_TYPE_FILTER:
@@ -70,6 +72,7 @@ void finalize_component(struct bt_component *comp)
 		struct bt_component_class_filter *flt_cc = (void *) comp->class;
 
 		method = (method_t) flt_cc->methods.finalize;
+		method_name = "bt_component_class_filter_finalize_method";
 		break;
 	}
 	case BT_COMPONENT_CLASS_TYPE_SINK:
@@ -77,6 +80,7 @@ void finalize_component(struct bt_component *comp)
 		struct bt_component_class_sink *sink_cc = (void *) comp->class;
 
 		method = (method_t) sink_cc->methods.finalize;
+		method_name = "bt_component_class_sink_finalize_method";
 		break;
 	}
 	default:
@@ -91,7 +95,7 @@ void finalize_component(struct bt_component *comp)
 		BT_LIB_LOGI("Calling user's component finalization method: "
 			"%![comp-]+c", comp);
 		method(comp);
-		BT_ASSERT_POST_NO_ERROR();
+		BT_ASSERT_POST_NO_ERROR(method_name);
 
 		if (saved_error) {
 			BT_CURRENT_THREAD_MOVE_ERROR_AND_RESET(saved_error);
@@ -187,17 +191,18 @@ static
 enum bt_self_component_add_port_status add_port(
 		struct bt_component *component, GPtrArray *ports,
 		enum bt_port_type port_type, const char *name, void *user_data,
-		struct bt_port **port)
+		struct bt_port **port, const char *api_func)
 {
 	struct bt_port *new_port = NULL;
 	struct bt_graph *graph = NULL;
 	enum bt_self_component_add_port_status status;
 
-	BT_ASSERT_PRE_COMP_NON_NULL(component);
-	BT_ASSERT_PRE_NAME_NON_NULL(name);
-	BT_ASSERT_PRE(strlen(name) > 0, "Name is empty");
+	BT_ASSERT(component);
+	BT_ASSERT(name);
+	BT_ASSERT_PRE_FROM_FUNC(api_func, "name-is-not-empty",
+		strlen(name) > 0, "Name is empty");
 	graph = bt_component_borrow_graph(component);
-	BT_ASSERT_PRE(
+	BT_ASSERT_PRE_FROM_FUNC(api_func, "graph-is-not-configured",
 		graph->config_state == BT_GRAPH_CONFIGURATION_STATE_CONFIGURING,
 		"Component's graph is already configured: "
 		"%![comp-]+c, %![graph-]+g", component, graph);
@@ -257,16 +262,18 @@ end:
 }
 
 BT_HIDDEN
-uint64_t bt_component_get_input_port_count(const struct bt_component *comp)
+uint64_t bt_component_get_input_port_count(const struct bt_component *comp,
+		const char *api_func)
 {
-	BT_ASSERT_PRE_DEV_COMP_NON_NULL(comp);
+	BT_ASSERT_PRE_DEV_COMP_NON_NULL_FROM_FUNC(api_func, comp);
 	return (uint64_t) comp->input_ports->len;
 }
 
 BT_HIDDEN
-uint64_t bt_component_get_output_port_count(const struct bt_component *comp)
+uint64_t bt_component_get_output_port_count(const struct bt_component *comp,
+		const char *api_func)
 {
-	BT_ASSERT_PRE_DEV_COMP_NON_NULL(comp);
+	BT_ASSERT_PRE_DEV_COMP_NON_NULL_FROM_FUNC(api_func, comp);
 	return (uint64_t) comp->output_ports->len;
 }
 
@@ -380,12 +387,12 @@ void bt_component_set_graph(struct bt_component *component,
 
 static
 struct bt_port *borrow_port_by_name(GPtrArray *ports,
-		const char *name)
+		const char *name, const char *api_func)
 {
 	uint64_t i;
 	struct bt_port *ret_port = NULL;
 
-	BT_ASSERT(name);
+	BT_ASSERT_PRE_DEV_NAME_NON_NULL_FROM_FUNC(api_func, name);
 
 	for (i = 0; i < ports->len; i++) {
 		struct bt_port *port = g_ptr_array_index(ports, i);
@@ -401,66 +408,84 @@ struct bt_port *borrow_port_by_name(GPtrArray *ports,
 
 BT_HIDDEN
 struct bt_port_input *bt_component_borrow_input_port_by_name(
-		struct bt_component *comp, const char *name)
+		struct bt_component *comp, const char *name,
+		const char *api_func)
 {
-	BT_ASSERT(comp);
-	return (void *) borrow_port_by_name(comp->input_ports, name);
+	BT_ASSERT_PRE_DEV_COMP_NON_NULL_FROM_FUNC(api_func, comp);
+	return (void *) borrow_port_by_name(comp->input_ports, name, api_func);
 }
 
 BT_HIDDEN
 struct bt_port_output *bt_component_borrow_output_port_by_name(
-		struct bt_component *comp, const char *name)
+		struct bt_component *comp, const char *name,
+		const char *api_func)
 {
-	BT_ASSERT_PRE_DEV_COMP_NON_NULL(comp);
+	BT_ASSERT_PRE_DEV_COMP_NON_NULL_FROM_FUNC(api_func, comp);
 	return (void *)
-		borrow_port_by_name(comp->output_ports, name);
+		borrow_port_by_name(comp->output_ports, name, api_func);
 }
 
 static
-struct bt_port *borrow_port_by_index(GPtrArray *ports, uint64_t index)
+struct bt_port *borrow_port_by_index(GPtrArray *ports, uint64_t index,
+		const char *api_func)
 {
-	BT_ASSERT(index < ports->len);
+	BT_ASSERT_PRE_DEV_VALID_INDEX_FROM_FUNC(api_func, index, ports->len);
 	return g_ptr_array_index(ports, index);
 }
 
 BT_HIDDEN
 struct bt_port_input *bt_component_borrow_input_port_by_index(
-		struct bt_component *comp, uint64_t index)
+		struct bt_component *comp, uint64_t index,
+		const char *api_func)
 {
-	BT_ASSERT_PRE_DEV_COMP_NON_NULL(comp);
-	BT_ASSERT_PRE_DEV_VALID_INDEX(index, comp->input_ports->len);
+	BT_ASSERT_PRE_DEV_COMP_NON_NULL_FROM_FUNC(api_func, comp);
 	return (void *)
-		borrow_port_by_index(comp->input_ports, index);
+		borrow_port_by_index(comp->input_ports, index, api_func);
 }
 
 BT_HIDDEN
 struct bt_port_output *bt_component_borrow_output_port_by_index(
-		struct bt_component *comp, uint64_t index)
+		struct bt_component *comp, uint64_t index,
+		const char *api_func)
 {
-	BT_ASSERT_PRE_DEV_COMP_NON_NULL(comp);
-	BT_ASSERT_PRE_DEV_VALID_INDEX(index, comp->output_ports->len);
+	BT_ASSERT_PRE_DEV_COMP_NON_NULL_FROM_FUNC(api_func, comp);
 	return (void *)
-		borrow_port_by_index(comp->output_ports, index);
+		borrow_port_by_index(comp->output_ports, index, api_func);
 }
 
 BT_HIDDEN
 enum bt_self_component_add_port_status bt_component_add_input_port(
 		struct bt_component *component, const char *name,
-		void *user_data, struct bt_port **port)
+		void *user_data, struct bt_port **port, const char *api_func)
 {
-	/* add_port() logs details */
+	BT_ASSERT_PRE_COMP_NON_NULL_FROM_FUNC(api_func, component);
+	BT_ASSERT_PRE_NAME_NON_NULL_FROM_FUNC(api_func, name);
+	BT_ASSERT_PRE_FROM_FUNC(api_func, "input-port-name-is-unique",
+		bt_component_port_name_is_unique(component->input_ports, name),
+		"Input port name is not unique: name=\"%s\", %![comp-]c",
+		name, component);
+
+	/* add_port() logs details and checks preconditions */
 	return add_port(component, component->input_ports,
-		BT_PORT_TYPE_INPUT, name, user_data, port);
+		BT_PORT_TYPE_INPUT, name, user_data, port, api_func);
 }
 
 BT_HIDDEN
 enum bt_self_component_add_port_status bt_component_add_output_port(
 		struct bt_component *component, const char *name,
-		void *user_data, struct bt_port **port)
+		void *user_data, struct bt_port **port,
+		const char *api_func)
 {
-	/* add_port() logs details */
+	BT_ASSERT_PRE_COMP_NON_NULL_FROM_FUNC(api_func, component);
+	BT_ASSERT_PRE_NAME_NON_NULL_FROM_FUNC(api_func, name);
+	BT_ASSERT_PRE_FROM_FUNC(api_func, "output-port-name-is-unique",
+		bt_component_port_name_is_unique(component->output_ports, name),
+		"Output port name is not unique: name=\"%s\", %![comp-]c",
+		name, component);
+
+	/* add_port() logs details and checks preconditions */
 	return add_port(component, component->output_ports,
-		BT_PORT_TYPE_OUTPUT, name, user_data, port);
+		BT_PORT_TYPE_OUTPUT, name, user_data, port, api_func);
 }
 
 BT_HIDDEN
@@ -496,6 +521,7 @@ bt_component_port_connected(
 	enum bt_component_class_port_connected_method_status status =
 		BT_FUNC_STATUS_OK;
 	method_t method = NULL;
+	const char *method_name = NULL;
 
 	BT_ASSERT(comp);
 	BT_ASSERT(self_port);
@@ -509,6 +535,7 @@ bt_component_port_connected(
 		switch (self_port->type) {
 		case BT_PORT_TYPE_OUTPUT:
 			method = (method_t) src_cc->methods.output_port_connected;
+			method_name = "bt_component_class_source_output_port_connected_method";
 			break;
 		default:
 			bt_common_abort();
@@ -523,9 +550,11 @@ bt_component_port_connected(
 		switch (self_port->type) {
 		case BT_PORT_TYPE_INPUT:
 			method = (method_t) flt_cc->methods.input_port_connected;
+			method_name = "bt_component_class_filter_input_port_connected_method";
 			break;
 		case BT_PORT_TYPE_OUTPUT:
 			method = (method_t) flt_cc->methods.output_port_connected;
+			method_name = "bt_component_class_filter_output_port_connected_method";
 			break;
 		default:
 			bt_common_abort();
@@ -540,6 +569,7 @@ bt_component_port_connected(
 		switch (self_port->type) {
 		case BT_PORT_TYPE_INPUT:
 			method = (method_t) sink_cc->methods.input_port_connected;
+			method_name = "bt_component_class_sink_input_port_connected_method";
 			break;
 		default:
 			bt_common_abort();
@@ -558,12 +588,13 @@ bt_component_port_connected(
 		status = (int) method(comp, self_port, (void *) other_port);
 		BT_LOGD("User method returned: status=%s",
 			bt_common_func_status_string(status));
-		BT_ASSERT_POST(status == BT_FUNC_STATUS_OK ||
+		BT_ASSERT_POST(method_name, "valid-status",
+			status == BT_FUNC_STATUS_OK ||
 			status == BT_FUNC_STATUS_ERROR ||
 			status == BT_FUNC_STATUS_MEMORY_ERROR,
 			"Unexpected returned component status: status=%s",
 			bt_common_func_status_string(status));
-		BT_ASSERT_POST_NO_ERROR_IF_NO_ERROR_STATUS(status);
+		BT_ASSERT_POST_NO_ERROR_IF_NO_ERROR_STATUS(method_name, status);
 	}
 
 	return status;

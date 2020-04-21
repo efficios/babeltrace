@@ -20,6 +20,14 @@
 
 #include "stream.h"
 
+#define BT_ASSERT_PRE_DEV_MSG_IS_STREAM_BEGINNING(_msg)			\
+	BT_ASSERT_PRE_DEV_MSG_HAS_TYPE("message", (_msg),		\
+		"stream-beginning", BT_MESSAGE_TYPE_STREAM_BEGINNING)
+
+#define BT_ASSERT_PRE_DEV_MSG_IS_STREAM_END(_msg)			\
+	BT_ASSERT_PRE_DEV_MSG_HAS_TYPE("message", (_msg),		\
+		"stream-end", BT_MESSAGE_TYPE_STREAM_END)
+
 static
 void destroy_stream_message(struct bt_object *obj)
 {
@@ -42,13 +50,14 @@ void destroy_stream_message(struct bt_object *obj)
 static inline
 struct bt_message *create_stream_message(
 		struct bt_self_message_iterator *self_msg_iter,
-		struct bt_stream *stream, enum bt_message_type type)
+		struct bt_stream *stream, enum bt_message_type type,
+		const char *api_func)
 {
 	struct bt_message_stream *message;
 	struct bt_stream_class *stream_class;
 
-	BT_ASSERT_PRE_MSG_ITER_NON_NULL(self_msg_iter);
-	BT_ASSERT_PRE_STREAM_NON_NULL(stream);
+	BT_ASSERT_PRE_MSG_ITER_NON_NULL_FROM_FUNC(api_func, self_msg_iter);
+	BT_ASSERT_PRE_STREAM_NON_NULL_FROM_FUNC(api_func, stream);
 	stream_class = bt_stream_borrow_class(stream);
 	BT_ASSERT(stream_class);
 	BT_LIB_LOGD("Creating stream message object: "
@@ -97,7 +106,7 @@ struct bt_message *bt_message_stream_beginning_create(
 	BT_ASSERT_PRE_DEV_NO_ERROR();
 
 	return create_stream_message(self_msg_iter, (void *) stream,
-		BT_MESSAGE_TYPE_STREAM_BEGINNING);
+		BT_MESSAGE_TYPE_STREAM_BEGINNING, __func__);
 }
 
 struct bt_message *bt_message_stream_end_create(
@@ -107,7 +116,7 @@ struct bt_message *bt_message_stream_end_create(
 	BT_ASSERT_PRE_DEV_NO_ERROR();
 
 	return create_stream_message(self_msg_iter, (void *) stream,
-		BT_MESSAGE_TYPE_STREAM_END);
+		BT_MESSAGE_TYPE_STREAM_END, __func__);
 }
 
 static inline
@@ -124,8 +133,7 @@ struct bt_stream *bt_message_stream_beginning_borrow_stream(
 		struct bt_message *message)
 {
 	BT_ASSERT_PRE_DEV_MSG_NON_NULL(message);
-	BT_ASSERT_PRE_DEV_MSG_HAS_TYPE(message,
-		BT_MESSAGE_TYPE_STREAM_BEGINNING);
+	BT_ASSERT_PRE_DEV_MSG_IS_STREAM_BEGINNING(message);
 	return borrow_stream_message_stream(message);
 }
 
@@ -133,8 +141,7 @@ struct bt_stream *bt_message_stream_end_borrow_stream(
 		struct bt_message *message)
 {
 	BT_ASSERT_PRE_DEV_MSG_NON_NULL(message);
-	BT_ASSERT_PRE_DEV_MSG_HAS_TYPE(message,
-		BT_MESSAGE_TYPE_STREAM_END);
+	BT_ASSERT_PRE_DEV_MSG_IS_STREAM_END(message);
 	return borrow_stream_message_stream(message);
 }
 
@@ -153,17 +160,19 @@ const struct bt_stream *bt_message_stream_end_borrow_stream_const(
 }
 
 static
-void bt_message_stream_set_default_clock_snapshot(
-		struct bt_message *msg, uint64_t raw_value)
+void set_stream_default_clock_snapshot(
+		struct bt_message *msg, uint64_t raw_value,
+		const char *api_func)
 {
 	struct bt_message_stream *stream_msg = (void *) msg;
 	struct bt_stream_class *sc;
 
 	BT_ASSERT(msg);
-	BT_ASSERT_PRE_DEV_HOT(msg, "Message", ": %!+n", msg);
+	BT_ASSERT_PRE_DEV_HOT_FROM_FUNC(api_func, "message", msg,
+		"Message", ": %!+n", msg);
 	sc = stream_msg->stream->class;
 	BT_ASSERT(sc);
-	BT_ASSERT_PRE_DEV_MSG_SC_DEF_CLK_CLS(msg, sc);
+	BT_ASSERT_PRE_MSG_SC_DEF_CLK_CLS_FROM_FUNC(api_func, msg, sc);
 	BT_ASSERT(stream_msg->default_cs);
 	bt_clock_snapshot_set_raw_value(stream_msg->default_cs, raw_value);
 	stream_msg->default_cs_state = BT_MESSAGE_STREAM_CLOCK_SNAPSHOT_STATE_KNOWN;
@@ -175,23 +184,22 @@ void bt_message_stream_beginning_set_default_clock_snapshot(
 		struct bt_message *message, uint64_t raw_value)
 {
 	BT_ASSERT_PRE_MSG_NON_NULL(message);
-	BT_ASSERT_PRE_MSG_HAS_TYPE(message, BT_MESSAGE_TYPE_STREAM_BEGINNING);
-
-	bt_message_stream_set_default_clock_snapshot(message, raw_value);
+	BT_ASSERT_PRE_DEV_MSG_IS_STREAM_BEGINNING(message);
+	set_stream_default_clock_snapshot(message, raw_value, __func__);
 }
 
 void bt_message_stream_end_set_default_clock_snapshot(
 		struct bt_message *message, uint64_t raw_value)
 {
 	BT_ASSERT_PRE_MSG_NON_NULL(message);
-	BT_ASSERT_PRE_MSG_HAS_TYPE(message, BT_MESSAGE_TYPE_STREAM_END);
-
-	return bt_message_stream_set_default_clock_snapshot(message, raw_value);
+	BT_ASSERT_PRE_DEV_MSG_IS_STREAM_END(message);
+	return set_stream_default_clock_snapshot(message, raw_value, __func__);
 }
 
 static enum bt_message_stream_clock_snapshot_state
-bt_message_stream_borrow_default_clock_snapshot_const(
-		const bt_message *msg, const bt_clock_snapshot **snapshot)
+borrow_stream_message_default_clock_snapshot_const(
+		const bt_message *msg, const bt_clock_snapshot **snapshot,
+		const char *api_func)
 {
 	struct bt_message_stream *stream_msg = (void *) msg;
 	struct bt_stream_class *sc;
@@ -199,7 +207,7 @@ bt_message_stream_borrow_default_clock_snapshot_const(
 	BT_ASSERT_DBG(msg);
 	sc = stream_msg->stream->class;
 	BT_ASSERT_DBG(sc);
-	BT_ASSERT_PRE_DEV_MSG_SC_DEF_CLK_CLS(msg, sc);
+	BT_ASSERT_PRE_DEV_MSG_SC_DEF_CLK_CLS_FROM_FUNC(api_func, msg, sc);
 	BT_ASSERT_DBG(stream_msg->default_cs);
 
 	*snapshot = stream_msg->default_cs;
@@ -212,10 +220,9 @@ bt_message_stream_beginning_borrow_default_clock_snapshot_const(
 		const bt_message *message, const bt_clock_snapshot **snapshot)
 {
 	BT_ASSERT_PRE_DEV_MSG_NON_NULL(message);
-	BT_ASSERT_PRE_DEV_MSG_HAS_TYPE(message,
-		BT_MESSAGE_TYPE_STREAM_BEGINNING);
-	return bt_message_stream_borrow_default_clock_snapshot_const(
-		message, snapshot);
+	BT_ASSERT_PRE_DEV_MSG_IS_STREAM_BEGINNING(message);
+	return borrow_stream_message_default_clock_snapshot_const(
+		message, snapshot, __func__);
 }
 
 enum bt_message_stream_clock_snapshot_state
@@ -223,9 +230,9 @@ bt_message_stream_end_borrow_default_clock_snapshot_const(
 		const bt_message *message, const bt_clock_snapshot **snapshot)
 {
 	BT_ASSERT_PRE_DEV_MSG_NON_NULL(message);
-	BT_ASSERT_PRE_DEV_MSG_HAS_TYPE(message, BT_MESSAGE_TYPE_STREAM_END);
-	return bt_message_stream_borrow_default_clock_snapshot_const(
-		message, snapshot);
+	BT_ASSERT_PRE_DEV_MSG_IS_STREAM_END(message);
+	return borrow_stream_message_default_clock_snapshot_const(
+		message, snapshot, __func__);
 }
 
 static inline
@@ -244,8 +251,7 @@ bt_message_stream_beginning_borrow_stream_class_default_clock_class_const(
 		const struct bt_message *msg)
 {
 	BT_ASSERT_PRE_DEV_MSG_NON_NULL(msg);
-	BT_ASSERT_PRE_DEV_MSG_HAS_TYPE(msg,
-		BT_MESSAGE_TYPE_STREAM_BEGINNING);
+	BT_ASSERT_PRE_DEV_MSG_IS_STREAM_BEGINNING(msg);
 	return borrow_stream_message_stream_class_default_clock_class(msg);
 }
 
@@ -254,6 +260,6 @@ bt_message_stream_end_borrow_stream_class_default_clock_class_const(
 		const struct bt_message *msg)
 {
 	BT_ASSERT_PRE_DEV_MSG_NON_NULL(msg);
-	BT_ASSERT_PRE_DEV_MSG_HAS_TYPE(msg, BT_MESSAGE_TYPE_STREAM_END);
+	BT_ASSERT_PRE_DEV_MSG_IS_STREAM_END(msg);
 	return borrow_stream_message_stream_class_default_clock_class(msg);
 }

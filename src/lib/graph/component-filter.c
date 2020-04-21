@@ -32,8 +32,6 @@ struct bt_component *bt_component_filter_create(
 {
 	struct bt_component_filter *filter = NULL;
 
-	BT_ASSERT_PRE_NO_ERROR();
-
 	filter = g_new0(struct bt_component_filter, 1);
 	if (!filter) {
 		BT_LIB_LOGE_APPEND_CAUSE(
@@ -64,39 +62,56 @@ bt_component_filter_borrow_class_const(
 uint64_t bt_component_filter_get_output_port_count(
 		const struct bt_component_filter *comp)
 {
-	return bt_component_get_output_port_count((void *) comp);
+	/* bt_component_get_output_port_count() checks preconditions */
+	return bt_component_get_output_port_count((void *) comp, __func__);
 }
 
 const struct bt_port_output *
 bt_component_filter_borrow_output_port_by_name_const(
 		const struct bt_component_filter *comp, const char *name)
 {
+	/*
+	 * bt_component_borrow_output_port_by_name() logs details/errors
+	 * and checks preconditions.
+	 */
 	return bt_component_borrow_output_port_by_name(
-		(void *) comp, name);
+		(void *) comp, name, __func__);
 }
 
 struct bt_self_component_port_output *
 bt_self_component_filter_borrow_output_port_by_name(
 		struct bt_self_component_filter *comp, const char *name)
 {
+	/*
+	 * bt_component_borrow_output_port_by_name() logs details/errors
+	 * and checks preconditions.
+	 */
 	return (void *) bt_component_borrow_output_port_by_name(
-		(void *) comp, name);
+		(void *) comp, name, __func__);
 }
 
 const struct bt_port_output *
 bt_component_filter_borrow_output_port_by_index_const(
 		const struct bt_component_filter *comp, uint64_t index)
 {
+	/*
+	 * bt_component_borrow_output_port_by_index() logs
+	 * details/errors and checks preconditions.
+	 */
 	return bt_component_borrow_output_port_by_index(
-		(void *) comp, index);
+		(void *) comp, index, __func__);
 }
 
 struct bt_self_component_port_output *
 bt_self_component_filter_borrow_output_port_by_index(
 		struct bt_self_component_filter *comp, uint64_t index)
 {
+	/*
+	 * bt_component_borrow_output_port_by_index() logs
+	 * details/errors and checks preconditions.
+	 */
 	return (void *) bt_component_borrow_output_port_by_index(
-		(void *) comp, index);
+		(void *) comp, index, __func__);
 }
 
 enum bt_self_component_add_port_status bt_self_component_filter_add_output_port(
@@ -109,10 +124,13 @@ enum bt_self_component_add_port_status bt_self_component_filter_add_output_port(
 	struct bt_port *port = NULL;
 
 	BT_ASSERT_PRE_NO_ERROR();
-	BT_ASSERT_PRE_OUTPUT_PORT_NAME_UNIQUE(comp, name);
 
-	/* bt_component_add_output_port() logs details and errors */
-	status = bt_component_add_output_port(comp, name, user_data, &port);
+	/*
+	 * bt_component_add_output_port() logs details/errors and checks
+	 * preconditions.
+	 */
+	status = bt_component_add_output_port(comp, name, user_data, &port,
+		__func__);
 	if (status != BT_FUNC_STATUS_OK) {
 		goto end;
 	}
@@ -130,43 +148,55 @@ end:
 uint64_t bt_component_filter_get_input_port_count(
 		const struct bt_component_filter *component)
 {
-	/* bt_component_get_input_port_count() logs details/errors */
-	return bt_component_get_input_port_count((void *) component);
+	/* bt_component_get_input_port_count() checks preconditions */
+	return bt_component_get_input_port_count((void *) component, __func__);
 }
 
 const struct bt_port_input *bt_component_filter_borrow_input_port_by_name_const(
 		const struct bt_component_filter *component, const char *name)
 {
-	/* bt_component_borrow_input_port_by_name() logs details/errors */
+	/*
+	 * bt_component_borrow_input_port_by_name() logs details/errors
+	 * and checks preconditions.
+	 */
 	return bt_component_borrow_input_port_by_name(
-		(void *) component, name);
+		(void *) component, name, __func__);
 }
 
 struct bt_self_component_port_input *
 bt_self_component_filter_borrow_input_port_by_name(
 		struct bt_self_component_filter *component, const char *name)
 {
-	/* bt_component_borrow_input_port_by_name() logs details/errors */
+	/*
+	 * bt_component_borrow_input_port_by_name() logs details/errors
+	 * and checks preconditions.
+	 */
 	return (void *) bt_component_borrow_input_port_by_name(
-		(void *) component, name);
+		(void *) component, name, __func__);
 }
 
 const struct bt_port_input *
 bt_component_filter_borrow_input_port_by_index_const(
 		const struct bt_component_filter *component, uint64_t index)
 {
-	/* bt_component_borrow_input_port_by_index() logs details/errors */
+	/*
+	 * bt_component_borrow_input_port_by_index() logs details/errors
+	 * and checks preconditions.
+	 */
 	return bt_component_borrow_input_port_by_index(
-		(void *) component, index);
+		(void *) component, index, __func__);
 }
 
 struct bt_self_component_port_input *
 bt_self_component_filter_borrow_input_port_by_index(
 		struct bt_self_component_filter *component, uint64_t index)
 {
-	/* bt_component_borrow_input_port_by_index() logs details/errors */
+	/*
+	 * bt_component_borrow_input_port_by_index() logs details/errors
+	 * and checks preconditions.
+	 */
 	return (void *) bt_component_borrow_input_port_by_index(
-		(void *) component, index);
+		(void *) component, index, __func__);
 }
 
 enum bt_self_component_add_port_status bt_self_component_filter_add_input_port(
@@ -179,10 +209,13 @@ enum bt_self_component_add_port_status bt_self_component_filter_add_input_port(
 	struct bt_component *comp = (void *) self_comp;
 
 	BT_ASSERT_PRE_NO_ERROR();
-	BT_ASSERT_PRE_INPUT_PORT_NAME_UNIQUE(comp, name);
 
-	/* bt_component_add_input_port() logs details/errors */
-	status = bt_component_add_input_port(comp, name, user_data, &port);
+	/*
+	 * bt_component_add_input_port() logs details/errors and checks
+	 * preconditions.
+	 */
+	status = bt_component_add_input_port(comp, name, user_data, &port,
+		__func__);
 	if (status != BT_FUNC_STATUS_OK) {
 		goto end;
 	}

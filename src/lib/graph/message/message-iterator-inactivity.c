@@ -86,7 +86,8 @@ bt_message_message_iterator_inactivity_borrow_clock_snapshot_const(
 	struct bt_message_message_iterator_inactivity *inactivity = (void *) msg;
 
 	BT_ASSERT_PRE_DEV_MSG_NON_NULL(msg);
-	BT_ASSERT_PRE_DEV_MSG_HAS_TYPE(msg,
+	BT_ASSERT_PRE_DEV_MSG_HAS_TYPE("message", msg,
+		"message-iterator-inactivity",
 		BT_MESSAGE_TYPE_MESSAGE_ITERATOR_INACTIVITY);
 	return inactivity->cs;
 }

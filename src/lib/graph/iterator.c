@@ -59,11 +59,12 @@
 #define MSG_BATCH_SIZE	15
 
 #define BT_ASSERT_PRE_ITER_HAS_STATE_TO_SEEK(_iter)			\
-	BT_ASSERT_PRE((_iter)->state == BT_MESSAGE_ITERATOR_STATE_ACTIVE || \
+	BT_ASSERT_PRE("has-state-to-seek",				\
+		(_iter)->state == BT_MESSAGE_ITERATOR_STATE_ACTIVE ||	\
 		(_iter)->state == BT_MESSAGE_ITERATOR_STATE_ENDED ||	\
 		(_iter)->state == BT_MESSAGE_ITERATOR_STATE_LAST_SEEKING_RETURNED_AGAIN || \
 		(_iter)->state == BT_MESSAGE_ITERATOR_STATE_LAST_SEEKING_RETURNED_ERROR, \
-		"Message iterator is in the wrong state: %!+i", _iter)
+		"Message iterator is in the wrong state: %!+i", (_iter))
 
 static inline
 void set_msg_iterator_state(struct bt_message_iterator *iterator,
@@ -273,7 +274,8 @@ static
 int create_self_component_input_port_message_iterator(
 		struct bt_self_message_iterator *self_downstream_msg_iter,
 		struct bt_self_component_port_input *self_port,
-		struct bt_message_iterator **message_iterator)
+		struct bt_message_iterator **message_iterator,
+		const char *api_func)
 {
 	bt_message_iterator_class_initialize_method init_method = NULL;
 	struct bt_message_iterator *iterator =
@@ -288,20 +290,23 @@ int create_self_component_input_port_message_iterator(
 	struct bt_component_class_with_iterator_class *upstream_comp_cls_with_iter_cls;
 	int status;
 
-	BT_ASSERT_PRE_NON_NULL(message_iterator,
-		"Created message iterator (output)");
-	BT_ASSERT_PRE_NON_NULL(port, "Input port");
+	BT_ASSERT_PRE_NON_NULL_FROM_FUNC(api_func, "message-iterator-output",
+		message_iterator, "Created message iterator (output)");
+	BT_ASSERT_PRE_NON_NULL_FROM_FUNC(api_func, "input-port", port,
+		"Input port");
 	comp = bt_port_borrow_component_inline(port);
-	BT_ASSERT_PRE(bt_port_is_connected(port),
+	BT_ASSERT_PRE_FROM_FUNC(api_func, "input-port-is-connected",
+		bt_port_is_connected(port),
 		"Input port is not connected: %![port-]+p", port);
-	BT_ASSERT_PRE(comp, "Input port is not part of a component: %![port-]+p",
+	BT_ASSERT_PRE_FROM_FUNC(api_func, "input-port-has-component",
+		comp, "Input port is not part of a component: %![port-]+p",
 		port);
 	BT_ASSERT(port->connection);
 	upstream_port = port->connection->upstream_port;
 	BT_ASSERT(upstream_port);
 	upstream_comp = bt_port_borrow_component_inline(upstream_port);
 	BT_ASSERT(upstream_comp);
-	BT_ASSERT_PRE(
+	BT_ASSERT_PRE_FROM_FUNC(api_func, "graph-is-configured",
 		bt_component_borrow_graph(upstream_comp)->config_state ==
 			BT_GRAPH_CONFIGURATION_STATE_PARTIALLY_CONFIGURED ||
 		bt_component_borrow_graph(upstream_comp)->config_state ==
@@ -405,7 +410,9 @@ int create_self_component_input_port_message_iterator(
 			(struct bt_self_component_port_output *) upstream_port);
 		BT_LOGD("User method returned: status=%s",
 			bt_common_func_status_string(iter_status));
-		BT_ASSERT_POST_NO_ERROR_IF_NO_ERROR_STATUS(iter_status);
+		BT_ASSERT_POST_NO_ERROR_IF_NO_ERROR_STATUS(
+			"bt_message_iterator_class_initialize_method",
+			iter_status);
 		if (iter_status != BT_FUNC_STATUS_OK) {
 			BT_LIB_LOGW_APPEND_CAUSE(
 				"Component input port message iterator initialization method failed: "
@@ -458,7 +465,7 @@ bt_message_iterator_create_from_message_iterator(
 	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_MSG_ITER_NON_NULL(self_msg_iter);
 	return create_self_component_input_port_message_iterator(self_msg_iter,
-		input_port, message_iterator);
+		input_port, message_iterator, __func__);
 }
 
 bt_message_iterator_create_from_sink_component_status
@@ -468,9 +475,9 @@ bt_message_iterator_create_from_sink_component(
 		struct bt_message_iterator **message_iterator)
 {
 	BT_ASSERT_PRE_NO_ERROR();
-	BT_ASSERT_PRE_NON_NULL(self_comp, "Sink component");
+	BT_ASSERT_PRE_NON_NULL("sink-component", self_comp, "Sink component");
 	return create_self_component_input_port_message_iterator(NULL,
-		input_port, message_iterator);
+		input_port, message_iterator, __func__);
 }
 
 void *bt_self_message_iterator_get_data(
@@ -499,8 +506,10 @@ void bt_self_message_iterator_configuration_set_can_seek_forward(
 		bt_self_message_iterator_configuration *config,
 		bt_bool can_seek_forward)
 {
-	BT_ASSERT_PRE_NON_NULL(config, "Message iterator configuration");
-	BT_ASSERT_PRE_DEV_HOT(config, "Message iterator configuration", "");
+	BT_ASSERT_PRE_NON_NULL("message-iterator-configuration", config,
+		"Message iterator configuration");
+	BT_ASSERT_PRE_DEV_HOT("message-iterator-configuration", config,
+		"Message iterator configuration", "");
 
 	config->can_seek_forward = can_seek_forward;
 }
@@ -779,6 +788,8 @@ end:
  * messages.
  */
 
+#define NEXT_METHOD_NAME	"bt_message_iterator_class_next_method"
+
 static
 enum bt_message_iterator_class_next_method_status
 call_iterator_next_method(
@@ -794,13 +805,20 @@ call_iterator_next_method(
 		bt_common_func_status_string(status), *user_count);
 
 	if (status == BT_FUNC_STATUS_OK) {
-		BT_ASSERT_POST_DEV(clock_classes_are_compatible(iterator, msgs, *user_count),
+		BT_ASSERT_POST_DEV(NEXT_METHOD_NAME,
+			"message-clock-classes-are-compatible",
+			clock_classes_are_compatible(iterator, msgs,
+				*user_count),
 			"Clocks are not compatible");
-		BT_ASSERT_POST_DEV(clock_snapshots_are_monotonic(iterator, msgs, *user_count),
+		BT_ASSERT_POST_DEV(NEXT_METHOD_NAME,
+			"message-clock-snapshots-are-monotonic",
+			clock_snapshots_are_monotonic(iterator, msgs,
+				*user_count),
 			"Clock snapshots are not monotonic");
 	}
 
-	BT_ASSERT_POST_DEV_NO_ERROR_IF_NO_ERROR_STATUS(status);
+	BT_ASSERT_POST_DEV_NO_ERROR_IF_NO_ERROR_STATUS(NEXT_METHOD_NAME,
+		status);
 
 	return status;
 }
@@ -814,15 +832,17 @@ bt_message_iterator_next(
 
 	BT_ASSERT_PRE_DEV_NO_ERROR();
 	BT_ASSERT_PRE_DEV_MSG_ITER_NON_NULL(iterator);
-	BT_ASSERT_PRE_DEV_NON_NULL(msgs, "Message array (output)");
-	BT_ASSERT_PRE_DEV_NON_NULL(user_count, "Message count (output)");
-	BT_ASSERT_PRE_DEV(iterator->state ==
-		BT_MESSAGE_ITERATOR_STATE_ACTIVE,
+	BT_ASSERT_PRE_DEV_NON_NULL("message-array-output", msgs,
+		"Message array (output)");
+	BT_ASSERT_PRE_DEV_NON_NULL("user-count-output", user_count,
+		"Message count (output)");
+	BT_ASSERT_PRE_DEV("message-iterator-is-active",
+		iterator->state == BT_MESSAGE_ITERATOR_STATE_ACTIVE,
 		"Message iterator's \"next\" called, but "
 		"message iterator is in the wrong state: %!+i", iterator);
 	BT_ASSERT_DBG(iterator->upstream_component);
 	BT_ASSERT_DBG(iterator->upstream_component->class);
-	BT_ASSERT_PRE_DEV(
+	BT_ASSERT_PRE_DEV("graph-is-configured",
 		bt_component_borrow_graph(iterator->upstream_component)->config_state !=
 			BT_GRAPH_CONFIGURATION_STATE_CONFIGURING,
 		"Graph is not configured: %!+g",
@@ -863,7 +883,8 @@ bt_message_iterator_next(
 
 	switch (status) {
 	case BT_FUNC_STATUS_OK:
-		BT_ASSERT_POST_DEV(*user_count <= MSG_BATCH_SIZE,
+		BT_ASSERT_POST_DEV(NEXT_METHOD_NAME, "count-lteq-capacity",
+			*user_count <= MSG_BATCH_SIZE,
 			"Invalid returned message count: greater than "
 			"batch size: count=%" PRIu64 ", batch-size=%u",
 			*user_count, MSG_BATCH_SIZE);
@@ -912,6 +933,9 @@ struct bt_self_component_port_output *bt_self_message_iterator_borrow_port(
 	return (void *) iterator->upstream_port;
 }
 
+#define CAN_SEEK_NS_FROM_ORIGIN_METHOD_NAME				\
+	"bt_message_iterator_class_can_seek_ns_from_origin_method"
+
 enum bt_message_iterator_can_seek_ns_from_origin_status
 bt_message_iterator_can_seek_ns_from_origin(
 		struct bt_message_iterator *iterator,
@@ -923,7 +947,7 @@ bt_message_iterator_can_seek_ns_from_origin(
 	BT_ASSERT_PRE_MSG_ITER_NON_NULL(iterator);
 	BT_ASSERT_PRE_RES_OUT_NON_NULL(can_seek);
 	BT_ASSERT_PRE_ITER_HAS_STATE_TO_SEEK(iterator);
-	BT_ASSERT_PRE(
+	BT_ASSERT_PRE("graph-is-configured",
 		bt_component_borrow_graph(iterator->upstream_component)->config_state !=
 			BT_GRAPH_CONFIGURATION_STATE_CONFIGURING,
 		"Graph is not configured: %!+g",
@@ -942,7 +966,8 @@ bt_message_iterator_can_seek_ns_from_origin(
 		status = (int) iterator->methods.can_seek_ns_from_origin(iterator,
 			ns_from_origin, can_seek);
 
-		BT_ASSERT_POST_NO_ERROR_IF_NO_ERROR_STATUS(status);
+		BT_ASSERT_POST_NO_ERROR_IF_NO_ERROR_STATUS(
+			CAN_SEEK_NS_FROM_ORIGIN_METHOD_NAME, status);
 
 		if (status != BT_FUNC_STATUS_OK) {
 			BT_LIB_LOGW_APPEND_CAUSE(
@@ -952,7 +977,9 @@ bt_message_iterator_can_seek_ns_from_origin(
 			goto end;
 		}
 
-		BT_ASSERT_POST(*can_seek == BT_TRUE || *can_seek == BT_FALSE,
+		BT_ASSERT_POST(CAN_SEEK_NS_FROM_ORIGIN_METHOD_NAME,
+			"valid-return-value",
+			*can_seek == BT_TRUE || *can_seek == BT_FALSE,
 			"Unexpected boolean value returned from user's \"can seek ns from origin\" method: val=%d, %![iter-]+i",
 			*can_seek, iterator);
 
@@ -983,6 +1010,9 @@ end:
 	return status;
 }
 
+#define CAN_SEEK_BEGINNING_METHOD_NAME					\
+	"bt_message_iterator_class_can_seek_beginning"
+
 enum bt_message_iterator_can_seek_beginning_status
 bt_message_iterator_can_seek_beginning(
 		struct bt_message_iterator *iterator,
@@ -994,7 +1024,7 @@ bt_message_iterator_can_seek_beginning(
 	BT_ASSERT_PRE_MSG_ITER_NON_NULL(iterator);
 	BT_ASSERT_PRE_RES_OUT_NON_NULL(can_seek);
 	BT_ASSERT_PRE_ITER_HAS_STATE_TO_SEEK(iterator);
-	BT_ASSERT_PRE(
+	BT_ASSERT_PRE("graph-is-configured",
 		bt_component_borrow_graph(iterator->upstream_component)->config_state !=
 			BT_GRAPH_CONFIGURATION_STATE_CONFIGURING,
 		"Graph is not configured: %!+g",
@@ -1009,13 +1039,15 @@ bt_message_iterator_can_seek_beginning(
 
 		status = (int) iterator->methods.can_seek_beginning(iterator, can_seek);
 
-		BT_ASSERT_POST(
+		BT_ASSERT_POST(CAN_SEEK_BEGINNING_METHOD_NAME,
+			"valid-return-value",
 			status != BT_FUNC_STATUS_OK ||
 				*can_seek == BT_TRUE ||
 				*can_seek == BT_FALSE,
 			"Unexpected boolean value returned from user's \"can seek beginning\" method: val=%d, %![iter-]+i",
 			*can_seek, iterator);
-		BT_ASSERT_POST_NO_ERROR_IF_NO_ERROR_STATUS(status);
+		BT_ASSERT_POST_NO_ERROR_IF_NO_ERROR_STATUS(
+			CAN_SEEK_BEGINNING_METHOD_NAME, status);
 	} else {
 		*can_seek = BT_FALSE;
 		status = BT_FUNC_STATUS_OK;
@@ -1077,21 +1109,24 @@ bool message_iterator_can_seek_beginning(
 	return can_seek;
 }
 
+#define SEEK_BEGINNING_METHOD_NAME					\
+	"bt_message_iterator_class_seek_beginning_method"
+
 enum bt_message_iterator_seek_beginning_status
-bt_message_iterator_seek_beginning(
-		struct bt_message_iterator *iterator)
+bt_message_iterator_seek_beginning(struct bt_message_iterator *iterator)
 {
 	int status;
 
 	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_MSG_ITER_NON_NULL(iterator);
 	BT_ASSERT_PRE_ITER_HAS_STATE_TO_SEEK(iterator);
-	BT_ASSERT_PRE(
+	BT_ASSERT_PRE("graph-is-configured",
 		bt_component_borrow_graph(iterator->upstream_component)->config_state !=
 			BT_GRAPH_CONFIGURATION_STATE_CONFIGURING,
 		"Graph is not configured: %!+g",
 		bt_component_borrow_graph(iterator->upstream_component));
-	BT_ASSERT_PRE(message_iterator_can_seek_beginning(iterator),
+	BT_ASSERT_PRE("can-seek-beginning",
+		message_iterator_can_seek_beginning(iterator),
 		"Message iterator cannot seek beginning: %!+i", iterator);
 
 	/*
@@ -1106,13 +1141,15 @@ bt_message_iterator_seek_beginning(
 	status = iterator->methods.seek_beginning(iterator);
 	BT_LOGD("User method returned: status=%s",
 		bt_common_func_status_string(status));
-	BT_ASSERT_POST(status == BT_FUNC_STATUS_OK ||
+	BT_ASSERT_POST(SEEK_BEGINNING_METHOD_NAME, "valid-status",
+		status == BT_FUNC_STATUS_OK ||
 		status == BT_FUNC_STATUS_ERROR ||
 		status == BT_FUNC_STATUS_MEMORY_ERROR ||
 		status == BT_FUNC_STATUS_AGAIN,
 		"Unexpected status: %![iter-]+i, status=%s",
 		iterator, bt_common_func_status_string(status));
-	BT_ASSERT_POST_NO_ERROR_IF_NO_ERROR_STATUS(status);
+	BT_ASSERT_POST_NO_ERROR_IF_NO_ERROR_STATUS(SEEK_BEGINNING_METHOD_NAME,
+		status);
 	if (status < 0) {
 		BT_LIB_LOGW_APPEND_CAUSE(
 			"Component input port message iterator's \"seek beginning\" method failed: "
@@ -1226,7 +1263,9 @@ int auto_seek_handle_message(
 			(const void *) msg;
 
 		clk_snapshot = event_msg->default_cs;
-		BT_ASSERT_POST_DEV(clk_snapshot,
+		BT_ASSERT_POST_DEV(NEXT_METHOD_NAME,
+			"event-message-has-default-clock-snapshot",
+			clk_snapshot,
 			"Event message has no default clock snapshot: %!+n",
 			event_msg);
 		break;
@@ -1247,7 +1286,9 @@ int auto_seek_handle_message(
 			(const void *) msg;
 
 		clk_snapshot = packet_msg->default_cs;
-		BT_ASSERT_POST_DEV(clk_snapshot,
+		BT_ASSERT_POST_DEV(NEXT_METHOD_NAME,
+			"packet-message-has-default-clock-snapshot",
+			clk_snapshot,
 			"Packet message has no default clock snapshot: %!+n",
 			packet_msg);
 		break;
@@ -1258,8 +1299,10 @@ int auto_seek_handle_message(
 		struct bt_message_discarded_items *msg_disc_items =
 			(void *) msg;
 
-		BT_ASSERT_POST_DEV(msg_disc_items->default_begin_cs &&
-			msg_disc_items->default_end_cs,
+		BT_ASSERT_POST_DEV(NEXT_METHOD_NAME,
+			"discarded-events-packets-message-has-default-clock-snapshot",
+			msg_disc_items->default_begin_cs &&
+				msg_disc_items->default_end_cs,
 			"Discarded events/packets message has no default clock snapshots: %!+n",
 			msg_disc_items);
 		ret = bt_clock_snapshot_get_ns_from_origin(
@@ -1526,7 +1569,9 @@ int find_message_ge_ns_from_origin(
 
 		switch (status) {
 		case BT_FUNC_STATUS_OK:
-			BT_ASSERT_POST_DEV(user_count <= MSG_BATCH_SIZE,
+			BT_ASSERT_POST_DEV(NEXT_METHOD_NAME,
+				"count-lteq-capacity",
+				user_count <= MSG_BATCH_SIZE,
 				"Invalid returned message count: greater than "
 				"batch size: count=%" PRIu64 ", batch-size=%u",
 				user_count, MSG_BATCH_SIZE);
@@ -1639,6 +1684,10 @@ bool message_iterator_can_seek_ns_from_origin(
 	return can_seek;
 }
 
+#define SEEK_NS_FROM_ORIGIN_METHOD_NAME					\
+	"bt_message_iterator_class_seek_ns_from_origin_method"
+
+
 enum bt_message_iterator_seek_ns_from_origin_status
 bt_message_iterator_seek_ns_from_origin(
 		struct bt_message_iterator *iterator,
@@ -1651,13 +1700,13 @@ bt_message_iterator_seek_ns_from_origin(
 	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_MSG_ITER_NON_NULL(iterator);
 	BT_ASSERT_PRE_ITER_HAS_STATE_TO_SEEK(iterator);
-	BT_ASSERT_PRE(
+	BT_ASSERT_PRE("graph-is-configured",
 		bt_component_borrow_graph(iterator->upstream_component)->config_state !=
 			BT_GRAPH_CONFIGURATION_STATE_CONFIGURING,
 		"Graph is not configured: %!+g",
 		bt_component_borrow_graph(iterator->upstream_component));
 	/* The iterator must be able to seek ns from origin one way or another. */
-	BT_ASSERT_PRE(
+	BT_ASSERT_PRE("can-seek-ns-from-origin",
 		message_iterator_can_seek_ns_from_origin(iterator, ns_from_origin),
 		"Message iterator cannot seek nanoseconds from origin: %!+i, "
 		"ns-from-origin=%" PRId64, iterator, ns_from_origin);
@@ -1695,13 +1744,15 @@ bt_message_iterator_seek_ns_from_origin(
 			ns_from_origin);
 		BT_LOGD("User method returned: status=%s",
 			bt_common_func_status_string(status));
-		BT_ASSERT_POST(status == BT_FUNC_STATUS_OK ||
+		BT_ASSERT_POST(SEEK_NS_FROM_ORIGIN_METHOD_NAME, "valid-status",
+			status == BT_FUNC_STATUS_OK ||
 			status == BT_FUNC_STATUS_ERROR ||
 			status == BT_FUNC_STATUS_MEMORY_ERROR ||
 			status == BT_FUNC_STATUS_AGAIN,
 			"Unexpected status: %![iter-]+i, status=%s",
 			iterator, bt_common_func_status_string(status));
-		BT_ASSERT_POST_NO_ERROR_IF_NO_ERROR_STATUS(status);
+		BT_ASSERT_POST_NO_ERROR_IF_NO_ERROR_STATUS(
+			SEEK_NS_FROM_ORIGIN_METHOD_NAME, status);
 		if (status < 0) {
 			BT_LIB_LOGW_APPEND_CAUSE(
 				"Component input port message iterator's \"seek nanoseconds from origin\" method failed: "
@@ -1727,7 +1778,8 @@ bt_message_iterator_seek_ns_from_origin(
 		status = iterator->methods.seek_beginning(iterator);
 		BT_LOGD("User method returned: status=%s",
 			bt_common_func_status_string(status));
-		BT_ASSERT_POST(status == BT_FUNC_STATUS_OK ||
+		BT_ASSERT_POST(SEEK_BEGINNING_METHOD_NAME, "valid-status",
+			status == BT_FUNC_STATUS_OK ||
 			status == BT_FUNC_STATUS_ERROR ||
 			status == BT_FUNC_STATUS_MEMORY_ERROR ||
 			status == BT_FUNC_STATUS_AGAIN,

@@ -20,7 +20,8 @@
 #include "lib/graph/message-iterator-class.h"
 
 #define BT_ASSERT_PRE_DEV_COMP_CLS_HOT(_cc)				\
-	BT_ASSERT_PRE_DEV_HOT(((const struct bt_component_class *) (_cc)), \
+	BT_ASSERT_PRE_DEV_HOT("component-class",			\
+		((const struct bt_component_class *) (_cc)), \
 		"Component class", ": %!+C", (_cc))
 
 static
@@ -239,7 +240,7 @@ struct bt_component_class_sink *bt_component_class_sink_create(
 
 	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_NAME_NON_NULL(name);
-	BT_ASSERT_PRE_NON_NULL(method, "Consume next method");
+	BT_ASSERT_PRE_NON_NULL("consume-method", method, "Consume next method");
 	BT_LOGI("Creating sink component class: "
 		"name=\"%s\", consume-method-addr=%p",
 		name, method);
@@ -549,7 +550,7 @@ enum bt_component_class_set_help_status bt_component_class_set_help(
 {
 	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_COMP_CLS_NON_NULL(comp_cls);
-	BT_ASSERT_PRE_NON_NULL(help, "Help");
+	BT_ASSERT_PRE_NON_NULL("help-text", help, "Help text");
 	BT_ASSERT_PRE_DEV_COMP_CLS_HOT(comp_cls);
 	g_string_assign(comp_cls->help, help);
 	BT_LIB_LOGD("Set component class's help text: %!+C", comp_cls);

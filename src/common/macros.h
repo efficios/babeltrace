@@ -44,4 +44,31 @@
 		_ref;			\
 	})
 
+/*
+ * Copied from:
+ * <https://stackoverflow.com/questions/37411809/how-to-elegantly-fix-this-unused-variable-warning/37412551#37412551>:
+ *
+ * * sizeof() ensures that the expression is not evaluated at all, so
+ *   its side-effects don't happen. That is to be consistent with the
+ *   usual behaviour of debug-only constructs, such as assert().
+ *
+ * * `((_expr), 0)` uses the comma operator to swallow the actual type
+ *   of `(_expr)`. This is to prevent VLAs from triggering evaluation.
+ *
+ * * `(void)` explicitly ignores the result of `(_expr)` and sizeof() so
+ *   no "unused value" warning appears.
+ */
+
+#define BT_USE_EXPR(_expr)		((void) sizeof((void) (_expr), 0))
+#define BT_USE_EXPR2(_expr1, _expr2)					\
+	((void) sizeof((void) (_expr1), (void) (_expr2), 0))
+#define BT_USE_EXPR3(_expr1, _expr2, _expr3)				\
+	((void) sizeof((void) (_expr1), (void) (_expr2), (void) (_expr3), 0))
+#define BT_USE_EXPR4(_expr1, _expr2, _expr3, _expr4)			\
+	((void) sizeof((void) (_expr1), (void) (_expr2),		\
+		(void) (_expr3), (void) (_expr4), 0))
+#define BT_USE_EXPR5(_expr1, _expr2, _expr3, _expr4, _expr5)		\
+	((void) sizeof((void) (_expr1), (void) (_expr2),		\
+		(void) (_expr3), (void) (_expr4), (void) (_expr5), 0))
+
 #endif

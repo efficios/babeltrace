@@ -204,7 +204,8 @@ struct bt_packet *bt_packet_create(const struct bt_stream *c_stream)
 
 	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_STREAM_NON_NULL(stream);
-	BT_ASSERT_PRE(stream->class->supports_packets,
+	BT_ASSERT_PRE("stream-class-supports-packets",
+		stream->class->supports_packets,
 		"Stream class does not support packets: %![sc-]+S",
 		stream->class);
 	packet = bt_object_pool_create_object(&stream->packet_pool);

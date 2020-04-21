@@ -32,7 +32,8 @@
 #include "lib/func-status.h"
 
 #define BT_ASSERT_PRE_DEV_STREAM_CLASS_HOT(_sc)				\
-	BT_ASSERT_PRE_DEV_HOT((_sc), "Stream class", ": %!+S", (_sc))
+	BT_ASSERT_PRE_DEV_HOT("stream-class", (_sc), "Stream class",	\
+		": %!+S", (_sc))
 
 static
 void destroy_stream_class(struct bt_object *obj)
@@ -99,7 +100,8 @@ struct bt_stream_class *create_stream_class_with_id(
 	int ret;
 
 	BT_ASSERT(tc);
-	BT_ASSERT_PRE(stream_class_id_is_unique(tc, id),
+	BT_ASSERT_PRE("stream-class-id-is-unique",
+		stream_class_id_is_unique(tc, id),
 		"Duplicate stream class ID: %![tc-]+T, id=%" PRIu64, tc, id);
 	BT_LIB_LOGD("Creating stream class object: %![tc-]+T, id=%" PRIu64,
 		tc, id);
@@ -163,7 +165,8 @@ struct bt_stream_class *bt_stream_class_create(struct bt_trace_class *tc)
 {
 	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_TC_NON_NULL(tc);
-	BT_ASSERT_PRE(tc->assigns_automatic_stream_class_id,
+	BT_ASSERT_PRE("trace-class-automatically-assigns-stream-class-ids",
+		tc->assigns_automatic_stream_class_id,
 		"Trace class does not automatically assigns stream class IDs: "
 		"%![sc-]+T", tc);
 	return create_stream_class_with_id(tc,
@@ -175,7 +178,9 @@ struct bt_stream_class *bt_stream_class_create_with_id(
 {
 	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_TC_NON_NULL(tc);
-	BT_ASSERT_PRE(!tc->assigns_automatic_stream_class_id,
+	BT_ASSERT_PRE(
+		"trace-class-does-not-automatically-assigns-stream-class-ids",
+		!tc->assigns_automatic_stream_class_id,
 		"Trace class automatically assigns stream class IDs: "
 		"%![sc-]+T", tc);
 	return create_stream_class_with_id(tc, id);
@@ -304,13 +309,15 @@ bt_stream_class_set_packet_context_field_class(
 
 	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_SC_NON_NULL(stream_class);
-	BT_ASSERT_PRE(stream_class->supports_packets,
+	BT_ASSERT_PRE("supports-packets",
+		stream_class->supports_packets,
 		"Stream class does not support packets: %![sc-]+S",
 		stream_class);
 	BT_ASSERT_PRE_FC_NON_NULL(field_class);
 	BT_ASSERT_PRE_DEV_STREAM_CLASS_HOT(stream_class);
-	BT_ASSERT_PRE_FC_IS_STRUCT(field_class, "Packet context field class");
-	ret = bt_resolve_field_paths(field_class, &resolve_ctx);
+	BT_ASSERT_PRE_FC_IS_STRUCT("field-class", field_class,
+		"Packet context field class");
+	ret = bt_resolve_field_paths(field_class, &resolve_ctx, __func__);
 	if (ret) {
 		/*
 		 * This is the only reason for which
@@ -366,10 +373,10 @@ bt_stream_class_set_event_common_context_field_class(
 	BT_ASSERT_PRE_SC_NON_NULL(stream_class);
 	BT_ASSERT_PRE_FC_NON_NULL(field_class);
 	BT_ASSERT_PRE_DEV_STREAM_CLASS_HOT(stream_class);
-	BT_ASSERT_PRE_FC_IS_STRUCT(field_class,
+	BT_ASSERT_PRE_FC_IS_STRUCT("field-class", field_class,
 		"Event common context field class");
 	resolve_ctx.packet_context = stream_class->packet_context_fc;
-	ret = bt_resolve_field_paths(field_class, &resolve_ctx);
+	ret = bt_resolve_field_paths(field_class, &resolve_ctx, __func__);
 	if (ret) {
 		/*
 		 * This is the only reason for which
@@ -468,12 +475,14 @@ void bt_stream_class_set_supports_discarded_events(
 {
 	BT_ASSERT_PRE_SC_NON_NULL(stream_class);
 	BT_ASSERT_PRE_DEV_STREAM_CLASS_HOT(stream_class);
-	BT_ASSERT_PRE(supports_discarded_events ||
-		!with_default_clock_snapshots,
+	BT_ASSERT_PRE("supports-discarded-events-for-default-clock-snapshots",
+		supports_discarded_events ||
+			!with_default_clock_snapshots,
 		"Discarded events cannot have default clock snapshots when "
 		"not supported: %!+S", stream_class);
-	BT_ASSERT_PRE(!with_default_clock_snapshots ||
-		stream_class->default_clock_class,
+	BT_ASSERT_PRE("has-default-clock-class-for-default-clock-snapshots",
+		!with_default_clock_snapshots ||
+			stream_class->default_clock_class,
 		"Stream class has no default clock class: %!+S", stream_class);
 	stream_class->supports_discarded_events =
 		(bool) supports_discarded_events;
@@ -504,16 +513,19 @@ void bt_stream_class_set_supports_discarded_packets(
 {
 	BT_ASSERT_PRE_SC_NON_NULL(stream_class);
 	BT_ASSERT_PRE_DEV_STREAM_CLASS_HOT(stream_class);
-	BT_ASSERT_PRE(!supports_discarded_packets ||
-		stream_class->supports_packets,
+	BT_ASSERT_PRE("supports-packets-for-discarded-packets-support",
+		!supports_discarded_packets ||
+			stream_class->supports_packets,
 		"Stream class does not support packets: %!+S",
 		stream_class);
-	BT_ASSERT_PRE(supports_discarded_packets ||
-		!with_default_clock_snapshots,
+	BT_ASSERT_PRE("supports-discarded-packets-for-default-clock-snapshots",
+		supports_discarded_packets ||
+			!with_default_clock_snapshots,
 		"Discarded packets cannot have default clock snapshots when "
 		"not supported: %!+S", stream_class);
-	BT_ASSERT_PRE(!with_default_clock_snapshots ||
-		stream_class->default_clock_class,
+	BT_ASSERT_PRE("has-default-clock-class-for-default-clock-snapshots",
+		!with_default_clock_snapshots ||
+			stream_class->default_clock_class,
 		"Stream class has no default clock class: %!+S", stream_class);
 	stream_class->supports_discarded_packets =
 		(bool) supports_discarded_packets;
@@ -548,18 +560,21 @@ void bt_stream_class_set_supports_packets(
 		with_end_default_clock_snapshot;
 	BT_ASSERT_PRE_SC_NON_NULL(stream_class);
 	BT_ASSERT_PRE_DEV_STREAM_CLASS_HOT(stream_class);
-	BT_ASSERT_PRE(supports_packets ||
-		!with_default_clock_snapshot,
+	BT_ASSERT_PRE("supports-packets-for-default-clock-snapshot",
+		supports_packets ||
+			!with_default_clock_snapshot,
 		"Packets cannot have default clock snapshots when "
 		"not supported: %!+S", stream_class);
-	BT_ASSERT_PRE(!with_default_clock_snapshot ||
-		stream_class->default_clock_class,
+	BT_ASSERT_PRE("has-default-clock-class-for-default-clock-snapshot",
+		!with_default_clock_snapshot ||
+			stream_class->default_clock_class,
 		"Stream class has no default clock class: %!+S", stream_class);
-	BT_ASSERT_PRE(supports_packets || !stream_class->packet_context_fc,
+	BT_ASSERT_PRE("supports-packets-for-packet-context-field-class",
+		supports_packets || !stream_class->packet_context_fc,
 		"Stream class already has a packet context field class: %!+S",
 		stream_class);
-	BT_ASSERT_PRE(supports_packets ||
-		!stream_class->supports_discarded_packets,
+	BT_ASSERT_PRE("supports-packets-for-discarded-packets-support",
+		supports_packets || !stream_class->supports_discarded_packets,
 		"Stream class already supports discarded packets: %!+S",
 		stream_class);
 	stream_class->supports_packets = (bool) supports_packets;

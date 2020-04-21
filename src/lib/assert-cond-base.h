@@ -64,63 +64,80 @@
 	} while (0)
 
 /*
+ * This function:
+ *
+ * 1. Generates a condition ID based on `cond_type`, `func`, and
+ *    `id_suffix`.
+ *
+ * 2. Logs (FATAL level) the generated condition ID and function name
+ *    (`func`).
+ *
+ * 3. Logs (FATAL level) a message using `fmt` and the optional
+ *    arguments (same usage as BT_LIB_LOGF()).
+ *
+ * 4. Aborts.
+ */
+BT_HIDDEN
+__attribute__((noreturn))
+void bt_lib_assert_cond_failed(const char *cond_type, const char *func,
+		const char *id_suffix, const char *fmt, ...);
+
+/*
  * Internal to this file: asserts that the library condition `_cond` of
- * type `_cond_type` (`pre` or `post`) is satisfied.
+ * type `_cond_type` (`pre` or `post`), related to function `_func`,
+ * and having the ID suffix `_id_suffix` is satisfied.
  *
- * If `_cond` is false, this macro logs a fatal message using `_fmt` and
- * the optional arguments (same usage as BT_LIB_LOGF()), and abort.
+ * If `_cond` is false, then this macro calls
+ * bt_lib_assert_cond_failed().
  *
- * To assert that an internal precondition or postcondition is
+ * To assert that an _internal_ precondition or postcondition is
  * satisfied, use BT_ASSERT() or BT_ASSERT_DBG().
  */
-#define _BT_ASSERT_COND(_cond_type, _cond, _fmt, ...)			\
+#define _BT_ASSERT_COND(_cond_type, _func, _id_suffix, _cond, _fmt, ...) \
 	do {								\
 		if (!(_cond)) {						\
-			BT_ASSERT_COND_MSG("Babeltrace 2 library " _cond_type "condition not satisfied. Error is:"); \
-			BT_ASSERT_COND_MSG(_fmt, ##__VA_ARGS__);	\
-			BT_ASSERT_COND_MSG("Aborting...");		\
-			bt_common_abort();				\
+			bt_lib_assert_cond_failed(_cond_type, _func,	\
+				_id_suffix, _fmt, ##__VA_ARGS__);	\
 		}							\
 	} while (0)
 
 /*
  * Asserts that the library precondition `_cond` is satisfied.
  *
- * If `_cond` is false, log a fatal message using `_fmt` and the
- * optional arguments (same usage as BT_LIB_LOGF()), and abort.
- *
- * To assert that a library postcondition is satisfied (return from user
- * code), use BT_ASSERT_POST().
- *
- * To assert that an internal precondition or postcondition is
- * satisfied, use BT_ASSERT() or BT_ASSERT_DBG().
+ * See _BT_ASSERT_COND() for details about the `_func` and `_id_suffix`
+ * parameters.
  */
-#define BT_ASSERT_PRE(_cond, _fmt, ...)					\
-	_BT_ASSERT_COND("pre", _cond, _fmt, ##__VA_ARGS__)
+#define BT_ASSERT_PRE_FROM_FUNC(_func, _id_suffix, _cond, _fmt, ...)	\
+	_BT_ASSERT_COND("pre", _func, _id_suffix, (_cond), _fmt, ##__VA_ARGS__)
+
+/*
+ * Like BT_ASSERT_PRE_FROM_FUNC(), but uses `__func__` (current function
+ * name) as the `_func` parameter.
+ */
+#define BT_ASSERT_PRE(_id_suffix, _cond, _fmt, ...)			\
+	BT_ASSERT_PRE_FROM_FUNC(__func__, _id_suffix, (_cond), _fmt, ##__VA_ARGS__)
 
 /*
  * Asserts that the library postcondition `_cond` is satisfied.
  *
- * If `_cond` is false, log a fatal message using `_fmt` and the
- * optional arguments (same usage as BT_LIB_LOGF()), and abort.
- *
- * To assert that a library precondition is satisfied (return from user
- * code), use BT_ASSERT_PRE().
- *
- * To assert that an internal precondition or postcondition is
- * satisfied, use BT_ASSERT() or BT_ASSERT_DBG().
+ * See _BT_ASSERT_COND() for details about the `_func` and `_id_suffix`
+ * parameters.
  */
-#define BT_ASSERT_POST(_cond, _fmt, ...)					\
-	_BT_ASSERT_COND("post", _cond, _fmt, ##__VA_ARGS__)
+#define BT_ASSERT_POST(_func, _id_suffix, _cond, _fmt, ...)				\
+	_BT_ASSERT_COND("post", _func, _id_suffix, (_cond), _fmt, ##__VA_ARGS__);
 
 #ifdef BT_DEV_MODE
+/* Developer mode version of BT_ASSERT_PRE_FROM_FUNC(). */
+# define BT_ASSERT_PRE_DEV_FROM_FUNC(_func, _id_suffix, _cond, _fmt, ...) \
+	BT_ASSERT_PRE_FROM_FUNC(_func, _id_suffix, (_cond), _fmt, ##__VA_ARGS__)
+
 /* Developer mode version of BT_ASSERT_PRE(). */
-# define BT_ASSERT_PRE_DEV(_cond, _fmt, ...)				\
-	BT_ASSERT_PRE((_cond), _fmt, ##__VA_ARGS__)
+# define BT_ASSERT_PRE_DEV(_id_suffix, _cond, _fmt, ...)		\
+	BT_ASSERT_PRE(_id_suffix, (_cond), _fmt, ##__VA_ARGS__)
 
 /* Developer mode version of BT_ASSERT_POST(). */
-# define BT_ASSERT_POST_DEV(_cond, _fmt, ...)				\
-	BT_ASSERT_POST((_cond), _fmt, ##__VA_ARGS__)
+# define BT_ASSERT_POST_DEV(_func, _id_suffix, _cond, _fmt, ...)	\
+	BT_ASSERT_POST(_func, _id_suffix, (_cond), _fmt, ##__VA_ARGS__)
 
 /* Developer mode version of BT_ASSERT_COND_MSG(). */
 # define BT_ASSERT_COND_DEV_MSG(_fmt, ...)				\
@@ -134,9 +151,14 @@
 #else
 # define BT_ASSERT_COND_DEV_MSG(_fmt, ...)
 
-# define BT_ASSERT_PRE_DEV(_cond, _fmt, ...)	((void) sizeof((void) (_cond), 0))
+# define BT_ASSERT_PRE_DEV_FROM_FUNC(_func, _id_suffix, _cond, _fmt, ...) \
+	BT_USE_EXPR4(_func, _id_suffix, _cond, _fmt)
 
-# define BT_ASSERT_POST_DEV(_cond, _fmt, ...)	((void) sizeof((void) (_cond), 0))
+# define BT_ASSERT_PRE_DEV(_id_suffix, _cond, _fmt, ...)		\
+	BT_USE_EXPR3(_id_suffix, _cond, _fmt)
+
+# define BT_ASSERT_POST_DEV(_func, _id_suffix, _cond, _fmt, ...)	\
+	BT_USE_EXPR4(_func, _id_suffix, _cond, _fmt)
 
 # define BT_ASSERT_COND_DEV_FUNC	__attribute__((unused))
 #endif /* BT_DEV_MODE */

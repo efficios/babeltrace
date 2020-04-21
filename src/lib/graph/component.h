@@ -22,12 +22,9 @@
 #include "component-class.h"
 #include "port.h"
 
-#define BT_ASSERT_PRE_INPUT_PORT_NAME_UNIQUE(comp, name) \
-	BT_ASSERT_PRE(bt_component_port_name_is_unique(comp->input_ports, name), \
-		"Input port name is not unique: name=\"%s\", %![comp-]c", name, comp);
-
-#define BT_ASSERT_PRE_OUTPUT_PORT_NAME_UNIQUE(comp, name) \
-	BT_ASSERT_PRE(bt_component_port_name_is_unique(comp->output_ports, name), \
+#define BT_ASSERT_PRE_OUTPUT_PORT_NAME_UNIQUE(comp, name) 		\
+	BT_ASSERT_PRE("output-port-is-unique",				\
+		bt_component_port_name_is_unique(comp->output_ports, name), \
 		"Output port name is not unique: name=\"%s\", %![comp-]c", name, comp);
 
 typedef void (*bt_component_destroy_listener_func)(
@@ -88,36 +85,44 @@ void bt_component_set_graph(struct bt_component *component,
 		struct bt_graph *graph);
 
 BT_HIDDEN
-uint64_t bt_component_get_input_port_count(const struct bt_component *comp);
+uint64_t bt_component_get_input_port_count(const struct bt_component *comp,
+		const char *api_func);
 
 BT_HIDDEN
-uint64_t bt_component_get_output_port_count(const struct bt_component *comp);
+uint64_t bt_component_get_output_port_count(const struct bt_component *comp,
+		const char *api_func);
 
 BT_HIDDEN
 struct bt_port_input *bt_component_borrow_input_port_by_index(
-		struct bt_component *comp, uint64_t index);
+		struct bt_component *comp, uint64_t index,
+		const char *api_func);
 
 BT_HIDDEN
 struct bt_port_output *bt_component_borrow_output_port_by_index(
-		struct bt_component *comp, uint64_t index);
+		struct bt_component *comp, uint64_t index,
+		const char *api_func);
 
 BT_HIDDEN
 struct bt_port_input *bt_component_borrow_input_port_by_name(
-		struct bt_component *comp, const char *name);
+		struct bt_component *comp, const char *name,
+		const char *api_func);
 
 BT_HIDDEN
 struct bt_port_output *bt_component_borrow_output_port_by_name(
-		struct bt_component *comp, const char *name);
+		struct bt_component *comp, const char *name,
+		const char *api_func);
 
 BT_HIDDEN
 enum bt_self_component_add_port_status bt_component_add_input_port(
 		struct bt_component *component, const char *name,
-		void *user_data, struct bt_port **port);
+		void *user_data, struct bt_port **port,
+		const char *api_func);
 
 BT_HIDDEN
 enum bt_self_component_add_port_status bt_component_add_output_port(
 		struct bt_component *component, const char *name,
-		void *user_data, struct bt_port **port);
+		void *user_data, struct bt_port **port,
+		const char *api_func);
 
 BT_HIDDEN
 bool bt_component_port_name_is_unique(GPtrArray *ports, const char *name);

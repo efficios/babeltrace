@@ -34,7 +34,8 @@
 #include "lib/func-status.h"
 
 #define BT_ASSERT_PRE_DEV_EVENT_CLASS_HOT(_ec)				\
-	BT_ASSERT_PRE_DEV_HOT(((const struct bt_event_class *) (_ec)),	\
+	BT_ASSERT_PRE_DEV_HOT("event-class",				\
+		((const struct bt_event_class *) (_ec)),		\
 		"Event class", ": %!+E", (_ec))
 
 static
@@ -99,7 +100,8 @@ struct bt_event_class *create_event_class_with_id(
 	struct bt_event_class *event_class;
 
 	BT_ASSERT(stream_class);
-	BT_ASSERT_PRE(event_class_id_is_unique(stream_class, id),
+	BT_ASSERT_PRE("event-class-id-is-unique",
+		event_class_id_is_unique(stream_class, id),
 		"Duplicate event class ID: %![sc-]+S, id=%" PRIu64,
 		stream_class, id);
 	BT_LIB_LOGD("Creating event class object: %![sc-]+S, id=%" PRIu64,
@@ -163,7 +165,9 @@ struct bt_event_class *bt_event_class_create(
 {
 	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_SC_NON_NULL(stream_class);
-	BT_ASSERT_PRE(stream_class->assigns_automatic_event_class_id,
+	BT_ASSERT_PRE(
+		"stream-class-automatically-assigns-event-class-ids",
+		stream_class->assigns_automatic_event_class_id,
 		"Stream class does not automatically assigns event class IDs: "
 		"%![sc-]+S", stream_class);
 	return create_event_class_with_id(stream_class,
@@ -174,7 +178,9 @@ struct bt_event_class *bt_event_class_create_with_id(
 		struct bt_stream_class *stream_class, uint64_t id)
 {
 	BT_ASSERT_PRE_NO_ERROR();
-	BT_ASSERT_PRE(!stream_class->assigns_automatic_event_class_id,
+	BT_ASSERT_PRE(
+		"stream-class-does-not-automatically-assigns-event-class-ids",
+		!stream_class->assigns_automatic_event_class_id,
 		"Stream class automatically assigns event class IDs: "
 		"%![sc-]+S", stream_class);
 	return create_event_class_with_id(stream_class, id);
@@ -210,7 +216,8 @@ enum bt_property_availability bt_event_class_get_log_level(
 		enum bt_event_class_log_level *log_level)
 {
 	BT_ASSERT_PRE_DEV_EC_NON_NULL(event_class);
-	BT_ASSERT_PRE_DEV_NON_NULL(log_level, "Log level (output)");
+	BT_ASSERT_PRE_DEV_NON_NULL("log-level-output", log_level,
+		"Log level (output)");
 	*log_level = (enum bt_event_class_log_level)
 		event_class->log_level.value;
 	return event_class->log_level.base.avail;
@@ -239,7 +246,7 @@ enum bt_event_class_set_emf_uri_status bt_event_class_set_emf_uri(
 {
 	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_EC_NON_NULL(event_class);
-	BT_ASSERT_PRE_NON_NULL(emf_uri, "EMF URI");
+	BT_ASSERT_PRE_NON_NULL("emf-uri", emf_uri, "EMF URI");
 	BT_ASSERT_PRE_DEV_EVENT_CLASS_HOT(event_class);
 	g_string_assign(event_class->emf_uri.str, emf_uri);
 	event_class->emf_uri.value = event_class->emf_uri.str->str;
@@ -295,14 +302,15 @@ bt_event_class_set_specific_context_field_class(
 	BT_ASSERT_PRE_EC_NON_NULL(event_class);
 	BT_ASSERT_PRE_FC_NON_NULL(field_class);
 	BT_ASSERT_PRE_DEV_EVENT_CLASS_HOT(event_class);
-	BT_ASSERT_PRE_FC_IS_STRUCT(field_class, "Specific context field class");
+	BT_ASSERT_PRE_FC_IS_STRUCT("specific-context", field_class,
+		"Specific context field class");
 	stream_class = bt_event_class_borrow_stream_class_inline(
 		event_class);
 	resolve_ctx.packet_context = stream_class->packet_context_fc;
 	resolve_ctx.event_common_context =
 		stream_class->event_common_context_fc;
 
-	ret = bt_resolve_field_paths(field_class, &resolve_ctx);
+	ret = bt_resolve_field_paths(field_class, &resolve_ctx, __func__);
 	if (ret) {
 		/*
 		 * This is the only reason for which
@@ -357,7 +365,7 @@ bt_event_class_set_payload_field_class(
 	BT_ASSERT_PRE_EC_NON_NULL(event_class);
 	BT_ASSERT_PRE_FC_NON_NULL(field_class);
 	BT_ASSERT_PRE_DEV_EVENT_CLASS_HOT(event_class);
-	BT_ASSERT_PRE_FC_IS_STRUCT(field_class, "Payload field class");
+	BT_ASSERT_PRE_FC_IS_STRUCT("payload", field_class, "Payload field class");
 	stream_class = bt_event_class_borrow_stream_class_inline(
 		event_class);
 	resolve_ctx.packet_context = stream_class->packet_context_fc;
@@ -365,7 +373,7 @@ bt_event_class_set_payload_field_class(
 		stream_class->event_common_context_fc;
 	resolve_ctx.event_specific_context = event_class->specific_context_fc;
 
-	ret = bt_resolve_field_paths(field_class, &resolve_ctx);
+	ret = bt_resolve_field_paths(field_class, &resolve_ctx, __func__);
 	if (ret) {
 		/*
 		 * This is the only reason for which

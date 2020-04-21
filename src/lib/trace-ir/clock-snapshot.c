@@ -121,8 +121,7 @@ uint64_t bt_clock_snapshot_get_value(
 		const struct bt_clock_snapshot *clock_snapshot)
 {
 	BT_ASSERT_PRE_DEV_CS_NON_NULL(clock_snapshot);
-	BT_ASSERT_PRE_DEV(clock_snapshot->is_set,
-		"Clock snapshot is not set: %!+k", clock_snapshot);
+	BT_ASSERT_DBG(clock_snapshot->is_set);
 	return clock_snapshot->value_cycles;
 }
 
@@ -135,9 +134,9 @@ bt_clock_snapshot_get_ns_from_origin(
 
 	BT_ASSERT_PRE_DEV_NO_ERROR();
 	BT_ASSERT_PRE_DEV_CS_NON_NULL(clock_snapshot);
-	BT_ASSERT_PRE_DEV_NON_NULL(ret_value_ns, "Value (ns) (output)");
-	BT_ASSERT_PRE_DEV(clock_snapshot->is_set,
-		"Clock snapshot is not set: %!+k", clock_snapshot);
+	BT_ASSERT_PRE_DEV_NON_NULL("value-ns-output", ret_value_ns,
+		"Value (ns) (output)");
+	BT_ASSERT_DBG(clock_snapshot->is_set);
 
 	if (clock_snapshot->ns_from_origin_overflows) {
 		BT_LIB_LOGE_APPEND_CAUSE(

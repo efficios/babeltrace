@@ -26,14 +26,9 @@
 
 #include "event.h"
 
-static inline bool event_class_has_trace(struct bt_event_class *event_class)
-{
-	struct bt_stream_class *stream_class;
-
-	stream_class = bt_event_class_borrow_stream_class_inline(event_class);
-	BT_ASSERT_DBG(stream_class);
-	return bt_stream_class_borrow_trace_class(stream_class);
-}
+#define BT_ASSERT_PRE_DEV_MSG_IS_EVENT(_msg)				\
+	BT_ASSERT_PRE_DEV_MSG_HAS_TYPE("message", (_msg), "event",	\
+		BT_MESSAGE_TYPE_EVENT)
 
 BT_HIDDEN
 struct bt_message *bt_message_event_new(
@@ -61,7 +56,8 @@ end:
 
 static
 struct bt_event *create_event(struct bt_event_class *event_class,
-		struct bt_packet *packet, struct bt_stream *stream)
+		struct bt_packet *packet, struct bt_stream *stream,
+		const char *api_func)
 {
 	struct bt_event *event = NULL;
 
@@ -87,8 +83,10 @@ struct bt_event *create_event(struct bt_event_class *event_class,
 		event, stream);
 
 	if (packet) {
-		BT_ASSERT_PRE_DEV(bt_event_class_borrow_stream_class(
-			event_class) == packet->stream->class,
+		BT_ASSERT_PRE_DEV_FROM_FUNC(api_func,
+			"packet-stream-class-is-event-class-stream-class",
+			bt_event_class_borrow_stream_class(
+				event_class) == packet->stream->class,
 			"Packet's stream class and event class's stream class differ: "
 			"%![ec-]+E, %![packet-]+a", event, packet);
 		BT_ASSERT_DBG(event->stream->class->supports_packets);
@@ -109,7 +107,7 @@ struct bt_message *create_event_message(
 		const struct bt_event_class *c_event_class,
 		const struct bt_packet *c_packet,
 		const struct bt_stream *c_stream, bool with_cs,
-		uint64_t raw_value)
+		uint64_t raw_value, const char *api_func)
 {
 	struct bt_message_iterator *msg_iter =
 		(void *) self_msg_iter;
@@ -121,17 +119,19 @@ struct bt_message *create_event_message(
 	struct bt_event *event;
 
 	BT_ASSERT_DBG(stream);
-	BT_ASSERT_PRE_MSG_ITER_NON_NULL(msg_iter);
-	BT_ASSERT_PRE_EC_NON_NULL(event_class);
-	BT_ASSERT_PRE(event_class_has_trace(event_class),
-		"Event class is not part of a trace: %!+E", event_class);
-	BT_ASSERT_PRE_DEV(bt_event_class_borrow_stream_class(event_class) ==
-		stream->class,
+	BT_ASSERT_PRE_MSG_ITER_NON_NULL_FROM_FUNC(api_func, msg_iter);
+	BT_ASSERT_PRE_EC_NON_NULL_FROM_FUNC(api_func, event_class);
+	stream_class = bt_event_class_borrow_stream_class_inline(event_class);
+	BT_ASSERT_PRE_FROM_FUNC(api_func,
+		"stream-class-is-event-class-stream-class",
+		bt_event_class_borrow_stream_class(event_class) ==
+			stream->class,
 		"Stream's class and event's stream class differ: "
 		"%![ec-]+E, %![stream-]+s", event_class, stream);
-	stream_class = bt_event_class_borrow_stream_class_inline(event_class);
 	BT_ASSERT_DBG(stream_class);
-	BT_ASSERT_PRE((with_cs && stream_class->default_clock_class) ||
+	BT_ASSERT_PRE_FROM_FUNC(api_func,
+		"with-default-clock-snapshot-if-stream-class-has-default-clock-class",
+		(with_cs && stream_class->default_clock_class) ||
 		(!with_cs && !stream_class->default_clock_class),
 		"Creating an event message with a default clock snapshot, but without "
 		"a default clock class, or without a default clock snapshot, "
@@ -140,7 +140,7 @@ struct bt_message *create_event_message(
 		"cs-val=%" PRIu64,
 		event_class, stream_class, with_cs, raw_value);
 	BT_LIB_LOGD("Creating event message object: %![ec-]+E", event_class);
-	event = create_event(event_class, packet, stream);
+	event = create_event(event_class, packet, stream, api_func);
 	if (G_UNLIKELY(!event)) {
 		BT_LIB_LOGE_APPEND_CAUSE(
 			"Cannot create event from event class: "
@@ -209,7 +209,8 @@ struct bt_message *bt_message_event_create(
 {
 	BT_ASSERT_PRE_DEV_NO_ERROR();
 	BT_ASSERT_PRE_STREAM_NON_NULL(stream);
-	return create_event_message(msg_iter, event_class, NULL, stream, false, 0);
+	return create_event_message(msg_iter, event_class, NULL, stream,
+		false, 0, __func__);
 }
 
 struct bt_message *bt_message_event_create_with_packet(
@@ -220,7 +221,7 @@ struct bt_message *bt_message_event_create_with_packet(
 	BT_ASSERT_PRE_DEV_NO_ERROR();
 	BT_ASSERT_PRE_PACKET_NON_NULL(packet);
 	return create_event_message(msg_iter, event_class, packet,
-		packet->stream, false, 0);
+		packet->stream, false, 0, __func__);
 }
 
 struct bt_message *bt_message_event_create_with_default_clock_snapshot(
@@ -232,7 +233,7 @@ struct bt_message *bt_message_event_create_with_default_clock_snapshot(
 	BT_ASSERT_PRE_DEV_NO_ERROR();
 	BT_ASSERT_PRE_STREAM_NON_NULL(stream);
 	return create_event_message(msg_iter, event_class, NULL, stream,
-		true, raw_value);
+		true, raw_value, __func__);
 }
 
 struct bt_message *
@@ -245,7 +246,7 @@ bt_message_event_create_with_packet_and_default_clock_snapshot(
 	BT_ASSERT_PRE_DEV_NO_ERROR();
 	BT_ASSERT_PRE_PACKET_NON_NULL(packet);
 	return create_event_message(msg_iter, event_class, packet,
-		packet->stream, true, raw_value);
+		packet->stream, true, raw_value, __func__);
 }
 
 BT_HIDDEN
@@ -299,13 +300,17 @@ void bt_message_event_recycle(struct bt_message *msg)
 	bt_object_pool_recycle_object(&graph->event_msg_pool, msg);
 }
 
+#define BT_ASSERT_PRE_DEV_FOR_BORROW_EVENTS(_msg)			\
+	do {								\
+		BT_ASSERT_PRE_DEV_MSG_NON_NULL(_msg);			\
+		BT_ASSERT_PRE_DEV_MSG_IS_EVENT(_msg);			\
+	} while (0)
+
 static inline
 struct bt_event *borrow_event(struct bt_message *message)
 {
 	struct bt_message_event *event_message;
 
-	BT_ASSERT_PRE_DEV_MSG_NON_NULL(message);
-	BT_ASSERT_PRE_DEV_MSG_HAS_TYPE(message, BT_MESSAGE_TYPE_EVENT);
 	event_message = container_of(message,
 			struct bt_message_event, parent);
 	return event_message->event;
@@ -314,12 +319,14 @@ struct bt_event *borrow_event(struct bt_message *message)
 struct bt_event *bt_message_event_borrow_event(
 		struct bt_message *message)
 {
+	BT_ASSERT_PRE_DEV_FOR_BORROW_EVENTS(message);
 	return borrow_event(message);
 }
 
 const struct bt_event *bt_message_event_borrow_event_const(
 		const struct bt_message *message)
 {
+	BT_ASSERT_PRE_DEV_FOR_BORROW_EVENTS(message);
 	return borrow_event((void *) message);
 }
 
@@ -331,7 +338,7 @@ bt_message_event_borrow_default_clock_snapshot_const(
 	struct bt_stream_class *stream_class;
 
 	BT_ASSERT_PRE_DEV_MSG_NON_NULL(msg);
-	BT_ASSERT_PRE_DEV_MSG_HAS_TYPE(msg, BT_MESSAGE_TYPE_EVENT);
+	BT_ASSERT_PRE_DEV_MSG_IS_EVENT(msg);
 	stream_class = bt_event_class_borrow_stream_class_inline(
 		event_msg->event->class);
 	BT_ASSERT_DBG(stream_class);
@@ -347,7 +354,7 @@ bt_message_event_borrow_stream_class_default_clock_class_const(
 	struct bt_stream_class *stream_class;
 
 	BT_ASSERT_PRE_DEV_MSG_NON_NULL(msg);
-	BT_ASSERT_PRE_DEV_MSG_HAS_TYPE(msg, BT_MESSAGE_TYPE_EVENT);
+	BT_ASSERT_PRE_DEV_MSG_IS_EVENT(msg);
 	stream_class = bt_event_class_borrow_stream_class_inline(
 		event_msg->event->class);
 	BT_ASSERT_DBG(stream_class);

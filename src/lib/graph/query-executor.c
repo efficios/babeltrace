@@ -58,7 +58,7 @@ struct bt_query_executor *bt_query_executor_create_with_method_data(
 
 	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_COMP_CLS_NON_NULL(comp_cls);
-	BT_ASSERT_PRE_NON_NULL(object, "Object");
+	BT_ASSERT_PRE_NON_NULL("object", object, "Object");
 	BT_LIB_LOGD("Creating query executor: "
 		"%![comp-cls-]+C, object=\"%s\", %![params-]+v",
 		comp_cls, object, params);
@@ -140,6 +140,7 @@ enum bt_query_executor_query_status bt_query_executor_query(
 	enum bt_query_executor_query_status status;
 	enum bt_component_class_query_method_status query_status;
 	method_t method = NULL;
+	const char *method_name = NULL;
 
 	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_QUERY_EXEC_NON_NULL(query_exec);
@@ -175,6 +176,7 @@ enum bt_query_executor_query_status bt_query_executor_query(
 			query_exec->comp_cls;
 
 		method = (method_t) src_cc->methods.query;
+		method_name = "bt_component_class_source_query_method";
 		break;
 	}
 	case BT_COMPONENT_CLASS_TYPE_FILTER:
@@ -183,6 +185,7 @@ enum bt_query_executor_query_status bt_query_executor_query(
 			query_exec->comp_cls;
 
 		method = (method_t) flt_cc->methods.query;
+		method_name = "bt_component_class_filter_query_method";
 		break;
 	}
 	case BT_COMPONENT_CLASS_TYPE_SINK:
@@ -191,6 +194,7 @@ enum bt_query_executor_query_status bt_query_executor_query(
 			query_exec->comp_cls;
 
 		method = (method_t) sink_cc->methods.query;
+		method_name = "bt_component_class_sink_query_method";
 		break;
 	}
 	default:
@@ -217,9 +221,10 @@ enum bt_query_executor_query_status bt_query_executor_query(
 		query_exec->params, query_exec->method_data, user_result);
 	BT_LIB_LOGD("User method returned: status=%s, %![res-]+v",
 		bt_common_func_status_string(query_status), *user_result);
-	BT_ASSERT_POST(query_status != BT_FUNC_STATUS_OK || *user_result,
+	BT_ASSERT_POST(method_name, "status-ok-with-result",
+		query_status != BT_FUNC_STATUS_OK || *user_result,
 		"User method returned `BT_FUNC_STATUS_OK` without a result.");
-	BT_ASSERT_POST_NO_ERROR_IF_NO_ERROR_STATUS(query_status);
+	BT_ASSERT_POST_NO_ERROR_IF_NO_ERROR_STATUS(method_name, query_status);
 	status = (int) query_status;
 
 	if (status < 0) {

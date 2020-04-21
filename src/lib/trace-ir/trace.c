@@ -46,8 +46,11 @@ struct bt_trace_destruction_listener_elem {
 	void *data;
 };
 
-#define BT_ASSERT_PRE_DEV_TRACE_HOT(_trace) \
-	BT_ASSERT_PRE_DEV_HOT((_trace), "Trace", ": %!+t", (_trace))
+#define BT_ASSERT_PRE_DEV_TRACE_HOT(_trace)				\
+	BT_ASSERT_PRE_DEV_HOT("trace", (_trace), "Trace", ": %!+t", (_trace))
+
+#define DESTRUCTION_LISTENER_FUNC_NAME					\
+	"bt_trace_class_destruction_listener_func"
 
 static
 void destroy_trace(struct bt_object *obj)
@@ -85,18 +88,23 @@ void destroy_trace(struct bt_object *obj)
 		for (i = 0; i < trace->destruction_listeners->len; i++) {
 			struct bt_trace_destruction_listener_elem elem =
 				g_array_index(trace->destruction_listeners,
-						struct bt_trace_destruction_listener_elem, i);
+					struct bt_trace_destruction_listener_elem, i);
 
 			if (elem.func) {
 				elem.func(trace, elem.data);
-				BT_ASSERT_POST_NO_ERROR();
+				BT_ASSERT_POST_NO_ERROR(
+					DESTRUCTION_LISTENER_FUNC_NAME);
 			}
 
 			/*
 			 * The destruction listener should not have kept a
 			 * reference to the trace.
 			 */
-			BT_ASSERT_POST(trace->base.ref_count == 1, "Destruction listener kept a reference to the trace being destroyed: %![trace-]+t", trace);
+			BT_ASSERT_POST(DESTRUCTION_LISTENER_FUNC_NAME,
+				"trace-reference-count-not-changed",
+				trace->base.ref_count == 1,
+				"Destruction listener kept a reference to the trace being destroyed: %![trace-]+t",
+				trace);
 		}
 		g_array_free(trace->destruction_listeners, TRUE);
 		trace->destruction_listeners = NULL;
@@ -255,8 +263,9 @@ enum bt_trace_set_environment_entry_status set_environment_entry(
 	BT_ASSERT(trace);
 	BT_ASSERT(name);
 	BT_ASSERT(value);
-	BT_ASSERT_PRE(!trace->frozen ||
-		!trace_has_environment_entry(trace, name),
+	BT_ASSERT_PRE("not-frozen:trace",
+		!trace->frozen ||
+			!trace_has_environment_entry(trace, name),
 		"Trace is frozen: cannot replace environment entry: "
 		"%![trace-]+t, entry-name=\"%s\"", trace, name);
 	ret = bt_attributes_set_field_value(trace->environment, name,
@@ -285,7 +294,7 @@ bt_trace_set_environment_entry_string(
 	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_TRACE_NON_NULL(trace);
 	BT_ASSERT_PRE_NAME_NON_NULL(name);
-	BT_ASSERT_PRE_NON_NULL(value, "Value");
+	BT_ASSERT_PRE_NON_NULL("value", value, "Value");
 
 	value_obj = bt_value_string_create_init(value);
 	if (!value_obj) {
@@ -342,7 +351,8 @@ void bt_trace_borrow_environment_entry_by_index_const(
 {
 	BT_ASSERT_PRE_DEV_TRACE_NON_NULL(trace);
 	BT_ASSERT_PRE_DEV_NAME_NON_NULL(name);
-	BT_ASSERT_PRE_DEV_NON_NULL(value, "Value");
+	BT_ASSERT_PRE_DEV_NON_NULL("value-object-output", value,
+		"Value object (output)");
 	BT_ASSERT_PRE_DEV_VALID_INDEX(index,
 		bt_attributes_get_count(trace->environment));
 	*value = bt_attributes_borrow_field_value(trace->environment, index);
@@ -467,7 +477,8 @@ enum bt_trace_remove_listener_status bt_trace_remove_destruction_listener(
 
 	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_TRACE_NON_NULL(trace);
-	BT_ASSERT_PRE(has_listener_id(trace, listener_id),
+	BT_ASSERT_PRE("listener-id-exists",
+		has_listener_id(trace, listener_id),
 		"Trace has no such trace destruction listener ID: "
 		"%![trace-]+t, %" PRIu64, trace, listener_id);
 	elem = &g_array_index(trace->destruction_listeners,

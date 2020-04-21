@@ -16,6 +16,12 @@
 #include "lib/assert-cond.h"
 #include "lib/func-status.h"
 
+#define BT_ASSERT_PRE_FILE_NAME_NON_NULL(_file_name)			\
+	BT_ASSERT_PRE_NON_NULL("file-name", (_file_name), "File name");
+
+#define BT_ASSERT_PRE_MSG_FMT_NON_NULL(_msg_fmt)			\
+	BT_ASSERT_PRE_NON_NULL("message-format", (_msg_fmt), "Message format");
+
 /*
  * This points to the thread's error object, or it's `NULL` if there's
  * no current error object.
@@ -85,9 +91,9 @@ bt_current_thread_error_append_cause_from_unknown(
 		try_create_thread_error();
 	va_list args;
 
-	BT_ASSERT_PRE_NON_NULL(module_name, "Module name");
-	BT_ASSERT_PRE_NON_NULL(file_name, "File name");
-	BT_ASSERT_PRE_NON_NULL(msg_fmt, "Message format string");
+	BT_ASSERT_PRE_NON_NULL("module-name", module_name, "Module name");
+	BT_ASSERT_PRE_FILE_NAME_NON_NULL(file_name);
+	BT_ASSERT_PRE_MSG_FMT_NON_NULL(msg_fmt);
 
 	if (status) {
 		goto end;
@@ -114,8 +120,8 @@ bt_current_thread_error_append_cause_from_component(
 	va_list args;
 
 	BT_ASSERT_PRE_COMP_NON_NULL(self_comp);
-	BT_ASSERT_PRE_NON_NULL(file_name, "File name");
-	BT_ASSERT_PRE_NON_NULL(msg_fmt, "Message format string");
+	BT_ASSERT_PRE_FILE_NAME_NON_NULL(file_name);
+	BT_ASSERT_PRE_MSG_FMT_NON_NULL(msg_fmt);
 
 	if (status) {
 		goto end;
@@ -142,8 +148,8 @@ bt_current_thread_error_append_cause_from_component_class(
 	va_list args;
 
 	BT_ASSERT_PRE_COMP_CLS_NON_NULL(self_comp_class);
-	BT_ASSERT_PRE_NON_NULL(file_name, "File name");
-	BT_ASSERT_PRE_NON_NULL(msg_fmt, "Message format string");
+	BT_ASSERT_PRE_FILE_NAME_NON_NULL(file_name);
+	BT_ASSERT_PRE_MSG_FMT_NON_NULL(msg_fmt);
 
 	if (status) {
 		goto end;
@@ -170,8 +176,8 @@ bt_current_thread_error_append_cause_from_message_iterator(
 	va_list args;
 
 	BT_ASSERT_PRE_MSG_ITER_NON_NULL(self_iter);
-	BT_ASSERT_PRE_NON_NULL(file_name, "File name");
-	BT_ASSERT_PRE_NON_NULL(msg_fmt, "Message format string");
+	BT_ASSERT_PRE_FILE_NAME_NON_NULL(file_name);
+	BT_ASSERT_PRE_MSG_FMT_NON_NULL(msg_fmt);
 
 	if (status) {
 		goto end;

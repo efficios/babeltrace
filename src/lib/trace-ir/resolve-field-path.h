@@ -25,6 +25,7 @@ struct bt_resolve_field_path_context {
 
 BT_HIDDEN
 int bt_resolve_field_paths(struct bt_field_class *field_class,
-		struct bt_resolve_field_path_context *ctx);
+		struct bt_resolve_field_path_context *ctx,
+		const char *api_func);
 
 #endif /* BABELTRACE_TRACE_IR_RESOLVE_FIELD_PATH_INTERNAL */

@@ -64,8 +64,10 @@ bt_bool bt_integer_range_unsigned_is_equal(
 		const struct bt_integer_range_unsigned *range_a,
 		const struct bt_integer_range_unsigned *range_b)
 {
-	BT_ASSERT_PRE_DEV_NON_NULL(range_a, "Integer range A");
-	BT_ASSERT_PRE_DEV_NON_NULL(range_b, "Integer range B");
+	BT_ASSERT_PRE_DEV_NON_NULL("integer-range-a", range_a,
+		"Integer range A");
+	BT_ASSERT_PRE_DEV_NON_NULL("integer-range-b", range_b,
+		"Integer range B");
 	return (bt_bool) compare_ranges((const void *) range_a,
 		(const void *) range_b);
 }
@@ -74,8 +76,10 @@ bt_bool bt_integer_range_signed_is_equal(
 		const struct bt_integer_range_signed *range_a,
 		const struct bt_integer_range_signed *range_b)
 {
-	BT_ASSERT_PRE_DEV_NON_NULL(range_a, "Integer range A");
-	BT_ASSERT_PRE_DEV_NON_NULL(range_b, "Integer range B");
+	BT_ASSERT_PRE_DEV_NON_NULL("integer-range-a", range_a,
+		"Integer range A");
+	BT_ASSERT_PRE_DEV_NON_NULL("integer-range-b", range_b,
+		"Integer range B");
 	return (bt_bool) compare_ranges((const void *) range_a,
 		(const void *) range_b);
 }
@@ -186,8 +190,8 @@ void add_range_to_range_set(struct bt_integer_range_set *range_set,
 	};
 
 	BT_ASSERT_PRE_INT_RANGE_SET_NON_NULL(range_set);
-	BT_ASSERT_PRE_DEV_HOT(range_set, "Integer range set", ": %!+R",
-		range_set);
+	BT_ASSERT_PRE_DEV_HOT("integer-range-set", range_set,
+		"Integer range set", ": %!+R", range_set);
 	g_array_append_val(range_set->ranges, range);
 	BT_LIB_LOGD("Added integer range to integer range set: "
 		"%![range-set-]+R, lower-unsigned=%" PRIu64 ", "
@@ -200,7 +204,7 @@ bt_integer_range_set_unsigned_add_range(
 		uint64_t lower, uint64_t upper)
 {
 	BT_ASSERT_PRE_NO_ERROR();
-	BT_ASSERT_PRE(lower <= upper,
+	BT_ASSERT_PRE("lower-lteq-upper", lower <= upper,
 		"Range's upper bound is less than lower bound: "
 		"upper=%" PRIu64 ", lower=%" PRIu64, lower, upper);
 	add_range_to_range_set((void *) range_set, lower, upper);
@@ -213,7 +217,7 @@ bt_integer_range_set_signed_add_range(
 		int64_t lower, int64_t upper)
 {
 	BT_ASSERT_PRE_NO_ERROR();
-	BT_ASSERT_PRE(lower <= upper,
+	BT_ASSERT_PRE("lower-lteq-upper", lower <= upper,
 		"Range's upper bound is less than lower bound: "
 		"upper=%" PRId64 ", lower=%" PRId64, lower, upper);
 	add_range_to_range_set((void *) range_set,
@@ -351,8 +355,10 @@ bt_bool bt_integer_range_set_unsigned_is_equal(
 		const struct bt_integer_range_set_unsigned *range_set_a,
 		const struct bt_integer_range_set_unsigned *range_set_b)
 {
-	BT_ASSERT_PRE_DEV_NON_NULL(range_set_a, "Range set A");
-	BT_ASSERT_PRE_DEV_NON_NULL(range_set_b, "Range set B");
+	BT_ASSERT_PRE_DEV_NON_NULL("integer-range-set-a", range_set_a,
+		"Range set A");
+	BT_ASSERT_PRE_DEV_NON_NULL("integer-range-set-b", range_set_b,
+		"Range set B");
 	return (bt_bool) compare_range_sets((const void *) range_set_a,
 		(const void *) range_set_b);
 }
@@ -361,8 +367,10 @@ bt_bool bt_integer_range_set_signed_is_equal(
 		const struct bt_integer_range_set_signed *range_set_a,
 		const struct bt_integer_range_set_signed *range_set_b)
 {
-	BT_ASSERT_PRE_DEV_NON_NULL(range_set_a, "Range set A");
-	BT_ASSERT_PRE_DEV_NON_NULL(range_set_b, "Range set B");
+	BT_ASSERT_PRE_DEV_NON_NULL("integer-range-set-a", range_set_a,
+		"Range set A");
+	BT_ASSERT_PRE_DEV_NON_NULL("integer-range-set-b", range_set_b,
+		"Range set B");
 	return (bt_bool) compare_range_sets((const void *) range_set_a,
 		(const void *) range_set_b);
 }

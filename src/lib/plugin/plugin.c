@@ -184,7 +184,7 @@ enum bt_plugin_find_all_from_file_status bt_plugin_find_all_from_file(
 	enum bt_plugin_find_all_from_file_status status;
 
 	BT_ASSERT_PRE_NO_ERROR();
-	BT_ASSERT_PRE_NON_NULL(path, "Path");
+	BT_ASSERT_PRE_NON_NULL("path", path, "Path");
 	BT_ASSERT_PRE_PLUGIN_SET_OUT_NON_NULL(path);
 	BT_LOGI("Creating plugins from file: path=\"%s\"", path);
 

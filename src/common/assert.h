@@ -52,21 +52,8 @@ extern void bt_common_assert_failed(const char *file, int line,
 #define BT_ASSERT_DBG_FUNC
 
 #else /* BT_DEBUG_MODE */
-
-/*
- * When `BT_DEBUG_MODE` is _not_ defined, define BT_ASSERT_DBG() macro
- * to the following to trick the compiler into thinking that the
- * variable passed as condition to the assertion is used. This is to
- * prevent set-but-not-used warnings from the compiler when assertions
- * are disabled. The sizeof() operator also makes sure that the `_cond`
- * expression is not evaluated, thus preventing unwanted side effects.
- *
- * In-depth explanation:
- * https://stackoverflow.com/questions/37411809/how-to-elegantly-fix-this-unused-variable-warning/37412551#37412551
- */
-# define BT_ASSERT_DBG(_cond)	((void) sizeof((void) (_cond), 0))
+# define BT_ASSERT_DBG(_cond)	BT_USE_EXPR(_cond)
 # define BT_ASSERT_DBG_FUNC	__attribute__((unused))
-
 #endif /* BT_DEBUG_MODE */
 
 #endif /* BABELTRACE_ASSERT_INTERNAL_H */

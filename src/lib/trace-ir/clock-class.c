@@ -25,7 +25,8 @@
 #include "lib/value.h"
 
 #define BT_ASSERT_PRE_DEV_CLOCK_CLASS_HOT(_cc)				\
-	BT_ASSERT_PRE_DEV_HOT((_cc), "Clock class", ": %!+K", (_cc))
+	BT_ASSERT_PRE_DEV_HOT("clock-class", (_cc), "Clock class",	\
+		": %!+K", (_cc))
 
 static
 void destroy_clock_class(struct bt_object *obj)
@@ -178,10 +179,12 @@ void bt_clock_class_set_frequency(struct bt_clock_class *clock_class,
 {
 	BT_ASSERT_PRE_CLK_CLS_NON_NULL(clock_class);
 	BT_ASSERT_PRE_DEV_CLOCK_CLASS_HOT(clock_class);
-	BT_ASSERT_PRE(frequency != UINT64_C(-1) && frequency != 0,
+	BT_ASSERT_PRE("valid-frequency",
+		frequency != UINT64_C(-1) && frequency != 0,
 		"Invalid frequency: %![cc-]+K, new-freq=%" PRIu64,
 		clock_class, frequency);
-	BT_ASSERT_PRE(clock_class->offset_cycles < frequency,
+	BT_ASSERT_PRE("offset-cycles-lt-frequency",
+		clock_class->offset_cycles < frequency,
 		"Offset (cycles) is greater than clock class's frequency: "
 		"%![cc-]+K, new-freq=%" PRIu64, clock_class, frequency);
 	clock_class->frequency = frequency;
@@ -200,7 +203,7 @@ void bt_clock_class_set_precision(struct bt_clock_class *clock_class,
 {
 	BT_ASSERT_PRE_CLK_CLS_NON_NULL(clock_class);
 	BT_ASSERT_PRE_DEV_CLOCK_CLASS_HOT(clock_class);
-	BT_ASSERT_PRE(precision != UINT64_C(-1),
+	BT_ASSERT_PRE("valid-precision", precision != UINT64_C(-1),
 		"Invalid precision: %![cc-]+K, new-precision=%" PRIu64,
 		clock_class, precision);
 	clock_class->precision = precision;
@@ -211,8 +214,9 @@ void bt_clock_class_get_offset(const struct bt_clock_class *clock_class,
 		int64_t *seconds, uint64_t *cycles)
 {
 	BT_ASSERT_PRE_DEV_CLK_CLS_NON_NULL(clock_class);
-	BT_ASSERT_PRE_DEV_NON_NULL(seconds, "Seconds (output)");
-	BT_ASSERT_PRE_DEV_NON_NULL(cycles, "Cycles (output)");
+	BT_ASSERT_PRE_DEV_NON_NULL("seconds-output", seconds,
+		"Seconds (output)");
+	BT_ASSERT_PRE_DEV_NON_NULL("cycles-output", cycles, "Cycles (output)");
 	*seconds = clock_class->offset_seconds;
 	*cycles = clock_class->offset_cycles;
 }
@@ -222,7 +226,8 @@ void bt_clock_class_set_offset(struct bt_clock_class *clock_class,
 {
 	BT_ASSERT_PRE_CLK_CLS_NON_NULL(clock_class);
 	BT_ASSERT_PRE_DEV_CLOCK_CLASS_HOT(clock_class);
-	BT_ASSERT_PRE(cycles < clock_class->frequency,
+	BT_ASSERT_PRE("offset-cycles-lt-frequency",
+		cycles < clock_class->frequency,
 		"Offset (cycles) is greater than clock class's frequency: "
 		"%![cc-]+K, new-offset-cycles=%" PRIu64, clock_class, cycles);
 	clock_class->offset_seconds = seconds;
@@ -289,7 +294,8 @@ bt_clock_class_cycles_to_ns_from_origin(
 
 	BT_ASSERT_PRE_DEV_NO_ERROR();
 	BT_ASSERT_PRE_DEV_CLK_CLS_NON_NULL(clock_class);
-	BT_ASSERT_PRE_DEV_NON_NULL(ns, "Nanoseconds (output)");
+	BT_ASSERT_PRE_DEV_NON_NULL("nanoseconds-output", ns,
+		"Nanoseconds (output)");
 	ret = bt_util_ns_from_origin_clock_class(clock_class, cycles, ns);
 	if (ret) {
 		BT_LIB_LOGE_APPEND_CAUSE("Cannot convert cycles to nanoseconds "

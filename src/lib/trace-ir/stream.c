@@ -28,7 +28,8 @@
 #include "lib/func-status.h"
 
 #define BT_ASSERT_PRE_DEV_STREAM_HOT(_stream)				\
-	BT_ASSERT_PRE_DEV_HOT((_stream), "Stream", ": %!+s", (_stream))
+	BT_ASSERT_PRE_DEV_HOT("stream", (_stream), "Stream",		\
+		": %!+s", (_stream))
 
 static
 void destroy_stream(struct bt_object *obj)
@@ -82,18 +83,21 @@ end:
 
 static
 struct bt_stream *create_stream_with_id(struct bt_stream_class *stream_class,
-		struct bt_trace *trace, uint64_t id)
+		struct bt_trace *trace, uint64_t id, const char *api_func)
 {
 	int ret;
 	struct bt_stream *stream;
 
 	BT_ASSERT(stream_class);
 	BT_ASSERT(trace);
-	BT_ASSERT_PRE(trace->class ==
-		bt_stream_class_borrow_trace_class_inline(stream_class),
+	BT_ASSERT_PRE_FROM_FUNC(api_func,
+		"trace-class-is-stream-class-trace-class",
+		trace->class ==
+			bt_stream_class_borrow_trace_class_inline(stream_class),
 		"Trace's class is different from stream class's parent trace class: "
 		"%![sc-]+S, %![trace-]+t", stream_class, trace);
-	BT_ASSERT_PRE(stream_id_is_unique(trace, stream_class, id),
+	BT_ASSERT_PRE_FROM_FUNC(api_func, "stream-id-is-unique",
+		stream_id_is_unique(trace, stream_class, id),
 		"Duplicate stream ID: %![trace-]+t, id=%" PRIu64, trace, id);
 	BT_LIB_LOGD("Creating stream object: %![trace-]+t, id=%" PRIu64,
 		trace, id);
@@ -153,11 +157,12 @@ struct bt_stream *bt_stream_create(struct bt_stream_class *stream_class,
 	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_SC_NON_NULL(stream_class);
 	BT_ASSERT_PRE_TRACE_NON_NULL(trace);
-	BT_ASSERT_PRE(stream_class->assigns_automatic_stream_id,
+	BT_ASSERT_PRE("stream-class-automatically-assigns-stream-ids",
+		stream_class->assigns_automatic_stream_id,
 		"Stream class does not automatically assigns stream IDs: "
 		"%![sc-]+S", stream_class);
 	id = bt_trace_get_automatic_stream_id(trace, stream_class);
-	return create_stream_with_id(stream_class, trace, id);
+	return create_stream_with_id(stream_class, trace, id, __func__);
 }
 
 struct bt_stream *bt_stream_create_with_id(struct bt_stream_class *stream_class,
@@ -166,10 +171,11 @@ struct bt_stream *bt_stream_create_with_id(struct bt_stream_class *stream_class,
 	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_SC_NON_NULL(stream_class);
 	BT_ASSERT_PRE_TRACE_NON_NULL(trace);
-	BT_ASSERT_PRE(!stream_class->assigns_automatic_stream_id,
+	BT_ASSERT_PRE("stream-class-does-not-automatically-assigns-stream-ids",
+		!stream_class->assigns_automatic_stream_id,
 		"Stream class automatically assigns stream IDs: "
 		"%![sc-]+S", stream_class);
-	return create_stream_with_id(stream_class, trace, id);
+	return create_stream_with_id(stream_class, trace, id, __func__);
 }
 
 struct bt_stream_class *bt_stream_borrow_class(struct bt_stream *stream)

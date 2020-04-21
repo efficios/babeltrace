@@ -45,7 +45,10 @@ struct bt_trace_class_destruction_listener_elem {
 };
 
 #define BT_ASSERT_PRE_DEV_TRACE_CLASS_HOT(_tc)				\
-	BT_ASSERT_PRE_DEV_HOT((_tc), "Trace class", ": %!+T", (_tc))
+	BT_ASSERT_PRE_DEV_HOT("trace-class", (_tc), "Trace class",	\
+		": %!+T", (_tc))
+
+#define DESTRUCTION_LISTENER_FUNC_NAME	"bt_trace_destruction_listener_func"
 
 static
 void destroy_trace_class(struct bt_object *obj)
@@ -87,14 +90,19 @@ void destroy_trace_class(struct bt_object *obj)
 
 			if (elem.func) {
 				elem.func(tc, elem.data);
-				BT_ASSERT_POST_NO_ERROR();
+				BT_ASSERT_POST_NO_ERROR(
+					DESTRUCTION_LISTENER_FUNC_NAME);
 			}
 
 			/*
 			 * The destruction listener should not have kept a
 			 * reference to the trace class.
 			 */
-			BT_ASSERT_POST(tc->base.ref_count == 1, "Destruction listener kept a reference to the trace class being destroyed: %![tc-]+T", tc);
+			BT_ASSERT_POST(DESTRUCTION_LISTENER_FUNC_NAME,
+				"trace-class-reference-count-not-changed",
+				tc->base.ref_count == 1,
+				"Destruction listener kept a reference to the trace class being destroyed: %![tc-]+T",
+				tc);
 		}
 		g_array_free(tc->destruction_listeners, TRUE);
 		tc->destruction_listeners = NULL;
@@ -218,7 +226,8 @@ enum bt_trace_class_remove_listener_status bt_trace_class_remove_destruction_lis
 
 	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_TC_NON_NULL(tc);
-	BT_ASSERT_PRE(has_listener_id(tc, listener_id),
+	BT_ASSERT_PRE("listener-id-exists",
+		has_listener_id(tc, listener_id),
 		"Trace class has no such trace class destruction listener ID: "
 		"%![tc-]+T, %" PRIu64, tc, listener_id);
 	elem = &g_array_index(tc->destruction_listeners,

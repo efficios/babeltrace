@@ -19,8 +19,9 @@
 #include "lib/assert-cond.h"
 #include "lib/func-status.h"
 
-#define BT_ASSERT_PRE_CAUSE_HAS_ACTOR_TYPE(_cause, _exp_type)		\
-	BT_ASSERT_PRE(((const struct bt_error_cause *) (_cause))->actor_type == _exp_type, \
+#define BT_ASSERT_PRE_CAUSE_HAS_ACTOR_TYPE(_cause, _exp_type_name, _exp_type) \
+	BT_ASSERT_PRE("error-cause-has-" _exp_type_name "-actor",	\
+		((const struct bt_error_cause *) (_cause))->actor_type == _exp_type, \
 		"Unexpected error cause's actor type: type=%s, exp-type=%s", \
 		bt_error_cause_actor_type_string(((const struct bt_error_cause *) (_cause))->actor_type), \
 		bt_error_cause_actor_type_string(_exp_type))
@@ -657,7 +658,7 @@ const char *bt_error_cause_component_actor_get_component_name(
 		(const void *) cause;
 
 	BT_ASSERT_PRE_ERROR_CAUSE_NON_NULL(cause);
-	BT_ASSERT_PRE_CAUSE_HAS_ACTOR_TYPE(cause,
+	BT_ASSERT_PRE_CAUSE_HAS_ACTOR_TYPE(cause, "component",
 		BT_ERROR_CAUSE_ACTOR_TYPE_COMPONENT);
 	return spec_cause->comp_name->str;
 }
@@ -669,7 +670,7 @@ bt_component_class_type bt_error_cause_component_actor_get_component_class_type(
 		(const void *) cause;
 
 	BT_ASSERT_PRE_ERROR_CAUSE_NON_NULL(cause);
-	BT_ASSERT_PRE_CAUSE_HAS_ACTOR_TYPE(cause,
+	BT_ASSERT_PRE_CAUSE_HAS_ACTOR_TYPE(cause, "component",
 		BT_ERROR_CAUSE_ACTOR_TYPE_COMPONENT);
 	return spec_cause->comp_class_id.type;
 }
@@ -681,7 +682,7 @@ const char *bt_error_cause_component_actor_get_component_class_name(
 		(const void *) cause;
 
 	BT_ASSERT_PRE_ERROR_CAUSE_NON_NULL(cause);
-	BT_ASSERT_PRE_CAUSE_HAS_ACTOR_TYPE(cause,
+	BT_ASSERT_PRE_CAUSE_HAS_ACTOR_TYPE(cause, "component",
 		BT_ERROR_CAUSE_ACTOR_TYPE_COMPONENT);
 	return spec_cause->comp_class_id.name->str;
 }
@@ -693,7 +694,7 @@ const char *bt_error_cause_component_actor_get_plugin_name(
 		(const void *) cause;
 
 	BT_ASSERT_PRE_ERROR_CAUSE_NON_NULL(cause);
-	BT_ASSERT_PRE_CAUSE_HAS_ACTOR_TYPE(cause,
+	BT_ASSERT_PRE_CAUSE_HAS_ACTOR_TYPE(cause, "component",
 		BT_ERROR_CAUSE_ACTOR_TYPE_COMPONENT);
 	return spec_cause->comp_class_id.plugin_name->len > 0 ?
 		spec_cause->comp_class_id.plugin_name->str : NULL;
@@ -707,7 +708,7 @@ bt_error_cause_component_class_actor_get_component_class_type(
 		(const void *) cause;
 
 	BT_ASSERT_PRE_ERROR_CAUSE_NON_NULL(cause);
-	BT_ASSERT_PRE_CAUSE_HAS_ACTOR_TYPE(cause,
+	BT_ASSERT_PRE_CAUSE_HAS_ACTOR_TYPE(cause, "component-class",
 		BT_ERROR_CAUSE_ACTOR_TYPE_COMPONENT_CLASS);
 	return spec_cause->comp_class_id.type;
 }
@@ -719,7 +720,7 @@ const char *bt_error_cause_component_class_actor_get_component_class_name(
 		(const void *) cause;
 
 	BT_ASSERT_PRE_ERROR_CAUSE_NON_NULL(cause);
-	BT_ASSERT_PRE_CAUSE_HAS_ACTOR_TYPE(cause,
+	BT_ASSERT_PRE_CAUSE_HAS_ACTOR_TYPE(cause, "component-class",
 		BT_ERROR_CAUSE_ACTOR_TYPE_COMPONENT_CLASS);
 	return spec_cause->comp_class_id.name->str;
 }
@@ -731,7 +732,7 @@ const char *bt_error_cause_component_class_actor_get_plugin_name(
 		(const void *) cause;
 
 	BT_ASSERT_PRE_ERROR_CAUSE_NON_NULL(cause);
-	BT_ASSERT_PRE_CAUSE_HAS_ACTOR_TYPE(cause,
+	BT_ASSERT_PRE_CAUSE_HAS_ACTOR_TYPE(cause, "component-class",
 		BT_ERROR_CAUSE_ACTOR_TYPE_COMPONENT_CLASS);
 	return spec_cause->comp_class_id.plugin_name->len > 0 ?
 		spec_cause->comp_class_id.plugin_name->str : NULL;
@@ -744,7 +745,7 @@ const char *bt_error_cause_message_iterator_actor_get_component_name(
 		(const void *) cause;
 
 	BT_ASSERT_PRE_ERROR_CAUSE_NON_NULL(cause);
-	BT_ASSERT_PRE_CAUSE_HAS_ACTOR_TYPE(cause,
+	BT_ASSERT_PRE_CAUSE_HAS_ACTOR_TYPE(cause, "message-iterator",
 		BT_ERROR_CAUSE_ACTOR_TYPE_MESSAGE_ITERATOR);
 	return spec_cause->comp_name->str;
 }
@@ -757,7 +758,7 @@ bt_error_cause_message_iterator_actor_get_component_output_port_name(
 		(const void *) cause;
 
 	BT_ASSERT_PRE_ERROR_CAUSE_NON_NULL(cause);
-	BT_ASSERT_PRE_CAUSE_HAS_ACTOR_TYPE(cause,
+	BT_ASSERT_PRE_CAUSE_HAS_ACTOR_TYPE(cause, "message-iterator",
 		BT_ERROR_CAUSE_ACTOR_TYPE_MESSAGE_ITERATOR);
 	return spec_cause->output_port_name->str;
 }
@@ -770,7 +771,7 @@ bt_error_cause_message_iterator_actor_get_component_class_type(
 		(const void *) cause;
 
 	BT_ASSERT_PRE_ERROR_CAUSE_NON_NULL(cause);
-	BT_ASSERT_PRE_CAUSE_HAS_ACTOR_TYPE(cause,
+	BT_ASSERT_PRE_CAUSE_HAS_ACTOR_TYPE(cause, "message-iterator",
 		BT_ERROR_CAUSE_ACTOR_TYPE_MESSAGE_ITERATOR);
 	return spec_cause->comp_class_id.type;
 }
@@ -782,7 +783,7 @@ const char *bt_error_cause_message_iterator_actor_get_component_class_name(
 		(const void *) cause;
 
 	BT_ASSERT_PRE_ERROR_CAUSE_NON_NULL(cause);
-	BT_ASSERT_PRE_CAUSE_HAS_ACTOR_TYPE(cause,
+	BT_ASSERT_PRE_CAUSE_HAS_ACTOR_TYPE(cause, "message-iterator",
 		BT_ERROR_CAUSE_ACTOR_TYPE_MESSAGE_ITERATOR);
 	return spec_cause->comp_class_id.name->str;
 }
@@ -794,7 +795,7 @@ const char *bt_error_cause_message_iterator_actor_get_plugin_name(
 		(const void *) cause;
 
 	BT_ASSERT_PRE_ERROR_CAUSE_NON_NULL(cause);
-	BT_ASSERT_PRE_CAUSE_HAS_ACTOR_TYPE(cause,
+	BT_ASSERT_PRE_CAUSE_HAS_ACTOR_TYPE(cause, "message-iterator",
 		BT_ERROR_CAUSE_ACTOR_TYPE_MESSAGE_ITERATOR);
 	return spec_cause->comp_class_id.plugin_name->len > 0 ?
 		spec_cause->comp_class_id.plugin_name->str : NULL;

@@ -176,7 +176,8 @@ struct bt_graph *bt_graph_create(uint64_t mip_version)
 	int ret;
 
 	BT_ASSERT_PRE_NO_ERROR();
-	BT_ASSERT_PRE(mip_version <= bt_get_maximal_mip_version(),
+	BT_ASSERT_PRE("valid-mip-version",
+		mip_version <= bt_get_maximal_mip_version(),
 		"Unknown MIP version: mip-version=%" PRIu64 ", "
 		"max-mip-version=%" PRIu64,
 		mip_version, bt_get_maximal_mip_version());
@@ -313,19 +314,24 @@ enum bt_graph_connect_ports_status bt_graph_connect_ports(
 
 	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_GRAPH_NON_NULL(graph);
-	BT_ASSERT_PRE_NON_NULL(upstream_port, "Upstream port");
-	BT_ASSERT_PRE_NON_NULL(downstream_port, "Downstream port port");
-	BT_ASSERT_PRE(
+	BT_ASSERT_PRE_NON_NULL("upstream-port", upstream_port, "Upstream port");
+	BT_ASSERT_PRE_NON_NULL("downstream-port", downstream_port,
+		"Downstream port port");
+	BT_ASSERT_PRE("graph-is-not-configured",
 		graph->config_state == BT_GRAPH_CONFIGURATION_STATE_CONFIGURING,
 		"Graph is not in the \"configuring\" state: %!+g", graph);
-	BT_ASSERT_PRE(!bt_port_is_connected(upstream_port),
+	BT_ASSERT_PRE("upstream-port-is-not-connected",
+		!bt_port_is_connected(upstream_port),
 		"Upstream port is already connected: %!+p", upstream_port);
-	BT_ASSERT_PRE(!bt_port_is_connected(downstream_port),
+	BT_ASSERT_PRE("downstream-port-is-not-connected",
+		!bt_port_is_connected(downstream_port),
 		"Downstream port is already connected: %!+p", downstream_port);
-	BT_ASSERT_PRE(bt_port_borrow_component_inline((void *) upstream_port),
+	BT_ASSERT_PRE("upstream-port-has-component",
+		bt_port_borrow_component_inline((void *) upstream_port),
 		"Upstream port does not belong to a component: %!+p",
 		upstream_port);
-	BT_ASSERT_PRE(bt_port_borrow_component_inline((void *) downstream_port),
+	BT_ASSERT_PRE("downstream-port-has-component",
+		bt_port_borrow_component_inline((void *) downstream_port),
 		"Downstream port does not belong to a component: %!+p",
 		downstream_port);
 	init_can_consume = graph->can_consume;
@@ -426,6 +432,8 @@ end:
 	return status;
 }
 
+#define CONSUME_METHOD_NAME	"bt_component_class_sink_consume_method"
+
 static inline
 int consume_graph_sink(struct bt_component_sink *comp)
 {
@@ -439,14 +447,16 @@ int consume_graph_sink(struct bt_component_sink *comp)
 	consume_status = sink_class->methods.consume((void *) comp);
 	BT_LOGD("User method returned: status=%s",
 		bt_common_func_status_string(consume_status));
-	BT_ASSERT_POST_DEV(consume_status == BT_FUNC_STATUS_OK ||
+	BT_ASSERT_POST_DEV(CONSUME_METHOD_NAME, "valid-status",
+		consume_status == BT_FUNC_STATUS_OK ||
 		consume_status == BT_FUNC_STATUS_END ||
 		consume_status == BT_FUNC_STATUS_AGAIN ||
 		consume_status == BT_FUNC_STATUS_ERROR ||
 		consume_status == BT_FUNC_STATUS_MEMORY_ERROR,
 		"Invalid component status returned by consuming method: "
 		"status=%s", bt_common_func_status_string(consume_status));
-	BT_ASSERT_POST_DEV_NO_ERROR_IF_NO_ERROR_STATUS(consume_status);
+	BT_ASSERT_POST_DEV_NO_ERROR_IF_NO_ERROR_STATUS(CONSUME_METHOD_NAME,
+		consume_status);
 	if (consume_status) {
 		if (consume_status < 0) {
 			BT_LIB_LOGW_APPEND_CAUSE(
@@ -533,13 +543,14 @@ end:
 }
 
 static inline
-int consume_no_check(struct bt_graph *graph)
+int consume_no_check(struct bt_graph *graph, const char *api_func)
 {
 	int status = BT_FUNC_STATUS_OK;
 	struct bt_component *sink;
 	GList *current_node;
 
-	BT_ASSERT_PRE_DEV(graph->has_sink,
+	BT_ASSERT_PRE_DEV_FROM_FUNC(api_func,
+		"graph-has-at-least-one-sink-component", graph->has_sink,
 		"Graph has no sink component: %!+g", graph);
 	BT_LIB_LOGD("Making next sink component consume: %![graph-]+g", graph);
 
@@ -558,8 +569,11 @@ end:
 	return status;
 }
 
+#define GRAPH_IS_CONFIGURED_METHOD_NAME					\
+	"bt_component_class_sink_graph_is_configured_method"
+
 static
-int configure_graph(struct bt_graph *graph)
+int configure_graph(struct bt_graph *graph, const char *api_func)
 {
 	int status = BT_FUNC_STATUS_OK;
 	uint64_t i;
@@ -572,7 +586,9 @@ int configure_graph(struct bt_graph *graph)
 		goto end;
 	}
 
-	BT_ASSERT_PRE(graph->has_sink, "Graph has no sink component: %!+g", graph);
+	BT_ASSERT_PRE_FROM_FUNC(api_func,
+		"graph-has-at-least-one-sink-component",
+		graph->has_sink, "Graph has no sink component: %!+g", graph);
 	graph->config_state = BT_GRAPH_CONFIGURATION_STATE_PARTIALLY_CONFIGURED;
 
 	for (i = 0; i < graph->components->len; i++) {
@@ -599,12 +615,15 @@ int configure_graph(struct bt_graph *graph)
 				(void *) comp_sink);
 			BT_LIB_LOGD("User method returned: status=%s",
 				bt_common_func_status_string(comp_status));
-			BT_ASSERT_POST(comp_status == BT_FUNC_STATUS_OK ||
+			BT_ASSERT_POST(GRAPH_IS_CONFIGURED_METHOD_NAME,
+				"valid-status",
+				comp_status == BT_FUNC_STATUS_OK ||
 				comp_status == BT_FUNC_STATUS_ERROR ||
 				comp_status == BT_FUNC_STATUS_MEMORY_ERROR,
 				"Unexpected returned status: status=%s",
 				bt_common_func_status_string(comp_status));
-			BT_ASSERT_POST_NO_ERROR_IF_NO_ERROR_STATUS(comp_status);
+			BT_ASSERT_POST_NO_ERROR_IF_NO_ERROR_STATUS(
+				GRAPH_IS_CONFIGURED_METHOD_NAME, comp_status);
 			if (comp_status != BT_FUNC_STATUS_OK) {
 				if (comp_status < 0) {
 					BT_LIB_LOGW_APPEND_CAUSE(
@@ -635,19 +654,19 @@ enum bt_graph_run_once_status bt_graph_run_once(struct bt_graph *graph)
 
 	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_DEV_GRAPH_NON_NULL(graph);
-	BT_ASSERT_PRE_DEV(graph->can_consume,
+	BT_ASSERT_PRE_DEV("graph-can-consume", graph->can_consume,
 		"Cannot consume graph in its current state: %!+g", graph);
-	BT_ASSERT_PRE_DEV(graph->config_state !=
-		BT_GRAPH_CONFIGURATION_STATE_FAULTY,
+	BT_ASSERT_PRE_DEV("graph-is-not-faulty",
+		graph->config_state != BT_GRAPH_CONFIGURATION_STATE_FAULTY,
 		"Graph is in a faulty state: %!+g", graph);
 	bt_graph_set_can_consume(graph, false);
-	status = configure_graph(graph);
+	status = configure_graph(graph, __func__);
 	if (G_UNLIKELY(status)) {
 		/* configure_graph() logs errors */
 		goto end;
 	}
 
-	status = consume_no_check(graph);
+	status = consume_no_check(graph, __func__);
 	bt_graph_set_can_consume(graph, true);
 
 end:
@@ -660,12 +679,13 @@ enum bt_graph_run_status bt_graph_run(struct bt_graph *graph)
 
 	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_GRAPH_NON_NULL(graph);
-	BT_ASSERT_PRE(graph->can_consume,
+	BT_ASSERT_PRE("graph-can-consume", graph->can_consume,
 		"Cannot consume graph in its current state: %!+g", graph);
-	BT_ASSERT_PRE(graph->config_state != BT_GRAPH_CONFIGURATION_STATE_FAULTY,
+	BT_ASSERT_PRE("graph-is-not-faulty",
+		graph->config_state != BT_GRAPH_CONFIGURATION_STATE_FAULTY,
 		"Graph is in a faulty state: %!+g", graph);
 	bt_graph_set_can_consume(graph, false);
-	status = configure_graph(graph);
+	status = configure_graph(graph, __func__);
 	if (G_UNLIKELY(status)) {
 		/* configure_graph() logs errors */
 		goto end;
@@ -687,7 +707,7 @@ enum bt_graph_run_status bt_graph_run(struct bt_graph *graph)
 			goto end;
 		}
 
-		status = consume_no_check(graph);
+		status = consume_no_check(graph, __func__);
 		if (G_UNLIKELY(status == BT_FUNC_STATUS_AGAIN)) {
 			/*
 			 * If AGAIN is received and there are multiple
@@ -844,6 +864,7 @@ enum bt_graph_listener_func_status bt_graph_notify_port_added(
 	GArray *listeners;
 	struct bt_component *comp;
 	enum bt_graph_listener_func_status status = BT_FUNC_STATUS_OK;
+	const char *func_name;
 
 	BT_ASSERT(graph);
 	BT_ASSERT(port);
@@ -858,6 +879,7 @@ enum bt_graph_listener_func_status bt_graph_notify_port_added(
 		switch (port->type) {
 		case BT_PORT_TYPE_OUTPUT:
 			listeners = graph->listeners.source_output_port_added;
+			func_name = "bt_graph_source_component_output_port_added_listener_func";
 			break;
 		default:
 			bt_common_abort();
@@ -870,9 +892,11 @@ enum bt_graph_listener_func_status bt_graph_notify_port_added(
 		switch (port->type) {
 		case BT_PORT_TYPE_INPUT:
 			listeners = graph->listeners.filter_input_port_added;
+			func_name = "bt_graph_filter_component_input_port_added_listener_func";
 			break;
 		case BT_PORT_TYPE_OUTPUT:
 			listeners = graph->listeners.filter_output_port_added;
+			func_name = "bt_graph_filter_component_output_port_added_listener_func";
 			break;
 		default:
 			bt_common_abort();
@@ -885,6 +909,7 @@ enum bt_graph_listener_func_status bt_graph_notify_port_added(
 		switch (port->type) {
 		case BT_PORT_TYPE_INPUT:
 			listeners = graph->listeners.sink_input_port_added;
+			func_name = "bt_graph_sink_component_input_port_added_listener_func";
 			break;
 		default:
 			bt_common_abort();
@@ -904,7 +929,7 @@ enum bt_graph_listener_func_status bt_graph_notify_port_added(
 
 		BT_ASSERT(listener->func);
 		status = listener->func(comp, port, listener->data);
-		BT_ASSERT_POST_NO_ERROR_IF_NO_ERROR_STATUS(status);
+		BT_ASSERT_POST_NO_ERROR_IF_NO_ERROR_STATUS(func_name, status);
 		if (status != BT_FUNC_STATUS_OK) {
 			goto end;
 		}
@@ -954,7 +979,9 @@ int add_component_with_init_method_data(
 		comp_init_method_t init_method,
 		const char *name, const struct bt_value *params,
 		void *init_method_data, bt_logging_level log_level,
-		const struct bt_component **user_component)
+		const struct bt_component **user_component,
+		const char *api_func,
+		const char *init_method_name)
 {
 	int status = BT_FUNC_STATUS_OK;
 	enum bt_component_class_initialize_method_status init_status;
@@ -964,14 +991,15 @@ int add_component_with_init_method_data(
 	struct bt_value *new_params = NULL;
 
 	BT_ASSERT(comp_cls);
-	BT_ASSERT_PRE_GRAPH_NON_NULL(graph);
-	BT_ASSERT_PRE_NAME_NON_NULL(name);
-	BT_ASSERT_PRE(
+	BT_ASSERT_PRE_GRAPH_NON_NULL_FROM_FUNC(api_func, graph);
+	BT_ASSERT_PRE_NAME_NON_NULL_FROM_FUNC(api_func, name);
+	BT_ASSERT_PRE_FROM_FUNC(api_func, "graph-is-not-configured",
 		graph->config_state == BT_GRAPH_CONFIGURATION_STATE_CONFIGURING,
 		"Graph is not in the \"configuring\" state: %!+g", graph);
-	BT_ASSERT_PRE(!component_name_exists(graph, name),
+	BT_ASSERT_PRE_FROM_FUNC(api_func, "component-name-is-unique",
+		!component_name_exists(graph, name),
 		"Duplicate component name: %!+g, name=\"%s\"", graph, name);
-	BT_ASSERT_PRE_PARAM_VALUE_IS_MAP(params);
+	BT_ASSERT_PRE_PARAM_VALUE_IS_MAP_FROM_FUNC(api_func, params);
 	init_can_consume = graph->can_consume;
 	bt_graph_set_can_consume(graph, false);
 	BT_LIB_LOGI("Adding component to graph: "
@@ -1020,7 +1048,8 @@ int add_component_with_init_method_data(
 		init_status = init_method(component, NULL, params, init_method_data);
 		BT_LOGD("User method returned: status=%s",
 			bt_common_func_status_string(init_status));
-		BT_ASSERT_POST_DEV_NO_ERROR_IF_NO_ERROR_STATUS(init_status);
+		BT_ASSERT_POST_DEV_NO_ERROR_IF_NO_ERROR_STATUS(init_method_name,
+			init_status);
 		if (init_status != BT_FUNC_STATUS_OK) {
 			if (init_status < 0) {
 				BT_LIB_LOGW_APPEND_CAUSE(
@@ -1083,6 +1112,24 @@ end:
 	return status;
 }
 
+static
+enum bt_graph_add_component_status
+add_source_component_with_initialize_method_data(
+		struct bt_graph *graph,
+		const struct bt_component_class_source *comp_cls,
+		const char *name, const struct bt_value *params,
+		void *init_method_data, bt_logging_level log_level,
+		const struct bt_component_source **component,
+		const char *api_func)
+{
+	BT_ASSERT_PRE_NO_ERROR_FROM_FUNC(api_func);
+	BT_ASSERT_PRE_COMP_CLS_NON_NULL_FROM_FUNC(api_func, comp_cls);
+	return add_component_with_init_method_data(graph,
+		(void *) comp_cls, (comp_init_method_t) comp_cls->methods.init,
+		name, params, init_method_data, log_level, (void *) component,
+		api_func, "bt_component_class_source_initialize_method");
+}
+
 enum bt_graph_add_component_status
 bt_graph_add_source_component_with_initialize_method_data(
 		struct bt_graph *graph,
@@ -1091,11 +1138,8 @@ bt_graph_add_source_component_with_initialize_method_data(
 		void *init_method_data, bt_logging_level log_level,
 		const struct bt_component_source **component)
 {
-	BT_ASSERT_PRE_NO_ERROR();
-	BT_ASSERT_PRE_COMP_CLS_NON_NULL(comp_cls);
-	return add_component_with_init_method_data(graph,
-		(void *) comp_cls, (comp_init_method_t) comp_cls->methods.init,
-		name, params, init_method_data, log_level, (void *) component);
+	return add_source_component_with_initialize_method_data(graph, comp_cls,
+		name, params, init_method_data, log_level, component, __func__);
 }
 
 enum bt_graph_add_component_status bt_graph_add_source_component(
@@ -1105,9 +1149,26 @@ enum bt_graph_add_component_status bt_graph_add_source_component(
 		enum bt_logging_level log_level,
 		const struct bt_component_source **component)
 {
-	BT_ASSERT_PRE_NO_ERROR();
-	return bt_graph_add_source_component_with_initialize_method_data(
-		graph, comp_cls, name, params, NULL, log_level, component);
+	return add_source_component_with_initialize_method_data(graph, comp_cls,
+		name, params, NULL, log_level, component, __func__);
+}
+
+static
+enum bt_graph_add_component_status
+add_filter_component_with_initialize_method_data(
+		struct bt_graph *graph,
+		const struct bt_component_class_filter *comp_cls,
+		const char *name, const struct bt_value *params,
+		void *init_method_data, bt_logging_level log_level,
+		const struct bt_component_filter **component,
+		const char *api_func)
+{
+	BT_ASSERT_PRE_NO_ERROR_FROM_FUNC(api_func);
+	BT_ASSERT_PRE_COMP_CLS_NON_NULL_FROM_FUNC(api_func, comp_cls);
+	return add_component_with_init_method_data(graph,
+		(void *) comp_cls, (comp_init_method_t) comp_cls->methods.init,
+		name, params, init_method_data, log_level, (void *) component,
+		api_func, "bt_component_class_filter_initialize_method");
 }
 
 enum bt_graph_add_component_status
@@ -1115,14 +1176,11 @@ bt_graph_add_filter_component_with_initialize_method_data(
 		struct bt_graph *graph,
 		const struct bt_component_class_filter *comp_cls,
 		const char *name, const struct bt_value *params,
-		void *init_method_data, enum bt_logging_level log_level,
+		void *init_method_data, bt_logging_level log_level,
 		const struct bt_component_filter **component)
 {
-	BT_ASSERT_PRE_NO_ERROR();
-	BT_ASSERT_PRE_COMP_CLS_NON_NULL(comp_cls);
-	return add_component_with_init_method_data(graph,
-		(void *) comp_cls, (comp_init_method_t) comp_cls->methods.init,
-		name, params, init_method_data, log_level, (void *) component);
+	return add_filter_component_with_initialize_method_data(graph, comp_cls,
+		name, params, init_method_data, log_level, component, __func__);
 }
 
 enum bt_graph_add_component_status bt_graph_add_filter_component(
@@ -1132,9 +1190,26 @@ enum bt_graph_add_component_status bt_graph_add_filter_component(
 		enum bt_logging_level log_level,
 		const struct bt_component_filter **component)
 {
-	BT_ASSERT_PRE_NO_ERROR();
-	return bt_graph_add_filter_component_with_initialize_method_data(
-		graph, comp_cls, name, params, NULL, log_level, component);
+	return add_filter_component_with_initialize_method_data(graph, comp_cls,
+		name, params, NULL, log_level, component, __func__);
+}
+
+static
+enum bt_graph_add_component_status
+add_sink_component_with_initialize_method_data(
+		struct bt_graph *graph,
+		const struct bt_component_class_sink *comp_cls,
+		const char *name, const struct bt_value *params,
+		void *init_method_data, bt_logging_level log_level,
+		const struct bt_component_sink **component,
+		const char *api_func)
+{
+	BT_ASSERT_PRE_NO_ERROR_FROM_FUNC(api_func);
+	BT_ASSERT_PRE_COMP_CLS_NON_NULL_FROM_FUNC(api_func, comp_cls);
+	return add_component_with_init_method_data(graph,
+		(void *) comp_cls, (comp_init_method_t) comp_cls->methods.init,
+		name, params, init_method_data, log_level, (void *) component,
+		api_func, "bt_component_class_sink_initialize_method");
 }
 
 enum bt_graph_add_component_status
@@ -1142,14 +1217,12 @@ bt_graph_add_sink_component_with_initialize_method_data(
 		struct bt_graph *graph,
 		const struct bt_component_class_sink *comp_cls,
 		const char *name, const struct bt_value *params,
-		void *init_method_data, enum bt_logging_level log_level,
+		void *init_method_data, bt_logging_level log_level,
 		const struct bt_component_sink **component)
 {
-	BT_ASSERT_PRE_NO_ERROR();
-	BT_ASSERT_PRE_COMP_CLS_NON_NULL(comp_cls);
-	return add_component_with_init_method_data(graph,
-		(void *) comp_cls, (comp_init_method_t) comp_cls->methods.init,
-		name, params, init_method_data, log_level, (void *) component);
+	return add_sink_component_with_initialize_method_data(graph, comp_cls,
+		name, params, init_method_data, log_level, component,
+		__func__);
 }
 
 enum bt_graph_add_component_status bt_graph_add_sink_component(
@@ -1159,9 +1232,8 @@ enum bt_graph_add_component_status bt_graph_add_sink_component(
 		enum bt_logging_level log_level,
 		const struct bt_component_sink **component)
 {
-	BT_ASSERT_PRE_NO_ERROR();
-	return bt_graph_add_sink_component_with_initialize_method_data(
-		graph, comp_cls, name, params, NULL, log_level, component);
+	return add_sink_component_with_initialize_method_data(graph, comp_cls,
+		name, params, NULL, log_level, component, __func__);
 }
 
 enum bt_graph_add_component_status
@@ -1184,9 +1256,10 @@ bt_graph_add_simple_sink_component(struct bt_graph *graph, const char *name,
 
 	/*
 	 * Other preconditions are checked by
-	 * bt_graph_add_sink_component_with_init_method_data().
+	 * add_sink_component_with_initialize_method_data().
 	 */
-	BT_ASSERT_PRE_NON_NULL(consume_func, "Consume function");
+	BT_ASSERT_PRE_NON_NULL("consume-function", consume_func,
+		"Consume function");
 
 	comp_cls = bt_component_class_sink_simple_borrow();
 	if (!comp_cls) {
@@ -1196,9 +1269,9 @@ bt_graph_add_simple_sink_component(struct bt_graph *graph, const char *name,
 		goto end;
 	}
 
-	status = bt_graph_add_sink_component_with_initialize_method_data(graph,
+	status = add_sink_component_with_initialize_method_data(graph,
 		comp_cls, name, NULL, &init_method_data,
-		BT_LOGGING_LEVEL_NONE, component);
+		BT_LOGGING_LEVEL_NONE, component, __func__);
 
 end:
 	return status;

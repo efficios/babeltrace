@@ -24,33 +24,50 @@ directory: the compiler prints an error when you try to.
 - All libbabeltrace2 definitions, macros, and enumerators start
   with \c BT_.
 
-@section api-fund-pre-post Function precondition and postcondition checking
+@section api-fund-pre-post Function contract checking
 
-All the functions of libbabeltrace2 which have parameters check that
-the caller meets their
+All the functions of libbabeltrace2 check that the caller meets their
 <a href="https://en.wikipedia.org/wiki/Precondition">preconditions</a>.
 
-All the functions of libbabeltrace2 which call a user function which
-returns something check that the returned value meets their
-<a href="https://en.wikipedia.org/wiki/Postcondition">postconditions</a>.
+All the functions of libbabeltrace2 which call a user function check
+that it meets its
+<a href="https://en.wikipedia.org/wiki/Postcondition">postconditions</a>
+when it returns.
 
 The function descriptions in the
 <a class="el" href="modules.html">API reference modules</a>
 list all their preconditions and postconditions, if any.
 
-libbabeltrace2 is very strict regarding function preconditions and
-postconditions: when you break any of them, the library prints how the
-precondition or postcondition was not satisfied, with details, and then
-calls <code>abort()</code>.
+The libbabeltrace2 public functions offer a
+<strong>narrow contract</strong>: when you break it, the library
+prints how the precondition or postcondition was not satisfied, with
+details, and then calls <code>abort()</code>.
 
 Here's an example of what the library prints to the standard error
-before aborting when you break a precondition:
+before aborting when you break a precondition (call
+bt_value_bool_set() with a \c NULL value);
+\ref api-fund-logging "logging" prefixes are removed for clarity:
 
 @code{.unparsed}
-10-06 09:12:20.228 62362 62362 F LIB/VALUE bt_value_array_get_length@value.c:887 Babeltrace 2 library precondition not satisfied; error is:
-10-06 09:12:20.228 62362 62362 F LIB/VALUE bt_value_array_get_length@value.c:887 Value object is NULL:
-10-06 09:12:20.228 62362 62362 F LIB/VALUE bt_value_array_get_length@value.c:887 Aborting...
+Babeltrace 2 library precondition not satisfied.
+------------------------------------------------------------------------
+Condition ID: `pre:value-bool-set:not-null:value-object`.
+Function: bt_value_bool_set().
+------------------------------------------------------------------------
+Error is:
+Value object is NULL.
+Aborting...
 @endcode
+
+In the output above:
+
+- <code>pre:value-bool-set:not-null:value-object</code> is the unique,
+  permanent ID of this precondition.
+
+  We use this ID for internal libbabeltrace2 testing.
+
+- The <code>Function:</code> line shows which function's contract was
+  broken.
 
 Because precondition and postcondition checks detect programming errors,
 libbabeltrace2's approach is to abort as soon as possible so that you

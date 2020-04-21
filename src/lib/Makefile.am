@@ -7,6 +7,7 @@ lib_LTLIBRARIES = libbabeltrace2.la
 libbabeltrace2_la_SOURCES = \
 	assert-cond-base.h \
 	assert-cond.h \
+	assert-cond.c \
 	babeltrace2.c \
 	current-thread.c \
 	error.c \

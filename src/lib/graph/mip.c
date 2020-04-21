@@ -71,6 +71,7 @@ int validate_operative_mip_version_in_array(GPtrArray *descriptors,
 		struct bt_component_descriptor_set_entry *descr =
 			descriptors->pdata[i];
 		method_t method = NULL;
+		const char *method_name = NULL;
 		bt_component_class_get_supported_mip_versions_method_status method_status;
 
 		switch (descr->comp_cls->type) {
@@ -80,6 +81,7 @@ int validate_operative_mip_version_in_array(GPtrArray *descriptors,
 				descr->comp_cls;
 
 			method = (method_t) src_cc->methods.get_supported_mip_versions;
+			method_name = "bt_component_class_source_get_supported_mip_versions_method";
 			break;
 		}
 		case BT_COMPONENT_CLASS_TYPE_FILTER:
@@ -88,6 +90,7 @@ int validate_operative_mip_version_in_array(GPtrArray *descriptors,
 				descr->comp_cls;
 
 			method = (method_t) flt_cc->methods.get_supported_mip_versions;
+			method_name = "bt_component_class_filter_get_supported_mip_versions_method";
 			break;
 		}
 		case BT_COMPONENT_CLASS_TYPE_SINK:
@@ -96,6 +99,7 @@ int validate_operative_mip_version_in_array(GPtrArray *descriptors,
 				descr->comp_cls;
 
 			method = (method_t) sink_cc->methods.get_supported_mip_versions;
+			method_name = "bt_component_class_sink_get_supported_mip_versions_method";
 			break;
 		}
 		default:
@@ -125,11 +129,13 @@ int validate_operative_mip_version_in_array(GPtrArray *descriptors,
 			range_set);
 		BT_LIB_LOGD("User method returned: status=%s",
 			bt_common_func_status_string(method_status));
-		BT_ASSERT_POST(method_status != BT_FUNC_STATUS_OK ||
+		BT_ASSERT_POST(method_name, "status-ok-with-at-least-one-range",
+			method_status != BT_FUNC_STATUS_OK ||
 			range_set->ranges->len > 0,
 			"User method returned `BT_FUNC_STATUS_OK` without "
 			"adding a range to the supported MIP version range set.");
-		BT_ASSERT_POST_NO_ERROR_IF_NO_ERROR_STATUS(method_status);
+		BT_ASSERT_POST_NO_ERROR_IF_NO_ERROR_STATUS(method_name,
+			method_status);
 		if (method_status < 0) {
 			BT_LIB_LOGW_APPEND_CAUSE(
 				"Component class's \"get supported MIP versions\" method failed: "
@@ -180,9 +186,11 @@ bt_get_greatest_operative_mip_version(
 
 	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_COMP_DESCR_SET_NON_NULL(comp_descr_set);
-	BT_ASSERT_PRE_NON_NULL(operative_mip_version,
+	BT_ASSERT_PRE_NON_NULL("operative-mip-version-output",
+		operative_mip_version,
 		"Operative MIP version (output)");
-	BT_ASSERT_PRE(comp_descr_set->sources->len +
+	BT_ASSERT_PRE("component-descriptor-set-is-not-empty",
+		comp_descr_set->sources->len +
 		comp_descr_set->filters->len +
 		comp_descr_set->sinks->len > 0,
 		"Component descriptor set is empty: addr=%p", comp_descr_set);

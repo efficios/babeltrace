@@ -87,15 +87,18 @@ const struct bt_field_path_item *bt_field_path_borrow_item_by_index_const(
 enum bt_field_path_item_type bt_field_path_item_get_type(
 		const struct bt_field_path_item *field_path_item)
 {
-	BT_ASSERT_PRE_DEV_NON_NULL(field_path_item, "Field path item");
+	BT_ASSERT_PRE_DEV_NON_NULL("field-path-item", field_path_item,
+		"Field path item");
 	return field_path_item->type;
 }
 
 uint64_t bt_field_path_item_index_get_index(
 		const struct bt_field_path_item *field_path_item)
 {
-	BT_ASSERT_PRE_DEV_NON_NULL(field_path_item, "Field path item");
-	BT_ASSERT_PRE_DEV(field_path_item->type == BT_FIELD_PATH_ITEM_TYPE_INDEX,
+	BT_ASSERT_PRE_DEV_NON_NULL("field-path-item", field_path_item,
+		"Field path item");
+	BT_ASSERT_PRE_DEV("is-index-field-path-item",
+		field_path_item->type == BT_FIELD_PATH_ITEM_TYPE_INDEX,
 		"Field path item is not an index field path item: "
 		"addr=%p, type=%s", field_path_item,
 		bt_field_path_item_type_string(field_path_item->type));

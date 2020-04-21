@@ -13,9 +13,10 @@
 #include "lib/assert-cond.h"
 #include "lib/func-status.h"
 
-#define BT_ASSERT_COND_DEV_MSG_ITER_CLS_HOT(_msg_iter_cls) \
-	BT_ASSERT_PRE_DEV_HOT((_msg_iter_cls), \
-		"Message iterator class", ": %!+I", (_msg_iter_cls))
+#define BT_ASSERT_PRE_DEV_MSG_ITER_CLS_HOT(_msg_iter_cls)		\
+	BT_ASSERT_PRE_DEV_HOT("message-iterator-class",			\
+		(_msg_iter_cls), "Message iterator class",		\
+		": %!+I", (_msg_iter_cls))
 
 BT_HIDDEN
 void _bt_message_iterator_class_freeze(
@@ -57,7 +58,7 @@ struct bt_message_iterator_class *bt_message_iterator_class_create(
 	struct bt_message_iterator_class *message_iterator_class;
 
 	BT_ASSERT_PRE_NO_ERROR();
-	BT_ASSERT_PRE_NON_NULL(next_method, "Next method");
+	BT_ASSERT_PRE_NON_NULL("next-method", next_method, "Next method");
 	BT_LOGI("Creating message iterator class: next-method-addr=%p",
 		next_method);
 
@@ -84,7 +85,7 @@ bt_message_iterator_class_set_initialize_method(
 	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_MSG_ITER_CLS_NON_NULL(message_iterator_class);
 	BT_ASSERT_PRE_METHOD_NON_NULL(method);
-	BT_ASSERT_COND_DEV_MSG_ITER_CLS_HOT(message_iterator_class);
+	BT_ASSERT_PRE_DEV_MSG_ITER_CLS_HOT(message_iterator_class);
 	message_iterator_class->methods.initialize = method;
 	BT_LIB_LOGD("Set message iterator class's iterator initialization method"
 		": %!+I", message_iterator_class);
@@ -99,7 +100,7 @@ bt_message_iterator_class_set_finalize_method(
 	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_MSG_ITER_CLS_NON_NULL(message_iterator_class);
 	BT_ASSERT_PRE_METHOD_NON_NULL(method);
-	BT_ASSERT_COND_DEV_MSG_ITER_CLS_HOT(message_iterator_class);
+	BT_ASSERT_PRE_DEV_MSG_ITER_CLS_HOT(message_iterator_class);
 	message_iterator_class->methods.finalize = method;
 	BT_LIB_LOGD("Set message iterator class's finalization method"
 		": %!+I", message_iterator_class);
@@ -114,8 +115,8 @@ bt_message_iterator_class_set_seek_ns_from_origin_methods(
 {
 	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_MSG_ITER_CLS_NON_NULL(message_iterator_class);
-	BT_ASSERT_PRE_NON_NULL(seek_method, "Seek method");
-	BT_ASSERT_COND_DEV_MSG_ITER_CLS_HOT(message_iterator_class);
+	BT_ASSERT_PRE_NON_NULL("seek-method", seek_method, "Seek method");
+	BT_ASSERT_PRE_DEV_MSG_ITER_CLS_HOT(message_iterator_class);
 	message_iterator_class->methods.seek_ns_from_origin = seek_method;
 	message_iterator_class->methods.can_seek_ns_from_origin = can_seek_method;
 	BT_LIB_LOGD("Set message iterator class's \"seek nanoseconds from origin\" method"
@@ -131,8 +132,8 @@ bt_message_iterator_class_set_seek_beginning_methods(
 {
 	BT_ASSERT_PRE_NO_ERROR();
 	BT_ASSERT_PRE_MSG_ITER_CLS_NON_NULL(message_iterator_class);
-	BT_ASSERT_PRE_NON_NULL(seek_method, "Seek method");
-	BT_ASSERT_COND_DEV_MSG_ITER_CLS_HOT(message_iterator_class);
+	BT_ASSERT_PRE_NON_NULL("seek-method", seek_method, "Seek method");
+	BT_ASSERT_PRE_DEV_MSG_ITER_CLS_HOT(message_iterator_class);
 	message_iterator_class->methods.seek_beginning = seek_method;
 	message_iterator_class->methods.can_seek_beginning = can_seek_method;
 	BT_LIB_LOGD("Set message iterator class's \"seek beginning\" methods"
