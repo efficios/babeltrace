@@ -549,7 +549,7 @@
 #define BT_ASSERT_PRE_DEV_MSG_NON_NULL(_msg_iter)			\
 	BT_ASSERT_PRE_DEV_NON_NULL(_msg_iter, _BT_ASSERT_PRE_MSG_NAME)
 
-#define BT_ASSERT_PRE_BEGIN_LE_END(_msg_iter, _begin, _end) 		\
+#define BT_ASSERT_PRE_MSG_CS_BEGIN_LE_END(_msg_iter, _begin, _end) 	\
 	BT_ASSERT_PRE(							\
 		_begin <= _end,						\
 		"Beginning default clock snapshot value is greater "	\
