@@ -57,6 +57,9 @@ int bt_lib_log_level;
 void bt_lib_log(const char *func, const char *file, unsigned line,
 		int lvl, const char *tag, const char *fmt, ...);
 
+void bt_lib_log_v(const char *func, const char *file, unsigned line,
+		int lvl, const char *tag, const char *fmt, va_list *args);
+
 #define BT_LIB_LOG_AND_APPEND(_lvl, _fmt, ...)				\
 	do {								\
 		bt_lib_maybe_log_and_append_cause(			\

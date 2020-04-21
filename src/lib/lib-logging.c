@@ -1484,6 +1484,15 @@ update_fmt:
 	*out_fmt_ch = fmt_ch;
 }
 
+void bt_lib_log_v(const char *func, const char *file, unsigned line,
+		int lvl, const char *tag, const char *fmt, va_list *args)
+{
+	BT_ASSERT(fmt);
+	bt_common_custom_vsnprintf(lib_logging_buf, LIB_LOGGING_BUF_SIZE, '!',
+		handle_conversion_specifier_bt, NULL, fmt, args);
+	_bt_log_write_d(func, file, line, lvl, tag, "%s", lib_logging_buf);
+}
+
 void bt_lib_log(const char *func, const char *file, unsigned line,
 		int lvl, const char *tag, const char *fmt, ...)
 {
@@ -1491,10 +1500,8 @@ void bt_lib_log(const char *func, const char *file, unsigned line,
 
 	BT_ASSERT(fmt);
 	va_start(args, fmt);
-	bt_common_custom_vsnprintf(lib_logging_buf, LIB_LOGGING_BUF_SIZE, '!',
-		handle_conversion_specifier_bt, NULL, fmt, &args);
+	bt_lib_log_v(func, file, line, lvl, tag, fmt, &args);
 	va_end(args);
-	_bt_log_write_d(func, file, line, lvl, tag, "%s", lib_logging_buf);
 }
 
 void bt_lib_maybe_log_and_append_cause(const char *func, const char *file,
