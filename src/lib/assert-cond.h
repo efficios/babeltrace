@@ -17,7 +17,7 @@
  */
 #define BT_ASSERT_PRE_NON_NULL_FROM_FUNC(_func, _obj_id, _obj, _obj_name) \
 	BT_ASSERT_PRE_FROM_FUNC(_func, "not-null:" _obj_id, (_obj), 	\
-		"%s is NULL: ", _obj_name)
+		"%s is NULL.", _obj_name)
 
 #define BT_ASSERT_PRE_NON_NULL(_obj_id, _obj, _obj_name)		\
 	BT_ASSERT_PRE_NON_NULL_FROM_FUNC(__func__, _obj_id, (_obj), _obj_name)
