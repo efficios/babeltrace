@@ -137,6 +137,6 @@ bt_message_iterator_class_set_seek_beginning_methods(
 	message_iterator_class->methods.seek_beginning = seek_method;
 	message_iterator_class->methods.can_seek_beginning = can_seek_method;
 	BT_LIB_LOGD("Set message iterator class's \"seek beginning\" methods"
-		": %!+C", message_iterator_class);
+		": %!+I", message_iterator_class);
 	return BT_FUNC_STATUS_OK;
 }
