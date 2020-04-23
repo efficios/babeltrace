@@ -1,3 +1,21 @@
+2020-04-24 Babeltrace 2.0.3 (German Beer Day)
+	* Fix: lib: use appropriate format specifier to print message iterator class
+	* Fix: sink.text.pretty: check that port is connected before creating message iterator
+	* Add initial Python bindings documentation
+	* Fix: bt2: read properties on _DiscardedEventsMessage
+	* tests: add tests for discarded events/packets creation
+	* Fix: bt2: add precond. check, for stream class supporting discarded msgs with clock snapshot without clock class
+	* Fix: flt-utils.muxer: reference leak in muxer_msg_iter_add_upstream_msg_iter error path
+	* Fix: sink.text.details: goto error when failing to add input port
+	* Fix: src.text.dmesg: add missing assignment of `status` on error path
+	* Revert "bt2: _EventConst.__getitem__(): use a single temporary variable"
+	* Fix: src.ctf.fs: initialize the other_entry variable
+	* bt2: _EventConst.__getitem__(): use a single temporary variable
+	* Fix: _EventConst.__getitem__(): check if event has a packet
+	* doc: bt_field_class...get_mapping_labels...(): clarify RV's validity
+	* doc/api/libbabeltrace2/style.css: make font weight of `.intertd` normal
+	* Update working version to Babeltrace 2.0.3
+
 2020-03-10 Babeltrace 2.0.2 (International Bagpipe Day)
 	* common: cast arguments to character classification functions to unsigned char
 	* flt.utils.muxer: initialize variable to silence -Wmaybe-uninitialized warning
