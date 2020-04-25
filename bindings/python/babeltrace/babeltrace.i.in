@@ -672,8 +672,11 @@ class CTFScope:
 _scopes = [CTFScope.EVENT_FIELDS, CTFScope.EVENT_CONTEXT, CTFScope.STREAM_EVENT_CONTEXT,
 	CTFScope.STREAM_EVENT_HEADER, CTFScope.STREAM_PACKET_CONTEXT, CTFScope.TRACE_PACKET_HEADER]
 
-import collections
-class Event(collections.Mapping):
+try:
+	import collections.abc as collections_abc
+except ImportError:
+	import collections as collections_abc  # Fallback for Python 3.2
+class Event(collections_abc.Mapping):
 	"""
 	This class represents an event from the trace.
 	It is obtained using the TraceCollection generator functions.
