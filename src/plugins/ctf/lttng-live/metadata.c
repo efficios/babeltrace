@@ -295,9 +295,6 @@ enum lttng_live_iterator_status lttng_live_metadata_update(
 		trace->metadata_stream_state = LTTNG_LIVE_METADATA_STREAM_STATE_NOT_NEEDED;
 
 		break;
-	case CTF_METADATA_DECODER_STATUS_INCOMPLETE:
-		status = LTTNG_LIVE_ITERATOR_STATUS_AGAIN;
-		break;
 	default:
 		goto error;
 	}
