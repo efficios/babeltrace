@@ -9,11 +9,13 @@
 #ifndef LTTNG_INDEX_H
 #define LTTNG_INDEX_H
 
+#include <stddef.h>
 #include "compat/limits.h"
 
 #define CTF_INDEX_MAGIC 0xC1F1DCC1
 #define CTF_INDEX_MAJOR 1
 #define CTF_INDEX_MINOR 1
+#define CTF_INDEX_1_0_SIZE offsetof(struct ctf_packet_index, stream_instance_id)
 
 /*
  * Header at the beginning of each index file.

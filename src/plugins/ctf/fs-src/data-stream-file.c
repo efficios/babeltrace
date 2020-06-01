@@ -632,6 +632,13 @@ struct ctf_fs_ds_index *build_index_from_idx_file(
 	}
 
 	file_index_entry_size = be32toh(header->packet_index_len);
+	if (file_index_entry_size < CTF_INDEX_1_0_SIZE) {
+		BT_COMP_LOGW("Invalid `packet_index_len` in LTTng trace index file (`packet_index_len` < CTF index 1.0 index entry size): "
+			"packet_index_len=%zu, CTF_INDEX_1_0_SIZE=%zu",
+			file_index_entry_size, CTF_INDEX_1_0_SIZE);
+		goto error;
+	}
+
 	file_entry_count = (filesize - sizeof(*header)) / file_index_entry_size;
 	if ((filesize - sizeof(*header)) % file_index_entry_size) {
 		BT_COMP_LOGW("Invalid LTTng trace index: the index's size after the header "
