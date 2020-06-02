@@ -177,7 +177,7 @@ run_test() {
 	local cli_stderr
 	local cli_stdout
 	local port_file
-        local port
+	local port
 
 	cli_stderr="$(mktemp -t test_live_stderr.XXXXXX)"
 	cli_stdout="$(mktemp -t test_live_stdout.XXXXXX)"
