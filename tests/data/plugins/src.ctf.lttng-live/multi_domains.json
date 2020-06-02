@@ -1,0 +1,26 @@
+[
+    {
+        "name": "multi-domains",
+        "id": 0,
+        "hostname": "hostname",
+        "live-timer-freq": 1,
+        "client-count": 0,
+        "traces": [
+            {
+                "path": "succeed/multi-domains/kernel/"
+            }
+        ]
+    },
+    {
+        "name": "multi-domains",
+        "id": 1,
+        "hostname": "hostname",
+        "live-timer-freq": 1,
+        "client-count": 0,
+        "traces": [
+            {
+                "path": "succeed/multi-domains/ust/"
+            }
+        ]
+    }
+]

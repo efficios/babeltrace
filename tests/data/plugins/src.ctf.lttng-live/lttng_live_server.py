@@ -13,6 +13,7 @@ import socket
 import struct
 import sys
 import tempfile
+import json
 
 
 class UnexpectedInput(RuntimeError):
@@ -1369,19 +1370,59 @@ class LttngTracingSessionDescriptor:
         return self._info
 
 
-def _tracing_session_descriptors_from_arg(string):
-    # Format is:
-    #     NAME,ID,HOSTNAME,FREQ,CLIENTS,TRACEPATH[,TRACEPATH]...
-    parts = string.split(',')
-    name = parts[0]
-    tracing_session_id = int(parts[1])
-    hostname = parts[2]
-    live_timer_freq = int(parts[3])
-    client_count = int(parts[4])
-    traces = [LttngTrace(path) for path in parts[5:]]
-    return LttngTracingSessionDescriptor(
-        name, tracing_session_id, hostname, live_timer_freq, client_count, traces
-    )
+def _session_descriptors_from_path(sessions_filename, trace_path_prefix):
+    # File format is:
+    #
+    #     [
+    #         {
+    #             "name": "my-session",
+    #             "id": 17,
+    #             "hostname": "myhost",
+    #             "live-timer-freq": 1000000,
+    #             "client-count": 23,
+    #             "traces": [
+    #                 {
+    #                     "path": "lol"
+    #                 },
+    #                 {
+    #                     "path": "meow/mix"
+    #                 }
+    #             ]
+    #         }
+    #     ]
+    with open(sessions_filename, 'r') as sessions_file:
+        params = json.load(sessions_file)
+
+    sessions = []
+
+    for session in params:
+        name = session['name']
+        tracing_session_id = session['id']
+        hostname = session['hostname']
+        live_timer_freq = session['live-timer-freq']
+        client_count = session['client-count']
+        traces = []
+
+        for trace in session['traces']:
+            path = trace['path']
+
+            if not os.path.isabs(path):
+                path = os.path.join(trace_path_prefix, path)
+
+            traces.append(LttngTrace(path))
+
+        sessions.append(
+            LttngTracingSessionDescriptor(
+                name,
+                tracing_session_id,
+                hostname,
+                live_timer_freq,
+                client_count,
+                traces,
+            )
+        )
+
+    return sessions
 
 
 def _loglevel_parser(string):
@@ -1418,11 +1459,12 @@ if __name__ == '__main__':
         help='The maximum size of control data response in bytes',
     )
     parser.add_argument(
-        'sessions',
-        nargs="+",
-        metavar="SESSION",
-        type=_tracing_session_descriptors_from_arg,
-        help='A session configuration. There is no space after comma. Format is: NAME,ID,HOSTNAME,FREQ,CLIENTS,TRACEPATH[,TRACEPATH]....',
+        '--trace-path-prefix',
+        type=str,
+        help='Prefix to prepend to the trace paths of session configurations',
+    )
+    parser.add_argument(
+        '--sessions-filename', type=str, help='Path to a session configuration file',
     )
     parser.add_argument(
         '-h',
@@ -1434,9 +1476,10 @@ if __name__ == '__main__':
 
     args = parser.parse_args(args=remaining_args)
     try:
-        LttngLiveServer(
-            args.port_filename, args.sessions, args.max_query_data_response_size
+        sessions = _session_descriptors_from_path(
+            args.sessions_filename, args.trace_path_prefix
         )
+        LttngLiveServer(args.port_filename, sessions, args.max_query_data_response_size)
     except UnexpectedInput as exc:
         logging.error(str(exc))
         print(exc, file=sys.stderr)
