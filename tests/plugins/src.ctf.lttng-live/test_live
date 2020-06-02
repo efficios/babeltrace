@@ -327,10 +327,51 @@ test_compare_to_ctf_fs() {
 	rm -f "$expected_stderr"
 }
 
-plan_tests 12
+test_inactivity_discarded_packet() {
+	# Attach and consume data from a multi-packet trace with discarded
+	# packets and emit an inactivity beacon during the discarded packets
+	# period.
+	#
+	# | pkt seq:0 |<-------discarded packets------>| pkt seq:8 |
+	# 0          20                                121       140
+	#
+	# This test was introduced to cover the following bug:
+	#
+	# When reading this type of trace locally, the CTF source is expected
+	# to introduce a "Discarded packets" message between packets 0 and 8.
+	# The timestamps of this message are [pkt0.end_ts, pkt8.begin_ts].
+	#
+	# In the context of a live source, the tracer could report an inactivity
+	# period during the interval of the "Discarded packets" message.
+	# Those messages eventually translate into a
+	# "Iterator inactivity" message with a timestamp set at the end of the
+	# inactivity period.
+	#
+	# If the tracer reports an inactivity period that ends at a point
+	# between pkt0 and pkt7 (resulting in an "Iterator inactivity" message),
+	# the live source could send a "Discarded packets" message that starts
+	# before the preceding "Iterator inactivity" message. This would break
+	# the monotonicity constraint of the graph.
+	local test_text="CLI attach and fetch from single-domains session - inactivity discarded packet"
+	local cli_args_template="-i lttng-live net://localhost:@PORT@/host/hostname/7_lost_between_2_with_index -c sink.text.details"
+	local sessions_file="$test_data_dir/inactivity_discarded_packet.json"
+	local server_args="--sessions-filename '$sessions_file'"
+	local expected_stdout="$test_data_dir/inactivity_discarded_packet.expect"
+	local expected_stderr
+
+	# Empty file for stderr expected
+	expected_stderr="$(mktemp -t test_live_inactivity_discarded_packet_stderr_expected.XXXXXX)"
+
+	run_test "$test_text" "$cli_args_template" "$server_args" "$expected_stdout" "$expected_stderr"
+
+	rm -f "$expected_stderr"
+}
+
+plan_tests 14
 
 test_list_sessions
 test_base
 test_multi_domains
 test_rate_limited
 test_compare_to_ctf_fs
+test_inactivity_discarded_packet

@@ -1,0 +1,67 @@
+Trace class:
+  Stream class (ID 0):
+    Supports packets: Yes
+    Packets have beginning default clock snapshot: Yes
+    Packets have end default clock snapshot: Yes
+    Supports discarded events: No
+    Supports discarded packets: Yes
+    Discarded packets have default clock snapshots: Yes
+    Default clock class:
+      Name: default
+      Frequency (Hz): 1,000,000,000
+      Precision (cycles): 0
+      Offset (s): 0
+      Offset (cycles): 0
+      Origin is Unix epoch: Yes
+    Event class `my-event` (ID 0):
+
+[Unknown]
+{Trace 0, Stream class ID 0, Stream ID 0}
+Stream beginning:
+  Name: stream-0
+  Trace:
+    UUID: 1c810767-575e-4c4e-afa1-5d3e15081cb9
+    Stream (ID 0, Class ID 0)
+
+[0 cycles, 0 ns from origin]
+{Trace 0, Stream class ID 0, Stream ID 0}
+Packet beginning
+
+[10 cycles, 10 ns from origin]
+{Trace 0, Stream class ID 0, Stream ID 0}
+Event `my-event` (Class ID 0):
+
+[20 cycles, 20 ns from origin]
+{Trace 0, Stream class ID 0, Stream ID 0}
+Packet end
+
+[80 cycles, 80 ns from origin]
+Message iterator inactivity:
+  Clock class:
+    Name: default
+    Frequency (Hz): 1,000,000,000
+    Precision (cycles): 0
+    Offset (s): 0
+    Offset (cycles): 0
+    Origin is Unix epoch: Yes
+
+[80 cycles, 80 ns from origin]
+[121 cycles, 121 ns from origin]
+{Trace 0, Stream class ID 0, Stream ID 0}
+Discarded packets (7 packets)
+
+[121 cycles, 121 ns from origin]
+{Trace 0, Stream class ID 0, Stream ID 0}
+Packet beginning
+
+[133 cycles, 133 ns from origin]
+{Trace 0, Stream class ID 0, Stream ID 0}
+Event `my-event` (Class ID 0):
+
+[140 cycles, 140 ns from origin]
+{Trace 0, Stream class ID 0, Stream ID 0}
+Packet end
+
+[Unknown]
+{Trace 0, Stream class ID 0, Stream ID 0}
+Stream end
