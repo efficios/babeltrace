@@ -18,8 +18,15 @@
 
 #include "common/macros.h"
 
-#define VPID_FIELD_NAME		"vpid"
-#define IP_FIELD_NAME		"ip"
+#define VPID_FIELD_NAME			"vpid"
+#define IP_FIELD_NAME			"ip"
+#define BADDR_FIELD_NAME		"baddr"
+#define CRC32_FIELD_NAME		"crc"
+#define BUILD_ID_FIELD_NAME		"build_id"
+#define FILENAME_FIELD_NAME		"filename"
+#define IS_PIC_FIELD_NAME		"is_pic"
+#define MEMSZ_FIELD_NAME		"memsz"
+#define PATH_FIELD_NAME			"path"
 
 BT_HIDDEN
 bt_component_class_initialize_method_status debug_info_comp_init(

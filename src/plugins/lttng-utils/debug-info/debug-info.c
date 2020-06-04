@@ -33,15 +33,6 @@
 
 #define DEFAULT_DEBUG_INFO_FIELD_NAME	"debug_info"
 #define LTTNG_UST_STATEDUMP_PREFIX	"lttng_ust"
-#define VPID_FIELD_NAME			"vpid"
-#define IP_FIELD_NAME			"ip"
-#define BADDR_FIELD_NAME		"baddr"
-#define CRC32_FIELD_NAME		"crc"
-#define BUILD_ID_FIELD_NAME		"build_id"
-#define FILENAME_FIELD_NAME		"filename"
-#define IS_PIC_FIELD_NAME		"is_pic"
-#define MEMSZ_FIELD_NAME		"memsz"
-#define PATH_FIELD_NAME			"path"
 
 struct debug_info_component {
 	bt_logging_level log_level;
