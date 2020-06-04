@@ -7,6 +7,10 @@
  */
 
 #include <string.h>
+
+#include <babeltrace2/babeltrace.h>
+
+#include "debug-info.h"
 #include "utils.h"
 
 BT_HIDDEN

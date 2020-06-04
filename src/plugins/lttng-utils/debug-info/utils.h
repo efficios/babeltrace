@@ -9,8 +9,9 @@
 #ifndef BABELTRACE_PLUGIN_DEBUG_INFO_UTILS_H
 #define BABELTRACE_PLUGIN_DEBUG_INFO_UTILS_H
 
+#include <babeltrace2/babeltrace.h>
+
 #include "common/macros.h"
-#include "trace-ir-mapping.h"
 
 /*
  * Return the location of a path's file (the last element of the path).
