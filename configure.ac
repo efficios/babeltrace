@@ -514,6 +514,9 @@ AE_IF_FEATURE_ENABLED([built-in-python-plugin-support],
   [AC_DEFINE([BT_BUILT_IN_PYTHON_PLUGIN_SUPPORT], [1], [Define to 1 to register plug-in attributes in static executable sections])]
 )
 
+AE_IF_FEATURE_ENABLED([python-plugins], [ENABLE_PYTHON_PLUGINS=1], [ENABLE_PYTHON_PLUGINS=0])
+AC_SUBST([ENABLE_PYTHON_PLUGINS])
+
 AE_IF_FEATURE_ENABLED([debug-info], [ENABLE_DEBUG_INFO_VAL=1], [ENABLE_DEBUG_INFO_VAL=0])
 AC_SUBST([ENABLE_DEBUG_INFO_VAL])
 

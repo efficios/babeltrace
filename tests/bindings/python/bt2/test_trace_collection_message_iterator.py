@@ -29,6 +29,7 @@ _AUTO_SOURCE_DISCOVERY_PARAMS_LOG_LEVEL_PATH = os.path.join(
 _METADATA_SYNTAX_ERROR_TRACE_PATH = os.path.join(
     _BT_CTF_TRACES_PATH, "fail", "metadata-syntax-error"
 )
+_BT_ENABLE_PYTHON_PLUGINS = os.environ["BT_TESTS_ENABLE_PYTHON_PLUGINS"] == "1"
 
 
 class _SomeSource(
@@ -407,6 +408,10 @@ class _TestAutoDiscoverSourceComponentSpecs(unittest.TestCase):
         os.environ["BABELTRACE_PLUGIN_PATH"] = self._saved_babeltrace_plugin_path
 
 
+@unittest.skipUnless(
+    _BT_ENABLE_PYTHON_PLUGINS,
+    "Support for Python plugins is disabled",
+)
 class TestAutoDiscoverSourceComponentSpecsGrouping(
     _TestAutoDiscoverSourceComponentSpecs
 ):
@@ -432,6 +437,10 @@ class TestAutoDiscoverSourceComponentSpecsGrouping(
         self.assertEqual(msgs[7].stream.name, "TestSourceSomeDir: some-dir")
 
 
+@unittest.skipUnless(
+    _BT_ENABLE_PYTHON_PLUGINS,
+    "Support for Python plugins is disabled",
+)
 class TestAutoDiscoverSourceComponentSpecsParamsObjLogLevel(
     _TestAutoDiscoverSourceComponentSpecs
 ):
