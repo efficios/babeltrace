@@ -417,15 +417,6 @@ AM_CONDITIONAL([ENABLE_PYTHON_COMMON_DEPS], [test "x$enable_python_bindings" = x
 
 # Set defines for optionnal features conditionnals in the source code
 
-## jgalar: still used?
-AS_IF([test "x$enable_python_plugins" = xyes],
-  [AC_DEFINE([PYTHON_PLUGINS], [1], [Python plugin support.])]
-)
-
-AS_IF([test "x$enable_debug_info" = xyes],
-  [AC_DEFINE([ENABLE_DEBUG_INFO], [1], [Define to 1 if you enable the 'debug info' feature])]
-)
-
 AS_IF([test "x$enable_built_in_plugins" = xyes],
   [AC_DEFINE([BT_BUILT_IN_PLUGINS], [1], [Define to 1 to register plug-in attributes in static executable sections])]
 )
