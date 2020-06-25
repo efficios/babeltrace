@@ -330,6 +330,9 @@ extern unsigned long pthread_getsequence_np(pthread_t *);
 #if defined(__MACH__)
 	#include <pthread.h>
 #endif
+#if defined(__GNU__)
+	#include <mach.h>
+#endif
 
 #define INLINE _BT_LOG_INLINE
 #define VAR_UNUSED(var) (void)var
@@ -843,8 +846,12 @@ static void pid_callback(int *const pid, int *const tid)
 	*tid = gettid();
 	#elif defined(__linux__)
 	*tid = syscall(SYS_gettid);
-	#elif defined(__MACH__)
+	#elif defined(__APPLE__) && defined(__MACH__)
 	*tid = (int)pthread_mach_thread_np(pthread_self());
+	#elif defined(__GNU__)
+	mach_port_t mach_port = mach_thread_self();
+	mach_port_deallocate(mach_task_self(), mach_port);
+	*tid = (int)mach_port;
 	#else
 		#define Platform not supported
 	#endif
