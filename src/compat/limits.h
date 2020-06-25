@@ -27,4 +27,9 @@
 
 #endif /* __linux__, __FreeBSD__, _POSIX_HOST_NAME_MAX */
 
+/* GNU Hurd has no PATH_MAX, use a sensible default */
+#ifdef __GNU__
+#define PATH_MAX 4096
+#endif /* __GNU__ */
+
 #endif /* _BABELTRACE_LIMITS_H */

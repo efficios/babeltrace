@@ -27,6 +27,7 @@
 #include "common/macros.h"
 #include "common/common.h"
 #include "compat/unistd.h"
+#include "compat/limits.h"
 
 #ifndef __MINGW32__
 #include <pwd.h>

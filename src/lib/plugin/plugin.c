@@ -12,6 +12,7 @@
 #include "lib/assert-cond.h"
 #include "common/macros.h"
 #include "compat/compiler.h"
+#include "compat/limits.h"
 #include "common/common.h"
 #include <babeltrace2/plugin/plugin-loading.h>
 #include <babeltrace2/graph/component-class.h>
