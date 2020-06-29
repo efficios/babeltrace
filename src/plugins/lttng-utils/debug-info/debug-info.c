@@ -906,7 +906,7 @@ void handle_event_statedump(struct debug_info_msg_iter *debug_it,
 	} else if (q_event_name == debug_info->q_statedump_build_id) {
 		/* Build ID info */
 		handle_event_statedump_build_id(debug_info, event);
-	} else if (q_event_name == debug_info-> q_lib_unload) {
+	} else if (q_event_name == debug_info->q_lib_unload) {
 		handle_event_lib_unload(debug_info, event);
 	}
 
