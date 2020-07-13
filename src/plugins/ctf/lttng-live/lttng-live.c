@@ -534,7 +534,7 @@ lttng_live_iterator_handle_new_streams_and_metadata(
 	enum session_not_found_action sess_not_found_act =
 		lttng_live_msg_iter->lttng_live_comp->params.sess_not_found_act;
 
-	BT_COMP_LOGD("Update data and metadata of all sessions"
+	BT_COMP_LOGD("Update data and metadata of all sessions: "
 		"live-msg-iter-addr=%p", lttng_live_msg_iter);
 	/*
 	 * In a remotely distant future, we could add a "new
