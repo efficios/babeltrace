@@ -1551,14 +1551,14 @@ enum ctf_msg_iter_medium_status lttng_live_get_stream_bytes(
 	if (viewer_status != LTTNG_LIVE_VIEWER_STATUS_OK) {
 		viewer_handle_send_status(self_comp, NULL,
 			viewer_status, "get data packet command");
-		goto error;
+		goto error_convert_status;
 	}
 
 	viewer_status = lttng_live_recv(viewer_connection, &rp, sizeof(rp));
 	if (viewer_status != LTTNG_LIVE_VIEWER_STATUS_OK) {
 		viewer_handle_recv_status(self_comp, NULL,
 			viewer_status, "get data packet reply");
-		goto error;
+		goto error_convert_status;
 	}
 
 	flags = be32toh(rp.flags);
@@ -1599,28 +1599,28 @@ enum ctf_msg_iter_medium_status lttng_live_get_stream_bytes(
 		goto end;
 	default:
 		BT_COMP_LOGE_APPEND_CAUSE(self_comp,
-			"Received get_data_packet response: unknown");
+			"Received get_data_packet response: unknown (%d)", rp_status);
 		status = CTF_MSG_ITER_MEDIUM_STATUS_ERROR;
-		goto error;
+		goto end;
 	}
 
 	if (req_len == 0) {
 		status = CTF_MSG_ITER_MEDIUM_STATUS_ERROR;
-		goto error;
+		goto end;
 	}
 
 	viewer_status = lttng_live_recv(viewer_connection, buf, req_len);
 	if (viewer_status != LTTNG_LIVE_VIEWER_STATUS_OK) {
 		viewer_handle_recv_status(self_comp, NULL,
 			viewer_status, "get data packet");
-		goto error;
+		goto error_convert_status;
 	}
 	*recv_len = req_len;
 
 	status = CTF_MSG_ITER_MEDIUM_STATUS_OK;
 	goto end;
-error:
 
+error_convert_status:
 	status = viewer_status_to_ctf_msg_iter_medium_status(viewer_status);
 end:
 	return status;
