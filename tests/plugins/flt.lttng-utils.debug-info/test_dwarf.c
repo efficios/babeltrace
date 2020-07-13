@@ -149,5 +149,5 @@ int main(int argc, char **argv)
 	test_bt_no_dwarf(data_dir);
 	test_bt_dwarf(data_dir);
 
-	return EXIT_SUCCESS;
+	return exit_status();
 }

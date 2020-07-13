@@ -404,6 +404,8 @@ int main(int argc, char **argv)
 	GOptionContext *context;
 	int status;
 
+	plan_tests(NR_TESTS);
+
 	context = g_option_context_new("- bin info test");
 	g_option_context_add_main_entries(context, entries, NULL);
 	if (!g_option_context_parse(context, &argc, &argv, &error)) {
@@ -425,8 +427,6 @@ int main(int argc, char **argv)
 		goto end;
 	}
 
-	plan_tests(NR_TESTS);
-
 	ret = bin_info_init(BT_LOG_OUTPUT_LEVEL, NULL);
 	ok(ret == 0, "bin_info_init successful");
 
@@ -435,7 +435,7 @@ int main(int argc, char **argv)
 	test_bin_info_build_id(opt_debug_info_dir);
 	test_bin_info_debug_link(opt_debug_info_dir);
 
-	status = EXIT_SUCCESS;
+	status = exit_status();
 
 end:
 	g_option_context_free(context);

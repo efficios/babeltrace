@@ -1164,5 +1164,5 @@ int main(void)
 	test_is_equal();
 	test_copy();
 	test_extend();
-	return 0;
+	return exit_status();
 }
