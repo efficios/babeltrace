@@ -54,7 +54,7 @@ bool is_event_common_ctx_dbg_info_compatible(const bt_field_class *in_field_clas
 	 * context. Do not try to add it.
 	 */
 	member = bt_field_class_structure_borrow_member_by_name_const(
-			in_field_class, debug_info_field_class_name);
+		in_field_class, debug_info_field_class_name);
 	if (member) {
 		goto end;
 	}
@@ -64,7 +64,7 @@ bool is_event_common_ctx_dbg_info_compatible(const bt_field_class *in_field_clas
 	 * class.
 	 */
 	member = bt_field_class_structure_borrow_member_by_name_const(
-			in_field_class, IP_FIELD_NAME);
+		in_field_class, IP_FIELD_NAME);
 	if (!member) {
 		goto end;
 	}
@@ -77,7 +77,7 @@ bool is_event_common_ctx_dbg_info_compatible(const bt_field_class *in_field_clas
 	}
 
 	member = bt_field_class_structure_borrow_member_by_name_const(
-			in_field_class, VPID_FIELD_NAME);
+		in_field_class, VPID_FIELD_NAME);
 	if (!member) {
 		goto end;
 	}

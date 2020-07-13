@@ -376,7 +376,7 @@ int bin_info_set_build_id(struct bin_info *bin, uint8_t *build_id,
 	bin->file_build_id_matches = is_build_id_matching(bin);
 	if (!bin->file_build_id_matches) {
 		BT_COMP_LOGI_STR("Supplied Build ID does not match Build ID of the "
-				"binary or library found on the file system.");
+			"binary or library found on the file system.");
 		goto error;
 	}
 
@@ -922,7 +922,7 @@ int bin_info_lookup_elf_function_name(struct bin_info *bin, uint64_t addr,
 
 	while (scn && !sym) {
 		ret = bin_info_get_nearest_symbol_from_section(
-				scn, addr, &sym, &shdr);
+			scn, addr, &sym, &shdr);
 		if (ret) {
 			goto error;
 		}
@@ -932,13 +932,13 @@ int bin_info_lookup_elf_function_name(struct bin_info *bin, uint64_t addr,
 
 	if (sym) {
 		sym_name = elf_strptr(bin->elf_file, shdr->sh_link,
-				sym->st_name);
+			sym->st_name);
 		if (!sym_name) {
 			goto error;
 		}
 
 		ret = bin_info_append_offset_str(sym_name, sym->st_value, addr,
-						func_name);
+			func_name);
 		if (ret) {
 			goto error;
 		}
@@ -1020,7 +1020,7 @@ int bin_info_lookup_cu_function_name(struct bt_dwarf_cu *cu, uint64_t addr,
 		}
 
 		ret = bin_info_append_offset_str(die_name, low_addr, addr,
-						func_name);
+			func_name);
 		free(die_name);
 		if (ret) {
 			goto error;
@@ -1115,7 +1115,7 @@ int bin_info_lookup_function_name(struct bin_info *bin,
 		ret = bin_info_set_dwarf_info(bin);
 		if (ret) {
 			BT_COMP_LOGI_STR("Failed to set bin dwarf info, falling "
-					"back to ELF lookup.");
+				"back to ELF lookup.");
 			/* Failed to set DWARF info, fallback to ELF. */
 			bin->is_elf_only = true;
 		}
@@ -1135,14 +1135,14 @@ int bin_info_lookup_function_name(struct bin_info *bin,
 
 	if (bin->is_elf_only) {
 		ret = bin_info_lookup_elf_function_name(bin, addr,
-				&_func_name);
+			&_func_name);
 		if (ret) {
 			BT_COMP_LOGI("Failed to lookup function name (ELF): "
 				"ret=%d", ret);
 		}
 	} else {
 		ret = bin_info_lookup_dwarf_function_name(bin, addr,
-				&_func_name);
+			&_func_name);
 		if (ret) {
 			BT_COMP_LOGI("Failed to lookup function name (DWARF): "
 				"ret=%d", ret);

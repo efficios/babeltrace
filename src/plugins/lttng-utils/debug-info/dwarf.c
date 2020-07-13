@@ -51,7 +51,7 @@ int bt_dwarf_cu_next(struct bt_dwarf_cu *cu)
 	}
 
 	ret = dwarf_nextcu(cu->dwarf_info, cu->next_offset, &next_offset,
-			&cu_header_size, NULL, NULL, NULL);
+		&cu_header_size, NULL, NULL, NULL);
 	if (ret) {
 		/* ret is -1 on error, 1 if no next CU. */
 		goto end;
@@ -81,7 +81,7 @@ struct bt_dwarf_die *bt_dwarf_die_create(struct bt_dwarf_cu *cu)
 	}
 
 	dwarf_die = dwarf_offdie(cu->dwarf_info, cu->offset + cu->header_size,
-			dwarf_die);
+		dwarf_die);
 	if (!dwarf_die) {
 		goto error;
 	}
