@@ -1,0 +1,84 @@
+Trace class:
+  Stream class (ID 0):
+    Supports packets: Yes
+    Packets have beginning default clock snapshot: Yes
+    Packets have end default clock snapshot: Yes
+    Supports discarded events: Yes
+    Discarded events have default clock snapshots: Yes
+    Supports discarded packets: Yes
+    Discarded packets have default clock snapshots: Yes
+    Default clock class:
+      Name: monotonic
+      Description: Monotonic Clock
+      Frequency (Hz): 1,000,000,000
+      Precision (cycles): 0
+      Offset (s): 1,594,406,328
+      Offset (cycles): 768,346,378
+      Origin is Unix epoch: Yes
+      UUID: 81a04b89-9028-4d3e-a28d-5fbd53a8eb9d
+    Packet context field class: Structure (1 member):
+      cpu_id: Unsigned integer (32-bit, Base 10)
+    Event class `my_app:signe_de_pia$$e` (ID 0):
+      Log level: Debug (line)
+      Payload field class: Structure (0 members)
+    Event class `my_app:signe_de_pia$$e_2` (ID 1):
+      Log level: Debug (line)
+      Payload field class: Structure (0 members)
+
+[Unknown]
+{Trace 0, Stream class ID 0, Stream ID 0}
+Stream beginning:
+  Name: stream-1
+  Trace:
+    UUID: 0339cd08-892d-404c-9291-64c1a8a74c81
+    Environment (10 entries):
+      architecture_bit_width: 64
+      domain: ust
+      hostname: raton
+      trace_creation_datetime: 20200715T174253-0400
+      trace_name: barney_descontie
+      tracer_buffering_id: 1000
+      tracer_buffering_scheme: uid
+      tracer_major: 2
+      tracer_minor: 12
+      tracer_name: lttng-ust
+    Stream (ID 0, Class ID 0)
+
+[443,073,474,574,097 cycles, 1,594,849,402,242,920,475 ns from origin]
+{Trace 0, Stream class ID 0, Stream ID 0}
+Packet beginning:
+  Context:
+    cpu_id: 0
+
+[443,073,484,867,537 cycles, 1,594,849,402,253,213,915 ns from origin]
+{Trace 0, Stream class ID 0, Stream ID 0}
+Event `my_app:signe_de_pia$$e` (Class ID 0):
+  Payload: Empty
+
+[443,076,225,270,435 cycles, 1,594,849,404,993,616,813 ns from origin]
+{Trace 0, Stream class ID 0, Stream ID 0}
+Packet end
+
+[443,087,407,631,276 cycles, 1,594,849,416,175,977,654 ns from origin]
+{Trace 0, Stream class ID 0, Stream ID 0}
+Packet beginning:
+  Context:
+    cpu_id: 0
+
+[443,087,407,631,276 cycles, 1,594,849,416,175,977,654 ns from origin]
+{Trace 0, Stream class ID 0, Stream ID 0}
+Event `my_app:signe_de_pia$$e` (Class ID 0):
+  Payload: Empty
+
+[443,087,407,643,172 cycles, 1,594,849,416,175,989,550 ns from origin]
+{Trace 0, Stream class ID 0, Stream ID 0}
+Event `my_app:signe_de_pia$$e_2` (Class ID 1):
+  Payload: Empty
+
+[443,089,152,508,997 cycles, 1,594,849,417,920,855,375 ns from origin]
+{Trace 0, Stream class ID 0, Stream ID 0}
+Packet end
+
+[Unknown]
+{Trace 0, Stream class ID 0, Stream ID 0}
+Stream end

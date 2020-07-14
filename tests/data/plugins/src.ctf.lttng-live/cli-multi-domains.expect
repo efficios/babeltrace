@@ -64,7 +64,7 @@ Trace class:
 [Unknown]
 {Trace 0, Stream class ID 2, Stream ID 0}
 Stream beginning:
-  Name: stream-5
+  Name: stream-6
   Trace:
     UUID: 0051d20e-3389-4157-9693-e7d5d8565aa0
     Environment (5 entries):
@@ -81,7 +81,7 @@ Stream beginning:
 [Unknown]
 {Trace 0, Stream class ID 2, Stream ID 1}
 Stream beginning:
-  Name: stream-6
+  Name: stream-7
   Trace:
     UUID: 0051d20e-3389-4157-9693-e7d5d8565aa0
     Environment (5 entries):
@@ -98,7 +98,7 @@ Stream beginning:
 [Unknown]
 {Trace 0, Stream class ID 2, Stream ID 2}
 Stream beginning:
-  Name: stream-7
+  Name: stream-8
   Trace:
     UUID: 0051d20e-3389-4157-9693-e7d5d8565aa0
     Environment (5 entries):
@@ -115,7 +115,7 @@ Stream beginning:
 [Unknown]
 {Trace 0, Stream class ID 2, Stream ID 3}
 Stream beginning:
-  Name: stream-8
+  Name: stream-9
   Trace:
     UUID: 0051d20e-3389-4157-9693-e7d5d8565aa0
     Environment (5 entries):
@@ -227,7 +227,7 @@ Trace class:
 [Unknown]
 {Trace 1, Stream class ID 0, Stream ID 0}
 Stream beginning:
-  Name: stream-0
+  Name: stream-1
   Trace:
     UUID: 830f2129-77d5-cb4e-90cf-b0754d8ce889
     Environment (12 entries):
@@ -251,7 +251,7 @@ Stream beginning:
 [Unknown]
 {Trace 1, Stream class ID 0, Stream ID 1}
 Stream beginning:
-  Name: stream-1
+  Name: stream-2
   Trace:
     UUID: 830f2129-77d5-cb4e-90cf-b0754d8ce889
     Environment (12 entries):
@@ -275,7 +275,7 @@ Stream beginning:
 [Unknown]
 {Trace 1, Stream class ID 0, Stream ID 2}
 Stream beginning:
-  Name: stream-2
+  Name: stream-3
   Trace:
     UUID: 830f2129-77d5-cb4e-90cf-b0754d8ce889
     Environment (12 entries):
@@ -299,7 +299,7 @@ Stream beginning:
 [Unknown]
 {Trace 1, Stream class ID 0, Stream ID 3}
 Stream beginning:
-  Name: stream-3
+  Name: stream-4
   Trace:
     UUID: 830f2129-77d5-cb4e-90cf-b0754d8ce889
     Environment (12 entries):

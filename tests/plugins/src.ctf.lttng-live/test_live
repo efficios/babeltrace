@@ -367,7 +367,33 @@ test_inactivity_discarded_packet() {
 	rm -f "$expected_stderr"
 }
 
-plan_tests 14
+test_split_metadata() {
+	# Consume a metadata stream sent in two parts. This testcase tests the
+	# behaviour of Babeltrace when the tracing session was cleared (lttng
+	# clear) but the metadata is not yet available to the relay. In such
+	# cases, when asked for metadata, the relay will return the
+	# `LTTNG_VIEWER_METADATA_OK` status and a data length of 0. The viewer
+	# need to consider such case as a request to retry fetching metadata.
+	#
+	# This testcase emulates such behaviour by adding empty metadata
+	# packets.
+
+	local test_text="CLI attach and fetch from single-domain session - Receive metadata in two sections separated by a empty section"
+	local cli_args_template="-i lttng-live net://localhost:@PORT@/host/hostname/split_metadata -c sink.text.details"
+	local sessions_file="$test_data_dir/split_metadata.json"
+	local server_args="--sessions-filename '$sessions_file'"
+	local expected_stdout="${test_data_dir}/split_metadata.expect"
+	local expected_stderr
+
+	# Empty file for stderr expected
+	expected_stderr="$(mktemp -t test_live_split_metadata_stderr_expected.XXXXXX)"
+
+	run_test "$test_text" "$cli_args_template" "$server_args" "$expected_stdout" "$expected_stderr"
+
+	rm -f "$expected_stderr"
+}
+
+plan_tests 16
 
 test_list_sessions
 test_base
@@ -375,3 +401,4 @@ test_multi_domains
 test_rate_limited
 test_compare_to_ctf_fs
 test_inactivity_discarded_packet
+test_split_metadata
