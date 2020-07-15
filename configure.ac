@@ -666,7 +666,6 @@ CFLAGS=${save_CFLAGS}
 AX_APPEND_COMPILE_FLAGS([ dnl
 		-Wall dnl
 		-Wextra dnl
-		-Wstrict-prototypes dnl
 		-Wmissing-prototypes dnl
 		-Wmissing-declarations dnl
 		-Wnull-dereference dnl
@@ -714,15 +713,13 @@ AS_IF([test "x$enable_Werror" = "xyes"],
 )
 
 # The test used in AX_APPEND_COMPILE_FLAGS, generated using AC_LANG_PROGRAM, is
-# written in such a way that it triggers a -Wold-style-definition warning.  So
-# this warning always ends up disabled if we put it there, because the test
-# program does not build.
+# written in such a way that it triggers warnings with the following warning
+# flags.  So they would always end up disabled if we put them there, because
+# the test program would not build.
 #
-# Enable it here unconditionally.  It is supported by GCC >= 4.8 and by Clang
-# (it is accepted for compatibility although it has no effect), and there is
-# not reason to not want it.
-
-WARN_CFLAGS="${WARN_CFLAGS} -Wold-style-definition"
+# Enable them here unconditionally.  They are supported by GCC >= 4.8 and by
+# Clang >= 4.0.
+WARN_CFLAGS="${WARN_CFLAGS} -Wold-style-definition -Wstrict-prototypes"
 
 # CFLAGS from AX_APPEND_COMPILE_FLAGS.
 AM_CFLAGS="${AM_CFLAGS} ${WARN_CFLAGS}"
