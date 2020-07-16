@@ -1123,74 +1123,93 @@ enum lttng_live_iterator_status next_stream_iterator_for_trace(
 			if (curr_msg_ts_ns >= lttng_live_msg_iter->last_msg_ts_ns) {
 				stream_iter->current_msg = msg;
 				stream_iter->current_msg_ts_ns = curr_msg_ts_ns;
-			} else if (stream_iter->last_inactivity_ts > curr_msg_ts_ns &&
-					is_discarded_packet_or_event_message(msg)) {
-				/*
-				 * The CTF message iterator emits Discarded
-				 * Packets and Events with synthesized begin and
-				 * end timestamps from the bounds of the last
-				 * known packet and the newly decoded packet
-				 * header.
-				 *
-				 * The CTF message iterator is not aware of
-				 * stream inactivity beacons. Hence, we have
-				 * to adjust the begin timestamp of those types
-				 * of messages if a stream signaled its
-				 * inactivity up until _after_ the last known
-				 * packet's begin timestamp.
-				 *
-				 * Otherwise, the monotonicity guarantee would
-				 * not be preserved.
-				 */
-				const enum bt_message_type msg_type =
-					bt_message_get_type(msg);
-				enum lttng_live_iterator_status adjust_status =
-					LTTNG_LIVE_ITERATOR_STATUS_OK;
-				bt_message *adjusted_message;
+			} else {
+				const bt_clock_class *clock_class;
+				const bt_stream_class *stream_class;
+				enum bt_clock_class_cycles_to_ns_from_origin_status ts_ns_status;
+				int64_t last_inactivity_ts_ns;
 
-				switch (msg_type) {
-				case BT_MESSAGE_TYPE_DISCARDED_EVENTS:
-					adjust_status = adjust_discarded_events_message(
-						lttng_live_msg_iter->self_msg_iter,
-						stream_iter->stream,
-						msg, &adjusted_message,
-						stream_iter->last_inactivity_ts);
-					break;
-				case BT_MESSAGE_TYPE_DISCARDED_PACKETS:
-					adjust_status = adjust_discarded_packets_message(
-						lttng_live_msg_iter->self_msg_iter,
-						stream_iter->stream,
-						msg, &adjusted_message,
-						stream_iter->last_inactivity_ts);
-					break;
-				default:
-					bt_common_abort();
-				}
+				stream_class = bt_stream_borrow_class_const(stream_iter->stream);
+				clock_class = bt_stream_class_borrow_default_clock_class_const(stream_class);
 
-				if (adjust_status != LTTNG_LIVE_ITERATOR_STATUS_OK) {
-					stream_iter_status = adjust_status;
+				ts_ns_status = bt_clock_class_cycles_to_ns_from_origin(
+					clock_class,
+					stream_iter->last_inactivity_ts,
+					&last_inactivity_ts_ns);
+				if (ts_ns_status != BT_CLOCK_CLASS_CYCLES_TO_NS_FROM_ORIGIN_STATUS_OK) {
+					stream_iter_status = LTTNG_LIVE_ITERATOR_STATUS_ERROR;
 					goto end;
 				}
 
-				BT_ASSERT_DBG(adjusted_message);
-				stream_iter->current_msg = adjusted_message;
-				stream_iter->current_msg_ts_ns =
-					stream_iter->last_inactivity_ts;
-			} else {
-				/*
-				 * We received a message in the past. To ensure
-				 * monotonicity, we can't send it forward.
-				 */
-				BT_COMP_LOGE_APPEND_CAUSE(self_comp,
-					"Message's timestamp is less than "
-					"lttng-live's message iterator's last "
-					"returned timestamp: "
-					"lttng-live-msg-iter-addr=%p, ts=%" PRId64 ", "
-					"last-msg-ts=%" PRId64,
-					lttng_live_msg_iter, curr_msg_ts_ns,
-					lttng_live_msg_iter->last_msg_ts_ns);
-				stream_iter_status = LTTNG_LIVE_ITERATOR_STATUS_ERROR;
-				goto end;
+				if (last_inactivity_ts_ns > curr_msg_ts_ns &&
+					is_discarded_packet_or_event_message(msg)) {
+					/*
+					 * The CTF message iterator emits Discarded
+					 * Packets and Events with synthesized begin and
+					 * end timestamps from the bounds of the last
+					 * known packet and the newly decoded packet
+					 * header.
+					 *
+					 * The CTF message iterator is not aware of
+					 * stream inactivity beacons. Hence, we have
+					 * to adjust the begin timestamp of those types
+					 * of messages if a stream signaled its
+					 * inactivity up until _after_ the last known
+					 * packet's begin timestamp.
+					 *
+					 * Otherwise, the monotonicity guarantee would
+					 * not be preserved.
+					 */
+					const enum bt_message_type msg_type =
+						bt_message_get_type(msg);
+					enum lttng_live_iterator_status adjust_status =
+						LTTNG_LIVE_ITERATOR_STATUS_OK;
+					bt_message *adjusted_message;
+
+					switch (msg_type) {
+					case BT_MESSAGE_TYPE_DISCARDED_EVENTS:
+						adjust_status = adjust_discarded_events_message(
+							lttng_live_msg_iter->self_msg_iter,
+							stream_iter->stream,
+							msg, &adjusted_message,
+							stream_iter->last_inactivity_ts);
+						break;
+					case BT_MESSAGE_TYPE_DISCARDED_PACKETS:
+						adjust_status = adjust_discarded_packets_message(
+							lttng_live_msg_iter->self_msg_iter,
+							stream_iter->stream,
+							msg, &adjusted_message,
+							stream_iter->last_inactivity_ts);
+						break;
+					default:
+						bt_common_abort();
+					}
+
+					if (adjust_status != LTTNG_LIVE_ITERATOR_STATUS_OK) {
+						stream_iter_status = adjust_status;
+						goto end;
+					}
+
+					BT_ASSERT_DBG(adjusted_message);
+					stream_iter->current_msg = adjusted_message;
+					stream_iter->current_msg_ts_ns =
+						last_inactivity_ts_ns;
+				} else {
+					/*
+					 * We received a message in the past. To ensure
+					 * monotonicity, we can't send it forward.
+					 */
+					BT_COMP_LOGE_APPEND_CAUSE(self_comp,
+						"Message's timestamp is less than "
+						"lttng-live's message iterator's last "
+						"returned timestamp: "
+						"lttng-live-msg-iter-addr=%p, ts=%" PRId64 ", "
+						"last-msg-ts=%" PRId64,
+						lttng_live_msg_iter, curr_msg_ts_ns,
+						lttng_live_msg_iter->last_msg_ts_ns);
+					stream_iter_status = LTTNG_LIVE_ITERATOR_STATUS_ERROR;
+					goto end;
+				}
 			}
 		}
 
