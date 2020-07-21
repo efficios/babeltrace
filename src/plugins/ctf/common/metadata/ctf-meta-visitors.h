@@ -45,6 +45,9 @@ BT_HIDDEN
 int ctf_trace_class_update_text_array_sequence(struct ctf_trace_class *ctf_tc);
 
 BT_HIDDEN
+int ctf_trace_class_update_alignments(struct ctf_trace_class *ctf_tc);
+
+BT_HIDDEN
 int ctf_trace_class_update_value_storing_indexes(struct ctf_trace_class *ctf_tc);
 
 BT_HIDDEN

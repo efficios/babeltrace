@@ -1,0 +1,38 @@
+Trace class:
+  Stream class (ID 0):
+    Supports packets: Yes
+    Packets have beginning default clock snapshot: No
+    Packets have end default clock snapshot: No
+    Supports discarded events: No
+    Supports discarded packets: No
+    Event class `ev` (ID 0):
+      Payload field class: Structure (3 members):
+        x: Unsigned integer (8-bit, Base 10)
+        y: Structure (2 members):
+          a: Unsigned integer (8-bit, Base 10)
+          b: Static array (Length 0):
+            Element: Unsigned integer (8-bit, Base 10)
+        z: Unsigned integer (8-bit, Base 10)
+
+{Trace 0, Stream class ID 0, Stream ID 0}
+Stream beginning:
+  Trace:
+    Stream (ID 0, Class ID 0)
+
+{Trace 0, Stream class ID 0, Stream ID 0}
+Packet beginning
+
+{Trace 0, Stream class ID 0, Stream ID 0}
+Event `ev` (Class ID 0):
+  Payload:
+    x: 1
+    y:
+      a: 5
+      b: Empty
+    z: 9
+
+{Trace 0, Stream class ID 0, Stream ID 0}
+Packet end
+
+{Trace 0, Stream class ID 0, Stream ID 0}
+Stream end
