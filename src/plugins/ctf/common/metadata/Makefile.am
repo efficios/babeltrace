@@ -42,6 +42,7 @@ libctf_ast_la_SOURCES = \
 	ctf-meta-update-in-ir.c \
 	ctf-meta-update-default-clock-classes.c \
 	ctf-meta-update-text-array-sequence.c \
+	ctf-meta-update-alignments.c \
 	ctf-meta-update-value-storing-indexes.c \
 	ctf-meta-update-stream-class-config.c \
 	ctf-meta-warn-meaningless-header-fields.c \

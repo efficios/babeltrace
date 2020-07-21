@@ -4867,6 +4867,13 @@ int ctf_visitor_generate_ir_visit_node(struct ctf_visitor_generate_ir *visitor,
 		goto end;
 	}
 
+	/* Update structure/array/sequence alignments */
+	ret = ctf_trace_class_update_alignments(ctx->ctf_tc);
+	if (ret) {
+		ret = -EINVAL;
+		goto end;
+	}
+
 	/* Resolve sequence lengths and variant tags */
 	ret = ctf_trace_class_resolve_field_classes(ctx->ctf_tc, &ctx->log_cfg);
 	if (ret) {
