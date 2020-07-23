@@ -128,6 +128,29 @@ barectf up to, but excluding, 2.3.1::
 --
 
 
+=== CTF compliance
+
+A compcls:source.ctf.fs component decodes traces as per
+https://diamon.org/ctf/v1.8.3/[CTF~1.8.3], except:
+
+* It only supports integer field classes (TSDL `integer` block) with
+  sizes from 1 to 64.
+
+* It only supports 32-bit and 64-bit floating point number classes (TSDL
+  `floating_point` block).
+
+* It doesn't support §~4.1.6 (``GNU/C bitfields'').
+
+* It doesn't support TSDL `callsite` blocks: the parser simply ignores
+  them.
+
+* It only supports a single clock class (TSDL `clock` block) reference
+  per stream class (TSDL `stream` block).
+
+* It doesn't support the checksum, compression, and encryption features
+  of metadata stream packets.
+
+
 == INITIALIZATION PARAMETERS
 
 param:clock-class-offset-ns='NS' vtype:[optional signed integer]::
