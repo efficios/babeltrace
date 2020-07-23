@@ -8,7 +8,7 @@ dnl Process this file with autoconf to produce a configure script.
 ## Autoconf base setup ##
 ##                     ##
 
-AC_PREREQ([2.50])
+AC_PREREQ([2.69])
 
 m4_define([bt_version_major], [2])
 m4_define([bt_version_minor], [1])
@@ -17,8 +17,7 @@ m4_define([bt_version_dev_stage], [-rc1])
 m4_define([bt_version], bt_version_major[.]bt_version_minor[.]bt_version_patch[]bt_version_dev_stage)
 m4_define([bt_version_name], [])
 
-AC_INIT([babeltrace2], bt_version, [jeremie dot galarneau at efficios dot com], [], [https://efficios.com/babeltrace/])
-AC_PROG_SED
+AC_INIT([babeltrace2],[bt_version],[jeremie dot galarneau at efficios dot com],[],[https://efficios.com/babeltrace/])
 
 # Following the numbering scheme proposed by libtool for the library version
 # http://www.gnu.org/software/libtool/manual/html_node/Updating-version-info.html
@@ -26,9 +25,8 @@ m4_define([bt_lib_version_current], [0])
 m4_define([bt_lib_version_revision], [0])
 m4_define([bt_lib_version_age], [0])
 m4_define([bt_lib_version], bt_lib_version_current[:]bt_lib_version_revision[:]bt_lib_version_age)
-
-bt_version_description=""
-bt_version_description_c_safe=$(echo $bt_version_description | $SED 's/"/\\"/g')
+m4_define([bt_version_description], [])
+m4_define([bt_version_description_c_safe], AS_ESCAPE(bt_version_description))
 
 AC_SUBST([BABELTRACE_LIBRARY_VERSION], bt_lib_version)
 
@@ -41,7 +39,7 @@ AC_DEFINE([BT_VERSION_MINOR], bt_version_minor, [Babeltrace minor version])
 AC_DEFINE([BT_VERSION_PATCH], bt_version_patch, [Babeltrace patch version])
 AC_DEFINE([BT_VERSION_DEV_STAGE], ["]bt_version_dev_stage["], [Babeltrace version development stage (can be empty)])
 AC_DEFINE([BT_VERSION_NAME], ["]bt_version_name["], [Babeltrace version name])
-AC_DEFINE_UNQUOTED([BT_VERSION_DESCRIPTION], ["$bt_version_description_c_safe"], [Babeltrace version description])
+AC_DEFINE([BT_VERSION_DESCRIPTION], ["]bt_version_description_c_safe["], [Babeltrace version description])
 
 AC_CANONICAL_TARGET
 AC_CANONICAL_HOST
@@ -51,11 +49,11 @@ AC_CANONICAL_HOST
 ## Automake base setup ##
 ##                     ##
 
-AM_INIT_AUTOMAKE([1.12 foreign dist-bzip2 no-dist-gzip tar-ustar nostdinc])
+AM_INIT_AUTOMAKE([1.12 foreign dist-bzip2 no-dist-gzip tar-ustar nostdinc -Wall -Wno-portability -Werror])
 AM_MAINTAINER_MODE([enable])
 
-# Enable silent rules if available (Introduced in AM 1.11)
-m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
+# Enable silent rules by default
+AM_SILENT_RULES([yes])
 
 
 ##                      ##
@@ -91,14 +89,15 @@ AC_SUBST(LT_NO_UNDEFINED)
 ## C compiler checks ##
 ##                   ##
 
-AC_USE_SYSTEM_EXTENSIONS
-AC_SYS_LARGEFILE
-
 # Choose the c compiler
-AC_PROG_CC
+AC_PROG_CC_STDC
 
 # Make sure the c compiler supports C99
-AC_PROG_CC_C99([], [AC_MSG_ERROR([The compiler does not support C99])])
+AS_IF([test "$ac_cv_prog_cc_c99" = "no"], [AC_MSG_ERROR([The compiler does not support C99])])
+
+# Enable available system extensions and LFS support
+AC_USE_SYSTEM_EXTENSIONS
+AC_SYS_LARGEFILE
 
 # Make sure the c compiler supports __attributes__
 AX_C___ATTRIBUTE__
@@ -172,17 +171,16 @@ AX_CHECK_LINK_FLAG([-Wl,--whole-archive,--no-whole-archive],
   ]
 )
 
-# Initialize and configure libtool
-LT_INIT([win32-dll])
-
 
 ##                 ##
 ## Programs checks ##
 ##                 ##
 
+AM_PROG_AR
 AC_PROG_MAKE_SET
 AC_PROG_MKDIR_P
 AC_PROG_LN_S
+AC_PROG_SED
 AC_PATH_PROG([report_fold], [fold])
 
 # set $IN_GIT_REPO if we're in the Git repository; the `bootstrap` file
@@ -231,6 +229,9 @@ detection.
   ])
 ])
 AM_CONDITIONAL([HAVE_FLEX], [test "x$have_flex" = "xyes"])
+
+# Initialize and configure libtool
+LT_INIT([win32-dll])
 
 
 ##                ##
@@ -346,7 +347,7 @@ AS_IF([test "x$BABELTRACE_DEBUG_MODE" = x1], [
 # Python bindings
 # Disabled by default
 AC_ARG_ENABLE([python-bindings],
-  [AC_HELP_STRING([--enable-python-bindings], [build the Python bindings])],
+  [AS_HELP_STRING([--enable-python-bindings],[build the Python bindings])],
   [], dnl AC_ARG_ENABLE will fill enable_python_bindings with the user choice
   [enable_python_bindings=unspecified]
 )
@@ -354,7 +355,7 @@ AC_ARG_ENABLE([python-bindings],
 # Python bindings documentation
 # Disabled by default
 AC_ARG_ENABLE([python-bindings-doc],
-  [AC_HELP_STRING([--enable-python-bindings-doc], [build the Python bindings documentation])],
+  [AS_HELP_STRING([--enable-python-bindings-doc],[build the Python bindings documentation])],
   [], dnl AC_ARG_ENABLE will fill enable_python_bindings_doc with the user choice
   [enable_python_bindings_doc=no]
 )
@@ -362,14 +363,14 @@ AC_ARG_ENABLE([python-bindings-doc],
 # Python plugins
 # Disabled by default
 AC_ARG_ENABLE([python-plugins],
-  [AC_HELP_STRING([--enable-python-plugins], [enable the Python plugins support for the library and converter])]
+  [AS_HELP_STRING([--enable-python-plugins],[enable the Python plugins support for the library and converter])]
   dnl AC_ARG_ENABLE will fill enable_python_plugins with the user choice
 )
 
 # Debug info
 # Enabled by default, except on some platforms
 AC_ARG_ENABLE([debug-info],
-  [AC_HELP_STRING([--disable-debug-info], [disable the debug info support (default on macOS, Solaris and Windows)])],
+  [AS_HELP_STRING([--disable-debug-info],[disable the debug info support (default on macOS, Solaris and Windows)])],
   [], dnl AC_ARG_ENABLE will fill enable_debug_info with the user choice
   [enable_debug_info="$DEFAULT_ENABLE_DEBUG_INFO"]
 )
@@ -377,21 +378,21 @@ AC_ARG_ENABLE([debug-info],
 # API documentation
 # Disabled by default
 AC_ARG_ENABLE([api-doc],
-  [AC_HELP_STRING([--enable-api-doc], [build the HTML API documentation])],
+  [AS_HELP_STRING([--enable-api-doc],[build the HTML API documentation])],
   [enable_api_doc=$enableval]
 )
 
 # Built-in plugins
 # Disabled by default
 AC_ARG_ENABLE([built-in-plugins],
-  [AC_HELP_STRING([--enable-built-in-plugins], [Statically-link in-tree plug-ins into the babeltrace2 executable])]
+  [AS_HELP_STRING([--enable-built-in-plugins],[Statically-link in-tree plug-ins into the babeltrace2 executable])]
   dnl AC_ARG_ENABLE will fill enable_built_in_plugins with the user choice
 )
 
 # Built-in python plugin support
 # Disabled by default
 AC_ARG_ENABLE([built-in-python-plugin-support],
-  [AC_HELP_STRING([--enable-built-in-python-plugin-support], [Statically-link Python plugin support into the babeltrace library])]
+  [AS_HELP_STRING([--enable-built-in-python-plugin-support],[Statically-link Python plugin support into the babeltrace library])]
   dnl AC_ARG_ENABLE will fill enable_built_in_python_plugin_support with the user choice
 )
 
@@ -541,15 +542,16 @@ AS_IF([test "x$enable_python_bindings_doc" = xyes],
   ]
 )
 
-AS_IF([test "x$enable_debug_info" = xyes],
-  [
-    # Check if libelf and libdw are present
-    AC_CHECK_LIB([elf], [elf_version], [:], [AC_MSG_ERROR(Missing libelf (from elfutils >= 0.154) which is required by debug info. You can disable this feature using --disable-debug-info.)])
-    AC_CHECK_LIB([dw], [dwarf_begin], [:], [AC_MSG_ERROR(Missing libdw (from elfutils >= 0.154) which is required by debug info. You can disable this feature using --disable-debug-info.)])
-    BT_LIB_ELFUTILS([0], [154], [:], [AC_MSG_ERROR(elfutils >= 0.154 is required to use the debug info feature. You can disable this feature using --disable-debug-info.)])
-    ELFUTILS_LIBS="-lelf -ldw"
-  ]
-)
+AS_IF([test "x$enable_debug_info" = xyes], [
+  # Check if libelf and libdw are present
+  PKG_CHECK_MODULES([ELFUTILS], [libelf >= 0.154 libdw >= 0.154],
+    [
+      dnl PKG_CHECK_MODULES defines ELFUTILS_LIBS
+    ],
+    [
+      AC_MSG_ERROR([elfutils >= 0.154 is required to use the debug info feature. You can disable this feature using --disable-debug-info.])
+    ])
+])
 AC_SUBST([ELFUTILS_LIBS])
 
 AS_IF([test "x$enable_api_doc" = "xyes"],
@@ -842,11 +844,11 @@ AS_IF([test -n "bt_version_name"], [
 
 AS_ECHO
 
-AS_IF([test -n "$bt_version_description"], [
+AS_IF([test -n "bt_version_description"], [
 	AS_IF([test -n "$report_fold"], [
-		AS_ECHO("`AS_ECHO("$bt_version_description") | $report_fold -s`")
+		AS_ECHO("`AS_ECHO("bt_version_description") | $report_fold -s`")
 	], [
-		AS_ECHO("$bt_version_description")
+		AS_ECHO("bt_version_description")
 	])
 
 	AS_ECHO

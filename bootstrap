@@ -6,4 +6,6 @@ if [ ! -d "config" ]; then
 	mkdir config
 fi
 
-autoreconf -vi
+# Run autoreconf with all warning types as errors except
+# for 'obsolete' because of AM_PATH_GLIB_2_0
+autoreconf -vif -W all,error,no-obsolete
