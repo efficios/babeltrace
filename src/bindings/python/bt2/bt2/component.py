@@ -382,14 +382,19 @@ def _trim_docstring(docstring):
 #         ...
 #
 # A user-defined Python component class can have an __init__() method
-# which must at least accept the `params` and `name` arguments:
+# which must accept the following parameters:
 #
-#     def __init__(self, params, name, something_else):
+#     def __init__(self, config, params, obj):
 #         ...
 #
-# The user-defined component class can also have a _finalize() method
-# (do NOT use __del__()) to be notified when the component object is
-# finalized.
+# The value of the `obj` parameter is what was passed as the `obj`
+# parameter if the component was instantiated from Python with
+# Graph.add_component().  If the component was not instantiated from
+# Python, is is always `None`.
+#
+# The user-defined component class can also have a _user_finalize()
+# method (do NOT use __del__()) to be notified when the component object
+# is finalized.
 #
 # User-defined source and filter component classes must use the
 # `message_iterator_class` class parameter to specify the
@@ -402,14 +407,16 @@ def _trim_docstring(docstring):
 #                    message_iterator_class=MyMessageIterator):
 #         ...
 #
-# This message iterator class must inherit
-# bt2._UserMessageIterator, and it must define the _get() and
-# _next() methods. The message iterator class can also define an
-# __init__() method: this method has access to the original Python
-# component object which was used to create it as the `component`
-# property. The message iterator class can also define a
-# _finalize() method (again, do NOT use __del__()): this is called when
-# the message iterator is (really) destroyed.
+# This message iterator class must inherit bt2._UserMessageIterator.
+# It can implement the __init__() method, which must accept the
+# following parameters:
+#
+#     def __init__(self, config, port):
+#         ...
+#
+# It can also implement the __next__() and _user_finalize() methods
+# (again, do NOT use __del__()), which don't accept any parameters
+# other than `self`.
 #
 # When the user-defined class is destroyed, this metaclass's __del__()
 # method is called: the native BT component class pointer is put (not
