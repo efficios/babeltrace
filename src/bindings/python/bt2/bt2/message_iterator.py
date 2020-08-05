@@ -104,8 +104,7 @@ class _MessageIteratorConfiguration:
 
 # This is extended by the user to implement component classes in Python.  It
 # is created for a given output port when an input port message iterator is
-# created on the input port on the other side of the connection.  It is also
-# created when an output port message iterator is created on this output port.
+# created on the input port on the other side of the connection.
 #
 # Its purpose is to feed the messages that should go out through this output
 # port.
