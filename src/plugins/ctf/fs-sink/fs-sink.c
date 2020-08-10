@@ -1048,12 +1048,6 @@ bt_component_class_sink_consume_method_status ctf_fs_sink_consume(
 		/* TODO: Finalize all traces (should already be done?) */
 		status = BT_COMPONENT_CLASS_SINK_CONSUME_METHOD_STATUS_END;
 		break;
-	case BT_MESSAGE_ITERATOR_NEXT_STATUS_MEMORY_ERROR:
-		status = BT_COMPONENT_CLASS_SINK_CONSUME_METHOD_STATUS_MEMORY_ERROR;
-		break;
-	case BT_MESSAGE_ITERATOR_NEXT_STATUS_ERROR:
-		status = BT_COMPONENT_CLASS_SINK_CONSUME_METHOD_STATUS_MEMORY_ERROR;
-		break;
 	default:
 		break;
 	}
