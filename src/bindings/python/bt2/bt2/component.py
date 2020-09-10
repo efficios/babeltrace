@@ -327,17 +327,22 @@ def _create_component_class_from_const_ptr_and_get_ref(ptr, comp_cls_type):
 
 def _trim_docstring(docstring):
     lines = docstring.expandtabs().splitlines()
+
+    if len(lines) == 0:
+        return ''
+
     indent = sys.maxsize
 
-    for line in lines[1:]:
-        stripped = line.lstrip()
+    if len(lines) > 1:
+        for line in lines[1:]:
+            stripped = line.lstrip()
 
-        if stripped:
-            indent = min(indent, len(line) - len(stripped))
+            if stripped:
+                indent = min(indent, len(line) - len(stripped))
 
     trimmed = [lines[0].strip()]
 
-    if indent < sys.maxsize:
+    if indent < sys.maxsize and len(lines) > 1:
         for line in lines[1:]:
             trimmed.append(line[indent:].rstrip())
 

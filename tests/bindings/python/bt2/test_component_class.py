@@ -114,15 +114,37 @@ class UserComponentClassTestCase(unittest.TestCase):
 
         self.assertEqual(MySink.description, 'The description.')
 
-    def test_empty_description(self):
+    def test_empty_description_no_lines(self):
         class MySink(bt2._UserSinkComponent):
-            """
-            """
+            # fmt: off
+            """"""
+            # fmt: on
 
             def _user_consume(self):
                 pass
 
         self.assertIsNone(MySink.description)
+
+    def test_empty_description_no_contents(self):
+        class MySink(bt2._UserSinkComponent):
+            # fmt: off
+            """
+            """
+            # fmt: on
+
+            def _user_consume(self):
+                pass
+
+        self.assertIsNone(MySink.description)
+
+    def test_empty_description_single_line(self):
+        class MySink(bt2._UserSinkComponent):
+            """my description"""
+
+            def _user_consume(self):
+                pass
+
+        self.assertEqual(MySink.description, "my description")
 
     def test_help(self):
         class MySink(bt2._UserSinkComponent):
