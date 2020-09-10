@@ -525,7 +525,7 @@ AS_IF([AE_IS_FEATURE_ENABLED([python-bindings]) || AE_IS_FEATURE_ENABLED([python
 
 AE_IF_FEATURE_ENABLED([python-bindings-doc],
   [
-    AM_CHECK_PYTHON_SPHINX([PYTHON])
+    AE_CHECK_PYTHON_SPHINX([PYTHON])
     AS_IF([test "x$PYTHON_SPHINX_EXISTS" = xno], [
       AC_MSG_ERROR([The Sphinx package for Python 3 is required to build the Python bindings documentation])
     ])

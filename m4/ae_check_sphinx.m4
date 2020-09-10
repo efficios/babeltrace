@@ -20,9 +20,9 @@
 # It sets PYTHON_SPHINX_EXISTS to "yes" if Sphinx is found for the
 # given Python interpreter, otherwise "no".
 
-# AM_CHECK_PYTHON_SPHINX(PYTHON)
+# AE_CHECK_PYTHON_SPHINX(PYTHON)
 # ---------------------------------------------------------------------------
-AC_DEFUN([AM_CHECK_PYTHON_SPHINX],
+AC_DEFUN([AE_CHECK_PYTHON_SPHINX],
     [prog="
 try:
     import sphinx
