@@ -250,10 +250,10 @@ class _MemoryError(_Error):
 
 
 class UnknownObject(Exception):
-    '''
+    """
     Raised when a component class handles a query for an object it doesn't
     know about.
-    '''
+    """
 
     pass
 

@@ -338,7 +338,8 @@ class EventTestCase(unittest.TestCase):
             event.payload_field['mosquito'] = 42
 
         msg = self._create_test_const_event_message(
-            event_fields_config=event_fields_config, with_ep=True,
+            event_fields_config=event_fields_config,
+            with_ep=True,
         )
         ev = msg.event
 

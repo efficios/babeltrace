@@ -560,7 +560,9 @@ class CreateDiscardedPacketMessageTestCase(unittest.TestCase):
     # Trying to create when the stream does not support discarded packets.
     def test_create_unsupported_raises(self):
         def create_stream_class(tc, cc):
-            return tc.create_stream_class(supports_packets=True,)
+            return tc.create_stream_class(
+                supports_packets=True,
+            )
 
         def msg_iter_next(msg_iter, stream):
             with self.assertRaisesRegex(

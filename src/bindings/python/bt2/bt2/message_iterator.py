@@ -398,8 +398,10 @@ class _UserMessageIterator(_MessageIterator):
 
             utils._check_uint64(beg_clock_snapshot)
             utils._check_uint64(end_clock_snapshot)
-            ptr = native_bt.message_discarded_events_create_with_default_clock_snapshots(
-                self._bt_ptr, stream._ptr, beg_clock_snapshot, end_clock_snapshot
+            ptr = (
+                native_bt.message_discarded_events_create_with_default_clock_snapshots(
+                    self._bt_ptr, stream._ptr, beg_clock_snapshot, end_clock_snapshot
+                )
             )
         else:
             if beg_clock_snapshot is not None or end_clock_snapshot is not None:
@@ -435,8 +437,10 @@ class _UserMessageIterator(_MessageIterator):
 
             utils._check_uint64(beg_clock_snapshot)
             utils._check_uint64(end_clock_snapshot)
-            ptr = native_bt.message_discarded_packets_create_with_default_clock_snapshots(
-                self._bt_ptr, stream._ptr, beg_clock_snapshot, end_clock_snapshot
+            ptr = (
+                native_bt.message_discarded_packets_create_with_default_clock_snapshots(
+                    self._bt_ptr, stream._ptr, beg_clock_snapshot, end_clock_snapshot
+                )
             )
         else:
             if beg_clock_snapshot is not None or end_clock_snapshot is not None:
