@@ -425,7 +425,8 @@ class CreateDiscardedEventMessageTestCase(unittest.TestCase):
 
         def msg_iter_next(msg_iter, stream):
             with self.assertRaisesRegex(
-                ValueError, 'discarded event count is 0',
+                ValueError,
+                'discarded event count is 0',
             ):
                 msg_iter._create_discarded_events_message(stream, count=0)
 
@@ -572,7 +573,8 @@ class CreateDiscardedPacketMessageTestCase(unittest.TestCase):
 
         def msg_iter_next(msg_iter, stream):
             with self.assertRaisesRegex(
-                ValueError, 'discarded packet count is 0',
+                ValueError,
+                'discarded packet count is 0',
             ):
                 msg_iter._create_discarded_packets_message(stream, count=0)
 
@@ -604,7 +606,9 @@ class CreateDiscardedPacketMessageTestCase(unittest.TestCase):
     # Trying to create when the stream does not support discarded packets.
     def test_create_unsupported_raises(self):
         def create_stream_class(tc, cc):
-            return tc.create_stream_class(supports_packets=True,)
+            return tc.create_stream_class(
+                supports_packets=True,
+            )
 
         def msg_iter_next(msg_iter, stream):
             with self.assertRaisesRegex(

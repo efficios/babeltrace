@@ -330,7 +330,8 @@ class EventTestCase(unittest.TestCase):
 
     def test_const_getitem_no_packet(self):
         msg = self._create_test_const_event_message(
-            event_fields_config=self._event_payload_fields_config, with_ep=True,
+            event_fields_config=self._event_payload_fields_config,
+            with_ep=True,
         )
         ev = msg.event
 
@@ -377,7 +378,8 @@ class EventTestCase(unittest.TestCase):
 
     def test_iter_payload_only(self):
         msg = self._create_test_const_event_message(
-            event_fields_config=self._event_payload_fields_config, with_ep=True,
+            event_fields_config=self._event_payload_fields_config,
+            with_ep=True,
         )
         expected_field_names = [
             # payload

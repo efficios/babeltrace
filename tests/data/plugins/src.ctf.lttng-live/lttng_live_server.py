@@ -1533,7 +1533,9 @@ if __name__ == '__main__':
         help='Prefix to prepend to the trace paths of session configurations',
     )
     parser.add_argument(
-        '--sessions-filename', type=str, help='Path to a session configuration file',
+        '--sessions-filename',
+        type=str,
+        help='Path to a session configuration file',
     )
     parser.add_argument(
         '-h',

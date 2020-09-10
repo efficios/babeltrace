@@ -300,11 +300,11 @@ class UserComponentClassTestCase(unittest.TestCase):
 class ComponentClassTestCase(unittest.TestCase):
     def setUp(self):
         class MySink(bt2._UserSinkComponent):
-            '''
+            """
             The description.
 
             The help.
-            '''
+            """
 
             def _user_consume(self):
                 pass

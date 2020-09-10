@@ -58,11 +58,11 @@ class _ComponentErrorCause(_ErrorCause):
         self._component_name = native_bt.error_cause_component_actor_get_component_name(
             ptr
         )
-        self._component_class_type = native_bt.error_cause_component_actor_get_component_class_type(
-            ptr
+        self._component_class_type = (
+            native_bt.error_cause_component_actor_get_component_class_type(ptr)
         )
-        self._component_class_name = native_bt.error_cause_component_actor_get_component_class_name(
-            ptr
+        self._component_class_name = (
+            native_bt.error_cause_component_actor_get_component_class_name(ptr)
         )
         self._plugin_name = native_bt.error_cause_component_actor_get_plugin_name(ptr)
 
@@ -86,11 +86,11 @@ class _ComponentErrorCause(_ErrorCause):
 class _ComponentClassErrorCause(_ErrorCause):
     def __init__(self, ptr):
         super().__init__(ptr)
-        self._component_class_type = native_bt.error_cause_component_class_actor_get_component_class_type(
-            ptr
+        self._component_class_type = (
+            native_bt.error_cause_component_class_actor_get_component_class_type(ptr)
         )
-        self._component_class_name = native_bt.error_cause_component_class_actor_get_component_class_name(
-            ptr
+        self._component_class_name = (
+            native_bt.error_cause_component_class_actor_get_component_class_name(ptr)
         )
         self._plugin_name = native_bt.error_cause_component_class_actor_get_plugin_name(
             ptr
@@ -112,20 +112,22 @@ class _ComponentClassErrorCause(_ErrorCause):
 class _MessageIteratorErrorCause(_ErrorCause):
     def __init__(self, ptr):
         super().__init__(ptr)
-        self._component_name = native_bt.error_cause_message_iterator_actor_get_component_name(
-            ptr
+        self._component_name = (
+            native_bt.error_cause_message_iterator_actor_get_component_name(ptr)
         )
-        self._component_output_port_name = native_bt.error_cause_message_iterator_actor_get_component_output_port_name(
-            ptr
+        self._component_output_port_name = (
+            native_bt.error_cause_message_iterator_actor_get_component_output_port_name(
+                ptr
+            )
         )
-        self._component_class_type = native_bt.error_cause_message_iterator_actor_get_component_class_type(
-            ptr
+        self._component_class_type = (
+            native_bt.error_cause_message_iterator_actor_get_component_class_type(ptr)
         )
-        self._component_class_name = native_bt.error_cause_message_iterator_actor_get_component_class_name(
-            ptr
+        self._component_class_name = (
+            native_bt.error_cause_message_iterator_actor_get_component_class_name(ptr)
         )
-        self._plugin_name = native_bt.error_cause_message_iterator_actor_get_plugin_name(
-            ptr
+        self._plugin_name = (
+            native_bt.error_cause_message_iterator_actor_get_plugin_name(ptr)
         )
 
     @property
