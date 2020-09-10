@@ -61,12 +61,11 @@ AM_SILENT_RULES([yes])
 ##                      ##
 
 MINGW32=no
-DEFAULT_ENABLE_DEBUG_INFO=yes
 LT_NO_UNDEFINED=""
 AS_CASE([$host_os],
   [solaris*|darwin*],
     [
-	DEFAULT_ENABLE_DEBUG_INFO=no
+	AE_FEATURE_DISABLE([debug-info])
     ],
   [freebsd*],
     [
@@ -74,13 +73,13 @@ AS_CASE([$host_os],
     ],
   [cygwin*],
     [
-	DEFAULT_ENABLE_DEBUG_INFO=no
+	AE_FEATURE_DISABLE([debug-info])
 	LT_NO_UNDEFINED="-no-undefined"
     ],
   [mingw*],
     [
 	MINGW32=yes
-	DEFAULT_ENABLE_DEBUG_INFO=no
+	AE_FEATURE_DISABLE([debug-info])
 	LT_NO_UNDEFINED="-no-undefined"
     ]
 )
@@ -309,6 +308,7 @@ AC_CHECK_LIB([c], [posix_fallocate],
   [AC_DEFINE_UNQUOTED([BABELTRACE_HAVE_POSIX_FALLOCATE], 1, [Has posix_fallocate support.])]
 )
 
+
 ##                 ##
 ## User variables  ##
 ##                 ##
@@ -355,143 +355,128 @@ AS_IF([test "x$BABELTRACE_DEBUG_MODE" = x1], [
 
 # Python bindings
 # Disabled by default
-AC_ARG_ENABLE([python-bindings],
-  [AS_HELP_STRING([--enable-python-bindings],[build the Python bindings])],
-  [], dnl AC_ARG_ENABLE will fill enable_python_bindings with the user choice
-  [enable_python_bindings=unspecified]
-)
+AE_FEATURE_DEFAULT_DISABLE
+AE_FEATURE([python-bindings],[build the Python bindings])
 
 # Python bindings documentation
 # Disabled by default
-AC_ARG_ENABLE([python-bindings-doc],
-  [AS_HELP_STRING([--enable-python-bindings-doc],[build the Python bindings documentation])],
-  [], dnl AC_ARG_ENABLE will fill enable_python_bindings_doc with the user choice
-  [enable_python_bindings_doc=no]
-)
+AE_FEATURE_DEFAULT_DISABLE
+AE_FEATURE([python-bindings-doc],[build the Python bindings documentation])
 
 # Python plugins
 # Disabled by default
-AC_ARG_ENABLE([python-plugins],
-  [AS_HELP_STRING([--enable-python-plugins],[enable the Python plugins support for the library and converter])]
-  dnl AC_ARG_ENABLE will fill enable_python_plugins with the user choice
-)
+AE_FEATURE_DEFAULT_DISABLE
+AE_FEATURE([python-plugins],[enable the Python plugins support for the library and converter])
 
 # Debug info
 # Enabled by default, except on some platforms
-AC_ARG_ENABLE([debug-info],
-  [AS_HELP_STRING([--disable-debug-info],[disable the debug info support (default on macOS, Solaris and Windows)])],
-  [], dnl AC_ARG_ENABLE will fill enable_debug_info with the user choice
-  [enable_debug_info="$DEFAULT_ENABLE_DEBUG_INFO"]
-)
+AE_FEATURE_DEFAULT_ENABLE
+AE_FEATURE([debug-info],[disable the debug info support (default on macOS, Solaris and Windows)])
 
 # API documentation
 # Disabled by default
-AC_ARG_ENABLE([api-doc],
-  [AS_HELP_STRING([--enable-api-doc],[build the HTML API documentation])],
-  [enable_api_doc=$enableval]
-)
+AE_FEATURE_DEFAULT_DISABLE
+AE_FEATURE([api-doc],[build the HTML API documentation])
 
 # Built-in plugins
 # Disabled by default
-AC_ARG_ENABLE([built-in-plugins],
-  [AS_HELP_STRING([--enable-built-in-plugins],[Statically-link in-tree plug-ins into the babeltrace2 executable])]
-  dnl AC_ARG_ENABLE will fill enable_built_in_plugins with the user choice
-)
+AE_FEATURE_DEFAULT_DISABLE
+AE_FEATURE([built-in-plugins],[Statically-link in-tree plug-ins into the babeltrace2 executable])
 
 # Built-in python plugin support
 # Disabled by default
-AC_ARG_ENABLE([built-in-python-plugin-support],
-  [AS_HELP_STRING([--enable-built-in-python-plugin-support],[Statically-link Python plugin support into the babeltrace library])]
-  dnl AC_ARG_ENABLE will fill enable_built_in_python_plugin_support with the user choice
-)
+AE_FEATURE_DEFAULT_DISABLE
+AE_FEATURE([built-in-python-plugin-support],[Statically-link Python plugin support into the babeltrace library])
 
 # Man pages
 # Enabled by default
-AC_ARG_ENABLE([man-pages],
-  [AS_HELP_STRING([--disable-man-pages], [Do not build and install man pages (already built in a distributed tarball])],
-  [], dnl AC_ARG_ENABLE will fill enable_man_pages with the user choice
-  [enable_man_pages=yes]
-)
+AE_FEATURE_DEFAULT_ENABLE
+AE_FEATURE([man-pages],[Do not build and install man pages (already built in a distributed tarball])
+
+# When given, add -Werror to WARN_CFLAGS.
+# Disabled by default
+AE_FEATURE_DEFAULT_DISABLE
+AE_FEATURE([Werror],[Treat compiler warnings as errors.])
 
 
-# Set automake variables for optionnal feature conditionnals in Makefile.am
-AM_CONDITIONAL([ENABLE_PYTHON_BINDINGS], [test "x$enable_python_bindings" = xyes])
-AM_CONDITIONAL([ENABLE_PYTHON_BINDINGS_DOC], [test "x$enable_python_bindings_doc" = xyes])
-AM_CONDITIONAL([ENABLE_PYTHON_PLUGINS], [test "x$enable_python_plugins" = xyes])
-AM_CONDITIONAL([ENABLE_DEBUG_INFO], [test "x$enable_debug_info" = xyes])
-AM_CONDITIONAL([ENABLE_API_DOC], [test "x$enable_api_doc" = xyes])
-AM_CONDITIONAL([ENABLE_BUILT_IN_PLUGINS], [test "x$enable_built_in_plugins" = xyes])
-AM_CONDITIONAL([ENABLE_BUILT_IN_PYTHON_PLUGIN_SUPPORT], [test "x$enable_built_in_python_plugin_support" = xyes])
-AM_CONDITIONAL([ENABLE_MAN_PAGES], [test "x$enable_man_pages" = xyes])
-AM_CONDITIONAL([ENABLE_PYTHON_COMMON_DEPS], [test "x$enable_python_bindings" = xyes || test "x$enable_python_plugins" = xyes])
+##                                          ##
+## Check for conflicting features selection ##
+##                                          ##
 
-# Set defines for optionnal features conditionnals in the source code
+# Check for conflicting Python related features user choices.
+AE_IF_FEATURE_ENABLED([python-plugins], [
+  AE_IF_FEATURE_UNDEF([python-bindings], [
+    # --enable-python-plugins was provided but --enable-python-bindings was
+    # omitted. Turn the Python bindings ON anyway because it's needed to
+    # use the Python plugins.
+    AE_FEATURE_ENABLE([python-bindings])
+  ], [
+    AE_IF_FEATURE_DISABLED([python-bindings], [
+      # --enable-python-plugins _and_ --disable-python-bindings were
+      # used. This is invalid because Python plugins need the Python
+      # bindings to be useful.
+      AC_MSG_ERROR(--enable-python-bindings must be used to support Python plugins)
+    ])
+  ])
+])
 
-AS_IF([test "x$enable_built_in_plugins" = xyes],
+# Check for conflicting optional features user choices
+AE_IF_FEATURE_ENABLED([built-in-plugins], [
+    # Built-in plug-ins are only available when the --disable-shared --enable-static options are used.
+    AE_IF_FEATURE_NOT_ENABLED([static], [AC_MSG_ERROR(--enable-static must be used to bundle plug-ins in the babeltrace2 executable)])
+    AE_IF_FEATURE_ENABLED([shared], [AC_MSG_ERROR(--disable-shared must be used to bundle plug-ins in the babeltrace2 executable)])
+])
+
+AE_IF_FEATURE_ENABLED([built-in-python-plugin-support], [
+    AE_IF_FEATURE_NOT_ENABLED([python-plugins], [AC_MSG_ERROR([--enable-python-plugins must be used to bundle Python plugin support in the babeltrace2 executable])])
+    # Built-in plug-ins are only available when the --disable-shared --enable-static options are used.
+    AE_IF_FEATURE_NOT_ENABLED([static], [AC_MSG_ERROR(--enable-static must be used to bundle Python plugin support in the babeltrace2 executable)])
+    AE_IF_FEATURE_ENABLED([shared], [AC_MSG_ERROR(--disable-shared must be used to bundle Python plugin support in the babeltrace2 executable)])
+])
+
+
+##                                                                           ##
+## Set automake variables for optionnal feature conditionnals in Makefile.am ##
+##                                                                           ##
+
+AM_CONDITIONAL([ENABLE_PYTHON_BINDINGS], AE_IS_FEATURE_ENABLED([python-bindings]))
+AM_CONDITIONAL([ENABLE_PYTHON_BINDINGS_DOC], AE_IS_FEATURE_ENABLED([python-bindings-doc]))
+AM_CONDITIONAL([ENABLE_PYTHON_PLUGINS], AE_IS_FEATURE_ENABLED([python-plugins]))
+AM_CONDITIONAL([ENABLE_DEBUG_INFO], AE_IS_FEATURE_ENABLED([debug-info]))
+AM_CONDITIONAL([ENABLE_API_DOC], AE_IS_FEATURE_ENABLED([api-doc]))
+AM_CONDITIONAL([ENABLE_BUILT_IN_PLUGINS], AE_IS_FEATURE_ENABLED([built-in-plugins]))
+AM_CONDITIONAL([ENABLE_BUILT_IN_PYTHON_PLUGIN_SUPPORT], AE_IS_FEATURE_ENABLED([built-in-python-plugin-support]))
+AM_CONDITIONAL([ENABLE_MAN_PAGES], AE_IS_FEATURE_ENABLED([man-pages]))
+AM_CONDITIONAL([ENABLE_PYTHON_COMMON_DEPS], AE_IS_FEATURE_ENABLED([python-bindings]) || AE_IS_FEATURE_ENABLED([python-plugins]))
+
+
+##                                                                     ##
+## Set defines for optionnal features conditionnals in the source code ##
+##                                                                     ##
+
+AE_IF_FEATURE_ENABLED([built-in-plugins],
   [AC_DEFINE([BT_BUILT_IN_PLUGINS], [1], [Define to 1 to register plug-in attributes in static executable sections])]
 )
 
-AS_IF([test "x$enable_built_in_python_plugin_support" = xyes],
+AE_IF_FEATURE_ENABLED([built-in-python-plugin-support],
   [AC_DEFINE([BT_BUILT_IN_PYTHON_PLUGIN_SUPPORT], [1], [Define to 1 to register plug-in attributes in static executable sections])]
 )
 
-AS_IF([test "x$enable_debug_info" = xyes],
-  [ENABLE_DEBUG_INFO_VAL=1],
-  [ENABLE_DEBUG_INFO_VAL=0]
-)
-
+AE_IF_FEATURE_ENABLED([debug-info], [ENABLE_DEBUG_INFO_VAL=1], [ENABLE_DEBUG_INFO_VAL=0])
 AC_SUBST([ENABLE_DEBUG_INFO_VAL])
 
-# Check for conflicting Python related features user choices.
-AS_IF([test "x$enable_python_plugins" = xyes],
-  [
-    AS_IF([test "x$enable_python_bindings" = xunspecified],
-      [
-        # --enable-python-plugins was provided but --enable-python-bindings was
-        # omitted. Turn the Python bindings ON anyway because it's needed to
-        # use the Python plugins.
-        enable_python_bindings=yes
-      ],
-      [
-        AS_IF([test "x$enable_python_bindings" = xno],
-          [
-            # --enable-python-plugins _and_ --disable-python-bindings were
-            # used. This is invalid because Python plugins need the Python
-            # bindings to be useful.
-            AC_MSG_ERROR(--enable-python-bindings must be used to support Python plugins)
-          ]
-        )
-      ]
-    )
-  ]
-)
 
-# Check for conflicting optional features user choices
+##                                           ##
+## Check for optionnal features dependencies ##
+##                                           ##
 
-AS_IF([test "x$enable_built_in_plugins" = xyes],
-  [
-    # Built-in plug-ins are only available when the --disable-shared --enable-static options are used.
-    AS_IF([test "x$enable_static" != xyes], [AC_MSG_ERROR(--enable-static must be used to bundle plug-ins in the babeltrace2 executable)])
-    AS_IF([test "x$enable_shared" = xyes], [AC_MSG_ERROR(--disable-shared must be used to bundle plug-ins in the babeltrace2 executable)])
-  ]
-)
-
-AS_IF([test "x$enable_built_in_python_plugin_support" = xyes],
-  [
-    AS_IF([test "x$enable_python_plugins" != xyes], [AC_MSG_ERROR([--enable-python-plugins must be used to bundle Python plugin support in the babeltrace2 executable])])
-    # Built-in plug-ins are only available when the --disable-shared --enable-static options are used.
-    AS_IF([test "x$enable_static" != xyes], [AC_MSG_ERROR(--enable-static must be used to bundle Python plugin support in the babeltrace2 executable)])
-    AS_IF([test "x$enable_shared" = xyes], [AC_MSG_ERROR(--disable-shared must be used to bundle Python plugin support in the babeltrace2 executable)])
-  ]
-)
-
-
-# Check for optionnal features dependencies
-
-AS_IF([test "x$enable_python_bindings" = xyes],
+# The Python bindings require SWIG
+AE_IF_FEATURE_ENABLED([python-plugins],
   [AX_PKG_SWIG(2.0.0, [], [AC_MSG_ERROR([SWIG 2.0.0 or newer is required to build the python bindings])])]
 )
 
+# Always check for python, we will fail later if some features require it and
+# it's unavailable.
 AM_PATH_PYTHON([3.0], [
   AM_PATH_PYTHON_MODULES([PYTHON])
 
@@ -532,26 +517,26 @@ AS_IF([test -n "$PYTHON_CONFIG"], [have_python_dev=yes], [have_python_dev=no])
 AM_CONDITIONAL([HAVE_PYTHON], [test "x$have_python" = xyes])
 AM_CONDITIONAL([HAVE_PYTHON_DEV], [test "x$have_python_dev" = xyes])
 
-AS_IF([test "x$enable_python_bindings" = xyes || test "x$enable_python_plugins" = xyes], [
+AS_IF([AE_IS_FEATURE_ENABLED([python-bindings]) || AE_IS_FEATURE_ENABLED([python-plugins])], [
   AS_IF([test "x$have_python_dev" = xno], [
     AC_MSG_ERROR([Cannot find a suitable python-config. You can override the python-config path with the PYTHON_CONFIG environment variable.])
   ])
 ])
 
-AS_IF([test "x$enable_python_bindings_doc" = xyes],
+AE_IF_FEATURE_ENABLED([python-bindings-doc],
   [
     AM_CHECK_PYTHON_SPHINX([PYTHON])
     AS_IF([test "x$PYTHON_SPHINX_EXISTS" = xno], [
       AC_MSG_ERROR([The Sphinx package for Python 3 is required to build the Python bindings documentation])
     ])
 
-    AS_IF([test "x$enable_python_bindings" != xyes], [
+    AE_IF_FEATURE_NOT_ENABLED([python-bindings], [
       AC_MSG_ERROR([The Python bindings are required to build their documentation])
     ])
   ]
 )
 
-AS_IF([test "x$enable_debug_info" = xyes], [
+AE_IF_FEATURE_ENABLED([debug-info], [
   # Check if libelf and libdw are present
   PKG_CHECK_MODULES([ELFUTILS], [libelf >= 0.154 libdw >= 0.154],
     [
@@ -563,7 +548,7 @@ AS_IF([test "x$enable_debug_info" = xyes], [
 ])
 AC_SUBST([ELFUTILS_LIBS])
 
-AS_IF([test "x$enable_api_doc" = "xyes"],
+AE_IF_FEATURE_ENABLED([api-doc],
   [
     DX_DOXYGEN_FEATURE(ON)
     DX_DOT_FEATURE(OFF)
@@ -588,7 +573,7 @@ warn_prebuilt_man_pages=no
 AC_PATH_PROG([ASCIIDOC], [asciidoc], [no])
 AC_PATH_PROG([XMLTO], [xmlto], [no])
 
-AS_IF([test "x$enable_man_pages" = "xyes"], [
+AE_IF_FEATURE_ENABLED([man-pages], [
   AS_IF([test "x$ASCIIDOC" = "xno" || test "x$XMLTO" = "xno"], [
     AS_IF([test "x$in_git_repo" = "xyes"], [
       # this is an error because we're in the Git repo, which
@@ -630,6 +615,9 @@ AS_IF([test "x$exec_prefix" = xNONE], [
 ])
 
 AC_SUBST(LIBDIR)
+
+
+
 
 # CFLAGS from libraries (the glib ones are needed for the following sizeof
 # test).
@@ -715,13 +703,7 @@ AX_APPEND_COMPILE_FLAGS([ dnl
 	[WARN_CFLAGS],
 	[-Werror])
 
-# When given, add -Werror to WARN_CFLAGS.
-AC_ARG_ENABLE([Werror],
-	[AS_HELP_STRING([--enable-Werror], [Treat compiler warnings as errors.])]
-)
-AS_IF([test "x$enable_Werror" = "xyes"],
-	[WARN_CFLAGS="${WARN_CFLAGS} -Werror"]
-)
+AE_IF_FEATURE_ENABLED([Werror], [WARN_CFLAGS="${WARN_CFLAGS} -Werror"])
 
 # The test used in AX_APPEND_COMPILE_FLAGS, generated using AC_LANG_PROGRAM, is
 # written in such a way that it triggers warnings with the following warning
@@ -897,7 +879,7 @@ AS_IF([test "x$have_python_dev" = "xyes"], [
   PPRINT_PROP_STRING([Python include paths], [$PYTHON_INCLUDE])
   PPRINT_PROP_STRING([Python linker flags], [$PYTHON_LDFLAGS])
 ])
-AS_IF([test "x$enable_python_bindings" = "xyes"], [
+AE_IF_FEATURE_ENABLED([python-bindings], [
   PPRINT_PROP_STRING([SWIG executable], [$SWIG])
   PPRINT_PROP_STRING([SWIG library], [$SWIG_LIB])
 ])
