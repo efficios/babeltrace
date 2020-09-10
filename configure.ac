@@ -478,7 +478,7 @@ AE_IF_FEATURE_ENABLED([python-plugins],
 # Always check for python, we will fail later if some features require it and
 # it's unavailable.
 AM_PATH_PYTHON([3.0], [
-  AM_PATH_PYTHON_MODULES([PYTHON])
+  AE_PATH_PYTHON_MODULES([PYTHON])
 
   # pythondir is the path where extra modules are to be installed
   pythondir=$PYTHON_PREFIX/$PYTHON_MODULES_PATH

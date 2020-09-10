@@ -2,7 +2,7 @@
 #
 # Copyright (C) 2014 Jérémie Galarneau <jeremie.galarneau@efficios.com>
 #
-# bt_python_modules.m4 -- Get the Python modules install path
+# ae_python_modules.m4 -- Get the Python modules install path
 
 # While extra Python modules are generaly installed in the Python
 # interpreter's "site-packages" directory, Debian prefers using the
@@ -10,9 +10,11 @@
 # designated by the PYTHON variable to check the interpreter's PATH
 # and sets the PYTHON_MODULES_PATH by taking the prefix into account.
 
-# AM_PATH_PYTHON_MODULES(PYTHON)
+#serial 1
+
+# AE_PATH_PYTHON_MODULES(PYTHON)
 # ---------------------------------------------------------------------------
-AC_DEFUN([AM_PATH_PYTHON_MODULES],
+AC_DEFUN([AE_PATH_PYTHON_MODULES],
  [prog="import sys
 for path in sys.path:
     if path.endswith(\"-packages\"):
