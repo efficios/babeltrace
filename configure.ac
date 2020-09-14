@@ -404,6 +404,12 @@ AC_ARG_ENABLE([man-pages],
   [enable_man_pages=yes]
 )
 
+# Enabled by default
+AC_ARG_ENABLE([tests],
+  [AS_HELP_STRING([--disable-tests], [Do not build and install tests])],
+  [], dnl AC_ARG_ENABLE will fill enable_tests with the user choice
+  [enable_tests=yes]
+)
 
 # Set automake variables for optionnal feature conditionnals in Makefile.am
 AM_CONDITIONAL([ENABLE_PYTHON_BINDINGS], [test "x$enable_python_bindings" = xyes])
@@ -414,6 +420,7 @@ AM_CONDITIONAL([ENABLE_API_DOC], [test "x$enable_api_doc" = xyes])
 AM_CONDITIONAL([ENABLE_BUILT_IN_PLUGINS], [test "x$enable_built_in_plugins" = xyes])
 AM_CONDITIONAL([ENABLE_BUILT_IN_PYTHON_PLUGIN_SUPPORT], [test "x$enable_built_in_python_plugin_support" = xyes])
 AM_CONDITIONAL([ENABLE_MAN_PAGES], [test "x$enable_man_pages" = xyes])
+AM_CONDITIONAL([ENABLE_TESTS], [test "x$enable_tests" = xyes])
 AM_CONDITIONAL([ENABLE_PYTHON_COMMON_DEPS], [test "x$enable_python_bindings" = xyes || test "x$enable_python_plugins" = xyes])
 
 # Set defines for optionnal features conditionnals in the source code
@@ -940,6 +947,11 @@ PPRINT_PROP_BOOL_CUSTOM([Python bindings documentation], $value, [To build the P
 AS_ECHO
 PPRINT_SUBTITLE([Logging])
 PPRINT_PROP_STRING([Minimal log level], $BABELTRACE_MINIMAL_LOG_LEVEL)
+
+AS_ECHO
+PPRINT_SUBTITLE([Tests])
+test "x$enable_tests" = "xyes" && value=1 || value=0
+PPRINT_PROP_BOOL_CUSTOM([Tests], $value, [To enable tests, use --enable-tests])
 
 AS_ECHO
 PPRINT_SUBTITLE([Special build modes])

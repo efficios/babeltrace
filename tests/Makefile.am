@@ -1,5 +1,6 @@
 # SPDX-License-Identifier: MIT
 
+if ENABLE_TESTS
 SUBDIRS = \
 	utils \
 	lib \
@@ -200,3 +201,4 @@ $(eval $(call check_target,python-plugin-provider,$(TESTS_PYTHON_PLUGIN_PROVIDER
 
 check-no-bitfield:
 	$(MAKE) $(AM_MAKEFLAGS) TESTS="$(TESTS_NO_BITFIELD)" check
+endif
