@@ -543,7 +543,14 @@ AE_IF_FEATURE_ENABLED([debug-info], [
       dnl PKG_CHECK_MODULES defines ELFUTILS_LIBS
     ],
     [
-      AC_MSG_ERROR([elfutils >= 0.154 is required to use the debug info feature. You can disable this feature using --disable-debug-info.])
+      AC_MSG_WARN([pkg-config was unable to find a valid .pc for libelf/libdw. Set PKG_CONFIG_PATH to specify the pkg-config configuration file location.])
+
+      # Turns out SLES12 doesn't bother shipping .pc file for libelf
+      AC_MSG_WARN([Finding libelf without pkg-config.])
+      AC_CHECK_LIB([elf], [elf_version], [], [AC_MSG_ERROR(Missing libelf (from elfutils >= 0.154) which is required by debug info. You can disable this feature using --disable-debug-info.)])
+      AC_CHECK_LIB([dw], [dwarf_begin], [], [AC_MSG_ERROR(Missing libdw (from elfutils >= 0.154) which is required by debug info. You can disable this feature using --disable-debug-info.)])
+      AE_LIB_ELFUTILS([0], [154], [], [AC_MSG_ERROR(elfutils >= 0.154 is required to use the debug info feature. You can disable this feature using --disable-debug-info.)])
+      ELFUTILS_LIBS="-lelf -ldw"
     ])
 ])
 AC_SUBST([ELFUTILS_LIBS])
