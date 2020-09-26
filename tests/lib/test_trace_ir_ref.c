@@ -25,7 +25,7 @@
 
 #define NR_TESTS 37
 
-struct user {
+struct bt_user {
 	bt_trace_class *tc;
 	bt_stream_class *sc;
 	bt_event_class *ec;
@@ -265,7 +265,7 @@ static void test_example_scenario(bt_self_component_source *self_comp)
 	bt_stream_class *weak_sc1 = NULL, *weak_sc2 = NULL;
 	bt_event_class *weak_ec1 = NULL, *weak_ec2 = NULL,
 			*weak_ec3 = NULL;
-	struct user user_a = { 0 }, user_b = { 0 }, user_c = { 0 };
+	struct bt_user user_a = { 0 }, user_b = { 0 }, user_c = { 0 };
 
 	/* The only reference which exists at this point is on TC1. */
 	tc1 = create_tc1(self_comp);
