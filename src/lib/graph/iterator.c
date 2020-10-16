@@ -201,6 +201,7 @@ void bt_message_iterator_try_finalize(
 			BT_LIB_LOGD("Calling user's finalization method: %!+i",
 				iterator);
 			method(iterator);
+			BT_ASSERT_POST_NO_ERROR("bt_message_iterator_class_finalize_method");
 
 			if (saved_error) {
 				BT_CURRENT_THREAD_MOVE_ERROR_AND_RESET(saved_error);
