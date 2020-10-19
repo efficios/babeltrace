@@ -968,7 +968,7 @@ size_t bits_to_skip_to_align_to(struct bt_bfcr *bfcr, size_t align)
 {
 	size_t aligned_packet_at;
 
-	aligned_packet_at = ALIGN(packet_at(bfcr), align);
+	aligned_packet_at = BT_ALIGN(packet_at(bfcr), align);
 	return aligned_packet_at - packet_at(bfcr);
 }
 

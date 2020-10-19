@@ -33,7 +33,7 @@ struct mmap_align {
 static inline
 off_t get_page_aligned_offset(off_t offset, int log_level)
 {
-       return ALIGN_FLOOR(offset, bt_mmap_get_offset_align_size(log_level));
+       return BT_ALIGN_FLOOR(offset, bt_mmap_get_offset_align_size(log_level));
 }
 
 static inline
@@ -57,7 +57,7 @@ struct mmap_align *mmap_align(size_t length, int prot,
 	 * require a 2 pages page_aligned_length if the range crosses a page
 	 * boundary.
 	 */
-	mma->page_aligned_length = ALIGN(length + offset - page_aligned_offset, page_size);
+	mma->page_aligned_length = BT_ALIGN(length + offset - page_aligned_offset, page_size);
 	mma->page_aligned_addr = bt_mmap(NULL, mma->page_aligned_length,
 		prot, flags, fd, page_aligned_offset, log_level);
 	if (mma->page_aligned_addr == MAP_FAILED) {
