@@ -130,7 +130,7 @@ void *objstack_alloc(struct objstack *objstack, size_t len)
 	struct objstack_node *last_node;
 	void *p;
 
-	len = ALIGN(len, OBJSTACK_ALIGN);
+	len = BT_ALIGN(len, OBJSTACK_ALIGN);
 
 	/* Get last node */
 	last_node = bt_list_entry(objstack->head.prev,

@@ -180,7 +180,7 @@ int bt_ctfser_align_offset_in_current_packet(struct bt_ctfser *ctfser,
 	uint64_t align_size_bits;
 
 	BT_ASSERT_DBG(alignment_bits > 0);
-	align_size_bits = ALIGN(ctfser->offset_in_cur_packet_bits,
+	align_size_bits = BT_ALIGN(ctfser->offset_in_cur_packet_bits,
 			alignment_bits) - ctfser->offset_in_cur_packet_bits;
 
 	if (G_UNLIKELY(!_bt_ctfser_has_space_left(ctfser, align_size_bits))) {
