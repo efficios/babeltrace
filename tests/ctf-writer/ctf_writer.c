@@ -44,6 +44,11 @@
 #include <float.h>
 #include "common.h"
 
+#ifdef __FreeBSD__
+/* Required for WIFEXITED and WEXITSTATUS */
+#include <sys/wait.h>
+#endif
+
 #define METADATA_LINE_SIZE 512
 #define SEQUENCE_TEST_LENGTH 10
 #define ARRAY_TEST_LENGTH 5
