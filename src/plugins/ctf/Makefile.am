@@ -11,7 +11,7 @@ babeltrace_plugin_ctf_la_SOURCES = plugin.c
 
 babeltrace_plugin_ctf_la_LDFLAGS = \
 	$(LT_NO_UNDEFINED) \
-	-avoid-version -module
+	-avoid-version -module $(LD_NOTEXT)
 
 babeltrace_plugin_ctf_la_LIBADD = \
 	common/libbabeltrace2-plugin-ctf-common.la \
