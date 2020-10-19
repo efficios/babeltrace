@@ -10,7 +10,7 @@
 #define _BABELTRACE_ENDIAN_H
 
 #ifdef __FreeBSD__
-#include <machine/endian.h>
+#include <sys/endian.h>
 
 #elif defined(__sun__)
 #include <sys/byteorder.h>
