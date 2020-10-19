@@ -134,6 +134,10 @@ AS_CASE([$host_os],
     [
 	DEFAULT_ENABLE_DEBUG_INFO=no
     ],
+  [freebsd*],
+    [
+	DEFAULT_ENABLE_DEBUG_INFO=no
+    ],
   [mingw*],
     [
 	MINGW32=yes
