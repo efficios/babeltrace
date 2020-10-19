@@ -175,6 +175,11 @@ AX_CHECK_LINK_FLAG([-Wl,--whole-archive,--no-whole-archive],
   ]
 )
 
+# Check if the linker supports the "notext" keyword
+AX_CHECK_LINK_FLAG([-Wl,-z,notext],[
+	AC_SUBST([LD_NOTEXT], [-Wl,-z,notext])
+])
+
 
 ##                 ##
 ## Programs checks ##

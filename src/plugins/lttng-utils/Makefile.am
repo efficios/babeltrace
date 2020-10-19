@@ -18,7 +18,7 @@ babeltrace_plugin_lttng_utils_la_SOURCES = \
 
 babeltrace_plugin_lttng_utils_la_LDFLAGS = \
 	$(LT_NO_UNDEFINED) \
-	-avoid-version -module \
+	-avoid-version -module $(LD_NOTEXT) \
 	$(ELFUTILS_LIBS)
 
 if !ENABLE_BUILT_IN_PLUGINS

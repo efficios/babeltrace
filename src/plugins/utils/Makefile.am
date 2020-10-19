@@ -8,7 +8,7 @@ plugin_LTLIBRARIES = babeltrace-plugin-utils.la
 babeltrace_plugin_utils_la_SOURCES = plugin.c
 babeltrace_plugin_utils_la_LDFLAGS = \
 	$(LT_NO_UNDEFINED) \
-	-avoid-version -module
+	-avoid-version -module $(LD_NOTEXT)
 babeltrace_plugin_utils_la_LIBADD = \
 	dummy/libbabeltrace2-plugin-dummy-cc.la \
 	muxer/libbabeltrace2-plugin-muxer.la \
