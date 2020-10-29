@@ -69,7 +69,7 @@ AS_CASE([$host_os],
     ],
   [freebsd*],
     [
-	DEFAULT_ENABLE_DEBUG_INFO=no
+	AE_FEATURE_DISABLE([debug-info])
     ],
   [cygwin*],
     [
