@@ -128,6 +128,14 @@ AC_TYPE_UINT8_T
 AC_CHECK_TYPES([ptrdiff_t])
 
 
+##                     ##
+## C++ compiler checks ##
+##                     ##
+
+# Require a C++11 compiler without GNU extensions (-std=c++11)
+AX_CXX_COMPILE_STDCXX([11], [noext], [mandatory])
+
+
 ##               ##
 ## Header checks ##
 ##               ##
@@ -393,7 +401,7 @@ AE_FEATURE([built-in-python-plugin-support],[Statically-link Python plugin suppo
 AE_FEATURE_DEFAULT_ENABLE
 AE_FEATURE([man-pages],[Do not build and install man pages (already built in a distributed tarball])
 
-# When given, add -Werror to WARN_CFLAGS.
+# When given, add -Werror to WARN_CFLAGS and WARN_CXXFLAGS.
 # Disabled by default
 AE_FEATURE_DEFAULT_DISABLE
 AE_FEATURE([Werror],[Treat compiler warnings as errors.])
@@ -629,6 +637,7 @@ AC_SUBST(LIBDIR)
 # CFLAGS from libraries (the glib ones are needed for the following sizeof
 # test).
 AM_CFLAGS="${PTHREAD_CFLAGS} ${GLIB_CFLAGS}"
+AM_CXXFLAGS="${PTHREAD_CFLAGS} ${GLIB_CFLAGS}"
 
 # Check that the current size_t matches the size that glib thinks it should
 # be. This catches problems on multi-arch where people try to do a 32-bit
@@ -665,11 +674,10 @@ CFLAGS=${save_CFLAGS}
 
 # Detect C and LD warning flags supported by the compiler.
 
-# Detect warning flags supported by the compiler, append them to WARN_CFLAGS.
+# Detect warning flags supported by the C and C++ compilers and append them to
+# WARN_CFLAGS and WARN_CXXFLAGS.
 #
-# Pass -Werror as an extra flag during the test: this is needed to make the
-# -Wunknown-warning-option diagnostic fatal with clang.
-AX_APPEND_COMPILE_FLAGS([ dnl
+m4_define([WARN_FLAGS_LIST], [ dnl
 		-Wall dnl
 		-Wextra dnl
 		-Wmissing-prototypes dnl
@@ -706,10 +714,16 @@ AX_APPEND_COMPILE_FLAGS([ dnl
 		dnl Ref: https://github.com/swig/swig/issues/1259
 		-Wno-cast-function-type dnl
 		-Wno-missing-field-initializers dnl
-	],
-	[WARN_CFLAGS],
-	[-Werror])
+	])
 
+# Pass -Werror as an extra flag during the test: this is needed to make the
+# -Wunknown-warning-option diagnostic fatal with clang.
+AC_LANG([C++])
+AX_APPEND_COMPILE_FLAGS([WARN_FLAGS_LIST], [WARN_CXXFLAGS], [-Werror])
+AC_LANG([C])
+AX_APPEND_COMPILE_FLAGS([WARN_FLAGS_LIST], [WARN_CFLAGS], [-Werror])
+
+AE_IF_FEATURE_ENABLED([Werror], [WARN_CXXFLAGS="${WARN_CXXFLAGS} -Werror"])
 AE_IF_FEATURE_ENABLED([Werror], [WARN_CFLAGS="${WARN_CFLAGS} -Werror"])
 
 # The test used in AX_APPEND_COMPILE_FLAGS, generated using AC_LANG_PROGRAM, is
@@ -718,13 +732,15 @@ AE_IF_FEATURE_ENABLED([Werror], [WARN_CFLAGS="${WARN_CFLAGS} -Werror"])
 # the test program would not build.
 #
 # Enable them here unconditionally.  They are supported by GCC >= 4.8 and by
-# Clang >= 4.0.
+# Clang >= 3.3 (required by the project) and are only valid for C code.
 WARN_CFLAGS="${WARN_CFLAGS} -Wold-style-definition -Wstrict-prototypes"
 
 # CFLAGS from AX_APPEND_COMPILE_FLAGS.
+AM_CXXFLAGS="${AM_CXXFLAGS} ${WARN_CXXFLAGS}"
 AM_CFLAGS="${AM_CFLAGS} ${WARN_CFLAGS}"
 
-# Done for AM_CFLAGS.
+# Done for AM_CXXFLAGS and AM_CFLAGS.
+AC_SUBST(AM_CXXFLAGS)
 AC_SUBST(AM_CFLAGS)
 
 # Set global CPPFLAGS in AM_CPPFLAGS
