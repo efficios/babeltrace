@@ -2,10 +2,14 @@
 
 = Babeltrace{nbsp}2 contributor's guide
 Jérémie Galarneau, Philippe Proulx
-19 November 2020
+1 December 2020
 :toc: left
 :toclevels: 3
+:icons: font
+:nofooter:
 :bt2: Babeltrace{nbsp}2
+:c-cpp: C/{cpp}
+:cpp11: {cpp}11
 
 This is a partial contributor's guide for the
 https://babeltrace.org[{bt2}] project. If you have any
@@ -254,7 +258,7 @@ the `LIBBABELTRACE2_INIT_LOG_LEVEL` environment variable.
 
 This API is based on https://github.com/wonder-mice/zf_log[zf_log], a
 lightweight, yet featureful, MIT-licensed core logging library for C and
-pass:[C++]. The zf_log source files were modified to have the `BT_` and
+{cpp}. The zf_log source files were modified to have the `BT_` and
 `bt_` prefixes, and other small changes, like color support and using
 the project's `BT_DEBUG_MODE` definition instead of the standard
 `NDEBUG`.
@@ -937,9 +941,9 @@ BT_LOGD("Bla bla: number=%d", get_number_of_event_classes_with_property_x(...));
 === Guides
 
 [[logging-instrument-c-file-gen]]
-==== Instrument a C source file (generic)
+==== Instrument a {c-cpp} source file (generic)
 
-To instrument a C source file (`.c`):
+To instrument a {c-cpp} source file (`.c`/`.cpp`):
 
 . At the top of the file, before the first `#include` line (if any),
   define your file's <<choose-a-logging-tag,logging tag>> name:
@@ -987,10 +991,10 @@ Examples:
   <<gen-logging-statements,generic logging statement macros>>.
 
 [[logging-instrument-h-file-gen]]
-==== Instrument a C header file (generic)
+==== Instrument a {c-cpp} header file (generic)
 
-To instrument a C header file (`.h`), if you have `static inline`
-functions in it:
+To instrument a {c-cpp} header file (`.h`/`.hpp`), if you have
+`static inline` functions in it:
 
 . Do not include `"logging/log.h"`!
 
@@ -1021,8 +1025,8 @@ int some_function(int x)
 }
 ----
 +
-The C source files which include this header file determine if logging
-is enabled or not for them, and if so, what is their
+The {c-cpp} source files which include this header file determine if
+logging is enabled or not for them, and if so, what is their
 <<choose-a-logging-tag,logging tag>> and <<run-time-log-level,run-time
 log level>> expression.
 
@@ -1040,9 +1044,9 @@ Then, in the file, instrument your code with the
 <<gen-logging-statements,generic logging statement macros>>.
 
 [[logging-instrument-c-file-lib]]
-==== Instrument a library C source file
+==== Instrument a library {c-cpp} source file
 
-To instrument a library C source file (`.c`):
+To instrument a library {c-cpp} source file (`.c`/`.cpp`):
 
 . At the top of the file, before the first `#include` line (if any),
   define your file's <<choose-a-logging-tag,logging tag>> name (this
@@ -1067,10 +1071,10 @@ To instrument a library C source file (`.c`):
   the <<gen-logging-statements,generic logging statement macros>>.
 
 [[logging-instrument-h-file-lib]]
-==== Instrument a library C header file
+==== Instrument a library {c-cpp} header file
 
-To instrument a library C header file (`.h`), if you have `static
-inline` functions in it:
+To instrument a library {c-cpp} header file (`.h`/`.hpp`), if you have
+`static inline` functions in it:
 
 . Do not include `"lib/logging.h"`!
 
@@ -1089,9 +1093,9 @@ inline` functions in it:
   the <<gen-logging-statements,generic logging statement macros>>.
 
 [[logging-instrument-c-file-compcls]]
-==== Instrument a component class C source file
+==== Instrument a component class {c-cpp} source file
 
-To instrument a component class C source file (`.c`):
+To instrument a component class {c-cpp} source file (`.c`/`.cpp`):
 
 . At the top of the file, before the first `#include` line (if any),
   define your file's <<choose-a-logging-tag,logging tag>> name (this tag
@@ -1169,10 +1173,10 @@ bt_self_component_status my_comp_init(
   <<comp-logging-statements,component logging statement macros>>.
 
 [[logging-instrument-h-file-compcls]]
-==== Instrument a component class C header file
+==== Instrument a component class {c-cpp} header file
 
-To instrument a component class C header file (`.h`), if you have
-`static inline` functions in it:
+To instrument a component class {c-cpp} header file (`.h`/`.hpp`), if
+you have `static inline` functions in it:
 
 . Do not include `"logging/comp-logging.h"`!
 
@@ -1192,9 +1196,9 @@ To instrument a component class C header file (`.h`), if you have
 [[choose-a-logging-tag]]
 ==== Choose a logging tag
 
-Each logging-enabled C source file must define `BT_LOG_TAG` to a logging
-tag. A logging tag is a namespace to identify the logging messages of
-this specific source file.
+Each logging-enabled {c-cpp} source file must define `BT_LOG_TAG` to a
+logging tag. A logging tag is a namespace to identify the logging
+messages of this specific source file.
 
 In general, a logging tag name _must_ be only uppercase letters, digits,
 and the `-`, `.`, and `/` characters.
@@ -1610,3 +1614,340 @@ To run a **specific test** (for example,
 $ ./tests/utils/run_python_bt2 python3 ./tests/utils/python/testrunner.py \
   ./tests/bindings/python/bt2/ -t test_value.RealValueTestCase.test_assign_pos_int
 ----
+
+== {cpp} usage
+
+Some parts of {bt2} are written in {cpp}.
+
+This section shows what's important to know about {cpp} to contribute
+to {bt2}.
+
+[IMPORTANT]
+====
+{bt2} only has {cpp} sources for _internal_ code.
+
+In other words, libbabeltrace2 _must_ expose a pure C99 API to preserve
+ABI compatibility over time.
+====
+
+=== Standard and dependencies
+
+The {bt2} project is configured to use the {cpp11} standard.
+
+{cpp11} makes it possible to build {bt2} with a broad range of
+compilers, from GCC{nbsp}4.8 and Clang{nbsp}3.3.
+
+=== Automake/Libtool requirements
+
+To add a {cpp} source file to a part of the project, use the `.cpp`
+extension and add it to the list of source files in `Makefile.am` as
+usual.
+
+If a program or a shared library has a direct {cpp} source file, then
+Libtool uses the {cpp} linker to create the result, dynamically
+linking important runtime libraries such as libstdc++ and libgcc_s.
+
+Because a Libtool _convenience library_ is just an archive (`.a`), it's
+_not_ dynamically linked to runtime libraries, even if one of its direct
+sources is a {cpp} file. This means that for each program or shared
+library named `my_target` in `Makefile.am` which is linked to a
+convenience library having {cpp} sources (recursively), you _must_ do
+one of:
+
+* Have at least one direct {cpp} source file in the
+  `+*_my_target_SOURCES+` list.
+
+* Add:
++
+----
+nodist_EXTRA_my_target_SOURCES = dummy.cpp
+----
++
+See
+https://www.gnu.org/software/automake/manual/automake.html#Libtool-Convenience-Libraries[Libtool
+Convenience Libraries] to learn more.
+
+For a given program or library, you _cannot_ have a C{nbsp}file and a
+{cpp}{nbsp}file having the same name, for example `list.c` and
+`list.cpp`.
+
+=== Coding style
+
+==== Whitespaces, indentation, and line breaks
+
+All the project's {cpp} files follow the
+https://clang.llvm.org/docs/ClangFormat.html[clang-format]
+https://clang.llvm.org/docs/ClangFormatStyleOptions.html[style] of the
+`.clang-format` file for whitespaces, indentation, and line breaks.
+
+You _must_ format modified and new {cpp} files with clang-format before
+you create a contribution patch.
+
+You need clang-format{nbsp}≥{nbsp}10 to use the project's `.clang-format`
+file.
+
+To automatically format all the project's {cpp} files, run:
+
+----
+$ find -iname '*.cpp' -o -iname '*.hpp' -exec clang-format -i '{}' ';'
+----
+
+==== Naming
+
+* Use camel case with a lowercase first letter for:
+** Variable names: `size`, `objSize`.
+** Function/method names: `size()`, `formatAndPrint()`.
+
+* Use camel case with an uppercase first letter for:
+** Types: `Pistachio`, `NutManager`.
+** Template parameters: `PlanetT`, `TotalSize`.
+
+* Use snake case with uppercase letters for:
+** Definition/macro names: `MARK_AS_UNUSED()`, `SOME_FEATURE_EXISTS`.
+** Enumerators: `Type::SIGNED_INT`, `Scope::FUNCTION`.
+
+* Use only lowercase letters and digits for namespaces: `mylib`, `bt2`.
+
+* Use the suffix `T` for type template parameters:
++
+[source,cpp]
+----
+template <typename NameT, typename ItemT>
+----
+
+* Name a template parameter pack `Args`.
++
+[source,cpp]
+----
+template <typename NameT, typename... Args>
+----
+
+* Use an underscore prefix for private and protected methods and member
+  type names: `_tryConnect()`, `_NodeType`.
+
+* Use the prefix `_m` for private and protected member variable names:
+  `_mLogger`, `_mSize`, `_mFieldClass`.
+
+* Name setters and getters like the property name, without `set` and
+  `get` prefixes.
+
+* Use the `is` or `has` prefix, if possible, to name the functions which
+  return `bool`.
+
+=== Coding convention
+
+In general, the project's contributors make an effort to follow,
+for {cpp11} code:
+
+* The
+  https://github.com/isocpp/CppCoreGuidelines/blob/master/CppCoreGuidelines.md[{cpp} Core Guidelines].
+
+* Scott Meyers's
+  "`https://www.oreilly.com/library/view/effective-modern-c/9781491908419/[Effective Modern {cpp}]`".
+
+Here are a few important reminders:
+
+* Namespace your code.
+
+* Create one header/source file pair per class when possible.
++
+For a class named `MyClass`, name the corresponding files `my-class.hpp`
+and `my-class.cpp`.
+
+* When defining a class, put constructors as the first methods, whatever
+  their access (public/protected/private), then the destructor, and then
+  the rest.
+
+* Declare variables as close to where they are used as possible.
+
+* Use `auto` when possible.
+
+* Use `const` as much as possible, even for pointer
+  (`+const char* const+`) and numeric values (`const unsigned int`)
+  which never need to change.
+
+* Implement simple setters, getters, and one-liners in header files and
+  everything else that's not a template in source files.
+
+* Make methods `const noexcept` or `const` as much as possible.
+
+* Make constructors `explicit` unless you really need an implicit
+  constructor (which is rare).
+
+* Use `std::unique_ptr` to manage memory when possible.
++
+However, use references (`+*my_unique_ptr+`) and raw pointers
+(`+my_unique_ptr.get()+`) when not transferring ownership.
+
+* Use `nullptr`, not `NULL` nor 0.
+
+* Return by value (rvalue) instead of by output parameter (non-const
+  lvalue reference), even complex objects, unless you can prove that the
+  performance is improved when returning by parameter.
+
+* For a function parameter or a return value of which the type needs to
+  be a reference or pointer, use:
++
+If the value is mandatory:::
+    A reference.
+If the value is optional:::
+    A raw pointer.
+
+* Don't use `+std::move()+` when you already have an rvalue, which
+  means:
+** Don't write `+return std::move(...);+` as this can interfere with
+   RVO.
+** Don't use `+std::move()+` with a function call
+   (`+std::move(func())+`).
+
+* For each possible move/copy constructor or assignment operator, do one
+  of:
+** Write a custom one.
+** Mark it as defaulted (`default`)
+** Mark it as deleted (`delete`).
+
+* Use scoped enumerations (`+enum class+`).
+
+* Mark classes known to be final with the `final` keyword.
+
+* Use type aliases (`using`), not type definitions (`typedef`).
+
+* Use anonymous namespaces for local functions instead of `static`.
+
+* Don't pollute the global namespace:
+** Don't use `using namespace xyz` anywhere.
+** Use only namespace aliases in source files (`.cpp`), trying to
+   use them in the smallest possible scope (function, or even smaller).
+
+* Return a structure with named members instead of a generic container
+  such as `std::pair` or `std::tuple`.
+
+* When a class inherits a base class with virtual methods, use the
+  `override` keyword to mark overridden virtual methods, and do not use
+  the `virtual` keyword again.
+
+* Define overloaded operators only if their meaning is obvious,
+  unsurprising, and consistent with the corresponding built-in
+  operators.
++
+For example, use `+|+` as a bitwise- or logical-or, not as a shell-style
+pipe.
+
+* Use RAII wrappers when managing system resources or interacting with
+  C{nbsp}libraries.
++
+In other words, don't rely on ``goto``s and error labels to clean up as
+you would do in{nbsp}C.
++
+Use the RAII, Luke.
+
+* Throw an exception when there's an unexpected, exceptional condition,
+  https://isocpp.org/wiki/faq/exceptions#ctors-can-throw[including from
+  a constructor], instead of returning a status code.
+
+* Accept a by-value parameter and move it (when it's moveable) when you
+  intend to copy it anyway.
++
+You can do this with most STL containers.
++
+Example:
++
+[source,cpp]
+----
+void Obj::doSomething(std::string str)
+{
+    _mName = std::move(str);
+    // ...
+}
+----
+
+.`baby.hpp`
+====
+This example shows a {cpp} header which follows the {bt2} {cpp} coding
+convention.
+
+[source,cpp]
+----
+/*
+ * SPDX-License-Identifier: MIT
+ *
+ * Copyright 2020 Harry Burnett <hburnett@reese.choco>
+ */
+
+#ifndef BABELTRACE_BABY_HPP
+#define BABELTRACE_BABY_HPP
+
+#include <string>
+#include <unordered_set>
+#include <utility>
+
+namespace life {
+
+class Toy;
+
+/*
+ * A baby is a little human.
+ */
+class Baby : public Human
+{
+public:
+    using Toys = std::unordered_set<Toy>;
+
+    enum class Gender
+    {
+        MALE,
+        FEMALE,
+        UNKNOWN,
+    };
+
+    Baby() = default;
+    explicit Baby(const Toys& toys);
+    Baby(const Baby&) = delete;
+    Baby(Baby&&) = delete;
+    Baby& operator=(const Baby&) = delete;
+    Baby& operator=(Baby&&) = delete;
+
+protected:
+    explicit Baby(Gender initialGender = Gender::UNKNOWN);
+
+public:
+    /*
+     * Eats `weight` grams of food.
+     */
+    void eat(unsigned long weight);
+
+    /*
+     * Sleeps for `duration` seconds.
+     */
+    void sleep(double duration);
+
+    /*
+     * Sets this baby's name to `name`.
+     */
+    void name(std::string name)
+    {
+        _mName = std::move(name);
+    }
+
+    /*
+     * This baby's name.
+     */
+    const std::string& name() const noexcept
+    {
+        return _mName;
+    }
+
+protected:
+    void _addTeeth(unsigned long index);
+    void _grow(double size) override;
+
+private:
+    std::string _mName {"Paul"};
+    Toys _mToys;
+};
+
+} // namespace life
+
+#endif // BABELTRACE_BABY_HPP
+----
+====
