@@ -1,30 +1,29 @@
 // Render with Asciidoctor
 
-= Babeltrace contributor's guide
+= Babeltrace{nbsp}2 contributor's guide
 Jérémie Galarneau, Philippe Proulx
-v0.2, 19 June 2019
-:toc:
-:toclevels: 5
-
+19 November 2020
+:toc: left
+:toclevels: 3
+:bt2: Babeltrace{nbsp}2
 
 This is a partial contributor's guide for the
-https://babeltrace.org[Babeltrace] project. If you have any
+https://babeltrace.org[{bt2}] project. If you have any
 questions that are not answered by this guide, please post them on
 https://lists.lttng.org/cgi-bin/mailman/listinfo/lttng-dev[Babeltrace's
 mailing list].
 
-
-== Babeltrace library
+== {bt2} library
 
 === Object reference counting and lifetime
 
-This section covers the rationale behind the design of Babeltrace's
-object lifetime management. This applies to the Babeltrace library, as
+This section covers the rationale behind the design of {bt2}'s
+object lifetime management. This applies to the {bt2} library, as
 well as to the CTF writer library (although the public reference
 counting functions are not named the same way).
 
-Starting from Babeltrace 2.0, all publicly exposed objects inherit a
-common base: `bt_object`. This base provides a number of facilities to
+Starting from Babeltrace{nbsp}2.0, all publicly exposed objects inherit
+a common base: `bt_object`. This base provides a number of facilities to
 all objects, chief amongst which are lifetime management functions.
 
 The lifetime of some public objects is managed by reference counting. In
@@ -32,17 +31,16 @@ this case, the API offers the `+bt_*_get_ref()+` and `+bt_*_put_ref()+`
 functions which respectively increment and decrement an object's
 reference count.
 
-As far as lifetime management in concerned, Babeltrace makes a clear
+As far as lifetime management in concerned, {bt2} makes a clear
 distinction between regular objects, which have a single parent, and
 root objects, which don't.
-
 
 ==== The problem
 
 Let us consider a problematic case to illustrate the need for this
 distinction.
 
-A user of the Babeltrace library creates a trace class, which _has_ a
+A user of the {bt2} library creates a trace class, which _has_ a
 stream class (the class of a stream) and that stream class, in turn,
 _has_ an event class (the class of an event).
 
@@ -72,10 +70,9 @@ never reach zero.
 Nonetheless, the API must offer the guarantee that holding a node to any
 node of the graph keeps all other reachable nodes alive.
 
-
 ==== The solution
 
-The scheme employed in Babeltrace to break this cycle consists in the
+The scheme employed in {bt2} to break this cycle consists in the
 "children" holding _reverse component references_ to their parents. That
 is, in the context of the trace IR, that event classes hold a reference
 to their parent stream class and stream classes hold a reference to
@@ -114,7 +111,6 @@ At that point, the child can be thought of as having converted its weak
 reference to its parent into a regular reference. That is why this
 reference is referred to as a _claiming_ aggregation reference.
 
-
 ==== Caveats
 
 This scheme imposes a number of strict rules defining the relation
@@ -123,7 +119,6 @@ between objects:
 * Objects may only have one parent.
 * Objects, beside the root, are only retrievable from their direct
   parent or children.
-
 
 ==== Example
 
@@ -237,7 +232,7 @@ image::doc/contributing-images/bt-ref13.png[]
 Logging is a great instrument for a developer to be able to collect
 information about a running software.
 
-Babeltrace is a complex software with many layers. When a Babeltrace
+{bt2} is a complex software with many layers. When a {bt2}
 graph fails to run, what caused the failure? It could be caused by any
 component, any message iterator, and any deeply nested validation of a
 CTF IR object (within the `ctf` plugin), for example. With the
@@ -246,13 +241,12 @@ can find the cause of a bug faster.
 
 While <<choose-a-log-level,care must be taken>> when placing _DEBUG_ to
 _FATAL_ logging statements, you should liberally instrument your
-Babeltrace module with _TRACE_ logging statements to help future you
+{bt2} module with _TRACE_ logging statements to help future you
 and other developers understand what's happening at run time.
-
 
 === Logging API
 
-The Babeltrace logging API is internal: it is not exposed to the users
+The {bt2} logging API is internal: it is not exposed to the users
 of the library; only to their developers. The only thing that a library
 user can control is the current log level of the library itself with
 `bt_logging_set_global_level()` and the initial library's log level with
@@ -268,7 +262,6 @@ the project's `BT_DEBUG_MODE` definition instead of the standard
 The logging functions are implemented in the logging convenience
 library (`src/logging` directory).
 
-
 [[logging-headers]]
 ==== Headers
 
@@ -279,7 +272,7 @@ The logging API headers are:
     libbabeltrace2's current log level.
 
 `"logging/log.h"`::
-    Internal, generic logging API which you can use in any Babeltrace
+    Internal, generic logging API which you can use in any {bt2}
     module. This is the translation of `zf_log.h`.
 +
 This header offers the <<gen-logging-statements,generic logging
@@ -300,7 +293,6 @@ statement macros>>.
 +
 This header offers the <<comp-logging-statements,component-specific
 logging statement macros>>.
-
 
 [[log-levels]]
 ==== Log levels
@@ -380,9 +372,9 @@ $ BABELTRACE_MINIMAL_LOG_LEVEL=INFO ./configure
 +
 The default build-time log level is `DEBUG`. For optimal performance,
 set it to `INFO`, which effectively disables all fast path logging in
-all the Babeltrace modules. You can't set it to `WARNING`, `ERROR`,
+all the {bt2} modules. You can't set it to `WARNING`, `ERROR`,
 `FATAL`, or `NONE` because the impact on performance is minuscule
-starting from the _INFO_ log level anyway and we want any Babeltrace
+starting from the _INFO_ log level anyway and we want any {bt2}
 build to always be able to print _INFO_-level logs.
 +
 The library's public API provides `bt_logging_get_minimal_level()` to
@@ -461,11 +453,10 @@ Otherwise, just pass `BT_LOG_NONE`:
 path = bt_common_get_home_plugin_path(BT_LOG_NONE);
 ----
 
-
 [[gen-logging-statements]]
 ==== Generic logging statement macros
 
-The Babeltrace logging statement macros work just like `printf()`
+The {bt2} logging statement macros work just like `printf()`
 (except the `+BT_LOG*_STR()+` ones) and contain their <<log-levels,log
 level>> (short name) in their name.
 
@@ -474,9 +465,9 @@ Each of the following macros evaluate the
 <<run-time-log-level,run-time log level>> expression (as defined by
 `BT_LOG_OUTPUT_LEVEL`) to log conditionally.
 
-See <<logging-instrument-c-file-gen,Instrument a C source file
-(generic)>> and <<logging-instrument-h-file-gen,Instrument a C header
-file (generic)>> to learn how to be able to use the following macros.
+See <<logging-instrument-c-file-gen>> and
+<<logging-instrument-h-file-gen>> to learn how to be able to use the
+following macros.
 
 `+BT_LOGT("format string", ...)+`::
     Generic trace logging statement.
@@ -550,16 +541,15 @@ file (generic)>> to learn how to be able to use the following macros.
 `+BT_LOGF_ERRNO("initial message", "format string", ...)+`::
 	Generic `errno` string fatal logging statement.
 
-
 [[lib-logging-statements]]
 ==== Library-specific logging statement macros
 
-The Babeltrace library contains an internal logging API based on the
-generic logging framework. You can use it to log known Babeltrace
+The {bt2} library contains an internal logging API based on the
+generic logging framework. You can use it to log known {bt2}
 objects without having to manually log each member.
 
-See <<logging-instrument-c-file-lib,Instrument a library C source file>>
-and <<logging-instrument-h-file-lib,Instrument a library C header file>> to
+See <<logging-instrument-c-file-lib>>
+and <<logging-instrument-h-file-lib>> to
 learn how to be able to use the following macros.
 
 The library logging statement macros are named `+BT_LIB_LOG*()+` instead
@@ -606,7 +596,7 @@ with the following limitations:
   except for `PRId64`, `PRIu64`, `PRIx64`, `PRIX64`, `PRIo64`, and
   `PRIi64`.
 
-The Babeltrace library custom conversion specifier is accepted. Its
+The {bt2} library custom conversion specifier is accepted. Its
 syntax is either `%!u` to format a UUID (`bt_uuid` type), or:
 
 . Introductory `%!` sequence.
@@ -762,13 +752,12 @@ Example with a custom prefix:
 BT_LIB_LOGI("Some message: %![ec-a-]e, %![ec-b-]+e", ec_a, ec_b);
 ----
 
-It is safe to pass `NULL` as any Babeltrace object parameter: the macros
+It is safe to pass `NULL` as any {bt2} object parameter: the macros
 only print its null address.
 
 WARNING: Build-time `printf()` format checks are disabled for the
 `+BT_LIB_LOG*()+` macros because there are custom conversion specifiers,
 so make sure to test your logging statements.
-
 
 [[comp-logging-statements]]
 ==== Component-specific logging statement macros
@@ -776,9 +765,8 @@ so make sure to test your logging statements.
 There are available logging macros for components. They prepend a prefix
 including the component's name to the logging message.
 
-See <<logging-instrument-c-file-compcls,Instrument a component class C
-source file>> and <<logging-instrument-h-file-compcls,Instrument a
-component class C header file>> to learn how to be able to use the
+See <<logging-instrument-c-file-compcls>> and
+<<logging-instrument-h-file-compcls>> to learn how to be able to use the
 following macros.
 
 The component logging statement macros are named `+BT_COMP_LOG*()+`
@@ -855,7 +843,6 @@ instead of `+BT_LOG*()+`:
 
 `+BT_COMP_LOGF_MEM(data_ptr, data_size, "format string", ...)+`::
     Component memory fatal logging statement.
-
 
 ==== Conditional logging
 
@@ -947,7 +934,6 @@ Or even this:
 BT_LOGD("Bla bla: number=%d", get_number_of_event_classes_with_property_x(...));
 ----
 
-
 === Guides
 
 [[logging-instrument-c-file-gen]]
@@ -999,7 +985,6 @@ Examples:
 
 . In the file, instrument your code with the
   <<gen-logging-statements,generic logging statement macros>>.
-
 
 [[logging-instrument-h-file-gen]]
 ==== Instrument a C header file (generic)
@@ -1054,7 +1039,6 @@ log level>> expression.
 Then, in the file, instrument your code with the
 <<gen-logging-statements,generic logging statement macros>>.
 
-
 [[logging-instrument-c-file-lib]]
 ==== Instrument a library C source file
 
@@ -1082,7 +1066,6 @@ To instrument a library C source file (`.c`):
   <<lib-logging-statements,library logging statement macros>> or with
   the <<gen-logging-statements,generic logging statement macros>>.
 
-
 [[logging-instrument-h-file-lib]]
 ==== Instrument a library C header file
 
@@ -1104,7 +1087,6 @@ inline` functions in it:
 . In the file, instrument your code with the
   <<lib-logging-statements,library logging statement macros>> or with
   the <<gen-logging-statements,generic logging statement macros>>.
-
 
 [[logging-instrument-c-file-compcls]]
 ==== Instrument a component class C source file
@@ -1186,7 +1168,6 @@ bt_self_component_status my_comp_init(
 . In the file, instrument your code with the
   <<comp-logging-statements,component logging statement macros>>.
 
-
 [[logging-instrument-h-file-compcls]]
 ==== Instrument a component class C header file
 
@@ -1208,7 +1189,6 @@ To instrument a component class C header file (`.h`), if you have
 . In the file, instrument your code with the
   <<comp-logging-statements,component logging statement macros>>.
 
-
 [[choose-a-logging-tag]]
 ==== Choose a logging tag
 
@@ -1221,7 +1201,7 @@ and the `-`, `.`, and `/` characters.
 
 Use `/` to show the subsystem to source file hierarchy.
 
-For the Babeltrace library, start with `LIB/`.
+For the {bt2} library, start with `LIB/`.
 
 For the CTF writer library, start with `CTF-WRITER/`.
 
@@ -1256,7 +1236,6 @@ With:
 
 `__FILE__`::
     Additional information to specify the source file name or module.
-
 
 [[choose-a-log-level]]
 ==== Choose a log level
@@ -1344,7 +1323,7 @@ Very little: always enabled.
 
 |_DEBUG_
 |
-Something that only Babeltrace developers would be interested into,
+Something that only {bt2} developers would be interested into,
 which can occur on the fast path, but not more often than once per
 message.
 
@@ -1389,7 +1368,6 @@ not a warning scenario: the user could legitimately use this function to
 check if the name/key exists in the object. In this case, use the
 _TRACE_ level (or do not log at all).
 --
-
 
 [[message]]
 ==== Write an appropriate message
@@ -1457,7 +1435,6 @@ Prefer the following suffixes in field names:
 |`-name` |Object's name |`\"%s\"`
 |===
 
-
 === Output
 
 The log is printed to the standard error stream. A log line contains the
@@ -1465,7 +1442,7 @@ time, the process and thread IDs, the <<log-levels,log level>>, the
 <<choose-a-logging-tag,logging tag>>, the source's function name, file
 name and line number, and the <<message,message>>.
 
-When Babeltrace supports terminal color codes (depends on the
+When {bt2} supports terminal color codes (depends on the
 `BABELTRACE_TERM_COLOR` environment variable's value and what the
 standard output and error streams are plugged into), _INFO_-level lines
 are blue, _WARNING_-level lines are yellow, and _ERROR_-level and
@@ -1484,7 +1461,6 @@ generates:
 ----
 $ babeltrace2 --log-level=D /path/to/trace |& ag 'D FIELD-CLASS'
 ----
-
 
 == Valgrind
 
@@ -1510,7 +1486,7 @@ backtrace when Valgrind shows errors.
 [[test-env]]
 === Environment
 
-`tests/utils/utils.sh` sets the environment variables for any Babeltrace
+`tests/utils/utils.sh` sets the environment variables for any {bt2}
 test script.
 
 `utils.sh` only needs to know the path to the `tests` directory within
@@ -1567,16 +1543,14 @@ function.
 
 * Print to the standard error.
 
-
 === Python bindings
 
 The `bt2` Python package tests are located in
 `tests/bindings/python/bt2`.
 
-
 ==== Python test runner
 
-`tests/utils/python/testrunner.py` is Babeltrace's Python test runner
+`tests/utils/python/testrunner.py` is {bt2}'s Python test runner
 which loads Python files containing unit tests, finds all the test
 cases, and runs the tests, producing a TAP report.
 
@@ -1589,7 +1563,6 @@ $ python3 ./tests/utils/python/testrunner.py --help
 By default, the test runner reports failing tests (TAP's `not{nbsp}ok`
 line), but continues to run other tests. You can use the `--failfast`
 option to make the test runner fail as soon as a test fails.
-
 
 ==== Guides
 
