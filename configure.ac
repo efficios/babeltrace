@@ -435,10 +435,12 @@ AC_ARG_ENABLE([man-pages],
 AM_CONDITIONAL([ENABLE_PYTHON_BINDINGS], [test "x$enable_python_bindings" = xyes])
 AM_CONDITIONAL([ENABLE_PYTHON_BINDINGS_DOC], [test "x$enable_python_bindings_doc" = xyes])
 AM_CONDITIONAL([ENABLE_PYTHON_PLUGINS], [test "x$enable_python_plugins" = xyes])
+AM_CONDITIONAL([ENABLE_RUBY_PLUGINS], [test "x$enable_ruby_plugins" = xyes])
 AM_CONDITIONAL([ENABLE_DEBUG_INFO], [test "x$enable_debug_info" = xyes])
 AM_CONDITIONAL([ENABLE_API_DOC], [test "x$enable_api_doc" = xyes])
 AM_CONDITIONAL([ENABLE_BUILT_IN_PLUGINS], [test "x$enable_built_in_plugins" = xyes])
 AM_CONDITIONAL([ENABLE_BUILT_IN_PYTHON_PLUGIN_SUPPORT], [test "x$enable_built_in_python_plugin_support" = xyes])
+AM_CONDITIONAL([ENABLE_BUILT_IN_RUBY_PLUGIN_SUPPORT], [test "x$enable_built_in_ruby_plugin_support" = xyes])
 AM_CONDITIONAL([ENABLE_MAN_PAGES], [test "x$enable_man_pages" = xyes])
 AM_CONDITIONAL([ENABLE_PYTHON_COMMON_DEPS], [test "x$enable_python_bindings" = xyes || test "x$enable_python_plugins" = xyes])
 
@@ -447,6 +449,10 @@ AM_CONDITIONAL([ENABLE_PYTHON_COMMON_DEPS], [test "x$enable_python_bindings" = x
 ## jgalar: still used?
 AS_IF([test "x$enable_python_plugins" = xyes],
   [AC_DEFINE([PYTHON_PLUGINS], [1], [Python plugin support.])]
+)
+
+AS_IF([test "x$enable_ruby_plugins" = xyes],
+  [AC_DEFINE([RUBY_PLUGINS], [1], [Ruby plugin support.])]
 )
 
 AS_IF([test "x$enable_debug_info" = xyes],
@@ -459,6 +465,10 @@ AS_IF([test "x$enable_built_in_plugins" = xyes],
 
 AS_IF([test "x$enable_built_in_python_plugin_support" = xyes],
   [AC_DEFINE([BT_BUILT_IN_PYTHON_PLUGIN_SUPPORT], [1], [Define to 1 to register plug-in attributes in static executable sections])]
+)
+
+AS_IF([test "x$enable_built_in_ruby_plugin_support" = xyes],
+  [AC_DEFINE([BT_BUILT_IN_RUBY_PLUGIN_SUPPORT], [1], [Define to 1 to register plug-in attributes in static executable sections])]
 )
 
 AS_IF([test "x$enable_debug_info" = xyes],
@@ -513,6 +523,10 @@ AS_IF([test "x$enable_built_in_python_plugin_support" = xyes],
 
 
 # Check for optionnal features dependencies
+
+AS_IF([test "x$enable_ruby_plugins" = xyes],
+  [PKG_CHECK_MODULES([RUBY], [ruby >= 2.5], [], [AC_MSG_ERROR([Ruby 2.5.0 or newer is required to build the ruby plugin support])])]
+)
 
 AS_IF([test "x$enable_python_bindings" = xyes],
   [AX_PKG_SWIG(2.0.0, [], [AC_MSG_ERROR([SWIG 2.0.0 or newer is required to build the python bindings])])]
@@ -820,6 +834,7 @@ AC_CONFIG_FILES([
 	src/plugins/utils/trimmer/Makefile
 	src/py-common/Makefile
 	src/python-plugin-provider/Makefile
+	src/ruby-plugin-provider/Makefile
 	src/param-parse/Makefile
 	src/string-format/Makefile
 	tests/bitfield/Makefile
@@ -909,6 +924,12 @@ AS_IF([test "x$enable_python_bindings" = "xyes"], [
   PPRINT_PROP_STRING([SWIG executable], [$SWIG])
   PPRINT_PROP_STRING([SWIG library], [$SWIG_LIB])
 ])
+test "x$enable_ruby_plugins" = "xyes" && value=1 || value=0
+PPRINT_PROP_BOOL([Ruby plugin support], $value)
+AS_IF([test "x$enable_ruby_plugins" = "xyes"], [
+  PPRINT_PROP_STRING([Ruby include paths], [$RUBY_CFLAGS])
+  PPRINT_PROP_STRING([Ruby linker flags], [$RUBY_LIBS])
+])
 
 AS_ECHO
 PPRINT_SUBTITLE([Plugins])
@@ -924,6 +945,8 @@ test "x$enable_built_in_plugins" = "xyes" && value=1 || value=0
 PPRINT_PROP_BOOL([Built-in plugins], $value)
 test "x$enable_built_in_python_plugin_support" = "xyes" && value=1 || value=0
 PPRINT_PROP_BOOL([Built-in Python plugin support], $value)
+test "x$enable_built_in_ruby_plugin_support" = "xyes" && value=1 || value=0
+PPRINT_PROP_BOOL([Built-in Ruby plugin support], $value)
 
 AS_ECHO
 PPRINT_SUBTITLE([Documentation])
