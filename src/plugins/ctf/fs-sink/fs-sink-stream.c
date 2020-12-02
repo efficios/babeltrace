@@ -104,7 +104,7 @@ GString *make_unique_stream_file_name(struct fs_sink_trace *trace,
 
 	BT_ASSERT(name);
 
-	while (stream_file_name_exists(trace, name->str) &&
+	while (stream_file_name_exists(trace, name->str) ||
 			strcmp(name->str, "metadata") == 0) {
 		g_string_printf(name, "%s-%u", san_base->str, suffix);
 		suffix++;
