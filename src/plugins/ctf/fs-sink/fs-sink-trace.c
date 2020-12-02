@@ -409,11 +409,7 @@ GString *make_trace_path_rel(const struct fs_sink_trace *trace)
 	GString *path = NULL;
 	const char *trace_name;
 
-	if (trace->fs_sink->assume_single_trace) {
-		/* Use output directory directly */
-		path = g_string_new("");
-		goto end;
-	}
+	BT_ASSERT(!trace->fs_sink->assume_single_trace);
 
 	/* First, try to build a path using environment fields written by LTTng. */
 	path = make_lttng_trace_path_rel(trace);
@@ -447,25 +443,33 @@ GString *make_trace_path(const struct fs_sink_trace *trace, const char *output_b
 	GString *full_path = NULL;
 	GString *unique_full_path = NULL;
 
-	rel_path = make_trace_path_rel(trace);
-	if (!rel_path) {
-		goto end;
+	if (trace->fs_sink->assume_single_trace) {
+		/* Use output directory directly */
+		unique_full_path = g_string_new(output_base_directory);
+		if (!unique_full_path) {
+			goto end;
+		}
+	} else {
+		rel_path = make_trace_path_rel(trace);
+		if (!rel_path) {
+			goto end;
+		}
+
+		rel_path_san = sanitize_trace_path(rel_path->str);
+		if (!rel_path_san) {
+			goto end;
+		}
+
+		full_path = g_string_new(NULL);
+		if (!full_path) {
+			goto end;
+		}
+
+		g_string_printf(full_path, "%s" G_DIR_SEPARATOR_S "%s",
+			output_base_directory, rel_path_san->str);
+
+		unique_full_path = make_unique_trace_path(full_path->str);
 	}
-
-	rel_path_san = sanitize_trace_path(rel_path->str);
-	if (!rel_path_san) {
-		goto end;
-	}
-
-	full_path = g_string_new(NULL);
-	if (!full_path) {
-		goto end;
-	}
-
-	g_string_printf(full_path, "%s" G_DIR_SEPARATOR_S "%s",
-		output_base_directory, rel_path_san->str);
-
-	unique_full_path = make_unique_trace_path(full_path->str);
 
 end:
 	if (rel_path) {

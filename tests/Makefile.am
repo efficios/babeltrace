@@ -106,6 +106,7 @@ if ENABLE_PYTHON_BINDINGS
 TESTS_PLUGINS += plugins/src.ctf.fs/query/test_query_support_info
 TESTS_PLUGINS += plugins/src.ctf.fs/query/test_query_trace_info
 TESTS_PLUGINS += plugins/src.ctf.fs/query/test_query_metadata_info
+TESTS_PLUGINS += plugins/sink.ctf.fs/test_assume_single_trace
 endif
 endif
 
