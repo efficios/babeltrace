@@ -7,6 +7,10 @@
 #ifndef _BABELTRACE_INTERNAL_H
 #define _BABELTRACE_INTERNAL_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define bt_max_t(type, a, b)	\
 	((type) (a) > (type) (b) ? (type) (a) : (type) (b))
 
@@ -70,5 +74,9 @@
 #define BT_USE_EXPR5(_expr1, _expr2, _expr3, _expr4, _expr5)		\
 	((void) sizeof((void) (_expr1), (void) (_expr2),		\
 		(void) (_expr3), (void) (_expr4), (void) (_expr5), 0))
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

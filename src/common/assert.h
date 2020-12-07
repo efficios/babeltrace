@@ -13,6 +13,10 @@
 
 #include "common/macros.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 BT_HIDDEN
 extern void bt_common_assert_failed(const char *file, int line,
 		const char *func, const char *assertion)
@@ -55,5 +59,9 @@ extern void bt_common_assert_failed(const char *file, int line,
 # define BT_ASSERT_DBG(_cond)	BT_USE_EXPR(_cond)
 # define BT_ASSERT_DBG_FUNC	__attribute__((unused))
 #endif /* BT_DEBUG_MODE */
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* BABELTRACE_ASSERT_INTERNAL_H */
