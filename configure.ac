@@ -793,6 +793,7 @@ AC_CONFIG_FILES([
   src/bindings/python/Makefile
   src/cli/Makefile
   src/common/Makefile
+  src/cpp-common/Makefile
   src/compat/Makefile
   src/ctfser/Makefile
   src/ctf-writer/Makefile

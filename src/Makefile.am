@@ -3,6 +3,7 @@
 SUBDIRS = \
 	common \
 	py-common \
+	cpp-common \
 	autodisc \
 	argpar \
 	ctfser \
