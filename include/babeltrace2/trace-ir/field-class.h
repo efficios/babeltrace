@@ -1729,7 +1729,7 @@ See the \ref api-tir-fc-int-prop-size "field value range" property.
       <dd>[0,&nbsp;2<sup><em>N</em></sup>&nbsp;-&nbsp;1]</dd>
 
       <dt>Signed integer field class</dt>
-      <dd>[-2<sup><em>N</em></sup>,&nbsp;2<sup><em>N</em></sup>&nbsp;-&nbsp;1]</dd>
+      <dd>[-2<sup><em>N</em>&nbsp;-&nbsp;1</sup>,&nbsp;2<sup><em>N</em>&nbsp;-&nbsp;1</sup>&nbsp;-&nbsp;1]</dd>
     </dl>
     @endparblock
 
