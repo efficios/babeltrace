@@ -856,6 +856,7 @@ void clear_string_field(struct bt_field *field)
 
 	BT_ASSERT_DBG(field);
 	string_field->length = 0;
+	g_array_index(string_field->buf, char, 0) = '\0';
 	bt_field_set_single(field, true);
 }
 
