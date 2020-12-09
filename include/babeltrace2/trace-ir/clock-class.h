@@ -147,12 +147,12 @@ The clock class's "offset in seconds" property can be negative.
 For example, considering:
 
 - Frequency: 1000&nbsp;Hz.
-- Offset in seconds: -10&nbsp;seconds.
+- Offset in seconds: −10&nbsp;seconds.
 - Offset in cycles: 500&nbsp;cycles (that is, 0.5&nbsp;seconds).
 - Stream clock's value: 2000&nbsp;cycles (that is, 2&nbsp;seconds).
 
-Then the computed value is -7.5&nbsp;seconds from origin, or
--7,500,000,000&nbsp;nanoseconds from origin.
+Then the computed value is −7.5&nbsp;seconds from origin, or
+−7,500,000,000&nbsp;nanoseconds from origin.
 
 <h1>Properties</h1>
 

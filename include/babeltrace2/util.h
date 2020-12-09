@@ -73,13 +73,13 @@ The following illustration shows the possible scenarios:
 \bt_p{offset_seconds} can be negative. For example, considering:
 
 - A 1000&nbsp;Hz clock.
-- \bt_p{offset_seconds} set to -10&nbsp;seconds.
+- \bt_p{offset_seconds} set to −10&nbsp;seconds.
 - \bt_p{offset_cycles} set to 500&nbsp;cycles
   (that is, 0.5&nbsp;seconds).
 - \bt_p{cycles} set to 2000&nbsp;cycles (that is, 2&nbsp;seconds).
 
-The computed value is -7.5&nbsp;seconds, so this function sets
-\bt_p{*ns_from_origin} to -7,500,000,000.
+The computed value is −7.5&nbsp;seconds, so this function sets
+\bt_p{*ns_from_origin} to −7,500,000,000.
 
 This function can fail and return the
 #BT_UTIL_CLOCK_CYCLES_TO_NS_FROM_ORIGIN_STATUS_OVERFLOW_ERROR status

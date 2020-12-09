@@ -804,7 +804,7 @@ For example:
 
 - The maximum
   \ref api-tir-fc-int-prop-size "field value range" for an \bt_uint_fc
-  is [0,&nbsp;2<sup>64</sup>&nbsp;-&nbsp;1].
+  is [0,&nbsp;2<sup>64</sup>&nbsp;−&nbsp;1].
 
 - The available message types are stream beginning and end, event,
   packet beginning and end, discarded events and packets, and message

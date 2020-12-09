@@ -1726,10 +1726,10 @@ See the \ref api-tir-fc-int-prop-size "field value range" property.
 
     <dl>
       <dt>Unsigned integer field class</dt>
-      <dd>[0,&nbsp;2<sup><em>N</em></sup>&nbsp;-&nbsp;1]</dd>
+      <dd>[0,&nbsp;2<sup><em>N</em></sup>&nbsp;−&nbsp;1]</dd>
 
       <dt>Signed integer field class</dt>
-      <dd>[-2<sup><em>N</em>&nbsp;-&nbsp;1</sup>,&nbsp;2<sup><em>N</em>&nbsp;-&nbsp;1</sup>&nbsp;-&nbsp;1]</dd>
+      <dd>[−2<sup><em>N</em>&nbsp;−&nbsp;1</sup>,&nbsp;2<sup><em>N</em>&nbsp;−&nbsp;1</sup>&nbsp;−&nbsp;1]</dd>
     </dl>
     @endparblock
 
@@ -1760,10 +1760,10 @@ See the \ref api-tir-fc-int-prop-size "field value range" property.
 
     <dl>
       <dt>Unsigned integer field class</dt>
-      <dd>[0,&nbsp;2<sup><em>N</em></sup>&nbsp;-&nbsp;1]</dd>
+      <dd>[0,&nbsp;2<sup><em>N</em></sup>&nbsp;−&nbsp;1]</dd>
 
       <dt>Signed integer field class</dt>
-      <dd>[-2<sup><em>N</em></sup>,&nbsp;2<sup><em>N</em></sup>&nbsp;-&nbsp;1]</dd>
+      <dd>[−2<sup><em>N</em></sup>,&nbsp;2<sup><em>N</em></sup>&nbsp;−&nbsp;1]</dd>
     </dl>
     @endparblock
 
@@ -1879,7 +1879,7 @@ property values:
     <th>Value
   <tr>
     <td>\ref api-tir-fc-int-prop-size "Field value range"
-    <td>[0,&nbsp;2<sup>64</sup>&nbsp;-&nbsp;1]
+    <td>[0,&nbsp;2<sup>64</sup>&nbsp;−&nbsp;1]
   <tr>
     <td>\ref api-tir-fc-int-prop-base "Preferred display base"
     <td>#BT_FIELD_CLASS_INTEGER_PREFERRED_DISPLAY_BASE_DECIMAL
@@ -1919,7 +1919,7 @@ property values:
     <th>Value
   <tr>
     <td>\ref api-tir-fc-int-prop-size "Field value range"
-    <td>[-2<sup>63</sup>,&nbsp;2<sup>63</sup>&nbsp;-&nbsp;1]
+    <td>[−2<sup>63</sup>,&nbsp;2<sup>63</sup>&nbsp;−&nbsp;1]
   <tr>
     <td>\ref api-tir-fc-int-prop-base "Preferred display base"
     <td>#BT_FIELD_CLASS_INTEGER_PREFERRED_DISPLAY_BASE_DECIMAL
@@ -2144,7 +2144,7 @@ following property values:
     <th>Value
   <tr>
     <td>\ref api-tir-fc-int-prop-size "Field value range"
-    <td>[0,&nbsp;2<sup>64</sup>&nbsp;-&nbsp;1]
+    <td>[0,&nbsp;2<sup>64</sup>&nbsp;−&nbsp;1]
   <tr>
     <td>\ref api-tir-fc-int-prop-base "Preferred display base"
     <td>#BT_FIELD_CLASS_INTEGER_PREFERRED_DISPLAY_BASE_DECIMAL
@@ -2409,7 +2409,7 @@ following property values:
     <th>Value
   <tr>
     <td>\ref api-tir-fc-int-prop-size "Field value range"
-    <td>[-2<sup>63</sup>,&nbsp;2<sup>63</sup>&nbsp;-&nbsp;1]
+    <td>[−2<sup>63</sup>,&nbsp;2<sup>63</sup>&nbsp;−&nbsp;1]
   <tr>
     <td>\ref api-tir-fc-int-prop-base "Preferred display base"
     <td>#BT_FIELD_CLASS_INTEGER_PREFERRED_DISPLAY_BASE_DECIMAL

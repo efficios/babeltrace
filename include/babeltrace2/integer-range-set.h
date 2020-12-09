@@ -624,8 +624,8 @@ bt_integer_range_set_signed_borrow_range_by_index_const(
 
 Two signed integer range sets are considered equal if they contain the
 exact same signed integer ranges, whatever the order. In other words,
-a signed integer range set containing [-57,&nbsp;23] and [24,&nbsp;42]
-is \em not equal to a signed integer range containing [-57,&nbsp;42].
+a signed integer range set containing [−57,&nbsp;23] and [24,&nbsp;42]
+is \em not equal to a signed integer range containing [−57,&nbsp;42].
 
 @param[in] int_range_set_a
     Signed integer range set A.
