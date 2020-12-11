@@ -7,6 +7,10 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 static inline
 bool bt_safe_to_mul_int64(int64_t a, int64_t b)
 {
@@ -38,3 +42,7 @@ bool bt_safe_to_add_uint64(uint64_t a, uint64_t b)
 {
 	return a <= UINT64_MAX - b;
 }
+
+#ifdef __cplusplus
+}
+#endif

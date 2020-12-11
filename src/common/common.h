@@ -28,6 +28,10 @@
 #include "common/macros.h"
 #include "common/safe.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define BT_COMMON_COLOR_RESET			"\033[0m"
 #define BT_COMMON_COLOR_BOLD			"\033[1m"
 #define BT_COMMON_COLOR_FG_DEFAULT		"\033[39m"
@@ -848,5 +852,9 @@ void bt_common_g_string_append_c(GString *str, char c)
 	str->str[len] = c;
 	str->str[len + 1] = '\0';
 }
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* BABELTRACE_COMMON_INTERNAL_H */
