@@ -442,7 +442,7 @@ ssize_t bt_common_read(int fd, void *buf, size_t count, int log_level)
 	BT_ASSERT_DBG(count <= SSIZE_MAX);
 
 	do {
-		ret = read(fd, buf + i, count - i);
+		ret = read(fd, ((char *) buf) + i, count - i);
 		if (ret < 0) {
 			if (errno == EINTR) {
 #ifdef BT_LOG_WRITE_CUR_LVL
