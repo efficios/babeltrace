@@ -1,0 +1,12 @@
+#!/bin/bash
+#
+# SPDX-License-Identifier: GPL-2.0-only
+#
+# Copyright (C) 2020 Philippe Proulx <pproulx@efficios.com>
+
+FORMATTER="${FORMATTER:-clang-format -i}"
+root_dir="$(dirname "${BASH_SOURCE[0]}")/.."
+find "$root_dir" \( -name '*.cpp' -o -name '*.hpp' \) \
+	! -wholename '*/cpp-common/optional.hpp' \
+	! -wholename '*/cpp-common/string_view.hpp' \
+	-exec $FORMATTER '{}' ';'

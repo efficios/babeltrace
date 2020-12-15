@@ -1689,7 +1689,14 @@ file.
 To automatically format all the project's {cpp} files, run:
 
 ----
-$ find -iname '*.cpp' -o -iname '*.hpp' -exec clang-format -i '{}' ';'
+$ ./tools/format-cpp
+----
+
+Use the `FORMATTER` environment variable to override the default
+formatter (`clang-format{nbsp}-i`):
+
+----
+$ FORMATTER='clang-format-10 -i' ./tools/format-cpp
 ----
 
 ==== Naming
