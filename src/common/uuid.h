@@ -10,6 +10,10 @@
 #include <stdint.h>
 #include "common/macros.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define BT_UUID_STR_LEN 36 /* Excludes final \0 */
 #define BT_UUID_LEN 16
 #define BT_UUID_VER 4
@@ -37,5 +41,9 @@ BT_HIDDEN void bt_uuid_to_str(const bt_uuid_t uuid_in, char *str_out);
 BT_HIDDEN int bt_uuid_from_str(const char *str_in, bt_uuid_t uuid_out);
 BT_HIDDEN int bt_uuid_compare(const bt_uuid_t uuid_a, const bt_uuid_t uuid_b);
 BT_HIDDEN void bt_uuid_copy(bt_uuid_t uuid_dest, const bt_uuid_t uuid_src);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* _BABELTRACE_COMMON_UUID_H */
