@@ -80,6 +80,9 @@ enum class ValueType
 };
 
 template <typename LibObjT>
+class CommonClockClass;
+
+template <typename LibObjT>
 class CommonValue : public internal::BorrowedObj<LibObjT>
 {
     // Allow append() to call `val._libObjPtr()`
@@ -87,6 +90,9 @@ class CommonValue : public internal::BorrowedObj<LibObjT>
 
     // Allow insert() to call `val._libObjPtr()`
     friend class CommonMapValue<bt_value>;
+
+    // Allow userAttributes() to call `val._libObjPtr()`
+    friend class CommonClockClass<bt_clock_class>;
 
     // Allow operator==() to call `other._libObjPtr()`
     friend class CommonValue<bt_value>;
