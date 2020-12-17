@@ -130,6 +130,12 @@ struct CommonIntegerRangeSetSpec<const bt_integer_range_set_signed> final
 } // namespace internal
 
 template <typename LibObjT>
+class ConstVariantWithIntegerSelectorFieldClassOption;
+
+template <typename LibObjT, typename RangeSetT>
+class CommonVariantWithIntegerSelectorFieldClass;
+
+template <typename LibObjT>
 class CommonIntegerRangeSet final : public internal::BorrowedObj<LibObjT>
 {
     // Allow operator==() to call `other._libObjPtr()`
@@ -137,6 +143,17 @@ class CommonIntegerRangeSet final : public internal::BorrowedObj<LibObjT>
     friend class CommonIntegerRangeSet<const bt_integer_range_set_unsigned>;
     friend class CommonIntegerRangeSet<bt_integer_range_set_signed>;
     friend class CommonIntegerRangeSet<const bt_integer_range_set_signed>;
+
+    // Allow appendOption() to call `ranges._libObjPtr()`
+    friend class CommonVariantWithIntegerSelectorFieldClass<
+        bt_field_class,
+        ConstVariantWithIntegerSelectorFieldClassOption<
+            const bt_field_class_variant_with_selector_field_integer_unsigned_option>>;
+
+    friend class CommonVariantWithIntegerSelectorFieldClass<
+        bt_field_class,
+        ConstVariantWithIntegerSelectorFieldClassOption<
+            const bt_field_class_variant_with_selector_field_integer_signed_option>>;
 
 private:
     using typename internal::BorrowedObj<LibObjT>::_ThisBorrowedObj;

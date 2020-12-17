@@ -83,6 +83,9 @@ template <typename LibObjT>
 class CommonClockClass;
 
 template <typename LibObjT>
+class CommonFieldClass;
+
+template <typename LibObjT>
 class CommonValue : public internal::BorrowedObj<LibObjT>
 {
     // Allow append() to call `val._libObjPtr()`
@@ -93,6 +96,7 @@ class CommonValue : public internal::BorrowedObj<LibObjT>
 
     // Allow userAttributes() to call `val._libObjPtr()`
     friend class CommonClockClass<bt_clock_class>;
+    friend class CommonFieldClass<bt_field_class>;
 
     // Allow operator==() to call `other._libObjPtr()`
     friend class CommonValue<bt_value>;
