@@ -113,6 +113,15 @@ class ConstVariantWithIntegerSelectorFieldClassOption;
 template <typename LibObjT, typename RangeSetT>
 class CommonVariantWithIntegerSelectorFieldClass;
 
+template <typename LibObjT>
+class CommonEventClass;
+
+template <typename LibObjT>
+class CommonStreamClass;
+
+template <typename LibObjT>
+class CommonTraceClass;
+
 enum class FieldClassType
 {
     BOOL = BT_FIELD_CLASS_TYPE_BOOL,
@@ -159,6 +168,13 @@ class CommonFieldClass : public internal::BorrowedObj<LibObjT>
         bt_field_class,
         ConstVariantWithIntegerSelectorFieldClassOption<
             const bt_field_class_variant_with_selector_field_integer_signed_option>>;
+
+    // Allow *FieldClass() to call `fc._libObjPtr()`
+    friend class CommonEventClass<bt_event_class>;
+    friend class CommonStreamClass<bt_stream_class>;
+
+    // Allow create*FieldClass() to call `fc._libObjPtr()`
+    friend class CommonTraceClass<bt_trace_class>;
 
 private:
     using typename internal::BorrowedObj<LibObjT>::_ThisBorrowedObj;

@@ -136,6 +136,9 @@ template <typename LibObjT, typename RangeSetT>
 class CommonVariantWithIntegerSelectorFieldClass;
 
 template <typename LibObjT>
+class CommonTraceClass;
+
+template <typename LibObjT>
 class CommonIntegerRangeSet final : public internal::BorrowedObj<LibObjT>
 {
     // Allow operator==() to call `other._libObjPtr()`
@@ -154,6 +157,9 @@ class CommonIntegerRangeSet final : public internal::BorrowedObj<LibObjT>
         bt_field_class,
         ConstVariantWithIntegerSelectorFieldClassOption<
             const bt_field_class_variant_with_selector_field_integer_signed_option>>;
+
+    // Allow create*FieldClass() to call `ranges._libObjPtr()`
+    friend class CommonTraceClass<bt_trace_class>;
 
 private:
     using typename internal::BorrowedObj<LibObjT>::_ThisBorrowedObj;

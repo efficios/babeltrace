@@ -86,6 +86,18 @@ template <typename LibObjT>
 class CommonFieldClass;
 
 template <typename LibObjT>
+class CommonTraceClass;
+
+template <typename LibObjT>
+class CommonStreamClass;
+
+template <typename LibObjT>
+class CommonEventClass;
+
+template <typename LibObjT>
+class CommonStream;
+
+template <typename LibObjT>
 class CommonValue : public internal::BorrowedObj<LibObjT>
 {
     // Allow append() to call `val._libObjPtr()`
@@ -97,6 +109,10 @@ class CommonValue : public internal::BorrowedObj<LibObjT>
     // Allow userAttributes() to call `val._libObjPtr()`
     friend class CommonClockClass<bt_clock_class>;
     friend class CommonFieldClass<bt_field_class>;
+    friend class CommonTraceClass<bt_trace_class>;
+    friend class CommonStreamClass<bt_stream_class>;
+    friend class CommonEventClass<bt_event_class>;
+    friend class CommonStream<bt_stream>;
 
     // Allow operator==() to call `other._libObjPtr()`
     friend class CommonValue<bt_value>;
