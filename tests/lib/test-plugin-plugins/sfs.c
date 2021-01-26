@@ -24,6 +24,17 @@ static bt_component_class_sink_consume_method_status sink_consume(
 	return BT_COMPONENT_CLASS_SINK_CONSUME_METHOD_STATUS_OK;
 }
 
+static bt_component_class_get_supported_mip_versions_method_status
+sink_get_supported_mip_versions(
+		bt_self_component_class_sink *source_component_class,
+		const bt_value *params, void *initialize_method_data,
+		bt_logging_level logging_level,
+		bt_integer_range_set_unsigned *supported_versions)
+{
+	return (int) bt_integer_range_set_unsigned_add_range(
+		supported_versions, 0, 0);
+}
+
 static bt_message_iterator_class_initialize_method_status
 src_dummy_iterator_init_method(
 		bt_self_message_iterator *self_msg_iter,
@@ -101,6 +112,8 @@ BT_PLUGIN_SINK_COMPONENT_CLASS_HELP(sink,
 	"venison tenderloin cow tail. Beef short loin shoulder meatball, sirloin\n"
 	"ground round brisket salami cupim pork bresaola turkey bacon boudin.\n"
 );
+BT_PLUGIN_SINK_COMPONENT_CLASS_GET_SUPPORTED_MIP_VERSIONS_METHOD(sink,
+	sink_get_supported_mip_versions);
 
 BT_PLUGIN_FILTER_COMPONENT_CLASS(filter, dummy_iterator_next_method);
 BT_PLUGIN_FILTER_COMPONENT_CLASS_DESCRIPTION(filter, "A filter.");
