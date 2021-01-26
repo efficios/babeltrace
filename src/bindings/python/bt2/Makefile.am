@@ -112,6 +112,11 @@ WARN_CFLAGS = -Wno-shadow
 
 WARN_CFLAGS += -Wno-null-dereference
 
+# Python 3.8 with SWIG 4.0.2 generates a deprecated warning for 'tp_print'
+# and in general there is not much we can do about deprecations in generated
+# code.
+WARN_CFLAGS += -Wno-deprecated-declarations
+
 BUILD_FLAGS=CC="$(CC)" \
 		CFLAGS="$(GLIB_CFLAGS) $(AM_CFLAGS) $(CFLAGS) $(WARN_CFLAGS)" \
 		CPPFLAGS="$(AM_CPPFLAGS) $(CPPFLAGS) -I$(srcdir)/bt2" \
