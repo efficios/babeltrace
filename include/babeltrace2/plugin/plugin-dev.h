@@ -1258,7 +1258,7 @@ method.
 @bt_pre_not_null{_method}
 */
 #define BT_PLUGIN_SOURCE_COMPONENT_CLASS_GET_SUPPORTED_MIP_VERSIONS_METHOD_WITH_ID(_plugin_id, _component_class_id, _method) \
-	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(source_get_supported_mip_versions_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_GET_SUPPORTED_MIP_VERSIONS, _plugin_id, _component_class_id, source, _method)
+	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(source_get_supported_mip_versions_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_GET_SUPPORTED_MIP_VERSIONS_METHOD, _plugin_id, _component_class_id, source, _method)
 
 /*!
 @brief
@@ -1711,7 +1711,7 @@ method.
 @bt_pre_not_null{_method}
 */
 #define BT_PLUGIN_FILTER_COMPONENT_CLASS_GET_SUPPORTED_MIP_VERSIONS_METHOD_WITH_ID(_plugin_id, _component_class_id, _method) \
-	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(filter_get_supported_mip_versions_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_GET_SUPPORTED_MIP_VERSIONS, _plugin_id, _component_class_id, filter, _method)
+	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(filter_get_supported_mip_versions_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_GET_SUPPORTED_MIP_VERSIONS_METHOD, _plugin_id, _component_class_id, filter, _method)
 
 /*!
 @brief
@@ -2211,7 +2211,7 @@ method.
 @bt_pre_not_null{_method}
 */
 #define BT_PLUGIN_SINK_COMPONENT_CLASS_GET_SUPPORTED_MIP_VERSIONS_METHOD_WITH_ID(_plugin_id, _component_class_id, _method) \
-	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(sink_get_supported_mip_versions_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_GET_SUPPORTED_MIP_VERSIONS, _plugin_id, _component_class_id, sink, _method)
+	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(sink_get_supported_mip_versions_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_GET_SUPPORTED_MIP_VERSIONS_METHOD, _plugin_id, _component_class_id, sink, _method)
 
 /*!
 @brief
