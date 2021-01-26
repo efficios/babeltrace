@@ -116,9 +116,10 @@ AC_SYS_LARGEFILE
 
 # Choose the c compiler
 AC_PROG_CC
+m4_version_prereq([2.70], [], [AC_PROG_CC_STDC])
 
 # Make sure the c compiler supports C99
-AC_PROG_CC_C99([], [AC_MSG_ERROR([The compiler does not support C99])])
+AS_IF([test "$ac_cv_prog_cc_c99" = "no"], [AC_MSG_ERROR([The compiler does not support C99])])
 
 # Make sure the c compiler supports __attributes__
 AX_C___ATTRIBUTE__
@@ -237,7 +238,9 @@ detection.
 AM_CONDITIONAL([HAVE_BISON], [test "x$have_bison" = "xyes"])
 
 # check for flex
-AC_PROG_LEX
+# Prior to autoconf 2.70, AC_PROG_FLEX did not take an argument. This is not a
+# problem since the argument is silently ignored by older versions.
+AC_PROG_LEX([noyywrap])
 AX_PROG_FLEX_VERSION([2.5.35], [have_flex=yes])
 
 AS_IF([test "x$have_flex" != "xyes"], [
@@ -370,7 +373,7 @@ AS_IF([test "x$BABELTRACE_DEBUG_MODE" = x1], [
 # Python bindings
 # Disabled by default
 AC_ARG_ENABLE([python-bindings],
-  [AC_HELP_STRING([--enable-python-bindings], [build the Python bindings])],
+  [AS_HELP_STRING([--enable-python-bindings], [build the Python bindings])],
   [], dnl AC_ARG_ENABLE will fill enable_python_bindings with the user choice
   [enable_python_bindings=unspecified]
 )
@@ -378,7 +381,7 @@ AC_ARG_ENABLE([python-bindings],
 # Python bindings documentation
 # Disabled by default
 AC_ARG_ENABLE([python-bindings-doc],
-  [AC_HELP_STRING([--enable-python-bindings-doc], [build the Python bindings documentation])],
+  [AS_HELP_STRING([--enable-python-bindings-doc], [build the Python bindings documentation])],
   [], dnl AC_ARG_ENABLE will fill enable_python_bindings_doc with the user choice
   [enable_python_bindings_doc=no]
 )
@@ -386,14 +389,14 @@ AC_ARG_ENABLE([python-bindings-doc],
 # Python plugins
 # Disabled by default
 AC_ARG_ENABLE([python-plugins],
-  [AC_HELP_STRING([--enable-python-plugins], [enable the Python plugins support for the library and converter])]
+  [AS_HELP_STRING([--enable-python-plugins], [enable the Python plugins support for the library and converter])]
   dnl AC_ARG_ENABLE will fill enable_python_plugins with the user choice
 )
 
 # Debug info
 # Enabled by default, except on some platforms
 AC_ARG_ENABLE([debug-info],
-  [AC_HELP_STRING([--disable-debug-info], [disable the debug info support (default on macOS, Solaris and Windows)])],
+  [AS_HELP_STRING([--disable-debug-info], [disable the debug info support (default on macOS, Solaris and Windows)])],
   [], dnl AC_ARG_ENABLE will fill enable_debug_info with the user choice
   [enable_debug_info="$DEFAULT_ENABLE_DEBUG_INFO"]
 )
@@ -401,21 +404,21 @@ AC_ARG_ENABLE([debug-info],
 # API documentation
 # Disabled by default
 AC_ARG_ENABLE([api-doc],
-  [AC_HELP_STRING([--enable-api-doc], [build the HTML API documentation])],
+  [AS_HELP_STRING([--enable-api-doc], [build the HTML API documentation])],
   [enable_api_doc=$enableval]
 )
 
 # Built-in plugins
 # Disabled by default
 AC_ARG_ENABLE([built-in-plugins],
-  [AC_HELP_STRING([--enable-built-in-plugins], [Statically-link in-tree plug-ins into the babeltrace2 executable])]
+  [AS_HELP_STRING([--enable-built-in-plugins], [Statically-link in-tree plug-ins into the babeltrace2 executable])]
   dnl AC_ARG_ENABLE will fill enable_built_in_plugins with the user choice
 )
 
 # Built-in python plugin support
 # Disabled by default
 AC_ARG_ENABLE([built-in-python-plugin-support],
-  [AC_HELP_STRING([--enable-built-in-python-plugin-support], [Statically-link Python plugin support into the babeltrace library])]
+  [AS_HELP_STRING([--enable-built-in-python-plugin-support], [Statically-link Python plugin support into the babeltrace library])]
   dnl AC_ARG_ENABLE will fill enable_built_in_python_plugin_support with the user choice
 )
 
