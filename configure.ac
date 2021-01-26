@@ -93,7 +93,8 @@ AC_SUBST(LT_NO_UNDEFINED)
 ##                   ##
 
 # Choose the c compiler
-AC_PROG_CC_STDC
+AC_PROG_CC
+m4_version_prereq([2.70], [], [AC_PROG_CC_STDC])
 
 # Make sure the c compiler supports C99
 AS_IF([test "$ac_cv_prog_cc_c99" = "no"], [AC_MSG_ERROR([The compiler does not support C99])])
@@ -226,7 +227,9 @@ detection.
 AM_CONDITIONAL([HAVE_BISON], [test "x$have_bison" = "xyes"])
 
 # check for flex
-AC_PROG_LEX
+# Prior to autoconf 2.70, AC_PROG_FLEX did not take an argument. This is not a
+# problem since the argument is silently ignored by older versions.
+AC_PROG_LEX([noyywrap])
 AX_PROG_FLEX_VERSION([2.5.35], [have_flex=yes])
 
 AS_IF([test "x$have_flex" != "xyes"], [
