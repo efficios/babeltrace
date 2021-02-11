@@ -600,12 +600,34 @@ char *bt_ctf_get_string(const struct bt_definition *field)
 {
 	char *ret = NULL;
 
-	if (field && bt_ctf_field_type(bt_ctf_get_decl_from_def(field)) == CTF_TYPE_STRING)
+	if(!field)
+		goto error;
+
+	struct bt_declaration *field_decl = bt_ctf_get_decl_from_def(field);
+	enum ctf_string_encoding sequence_encoding;
+
+	switch(bt_ctf_field_type(field_decl))
+	{
+	case CTF_TYPE_STRING:
 		ret = bt_get_string(field);
-	else
-		bt_ctf_field_set_error(-EINVAL);
+		goto end;
+	case CTF_TYPE_SEQUENCE:
+		sequence_encoding = bt_ctf_get_encoding(field_decl);
+		if(sequence_encoding == CTF_STRING_UTF8 || sequence_encoding == CTF_STRING_ASCII)
+		{
+			ret = bt_get_sequence_text(field);
+			goto end;
+		}
+		goto error;
+	default:
+		goto error;
+	}
 
 	return ret;
+error:
+        bt_ctf_field_set_error(-EINVAL);
+end:
+        return ret;
 }
 
 double bt_ctf_get_float(const struct bt_definition *field)

@@ -129,3 +129,13 @@ char *bt_get_string(const struct bt_definition *field)
 
 	return string_definition->value;
 }
+
+char *bt_get_sequence_text(const struct bt_definition *field)
+{
+	struct definition_sequence *sequence_definition =
+		container_of(field, struct definition_sequence, p);
+
+	assert(sequence_definition->string != NULL);
+
+	return sequence_definition->string->str;
+}
