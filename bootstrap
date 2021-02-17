@@ -7,5 +7,8 @@ if [ ! -d "config" ]; then
 fi
 
 # Run autoreconf with all warning types as errors except
-# for 'obsolete' because of AM_PATH_GLIB_2_0
-autoreconf -vif -W all,error,no-obsolete
+# for 'obsolete' because of AM_PATH_GLIB_2_0, we have to
+# list all categories because when 'all' is used, autoreconf
+# will drop all the other specified categories except 'error'
+# even if they start with 'no-'.
+autoreconf -vif -W cross,gnu,no-obsolete,override,portability,portability-recursive,extra-portability,syntax,unsupported,error
