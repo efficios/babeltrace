@@ -1,3 +1,25 @@
+2021-02-23 Babeltrace 2.0.4 (National Banana Bread Day)
+	* Fix: macro name for "get supported mip versions method" attribute descriptor
+	* Fix: configure: support Autoconf 2.70
+	* port: add 'notext' keyword linker support
+	* port: fix compat/endian.h on FreeBSD
+	* port: tests: Add sys/wait.h include for FreeBSD
+	* port: namespace align.h with BT_ prefix
+	* port: Add sys/param.h include to compat/limits.h for FreeBSD
+	* port: disable debug-info by default on FreeBSD
+	* Fix: disable deprecation warnings for SWIG generated code
+	* port: 'ls --ignore=' is a GNU extension
+	* tests/lib/test_trace_ir_ref.c: rename user structure
+	* Fix: sink.ctf.fs: fix logic of make_unique_stream_file_name
+	* Fix: sink.ctf.fs: remove spurious directory level when using assume-single-trace
+	* Fix: bt2: _trim_docstring(): docstring can have 0 or 1 line
+	* Fix: `ctf` plugin: use element FC's alignment as array/seq. FC alignment
+	* Fix: source.ctf.lttng-live: muxing failure on clear (unit conversion)
+	* Fix: src.ctf.lttng-live: incomplete metadata packet is an error
+	* Fix: source.ctf.lttng-live: muxing failure on clear
+	* Fix: source.ctf.fs: 0-length packet index length causes SIGFPE
+	* Update working version to Babeltrace 2.0.4
+
 2020-04-24 Babeltrace 2.0.3 (German Beer Day)
 	* Fix: lib: use appropriate format specifier to print message iterator class
 	* Fix: sink.text.pretty: check that port is connected before creating message iterator
