@@ -272,20 +272,6 @@ BT_HIDDEN
 int bt_ctf_field_type_integer_get_size(struct bt_ctf_field_type *integer);
 
 /*
- * bt_ctf_field_type_integer_get_base: get an integer type's base.
- *
- * Get an integer type's base used to pretty-print the resulting trace.
- *
- * @param integer Integer type.
- *
- * Returns the integer type's base on success, BT_CTF_INTEGER_BASE_UNKNOWN on
- *	error.
- */
-BT_HIDDEN
-enum bt_ctf_integer_base bt_ctf_field_type_integer_get_base(
-		struct bt_ctf_field_type *integer);
-
-/*
  * bt_ctf_field_type_integer_get_encoding: get an integer type's encoding.
  *
  * @param integer Integer type.
@@ -620,20 +606,6 @@ struct bt_ctf_field_type *bt_ctf_field_type_sequence_get_element_type(
 BT_HIDDEN
 const char *bt_ctf_field_type_sequence_get_length_field_name(
 		struct bt_ctf_field_type *sequence);
-
-/*
- * bt_ctf_field_type_string_get_encoding: get a string type's encoding.
- *
- * Get the string type's encoding.
- *
- * @param string_type String type.
- *
- * Returns the string's encoding on success, a BT_CTF_STRING_ENCODING_UNKNOWN
- * on error.
- */
-BT_HIDDEN
-enum bt_ctf_string_encoding bt_ctf_field_type_string_get_encoding(
-		struct bt_ctf_field_type *string_type);
 
 /*
  * bt_ctf_field_type_get_alignment: get a field type's alignment.
