@@ -180,7 +180,7 @@ int parse_url(const char *path, struct lttng_live_ctx *ctx)
 		ret = 0;
 		goto end;
 	}
-	ret = sscanf(remain[2], "host/%[a-zA-Z.0-9%-]/%s",
+	ret = sscanf(remain[2], "host/%[a-zA-Z.0-9_%-]/%s",
 			ctx->traced_hostname, ctx->session_name);
 	if (ret != 2) {
 		fprintf(stderr, "[error] Format : "
