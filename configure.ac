@@ -92,18 +92,19 @@ AC_SUBST(LT_NO_UNDEFINED)
 ## C compiler checks ##
 ##                   ##
 
-# Choose the c compiler
+# Choose the C compiler
 AC_PROG_CC
+# AC_PROG_CC_STDC was merged in AC_PROG_CC in autoconf 2.70
 m4_version_prereq([2.70], [], [AC_PROG_CC_STDC])
 
-# Make sure the c compiler supports C99
+# Make sure the C compiler supports C99
 AS_IF([test "$ac_cv_prog_cc_c99" = "no"], [AC_MSG_ERROR([The compiler does not support C99])])
 
 # Enable available system extensions and LFS support
 AC_USE_SYSTEM_EXTENSIONS
 AC_SYS_LARGEFILE
 
-# Make sure the c compiler supports __attributes__
+# Make sure the C compiler supports __attributes__
 AX_C___ATTRIBUTE__
 AS_IF([test "x$ax_cv___attribute__" != "xyes"],
   [AC_MSG_ERROR([The compiler does not support __attribute__ extensions])])
@@ -114,13 +115,13 @@ AX_PTHREAD([], [AC_MSG_ERROR([Could not configure pthread support])])
 # Checks for typedefs, structures, and compiler characteristics.
 AC_C_INLINE
 AC_C_TYPEOF
-AC_TYPE_PID_T
-AC_TYPE_SIZE_T
 AC_TYPE_INT16_T
 AC_TYPE_INT32_T
 AC_TYPE_INT64_T
 AC_TYPE_INT8_T
 AC_TYPE_OFF_T
+AC_TYPE_PID_T
+AC_TYPE_SIZE_T
 AC_TYPE_SSIZE_T
 AC_TYPE_UINT16_T
 AC_TYPE_UINT32_T
@@ -449,9 +450,9 @@ AE_IF_FEATURE_ENABLED([built-in-python-plugin-support], [
 ])
 
 
-##                                                                           ##
-## Set automake variables for optionnal feature conditionnals in Makefile.am ##
-##                                                                           ##
+##                                                                          ##
+## Set automake variables for optional feature conditionnals in Makefile.am ##
+##                                                                          ##
 
 AM_CONDITIONAL([ENABLE_PYTHON_BINDINGS], AE_IS_FEATURE_ENABLED([python-bindings]))
 AM_CONDITIONAL([ENABLE_PYTHON_BINDINGS_DOC], AE_IS_FEATURE_ENABLED([python-bindings-doc]))
@@ -465,9 +466,9 @@ AM_CONDITIONAL([ENABLE_PYTHON_COMMON_DEPS], AE_IS_FEATURE_ENABLED([python-bindin
 AM_CONDITIONAL([ENABLE_ASAN], AE_IS_FEATURE_ENABLED([asan]))
 
 
-##                                                                     ##
-## Set defines for optionnal features conditionnals in the source code ##
-##                                                                     ##
+##                                                                    ##
+## Set defines for optional features conditionnals in the source code ##
+##                                                                    ##
 
 AE_IF_FEATURE_ENABLED([built-in-plugins],
   [AC_DEFINE([BT_BUILT_IN_PLUGINS], [1], [Define to 1 to register plug-in attributes in static executable sections])]
@@ -483,9 +484,9 @@ AC_SUBST([ENABLE_DEBUG_INFO_VAL])
 AE_IF_FEATURE_ENABLED([asan], [ENABLE_ASAN=1], [ENABLE_ASAN=0])
 AC_SUBST([ENABLE_ASAN])
 
-##                                           ##
-## Check for optionnal features dependencies ##
-##                                           ##
+##                                          ##
+## Check for optional features dependencies ##
+##                                          ##
 
 # The Python bindings require SWIG
 AE_IF_FEATURE_ENABLED([python-bindings],
