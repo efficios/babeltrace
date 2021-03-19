@@ -65,22 +65,22 @@ LT_NO_UNDEFINED=""
 AS_CASE([$host_os],
   [solaris*|darwin*],
     [
-	AE_FEATURE_DISABLE([debug-info])
+      AE_FEATURE_DISABLE([debug-info])
     ],
   [freebsd*],
     [
-	AE_FEATURE_DISABLE([debug-info])
+      AE_FEATURE_DISABLE([debug-info])
     ],
   [cygwin*],
     [
-	AE_FEATURE_DISABLE([debug-info])
-	LT_NO_UNDEFINED="-no-undefined"
+      AE_FEATURE_DISABLE([debug-info])
+      LT_NO_UNDEFINED="-no-undefined"
     ],
   [mingw*],
     [
-	MINGW32=yes
-	AE_FEATURE_DISABLE([debug-info])
-	LT_NO_UNDEFINED="-no-undefined"
+      MINGW32=yes
+      AE_FEATURE_DISABLE([debug-info])
+      LT_NO_UNDEFINED="-no-undefined"
     ]
 )
 
@@ -144,17 +144,17 @@ AX_CXX_COMPILE_STDCXX([11], [noext], [mandatory])
 
 AC_HEADER_STDBOOL
 AC_CHECK_HEADERS([ \
-	fcntl.h \
-	float.h \
-	ftw.h \
-	libintl.h \
-	limits.h \
-	malloc.h \
-	netdb.h \
-	netinet/in.h \
-	stddef.h \
-	sys/socket.h \
-	sys/time.h
+  fcntl.h \
+  float.h \
+  ftw.h \
+  libintl.h \
+  limits.h \
+  malloc.h \
+  netdb.h \
+  netinet/in.h \
+  stddef.h \
+  sys/socket.h \
+  sys/time.h
 ])
 
 
@@ -186,7 +186,7 @@ AX_CHECK_LINK_FLAG([-Wl,--whole-archive,--no-whole-archive],
 
 # Check if the linker supports the "notext" keyword
 AX_CHECK_LINK_FLAG([-Wl,-z,notext],[
-	AC_SUBST([LD_NOTEXT], [-Wl,-z,notext])
+  AC_SUBST([LD_NOTEXT], [-Wl,-z,notext])
 ])
 
 
@@ -275,30 +275,30 @@ AC_FUNC_MMAP
 AC_FUNC_STRERROR_R
 AC_FUNC_STRNLEN
 AC_CHECK_FUNCS([ \
-	atexit \
-	dup2 \
-	ftruncate \
-	gethostbyname \
-	gettimeofday \
-	localtime_r \
-	memchr \
-	memset \
-	mkdir \
-	mkdtemp \
-	munmap \
-	rmdir \
-	setenv \
-	socket \
-	strchr \
-	strdup \
-	strerror \
-	strndup \
-	strnlen \
-	strrchr \
-	strstr \
-	strtoul \
-	strtoull \
-	tzset \
+  atexit \
+  dup2 \
+  ftruncate \
+  gethostbyname \
+  gettimeofday \
+  localtime_r \
+  memchr \
+  memset \
+  mkdir \
+  mkdtemp \
+  munmap \
+  rmdir \
+  setenv \
+  socket \
+  strchr \
+  strdup \
+  strerror \
+  strndup \
+  strnlen \
+  strrchr \
+  strstr \
+  strtoul \
+  strtoull \
+  tzset \
 ])
 
 # AC_FUNC_MALLOC causes problems when cross-compiling.
@@ -350,14 +350,14 @@ AC_DEFINE_UNQUOTED([BT_MINIMAL_LOG_LEVEL], [BT_LOG_$BABELTRACE_MINIMAL_LOG_LEVEL
 # BABELTRACE_DEV_MODE:
 AC_ARG_VAR([BABELTRACE_DEV_MODE], [Set to 1 to enable the Babeltrace developer mode (enables run-time checks for plugin developers)])
 AS_IF([test "x$BABELTRACE_DEV_MODE" = x1], [
-	AC_DEFINE([BT_DEV_MODE], 1, [Babeltrace developer mode])
+  AC_DEFINE([BT_DEV_MODE], 1, [Babeltrace developer mode])
 ], [BABELTRACE_DEV_MODE=0])
 AM_CONDITIONAL([DEV_MODE], [test "x$BABELTRACE_DEV_MODE" = x1])
 
 # BABELTRACE_DEBUG_MODE:
 AC_ARG_VAR([BABELTRACE_DEBUG_MODE], [Set to 1 to enable the Babeltrace debug mode (enables internal assertions for Babeltrace maintainers)])
 AS_IF([test "x$BABELTRACE_DEBUG_MODE" = x1], [
-	AC_DEFINE([BT_DEBUG_MODE], 1, [Babeltrace debug mode])
+  AC_DEFINE([BT_DEBUG_MODE], 1, [Babeltrace debug mode])
 ], [BABELTRACE_DEBUG_MODE=0])
 
 
@@ -437,16 +437,16 @@ AE_IF_FEATURE_ENABLED([python-plugins], [
 
 # Check for conflicting optional features user choices
 AE_IF_FEATURE_ENABLED([built-in-plugins], [
-    # Built-in plug-ins are only available when the --disable-shared --enable-static options are used.
-    AE_IF_FEATURE_NOT_ENABLED([static], [AC_MSG_ERROR(--enable-static must be used to bundle plug-ins in the babeltrace2 executable)])
-    AE_IF_FEATURE_ENABLED([shared], [AC_MSG_ERROR(--disable-shared must be used to bundle plug-ins in the babeltrace2 executable)])
+  # Built-in plug-ins are only available when the --disable-shared --enable-static options are used.
+  AE_IF_FEATURE_NOT_ENABLED([static], [AC_MSG_ERROR(--enable-static must be used to bundle plug-ins in the babeltrace2 executable)])
+  AE_IF_FEATURE_ENABLED([shared], [AC_MSG_ERROR(--disable-shared must be used to bundle plug-ins in the babeltrace2 executable)])
 ])
 
 AE_IF_FEATURE_ENABLED([built-in-python-plugin-support], [
-    AE_IF_FEATURE_NOT_ENABLED([python-plugins], [AC_MSG_ERROR([--enable-python-plugins must be used to bundle Python plugin support in the babeltrace2 executable])])
-    # Built-in plug-ins are only available when the --disable-shared --enable-static options are used.
-    AE_IF_FEATURE_NOT_ENABLED([static], [AC_MSG_ERROR(--enable-static must be used to bundle Python plugin support in the babeltrace2 executable)])
-    AE_IF_FEATURE_ENABLED([shared], [AC_MSG_ERROR(--disable-shared must be used to bundle Python plugin support in the babeltrace2 executable)])
+  AE_IF_FEATURE_NOT_ENABLED([python-plugins], [AC_MSG_ERROR([--enable-python-plugins must be used to bundle Python plugin support in the babeltrace2 executable])])
+  # Built-in plug-ins are only available when the --disable-shared --enable-static options are used.
+  AE_IF_FEATURE_NOT_ENABLED([static], [AC_MSG_ERROR(--enable-static must be used to bundle Python plugin support in the babeltrace2 executable)])
+  AE_IF_FEATURE_ENABLED([shared], [AC_MSG_ERROR(--disable-shared must be used to bundle Python plugin support in the babeltrace2 executable)])
 ])
 
 
@@ -587,7 +587,7 @@ AE_IF_FEATURE_ENABLED([api-doc],
     DX_PS_FEATURE(OFF)
     DX_INIT_DOXYGEN([Babeltrace 2], [$(builddir)/Doxyfile], [output])
     AS_IF([test -z "$DX_DOXYGEN"],
-	  [AC_MSG_ERROR([You need doxygen to enable the API documentation])]
+      [AC_MSG_ERROR([You need doxygen to enable the API documentation])]
     )
   ]
 )
@@ -696,43 +696,43 @@ CFLAGS=${save_CFLAGS}
 # WARN_CFLAGS and WARN_CXXFLAGS.
 #
 m4_define([WARN_FLAGS_LIST], [ dnl
-		-Wall dnl
-		-Wextra dnl
-		-Wmissing-prototypes dnl
-		-Wmissing-declarations dnl
-		-Wnull-dereference dnl
-		-Wundef dnl
-		-Wredundant-decls dnl
-		-Wshadow dnl
-		-Wjump-misses-init dnl
-		-Wsuggest-attribute=format dnl
-		-Wtautological-constant-out-of-range-compare dnl
-		-Wnested-externs dnl
-		-Wwrite-strings dnl
-		-Wformat=2 dnl
-		-Wstrict-aliasing dnl
-		-Wmissing-noreturn dnl
-		-Winit-self dnl
-		-Wduplicated-cond dnl
-		-Wduplicated-branches dnl
-		-Wlogical-op dnl
-		-Wno-unused-parameter dnl
-		-Wno-sign-compare dnl
-		dnl
-		dnl Some versions of SWIG (like 3.0.12) generate code that produces
-		dnl -Wcast-function-type warnings.  This warning is present in gcc >= 8.  This
-		dnl combo happens on RHEL/Centos 8, for example.  Later versions of SWIG (like
-		dnl 4.0.1) have the correct function signatures to not produce this warning.
-		dnl It's simpler to just disable the warning globally.
-		dnl
-		dnl Note that the Debian/Ubuntu SWIG package 3.0.12-2 contains a local patch to
-		dnl fix this (python-fix-function-cast-warnings.patch), so you won't be able to
-		dnl reproduce the warning using that package.
-		dnl
-		dnl Ref: https://github.com/swig/swig/issues/1259
-		-Wno-cast-function-type dnl
-		-Wno-missing-field-initializers dnl
-	])
+  -Wall dnl
+  -Wextra dnl
+  -Wmissing-prototypes dnl
+  -Wmissing-declarations dnl
+  -Wnull-dereference dnl
+  -Wundef dnl
+  -Wredundant-decls dnl
+  -Wshadow dnl
+  -Wjump-misses-init dnl
+  -Wsuggest-attribute=format dnl
+  -Wtautological-constant-out-of-range-compare dnl
+  -Wnested-externs dnl
+  -Wwrite-strings dnl
+  -Wformat=2 dnl
+  -Wstrict-aliasing dnl
+  -Wmissing-noreturn dnl
+  -Winit-self dnl
+  -Wduplicated-cond dnl
+  -Wduplicated-branches dnl
+  -Wlogical-op dnl
+  -Wno-unused-parameter dnl
+  -Wno-sign-compare dnl
+  dnl
+  dnl Some versions of SWIG (like 3.0.12) generate code that produces
+  dnl -Wcast-function-type warnings.  This warning is present in gcc >= 8.  This
+  dnl combo happens on RHEL/Centos 8, for example.  Later versions of SWIG (like
+  dnl 4.0.1) have the correct function signatures to not produce this warning.
+  dnl It's simpler to just disable the warning globally.
+  dnl
+  dnl Note that the Debian/Ubuntu SWIG package 3.0.12-2 contains a local patch to
+  dnl fix this (python-fix-function-cast-warnings.patch), so you won't be able to
+  dnl reproduce the warning using that package.
+  dnl
+  dnl Ref: https://github.com/swig/swig/issues/1259
+  -Wno-cast-function-type dnl
+  -Wno-missing-field-initializers dnl
+])
 
 # Pass -Werror as an extra flag during the test: this is needed to make the
 # -Wunknown-warning-option diagnostic fatal with clang.
@@ -775,86 +775,86 @@ program_transform_name="s&babeltrace2\.bin&babeltrace2&;$program_transform_name"
 AC_SUBST(program_transform_name)
 
 AC_CONFIG_FILES([
-	doc/api/Makefile
-	doc/api/libbabeltrace2/Doxyfile
-	doc/api/libbabeltrace2/Makefile
-	doc/bindings/Makefile
-	doc/bindings/python/Makefile
-	doc/contributing-images/Makefile
-	doc/Makefile
-	doc/man/asciidoc-attrs.conf
-	doc/man/Makefile
-	include/Makefile
-	Makefile
-	src/argpar/Makefile
-	src/autodisc/Makefile
-	src/babeltrace2-ctf-writer.pc
-	src/babeltrace2.pc
-	src/bindings/Makefile
-	src/bindings/python/bt2/bt2/version.py
-	src/bindings/python/bt2/Makefile
-	src/bindings/python/bt2/setup.py
-	src/bindings/python/Makefile
-	src/cli/Makefile
-	src/common/Makefile
-	src/compat/Makefile
-	src/ctfser/Makefile
-	src/ctf-writer/Makefile
-	src/fd-cache/Makefile
-	src/lib/graph/Makefile
-	src/lib/graph/message/Makefile
-	src/lib/Makefile
-	src/lib/plugin/Makefile
-	src/lib/prio-heap/Makefile
-	src/lib/trace-ir/Makefile
-	src/logging/Makefile
-	src/Makefile
-	src/plugins/common/Makefile
-	src/plugins/common/muxing/Makefile
-	src/plugins/common/param-validation/Makefile
-	src/plugins/ctf/common/bfcr/Makefile
-	src/plugins/ctf/common/Makefile
-	src/plugins/ctf/common/metadata/Makefile
-	src/plugins/ctf/common/msg-iter/Makefile
-	src/plugins/ctf/fs-sink/Makefile
-	src/plugins/ctf/fs-src/Makefile
-	src/plugins/ctf/lttng-live/Makefile
-	src/plugins/ctf/Makefile
-	src/plugins/lttng-utils/debug-info/Makefile
-	src/plugins/lttng-utils/Makefile
-	src/plugins/Makefile
-	src/plugins/text/dmesg/Makefile
-	src/plugins/text/Makefile
-	src/plugins/text/pretty/Makefile
-	src/plugins/text/details/Makefile
-	src/plugins/utils/counter/Makefile
-	src/plugins/utils/dummy/Makefile
-	src/plugins/utils/Makefile
-	src/plugins/utils/muxer/Makefile
-	src/plugins/utils/trimmer/Makefile
-	src/py-common/Makefile
-	src/python-plugin-provider/Makefile
-	src/param-parse/Makefile
-	src/string-format/Makefile
-	tests/bitfield/Makefile
-	tests/ctf-writer/Makefile
-	tests/lib/Makefile
-	tests/lib/test-plugin-plugins/Makefile
-	tests/lib/conds/Makefile
-	tests/Makefile
-	tests/param-validation/Makefile
-	tests/plugins/Makefile
-	tests/plugins/src.ctf.fs/Makefile
-	tests/plugins/src.ctf.fs/succeed/Makefile
-	tests/plugins/sink.ctf.fs/Makefile
-	tests/plugins/sink.ctf.fs/succeed/Makefile
-	tests/plugins/flt.lttng-utils.debug-info/Makefile
-	tests/plugins/flt.utils.muxer/Makefile
-	tests/plugins/flt.utils.muxer/succeed/Makefile
-	tests/plugins/flt.utils.trimmer/Makefile
-	tests/plugins/sink.text.pretty/Makefile
-	tests/utils/Makefile
-	tests/utils/tap/Makefile
+  doc/api/Makefile
+  doc/api/libbabeltrace2/Doxyfile
+  doc/api/libbabeltrace2/Makefile
+  doc/bindings/Makefile
+  doc/bindings/python/Makefile
+  doc/contributing-images/Makefile
+  doc/Makefile
+  doc/man/asciidoc-attrs.conf
+  doc/man/Makefile
+  include/Makefile
+  Makefile
+  src/argpar/Makefile
+  src/autodisc/Makefile
+  src/babeltrace2-ctf-writer.pc
+  src/babeltrace2.pc
+  src/bindings/Makefile
+  src/bindings/python/bt2/bt2/version.py
+  src/bindings/python/bt2/Makefile
+  src/bindings/python/bt2/setup.py
+  src/bindings/python/Makefile
+  src/cli/Makefile
+  src/common/Makefile
+  src/compat/Makefile
+  src/ctfser/Makefile
+  src/ctf-writer/Makefile
+  src/fd-cache/Makefile
+  src/lib/graph/Makefile
+  src/lib/graph/message/Makefile
+  src/lib/Makefile
+  src/lib/plugin/Makefile
+  src/lib/prio-heap/Makefile
+  src/lib/trace-ir/Makefile
+  src/logging/Makefile
+  src/Makefile
+  src/plugins/common/Makefile
+  src/plugins/common/muxing/Makefile
+  src/plugins/common/param-validation/Makefile
+  src/plugins/ctf/common/bfcr/Makefile
+  src/plugins/ctf/common/Makefile
+  src/plugins/ctf/common/metadata/Makefile
+  src/plugins/ctf/common/msg-iter/Makefile
+  src/plugins/ctf/fs-sink/Makefile
+  src/plugins/ctf/fs-src/Makefile
+  src/plugins/ctf/lttng-live/Makefile
+  src/plugins/ctf/Makefile
+  src/plugins/lttng-utils/debug-info/Makefile
+  src/plugins/lttng-utils/Makefile
+  src/plugins/Makefile
+  src/plugins/text/dmesg/Makefile
+  src/plugins/text/Makefile
+  src/plugins/text/pretty/Makefile
+  src/plugins/text/details/Makefile
+  src/plugins/utils/counter/Makefile
+  src/plugins/utils/dummy/Makefile
+  src/plugins/utils/Makefile
+  src/plugins/utils/muxer/Makefile
+  src/plugins/utils/trimmer/Makefile
+  src/py-common/Makefile
+  src/python-plugin-provider/Makefile
+  src/param-parse/Makefile
+  src/string-format/Makefile
+  tests/bitfield/Makefile
+  tests/ctf-writer/Makefile
+  tests/lib/Makefile
+  tests/lib/test-plugin-plugins/Makefile
+  tests/lib/conds/Makefile
+  tests/Makefile
+  tests/param-validation/Makefile
+  tests/plugins/Makefile
+  tests/plugins/src.ctf.fs/Makefile
+  tests/plugins/src.ctf.fs/succeed/Makefile
+  tests/plugins/sink.ctf.fs/Makefile
+  tests/plugins/sink.ctf.fs/succeed/Makefile
+  tests/plugins/flt.lttng-utils.debug-info/Makefile
+  tests/plugins/flt.utils.muxer/Makefile
+  tests/plugins/flt.utils.muxer/succeed/Makefile
+  tests/plugins/flt.utils.trimmer/Makefile
+  tests/plugins/sink.text.pretty/Makefile
+  tests/utils/Makefile
+  tests/utils/tap/Makefile
 ])
 
 AC_CONFIG_FILES([tests/utils/env.sh],[chmod +x tests/utils/env.sh])
@@ -872,21 +872,21 @@ PPRINT_SET_TS(38)
 AS_ECHO
 
 AS_IF([test -n "bt_version_name"], [
-	AS_ECHO("${PPRINT_COLOR_BLDBLU}Babeltrace $PACKAGE_VERSION \"bt_version_name\"$PPRINT_COLOR_RST")
+  AS_ECHO("${PPRINT_COLOR_BLDBLU}Babeltrace $PACKAGE_VERSION \"bt_version_name\"$PPRINT_COLOR_RST")
 ], [
-	AS_ECHO("${PPRINT_COLOR_BLDBLU}Babeltrace $PACKAGE_VERSION")
+  AS_ECHO("${PPRINT_COLOR_BLDBLU}Babeltrace $PACKAGE_VERSION")
 ])
 
 AS_ECHO
 
 AS_IF([test -n "bt_version_description"], [
-	AS_IF([test -n "$report_fold"], [
-		AS_ECHO("`AS_ECHO("bt_version_description") | $report_fold -s`")
-	], [
-		AS_ECHO("bt_version_description")
-	])
+  AS_IF([test -n "$report_fold"], [
+    AS_ECHO("`AS_ECHO("bt_version_description") | $report_fold -s`")
+  ], [
+    AS_ECHO("bt_version_description")
+  ])
 
-	AS_ECHO
+  AS_ECHO
 ])
 
 PPRINT_SUBTITLE([System])
@@ -895,11 +895,11 @@ PPRINT_SUBTITLE([System])
 target_arch=$host_cpu
 [
 for f in $CFLAGS; do
-	if test $f = "-m32"; then
-		target_arch="32-bit"
-	elif test $f = "-m64"; then
-		target_arch="64-bit"
-	fi
+  if test $f = "-m32"; then
+    target_arch="32-bit"
+  elif test $f = "-m64"; then
+    target_arch="64-bit"
+  fi
 done
 ]
 
@@ -995,3 +995,5 @@ PPRINT_PROP_STRING([Libraries], [$report_libdir])
 PPRINT_PROP_STRING([Plugins], [$report_pluginsdir])
 PPRINT_PROP_STRING([Plugin providers], [$report_pluginprovidersdir])
 PPRINT_PROP_STRING([Configuration], [$report_sysconfdif])
+
+# vim: shiftwidth=2 softtabstop=2 expandtab
