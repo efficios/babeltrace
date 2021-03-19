@@ -199,7 +199,9 @@ AC_PROG_MAKE_SET
 AC_PROG_MKDIR_P
 AC_PROG_LN_S
 AC_PROG_SED
-AC_PATH_PROG([report_fold], [fold])
+AC_CHECK_PROGS([FOLD], [fold])
+AC_CHECK_PROGS([ASCIIDOC], [asciidoc])
+AC_CHECK_PROGS([XMLTO], [xmlto])
 
 # set $IN_GIT_REPO if we're in the Git repository; the `bootstrap` file
 # is not distributed in tarballs
@@ -249,6 +251,43 @@ detection.
   ])
 ])
 AM_CONDITIONAL([HAVE_FLEX], [test "x$have_flex" = "xyes"])
+
+# Always check for python, we will fail later if some features require it and
+# it's unavailable.
+AM_PATH_PYTHON([3.0], [
+  AE_PATH_PYTHON_MODULES([PYTHON])
+
+  # pythondir is the path where extra modules are to be installed
+  pythondir=$PYTHON_PREFIX/$PYTHON_MODULES_PATH
+
+  # pyexecdir is the path that contains shared objects used by the extra modules
+  pyexecdir=$PYTHON_EXEC_PREFIX/$PYTHON_MODULES_PATH
+
+  # If no PYTHON_CONFIG was specified by the user, try to find it, starting
+  # with the one specific to the configured python version.
+  AS_IF([test "x$PYTHON_CONFIG" = "x"], [
+    AC_CHECK_PROGS([PYTHON_CONFIG], [python$PYTHON_VERSION-config python-config])
+  ])
+
+  # If PYTHON_CONFIG is set use it to get the includes and ld flags, unless
+  # they were specified by the user.
+  AS_IF([test "x$PYTHON_CONFIG" != "x" ], [
+    AS_IF([test "x$PYTHON_INCLUDE" = "x"], [
+      AC_MSG_CHECKING([Python include flags])
+      PYTHON_INCLUDE=`$PYTHON_CONFIG --includes`
+      AC_MSG_RESULT([$PYTHON_INCLUDE])
+    ])
+
+    AS_IF([test "x$PYTHON_LDFLAGS" = "x"], [
+      AC_MSG_CHECKING([Python library flags])
+      # Python 3.8+ requires that we pass --embed to get the -lpython3.x flag.
+      AS_IF([! PYTHON_LDFLAGS=`$PYTHON_CONFIG --ldflags --embed`], [
+        PYTHON_LDFLAGS=`$PYTHON_CONFIG --ldflags`
+      ])
+      AC_MSG_RESULT([$PYTHON_LDFLAGS])
+    ])
+  ])
+], [:])
 
 # Initialize and configure libtool
 LT_INIT([win32-dll])
@@ -493,42 +532,6 @@ AE_IF_FEATURE_ENABLED([python-bindings],
   [AX_PKG_SWIG(2.0.0, [], [AC_MSG_ERROR([SWIG 2.0.0 or newer is required to build the python bindings])])]
 )
 
-# Always check for python, we will fail later if some features require it and
-# it's unavailable.
-AM_PATH_PYTHON([3.0], [
-  AE_PATH_PYTHON_MODULES([PYTHON])
-
-  # pythondir is the path where extra modules are to be installed
-  pythondir=$PYTHON_PREFIX/$PYTHON_MODULES_PATH
-
-  # pyexecdir is the path that contains shared objects used by the extra modules
-  pyexecdir=$PYTHON_EXEC_PREFIX/$PYTHON_MODULES_PATH
-
-  AS_IF([test -z "$PYTHON_CONFIG"], [
-    AC_PATH_PROGS([PYTHON_CONFIG],
-                  [python$PYTHON_VERSION-config python-config],
-                  [],
-                  [`dirname $PYTHON`])
-  ])
-
-  AS_IF([test -n "$PYTHON_CONFIG"], [
-    AS_IF([test -z "$PYTHON_INCLUDE"], [
-      AC_MSG_CHECKING([Python include flags])
-      PYTHON_INCLUDE=`$PYTHON_CONFIG --includes`
-      AC_MSG_RESULT([$PYTHON_INCLUDE])
-    ])
-
-    AS_IF([test -z "$PYTHON_LDFLAGS"], [
-      AC_MSG_CHECKING([Python library flags])
-      # Python 3.8+ requires that we pass --embed to get the -lpython3.x flag.
-      AS_IF([! PYTHON_LDFLAGS=`$PYTHON_CONFIG --ldflags --embed`], [
-        PYTHON_LDFLAGS=`$PYTHON_CONFIG --ldflags`
-      ])
-      AC_MSG_RESULT([$PYTHON_LDFLAGS])
-    ])
-  ])
-], [:])
-
 AS_IF([test "$PYTHON" != :], [have_python=yes], [have_python=no])
 AS_IF([test -n "$PYTHON_CONFIG"], [have_python_dev=yes], [have_python_dev=no])
 
@@ -595,11 +598,8 @@ AE_IF_FEATURE_ENABLED([api-doc],
 have_asciidoc_xmlto=no
 warn_prebuilt_man_pages=no
 
-AC_PATH_PROG([ASCIIDOC], [asciidoc], [no])
-AC_PATH_PROG([XMLTO], [xmlto], [no])
-
 AE_IF_FEATURE_ENABLED([man-pages], [
-  AS_IF([test "x$ASCIIDOC" = "xno" || test "x$XMLTO" = "xno"], [
+  AS_IF([test "x$ASCIIDOC" = "x" || test "x$XMLTO" = "x"], [
     AS_IF([test "x$in_git_repo" = "xyes"], [
       # this is an error because we're in the Git repo, which
       # means the man pages are not already generated for us,
@@ -880,8 +880,8 @@ AS_IF([test -n "bt_version_name"], [
 AS_ECHO
 
 AS_IF([test -n "bt_version_description"], [
-  AS_IF([test -n "$report_fold"], [
-    AS_ECHO("`AS_ECHO("bt_version_description") | $report_fold -s`")
+  AS_IF([test -n "$FOLD"], [
+    AS_ECHO("`AS_ECHO("bt_version_description") | $FOLD -s`")
   ], [
     AS_ECHO("bt_version_description")
   ])
