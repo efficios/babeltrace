@@ -4,29 +4,30 @@ dnl Copyright (C) 2017 EfficiOS, Inc.
 dnl
 dnl Process this file with autoconf to produce a configure script.
 
-##                     ##
-## Autoconf base setup ##
-##                     ##
-
-AC_PREREQ([2.69])
-
+# Project version information
 m4_define([bt_version_major], [2])
 m4_define([bt_version_minor], [1])
 m4_define([bt_version_patch], [0])
 m4_define([bt_version_dev_stage], [-rc1])
 m4_define([bt_version], bt_version_major[.]bt_version_minor[.]bt_version_patch[]bt_version_dev_stage)
-m4_define([bt_version_name], [])
+m4_define([bt_version_name], [[Codename TBD]])
+m4_define([bt_version_description], [[Description TBD]])
 
-AC_INIT([babeltrace2],[bt_version],[jeremie dot galarneau at efficios dot com],[],[https://efficios.com/babeltrace/])
-
+# Library version information of "libbabeltrace2"
 # Following the numbering scheme proposed by libtool for the library version
 # http://www.gnu.org/software/libtool/manual/html_node/Updating-version-info.html
 m4_define([bt_lib_version_current], [0])
 m4_define([bt_lib_version_revision], [0])
 m4_define([bt_lib_version_age], [0])
 m4_define([bt_lib_version], bt_lib_version_current[:]bt_lib_version_revision[:]bt_lib_version_age)
-m4_define([bt_version_description], [])
-m4_define([bt_version_description_c_safe], AS_ESCAPE(bt_version_description))
+
+
+##                     ##
+## Autoconf base setup ##
+##                     ##
+
+AC_PREREQ([2.69])
+AC_INIT([babeltrace2],[bt_version],[jeremie dot galarneau at efficios dot com],[],[https://efficios.com/babeltrace/])
 
 AC_SUBST([BABELTRACE_LIBRARY_VERSION], bt_lib_version)
 
@@ -39,7 +40,7 @@ AC_DEFINE([BT_VERSION_MINOR], bt_version_minor, [Babeltrace minor version])
 AC_DEFINE([BT_VERSION_PATCH], bt_version_patch, [Babeltrace patch version])
 AC_DEFINE([BT_VERSION_DEV_STAGE], ["]bt_version_dev_stage["], [Babeltrace version development stage (can be empty)])
 AC_DEFINE([BT_VERSION_NAME], ["]bt_version_name["], [Babeltrace version name])
-AC_DEFINE([BT_VERSION_DESCRIPTION], ["]bt_version_description_c_safe["], [Babeltrace version description])
+AC_DEFINE([BT_VERSION_DESCRIPTION], ["]AS_ESCAPE(bt_version_description)["], [Babeltrace version description])
 
 AC_CANONICAL_TARGET
 AC_CANONICAL_HOST
