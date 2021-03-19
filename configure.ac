@@ -204,17 +204,12 @@ AC_CHECK_PROGS([FOLD], [fold])
 AC_CHECK_PROGS([ASCIIDOC], [asciidoc])
 AC_CHECK_PROGS([XMLTO], [xmlto])
 
-# set $IN_GIT_REPO if we're in the Git repository; the `bootstrap` file
-# is not distributed in tarballs
-AS_IF([test -f "$srcdir/bootstrap"], [in_git_repo=yes], [in_git_repo=no])
-AM_CONDITIONAL([IN_GIT_REPO], [test "x$in_git_repo" = "xyes"])
-
 # check for bison
 AC_PROG_YACC
 AX_PROG_BISON_VERSION([2.5], [have_bison=yes])
 
 AS_IF([test "x$have_bison" != "xyes"], [
-  AS_IF([test "x$in_git_repo" = "xyes"], [
+  AE_IF_IN_GIT_REPO([
     AC_MSG_FAILURE([dnl
 Bison >= 2.4 is required when building from the Git repository. You can
 set the YACC variable to override automatic detection.
@@ -237,7 +232,7 @@ AC_PROG_LEX([noyywrap])
 AX_PROG_FLEX_VERSION([2.5.35], [have_flex=yes])
 
 AS_IF([test "x$have_flex" != "xyes"], [
-  AS_IF([test "x$in_git_repo" = "xyes"], [
+  AE_IF_IN_GIT_REPO([
     AC_MSG_FAILURE([dnl
 Flex >= 2.5.35 is required when building from the Git repository. You can
 set the LEX variable to override automatic detection.
@@ -601,7 +596,7 @@ warn_prebuilt_man_pages=no
 
 AE_IF_FEATURE_ENABLED([man-pages], [
   AS_IF([test "x$ASCIIDOC" = "x" || test "x$XMLTO" = "x"], [
-    AS_IF([test "x$in_git_repo" = "xyes"], [
+    AE_IF_IN_GIT_REPO([
       # this is an error because we're in the Git repo, which
       # means the man pages are not already generated for us,
       # thus asciixmlto are required because we were asked
@@ -950,8 +945,8 @@ PPRINT_SUBTITLE([Documentation])
 # man pages build enabled/disabled
 m4_pushdef([build_man_pages_msg], [Build and install man pages])
 
-AS_IF([test "x$enable_man_pages" != "xno"], [
-  AS_IF([test "x$in_git_repo" = "xyes"], [
+AE_IF_FEATURE_ENABLED([man-pages], [
+  AE_IF_IN_GIT_REPO([
     PPRINT_PROP_BOOL([build_man_pages_msg], 1)
   ], [
     AS_IF([test "x$have_asciidoc_xmlto" = "xyes"], [
