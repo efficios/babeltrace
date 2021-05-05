@@ -784,27 +784,33 @@ int get_msg_ns_from_origin(const bt_message *msg, int64_t *ns_from_origin,
 			msg);
 		break;
 	case BT_MESSAGE_TYPE_PACKET_BEGINNING:
-		clock_class =
-			bt_message_packet_beginning_borrow_stream_class_default_clock_class_const(
-				msg);
-		if (G_UNLIKELY(!clock_class)) {
-			goto error;
+	{
+		const bt_packet *packet = bt_message_packet_beginning_borrow_packet_const(msg);
+		const bt_stream *stream = bt_packet_borrow_stream_const(packet);
+		const bt_stream_class *stream_class = bt_stream_borrow_class_const(stream);
+
+		if (!bt_stream_class_packets_have_beginning_default_clock_snapshot(stream_class)) {
+			goto no_clock_snapshot;
 		}
 
 		clock_snapshot = bt_message_packet_beginning_borrow_default_clock_snapshot_const(
 			msg);
 		break;
+	}
 	case BT_MESSAGE_TYPE_PACKET_END:
-		clock_class =
-			bt_message_packet_end_borrow_stream_class_default_clock_class_const(
-				msg);
-		if (G_UNLIKELY(!clock_class)) {
-			goto error;
+	{
+		const bt_packet *packet = bt_message_packet_end_borrow_packet_const(msg);
+		const bt_stream *stream = bt_packet_borrow_stream_const(packet);
+		const bt_stream_class *stream_class = bt_stream_borrow_class_const(stream);
+
+		if (!bt_stream_class_packets_have_end_default_clock_snapshot(stream_class)) {
+			goto no_clock_snapshot;
 		}
 
 		clock_snapshot = bt_message_packet_end_borrow_default_clock_snapshot_const(
 			msg);
 		break;
+	}
 	case BT_MESSAGE_TYPE_STREAM_BEGINNING:
 	{
 		enum bt_message_stream_clock_snapshot_state cs_state;
@@ -840,27 +846,31 @@ int get_msg_ns_from_origin(const bt_message *msg, int64_t *ns_from_origin,
 		break;
 	}
 	case BT_MESSAGE_TYPE_DISCARDED_EVENTS:
-		clock_class =
-			bt_message_discarded_events_borrow_stream_class_default_clock_class_const(
-				msg);
-		if (G_UNLIKELY(!clock_class)) {
-			goto error;
+	{
+		const bt_stream *stream = bt_message_discarded_events_borrow_stream_const(msg);
+		const bt_stream_class *stream_class = bt_stream_borrow_class_const(stream);
+
+		if (!bt_stream_class_discarded_events_have_default_clock_snapshots(stream_class)) {
+			goto no_clock_snapshot;
 		}
 
 		clock_snapshot = bt_message_discarded_events_borrow_beginning_default_clock_snapshot_const(
 			msg);
 		break;
+	}
 	case BT_MESSAGE_TYPE_DISCARDED_PACKETS:
-		clock_class =
-			bt_message_discarded_packets_borrow_stream_class_default_clock_class_const(
-				msg);
-		if (G_UNLIKELY(!clock_class)) {
-			goto error;
+	{
+		const bt_stream *stream = bt_message_discarded_packets_borrow_stream_const(msg);
+		const bt_stream_class *stream_class = bt_stream_borrow_class_const(stream);
+
+		if (!bt_stream_class_discarded_packets_have_default_clock_snapshots(stream_class)) {
+			goto no_clock_snapshot;
 		}
 
 		clock_snapshot = bt_message_discarded_packets_borrow_beginning_default_clock_snapshot_const(
 			msg);
 		break;
+	}
 	case BT_MESSAGE_TYPE_MESSAGE_ITERATOR_INACTIVITY:
 		clock_snapshot =
 			bt_message_message_iterator_inactivity_borrow_clock_snapshot_const(
