@@ -34,6 +34,22 @@
 	BT_ASSERT_PRE_DEV_MSG_HAS_TYPE("message", (_msg),		\
 		"packet-end", BT_MESSAGE_TYPE_PACKET_END)
 
+#define BT_ASSERT_PRE_DEV_MSG_STREAM_CLASS_PACKETS_HAVE_BEGINNING_DEF_CS(_msg) \
+	BT_ASSERT_PRE_DEV("msg-stream-class-packets-have-beginning-default-clock-snapshot", ({ \
+		const struct bt_packet *_packet = bt_message_packet_beginning_borrow_packet_const(_msg); \
+		const struct bt_stream *_stream = bt_packet_borrow_stream_const(_packet); \
+		const struct bt_stream_class *_stream_class = bt_stream_borrow_class_const(_stream); \
+		bt_stream_class_packets_have_beginning_default_clock_snapshot(_stream_class); \
+	}), "Packets of the message's stream don't have a beginning default clock snapshot.")
+
+#define BT_ASSERT_PRE_DEV_MSG_STREAM_CLASS_PACKETS_HAVE_END_DEF_CS(_msg) \
+	BT_ASSERT_PRE_DEV("msg-stream-class-packets-have-end-default-clock-snapshot", ({ \
+		const struct bt_packet *_packet = bt_message_packet_end_borrow_packet_const(_msg); \
+		const struct bt_stream *_stream = bt_packet_borrow_stream_const(_packet); \
+		const struct bt_stream_class *_stream_class = bt_stream_borrow_class_const(_stream); \
+		bt_stream_class_packets_have_end_default_clock_snapshot(_stream_class); \
+	}), "Packets of the message's stream don't have an end default clock snapshot.")
+
 static inline
 struct bt_message *new_packet_message(struct bt_graph *graph,
 		enum bt_message_type type, bt_object_release_func recycle_func)
@@ -329,6 +345,7 @@ bt_message_packet_beginning_borrow_default_clock_snapshot_const(
 	BT_ASSERT_PRE_DEV_MSG_NON_NULL(msg);
 	BT_ASSERT_PRE_DEV_MSG_IS_PACKET_BEGINNING(msg);
 	BT_ASSERT_PRE_DEV_FOR_BORROW_DEF_CS(msg);
+	BT_ASSERT_PRE_DEV_MSG_STREAM_CLASS_PACKETS_HAVE_BEGINNING_DEF_CS(msg);
 	return borrow_packet_message_default_clock_snapshot_const(msg);
 }
 
@@ -339,6 +356,7 @@ bt_message_packet_end_borrow_default_clock_snapshot_const(
 	BT_ASSERT_PRE_DEV_MSG_NON_NULL(msg);
 	BT_ASSERT_PRE_DEV_MSG_IS_PACKET_END(msg);
 	BT_ASSERT_PRE_DEV_FOR_BORROW_DEF_CS(msg);
+	BT_ASSERT_PRE_DEV_MSG_STREAM_CLASS_PACKETS_HAVE_END_DEF_CS(msg);
 	return borrow_packet_message_default_clock_snapshot_const(msg);
 }
 
