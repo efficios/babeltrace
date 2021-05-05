@@ -1001,7 +1001,24 @@ void ctf_scanner_free(struct ctf_scanner *scanner)
 
 	if (!scanner)
 		return;
-	finalize_scope(&scanner->root_scope);
+
+	struct ctf_scanner_scope *scope = scanner->cs;
+
+	do {
+		struct ctf_scanner_scope *parent = scope->parent;
+		finalize_scope(scope);
+
+		/*
+		 * The root scope is allocated within the ctf_scanner structure,
+		 * do doesn't need freeing.  All others are allocated on their
+		 * own.
+		 */
+		if (scope != &scanner->root_scope)
+			free(scope);
+
+		scope = parent;
+	} while (scope);
+
 	objstack_destroy(scanner->objstack);
 	ret = yylex_destroy(scanner->scanner);
 	if (ret)
