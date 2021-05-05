@@ -38,7 +38,7 @@ int ctf_visitor_unary_expression(int depth, struct ctf_node *node,
 	case UNARY_DOTDOTDOT:
 		break;
 	default:
-		_BT_COMP_LOGE_LINENO(node->lineno,
+		_BT_COMP_LOGE_APPEND_CAUSE_LINENO(node->lineno,
 			"Unknown expression link type: type=%d\n",
 			node->u.unary_expression.link);
 		return -EINVAL;
@@ -60,7 +60,7 @@ int ctf_visitor_unary_expression(int depth, struct ctf_node *node,
 
 	case UNARY_UNKNOWN:
 	default:
-		_BT_COMP_LOGE_LINENO(node->lineno,
+		_BT_COMP_LOGE_APPEND_CAUSE_LINENO(node->lineno,
 			"Unknown expression link type: type=%d\n",
 			node->u.unary_expression.link);
 		return -EINVAL;
@@ -106,7 +106,7 @@ int ctf_visitor_type_specifier(int depth, struct ctf_node *node,
 
 	case TYPESPEC_UNKNOWN:
 	default:
-		_BT_COMP_LOGE_LINENO(node->lineno,
+		_BT_COMP_LOGE_APPEND_CAUSE_LINENO(node->lineno,
 			"Unknown type specifier: type=%d\n",
 			node->u.field_class_specifier.type);
 		return -EINVAL;
@@ -164,7 +164,7 @@ int ctf_visitor_field_class_declarator(int depth, struct ctf_node *node,
 		break;
 	case TYPEDEC_UNKNOWN:
 	default:
-		_BT_COMP_LOGE_LINENO(node->lineno,
+		_BT_COMP_LOGE_APPEND_CAUSE_LINENO(node->lineno,
 			"Unknown type declarator: type=%d\n",
 			node->u.field_class_declarator.type);
 		return -EINVAL;
@@ -490,7 +490,7 @@ int ctf_visitor_parent_links(int depth, struct ctf_node *node,
 
 	case NODE_UNKNOWN:
 	default:
-		_BT_COMP_LOGE_LINENO(node->lineno,
+		_BT_COMP_LOGE_APPEND_CAUSE_LINENO(node->lineno,
 			"Unknown node type: type=%d\n", node->type);
 		return -EINVAL;
 	}

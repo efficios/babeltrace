@@ -24,7 +24,7 @@
 		errno = 0;						\
 		yylval->ull = strtoull(yytext, NULL, base);		\
 		if (errno) {						\
-			_BT_LOGE_LINENO(yylineno,			\
+			_BT_LOGE_APPEND_CAUSE_LINENO(yylineno,			\
 				"Cannot parser constant integer: " 	\
 				"base=%d, text=\"%s\"", base, yytext);	\
 			return CTF_ERROR;				\
@@ -116,5 +116,5 @@ _Imaginary			setstring(yyextra, yylval, yytext); return CTF_IMAGINARY;
 
 {IDENTIFIER}			BT_LOGT("Got identifier: id=\"%s\"", yytext); setstring(yyextra, yylval, yytext); if (is_type(yyextra, yytext)) return ID_TYPE; else return IDENTIFIER;
 [ \t\r\n]			; /* ignore */
-.				_BT_LOGE_LINENO(yylineno, "Invalid character: char=\"%c\", val=0x%02x", isprint((unsigned char) yytext[0]) ? yytext[0] : '\0', yytext[0]); return CTF_ERROR;
+.				_BT_LOGE_APPEND_CAUSE_LINENO(yylineno, "Invalid character: char=\"%c\", val=0x%02x", isprint((unsigned char) yytext[0]) ? yytext[0] : '\0', yytext[0]); return CTF_ERROR;
 %%

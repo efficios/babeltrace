@@ -105,6 +105,7 @@ bt_component_class_query_method_status metadata_info_query(
 	}
 
 	decoder_cfg.log_level = log_level;
+	decoder_cfg.self_comp_class = self_comp_class;
 	decoder_cfg.keep_plain_text = true;
 	decoder = ctf_metadata_decoder_create(&decoder_cfg);
 	if (!decoder) {
@@ -445,6 +446,8 @@ bt_component_class_query_method_status support_info_query(
 		bt_uuid_t uuid;
 
 		metadata_decoder_config.log_level = log_level;
+		metadata_decoder_config.self_comp_class =
+			bt_self_component_class_source_as_self_component_class(comp_class);
 
 		metadata_decoder = ctf_metadata_decoder_create(
 			&metadata_decoder_config);

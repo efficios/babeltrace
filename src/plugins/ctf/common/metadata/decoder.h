@@ -35,8 +35,12 @@ struct ctf_metadata_decoder_config {
 	/* Active log level to use */
 	bt_logging_level log_level;
 
-	/* Component to use for logging (can be `NULL`); weak */
+	/*
+	 * Component or component class to use for logging (exactly one of
+	 * them must be non-`NULL`); weak
+	 */
 	bt_self_component *self_comp;
+	bt_self_component_class *self_comp_class;
 
 	/* Additional clock class offset to apply */
 	int64_t clock_class_offset_s;

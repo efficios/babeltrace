@@ -6,6 +6,7 @@
  */
 
 #define BT_COMP_LOG_SELF_COMP (ctx->self_comp)
+#define BT_COMP_LOG_SELF_COMP_CLASS (ctx->self_comp_class)
 #define BT_LOG_OUTPUT_LEVEL (ctx->log_level)
 #define BT_LOG_TAG "PLUGIN/CTF/META/RESOLVE"
 #include "logging/comp-logging.h"
@@ -47,7 +48,11 @@ struct field_class_stack_frame {
  */
 struct resolve_context {
 	bt_logging_level log_level;
+
+	/* Weak, exactly one of these must be set */
 	bt_self_component *self_comp;
+	bt_self_component_class *self_comp_class;
+
 	struct ctf_trace_class *tc;
 	struct ctf_stream_class *sc;
 	struct ctf_event_class *ec;
@@ -129,14 +134,14 @@ int field_class_stack_push(field_class_stack *stack, struct ctf_field_class *fc,
 	struct field_class_stack_frame *frame = NULL;
 
 	if (!stack || !fc) {
-		BT_COMP_LOGE("Invalid parameter: stack or field class is NULL.");
+		_BT_COMP_OR_COMP_CLASS_LOGE_APPEND_CAUSE("Invalid parameter: stack or field class is `NULL`.");
 		ret = -1;
 		goto end;
 	}
 
 	frame = g_new0(struct field_class_stack_frame, 1);
 	if (!frame) {
-		BT_COMP_LOGE_STR("Failed to allocate one field class stack frame.");
+		_BT_COMP_OR_COMP_CLASS_LOGE_APPEND_CAUSE("Failed to allocate one field class stack frame.");
 		ret = -1;
 		goto end;
 	}
@@ -333,7 +338,7 @@ GList *pathstr_to_ptokens(const char *pathstr, struct resolve_context *ctx)
 
 			if (at == last) {
 				/* Error: empty token */
-				BT_COMP_LOGE("Empty path token: path=\"%s\", pos=%u",
+				_BT_COMP_OR_COMP_CLASS_LOGE_APPEND_CAUSE("Empty path token: path=\"%s\", pos=%u",
 					pathstr, (unsigned int) (at - pathstr));
 				goto error;
 			}
@@ -463,7 +468,7 @@ int absolute_ptokens_to_field_path(GList *ptokens,
 	switch (field_path->root) {
 	case CTF_SCOPE_PACKET_HEADER:
 		if (ctx->tc->is_translated) {
-			BT_COMP_LOGE("Trace class is already translated: "
+			_BT_COMP_OR_COMP_CLASS_LOGE_APPEND_CAUSE("Trace class is already translated: "
 				"root-scope=%s",
 				ctf_scope_string(field_path->root));
 			ret = -1;
@@ -475,7 +480,7 @@ int absolute_ptokens_to_field_path(GList *ptokens,
 	case CTF_SCOPE_EVENT_HEADER:
 	case CTF_SCOPE_EVENT_COMMON_CONTEXT:
 		if (!ctx->sc) {
-			BT_COMP_LOGE("No current stream class: "
+			_BT_COMP_OR_COMP_CLASS_LOGE_APPEND_CAUSE("No current stream class: "
 				"root-scope=%s",
 				ctf_scope_string(field_path->root));
 			ret = -1;
@@ -483,7 +488,7 @@ int absolute_ptokens_to_field_path(GList *ptokens,
 		}
 
 		if (ctx->sc->is_translated) {
-			BT_COMP_LOGE("Stream class is already translated: "
+			_BT_COMP_OR_COMP_CLASS_LOGE_APPEND_CAUSE("Stream class is already translated: "
 				"root-scope=%s",
 				ctf_scope_string(field_path->root));
 			ret = -1;
@@ -494,7 +499,7 @@ int absolute_ptokens_to_field_path(GList *ptokens,
 	case CTF_SCOPE_EVENT_SPECIFIC_CONTEXT:
 	case CTF_SCOPE_EVENT_PAYLOAD:
 		if (!ctx->ec) {
-			BT_COMP_LOGE("No current event class: "
+			_BT_COMP_OR_COMP_CLASS_LOGE_APPEND_CAUSE("No current event class: "
 				"root-scope=%s",
 				ctf_scope_string(field_path->root));
 			ret = -1;
@@ -502,7 +507,7 @@ int absolute_ptokens_to_field_path(GList *ptokens,
 		}
 
 		if (ctx->ec->is_translated) {
-			BT_COMP_LOGE("Event class is already translated: "
+			_BT_COMP_OR_COMP_CLASS_LOGE_APPEND_CAUSE("Event class is already translated: "
 				"root-scope=%s",
 				ctf_scope_string(field_path->root));
 			ret = -1;
@@ -523,7 +528,7 @@ int absolute_ptokens_to_field_path(GList *ptokens,
 	fc = borrow_class_from_ctx(ctx, field_path->root);
 	if (!fc) {
 		/* Error: root class is not available */
-		BT_COMP_LOGE("Root field class is not available: "
+		_BT_COMP_OR_COMP_CLASS_LOGE_APPEND_CAUSE("Root field class is not available: "
 			"root-scope=%s",
 			ctf_scope_string(field_path->root));
 		ret = -1;
@@ -634,7 +639,7 @@ int pathstr_to_field_path(const char *pathstr,
 	/* Convert path string to path tokens */
 	ptokens = pathstr_to_ptokens(pathstr, ctx);
 	if (!ptokens) {
-		BT_COMP_LOGE("Cannot convert path string to path tokens: "
+		_BT_COMP_OR_COMP_CLASS_LOGE_APPEND_CAUSE("Cannot convert path string to path tokens: "
 			"path=\"%s\"", pathstr);
 		ret = -1;
 		goto end;
@@ -650,7 +655,7 @@ int pathstr_to_field_path(const char *pathstr,
 			"scope=%s", ctf_scope_string(field_path->root));
 		ret = relative_ptokens_to_field_path(ptokens, field_path, ctx);
 		if (ret) {
-			BT_COMP_LOGE("Cannot get relative field path of path string: "
+			_BT_COMP_OR_COMP_CLASS_LOGE_APPEND_CAUSE("Cannot get relative field path of path string: "
 				"path=\"%s\", start-scope=%s, end-scope=%s",
 				pathstr, ctf_scope_string(ctx->root_scope),
 				ctf_scope_string(field_path->root));
@@ -663,7 +668,7 @@ int pathstr_to_field_path(const char *pathstr,
 			"scope=%s", ctf_scope_string(field_path->root));
 		ret = absolute_ptokens_to_field_path(ptokens, field_path, ctx);
 		if (ret) {
-			BT_COMP_LOGE("Cannot get absolute field path of path string: "
+			_BT_COMP_OR_COMP_CLASS_LOGE_APPEND_CAUSE("Cannot get absolute field path of path string: "
 				"path=\"%s\", root-scope=%s",
 				pathstr, ctf_scope_string(root_scope));
 			goto end;
@@ -703,7 +708,7 @@ struct ctf_field_class *field_path_to_field_class(
 	fc = borrow_class_from_ctx(ctx, field_path->root);
 	if (!fc) {
 		/* Error: root class is not available */
-		BT_COMP_LOGE("Root field class is not available: root-scope=%s",
+		_BT_COMP_OR_COMP_CLASS_LOGE_APPEND_CAUSE("Root field class is not available: root-scope=%s",
 			ctf_scope_string(field_path->root));
 		goto end;
 	}
@@ -800,7 +805,7 @@ int64_t get_field_paths_lca_index(struct ctf_field_path *field_path1,
 			 * This is invalid because the target cannot be
 			 * an ancestor of the source.
 			 */
-			BT_COMP_LOGE("Source field class is an ancestor of target field class or vice versa: "
+			_BT_COMP_OR_COMP_CLASS_LOGE_APPEND_CAUSE("Source field class is an ancestor of target field class or vice versa: "
 				"lca-index=%" PRId64 ", "
 				"field-path-1-len=%" PRIu64 ", "
 				"field-path-2-len=%" PRIu64,
@@ -847,7 +852,7 @@ int validate_target_field_path(struct ctf_field_path *target_field_path,
 	 * Make sure the target is not a root.
 	 */
 	if (target_field_path_len == 0) {
-		BT_COMP_LOGE_STR("Target field path's length is 0 (targeting the root).");
+		_BT_COMP_OR_COMP_CLASS_LOGE_APPEND_CAUSE("Target field path's length is 0 (targeting the root).");
 		ret = -1;
 		goto end;
 	}
@@ -857,7 +862,7 @@ int validate_target_field_path(struct ctf_field_path *target_field_path,
 	 * after the context field path's root.
 	 */
 	if (target_field_path->root > ctx_field_path.root) {
-		BT_COMP_LOGE("Target field class is located after source field class: "
+		_BT_COMP_OR_COMP_CLASS_LOGE_APPEND_CAUSE("Target field class is located after source field class: "
 			"target-root=%s, source-root=%s",
 			ctf_scope_string(target_field_path->root),
 			ctf_scope_string(ctx_field_path.root));
@@ -875,7 +880,7 @@ int validate_target_field_path(struct ctf_field_path *target_field_path,
 		lca_index = get_field_paths_lca_index(target_field_path,
 			&ctx_field_path, ctx);
 		if (lca_index < 0) {
-			BT_COMP_LOGE_STR("Cannot get least common ancestor.");
+			_BT_COMP_OR_COMP_CLASS_LOGE_APPEND_CAUSE("Cannot get least common ancestor.");
 			ret = -1;
 			goto end;
 		}
@@ -890,7 +895,7 @@ int validate_target_field_path(struct ctf_field_path *target_field_path,
 			&ctx_field_path, (uint64_t) lca_index);
 
 		if (target_index >= ctx_index) {
-			BT_COMP_LOGE("Target field class's index is greater than or equal to source field class's index in LCA: "
+			_BT_COMP_OR_COMP_CLASS_LOGE_APPEND_CAUSE("Target field class's index is greater than or equal to source field class's index in LCA: "
 				"lca-index=%" PRId64 ", "
 				"target-index=%" PRId64 ", "
 				"source-index=%" PRId64,
@@ -906,7 +911,7 @@ int validate_target_field_path(struct ctf_field_path *target_field_path,
 	switch (ctx->cur_fc->type) {
 	case CTF_FIELD_CLASS_TYPE_VARIANT:
 		if (target_fc->type != CTF_FIELD_CLASS_TYPE_ENUM) {
-			BT_COMP_LOGE("Variant field class's tag field class is not an enumeration field class: "
+			_BT_COMP_OR_COMP_CLASS_LOGE_APPEND_CAUSE("Variant field class's tag field class is not an enumeration field class: "
 				"tag-fc-addr=%p, tag-fc-id=%d",
 				target_fc, target_fc->type);
 			ret = -1;
@@ -919,7 +924,7 @@ int validate_target_field_path(struct ctf_field_path *target_field_path,
 
 		if (target_fc->type != CTF_FIELD_CLASS_TYPE_INT &&
 				target_fc->type != CTF_FIELD_CLASS_TYPE_ENUM) {
-			BT_COMP_LOGE("Sequence field class's length field class is not an unsigned integer field class: "
+			_BT_COMP_OR_COMP_CLASS_LOGE_APPEND_CAUSE("Sequence field class's length field class is not an unsigned integer field class: "
 				"length-fc-addr=%p, length-fc-id=%d",
 				target_fc, target_fc->type);
 			ret = -1;
@@ -927,7 +932,7 @@ int validate_target_field_path(struct ctf_field_path *target_field_path,
 		}
 
 		if (int_fc->is_signed) {
-			BT_COMP_LOGE("Sequence field class's length field class is not an unsigned integer field class: "
+			_BT_COMP_OR_COMP_CLASS_LOGE_APPEND_CAUSE("Sequence field class's length field class is not an unsigned integer field class: "
 				"length-fc-addr=%p, length-fc-id=%d",
 				target_fc, target_fc->type);
 			ret = -1;
@@ -979,7 +984,7 @@ int resolve_sequence_or_variant_field_class(struct ctf_field_class *fc,
 	}
 
 	if (!pathstr) {
-		BT_COMP_LOGE_STR("Cannot get path string.");
+		_BT_COMP_OR_COMP_CLASS_LOGE_APPEND_CAUSE("Cannot get path string.");
 		ret = -1;
 		goto end;
 	}
@@ -987,7 +992,7 @@ int resolve_sequence_or_variant_field_class(struct ctf_field_class *fc,
 	/* Get target field path out of path string */
 	ret = pathstr_to_field_path(pathstr, &target_field_path, ctx);
 	if (ret) {
-		BT_COMP_LOGE("Cannot get target field path for path string: "
+		_BT_COMP_OR_COMP_CLASS_LOGE_APPEND_CAUSE("Cannot get target field path for path string: "
 			"path=\"%s\"", pathstr);
 		goto end;
 	}
@@ -1000,7 +1005,7 @@ int resolve_sequence_or_variant_field_class(struct ctf_field_class *fc,
 	/* Get target field class */
 	target_fc = field_path_to_field_class(&target_field_path, ctx);
 	if (!target_fc) {
-		BT_COMP_LOGE("Cannot get target field class for path string: "
+		_BT_COMP_OR_COMP_CLASS_LOGE_APPEND_CAUSE("Cannot get target field class for path string: "
 			"path=\"%s\", target-field-path=\"%s\"",
 			pathstr, target_field_path_pretty_str);
 		ret = -1;
@@ -1010,7 +1015,7 @@ int resolve_sequence_or_variant_field_class(struct ctf_field_class *fc,
 	ret = validate_target_field_path(&target_field_path,
 		target_fc, ctx);
 	if (ret) {
-		BT_COMP_LOGE("Invalid target field path for path string: "
+		_BT_COMP_OR_COMP_CLASS_LOGE_APPEND_CAUSE("Invalid target field path for path string: "
 			"path=\"%s\", target-field-path=\"%s\"",
 			pathstr, target_field_path_pretty_str);
 		goto end;
@@ -1071,7 +1076,7 @@ int resolve_field_class(struct ctf_field_class *fc, struct resolve_context *ctx)
 	case CTF_FIELD_CLASS_TYPE_VARIANT:
 		ret = resolve_sequence_or_variant_field_class(fc, ctx);
 		if (ret) {
-			BT_COMP_LOGE("Cannot resolve sequence field class's length or variant field class's tag: "
+			_BT_COMP_OR_COMP_CLASS_LOGE_APPEND_CAUSE("Cannot resolve sequence field class's length or variant field class's tag: "
 				"ret=%d, fc-addr=%p", ret, fc);
 			goto end;
 		}
@@ -1094,7 +1099,7 @@ int resolve_field_class(struct ctf_field_class *fc, struct resolve_context *ctx)
 
 		ret = field_class_stack_push(ctx->field_class_stack, fc, ctx);
 		if (ret) {
-			BT_COMP_LOGE("Cannot push field class on context's stack: "
+			_BT_COMP_OR_COMP_CLASS_LOGE_APPEND_CAUSE("Cannot push field class on context's stack: "
 				"fc-addr=%p", fc);
 			goto end;
 		}
@@ -1169,7 +1174,7 @@ int resolve_event_class_field_classes(struct resolve_context *ctx,
 	ctx->scopes.event_spec_context = ec->spec_context_fc;
 	ret = resolve_root_class(CTF_SCOPE_EVENT_COMMON_CONTEXT, ctx);
 	if (ret) {
-		BT_COMP_LOGE("Cannot resolve event specific context field class: "
+		_BT_COMP_OR_COMP_CLASS_LOGE_APPEND_CAUSE("Cannot resolve event specific context field class: "
 			"ret=%d", ret);
 		goto end;
 	}
@@ -1177,7 +1182,7 @@ int resolve_event_class_field_classes(struct resolve_context *ctx,
 	ctx->scopes.event_payload = ec->payload_fc;
 	ret = resolve_root_class(CTF_SCOPE_EVENT_PAYLOAD, ctx);
 	if (ret) {
-		BT_COMP_LOGE("Cannot resolve event payload field class: "
+		_BT_COMP_OR_COMP_CLASS_LOGE_APPEND_CAUSE("Cannot resolve event payload field class: "
 			"ret=%d", ret);
 		goto end;
 	}
@@ -1205,7 +1210,7 @@ int resolve_stream_class_field_classes(struct resolve_context *ctx,
 		ctx->scopes.packet_context = sc->packet_context_fc;
 		ret = resolve_root_class(CTF_SCOPE_PACKET_CONTEXT, ctx);
 		if (ret) {
-			BT_COMP_LOGE("Cannot resolve packet context field class: "
+			_BT_COMP_OR_COMP_CLASS_LOGE_APPEND_CAUSE("Cannot resolve packet context field class: "
 				"ret=%d", ret);
 			goto end;
 		}
@@ -1213,7 +1218,7 @@ int resolve_stream_class_field_classes(struct resolve_context *ctx,
 		ctx->scopes.event_header = sc->event_header_fc;
 		ret = resolve_root_class(CTF_SCOPE_EVENT_HEADER, ctx);
 		if (ret) {
-			BT_COMP_LOGE("Cannot resolve event header field class: "
+			_BT_COMP_OR_COMP_CLASS_LOGE_APPEND_CAUSE("Cannot resolve event header field class: "
 				"ret=%d", ret);
 			goto end;
 		}
@@ -1221,7 +1226,7 @@ int resolve_stream_class_field_classes(struct resolve_context *ctx,
 		ctx->scopes.event_common_context = sc->event_common_context_fc;
 		ret = resolve_root_class(CTF_SCOPE_EVENT_COMMON_CONTEXT, ctx);
 		if (ret) {
-			BT_COMP_LOGE("Cannot resolve event common context field class: "
+			_BT_COMP_OR_COMP_CLASS_LOGE_APPEND_CAUSE("Cannot resolve event common context field class: "
 				"ret=%d", ret);
 			goto end;
 		}
@@ -1236,7 +1241,7 @@ int resolve_stream_class_field_classes(struct resolve_context *ctx,
 
 		ret = resolve_event_class_field_classes(ctx, ec);
 		if (ret) {
-			BT_COMP_LOGE("Cannot resolve event class's field classes: "
+			_BT_COMP_OR_COMP_CLASS_LOGE_APPEND_CAUSE("Cannot resolve event class's field classes: "
 				"ec-id=%" PRIu64 ", ec-name=\"%s\"",
 				ec->id, ec->name->str);
 			goto end;
@@ -1260,6 +1265,7 @@ int ctf_trace_class_resolve_field_classes(struct ctf_trace_class *tc,
 	struct resolve_context local_ctx = {
 		.log_level = log_cfg->log_level,
 		.self_comp = log_cfg->self_comp,
+		.self_comp_class = log_cfg->self_comp_class,
 		.tc = tc,
 		.sc = NULL,
 		.ec = NULL,
@@ -1279,7 +1285,7 @@ int ctf_trace_class_resolve_field_classes(struct ctf_trace_class *tc,
 	/* Initialize class stack */
 	ctx->field_class_stack = field_class_stack_create();
 	if (!ctx->field_class_stack) {
-		BT_COMP_LOGE_STR("Cannot create field class stack.");
+		_BT_COMP_OR_COMP_CLASS_LOGE_APPEND_CAUSE("Cannot create field class stack.");
 		ret = -1;
 		goto end;
 	}
@@ -1288,7 +1294,7 @@ int ctf_trace_class_resolve_field_classes(struct ctf_trace_class *tc,
 		ctx->scopes.packet_header = tc->packet_header_fc;
 		ret = resolve_root_class(CTF_SCOPE_PACKET_HEADER, ctx);
 		if (ret) {
-			BT_COMP_LOGE("Cannot resolve packet header field class: "
+			_BT_COMP_OR_COMP_CLASS_LOGE_APPEND_CAUSE("Cannot resolve packet header field class: "
 				"ret=%d", ret);
 			goto end;
 		}
@@ -1301,7 +1307,7 @@ int ctf_trace_class_resolve_field_classes(struct ctf_trace_class *tc,
 
 		ret = resolve_stream_class_field_classes(ctx, sc);
 		if (ret) {
-			BT_COMP_LOGE("Cannot resolve stream class's field classes: "
+			_BT_COMP_OR_COMP_CLASS_LOGE_APPEND_CAUSE("Cannot resolve stream class's field classes: "
 				"sc-id=%" PRIu64, sc->id);
 			goto end;
 		}

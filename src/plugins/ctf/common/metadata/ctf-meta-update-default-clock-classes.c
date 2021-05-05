@@ -5,6 +5,7 @@
  */
 
 #define BT_COMP_LOG_SELF_COMP (log_cfg->self_comp)
+#define BT_COMP_LOG_SELF_COMP_CLASS (log_cfg->self_comp_class)
 #define BT_LOG_OUTPUT_LEVEL (log_cfg->log_level)
 #define BT_LOG_TAG "PLUGIN/CTF/META/UPDATE-DEF-CC"
 #include "logging/comp-logging.h"
@@ -41,7 +42,7 @@ int find_mapped_clock_class(struct ctf_field_class *fc,
 		if (int_fc->mapped_clock_class) {
 			if (*clock_class && *clock_class !=
 					int_fc->mapped_clock_class) {
-				BT_COMP_LOGE("Stream class contains more than one "
+				_BT_COMP_OR_COMP_CLASS_LOGE_APPEND_CAUSE("Stream class contains more than one "
 					"clock class: expected-cc-name=\"%s\", "
 					"other-cc-name=\"%s\"",
 					(*clock_class)->name->str,
@@ -191,7 +192,7 @@ int ctf_trace_class_update_default_clock_classes(struct ctf_trace_class *ctf_tc,
 		ret = update_stream_class_default_clock_class(
 			ctf_tc->stream_classes->pdata[i], log_cfg);
 		if (ret) {
-			BT_COMP_LOGE("Stream class contains more than one "
+			_BT_COMP_OR_COMP_CLASS_LOGE_APPEND_CAUSE("Stream class contains more than one "
 				"clock class: stream-class-id=%" PRIu64,
 				sc->id);
 			goto end;

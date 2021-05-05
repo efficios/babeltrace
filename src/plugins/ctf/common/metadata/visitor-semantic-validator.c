@@ -50,7 +50,7 @@ int ctf_visitor_unary_expression(int depth, struct ctf_node *node,
 				 * We are only allowed to be a string.
 				 */
 				if (node->u.unary_expression.type != UNARY_STRING) {
-					_BT_COMP_LOGE_LINENO(node->lineno,
+					_BT_COMP_LOGE_APPEND_CAUSE_LINENO(node->lineno,
 						"Left child of a CTF expression is only allowed to be a string.");
 					goto errperm;
 				}
@@ -68,7 +68,7 @@ int ctf_visitor_unary_expression(int depth, struct ctf_node *node,
 		case UNARY_STRING:
 			break;
 		default:
-			_BT_COMP_LOGE_LINENO(node->lineno,
+			_BT_COMP_LOGE_APPEND_CAUSE_LINENO(node->lineno,
 				"Children of field class declarator and `enum` can only be unsigned numeric constants or references to fields (e.g., `a.b.c`).");
 			goto errperm;
 		}
@@ -82,7 +82,7 @@ int ctf_visitor_unary_expression(int depth, struct ctf_node *node,
 		case UNARY_UNSIGNED_CONSTANT:
 			break;
 		default:
-			_BT_COMP_LOGE_LINENO(node->lineno,
+			_BT_COMP_LOGE_APPEND_CAUSE_LINENO(node->lineno,
 				"Structure alignment attribute can only be an unsigned numeric constant.");
 			goto errperm;
 		}
@@ -97,7 +97,7 @@ int ctf_visitor_unary_expression(int depth, struct ctf_node *node,
 		 * We disallow nested unary expressions and "sbrac" unary
 		 * expressions.
 		 */
-		_BT_COMP_LOGE_LINENO(node->lineno,
+		_BT_COMP_LOGE_APPEND_CAUSE_LINENO(node->lineno,
 			"Nested unary expressions not allowed (`()` and `[]`).");
 		goto errperm;
 
@@ -132,7 +132,7 @@ int ctf_visitor_unary_expression(int depth, struct ctf_node *node,
 					  &node->parent->u.ctf_expression.right,
 					  struct ctf_node,
 					  siblings) != node) {
-			_BT_COMP_LOGE_LINENO(node->lineno,
+			_BT_COMP_LOGE_APPEND_CAUSE_LINENO(node->lineno,
 				"Empty link is not allowed except on first node of unary expression (need to separate nodes with `.` or `->`).");
 			goto errperm;
 		}
@@ -141,7 +141,7 @@ int ctf_visitor_unary_expression(int depth, struct ctf_node *node,
 	case UNARY_ARROWLINK:
 		/* We only allow -> and . links between children of ctf_expression. */
 		if (node->parent->type != NODE_CTF_EXPRESSION) {
-			_BT_COMP_LOGE_LINENO(node->lineno,
+			_BT_COMP_LOGE_APPEND_CAUSE_LINENO(node->lineno,
 				"Links `.` and `->` are only allowed as children of CTF expression.");
 			goto errperm;
 		}
@@ -150,7 +150,7 @@ int ctf_visitor_unary_expression(int depth, struct ctf_node *node,
 		 * This includes "", '' and non-quoted identifiers.
 		 */
 		if (node->u.unary_expression.type != UNARY_STRING) {
-			_BT_COMP_LOGE_LINENO(node->lineno,
+			_BT_COMP_LOGE_APPEND_CAUSE_LINENO(node->lineno,
 				"Links `.` and `->` are only allowed to separate strings and identifiers.");
 			goto errperm;
 		}
@@ -160,7 +160,7 @@ int ctf_visitor_unary_expression(int depth, struct ctf_node *node,
 					  &node->parent->u.ctf_expression.right,
 					  struct ctf_node,
 					  siblings) == node) {
-			_BT_COMP_LOGE_LINENO(node->lineno,
+			_BT_COMP_LOGE_APPEND_CAUSE_LINENO(node->lineno,
 				"Links `.` and `->` are not allowed before first node of the unary expression list.");
 			goto errperm;
 		}
@@ -168,7 +168,7 @@ int ctf_visitor_unary_expression(int depth, struct ctf_node *node,
 	case UNARY_DOTDOTDOT:
 		/* We only allow ... link between children of enumerator. */
 		if (node->parent->type != NODE_ENUMERATOR) {
-			_BT_COMP_LOGE_LINENO(node->lineno,
+			_BT_COMP_LOGE_APPEND_CAUSE_LINENO(node->lineno,
 				"Link `...` is only allowed within enumerator.");
 			goto errperm;
 		}
@@ -176,13 +176,13 @@ int ctf_visitor_unary_expression(int depth, struct ctf_node *node,
 		if (_bt_list_first_entry(&node->parent->u.enumerator.values,
 					  struct ctf_node,
 					  siblings) == node) {
-			_BT_COMP_LOGE_LINENO(node->lineno,
+			_BT_COMP_LOGE_APPEND_CAUSE_LINENO(node->lineno,
 				"Link `...` is not allowed on the first node of the unary expression list.");
 			goto errperm;
 		}
 		break;
 	default:
-		_BT_COMP_LOGE_LINENO(node->lineno,
+		_BT_COMP_LOGE_APPEND_CAUSE_LINENO(node->lineno,
 			"Unknown expression link type: type=%d",
 			node->u.unary_expression.link);
 		return -EINVAL;
@@ -190,13 +190,13 @@ int ctf_visitor_unary_expression(int depth, struct ctf_node *node,
 	return 0;
 
 errinval:
-	_BT_COMP_LOGE_LINENO(node->lineno,
+	_BT_COMP_LOGE_APPEND_CAUSE_LINENO(node->lineno,
 		"Incoherent parent node's type: node-type=%s, parent-node-type=%s",
 		node_type(node), node_type(node->parent));
 	return -EINVAL;		/* Incoherent structure */
 
 errperm:
-	_BT_COMP_LOGE_LINENO(node->lineno,
+	_BT_COMP_LOGE_APPEND_CAUSE_LINENO(node->lineno,
 		"Semantic error: node-type=%s, parent-node-type=%s",
 		node_type(node), node_type(node->parent));
 	return -EPERM;		/* Structure not allowed */
@@ -239,7 +239,7 @@ int ctf_visitor_field_class_specifier_list(int depth, struct ctf_node *node,
 	}
 	return 0;
 errinval:
-	_BT_COMP_LOGE_LINENO(node->lineno,
+	_BT_COMP_LOGE_APPEND_CAUSE_LINENO(node->lineno,
 		"Incoherent parent node's type: node-type=%s, parent-node-type=%s",
 		node_type(node), node_type(node->parent));
 	return -EINVAL;		/* Incoherent structure */
@@ -282,7 +282,7 @@ int ctf_visitor_field_class_specifier(int depth, struct ctf_node *node,
 	}
 	return 0;
 errinval:
-	_BT_COMP_LOGE_LINENO(node->lineno,
+	_BT_COMP_LOGE_APPEND_CAUSE_LINENO(node->lineno,
 		"Incoherent parent node's type: node-type=%s, parent-node-type=%s",
 		node_type(node), node_type(node->parent));
 	return -EINVAL;		/* Incoherent structure */
@@ -392,7 +392,7 @@ int ctf_visitor_field_class_declarator(int depth, struct ctf_node *node,
 			bt_list_for_each_entry(iter, &node->u.field_class_declarator.u.nested.length,
 						siblings) {
 				if (iter->type != NODE_UNARY_EXPRESSION) {
-					_BT_COMP_LOGE_LINENO(node->lineno,
+					_BT_COMP_LOGE_APPEND_CAUSE_LINENO(node->lineno,
 						"Expecting unary expression as length: node-type=%s",
 						node_type(iter));
 					return -EINVAL;
@@ -404,7 +404,7 @@ int ctf_visitor_field_class_declarator(int depth, struct ctf_node *node,
 			}
 		} else {
 			if (node->parent->type == NODE_TYPEALIAS_TARGET) {
-				_BT_COMP_LOGE_LINENO(node->lineno,
+				_BT_COMP_LOGE_APPEND_CAUSE_LINENO(node->lineno,
 					"Abstract array declarator not permitted as target of field class alias.");
 				return -EINVAL;
 			}
@@ -420,7 +420,7 @@ int ctf_visitor_field_class_declarator(int depth, struct ctf_node *node,
 	}
 	case TYPEDEC_UNKNOWN:
 	default:
-		_BT_COMP_LOGE_LINENO(node->lineno,
+		_BT_COMP_LOGE_APPEND_CAUSE_LINENO(node->lineno,
 			"Unknown field class declarator: type=%d",
 			node->u.field_class_declarator.type);
 		return -EINVAL;
@@ -429,13 +429,13 @@ int ctf_visitor_field_class_declarator(int depth, struct ctf_node *node,
 	return 0;
 
 errinval:
-	_BT_COMP_LOGE_LINENO(node->lineno,
+	_BT_COMP_LOGE_APPEND_CAUSE_LINENO(node->lineno,
 		"Incoherent parent node's type: node-type=%s, parent-node-type=%s",
 		node_type(node), node_type(node->parent));
 	return -EINVAL;		/* Incoherent structure */
 
 errperm:
-	_BT_COMP_LOGE_LINENO(node->lineno,
+	_BT_COMP_LOGE_APPEND_CAUSE_LINENO(node->lineno,
 		"Semantic error: node-type=%s, parent-node-type=%s",
 		node_type(node), node_type(node->parent));
 	return -EPERM;		/* Structure not allowed */
@@ -694,7 +694,7 @@ int _ctf_visitor_semantic_check(int depth, struct ctf_node *node,
 			nr_declarators++;
 		}
 		if (nr_declarators > 1) {
-			_BT_COMP_LOGE_LINENO(node->lineno,
+			_BT_COMP_LOGE_APPEND_CAUSE_LINENO(node->lineno,
 				"Too many declarators in field class alias's name (maximum is 1): count=%d",
 				nr_declarators);
 			return -EINVAL;
@@ -728,7 +728,7 @@ int _ctf_visitor_semantic_check(int depth, struct ctf_node *node,
 			nr_declarators++;
 		}
 		if (nr_declarators > 1) {
-			_BT_COMP_LOGE_LINENO(node->lineno,
+			_BT_COMP_LOGE_APPEND_CAUSE_LINENO(node->lineno,
 				"Too many declarators in field class alias's name (maximum is 1): count=%d",
 				nr_declarators);
 			return -EINVAL;
@@ -879,7 +879,7 @@ int _ctf_visitor_semantic_check(int depth, struct ctf_node *node,
 					    || (iter->u.unary_expression.type != UNARY_SIGNED_CONSTANT
 						&& iter->u.unary_expression.type != UNARY_UNSIGNED_CONSTANT)
 					    || iter->u.unary_expression.link != UNARY_LINK_UNKNOWN) {
-						_BT_COMP_LOGE_LINENO(iter->lineno,
+						_BT_COMP_LOGE_APPEND_CAUSE_LINENO(iter->lineno,
 							"First unary expression of enumerator is unexpected.");
 						goto errperm;
 					}
@@ -888,7 +888,7 @@ int _ctf_visitor_semantic_check(int depth, struct ctf_node *node,
 					    || (iter->u.unary_expression.type != UNARY_SIGNED_CONSTANT
 						&& iter->u.unary_expression.type != UNARY_UNSIGNED_CONSTANT)
 					    || iter->u.unary_expression.link != UNARY_DOTDOTDOT) {
-						_BT_COMP_LOGE_LINENO(iter->lineno,
+						_BT_COMP_LOGE_APPEND_CAUSE_LINENO(iter->lineno,
 							"Second unary expression of enumerator is unexpected.");
 						goto errperm;
 					}
@@ -989,20 +989,20 @@ int _ctf_visitor_semantic_check(int depth, struct ctf_node *node,
 
 	case NODE_UNKNOWN:
 	default:
-		_BT_COMP_LOGE_LINENO(node->lineno,
+		_BT_COMP_LOGE_APPEND_CAUSE_LINENO(node->lineno,
 			"Unknown node type: type=%d", node->type);
 		return -EINVAL;
 	}
 	return ret;
 
 errinval:
-	_BT_COMP_LOGE_LINENO(node->lineno,
+	_BT_COMP_LOGE_APPEND_CAUSE_LINENO(node->lineno,
 		"Incoherent parent node's type: node-type=%s, parent-node-type=%s",
 		node_type(node), node_type(node->parent));
 	return -EINVAL;		/* Incoherent structure */
 
 errperm:
-	_BT_COMP_LOGE_LINENO(node->lineno,
+	_BT_COMP_LOGE_APPEND_CAUSE_LINENO(node->lineno,
 		"Semantic error: node-type=%s, parent-node-type=%s",
 		node_type(node), node_type(node->parent));
 	return -EPERM;		/* Structure not allowed */
@@ -1020,7 +1020,7 @@ int ctf_visitor_semantic_check(int depth, struct ctf_node *node,
 	 */
 	ret = ctf_visitor_parent_links(depth, node, log_cfg);
 	if (ret) {
-		_BT_COMP_LOGE_LINENO(node->lineno,
+		_BT_COMP_LOGE_APPEND_CAUSE_LINENO(node->lineno,
 			"Cannot create parent links in metadata's AST: "
 			"ret=%d", ret);
 		goto end;
@@ -1028,7 +1028,7 @@ int ctf_visitor_semantic_check(int depth, struct ctf_node *node,
 
 	ret = _ctf_visitor_semantic_check(depth, node, log_cfg);
 	if (ret) {
-		_BT_COMP_LOGE_LINENO(node->lineno,
+		_BT_COMP_LOGE_APPEND_CAUSE_LINENO(node->lineno,
 			"Cannot check metadata's AST semantics: "
 			"ret=%d", ret);
 		goto end;

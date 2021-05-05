@@ -266,7 +266,7 @@ int import_string(struct ctf_scanner *scanner, YYSTYPE *lvalp,
 	lvalp->s = objstack_alloc(scanner->objstack, len);
 	if (src[0] == 'L') {
 		// TODO: import wide string
-		_BT_LOGE_LINENO(yyget_lineno(scanner),
+		_BT_LOGE_APPEND_CAUSE_LINENO(yyget_lineno(scanner),
 			"wide characters are not supported as of this version: "
 			"scanner-addr=%p", scanner);
 		return -1;
@@ -352,7 +352,7 @@ static struct ctf_node *make_node(struct ctf_scanner *scanner,
 
 	node = objstack_alloc(scanner->objstack, sizeof(*node));
 	if (!node) {
-		_BT_LOGE_LINENO(yyget_lineno(scanner->scanner),
+		_BT_LOGE_APPEND_CAUSE_LINENO(yyget_lineno(scanner->scanner),
 			"failed to allocate one stack entry: "
 			"scanner-addr=%p", scanner);
 		return &error_node;
@@ -922,7 +922,7 @@ static int set_parent_node(struct ctf_node *node,
 static
 void yyerror(struct ctf_scanner *scanner, yyscan_t yyscanner, const char *str)
 {
-	_BT_LOGE_LINENO(yyget_lineno(scanner->scanner),
+	_BT_LOGE_APPEND_CAUSE_LINENO(yyget_lineno(scanner->scanner),
 		"%s: token=\"%s\"", str, yyget_text(scanner->scanner));
 }
 
