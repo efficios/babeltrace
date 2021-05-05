@@ -3721,6 +3721,7 @@ int visit_stream_decl(struct ctx *ctx, struct ctf_node *node)
 			_BT_COMP_LOGE_NODE(node,
 				"Stream class has a `id` attribute, "
 				"but trace has no packet header field class.");
+			ret = -EINVAL;
 			goto error;
 		}
 
@@ -3730,6 +3731,7 @@ int visit_stream_decl(struct ctx *ctx, struct ctf_node *node)
 			_BT_COMP_LOGE_NODE(node,
 				"Stream class has a `id` attribute, "
 				"but trace's packet header field class has no `stream_id` field.");
+			ret = -EINVAL;
 			goto error;
 		}
 
@@ -3738,6 +3740,7 @@ int visit_stream_decl(struct ctx *ctx, struct ctf_node *node)
 			_BT_COMP_LOGE_NODE(node,
 				"Stream class has a `id` attribute, "
 				"but trace's packet header field class's `stream_id` field is not an integer field class.");
+			ret = -EINVAL;
 			goto error;
 		}
 	} else {
@@ -3832,6 +3835,7 @@ int visit_trace_decl_entry(struct ctx *ctx, struct ctf_node *node, int *set)
 			if (val != 1) {
 				_BT_COMP_LOGE_NODE(node,
 					"Invalid trace's `minor` attribute: expecting 1.");
+				ret = -EINVAL;
 				goto error;
 			}
 
@@ -3856,6 +3860,7 @@ int visit_trace_decl_entry(struct ctx *ctx, struct ctf_node *node, int *set)
 			if (val != 8) {
 				_BT_COMP_LOGE_NODE(node,
 					"Invalid trace's `minor` attribute: expecting 8.");
+				ret = -EINVAL;
 				goto error;
 			}
 
