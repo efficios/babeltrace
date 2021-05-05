@@ -1286,6 +1286,16 @@ int auto_seek_handle_message(
 		const struct bt_message_packet *packet_msg =
 			(const void *) msg;
 
+		if (msg->type == BT_MESSAGE_TYPE_PACKET_BEGINNING
+				&& !packet_msg->packet->stream->class->packets_have_beginning_default_clock_snapshot) {
+			goto skip_msg;
+		}
+
+		if (msg->type == BT_MESSAGE_TYPE_PACKET_END
+				&& !packet_msg->packet->stream->class->packets_have_end_default_clock_snapshot) {
+			goto skip_msg;
+		}
+
 		clk_snapshot = packet_msg->default_cs;
 		BT_ASSERT_POST_DEV(NEXT_METHOD_NAME,
 			"packet-message-has-default-clock-snapshot",
@@ -1299,6 +1309,16 @@ int auto_seek_handle_message(
 	{
 		struct bt_message_discarded_items *msg_disc_items =
 			(void *) msg;
+
+		if (msg->type == BT_MESSAGE_TYPE_DISCARDED_EVENTS &&
+				!msg_disc_items->stream->class->discarded_events_have_default_clock_snapshots) {
+			goto skip_msg;
+		}
+
+		if (msg->type == BT_MESSAGE_TYPE_DISCARDED_PACKETS &&
+				!msg_disc_items->stream->class->discarded_packets_have_default_clock_snapshots) {
+			goto skip_msg;
+		}
 
 		BT_ASSERT_POST_DEV(NEXT_METHOD_NAME,
 			"discarded-events-packets-message-has-default-clock-snapshot",
