@@ -12,6 +12,7 @@ plugin_LTLIBRARIES = babeltrace-plugin-ctf.la
 babeltrace_plugin_ctf_la_SOURCES = plugin.c
 
 babeltrace_plugin_ctf_la_LDFLAGS = \
+	$(AM_LDFLAGS) \
 	$(LT_NO_UNDEFINED) \
 	-avoid-version -module $(LD_NOTEXT)
 

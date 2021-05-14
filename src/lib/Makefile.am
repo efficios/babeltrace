@@ -26,8 +26,10 @@ libbabeltrace2_la_SOURCES = \
 	value.c \
 	value.h
 
-libbabeltrace2_la_LDFLAGS = $(LT_NO_UNDEFINED) \
-			-version-info $(BABELTRACE_LIBRARY_VERSION)
+libbabeltrace2_la_LDFLAGS = \
+	$(AM_LDFLAGS) \
+	$(LT_NO_UNDEFINED) \
+	-version-info $(BABELTRACE_LIBRARY_VERSION)
 
 libbabeltrace2_la_LIBADD = \
 	prio-heap/libprio-heap.la \

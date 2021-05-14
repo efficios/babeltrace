@@ -3,7 +3,7 @@
 # Since the shared object used by the python bindings is not built with
 # libtool, we need to add the directory containing libbabeltrace2 to the
 # linker path.
-AM_LDFLAGS=-L$(top_builddir)/src/lib/.libs
+AM_LDFLAGS += -L$(top_builddir)/src/lib/.libs
 
 INSTALLED_FILES=$(builddir)/installed_files.txt
 

@@ -11,6 +11,7 @@ babeltrace2_python_plugin_provider_la_SOURCES = \
 	python-plugin-provider.h
 
 babeltrace2_python_plugin_provider_la_LDFLAGS = \
+	$(AM_LDFLAGS) \
 	$(LT_NO_UNDEFINED) \
 	-avoid-version -module \
 	$(PYTHON_LDFLAGS)

@@ -49,8 +49,10 @@ libbabeltrace2_ctf_writer_la_SOURCES = \
 	writer.c \
 	writer.h
 
-libbabeltrace2_ctf_writer_la_LDFLAGS = $(LT_NO_UNDEFINED) \
-			-version-info $(BABELTRACE_LIBRARY_VERSION)
+libbabeltrace2_ctf_writer_la_LDFLAGS = \
+	$(AM_LDFLAGS) \
+	$(LT_NO_UNDEFINED) \
+	-version-info $(BABELTRACE_LIBRARY_VERSION)
 
 libbabeltrace2_ctf_writer_la_LIBADD = \
 	$(top_builddir)/src/logging/libbabeltrace2-logging.la \

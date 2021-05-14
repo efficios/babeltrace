@@ -409,6 +409,9 @@ AE_FEATURE([man-pages],[Do not build and install man pages (already built in a d
 AE_FEATURE_DEFAULT_DISABLE
 AE_FEATURE([Werror],[Treat compiler warnings as errors.])
 
+# When given, build with AddressSanitizer.
+AE_FEATURE_DEFAULT_DISABLE
+AE_FEATURE([asan],[Build with AddressSanitizer.])
 
 ##                                          ##
 ## Check for conflicting features selection ##
@@ -459,6 +462,7 @@ AM_CONDITIONAL([ENABLE_BUILT_IN_PLUGINS], AE_IS_FEATURE_ENABLED([built-in-plugin
 AM_CONDITIONAL([ENABLE_BUILT_IN_PYTHON_PLUGIN_SUPPORT], AE_IS_FEATURE_ENABLED([built-in-python-plugin-support]))
 AM_CONDITIONAL([ENABLE_MAN_PAGES], AE_IS_FEATURE_ENABLED([man-pages]))
 AM_CONDITIONAL([ENABLE_PYTHON_COMMON_DEPS], AE_IS_FEATURE_ENABLED([python-bindings]) || AE_IS_FEATURE_ENABLED([python-plugins]))
+AM_CONDITIONAL([ENABLE_ASAN], AE_IS_FEATURE_ENABLED([asan]))
 
 
 ##                                                                     ##
@@ -476,6 +480,8 @@ AE_IF_FEATURE_ENABLED([built-in-python-plugin-support],
 AE_IF_FEATURE_ENABLED([debug-info], [ENABLE_DEBUG_INFO_VAL=1], [ENABLE_DEBUG_INFO_VAL=0])
 AC_SUBST([ENABLE_DEBUG_INFO_VAL])
 
+AE_IF_FEATURE_ENABLED([asan], [ENABLE_ASAN=1], [ENABLE_ASAN=0])
+AC_SUBST([ENABLE_ASAN])
 
 ##                                           ##
 ## Check for optionnal features dependencies ##
@@ -634,13 +640,21 @@ AS_IF([test "x$exec_prefix" = xNONE], [
 
 AC_SUBST(LIBDIR)
 
+# If --enable-asan is used...
+AE_IF_FEATURE_ENABLED([asan], [
+  # ... add -fsanitize=address to the *FLAGS variables.
+  ASAN_CFLAGS="-fsanitize=address"
+  ASAN_CXXFLAGS="-fsanitize=address"
+  ASAN_LDFLAGS="-fsanitize=address"
+])
 
 
 
 # CFLAGS from libraries (the glib ones are needed for the following sizeof
 # test).
-AM_CFLAGS="${PTHREAD_CFLAGS} ${GLIB_CFLAGS}"
-AM_CXXFLAGS="${PTHREAD_CFLAGS} ${GLIB_CFLAGS}"
+AM_CFLAGS="${PTHREAD_CFLAGS} ${GLIB_CFLAGS} ${ASAN_CFLAGS}"
+AM_CXXFLAGS="${PTHREAD_CFLAGS} ${GLIB_CFLAGS} ${ASAN_CXXFLAGS}"
+AM_LDFLAGS="${ASAN_LDFLAGS}"
 
 # Check that the current size_t matches the size that glib thinks it should
 # be. This catches problems on multi-arch where people try to do a 32-bit
@@ -742,9 +756,10 @@ WARN_CFLAGS="${WARN_CFLAGS} -Wold-style-definition -Wstrict-prototypes"
 AM_CXXFLAGS="${AM_CXXFLAGS} ${WARN_CXXFLAGS}"
 AM_CFLAGS="${AM_CFLAGS} ${WARN_CFLAGS}"
 
-# Done for AM_CXXFLAGS and AM_CFLAGS.
+# Done for AM_CXXFLAGS, AM_CFLAGS and AM_LDFLAGS.
 AC_SUBST(AM_CXXFLAGS)
 AC_SUBST(AM_CFLAGS)
+AC_SUBST(AM_LDFLAGS)
 
 # Set global CPPFLAGS in AM_CPPFLAGS
 AM_CPPFLAGS="-I\$(top_srcdir)/include -I\$(top_builddir)/src -I\$(top_srcdir)/src -include common/config.h"

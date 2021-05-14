@@ -7,6 +7,7 @@ libcompat_la_SOURCES = \
 	mman.h
 
 libcompat_la_LDFLAGS = \
+	$(AM_LDFLAGS) \
 	$(LD_NO_AS_NEEDED)
 
 noinst_HEADERS = \

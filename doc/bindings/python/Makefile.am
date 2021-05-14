@@ -14,12 +14,30 @@ PYTHON_BT2_BUILD_LIB_DIR = $(abs_top_builddir)/src/bindings/python/bt2/build/bui
 PP = $(PYTHON_BT2_BUILD_LIB_DIR)
 LLP = $(abs_top_builddir)/src/lib/.libs
 
+# Sphinx loads the bt2 Python module and thus libbabeltrace2.so.  If
+# AddressSanitizer is used, we must preload libasan.so so that libasan doesn't
+# complain about not being the first loaded library.
+#
+# Python produces some leaks, so disable leak detection (we don't care about
+# leaks here anyway).
+if ENABLE_ASAN
+MAYBE_LD_PRELOAD = LD_PRELOAD="$$($(CC) -print-file-name=libasan.so):$(LD_PRELOAD)"
+MAYBE_ASAN_OPTIONS = ASAN_OPTIONS="$(ASAN_OPTIONS),detect_leaks=0"
+endif
+
 # `PATH` is used as a replacement for `LD_LIBRARY_PATH` on Windows
 # builds (Cygwin, MinGW).
 #
 # `DYLD_LIBRARY_PATH` is used a replacement for `LD_LIBRARY_PATH` on
 # macOS builds.
-SPHINXBUILD = PATH="$(LLP):$$PATH" PYTHONPATH="$(PP):$(SPHINX_EXT_DIR)" LD_LIBRARY_PATH="$(LLP)" DYLD_LIBRARY_PATH="$(LLP)" $(PYTHON) -m sphinx
+SPHINXBUILD = \
+	PATH="$(LLP):$$PATH" \
+	PYTHONPATH="$(PP):$(SPHINX_EXT_DIR)" \
+	LD_LIBRARY_PATH="$(LLP)" \
+	DYLD_LIBRARY_PATH="$(LLP)" \
+	$(MAYBE_LD_PRELOAD) \
+	$(MAYBE_ASAN_OPTIONS) \
+	$(PYTHON) -m sphinx
 SPHINX_SRC = \
 	$(SPHINX_SOURCE_DIR)/common.rst \
 	$(SPHINX_SOURCE_DIR)/index.rst \

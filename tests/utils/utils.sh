@@ -121,6 +121,19 @@ if [ "x${BT_TESTS_SED_BIN:-}" = "x" ]; then
 fi
 export BT_TESTS_SED_BIN
 
+if [ "x${BT_TESTS_CC_BIN:-}" = "x" ]; then
+	BT_TESTS_CC_BIN="cc"
+fi
+export BT_TESTS_CC_BIN
+
+
+### Optional features ###
+
+if [ "x${BT_TESTS_ENABLE_ASAN:-}" = "x" ]; then
+	BT_TESTS_ENABLE_ASAN="0"
+fi
+export BT_TESTS_ENABLE_ASAN
+
 
 # Data files path
 BT_TESTS_DATADIR="${BT_TESTS_SRCDIR}/data"
@@ -293,6 +306,7 @@ check_coverage() {
 # bt2 Python bindings.
 run_python_bt2() {
 	local env_args
+	local lib_asan
 
 	env_args=(
 		"BABELTRACE_PYTHON_BT2_NO_TRACEBACK=1" \
@@ -320,6 +334,20 @@ run_python_bt2() {
 	# PYTHONHOME variable.
 	if [ "$BT_TESTS_OS_TYPE" = "mingw" ]; then
 		env_args+=("PYTHONHOME=$($BT_TESTS_PYTHON_CONFIG_BIN --prefix)")
+	fi
+
+	# If AddressSanitizer is used, we must preload libasan.so so that
+	# libasan doesn't complain about not being the first loaded library.
+	#
+	# Python and sed (executed as part of the libtool wrapper) produce some
+	# leaks, so we must unfortunately disable leak detection.  Append it to
+	# existing ASAN_OPTIONS, such that we override the user's value if it
+	# contains detect_leaks=1.
+	if [ "x${BT_TESTS_ENABLE_ASAN:-}" = "x1" ]; then
+		lib_asan=$(${BT_TESTS_CC_BIN} -print-file-name=libasan.so)
+
+		env_args+=("LD_PRELOAD=${lib_asan}:${LD_PRELOAD:-}")
+		env_args+=("ASAN_OPTIONS=${ASAN_OPTIONS:-},detect_leaks=0")
 	fi
 
 	env "${env_args[@]}" "$@"
