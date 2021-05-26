@@ -45,7 +45,7 @@ const char * const reserved_keywords_str[] = {"align", "callsite",
 	"const", "char", "clock", "double", "enum", "env", "event",
 	"floating_point", "float", "integer", "int", "long", "short", "signed",
 	"stream", "string", "struct", "trace", "typealias", "typedef",
-	"unsigned", "variant", "void" "_Bool", "_Complex", "_Imaginary"};
+	"unsigned", "variant", "void", "_Bool", "_Complex", "_Imaginary"};
 
 static GHashTable *reserved_keywords_set;
 static int init_done;
