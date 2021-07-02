@@ -2049,11 +2049,6 @@ enum bt_bfcr_status bfcr_unsigned_int_char_cb(uint64_t value,
 		goto end;
 	}
 
-	if (value == 0) {
-		msg_it->done_filling_string = true;
-		goto end;
-	}
-
 	string_field = stack_top(msg_it->stack)->base;
 	BT_ASSERT_DBG(bt_field_get_class_type(string_field) ==
 		BT_FIELD_CLASS_TYPE_STRING);
