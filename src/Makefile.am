@@ -11,6 +11,7 @@ SUBDIRS = \
 	lib \
 	string-format \
 	python-plugin-provider \
+	ruby-plugin-provider \
 	plugins \
 	param-parse \
 	cli \

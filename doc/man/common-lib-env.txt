@@ -10,6 +10,9 @@ include::common-common-env.txt[]
 `LIBBABELTRACE2_DISABLE_PYTHON_PLUGINS`=`1`::
     Disable the loading of any Babeltrace~2 Python plugin.
 
+`LIBBABELTRACE2_DISABLE_RUBY_PLUGINS`=`1`::
+    Disable the loading of any Babeltrace~2 Ruby plugin.
+
 `LIBBABELTRACE2_INIT_LOG_LEVEL`='LVL'::
     Force the Babeltrace~2 library's initial log level to be 'LVL'.
 +
@@ -43,6 +46,22 @@ provider directory.
 +
 If this environment variable is set, it overrides the log level set by
 the manopt:babeltrace2(1):--log-level option for the Python bindings
+logger.
++
+The available values for 'LVL' are:
++
+--
+include::common-log-levels.txt[]
+--
+
+
+=== Babeltrace~2 Ruby bindings
+
+`BABELTRACE_RUBY_BT2_LOG_LEVEL`='LVL'::
+    Force the Babeltrace~2 Ruby bindings log level to be 'LVL'.
++
+If this environment variable is set, it overrides the log level set by
+the manopt:babeltrace2(1):--log-level option for the Ruby bindings
 logger.
 +
 The available values for 'LVL' are:

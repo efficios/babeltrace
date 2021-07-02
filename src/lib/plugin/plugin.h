@@ -46,6 +46,7 @@
 enum bt_plugin_type {
 	BT_PLUGIN_TYPE_SO = 0,
 	BT_PLUGIN_TYPE_PYTHON = 1,
+	BT_PLUGIN_TYPE_RUBY = 2,
 };
 
 struct bt_plugin {
@@ -98,6 +99,8 @@ const char *bt_plugin_type_string(enum bt_plugin_type type)
 		return "SO";
 	case BT_PLUGIN_TYPE_PYTHON:
 		return "PYTHON";
+	case BT_PLUGIN_TYPE_RUBY:
+		return "RUBY";
 	default:
 		return "(unknown)";
 	}
