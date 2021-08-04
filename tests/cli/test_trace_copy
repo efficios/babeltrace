@@ -22,8 +22,8 @@ clean_tmp() {
 
 SUCCESS_TRACES=("${BT_CTF_TRACES_PATH}/succeed/"*)
 
-# -2 because there is an empty trace that we skip
-NUM_TESTS=$((${#SUCCESS_TRACES[@]} * 3 - 2))
+# -4 because there are two empty traces that we skip
+NUM_TESTS=$((${#SUCCESS_TRACES[@]} * 3 - 4))
 
 plan_tests $NUM_TESTS
 

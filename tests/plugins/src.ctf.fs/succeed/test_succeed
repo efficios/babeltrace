@@ -125,7 +125,7 @@ test_force_origin_unix_epoch() {
 	rm -f "$temp_stdout_output_file" "$temp_stderr_output_file"
 }
 
-plan_tests 12
+plan_tests 13
 
 test_force_origin_unix_epoch 2packets barectf-event-before-packet
 test_ctf_gen_single simple
@@ -136,5 +136,6 @@ test_ctf_single session-rotation
 test_ctf_single lttng-tracefile-rotation
 test_ctf_single array-align-elem
 test_ctf_single struct-array-align-elem
+test_ctf_single meta-ctx-sequence
 test_packet_end lttng-event-after-packet
 test_packet_end lttng-crash

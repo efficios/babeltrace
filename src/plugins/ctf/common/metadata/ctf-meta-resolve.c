@@ -1219,7 +1219,7 @@ int resolve_stream_class_field_classes(struct resolve_context *ctx,
 		}
 
 		ctx->scopes.event_common_context = sc->event_common_context_fc;
-		ret = resolve_root_class(CTF_SCOPE_EVENT_SPECIFIC_CONTEXT, ctx);
+		ret = resolve_root_class(CTF_SCOPE_EVENT_COMMON_CONTEXT, ctx);
 		if (ret) {
 			BT_COMP_LOGE("Cannot resolve event common context field class: "
 				"ret=%d", ret);
