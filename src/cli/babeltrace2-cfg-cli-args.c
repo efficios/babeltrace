@@ -1302,10 +1302,10 @@ void print_expected_params_format(FILE *fp)
  * The returned string must be freed by the caller.
  */
 static
-GString *__BT_ATTR_FORMAT_PRINTF(3, 4) format_arg_error(
+GString *__BT_ATTR_FORMAT_PRINTF(4, 5) format_arg_error(
 		const struct argpar_error *error,
-		const char **argv, const char *prefix_fmt, ...)
-
+		const char **argv, unsigned int arg_index_offset,
+		const char *prefix_fmt, ...)
 {
 	GString *str = g_string_new(NULL);
 	va_list args;
@@ -1330,12 +1330,12 @@ GString *__BT_ATTR_FORMAT_PRINTF(3, 4) format_arg_error(
 			g_string_append_printf(
 				str,
 				WHILE_PARSING_ARG_N_FMT "Missing required argument for option `-%c`",
-				orig_index + 1, arg, descr->short_name);
+				arg_index_offset + orig_index + 1, arg, descr->short_name);
 		} else {
 			g_string_append_printf(
 				str,
 				WHILE_PARSING_ARG_N_FMT "Missing required argument for option `--%s`",
-				orig_index + 1, arg, descr->long_name);
+				arg_index_offset + orig_index + 1, arg, descr->long_name);
 		}
 
 		break;
@@ -1352,12 +1352,12 @@ GString *__BT_ATTR_FORMAT_PRINTF(3, 4) format_arg_error(
 			g_string_append_printf(
 				str,
 				WHILE_PARSING_ARG_N_FMT "Unexpected argument for option `-%c`",
-				orig_index + 1, arg, descr->short_name);
+				arg_index_offset + orig_index + 1, arg, descr->short_name);
 		} else {
 			g_string_append_printf(
 				str,
 				WHILE_PARSING_ARG_N_FMT "Unexpected argument for option `--%s`",
-				orig_index + 1, arg, descr->long_name);
+				arg_index_offset + orig_index + 1, arg, descr->long_name);
 		}
 
 		break;
@@ -1371,7 +1371,7 @@ GString *__BT_ATTR_FORMAT_PRINTF(3, 4) format_arg_error(
 		g_string_append_printf(
 			str,
 			WHILE_PARSING_ARG_N_FMT "Unknown option `%s`",
-			orig_index + 1, arg, unknown_opt);
+			arg_index_offset + orig_index + 1, arg, unknown_opt);
 
 		break;
 	}
@@ -1399,7 +1399,7 @@ enum parse_next_item_status
 static
 enum parse_next_item_status parse_next_item(struct argpar_iter *iter,
 		const struct argpar_item **item, const char **argv,
-		const char *command)
+		const char *command, unsigned int consumed_args)
 {
 	enum argpar_iter_next_status status;
 	const struct argpar_error *error = NULL;
@@ -1416,7 +1416,9 @@ enum parse_next_item_status parse_next_item(struct argpar_iter *iter,
 	case ARGPAR_ITER_NEXT_STATUS_ERROR:
 	{
 		GString *err_str = format_arg_error(error, argv,
-			"While parsing `%s` command's command-line arguments", command);
+			consumed_args,
+			"While parsing `%s` command's command-line arguments",
+			command);
 		BT_CLI_LOGE_APPEND_CAUSE("%s", err_str->str);
 		g_string_free(err_str, TRUE);
 		ret = PARSE_NEXT_ITEM_STATUS_ERROR;
@@ -1471,7 +1473,7 @@ const struct argpar_opt_descr help_options[] = {
 static
 struct bt_config *bt_config_help_from_args(int argc, const char *argv[],
 		int *retcode, const bt_value *plugin_paths,
-		int default_log_level)
+		int default_log_level, unsigned int consumed_args)
 {
 	struct bt_config *cfg = NULL;
 	const char *plugin_comp_cls_arg = NULL;
@@ -1495,7 +1497,8 @@ struct bt_config *bt_config_help_from_args(int argc, const char *argv[],
 
 	while (true) {
 		enum parse_next_item_status status =
-			parse_next_item(argpar_iter, &argpar_item, argv, "help");
+			parse_next_item(argpar_iter, &argpar_item, argv, "help",
+				consumed_args);
 
 		if (status == PARSE_NEXT_ITEM_STATUS_ERROR) {
 			goto error;
@@ -1621,7 +1624,7 @@ const struct argpar_opt_descr query_options[] = {
 static
 struct bt_config *bt_config_query_from_args(int argc, const char *argv[],
 		int *retcode, const bt_value *plugin_paths,
-		int default_log_level)
+		int default_log_level, unsigned int consumed_args)
 {
 	struct bt_config *cfg = NULL;
 	const char *component_class_spec = NULL;
@@ -1656,7 +1659,8 @@ struct bt_config *bt_config_query_from_args(int argc, const char *argv[],
 
 	while (true) {
 		enum parse_next_item_status status =
-			parse_next_item(argpar_iter, &argpar_item, argv, "query");
+			parse_next_item(argpar_iter, &argpar_item, argv, "query",
+				consumed_args);
 
 		if (status == PARSE_NEXT_ITEM_STATUS_ERROR) {
 			goto error;
@@ -1792,7 +1796,7 @@ const struct argpar_opt_descr list_plugins_options[] = {
  */
 static
 struct bt_config *bt_config_list_plugins_from_args(int argc, const char *argv[],
-		int *retcode, const bt_value *plugin_paths)
+		int *retcode, const bt_value *plugin_paths, unsigned int consumed_args)
 {
 	struct bt_config *cfg = NULL;
 	struct argpar_iter *argpar_iter = NULL;
@@ -1812,7 +1816,8 @@ struct bt_config *bt_config_list_plugins_from_args(int argc, const char *argv[],
 
 	while (true) {
 		enum parse_next_item_status status =
-			parse_next_item(argpar_iter, &argpar_item, argv, "list-plugins");
+			parse_next_item(argpar_iter, &argpar_item, argv, "list-plugins",
+				consumed_args);
 
 		if (status == PARSE_NEXT_ITEM_STATUS_ERROR) {
 			goto error;
@@ -1935,7 +1940,7 @@ void print_run_usage(FILE *fp)
 static
 struct bt_config *bt_config_run_from_args(int argc, const char *argv[],
 		int *retcode, const bt_value *plugin_paths,
-		int default_log_level)
+		int default_log_level, unsigned int consumed_args)
 {
 	struct bt_config_component *cur_cfg_comp = NULL;
 	bt_value *cur_base_params = NULL;
@@ -2011,7 +2016,8 @@ struct bt_config *bt_config_run_from_args(int argc, const char *argv[],
 		const struct argpar_opt_descr *opt_descr;
 		const char *arg;
 
-		status = parse_next_item(argpar_iter, &argpar_item, argv, "run");
+		status = parse_next_item(argpar_iter, &argpar_item, argv, "run",
+			consumed_args);
 		if (status == PARSE_NEXT_ITEM_STATUS_ERROR) {
 			goto error;
 		} else if (status == PARSE_NEXT_ITEM_STATUS_END) {
@@ -2246,7 +2252,7 @@ struct bt_config *bt_config_run_from_args_array(const bt_value *run_args,
 	}
 
 	cfg = bt_config_run_from_args((int) len, argv, retcode,
-		plugin_paths, default_log_level);
+		plugin_paths, default_log_level, 0);
 
 end:
 	free(argv);
@@ -3310,7 +3316,8 @@ enum convert_current_item_type {
 static
 struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 		int *retcode, const bt_value *plugin_paths,
-		int *default_log_level, const bt_interrupter *interrupter)
+		int *default_log_level, const bt_interrupter *interrupter,
+		unsigned int consumed_args)
 {
 	enum convert_current_item_type current_item_type =
 		CONVERT_CURRENT_ITEM_TYPE_NONE;
@@ -3481,7 +3488,8 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 		char *plugin_name = NULL;
 		char *comp_cls_name = NULL;
 
-		status = parse_next_item(argpar_iter, &argpar_item, argv, "convert");
+		status = parse_next_item(argpar_iter, &argpar_item, argv, "convert",
+			consumed_args);
 		if (status == PARSE_NEXT_ITEM_STATUS_ERROR) {
 			goto error;
 		} else if (status == PARSE_NEXT_ITEM_STATUS_END) {
@@ -3761,7 +3769,8 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 		const struct argpar_opt_descr *opt_descr;
 		const char *arg;
 
-		status = parse_next_item(argpar_iter, &argpar_item, argv, "convert");
+		status = parse_next_item(argpar_iter, &argpar_item, argv, "convert",
+			consumed_args);
 		if (status == PARSE_NEXT_ITEM_STATUS_ERROR) {
 			goto error;
 		} else if (status == PARSE_NEXT_ITEM_STATUS_END) {
@@ -4659,6 +4668,7 @@ struct bt_config *bt_config_cli_args_create(int argc, const char *argv[],
 	const struct argpar_item *argpar_item = NULL;
 	const struct argpar_error *argpar_error = NULL;
 	bt_value *plugin_paths = NULL;
+	unsigned int consumed_args;
 
 	/* Top-level option descriptions. */
 	static const struct argpar_opt_descr descrs[] = {
@@ -4740,7 +4750,7 @@ struct bt_config *bt_config_cli_args_create(int argc, const char *argv[],
 			if (argpar_error_type(argpar_error)
 					!= ARGPAR_ERROR_TYPE_UNKNOWN_OPT) {
 				GString *err_str = format_arg_error(argpar_error, top_level_argv,
-					"While parsing command-line arguments");
+					0, "While parsing command-line arguments");
 				BT_CLI_LOGE_APPEND_CAUSE("%s", err_str->str);
 				g_string_free(err_str, TRUE);
 				goto error;
@@ -4911,29 +4921,32 @@ struct bt_config *bt_config_cli_args_create(int argc, const char *argv[],
 		goto error;
 	}
 
+	consumed_args = argpar_iter_ingested_orig_args(argpar_iter);
+
 	switch (command_type) {
 	case COMMAND_TYPE_RUN:
 		config = bt_config_run_from_args(command_argc, command_argv,
 			retcode, plugin_paths,
-			default_log_level);
+			default_log_level, consumed_args);
 		break;
 	case COMMAND_TYPE_CONVERT:
 		config = bt_config_convert_from_args(command_argc, command_argv,
-			retcode, plugin_paths, &default_log_level, interrupter);
+			retcode, plugin_paths, &default_log_level, interrupter,
+			consumed_args);
 		break;
 	case COMMAND_TYPE_LIST_PLUGINS:
 		config = bt_config_list_plugins_from_args(command_argc,
-			command_argv, retcode, plugin_paths);
+			command_argv, retcode, plugin_paths, consumed_args);
 		break;
 	case COMMAND_TYPE_HELP:
 		config = bt_config_help_from_args(command_argc,
 			command_argv, retcode, plugin_paths,
-			default_log_level);
+			default_log_level, consumed_args);
 		break;
 	case COMMAND_TYPE_QUERY:
 		config = bt_config_query_from_args(command_argc,
 			command_argv, retcode, plugin_paths,
-			default_log_level);
+			default_log_level, consumed_args);
 		break;
 	default:
 		bt_common_abort();
