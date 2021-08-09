@@ -1158,10 +1158,11 @@ end:
 }
 
 static
-struct bt_config *bt_config_print_ctf_metadata_create(
-		const bt_value *plugin_paths)
+enum bt_config_cli_args_status bt_config_print_ctf_metadata_create(
+		const bt_value *plugin_paths, struct bt_config **cfg_out)
 {
 	struct bt_config *cfg;
+	enum bt_config_cli_args_status status;
 
 	/* Create config */
 	cfg = bt_config_base_create(BT_CONFIG_COMMAND_PRINT_CTF_METADATA,
@@ -1182,20 +1183,24 @@ struct bt_config *bt_config_print_ctf_metadata_create(
 		goto error;
 	}
 
+	BT_OBJECT_MOVE_REF(*cfg_out, cfg);
+	status = BT_CONFIG_CLI_ARGS_STATUS_OK;
 	goto end;
 
 error:
-	BT_OBJECT_PUT_REF_AND_RESET(cfg);
+	status = BT_CONFIG_CLI_ARGS_STATUS_ERROR;
 
 end:
-	return cfg;
+	bt_object_put_ref(cfg);
+	return status;
 }
 
 static
-struct bt_config *bt_config_print_lttng_live_sessions_create(
-		const bt_value *plugin_paths)
+enum bt_config_cli_args_status bt_config_print_lttng_live_sessions_create(
+		const bt_value *plugin_paths, struct bt_config **cfg_out)
 {
 	struct bt_config *cfg;
+	enum bt_config_cli_args_status status;
 
 	/* Create config */
 	cfg = bt_config_base_create(BT_CONFIG_COMMAND_PRINT_LTTNG_LIVE_SESSIONS,
@@ -1217,13 +1222,16 @@ struct bt_config *bt_config_print_lttng_live_sessions_create(
 		goto error;
 	}
 
+	BT_OBJECT_MOVE_REF(*cfg_out, cfg);
+	status = BT_CONFIG_CLI_ARGS_STATUS_OK;
 	goto end;
 
 error:
-	BT_OBJECT_PUT_REF_AND_RESET(cfg);
+	status = BT_CONFIG_CLI_ARGS_STATUS_ERROR;
 
 end:
-	return cfg;
+	bt_object_put_ref(cfg);
+	return status;
 }
 
 static
@@ -1467,15 +1475,15 @@ const struct argpar_opt_descr help_options[] = {
 /*
  * Creates a Babeltrace config object from the arguments of a help
  * command.
- *
- * *retcode is set to the appropriate exit code to use.
  */
 static
-struct bt_config *bt_config_help_from_args(int argc, const char *argv[],
-		int *retcode, const bt_value *plugin_paths,
-		int default_log_level, unsigned int consumed_args)
+enum bt_config_cli_args_status bt_config_help_from_args(int argc,
+		const char *argv[], struct bt_config **cfg_out,
+		const bt_value *plugin_paths, int default_log_level,
+		unsigned int consumed_args)
 {
-	struct bt_config *cfg = NULL;
+	enum bt_config_cli_args_status status;
+	struct bt_config *cfg;
 	const char *plugin_comp_cls_arg = NULL;
 	char *plugin_name = NULL, *comp_cls_name = NULL;
 	GString *substring = NULL;
@@ -1483,7 +1491,6 @@ struct bt_config *bt_config_help_from_args(int argc, const char *argv[],
 	struct argpar_iter *argpar_iter = NULL;
 	const struct argpar_item *argpar_item = NULL;
 
-	*retcode = 0;
 	cfg = bt_config_help_create(plugin_paths, default_log_level);
 	if (!cfg) {
 		goto error;
@@ -1496,13 +1503,13 @@ struct bt_config *bt_config_help_from_args(int argc, const char *argv[],
 	}
 
 	while (true) {
-		enum parse_next_item_status status =
+		enum parse_next_item_status parse_status =
 			parse_next_item(argpar_iter, &argpar_item, argv, "help",
 				consumed_args);
 
-		if (status == PARSE_NEXT_ITEM_STATUS_ERROR) {
+		if (parse_status == PARSE_NEXT_ITEM_STATUS_ERROR) {
 			goto error;
-		} else if (status == PARSE_NEXT_ITEM_STATUS_END) {
+		} else if (parse_status == PARSE_NEXT_ITEM_STATUS_END) {
 			break;
 		}
 
@@ -1513,8 +1520,7 @@ struct bt_config *bt_config_help_from_args(int argc, const char *argv[],
 			switch (opt_descr->id) {
 			case OPT_HELP:
 				print_help_usage(stdout);
-				*retcode = -1;
-				BT_OBJECT_PUT_REF_AND_RESET(cfg);
+				status = BT_CONFIG_CLI_ARGS_STATUS_INFO_ONLY;
 				goto end;
 			default:
 				bt_common_abort();
@@ -1570,11 +1576,12 @@ struct bt_config *bt_config_help_from_args(int argc, const char *argv[],
 			comp_cls_name);
 	}
 
+	BT_OBJECT_MOVE_REF(*cfg_out, cfg);
+	status = BT_CONFIG_CLI_ARGS_STATUS_OK;
 	goto end;
 
 error:
-	*retcode = 1;
-	BT_OBJECT_PUT_REF_AND_RESET(cfg);
+	status = BT_CONFIG_CLI_ARGS_STATUS_ERROR;
 
 end:
 	g_free(plugin_name);
@@ -1586,8 +1593,9 @@ end:
 
 	argpar_iter_destroy(argpar_iter);
 	argpar_item_destroy(argpar_item);
+	bt_object_put_ref(cfg);
 
-	return cfg;
+	return status;
 }
 
 /*
@@ -1618,14 +1626,14 @@ const struct argpar_opt_descr query_options[] = {
 /*
  * Creates a Babeltrace config object from the arguments of a query
  * command.
- *
- * *retcode is set to the appropriate exit code to use.
  */
 static
-struct bt_config *bt_config_query_from_args(int argc, const char *argv[],
-		int *retcode, const bt_value *plugin_paths,
-		int default_log_level, unsigned int consumed_args)
+enum bt_config_cli_args_status bt_config_query_from_args(int argc,
+		const char *argv[], struct bt_config **cfg_out,
+		const bt_value *plugin_paths, int default_log_level,
+		unsigned int consumed_args)
 {
+	enum bt_config_cli_args_status status;
 	struct bt_config *cfg = NULL;
 	const char *component_class_spec = NULL;
 	const char *query_object = NULL;
@@ -1639,7 +1647,6 @@ struct bt_config *bt_config_query_from_args(int argc, const char *argv[],
 		goto error;
 	}
 
-	*retcode = 0;
 	cfg = bt_config_query_create(plugin_paths);
 	if (!cfg) {
 		goto error;
@@ -1658,13 +1665,13 @@ struct bt_config *bt_config_query_from_args(int argc, const char *argv[],
 	}
 
 	while (true) {
-		enum parse_next_item_status status =
+		enum parse_next_item_status parse_status =
 			parse_next_item(argpar_iter, &argpar_item, argv, "query",
 				consumed_args);
 
-		if (status == PARSE_NEXT_ITEM_STATUS_ERROR) {
+		if (parse_status == PARSE_NEXT_ITEM_STATUS_ERROR) {
 			goto error;
-		} else if (status == PARSE_NEXT_ITEM_STATUS_END) {
+		} else if (parse_status == PARSE_NEXT_ITEM_STATUS_END) {
 			break;
 		}
 
@@ -1676,8 +1683,7 @@ struct bt_config *bt_config_query_from_args(int argc, const char *argv[],
 			switch (opt_descr->id) {
 			case OPT_HELP:
 				print_query_usage(stdout);
-				*retcode = -1;
-				BT_OBJECT_PUT_REF_AND_RESET(cfg);
+				status = BT_CONFIG_CLI_ARGS_STATUS_INFO_ONLY;
 				goto end;
 			case OPT_PARAMS:
 			{
@@ -1723,8 +1729,7 @@ struct bt_config *bt_config_query_from_args(int argc, const char *argv[],
 
 	if (!component_class_spec || !query_object) {
 		print_query_usage(stdout);
-		*retcode = -1;
-		BT_OBJECT_PUT_REF_AND_RESET(cfg);
+		status = BT_CONFIG_CLI_ARGS_STATUS_INFO_ONLY;
 		goto end;
 	}
 
@@ -1746,11 +1751,12 @@ struct bt_config *bt_config_query_from_args(int argc, const char *argv[],
 	}
 
 	g_string_assign(cfg->cmd_data.query.object, query_object);
+	BT_OBJECT_MOVE_REF(*cfg_out, cfg);
+	status = BT_CONFIG_CLI_ARGS_STATUS_OK;
 	goto end;
 
 error:
-	*retcode = 1;
-	BT_OBJECT_PUT_REF_AND_RESET(cfg);
+	status = BT_CONFIG_CLI_ARGS_STATUS_ERROR;
 
 end:
 	argpar_iter_destroy(argpar_iter);
@@ -1761,7 +1767,9 @@ end:
 	}
 
 	bt_value_put_ref(params);
-	return cfg;
+	bt_object_put_ref(cfg);
+
+	return status;
 }
 
 /*
@@ -1791,18 +1799,17 @@ const struct argpar_opt_descr list_plugins_options[] = {
 /*
  * Creates a Babeltrace config object from the arguments of a
  * list-plugins command.
- *
- * *retcode is set to the appropriate exit code to use.
  */
 static
-struct bt_config *bt_config_list_plugins_from_args(int argc, const char *argv[],
-		int *retcode, const bt_value *plugin_paths, unsigned int consumed_args)
+enum bt_config_cli_args_status bt_config_list_plugins_from_args(int argc,
+		const char *argv[], struct bt_config **cfg_out,
+		const bt_value *plugin_paths, unsigned int consumed_args)
 {
+	enum bt_config_cli_args_status status;
 	struct bt_config *cfg = NULL;
 	struct argpar_iter *argpar_iter = NULL;
 	const struct argpar_item *argpar_item = NULL;
 
-	*retcode = 0;
 	cfg = bt_config_list_plugins_create(plugin_paths);
 	if (!cfg) {
 		goto error;
@@ -1815,13 +1822,13 @@ struct bt_config *bt_config_list_plugins_from_args(int argc, const char *argv[],
 	}
 
 	while (true) {
-		enum parse_next_item_status status =
+		enum parse_next_item_status parse_status =
 			parse_next_item(argpar_iter, &argpar_item, argv, "list-plugins",
 				consumed_args);
 
-		if (status == PARSE_NEXT_ITEM_STATUS_ERROR) {
+		if (parse_status == PARSE_NEXT_ITEM_STATUS_ERROR) {
 			goto error;
-		} else if (status == PARSE_NEXT_ITEM_STATUS_END) {
+		} else if (parse_status == PARSE_NEXT_ITEM_STATUS_END) {
 			break;
 		}
 
@@ -1832,8 +1839,7 @@ struct bt_config *bt_config_list_plugins_from_args(int argc, const char *argv[],
 			switch (opt_descr->id) {
 			case OPT_HELP:
 				print_list_plugins_usage(stdout);
-				*retcode = -1;
-				BT_OBJECT_PUT_REF_AND_RESET(cfg);
+				status = BT_CONFIG_CLI_ARGS_STATUS_INFO_ONLY;
 				goto end;
 			default:
 				bt_common_abort();
@@ -1846,17 +1852,19 @@ struct bt_config *bt_config_list_plugins_from_args(int argc, const char *argv[],
 		}
 		}
 
+	BT_OBJECT_MOVE_REF(*cfg_out, cfg);
+	status = BT_CONFIG_CLI_ARGS_STATUS_OK;
 	goto end;
 
 error:
-	*retcode = 1;
-	BT_OBJECT_PUT_REF_AND_RESET(cfg);
+	status = BT_CONFIG_CLI_ARGS_STATUS_ERROR;
 
 end:
 	argpar_iter_destroy(argpar_iter);
 	argpar_item_destroy(argpar_item);
+	bt_object_put_ref(cfg);
 
-	return cfg;
+	return status;
 }
 
 /*
@@ -1934,14 +1942,13 @@ void print_run_usage(FILE *fp)
 /*
  * Creates a Babeltrace config object from the arguments of a run
  * command.
- *
- * *retcode is set to the appropriate exit code to use.
  */
 static
-struct bt_config *bt_config_run_from_args(int argc, const char *argv[],
-		int *retcode, const bt_value *plugin_paths,
+enum bt_config_cli_args_status bt_config_run_from_args(int argc, const char *argv[],
+		struct bt_config **cfg_out, const bt_value *plugin_paths,
 		int default_log_level, unsigned int consumed_args)
 {
+	enum bt_config_cli_args_status status;
 	struct bt_config_component *cur_cfg_comp = NULL;
 	bt_value *cur_base_params = NULL;
 	int ret = 0;
@@ -1967,8 +1974,6 @@ struct bt_config *bt_config_run_from_args(int argc, const char *argv[],
 		ARGPAR_OPT_DESCR_SENTINEL
 	};
 
-	*retcode = 0;
-
 	error_str = g_string_new(NULL);
 	if (!error_str) {
 		BT_CLI_LOGE_APPEND_CAUSE_OOM();
@@ -1977,7 +1982,7 @@ struct bt_config *bt_config_run_from_args(int argc, const char *argv[],
 
 	if (argc < 1) {
 		print_run_usage(stdout);
-		*retcode = -1;
+		status = BT_CONFIG_CLI_ARGS_STATUS_INFO_ONLY;
 		goto end;
 	}
 
@@ -2012,15 +2017,15 @@ struct bt_config *bt_config_run_from_args(int argc, const char *argv[],
 	}
 
 	while (true) {
-		enum parse_next_item_status status;
+		enum parse_next_item_status parse_status;
 		const struct argpar_opt_descr *opt_descr;
 		const char *arg;
 
-		status = parse_next_item(argpar_iter, &argpar_item, argv, "run",
+		parse_status = parse_next_item(argpar_iter, &argpar_item, argv, "run",
 			consumed_args);
-		if (status == PARSE_NEXT_ITEM_STATUS_ERROR) {
+		if (parse_status == PARSE_NEXT_ITEM_STATUS_ERROR) {
 			goto error;
-		} else if (status == PARSE_NEXT_ITEM_STATUS_END) {
+		} else if (parse_status == PARSE_NEXT_ITEM_STATUS_END) {
 			break;
 		}
 
@@ -2037,8 +2042,7 @@ struct bt_config *bt_config_run_from_args(int argc, const char *argv[],
 		switch (opt_descr->id) {
 		case OPT_HELP:
 			print_run_usage(stdout);
-			*retcode = -1;
-			BT_OBJECT_PUT_REF_AND_RESET(cfg);
+			status = BT_CONFIG_CLI_ARGS_STATUS_INFO_ONLY;
 			goto end;
 		case OPT_COMPONENT:
 		{
@@ -2203,11 +2207,12 @@ struct bt_config *bt_config_run_from_args(int argc, const char *argv[],
 		goto error;
 	}
 
+	BT_OBJECT_MOVE_REF(*cfg_out, cfg);
+	status = BT_CONFIG_CLI_ARGS_STATUS_OK;
 	goto end;
 
 error:
-	*retcode = 1;
-	BT_OBJECT_PUT_REF_AND_RESET(cfg);
+	status = BT_CONFIG_CLI_ARGS_STATUS_ERROR;
 
 end:
 	if (error_str) {
@@ -2221,15 +2226,18 @@ end:
 	BT_VALUE_PUT_REF_AND_RESET(cur_base_params);
 	BT_VALUE_PUT_REF_AND_RESET(instance_names);
 	BT_VALUE_PUT_REF_AND_RESET(connection_args);
-	return cfg;
+	bt_object_put_ref(cfg);
+
+	return status;
 }
 
 static
-struct bt_config *bt_config_run_from_args_array(const bt_value *run_args,
-		int *retcode, const bt_value *plugin_paths,
+enum bt_config_cli_args_status bt_config_run_from_args_array(
+		const bt_value *run_args, struct bt_config **cfg,
+		const bt_value *plugin_paths,
 		int default_log_level)
 {
-	struct bt_config *cfg = NULL;
+	enum bt_config_cli_args_status status;
 	const char **argv;
 	uint64_t i, len = bt_value_array_get_length(run_args);
 
@@ -2237,7 +2245,7 @@ struct bt_config *bt_config_run_from_args_array(const bt_value *run_args,
 	argv = calloc((size_t) len, sizeof(*argv));
 	if (!argv) {
 		BT_CLI_LOGE_APPEND_CAUSE_OOM();
-		goto end;
+		goto error;
 	}
 
 	for (i = 0; i < len; i++) {
@@ -2251,12 +2259,17 @@ struct bt_config *bt_config_run_from_args_array(const bt_value *run_args,
 		argv[i] = arg;
 	}
 
-	cfg = bt_config_run_from_args((int) len, argv, retcode,
+	status = bt_config_run_from_args((int) len, argv, cfg,
 		plugin_paths, default_log_level, 0);
+
+	goto end;
+
+error:
+	status = BT_CONFIG_CLI_ARGS_STATUS_ERROR;
 
 end:
 	free(argv);
-	return cfg;
+	return status;
 }
 
 /*
@@ -3310,18 +3323,18 @@ enum convert_current_item_type {
 /*
  * Creates a Babeltrace config object from the arguments of a convert
  * command.
- *
- * *retcode is set to the appropriate exit code to use.
  */
 static
-struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
-		int *retcode, const bt_value *plugin_paths,
+enum bt_config_cli_args_status bt_config_convert_from_args(int argc,
+		const char *argv[], struct bt_config **cfg_out,
+		const bt_value *plugin_paths,
 		int *default_log_level, const bt_interrupter *interrupter,
 		unsigned int consumed_args)
 {
+	enum bt_config_cli_args_status status;
 	enum convert_current_item_type current_item_type =
 		CONVERT_CURRENT_ITEM_TYPE_NONE;
-	int ret = 0;
+	int ret;
 	struct bt_config *cfg = NULL;
 	bool got_input_format_opt = false;
 	bool got_output_format_opt = false;
@@ -3374,11 +3387,10 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 	bool ctf_fs_source_force_clock_class_unix_epoch_origin = false;
 	gchar *ctf_fs_source_clock_class_offset_arg = NULL;
 	gchar *ctf_fs_source_clock_class_offset_ns_arg = NULL;
-	*retcode = 0;
 
 	if (argc < 1) {
 		print_convert_usage(stdout);
-		*retcode = -1;
+		status = BT_CONFIG_CLI_ARGS_STATUS_INFO_ONLY;
 		goto end;
 	}
 
@@ -3483,16 +3495,16 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 	}
 
 	while (true) {
-		enum parse_next_item_status status;
+		enum parse_next_item_status parse_status;
 		char *name = NULL;
 		char *plugin_name = NULL;
 		char *comp_cls_name = NULL;
 
-		status = parse_next_item(argpar_iter, &argpar_item, argv, "convert",
+		parse_status = parse_next_item(argpar_iter, &argpar_item, argv, "convert",
 			consumed_args);
-		if (status == PARSE_NEXT_ITEM_STATUS_ERROR) {
+		if (parse_status == PARSE_NEXT_ITEM_STATUS_ERROR) {
 			goto error;
-		} else if (status == PARSE_NEXT_ITEM_STATUS_END) {
+		} else if (parse_status == PARSE_NEXT_ITEM_STATUS_END) {
 			break;
 		}
 
@@ -3504,8 +3516,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 			switch (opt_descr->id) {
 			case OPT_HELP:
 				print_convert_usage(stdout);
-				*retcode = -1;
-				BT_OBJECT_PUT_REF_AND_RESET(cfg);
+				status = BT_CONFIG_CLI_ARGS_STATUS_INFO_ONLY;
 				goto end;
 			case OPT_COMPONENT:
 			{
@@ -3765,15 +3776,15 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 	}
 
 	while (true) {
-		enum parse_next_item_status status;
+		enum parse_next_item_status parse_status;
 		const struct argpar_opt_descr *opt_descr;
 		const char *arg;
 
-		status = parse_next_item(argpar_iter, &argpar_item, argv, "convert",
+		parse_status = parse_next_item(argpar_iter, &argpar_item, argv, "convert",
 			consumed_args);
-		if (status == PARSE_NEXT_ITEM_STATUS_ERROR) {
+		if (parse_status == PARSE_NEXT_ITEM_STATUS_ERROR) {
 			goto error;
-		} else if (status == PARSE_NEXT_ITEM_STATUS_END) {
+		} else if (parse_status == PARSE_NEXT_ITEM_STATUS_END) {
 			break;
 		}
 
@@ -4096,9 +4107,9 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 			goto error;
 		}
 
-		cfg = bt_config_print_ctf_metadata_create(plugin_paths);
-		if (!cfg) {
-			goto error;
+		status = bt_config_print_ctf_metadata_create(plugin_paths, &cfg);
+		if (status != BT_CONFIG_CLI_ARGS_STATUS_OK) {
+			goto end;
 		}
 
 		bt_val_non_opt = bt_value_array_borrow_element_by_index_const(non_opts, 0);
@@ -4111,6 +4122,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 				output);
 		}
 
+		BT_OBJECT_MOVE_REF(*cfg_out, cfg);
 		goto end;
 	}
 
@@ -4190,10 +4202,10 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 
 			if (!lttng_live_url_parts.session_name) {
 				/* Print LTTng live sessions */
-				cfg = bt_config_print_lttng_live_sessions_create(
-					plugin_paths);
-				if (!cfg) {
-					goto error;
+				status = bt_config_print_lttng_live_sessions_create(
+					plugin_paths, &cfg);
+				if (status != BT_CONFIG_CLI_ARGS_STATUS_OK) {
+					goto end;
 				}
 
 				g_string_assign(cfg->cmd_data.print_lttng_live_sessions.url,
@@ -4205,6 +4217,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 						output);
 				}
 
+				BT_OBJECT_MOVE_REF(*cfg_out, cfg);
 				goto end;
 			}
 
@@ -4235,13 +4248,13 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 				goto error;
 			}
 		} else {
-			int status;
 			size_t plugin_count;
 			const bt_plugin **plugins;
 			const bt_plugin *plugin;
+			auto_source_discovery_status auto_disc_status;
 
-			status = require_loaded_plugins(plugin_paths);
-			if (status != 0) {
+			ret = require_loaded_plugins(plugin_paths);
+			if (ret != 0) {
 				goto error;
 			}
 
@@ -4254,22 +4267,23 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 				plugins = borrow_loaded_plugins();
 			}
 
-			status = auto_discover_source_components(non_opts, plugins, plugin_count,
+			auto_disc_status = auto_discover_source_components(
+				non_opts, plugins, plugin_count,
 				auto_source_discovery_restrict_component_class_name,
 				*default_log_level, &auto_disc, interrupter);
 
-			if (status != 0) {
-				if (status == AUTO_SOURCE_DISCOVERY_STATUS_INTERRUPTED) {
+			if (auto_disc_status != AUTO_SOURCE_DISCOVERY_STATUS_OK) {
+				if (auto_disc_status == AUTO_SOURCE_DISCOVERY_STATUS_INTERRUPTED) {
 					BT_CURRENT_THREAD_ERROR_APPEND_CAUSE_FROM_UNKNOWN(
 						"Babeltrace CLI", "Automatic source discovery interrupted by the user");
 				}
 				goto error;
 			}
 
-			status = create_implicit_component_args_from_auto_discovered_sources(
+			ret = create_implicit_component_args_from_auto_discovered_sources(
 				&auto_disc, non_opts, non_opt_params, non_opt_loglevels,
 				discovered_source_args);
-			if (status != 0) {
+			if (ret != 0) {
 				goto error;
 			}
 		}
@@ -4553,23 +4567,22 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 			}
 		}
 
-		*retcode = -1;
-		BT_OBJECT_PUT_REF_AND_RESET(cfg);
+		status = BT_CONFIG_CLI_ARGS_STATUS_INFO_ONLY;
 		goto end;
 	}
 
-	cfg = bt_config_run_from_args_array(run_args, retcode,
+	status = bt_config_run_from_args_array(run_args, &cfg,
 		plugin_paths, *default_log_level);
-	if (!cfg) {
-		goto error;
+	if (status != BT_CONFIG_CLI_ARGS_STATUS_OK) {
+		goto end;
 	}
 
 	cfg->cmd_data.run.stream_intersection_mode = stream_intersection_mode;
+	BT_OBJECT_MOVE_REF(*cfg_out, cfg);
 	goto end;
 
 error:
-	*retcode = 1;
-	BT_OBJECT_PUT_REF_AND_RESET(cfg);
+	status = BT_CONFIG_CLI_ARGS_STATUS_ERROR;
 
 end:
 	argpar_iter_destroy(argpar_iter);
@@ -4615,7 +4628,9 @@ end:
 		g_string_free(auto_disc_comp_name, TRUE);
 	}
 
-	return cfg;
+	bt_object_put_ref(cfg);
+
+	return status;
 }
 
 /*
@@ -4651,13 +4666,14 @@ void print_gen_usage(FILE *fp)
 	fprintf(fp, "Use `babeltrace2 COMMAND --help` to show the help of COMMAND.\n");
 }
 
-struct bt_config *bt_config_cli_args_create(int argc, const char *argv[],
-		int *retcode, bool omit_system_plugin_path,
+enum bt_config_cli_args_status bt_config_cli_args_create(int argc,
+		const char *argv[], struct bt_config **cfg,
+		bool omit_system_plugin_path,
 		bool omit_home_plugin_path,
 		const bt_value *initial_plugin_paths,
 		const bt_interrupter *interrupter)
 {
-	struct bt_config *config = NULL;
+	enum bt_config_cli_args_status status;
 	int top_level_argc;
 	const char **top_level_argv;
 	int command_argc = -1;
@@ -4692,8 +4708,6 @@ struct bt_config *bt_config_cli_args_create(int argc, const char *argv[],
 		COMMAND_TYPE_QUERY,
 	} command_type = COMMAND_TYPE_NONE;
 
-	*retcode = -1;
-
 	if (!initial_plugin_paths) {
 		plugin_paths = bt_value_array_create();
 		if (!plugin_paths) {
@@ -4722,6 +4736,7 @@ struct bt_config *bt_config_cli_args_create(int argc, const char *argv[],
 		print_version();
 		puts("");
 		print_gen_usage(stdout);
+		status = BT_CONFIG_CLI_ARGS_STATUS_INFO_ONLY;
 		goto end;
 	}
 
@@ -4736,12 +4751,12 @@ struct bt_config *bt_config_cli_args_create(int argc, const char *argv[],
 	}
 
 	while (true) {
-		enum argpar_iter_next_status status;
+		enum argpar_iter_next_status argpar_status;
 
 		ARGPAR_ITEM_DESTROY_AND_RESET(argpar_item);
-		status = argpar_iter_next(argpar_iter, &argpar_item, &argpar_error);
+		argpar_status = argpar_iter_next(argpar_iter, &argpar_item, &argpar_error);
 
-		switch (status) {
+		switch (argpar_status) {
 		case ARGPAR_ITER_NEXT_STATUS_ERROR_MEMORY:
 			BT_CLI_LOGE_APPEND_CAUSE_OOM();
 			goto error;
@@ -4762,11 +4777,11 @@ struct bt_config *bt_config_cli_args_create(int argc, const char *argv[],
 			break;
 		}
 
-		if (status == ARGPAR_ITER_NEXT_STATUS_END) {
+		if (argpar_status == ARGPAR_ITER_NEXT_STATUS_END) {
 			break;
 		}
 
-		if (status == ARGPAR_ITER_NEXT_STATUS_ERROR) {
+		if (argpar_status == ARGPAR_ITER_NEXT_STATUS_ERROR) {
 			BT_ASSERT(argpar_error_type(argpar_error) ==
 				ARGPAR_ERROR_TYPE_UNKNOWN_OPT);
 			/*
@@ -4819,9 +4834,11 @@ struct bt_config *bt_config_cli_args_create(int argc, const char *argv[],
 				break;
 			case OPT_VERSION:
 				print_version();
+				status = BT_CONFIG_CLI_ARGS_STATUS_INFO_ONLY;
 				goto end;
 			case OPT_HELP:
 				print_gen_usage(stdout);
+				status = BT_CONFIG_CLI_ARGS_STATUS_INFO_ONLY;
 				goto end;
 			default:
 				bt_common_abort();
@@ -4880,6 +4897,7 @@ struct bt_config *bt_config_cli_args_create(int argc, const char *argv[],
 			 * usage and quit.
 			 */
 			print_gen_usage(stdout);
+			status = BT_CONFIG_CLI_ARGS_STATUS_INFO_ONLY;
 			goto end;
 		}
 
@@ -4925,48 +4943,55 @@ struct bt_config *bt_config_cli_args_create(int argc, const char *argv[],
 
 	switch (command_type) {
 	case COMMAND_TYPE_RUN:
-		config = bt_config_run_from_args(command_argc, command_argv,
-			retcode, plugin_paths,
+		status = bt_config_run_from_args(command_argc, command_argv,
+			cfg, plugin_paths,
 			default_log_level, consumed_args);
 		break;
 	case COMMAND_TYPE_CONVERT:
-		config = bt_config_convert_from_args(command_argc, command_argv,
-			retcode, plugin_paths, &default_log_level, interrupter,
+		status = bt_config_convert_from_args(command_argc, command_argv,
+			cfg, plugin_paths, &default_log_level, interrupter,
 			consumed_args);
 		break;
 	case COMMAND_TYPE_LIST_PLUGINS:
-		config = bt_config_list_plugins_from_args(command_argc,
-			command_argv, retcode, plugin_paths, consumed_args);
+		status = bt_config_list_plugins_from_args(command_argc,
+			command_argv, cfg, plugin_paths, consumed_args);
 		break;
 	case COMMAND_TYPE_HELP:
-		config = bt_config_help_from_args(command_argc,
-			command_argv, retcode, plugin_paths,
+		status = bt_config_help_from_args(command_argc,
+			command_argv, cfg, plugin_paths,
 			default_log_level, consumed_args);
 		break;
 	case COMMAND_TYPE_QUERY:
-		config = bt_config_query_from_args(command_argc,
-			command_argv, retcode, plugin_paths,
+		status = bt_config_query_from_args(command_argc,
+			command_argv, cfg, plugin_paths,
 			default_log_level, consumed_args);
 		break;
 	default:
 		bt_common_abort();
 	}
 
-	if (config) {
-		BT_ASSERT(default_log_level >= BT_LOG_TRACE);
-		config->log_level = default_log_level;
-		config->command_name = command_name;
+	if (status == BT_CONFIG_CLI_ARGS_STATUS_ERROR) {
+		goto error;
+	} else if (status == BT_CONFIG_CLI_ARGS_STATUS_INFO_ONLY) {
+		goto end;
 	}
 
+	BT_ASSERT(status == BT_CONFIG_CLI_ARGS_STATUS_OK);
+	BT_ASSERT(*cfg);
+	BT_ASSERT(default_log_level >= BT_LOG_TRACE);
+	(*cfg)->log_level = default_log_level;
+	(*cfg)->command_name = command_name;
+
+	status = BT_CONFIG_CLI_ARGS_STATUS_OK;
 	goto end;
 
 error:
-	*retcode = 1;
+	status = BT_CONFIG_CLI_ARGS_STATUS_ERROR;
 
 end:
 	argpar_error_destroy(argpar_error);
 	argpar_item_destroy(argpar_item);
 	argpar_iter_destroy(argpar_iter);
 	bt_value_put_ref(plugin_paths);
-	return config;
+	return status;
 }

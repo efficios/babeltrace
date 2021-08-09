@@ -14,12 +14,12 @@
 
 #ifdef BT_SET_DEFAULT_IN_TREE_CONFIGURATION
 
-struct bt_config *bt_config_cli_args_create_with_default(int argc,
-		const char *argv[], int *retcode,
+enum bt_config_cli_args_status bt_config_cli_args_create_with_default(int argc,
+		const char *argv[], struct bt_config **cfg,
 		const bt_interrupter *interrupter)
 {
+	enum bt_config_cli_args_status status;
 	bt_value *initial_plugin_paths;
-	struct bt_config *cfg = NULL;
 	int ret;
 
 	initial_plugin_paths = bt_value_array_create();
@@ -49,26 +49,25 @@ struct bt_config *bt_config_cli_args_create_with_default(int argc,
 	g_setenv("LIBBABELTRACE2_PLUGIN_PROVIDER_DIR", "/nonexistent", 0);
 #endif
 
-	cfg = bt_config_cli_args_create(argc, argv, retcode, true, true,
+	status = bt_config_cli_args_create(argc, argv, cfg, true, true,
 		initial_plugin_paths, interrupter);
 	goto end;
 
 error:
-	*retcode = 1;
-	BT_OBJECT_PUT_REF_AND_RESET(cfg);
+	status = BT_CONFIG_CLI_ARGS_STATUS_ERROR;
 
 end:
 	bt_value_put_ref(initial_plugin_paths);
-	return cfg;
+	return status;
 }
 
 #else /* BT_SET_DEFAULT_IN_TREE_CONFIGURATION */
 
-struct bt_config *bt_config_cli_args_create_with_default(int argc,
-		const char *argv[], int *retcode,
+enum bt_config_cli_args_status bt_config_cli_args_create_with_default(int argc,
+		const char *argv[], struct bt_config **cfg,
 		const bt_interrupter *interrupter)
 {
-	return bt_config_cli_args_create(argc, argv, retcode, false, false,
+	return bt_config_cli_args_create(argc, argv, cfg, false, false,
 		NULL, interrupter);
 }
 

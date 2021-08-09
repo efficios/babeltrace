@@ -28,6 +28,7 @@
 
 #define ENV_BABELTRACE_WARN_COMMAND_NAME_DIRECTORY_CLASH "BABELTRACE_CLI_WARN_COMMAND_NAME_DIRECTORY_CLASH"
 #define NSEC_PER_SEC	1000000000LL
+#define EXIT_INTERRUPTED 2
 
 enum bt_cmd_status {
 	BT_CMD_STATUS_OK	    = 0,
@@ -2614,7 +2615,8 @@ end:
 
 int main(int argc, const char **argv)
 {
-	int ret, retcode;
+	int retcode;
+	enum bt_config_cli_args_status cli_args_status;
 	enum bt_cmd_status cmd_status;
 	struct bt_config *cfg = NULL;
 
@@ -2626,41 +2628,38 @@ int main(int argc, const char **argv)
 	the_interrupter = bt_interrupter_create();
 	if (!the_interrupter) {
 		BT_CLI_LOGE_APPEND_CAUSE("Failed to create an interrupter object.");
-		retcode = 1;
+		retcode = EXIT_FAILURE;
 		goto end;
 	}
 
-	cfg = bt_config_cli_args_create_with_default(argc, argv, &retcode,
+	cli_args_status = bt_config_cli_args_create_with_default(argc, argv, &cfg,
 		the_interrupter);
-
-	if (retcode < 0) {
+	if (cli_args_status == BT_CONFIG_CLI_ARGS_STATUS_INFO_ONLY) {
 		/* Quit without errors; typically usage/version */
-		retcode = 0;
+		retcode = EXIT_SUCCESS;
 		BT_LOGI_STR("Quitting without errors.");
 		goto end;
 	}
 
-	if (retcode > 0) {
+	if (cli_args_status == BT_CONFIG_CLI_ARGS_STATUS_ERROR) {
+		retcode = EXIT_FAILURE;
 		BT_CLI_LOGE_APPEND_CAUSE(
 			"Command-line error: retcode=%d", retcode);
 		goto end;
 	}
 
-	if (!cfg) {
-		BT_CLI_LOGE_APPEND_CAUSE(
-			"Failed to create a valid Babeltrace CLI configuration.");
-		retcode = 1;
-		goto end;
-	}
+	BT_ASSERT(cli_args_status == BT_CONFIG_CLI_ARGS_STATUS_OK);
+	BT_ASSERT(cfg);
 
 	print_cfg(cfg);
 
 	if (cfg->command_needs_plugins) {
-		ret = require_loaded_plugins(cfg->plugin_paths);
+		int ret = require_loaded_plugins(cfg->plugin_paths);
+
 		if (ret) {
 			BT_CLI_LOGE_APPEND_CAUSE(
 				"Failed to load plugins: ret=%d", ret);
-			retcode = 1;
+			retcode = EXIT_FAILURE;
 			goto end;
 		}
 	}
@@ -2698,13 +2697,13 @@ int main(int argc, const char **argv)
 
 	switch (cmd_status) {
 	case BT_CMD_STATUS_OK:
-		retcode = 0;
+		retcode = EXIT_SUCCESS;
 		break;
 	case BT_CMD_STATUS_ERROR:
-		retcode = 1;
+		retcode = EXIT_FAILURE;
 		break;
 	case BT_CMD_STATUS_INTERRUPTED:
-		retcode = 2;
+		retcode = EXIT_INTERRUPTED;
 		break;
 	default:
 		BT_LOGF("Invalid command status: cmd-status=%d", cmd_status);
@@ -2712,7 +2711,7 @@ int main(int argc, const char **argv)
 	}
 
 end:
-	if (retcode == 1) {
+	if (retcode == EXIT_FAILURE) {
 		print_error_causes();
 	}
 
