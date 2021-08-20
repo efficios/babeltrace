@@ -142,19 +142,7 @@ AX_CXX_COMPILE_STDCXX([11], [noext], [mandatory])
 ##               ##
 
 AC_HEADER_STDBOOL
-AC_CHECK_HEADERS([ \
-	fcntl.h \
-	float.h \
-	ftw.h \
-	libintl.h \
-	limits.h \
-	malloc.h \
-	netdb.h \
-	netinet/in.h \
-	stddef.h \
-	sys/socket.h \
-	sys/time.h
-])
+AC_CHECK_HEADERS([fcntl.h float.h ftw.h libintl.h limits.h malloc.h netdb.h netinet/in.h stddef.h sys/socket.h sys/time.h])
 
 
 ##               ##
@@ -273,32 +261,7 @@ AC_FUNC_MKTIME
 AC_FUNC_MMAP
 AC_FUNC_STRERROR_R
 AC_FUNC_STRNLEN
-AC_CHECK_FUNCS([ \
-	atexit \
-	dup2 \
-	ftruncate \
-	gethostbyname \
-	gettimeofday \
-	localtime_r \
-	memchr \
-	memset \
-	mkdir \
-	mkdtemp \
-	munmap \
-	rmdir \
-	setenv \
-	socket \
-	strchr \
-	strdup \
-	strerror \
-	strndup \
-	strnlen \
-	strrchr \
-	strstr \
-	strtoul \
-	strtoull \
-	tzset \
-])
+AC_CHECK_FUNCS([atexit dup2 ftruncate gethostbyname gettimeofday localtime_r memchr memset mkdir mkdtemp munmap rmdir setenv socket strchr strdup strerror strndup strnlen strrchr strstr strtoul strtoull tzset])
 
 # AC_FUNC_MALLOC causes problems when cross-compiling.
 #AC_FUNC_MALLOC
