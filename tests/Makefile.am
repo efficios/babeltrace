@@ -169,11 +169,6 @@ LOG_DRIVER_FLAGS = --merge --comments
 LOG_DRIVER = env AM_TAP_AWK='$(AWK)' \
 	     BT_TESTS_SRCDIR='$(abs_top_srcdir)/tests' \
 	     BT_TESTS_BUILDDIR='$(abs_top_builddir)/tests' \
-	     BT_TESTS_AWK_BIN="$(AWK)" \
-	     BT_TESTS_GREP_BIN="$(GREP)" \
-	     BT_TESTS_PYTHON_BIN="$(PYTHON)" \
-	     BT_TESTS_PYTHON_CONFIG_BIN="$(PYTHON_CONFIG)" \
-	     BT_TESTS_SED_BIN="$(SED)" \
 	     $(SHELL) $(srcdir)/utils/tap-driver.sh
 
 TESTS_NO_BITFIELD = \

@@ -15,6 +15,7 @@
 /tests/plugins/src.ctf.fs/succeed/gen-trace-simple
 /tests/plugins/sink.ctf.fs/succeed/gen-trace-float
 /tests/plugins/sink.ctf.fs/succeed/gen-trace-double
+/tests/utils/env.sh
 *~
 *.o
 *.a

@@ -58,12 +58,11 @@ if [ "x${BT_TESTS_BUILDDIR:-}" = "x" ]; then
 fi
 export BT_TESTS_BUILDDIR
 
-# By default, it will not source tap.sh.  If you to tap output directly from
-# the test script, define the 'SH_TAP' variable to '1' before sourcing this
-# script.
-if [ "x${SH_TAP:-}" = x1 ]; then
-	# shellcheck source=./tap/tap.sh
-	. "${BT_TESTS_SRCDIR}/utils/tap/tap.sh"
+
+# Source the generated environment file if it's present.
+if [ -f "${BT_TESTS_BUILDDIR}/utils/env.sh" ]; then
+	# shellcheck source=./env.sh
+	. "${BT_TESTS_BUILDDIR}/utils/env.sh"
 fi
 
 # Allow overriding the babeltrace2 executables
@@ -82,15 +81,18 @@ BT_PLUGINS_PATH="${BT_TESTS_BUILDDIR}/../src/plugins"
 if [ "x${BT_TESTS_BABELTRACE_PLUGIN_PATH:-}" = "x" ]; then
 	BT_TESTS_BABELTRACE_PLUGIN_PATH="${BT_PLUGINS_PATH}/ctf:${BT_PLUGINS_PATH}/utils:${BT_PLUGINS_PATH}/text:${BT_PLUGINS_PATH}/lttng-utils"
 fi
+export BT_TESTS_BABELTRACE_PLUGIN_PATH
 
 if [ "x${BT_TESTS_PROVIDER_DIR:-}" = "x" ]; then
 	BT_TESTS_PROVIDER_DIR="${BT_TESTS_BUILDDIR}/../src/python-plugin-provider/.libs"
 fi
+export BT_TESTS_PROVIDER_DIR
 
 # Allow overriding the babeltrace2 executables
 if [ "x${BT_TESTS_PYTHONPATH:-}" = "x" ]; then
 	BT_TESTS_PYTHONPATH="${BT_TESTS_BUILDDIR}/../src/bindings/python/bt2/build/build_lib"
 fi
+export BT_TESTS_PYTHONPATH
 
 
 ### External Tools ###
@@ -123,6 +125,15 @@ export BT_TESTS_SED_BIN
 # Data files path
 BT_TESTS_DATADIR="${BT_TESTS_SRCDIR}/data"
 BT_CTF_TRACES_PATH="${BT_TESTS_DATADIR}/ctf-traces"
+
+# By default, it will not source tap.sh.  If you want to output tap directly
+# from the test script, define the 'SH_TAP' variable to '1' before sourcing
+# this script.
+if [ "x${SH_TAP:-}" = x1 ]; then
+	# shellcheck source=./tap/tap.sh
+	. "${BT_TESTS_SRCDIR}/utils/tap/tap.sh"
+fi
+
 
 # Remove CR characters in file "$1".
 

@@ -841,6 +841,8 @@ AC_CONFIG_FILES([
 	tests/utils/tap/Makefile
 ])
 
+AC_CONFIG_FILES([tests/utils/env.sh],[chmod +x tests/utils/env.sh])
+
 AC_OUTPUT
 
 #
