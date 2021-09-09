@@ -482,7 +482,7 @@ AC_SUBST([ENABLE_DEBUG_INFO_VAL])
 ##                                           ##
 
 # The Python bindings require SWIG
-AE_IF_FEATURE_ENABLED([python-plugins],
+AE_IF_FEATURE_ENABLED([python-bindings],
   [AX_PKG_SWIG(2.0.0, [], [AC_MSG_ERROR([SWIG 2.0.0 or newer is required to build the python bindings])])]
 )
 
