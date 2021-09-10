@@ -1057,7 +1057,7 @@ static inline void format_component_class(char **buf_ch, bool extended,
 	char tmp_prefix[TMP_PREFIX_LEN];
 
 	BUF_APPEND(", %stype=%s, %sname=\"%s\"",
-		PRFIELD(bt_component_class_type_string(comp_class->type)),
+		PRFIELD(bt_common_component_class_type_string(comp_class->type)),
 		PRFIELD_GSTRING(comp_class->name));
 
 	if (comp_class->description) {
@@ -1335,7 +1335,7 @@ static inline void format_error_cause(char **buf_ch, bool extended,
 	if (comp_class_id) {
 		BUF_APPEND(", %scomp-cls-type=%s, %scomp-cls-name=\"%s\", "
 			"%splugin-name=\"%s\"",
-			PRFIELD(bt_component_class_type_string(
+			PRFIELD(bt_common_component_class_type_string(
 				comp_class_id->type)),
 			PRFIELD_GSTRING(comp_class_id->name),
 			PRFIELD_GSTRING(comp_class_id->plugin_name));

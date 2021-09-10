@@ -540,7 +540,7 @@ bt_component_class_set_description(
 		"addr=%p, name=\"%s\", type=%s",
 		comp_cls,
 		bt_component_class_get_name(comp_cls),
-		bt_component_class_type_string(comp_cls->type));
+		bt_common_component_class_type_string(comp_cls->type));
 	return BT_FUNC_STATUS_OK;
 }
 

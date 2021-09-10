@@ -82,7 +82,7 @@ ok $? "help with unknown plugin name produces no output"
 bt_cli "${stdout}" "${stderr}" help src.ctf.bob
 isnt $? 0 "help with unknown component class name"
 
-grep --silent 'Cannot find component class: plugin-name="ctf", comp-cls-name="bob", comp-cls-type=1' "${stderr}"
+grep --silent 'Cannot find component class: plugin-name="ctf", comp-cls-name="bob", comp-cls-type=SOURCE' "${stderr}"
 ok $? "help with unknown component class name produces expected error"
 
 grep --silent 'Description: CTF input and output' "${stdout}"

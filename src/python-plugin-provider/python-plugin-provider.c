@@ -571,7 +571,7 @@ int bt_plugin_from_python_plugin_info(PyObject *plugin_info,
 					bt_plugin_get_name(*plugin_out),
 					comp_class,
 					bt_component_class_get_name(comp_class),
-					bt_component_class_type_string(
+					bt_common_component_class_type_string(
 						bt_component_class_get_type(comp_class)));
 				goto error;
 			}

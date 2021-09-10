@@ -636,10 +636,11 @@ enum bt_cmd_status cmd_query(struct bt_config *cfg)
 	if (!comp_cls) {
 		BT_CLI_LOGE_APPEND_CAUSE(
 			"Cannot find component class: plugin-name=\"%s\", "
-			"comp-cls-name=\"%s\", comp-cls-type=%d",
+			"comp-cls-name=\"%s\", comp-cls-type=%s",
 			cfg->cmd_data.query.cfg_component->plugin_name->str,
 			cfg->cmd_data.query.cfg_component->comp_cls_name->str,
-			cfg->cmd_data.query.cfg_component->type);
+			bt_common_component_class_type_string(
+				cfg->cmd_data.query.cfg_component->type));
 		goto error;
 	}
 
@@ -649,11 +650,12 @@ enum bt_cmd_status cmd_query(struct bt_config *cfg)
 	if (ret) {
 		BT_CLI_LOGE_APPEND_CAUSE(
 			"Failed to query component class: %s: plugin-name=\"%s\", "
-			"comp-cls-name=\"%s\", comp-cls-type=%d "
+			"comp-cls-name=\"%s\", comp-cls-type=%s "
 			"object=\"%s\"", fail_reason,
 			cfg->cmd_data.query.cfg_component->plugin_name->str,
 			cfg->cmd_data.query.cfg_component->comp_cls_name->str,
-			cfg->cmd_data.query.cfg_component->type,
+			bt_common_component_class_type_string(
+				cfg->cmd_data.query.cfg_component->type),
 			cfg->cmd_data.query.object->str);
 		goto error;
 	}
@@ -743,10 +745,11 @@ enum bt_cmd_status cmd_help(struct bt_config *cfg)
 	if (!needed_comp_cls) {
 		BT_CLI_LOGE_APPEND_CAUSE(
 			"Cannot find component class: plugin-name=\"%s\", "
-			"comp-cls-name=\"%s\", comp-cls-type=%d",
+			"comp-cls-name=\"%s\", comp-cls-type=%s",
 			cfg->cmd_data.help.cfg_component->plugin_name->str,
 			cfg->cmd_data.help.cfg_component->comp_cls_name->str,
-			cfg->cmd_data.help.cfg_component->type);
+			bt_common_component_class_type_string(
+				cfg->cmd_data.help.cfg_component->type));
 		goto error;
 	}
 
@@ -904,9 +907,10 @@ enum bt_cmd_status cmd_print_lttng_live_sessions(struct bt_config *cfg)
 	if (!comp_cls) {
 		BT_CLI_LOGE_APPEND_CAUSE(
 			"Cannot find component class: plugin-name=\"%s\", "
-			"comp-cls-name=\"%s\", comp-cls-type=%d",
+			"comp-cls-name=\"%s\", comp-cls-type=%s",
 			plugin_name, comp_cls_name,
-			BT_COMPONENT_CLASS_TYPE_SOURCE);
+			bt_common_component_class_type_string(
+				BT_COMPONENT_CLASS_TYPE_SOURCE));
 		goto error;
 	}
 
@@ -1043,9 +1047,10 @@ enum bt_cmd_status cmd_print_ctf_metadata(struct bt_config *cfg)
 	if (!comp_cls) {
 		BT_CLI_LOGE_APPEND_CAUSE(
 			"Cannot find component class: plugin-name=\"%s\", "
-			"comp-cls-name=\"%s\", comp-cls-type=%d",
+			"comp-cls-name=\"%s\", comp-cls-type=%s",
 			plugin_name, comp_cls_name,
-			BT_COMPONENT_CLASS_TYPE_SOURCE);
+			bt_common_component_class_type_string(
+				BT_COMPONENT_CLASS_TYPE_SOURCE));
 		goto error;
 	}
 
@@ -1702,8 +1707,9 @@ int add_descriptor_to_component_descriptor_set(
 	if (!comp_cls) {
 		BT_CLI_LOGE_APPEND_CAUSE(
 			"Cannot find component class: plugin-name=\"%s\", "
-			"comp-cls-name=\"%s\", comp-cls-type=%d",
-			plugin_name, comp_cls_name, comp_cls_type);
+			"comp-cls-name=\"%s\", comp-cls-type=%s",
+			plugin_name, comp_cls_name,
+			bt_common_component_class_type_string(comp_cls_type));
 		status = -1;
 		goto end;
 	}
@@ -2239,10 +2245,10 @@ int cmd_run_ctx_create_components_from_config_components(
 		if (!comp_cls) {
 			BT_CLI_LOGE_APPEND_CAUSE(
 				"Cannot find component class: plugin-name=\"%s\", "
-				"comp-cls-name=\"%s\", comp-cls-type=%d",
+				"comp-cls-name=\"%s\", comp-cls-type=%s",
 				cfg_comp->plugin_name->str,
 				cfg_comp->comp_cls_name->str,
-				cfg_comp->type);
+				bt_common_component_class_type_string(cfg_comp->type));
 			goto error;
 		}
 
@@ -2277,11 +2283,12 @@ int cmd_run_ctx_create_components_from_config_components(
 		if (ret) {
 			BT_CLI_LOGE_APPEND_CAUSE(
 				"Cannot create component: plugin-name=\"%s\", "
-				"comp-cls-name=\"%s\", comp-cls-type=%d, "
+				"comp-cls-name=\"%s\", comp-cls-type=%s, "
 				"comp-name=\"%s\"",
 				cfg_comp->plugin_name->str,
 				cfg_comp->comp_cls_name->str,
-				cfg_comp->type, cfg_comp->instance_name->str);
+				bt_common_component_class_type_string(cfg_comp->type),
+				cfg_comp->instance_name->str);
 			goto error;
 		}
 

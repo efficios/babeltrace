@@ -99,21 +99,6 @@ void _bt_component_class_freeze(
 #endif
 
 static inline
-const char *bt_component_class_type_string(enum bt_component_class_type type)
-{
-	switch (type) {
-	case BT_COMPONENT_CLASS_TYPE_SOURCE:
-		return "SOURCE";
-	case BT_COMPONENT_CLASS_TYPE_SINK:
-		return "SINK";
-	case BT_COMPONENT_CLASS_TYPE_FILTER:
-		return "FILTER";
-	default:
-		return "(unknown)";
-	}
-}
-
-static inline
 bool bt_component_class_has_message_iterator_class(
 	struct bt_component_class *component_class)
 {

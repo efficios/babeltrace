@@ -686,7 +686,7 @@ int bt_plugin_so_init(struct bt_plugin *plugin,
 							NULL,
 						descriptor->name,
 						cur_cc_descr_attr->comp_class_descriptor->name,
-						bt_component_class_type_string(
+						bt_common_component_class_type_string(
 							cur_cc_descr_attr->comp_class_descriptor->type),
 						cur_cc_descr_attr->type_name,
 						cur_cc_descr_attr->type);
@@ -706,7 +706,7 @@ int bt_plugin_so_init(struct bt_plugin *plugin,
 							NULL,
 						descriptor->name,
 						cur_cc_descr_attr->comp_class_descriptor->name,
-						bt_component_class_type_string(
+						bt_common_component_class_type_string(
 							cur_cc_descr_attr->comp_class_descriptor->type),
 						cur_cc_descr_attr->type_name,
 						cur_cc_descr_attr->type);
@@ -766,7 +766,7 @@ int bt_plugin_so_init(struct bt_plugin *plugin,
 				NULL,
 			descriptor->name,
 			cc_full_descr->descriptor->name,
-			bt_component_class_type_string(
+			bt_common_component_class_type_string(
 				cc_full_descr->descriptor->type));
 
 		if (cc_full_descr->descriptor->type == BT_COMPONENT_CLASS_TYPE_SOURCE ||

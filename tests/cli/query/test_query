@@ -79,7 +79,7 @@ expect_failure "ValueError: catastrophic failure" \
 	'src.query.SourceWithQueryThatPrintsParams' 'please-fail' '-p' 'a=2'
 
 # Non-existent component class.
-expect_failure 'Cannot find component class: plugin-name="query", comp-cls-name="NonExistentSource", comp-cls-type=1' \
+expect_failure 'Cannot find component class: plugin-name="query", comp-cls-name="NonExistentSource", comp-cls-type=SOURCE' \
 	'src.query.NonExistentSource' 'the-object' '-p' 'a=2'
 
 # Wrong parameter syntax.
