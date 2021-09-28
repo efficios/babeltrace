@@ -34,7 +34,7 @@ ok "$?" "exit code is 0"
 grep --after-context=11 '^this-is-a-plugin:$' "${stdout_file}" > "${grep_stdout_file}"
 ok "$?" "entry for this-is-a-plugin is present"
 
-if [ "$BT_OS_TYPE" = "mingw" ]; then
+if [ "$BT_TESTS_OS_TYPE" = "mingw" ]; then
        platform_plugin_dir=$(cygpath -m "${plugin_dir}")
 else
        platform_plugin_dir="${plugin_dir}"

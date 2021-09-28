@@ -50,7 +50,7 @@ class FindPluginsTestCase(unittest.TestCase):
 
     def test_find_file(self):
         extension = _TEST_PLUGIN_PLUGIN_EXTENSION_BY_OS.get(
-            os.environ['BT_OS_TYPE'], 'so'
+            os.environ['BT_TESTS_OS_TYPE'], 'so'
         )
         plugin_name = 'babeltrace-plugin-utils.{}'.format(extension)
         path = os.path.join(_TEST_PLUGIN_PLUGINS_PATH, 'utils', '.libs', plugin_name)

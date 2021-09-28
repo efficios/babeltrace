@@ -38,7 +38,7 @@ this_dir_relative="plugins/src.ctf.lttng-live"
 test_data_dir="$BT_TESTS_DATADIR/$this_dir_relative"
 trace_dir="$BT_CTF_TRACES_PATH"
 
-if [ "$BT_OS_TYPE" = "mingw" ]; then
+if [ "$BT_TESTS_OS_TYPE" = "mingw" ]; then
 	# Same as the above, but in Windows form (C:\foo\bar) instead of Unix form
 	# (/c/foo/bar).
 	trace_dir_native=$(cygpath -w "${trace_dir}")

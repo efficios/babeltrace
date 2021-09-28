@@ -25,27 +25,27 @@ fi
 # We do a bit of translation to ease our life down the road for comparison.
 # Export it so that called executables can use it.
 # [1] https://en.wikipedia.org/wiki/Uname#Examples
-if [ "x${BT_OS_TYPE:-}" = "x" ]; then
-	BT_OS_TYPE="$(uname -s)"
-	case "$BT_OS_TYPE" in
+if [ "x${BT_TESTS_OS_TYPE:-}" = "x" ]; then
+	BT_TESTS_OS_TYPE="$(uname -s)"
+	case "$BT_TESTS_OS_TYPE" in
 	MINGW*)
-		BT_OS_TYPE="mingw"
+		BT_TESTS_OS_TYPE="mingw"
 		;;
 	Darwin)
-		BT_OS_TYPE="darwin"
+		BT_TESTS_OS_TYPE="darwin"
 		;;
 	Linux)
-		BT_OS_TYPE="linux"
+		BT_TESTS_OS_TYPE="linux"
 		;;
 	CYGWIN*)
-		BT_OS_TYPE="cygwin"
+		BT_TESTS_OS_TYPE="cygwin"
 		;;
 	*)
-		BT_OS_TYPE="unsupported"
+		BT_TESTS_OS_TYPE="unsupported"
 		;;
 	esac
 fi
-export BT_OS_TYPE
+export BT_TESTS_OS_TYPE
 
 # Allow overriding the source and build directories
 if [ "x${BT_TESTS_SRCDIR:-}" = "x" ]; then
@@ -69,7 +69,7 @@ fi
 # Allow overriding the babeltrace2 executables
 if [ "x${BT_TESTS_BT2_BIN:-}" = "x" ]; then
 	BT_TESTS_BT2_BIN="$BT_TESTS_BUILDDIR/../src/cli/babeltrace2"
-	if [ "$BT_OS_TYPE" = "mingw" ]; then
+	if [ "$BT_TESTS_OS_TYPE" = "mingw" ]; then
 		BT_TESTS_BT2_BIN="${BT_TESTS_BT2_BIN}.exe"
 	fi
 fi
@@ -296,9 +296,9 @@ run_python_bt2() {
 	local main_lib_path="${BT_TESTS_BUILDDIR}/../src/lib/.libs"
 
 	# Set the library search path so the python interpreter can load libbabeltrace2
-	if [ "$BT_OS_TYPE" = "mingw" ] || [ "$BT_OS_TYPE" = "cygwin" ]; then
+	if [ "$BT_TESTS_OS_TYPE" = "mingw" ] || [ "$BT_TESTS_OS_TYPE" = "cygwin" ]; then
 		env_args+=("PATH=${main_lib_path}:${PATH:-}")
-	elif [ "$BT_OS_TYPE" = "darwin" ]; then
+	elif [ "$BT_TESTS_OS_TYPE" = "darwin" ]; then
 		env_args+=("DYLD_LIBRARY_PATH=${main_lib_path}:${DYLD_LIBRARY_PATH:-}")
 	else
 		env_args+=("LD_LIBRARY_PATH=${main_lib_path}:${LD_LIBRARY_PATH:-}")
@@ -307,7 +307,7 @@ run_python_bt2() {
 	# On Windows, an embedded Python interpreter needs a way to locate the path
 	# to it's internal modules, set the prefix from python-config to the
 	# PYTHONHOME variable.
-	if [ "$BT_OS_TYPE" = "mingw" ]; then
+	if [ "$BT_TESTS_OS_TYPE" = "mingw" ]; then
 		env_args+=("PYTHONHOME=$($BT_TESTS_PYTHON_CONFIG_BIN --prefix)")
 	fi
 

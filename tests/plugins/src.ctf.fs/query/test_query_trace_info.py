@@ -133,7 +133,7 @@ class QueryTraceInfoPortNameTestCase(unittest.TestCase):
             },
         ).query()
 
-        if os.environ['BT_OS_TYPE'] == 'mingw':
+        if os.environ['BT_TESTS_OS_TYPE'] == 'mingw':
             os_stream_path = (
                 '\\tests\\data\\ctf-traces\\intersection\\3eventsintersect\\'
             )
@@ -164,7 +164,7 @@ class QueryTraceInfoPortNameTestCase(unittest.TestCase):
             {"inputs": [os.path.join(test_ctf_traces_path, "succeed", "succeed1")]},
         ).query()
 
-        if os.environ['BT_OS_TYPE'] == 'mingw':
+        if os.environ['BT_TESTS_OS_TYPE'] == 'mingw':
             os_stream_path = '\\tests\\data\\ctf-traces\\succeed\\succeed1\\dummystream'
         else:
             os_stream_path = '/tests/data/ctf-traces/succeed/succeed1/dummystream'

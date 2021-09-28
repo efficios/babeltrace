@@ -42,7 +42,7 @@ trace_a_corrupted="${traces_dir}/a-corrupted"
 trace_b_not_corrupted="${traces_dir}/b-not-corrupted"
 trace_c_corrupted="${traces_dir}/c-corrupted"
 
-if [ "$BT_OS_TYPE" = "mingw" ]; then
+if [ "$BT_TESTS_OS_TYPE" = "mingw" ]; then
 	# The MSYS2 shell makes a mess trying to convert the Unix-like paths
 	# to Windows-like paths, so just disable the automatic conversion and
 	# do it by hand.

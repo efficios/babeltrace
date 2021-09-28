@@ -39,7 +39,7 @@ bt_cli "$temp_stdout" "$temp_stderr" \
 ok "$?" "run babeltrace"
 
 # Check stdout.
-if [ "$BT_OS_TYPE" = "mingw" ]; then
+if [ "$BT_TESTS_OS_TYPE" = "mingw" ]; then
 	echo "Created CTF trace \`$(cygpath -m ${temp_output_dir})\\trace\`." > "$temp_expected_stdout"
 else
 	echo "Created CTF trace \`${trace_dir}\`." > "$temp_expected_stdout"
