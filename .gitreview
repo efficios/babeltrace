@@ -2,6 +2,6 @@
 host=review.lttng.org
 port=29418
 project=babeltrace.git
-defaultbranch=master
+defaultbranch=stable-2.0
 defaultremote=review
 defaultrebase=0
