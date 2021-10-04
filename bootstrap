@@ -5,4 +5,5 @@ if [ ! -d "config" ]; then
 	mkdir config
 fi
 
-autoreconf -vi
+# Disable 'obsolete' warnings for AM_PATH_GLIB_2_0
+autoreconf -vif -W no-obsolete
