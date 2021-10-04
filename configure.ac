@@ -726,6 +726,7 @@ AX_COMPILER_FLAGS(
 		dnl
 		dnl Ref: https://github.com/swig/swig/issues/1259
 		-Wno-cast-function-type dnl
+		-Wno-suggest-attribute=format dnl
 	])
 
 # CFLAGS from AX_COMPILER_FLAGS.
