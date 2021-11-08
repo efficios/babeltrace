@@ -114,7 +114,8 @@ enum lttng_live_iterator_status lttng_live_metadata_update(
 	bt_self_component *self_comp = trace->self_comp;
 	enum lttng_live_get_one_metadata_status metadata_status;
 
-	BT_COMP_LOGD("Updating metadata for trace: trace-id=%"PRIu64, trace->id);
+	BT_COMP_LOGD("Updating metadata for trace: session-id=%" PRIu64
+		", trace-id=%" PRIu64, session->id, trace->id);
 
 	/* No metadata stream yet. */
 	if (!metadata) {

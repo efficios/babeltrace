@@ -62,6 +62,86 @@ do {									\
 			_msg ": %s" _fmt, bt_socket_errormsg(), ##__VA_ARGS__);		\
 	} while (0)
 
+static
+const char *lttng_viewer_command_string(enum lttng_viewer_command cmd)
+{
+	switch (cmd){
+	case LTTNG_VIEWER_CONNECT:
+		return "CONNECT";
+	case LTTNG_VIEWER_LIST_SESSIONS:
+		return "LIST_SESSIONS";
+	case LTTNG_VIEWER_ATTACH_SESSION:
+		return "ATTACH_SESSION";
+	case LTTNG_VIEWER_GET_NEXT_INDEX:
+		return "GET_NEXT_INDEX";
+	case LTTNG_VIEWER_GET_PACKET:
+		return "GET_PACKET";
+	case LTTNG_VIEWER_GET_METADATA:
+		return "GET_METADATA";
+	case LTTNG_VIEWER_GET_NEW_STREAMS:
+		return "GET_NEW_STREAMS";
+	case LTTNG_VIEWER_CREATE_SESSION:
+		return "CREATE_SESSION";
+	case LTTNG_VIEWER_DETACH_SESSION:
+		return "DETACH_SESSION";
+	}
+
+	bt_common_abort();
+}
+
+static
+const char *lttng_viewer_next_index_return_code_string(
+		enum lttng_viewer_next_index_return_code code)
+{
+	switch (code) {
+	case LTTNG_VIEWER_INDEX_OK:
+		return "INDEX_OK";
+	case LTTNG_VIEWER_INDEX_RETRY:
+		return "INDEX_RETRY";
+	case LTTNG_VIEWER_INDEX_HUP:
+		return "INDEX_HUP";
+	case LTTNG_VIEWER_INDEX_ERR:
+		return "INDEX_ERR";
+	case LTTNG_VIEWER_INDEX_INACTIVE:
+		return "INDEX_INACTIVE";
+	case LTTNG_VIEWER_INDEX_EOF:
+		return "INDEX_EOF";
+	}
+
+	bt_common_abort();
+}
+
+static
+const char *lttng_viewer_get_packet_return_code_string(
+		enum lttng_viewer_get_packet_return_code code)
+{
+	switch (code) {
+	case LTTNG_VIEWER_GET_PACKET_OK:
+		return "GET_PACKET_OK";
+	case LTTNG_VIEWER_GET_PACKET_RETRY:
+		return "GET_PACKET_RETRY";
+	case LTTNG_VIEWER_GET_PACKET_ERR:
+		return "GET_PACKET_ERR";
+	case LTTNG_VIEWER_GET_PACKET_EOF:
+		return "GET_PACKET_EOF";
+	}
+
+	bt_common_abort();
+};
+
+static
+const char *lttng_viewer_seek_string(enum lttng_viewer_seek seek)
+{
+	switch (seek) {
+	case LTTNG_VIEWER_SEEK_BEGINNING:
+		return "SEEK_BEGINNING";
+	case LTTNG_VIEWER_SEEK_LAST:
+		return "SEEK_LAST";
+	}
+
+	bt_common_abort();
+}
+
 static inline
 enum lttng_live_iterator_status viewer_status_to_live_iterator_status(
 		enum lttng_live_viewer_status viewer_status)
@@ -73,9 +153,9 @@ enum lttng_live_iterator_status viewer_status_to_live_iterator_status(
 		return LTTNG_LIVE_ITERATOR_STATUS_AGAIN;
 	case LTTNG_LIVE_VIEWER_STATUS_ERROR:
 		return LTTNG_LIVE_ITERATOR_STATUS_ERROR;
-	default:
-		bt_common_abort();
 	}
+
+	bt_common_abort();
 }
 
 static inline
@@ -89,9 +169,9 @@ enum ctf_msg_iter_medium_status viewer_status_to_ctf_msg_iter_medium_status(
 		return CTF_MSG_ITER_MEDIUM_STATUS_AGAIN;
 	case LTTNG_LIVE_VIEWER_STATUS_ERROR:
 		return CTF_MSG_ITER_MEDIUM_STATUS_ERROR;
-	default:
-		bt_common_abort();
 	}
+
+	bt_common_abort();
 }
 
 static inline
@@ -330,9 +410,9 @@ enum lttng_live_viewer_status lttng_live_handshake(
 	char cmd_buf[cmd_buf_len];
 
 	BT_COMP_OR_COMP_CLASS_LOGD(self_comp, self_comp_class,
-		"Handshaking with the Relay: "
-		"major-version=%u, minor-version=%u",
-		LTTNG_LIVE_MAJOR, LTTNG_LIVE_MINOR);
+		"Handshaking with the relay daemon: cmd=%s, major-version=%u, minor-version=%u",
+		lttng_viewer_command_string(LTTNG_VIEWER_CONNECT), LTTNG_LIVE_MAJOR,
+		LTTNG_LIVE_MINOR);
 
 	cmd.cmd = htobe32(LTTNG_VIEWER_CONNECT);
 	cmd.data_size = htobe64((uint64_t) sizeof(connect));
@@ -786,6 +866,9 @@ bt_component_class_query_method_status live_viewer_connection_list_sessions(
 		goto error;
 	}
 
+	BT_LOGD("Requesting list of sessions: cmd=%s",
+		lttng_viewer_command_string(LTTNG_VIEWER_LIST_SESSIONS));
+
 	cmd.cmd = htobe32(LTTNG_VIEWER_LIST_SESSIONS);
 	cmd.data_size = htobe64((uint64_t) 0);
 	cmd.cmd_version = htobe32(0);
@@ -863,7 +946,8 @@ enum lttng_live_viewer_status lttng_live_query_session_ids(
 	bt_self_component_class *self_comp_class =
 		viewer_connection->self_comp_class;
 
-	BT_COMP_LOGD("Asking the Relay for the list of sessions");
+	BT_COMP_LOGD("Asking the relay daemon for the list of sessions: cmd=%s",
+		lttng_viewer_command_string(LTTNG_VIEWER_LIST_SESSIONS));
 
 	cmd.cmd = htobe32(LTTNG_VIEWER_LIST_SESSIONS);
 	cmd.data_size = htobe64((uint64_t) 0);
@@ -937,7 +1021,8 @@ enum lttng_live_viewer_status lttng_live_create_viewer_session(
 		viewer_connection->self_comp_class;
 
 	BT_COMP_OR_COMP_CLASS_LOGD(self_comp, self_comp_class,
-		"Creating a viewer session");
+		"Creating a viewer session: cmd=%s",
+		lttng_viewer_command_string(LTTNG_VIEWER_CREATE_SESSION));
 
 	cmd.cmd = htobe32(LTTNG_VIEWER_CREATE_SESSION);
 	cmd.data_size = htobe64((uint64_t) 0);
@@ -990,7 +1075,7 @@ enum lttng_live_viewer_status receive_streams(struct lttng_live_session *session
 		lttng_live_msg_iter->viewer_connection;
 	bt_self_component *self_comp = viewer_connection->self_comp;
 
-	BT_COMP_LOGI("Getting %" PRIu32 " new streams:", stream_count);
+	BT_COMP_LOGI("Getting %" PRIu32 " new streams", stream_count);
 	for (i = 0; i < stream_count; i++) {
 		struct lttng_viewer_stream stream;
 		struct lttng_live_stream_iterator *live_stream;
@@ -1059,7 +1144,11 @@ enum lttng_live_viewer_status lttng_live_session_attach(
 	const size_t cmd_buf_len = sizeof(cmd) + sizeof(rq);
 	char cmd_buf[cmd_buf_len];
 
-	BT_COMP_LOGD("Attaching to session: session-id=%"PRIu64, session_id);
+	BT_COMP_LOGD("Attaching to session: cmd=%s, session-id=%" PRIu64
+		", seek=%s",
+		lttng_viewer_command_string(LTTNG_VIEWER_ATTACH_SESSION),
+		session_id,
+		lttng_viewer_seek_string(LTTNG_VIEWER_SEEK_LAST));
 
 	cmd.cmd = htobe32(LTTNG_VIEWER_ATTACH_SESSION);
 	cmd.data_size = htobe64((uint64_t) sizeof(rq));
@@ -1168,6 +1257,10 @@ enum lttng_live_viewer_status lttng_live_session_detach(
 		return 0;
 	}
 
+	BT_COMP_LOGD("Detaching from session: cmd=%s, session-id=%" PRIu64,
+		lttng_viewer_command_string(LTTNG_VIEWER_DETACH_SESSION),
+		session_id);
+
 	cmd.cmd = htobe32(LTTNG_VIEWER_DETACH_SESSION);
 	cmd.data_size = htobe64((uint64_t) sizeof(rq));
 	cmd.cmd_version = htobe32(0);
@@ -1243,8 +1336,9 @@ enum lttng_live_get_one_metadata_status lttng_live_get_one_metadata_packet(
 	const size_t cmd_buf_len = sizeof(cmd) + sizeof(rq);
 	char cmd_buf[cmd_buf_len];
 
-	BT_COMP_LOGD("Requesting new metadata for trace: "
-		"trace-id=%"PRIu64", metadata-stream-id=%"PRIu64,
+	BT_COMP_LOGD("Requesting new metadata for trace:"
+		"cmd=%s, trace-id=%" PRIu64 ", metadata-stream-id=%" PRIu64,
+		lttng_viewer_command_string(LTTNG_VIEWER_GET_METADATA),
 		trace->id, metadata->stream_id);
 
 	rq.stream_id = htobe64(metadata->stream_id);
@@ -1365,11 +1459,15 @@ static
 void lttng_live_need_new_streams(struct lttng_live_msg_iter *lttng_live_msg_iter)
 {
 	uint64_t session_idx;
+	struct live_viewer_connection *viewer_connection =
+		lttng_live_msg_iter->viewer_connection;
 
 	for (session_idx = 0; session_idx < lttng_live_msg_iter->sessions->len;
 			session_idx++) {
 		struct lttng_live_session *session =
-			g_ptr_array_index(lttng_live_msg_iter->sessions, session_idx);
+				g_ptr_array_index(lttng_live_msg_iter->sessions, session_idx);
+		BT_COMP_LOGD("Marking session as needing new streams: "
+				"session-id=%" PRIu64, session->id);
 		session->new_streams_needed = true;
 	}
 }
@@ -1393,13 +1491,13 @@ enum lttng_live_iterator_status lttng_live_get_next_index(
 	char cmd_buf[cmd_buf_len];
 	uint32_t flags, rp_status;
 
-	BT_COMP_LOGD("Requesting next index for stream: "
-		"stream-id=%"PRIu64, stream->viewer_stream_id);
-
+	BT_COMP_LOGD("Requesting next index for stream: cmd=%s, "
+			"viewer-stream-id=%" PRIu64,
+			lttng_viewer_command_string(LTTNG_VIEWER_GET_NEXT_INDEX),
+			stream->viewer_stream_id);
 	cmd.cmd = htobe32(LTTNG_VIEWER_GET_NEXT_INDEX);
 	cmd.data_size = htobe64((uint64_t) sizeof(rq));
 	cmd.cmd_version = htobe32(0);
-
 
 	memset(&rq, 0, sizeof(rq));
 	rq.stream_id = htobe64(stream->viewer_stream_id);
@@ -1411,6 +1509,7 @@ enum lttng_live_iterator_status lttng_live_get_next_index(
 	 */
 	memcpy(cmd_buf, &cmd, sizeof(cmd));
 	memcpy(cmd_buf + sizeof(cmd), &rq, sizeof(rq));
+
 	viewer_status = lttng_live_send(viewer_connection, &cmd_buf, cmd_buf_len);
 	if (viewer_status != LTTNG_LIVE_VIEWER_STATUS_OK) {
 		viewer_handle_send_status(self_comp, NULL,
@@ -1428,12 +1527,14 @@ enum lttng_live_iterator_status lttng_live_get_next_index(
 	flags = be32toh(rp.flags);
 	rp_status = be32toh(rp.status);
 
+	BT_COMP_LOGD("Received response from relay daemon: cmd=%s, response=%s",
+		lttng_viewer_command_string(LTTNG_VIEWER_GET_NEXT_INDEX),
+		lttng_viewer_next_index_return_code_string(rp_status));
 	switch (rp_status) {
 	case LTTNG_VIEWER_INDEX_INACTIVE:
 	{
 		uint64_t ctf_stream_class_id;
 
-		BT_COMP_LOGD("Received get_next_index response: inactive");
 		memset(index, 0, sizeof(struct packet_index));
 		index->ts_cycles.timestamp_end = be64toh(rp.timestamp_end);
 		stream->current_inactivity_ts = index->ts_cycles.timestamp_end;
@@ -1452,7 +1553,6 @@ enum lttng_live_iterator_status lttng_live_get_next_index(
 	{
 		uint64_t ctf_stream_class_id;
 
-		BT_COMP_LOGD("Received get_next_index response: OK");
 		lttng_index_to_packet_index(&rp, index);
 		ctf_stream_class_id = be64toh(rp.stream_id);
 		if (stream->ctf_stream_class_id != -1ULL) {
@@ -1465,24 +1565,27 @@ enum lttng_live_iterator_status lttng_live_get_next_index(
 		stream->state = LTTNG_LIVE_STREAM_ACTIVE_DATA;
 
 		if (flags & LTTNG_VIEWER_FLAG_NEW_METADATA) {
-			BT_COMP_LOGD("Received get_next_index response: new metadata needed");
+			BT_COMP_LOGD("Marking trace as needing new metadata: "
+				"response=%s, response-flag=NEW_METADATA, trace-id=%" PRIu64,
+				lttng_viewer_next_index_return_code_string(rp_status),
+				trace->id);
 			trace->metadata_stream_state = LTTNG_LIVE_METADATA_STREAM_STATE_NEEDED;
 		}
 		if (flags & LTTNG_VIEWER_FLAG_NEW_STREAM) {
-			BT_COMP_LOGD("Received get_next_index response: new streams needed");
+			BT_COMP_LOGD("Marking all sessions as possibly needing new streams: "
+				"response=%s, response-flag=NEW_STREAM",
+				lttng_viewer_next_index_return_code_string(rp_status));
 			lttng_live_need_new_streams(lttng_live_msg_iter);
 		}
 		status = LTTNG_LIVE_ITERATOR_STATUS_OK;
 		break;
 	}
 	case LTTNG_VIEWER_INDEX_RETRY:
-		BT_COMP_LOGD("Received get_next_index response: retry");
 		memset(index, 0, sizeof(struct packet_index));
 		stream->state = LTTNG_LIVE_STREAM_ACTIVE_NO_DATA;
 		status = LTTNG_LIVE_ITERATOR_STATUS_AGAIN;
 		goto end;
 	case LTTNG_VIEWER_INDEX_HUP:
-		BT_COMP_LOGD("Received get_next_index response: stream hung up");
 		memset(index, 0, sizeof(struct packet_index));
 		index->offset = EOF;
 		stream->state = LTTNG_LIVE_STREAM_EOF;
@@ -1490,7 +1593,6 @@ enum lttng_live_iterator_status lttng_live_get_next_index(
 		status = LTTNG_LIVE_ITERATOR_STATUS_END;
 		break;
 	case LTTNG_VIEWER_INDEX_ERR:
-		BT_COMP_LOGD("Received get_next_index response: error");
 		memset(index, 0, sizeof(struct packet_index));
 		stream->state = LTTNG_LIVE_STREAM_ACTIVE_NO_DATA;
 		status = LTTNG_LIVE_ITERATOR_STATUS_ERROR;
@@ -1529,8 +1631,11 @@ enum ctf_msg_iter_medium_status lttng_live_get_stream_bytes(
 	char cmd_buf[cmd_buf_len];
 	uint32_t flags, rp_status;
 
-	BT_COMP_LOGD("lttng_live_get_stream_bytes: offset=%" PRIu64 ", req_len=%" PRIu64,
+	BT_COMP_LOGD("Requesting data from stream: cmd=%s, "
+			"offset=%" PRIu64 ", request-len=%" PRIu64,
+			lttng_viewer_command_string(LTTNG_VIEWER_GET_PACKET),
 			offset, req_len);
+
 	cmd.cmd = htobe32(LTTNG_VIEWER_GET_PACKET);
 	cmd.data_size = htobe64((uint64_t) sizeof(rq));
 	cmd.cmd_version = htobe32(0);
@@ -1547,6 +1652,7 @@ enum ctf_msg_iter_medium_status lttng_live_get_stream_bytes(
 	 */
 	memcpy(cmd_buf, &cmd, sizeof(cmd));
 	memcpy(cmd_buf + sizeof(cmd), &rq, sizeof(rq));
+
 	viewer_status = lttng_live_send(viewer_connection, &cmd_buf, cmd_buf_len);
 	if (viewer_status != LTTNG_LIVE_VIEWER_STATUS_OK) {
 		viewer_handle_send_status(self_comp, NULL,
@@ -1564,30 +1670,40 @@ enum ctf_msg_iter_medium_status lttng_live_get_stream_bytes(
 	flags = be32toh(rp.flags);
 	rp_status = be32toh(rp.status);
 
+	BT_COMP_LOGD("Received response from relay daemon: cmd=%s, response=%s",
+		lttng_viewer_command_string(LTTNG_VIEWER_GET_PACKET),
+		lttng_viewer_get_packet_return_code_string(rp_status));
 	switch (rp_status) {
 	case LTTNG_VIEWER_GET_PACKET_OK:
 		req_len = be32toh(rp.len);
-		BT_COMP_LOGD("Received get_data_packet response: Ok, "
-			"packet size : %" PRIu64 "", req_len);
+		BT_COMP_LOGD("Got packet from relay daemon: response=%s, packet-len=%" PRIu64 "",
+			lttng_viewer_get_packet_return_code_string(rp_status),
+			req_len);
 		status = CTF_MSG_ITER_MEDIUM_STATUS_OK;
 		break;
 	case LTTNG_VIEWER_GET_PACKET_RETRY:
 		/* Unimplemented by relay daemon */
-		BT_COMP_LOGD("Received get_data_packet response: retry");
 		status = CTF_MSG_ITER_MEDIUM_STATUS_AGAIN;
 		goto end;
 	case LTTNG_VIEWER_GET_PACKET_ERR:
 		if (flags & LTTNG_VIEWER_FLAG_NEW_METADATA) {
-			BT_COMP_LOGD("get_data_packet: new metadata needed, try again later");
+			BT_COMP_LOGD("Marking trace as needing new metadata: "
+				"response=%s, response-flag=NEW_METADATA, trace-id=%" PRIu64,
+				lttng_viewer_next_index_return_code_string(rp_status),
+				trace->id);
 			trace->metadata_stream_state = LTTNG_LIVE_METADATA_STREAM_STATE_NEEDED;
 		}
 		if (flags & LTTNG_VIEWER_FLAG_NEW_STREAM) {
-			BT_COMP_LOGD("get_data_packet: new streams needed, try again later");
+			BT_COMP_LOGD("Marking all sessions as possibly needing new streams: "
+				"response=%s, response-flag=NEW_STREAM",
+				lttng_viewer_next_index_return_code_string(rp_status));
 			lttng_live_need_new_streams(lttng_live_msg_iter);
 		}
 		if (flags & (LTTNG_VIEWER_FLAG_NEW_METADATA
 				| LTTNG_VIEWER_FLAG_NEW_STREAM)) {
 			status = CTF_MSG_ITER_MEDIUM_STATUS_AGAIN;
+			BT_COMP_LOGD("Reply with any one flags set means we should retry: response=%s",
+				lttng_viewer_get_packet_return_code_string(rp_status));
 			goto end;
 		}
 		BT_COMP_LOGE_APPEND_CAUSE(self_comp,
@@ -1654,8 +1770,10 @@ enum lttng_live_iterator_status lttng_live_session_get_new_streams(
 		goto end;
 	}
 
-	BT_COMP_LOGD("Requesting new streams for session: "
-		"session-id=%"PRIu64, session->id);
+	BT_COMP_LOGD("Requesting new streams for session: cmd=%s"
+		"session-id=%" PRIu64,
+		lttng_viewer_command_string(LTTNG_VIEWER_GET_NEW_STREAMS),
+		session->id);
 
 	cmd.cmd = htobe32(LTTNG_VIEWER_GET_NEW_STREAMS);
 	cmd.data_size = htobe64((uint64_t) sizeof(rq));
@@ -1671,6 +1789,7 @@ enum lttng_live_iterator_status lttng_live_session_get_new_streams(
 	 */
 	memcpy(cmd_buf, &cmd, sizeof(cmd));
 	memcpy(cmd_buf + sizeof(cmd), &rq, sizeof(rq));
+
 	viewer_status = lttng_live_send(viewer_connection, &cmd_buf, cmd_buf_len);
 	if (viewer_status != LTTNG_LIVE_VIEWER_STATUS_OK) {
 		viewer_handle_send_status(self_comp, NULL,
