@@ -51,7 +51,8 @@ enum ctf_msg_iter_medium_status medop_request_bytes(
 
 	len_left = stream->base_offset + stream->len - stream->offset;
 	if (!len_left) {
-		stream->state = LTTNG_LIVE_STREAM_ACTIVE_NO_DATA;
+		lttng_live_stream_iterator_set_state(stream,
+				LTTNG_LIVE_STREAM_ACTIVE_NO_DATA);
 		status = CTF_MSG_ITER_MEDIUM_STATUS_AGAIN;
 		goto end;
 	}

@@ -86,6 +86,21 @@ const char *lttng_live_stream_state_string(enum lttng_live_stream_state state)
 	}
 }
 
+void lttng_live_stream_iterator_set_state(struct lttng_live_stream_iterator *stream_iter,
+		enum lttng_live_stream_state new_state)
+{
+	bt_self_component *self_comp = stream_iter->self_comp;
+	bt_logging_level log_level = stream_iter->log_level;
+
+	BT_COMP_LOGD("Setting live stream iterator state: viewer-stream-id=%" PRIu64
+		", old-state=%s, new-state=%s",
+		stream_iter->viewer_stream_id,
+		lttng_live_stream_state_string(stream_iter->state),
+		lttng_live_stream_state_string(new_state));
+
+	stream_iter->state = new_state;
+}
+
 #define LTTNG_LIVE_LOGD_STREAM_ITER(live_stream_iter) \
 	do { \
 		BT_COMP_LOGD("Live stream iterator state=%s, last-inact-ts=%" PRId64  \
@@ -687,7 +702,9 @@ enum lttng_live_iterator_status lttng_live_iterator_next_handle_one_quiescent_st
 	 */
 	if (lttng_live_stream->current_inactivity_ts ==
 			lttng_live_stream->last_inactivity_ts) {
-		lttng_live_stream->state = LTTNG_LIVE_STREAM_QUIESCENT_NO_DATA;
+		lttng_live_stream_iterator_set_state(lttng_live_stream,
+			LTTNG_LIVE_STREAM_QUIESCENT_NO_DATA);
+
 		ret = LTTNG_LIVE_ITERATOR_STATUS_CONTINUE;
 		goto end;
 	}

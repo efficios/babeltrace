@@ -1545,7 +1545,7 @@ enum lttng_live_iterator_status lttng_live_get_next_index(
 		} else {
 			stream->ctf_stream_class_id = ctf_stream_class_id;
 		}
-		stream->state = LTTNG_LIVE_STREAM_QUIESCENT;
+		lttng_live_stream_iterator_set_state(stream, LTTNG_LIVE_STREAM_QUIESCENT);
 		status = LTTNG_LIVE_ITERATOR_STATUS_OK;
 		break;
 	}
@@ -1562,7 +1562,7 @@ enum lttng_live_iterator_status lttng_live_get_next_index(
 			stream->ctf_stream_class_id = ctf_stream_class_id;
 		}
 
-		stream->state = LTTNG_LIVE_STREAM_ACTIVE_DATA;
+		lttng_live_stream_iterator_set_state(stream, LTTNG_LIVE_STREAM_ACTIVE_DATA);
 
 		if (flags & LTTNG_VIEWER_FLAG_NEW_METADATA) {
 			BT_COMP_LOGD("Marking trace as needing new metadata: "
@@ -1582,25 +1582,25 @@ enum lttng_live_iterator_status lttng_live_get_next_index(
 	}
 	case LTTNG_VIEWER_INDEX_RETRY:
 		memset(index, 0, sizeof(struct packet_index));
-		stream->state = LTTNG_LIVE_STREAM_ACTIVE_NO_DATA;
+		lttng_live_stream_iterator_set_state(stream, LTTNG_LIVE_STREAM_ACTIVE_NO_DATA);
 		status = LTTNG_LIVE_ITERATOR_STATUS_AGAIN;
 		goto end;
 	case LTTNG_VIEWER_INDEX_HUP:
 		memset(index, 0, sizeof(struct packet_index));
 		index->offset = EOF;
-		stream->state = LTTNG_LIVE_STREAM_EOF;
+		lttng_live_stream_iterator_set_state(stream, LTTNG_LIVE_STREAM_EOF);
 		stream->has_stream_hung_up = true;
 		status = LTTNG_LIVE_ITERATOR_STATUS_END;
 		break;
 	case LTTNG_VIEWER_INDEX_ERR:
 		memset(index, 0, sizeof(struct packet_index));
-		stream->state = LTTNG_LIVE_STREAM_ACTIVE_NO_DATA;
+		lttng_live_stream_iterator_set_state(stream, LTTNG_LIVE_STREAM_ACTIVE_NO_DATA);
 		status = LTTNG_LIVE_ITERATOR_STATUS_ERROR;
 		goto end;
 	default:
 		BT_COMP_LOGD("Received get_next_index response: unknown value");
 		memset(index, 0, sizeof(struct packet_index));
-		stream->state = LTTNG_LIVE_STREAM_ACTIVE_NO_DATA;
+		lttng_live_stream_iterator_set_state(stream, LTTNG_LIVE_STREAM_ACTIVE_NO_DATA);
 		status = LTTNG_LIVE_ITERATOR_STATUS_ERROR;
 		goto end;
 	}
