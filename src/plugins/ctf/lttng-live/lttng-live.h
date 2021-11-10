@@ -78,7 +78,10 @@ struct lttng_live_stream_iterator {
 	 * Clock Snapshot value of the last message iterator inactivity message
 	 * sent downstream.
 	 */
-	uint64_t last_inactivity_ts;
+	struct {
+		bool is_set;
+		uint64_t value;
+	} last_inactivity_ts;
 
 	/*
 	 * Clock Snapshot value of the current message iterator inactivity

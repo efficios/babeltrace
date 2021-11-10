@@ -103,10 +103,12 @@ void lttng_live_stream_iterator_set_state(struct lttng_live_stream_iterator *str
 
 #define LTTNG_LIVE_LOGD_STREAM_ITER(live_stream_iter) \
 	do { \
-		BT_COMP_LOGD("Live stream iterator state=%s, last-inact-ts=%" PRId64  \
-			", curr-inact-ts %" PRId64, \
+		BT_COMP_LOGD("Live stream iterator state=%s, " \
+			"last-inact-ts-is-set=%d, last-inact-ts-value=%" PRId64 "), " \
+			"curr-inact-ts %" PRId64, \
 			lttng_live_stream_state_string(live_stream_iter->state), \
-			live_stream_iter->last_inactivity_ts, \
+			live_stream_iter->last_inactivity_ts.is_set, \
+			live_stream_iter->last_inactivity_ts.value, \
 			live_stream_iter->current_inactivity_ts); \
 	} while (0);
 
@@ -418,11 +420,18 @@ enum lttng_live_iterator_status lttng_live_iterator_next_handle_one_no_data_stre
 	BT_ASSERT_DBG(lttng_live_stream->state != LTTNG_LIVE_STREAM_EOF);
 
 	if (lttng_live_stream->state == LTTNG_LIVE_STREAM_QUIESCENT) {
-		uint64_t last_inact_ts = lttng_live_stream->last_inactivity_ts,
+		uint64_t last_inact_ts = lttng_live_stream->last_inactivity_ts.value,
 			 curr_inact_ts = lttng_live_stream->current_inactivity_ts;
 
 		if (orig_state == LTTNG_LIVE_STREAM_QUIESCENT_NO_DATA &&
 				last_inact_ts == curr_inact_ts) {
+			/*
+		 	 * Because the stream is in the QUIESCENT_NO_DATA
+		 	 * state, we can assert that the last_inactivity_ts was
+		 	 * set and can be safely used in the `if` above.
+		 	 */
+			BT_ASSERT(lttng_live_stream->last_inactivity_ts.is_set);
+
 			ret = LTTNG_LIVE_ITERATOR_STATUS_AGAIN;
 			LTTNG_LIVE_LOGD_STREAM_ITER(lttng_live_stream);
 		} else {
@@ -700,8 +709,9 @@ enum lttng_live_iterator_status lttng_live_iterator_next_handle_one_quiescent_st
 	 * Check if we already sent an inactivty message downstream for this
 	 * `current_inactivity_ts` value.
 	 */
-	if (lttng_live_stream->current_inactivity_ts ==
-			lttng_live_stream->last_inactivity_ts) {
+	if (lttng_live_stream->last_inactivity_ts.is_set &&
+			lttng_live_stream->current_inactivity_ts ==
+				lttng_live_stream->last_inactivity_ts.value) {
 		lttng_live_stream_iterator_set_state(lttng_live_stream,
 			LTTNG_LIVE_STREAM_QUIESCENT_NO_DATA);
 
@@ -712,8 +722,9 @@ enum lttng_live_iterator_status lttng_live_iterator_next_handle_one_quiescent_st
 	ret = emit_inactivity_message(lttng_live_msg_iter, lttng_live_stream,
 		message, lttng_live_stream->current_inactivity_ts);
 
-	lttng_live_stream->last_inactivity_ts =
+	lttng_live_stream->last_inactivity_ts.value =
 		lttng_live_stream->current_inactivity_ts;
+	lttng_live_stream->last_inactivity_ts.is_set = true;
 end:
 	return ret;
 }
@@ -1152,7 +1163,7 @@ enum lttng_live_iterator_status handle_late_message(
 	clock_class = bt_stream_class_borrow_default_clock_class_const(stream_class);
 
 	ts_ns_status = bt_clock_class_cycles_to_ns_from_origin(clock_class,
-			stream_iter->last_inactivity_ts, &last_inactivity_ts_ns);
+			stream_iter->last_inactivity_ts.value, &last_inactivity_ts_ns);
 	if (ts_ns_status != BT_CLOCK_CLASS_CYCLES_TO_NS_FROM_ORIGIN_STATUS_OK) {
 		stream_iter_status = LTTNG_LIVE_ITERATOR_STATUS_ERROR;
 		goto end;
@@ -1185,14 +1196,14 @@ enum lttng_live_iterator_status handle_late_message(
 					lttng_live_msg_iter->self_msg_iter,
 					stream_iter->stream,
 					late_msg, &adjusted_message,
-					stream_iter->last_inactivity_ts);
+					stream_iter->last_inactivity_ts.value);
 			break;
 		case BT_MESSAGE_TYPE_DISCARDED_PACKETS:
 			adjust_status = adjust_discarded_packets_message(
 					lttng_live_msg_iter->self_msg_iter,
 					stream_iter->stream,
 					late_msg, &adjusted_message,
-					stream_iter->last_inactivity_ts);
+					stream_iter->last_inactivity_ts.value);
 			break;
 		default:
 			bt_common_abort();

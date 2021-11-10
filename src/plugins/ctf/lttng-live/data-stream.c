@@ -223,7 +223,8 @@ struct lttng_live_stream_iterator *lttng_live_stream_iterator_create(
 	stream_iter->state = LTTNG_LIVE_STREAM_ACTIVE_NO_DATA;
 	stream_iter->viewer_stream_id = stream_id;
 	stream_iter->ctf_stream_class_id = -1ULL;
-	stream_iter->last_inactivity_ts = INT64_MIN;
+	stream_iter->last_inactivity_ts.is_set = false;
+	stream_iter->last_inactivity_ts.value = 0;
 
 	if (trace->trace) {
 		struct ctf_trace_class *ctf_tc =
