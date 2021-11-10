@@ -62,7 +62,7 @@ struct bt_message *create_stream_message(
 	BT_ASSERT(stream_class);
 	BT_LIB_LOGD("Creating stream message object: "
 		"type=%s, %![stream-]+s, %![sc-]+S",
-		bt_message_type_string(type), stream, stream_class);
+		bt_common_message_type_string(type), stream, stream_class);
 	message = g_new0(struct bt_message_stream, 1);
 	if (!message) {
 		BT_LIB_LOGE_APPEND_CAUSE(

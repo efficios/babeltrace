@@ -895,6 +895,31 @@ const char *bt_common_component_class_type_string(
 	bt_common_abort();
 }
 
+static inline
+const char *bt_common_message_type_string(enum bt_message_type type)
+{
+	switch (type) {
+	case BT_MESSAGE_TYPE_STREAM_BEGINNING:
+		return "STREAM_BEGINNING";
+	case BT_MESSAGE_TYPE_STREAM_END:
+		return "STREAM_END";
+	case BT_MESSAGE_TYPE_EVENT:
+		return "EVENT";
+	case BT_MESSAGE_TYPE_PACKET_BEGINNING:
+		return "PACKET_BEGINNING";
+	case BT_MESSAGE_TYPE_PACKET_END:
+		return "PACKET_END";
+	case BT_MESSAGE_TYPE_DISCARDED_EVENTS:
+		return "DISCARDED_EVENTS";
+	case BT_MESSAGE_TYPE_DISCARDED_PACKETS:
+		return "DISCARDED_PACKETS";
+	case BT_MESSAGE_TYPE_MESSAGE_ITERATOR_INACTIVITY:
+		return "MESSAGE_ITERATOR_INACTIVITY";
+	}
+
+	bt_common_abort();
+}
+
 #ifdef __cplusplus
 }
 #endif

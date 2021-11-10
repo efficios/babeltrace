@@ -817,14 +817,14 @@
 		_BT_ASSERT_PRE_MSG_HAS_TYPE_ID(_msg_id, _type_id),	\
 		_BT_ASSERT_PRE_MSG_HAS_TYPE_COND((_msg), (_type)),	\
 		_BT_ASSERT_PRE_MSG_HAS_TYPE_FMT,			\
-		bt_message_type_string(_type), (_msg))
+		bt_common_message_type_string(_type), (_msg))
 
 #define BT_ASSERT_PRE_DEV_MSG_HAS_TYPE(_msg_id, _msg, _type_id, _type)	\
 	BT_ASSERT_PRE_DEV(						\
 		_BT_ASSERT_PRE_MSG_HAS_TYPE_ID(_msg_id, _type_id),	\
 		_BT_ASSERT_PRE_MSG_HAS_TYPE_COND((_msg), (_type)),	\
 		_BT_ASSERT_PRE_MSG_HAS_TYPE_FMT,			\
-		bt_message_type_string(_type), (_msg))
+		bt_common_message_type_string(_type), (_msg))
 
 #define _BT_ASSERT_PRE_MSG_NAME	"Message"
 #define _BT_ASSERT_PRE_MSG_ID	"message"

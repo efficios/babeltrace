@@ -932,7 +932,7 @@ static inline void format_message(char **buf_ch, bool extended,
 	char tmp_prefix[TMP_PREFIX_LEN];
 
 	BUF_APPEND(", %stype=%s",
-		PRFIELD(bt_message_type_string(msg->type)));
+		PRFIELD(bt_common_message_type_string(msg->type)));
 
 	if (!extended) {
 		return;

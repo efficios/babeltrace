@@ -94,7 +94,7 @@ struct bt_message *create_discarded_items_message(
 		has_support,
 		"Stream class does not support discarded events or packets: "
 		"type=%s, %![stream-]+s, %![sc-]+S",
-		bt_message_type_string(type), stream, stream_class);
+		bt_common_message_type_string(type), stream, stream_class);
 	BT_ASSERT_PRE_FROM_FUNC(api_func, "with-default-clock-snapshots",
 		need_cs ? with_cs : true,
 		"Unexpected stream class configuration when creating "
@@ -102,7 +102,7 @@ struct bt_message *create_discarded_items_message(
 		"default clock snapshots are needed, but none was provided: "
 		"type=%s, %![stream-]+s, %![sc-]+S, with-cs=%d, "
 		"cs-begin-val=%" PRIu64 ", cs-end-val=%" PRIu64,
-		bt_message_type_string(type), stream, stream_class,
+		bt_common_message_type_string(type), stream, stream_class,
 		with_cs, beginning_raw_value, end_raw_value);
 	BT_ASSERT_PRE_FROM_FUNC(api_func, "without-default-clock-snapshots",
 		!need_cs ? !with_cs : true,
@@ -111,12 +111,12 @@ struct bt_message *create_discarded_items_message(
 		"no default clock snapshots are needed, but two were provided: "
 		"type=%s, %![stream-]+s, %![sc-]+S, with-cs=%d, "
 		"cs-begin-val=%" PRIu64 ", cs-end-val=%" PRIu64,
-		bt_message_type_string(type), stream, stream_class,
+		bt_common_message_type_string(type), stream, stream_class,
 		with_cs, beginning_raw_value, end_raw_value);
 	BT_LIB_LOGD("Creating discarded items message object: "
 		"type=%s, %![stream-]+s, %![sc-]+S, with-cs=%d, "
 		"cs-begin-val=%" PRIu64 ", cs-end-val=%" PRIu64,
-		bt_message_type_string(type), stream, stream_class,
+		bt_common_message_type_string(type), stream, stream_class,
 		with_cs, beginning_raw_value, end_raw_value);
 	message = g_new0(struct bt_message_discarded_items, 1);
 	if (!message) {
