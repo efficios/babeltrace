@@ -65,7 +65,10 @@ struct lttng_live_stream_iterator {
 
 	uint64_t viewer_stream_id;
 
-	uint64_t ctf_stream_class_id;
+	struct {
+		bool is_set;
+		uint64_t value;
+	} ctf_stream_class_id;
 
 	/* base offset in current index. */
 	uint64_t base_offset;

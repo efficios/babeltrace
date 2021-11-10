@@ -671,7 +671,7 @@ enum lttng_live_iterator_status emit_inactivity_message(
 
 	BT_COMP_LOGD("Emitting inactivity message for stream: ctf-stream-id=%" PRIu64
 		", viewer-stream-id=%" PRIu64 ", timestamp=%" PRIu64,
-		stream_iter->ctf_stream_class_id,
+		stream_iter->ctf_stream_class_id.value,
 		stream_iter->viewer_stream_id, timestamp);
 
 	msg = bt_message_message_iterator_inactivity_create(

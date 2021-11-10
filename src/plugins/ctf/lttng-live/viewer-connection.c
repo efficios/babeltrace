@@ -1539,11 +1539,12 @@ enum lttng_live_iterator_status lttng_live_get_next_index(
 		index->ts_cycles.timestamp_end = be64toh(rp.timestamp_end);
 		stream->current_inactivity_ts = index->ts_cycles.timestamp_end;
 		ctf_stream_class_id = be64toh(rp.stream_id);
-		if (stream->ctf_stream_class_id != -1ULL) {
-			BT_ASSERT(stream->ctf_stream_class_id ==
+		if (stream->ctf_stream_class_id.is_set) {
+			BT_ASSERT(stream->ctf_stream_class_id.value==
 				ctf_stream_class_id);
 		} else {
-			stream->ctf_stream_class_id = ctf_stream_class_id;
+			stream->ctf_stream_class_id.value = ctf_stream_class_id;
+			stream->ctf_stream_class_id.is_set = true;
 		}
 		lttng_live_stream_iterator_set_state(stream, LTTNG_LIVE_STREAM_QUIESCENT);
 		status = LTTNG_LIVE_ITERATOR_STATUS_OK;
@@ -1555,11 +1556,12 @@ enum lttng_live_iterator_status lttng_live_get_next_index(
 
 		lttng_index_to_packet_index(&rp, index);
 		ctf_stream_class_id = be64toh(rp.stream_id);
-		if (stream->ctf_stream_class_id != -1ULL) {
-			BT_ASSERT(stream->ctf_stream_class_id ==
+		if (stream->ctf_stream_class_id.is_set) {
+			BT_ASSERT(stream->ctf_stream_class_id.value==
 				ctf_stream_class_id);
 		} else {
-			stream->ctf_stream_class_id = ctf_stream_class_id;
+			stream->ctf_stream_class_id.value = ctf_stream_class_id;
+			stream->ctf_stream_class_id.is_set = true;
 		}
 
 		lttng_live_stream_iterator_set_state(stream, LTTNG_LIVE_STREAM_ACTIVE_DATA);
