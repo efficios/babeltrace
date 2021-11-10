@@ -167,9 +167,9 @@ const char *bfcr_state_string(enum bfcr_state state)
 		return "READ_BASIC_CONTINUE";
 	case BFCR_STATE_DONE:
 		return "DONE";
-	default:
-		return "(unknown)";
 	}
+
+	bt_common_abort();
 }
 
 static

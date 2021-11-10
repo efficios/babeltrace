@@ -328,11 +328,13 @@ const char *ctf_msg_iter_medium_status_string(
 		return "AGAIN";
 	case CTF_MSG_ITER_MEDIUM_STATUS_ERROR:
 		return "ERROR";
+	case CTF_MSG_ITER_MEDIUM_STATUS_MEMORY_ERROR:
+		return "MEMORY_ERROR";
 	case CTF_MSG_ITER_MEDIUM_STATUS_OK:
 		return "OK";
-	default:
-		return "(unknown)";
 	}
+
+	bt_common_abort();
 }
 
 static inline
@@ -346,11 +348,13 @@ const char *ctf_msg_iter_status_string(
 		return "AGAIN";
 	case CTF_MSG_ITER_STATUS_ERROR:
 		return "ERROR";
+	case CTF_MSG_ITER_STATUS_MEMORY_ERROR:
+		return "MEMORY_ERROR";
 	case CTF_MSG_ITER_STATUS_OK:
 		return "OK";
-	default:
-		return "(unknown)";
 	}
+
+	bt_common_abort();
 }
 
 #endif /* CTF_MSG_ITER_H */

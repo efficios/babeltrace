@@ -355,9 +355,9 @@ const char *bt_bfcr_status_string(enum bt_bfcr_status status)
 		return "ERROR";
 	case BT_BFCR_STATUS_OK:
 		return "OK";
-	default:
-		return "(unknown)";
 	}
+
+	bt_common_abort();
 }
 
 #endif /* CTF_BFCR_H */

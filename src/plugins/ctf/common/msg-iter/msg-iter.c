@@ -275,6 +275,10 @@ const char *state_string(enum state state)
 		return "AFTER_STREAM_PACKET_CONTEXT";
 	case STATE_EMIT_MSG_STREAM_BEGINNING:
 		return "EMIT_MSG_STREAM_BEGINNING";
+	case STATE_CHECK_EMIT_MSG_DISCARDED_EVENTS:
+		return "CHECK_EMIT_MSG_DISCARDED_EVENTS";
+	case STATE_CHECK_EMIT_MSG_DISCARDED_PACKETS:
+		return "CHECK_EMIT_MSG_DISCARDED_PACKETS";
 	case STATE_EMIT_MSG_PACKET_BEGINNING:
 		return "EMIT_MSG_PACKET_BEGINNING";
 	case STATE_EMIT_MSG_DISCARDED_EVENTS:
@@ -317,9 +321,9 @@ const char *state_string(enum state state)
 		return "EMIT_MSG_STREAM_END";
 	case STATE_DONE:
 		return "DONE";
-	default:
-		return "(unknown)";
 	}
+
+	bt_common_abort();
 }
 
 static

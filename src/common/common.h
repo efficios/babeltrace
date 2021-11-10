@@ -485,14 +485,20 @@ const char *bt_common_field_class_type_string(enum bt_field_class_type class_typ
 		return "BOOL";
 	case BT_FIELD_CLASS_TYPE_BIT_ARRAY:
 		return "BIT_ARRAY";
+	case BT_FIELD_CLASS_TYPE_INTEGER:
+		return "INTEGER";
 	case BT_FIELD_CLASS_TYPE_UNSIGNED_INTEGER:
 		return "UNSIGNED_INTEGER";
 	case BT_FIELD_CLASS_TYPE_SIGNED_INTEGER:
 		return "SIGNED_INTEGER";
+	case BT_FIELD_CLASS_TYPE_ENUMERATION:
+		return "ENUMERATION";
 	case BT_FIELD_CLASS_TYPE_UNSIGNED_ENUMERATION:
 		return "UNSIGNED_ENUMERATION";
 	case BT_FIELD_CLASS_TYPE_SIGNED_ENUMERATION:
 		return "SIGNED_ENUMERATION";
+	case BT_FIELD_CLASS_TYPE_REAL:
+		return "REAL";
 	case BT_FIELD_CLASS_TYPE_SINGLE_PRECISION_REAL:
 		return "SINGLE_PRECISION_REAL";
 	case BT_FIELD_CLASS_TYPE_DOUBLE_PRECISION_REAL:
@@ -501,29 +507,47 @@ const char *bt_common_field_class_type_string(enum bt_field_class_type class_typ
 		return "STRING";
 	case BT_FIELD_CLASS_TYPE_STRUCTURE:
 		return "STRUCTURE";
+	case BT_FIELD_CLASS_TYPE_ARRAY:
+		return "ARRAY";
 	case BT_FIELD_CLASS_TYPE_STATIC_ARRAY:
 		return "STATIC_ARRAY";
+	case BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY:
+		return "DYNAMIC_ARRAY";
 	case BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITHOUT_LENGTH_FIELD:
 		return "DYNAMIC_ARRAY_WITHOUT_LENGTH_FIELD";
 	case BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITH_LENGTH_FIELD:
 		return "DYNAMIC_ARRAY_WITH_LENGTH_FIELD";
+	case BT_FIELD_CLASS_TYPE_OPTION:
+		return "OPTION";
 	case BT_FIELD_CLASS_TYPE_OPTION_WITHOUT_SELECTOR_FIELD:
 		return "OPTION_WITHOUT_SELECTOR_FIELD";
+	case BT_FIELD_CLASS_TYPE_OPTION_WITH_SELECTOR_FIELD:
+		return "OPTION_WITH_SELECTOR_FIELD";
 	case BT_FIELD_CLASS_TYPE_OPTION_WITH_BOOL_SELECTOR_FIELD:
 		return "OPTION_WITH_BOOL_SELECTOR_FIELD";
+	case BT_FIELD_CLASS_TYPE_OPTION_WITH_INTEGER_SELECTOR_FIELD:
+		return "OPTION_WITH_INTEGER_SELECTOR_FIELD";
 	case BT_FIELD_CLASS_TYPE_OPTION_WITH_UNSIGNED_INTEGER_SELECTOR_FIELD:
 		return "OPTION_WITH_UNSIGNED_INTEGER_SELECTOR_FIELD";
 	case BT_FIELD_CLASS_TYPE_OPTION_WITH_SIGNED_INTEGER_SELECTOR_FIELD:
 		return "OPTION_WITH_SIGNED_INTEGER_SELECTOR_FIELD";
+	case BT_FIELD_CLASS_TYPE_VARIANT:
+		return "VARIANT";
 	case BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR_FIELD:
 		return "VARIANT_WITHOUT_SELECTOR_FIELD";
+	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_SELECTOR_FIELD:
+		return "VARIANT_WITH_SELECTOR_FIELD";
+	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_INTEGER_SELECTOR_FIELD:
+		return "VARIANT_WITH_INTEGER_SELECTOR_FIELD";
 	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR_FIELD:
 		return "VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR_FIELD";
 	case BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_INTEGER_SELECTOR_FIELD:
 		return "VARIANT_WITH_SIGNED_INTEGER_SELECTOR_FIELD";
-	default:
-		return "(unknown)";
+	case __BT_FIELD_CLASS_TYPE_BIG_VALUE:
+		bt_common_abort ();
 	}
+
+	bt_common_abort();
 };
 
 static inline
@@ -538,9 +562,9 @@ const char *bt_common_field_class_integer_preferred_display_base_string(enum bt_
 		return "DECIMAL";
 	case BT_FIELD_CLASS_INTEGER_PREFERRED_DISPLAY_BASE_HEXADECIMAL:
 		return "HEXADECIMAL";
-	default:
-		return "(unknown)";
 	}
+
+	bt_common_abort();
 }
 
 static inline
@@ -555,9 +579,9 @@ const char *bt_common_scope_string(enum bt_field_path_scope scope)
 		return "EVENT_SPECIFIC_CONTEXT";
 	case BT_FIELD_PATH_SCOPE_EVENT_PAYLOAD:
 		return "EVENT_PAYLOAD";
-	default:
-		return "(unknown)";
 	}
+
+	bt_common_abort();
 }
 
 static inline
@@ -595,9 +619,9 @@ const char *bt_common_event_class_log_level_string(
 		return "DEBUG_LINE";
 	case BT_EVENT_CLASS_LOG_LEVEL_DEBUG:
 		return "DEBUG";
-	default:
-		return "(unknown)";
 	}
+
+	bt_common_abort();
 };
 
 static inline
@@ -608,6 +632,8 @@ const char *bt_common_value_type_string(enum bt_value_type type)
 		return "NULL";
 	case BT_VALUE_TYPE_BOOL:
 		return "BOOL";
+	case BT_VALUE_TYPE_INTEGER:
+		return "INTEGER";
 	case BT_VALUE_TYPE_UNSIGNED_INTEGER:
 		return "UNSIGNED_INTEGER";
 	case BT_VALUE_TYPE_SIGNED_INTEGER:
@@ -620,9 +646,9 @@ const char *bt_common_value_type_string(enum bt_value_type type)
 		return "ARRAY";
 	case BT_VALUE_TYPE_MAP:
 		return "MAP";
-	default:
-		return "(unknown)";
 	}
+
+	bt_common_abort();
 };
 
 static inline
@@ -682,9 +708,9 @@ const char *bt_common_logging_level_string(
 		return "FATAL";
 	case BT_LOGGING_LEVEL_NONE:
 		return "NONE";
-	default:
-		return "(unknown)";
 	}
+
+	bt_common_abort();
 };
 
 static inline
@@ -711,9 +737,9 @@ const char *bt_common_func_status_string(int status)
 		return "AGAIN";
 	case __BT_FUNC_STATUS_INTERRUPTED:
 		return "INTERRUPTED";
-	default:
-		return "(unknown)";
 	}
+
+	bt_common_abort();
 }
 
 #define NS_PER_S_I	INT64_C(1000000000)
@@ -864,9 +890,9 @@ const char *bt_common_component_class_type_string(
 		return "SINK";
 	case BT_COMPONENT_CLASS_TYPE_FILTER:
 		return "FILTER";
-	default:
-		return "(unknown)";
 	}
+
+	bt_common_abort();
 }
 
 #ifdef __cplusplus
