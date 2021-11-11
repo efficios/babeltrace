@@ -511,7 +511,7 @@ enum ctf_msg_iter_status request_medium_bytes(
 			"packet-offset=%zu, cur=%zu, size=%zu, addr=%p",
 			msg_it->buf.packet_offset, msg_it->buf.at,
 			msg_it->buf.sz, msg_it->buf.addr);
-		BT_COMP_LOGD_MEM(buffer_addr, buffer_sz, "Returned bytes at %p:",
+		BT_COMP_LOGT_MEM(buffer_addr, buffer_sz, "Returned bytes at %p:",
 			buffer_addr);
 	} else if (m_status == CTF_MSG_ITER_MEDIUM_STATUS_EOF) {
 		/*
