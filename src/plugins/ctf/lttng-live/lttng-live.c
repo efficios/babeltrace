@@ -1267,6 +1267,7 @@ enum lttng_live_iterator_status handle_late_message(
 	BT_ASSERT_DBG(adjusted_message);
 	stream_iter->current_msg = adjusted_message;
 	stream_iter->current_msg_ts_ns = last_inactivity_ts_ns;
+	bt_message_put_ref(late_msg);
 
 end:
 	return stream_iter_status;
