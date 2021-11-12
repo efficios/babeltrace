@@ -104,8 +104,8 @@ void lttng_live_stream_iterator_set_state(struct lttng_live_stream_iterator *str
 #define LTTNG_LIVE_LOGD_STREAM_ITER(live_stream_iter) \
 	do { \
 		BT_COMP_LOGD("Live stream iterator state=%s, " \
-			"last-inact-ts-is-set=%d, last-inact-ts-value=%" PRId64 "), " \
-			"curr-inact-ts %" PRId64, \
+			"last-inact-ts-is-set=%d, last-inact-ts-value=%" PRId64 ", " \
+			"curr-inact-ts=%" PRId64, \
 			lttng_live_stream_state_string(live_stream_iter->state), \
 			live_stream_iter->last_inactivity_ts.is_set, \
 			live_stream_iter->last_inactivity_ts.value, \
@@ -1066,7 +1066,7 @@ end:
 		goto retry;
 	}
 
-	BT_COMP_LOGD("Returning from advancing live stream iterator: status=%s"
+	BT_COMP_LOGD("Returning from advancing live stream iterator: status=%s, "
 			"stream-name=\"%s\", viewer-stream-id=%" PRIu64,
 			lttng_live_iterator_status_string(live_status),
 			stream_iter->name->str, stream_iter->viewer_stream_id);
@@ -1326,7 +1326,7 @@ enum lttng_live_iterator_status next_stream_iterator_for_trace(
 
 			BT_ASSERT_DBG(msg);
 
-			BT_COMP_LOGD("Live stream iterator returned message: msg-type=%s"
+			BT_COMP_LOGD("Live stream iterator returned message: msg-type=%s, "
 					"stream-name=\"%s\", viewer-stream-id=%" PRIu64,
 					bt_common_message_type_string(bt_message_get_type(msg)),
 					stream_iter->name->str, stream_iter->viewer_stream_id);

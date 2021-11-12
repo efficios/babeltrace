@@ -818,7 +818,7 @@ enum ctf_msg_iter_status read_packet_header_begin_state(
 	msg_it->cur_stream_class_id = -1;
 	msg_it->cur_event_class_id = -1;
 	msg_it->cur_data_stream_id = -1;
-	BT_COMP_LOGD("Decoding packet header field:"
+	BT_COMP_LOGD("Decoding packet header field: "
 		"msg-it-addr=%p, trace-class-addr=%p, fc-addr=%p",
 		msg_it, msg_it->meta.tc, packet_header_fc);
 	status = read_dscope_begin_state(msg_it, packet_header_fc,
