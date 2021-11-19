@@ -1772,7 +1772,7 @@ enum lttng_live_iterator_status lttng_live_session_get_new_streams(
 		goto end;
 	}
 
-	BT_COMP_LOGD("Requesting new streams for session: cmd=%s"
+	BT_COMP_LOGD("Requesting new streams for session: cmd=%s, "
 		"session-id=%" PRIu64,
 		lttng_viewer_command_string(LTTNG_VIEWER_GET_NEW_STREAMS),
 		session->id);
