@@ -1490,26 +1490,23 @@ backtrace when Valgrind shows errors.
 [[test-env]]
 === Environment
 
-`tests/utils/utils.sh` sets the environment variables for any {bt2}
-test script.
+Running `make check` in the build directory (regardless of whether the build is
+in-tree or out-of-tree) automatically sets up the appropriate environment for
+tests to run in, so nothing more is needed.
 
-`utils.sh` only needs to know the path to the `tests` directory within
-the source and the build directories. By default, `utils.sh` assumes the
-build is in tree, that is, you ran `./configure` from the source's root
-directory, and sets the `BT_TESTS_SRCDIR` and `BT_TESTS_BUILDDIR`
-environment variables accordingly. You can override those variables, for
-example if you build out of tree.
+If building in-tree, you can run single tests from the tree directly:
 
-All test scripts eventually do something like this to source `utils.sh`,
-according to where they are located relative to the `tests` directory:
-
-[source,bash]
 ----
-if [ "x${BT_TESTS_SRCDIR:-}" != "x" ]; then
-    UTILSSH="$BT_TESTS_SRCDIR/utils/utils.sh"
-else
-    UTILSSH="$(dirname "$0")/../utils/utils.sh"
-fi
+$ ./tests/plugins/sink.text.pretty/test_enum
+----
+
+If building out-of-tree, you can get the appropriate environment by sourcing
+the `tests/utils/env.sh` file residing in the build directory against which you
+want to run tests.
+
+----
+$ source /path/to/my/build/tests/utils/env.sh
+$ ./tests/plugins/sink.text.pretty/test_enum
 ----
 
 ==== Python
