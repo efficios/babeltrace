@@ -33,7 +33,7 @@ A component class can implement a query method to offer one or more
 
 Both the query parameters and the returned objects are \bt_p_val.
 
-The query operation feature exists so that you can get benefit from a
+The query operation feature exists so that you can benefit from a
 component class's implementation to get information about a trace, a
 stream, a distant server, and so on. For example, the
 <code>source.ctf.lttng-live</code> component class (see
