@@ -189,6 +189,25 @@ void ctf_fs_iterator_finalize(bt_self_message_iterator *it)
 		bt_self_message_iterator_get_data(it));
 }
 
+static
+bt_message_iterator_class_initialize_method_status
+ctf_msg_iter_medium_status_to_msg_iter_initialize_status
+	(enum ctf_msg_iter_medium_status status)
+{
+	switch (status) {
+	case CTF_MSG_ITER_MEDIUM_STATUS_EOF:
+	case CTF_MSG_ITER_MEDIUM_STATUS_AGAIN:
+	case CTF_MSG_ITER_MEDIUM_STATUS_ERROR:
+		return BT_MESSAGE_ITERATOR_CLASS_INITIALIZE_METHOD_STATUS_ERROR;
+	case CTF_MSG_ITER_MEDIUM_STATUS_MEMORY_ERROR:
+		return BT_MESSAGE_ITERATOR_CLASS_INITIALIZE_METHOD_STATUS_MEMORY_ERROR;
+	case CTF_MSG_ITER_MEDIUM_STATUS_OK:
+		return BT_MESSAGE_ITERATOR_CLASS_INITIALIZE_METHOD_STATUS_OK;
+	}
+
+	bt_common_abort();
+}
+
 BT_HIDDEN
 bt_message_iterator_class_initialize_method_status ctf_fs_iterator_init(
 		bt_self_message_iterator *self_msg_iter,
@@ -229,7 +248,7 @@ bt_message_iterator_class_initialize_method_status ctf_fs_iterator_init(
 	if (medium_status != CTF_MSG_ITER_MEDIUM_STATUS_OK) {
 		BT_MSG_ITER_LOGE_APPEND_CAUSE(self_msg_iter,
 			"Failed to create ctf_fs_ds_group_medops");
-		status = (int) medium_status;
+		status = ctf_msg_iter_medium_status_to_msg_iter_initialize_status(medium_status);
 		goto error;
 	}
 
