@@ -9,7 +9,7 @@ plugindir = "$(BABELTRACE_PLUGINS_DIR)"
 plugin_LTLIBRARIES = babeltrace-plugin-ctf.la
 
 # ctf plugin
-babeltrace_plugin_ctf_la_SOURCES = plugin.c
+babeltrace_plugin_ctf_la_SOURCES = plugin.cpp
 
 babeltrace_plugin_ctf_la_LDFLAGS = \
 	$(AM_LDFLAGS) \

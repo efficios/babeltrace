@@ -59,13 +59,13 @@ int bt_socket_fini(void)
 static inline
 int bt_socket_send(int sockfd, const void *buf, size_t len, int flags)
 {
-	return send(sockfd, buf, len, flags);
+	return send(sockfd, (const char *) buf, len, flags);
 }
 
 static inline
 int bt_socket_recv(int sockfd, void *buf, size_t len, int flags)
 {
-	return recv(sockfd, buf, len, flags);
+	return recv(sockfd, (char *) buf, len, flags);
 }
 
 static inline

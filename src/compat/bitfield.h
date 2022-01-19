@@ -189,7 +189,7 @@ do {									\
 #define _bt_bitfield_write_le(ptr, type, start, length, v)		\
 do {									\
 	__typeof__(v) _v = (v);					\
-	type *_ptr = (void *) (ptr);					\
+	type *_ptr = (type *) (ptr);					\
 	unsigned long _start = (start), _length = (length);		\
 	type _mask, _cmask;						\
 	unsigned long _ts = sizeof(type) * CHAR_BIT; /* type size */	\
@@ -248,7 +248,7 @@ do {									\
 #define _bt_bitfield_write_be(ptr, type, start, length, v)		\
 do {									\
 	__typeof__(v) _v = (v);						\
-	type *_ptr = (void *) (ptr);					\
+	type *_ptr = (type *) (ptr);					\
 	unsigned long _start = (start), _length = (length);		\
 	type _mask, _cmask;						\
 	unsigned long _ts = sizeof(type) * CHAR_BIT; /* type size */	\
@@ -409,7 +409,7 @@ do {									\
 do {									\
 	__typeof__(*(vptr)) *_vptr = (vptr);				\
 	__typeof__(*_vptr) _v;						\
-	type *_ptr = (void *) (ptr);					\
+	type *_ptr = (type *) (ptr);					\
 	unsigned long _start = (start), _length = (length);		\
 	type _mask, _cmask;						\
 	unsigned long _ts = sizeof(type) * CHAR_BIT; /* type size */	\

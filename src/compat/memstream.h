@@ -299,7 +299,7 @@ int bt_close_memstream(char **buf, size_t *size, FILE *fp)
 	}
 	*size = pos;
 	/* add final \0 */
-	*buf = calloc(pos + 1, sizeof(char));
+	*buf = (char *) calloc(pos + 1, sizeof(char));
 	if (!*buf) {
 		return -ENOMEM;
 	}

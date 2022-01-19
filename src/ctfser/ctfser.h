@@ -67,7 +67,7 @@ struct bt_ctfser {
  *
  * This function opens the file `path` for writing.
  */
-BT_HIDDEN
+BT_EXTERN_C BT_HIDDEN
 int bt_ctfser_init(struct bt_ctfser *ctfser, const char *path,
 		int log_level);
 
@@ -77,7 +77,7 @@ int bt_ctfser_init(struct bt_ctfser *ctfser, const char *path,
  * This function truncates the stream file so that there's no extra
  * padding after the last packet, and then closes the file.
  */
-BT_HIDDEN
+BT_EXTERN_C BT_HIDDEN
 int bt_ctfser_fini(struct bt_ctfser *ctfser);
 
 /*
@@ -85,17 +85,17 @@ int bt_ctfser_fini(struct bt_ctfser *ctfser);
  *
  * All the next writing functions are performed within this new packet.
  */
-BT_HIDDEN
+BT_EXTERN_C BT_HIDDEN
 int bt_ctfser_open_packet(struct bt_ctfser *ctfser);
 
 /*
  * Closes the current packet, making its size `packet_size_bytes`.
  */
-BT_HIDDEN
+BT_EXTERN_C BT_HIDDEN
 void bt_ctfser_close_current_packet(struct bt_ctfser *ctfser,
 		uint64_t packet_size_bytes);
 
-BT_HIDDEN
+BT_EXTERN_C BT_HIDDEN
 int _bt_ctfser_increase_cur_packet_size(struct bt_ctfser *ctfser);
 
 static inline
@@ -404,11 +404,11 @@ int bt_ctfser_write_unsigned_int(struct bt_ctfser *ctfser, uint64_t value,
 	}
 
 	if (byte_order == LITTLE_ENDIAN) {
-		bt_bitfield_write_le(mmap_align_addr(ctfser->base_mma) +
+		bt_bitfield_write_le((uint8_t *) mmap_align_addr(ctfser->base_mma) +
 			ctfser->mmap_base_offset, uint8_t,
 			ctfser->offset_in_cur_packet_bits, size_bits, value);
 	} else {
-		bt_bitfield_write_be(mmap_align_addr(ctfser->base_mma) +
+		bt_bitfield_write_be((uint8_t *) mmap_align_addr(ctfser->base_mma) +
 			ctfser->mmap_base_offset, uint8_t,
 			ctfser->offset_in_cur_packet_bits, size_bits, value);
 	}
@@ -449,11 +449,11 @@ int bt_ctfser_write_signed_int(struct bt_ctfser *ctfser, int64_t value,
 	}
 
 	if (byte_order == LITTLE_ENDIAN) {
-		bt_bitfield_write_le(mmap_align_addr(ctfser->base_mma) +
+		bt_bitfield_write_le((uint8_t *) mmap_align_addr(ctfser->base_mma) +
 			ctfser->mmap_base_offset, uint8_t,
 			ctfser->offset_in_cur_packet_bits, size_bits, value);
 	} else {
-		bt_bitfield_write_be(mmap_align_addr(ctfser->base_mma) +
+		bt_bitfield_write_be((uint8_t *) mmap_align_addr(ctfser->base_mma) +
 			ctfser->mmap_base_offset, uint8_t,
 			ctfser->offset_in_cur_packet_bits, size_bits, value);
 	}

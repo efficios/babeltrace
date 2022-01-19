@@ -11,6 +11,12 @@
 extern "C" {
 #endif
 
+#ifdef __cplusplus
+#define BT_EXTERN_C extern "C"
+#else
+#define BT_EXTERN_C
+#endif
+
 #define bt_max_t(type, a, b)	\
 	((type) (a) > (type) (b) ? (type) (a) : (type) (b))
 

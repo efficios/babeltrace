@@ -46,9 +46,9 @@ struct mmap_align_data *mmap_align(size_t length, int prot,
 
 	page_size = bt_common_get_page_size(log_level);
 
-	mma = malloc(sizeof(*mma));
+	mma = (struct mmap_align_data *) malloc(sizeof(*mma));
 	if (!mma)
-		return MAP_FAILED;
+		return (struct mmap_align_data *) MAP_FAILED;
 	mma->length = length;
 	page_aligned_offset = get_page_aligned_offset(offset, log_level);
 	/*
@@ -62,7 +62,7 @@ struct mmap_align_data *mmap_align(size_t length, int prot,
 		prot, flags, fd, page_aligned_offset, log_level);
 	if (mma->page_aligned_addr == MAP_FAILED) {
 		free(mma);
-		return MAP_FAILED;
+		return (struct mmap_align_data *) MAP_FAILED;
 	}
 	mma->addr = ((uint8_t *) mma->page_aligned_addr) + (offset - page_aligned_offset);
 	return mma;

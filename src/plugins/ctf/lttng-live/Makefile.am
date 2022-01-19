@@ -1,15 +1,15 @@
 # SPDX-License-Identifier: MIT
 
 libbabeltrace2_plugin_ctf_lttng_live_la_SOURCES = \
-		lttng-live.c \
-		lttng-live.h \
-		data-stream.c \
-		data-stream.h \
-		metadata.c \
-		metadata.h \
-		viewer-connection.c \
-		viewer-connection.h \
-		lttng-viewer-abi.h
+		lttng-live.cpp \
+		lttng-live.hpp \
+		data-stream.cpp \
+		data-stream.hpp \
+		metadata.cpp \
+		metadata.hpp \
+		viewer-connection.cpp \
+		viewer-connection.hpp \
+		lttng-viewer-abi.hpp
 
 libbabeltrace2_plugin_ctf_lttng_live_la_LIBADD =
 
