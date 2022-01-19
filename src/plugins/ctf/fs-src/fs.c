@@ -86,13 +86,13 @@ bt_message_iterator_class_next_method_status ctf_fs_iterator_next_one(
 		 */
 		bt_common_abort();
 
-	case CTF_MSG_ITER_MEDIUM_STATUS_ERROR:
+	case CTF_MSG_ITER_STATUS_ERROR:
 		BT_MSG_ITER_LOGE_APPEND_CAUSE(msg_iter_data->self_msg_iter,
 			"Failed to get next message from CTF message iterator.");
 		status = BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_ERROR;
 		break;
 
-	case CTF_MSG_ITER_MEDIUM_STATUS_MEMORY_ERROR:
+	case CTF_MSG_ITER_STATUS_MEMORY_ERROR:
 		BT_MSG_ITER_LOGE_APPEND_CAUSE(msg_iter_data->self_msg_iter,
 			"Failed to get next message from CTF message iterator.");
 		status = BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_MEMORY_ERROR;
