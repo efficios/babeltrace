@@ -22,7 +22,7 @@
  * cannot be forced, so we allocate at an address chosen by the OS.
  */
 
-struct mmap_align {
+struct mmap_align_data {
 	void *page_aligned_addr;	/* mmap address, aligned to floor */
 	size_t page_aligned_length;	/* mmap length, containing range */
 
@@ -37,10 +37,10 @@ off_t get_page_aligned_offset(off_t offset, int log_level)
 }
 
 static inline
-struct mmap_align *mmap_align(size_t length, int prot,
+struct mmap_align_data *mmap_align(size_t length, int prot,
 		int flags, int fd, off_t offset, int log_level)
 {
-	struct mmap_align *mma;
+	struct mmap_align_data *mma;
 	off_t page_aligned_offset;	/* mmap offset, aligned to floor */
 	size_t page_size;
 
@@ -69,7 +69,7 @@ struct mmap_align *mmap_align(size_t length, int prot,
 }
 
 static inline
-int munmap_align(struct mmap_align *mma)
+int munmap_align(struct mmap_align_data *mma)
 {
 	void *page_aligned_addr;
 	size_t page_aligned_length;
@@ -81,7 +81,7 @@ int munmap_align(struct mmap_align *mma)
 }
 
 static inline
-void *mmap_align_addr(struct mmap_align *mma)
+void *mmap_align_addr(struct mmap_align_data *mma)
 {
 	return mma->addr;
 }
@@ -90,7 +90,7 @@ void *mmap_align_addr(struct mmap_align *mma)
  * Helper for special-cases, normally unused.
  */
 static inline
-void mmap_align_set_addr(struct mmap_align *mma, void *addr)
+void mmap_align_set_addr(struct mmap_align_data *mma, void *addr)
 {
 	mma->addr = addr;
 }

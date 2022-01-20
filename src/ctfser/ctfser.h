@@ -53,7 +53,7 @@ struct bt_ctfser {
 	uint64_t stream_size_bytes;
 
 	/* Memory map base address */
-	struct mmap_align *base_mma;
+	struct mmap_align_data *base_mma;
 
 	/* Stream file's path (for debugging) */
 	GString *path;
