@@ -178,7 +178,7 @@ struct ctx_decl_scope {
 /*
  * Visitor context (private).
  */
-struct ctx {
+struct ctf_visitor_generate_ir {
 	struct meta_log_config log_cfg;
 
 	/* Trace IR trace class being filled (owned by this) */
@@ -212,7 +212,7 @@ struct ctf_visitor_generate_ir;
  * @returns		New declaration scope, or NULL on error
  */
 static
-struct ctx_decl_scope *ctx_decl_scope_create(struct ctx *ctx,
+struct ctx_decl_scope *ctx_decl_scope_create(struct ctf_visitor_generate_ir *ctx,
 		struct ctx_decl_scope *par_scope)
 {
 	struct ctx_decl_scope *scope;
@@ -260,7 +260,8 @@ end:
  * @returns		Associated GQuark, or 0 on error
  */
 static
-GQuark get_prefixed_named_quark(struct ctx *ctx, char prefix, const char *name)
+GQuark get_prefixed_named_quark(struct ctf_visitor_generate_ir *ctx, char prefix,
+		const char *name)
 {
 	GQuark qname = 0;
 
@@ -294,7 +295,7 @@ end:
  */
 static
 struct ctf_field_class *ctx_decl_scope_lookup_prefix_alias(
-		struct ctx *ctx, struct ctx_decl_scope *scope, char prefix,
+		struct ctf_visitor_generate_ir *ctx, struct ctx_decl_scope *scope, char prefix,
 		const char *name, int levels, bool copy)
 {
 	GQuark qname = 0;
@@ -345,7 +346,7 @@ end:
  *			or NULL if not found
  */
 static
-struct ctf_field_class *ctx_decl_scope_lookup_alias(struct ctx *ctx,
+struct ctf_field_class *ctx_decl_scope_lookup_alias(struct ctf_visitor_generate_ir *ctx,
 		struct ctx_decl_scope *scope, const char *name, int levels,
 		bool copy)
 {
@@ -364,7 +365,7 @@ struct ctf_field_class *ctx_decl_scope_lookup_alias(struct ctx *ctx,
  *			or NULL if not found
  */
 static
-struct ctf_field_class_enum *ctx_decl_scope_lookup_enum(struct ctx *ctx,
+struct ctf_field_class_enum *ctx_decl_scope_lookup_enum(struct ctf_visitor_generate_ir *ctx,
 		struct ctx_decl_scope *scope, const char *name, int levels,
 		bool copy)
 {
@@ -383,7 +384,7 @@ struct ctf_field_class_enum *ctx_decl_scope_lookup_enum(struct ctx *ctx,
  *			or NULL if not found
  */
 static
-struct ctf_field_class_struct *ctx_decl_scope_lookup_struct(struct ctx *ctx,
+struct ctf_field_class_struct *ctx_decl_scope_lookup_struct(struct ctf_visitor_generate_ir *ctx,
 		struct ctx_decl_scope *scope, const char *name, int levels,
 		bool copy)
 {
@@ -402,7 +403,7 @@ struct ctf_field_class_struct *ctx_decl_scope_lookup_struct(struct ctx *ctx,
  *			or NULL if not found
  */
 static
-struct ctf_field_class_variant *ctx_decl_scope_lookup_variant(struct ctx *ctx,
+struct ctf_field_class_variant *ctx_decl_scope_lookup_variant(struct ctf_visitor_generate_ir *ctx,
 		struct ctx_decl_scope *scope, const char *name, int levels,
 		bool copy)
 {
@@ -420,7 +421,7 @@ struct ctf_field_class_variant *ctx_decl_scope_lookup_variant(struct ctx *ctx,
  * @returns		0 if registration went okay, negative value otherwise
  */
 static
-int ctx_decl_scope_register_prefix_alias(struct ctx *ctx,
+int ctx_decl_scope_register_prefix_alias(struct ctf_visitor_generate_ir *ctx,
 		struct ctx_decl_scope *scope, char prefix, const char *name,
 		struct ctf_field_class *decl)
 {
@@ -460,8 +461,8 @@ end:
  * @returns	0 if registration went okay, negative value otherwise
  */
 static
-int ctx_decl_scope_register_alias(struct ctx *ctx, struct ctx_decl_scope *scope,
-		const char *name, struct ctf_field_class *decl)
+int ctx_decl_scope_register_alias(struct ctf_visitor_generate_ir *ctx,
+		struct ctx_decl_scope *scope, const char *name, struct ctf_field_class *decl)
 {
 	return ctx_decl_scope_register_prefix_alias(ctx, scope, _PREFIX_ALIAS,
 		name, (void *) decl);
@@ -476,8 +477,9 @@ int ctx_decl_scope_register_alias(struct ctx *ctx, struct ctx_decl_scope *scope,
  * @returns	0 if registration went okay, negative value otherwise
  */
 static
-int ctx_decl_scope_register_enum(struct ctx *ctx, struct ctx_decl_scope *scope,
-		const char *name, struct ctf_field_class_enum *decl)
+int ctx_decl_scope_register_enum(struct ctf_visitor_generate_ir *ctx,
+		struct ctx_decl_scope *scope, const char *name,
+		struct ctf_field_class_enum *decl)
 {
 	return ctx_decl_scope_register_prefix_alias(ctx, scope, _PREFIX_ENUM,
 		name, (void *) decl);
@@ -492,7 +494,7 @@ int ctx_decl_scope_register_enum(struct ctx *ctx, struct ctx_decl_scope *scope,
  * @returns	0 if registration went okay, negative value otherwise
  */
 static
-int ctx_decl_scope_register_struct(struct ctx *ctx,
+int ctx_decl_scope_register_struct(struct ctf_visitor_generate_ir *ctx,
 		struct ctx_decl_scope *scope, const char *name,
 		struct ctf_field_class_struct *decl)
 {
@@ -509,7 +511,7 @@ int ctx_decl_scope_register_struct(struct ctx *ctx,
  * @returns	0 if registration went okay, negative value otherwise
  */
 static
-int ctx_decl_scope_register_variant(struct ctx *ctx,
+int ctx_decl_scope_register_variant(struct ctf_visitor_generate_ir *ctx,
 		struct ctx_decl_scope *scope, const char *name,
 		struct ctf_field_class_variant *decl)
 {
@@ -523,7 +525,7 @@ int ctx_decl_scope_register_variant(struct ctx *ctx,
  * @param ctx	Visitor context to destroy
  */
 static
-void ctx_destroy(struct ctx *ctx)
+void ctx_destroy(struct ctf_visitor_generate_ir *ctx)
 {
 	struct ctx_decl_scope *scope;
 
@@ -562,13 +564,14 @@ end:
  * @returns	New visitor context, or NULL on error
  */
 static
-struct ctx *ctx_create(const struct ctf_metadata_decoder_config *decoder_config)
+struct ctf_visitor_generate_ir *ctx_create(
+		const struct ctf_metadata_decoder_config *decoder_config)
 {
-	struct ctx *ctx = NULL;
+	struct ctf_visitor_generate_ir *ctx = NULL;
 
 	BT_ASSERT(decoder_config);
 
-	ctx = g_new0(struct ctx, 1);
+	ctx = g_new0(struct ctf_visitor_generate_ir, 1);
 	if (!ctx) {
 		BT_COMP_LOG_CUR_LVL(BT_LOG_ERROR, decoder_config->log_level,
 			decoder_config->self_comp,
@@ -621,7 +624,7 @@ end:
  * @returns	0 on success, or a negative value on error
  */
 static
-int ctx_push_scope(struct ctx *ctx)
+int ctx_push_scope(struct ctf_visitor_generate_ir *ctx)
 {
 	int ret = 0;
 	struct ctx_decl_scope *new_scope;
@@ -641,7 +644,7 @@ end:
 }
 
 static
-void ctx_pop_scope(struct ctx *ctx)
+void ctx_pop_scope(struct ctf_visitor_generate_ir *ctx)
 {
 	struct ctx_decl_scope *parent_scope = NULL;
 
@@ -660,8 +663,8 @@ end:
 }
 
 static
-int visit_field_class_specifier_list(struct ctx *ctx, struct ctf_node *ts_list,
-		struct ctf_field_class **decl);
+int visit_field_class_specifier_list(struct ctf_visitor_generate_ir *ctx,
+		struct ctf_node *ts_list, struct ctf_field_class **decl);
 
 static
 int is_unary_string(struct bt_list_head *head)
@@ -761,7 +764,7 @@ int is_unary_unsigned(struct bt_list_head *head)
 }
 
 static
-int get_unary_unsigned(struct ctx *ctx, struct bt_list_head *head,
+int get_unary_unsigned(struct ctf_visitor_generate_ir *ctx, struct bt_list_head *head,
 		uint64_t *value)
 {
 	int i = 0;
@@ -854,7 +857,7 @@ end:
 }
 
 static
-int get_unary_uuid(struct ctx *ctx, struct bt_list_head *head,
+int get_unary_uuid(struct ctf_visitor_generate_ir *ctx, struct bt_list_head *head,
 		bt_uuid_t uuid)
 {
 	return ctf_ast_get_unary_uuid(head, uuid, ctx->log_cfg.log_level,
@@ -862,7 +865,7 @@ int get_unary_uuid(struct ctx *ctx, struct bt_list_head *head,
 }
 
 static
-int get_boolean(struct ctx *ctx, struct ctf_node *unary_expr)
+int get_boolean(struct ctf_visitor_generate_ir *ctx, struct ctf_node *unary_expr)
 {
 	int ret = 0;
 
@@ -910,7 +913,7 @@ end:
 }
 
 static
-enum ctf_byte_order byte_order_from_unary_expr(struct ctx *ctx,
+enum ctf_byte_order byte_order_from_unary_expr(struct ctf_visitor_generate_ir *ctx,
 		struct ctf_node *unary_expr)
 {
 	const char *str;
@@ -943,7 +946,7 @@ end:
 }
 
 static
-enum ctf_byte_order get_real_byte_order(struct ctx *ctx,
+enum ctf_byte_order get_real_byte_order(struct ctf_visitor_generate_ir *ctx,
 		struct ctf_node *uexpr)
 {
 	enum ctf_byte_order bo = byte_order_from_unary_expr(ctx, uexpr);
@@ -962,8 +965,8 @@ int is_align_valid(uint64_t align)
 }
 
 static
-int get_class_specifier_name(struct ctx *ctx, struct ctf_node *cls_specifier,
-		GString *str)
+int get_class_specifier_name(struct ctf_visitor_generate_ir *ctx,
+		struct ctf_node *cls_specifier, GString *str)
 {
 	int ret = 0;
 
@@ -1080,7 +1083,7 @@ end:
 }
 
 static
-int get_class_specifier_list_name(struct ctx *ctx,
+int get_class_specifier_list_name(struct ctf_visitor_generate_ir *ctx,
 		struct ctf_node *cls_specifier_list, GString *str)
 {
 	int ret = 0;
@@ -1106,7 +1109,7 @@ end:
 }
 
 static
-GQuark create_class_alias_identifier(struct ctx *ctx,
+GQuark create_class_alias_identifier(struct ctf_visitor_generate_ir *ctx,
 		struct ctf_node *cls_specifier_list,
 		struct ctf_node *node_field_class_declarator)
 {
@@ -1142,7 +1145,7 @@ end:
 }
 
 static
-int visit_field_class_declarator(struct ctx *ctx,
+int visit_field_class_declarator(struct ctf_visitor_generate_ir *ctx,
 		struct ctf_node *cls_specifier_list,
 		GQuark *field_name, struct ctf_node *node_field_class_declarator,
 		struct ctf_field_class **field_decl,
@@ -1402,7 +1405,7 @@ end:
 }
 
 static
-int visit_struct_decl_field(struct ctx *ctx,
+int visit_struct_decl_field(struct ctf_visitor_generate_ir *ctx,
 		struct ctf_field_class_struct *struct_decl,
 		struct ctf_node *cls_specifier_list,
 		struct bt_list_head *field_class_declarators)
@@ -1453,7 +1456,7 @@ error:
 }
 
 static
-int visit_variant_decl_field(struct ctx *ctx,
+int visit_variant_decl_field(struct ctf_visitor_generate_ir *ctx,
 		struct ctf_field_class_variant *variant_decl,
 		struct ctf_node *cls_specifier_list,
 		struct bt_list_head *field_class_declarators)
@@ -1504,7 +1507,8 @@ error:
 }
 
 static
-int visit_field_class_def(struct ctx *ctx, struct ctf_node *cls_specifier_list,
+int visit_field_class_def(struct ctf_visitor_generate_ir *ctx,
+		struct ctf_node *cls_specifier_list,
 		struct bt_list_head *field_class_declarators)
 {
 	int ret = 0;
@@ -1552,7 +1556,7 @@ end:
 }
 
 static
-int visit_field_class_alias(struct ctx *ctx, struct ctf_node *target,
+int visit_field_class_alias(struct ctf_visitor_generate_ir *ctx, struct ctf_node *target,
 		struct ctf_node *alias)
 {
 	int ret = 0;
@@ -1625,7 +1629,7 @@ end:
 }
 
 static
-int visit_struct_decl_entry(struct ctx *ctx, struct ctf_node *entry_node,
+int visit_struct_decl_entry(struct ctf_visitor_generate_ir *ctx, struct ctf_node *entry_node,
 		struct ctf_field_class_struct *struct_decl)
 {
 	int ret = 0;
@@ -1675,7 +1679,7 @@ end:
 }
 
 static
-int visit_variant_decl_entry(struct ctx *ctx, struct ctf_node *entry_node,
+int visit_variant_decl_entry(struct ctf_visitor_generate_ir *ctx, struct ctf_node *entry_node,
 		struct ctf_field_class_variant *variant_decl)
 {
 	int ret = 0;
@@ -1726,7 +1730,7 @@ end:
 }
 
 static
-int visit_struct_decl(struct ctx *ctx, const char *name,
+int visit_struct_decl(struct ctf_visitor_generate_ir *ctx, const char *name,
 		struct bt_list_head *decl_list, int has_body,
 		struct bt_list_head *min_align,
 		struct ctf_field_class_struct **struct_decl)
@@ -1819,7 +1823,7 @@ error:
 }
 
 static
-int visit_variant_decl(struct ctx *ctx, const char *name,
+int visit_variant_decl(struct ctf_visitor_generate_ir *ctx, const char *name,
 	const char *tag, struct bt_list_head *decl_list,
 	int has_body, struct ctf_field_class_variant **variant_decl)
 {
@@ -1927,7 +1931,7 @@ struct uori {
 };
 
 static
-int visit_enum_decl_entry(struct ctx *ctx, struct ctf_node *enumerator,
+int visit_enum_decl_entry(struct ctf_visitor_generate_ir *ctx, struct ctf_node *enumerator,
 		struct ctf_field_class_enum *enum_decl, struct uori *last)
 {
 	int ret = 0;
@@ -2017,7 +2021,7 @@ error:
 }
 
 static
-int visit_enum_decl(struct ctx *ctx, const char *name,
+int visit_enum_decl(struct ctf_visitor_generate_ir *ctx, const char *name,
 		struct ctf_node *container_cls,
 		struct bt_list_head *enumerator_list,
 		int has_body, struct ctf_field_class_enum **enum_decl)
@@ -2133,7 +2137,7 @@ end:
 }
 
 static
-int visit_field_class_specifier(struct ctx *ctx,
+int visit_field_class_specifier(struct ctf_visitor_generate_ir *ctx,
 		struct ctf_node *cls_specifier_list,
 		struct ctf_field_class **decl)
 {
@@ -2173,7 +2177,7 @@ end:
 }
 
 static
-int visit_integer_decl(struct ctx *ctx,
+int visit_integer_decl(struct ctf_visitor_generate_ir *ctx,
 		struct bt_list_head *expressions,
 		struct ctf_field_class_int **integer_decl)
 {
@@ -2543,7 +2547,7 @@ error:
 }
 
 static
-int visit_floating_point_number_decl(struct ctx *ctx,
+int visit_floating_point_number_decl(struct ctf_visitor_generate_ir *ctx,
 		struct bt_list_head *expressions,
 		struct ctf_field_class_float **float_decl)
 {
@@ -2727,7 +2731,7 @@ error:
 }
 
 static
-int visit_string_decl(struct ctx *ctx,
+int visit_string_decl(struct ctf_visitor_generate_ir *ctx,
 		struct bt_list_head *expressions,
 		struct ctf_field_class_string **string_decl)
 {
@@ -2823,7 +2827,7 @@ error:
 }
 
 static
-int visit_field_class_specifier_list(struct ctx *ctx,
+int visit_field_class_specifier_list(struct ctf_visitor_generate_ir *ctx,
 		struct ctf_node *ts_list, struct ctf_field_class **decl)
 {
 	int ret = 0;
@@ -2945,7 +2949,7 @@ error:
 }
 
 static
-int visit_event_decl_entry(struct ctx *ctx, struct ctf_node *node,
+int visit_event_decl_entry(struct ctf_visitor_generate_ir *ctx, struct ctf_node *node,
 		struct ctf_event_class *event_class, uint64_t *stream_id,
 		int *set)
 {
@@ -3208,7 +3212,7 @@ end:
 }
 
 static
-char *get_event_decl_name(struct ctx *ctx, struct ctf_node *node)
+char *get_event_decl_name(struct ctf_visitor_generate_ir *ctx, struct ctf_node *node)
 {
 	char *left = NULL;
 	char *name = NULL;
@@ -3253,7 +3257,7 @@ error:
 }
 
 static
-int visit_event_decl(struct ctx *ctx, struct ctf_node *node)
+int visit_event_decl(struct ctf_visitor_generate_ir *ctx, struct ctf_node *node)
 {
 	int ret = 0;
 	int set = 0;
@@ -3382,7 +3386,7 @@ end:
 }
 
 static
-int auto_map_field_to_trace_clock_class(struct ctx *ctx,
+int auto_map_field_to_trace_clock_class(struct ctf_visitor_generate_ir *ctx,
 		struct ctf_field_class *fc)
 {
 	struct ctf_clock_class *clock_class_to_map_to = NULL;
@@ -3447,7 +3451,7 @@ end:
 }
 
 static
-int auto_map_fields_to_trace_clock_class(struct ctx *ctx,
+int auto_map_fields_to_trace_clock_class(struct ctf_visitor_generate_ir *ctx,
 		struct ctf_field_class *root_fc, const char *field_name)
 {
 	int ret = 0;
@@ -3508,7 +3512,7 @@ end:
 }
 
 static
-int visit_stream_decl_entry(struct ctx *ctx, struct ctf_node *node,
+int visit_stream_decl_entry(struct ctf_visitor_generate_ir *ctx, struct ctf_node *node,
 		struct ctf_stream_class *stream_class, int *set)
 {
 	int ret = 0;
@@ -3688,7 +3692,7 @@ error:
 }
 
 static
-int visit_stream_decl(struct ctx *ctx, struct ctf_node *node)
+int visit_stream_decl(struct ctf_visitor_generate_ir *ctx, struct ctf_node *node)
 {
 	int set = 0;
 	int ret = 0;
@@ -3787,7 +3791,8 @@ end:
 }
 
 static
-int visit_trace_decl_entry(struct ctx *ctx, struct ctf_node *node, int *set)
+int visit_trace_decl_entry(struct ctf_visitor_generate_ir *ctx, struct ctf_node *node,
+		int *set)
 {
 	int ret = 0;
 	char *left = NULL;
@@ -3945,7 +3950,7 @@ error:
 }
 
 static
-int visit_trace_decl(struct ctx *ctx, struct ctf_node *node)
+int visit_trace_decl(struct ctf_visitor_generate_ir *ctx, struct ctf_node *node)
 {
 	int ret = 0;
 	int set = 0;
@@ -4009,7 +4014,7 @@ error:
 }
 
 static
-int visit_env(struct ctx *ctx, struct ctf_node *node)
+int visit_env(struct ctf_visitor_generate_ir *ctx, struct ctf_node *node)
 {
 	int ret = 0;
 	char *left = NULL;
@@ -4107,7 +4112,7 @@ error:
 }
 
 static
-int set_trace_byte_order(struct ctx *ctx, struct ctf_node *trace_node)
+int set_trace_byte_order(struct ctf_visitor_generate_ir *ctx, struct ctf_node *trace_node)
 {
 	int ret = 0;
 	int set = 0;
@@ -4181,7 +4186,7 @@ error:
 }
 
 static
-int visit_clock_decl_entry(struct ctx *ctx, struct ctf_node *entry_node,
+int visit_clock_decl_entry(struct ctf_visitor_generate_ir *ctx, struct ctf_node *entry_node,
 	struct ctf_clock_class *clock, int *set, int64_t *offset_seconds,
 	uint64_t *offset_cycles)
 {
@@ -4416,7 +4421,7 @@ void calibrate_clock_class_offsets(int64_t *offset_seconds,
 }
 
 static
-void apply_clock_class_is_absolute(struct ctx *ctx,
+void apply_clock_class_is_absolute(struct ctf_visitor_generate_ir *ctx,
 		struct ctf_clock_class *clock)
 {
 	if (ctx->decoder_config.force_clock_class_origin_unix_epoch) {
@@ -4427,7 +4432,7 @@ void apply_clock_class_is_absolute(struct ctx *ctx,
 }
 
 static
-void apply_clock_class_offset(struct ctx *ctx,
+void apply_clock_class_offset(struct ctf_visitor_generate_ir *ctx,
 		struct ctf_clock_class *clock)
 {
 	uint64_t freq;
@@ -4486,7 +4491,7 @@ end:
 }
 
 static
-int visit_clock_decl(struct ctx *ctx, struct ctf_node *clock_node)
+int visit_clock_decl(struct ctf_visitor_generate_ir *ctx, struct ctf_node *clock_node)
 {
 	int ret = 0;
 	int set = 0;
@@ -4566,7 +4571,7 @@ end:
 }
 
 static
-int visit_root_decl(struct ctx *ctx, struct ctf_node *root_decl_node)
+int visit_root_decl(struct ctf_visitor_generate_ir *ctx, struct ctf_node *root_decl_node)
 {
 	int ret = 0;
 
@@ -4633,7 +4638,7 @@ BT_HIDDEN
 struct ctf_visitor_generate_ir *ctf_visitor_generate_ir_create(
 		const struct ctf_metadata_decoder_config *decoder_config)
 {
-	struct ctx *ctx = NULL;
+	struct ctf_visitor_generate_ir *ctx = NULL;
 
 	/* Create visitor's context */
 	ctx = ctx_create(decoder_config);
@@ -4651,21 +4656,19 @@ error:
 	ctx = NULL;
 
 end:
-	return (void *) ctx;
+	return ctx;
 }
 
 BT_HIDDEN
 void ctf_visitor_generate_ir_destroy(struct ctf_visitor_generate_ir *visitor)
 {
-	ctx_destroy((void *) visitor);
+	ctx_destroy(visitor);
 }
 
 BT_HIDDEN
 bt_trace_class *ctf_visitor_generate_ir_get_ir_trace_class(
-		struct ctf_visitor_generate_ir *visitor)
+		struct ctf_visitor_generate_ir *ctx)
 {
-	struct ctx *ctx = (void *) visitor;
-
 	BT_ASSERT_DBG(ctx);
 
 	if (ctx->trace_class) {
@@ -4677,21 +4680,18 @@ bt_trace_class *ctf_visitor_generate_ir_get_ir_trace_class(
 
 BT_HIDDEN
 struct ctf_trace_class *ctf_visitor_generate_ir_borrow_ctf_trace_class(
-		struct ctf_visitor_generate_ir *visitor)
+		struct ctf_visitor_generate_ir *ctx)
 {
-	struct ctx *ctx = (void *) visitor;
-
 	BT_ASSERT_DBG(ctx);
 	BT_ASSERT_DBG(ctx->ctf_tc);
 	return ctx->ctf_tc;
 }
 
 BT_HIDDEN
-int ctf_visitor_generate_ir_visit_node(struct ctf_visitor_generate_ir *visitor,
+int ctf_visitor_generate_ir_visit_node(struct ctf_visitor_generate_ir *ctx,
 		struct ctf_node *node)
 {
 	int ret = 0;
-	struct ctx *ctx = (void *) visitor;
 
 	BT_COMP_LOGI_STR("Visiting metadata's AST to generate CTF IR objects.");
 
