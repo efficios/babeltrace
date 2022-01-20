@@ -39,6 +39,7 @@ format_cpp() {
 	find "$root_dir" \( -name '*.cpp' -o -name '*.hpp' \) \
 		! -wholename '*/cpp-common/optional.hpp' \
 		! -wholename '*/cpp-common/string_view.hpp' \
+		! -wholename '*/cpp-common/nlohmann/json.hpp' \
 		-print0 | xargs -P$(nproc) -n1 -0 $formatter
 }
 
