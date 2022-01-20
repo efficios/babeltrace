@@ -5,11 +5,10 @@ end_of_line = lf
 insert_final_newline = true
 trim_trailing_whitespace = true
 charset = utf-8
-
-[*.{c,h,i}]
+indent_size = 8
 indent_style = tab
 tab_width = 8
 
-[*.py]
+[*.{py,hpp,cpp}]
 indent_style = space
 indent_size = 4
