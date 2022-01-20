@@ -14,7 +14,7 @@
 #ifndef container_of
 #define container_of(ptr, type, member)					\
 	({								\
-		const typeof(((type *)NULL)->member) * __ptr = (ptr);	\
+		const __typeof__(((type *)NULL)->member) * __ptr = (ptr);	\
 		(type *)((char *)__ptr - offsetof(type, member));	\
 	})
 #endif

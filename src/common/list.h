@@ -130,20 +130,20 @@ bt_list_splice (struct bt_list_head *add, struct bt_list_head *head)
        pos = p, p = pos->prev)
 
 #define bt_list_for_each_entry(pos, head, member)				\
-	for (pos = bt_list_entry((head)->next, typeof(*pos), member);	\
+	for (pos = bt_list_entry((head)->next, __typeof__(*pos), member);	\
 	     &pos->member != (head);					\
-	     pos = bt_list_entry(pos->member.next, typeof(*pos), member))
+	     pos = bt_list_entry(pos->member.next, __typeof__(*pos), member))
 
 #define bt_list_for_each_entry_reverse(pos, head, member)			\
-	for (pos = bt_list_entry((head)->prev, typeof(*pos), member);	\
+	for (pos = bt_list_entry((head)->prev, __typeof__(*pos), member);	\
 	     &pos->member != (head);					\
-	     pos = bt_list_entry(pos->member.prev, typeof(*pos), member))
+	     pos = bt_list_entry(pos->member.prev, __typeof__(*pos), member))
 
 #define bt_list_for_each_entry_safe(pos, p, head, member)			\
-	for (pos = bt_list_entry((head)->next, typeof(*pos), member),	\
-		     p = bt_list_entry(pos->member.next,typeof(*pos), member); \
+	for (pos = bt_list_entry((head)->next, __typeof__(*pos), member),	\
+		     p = bt_list_entry(pos->member.next, __typeof__(*pos), member); \
 	     &pos->member != (head);					\
-	     pos = p, p = bt_list_entry(pos->member.next, typeof(*pos), member))
+	     pos = p, p = bt_list_entry(pos->member.next, __typeof__(*pos), member))
 
 static inline int bt_list_empty(struct bt_list_head *head)
 {

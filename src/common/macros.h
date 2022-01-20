@@ -43,7 +43,7 @@ extern "C" {
 
 #define BT_MOVE_REF(ref) 		\
 	({				\
-		typeof(ref) _ref = ref;	\
+		__typeof__(ref) _ref = ref;	\
 		ref = NULL;		\
 		_ref;			\
 	})
