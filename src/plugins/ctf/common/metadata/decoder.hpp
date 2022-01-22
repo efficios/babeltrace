@@ -22,40 +22,42 @@ struct ctf_trace_class;
 struct ctf_metadata_decoder;
 
 /* CTF metadata decoder status */
-enum ctf_metadata_decoder_status {
-	CTF_METADATA_DECODER_STATUS_OK			= 0,
-	CTF_METADATA_DECODER_STATUS_NONE		= 1,
-	CTF_METADATA_DECODER_STATUS_ERROR		= -1,
-	CTF_METADATA_DECODER_STATUS_INCOMPLETE		= -2,
-	CTF_METADATA_DECODER_STATUS_INVAL_VERSION	= -3,
-	CTF_METADATA_DECODER_STATUS_IR_VISITOR_ERROR	= -4,
+enum ctf_metadata_decoder_status
+{
+    CTF_METADATA_DECODER_STATUS_OK = 0,
+    CTF_METADATA_DECODER_STATUS_NONE = 1,
+    CTF_METADATA_DECODER_STATUS_ERROR = -1,
+    CTF_METADATA_DECODER_STATUS_INCOMPLETE = -2,
+    CTF_METADATA_DECODER_STATUS_INVAL_VERSION = -3,
+    CTF_METADATA_DECODER_STATUS_IR_VISITOR_ERROR = -4,
 };
 
 /* Decoding configuration */
-struct ctf_metadata_decoder_config {
-	/* Active log level to use */
-	bt_logging_level log_level;
+struct ctf_metadata_decoder_config
+{
+    /* Active log level to use */
+    bt_logging_level log_level;
 
-	/*
-	 * Component or component class to use for logging (exactly one of
-	 * them must be non-`NULL`); weak
-	 */
-	bt_self_component *self_comp;
-	bt_self_component_class *self_comp_class;
+    /*
+     * Component or component class to use for logging (exactly one of
+     * them must be non-`NULL`); weak
+     */
+    bt_self_component *self_comp;
+    bt_self_component_class *self_comp_class;
 
-	/* Additional clock class offset to apply */
-	int64_t clock_class_offset_s;
-	int64_t clock_class_offset_ns;
-	bool force_clock_class_origin_unix_epoch;
+    /* Additional clock class offset to apply */
+    int64_t clock_class_offset_s;
+    int64_t clock_class_offset_ns;
+    bool force_clock_class_origin_unix_epoch;
 
-	/* True to create trace class objects */
-	bool create_trace_class;
+    /* True to create trace class objects */
+    bool create_trace_class;
 
-	/*
-	 * True to keep the plain text when content is appended with
-	 * ctf_metadata_decoder_append_content().
-	 */
-	bool keep_plain_text;
+    /*
+     * True to keep the plain text when content is appended with
+     * ctf_metadata_decoder_append_content().
+     */
+    bool keep_plain_text;
 };
 
 /*
@@ -64,16 +66,15 @@ struct ctf_metadata_decoder_config {
  * Returns `NULL` on error.
  */
 BT_HIDDEN
-struct ctf_metadata_decoder *ctf_metadata_decoder_create(
-		const struct ctf_metadata_decoder_config *config);
+struct ctf_metadata_decoder *
+ctf_metadata_decoder_create(const struct ctf_metadata_decoder_config *config);
 
 /*
  * Destroys a CTF metadata decoder that you created with
  * ctf_metadata_decoder_create().
  */
 BT_HIDDEN
-void ctf_metadata_decoder_destroy(
-		struct ctf_metadata_decoder *metadata_decoder);
+void ctf_metadata_decoder_destroy(struct ctf_metadata_decoder *metadata_decoder);
 
 /*
  * Appends content to the metadata decoder.
@@ -97,8 +98,8 @@ void ctf_metadata_decoder_destroy(
  * `CTF_METADATA_DECODER_STATUS_OK`.
  */
 BT_HIDDEN
-enum ctf_metadata_decoder_status ctf_metadata_decoder_append_content(
-		struct ctf_metadata_decoder *metadata_decoder, FILE *fp);
+enum ctf_metadata_decoder_status
+ctf_metadata_decoder_append_content(struct ctf_metadata_decoder *metadata_decoder, FILE *fp);
 
 /*
  * Returns the trace IR trace class of this metadata decoder (new
@@ -108,8 +109,7 @@ enum ctf_metadata_decoder_status ctf_metadata_decoder_append_content(
  * configured to create trace classes.
  */
 BT_HIDDEN
-bt_trace_class *ctf_metadata_decoder_get_ir_trace_class(
-		struct ctf_metadata_decoder *mdec);
+bt_trace_class *ctf_metadata_decoder_get_ir_trace_class(struct ctf_metadata_decoder *mdec);
 
 /*
  * Returns the CTF IR trace class of this metadata decoder.
@@ -118,8 +118,8 @@ bt_trace_class *ctf_metadata_decoder_get_ir_trace_class(
  * configured to create trace classes.
  */
 BT_HIDDEN
-struct ctf_trace_class *ctf_metadata_decoder_borrow_ctf_trace_class(
-		struct ctf_metadata_decoder *mdec);
+struct ctf_trace_class *
+ctf_metadata_decoder_borrow_ctf_trace_class(struct ctf_metadata_decoder *mdec);
 
 /*
  * Checks whether or not a given metadata file stream `fp` is
@@ -131,9 +131,8 @@ struct ctf_trace_class *ctf_metadata_decoder_borrow_ctf_trace_class(
  * `self_comp` can be `NULL` if not available.
  */
 BT_HIDDEN
-int ctf_metadata_decoder_is_packetized(FILE *fp, bool *is_packetized,
-		int *byte_order, bt_logging_level log_level,
-		bt_self_component *self_comp);
+int ctf_metadata_decoder_is_packetized(FILE *fp, bool *is_packetized, int *byte_order,
+                                       bt_logging_level log_level, bt_self_component *self_comp);
 
 /*
  * Returns the byte order of the decoder's metadata stream as set by the
@@ -149,8 +148,7 @@ int ctf_metadata_decoder_get_byte_order(struct ctf_metadata_decoder *mdec);
  * call to ctf_metadata_decoder_append_content().
  */
 BT_HIDDEN
-int ctf_metadata_decoder_get_uuid(
-		struct ctf_metadata_decoder *mdec, bt_uuid_t uuid);
+int ctf_metadata_decoder_get_uuid(struct ctf_metadata_decoder *mdec, bt_uuid_t uuid);
 
 /*
  * Returns the UUID of the decoder's trace class, if available.
@@ -162,8 +160,8 @@ int ctf_metadata_decoder_get_uuid(
  * * `CTF_METADATA_DECODER_STATUS_INCOMPLETE`: missing metadata content.
  */
 BT_HIDDEN
-enum ctf_metadata_decoder_status ctf_metadata_decoder_get_trace_class_uuid(
-		struct ctf_metadata_decoder *mdec, bt_uuid_t uuid);
+enum ctf_metadata_decoder_status
+ctf_metadata_decoder_get_trace_class_uuid(struct ctf_metadata_decoder *mdec, bt_uuid_t uuid);
 
 /*
  * Returns the metadata decoder's current metadata text.
@@ -171,11 +169,10 @@ enum ctf_metadata_decoder_status ctf_metadata_decoder_get_trace_class_uuid(
 BT_HIDDEN
 const char *ctf_metadata_decoder_get_text(struct ctf_metadata_decoder *mdec);
 
-static inline
-bool ctf_metadata_decoder_is_packet_version_valid(unsigned int major,
-		unsigned int minor)
+static inline bool ctf_metadata_decoder_is_packet_version_valid(unsigned int major,
+                                                                unsigned int minor)
 {
-	return major == 1 && minor == 8;
+    return major == 1 && minor == 8;
 }
 
 #endif /* _METADATA_DECODER_H */
