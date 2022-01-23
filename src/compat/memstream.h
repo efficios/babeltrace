@@ -224,6 +224,8 @@ error_free:
 
 #else /* __MINGW32__ */
 
+#include <unistd.h>
+
 /*
  * Fallback for systems which don't have open_memstream. Create FILE *
  * with bt_open_memstream, but require call to
