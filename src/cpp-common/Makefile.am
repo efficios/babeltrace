@@ -1,3 +1,3 @@
 # SPDX-License-Identifier: MIT
 
-EXTRA_DIST = bt2
+EXTRA_DIST = bt2 optional.hpp

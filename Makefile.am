@@ -19,6 +19,7 @@ dist_noinst_DATA = CodingStyle
 EXTRA_DIST = \
 	LICENSES/BSD-2-Clause \
 	LICENSES/BSD-4-Clause \
+	LICENSES/BSL-1.0 \
 	LICENSES/CC-BY-SA-4.0 \
 	LICENSES/GPL-2.0 \
 	LICENSES/GPL-3.0 \
