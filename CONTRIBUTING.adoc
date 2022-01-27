@@ -1680,8 +1680,7 @@ https://clang.llvm.org/docs/ClangFormatStyleOptions.html[style] of the
 You _must_ format modified and new {cpp} files with clang-format before
 you create a contribution patch.
 
-You need clang-format{nbsp}≥{nbsp}10 to use the project's `.clang-format`
-file.
+You need clang-format{nbsp}13 to use the project's `.clang-format` file.
 
 To automatically format all the project's {cpp} files, run:
 
