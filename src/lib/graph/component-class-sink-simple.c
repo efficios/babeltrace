@@ -34,6 +34,15 @@ struct simple_sink_data {
 };
 
 static
+void simple_sink_data_destroy(struct simple_sink_data *data)
+{
+	if (data) {
+		BT_OBJECT_PUT_REF_AND_RESET(data->msg_iter);
+		g_free(data);
+	}
+}
+
+static
 enum bt_component_class_initialize_method_status simple_sink_init(
 		bt_self_component_sink *self_comp,
 		bt_self_component_sink_configuration *config,
@@ -63,10 +72,13 @@ enum bt_component_class_initialize_method_status simple_sink_init(
 		goto end;
 	}
 
+	/* Transfer ownership to component */
 	bt_self_component_set_data(
 		bt_self_component_sink_as_self_component(self_comp), data);
+	data = NULL;
 
 end:
+	simple_sink_data_destroy(data);
 	return status;
 }
 
@@ -76,16 +88,15 @@ void simple_sink_finalize(struct bt_self_component_sink *self_comp)
 	struct simple_sink_data *data = bt_self_component_get_data(
 		bt_self_component_sink_as_self_component(self_comp));
 
-	if (data) {
-		if (data->init_method_data.finalize_func) {
-			/* Call user's finalization function */
-			data->init_method_data.finalize_func(
-				data->init_method_data.user_data);
-		}
+	BT_ASSERT(data);
 
-		BT_OBJECT_PUT_REF_AND_RESET(data->msg_iter);
-		g_free(data);
+	if (data->init_method_data.finalize_func) {
+		/* Call user's finalization function */
+		data->init_method_data.finalize_func(
+			data->init_method_data.user_data);
 	}
+
+	simple_sink_data_destroy(data);
 }
 
 static
