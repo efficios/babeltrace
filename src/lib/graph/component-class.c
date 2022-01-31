@@ -36,15 +36,17 @@ void destroy_component_class(struct bt_object *obj)
 	BT_LIB_LOGI("Destroying component class: %!+C", class);
 
 	/* Call destroy listeners in reverse registration order */
-	for (i = class->destroy_listeners->len - 1; i >= 0; i--) {
-		struct bt_component_class_destroy_listener *listener =
-			&g_array_index(class->destroy_listeners,
-				struct bt_component_class_destroy_listener,
-				i);
+	if (class->destroy_listeners) {
+		for (i = class->destroy_listeners->len - 1; i >= 0; i--) {
+			struct bt_component_class_destroy_listener *listener =
+				&g_array_index(class->destroy_listeners,
+					struct bt_component_class_destroy_listener,
+					i);
 
-		BT_LOGD("Calling destroy listener: func-addr=%p, data-addr=%p",
-			listener->func, listener->data);
-		listener->func(class, listener->data);
+			BT_LOGD("Calling destroy listener: func-addr=%p, data-addr=%p",
+				listener->func, listener->data);
+			listener->func(class, listener->data);
+		}
 	}
 
 	if (class->name) {
