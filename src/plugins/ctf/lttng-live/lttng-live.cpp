@@ -1797,8 +1797,8 @@ lttng_live_msg_iter_init(bt_self_message_iterator *self_msg_it,
 
     lttng_live_msg_iter = lttng_live_msg_iter_create(lttng_live, self_msg_it);
     if (!lttng_live_msg_iter) {
-        status = BT_MESSAGE_ITERATOR_CLASS_INITIALIZE_METHOD_STATUS_MEMORY_ERROR;
         BT_COMP_LOGE_APPEND_CAUSE(self_comp, "Failed to create lttng_live_msg_iter");
+        status = BT_MESSAGE_ITERATOR_CLASS_INITIALIZE_METHOD_STATUS_MEMORY_ERROR;
         goto error;
     }
 
@@ -1815,6 +1815,8 @@ lttng_live_msg_iter_init(bt_self_message_iterator *self_msg_it,
              */
             BT_COMP_LOGE_APPEND_CAUSE(self_comp, "Interrupted while creating viewer connection");
         }
+
+        status = BT_MESSAGE_ITERATOR_CLASS_INITIALIZE_METHOD_STATUS_ERROR;
         goto error;
     }
 
@@ -1829,6 +1831,8 @@ lttng_live_msg_iter_init(bt_self_message_iterator *self_msg_it,
              */
             BT_COMP_LOGE_APPEND_CAUSE(self_comp, "Interrupted when creating viewer session");
         }
+
+        status = BT_MESSAGE_ITERATOR_CLASS_INITIALIZE_METHOD_STATUS_ERROR;
         goto error;
     }
 
@@ -1848,6 +1852,7 @@ lttng_live_msg_iter_init(bt_self_message_iterator *self_msg_it,
                 "component parameter: url =\"%s\"",
                 SESS_NOT_FOUND_ACTION_PARAM, SESS_NOT_FOUND_ACTION_FAIL_STR,
                 lttng_live->params.url->str);
+            status = BT_MESSAGE_ITERATOR_CLASS_INITIALIZE_METHOD_STATUS_ERROR;
             goto error;
         case SESSION_NOT_FOUND_ACTION_END:
             BT_COMP_LOGI(
@@ -1867,7 +1872,6 @@ lttng_live_msg_iter_init(bt_self_message_iterator *self_msg_it,
     goto end;
 
 error:
-    status = BT_MESSAGE_ITERATOR_CLASS_INITIALIZE_METHOD_STATUS_ERROR;
     lttng_live_msg_iter_destroy(lttng_live_msg_iter);
 end:
     return status;
