@@ -607,9 +607,7 @@ lttng_live_iterator_handle_new_streams_and_metadata(struct lttng_live_msg_iter *
         status = lttng_live_get_session(lttng_live_msg_iter, session);
         switch (status) {
         case LTTNG_LIVE_ITERATOR_STATUS_OK:
-            break;
         case LTTNG_LIVE_ITERATOR_STATUS_END:
-            status = LTTNG_LIVE_ITERATOR_STATUS_OK;
             break;
         default:
             goto end;
