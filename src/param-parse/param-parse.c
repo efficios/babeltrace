@@ -290,7 +290,7 @@ bt_value *ini_parse_map(struct ini_parsing_state *state)
 			goto error;
 		}
 
-		token_type = g_scanner_get_next_token(state->scanner);
+		g_scanner_get_next_token(state->scanner);
 
 		/* Parse the entry value... */
 		entry_value = ini_parse_value(state);
