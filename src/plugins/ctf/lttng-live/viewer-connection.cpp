@@ -1556,7 +1556,6 @@ lttng_live_get_stream_bytes(struct lttng_live_msg_iter *lttng_live_msg_iter,
         req_len = be32toh(rp.len);
         BT_COMP_LOGD("Got packet from relay daemon: response=%s, packet-len=%" PRIu64 "",
                      lttng_viewer_get_packet_return_code_string(rp_status), req_len);
-        status = CTF_MSG_ITER_MEDIUM_STATUS_OK;
         break;
     case LTTNG_VIEWER_GET_PACKET_RETRY:
         /* Unimplemented by relay daemon */
