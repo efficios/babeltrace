@@ -47,21 +47,16 @@ end:
 }
 
 static bt_param_validation_map_value_entry_descr fs_sink_params_descr[] = {
-    {"path",
-     BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_MANDATORY,
-     {bt_param_validation_value_descr::string_t}},
-    {"assume-single-trace",
-     BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_OPTIONAL,
-     {bt_param_validation_value_descr::bool_t}},
-    {"ignore-discarded-events",
-     BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_OPTIONAL,
-     {bt_param_validation_value_descr::bool_t}},
-    {"ignore-discarded-packets",
-     BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_OPTIONAL,
-     {bt_param_validation_value_descr::bool_t}},
-    {"quiet",
-     BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_OPTIONAL,
-     {bt_param_validation_value_descr::bool_t}},
+    {"path", BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_MANDATORY,
+     bt_param_validation_value_descr::makeString()},
+    {"assume-single-trace", BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_OPTIONAL,
+     bt_param_validation_value_descr::makeBool()},
+    {"ignore-discarded-events", BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_OPTIONAL,
+     bt_param_validation_value_descr::makeBool()},
+    {"ignore-discarded-packets", BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_OPTIONAL,
+     bt_param_validation_value_descr::makeBool()},
+    {"quiet", BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_OPTIONAL,
+     bt_param_validation_value_descr::makeBool()},
     BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_END};
 
 static bt_component_class_initialize_method_status configure_component(struct fs_sink_comp *fs_sink,

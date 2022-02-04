@@ -19,7 +19,7 @@ struct bt_param_validation_value_descr;
 
 #if defined(__cplusplus)
 #define BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_END \
-	{ bt_param_validation_map_value_entry_descr::end }
+	{ bt_param_validation_map_value_entry_descr {} }
 #else
 #define BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_END { NULL, 0, {} }
 #endif
@@ -53,29 +53,45 @@ typedef enum bt_param_validation_status
 
 struct bt_param_validation_value_descr {
 #if defined(__cplusplus)
-	static struct {} array_t;
-	static struct {} string_t;
-	static struct {} signed_integer_t;
-	static struct {} bool_t;
-
-	bt_param_validation_value_descr(decltype(array_t),
+	static bt_param_validation_value_descr makeArray(
 			uint64_t min_length, uint64_t max_length,
 			const bt_param_validation_value_descr &element_type)
-		: type{BT_VALUE_TYPE_ARRAY}, array{min_length, max_length, &element_type}
-	{}
+	{
+		bt_param_validation_value_descr descr {BT_VALUE_TYPE_ARRAY};
 
-	bt_param_validation_value_descr(decltype(string_t),
+		descr.array.min_length = min_length;
+		descr.array.max_length = max_length;
+		descr.array.element_type = &element_type;
+
+		return descr;
+	}
+
+	static bt_param_validation_value_descr makeString(
 			const char **choices = nullptr)
-		: type{BT_VALUE_TYPE_STRING}, string{choices}
-        {}
+	{
+		bt_param_validation_value_descr descr {BT_VALUE_TYPE_STRING};
 
-	bt_param_validation_value_descr(decltype(signed_integer_t))
-		: type{BT_VALUE_TYPE_SIGNED_INTEGER}
+		descr.string.choices = choices;
+
+		return descr;
+	}
+
+	static bt_param_validation_value_descr makeSignedInteger()
+	{
+		return bt_param_validation_value_descr {BT_VALUE_TYPE_SIGNED_INTEGER};
+	}
+
+	static bt_param_validation_value_descr makeBool()
+	{
+		return bt_param_validation_value_descr {BT_VALUE_TYPE_BOOL};
+	}
+
+private:
+	bt_param_validation_value_descr(bt_value_type type_)
+		: type {type_}
 	{}
 
-	bt_param_validation_value_descr(decltype(bool_t))
-		: type{BT_VALUE_TYPE_BOOL}
-	{}
+public:
 #endif
 
 	bt_value_type type;
@@ -107,12 +123,14 @@ struct bt_param_validation_value_descr {
 
 struct bt_param_validation_map_value_entry_descr {
 #if defined(__cplusplus)
-	static struct {} end;
-
-	bt_param_validation_map_value_entry_descr(decltype(end))
+	/*
+	 * Construct an "end" descriptor, used to denote the end of a descriptor
+	 * list.
+	 */
+	bt_param_validation_map_value_entry_descr()
 		: key{nullptr},
 		/* These values are not important. */
-		is_optional{false}, value_descr(bt_param_validation_value_descr::bool_t)
+		is_optional{false}, value_descr(bt_param_validation_value_descr::makeBool())
 	{}
 
 	bt_param_validation_map_value_entry_descr(const char *key_, bool is_optional_,

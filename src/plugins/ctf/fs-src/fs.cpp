@@ -2189,26 +2189,21 @@ end:
     return ret;
 }
 
-static const bt_param_validation_value_descr inputs_elem_descr {
-    bt_param_validation_value_descr::string_t};
+static const bt_param_validation_value_descr inputs_elem_descr =
+    bt_param_validation_value_descr::makeString();
 
 static bt_param_validation_map_value_entry_descr fs_params_entries_descr[] = {
-    {"inputs",
-     BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_MANDATORY,
-     {bt_param_validation_value_descr::array_t, 1, BT_PARAM_VALIDATION_INFINITE,
-      inputs_elem_descr}},
-    {"trace-name",
-     BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_OPTIONAL,
-     {bt_param_validation_value_descr::string_t}},
-    {"clock-class-offset-s",
-     BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_OPTIONAL,
-     {bt_param_validation_value_descr::signed_integer_t}},
-    {"clock-class-offset-ns",
-     BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_OPTIONAL,
-     {bt_param_validation_value_descr::signed_integer_t}},
-    {"force-clock-class-origin-unix-epoch",
-     BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_OPTIONAL,
-     {bt_param_validation_value_descr::bool_t}},
+    {"inputs", BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_MANDATORY,
+     bt_param_validation_value_descr::makeArray(1, BT_PARAM_VALIDATION_INFINITE,
+                                                inputs_elem_descr)},
+    {"trace-name", BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_OPTIONAL,
+     bt_param_validation_value_descr::makeString()},
+    {"clock-class-offset-s", BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_OPTIONAL,
+     bt_param_validation_value_descr::makeSignedInteger()},
+    {"clock-class-offset-ns", BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_OPTIONAL,
+     bt_param_validation_value_descr::makeSignedInteger()},
+    {"force-clock-class-origin-unix-epoch", BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_OPTIONAL,
+     bt_param_validation_value_descr::makeBool()},
     BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_END};
 
 bool read_src_fs_parameters(const bt_value *params, const bt_value **inputs,

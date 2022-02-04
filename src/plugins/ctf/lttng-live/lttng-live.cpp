@@ -1876,9 +1876,8 @@ end:
 }
 
 static struct bt_param_validation_map_value_entry_descr list_sessions_params[] = {
-    {URL_PARAM,
-     BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_MANDATORY,
-     {bt_param_validation_value_descr::string_t}},
+    {URL_PARAM, BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_MANDATORY,
+     bt_param_validation_value_descr::makeString()},
     BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_END};
 
 static bt_component_class_query_method_status
@@ -2086,9 +2085,8 @@ parse_session_not_found_action_param(const bt_value *no_session_param)
     return action;
 }
 
-static bt_param_validation_value_descr inputs_elem_descr {
-    bt_param_validation_value_descr::string_t,
-};
+static bt_param_validation_value_descr inputs_elem_descr =
+    bt_param_validation_value_descr::makeString();
 
 static const char *sess_not_found_action_choices[] = {
     SESS_NOT_FOUND_ACTION_CONTINUE_STR,
@@ -2097,12 +2095,10 @@ static const char *sess_not_found_action_choices[] = {
 };
 
 static struct bt_param_validation_map_value_entry_descr params_descr[] = {
-    {INPUTS_PARAM,
-     BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_MANDATORY,
-     {bt_param_validation_value_descr::array_t, 1, 1, inputs_elem_descr}},
-    {SESS_NOT_FOUND_ACTION_PARAM,
-     BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_OPTIONAL,
-     {bt_param_validation_value_descr::string_t, sess_not_found_action_choices}},
+    {INPUTS_PARAM, BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_MANDATORY,
+     bt_param_validation_value_descr::makeArray(1, 1, inputs_elem_descr)},
+    {SESS_NOT_FOUND_ACTION_PARAM, BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_OPTIONAL,
+     bt_param_validation_value_descr::makeString(sess_not_found_action_choices)},
     BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_END};
 
 static bt_component_class_initialize_method_status
