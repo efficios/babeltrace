@@ -16,6 +16,7 @@
 #include "internal/shared-obj.hpp"
 #include "cpp-common/optional.hpp"
 #include "cpp-common/string_view.hpp"
+#include "common-iter.hpp"
 #include "lib-error.hpp"
 #include "integer-range-set.hpp"
 #include "field-path.hpp"
@@ -904,10 +905,11 @@ private:
 
 public:
     using Shared = internal::SharedFieldClass<CommonStructureFieldClass<LibObjT>, LibObjT>;
-
     using Member =
         typename std::conditional<std::is_const<LibObjT>::value, ConstStructureFieldClassMember,
                                   StructureFieldClassMember>::type;
+
+    using Iterator = CommonIterator<CommonStructureFieldClass<LibObjT>, Member>;
 
     explicit CommonStructureFieldClass(const _LibObjPtr libObjPtr) noexcept :
         _ThisCommonFieldClass {libObjPtr}
@@ -949,6 +951,16 @@ public:
     std::uint64_t size() const noexcept
     {
         return bt_field_class_structure_get_member_count(this->_libObjPtr());
+    }
+
+    Iterator begin() const noexcept
+    {
+        return Iterator {*this, 0};
+    }
+
+    Iterator end() const noexcept
+    {
+        return Iterator {*this, this->size()};
     }
 
     ConstStructureFieldClassMember operator[](const std::uint64_t index) const noexcept
@@ -1723,6 +1735,8 @@ public:
         typename std::conditional<std::is_const<LibObjT>::value, ConstVariantFieldClassOption,
                                   VariantFieldClassOption>::type;
 
+    using Iterator = CommonIterator<CommonVariantFieldClass<LibObjT>, Option>;
+
     explicit CommonVariantFieldClass(const _LibObjPtr libObjPtr) noexcept :
         _ThisCommonFieldClass {libObjPtr}
     {
@@ -1746,6 +1760,16 @@ public:
     std::uint64_t size() const noexcept
     {
         return bt_field_class_variant_get_option_count(this->_libObjPtr());
+    }
+
+    Iterator begin() const noexcept
+    {
+        return Iterator {*this, 0};
+    }
+
+    Iterator end() const noexcept
+    {
+        return Iterator {*this, this->size()};
     }
 
     ConstVariantFieldClassOption operator[](const std::uint64_t index) const noexcept
