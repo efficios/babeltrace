@@ -1151,7 +1151,7 @@ public:
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
         const auto status =
-            bt_event_class_set_specificContext_field_class(this->_libObjPtr(), fc._libObjPtr());
+            bt_event_class_set_specific_context_field_class(this->_libObjPtr(), fc._libObjPtr());
 
         if (status == BT_EVENT_CLASS_SET_FIELD_CLASS_STATUS_MEMORY_ERROR) {
             throw LibMemoryError {};
@@ -1620,7 +1620,7 @@ public:
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
         const auto status =
-            bt_stream_class_set_payload_field_class(this->_libObjPtr(), fc._libObjPtr());
+            bt_stream_class_set_packet_context_field_class(this->_libObjPtr(), fc._libObjPtr());
 
         if (status == BT_EVENT_CLASS_SET_FIELD_CLASS_STATUS_MEMORY_ERROR) {
             throw LibMemoryError {};
@@ -1653,8 +1653,8 @@ public:
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
-        const auto status =
-            bt_stream_class_set_specificContext_field_class(this->_libObjPtr(), fc._libObjPtr());
+        const auto status = bt_stream_class_set_event_common_context_field_class(this->_libObjPtr(),
+                                                                                 fc._libObjPtr());
 
         if (status == BT_EVENT_CLASS_SET_FIELD_CLASS_STATUS_MEMORY_ERROR) {
             throw LibMemoryError {};
