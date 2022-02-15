@@ -27,9 +27,6 @@
 	(&g_array_index((_mapping)->ranges,				\
 		struct bt_field_class_enumeration_mapping_range, (_index)))
 
-struct bt_field;
-struct bt_field_class;
-
 struct bt_field_class {
 	struct bt_object base;
 	enum bt_field_class_type type;
