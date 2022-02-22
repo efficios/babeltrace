@@ -7,6 +7,7 @@
 #ifndef BABELTRACE_CPP_COMMON_BT2_INTERNAL_BORROWED_OBJ_HPP
 #define BABELTRACE_CPP_COMMON_BT2_INTERNAL_BORROWED_OBJ_HPP
 
+#include <functional>
 #include <type_traits>
 
 #include "common/assert.h"
@@ -108,6 +109,26 @@ protected:
         return *this;
     }
 
+public:
+    /*
+     * Returns a hash of this object, solely based on its raw libbabeltrace2
+     * pointer.
+     */
+    std::size_t hash() const noexcept
+    {
+        return std::hash<_LibObjPtr> {}(_mLibObjPtr);
+    }
+
+    /*
+     * Returns whether or not this object is the exact same as `other`,
+     * solely based on the raw libbabeltrace2 pointers.
+     */
+    bool isSame(const _ThisBorrowedObj& other) const noexcept
+    {
+        return _mLibObjPtr == other._mLibObjPtr;
+    }
+
+protected:
     /* Wrapped libbabeltrace2 object pointer */
     _LibObjPtr _libObjPtr() const noexcept
     {
