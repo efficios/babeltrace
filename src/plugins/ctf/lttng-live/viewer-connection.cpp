@@ -1288,6 +1288,17 @@ lttng_live_get_one_metadata_packet(struct lttng_live_trace *trace, FILE *fp, siz
     }
 
     len = be64toh(rp.len);
+    if (len == 0) {
+        /*
+         * We received a `LTTNG_VIEWER_METADATA_OK` with a packet
+         * length of 0. This means we must try again. This scenario
+         * arises when a clear command is performed on an lttng session.
+         */
+        BT_COMP_LOGD(
+            "Expecting a metadata packet of size 0. Retry to get a packet from the relay.");
+        goto empty_metadata_packet_retry;
+    }
+
     BT_COMP_LOGD("Writing %" PRIu64 " bytes to metadata", len);
     if (len <= 0) {
         BT_COMP_LOGE_APPEND_CAUSE(self_comp, "Erroneous response length");
@@ -1319,6 +1330,7 @@ lttng_live_get_one_metadata_packet(struct lttng_live_trace *trace, FILE *fp, siz
         goto end;
     }
 
+empty_metadata_packet_retry:
     *reply_len = len;
     status = LTTNG_LIVE_GET_ONE_METADATA_STATUS_OK;
 
