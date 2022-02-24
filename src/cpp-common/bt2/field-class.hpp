@@ -250,6 +250,11 @@ public:
         return this->_libTypeIs(BT_FIELD_CLASS_TYPE_SIGNED_ENUMERATION);
     }
 
+    bool isReal() const noexcept
+    {
+        return this->_libTypeIs(BT_FIELD_CLASS_TYPE_REAL);
+    }
+
     bool isSinglePrecisionReal() const noexcept
     {
         return this->_libTypeIs(BT_FIELD_CLASS_TYPE_SINGLE_PRECISION_REAL);
