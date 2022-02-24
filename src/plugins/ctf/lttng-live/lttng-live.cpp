@@ -412,10 +412,10 @@ static enum lttng_live_iterator_status lttng_live_iterator_next_handle_one_no_da
 
         if (orig_state == LTTNG_LIVE_STREAM_QUIESCENT_NO_DATA && last_inact_ts == curr_inact_ts) {
             /*
-		 	 * Because the stream is in the QUIESCENT_NO_DATA
-		 	 * state, we can assert that the last_inactivity_ts was
-		 	 * set and can be safely used in the `if` above.
-		 	 */
+             * Because the stream is in the QUIESCENT_NO_DATA
+             * state, we can assert that the last_inactivity_ts was
+             * set and can be safely used in the `if` above.
+             */
             BT_ASSERT(lttng_live_stream->last_inactivity_ts.is_set);
 
             ret = LTTNG_LIVE_ITERATOR_STATUS_AGAIN;
