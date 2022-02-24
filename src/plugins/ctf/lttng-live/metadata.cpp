@@ -114,7 +114,14 @@ enum lttng_live_iterator_status lttng_live_metadata_update(struct lttng_live_tra
 
     /* No metadata stream yet. */
     if (!metadata) {
-        if (session->new_streams_needed) {
+        if (session->closed) {
+            /*
+             * The session is closed AND we never received any
+             * metadata this indicates that we will never receive
+             * any metadata.
+             */
+            status = LTTNG_LIVE_ITERATOR_STATUS_END;
+        } else if (session->new_streams_needed) {
             status = LTTNG_LIVE_ITERATOR_STATUS_AGAIN;
         } else {
             session->new_streams_needed = true;
