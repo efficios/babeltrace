@@ -481,14 +481,41 @@ lttng_live_get_session(struct lttng_live_msg_iter *lttng_live_msg_iter,
         }
     }
 
-    BT_COMP_LOGD("Updating all streams and metadata for session: "
+    BT_COMP_LOGD("Updating all data streams: "
                  "session-id=%" PRIu64 ", session-name=\"%s\"",
                  session->id, session->session_name->str);
 
     status = lttng_live_session_get_new_streams(session, lttng_live_msg_iter->self_msg_iter);
-    if (status != LTTNG_LIVE_ITERATOR_STATUS_OK && status != LTTNG_LIVE_ITERATOR_STATUS_END) {
+    switch (status) {
+    case LTTNG_LIVE_ITERATOR_STATUS_OK:
+        break;
+    case LTTNG_LIVE_ITERATOR_STATUS_END:
+        /*
+		 * We received a `_END` from the `_get_new_streams()` function,
+		 * which means no more data will ever be received from the data
+		 * streams of this session. But it's possible that the metadata
+		 * is incomplete.
+		 * The live protocol guarantees that we receive all the
+		 * metadata needed before we receive data streams needing it.
+		 * But it's possible to receive metadata NOT needed by
+		 * data streams after the session was closed. For example, this
+		 * could happen if a new event is registered and the session is
+		 * stopped before any tracepoint for that event is actually
+		 * fired.
+		 */
+        BT_COMP_LOGD(
+            "Updating streams returned _END status. Override status to _OK in order fetch any remaining metadata:"
+            "session-id=%" PRIu64 ", session-name=\"%s\"",
+            session->id, session->session_name->str);
+        status = LTTNG_LIVE_ITERATOR_STATUS_OK;
+        break;
+    default:
         goto end;
     }
+
+    BT_COMP_LOGD("Updating metadata stream for session: "
+                 "session-id=%" PRIu64 ", session-name=\"%s\"",
+                 session->id, session->session_name->str);
 
     trace_idx = 0;
     while (trace_idx < session->traces->len) {
@@ -608,6 +635,11 @@ lttng_live_iterator_handle_new_streams_and_metadata(struct lttng_live_msg_iter *
         switch (status) {
         case LTTNG_LIVE_ITERATOR_STATUS_OK:
         case LTTNG_LIVE_ITERATOR_STATUS_END:
+            /*
+             * A session returned `_END`. Other sessions may still
+             * be active so we override the status and continue
+             * looping if needed.
+             */
             break;
         default:
             goto end;
