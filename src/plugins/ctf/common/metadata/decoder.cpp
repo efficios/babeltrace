@@ -41,6 +41,7 @@ struct ctf_metadata_decoder
     int bo;
     struct ctf_metadata_decoder_config config;
     struct meta_log_config log_cfg;
+    bool has_checked_plaintext_signature;
 };
 
 struct packet_header
@@ -221,7 +222,7 @@ ctf_metadata_decoder_append_content(struct ctf_metadata_decoder *mdec, FILE *fp)
             status = CTF_METADATA_DECODER_STATUS_ERROR;
             goto end;
         }
-    } else {
+    } else if (!mdec->has_checked_plaintext_signature) {
         unsigned int major, minor;
         ssize_t nr_items;
         const long init_pos = ftell(fp);
@@ -263,6 +264,8 @@ ctf_metadata_decoder_append_content(struct ctf_metadata_decoder *mdec, FILE *fp)
             status = CTF_METADATA_DECODER_STATUS_ERROR;
             goto end;
         }
+
+        mdec->has_checked_plaintext_signature = true;
     }
 
 #if YYDEBUG
