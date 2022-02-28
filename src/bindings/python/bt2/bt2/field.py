@@ -354,7 +354,7 @@ class _UnsignedIntegerField(_UnsignedIntegerFieldConst, _IntegerField, _Field):
 
     @property
     def _upper_bound(self):
-        return (2 ** self.cls.field_value_range) - 1
+        return (2**self.cls.field_value_range) - 1
 
 
 class _SignedIntegerFieldConst(_IntegerFieldConst, _FieldConst):

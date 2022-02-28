@@ -34,15 +34,26 @@ def parse_args(argv):
     description = _('A TAP consumer for Python')
     epilog = _(
         'When no files are given or a dash (-) is used for the file name, '
-        'tappy will read a TAP stream from STDIN.')
+        'tappy will read a TAP stream from STDIN.'
+    )
     parser = argparse.ArgumentParser(description=description, epilog=epilog)
     parser.add_argument(
-        'files', metavar='FILE', nargs='*', help=_(
+        'files',
+        metavar='FILE',
+        nargs='*',
+        help=_(
             'A file containing TAP output. Any directories listed will be '
-            'scanned for files to include as TAP files.'))
+            'scanned for files to include as TAP files.'
+        ),
+    )
     parser.add_argument(
-        '-v', '--verbose', action='store_const', default=1, const=2,
-        help=_('use verbose messages'))
+        '-v',
+        '--verbose',
+        action='store_const',
+        default=1,
+        const=2,
+        help=_('use verbose messages'),
+    )
 
     # argparse expects the executable to be removed from argv.
     args = parser.parse_args(argv[1:])

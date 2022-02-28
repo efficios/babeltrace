@@ -8,6 +8,7 @@ class Line(object):
 
     TAP is a line based protocol. Thus, the most primitive type is a line.
     """
+
     @property
     def category(self):
         raise NotImplementedError
@@ -17,8 +18,8 @@ class Result(Line):
     """Information about an individual test line."""
 
     def __init__(
-            self, ok, number=None, description='', directive=None,
-            diagnostics=None):
+        self, ok, number=None, description='', directive=None, diagnostics=None
+    ):
         self._ok = ok
         if number:
             self._number = int(number)
@@ -82,7 +83,8 @@ class Result(Line):
         if self.diagnostics is not None:
             diagnostics = '\n' + self.diagnostics.rstrip()
         return "{0}ok {1} - {2}{3}{4}".format(
-            is_not, self.number, self.description, directive, diagnostics)
+            is_not, self.number, self.description, directive, diagnostics
+        )
 
 
 class Plan(Line):
@@ -173,6 +175,7 @@ class Unknown(Line):
 
     This exists for the purpose of a Null Object pattern.
     """
+
     @property
     def category(self):
         """:returns: ``unknown``"""

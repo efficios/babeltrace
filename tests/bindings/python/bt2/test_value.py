@@ -1292,11 +1292,11 @@ class SignedIntegerValueTestCase(_TestIntegerValue, unittest.TestCase):
 
     def test_create_pos_too_big(self):
         with self._assert_expecting_int64():
-            self._CLS(2 ** 63)
+            self._CLS(2**63)
 
     def test_create_neg_too_big(self):
         with self._assert_expecting_int64():
-            self._CLS(-(2 ** 63) - 1)
+            self._CLS(-(2**63) - 1)
 
     def test_assign_neg_int(self):
         raw = -13
@@ -1306,7 +1306,7 @@ class SignedIntegerValueTestCase(_TestIntegerValue, unittest.TestCase):
     def test_compare_big_int(self):
         # Larger than the IEEE 754 double-precision exact representation of
         # integers.
-        raw = (2 ** 53) + 1
+        raw = (2**53) + 1
         v = bt2.create_value(raw)
         self.assertEqual(v, raw)
 
@@ -1319,7 +1319,7 @@ class UnsignedIntegerValueTestCase(_TestIntegerValue, unittest.TestCase):
 
     def test_create_pos_too_big(self):
         with self._assert_expecting_uint64():
-            self._CLS(2 ** 64)
+            self._CLS(2**64)
 
     def test_create_neg(self):
         with self._assert_expecting_uint64():

@@ -26,20 +26,26 @@ class Parser(object):
     """
     ok = re.compile(r'^ok' + result_base, re.VERBOSE)
     not_ok = re.compile(r'^not\ ok' + result_base, re.VERBOSE)
-    plan = re.compile(r"""
+    plan = re.compile(
+        r"""
         ^1..(?P<expected>\d+) # Match the plan details.
         [^#]*                 # Consume any non-hash character to confirm only
                               # directives appear with the plan details.
         \#?                   # Optional directive marker.
         \s*                   # Optional whitespace.
         (?P<directive>.*)     # Optional directive text.
-    """, re.VERBOSE)
+    """,
+        re.VERBOSE,
+    )
     diagnostic = re.compile(r'^#')
-    bail = re.compile(r"""
+    bail = re.compile(
+        r"""
         ^Bail\ out!
         \s*            # Optional whitespace.
         (?P<reason>.*) # Optional reason.
-    """, re.VERBOSE)
+    """,
+        re.VERBOSE,
+    )
     version = re.compile(r'^TAP version (?P<version>\d+)$')
 
     TAP_MINIMUM_DECLARED_VERSION = 13
@@ -119,12 +125,16 @@ class Parser(object):
     def _parse_result(self, ok, match):
         """Parse a matching result line into a result instance."""
         return Result(
-            ok, match.group('number'), match.group('description').strip(),
-            Directive(match.group('directive')))
+            ok,
+            match.group('number'),
+            match.group('description').strip(),
+            Directive(match.group('directive')),
+        )
 
     def _parse_version(self, match):
         version = int(match.group('version'))
         if version < self.TAP_MINIMUM_DECLARED_VERSION:
-            raise ValueError(_('It is an error to explicitly specify '
-                               'any version lower than 13.'))
+            raise ValueError(
+                _('It is an error to explicitly specify ' 'any version lower than 13.')
+            )
         return Version(version)

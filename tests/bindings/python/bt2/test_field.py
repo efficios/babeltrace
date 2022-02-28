@@ -1231,8 +1231,8 @@ class _TestIntegerFieldCommon(_TestNumericField):
         field = _create_field(self._tc, uint_fc)
         # Larger than the IEEE 754 double-precision exact representation of
         # integers.
-        raw = (2 ** 53) + 1
-        field.value = (2 ** 53) + 1
+        raw = (2**53) + 1
+        field.value = (2**53) + 1
         self.assertEqual(field, raw)
 
     def test_assign_uint_out_of_range(self):
@@ -1304,7 +1304,7 @@ class SignedEnumerationFieldTestCase(_TestIntegerFieldCommon, unittest.TestCase)
         fc.add_mapping('speaker', bt2.SignedIntegerRangeSet([(12, 16)]))
         fc.add_mapping('can', bt2.SignedIntegerRangeSet([(18, 2540)]))
         fc.add_mapping(
-            'whole range', bt2.SignedIntegerRangeSet([(-(2 ** 31), (2 ** 31) - 1)])
+            'whole range', bt2.SignedIntegerRangeSet([(-(2**31), (2**31) - 1)])
         )
         fc.add_mapping('zip', bt2.SignedIntegerRangeSet([(-45, 1001)]))
         return fc

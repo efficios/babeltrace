@@ -12,12 +12,14 @@ class Directive(object):
         r"""^SKIP\S*
             (?P<whitespace>\s*) # Optional whitespace.
             (?P<reason>.*)      # Slurp up the rest.""",
-        re.IGNORECASE | re.VERBOSE)
+        re.IGNORECASE | re.VERBOSE,
+    )
     todo_pattern = re.compile(
         r"""^TODO\b             # The directive name
             (?P<whitespace>\s*) # Immediately following must be whitespace.
             (?P<reason>.*)      # Slurp up the rest.""",
-        re.IGNORECASE | re.VERBOSE)
+        re.IGNORECASE | re.VERBOSE,
+    )
 
     def __init__(self, text):
         """Initialize the directive by parsing the text.

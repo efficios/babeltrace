@@ -8,6 +8,7 @@ class Adapter(object):
 
     It is an alternative to TestCase to collect TAP results.
     """
+
     failureException = AssertionError
 
     def __init__(self, filename, line):

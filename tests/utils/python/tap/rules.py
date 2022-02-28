@@ -9,7 +9,6 @@ from tap.line import Result
 
 
 class Rules(object):
-
     def __init__(self, filename, suite):
         self._filename = filename
         self._suite = suite
@@ -41,15 +40,19 @@ class Rules(object):
         plan, at_line = self._lines_seen['plan'][0]
         if not self._plan_on_valid_line(at_line, final_line_count):
             self._add_error(
-                _('A plan must appear at the beginning or end of the file.'))
+                _('A plan must appear at the beginning or end of the file.')
+            )
             return
 
         if plan.expected_tests != self._lines_seen['test']:
-            self._add_error(_(
-                'Expected {expected_count} tests '
-                'but only {seen_count} ran.').format(
+            self._add_error(
+                _(
+                    'Expected {expected_count} tests ' 'but only {seen_count} ran.'
+                ).format(
                     expected_count=plan.expected_tests,
-                    seen_count=self._lines_seen['test']))
+                    seen_count=self._lines_seen['test'],
+                )
+            )
 
     def _plan_on_valid_line(self, at_line, final_line_count):
         """Check if a plan is on a valid line."""
@@ -59,9 +62,10 @@ class Rules(object):
 
         # The plan may only appear on line 2 if the version is at line 1.
         after_version = (
-            self._lines_seen['version'] and
-            self._lines_seen['version'][0] == 1 and
-            at_line == 2)
+            self._lines_seen['version']
+            and self._lines_seen['version'][0] == 1
+            and at_line == 2
+        )
         if after_version:
             return True
 
@@ -73,13 +77,11 @@ class Rules(object):
 
     def handle_file_does_not_exist(self):
         """Handle a test file that does not exist."""
-        self._add_error(_('{filename} does not exist.').format(
-            filename=self._filename))
+        self._add_error(_('{filename} does not exist.').format(filename=self._filename))
 
     def handle_skipping_plan(self, skip_plan):
         """Handle a plan that contains a SKIP directive."""
-        skip_line = Result(
-            True, None, skip_plan.directive.text, Directive('SKIP'))
+        skip_line = Result(True, None, skip_plan.directive.text, Directive('SKIP'))
         self._suite.addTest(Adapter(self._filename, skip_line))
 
     def saw_plan(self, plan, at_line):

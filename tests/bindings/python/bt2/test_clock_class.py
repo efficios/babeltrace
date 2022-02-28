@@ -160,7 +160,7 @@ class ClockClassTestCase(unittest.TestCase):
     def test_cycles_to_ns_from_origin(self):
         def f(comp_self):
             return comp_self._create_clock_class(
-                frequency=10 ** 8, origin_is_unix_epoch=True
+                frequency=10**8, origin_is_unix_epoch=True
             )
 
         cc = run_in_component_init(f)
@@ -172,7 +172,7 @@ class ClockClassTestCase(unittest.TestCase):
 
         cc = run_in_component_init(f)
         with self.assertRaises(bt2._OverflowError):
-            cc.cycles_to_ns_from_origin(2 ** 63)
+            cc.cycles_to_ns_from_origin(2**63)
 
     def test_create_uuid(self):
         def f(comp_self):
@@ -243,7 +243,7 @@ class ClockSnapshotTestCase(unittest.TestCase):
                 elif self._at == 1:
                     notif = self._create_event_message(_ec, _stream, 123)
                 elif self._at == 2:
-                    notif = self._create_event_message(_ec, _stream, 2 ** 63)
+                    notif = self._create_event_message(_ec, _stream, 2**63)
                 elif self._at == 3:
                     notif = self._create_stream_end_message(_stream)
                 else:
