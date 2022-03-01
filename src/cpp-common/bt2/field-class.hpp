@@ -43,7 +43,7 @@ using SharedFieldClass = internal::SharedObj<ObjT, LibObjT, internal::FieldClass
 template <typename LibObjT>
 struct CommonFieldClassSpec;
 
-// Functions specific to mutable field classes
+/* Functions specific to mutable field classes */
 template <>
 struct CommonFieldClassSpec<bt_field_class> final
 {
@@ -53,7 +53,7 @@ struct CommonFieldClassSpec<bt_field_class> final
     }
 };
 
-// Functions specific to constant field classes
+/* Functions specific to constant field classes */
 template <>
 struct CommonFieldClassSpec<const bt_field_class> final
 {
@@ -63,7 +63,7 @@ struct CommonFieldClassSpec<const bt_field_class> final
     }
 };
 
-} // namespace internal
+} /* namespace internal */
 
 template <typename LibObjT>
 class CommonBitArrayFieldClass;
@@ -153,10 +153,10 @@ enum class FieldClassType
 template <typename LibObjT>
 class CommonFieldClass : public internal::BorrowedObj<LibObjT>
 {
-    // Allow appendMember() to call `fc._libObjPtr()`
+    /* Allow appendMember() to call `fc._libObjPtr()` */
     friend class CommonStructureFieldClass<bt_field_class>;
 
-    // Allow appendOption() to call `fc._libObjPtr()`
+    /* Allow appendOption() to call `fc._libObjPtr()` */
     friend class CommonVariantWithoutSelectorFieldClass<bt_field_class>;
 
     friend class CommonVariantWithIntegerSelectorFieldClass<
@@ -169,11 +169,11 @@ class CommonFieldClass : public internal::BorrowedObj<LibObjT>
         ConstVariantWithIntegerSelectorFieldClassOption<
             const bt_field_class_variant_with_selector_field_integer_signed_option>>;
 
-    // Allow *FieldClass() to call `fc._libObjPtr()`
+    /* Allow *FieldClass() to call `fc._libObjPtr()` */
     friend class CommonEventClass<bt_event_class>;
     friend class CommonStreamClass<bt_stream_class>;
 
-    // Allow create*FieldClass() to call `fc._libObjPtr()`
+    /* Allow create*FieldClass() to call `fc._libObjPtr()` */
     friend class CommonTraceClass<bt_trace_class>;
 
 private:
@@ -558,7 +558,7 @@ namespace internal {
 template <typename LibObjT>
 struct ConstEnumerationFieldClassMappingSpec;
 
-// Functions specific to unsigned enumeration field class mappings
+/* Functions specific to unsigned enumeration field class mappings */
 template <>
 struct ConstEnumerationFieldClassMappingSpec<const bt_field_class_enumeration_unsigned_mapping>
     final
@@ -577,7 +577,7 @@ struct ConstEnumerationFieldClassMappingSpec<const bt_field_class_enumeration_un
     }
 };
 
-// Functions specific to signed enumeration field class mappings
+/* Functions specific to signed enumeration field class mappings */
 template <>
 struct ConstEnumerationFieldClassMappingSpec<const bt_field_class_enumeration_signed_mapping> final
 {
@@ -595,7 +595,7 @@ struct ConstEnumerationFieldClassMappingSpec<const bt_field_class_enumeration_si
     }
 };
 
-} // namespace internal
+} /* namespace internal */
 
 template <typename LibObjT>
 class ConstEnumerationFieldClassMapping final : public internal::BorrowedObj<LibObjT>
@@ -651,7 +651,7 @@ namespace internal {
 template <typename MappingT>
 struct CommonEnumerationFieldClassSpec;
 
-// Functions specific to unsigned enumeration field classes
+/* Functions specific to unsigned enumeration field classes */
 template <>
 struct CommonEnumerationFieldClassSpec<ConstUnsignedEnumerationFieldClassMapping> final
 {
@@ -668,7 +668,7 @@ struct CommonEnumerationFieldClassSpec<ConstUnsignedEnumerationFieldClassMapping
     }
 };
 
-// Functions specific to signed enumeration field classes
+/* Functions specific to signed enumeration field classes */
 template <>
 struct CommonEnumerationFieldClassSpec<ConstSignedEnumerationFieldClassMapping> final
 {
@@ -685,7 +685,7 @@ struct CommonEnumerationFieldClassSpec<ConstSignedEnumerationFieldClassMapping> 
     }
 };
 
-} // namespace internal
+} /* namespace internal */
 
 template <typename LibObjT, typename MappingT>
 class CommonEnumerationFieldClass final : public CommonIntegerFieldClass<LibObjT>
@@ -771,7 +771,7 @@ namespace internal {
 template <typename LibObjT>
 struct CommonStructureFieldClassMemberSpec;
 
-// Functions specific to mutable structure field class members
+/* Functions specific to mutable structure field class members */
 template <>
 struct CommonStructureFieldClassMemberSpec<bt_field_class_structure_member> final
 {
@@ -781,7 +781,7 @@ struct CommonStructureFieldClassMemberSpec<bt_field_class_structure_member> fina
     }
 };
 
-// Functions specific to constant structure field class members
+/* Functions specific to constant structure field class members */
 template <>
 struct CommonStructureFieldClassMemberSpec<const bt_field_class_structure_member> final
 {
@@ -792,7 +792,7 @@ struct CommonStructureFieldClassMemberSpec<const bt_field_class_structure_member
     }
 };
 
-} // namespace internal
+} /* namespace internal */
 
 template <typename LibObjT>
 class CommonStructureFieldClassMember final : public internal::BorrowedObj<LibObjT>
@@ -853,7 +853,7 @@ namespace internal {
 template <typename LibObjT>
 struct CommonStructureFieldClassSpec;
 
-// Functions specific to mutable structure field classes
+/* Functions specific to mutable structure field classes */
 template <>
 struct CommonStructureFieldClassSpec<bt_field_class> final
 {
@@ -870,7 +870,7 @@ struct CommonStructureFieldClassSpec<bt_field_class> final
     }
 };
 
-// Functions specific to constant structure field classes
+/* Functions specific to constant structure field classes */
 template <>
 struct CommonStructureFieldClassSpec<const bt_field_class> final
 {
@@ -887,7 +887,7 @@ struct CommonStructureFieldClassSpec<const bt_field_class> final
     }
 };
 
-} // namespace internal
+} /* namespace internal */
 
 template <typename LibObjT>
 class CommonStructureFieldClass final : public CommonFieldClass<LibObjT>
@@ -1009,7 +1009,7 @@ namespace internal {
 template <typename LibObjT>
 struct CommonArrayFieldClassSpec;
 
-// Functions specific to mutable array field classes
+/* Functions specific to mutable array field classes */
 template <>
 struct CommonArrayFieldClassSpec<bt_field_class> final
 {
@@ -1019,7 +1019,7 @@ struct CommonArrayFieldClassSpec<bt_field_class> final
     }
 };
 
-// Functions specific to constant array field classes
+/* Functions specific to constant array field classes */
 template <>
 struct CommonArrayFieldClassSpec<const bt_field_class> final
 {
@@ -1029,7 +1029,7 @@ struct CommonArrayFieldClassSpec<const bt_field_class> final
     }
 };
 
-} // namespace internal
+} /* namespace internal */
 
 template <typename LibObjT>
 class CommonArrayFieldClass : public CommonFieldClass<LibObjT>
@@ -1187,7 +1187,7 @@ namespace internal {
 template <typename LibObjT>
 struct CommonOptionFieldClassSpec;
 
-// Functions specific to mutable option field classes
+/* Functions specific to mutable option field classes */
 template <>
 struct CommonOptionFieldClassSpec<bt_field_class> final
 {
@@ -1197,7 +1197,7 @@ struct CommonOptionFieldClassSpec<bt_field_class> final
     }
 };
 
-// Functions specific to constant option field classes
+/* Functions specific to constant option field classes */
 template <>
 struct CommonOptionFieldClassSpec<const bt_field_class> final
 {
@@ -1207,7 +1207,7 @@ struct CommonOptionFieldClassSpec<const bt_field_class> final
     }
 };
 
-} // namespace internal
+} /* namespace internal */
 
 template <typename LibObjT>
 class CommonOptionFieldClass : public CommonFieldClass<LibObjT>
@@ -1372,7 +1372,7 @@ namespace internal {
 template <typename RangeSetT>
 struct CommonOptionWithIntegerSelectorFieldClassSpec;
 
-// Functions specific to option field classes with unsigned integer ranges
+/* Functions specific to option field classes with unsigned integer ranges */
 template <>
 struct CommonOptionWithIntegerSelectorFieldClassSpec<ConstUnsignedIntegerRangeSet> final
 {
@@ -1384,7 +1384,7 @@ struct CommonOptionWithIntegerSelectorFieldClassSpec<ConstUnsignedIntegerRangeSe
     }
 };
 
-// Functions specific to option field classes with signed ranges
+/* Functions specific to option field classes with signed ranges */
 template <>
 struct CommonOptionWithIntegerSelectorFieldClassSpec<ConstSignedIntegerRangeSet> final
 {
@@ -1396,7 +1396,7 @@ struct CommonOptionWithIntegerSelectorFieldClassSpec<ConstSignedIntegerRangeSet>
     }
 };
 
-} // namespace internal
+} /* namespace internal */
 
 template <typename LibObjT, typename RangeSetT>
 class CommonOptionWithIntegerSelectorFieldClass : public CommonOptionWithSelectorFieldClass<LibObjT>
@@ -1466,7 +1466,7 @@ namespace internal {
 template <typename LibObjT>
 struct CommonVariantFieldClassOptionSpec;
 
-// Functions specific to mutable variant field class options
+/* Functions specific to mutable variant field class options */
 template <>
 struct CommonVariantFieldClassOptionSpec<bt_field_class_variant_option> final
 {
@@ -1476,7 +1476,7 @@ struct CommonVariantFieldClassOptionSpec<bt_field_class_variant_option> final
     }
 };
 
-// Functions specific to constant variant field class options
+/* Functions specific to constant variant field class options */
 template <>
 struct CommonVariantFieldClassOptionSpec<const bt_field_class_variant_option> final
 {
@@ -1487,7 +1487,7 @@ struct CommonVariantFieldClassOptionSpec<const bt_field_class_variant_option> fi
     }
 };
 
-} // namespace internal
+} /* namespace internal */
 
 template <typename LibObjT>
 class CommonVariantFieldClassOption : public internal::BorrowedObj<LibObjT>
@@ -1547,7 +1547,7 @@ namespace internal {
 template <typename LibObjT>
 struct ConstVariantWithIntegerSelectorFieldClassOptionSpec;
 
-// Functions specific to variant field class options with unsigned integer selector
+/* Functions specific to variant field class options with unsigned integer selector */
 template <>
 struct ConstVariantWithIntegerSelectorFieldClassOptionSpec<
     const bt_field_class_variant_with_selector_field_integer_unsigned_option>
@@ -1570,7 +1570,7 @@ struct ConstVariantWithIntegerSelectorFieldClassOptionSpec<
     }
 };
 
-// Functions specific to variant field class options with signed integer selector
+/* Functions specific to variant field class options with signed integer selector */
 template <>
 struct ConstVariantWithIntegerSelectorFieldClassOptionSpec<
     const bt_field_class_variant_with_selector_field_integer_signed_option>
@@ -1593,7 +1593,7 @@ struct ConstVariantWithIntegerSelectorFieldClassOptionSpec<
     }
 };
 
-} // namespace internal
+} /* namespace internal */
 
 template <typename LibObjT>
 class ConstVariantWithIntegerSelectorFieldClassOption : public internal::BorrowedObj<LibObjT>
@@ -1664,7 +1664,7 @@ namespace internal {
 template <typename LibObjT>
 struct CommonVariantFieldClassSpec;
 
-// Functions specific to mutable variant field classes
+/* Functions specific to mutable variant field classes */
 template <>
 struct CommonVariantFieldClassSpec<bt_field_class> final
 {
@@ -1681,7 +1681,7 @@ struct CommonVariantFieldClassSpec<bt_field_class> final
     }
 };
 
-// Functions specific to constant variant field classes
+/* Functions specific to constant variant field classes */
 template <>
 struct CommonVariantFieldClassSpec<const bt_field_class> final
 {
@@ -1698,7 +1698,7 @@ struct CommonVariantFieldClassSpec<const bt_field_class> final
     }
 };
 
-} // namespace internal
+} /* namespace internal */
 
 template <typename LibObjT>
 class CommonVariantFieldClass : public CommonFieldClass<LibObjT>
@@ -1866,7 +1866,7 @@ namespace internal {
 template <typename OptionT>
 struct CommonVariantWithIntegerSelectorFieldClassSpec;
 
-// Functions specific to variant field classes with unsigned integer selector
+/* Functions specific to variant field classes with unsigned integer selector */
 template <>
 struct CommonVariantWithIntegerSelectorFieldClassSpec<
     ConstVariantWithUnsignedIntegerSelectorFieldClassOption>
@@ -1896,7 +1896,7 @@ struct CommonVariantWithIntegerSelectorFieldClassSpec<
     }
 };
 
-// Functions specific to variant field classes with signed integer selector
+/* Functions specific to variant field classes with signed integer selector */
 template <>
 struct CommonVariantWithIntegerSelectorFieldClassSpec<
     ConstVariantWithSignedIntegerSelectorFieldClassOption>
@@ -1926,7 +1926,7 @@ struct CommonVariantWithIntegerSelectorFieldClassSpec<
     }
 };
 
-} // namespace internal
+} /* namespace internal */
 
 template <typename LibObjT, typename OptionT>
 class CommonVariantWithIntegerSelectorFieldClass : public CommonVariantFieldClass<LibObjT>
@@ -2170,6 +2170,6 @@ CommonFieldClass<LibObjT>::asVariantWithSignedIntegerSelector() const noexcept
         LibObjT, ConstVariantWithSignedIntegerSelectorFieldClassOption> {this->_libObjPtr()};
 }
 
-} // namespace bt2
+} /* namespace bt2 */
 
-#endif // BABELTRACE_CPP_COMMON_BT2_FIELD_CLASS_HPP
+#endif /* BABELTRACE_CPP_COMMON_BT2_FIELD_CLASS_HPP */

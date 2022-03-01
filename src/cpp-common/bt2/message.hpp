@@ -41,7 +41,7 @@ struct MessageRefFuncs final
 template <typename ObjT, typename LibObjT>
 using SharedMessage = internal::SharedObj<ObjT, LibObjT, internal::MessageRefFuncs>;
 
-} // namespace internal
+} /* namespace internal */
 
 template <typename LibObjT>
 class CommonStreamBeginningMessage;
@@ -176,7 +176,7 @@ namespace internal {
 template <typename LibObjT>
 struct CommonStreamBeginningMessageSpec;
 
-// Functions specific to mutable stream beginning messages
+/* Functions specific to mutable stream beginning messages */
 template <>
 struct CommonStreamBeginningMessageSpec<bt_message> final
 {
@@ -186,7 +186,7 @@ struct CommonStreamBeginningMessageSpec<bt_message> final
     }
 };
 
-// Functions specific to constant stream beginning messages
+/* Functions specific to constant stream beginning messages */
 template <>
 struct CommonStreamBeginningMessageSpec<const bt_message> final
 {
@@ -196,7 +196,7 @@ struct CommonStreamBeginningMessageSpec<const bt_message> final
     }
 };
 
-} // namespace internal
+} /* namespace internal */
 
 template <typename LibObjT>
 class CommonStreamBeginningMessage final : public CommonMessage<LibObjT>
@@ -278,7 +278,7 @@ namespace internal {
 template <typename LibObjT>
 struct CommonStreamEndMessageSpec;
 
-// Functions specific to mutable stream end messages
+/* Functions specific to mutable stream end messages */
 template <>
 struct CommonStreamEndMessageSpec<bt_message> final
 {
@@ -288,7 +288,7 @@ struct CommonStreamEndMessageSpec<bt_message> final
     }
 };
 
-// Functions specific to constant stream end messages
+/* Functions specific to constant stream end messages */
 template <>
 struct CommonStreamEndMessageSpec<const bt_message> final
 {
@@ -298,7 +298,7 @@ struct CommonStreamEndMessageSpec<const bt_message> final
     }
 };
 
-} // namespace internal
+} /* namespace internal */
 
 template <typename LibObjT>
 class CommonStreamEndMessage final : public CommonMessage<LibObjT>
@@ -379,7 +379,7 @@ namespace internal {
 template <typename LibObjT>
 struct CommonPacketBeginningMessageSpec;
 
-// Functions specific to mutable packet beginning messages
+/* Functions specific to mutable packet beginning messages */
 template <>
 struct CommonPacketBeginningMessageSpec<bt_message> final
 {
@@ -389,7 +389,7 @@ struct CommonPacketBeginningMessageSpec<bt_message> final
     }
 };
 
-// Functions specific to constant packet beginning messages
+/* Functions specific to constant packet beginning messages */
 template <>
 struct CommonPacketBeginningMessageSpec<const bt_message> final
 {
@@ -399,7 +399,7 @@ struct CommonPacketBeginningMessageSpec<const bt_message> final
     }
 };
 
-} // namespace internal
+} /* namespace internal */
 
 template <typename LibObjT>
 class CommonPacketBeginningMessage final : public CommonMessage<LibObjT>
@@ -476,7 +476,7 @@ namespace internal {
 template <typename LibObjT>
 struct CommonPacketEndMessageSpec;
 
-// Functions specific to mutable packet end messages
+/* Functions specific to mutable packet end messages */
 template <>
 struct CommonPacketEndMessageSpec<bt_message> final
 {
@@ -486,7 +486,7 @@ struct CommonPacketEndMessageSpec<bt_message> final
     }
 };
 
-// Functions specific to constant packet end messages
+/* Functions specific to constant packet end messages */
 template <>
 struct CommonPacketEndMessageSpec<const bt_message> final
 {
@@ -496,7 +496,7 @@ struct CommonPacketEndMessageSpec<const bt_message> final
     }
 };
 
-} // namespace internal
+} /* namespace internal */
 
 template <typename LibObjT>
 class CommonPacketEndMessage final : public CommonMessage<LibObjT>
@@ -572,7 +572,7 @@ namespace internal {
 template <typename LibObjT>
 struct CommonEventMessageSpec;
 
-// Functions specific to mutable event messages
+/* Functions specific to mutable event messages */
 template <>
 struct CommonEventMessageSpec<bt_message> final
 {
@@ -582,7 +582,7 @@ struct CommonEventMessageSpec<bt_message> final
     }
 };
 
-// Functions specific to constant event messages
+/* Functions specific to constant event messages */
 template <>
 struct CommonEventMessageSpec<const bt_message> final
 {
@@ -592,7 +592,7 @@ struct CommonEventMessageSpec<const bt_message> final
     }
 };
 
-} // namespace internal
+} /* namespace internal */
 
 template <typename LibObjT>
 class CommonEventMessage final : public CommonMessage<LibObjT>
@@ -660,7 +660,7 @@ namespace internal {
 template <typename LibObjT>
 struct CommonDiscardedEventsMessageSpec;
 
-// Functions specific to mutable discarded events messages
+/* Functions specific to mutable discarded events messages */
 template <>
 struct CommonDiscardedEventsMessageSpec<bt_message> final
 {
@@ -670,7 +670,7 @@ struct CommonDiscardedEventsMessageSpec<bt_message> final
     }
 };
 
-// Functions specific to constant discarded events messages
+/* Functions specific to constant discarded events messages */
 template <>
 struct CommonDiscardedEventsMessageSpec<const bt_message> final
 {
@@ -680,7 +680,7 @@ struct CommonDiscardedEventsMessageSpec<const bt_message> final
     }
 };
 
-} // namespace internal
+} /* namespace internal */
 
 template <typename LibObjT>
 class CommonDiscardedEventsMessage final : public CommonMessage<LibObjT>
@@ -778,7 +778,7 @@ namespace internal {
 template <typename LibObjT>
 struct CommonDiscardedPacketsMessageSpec;
 
-// Functions specific to mutable discarded packets messages
+/* Functions specific to mutable discarded packets messages */
 template <>
 struct CommonDiscardedPacketsMessageSpec<bt_message> final
 {
@@ -788,7 +788,7 @@ struct CommonDiscardedPacketsMessageSpec<bt_message> final
     }
 };
 
-// Functions specific to constant discarded packets messages
+/* Functions specific to constant discarded packets messages */
 template <>
 struct CommonDiscardedPacketsMessageSpec<const bt_message> final
 {
@@ -798,7 +798,7 @@ struct CommonDiscardedPacketsMessageSpec<const bt_message> final
     }
 };
 
-} // namespace internal
+} /* namespace internal */
 
 template <typename LibObjT>
 class CommonDiscardedPacketsMessage final : public CommonMessage<LibObjT>
@@ -991,6 +991,6 @@ CommonMessage<LibObjT>::asMessageIteratorInactivity() const noexcept
     return CommonMessageIteratorInactivityMessage<LibObjT> {this->_libObjPtr()};
 }
 
-} // namespace bt2
+} /* namespace bt2 */
 
-#endif // BABELTRACE_CPP_COMMON_BT2_MESSAGE_HPP
+#endif /* BABELTRACE_CPP_COMMON_BT2_MESSAGE_HPP */

@@ -117,7 +117,7 @@ struct FieldPathRefFuncs final
     }
 };
 
-} // namespace internal
+} /* namespace internal */
 
 class ConstFieldPath final : public internal::BorrowedObj<const bt_field_path>
 {
@@ -169,6 +169,6 @@ public:
     }
 };
 
-} // namespace bt2
+} /* namespace bt2 */
 
-#endif // BABELTRACE_CPP_COMMON_BT2_FIELD_PATH_HPP
+#endif /* BABELTRACE_CPP_COMMON_BT2_FIELD_PATH_HPP */

@@ -56,6 +56,6 @@ public:
     }
 };
 
-} // namespace bt2
+} /* namespace bt2 */
 
-#endif // BABELTRACE_CPP_COMMON_BT2_CLOCK_SNAPSHOT_HPP
+#endif /* BABELTRACE_CPP_COMMON_BT2_CLOCK_SNAPSHOT_HPP */

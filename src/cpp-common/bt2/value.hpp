@@ -42,7 +42,7 @@ struct ValueRefFuncs final
 template <typename ObjT, typename LibObjT>
 using SharedValue = internal::SharedObj<ObjT, LibObjT, internal::ValueRefFuncs>;
 
-} // namespace internal
+} /* namespace internal */
 
 template <typename LibObjT>
 class CommonNullValue;
@@ -101,13 +101,13 @@ class CommonStream;
 template <typename LibObjT>
 class CommonValue : public internal::BorrowedObj<LibObjT>
 {
-    // Allow append() to call `val._libObjPtr()`
+    /* Allow append() to call `val._libObjPtr()` */
     friend class CommonArrayValue<bt_value>;
 
-    // Allow insert() to call `val._libObjPtr()`
+    /* Allow insert() to call `val._libObjPtr()` */
     friend class CommonMapValue<bt_value>;
 
-    // Allow userAttributes() to call `val._libObjPtr()`
+    /* Allow userAttributes() to call `val._libObjPtr()` */
     friend class CommonClockClass<bt_clock_class>;
     friend class CommonFieldClass<bt_field_class>;
     friend class CommonTraceClass<bt_trace_class>;
@@ -115,7 +115,7 @@ class CommonValue : public internal::BorrowedObj<LibObjT>
     friend class CommonEventClass<bt_event_class>;
     friend class CommonStream<bt_stream>;
 
-    // Allow operator==() to call `other._libObjPtr()`
+    /* Allow operator==() to call `other._libObjPtr()` */
     friend class CommonValue<bt_value>;
     friend class CommonValue<const bt_value>;
 
@@ -600,7 +600,7 @@ namespace internal {
 template <typename LibObjT>
 struct CommonArrayValueSpec;
 
-// Functions specific to mutable array values
+/* Functions specific to mutable array values */
 template <>
 struct CommonArrayValueSpec<bt_value> final
 {
@@ -610,7 +610,7 @@ struct CommonArrayValueSpec<bt_value> final
     }
 };
 
-// Functions specific to constant array values
+/* Functions specific to constant array values */
 template <>
 struct CommonArrayValueSpec<const bt_value> final
 {
@@ -621,7 +621,7 @@ struct CommonArrayValueSpec<const bt_value> final
     }
 };
 
-} // namespace internal
+} /* namespace internal */
 
 template <typename LibObjT>
 class CommonArrayValueIterator
@@ -923,7 +923,7 @@ LibStatusT mapValueForEachLibFunc(const char * const key, LibObjT * const libObj
 template <typename LibObjT>
 struct CommonMapValueSpec;
 
-// Functions specific to mutable map values
+/* Functions specific to mutable map values */
 template <>
 struct CommonMapValueSpec<bt_value> final
 {
@@ -954,7 +954,7 @@ struct CommonMapValueSpec<bt_value> final
     }
 };
 
-// Functions specific to constant map values
+/* Functions specific to constant map values */
 template <>
 struct CommonMapValueSpec<const bt_value> final
 {
@@ -987,7 +987,7 @@ struct CommonMapValueSpec<const bt_value> final
     }
 };
 
-} // namespace internal
+} /* namespace internal */
 
 template <typename LibObjT>
 class CommonMapValue final : public CommonValue<LibObjT>
@@ -1354,6 +1354,6 @@ inline StringValue::Shared createValue(const std::string& rawVal)
     return StringValue::create(rawVal);
 }
 
-} // namespace bt2
+} /* namespace bt2 */
 
-#endif // BABELTRACE_CPP_COMMON_BT2_VALUE_HPP
+#endif /* BABELTRACE_CPP_COMMON_BT2_VALUE_HPP */

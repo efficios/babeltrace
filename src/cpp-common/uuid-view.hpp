@@ -59,6 +59,6 @@ private:
     const std::uint8_t *_mUuid;
 };
 
-} // namespace bt2_common
+} /* namespace bt2_common */
 
-#endif // BABELTRACE_CPP_COMMON_UUID_VIEW_HPP
+#endif /* BABELTRACE_CPP_COMMON_UUID_VIEW_HPP */

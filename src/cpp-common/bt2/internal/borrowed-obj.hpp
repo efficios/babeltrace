@@ -55,10 +55,10 @@ class BorrowedObj
     friend class SharedObj;
 
 protected:
-    // libbabeltrace2 object pointer
+    /* libbabeltrace2 object pointer */
     using _LibObjPtr = LibObjT *;
 
-    // This complete borrowed object
+    /* This complete borrowed object */
     using _ThisBorrowedObj = BorrowedObj<LibObjT>;
 
     /*
@@ -108,7 +108,7 @@ protected:
         return *this;
     }
 
-    // Wrapped libbabeltrace2 object pointer
+    /* Wrapped libbabeltrace2 object pointer */
     _LibObjPtr _libObjPtr() const noexcept
     {
         return _mLibObjPtr;
@@ -118,7 +118,7 @@ private:
     _LibObjPtr _mLibObjPtr;
 };
 
-} // namespace internal
-} // namespace bt2
+} /* namespace internal */
+} /* namespace bt2 */
 
-#endif // BABELTRACE_CPP_COMMON_BT2_INTERNAL_BORROWED_OBJ_HPP
+#endif /* BABELTRACE_CPP_COMMON_BT2_INTERNAL_BORROWED_OBJ_HPP */

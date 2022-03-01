@@ -22,7 +22,7 @@ void validateCreatedObjPtr(const LibObjPtrT libOjbPtr)
     }
 }
 
-} // namespace internal
-} // namespace bt2
+} /* namespace internal */
+} /* namespace bt2 */
 
-#endif // BABELTRACE_CPP_COMMON_BT2_INTERNAL_UTILS_HPP
+#endif /* BABELTRACE_CPP_COMMON_BT2_INTERNAL_UTILS_HPP */

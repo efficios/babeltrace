@@ -22,6 +22,6 @@ enum class LoggingLevel
     NONE = BT_LOGGING_LEVEL_NONE,
 };
 
-} // namespace bt2
+} /* namespace bt2 */
 
-#endif // BABELTRACE_CPP_COMMON_BT2_LOGGING_HPP
+#endif /* BABELTRACE_CPP_COMMON_BT2_LOGGING_HPP */

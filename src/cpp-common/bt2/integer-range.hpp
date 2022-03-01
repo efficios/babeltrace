@@ -20,7 +20,7 @@ namespace internal {
 template <typename ValueT>
 struct ConstIntegerRangeSpec;
 
-// Functions specific to unsigned integer ranges
+/* Functions specific to unsigned integer ranges */
 template <>
 struct ConstIntegerRangeSpec<const bt_integer_range_unsigned> final
 {
@@ -41,7 +41,7 @@ struct ConstIntegerRangeSpec<const bt_integer_range_unsigned> final
     }
 };
 
-// Functions specific to signed integer ranges
+/* Functions specific to signed integer ranges */
 template <>
 struct ConstIntegerRangeSpec<const bt_integer_range_signed> final
 {
@@ -62,7 +62,7 @@ struct ConstIntegerRangeSpec<const bt_integer_range_signed> final
     }
 };
 
-} // namespace internal
+} /* namespace internal */
 
 template <typename LibObjT>
 class ConstIntegerRange final : public internal::BorrowedObj<LibObjT>
@@ -117,6 +117,6 @@ public:
 using ConstUnsignedIntegerRange = ConstIntegerRange<const bt_integer_range_unsigned>;
 using ConstSignedIntegerRange = ConstIntegerRange<const bt_integer_range_signed>;
 
-} // namespace bt2
+} /* namespace bt2 */
 
-#endif // BABELTRACE_CPP_COMMON_BT2_INTEGER_RANGE_HPP
+#endif /* BABELTRACE_CPP_COMMON_BT2_INTEGER_RANGE_HPP */

@@ -46,7 +46,7 @@ class SharedObj final
     friend class SharedObj;
 
 public:
-    // This complete shared object
+    /* This complete shared object */
     using ThisSharedObj = SharedObj<ObjT, LibObjT, RefFuncsT>;
 
     /*
@@ -96,7 +96,7 @@ public:
     template <typename OtherObjT, typename OtherLibObjT>
     SharedObj(SharedObj<OtherObjT, OtherLibObjT, RefFuncsT>&& other) noexcept : _mObj {other._mObj}
     {
-        // Reset moved-from object
+        /* Reset moved-from object */
         other._reset();
     }
 
@@ -108,10 +108,10 @@ public:
     template <typename OtherObjT, typename OtherLibObjT>
     ThisSharedObj& operator=(const SharedObj<OtherObjT, OtherLibObjT, RefFuncsT>& other) noexcept
     {
-        // Put current object's reference
+        /* Put current object's reference */
         this->_putRef();
 
-        // Set new current object and get a reference
+        /* Set new current object and get a reference */
         _mObj = other._mObj;
         this->_getRef();
 
@@ -126,13 +126,13 @@ public:
     template <typename OtherObjT, typename OtherLibObjT>
     ThisSharedObj& operator=(SharedObj<OtherObjT, OtherLibObjT, RefFuncsT>&& other) noexcept
     {
-        // Put current object's reference
+        /* Put current object's reference */
         this->_putRef();
 
-        // Set new current object
+        /* Set new current object */
         _mObj = other._mObj;
 
-        // Reset moved-from object
+        /* Reset moved-from object */
         other._reset();
 
         return *this;
@@ -203,7 +203,7 @@ private:
     nonstd::optional<ObjT> _mObj;
 };
 
-} // namespace internal
-} // namespace bt2
+} /* namespace internal */
+} /* namespace bt2 */
 
-#endif // BABELTRACE_CPP_COMMON_BT2_INTERNAL_SHARED_OBJ_HPP
+#endif /* BABELTRACE_CPP_COMMON_BT2_INTERNAL_SHARED_OBJ_HPP */

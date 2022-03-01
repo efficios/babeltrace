@@ -49,7 +49,7 @@ namespace internal {
 template <typename LibObjT>
 struct CommonEventSpec;
 
-// Functions specific to mutable events
+/* Functions specific to mutable events */
 template <>
 struct CommonEventSpec<bt_event> final
 {
@@ -84,7 +84,7 @@ struct CommonEventSpec<bt_event> final
     }
 };
 
-// Functions specific to constant events
+/* Functions specific to constant events */
 template <>
 struct CommonEventSpec<const bt_event> final
 {
@@ -119,7 +119,7 @@ struct CommonEventSpec<const bt_event> final
     }
 };
 
-} // namespace internal
+} /* namespace internal */
 
 template <typename LibObjT>
 class CommonEvent final : public internal::BorrowedObj<LibObjT>
@@ -257,7 +257,7 @@ struct PacketRefFuncs final
 template <typename LibObjT>
 struct CommonPacketSpec;
 
-// Functions specific to mutable packets
+/* Functions specific to mutable packets */
 template <>
 struct CommonPacketSpec<bt_packet> final
 {
@@ -272,7 +272,7 @@ struct CommonPacketSpec<bt_packet> final
     }
 };
 
-// Functions specific to constant packets
+/* Functions specific to constant packets */
 template <>
 struct CommonPacketSpec<const bt_packet> final
 {
@@ -287,7 +287,7 @@ struct CommonPacketSpec<const bt_packet> final
     }
 };
 
-} // namespace internal
+} /* namespace internal */
 
 template <typename LibObjT>
 class CommonPacket final : public internal::BorrowedObj<LibObjT>
@@ -401,7 +401,7 @@ struct StreamRefFuncs final
 template <typename LibObjT>
 struct CommonStreamSpec;
 
-// Functions specific to mutable streams
+/* Functions specific to mutable streams */
 template <>
 struct CommonStreamSpec<bt_stream> final
 {
@@ -421,7 +421,7 @@ struct CommonStreamSpec<bt_stream> final
     }
 };
 
-// Functions specific to constant streams
+/* Functions specific to constant streams */
 template <>
 struct CommonStreamSpec<const bt_stream> final
 {
@@ -441,7 +441,7 @@ struct CommonStreamSpec<const bt_stream> final
     }
 };
 
-} // namespace internal
+} /* namespace internal */
 
 template <typename LibObjT>
 class CommonStream final : public internal::BorrowedObj<LibObjT>
@@ -599,7 +599,7 @@ struct TraceRefFuncs final
 template <typename LibObjT>
 struct CommonTraceSpec;
 
-// Functions specific to mutable traces
+/* Functions specific to mutable traces */
 template <>
 struct CommonTraceSpec<bt_trace> final
 {
@@ -624,7 +624,7 @@ struct CommonTraceSpec<bt_trace> final
     }
 };
 
-// Functions specific to constant traces
+/* Functions specific to constant traces */
 template <>
 struct CommonTraceSpec<const bt_trace> final
 {
@@ -651,12 +651,12 @@ struct CommonTraceSpec<const bt_trace> final
     }
 };
 
-} // namespace internal
+} /* namespace internal */
 
 template <typename LibObjT>
 class CommonTrace final : public internal::BorrowedObj<LibObjT>
 {
-    // Allow instantiate() to call `trace._libObjPtr()`
+    /* Allow instantiate() to call `trace._libObjPtr()` */
     friend class CommonStreamClass<bt_stream_class>;
 
 private:
@@ -916,7 +916,7 @@ struct EventClassRefFuncs final
 template <typename LibObjT>
 struct CommonEventClassSpec;
 
-// Functions specific to mutable event classes
+/* Functions specific to mutable event classes */
 template <>
 struct CommonEventClassSpec<bt_event_class> final
 {
@@ -941,7 +941,7 @@ struct CommonEventClassSpec<bt_event_class> final
     }
 };
 
-// Functions specific to constant event classes
+/* Functions specific to constant event classes */
 template <>
 struct CommonEventClassSpec<const bt_event_class> final
 {
@@ -967,7 +967,7 @@ struct CommonEventClassSpec<const bt_event_class> final
     }
 };
 
-} // namespace internal
+} /* namespace internal */
 
 template <typename LibObjT>
 class CommonEventClass final : public internal::BorrowedObj<LibObjT>
@@ -1237,7 +1237,7 @@ struct StreamClassRefFuncs final
 template <typename LibObjT>
 struct CommonStreamClassSpec;
 
-// Functions specific to mutable stream classes
+/* Functions specific to mutable stream classes */
 template <>
 struct CommonStreamClassSpec<bt_stream_class> final
 {
@@ -1279,7 +1279,7 @@ struct CommonStreamClassSpec<bt_stream_class> final
     }
 };
 
-// Functions specific to constant stream classes
+/* Functions specific to constant stream classes */
 template <>
 struct CommonStreamClassSpec<const bt_stream_class> final
 {
@@ -1323,7 +1323,7 @@ struct CommonStreamClassSpec<const bt_stream_class> final
     }
 };
 
-} // namespace internal
+} /* namespace internal */
 
 template <typename LibObjT>
 class CommonStreamClass final : public internal::BorrowedObj<LibObjT>
@@ -1752,7 +1752,7 @@ struct TraceClassRefFuncs final
 template <typename LibObjT>
 struct CommonTraceClassSpec;
 
-// Functions specific to mutable stream classes
+/* Functions specific to mutable stream classes */
 template <>
 struct CommonTraceClassSpec<bt_trace_class> final
 {
@@ -1774,7 +1774,7 @@ struct CommonTraceClassSpec<bt_trace_class> final
     }
 };
 
-// Functions specific to constant stream classes
+/* Functions specific to constant stream classes */
 template <>
 struct CommonTraceClassSpec<const bt_trace_class> final
 {
@@ -1796,7 +1796,7 @@ struct CommonTraceClassSpec<const bt_trace_class> final
     }
 };
 
-} // namespace internal
+} /* namespace internal */
 
 template <typename LibObjT>
 class CommonTraceClass final : public internal::BorrowedObj<LibObjT>
@@ -2202,6 +2202,6 @@ typename CommonTrace<LibObjT>::Class CommonTrace<LibObjT>::cls() noexcept
     return Class {_Spec::cls(this->_libObjPtr())};
 }
 
-} // namespace bt2
+} /* namespace bt2 */
 
-#endif // BABELTRACE_CPP_COMMON_BT2_TRACE_IR_HPP
+#endif /* BABELTRACE_CPP_COMMON_BT2_TRACE_IR_HPP */

@@ -45,6 +45,6 @@ public:
     }
 };
 
-} // namespace bt2
+} /* namespace bt2 */
 
-#endif // BABELTRACE_CPP_COMMON_BT2_LIB_ERROR_HPP
+#endif /* BABELTRACE_CPP_COMMON_BT2_LIB_ERROR_HPP */

@@ -54,7 +54,7 @@ struct IntegerRangeSetRefFuncs<const bt_integer_range_set_signed> final
 template <typename LibObjT>
 struct CommonIntegerRangeSetSpec;
 
-// Functions specific to unsigned integer range sets
+/* Functions specific to unsigned integer range sets */
 template <>
 struct CommonIntegerRangeSetSpec<const bt_integer_range_set_unsigned> final
 {
@@ -91,7 +91,7 @@ struct CommonIntegerRangeSetSpec<const bt_integer_range_set_unsigned> final
     }
 };
 
-// Functions specific to signed integer range sets
+/* Functions specific to signed integer range sets */
 template <>
 struct CommonIntegerRangeSetSpec<const bt_integer_range_set_signed> final
 {
@@ -127,7 +127,7 @@ struct CommonIntegerRangeSetSpec<const bt_integer_range_set_signed> final
     }
 };
 
-} // namespace internal
+} /* namespace internal */
 
 template <typename LibObjT>
 class ConstVariantWithIntegerSelectorFieldClassOption;
@@ -141,13 +141,13 @@ class CommonTraceClass;
 template <typename LibObjT>
 class CommonIntegerRangeSet final : public internal::BorrowedObj<LibObjT>
 {
-    // Allow operator==() to call `other._libObjPtr()`
+    /* Allow operator==() to call `other._libObjPtr()` */
     friend class CommonIntegerRangeSet<bt_integer_range_set_unsigned>;
     friend class CommonIntegerRangeSet<const bt_integer_range_set_unsigned>;
     friend class CommonIntegerRangeSet<bt_integer_range_set_signed>;
     friend class CommonIntegerRangeSet<const bt_integer_range_set_signed>;
 
-    // Allow appendOption() to call `ranges._libObjPtr()`
+    /* Allow appendOption() to call `ranges._libObjPtr()` */
     friend class CommonVariantWithIntegerSelectorFieldClass<
         bt_field_class,
         ConstVariantWithIntegerSelectorFieldClassOption<
@@ -158,7 +158,7 @@ class CommonIntegerRangeSet final : public internal::BorrowedObj<LibObjT>
         ConstVariantWithIntegerSelectorFieldClassOption<
             const bt_field_class_variant_with_selector_field_integer_signed_option>>;
 
-    // Allow create*FieldClass() to call `ranges._libObjPtr()`
+    /* Allow create*FieldClass() to call `ranges._libObjPtr()` */
     friend class CommonTraceClass<bt_trace_class>;
 
 private:
@@ -249,6 +249,6 @@ using ConstUnsignedIntegerRangeSet = CommonIntegerRangeSet<const bt_integer_rang
 using SignedIntegerRangeSet = CommonIntegerRangeSet<bt_integer_range_set_signed>;
 using ConstSignedIntegerRangeSet = CommonIntegerRangeSet<const bt_integer_range_set_signed>;
 
-} // namespace bt2
+} /* namespace bt2 */
 
-#endif // BABELTRACE_CPP_COMMON_BT2_INTEGER_RANGE_SET_HPP
+#endif /* BABELTRACE_CPP_COMMON_BT2_INTEGER_RANGE_SET_HPP */

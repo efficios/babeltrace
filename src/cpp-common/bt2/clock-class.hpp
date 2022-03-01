@@ -40,7 +40,7 @@ struct ClockClassRefFuncs final
 template <typename LibObjT>
 struct CommonClockClassSpec;
 
-// Functions specific to mutable clock classes
+/* Functions specific to mutable clock classes */
 template <>
 struct CommonClockClassSpec<bt_clock_class> final
 {
@@ -50,7 +50,7 @@ struct CommonClockClassSpec<bt_clock_class> final
     }
 };
 
-// Functions specific to constant clock classes
+/* Functions specific to constant clock classes */
 template <>
 struct CommonClockClassSpec<const bt_clock_class> final
 {
@@ -60,7 +60,7 @@ struct CommonClockClassSpec<const bt_clock_class> final
     }
 };
 
-} // namespace internal
+} /* namespace internal */
 
 class ClockClassOffset final
 {
@@ -285,6 +285,6 @@ public:
 using ClockClass = CommonClockClass<bt_clock_class>;
 using ConstClockClass = CommonClockClass<const bt_clock_class>;
 
-} // namespace bt2
+} /* namespace bt2 */
 
-#endif // BABELTRACE_CPP_COMMON_BT2_CLOCK_CLASS_HPP
+#endif /* BABELTRACE_CPP_COMMON_BT2_CLOCK_CLASS_HPP */

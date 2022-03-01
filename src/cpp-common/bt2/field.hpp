@@ -66,7 +66,7 @@ namespace internal {
 template <typename LibObjT>
 struct CommonFieldSpec;
 
-// Functions specific to mutable fields
+/* Functions specific to mutable fields */
 template <>
 struct CommonFieldSpec<bt_field> final
 {
@@ -76,7 +76,7 @@ struct CommonFieldSpec<bt_field> final
     }
 };
 
-// Functions specific to constant fields
+/* Functions specific to constant fields */
 template <>
 struct CommonFieldSpec<const bt_field> final
 {
@@ -86,7 +86,7 @@ struct CommonFieldSpec<const bt_field> final
     }
 };
 
-} // namespace internal
+} /* namespace internal */
 
 template <typename LibObjT>
 class CommonField : public internal::BorrowedObj<LibObjT>
@@ -796,7 +796,7 @@ namespace internal {
 template <typename LibObjT>
 struct CommonStructureFieldSpec;
 
-// Functions specific to mutable structure fields
+/* Functions specific to mutable structure fields */
 template <>
 struct CommonStructureFieldSpec<bt_field> final
 {
@@ -812,7 +812,7 @@ struct CommonStructureFieldSpec<bt_field> final
     }
 };
 
-// Functions specific to constant structure fields
+/* Functions specific to constant structure fields */
 template <>
 struct CommonStructureFieldSpec<const bt_field> final
 {
@@ -829,7 +829,7 @@ struct CommonStructureFieldSpec<const bt_field> final
     }
 };
 
-} // namespace internal
+} /* namespace internal */
 
 template <typename LibObjT>
 class CommonStructureField final : public CommonField<LibObjT>
@@ -932,7 +932,7 @@ namespace internal {
 template <typename LibObjT>
 struct CommonArrayFieldSpec;
 
-// Functions specific to mutable array fields
+/* Functions specific to mutable array fields */
 template <>
 struct CommonArrayFieldSpec<bt_field> final
 {
@@ -943,7 +943,7 @@ struct CommonArrayFieldSpec<bt_field> final
     }
 };
 
-// Functions specific to constant array fields
+/* Functions specific to constant array fields */
 template <>
 struct CommonArrayFieldSpec<const bt_field> final
 {
@@ -954,7 +954,7 @@ struct CommonArrayFieldSpec<const bt_field> final
     }
 };
 
-} // namespace internal
+} /* namespace internal */
 
 template <typename LibObjT>
 class CommonArrayField : public CommonField<LibObjT>
@@ -1072,7 +1072,7 @@ namespace internal {
 template <typename LibObjT>
 struct CommonOptionFieldSpec;
 
-// Functions specific to mutable option fields
+/* Functions specific to mutable option fields */
 template <>
 struct CommonOptionFieldSpec<bt_field> final
 {
@@ -1082,7 +1082,7 @@ struct CommonOptionFieldSpec<bt_field> final
     }
 };
 
-// Functions specific to constant option fields
+/* Functions specific to constant option fields */
 template <>
 struct CommonOptionFieldSpec<const bt_field> final
 {
@@ -1092,7 +1092,7 @@ struct CommonOptionFieldSpec<const bt_field> final
     }
 };
 
-} // namespace internal
+} /* namespace internal */
 
 template <typename LibObjT>
 class CommonOptionField : public CommonField<LibObjT>
@@ -1178,7 +1178,7 @@ namespace internal {
 template <typename LibObjT>
 struct CommonVariantFieldSpec;
 
-// Functions specific to mutable variant fields
+/* Functions specific to mutable variant fields */
 template <>
 struct CommonVariantFieldSpec<bt_field> final
 {
@@ -1188,7 +1188,7 @@ struct CommonVariantFieldSpec<bt_field> final
     }
 };
 
-// Functions specific to constant variant fields
+/* Functions specific to constant variant fields */
 template <>
 struct CommonVariantFieldSpec<const bt_field> final
 {
@@ -1198,7 +1198,7 @@ struct CommonVariantFieldSpec<const bt_field> final
     }
 };
 
-} // namespace internal
+} /* namespace internal */
 
 template <typename LibObjT>
 class CommonVariantField : public CommonField<LibObjT>
@@ -1366,6 +1366,6 @@ CommonVariantField<LibObjT> CommonField<LibObjT>::asVariant() const noexcept
     return CommonVariantField<LibObjT> {this->_libObjPtr()};
 }
 
-} // namespace bt2
+} /* namespace bt2 */
 
-#endif // BABELTRACE_CPP_COMMON_BT2_FIELD_HPP
+#endif /* BABELTRACE_CPP_COMMON_BT2_FIELD_HPP */
