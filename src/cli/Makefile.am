@@ -46,6 +46,8 @@ babeltrace2_bin_SOURCES = \
 # side-effects as dead code.
 babeltrace2_bin_LDFLAGS = $(AM_LDFLAGS) $(LD_NO_AS_NEEDED)
 
+EXTRA_babeltrace2_bin_DEPENDENCIES =
+
 # Add all the convenience libraries used by Babeltrace plugins and the
 # library. They will be used when embedding plugins (--enable-built-in-plugins),
 # otherwise we're looking after multiple definitions of the same symbols if
@@ -86,9 +88,17 @@ babeltrace2_bin_LDFLAGS += $(call pluginarchive,ctf)
 babeltrace2_bin_LDFLAGS += $(call pluginarchive,text)
 babeltrace2_bin_LDFLAGS += $(call pluginarchive,utils)
 
+EXTRA_babeltrace2_bin_DEPENDENCIES += \
+	$(PLUGINS_PATH)/ctf/babeltrace-plugin-ctf.la \
+	$(PLUGINS_PATH)/text/babeltrace-plugin-text.la \
+	$(PLUGINS_PATH)/utils/babeltrace-plugin-utils.la
+
 if ENABLE_DEBUG_INFO
 babeltrace2_bin_LDFLAGS += $(call pluginarchive,lttng-utils)
 babeltrace2_bin_LDADD += $(ELFUTILS_LIBS)
+
+EXTRA_babeltrace2_bin_DEPENDENCIES += \
+	$(PLUGINS_PATH)/lttng-utils/babeltrace-plugin-lttng-utils.la
 endif
 endif
 
@@ -101,3 +111,4 @@ babeltrace2_SOURCES = $(babeltrace2_bin_SOURCES)
 babeltrace2_LDFLAGS = $(babeltrace2_bin_LDFLAGS)
 babeltrace2_LDADD = $(babeltrace2_bin_LDADD)
 babeltrace2_CFLAGS = $(AM_CFLAGS) -DBT_SET_DEFAULT_IN_TREE_CONFIGURATION
+EXTRA_babeltrace2_DEPENDENCIES = $(EXTRA_babeltrace2_bin_DEPENDENCIES)
