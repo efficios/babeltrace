@@ -12,4 +12,5 @@ EXTRA_DIST = bt2 \
 	optional.hpp \
 	string_view.hpp \
 	uuid-view.hpp \
-	endian.hpp
+	endian.hpp \
+	make-unique.hpp
