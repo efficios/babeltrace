@@ -26,13 +26,9 @@
 .deps
 *.bkp
 *.trs
-ctf-lexer.c
-ctf-parser.c
-ctf-parser.h
-ctf-parser-test
-/src/plugins/ctf/common/metadata/lexer.c
-/src/plugins/ctf/common/metadata/parser.c
-/src/plugins/ctf/common/metadata/parser.h
+/src/plugins/ctf/common/metadata/lexer.cpp
+/src/plugins/ctf/common/metadata/parser.cpp
+/src/plugins/ctf/common/metadata/parser.hpp
 /src/plugins/ctf/common/metadata/parser.output
 /src/cli/babeltrace2
 /src/cli/babeltrace2.bin
