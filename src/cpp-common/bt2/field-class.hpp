@@ -19,6 +19,7 @@
 #include "lib-error.hpp"
 #include "integer-range-set.hpp"
 #include "field-path.hpp"
+#include "value.hpp"
 
 namespace bt2 {
 
