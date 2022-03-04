@@ -1976,7 +1976,7 @@ public:
     ConstFieldPath selectorFieldPath() const noexcept
     {
         return ConstFieldPath {
-            bt_field_class_option_with_selector_field_borrow_selector_field_path_const(
+            bt_field_class_variant_with_selector_field_borrow_selector_field_path_const(
                 this->_libObjPtr())};
     }
 
