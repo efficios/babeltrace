@@ -682,7 +682,7 @@ void write_int_range(struct details_write_ctx *ctx,
 	if (is_signed) {
 		write_int_prop_value(ctx, range->lower.i);
 	} else {
-		write_int_prop_value(ctx, range->lower.u);
+		write_uint_prop_value(ctx, range->lower.u);
 	}
 
 	if (range->lower.u != range->upper.u) {
@@ -691,7 +691,7 @@ void write_int_range(struct details_write_ctx *ctx,
 		if (is_signed) {
 			write_int_prop_value(ctx, range->upper.i);
 		} else {
-			write_int_prop_value(ctx, range->upper.u);
+			write_uint_prop_value(ctx, range->upper.u);
 		}
 	}
 
