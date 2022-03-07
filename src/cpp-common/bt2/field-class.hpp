@@ -113,6 +113,9 @@ template <typename LibObjT>
 class CommonVariantWithoutSelectorFieldClass;
 
 template <typename LibObjT>
+class CommonVariantWithSelectorFieldClass;
+
+template <typename LibObjT>
 class ConstVariantWithIntegerSelectorFieldClassOption;
 
 template <typename LibObjT, typename RangeSetT>
@@ -397,6 +400,7 @@ public:
 
     CommonVariantFieldClass<LibObjT> asVariant() const noexcept;
     CommonVariantWithoutSelectorFieldClass<LibObjT> asVariantWithoutSelector() const noexcept;
+    CommonVariantWithSelectorFieldClass<LibObjT> asVariantWithSelector() const noexcept;
 
     CommonVariantWithIntegerSelectorFieldClass<
         LibObjT, ConstVariantWithIntegerSelectorFieldClassOption<
@@ -2004,13 +2008,61 @@ struct CommonVariantWithIntegerSelectorFieldClassSpec<
 
 } /* namespace internal */
 
-template <typename LibObjT, typename OptionT>
-class CommonVariantWithIntegerSelectorFieldClass : public CommonVariantFieldClass<LibObjT>
+template <typename LibObjT>
+class CommonVariantWithSelectorFieldClass : public CommonVariantFieldClass<LibObjT>
 {
 private:
     using typename CommonVariantFieldClass<LibObjT>::_ThisCommonVariantFieldClass;
-    using typename CommonFieldClass<LibObjT>::_LibObjPtr;
 
+protected:
+    using typename CommonFieldClass<LibObjT>::_LibObjPtr;
+    using _ThisCommonVariantWithSelectorFieldClass = CommonVariantWithSelectorFieldClass<LibObjT>;
+
+public:
+    using Shared = internal::SharedFieldClass<_ThisCommonVariantWithSelectorFieldClass, LibObjT>;
+
+    explicit CommonVariantWithSelectorFieldClass(const _LibObjPtr libObjPtr) noexcept :
+        _ThisCommonVariantFieldClass {libObjPtr}
+    {
+        BT_ASSERT_DBG(this->isVariantWithSelector());
+    }
+
+    template <typename OtherLibObjT>
+    CommonVariantWithSelectorFieldClass(
+        const CommonVariantWithSelectorFieldClass<OtherLibObjT>& fc) noexcept :
+        _ThisCommonVariantFieldClass {fc}
+    {
+    }
+
+    template <typename OtherLibObjT>
+    _ThisCommonVariantWithSelectorFieldClass&
+    operator=(const CommonVariantWithSelectorFieldClass<OtherLibObjT>& fc) noexcept
+    {
+        _ThisCommonVariantFieldClass::operator=(fc);
+        return *this;
+    }
+
+    ConstFieldPath selectorFieldPath() const noexcept
+    {
+        return ConstFieldPath {
+            bt_field_class_variant_with_selector_field_borrow_selector_field_path_const(
+                this->_libObjPtr())};
+    }
+
+    Shared shared() const noexcept
+    {
+        return Shared {*this};
+    }
+};
+
+template <typename LibObjT, typename OptionT>
+class CommonVariantWithIntegerSelectorFieldClass :
+    public CommonVariantWithSelectorFieldClass<LibObjT>
+{
+private:
+    using typename CommonVariantWithSelectorFieldClass<
+        LibObjT>::_ThisCommonVariantWithSelectorFieldClass;
+    using typename CommonFieldClass<LibObjT>::_LibObjPtr;
     using _ThisCommonVariantWithIntegerSelectorFieldClass =
         CommonVariantWithIntegerSelectorFieldClass<LibObjT, OptionT>;
 
@@ -2023,7 +2075,7 @@ public:
     using Option = OptionT;
 
     explicit CommonVariantWithIntegerSelectorFieldClass(const _LibObjPtr libObjPtr) noexcept :
-        _ThisCommonVariantFieldClass {libObjPtr}
+        _ThisCommonVariantWithSelectorFieldClass {libObjPtr}
     {
         BT_ASSERT_DBG(this->isVariant());
     }
@@ -2031,7 +2083,7 @@ public:
     template <typename OtherLibObjT>
     CommonVariantWithIntegerSelectorFieldClass(
         const CommonVariantWithIntegerSelectorFieldClass<OtherLibObjT, OptionT>& fc) noexcept :
-        _ThisCommonVariantFieldClass {fc}
+        _ThisCommonVariantWithSelectorFieldClass {fc}
     {
     }
 
@@ -2039,15 +2091,8 @@ public:
     _ThisCommonVariantWithIntegerSelectorFieldClass&
     operator=(const CommonVariantWithIntegerSelectorFieldClass<OtherLibObjT, OptionT>& fc) noexcept
     {
-        _ThisCommonVariantFieldClass::operator=(fc);
+        _ThisCommonVariantWithSelectorFieldClass::operator=(fc);
         return *this;
-    }
-
-    ConstFieldPath selectorFieldPath() const noexcept
-    {
-        return ConstFieldPath {
-            bt_field_class_variant_with_selector_field_borrow_selector_field_path_const(
-                this->_libObjPtr())};
     }
 
     Option operator[](const std::uint64_t index) const noexcept
@@ -2231,6 +2276,14 @@ CommonFieldClass<LibObjT>::asVariantWithoutSelector() const noexcept
 {
     BT_ASSERT_DBG(this->isVariantWithoutSelector());
     return CommonVariantWithoutSelectorFieldClass<LibObjT> {this->_libObjPtr()};
+}
+
+template <typename LibObjT>
+CommonVariantWithSelectorFieldClass<LibObjT>
+CommonFieldClass<LibObjT>::asVariantWithSelector() const noexcept
+{
+    BT_ASSERT_DBG(this->isVariantWithSelector());
+    return CommonVariantWithSelectorFieldClass<LibObjT> {this->_libObjPtr()};
 }
 
 template <typename LibObjT>
