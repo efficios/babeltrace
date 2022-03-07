@@ -76,6 +76,9 @@ class CommonIntegerFieldClass;
 template <typename LibObjT>
 class ConstEnumerationFieldClassMapping;
 
+template <typename LibObjT>
+class CommonBaseEnumerationFieldClass;
+
 template <typename LibObjT, typename MappingT>
 class CommonEnumerationFieldClass;
 
@@ -369,7 +372,7 @@ public:
 
     CommonBitArrayFieldClass<LibObjT> asBitArray() const noexcept;
     CommonIntegerFieldClass<LibObjT> asInteger() const noexcept;
-
+    CommonBaseEnumerationFieldClass<LibObjT> asEnumeration() const noexcept;
     CommonEnumerationFieldClass<LibObjT, ConstEnumerationFieldClassMapping<
                                              const bt_field_class_enumeration_unsigned_mapping>>
     asUnsignedEnumeration() const noexcept;
@@ -694,34 +697,35 @@ struct CommonEnumerationFieldClassSpec<ConstSignedEnumerationFieldClassMapping> 
 
 } /* namespace internal */
 
-template <typename LibObjT, typename MappingT>
-class CommonEnumerationFieldClass final : public CommonIntegerFieldClass<LibObjT>
+template <typename LibObjT>
+class CommonBaseEnumerationFieldClass : public CommonIntegerFieldClass<LibObjT>
 {
 private:
-    using typename CommonFieldClass<LibObjT>::_LibObjPtr;
     using typename CommonIntegerFieldClass<LibObjT>::_ThisCommonIntegerFieldClass;
-    using _ThisCommonEnumerationFieldClass = CommonEnumerationFieldClass<LibObjT, MappingT>;
+
+protected:
+    using typename CommonFieldClass<LibObjT>::_LibObjPtr;
+    using _ThisCommonBaseEnumerationFieldClass = CommonBaseEnumerationFieldClass<LibObjT>;
 
 public:
-    using Shared = internal::SharedFieldClass<_ThisCommonEnumerationFieldClass, LibObjT>;
-    using Mapping = MappingT;
+    using Shared = internal::SharedFieldClass<_ThisCommonBaseEnumerationFieldClass, LibObjT>;
 
-    explicit CommonEnumerationFieldClass(const _LibObjPtr libObjPtr) noexcept :
+    explicit CommonBaseEnumerationFieldClass(const _LibObjPtr libObjPtr) noexcept :
         _ThisCommonIntegerFieldClass {libObjPtr}
     {
         BT_ASSERT_DBG(this->isEnumeration());
     }
 
     template <typename OtherLibObjT>
-    CommonEnumerationFieldClass(
-        const CommonEnumerationFieldClass<OtherLibObjT, MappingT>& fc) noexcept :
+    CommonBaseEnumerationFieldClass(
+        const CommonBaseEnumerationFieldClass<OtherLibObjT>& fc) noexcept :
         _ThisCommonIntegerFieldClass {fc}
     {
     }
 
     template <typename OtherLibObjT>
-    _ThisCommonEnumerationFieldClass&
-    operator=(const CommonEnumerationFieldClass<OtherLibObjT, MappingT>& fc) noexcept
+    _ThisCommonBaseEnumerationFieldClass&
+    operator=(const CommonBaseEnumerationFieldClass<OtherLibObjT>& fc) noexcept
     {
         _ThisCommonIntegerFieldClass::operator=(fc);
         return *this;
@@ -730,6 +734,45 @@ public:
     std::uint64_t size() const noexcept
     {
         return bt_field_class_enumeration_get_mapping_count(this->_libObjPtr());
+    }
+
+    Shared shared() const noexcept
+    {
+        return Shared {*this};
+    }
+};
+
+template <typename LibObjT, typename MappingT>
+class CommonEnumerationFieldClass final : public CommonBaseEnumerationFieldClass<LibObjT>
+{
+private:
+    using typename CommonFieldClass<LibObjT>::_LibObjPtr;
+    using typename CommonBaseEnumerationFieldClass<LibObjT>::_ThisCommonBaseEnumerationFieldClass;
+    using _ThisCommonEnumerationFieldClass = CommonEnumerationFieldClass<LibObjT, MappingT>;
+
+public:
+    using Shared = internal::SharedFieldClass<_ThisCommonEnumerationFieldClass, LibObjT>;
+    using Mapping = MappingT;
+
+    explicit CommonEnumerationFieldClass(const _LibObjPtr libObjPtr) noexcept :
+        _ThisCommonBaseEnumerationFieldClass {libObjPtr}
+    {
+        BT_ASSERT_DBG(this->isEnumeration());
+    }
+
+    template <typename OtherLibObjT>
+    CommonEnumerationFieldClass(
+        const CommonEnumerationFieldClass<OtherLibObjT, MappingT>& fc) noexcept :
+        _ThisCommonEnumerationFieldClass {fc}
+    {
+    }
+
+    template <typename OtherLibObjT>
+    _ThisCommonEnumerationFieldClass&
+    operator=(const CommonEnumerationFieldClass<OtherLibObjT, MappingT>& fc) noexcept
+    {
+        _ThisCommonEnumerationFieldClass::operator=(fc);
+        return *this;
     }
 
     Mapping operator[](const std::uint64_t index) const noexcept
@@ -760,6 +803,9 @@ public:
         return Shared {*this};
     }
 };
+
+using EnumerationFieldClass = CommonBaseEnumerationFieldClass<bt_field_class>;
+using ConstEnumerationFieldClass = CommonBaseEnumerationFieldClass<const bt_field_class>;
 
 using UnsignedEnumerationFieldClass =
     CommonEnumerationFieldClass<bt_field_class, ConstUnsignedEnumerationFieldClassMapping>;
@@ -2075,6 +2121,13 @@ CommonIntegerFieldClass<LibObjT> CommonFieldClass<LibObjT>::asInteger() const no
 {
     BT_ASSERT_DBG(this->isInteger());
     return CommonIntegerFieldClass<LibObjT> {this->_libObjPtr()};
+}
+
+template <typename LibObjT>
+CommonBaseEnumerationFieldClass<LibObjT> CommonFieldClass<LibObjT>::asEnumeration() const noexcept
+{
+    BT_ASSERT_DBG(this->isEnumeration());
+    return CommonBaseEnumerationFieldClass<LibObjT> {this->_libObjPtr()};
 }
 
 template <typename LibObjT>
