@@ -15,6 +15,7 @@
 
 #include "common/assert.h"
 #include "common/common.h"
+#include "common-iter.hpp"
 #include "internal/borrowed-obj.hpp"
 #include "internal/shared-obj.hpp"
 #include "internal/utils.hpp"
@@ -624,82 +625,6 @@ struct CommonArrayValueSpec<const bt_value> final
 } /* namespace internal */
 
 template <typename LibObjT>
-class CommonArrayValueIterator
-{
-    friend CommonArrayValue<LibObjT>;
-
-    using difference_type = std::ptrdiff_t;
-    using value_type = CommonValue<LibObjT>;
-    using pointer = value_type *;
-    using reference = value_type&;
-    using iterator_category = std::input_iterator_tag;
-
-private:
-    explicit CommonArrayValueIterator(const CommonArrayValue<LibObjT>& arrayVal,
-                                      const uint64_t idx) :
-        _mArrayVal {arrayVal},
-        _mIdx {idx}
-    {
-        this->_updateCurrentValue();
-    }
-
-public:
-    CommonArrayValueIterator(const CommonArrayValueIterator&) = default;
-    CommonArrayValueIterator(CommonArrayValueIterator&&) = default;
-    CommonArrayValueIterator& operator=(const CommonArrayValueIterator&) = default;
-    CommonArrayValueIterator& operator=(CommonArrayValueIterator&&) = default;
-
-    CommonArrayValueIterator& operator++() noexcept
-    {
-        ++_mIdx;
-        this->_updateCurrentValue();
-        return *this;
-    }
-
-    CommonArrayValueIterator operator++(int) noexcept
-    {
-        const auto tmp = *this;
-
-        ++(*this);
-        return tmp;
-    }
-
-    bool operator==(const CommonArrayValueIterator& other) const noexcept
-    {
-        return _mIdx == other._mIdx;
-    }
-
-    bool operator!=(const CommonArrayValueIterator& other) const noexcept
-    {
-        return !(*this == other);
-    }
-
-    reference operator*() noexcept
-    {
-        return *_mCurrVal;
-    }
-
-    pointer operator->() noexcept
-    {
-        return &(*_mCurrVal);
-    }
-
-private:
-    void _updateCurrentValue() noexcept
-    {
-        if (_mIdx < _mArrayVal.length()) {
-            _mCurrVal = _mArrayVal[_mIdx];
-        } else {
-            _mCurrVal = nonstd::nullopt;
-        }
-    }
-
-    nonstd::optional<CommonValue<LibObjT>> _mCurrVal;
-    CommonArrayValue<LibObjT> _mArrayVal;
-    uint64_t _mIdx;
-};
-
-template <typename LibObjT>
 class CommonArrayValue final : public CommonValue<LibObjT>
 {
 private:
@@ -708,7 +633,7 @@ private:
 
 public:
     using Shared = internal::SharedValue<CommonArrayValue<LibObjT>, LibObjT>;
-    using Iterator = CommonArrayValueIterator<LibObjT>;
+    using Iterator = CommonIterator<CommonArrayValue<LibObjT>, CommonValue<LibObjT>>;
 
     explicit CommonArrayValue(const _LibObjPtr libObjPtr) noexcept : _ThisCommonValue {libObjPtr}
     {
@@ -738,6 +663,12 @@ public:
     std::uint64_t length() const noexcept
     {
         return bt_value_array_get_length(this->_libObjPtr());
+    }
+
+    /* Required by the `CommonIterator` template class */
+    std::uint64_t size() const noexcept
+    {
+        return this->length();
     }
 
     Iterator begin() const noexcept
