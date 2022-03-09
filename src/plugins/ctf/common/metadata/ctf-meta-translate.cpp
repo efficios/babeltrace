@@ -623,7 +623,7 @@ int ctf_trace_class_translate(bt_self_component *self_comp, bt_trace_class *ir_t
 {
     int ret = 0;
     uint64_t i;
-    struct ctx ctx = {0};
+    struct ctx ctx = {};
 
     ctx.self_comp = self_comp;
     ctx.tc = tc;

@@ -17,7 +17,8 @@ libctf_parser_la_CPPFLAGS = $(AM_CPPFLAGS) \
 # produces.
 libctf_parser_la_CXXFLAGS = $(AM_CXXFLAGS) \
 	-Wno-unused-function \
-	-Wno-null-dereference
+	-Wno-null-dereference \
+	-Wno-missing-field-initializers
 
 libctf_ast_la_SOURCES = \
 	visitor-generate-ir.cpp \

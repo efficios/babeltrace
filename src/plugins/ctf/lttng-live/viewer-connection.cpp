@@ -336,7 +336,7 @@ static int parse_url(struct live_viewer_connection *viewer_connection)
     char error_buf[256] = {0};
     bt_self_component *self_comp = viewer_connection->self_comp;
     bt_self_component_class *self_comp_class = viewer_connection->self_comp_class;
-    struct bt_common_lttng_live_url_parts lttng_live_url_parts = {0};
+    struct bt_common_lttng_live_url_parts lttng_live_url_parts = {};
     int ret = -1;
     const char *path = viewer_connection->url->str;
 
