@@ -11,6 +11,7 @@
 #include <babeltrace2/babeltrace.h>
 
 #include "common/assert.h"
+#include "common-iter.hpp"
 #include "internal/borrowed-obj.hpp"
 #include "internal/shared-obj.hpp"
 
@@ -126,6 +127,8 @@ public:
     using Shared =
         internal::SharedObj<ConstFieldPath, const bt_field_path, internal::FieldPathRefFuncs>;
 
+    using Iterator = CommonIterator<ConstFieldPath, ConstFieldPathItem>;
+
     enum class Scope
     {
         PACKET_CONTEXT = BT_FIELD_PATH_SCOPE_PACKET_CONTEXT,
@@ -162,6 +165,16 @@ public:
     {
         return ConstFieldPathItem {
             bt_field_path_borrow_item_by_index_const(this->libObjPtr(), index)};
+    }
+
+    Iterator begin() const noexcept
+    {
+        return Iterator {*this, 0};
+    }
+
+    Iterator end() const noexcept
+    {
+        return Iterator {*this, this->size()};
     }
 
     Shared shared() const noexcept
