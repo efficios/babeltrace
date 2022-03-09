@@ -356,7 +356,8 @@ void test_array(void)
 
 static
 bt_value_map_foreach_entry_func_status test_map_foreach_cb_count(
-		const char *key, bt_value *object,
+	const char *key __attribute__((unused)),
+	bt_value *object __attribute__((unused)),
 	void *data)
 {
 	int *count = data;

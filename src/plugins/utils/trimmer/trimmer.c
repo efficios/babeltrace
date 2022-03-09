@@ -425,7 +425,8 @@ end:
  */
 static
 int set_bound_from_param(struct trimmer_comp *trimmer_comp,
-		const char *param_name, const bt_value *param,
+		const char *param_name __attribute__((unused)),
+		const bt_value *param,
 		struct trimmer_bound *bound, bool is_gmt)
 {
 	int ret;
@@ -594,8 +595,9 @@ end:
 
 bt_component_class_initialize_method_status trimmer_init(
 		bt_self_component_filter *self_comp_flt,
-		bt_self_component_filter_configuration *config,
-		const bt_value *params, void *init_data)
+		bt_self_component_filter_configuration *config __attribute__((unused)),
+		const bt_value *params,
+		void *init_data __attribute__((unused)))
 {
 	bt_component_class_initialize_method_status status;
 	bt_self_component_add_port_status add_port_status;
@@ -681,7 +683,7 @@ void destroy_trimmer_iterator_stream_state(
 bt_message_iterator_class_initialize_method_status trimmer_msg_iter_init(
 		bt_self_message_iterator *self_msg_iter,
 		bt_self_message_iterator_configuration *config,
-		bt_self_component_port_output *port)
+		bt_self_component_port_output *port __attribute__((unused)))
 {
 	bt_message_iterator_class_initialize_method_status status;
 	bt_message_iterator_create_from_message_iterator_status

@@ -59,7 +59,7 @@ static bt_interrupter *the_interrupter;
 #include <windows.h>
 
 static
-BOOL WINAPI signal_handler(DWORD signal) {
+BOOL WINAPI signal_handler(DWORD signal __attribute__((unused))) {
 	if (the_interrupter) {
 		bt_interrupter_set(the_interrupter);
 	}
@@ -253,7 +253,9 @@ end:
 
 static
 bt_value_map_foreach_entry_const_func_status collect_map_keys(
-		const char *key, const bt_value *object, void *data)
+		const char *key,
+		const bt_value *object __attribute__((unused)),
+		void *data)
 {
 	GPtrArray *map_keys = data;
 
@@ -1647,7 +1649,7 @@ end:
 
 static
 bt_graph_listener_func_status graph_source_output_port_added_listener(
-		const bt_component_source *component,
+		const bt_component_source *component __attribute__((unused)),
 		const bt_port_output *port, void *data)
 {
 	return graph_output_port_added_listener(data, port);
@@ -1655,7 +1657,7 @@ bt_graph_listener_func_status graph_source_output_port_added_listener(
 
 static
 bt_graph_listener_func_status graph_filter_output_port_added_listener(
-		const bt_component_filter *component,
+		const bt_component_filter *component __attribute__((unused)),
 		const bt_port_output *port, void *data)
 {
 	return graph_output_port_added_listener(data, port);

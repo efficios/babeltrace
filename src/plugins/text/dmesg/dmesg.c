@@ -361,8 +361,9 @@ void destroy_dmesg_component(struct dmesg_component *dmesg_comp)
 
 bt_component_class_initialize_method_status dmesg_init(
 		bt_self_component_source *self_comp_src,
-		bt_self_component_source_configuration *config,
-		const bt_value *params, void *init_method_data)
+		bt_self_component_source_configuration *config __attribute__((unused)),
+		const bt_value *params,
+		void *init_method_data __attribute__((unused)))
 {
 	struct dmesg_component *dmesg_comp = g_new0(struct dmesg_component, 1);
 	bt_component_class_initialize_method_status status;
@@ -650,8 +651,8 @@ void destroy_dmesg_msg_iter(struct dmesg_msg_iter *dmesg_msg_iter)
 
 bt_message_iterator_class_initialize_method_status dmesg_msg_iter_init(
 		bt_self_message_iterator *self_msg_iter,
-		bt_self_message_iterator_configuration *config,
-		bt_self_component_port_output *self_port)
+		bt_self_message_iterator_configuration *config __attribute__((unused)),
+		bt_self_component_port_output *self_port __attribute__((unused)))
 {
 	bt_self_component *self_comp =
 		bt_self_message_iterator_borrow_component(self_msg_iter);

@@ -130,9 +130,9 @@ struct bt_param_validation_map_value_entry_descr counter_params[] = {
 
 bt_component_class_initialize_method_status counter_init(
 		bt_self_component_sink *component,
-		bt_self_component_sink_configuration *config,
+		bt_self_component_sink_configuration *config __attribute__((unused)),
 		const bt_value *params,
-		__attribute__((unused)) void *init_method_data)
+		void *init_method_data __attribute__((unused)))
 {
 	bt_component_class_initialize_method_status status;
 	bt_self_component_add_port_status add_port_status;

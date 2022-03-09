@@ -282,7 +282,7 @@ void test_string_invalid_choice(void)
 static
 enum bt_param_validation_status custom_validation_func_valid(
 		const bt_value *value,
-		struct bt_param_validation_context *context)
+		struct bt_param_validation_context *context __attribute__((unused)))
 {
 	ok(bt_value_get_type(value) == BT_VALUE_TYPE_UNSIGNED_INTEGER,
 		"type of value passed to custom function is as expected");
@@ -306,7 +306,7 @@ void test_custom_validation_func_valid(void)
 
 static
 enum bt_param_validation_status custom_validation_func_invalid(
-		const bt_value *value,
+		const bt_value *value __attribute__((unused)),
 		struct bt_param_validation_context *context)
 {
 	return bt_param_validation_error(context, "wrooooong");

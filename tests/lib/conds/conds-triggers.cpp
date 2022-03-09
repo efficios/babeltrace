@@ -35,7 +35,7 @@ static void trigger_fc_int_set_field_value_range_n_gt_64(bt_self_component *self
     bt_field_class_integer_set_field_value_range(get_uint_fc(self_comp), 65);
 }
 
-static void trigger_fc_int_set_field_value_range_null(bt_self_component *self_comp)
+static void trigger_fc_int_set_field_value_range_null(bt_self_component *)
 {
     bt_field_class_integer_set_field_value_range(NULL, 23);
 }

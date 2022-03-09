@@ -361,7 +361,9 @@ gint compare_strings(const char **a, const char **b)
 
 static
 bt_value_map_foreach_entry_const_func_status map_value_foreach_add_key_to_array(
-		const char *key, const bt_value *object, void *data)
+		const char *key,
+		const bt_value *object __attribute__((unused)),
+		void *data)
 {
 	GPtrArray *keys = data;
 

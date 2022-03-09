@@ -29,7 +29,7 @@
 static int _ctf_visitor_semantic_check(int depth, struct ctf_node *node,
                                        struct meta_log_config *log_cfg);
 
-static int ctf_visitor_unary_expression(int depth, struct ctf_node *node,
+static int ctf_visitor_unary_expression(int, struct ctf_node *node,
                                         struct meta_log_config *log_cfg)
 {
     struct ctf_node *iter;
@@ -201,7 +201,7 @@ errperm:
     return -EPERM; /* Structure not allowed */
 }
 
-static int ctf_visitor_field_class_specifier_list(int depth, struct ctf_node *node,
+static int ctf_visitor_field_class_specifier_list(int, struct ctf_node *node,
                                                   struct meta_log_config *log_cfg)
 {
     switch (node->parent->type) {
@@ -243,7 +243,7 @@ errinval:
     return -EINVAL; /* Incoherent structure */
 }
 
-static int ctf_visitor_field_class_specifier(int depth, struct ctf_node *node,
+static int ctf_visitor_field_class_specifier(int, struct ctf_node *node,
                                              struct meta_log_config *log_cfg)
 {
     switch (node->parent->type) {

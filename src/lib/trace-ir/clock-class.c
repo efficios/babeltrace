@@ -54,7 +54,7 @@ void destroy_clock_class(struct bt_object *obj)
 
 static
 void free_clock_snapshot(struct bt_clock_snapshot *clock_snapshot,
-		struct bt_clock_class *clock_class)
+		struct bt_clock_class *clock_class __attribute__((unused)))
 {
 	bt_clock_snapshot_destroy(clock_snapshot);
 }

@@ -251,8 +251,9 @@ void bt_message_iterator_set_connection(
 
 static
 enum bt_message_iterator_can_seek_beginning_status can_seek_ns_from_origin_true(
-		struct bt_message_iterator *iterator,
-		int64_t ns_from_origin, bt_bool *can_seek)
+		struct bt_message_iterator *iterator __attribute__((unused)),
+		int64_t ns_from_origin __attribute__((unused)),
+		bt_bool *can_seek)
 {
 	*can_seek = BT_TRUE;
 
@@ -261,7 +262,7 @@ enum bt_message_iterator_can_seek_beginning_status can_seek_ns_from_origin_true(
 
 static
 enum bt_message_iterator_can_seek_beginning_status can_seek_beginning_true(
-		struct bt_message_iterator *iterator,
+		struct bt_message_iterator *iterator __attribute__((unused)),
 		bt_bool *can_seek)
 {
 	*can_seek = BT_TRUE;

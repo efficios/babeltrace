@@ -240,7 +240,7 @@ bool bt_common_is_setuid_setgid(void)
 
 #ifdef __MINGW32__
 static
-const char *bt_get_home_dir(int log_level)
+const char *bt_get_home_dir(int log_level __attribute__((unused)))
 {
 	return g_get_home_dir();
 }
@@ -1246,7 +1246,8 @@ end_of_pattern:
 }
 
 #ifdef __MINGW32__
-GString *bt_common_normalize_path(const char *path, const char *wd)
+GString *bt_common_normalize_path(const char *path,
+		const char *wd __attribute__((unused)))
 {
 	char *tmp;
 	GString *norm_path = NULL;
@@ -1940,7 +1941,8 @@ end:
 }
 
 #ifdef __MINGW32__
-int bt_common_get_term_size(unsigned int *width, unsigned int *height)
+int bt_common_get_term_size(unsigned int *width __attribute__((unused)),
+		unsigned int *height __attribute__((unused)))
 {
 	/* Not supported on Windows yet */
 	return -1;

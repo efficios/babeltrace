@@ -152,8 +152,8 @@ DWORD map_prot_flags(int prot, DWORD *dwDesiredAccess)
 	return 0;
 }
 
-void *bt_mmap(void *addr, size_t length, int prot, int flags, int fd,
-		off_t offset, int log_level)
+void *bt_mmap(void *addr __attribute__((unused)), size_t length, int prot,
+		int flags, int fd, off_t offset, int log_level)
 {
 	struct mmap_mapping *mapping = NULL;
 	void *mapping_addr;
@@ -252,7 +252,7 @@ error:
 	return MAP_FAILED;
 }
 
-int bt_munmap(void *addr, size_t length)
+int bt_munmap(void *addr, size_t length __attribute__((unused)))
 {
 	int ret = 0;
 	struct mmap_mapping *mapping = addr;

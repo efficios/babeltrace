@@ -44,9 +44,9 @@ struct bt_param_validation_map_value_entry_descr dummy_params[] = {
 
 bt_component_class_initialize_method_status dummy_init(
 		bt_self_component_sink *self_comp_sink,
-		bt_self_component_sink_configuration *config,
+		bt_self_component_sink_configuration *config __attribute__((unused)),
 		const bt_value *params,
-		__attribute__((unused)) void *init_method_data)
+		void *init_method_data __attribute__((unused)))
 {
 	bt_self_component *self_comp =
 		bt_self_component_sink_as_self_component(self_comp_sink);

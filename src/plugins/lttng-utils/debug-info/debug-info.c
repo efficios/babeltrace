@@ -1510,7 +1510,8 @@ end:
 }
 
 static
-bt_message *handle_msg_iterator_inactivity(struct debug_info_msg_iter *debug_it,
+bt_message *handle_msg_iterator_inactivity(
+		struct debug_info_msg_iter *debug_it __attribute__((unused)),
 		const bt_message *in_message)
 {
 	/*
@@ -1758,8 +1759,8 @@ end:
 
 bt_component_class_initialize_method_status debug_info_comp_init(
 		bt_self_component_filter *self_comp_flt,
-		bt_self_component_filter_configuration *config,
-		const bt_value *params, __attribute__((unused)) void *init_method_data)
+		bt_self_component_filter_configuration *config __attribute__((unused)),
+		const bt_value *params, void *init_method_data __attribute__((unused)))
 {
 	struct debug_info_component *debug_info_comp;
 	bt_component_class_initialize_method_status status =
@@ -1955,7 +1956,7 @@ end:
 bt_message_iterator_class_initialize_method_status debug_info_msg_iter_init(
 		bt_self_message_iterator *self_msg_iter,
 		bt_self_message_iterator_configuration *config,
-		bt_self_component_port_output *self_port)
+		bt_self_component_port_output *self_port __attribute__((unused)))
 {
 	bt_message_iterator_class_initialize_method_status status;
 	bt_message_iterator_create_from_message_iterator_status

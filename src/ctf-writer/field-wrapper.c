@@ -13,7 +13,8 @@
 #include "field-wrapper.h"
 #include "object.h"
 
-struct bt_ctf_field_wrapper *bt_ctf_field_wrapper_new(void *data)
+struct bt_ctf_field_wrapper *bt_ctf_field_wrapper_new(
+		void *data __attribute__((unused)))
 {
 	struct bt_ctf_field_wrapper *field_wrapper =
 		g_new0(struct bt_ctf_field_wrapper, 1);

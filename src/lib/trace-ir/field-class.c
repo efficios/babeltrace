@@ -253,8 +253,9 @@ uint64_t bt_field_class_integer_get_field_value_range(
 }
 
 static
-bool size_is_valid_for_enumeration_field_class(struct bt_field_class *fc,
-		uint64_t size)
+bool size_is_valid_for_enumeration_field_class(
+		struct bt_field_class *fc __attribute__((unused)),
+		uint64_t size __attribute__((unused)))
 {
 	// TODO
 	return true;

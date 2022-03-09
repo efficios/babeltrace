@@ -515,7 +515,8 @@ static struct {
 
 static
 int nftw_append_all_from_dir(const char *file,
-		const struct stat *sb, int flag, struct FTW *s)
+		const struct stat *sb __attribute__((unused)),
+		int flag, struct FTW *s)
 {
 	int ret = 0;
 	const char *name = file + s->base;

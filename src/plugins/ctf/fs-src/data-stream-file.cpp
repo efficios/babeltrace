@@ -229,7 +229,7 @@ end:
     return status;
 }
 
-static bt_stream *medop_borrow_stream(bt_stream_class *stream_class, int64_t stream_id, void *data)
+static bt_stream *medop_borrow_stream(bt_stream_class *stream_class, int64_t, void *data)
 {
     struct ctf_fs_ds_file *ds_file = (struct ctf_fs_ds_file *) data;
     bt_stream_class *ds_file_stream_class;

@@ -198,7 +198,8 @@ void details_finalize(bt_self_component_sink *comp)
 }
 
 static
-void configure_bool_opt(struct details_comp *details_comp,
+void configure_bool_opt(
+		struct details_comp *details_comp __attribute__((unused)),
 		const bt_value *params, const char *param_name,
 		bool default_value, bool *opt_value)
 {
@@ -333,9 +334,9 @@ void log_configuration(bt_self_component_sink *comp,
 
 bt_component_class_initialize_method_status details_init(
 		bt_self_component_sink *comp,
-		bt_self_component_sink_configuration *config,
+		bt_self_component_sink_configuration *config __attribute__((unused)),
 		const bt_value *params,
-		__attribute__((unused)) void *init_method_data)
+		void *init_method_data __attribute__((unused)))
 {
 	bt_component_class_initialize_method_status status;
 	bt_self_component_add_port_status add_port_status;

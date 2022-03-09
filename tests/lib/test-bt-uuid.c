@@ -173,7 +173,7 @@ void run_test(void)
 	run_test_bt_uuid_generate();
 }
 
-int main(int argc, char **argv)
+int main(void)
 {
 	/* Run tap-formated tests */
 	run_test();

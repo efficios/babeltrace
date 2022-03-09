@@ -8,16 +8,17 @@
 #include "common/assert.h"
 
 static bt_component_class_sink_consume_method_status sink_consume(
-		bt_self_component_sink *self_comp)
+		bt_self_component_sink *self_comp __attribute__((unused)))
 {
 	return BT_COMPONENT_CLASS_SINK_CONSUME_METHOD_STATUS_OK;
 }
 
 static bt_component_class_get_supported_mip_versions_method_status
 sink_get_supported_mip_versions(
-		bt_self_component_class_sink *source_component_class,
-		const bt_value *params, void *initialize_method_data,
-		bt_logging_level logging_level,
+		bt_self_component_class_sink *source_component_class __attribute__((unused)),
+		const bt_value *params __attribute__((unused)),
+		void *initialize_method_data __attribute__((unused)),
+		bt_logging_level logging_level __attribute__((unused)),
 		bt_integer_range_set_unsigned *supported_versions)
 {
 	return (int) bt_integer_range_set_unsigned_add_range(
@@ -26,39 +27,40 @@ sink_get_supported_mip_versions(
 
 static bt_message_iterator_class_initialize_method_status
 src_dummy_iterator_init_method(
-		bt_self_message_iterator *self_msg_iter,
-		bt_self_message_iterator_configuration *config,
-		bt_self_component_port_output *self_port)
+		bt_self_message_iterator *self_msg_iter __attribute__((unused)),
+		bt_self_message_iterator_configuration *config __attribute__((unused)),
+		bt_self_component_port_output *self_port __attribute__((unused)))
 {
 	return BT_MESSAGE_ITERATOR_CLASS_INITIALIZE_METHOD_STATUS_OK;
 }
 
 static bt_message_iterator_class_initialize_method_status
 flt_dummy_iterator_init_method(
-		bt_self_message_iterator *self_msg_iter,
-		bt_self_message_iterator_configuration *config,
-		bt_self_component_port_output *self_port)
+		bt_self_message_iterator *self_msg_iter __attribute__((unused)),
+		bt_self_message_iterator_configuration *config __attribute__((unused)),
+		bt_self_component_port_output *self_port __attribute__((unused)))
 {
 	return BT_MESSAGE_ITERATOR_CLASS_INITIALIZE_METHOD_STATUS_OK;
 }
 
 static void dummy_iterator_finalize_method(
-		bt_self_message_iterator *self_msg_iter)
+		bt_self_message_iterator *self_msg_iter __attribute__((unused)))
 {
 }
 
 static bt_message_iterator_class_next_method_status
 dummy_iterator_next_method(
-		bt_self_message_iterator *self_msg_iter,
-		bt_message_array_const msgs, uint64_t capacity,
-		uint64_t *count)
+		bt_self_message_iterator *self_msg_iter __attribute__((unused)),
+		bt_message_array_const msgs __attribute__((unused)),
+		uint64_t capacity __attribute__((unused)),
+		uint64_t *count __attribute__((unused)))
 {
 	return BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_OK;
 }
 
 static bt_component_class_query_method_status flt_query_method(
-		bt_self_component_class_filter *component_class,
-		bt_private_query_executor *priv_query_exec,
+		bt_self_component_class_filter *component_class __attribute__((unused)),
+		bt_private_query_executor *priv_query_exec __attribute__((unused)),
 		const char *object, const bt_value *params,
 		__attribute__((unused)) void *method_data,
 		const bt_value **result)

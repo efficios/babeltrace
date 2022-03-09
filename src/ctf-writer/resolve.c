@@ -278,7 +278,8 @@ end:
  * Destroys a path token.
  */
 static
-void ptokens_destroy_func(gpointer ptoken, gpointer data)
+void ptokens_destroy_func(gpointer ptoken,
+		gpointer data __attribute__((unused)))
 {
 	g_string_free(ptoken, TRUE);
 }

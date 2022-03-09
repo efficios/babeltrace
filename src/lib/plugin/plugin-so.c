@@ -1662,7 +1662,7 @@ end:
 
 static
 void plugin_comp_class_destroy_listener(struct bt_component_class *comp_class,
-		void *data)
+		void *data __attribute__((unused)))
 {
 	bt_list_del(&comp_class->node);
 	BT_OBJECT_PUT_REF_AND_RESET(comp_class->so_handle);

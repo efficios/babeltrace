@@ -49,8 +49,9 @@ void simple_fini_func(void *data)
 static
 bt_component_class_initialize_method_status src_init(
 		bt_self_component_source *self_comp,
-		bt_self_component_source_configuration *config,
-		const bt_value *params, void *init_method_data)
+		bt_self_component_source_configuration *config __attribute__((unused)),
+		const bt_value *params __attribute__((unused)),
+		void *init_method_data __attribute__((unused)))
 {
 	bt_self_component_add_port_status status;
 
@@ -62,9 +63,10 @@ bt_component_class_initialize_method_status src_init(
 
 static
 bt_message_iterator_class_next_method_status src_iter_next(
-		bt_self_message_iterator *message_iterator,
-		bt_message_array_const msgs, uint64_t capacity,
-		uint64_t *count)
+		bt_self_message_iterator *message_iterator __attribute__((unused)),
+		bt_message_array_const msgs __attribute__((unused)),
+		uint64_t capacity __attribute__((unused)),
+		uint64_t *count __attribute__((unused)))
 {
 	return BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_END;
 }

@@ -48,7 +48,7 @@ BT_EXTERN_C size_t bt_mmap_get_offset_align_size(int log_level);
 
 static inline
 void *bt_mmap(void *addr, size_t length, int prot, int flags, int fd,
-	off_t offset, int log_level)
+	off_t offset, int log_level __attribute__((unused)))
 {
 	return (void *) mmap(addr, length, prot, flags, fd, offset);
 }

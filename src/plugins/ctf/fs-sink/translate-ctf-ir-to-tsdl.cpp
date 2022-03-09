@@ -287,7 +287,7 @@ static void append_float_field_class(struct ctx *ctx, struct fs_sink_ctf_field_c
                            mant_dig, exp_dig, fc->base.base.alignment);
 }
 
-static void append_string_field_class(struct ctx *ctx, struct fs_sink_ctf_field_class_string *fc)
+static void append_string_field_class(struct ctx *ctx, struct fs_sink_ctf_field_class_string *)
 {
     g_string_append(ctx->tsdl, "string { encoding = UTF8; }");
 }

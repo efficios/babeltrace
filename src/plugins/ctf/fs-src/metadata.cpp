@@ -123,7 +123,7 @@ end:
     return ret;
 }
 
-int ctf_fs_metadata_init(struct ctf_fs_metadata *metadata)
+int ctf_fs_metadata_init(struct ctf_fs_metadata *)
 {
     /* Nothing to initialize for the moment. */
     return 0;

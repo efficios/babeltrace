@@ -398,8 +398,9 @@ static void test_example_scenario(bt_self_component_source *self_comp)
 static
 bt_component_class_initialize_method_status src_init(
 	bt_self_component_source *self_comp,
-	bt_self_component_source_configuration *config,
-	const bt_value *params, void *init_method_data)
+	bt_self_component_source_configuration *config __attribute__((unused)),
+	const bt_value *params __attribute__((unused)),
+	void *init_method_data __attribute__((unused)))
 {
 	test_example_scenario(self_comp);
 	return BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_OK;
@@ -407,9 +408,10 @@ bt_component_class_initialize_method_status src_init(
 
 static
 bt_message_iterator_class_next_method_status src_iter_next(
-		bt_self_message_iterator *self_iterator,
-		bt_message_array_const msgs, uint64_t capacity,
-		uint64_t *count)
+		bt_self_message_iterator *self_iterator __attribute__((unused)),
+		bt_message_array_const msgs __attribute__((unused)),
+		uint64_t capacity __attribute__((unused)),
+		uint64_t *count __attribute__((unused)))
 {
 	return BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_ERROR;
 }
@@ -571,7 +573,7 @@ static void test_put_order(void)
  * External tools (e.g. valgrind) should be used to confirm that this
  * known-good test does not leak memory.
  */
-int main(int argc, char **argv)
+int main(void)
 {
 	/* Initialize tap harness before any tests */
 	plan_tests(NR_TESTS);

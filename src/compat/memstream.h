@@ -174,7 +174,10 @@ FILE *bt_open_memstream(char **ptr, size_t *sizeloc)
 }
 
 static inline
-int bt_close_memstream(char **buf, size_t *size, FILE *fp)
+int bt_close_memstream(
+		char **buf __attribute__((unused)),
+		size_t *size __attribute__((unused)),
+		FILE *fp)
 {
 	return fclose(fp);
 }
@@ -194,7 +197,8 @@ int bt_close_memstream(char **buf, size_t *size, FILE *fp)
  * into the buffer (which we allocate).
  */
 static inline
-FILE *bt_open_memstream(char **ptr, size_t *sizeloc)
+FILE *bt_open_memstream(char **ptr __attribute__((unused)),
+		size_t *sizeloc __attribute__((unused)))
 {
 	char *tmpname;
 	FILE *fp;
@@ -233,7 +237,8 @@ error_free:
  * into the buffer (which we allocate).
  */
 static inline
-FILE *bt_open_memstream(char **ptr, size_t *sizeloc)
+FILE *bt_open_memstream(char **ptr __attribute__((unused)),
+		size_t *sizeloc __attribute__((unused)))
 {
 	char *tmpname;
 	int ret;

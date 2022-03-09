@@ -129,7 +129,7 @@ static inline bt_field_class *ctf_field_class_float_to_ir(struct ctx *ctx,
 }
 
 static inline bt_field_class *ctf_field_class_string_to_ir(struct ctx *ctx,
-                                                           struct ctf_field_class_string *fc)
+                                                           struct ctf_field_class_string *)
 {
     bt_field_class *ir_fc = bt_field_class_string_create(ctx->ir_tc);
 
@@ -140,8 +140,8 @@ static inline bt_field_class *ctf_field_class_string_to_ir(struct ctx *ctx,
 static inline void translate_struct_field_class_members(struct ctx *ctx,
                                                         struct ctf_field_class_struct *fc,
                                                         bt_field_class *ir_fc,
-                                                        bool with_header_prefix,
-                                                        struct ctf_field_class_struct *context_fc)
+                                                        bool,
+                                                        struct ctf_field_class_struct *)
 {
     uint64_t i;
     int ret;

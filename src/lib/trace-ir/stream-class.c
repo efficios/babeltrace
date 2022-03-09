@@ -67,7 +67,7 @@ void destroy_stream_class(struct bt_object *obj)
 
 static
 void free_field_wrapper(struct bt_field_wrapper *field_wrapper,
-		struct bt_stream_class *stream_class)
+		struct bt_stream_class *stream_class __attribute__((unused)))
 {
 	bt_field_wrapper_destroy((void *) field_wrapper);
 }

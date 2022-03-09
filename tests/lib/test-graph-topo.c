@@ -179,9 +179,10 @@ size_t event_pos(struct event *event)
 
 static
 bt_message_iterator_class_next_method_status src_iter_next(
-		bt_self_message_iterator *self_iterator,
-		bt_message_array_const msgs, uint64_t capacity,
-		uint64_t *count)
+		bt_self_message_iterator *self_iterator __attribute__((unused)),
+		bt_message_array_const msgs __attribute__((unused)),
+		uint64_t capacity __attribute__((unused)),
+		uint64_t *count __attribute__((unused)))
 {
 	return BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_ERROR;
 }
@@ -254,8 +255,9 @@ bt_component_class_port_connected_method_status sink_input_port_connected(
 static
 bt_component_class_initialize_method_status src_init(
 	bt_self_component_source *self_comp,
-	bt_self_component_source_configuration *config,
-	const bt_value *params, void *init_method_data)
+	bt_self_component_source_configuration *config __attribute__((unused)),
+	const bt_value *params __attribute__((unused)),
+	void *init_method_data __attribute__((unused)))
 {
 	int ret;
 
@@ -268,8 +270,9 @@ bt_component_class_initialize_method_status src_init(
 static
 bt_component_class_initialize_method_status sink_init(
 	bt_self_component_sink *self_comp,
-	bt_self_component_sink_configuration *config,
-	const bt_value *params, void *init_method_data)
+	bt_self_component_sink_configuration *config __attribute__((unused)),
+	const bt_value *params __attribute__((unused)),
+	void *init_method_data __attribute__((unused)))
 {
 	int ret;
 
@@ -281,7 +284,7 @@ bt_component_class_initialize_method_status sink_init(
 
 static
 bt_component_class_sink_consume_method_status sink_consume(
-		bt_self_component_sink *self_comp)
+		bt_self_component_sink *self_comp __attribute__((unused)))
 {
 	return BT_COMPONENT_CLASS_SINK_CONSUME_METHOD_STATUS_OK;
 }
@@ -289,7 +292,7 @@ bt_component_class_sink_consume_method_status sink_consume(
 static
 bt_graph_listener_func_status graph_src_output_port_added(
 		const bt_component_source *comp, const bt_port_output *port,
-		void *data)
+		void *data __attribute__((unused)))
 {
 	struct event event = {
 		.type = GRAPH_SRC_OUTPUT_PORT_ADDED,
@@ -307,7 +310,7 @@ bt_graph_listener_func_status graph_src_output_port_added(
 static
 bt_graph_listener_func_status graph_sink_input_port_added(
 		const bt_component_sink *comp, const bt_port_input *port,
-		void *data)
+		void *data __attribute__((unused)))
 {
 	struct event event = {
 		.type = GRAPH_SINK_INPUT_PORT_ADDED,
@@ -706,7 +709,7 @@ void test_empty_graph(void)
 	bt_graph_put_ref(graph);
 }
 
-int main(int argc, char **argv)
+int main(void)
 {
 	plan_tests(NR_TESTS);
 	init_test();

@@ -229,7 +229,7 @@ static inline int write_float_field(struct fs_sink_stream *stream,
 }
 
 static inline int write_string_field(struct fs_sink_stream *stream,
-                                     struct fs_sink_ctf_field_class_string *fc,
+                                     struct fs_sink_ctf_field_class_string *,
                                      const bt_field *field)
 {
     return bt_ctfser_write_string(&stream->ctfser, bt_field_string_get_value(field));

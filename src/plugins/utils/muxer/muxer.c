@@ -250,8 +250,9 @@ struct bt_param_validation_map_value_entry_descr muxer_params[] = {
 
 bt_component_class_initialize_method_status muxer_init(
 		bt_self_component_filter *self_comp_flt,
-		bt_self_component_filter_configuration *config,
-		const bt_value *params, void *init_data)
+		bt_self_component_filter_configuration *config __attribute__((unused)),
+		const bt_value *params,
+		void *init_data __attribute__((unused)))
 {
 	bt_component_class_initialize_method_status status;
 	bt_self_component_add_port_status add_port_status;
@@ -1291,7 +1292,7 @@ end:
 bt_message_iterator_class_initialize_method_status muxer_msg_iter_init(
 		bt_self_message_iterator *self_msg_iter,
 		bt_self_message_iterator_configuration *config,
-		bt_self_component_port_output *port)
+		bt_self_component_port_output *port __attribute__((unused)))
 {
 	struct muxer_comp *muxer_comp = NULL;
 	struct muxer_msg_iter *muxer_msg_iter = NULL;
@@ -1440,8 +1441,8 @@ bt_message_iterator_class_next_method_status muxer_msg_iter_next(
 
 bt_component_class_port_connected_method_status muxer_input_port_connected(
 		bt_self_component_filter *self_comp,
-		bt_self_component_port_input *self_port,
-		const bt_port_output *other_port)
+		bt_self_component_port_input *self_port __attribute__((unused)),
+		const bt_port_output *other_port __attribute__((unused)))
 {
 	bt_component_class_port_connected_method_status status =
 		BT_COMPONENT_CLASS_PORT_CONNECTED_METHOD_STATUS_OK;

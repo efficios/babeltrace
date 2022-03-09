@@ -746,7 +746,6 @@ m4_define([WARN_FLAGS_LIST], [ dnl
   -Wduplicated-branches dnl
   -Wlogical-op dnl
   -Wsuggest-override dnl
-  -Wno-unused-parameter dnl
   -Wno-sign-compare dnl
   dnl
   dnl Some versions of SWIG (like 3.0.12) generate code that produces

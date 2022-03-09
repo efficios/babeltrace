@@ -267,8 +267,9 @@ struct bt_value *(* const copy_funcs[])(const struct bt_value *) = {
 };
 
 static
-bt_bool bt_value_null_is_equal(const struct bt_value *object_a,
-		const struct bt_value *object_b)
+bt_bool bt_value_null_is_equal(
+		const struct bt_value *object_a __attribute__((unused)),
+		const struct bt_value *object_b __attribute__((unused)))
 {
 	/*
 	 * Always BT_TRUE since bt_value_is_equal() already checks if both
@@ -450,7 +451,7 @@ bt_bool (* const is_equal_funcs[])(const struct bt_value *,
 };
 
 static
-void bt_value_null_freeze(struct bt_value *object)
+void bt_value_null_freeze(struct bt_value *object __attribute__((unused)))
 {
 }
 
@@ -828,7 +829,8 @@ int64_t bt_value_integer_signed_get(const struct bt_value *integer_obj)
 
 static inline
 void set_integer_value(struct bt_value *integer_obj,
-		enum bt_value_type expected_type, uint64_t uval,
+		enum bt_value_type expected_type __attribute__((unused)),
+		uint64_t uval,
 		const char *api_func)
 {
 	BT_ASSERT_PRE_DEV_VALUE_HOT_FROM_FUNC(api_func, integer_obj);

@@ -576,8 +576,9 @@ end:
 }
 
 static
-bool packet_context_field_type_is_valid(struct bt_ctf_trace_common *trace,
-		struct bt_ctf_stream_class_common *stream_class,
+bool packet_context_field_type_is_valid(
+		struct bt_ctf_trace_common *trace __attribute__((unused)),
+		struct bt_ctf_stream_class_common *stream_class __attribute__((unused)),
 		struct bt_ctf_field_type_common *packet_context_type,
 		bool check_ts_begin_end_mapped)
 {
@@ -746,7 +747,8 @@ end:
 }
 
 static
-bool event_header_field_type_is_valid(struct bt_ctf_trace_common *trace,
+bool event_header_field_type_is_valid(
+		struct bt_ctf_trace_common *trace __attribute__((unused)),
 		struct bt_ctf_stream_class_common *stream_class,
 		struct bt_ctf_field_type_common *event_header_type)
 {

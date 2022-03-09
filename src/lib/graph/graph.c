@@ -145,21 +145,21 @@ void destroy_graph(struct bt_object *obj)
 
 static
 void destroy_message_event(struct bt_message *msg,
-		struct bt_graph *graph)
+		struct bt_graph *graph __attribute__((unused)))
 {
 	bt_message_event_destroy(msg);
 }
 
 static
 void destroy_message_packet_begin(struct bt_message *msg,
-		struct bt_graph *graph)
+		struct bt_graph *graph __attribute__((unused)))
 {
 	bt_message_packet_destroy(msg);
 }
 
 static
 void destroy_message_packet_end(struct bt_message *msg,
-		struct bt_graph *graph)
+		struct bt_graph *graph __attribute__((unused)))
 {
 	bt_message_packet_destroy(msg);
 }

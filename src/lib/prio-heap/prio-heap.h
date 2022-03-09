@@ -23,7 +23,7 @@ struct ptr_heap {
 void check_heap(const struct ptr_heap *heap);
 #else
 static inline
-void check_heap(const struct ptr_heap *heap)
+void check_heap(const struct ptr_heap *heap __attribute__((unused)))
 {
 }
 #endif

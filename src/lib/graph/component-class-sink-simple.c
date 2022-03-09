@@ -45,8 +45,9 @@ void simple_sink_data_destroy(struct simple_sink_data *data)
 static
 enum bt_component_class_initialize_method_status simple_sink_init(
 		bt_self_component_sink *self_comp,
-		bt_self_component_sink_configuration *config,
-		const struct bt_value *params, void *init_method_data)
+		bt_self_component_sink_configuration *config __attribute__((unused)),
+		const struct bt_value *params __attribute__((unused)),
+		void *init_method_data)
 {
 	int status = BT_FUNC_STATUS_OK;
 	struct simple_sink_data *data = NULL;

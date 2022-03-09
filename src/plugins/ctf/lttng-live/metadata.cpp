@@ -288,7 +288,7 @@ end:
 }
 
 int lttng_live_metadata_create_stream(struct lttng_live_session *session, uint64_t ctf_trace_id,
-                                      uint64_t stream_id, const char *trace_name)
+                                      uint64_t stream_id, const char *)
 {
     bt_self_component *self_comp = session->self_comp;
     bt_logging_level log_level = session->log_level;

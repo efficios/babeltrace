@@ -8,7 +8,8 @@
 #include <stdlib.h>
 #include <glib.h>
 
-static bt_plugin_initialize_func_status plugin_init(bt_self_plugin *plugin)
+static bt_plugin_initialize_func_status plugin_init(
+		bt_self_plugin *plugin __attribute__((unused)))
 {
 	g_setenv("BT_TEST_PLUGIN_INITIALIZE_CALLED", "1", 1);
 	return BT_PLUGIN_INITIALIZE_FUNC_STATUS_OK;

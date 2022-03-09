@@ -41,13 +41,15 @@ static bool trace_destroyed_4_called = false;
 static bool trace_destroyed_5_called = false;
 
 static
-void trace_class_destroyed_1(const bt_trace_class *tc, void *data)
+void trace_class_destroyed_1(const bt_trace_class *tc __attribute__((unused)),
+		void *data __attribute__((unused)))
 {
 	trace_class_destroyed_1_called = true;
 }
 
 static
-void trace_class_destroyed_2(const bt_trace_class *tc, void *data)
+void trace_class_destroyed_2(const bt_trace_class *tc,
+		void *data __attribute__((unused)))
 {
 	bt_trace_class_remove_listener_status remove_listener_status;
 
@@ -61,7 +63,8 @@ void trace_class_destroyed_2(const bt_trace_class *tc, void *data)
 }
 
 static
-void trace_class_destroyed_3(const bt_trace_class *tc, void *data)
+void trace_class_destroyed_3(const bt_trace_class *tc,
+		void *data __attribute__((unused)))
 {
 	bt_trace_class_remove_listener_status remove_listener_status;
 
@@ -75,7 +78,8 @@ void trace_class_destroyed_3(const bt_trace_class *tc, void *data)
 }
 
 static
-void trace_class_destroyed_4(const bt_trace_class *tc, void *data)
+void trace_class_destroyed_4(const bt_trace_class *tc,
+		void *data __attribute__((unused)))
 {
 	bt_trace_class_remove_listener_status remove_listener_status;
 
@@ -89,19 +93,22 @@ void trace_class_destroyed_4(const bt_trace_class *tc, void *data)
 }
 
 static
-void trace_class_destroyed_5(const bt_trace_class *tc, void *data)
+void trace_class_destroyed_5(const bt_trace_class *tc __attribute__((unused)),
+		void *data __attribute__((unused)))
 {
 	trace_class_destroyed_5_called = true;
 }
 
 static
-void trace_destroyed_1(const bt_trace *t, void *data)
+void trace_destroyed_1(const bt_trace *t __attribute__((unused)),
+		void *data __attribute__((unused)))
 {
 	trace_destroyed_1_called = true;
 }
 
 static
-void trace_destroyed_2(const bt_trace *t, void *data)
+void trace_destroyed_2(const bt_trace *t,
+		void *data __attribute__((unused)))
 {
 	bt_trace_remove_listener_status remove_listener_status;
 
@@ -115,7 +122,8 @@ void trace_destroyed_2(const bt_trace *t, void *data)
 }
 
 static
-void trace_destroyed_3(const bt_trace *t, void *data)
+void trace_destroyed_3(const bt_trace *t,
+		void *data __attribute__((unused)))
 {
 	bt_trace_remove_listener_status remove_listener_status;
 
@@ -129,7 +137,8 @@ void trace_destroyed_3(const bt_trace *t, void *data)
 }
 
 static
-void trace_destroyed_4(const bt_trace *t, void *data)
+void trace_destroyed_4(const bt_trace *t,
+		void *data __attribute__((unused)))
 {
 	bt_trace_remove_listener_status remove_listener_status;
 
@@ -143,7 +152,8 @@ void trace_destroyed_4(const bt_trace *t, void *data)
 }
 
 static
-void trace_destroyed_5(const bt_trace *t, void *data)
+void trace_destroyed_5(const bt_trace *t __attribute__((unused)),
+		void *data __attribute__((unused)))
 {
 	trace_destroyed_5_called = true;
 }
@@ -151,8 +161,9 @@ void trace_destroyed_5(const bt_trace *t, void *data)
 static
 bt_component_class_initialize_method_status hello_init(
 		bt_self_component_source *self_component,
-		bt_self_component_source_configuration *config,
-		const bt_value *params, void *init_method_data)
+		bt_self_component_source_configuration *config __attribute__((unused)),
+		const bt_value *params __attribute__((unused)),
+		void *init_method_data __attribute__((unused)))
 {
 	bt_self_component *self_comp;
 	bt_trace_class *tc;
@@ -230,15 +241,16 @@ bt_component_class_initialize_method_status hello_init(
 
 static
 bt_message_iterator_class_next_method_status hello_iter_next(
-		bt_self_message_iterator *message_iterator,
-		bt_message_array_const msgs, uint64_t capacity,
-		uint64_t *count)
+		bt_self_message_iterator *message_iterator __attribute__((unused)),
+		bt_message_array_const msgs __attribute__((unused)),
+		uint64_t capacity __attribute__((unused)),
+		uint64_t *count __attribute__((unused)))
 {
 	BT_ASSERT(false);
 	return BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_OK;
 }
 
-int main(int argc, char **argv)
+int main(void)
 {
 	bt_graph *graph;
 	bt_message_iterator_class *msg_iter_cls;

@@ -52,7 +52,8 @@ void destroy_stream(struct bt_object *obj)
 }
 
 static
-void bt_stream_free_packet(struct bt_packet *packet, struct bt_stream *stream)
+void bt_stream_free_packet(struct bt_packet *packet,
+		struct bt_stream *stream __attribute__((unused)))
 {
 	bt_packet_destroy(packet);
 }

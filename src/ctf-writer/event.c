@@ -519,7 +519,7 @@ int map_clock_classes_func(struct bt_ctf_stream_class_common *stream_class,
 
 static
 void destroy_event_header_field(struct bt_ctf_field_wrapper *field_wrapper,
-		struct bt_ctf_stream_class *stream_class)
+		struct bt_ctf_stream_class *stream_class __attribute__((unused)))
 {
 	BT_ASSERT_DBG(field_wrapper);
 	bt_ctf_object_put_ref(field_wrapper->field);
@@ -561,7 +561,7 @@ end:
 
 static
 void release_event_header_field(struct bt_ctf_field_wrapper *field_wrapper,
-		struct bt_ctf_event_common *event_common)
+		struct bt_ctf_event_common *event_common __attribute__((unused)))
 {
 	BT_ASSERT_DBG(field_wrapper);
 	BT_CTF_OBJECT_PUT_REF_AND_RESET(field_wrapper->field);

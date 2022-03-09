@@ -44,12 +44,12 @@ static void _cleanup(void);
 
 #ifdef __MINGW32__
 static inline
-void flockfile (FILE * filehandle) {
+void flockfile (FILE * filehandle __attribute__((unused))) {
        return;
 }
 
 static inline
-void funlockfile(FILE * filehandle) {
+void funlockfile(FILE * filehandle __attribute__((unused))) {
        return;
 }
 #endif

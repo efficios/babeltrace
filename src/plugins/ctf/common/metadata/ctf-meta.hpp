@@ -1304,7 +1304,7 @@ _ctf_field_class_float_copy(struct ctf_field_class_float *fc)
 }
 
 static inline struct ctf_field_class_string *
-_ctf_field_class_string_copy(struct ctf_field_class_string *fc)
+_ctf_field_class_string_copy(struct ctf_field_class_string *)
 {
     struct ctf_field_class_string *copy_fc = ctf_field_class_string_create();
 

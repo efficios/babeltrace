@@ -66,7 +66,7 @@ void destroy_event_class(struct bt_object *obj)
 
 static
 void free_event(struct bt_event *event,
-		struct bt_event_class *event_class)
+		struct bt_event_class *event_class __attribute__((unused)))
 {
 	bt_event_destroy(event);
 }

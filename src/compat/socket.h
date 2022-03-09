@@ -18,8 +18,14 @@
 #define BT_SOCKET_ERROR SOCKET_ERROR
 #define BT_SOCKET SOCKET
 
+#ifndef BT_LOG_WRITE_CUR_LVL
+#define BT_SOCKET_LOG_LEVEL_UNUSED_ATTR __attribute__((unused))
+#else
+#define BT_SOCKET_LOG_LEVEL_UNUSED_ATTR
+#endif
+
 static inline
-int bt_socket_init(int log_level)
+int bt_socket_init(int log_level BT_SOCKET_LOG_LEVEL_UNUSED_ATTR)
 {
 	WORD verreq;
 	WSADATA wsa;
@@ -273,7 +279,7 @@ const char *bt_socket_errormsg(void)
 #define BT_SOCKET int
 
 static inline
-int bt_socket_init(int log_level)
+int bt_socket_init(int log_level __attribute__((unused)))
 {
 	return 0;
 }

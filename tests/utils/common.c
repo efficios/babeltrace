@@ -16,8 +16,10 @@
 #define RMDIR_NFDOPEN 8
 
 static
-int nftw_recursive_rmdir(const char *file, const struct stat *sb, int flag,
-		struct FTW *s)
+int nftw_recursive_rmdir(const char *file,
+		const struct stat *sb __attribute__((unused)),
+		int flag,
+		struct FTW *s __attribute__((unused)))
 {
 	switch (flag) {
 	case FTW_F:

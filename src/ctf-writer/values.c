@@ -152,7 +152,8 @@ void (* const destroy_funcs[])(struct bt_ctf_value *) = {
 };
 
 static
-struct bt_ctf_private_value *bt_ctf_value_null_copy(const struct bt_ctf_value *null_obj)
+struct bt_ctf_private_value *bt_ctf_value_null_copy(
+		const struct bt_ctf_value *null_obj __attribute__((unused)))
 {
 	return (void *) bt_ctf_value_null;
 }
@@ -303,8 +304,9 @@ struct bt_ctf_private_value *(* const copy_funcs[])(const struct bt_ctf_value *)
 };
 
 static
-bt_ctf_bool bt_ctf_value_null_compare(const struct bt_ctf_value *object_a,
-		const struct bt_ctf_value *object_b)
+bt_ctf_bool bt_ctf_value_null_compare(
+		const struct bt_ctf_value *object_a __attribute__((unused)),
+		const struct bt_ctf_value *object_b __attribute__((unused)))
 {
 	/*
 	 * Always BT_CTF_TRUE since bt_ctf_value_compare() already checks if both
@@ -477,7 +479,7 @@ bt_ctf_bool (* const compare_funcs[])(const struct bt_ctf_value *,
 };
 
 static
-void bt_ctf_value_null_freeze(struct bt_ctf_value *object)
+void bt_ctf_value_null_freeze(struct bt_ctf_value *object __attribute__((unused)))
 {
 }
 

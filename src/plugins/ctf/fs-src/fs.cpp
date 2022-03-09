@@ -327,7 +327,7 @@ static void ctf_fs_trace_destroy_notifier(void *data)
 }
 
 struct ctf_fs_component *ctf_fs_component_create(bt_logging_level log_level,
-                                                 bt_self_component *self_comp)
+                                                 bt_self_component *)
 {
     struct ctf_fs_component *ctf_fs;
 
@@ -403,7 +403,7 @@ gchar *ctf_fs_make_port_name(struct ctf_fs_ds_file_group *ds_file_group)
 }
 
 static int create_one_port_for_trace(struct ctf_fs_component *ctf_fs,
-                                     struct ctf_fs_trace *ctf_fs_trace,
+                                     struct ctf_fs_trace *,
                                      struct ctf_fs_ds_file_group *ds_file_group,
                                      bt_self_component_source *self_comp_src)
 {
@@ -2295,8 +2295,8 @@ end:
 }
 
 bt_component_class_initialize_method_status
-ctf_fs_init(bt_self_component_source *self_comp_src, bt_self_component_source_configuration *config,
-            const bt_value *params, __attribute__((unused)) void *init_method_data)
+ctf_fs_init(bt_self_component_source *self_comp_src, bt_self_component_source_configuration *,
+            const bt_value *params, void *)
 {
     struct ctf_fs_component *ctf_fs;
     bt_component_class_initialize_method_status ret =

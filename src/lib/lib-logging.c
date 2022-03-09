@@ -114,7 +114,7 @@ static inline void format_clock_snapshot(char **buf_ch, bool extended,
 static inline void format_field_path(char **buf_ch, bool extended,
 		const char *prefix, const struct bt_field_path *field_path);
 
-static inline void format_object(char **buf_ch, bool extended,
+static inline void format_object(char **buf_ch, bool extended __attribute__((unused)),
 		const char *prefix, const struct bt_object *obj)
 {
 	BUF_APPEND(", %sref-count=%llu", prefix, obj->ref_count);
@@ -125,7 +125,7 @@ static inline void format_uuid(char **buf_ch, bt_uuid uuid)
 	BUF_APPEND("\"" BT_UUID_FMT "\"", BT_UUID_FMT_VALUES(uuid));
 }
 
-static inline void format_object_pool(char **buf_ch, bool extended,
+static inline void format_object_pool(char **buf_ch, bool extended __attribute__((unused)),
 		const char *prefix, const struct bt_object_pool *pool)
 {
 	BUF_APPEND(", %ssize=%zu", PRFIELD(pool->size));
@@ -136,7 +136,7 @@ static inline void format_object_pool(char **buf_ch, bool extended,
 }
 
 static inline void format_integer_field_class(char **buf_ch,
-		bool extended, const char *prefix,
+		bool extended __attribute__((unused)), const char *prefix,
 		const struct bt_field_class *field_class)
 {
 	const struct bt_field_class_integer *int_fc =
@@ -148,7 +148,7 @@ static inline void format_integer_field_class(char **buf_ch,
 }
 
 static inline void format_array_field_class(char **buf_ch,
-		bool extended, const char *prefix,
+		bool extended __attribute__((unused)), const char *prefix,
 		const struct bt_field_class *field_class)
 {
 	const struct bt_field_class_array *array_fc =
@@ -843,7 +843,8 @@ static inline void format_clock_snapshot(char **buf_ch, bool extended,
 	}
 }
 
-static inline void format_interrupter(char **buf_ch, bool extended,
+static inline void format_interrupter(char **buf_ch,
+		bool extended __attribute__((unused)),
 		const char *prefix, const struct bt_interrupter *intr)
 {
 	BUF_APPEND(", %sis-set=%d", PRFIELD(intr->is_set));
@@ -1183,9 +1184,11 @@ static inline void format_graph(char **buf_ch, bool extended,
 		&graph->packet_end_msg_pool);
 }
 
-static inline void format_message_iterator_class(char **buf_ch,
-		bool extended, const char *prefix,
-		const struct bt_message_iterator_class *iterator_class)
+static inline void format_message_iterator_class(
+		char **buf_ch __attribute__((unused)),
+		bool extended __attribute__((unused)),
+		const char *prefix __attribute__((unused)),
+		const struct bt_message_iterator_class *iterator_class __attribute__((unused)))
 {
 	/* Empty, the address is automatically printed. */
 }
@@ -1342,8 +1345,10 @@ static inline void format_error_cause(char **buf_ch, bool extended,
 	}
 }
 
-static inline void handle_conversion_specifier_bt(void *priv_data,
-		char **buf_ch, size_t avail_size,
+static inline void handle_conversion_specifier_bt(
+		void *priv_data __attribute__((unused)),
+		char **buf_ch,
+		size_t avail_size __attribute__((unused)),
 		const char **out_fmt_ch, va_list *args)
 {
 	const char *fmt_ch = *out_fmt_ch;

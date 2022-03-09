@@ -414,8 +414,15 @@ error:
     return g_string_free(str, TRUE);
 }
 
-static inline int ctf_ast_get_unary_uuid(struct bt_list_head *head, bt_uuid_t uuid, int log_level,
-                                         bt_self_component *self_comp)
+#ifndef BT_COMP_LOG_CUR_LVL
+#define BT_AST_LOG_LEVEL_UNUSED_ATTR __attribute__((unused))
+#else
+#define BT_AST_LOG_LEVEL_UNUSED_ATTR
+#endif
+
+static inline int ctf_ast_get_unary_uuid(struct bt_list_head *head, bt_uuid_t uuid,
+        int log_level BT_AST_LOG_LEVEL_UNUSED_ATTR,
+        bt_self_component *self_comp BT_AST_LOG_LEVEL_UNUSED_ATTR)
 {
     int i = 0;
     int ret = 0;

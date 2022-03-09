@@ -378,13 +378,20 @@ int bt_common_append_file_content_to_g_string(GString *str, FILE *fp);
 
 void bt_common_abort(void) __attribute__((noreturn));
 
+#if (!defined(BT_LOG_WRITE_CUR_LVL) && !defined(BT_LOG_WRITE_ERRNO_CUR_LVL))
+#define BT_LOG_LEVEL_UNUSED_ATTR __attribute__((unused))
+#else
+#define BT_LOG_LEVEL_UNUSED_ATTR
+#endif
+
 /*
  * Wraps read() function to handle EINTR and partial reads.
  * On success, it returns `count` received as parameter. On error, it returns a
  * value smaller than the requested `count`.
  */
 static inline
-ssize_t bt_common_read(int fd, void *buf, size_t count, int log_level)
+ssize_t bt_common_read(int fd, void *buf, size_t count,
+		int log_level BT_LOG_LEVEL_UNUSED_ATTR)
 {
 	size_t i = 0;
 	ssize_t ret;

@@ -79,7 +79,8 @@ end:
 
 static inline
 int bt_util_ns_from_origin_inline(int64_t base_offset_ns,
-		int64_t offset_seconds, uint64_t offset_cycles,
+		int64_t offset_seconds __attribute__((unused)),
+		uint64_t offset_cycles __attribute__((unused)),
 		uint64_t frequency, uint64_t value, int64_t *ns_from_origin)
 {
 	int ret = 0;
