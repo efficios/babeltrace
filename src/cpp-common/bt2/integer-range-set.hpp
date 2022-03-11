@@ -11,6 +11,7 @@
 #include <type_traits>
 #include <babeltrace2/babeltrace.h>
 
+#include "common-iter.hpp"
 #include "internal/borrowed-obj.hpp"
 #include "internal/utils.hpp"
 #include "integer-range.hpp"
@@ -177,6 +178,7 @@ public:
         ConstUnsignedIntegerRange, ConstSignedIntegerRange>::type;
 
     using Value = typename Range::Value;
+    using Iterator = CommonIterator<CommonIntegerRangeSet, Range>;
 
     explicit CommonIntegerRangeSet(const _LibObjPtr libObjPtr) noexcept :
         _ThisBorrowedObj {libObjPtr}
@@ -236,6 +238,16 @@ public:
     Range operator[](const std::uint64_t index) const noexcept
     {
         return Range {_Spec::rangeByIndex(this->libObjPtr(), index)};
+    }
+
+    Iterator begin() const noexcept
+    {
+        return Iterator {*this, 0};
+    }
+
+    Iterator end() const noexcept
+    {
+        return Iterator {*this, this->size()};
     }
 
     Shared shared() const noexcept
