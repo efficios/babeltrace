@@ -719,8 +719,6 @@ const char *bt_common_func_status_string(int status)
 	switch (status) {
 	case __BT_FUNC_STATUS_OVERFLOW_ERROR:
 		return "OVERFLOW";
-	case __BT_FUNC_STATUS_UNKNOWN_OBJECT:
-		return "UNKNOWN_OBJECT";
 	case __BT_FUNC_STATUS_MEMORY_ERROR:
 		return "MEMORY_ERROR";
 	case __BT_FUNC_STATUS_USER_ERROR:
@@ -733,10 +731,14 @@ const char *bt_common_func_status_string(int status)
 		return "END";
 	case __BT_FUNC_STATUS_NOT_FOUND:
 		return "NOT_FOUND";
-	case __BT_FUNC_STATUS_AGAIN:
-		return "AGAIN";
 	case __BT_FUNC_STATUS_INTERRUPTED:
 		return "INTERRUPTED";
+	case __BT_FUNC_STATUS_NO_MATCH:
+		return "NO_MATCH";
+	case __BT_FUNC_STATUS_AGAIN:
+		return "AGAIN";
+	case __BT_FUNC_STATUS_UNKNOWN_OBJECT:
+		return "UNKNOWN_OBJECT";
 	}
 
 	bt_common_abort();
