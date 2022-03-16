@@ -827,6 +827,7 @@ private:
 
 public:
     using Shared = internal::SharedFieldClass<_ThisCommonEnumerationFieldClass, LibObjT>;
+    using Iterator = CommonIterator<CommonEnumerationFieldClass, MappingT>;
     using Mapping = MappingT;
 
     explicit CommonEnumerationFieldClass(const _LibObjPtr libObjPtr) noexcept :
@@ -886,6 +887,16 @@ public:
     void addMapping(const std::string& label, const typename Mapping::RangeSet ranges)
     {
         this->addMapping(label.data(), ranges);
+    }
+
+    Iterator begin() const noexcept
+    {
+        return Iterator {*this, 0};
+    }
+
+    Iterator end() const noexcept
+    {
+        return Iterator {*this, this->size()};
     }
 
     Shared shared() const noexcept
