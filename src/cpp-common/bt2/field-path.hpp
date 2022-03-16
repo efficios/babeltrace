@@ -12,6 +12,7 @@
 
 #include "common/assert.h"
 #include "internal/borrowed-obj.hpp"
+#include "internal/shared-obj.hpp"
 
 namespace bt2 {
 
