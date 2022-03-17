@@ -2113,7 +2113,7 @@ public:
         typename std::conditional<std::is_const<LibObjT>::value, ConstVariantFieldClassOption,
                                   VariantFieldClassOption>::type;
 
-    using Iterator = CommonIterator<CommonVariantFieldClass<LibObjT>, Option>;
+    using Iterator = CommonIterator<CommonVariantFieldClass, Option>;
 
     explicit CommonVariantFieldClass(const _LibObjPtr libObjPtr) noexcept :
         _ThisCommonFieldClass {libObjPtr}
@@ -2420,6 +2420,10 @@ public:
     }
 };
 
+using VariantWithSelectorFieldClass = CommonVariantWithSelectorFieldClass<bt_field_class>;
+using ConstVariantWithSelectorFieldClass =
+    CommonVariantWithSelectorFieldClass<const bt_field_class>;
+
 template <typename LibObjT, typename OptionT>
 class CommonVariantWithIntegerSelectorFieldClass :
     public CommonVariantWithSelectorFieldClass<LibObjT>
@@ -2438,6 +2442,8 @@ public:
         internal::SharedFieldClass<_ThisCommonVariantWithIntegerSelectorFieldClass, LibObjT>;
 
     using Option = OptionT;
+    using Iterator =
+        CommonIterator<CommonVariantWithIntegerSelectorFieldClass<LibObjT, Option>, Option>;
 
     explicit CommonVariantWithIntegerSelectorFieldClass(const _LibObjPtr libObjPtr) noexcept :
         _ThisCommonVariantWithSelectorFieldClass {libObjPtr}
@@ -2498,6 +2504,16 @@ public:
     void appendOption(const std::string& name, const FieldClass& fc)
     {
         this->appendOption(name.data(), fc);
+    }
+
+    Iterator begin() const noexcept
+    {
+        return Iterator {*this, 0};
+    }
+
+    Iterator end() const noexcept
+    {
+        return Iterator {*this, this->size()};
     }
 
     Shared shared() const noexcept
