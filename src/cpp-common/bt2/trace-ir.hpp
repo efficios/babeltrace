@@ -2064,7 +2064,7 @@ public:
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
-        const auto libObjPtr = bt_field_class_variant_create(this->_libObjPtr());
+        const auto libObjPtr = bt_field_class_variant_create(this->_libObjPtr(), nullptr);
 
         internal::validateCreatedObjPtr(libObjPtr);
         return VariantWithoutSelectorFieldClass::Shared {
