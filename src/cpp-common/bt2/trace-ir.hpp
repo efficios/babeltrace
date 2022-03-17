@@ -1993,11 +1993,11 @@ public:
             DynamicArrayWithLengthFieldClass {libObjPtr}};
     }
 
-    StructureFieldClass::Shared createStructureFieldClass(const std::uint64_t length)
+    StructureFieldClass::Shared createStructureFieldClass()
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
-        const auto libObjPtr = bt_field_class_structure_create(this->_libObjPtr(), length);
+        const auto libObjPtr = bt_field_class_structure_create(this->_libObjPtr());
 
         internal::validateCreatedObjPtr(libObjPtr);
         return StructureFieldClass::Shared {StructureFieldClass {libObjPtr}};
