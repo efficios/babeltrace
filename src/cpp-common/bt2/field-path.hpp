@@ -137,13 +137,13 @@ public:
     {
     }
 
-    ConstFieldPath(const ConstFieldPath& clkSnapshot) noexcept : _ThisBorrowedObj {clkSnapshot}
+    ConstFieldPath(const ConstFieldPath& fieldPath) noexcept : _ThisBorrowedObj {fieldPath}
     {
     }
 
-    ConstFieldPath& operator=(const ConstFieldPath& clkSnapshot) noexcept
+    ConstFieldPath& operator=(const ConstFieldPath& fieldPath) noexcept
     {
-        _ThisBorrowedObj::operator=(clkSnapshot);
+        _ThisBorrowedObj::operator=(fieldPath);
         return *this;
     }
 
