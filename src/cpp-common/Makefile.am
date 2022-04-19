@@ -1,3 +1,8 @@
 # SPDX-License-Identifier: MIT
 
-EXTRA_DIST = bt2 optional.hpp string_view.hpp nlohmann/json.hpp log-cfg.hpp
+EXTRA_DIST = bt2 \
+	exc.hpp \
+	log-cfg.hpp \
+	nlohmann/json.hpp \
+	optional.hpp \
+	string_view.hpp
