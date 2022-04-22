@@ -11,4 +11,5 @@ EXTRA_DIST = bt2 \
 	nlohmann/json.hpp \
 	optional.hpp \
 	string_view.hpp \
-	uuid-view.hpp
+	uuid-view.hpp \
+	endian.hpp
