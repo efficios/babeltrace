@@ -110,7 +110,7 @@ public:
 
     MessageType type() const noexcept
     {
-        return static_cast<MessageType>(bt_message_get_type(this->_libObjPtr()));
+        return static_cast<MessageType>(bt_message_get_type(this->libObjPtr()));
     }
 
     bool isStreamBeginning() const noexcept
@@ -235,27 +235,27 @@ public:
     ConstStream stream() const noexcept
     {
         return ConstStream {internal::CommonStreamBeginningMessageSpec<const bt_message>::stream(
-            this->_libObjPtr())};
+            this->libObjPtr())};
     }
 
     _Stream stream() noexcept
     {
         return _Stream {
-            internal::CommonStreamBeginningMessageSpec<LibObjT>::stream(this->_libObjPtr())};
+            internal::CommonStreamBeginningMessageSpec<LibObjT>::stream(this->libObjPtr())};
     }
 
     void defaultClockSnapshot(const std::uint64_t val) noexcept
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
-        bt_message_stream_beginning_set_default_clock_snapshot(this->_libObjPtr(), val);
+        bt_message_stream_beginning_set_default_clock_snapshot(this->libObjPtr(), val);
     }
 
     nonstd::optional<ConstClockSnapshot> defaultClockSnapshot() const noexcept
     {
         const bt_clock_snapshot *libObjPtr;
         const auto state = bt_message_stream_beginning_borrow_default_clock_snapshot_const(
-            this->_libObjPtr(), &libObjPtr);
+            this->libObjPtr(), &libObjPtr);
 
         if (state == BT_MESSAGE_STREAM_CLOCK_SNAPSHOT_STATE_KNOWN) {
             return ConstClockSnapshot {libObjPtr};
@@ -337,26 +337,26 @@ public:
     ConstStream stream() const noexcept
     {
         return ConstStream {
-            internal::CommonStreamEndMessageSpec<const bt_message>::stream(this->_libObjPtr())};
+            internal::CommonStreamEndMessageSpec<const bt_message>::stream(this->libObjPtr())};
     }
 
     _Stream stream() noexcept
     {
-        return _Stream {internal::CommonStreamEndMessageSpec<LibObjT>::stream(this->_libObjPtr())};
+        return _Stream {internal::CommonStreamEndMessageSpec<LibObjT>::stream(this->libObjPtr())};
     }
 
     void defaultClockSnapshot(const std::uint64_t val) noexcept
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
-        bt_message_stream_end_set_default_clock_snapshot(this->_libObjPtr(), val);
+        bt_message_stream_end_set_default_clock_snapshot(this->libObjPtr(), val);
     }
 
     nonstd::optional<ConstClockSnapshot> defaultClockSnapshot() const noexcept
     {
         const bt_clock_snapshot *libObjPtr;
         const auto state = bt_message_stream_end_borrow_default_clock_snapshot_const(
-            this->_libObjPtr(), &libObjPtr);
+            this->libObjPtr(), &libObjPtr);
 
         if (state == BT_MESSAGE_STREAM_CLOCK_SNAPSHOT_STATE_KNOWN) {
             return ConstClockSnapshot {libObjPtr};
@@ -438,26 +438,26 @@ public:
     ConstPacket packet() const noexcept
     {
         return ConstPacket {internal::CommonPacketBeginningMessageSpec<const bt_message>::packet(
-            this->_libObjPtr())};
+            this->libObjPtr())};
     }
 
     _Packet packet() noexcept
     {
         return _Packet {
-            internal::CommonPacketBeginningMessageSpec<LibObjT>::packet(this->_libObjPtr())};
+            internal::CommonPacketBeginningMessageSpec<LibObjT>::packet(this->libObjPtr())};
     }
 
     void defaultClockSnapshot(const std::uint64_t val) noexcept
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
-        bt_message_packet_beginning_set_default_clock_snapshot(this->_libObjPtr(), val);
+        bt_message_packet_beginning_set_default_clock_snapshot(this->libObjPtr(), val);
     }
 
     ConstClockSnapshot defaultClockSnapshot() const noexcept
     {
         const auto libObjPtr =
-            bt_message_packet_beginning_borrow_default_clock_snapshot_const(this->_libObjPtr());
+            bt_message_packet_beginning_borrow_default_clock_snapshot_const(this->libObjPtr());
 
         return ConstClockSnapshot {libObjPtr};
     }
@@ -535,25 +535,25 @@ public:
     ConstPacket packet() const noexcept
     {
         return ConstPacket {
-            internal::CommonPacketEndMessageSpec<const bt_message>::packet(this->_libObjPtr())};
+            internal::CommonPacketEndMessageSpec<const bt_message>::packet(this->libObjPtr())};
     }
 
     _Packet packet() noexcept
     {
-        return _Packet {internal::CommonPacketEndMessageSpec<LibObjT>::packet(this->_libObjPtr())};
+        return _Packet {internal::CommonPacketEndMessageSpec<LibObjT>::packet(this->libObjPtr())};
     }
 
     void defaultClockSnapshot(const std::uint64_t val) noexcept
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
-        bt_message_packet_end_set_default_clock_snapshot(this->_libObjPtr(), val);
+        bt_message_packet_end_set_default_clock_snapshot(this->libObjPtr(), val);
     }
 
     ConstClockSnapshot defaultClockSnapshot() const noexcept
     {
         const auto libObjPtr =
-            bt_message_packet_end_borrow_default_clock_snapshot_const(this->_libObjPtr());
+            bt_message_packet_end_borrow_default_clock_snapshot_const(this->libObjPtr());
 
         return ConstClockSnapshot {libObjPtr};
     }
@@ -630,18 +630,18 @@ public:
     ConstEvent event() const noexcept
     {
         return ConstEvent {
-            internal::CommonEventMessageSpec<const bt_message>::event(this->_libObjPtr())};
+            internal::CommonEventMessageSpec<const bt_message>::event(this->libObjPtr())};
     }
 
     _Event event() noexcept
     {
-        return _Event {internal::CommonEventMessageSpec<LibObjT>::event(this->_libObjPtr())};
+        return _Event {internal::CommonEventMessageSpec<LibObjT>::event(this->libObjPtr())};
     }
 
     ConstClockSnapshot defaultClockSnapshot() const noexcept
     {
         const auto libObjPtr =
-            bt_message_event_borrow_default_clock_snapshot_const(this->_libObjPtr());
+            bt_message_event_borrow_default_clock_snapshot_const(this->libObjPtr());
 
         return ConstClockSnapshot {libObjPtr};
     }
@@ -719,20 +719,20 @@ public:
     ConstStream stream() const noexcept
     {
         return ConstStream {internal::CommonDiscardedEventsMessageSpec<const bt_message>::stream(
-            this->_libObjPtr())};
+            this->libObjPtr())};
     }
 
     _Stream stream() noexcept
     {
         return _Stream {
-            internal::CommonDiscardedEventsMessageSpec<LibObjT>::stream(this->_libObjPtr())};
+            internal::CommonDiscardedEventsMessageSpec<LibObjT>::stream(this->libObjPtr())};
     }
 
     ConstClockSnapshot beginningDefaultClockSnapshot() const noexcept
     {
         const auto libObjPtr =
             bt_message_discarded_events_borrow_beginning_default_clock_snapshot_const(
-                this->_libObjPtr());
+                this->libObjPtr());
 
         return ConstClockSnapshot {libObjPtr};
     }
@@ -740,7 +740,7 @@ public:
     ConstClockSnapshot endDefaultClockSnapshot() const noexcept
     {
         const auto libObjPtr =
-            bt_message_discarded_events_borrow_end_default_clock_snapshot_const(this->_libObjPtr());
+            bt_message_discarded_events_borrow_end_default_clock_snapshot_const(this->libObjPtr());
 
         return ConstClockSnapshot {libObjPtr};
     }
@@ -749,13 +749,13 @@ public:
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
-        bt_message_discarded_events_set_count(this->_libObjPtr(), count);
+        bt_message_discarded_events_set_count(this->libObjPtr(), count);
     }
 
     nonstd::optional<std::uint64_t> count() const noexcept
     {
         std::uint64_t count;
-        const auto avail = bt_message_discarded_events_get_count(this->_libObjPtr(), &count);
+        const auto avail = bt_message_discarded_events_get_count(this->libObjPtr(), &count);
 
         if (avail) {
             return count;
@@ -837,28 +837,28 @@ public:
     ConstStream stream() const noexcept
     {
         return ConstStream {internal::CommonDiscardedPacketsMessageSpec<const bt_message>::stream(
-            this->_libObjPtr())};
+            this->libObjPtr())};
     }
 
     _Stream stream() noexcept
     {
         return _Stream {
-            internal::CommonDiscardedPacketsMessageSpec<LibObjT>::stream(this->_libObjPtr())};
+            internal::CommonDiscardedPacketsMessageSpec<LibObjT>::stream(this->libObjPtr())};
     }
 
     ConstClockSnapshot beginningDefaultClockSnapshot() const noexcept
     {
         const auto libObjPtr =
             bt_message_discarded_packets_borrow_beginning_default_clock_snapshot_const(
-                this->_libObjPtr());
+                this->libObjPtr());
 
         return ConstClockSnapshot {libObjPtr};
     }
 
     ConstClockSnapshot endDefaultClockSnapshot() const noexcept
     {
-        const auto libObjPtr = bt_message_discarded_packets_borrow_end_default_clock_snapshot_const(
-            this->_libObjPtr());
+        const auto libObjPtr =
+            bt_message_discarded_packets_borrow_end_default_clock_snapshot_const(this->libObjPtr());
 
         return ConstClockSnapshot {libObjPtr};
     }
@@ -867,13 +867,13 @@ public:
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
-        bt_message_discarded_packets_set_count(this->_libObjPtr(), count);
+        bt_message_discarded_packets_set_count(this->libObjPtr(), count);
     }
 
     nonstd::optional<std::uint64_t> count() const noexcept
     {
         std::uint64_t count;
-        const auto avail = bt_message_discarded_packets_get_count(this->_libObjPtr(), &count);
+        const auto avail = bt_message_discarded_packets_get_count(this->libObjPtr(), &count);
 
         if (avail) {
             return count;
@@ -926,7 +926,7 @@ public:
     ConstClockSnapshot clockSnapshot() const noexcept
     {
         const auto libObjPtr =
-            bt_message_message_iterator_inactivity_borrow_clock_snapshot_const(this->_libObjPtr());
+            bt_message_message_iterator_inactivity_borrow_clock_snapshot_const(this->libObjPtr());
 
         return ConstClockSnapshot {libObjPtr};
     }
@@ -945,42 +945,42 @@ template <typename LibObjT>
 CommonStreamBeginningMessage<LibObjT> CommonMessage<LibObjT>::asStreamBeginning() const noexcept
 {
     BT_ASSERT_DBG(this->isStreamBeginning());
-    return CommonStreamBeginningMessage<LibObjT> {this->_libObjPtr()};
+    return CommonStreamBeginningMessage<LibObjT> {this->libObjPtr()};
 }
 
 template <typename LibObjT>
 CommonStreamEndMessage<LibObjT> CommonMessage<LibObjT>::asStreamEnd() const noexcept
 {
     BT_ASSERT_DBG(this->isStreamEnd());
-    return CommonStreamEndMessage<LibObjT> {this->_libObjPtr()};
+    return CommonStreamEndMessage<LibObjT> {this->libObjPtr()};
 }
 
 template <typename LibObjT>
 CommonPacketBeginningMessage<LibObjT> CommonMessage<LibObjT>::asPacketBeginning() const noexcept
 {
     BT_ASSERT_DBG(this->isPacketBeginning());
-    return CommonPacketBeginningMessage<LibObjT> {this->_libObjPtr()};
+    return CommonPacketBeginningMessage<LibObjT> {this->libObjPtr()};
 }
 
 template <typename LibObjT>
 CommonPacketEndMessage<LibObjT> CommonMessage<LibObjT>::asPacketEnd() const noexcept
 {
     BT_ASSERT_DBG(this->isPacketEnd());
-    return CommonPacketEndMessage<LibObjT> {this->_libObjPtr()};
+    return CommonPacketEndMessage<LibObjT> {this->libObjPtr()};
 }
 
 template <typename LibObjT>
 CommonEventMessage<LibObjT> CommonMessage<LibObjT>::asEvent() const noexcept
 {
     BT_ASSERT_DBG(this->isEvent());
-    return CommonEventMessage<LibObjT> {this->_libObjPtr()};
+    return CommonEventMessage<LibObjT> {this->libObjPtr()};
 }
 
 template <typename LibObjT>
 CommonDiscardedEventsMessage<LibObjT> CommonMessage<LibObjT>::asDiscardedEvents() const noexcept
 {
     BT_ASSERT_DBG(this->isDiscardedEvents());
-    return CommonDiscardedEventsMessage<LibObjT> {this->_libObjPtr()};
+    return CommonDiscardedEventsMessage<LibObjT> {this->libObjPtr()};
 }
 
 template <typename LibObjT>
@@ -988,7 +988,7 @@ CommonMessageIteratorInactivityMessage<LibObjT>
 CommonMessage<LibObjT>::asMessageIteratorInactivity() const noexcept
 {
     BT_ASSERT_DBG(this->isMessageIteratorInactivity());
-    return CommonMessageIteratorInactivityMessage<LibObjT> {this->_libObjPtr()};
+    return CommonMessageIteratorInactivityMessage<LibObjT> {this->libObjPtr()};
 }
 
 } /* namespace bt2 */

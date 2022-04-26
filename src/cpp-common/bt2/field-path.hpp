@@ -67,7 +67,7 @@ public:
 private:
     bt_field_path_item_type _libType() const noexcept
     {
-        return bt_field_path_item_get_type(this->_libObjPtr());
+        return bt_field_path_item_get_type(this->libObjPtr());
     }
 };
 
@@ -93,14 +93,14 @@ public:
 
     std::uint64_t index() const noexcept
     {
-        return bt_field_path_item_index_get_index(this->_libObjPtr());
+        return bt_field_path_item_index_get_index(this->libObjPtr());
     }
 };
 
 inline ConstIndexFieldPathItem ConstFieldPathItem::asIndex() const noexcept
 {
     BT_ASSERT_DBG(this->isIndex());
-    return ConstIndexFieldPathItem {this->_libObjPtr()};
+    return ConstIndexFieldPathItem {this->libObjPtr()};
 }
 
 namespace internal {
@@ -150,18 +150,18 @@ public:
 
     Scope rootScope() const noexcept
     {
-        return static_cast<Scope>(bt_field_path_get_root_scope(this->_libObjPtr()));
+        return static_cast<Scope>(bt_field_path_get_root_scope(this->libObjPtr()));
     }
 
     std::uint64_t size() const noexcept
     {
-        return bt_field_path_get_item_count(this->_libObjPtr());
+        return bt_field_path_get_item_count(this->libObjPtr());
     }
 
     ConstFieldPathItem operator[](const std::uint64_t index) const noexcept
     {
         return ConstFieldPathItem {
-            bt_field_path_borrow_item_by_index_const(this->_libObjPtr(), index)};
+            bt_field_path_borrow_item_by_index_const(this->libObjPtr(), index)};
     }
 
     Shared shared() const noexcept

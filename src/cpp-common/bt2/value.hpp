@@ -102,13 +102,13 @@ class CommonStream;
 template <typename LibObjT>
 class CommonValue : public internal::BorrowedObj<LibObjT>
 {
-    /* Allow append() to call `val._libObjPtr()` */
+    /* Allow append() to call `val.libObjPtr()` */
     friend class CommonArrayValue<bt_value>;
 
-    /* Allow insert() to call `val._libObjPtr()` */
+    /* Allow insert() to call `val.libObjPtr()` */
     friend class CommonMapValue<bt_value>;
 
-    /* Allow userAttributes() to call `val._libObjPtr()` */
+    /* Allow userAttributes() to call `val.libObjPtr()` */
     friend class CommonClockClass<bt_clock_class>;
     friend class CommonFieldClass<bt_field_class>;
     friend class CommonTraceClass<bt_trace_class>;
@@ -116,7 +116,7 @@ class CommonValue : public internal::BorrowedObj<LibObjT>
     friend class CommonEventClass<bt_event_class>;
     friend class CommonStream<bt_stream>;
 
-    /* Allow operator==() to call `other._libObjPtr()` */
+    /* Allow operator==() to call `other.libObjPtr()` */
     friend class CommonValue<bt_value>;
     friend class CommonValue<const bt_value>;
 
@@ -148,7 +148,7 @@ public:
 
     ValueType type() const noexcept
     {
-        return static_cast<ValueType>(bt_value_get_type(this->_libObjPtr()));
+        return static_cast<ValueType>(bt_value_get_type(this->libObjPtr()));
     }
 
     bool isNull() const noexcept
@@ -199,7 +199,7 @@ public:
     template <typename OtherLibObjT>
     bool operator==(const CommonValue<OtherLibObjT>& other) const noexcept
     {
-        return static_cast<bool>(bt_value_is_equal(this->_libObjPtr(), other._libObjPtr()));
+        return static_cast<bool>(bt_value_is_equal(this->libObjPtr(), other.libObjPtr()));
     }
 
     template <typename OtherLibObjT>
@@ -225,7 +225,7 @@ public:
 protected:
     bool _libTypeIs(const bt_value_type type) const noexcept
     {
-        return bt_value_type_is(bt_value_get_type(this->_libObjPtr()), type);
+        return bt_value_type_is(bt_value_get_type(this->libObjPtr()), type);
     }
 };
 
@@ -306,13 +306,13 @@ public:
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
-        bt_value_bool_set(this->_libObjPtr(), static_cast<bt_bool>(rawVal));
+        bt_value_bool_set(this->libObjPtr(), static_cast<bt_bool>(rawVal));
         return *this;
     }
 
     Value value() const noexcept
     {
-        return static_cast<Value>(bt_value_bool_get(this->_libObjPtr()));
+        return static_cast<Value>(bt_value_bool_get(this->libObjPtr()));
     }
 
     operator Value() const noexcept
@@ -372,13 +372,13 @@ public:
 
     CommonUnsignedIntegerValue<LibObjT>& operator=(const Value rawVal) noexcept
     {
-        bt_value_integer_unsigned_set(this->_libObjPtr(), rawVal);
+        bt_value_integer_unsigned_set(this->libObjPtr(), rawVal);
         return *this;
     }
 
     Value value() const noexcept
     {
-        return bt_value_integer_unsigned_get(this->_libObjPtr());
+        return bt_value_integer_unsigned_get(this->libObjPtr());
     }
 
     operator Value() const noexcept
@@ -438,13 +438,13 @@ public:
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
-        bt_value_integer_signed_set(this->_libObjPtr(), rawVal);
+        bt_value_integer_signed_set(this->libObjPtr(), rawVal);
         return *this;
     }
 
     Value value() const noexcept
     {
-        return bt_value_integer_signed_get(this->_libObjPtr());
+        return bt_value_integer_signed_get(this->libObjPtr());
     }
 
     operator Value() const noexcept
@@ -501,13 +501,13 @@ public:
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
-        bt_value_real_set(this->_libObjPtr(), rawVal);
+        bt_value_real_set(this->libObjPtr(), rawVal);
         return *this;
     }
 
     Value value() const noexcept
     {
-        return bt_value_real_get(this->_libObjPtr());
+        return bt_value_real_get(this->libObjPtr());
     }
 
     operator Value() const noexcept
@@ -568,7 +568,7 @@ public:
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
-        const auto status = bt_value_string_set(this->_libObjPtr(), rawVal);
+        const auto status = bt_value_string_set(this->libObjPtr(), rawVal);
 
         if (status == BT_VALUE_STRING_SET_STATUS_MEMORY_ERROR) {
             throw LibMemoryError {};
@@ -584,7 +584,7 @@ public:
 
     bpstd::string_view value() const noexcept
     {
-        return bt_value_string_get(this->_libObjPtr());
+        return bt_value_string_get(this->libObjPtr());
     }
 
     Shared shared() const noexcept
@@ -662,7 +662,7 @@ public:
 
     std::uint64_t length() const noexcept
     {
-        return bt_value_array_get_length(this->_libObjPtr());
+        return bt_value_array_get_length(this->libObjPtr());
     }
 
     /* Required by the `CommonIterator` template class */
@@ -689,20 +689,20 @@ public:
     ConstValue operator[](const std::uint64_t index) const noexcept
     {
         return ConstValue {internal::CommonArrayValueSpec<const bt_value>::elementByIndex(
-            this->_libObjPtr(), index)};
+            this->libObjPtr(), index)};
     }
 
     CommonValue<LibObjT> operator[](const std::uint64_t index) noexcept
     {
         return CommonValue<LibObjT> {
-            internal::CommonArrayValueSpec<LibObjT>::elementByIndex(this->_libObjPtr(), index)};
+            internal::CommonArrayValueSpec<LibObjT>::elementByIndex(this->libObjPtr(), index)};
     }
 
     void append(const Value& val)
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
-        const auto status = bt_value_array_append_element(this->_libObjPtr(), val._libObjPtr());
+        const auto status = bt_value_array_append_element(this->libObjPtr(), val.libObjPtr());
 
         this->_handleAppendLibStatus(status);
     }
@@ -712,7 +712,7 @@ public:
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
         const auto status =
-            bt_value_array_append_bool_element(this->_libObjPtr(), static_cast<bt_bool>(rawVal));
+            bt_value_array_append_bool_element(this->libObjPtr(), static_cast<bt_bool>(rawVal));
 
         this->_handleAppendLibStatus(status);
     }
@@ -722,7 +722,7 @@ public:
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
         const auto status =
-            bt_value_array_append_unsigned_integer_element(this->_libObjPtr(), rawVal);
+            bt_value_array_append_unsigned_integer_element(this->libObjPtr(), rawVal);
 
         this->_handleAppendLibStatus(status);
     }
@@ -731,8 +731,7 @@ public:
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
-        const auto status =
-            bt_value_array_append_signed_integer_element(this->_libObjPtr(), rawVal);
+        const auto status = bt_value_array_append_signed_integer_element(this->libObjPtr(), rawVal);
 
         this->_handleAppendLibStatus(status);
     }
@@ -741,7 +740,7 @@ public:
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
-        const auto status = bt_value_array_append_real_element(this->_libObjPtr(), rawVal);
+        const auto status = bt_value_array_append_real_element(this->libObjPtr(), rawVal);
 
         this->_handleAppendLibStatus(status);
     }
@@ -750,7 +749,7 @@ public:
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
-        const auto status = bt_value_array_append_string_element(this->_libObjPtr(), rawVal);
+        const auto status = bt_value_array_append_string_element(this->libObjPtr(), rawVal);
 
         this->_handleAppendLibStatus(status);
     }
@@ -957,7 +956,7 @@ public:
 
     std::uint64_t size() const noexcept
     {
-        return bt_value_map_get_size(this->_libObjPtr());
+        return bt_value_map_get_size(this->libObjPtr());
     }
 
     bool isEmpty() const noexcept
@@ -968,7 +967,7 @@ public:
     nonstd::optional<ConstValue> operator[](const char * const key) const noexcept
     {
         const auto libObjPtr =
-            internal::CommonMapValueSpec<const bt_value>::entryByKey(this->_libObjPtr(), key);
+            internal::CommonMapValueSpec<const bt_value>::entryByKey(this->libObjPtr(), key);
 
         if (!libObjPtr) {
             return nonstd::nullopt;
@@ -985,7 +984,7 @@ public:
     nonstd::optional<CommonValue<LibObjT>> operator[](const char * const key) noexcept
     {
         const auto libObjPtr =
-            internal::CommonMapValueSpec<LibObjT>::entryByKey(this->_libObjPtr(), key);
+            internal::CommonMapValueSpec<LibObjT>::entryByKey(this->libObjPtr(), key);
 
         if (!libObjPtr) {
             return nonstd::nullopt;
@@ -1001,7 +1000,7 @@ public:
 
     bool hasEntry(const char * const key) const noexcept
     {
-        return static_cast<bool>(bt_value_map_has_entry(this->_libObjPtr(), key));
+        return static_cast<bool>(bt_value_map_has_entry(this->libObjPtr(), key));
     }
 
     bool hasEntry(const std::string& key) const noexcept
@@ -1013,7 +1012,7 @@ public:
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
-        const auto status = bt_value_map_insert_entry(this->_libObjPtr(), key, val._libObjPtr());
+        const auto status = bt_value_map_insert_entry(this->libObjPtr(), key, val.libObjPtr());
 
         this->_handleInsertLibStatus(status);
     }
@@ -1028,7 +1027,7 @@ public:
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
         const auto status =
-            bt_value_map_insert_bool_entry(this->_libObjPtr(), key, static_cast<bt_bool>(rawVal));
+            bt_value_map_insert_bool_entry(this->libObjPtr(), key, static_cast<bt_bool>(rawVal));
 
         this->_handleInsertLibStatus(status);
     }
@@ -1043,7 +1042,7 @@ public:
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
         const auto status =
-            bt_value_map_insert_unsigned_integer_entry(this->_libObjPtr(), key, rawVal);
+            bt_value_map_insert_unsigned_integer_entry(this->libObjPtr(), key, rawVal);
 
         this->_handleInsertLibStatus(status);
     }
@@ -1058,7 +1057,7 @@ public:
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
         const auto status =
-            bt_value_map_insert_signed_integer_entry(this->_libObjPtr(), key, rawVal);
+            bt_value_map_insert_signed_integer_entry(this->libObjPtr(), key, rawVal);
 
         this->_handleInsertLibStatus(status);
     }
@@ -1072,7 +1071,7 @@ public:
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
-        const auto status = bt_value_map_insert_real_entry(this->_libObjPtr(), key, rawVal);
+        const auto status = bt_value_map_insert_real_entry(this->libObjPtr(), key, rawVal);
 
         this->_handleInsertLibStatus(status);
     }
@@ -1086,7 +1085,7 @@ public:
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
-        const auto status = bt_value_map_insert_string_entry(this->_libObjPtr(), key, rawVal);
+        const auto status = bt_value_map_insert_string_entry(this->libObjPtr(), key, rawVal);
 
         this->_handleInsertLibStatus(status);
     }
@@ -1113,12 +1112,12 @@ public:
 
     void forEach(const internal::CommonMapValueForEachUserFunc<ConstValue>& func) const
     {
-        internal::CommonMapValueSpec<const bt_value>::forEach(this->_libObjPtr(), func);
+        internal::CommonMapValueSpec<const bt_value>::forEach(this->libObjPtr(), func);
     }
 
     void forEach(const internal::CommonMapValueForEachUserFunc<CommonValue<LibObjT>>& func)
     {
-        internal::CommonMapValueSpec<LibObjT>::forEach(this->_libObjPtr(), func);
+        internal::CommonMapValueSpec<LibObjT>::forEach(this->libObjPtr(), func);
     }
 
     Shared shared() const noexcept
@@ -1142,56 +1141,56 @@ template <typename LibObjT>
 CommonNullValue<LibObjT> CommonValue<LibObjT>::asNull() const noexcept
 {
     BT_ASSERT_DBG(this->isNull());
-    return CommonNullValue<LibObjT> {this->_libObjPtr()};
+    return CommonNullValue<LibObjT> {this->libObjPtr()};
 }
 
 template <typename LibObjT>
 CommonBoolValue<LibObjT> CommonValue<LibObjT>::asBool() const noexcept
 {
     BT_ASSERT_DBG(this->isBool());
-    return CommonBoolValue<LibObjT> {this->_libObjPtr()};
+    return CommonBoolValue<LibObjT> {this->libObjPtr()};
 }
 
 template <typename LibObjT>
 CommonSignedIntegerValue<LibObjT> CommonValue<LibObjT>::asSignedInteger() const noexcept
 {
     BT_ASSERT_DBG(this->isSignedInteger());
-    return CommonSignedIntegerValue<LibObjT> {this->_libObjPtr()};
+    return CommonSignedIntegerValue<LibObjT> {this->libObjPtr()};
 }
 
 template <typename LibObjT>
 CommonUnsignedIntegerValue<LibObjT> CommonValue<LibObjT>::asUnsignedInteger() const noexcept
 {
     BT_ASSERT_DBG(this->isUnsignedInteger());
-    return CommonUnsignedIntegerValue<LibObjT> {this->_libObjPtr()};
+    return CommonUnsignedIntegerValue<LibObjT> {this->libObjPtr()};
 }
 
 template <typename LibObjT>
 CommonRealValue<LibObjT> CommonValue<LibObjT>::asReal() const noexcept
 {
     BT_ASSERT_DBG(this->isReal());
-    return CommonRealValue<LibObjT> {this->_libObjPtr()};
+    return CommonRealValue<LibObjT> {this->libObjPtr()};
 }
 
 template <typename LibObjT>
 CommonStringValue<LibObjT> CommonValue<LibObjT>::asString() const noexcept
 {
     BT_ASSERT_DBG(this->isString());
-    return CommonStringValue<LibObjT> {this->_libObjPtr()};
+    return CommonStringValue<LibObjT> {this->libObjPtr()};
 }
 
 template <typename LibObjT>
 CommonArrayValue<LibObjT> CommonValue<LibObjT>::asArray() const noexcept
 {
     BT_ASSERT_DBG(this->isArray());
-    return CommonArrayValue<LibObjT> {this->_libObjPtr()};
+    return CommonArrayValue<LibObjT> {this->libObjPtr()};
 }
 
 template <typename LibObjT>
 CommonMapValue<LibObjT> CommonValue<LibObjT>::asMap() const noexcept
 {
     BT_ASSERT_DBG(this->isMap());
-    return CommonMapValue<LibObjT> {this->_libObjPtr()};
+    return CommonMapValue<LibObjT> {this->libObjPtr()};
 }
 
 template <typename LibObjT>
@@ -1200,7 +1199,7 @@ ArrayValue CommonArrayValue<LibObjT>::appendEmptyArray()
     static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
     bt_value *libElemPtr;
-    const auto status = bt_value_array_append_empty_array_element(this->_libObjPtr(), &libElemPtr);
+    const auto status = bt_value_array_append_empty_array_element(this->libObjPtr(), &libElemPtr);
 
     this->_handleAppendLibStatus(status);
     return ArrayValue {libElemPtr};
@@ -1212,7 +1211,7 @@ MapValue CommonArrayValue<LibObjT>::appendEmptyMap()
     static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
     bt_value *libElemPtr;
-    const auto status = bt_value_array_append_empty_map_element(this->_libObjPtr(), &libElemPtr);
+    const auto status = bt_value_array_append_empty_map_element(this->libObjPtr(), &libElemPtr);
 
     this->_handleAppendLibStatus(status);
     return MapValue {libElemPtr};
@@ -1224,8 +1223,7 @@ ArrayValue CommonMapValue<LibObjT>::insertEmptyArray(const char * const key)
     static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
     bt_value *libEntryPtr;
-    const auto status =
-        bt_value_map_insert_empty_array_entry(this->_libObjPtr(), key, &libEntryPtr);
+    const auto status = bt_value_map_insert_empty_array_entry(this->libObjPtr(), key, &libEntryPtr);
 
     this->_handleInsertLibStatus(status);
     return ArrayValue {libEntryPtr};
@@ -1243,7 +1241,7 @@ MapValue CommonMapValue<LibObjT>::insertEmptyMap(const char * const key)
     static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
     bt_value *libEntryPtr;
-    const auto status = bt_value_map_insert_empty_map_entry(this->_libObjPtr(), key, &libEntryPtr);
+    const auto status = bt_value_map_insert_empty_map_entry(this->libObjPtr(), key, &libEntryPtr);
 
     this->_handleInsertLibStatus(status);
     return MapValue {libEntryPtr};

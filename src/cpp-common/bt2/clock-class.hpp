@@ -124,19 +124,19 @@ public:
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
-        bt_clock_class_set_frequency(this->_libObjPtr(), frequency);
+        bt_clock_class_set_frequency(this->libObjPtr(), frequency);
     }
 
     std::uint64_t frequency() const noexcept
     {
-        return bt_clock_class_get_frequency(this->_libObjPtr());
+        return bt_clock_class_get_frequency(this->libObjPtr());
     }
 
     void offset(const ClockClassOffset& offset) noexcept
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
-        bt_clock_class_set_offset(this->_libObjPtr(), offset.seconds(), offset.cycles());
+        bt_clock_class_set_offset(this->libObjPtr(), offset.seconds(), offset.cycles());
     }
 
     ClockClassOffset offset() const noexcept
@@ -144,7 +144,7 @@ public:
         std::int64_t seconds;
         std::uint64_t cycles;
 
-        bt_clock_class_get_offset(this->_libObjPtr(), &seconds, &cycles);
+        bt_clock_class_get_offset(this->libObjPtr(), &seconds, &cycles);
         return ClockClassOffset {seconds, cycles};
     }
 
@@ -152,32 +152,32 @@ public:
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
-        bt_clock_class_set_precision(this->_libObjPtr(), precision);
+        bt_clock_class_set_precision(this->libObjPtr(), precision);
     }
 
     std::uint64_t precision() const noexcept
     {
-        return bt_clock_class_get_precision(this->_libObjPtr());
+        return bt_clock_class_get_precision(this->libObjPtr());
     }
 
     void originIsUnixEpoch(const bool originIsUnixEpoch) noexcept
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
-        bt_clock_class_set_origin_is_unix_epoch(this->_libObjPtr(),
+        bt_clock_class_set_origin_is_unix_epoch(this->libObjPtr(),
                                                 static_cast<bt_bool>(originIsUnixEpoch));
     }
 
     bool originIsUnixEpoch() const noexcept
     {
-        return static_cast<bool>(bt_clock_class_origin_is_unix_epoch(this->_libObjPtr()));
+        return static_cast<bool>(bt_clock_class_origin_is_unix_epoch(this->libObjPtr()));
     }
 
     void name(const char * const name)
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
-        const auto status = bt_clock_class_set_name(this->_libObjPtr(), name);
+        const auto status = bt_clock_class_set_name(this->libObjPtr(), name);
 
         if (status == BT_CLOCK_CLASS_SET_NAME_STATUS_MEMORY_ERROR) {
             throw LibMemoryError {};
@@ -191,7 +191,7 @@ public:
 
     nonstd::optional<bpstd::string_view> name() const noexcept
     {
-        const auto name = bt_clock_class_get_name(this->_libObjPtr());
+        const auto name = bt_clock_class_get_name(this->libObjPtr());
 
         if (name) {
             return name;
@@ -204,7 +204,7 @@ public:
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
-        const auto status = bt_clock_class_set_description(this->_libObjPtr(), description);
+        const auto status = bt_clock_class_set_description(this->libObjPtr(), description);
 
         if (status == BT_CLOCK_CLASS_SET_DESCRIPTION_STATUS_MEMORY_ERROR) {
             throw LibMemoryError {};
@@ -218,7 +218,7 @@ public:
 
     nonstd::optional<bpstd::string_view> description() const noexcept
     {
-        const auto description = bt_clock_class_get_description(this->_libObjPtr());
+        const auto description = bt_clock_class_get_description(this->libObjPtr());
 
         if (description) {
             return description;
@@ -229,12 +229,12 @@ public:
 
     void uuid(const std::uint8_t * const uuid) noexcept
     {
-        bt_clock_class_set_uuid(this->_libObjPtr(), uuid);
+        bt_clock_class_set_uuid(this->libObjPtr(), uuid);
     }
 
     nonstd::optional<bt2_common::UuidView> uuid() const noexcept
     {
-        const auto uuid = bt_clock_class_get_uuid(this->_libObjPtr());
+        const auto uuid = bt_clock_class_get_uuid(this->libObjPtr());
 
         if (uuid) {
             return bt2_common::UuidView {uuid};
@@ -248,26 +248,26 @@ public:
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
-        bt_clock_class_set_user_attributes(this->_libObjPtr(), userAttrs._libObjPtr());
+        bt_clock_class_set_user_attributes(this->libObjPtr(), userAttrs.libObjPtr());
     }
 
     ConstMapValue userAttributes() const noexcept
     {
         return ConstMapValue {internal::CommonClockClassSpec<const bt_clock_class>::userAttributes(
-            this->_libObjPtr())};
+            this->libObjPtr())};
     }
 
     UserAttributes userAttributes() noexcept
     {
         return UserAttributes {
-            internal::CommonClockClassSpec<LibObjT>::userAttributes(this->_libObjPtr())};
+            internal::CommonClockClassSpec<LibObjT>::userAttributes(this->libObjPtr())};
     }
 
     std::int64_t cyclesToNsFromOrigin(const std::uint64_t value) const
     {
         std::int64_t nsFromOrigin;
         const auto status =
-            bt_clock_class_cycles_to_ns_from_origin(this->_libObjPtr(), value, &nsFromOrigin);
+            bt_clock_class_cycles_to_ns_from_origin(this->libObjPtr(), value, &nsFromOrigin);
 
         if (status == BT_CLOCK_CLASS_CYCLES_TO_NS_FROM_ORIGIN_STATUS_OVERFLOW_ERROR) {
             throw LibOverflowError {};

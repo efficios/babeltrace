@@ -94,8 +94,8 @@ public:
 
     bool operator==(const _ThisConstIntegerRange& other) const noexcept
     {
-        return internal::ConstIntegerRangeSpec<LibObjT>::isEqual(this->_libObjPtr(),
-                                                                 other._libObjPtr());
+        return internal::ConstIntegerRangeSpec<LibObjT>::isEqual(this->libObjPtr(),
+                                                                 other.libObjPtr());
     }
 
     bool operator!=(const _ThisConstIntegerRange& other) const noexcept
@@ -105,12 +105,12 @@ public:
 
     Value lower() const noexcept
     {
-        return internal::ConstIntegerRangeSpec<LibObjT>::lower(this->_libObjPtr());
+        return internal::ConstIntegerRangeSpec<LibObjT>::lower(this->libObjPtr());
     }
 
     Value upper() const noexcept
     {
-        return internal::ConstIntegerRangeSpec<LibObjT>::upper(this->_libObjPtr());
+        return internal::ConstIntegerRangeSpec<LibObjT>::upper(this->libObjPtr());
     }
 };
 

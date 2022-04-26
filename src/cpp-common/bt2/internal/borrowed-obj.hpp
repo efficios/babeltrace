@@ -27,7 +27,7 @@ class SharedObj;
  * `LibObjT` is the direct libbabeltrace2 object type, for example
  * `bt_stream_class` or `const bt_value`.
  *
- * Methods of a derived class can call _libObjPtr() to access the
+ * Methods of a derived class can call libObjPtr() to access the
  * libbabeltrace2 object pointer.
  */
 template <typename LibObjT>
@@ -45,15 +45,6 @@ class BorrowedObj
      */
     template <typename AnyLibObjT>
     friend class BorrowedObj;
-
-    /*
-     * This is to allow a `SharedObj<_ThisBorrowedObj, LibObjT, ...>`
-     * instance containing a `BorrowedObj<LibObjT>` instance to access
-     * _libObjPtr() in order to increment/decrement its libbabeltrace2
-     * reference count.
-     */
-    template <typename ObjT, typename AnyLibObjT, typename RefFuncsT>
-    friend class SharedObj;
 
 protected:
     /* libbabeltrace2 object pointer */
@@ -128,9 +119,8 @@ public:
         return _mLibObjPtr == other._mLibObjPtr;
     }
 
-protected:
     /* Wrapped libbabeltrace2 object pointer */
-    _LibObjPtr _libObjPtr() const noexcept
+    _LibObjPtr libObjPtr() const noexcept
     {
         return _mLibObjPtr;
     }

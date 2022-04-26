@@ -141,13 +141,13 @@ class CommonTraceClass;
 template <typename LibObjT>
 class CommonIntegerRangeSet final : public internal::BorrowedObj<LibObjT>
 {
-    /* Allow operator==() to call `other._libObjPtr()` */
+    /* Allow operator==() to call `other.libObjPtr()` */
     friend class CommonIntegerRangeSet<bt_integer_range_set_unsigned>;
     friend class CommonIntegerRangeSet<const bt_integer_range_set_unsigned>;
     friend class CommonIntegerRangeSet<bt_integer_range_set_signed>;
     friend class CommonIntegerRangeSet<const bt_integer_range_set_signed>;
 
-    /* Allow appendOption() to call `ranges._libObjPtr()` */
+    /* Allow appendOption() to call `ranges.libObjPtr()` */
     friend class CommonVariantWithIntegerSelectorFieldClass<
         bt_field_class,
         ConstVariantWithIntegerSelectorFieldClassOption<
@@ -158,7 +158,7 @@ class CommonIntegerRangeSet final : public internal::BorrowedObj<LibObjT>
         ConstVariantWithIntegerSelectorFieldClassOption<
             const bt_field_class_variant_with_selector_field_integer_signed_option>>;
 
-    /* Allow create*FieldClass() to call `ranges._libObjPtr()` */
+    /* Allow create*FieldClass() to call `ranges.libObjPtr()` */
     friend class CommonTraceClass<bt_trace_class>;
 
 private:
@@ -208,7 +208,7 @@ public:
     template <typename OtherLibObjT>
     bool operator==(const CommonIntegerRangeSet<OtherLibObjT>& other) const noexcept
     {
-        return _Spec::isEqual(this->_libObjPtr(), other._libObjPtr());
+        return _Spec::isEqual(this->libObjPtr(), other.libObjPtr());
     }
 
     template <typename OtherLibObjT>
@@ -221,7 +221,7 @@ public:
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
-        const auto status = _Spec::addRange(this->_libObjPtr(), lower, upper);
+        const auto status = _Spec::addRange(this->libObjPtr(), lower, upper);
 
         if (status == BT_INTEGER_RANGE_SET_ADD_RANGE_STATUS_MEMORY_ERROR) {
             throw LibMemoryError {};
@@ -230,12 +230,12 @@ public:
 
     std::uint64_t size() const noexcept
     {
-        return _Spec::size(this->_libObjPtr());
+        return _Spec::size(this->libObjPtr());
     }
 
     Range operator[](const std::uint64_t index) const noexcept
     {
-        return Range {_Spec::rangeByIndex(this->_libObjPtr(), index)};
+        return Range {_Spec::rangeByIndex(this->libObjPtr(), index)};
     }
 
     Shared shared() const noexcept

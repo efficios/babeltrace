@@ -185,7 +185,7 @@ private:
     void _getRef() const noexcept
     {
         if (_mObj) {
-            RefFuncsT::get(_mObj->_libObjPtr());
+            RefFuncsT::get(_mObj->libObjPtr());
         }
     }
 
@@ -196,7 +196,7 @@ private:
     void _putRef() const noexcept
     {
         if (_mObj) {
-            RefFuncsT::put(_mObj->_libObjPtr());
+            RefFuncsT::put(_mObj->libObjPtr());
         }
     }
 

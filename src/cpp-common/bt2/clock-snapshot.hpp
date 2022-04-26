@@ -35,7 +35,7 @@ public:
 
     std::uint64_t value() const noexcept
     {
-        return bt_clock_snapshot_get_value(this->_libObjPtr());
+        return bt_clock_snapshot_get_value(this->libObjPtr());
     }
 
     operator std::uint64_t() const noexcept
@@ -46,7 +46,7 @@ public:
     std::int64_t nsFromOrigin() const
     {
         std::int64_t nsFromOrigin;
-        const auto status = bt_clock_snapshot_get_ns_from_origin(this->_libObjPtr(), &nsFromOrigin);
+        const auto status = bt_clock_snapshot_get_ns_from_origin(this->libObjPtr(), &nsFromOrigin);
 
         if (status == BT_CLOCK_SNAPSHOT_GET_NS_FROM_ORIGIN_STATUS_OVERFLOW_ERROR) {
             throw LibOverflowError {};

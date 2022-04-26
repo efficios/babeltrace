@@ -171,7 +171,7 @@ public:
 
     nonstd::optional<ConstStructureField> payloadField() const noexcept
     {
-        const auto libObjPtr = _ConstSpec::payloadField(this->_libObjPtr());
+        const auto libObjPtr = _ConstSpec::payloadField(this->libObjPtr());
 
         if (libObjPtr) {
             return ConstStructureField {libObjPtr};
@@ -182,7 +182,7 @@ public:
 
     nonstd::optional<_StructureField> payloadField() noexcept
     {
-        const auto libObjPtr = _Spec::payloadField(this->_libObjPtr());
+        const auto libObjPtr = _Spec::payloadField(this->libObjPtr());
 
         if (libObjPtr) {
             return _StructureField {libObjPtr};
@@ -193,7 +193,7 @@ public:
 
     nonstd::optional<ConstStructureField> specificContextField() const noexcept
     {
-        const auto libObjPtr = _ConstSpec::specificContextField(this->_libObjPtr());
+        const auto libObjPtr = _ConstSpec::specificContextField(this->libObjPtr());
 
         if (libObjPtr) {
             return ConstStructureField {libObjPtr};
@@ -204,7 +204,7 @@ public:
 
     nonstd::optional<_StructureField> specificContextField() noexcept
     {
-        const auto libObjPtr = _Spec::specificContextField(this->_libObjPtr());
+        const auto libObjPtr = _Spec::specificContextField(this->libObjPtr());
 
         if (libObjPtr) {
             return _StructureField {libObjPtr};
@@ -215,7 +215,7 @@ public:
 
     nonstd::optional<ConstStructureField> commonContextField() const noexcept
     {
-        const auto libObjPtr = _ConstSpec::commonContextField(this->_libObjPtr());
+        const auto libObjPtr = _ConstSpec::commonContextField(this->libObjPtr());
 
         if (libObjPtr) {
             return ConstStructureField {libObjPtr};
@@ -226,7 +226,7 @@ public:
 
     nonstd::optional<_StructureField> commonContextField() noexcept
     {
-        const auto libObjPtr = _Spec::commonContextField(this->_libObjPtr());
+        const auto libObjPtr = _Spec::commonContextField(this->libObjPtr());
 
         if (libObjPtr) {
             return _StructureField {libObjPtr};
@@ -330,7 +330,7 @@ public:
 
     nonstd::optional<ConstStructureField> contextField() const noexcept
     {
-        const auto libObjPtr = _ConstSpec::contextField(this->_libObjPtr());
+        const auto libObjPtr = _ConstSpec::contextField(this->libObjPtr());
 
         if (libObjPtr) {
             return ConstStructureField {libObjPtr};
@@ -341,7 +341,7 @@ public:
 
     nonstd::optional<_StructureField> contextField() noexcept
     {
-        const auto libObjPtr = _Spec::contextField(this->_libObjPtr());
+        const auto libObjPtr = _Spec::contextField(this->libObjPtr());
 
         if (libObjPtr) {
             return _StructureField {libObjPtr};
@@ -362,7 +362,7 @@ using ConstPacket = CommonPacket<const bt_packet>;
 template <typename LibObjT>
 nonstd::optional<ConstPacket> CommonEvent<LibObjT>::packet() const noexcept
 {
-    const auto libObjPtr = _ConstSpec::packet(this->_libObjPtr());
+    const auto libObjPtr = _ConstSpec::packet(this->libObjPtr());
 
     if (libObjPtr) {
         return ConstPacket {libObjPtr};
@@ -374,7 +374,7 @@ nonstd::optional<ConstPacket> CommonEvent<LibObjT>::packet() const noexcept
 template <typename LibObjT>
 nonstd::optional<typename CommonEvent<LibObjT>::_Packet> CommonEvent<LibObjT>::packet() noexcept
 {
-    const auto libObjPtr = _Spec::packet(this->_libObjPtr());
+    const auto libObjPtr = _Spec::packet(this->libObjPtr());
 
     if (libObjPtr) {
         return _Packet {libObjPtr};
@@ -487,7 +487,7 @@ public:
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
-        const auto libObjPtr = bt_packet_create(this->_libObjPtr());
+        const auto libObjPtr = bt_packet_create(this->libObjPtr());
 
         internal::validateCreatedObjPtr(libObjPtr);
         return Packet::Shared {Packet {libObjPtr}};
@@ -500,14 +500,14 @@ public:
 
     std::uint64_t id() const noexcept
     {
-        return bt_stream_get_id(this->_libObjPtr());
+        return bt_stream_get_id(this->libObjPtr());
     }
 
     void name(const char * const name)
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
-        const auto status = bt_stream_set_name(this->_libObjPtr(), name);
+        const auto status = bt_stream_set_name(this->libObjPtr(), name);
 
         if (status == BT_STREAM_SET_NAME_STATUS_MEMORY_ERROR) {
             throw LibMemoryError {};
@@ -521,7 +521,7 @@ public:
 
     nonstd::optional<bpstd::string_view> name() const noexcept
     {
-        const auto name = bt_stream_get_name(this->_libObjPtr());
+        const auto name = bt_stream_get_name(this->libObjPtr());
 
         if (name) {
             return name;
@@ -535,17 +535,17 @@ public:
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
-        bt_stream_set_user_attributes(this->_libObjPtr(), userAttrs._libObjPtr());
+        bt_stream_set_user_attributes(this->libObjPtr(), userAttrs.libObjPtr());
     }
 
     ConstMapValue userAttributes() const noexcept
     {
-        return ConstMapValue {_ConstSpec::userAttributes(this->_libObjPtr())};
+        return ConstMapValue {_ConstSpec::userAttributes(this->libObjPtr())};
     }
 
     UserAttributes userAttributes() noexcept
     {
-        return UserAttributes {_Spec::userAttributes(this->_libObjPtr())};
+        return UserAttributes {_Spec::userAttributes(this->libObjPtr())};
     }
 
     Shared shared() const noexcept
@@ -560,25 +560,25 @@ using ConstStream = CommonStream<const bt_stream>;
 template <typename LibObjT>
 ConstStream CommonEvent<LibObjT>::stream() const noexcept
 {
-    return ConstStream {_ConstSpec::stream(this->_libObjPtr())};
+    return ConstStream {_ConstSpec::stream(this->libObjPtr())};
 }
 
 template <typename LibObjT>
 typename CommonEvent<LibObjT>::_Stream CommonEvent<LibObjT>::stream() noexcept
 {
-    return _Stream {_Spec::stream(this->_libObjPtr())};
+    return _Stream {_Spec::stream(this->libObjPtr())};
 }
 
 template <typename LibObjT>
 ConstStream CommonPacket<LibObjT>::stream() const noexcept
 {
-    return ConstStream {_ConstSpec::stream(this->_libObjPtr())};
+    return ConstStream {_ConstSpec::stream(this->libObjPtr())};
 }
 
 template <typename LibObjT>
 typename CommonPacket<LibObjT>::_Stream CommonPacket<LibObjT>::stream() noexcept
 {
-    return _Stream {_Spec::stream(this->_libObjPtr())};
+    return _Stream {_Spec::stream(this->libObjPtr())};
 }
 
 namespace internal {
@@ -656,7 +656,7 @@ struct CommonTraceSpec<const bt_trace> final
 template <typename LibObjT>
 class CommonTrace final : public internal::BorrowedObj<LibObjT>
 {
-    /* Allow instantiate() to call `trace._libObjPtr()` */
+    /* Allow instantiate() to call `trace.libObjPtr()` */
     friend class CommonStreamClass<bt_stream_class>;
 
 private:
@@ -709,7 +709,7 @@ public:
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
-        const auto status = bt_trace_set_name(this->_libObjPtr(), name);
+        const auto status = bt_trace_set_name(this->libObjPtr(), name);
 
         if (status == BT_TRACE_SET_NAME_STATUS_MEMORY_ERROR) {
             throw LibMemoryError {};
@@ -723,7 +723,7 @@ public:
 
     nonstd::optional<bpstd::string_view> name() const noexcept
     {
-        const auto name = bt_trace_get_name(this->_libObjPtr());
+        const auto name = bt_trace_get_name(this->libObjPtr());
 
         if (name) {
             return name;
@@ -734,12 +734,12 @@ public:
 
     void uuid(const std::uint8_t * const uuid) noexcept
     {
-        bt_trace_set_uuid(this->_libObjPtr(), uuid);
+        bt_trace_set_uuid(this->libObjPtr(), uuid);
     }
 
     nonstd::optional<bt2_common::UuidView> uuid() const noexcept
     {
-        const auto uuid = bt_trace_get_uuid(this->_libObjPtr());
+        const auto uuid = bt_trace_get_uuid(this->libObjPtr());
 
         if (uuid) {
             return bt2_common::UuidView {uuid};
@@ -750,22 +750,22 @@ public:
 
     std::uint64_t size() const noexcept
     {
-        return bt_trace_get_stream_count(this->_libObjPtr());
+        return bt_trace_get_stream_count(this->libObjPtr());
     }
 
     ConstStream operator[](const std::uint64_t index) const noexcept
     {
-        return ConstStream {_ConstSpec::streamByIndex(this->_libObjPtr(), index)};
+        return ConstStream {_ConstSpec::streamByIndex(this->libObjPtr(), index)};
     }
 
     _Stream operator[](const std::uint64_t index) noexcept
     {
-        return _Stream {_Spec::streamByIndex(this->_libObjPtr(), index)};
+        return _Stream {_Spec::streamByIndex(this->libObjPtr(), index)};
     }
 
     nonstd::optional<ConstStream> streamById(const std::uint64_t id) const noexcept
     {
-        const auto libObjPtr = _ConstSpec::streamById(this->_libObjPtr(), id);
+        const auto libObjPtr = _ConstSpec::streamById(this->libObjPtr(), id);
 
         if (libObjPtr) {
             return ConstStream {libObjPtr};
@@ -776,7 +776,7 @@ public:
 
     nonstd::optional<_Stream> streamById(const std::uint64_t id) noexcept
     {
-        const auto libObjPtr = _Spec::streamById(this->_libObjPtr(), id);
+        const auto libObjPtr = _Spec::streamById(this->libObjPtr(), id);
 
         if (libObjPtr) {
             return _Stream {libObjPtr};
@@ -789,7 +789,7 @@ public:
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
-        const auto status = bt_trace_set_environment_entry_integer(this->_libObjPtr(), name, val);
+        const auto status = bt_trace_set_environment_entry_integer(this->libObjPtr(), name, val);
 
         if (status == BT_TRACE_SET_ENVIRONMENT_ENTRY_STATUS_MEMORY_ERROR) {
             throw LibMemoryError {};
@@ -805,7 +805,7 @@ public:
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
-        const auto status = bt_trace_set_environment_entry_string(this->_libObjPtr(), name, val);
+        const auto status = bt_trace_set_environment_entry_string(this->libObjPtr(), name, val);
 
         if (status == BT_TRACE_SET_ENVIRONMENT_ENTRY_STATUS_MEMORY_ERROR) {
             throw LibMemoryError {};
@@ -829,7 +829,7 @@ public:
 
     std::uint64_t environmentSize() const noexcept
     {
-        return bt_trace_get_environment_entry_count(this->_libObjPtr());
+        return bt_trace_get_environment_entry_count(this->libObjPtr());
     }
 
     ConstEnvironmentEntry environmentEntry(const std::uint64_t index) const noexcept
@@ -837,7 +837,7 @@ public:
         const char *name;
         const bt_value *libObjPtr;
 
-        bt_trace_borrow_environment_entry_by_index_const(this->_libObjPtr(), index, &name,
+        bt_trace_borrow_environment_entry_by_index_const(this->libObjPtr(), index, &name,
                                                          &libObjPtr);
         return ConstEnvironmentEntry {name, ConstValue {libObjPtr}};
     }
@@ -845,7 +845,7 @@ public:
     nonstd::optional<ConstValue> environmentEntry(const char * const name) const noexcept
     {
         const auto libObjPtr =
-            bt_trace_borrow_environment_entry_value_by_name_const(this->_libObjPtr(), name);
+            bt_trace_borrow_environment_entry_value_by_name_const(this->libObjPtr(), name);
 
         if (libObjPtr) {
             return ConstValue {libObjPtr};
@@ -864,17 +864,17 @@ public:
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
-        bt_trace_set_user_attributes(this->_libObjPtr(), userAttrs._libObjPtr());
+        bt_trace_set_user_attributes(this->libObjPtr(), userAttrs.libObjPtr());
     }
 
     ConstMapValue userAttributes() const noexcept
     {
-        return ConstMapValue {_ConstSpec::userAttributes(this->_libObjPtr())};
+        return ConstMapValue {_ConstSpec::userAttributes(this->libObjPtr())};
     }
 
     UserAttributes userAttributes() noexcept
     {
-        return UserAttributes {_Spec::userAttributes(this->_libObjPtr())};
+        return UserAttributes {_Spec::userAttributes(this->libObjPtr())};
     }
 
     Shared shared() const noexcept
@@ -889,13 +889,13 @@ using ConstTrace = CommonTrace<const bt_trace>;
 template <typename LibObjT>
 ConstTrace CommonStream<LibObjT>::trace() const noexcept
 {
-    return ConstTrace {_ConstSpec::trace(this->_libObjPtr())};
+    return ConstTrace {_ConstSpec::trace(this->libObjPtr())};
 }
 
 template <typename LibObjT>
 typename CommonStream<LibObjT>::_Trace CommonStream<LibObjT>::trace() noexcept
 {
-    return _Trace {_Spec::trace(this->_libObjPtr())};
+    return _Trace {_Spec::trace(this->libObjPtr())};
 }
 
 namespace internal {
@@ -1035,14 +1035,14 @@ public:
 
     std::uint64_t id() const noexcept
     {
-        return bt_event_class_get_id(this->_libObjPtr());
+        return bt_event_class_get_id(this->libObjPtr());
     }
 
     void name(const char * const name)
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
-        const auto status = bt_event_class_set_name(this->_libObjPtr(), name);
+        const auto status = bt_event_class_set_name(this->libObjPtr(), name);
 
         if (status == BT_EVENT_CLASS_SET_NAME_STATUS_MEMORY_ERROR) {
             throw LibMemoryError {};
@@ -1056,7 +1056,7 @@ public:
 
     nonstd::optional<bpstd::string_view> name() const noexcept
     {
-        const auto name = bt_event_class_get_name(this->_libObjPtr());
+        const auto name = bt_event_class_get_name(this->libObjPtr());
 
         if (name) {
             return name;
@@ -1069,14 +1069,14 @@ public:
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
-        bt_event_class_set_log_level(this->_libObjPtr(),
+        bt_event_class_set_log_level(this->libObjPtr(),
                                      static_cast<bt_event_class_log_level>(logLevel));
     }
 
     nonstd::optional<LogLevel> logLevel() const noexcept
     {
         bt_event_class_log_level libLogLevel;
-        const auto avail = bt_event_class_get_log_level(this->_libObjPtr(), &libLogLevel);
+        const auto avail = bt_event_class_get_log_level(this->libObjPtr(), &libLogLevel);
 
         if (avail == BT_PROPERTY_AVAILABILITY_AVAILABLE) {
             return static_cast<LogLevel>(libLogLevel);
@@ -1089,7 +1089,7 @@ public:
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
-        const auto status = bt_event_class_set_emf_uri(this->_libObjPtr(), emfUri);
+        const auto status = bt_event_class_set_emf_uri(this->libObjPtr(), emfUri);
 
         if (status == BT_EVENT_CLASS_SET_EMF_URI_STATUS_MEMORY_ERROR) {
             throw LibMemoryError {};
@@ -1103,7 +1103,7 @@ public:
 
     nonstd::optional<bpstd::string_view> emfUri() const noexcept
     {
-        const auto emfUri = bt_event_class_get_emf_uri(this->_libObjPtr());
+        const auto emfUri = bt_event_class_get_emf_uri(this->libObjPtr());
 
         if (emfUri) {
             return emfUri;
@@ -1117,7 +1117,7 @@ public:
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
         const auto status =
-            bt_event_class_set_payload_field_class(this->_libObjPtr(), fc._libObjPtr());
+            bt_event_class_set_payload_field_class(this->libObjPtr(), fc.libObjPtr());
 
         if (status == BT_EVENT_CLASS_SET_FIELD_CLASS_STATUS_MEMORY_ERROR) {
             throw LibMemoryError {};
@@ -1126,7 +1126,7 @@ public:
 
     nonstd::optional<ConstStructureFieldClass> payloadFieldClass() const noexcept
     {
-        const auto libObjPtr = _ConstSpec::payloadFieldClass(this->_libObjPtr());
+        const auto libObjPtr = _ConstSpec::payloadFieldClass(this->libObjPtr());
 
         if (libObjPtr) {
             return ConstStructureFieldClass {libObjPtr};
@@ -1137,7 +1137,7 @@ public:
 
     nonstd::optional<_StructureFieldClass> payloadFieldClass() noexcept
     {
-        const auto libObjPtr = _Spec::payloadFieldClass(this->_libObjPtr());
+        const auto libObjPtr = _Spec::payloadFieldClass(this->libObjPtr());
 
         if (libObjPtr) {
             return _StructureFieldClass {libObjPtr};
@@ -1151,7 +1151,7 @@ public:
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
         const auto status =
-            bt_event_class_set_specific_context_field_class(this->_libObjPtr(), fc._libObjPtr());
+            bt_event_class_set_specific_context_field_class(this->libObjPtr(), fc.libObjPtr());
 
         if (status == BT_EVENT_CLASS_SET_FIELD_CLASS_STATUS_MEMORY_ERROR) {
             throw LibMemoryError {};
@@ -1160,7 +1160,7 @@ public:
 
     nonstd::optional<ConstStructureFieldClass> specificContextFieldClass() const noexcept
     {
-        const auto libObjPtr = _ConstSpec::specificContextFieldClass(this->_libObjPtr());
+        const auto libObjPtr = _ConstSpec::specificContextFieldClass(this->libObjPtr());
 
         if (libObjPtr) {
             return ConstStructureFieldClass {libObjPtr};
@@ -1171,7 +1171,7 @@ public:
 
     nonstd::optional<_StructureFieldClass> specificContextFieldClass() noexcept
     {
-        const auto libObjPtr = _Spec::specificContextFieldClass(this->_libObjPtr());
+        const auto libObjPtr = _Spec::specificContextFieldClass(this->libObjPtr());
 
         if (libObjPtr) {
             return _StructureFieldClass {libObjPtr};
@@ -1185,17 +1185,17 @@ public:
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
-        bt_event_class_set_user_attributes(this->_libObjPtr(), userAttrs._libObjPtr());
+        bt_event_class_set_user_attributes(this->libObjPtr(), userAttrs.libObjPtr());
     }
 
     ConstMapValue userAttributes() const noexcept
     {
-        return ConstMapValue {_ConstSpec::userAttributes(this->_libObjPtr())};
+        return ConstMapValue {_ConstSpec::userAttributes(this->libObjPtr())};
     }
 
     UserAttributes userAttributes() noexcept
     {
-        return UserAttributes {_Spec::userAttributes(this->_libObjPtr())};
+        return UserAttributes {_Spec::userAttributes(this->libObjPtr())};
     }
 
     Shared shared() const noexcept
@@ -1210,13 +1210,13 @@ using ConstEventClass = CommonEventClass<const bt_event_class>;
 template <typename LibObjT>
 ConstEventClass CommonEvent<LibObjT>::cls() const noexcept
 {
-    return ConstEventClass {_ConstSpec::cls(this->_libObjPtr())};
+    return ConstEventClass {_ConstSpec::cls(this->libObjPtr())};
 }
 
 template <typename LibObjT>
 typename CommonEvent<LibObjT>::Class CommonEvent<LibObjT>::cls() noexcept
 {
-    return Class {_Spec::cls(this->_libObjPtr())};
+    return Class {_Spec::cls(this->libObjPtr())};
 }
 
 namespace internal {
@@ -1378,7 +1378,7 @@ public:
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
-        const auto libObjPtr = bt_stream_create(this->_libObjPtr(), trace._libObjPtr());
+        const auto libObjPtr = bt_stream_create(this->libObjPtr(), trace.libObjPtr());
 
         internal::validateCreatedObjPtr(libObjPtr);
         return Stream::Shared {Stream {libObjPtr}};
@@ -1388,7 +1388,7 @@ public:
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
-        const auto libObjPtr = bt_stream_create_with_id(this->_libObjPtr(), trace._libObjPtr(), id);
+        const auto libObjPtr = bt_stream_create_with_id(this->libObjPtr(), trace.libObjPtr(), id);
 
         internal::validateCreatedObjPtr(libObjPtr);
         return Stream::Shared {Stream {libObjPtr}};
@@ -1398,7 +1398,7 @@ public:
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
-        const auto libObjPtr = bt_event_class_create(this->_libObjPtr());
+        const auto libObjPtr = bt_event_class_create(this->libObjPtr());
 
         internal::validateCreatedObjPtr(libObjPtr);
         return EventClass::Shared {EventClass {libObjPtr}};
@@ -1408,7 +1408,7 @@ public:
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
-        const auto libObjPtr = bt_event_class_create_with_id(this->_libObjPtr(), id);
+        const auto libObjPtr = bt_event_class_create_with_id(this->libObjPtr(), id);
 
         internal::validateCreatedObjPtr(libObjPtr);
         return EventClass::Shared {EventClass {libObjPtr}};
@@ -1419,14 +1419,14 @@ public:
 
     std::uint64_t id() const noexcept
     {
-        return bt_stream_class_get_id(this->_libObjPtr());
+        return bt_stream_class_get_id(this->libObjPtr());
     }
 
     void name(const char * const name)
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
-        const auto status = bt_stream_class_set_name(this->_libObjPtr(), name);
+        const auto status = bt_stream_class_set_name(this->libObjPtr(), name);
 
         if (status == BT_STREAM_CLASS_SET_NAME_STATUS_MEMORY_ERROR) {
             throw LibMemoryError {};
@@ -1440,7 +1440,7 @@ public:
 
     nonstd::optional<bpstd::string_view> name() const noexcept
     {
-        const auto name = bt_stream_class_get_name(this->_libObjPtr());
+        const auto name = bt_stream_class_get_name(this->libObjPtr());
 
         if (name) {
             return name;
@@ -1453,27 +1453,27 @@ public:
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
-        bt_stream_class_set_assigns_automatic_event_class_id(this->_libObjPtr(),
+        bt_stream_class_set_assigns_automatic_event_class_id(this->libObjPtr(),
                                                              static_cast<bt_bool>(val));
     }
 
     bool assignsAutomaticEventClassId() const noexcept
     {
         return static_cast<bool>(
-            bt_stream_class_assigns_automatic_event_class_id(this->_libObjPtr()));
+            bt_stream_class_assigns_automatic_event_class_id(this->libObjPtr()));
     }
 
     void assignsAutomaticStreamId(const bool val) noexcept
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
-        bt_stream_class_set_assigns_automatic_stream_id(this->_libObjPtr(),
+        bt_stream_class_set_assigns_automatic_stream_id(this->libObjPtr(),
                                                         static_cast<bt_bool>(val));
     }
 
     bool assignsAutomaticStreamId() const noexcept
     {
-        return static_cast<bool>(bt_stream_class_assigns_automatic_stream_id(this->_libObjPtr()));
+        return static_cast<bool>(bt_stream_class_assigns_automatic_stream_id(this->libObjPtr()));
     }
 
     void supportsPackets(const bool supportsPackets, const bool withBeginningDefaultClkSnapshot,
@@ -1481,7 +1481,7 @@ public:
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
-        bt_stream_class_set_supports_packets(this->_libObjPtr(),
+        bt_stream_class_set_supports_packets(this->libObjPtr(),
                                              static_cast<bt_bool>(supportsPackets),
                                              static_cast<bt_bool>(withBeginningDefaultClkSnapshot),
                                              static_cast<bt_bool>(withEndDefaultClkSnapshot));
@@ -1489,19 +1489,19 @@ public:
 
     bool supportsPackets() const noexcept
     {
-        return static_cast<bool>(bt_stream_class_supports_packets(this->_libObjPtr()));
+        return static_cast<bool>(bt_stream_class_supports_packets(this->libObjPtr()));
     }
 
     bool packetsHaveBeginningClockSnapshot() const noexcept
     {
         return static_cast<bool>(
-            bt_stream_class_packets_have_beginning_default_clock_snapshot(this->_libObjPtr()));
+            bt_stream_class_packets_have_beginning_default_clock_snapshot(this->libObjPtr()));
     }
 
     bool packetsHaveEndClockSnapshot() const noexcept
     {
         return static_cast<bool>(
-            bt_stream_class_packets_have_end_default_clock_snapshot(this->_libObjPtr()));
+            bt_stream_class_packets_have_end_default_clock_snapshot(this->libObjPtr()));
     }
 
     void supportsDiscardedEvents(const bool supportsDiscardedEvents,
@@ -1510,19 +1510,19 @@ public:
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
         bt_stream_class_set_supports_discarded_events(
-            this->_libObjPtr(), static_cast<bt_bool>(supportsPackets),
+            this->libObjPtr(), static_cast<bt_bool>(supportsPackets),
             static_cast<bt_bool>(withDefaultClkSnapshots));
     }
 
     bool supportsDiscardedEvents() const noexcept
     {
-        return static_cast<bool>(bt_stream_class_supports_discarded_events(this->_libObjPtr()));
+        return static_cast<bool>(bt_stream_class_supports_discarded_events(this->libObjPtr()));
     }
 
     bool discardedEventsHaveDefaultClockSnapshots() const noexcept
     {
         return static_cast<bool>(
-            bt_stream_class_discarded_events_have_default_clock_snapshots(this->_libObjPtr()));
+            bt_stream_class_discarded_events_have_default_clock_snapshots(this->libObjPtr()));
     }
 
     void supportsDiscardedPackets(const bool supportsDiscardedPackets,
@@ -1531,19 +1531,19 @@ public:
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
         bt_stream_class_set_supports_discarded_packets(
-            this->_libObjPtr(), static_cast<bt_bool>(supportsPackets),
+            this->libObjPtr(), static_cast<bt_bool>(supportsPackets),
             static_cast<bt_bool>(withDefaultClkSnapshots));
     }
 
     bool supportsDiscardedPackets() const noexcept
     {
-        return static_cast<bool>(bt_stream_class_supports_discarded_packets(this->_libObjPtr()));
+        return static_cast<bool>(bt_stream_class_supports_discarded_packets(this->libObjPtr()));
     }
 
     bool discardedPacketsHaveDefaultClockSnapshots() const noexcept
     {
         return static_cast<bool>(
-            bt_stream_class_discarded_packets_have_default_clock_snapshots(this->_libObjPtr()));
+            bt_stream_class_discarded_packets_have_default_clock_snapshots(this->libObjPtr()));
     }
 
     void defaultClockClass(const ClockClass& clkCls)
@@ -1551,14 +1551,14 @@ public:
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
         const auto status =
-            bt_stream_class_set_default_clock_class(this->_libObjPtr(), clkCls._libObjPtr());
+            bt_stream_class_set_default_clock_class(this->libObjPtr(), clkCls.libObjPtr());
 
         BT_ASSERT(status == BT_STREAM_CLASS_SET_DEFAULT_CLOCK_CLASS_STATUS_OK);
     }
 
     nonstd::optional<ConstClockClass> defaultClockClass() const noexcept
     {
-        const auto libObjPtr = _ConstSpec::defaultClockClass(this->_libObjPtr());
+        const auto libObjPtr = _ConstSpec::defaultClockClass(this->libObjPtr());
 
         if (libObjPtr) {
             return ConstClockClass {libObjPtr};
@@ -1569,7 +1569,7 @@ public:
 
     nonstd::optional<_ClockClass> defaultClockClass() noexcept
     {
-        const auto libObjPtr = _Spec::defaultClockClass(this->_libObjPtr());
+        const auto libObjPtr = _Spec::defaultClockClass(this->libObjPtr());
 
         if (libObjPtr) {
             return _ClockClass {libObjPtr};
@@ -1580,22 +1580,22 @@ public:
 
     std::uint64_t size() const noexcept
     {
-        return bt_stream_class_get_event_class_count(this->_libObjPtr());
+        return bt_stream_class_get_event_class_count(this->libObjPtr());
     }
 
     ConstEventClass operator[](const std::uint64_t index) const noexcept
     {
-        return ConstEventClass {_ConstSpec::eventClassByIndex(this->_libObjPtr(), index)};
+        return ConstEventClass {_ConstSpec::eventClassByIndex(this->libObjPtr(), index)};
     }
 
     _EventClass operator[](const std::uint64_t index) noexcept
     {
-        return _EventClass {_Spec::eventClassByIndex(this->_libObjPtr(), index)};
+        return _EventClass {_Spec::eventClassByIndex(this->libObjPtr(), index)};
     }
 
     nonstd::optional<ConstEventClass> eventClassById(const std::uint64_t id) const noexcept
     {
-        const auto libObjPtr = _ConstSpec::eventClassById(this->_libObjPtr(), id);
+        const auto libObjPtr = _ConstSpec::eventClassById(this->libObjPtr(), id);
 
         if (libObjPtr) {
             return ConstEventClass {libObjPtr};
@@ -1606,7 +1606,7 @@ public:
 
     nonstd::optional<_EventClass> eventClassById(const std::uint64_t id) noexcept
     {
-        const auto libObjPtr = _Spec::eventClassById(this->_libObjPtr(), id);
+        const auto libObjPtr = _Spec::eventClassById(this->libObjPtr(), id);
 
         if (libObjPtr) {
             return _EventClass {libObjPtr};
@@ -1620,7 +1620,7 @@ public:
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
         const auto status =
-            bt_stream_class_set_packet_context_field_class(this->_libObjPtr(), fc._libObjPtr());
+            bt_stream_class_set_packet_context_field_class(this->libObjPtr(), fc.libObjPtr());
 
         if (status == BT_EVENT_CLASS_SET_FIELD_CLASS_STATUS_MEMORY_ERROR) {
             throw LibMemoryError {};
@@ -1629,7 +1629,7 @@ public:
 
     nonstd::optional<ConstStructureFieldClass> packetContextFieldClass() const noexcept
     {
-        const auto libObjPtr = _ConstSpec::packetContextFieldClass(this->_libObjPtr());
+        const auto libObjPtr = _ConstSpec::packetContextFieldClass(this->libObjPtr());
 
         if (libObjPtr) {
             return ConstStructureFieldClass {libObjPtr};
@@ -1640,7 +1640,7 @@ public:
 
     nonstd::optional<_StructureFieldClass> packetContextFieldClass() noexcept
     {
-        const auto libObjPtr = _Spec::packetContextFieldClass(this->_libObjPtr());
+        const auto libObjPtr = _Spec::packetContextFieldClass(this->libObjPtr());
 
         if (libObjPtr) {
             return _StructureFieldClass {libObjPtr};
@@ -1653,8 +1653,8 @@ public:
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
-        const auto status = bt_stream_class_set_event_common_context_field_class(this->_libObjPtr(),
-                                                                                 fc._libObjPtr());
+        const auto status =
+            bt_stream_class_set_event_common_context_field_class(this->libObjPtr(), fc.libObjPtr());
 
         if (status == BT_EVENT_CLASS_SET_FIELD_CLASS_STATUS_MEMORY_ERROR) {
             throw LibMemoryError {};
@@ -1663,7 +1663,7 @@ public:
 
     nonstd::optional<ConstStructureFieldClass> eventCommonContextFieldClass() const noexcept
     {
-        const auto libObjPtr = _ConstSpec::eventCommonContextFieldClass(this->_libObjPtr());
+        const auto libObjPtr = _ConstSpec::eventCommonContextFieldClass(this->libObjPtr());
 
         if (libObjPtr) {
             return ConstStructureFieldClass {libObjPtr};
@@ -1674,7 +1674,7 @@ public:
 
     nonstd::optional<_StructureFieldClass> eventCommonContextFieldClass() noexcept
     {
-        const auto libObjPtr = _Spec::eventCommonContextFieldClass(this->_libObjPtr());
+        const auto libObjPtr = _Spec::eventCommonContextFieldClass(this->libObjPtr());
 
         if (libObjPtr) {
             return _StructureFieldClass {libObjPtr};
@@ -1688,17 +1688,17 @@ public:
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
-        bt_stream_class_set_user_attributes(this->_libObjPtr(), userAttrs._libObjPtr());
+        bt_stream_class_set_user_attributes(this->libObjPtr(), userAttrs.libObjPtr());
     }
 
     ConstMapValue userAttributes() const noexcept
     {
-        return ConstMapValue {_ConstSpec::userAttributes(this->_libObjPtr())};
+        return ConstMapValue {_ConstSpec::userAttributes(this->libObjPtr())};
     }
 
     UserAttributes userAttributes() noexcept
     {
-        return UserAttributes {_Spec::userAttributes(this->_libObjPtr())};
+        return UserAttributes {_Spec::userAttributes(this->libObjPtr())};
     }
 
     Shared shared() const noexcept
@@ -1713,25 +1713,25 @@ using ConstStreamClass = CommonStreamClass<const bt_stream_class>;
 template <typename LibObjT>
 ConstStreamClass CommonEventClass<LibObjT>::streamClass() const noexcept
 {
-    return ConstStreamClass {_ConstSpec::streamClass(this->_libObjPtr())};
+    return ConstStreamClass {_ConstSpec::streamClass(this->libObjPtr())};
 }
 
 template <typename LibObjT>
 typename CommonEventClass<LibObjT>::_StreamClass CommonEventClass<LibObjT>::streamClass() noexcept
 {
-    return _StreamClass {_Spec::streamClass(this->_libObjPtr())};
+    return _StreamClass {_Spec::streamClass(this->libObjPtr())};
 }
 
 template <typename LibObjT>
 ConstStreamClass CommonStream<LibObjT>::cls() const noexcept
 {
-    return ConstStreamClass {_ConstSpec::cls(this->_libObjPtr())};
+    return ConstStreamClass {_ConstSpec::cls(this->libObjPtr())};
 }
 
 template <typename LibObjT>
 typename CommonStream<LibObjT>::Class CommonStream<LibObjT>::cls() noexcept
 {
-    return Class {_Spec::cls(this->_libObjPtr())};
+    return Class {_Spec::cls(this->libObjPtr())};
 }
 
 namespace internal {
@@ -1840,7 +1840,7 @@ public:
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
-        const auto libObjPtr = bt_trace_create(this->_libObjPtr());
+        const auto libObjPtr = bt_trace_create(this->libObjPtr());
 
         internal::validateCreatedObjPtr(libObjPtr);
         return Trace::Shared {Trace {libObjPtr}};
@@ -1850,7 +1850,7 @@ public:
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
-        const auto libObjPtr = bt_stream_class_create(this->_libObjPtr());
+        const auto libObjPtr = bt_stream_class_create(this->libObjPtr());
 
         internal::validateCreatedObjPtr(libObjPtr);
         return StreamClass::Shared {StreamClass {libObjPtr}};
@@ -1860,7 +1860,7 @@ public:
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
-        const auto libObjPtr = bt_stream_class_create_with_id(this->_libObjPtr(), id);
+        const auto libObjPtr = bt_stream_class_create_with_id(this->libObjPtr(), id);
 
         internal::validateCreatedObjPtr(libObjPtr);
         return StreamClass::Shared {StreamClass {libObjPtr}};
@@ -1870,7 +1870,7 @@ public:
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
-        const auto libObjPtr = bt_field_class_bool_create(this->_libObjPtr());
+        const auto libObjPtr = bt_field_class_bool_create(this->libObjPtr());
 
         internal::validateCreatedObjPtr(libObjPtr);
         return FieldClass::Shared {FieldClass {libObjPtr}};
@@ -1880,7 +1880,7 @@ public:
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
-        const auto libObjPtr = bt_field_class_bit_array_create(this->_libObjPtr(), length);
+        const auto libObjPtr = bt_field_class_bit_array_create(this->libObjPtr(), length);
 
         internal::validateCreatedObjPtr(libObjPtr);
         return BitArrayFieldClass::Shared {BitArrayFieldClass {libObjPtr}};
@@ -1890,7 +1890,7 @@ public:
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
-        const auto libObjPtr = bt_field_class_integer_unsigned_create(this->_libObjPtr());
+        const auto libObjPtr = bt_field_class_integer_unsigned_create(this->libObjPtr());
 
         internal::validateCreatedObjPtr(libObjPtr);
         return IntegerFieldClass::Shared {IntegerFieldClass {libObjPtr}};
@@ -1900,7 +1900,7 @@ public:
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
-        const auto libObjPtr = bt_field_class_integer_signed_create(this->_libObjPtr());
+        const auto libObjPtr = bt_field_class_integer_signed_create(this->libObjPtr());
 
         internal::validateCreatedObjPtr(libObjPtr);
         return IntegerFieldClass::Shared {IntegerFieldClass {libObjPtr}};
@@ -1910,7 +1910,7 @@ public:
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
-        const auto libObjPtr = bt_field_class_enumeration_unsigned_create(this->_libObjPtr());
+        const auto libObjPtr = bt_field_class_enumeration_unsigned_create(this->libObjPtr());
 
         internal::validateCreatedObjPtr(libObjPtr);
         return UnsignedEnumerationFieldClass::Shared {UnsignedEnumerationFieldClass {libObjPtr}};
@@ -1920,7 +1920,7 @@ public:
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
-        const auto libObjPtr = bt_field_class_enumeration_signed_create(this->_libObjPtr());
+        const auto libObjPtr = bt_field_class_enumeration_signed_create(this->libObjPtr());
 
         internal::validateCreatedObjPtr(libObjPtr);
         return SignedEnumerationFieldClass::Shared {SignedEnumerationFieldClass {libObjPtr}};
@@ -1930,7 +1930,7 @@ public:
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
-        const auto libObjPtr = bt_field_class_real_single_precision_create(this->_libObjPtr());
+        const auto libObjPtr = bt_field_class_real_single_precision_create(this->libObjPtr());
 
         internal::validateCreatedObjPtr(libObjPtr);
         return FieldClass::Shared {FieldClass {libObjPtr}};
@@ -1940,7 +1940,7 @@ public:
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
-        const auto libObjPtr = bt_field_class_real_double_precision_create(this->_libObjPtr());
+        const auto libObjPtr = bt_field_class_real_double_precision_create(this->libObjPtr());
 
         internal::validateCreatedObjPtr(libObjPtr);
         return FieldClass::Shared {FieldClass {libObjPtr}};
@@ -1950,7 +1950,7 @@ public:
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
-        const auto libObjPtr = bt_field_class_string_create(this->_libObjPtr());
+        const auto libObjPtr = bt_field_class_string_create(this->libObjPtr());
 
         internal::validateCreatedObjPtr(libObjPtr);
         return FieldClass::Shared {FieldClass {libObjPtr}};
@@ -1962,7 +1962,7 @@ public:
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
         const auto libObjPtr = bt_field_class_array_static_create(
-            this->_libObjPtr(), elementFieldClass._libObjPtr(), length);
+            this->libObjPtr(), elementFieldClass.libObjPtr(), length);
 
         internal::validateCreatedObjPtr(libObjPtr);
         return StaticArrayFieldClass::Shared {StaticArrayFieldClass {libObjPtr}};
@@ -1973,7 +1973,7 @@ public:
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
         const auto libObjPtr = bt_field_class_array_dynamic_create(
-            this->_libObjPtr(), elementFieldClass._libObjPtr(), nullptr);
+            this->libObjPtr(), elementFieldClass.libObjPtr(), nullptr);
 
         internal::validateCreatedObjPtr(libObjPtr);
         return ArrayFieldClass::Shared {ArrayFieldClass {libObjPtr}};
@@ -1986,7 +1986,7 @@ public:
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
         const auto libObjPtr = bt_field_class_array_dynamic_create(
-            this->_libObjPtr(), elementFieldClass._libObjPtr(), lengthFieldClass._libObjPtr());
+            this->libObjPtr(), elementFieldClass.libObjPtr(), lengthFieldClass.libObjPtr());
 
         internal::validateCreatedObjPtr(libObjPtr);
         return DynamicArrayWithLengthFieldClass::Shared {
@@ -1997,7 +1997,7 @@ public:
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
-        const auto libObjPtr = bt_field_class_structure_create(this->_libObjPtr());
+        const auto libObjPtr = bt_field_class_structure_create(this->libObjPtr());
 
         internal::validateCreatedObjPtr(libObjPtr);
         return StructureFieldClass::Shared {StructureFieldClass {libObjPtr}};
@@ -2008,7 +2008,7 @@ public:
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
         const auto libObjPtr = bt_field_class_option_without_selector_create(
-            this->_libObjPtr(), optionalFieldClass._libObjPtr());
+            this->libObjPtr(), optionalFieldClass.libObjPtr());
 
         internal::validateCreatedObjPtr(libObjPtr);
         return OptionFieldClass::Shared {OptionFieldClass {libObjPtr}};
@@ -2021,7 +2021,7 @@ public:
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
         const auto libObjPtr = bt_field_class_option_with_selector_field_bool_create(
-            this->_libObjPtr(), optionalFieldClass._libObjPtr(), selectorFieldClass._libObjPtr());
+            this->libObjPtr(), optionalFieldClass.libObjPtr(), selectorFieldClass.libObjPtr());
 
         internal::validateCreatedObjPtr(libObjPtr);
         return OptionWithBoolSelectorFieldClass::Shared {
@@ -2036,8 +2036,8 @@ public:
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
         const auto libObjPtr = bt_field_class_option_with_selector_field_integer_unsigned_create(
-            this->_libObjPtr(), optionalFieldClass._libObjPtr(), selectorFieldClass._libObjPtr(),
-            ranges._libObjPtr());
+            this->libObjPtr(), optionalFieldClass.libObjPtr(), selectorFieldClass.libObjPtr(),
+            ranges.libObjPtr());
 
         internal::validateCreatedObjPtr(libObjPtr);
         return OptionWithUnsignedIntegerSelectorFieldClass::Shared {
@@ -2052,8 +2052,8 @@ public:
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
         const auto libObjPtr = bt_field_class_option_with_selector_field_integer_signed_create(
-            this->_libObjPtr(), optionalFieldClass._libObjPtr(), selectorFieldClass._libObjPtr(),
-            ranges._libObjPtr());
+            this->libObjPtr(), optionalFieldClass.libObjPtr(), selectorFieldClass.libObjPtr(),
+            ranges.libObjPtr());
 
         internal::validateCreatedObjPtr(libObjPtr);
         return OptionWithSignedIntegerSelectorFieldClass::Shared {
@@ -2064,7 +2064,7 @@ public:
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
-        const auto libObjPtr = bt_field_class_variant_create(this->_libObjPtr(), nullptr);
+        const auto libObjPtr = bt_field_class_variant_create(this->libObjPtr(), nullptr);
 
         internal::validateCreatedObjPtr(libObjPtr);
         return VariantWithoutSelectorFieldClass::Shared {
@@ -2091,34 +2091,34 @@ public:
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
-        bt_trace_class_set_assigns_automatic_stream_class_id(this->_libObjPtr(),
+        bt_trace_class_set_assigns_automatic_stream_class_id(this->libObjPtr(),
                                                              static_cast<bt_bool>(val));
     }
 
     bool assignsAutomaticStreamClassId() const noexcept
     {
         return static_cast<bool>(
-            bt_trace_class_assigns_automatic_stream_class_id(this->_libObjPtr()));
+            bt_trace_class_assigns_automatic_stream_class_id(this->libObjPtr()));
     }
 
     std::uint64_t size() const noexcept
     {
-        return bt_trace_class_get_stream_class_count(this->_libObjPtr());
+        return bt_trace_class_get_stream_class_count(this->libObjPtr());
     }
 
     ConstStreamClass operator[](const std::uint64_t index) const noexcept
     {
-        return ConstStreamClass {_ConstSpec::streamClassByIndex(this->_libObjPtr(), index)};
+        return ConstStreamClass {_ConstSpec::streamClassByIndex(this->libObjPtr(), index)};
     }
 
     _StreamClass operator[](const std::uint64_t index) noexcept
     {
-        return _StreamClass {_Spec::streamClassByIndex(this->_libObjPtr(), index)};
+        return _StreamClass {_Spec::streamClassByIndex(this->libObjPtr(), index)};
     }
 
     nonstd::optional<ConstStreamClass> streamClassById(const std::uint64_t id) const noexcept
     {
-        const auto libObjPtr = _ConstSpec::streamClassById(this->_libObjPtr(), id);
+        const auto libObjPtr = _ConstSpec::streamClassById(this->libObjPtr(), id);
 
         if (libObjPtr) {
             return ConstStreamClass {libObjPtr};
@@ -2129,7 +2129,7 @@ public:
 
     nonstd::optional<_StreamClass> streamClassById(const std::uint64_t id) noexcept
     {
-        const auto libObjPtr = _Spec::streamClassById(this->_libObjPtr(), id);
+        const auto libObjPtr = _Spec::streamClassById(this->libObjPtr(), id);
 
         if (libObjPtr) {
             return _StreamClass {libObjPtr};
@@ -2143,17 +2143,17 @@ public:
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
-        bt_trace_class_set_user_attributes(this->_libObjPtr(), userAttrs._libObjPtr());
+        bt_trace_class_set_user_attributes(this->libObjPtr(), userAttrs.libObjPtr());
     }
 
     ConstMapValue userAttributes() const noexcept
     {
-        return ConstMapValue {_ConstSpec::userAttributes(this->_libObjPtr())};
+        return ConstMapValue {_ConstSpec::userAttributes(this->libObjPtr())};
     }
 
     UserAttributes userAttributes() noexcept
     {
-        return UserAttributes {_Spec::userAttributes(this->_libObjPtr())};
+        return UserAttributes {_Spec::userAttributes(this->libObjPtr())};
     }
 
     Shared shared() const noexcept
@@ -2168,7 +2168,7 @@ private:
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
         const auto libObjPtr =
-            bt_field_class_variant_create(this->_libObjPtr(), selectorFieldClass._libObjPtr());
+            bt_field_class_variant_create(this->libObjPtr(), selectorFieldClass.libObjPtr());
 
         internal::validateCreatedObjPtr(libObjPtr);
         return libObjPtr;
@@ -2181,25 +2181,25 @@ using ConstTraceClass = CommonTraceClass<const bt_trace_class>;
 template <typename LibObjT>
 ConstTraceClass CommonStreamClass<LibObjT>::traceClass() const noexcept
 {
-    return ConstTraceClass {_ConstSpec::traceClass(this->_libObjPtr())};
+    return ConstTraceClass {_ConstSpec::traceClass(this->libObjPtr())};
 }
 
 template <typename LibObjT>
 typename CommonStreamClass<LibObjT>::_TraceClass CommonStreamClass<LibObjT>::traceClass() noexcept
 {
-    return _TraceClass {_Spec::traceClass(this->_libObjPtr())};
+    return _TraceClass {_Spec::traceClass(this->libObjPtr())};
 }
 
 template <typename LibObjT>
 ConstTraceClass CommonTrace<LibObjT>::cls() const noexcept
 {
-    return ConstTraceClass {_ConstSpec::cls(this->_libObjPtr())};
+    return ConstTraceClass {_ConstSpec::cls(this->libObjPtr())};
 }
 
 template <typename LibObjT>
 typename CommonTrace<LibObjT>::Class CommonTrace<LibObjT>::cls() noexcept
 {
-    return Class {_Spec::cls(this->_libObjPtr())};
+    return Class {_Spec::cls(this->libObjPtr())};
 }
 
 } /* namespace bt2 */
