@@ -38,7 +38,7 @@ babeltrace2_bin_SOURCES = \
 	babeltrace2-plugins.h \
 	babeltrace2-query.c \
 	babeltrace2-query.h \
-	logging.c \
+	logging.cpp \
 	logging.h
 
 # -Wl,--no-as-needed is needed for recent gold linker who seems to think
