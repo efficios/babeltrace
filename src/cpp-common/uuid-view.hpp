@@ -37,6 +37,11 @@ public:
         return !(*this == other);
     }
 
+    bool operator<(const UuidView& other) const noexcept
+    {
+        return bt_uuid_compare(_mUuid, other._mUuid) < 0;
+    }
+
     std::string string() const
     {
         std::string s;
