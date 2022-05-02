@@ -16,7 +16,7 @@
 
 namespace bt2_common {
 
-class UuidView
+class UuidView final
 {
 public:
     explicit UuidView(const std::uint8_t * const uuid) noexcept : _mUuid {uuid}
