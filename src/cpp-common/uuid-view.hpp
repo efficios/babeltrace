@@ -47,7 +47,7 @@ public:
         return s;
     }
 
-    static std::size_t size() noexcept
+    static constexpr std::size_t size() noexcept
     {
         return BT_UUID_LEN;
     }
