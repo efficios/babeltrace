@@ -17,7 +17,6 @@ libbabeltrace_ctf_la_LDFLAGS = \
 	$(LD_NO_AS_NEEDED) -version-info $(BABELTRACE_LIBRARY_VERSION)
 
 libbabeltrace_ctf_la_LIBADD = \
-	$(top_builddir)/lib/libbabeltrace.la \
 	types/libctf-types.la \
 	metadata/libctf-parser.la \
 	metadata/libctf-ast.la \

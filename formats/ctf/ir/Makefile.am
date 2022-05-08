@@ -22,8 +22,7 @@ libctf_ir_la_SOURCES = \
 
 libctf_ir_la_LDFLAGS = $(LT_NO_UNDEFINED)
 
-libctf_ir_la_LIBADD = \
-	$(top_builddir)/lib/libbabeltrace.la
+libctf_ir_la_LIBADD =
 
 if BABELTRACE_BUILD_WITH_LIBUUID
 libctf_ir_la_LIBADD += -luuid

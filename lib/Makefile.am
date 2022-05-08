@@ -28,6 +28,4 @@ libdebug_info_la_LIBADD = libbabeltrace.la
 endif
 
 libbabeltrace_la_LIBADD = \
-	prio_heap/libprio_heap.la \
-	$(top_builddir)/types/libbabeltrace_types.la \
-	$(top_builddir)/compat/libcompat.la
+	prio_heap/libprio_heap.la
