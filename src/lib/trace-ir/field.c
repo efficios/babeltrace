@@ -997,39 +997,45 @@ end:
 
 static inline
 struct bt_field *borrow_array_field_element_field_by_index(
-		struct bt_field *field, uint64_t index)
+		struct bt_field *field, uint64_t index, const char *api_func)
 {
 	struct bt_field_array *array_field = (void *) field;
 
-	BT_ASSERT_PRE_DEV_FIELD_NON_NULL(field);
-	BT_ASSERT_PRE_DEV_FIELD_IS_ARRAY("field", field, "Field");
-	BT_ASSERT_PRE_DEV_VALID_INDEX(index, array_field->length);
+	BT_ASSERT_PRE_DEV_FIELD_NON_NULL_FROM_FUNC(api_func, field);
+	BT_ASSERT_PRE_DEV_FIELD_IS_ARRAY_FROM_FUNC(api_func, "field", field,
+		"Field");
+	BT_ASSERT_PRE_DEV_VALID_INDEX_FROM_FUNC(api_func, index,
+		array_field->length);
 	return array_field->fields->pdata[index];
 }
 
 struct bt_field *bt_field_array_borrow_element_field_by_index(
 		struct bt_field *field, uint64_t index)
 {
-	return borrow_array_field_element_field_by_index(field, index);
+	return borrow_array_field_element_field_by_index(field, index,
+		__func__);
 }
 
 const struct bt_field *
 bt_field_array_borrow_element_field_by_index_const(
 		const struct bt_field *field, uint64_t index)
 {
-	return borrow_array_field_element_field_by_index((void *) field, index);
+	return borrow_array_field_element_field_by_index((void *) field, index,
+		__func__);
 }
 
 static inline
 struct bt_field *borrow_structure_field_member_field_by_index(
-		struct bt_field *field, uint64_t index)
+		struct bt_field *field, uint64_t index, const char *api_func)
 {
 	struct bt_field_structure *struct_field = (void *) field;
 
-	BT_ASSERT_PRE_DEV_FIELD_NON_NULL(field);
-	BT_ASSERT_PRE_DEV_FIELD_HAS_CLASS_TYPE("field", field,
-		"structure-field", BT_FIELD_CLASS_TYPE_STRUCTURE, "Field");
-	BT_ASSERT_PRE_DEV_VALID_INDEX(index, struct_field->fields->len);
+	BT_ASSERT_PRE_DEV_FIELD_NON_NULL_FROM_FUNC(api_func, field);
+	BT_ASSERT_PRE_DEV_FIELD_HAS_CLASS_TYPE_FROM_FUNC(api_func, "field",
+		field, "structure-field", BT_FIELD_CLASS_TYPE_STRUCTURE,
+		"Field");
+	BT_ASSERT_PRE_DEV_VALID_INDEX_FROM_FUNC(api_func, index,
+		struct_field->fields->len);
 	return struct_field->fields->pdata[index];
 }
 
@@ -1037,7 +1043,7 @@ struct bt_field *bt_field_structure_borrow_member_field_by_index(
 		struct bt_field *field, uint64_t index)
 {
 	return borrow_structure_field_member_field_by_index(field,
-		index);
+		index, __func__);
 }
 
 const struct bt_field *
@@ -1045,12 +1051,12 @@ bt_field_structure_borrow_member_field_by_index_const(
 		const struct bt_field *field, uint64_t index)
 {
 	return borrow_structure_field_member_field_by_index(
-		(void *) field, index);
+		(void *) field, index, __func__);
 }
 
 static inline
 struct bt_field *borrow_structure_field_member_field_by_name(
-		struct bt_field *field, const char *name)
+		struct bt_field *field, const char *name, const char *api_func)
 {
 	struct bt_field *ret_field = NULL;
 	struct bt_field_class_structure *struct_fc;
@@ -1058,10 +1064,12 @@ struct bt_field *borrow_structure_field_member_field_by_name(
 	gpointer orig_key;
 	gpointer index;
 
-	BT_ASSERT_PRE_DEV_FIELD_NON_NULL(field);
-	BT_ASSERT_PRE_DEV_NON_NULL("member-name", name, "Member name");
-	BT_ASSERT_PRE_DEV_FIELD_HAS_CLASS_TYPE("field", field,
-		"structure-field", BT_FIELD_CLASS_TYPE_STRUCTURE, "Field");
+	BT_ASSERT_PRE_DEV_FIELD_NON_NULL_FROM_FUNC(api_func, field);
+	BT_ASSERT_PRE_DEV_NON_NULL_FROM_FUNC(api_func, "member-name", name,
+		"Member name");
+	BT_ASSERT_PRE_DEV_FIELD_HAS_CLASS_TYPE_FROM_FUNC(api_func, "field",
+		field, "structure-field", BT_FIELD_CLASS_TYPE_STRUCTURE,
+		"Field");
 	struct_fc = (void *) field->class;
 
 	if (!g_hash_table_lookup_extended(struct_fc->common.name_to_index, name,
@@ -1079,14 +1087,15 @@ end:
 struct bt_field *bt_field_structure_borrow_member_field_by_name(
 		struct bt_field *field, const char *name)
 {
-	return borrow_structure_field_member_field_by_name(field, name);
+	return borrow_structure_field_member_field_by_name(field, name,
+		__func__);
 }
 
 const struct bt_field *bt_field_structure_borrow_member_field_by_name_const(
 		const struct bt_field *field, const char *name)
 {
 	return borrow_structure_field_member_field_by_name(
-		(void *) field, name);
+		(void *) field, name, __func__);
 }
 
 void bt_field_option_set_has_field(struct bt_field *field, bt_bool has_field)

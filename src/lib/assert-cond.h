@@ -569,12 +569,16 @@
 	BT_ASSERT_PRE_DEV_NON_NULL(_BT_ASSERT_PRE_FP_ID, (_fp),		\
 		_BT_ASSERT_PRE_FP_NAME)
 
-#define BT_ASSERT_PRE_DEV_FIELD_HAS_CLASS_TYPE(_field_id, _field, _cls_type_id, _cls_type, _name) \
-	BT_ASSERT_PRE_DEV("is-" _cls_type_id ":" _field_id,		\
+#define BT_ASSERT_PRE_DEV_FIELD_HAS_CLASS_TYPE_FROM_FUNC(_func, _field_id, _field, _cls_type_id, _cls_type, _name) \
+	BT_ASSERT_PRE_DEV_FROM_FUNC(_func, "is-" _cls_type_id ":" _field_id, \
 		((const struct bt_field *) (_field))->class->type == (_cls_type), \
 		_name " has the wrong class type: expected-class-type=%s, " \
 		"%![field-]+f",						\
 		bt_common_field_class_type_string(_cls_type), (_field))
+
+#define BT_ASSERT_PRE_DEV_FIELD_HAS_CLASS_TYPE(_field_id, _field, _cls_type_id, _cls_type, _name) \
+	BT_ASSERT_PRE_DEV_FIELD_HAS_CLASS_TYPE_FROM_FUNC(__func__, 	\
+		_field_id, (_field), _cls_type_id, _cls_type, _name)
 
 #define BT_ASSERT_PRE_DEV_FIELD_IS_UNSIGNED_INT(_field_id, _field, _name) \
 	BT_ASSERT_PRE_DEV(						\
@@ -592,13 +596,17 @@
 		_name " is not a signed integer field: %![field-]+f",	\
 		(_field))
 
-#define BT_ASSERT_PRE_DEV_FIELD_IS_ARRAY(_field_id, _field, _name)	\
-	BT_ASSERT_PRE_DEV(						\
+#define BT_ASSERT_PRE_DEV_FIELD_IS_ARRAY_FROM_FUNC(_func, _field_id, _field, _name) \
+	BT_ASSERT_PRE_DEV_FROM_FUNC(_func,				\
 		"is-array-field:" _field_id,				\
 		((const struct bt_field *) (_field))->class->type == BT_FIELD_CLASS_TYPE_STATIC_ARRAY || \
 		((const struct bt_field *) (_field))->class->type == BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITHOUT_LENGTH_FIELD || \
 		((const struct bt_field *) (_field))->class->type == BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITH_LENGTH_FIELD, \
 		_name " is not an array field: %![field-]+f", (_field))
+
+#define BT_ASSERT_PRE_DEV_FIELD_IS_ARRAY(_field_id, _field, _name)	\
+	BT_ASSERT_PRE_DEV_FIELD_IS_ARRAY_FROM_FUNC(__func__, _field_id,	\
+		(_field), _name)
 
 #define BT_ASSERT_PRE_DEV_FIELD_IS_DYNAMIC_ARRAY(_field_id, _field, _name) \
 	BT_ASSERT_PRE_DEV(						\
@@ -634,6 +642,11 @@
 
 #define BT_ASSERT_PRE_FIELD_NON_NULL(_field)				\
 	BT_ASSERT_PRE_NON_NULL(_BT_ASSERT_PRE_FIELD_ID, (_field),	\
+		_BT_ASSERT_PRE_FIELD_NAME)
+
+#define BT_ASSERT_PRE_DEV_FIELD_NON_NULL_FROM_FUNC(_func, _field)	\
+	BT_ASSERT_PRE_DEV_NON_NULL_FROM_FUNC(_func,			\
+		_BT_ASSERT_PRE_FIELD_ID, (_field),			\
 		_BT_ASSERT_PRE_FIELD_NAME)
 
 #define BT_ASSERT_PRE_DEV_FIELD_NON_NULL(_field)			\
