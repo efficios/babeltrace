@@ -535,7 +535,7 @@ public:
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
-        bt_field_class_integer_get_field_value_range(this->libObjPtr(), n);
+        bt_field_class_integer_set_field_value_range(this->libObjPtr(), n);
     }
 
     std::uint64_t fieldValueRange() const noexcept
