@@ -677,6 +677,13 @@ struct CommonEnumerationFieldClassSpec<ConstUnsignedEnumerationFieldClassMapping
     {
         return bt_field_class_enumeration_unsigned_borrow_mapping_by_label_const(libObjPtr, label);
     }
+
+    static bt_field_class_enumeration_add_mapping_status
+    addMapping(bt_field_class * const libObjPtr, const char * const label,
+               const bt_integer_range_set_unsigned * const libRanges) noexcept
+    {
+        return bt_field_class_enumeration_unsigned_add_mapping(libObjPtr, label, libRanges);
+    }
 };
 
 /* Functions specific to signed enumeration field classes */
@@ -693,6 +700,13 @@ struct CommonEnumerationFieldClassSpec<ConstSignedEnumerationFieldClassMapping> 
     mappingByLabel(const bt_field_class * const libObjPtr, const char * const label) noexcept
     {
         return bt_field_class_enumeration_signed_borrow_mapping_by_label_const(libObjPtr, label);
+    }
+
+    static bt_field_class_enumeration_add_mapping_status
+    addMapping(bt_field_class * const libObjPtr, const char * const label,
+               const bt_integer_range_set_signed * const libRanges) noexcept
+    {
+        return bt_field_class_enumeration_signed_add_mapping(libObjPtr, label, libRanges);
     }
 };
 
@@ -797,6 +811,21 @@ public:
     nonstd::optional<Mapping> operator[](const std::string& label) const noexcept
     {
         return (*this)[label.data()];
+    }
+
+    void addMapping(const char * const label, const typename Mapping::RangeSet ranges)
+    {
+        const auto status = internal::CommonEnumerationFieldClassSpec<MappingT>::addMapping(
+            this->libObjPtr(), label, ranges.libObjPtr());
+
+        if (status == BT_FIELD_CLASS_ENUMERATION_ADD_MAPPING_STATUS_MEMORY_ERROR) {
+            throw LibMemoryError {};
+        }
+    }
+
+    void addMapping(const std::string& label, const typename Mapping::RangeSet ranges)
+    {
+        this->addMapping(label.data(), ranges);
     }
 
     Shared shared() const noexcept
