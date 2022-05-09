@@ -1510,7 +1510,7 @@ public:
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
         bt_stream_class_set_supports_discarded_events(
-            this->libObjPtr(), static_cast<bt_bool>(supportsPackets),
+            this->libObjPtr(), static_cast<bt_bool>(supportsDiscardedEvents),
             static_cast<bt_bool>(withDefaultClkSnapshots));
     }
 
@@ -1531,7 +1531,7 @@ public:
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
         bt_stream_class_set_supports_discarded_packets(
-            this->libObjPtr(), static_cast<bt_bool>(supportsPackets),
+            this->libObjPtr(), static_cast<bt_bool>(supportsDiscardedPackets),
             static_cast<bt_bool>(withDefaultClkSnapshots));
     }
 
