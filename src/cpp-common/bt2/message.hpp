@@ -22,7 +22,6 @@
 #include "lib-error.hpp"
 
 namespace bt2 {
-
 namespace internal {
 
 struct MessageRefFuncs final
@@ -173,6 +172,22 @@ using ConstMessage = CommonMessage<const bt_message>;
 
 namespace internal {
 
+struct MessageTypeDescr
+{
+    using Const = ConstMessage;
+    using NonConst = Message;
+};
+
+template <>
+struct TypeDescr<Message> : public MessageTypeDescr
+{
+};
+
+template <>
+struct TypeDescr<ConstMessage> : public MessageTypeDescr
+{
+};
+
 template <typename LibObjT>
 struct CommonStreamBeginningMessageSpec;
 
@@ -275,6 +290,22 @@ using ConstStreamBeginningMessage = CommonStreamBeginningMessage<const bt_messag
 
 namespace internal {
 
+struct StreamBeginningMessageTypeDescr
+{
+    using Const = ConstStreamBeginningMessage;
+    using NonConst = StreamBeginningMessage;
+};
+
+template <>
+struct TypeDescr<StreamBeginningMessage> : public StreamBeginningMessageTypeDescr
+{
+};
+
+template <>
+struct TypeDescr<ConstStreamBeginningMessage> : public StreamBeginningMessageTypeDescr
+{
+};
+
 template <typename LibObjT>
 struct CommonStreamEndMessageSpec;
 
@@ -376,6 +407,22 @@ using ConstStreamEndMessage = CommonStreamEndMessage<const bt_message>;
 
 namespace internal {
 
+struct StreamEndMessageTypeDescr
+{
+    using Const = ConstStreamEndMessage;
+    using NonConst = StreamEndMessage;
+};
+
+template <>
+struct TypeDescr<StreamEndMessage> : public StreamEndMessageTypeDescr
+{
+};
+
+template <>
+struct TypeDescr<ConstStreamEndMessage> : public StreamEndMessageTypeDescr
+{
+};
+
 template <typename LibObjT>
 struct CommonPacketBeginningMessageSpec;
 
@@ -473,6 +520,22 @@ using ConstPacketBeginningMessage = CommonPacketBeginningMessage<const bt_messag
 
 namespace internal {
 
+struct PacketBeginningMessageTypeDescr
+{
+    using Const = ConstPacketBeginningMessage;
+    using NonConst = PacketBeginningMessage;
+};
+
+template <>
+struct TypeDescr<PacketBeginningMessage> : public PacketBeginningMessageTypeDescr
+{
+};
+
+template <>
+struct TypeDescr<ConstPacketBeginningMessage> : public PacketBeginningMessageTypeDescr
+{
+};
+
 template <typename LibObjT>
 struct CommonPacketEndMessageSpec;
 
@@ -569,6 +632,22 @@ using ConstPacketEndMessage = CommonPacketEndMessage<const bt_message>;
 
 namespace internal {
 
+struct PacketEndMessageTypeDescr
+{
+    using Const = ConstPacketEndMessage;
+    using NonConst = PacketEndMessage;
+};
+
+template <>
+struct TypeDescr<PacketEndMessage> : public PacketEndMessageTypeDescr
+{
+};
+
+template <>
+struct TypeDescr<ConstPacketEndMessage> : public PacketEndMessageTypeDescr
+{
+};
+
 template <typename LibObjT>
 struct CommonEventMessageSpec;
 
@@ -656,6 +735,22 @@ using EventMessage = CommonEventMessage<bt_message>;
 using ConstEventMessage = CommonEventMessage<const bt_message>;
 
 namespace internal {
+
+struct EventMessageTypeDescr
+{
+    using Const = ConstEventMessage;
+    using NonConst = EventMessage;
+};
+
+template <>
+struct TypeDescr<EventMessage> : public EventMessageTypeDescr
+{
+};
+
+template <>
+struct TypeDescr<ConstEventMessage> : public EventMessageTypeDescr
+{
+};
 
 template <typename LibObjT>
 struct CommonDiscardedEventsMessageSpec;
@@ -775,6 +870,22 @@ using ConstDiscardedEventsMessage = CommonDiscardedEventsMessage<const bt_messag
 
 namespace internal {
 
+struct DiscardedEventsMessageTypeDescr
+{
+    using Const = ConstDiscardedEventsMessage;
+    using NonConst = DiscardedEventsMessage;
+};
+
+template <>
+struct TypeDescr<DiscardedEventsMessage> : public DiscardedEventsMessageTypeDescr
+{
+};
+
+template <>
+struct TypeDescr<ConstDiscardedEventsMessage> : public DiscardedEventsMessageTypeDescr
+{
+};
+
 template <typename LibObjT>
 struct CommonDiscardedPacketsMessageSpec;
 
@@ -891,6 +1002,26 @@ public:
 using DiscardedPacketsMessage = CommonDiscardedPacketsMessage<bt_message>;
 using ConstDiscardedPacketsMessage = CommonDiscardedPacketsMessage<const bt_message>;
 
+namespace internal {
+
+struct DiscardedPacketsMessageTypeDescr
+{
+    using Const = ConstDiscardedPacketsMessage;
+    using NonConst = DiscardedPacketsMessage;
+};
+
+template <>
+struct TypeDescr<DiscardedPacketsMessage> : public DiscardedPacketsMessageTypeDescr
+{
+};
+
+template <>
+struct TypeDescr<ConstDiscardedPacketsMessage> : public DiscardedPacketsMessageTypeDescr
+{
+};
+
+} /* namespace internal */
+
 template <typename LibObjT>
 class CommonMessageIteratorInactivityMessage final : public CommonMessage<LibObjT>
 {
@@ -940,6 +1071,28 @@ public:
 using MessageIteratorInactivityMessage = CommonMessageIteratorInactivityMessage<bt_message>;
 using ConstMessageIteratorInactivityMessage =
     CommonMessageIteratorInactivityMessage<const bt_message>;
+
+namespace internal {
+
+struct MessageIteratorInactivityMessageTypeDescr
+{
+    using Const = ConstMessageIteratorInactivityMessage;
+    using NonConst = MessageIteratorInactivityMessage;
+};
+
+template <>
+struct TypeDescr<MessageIteratorInactivityMessage> :
+    public MessageIteratorInactivityMessageTypeDescr
+{
+};
+
+template <>
+struct TypeDescr<ConstMessageIteratorInactivityMessage> :
+    public MessageIteratorInactivityMessageTypeDescr
+{
+};
+
+} /* namespace internal */
 
 template <typename LibObjT>
 CommonStreamBeginningMessage<LibObjT> CommonMessage<LibObjT>::asStreamBeginning() const noexcept

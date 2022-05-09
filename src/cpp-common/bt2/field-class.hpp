@@ -14,6 +14,7 @@
 #include "common/assert.h"
 #include "internal/borrowed-obj.hpp"
 #include "internal/shared-obj.hpp"
+#include "internal/utils.hpp"
 #include "cpp-common/optional.hpp"
 #include "cpp-common/string_view.hpp"
 #include "common-iter.hpp"
@@ -23,7 +24,6 @@
 #include "value.hpp"
 
 namespace bt2 {
-
 namespace internal {
 
 struct FieldClassRefFuncs final
@@ -447,6 +447,26 @@ protected:
 using FieldClass = CommonFieldClass<bt_field_class>;
 using ConstFieldClass = CommonFieldClass<const bt_field_class>;
 
+namespace internal {
+
+struct FieldClassTypeDescr
+{
+    using Const = ConstFieldClass;
+    using NonConst = FieldClass;
+};
+
+template <>
+struct TypeDescr<FieldClass> : public FieldClassTypeDescr
+{
+};
+
+template <>
+struct TypeDescr<ConstFieldClass> : public FieldClassTypeDescr
+{
+};
+
+} /* namespace internal */
+
 template <typename LibObjT>
 class CommonBitArrayFieldClass final : public CommonFieldClass<LibObjT>
 {
@@ -490,6 +510,26 @@ public:
 
 using BitArrayFieldClass = CommonBitArrayFieldClass<bt_field_class>;
 using ConstBitArrayFieldClass = CommonBitArrayFieldClass<const bt_field_class>;
+
+namespace internal {
+
+struct BitArrayFieldClassTypeDescr
+{
+    using Const = ConstBitArrayFieldClass;
+    using NonConst = BitArrayFieldClass;
+};
+
+template <>
+struct TypeDescr<BitArrayFieldClass> : public BitArrayFieldClassTypeDescr
+{
+};
+
+template <>
+struct TypeDescr<ConstBitArrayFieldClass> : public BitArrayFieldClassTypeDescr
+{
+};
+
+} /* namespace internal */
 
 enum class DisplayBase
 {
@@ -565,6 +605,26 @@ public:
 
 using IntegerFieldClass = CommonIntegerFieldClass<bt_field_class>;
 using ConstIntegerFieldClass = CommonIntegerFieldClass<const bt_field_class>;
+
+namespace internal {
+
+struct IntegerFieldClassTypeDescr
+{
+    using Const = ConstIntegerFieldClass;
+    using NonConst = IntegerFieldClass;
+};
+
+template <>
+struct TypeDescr<IntegerFieldClass> : public IntegerFieldClassTypeDescr
+{
+};
+
+template <>
+struct TypeDescr<ConstIntegerFieldClass> : public IntegerFieldClassTypeDescr
+{
+};
+
+} /* namespace internal */
 
 namespace internal {
 
@@ -851,6 +911,38 @@ using ConstSignedEnumerationFieldClass =
 
 namespace internal {
 
+struct UnsignedEnumerationFieldClassTypeDescr
+{
+    using Const = ConstUnsignedEnumerationFieldClass;
+    using NonConst = UnsignedEnumerationFieldClass;
+};
+
+template <>
+struct TypeDescr<UnsignedEnumerationFieldClass> : public UnsignedEnumerationFieldClassTypeDescr
+{
+};
+
+template <>
+struct TypeDescr<ConstUnsignedEnumerationFieldClass> : public UnsignedEnumerationFieldClassTypeDescr
+{
+};
+
+struct SignedEnumerationFieldClassTypeDescr
+{
+    using Const = ConstSignedEnumerationFieldClass;
+    using NonConst = SignedEnumerationFieldClass;
+};
+
+template <>
+struct TypeDescr<SignedEnumerationFieldClass> : public SignedEnumerationFieldClassTypeDescr
+{
+};
+
+template <>
+struct TypeDescr<ConstSignedEnumerationFieldClass> : public SignedEnumerationFieldClassTypeDescr
+{
+};
+
 template <typename LibObjT>
 struct CommonStructureFieldClassMemberSpec;
 
@@ -932,6 +1024,22 @@ using ConstStructureFieldClassMember =
     CommonStructureFieldClassMember<const bt_field_class_structure_member>;
 
 namespace internal {
+
+struct StructureFieldClassMemberTypeDescr
+{
+    using Const = ConstStructureFieldClassMember;
+    using NonConst = StructureFieldClassMember;
+};
+
+template <>
+struct TypeDescr<StructureFieldClassMember> : public StructureFieldClassMemberTypeDescr
+{
+};
+
+template <>
+struct TypeDescr<ConstStructureFieldClassMember> : public StructureFieldClassMemberTypeDescr
+{
+};
 
 template <typename LibObjT>
 struct CommonStructureFieldClassSpec;
@@ -1099,6 +1207,22 @@ using ConstStructureFieldClass = CommonStructureFieldClass<const bt_field_class>
 
 namespace internal {
 
+struct StructureFieldClassTypeDescr
+{
+    using Const = ConstStructureFieldClass;
+    using NonConst = StructureFieldClass;
+};
+
+template <>
+struct TypeDescr<StructureFieldClass> : public StructureFieldClassTypeDescr
+{
+};
+
+template <>
+struct TypeDescr<ConstStructureFieldClass> : public StructureFieldClassTypeDescr
+{
+};
+
 template <typename LibObjT>
 struct CommonArrayFieldClassSpec;
 
@@ -1181,6 +1305,26 @@ public:
 using ArrayFieldClass = CommonArrayFieldClass<bt_field_class>;
 using ConstArrayFieldClass = CommonArrayFieldClass<const bt_field_class>;
 
+namespace internal {
+
+struct ArrayFieldClassTypeDescr
+{
+    using Const = ConstArrayFieldClass;
+    using NonConst = ArrayFieldClass;
+};
+
+template <>
+struct TypeDescr<ArrayFieldClass> : public ArrayFieldClassTypeDescr
+{
+};
+
+template <>
+struct TypeDescr<ConstArrayFieldClass> : public ArrayFieldClassTypeDescr
+{
+};
+
+} /* namespace internal */
+
 template <typename LibObjT>
 class CommonStaticArrayFieldClass final : public CommonArrayFieldClass<LibObjT>
 {
@@ -1224,6 +1368,26 @@ public:
 
 using StaticArrayFieldClass = CommonStaticArrayFieldClass<bt_field_class>;
 using ConstStaticArrayFieldClass = CommonStaticArrayFieldClass<const bt_field_class>;
+
+namespace internal {
+
+struct StaticArrayFieldClassTypeDescr
+{
+    using Const = ConstStaticArrayFieldClass;
+    using NonConst = StaticArrayFieldClass;
+};
+
+template <>
+struct TypeDescr<StaticArrayFieldClass> : public StaticArrayFieldClassTypeDescr
+{
+};
+
+template <>
+struct TypeDescr<ConstStaticArrayFieldClass> : public StaticArrayFieldClassTypeDescr
+{
+};
+
+} /* namespace internal */
 
 template <typename LibObjT>
 class CommonDynamicArrayWithLengthFieldClass final : public CommonArrayFieldClass<LibObjT>
@@ -1276,6 +1440,24 @@ using ConstDynamicArrayWithLengthFieldClass =
     CommonDynamicArrayWithLengthFieldClass<const bt_field_class>;
 
 namespace internal {
+
+struct DynamicArrayWithLengthFieldClassTypeDescr
+{
+    using Const = ConstDynamicArrayWithLengthFieldClass;
+    using NonConst = DynamicArrayWithLengthFieldClass;
+};
+
+template <>
+struct TypeDescr<DynamicArrayWithLengthFieldClass> :
+    public DynamicArrayWithLengthFieldClassTypeDescr
+{
+};
+
+template <>
+struct TypeDescr<ConstDynamicArrayWithLengthFieldClass> :
+    public DynamicArrayWithLengthFieldClassTypeDescr
+{
+};
 
 template <typename LibObjT>
 struct CommonOptionFieldClassSpec;
@@ -1359,6 +1541,26 @@ public:
 using OptionFieldClass = CommonOptionFieldClass<bt_field_class>;
 using ConstOptionFieldClass = CommonOptionFieldClass<const bt_field_class>;
 
+namespace internal {
+
+struct OptionFieldClassTypeDescr
+{
+    using Const = ConstOptionFieldClass;
+    using NonConst = OptionFieldClass;
+};
+
+template <>
+struct TypeDescr<OptionFieldClass> : public OptionFieldClassTypeDescr
+{
+};
+
+template <>
+struct TypeDescr<ConstOptionFieldClass> : public OptionFieldClassTypeDescr
+{
+};
+
+} /* namespace internal */
+
 template <typename LibObjT>
 class CommonOptionWithSelectorFieldClass : public CommonOptionFieldClass<LibObjT>
 {
@@ -1408,6 +1610,26 @@ public:
 
 using OptionWithSelectorFieldClass = CommonOptionWithSelectorFieldClass<bt_field_class>;
 using ConstOptionWithSelectorFieldClass = CommonOptionWithSelectorFieldClass<const bt_field_class>;
+
+namespace internal {
+
+struct OptionWithSelectorFieldClassTypeDescr
+{
+    using Const = ConstOptionWithSelectorFieldClass;
+    using NonConst = OptionWithSelectorFieldClass;
+};
+
+template <>
+struct TypeDescr<OptionWithSelectorFieldClass> : public OptionWithSelectorFieldClassTypeDescr
+{
+};
+
+template <>
+struct TypeDescr<ConstOptionWithSelectorFieldClass> : public OptionWithSelectorFieldClassTypeDescr
+{
+};
+
+} /* namespace internal */
 
 template <typename LibObjT>
 class CommonOptionWithBoolSelectorFieldClass : public CommonOptionWithSelectorFieldClass<LibObjT>
@@ -1461,6 +1683,24 @@ using ConstOptionWithBoolSelectorFieldClass =
     CommonOptionWithBoolSelectorFieldClass<const bt_field_class>;
 
 namespace internal {
+
+struct OptionWithBoolSelectorFieldClassTypeDescr
+{
+    using Const = ConstOptionWithBoolSelectorFieldClass;
+    using NonConst = OptionWithBoolSelectorFieldClass;
+};
+
+template <>
+struct TypeDescr<OptionWithBoolSelectorFieldClass> :
+    public OptionWithBoolSelectorFieldClassTypeDescr
+{
+};
+
+template <>
+struct TypeDescr<ConstOptionWithBoolSelectorFieldClass> :
+    public OptionWithBoolSelectorFieldClassTypeDescr
+{
+};
 
 template <typename RangeSetT>
 struct CommonOptionWithIntegerSelectorFieldClassSpec;
@@ -1556,6 +1796,42 @@ using ConstOptionWithSignedIntegerSelectorFieldClass =
 
 namespace internal {
 
+struct OptionWithUnsignedIntegerSelectorFieldClassTypeDescr
+{
+    using Const = ConstOptionWithUnsignedIntegerSelectorFieldClass;
+    using NonConst = OptionWithUnsignedIntegerSelectorFieldClass;
+};
+
+template <>
+struct TypeDescr<OptionWithUnsignedIntegerSelectorFieldClass> :
+    public OptionWithUnsignedIntegerSelectorFieldClassTypeDescr
+{
+};
+
+template <>
+struct TypeDescr<ConstOptionWithUnsignedIntegerSelectorFieldClass> :
+    public OptionWithUnsignedIntegerSelectorFieldClassTypeDescr
+{
+};
+
+struct OptionWithSignedIntegerSelectorFieldClassTypeDescr
+{
+    using Const = ConstOptionWithSignedIntegerSelectorFieldClass;
+    using NonConst = OptionWithSignedIntegerSelectorFieldClass;
+};
+
+template <>
+struct TypeDescr<OptionWithSignedIntegerSelectorFieldClass> :
+    public OptionWithSignedIntegerSelectorFieldClassTypeDescr
+{
+};
+
+template <>
+struct TypeDescr<ConstOptionWithSignedIntegerSelectorFieldClass> :
+    public OptionWithSignedIntegerSelectorFieldClassTypeDescr
+{
+};
+
 template <typename LibObjT>
 struct CommonVariantFieldClassOptionSpec;
 
@@ -1636,6 +1912,22 @@ using ConstVariantFieldClassOption =
     CommonVariantFieldClassOption<const bt_field_class_variant_option>;
 
 namespace internal {
+
+struct VariantFieldClassOptionTypeDescr
+{
+    using Const = ConstVariantFieldClassOption;
+    using NonConst = VariantFieldClassOption;
+};
+
+template <>
+struct TypeDescr<VariantFieldClassOption> : public VariantFieldClassOptionTypeDescr
+{
+};
+
+template <>
+struct TypeDescr<ConstVariantFieldClassOption> : public VariantFieldClassOptionTypeDescr
+{
+};
 
 template <typename LibObjT>
 struct ConstVariantWithIntegerSelectorFieldClassOptionSpec;
@@ -1905,6 +2197,26 @@ public:
 using VariantFieldClass = CommonVariantFieldClass<bt_field_class>;
 using ConstVariantFieldClass = CommonVariantFieldClass<const bt_field_class>;
 
+namespace internal {
+
+struct VariantFieldClassTypeDescr
+{
+    using Const = ConstVariantFieldClass;
+    using NonConst = VariantFieldClass;
+};
+
+template <>
+struct TypeDescr<VariantFieldClass> : public VariantFieldClassTypeDescr
+{
+};
+
+template <>
+struct TypeDescr<ConstVariantFieldClass> : public VariantFieldClassTypeDescr
+{
+};
+
+} /* namespace internal */
+
 template <typename LibObjT>
 class CommonVariantWithoutSelectorFieldClass : public CommonVariantFieldClass<LibObjT>
 {
@@ -1966,6 +2278,24 @@ using ConstVariantWithoutSelectorFieldClass =
     CommonVariantWithoutSelectorFieldClass<const bt_field_class>;
 
 namespace internal {
+
+struct VariantWithoutSelectorFieldClassTypeDescr
+{
+    using Const = ConstVariantWithoutSelectorFieldClass;
+    using NonConst = VariantWithoutSelectorFieldClass;
+};
+
+template <>
+struct TypeDescr<VariantWithoutSelectorFieldClass> :
+    public VariantWithoutSelectorFieldClassTypeDescr
+{
+};
+
+template <>
+struct TypeDescr<ConstVariantWithoutSelectorFieldClass> :
+    public VariantWithoutSelectorFieldClassTypeDescr
+{
+};
 
 template <typename OptionT>
 struct CommonVariantWithIntegerSelectorFieldClassSpec;
@@ -2177,6 +2507,46 @@ using VariantWithSignedIntegerSelectorFieldClass = CommonVariantWithIntegerSelec
 
 using ConstVariantWithSignedIntegerSelectorFieldClass = CommonVariantWithIntegerSelectorFieldClass<
     const bt_field_class, ConstVariantWithSignedIntegerSelectorFieldClassOption>;
+
+namespace internal {
+
+struct VariantWithUnsignedIntegerSelectorFieldClassTypeDescr
+{
+    using Const = ConstVariantWithUnsignedIntegerSelectorFieldClass;
+    using NonConst = VariantWithUnsignedIntegerSelectorFieldClass;
+};
+
+template <>
+struct TypeDescr<VariantWithUnsignedIntegerSelectorFieldClass> :
+    public VariantWithUnsignedIntegerSelectorFieldClassTypeDescr
+{
+};
+
+template <>
+struct TypeDescr<ConstVariantWithUnsignedIntegerSelectorFieldClass> :
+    public VariantWithUnsignedIntegerSelectorFieldClassTypeDescr
+{
+};
+
+struct VariantWithSignedIntegerSelectorFieldClassTypeDescr
+{
+    using Const = ConstVariantWithSignedIntegerSelectorFieldClass;
+    using NonConst = VariantWithSignedIntegerSelectorFieldClass;
+};
+
+template <>
+struct TypeDescr<VariantWithSignedIntegerSelectorFieldClass> :
+    public VariantWithSignedIntegerSelectorFieldClassTypeDescr
+{
+};
+
+template <>
+struct TypeDescr<ConstVariantWithSignedIntegerSelectorFieldClass> :
+    public VariantWithSignedIntegerSelectorFieldClassTypeDescr
+{
+};
+
+} /* namespace internal */
 
 template <typename LibObjT>
 CommonBitArrayFieldClass<LibObjT> CommonFieldClass<LibObjT>::asBitArray() const noexcept

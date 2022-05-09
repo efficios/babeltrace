@@ -249,6 +249,41 @@ using ConstUnsignedIntegerRangeSet = CommonIntegerRangeSet<const bt_integer_rang
 using SignedIntegerRangeSet = CommonIntegerRangeSet<bt_integer_range_set_signed>;
 using ConstSignedIntegerRangeSet = CommonIntegerRangeSet<const bt_integer_range_set_signed>;
 
+namespace internal {
+
+struct UnsignedIntegerRangeSetTypeDescr
+{
+    using Const = ConstUnsignedIntegerRangeSet;
+    using NonConst = UnsignedIntegerRangeSet;
+};
+
+template <>
+struct TypeDescr<UnsignedIntegerRangeSet> : public UnsignedIntegerRangeSetTypeDescr
+{
+};
+
+template <>
+struct TypeDescr<ConstUnsignedIntegerRangeSet> : public UnsignedIntegerRangeSetTypeDescr
+{
+};
+
+struct SignedIntegerRangeSetTypeDescr
+{
+    using Const = ConstSignedIntegerRangeSet;
+    using NonConst = SignedIntegerRangeSet;
+};
+
+template <>
+struct TypeDescr<SignedIntegerRangeSet> : public SignedIntegerRangeSetTypeDescr
+{
+};
+
+template <>
+struct TypeDescr<ConstSignedIntegerRangeSet> : public SignedIntegerRangeSetTypeDescr
+{
+};
+
+} /* namespace internal */
 } /* namespace bt2 */
 
 #endif /* BABELTRACE_CPP_COMMON_BT2_INTEGER_RANGE_SET_HPP */

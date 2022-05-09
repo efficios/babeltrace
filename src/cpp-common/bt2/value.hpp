@@ -24,7 +24,6 @@
 #include "lib-error.hpp"
 
 namespace bt2 {
-
 namespace internal {
 
 struct ValueRefFuncs final
@@ -232,6 +231,26 @@ protected:
 using Value = CommonValue<bt_value>;
 using ConstValue = CommonValue<const bt_value>;
 
+namespace internal {
+
+struct ValueTypeDescr
+{
+    using Const = ConstValue;
+    using NonConst = Value;
+};
+
+template <>
+struct TypeDescr<Value> : public ValueTypeDescr
+{
+};
+
+template <>
+struct TypeDescr<ConstValue> : public ValueTypeDescr
+{
+};
+
+} /* namespace internal */
+
 template <typename LibObjT>
 class CommonNullValue final : public CommonValue<LibObjT>
 {
@@ -265,6 +284,26 @@ public:
 
 using NullValue = CommonNullValue<bt_value>;
 using ConstNullValue = CommonNullValue<const bt_value>;
+
+namespace internal {
+
+struct NullValueTypeDescr
+{
+    using Const = ConstNullValue;
+    using NonConst = NullValue;
+};
+
+template <>
+struct TypeDescr<NullValue> : public NullValueTypeDescr
+{
+};
+
+template <>
+struct TypeDescr<ConstNullValue> : public NullValueTypeDescr
+{
+};
+
+} /* namespace internal */
 
 template <typename LibObjT>
 class CommonBoolValue final : public CommonValue<LibObjT>
@@ -328,6 +367,26 @@ public:
 
 using BoolValue = CommonBoolValue<bt_value>;
 using ConstBoolValue = CommonBoolValue<const bt_value>;
+
+namespace internal {
+
+struct BoolValueTypeDescr
+{
+    using Const = ConstBoolValue;
+    using NonConst = BoolValue;
+};
+
+template <>
+struct TypeDescr<BoolValue> : public BoolValueTypeDescr
+{
+};
+
+template <>
+struct TypeDescr<ConstBoolValue> : public BoolValueTypeDescr
+{
+};
+
+} /* namespace internal */
 
 template <typename LibObjT>
 class CommonUnsignedIntegerValue final : public CommonValue<LibObjT>
@@ -395,6 +454,26 @@ public:
 using UnsignedIntegerValue = CommonUnsignedIntegerValue<bt_value>;
 using ConstUnsignedIntegerValue = CommonUnsignedIntegerValue<const bt_value>;
 
+namespace internal {
+
+struct UnsignedIntegerValueTypeDescr
+{
+    using Const = ConstUnsignedIntegerValue;
+    using NonConst = UnsignedIntegerValue;
+};
+
+template <>
+struct TypeDescr<UnsignedIntegerValue> : public UnsignedIntegerValueTypeDescr
+{
+};
+
+template <>
+struct TypeDescr<ConstUnsignedIntegerValue> : public UnsignedIntegerValueTypeDescr
+{
+};
+
+} /* namespace internal */
+
 template <typename LibObjT>
 class CommonSignedIntegerValue final : public CommonValue<LibObjT>
 {
@@ -461,6 +540,26 @@ public:
 using SignedIntegerValue = CommonSignedIntegerValue<bt_value>;
 using ConstSignedIntegerValue = CommonSignedIntegerValue<const bt_value>;
 
+namespace internal {
+
+struct SignedIntegerValueTypeDescr
+{
+    using Const = ConstSignedIntegerValue;
+    using NonConst = SignedIntegerValue;
+};
+
+template <>
+struct TypeDescr<SignedIntegerValue> : public SignedIntegerValueTypeDescr
+{
+};
+
+template <>
+struct TypeDescr<ConstSignedIntegerValue> : public SignedIntegerValueTypeDescr
+{
+};
+
+} /* namespace internal */
+
 template <typename LibObjT>
 class CommonRealValue final : public CommonValue<LibObjT>
 {
@@ -523,6 +622,26 @@ public:
 
 using RealValue = CommonRealValue<bt_value>;
 using ConstRealValue = CommonRealValue<const bt_value>;
+
+namespace internal {
+
+struct RealValueTypeDescr
+{
+    using Const = ConstRealValue;
+    using NonConst = RealValue;
+};
+
+template <>
+struct TypeDescr<RealValue> : public RealValueTypeDescr
+{
+};
+
+template <>
+struct TypeDescr<ConstRealValue> : public RealValueTypeDescr
+{
+};
+
+} /* namespace internal */
 
 template <typename LibObjT>
 class CommonStringValue final : public CommonValue<LibObjT>
@@ -597,6 +716,22 @@ using StringValue = CommonStringValue<bt_value>;
 using ConstStringValue = CommonStringValue<const bt_value>;
 
 namespace internal {
+
+struct StringValueTypeDescr
+{
+    using Const = ConstStringValue;
+    using NonConst = StringValue;
+};
+
+template <>
+struct TypeDescr<StringValue> : public StringValueTypeDescr
+{
+};
+
+template <>
+struct TypeDescr<ConstStringValue> : public StringValueTypeDescr
+{
+};
 
 template <typename LibObjT>
 struct CommonArrayValueSpec;
@@ -815,6 +950,22 @@ using ArrayValue = CommonArrayValue<bt_value>;
 using ConstArrayValue = CommonArrayValue<const bt_value>;
 
 namespace internal {
+
+struct ArrayValueTypeDescr
+{
+    using Const = ConstArrayValue;
+    using NonConst = ArrayValue;
+};
+
+template <>
+struct TypeDescr<ArrayValue> : public ArrayValueTypeDescr
+{
+};
+
+template <>
+struct TypeDescr<ConstArrayValue> : public ArrayValueTypeDescr
+{
+};
 
 /*
  * Type of a user function passed to `CommonMapValue<ObjT>::forEach()`.
@@ -1136,6 +1287,26 @@ private:
 
 using MapValue = CommonMapValue<bt_value>;
 using ConstMapValue = CommonMapValue<const bt_value>;
+
+namespace internal {
+
+struct MapValueTypeDescr
+{
+    using Const = ConstMapValue;
+    using NonConst = MapValue;
+};
+
+template <>
+struct TypeDescr<MapValue> : public MapValueTypeDescr
+{
+};
+
+template <>
+struct TypeDescr<ConstMapValue> : public MapValueTypeDescr
+{
+};
+
+} /* namespace internal */
 
 template <typename LibObjT>
 CommonNullValue<LibObjT> CommonValue<LibObjT>::asNull() const noexcept

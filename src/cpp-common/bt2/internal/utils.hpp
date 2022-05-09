@@ -22,6 +22,9 @@ void validateCreatedObjPtr(const LibObjPtrT libOjbPtr)
     }
 }
 
+template <typename ObjT>
+struct TypeDescr;
+
 } /* namespace internal */
 } /* namespace bt2 */
 

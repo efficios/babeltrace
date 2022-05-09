@@ -14,6 +14,7 @@
 
 #include "internal/borrowed-obj.hpp"
 #include "internal/shared-obj.hpp"
+#include "internal/utils.hpp"
 #include "cpp-common/optional.hpp"
 #include "cpp-common/string_view.hpp"
 #include "cpp-common/uuid-view.hpp"
@@ -285,6 +286,25 @@ public:
 using ClockClass = CommonClockClass<bt_clock_class>;
 using ConstClockClass = CommonClockClass<const bt_clock_class>;
 
+namespace internal {
+
+struct ClockClassTypeDescr
+{
+    using Const = ConstClockClass;
+    using NonConst = ClockClass;
+};
+
+template <>
+struct TypeDescr<ClockClass> : public ClockClassTypeDescr
+{
+};
+
+template <>
+struct TypeDescr<ConstClockClass> : public ClockClassTypeDescr
+{
+};
+
+} /* namespace internal */
 } /* namespace bt2 */
 
 #endif /* BABELTRACE_CPP_COMMON_BT2_CLOCK_CLASS_HPP */

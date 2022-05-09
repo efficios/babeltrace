@@ -13,6 +13,7 @@
 
 #include "common/assert.h"
 #include "internal/borrowed-obj.hpp"
+#include "internal/utils.hpp"
 #include "cpp-common/optional.hpp"
 #include "cpp-common/string_view.hpp"
 #include "field-class.hpp"
@@ -222,6 +223,26 @@ public:
 using Field = CommonField<bt_field>;
 using ConstField = CommonField<const bt_field>;
 
+namespace internal {
+
+struct FieldTypeDescr
+{
+    using Const = ConstField;
+    using NonConst = Field;
+};
+
+template <>
+struct TypeDescr<Field> : public FieldTypeDescr
+{
+};
+
+template <>
+struct TypeDescr<ConstField> : public FieldTypeDescr
+{
+};
+
+} /* namespace internal */
+
 template <typename LibObjT>
 class CommonBoolField final : public CommonField<LibObjT>
 {
@@ -270,6 +291,26 @@ public:
 
 using BoolField = CommonBoolField<bt_field>;
 using ConstBoolField = CommonBoolField<const bt_field>;
+
+namespace internal {
+
+struct BoolFieldTypeDescr
+{
+    using Const = ConstBoolField;
+    using NonConst = BoolField;
+};
+
+template <>
+struct TypeDescr<BoolField> : public BoolFieldTypeDescr
+{
+};
+
+template <>
+struct TypeDescr<ConstBoolField> : public BoolFieldTypeDescr
+{
+};
+
+} /* namespace internal */
 
 template <typename LibObjT>
 class CommonBitArrayField final : public CommonField<LibObjT>
@@ -333,6 +374,26 @@ public:
 
 using BitArrayField = CommonBitArrayField<bt_field>;
 using ConstBitArrayField = CommonBitArrayField<const bt_field>;
+
+namespace internal {
+
+struct BitArrayFieldTypeDescr
+{
+    using Const = ConstBitArrayField;
+    using NonConst = BitArrayField;
+};
+
+template <>
+struct TypeDescr<BitArrayField> : public BitArrayFieldTypeDescr
+{
+};
+
+template <>
+struct TypeDescr<ConstBitArrayField> : public BitArrayFieldTypeDescr
+{
+};
+
+} /* namespace internal */
 
 template <typename LibObjT>
 class CommonUnsignedIntegerField final : public CommonField<LibObjT>
@@ -403,6 +464,26 @@ public:
 using UnsignedIntegerField = CommonUnsignedIntegerField<bt_field>;
 using ConstUnsignedIntegerField = CommonUnsignedIntegerField<const bt_field>;
 
+namespace internal {
+
+struct UnsignedIntegerFieldTypeDescr
+{
+    using Const = ConstUnsignedIntegerField;
+    using NonConst = UnsignedIntegerField;
+};
+
+template <>
+struct TypeDescr<UnsignedIntegerField> : public UnsignedIntegerFieldTypeDescr
+{
+};
+
+template <>
+struct TypeDescr<ConstUnsignedIntegerField> : public UnsignedIntegerFieldTypeDescr
+{
+};
+
+} /* namespace internal */
+
 template <typename LibObjT>
 class CommonSignedIntegerField final : public CommonField<LibObjT>
 {
@@ -471,6 +552,26 @@ public:
 
 using SignedIntegerField = CommonSignedIntegerField<bt_field>;
 using ConstSignedIntegerField = CommonSignedIntegerField<const bt_field>;
+
+namespace internal {
+
+struct SignedIntegerFieldTypeDescr
+{
+    using Const = ConstSignedIntegerField;
+    using NonConst = SignedIntegerField;
+};
+
+template <>
+struct TypeDescr<SignedIntegerField> : public SignedIntegerFieldTypeDescr
+{
+};
+
+template <>
+struct TypeDescr<ConstSignedIntegerField> : public SignedIntegerFieldTypeDescr
+{
+};
+
+} /* namespace internal */
 
 class EnumerationFieldClassMappingLabels
 {
@@ -565,6 +666,26 @@ public:
 using UnsignedEnumerationField = CommonUnsignedEnumerationField<bt_field>;
 using ConstUnsignedEnumerationField = CommonUnsignedEnumerationField<const bt_field>;
 
+namespace internal {
+
+struct UnsignedEnumerationFieldTypeDescr
+{
+    using Const = ConstUnsignedEnumerationField;
+    using NonConst = UnsignedEnumerationField;
+};
+
+template <>
+struct TypeDescr<UnsignedEnumerationField> : public UnsignedEnumerationFieldTypeDescr
+{
+};
+
+template <>
+struct TypeDescr<ConstUnsignedEnumerationField> : public UnsignedEnumerationFieldTypeDescr
+{
+};
+
+} /* namespace internal */
+
 template <typename LibObjT>
 class CommonSignedEnumerationField final : public CommonSignedIntegerField<LibObjT>
 {
@@ -626,6 +747,26 @@ public:
 using SignedEnumerationField = CommonSignedEnumerationField<bt_field>;
 using ConstSignedEnumerationField = CommonSignedEnumerationField<const bt_field>;
 
+namespace internal {
+
+struct SignedEnumerationFieldTypeDescr
+{
+    using Const = ConstSignedEnumerationField;
+    using NonConst = SignedEnumerationField;
+};
+
+template <>
+struct TypeDescr<SignedEnumerationField> : public SignedEnumerationFieldTypeDescr
+{
+};
+
+template <>
+struct TypeDescr<ConstSignedEnumerationField> : public SignedEnumerationFieldTypeDescr
+{
+};
+
+} /* namespace internal */
+
 template <typename LibObjT>
 class CommonSinglePrecisionRealField final : public CommonField<LibObjT>
 {
@@ -679,6 +820,26 @@ public:
 using SinglePrecisionRealField = CommonSinglePrecisionRealField<bt_field>;
 using ConstSinglePrecisionRealField = CommonSinglePrecisionRealField<const bt_field>;
 
+namespace internal {
+
+struct SinglePrecisionRealFieldTypeDescr
+{
+    using Const = ConstSinglePrecisionRealField;
+    using NonConst = SinglePrecisionRealField;
+};
+
+template <>
+struct TypeDescr<SinglePrecisionRealField> : public SinglePrecisionRealFieldTypeDescr
+{
+};
+
+template <>
+struct TypeDescr<ConstSinglePrecisionRealField> : public SinglePrecisionRealFieldTypeDescr
+{
+};
+
+} /* namespace internal */
+
 template <typename LibObjT>
 class CommonDoublePrecisionRealField final : public CommonField<LibObjT>
 {
@@ -731,6 +892,26 @@ public:
 
 using DoublePrecisionRealField = CommonDoublePrecisionRealField<bt_field>;
 using ConstDoublePrecisionRealField = CommonDoublePrecisionRealField<const bt_field>;
+
+namespace internal {
+
+struct DoublePrecisionRealFieldTypeDescr
+{
+    using Const = ConstDoublePrecisionRealField;
+    using NonConst = DoublePrecisionRealField;
+};
+
+template <>
+struct TypeDescr<DoublePrecisionRealField> : public DoublePrecisionRealFieldTypeDescr
+{
+};
+
+template <>
+struct TypeDescr<ConstDoublePrecisionRealField> : public DoublePrecisionRealFieldTypeDescr
+{
+};
+
+} /* namespace internal */
 
 template <typename LibObjT>
 class CommonStringField final : public CommonField<LibObjT>
@@ -792,6 +973,22 @@ using StringField = CommonStringField<bt_field>;
 using ConstStringField = CommonStringField<const bt_field>;
 
 namespace internal {
+
+struct StringFieldTypeDescr
+{
+    using Const = ConstStringField;
+    using NonConst = StringField;
+};
+
+template <>
+struct TypeDescr<StringField> : public StringFieldTypeDescr
+{
+};
+
+template <>
+struct TypeDescr<ConstStringField> : public StringFieldTypeDescr
+{
+};
 
 template <typename LibObjT>
 struct CommonStructureFieldSpec;
@@ -929,6 +1126,22 @@ using ConstStructureField = CommonStructureField<const bt_field>;
 
 namespace internal {
 
+struct StructureFieldTypeDescr
+{
+    using Const = ConstStructureField;
+    using NonConst = StructureField;
+};
+
+template <>
+struct TypeDescr<StructureField> : public StructureFieldTypeDescr
+{
+};
+
+template <>
+struct TypeDescr<ConstStructureField> : public StructureFieldTypeDescr
+{
+};
+
 template <typename LibObjT>
 struct CommonArrayFieldSpec;
 
@@ -1019,6 +1232,26 @@ public:
 using ArrayField = CommonArrayField<bt_field>;
 using ConstArrayField = CommonArrayField<const bt_field>;
 
+namespace internal {
+
+struct ArrayFieldTypeDescr
+{
+    using Const = ConstArrayField;
+    using NonConst = ArrayField;
+};
+
+template <>
+struct TypeDescr<ArrayField> : public ArrayFieldTypeDescr
+{
+};
+
+template <>
+struct TypeDescr<ConstArrayField> : public ArrayFieldTypeDescr
+{
+};
+
+} /* namespace internal */
+
 template <typename LibObjT>
 class CommonDynamicArrayField : public CommonArrayField<LibObjT>
 {
@@ -1068,6 +1301,22 @@ using DynamicArrayField = CommonDynamicArrayField<bt_field>;
 using ConstDynamicArrayField = CommonDynamicArrayField<const bt_field>;
 
 namespace internal {
+
+struct DynamicArrayFieldTypeDescr
+{
+    using Const = ConstDynamicArrayField;
+    using NonConst = DynamicArrayField;
+};
+
+template <>
+struct TypeDescr<DynamicArrayField> : public DynamicArrayFieldTypeDescr
+{
+};
+
+template <>
+struct TypeDescr<ConstDynamicArrayField> : public DynamicArrayFieldTypeDescr
+{
+};
 
 template <typename LibObjT>
 struct CommonOptionFieldSpec;
@@ -1175,6 +1424,22 @@ using ConstOptionField = CommonOptionField<const bt_field>;
 
 namespace internal {
 
+struct OptionFieldTypeDescr
+{
+    using Const = ConstOptionField;
+    using NonConst = OptionField;
+};
+
+template <>
+struct TypeDescr<OptionField> : public OptionFieldTypeDescr
+{
+};
+
+template <>
+struct TypeDescr<ConstOptionField> : public OptionFieldTypeDescr
+{
+};
+
 template <typename LibObjT>
 struct CommonVariantFieldSpec;
 
@@ -1267,6 +1532,26 @@ public:
 
 using VariantField = CommonVariantField<bt_field>;
 using ConstVariantField = CommonVariantField<const bt_field>;
+
+namespace internal {
+
+struct VariantFieldTypeDescr
+{
+    using Const = ConstVariantField;
+    using NonConst = VariantField;
+};
+
+template <>
+struct TypeDescr<VariantField> : public VariantFieldTypeDescr
+{
+};
+
+template <>
+struct TypeDescr<ConstVariantField> : public VariantFieldTypeDescr
+{
+};
+
+} /* namespace internal */
 
 template <typename LibObjT>
 CommonBoolField<LibObjT> CommonField<LibObjT>::asBool() const noexcept

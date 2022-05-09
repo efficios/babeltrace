@@ -241,6 +241,22 @@ using ConstEvent = CommonEvent<const bt_event>;
 
 namespace internal {
 
+struct EventTypeDescr
+{
+    using Const = ConstEvent;
+    using NonConst = Event;
+};
+
+template <>
+struct TypeDescr<Event> : public EventTypeDescr
+{
+};
+
+template <>
+struct TypeDescr<ConstEvent> : public EventTypeDescr
+{
+};
+
 struct PacketRefFuncs final
 {
     static void get(const bt_packet * const libObjPtr)
@@ -358,6 +374,26 @@ public:
 
 using Packet = CommonPacket<bt_packet>;
 using ConstPacket = CommonPacket<const bt_packet>;
+
+namespace internal {
+
+struct PacketTypeDescr
+{
+    using Const = ConstPacket;
+    using NonConst = Packet;
+};
+
+template <>
+struct TypeDescr<Packet> : public PacketTypeDescr
+{
+};
+
+template <>
+struct TypeDescr<ConstPacket> : public PacketTypeDescr
+{
+};
+
+} /* namespace internal */
 
 template <typename LibObjT>
 nonstd::optional<ConstPacket> CommonEvent<LibObjT>::packet() const noexcept
@@ -556,6 +592,26 @@ public:
 
 using Stream = CommonStream<bt_stream>;
 using ConstStream = CommonStream<const bt_stream>;
+
+namespace internal {
+
+struct StreamTypeDescr
+{
+    using Const = ConstStream;
+    using NonConst = Stream;
+};
+
+template <>
+struct TypeDescr<Stream> : public StreamTypeDescr
+{
+};
+
+template <>
+struct TypeDescr<ConstStream> : public StreamTypeDescr
+{
+};
+
+} /* namespace internal */
 
 template <typename LibObjT>
 ConstStream CommonEvent<LibObjT>::stream() const noexcept
@@ -886,6 +942,26 @@ public:
 using Trace = CommonTrace<bt_trace>;
 using ConstTrace = CommonTrace<const bt_trace>;
 
+namespace internal {
+
+struct TraceTypeDescr
+{
+    using Const = ConstTrace;
+    using NonConst = Trace;
+};
+
+template <>
+struct TypeDescr<Trace> : public TraceTypeDescr
+{
+};
+
+template <>
+struct TypeDescr<ConstTrace> : public TraceTypeDescr
+{
+};
+
+} /* namespace internal */
+
 template <typename LibObjT>
 ConstTrace CommonStream<LibObjT>::trace() const noexcept
 {
@@ -1206,6 +1282,26 @@ public:
 
 using EventClass = CommonEventClass<bt_event_class>;
 using ConstEventClass = CommonEventClass<const bt_event_class>;
+
+namespace internal {
+
+struct EventClassTypeDescr
+{
+    using Const = ConstEventClass;
+    using NonConst = EventClass;
+};
+
+template <>
+struct TypeDescr<EventClass> : public EventClassTypeDescr
+{
+};
+
+template <>
+struct TypeDescr<ConstEventClass> : public EventClassTypeDescr
+{
+};
+
+} /* namespace internal */
 
 template <typename LibObjT>
 ConstEventClass CommonEvent<LibObjT>::cls() const noexcept
@@ -1710,6 +1806,26 @@ public:
 using StreamClass = CommonStreamClass<bt_stream_class>;
 using ConstStreamClass = CommonStreamClass<const bt_stream_class>;
 
+namespace internal {
+
+struct StreamClassTypeDescr
+{
+    using Const = ConstStreamClass;
+    using NonConst = StreamClass;
+};
+
+template <>
+struct TypeDescr<StreamClass> : public StreamClassTypeDescr
+{
+};
+
+template <>
+struct TypeDescr<ConstStreamClass> : public StreamClassTypeDescr
+{
+};
+
+} /* namespace internal */
+
 template <typename LibObjT>
 ConstStreamClass CommonEventClass<LibObjT>::streamClass() const noexcept
 {
@@ -2177,6 +2293,26 @@ private:
 
 using TraceClass = CommonTraceClass<bt_trace_class>;
 using ConstTraceClass = CommonTraceClass<const bt_trace_class>;
+
+namespace internal {
+
+struct TraceClassTypeDescr
+{
+    using Const = ConstTraceClass;
+    using NonConst = TraceClass;
+};
+
+template <>
+struct TypeDescr<TraceClass> : public TraceClassTypeDescr
+{
+};
+
+template <>
+struct TypeDescr<ConstTraceClass> : public TraceClassTypeDescr
+{
+};
+
+} /* namespace internal */
 
 template <typename LibObjT>
 ConstTraceClass CommonStreamClass<LibObjT>::traceClass() const noexcept
