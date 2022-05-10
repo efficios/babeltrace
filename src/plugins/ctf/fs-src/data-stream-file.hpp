@@ -42,9 +42,6 @@ struct ctf_fs_ds_file
     bt_self_component *self_comp;
 
     /* Weak */
-    bt_self_message_iterator *self_msg_iter;
-
-    /* Weak */
     struct ctf_fs_metadata *metadata;
 
     /* Owned by this */
@@ -75,10 +72,8 @@ struct ctf_fs_ds_file
 };
 
 BT_HIDDEN
-struct ctf_fs_ds_file *ctf_fs_ds_file_create(struct ctf_fs_trace *ctf_fs_trace,
-                                             bt_self_message_iterator *self_msg_iter,
-                                             bt_stream *stream, const char *path,
-                                             bt_logging_level log_level);
+struct ctf_fs_ds_file *ctf_fs_ds_file_create(struct ctf_fs_trace *ctf_fs_trace, bt_stream *stream,
+                                             const char *path, bt_logging_level log_level);
 
 BT_HIDDEN
 void ctf_fs_ds_file_destroy(struct ctf_fs_ds_file *stream);

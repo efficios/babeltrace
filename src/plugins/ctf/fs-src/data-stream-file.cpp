@@ -334,8 +334,8 @@ ctf_fs_ds_group_medops_set_file(struct ctf_fs_ds_group_medops_data *data,
 
         /* Create the new file. */
         data->file =
-            ctf_fs_ds_file_create(data->ds_file_group->ctf_fs_trace, self_msg_iter,
-                                  data->ds_file_group->stream, index_entry->path, log_level);
+            ctf_fs_ds_file_create(data->ds_file_group->ctf_fs_trace, data->ds_file_group->stream,
+                                  index_entry->path, log_level);
         if (!data->file) {
             BT_MSG_ITER_LOGE_APPEND_CAUSE(self_msg_iter, "failed to create ctf_fs_ds_file.");
             status = CTF_MSG_ITER_MEDIUM_STATUS_ERROR;
@@ -850,10 +850,8 @@ error:
 }
 
 BT_HIDDEN
-struct ctf_fs_ds_file *ctf_fs_ds_file_create(struct ctf_fs_trace *ctf_fs_trace,
-                                             bt_self_message_iterator *self_msg_iter,
-                                             bt_stream *stream, const char *path,
-                                             bt_logging_level log_level)
+struct ctf_fs_ds_file *ctf_fs_ds_file_create(struct ctf_fs_trace *ctf_fs_trace, bt_stream *stream,
+                                             const char *path, bt_logging_level log_level)
 {
     int ret;
     const size_t offset_align = bt_mmap_get_offset_align_size(log_level);
@@ -865,7 +863,6 @@ struct ctf_fs_ds_file *ctf_fs_ds_file_create(struct ctf_fs_trace *ctf_fs_trace,
 
     ds_file->log_level = log_level;
     ds_file->self_comp = ctf_fs_trace->self_comp;
-    ds_file->self_msg_iter = self_msg_iter;
     ds_file->file = ctf_fs_file_create(log_level, ds_file->self_comp);
     if (!ds_file->file) {
         goto error;
