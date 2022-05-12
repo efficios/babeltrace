@@ -1718,7 +1718,7 @@ public:
         const auto status =
             bt_stream_class_set_packet_context_field_class(this->libObjPtr(), fc.libObjPtr());
 
-        if (status == BT_EVENT_CLASS_SET_FIELD_CLASS_STATUS_MEMORY_ERROR) {
+        if (status == BT_STREAM_CLASS_SET_FIELD_CLASS_STATUS_MEMORY_ERROR) {
             throw LibMemoryError {};
         }
     }
@@ -1752,7 +1752,7 @@ public:
         const auto status =
             bt_stream_class_set_event_common_context_field_class(this->libObjPtr(), fc.libObjPtr());
 
-        if (status == BT_EVENT_CLASS_SET_FIELD_CLASS_STATUS_MEMORY_ERROR) {
+        if (status == BT_STREAM_CLASS_SET_FIELD_CLASS_STATUS_MEMORY_ERROR) {
             throw LibMemoryError {};
         }
     }
