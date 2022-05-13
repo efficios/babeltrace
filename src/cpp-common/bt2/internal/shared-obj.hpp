@@ -45,35 +45,51 @@ class SharedObj final
     template <typename AnyObjT, typename AnyLibObjT, typename AnyRefFuncsT>
     friend class SharedObj;
 
-public:
-    /* This complete shared object */
-    using ThisSharedObj = SharedObj<ObjT, LibObjT, RefFuncsT>;
-
+private:
     /*
-     * Builds a shared object from `obj` without an initial reference.
-     *
-     * Use this constructor to build a shared object wrapping a newly
-     * created libbabeltrace2 object.
-     *
-     * Use createWithInitialRef() to build a shared object having an
-     * initial reference count.
+     * Builds a shared object from `obj` without getting a reference.
      */
     explicit SharedObj(const ObjT& obj) noexcept : _mObj {obj}
     {
     }
 
+public:
     /*
-     * Builds a shared object from `obj` with an initial reference.
-     *
-     * Use this constructor to build a shared object wrapping a newly
-     * created libbabeltrace2 object.
+     * Builds a shared object from `obj` without getting a reference.
      */
-    static ThisSharedObj createWithInitialRef(const ObjT& obj) noexcept
+    static SharedObj createWithoutRef(const ObjT& obj) noexcept
     {
-        ThisSharedObj sharedObj {obj};
+        return SharedObj {obj};
+    }
+
+    /*
+     * Builds a shared object from `libObjPtr` without getting a
+     * reference.
+     */
+    static SharedObj createWithoutRef(LibObjT * const libObjPtr) noexcept
+    {
+        return SharedObj::createWithoutRef(ObjT {libObjPtr});
+    }
+
+    /*
+     * Builds a shared object from `obj`, immediately getting a new
+     * reference.
+     */
+    static SharedObj createWithRef(const ObjT& obj) noexcept
+    {
+        SharedObj sharedObj {obj};
 
         sharedObj._getRef();
         return sharedObj;
+    }
+
+    /*
+     * Builds a shared object from `libObjPtr`, immediately getting a new
+     * reference.
+     */
+    static SharedObj createWithRef(LibObjT * const libObjPtr) noexcept
+    {
+        return SharedObj::createWithRef(ObjT {libObjPtr});
     }
 
     /*
@@ -106,7 +122,7 @@ public:
      * See the `friend class SharedObj` comment above.
      */
     template <typename OtherObjT, typename OtherLibObjT>
-    ThisSharedObj& operator=(const SharedObj<OtherObjT, OtherLibObjT, RefFuncsT>& other) noexcept
+    SharedObj& operator=(const SharedObj<OtherObjT, OtherLibObjT, RefFuncsT>& other) noexcept
     {
         /* Put current object's reference */
         this->_putRef();
@@ -124,7 +140,7 @@ public:
      * See the `friend class SharedObj` comment above.
      */
     template <typename OtherObjT, typename OtherLibObjT>
-    ThisSharedObj& operator=(SharedObj<OtherObjT, OtherLibObjT, RefFuncsT>&& other) noexcept
+    SharedObj& operator=(SharedObj<OtherObjT, OtherLibObjT, RefFuncsT>&& other) noexcept
     {
         /* Put current object's reference */
         this->_putRef();

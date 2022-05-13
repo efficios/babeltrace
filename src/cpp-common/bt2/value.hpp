@@ -209,7 +209,7 @@ public:
 
     Shared shared() const noexcept
     {
-        return Shared {*this};
+        return Shared::createWithRef(*this);
     }
 
     CommonNullValue<LibObjT> asNull() const noexcept;
@@ -278,7 +278,7 @@ public:
 
     Shared shared() const noexcept
     {
-        return Shared {*this};
+        return Shared::createWithRef(*this);
     }
 };
 
@@ -331,7 +331,7 @@ public:
         const auto libObjPtr = bt_value_bool_create_init(static_cast<bt_bool>(rawVal));
 
         internal::validateCreatedObjPtr(libObjPtr);
-        return Shared {CommonBoolValue<LibObjT> {libObjPtr}};
+        return CommonBoolValue::Shared::createWithoutRef(libObjPtr);
     }
 
     template <typename OtherLibObjT>
@@ -361,7 +361,7 @@ public:
 
     Shared shared() const noexcept
     {
-        return Shared {*this};
+        return Shared::createWithRef(*this);
     }
 };
 
@@ -410,7 +410,7 @@ public:
         const auto libObjPtr = bt_value_integer_unsigned_create_init(rawVal);
 
         internal::validateCreatedObjPtr(libObjPtr);
-        return Shared {CommonUnsignedIntegerValue<LibObjT> {libObjPtr}};
+        return CommonUnsignedIntegerValue::Shared::createWithoutRef(libObjPtr);
     }
 
     template <typename OtherLibObjT>
@@ -447,7 +447,7 @@ public:
 
     Shared shared() const noexcept
     {
-        return Shared {*this};
+        return Shared::createWithRef(*this);
     }
 };
 
@@ -496,7 +496,7 @@ public:
         const auto libObjPtr = bt_value_integer_signed_create_init(rawVal);
 
         internal::validateCreatedObjPtr(libObjPtr);
-        return Shared {CommonSignedIntegerValue<LibObjT> {libObjPtr}};
+        return CommonSignedIntegerValue::Shared::createWithoutRef(libObjPtr);
     }
 
     template <typename OtherLibObjT>
@@ -533,7 +533,7 @@ public:
 
     Shared shared() const noexcept
     {
-        return Shared {*this};
+        return Shared::createWithRef(*this);
     }
 };
 
@@ -581,7 +581,7 @@ public:
         const auto libObjPtr = bt_value_real_create_init(rawVal);
 
         internal::validateCreatedObjPtr(libObjPtr);
-        return Shared {CommonRealValue<LibObjT> {libObjPtr}};
+        return CommonRealValue::Shared::createWithoutRef(libObjPtr);
     }
 
     template <typename OtherLibObjT>
@@ -616,7 +616,7 @@ public:
 
     Shared shared() const noexcept
     {
-        return Shared {*this};
+        return Shared::createWithRef(*this);
     }
 };
 
@@ -663,12 +663,12 @@ public:
         const auto libObjPtr = bt_value_string_create_init(rawVal);
 
         internal::validateCreatedObjPtr(libObjPtr);
-        return Shared {CommonStringValue<LibObjT> {libObjPtr}};
+        return CommonStringValue::Shared::createWithoutRef(libObjPtr);
     }
 
     static Shared create(const std::string& rawVal)
     {
-        return CommonStringValue<LibObjT>::create(rawVal.data());
+        return CommonStringValue::create(rawVal.data());
     }
 
     template <typename OtherLibObjT>
@@ -708,7 +708,7 @@ public:
 
     Shared shared() const noexcept
     {
-        return Shared {*this};
+        return Shared::createWithRef(*this);
     }
 };
 
@@ -780,7 +780,7 @@ public:
         const auto libObjPtr = bt_value_array_create();
 
         internal::validateCreatedObjPtr(libObjPtr);
-        return Shared {CommonArrayValue<LibObjT> {libObjPtr}};
+        return CommonArrayValue::Shared::createWithoutRef(libObjPtr);
     }
 
     template <typename OtherLibObjT>
@@ -934,7 +934,7 @@ public:
 
     Shared shared() const noexcept
     {
-        return Shared {*this};
+        return Shared::createWithRef(*this);
     }
 
 private:
@@ -1090,7 +1090,7 @@ public:
         const auto libObjPtr = bt_value_map_create();
 
         internal::validateCreatedObjPtr(libObjPtr);
-        return Shared {CommonMapValue<LibObjT> {libObjPtr}};
+        return CommonMapValue::Shared::createWithoutRef(libObjPtr);
     }
 
     template <typename OtherLibObjT>
@@ -1273,7 +1273,7 @@ public:
 
     Shared shared() const noexcept
     {
-        return Shared {*this};
+        return Shared::createWithRef(*this);
     }
 
 private:

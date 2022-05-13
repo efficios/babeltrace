@@ -154,7 +154,7 @@ public:
 
     Shared shared() const noexcept
     {
-        return Shared {*this};
+        return Shared::createWithRef(*this);
     }
 
     CommonStreamBeginningMessage<LibObjT> asStreamBeginning() const noexcept;
@@ -281,7 +281,7 @@ public:
 
     Shared shared() const noexcept
     {
-        return Shared {*this};
+        return Shared::createWithRef(*this);
     }
 };
 
@@ -398,7 +398,7 @@ public:
 
     Shared shared() const noexcept
     {
-        return Shared {*this};
+        return Shared::createWithRef(*this);
     }
 };
 
@@ -511,7 +511,7 @@ public:
 
     Shared shared() const noexcept
     {
-        return Shared {*this};
+        return Shared::createWithRef(*this);
     }
 };
 
@@ -623,7 +623,7 @@ public:
 
     Shared shared() const noexcept
     {
-        return Shared {*this};
+        return Shared::createWithRef(*this);
     }
 };
 
@@ -727,7 +727,7 @@ public:
 
     Shared shared() const noexcept
     {
-        return Shared {*this};
+        return Shared::createWithRef(*this);
     }
 };
 
@@ -861,7 +861,7 @@ public:
 
     Shared shared() const noexcept
     {
-        return Shared {*this};
+        return Shared::createWithRef(*this);
     }
 };
 
@@ -995,7 +995,7 @@ public:
 
     Shared shared() const noexcept
     {
-        return Shared {*this};
+        return Shared::createWithRef(*this);
     }
 };
 
@@ -1064,7 +1064,7 @@ public:
 
     Shared shared() const noexcept
     {
-        return Shared {*this};
+        return Shared::createWithRef(*this);
     }
 };
 

@@ -179,7 +179,7 @@ public:
 
     Shared shared() const noexcept
     {
-        return Shared {*this};
+        return Shared::createWithRef(*this);
     }
 };
 

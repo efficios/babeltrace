@@ -190,7 +190,7 @@ public:
         const auto libObjPtr = _Spec::create();
 
         internal::validateCreatedObjPtr(libObjPtr);
-        return Shared {_ThisCommonIntegerRangeSet {libObjPtr}};
+        return CommonIntegerRangeSet::Shared::createWithoutRef(libObjPtr);
     }
 
     template <typename OtherLibObjT>
@@ -252,7 +252,7 @@ public:
 
     Shared shared() const noexcept
     {
-        return Shared {*this};
+        return Shared::createWithRef(*this);
     }
 };
 
