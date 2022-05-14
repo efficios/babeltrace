@@ -39,7 +39,7 @@ class SharedObj final
      * `SharedObj<Something, bt_something, ...>` instance to get
      * assigned an instance of
      * `SharedObj<SpecificSomething, bt_something, ...>` (copy/move
-     * constructor and assignment operator), given that
+     * constructors and assignment operators), given that
      * `SpecificSomething` inherits `Something`.
      */
     template <typename AnyObjT, typename AnyLibObjT, typename AnyRefFuncsT>
@@ -51,6 +51,36 @@ private:
      */
     explicit SharedObj(const ObjT& obj) noexcept : _mObj {obj}
     {
+    }
+
+    /*
+     * Common generic "copy" constructor.
+     *
+     * This constructor is meant to be delegated to by the copy
+     * constructor and the generic "copy" constructor.
+     *
+     * The second parameter, of type `int`, makes it possible to
+     * delegate by deduction as you can't explicit the template
+     * parameters when delegating to a constructor template.
+     */
+    template <typename OtherObjT, typename OtherLibObjT>
+    SharedObj(const SharedObj<OtherObjT, OtherLibObjT, RefFuncsT>& other, int) noexcept :
+        _mObj {other._mObj}
+    {
+        this->_getRef();
+    }
+
+    /*
+     * Common generic "move" constructor.
+     *
+     * See the comment of the common generic "copy" constructor above.
+     */
+    template <typename OtherObjT, typename OtherLibObjT>
+    SharedObj(SharedObj<OtherObjT, OtherLibObjT, RefFuncsT>&& other, int) noexcept :
+        _mObj {other._mObj}
+    {
+        /* Reset moved-from object */
+        other._reset();
     }
 
 public:
@@ -93,31 +123,61 @@ public:
     }
 
     /*
-     * Generic copy constructor.
+     * Copy constructor.
+     */
+    SharedObj(const SharedObj& other) noexcept : SharedObj {other, 0}
+    {
+    }
+
+    /*
+     * Move constructor.
+     */
+    SharedObj(SharedObj&& other) noexcept : SharedObj {std::move(other), 0}
+    {
+    }
+
+    /*
+     * Copy assignment operator.
+     */
+    SharedObj& operator=(const SharedObj& other) noexcept
+    {
+        /* Use generic "copy" assignment operator */
+        return this->operator=<ObjT, LibObjT>(other);
+    }
+
+    /*
+     * Move assignment operator.
+     */
+    SharedObj& operator=(SharedObj&& other) noexcept
+    {
+        /* Use generic "move" assignment operator */
+        return this->operator=<ObjT, LibObjT>(std::move(other));
+    }
+
+    /*
+     * Generic "copy" constructor.
      *
      * See the `friend class SharedObj` comment above.
      */
     template <typename OtherObjT, typename OtherLibObjT>
     SharedObj(const SharedObj<OtherObjT, OtherLibObjT, RefFuncsT>& other) noexcept :
-        _mObj {other._mObj}
+        SharedObj {other, 0}
     {
-        this->_getRef();
     }
 
     /*
-     * Generic move constructor.
+     * Generic "move" constructor.
      *
      * See the `friend class SharedObj` comment above.
      */
     template <typename OtherObjT, typename OtherLibObjT>
-    SharedObj(SharedObj<OtherObjT, OtherLibObjT, RefFuncsT>&& other) noexcept : _mObj {other._mObj}
+    SharedObj(SharedObj<OtherObjT, OtherLibObjT, RefFuncsT>&& other) noexcept :
+        SharedObj {std::move(other), 0}
     {
-        /* Reset moved-from object */
-        other._reset();
     }
 
     /*
-     * Generic copy assignment operator.
+     * Generic "copy" assignment operator.
      *
      * See the `friend class SharedObj` comment above.
      */
@@ -135,7 +195,7 @@ public:
     }
 
     /*
-     * Generic move assignment operator.
+     * Generic "move" assignment operator.
      *
      * See the `friend class SharedObj` comment above.
      */
