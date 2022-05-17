@@ -1899,9 +1899,15 @@ public:
         return *this;
     }
 
-    bpstd::string_view name() const noexcept
+    nonstd::optional<bpstd::string_view> name() const noexcept
     {
-        return bt_field_class_variant_option_get_name(this->libObjPtr());
+        const auto name = bt_field_class_variant_option_get_name(this->libObjPtr());
+
+        if (name) {
+            return name;
+        }
+
+        return nonstd::nullopt;
     }
 
     ConstFieldClass fieldClass() const noexcept
@@ -2031,7 +2037,7 @@ public:
         return ConstVariantFieldClassOption {_Spec::asBaseOption(this->libObjPtr())};
     }
 
-    bpstd::string_view name() const noexcept
+    nonstd::optional<bpstd::string_view> name() const noexcept
     {
         return this->asBaseOption().name();
     }
@@ -2273,9 +2279,9 @@ public:
         }
     }
 
-    void appendOption(const std::string& name, const FieldClass& fc)
+    void appendOption(const nonstd::optional<std::string>& name, const FieldClass& fc)
     {
-        this->appendOption(name.data(), fc);
+        this->appendOption(name ? name->data() : nullptr, fc);
     }
 
     Shared shared() const noexcept
@@ -2501,9 +2507,10 @@ public:
         }
     }
 
-    void appendOption(const std::string& name, const FieldClass& fc)
+    void appendOption(const nonstd::optional<std::string>& name, const FieldClass& fc,
+                      const typename Option::RangeSet& ranges)
     {
-        this->appendOption(name.data(), fc);
+        this->appendOption(name ? name->data() : nullptr, fc, ranges);
     }
 
     Iterator begin() const noexcept
