@@ -1224,7 +1224,9 @@ int bt_ctf_trace_common_add_stream_class(struct bt_ctf_trace_common *trace,
 
 end:
 	if (ret) {
-		bt_ctf_object_set_parent(&stream_class->base, NULL);
+		if (stream_class) {
+			bt_ctf_object_set_parent(&stream_class->base, NULL);
+		}
 
 		if (ec_validation_outputs) {
 			for (i = 0; i < event_class_count; i++) {
