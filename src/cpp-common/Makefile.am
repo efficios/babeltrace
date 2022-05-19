@@ -18,4 +18,5 @@ EXTRA_DIST = bt2 \
 	safe-ops.hpp \
 	align.hpp \
 	uuid.hpp \
-	vector.hpp
+	vector.hpp \
+	std-int.hpp
