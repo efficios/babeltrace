@@ -38,7 +38,7 @@ class BorrowedObj
     /*
      * This makes it possible for a `BorrowedObj<const bt_something>`
      * instance to get assigned an instance of
-     * `BorrowedObj<bt_something>` (copy constructor and assignment
+     * `BorrowedObj<bt_something>` ("copy" constructor and "assignment"
      * operator).
      *
      * C++ forbids the other way around.
@@ -64,8 +64,12 @@ protected:
         BT_ASSERT(libObjPtr);
     }
 
+    /* Default copy operations */
+    BorrowedObj(const BorrowedObj&) noexcept = default;
+    BorrowedObj& operator=(const BorrowedObj&) noexcept = default;
+
     /*
-     * Generic copy constructor.
+     * Generic "copy" constructor.
      *
      * This converting constructor accepts both an instance of
      * `_ThisBorrowedObj` and an instance (`other`) of
@@ -82,7 +86,7 @@ protected:
     }
 
     /*
-     * Generic assignment operator.
+     * Generic "assignment" operator.
      *
      * This operator accepts both an instance of
      * `_ThisBorrowedObj` and an instance (`other`) of
