@@ -46,6 +46,33 @@ class BorrowedObj
     template <typename>
     friend class BorrowedObj;
 
+private:
+    /*
+     * Provides `val` which indicates whether or not you can assign this
+     * object from a borrowed object of type `OtherLibObjT`.
+     */
+    template <typename OtherLibObjT>
+    struct _AssignableFromConst final
+    {
+        /*
+         * If `LibObjT` is const (for example, `const bt_value`), then
+         * you may always assign from its non-const equivalent (for
+         * example, `bt_value`). In C (correct):
+         *
+         *     bt_value * const meow = bt_value_bool_create_init(BT_TRUE);
+         *     const bt_value * const mix = meow;
+         *
+         * If `LibObjT` is non-const, then you may not assign from its
+         * const equivalent. In C (not correct):
+         *
+         *     const bt_value * const meow =
+         *         bt_value_array_borrow_element_by_index_const(some_val, 17);
+         *     bt_value * const mix = meow;
+         */
+        static constexpr bool val =
+            std::is_const<LibObjT>::value || !std::is_const<OtherLibObjT>::value;
+    };
+
 protected:
     /* libbabeltrace2 object pointer */
     using _LibObjPtr = LibObjT *;
@@ -83,6 +110,8 @@ protected:
     template <typename OtherLibObjT>
     BorrowedObj(const BorrowedObj<OtherLibObjT>& other) noexcept : BorrowedObj {other._mLibObjPtr}
     {
+        static_assert(_AssignableFromConst<OtherLibObjT>::val,
+                      "Don't assign a non-const wrapper from a const wrapper.");
     }
 
     /*
@@ -95,11 +124,16 @@ protected:
      *
      * This makes it possible for a `BorrowedObj<const bt_something>`
      * instance to get assigned an instance of
-     * `BorrowedObj<bt_something>`. C++ forbids the other way around.
+     * `BorrowedObj<bt_something>`. C++ forbids the other way around,
+     * therefore we use `_EnableIfAssignableT` to show a more relevant
+     * context in the compiler error message.
      */
     template <typename OtherLibObjT>
     _ThisBorrowedObj& operator=(const BorrowedObj<OtherLibObjT>& other) noexcept
     {
+        static_assert(_AssignableFromConst<OtherLibObjT>::val,
+                      "Don't assign a non-const wrapper from a const wrapper.");
+
         _mLibObjPtr = other._mLibObjPtr;
         return *this;
     }
