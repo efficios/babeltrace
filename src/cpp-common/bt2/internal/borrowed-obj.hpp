@@ -43,7 +43,7 @@ class BorrowedObj
      *
      * C++ forbids the other way around.
      */
-    template <typename AnyLibObjT>
+    template <typename>
     friend class BorrowedObj;
 
 protected:

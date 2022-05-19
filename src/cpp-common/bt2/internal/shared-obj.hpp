@@ -42,7 +42,7 @@ class SharedObj final
      * constructors and assignment operators), given that
      * `SpecificSomething` inherits `Something`.
      */
-    template <typename AnyObjT, typename AnyLibObjT, typename AnyRefFuncsT>
+    template <typename, typename, typename>
     friend class SharedObj;
 
 private:
