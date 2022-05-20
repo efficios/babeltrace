@@ -971,6 +971,11 @@ struct CommonStructureFieldClassMemberSpec<bt_field_class_structure_member> fina
     {
         return bt_field_class_structure_member_borrow_field_class(libObjPtr);
     }
+
+    static bt_value *userAttributes(bt_field_class_structure_member * const libObjPtr) noexcept
+    {
+        return bt_field_class_structure_member_borrow_user_attributes(libObjPtr);
+    }
 };
 
 /* Functions specific to constant structure field class members */
@@ -981,6 +986,12 @@ struct CommonStructureFieldClassMemberSpec<const bt_field_class_structure_member
     fieldClass(const bt_field_class_structure_member * const libObjPtr) noexcept
     {
         return bt_field_class_structure_member_borrow_field_class_const(libObjPtr);
+    }
+
+    static const bt_value *
+    userAttributes(const bt_field_class_structure_member * const libObjPtr) noexcept
+    {
+        return bt_field_class_structure_member_borrow_user_attributes_const(libObjPtr);
     }
 };
 
@@ -997,6 +1008,9 @@ private:
         typename std::conditional<std::is_const<LibObjT>::value, ConstFieldClass, FieldClass>::type;
 
 public:
+    using UserAttributes =
+        typename std::conditional<std::is_const<LibObjT>::value, ConstMapValue, MapValue>::type;
+
     explicit CommonStructureFieldClassMember(const _LibObjPtr libObjPtr) noexcept :
         _ThisBorrowedObj {libObjPtr}
     {
@@ -1032,6 +1046,28 @@ public:
     {
         return _FieldClass {
             internal::CommonStructureFieldClassMemberSpec<LibObjT>::fieldClass(this->libObjPtr())};
+    }
+
+    template <typename LibValT>
+    void userAttributes(const CommonMapValue<LibValT>& userAttrs)
+    {
+        static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
+
+        bt_field_class_structure_member_set_user_attributes(this->libObjPtr(),
+                                                            userAttrs.libObjPtr());
+    }
+
+    ConstMapValue userAttributes() const noexcept
+    {
+        return ConstMapValue {internal::CommonStructureFieldClassMemberSpec<
+            const bt_field_class_structure_member>::userAttributes(this->libObjPtr())};
+    }
+
+    UserAttributes userAttributes() noexcept
+    {
+        return UserAttributes {
+            internal::CommonStructureFieldClassMemberSpec<LibObjT>::userAttributes(
+                this->libObjPtr())};
     }
 };
 
@@ -1860,6 +1896,11 @@ struct CommonVariantFieldClassOptionSpec<bt_field_class_variant_option> final
     {
         return bt_field_class_variant_option_borrow_field_class(libObjPtr);
     }
+
+    static bt_value *userAttributes(bt_field_class_variant_option * const libObjPtr) noexcept
+    {
+        return bt_field_class_variant_option_borrow_user_attributes(libObjPtr);
+    }
 };
 
 /* Functions specific to constant variant field class options */
@@ -1870,6 +1911,12 @@ struct CommonVariantFieldClassOptionSpec<const bt_field_class_variant_option> fi
     fieldClass(const bt_field_class_variant_option * const libObjPtr) noexcept
     {
         return bt_field_class_variant_option_borrow_field_class_const(libObjPtr);
+    }
+
+    static const bt_value *
+    userAttributes(const bt_field_class_variant_option * const libObjPtr) noexcept
+    {
+        return bt_field_class_variant_option_borrow_user_attributes_const(libObjPtr);
     }
 };
 
@@ -1886,6 +1933,9 @@ private:
         typename std::conditional<std::is_const<LibObjT>::value, ConstFieldClass, FieldClass>::type;
 
 public:
+    using UserAttributes =
+        typename std::conditional<std::is_const<LibObjT>::value, ConstMapValue, MapValue>::type;
+
     explicit CommonVariantFieldClassOption(const _LibObjPtr libObjPtr) noexcept :
         _ThisBorrowedObj {libObjPtr}
     {
@@ -1926,6 +1976,26 @@ public:
     {
         return _FieldClass {
             internal::CommonVariantFieldClassOptionSpec<LibObjT>::fieldClass(this->libObjPtr())};
+    }
+
+    template <typename LibValT>
+    void userAttributes(const CommonMapValue<LibValT>& userAttrs)
+    {
+        static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
+
+        bt_field_class_variant_option_set_user_attributes(this->libObjPtr(), userAttrs.libObjPtr());
+    }
+
+    ConstMapValue userAttributes() const noexcept
+    {
+        return ConstMapValue {internal::CommonVariantFieldClassOptionSpec<
+            const bt_field_class_variant_option>::userAttributes(this->libObjPtr())};
+    }
+
+    UserAttributes userAttributes() noexcept
+    {
+        return UserAttributes {internal::CommonVariantFieldClassOptionSpec<LibObjT>::userAttributes(
+            this->libObjPtr())};
     }
 };
 
