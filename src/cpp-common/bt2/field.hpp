@@ -204,6 +204,12 @@ public:
         return this->cls().isVariant();
     }
 
+    template <typename FieldT>
+    FieldT as() const noexcept
+    {
+        return FieldT {this->libObjPtr()};
+    }
+
     CommonBoolField<LibObjT> asBool() const noexcept;
     CommonBitArrayField<LibObjT> asBitArray() const noexcept;
     CommonUnsignedIntegerField<LibObjT> asUnsignedInteger() const noexcept;

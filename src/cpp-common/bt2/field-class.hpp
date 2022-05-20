@@ -373,6 +373,12 @@ public:
         return this->_libTypeIs(BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_INTEGER_SELECTOR_FIELD);
     }
 
+    template <typename FieldClassT>
+    FieldClassT as() const noexcept
+    {
+        return FieldClassT {this->libObjPtr()};
+    }
+
     CommonBitArrayFieldClass<LibObjT> asBitArray() const noexcept;
     CommonIntegerFieldClass<LibObjT> asInteger() const noexcept;
     CommonBaseEnumerationFieldClass<LibObjT> asEnumeration() const noexcept;

@@ -157,6 +157,12 @@ public:
         return Shared::createWithRef(*this);
     }
 
+    template <typename MessageT>
+    MessageT as() const noexcept
+    {
+        return MessageT {this->libObjPtr()};
+    }
+
     CommonStreamBeginningMessage<LibObjT> asStreamBeginning() const noexcept;
     CommonStreamEndMessage<LibObjT> asStreamEnd() const noexcept;
     CommonEventMessage<LibObjT> asEvent() const noexcept;

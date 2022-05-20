@@ -212,6 +212,12 @@ public:
         return Shared::createWithRef(*this);
     }
 
+    template <typename ValueT>
+    ValueT as() const noexcept
+    {
+        return ValueT {this->libObjPtr()};
+    }
+
     CommonNullValue<LibObjT> asNull() const noexcept;
     CommonBoolValue<LibObjT> asBool() const noexcept;
     CommonSignedIntegerValue<LibObjT> asSignedInteger() const noexcept;
