@@ -644,9 +644,9 @@ bt_log_spec;
  * See BT_LOG_OUTPUT_LEVEL for details.
  */
 #define BT_LOG_ON_CUR_LVL(lvl, cur_lvl) \
-		(BT_LOG_ENABLED((lvl)) && (lvl) >= (cur_lvl))
+		G_UNLIKELY(BT_LOG_ENABLED((lvl)) && (lvl) >= (cur_lvl))
 #define BT_LOG_ON(lvl) \
-		(BT_LOG_ENABLED((lvl)) && (lvl) >= _BT_LOG_OUTPUT_LEVEL)
+		G_UNLIKELY(BT_LOG_ENABLED((lvl)) && (lvl) >= _BT_LOG_OUTPUT_LEVEL)
 #define BT_LOG_ON_TRACE     BT_LOG_ON(BT_LOG_TRACE)
 #define BT_LOG_ON_DEBUG     BT_LOG_ON(BT_LOG_DEBUG)
 #define BT_LOG_ON_INFO      BT_LOG_ON(BT_LOG_INFO)
