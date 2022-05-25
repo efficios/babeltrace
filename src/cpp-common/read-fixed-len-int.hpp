@@ -17,18 +17,28 @@
 namespace bt2_common {
 
 /*
- * Reads a fixed-length little-endian integer into a value of integral
+ * Reads a fixed-length integer of unknown byte order into a value of integral
  * type `IntT` from the buffer `buf` and returns it.
  */
 template <typename IntT>
-IntT readFixedLenIntLe(const std::uint8_t * const buf)
+IntT readFixedLenInt(const std::uint8_t * const buf)
 {
     static_assert(std::is_integral<IntT>::value, "`IntT` is an integral type.");
 
     IntT val;
 
     std::memcpy(&val, buf, sizeof(val));
-    return bt2_common::littleEndianToNative(val);
+    return val;
+}
+
+/*
+ * Reads a fixed-length little-endian integer into a value of integral
+ * type `IntT` from the buffer `buf` and returns it.
+ */
+template <typename IntT>
+IntT readFixedLenIntLe(const std::uint8_t * const buf)
+{
+    return bt2_common::littleEndianToNative(readFixedLenInt<IntT>(buf));
 }
 
 /*
@@ -38,12 +48,7 @@ IntT readFixedLenIntLe(const std::uint8_t * const buf)
 template <typename IntT>
 IntT readFixedLenIntBe(const std::uint8_t * const buf)
 {
-    static_assert(std::is_integral<IntT>::value, "`IntT` is an integral type.");
-
-    IntT val;
-
-    std::memcpy(&val, buf, sizeof(val));
-    return bt2_common::bigEndianToNative(val);
+    return bt2_common::bigEndianToNative(readFixedLenInt<IntT>(buf));
 }
 
 } /* namespace bt2_common */
