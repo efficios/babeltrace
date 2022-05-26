@@ -728,7 +728,6 @@ static int live_get_msg_ts_ns(struct lttng_live_stream_iterator *stream_iter,
                               struct lttng_live_msg_iter *lttng_live_msg_iter,
                               const bt_message *msg, int64_t last_msg_ts_ns, int64_t *ts_ns)
 {
-    const bt_clock_class *clock_class = NULL;
     const bt_clock_snapshot *clock_snapshot = NULL;
     int ret = 0;
     bt_logging_level log_level = lttng_live_msg_iter->log_level;
@@ -743,37 +742,19 @@ static int live_get_msg_ts_ns(struct lttng_live_stream_iterator *stream_iter,
 
     switch (bt_message_get_type(msg)) {
     case BT_MESSAGE_TYPE_EVENT:
-        clock_class = bt_message_event_borrow_stream_class_default_clock_class_const(msg);
-        BT_ASSERT_DBG(clock_class);
-
         clock_snapshot = bt_message_event_borrow_default_clock_snapshot_const(msg);
         break;
     case BT_MESSAGE_TYPE_PACKET_BEGINNING:
-        clock_class =
-            bt_message_packet_beginning_borrow_stream_class_default_clock_class_const(msg);
-        BT_ASSERT(clock_class);
-
         clock_snapshot = bt_message_packet_beginning_borrow_default_clock_snapshot_const(msg);
         break;
     case BT_MESSAGE_TYPE_PACKET_END:
-        clock_class = bt_message_packet_end_borrow_stream_class_default_clock_class_const(msg);
-        BT_ASSERT(clock_class);
-
         clock_snapshot = bt_message_packet_end_borrow_default_clock_snapshot_const(msg);
         break;
     case BT_MESSAGE_TYPE_DISCARDED_EVENTS:
-        clock_class =
-            bt_message_discarded_events_borrow_stream_class_default_clock_class_const(msg);
-        BT_ASSERT(clock_class);
-
         clock_snapshot =
             bt_message_discarded_events_borrow_beginning_default_clock_snapshot_const(msg);
         break;
     case BT_MESSAGE_TYPE_DISCARDED_PACKETS:
-        clock_class =
-            bt_message_discarded_packets_borrow_stream_class_default_clock_class_const(msg);
-        BT_ASSERT(clock_class);
-
         clock_snapshot =
             bt_message_discarded_packets_borrow_beginning_default_clock_snapshot_const(msg);
         break;
@@ -786,9 +767,6 @@ static int live_get_msg_ts_ns(struct lttng_live_stream_iterator *stream_iter,
         *ts_ns = last_msg_ts_ns;
         goto end;
     }
-
-    clock_class = bt_clock_snapshot_borrow_clock_class_const(clock_snapshot);
-    BT_ASSERT_DBG(clock_class);
 
     ret = bt_clock_snapshot_get_ns_from_origin(clock_snapshot, ts_ns);
     if (ret) {
