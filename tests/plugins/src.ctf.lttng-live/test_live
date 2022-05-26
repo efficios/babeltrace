@@ -54,6 +54,7 @@ lttng_live_server() {
 	local server_script="$test_data_dir/lttng_live_server.py"
 
 	# start server
+	diag "$BT_TESTS_PYTHON_BIN $server_script --port-file $port_file --trace-path-prefix $trace_dir_native $server_args"
 	echo "$server_args" | xargs "$BT_TESTS_PYTHON_BIN" "$server_script" \
 		--port-file "$port_file" \
 		--trace-path-prefix "$trace_dir_native" &
