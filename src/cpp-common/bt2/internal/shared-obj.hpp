@@ -243,6 +243,21 @@ public:
         return &*_mObj;
     }
 
+    /*
+     * Transfers the reference of the object which this shared object
+     * wrapper manages and returns it, making the caller become an active
+     * owner.
+     *
+     * This method makes this object invalid.
+     */
+    ObjT release() noexcept
+    {
+        BT_ASSERT_DBG(_mObj);
+        const auto obj = *_mObj;
+        this->_reset();
+        return obj;
+    }
+
 private:
     /*
      * Resets this shared object.
