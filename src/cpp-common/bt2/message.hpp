@@ -1143,6 +1143,13 @@ CommonDiscardedEventsMessage<LibObjT> CommonMessage<LibObjT>::asDiscardedEvents(
 }
 
 template <typename LibObjT>
+CommonDiscardedPacketsMessage<LibObjT> CommonMessage<LibObjT>::asDiscardedPackets() const noexcept
+{
+    BT_ASSERT_DBG(this->isDiscardedPackets());
+    return CommonDiscardedPacketsMessage<LibObjT> {this->libObjPtr()};
+}
+
+template <typename LibObjT>
 CommonMessageIteratorInactivityMessage<LibObjT>
 CommonMessage<LibObjT>::asMessageIteratorInactivity() const noexcept
 {
