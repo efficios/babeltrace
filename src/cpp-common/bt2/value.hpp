@@ -21,7 +21,7 @@
 #include "internal/utils.hpp"
 #include "cpp-common/optional.hpp"
 #include "cpp-common/string_view.hpp"
-#include "lib-error.hpp"
+#include "exc.hpp"
 
 namespace bt2 {
 namespace internal {
@@ -696,7 +696,7 @@ public:
         const auto status = bt_value_string_set(this->libObjPtr(), rawVal);
 
         if (status == BT_VALUE_STRING_SET_STATUS_MEMORY_ERROR) {
-            throw LibMemoryError {};
+            throw MemoryError {};
         }
 
         return *this;
@@ -947,7 +947,7 @@ private:
     void _handleAppendLibStatus(const bt_value_array_append_element_status status) const
     {
         if (status == BT_VALUE_ARRAY_APPEND_ELEMENT_STATUS_MEMORY_ERROR) {
-            throw LibMemoryError {};
+            throw MemoryError {};
         }
     }
 };
@@ -1034,7 +1034,7 @@ struct CommonMapValueSpec<bt_value> final
             return;
         case BT_VALUE_MAP_FOREACH_ENTRY_STATUS_USER_ERROR:
         case BT_VALUE_MAP_FOREACH_ENTRY_STATUS_ERROR:
-            throw LibError {};
+            throw Error {};
         default:
             bt_common_abort();
         }
@@ -1067,7 +1067,7 @@ struct CommonMapValueSpec<const bt_value> final
             return;
         case BT_VALUE_MAP_FOREACH_ENTRY_CONST_STATUS_USER_ERROR:
         case BT_VALUE_MAP_FOREACH_ENTRY_CONST_STATUS_ERROR:
-            throw LibError {};
+            throw Error {};
         default:
             bt_common_abort();
         }
@@ -1286,7 +1286,7 @@ private:
     void _handleInsertLibStatus(const bt_value_map_insert_entry_status status) const
     {
         if (status == BT_VALUE_MAP_INSERT_ENTRY_STATUS_MEMORY_ERROR) {
-            throw LibMemoryError {};
+            throw MemoryError {};
         }
     }
 };

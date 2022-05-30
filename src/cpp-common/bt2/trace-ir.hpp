@@ -546,7 +546,7 @@ public:
         const auto status = bt_stream_set_name(this->libObjPtr(), name);
 
         if (status == BT_STREAM_SET_NAME_STATUS_MEMORY_ERROR) {
-            throw LibMemoryError {};
+            throw MemoryError {};
         }
     }
 
@@ -768,7 +768,7 @@ public:
         const auto status = bt_trace_set_name(this->libObjPtr(), name);
 
         if (status == BT_TRACE_SET_NAME_STATUS_MEMORY_ERROR) {
-            throw LibMemoryError {};
+            throw MemoryError {};
         }
     }
 
@@ -848,7 +848,7 @@ public:
         const auto status = bt_trace_set_environment_entry_integer(this->libObjPtr(), name, val);
 
         if (status == BT_TRACE_SET_ENVIRONMENT_ENTRY_STATUS_MEMORY_ERROR) {
-            throw LibMemoryError {};
+            throw MemoryError {};
         }
     }
 
@@ -864,7 +864,7 @@ public:
         const auto status = bt_trace_set_environment_entry_string(this->libObjPtr(), name, val);
 
         if (status == BT_TRACE_SET_ENVIRONMENT_ENTRY_STATUS_MEMORY_ERROR) {
-            throw LibMemoryError {};
+            throw MemoryError {};
         }
     }
 
@@ -1121,7 +1121,7 @@ public:
         const auto status = bt_event_class_set_name(this->libObjPtr(), name);
 
         if (status == BT_EVENT_CLASS_SET_NAME_STATUS_MEMORY_ERROR) {
-            throw LibMemoryError {};
+            throw MemoryError {};
         }
     }
 
@@ -1168,7 +1168,7 @@ public:
         const auto status = bt_event_class_set_emf_uri(this->libObjPtr(), emfUri);
 
         if (status == BT_EVENT_CLASS_SET_EMF_URI_STATUS_MEMORY_ERROR) {
-            throw LibMemoryError {};
+            throw MemoryError {};
         }
     }
 
@@ -1196,7 +1196,7 @@ public:
             bt_event_class_set_payload_field_class(this->libObjPtr(), fc.libObjPtr());
 
         if (status == BT_EVENT_CLASS_SET_FIELD_CLASS_STATUS_MEMORY_ERROR) {
-            throw LibMemoryError {};
+            throw MemoryError {};
         }
     }
 
@@ -1230,7 +1230,7 @@ public:
             bt_event_class_set_specific_context_field_class(this->libObjPtr(), fc.libObjPtr());
 
         if (status == BT_EVENT_CLASS_SET_FIELD_CLASS_STATUS_MEMORY_ERROR) {
-            throw LibMemoryError {};
+            throw MemoryError {};
         }
     }
 
@@ -1525,7 +1525,7 @@ public:
         const auto status = bt_stream_class_set_name(this->libObjPtr(), name);
 
         if (status == BT_STREAM_CLASS_SET_NAME_STATUS_MEMORY_ERROR) {
-            throw LibMemoryError {};
+            throw MemoryError {};
         }
     }
 
@@ -1719,7 +1719,7 @@ public:
             bt_stream_class_set_packet_context_field_class(this->libObjPtr(), fc.libObjPtr());
 
         if (status == BT_STREAM_CLASS_SET_FIELD_CLASS_STATUS_MEMORY_ERROR) {
-            throw LibMemoryError {};
+            throw MemoryError {};
         }
     }
 
@@ -1753,7 +1753,7 @@ public:
             bt_stream_class_set_event_common_context_field_class(this->libObjPtr(), fc.libObjPtr());
 
         if (status == BT_STREAM_CLASS_SET_FIELD_CLASS_STATUS_MEMORY_ERROR) {
-            throw LibMemoryError {};
+            throw MemoryError {};
         }
     }
 

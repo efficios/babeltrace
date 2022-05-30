@@ -15,7 +15,7 @@
 #include "internal/borrowed-obj.hpp"
 #include "internal/utils.hpp"
 #include "integer-range.hpp"
-#include "lib-error.hpp"
+#include "exc.hpp"
 
 namespace bt2 {
 
@@ -226,7 +226,7 @@ public:
         const auto status = _Spec::addRange(this->libObjPtr(), lower, upper);
 
         if (status == BT_INTEGER_RANGE_SET_ADD_RANGE_STATUS_MEMORY_ERROR) {
-            throw LibMemoryError {};
+            throw MemoryError {};
         }
     }
 

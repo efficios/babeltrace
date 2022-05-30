@@ -9,7 +9,7 @@
 
 #include <type_traits>
 
-#include "../lib-error.hpp"
+#include "../exc.hpp"
 
 namespace bt2 {
 namespace internal {
@@ -18,7 +18,7 @@ template <typename LibObjPtrT>
 void validateCreatedObjPtr(const LibObjPtrT libOjbPtr)
 {
     if (!libOjbPtr) {
-        throw LibMemoryError {};
+        throw MemoryError {};
     }
 }
 

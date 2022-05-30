@@ -19,7 +19,7 @@
 #include "internal/utils.hpp"
 #include "cpp-common/optional.hpp"
 #include "cpp-common/string_view.hpp"
-#include "lib-error.hpp"
+#include "exc.hpp"
 
 namespace bt2 {
 namespace internal {

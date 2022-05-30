@@ -18,7 +18,7 @@
 #include "cpp-common/optional.hpp"
 #include "cpp-common/string_view.hpp"
 #include "cpp-common/uuid-view.hpp"
-#include "lib-error.hpp"
+#include "exc.hpp"
 #include "value.hpp"
 
 namespace bt2 {
@@ -181,7 +181,7 @@ public:
         const auto status = bt_clock_class_set_name(this->libObjPtr(), name);
 
         if (status == BT_CLOCK_CLASS_SET_NAME_STATUS_MEMORY_ERROR) {
-            throw LibMemoryError {};
+            throw MemoryError {};
         }
     }
 
@@ -208,7 +208,7 @@ public:
         const auto status = bt_clock_class_set_description(this->libObjPtr(), description);
 
         if (status == BT_CLOCK_CLASS_SET_DESCRIPTION_STATUS_MEMORY_ERROR) {
-            throw LibMemoryError {};
+            throw MemoryError {};
         }
     }
 
@@ -271,7 +271,7 @@ public:
             bt_clock_class_cycles_to_ns_from_origin(this->libObjPtr(), value, &nsFromOrigin);
 
         if (status == BT_CLOCK_CLASS_CYCLES_TO_NS_FROM_ORIGIN_STATUS_OVERFLOW_ERROR) {
-            throw LibOverflowError {};
+            throw OverflowError {};
         }
 
         return nsFromOrigin;

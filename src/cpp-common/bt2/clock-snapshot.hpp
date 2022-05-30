@@ -11,7 +11,7 @@
 #include <babeltrace2/babeltrace.h>
 
 #include "internal/borrowed-obj.hpp"
-#include "lib-error.hpp"
+#include "exc.hpp"
 
 namespace bt2 {
 
@@ -49,7 +49,7 @@ public:
         const auto status = bt_clock_snapshot_get_ns_from_origin(this->libObjPtr(), &nsFromOrigin);
 
         if (status == BT_CLOCK_SNAPSHOT_GET_NS_FROM_ORIGIN_STATUS_OVERFLOW_ERROR) {
-            throw LibOverflowError {};
+            throw OverflowError {};
         }
 
         return nsFromOrigin;

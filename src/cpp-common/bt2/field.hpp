@@ -662,7 +662,7 @@ public:
                                                                              &labelArray, &count);
 
         if (status == BT_FIELD_ENUMERATION_GET_MAPPING_LABELS_STATUS_MEMORY_ERROR) {
-            throw LibMemoryError {};
+            throw MemoryError {};
         }
 
         return EnumerationFieldClassMappingLabels {labelArray, count};
@@ -743,7 +743,7 @@ public:
             bt_field_enumeration_signed_get_mapping_labels(this->libObjPtr(), &labelArray, &count);
 
         if (status == BT_FIELD_ENUMERATION_GET_MAPPING_LABELS_STATUS_MEMORY_ERROR) {
-            throw LibMemoryError {};
+            throw MemoryError {};
         }
 
         return EnumerationFieldClassMappingLabels {labelArray, count};
@@ -951,7 +951,7 @@ public:
         const auto status = bt_field_string_set_value(this->libObjPtr(), val);
 
         if (status == BT_FIELD_STRING_SET_VALUE_STATUS_MEMORY_ERROR) {
-            throw LibMemoryError {};
+            throw MemoryError {};
         }
 
         return *this;
@@ -1298,7 +1298,7 @@ public:
         const auto status = bt_field_array_dynamic_set_length(this->libObjPtr(), length);
 
         if (status == BT_FIELD_DYNAMIC_ARRAY_SET_LENGTH_STATUS_MEMORY_ERROR) {
-            throw LibMemoryError {};
+            throw MemoryError {};
         }
     }
 };

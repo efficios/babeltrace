@@ -18,7 +18,7 @@
 #include "cpp-common/optional.hpp"
 #include "cpp-common/string_view.hpp"
 #include "common-iter.hpp"
-#include "lib-error.hpp"
+#include "exc.hpp"
 #include "integer-range-set.hpp"
 #include "field-path.hpp"
 #include "value.hpp"
@@ -886,7 +886,7 @@ public:
             this->libObjPtr(), label, ranges.libObjPtr());
 
         if (status == BT_FIELD_CLASS_ENUMERATION_ADD_MAPPING_STATUS_MEMORY_ERROR) {
-            throw LibMemoryError {};
+            throw MemoryError {};
         }
     }
 
@@ -1175,7 +1175,7 @@ public:
             bt_field_class_structure_append_member(this->libObjPtr(), name, fc.libObjPtr());
 
         if (status == BT_FIELD_CLASS_STRUCTURE_APPEND_MEMBER_STATUS_MEMORY_ERROR) {
-            throw LibMemoryError {};
+            throw MemoryError {};
         }
     }
 
@@ -2351,7 +2351,7 @@ public:
 
         if (status ==
             BT_FIELD_CLASS_VARIANT_WITHOUT_SELECTOR_FIELD_APPEND_OPTION_STATUS_MEMORY_ERROR) {
-            throw LibMemoryError {};
+            throw MemoryError {};
         }
     }
 
@@ -2579,7 +2579,7 @@ public:
 
         if (status ==
             BT_FIELD_CLASS_VARIANT_WITH_SELECTOR_FIELD_APPEND_OPTION_STATUS_MEMORY_ERROR) {
-            throw LibMemoryError {};
+            throw MemoryError {};
         }
     }
 
