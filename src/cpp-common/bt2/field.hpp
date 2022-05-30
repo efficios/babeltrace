@@ -108,12 +108,12 @@ public:
     }
 
     template <typename OtherLibObjT>
-    CommonField(const CommonField<OtherLibObjT>& val) noexcept : _ThisBorrowedObj {val}
+    CommonField(const CommonField<OtherLibObjT> val) noexcept : _ThisBorrowedObj {val}
     {
     }
 
     template <typename OtherLibObjT>
-    _ThisCommonField& operator=(const CommonField<OtherLibObjT>& val) noexcept
+    _ThisCommonField& operator=(const CommonField<OtherLibObjT> val) noexcept
     {
         _ThisBorrowedObj::operator=(val);
         return *this;
@@ -265,12 +265,12 @@ public:
     }
 
     template <typename OtherLibObjT>
-    CommonBoolField(const CommonBoolField<OtherLibObjT>& val) noexcept : _ThisCommonField {val}
+    CommonBoolField(const CommonBoolField<OtherLibObjT> val) noexcept : _ThisCommonField {val}
     {
     }
 
     template <typename OtherLibObjT>
-    CommonBoolField<LibObjT>& operator=(const CommonBoolField<OtherLibObjT>& val) noexcept
+    CommonBoolField<LibObjT>& operator=(const CommonBoolField<OtherLibObjT> val) noexcept
     {
         _ThisCommonField::operator=(val);
         return *this;
@@ -335,13 +335,13 @@ public:
     }
 
     template <typename OtherLibObjT>
-    CommonBitArrayField(const CommonBitArrayField<OtherLibObjT>& val) noexcept :
+    CommonBitArrayField(const CommonBitArrayField<OtherLibObjT> val) noexcept :
         _ThisCommonField {val}
     {
     }
 
     template <typename OtherLibObjT>
-    CommonBitArrayField<LibObjT>& operator=(const CommonBitArrayField<OtherLibObjT>& val) noexcept
+    CommonBitArrayField<LibObjT>& operator=(const CommonBitArrayField<OtherLibObjT> val) noexcept
     {
         _ThisCommonField::operator=(val);
         return *this;
@@ -424,14 +424,14 @@ public:
     }
 
     template <typename OtherLibObjT>
-    CommonUnsignedIntegerField(const CommonUnsignedIntegerField<OtherLibObjT>& val) noexcept :
+    CommonUnsignedIntegerField(const CommonUnsignedIntegerField<OtherLibObjT> val) noexcept :
         _ThisCommonField {val}
     {
     }
 
     template <typename OtherLibObjT>
     _ThisCommonUnsignedIntegerField&
-    operator=(const CommonUnsignedIntegerField<OtherLibObjT>& val) noexcept
+    operator=(const CommonUnsignedIntegerField<OtherLibObjT> val) noexcept
     {
         _ThisCommonField::operator=(val);
         return *this;
@@ -513,14 +513,14 @@ public:
     }
 
     template <typename OtherLibObjT>
-    CommonSignedIntegerField(const CommonSignedIntegerField<OtherLibObjT>& val) noexcept :
+    CommonSignedIntegerField(const CommonSignedIntegerField<OtherLibObjT> val) noexcept :
         _ThisCommonField {val}
     {
     }
 
     template <typename OtherLibObjT>
     _ThisCommonSignedIntegerField&
-    operator=(const CommonSignedIntegerField<OtherLibObjT>& val) noexcept
+    operator=(const CommonSignedIntegerField<OtherLibObjT> val) noexcept
     {
         _ThisCommonField::operator=(val);
         return *this;
@@ -629,7 +629,7 @@ public:
     }
 
     template <typename OtherLibObjT>
-    CommonUnsignedEnumerationField(const CommonUnsignedEnumerationField<OtherLibObjT>& val) noexcept
+    CommonUnsignedEnumerationField(const CommonUnsignedEnumerationField<OtherLibObjT> val) noexcept
         :
         _ThisCommonUnsignedIntegerField {val}
     {
@@ -637,7 +637,7 @@ public:
 
     template <typename OtherLibObjT>
     CommonUnsignedEnumerationField<LibObjT>&
-    operator=(const CommonUnsignedEnumerationField<OtherLibObjT>& val) noexcept
+    operator=(const CommonUnsignedEnumerationField<OtherLibObjT> val) noexcept
     {
         _ThisCommonUnsignedIntegerField::operator=(val);
         return *this;
@@ -711,14 +711,14 @@ public:
     }
 
     template <typename OtherLibObjT>
-    CommonSignedEnumerationField(const CommonSignedEnumerationField<OtherLibObjT>& val) noexcept :
+    CommonSignedEnumerationField(const CommonSignedEnumerationField<OtherLibObjT> val) noexcept :
         _ThisCommonSignedIntegerField {val}
     {
     }
 
     template <typename OtherLibObjT>
     CommonSignedEnumerationField<LibObjT>&
-    operator=(const CommonSignedEnumerationField<OtherLibObjT>& val) noexcept
+    operator=(const CommonSignedEnumerationField<OtherLibObjT> val) noexcept
     {
         _ThisCommonSignedIntegerField::operator=(val);
         return *this;
@@ -790,7 +790,7 @@ public:
     }
 
     template <typename OtherLibObjT>
-    CommonSinglePrecisionRealField(const CommonSinglePrecisionRealField<OtherLibObjT>& val) noexcept
+    CommonSinglePrecisionRealField(const CommonSinglePrecisionRealField<OtherLibObjT> val) noexcept
         :
         _ThisCommonField {val}
     {
@@ -798,7 +798,7 @@ public:
 
     template <typename OtherLibObjT>
     CommonSinglePrecisionRealField<LibObjT>&
-    operator=(const CommonSinglePrecisionRealField<OtherLibObjT>& val) noexcept
+    operator=(const CommonSinglePrecisionRealField<OtherLibObjT> val) noexcept
     {
         _ThisCommonField::operator=(val);
         return *this;
@@ -863,7 +863,7 @@ public:
     }
 
     template <typename OtherLibObjT>
-    CommonDoublePrecisionRealField(const CommonDoublePrecisionRealField<OtherLibObjT>& val) noexcept
+    CommonDoublePrecisionRealField(const CommonDoublePrecisionRealField<OtherLibObjT> val) noexcept
         :
         _ThisCommonField {val}
     {
@@ -871,7 +871,7 @@ public:
 
     template <typename OtherLibObjT>
     CommonDoublePrecisionRealField<LibObjT>&
-    operator=(const CommonDoublePrecisionRealField<OtherLibObjT>& val) noexcept
+    operator=(const CommonDoublePrecisionRealField<OtherLibObjT> val) noexcept
     {
         _ThisCommonField::operator=(val);
         return *this;
@@ -933,12 +933,12 @@ public:
     }
 
     template <typename OtherLibObjT>
-    CommonStringField(const CommonStringField<OtherLibObjT>& val) noexcept : _ThisCommonField {val}
+    CommonStringField(const CommonStringField<OtherLibObjT> val) noexcept : _ThisCommonField {val}
     {
     }
 
     template <typename OtherLibObjT>
-    CommonStringField<LibObjT>& operator=(const CommonStringField<OtherLibObjT>& val) noexcept
+    CommonStringField<LibObjT>& operator=(const CommonStringField<OtherLibObjT> val) noexcept
     {
         _ThisCommonField::operator=(val);
         return *this;
@@ -1053,13 +1053,13 @@ public:
     }
 
     template <typename OtherLibObjT>
-    CommonStructureField(const CommonStructureField<OtherLibObjT>& val) noexcept :
+    CommonStructureField(const CommonStructureField<OtherLibObjT> val) noexcept :
         _ThisCommonField {val}
     {
     }
 
     template <typename OtherLibObjT>
-    CommonStructureField<LibObjT>& operator=(const CommonStructureField<OtherLibObjT>& val) noexcept
+    CommonStructureField<LibObjT>& operator=(const CommonStructureField<OtherLibObjT> val) noexcept
     {
         _ThisCommonField::operator=(val);
         return *this;
@@ -1196,12 +1196,12 @@ public:
     }
 
     template <typename OtherLibObjT>
-    CommonArrayField(const CommonArrayField<OtherLibObjT>& val) noexcept : _ThisCommonField {val}
+    CommonArrayField(const CommonArrayField<OtherLibObjT> val) noexcept : _ThisCommonField {val}
     {
     }
 
     template <typename OtherLibObjT>
-    _ThisCommonArrayField& operator=(const CommonArrayField<OtherLibObjT>& val) noexcept
+    _ThisCommonArrayField& operator=(const CommonArrayField<OtherLibObjT> val) noexcept
     {
         _ThisCommonField::operator=(val);
         return *this;
@@ -1273,14 +1273,14 @@ public:
     }
 
     template <typename OtherLibObjT>
-    CommonDynamicArrayField(const CommonDynamicArrayField<OtherLibObjT>& val) noexcept :
+    CommonDynamicArrayField(const CommonDynamicArrayField<OtherLibObjT> val) noexcept :
         _ThisCommonArrayField {val}
     {
     }
 
     template <typename OtherLibObjT>
     CommonDynamicArrayField<LibObjT>&
-    operator=(const CommonDynamicArrayField<OtherLibObjT>& val) noexcept
+    operator=(const CommonDynamicArrayField<OtherLibObjT> val) noexcept
     {
         _ThisCommonArrayField::operator=(val);
         return *this;
@@ -1367,12 +1367,12 @@ public:
     }
 
     template <typename OtherLibObjT>
-    CommonOptionField(const CommonOptionField<OtherLibObjT>& val) noexcept : _ThisCommonField {val}
+    CommonOptionField(const CommonOptionField<OtherLibObjT> val) noexcept : _ThisCommonField {val}
     {
     }
 
     template <typename OtherLibObjT>
-    CommonOptionField<LibObjT>& operator=(const CommonOptionField<OtherLibObjT>& val) noexcept
+    CommonOptionField<LibObjT>& operator=(const CommonOptionField<OtherLibObjT> val) noexcept
     {
         _ThisCommonField::operator=(val);
         return *this;
@@ -1489,13 +1489,12 @@ public:
     }
 
     template <typename OtherLibObjT>
-    CommonVariantField(const CommonVariantField<OtherLibObjT>& val) noexcept :
-        _ThisCommonField {val}
+    CommonVariantField(const CommonVariantField<OtherLibObjT> val) noexcept : _ThisCommonField {val}
     {
     }
 
     template <typename OtherLibObjT>
-    CommonVariantField<LibObjT>& operator=(const CommonVariantField<OtherLibObjT>& val) noexcept
+    CommonVariantField<LibObjT>& operator=(const CommonVariantField<OtherLibObjT> val) noexcept
     {
         _ThisCommonField::operator=(val);
         return *this;

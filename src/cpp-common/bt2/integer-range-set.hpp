@@ -194,27 +194,27 @@ public:
     }
 
     template <typename OtherLibObjT>
-    CommonIntegerRangeSet(const CommonIntegerRangeSet<OtherLibObjT>& rangeSet) noexcept :
+    CommonIntegerRangeSet(const CommonIntegerRangeSet<OtherLibObjT> rangeSet) noexcept :
         _ThisBorrowedObj {rangeSet}
     {
     }
 
     template <typename OtherLibObjT>
     _ThisCommonIntegerRangeSet&
-    operator=(const CommonIntegerRangeSet<OtherLibObjT>& rangeSet) noexcept
+    operator=(const CommonIntegerRangeSet<OtherLibObjT> rangeSet) noexcept
     {
         _ThisBorrowedObj::operator=(rangeSet);
         return *this;
     }
 
     template <typename OtherLibObjT>
-    bool operator==(const CommonIntegerRangeSet<OtherLibObjT>& other) const noexcept
+    bool operator==(const CommonIntegerRangeSet<OtherLibObjT> other) const noexcept
     {
         return _Spec::isEqual(this->libObjPtr(), other.libObjPtr());
     }
 
     template <typename OtherLibObjT>
-    bool operator!=(const CommonIntegerRangeSet<OtherLibObjT>& other) const noexcept
+    bool operator!=(const CommonIntegerRangeSet<OtherLibObjT> other) const noexcept
     {
         return !(*this == other);
     }

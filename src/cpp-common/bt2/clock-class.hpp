@@ -109,13 +109,13 @@ public:
     }
 
     template <typename OtherLibObjT>
-    CommonClockClass(const CommonClockClass<OtherLibObjT>& clkClass) noexcept :
+    CommonClockClass(const CommonClockClass<OtherLibObjT> clkClass) noexcept :
         _ThisBorrowedObj {clkClass}
     {
     }
 
     template <typename OtherLibObjT>
-    _ThisCommonClockClass& operator=(const CommonClockClass<OtherLibObjT>& clkClass) noexcept
+    _ThisCommonClockClass& operator=(const CommonClockClass<OtherLibObjT> clkClass) noexcept
     {
         _ThisBorrowedObj::operator=(clkClass);
         return *this;
@@ -245,7 +245,7 @@ public:
     }
 
     template <typename LibValT>
-    void userAttributes(const CommonMapValue<LibValT>& userAttrs)
+    void userAttributes(const CommonMapValue<LibValT> userAttrs)
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 

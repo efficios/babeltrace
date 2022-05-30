@@ -96,12 +96,12 @@ public:
     }
 
     template <typename OtherLibObjT>
-    CommonMessage(const CommonMessage<OtherLibObjT>& val) noexcept : _ThisBorrowedObj {val}
+    CommonMessage(const CommonMessage<OtherLibObjT> val) noexcept : _ThisBorrowedObj {val}
     {
     }
 
     template <typename OtherLibObjT>
-    _ThisCommonMessage& operator=(const CommonMessage<OtherLibObjT>& val) noexcept
+    _ThisCommonMessage& operator=(const CommonMessage<OtherLibObjT> val) noexcept
     {
         _ThisBorrowedObj::operator=(val);
         return *this;
@@ -240,14 +240,14 @@ public:
     }
 
     template <typename OtherLibObjT>
-    CommonStreamBeginningMessage(const CommonStreamBeginningMessage<OtherLibObjT>& val) noexcept :
+    CommonStreamBeginningMessage(const CommonStreamBeginningMessage<OtherLibObjT> val) noexcept :
         _ThisCommonMessage {val}
     {
     }
 
     template <typename OtherLibObjT>
     CommonStreamBeginningMessage<LibObjT>&
-    operator=(const CommonStreamBeginningMessage<OtherLibObjT>& val) noexcept
+    operator=(const CommonStreamBeginningMessage<OtherLibObjT> val) noexcept
     {
         _ThisCommonMessage::operator=(val);
         return *this;
@@ -358,14 +358,14 @@ public:
     }
 
     template <typename OtherLibObjT>
-    CommonStreamEndMessage(const CommonStreamEndMessage<OtherLibObjT>& val) noexcept :
+    CommonStreamEndMessage(const CommonStreamEndMessage<OtherLibObjT> val) noexcept :
         _ThisCommonMessage {val}
     {
     }
 
     template <typename OtherLibObjT>
     CommonStreamEndMessage<LibObjT>&
-    operator=(const CommonStreamEndMessage<OtherLibObjT>& val) noexcept
+    operator=(const CommonStreamEndMessage<OtherLibObjT> val) noexcept
     {
         _ThisCommonMessage::operator=(val);
         return *this;
@@ -475,14 +475,14 @@ public:
     }
 
     template <typename OtherLibObjT>
-    CommonPacketBeginningMessage(const CommonPacketBeginningMessage<OtherLibObjT>& val) noexcept :
+    CommonPacketBeginningMessage(const CommonPacketBeginningMessage<OtherLibObjT> val) noexcept :
         _ThisCommonMessage {val}
     {
     }
 
     template <typename OtherLibObjT>
     CommonPacketBeginningMessage<LibObjT>&
-    operator=(const CommonPacketBeginningMessage<OtherLibObjT>& val) noexcept
+    operator=(const CommonPacketBeginningMessage<OtherLibObjT> val) noexcept
     {
         _ThisCommonMessage::operator=(val);
         return *this;
@@ -588,14 +588,14 @@ public:
     }
 
     template <typename OtherLibObjT>
-    CommonPacketEndMessage(const CommonPacketEndMessage<OtherLibObjT>& val) noexcept :
+    CommonPacketEndMessage(const CommonPacketEndMessage<OtherLibObjT> val) noexcept :
         _ThisCommonMessage {val}
     {
     }
 
     template <typename OtherLibObjT>
     CommonPacketEndMessage<LibObjT>&
-    operator=(const CommonPacketEndMessage<OtherLibObjT>& val) noexcept
+    operator=(const CommonPacketEndMessage<OtherLibObjT> val) noexcept
     {
         _ThisCommonMessage::operator=(val);
         return *this;
@@ -700,13 +700,13 @@ public:
     }
 
     template <typename OtherLibObjT>
-    CommonEventMessage(const CommonEventMessage<OtherLibObjT>& val) noexcept :
+    CommonEventMessage(const CommonEventMessage<OtherLibObjT> val) noexcept :
         _ThisCommonMessage {val}
     {
     }
 
     template <typename OtherLibObjT>
-    CommonEventMessage<LibObjT>& operator=(const CommonEventMessage<OtherLibObjT>& val) noexcept
+    CommonEventMessage<LibObjT>& operator=(const CommonEventMessage<OtherLibObjT> val) noexcept
     {
         _ThisCommonMessage::operator=(val);
         return *this;
@@ -804,14 +804,14 @@ public:
     }
 
     template <typename OtherLibObjT>
-    CommonDiscardedEventsMessage(const CommonDiscardedEventsMessage<OtherLibObjT>& val) noexcept :
+    CommonDiscardedEventsMessage(const CommonDiscardedEventsMessage<OtherLibObjT> val) noexcept :
         _ThisCommonMessage {val}
     {
     }
 
     template <typename OtherLibObjT>
     CommonDiscardedEventsMessage<LibObjT>&
-    operator=(const CommonDiscardedEventsMessage<OtherLibObjT>& val) noexcept
+    operator=(const CommonDiscardedEventsMessage<OtherLibObjT> val) noexcept
     {
         _ThisCommonMessage::operator=(val);
         return *this;
@@ -938,14 +938,14 @@ public:
     }
 
     template <typename OtherLibObjT>
-    CommonDiscardedPacketsMessage(const CommonDiscardedPacketsMessage<OtherLibObjT>& val) noexcept :
+    CommonDiscardedPacketsMessage(const CommonDiscardedPacketsMessage<OtherLibObjT> val) noexcept :
         _ThisCommonMessage {val}
     {
     }
 
     template <typename OtherLibObjT>
     CommonDiscardedPacketsMessage<LibObjT>&
-    operator=(const CommonDiscardedPacketsMessage<OtherLibObjT>& val) noexcept
+    operator=(const CommonDiscardedPacketsMessage<OtherLibObjT> val) noexcept
     {
         _ThisCommonMessage::operator=(val);
         return *this;
@@ -1047,14 +1047,14 @@ public:
 
     template <typename OtherLibObjT>
     CommonMessageIteratorInactivityMessage(
-        const CommonMessageIteratorInactivityMessage<OtherLibObjT>& val) noexcept :
+        const CommonMessageIteratorInactivityMessage<OtherLibObjT> val) noexcept :
         _ThisCommonMessage {val}
     {
     }
 
     template <typename OtherLibObjT>
     CommonMessageIteratorInactivityMessage<LibObjT>&
-    operator=(const CommonMessageIteratorInactivityMessage<OtherLibObjT>& val) noexcept
+    operator=(const CommonMessageIteratorInactivityMessage<OtherLibObjT> val) noexcept
     {
         _ThisCommonMessage::operator=(val);
         return *this;

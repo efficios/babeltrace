@@ -134,12 +134,12 @@ public:
     }
 
     template <typename OtherLibObjT>
-    CommonValue(const CommonValue<OtherLibObjT>& val) noexcept : _ThisBorrowedObj {val}
+    CommonValue(const CommonValue<OtherLibObjT> val) noexcept : _ThisBorrowedObj {val}
     {
     }
 
     template <typename OtherLibObjT>
-    _ThisCommonValue& operator=(const CommonValue<OtherLibObjT>& val) noexcept
+    _ThisCommonValue& operator=(const CommonValue<OtherLibObjT> val) noexcept
     {
         _ThisBorrowedObj::operator=(val);
         return *this;
@@ -196,13 +196,13 @@ public:
     }
 
     template <typename OtherLibObjT>
-    bool operator==(const CommonValue<OtherLibObjT>& other) const noexcept
+    bool operator==(const CommonValue<OtherLibObjT> other) const noexcept
     {
         return static_cast<bool>(bt_value_is_equal(this->libObjPtr(), other.libObjPtr()));
     }
 
     template <typename OtherLibObjT>
-    bool operator!=(const CommonValue<OtherLibObjT>& other) const noexcept
+    bool operator!=(const CommonValue<OtherLibObjT> other) const noexcept
     {
         return !(*this == other);
     }
@@ -271,12 +271,12 @@ public:
     }
 
     template <typename OtherLibObjT>
-    CommonNullValue(const CommonNullValue<OtherLibObjT>& val) noexcept : _ThisCommonValue {val}
+    CommonNullValue(const CommonNullValue<OtherLibObjT> val) noexcept : _ThisCommonValue {val}
     {
     }
 
     template <typename OtherLibObjT>
-    CommonNullValue<LibObjT>& operator=(const CommonNullValue<OtherLibObjT>& val) noexcept
+    CommonNullValue<LibObjT>& operator=(const CommonNullValue<OtherLibObjT> val) noexcept
     {
         _ThisCommonValue::operator=(val);
         return *this;
@@ -328,7 +328,7 @@ public:
     }
 
     template <typename OtherLibObjT>
-    CommonBoolValue(const CommonBoolValue<OtherLibObjT>& val) noexcept : _ThisCommonValue {val}
+    CommonBoolValue(const CommonBoolValue<OtherLibObjT> val) noexcept : _ThisCommonValue {val}
     {
     }
 
@@ -341,7 +341,7 @@ public:
     }
 
     template <typename OtherLibObjT>
-    CommonBoolValue<LibObjT>& operator=(const CommonBoolValue<OtherLibObjT>& val) noexcept
+    CommonBoolValue<LibObjT>& operator=(const CommonBoolValue<OtherLibObjT> val) noexcept
     {
         _ThisCommonValue::operator=(val);
         return *this;
@@ -420,14 +420,14 @@ public:
     }
 
     template <typename OtherLibObjT>
-    CommonUnsignedIntegerValue(const CommonUnsignedIntegerValue<OtherLibObjT>& val) noexcept :
+    CommonUnsignedIntegerValue(const CommonUnsignedIntegerValue<OtherLibObjT> val) noexcept :
         _ThisCommonValue {val}
     {
     }
 
     template <typename OtherLibObjT>
     CommonUnsignedIntegerValue<LibObjT>&
-    operator=(const CommonUnsignedIntegerValue<OtherLibObjT>& val) noexcept
+    operator=(const CommonUnsignedIntegerValue<OtherLibObjT> val) noexcept
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
@@ -506,14 +506,14 @@ public:
     }
 
     template <typename OtherLibObjT>
-    CommonSignedIntegerValue(const CommonSignedIntegerValue<OtherLibObjT>& val) noexcept :
+    CommonSignedIntegerValue(const CommonSignedIntegerValue<OtherLibObjT> val) noexcept :
         _ThisCommonValue {val}
     {
     }
 
     template <typename OtherLibObjT>
     CommonSignedIntegerValue<LibObjT>&
-    operator=(const CommonSignedIntegerValue<OtherLibObjT>& val) noexcept
+    operator=(const CommonSignedIntegerValue<OtherLibObjT> val) noexcept
     {
         _ThisCommonValue::operator=(val);
         return *this;
@@ -591,12 +591,12 @@ public:
     }
 
     template <typename OtherLibObjT>
-    CommonRealValue(const CommonRealValue<OtherLibObjT>& val) noexcept : _ThisCommonValue {val}
+    CommonRealValue(const CommonRealValue<OtherLibObjT> val) noexcept : _ThisCommonValue {val}
     {
     }
 
     template <typename OtherLibObjT>
-    CommonRealValue<LibObjT>& operator=(const CommonRealValue<OtherLibObjT>& val) noexcept
+    CommonRealValue<LibObjT>& operator=(const CommonRealValue<OtherLibObjT> val) noexcept
     {
         _ThisCommonValue::operator=(val);
         return *this;
@@ -678,12 +678,12 @@ public:
     }
 
     template <typename OtherLibObjT>
-    CommonStringValue(const CommonStringValue<OtherLibObjT>& val) noexcept : _ThisCommonValue {val}
+    CommonStringValue(const CommonStringValue<OtherLibObjT> val) noexcept : _ThisCommonValue {val}
     {
     }
 
     template <typename OtherLibObjT>
-    CommonStringValue<LibObjT>& operator=(const CommonStringValue<OtherLibObjT>& val) noexcept
+    CommonStringValue<LibObjT>& operator=(const CommonStringValue<OtherLibObjT> val) noexcept
     {
         _ThisCommonValue::operator=(val);
         return *this;
@@ -790,12 +790,12 @@ public:
     }
 
     template <typename OtherLibObjT>
-    CommonArrayValue(const CommonArrayValue<OtherLibObjT>& val) noexcept : _ThisCommonValue {val}
+    CommonArrayValue(const CommonArrayValue<OtherLibObjT> val) noexcept : _ThisCommonValue {val}
     {
     }
 
     template <typename OtherLibObjT>
-    CommonArrayValue<LibObjT>& operator=(const CommonArrayValue<OtherLibObjT>& val) noexcept
+    CommonArrayValue<LibObjT>& operator=(const CommonArrayValue<OtherLibObjT> val) noexcept
     {
         _ThisCommonValue::operator=(val);
         return *this;
@@ -839,7 +839,7 @@ public:
             internal::CommonArrayValueSpec<LibObjT>::elementByIndex(this->libObjPtr(), index)};
     }
 
-    void append(const Value& val)
+    void append(const Value val)
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
@@ -903,7 +903,7 @@ public:
     CommonArrayValue<bt_value> appendEmptyArray();
     CommonMapValue<bt_value> appendEmptyMap();
 
-    void operator+=(const Value& val)
+    void operator+=(const Value val)
     {
         this->append(val);
     }
@@ -1100,12 +1100,12 @@ public:
     }
 
     template <typename OtherLibObjT>
-    CommonMapValue(const CommonMapValue<OtherLibObjT>& val) noexcept : _ThisCommonValue {val}
+    CommonMapValue(const CommonMapValue<OtherLibObjT> val) noexcept : _ThisCommonValue {val}
     {
     }
 
     template <typename OtherLibObjT>
-    CommonMapValue<LibObjT>& operator=(const CommonMapValue<OtherLibObjT>& val) noexcept
+    CommonMapValue<LibObjT>& operator=(const CommonMapValue<OtherLibObjT> val) noexcept
     {
         _ThisCommonValue::operator=(val);
         return *this;
@@ -1165,7 +1165,7 @@ public:
         return this->hasEntry(key.data());
     }
 
-    void insert(const char * const key, const Value& val)
+    void insert(const char * const key, const Value val)
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
@@ -1174,7 +1174,7 @@ public:
         this->_handleInsertLibStatus(status);
     }
 
-    void insert(const std::string& key, const Value& val)
+    void insert(const std::string& key, const Value val)
     {
         this->insert(key.data(), val);
     }
