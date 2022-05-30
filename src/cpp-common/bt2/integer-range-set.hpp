@@ -34,7 +34,7 @@ struct IntegerRangeSetRefFuncs<const bt_integer_range_set_unsigned> final
 
     static void put(const bt_integer_range_set_unsigned * const libObjPtr)
     {
-        bt_integer_range_set_unsigned_get_ref(libObjPtr);
+        bt_integer_range_set_unsigned_put_ref(libObjPtr);
     }
 };
 
@@ -48,7 +48,7 @@ struct IntegerRangeSetRefFuncs<const bt_integer_range_set_signed> final
 
     static void put(const bt_integer_range_set_signed * const libObjPtr)
     {
-        bt_integer_range_set_signed_get_ref(libObjPtr);
+        bt_integer_range_set_signed_put_ref(libObjPtr);
     }
 };
 
