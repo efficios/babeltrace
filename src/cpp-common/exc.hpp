@@ -37,6 +37,17 @@ public:
 };
 
 /*
+ * Overflow error.
+ */
+class OverflowError : public Error
+{
+public:
+    explicit OverflowError() noexcept : Error {"Overflow error"}
+    {
+    }
+};
+
+/*
  * Memory error.
  */
 class MemoryError : public std::bad_alloc
