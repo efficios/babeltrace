@@ -788,9 +788,9 @@ public:
         return nonstd::nullopt;
     }
 
-    void uuid(const std::uint8_t * const uuid) noexcept
+    void uuid(const bt2_common::UuidView& uuid) noexcept
     {
-        bt_trace_set_uuid(this->libObjPtr(), uuid);
+        bt_trace_set_uuid(this->libObjPtr(), uuid.begin());
     }
 
     nonstd::optional<bt2_common::UuidView> uuid() const noexcept
