@@ -402,7 +402,7 @@ struct TypeDescr<ConstBitArrayField> : public BitArrayFieldTypeDescr
 } /* namespace internal */
 
 template <typename LibObjT>
-class CommonUnsignedIntegerField final : public CommonField<LibObjT>
+class CommonUnsignedIntegerField : public CommonField<LibObjT>
 {
 private:
     using typename CommonField<LibObjT>::_ThisCommonField;
@@ -491,7 +491,7 @@ struct TypeDescr<ConstUnsignedIntegerField> : public UnsignedIntegerFieldTypeDes
 } /* namespace internal */
 
 template <typename LibObjT>
-class CommonSignedIntegerField final : public CommonField<LibObjT>
+class CommonSignedIntegerField : public CommonField<LibObjT>
 {
 private:
     using typename CommonField<LibObjT>::_ThisCommonField;
@@ -501,7 +501,7 @@ protected:
     using _ThisCommonSignedIntegerField = CommonSignedIntegerField<LibObjT>;
 
 public:
-    using Value = std::uint64_t;
+    using Value = std::int64_t;
 
     using Class = typename std::conditional<std::is_const<LibObjT>::value, ConstIntegerFieldClass,
                                             IntegerFieldClass>::type;
@@ -881,13 +881,13 @@ public:
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
-        bt_field_real_single_precision_set_value(this->libObjPtr(), val);
+        bt_field_real_double_precision_set_value(this->libObjPtr(), val);
         return *this;
     }
 
     Value value() const noexcept
     {
-        return bt_field_real_single_precision_get_value(this->libObjPtr());
+        return bt_field_real_double_precision_get_value(this->libObjPtr());
     }
 
     operator Value() const noexcept
@@ -944,7 +944,7 @@ public:
         return *this;
     }
 
-    CommonStringField<LibObjT>& operator=(const char * const val) noexcept
+    CommonStringField<LibObjT>& operator=(const char * const val)
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
@@ -957,7 +957,7 @@ public:
         return *this;
     }
 
-    CommonStringField<LibObjT>& operator=(const std::string& val) noexcept
+    CommonStringField<LibObjT>& operator=(const std::string& val)
     {
         return *this = val.data();
     }
