@@ -962,6 +962,22 @@ public:
         return *this = val.data();
     }
 
+    void append(const char * const begin, const std::uint64_t len)
+    {
+        static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
+
+        const auto status = bt_field_string_append_with_length(this->libObjPtr(), begin, len);
+
+        if (status == BT_FIELD_STRING_APPEND_STATUS_MEMORY_ERROR) {
+            throw MemoryError {};
+        }
+    }
+
+    void append(const std::string& val)
+    {
+        this->append(val.data(), val.size());
+    }
+
     void clear() noexcept
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
