@@ -649,6 +649,8 @@ public:
             internal::CommonFieldSpec<const bt_field>::cls(this->libObjPtr())};
     }
 
+    using CommonUnsignedIntegerField<LibObjT>::operator=;
+
     Class cls() noexcept
     {
         return Class {internal::CommonFieldSpec<LibObjT>::cls(this->libObjPtr())};
@@ -723,6 +725,8 @@ public:
         _ThisCommonSignedIntegerField::operator=(val);
         return *this;
     }
+
+    using CommonSignedIntegerField<LibObjT>::operator=;
 
     ConstSignedEnumerationFieldClass cls() const noexcept
     {
