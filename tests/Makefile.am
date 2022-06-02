@@ -73,6 +73,7 @@ TESTS_CLI = \
 	cli/convert/test_convert_args \
 	cli/test_help \
 	cli/test_intersection \
+	cli/test_output_ctf_metadata \
 	cli/test_output_path_ctf_non_lttng_trace \
 	cli/test_packet_seq_num \
 	cli/test_trace_copy \

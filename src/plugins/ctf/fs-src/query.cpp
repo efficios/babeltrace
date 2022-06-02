@@ -52,6 +52,8 @@ metadata_info_query(bt_self_component_class_source *self_comp_class_src, const b
     struct ctf_metadata_decoder *decoder = NULL;
     ctf_metadata_decoder_config decoder_cfg {};
     enum ctf_metadata_decoder_status decoder_status;
+    GString *g_metadata_text = NULL;
+    const char *plaintext;
 
     result = bt_value_map_create();
     if (!result) {
@@ -118,7 +120,21 @@ metadata_info_query(bt_self_component_class_source *self_comp_class_src, const b
         goto error;
     }
 
-    ret = bt_value_map_insert_string_entry(result, "text", ctf_metadata_decoder_get_text(decoder));
+    plaintext = ctf_metadata_decoder_get_text(decoder);
+    g_metadata_text = g_string_new(NULL);
+
+    if (!g_metadata_text) {
+        goto error;
+    }
+
+    if (strncmp(plaintext, METADATA_TEXT_SIG, sizeof(METADATA_TEXT_SIG) - 1) != 0) {
+        g_string_assign(g_metadata_text, METADATA_TEXT_SIG);
+        g_string_append(g_metadata_text, " */\n\n");
+    }
+
+    g_string_append(g_metadata_text, plaintext);
+
+    ret = bt_value_map_insert_string_entry(result, "text", g_metadata_text->str);
     if (ret) {
         BT_COMP_CLASS_LOGE_APPEND_CAUSE(self_comp_class,
                                         "Cannot insert metadata text into query result.");
@@ -143,6 +159,9 @@ error:
     }
 
 end:
+    if (g_metadata_text) {
+        g_string_free(g_metadata_text, TRUE);
+    }
     ctf_metadata_decoder_destroy(decoder);
 
     if (metadata_fp) {
