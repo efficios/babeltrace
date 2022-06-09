@@ -39,6 +39,20 @@ struct GStringDeleter final
 
 using GStringUP = std::unique_ptr<GString, internal::GStringDeleter>;
 
+namespace internal {
+
+struct GDirDeleter final
+{
+    void operator()(GDir * const dir)
+    {
+        g_dir_close(dir);
+    }
+};
+
+} /* namespace internal */
+
+using GDirUP = std::unique_ptr<GDir, internal::GDirDeleter>;
+
 } /* namespace bt2_common */
 
 #endif /* BABELTRACE_CPP_COMMON_GLIB_UP_HPP */
