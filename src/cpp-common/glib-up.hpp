@@ -25,6 +25,20 @@ struct GCharDeleter final
 
 using GCharUP = std::unique_ptr<gchar, internal::GCharDeleter>;
 
+namespace internal {
+
+struct GStringDeleter final
+{
+    void operator()(GString * const str)
+    {
+        g_string_free(str, TRUE);
+    }
+};
+
+} /* namespace internal */
+
+using GStringUP = std::unique_ptr<GString, internal::GStringDeleter>;
+
 } /* namespace bt2_common */
 
 #endif /* BABELTRACE_CPP_COMMON_GLIB_UP_HPP */
