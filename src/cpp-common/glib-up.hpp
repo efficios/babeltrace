@@ -53,6 +53,20 @@ struct GDirDeleter final
 
 using GDirUP = std::unique_ptr<GDir, internal::GDirDeleter>;
 
+namespace internal {
+
+struct GMappedFileDeleter final
+{
+    void operator()(GMappedFile * const f)
+    {
+        g_mapped_file_unref(f);
+    }
+};
+
+} /* namespace internal */
+
+using GMappedFileUP = std::unique_ptr<GMappedFile, internal::GMappedFileDeleter>;
+
 } /* namespace bt2_common */
 
 #endif /* BABELTRACE_CPP_COMMON_GLIB_UP_HPP */
