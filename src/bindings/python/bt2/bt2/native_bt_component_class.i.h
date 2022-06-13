@@ -1205,6 +1205,7 @@ end:
 	Py_XDECREF(py_comp_cls);
 	Py_XDECREF(py_iter_cls);
 	Py_XDECREF(py_iter_ptr);
+	Py_XDECREF(py_config_ptr);
 	Py_XDECREF(py_component_port_output_ptr);
 	Py_XDECREF(py_init_method_result);
 	Py_XDECREF(py_iter);
