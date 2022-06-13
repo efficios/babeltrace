@@ -418,7 +418,7 @@ class _TraceClass(_TraceClassConst):
         utils._check_uint64(length)
         ptr = native_bt.field_class_array_static_create(self._ptr, elem_fc._ptr, length)
         self._check_field_class_create_status(ptr, 'static array')
-        fc = bt2_field_class._StaticArrayFieldClass._create_from_ptr_and_get_ref(ptr)
+        fc = bt2_field_class._StaticArrayFieldClass._create_from_ptr(ptr)
         self._set_field_class_user_attrs(fc, user_attributes)
         return fc
 
@@ -436,7 +436,7 @@ class _TraceClass(_TraceClassConst):
             self._ptr, elem_fc._ptr, length_fc_ptr
         )
         self._check_field_class_create_status(ptr, 'dynamic array')
-        fc = bt2_field_class._create_field_class_from_ptr_and_get_ref(ptr)
+        fc = bt2_field_class._obj_type_from_field_class_ptr(ptr)._create_from_ptr(ptr)
         self._set_field_class_user_attrs(fc, user_attributes)
         return fc
 
@@ -448,7 +448,7 @@ class _TraceClass(_TraceClassConst):
             self._ptr, content_fc._ptr
         )
         self._check_field_class_create_status(ptr, 'option')
-        fc = bt2_field_class._create_field_class_from_ptr_and_get_ref(ptr)
+        fc = bt2_field_class._obj_type_from_field_class_ptr(ptr)._create_from_ptr(ptr)
         self._set_field_class_user_attrs(fc, user_attributes)
         return fc
 
@@ -462,7 +462,7 @@ class _TraceClass(_TraceClassConst):
             self._ptr, content_fc._ptr, selector_fc._ptr
         )
         self._check_field_class_create_status(ptr, 'option')
-        fc = bt2_field_class._create_field_class_from_ptr_and_get_ref(ptr)
+        fc = bt2_field_class._obj_type_from_field_class_ptr(ptr)._create_from_ptr(ptr)
         self._set_field_class_user_attrs(fc, user_attributes)
         fc._selector_is_reversed = selector_is_reversed
         return fc
@@ -490,7 +490,7 @@ class _TraceClass(_TraceClassConst):
             )
 
         self._check_field_class_create_status(ptr, 'option')
-        fc = bt2_field_class._create_field_class_from_ptr_and_get_ref(ptr)
+        fc = bt2_field_class._obj_type_from_field_class_ptr(ptr)._create_from_ptr(ptr)
         self._set_field_class_user_attrs(fc, user_attributes)
         return fc
 
@@ -503,6 +503,6 @@ class _TraceClass(_TraceClassConst):
 
         ptr = native_bt.field_class_variant_create(self._ptr, selector_fc_ptr)
         self._check_field_class_create_status(ptr, 'variant')
-        fc = bt2_field_class._create_field_class_from_ptr_and_get_ref(ptr)
+        fc = bt2_field_class._obj_type_from_field_class_ptr(ptr)._create_from_ptr(ptr)
         self._set_field_class_user_attrs(fc, user_attributes)
         return fc

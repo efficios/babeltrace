@@ -10,9 +10,19 @@ from bt2 import value as bt2_value
 import bt2
 
 
-def _create_field_class_from_ptr_and_get_ref_template(type_map, ptr):
+def _obj_type_from_field_class_ptr_template(type_map, ptr):
     typeid = native_bt.field_class_get_type(ptr)
-    return type_map[typeid]._create_from_ptr_and_get_ref(ptr)
+    return type_map[typeid]
+
+
+def _obj_type_from_field_class_ptr(ptr):
+    return _obj_type_from_field_class_ptr_template(_FIELD_CLASS_TYPE_TO_OBJ, ptr)
+
+
+def _create_field_class_from_ptr_and_get_ref_template(type_map, ptr):
+    return _obj_type_from_field_class_ptr_template(
+        type_map, ptr
+    )._create_from_ptr_and_get_ref(ptr)
 
 
 def _create_field_class_from_ptr_and_get_ref(ptr):
