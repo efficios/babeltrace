@@ -700,6 +700,10 @@ m4_define([WARN_FLAGS_LIST], [ dnl
   -Wundef dnl
   -Wredundant-decls dnl
   -Wshadow dnl
+  dnl GCC's -Wshadow warns about constructor parameters shadowing fields, but
+  dnl Clang's does not.  Enable Clang's `-Wshadow-field-in-constructor`, to make
+  dnl Clang warn about that.
+  -Wshadow-field-in-constructor dnl
   -Wjump-misses-init dnl
   -Wsuggest-attribute=format dnl
   -Wtautological-constant-out-of-range-compare dnl
