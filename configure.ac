@@ -716,6 +716,7 @@ m4_define([WARN_FLAGS_LIST], [ dnl
   -Wduplicated-cond dnl
   -Wduplicated-branches dnl
   -Wlogical-op dnl
+  -Wsuggest-override dnl
   -Wno-unused-parameter dnl
   -Wno-sign-compare dnl
   dnl
