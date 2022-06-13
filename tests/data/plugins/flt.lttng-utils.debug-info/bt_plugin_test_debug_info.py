@@ -116,7 +116,7 @@ class CompleteSrc(bt2._UserSourceComponent, message_iterator_class=CompleteIter)
                     dyn_array_with_len_elem_fc, length_fc=dyn_array_with_len_fc
                 ),
             ),
-            ("sta_array", tc.create_dynamic_array_field_class(sta_array_elem_fc)),
+            ("sta_array", tc.create_static_array_field_class(sta_array_elem_fc, 3)),
             (
                 "option_none",
                 tc.create_option_without_selector_field_class(option_none_fc),
