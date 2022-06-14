@@ -733,6 +733,7 @@ m4_define([WARN_FLAGS_LIST], [ dnl
   dnl Ref: https://github.com/swig/swig/issues/1259
   -Wno-cast-function-type dnl
   -Wno-missing-field-initializers dnl
+  -Wno-maybe-uninitialized dnl
 ])
 
 # Pass -Werror as an extra flag during the test: this is needed to make the
