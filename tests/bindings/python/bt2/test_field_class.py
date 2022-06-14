@@ -896,7 +896,6 @@ class _OptionWithIntegerSelectorFieldClassTestCase(
 
     def test_attr_ranges(self):
         fc = self._create_default_field_class()
-        print(type(fc.ranges), type(self._ranges))
         self.assertEqual(fc.ranges, self._ranges)
 
     def test_const_attr_ranges(self):
