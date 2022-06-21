@@ -214,14 +214,14 @@ class _StreamClass(_StreamClassConst):
         if self.assigns_automatic_event_class_id:
             if id is not None:
                 raise ValueError(
-                    'id provided, but stream class assigns automatic event class ids'
+                    "id provided, but stream class assigns automatic event class ids"
                 )
 
             ec_ptr = native_bt.event_class_create(self._ptr)
         else:
             if id is None:
                 raise ValueError(
-                    'id not provided, but stream class does not assign automatic event class ids'
+                    "id not provided, but stream class does not assign automatic event class ids"
                 )
 
             utils._check_uint64(id)
@@ -345,7 +345,7 @@ class _StreamClass(_StreamClassConst):
         if packet_context_field_class is not None:
             if not supports_packets:
                 raise ValueError(
-                    'cannot have a packet context field class without supporting packets'
+                    "cannot have a packet context field class without supporting packets"
                 )
 
             utils._check_type(
@@ -376,11 +376,11 @@ class _StreamClass(_StreamClassConst):
         if not supports_packets:
             if packets_have_beginning_default_clock_snapshot:
                 raise ValueError(
-                    'cannot not support packets, but have packet beginning default clock snapshot'
+                    "cannot not support packets, but have packet beginning default clock snapshot"
                 )
             if packets_have_end_default_clock_snapshot:
                 raise ValueError(
-                    'cannot not support packets, but have packet end default clock snapshots'
+                    "cannot not support packets, but have packet end default clock snapshots"
                 )
 
         # Discarded events
@@ -390,12 +390,12 @@ class _StreamClass(_StreamClassConst):
         if discarded_events_have_default_clock_snapshots:
             if not supports_discarded_events:
                 raise ValueError(
-                    'cannot not support discarded events, but have default clock snapshots for discarded event messages'
+                    "cannot not support discarded events, but have default clock snapshots for discarded event messages"
                 )
 
             if default_clock_class is None:
                 raise ValueError(
-                    'cannot have no default clock class, but have default clock snapshots for discarded event messages'
+                    "cannot have no default clock class, but have default clock snapshots for discarded event messages"
                 )
 
         # Discarded packets
@@ -404,16 +404,16 @@ class _StreamClass(_StreamClassConst):
 
         if supports_discarded_packets and not supports_packets:
             raise ValueError(
-                'cannot support discarded packets, but not support packets'
+                "cannot support discarded packets, but not support packets"
             )
 
         if discarded_packets_have_default_clock_snapshots:
             if not supports_discarded_packets:
                 raise ValueError(
-                    'cannot not support discarded packets, but have default clock snapshots for discarded packet messages'
+                    "cannot not support discarded packets, but have default clock snapshots for discarded packet messages"
                 )
 
             if default_clock_class is None:
                 raise ValueError(
-                    'cannot have no default clock class, but have default clock snapshots for discarded packet messages'
+                    "cannot have no default clock class, but have default clock snapshots for discarded packet messages"
                 )

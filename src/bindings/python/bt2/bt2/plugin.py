@@ -28,7 +28,7 @@ def find_plugins_in_path(path, recurse=True, fail_on_load_error=False):
     if status == native_bt.__BT_FUNC_STATUS_NOT_FOUND:
         return
 
-    utils._handle_func_status(status, 'failed to find plugins')
+    utils._handle_func_status(status, "failed to find plugins")
     assert plugin_set_ptr is not None
     return _PluginSet._create_from_ptr(plugin_set_ptr)
 
@@ -58,7 +58,7 @@ def find_plugins(
     if status == native_bt.__BT_FUNC_STATUS_NOT_FOUND:
         return
 
-    utils._handle_func_status(status, 'failed to find plugins')
+    utils._handle_func_status(status, "failed to find plugins")
     assert plugin_set_ptr is not None
     return _PluginSet._create_from_ptr(plugin_set_ptr)
 
@@ -85,7 +85,7 @@ def find_plugin(
     if status == native_bt.__BT_FUNC_STATUS_NOT_FOUND:
         return
 
-    utils._handle_func_status(status, 'failed to find plugin')
+    utils._handle_func_status(status, "failed to find plugin")
     assert ptr is not None
     return _Plugin._create_from_ptr(ptr)
 
@@ -134,12 +134,12 @@ class _PluginVersion:
         return self._extra
 
     def __str__(self):
-        extra = ''
+        extra = ""
 
         if self._extra is not None:
             extra = self._extra
 
-        return '{}.{}.{}{}'.format(self._major, self._minor, self._patch, extra)
+        return "{}.{}.{}{}".format(self._major, self._minor, self._patch, extra)
 
 
 class _PluginComponentClassesIterator(collections.abc.Iterator):

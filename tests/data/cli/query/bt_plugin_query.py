@@ -13,10 +13,10 @@ class SourceWithQueryThatPrintsParams(
 ):
     @classmethod
     def _user_query(cls, executor, obj, params, method_obj):
-        if obj == 'please-fail':
-            raise ValueError('catastrophic failure')
+        if obj == "please-fail":
+            raise ValueError("catastrophic failure")
 
-        return obj + ':' + to_string(params)
+        return obj + ":" + to_string(params)
 
 
 bt2.register_plugin(__name__, "query")

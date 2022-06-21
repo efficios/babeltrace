@@ -12,7 +12,7 @@ class Test(unittest.TestCase):
     def test_unconnected_port_raises(self):
         graph = bt2.Graph()
         graph.add_component(
-            bt2.find_plugin('text').sink_component_classes['pretty'], 'snk'
+            bt2.find_plugin("text").sink_component_classes["pretty"], "snk"
         )
 
         with self.assertRaisesRegex(
@@ -21,5 +21,5 @@ class Test(unittest.TestCase):
             graph.run()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

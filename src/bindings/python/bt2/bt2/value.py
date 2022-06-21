@@ -95,7 +95,7 @@ class _ValueConst(object._SharedObject, metaclass=abc.ABCMeta):
     def _check_create_status(self, ptr):
         if ptr is None:
             raise bt2._MemoryError(
-                'cannot create {} value object'.format(self._NAME.lower())
+                "cannot create {} value object".format(self._NAME.lower())
             )
 
 
@@ -247,7 +247,7 @@ class _IntegralValue(_IntegralValueConst, _NumericValue):
 
 
 class _BoolValueConst(_IntegralValueConst):
-    _NAME = 'Const boolean'
+    _NAME = "Const boolean"
 
     def __bool__(self):
         return self._value
@@ -262,7 +262,7 @@ class _BoolValueConst(_IntegralValueConst):
 
 
 class BoolValue(_BoolValueConst, _IntegralValue):
-    _NAME = 'Boolean'
+    _NAME = "Boolean"
 
     def __init__(self, value=None):
         if value is None:
@@ -312,7 +312,7 @@ class _IntegerValue(_IntegerValueConst, _IntegralValue):
     @classmethod
     def _value_to_int(cls, value):
         if not isinstance(value, numbers.Integral):
-            raise TypeError('expecting an integral number object')
+            raise TypeError("expecting an integral number object")
 
         value = int(value)
         cls._check_int_range(value)
@@ -325,12 +325,12 @@ class _IntegerValue(_IntegerValueConst, _IntegralValue):
 
 
 class _UnsignedIntegerValueConst(_IntegerValueConst):
-    _NAME = 'Const unsigned integer'
+    _NAME = "Const unsigned integer"
     _get_value = staticmethod(native_bt.value_integer_unsigned_get)
 
 
 class UnsignedIntegerValue(_UnsignedIntegerValueConst, _IntegerValue):
-    _NAME = 'Unsigned integer'
+    _NAME = "Unsigned integer"
     _check_int_range = staticmethod(utils._check_uint64)
     _create_default_value = staticmethod(native_bt.value_integer_unsigned_create)
     _create_value = staticmethod(native_bt.value_integer_unsigned_create_init)
@@ -338,12 +338,12 @@ class UnsignedIntegerValue(_UnsignedIntegerValueConst, _IntegerValue):
 
 
 class _SignedIntegerValueConst(_IntegerValueConst):
-    _NAME = 'Const signed integer'
+    _NAME = "Const signed integer"
     _get_value = staticmethod(native_bt.value_integer_signed_get)
 
 
 class SignedIntegerValue(_SignedIntegerValueConst, _IntegerValue):
-    _NAME = 'Signed integer'
+    _NAME = "Signed integer"
     _check_int_range = staticmethod(utils._check_int64)
     _create_default_value = staticmethod(native_bt.value_integer_signed_create)
     _create_value = staticmethod(native_bt.value_integer_signed_create_init)
@@ -351,7 +351,7 @@ class SignedIntegerValue(_SignedIntegerValueConst, _IntegerValue):
 
 
 class _RealValueConst(_NumericValueConst, numbers.Real):
-    _NAME = 'Const real number'
+    _NAME = "Const real number"
 
     @property
     def _value(self):
@@ -359,7 +359,7 @@ class _RealValueConst(_NumericValueConst, numbers.Real):
 
 
 class RealValue(_RealValueConst, _NumericValue):
-    _NAME = 'Real number'
+    _NAME = "Real number"
 
     def __init__(self, value=None):
         if value is None:
@@ -386,7 +386,7 @@ class RealValue(_RealValueConst, _NumericValue):
 
 @functools.total_ordering
 class _StringValueConst(collections.abc.Sequence, _Value):
-    _NAME = 'Const string'
+    _NAME = "Const string"
 
     @classmethod
     def _value_to_str(cls, value):
@@ -429,7 +429,7 @@ class _StringValueConst(collections.abc.Sequence, _Value):
 
 
 class StringValue(_StringValueConst, _Value):
-    _NAME = 'String'
+    _NAME = "String"
 
     def __init__(self, value=None):
         if value is None:
@@ -464,7 +464,7 @@ class _Container(_ContainerConst):
 
 
 class _ArrayValueConst(_ContainerConst, collections.abc.Sequence, _ValueConst):
-    _NAME = 'Const array'
+    _NAME = "Const array"
     _borrow_element_by_index = staticmethod(
         native_bt.value_array_borrow_element_by_index_const
     )
@@ -501,7 +501,7 @@ class _ArrayValueConst(_ContainerConst, collections.abc.Sequence, _ValueConst):
         index = int(index)
 
         if index < 0 or index >= len(self):
-            raise IndexError('array value object index is out of range')
+            raise IndexError("array value object index is out of range")
 
     def __getitem__(self, index):
         self._check_index(index)
@@ -510,11 +510,11 @@ class _ArrayValueConst(_ContainerConst, collections.abc.Sequence, _ValueConst):
         return self._create_value_from_ptr_and_get_ref(ptr)
 
     def __repr__(self):
-        return '[{}]'.format(', '.join([repr(v) for v in self]))
+        return "[{}]".format(", ".join([repr(v) for v in self]))
 
 
 class ArrayValue(_ArrayValueConst, _Container, collections.abc.MutableSequence, _Value):
-    _NAME = 'Array'
+    _NAME = "Array"
     _borrow_element_by_index = staticmethod(
         native_bt.value_array_borrow_element_by_index
     )
@@ -572,7 +572,7 @@ class _MapValueKeyIterator(collections.abc.Iterator):
         keys_ptr = native_bt.value_map_get_keys(map_obj._ptr)
 
         if keys_ptr is None:
-            raise RuntimeError('unexpected error: cannot get map value object keys')
+            raise RuntimeError("unexpected error: cannot get map value object keys")
 
         self._keys = _create_from_ptr(keys_ptr)
 
@@ -586,7 +586,7 @@ class _MapValueKeyIterator(collections.abc.Iterator):
 
 
 class _MapValueConst(_ContainerConst, collections.abc.Mapping, _ValueConst):
-    _NAME = 'Const map'
+    _NAME = "Const map"
     _borrow_entry_value_ptr = staticmethod(native_bt.value_map_borrow_entry_value_const)
 
     def __ne__(self, other):
@@ -635,12 +635,12 @@ class _MapValueConst(_ContainerConst, collections.abc.Mapping, _ValueConst):
         return _MapValueKeyIterator(self)
 
     def __repr__(self):
-        items = ['{}: {}'.format(repr(k), repr(v)) for k, v in self.items()]
-        return '{{{}}}'.format(', '.join(items))
+        items = ["{}: {}".format(repr(k), repr(v)) for k, v in self.items()]
+        return "{{{}}}".format(", ".join(items))
 
 
 class MapValue(_MapValueConst, _Container, collections.abc.MutableMapping, _Value):
-    _NAME = 'Map'
+    _NAME = "Map"
     _borrow_entry_value_ptr = staticmethod(native_bt.value_map_borrow_entry_value)
 
     def __init__(self, value=None):

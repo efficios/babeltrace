@@ -15,7 +15,7 @@ def _create_from_const_ptr_and_get_ref(ptr, port_type):
     cls = _PORT_TYPE_TO_PYCLS.get(port_type, None)
 
     if cls is None:
-        raise TypeError('unknown port type: {}'.format(port_type))
+        raise TypeError("unknown port type: {}".format(port_type))
 
     return cls._create_from_ptr_and_get_ref(ptr)
 
@@ -24,7 +24,7 @@ def _create_self_from_ptr_and_get_ref(ptr, port_type):
     cls = _PORT_TYPE_TO_USER_PYCLS.get(port_type, None)
 
     if cls is None:
-        raise TypeError('unknown port type: {}'.format(port_type))
+        raise TypeError("unknown port type: {}".format(port_type))
 
     return cls._create_from_ptr_and_get_ref(ptr)
 

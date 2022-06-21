@@ -13,10 +13,10 @@ def get_greatest_operative_mip_version(
     comp_descr_set_ptr = native_bt.component_descriptor_set_create()
 
     if comp_descr_set_ptr is None:
-        raise bt2._MemoryError('cannot create component descriptor set object')
+        raise bt2._MemoryError("cannot create component descriptor set object")
 
     if len(component_descriptors) == 0:
-        raise ValueError('no component descriptors')
+        raise ValueError("no component descriptors")
 
     try:
         for descr in component_descriptors:
@@ -33,7 +33,7 @@ def get_greatest_operative_mip_version(
                 comp_descr_set_ptr, base_cc_ptr, params_ptr, descr.obj
             )
             utils._handle_func_status(
-                status, 'cannot add descriptor to component descriptor set'
+                status, "cannot add descriptor to component descriptor set"
             )
 
         status, version = native_bt.get_greatest_operative_mip_version(
@@ -43,7 +43,7 @@ def get_greatest_operative_mip_version(
         if status == native_bt.__BT_FUNC_STATUS_NO_MATCH:
             return None
 
-        utils._handle_func_status(status, 'cannot get greatest operative MIP version')
+        utils._handle_func_status(status, "cannot get greatest operative MIP version")
         return version
     finally:
         native_bt.component_descriptor_set_put_ref(comp_descr_set_ptr)

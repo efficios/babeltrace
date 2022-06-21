@@ -38,11 +38,11 @@ def _create_const_event_class(tc, stream_class):
 
     class MySrc(bt2._UserSourceComponent, message_iterator_class=MyIter):
         def __init__(self, config, params, obj):
-            self._add_output_port('out', params)
+            self._add_output_port("out", params)
 
     graph = bt2.Graph()
-    src_comp = graph.add_component(MySrc, 'my_source', None)
-    msg_iter = TestOutputPortMessageIterator(graph, src_comp.output_ports['out'])
+    src_comp = graph.add_component(MySrc, "my_source", None)
+    msg_iter = TestOutputPortMessageIterator(graph, src_comp.output_ports["out"])
 
     # Ignore first message, stream beginning
     _ = next(msg_iter)
@@ -57,13 +57,13 @@ class EventClassTestCase(unittest.TestCase):
         self._tc = get_default_trace_class()
 
         self._context_fc = self._tc.create_structure_field_class()
-        self._context_fc.append_member('allo', self._tc.create_string_field_class())
+        self._context_fc.append_member("allo", self._tc.create_string_field_class())
         self._context_fc.append_member(
-            'zola', self._tc.create_signed_integer_field_class(18)
+            "zola", self._tc.create_signed_integer_field_class(18)
         )
 
         self._payload_fc = self._tc.create_structure_field_class()
-        self._payload_fc.append_member('zoom', self._tc.create_string_field_class())
+        self._payload_fc.append_member("zoom", self._tc.create_string_field_class())
 
         self._stream_class = self._tc.create_stream_class(
             assigns_automatic_event_class_id=True
@@ -73,7 +73,7 @@ class EventClassTestCase(unittest.TestCase):
         ec = self._stream_class.create_event_class()
 
         self.assertIs(type(ec), bt2_event_class._EventClass)
-        self.assertIsNone(ec.name, 'my_event')
+        self.assertIsNone(ec.name, "my_event")
         self.assertTrue(type(ec.id), int)
         self.assertIsNone(ec.specific_context_field_class)
         self.assertIsNone(ec.payload_field_class)
@@ -84,7 +84,7 @@ class EventClassTestCase(unittest.TestCase):
     def test_create_invalid_id(self):
         sc = self._tc.create_stream_class(assigns_automatic_event_class_id=False)
         with self.assertRaises(TypeError):
-            sc.create_event_class(id='lel')
+            sc.create_event_class(id="lel")
 
         self.assertEqual(len(sc), 0)
 
@@ -105,7 +105,7 @@ class EventClassTestCase(unittest.TestCase):
 
     def test_create_invalid_specific_context_field_class(self):
         with self.assertRaises(TypeError):
-            self._stream_class.create_event_class(specific_context_field_class='lel')
+            self._stream_class.create_event_class(specific_context_field_class="lel")
 
         self.assertEqual(len(self._stream_class), 0)
 
@@ -126,13 +126,13 @@ class EventClassTestCase(unittest.TestCase):
 
     def test_create_invalid_payload_field_class(self):
         with self.assertRaises(TypeError):
-            self._stream_class.create_event_class(payload_field_class='lel')
+            self._stream_class.create_event_class(payload_field_class="lel")
 
         self.assertEqual(len(self._stream_class), 0)
 
     def test_create_name(self):
-        ec = self._stream_class.create_event_class(name='viande à chien')
-        self.assertEqual(ec.name, 'viande à chien')
+        ec = self._stream_class.create_event_class(name="viande à chien")
+        self.assertEqual(ec.name, "viande à chien")
 
     def test_create_invalid_name(self):
         with self.assertRaises(TypeError):
@@ -141,8 +141,8 @@ class EventClassTestCase(unittest.TestCase):
         self.assertEqual(len(self._stream_class), 0)
 
     def test_emf_uri(self):
-        ec = self._stream_class.create_event_class(emf_uri='salut')
-        self.assertEqual(ec.emf_uri, 'salut')
+        ec = self._stream_class.create_event_class(emf_uri="salut")
+        self.assertEqual(ec.emf_uri, "salut")
 
     def test_create_invalid_emf_uri(self):
         with self.assertRaises(TypeError):
@@ -158,13 +158,13 @@ class EventClassTestCase(unittest.TestCase):
 
     def test_create_invalid_log_level(self):
         with self.assertRaises(ValueError):
-            self._stream_class.create_event_class(log_level='zoom')
+            self._stream_class.create_event_class(log_level="zoom")
 
         self.assertEqual(len(self._stream_class), 0)
 
     def test_create_user_attributes(self):
-        ec = self._stream_class.create_event_class(user_attributes={'salut': 23})
-        self.assertEqual(ec.user_attributes, {'salut': 23})
+        ec = self._stream_class.create_event_class(user_attributes={"salut": 23})
+        self.assertEqual(ec.user_attributes, {"salut": 23})
         self.assertIs(type(ec.user_attributes), bt2_value.MapValue)
 
     def test_const_create_user_attributes(self):
@@ -193,5 +193,5 @@ class EventClassTestCase(unittest.TestCase):
         self.assertIs(type(ec_const.stream_class), bt2_stream_class._StreamClassConst)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

@@ -65,7 +65,7 @@ class QueryExecutor(object._SharedObject, _QueryExecutorCommon):
             cc_ptr
         ):
             raise ValueError(
-                'cannot pass a Python object to a non-Python component class'
+                "cannot pass a Python object to a non-Python component class"
             )
 
         ptr = native_bt.bt2_query_executor_create(
@@ -73,7 +73,7 @@ class QueryExecutor(object._SharedObject, _QueryExecutorCommon):
         )
 
         if ptr is None:
-            raise bt2._MemoryError('cannot create query executor object')
+            raise bt2._MemoryError("cannot create query executor object")
 
         super().__init__(ptr)
 
@@ -107,7 +107,7 @@ class QueryExecutor(object._SharedObject, _QueryExecutorCommon):
 
     def query(self):
         status, result_ptr = native_bt.query_executor_query(self._ptr)
-        utils._handle_func_status(status, 'cannot query component class')
+        utils._handle_func_status(status, "cannot query component class")
         assert result_ptr is not None
         return bt2_value._create_from_const_ptr(result_ptr)
 
@@ -118,7 +118,7 @@ class _PrivateQueryExecutor(_QueryExecutorCommon):
 
     def _check_validity(self):
         if self._ptr is None:
-            raise RuntimeError('this object is not valid anymore')
+            raise RuntimeError("this object is not valid anymore")
 
     def _as_query_executor_ptr(self):
         self._check_validity()

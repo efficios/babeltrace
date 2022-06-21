@@ -29,8 +29,8 @@ class ThisIsASink(bt2._UserSinkComponent):
 bt2.register_plugin(
     __name__,
     "this-is-a-plugin",
-    version=(1, 2, 3, 'bob'),
-    description='A plugin',
-    author='Jorge Mario Bergoglio',
-    license='The license',
+    version=(1, 2, 3, "bob"),
+    description="A plugin",
+    author="Jorge Mario Bergoglio",
+    license="The license",
 )

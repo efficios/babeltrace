@@ -63,7 +63,7 @@ class _TraceEnvironment(_TraceEnvironmentConst, collections.abc.MutableMapping):
         elif isinstance(value, int):
             set_env_entry_fn = native_bt.trace_set_environment_entry_integer
         else:
-            raise TypeError('expected str or int, got {}'.format(type(value)))
+            raise TypeError("expected str or int, got {}".format(type(value)))
 
         status = set_env_entry_fn(self._trace._ptr, key, value)
         utils._handle_func_status(status, "cannot set trace object's environment entry")
@@ -144,7 +144,7 @@ class _TraceConst(object._SharedObject, collections.abc.Mapping):
         return self._trace_env_pycls(self)
 
     def add_destruction_listener(self, listener):
-        '''Add a listener to be called when the trace is destroyed.'''
+        """Add a listener to be called when the trace is destroyed."""
         if not callable(listener):
             raise TypeError("'listener' parameter is not callable")
 
@@ -157,7 +157,7 @@ class _TraceConst(object._SharedObject, collections.abc.Mapping):
 
         status, listener_id = fn(self._ptr, listener_from_native)
         utils._handle_func_status(
-            status, 'cannot add destruction listener to trace object'
+            status, "cannot add destruction listener to trace object"
         )
 
         handle._set_listener_id(listener_id)
@@ -169,11 +169,11 @@ class _TraceConst(object._SharedObject, collections.abc.Mapping):
 
         if listener_handle._addr != self.addr:
             raise ValueError(
-                'This trace destruction listener does not match the trace object.'
+                "This trace destruction listener does not match the trace object."
             )
 
         if listener_handle._listener_id is None:
-            raise ValueError('This trace destruction listener was already removed.')
+            raise ValueError("This trace destruction listener was already removed.")
 
         status = native_bt.trace_remove_destruction_listener(
             self._ptr, listener_handle._listener_id
@@ -236,7 +236,7 @@ class _Trace(_TraceConst):
             )
 
         if stream_ptr is None:
-            raise bt2._MemoryError('cannot create stream object')
+            raise bt2._MemoryError("cannot create stream object")
 
         stream = bt2_stream._Stream._create_from_ptr(stream_ptr)
 

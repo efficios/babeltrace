@@ -9,7 +9,7 @@ class TheIteratorOfProblems(bt2._UserMessageIterator):
         tc, sc, ec1, params = port.user_data
         trace = tc()
         stream = trace.create_stream(sc)
-        event_value = params['value']
+        event_value = params["value"]
         self._msgs = []
 
         self._msgs.append(self._create_stream_beginning_message(stream))
@@ -43,25 +43,25 @@ class TheSourceOfProblems(
     def __init__(self, config, params, obj):
         tc = self._create_trace_class()
 
-        enum_values_str = params['enum-values']
+        enum_values_str = params["enum-values"]
 
         sc = tc.create_stream_class()
 
         # Create the enumeration field with the values in parameter
-        if params['enum-signed']:
+        if params["enum-signed"]:
             enumfc = tc.create_signed_enumeration_field_class()
         else:
             enumfc = tc.create_unsigned_enumeration_field_class()
 
-        groups = str(enum_values_str).split(' ')
+        groups = str(enum_values_str).split(" ")
         mappings = {}
         range_set_type = (
             bt2.SignedIntegerRangeSet
-            if params['enum-signed']
+            if params["enum-signed"]
             else bt2.UnsignedIntegerRangeSet
         )
         for group in groups:
-            label, low, high = group.split(',')
+            label, low, high = group.split(",")
 
             if label not in mappings.keys():
                 mappings[label] = range_set_type()
@@ -73,11 +73,11 @@ class TheSourceOfProblems(
 
         # Create the struct field to contain the enum field class
         struct_fc = tc.create_structure_field_class()
-        struct_fc.append_member('enum_field', enumfc)
+        struct_fc.append_member("enum_field", enumfc)
 
         # Create an event class on this stream with the struct field
-        ec1 = sc.create_event_class(name='with_enum', payload_field_class=struct_fc)
-        self._add_output_port('out', (tc, sc, ec1, params))
+        ec1 = sc.create_event_class(name="with_enum", payload_field_class=struct_fc)
+        self._add_output_port("out", (tc, sc, ec1, params))
 
 
-bt2.register_plugin(__name__, 'test-pretty')
+bt2.register_plugin(__name__, "test-pretty")

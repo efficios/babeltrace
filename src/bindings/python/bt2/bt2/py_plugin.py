@@ -13,7 +13,7 @@ _plugin_infos = {}
 
 def plugin_component_class(component_class):
     if not issubclass(component_class, bt2_component._UserComponent):
-        raise TypeError('component class is not a subclass of a user component class')
+        raise TypeError("component class is not a subclass of a user component class")
 
     component_class._bt_plugin_component_class = None
     return component_class
@@ -41,7 +41,7 @@ def register_plugin(
     if version is not None:
         if not _validate_version(version):
             raise ValueError(
-                'wrong version: expecting a tuple: (major, minor, patch) or (major, minor, patch, extra)'
+                "wrong version: expecting a tuple: (major, minor, patch) or (major, minor, patch, extra)"
             )
 
     sys.modules[module_name]._bt_plugin_info = _PluginInfo(
@@ -96,20 +96,20 @@ def _try_load_plugin_module(path):
     import hashlib
 
     if path is None:
-        raise TypeError('missing path')
+        raise TypeError("missing path")
 
     # In order to load the module uniquely from its path, even from
     # different files which have the same basename, we hash the path
     # and prefix with `bt_plugin_`. This is its key in sys.modules.
     h = hashlib.sha256()
     h.update(path.encode())
-    module_name = 'bt_plugin_{}'.format(h.hexdigest())
+    module_name = "bt_plugin_{}".format(h.hexdigest())
     assert module_name not in sys.modules
     # try loading the module: any raised exception is catched by the caller
     mod = importlib.machinery.SourceFileLoader(module_name, path).load_module()
 
     # we have the module: look for its plugin info first
-    if not hasattr(mod, '_bt_plugin_info'):
+    if not hasattr(mod, "_bt_plugin_info"):
         raise RuntimeError("missing '_bt_plugin_info' module attribute")
 
     plugin_info = mod._bt_plugin_info
@@ -119,7 +119,7 @@ def _try_load_plugin_module(path):
         if not inspect.isclass(obj):
             return False
 
-        if not hasattr(obj, '_bt_plugin_component_class'):
+        if not hasattr(obj, "_bt_plugin_component_class"):
             return False
 
         return True

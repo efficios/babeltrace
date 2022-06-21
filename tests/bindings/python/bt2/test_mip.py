@@ -85,7 +85,7 @@ class MipTestCase(unittest.TestCase):
         descriptors = [bt2.ComponentDescriptor(Source1)]
 
         with self.assertRaises(TypeError):
-            bt2.get_greatest_operative_mip_version(descriptors, 'lel')
+            bt2.get_greatest_operative_mip_version(descriptors, "lel")
 
     def test_get_greatest_operative_mip_version_wrong_log_level_value(self):
         class Source1(
@@ -102,5 +102,5 @@ class MipTestCase(unittest.TestCase):
         self.assertEqual(bt2.get_maximal_mip_version(), 0)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

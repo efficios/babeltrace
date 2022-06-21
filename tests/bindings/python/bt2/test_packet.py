@@ -14,7 +14,7 @@ class PacketTestCase(unittest.TestCase):
     @staticmethod
     def _create_packet(with_pc):
         def create_tc_cc(comp_self):
-            cc = comp_self._create_clock_class(frequency=1000, name='my_cc')
+            cc = comp_self._create_clock_class(frequency=1000, name="my_cc")
             tc = comp_self._create_trace_class()
             return cc, tc
 
@@ -23,8 +23,8 @@ class PacketTestCase(unittest.TestCase):
         # stream event context
         sec = tc.create_structure_field_class()
         sec += [
-            ('cpu_id', tc.create_signed_integer_field_class(8)),
-            ('stuff', tc.create_double_precision_real_field_class()),
+            ("cpu_id", tc.create_signed_integer_field_class(8)),
+            ("stuff", tc.create_double_precision_real_field_class()),
         ]
 
         # packet context
@@ -32,10 +32,10 @@ class PacketTestCase(unittest.TestCase):
         if with_pc:
             pc = tc.create_structure_field_class()
             pc += [
-                ('something', tc.create_signed_integer_field_class(8)),
-                ('something_else', tc.create_double_precision_real_field_class()),
-                ('events_discarded', tc.create_unsigned_integer_field_class(64)),
-                ('packet_seq_num', tc.create_unsigned_integer_field_class(64)),
+                ("something", tc.create_signed_integer_field_class(8)),
+                ("something_else", tc.create_double_precision_real_field_class()),
+                ("events_discarded", tc.create_unsigned_integer_field_class(64)),
+                ("packet_seq_num", tc.create_unsigned_integer_field_class(64)),
             ]
 
         # stream class
@@ -49,20 +49,20 @@ class PacketTestCase(unittest.TestCase):
         # event context
         ec = tc.create_structure_field_class()
         ec += [
-            ('ant', tc.create_signed_integer_field_class(16)),
-            ('msg', tc.create_string_field_class()),
+            ("ant", tc.create_signed_integer_field_class(16)),
+            ("msg", tc.create_string_field_class()),
         ]
 
         # event payload
         ep = tc.create_structure_field_class()
         ep += [
-            ('giraffe', tc.create_signed_integer_field_class(32)),
-            ('gnu', tc.create_signed_integer_field_class(8)),
-            ('mosquito', tc.create_signed_integer_field_class(8)),
+            ("giraffe", tc.create_signed_integer_field_class(32)),
+            ("gnu", tc.create_signed_integer_field_class(8)),
+            ("mosquito", tc.create_signed_integer_field_class(8)),
         ]
 
         # event class
-        event_class = sc.create_event_class(name='ec', payload_field_class=ep)
+        event_class = sc.create_event_class(name="ec", payload_field_class=ep)
         event_class.common_context_field_class = ec
 
         # trace
@@ -97,5 +97,5 @@ class PacketTestCase(unittest.TestCase):
         self.assertIsNone(packet.context_field)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

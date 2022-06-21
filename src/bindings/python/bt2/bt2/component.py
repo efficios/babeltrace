@@ -177,7 +177,7 @@ class _ComponentConst:
         )
 
     def __eq__(self, other):
-        if not hasattr(other, 'addr'):
+        if not hasattr(other, "addr"):
             return False
 
         return self.addr == other.addr
@@ -329,7 +329,7 @@ def _trim_docstring(docstring):
     lines = docstring.expandtabs().splitlines()
 
     if len(lines) == 0:
-        return ''
+        return ""
 
     indent = sys.maxsize
 
@@ -352,7 +352,7 @@ def _trim_docstring(docstring):
     while trimmed and not trimmed[0]:
         trimmed.pop(0)
 
-    return '\n'.join(trimmed)
+    return "\n".join(trimmed)
 
 
 # Metaclass for component classes defined by Python code.
@@ -437,22 +437,22 @@ class _UserComponentType(type):
 
         # skip our own bases; they are never directly instantiated by the user
         own_bases = (
-            '_UserComponent',
-            '_UserFilterSinkComponent',
-            '_UserSourceComponent',
-            '_UserFilterComponent',
-            '_UserSinkComponent',
+            "_UserComponent",
+            "_UserFilterSinkComponent",
+            "_UserSourceComponent",
+            "_UserFilterComponent",
+            "_UserSinkComponent",
         )
 
         if class_name in own_bases:
             return
 
-        comp_cls_name = kwargs.get('name', class_name)
+        comp_cls_name = kwargs.get("name", class_name)
         utils._check_str(comp_cls_name)
         comp_cls_descr = None
         comp_cls_help = None
 
-        if hasattr(cls, '__doc__') and cls.__doc__ is not None:
+        if hasattr(cls, "__doc__") and cls.__doc__ is not None:
             utils._check_str(cls.__doc__)
             docstring = _trim_docstring(cls.__doc__)
             lines = docstring.splitlines()
@@ -461,9 +461,9 @@ class _UserComponentType(type):
                 comp_cls_descr = lines[0]
 
             if len(lines) >= 3:
-                comp_cls_help = '\n'.join(lines[2:])
+                comp_cls_help = "\n".join(lines[2:])
 
-        iter_cls = kwargs.get('message_iterator_class')
+        iter_cls = kwargs.get("message_iterator_class")
 
         if _UserSourceComponent in bases:
             _UserComponentType._bt_set_iterator_class(cls, iter_cls)
@@ -476,7 +476,7 @@ class _UserComponentType(type):
                 cls, comp_cls_name, comp_cls_descr, comp_cls_help
             )
         elif _UserSinkComponent in bases:
-            if not hasattr(cls, '_user_consume'):
+            if not hasattr(cls, "_user_consume"):
                 raise bt2._IncompleteUserClass(
                     "cannot create component class '{}': missing a _user_consume() method".format(
                         class_name
@@ -521,7 +521,7 @@ class _UserComponentType(type):
 
     def __call__(cls, *args, **kwargs):
         raise RuntimeError(
-            'cannot directly instantiate a user component from a Python module'
+            "cannot directly instantiate a user component from a Python module"
         )
 
     @staticmethod
@@ -540,15 +540,15 @@ class _UserComponentType(type):
                 )
             )
 
-        if not hasattr(iter_cls, '__next__'):
+        if not hasattr(iter_cls, "__next__"):
             raise bt2._IncompleteUserClass(
                 "cannot create component class '{}': message iterator class is missing a __next__() method".format(
                     cls.__name__
                 )
             )
 
-        if hasattr(iter_cls, '_user_can_seek_ns_from_origin') and not hasattr(
-            iter_cls, '_user_seek_ns_from_origin'
+        if hasattr(iter_cls, "_user_can_seek_ns_from_origin") and not hasattr(
+            iter_cls, "_user_seek_ns_from_origin"
         ):
             raise bt2._IncompleteUserClass(
                 "cannot create component class '{}': message iterator class implements _user_can_seek_ns_from_origin but not _user_seek_ns_from_origin".format(
@@ -556,8 +556,8 @@ class _UserComponentType(type):
                 )
             )
 
-        if hasattr(iter_cls, '_user_can_seek_beginning') and not hasattr(
-            iter_cls, '_user_seek_beginning'
+        if hasattr(iter_cls, "_user_can_seek_beginning") and not hasattr(
+            iter_cls, "_user_seek_beginning"
         ):
             raise bt2._IncompleteUserClass(
                 "cannot create component class '{}': message iterator class implements _user_can_seek_beginning but not _user_seek_beginning".format(
@@ -649,7 +649,7 @@ class _UserComponentType(type):
         return self._bt_as_component_class_ptr(self._bt_cc_ptr)
 
     def __del__(cls):
-        if hasattr(cls, '_bt_cc_ptr'):
+        if hasattr(cls, "_bt_cc_ptr"):
             cc_ptr = cls._bt_as_component_class_ptr(cls._bt_cc_ptr)
             native_bt.component_class_put_ref(cc_ptr)
             native_bt.bt2_unregister_cc_ptr_to_py_cls(cc_ptr)
@@ -753,7 +753,7 @@ class _UserComponent(metaclass=_UserComponentType):
         tc_ptr = native_bt.trace_class_create(ptr)
 
         if tc_ptr is None:
-            raise bt2._MemoryError('could not create trace class')
+            raise bt2._MemoryError("could not create trace class")
 
         tc = bt2_trace_class._TraceClass._create_from_ptr(tc_ptr)
         tc._assigns_automatic_stream_class_id = assigns_automatic_stream_class_id
@@ -778,7 +778,7 @@ class _UserComponent(metaclass=_UserComponentType):
         cc_ptr = native_bt.clock_class_create(ptr)
 
         if cc_ptr is None:
-            raise bt2._MemoryError('could not create clock class')
+            raise bt2._MemoryError("could not create clock class")
 
         cc = bt2_clock_class._ClockClass._create_from_ptr(cc_ptr)
 
@@ -836,7 +836,7 @@ class _UserSourceComponent(_UserComponent, _SourceComponentConst):
 
         if name in self._output_ports:
             raise ValueError(
-                'source component `{}` already contains an output port named `{}`'.format(
+                "source component `{}` already contains an output port named `{}`".format(
                     self.name, name
                 )
             )
@@ -844,7 +844,7 @@ class _UserSourceComponent(_UserComponent, _SourceComponentConst):
         fn = native_bt.self_component_source_add_output_port
         comp_status, self_port_ptr = fn(self._bt_ptr, name, user_data)
         utils._handle_func_status(
-            comp_status, 'cannot add output port to source component object'
+            comp_status, "cannot add output port to source component object"
         )
         assert self_port_ptr is not None
         return bt2_port._UserComponentOutputPort._create_from_ptr_and_get_ref(
@@ -894,7 +894,7 @@ class _UserFilterComponent(_UserComponent, _FilterComponentConst):
 
         if name in self._output_ports:
             raise ValueError(
-                'filter component `{}` already contains an output port named `{}`'.format(
+                "filter component `{}` already contains an output port named `{}`".format(
                     self.name, name
                 )
             )
@@ -902,7 +902,7 @@ class _UserFilterComponent(_UserComponent, _FilterComponentConst):
         fn = native_bt.self_component_filter_add_output_port
         comp_status, self_port_ptr = fn(self._bt_ptr, name, user_data)
         utils._handle_func_status(
-            comp_status, 'cannot add output port to filter component object'
+            comp_status, "cannot add output port to filter component object"
         )
         assert self_port_ptr
         return bt2_port._UserComponentOutputPort._create_from_ptr_and_get_ref(
@@ -914,7 +914,7 @@ class _UserFilterComponent(_UserComponent, _FilterComponentConst):
 
         if name in self._input_ports:
             raise ValueError(
-                'filter component `{}` already contains an input port named `{}`'.format(
+                "filter component `{}` already contains an input port named `{}`".format(
                     self.name, name
                 )
             )
@@ -922,7 +922,7 @@ class _UserFilterComponent(_UserComponent, _FilterComponentConst):
         fn = native_bt.self_component_filter_add_input_port
         comp_status, self_port_ptr = fn(self._bt_ptr, name, user_data)
         utils._handle_func_status(
-            comp_status, 'cannot add input port to filter component object'
+            comp_status, "cannot add input port to filter component object"
         )
         assert self_port_ptr
         return bt2_port._UserComponentInputPort._create_from_ptr_and_get_ref(
@@ -964,7 +964,7 @@ class _UserSinkComponent(_UserComponent, _SinkComponentConst):
 
         if name in self._input_ports:
             raise ValueError(
-                'sink component `{}` already contains an input port named `{}`'.format(
+                "sink component `{}` already contains an input port named `{}`".format(
                     self.name, name
                 )
             )
@@ -972,7 +972,7 @@ class _UserSinkComponent(_UserComponent, _SinkComponentConst):
         fn = native_bt.self_component_sink_add_input_port
         comp_status, self_port_ptr = fn(self._bt_ptr, name, user_data)
         utils._handle_func_status(
-            comp_status, 'cannot add input port to sink component object'
+            comp_status, "cannot add input port to sink component object"
         )
         assert self_port_ptr
         return bt2_port._UserComponentInputPort._create_from_ptr_and_get_ref(
@@ -983,7 +983,7 @@ class _UserSinkComponent(_UserComponent, _SinkComponentConst):
         utils._check_type(input_port, bt2_port._UserComponentInputPort)
 
         if not input_port.is_connected:
-            raise ValueError('input port is not connected')
+            raise ValueError("input port is not connected")
 
         (
             status,
@@ -991,7 +991,7 @@ class _UserSinkComponent(_UserComponent, _SinkComponentConst):
         ) = native_bt.bt2_message_iterator_create_from_sink_component(
             self._bt_ptr, input_port._ptr
         )
-        utils._handle_func_status(status, 'cannot create message iterator object')
+        utils._handle_func_status(status, "cannot create message iterator object")
         assert msg_iter_ptr is not None
 
         return bt2_message_iterator._UserComponentInputPortMessageIterator(msg_iter_ptr)

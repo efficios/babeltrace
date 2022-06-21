@@ -22,7 +22,7 @@ def run_in_component_init(func):
 
     g = bt2.Graph()
     res_bound = None
-    g.add_component(MySink, 'comp')
+    g.add_component(MySink, "comp")
 
     # We deliberately use a different variable for returning the result than
     # the variable bound to the MySink.__init__ context and delete res_bound.
@@ -58,47 +58,47 @@ def _get_all_message_types(with_packet=True):
             self._at = 0
             self._msgs = [
                 self._create_stream_beginning_message(
-                    self_output_port.user_data['stream']
+                    self_output_port.user_data["stream"]
                 )
             ]
 
             if with_packet:
-                assert self_output_port.user_data['packet']
+                assert self_output_port.user_data["packet"]
                 self._msgs.append(
                     self._create_packet_beginning_message(
-                        self_output_port.user_data['packet']
+                        self_output_port.user_data["packet"]
                     )
                 )
 
             default_clock_snapshot = 789
 
             if with_packet:
-                assert self_output_port.user_data['packet']
-                ev_parent = self_output_port.user_data['packet']
+                assert self_output_port.user_data["packet"]
+                ev_parent = self_output_port.user_data["packet"]
             else:
-                assert self_output_port.user_data['stream']
-                ev_parent = self_output_port.user_data['stream']
+                assert self_output_port.user_data["stream"]
+                ev_parent = self_output_port.user_data["stream"]
 
             msg = self._create_event_message(
-                self_output_port.user_data['event_class'],
+                self_output_port.user_data["event_class"],
                 ev_parent,
                 default_clock_snapshot,
             )
 
-            msg.event.payload_field['giraffe'] = 1
-            msg.event.specific_context_field['ant'] = -1
-            msg.event.common_context_field['cpu_id'] = 1
+            msg.event.payload_field["giraffe"] = 1
+            msg.event.specific_context_field["ant"] = -1
+            msg.event.common_context_field["cpu_id"] = 1
             self._msgs.append(msg)
 
             if with_packet:
                 self._msgs.append(
                     self._create_packet_end_message(
-                        self_output_port.user_data['packet']
+                        self_output_port.user_data["packet"]
                     )
                 )
 
             self._msgs.append(
-                self._create_stream_end_message(self_output_port.user_data['stream'])
+                self._create_stream_end_message(self_output_port.user_data["stream"])
             )
 
             _msgs = self._msgs
@@ -118,14 +118,14 @@ def _get_all_message_types(with_packet=True):
 
             # event common context (stream-class-defined)
             cc = tc.create_structure_field_class()
-            cc += [('cpu_id', tc.create_signed_integer_field_class(8))]
+            cc += [("cpu_id", tc.create_signed_integer_field_class(8))]
 
             # packet context (stream-class-defined)
             pc = None
 
             if with_packet:
                 pc = tc.create_structure_field_class()
-                pc += [('something', tc.create_unsigned_integer_field_class(8))]
+                pc += [("something", tc.create_unsigned_integer_field_class(8))]
 
             stream_class = tc.create_stream_class(
                 default_clock_class=clock_class,
@@ -136,39 +136,39 @@ def _get_all_message_types(with_packet=True):
 
             # specific context (event-class-defined)
             sc = tc.create_structure_field_class()
-            sc += [('ant', tc.create_signed_integer_field_class(16))]
+            sc += [("ant", tc.create_signed_integer_field_class(16))]
 
             # event payload
             ep = tc.create_structure_field_class()
-            ep += [('giraffe', tc.create_signed_integer_field_class(32))]
+            ep += [("giraffe", tc.create_signed_integer_field_class(32))]
 
             event_class = stream_class.create_event_class(
-                name='garou', specific_context_field_class=sc, payload_field_class=ep
+                name="garou", specific_context_field_class=sc, payload_field_class=ep
             )
 
-            trace = tc(environment={'patate': 12})
-            stream = trace.create_stream(stream_class, user_attributes={'salut': 23})
+            trace = tc(environment={"patate": 12})
+            stream = trace.create_stream(stream_class, user_attributes={"salut": 23})
 
             if with_packet:
                 packet = stream.create_packet()
-                packet.context_field['something'] = 154
+                packet.context_field["something"] = 154
             else:
                 packet = None
 
             self._add_output_port(
-                'out',
+                "out",
                 {
-                    'tc': tc,
-                    'stream': stream,
-                    'event_class': event_class,
-                    'trace': trace,
-                    'packet': packet,
+                    "tc": tc,
+                    "stream": stream,
+                    "event_class": event_class,
+                    "trace": trace,
+                    "packet": packet,
                 },
             )
 
     _graph = bt2.Graph()
-    _src_comp = _graph.add_component(MySrc, 'my_source')
-    _msg_iter = TestOutputPortMessageIterator(_graph, _src_comp.output_ports['out'])
+    _src_comp = _graph.add_component(MySrc, "my_source")
+    _msg_iter = TestOutputPortMessageIterator(_graph, _src_comp.output_ports["out"])
 
     const_msgs = list(_msg_iter)
 
@@ -241,10 +241,10 @@ class TestProxySink(bt2._UserSinkComponent):
     def __init__(self, config, params, msg_list):
         assert msg_list is not None
         self._msg_list = msg_list
-        self._add_input_port('in')
+        self._add_input_port("in")
 
     def _user_graph_is_configured(self):
-        self._msg_iter = self._create_message_iterator(self._input_ports['in'])
+        self._msg_iter = self._create_message_iterator(self._input_ports["in"])
 
     def _user_consume(self):
         assert self._msg_list[0] is None
@@ -265,8 +265,8 @@ class TestOutputPortMessageIterator(collections.abc.Iterator):
     def __init__(self, graph, output_port):
         self._graph = graph
         self._msg_list = [None]
-        sink = graph.add_component(TestProxySink, 'test-proxy-sink', obj=self._msg_list)
-        graph.connect_ports(output_port, sink.input_ports['in'])
+        sink = graph.add_component(TestProxySink, "test-proxy-sink", obj=self._msg_list)
+        graph.connect_ports(output_port, sink.input_ports["in"])
 
     def __next__(self):
         assert self._msg_list[0] is None
@@ -282,7 +282,7 @@ class TestOutputPortMessageIterator(collections.abc.Iterator):
 # The field is part of a dummy stream, itself part of a dummy trace created
 # from trace class `tc`.
 def create_const_field(tc, field_class, field_value_setter_fn):
-    field_name = 'const field'
+    field_name = "const field"
 
     class MyIter(bt2._UserMessageIterator):
         def __init__(self, config, self_port_output):
@@ -312,11 +312,11 @@ def create_const_field(tc, field_class, field_value_setter_fn):
 
     class MySrc(bt2._UserSourceComponent, message_iterator_class=MyIter):
         def __init__(self, config, params, obj):
-            self._add_output_port('out', params)
+            self._add_output_port("out", params)
 
     graph = bt2.Graph()
-    src_comp = graph.add_component(MySrc, 'my_source', None)
-    msg_iter = TestOutputPortMessageIterator(graph, src_comp.output_ports['out'])
+    src_comp = graph.add_component(MySrc, "my_source", None)
+    msg_iter = TestOutputPortMessageIterator(graph, src_comp.output_ports["out"])
 
     # Ignore first message, stream beginning
     _ = next(msg_iter)
@@ -354,11 +354,11 @@ def run_in_message_iterator_next(create_stream_class_func, msg_iter_next_func):
             cc = self._create_clock_class()
             sc = create_stream_class_func(tc, cc)
 
-            self._add_output_port('out', (tc, sc))
+            self._add_output_port("out", (tc, sc))
 
     class MySink(bt2._UserSinkComponent):
         def __init__(self, config, params, obj):
-            self._input_port = self._add_input_port('in')
+            self._input_port = self._add_input_port("in")
 
         def _user_graph_is_configured(self):
             self._input_iter = self._create_message_iterator(self._input_port)
@@ -368,9 +368,9 @@ def run_in_message_iterator_next(create_stream_class_func, msg_iter_next_func):
 
     graph = bt2.Graph()
     res_bound = None
-    src = graph.add_component(MySrc, 'ze source')
-    snk = graph.add_component(MySink, 'ze sink')
-    graph.connect_ports(src.output_ports['out'], snk.input_ports['in'])
+    src = graph.add_component(MySrc, "ze source")
+    snk = graph.add_component(MySink, "ze sink")
+    graph.connect_ports(src.output_ports["out"], snk.input_ports["in"])
     graph.run()
 
     # We deliberately use a different variable for returning the result than

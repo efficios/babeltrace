@@ -16,27 +16,27 @@ class SimpleSink(bt2._UserSinkComponent):
     # it.
 
     def __init__(self, config, params, obj):
-        self._add_input_port('in')
+        self._add_input_port("in")
 
     def _user_consume(self):
         next(self._msg_iter)
 
     def _user_graph_is_configured(self):
-        self._msg_iter = self._create_message_iterator(self._input_ports['in'])
+        self._msg_iter = self._create_message_iterator(self._input_ports["in"])
 
 
 def _create_graph(src_comp_cls, sink_comp_cls, flt_comp_cls=None):
     graph = bt2.Graph()
 
-    src_comp = graph.add_component(src_comp_cls, 'src')
-    sink_comp = graph.add_component(sink_comp_cls, 'sink')
+    src_comp = graph.add_component(src_comp_cls, "src")
+    sink_comp = graph.add_component(sink_comp_cls, "sink")
 
     if flt_comp_cls is not None:
-        flt_comp = graph.add_component(flt_comp_cls, 'flt')
-        graph.connect_ports(src_comp.output_ports['out'], flt_comp.input_ports['in'])
-        graph.connect_ports(flt_comp.output_ports['out'], sink_comp.input_ports['in'])
+        flt_comp = graph.add_component(flt_comp_cls, "flt")
+        graph.connect_ports(src_comp.output_ports["out"], flt_comp.input_ports["in"])
+        graph.connect_ports(flt_comp.output_ports["out"], sink_comp.input_ports["in"])
     else:
-        graph.connect_ports(src_comp.output_ports['out'], sink_comp.input_ports['in'])
+        graph.connect_ports(src_comp.output_ports["out"], sink_comp.input_ports["in"])
 
     return graph
 
@@ -56,7 +56,7 @@ class UserMessageIteratorTestCase(unittest.TestCase):
         class MySource(bt2._UserSourceComponent, message_iterator_class=MyIter):
             def __init__(self, config, params, obj):
                 nonlocal the_output_port_from_source
-                the_output_port_from_source = self._add_output_port('out', 'user data')
+                the_output_port_from_source = self._add_output_port("out", "user data")
 
         initialized = False
         graph = _create_graph(MySource, SimpleSink)
@@ -65,7 +65,7 @@ class UserMessageIteratorTestCase(unittest.TestCase):
         self.assertEqual(
             the_output_port_from_source.addr, the_output_port_from_iter.addr
         )
-        self.assertEqual(the_output_port_from_iter.user_data, 'user data')
+        self.assertEqual(the_output_port_from_iter.user_data, "user data")
 
     def test_create_from_message_iterator(self):
         class MySourceIter(bt2._UserMessageIterator):
@@ -75,14 +75,14 @@ class UserMessageIteratorTestCase(unittest.TestCase):
 
         class MySource(bt2._UserSourceComponent, message_iterator_class=MySourceIter):
             def __init__(self, config, params, obj):
-                self._add_output_port('out')
+                self._add_output_port("out")
 
         class MyFilterIter(bt2._UserMessageIterator):
             def __init__(self, config, self_port_output):
                 nonlocal flt_iter_initialized
                 flt_iter_initialized = True
                 self._up_iter = self._create_message_iterator(
-                    self._component._input_ports['in']
+                    self._component._input_ports["in"]
                 )
 
             def __next__(self):
@@ -90,8 +90,8 @@ class UserMessageIteratorTestCase(unittest.TestCase):
 
         class MyFilter(bt2._UserFilterComponent, message_iterator_class=MyFilterIter):
             def __init__(self, config, params, obj):
-                self._add_input_port('in')
-                self._add_output_port('out')
+                self._add_input_port("in")
+                self._add_output_port("out")
 
         src_iter_initialized = False
         flt_iter_initialized = False
@@ -105,10 +105,10 @@ class UserMessageIteratorTestCase(unittest.TestCase):
     def test_create_from_sink_component_unconnected_port_raises(self):
         class MySink(bt2._UserSinkComponent):
             def __init__(comp_self, config, params, obj):
-                comp_self._input_port = comp_self._add_input_port('in')
+                comp_self._input_port = comp_self._add_input_port("in")
 
             def _user_graph_is_configured(comp_self):
-                with self.assertRaisesRegex(ValueError, 'input port is not connected'):
+                with self.assertRaisesRegex(ValueError, "input port is not connected"):
                     comp_self._create_message_iterator(comp_self._input_port)
 
                 nonlocal seen
@@ -119,7 +119,7 @@ class UserMessageIteratorTestCase(unittest.TestCase):
 
         seen = False
         graph = bt2.Graph()
-        graph.add_component(MySink, 'snk')
+        graph.add_component(MySink, "snk")
         graph.run()
         self.assertTrue(seen)
 
@@ -128,9 +128,9 @@ class UserMessageIteratorTestCase(unittest.TestCase):
     def test_create_from_message_iterator_unconnected_port_raises(self):
         class MyFilterIter(bt2._UserMessageIterator):
             def __init__(iter_self, config, port):
-                input_port = iter_self._component._input_ports['in']
+                input_port = iter_self._component._input_ports["in"]
 
-                with self.assertRaisesRegex(ValueError, 'input port is not connected'):
+                with self.assertRaisesRegex(ValueError, "input port is not connected"):
                     iter_self._create_message_iterator(input_port)
 
                 nonlocal seen
@@ -138,12 +138,12 @@ class UserMessageIteratorTestCase(unittest.TestCase):
 
         class MyFilter(bt2._UserFilterComponent, message_iterator_class=MyFilterIter):
             def __init__(comp_self, config, params, obj):
-                comp_self._add_input_port('in')
-                comp_self._add_output_port('out')
+                comp_self._add_input_port("in")
+                comp_self._add_output_port("out")
 
         class MySink(bt2._UserSinkComponent):
             def __init__(comp_self, config, params, obj):
-                comp_self._input_port = comp_self._add_input_port('in')
+                comp_self._input_port = comp_self._add_input_port("in")
 
             def _user_graph_is_configured(comp_self):
                 comp_self._input_iter = comp_self._create_message_iterator(
@@ -155,9 +155,9 @@ class UserMessageIteratorTestCase(unittest.TestCase):
 
         seen = False
         graph = bt2.Graph()
-        flt = graph.add_component(MyFilter, 'flt')
-        snk = graph.add_component(MySink, 'snk')
-        graph.connect_ports(flt.output_ports['out'], snk.input_ports['in'])
+        flt = graph.add_component(MyFilter, "flt")
+        snk = graph.add_component(MySink, "snk")
+        graph.connect_ports(flt.output_ports["out"], snk.input_ports["in"])
         graph.run()
         self.assertTrue(seen)
 
@@ -168,22 +168,22 @@ class UserMessageIteratorTestCase(unittest.TestCase):
         # are both used in the graph.
         class MySourceIter(bt2._UserMessageIterator):
             def __init__(self, config, self_port_output):
-                raise ValueError('Very bad error')
+                raise ValueError("Very bad error")
 
         class MySource(bt2._UserSourceComponent, message_iterator_class=MySourceIter):
             def __init__(self, config, params, obj):
-                self._add_output_port('out')
+                self._add_output_port("out")
 
         class MyFilterIter(bt2._UserMessageIterator):
             def __init__(self, config, self_port_output):
                 # This is expected to raise because of the error in
                 # MySourceIter.__init__.
-                self._create_message_iterator(self._component._input_ports['in'])
+                self._create_message_iterator(self._component._input_ports["in"])
 
         class MyFilter(bt2._UserFilterComponent, message_iterator_class=MyFilterIter):
             def __init__(self, config, params, obj):
-                self._add_input_port('in')
-                self._add_output_port('out')
+                self._add_input_port("in")
+                self._add_output_port("out")
 
         graph = _create_graph(MySource, SimpleSink, MyFilter)
 
@@ -194,9 +194,9 @@ class UserMessageIteratorTestCase(unittest.TestCase):
         cause = exc[0]
 
         self.assertIsInstance(cause, bt2._MessageIteratorErrorCause)
-        self.assertEqual(cause.component_name, 'src')
-        self.assertEqual(cause.component_output_port_name, 'out')
-        self.assertIn('ValueError: Very bad error', cause.message)
+        self.assertEqual(cause.component_name, "src")
+        self.assertEqual(cause.component_output_port_name, "out")
+        self.assertIn("ValueError: Very bad error", cause.message)
 
     def test_finalize(self):
         class MyIter(bt2._UserMessageIterator):
@@ -206,7 +206,7 @@ class UserMessageIteratorTestCase(unittest.TestCase):
 
         class MySource(bt2._UserSourceComponent, message_iterator_class=MyIter):
             def __init__(self, config, params, obj):
-                self._add_output_port('out')
+                self._add_output_port("out")
 
         finalized = False
         graph = _create_graph(MySource, SimpleSink)
@@ -222,7 +222,7 @@ class UserMessageIteratorTestCase(unittest.TestCase):
 
         class MySource(bt2._UserSourceComponent, message_iterator_class=MyIter):
             def __init__(self, config, params, obj):
-                self._add_output_port('out')
+                self._add_output_port("out")
 
         config_type = None
         graph = _create_graph(MySource, SimpleSink)
@@ -237,14 +237,14 @@ class UserMessageIteratorTestCase(unittest.TestCase):
 
         class MySource(bt2._UserSourceComponent, message_iterator_class=MyIter):
             def __init__(self, config, params, obj):
-                self._add_output_port('out')
+                self._add_output_port("out")
 
         class MySink(bt2._UserSinkComponent):
             def __init__(self, config, params, obj):
-                self._add_input_port('in')
+                self._add_input_port("in")
 
             def _user_graph_is_configured(self):
-                self._msg_iter = self._create_message_iterator(self._input_ports['in'])
+                self._msg_iter = self._create_message_iterator(self._input_ports["in"])
 
             def _user_consume(self):
                 nonlocal can_seek_forward
@@ -268,7 +268,7 @@ class UserMessageIteratorTestCase(unittest.TestCase):
 
         class MySource(bt2._UserSourceComponent, message_iterator_class=MyIter):
             def __init__(self, config, params, obj):
-                self._add_output_port('out')
+                self._add_output_port("out")
 
         graph = _create_graph(MySource, SimpleSink)
         with self.assertRaises(bt2._Error) as ctx:
@@ -285,7 +285,7 @@ class UserMessageIteratorTestCase(unittest.TestCase):
 
         class MySource(bt2._UserSourceComponent, message_iterator_class=MyIter):
             def __init__(self, config, params, obj):
-                self._add_output_port('out')
+                self._add_output_port("out")
                 self._salut = 23
 
         salut = None
@@ -305,7 +305,7 @@ class UserMessageIteratorTestCase(unittest.TestCase):
 
         class MySource(bt2._UserSourceComponent, message_iterator_class=MyIter):
             def __init__(self, config, params, obj):
-                self._add_output_port('out')
+                self._add_output_port("out")
 
         called = False
         graph = _create_graph(MySource, SimpleSink)
@@ -320,7 +320,7 @@ class UserMessageIteratorTestCase(unittest.TestCase):
 
         class MySource(bt2._UserSourceComponent, message_iterator_class=MyIter):
             def __init__(self, config, params, obj):
-                self._add_output_port('out')
+                self._add_output_port("out")
 
         addr = None
         graph = _create_graph(MySource, SimpleSink)
@@ -356,11 +356,11 @@ class UserMessageIteratorTestCase(unittest.TestCase):
                 tc = self._create_trace_class()
                 sc = tc.create_stream_class(supports_packets=True)
                 ec = sc.create_event_class()
-                self._add_output_port('out', (tc, sc, ec))
+                self._add_output_port("out", (tc, sc, ec))
 
         graph = bt2.Graph()
-        src = graph.add_component(MySource, 'src')
-        it = TestOutputPortMessageIterator(graph, src.output_ports['out'])
+        src = graph.add_component(MySource, "src")
+        it = TestOutputPortMessageIterator(graph, src.output_ports["out"])
 
         # Skip beginning messages.
         msg = next(it)
@@ -385,7 +385,7 @@ class UserMessageIteratorTestCase(unittest.TestCase):
 
         class MySource(bt2._UserSourceComponent, message_iterator_class=MyIter):
             def __init__(self, config, params, obj):
-                self._add_output_port('out')
+                self._add_output_port("out")
 
         class MyFilterIter(bt2._UserMessageIterator):
             def __init__(self, port):
@@ -403,12 +403,12 @@ class UserMessageIteratorTestCase(unittest.TestCase):
 
         class MyFilter(bt2._UserFilterComponent, message_iterator_class=MyFilterIter):
             def __init__(self, config, params, obj):
-                input_port = self._add_input_port('in')
-                self._add_output_port('out', input_port)
+                input_port = self._add_input_port("in")
+                self._add_output_port("out", input_port)
 
         graph = bt2.Graph()
-        src = graph.add_component(MySource, 'src')
-        it = TestOutputPortMessageIterator(graph, src.output_ports['out'])
+        src = graph.add_component(MySource, "src")
+        it = TestOutputPortMessageIterator(graph, src.output_ports["out"])
 
         # Three times the initial ref count of `None` iterations should
         # be enough to catch the bug even if there are small differences
@@ -431,13 +431,13 @@ class UserMessageIteratorTestCase(unittest.TestCase):
 
         class MySource(bt2._UserSourceComponent, message_iterator_class=MySourceIter):
             def __init__(self, config, params, obj):
-                self._add_output_port('out')
+                self._add_output_port("out")
 
         class MyFilterIter(bt2._UserMessageIterator):
             def __init__(self, config, port):
                 # First, create an upstream iterator.
                 self._upstream_iter = self._create_message_iterator(
-                    self._component._input_ports['in']
+                    self._component._input_ports["in"]
                 )
 
                 # Then, voluntarily make a reference cycle that will keep this
@@ -446,16 +446,16 @@ class UserMessageIteratorTestCase(unittest.TestCase):
                 self._self = self
 
                 # Finally, raise an exception to make __init__ fail.
-                raise ValueError('woops')
+                raise ValueError("woops")
 
         class MyFilter(bt2._UserFilterComponent, message_iterator_class=MyFilterIter):
             def __init__(self, config, params, obj):
-                self._in = self._add_input_port('in')
-                self._out = self._add_output_port('out')
+                self._in = self._add_input_port("in")
+                self._out = self._add_output_port("out")
 
         class MySink(bt2._UserSinkComponent):
             def __init__(self, config, params, obj):
-                self._input_port = self._add_input_port('in')
+                self._input_port = self._add_input_port("in")
 
             def _user_graph_is_configured(self):
                 self._upstream_iter = self._create_message_iterator(self._input_port)
@@ -465,13 +465,13 @@ class UserMessageIteratorTestCase(unittest.TestCase):
                 assert False
 
         g = bt2.Graph()
-        src = g.add_component(MySource, 'src')
-        flt = g.add_component(MyFilter, 'flt')
-        snk = g.add_component(MySink, 'snk')
-        g.connect_ports(src.output_ports['out'], flt.input_ports['in'])
-        g.connect_ports(flt.output_ports['out'], snk.input_ports['in'])
+        src = g.add_component(MySource, "src")
+        flt = g.add_component(MyFilter, "flt")
+        snk = g.add_component(MySink, "snk")
+        g.connect_ports(src.output_ports["out"], flt.input_ports["in"])
+        g.connect_ports(flt.output_ports["out"], snk.input_ports["in"])
 
-        with self.assertRaisesRegex(bt2._Error, 'ValueError: woops'):
+        with self.assertRaisesRegex(bt2._Error, "ValueError: woops"):
             g.run()
 
 
@@ -527,12 +527,12 @@ def _setup_seek_test(
             sc = tc.create_stream_class(supports_packets=True)
             ec = sc.create_event_class()
 
-            self._add_output_port('out', (tc, sc, ec))
+            self._add_output_port("out", (tc, sc, ec))
 
     class MyFilterIter(bt2._UserMessageIterator):
         def __init__(self, config, port):
             self._upstream_iter = self._create_message_iterator(
-                self._component._input_ports['in']
+                self._component._input_ports["in"]
             )
             config.can_seek_forward = self._upstream_iter.can_seek_forward
 
@@ -553,8 +553,8 @@ def _setup_seek_test(
 
     class MyFilter(bt2._UserFilterComponent, message_iterator_class=MyFilterIter):
         def __init__(self, config, params, obj):
-            self._add_input_port('in')
-            self._add_output_port('out')
+            self._add_input_port("in")
+            self._add_output_port("out")
 
     return _create_graph(MySource, sink_cls, flt_comp_cls=MyFilter)
 
@@ -570,10 +570,10 @@ class UserMessageIteratorSeekBeginningTestCase(unittest.TestCase):
     def test_can_seek_beginning(self):
         class MySink(bt2._UserSinkComponent):
             def __init__(self, config, params, obj):
-                self._add_input_port('in')
+                self._add_input_port("in")
 
             def _user_graph_is_configured(self):
-                self._msg_iter = self._create_message_iterator(self._input_ports['in'])
+                self._msg_iter = self._create_message_iterator(self._input_ports["in"])
 
             def _user_consume(self):
                 nonlocal can_seek_beginning
@@ -604,10 +604,10 @@ class UserMessageIteratorSeekBeginningTestCase(unittest.TestCase):
         # a _user_seek_beginning method.
         class MySink(bt2._UserSinkComponent):
             def __init__(self, config, params, obj):
-                self._add_input_port('in')
+                self._add_input_port("in")
 
             def _user_graph_is_configured(self):
-                self._msg_iter = self._create_message_iterator(self._input_ports['in'])
+                self._msg_iter = self._create_message_iterator(self._input_ports["in"])
 
             def _user_consume(self):
                 nonlocal can_seek_beginning
@@ -626,10 +626,10 @@ class UserMessageIteratorSeekBeginningTestCase(unittest.TestCase):
         # a _user_seek_beginning method.
         class MySink(bt2._UserSinkComponent):
             def __init__(self, config, params, obj):
-                self._add_input_port('in')
+                self._add_input_port("in")
 
             def _user_graph_is_configured(self):
-                self._msg_iter = self._create_message_iterator(self._input_ports['in'])
+                self._msg_iter = self._create_message_iterator(self._input_ports["in"])
 
             def _user_consume(self):
                 nonlocal can_seek_beginning
@@ -643,17 +643,17 @@ class UserMessageIteratorSeekBeginningTestCase(unittest.TestCase):
     def test_can_seek_beginning_user_error(self):
         class MySink(bt2._UserSinkComponent):
             def __init__(self, config, params, obj):
-                self._add_input_port('in')
+                self._add_input_port("in")
 
             def _user_graph_is_configured(self):
-                self._msg_iter = self._create_message_iterator(self._input_ports['in'])
+                self._msg_iter = self._create_message_iterator(self._input_ports["in"])
 
             def _user_consume(self):
                 # This is expected to raise.
                 self._msg_iter.can_seek_beginning()
 
         def _user_can_seek_beginning(self):
-            raise ValueError('moustiquaire')
+            raise ValueError("moustiquaire")
 
         graph = _setup_seek_test(
             MySink,
@@ -665,22 +665,22 @@ class UserMessageIteratorSeekBeginningTestCase(unittest.TestCase):
             graph.run_once()
 
         cause = ctx.exception[0]
-        self.assertIn('ValueError: moustiquaire', cause.message)
+        self.assertIn("ValueError: moustiquaire", cause.message)
 
     def test_can_seek_beginning_wrong_return_value(self):
         class MySink(bt2._UserSinkComponent):
             def __init__(self, config, params, obj):
-                self._add_input_port('in')
+                self._add_input_port("in")
 
             def _user_graph_is_configured(self):
-                self._msg_iter = self._create_message_iterator(self._input_ports['in'])
+                self._msg_iter = self._create_message_iterator(self._input_ports["in"])
 
             def _user_consume(self):
                 # This is expected to raise.
                 self._msg_iter.can_seek_beginning()
 
         def _user_can_seek_beginning(self):
-            return 'Amqui'
+            return "Amqui"
 
         graph = _setup_seek_test(
             MySink,
@@ -697,10 +697,10 @@ class UserMessageIteratorSeekBeginningTestCase(unittest.TestCase):
     def test_seek_beginning(self):
         class MySink(bt2._UserSinkComponent):
             def __init__(self, config, params, obj):
-                self._add_input_port('in')
+                self._add_input_port("in")
 
             def _user_graph_is_configured(self):
-                self._msg_iter = self._create_message_iterator(self._input_ports['in'])
+                self._msg_iter = self._create_message_iterator(self._input_ports["in"])
 
             def _user_consume(self):
                 nonlocal do_seek_beginning
@@ -739,16 +739,16 @@ class UserMessageIteratorSeekBeginningTestCase(unittest.TestCase):
     def test_seek_beginning_user_error(self):
         class MySink(bt2._UserSinkComponent):
             def __init__(self, config, params, obj):
-                self._add_input_port('in')
+                self._add_input_port("in")
 
             def _user_graph_is_configured(self):
-                self._msg_iter = self._create_message_iterator(self._input_ports['in'])
+                self._msg_iter = self._create_message_iterator(self._input_ports["in"])
 
             def _user_consume(self):
                 self._msg_iter.seek_beginning()
 
         def _user_seek_beginning(self):
-            raise ValueError('ouch')
+            raise ValueError("ouch")
 
         graph = _setup_seek_test(MySink, user_seek_beginning=_user_seek_beginning)
 
@@ -980,10 +980,10 @@ class UserMessageIteratorSeekNsFromOriginTestCase(unittest.TestCase):
     ):
         class MySink(bt2._UserSinkComponent):
             def __init__(self, config, params, obj):
-                self._add_input_port('in')
+                self._add_input_port("in")
 
             def _user_graph_is_configured(self):
-                self._msg_iter = self._create_message_iterator(self._input_ports['in'])
+                self._msg_iter = self._create_message_iterator(self._input_ports["in"])
 
             def _user_consume(self):
                 nonlocal can_seek_ns_from_origin
@@ -1037,17 +1037,17 @@ class UserMessageIteratorSeekNsFromOriginTestCase(unittest.TestCase):
     def test_can_seek_ns_from_origin_user_error(self):
         class MySink(bt2._UserSinkComponent):
             def __init__(self, config, params, obj):
-                self._add_input_port('in')
+                self._add_input_port("in")
 
             def _user_graph_is_configured(self):
-                self._msg_iter = self._create_message_iterator(self._input_ports['in'])
+                self._msg_iter = self._create_message_iterator(self._input_ports["in"])
 
             def _user_consume(self):
                 # This is expected to raise.
                 self._msg_iter.can_seek_ns_from_origin(2)
 
         def _user_can_seek_ns_from_origin(self, ns_from_origin):
-            raise ValueError('Joutel')
+            raise ValueError("Joutel")
 
         graph = _setup_seek_test(
             MySink,
@@ -1059,22 +1059,22 @@ class UserMessageIteratorSeekNsFromOriginTestCase(unittest.TestCase):
             graph.run_once()
 
         cause = ctx.exception[0]
-        self.assertIn('ValueError: Joutel', cause.message)
+        self.assertIn("ValueError: Joutel", cause.message)
 
     def test_can_seek_ns_from_origin_wrong_return_value(self):
         class MySink(bt2._UserSinkComponent):
             def __init__(self, config, params, obj):
-                self._add_input_port('in')
+                self._add_input_port("in")
 
             def _user_graph_is_configured(self):
-                self._msg_iter = self._create_message_iterator(self._input_ports['in'])
+                self._msg_iter = self._create_message_iterator(self._input_ports["in"])
 
             def _user_consume(self):
                 # This is expected to raise.
                 self._msg_iter.can_seek_ns_from_origin(2)
 
         def _user_can_seek_ns_from_origin(self, ns_from_origin):
-            return 'Nitchequon'
+            return "Nitchequon"
 
         graph = _setup_seek_test(
             MySink,
@@ -1091,10 +1091,10 @@ class UserMessageIteratorSeekNsFromOriginTestCase(unittest.TestCase):
     def test_seek_ns_from_origin(self):
         class MySink(bt2._UserSinkComponent):
             def __init__(self, config, params, obj):
-                self._add_input_port('in')
+                self._add_input_port("in")
 
             def _user_graph_is_configured(self):
-                self._msg_iter = self._create_message_iterator(self._input_ports['in'])
+                self._msg_iter = self._create_message_iterator(self._input_ports["in"])
 
             def _user_consume(self):
                 self._msg_iter.seek_ns_from_origin(17)
@@ -1112,5 +1112,5 @@ class UserMessageIteratorSeekNsFromOriginTestCase(unittest.TestCase):
         self.assertEqual(actual_ns_from_origin, 17)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

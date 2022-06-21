@@ -10,20 +10,20 @@ import os
 import os.path
 
 
-_BT_TESTS_DATADIR = os.environ['BT_TESTS_DATADIR']
-_BT_CTF_TRACES_PATH = os.environ['BT_CTF_TRACES_PATH']
+_BT_TESTS_DATADIR = os.environ["BT_TESTS_DATADIR"]
+_BT_CTF_TRACES_PATH = os.environ["BT_CTF_TRACES_PATH"]
 _3EVENTS_INTERSECT_TRACE_PATH = os.path.join(
-    _BT_CTF_TRACES_PATH, 'intersection', '3eventsintersect'
+    _BT_CTF_TRACES_PATH, "intersection", "3eventsintersect"
 )
 _NOINTERSECT_TRACE_PATH = os.path.join(
-    _BT_CTF_TRACES_PATH, 'intersection', 'nointersect'
+    _BT_CTF_TRACES_PATH, "intersection", "nointersect"
 )
-_SEQUENCE_TRACE_PATH = os.path.join(_BT_CTF_TRACES_PATH, 'succeed', 'sequence')
+_SEQUENCE_TRACE_PATH = os.path.join(_BT_CTF_TRACES_PATH, "succeed", "sequence")
 _AUTO_SOURCE_DISCOVERY_GROUPING_PATH = os.path.join(
-    _BT_TESTS_DATADIR, 'auto-source-discovery', 'grouping'
+    _BT_TESTS_DATADIR, "auto-source-discovery", "grouping"
 )
 _AUTO_SOURCE_DISCOVERY_PARAMS_LOG_LEVEL_PATH = os.path.join(
-    _BT_TESTS_DATADIR, 'auto-source-discovery', 'params-log-level'
+    _BT_TESTS_DATADIR, "auto-source-discovery", "params-log-level"
 )
 
 
@@ -47,43 +47,43 @@ class _SomeSink(bt2._UserSinkComponent):
 class ComponentSpecTestCase(unittest.TestCase):
     def setUp(self):
         # A source CC from a plugin.
-        self._dmesg_cc = bt2.find_plugin('text').source_component_classes['dmesg']
+        self._dmesg_cc = bt2.find_plugin("text").source_component_classes["dmesg"]
         assert self._dmesg_cc is not None
 
         # A filter CC from a plugin.
-        self._muxer_cc = bt2.find_plugin('utils').filter_component_classes['muxer']
+        self._muxer_cc = bt2.find_plugin("utils").filter_component_classes["muxer"]
         assert self._muxer_cc is not None
 
         # A sink CC from a plugin.
-        self._pretty_cc = bt2.find_plugin('text').sink_component_classes['pretty']
+        self._pretty_cc = bt2.find_plugin("text").sink_component_classes["pretty"]
         assert self._pretty_cc is not None
 
     def test_create_source_from_name(self):
-        spec = bt2.ComponentSpec.from_named_plugin_and_component_class('text', 'dmesg')
-        self.assertEqual(spec.component_class.name, 'dmesg')
+        spec = bt2.ComponentSpec.from_named_plugin_and_component_class("text", "dmesg")
+        self.assertEqual(spec.component_class.name, "dmesg")
 
     def test_create_source_from_plugin(self):
         spec = bt2.ComponentSpec(self._dmesg_cc)
-        self.assertEqual(spec.component_class.name, 'dmesg')
+        self.assertEqual(spec.component_class.name, "dmesg")
 
     def test_create_source_from_user(self):
         spec = bt2.ComponentSpec(_SomeSource)
-        self.assertEqual(spec.component_class.name, '_SomeSource')
+        self.assertEqual(spec.component_class.name, "_SomeSource")
 
     def test_create_filter_from_name(self):
-        spec = bt2.ComponentSpec.from_named_plugin_and_component_class('utils', 'muxer')
-        self.assertEqual(spec.component_class.name, 'muxer')
+        spec = bt2.ComponentSpec.from_named_plugin_and_component_class("utils", "muxer")
+        self.assertEqual(spec.component_class.name, "muxer")
 
     def test_create_filter_from_object(self):
         spec = bt2.ComponentSpec(self._muxer_cc)
-        self.assertEqual(spec.component_class.name, 'muxer')
+        self.assertEqual(spec.component_class.name, "muxer")
 
     def test_create_sink_from_name(self):
         with self.assertRaisesRegex(
             KeyError,
-            'source or filter component class `pretty` not found in plugin `text`',
+            "source or filter component class `pretty` not found in plugin `text`",
         ):
-            bt2.ComponentSpec.from_named_plugin_and_component_class('text', 'pretty')
+            bt2.ComponentSpec.from_named_plugin_and_component_class("text", "pretty")
 
     def test_create_sink_from_object(self):
         with self.assertRaisesRegex(
@@ -93,24 +93,24 @@ class ComponentSpecTestCase(unittest.TestCase):
             bt2.ComponentSpec(self._pretty_cc)
 
     def test_create_from_object_with_params(self):
-        spec = bt2.ComponentSpec(self._dmesg_cc, {'salut': 23})
-        self.assertEqual(spec.params['salut'], 23)
+        spec = bt2.ComponentSpec(self._dmesg_cc, {"salut": 23})
+        self.assertEqual(spec.params["salut"], 23)
 
     def test_create_from_name_with_params(self):
         spec = bt2.ComponentSpec.from_named_plugin_and_component_class(
-            'text', 'dmesg', {'salut': 23}
+            "text", "dmesg", {"salut": 23}
         )
-        self.assertEqual(spec.params['salut'], 23)
+        self.assertEqual(spec.params["salut"], 23)
 
     def test_create_from_object_with_path_params(self):
-        spec = spec = bt2.ComponentSpec(self._dmesg_cc, 'a path')
-        self.assertEqual(spec.params['inputs'], ['a path'])
+        spec = spec = bt2.ComponentSpec(self._dmesg_cc, "a path")
+        self.assertEqual(spec.params["inputs"], ["a path"])
 
     def test_create_from_name_with_path_params(self):
         spec = spec = bt2.ComponentSpec.from_named_plugin_and_component_class(
-            'text', 'dmesg', 'a path'
+            "text", "dmesg", "a path"
         )
-        self.assertEqual(spec.params['inputs'], ['a path'])
+        self.assertEqual(spec.params["inputs"], ["a path"])
 
     def test_create_wrong_comp_class_type(self):
         with self.assertRaisesRegex(
@@ -120,19 +120,19 @@ class ComponentSpecTestCase(unittest.TestCase):
 
     def test_create_from_name_wrong_plugin_name_type(self):
         with self.assertRaisesRegex(TypeError, "'int' is not a 'str' object"):
-            bt2.ComponentSpec.from_named_plugin_and_component_class(23, 'compcls')
+            bt2.ComponentSpec.from_named_plugin_and_component_class(23, "compcls")
 
     def test_create_from_name_non_existent_plugin(self):
         with self.assertRaisesRegex(
             ValueError, "no such plugin: this_plugin_does_not_exist"
         ):
             bt2.ComponentSpec.from_named_plugin_and_component_class(
-                'this_plugin_does_not_exist', 'compcls'
+                "this_plugin_does_not_exist", "compcls"
             )
 
     def test_create_from_name_wrong_component_class_name_type(self):
         with self.assertRaisesRegex(TypeError, "'int' is not a 'str' object"):
-            bt2.ComponentSpec.from_named_plugin_and_component_class('utils', 190)
+            bt2.ComponentSpec.from_named_plugin_and_component_class("utils", 190)
 
     def test_create_wrong_params_type(self):
         with self.assertRaisesRegex(
@@ -145,17 +145,17 @@ class ComponentSpecTestCase(unittest.TestCase):
             TypeError, "cannot create value object from 'datetime' object"
         ):
             bt2.ComponentSpec.from_named_plugin_and_component_class(
-                'text', 'dmesg', datetime.datetime.now()
+                "text", "dmesg", datetime.datetime.now()
             )
 
     def test_create_wrong_log_level_type(self):
         with self.assertRaisesRegex(TypeError, "'str' is not an 'int' object"):
-            bt2.ComponentSpec(self._dmesg_cc, logging_level='banane')
+            bt2.ComponentSpec(self._dmesg_cc, logging_level="banane")
 
     def test_create_from_name_wrong_log_level_type(self):
         with self.assertRaisesRegex(TypeError, "'str' is not an 'int' object"):
             bt2.ComponentSpec.from_named_plugin_and_component_class(
-                'text', 'dmesg', logging_level='banane'
+                "text", "dmesg", logging_level="banane"
             )
 
 
@@ -177,7 +177,7 @@ class TraceCollectionMessageIteratorTestCase(unittest.TestCase):
     def test_create_wrong_stream_intersection_mode_type(self):
         specs = [
             bt2.ComponentSpec.from_named_plugin_and_component_class(
-                'ctf', 'fs', _3EVENTS_INTERSECT_TRACE_PATH
+                "ctf", "fs", _3EVENTS_INTERSECT_TRACE_PATH
             )
         ]
 
@@ -187,27 +187,27 @@ class TraceCollectionMessageIteratorTestCase(unittest.TestCase):
     def test_create_wrong_begin_type(self):
         specs = [
             bt2.ComponentSpec.from_named_plugin_and_component_class(
-                'ctf', 'fs', _3EVENTS_INTERSECT_TRACE_PATH
+                "ctf", "fs", _3EVENTS_INTERSECT_TRACE_PATH
             )
         ]
 
         with self.assertRaises(TypeError):
-            bt2.TraceCollectionMessageIterator(specs, begin='hi')
+            bt2.TraceCollectionMessageIterator(specs, begin="hi")
 
     def test_create_wrong_end_type(self):
         specs = [
             bt2.ComponentSpec.from_named_plugin_and_component_class(
-                'ctf', 'fs', _3EVENTS_INTERSECT_TRACE_PATH
+                "ctf", "fs", _3EVENTS_INTERSECT_TRACE_PATH
             )
         ]
 
         with self.assertRaises(TypeError):
-            bt2.TraceCollectionMessageIterator(specs, begin='lel')
+            bt2.TraceCollectionMessageIterator(specs, begin="lel")
 
     def test_create_begin_s(self):
         specs = [
             bt2.ComponentSpec.from_named_plugin_and_component_class(
-                'ctf', 'fs', _3EVENTS_INTERSECT_TRACE_PATH
+                "ctf", "fs", _3EVENTS_INTERSECT_TRACE_PATH
             )
         ]
         bt2.TraceCollectionMessageIterator(specs, begin=19457.918232)
@@ -215,7 +215,7 @@ class TraceCollectionMessageIteratorTestCase(unittest.TestCase):
     def test_create_end_s(self):
         specs = [
             bt2.ComponentSpec.from_named_plugin_and_component_class(
-                'ctf', 'fs', _3EVENTS_INTERSECT_TRACE_PATH
+                "ctf", "fs", _3EVENTS_INTERSECT_TRACE_PATH
             )
         ]
         bt2.TraceCollectionMessageIterator(specs, end=123.12312)
@@ -223,7 +223,7 @@ class TraceCollectionMessageIteratorTestCase(unittest.TestCase):
     def test_create_begin_datetime(self):
         specs = [
             bt2.ComponentSpec.from_named_plugin_and_component_class(
-                'ctf', 'fs', _3EVENTS_INTERSECT_TRACE_PATH
+                "ctf", "fs", _3EVENTS_INTERSECT_TRACE_PATH
             )
         ]
         bt2.TraceCollectionMessageIterator(specs, begin=datetime.datetime.now())
@@ -231,7 +231,7 @@ class TraceCollectionMessageIteratorTestCase(unittest.TestCase):
     def test_create_end_datetime(self):
         specs = [
             bt2.ComponentSpec.from_named_plugin_and_component_class(
-                'ctf', 'fs', _3EVENTS_INTERSECT_TRACE_PATH
+                "ctf", "fs", _3EVENTS_INTERSECT_TRACE_PATH
             )
         ]
         bt2.TraceCollectionMessageIterator(specs, end=datetime.datetime.now())
@@ -239,7 +239,7 @@ class TraceCollectionMessageIteratorTestCase(unittest.TestCase):
     def test_iter_no_intersection(self):
         specs = [
             bt2.ComponentSpec.from_named_plugin_and_component_class(
-                'ctf', 'fs', _3EVENTS_INTERSECT_TRACE_PATH
+                "ctf", "fs", _3EVENTS_INTERSECT_TRACE_PATH
             )
         ]
         msg_iter = bt2.TraceCollectionMessageIterator(specs)
@@ -251,7 +251,7 @@ class TraceCollectionMessageIteratorTestCase(unittest.TestCase):
     # Same as the above, but we pass a single spec instead of a spec list.
     def test_iter_specs_not_list(self):
         spec = bt2.ComponentSpec.from_named_plugin_and_component_class(
-            'ctf', 'fs', _3EVENTS_INTERSECT_TRACE_PATH
+            "ctf", "fs", _3EVENTS_INTERSECT_TRACE_PATH
         )
         msg_iter = bt2.TraceCollectionMessageIterator(spec)
         msgs = list(msg_iter)
@@ -261,10 +261,10 @@ class TraceCollectionMessageIteratorTestCase(unittest.TestCase):
 
     def test_iter_custom_filter(self):
         src_spec = bt2.ComponentSpec.from_named_plugin_and_component_class(
-            'ctf', 'fs', _3EVENTS_INTERSECT_TRACE_PATH
+            "ctf", "fs", _3EVENTS_INTERSECT_TRACE_PATH
         )
         flt_spec = bt2.ComponentSpec.from_named_plugin_and_component_class(
-            'utils', 'trimmer', {'end': '13515309.000000075'}
+            "utils", "trimmer", {"end": "13515309.000000075"}
         )
         msg_iter = bt2.TraceCollectionMessageIterator(src_spec, flt_spec)
         hist = _count_msgs_by_type(msg_iter)
@@ -273,7 +273,7 @@ class TraceCollectionMessageIteratorTestCase(unittest.TestCase):
     def test_iter_intersection(self):
         specs = [
             bt2.ComponentSpec.from_named_plugin_and_component_class(
-                'ctf', 'fs', _3EVENTS_INTERSECT_TRACE_PATH
+                "ctf", "fs", _3EVENTS_INTERSECT_TRACE_PATH
             )
         ]
         msg_iter = bt2.TraceCollectionMessageIterator(
@@ -289,11 +289,11 @@ class TraceCollectionMessageIteratorTestCase(unittest.TestCase):
         # to the `babeltrace.trace-infos` query.
         specs = [
             bt2.ComponentSpec.from_named_plugin_and_component_class(
-                'ctf',
-                'fs',
+                "ctf",
+                "fs",
                 {
-                    'inputs': [_3EVENTS_INTERSECT_TRACE_PATH],
-                    'clock-class-offset-s': 1000,
+                    "inputs": [_3EVENTS_INTERSECT_TRACE_PATH],
+                    "clock-class-offset-s": 1000,
                 },
             )
         ]
@@ -316,7 +316,7 @@ class TraceCollectionMessageIteratorTestCase(unittest.TestCase):
 
     def test_iter_no_intersection_two_traces(self):
         spec = bt2.ComponentSpec.from_named_plugin_and_component_class(
-            'ctf', 'fs', _3EVENTS_INTERSECT_TRACE_PATH
+            "ctf", "fs", _3EVENTS_INTERSECT_TRACE_PATH
         )
         specs = [spec, spec]
         msg_iter = bt2.TraceCollectionMessageIterator(specs)
@@ -328,7 +328,7 @@ class TraceCollectionMessageIteratorTestCase(unittest.TestCase):
     def test_iter_no_intersection_begin(self):
         specs = [
             bt2.ComponentSpec.from_named_plugin_and_component_class(
-                'ctf', 'fs', _3EVENTS_INTERSECT_TRACE_PATH
+                "ctf", "fs", _3EVENTS_INTERSECT_TRACE_PATH
             )
         ]
         msg_iter = bt2.TraceCollectionMessageIterator(specs, begin=13515309.000000023)
@@ -338,7 +338,7 @@ class TraceCollectionMessageIteratorTestCase(unittest.TestCase):
     def test_iter_no_intersection_end(self):
         specs = [
             bt2.ComponentSpec.from_named_plugin_and_component_class(
-                'ctf', 'fs', _3EVENTS_INTERSECT_TRACE_PATH
+                "ctf", "fs", _3EVENTS_INTERSECT_TRACE_PATH
             )
         ]
         msg_iter = bt2.TraceCollectionMessageIterator(specs, end=13515309.000000075)
@@ -373,7 +373,7 @@ class TraceCollectionMessageIteratorTestCase(unittest.TestCase):
                 _3EVENTS_INTERSECT_TRACE_PATH,
                 bt2.AutoSourceComponentSpec(_SEQUENCE_TRACE_PATH),
                 bt2.ComponentSpec.from_named_plugin_and_component_class(
-                    'ctf', 'fs', _NOINTERSECT_TRACE_PATH
+                    "ctf", "fs", _NOINTERSECT_TRACE_PATH
                 ),
             ]
         )
@@ -385,22 +385,22 @@ class TraceCollectionMessageIteratorTestCase(unittest.TestCase):
     def test_auto_source_component_non_existent(self):
         with self.assertRaisesRegex(
             RuntimeError,
-            'Some auto source component specs did not produce any component',
+            "Some auto source component specs did not produce any component",
         ):
             # Test with one path known to contain a trace and one path known
             # to not contain any trace.
             bt2.TraceCollectionMessageIterator(
-                [_SEQUENCE_TRACE_PATH, '/this/path/better/not/exist']
+                [_SEQUENCE_TRACE_PATH, "/this/path/better/not/exist"]
             )
 
 
 class _TestAutoDiscoverSourceComponentSpecs(unittest.TestCase):
     def setUp(self):
-        self._saved_babeltrace_plugin_path = os.environ['BABELTRACE_PLUGIN_PATH']
-        os.environ['BABELTRACE_PLUGIN_PATH'] += os.pathsep + self._plugin_path
+        self._saved_babeltrace_plugin_path = os.environ["BABELTRACE_PLUGIN_PATH"]
+        os.environ["BABELTRACE_PLUGIN_PATH"] += os.pathsep + self._plugin_path
 
     def tearDown(self):
-        os.environ['BABELTRACE_PLUGIN_PATH'] = self._saved_babeltrace_plugin_path
+        os.environ["BABELTRACE_PLUGIN_PATH"] = self._saved_babeltrace_plugin_path
 
 
 class TestAutoDiscoverSourceComponentSpecsGrouping(
@@ -410,7 +410,7 @@ class TestAutoDiscoverSourceComponentSpecsGrouping(
 
     def test_grouping(self):
         specs = [
-            bt2.AutoSourceComponentSpec('ABCDE'),
+            bt2.AutoSourceComponentSpec("ABCDE"),
             bt2.AutoSourceComponentSpec(_AUTO_SOURCE_DISCOVERY_GROUPING_PATH),
         ]
         it = bt2.TraceCollectionMessageIterator(specs)
@@ -418,14 +418,14 @@ class TestAutoDiscoverSourceComponentSpecsGrouping(
 
         self.assertEqual(len(msgs), 8)
 
-        self.assertEqual(msgs[0].stream.name, 'TestSourceABCDE: ABCDE')
-        self.assertEqual(msgs[1].stream.name, 'TestSourceExt: aaa1, aaa2, aaa3')
-        self.assertEqual(msgs[2].stream.name, 'TestSourceExt: bbb1, bbb2')
-        self.assertEqual(msgs[3].stream.name, 'TestSourceExt: ccc1')
-        self.assertEqual(msgs[4].stream.name, 'TestSourceExt: ccc2')
-        self.assertEqual(msgs[5].stream.name, 'TestSourceExt: ccc3')
-        self.assertEqual(msgs[6].stream.name, 'TestSourceExt: ccc4')
-        self.assertEqual(msgs[7].stream.name, 'TestSourceSomeDir: some-dir')
+        self.assertEqual(msgs[0].stream.name, "TestSourceABCDE: ABCDE")
+        self.assertEqual(msgs[1].stream.name, "TestSourceExt: aaa1, aaa2, aaa3")
+        self.assertEqual(msgs[2].stream.name, "TestSourceExt: bbb1, bbb2")
+        self.assertEqual(msgs[3].stream.name, "TestSourceExt: ccc1")
+        self.assertEqual(msgs[4].stream.name, "TestSourceExt: ccc2")
+        self.assertEqual(msgs[5].stream.name, "TestSourceExt: ccc3")
+        self.assertEqual(msgs[6].stream.name, "TestSourceExt: ccc4")
+        self.assertEqual(msgs[7].stream.name, "TestSourceSomeDir: some-dir")
 
 
 class TestAutoDiscoverSourceComponentSpecsParamsObjLogLevel(
@@ -433,9 +433,9 @@ class TestAutoDiscoverSourceComponentSpecsParamsObjLogLevel(
 ):
     _plugin_path = _AUTO_SOURCE_DISCOVERY_PARAMS_LOG_LEVEL_PATH
 
-    _dir_a = os.path.join(_AUTO_SOURCE_DISCOVERY_PARAMS_LOG_LEVEL_PATH, 'dir-a')
-    _dir_b = os.path.join(_AUTO_SOURCE_DISCOVERY_PARAMS_LOG_LEVEL_PATH, 'dir-b')
-    _dir_ab = os.path.join(_AUTO_SOURCE_DISCOVERY_PARAMS_LOG_LEVEL_PATH, 'dir-ab')
+    _dir_a = os.path.join(_AUTO_SOURCE_DISCOVERY_PARAMS_LOG_LEVEL_PATH, "dir-a")
+    _dir_b = os.path.join(_AUTO_SOURCE_DISCOVERY_PARAMS_LOG_LEVEL_PATH, "dir-b")
+    _dir_ab = os.path.join(_AUTO_SOURCE_DISCOVERY_PARAMS_LOG_LEVEL_PATH, "dir-ab")
 
     def _test_two_comps_from_one_spec(self, params, obj=None, logging_level=None):
         specs = [
@@ -452,7 +452,7 @@ class TestAutoDiscoverSourceComponentSpecsParamsObjLogLevel(
 
     def test_params_two_comps_from_one_spec(self):
         msgs = self._test_two_comps_from_one_spec(
-            params={'test-allo': 'madame', 'what': 'test-params'}
+            params={"test-allo": "madame", "what": "test-params"}
         )
 
         self.assertEqual(msgs[0].stream.name, "TestSourceA: ('test-allo', 'madame')")
@@ -460,7 +460,7 @@ class TestAutoDiscoverSourceComponentSpecsParamsObjLogLevel(
 
     def test_obj_two_comps_from_one_spec(self):
         msgs = self._test_two_comps_from_one_spec(
-            params={'what': 'python-obj'}, obj='deore'
+            params={"what": "python-obj"}, obj="deore"
         )
 
         self.assertEqual(msgs[0].stream.name, "TestSourceA: deore")
@@ -468,7 +468,7 @@ class TestAutoDiscoverSourceComponentSpecsParamsObjLogLevel(
 
     def test_log_level_two_comps_from_one_spec(self):
         msgs = self._test_two_comps_from_one_spec(
-            params={'what': 'log-level'}, logging_level=bt2.LoggingLevel.DEBUG
+            params={"what": "log-level"}, logging_level=bt2.LoggingLevel.DEBUG
         )
 
         self.assertEqual(
@@ -504,8 +504,8 @@ class TestAutoDiscoverSourceComponentSpecsParamsObjLogLevel(
 
     def test_params_two_comps_from_two_specs(self):
         msgs = self._test_two_comps_from_two_specs(
-            params_a={'test-allo': 'madame', 'what': 'test-params'},
-            params_b={'test-bonjour': 'monsieur', 'what': 'test-params'},
+            params_a={"test-allo": "madame", "what": "test-params"},
+            params_b={"test-bonjour": "monsieur", "what": "test-params"},
         )
 
         self.assertEqual(msgs[0].stream.name, "TestSourceA: ('test-allo', 'madame')")
@@ -515,10 +515,10 @@ class TestAutoDiscoverSourceComponentSpecsParamsObjLogLevel(
 
     def test_obj_two_comps_from_two_specs(self):
         msgs = self._test_two_comps_from_two_specs(
-            params_a={'what': 'python-obj'},
-            params_b={'what': 'python-obj'},
-            obj_a='deore',
-            obj_b='alivio',
+            params_a={"what": "python-obj"},
+            params_b={"what": "python-obj"},
+            obj_a="deore",
+            obj_b="alivio",
         )
 
         self.assertEqual(msgs[0].stream.name, "TestSourceA: deore")
@@ -526,8 +526,8 @@ class TestAutoDiscoverSourceComponentSpecsParamsObjLogLevel(
 
     def test_log_level_two_comps_from_two_specs(self):
         msgs = self._test_two_comps_from_two_specs(
-            params_a={'what': 'log-level'},
-            params_b={'what': 'log-level'},
+            params_a={"what": "log-level"},
+            params_b={"what": "log-level"},
             logging_level_a=bt2.LoggingLevel.DEBUG,
             logging_level_b=bt2.LoggingLevel.TRACE,
         )
@@ -568,8 +568,8 @@ class TestAutoDiscoverSourceComponentSpecsParamsObjLogLevel(
 
     def test_params_one_comp_from_one_spec_one_comp_from_both_1(self):
         msgs = self._test_one_comp_from_one_spec_one_comp_from_both_1(
-            params_a={'test-allo': 'madame', 'what': 'test-params'},
-            params_ab={'test-bonjour': 'monsieur', 'what': 'test-params'},
+            params_a={"test-allo": "madame", "what": "test-params"},
+            params_ab={"test-bonjour": "monsieur", "what": "test-params"},
         )
 
         self.assertEqual(
@@ -582,10 +582,10 @@ class TestAutoDiscoverSourceComponentSpecsParamsObjLogLevel(
 
     def test_obj_one_comp_from_one_spec_one_comp_from_both_1(self):
         msgs = self._test_one_comp_from_one_spec_one_comp_from_both_1(
-            params_a={'what': 'python-obj'},
-            params_ab={'what': 'python-obj'},
-            obj_a='deore',
-            obj_ab='alivio',
+            params_a={"what": "python-obj"},
+            params_ab={"what": "python-obj"},
+            obj_a="deore",
+            obj_ab="alivio",
         )
 
         self.assertEqual(msgs[0].stream.name, "TestSourceA: alivio")
@@ -593,8 +593,8 @@ class TestAutoDiscoverSourceComponentSpecsParamsObjLogLevel(
 
     def test_log_level_one_comp_from_one_spec_one_comp_from_both_1(self):
         msgs = self._test_one_comp_from_one_spec_one_comp_from_both_1(
-            params_a={'what': 'log-level'},
-            params_ab={'what': 'log-level'},
+            params_a={"what": "log-level"},
+            params_ab={"what": "log-level"},
             logging_level_a=bt2.LoggingLevel.DEBUG,
             logging_level_ab=bt2.LoggingLevel.TRACE,
         )
@@ -636,11 +636,11 @@ class TestAutoDiscoverSourceComponentSpecsParamsObjLogLevel(
     def test_params_one_comp_from_one_spec_one_comp_from_both_2(self):
         msgs = self._test_one_comp_from_one_spec_one_comp_from_both_2(
             params_ab={
-                'test-bonjour': 'madame',
-                'test-salut': 'les amis',
-                'what': 'test-params',
+                "test-bonjour": "madame",
+                "test-salut": "les amis",
+                "what": "test-params",
             },
-            params_a={'test-bonjour': 'monsieur', 'what': 'test-params'},
+            params_a={"test-bonjour": "monsieur", "what": "test-params"},
         )
 
         self.assertEqual(
@@ -654,10 +654,10 @@ class TestAutoDiscoverSourceComponentSpecsParamsObjLogLevel(
 
     def test_obj_one_comp_from_one_spec_one_comp_from_both_2(self):
         msgs = self._test_one_comp_from_one_spec_one_comp_from_both_2(
-            params_ab={'what': 'python-obj'},
-            params_a={'what': 'python-obj'},
-            obj_ab='deore',
-            obj_a='alivio',
+            params_ab={"what": "python-obj"},
+            params_a={"what": "python-obj"},
+            obj_ab="deore",
+            obj_a="alivio",
         )
 
         self.assertEqual(msgs[0].stream.name, "TestSourceA: alivio")
@@ -665,8 +665,8 @@ class TestAutoDiscoverSourceComponentSpecsParamsObjLogLevel(
 
     def test_log_level_one_comp_from_one_spec_one_comp_from_both_2(self):
         msgs = self._test_one_comp_from_one_spec_one_comp_from_both_2(
-            params_ab={'what': 'log-level'},
-            params_a={'what': 'log-level'},
+            params_ab={"what": "log-level"},
+            params_a={"what": "log-level"},
             logging_level_ab=bt2.LoggingLevel.DEBUG,
             logging_level_a=bt2.LoggingLevel.TRACE,
         )
@@ -681,10 +681,10 @@ class TestAutoDiscoverSourceComponentSpecsParamsObjLogLevel(
     def test_obj_override_with_none(self):
         specs = [
             bt2.AutoSourceComponentSpec(
-                self._dir_ab, params={'what': 'python-obj'}, obj='deore'
+                self._dir_ab, params={"what": "python-obj"}, obj="deore"
             ),
             bt2.AutoSourceComponentSpec(
-                self._dir_a, params={'what': 'python-obj'}, obj=None
+                self._dir_a, params={"what": "python-obj"}, obj=None
             ),
         ]
         it = bt2.TraceCollectionMessageIterator(specs)
@@ -697,9 +697,9 @@ class TestAutoDiscoverSourceComponentSpecsParamsObjLogLevel(
     def test_obj_no_override_with_no_obj(self):
         specs = [
             bt2.AutoSourceComponentSpec(
-                self._dir_ab, params={'what': 'python-obj'}, obj='deore'
+                self._dir_ab, params={"what": "python-obj"}, obj="deore"
             ),
-            bt2.AutoSourceComponentSpec(self._dir_a, params={'what': 'python-obj'}),
+            bt2.AutoSourceComponentSpec(self._dir_a, params={"what": "python-obj"}),
         ]
         it = bt2.TraceCollectionMessageIterator(specs)
         msgs = [x for x in it if type(x) is bt2._StreamBeginningMessageConst]
@@ -709,5 +709,5 @@ class TestAutoDiscoverSourceComponentSpecsParamsObjLogLevel(
         self.assertEqual(msgs[1].stream.name, "TestSourceB: deore")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

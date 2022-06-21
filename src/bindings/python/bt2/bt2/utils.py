@@ -63,9 +63,9 @@ def _check_int64(v, msg=None):
 
     if not _is_in_int64_range(v):
         if msg is None:
-            msg = 'expecting a signed 64-bit integral value'
+            msg = "expecting a signed 64-bit integral value"
 
-        msg += ' (got {})'.format(v)
+        msg += " (got {})".format(v)
         raise ValueError(msg)
 
 
@@ -74,9 +74,9 @@ def _check_uint64(v, msg=None):
 
     if not _is_in_uint64_range(v):
         if msg is None:
-            msg = 'expecting an unsigned 64-bit integral value'
+            msg = "expecting an unsigned 64-bit integral value"
 
-        msg += ' (got {})'.format(v)
+        msg += " (got {})".format(v)
         raise ValueError(msg)
 
 
@@ -92,7 +92,7 @@ def _check_alignment(a):
     _check_uint64(a)
 
     if not _is_pow2(a):
-        raise ValueError('{} is not a power of two'.format(a))
+        raise ValueError("{} is not a power of two".format(a))
 
 
 def _check_log_level(log_level):

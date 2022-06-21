@@ -28,21 +28,21 @@ class StreamTestCase(unittest.TestCase):
         self.assertEqual(len(stream.user_attributes), 0)
 
     def test_name(self):
-        stream = self._tr.create_stream(self._sc, name='équidistant')
-        self.assertEqual(stream.name, 'équidistant')
+        stream = self._tr.create_stream(self._sc, name="équidistant")
+        self.assertEqual(stream.name, "équidistant")
 
     def test_invalid_name(self):
         with self.assertRaises(TypeError):
             self._tr.create_stream(self._sc, name=22)
 
     def test_create_user_attributes(self):
-        stream = self._tr.create_stream(self._sc, user_attributes={'salut': 23})
-        self.assertEqual(stream.user_attributes, {'salut': 23})
+        stream = self._tr.create_stream(self._sc, user_attributes={"salut": 23})
+        self.assertEqual(stream.user_attributes, {"salut": 23})
         self.assertIs(type(stream.user_attributes), bt2_value.MapValue)
 
     def test_const_user_attributes(self):
         stream = utils.get_const_stream_beginning_message().stream
-        self.assertEqual(stream.user_attributes, {'salut': 23})
+        self.assertEqual(stream.user_attributes, {"salut": 23})
         self.assertIs(type(stream.user_attributes), bt2_value._MapValueConst)
 
     def test_create_invalid_user_attributes(self):
@@ -75,8 +75,8 @@ class StreamTestCase(unittest.TestCase):
         sc = self._tc.create_stream_class(assigns_automatic_stream_id=False)
 
         with self.assertRaises(TypeError):
-            self._tr.create_stream(sc, id='string')
+            self._tr.create_stream(sc, id="string")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

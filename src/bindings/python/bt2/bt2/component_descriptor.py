@@ -53,7 +53,7 @@ class ComponentDescriptor:
         base_cc_ptr = component_class._bt_component_class_ptr()
 
         if obj is not None and not native_bt.bt2_is_python_component_class(base_cc_ptr):
-            raise ValueError('cannot pass a Python object to a non-Python component')
+            raise ValueError("cannot pass a Python object to a non-Python component")
 
         self._comp_cls = component_class
         self._params = bt2.create_value(params)

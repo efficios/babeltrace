@@ -39,10 +39,10 @@ class TraceClassTestCase(unittest.TestCase):
 
     def test_create_user_attributes(self):
         def f(comp_self):
-            return comp_self._create_trace_class(user_attributes={'salut': 23})
+            return comp_self._create_trace_class(user_attributes={"salut": 23})
 
         tc = run_in_component_init(f)
-        self.assertEqual(tc.user_attributes, {'salut': 23})
+        self.assertEqual(tc.user_attributes, {"salut": 23})
 
     def test_create_invalid_user_attributes(self):
         def f(comp_self):
@@ -59,7 +59,7 @@ class TraceClassTestCase(unittest.TestCase):
     def test_create_invalid_automatic_stream_class_id_type(self):
         def f(comp_self):
             return comp_self._create_trace_class(
-                assigns_automatic_stream_class_id='perchaude'
+                assigns_automatic_stream_class_id="perchaude"
             )
 
         self.assertRaisesInComponentInit(TypeError, f)
@@ -139,7 +139,7 @@ class TraceClassTestCase(unittest.TestCase):
     def test_getitem_wrong_key_type(self):
         tc, _, _, _ = self._create_trace_class_with_some_stream_classes()
         with self.assertRaises(TypeError):
-            tc['hello']
+            tc["hello"]
 
     def test_getitem_wrong_key(self):
         tc, _, _, _ = self._create_trace_class_with_some_stream_classes()
@@ -210,7 +210,7 @@ class TraceClassTestCase(unittest.TestCase):
 
         with self.assertRaisesRegex(
             ValueError,
-            r'This trace class destruction listener does not match the trace class object\.',
+            r"This trace class destruction listener does not match the trace class object\.",
         ):
             trace_class_2.remove_destruction_listener(handle1)
 
@@ -224,13 +224,13 @@ class TraceClassTestCase(unittest.TestCase):
         trace_class.remove_destruction_listener(handle)
 
         with self.assertRaisesRegex(
-            ValueError, r'This trace class destruction listener was already removed\.'
+            ValueError, r"This trace class destruction listener was already removed\."
         ):
             trace_class.remove_destruction_listener(handle)
 
     def test_raise_in_destruction_listener(self):
         def on_trace_class_destruction(trace_class):
-            raise ValueError('it hurts')
+            raise ValueError("it hurts")
 
         trace_class = get_default_trace_class()
         trace_class.add_destruction_listener(on_trace_class_destruction)
@@ -238,5 +238,5 @@ class TraceClassTestCase(unittest.TestCase):
         del trace_class
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

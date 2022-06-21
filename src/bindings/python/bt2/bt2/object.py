@@ -20,7 +20,7 @@ class _BaseObject:
         return int(self._ptr)
 
     def __repr__(self):
-        return '<{}.{} object @ {}>'.format(
+        return "<{}.{} object @ {}>".format(
             self.__class__.__module__, self.__class__.__name__, hex(self.addr)
         )
 

@@ -10,26 +10,26 @@ import unittest
 
 class FailingIter(bt2._UserMessageIterator):
     def __next__(self):
-        raise ValueError('User message iterator is failing')
+        raise ValueError("User message iterator is failing")
 
 
 class SourceWithFailingIter(
     bt2._UserSourceComponent, message_iterator_class=FailingIter
 ):
     def __init__(self, config, params, obj):
-        self._add_output_port('out')
+        self._add_output_port("out")
 
 
 class SourceWithFailingInit(
     bt2._UserSourceComponent, message_iterator_class=FailingIter
 ):
     def __init__(self, config, params, obj):
-        raise ValueError('Source is failing')
+        raise ValueError("Source is failing")
 
 
 class WorkingSink(bt2._UserSinkComponent):
     def __init__(self, config, params, obj):
-        self._in = self._add_input_port('in')
+        self._in = self._add_input_port("in")
 
     def _user_graph_is_configured(self):
         self._iter = self._create_message_iterator(self._in)
@@ -40,7 +40,7 @@ class WorkingSink(bt2._UserSinkComponent):
 
 class SinkWithExceptionChaining(bt2._UserSinkComponent):
     def __init__(self, config, params, obj):
-        self._in = self._add_input_port('in')
+        self._in = self._add_input_port("in")
 
     def _user_graph_is_configured(self):
         self._iter = self._create_message_iterator(self._in)
@@ -49,7 +49,7 @@ class SinkWithExceptionChaining(bt2._UserSinkComponent):
         try:
             next(self._iter)
         except bt2._Error as e:
-            raise ValueError('oops') from e
+            raise ValueError("oops") from e
 
 
 class SinkWithFailingQuery(bt2._UserSinkComponent):
@@ -58,16 +58,16 @@ class SinkWithFailingQuery(bt2._UserSinkComponent):
 
     @staticmethod
     def _user_query(priv_executor, obj, params, method_obj):
-        raise ValueError('Query is failing')
+        raise ValueError("Query is failing")
 
 
 class ErrorTestCase(unittest.TestCase):
     def _run_failing_graph(self, source_cc, sink_cc):
         with self.assertRaises(bt2._Error) as ctx:
             graph = bt2.Graph()
-            src = graph.add_component(source_cc, 'src')
-            snk = graph.add_component(sink_cc, 'snk')
-            graph.connect_ports(src.output_ports['out'], snk.input_ports['in'])
+            src = graph.add_component(source_cc, "src")
+            snk = graph.add_component(sink_cc, "snk")
+            graph.connect_ports(src.output_ports["out"], snk.input_ports["in"])
             graph.run()
 
         return ctx.exception
@@ -123,20 +123,20 @@ class ErrorTestCase(unittest.TestCase):
         self.assertEqual(len(exc), 5)
 
         self.assertIsInstance(exc[0], bt2._MessageIteratorErrorCause)
-        self.assertEqual(exc[0].component_class_name, 'SourceWithFailingIter')
-        self.assertIn('ValueError: User message iterator is failing', exc[0].message)
+        self.assertEqual(exc[0].component_class_name, "SourceWithFailingIter")
+        self.assertIn("ValueError: User message iterator is failing", exc[0].message)
 
         self.assertIsInstance(exc[1], bt2._ErrorCause)
 
         self.assertIsInstance(exc[2], bt2._ComponentErrorCause)
-        self.assertEqual(exc[2].component_class_name, 'SinkWithExceptionChaining')
+        self.assertEqual(exc[2].component_class_name, "SinkWithExceptionChaining")
         self.assertIn(
-            'unexpected error: cannot advance the message iterator', exc[2].message
+            "unexpected error: cannot advance the message iterator", exc[2].message
         )
 
         self.assertIsInstance(exc[3], bt2._ComponentErrorCause)
-        self.assertEqual(exc[3].component_class_name, 'SinkWithExceptionChaining')
-        self.assertIn('ValueError: oops', exc[3].message)
+        self.assertEqual(exc[3].component_class_name, "SinkWithExceptionChaining")
+        self.assertIn("ValueError: oops", exc[3].message)
 
         self.assertIsInstance(exc[4], bt2._ErrorCause)
 
@@ -157,14 +157,14 @@ class ErrorTestCase(unittest.TestCase):
         self.assertIs(type(cause), bt2._ComponentErrorCause)
         self._common_cause_tests(cause)
 
-        self.assertIn('Source is failing', cause.message)
-        self.assertEqual(cause.component_name, 'src')
+        self.assertIn("Source is failing", cause.message)
+        self.assertEqual(cause.component_name, "src")
         self.assertEqual(cause.component_class_type, bt2.ComponentClassType.SOURCE)
-        self.assertEqual(cause.component_class_name, 'SourceWithFailingInit')
+        self.assertEqual(cause.component_class_name, "SourceWithFailingInit")
         self.assertIsNone(cause.plugin_name)
 
     def test_component_class_error_cause(self):
-        q = bt2.QueryExecutor(SinkWithFailingQuery, 'hello')
+        q = bt2.QueryExecutor(SinkWithFailingQuery, "hello")
 
         with self.assertRaises(bt2._Error) as ctx:
             q.query()
@@ -173,10 +173,10 @@ class ErrorTestCase(unittest.TestCase):
         self.assertIs(type(cause), bt2._ComponentClassErrorCause)
         self._common_cause_tests(cause)
 
-        self.assertIn('Query is failing', cause.message)
+        self.assertIn("Query is failing", cause.message)
 
         self.assertEqual(cause.component_class_type, bt2.ComponentClassType.SINK)
-        self.assertEqual(cause.component_class_name, 'SinkWithFailingQuery')
+        self.assertEqual(cause.component_class_name, "SinkWithFailingQuery")
         self.assertIsNone(cause.plugin_name)
 
     def test_message_iterator_error_cause(self):
@@ -185,11 +185,11 @@ class ErrorTestCase(unittest.TestCase):
         self.assertIs(type(cause), bt2._MessageIteratorErrorCause)
         self._common_cause_tests(cause)
 
-        self.assertIn('User message iterator is failing', cause.message)
-        self.assertEqual(cause.component_name, 'src')
-        self.assertEqual(cause.component_output_port_name, 'out')
+        self.assertIn("User message iterator is failing", cause.message)
+        self.assertEqual(cause.component_name, "src")
+        self.assertEqual(cause.component_output_port_name, "out")
         self.assertEqual(cause.component_class_type, bt2.ComponentClassType.SOURCE)
-        self.assertEqual(cause.component_class_name, 'SourceWithFailingIter')
+        self.assertEqual(cause.component_class_name, "SourceWithFailingIter")
         self.assertIsNone(cause.plugin_name)
 
     def test_str(self):
@@ -199,8 +199,8 @@ class ErrorTestCase(unittest.TestCase):
         exc = self._run_failing_graph(SourceWithFailingIter, SinkWithExceptionChaining)
         s = str(exc)
         self.assertIn("[src (out): 'source.SourceWithFailingIter']", s)
-        self.assertIn('ValueError: oops', s)
+        self.assertIn("ValueError: oops", s)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

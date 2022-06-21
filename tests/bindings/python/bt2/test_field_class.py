@@ -25,7 +25,7 @@ def _create_stream(tc, ctx_field_classes):
 
 
 def _create_const_field_class(tc, field_class, value_setter_fn):
-    field_name = 'const field'
+    field_name = "const field"
 
     class MyIter(bt2._UserMessageIterator):
         def __init__(self, config, self_port_output):
@@ -49,11 +49,11 @@ def _create_const_field_class(tc, field_class, value_setter_fn):
 
     class MySrc(bt2._UserSourceComponent, message_iterator_class=MyIter):
         def __init__(self, config, params, obj):
-            self._add_output_port('out', params)
+            self._add_output_port("out", params)
 
     graph = bt2.Graph()
-    src_comp = graph.add_component(MySrc, 'my_source', None)
-    msg_iter = TestOutputPortMessageIterator(graph, src_comp.output_ports['out'])
+    src_comp = graph.add_component(MySrc, "my_source", None)
+    msg_iter = TestOutputPortMessageIterator(graph, src_comp.output_ports["out"])
 
     # Ignore first message, stream beginning
     _ = next(msg_iter)
@@ -64,13 +64,13 @@ def _create_const_field_class(tc, field_class, value_setter_fn):
 
 class _TestFieldClass:
     def test_create_user_attributes(self):
-        fc = self._create_default_field_class(user_attributes={'salut': 23})
-        self.assertEqual(fc.user_attributes, {'salut': 23})
+        fc = self._create_default_field_class(user_attributes={"salut": 23})
+        self.assertEqual(fc.user_attributes, {"salut": 23})
         self.assertIs(type(fc.user_attributes), bt2_value.MapValue)
 
     def test_const_create_user_attributes(self):
-        fc = self._create_default_const_field_class(user_attributes={'salut': 23})
-        self.assertEqual(fc.user_attributes, {'salut': 23})
+        fc = self._create_default_const_field_class(user_attributes={"salut": 23})
+        self.assertEqual(fc.user_attributes, {"salut": 23})
         self.assertIs(type(fc.user_attributes), bt2_value._MapValueConst)
 
     def test_create_invalid_user_attributes(self):
@@ -139,7 +139,7 @@ class BitArrayFieldClassTestCase(_TestFieldClass, unittest.TestCase):
 
     def test_create_length_invalid_type(self):
         with self.assertRaises(TypeError):
-            self._create_field_class('lel')
+            self._create_field_class("lel")
 
     def test_length_prop(self):
         self.assertEqual(self._fc.length, 17)
@@ -161,10 +161,10 @@ class _TestIntegerFieldClassProps:
 
     def test_create_invalid_range(self):
         with self.assertRaises(TypeError):
-            self._create_field_class('yes')
+            self._create_field_class("yes")
 
         with self.assertRaises(TypeError):
-            self._create_field_class(field_value_range='yes')
+            self._create_field_class(field_value_range="yes")
 
         with self.assertRaises(ValueError):
             self._create_field_class(field_value_range=-2)
@@ -180,7 +180,7 @@ class _TestIntegerFieldClassProps:
 
     def test_create_invalid_base_type(self):
         with self.assertRaises(TypeError):
-            self._create_field_class(preferred_display_base='yes')
+            self._create_field_class(preferred_display_base="yes")
 
     def test_create_invalid_base_value(self):
         with self.assertRaises(ValueError):
@@ -291,22 +291,22 @@ class _EnumerationFieldClassTestCase(_TestIntegerFieldClassProps):
 
     def test_create_from_invalid_type(self):
         with self.assertRaises(TypeError):
-            self._create_field_class('coucou')
+            self._create_field_class("coucou")
 
     def test_add_mapping_simple(self):
-        self._fc.add_mapping('hello', self._ranges1)
-        mapping = self._fc['hello']
-        self.assertEqual(mapping.label, 'hello')
+        self._fc.add_mapping("hello", self._ranges1)
+        mapping = self._fc["hello"]
+        self.assertEqual(mapping.label, "hello")
         self.assertEqual(mapping.ranges, self._ranges1)
 
     def test_const_add_mapping(self):
         with self.assertRaises(AttributeError):
-            self._fc_const.add_mapping('hello', self._ranges1)
+            self._fc_const.add_mapping("hello", self._ranges1)
 
     def test_add_mapping_simple_kwargs(self):
-        self._fc.add_mapping(label='hello', ranges=self._ranges1)
-        mapping = self._fc['hello']
-        self.assertEqual(mapping.label, 'hello')
+        self._fc.add_mapping(label="hello", ranges=self._ranges1)
+        mapping = self._fc["hello"]
+        self.assertEqual(mapping.label, "hello")
         self.assertEqual(mapping.ranges, self._ranges1)
 
     def test_add_mapping_invalid_name(self):
@@ -315,76 +315,76 @@ class _EnumerationFieldClassTestCase(_TestIntegerFieldClassProps):
 
     def test_add_mapping_invalid_range(self):
         with self.assertRaises(TypeError):
-            self._fc.add_mapping('allo', 'meow')
+            self._fc.add_mapping("allo", "meow")
 
     def test_add_mapping_dup_label(self):
         with self.assertRaises(ValueError):
-            self._fc.add_mapping('a', self._ranges1)
-            self._fc.add_mapping('a', self._ranges2)
+            self._fc.add_mapping("a", self._ranges1)
+            self._fc.add_mapping("a", self._ranges2)
 
     def test_add_mapping_invalid_ranges_signedness(self):
         with self.assertRaises(TypeError):
-            self._fc.add_mapping('allo', self._inval_ranges)
+            self._fc.add_mapping("allo", self._inval_ranges)
 
     def test_iadd(self):
-        self._fc.add_mapping('c', self._ranges1)
+        self._fc.add_mapping("c", self._ranges1)
 
-        self._fc += [('d', self._ranges2), ('e', self._ranges3)]
+        self._fc += [("d", self._ranges2), ("e", self._ranges3)]
 
         self.assertEqual(len(self._fc), 3)
-        self.assertEqual(self._fc['c'].label, 'c')
-        self.assertEqual(self._fc['c'].ranges, self._ranges1)
-        self.assertEqual(self._fc['d'].label, 'd')
-        self.assertEqual(self._fc['d'].ranges, self._ranges2)
-        self.assertEqual(self._fc['e'].label, 'e')
-        self.assertEqual(self._fc['e'].ranges, self._ranges3)
+        self.assertEqual(self._fc["c"].label, "c")
+        self.assertEqual(self._fc["c"].ranges, self._ranges1)
+        self.assertEqual(self._fc["d"].label, "d")
+        self.assertEqual(self._fc["d"].ranges, self._ranges2)
+        self.assertEqual(self._fc["e"].label, "e")
+        self.assertEqual(self._fc["e"].ranges, self._ranges3)
 
     def test_const_iadd(self):
         with self.assertRaises(TypeError):
-            self._fc_const += [('d', self._ranges2), ('e', self._ranges3)]
+            self._fc_const += [("d", self._ranges2), ("e", self._ranges3)]
 
     def test_bool_op(self):
         self.assertFalse(self._fc)
-        self._fc.add_mapping('a', self._ranges1)
+        self._fc.add_mapping("a", self._ranges1)
         self.assertTrue(self._fc)
 
     def test_len(self):
-        self._fc.add_mapping('a', self._ranges1)
-        self._fc.add_mapping('b', self._ranges2)
-        self._fc.add_mapping('c', self._ranges3)
+        self._fc.add_mapping("a", self._ranges1)
+        self._fc.add_mapping("b", self._ranges2)
+        self._fc.add_mapping("c", self._ranges3)
         self.assertEqual(len(self._fc), 3)
 
     def test_getitem(self):
-        self._fc.add_mapping('a', self._ranges1)
-        self._fc.add_mapping('b', self._ranges2)
-        self._fc.add_mapping('c', self._ranges3)
-        mapping = self._fc['a']
-        self.assertEqual(mapping.label, 'a')
+        self._fc.add_mapping("a", self._ranges1)
+        self._fc.add_mapping("b", self._ranges2)
+        self._fc.add_mapping("c", self._ranges3)
+        mapping = self._fc["a"]
+        self.assertEqual(mapping.label, "a")
         self.assertEqual(mapping.ranges, self._ranges1)
         self.assertIs(type(mapping), self._MAPPING_CLASS)
         self.assertIs(type(mapping.ranges), self._CONST_RANGE_SET_CLASS)
 
     def test_getitem_nonexistent(self):
         with self.assertRaises(KeyError):
-            self._fc['doesnotexist']
+            self._fc["doesnotexist"]
 
     def test_iter(self):
-        self._fc.add_mapping('a', self._ranges1)
-        self._fc.add_mapping('b', self._ranges2)
-        self._fc.add_mapping('c', self._ranges3)
+        self._fc.add_mapping("a", self._ranges1)
+        self._fc.add_mapping("b", self._ranges2)
+        self._fc.add_mapping("c", self._ranges3)
 
         # This exercises iteration.
         labels = sorted(self._fc)
 
-        self.assertEqual(labels, ['a', 'b', 'c'])
+        self.assertEqual(labels, ["a", "b", "c"])
 
     def test_find_by_value(self):
-        self._fc.add_mapping('a', self._ranges1)
-        self._fc.add_mapping('b', self._ranges2)
-        self._fc.add_mapping('c', self._ranges3)
+        self._fc.add_mapping("a", self._ranges1)
+        self._fc.add_mapping("b", self._ranges2)
+        self._fc.add_mapping("c", self._ranges3)
         mappings = self._fc.mappings_for_value(self._value_in_range_1_and_3)
         labels = set([mapping.label for mapping in mappings])
-        expected_labels = set(['a', 'c'])
+        expected_labels = set(["a", "c"])
         self.assertEqual(labels, expected_labels)
 
 
@@ -451,7 +451,7 @@ class SignedEnumerationFieldClassTestCase(
 class StringFieldClassTestCase(_TestFieldClass, unittest.TestCase):
     @staticmethod
     def _const_value_setter(field):
-        field.value = 'chaine'
+        field.value = "chaine"
 
     def _create_field_class(self, *args, **kwargs):
         tc = get_default_trace_class()
@@ -484,14 +484,14 @@ class _TestElementContainer:
 
     def test_append_element(self):
         int_field_class = self._tc.create_signed_integer_field_class(32)
-        self._append_element_method(self._fc, 'int32', int_field_class)
-        field_class = self._fc['int32'].field_class
+        self._append_element_method(self._fc, "int32", int_field_class)
+        field_class = self._fc["int32"].field_class
         self.assertEqual(field_class.addr, int_field_class.addr)
 
     def test_append_element_kwargs(self):
         int_field_class = self._tc.create_signed_integer_field_class(32)
-        self._append_element_method(self._fc, name='int32', field_class=int_field_class)
-        field_class = self._fc['int32'].field_class
+        self._append_element_method(self._fc, name="int32", field_class=int_field_class)
+        field_class = self._fc["int32"].field_class
         self.assertEqual(field_class.addr, int_field_class.addr)
 
     def test_append_element_invalid_name(self):
@@ -502,59 +502,59 @@ class _TestElementContainer:
 
     def test_append_element_invalid_field_class(self):
         with self.assertRaises(TypeError):
-            self._append_element_method(self._fc, 'yes', object())
+            self._append_element_method(self._fc, "yes", object())
 
     def test_append_element_dup_name(self):
         sub_fc1 = self._tc.create_string_field_class()
         sub_fc2 = self._tc.create_string_field_class()
 
         with self.assertRaises(ValueError):
-            self._append_element_method(self._fc, 'yes', sub_fc1)
-            self._append_element_method(self._fc, 'yes', sub_fc2)
+            self._append_element_method(self._fc, "yes", sub_fc1)
+            self._append_element_method(self._fc, "yes", sub_fc2)
 
     def test_attr_field_class(self):
         int_field_class = self._tc.create_signed_integer_field_class(32)
-        self._append_element_method(self._fc, 'int32', int_field_class)
-        field_class = self._fc['int32'].field_class
+        self._append_element_method(self._fc, "int32", int_field_class)
+        field_class = self._fc["int32"].field_class
 
         self.assertIs(type(field_class), bt2_field_class._SignedIntegerFieldClass)
 
     def test_const_attr_field_class(self):
         int_field_class = self._tc.create_signed_integer_field_class(32)
-        self._append_element_method(self._fc, 'int32', int_field_class)
-        field_class = self._fc['int32'].field_class
+        self._append_element_method(self._fc, "int32", int_field_class)
+        field_class = self._fc["int32"].field_class
         const_fc = _create_const_field_class(
             self._tc, self._fc, self._const_value_setter
         )
-        field_class = const_fc['int32'].field_class
+        field_class = const_fc["int32"].field_class
 
         self.assertIs(type(field_class), bt2_field_class._SignedIntegerFieldClassConst)
 
     def test_iadd(self):
         a_field_class = self._tc.create_single_precision_real_field_class()
         b_field_class = self._tc.create_signed_integer_field_class(17)
-        self._append_element_method(self._fc, 'a_float', a_field_class)
-        self._append_element_method(self._fc, 'b_int', b_field_class)
+        self._append_element_method(self._fc, "a_float", a_field_class)
+        self._append_element_method(self._fc, "b_int", b_field_class)
         c_field_class = self._tc.create_string_field_class()
         d_field_class = self._tc.create_signed_enumeration_field_class(
             field_value_range=32
         )
         e_field_class = self._tc.create_structure_field_class()
         self._fc += [
-            ('c_string', c_field_class),
-            ('d_enum', d_field_class),
-            ('e_struct', e_field_class),
+            ("c_string", c_field_class),
+            ("d_enum", d_field_class),
+            ("e_struct", e_field_class),
         ]
-        self.assertEqual(self._fc['a_float'].field_class.addr, a_field_class.addr)
-        self.assertEqual(self._fc['a_float'].name, 'a_float')
-        self.assertEqual(self._fc['b_int'].field_class.addr, b_field_class.addr)
-        self.assertEqual(self._fc['b_int'].name, 'b_int')
-        self.assertEqual(self._fc['c_string'].field_class.addr, c_field_class.addr)
-        self.assertEqual(self._fc['c_string'].name, 'c_string')
-        self.assertEqual(self._fc['d_enum'].field_class.addr, d_field_class.addr)
-        self.assertEqual(self._fc['d_enum'].name, 'd_enum')
-        self.assertEqual(self._fc['e_struct'].field_class.addr, e_field_class.addr)
-        self.assertEqual(self._fc['e_struct'].name, 'e_struct')
+        self.assertEqual(self._fc["a_float"].field_class.addr, a_field_class.addr)
+        self.assertEqual(self._fc["a_float"].name, "a_float")
+        self.assertEqual(self._fc["b_int"].field_class.addr, b_field_class.addr)
+        self.assertEqual(self._fc["b_int"].name, "b_int")
+        self.assertEqual(self._fc["c_string"].field_class.addr, c_field_class.addr)
+        self.assertEqual(self._fc["c_string"].name, "c_string")
+        self.assertEqual(self._fc["d_enum"].field_class.addr, d_field_class.addr)
+        self.assertEqual(self._fc["d_enum"].name, "d_enum")
+        self.assertEqual(self._fc["e_struct"].field_class.addr, e_field_class.addr)
+        self.assertEqual(self._fc["e_struct"].name, "e_struct")
 
     def test_const_iadd(self):
         a_field_class = self._tc.create_single_precision_real_field_class()
@@ -563,24 +563,24 @@ class _TestElementContainer:
 
     def test_bool_op(self):
         self.assertFalse(self._fc)
-        self._append_element_method(self._fc, 'a', self._tc.create_string_field_class())
+        self._append_element_method(self._fc, "a", self._tc.create_string_field_class())
         self.assertTrue(self._fc)
 
     def test_len(self):
-        self._append_element_method(self._fc, 'a', self._tc.create_string_field_class())
-        self._append_element_method(self._fc, 'b', self._tc.create_string_field_class())
-        self._append_element_method(self._fc, 'c', self._tc.create_string_field_class())
+        self._append_element_method(self._fc, "a", self._tc.create_string_field_class())
+        self._append_element_method(self._fc, "b", self._tc.create_string_field_class())
+        self._append_element_method(self._fc, "c", self._tc.create_string_field_class())
         self.assertEqual(len(self._fc), 3)
 
     def test_getitem(self):
         a_fc = self._tc.create_signed_integer_field_class(32)
         b_fc = self._tc.create_string_field_class()
         c_fc = self._tc.create_single_precision_real_field_class()
-        self._append_element_method(self._fc, 'a', a_fc)
-        self._append_element_method(self._fc, 'b', b_fc)
-        self._append_element_method(self._fc, 'c', c_fc)
-        self.assertEqual(self._fc['b'].field_class.addr, b_fc.addr)
-        self.assertEqual(self._fc['b'].name, 'b')
+        self._append_element_method(self._fc, "a", a_fc)
+        self._append_element_method(self._fc, "b", b_fc)
+        self._append_element_method(self._fc, "c", c_fc)
+        self.assertEqual(self._fc["b"].field_class.addr, b_fc.addr)
+        self.assertEqual(self._fc["b"].name, "b")
 
     def test_getitem_invalid_key_type(self):
         with self.assertRaises(TypeError):
@@ -588,18 +588,18 @@ class _TestElementContainer:
 
     def test_getitem_invalid_key(self):
         with self.assertRaises(KeyError):
-            self._fc['no way']
+            self._fc["no way"]
 
     def test_contains(self):
-        self.assertFalse('a' in self._fc)
-        self._append_element_method(self._fc, 'a', self._tc.create_string_field_class())
-        self.assertTrue('a' in self._fc)
+        self.assertFalse("a" in self._fc)
+        self._append_element_method(self._fc, "a", self._tc.create_string_field_class())
+        self.assertTrue("a" in self._fc)
 
     def test_iter(self):
         a_fc = self._tc.create_signed_integer_field_class(32)
         b_fc = self._tc.create_string_field_class()
         c_fc = self._tc.create_single_precision_real_field_class()
-        elements = (('a', a_fc), ('b', b_fc), ('c', c_fc))
+        elements = (("a", a_fc), ("b", b_fc), ("c", c_fc))
 
         for elem in elements:
             self._append_element_method(self._fc, *elem)
@@ -614,24 +614,24 @@ class _TestElementContainer:
         a_fc = self._tc.create_signed_integer_field_class(32)
         b_fc = self._tc.create_string_field_class()
         c_fc = self._tc.create_single_precision_real_field_class()
-        self._append_element_method(self._fc, 'c', c_fc)
-        self._append_element_method(self._fc, 'a', a_fc)
-        self._append_element_method(self._fc, 'b', b_fc)
+        self._append_element_method(self._fc, "c", c_fc)
+        self._append_element_method(self._fc, "a", a_fc)
+        self._append_element_method(self._fc, "b", b_fc)
         elem = self._at_index_method(self._fc, 1)
         self.assertEqual(elem.field_class.addr, a_fc.addr)
-        self.assertEqual(elem.name, 'a')
+        self.assertEqual(elem.name, "a")
 
     def test_at_index_invalid(self):
         self._append_element_method(
-            self._fc, 'c', self._tc.create_signed_integer_field_class(32)
+            self._fc, "c", self._tc.create_signed_integer_field_class(32)
         )
 
         with self.assertRaises(TypeError):
-            self._at_index_method(self._fc, 'yes')
+            self._at_index_method(self._fc, "yes")
 
     def test_at_index_out_of_bounds_after(self):
         self._append_element_method(
-            self._fc, 'c', self._tc.create_signed_integer_field_class(32)
+            self._fc, "c", self._tc.create_signed_integer_field_class(32)
         )
 
         with self.assertRaises(IndexError):
@@ -640,19 +640,19 @@ class _TestElementContainer:
     def test_user_attributes(self):
         self._append_element_method(
             self._fc,
-            'c',
+            "c",
             self._tc.create_string_field_class(),
-            user_attributes={'salut': 23},
+            user_attributes={"salut": 23},
         )
-        self.assertEqual(self._fc['c'].user_attributes, {'salut': 23})
+        self.assertEqual(self._fc["c"].user_attributes, {"salut": 23})
         self.assertIs(type(self._fc.user_attributes), bt2_value.MapValue)
-        self.assertIs(type(self._fc['c'].user_attributes), bt2_value.MapValue)
+        self.assertIs(type(self._fc["c"].user_attributes), bt2_value.MapValue)
 
     def test_invalid_user_attributes(self):
         with self.assertRaises(TypeError):
             self._append_element_method(
                 self._fc,
-                'c',
+                "c",
                 self._tc.create_string_field_class(),
                 user_attributes=object(),
             )
@@ -660,7 +660,7 @@ class _TestElementContainer:
     def test_invalid_user_attributes_value_type(self):
         with self.assertRaises(TypeError):
             self._append_element_method(
-                self._fc, 'c', self._tc.create_string_field_class(), user_attributes=23
+                self._fc, "c", self._tc.create_string_field_class(), user_attributes=23
             )
 
 
@@ -687,16 +687,16 @@ class StructureFieldClassTestCase(
 
     def test_const_member_field_class(self):
         def _real_value_setter(field):
-            field.value = {'real': 0}
+            field.value = {"real": 0}
 
         tc = get_default_trace_class()
         fc = tc.create_structure_field_class()
         member_fc = self._tc.create_single_precision_real_field_class()
-        fc.append_member('real', member_fc)
+        fc.append_member("real", member_fc)
         const_fc = _create_const_field_class(tc, fc, _real_value_setter)
 
         self.assertIs(
-            type(const_fc['real'].field_class),
+            type(const_fc["real"].field_class),
             bt2_field_class._SinglePrecisionRealFieldClassConst,
         )
 
@@ -704,10 +704,10 @@ class StructureFieldClassTestCase(
         tc = get_default_trace_class()
         fc = tc.create_structure_field_class()
         member_fc = self._tc.create_single_precision_real_field_class()
-        fc.append_member('real', member_fc)
+        fc.append_member("real", member_fc)
 
         self.assertIs(
-            type(fc['real'].field_class), bt2_field_class._SinglePrecisionRealFieldClass
+            type(fc["real"].field_class), bt2_field_class._SinglePrecisionRealFieldClass
         )
 
 
@@ -755,19 +755,19 @@ class OptionWithoutSelectorFieldClassTestCase(_TestFieldClass, unittest.TestCase
 class _OptionWithSelectorFieldClassTestCase(_TestFieldClass):
     @staticmethod
     def _const_value_setter(field):
-        field['opt'].has_field = True
-        field['opt'].value = 12
+        field["opt"].has_field = True
+        field["opt"].value = 12
 
     def _create_default_const_field_class(self, *args, **kwargs):
         # Create a struct to contain the option and its selector else we can't
         # create the non-const field necessary to get the the const field_class
         struct_fc = self._tc.create_structure_field_class()
-        struct_fc.append_member('selecteux', self._tag_fc)
+        struct_fc.append_member("selecteux", self._tag_fc)
         opt_fc = self._create_default_field_class(*args, **kwargs)
-        struct_fc.append_member('opt', opt_fc)
+        struct_fc.append_member("opt", opt_fc)
 
         return _create_const_field_class(self._tc, struct_fc, self._const_value_setter)[
-            'opt'
+            "opt"
         ].field_class
 
     def setUp(self):
@@ -783,18 +783,18 @@ class _OptionWithSelectorFieldClassTestCase(_TestFieldClass):
         baz_fc = self._tc.create_string_field_class()
 
         inner_struct_fc = self._tc.create_structure_field_class()
-        inner_struct_fc.append_member('bar', bar_fc)
-        inner_struct_fc.append_member('baz', baz_fc)
-        inner_struct_fc.append_member('tag', self._tag_fc)
-        inner_struct_fc.append_member('opt', fc)
+        inner_struct_fc.append_member("bar", bar_fc)
+        inner_struct_fc.append_member("baz", baz_fc)
+        inner_struct_fc.append_member("tag", self._tag_fc)
+        inner_struct_fc.append_member("opt", fc)
 
         opt_struct_array_fc = self._tc.create_option_without_selector_field_class(
             inner_struct_fc
         )
 
         outer_struct_fc = self._tc.create_structure_field_class()
-        outer_struct_fc.append_member('foo', foo_fc)
-        outer_struct_fc.append_member('inner_opt', opt_struct_array_fc)
+        outer_struct_fc.append_member("foo", foo_fc)
+        outer_struct_fc.append_member("inner_opt", opt_struct_array_fc)
 
         # The path to the selector field class is resolved when the
         # option field class is actually used, for example in a packet
@@ -937,7 +937,7 @@ class VariantFieldClassWithoutSelectorTestCase(
         tc = get_default_trace_class()
         fc = tc.create_variant_field_class(*args, **kwargs)
         int_field_class = self._tc.create_signed_integer_field_class(32)
-        fc.append_option('int32', int_field_class)
+        fc.append_option("int32", int_field_class)
 
         return _create_const_field_class(tc, fc, self._const_value_setter)
 
@@ -947,8 +947,8 @@ class VariantFieldClassWithoutSelectorTestCase(
 class _VariantFieldClassWithIntegerSelectorTestCase:
     @staticmethod
     def _const_value_setter(field):
-        field['variant'].selected_option_index = 0
-        field['variant'] = 12
+        field["variant"].selected_option_index = 0
+        field["variant"] = 12
 
     def _create_default_field_class(self, *args, **kwargs):
         return self._tc.create_variant_field_class(
@@ -959,17 +959,17 @@ class _VariantFieldClassWithIntegerSelectorTestCase:
         # Create a struct to contain the variant and its selector else we can't
         # create the non-const field necessary to get the the const field_class
         struct_fc = self._tc.create_structure_field_class()
-        struct_fc.append_member('selecteux', self._selector_fc)
+        struct_fc.append_member("selecteux", self._selector_fc)
         variant_fc = self._tc.create_variant_field_class(
             *args, selector_fc=self._selector_fc
         )
         variant_fc.append_option(
-            'a', self._tc.create_signed_integer_field_class(32), self._ranges1
+            "a", self._tc.create_signed_integer_field_class(32), self._ranges1
         )
-        struct_fc.append_member('variant', variant_fc, **kwargs)
+        struct_fc.append_member("variant", variant_fc, **kwargs)
 
         return _create_const_field_class(self._tc, struct_fc, self._const_value_setter)[
-            'variant'
+            "variant"
         ].field_class
 
     def setUp(self):
@@ -983,26 +983,26 @@ class _VariantFieldClassWithIntegerSelectorTestCase:
 
     def test_append_element(self):
         str_field_class = self._tc.create_string_field_class()
-        self._fc.append_option('str', str_field_class, self._ranges1)
-        opt = self._fc['str']
+        self._fc.append_option("str", str_field_class, self._ranges1)
+        opt = self._fc["str"]
         self.assertEqual(opt.field_class.addr, str_field_class.addr)
-        self.assertEqual(opt.name, 'str')
+        self.assertEqual(opt.name, "str")
         self.assertEqual(opt.ranges.addr, self._ranges1.addr)
 
     def test_const_append(self):
         fc_const = self._create_default_const_field_class()
         str_field_class = self._tc.create_string_field_class()
         with self.assertRaises(AttributeError):
-            fc_const.append_option('str', str_field_class, self._ranges1)
+            fc_const.append_option("str", str_field_class, self._ranges1)
 
     def test_append_element_kwargs(self):
         int_field_class = self._tc.create_signed_integer_field_class(32)
         self._fc.append_option(
-            name='int32', field_class=int_field_class, ranges=self._ranges1
+            name="int32", field_class=int_field_class, ranges=self._ranges1
         )
-        opt = self._fc['int32']
+        opt = self._fc["int32"]
         self.assertEqual(opt.field_class.addr, int_field_class.addr)
-        self.assertEqual(opt.name, 'int32')
+        self.assertEqual(opt.name, "int32")
         self.assertEqual(opt.ranges.addr, self._ranges1.addr)
 
     def test_append_element_invalid_name(self):
@@ -1013,21 +1013,21 @@ class _VariantFieldClassWithIntegerSelectorTestCase:
 
     def test_append_element_invalid_field_class(self):
         with self.assertRaises(TypeError):
-            self._fc.append_option(self._fc, 'yes', object())
+            self._fc.append_option(self._fc, "yes", object())
 
     def test_append_element_invalid_ranges(self):
         sub_fc = self._tc.create_string_field_class()
 
         with self.assertRaises(TypeError):
-            self._fc.append_option(self._fc, sub_fc, 'lel')
+            self._fc.append_option(self._fc, sub_fc, "lel")
 
     def test_append_element_dup_name(self):
         sub_fc1 = self._tc.create_string_field_class()
         sub_fc2 = self._tc.create_string_field_class()
 
         with self.assertRaises(ValueError):
-            self._fc.append_option('yes', sub_fc1, self._ranges1)
-            self._fc.append_option('yes', sub_fc2, self._ranges2)
+            self._fc.append_option("yes", sub_fc1, self._ranges1)
+            self._fc.append_option("yes", sub_fc2, self._ranges2)
 
     def test_append_element_invalid_ranges_signedness(self):
         sub_fc = self._tc.create_string_field_class()
@@ -1037,12 +1037,12 @@ class _VariantFieldClassWithIntegerSelectorTestCase:
 
     def test_user_attributes(self):
         self._fc.append_option(
-            'c',
+            "c",
             self._tc.create_string_field_class(),
             self._ranges1,
-            user_attributes={'salut': 23},
+            user_attributes={"salut": 23},
         )
-        self.assertEqual(self._fc['c'].user_attributes, {'salut': 23})
+        self.assertEqual(self._fc["c"].user_attributes, {"salut": 23})
         self.assertIs(type(self._fc.user_attributes), bt2_value.MapValue)
 
     def test_const_user_attributes(self):
@@ -1052,7 +1052,7 @@ class _VariantFieldClassWithIntegerSelectorTestCase:
     def test_invalid_user_attributes(self):
         with self.assertRaises(TypeError):
             self._fc.append_option(
-                'c',
+                "c",
                 self._tc.create_string_field_class(),
                 self._ranges1,
                 user_attributes=object(),
@@ -1061,7 +1061,7 @@ class _VariantFieldClassWithIntegerSelectorTestCase:
     def test_invalid_user_attributes_value_type(self):
         with self.assertRaises(TypeError):
             self._fc.append_option(
-                'c',
+                "c",
                 self._tc.create_string_field_class(),
                 self._ranges1,
                 user_attributes=23,
@@ -1069,64 +1069,64 @@ class _VariantFieldClassWithIntegerSelectorTestCase:
 
     def test_iadd(self):
         a_field_class = self._tc.create_single_precision_real_field_class()
-        self._fc.append_option('a_float', a_field_class, self._ranges1)
+        self._fc.append_option("a_float", a_field_class, self._ranges1)
         c_field_class = self._tc.create_string_field_class()
         d_field_class = self._tc.create_signed_enumeration_field_class(
             field_value_range=32
         )
         self._fc += [
-            ('c_string', c_field_class, self._ranges2),
-            ('d_enum', d_field_class, self._ranges3),
+            ("c_string", c_field_class, self._ranges2),
+            ("d_enum", d_field_class, self._ranges3),
         ]
-        self.assertEqual(self._fc['a_float'].field_class.addr, a_field_class.addr)
-        self.assertEqual(self._fc['a_float'].name, 'a_float')
-        self.assertEqual(self._fc['a_float'].ranges, self._ranges1)
-        self.assertEqual(self._fc['c_string'].field_class.addr, c_field_class.addr)
-        self.assertEqual(self._fc['c_string'].name, 'c_string')
-        self.assertEqual(self._fc['c_string'].ranges, self._ranges2)
-        self.assertEqual(self._fc['d_enum'].field_class.addr, d_field_class.addr)
-        self.assertEqual(self._fc['d_enum'].name, 'd_enum')
-        self.assertEqual(self._fc['d_enum'].ranges, self._ranges3)
+        self.assertEqual(self._fc["a_float"].field_class.addr, a_field_class.addr)
+        self.assertEqual(self._fc["a_float"].name, "a_float")
+        self.assertEqual(self._fc["a_float"].ranges, self._ranges1)
+        self.assertEqual(self._fc["c_string"].field_class.addr, c_field_class.addr)
+        self.assertEqual(self._fc["c_string"].name, "c_string")
+        self.assertEqual(self._fc["c_string"].ranges, self._ranges2)
+        self.assertEqual(self._fc["d_enum"].field_class.addr, d_field_class.addr)
+        self.assertEqual(self._fc["d_enum"].name, "d_enum")
+        self.assertEqual(self._fc["d_enum"].ranges, self._ranges3)
 
     def test_const_iadd(self):
         fc_const = self._create_default_const_field_class()
         a_field_class = self._tc.create_single_precision_real_field_class()
         with self.assertRaises(TypeError):
-            fc_const += [('a_float', a_field_class, self._ranges1)]
+            fc_const += [("a_float", a_field_class, self._ranges1)]
 
     def test_bool_op(self):
         self.assertFalse(self._fc)
-        self._fc.append_option('a', self._tc.create_string_field_class(), self._ranges1)
+        self._fc.append_option("a", self._tc.create_string_field_class(), self._ranges1)
         self.assertTrue(self._fc)
 
     def test_len(self):
-        self._fc.append_option('a', self._tc.create_string_field_class(), self._ranges1)
-        self._fc.append_option('b', self._tc.create_string_field_class(), self._ranges2)
-        self._fc.append_option('c', self._tc.create_string_field_class(), self._ranges3)
+        self._fc.append_option("a", self._tc.create_string_field_class(), self._ranges1)
+        self._fc.append_option("b", self._tc.create_string_field_class(), self._ranges2)
+        self._fc.append_option("c", self._tc.create_string_field_class(), self._ranges3)
         self.assertEqual(len(self._fc), 3)
 
     def test_getitem(self):
         a_fc = self._tc.create_signed_integer_field_class(32)
         b_fc = self._tc.create_string_field_class()
         c_fc = self._tc.create_single_precision_real_field_class()
-        self._fc.append_option('a', a_fc, self._ranges1)
-        self._fc.append_option('b', b_fc, self._ranges2)
-        self._fc.append_option('c', c_fc, self._ranges3)
-        self.assertEqual(self._fc['b'].field_class.addr, b_fc.addr)
-        self.assertEqual(self._fc['b'].name, 'b')
-        self.assertEqual(self._fc['b'].ranges.addr, self._ranges2.addr)
+        self._fc.append_option("a", a_fc, self._ranges1)
+        self._fc.append_option("b", b_fc, self._ranges2)
+        self._fc.append_option("c", c_fc, self._ranges3)
+        self.assertEqual(self._fc["b"].field_class.addr, b_fc.addr)
+        self.assertEqual(self._fc["b"].name, "b")
+        self.assertEqual(self._fc["b"].ranges.addr, self._ranges2.addr)
 
     def test_option_field_class(self):
         a_fc = self._tc.create_signed_integer_field_class(32)
-        self._fc.append_option('a', a_fc, self._ranges1)
+        self._fc.append_option("a", a_fc, self._ranges1)
         self.assertIs(
-            type(self._fc['a'].field_class), bt2_field_class._SignedIntegerFieldClass
+            type(self._fc["a"].field_class), bt2_field_class._SignedIntegerFieldClass
         )
 
     def test_const_option_field_class(self):
         fc_const = self._create_default_const_field_class()
         self.assertIs(
-            type(fc_const['a'].field_class),
+            type(fc_const["a"].field_class),
             bt2_field_class._SignedIntegerFieldClassConst,
         )
 
@@ -1136,21 +1136,21 @@ class _VariantFieldClassWithIntegerSelectorTestCase:
 
     def test_getitem_invalid_key(self):
         with self.assertRaises(KeyError):
-            self._fc['no way']
+            self._fc["no way"]
 
     def test_contains(self):
-        self.assertFalse('a' in self._fc)
-        self._fc.append_option('a', self._tc.create_string_field_class(), self._ranges1)
-        self.assertTrue('a' in self._fc)
+        self.assertFalse("a" in self._fc)
+        self._fc.append_option("a", self._tc.create_string_field_class(), self._ranges1)
+        self.assertTrue("a" in self._fc)
 
     def test_iter(self):
         a_fc = self._tc.create_signed_integer_field_class(32)
         b_fc = self._tc.create_string_field_class()
         c_fc = self._tc.create_single_precision_real_field_class()
         opts = (
-            ('a', a_fc, self._ranges1),
-            ('b', b_fc, self._ranges2),
-            ('c', c_fc, self._ranges3),
+            ("a", a_fc, self._ranges1),
+            ("b", b_fc, self._ranges2),
+            ("c", c_fc, self._ranges3),
         )
 
         for opt in opts:
@@ -1166,24 +1166,24 @@ class _VariantFieldClassWithIntegerSelectorTestCase:
         a_fc = self._tc.create_signed_integer_field_class(32)
         b_fc = self._tc.create_string_field_class()
         c_fc = self._tc.create_single_precision_real_field_class()
-        self._fc.append_option('c', c_fc, self._ranges1)
-        self._fc.append_option('a', a_fc, self._ranges2)
-        self._fc.append_option('b', b_fc, self._ranges3)
+        self._fc.append_option("c", c_fc, self._ranges1)
+        self._fc.append_option("a", a_fc, self._ranges2)
+        self._fc.append_option("b", b_fc, self._ranges3)
         self.assertEqual(self._fc.option_at_index(1).field_class.addr, a_fc.addr)
-        self.assertEqual(self._fc.option_at_index(1).name, 'a')
+        self.assertEqual(self._fc.option_at_index(1).name, "a")
         self.assertEqual(self._fc.option_at_index(1).ranges.addr, self._ranges2.addr)
 
     def test_at_index_invalid(self):
         self._fc.append_option(
-            'c', self._tc.create_signed_integer_field_class(32), self._ranges3
+            "c", self._tc.create_signed_integer_field_class(32), self._ranges3
         )
 
         with self.assertRaises(TypeError):
-            self._fc.option_at_index('yes')
+            self._fc.option_at_index("yes")
 
     def test_at_index_out_of_bounds_after(self):
         self._fc.append_option(
-            'c', self._tc.create_signed_integer_field_class(32), self._ranges3
+            "c", self._tc.create_signed_integer_field_class(32), self._ranges3
         )
 
         with self.assertRaises(IndexError):
@@ -1206,13 +1206,13 @@ class _VariantFieldClassWithIntegerSelectorTestCase:
         #   } inner_struct[2];
         # };
         self._fc.append_option(
-            'a', self._tc.create_single_precision_real_field_class(), self._ranges1
+            "a", self._tc.create_single_precision_real_field_class(), self._ranges1
         )
         self._fc.append_option(
-            'b', self._tc.create_signed_integer_field_class(21), self._ranges2
+            "b", self._tc.create_signed_integer_field_class(21), self._ranges2
         )
         self._fc.append_option(
-            'c', self._tc.create_unsigned_integer_field_class(34), self._ranges3
+            "c", self._tc.create_unsigned_integer_field_class(34), self._ranges3
         )
 
         foo_fc = self._tc.create_single_precision_real_field_class()
@@ -1220,18 +1220,18 @@ class _VariantFieldClassWithIntegerSelectorTestCase:
         baz_fc = self._tc.create_string_field_class()
 
         inner_struct_fc = self._tc.create_structure_field_class()
-        inner_struct_fc.append_member('selector', self._selector_fc)
-        inner_struct_fc.append_member('bar', bar_fc)
-        inner_struct_fc.append_member('baz', baz_fc)
-        inner_struct_fc.append_member('variant', self._fc)
+        inner_struct_fc.append_member("selector", self._selector_fc)
+        inner_struct_fc.append_member("bar", bar_fc)
+        inner_struct_fc.append_member("baz", baz_fc)
+        inner_struct_fc.append_member("variant", self._fc)
 
         inner_struct_array_fc = self._tc.create_static_array_field_class(
             inner_struct_fc, 2
         )
 
         outer_struct_fc = self._tc.create_structure_field_class()
-        outer_struct_fc.append_member('foo', foo_fc)
-        outer_struct_fc.append_member('inner_struct', inner_struct_array_fc)
+        outer_struct_fc.append_member("foo", foo_fc)
+        outer_struct_fc.append_member("inner_struct", inner_struct_array_fc)
 
         # The path to the selector field is resolved when the sequence is
         # actually used, for example in a packet context.
@@ -1339,7 +1339,7 @@ class StaticArrayFieldClassTestCase(
     def test_create_invalid_length_type(self):
         with self.assertRaises(TypeError):
             self._tc.create_static_array_field_class(
-                self._tc.create_string_field_class(), 'the length'
+                self._tc.create_string_field_class(), "the length"
             )
 
 
@@ -1412,18 +1412,18 @@ class DynamicArrayWithLengthFieldFieldClassTestCase(
         baz_fc = self._tc.create_string_field_class()
 
         inner_struct_fc = self._tc.create_structure_field_class()
-        inner_struct_fc.append_member('bar', bar_fc)
-        inner_struct_fc.append_member('baz', baz_fc)
-        inner_struct_fc.append_member('len', self._len_fc)
-        inner_struct_fc.append_member('dyn_array', fc)
+        inner_struct_fc.append_member("bar", bar_fc)
+        inner_struct_fc.append_member("baz", baz_fc)
+        inner_struct_fc.append_member("len", self._len_fc)
+        inner_struct_fc.append_member("dyn_array", fc)
 
         inner_struct_array_fc = self._tc.create_static_array_field_class(
             inner_struct_fc, 2
         )
 
         outer_struct_fc = self._tc.create_structure_field_class()
-        outer_struct_fc.append_member('foo', foo_fc)
-        outer_struct_fc.append_member('inner_struct', inner_struct_array_fc)
+        outer_struct_fc.append_member("foo", foo_fc)
+        outer_struct_fc.append_member("inner_struct", inner_struct_array_fc)
 
         # The path to the length field is resolved when the sequence is
         # actually used, for example in a packet context.

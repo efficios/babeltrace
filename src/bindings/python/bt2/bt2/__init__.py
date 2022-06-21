@@ -186,38 +186,38 @@ if (sys.version_info.major, sys.version_info.minor) != (3, 4):
             del globals()[name]
 
     # remove private module names from the package
-    _del_global_name('_native_bt')
-    _del_global_name('clock_class')
-    _del_global_name('clock_snapshot')
-    _del_global_name('component')
-    _del_global_name('connection')
-    _del_global_name('error')
-    _del_global_name('event')
-    _del_global_name('event_class')
-    _del_global_name('field')
-    _del_global_name('field_class')
-    _del_global_name('field_path')
-    _del_global_name('graph')
-    _del_global_name('integer_range_set')
-    _del_global_name('interrupter')
-    _del_global_name('logging')
-    _del_global_name('message')
-    _del_global_name('message_iterator')
-    _del_global_name('native_bt')
-    _del_global_name('object')
-    _del_global_name('packet')
-    _del_global_name('plugin')
-    _del_global_name('port')
-    _del_global_name('py_plugin')
-    _del_global_name('query_executor')
-    _del_global_name('stream')
-    _del_global_name('stream_class')
-    _del_global_name('trace')
-    _del_global_name('trace_class')
-    _del_global_name('trace_collection_message_iterator')
-    _del_global_name('utils')
-    _del_global_name('value')
-    _del_global_name('version')
+    _del_global_name("_native_bt")
+    _del_global_name("clock_class")
+    _del_global_name("clock_snapshot")
+    _del_global_name("component")
+    _del_global_name("connection")
+    _del_global_name("error")
+    _del_global_name("event")
+    _del_global_name("event_class")
+    _del_global_name("field")
+    _del_global_name("field_class")
+    _del_global_name("field_path")
+    _del_global_name("graph")
+    _del_global_name("integer_range_set")
+    _del_global_name("interrupter")
+    _del_global_name("logging")
+    _del_global_name("message")
+    _del_global_name("message_iterator")
+    _del_global_name("native_bt")
+    _del_global_name("object")
+    _del_global_name("packet")
+    _del_global_name("plugin")
+    _del_global_name("port")
+    _del_global_name("py_plugin")
+    _del_global_name("query_executor")
+    _del_global_name("stream")
+    _del_global_name("stream_class")
+    _del_global_name("trace")
+    _del_global_name("trace_class")
+    _del_global_name("trace_collection_message_iterator")
+    _del_global_name("utils")
+    _del_global_name("value")
+    _del_global_name("version")
 
     # remove private `_del_global_name` name from the package
     del _del_global_name
@@ -228,7 +228,7 @@ del sys
 
 
 class _MemoryError(_Error):
-    '''Raised when an operation fails due to memory issues.'''
+    """Raised when an operation fails due to memory issues."""
 
 
 class UnknownObject(Exception):

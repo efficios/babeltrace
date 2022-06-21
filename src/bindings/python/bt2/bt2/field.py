@@ -83,7 +83,7 @@ class _Field(_FieldConst):
 
 
 class _BitArrayFieldConst(_FieldConst):
-    _NAME = 'Const bit array'
+    _NAME = "Const bit array"
 
     @property
     def value_as_integer(self):
@@ -106,7 +106,7 @@ class _BitArrayFieldConst(_FieldConst):
 
 
 class _BitArrayField(_BitArrayFieldConst, _Field):
-    _NAME = 'Bit array'
+    _NAME = "Bit array"
 
     def _value_as_integer(self, value):
         utils._check_uint64(value)
@@ -149,7 +149,7 @@ class _NumericFieldConst(_FieldConst):
     def __lt__(self, other):
         if not isinstance(other, numbers.Number):
             raise TypeError(
-                'unorderable types: {}() < {}()'.format(
+                "unorderable types: {}() < {}()".format(
                     self.__class__.__name__, other.__class__.__name__
                 )
             )
@@ -230,7 +230,7 @@ class _NumericField(_NumericFieldConst, _Field):
     def __hash__(self):
         # Non const field are not hashable as their value may be modified
         # without changing the underlying Python object.
-        raise TypeError('unhashable type: \'{}\''.format(self._NAME))
+        raise TypeError("unhashable type: '{}'".format(self._NAME))
 
 
 class _IntegralFieldConst(_NumericFieldConst, numbers.Integral):
@@ -273,7 +273,7 @@ class _IntegralField(_IntegralFieldConst, _NumericField):
 
 
 class _BoolFieldConst(_IntegralFieldConst, _FieldConst):
-    _NAME = 'Const boolean'
+    _NAME = "Const boolean"
 
     def __bool__(self):
         return self._value
@@ -298,7 +298,7 @@ class _BoolFieldConst(_IntegralFieldConst, _FieldConst):
 
 
 class _BoolField(_BoolFieldConst, _IntegralField, _Field):
-    _NAME = 'Boolean'
+    _NAME = "Boolean"
 
     def _set_value(self, value):
         value = self._value_to_bool(value)
@@ -322,12 +322,12 @@ class _IntegerField(_IntegerFieldConst, _IntegralField, _Field):
 
 
 class _UnsignedIntegerFieldConst(_IntegerFieldConst, _FieldConst):
-    _NAME = 'Const unsigned integer'
+    _NAME = "Const unsigned integer"
 
     @classmethod
     def _value_to_int(cls, value):
         if not isinstance(value, numbers.Integral):
-            raise TypeError('expecting an integral number object')
+            raise TypeError("expecting an integral number object")
 
         return int(value)
 
@@ -337,7 +337,7 @@ class _UnsignedIntegerFieldConst(_IntegerFieldConst, _FieldConst):
 
 
 class _UnsignedIntegerField(_UnsignedIntegerFieldConst, _IntegerField, _Field):
-    _NAME = 'Unsigned integer'
+    _NAME = "Unsigned integer"
 
     def _set_value(self, value):
         value = self._value_to_int(value)
@@ -358,12 +358,12 @@ class _UnsignedIntegerField(_UnsignedIntegerFieldConst, _IntegerField, _Field):
 
 
 class _SignedIntegerFieldConst(_IntegerFieldConst, _FieldConst):
-    _NAME = 'Const signed integer'
+    _NAME = "Const signed integer"
 
     @classmethod
     def _value_to_int(cls, value):
         if not isinstance(value, numbers.Integral):
-            raise TypeError('expecting an integral number object')
+            raise TypeError("expecting an integral number object")
 
         return int(value)
 
@@ -373,7 +373,7 @@ class _SignedIntegerFieldConst(_IntegerFieldConst, _FieldConst):
 
 
 class _SignedIntegerField(_SignedIntegerFieldConst, _IntegerField, _Field):
-    _NAME = 'Signed integer'
+    _NAME = "Signed integer"
 
     def _set_value(self, value):
         value = self._value_to_int(value)
@@ -394,7 +394,7 @@ class _SignedIntegerField(_SignedIntegerFieldConst, _IntegerField, _Field):
 
 
 class _RealFieldConst(_NumericFieldConst, numbers.Real):
-    _NAME = 'Const real'
+    _NAME = "Const real"
 
     @classmethod
     def _value_to_float(cls, value):
@@ -405,7 +405,7 @@ class _RealFieldConst(_NumericFieldConst, numbers.Real):
 
 
 class _SinglePrecisionRealFieldConst(_RealFieldConst):
-    _NAME = 'Const single-precision real'
+    _NAME = "Const single-precision real"
 
     @property
     def _value(self):
@@ -413,7 +413,7 @@ class _SinglePrecisionRealFieldConst(_RealFieldConst):
 
 
 class _DoublePrecisionRealFieldConst(_RealFieldConst):
-    _NAME = 'Const double-precision real'
+    _NAME = "Const double-precision real"
 
     @property
     def _value(self):
@@ -421,11 +421,11 @@ class _DoublePrecisionRealFieldConst(_RealFieldConst):
 
 
 class _RealField(_RealFieldConst, _NumericField):
-    _NAME = 'Real'
+    _NAME = "Real"
 
 
 class _SinglePrecisionRealField(_SinglePrecisionRealFieldConst, _RealField):
-    _NAME = 'Single-precision real'
+    _NAME = "Single-precision real"
 
     def _set_value(self, value):
         value = self._value_to_float(value)
@@ -435,7 +435,7 @@ class _SinglePrecisionRealField(_SinglePrecisionRealFieldConst, _RealField):
 
 
 class _DoublePrecisionRealField(_DoublePrecisionRealFieldConst, _RealField):
-    _NAME = 'Double-precision real'
+    _NAME = "Double-precision real"
 
     def _set_value(self, value):
         value = self._value_to_float(value)
@@ -446,7 +446,7 @@ class _DoublePrecisionRealField(_DoublePrecisionRealFieldConst, _RealField):
 
 class _EnumerationFieldConst(_IntegerFieldConst):
     def _repr(self):
-        return '{} ({})'.format(self._value, ', '.join(self.labels))
+        return "{} ({})".format(self._value, ", ".join(self.labels))
 
     @property
     def labels(self):
@@ -464,7 +464,7 @@ class _EnumerationField(_EnumerationFieldConst, _IntegerField):
 class _UnsignedEnumerationFieldConst(
     _EnumerationFieldConst, _UnsignedIntegerFieldConst
 ):
-    _NAME = 'Const unsigned Enumeration'
+    _NAME = "Const unsigned Enumeration"
     _get_mapping_labels = staticmethod(
         native_bt.field_enumeration_unsigned_get_mapping_labels
     )
@@ -473,11 +473,11 @@ class _UnsignedEnumerationFieldConst(
 class _UnsignedEnumerationField(
     _UnsignedEnumerationFieldConst, _EnumerationField, _UnsignedIntegerField
 ):
-    _NAME = 'Unsigned enumeration'
+    _NAME = "Unsigned enumeration"
 
 
 class _SignedEnumerationFieldConst(_EnumerationFieldConst, _SignedIntegerFieldConst):
-    _NAME = 'Const signed Enumeration'
+    _NAME = "Const signed Enumeration"
     _get_mapping_labels = staticmethod(
         native_bt.field_enumeration_signed_get_mapping_labels
     )
@@ -486,12 +486,12 @@ class _SignedEnumerationFieldConst(_EnumerationFieldConst, _SignedIntegerFieldCo
 class _SignedEnumerationField(
     _SignedEnumerationFieldConst, _EnumerationField, _SignedIntegerField
 ):
-    _NAME = 'Signed enumeration'
+    _NAME = "Signed enumeration"
 
 
 @functools.total_ordering
 class _StringFieldConst(_FieldConst):
-    _NAME = 'Const string'
+    _NAME = "Const string"
 
     @classmethod
     def _value_to_str(cls, value):
@@ -536,7 +536,7 @@ class _StringFieldConst(_FieldConst):
 
 
 class _StringField(_StringFieldConst, _Field):
-    _NAME = 'String'
+    _NAME = "String"
 
     def _set_value(self, value):
         value = self._value_to_str(value)
@@ -555,7 +555,7 @@ class _StringField(_StringFieldConst, _Field):
     def __hash__(self):
         # Non const field are not hashable as their value may be modified
         # without changing the underlying Python object.
-        raise TypeError('unhashable type: \'{}\''.format(self._NAME))
+        raise TypeError("unhashable type: '{}'".format(self._NAME))
 
 
 class _ContainerFieldConst(_FieldConst):
@@ -575,7 +575,7 @@ class _ContainerFieldConst(_FieldConst):
 
     def __setitem__(self, index, value):
         raise TypeError(
-            '\'{}\' object does not support item assignment'.format(self.__class__)
+            "'{}' object does not support item assignment".format(self.__class__)
         )
 
 
@@ -584,7 +584,7 @@ class _ContainerField(_ContainerFieldConst, _Field):
 
 
 class _StructureFieldConst(_ContainerFieldConst, collections.abc.Mapping):
-    _NAME = 'Const structure'
+    _NAME = "Const structure"
     _borrow_member_field_ptr_by_index = staticmethod(
         native_bt.field_structure_borrow_member_field_by_index_const
     )
@@ -617,8 +617,8 @@ class _StructureFieldConst(_ContainerFieldConst, collections.abc.Mapping):
         return True
 
     def _repr(self):
-        items = ['{}: {}'.format(repr(k), repr(v)) for k, v in self.items()]
-        return '{{{}}}'.format(', '.join(items))
+        items = ["{}: {}".format(repr(k), repr(v)) for k, v in self.items()]
+        return "{{{}}}".format(", ".join(items))
 
     def __getitem__(self, key):
         utils._check_str(key)
@@ -646,7 +646,7 @@ class _StructureFieldConst(_ContainerFieldConst, collections.abc.Mapping):
 class _StructureField(
     _StructureFieldConst, _ContainerField, collections.abc.MutableMapping
 ):
-    _NAME = 'Structure'
+    _NAME = "Structure"
     _borrow_member_field_ptr_by_index = staticmethod(
         native_bt.field_structure_borrow_member_field_by_index
     )
@@ -673,7 +673,7 @@ class _StructureField(
 
 
 class _OptionFieldConst(_FieldConst):
-    _NAME = 'Const option'
+    _NAME = "Const option"
     _borrow_field_ptr = staticmethod(native_bt.field_option_borrow_field_const)
 
     @property
@@ -705,7 +705,7 @@ class _OptionFieldConst(_FieldConst):
 
 
 class _OptionField(_OptionFieldConst, _Field):
-    _NAME = 'Option'
+    _NAME = "Option"
     _borrow_field_ptr = staticmethod(native_bt.field_option_borrow_field)
 
     def _has_field(self, value):
@@ -724,7 +724,7 @@ class _OptionField(_OptionFieldConst, _Field):
 
 
 class _VariantFieldConst(_ContainerFieldConst, _FieldConst):
-    _NAME = 'Const variant'
+    _NAME = "Const variant"
     _borrow_selected_option_field_ptr = staticmethod(
         native_bt.field_variant_borrow_selected_option_field_const
     )
@@ -761,14 +761,14 @@ class _VariantFieldConst(_ContainerFieldConst, _FieldConst):
 
 
 class _VariantField(_VariantFieldConst, _ContainerField, _Field):
-    _NAME = 'Variant'
+    _NAME = "Variant"
     _borrow_selected_option_field_ptr = staticmethod(
         native_bt.field_variant_borrow_selected_option_field
     )
 
     def _selected_option_index(self, index):
         if index < 0 or index >= len(self):
-            raise IndexError('{} field object index is out of range'.format(self._NAME))
+            raise IndexError("{} field object index is out of range".format(self._NAME))
 
         native_bt.field_variant_select_option_by_index(self._ptr, index)
 
@@ -803,7 +803,7 @@ class _ArrayFieldConst(_ContainerFieldConst, _FieldConst, collections.abc.Sequen
         index = int(index)
 
         if index < 0 or index >= len(self):
-            raise IndexError('{} field object index is out of range'.format(self._NAME))
+            raise IndexError("{} field object index is out of range".format(self._NAME))
 
         field_ptr = self._borrow_element_field_ptr_by_index(self._ptr, index)
         assert field_ptr
@@ -829,7 +829,7 @@ class _ArrayFieldConst(_ContainerFieldConst, _FieldConst, collections.abc.Sequen
         return True
 
     def _repr(self):
-        return '[{}]'.format(', '.join([repr(v) for v in self]))
+        return "[{}]".format(", ".join([repr(v) for v in self]))
 
 
 class _ArrayField(
@@ -844,7 +844,7 @@ class _ArrayField(
         field = self[index]
 
         if not isinstance(field, (_NumericField, _StringField)):
-            raise TypeError('can only set the value of a number or string field')
+            raise TypeError("can only set the value of a number or string field")
 
         # the field's property does the appropriate conversion or raises
         # the appropriate exception
@@ -852,19 +852,19 @@ class _ArrayField(
 
 
 class _StaticArrayFieldConst(_ArrayFieldConst, _FieldConst):
-    _NAME = 'Const static array'
+    _NAME = "Const static array"
 
     def _count(self):
         return native_bt.field_array_get_length(self._ptr)
 
 
 class _StaticArrayField(_StaticArrayFieldConst, _ArrayField, _Field):
-    _NAME = 'Static array'
+    _NAME = "Static array"
 
     def _set_value(self, values):
         if len(self) != len(values):
             raise ValueError(
-                'expected length of value ({}) and array field ({}) to match'.format(
+                "expected length of value ({}) and array field ({}) to match".format(
                     len(values), len(self)
                 )
             )
@@ -877,14 +877,14 @@ class _StaticArrayField(_StaticArrayFieldConst, _ArrayField, _Field):
 
 
 class _DynamicArrayFieldConst(_ArrayFieldConst, _FieldConst):
-    _NAME = 'Const dynamic array'
+    _NAME = "Const dynamic array"
 
     def _count(self):
         return self.length
 
 
 class _DynamicArrayField(_DynamicArrayFieldConst, _ArrayField, _Field):
-    _NAME = 'Dynamic array'
+    _NAME = "Dynamic array"
 
     def _set_length(self, length):
         utils._check_uint64(length)

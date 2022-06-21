@@ -110,7 +110,7 @@ class _IntegerRangeSet(_IntegerRangeSetConst, collections.abc.MutableSet):
         ptr = self._create_range_set()
 
         if ptr is None:
-            raise bt2._MemoryError('cannot create range set object')
+            raise bt2._MemoryError("cannot create range set object")
 
         super().__init__(ptr)
 
@@ -128,7 +128,7 @@ class _IntegerRangeSet(_IntegerRangeSetConst, collections.abc.MutableSet):
                 rg = self._range_pycls(rg[0], rg[1])
 
         status = self._add_range(self._ptr, rg.lower, rg.upper)
-        utils._handle_func_status(status, 'cannot add range to range set object')
+        utils._handle_func_status(status, "cannot add range to range set object")
 
     def discard(self, rg):
         raise NotImplementedError

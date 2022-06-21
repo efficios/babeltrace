@@ -13,7 +13,7 @@ bt2.register_plugin(__name__, "test_exit_status")
 
 class StatusIter(bt2._UserMessageIterator):
     def __init__(self, config, output_port):
-        self.case = output_port.user_data['case']
+        self.case = output_port.user_data["case"]
 
     def __next__(self):
         if self.case == "STOP":
@@ -30,7 +30,7 @@ class StatusIter(bt2._UserMessageIterator):
                 time.sleep(0.1)
 
             raise Exception(
-                '{} was not interrupted after {} seconds'.format(
+                "{} was not interrupted after {} seconds".format(
                     self.__class__.__name__, timeout_s
                 )
             )
@@ -44,4 +44,4 @@ class StatusIter(bt2._UserMessageIterator):
 @bt2.plugin_component_class
 class StatusSrc(bt2._UserSourceComponent, message_iterator_class=StatusIter):
     def __init__(self, config, params, obj):
-        self._add_output_port("out", {'case': params['case']})
+        self._add_output_port("out", {"case": params["case"]})

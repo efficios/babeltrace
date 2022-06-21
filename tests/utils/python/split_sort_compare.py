@@ -9,8 +9,8 @@ import re
 def main():
     expected = sys.argv[1]
     actual = sys.argv[2]
-    sorted_expected = ''.join(sorted(re.findall(r'\w+|\W+', expected.strip())))
-    sorted_actual = ''.join(sorted(re.findall(r'\w+|\W+', actual.strip())))
+    sorted_expected = "".join(sorted(re.findall(r"\w+|\W+", expected.strip())))
+    sorted_actual = "".join(sorted(re.findall(r"\w+|\W+", actual.strip())))
 
     if sorted_expected == sorted_actual:
         status = 0
@@ -20,5 +20,5 @@ def main():
     sys.exit(status)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

@@ -22,7 +22,7 @@ class _MessageConst(object._SharedObject):
     def _check_has_default_clock_class(clock_class):
         if clock_class is None:
             raise ValueError(
-                'cannot get default clock snapshot: stream class has no default clock class'
+                "cannot get default clock snapshot: stream class has no default clock class"
             )
 
 
@@ -212,7 +212,7 @@ class _DiscardedMessageConst(_MessageConst, _MessageWithDefaultClockSnapshot):
     def _check_has_default_clock_snapshots(self):
         if not self._has_default_clock_snapshots:
             raise ValueError(
-                'cannot get default clock snapshot: such a message has no clock snapshots for this stream class'
+                "cannot get default clock snapshot: such a message has no clock snapshots for this stream class"
             )
 
     @property
@@ -235,7 +235,7 @@ class _DiscardedMessage(_DiscardedMessageConst, _Message):
         utils._check_uint64(count)
 
         if count == 0:
-            raise ValueError('discarded {} count is 0'.format(self._item_name))
+            raise ValueError("discarded {} count is 0".format(self._item_name))
 
         self._set_count(self._ptr, count)
 
@@ -262,7 +262,7 @@ class _DiscardedEventsMessageConst(_DiscardedMessageConst):
 class _DiscardedEventsMessage(_DiscardedEventsMessageConst, _DiscardedMessage):
     _borrow_stream_ptr = staticmethod(native_bt.message_discarded_events_borrow_stream)
     _set_count = staticmethod(native_bt.message_discarded_events_set_count)
-    _item_name = 'event'
+    _item_name = "event"
 
 
 class _DiscardedPacketsMessageConst(_DiscardedMessageConst):
@@ -285,7 +285,7 @@ class _DiscardedPacketsMessageConst(_DiscardedMessageConst):
 class _DiscardedPacketsMessage(_DiscardedPacketsMessageConst, _DiscardedMessage):
     _borrow_stream_ptr = staticmethod(native_bt.message_discarded_packets_borrow_stream)
     _set_count = staticmethod(native_bt.message_discarded_packets_set_count)
-    _item_name = 'packet'
+    _item_name = "packet"
 
 
 _MESSAGE_TYPE_TO_CLS = {

@@ -29,20 +29,20 @@ class CompleteIter(bt2._UserMessageIterator):
         ev.event.payload_field["uint32"] = 121
         ev.event.payload_field["uint61"] = 299792458
         ev.event.payload_field["uint5_oct"] = 29
-        ev.event.payload_field["struct"]['str'] = "Rotisserie St-Hubert"
-        ev.event.payload_field["struct"]['option_real'] = math.pi
+        ev.event.payload_field["struct"]["str"] = "Rotisserie St-Hubert"
+        ev.event.payload_field["struct"]["option_real"] = math.pi
         ev.event.payload_field["string"] = "🎉"
         ev.event.payload_field["dyn_array"] = [1.2, 2 / 3, 42.3, math.pi]
         ev.event.payload_field["dyn_array_len"] = 4
         ev.event.payload_field["dyn_array_with_len"] = [5.2, 5 / 3, 42.5, math.pi * 12]
-        ev.event.payload_field["sta_array"] = ['🕰', '🦴', ' 🎍']
+        ev.event.payload_field["sta_array"] = ["🕰", "🦴", " 🎍"]
         ev.event.payload_field["option_none"]
         ev.event.payload_field["option_some"] = "NORMANDIN"
         ev.event.payload_field["option_bool_selector"] = True
         ev.event.payload_field["option_bool"] = "Mike's"
         ev.event.payload_field["option_int_selector"] = 1
         ev.event.payload_field["option_int"] = "Barbies resto bar grill"
-        ev.event.payload_field['variant'].selected_option_index = 0
+        ev.event.payload_field["variant"].selected_option_index = 0
         ev.event.payload_field["variant"] = "Couche-Tard"
 
         self._msgs = [
@@ -72,14 +72,14 @@ class CompleteSrc(bt2._UserSourceComponent, message_iterator_class=CompleteIter)
         option_some_fc = tc.create_string_field_class()
         variant_fc = tc.create_variant_field_class()
         variant_fc.append_option(
-            name='var_str', field_class=tc.create_string_field_class()
+            name="var_str", field_class=tc.create_string_field_class()
         )
         option_none_fc = tc.create_double_precision_real_field_class()
         struct_fc = tc.create_structure_field_class()
         struct_option_fc = tc.create_double_precision_real_field_class()
-        struct_fc.append_member('str', tc.create_string_field_class())
+        struct_fc.append_member("str", tc.create_string_field_class())
         struct_fc.append_member(
-            'option_real',
+            "option_real",
             tc.create_option_without_selector_field_class(struct_option_fc),
         )
         option_bool_selector_fc = tc.create_bool_field_class()

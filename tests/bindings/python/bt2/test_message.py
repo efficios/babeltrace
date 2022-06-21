@@ -24,7 +24,7 @@ class AllMessagesTestCase(unittest.TestCase):
             def __init__(self, config, self_port_output):
                 self._at = 0
                 self._with_stream_msgs_clock_snapshots = self_port_output.user_data.get(
-                    'with_stream_msgs_clock_snapshots', False
+                    "with_stream_msgs_clock_snapshots", False
                 )
 
             def __next__(self):
@@ -107,9 +107,9 @@ class AllMessagesTestCase(unittest.TestCase):
 
         class MySrc(bt2._UserSourceComponent, message_iterator_class=MyIter):
             def __init__(self, config, params, obj):
-                self._add_output_port('out', params)
+                self._add_output_port("out", params)
 
-                with_cc = bool(params['with_cc'])
+                with_cc = bool(params["with_cc"])
                 tc = self._create_trace_class()
                 if with_cc:
                     cc = self._create_clock_class()
@@ -130,15 +130,15 @@ class AllMessagesTestCase(unittest.TestCase):
                 # Create payload field class
                 my_int_fc = tc.create_signed_integer_field_class(32)
                 payload_fc = tc.create_structure_field_class()
-                payload_fc += [('my_int', my_int_fc)]
+                payload_fc += [("my_int", my_int_fc)]
 
                 # Create specific context field class
                 my_int_fc = tc.create_signed_integer_field_class(32)
                 specific_fc = tc.create_structure_field_class()
-                specific_fc += [('my_int', my_int_fc)]
+                specific_fc += [("my_int", my_int_fc)]
 
                 ec = sc.create_event_class(
-                    name='salut',
+                    name="salut",
                     payload_field_class=payload_fc,
                     specific_context_field_class=specific_fc,
                 )
@@ -159,10 +159,10 @@ class AllMessagesTestCase(unittest.TestCase):
         self._iter = MyIter
 
     def test_all_msg_with_cc(self):
-        params = {'with_cc': True}
-        self._src_comp = self._graph.add_component(self._src, 'my_source', params)
+        params = {"with_cc": True}
+        self._src_comp = self._graph.add_component(self._src, "my_source", params)
         self._msg_iter = TestOutputPortMessageIterator(
-            self._graph, self._src_comp.output_ports['out']
+            self._graph, self._src_comp.output_ports["out"]
         )
 
         for i, msg in enumerate(self._msg_iter):
@@ -193,7 +193,7 @@ class AllMessagesTestCase(unittest.TestCase):
                     type(msg.event.payload_field), bt2_field._StructureFieldConst
                 )
                 self.assertIs(
-                    type(msg.event.payload_field['my_int']),
+                    type(msg.event.payload_field["my_int"]),
                     bt2_field._SignedIntegerFieldConst,
                 )
 
@@ -267,10 +267,10 @@ class AllMessagesTestCase(unittest.TestCase):
                 raise Exception
 
     def test_all_msg_without_cc(self):
-        params = {'with_cc': False}
-        self._src_comp = self._graph.add_component(self._src, 'my_source', params)
+        params = {"with_cc": False}
+        self._src_comp = self._graph.add_component(self._src, "my_source", params)
         self._msg_iter = TestOutputPortMessageIterator(
-            self._graph, self._src_comp.output_ports['out']
+            self._graph, self._src_comp.output_ports["out"]
         )
 
         for i, msg in enumerate(self._msg_iter):
@@ -279,7 +279,7 @@ class AllMessagesTestCase(unittest.TestCase):
                 self.assertIs(type(msg.stream), bt2_stream._StreamConst)
                 self.assertEqual(msg.stream.addr, self._stream.addr)
                 with self.assertRaisesRegex(
-                    ValueError, 'stream class has no default clock class'
+                    ValueError, "stream class has no default clock class"
                 ):
                     msg.default_clock_snapshot
             elif i == 1:
@@ -292,7 +292,7 @@ class AllMessagesTestCase(unittest.TestCase):
                 self.assertIs(type(msg.event.cls), bt2_event_class._EventClassConst)
                 self.assertEqual(msg.event.cls.addr, self._event_class.addr)
                 with self.assertRaisesRegex(
-                    ValueError, 'stream class has no default clock class'
+                    ValueError, "stream class has no default clock class"
                 ):
                     msg.default_clock_snapshot
             elif i == 3:
@@ -304,12 +304,12 @@ class AllMessagesTestCase(unittest.TestCase):
                 self.assertIsNone(msg.stream.cls.default_clock_class)
                 with self.assertRaisesRegex(
                     ValueError,
-                    'such a message has no clock snapshots for this stream class',
+                    "such a message has no clock snapshots for this stream class",
                 ):
                     msg.beginning_default_clock_snapshot
                 with self.assertRaisesRegex(
                     ValueError,
-                    'such a message has no clock snapshots for this stream class',
+                    "such a message has no clock snapshots for this stream class",
                 ):
                     msg.end_default_clock_snapshot
             elif i == 4:
@@ -328,12 +328,12 @@ class AllMessagesTestCase(unittest.TestCase):
                 self.assertIsNone(msg.stream.cls.default_clock_class)
                 with self.assertRaisesRegex(
                     ValueError,
-                    'such a message has no clock snapshots for this stream class',
+                    "such a message has no clock snapshots for this stream class",
                 ):
                     msg.beginning_default_clock_snapshot
                 with self.assertRaisesRegex(
                     ValueError,
-                    'such a message has no clock snapshots for this stream class',
+                    "such a message has no clock snapshots for this stream class",
                 ):
                     msg.end_default_clock_snapshot
             elif i == 6:
@@ -341,18 +341,18 @@ class AllMessagesTestCase(unittest.TestCase):
                 self.assertIs(type(msg.stream), bt2_stream._StreamConst)
                 self.assertEqual(msg.stream.addr, self._stream.addr)
                 with self.assertRaisesRegex(
-                    ValueError, 'stream class has no default clock class'
+                    ValueError, "stream class has no default clock class"
                 ):
                     msg.default_clock_snapshot
             else:
                 raise Exception
 
     def test_msg_stream_with_clock_snapshots(self):
-        params = {'with_cc': True, 'with_stream_msgs_clock_snapshots': True}
+        params = {"with_cc": True, "with_stream_msgs_clock_snapshots": True}
 
-        self._src_comp = self._graph.add_component(self._src, 'my_source', params)
+        self._src_comp = self._graph.add_component(self._src, "my_source", params)
         self._msg_iter = TestOutputPortMessageIterator(
-            self._graph, self._src_comp.output_ports['out']
+            self._graph, self._src_comp.output_ports["out"]
         )
         msgs = list(self._msg_iter)
 
@@ -426,7 +426,7 @@ class CreateDiscardedEventMessageTestCase(unittest.TestCase):
         def msg_iter_next(msg_iter, stream):
             with self.assertRaisesRegex(
                 ValueError,
-                'discarded event count is 0',
+                "discarded event count is 0",
             ):
                 msg_iter._create_discarded_events_message(stream, count=0)
 
@@ -461,7 +461,7 @@ class CreateDiscardedEventMessageTestCase(unittest.TestCase):
 
         def msg_iter_next(msg_iter, stream):
             with self.assertRaisesRegex(
-                ValueError, 'stream class does not support discarded events'
+                ValueError, "stream class does not support discarded events"
             ):
                 msg_iter._create_discarded_events_message(stream)
 
@@ -479,7 +479,7 @@ class CreateDiscardedEventMessageTestCase(unittest.TestCase):
         def msg_iter_next(msg_iter, stream):
             with self.assertRaisesRegex(
                 ValueError,
-                'discarded events have no default clock snapshots for this stream class',
+                "discarded events have no default clock snapshots for this stream class",
             ):
                 msg_iter._create_discarded_events_message(
                     stream, beg_clock_snapshot=10, end_clock_snapshot=20
@@ -502,7 +502,7 @@ class CreateDiscardedEventMessageTestCase(unittest.TestCase):
         def msg_iter_next(msg_iter, stream):
             with self.assertRaisesRegex(
                 ValueError,
-                'discarded events have default clock snapshots for this stream class',
+                "discarded events have default clock snapshots for this stream class",
             ):
                 msg_iter._create_discarded_events_message(stream)
 
@@ -523,7 +523,7 @@ class CreateDiscardedEventMessageTestCase(unittest.TestCase):
         def msg_iter_next(msg_iter, stream):
             with self.assertRaisesRegex(
                 ValueError,
-                r'beginning default clock snapshot value \(20\) is greater than end default clock snapshot value \(10\)',
+                r"beginning default clock snapshot value \(20\) is greater than end default clock snapshot value \(10\)",
             ):
                 msg_iter._create_discarded_events_message(
                     stream, beg_clock_snapshot=20, end_clock_snapshot=10
@@ -574,7 +574,7 @@ class CreateDiscardedPacketMessageTestCase(unittest.TestCase):
         def msg_iter_next(msg_iter, stream):
             with self.assertRaisesRegex(
                 ValueError,
-                'discarded packet count is 0',
+                "discarded packet count is 0",
             ):
                 msg_iter._create_discarded_packets_message(stream, count=0)
 
@@ -612,7 +612,7 @@ class CreateDiscardedPacketMessageTestCase(unittest.TestCase):
 
         def msg_iter_next(msg_iter, stream):
             with self.assertRaisesRegex(
-                ValueError, 'stream class does not support discarded packets'
+                ValueError, "stream class does not support discarded packets"
             ):
                 msg_iter._create_discarded_packets_message(stream)
 
@@ -632,7 +632,7 @@ class CreateDiscardedPacketMessageTestCase(unittest.TestCase):
         def msg_iter_next(msg_iter, stream):
             with self.assertRaisesRegex(
                 ValueError,
-                'discarded packets have no default clock snapshots for this stream class',
+                "discarded packets have no default clock snapshots for this stream class",
             ):
                 msg_iter._create_discarded_packets_message(
                     stream, beg_clock_snapshot=10, end_clock_snapshot=20
@@ -656,7 +656,7 @@ class CreateDiscardedPacketMessageTestCase(unittest.TestCase):
         def msg_iter_next(msg_iter, stream):
             with self.assertRaisesRegex(
                 ValueError,
-                'discarded packets have default clock snapshots for this stream class',
+                "discarded packets have default clock snapshots for this stream class",
             ):
                 msg_iter._create_discarded_packets_message(stream)
 
@@ -678,7 +678,7 @@ class CreateDiscardedPacketMessageTestCase(unittest.TestCase):
         def msg_iter_next(msg_iter, stream):
             with self.assertRaisesRegex(
                 ValueError,
-                r'beginning default clock snapshot value \(20\) is greater than end default clock snapshot value \(10\)',
+                r"beginning default clock snapshot value \(20\) is greater than end default clock snapshot value \(10\)",
             ):
                 msg_iter._create_discarded_packets_message(
                     stream, beg_clock_snapshot=20, end_clock_snapshot=10
@@ -690,5 +690,5 @@ class CreateDiscardedPacketMessageTestCase(unittest.TestCase):
         self.assertEqual(res, 123)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

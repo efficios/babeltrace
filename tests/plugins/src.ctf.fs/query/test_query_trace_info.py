@@ -9,29 +9,29 @@ import os
 import re
 
 
-test_ctf_traces_path = os.environ['BT_CTF_TRACES_PATH']
+test_ctf_traces_path = os.environ["BT_CTF_TRACES_PATH"]
 
 
 # Key to sort streams in a predictable order.
 def sort_predictably(stream):
-    return stream['port-name']
+    return stream["port-name"]
 
 
 class QueryTraceInfoClockOffsetTestCase(unittest.TestCase):
     def setUp(self):
-        ctf = bt2.find_plugin('ctf')
-        self._fs = ctf.source_component_classes['fs']
+        ctf = bt2.find_plugin("ctf")
+        self._fs = ctf.source_component_classes["fs"]
 
         self._inputs = [
-            os.path.join(test_ctf_traces_path, 'intersection', '3eventsintersect')
+            os.path.join(test_ctf_traces_path, "intersection", "3eventsintersect")
         ]
 
     def _check(self, trace, offset):
-        streams = sorted(trace['stream-infos'], key=sort_predictably)
-        self.assertEqual(streams[0]['range-ns']['begin'], 13515309000000000 + offset)
-        self.assertEqual(streams[0]['range-ns']['end'], 13515309000000100 + offset)
-        self.assertEqual(streams[1]['range-ns']['begin'], 13515309000000070 + offset)
-        self.assertEqual(streams[1]['range-ns']['end'], 13515309000000120 + offset)
+        streams = sorted(trace["stream-infos"], key=sort_predictably)
+        self.assertEqual(streams[0]["range-ns"]["begin"], 13515309000000000 + offset)
+        self.assertEqual(streams[0]["range-ns"]["end"], 13515309000000100 + offset)
+        self.assertEqual(streams[1]["range-ns"]["begin"], 13515309000000070 + offset)
+        self.assertEqual(streams[1]["range-ns"]["end"], 13515309000000120 + offset)
 
     # Test various cominations of the clock-class-offset-s and
     # clock-class-offset-ns parameters to babeltrace.trace-infos queries.
@@ -40,7 +40,7 @@ class QueryTraceInfoClockOffsetTestCase(unittest.TestCase):
 
     def test_no_clock_class_offset(self):
         res = bt2.QueryExecutor(
-            self._fs, 'babeltrace.trace-infos', {'inputs': self._inputs}
+            self._fs, "babeltrace.trace-infos", {"inputs": self._inputs}
         ).query()
         trace = res[0]
         self._check(trace, 0)
@@ -50,8 +50,8 @@ class QueryTraceInfoClockOffsetTestCase(unittest.TestCase):
     def test_clock_class_offset_s(self):
         res = bt2.QueryExecutor(
             self._fs,
-            'babeltrace.trace-infos',
-            {'inputs': self._inputs, 'clock-class-offset-s': 2},
+            "babeltrace.trace-infos",
+            {"inputs": self._inputs, "clock-class-offset-s": 2},
         ).query()
         trace = res[0]
         self._check(trace, 2000000000)
@@ -61,8 +61,8 @@ class QueryTraceInfoClockOffsetTestCase(unittest.TestCase):
     def test_clock_class_offset_ns(self):
         res = bt2.QueryExecutor(
             self._fs,
-            'babeltrace.trace-infos',
-            {'inputs': self._inputs, 'clock-class-offset-ns': 2},
+            "babeltrace.trace-infos",
+            {"inputs": self._inputs, "clock-class-offset-ns": 2},
         ).query()
         trace = res[0]
         self._check(trace, 2)
@@ -72,11 +72,11 @@ class QueryTraceInfoClockOffsetTestCase(unittest.TestCase):
     def test_clock_class_offset_both(self):
         res = bt2.QueryExecutor(
             self._fs,
-            'babeltrace.trace-infos',
+            "babeltrace.trace-infos",
             {
-                'inputs': self._inputs,
-                'clock-class-offset-s': -2,
-                'clock-class-offset-ns': -2,
+                "inputs": self._inputs,
+                "clock-class-offset-s": -2,
+                "clock-class-offset-ns": -2,
             },
         ).query()
         trace = res[0]
@@ -86,32 +86,32 @@ class QueryTraceInfoClockOffsetTestCase(unittest.TestCase):
         with self.assertRaises(bt2._Error):
             bt2.QueryExecutor(
                 self._fs,
-                'babeltrace.trace-infos',
-                {'inputs': self._inputs, 'clock-class-offset-s': "2"},
+                "babeltrace.trace-infos",
+                {"inputs": self._inputs, "clock-class-offset-s": "2"},
             ).query()
 
     def test_clock_class_offset_s_wrong_type_none(self):
         with self.assertRaises(bt2._Error):
             bt2.QueryExecutor(
                 self._fs,
-                'babeltrace.trace-infos',
-                {'inputs': self._inputs, 'clock-class-offset-s': None},
+                "babeltrace.trace-infos",
+                {"inputs": self._inputs, "clock-class-offset-s": None},
             ).query()
 
     def test_clock_class_offset_ns_wrong_type(self):
         with self.assertRaises(bt2._Error):
             bt2.QueryExecutor(
                 self._fs,
-                'babeltrace.trace-infos',
-                {'inputs': self._inputs, 'clock-class-offset-ns': "2"},
+                "babeltrace.trace-infos",
+                {"inputs": self._inputs, "clock-class-offset-ns": "2"},
             ).query()
 
     def test_clock_class_offset_ns_wrong_type_none(self):
         with self.assertRaises(bt2._Error):
             bt2.QueryExecutor(
                 self._fs,
-                'babeltrace.trace-infos',
-                {'inputs': self._inputs, 'clock-class-offset-ns': None},
+                "babeltrace.trace-infos",
+                {"inputs": self._inputs, "clock-class-offset-ns": None},
             ).query()
 
 
@@ -133,12 +133,12 @@ class QueryTraceInfoPortNameTestCase(unittest.TestCase):
             },
         ).query()
 
-        if os.environ['BT_TESTS_OS_TYPE'] == 'mingw':
+        if os.environ["BT_TESTS_OS_TYPE"] == "mingw":
             os_stream_path = (
-                '\\tests\\data\\ctf-traces\\intersection\\3eventsintersect\\'
+                "\\tests\\data\\ctf-traces\\intersection\\3eventsintersect\\"
             )
         else:
-            os_stream_path = '/tests/data/ctf-traces/intersection/3eventsintersect/'
+            os_stream_path = "/tests/data/ctf-traces/intersection/3eventsintersect/"
 
         self.assertEqual(len(res), 1)
         trace = res[0]
@@ -164,10 +164,10 @@ class QueryTraceInfoPortNameTestCase(unittest.TestCase):
             {"inputs": [os.path.join(test_ctf_traces_path, "succeed", "succeed1")]},
         ).query()
 
-        if os.environ['BT_TESTS_OS_TYPE'] == 'mingw':
-            os_stream_path = '\\tests\\data\\ctf-traces\\succeed\\succeed1\\dummystream'
+        if os.environ["BT_TESTS_OS_TYPE"] == "mingw":
+            os_stream_path = "\\tests\\data\\ctf-traces\\succeed\\succeed1\\dummystream"
         else:
-            os_stream_path = '/tests/data/ctf-traces/succeed/succeed1/dummystream'
+            os_stream_path = "/tests/data/ctf-traces/succeed/succeed1/dummystream"
 
         self.assertEqual(len(res), 1)
         trace = res[0]
@@ -203,8 +203,8 @@ class QueryTraceInfoRangeTestCase(unittest.TestCase):
         streams = trace["stream-infos"]
         self.assertEqual(len(streams), 1)
 
-        self.assertRaises(KeyError, lambda: trace['range-ns'])
-        self.assertRaises(KeyError, lambda: streams[0]['range-ns'])
+        self.assertRaises(KeyError, lambda: trace["range-ns"])
+        self.assertRaises(KeyError, lambda: streams[0]["range-ns"])
 
     def test_trace_with_tracefile_rotation(self):
         res = bt2.QueryExecutor(
@@ -231,24 +231,24 @@ class QueryTraceInfoRangeTestCase(unittest.TestCase):
         # index files, because fix_index_lttng_event_after_packet_bug changes
         # them based on the time of the last event in the stream.
 
-        self.assertEqual(streams[0]['range-ns']['begin'], 1571261795455986789)
-        self.assertEqual(streams[0]['range-ns']['end'], 1571261797582611840)
+        self.assertEqual(streams[0]["range-ns"]["begin"], 1571261795455986789)
+        self.assertEqual(streams[0]["range-ns"]["end"], 1571261797582611840)
 
-        self.assertEqual(streams[1]['range-ns']['begin'], 1571261795456368232)
-        self.assertEqual(streams[1]['range-ns']['end'], 1571261797577754111)
+        self.assertEqual(streams[1]["range-ns"]["begin"], 1571261795456368232)
+        self.assertEqual(streams[1]["range-ns"]["end"], 1571261797577754111)
 
-        self.assertEqual(streams[2]['range-ns']['begin'], 1571261795456748255)
-        self.assertEqual(streams[2]['range-ns']['end'], 1571261797577727795)
+        self.assertEqual(streams[2]["range-ns"]["begin"], 1571261795456748255)
+        self.assertEqual(streams[2]["range-ns"]["end"], 1571261797577727795)
 
-        self.assertEqual(streams[3]['range-ns']['begin'], 1571261795457285142)
-        self.assertEqual(streams[3]['range-ns']['end'], 1571261797582522088)
+        self.assertEqual(streams[3]["range-ns"]["begin"], 1571261795457285142)
+        self.assertEqual(streams[3]["range-ns"]["end"], 1571261797582522088)
 
 
 class QueryTraceInfoPacketTimestampQuirksTestCase(unittest.TestCase):
     def setUp(self):
-        ctf = bt2.find_plugin('ctf')
-        self._fs = ctf.source_component_classes['fs']
-        self._path = os.path.join(test_ctf_traces_path, 'succeed')
+        ctf = bt2.find_plugin("ctf")
+        self._fs = ctf.source_component_classes["fs"]
+        self._path = os.path.join(test_ctf_traces_path, "succeed")
 
     def _test_lttng_quirks(self, trace_name):
         res = bt2.QueryExecutor(
@@ -265,17 +265,17 @@ class QueryTraceInfoPacketTimestampQuirksTestCase(unittest.TestCase):
         streams = trace["stream-infos"]
         self.assertEqual(len(streams), 1)
 
-        self.assertEqual(streams[0]['range-ns']['begin'], 1565957300948091100)
-        self.assertEqual(streams[0]['range-ns']['end'], 1565957302180016069)
+        self.assertEqual(streams[0]["range-ns"]["begin"], 1565957300948091100)
+        self.assertEqual(streams[0]["range-ns"]["end"], 1565957302180016069)
 
     def test_lttng_crash(self):
         trace = self._test_lttng_quirks("lttng-crash")
         streams = trace["stream-infos"]
         self.assertEqual(len(streams), 1)
 
-        self.assertEqual(streams[0]['range-ns']['begin'], 1565891729288866738)
-        self.assertEqual(streams[0]['range-ns']['end'], 1565891729293526525)
+        self.assertEqual(streams[0]["range-ns"]["begin"], 1565891729288866738)
+        self.assertEqual(streams[0]["range-ns"]["end"], 1565891729293526525)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

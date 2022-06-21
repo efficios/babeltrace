@@ -44,7 +44,7 @@ def _create_stream(tc, ctx_field_classes):
 
 
 def _create_field(tc, field_class):
-    field_name = 'field'
+    field_name = "field"
     stream = _create_stream(tc, [(field_name, field_class)])
     packet = stream.create_packet()
     return packet.context_field[field_name]
@@ -57,7 +57,7 @@ def _create_field(tc, field_class):
 
 
 def _create_string_field(tc):
-    field_name = 'string_field'
+    field_name = "string_field"
     stream = _create_stream(tc, [(field_name, tc.create_string_field_class())])
     packet = stream.create_packet()
     return packet.context_field[field_name]
@@ -73,7 +73,7 @@ def _create_string_field(tc):
 def _create_int_array_field(tc, length):
     elem_fc = tc.create_signed_integer_field_class(32)
     fc = tc.create_static_array_field_class(elem_fc, length)
-    field_name = 'int_array'
+    field_name = "int_array"
     stream = _create_stream(tc, [(field_name, fc)])
     packet = stream.create_packet()
     return packet.context_field[field_name]
@@ -90,8 +90,8 @@ def _create_dynamic_array(tc):
     elem_fc = tc.create_signed_integer_field_class(32)
     len_fc = tc.create_signed_integer_field_class(32)
     fc = tc.create_dynamic_array_field_class(elem_fc)
-    field_name = 'int_dyn_array'
-    stream = _create_stream(tc, [('thelength', len_fc), (field_name, fc)])
+    field_name = "int_dyn_array"
+    stream = _create_stream(tc, [("thelength", len_fc), (field_name, fc)])
     packet = stream.create_packet()
     packet.context_field[field_name].length = 3
     return packet.context_field[field_name]
@@ -107,7 +107,7 @@ def _create_dynamic_array(tc):
 def _create_struct_array_field(tc, length):
     elem_fc = tc.create_structure_field_class()
     fc = tc.create_static_array_field_class(elem_fc, length)
-    field_name = 'struct_array'
+    field_name = "struct_array"
     stream = _create_stream(tc, [(field_name, fc)])
     packet = stream.create_packet()
     return packet.context_field[field_name]
@@ -126,7 +126,7 @@ class BitArrayFieldTestCase(unittest.TestCase):
 
     def test_assign_invalid_type(self):
         with self.assertRaises(TypeError):
-            self._def.value_as_integer = 'onze'
+            self._def.value_as_integer = "onze"
 
     def test_assign(self):
         self._def.value_as_integer = 199
@@ -620,8 +620,8 @@ class _TestNumericField:
 
     def test_const_hash_dict(self):
         my_dict = {}
-        my_dict[self._def_const] = 'my_value'
-        self.assertEqual(my_dict[self._def_value], 'my_value')
+        my_dict[self._def_const] = "my_value"
+        self.assertEqual(my_dict[self._def_value], "my_value")
 
     def test_eq_none(self):
         # Ignore this lint error:
@@ -642,36 +642,36 @@ class _TestNumericField:
 # Each entry is a pair of binary operator name (used as part of the
 # created testing method's name) and operator function.
 _BINOPS = (
-    ('lt', operator.lt),
-    ('le', operator.le),
-    ('eq', operator.eq),
-    ('ne', operator.ne),
-    ('ge', operator.ge),
-    ('gt', operator.gt),
-    ('add', operator.add),
-    ('radd', lambda a, b: operator.add(b, a)),
-    ('and', operator.and_),
-    ('rand', lambda a, b: operator.and_(b, a)),
-    ('floordiv', operator.floordiv),
-    ('rfloordiv', lambda a, b: operator.floordiv(b, a)),
-    ('lshift', operator.lshift),
-    ('rlshift', lambda a, b: operator.lshift(b, a)),
-    ('mod', operator.mod),
-    ('rmod', lambda a, b: operator.mod(b, a)),
-    ('mul', operator.mul),
-    ('rmul', lambda a, b: operator.mul(b, a)),
-    ('or', operator.or_),
-    ('ror', lambda a, b: operator.or_(b, a)),
-    ('pow', operator.pow),
-    ('rpow', lambda a, b: operator.pow(b, a)),
-    ('rshift', operator.rshift),
-    ('rrshift', lambda a, b: operator.rshift(b, a)),
-    ('sub', operator.sub),
-    ('rsub', lambda a, b: operator.sub(b, a)),
-    ('truediv', operator.truediv),
-    ('rtruediv', lambda a, b: operator.truediv(b, a)),
-    ('xor', operator.xor),
-    ('rxor', lambda a, b: operator.xor(b, a)),
+    ("lt", operator.lt),
+    ("le", operator.le),
+    ("eq", operator.eq),
+    ("ne", operator.ne),
+    ("ge", operator.ge),
+    ("gt", operator.gt),
+    ("add", operator.add),
+    ("radd", lambda a, b: operator.add(b, a)),
+    ("and", operator.and_),
+    ("rand", lambda a, b: operator.and_(b, a)),
+    ("floordiv", operator.floordiv),
+    ("rfloordiv", lambda a, b: operator.floordiv(b, a)),
+    ("lshift", operator.lshift),
+    ("rlshift", lambda a, b: operator.lshift(b, a)),
+    ("mod", operator.mod),
+    ("rmod", lambda a, b: operator.mod(b, a)),
+    ("mul", operator.mul),
+    ("rmul", lambda a, b: operator.mul(b, a)),
+    ("or", operator.or_),
+    ("ror", lambda a, b: operator.or_(b, a)),
+    ("pow", operator.pow),
+    ("rpow", lambda a, b: operator.pow(b, a)),
+    ("rshift", operator.rshift),
+    ("rrshift", lambda a, b: operator.rshift(b, a)),
+    ("sub", operator.sub),
+    ("rsub", lambda a, b: operator.sub(b, a)),
+    ("truediv", operator.truediv),
+    ("rtruediv", lambda a, b: operator.truediv(b, a)),
+    ("xor", operator.xor),
+    ("rxor", lambda a, b: operator.xor(b, a)),
 )
 
 
@@ -681,18 +681,18 @@ _BINOPS = (
 # Each entry is a pair of unary operator name (used as part of the
 # created testing method's name) and operator function.
 _UNARYOPS = (
-    ('neg', operator.neg),
-    ('pos', operator.pos),
-    ('abs', operator.abs),
-    ('invert', operator.invert),
-    ('round', round),
-    ('round_0', partial(round, ndigits=0)),
-    ('round_1', partial(round, ndigits=1)),
-    ('round_2', partial(round, ndigits=2)),
-    ('round_3', partial(round, ndigits=3)),
-    ('ceil', math.ceil),
-    ('floor', math.floor),
-    ('trunc', math.trunc),
+    ("neg", operator.neg),
+    ("pos", operator.pos),
+    ("abs", operator.abs),
+    ("invert", operator.invert),
+    ("round", round),
+    ("round_0", partial(round, ndigits=0)),
+    ("round_1", partial(round, ndigits=1)),
+    ("round_2", partial(round, ndigits=2)),
+    ("round_3", partial(round, ndigits=3)),
+    ("ceil", math.ceil),
+    ("floor", math.floor),
+    ("trunc", math.trunc),
 )
 
 
@@ -712,395 +712,395 @@ _UNARYOPS = (
 #   method, for each unary operator in the _UNARYOPS tuple.
 def _inject_numeric_testing_methods(cls):
     def test_binop_name(suffix):
-        return 'test_binop_{}_{}'.format(name, suffix)
+        return "test_binop_{}_{}".format(name, suffix)
 
     def test_unaryop_name(suffix):
-        return 'test_unaryop_{}_{}'.format(name, suffix)
+        return "test_unaryop_{}_{}".format(name, suffix)
 
     # inject testing methods for each binary operation
     for name, binop in _BINOPS:
         setattr(
             cls,
-            test_binop_name('unknown'),
+            test_binop_name("unknown"),
             partialmethod(_TestNumericField._test_binop_unknown, op=binop),
         )
         setattr(
             cls,
-            test_binop_name('none'),
+            test_binop_name("none"),
             partialmethod(_TestNumericField._test_binop_none, op=binop),
         )
         setattr(
             cls,
-            test_binop_name('type_true'),
+            test_binop_name("type_true"),
             partialmethod(_TestNumericField._test_binop_type_true, op=binop),
         )
         setattr(
             cls,
-            test_binop_name('type_pos_int'),
+            test_binop_name("type_pos_int"),
             partialmethod(_TestNumericField._test_binop_type_pos_int, op=binop),
         )
         setattr(
             cls,
-            test_binop_name('type_pos_vint'),
+            test_binop_name("type_pos_vint"),
             partialmethod(_TestNumericField._test_binop_type_pos_vint, op=binop),
         )
         setattr(
             cls,
-            test_binop_name('value_true'),
+            test_binop_name("value_true"),
             partialmethod(_TestNumericField._test_binop_value_true, op=binop),
         )
         setattr(
             cls,
-            test_binop_name('value_pos_int'),
+            test_binop_name("value_pos_int"),
             partialmethod(_TestNumericField._test_binop_value_pos_int, op=binop),
         )
         setattr(
             cls,
-            test_binop_name('value_pos_vint'),
+            test_binop_name("value_pos_vint"),
             partialmethod(_TestNumericField._test_binop_value_pos_vint, op=binop),
         )
         setattr(
             cls,
-            test_binop_name('lhs_addr_same_true'),
+            test_binop_name("lhs_addr_same_true"),
             partialmethod(_TestNumericField._test_binop_lhs_addr_same_true, op=binop),
         )
         setattr(
             cls,
-            test_binop_name('lhs_addr_same_pos_int'),
+            test_binop_name("lhs_addr_same_pos_int"),
             partialmethod(
                 _TestNumericField._test_binop_lhs_addr_same_pos_int, op=binop
             ),
         )
         setattr(
             cls,
-            test_binop_name('lhs_addr_same_pos_vint'),
+            test_binop_name("lhs_addr_same_pos_vint"),
             partialmethod(
                 _TestNumericField._test_binop_lhs_addr_same_pos_vint, op=binop
             ),
         )
         setattr(
             cls,
-            test_binop_name('lhs_value_same_true'),
+            test_binop_name("lhs_value_same_true"),
             partialmethod(_TestNumericField._test_binop_lhs_value_same_true, op=binop),
         )
         setattr(
             cls,
-            test_binop_name('lhs_value_same_pos_int'),
+            test_binop_name("lhs_value_same_pos_int"),
             partialmethod(
                 _TestNumericField._test_binop_lhs_value_same_pos_int, op=binop
             ),
         )
         setattr(
             cls,
-            test_binop_name('lhs_value_same_pos_vint'),
+            test_binop_name("lhs_value_same_pos_vint"),
             partialmethod(
                 _TestNumericField._test_binop_lhs_value_same_pos_vint, op=binop
             ),
         )
         setattr(
             cls,
-            test_binop_name('type_neg_int'),
+            test_binop_name("type_neg_int"),
             partialmethod(_TestNumericField._test_binop_type_neg_int, op=binop),
         )
         setattr(
             cls,
-            test_binop_name('type_neg_vint'),
+            test_binop_name("type_neg_vint"),
             partialmethod(_TestNumericField._test_binop_type_neg_vint, op=binop),
         )
         setattr(
             cls,
-            test_binop_name('value_neg_int'),
+            test_binop_name("value_neg_int"),
             partialmethod(_TestNumericField._test_binop_value_neg_int, op=binop),
         )
         setattr(
             cls,
-            test_binop_name('value_neg_vint'),
+            test_binop_name("value_neg_vint"),
             partialmethod(_TestNumericField._test_binop_value_neg_vint, op=binop),
         )
         setattr(
             cls,
-            test_binop_name('lhs_addr_same_neg_int'),
+            test_binop_name("lhs_addr_same_neg_int"),
             partialmethod(
                 _TestNumericField._test_binop_lhs_addr_same_neg_int, op=binop
             ),
         )
         setattr(
             cls,
-            test_binop_name('lhs_addr_same_neg_vint'),
+            test_binop_name("lhs_addr_same_neg_vint"),
             partialmethod(
                 _TestNumericField._test_binop_lhs_addr_same_neg_vint, op=binop
             ),
         )
         setattr(
             cls,
-            test_binop_name('lhs_value_same_neg_int'),
+            test_binop_name("lhs_value_same_neg_int"),
             partialmethod(
                 _TestNumericField._test_binop_lhs_value_same_neg_int, op=binop
             ),
         )
         setattr(
             cls,
-            test_binop_name('lhs_value_same_neg_vint'),
+            test_binop_name("lhs_value_same_neg_vint"),
             partialmethod(
                 _TestNumericField._test_binop_lhs_value_same_neg_vint, op=binop
             ),
         )
         setattr(
             cls,
-            test_binop_name('type_false'),
+            test_binop_name("type_false"),
             partialmethod(_TestNumericField._test_binop_type_false, op=binop),
         )
         setattr(
             cls,
-            test_binop_name('type_zero_int'),
+            test_binop_name("type_zero_int"),
             partialmethod(_TestNumericField._test_binop_type_zero_int, op=binop),
         )
         setattr(
             cls,
-            test_binop_name('type_zero_vint'),
+            test_binop_name("type_zero_vint"),
             partialmethod(_TestNumericField._test_binop_type_zero_vint, op=binop),
         )
         setattr(
             cls,
-            test_binop_name('value_false'),
+            test_binop_name("value_false"),
             partialmethod(_TestNumericField._test_binop_value_false, op=binop),
         )
         setattr(
             cls,
-            test_binop_name('value_zero_int'),
+            test_binop_name("value_zero_int"),
             partialmethod(_TestNumericField._test_binop_value_zero_int, op=binop),
         )
         setattr(
             cls,
-            test_binop_name('value_zero_vint'),
+            test_binop_name("value_zero_vint"),
             partialmethod(_TestNumericField._test_binop_value_zero_vint, op=binop),
         )
         setattr(
             cls,
-            test_binop_name('lhs_addr_same_false'),
+            test_binop_name("lhs_addr_same_false"),
             partialmethod(_TestNumericField._test_binop_lhs_addr_same_false, op=binop),
         )
         setattr(
             cls,
-            test_binop_name('lhs_addr_same_zero_int'),
+            test_binop_name("lhs_addr_same_zero_int"),
             partialmethod(
                 _TestNumericField._test_binop_lhs_addr_same_zero_int, op=binop
             ),
         )
         setattr(
             cls,
-            test_binop_name('lhs_addr_same_zero_vint'),
+            test_binop_name("lhs_addr_same_zero_vint"),
             partialmethod(
                 _TestNumericField._test_binop_lhs_addr_same_zero_vint, op=binop
             ),
         )
         setattr(
             cls,
-            test_binop_name('lhs_value_same_false'),
+            test_binop_name("lhs_value_same_false"),
             partialmethod(_TestNumericField._test_binop_lhs_value_same_false, op=binop),
         )
         setattr(
             cls,
-            test_binop_name('lhs_value_same_zero_int'),
+            test_binop_name("lhs_value_same_zero_int"),
             partialmethod(
                 _TestNumericField._test_binop_lhs_value_same_zero_int, op=binop
             ),
         )
         setattr(
             cls,
-            test_binop_name('lhs_value_same_zero_vint'),
+            test_binop_name("lhs_value_same_zero_vint"),
             partialmethod(
                 _TestNumericField._test_binop_lhs_value_same_zero_vint, op=binop
             ),
         )
         setattr(
             cls,
-            test_binop_name('type_pos_float'),
+            test_binop_name("type_pos_float"),
             partialmethod(_TestNumericField._test_binop_type_pos_float, op=binop),
         )
         setattr(
             cls,
-            test_binop_name('type_neg_float'),
+            test_binop_name("type_neg_float"),
             partialmethod(_TestNumericField._test_binop_type_neg_float, op=binop),
         )
         setattr(
             cls,
-            test_binop_name('type_pos_vfloat'),
+            test_binop_name("type_pos_vfloat"),
             partialmethod(_TestNumericField._test_binop_type_pos_vfloat, op=binop),
         )
         setattr(
             cls,
-            test_binop_name('type_neg_vfloat'),
+            test_binop_name("type_neg_vfloat"),
             partialmethod(_TestNumericField._test_binop_type_neg_vfloat, op=binop),
         )
         setattr(
             cls,
-            test_binop_name('value_pos_float'),
+            test_binop_name("value_pos_float"),
             partialmethod(_TestNumericField._test_binop_value_pos_float, op=binop),
         )
         setattr(
             cls,
-            test_binop_name('value_neg_float'),
+            test_binop_name("value_neg_float"),
             partialmethod(_TestNumericField._test_binop_value_neg_float, op=binop),
         )
         setattr(
             cls,
-            test_binop_name('value_pos_vfloat'),
+            test_binop_name("value_pos_vfloat"),
             partialmethod(_TestNumericField._test_binop_value_pos_vfloat, op=binop),
         )
         setattr(
             cls,
-            test_binop_name('value_neg_vfloat'),
+            test_binop_name("value_neg_vfloat"),
             partialmethod(_TestNumericField._test_binop_value_neg_vfloat, op=binop),
         )
         setattr(
             cls,
-            test_binop_name('lhs_addr_same_pos_float'),
+            test_binop_name("lhs_addr_same_pos_float"),
             partialmethod(
                 _TestNumericField._test_binop_lhs_addr_same_pos_float, op=binop
             ),
         )
         setattr(
             cls,
-            test_binop_name('lhs_addr_same_neg_float'),
+            test_binop_name("lhs_addr_same_neg_float"),
             partialmethod(
                 _TestNumericField._test_binop_lhs_addr_same_neg_float, op=binop
             ),
         )
         setattr(
             cls,
-            test_binop_name('lhs_addr_same_pos_vfloat'),
+            test_binop_name("lhs_addr_same_pos_vfloat"),
             partialmethod(
                 _TestNumericField._test_binop_lhs_addr_same_pos_vfloat, op=binop
             ),
         )
         setattr(
             cls,
-            test_binop_name('lhs_addr_same_neg_vfloat'),
+            test_binop_name("lhs_addr_same_neg_vfloat"),
             partialmethod(
                 _TestNumericField._test_binop_lhs_addr_same_neg_vfloat, op=binop
             ),
         )
         setattr(
             cls,
-            test_binop_name('lhs_value_same_pos_float'),
+            test_binop_name("lhs_value_same_pos_float"),
             partialmethod(
                 _TestNumericField._test_binop_lhs_value_same_pos_float, op=binop
             ),
         )
         setattr(
             cls,
-            test_binop_name('lhs_value_same_neg_float'),
+            test_binop_name("lhs_value_same_neg_float"),
             partialmethod(
                 _TestNumericField._test_binop_lhs_value_same_neg_float, op=binop
             ),
         )
         setattr(
             cls,
-            test_binop_name('lhs_value_same_pos_vfloat'),
+            test_binop_name("lhs_value_same_pos_vfloat"),
             partialmethod(
                 _TestNumericField._test_binop_lhs_value_same_pos_vfloat, op=binop
             ),
         )
         setattr(
             cls,
-            test_binop_name('lhs_value_same_neg_vfloat'),
+            test_binop_name("lhs_value_same_neg_vfloat"),
             partialmethod(
                 _TestNumericField._test_binop_lhs_value_same_neg_vfloat, op=binop
             ),
         )
         setattr(
             cls,
-            test_binop_name('type_zero_float'),
+            test_binop_name("type_zero_float"),
             partialmethod(_TestNumericField._test_binop_type_zero_float, op=binop),
         )
         setattr(
             cls,
-            test_binop_name('type_zero_vfloat'),
+            test_binop_name("type_zero_vfloat"),
             partialmethod(_TestNumericField._test_binop_type_zero_vfloat, op=binop),
         )
         setattr(
             cls,
-            test_binop_name('value_zero_float'),
+            test_binop_name("value_zero_float"),
             partialmethod(_TestNumericField._test_binop_value_zero_float, op=binop),
         )
         setattr(
             cls,
-            test_binop_name('value_zero_vfloat'),
+            test_binop_name("value_zero_vfloat"),
             partialmethod(_TestNumericField._test_binop_value_zero_vfloat, op=binop),
         )
         setattr(
             cls,
-            test_binop_name('lhs_addr_same_zero_float'),
+            test_binop_name("lhs_addr_same_zero_float"),
             partialmethod(
                 _TestNumericField._test_binop_lhs_addr_same_zero_float, op=binop
             ),
         )
         setattr(
             cls,
-            test_binop_name('lhs_addr_same_zero_vfloat'),
+            test_binop_name("lhs_addr_same_zero_vfloat"),
             partialmethod(
                 _TestNumericField._test_binop_lhs_addr_same_zero_vfloat, op=binop
             ),
         )
         setattr(
             cls,
-            test_binop_name('lhs_value_same_zero_float'),
+            test_binop_name("lhs_value_same_zero_float"),
             partialmethod(
                 _TestNumericField._test_binop_lhs_value_same_zero_float, op=binop
             ),
         )
         setattr(
             cls,
-            test_binop_name('lhs_value_same_zero_vfloat'),
+            test_binop_name("lhs_value_same_zero_vfloat"),
             partialmethod(
                 _TestNumericField._test_binop_lhs_value_same_zero_vfloat, op=binop
             ),
         )
         setattr(
             cls,
-            test_binop_name('type_complex'),
+            test_binop_name("type_complex"),
             partialmethod(_TestNumericField._test_binop_type_complex, op=binop),
         )
         setattr(
             cls,
-            test_binop_name('type_zero_complex'),
+            test_binop_name("type_zero_complex"),
             partialmethod(_TestNumericField._test_binop_type_zero_complex, op=binop),
         )
         setattr(
             cls,
-            test_binop_name('value_complex'),
+            test_binop_name("value_complex"),
             partialmethod(_TestNumericField._test_binop_value_complex, op=binop),
         )
         setattr(
             cls,
-            test_binop_name('value_zero_complex'),
+            test_binop_name("value_zero_complex"),
             partialmethod(_TestNumericField._test_binop_value_zero_complex, op=binop),
         )
         setattr(
             cls,
-            test_binop_name('lhs_addr_same_complex'),
+            test_binop_name("lhs_addr_same_complex"),
             partialmethod(
                 _TestNumericField._test_binop_lhs_addr_same_complex, op=binop
             ),
         )
         setattr(
             cls,
-            test_binop_name('lhs_addr_same_zero_complex'),
+            test_binop_name("lhs_addr_same_zero_complex"),
             partialmethod(
                 _TestNumericField._test_binop_lhs_addr_same_zero_complex, op=binop
             ),
         )
         setattr(
             cls,
-            test_binop_name('lhs_value_same_complex'),
+            test_binop_name("lhs_value_same_complex"),
             partialmethod(
                 _TestNumericField._test_binop_lhs_value_same_complex, op=binop
             ),
         )
         setattr(
             cls,
-            test_binop_name('lhs_value_same_zero_complex'),
+            test_binop_name("lhs_value_same_zero_complex"),
             partialmethod(
                 _TestNumericField._test_binop_lhs_value_same_zero_complex, op=binop
             ),
@@ -1110,22 +1110,22 @@ def _inject_numeric_testing_methods(cls):
     for name, unaryop in _UNARYOPS:
         setattr(
             cls,
-            test_unaryop_name('type'),
+            test_unaryop_name("type"),
             partialmethod(_TestNumericField._test_unaryop_type, op=unaryop),
         )
         setattr(
             cls,
-            test_unaryop_name('value'),
+            test_unaryop_name("value"),
             partialmethod(_TestNumericField._test_unaryop_value, op=unaryop),
         )
         setattr(
             cls,
-            test_unaryop_name('addr_same'),
+            test_unaryop_name("addr_same"),
             partialmethod(_TestNumericField._test_unaryop_addr_same, op=unaryop),
         )
         setattr(
             cls,
-            test_unaryop_name('value_same'),
+            test_unaryop_name("value_same"),
             partialmethod(_TestNumericField._test_unaryop_value_same, op=unaryop),
         )
 
@@ -1217,7 +1217,7 @@ class _TestIntegerFieldCommon(_TestNumericField):
 
     def test_assign_invalid_type(self):
         with self.assertRaises(TypeError):
-            self._def.value = 'yes'
+            self._def.value = "yes"
 
     def test_assign_uint(self):
         uint_fc = self._tc.create_unsigned_integer_field_class(32)
@@ -1242,12 +1242,12 @@ class _TestIntegerFieldCommon(_TestNumericField):
         with self.assertRaises(ValueError) as ctx:
             field.value = 256
         self.assertEqual(
-            str(ctx.exception), 'Value 256 is outside valid range [0, 255]'
+            str(ctx.exception), "Value 256 is outside valid range [0, 255]"
         )
 
         with self.assertRaises(ValueError) as ctx:
             field.value = -1
-        self.assertEqual(str(ctx.exception), 'Value -1 is outside valid range [0, 255]')
+        self.assertEqual(str(ctx.exception), "Value -1 is outside valid range [0, 255]")
 
     def test_assign_int_out_of_range(self):
         int_fc = self._tc.create_signed_integer_field_class(8)
@@ -1256,13 +1256,13 @@ class _TestIntegerFieldCommon(_TestNumericField):
         with self.assertRaises(ValueError) as ctx:
             field.value = 128
         self.assertEqual(
-            str(ctx.exception), 'Value 128 is outside valid range [-128, 127]'
+            str(ctx.exception), "Value 128 is outside valid range [-128, 127]"
         )
 
         with self.assertRaises(ValueError) as ctx:
             field.value = -129
         self.assertEqual(
-            str(ctx.exception), 'Value -129 is outside valid range [-128, 127]'
+            str(ctx.exception), "Value -129 is outside valid range [-128, 127]"
         )
 
     def test_str_op(self):
@@ -1300,13 +1300,13 @@ class SignedEnumerationFieldTestCase(_TestIntegerFieldCommon, unittest.TestCase)
 
     def _create_fc(self, tc):
         fc = tc.create_signed_enumeration_field_class(32)
-        fc.add_mapping('something', bt2.SignedIntegerRangeSet([(17, 17)]))
-        fc.add_mapping('speaker', bt2.SignedIntegerRangeSet([(12, 16)]))
-        fc.add_mapping('can', bt2.SignedIntegerRangeSet([(18, 2540)]))
+        fc.add_mapping("something", bt2.SignedIntegerRangeSet([(17, 17)]))
+        fc.add_mapping("speaker", bt2.SignedIntegerRangeSet([(12, 16)]))
+        fc.add_mapping("can", bt2.SignedIntegerRangeSet([(18, 2540)]))
         fc.add_mapping(
-            'whole range', bt2.SignedIntegerRangeSet([(-(2**31), (2**31) - 1)])
+            "whole range", bt2.SignedIntegerRangeSet([(-(2**31), (2**31) - 1)])
         )
-        fc.add_mapping('zip', bt2.SignedIntegerRangeSet([(-45, 1001)]))
+        fc.add_mapping("zip", bt2.SignedIntegerRangeSet([(-45, 1001)]))
         return fc
 
     def setUp(self):
@@ -1327,8 +1327,8 @@ class SignedEnumerationFieldTestCase(_TestIntegerFieldCommon, unittest.TestCase)
         # Establish all permutations of the three expected matches since
         # the order in which mappings are enumerated is not explicitly part of
         # the API.
-        for p in itertools.permutations(['whole range', 'something', 'zip']):
-            candidate = '{} ({})'.format(self._def_value, ', '.join(p))
+        for p in itertools.permutations(["whole range", "something", "zip"]):
+            candidate = "{} ({})".format(self._def_value, ", ".join(p))
             if candidate == s:
                 expected_string_found = True
                 break
@@ -1338,7 +1338,7 @@ class SignedEnumerationFieldTestCase(_TestIntegerFieldCommon, unittest.TestCase)
     def test_labels(self):
         self._field.value = 17
         labels = sorted(self._field.labels)
-        self.assertEqual(labels, ['something', 'whole range', 'zip'])
+        self.assertEqual(labels, ["something", "whole range", "zip"])
 
 
 class SingleRealFieldTestCase(_TestNumericField, unittest.TestCase):
@@ -1410,7 +1410,7 @@ class SingleRealFieldTestCase(_TestNumericField, unittest.TestCase):
 
     def test_assign_invalid_type(self):
         with self.assertRaises(TypeError):
-            self._def.value = 'yes'
+            self._def.value = "yes"
 
     def test_invalid_lshift(self):
         self._test_invalid_op(lambda: self._def << 23)
@@ -1502,7 +1502,7 @@ class DoubleRealFieldTestCase(_TestNumericField, unittest.TestCase):
 
     def test_assign_invalid_type(self):
         with self.assertRaises(TypeError):
-            self._def.value = 'yes'
+            self._def.value = "yes"
 
     def test_invalid_lshift(self):
         self._test_invalid_op(lambda: self._def << 23)
@@ -1532,17 +1532,17 @@ _inject_numeric_testing_methods(DoubleRealFieldTestCase)
 class StringFieldTestCase(unittest.TestCase):
     @staticmethod
     def _const_value_setter(field):
-        field.value = 'Hello, World!'
+        field.value = "Hello, World!"
 
     def setUp(self):
         self._tc = get_default_trace_class()
-        self._def_value = 'Hello, World!'
+        self._def_value = "Hello, World!"
         self._def = _create_string_field(self._tc)
         self._def_const = create_const_field(
             self._tc, self._tc.create_string_field_class(), self._const_value_setter
         )
         self._def.value = self._def_value
-        self._def_new_value = 'Yes!'
+        self._def_new_value = "Yes!"
 
     def test_assign_int(self):
         with self.assertRaises(TypeError):
@@ -1550,7 +1550,7 @@ class StringFieldTestCase(unittest.TestCase):
 
     def test_assign_string_field(self):
         field = _create_string_field(self._tc)
-        raw = 'zorg'
+        raw = "zorg"
         field.value = raw
         self.assertEqual(field, raw)
 
@@ -1565,51 +1565,51 @@ class StringFieldTestCase(unittest.TestCase):
 
     def test_lt_vstring(self):
         s1 = _create_string_field(self._tc)
-        s1.value = 'allo'
+        s1.value = "allo"
         s2 = _create_string_field(self._tc)
-        s2.value = 'bateau'
+        s2.value = "bateau"
         self.assertLess(s1, s2)
 
     def test_lt_string(self):
         s1 = _create_string_field(self._tc)
-        s1.value = 'allo'
-        self.assertLess(s1, 'bateau')
+        s1.value = "allo"
+        self.assertLess(s1, "bateau")
 
     def test_le_vstring(self):
         s1 = _create_string_field(self._tc)
-        s1.value = 'allo'
+        s1.value = "allo"
         s2 = _create_string_field(self._tc)
-        s2.value = 'bateau'
+        s2.value = "bateau"
         self.assertLessEqual(s1, s2)
 
     def test_le_string(self):
         s1 = _create_string_field(self._tc)
-        s1.value = 'allo'
-        self.assertLessEqual(s1, 'bateau')
+        s1.value = "allo"
+        self.assertLessEqual(s1, "bateau")
 
     def test_gt_vstring(self):
         s1 = _create_string_field(self._tc)
-        s1.value = 'allo'
+        s1.value = "allo"
         s2 = _create_string_field(self._tc)
-        s2.value = 'bateau'
+        s2.value = "bateau"
         self.assertGreater(s2, s1)
 
     def test_gt_string(self):
         s1 = _create_string_field(self._tc)
-        s1.value = 'allo'
-        self.assertGreater('bateau', s1)
+        s1.value = "allo"
+        self.assertGreater("bateau", s1)
 
     def test_ge_vstring(self):
         s1 = _create_string_field(self._tc)
-        s1.value = 'allo'
+        s1.value = "allo"
         s2 = _create_string_field(self._tc)
-        s2.value = 'bateau'
+        s2.value = "bateau"
         self.assertGreaterEqual(s2, s1)
 
     def test_ge_string(self):
         s1 = _create_string_field(self._tc)
-        s1.value = 'allo'
-        self.assertGreaterEqual('bateau', s1)
+        s1.value = "allo"
+        self.assertGreaterEqual("bateau", s1)
 
     def test_bool_op(self):
         self.assertEqual(bool(self._def), bool(self._def_value))
@@ -1627,20 +1627,20 @@ class StringFieldTestCase(unittest.TestCase):
         self.assertEqual(self._def_const[5], self._def_value[5])
 
     def test_append_str(self):
-        to_append = 'meow meow meow'
+        to_append = "meow meow meow"
         self._def += to_append
         self._def_value += to_append
         self.assertEqual(self._def, self._def_value)
 
     def test_const_append_str(self):
-        to_append = 'meow meow meow'
+        to_append = "meow meow meow"
         with self.assertRaises(TypeError):
             self._def_const += to_append
         self.assertEqual(self._def_const, self._def_value)
 
     def test_append_string_field(self):
         field = _create_string_field(self._tc)
-        to_append = 'meow meow meow'
+        to_append = "meow meow meow"
         field.value = to_append
         self._def += field
         self._def_value += to_append
@@ -1655,8 +1655,8 @@ class StringFieldTestCase(unittest.TestCase):
 
     def test_const_hash_dict(self):
         my_dict = {}
-        my_dict[self._def_const] = 'my_value'
-        self.assertEqual(my_dict[self._def_value], 'my_value')
+        my_dict[self._def_const] = "my_value"
+        self.assertEqual(my_dict[self._def_value], "my_value")
 
 
 class _TestArrayFieldCommon:
@@ -1736,7 +1736,7 @@ class _TestArrayFieldCommon:
 
     def test_setitem_index_wrong_type(self):
         with self.assertRaises(TypeError):
-            self._def['yes'] = 23
+            self._def["yes"] = 23
 
     def test_setitem_index_neg(self):
         with self.assertRaises(IndexError):
@@ -1769,7 +1769,7 @@ class _TestArrayFieldCommon:
             self._def.value = values
 
     def test_value_wrong_type_in_sequence(self):
-        values = [32, 'hello', 11]
+        values = [32, "hello", 11]
         with self.assertRaises(TypeError):
             self._def.value = values
 
@@ -1778,27 +1778,27 @@ class _TestArrayFieldCommon:
         int_fc = self._tc.create_signed_integer_field_class(32)
         another_int_fc = self._tc.create_signed_integer_field_class(32)
         str_fc = self._tc.create_string_field_class()
-        struct_fc.append_member(field_class=int_fc, name='an_int')
-        struct_fc.append_member(field_class=str_fc, name='a_string')
-        struct_fc.append_member(field_class=another_int_fc, name='another_int')
+        struct_fc.append_member(field_class=int_fc, name="an_int")
+        struct_fc.append_member(field_class=str_fc, name="a_string")
+        struct_fc.append_member(field_class=another_int_fc, name="another_int")
         array_fc = self._tc.create_static_array_field_class(struct_fc, 3)
-        stream = _create_stream(self._tc, [('array_field', array_fc)])
+        stream = _create_stream(self._tc, [("array_field", array_fc)])
         values = [
-            {'an_int': 42, 'a_string': 'hello', 'another_int': 66},
-            {'an_int': 1, 'a_string': 'goodbye', 'another_int': 488},
-            {'an_int': 156, 'a_string': 'or not', 'another_int': 4648},
+            {"an_int": 42, "a_string": "hello", "another_int": 66},
+            {"an_int": 1, "a_string": "goodbye", "another_int": 488},
+            {"an_int": 156, "a_string": "or not", "another_int": 4648},
         ]
 
-        array = stream.create_packet().context_field['array_field']
+        array = stream.create_packet().context_field["array_field"]
         array.value = values
         self.assertEqual(values, array)
-        values[0]['an_int'] = 'a string'
+        values[0]["an_int"] = "a string"
         with self.assertRaises(TypeError):
             array.value = values
 
     def test_str_op(self):
         s = str(self._def)
-        expected_string = '[{}]'.format(', '.join([repr(v) for v in self._def_value]))
+        expected_string = "[{}]".format(", ".join([repr(v) for v in self._def_value]))
         self.assertEqual(expected_string, s)
 
 
@@ -1865,31 +1865,31 @@ class DynamicArrayFieldTestCase(_TestArrayFieldCommon, unittest.TestCase):
 
     def test_set_invalid_length(self):
         with self.assertRaises(TypeError):
-            self._def.length = 'cheval'
+            self._def.length = "cheval"
 
 
 class StructureFieldTestCase(unittest.TestCase):
     @staticmethod
     def _const_value_setter(field):
         field.value = {
-            'A': -1872,
-            'B': 'salut',
-            'C': 17.5,
-            'D': 16497,
-            'E': {},
-            'F': {'F_1': 52},
+            "A": -1872,
+            "B": "salut",
+            "C": 17.5,
+            "D": 16497,
+            "E": {},
+            "F": {"F_1": 52},
         }
 
     def _create_fc(self, tc):
         fc = tc.create_structure_field_class()
-        fc.append_member('A', self._fc0_fn())
-        fc.append_member('B', self._fc1_fn())
-        fc.append_member('C', self._fc2_fn())
-        fc.append_member('D', self._fc3_fn())
-        fc.append_member('E', self._fc4_fn())
+        fc.append_member("A", self._fc0_fn())
+        fc.append_member("B", self._fc1_fn())
+        fc.append_member("C", self._fc2_fn())
+        fc.append_member("D", self._fc3_fn())
+        fc.append_member("E", self._fc4_fn())
         fc5 = self._fc5_fn()
-        fc5.append_member('F_1', self._fc5_inner_fn())
-        fc.append_member('F', fc5)
+        fc5.append_member("F_1", self._fc5_inner_fn())
+        fc.append_member("F", fc5)
         return fc
 
     def setUp(self):
@@ -1904,19 +1904,19 @@ class StructureFieldTestCase(unittest.TestCase):
 
         self._fc = self._create_fc(self._tc)
         self._def = _create_field(self._tc, self._fc)
-        self._def['A'] = -1872
-        self._def['B'] = 'salut'
-        self._def['C'] = 17.5
-        self._def['D'] = 16497
-        self._def['E'] = {}
-        self._def['F'] = {'F_1': 52}
+        self._def["A"] = -1872
+        self._def["B"] = "salut"
+        self._def["C"] = 17.5
+        self._def["D"] = 16497
+        self._def["E"] = {}
+        self._def["F"] = {"F_1": 52}
         self._def_value = {
-            'A': -1872,
-            'B': 'salut',
-            'C': 17.5,
-            'D': 16497,
-            'E': {},
-            'F': {'F_1': 52},
+            "A": -1872,
+            "B": "salut",
+            "C": 17.5,
+            "D": 16497,
+            "E": {},
+            "F": {"F_1": 52},
         }
 
         self._def_const = create_const_field(
@@ -1924,31 +1924,31 @@ class StructureFieldTestCase(unittest.TestCase):
         )
 
     def _modify_def(self):
-        self._def['B'] = 'hola'
+        self._def["B"] = "hola"
 
     def test_bool_op_true(self):
         self.assertTrue(self._def)
 
     def test_bool_op_false(self):
-        field = self._def['E']
+        field = self._def["E"]
         self.assertFalse(field)
 
     def test_len(self):
         self.assertEqual(len(self._def), len(self._def_value))
 
     def test_getitem(self):
-        field1 = self._def['A']
-        field2 = self._def['B']
-        field3 = self._def['C']
-        field4 = self._def['D']
-        field5 = self._def['E']
-        field6 = self._def['F']
+        field1 = self._def["A"]
+        field2 = self._def["B"]
+        field3 = self._def["C"]
+        field4 = self._def["D"]
+        field5 = self._def["E"]
+        field6 = self._def["F"]
 
         self.assertIs(type(field1), bt2._SignedIntegerField)
         self.assertEqual(field1, -1872)
 
         self.assertIs(type(field2), bt2._StringField)
-        self.assertEqual(field2, 'salut')
+        self.assertEqual(field2, "salut")
 
         self.assertIs(type(field3), bt2._DoublePrecisionRealField)
         self.assertEqual(field3, 17.5)
@@ -1960,21 +1960,21 @@ class StructureFieldTestCase(unittest.TestCase):
         self.assertEqual(field5, {})
 
         self.assertIs(type(field6), bt2._StructureField)
-        self.assertEqual(field6, {'F_1': 52})
+        self.assertEqual(field6, {"F_1": 52})
 
     def test_const_getitem(self):
-        field1 = self._def_const['A']
-        field2 = self._def_const['B']
-        field3 = self._def_const['C']
-        field4 = self._def_const['D']
-        field5 = self._def_const['E']
-        field6 = self._def_const['F']
+        field1 = self._def_const["A"]
+        field2 = self._def_const["B"]
+        field3 = self._def_const["C"]
+        field4 = self._def_const["D"]
+        field5 = self._def_const["E"]
+        field6 = self._def_const["F"]
 
         self.assertIs(type(field1), bt2._SignedIntegerFieldConst)
         self.assertEqual(field1, -1872)
 
         self.assertIs(type(field2), bt2._StringFieldConst)
-        self.assertEqual(field2, 'salut')
+        self.assertEqual(field2, "salut")
 
         self.assertIs(type(field3), bt2._DoublePrecisionRealFieldConst)
         self.assertEqual(field3, 17.5)
@@ -1986,7 +1986,7 @@ class StructureFieldTestCase(unittest.TestCase):
         self.assertEqual(field5, {})
 
         self.assertIs(type(field6), bt2._StructureFieldConst)
-        self.assertEqual(field6, {'F_1': 52})
+        self.assertEqual(field6, {"F_1": 52})
 
     def test_member_at_index_out_of_bounds_after(self):
         with self.assertRaises(IndexError):
@@ -1994,22 +1994,22 @@ class StructureFieldTestCase(unittest.TestCase):
 
     def test_eq(self):
         field = _create_field(self._tc, self._create_fc(self._tc))
-        field['A'] = -1872
-        field['B'] = 'salut'
-        field['C'] = 17.5
-        field['D'] = 16497
-        field['E'] = {}
-        field['F'] = {'F_1': 52}
+        field["A"] = -1872
+        field["B"] = "salut"
+        field["C"] = 17.5
+        field["D"] = 16497
+        field["E"] = {}
+        field["F"] = {"F_1": 52}
         self.assertEqual(self._def, field)
 
     def test_const_eq(self):
         field = _create_field(self._tc, self._create_fc(self._tc))
-        field['A'] = -1872
-        field['B'] = 'salut'
-        field['C'] = 17.5
-        field['D'] = 16497
-        field['E'] = {}
-        field['F'] = {'F_1': 52}
+        field["A"] = -1872
+        field["B"] = "salut"
+        field["C"] = 17.5
+        field["D"] = 16497
+        field["E"] = {}
+        field["F"] = {"F_1": 52}
         self.assertEqual(self._def_const, field)
 
     def test_eq_invalid_type(self):
@@ -2017,88 +2017,88 @@ class StructureFieldTestCase(unittest.TestCase):
 
     def test_eq_diff_len(self):
         fc = self._tc.create_structure_field_class()
-        fc.append_member('A', self._fc0_fn())
-        fc.append_member('B', self._fc1_fn())
-        fc.append_member('C', self._fc2_fn())
+        fc.append_member("A", self._fc0_fn())
+        fc.append_member("B", self._fc1_fn())
+        fc.append_member("C", self._fc2_fn())
 
         field = _create_field(self._tc, fc)
-        field['A'] = -1872
-        field['B'] = 'salut'
-        field['C'] = 17.5
+        field["A"] = -1872
+        field["B"] = "salut"
+        field["C"] = 17.5
         self.assertNotEqual(self._def, field)
 
     def test_eq_diff_keys(self):
         fc = self._tc.create_structure_field_class()
-        fc.append_member('U', self._fc0_fn())
-        fc.append_member('V', self._fc1_fn())
-        fc.append_member('W', self._fc2_fn())
-        fc.append_member('X', self._fc3_fn())
-        fc.append_member('Y', self._fc4_fn())
-        fc.append_member('Z', self._fc5_fn())
+        fc.append_member("U", self._fc0_fn())
+        fc.append_member("V", self._fc1_fn())
+        fc.append_member("W", self._fc2_fn())
+        fc.append_member("X", self._fc3_fn())
+        fc.append_member("Y", self._fc4_fn())
+        fc.append_member("Z", self._fc5_fn())
         field = _create_field(self._tc, fc)
-        field['U'] = -1871
-        field['V'] = "gerry"
-        field['W'] = 18.19
-        field['X'] = 16497
-        field['Y'] = {}
-        field['Z'] = {}
+        field["U"] = -1871
+        field["V"] = "gerry"
+        field["W"] = 18.19
+        field["X"] = 16497
+        field["Y"] = {}
+        field["Z"] = {}
         self.assertNotEqual(self._def, field)
 
     def test_eq_diff_content_same_len(self):
         field = _create_field(self._tc, self._create_fc(self._tc))
-        field['A'] = -1872
-        field['B'] = 'salut'
-        field['C'] = 17.4
-        field['D'] = 16497
-        field['E'] = {}
-        field['F'] = {'F_1': 0}
+        field["A"] = -1872
+        field["B"] = "salut"
+        field["C"] = 17.4
+        field["D"] = 16497
+        field["E"] = {}
+        field["F"] = {"F_1": 0}
         self.assertNotEqual(self._def, field)
 
     def test_eq_same_content_diff_keys(self):
         fc = self._tc.create_structure_field_class()
-        fc.append_member('A', self._fc0_fn())
-        fc.append_member('B', self._fc1_fn())
-        fc.append_member('E', self._fc2_fn())
-        fc.append_member('D', self._fc3_fn())
-        fc.append_member('C', self._fc4_fn())
-        fc.append_member('F', self._fc5_fn())
+        fc.append_member("A", self._fc0_fn())
+        fc.append_member("B", self._fc1_fn())
+        fc.append_member("E", self._fc2_fn())
+        fc.append_member("D", self._fc3_fn())
+        fc.append_member("C", self._fc4_fn())
+        fc.append_member("F", self._fc5_fn())
         field = _create_field(self._tc, fc)
-        field['A'] = -1872
-        field['B'] = 'salut'
-        field['E'] = 17.5
-        field['D'] = 16497
-        field['C'] = {}
-        field['F'] = {}
+        field["A"] = -1872
+        field["B"] = "salut"
+        field["E"] = 17.5
+        field["D"] = 16497
+        field["C"] = {}
+        field["F"] = {}
         self.assertNotEqual(self._def, field)
 
     def test_setitem(self):
-        self._def['C'] = -18.47
-        self.assertEqual(self._def['C'], -18.47)
+        self._def["C"] = -18.47
+        self.assertEqual(self._def["C"], -18.47)
 
     def test_const_setitem(self):
         with self.assertRaises(TypeError):
-            self._def_const['A'] = 134679
+            self._def_const["A"] = 134679
 
     def test_setitem_int_field(self):
         int_fc = self._tc.create_signed_integer_field_class(32)
         int_field = _create_field(self._tc, int_fc)
         int_field.value = 19487
-        self._def['D'] = int_field
-        self.assertEqual(self._def['D'], 19487)
+        self._def["D"] = int_field
+        self.assertEqual(self._def["D"], 19487)
 
     def test_setitem_non_basic_field(self):
         elem_fc = self._tc.create_structure_field_class()
         struct_fc = self._tc.create_structure_field_class()
-        struct_fc.append_member('A', elem_fc)
+        struct_fc.append_member("A", elem_fc)
         struct_field = _create_field(self._tc, struct_fc)
 
         # Will fail on access to .items() of the value
         with self.assertRaises(AttributeError):
-            struct_field['A'] = 23
+            struct_field["A"] = 23
 
     def test_setitem_none(self):
         with self.assertRaises(TypeError):
-            self._def['C'] = None
+            self._def["C"] = None
 
     def test_setitem_key_wrong_type(self):
         with self.assertRaises(TypeError):
@@ -2106,22 +2106,22 @@ class StructureFieldTestCase(unittest.TestCase):
 
     def test_setitem_wrong_key(self):
         with self.assertRaises(KeyError):
-            self._def['hi'] = 134679
+            self._def["hi"] = 134679
 
     def test_member_at_index(self):
-        self.assertEqual(self._def.member_at_index(1), 'salut')
+        self.assertEqual(self._def.member_at_index(1), "salut")
 
     def test_const_member_at_index(self):
-        self.assertEqual(self._def_const.member_at_index(1), 'salut')
+        self.assertEqual(self._def_const.member_at_index(1), "salut")
 
     def test_iter(self):
         orig_values = {
-            'A': -1872,
-            'B': 'salut',
-            'C': 17.5,
-            'D': 16497,
-            'E': {},
-            'F': {'F_1': 52},
+            "A": -1872,
+            "B": "salut",
+            "C": 17.5,
+            "D": 16497,
+            "E": {},
+            "F": {"F_1": 52},
         }
 
         for vkey, vval in self._def.items():
@@ -2130,12 +2130,12 @@ class StructureFieldTestCase(unittest.TestCase):
 
     def test_value(self):
         orig_values = {
-            'A': -1872,
-            'B': 'salut',
-            'C': 17.5,
-            'D': 16497,
-            'E': {},
-            'F': {'F_1': 52},
+            "A": -1872,
+            "B": "salut",
+            "C": 17.5,
+            "D": 16497,
+            "E": {},
+            "F": {"F_1": 52},
         }
         self.assertEqual(self._def, orig_values)
 
@@ -2144,22 +2144,22 @@ class StructureFieldTestCase(unittest.TestCase):
         another_int_fc = self._tc.create_signed_integer_field_class(32)
         str_fc = self._tc.create_string_field_class()
         struct_fc = self._tc.create_structure_field_class()
-        struct_fc.append_member(field_class=int_fc, name='an_int')
-        struct_fc.append_member(field_class=str_fc, name='a_string')
-        struct_fc.append_member(field_class=another_int_fc, name='another_int')
-        values = {'an_int': 42, 'a_string': 'hello', 'another_int': 66}
+        struct_fc.append_member(field_class=int_fc, name="an_int")
+        struct_fc.append_member(field_class=str_fc, name="a_string")
+        struct_fc.append_member(field_class=another_int_fc, name="another_int")
+        values = {"an_int": 42, "a_string": "hello", "another_int": 66}
 
         struct = _create_field(self._tc, struct_fc)
         struct.value = values
         self.assertEqual(values, struct)
 
         bad_type_values = copy.deepcopy(values)
-        bad_type_values['an_int'] = 'a string'
+        bad_type_values["an_int"] = "a string"
         with self.assertRaises(TypeError):
             struct.value = bad_type_values
 
         unknown_key_values = copy.deepcopy(values)
-        unknown_key_values['unknown_key'] = 16546
+        unknown_key_values["unknown_key"] = 16546
         with self.assertRaises(KeyError):
             struct.value = unknown_key_values
 
@@ -2170,8 +2170,8 @@ class StructureFieldTestCase(unittest.TestCase):
         # the order in which mappings are enumerated is not explicitly part of
         # the API.
         for p in itertools.permutations([(k, v) for k, v in self._def.items()]):
-            items = ['{}: {}'.format(repr(k), repr(v)) for k, v in p]
-            candidate = '{{{}}}'.format(', '.join(items))
+            items = ["{}: {}".format(repr(k), repr(v)) for k, v in p]
+            candidate = "{{{}}}".format(", ".join(items))
             if candidate == s:
                 expected_string_found = True
                 break
@@ -2182,34 +2182,34 @@ class StructureFieldTestCase(unittest.TestCase):
 class OptionFieldTestCase(unittest.TestCase):
     @staticmethod
     def _const_value_setter(field):
-        field.value = {'opt_field': 'hiboux'}
+        field.value = {"opt_field": "hiboux"}
 
     def _create_fc(self, tc):
         fc = tc.create_option_without_selector_field_class(
             tc.create_string_field_class()
         )
         top_fc = tc.create_structure_field_class()
-        top_fc.append_member('opt_field', fc)
+        top_fc.append_member("opt_field", fc)
         return top_fc
 
     def setUp(self):
         self._tc = get_default_trace_class()
         fld = _create_field(self._tc, self._create_fc(self._tc))
-        self._def = fld['opt_field']
-        self._def_value = 'hiboux'
+        self._def = fld["opt_field"]
+        self._def_value = "hiboux"
         self._def_const = create_const_field(
             self._tc, self._create_fc(self._tc), self._const_value_setter
-        )['opt_field']
+        )["opt_field"]
 
     def test_value_prop(self):
-        self._def.value = 'hiboux'
-        self.assertEqual(self._def.field, 'hiboux')
+        self._def.value = "hiboux"
+        self.assertEqual(self._def.field, "hiboux")
         self.assertIs(type(self._def), bt2._OptionField)
         self.assertIs(type(self._def.field), bt2._StringField)
         self.assertTrue(self._def.has_field)
 
     def test_const_value_prop(self):
-        self.assertEqual(self._def_const.field, 'hiboux')
+        self.assertEqual(self._def_const.field, "hiboux")
         self.assertIs(type(self._def_const), bt2._OptionFieldConst)
         self.assertIs(type(self._def_const.field), bt2._StringFieldConst)
         self.assertTrue(self._def_const.has_field)
@@ -2223,7 +2223,7 @@ class OptionFieldTestCase(unittest.TestCase):
         self.assertFalse(self._def.has_field)
 
     def test_bool_op_true(self):
-        self._def.value = 'allo'
+        self._def.value = "allo"
         self.assertTrue(self._def)
 
     def test_bool_op_false(self):
@@ -2231,9 +2231,9 @@ class OptionFieldTestCase(unittest.TestCase):
         self.assertFalse(self._def)
 
     def test_field_prop_existing(self):
-        self._def.value = 'meow'
+        self._def.value = "meow"
         field = self._def.field
-        self.assertEqual(field, 'meow')
+        self.assertEqual(field, "meow")
 
     def test_field_prop_none(self):
         self._def.has_field = False
@@ -2248,37 +2248,37 @@ class OptionFieldTestCase(unittest.TestCase):
         self.assertTrue(self._def_const.has_field)
 
     def test_field_prop_existing_then_none(self):
-        self._def.value = 'meow'
+        self._def.value = "meow"
         field = self._def.field
-        self.assertEqual(field, 'meow')
+        self.assertEqual(field, "meow")
         self._def.has_field = False
         field = self._def.field
         self.assertIsNone(field)
 
     def test_eq(self):
         field = _create_field(self._tc, self._create_fc(self._tc))
-        field = field['opt_field']
-        field.value = 'walk'
-        self._def.value = 'walk'
+        field = field["opt_field"]
+        field.value = "walk"
+        self._def.value = "walk"
         self.assertEqual(self._def, field)
 
     def test_const_eq(self):
         field = _create_field(self._tc, self._create_fc(self._tc))
-        field = field['opt_field']
-        field.value = 'hiboux'
+        field = field["opt_field"]
+        field.value = "hiboux"
         self.assertEqual(self._def_const, field)
         self.assertEqual(self._def_const, self._def_value)
 
     def test_eq_invalid_type(self):
-        self._def.value = 'gerry'
+        self._def.value = "gerry"
         self.assertNotEqual(self._def, 23)
 
     def test_str_op(self):
-        self._def.value = 'marcel'
+        self._def.value = "marcel"
         self.assertEqual(str(self._def), str(self._def.field))
 
     def test_repr_op(self):
-        self._def.value = 'mireille'
+        self._def.value = "mireille"
         self.assertEqual(repr(self._def), repr(self._def.field))
 
 
@@ -2294,22 +2294,22 @@ class VariantFieldTestCase(unittest.TestCase):
         ft2 = tc.create_double_precision_real_field_class()
         ft3 = tc.create_signed_integer_field_class(17)
         fc = tc.create_variant_field_class()
-        fc.append_option('corner', ft0)
-        fc.append_option('zoom', ft1)
-        fc.append_option('mellotron', ft2)
-        fc.append_option('giorgio', ft3)
+        fc.append_option("corner", ft0)
+        fc.append_option("zoom", ft1)
+        fc.append_option("mellotron", ft2)
+        fc.append_option("giorgio", ft3)
         top_fc = tc.create_structure_field_class()
-        top_fc.append_member('variant_field', fc)
+        top_fc.append_member("variant_field", fc)
         return top_fc
 
     def setUp(self):
         self._tc = get_default_trace_class()
         fld = _create_field(self._tc, self._create_fc(self._tc))
-        self._def = fld['variant_field']
+        self._def = fld["variant_field"]
 
         self._def_value = 1334
         self._def_selected_index = 3
-        const_fc = self._create_fc(self._tc)['variant_field']
+        const_fc = self._create_fc(self._tc)["variant_field"]
 
         fld_const = create_const_field(
             self._tc, const_fc.field_class, self._const_value_setter
@@ -2358,7 +2358,7 @@ class VariantFieldTestCase(unittest.TestCase):
 
     def test_eq(self):
         field = _create_field(self._tc, self._create_fc(self._tc))
-        field = field['variant_field']
+        field = field["variant_field"]
         field.selected_option_index = 0
         field.value = 1774
         self._def.selected_option_index = 0
@@ -2367,7 +2367,7 @@ class VariantFieldTestCase(unittest.TestCase):
 
     def test_const_eq(self):
         field = _create_field(self._tc, self._create_fc(self._tc))
-        field = field['variant_field']
+        field = field["variant_field"]
         field.selected_option_index = 3
         field.value = 1334
         self.assertEqual(self._def_const, field)
@@ -2377,42 +2377,42 @@ class VariantFieldTestCase(unittest.TestCase):
 
     def test_eq_invalid_type(self):
         self._def.selected_option_index = 1
-        self._def.value = 'gerry'
+        self._def.value = "gerry"
         self.assertNotEqual(self._def, 23)
 
     def test_str_op_int(self):
         field = _create_field(self._tc, self._create_fc(self._tc))
-        field = field['variant_field']
+        field = field["variant_field"]
         field.selected_option_index = 0
         field.value = 1774
         other_field = _create_field(self._tc, self._create_fc(self._tc))
-        other_field = other_field['variant_field']
+        other_field = other_field["variant_field"]
         other_field.selected_option_index = 0
         other_field.value = 1774
         self.assertEqual(str(field), str(other_field))
 
     def test_str_op_str(self):
         field = _create_field(self._tc, self._create_fc(self._tc))
-        field = field['variant_field']
+        field = field["variant_field"]
         field.selected_option_index = 1
-        field.value = 'un beau grand bateau'
+        field.value = "un beau grand bateau"
         other_field = _create_field(self._tc, self._create_fc(self._tc))
-        other_field = other_field['variant_field']
+        other_field = other_field["variant_field"]
         other_field.selected_option_index = 1
-        other_field.value = 'un beau grand bateau'
+        other_field.value = "un beau grand bateau"
         self.assertEqual(str(field), str(other_field))
 
     def test_str_op_float(self):
         field = _create_field(self._tc, self._create_fc(self._tc))
-        field = field['variant_field']
+        field = field["variant_field"]
         field.selected_option_index = 2
         field.value = 14.4245
         other_field = _create_field(self._tc, self._create_fc(self._tc))
-        other_field = other_field['variant_field']
+        other_field = other_field["variant_field"]
         other_field.selected_option_index = 2
         other_field.value = 14.4245
         self.assertEqual(str(field), str(other_field))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

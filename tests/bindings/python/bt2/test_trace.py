@@ -30,8 +30,8 @@ class TraceTestCase(unittest.TestCase):
             self._tc(name=17)
 
     def test_create_user_attributes(self):
-        trace = self._tc(user_attributes={'salut': 23})
-        self.assertEqual(trace.user_attributes, {'salut': 23})
+        trace = self._tc(user_attributes={"salut": 23})
+        self.assertEqual(trace.user_attributes, {"salut": 23})
         self.assertIs(type(trace.user_attributes), bt2_value.MapValue)
 
     def test_create_invalid_user_attributes(self):
@@ -52,47 +52,47 @@ class TraceTestCase(unittest.TestCase):
         self.assertIs(type(trace.cls), bt2_trace_class._TraceClassConst)
 
     def test_attr_name(self):
-        trace = self._tc(name='mein trace')
-        self.assertEqual(trace.name, 'mein trace')
+        trace = self._tc(name="mein trace")
+        self.assertEqual(trace.name, "mein trace")
 
     def test_attr_uuid(self):
-        trace = self._tc(uuid=uuid.UUID('da7d6b6f-3108-4706-89bd-ab554732611b'))
-        self.assertEqual(trace.uuid, uuid.UUID('da7d6b6f-3108-4706-89bd-ab554732611b'))
+        trace = self._tc(uuid=uuid.UUID("da7d6b6f-3108-4706-89bd-ab554732611b"))
+        self.assertEqual(trace.uuid, uuid.UUID("da7d6b6f-3108-4706-89bd-ab554732611b"))
 
     def test_env_get(self):
-        trace = self._tc(environment={'hello': 'you', 'foo': -5})
+        trace = self._tc(environment={"hello": "you", "foo": -5})
         self.assertIs(type(trace.environment), bt2_trace._TraceEnvironment)
-        self.assertIs(type(trace.environment['foo']), bt2_value.SignedIntegerValue)
-        self.assertEqual(trace.environment['hello'], 'you')
-        self.assertEqual(trace.environment['foo'], -5)
+        self.assertIs(type(trace.environment["foo"]), bt2_value.SignedIntegerValue)
+        self.assertEqual(trace.environment["hello"], "you")
+        self.assertEqual(trace.environment["foo"], -5)
 
     def test_env_iter(self):
-        trace = self._tc(environment={'hello': 'you', 'foo': -5})
+        trace = self._tc(environment={"hello": "you", "foo": -5})
         values = set(trace.environment)
-        self.assertEqual(values, {'hello', 'foo'})
+        self.assertEqual(values, {"hello", "foo"})
 
     def test_const_env_get(self):
         trace = utils.get_const_stream_beginning_message().stream.trace
         self.assertIs(type(trace.environment), bt2_trace._TraceEnvironmentConst)
         self.assertIs(
-            type(trace.environment['patate']), bt2_value._SignedIntegerValueConst
+            type(trace.environment["patate"]), bt2_value._SignedIntegerValueConst
         )
 
     def test_const_env_iter(self):
         trace = utils.get_const_stream_beginning_message().stream.trace
         values = set(trace.environment)
-        self.assertEqual(values, {'patate'})
+        self.assertEqual(values, {"patate"})
 
     def test_const_env_set(self):
         trace = utils.get_const_stream_beginning_message().stream.trace
         with self.assertRaises(TypeError):
-            trace.environment['patate'] = 33
+            trace.environment["patate"] = 33
 
     def test_env_get_non_existent(self):
-        trace = self._tc(environment={'hello': 'you', 'foo': -5})
+        trace = self._tc(environment={"hello": "you", "foo": -5})
 
         with self.assertRaises(KeyError):
-            trace.environment['lel']
+            trace.environment["lel"]
 
     def test_len(self):
         trace = self._tc()
@@ -200,7 +200,7 @@ class TraceTestCase(unittest.TestCase):
 
         with self.assertRaisesRegex(
             ValueError,
-            r'This trace destruction listener does not match the trace object\.',
+            r"This trace destruction listener does not match the trace object\.",
         ):
             trace2.remove_destruction_listener(handle1)
 
@@ -215,13 +215,13 @@ class TraceTestCase(unittest.TestCase):
         trace.remove_destruction_listener(handle)
 
         with self.assertRaisesRegex(
-            ValueError, r'This trace destruction listener was already removed\.'
+            ValueError, r"This trace destruction listener was already removed\."
         ):
             trace.remove_destruction_listener(handle)
 
     def test_raise_in_destruction_listener(self):
         def on_trace_destruction(trace):
-            raise ValueError('it hurts')
+            raise ValueError("it hurts")
 
         trace_class = get_default_trace_class()
         trace = trace_class()
@@ -230,5 +230,5 @@ class TraceTestCase(unittest.TestCase):
         del trace
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

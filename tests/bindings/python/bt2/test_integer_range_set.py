@@ -15,9 +15,9 @@ def get_const_signed_integer_range(int_ranges):
 
     tc = get_default_trace_class()
     fc = tc.create_signed_enumeration_field_class(32)
-    fc.add_mapping('something', bt2.SignedIntegerRangeSet(int_ranges))
+    fc.add_mapping("something", bt2.SignedIntegerRangeSet(int_ranges))
 
-    return create_const_field(tc, fc, range_setter).cls['something'].ranges
+    return create_const_field(tc, fc, range_setter).cls["something"].ranges
 
 
 def get_const_unsigned_integer_range(int_ranges):
@@ -26,9 +26,9 @@ def get_const_unsigned_integer_range(int_ranges):
 
     tc = get_default_trace_class()
     fc = tc.create_unsigned_enumeration_field_class(32)
-    fc.add_mapping('something', bt2.UnsignedIntegerRangeSet(int_ranges))
+    fc.add_mapping("something", bt2.UnsignedIntegerRangeSet(int_ranges))
 
-    return create_const_field(tc, fc, range_setter).cls['something'].ranges
+    return create_const_field(tc, fc, range_setter).cls["something"].ranges
 
 
 class _IntegerRangeTestCase:
@@ -90,7 +90,7 @@ class _IntegerRangeTestCase:
 
     def test_contains_wrong_type(self):
         with self.assertRaises(TypeError):
-            self._rg.contains('allo')
+            self._rg.contains("allo")
 
     def test_contains_out_of_bound(self):
         with self.assertRaises(ValueError):
@@ -186,7 +186,7 @@ class _IntegerRangeSetTestCase:
 
     def test_create_wrong_elem_type(self):
         with self.assertRaises(TypeError):
-            self._rs = self._CLS((self._range1, self._range2, 'lel'))
+            self._rs = self._CLS((self._range1, self._range2, "lel"))
 
     def test_len(self):
         self.assertEqual(len(self._rs), 3)
@@ -205,7 +205,7 @@ class _IntegerRangeSetTestCase:
 
     def test_contains_value_wrong_type(self):
         with self.assertRaises(TypeError):
-            self._rs.contains_value('meow')
+            self._rs.contains_value("meow")
 
     def test_iter(self):
         range_list = list(self._rs)
@@ -299,5 +299,5 @@ class SignedIntegerRangeSetTestCase(_IntegerRangeSetTestCase, unittest.TestCase)
         super().setUp()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

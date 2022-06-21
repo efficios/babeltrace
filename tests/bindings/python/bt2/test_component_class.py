@@ -81,14 +81,14 @@ class UserComponentClassTestCase(unittest.TestCase):
             def _user_consume(self):
                 pass
 
-        self.assertEqual(MySink.name, 'MySink')
+        self.assertEqual(MySink.name, "MySink")
 
     def test_custom_name(self):
-        class MySink(bt2._UserSinkComponent, name='salut'):
+        class MySink(bt2._UserSinkComponent, name="salut"):
             def _user_consume(self):
                 pass
 
-        self.assertEqual(MySink.name, 'salut')
+        self.assertEqual(MySink.name, "salut")
 
     def test_invalid_custom_name(self):
         with self.assertRaises(TypeError):
@@ -112,7 +112,7 @@ class UserComponentClassTestCase(unittest.TestCase):
             def _user_consume(self):
                 pass
 
-        self.assertEqual(MySink.description, 'The description.')
+        self.assertEqual(MySink.description, "The description.")
 
     def test_empty_description_no_lines(self):
         class MySink(bt2._UserSinkComponent):
@@ -159,7 +159,7 @@ class UserComponentClassTestCase(unittest.TestCase):
             def _user_consume(self):
                 pass
 
-        self.assertEqual(MySink.help, 'The help\ntext is\nhere.')
+        self.assertEqual(MySink.help, "The help\ntext is\nhere.")
 
     def test_addr(self):
         class MySink(bt2._UserSinkComponent):
@@ -175,7 +175,7 @@ class UserComponentClassTestCase(unittest.TestCase):
                 pass
 
         with self.assertRaises(bt2.UnknownObject):
-            bt2.QueryExecutor(MySink, 'obj', 23).query()
+            bt2.QueryExecutor(MySink, "obj", 23).query()
 
     def test_query_raises(self):
         class MySink(bt2._UserSinkComponent):
@@ -187,7 +187,7 @@ class UserComponentClassTestCase(unittest.TestCase):
                 raise ValueError
 
         with self.assertRaises(bt2._Error):
-            bt2.QueryExecutor(MySink, 'obj', 23).query()
+            bt2.QueryExecutor(MySink, "obj", 23).query()
 
     def test_query_wrong_return_type(self):
         class MySink(bt2._UserSinkComponent):
@@ -199,7 +199,7 @@ class UserComponentClassTestCase(unittest.TestCase):
                 return ...
 
         with self.assertRaises(bt2._Error):
-            bt2.QueryExecutor(MySink, 'obj', 23).query()
+            bt2.QueryExecutor(MySink, "obj", 23).query()
 
     def test_query_params_none(self):
         class MySink(bt2._UserSinkComponent):
@@ -214,7 +214,7 @@ class UserComponentClassTestCase(unittest.TestCase):
 
         query_params = None
         params = None
-        res = bt2.QueryExecutor(MySink, 'obj', params).query()
+        res = bt2.QueryExecutor(MySink, "obj", params).query()
         self.assertEqual(query_params, params)
         self.assertIsNone(res)
         del query_params
@@ -230,7 +230,7 @@ class UserComponentClassTestCase(unittest.TestCase):
                 query_log_level = priv_query_exec.logging_level
 
         query_log_level = None
-        query_exec = bt2.QueryExecutor(MySink, 'obj', None)
+        query_exec = bt2.QueryExecutor(MySink, "obj", None)
         query_exec.logging_level = bt2.LoggingLevel.WARNING
         query_exec.query()
         self.assertEqual(query_log_level, bt2.LoggingLevel.WARNING)
@@ -245,7 +245,7 @@ class UserComponentClassTestCase(unittest.TestCase):
             def _user_query(priv_query_exec, obj, params, method_obj):
                 return
 
-        res = bt2.QueryExecutor(MySink, 'obj', None).query()
+        res = bt2.QueryExecutor(MySink, "obj", None).query()
         self.assertIsNone(res)
 
     def test_query_simple(self):
@@ -260,8 +260,8 @@ class UserComponentClassTestCase(unittest.TestCase):
                 return 17.5
 
         query_params = None
-        params = ['coucou', 23, None]
-        res = bt2.QueryExecutor(MySink, 'obj', params).query()
+        params = ["coucou", 23, None]
+        res = bt2.QueryExecutor(MySink, "obj", params).query()
         self.assertEqual(query_params, params)
         self.assertEqual(res, 17.5)
         del query_params
@@ -275,18 +275,18 @@ class UserComponentClassTestCase(unittest.TestCase):
             def _user_query(cls, priv_query_exec, obj, params, method_obj):
                 nonlocal query_params
                 query_params = params
-                return {'null': None, 'bt2': 'BT2'}
+                return {"null": None, "bt2": "BT2"}
 
         query_params = None
         params = {
-            'array': ['coucou', 23, None],
-            'other_map': {'yes': 'yeah', '19': 19, 'minus 1.5': -1.5},
-            'null': None,
+            "array": ["coucou", 23, None],
+            "other_map": {"yes": "yeah", "19": 19, "minus 1.5": -1.5},
+            "null": None,
         }
 
-        res = bt2.QueryExecutor(MySink, 'obj', params).query()
+        res = bt2.QueryExecutor(MySink, "obj", params).query()
         self.assertEqual(query_params, params)
-        self.assertEqual(res, {'null': None, 'bt2': 'BT2'})
+        self.assertEqual(res, {"null": None, "bt2": "BT2"})
         del query_params
 
     def test_eq(self):
@@ -315,7 +315,7 @@ class ComponentClassTestCase(unittest.TestCase):
 
         self._py_comp_cls = MySink
         graph = bt2.Graph()
-        comp = graph.add_component(MySink, 'salut')
+        comp = graph.add_component(MySink, "salut")
         self._comp_cls = comp.cls
         self.assertIs(type(self._comp_cls), bt2._SinkComponentClassConst)
 
@@ -324,13 +324,13 @@ class ComponentClassTestCase(unittest.TestCase):
         del self._comp_cls
 
     def test_description(self):
-        self.assertEqual(self._comp_cls.description, 'The description.')
+        self.assertEqual(self._comp_cls.description, "The description.")
 
     def test_help(self):
-        self.assertEqual(self._comp_cls.help, 'The help.')
+        self.assertEqual(self._comp_cls.help, "The help.")
 
     def test_name(self):
-        self.assertEqual(self._comp_cls.name, 'MySink')
+        self.assertEqual(self._comp_cls.name, "MySink")
 
     def test_addr(self):
         self.assertIsInstance(self._comp_cls.addr, int)
@@ -345,11 +345,11 @@ class ComponentClassTestCase(unittest.TestCase):
 
     def test_query(self):
         res = bt2.QueryExecutor(
-            self._comp_cls, 'an object', {'yes': 'no', 'book': -17}
+            self._comp_cls, "an object", {"yes": "no", "book": -17}
         ).query()
-        expected = ['an object', {'yes': 'no', 'book': -17}, 23]
+        expected = ["an object", {"yes": "no", "book": -17}, 23]
         self.assertEqual(res, expected)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

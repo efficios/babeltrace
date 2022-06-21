@@ -28,9 +28,9 @@ class MySink(bt2._UserSinkComponent):
 
 bt2.register_plugin(
     __name__,
-    'sparkling',
-    author='Philippe Proulx',
-    description='A delicious plugin.',
-    version=(1, 2, 3, 'EXTRA'),
-    license='MIT',
+    "sparkling",
+    author="Philippe Proulx",
+    description="A delicious plugin.",
+    version=(1, 2, 3, "EXTRA"),
+    license="MIT",
 )

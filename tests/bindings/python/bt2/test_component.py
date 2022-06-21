@@ -14,19 +14,19 @@ class UserComponentTestCase(unittest.TestCase):
         graph = bt2.Graph()
 
         if name is None:
-            name = 'comp'
+            name = "comp"
 
         return graph.add_component(comp_cls, name, logging_level=log_level)
 
     def test_name(self):
         class MySink(bt2._UserSinkComponent):
             def __init__(comp_self, config, params, obj):
-                self.assertEqual(comp_self.name, 'yaes')
+                self.assertEqual(comp_self.name, "yaes")
 
             def _user_consume(self):
                 pass
 
-        self._create_comp(MySink, 'yaes')
+        self._create_comp(MySink, "yaes")
 
     def test_logging_level(self):
         class MySink(bt2._UserSinkComponent):
@@ -36,7 +36,7 @@ class UserComponentTestCase(unittest.TestCase):
             def _user_consume(self):
                 pass
 
-        self._create_comp(MySink, 'yaes', bt2.LoggingLevel.INFO)
+        self._create_comp(MySink, "yaes", bt2.LoggingLevel.INFO)
 
     def test_graph_mip_version(self):
         class MySink(bt2._UserSinkComponent):
@@ -46,7 +46,7 @@ class UserComponentTestCase(unittest.TestCase):
             def _user_consume(self):
                 pass
 
-        self._create_comp(MySink, 'yaes', bt2.LoggingLevel.INFO)
+        self._create_comp(MySink, "yaes", bt2.LoggingLevel.INFO)
 
     def test_class(self):
         class MySink(bt2._UserSinkComponent):
@@ -81,7 +81,7 @@ class UserComponentTestCase(unittest.TestCase):
                 finalized = True
 
         graph = bt2.Graph()
-        comp = graph.add_component(MySink, 'lel')
+        comp = graph.add_component(MySink, "lel")
 
         del graph
         del comp
@@ -131,7 +131,7 @@ class GenericComponentTestCase(unittest.TestCase):
         graph = bt2.Graph()
 
         if name is None:
-            name = 'comp'
+            name = "comp"
 
         return graph.add_component(comp_cls, name, logging_level=log_level)
 
@@ -140,15 +140,15 @@ class GenericComponentTestCase(unittest.TestCase):
             def _user_consume(self):
                 pass
 
-        comp = self._create_comp(MySink, 'yaes')
-        self.assertEqual(comp.name, 'yaes')
+        comp = self._create_comp(MySink, "yaes")
+        self.assertEqual(comp.name, "yaes")
 
     def test_logging_level(self):
         class MySink(bt2._UserSinkComponent):
             def _user_consume(self):
                 pass
 
-        comp = self._create_comp(MySink, 'yaes', bt2.LoggingLevel.WARNING)
+        comp = self._create_comp(MySink, "yaes", bt2.LoggingLevel.WARNING)
         self.assertEqual(comp.logging_level, bt2.LoggingLevel.WARNING)
 
     def test_class(self):
@@ -169,5 +169,5 @@ class GenericComponentTestCase(unittest.TestCase):
         self.assertNotEqual(comp.addr, 0)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

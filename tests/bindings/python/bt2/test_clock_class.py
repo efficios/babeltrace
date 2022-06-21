@@ -30,11 +30,11 @@ class ClockClassOffsetTestCase(unittest.TestCase):
 
     def test_create_invalid_seconds(self):
         with self.assertRaises(TypeError):
-            bt2.ClockClassOffset('hello', 4871232)
+            bt2.ClockClassOffset("hello", 4871232)
 
     def test_create_invalid_cycles(self):
         with self.assertRaises(TypeError):
-            bt2.ClockClassOffset(23, 'hello')
+            bt2.ClockClassOffset(23, "hello")
 
     def test_eq(self):
         cco1 = bt2.ClockClassOffset(23, 42)
@@ -81,10 +81,10 @@ class ClockClassTestCase(unittest.TestCase):
 
     def test_create_name(self):
         def f(comp_self):
-            return comp_self._create_clock_class(name='the_clock')
+            return comp_self._create_clock_class(name="the_clock")
 
         cc = run_in_component_init(f)
-        self.assertEqual(cc.name, 'the_clock')
+        self.assertEqual(cc.name, "the_clock")
 
     def test_create_invalid_name(self):
         def f(comp_self):
@@ -94,10 +94,10 @@ class ClockClassTestCase(unittest.TestCase):
 
     def test_create_description(self):
         def f(comp_self):
-            return comp_self._create_clock_class(description='hi people')
+            return comp_self._create_clock_class(description="hi people")
 
         cc = run_in_component_init(f)
-        self.assertEqual(cc.description, 'hi people')
+        self.assertEqual(cc.description, "hi people")
 
     def test_create_invalid_description(self):
         def f(comp_self):
@@ -114,7 +114,7 @@ class ClockClassTestCase(unittest.TestCase):
 
     def test_create_invalid_frequency(self):
         def f(comp_self):
-            return comp_self._create_clock_class(frequency='lel')
+            return comp_self._create_clock_class(frequency="lel")
 
         self.assertRaisesInComponentInit(TypeError, f)
 
@@ -127,7 +127,7 @@ class ClockClassTestCase(unittest.TestCase):
 
     def test_create_invalid_precision(self):
         def f(comp_self):
-            return comp_self._create_clock_class(precision='lel')
+            return comp_self._create_clock_class(precision="lel")
 
         self.assertRaisesInComponentInit(TypeError, f)
 
@@ -177,11 +177,11 @@ class ClockClassTestCase(unittest.TestCase):
     def test_create_uuid(self):
         def f(comp_self):
             return comp_self._create_clock_class(
-                uuid=uuid.UUID('b43372c32ef0be28444dfc1c5cdafd33')
+                uuid=uuid.UUID("b43372c32ef0be28444dfc1c5cdafd33")
             )
 
         cc = run_in_component_init(f)
-        self.assertEqual(cc.uuid, uuid.UUID('b43372c32ef0be28444dfc1c5cdafd33'))
+        self.assertEqual(cc.uuid, uuid.UUID("b43372c32ef0be28444dfc1c5cdafd33"))
 
     def test_create_invalid_uuid(self):
         def f(comp_self):
@@ -191,10 +191,10 @@ class ClockClassTestCase(unittest.TestCase):
 
     def test_create_user_attributes(self):
         def f(comp_self):
-            return comp_self._create_clock_class(user_attributes={'salut': 23})
+            return comp_self._create_clock_class(user_attributes={"salut": 23})
 
         cc = run_in_component_init(f)
-        self.assertEqual(cc.user_attributes, {'salut': 23})
+        self.assertEqual(cc.user_attributes, {"salut": 23})
         self.assertIs(type(cc.user_attributes), bt2_value.MapValue)
 
     def test_create_invalid_user_attributes(self):
@@ -218,7 +218,7 @@ class ClockSnapshotTestCase(unittest.TestCase):
     def setUp(self):
         def f(comp_self):
             cc = comp_self._create_clock_class(
-                1000, 'my_cc', offset=bt2.ClockClassOffset(45, 354)
+                1000, "my_cc", offset=bt2.ClockClassOffset(45, 354)
             )
             tc = comp_self._create_trace_class()
 
@@ -227,7 +227,7 @@ class ClockSnapshotTestCase(unittest.TestCase):
         _cc, _tc = run_in_component_init(f)
         _trace = _tc()
         _sc = _tc.create_stream_class(default_clock_class=_cc)
-        _ec = _sc.create_event_class(name='salut')
+        _ec = _sc.create_event_class(name="salut")
         _stream = _trace.create_stream(_sc)
         self._stream = _stream
         self._ec = _ec
@@ -254,12 +254,12 @@ class ClockSnapshotTestCase(unittest.TestCase):
 
         class MySrc(bt2._UserSourceComponent, message_iterator_class=MyIter):
             def __init__(self, config, params, obj):
-                self._add_output_port('out')
+                self._add_output_port("out")
 
         self._graph = bt2.Graph()
-        self._src_comp = self._graph.add_component(MySrc, 'my_source')
+        self._src_comp = self._graph.add_component(MySrc, "my_source")
         self._msg_iter = TestOutputPortMessageIterator(
-            self._graph, self._src_comp.output_ports['out']
+            self._graph, self._src_comp.output_ports["out"]
         )
 
         for i, msg in enumerate(self._msg_iter):
@@ -315,5 +315,5 @@ class ClockSnapshotTestCase(unittest.TestCase):
         self.assertFalse(self._msg.default_clock_snapshot <= 100)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

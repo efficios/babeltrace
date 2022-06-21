@@ -16,7 +16,7 @@ import numbers
 
 
 # a pair of component and ComponentSpec
-_ComponentAndSpec = namedtuple('_ComponentAndSpec', ['comp', 'spec'])
+_ComponentAndSpec = namedtuple("_ComponentAndSpec", ["comp", "spec"])
 
 
 class _BaseComponentSpec:
@@ -53,7 +53,7 @@ class ComponentSpec(_BaseComponentSpec):
         logging_level=bt2.LoggingLevel.NONE,
     ):
         if type(params) is str:
-            params = {'inputs': [params]}
+            params = {"inputs": [params]}
 
         super().__init__(params, obj, logging_level)
 
@@ -92,7 +92,7 @@ class ComponentSpec(_BaseComponentSpec):
         plugin = bt2.find_plugin(plugin_name)
 
         if plugin is None:
-            raise ValueError('no such plugin: {}'.format(plugin_name))
+            raise ValueError("no such plugin: {}".format(plugin_name))
 
         if component_class_name in plugin.source_component_classes:
             comp_class = plugin.source_component_classes[component_class_name]
@@ -100,7 +100,7 @@ class ComponentSpec(_BaseComponentSpec):
             comp_class = plugin.filter_component_classes[component_class_name]
         else:
             raise KeyError(
-                'source or filter component class `{}` not found in plugin `{}`'.format(
+                "source or filter component class `{}` not found in plugin `{}`".format(
                     component_class_name, plugin_name
                 )
             )
@@ -136,18 +136,18 @@ def _auto_discover_source_component_specs(auto_source_comp_specs, plugin_set):
     )
 
     if res_ptr is None:
-        raise bt2._MemoryError('cannot auto discover source components')
+        raise bt2._MemoryError("cannot auto discover source components")
 
     res = bt2_value._create_from_ptr(res_ptr)
 
     assert type(res) == bt2.MapValue
-    assert 'status' in res
+    assert "status" in res
 
-    status = res['status']
-    utils._handle_func_status(status, 'cannot auto-discover source components')
+    status = res["status"]
+    utils._handle_func_status(status, "cannot auto-discover source components")
 
     comp_specs = []
-    comp_specs_raw = res['results']
+    comp_specs_raw = res["results"]
     assert type(comp_specs_raw) == bt2.ArrayValue
 
     used_input_indices = set()
@@ -195,7 +195,7 @@ def _auto_discover_source_component_specs(auto_source_comp_specs, plugin_set):
 
             used_input_indices.add(int(idx))
 
-        params['inputs'] = comp_inputs
+        params["inputs"] = comp_inputs
 
         comp_specs.append(
             ComponentSpec.from_named_plugin_and_component_class(
@@ -213,8 +213,8 @@ def _auto_discover_source_component_specs(auto_source_comp_specs, plugin_set):
         unused_inputs = [str(inputs[x]) for x in unused_input_indices]
 
         msg = (
-            'Some auto source component specs did not produce any component: '
-            + ', '.join(unused_inputs)
+            "Some auto source component specs did not produce any component: "
+            + ", ".join(unused_inputs)
         )
         raise RuntimeError(msg)
 
@@ -244,10 +244,10 @@ class _TraceCollectionMessageIteratorProxySink(bt2_component._UserSinkComponent)
     def __init__(self, config, params, msg_list):
         assert type(msg_list) is list
         self._msg_list = msg_list
-        self._add_input_port('in')
+        self._add_input_port("in")
 
     def _user_graph_is_configured(self):
-        self._msg_iter = self._create_message_iterator(self._input_ports['in'])
+        self._msg_iter = self._create_message_iterator(self._input_ports["in"])
 
     def _user_consume(self):
         assert self._msg_list[0] is None
@@ -331,7 +331,7 @@ class TraceCollectionMessageIterator(bt2_message_iterator._MessageIterator):
             # compute the intersection of the streams in each trace.
             query_exec = bt2.QueryExecutor(
                 src_comp_and_spec.spec.component_class,
-                'babeltrace.trace-infos',
+                "babeltrace.trace-infos",
                 src_comp_and_spec.spec.params,
             )
             trace_infos = query_exec.query()
@@ -339,21 +339,21 @@ class TraceCollectionMessageIterator(bt2_message_iterator._MessageIterator):
             for trace_info in trace_infos:
                 begin = max(
                     [
-                        stream['range-ns']['begin']
-                        for stream in trace_info['stream-infos']
+                        stream["range-ns"]["begin"]
+                        for stream in trace_info["stream-infos"]
                     ]
                 )
                 end = min(
-                    [stream['range-ns']['end'] for stream in trace_info['stream-infos']]
+                    [stream["range-ns"]["end"] for stream in trace_info["stream-infos"]]
                 )
 
                 # Each port associated to this trace will have this computed
                 # range.
-                for stream in trace_info['stream-infos']:
+                for stream in trace_info["stream-infos"]:
                     # A port name is unique within a component, but not
                     # necessarily across all components.  Use a component
                     # and port name pair to make it unique across the graph.
-                    port_name = str(stream['port-name'])
+                    port_name = str(stream["port-name"])
                     key = (src_comp_and_spec.comp.addr, port_name)
                     self._stream_inter_port_to_range[key] = (begin, end)
 
@@ -387,30 +387,30 @@ class TraceCollectionMessageIterator(bt2_message_iterator._MessageIterator):
     def _create_stream_intersection_trimmer(self, component, port):
         key = (component.addr, port.name)
         begin, end = self._stream_inter_port_to_range[key]
-        name = 'trimmer-{}-{}'.format(component.name, port.name)
+        name = "trimmer-{}-{}".format(component.name, port.name)
         return self._create_trimmer(begin, end, name)
 
     def _create_muxer(self):
-        plugin = bt2.find_plugin('utils')
+        plugin = bt2.find_plugin("utils")
 
         if plugin is None:
             raise RuntimeError('cannot find "utils" plugin (needed for the muxer)')
 
-        if 'muxer' not in plugin.filter_component_classes:
+        if "muxer" not in plugin.filter_component_classes:
             raise RuntimeError(
                 'cannot find "muxer" filter component class in "utils" plugin'
             )
 
-        comp_cls = plugin.filter_component_classes['muxer']
-        return self._graph.add_component(comp_cls, 'muxer')
+        comp_cls = plugin.filter_component_classes["muxer"]
+        return self._graph.add_component(comp_cls, "muxer")
 
     def _create_trimmer(self, begin_ns, end_ns, name):
-        plugin = bt2.find_plugin('utils')
+        plugin = bt2.find_plugin("utils")
 
         if plugin is None:
             raise RuntimeError('cannot find "utils" plugin (needed for the trimmer)')
 
-        if 'trimmer' not in plugin.filter_component_classes:
+        if "trimmer" not in plugin.filter_component_classes:
             raise RuntimeError(
                 'cannot find "trimmer" filter component class in "utils" plugin'
             )
@@ -420,15 +420,15 @@ class TraceCollectionMessageIterator(bt2_message_iterator._MessageIterator):
         def ns_to_string(ns):
             s_part = ns // 1000000000
             ns_part = ns % 1000000000
-            return '{}.{:09d}'.format(s_part, ns_part)
+            return "{}.{:09d}".format(s_part, ns_part)
 
         if begin_ns is not None:
-            params['begin'] = ns_to_string(begin_ns)
+            params["begin"] = ns_to_string(begin_ns)
 
         if end_ns is not None:
-            params['end'] = ns_to_string(end_ns)
+            params["end"] = ns_to_string(end_ns)
 
-        comp_cls = plugin.filter_component_classes['trimmer']
+        comp_cls = plugin.filter_component_classes["trimmer"]
         return self._graph.add_component(comp_cls, name, params)
 
     def _get_unique_comp_name(self, comp_cls):
@@ -438,7 +438,7 @@ class TraceCollectionMessageIterator(bt2_message_iterator._MessageIterator):
         )
 
         if name in [comp_and_spec.comp.name for comp_and_spec in comps_and_specs]:
-            name += '-{}'.format(self._next_suffix)
+            name += "-{}".format(self._next_suffix)
             self._next_suffix += 1
 
         return name
@@ -467,8 +467,8 @@ class TraceCollectionMessageIterator(bt2_message_iterator._MessageIterator):
         #     port -> muxer
         if self._stream_intersection_mode:
             trimmer_comp = self._create_stream_intersection_trimmer(component, port)
-            self._graph.connect_ports(port, trimmer_comp.input_ports['in'])
-            port_to_muxer = trimmer_comp.output_ports['out']
+            self._graph.connect_ports(port, trimmer_comp.input_ports["in"])
+            port_to_muxer = trimmer_comp.output_ports["out"]
         else:
             port_to_muxer = port
 
@@ -503,14 +503,14 @@ class TraceCollectionMessageIterator(bt2_message_iterator._MessageIterator):
         if self._stream_intersection_mode:
             # we also need at least one `flt.utils.trimmer` component
             comp_spec = ComponentSpec.from_named_plugin_and_component_class(
-                'utils', 'trimmer'
+                "utils", "trimmer"
             )
             append_comp_specs_descriptors(descriptors, [comp_spec])
 
         mip_version = bt2.get_greatest_operative_mip_version(descriptors)
 
         if mip_version is None:
-            msg = 'failed to find an operative message interchange protocol version (components are not interoperable)'
+            msg = "failed to find an operative message interchange protocol version (components are not interoperable)"
             raise RuntimeError(msg)
 
         return mip_version
@@ -521,13 +521,13 @@ class TraceCollectionMessageIterator(bt2_message_iterator._MessageIterator):
         self._muxer_comp = self._create_muxer()
 
         if self._begin_ns is not None or self._end_ns is not None:
-            trimmer_comp = self._create_trimmer(self._begin_ns, self._end_ns, 'trimmer')
+            trimmer_comp = self._create_trimmer(self._begin_ns, self._end_ns, "trimmer")
             self._graph.connect_ports(
-                self._muxer_comp.output_ports['out'], trimmer_comp.input_ports['in']
+                self._muxer_comp.output_ports["out"], trimmer_comp.input_ports["in"]
             )
-            last_flt_out_port = trimmer_comp.output_ports['out']
+            last_flt_out_port = trimmer_comp.output_ports["out"]
         else:
-            last_flt_out_port = self._muxer_comp.output_ports['out']
+            last_flt_out_port = self._muxer_comp.output_ports["out"]
 
         # create extra filter components (chained)
         for comp_spec in self._flt_comp_specs:
@@ -574,9 +574,9 @@ class TraceCollectionMessageIterator(bt2_message_iterator._MessageIterator):
         # Add the proxy sink, passing our message list to share consumed
         # messages with this trace collection message iterator.
         sink = self._graph.add_component(
-            _TraceCollectionMessageIteratorProxySink, 'proxy-sink', obj=self._msg_list
+            _TraceCollectionMessageIteratorProxySink, "proxy-sink", obj=self._msg_list
         )
-        sink_in_port = sink.input_ports['in']
+        sink_in_port = sink.input_ports["in"]
 
         # connect last filter to proxy sink
         self._graph.connect_ports(last_flt_out_port, sink_in_port)

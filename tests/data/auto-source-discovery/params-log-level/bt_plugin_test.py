@@ -18,24 +18,24 @@ import os
 
 class TestIter(bt2._UserMessageIterator):
     def __init__(self, config, output_port):
-        params = output_port.user_data['params']
-        obj = output_port.user_data['obj']
+        params = output_port.user_data["params"]
+        obj = output_port.user_data["obj"]
 
         comp_cls_name = self._component.__class__.__name__
 
-        if params['what'] == 'test-params':
-            items = sorted([str(x) for x in params.items() if x[0].startswith('test-')])
-            stream_name = '{}: {}'.format(comp_cls_name, ', '.join(items))
-        elif params['what'] == 'log-level':
+        if params["what"] == "test-params":
+            items = sorted([str(x) for x in params.items() if x[0].startswith("test-")])
+            stream_name = "{}: {}".format(comp_cls_name, ", ".join(items))
+        elif params["what"] == "log-level":
             log_level = self._component.logging_level
-            stream_name = '{}: {}'.format(comp_cls_name, log_level)
-        elif params['what'] == 'python-obj':
+            stream_name = "{}: {}".format(comp_cls_name, log_level)
+        elif params["what"] == "python-obj":
             assert type(obj) == str or obj is None
-            stream_name = '{}: {}'.format(comp_cls_name, obj)
+            stream_name = "{}: {}".format(comp_cls_name, obj)
         else:
             assert False
 
-        sc = output_port.user_data['sc']
+        sc = output_port.user_data["sc"]
         tc = sc.trace_class
         t = tc()
         s = t.create_stream(sc, name=stream_name)
@@ -57,7 +57,7 @@ class Base:
         tc = self._create_trace_class()
         sc = tc.create_stream_class()
 
-        self._add_output_port('out', {'params': params, 'obj': obj, 'sc': sc})
+        self._add_output_port("out", {"params": params, "obj": obj, "sc": sc})
 
 
 @bt2.plugin_component_class
@@ -69,14 +69,14 @@ class TestSourceA(Base, bt2._UserSourceComponent, message_iterator_class=TestIte
     def _user_query(priv_query_exec, obj, params, method_obj):
         # Match files starting with 'aaa'.
 
-        if obj == 'babeltrace.support-info':
-            if params['type'] != 'file':
+        if obj == "babeltrace.support-info":
+            if params["type"] != "file":
                 return 0
 
-            name = os.path.basename(str(params['input']))
+            name = os.path.basename(str(params["input"]))
 
-            if name.startswith('aaa'):
-                return {'weight': 1, 'group': 'aaa'}
+            if name.startswith("aaa"):
+                return {"weight": 1, "group": "aaa"}
             else:
                 return 0
         else:
@@ -92,14 +92,14 @@ class TestSourceB(Base, bt2._UserSourceComponent, message_iterator_class=TestIte
     def _user_query(priv_query_exec, obj, params, method_obj):
         # Match files starting with 'bbb'.
 
-        if obj == 'babeltrace.support-info':
-            if params['type'] != 'file':
+        if obj == "babeltrace.support-info":
+            if params["type"] != "file":
                 return 0
 
-            name = os.path.basename(str(params['input']))
+            name = os.path.basename(str(params["input"]))
 
-            if name.startswith('bbb'):
-                return {'weight': 1, 'group': 'bbb'}
+            if name.startswith("bbb"):
+                return {"weight": 1, "group": "bbb"}
             else:
                 return 0
         else:

@@ -71,13 +71,13 @@ class _Stream(_StreamConst):
     def create_packet(self):
         if not self.cls.supports_packets:
             raise ValueError(
-                'cannot create packet: stream class does not support packets'
+                "cannot create packet: stream class does not support packets"
             )
 
         packet_ptr = native_bt.packet_create(self._ptr)
 
         if packet_ptr is None:
-            raise bt2._MemoryError('cannot create packet object')
+            raise bt2._MemoryError("cannot create packet object")
 
         return bt2_packet._Packet._create_from_ptr(packet_ptr)
 

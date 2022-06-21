@@ -23,10 +23,10 @@ original_get_config_vars = distutils.sysconfig.get_config_vars
 
 
 def get_cflags():
-    cflags = os.environ.get('CFLAGS')
+    cflags = os.environ.get("CFLAGS")
 
     if cflags is None:
-        [cflags] = original_get_config_vars('CFLAGS')
+        [cflags] = original_get_config_vars("CFLAGS")
 
     return cflags
 
@@ -40,16 +40,16 @@ def get_cflags():
 # by either the Python interprter's CC or the overriden CC don't cause a
 # build failure.
 def get_ldshared():
-    cc = os.environ.get('CC')
-    ldflags = os.environ.get('LDFLAGS')
-    [py_cc] = original_get_config_vars('CC')
-    [py_ldshared] = original_get_config_vars('LDSHARED')
+    cc = os.environ.get("CC")
+    ldflags = os.environ.get("LDFLAGS")
+    [py_cc] = original_get_config_vars("CC")
+    [py_ldshared] = original_get_config_vars("LDSHARED")
 
     if not py_ldshared.startswith(py_cc):
         return py_ldshared
 
     if cc and ldflags:
-        return '{} -shared {}'.format(cc, ldflags)
+        return "{} -shared {}".format(cc, ldflags)
     elif cc:
         return cc + py_ldshared[len(py_cc) :]
     elif ldflags:
@@ -60,8 +60,8 @@ def get_ldshared():
 
 def our_get_config_vars(*args):
     overridden_config_vars = {
-        'CFLAGS': get_cflags(),
-        'LDSHARED': get_ldshared(),
+        "CFLAGS": get_cflags(),
+        "LDSHARED": get_ldshared(),
     }
 
     if len(args) == 0:
@@ -87,36 +87,36 @@ distutils.sysconfig.get_config_vars = our_get_config_vars
 
 def main():
     babeltrace_ext = Extension(
-        'bt2._native_bt',
-        sources=['bt2/native_bt.c', '@srcdir@/bt2/logging.c'],
-        libraries=['babeltrace2', 'glib-2.0'],
+        "bt2._native_bt",
+        sources=["bt2/native_bt.c", "@srcdir@/bt2/logging.c"],
+        libraries=["babeltrace2", "glib-2.0"],
         extra_objects=[
-            '@top_builddir@/src/autodisc/.libs/libbabeltrace2-autodisc.a',
-            '@top_builddir@/src/logging/.libs/libbabeltrace2-logging.a',
-            '@top_builddir@/src/common/.libs/libbabeltrace2-common.a',
-            '@top_builddir@/src/py-common/.libs/libbabeltrace2-py-common.a',
-            '@top_builddir@/src/string-format/.libs/libbabeltrace2-string-format.a',
+            "@top_builddir@/src/autodisc/.libs/libbabeltrace2-autodisc.a",
+            "@top_builddir@/src/logging/.libs/libbabeltrace2-logging.a",
+            "@top_builddir@/src/common/.libs/libbabeltrace2-common.a",
+            "@top_builddir@/src/py-common/.libs/libbabeltrace2-py-common.a",
+            "@top_builddir@/src/string-format/.libs/libbabeltrace2-string-format.a",
         ],
     )
 
     dist = setup(
-        name='bt2',
-        version='@PACKAGE_VERSION@',
-        description='Babeltrace 2 Python Bindings',
-        packages=['bt2'],
-        package_dir={'bt2': 'bt2'},
+        name="bt2",
+        version="@PACKAGE_VERSION@",
+        description="Babeltrace 2 Python Bindings",
+        packages=["bt2"],
+        package_dir={"bt2": "bt2"},
         options={
-            'build': {'build_base': 'build', 'build_lib': 'build/build_lib'},
-            'build_ext': {'build_lib': 'build/build_lib'},
+            "build": {"build_base": "build", "build_lib": "build/build_lib"},
+            "build_ext": {"build_lib": "build/build_lib"},
         },
-        url='https://babeltrace.org/',
+        url="https://babeltrace.org/",
         ext_modules=[babeltrace_ext],
-        license='MIT',
+        license="MIT",
         classifiers=[
-            'Development Status :: 5 - Production/Stable',
-            'Intended Audience :: Developers',
-            'License :: OSI Approved :: The MIT License',
-            'Programming Language :: Python :: 3' 'Topic :: System :: Logging',
+            "Development Status :: 5 - Production/Stable",
+            "Intended Audience :: Developers",
+            "License :: OSI Approved :: The MIT License",
+            "Programming Language :: Python :: 3" "Topic :: System :: Logging",
         ],
     )
 
@@ -127,8 +127,8 @@ def main():
     # also useful for out-of-tree installs and tests.
     # It's only relevant to make this check on the `install` command.
 
-    if 'install' in dist.command_obj:
-        install_dir = dist.command_obj['install'].install_libbase
+    if "install" in dist.command_obj:
+        install_dir = dist.command_obj["install"].install_libbase
         if install_dir not in sys.path:
             # We can't consider this an error because if affects every
             # distro differently. We only warn the user that some

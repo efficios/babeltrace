@@ -15,12 +15,12 @@ class _DummySink(bt2._UserSinkComponent):
 class ComponentDescriptorTestCase(unittest.TestCase):
     def setUp(self):
         self._obj = object()
-        self._comp_descr = bt2.ComponentDescriptor(_DummySink, {'zoom': -23}, self._obj)
+        self._comp_descr = bt2.ComponentDescriptor(_DummySink, {"zoom": -23}, self._obj)
 
     def _get_comp_cls_from_plugin(self):
-        plugin = bt2.find_plugin('text', find_in_user_dir=False, find_in_sys_dir=False)
+        plugin = bt2.find_plugin("text", find_in_user_dir=False, find_in_sys_dir=False)
         assert plugin is not None
-        cc = plugin.source_component_classes['dmesg']
+        cc = plugin.source_component_classes["dmesg"]
         assert cc is not None
         return cc
 
@@ -49,11 +49,11 @@ class ComponentDescriptorTestCase(unittest.TestCase):
         self.assertIs(self._comp_descr.component_class, _DummySink)
 
     def test_attr_params(self):
-        self.assertEqual(self._comp_descr.params, {'zoom': -23})
+        self.assertEqual(self._comp_descr.params, {"zoom": -23})
 
     def test_attr_obj(self):
         self.assertIs(self._comp_descr.obj, self._obj)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

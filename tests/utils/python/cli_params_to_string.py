@@ -12,13 +12,13 @@ def to_string(p):
     # signed integers).
 
     if type(p) is bt2._ArrayValueConst:
-        s = '[{}]'.format(', '.join([to_string(x) for x in p]))
+        s = "[{}]".format(", ".join([to_string(x) for x in p]))
     elif type(p) is bt2._MapValueConst:
-        s = '{{{}}}'.format(
-            ', '.join([k + '=' + to_string(p[k]) for k in sorted(p.keys())])
+        s = "{{{}}}".format(
+            ", ".join([k + "=" + to_string(p[k]) for k in sorted(p.keys())])
         )
     elif type(p) is bt2._UnsignedIntegerValueConst:
-        s = str(p) + 'u'
+        s = str(p) + "u"
     elif (
         type(p)
         in (
@@ -32,6 +32,6 @@ def to_string(p):
         s = str(p)
 
     else:
-        raise TypeError('Unexpected type', type(p))
+        raise TypeError("Unexpected type", type(p))
 
     return s

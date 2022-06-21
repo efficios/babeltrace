@@ -9,31 +9,31 @@ import sys
 import argparse
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     argparser = argparse.ArgumentParser()
     argparser.add_argument(
-        '-f', '--failfast', help='Stop on first fail or error', action='store_true'
+        "-f", "--failfast", help="Stop on first fail or error", action="store_true"
     )
 
     argparser.add_argument(
-        'start_dir', help='Base directory where to search for tests', type=str
+        "start_dir", help="Base directory where to search for tests", type=str
     )
 
     mut_exclu_group = argparser.add_mutually_exclusive_group(required=True)
 
     mut_exclu_group.add_argument(
-        '-p',
-        '--pattern',
-        help='Glob-style pattern of test files to run ' '(e.g. test_event*.py)',
+        "-p",
+        "--pattern",
+        help="Glob-style pattern of test files to run " "(e.g. test_event*.py)",
         type=str,
     )
 
     mut_exclu_group.add_argument(
-        '-t',
-        '--test-case',
-        help='Run a specfic test module name, test class '
-        'name, or test method name '
-        '(e.g. test_event.EventTestCase.test_clock_value)',
+        "-t",
+        "--test-case",
+        help="Run a specfic test module name, test class "
+        "name, or test method name "
+        "(e.g. test_event.EventTestCase.test_clock_value)",
         type=str,
     )
 
@@ -63,5 +63,5 @@ if __name__ == '__main__':
 
     runner = TAPTestRunner(failfast=failfast)
     runner.set_stream(True)
-    runner.set_format('{method_name}')
+    runner.set_format("{method_name}")
     sys.exit(0 if runner.run(tests).wasSuccessful() else 1)

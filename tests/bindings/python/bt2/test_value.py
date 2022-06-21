@@ -489,36 +489,36 @@ class _TestNumericValue(_TestCopySimple):
 # Each entry is a pair of binary operator name (used as part of the
 # created testing method's name) and operator function.
 _BINOPS = (
-    ('lt', operator.lt),
-    ('le', operator.le),
-    ('eq', operator.eq),
-    ('ne', operator.ne),
-    ('ge', operator.ge),
-    ('gt', operator.gt),
-    ('add', operator.add),
-    ('radd', lambda a, b: operator.add(b, a)),
-    ('and', operator.and_),
-    ('rand', lambda a, b: operator.and_(b, a)),
-    ('floordiv', operator.floordiv),
-    ('rfloordiv', lambda a, b: operator.floordiv(b, a)),
-    ('lshift', operator.lshift),
-    ('rlshift', lambda a, b: operator.lshift(b, a)),
-    ('mod', operator.mod),
-    ('rmod', lambda a, b: operator.mod(b, a)),
-    ('mul', operator.mul),
-    ('rmul', lambda a, b: operator.mul(b, a)),
-    ('or', operator.or_),
-    ('ror', lambda a, b: operator.or_(b, a)),
-    ('pow', operator.pow),
-    ('rpow', lambda a, b: operator.pow(b, a)),
-    ('rshift', operator.rshift),
-    ('rrshift', lambda a, b: operator.rshift(b, a)),
-    ('sub', operator.sub),
-    ('rsub', lambda a, b: operator.sub(b, a)),
-    ('truediv', operator.truediv),
-    ('rtruediv', lambda a, b: operator.truediv(b, a)),
-    ('xor', operator.xor),
-    ('rxor', lambda a, b: operator.xor(b, a)),
+    ("lt", operator.lt),
+    ("le", operator.le),
+    ("eq", operator.eq),
+    ("ne", operator.ne),
+    ("ge", operator.ge),
+    ("gt", operator.gt),
+    ("add", operator.add),
+    ("radd", lambda a, b: operator.add(b, a)),
+    ("and", operator.and_),
+    ("rand", lambda a, b: operator.and_(b, a)),
+    ("floordiv", operator.floordiv),
+    ("rfloordiv", lambda a, b: operator.floordiv(b, a)),
+    ("lshift", operator.lshift),
+    ("rlshift", lambda a, b: operator.lshift(b, a)),
+    ("mod", operator.mod),
+    ("rmod", lambda a, b: operator.mod(b, a)),
+    ("mul", operator.mul),
+    ("rmul", lambda a, b: operator.mul(b, a)),
+    ("or", operator.or_),
+    ("ror", lambda a, b: operator.or_(b, a)),
+    ("pow", operator.pow),
+    ("rpow", lambda a, b: operator.pow(b, a)),
+    ("rshift", operator.rshift),
+    ("rrshift", lambda a, b: operator.rshift(b, a)),
+    ("sub", operator.sub),
+    ("rsub", lambda a, b: operator.sub(b, a)),
+    ("truediv", operator.truediv),
+    ("rtruediv", lambda a, b: operator.truediv(b, a)),
+    ("xor", operator.xor),
+    ("rxor", lambda a, b: operator.xor(b, a)),
 )
 
 
@@ -528,18 +528,18 @@ _BINOPS = (
 # Each entry is a pair of unary operator name (used as part of the
 # created testing method's name) and operator function.
 _UNARYOPS = (
-    ('neg', operator.neg),
-    ('pos', operator.pos),
-    ('abs', operator.abs),
-    ('invert', operator.invert),
-    ('round', round),
-    ('round_0', partial(round, ndigits=0)),
-    ('round_1', partial(round, ndigits=1)),
-    ('round_2', partial(round, ndigits=2)),
-    ('round_3', partial(round, ndigits=3)),
-    ('ceil', math.ceil),
-    ('floor', math.floor),
-    ('trunc', math.trunc),
+    ("neg", operator.neg),
+    ("pos", operator.pos),
+    ("abs", operator.abs),
+    ("invert", operator.invert),
+    ("round", round),
+    ("round_0", partial(round, ndigits=0)),
+    ("round_1", partial(round, ndigits=1)),
+    ("round_2", partial(round, ndigits=2)),
+    ("round_3", partial(round, ndigits=3)),
+    ("ceil", math.ceil),
+    ("floor", math.floor),
+    ("trunc", math.trunc),
 )
 
 
@@ -559,395 +559,395 @@ _UNARYOPS = (
 #   method, for each unary operator in the _UNARYOPS tuple.
 def _inject_numeric_testing_methods(cls):
     def test_binop_name(suffix):
-        return 'test_binop_{}_{}'.format(name, suffix)
+        return "test_binop_{}_{}".format(name, suffix)
 
     def test_unaryop_name(suffix):
-        return 'test_unaryop_{}_{}'.format(name, suffix)
+        return "test_unaryop_{}_{}".format(name, suffix)
 
     # inject testing methods for each binary operation
     for name, binop in _BINOPS:
         setattr(
             cls,
-            test_binop_name('unknown'),
+            test_binop_name("unknown"),
             partialmethod(_TestNumericValue._test_binop_unknown, op=binop),
         )
         setattr(
             cls,
-            test_binop_name('none'),
+            test_binop_name("none"),
             partialmethod(_TestNumericValue._test_binop_none, op=binop),
         )
         setattr(
             cls,
-            test_binop_name('type_true'),
+            test_binop_name("type_true"),
             partialmethod(_TestNumericValue._test_binop_type_true, op=binop),
         )
         setattr(
             cls,
-            test_binop_name('type_pos_int'),
+            test_binop_name("type_pos_int"),
             partialmethod(_TestNumericValue._test_binop_type_pos_int, op=binop),
         )
         setattr(
             cls,
-            test_binop_name('type_pos_vint'),
+            test_binop_name("type_pos_vint"),
             partialmethod(_TestNumericValue._test_binop_type_pos_vint, op=binop),
         )
         setattr(
             cls,
-            test_binop_name('value_true'),
+            test_binop_name("value_true"),
             partialmethod(_TestNumericValue._test_binop_value_true, op=binop),
         )
         setattr(
             cls,
-            test_binop_name('value_pos_int'),
+            test_binop_name("value_pos_int"),
             partialmethod(_TestNumericValue._test_binop_value_pos_int, op=binop),
         )
         setattr(
             cls,
-            test_binop_name('value_pos_vint'),
+            test_binop_name("value_pos_vint"),
             partialmethod(_TestNumericValue._test_binop_value_pos_vint, op=binop),
         )
         setattr(
             cls,
-            test_binop_name('lhs_addr_same_true'),
+            test_binop_name("lhs_addr_same_true"),
             partialmethod(_TestNumericValue._test_binop_lhs_addr_same_true, op=binop),
         )
         setattr(
             cls,
-            test_binop_name('lhs_addr_same_pos_int'),
+            test_binop_name("lhs_addr_same_pos_int"),
             partialmethod(
                 _TestNumericValue._test_binop_lhs_addr_same_pos_int, op=binop
             ),
         )
         setattr(
             cls,
-            test_binop_name('lhs_addr_same_pos_vint'),
+            test_binop_name("lhs_addr_same_pos_vint"),
             partialmethod(
                 _TestNumericValue._test_binop_lhs_addr_same_pos_vint, op=binop
             ),
         )
         setattr(
             cls,
-            test_binop_name('lhs_value_same_true'),
+            test_binop_name("lhs_value_same_true"),
             partialmethod(_TestNumericValue._test_binop_lhs_value_same_true, op=binop),
         )
         setattr(
             cls,
-            test_binop_name('lhs_value_same_pos_int'),
+            test_binop_name("lhs_value_same_pos_int"),
             partialmethod(
                 _TestNumericValue._test_binop_lhs_value_same_pos_int, op=binop
             ),
         )
         setattr(
             cls,
-            test_binop_name('lhs_value_same_pos_vint'),
+            test_binop_name("lhs_value_same_pos_vint"),
             partialmethod(
                 _TestNumericValue._test_binop_lhs_value_same_pos_vint, op=binop
             ),
         )
         setattr(
             cls,
-            test_binop_name('type_neg_int'),
+            test_binop_name("type_neg_int"),
             partialmethod(_TestNumericValue._test_binop_type_neg_int, op=binop),
         )
         setattr(
             cls,
-            test_binop_name('type_neg_vint'),
+            test_binop_name("type_neg_vint"),
             partialmethod(_TestNumericValue._test_binop_type_neg_vint, op=binop),
         )
         setattr(
             cls,
-            test_binop_name('value_neg_int'),
+            test_binop_name("value_neg_int"),
             partialmethod(_TestNumericValue._test_binop_value_neg_int, op=binop),
         )
         setattr(
             cls,
-            test_binop_name('value_neg_vint'),
+            test_binop_name("value_neg_vint"),
             partialmethod(_TestNumericValue._test_binop_value_neg_vint, op=binop),
         )
         setattr(
             cls,
-            test_binop_name('lhs_addr_same_neg_int'),
+            test_binop_name("lhs_addr_same_neg_int"),
             partialmethod(
                 _TestNumericValue._test_binop_lhs_addr_same_neg_int, op=binop
             ),
         )
         setattr(
             cls,
-            test_binop_name('lhs_addr_same_neg_vint'),
+            test_binop_name("lhs_addr_same_neg_vint"),
             partialmethod(
                 _TestNumericValue._test_binop_lhs_addr_same_neg_vint, op=binop
             ),
         )
         setattr(
             cls,
-            test_binop_name('lhs_value_same_neg_int'),
+            test_binop_name("lhs_value_same_neg_int"),
             partialmethod(
                 _TestNumericValue._test_binop_lhs_value_same_neg_int, op=binop
             ),
         )
         setattr(
             cls,
-            test_binop_name('lhs_value_same_neg_vint'),
+            test_binop_name("lhs_value_same_neg_vint"),
             partialmethod(
                 _TestNumericValue._test_binop_lhs_value_same_neg_vint, op=binop
             ),
         )
         setattr(
             cls,
-            test_binop_name('type_false'),
+            test_binop_name("type_false"),
             partialmethod(_TestNumericValue._test_binop_type_false, op=binop),
         )
         setattr(
             cls,
-            test_binop_name('type_zero_int'),
+            test_binop_name("type_zero_int"),
             partialmethod(_TestNumericValue._test_binop_type_zero_int, op=binop),
         )
         setattr(
             cls,
-            test_binop_name('type_zero_vint'),
+            test_binop_name("type_zero_vint"),
             partialmethod(_TestNumericValue._test_binop_type_zero_vint, op=binop),
         )
         setattr(
             cls,
-            test_binop_name('value_false'),
+            test_binop_name("value_false"),
             partialmethod(_TestNumericValue._test_binop_value_false, op=binop),
         )
         setattr(
             cls,
-            test_binop_name('value_zero_int'),
+            test_binop_name("value_zero_int"),
             partialmethod(_TestNumericValue._test_binop_value_zero_int, op=binop),
         )
         setattr(
             cls,
-            test_binop_name('value_zero_vint'),
+            test_binop_name("value_zero_vint"),
             partialmethod(_TestNumericValue._test_binop_value_zero_vint, op=binop),
         )
         setattr(
             cls,
-            test_binop_name('lhs_addr_same_false'),
+            test_binop_name("lhs_addr_same_false"),
             partialmethod(_TestNumericValue._test_binop_lhs_addr_same_false, op=binop),
         )
         setattr(
             cls,
-            test_binop_name('lhs_addr_same_zero_int'),
+            test_binop_name("lhs_addr_same_zero_int"),
             partialmethod(
                 _TestNumericValue._test_binop_lhs_addr_same_zero_int, op=binop
             ),
         )
         setattr(
             cls,
-            test_binop_name('lhs_addr_same_zero_vint'),
+            test_binop_name("lhs_addr_same_zero_vint"),
             partialmethod(
                 _TestNumericValue._test_binop_lhs_addr_same_zero_vint, op=binop
             ),
         )
         setattr(
             cls,
-            test_binop_name('lhs_value_same_false'),
+            test_binop_name("lhs_value_same_false"),
             partialmethod(_TestNumericValue._test_binop_lhs_value_same_false, op=binop),
         )
         setattr(
             cls,
-            test_binop_name('lhs_value_same_zero_int'),
+            test_binop_name("lhs_value_same_zero_int"),
             partialmethod(
                 _TestNumericValue._test_binop_lhs_value_same_zero_int, op=binop
             ),
         )
         setattr(
             cls,
-            test_binop_name('lhs_value_same_zero_vint'),
+            test_binop_name("lhs_value_same_zero_vint"),
             partialmethod(
                 _TestNumericValue._test_binop_lhs_value_same_zero_vint, op=binop
             ),
         )
         setattr(
             cls,
-            test_binop_name('type_neg_float'),
+            test_binop_name("type_neg_float"),
             partialmethod(_TestNumericValue._test_binop_type_neg_float, op=binop),
         )
         setattr(
             cls,
-            test_binop_name('type_neg_vfloat'),
+            test_binop_name("type_neg_vfloat"),
             partialmethod(_TestNumericValue._test_binop_type_neg_vfloat, op=binop),
         )
         setattr(
             cls,
-            test_binop_name('value_neg_float'),
+            test_binop_name("value_neg_float"),
             partialmethod(_TestNumericValue._test_binop_value_neg_float, op=binop),
         )
         setattr(
             cls,
-            test_binop_name('value_neg_vfloat'),
+            test_binop_name("value_neg_vfloat"),
             partialmethod(_TestNumericValue._test_binop_value_neg_vfloat, op=binop),
         )
         setattr(
             cls,
-            test_binop_name('lhs_addr_same_neg_float'),
+            test_binop_name("lhs_addr_same_neg_float"),
             partialmethod(
                 _TestNumericValue._test_binop_lhs_addr_same_neg_float, op=binop
             ),
         )
         setattr(
             cls,
-            test_binop_name('lhs_addr_same_neg_vfloat'),
+            test_binop_name("lhs_addr_same_neg_vfloat"),
             partialmethod(
                 _TestNumericValue._test_binop_lhs_addr_same_neg_vfloat, op=binop
             ),
         )
         setattr(
             cls,
-            test_binop_name('lhs_value_same_neg_float'),
+            test_binop_name("lhs_value_same_neg_float"),
             partialmethod(
                 _TestNumericValue._test_binop_lhs_value_same_neg_float, op=binop
             ),
         )
         setattr(
             cls,
-            test_binop_name('lhs_value_same_neg_vfloat'),
+            test_binop_name("lhs_value_same_neg_vfloat"),
             partialmethod(
                 _TestNumericValue._test_binop_lhs_value_same_neg_vfloat, op=binop
             ),
         )
         setattr(
             cls,
-            test_binop_name('type_pos_float'),
+            test_binop_name("type_pos_float"),
             partialmethod(_TestNumericValue._test_binop_type_pos_float, op=binop),
         )
         setattr(
             cls,
-            test_binop_name('type_pos_vfloat'),
+            test_binop_name("type_pos_vfloat"),
             partialmethod(_TestNumericValue._test_binop_type_pos_vfloat, op=binop),
         )
         setattr(
             cls,
-            test_binop_name('value_pos_float'),
+            test_binop_name("value_pos_float"),
             partialmethod(_TestNumericValue._test_binop_value_pos_float, op=binop),
         )
         setattr(
             cls,
-            test_binop_name('value_pos_vfloat'),
+            test_binop_name("value_pos_vfloat"),
             partialmethod(_TestNumericValue._test_binop_value_pos_vfloat, op=binop),
         )
         setattr(
             cls,
-            test_binop_name('lhs_addr_same_pos_float'),
+            test_binop_name("lhs_addr_same_pos_float"),
             partialmethod(
                 _TestNumericValue._test_binop_lhs_addr_same_pos_float, op=binop
             ),
         )
         setattr(
             cls,
-            test_binop_name('lhs_addr_same_pos_vfloat'),
+            test_binop_name("lhs_addr_same_pos_vfloat"),
             partialmethod(
                 _TestNumericValue._test_binop_lhs_addr_same_pos_vfloat, op=binop
             ),
         )
         setattr(
             cls,
-            test_binop_name('lhs_value_same_pos_float'),
+            test_binop_name("lhs_value_same_pos_float"),
             partialmethod(
                 _TestNumericValue._test_binop_lhs_value_same_pos_float, op=binop
             ),
         )
         setattr(
             cls,
-            test_binop_name('lhs_value_same_pos_vfloat'),
+            test_binop_name("lhs_value_same_pos_vfloat"),
             partialmethod(
                 _TestNumericValue._test_binop_lhs_value_same_pos_vfloat, op=binop
             ),
         )
         setattr(
             cls,
-            test_binop_name('type_zero_float'),
+            test_binop_name("type_zero_float"),
             partialmethod(_TestNumericValue._test_binop_type_zero_float, op=binop),
         )
         setattr(
             cls,
-            test_binop_name('type_zero_vfloat'),
+            test_binop_name("type_zero_vfloat"),
             partialmethod(_TestNumericValue._test_binop_type_zero_vfloat, op=binop),
         )
         setattr(
             cls,
-            test_binop_name('value_zero_float'),
+            test_binop_name("value_zero_float"),
             partialmethod(_TestNumericValue._test_binop_value_zero_float, op=binop),
         )
         setattr(
             cls,
-            test_binop_name('value_zero_vfloat'),
+            test_binop_name("value_zero_vfloat"),
             partialmethod(_TestNumericValue._test_binop_value_zero_vfloat, op=binop),
         )
         setattr(
             cls,
-            test_binop_name('lhs_addr_same_zero_float'),
+            test_binop_name("lhs_addr_same_zero_float"),
             partialmethod(
                 _TestNumericValue._test_binop_lhs_addr_same_zero_float, op=binop
             ),
         )
         setattr(
             cls,
-            test_binop_name('lhs_addr_same_zero_vfloat'),
+            test_binop_name("lhs_addr_same_zero_vfloat"),
             partialmethod(
                 _TestNumericValue._test_binop_lhs_addr_same_zero_vfloat, op=binop
             ),
         )
         setattr(
             cls,
-            test_binop_name('lhs_value_same_zero_float'),
+            test_binop_name("lhs_value_same_zero_float"),
             partialmethod(
                 _TestNumericValue._test_binop_lhs_value_same_zero_float, op=binop
             ),
         )
         setattr(
             cls,
-            test_binop_name('lhs_value_same_zero_vfloat'),
+            test_binop_name("lhs_value_same_zero_vfloat"),
             partialmethod(
                 _TestNumericValue._test_binop_lhs_value_same_zero_vfloat, op=binop
             ),
         )
         setattr(
             cls,
-            test_binop_name('type_complex'),
+            test_binop_name("type_complex"),
             partialmethod(_TestNumericValue._test_binop_type_complex, op=binop),
         )
         setattr(
             cls,
-            test_binop_name('type_zero_complex'),
+            test_binop_name("type_zero_complex"),
             partialmethod(_TestNumericValue._test_binop_type_zero_complex, op=binop),
         )
         setattr(
             cls,
-            test_binop_name('value_complex'),
+            test_binop_name("value_complex"),
             partialmethod(_TestNumericValue._test_binop_value_complex, op=binop),
         )
         setattr(
             cls,
-            test_binop_name('value_zero_complex'),
+            test_binop_name("value_zero_complex"),
             partialmethod(_TestNumericValue._test_binop_value_zero_complex, op=binop),
         )
         setattr(
             cls,
-            test_binop_name('lhs_addr_same_complex'),
+            test_binop_name("lhs_addr_same_complex"),
             partialmethod(
                 _TestNumericValue._test_binop_lhs_addr_same_complex, op=binop
             ),
         )
         setattr(
             cls,
-            test_binop_name('lhs_addr_same_zero_complex'),
+            test_binop_name("lhs_addr_same_zero_complex"),
             partialmethod(
                 _TestNumericValue._test_binop_lhs_addr_same_zero_complex, op=binop
             ),
         )
         setattr(
             cls,
-            test_binop_name('lhs_value_same_complex'),
+            test_binop_name("lhs_value_same_complex"),
             partialmethod(
                 _TestNumericValue._test_binop_lhs_value_same_complex, op=binop
             ),
         )
         setattr(
             cls,
-            test_binop_name('lhs_value_same_zero_complex'),
+            test_binop_name("lhs_value_same_zero_complex"),
             partialmethod(
                 _TestNumericValue._test_binop_lhs_value_same_zero_complex, op=binop
             ),
@@ -957,22 +957,22 @@ def _inject_numeric_testing_methods(cls):
     for name, unaryop in _UNARYOPS:
         setattr(
             cls,
-            test_unaryop_name('type'),
+            test_unaryop_name("type"),
             partialmethod(_TestNumericValue._test_unaryop_type, op=unaryop),
         )
         setattr(
             cls,
-            test_unaryop_name('value'),
+            test_unaryop_name("value"),
             partialmethod(_TestNumericValue._test_unaryop_value, op=unaryop),
         )
         setattr(
             cls,
-            test_unaryop_name('addr_same'),
+            test_unaryop_name("addr_same"),
             partialmethod(_TestNumericValue._test_unaryop_addr_same, op=unaryop),
         )
         setattr(
             cls,
-            test_unaryop_name('value_same'),
+            test_unaryop_name("value_same"),
             partialmethod(_TestNumericValue._test_unaryop_value_same, op=unaryop),
         )
 
@@ -1017,13 +1017,13 @@ class CreateValueFuncTestCase(unittest.TestCase):
         self.assertEqual(v, raw)
 
     def test_create_string(self):
-        raw = 'salut'
+        raw = "salut"
         v = bt2.create_value(raw)
         self.assertIsInstance(v, bt2.StringValue)
         self.assertEqual(v, raw)
 
     def test_create_string_empty(self):
-        raw = ''
+        raw = ""
         v = bt2.create_value(raw)
         self.assertIsInstance(v, bt2.StringValue)
         self.assertEqual(v, raw)
@@ -1053,7 +1053,7 @@ class CreateValueFuncTestCase(unittest.TestCase):
         self.assertEqual(v, raw)
 
     def test_create_map(self):
-        raw = {'salut': 23}
+        raw = {"salut": 23}
         v = bt2.create_value(raw)
         self.assertIsInstance(v, bt2.MapValue)
         self.assertEqual(v, raw)
@@ -1089,10 +1089,10 @@ def _create_const_value(value):
         @classmethod
         def _user_query(cls, priv_query_exec, obj, params, method_obj):
             nonlocal value
-            return {'my_value': value}
+            return {"my_value": value}
 
-    res = bt2.QueryExecutor(MySink, 'obj', None).query()
-    return res['my_value']
+    res = bt2.QueryExecutor(MySink, "obj", None).query()
+    return res["my_value"]
 
 
 class BoolValueTestCase(_TestNumericValue, unittest.TestCase):
@@ -1208,7 +1208,7 @@ class _TestIntegerValue(_TestNumericValue):
         del self._def_value
 
     def _assert_expecting_int(self):
-        return self.assertRaisesRegex(TypeError, r'expecting an integral number object')
+        return self.assertRaisesRegex(TypeError, r"expecting an integral number object")
 
     def _assert_expecting_int64(self):
         return self.assertRaisesRegex(
@@ -1453,10 +1453,10 @@ _inject_numeric_testing_methods(RealValueTestCase)
 
 class StringValueTestCase(_TestCopySimple, unittest.TestCase):
     def setUp(self):
-        self._def_value = 'Hello, World!'
+        self._def_value = "Hello, World!"
         self._def = bt2.StringValue(self._def_value)
         self._def_const = _create_const_value(self._def_value)
-        self._def_new_value = 'Yes!'
+        self._def_new_value = "Yes!"
 
     def tearDown(self):
         del self._def
@@ -1466,15 +1466,15 @@ class StringValueTestCase(_TestCopySimple, unittest.TestCase):
 
     def test_create_default(self):
         s = bt2.StringValue()
-        self.assertEqual(s, '')
+        self.assertEqual(s, "")
 
     def test_create_from_str(self):
-        raw = 'liberté'
+        raw = "liberté"
         s = bt2.StringValue(raw)
         self.assertEqual(s, raw)
 
     def test_create_from_vstr(self):
-        raw = 'liberté'
+        raw = "liberté"
         s = bt2.StringValue(bt2.create_value(raw))
         self.assertEqual(s, raw)
 
@@ -1494,12 +1494,12 @@ class StringValueTestCase(_TestCopySimple, unittest.TestCase):
             self._def.value = 283
 
     def test_assign_str(self):
-        raw = 'zorg'
+        raw = "zorg"
         self._def = raw
         self.assertEqual(self._def, raw)
 
     def test_assign_vstr(self):
-        raw = 'zorg'
+        raw = "zorg"
         self._def = bt2.create_value(raw)
         self.assertEqual(self._def, raw)
 
@@ -1513,48 +1513,48 @@ class StringValueTestCase(_TestCopySimple, unittest.TestCase):
         self.assertNotEqual(self._def, 23)
 
     def test_lt_vstring(self):
-        s1 = bt2.StringValue('allo')
-        s2 = bt2.StringValue('bateau')
+        s1 = bt2.StringValue("allo")
+        s2 = bt2.StringValue("bateau")
         self.assertLess(s1, s2)
 
     def test_lt_string(self):
-        s1 = bt2.StringValue('allo')
-        self.assertLess(s1, 'bateau')
+        s1 = bt2.StringValue("allo")
+        self.assertLess(s1, "bateau")
 
     def test_le_vstring(self):
-        s1 = bt2.StringValue('allo')
-        s2 = bt2.StringValue('bateau')
+        s1 = bt2.StringValue("allo")
+        s2 = bt2.StringValue("bateau")
         self.assertLessEqual(s1, s2)
 
     def test_le_string(self):
-        s1 = bt2.StringValue('allo')
-        self.assertLessEqual(s1, 'bateau')
+        s1 = bt2.StringValue("allo")
+        self.assertLessEqual(s1, "bateau")
 
     def test_gt_vstring(self):
-        s1 = bt2.StringValue('allo')
-        s2 = bt2.StringValue('bateau')
+        s1 = bt2.StringValue("allo")
+        s2 = bt2.StringValue("bateau")
         self.assertGreater(s2, s1)
 
     def test_gt_string(self):
-        s1 = bt2.StringValue('allo')
-        self.assertGreater('bateau', s1)
+        s1 = bt2.StringValue("allo")
+        self.assertGreater("bateau", s1)
 
     def test_ge_vstring(self):
-        s1 = bt2.StringValue('allo')
-        s2 = bt2.StringValue('bateau')
+        s1 = bt2.StringValue("allo")
+        s2 = bt2.StringValue("bateau")
         self.assertGreaterEqual(s2, s1)
 
     def test_ge_string(self):
-        s1 = bt2.StringValue('allo')
-        self.assertGreaterEqual('bateau', s1)
+        s1 = bt2.StringValue("allo")
+        self.assertGreaterEqual("bateau", s1)
 
     def test_in_string(self):
-        s1 = bt2.StringValue('beau grand bateau')
-        self.assertIn('bateau', s1)
+        s1 = bt2.StringValue("beau grand bateau")
+        self.assertIn("bateau", s1)
 
     def test_in_vstring(self):
-        s1 = bt2.StringValue('beau grand bateau')
-        s2 = bt2.StringValue('bateau')
+        s1 = bt2.StringValue("beau grand bateau")
+        s2 = bt2.StringValue("bateau")
         self.assertIn(s2, s1)
 
     def test_bool_op(self):
@@ -1573,20 +1573,20 @@ class StringValueTestCase(_TestCopySimple, unittest.TestCase):
         self.assertEqual(self._def_const[5], self._def_value[5])
 
     def test_iadd_str(self):
-        to_append = 'meow meow meow'
+        to_append = "meow meow meow"
         self._def += to_append
         self._def_value += to_append
         self.assertEqual(self._def, self._def_value)
 
     def test_const_iadd_str(self):
-        to_append = 'meow meow meow'
+        to_append = "meow meow meow"
         with self.assertRaises(TypeError):
             self._def_const += to_append
 
         self.assertEqual(self._def_const, self._def_value)
 
     def test_append_vstr(self):
-        to_append = 'meow meow meow'
+        to_append = "meow meow meow"
         self._def += bt2.create_value(to_append)
         self._def_value += to_append
         self.assertEqual(self._def, self._def_value)
@@ -1594,7 +1594,7 @@ class StringValueTestCase(_TestCopySimple, unittest.TestCase):
 
 class ArrayValueTestCase(_TestCopySimple, unittest.TestCase):
     def setUp(self):
-        self._def_value = [None, False, True, -23, 0, 42, -42.4, 23.17, 'yes']
+        self._def_value = [None, False, True, -23, 0, 42, -42.4, 23.17, "yes"]
         self._def = bt2.ArrayValue(copy.deepcopy(self._def_value))
         self._def_const = _create_const_value(copy.deepcopy(self._def_value))
 
@@ -1602,7 +1602,7 @@ class ArrayValueTestCase(_TestCopySimple, unittest.TestCase):
         del self._def
 
     def _modify_def(self):
-        self._def[2] = 'xyz'
+        self._def[2] = "xyz"
 
     def _assert_type_error(self):
         return self.assertRaises(TypeError)
@@ -1661,7 +1661,7 @@ class ArrayValueTestCase(_TestCopySimple, unittest.TestCase):
         self.assertNotEqual(a1, a2)
 
     def test_eq_same_content_same_len(self):
-        raw = (3, True, [1, 2.5, None, {'a': 17.6, 'b': None}])
+        raw = (3, True, [1, 2.5, None, {"a": 17.6, "b": None}])
         a1 = bt2.ArrayValue(raw)
         a2 = bt2.ArrayValue(copy.deepcopy(raw))
         self.assertEqual(a1, a2)
@@ -1688,7 +1688,7 @@ class ArrayValueTestCase(_TestCopySimple, unittest.TestCase):
 
     def test_setitem_index_wrong_type(self):
         with self._assert_type_error():
-            self._def['yes'] = 23
+            self._def["yes"] = 23
 
     def test_setitem_index_neg(self):
         with self.assertRaises(IndexError):
@@ -1779,21 +1779,21 @@ class ArrayValueTestCase(_TestCopySimple, unittest.TestCase):
         self.assertEqual(item4, 23.17)
 
         self.assertIs(type(item5), bt2._StringValueConst)
-        self.assertEqual(item5, 'yes')
+        self.assertEqual(item5, "yes")
 
 
 class MapValueTestCase(_TestCopySimple, unittest.TestCase):
     def setUp(self):
         self._def_value = {
-            'none': None,
-            'false': False,
-            'true': True,
-            'neg-int': -23,
-            'zero': 0,
-            'pos-int': 42,
-            'neg-float': -42.4,
-            'pos-float': 23.17,
-            'str': 'yes',
+            "none": None,
+            "false": False,
+            "true": True,
+            "neg-int": -23,
+            "zero": 0,
+            "pos-int": 42,
+            "neg-float": -42.4,
+            "pos-float": 23.17,
+            "str": "yes",
         }
         self._def = bt2.MapValue(copy.deepcopy(self._def_value))
         self._def_const = _create_const_value(self._def_value)
@@ -1802,7 +1802,7 @@ class MapValueTestCase(_TestCopySimple, unittest.TestCase):
         del self._def
 
     def _modify_def(self):
-        self._def['zero'] = 1
+        self._def["zero"] = 1
 
     def test_create_default(self):
         m = bt2.MapValue()
@@ -1833,52 +1833,52 @@ class MapValueTestCase(_TestCopySimple, unittest.TestCase):
         self.assertEqual(len(self._def), len(self._def_value))
 
     def test_const_eq(self):
-        a1 = _create_const_value({'a': 1, 'b': 2, 'c': 3})
-        a2 = {'a': 1, 'b': 2, 'c': 3}
+        a1 = _create_const_value({"a": 1, "b": 2, "c": 3})
+        a2 = {"a": 1, "b": 2, "c": 3}
         self.assertEqual(a1, a2)
 
     def test_eq_int(self):
         self.assertNotEqual(self._def, 23)
 
     def test_eq_diff_len(self):
-        a1 = bt2.create_value({'a': 1, 'b': 2, 'c': 3})
-        a2 = bt2.create_value({'a': 1, 'b': 2})
+        a1 = bt2.create_value({"a": 1, "b": 2, "c": 3})
+        a2 = bt2.create_value({"a": 1, "b": 2})
         self.assertNotEqual(a1, a2)
 
     def test_const_eq_diff_len(self):
-        a1 = _create_const_value({'a': 1, 'b': 2, 'c': 3})
-        a2 = _create_const_value({'a': 1, 'b': 2})
+        a1 = _create_const_value({"a": 1, "b": 2, "c": 3})
+        a2 = _create_const_value({"a": 1, "b": 2})
         self.assertNotEqual(a1, a2)
 
     def test_eq_diff_content_same_len(self):
-        a1 = bt2.create_value({'a': 1, 'b': 2, 'c': 3})
-        a2 = bt2.create_value({'a': 4, 'b': 2, 'c': 3})
+        a1 = bt2.create_value({"a": 1, "b": 2, "c": 3})
+        a2 = bt2.create_value({"a": 4, "b": 2, "c": 3})
         self.assertNotEqual(a1, a2)
 
     def test_const_eq_diff_content_same_len(self):
-        a1 = _create_const_value({'a': 1, 'b': 2, 'c': 3})
-        a2 = _create_const_value({'a': 4, 'b': 2, 'c': 3})
+        a1 = _create_const_value({"a": 1, "b": 2, "c": 3})
+        a2 = _create_const_value({"a": 4, "b": 2, "c": 3})
         self.assertNotEqual(a1, a2)
 
     def test_eq_same_content_diff_keys(self):
-        a1 = bt2.create_value({'a': 1, 'b': 2, 'c': 3})
-        a2 = bt2.create_value({'a': 1, 'k': 2, 'c': 3})
+        a1 = bt2.create_value({"a": 1, "b": 2, "c": 3})
+        a2 = bt2.create_value({"a": 1, "k": 2, "c": 3})
         self.assertNotEqual(a1, a2)
 
     def test_const_eq_same_content_diff_keys(self):
-        a1 = _create_const_value({'a': 1, 'b': 2, 'c': 3})
-        a2 = _create_const_value({'a': 1, 'k': 2, 'c': 3})
+        a1 = _create_const_value({"a": 1, "b": 2, "c": 3})
+        a2 = _create_const_value({"a": 1, "k": 2, "c": 3})
         self.assertNotEqual(a1, a2)
 
     def test_eq_same_content_same_len(self):
-        raw = {'3': 3, 'True': True, 'array': [1, 2.5, None, {'a': 17.6, 'b': None}]}
+        raw = {"3": 3, "True": True, "array": [1, 2.5, None, {"a": 17.6, "b": None}]}
         a1 = bt2.MapValue(raw)
         a2 = bt2.MapValue(copy.deepcopy(raw))
         self.assertEqual(a1, a2)
         self.assertEqual(a1, raw)
 
     def test_const_eq_same_content_same_len(self):
-        raw = {'3': 3, 'True': True, 'array': [1, 2.5, None, {'a': 17.6, 'b': None}]}
+        raw = {"3": 3, "True": True, "array": [1, 2.5, None, {"a": 17.6, "b": None}]}
         a1 = _create_const_value(raw)
         a2 = _create_const_value(copy.deepcopy(raw))
         self.assertEqual(a1, a2)
@@ -1886,26 +1886,26 @@ class MapValueTestCase(_TestCopySimple, unittest.TestCase):
 
     def test_setitem_int(self):
         raw = 19
-        self._def['pos-int'] = raw
-        self.assertEqual(self._def['pos-int'], raw)
+        self._def["pos-int"] = raw
+        self.assertEqual(self._def["pos-int"], raw)
 
     def test_const_setitem_int(self):
         with self.assertRaises(TypeError):
-            self._def_const['pos-int'] = 19
+            self._def_const["pos-int"] = 19
 
     def test_setitem_vint(self):
         raw = 19
-        self._def['pos-int'] = bt2.create_value(raw)
-        self.assertEqual(self._def['pos-int'], raw)
+        self._def["pos-int"] = bt2.create_value(raw)
+        self.assertEqual(self._def["pos-int"], raw)
 
     def test_setitem_none(self):
-        self._def['none'] = None
-        self.assertIsNone(self._def['none'])
+        self._def["none"] = None
+        self.assertIsNone(self._def["none"])
 
     def test_setitem_new_int(self):
         old_len = len(self._def)
-        self._def['new-int'] = 23
-        self.assertEqual(self._def['new-int'], 23)
+        self._def["new-int"] = 23
+        self.assertEqual(self._def["new-int"], 23)
         self.assertEqual(len(self._def), old_len + 1)
 
     def test_setitem_index_wrong_type(self):
@@ -1923,16 +1923,16 @@ class MapValueTestCase(_TestCopySimple, unittest.TestCase):
             self.assertEqual(vval, val)
 
     def test_get_item(self):
-        i = self._def['pos-float']
+        i = self._def["pos-float"]
         self.assertIs(type(i), bt2.RealValue)
         self.assertEqual(i, 23.17)
 
     def test_const_get_item(self):
-        item1 = self._def_const['none']
-        item2 = self._def_const['true']
-        item3 = self._def_const['pos-int']
-        item4 = self._def_const['pos-float']
-        item5 = self._def_const['str']
+        item1 = self._def_const["none"]
+        item2 = self._def_const["true"]
+        item3 = self._def_const["pos-int"]
+        item4 = self._def_const["pos-float"]
+        item5 = self._def_const["str"]
 
         self.assertEqual(item1, None)
 
@@ -1946,12 +1946,12 @@ class MapValueTestCase(_TestCopySimple, unittest.TestCase):
         self.assertEqual(item4, 23.17)
 
         self.assertIs(type(item5), bt2._StringValueConst)
-        self.assertEqual(item5, 'yes')
+        self.assertEqual(item5, "yes")
 
     def test_getitem_wrong_key(self):
         with self.assertRaises(KeyError):
-            self._def['kilojoule']
+            self._def["kilojoule"]
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

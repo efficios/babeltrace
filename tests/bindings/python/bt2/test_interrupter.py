@@ -34,5 +34,5 @@ class InterrupterTestCase(unittest.TestCase):
         self.assertFalse(self._interrupter)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()
