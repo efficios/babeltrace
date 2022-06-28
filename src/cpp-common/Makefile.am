@@ -16,4 +16,5 @@ EXTRA_DIST = bt2 \
 	make-unique.hpp \
 	safe-ops.hpp \
 	align.hpp \
-	uuid.hpp
+	uuid.hpp \
+	vector.hpp
