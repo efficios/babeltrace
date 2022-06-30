@@ -39,6 +39,10 @@ _AUTO_SOURCE_DISCOVERY_PARAMS_LOG_LEVEL_PATH = os.path.join(
     _BT_TESTS_DATADIR, 'auto-source-discovery', 'params-log-level'
 )
 
+_METADATA_SYNTAX_ERROR_TRACE_PATH = os.path.join(
+    _BT_CTF_TRACES_PATH, "fail", "metadata-syntax-error"
+)
+
 
 class _SomeSource(
     bt2._UserSourceComponent, message_iterator_class=bt2._UserMessageIterator
@@ -720,6 +724,16 @@ class TestAutoDiscoverSourceComponentSpecsParamsObjLogLevel(
         self.assertEqual(len(msgs), 2)
         self.assertEqual(msgs[0].stream.name, "TestSourceA: deore")
         self.assertEqual(msgs[1].stream.name, "TestSourceB: deore")
+
+
+class TestAutoDiscoverFailures(unittest.TestCase):
+    def test_metadata_syntax_error(self):
+        with self.assertRaisesRegex(
+            bt2._Error,
+            'Component class\'s "query" method failed',
+        ):
+            specs = [bt2.AutoSourceComponentSpec(_METADATA_SYNTAX_ERROR_TRACE_PATH)]
+            bt2.TraceCollectionMessageIterator(specs)
 
 
 if __name__ == '__main__':

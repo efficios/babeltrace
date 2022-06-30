@@ -61,6 +61,7 @@ bt_value *bt_bt2_auto_discover_source_components(const bt_value *inputs,
 	bt_value *components_list = NULL;
 	bt_value *component_info = NULL;
 	bt_value_map_insert_entry_status insert_entry_status;
+	const bt_error *error = NULL;
 
 	BT_ASSERT(bt_value_get_type(inputs) == BT_VALUE_TYPE_ARRAY);
 	for (i = 0; i < bt_value_array_get_length(inputs); i++) {
@@ -195,17 +196,33 @@ error:
 
 end:
 	if (result) {
+		/*
+		 * If an error happened, we must clear the error temporarily
+		 * while we insert the status in the map.
+		 */
+		error = bt_current_thread_take_error();
 		insert_entry_status = bt_value_map_insert_signed_integer_entry(result, "status", status);
-		if (insert_entry_status != BT_VALUE_MAP_INSERT_ENTRY_STATUS_OK) {
+		if (insert_entry_status == BT_VALUE_MAP_INSERT_ENTRY_STATUS_OK) {
+			if (error) {
+				bt_current_thread_move_error(error);
+				error = NULL;
+			}
+		} else {
 			BT_VALUE_PUT_REF_AND_RESET(result);
 			PyErr_NoMemory();
 		}
+
+
 	}
 
 	auto_source_discovery_fini(&auto_disc);
 	g_free(plugins);
 	bt_value_put_ref(components_list);
 	bt_value_put_ref(component_info);
+
+	if (error) {
+		bt_error_release(error);
+	}
 
 	return result;
 }
