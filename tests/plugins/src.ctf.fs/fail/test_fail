@@ -60,7 +60,7 @@ test_fail() {
 }
 
 
-plan_tests 8
+plan_tests 12
 
 test_fail \
 	"invalid-packet-size/trace" \
@@ -71,5 +71,10 @@ test_fail \
 	"valid-events-then-invalid-events" \
 	"${data_dir}/valid-events-then-invalid-events.expect" \
 	"No event class with ID of event class ID to use in stream class: .*stream-class-id=0, event-class-id=255"
+
+test_fail \
+	"metadata-syntax-error" \
+	"/dev/null" \
+	"^  Component class's \"query\" method failed: "
 
 rm -f "${stdout_file}" "${stderr_file}"
