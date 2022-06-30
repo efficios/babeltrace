@@ -1446,9 +1446,10 @@ class _LttngLiveViewerSession:
 
 # An LTTng live TCP server.
 #
-# On creation, it binds to `localhost` with an OS-assigned TCP port. It writes
-# the decimal TCP port number to a temporary port file.  It renames the
-# temporary port file to `port_filename`.
+# On creation, it binds to `localhost` on the TCP port `port` if not `None`, or
+# on an OS-assigned TCP port otherwise. It writes the decimal TCP port number
+# to a temporary port file.  It renames the temporary port file to
+# `port_filename`.
 #
 # `tracing_session_descriptors` is a list of tracing session descriptors
 # (`LttngTracingSessionDescriptor`) to serve.
@@ -1459,7 +1460,11 @@ class _LttngLiveViewerSession:
 # returns.
 class LttngLiveServer:
     def __init__(
-        self, port_filename, tracing_session_descriptors, max_query_data_response_size
+        self,
+        port,
+        port_filename,
+        tracing_session_descriptors,
+        max_query_data_response_size,
     ):
         logging.info("Server configuration:")
 
@@ -1495,7 +1500,7 @@ class LttngLiveServer:
         self._codec = _LttngLiveViewerProtocolCodec()
 
         # Port 0: OS assigns an unused port
-        serv_addr = ("localhost", 0)
+        serv_addr = ("localhost", port if port is not None else 0)
         self._sock.bind(serv_addr)
         self._write_port_to_file(port_filename)
 
@@ -1741,6 +1746,11 @@ if __name__ == "__main__":
     logging.getLogger().setLevel(_loglevel_parser(loglevel_namespace.log_level))
 
     parser.add_argument(
+        "--port",
+        help="The port to bind to. If missing, use an OS-assigned port..",
+        type=int,
+    )
+    parser.add_argument(
         "--port-filename",
         help="The final port file. This file is present when the server is ready to receive connection.",
         required=True,
@@ -1774,7 +1784,9 @@ if __name__ == "__main__":
             args.sessions_filename,
             args.trace_path_prefix,
         )
-        LttngLiveServer(args.port_filename, sessions, args.max_query_data_response_size)
+        LttngLiveServer(
+            args.port, args.port_filename, sessions, args.max_query_data_response_size
+        )
     except UnexpectedInput as exc:
         logging.error(str(exc))
         print(exc, file=sys.stderr)
