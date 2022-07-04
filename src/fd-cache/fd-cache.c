@@ -82,7 +82,6 @@ void file_key_destroy(gpointer data)
 	g_free(fk);
 }
 
-BT_HIDDEN
 int bt_fd_cache_init(struct bt_fd_cache *fdc, int log_level)
 {
 	int ret = 0;
@@ -97,7 +96,6 @@ int bt_fd_cache_init(struct bt_fd_cache *fdc, int log_level)
 	return ret;
 }
 
-BT_HIDDEN
 void bt_fd_cache_fini(struct bt_fd_cache *fdc)
 {
 	if (!fdc->cache) {
@@ -114,7 +112,6 @@ end:
 	return;
 }
 
-BT_HIDDEN
 struct bt_fd_cache_handle *bt_fd_cache_get_handle(struct bt_fd_cache *fdc,
 		const char *path)
 {
@@ -197,7 +194,6 @@ end:
 	return (struct bt_fd_cache_handle *) fd_internal;
 }
 
-BT_HIDDEN
 void bt_fd_cache_put_handle(struct bt_fd_cache *fdc,
 		struct bt_fd_cache_handle *handle)
 {

@@ -50,6 +50,7 @@ void bt_query_executor_destroy(struct bt_object *obj)
 	g_free(query_exec);
 }
 
+BT_EXPORT
 struct bt_query_executor *bt_query_executor_create_with_method_data(
 		const bt_component_class *comp_cls, const char *object,
 		const bt_value *params, void *method_data)
@@ -116,6 +117,7 @@ end:
 	return (void *) query_exec;
 }
 
+BT_EXPORT
 struct bt_query_executor *bt_query_executor_create(
 		const bt_component_class *comp_cls, const char *object,
 		const bt_value *params)
@@ -125,6 +127,7 @@ struct bt_query_executor *bt_query_executor_create(
 		object, params, NULL);
 }
 
+BT_EXPORT
 enum bt_query_executor_query_status bt_query_executor_query(
 		struct bt_query_executor *query_exec,
 		const struct bt_value **user_result)
@@ -242,6 +245,7 @@ end:
 	return status;
 }
 
+BT_EXPORT
 enum bt_query_executor_add_interrupter_status bt_query_executor_add_interrupter(
 		struct bt_query_executor *query_exec,
 		const struct bt_interrupter *intr)
@@ -257,6 +261,7 @@ enum bt_query_executor_add_interrupter_status bt_query_executor_add_interrupter(
 	return BT_FUNC_STATUS_OK;
 }
 
+BT_EXPORT
 bt_bool bt_query_executor_is_interrupted(const struct bt_query_executor *query_exec)
 {
 	BT_ASSERT_PRE_QUERY_EXEC_NON_NULL(query_exec);
@@ -264,6 +269,7 @@ bt_bool bt_query_executor_is_interrupted(const struct bt_query_executor *query_e
 		query_exec->interrupters);
 }
 
+BT_EXPORT
 struct bt_interrupter *bt_query_executor_borrow_default_interrupter(
 		struct bt_query_executor *query_exec)
 {
@@ -271,6 +277,7 @@ struct bt_interrupter *bt_query_executor_borrow_default_interrupter(
 	return query_exec->default_interrupter;
 }
 
+BT_EXPORT
 enum bt_query_executor_set_logging_level_status
 bt_query_executor_set_logging_level(struct bt_query_executor *query_exec,
 		enum bt_logging_level log_level)
@@ -280,6 +287,7 @@ bt_query_executor_set_logging_level(struct bt_query_executor *query_exec,
 	return BT_FUNC_STATUS_OK;
 }
 
+BT_EXPORT
 enum bt_logging_level bt_query_executor_get_logging_level(
 		const struct bt_query_executor *query_exec)
 {
@@ -287,11 +295,13 @@ enum bt_logging_level bt_query_executor_get_logging_level(
 	return query_exec->log_level;
 }
 
+BT_EXPORT
 void bt_query_executor_get_ref(const struct bt_query_executor *query_executor)
 {
 	bt_object_get_ref(query_executor);
 }
 
+BT_EXPORT
 void bt_query_executor_put_ref(const struct bt_query_executor *query_executor)
 {
 	bt_object_put_ref(query_executor);

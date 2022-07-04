@@ -121,78 +121,61 @@ struct trace_ir_maps {
 	bt_self_component *self_comp;
 };
 
-BT_HIDDEN
 struct trace_ir_maps *trace_ir_maps_create(bt_self_component *self_comp,
 		const char *debug_info_field_name, bt_logging_level log_level);
 
-BT_HIDDEN
 void trace_ir_maps_clear(struct trace_ir_maps *maps);
 
-BT_HIDDEN
 void trace_ir_maps_destroy(struct trace_ir_maps *maps);
 
-BT_HIDDEN
 struct trace_ir_data_maps *trace_ir_data_maps_create(
 		struct trace_ir_maps *ir_maps,
 		const bt_trace *in_trace);
 
-BT_HIDDEN
 void trace_ir_data_maps_destroy(struct trace_ir_data_maps *d_maps);
 
-BT_HIDDEN
 struct trace_ir_metadata_maps *trace_ir_metadata_maps_create(
 		struct trace_ir_maps *ir_maps,
 		const bt_trace_class *in_trace_class);
 
-BT_HIDDEN
 void trace_ir_metadata_maps_destroy(struct trace_ir_metadata_maps *md_maps);
 
-BT_HIDDEN
 bt_stream_class *trace_ir_mapping_create_new_mapped_stream_class(
 		struct trace_ir_maps *ir_maps,
 		const bt_stream_class *in_stream_class);
 
-BT_HIDDEN
 bt_stream_class *trace_ir_mapping_borrow_mapped_stream_class(
 		struct trace_ir_maps *ir_maps,
 		const bt_stream_class *in_stream_class);
 
-BT_HIDDEN
 bt_stream *trace_ir_mapping_create_new_mapped_stream(
 		struct trace_ir_maps *ir_maps,
 		const bt_stream *in_stream);
 
-BT_HIDDEN
 bt_stream *trace_ir_mapping_borrow_mapped_stream(
 		struct trace_ir_maps *ir_maps,
 		const bt_stream *in_stream);
 
-BT_HIDDEN
 void trace_ir_mapping_remove_mapped_stream(
 		struct trace_ir_maps *ir_maps,
 		const bt_stream *in_stream);
 
-BT_HIDDEN
 bt_event_class *trace_ir_mapping_create_new_mapped_event_class(
 		struct trace_ir_maps *ir_maps,
 		const bt_event_class *in_event_class);
 
-BT_HIDDEN
 bt_event_class *trace_ir_mapping_borrow_mapped_event_class(
 		struct trace_ir_maps *ir_maps,
 		const bt_event_class *in_event_class);
 
-BT_HIDDEN
 bt_packet *trace_ir_mapping_create_new_mapped_packet(
 		struct trace_ir_maps *ir_maps,
 		const bt_packet *in_packet);
 
-BT_HIDDEN
 bt_packet *trace_ir_mapping_borrow_mapped_packet(
 		struct trace_ir_maps *ir_maps,
 		const bt_packet *in_packet);
 
-BT_HIDDEN
 void trace_ir_mapping_remove_mapped_packet(
 		struct trace_ir_maps *ir_maps,
 		const bt_packet *in_packet);

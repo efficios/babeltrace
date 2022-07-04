@@ -133,7 +133,6 @@ end:
 	return out_trace;
 }
 
-BT_HIDDEN
 bt_stream_class *trace_ir_mapping_borrow_mapped_stream_class(
 		struct trace_ir_maps *ir_maps,
 		const bt_stream_class *in_stream_class)
@@ -148,7 +147,6 @@ bt_stream_class *trace_ir_mapping_borrow_mapped_stream_class(
 		(gpointer) in_stream_class);
 }
 
-BT_HIDDEN
 bt_stream_class *trace_ir_mapping_create_new_mapped_stream_class(
 		struct trace_ir_maps *ir_maps,
 		const bt_stream_class *in_stream_class)
@@ -217,7 +215,6 @@ bt_stream *borrow_mapped_stream(struct trace_ir_data_maps *d_maps,
 	return g_hash_table_lookup(d_maps->stream_map, (gpointer) in_stream);
 }
 
-BT_HIDDEN
 bt_stream *trace_ir_mapping_create_new_mapped_stream(
 		struct trace_ir_maps *ir_maps, const bt_stream *in_stream)
 {
@@ -298,7 +295,6 @@ end:
 	return out_stream;
 }
 
-BT_HIDDEN
 bt_stream *trace_ir_mapping_borrow_mapped_stream(struct trace_ir_maps *ir_maps,
 		const bt_stream *in_stream)
 {
@@ -320,7 +316,6 @@ bt_event_class *borrow_mapped_event_class(struct trace_ir_metadata_maps *md_maps
 		(gpointer) in_event_class);
 }
 
-BT_HIDDEN
 bt_event_class *trace_ir_mapping_create_new_mapped_event_class(
 		struct trace_ir_maps *ir_maps,
 		const bt_event_class *in_event_class)
@@ -387,7 +382,6 @@ end:
 	return out_event_class;
 }
 
-BT_HIDDEN
 bt_event_class *trace_ir_mapping_borrow_mapped_event_class(
 		struct trace_ir_maps *ir_maps,
 		const bt_event_class *in_event_class)
@@ -414,7 +408,6 @@ bt_packet *borrow_mapped_packet(struct trace_ir_data_maps *d_maps,
 	return g_hash_table_lookup(d_maps->packet_map, (gpointer) in_packet);
 }
 
-BT_HIDDEN
 bt_packet *trace_ir_mapping_create_new_mapped_packet(
 		struct trace_ir_maps *ir_maps,
 		const bt_packet *in_packet)
@@ -473,7 +466,6 @@ end:
 	return out_packet;
 }
 
-BT_HIDDEN
 bt_packet *trace_ir_mapping_borrow_mapped_packet(struct trace_ir_maps *ir_maps,
 		const bt_packet *in_packet)
 {
@@ -486,7 +478,6 @@ bt_packet *trace_ir_mapping_borrow_mapped_packet(struct trace_ir_maps *ir_maps,
 	return borrow_mapped_packet(d_maps, in_packet);
 }
 
-BT_HIDDEN
 void trace_ir_mapping_remove_mapped_packet(struct trace_ir_maps *ir_maps,
 		const bt_packet *in_packet)
 {
@@ -503,7 +494,6 @@ void trace_ir_mapping_remove_mapped_packet(struct trace_ir_maps *ir_maps,
 	BT_ASSERT(ret);
 }
 
-BT_HIDDEN
 void trace_ir_mapping_remove_mapped_stream(struct trace_ir_maps *ir_maps,
 		const bt_stream *in_stream)
 {
@@ -626,7 +616,6 @@ error:
 	return md_maps;
 }
 
-BT_HIDDEN
 void trace_ir_data_maps_destroy(struct trace_ir_data_maps *maps)
 {
 	bt_trace_remove_listener_status status;
@@ -659,7 +648,6 @@ void trace_ir_data_maps_destroy(struct trace_ir_data_maps *maps)
 	g_free(maps);
 }
 
-BT_HIDDEN
 void trace_ir_metadata_maps_destroy(struct trace_ir_metadata_maps *maps)
 {
 	bt_trace_class_remove_listener_status status;
@@ -713,7 +701,6 @@ void trace_ir_maps_clear(struct trace_ir_maps *maps)
 	}
 }
 
-BT_HIDDEN
 void trace_ir_maps_destroy(struct trace_ir_maps *maps)
 {
 	if (!maps) {
@@ -735,7 +722,6 @@ void trace_ir_maps_destroy(struct trace_ir_maps *maps)
 	g_free(maps);
 }
 
-BT_HIDDEN
 struct trace_ir_maps *trace_ir_maps_create(bt_self_component *self_comp,
 		const char *debug_info_field_name, bt_logging_level log_level)
 {

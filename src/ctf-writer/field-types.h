@@ -264,50 +264,42 @@ struct bt_ctf_field_type_common_string {
 typedef struct bt_ctf_field_common *(* bt_ctf_field_common_create_func)(
 		struct bt_ctf_field_type_common *);
 
-BT_HIDDEN
 void bt_ctf_field_type_common_initialize(struct bt_ctf_field_type_common *ft,
 		bool init_bo, bt_ctf_object_release_func release_func,
 		struct bt_ctf_field_type_common_methods *methods);
 
-BT_HIDDEN
 void bt_ctf_field_type_common_integer_initialize(
 		struct bt_ctf_field_type_common *ft,
 		unsigned int size, bt_ctf_object_release_func release_func,
 		struct bt_ctf_field_type_common_methods *methods);
 
-BT_HIDDEN
 void bt_ctf_field_type_common_floating_point_initialize(
 		struct bt_ctf_field_type_common *ft,
 		bt_ctf_object_release_func release_func,
 		struct bt_ctf_field_type_common_methods *methods);
 
-BT_HIDDEN
 void bt_ctf_field_type_common_enumeration_initialize(
 		struct bt_ctf_field_type_common *ft,
 		struct bt_ctf_field_type_common *container_ft,
 		bt_ctf_object_release_func release_func,
 		struct bt_ctf_field_type_common_methods *methods);
 
-BT_HIDDEN
 void bt_ctf_field_type_common_string_initialize(
 		struct bt_ctf_field_type_common *ft,
 		bt_ctf_object_release_func release_func,
 		struct bt_ctf_field_type_common_methods *methods);
 
-BT_HIDDEN
 void bt_ctf_field_type_common_structure_initialize(
 		struct bt_ctf_field_type_common *ft,
 		bt_ctf_object_release_func release_func,
 		struct bt_ctf_field_type_common_methods *methods);
 
-BT_HIDDEN
 void bt_ctf_field_type_common_array_initialize(
 		struct bt_ctf_field_type_common *ft,
 		struct bt_ctf_field_type_common *element_ft,
 		unsigned int length, bt_ctf_object_release_func release_func,
 		struct bt_ctf_field_type_common_methods *methods);
 
-BT_HIDDEN
 void bt_ctf_field_type_common_sequence_initialize(
 		struct bt_ctf_field_type_common *ft,
 		struct bt_ctf_field_type_common *element_ft,
@@ -315,7 +307,6 @@ void bt_ctf_field_type_common_sequence_initialize(
 		bt_ctf_object_release_func release_func,
 		struct bt_ctf_field_type_common_methods *methods);
 
-BT_HIDDEN
 void bt_ctf_field_type_common_variant_initialize(
 		struct bt_ctf_field_type_common *ft,
 		struct bt_ctf_field_type_common *tag_ft,
@@ -323,469 +314,361 @@ void bt_ctf_field_type_common_variant_initialize(
 		bt_ctf_object_release_func release_func,
 		struct bt_ctf_field_type_common_methods *methods);
 
-BT_HIDDEN
 void bt_ctf_field_type_common_integer_destroy(struct bt_ctf_object *obj);
 
-BT_HIDDEN
 void bt_ctf_field_type_common_floating_point_destroy(struct bt_ctf_object *obj);
 
-BT_HIDDEN
 void bt_ctf_field_type_common_enumeration_destroy_recursive(struct bt_ctf_object *obj);
 
-BT_HIDDEN
 void bt_ctf_field_type_common_string_destroy(struct bt_ctf_object *obj);
 
-BT_HIDDEN
 void bt_ctf_field_type_common_structure_destroy_recursive(struct bt_ctf_object *obj);
 
-BT_HIDDEN
 void bt_ctf_field_type_common_array_destroy_recursive(struct bt_ctf_object *obj);
 
-BT_HIDDEN
 void bt_ctf_field_type_common_sequence_destroy_recursive(struct bt_ctf_object *obj);
 
-BT_HIDDEN
 void bt_ctf_field_type_common_variant_destroy_recursive(struct bt_ctf_object *obj);
 
-BT_HIDDEN
 int bt_ctf_field_type_common_integer_validate(struct bt_ctf_field_type_common *ft);
 
-BT_HIDDEN
 int bt_ctf_field_type_common_enumeration_validate_recursive(
 		struct bt_ctf_field_type_common *ft);
 
-BT_HIDDEN
 int bt_ctf_field_type_common_sequence_validate_recursive(
 		struct bt_ctf_field_type_common *ft);
 
-BT_HIDDEN
 int bt_ctf_field_type_common_array_validate_recursive(
 		struct bt_ctf_field_type_common *ft);
 
-BT_HIDDEN
 int bt_ctf_field_type_common_structure_validate_recursive(
 		struct bt_ctf_field_type_common *ft);
 
-BT_HIDDEN
 int bt_ctf_field_type_common_variant_validate_recursive(
 		struct bt_ctf_field_type_common *type);
 
-BT_HIDDEN
 int bt_ctf_field_type_common_validate(struct bt_ctf_field_type_common *ft);
 
-BT_HIDDEN
 int bt_ctf_field_type_common_integer_get_size(struct bt_ctf_field_type_common *ft);
 
-BT_HIDDEN
 bt_ctf_bool bt_ctf_field_type_common_integer_is_signed(struct bt_ctf_field_type_common *ft);
 
-BT_HIDDEN
 int bt_ctf_field_type_common_integer_set_is_signed(struct bt_ctf_field_type_common *ft,
 		bt_ctf_bool is_signed);
 
-BT_HIDDEN
 int bt_ctf_field_type_common_integer_set_size(struct bt_ctf_field_type_common *ft,
 		unsigned int size);
 
-BT_HIDDEN
 enum bt_ctf_integer_base bt_ctf_field_type_common_integer_get_base(
 		struct bt_ctf_field_type_common *ft);
 
-BT_HIDDEN
 int bt_ctf_field_type_common_integer_set_base(struct bt_ctf_field_type_common *ft,
 		enum bt_ctf_integer_base base);
 
-BT_HIDDEN
 enum bt_ctf_string_encoding bt_ctf_field_type_common_integer_get_encoding(
 		struct bt_ctf_field_type_common *ft);
 
-BT_HIDDEN
 int bt_ctf_field_type_common_integer_set_encoding(struct bt_ctf_field_type_common *ft,
 		enum bt_ctf_string_encoding encoding);
 
-BT_HIDDEN
 struct bt_ctf_clock_class *bt_ctf_field_type_common_integer_borrow_mapped_clock_class(
 		struct bt_ctf_field_type_common *ft);
 
-BT_HIDDEN
 int bt_ctf_field_type_common_integer_set_mapped_clock_class_no_check_frozen(
 		struct bt_ctf_field_type_common *ft,
 		struct bt_ctf_clock_class *clock_class);
 
-BT_HIDDEN
 int bt_ctf_field_type_common_integer_set_mapped_clock_class(
 		struct bt_ctf_field_type_common *ft,
 		struct bt_ctf_clock_class *clock_class);
 
-BT_HIDDEN
 struct bt_ctf_field_type_enumeration_mapping_iterator *
 bt_ctf_field_type_common_enumeration_find_mappings_by_name(
 		struct bt_ctf_field_type_common *ft, const char *name);
 
-BT_HIDDEN
 struct bt_ctf_field_type_enumeration_mapping_iterator *
 bt_ctf_field_type_common_enumeration_signed_find_mappings_by_value(
 		struct bt_ctf_field_type_common *ft, int64_t value);
 
-BT_HIDDEN
 struct bt_ctf_field_type_enumeration_mapping_iterator *
 bt_ctf_field_type_common_enumeration_unsigned_find_mappings_by_value(
 		struct bt_ctf_field_type_common *ft, uint64_t value);
 
-BT_HIDDEN
 int bt_ctf_field_type_enumeration_mapping_iterator_next(
 		struct bt_ctf_field_type_enumeration_mapping_iterator *iter);
 
-BT_HIDDEN
 int bt_ctf_field_type_enumeration_mapping_iterator_signed_get(
 		struct bt_ctf_field_type_enumeration_mapping_iterator *iter,
 		const char **mapping_name, int64_t *range_begin,
 		int64_t *range_end);
 
-BT_HIDDEN
 int bt_ctf_field_type_enumeration_mapping_iterator_unsigned_get(
 		struct bt_ctf_field_type_enumeration_mapping_iterator *iter,
 		const char **mapping_name, uint64_t *range_begin,
 		uint64_t *range_end);
 
-BT_HIDDEN
 int bt_ctf_field_type_common_enumeration_signed_get_mapping_by_index(
 		struct bt_ctf_field_type_common *ft, uint64_t index,
 		const char **mapping_name, int64_t *range_begin,
 		int64_t *range_end);
 
-BT_HIDDEN
 int bt_ctf_field_type_common_enumeration_unsigned_get_mapping_by_index(
 		struct bt_ctf_field_type_common *ft, uint64_t index,
 		const char **mapping_name, uint64_t *range_begin,
 		uint64_t *range_end);
 
-BT_HIDDEN
 struct bt_ctf_field_type_common *
 bt_ctf_field_type_common_enumeration_borrow_container_field_type(
 		struct bt_ctf_field_type_common *ft);
 
-BT_HIDDEN
 int bt_ctf_field_type_common_enumeration_signed_add_mapping(
 		struct bt_ctf_field_type_common *ft, const char *string,
 		int64_t range_start, int64_t range_end);
 
-BT_HIDDEN
 int bt_ctf_field_type_common_enumeration_unsigned_add_mapping(
 		struct bt_ctf_field_type_common *ft, const char *string,
 		uint64_t range_start, uint64_t range_end);
 
-BT_HIDDEN
 int64_t bt_ctf_field_type_common_enumeration_get_mapping_count(
 		struct bt_ctf_field_type_common *ft);
 
-BT_HIDDEN
 int bt_ctf_field_type_common_floating_point_get_exponent_digits(
 		struct bt_ctf_field_type_common *ft);
 
-BT_HIDDEN
 int bt_ctf_field_type_common_floating_point_set_exponent_digits(
 		struct bt_ctf_field_type_common *ft,
 		unsigned int exponent_digits);
 
-BT_HIDDEN
 int bt_ctf_field_type_common_floating_point_get_mantissa_digits(
 		struct bt_ctf_field_type_common *type);
 
-BT_HIDDEN
 int bt_ctf_field_type_common_floating_point_set_mantissa_digits(
 		struct bt_ctf_field_type_common *ft, unsigned int mantissa_digits);
 
-BT_HIDDEN
 int bt_ctf_field_type_common_structure_replace_field(
 		struct bt_ctf_field_type_common *ft,
 		const char *field_name,
 		struct bt_ctf_field_type_common *field_type);
 
-BT_HIDDEN
 int bt_ctf_field_type_common_structure_add_field(struct bt_ctf_field_type_common *ft,
 		struct bt_ctf_field_type_common *field_type,
 		const char *field_name);
 
-BT_HIDDEN
 int64_t bt_ctf_field_type_common_structure_get_field_count(
 		struct bt_ctf_field_type_common *ft);
 
-BT_HIDDEN
 int bt_ctf_field_type_common_structure_borrow_field_by_index(
 		struct bt_ctf_field_type_common *ft,
 		const char **field_name,
 		struct bt_ctf_field_type_common **field_type, uint64_t index);
 
-BT_HIDDEN
 struct bt_ctf_field_type_common *
 bt_ctf_field_type_common_structure_borrow_field_type_by_name(
 		struct bt_ctf_field_type_common *ft, const char *name);
 
-BT_HIDDEN
 struct bt_ctf_field_type_common *
 bt_ctf_field_type_common_variant_borrow_tag_field_type(
 		struct bt_ctf_field_type_common *ft);
 
-BT_HIDDEN
 const char *bt_ctf_field_type_common_variant_get_tag_name(
 		struct bt_ctf_field_type_common *ft);
 
-BT_HIDDEN
 int bt_ctf_field_type_common_variant_set_tag_name(
 		struct bt_ctf_field_type_common *ft, const char *name);
 
-BT_HIDDEN
 int bt_ctf_field_type_common_variant_add_field(struct bt_ctf_field_type_common *ft,
 		struct bt_ctf_field_type_common *field_type,
 		const char *field_name);
 
-BT_HIDDEN
 int bt_ctf_field_type_common_variant_update_choices(
 		struct bt_ctf_field_type_common *ft);
 
-BT_HIDDEN
 struct bt_ctf_field_type_common *
 bt_ctf_field_type_common_variant_borrow_field_type_by_name(
 		struct bt_ctf_field_type_common *ft,
 		const char *field_name);
 
-BT_HIDDEN
 int64_t bt_ctf_field_type_common_variant_get_field_count(
 		struct bt_ctf_field_type_common *ft);
 
-BT_HIDDEN
 int bt_ctf_field_type_common_variant_borrow_field_by_index(
 		struct bt_ctf_field_type_common *ft,
 		const char **field_name,
 		struct bt_ctf_field_type_common **field_type, uint64_t index);
 
-BT_HIDDEN
 struct bt_ctf_field_type_common *
 bt_ctf_field_type_common_array_borrow_element_field_type(
 		struct bt_ctf_field_type_common *ft);
 
-BT_HIDDEN
 int bt_ctf_field_type_common_array_set_element_field_type(
 		struct bt_ctf_field_type_common *ft,
 		struct bt_ctf_field_type_common *element_ft);
 
-BT_HIDDEN
 int64_t bt_ctf_field_type_common_array_get_length(struct bt_ctf_field_type_common *ft);
 
-BT_HIDDEN
 struct bt_ctf_field_type_common *
 bt_ctf_field_type_common_sequence_borrow_element_field_type(
 		struct bt_ctf_field_type_common *ft);
 
-BT_HIDDEN
 int bt_ctf_field_type_common_sequence_set_element_field_type(
 		struct bt_ctf_field_type_common *ft,
 		struct bt_ctf_field_type_common *element_ft);
 
-BT_HIDDEN
 const char *bt_ctf_field_type_common_sequence_get_length_field_name(
 		struct bt_ctf_field_type_common *ft);
 
-BT_HIDDEN
 enum bt_ctf_string_encoding bt_ctf_field_type_common_string_get_encoding(
 		struct bt_ctf_field_type_common *ft);
 
-BT_HIDDEN
 int bt_ctf_field_type_common_string_set_encoding(struct bt_ctf_field_type_common *ft,
 		enum bt_ctf_string_encoding encoding);
 
-BT_HIDDEN
 int bt_ctf_field_type_common_get_alignment(struct bt_ctf_field_type_common *type);
 
-BT_HIDDEN
 int bt_ctf_field_type_common_set_alignment(struct bt_ctf_field_type_common *ft,
 		unsigned int alignment);
 
-BT_HIDDEN
 enum bt_ctf_byte_order bt_ctf_field_type_common_get_byte_order(
 		struct bt_ctf_field_type_common *ft);
 
-BT_HIDDEN
 int bt_ctf_field_type_common_set_byte_order(struct bt_ctf_field_type_common *ft,
 		enum bt_ctf_byte_order byte_order);
 
-BT_HIDDEN
 enum bt_ctf_field_type_id bt_ctf_field_type_common_get_type_id(
 		struct bt_ctf_field_type_common *ft);
 
-BT_HIDDEN
 void bt_ctf_field_type_common_freeze(struct bt_ctf_field_type_common *ft);
 
-BT_HIDDEN
 struct bt_ctf_field_type_common *
 bt_ctf_field_type_common_variant_borrow_field_type_signed(
 		struct bt_ctf_field_type_common_variant *var_ft,
 		int64_t tag_value);
 
-BT_HIDDEN
 struct bt_ctf_field_type_common *
 bt_ctf_field_type_common_variant_borrow_field_type_unsigned(
 		struct bt_ctf_field_type_common_variant *var_ft,
 		uint64_t tag_value);
 
-BT_HIDDEN
 struct bt_ctf_field_type_common *bt_ctf_field_type_common_copy(
 		struct bt_ctf_field_type_common *ft);
 
-BT_HIDDEN
 int bt_ctf_field_type_common_structure_get_field_name_index(
 		struct bt_ctf_field_type_common *ft, const char *name);
 
-BT_HIDDEN
 int bt_ctf_field_type_common_variant_get_field_name_index(
 		struct bt_ctf_field_type_common *ft, const char *name);
 
-BT_HIDDEN
 int bt_ctf_field_type_common_sequence_set_length_field_path(
 		struct bt_ctf_field_type_common *ft, struct bt_ctf_field_path *path);
 
-BT_HIDDEN
 int bt_ctf_field_type_common_variant_set_tag_field_path(
 		struct bt_ctf_field_type_common *ft,
 		struct bt_ctf_field_path *path);
 
-BT_HIDDEN
 int bt_ctf_field_type_common_variant_set_tag_field_type(
 		struct bt_ctf_field_type_common *ft,
 		struct bt_ctf_field_type_common *tag_ft);
 
-BT_HIDDEN
 void bt_ctf_field_type_common_generic_freeze(struct bt_ctf_field_type_common *ft);
 
-BT_HIDDEN
 void bt_ctf_field_type_common_enumeration_freeze_recursive(
 		struct bt_ctf_field_type_common *ft);
 
-BT_HIDDEN
 void bt_ctf_field_type_common_structure_freeze_recursive(
 		struct bt_ctf_field_type_common *ft);
 
-BT_HIDDEN
 void bt_ctf_field_type_common_variant_freeze_recursive(
 		struct bt_ctf_field_type_common *ft);
 
-BT_HIDDEN
 void bt_ctf_field_type_common_array_freeze_recursive(
 		struct bt_ctf_field_type_common *ft);
 
-BT_HIDDEN
 void bt_ctf_field_type_common_sequence_freeze_recursive(
 		struct bt_ctf_field_type_common *type);
 
-BT_HIDDEN
 void bt_ctf_field_type_common_integer_set_byte_order(
 		struct bt_ctf_field_type_common *ft, enum bt_ctf_byte_order byte_order);
 
-BT_HIDDEN
 void bt_ctf_field_type_common_enumeration_set_byte_order_recursive(
 		struct bt_ctf_field_type_common *ft, enum bt_ctf_byte_order byte_order);
 
-BT_HIDDEN
 void bt_ctf_field_type_common_floating_point_set_byte_order(
 		struct bt_ctf_field_type_common *ft, enum bt_ctf_byte_order byte_order);
 
-BT_HIDDEN
 void bt_ctf_field_type_common_structure_set_byte_order_recursive(
 		struct bt_ctf_field_type_common *ft,
 		enum bt_ctf_byte_order byte_order);
 
-BT_HIDDEN
 void bt_ctf_field_type_common_variant_set_byte_order_recursive(
 		struct bt_ctf_field_type_common *ft,
 		enum bt_ctf_byte_order byte_order);
 
-BT_HIDDEN
 void bt_ctf_field_type_common_array_set_byte_order_recursive(
 		struct bt_ctf_field_type_common *ft,
 		enum bt_ctf_byte_order byte_order);
 
-BT_HIDDEN
 void bt_ctf_field_type_common_sequence_set_byte_order_recursive(
 		struct bt_ctf_field_type_common *ft,
 		enum bt_ctf_byte_order byte_order);
 
-BT_HIDDEN
 int bt_ctf_field_type_common_integer_compare(struct bt_ctf_field_type_common *ft_a,
 		struct bt_ctf_field_type_common *ft_b);
 
-BT_HIDDEN
 int bt_ctf_field_type_common_floating_point_compare(
 		struct bt_ctf_field_type_common *ft_a,
 		struct bt_ctf_field_type_common *ft_b);
 
-BT_HIDDEN
 int bt_ctf_field_type_common_enumeration_compare_recursive(
 		struct bt_ctf_field_type_common *ft_a,
 		struct bt_ctf_field_type_common *ft_b);
 
-BT_HIDDEN
 int bt_ctf_field_type_common_string_compare(struct bt_ctf_field_type_common *ft_a,
 		struct bt_ctf_field_type_common *ft_b);
 
-BT_HIDDEN
 int bt_ctf_field_type_common_structure_compare_recursive(
 		struct bt_ctf_field_type_common *ft_a,
 		struct bt_ctf_field_type_common *ft_b);
 
-BT_HIDDEN
 int bt_ctf_field_type_common_variant_compare_recursive(
 		struct bt_ctf_field_type_common *ft_a,
 		struct bt_ctf_field_type_common *ft_b);
 
-BT_HIDDEN
 int bt_ctf_field_type_common_array_compare_recursive(
 		struct bt_ctf_field_type_common *ft_a,
 		struct bt_ctf_field_type_common *ft_b);
 
-BT_HIDDEN
 int bt_ctf_field_type_common_sequence_compare_recursive(
 		struct bt_ctf_field_type_common *ft_a,
 		struct bt_ctf_field_type_common *ft_b);
 
-BT_HIDDEN
 int bt_ctf_field_type_common_compare(struct bt_ctf_field_type_common *ft_a,
 		struct bt_ctf_field_type_common *ft_b);
 
-BT_HIDDEN
 int64_t bt_ctf_field_type_common_get_field_count(struct bt_ctf_field_type_common *ft);
 
-BT_HIDDEN
 struct bt_ctf_field_type_common *bt_ctf_field_type_common_borrow_field_at_index(
 		struct bt_ctf_field_type_common *ft, int index);
 
-BT_HIDDEN
 int bt_ctf_field_type_common_get_field_index(struct bt_ctf_field_type_common *ft,
 		const char *name);
 
-BT_HIDDEN
 struct bt_ctf_field_path *bt_ctf_field_type_common_variant_borrow_tag_field_path(
 		struct bt_ctf_field_type_common *ft);
 
-BT_HIDDEN
 struct bt_ctf_field_path *bt_ctf_field_type_common_sequence_borrow_length_field_path(
 		struct bt_ctf_field_type_common *ft);
 
-BT_HIDDEN
 int bt_ctf_field_type_common_validate_single_clock_class(
 		struct bt_ctf_field_type_common *ft,
 		struct bt_ctf_clock_class **expected_clock_class);
 
-BT_HIDDEN
 int64_t bt_ctf_field_type_common_variant_find_choice_index(
 		struct bt_ctf_field_type_common *ft, uint64_t uval,
 		bool is_signed);
 
-BT_HIDDEN
 int bt_ctf_field_type_serialize_recursive(struct bt_ctf_field_type *type,
 		struct metadata_context *context);
 
-BT_HIDDEN
 struct bt_ctf_field_type *bt_ctf_field_type_copy(struct bt_ctf_field_type *ft);
 
 #endif /* BABELTRACE_CTF_WRITER_FIELD_TYPES_INTERNAL_H */

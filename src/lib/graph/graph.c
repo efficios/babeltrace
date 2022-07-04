@@ -170,6 +170,7 @@ void notify_message_graph_is_destroyed(struct bt_message *msg)
 	bt_message_unlink_graph(msg);
 }
 
+BT_EXPORT
 struct bt_graph *bt_graph_create(uint64_t mip_version)
 {
 	struct bt_graph *graph;
@@ -297,6 +298,7 @@ error:
 	goto end;
 }
 
+BT_EXPORT
 enum bt_graph_connect_ports_status bt_graph_connect_ports(
 		struct bt_graph *graph,
 		const struct bt_port_output *upstream_port_out,
@@ -509,7 +511,6 @@ end:
 	return status;
 }
 
-BT_HIDDEN
 int bt_graph_consume_sink_no_check(struct bt_graph *graph,
 		struct bt_component_sink *sink)
 {
@@ -648,6 +649,7 @@ end:
 	return status;
 }
 
+BT_EXPORT
 enum bt_graph_run_once_status bt_graph_run_once(struct bt_graph *graph)
 {
 	enum bt_graph_run_once_status status;
@@ -673,6 +675,7 @@ end:
 	return status;
 }
 
+BT_EXPORT
 enum bt_graph_run_status bt_graph_run(struct bt_graph *graph)
 {
 	enum bt_graph_run_status status;
@@ -744,6 +747,7 @@ end:
 	return status;
 }
 
+BT_EXPORT
 enum bt_graph_add_listener_status
 bt_graph_add_source_component_output_port_added_listener(
 		struct bt_graph *graph,
@@ -772,6 +776,7 @@ bt_graph_add_source_component_output_port_added_listener(
 	return BT_FUNC_STATUS_OK;
 }
 
+BT_EXPORT
 enum bt_graph_add_listener_status
 bt_graph_add_filter_component_output_port_added_listener(
 		struct bt_graph *graph,
@@ -800,6 +805,7 @@ bt_graph_add_filter_component_output_port_added_listener(
 	return BT_FUNC_STATUS_OK;
 }
 
+BT_EXPORT
 enum bt_graph_add_listener_status
 bt_graph_add_filter_component_input_port_added_listener(
 		struct bt_graph *graph,
@@ -828,6 +834,7 @@ bt_graph_add_filter_component_input_port_added_listener(
 	return BT_FUNC_STATUS_OK;
 }
 
+BT_EXPORT
 enum bt_graph_add_listener_status
 bt_graph_add_sink_component_input_port_added_listener(
 		struct bt_graph *graph,
@@ -856,7 +863,6 @@ bt_graph_add_sink_component_input_port_added_listener(
 	return BT_FUNC_STATUS_OK;
 }
 
-BT_HIDDEN
 enum bt_graph_listener_func_status bt_graph_notify_port_added(
 		struct bt_graph *graph, struct bt_port *port)
 {
@@ -939,7 +945,6 @@ end:
 	return status;
 }
 
-BT_HIDDEN
 void bt_graph_remove_connection(struct bt_graph *graph,
 		struct bt_connection *connection)
 {
@@ -1130,6 +1135,7 @@ add_source_component_with_initialize_method_data(
 		api_func, "bt_component_class_source_initialize_method");
 }
 
+BT_EXPORT
 enum bt_graph_add_component_status
 bt_graph_add_source_component_with_initialize_method_data(
 		struct bt_graph *graph,
@@ -1142,6 +1148,7 @@ bt_graph_add_source_component_with_initialize_method_data(
 		name, params, init_method_data, log_level, component, __func__);
 }
 
+BT_EXPORT
 enum bt_graph_add_component_status bt_graph_add_source_component(
 		struct bt_graph *graph,
 		const struct bt_component_class_source *comp_cls,
@@ -1171,6 +1178,7 @@ add_filter_component_with_initialize_method_data(
 		api_func, "bt_component_class_filter_initialize_method");
 }
 
+BT_EXPORT
 enum bt_graph_add_component_status
 bt_graph_add_filter_component_with_initialize_method_data(
 		struct bt_graph *graph,
@@ -1183,6 +1191,7 @@ bt_graph_add_filter_component_with_initialize_method_data(
 		name, params, init_method_data, log_level, component, __func__);
 }
 
+BT_EXPORT
 enum bt_graph_add_component_status bt_graph_add_filter_component(
 		struct bt_graph *graph,
 		const struct bt_component_class_filter *comp_cls,
@@ -1212,6 +1221,7 @@ add_sink_component_with_initialize_method_data(
 		api_func, "bt_component_class_sink_initialize_method");
 }
 
+BT_EXPORT
 enum bt_graph_add_component_status
 bt_graph_add_sink_component_with_initialize_method_data(
 		struct bt_graph *graph,
@@ -1225,6 +1235,7 @@ bt_graph_add_sink_component_with_initialize_method_data(
 		__func__);
 }
 
+BT_EXPORT
 enum bt_graph_add_component_status bt_graph_add_sink_component(
 		struct bt_graph *graph,
 		const struct bt_component_class_sink *comp_cls,
@@ -1236,6 +1247,7 @@ enum bt_graph_add_component_status bt_graph_add_sink_component(
 		name, params, NULL, log_level, component, __func__);
 }
 
+BT_EXPORT
 enum bt_graph_add_component_status
 bt_graph_add_simple_sink_component(struct bt_graph *graph, const char *name,
 		bt_graph_simple_sink_component_initialize_func init_func,
@@ -1277,7 +1289,6 @@ end:
 	return status;
 }
 
-BT_HIDDEN
 void bt_graph_add_message(struct bt_graph *graph,
 		struct bt_message *msg)
 {
@@ -1295,13 +1306,13 @@ void bt_graph_add_message(struct bt_graph *graph,
 	g_ptr_array_add(graph->messages, msg);
 }
 
-BT_HIDDEN
 bool bt_graph_is_interrupted(const struct bt_graph *graph)
 {
 	BT_ASSERT_DBG(graph);
 	return bt_interrupter_array_any_is_set(graph->interrupters);
 }
 
+BT_EXPORT
 enum bt_graph_add_interrupter_status bt_graph_add_interrupter(
 		struct bt_graph *graph, const struct bt_interrupter *intr)
 {
@@ -1315,17 +1326,20 @@ enum bt_graph_add_interrupter_status bt_graph_add_interrupter(
 	return BT_FUNC_STATUS_OK;
 }
 
+BT_EXPORT
 struct bt_interrupter *bt_graph_borrow_default_interrupter(bt_graph *graph)
 {
 	BT_ASSERT_PRE_GRAPH_NON_NULL(graph);
 	return graph->default_interrupter;
 }
 
+BT_EXPORT
 void bt_graph_get_ref(const struct bt_graph *graph)
 {
 	bt_object_get_ref(graph);
 }
 
+BT_EXPORT
 void bt_graph_put_ref(const struct bt_graph *graph)
 {
 	bt_object_put_ref(graph);

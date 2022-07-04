@@ -646,7 +646,6 @@ static INSTRUMENTED_CONST buffer_cb g_buffer_cb = buffer_callback;
 	#define OUT_DEBUGSTRING OUT_DEBUGSTRING_MASK, 0, out_debugstring_callback
 #endif
 
-BT_HIDDEN
 void bt_log_out_stderr_callback(const bt_log_message *const msg, void *arg)
 {
 	VAR_UNUSED(arg);
@@ -690,7 +689,6 @@ static const bt_log_output out_stderr = {BT_LOG_OUT_STDERR};
 	BT_LOG_DEFINE_GLOBAL_OUTPUT_LEVEL = 0;
 #endif
 
-BT_HIDDEN
 const bt_log_spec _bt_log_stderr_spec =
 {
 	BT_LOG_GLOBAL_FORMAT,
@@ -1252,25 +1250,21 @@ static void output_mem(const bt_log_spec *log, bt_log_message *const msg,
 	}
 }
 
-BT_HIDDEN
 void bt_log_set_tag_prefix(const char *const prefix)
 {
 	_bt_log_tag_prefix = prefix;
 }
 
-BT_HIDDEN
 void bt_log_set_mem_width(const unsigned w)
 {
 	_bt_log_global_format.mem_width = w;
 }
 
-BT_HIDDEN
 void bt_log_set_output_level(const int lvl)
 {
 	_bt_log_global_output_lvl = lvl;
 }
 
-BT_HIDDEN
 void bt_log_set_output_v(const unsigned mask, void *const arg,
 						 const bt_log_output_cb callback)
 {
@@ -1340,7 +1334,6 @@ void _bt_log_write_imp(
 	}
 }
 
-BT_HIDDEN
 void _bt_log_write_d(
 		const char *const func, const char *const file, const unsigned line,
 		const int lvl, const char *const tag,
@@ -1353,7 +1346,6 @@ void _bt_log_write_d(
 	va_end(va);
 }
 
-BT_HIDDEN
 void _bt_log_write_aux_d(
 		const char *const func, const char *const file, const unsigned line,
 		const bt_log_spec *const log, const int lvl, const char *const tag,
@@ -1366,7 +1358,6 @@ void _bt_log_write_aux_d(
 	va_end(va);
 }
 
-BT_HIDDEN
 void _bt_log_write(const int lvl, const char *const tag,
 				   const char *const fmt, ...)
 {
@@ -1376,7 +1367,6 @@ void _bt_log_write(const int lvl, const char *const tag,
 	va_end(va);
 }
 
-BT_HIDDEN
 void _bt_log_write_aux(
 		const bt_log_spec *const log, const int lvl, const char *const tag,
 		const char *const fmt, ...)
@@ -1387,7 +1377,6 @@ void _bt_log_write_aux(
 	va_end(va);
 }
 
-BT_HIDDEN
 void _bt_log_write_mem_d(
 		const char *const func, const char *const file, const unsigned line,
 		const int lvl, const char *const tag,
@@ -1402,7 +1391,6 @@ void _bt_log_write_mem_d(
 	va_end(va);
 }
 
-BT_HIDDEN
 void _bt_log_write_mem_aux_d(
 		const char *const func, const char *const file, const unsigned line,
 		const bt_log_spec *const log, const int lvl, const char *const tag,
@@ -1417,7 +1405,6 @@ void _bt_log_write_mem_aux_d(
 	va_end(va);
 }
 
-BT_HIDDEN
 void _bt_log_write_mem(const int lvl, const char *const tag,
 					   const void *const d, const unsigned d_sz,
 					   const char *const fmt, ...)
@@ -1429,7 +1416,6 @@ void _bt_log_write_mem(const int lvl, const char *const tag,
 	va_end(va);
 }
 
-BT_HIDDEN
 void _bt_log_write_mem_aux(
 		const bt_log_spec *const log, const int lvl, const char *const tag,
 		const void *const d, const unsigned d_sz,

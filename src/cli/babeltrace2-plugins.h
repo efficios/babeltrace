@@ -12,15 +12,15 @@
 #include <babeltrace2/babeltrace.h>
 #include "common/macros.h"
 
-BT_HIDDEN void init_loaded_plugins(void);
-BT_HIDDEN void fini_loaded_plugins(void);
+void init_loaded_plugins(void);
+void fini_loaded_plugins(void);
 
-BT_HIDDEN int require_loaded_plugins(const bt_value *plugin_paths);
+int require_loaded_plugins(const bt_value *plugin_paths);
 
-BT_HIDDEN size_t get_loaded_plugins_count(void);
-BT_HIDDEN const bt_plugin **borrow_loaded_plugins(void);
-BT_HIDDEN const bt_plugin *borrow_loaded_plugin_by_index(size_t index);
-BT_HIDDEN const bt_plugin *borrow_loaded_plugin_by_name(const char *name);
+size_t get_loaded_plugins_count(void);
+const bt_plugin **borrow_loaded_plugins(void);
+const bt_plugin *borrow_loaded_plugin_by_index(size_t index);
+const bt_plugin *borrow_loaded_plugin_by_name(const char *name);
 
 
 #endif /* CLI_BABELTRACE_PLUGINS_H */

@@ -1207,7 +1207,6 @@ end:
     return ret;
 }
 
-BT_HIDDEN
 int ctf_trace_class_resolve_field_classes(struct ctf_trace_class *tc,
                                           struct meta_log_config *log_cfg)
 {

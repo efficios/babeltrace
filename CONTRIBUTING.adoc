@@ -439,7 +439,6 @@ level, for example:
 +
 [source,c]
 ----
-BT_HIDDEN
 char *bt_common_get_home_plugin_path(int log_level);
 ----
 +
@@ -1148,7 +1147,6 @@ struct my_comp {
     /* ... */
 };
 
-BT_HIDDEN
 bt_self_component_status my_comp_init(
         bt_self_component_source *self_comp_src,
         bt_value *params, void *init_method_data)

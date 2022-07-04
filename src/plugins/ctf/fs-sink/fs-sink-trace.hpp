@@ -54,10 +54,8 @@ struct fs_sink_trace
     GHashTable *streams;
 };
 
-BT_HIDDEN
 struct fs_sink_trace *fs_sink_trace_create(struct fs_sink_comp *fs_sink, const bt_trace *ir_trace);
 
-BT_HIDDEN
 void fs_sink_trace_destroy(struct fs_sink_trace *trace);
 
 #endif /* BABELTRACE_PLUGIN_CTF_FS_SINK_FS_SINK_TRACE_H */

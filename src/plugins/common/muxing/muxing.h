@@ -10,7 +10,7 @@
 #include <babeltrace2/babeltrace.h>
 #include "common/macros.h"
 
-BT_EXTERN_C BT_HIDDEN
+BT_EXTERN_C
 int common_muxing_compare_messages(const bt_message *left_msg,
 		const bt_message *right_msg);
 

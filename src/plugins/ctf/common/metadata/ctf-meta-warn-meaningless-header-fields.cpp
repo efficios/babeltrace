@@ -107,7 +107,6 @@ end:
     return;
 }
 
-BT_HIDDEN
 void ctf_trace_class_warn_meaningless_header_fields(struct ctf_trace_class *ctf_tc,
                                                     struct meta_log_config *log_cfg)
 {

@@ -26,7 +26,6 @@ void destroy_private_dummy_data(struct dummy *dummy)
 
 }
 
-BT_HIDDEN
 void dummy_finalize(bt_self_component_sink *comp)
 {
 	struct dummy *dummy;
@@ -43,7 +42,6 @@ struct bt_param_validation_map_value_entry_descr dummy_params[] = {
 	BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_END
 };
 
-BT_HIDDEN
 bt_component_class_initialize_method_status dummy_init(
 		bt_self_component_sink *self_comp_sink,
 		bt_self_component_sink_configuration *config,
@@ -97,7 +95,6 @@ end:
 	return status;
 }
 
-BT_HIDDEN
 bt_component_class_sink_graph_is_configured_method_status dummy_graph_is_configured(
 		bt_self_component_sink *comp)
 {
@@ -127,7 +124,6 @@ end:
 	return status;
 }
 
-BT_HIDDEN
 bt_component_class_sink_consume_method_status dummy_consume(
 		bt_self_component_sink *component)
 {

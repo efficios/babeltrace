@@ -67,6 +67,7 @@ void set_base_offset(struct bt_clock_class *clock_class)
 		clock_class->frequency, &clock_class->base_offset.value_ns);
 }
 
+BT_EXPORT
 struct bt_clock_class *bt_clock_class_create(bt_self_component *self_comp)
 {
 	int ret;
@@ -128,12 +129,14 @@ end:
 	return clock_class;
 }
 
+BT_EXPORT
 const char *bt_clock_class_get_name(const struct bt_clock_class *clock_class)
 {
 	BT_ASSERT_PRE_DEV_CLK_CLS_NON_NULL(clock_class);
 	return clock_class->name.value;
 }
 
+BT_EXPORT
 enum bt_clock_class_set_name_status bt_clock_class_set_name(
 		struct bt_clock_class *clock_class, const char *name)
 {
@@ -147,6 +150,7 @@ enum bt_clock_class_set_name_status bt_clock_class_set_name(
 	return BT_FUNC_STATUS_OK;
 }
 
+BT_EXPORT
 const char *bt_clock_class_get_description(
 		const struct bt_clock_class *clock_class)
 {
@@ -154,6 +158,7 @@ const char *bt_clock_class_get_description(
 	return clock_class->description.value;
 }
 
+BT_EXPORT
 enum bt_clock_class_set_description_status bt_clock_class_set_description(
 		struct bt_clock_class *clock_class, const char *descr)
 {
@@ -168,12 +173,14 @@ enum bt_clock_class_set_description_status bt_clock_class_set_description(
 	return BT_FUNC_STATUS_OK;
 }
 
+BT_EXPORT
 uint64_t bt_clock_class_get_frequency(const struct bt_clock_class *clock_class)
 {
 	BT_ASSERT_PRE_DEV_CLK_CLS_NON_NULL(clock_class);
 	return clock_class->frequency;
 }
 
+BT_EXPORT
 void bt_clock_class_set_frequency(struct bt_clock_class *clock_class,
 		uint64_t frequency)
 {
@@ -192,12 +199,14 @@ void bt_clock_class_set_frequency(struct bt_clock_class *clock_class,
 	BT_LIB_LOGD("Set clock class's frequency: %!+K", clock_class);
 }
 
+BT_EXPORT
 uint64_t bt_clock_class_get_precision(const struct bt_clock_class *clock_class)
 {
 	BT_ASSERT_PRE_DEV_CLK_CLS_NON_NULL(clock_class);
 	return clock_class->precision;
 }
 
+BT_EXPORT
 void bt_clock_class_set_precision(struct bt_clock_class *clock_class,
 		uint64_t precision)
 {
@@ -210,6 +219,7 @@ void bt_clock_class_set_precision(struct bt_clock_class *clock_class,
 	BT_LIB_LOGD("Set clock class's precision: %!+K", clock_class);
 }
 
+BT_EXPORT
 void bt_clock_class_get_offset(const struct bt_clock_class *clock_class,
 		int64_t *seconds, uint64_t *cycles)
 {
@@ -221,6 +231,7 @@ void bt_clock_class_get_offset(const struct bt_clock_class *clock_class,
 	*cycles = clock_class->offset_cycles;
 }
 
+BT_EXPORT
 void bt_clock_class_set_offset(struct bt_clock_class *clock_class,
 		int64_t seconds, uint64_t cycles)
 {
@@ -236,12 +247,14 @@ void bt_clock_class_set_offset(struct bt_clock_class *clock_class,
 	BT_LIB_LOGD("Set clock class's offset: %!+K", clock_class);
 }
 
+BT_EXPORT
 bt_bool bt_clock_class_origin_is_unix_epoch(const struct bt_clock_class *clock_class)
 {
 	BT_ASSERT_PRE_DEV_CLK_CLS_NON_NULL(clock_class);
 	return (bool) clock_class->origin_is_unix_epoch;
 }
 
+BT_EXPORT
 void bt_clock_class_set_origin_is_unix_epoch(struct bt_clock_class *clock_class,
 		bt_bool origin_is_unix_epoch)
 {
@@ -252,12 +265,14 @@ void bt_clock_class_set_origin_is_unix_epoch(struct bt_clock_class *clock_class,
 		clock_class);
 }
 
+BT_EXPORT
 bt_uuid bt_clock_class_get_uuid(const struct bt_clock_class *clock_class)
 {
 	BT_ASSERT_PRE_DEV_CLK_CLS_NON_NULL(clock_class);
 	return clock_class->uuid.value;
 }
 
+BT_EXPORT
 void bt_clock_class_set_uuid(struct bt_clock_class *clock_class,
 		bt_uuid uuid)
 {
@@ -269,7 +284,6 @@ void bt_clock_class_set_uuid(struct bt_clock_class *clock_class,
 	BT_LIB_LOGD("Set clock class's UUID: %!+K", clock_class);
 }
 
-BT_HIDDEN
 void _bt_clock_class_freeze(const struct bt_clock_class *clock_class)
 {
 	BT_ASSERT(clock_class);
@@ -285,6 +299,7 @@ void _bt_clock_class_freeze(const struct bt_clock_class *clock_class)
 	((struct bt_clock_class *) clock_class)->frozen = 1;
 }
 
+BT_EXPORT
 enum bt_clock_class_cycles_to_ns_from_origin_status
 bt_clock_class_cycles_to_ns_from_origin(
 		const struct bt_clock_class *clock_class,
@@ -309,6 +324,7 @@ bt_clock_class_cycles_to_ns_from_origin(
 	return ret;
 }
 
+BT_EXPORT
 const struct bt_value *bt_clock_class_borrow_user_attributes_const(
 		const struct bt_clock_class *clock_class)
 {
@@ -316,6 +332,7 @@ const struct bt_value *bt_clock_class_borrow_user_attributes_const(
 	return clock_class->user_attributes;
 }
 
+BT_EXPORT
 struct bt_value *bt_clock_class_borrow_user_attributes(
 		struct bt_clock_class *clock_class)
 {
@@ -323,6 +340,7 @@ struct bt_value *bt_clock_class_borrow_user_attributes(
 		(void *) clock_class);
 }
 
+BT_EXPORT
 void bt_clock_class_set_user_attributes(
 		struct bt_clock_class *clock_class,
 		const struct bt_value *user_attributes)
@@ -336,11 +354,13 @@ void bt_clock_class_set_user_attributes(
 	bt_object_get_ref_no_null_check(clock_class->user_attributes);
 }
 
+BT_EXPORT
 void bt_clock_class_get_ref(const struct bt_clock_class *clock_class)
 {
 	bt_object_get_ref(clock_class);
 }
 
+BT_EXPORT
 void bt_clock_class_put_ref(const struct bt_clock_class *clock_class)
 {
 	bt_object_put_ref(clock_class);

@@ -130,7 +130,6 @@ struct bt_field_string {
 # define bt_field_set_single(_field, _val)
 #endif
 
-BT_HIDDEN
 void _bt_field_set_is_frozen(const struct bt_field *field, bool is_frozen);
 
 static inline
@@ -164,10 +163,8 @@ end:
 	return is_set;
 }
 
-BT_HIDDEN
 struct bt_field *bt_field_create(struct bt_field_class *class);
 
-BT_HIDDEN
 void bt_field_destroy(struct bt_field *field);
 
 #endif /* BABELTRACE_TRACE_IR_FIELDS_INTERNAL_H */

@@ -108,7 +108,6 @@ void destroy_private_counter_data(struct counter *counter)
 	}
 }
 
-BT_HIDDEN
 void counter_finalize(bt_self_component_sink *comp)
 {
 	struct counter *counter;
@@ -129,7 +128,6 @@ struct bt_param_validation_map_value_entry_descr counter_params[] = {
 	BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_END
 };
 
-BT_HIDDEN
 bt_component_class_initialize_method_status counter_init(
 		bt_self_component_sink *component,
 		bt_self_component_sink_configuration *config,
@@ -199,7 +197,6 @@ end:
 	return status;
 }
 
-BT_HIDDEN
 bt_component_class_sink_graph_is_configured_method_status
 counter_graph_is_configured(
 		bt_self_component_sink *comp)
@@ -230,7 +227,6 @@ end:
 	return status;
 }
 
-BT_HIDDEN
 bt_component_class_sink_consume_method_status counter_consume(
 		bt_self_component_sink *comp)
 {

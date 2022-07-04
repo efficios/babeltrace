@@ -22,7 +22,6 @@
 #define BT_ATTR_NAME_INDEX		0
 #define BT_ATTR_VALUE_INDEX		1
 
-BT_HIDDEN
 struct bt_value *bt_attributes_create(void)
 {
 	struct bt_value *attr_obj;
@@ -53,20 +52,17 @@ struct bt_value *bt_attributes_create(void)
 	return attr_obj;
 }
 
-BT_HIDDEN
 void bt_attributes_destroy(struct bt_value *attr_obj)
 {
 	BT_LOGD("Destroying attributes object: addr=%p", attr_obj);
 	BT_OBJECT_PUT_REF_AND_RESET(attr_obj);
 }
 
-BT_HIDDEN
 uint64_t bt_attributes_get_count(const struct bt_value *attr_obj)
 {
 	return bt_value_array_get_length(attr_obj);
 }
 
-BT_HIDDEN
 const char *bt_attributes_get_field_name(const struct bt_value *attr_obj,
 		uint64_t index)
 {
@@ -85,7 +81,6 @@ const char *bt_attributes_get_field_name(const struct bt_value *attr_obj,
 	return bt_value_string_get(attr_field_name_obj);
 }
 
-BT_HIDDEN
 struct bt_value *bt_attributes_borrow_field_value(
 		struct bt_value *attr_obj, uint64_t index)
 {
@@ -132,7 +127,6 @@ struct bt_value *bt_attributes_borrow_field_by_name(
 	return value_obj;
 }
 
-BT_HIDDEN
 int bt_attributes_set_field_value(struct bt_value *attr_obj,
 		const char *name, struct bt_value *value_obj)
 {
@@ -183,7 +177,6 @@ end:
 	return ret;
 }
 
-BT_HIDDEN
 struct bt_value *bt_attributes_borrow_field_value_by_name(
 		struct bt_value *attr_obj, const char *name)
 {
@@ -206,7 +199,6 @@ end:
 	return value_obj;
 }
 
-BT_HIDDEN
 int bt_attributes_freeze(const struct bt_value *attr_obj)
 {
 	uint64_t i, count;

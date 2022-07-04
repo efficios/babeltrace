@@ -1484,6 +1484,13 @@ update_fmt:
 	*out_fmt_ch = fmt_ch;
 }
 
+/*
+ * This function would normally not be BT_EXPORTed, but it is used by the
+ * Python plugin provider, which is conceptually part of libbabeltrace2, but
+ * implemented as a separate shared object, for modularity.  It is therefore
+ * exposed, but not part of the public ABI.
+ */
+BT_EXPORT
 void bt_lib_log_v(const char *func, const char *file, unsigned line,
 		int lvl, const char *tag, const char *fmt, va_list *args)
 {
@@ -1493,6 +1500,13 @@ void bt_lib_log_v(const char *func, const char *file, unsigned line,
 	_bt_log_write_d(func, file, line, lvl, tag, "%s", lib_logging_buf);
 }
 
+/*
+ * This function would normally not be BT_EXPORTed, but it is used by the
+ * Python plugin provider, which is conceptually part of libbabeltrace2, but
+ * implemented as a separate shared object, for modularity.  It is therefore
+ * exposed, but not part of the public ABI.
+ */
+BT_EXPORT
 void bt_lib_log(const char *func, const char *file, unsigned line,
 		int lvl, const char *tag, const char *fmt, ...)
 {
@@ -1504,6 +1518,13 @@ void bt_lib_log(const char *func, const char *file, unsigned line,
 	va_end(args);
 }
 
+/*
+ * This function would normally not be BT_EXPORTed, but it is used by the
+ * Python plugin provider, which is conceptually part of libbabeltrace2, but
+ * implemented as a separate shared object, for modularity.  It is therefore
+ * exposed, but not part of the ABI.
+ */
+BT_EXPORT
 void bt_lib_maybe_log_and_append_cause(const char *func, const char *file,
 		unsigned line, int lvl, const char *tag,
 		const char *fmt, ...)

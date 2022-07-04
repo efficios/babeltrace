@@ -248,7 +248,6 @@ struct bt_param_validation_map_value_entry_descr muxer_params[] = {
 	BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_END
 };
 
-BT_HIDDEN
 bt_component_class_initialize_method_status muxer_init(
 		bt_self_component_filter *self_comp_flt,
 		bt_self_component_filter_configuration *config,
@@ -333,7 +332,6 @@ end:
 	return status;
 }
 
-BT_HIDDEN
 void muxer_finalize(bt_self_component_filter *self_comp)
 {
 	struct muxer_comp *muxer_comp = bt_self_component_get_data(
@@ -1290,7 +1288,6 @@ end:
 	return status;
 }
 
-BT_HIDDEN
 bt_message_iterator_class_initialize_method_status muxer_msg_iter_init(
 		bt_self_message_iterator *self_msg_iter,
 		bt_self_message_iterator_configuration *config,
@@ -1380,7 +1377,6 @@ end:
 	return status;
 }
 
-BT_HIDDEN
 void muxer_msg_iter_finalize(bt_self_message_iterator *self_msg_iter)
 {
 	struct muxer_msg_iter *muxer_msg_iter =
@@ -1402,7 +1398,6 @@ void muxer_msg_iter_finalize(bt_self_message_iterator *self_msg_iter)
 	}
 }
 
-BT_HIDDEN
 bt_message_iterator_class_next_method_status muxer_msg_iter_next(
 		bt_self_message_iterator *self_msg_iter,
 		bt_message_array_const msgs, uint64_t capacity,
@@ -1443,7 +1438,6 @@ bt_message_iterator_class_next_method_status muxer_msg_iter_next(
 	return status;
 }
 
-BT_HIDDEN
 bt_component_class_port_connected_method_status muxer_input_port_connected(
 		bt_self_component_filter *self_comp,
 		bt_self_component_port_input *self_port,
@@ -1508,7 +1502,6 @@ end:
 	return status;
 }
 
-BT_HIDDEN
 bt_message_iterator_class_can_seek_beginning_method_status
 muxer_msg_iter_can_seek_beginning(
 		bt_self_message_iterator *self_msg_iter, bt_bool *can_seek)
@@ -1536,7 +1529,6 @@ end:
 	return status;
 }
 
-BT_HIDDEN
 bt_message_iterator_class_seek_beginning_method_status muxer_msg_iter_seek_beginning(
 		bt_self_message_iterator *self_msg_iter)
 {

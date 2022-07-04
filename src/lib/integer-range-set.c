@@ -16,6 +16,7 @@
 #include "func-status.h"
 #include "integer-range-set.h"
 
+BT_EXPORT
 uint64_t bt_integer_range_unsigned_get_lower(
 		const struct bt_integer_range_unsigned *u_range)
 {
@@ -25,6 +26,7 @@ uint64_t bt_integer_range_unsigned_get_lower(
 	return range->lower.u;
 }
 
+BT_EXPORT
 uint64_t bt_integer_range_unsigned_get_upper(
 		const struct bt_integer_range_unsigned *u_range)
 {
@@ -34,6 +36,7 @@ uint64_t bt_integer_range_unsigned_get_upper(
 	return range->upper.u;
 }
 
+BT_EXPORT
 int64_t bt_integer_range_signed_get_lower(
 		const struct bt_integer_range_signed *i_range)
 {
@@ -43,6 +46,7 @@ int64_t bt_integer_range_signed_get_lower(
 	return range->lower.i;
 }
 
+BT_EXPORT
 int64_t bt_integer_range_signed_get_upper(
 		const struct bt_integer_range_signed *i_range)
 {
@@ -60,6 +64,7 @@ bool compare_ranges(const struct bt_integer_range *range_a,
 		range_a->upper.u == range_b->upper.u;
 }
 
+BT_EXPORT
 bt_bool bt_integer_range_unsigned_is_equal(
 		const struct bt_integer_range_unsigned *range_a,
 		const struct bt_integer_range_unsigned *range_b)
@@ -72,6 +77,7 @@ bt_bool bt_integer_range_unsigned_is_equal(
 		(const void *) range_b);
 }
 
+BT_EXPORT
 bt_bool bt_integer_range_signed_is_equal(
 		const struct bt_integer_range_signed *range_a,
 		const struct bt_integer_range_signed *range_b)
@@ -84,6 +90,7 @@ bt_bool bt_integer_range_signed_is_equal(
 		(const void *) range_b);
 }
 
+BT_EXPORT
 uint64_t bt_integer_range_set_get_range_count(
 		const bt_integer_range_set *range_set)
 {
@@ -91,6 +98,7 @@ uint64_t bt_integer_range_set_get_range_count(
 	return (uint64_t) range_set->ranges->len;
 }
 
+BT_EXPORT
 const struct bt_integer_range_unsigned *
 bt_integer_range_set_unsigned_borrow_range_by_index_const(
 		const bt_integer_range_set_unsigned *u_range_set,
@@ -105,6 +113,7 @@ bt_integer_range_set_unsigned_borrow_range_by_index_const(
 		index);
 }
 
+BT_EXPORT
 const struct bt_integer_range_signed *
 bt_integer_range_set_signed_borrow_range_by_index_const(
 		const bt_integer_range_set_signed *i_range_set, uint64_t index)
@@ -166,6 +175,7 @@ end:
 	return range_set;
 }
 
+BT_EXPORT
 struct bt_integer_range_set_unsigned *bt_integer_range_set_unsigned_create(void)
 {
 	BT_ASSERT_PRE_NO_ERROR();
@@ -173,6 +183,7 @@ struct bt_integer_range_set_unsigned *bt_integer_range_set_unsigned_create(void)
 	return (void *) create_range_set();
 }
 
+BT_EXPORT
 struct bt_integer_range_set_signed *bt_integer_range_set_signed_create(void)
 {
 	BT_ASSERT_PRE_NO_ERROR();
@@ -198,6 +209,7 @@ void add_range_to_range_set(struct bt_integer_range_set *range_set,
 		"upper-unsigned=%" PRIu64, range_set, u_lower, u_upper);
 }
 
+BT_EXPORT
 enum bt_integer_range_set_add_range_status
 bt_integer_range_set_unsigned_add_range(
 		struct bt_integer_range_set_unsigned *range_set,
@@ -211,6 +223,7 @@ bt_integer_range_set_unsigned_add_range(
 	return BT_FUNC_STATUS_OK;
 }
 
+BT_EXPORT
 enum bt_integer_range_set_add_range_status
 bt_integer_range_set_signed_add_range(
 		struct bt_integer_range_set_signed *range_set,
@@ -225,7 +238,6 @@ bt_integer_range_set_signed_add_range(
 	return BT_FUNC_STATUS_OK;
 }
 
-BT_HIDDEN
 void _bt_integer_range_set_freeze(const struct bt_integer_range_set *range_set)
 {
 	BT_ASSERT(range_set);
@@ -233,7 +245,6 @@ void _bt_integer_range_set_freeze(const struct bt_integer_range_set *range_set)
 	((struct bt_integer_range_set *) range_set)->frozen = true;
 }
 
-BT_HIDDEN
 bool bt_integer_range_set_unsigned_has_overlaps(
 		const struct bt_integer_range_set *range_set)
 {
@@ -267,7 +278,6 @@ end:
 	return has_overlap;
 }
 
-BT_HIDDEN
 bool bt_integer_range_set_signed_has_overlaps(
 		const struct bt_integer_range_set *range_set)
 {
@@ -351,6 +361,7 @@ end:
 	return is_equal;
 }
 
+BT_EXPORT
 bt_bool bt_integer_range_set_unsigned_is_equal(
 		const struct bt_integer_range_set_unsigned *range_set_a,
 		const struct bt_integer_range_set_unsigned *range_set_b)
@@ -363,6 +374,7 @@ bt_bool bt_integer_range_set_unsigned_is_equal(
 		(const void *) range_set_b);
 }
 
+BT_EXPORT
 bt_bool bt_integer_range_set_signed_is_equal(
 		const struct bt_integer_range_set_signed *range_set_a,
 		const struct bt_integer_range_set_signed *range_set_b)
@@ -375,24 +387,28 @@ bt_bool bt_integer_range_set_signed_is_equal(
 		(const void *) range_set_b);
 }
 
+BT_EXPORT
 void bt_integer_range_set_unsigned_get_ref(
 		const struct bt_integer_range_set_unsigned *range_set)
 {
 	bt_object_get_ref(range_set);
 }
 
+BT_EXPORT
 void bt_integer_range_set_unsigned_put_ref(
 		const struct bt_integer_range_set_unsigned *range_set)
 {
 	bt_object_put_ref(range_set);
 }
 
+BT_EXPORT
 void bt_integer_range_set_signed_get_ref(
 		const struct bt_integer_range_set_signed *range_set)
 {
 	bt_object_get_ref(range_set);
 }
 
+BT_EXPORT
 void bt_integer_range_set_signed_put_ref(
 		const struct bt_integer_range_set_signed *range_set)
 {

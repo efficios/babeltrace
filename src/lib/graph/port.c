@@ -34,7 +34,6 @@ void destroy_port(struct bt_object *obj)
 	g_free(port);
 }
 
-BT_HIDDEN
 struct bt_port *bt_port_create(struct bt_component *parent_component,
 		enum bt_port_type type, const char *name, void *user_data)
 {
@@ -71,18 +70,21 @@ end:
 	return port;
 }
 
+BT_EXPORT
 const char *bt_port_get_name(const struct bt_port *port)
 {
 	BT_ASSERT_PRE_DEV_PORT_NON_NULL(port);
 	return port->name->str;
 }
 
+BT_EXPORT
 enum bt_port_type bt_port_get_type(const struct bt_port *port)
 {
 	BT_ASSERT_PRE_DEV_PORT_NON_NULL(port);
 	return port->type;
 }
 
+BT_EXPORT
 const struct bt_connection *bt_port_borrow_connection_const(
 		const struct bt_port *port)
 {
@@ -90,6 +92,7 @@ const struct bt_connection *bt_port_borrow_connection_const(
 	return port->connection;
 }
 
+BT_EXPORT
 const struct bt_component *bt_port_borrow_component_const(
 		const struct bt_port *port)
 {
@@ -97,6 +100,7 @@ const struct bt_component *bt_port_borrow_component_const(
 	return bt_port_borrow_component_inline(port);
 }
 
+BT_EXPORT
 struct bt_self_component *bt_self_component_port_borrow_component(
 		struct bt_self_component_port *port)
 {
@@ -104,7 +108,6 @@ struct bt_self_component *bt_self_component_port_borrow_component(
 	return (void *) bt_object_borrow_parent((void *) port);
 }
 
-BT_HIDDEN
 void bt_port_set_connection(struct bt_port *port,
 		struct bt_connection *connection)
 {
@@ -118,43 +121,51 @@ void bt_port_set_connection(struct bt_port *port,
 		connection);
 }
 
+BT_EXPORT
 bt_bool bt_port_is_connected(const struct bt_port *port)
 {
 	BT_ASSERT_PRE_DEV_PORT_NON_NULL(port);
 	return port->connection ? BT_TRUE : BT_FALSE;
 }
 
+BT_EXPORT
 void *bt_self_component_port_get_data(const struct bt_self_component_port *port)
 {
 	BT_ASSERT_PRE_DEV_PORT_NON_NULL(port);
 	return ((struct bt_port *) port)->user_data;
 }
 
+BT_EXPORT
 void bt_port_get_ref(const struct bt_port *port)
 {
 	bt_object_get_ref(port);
 }
 
+BT_EXPORT
 void bt_port_put_ref(const struct bt_port *port)
 {
 	bt_object_put_ref(port);
 }
 
+BT_EXPORT
 void bt_port_input_get_ref(const struct bt_port_input *port_input)
 {
 	bt_object_get_ref(port_input);
 }
 
+BT_EXPORT
 void bt_port_input_put_ref(const struct bt_port_input *port_input)
 {
 	bt_object_put_ref(port_input);
 }
 
+BT_EXPORT
 void bt_port_output_get_ref(const struct bt_port_output *port_output)
 {
 	bt_object_get_ref(port_output);
 }
 
+BT_EXPORT
 void bt_port_output_put_ref(const struct bt_port_output *port_output)
 {
 	bt_object_put_ref(port_output);

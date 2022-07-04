@@ -12,7 +12,6 @@
 #include <common/macros.h>
 #include <glib.h>
 
-BT_HIDDEN
 gchar *format_plugin_comp_cls_opt(const char *plugin_name,
 		const char *comp_cls_name, bt_component_class_type type,
 		enum bt_common_color_when use_colors);

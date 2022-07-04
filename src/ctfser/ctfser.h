@@ -67,7 +67,7 @@ struct bt_ctfser {
  *
  * This function opens the file `path` for writing.
  */
-BT_EXTERN_C BT_HIDDEN
+BT_EXTERN_C
 int bt_ctfser_init(struct bt_ctfser *ctfser, const char *path,
 		int log_level);
 
@@ -77,7 +77,7 @@ int bt_ctfser_init(struct bt_ctfser *ctfser, const char *path,
  * This function truncates the stream file so that there's no extra
  * padding after the last packet, and then closes the file.
  */
-BT_EXTERN_C BT_HIDDEN
+BT_EXTERN_C
 int bt_ctfser_fini(struct bt_ctfser *ctfser);
 
 /*
@@ -85,17 +85,17 @@ int bt_ctfser_fini(struct bt_ctfser *ctfser);
  *
  * All the next writing functions are performed within this new packet.
  */
-BT_EXTERN_C BT_HIDDEN
+BT_EXTERN_C
 int bt_ctfser_open_packet(struct bt_ctfser *ctfser);
 
 /*
  * Closes the current packet, making its size `packet_size_bytes`.
  */
-BT_EXTERN_C BT_HIDDEN
+BT_EXTERN_C
 void bt_ctfser_close_current_packet(struct bt_ctfser *ctfser,
 		uint64_t packet_size_bytes);
 
-BT_EXTERN_C BT_HIDDEN
+BT_EXTERN_C
 int _bt_ctfser_increase_cur_packet_size(struct bt_ctfser *ctfser);
 
 static inline

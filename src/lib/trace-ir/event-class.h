@@ -56,7 +56,6 @@ struct bt_event_class {
 	bool frozen;
 };
 
-BT_HIDDEN
 void _bt_event_class_freeze(const struct bt_event_class *event_class);
 
 #ifdef BT_DEV_MODE

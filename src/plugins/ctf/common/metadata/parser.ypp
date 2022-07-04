@@ -47,17 +47,11 @@ _bt_list_splice_tail (struct bt_list_head *add, struct bt_list_head *head)
 	}
 }
 
-BT_HIDDEN
 int yylex(union YYSTYPE *yyval, yyscan_t yyscanner);
-BT_HIDDEN
 int yylex_init_extra(struct ctf_scanner *scanner, yyscan_t * ptr_yy_globals);
-BT_HIDDEN
 int yylex_destroy(yyscan_t yyscanner);
-BT_HIDDEN
 void yyrestart(FILE * in_str, yyscan_t yyscanner);
-BT_HIDDEN
 int yyget_lineno(yyscan_t yyscanner);
-BT_HIDDEN
 char *yyget_text(yyscan_t yyscanner);
 
 /*
@@ -74,7 +68,6 @@ static struct ctf_node error_node = {
 	.type = NODE_ERROR,
 };
 
-BT_HIDDEN
 const char *node_type(struct ctf_node *node)
 {
 	switch (node->type) {
@@ -327,7 +320,6 @@ static int lookup_type(struct ctf_scanner_scope *s, const char *id)
 	return ret;
 }
 
-BT_HIDDEN
 int is_type(struct ctf_scanner *scanner, const char *id)
 {
 	struct ctf_scanner_scope *it;
@@ -1059,10 +1051,8 @@ void ctf_scanner_free(struct ctf_scanner *scanner)
 }
 
 %code provides {
-	BT_HIDDEN
 	void setstring(struct ctf_scanner *scanner, YYSTYPE *lvalp, const char *src);
 
-	BT_HIDDEN
 	int import_string(struct ctf_scanner *scanner, YYSTYPE *lvalp, const char *src, char delim);
 }
 

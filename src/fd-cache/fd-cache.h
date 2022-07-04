@@ -26,17 +26,13 @@ int bt_fd_cache_handle_get_fd(struct bt_fd_cache_handle *handle)
 	return handle->fd;
 }
 
-BT_HIDDEN
 int bt_fd_cache_init(struct bt_fd_cache *fdc, int log_level);
 
-BT_HIDDEN
 void bt_fd_cache_fini(struct bt_fd_cache *fdc);
 
-BT_HIDDEN
 struct bt_fd_cache_handle *bt_fd_cache_get_handle(struct bt_fd_cache *fdc,
 		const char *path);
 
-BT_HIDDEN
 void bt_fd_cache_put_handle(struct bt_fd_cache *fdc,
 		struct bt_fd_cache_handle *handle);
 

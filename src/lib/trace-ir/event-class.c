@@ -160,6 +160,7 @@ end:
 	return event_class;
 }
 
+BT_EXPORT
 struct bt_event_class *bt_event_class_create(
 		struct bt_stream_class *stream_class)
 {
@@ -174,6 +175,7 @@ struct bt_event_class *bt_event_class_create(
 		(uint64_t) stream_class->event_classes->len);
 }
 
+BT_EXPORT
 struct bt_event_class *bt_event_class_create_with_id(
 		struct bt_stream_class *stream_class, uint64_t id)
 {
@@ -186,12 +188,14 @@ struct bt_event_class *bt_event_class_create_with_id(
 	return create_event_class_with_id(stream_class, id);
 }
 
+BT_EXPORT
 const char *bt_event_class_get_name(const struct bt_event_class *event_class)
 {
 	BT_ASSERT_PRE_DEV_EC_NON_NULL(event_class);
 	return event_class->name.value;
 }
 
+BT_EXPORT
 enum bt_event_class_set_name_status bt_event_class_set_name(
 		struct bt_event_class *event_class, const char *name)
 {
@@ -205,12 +209,14 @@ enum bt_event_class_set_name_status bt_event_class_set_name(
 	return BT_FUNC_STATUS_OK;
 }
 
+BT_EXPORT
 uint64_t bt_event_class_get_id(const struct bt_event_class *event_class)
 {
 	BT_ASSERT_PRE_DEV_EC_NON_NULL(event_class);
 	return event_class->id;
 }
 
+BT_EXPORT
 enum bt_property_availability bt_event_class_get_log_level(
 		const struct bt_event_class *event_class,
 		enum bt_event_class_log_level *log_level)
@@ -223,6 +229,7 @@ enum bt_property_availability bt_event_class_get_log_level(
 	return event_class->log_level.base.avail;
 }
 
+BT_EXPORT
 void bt_event_class_set_log_level(
 		struct bt_event_class *event_class,
 		enum bt_event_class_log_level log_level)
@@ -234,12 +241,14 @@ void bt_event_class_set_log_level(
 	BT_LIB_LOGD("Set event class's log level: %!+E", event_class);
 }
 
+BT_EXPORT
 const char *bt_event_class_get_emf_uri(const struct bt_event_class *event_class)
 {
 	BT_ASSERT_PRE_DEV_EC_NON_NULL(event_class);
 	return event_class->emf_uri.value;
 }
 
+BT_EXPORT
 enum bt_event_class_set_emf_uri_status bt_event_class_set_emf_uri(
 		struct bt_event_class *event_class,
 		const char *emf_uri)
@@ -254,6 +263,7 @@ enum bt_event_class_set_emf_uri_status bt_event_class_set_emf_uri(
 	return BT_FUNC_STATUS_OK;
 }
 
+BT_EXPORT
 struct bt_stream_class *bt_event_class_borrow_stream_class(
 		struct bt_event_class *event_class)
 {
@@ -261,6 +271,7 @@ struct bt_stream_class *bt_event_class_borrow_stream_class(
 	return bt_event_class_borrow_stream_class_inline(event_class);
 }
 
+BT_EXPORT
 const struct bt_stream_class *
 bt_event_class_borrow_stream_class_const(
 		const struct bt_event_class *event_class)
@@ -268,6 +279,7 @@ bt_event_class_borrow_stream_class_const(
 	return bt_event_class_borrow_stream_class((void *) event_class);
 }
 
+BT_EXPORT
 const struct bt_field_class *
 bt_event_class_borrow_specific_context_field_class_const(
 		const struct bt_event_class *event_class)
@@ -276,6 +288,7 @@ bt_event_class_borrow_specific_context_field_class_const(
 	return event_class->specific_context_fc;
 }
 
+BT_EXPORT
 struct bt_field_class *
 bt_event_class_borrow_specific_context_field_class(
 		struct bt_event_class *event_class)
@@ -284,6 +297,7 @@ bt_event_class_borrow_specific_context_field_class(
 	return event_class->specific_context_fc;
 }
 
+BT_EXPORT
 enum bt_event_class_set_field_class_status
 bt_event_class_set_specific_context_field_class(
 		struct bt_event_class *event_class,
@@ -333,6 +347,7 @@ end:
 	return ret;
 }
 
+BT_EXPORT
 const struct bt_field_class *bt_event_class_borrow_payload_field_class_const(
 		const struct bt_event_class *event_class)
 {
@@ -340,6 +355,7 @@ const struct bt_field_class *bt_event_class_borrow_payload_field_class_const(
 	return event_class->payload_fc;
 }
 
+BT_EXPORT
 struct bt_field_class *bt_event_class_borrow_payload_field_class(
 		struct bt_event_class *event_class)
 {
@@ -347,6 +363,7 @@ struct bt_field_class *bt_event_class_borrow_payload_field_class(
 	return event_class->payload_fc;
 }
 
+BT_EXPORT
 enum bt_event_class_set_field_class_status
 bt_event_class_set_payload_field_class(
 		struct bt_event_class *event_class,
@@ -395,7 +412,6 @@ end:
 	return ret;
 }
 
-BT_HIDDEN
 void _bt_event_class_freeze(const struct bt_event_class *event_class)
 {
 	/* The field classes are already frozen */
@@ -407,6 +423,7 @@ void _bt_event_class_freeze(const struct bt_event_class *event_class)
 	((struct bt_event_class *) event_class)->frozen = true;
 }
 
+BT_EXPORT
 const struct bt_value *bt_event_class_borrow_user_attributes_const(
 		const struct bt_event_class *event_class)
 {
@@ -414,6 +431,7 @@ const struct bt_value *bt_event_class_borrow_user_attributes_const(
 	return event_class->user_attributes;
 }
 
+BT_EXPORT
 struct bt_value *bt_event_class_borrow_user_attributes(
 		struct bt_event_class *event_class)
 {
@@ -421,6 +439,7 @@ struct bt_value *bt_event_class_borrow_user_attributes(
 		(void *) event_class);
 }
 
+BT_EXPORT
 void bt_event_class_set_user_attributes(
 		struct bt_event_class *event_class,
 		const struct bt_value *user_attributes)
@@ -434,11 +453,13 @@ void bt_event_class_set_user_attributes(
 	bt_object_get_ref_no_null_check(event_class->user_attributes);
 }
 
+BT_EXPORT
 void bt_event_class_get_ref(const struct bt_event_class *event_class)
 {
 	bt_object_get_ref(event_class);
 }
 
+BT_EXPORT
 void bt_event_class_put_ref(const struct bt_event_class *event_class)
 {
 	bt_object_put_ref(event_class);

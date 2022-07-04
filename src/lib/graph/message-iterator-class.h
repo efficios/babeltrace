@@ -30,7 +30,6 @@ struct bt_message_iterator_class {
 	} methods;
 };
 
-BT_HIDDEN
 void _bt_message_iterator_class_freeze(
 		const struct bt_message_iterator_class *message_iterator_class);
 

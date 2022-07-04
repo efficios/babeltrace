@@ -13,7 +13,6 @@
 
 #include "common/macros.h"
 
-BT_HIDDEN
 bt_value *bt_param_parse(const char *arg, GString *ini_error);
 
 #endif /* SRC_VALUE_PARSE_VALUE_PARSE_H */

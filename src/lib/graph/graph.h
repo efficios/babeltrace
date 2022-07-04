@@ -143,23 +143,18 @@ void bt_graph_set_can_consume(struct bt_graph *graph, bool can_consume)
 	graph->can_consume = can_consume;
 }
 
-BT_HIDDEN
 int bt_graph_consume_sink_no_check(struct bt_graph *graph,
 		struct bt_component_sink *sink);
 
-BT_HIDDEN
 enum bt_graph_listener_func_status bt_graph_notify_port_added(struct bt_graph *graph,
 		struct bt_port *port);
 
-BT_HIDDEN
 void bt_graph_remove_connection(struct bt_graph *graph,
 		struct bt_connection *connection);
 
-BT_HIDDEN
 void bt_graph_add_message(struct bt_graph *graph,
 		struct bt_message *msg);
 
-BT_HIDDEN
 bool bt_graph_is_interrupted(const struct bt_graph *graph);
 
 static inline

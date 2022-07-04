@@ -22,7 +22,6 @@
  * @param crc	Out parameter, the computed checksum
  * @returns	0 on success, -1 on failure.
  */
-BT_HIDDEN
 int crc32(int fd, uint32_t *crc);
 
 #endif	/* _BABELTRACE_CRC32_H */

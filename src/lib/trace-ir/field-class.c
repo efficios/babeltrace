@@ -31,6 +31,7 @@
 #include "lib/integer-range-set.h"
 #include "lib/value.h"
 
+BT_EXPORT
 enum bt_field_class_type bt_field_class_get_type(
 		const struct bt_field_class *fc)
 {
@@ -75,6 +76,7 @@ void destroy_bit_array_field_class(struct bt_object *obj)
 	g_free(obj);
 }
 
+BT_EXPORT
 struct bt_field_class *bt_field_class_bit_array_create(
 		struct bt_trace_class *trace_class, uint64_t length)
 {
@@ -109,6 +111,7 @@ end:
 	return (void *) ba_fc;
 }
 
+BT_EXPORT
 uint64_t bt_field_class_bit_array_get_length(const struct bt_field_class *fc)
 {
 	const struct bt_field_class_bit_array *ba_fc = (const void *) fc;
@@ -128,6 +131,7 @@ void destroy_bool_field_class(struct bt_object *obj)
 	g_free(obj);
 }
 
+BT_EXPORT
 struct bt_field_class *bt_field_class_bool_create(
 		bt_trace_class *trace_class)
 {
@@ -217,6 +221,7 @@ end:
 	return (void *) int_fc;
 }
 
+BT_EXPORT
 struct bt_field_class *bt_field_class_integer_unsigned_create(
 		bt_trace_class *trace_class)
 {
@@ -226,6 +231,7 @@ struct bt_field_class *bt_field_class_integer_unsigned_create(
 		BT_FIELD_CLASS_TYPE_UNSIGNED_INTEGER);
 }
 
+BT_EXPORT
 struct bt_field_class *bt_field_class_integer_signed_create(
 		bt_trace_class *trace_class)
 {
@@ -235,6 +241,7 @@ struct bt_field_class *bt_field_class_integer_signed_create(
 		BT_FIELD_CLASS_TYPE_SIGNED_INTEGER);
 }
 
+BT_EXPORT
 uint64_t bt_field_class_integer_get_field_value_range(
 		const struct bt_field_class *fc)
 {
@@ -253,6 +260,7 @@ bool size_is_valid_for_enumeration_field_class(struct bt_field_class *fc,
 	return true;
 }
 
+BT_EXPORT
 void bt_field_class_integer_set_field_value_range(
 		struct bt_field_class *fc, uint64_t size)
 {
@@ -276,6 +284,7 @@ void bt_field_class_integer_set_field_value_range(
 	BT_LIB_LOGD("Set integer field class's field value range: %!+F", fc);
 }
 
+BT_EXPORT
 enum bt_field_class_integer_preferred_display_base
 bt_field_class_integer_get_preferred_display_base(const struct bt_field_class *fc)
 {
@@ -286,6 +295,7 @@ bt_field_class_integer_get_preferred_display_base(const struct bt_field_class *f
 	return int_fc->base;
 }
 
+BT_EXPORT
 void bt_field_class_integer_set_preferred_display_base(
 		struct bt_field_class *fc,
 		enum bt_field_class_integer_preferred_display_base base)
@@ -386,6 +396,7 @@ end:
 	return (void *) enum_fc;
 }
 
+BT_EXPORT
 struct bt_field_class *bt_field_class_enumeration_unsigned_create(
 		bt_trace_class *trace_class)
 {
@@ -395,6 +406,7 @@ struct bt_field_class *bt_field_class_enumeration_unsigned_create(
 		BT_FIELD_CLASS_TYPE_UNSIGNED_ENUMERATION);
 }
 
+BT_EXPORT
 struct bt_field_class *bt_field_class_enumeration_signed_create(
 		bt_trace_class *trace_class)
 {
@@ -404,6 +416,7 @@ struct bt_field_class *bt_field_class_enumeration_signed_create(
 		BT_FIELD_CLASS_TYPE_SIGNED_ENUMERATION);
 }
 
+BT_EXPORT
 uint64_t bt_field_class_enumeration_get_mapping_count(
 		const struct bt_field_class *fc)
 {
@@ -414,6 +427,7 @@ uint64_t bt_field_class_enumeration_get_mapping_count(
 	return (uint64_t) enum_fc->mappings->len;
 }
 
+BT_EXPORT
 const struct bt_field_class_enumeration_unsigned_mapping *
 bt_field_class_enumeration_unsigned_borrow_mapping_by_index_const(
 		const struct bt_field_class *fc, uint64_t index)
@@ -427,6 +441,7 @@ bt_field_class_enumeration_unsigned_borrow_mapping_by_index_const(
 	return (const void *) BT_FIELD_CLASS_ENUM_MAPPING_AT_INDEX(fc, index);
 }
 
+BT_EXPORT
 const struct bt_field_class_enumeration_signed_mapping *
 bt_field_class_enumeration_signed_borrow_mapping_by_index_const(
 		const struct bt_field_class *fc, uint64_t index)
@@ -467,6 +482,7 @@ end:
 	return mapping;
 }
 
+BT_EXPORT
 const struct bt_field_class_enumeration_signed_mapping *
 bt_field_class_enumeration_signed_borrow_mapping_by_label_const(
 		const struct bt_field_class *fc, const char *label)
@@ -478,6 +494,7 @@ bt_field_class_enumeration_signed_borrow_mapping_by_label_const(
 		(const void *) fc, label, __func__);
 }
 
+BT_EXPORT
 const struct bt_field_class_enumeration_unsigned_mapping *
 bt_field_class_enumeration_unsigned_borrow_mapping_by_label_const(
 		const struct bt_field_class *fc, const char *label)
@@ -489,6 +506,7 @@ bt_field_class_enumeration_unsigned_borrow_mapping_by_label_const(
 		(const void *) fc, label, __func__);
 }
 
+BT_EXPORT
 const char *bt_field_class_enumeration_mapping_get_label(
 		const struct bt_field_class_enumeration_mapping *mapping)
 {
@@ -497,6 +515,7 @@ const char *bt_field_class_enumeration_mapping_get_label(
 	return mapping->label->str;
 }
 
+BT_EXPORT
 const struct bt_integer_range_set_unsigned *
 bt_field_class_enumeration_unsigned_mapping_borrow_ranges_const(
 		const struct bt_field_class_enumeration_unsigned_mapping *u_mapping)
@@ -509,6 +528,7 @@ bt_field_class_enumeration_unsigned_mapping_borrow_ranges_const(
 	return (const void *) mapping->range_set;
 }
 
+BT_EXPORT
 const struct bt_integer_range_set_signed *
 bt_field_class_enumeration_signed_mapping_borrow_ranges_const(
 		const struct bt_field_class_enumeration_signed_mapping *s_mapping)
@@ -521,6 +541,7 @@ bt_field_class_enumeration_signed_mapping_borrow_ranges_const(
 	return (const void *) mapping->range_set;
 }
 
+BT_EXPORT
 enum bt_field_class_enumeration_get_mapping_labels_for_value_status
 bt_field_class_enumeration_unsigned_get_mapping_labels_for_value(
 		const struct bt_field_class *fc, uint64_t value,
@@ -563,6 +584,7 @@ bt_field_class_enumeration_unsigned_get_mapping_labels_for_value(
 	return BT_FUNC_STATUS_OK;
 }
 
+BT_EXPORT
 enum bt_field_class_enumeration_get_mapping_labels_for_value_status
 bt_field_class_enumeration_signed_get_mapping_labels_for_value(
 		const struct bt_field_class *fc, int64_t value,
@@ -668,6 +690,7 @@ end:
 	return status;
 }
 
+BT_EXPORT
 enum bt_field_class_enumeration_add_mapping_status
 bt_field_class_enumeration_unsigned_add_mapping(
 		struct bt_field_class *fc, const char *label,
@@ -682,6 +705,7 @@ bt_field_class_enumeration_unsigned_add_mapping(
 		(const void *) range_set, __func__);
 }
 
+BT_EXPORT
 enum bt_field_class_enumeration_add_mapping_status
 bt_field_class_enumeration_signed_add_mapping(
 		struct bt_field_class *fc, const char *label,
@@ -734,6 +758,7 @@ end:
 	return (void *) real_fc;
 }
 
+BT_EXPORT
 struct bt_field_class *bt_field_class_real_single_precision_create(
 	bt_trace_class *trace_class)
 {
@@ -743,6 +768,7 @@ struct bt_field_class *bt_field_class_real_single_precision_create(
 		BT_FIELD_CLASS_TYPE_SINGLE_PRECISION_REAL);
 }
 
+BT_EXPORT
 struct bt_field_class *bt_field_class_real_double_precision_create(
 	bt_trace_class *trace_class)
 {
@@ -855,6 +881,7 @@ void destroy_structure_field_class(struct bt_object *obj)
 	g_free(obj);
 }
 
+BT_EXPORT
 struct bt_field_class *bt_field_class_structure_create(
 		bt_trace_class *trace_class)
 {
@@ -1010,6 +1037,7 @@ int append_named_field_class_to_container_field_class(
 	return BT_FUNC_STATUS_OK;
 }
 
+BT_EXPORT
 enum bt_field_class_structure_append_member_status
 bt_field_class_structure_append_member(
 		struct bt_field_class *fc, const char *name,
@@ -1040,6 +1068,7 @@ end:
 	return status;
 }
 
+BT_EXPORT
 uint64_t bt_field_class_structure_get_member_count(
 		const struct bt_field_class *fc)
 {
@@ -1062,6 +1091,7 @@ borrow_named_field_class_from_container_field_class_at_index(
 	return fc->named_fcs->pdata[index];
 }
 
+BT_EXPORT
 const struct bt_field_class_structure_member *
 bt_field_class_structure_borrow_member_by_index_const(
 		const struct bt_field_class *fc, uint64_t index)
@@ -1073,6 +1103,7 @@ bt_field_class_structure_borrow_member_by_index_const(
 			(void *) fc, index, __func__);
 }
 
+BT_EXPORT
 struct bt_field_class_structure_member *
 bt_field_class_structure_borrow_member_by_index(
 		struct bt_field_class *fc, uint64_t index)
@@ -1107,6 +1138,7 @@ end:
 	return named_fc;
 }
 
+BT_EXPORT
 const struct bt_field_class_structure_member *
 bt_field_class_structure_borrow_member_by_name_const(
 		const struct bt_field_class *fc, const char *name)
@@ -1118,6 +1150,7 @@ bt_field_class_structure_borrow_member_by_name_const(
 			(void *) fc, name, __func__);
 }
 
+BT_EXPORT
 struct bt_field_class_structure_member *
 bt_field_class_structure_borrow_member_by_name(
 		struct bt_field_class *fc, const char *name)
@@ -1129,6 +1162,7 @@ bt_field_class_structure_borrow_member_by_name(
 			(void *) fc, name, __func__);
 }
 
+BT_EXPORT
 const char *bt_field_class_structure_member_get_name(
 		const struct bt_field_class_structure_member *member)
 {
@@ -1138,6 +1172,7 @@ const char *bt_field_class_structure_member_get_name(
 	return named_fc->name->str;
 }
 
+BT_EXPORT
 const struct bt_field_class *
 bt_field_class_structure_member_borrow_field_class_const(
 		const struct bt_field_class_structure_member *member)
@@ -1148,6 +1183,7 @@ bt_field_class_structure_member_borrow_field_class_const(
 	return named_fc->fc;
 }
 
+BT_EXPORT
 struct bt_field_class *
 bt_field_class_structure_member_borrow_field_class(
 		struct bt_field_class_structure_member *member)
@@ -1275,6 +1311,7 @@ end:
 	return (void *) opt_fc;
 }
 
+BT_EXPORT
 struct bt_field_class *bt_field_class_option_without_selector_create(
 		struct bt_trace_class *trace_class,
 		struct bt_field_class *content_fc)
@@ -1284,6 +1321,7 @@ struct bt_field_class *bt_field_class_option_without_selector_create(
 		content_fc, NULL, __func__);
 }
 
+BT_EXPORT
 struct bt_field_class *bt_field_class_option_with_selector_field_bool_create(
 		struct bt_trace_class *trace_class,
 		struct bt_field_class *content_fc,
@@ -1296,6 +1334,7 @@ struct bt_field_class *bt_field_class_option_with_selector_field_bool_create(
 		content_fc, selector_fc, __func__);
 }
 
+BT_EXPORT
 struct bt_field_class *
 bt_field_class_option_with_selector_field_integer_unsigned_create(
 		struct bt_trace_class *trace_class,
@@ -1326,6 +1365,7 @@ end:
 	return (void *) fc;
 }
 
+BT_EXPORT
 struct bt_field_class *
 bt_field_class_option_with_selector_field_integer_signed_create(
 		struct bt_trace_class *trace_class,
@@ -1356,6 +1396,7 @@ end:
 	return (void *) fc;
 }
 
+BT_EXPORT
 const struct bt_field_class *bt_field_class_option_borrow_field_class_const(
 			const struct bt_field_class *fc)
 {
@@ -1366,6 +1407,7 @@ const struct bt_field_class *bt_field_class_option_borrow_field_class_const(
 	return opt_fc->content_fc;
 }
 
+BT_EXPORT
 struct bt_field_class *bt_field_class_option_borrow_field_class(
 			struct bt_field_class *fc)
 {
@@ -1376,6 +1418,7 @@ struct bt_field_class *bt_field_class_option_borrow_field_class(
 	return opt_fc->content_fc;
 }
 
+BT_EXPORT
 const struct bt_field_path *
 bt_field_class_option_with_selector_field_borrow_selector_field_path_const(
 		const struct bt_field_class *fc)
@@ -1388,6 +1431,7 @@ bt_field_class_option_with_selector_field_borrow_selector_field_path_const(
 	return opt_fc->selector_field_path;
 }
 
+BT_EXPORT
 void bt_field_class_option_with_selector_field_bool_set_selector_is_reversed(
 		struct bt_field_class *fc, bt_bool sel_is_reversed)
 {
@@ -1402,6 +1446,7 @@ void bt_field_class_option_with_selector_field_bool_set_selector_is_reversed(
 	opt_fc->sel_is_reversed = sel_is_reversed;
 }
 
+BT_EXPORT
 bt_bool bt_field_class_option_with_selector_field_bool_selector_is_reversed(
 		const struct bt_field_class *fc)
 {
@@ -1415,6 +1460,7 @@ bt_bool bt_field_class_option_with_selector_field_bool_selector_is_reversed(
 	return opt_fc->sel_is_reversed;
 }
 
+BT_EXPORT
 const struct bt_integer_range_set_unsigned *
 bt_field_class_option_with_selector_field_integer_unsigned_borrow_selector_ranges_const(
 		const struct bt_field_class *fc)
@@ -1428,6 +1474,7 @@ bt_field_class_option_with_selector_field_integer_unsigned_borrow_selector_range
 	return (const void *) opt_fc->range_set;
 }
 
+BT_EXPORT
 const struct bt_integer_range_set_signed *
 bt_field_class_option_with_selector_field_integer_signed_borrow_selector_ranges_const(
 		const struct bt_field_class *fc)
@@ -1474,6 +1521,7 @@ void destroy_variant_with_selector_field_field_class(struct bt_object *obj)
 	g_free(fc);
 }
 
+BT_EXPORT
 struct bt_field_class *bt_field_class_variant_create(
 		bt_trace_class *trace_class, bt_field_class *selector_fc)
 {
@@ -1557,6 +1605,7 @@ end:
 #define VAR_FC_OPT_NAME_IS_UNIQUE_ID					\
 	"variant-field-class-option-name-is-unique"
 
+BT_EXPORT
 enum bt_field_class_variant_without_selector_append_option_status
 bt_field_class_variant_without_selector_append_option(struct bt_field_class *fc,
 		const char *name, struct bt_field_class *option_fc)
@@ -1733,6 +1782,7 @@ end:
 	return status;
 }
 
+BT_EXPORT
 enum bt_field_class_variant_with_selector_field_integer_append_option_status
 bt_field_class_variant_with_selector_field_integer_unsigned_append_option(
 		struct bt_field_class *fc, const char *name,
@@ -1751,6 +1801,7 @@ bt_field_class_variant_with_selector_field_integer_unsigned_append_option(
 		__func__);
 }
 
+BT_EXPORT
 enum bt_field_class_variant_with_selector_field_integer_append_option_status
 bt_field_class_variant_with_selector_field_integer_signed_append_option(
 		struct bt_field_class *fc, const char *name,
@@ -1769,6 +1820,7 @@ bt_field_class_variant_with_selector_field_integer_signed_append_option(
 		__func__);
 }
 
+BT_EXPORT
 uint64_t bt_field_class_variant_get_option_count(const struct bt_field_class *fc)
 {
 	const struct bt_field_class_variant *var_fc = (const void *) fc;
@@ -1778,6 +1830,7 @@ uint64_t bt_field_class_variant_get_option_count(const struct bt_field_class *fc
 	return (uint64_t) var_fc->common.named_fcs->len;
 }
 
+BT_EXPORT
 const struct bt_field_class_variant_option *
 bt_field_class_variant_borrow_option_by_name_const(
 		const struct bt_field_class *fc, const char *name)
@@ -1789,6 +1842,7 @@ bt_field_class_variant_borrow_option_by_name_const(
 			(void *) fc, name, __func__);
 }
 
+BT_EXPORT
 const struct bt_field_class_variant_option *
 bt_field_class_variant_borrow_option_by_index_const(
 		const struct bt_field_class *fc, uint64_t index)
@@ -1800,6 +1854,7 @@ bt_field_class_variant_borrow_option_by_index_const(
 			(void *) fc, index, __func__);
 }
 
+BT_EXPORT
 struct bt_field_class_variant_option *
 bt_field_class_variant_borrow_option_by_name(
 		struct bt_field_class *fc, const char *name)
@@ -1811,6 +1866,7 @@ bt_field_class_variant_borrow_option_by_name(
 			(void *) fc, name, __func__);
 }
 
+BT_EXPORT
 struct bt_field_class_variant_option *
 bt_field_class_variant_borrow_option_by_index(
 		struct bt_field_class *fc, uint64_t index)
@@ -1822,6 +1878,7 @@ bt_field_class_variant_borrow_option_by_index(
 			(void *) fc, index, __func__);
 }
 
+BT_EXPORT
 const struct bt_field_class_variant_with_selector_field_integer_unsigned_option *
 bt_field_class_variant_with_selector_field_integer_unsigned_borrow_option_by_name_const(
 		const struct bt_field_class *fc, const char *name)
@@ -1836,6 +1893,7 @@ bt_field_class_variant_with_selector_field_integer_unsigned_borrow_option_by_nam
 			(void *) fc, name, __func__);
 }
 
+BT_EXPORT
 const struct bt_field_class_variant_with_selector_field_integer_unsigned_option *
 bt_field_class_variant_with_selector_field_integer_unsigned_borrow_option_by_index_const(
 		const struct bt_field_class *fc, uint64_t index)
@@ -1850,6 +1908,7 @@ bt_field_class_variant_with_selector_field_integer_unsigned_borrow_option_by_ind
 			(void *) fc, index, __func__);
 }
 
+BT_EXPORT
 const struct bt_field_class_variant_with_selector_field_integer_signed_option *
 bt_field_class_variant_with_selector_field_integer_signed_borrow_option_by_name_const(
 		const struct bt_field_class *fc, const char *name)
@@ -1864,6 +1923,7 @@ bt_field_class_variant_with_selector_field_integer_signed_borrow_option_by_name_
 			(void *) fc, name, __func__);
 }
 
+BT_EXPORT
 const struct bt_field_class_variant_with_selector_field_integer_signed_option *
 bt_field_class_variant_with_selector_field_integer_signed_borrow_option_by_index_const(
 		const struct bt_field_class *fc, uint64_t index)
@@ -1878,6 +1938,7 @@ bt_field_class_variant_with_selector_field_integer_signed_borrow_option_by_index
 			(void *) fc, index, __func__);
 }
 
+BT_EXPORT
 const char *bt_field_class_variant_option_get_name(
 		const struct bt_field_class_variant_option *option)
 {
@@ -1887,6 +1948,7 @@ const char *bt_field_class_variant_option_get_name(
 	return named_fc->name->str;
 }
 
+BT_EXPORT
 const struct bt_field_class *
 bt_field_class_variant_option_borrow_field_class_const(
 		const struct bt_field_class_variant_option *option)
@@ -1897,6 +1959,7 @@ bt_field_class_variant_option_borrow_field_class_const(
 	return named_fc->fc;
 }
 
+BT_EXPORT
 struct bt_field_class *
 bt_field_class_variant_option_borrow_field_class(
 		struct bt_field_class_variant_option *option)
@@ -1907,6 +1970,7 @@ bt_field_class_variant_option_borrow_field_class(
 	return named_fc->fc;
 }
 
+BT_EXPORT
 const struct bt_integer_range_set_unsigned *
 bt_field_class_variant_with_selector_field_integer_unsigned_option_borrow_ranges_const(
 		const struct bt_field_class_variant_with_selector_field_integer_unsigned_option *option)
@@ -1918,6 +1982,7 @@ bt_field_class_variant_with_selector_field_integer_unsigned_option_borrow_ranges
 	return (const void *) opt->range_set;
 }
 
+BT_EXPORT
 const struct bt_integer_range_set_signed *
 bt_field_class_variant_with_selector_field_integer_signed_option_borrow_ranges_const(
 		const struct bt_field_class_variant_with_selector_field_integer_signed_option *option)
@@ -1929,6 +1994,7 @@ bt_field_class_variant_with_selector_field_integer_signed_option_borrow_ranges_c
 	return (const void *) opt->range_set;
 }
 
+BT_EXPORT
 const struct bt_field_path *
 bt_field_class_variant_with_selector_field_borrow_selector_field_path_const(
 		const struct bt_field_class *fc)
@@ -1981,6 +2047,7 @@ void destroy_static_array_field_class(struct bt_object *obj)
 	g_free(obj);
 }
 
+BT_EXPORT
 struct bt_field_class *
 bt_field_class_array_static_create(bt_trace_class *trace_class,
 		struct bt_field_class *element_fc, uint64_t length)
@@ -2016,6 +2083,7 @@ end:
 	return (void *) array_fc;
 }
 
+BT_EXPORT
 const struct bt_field_class *
 bt_field_class_array_borrow_element_field_class_const(
 		const struct bt_field_class *fc)
@@ -2027,6 +2095,7 @@ bt_field_class_array_borrow_element_field_class_const(
 	return array_fc->element_fc;
 }
 
+BT_EXPORT
 struct bt_field_class *
 bt_field_class_array_borrow_element_field_class(struct bt_field_class *fc)
 {
@@ -2037,6 +2106,7 @@ bt_field_class_array_borrow_element_field_class(struct bt_field_class *fc)
 	return array_fc->element_fc;
 }
 
+BT_EXPORT
 uint64_t bt_field_class_array_static_get_length(const struct bt_field_class *fc)
 {
 	const struct bt_field_class_array_static *array_fc = (const void *) fc;
@@ -2063,6 +2133,7 @@ void destroy_dynamic_array_field_class(struct bt_object *obj)
 	g_free(fc);
 }
 
+BT_EXPORT
 struct bt_field_class *bt_field_class_array_dynamic_create(
 		struct bt_trace_class *trace_class,
 		struct bt_field_class *element_fc,
@@ -2108,6 +2179,7 @@ end:
 	return (void *) array_fc;
 }
 
+BT_EXPORT
 const struct bt_field_path *
 bt_field_class_array_dynamic_with_length_field_borrow_length_field_path_const(
 		const struct bt_field_class *fc)
@@ -2132,6 +2204,7 @@ void destroy_string_field_class(struct bt_object *obj)
 	g_free(obj);
 }
 
+BT_EXPORT
 struct bt_field_class *bt_field_class_string_create(bt_trace_class *trace_class)
 {
 	struct bt_field_class_string *string_fc = NULL;
@@ -2161,7 +2234,6 @@ end:
 	return (void *) string_fc;
 }
 
-BT_HIDDEN
 void _bt_field_class_freeze(const struct bt_field_class *c_fc)
 {
 	struct bt_field_class *fc = (void *) c_fc;
@@ -2188,7 +2260,6 @@ void _bt_field_class_freeze(const struct bt_field_class *c_fc)
 	}
 }
 
-BT_HIDDEN
 void _bt_named_field_class_freeze(const struct bt_named_field_class *named_fc)
 {
 	BT_ASSERT(named_fc);
@@ -2199,7 +2270,6 @@ void _bt_named_field_class_freeze(const struct bt_named_field_class *named_fc)
 	((struct bt_named_field_class *) named_fc)->frozen = true;
 }
 
-BT_HIDDEN
 void bt_field_class_make_part_of_trace_class(const struct bt_field_class *c_fc)
 {
 	struct bt_field_class *fc = (void *) c_fc;
@@ -2231,6 +2301,7 @@ void bt_field_class_make_part_of_trace_class(const struct bt_field_class *c_fc)
 	}
 }
 
+BT_EXPORT
 const struct bt_value *bt_field_class_borrow_user_attributes_const(
 		const struct bt_field_class *fc)
 {
@@ -2238,6 +2309,7 @@ const struct bt_value *bt_field_class_borrow_user_attributes_const(
 	return fc->user_attributes;
 }
 
+BT_EXPORT
 struct bt_value *bt_field_class_borrow_user_attributes(
 		struct bt_field_class *field_class)
 {
@@ -2246,6 +2318,7 @@ struct bt_value *bt_field_class_borrow_user_attributes(
 }
 
 
+BT_EXPORT
 void bt_field_class_set_user_attributes(
 		struct bt_field_class *fc,
 		const struct bt_value *user_attributes)
@@ -2278,6 +2351,7 @@ void set_named_field_class_user_attributes(
 	bt_object_get_ref_no_null_check(named_fc->user_attributes);
 }
 
+BT_EXPORT
 const struct bt_value *
 bt_field_class_structure_member_borrow_user_attributes_const(
 		const struct bt_field_class_structure_member *member)
@@ -2287,6 +2361,7 @@ bt_field_class_structure_member_borrow_user_attributes_const(
 		(const void *) member);
 }
 
+BT_EXPORT
 struct bt_value *
 bt_field_class_structure_member_borrow_user_attributes(
 		struct bt_field_class_structure_member *member)
@@ -2296,6 +2371,7 @@ bt_field_class_structure_member_borrow_user_attributes(
 		(void *) member);
 }
 
+BT_EXPORT
 void bt_field_class_structure_member_set_user_attributes(
 		struct bt_field_class_structure_member *member,
 		const struct bt_value *user_attributes)
@@ -2308,6 +2384,7 @@ void bt_field_class_structure_member_set_user_attributes(
 		user_attributes, __func__);
 }
 
+BT_EXPORT
 const struct bt_value *bt_field_class_variant_option_borrow_user_attributes_const(
 		const struct bt_field_class_variant_option *option)
 {
@@ -2316,6 +2393,7 @@ const struct bt_value *bt_field_class_variant_option_borrow_user_attributes_cons
 		(const void *) option);
 }
 
+BT_EXPORT
 struct bt_value *bt_field_class_variant_option_borrow_user_attributes(
 		struct bt_field_class_variant_option *option)
 {
@@ -2324,6 +2402,7 @@ struct bt_value *bt_field_class_variant_option_borrow_user_attributes(
 		(void *) option);
 }
 
+BT_EXPORT
 void bt_field_class_variant_option_set_user_attributes(
 		struct bt_field_class_variant_option *option,
 		const struct bt_value *user_attributes)
@@ -2336,11 +2415,13 @@ void bt_field_class_variant_option_set_user_attributes(
 		user_attributes, __func__);
 }
 
+BT_EXPORT
 void bt_field_class_get_ref(const struct bt_field_class *field_class)
 {
 	bt_object_get_ref(field_class);
 }
 
+BT_EXPORT
 void bt_field_class_put_ref(const struct bt_field_class *field_class)
 {
 	bt_object_put_ref(field_class);

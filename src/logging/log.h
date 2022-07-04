@@ -340,10 +340,10 @@
  * corresponding BT_LOG_DEFINE_XXX macro MUST be used exactly once somewhere.
  * Otherwise build will fail with link error (undefined symbol).
  */
-#define BT_LOG_DEFINE_TAG_PREFIX BT_HIDDEN const char *_bt_log_tag_prefix
-#define BT_LOG_DEFINE_GLOBAL_FORMAT BT_HIDDEN bt_log_format _bt_log_global_format
-#define BT_LOG_DEFINE_GLOBAL_OUTPUT BT_HIDDEN bt_log_output _bt_log_global_output
-#define BT_LOG_DEFINE_GLOBAL_OUTPUT_LEVEL BT_HIDDEN int _bt_log_global_output_lvl
+#define BT_LOG_DEFINE_TAG_PREFIX const char *_bt_log_tag_prefix
+#define BT_LOG_DEFINE_GLOBAL_FORMAT bt_log_format _bt_log_global_format
+#define BT_LOG_DEFINE_GLOBAL_OUTPUT bt_log_output _bt_log_global_output
+#define BT_LOG_DEFINE_GLOBAL_OUTPUT_LEVEL int _bt_log_global_output_lvl
 
 /* Pointer to global format options. Direct modification is not allowed. Use
  * bt_log_set_mem_width() instead. Could be used to initialize bt_log_spec
@@ -664,49 +664,41 @@ extern bt_log_output _bt_log_global_output;
 extern int _bt_log_global_output_lvl;
 extern const bt_log_spec _bt_log_stderr_spec;
 
-BT_HIDDEN
 void _bt_log_write_d(
 		const char *const func, const char *const file, const unsigned line,
 		const int lvl, const char *const tag,
 		const char *const fmt, ...) _BT_LOG_PRINTFLIKE(6, 7);
 
-BT_HIDDEN
 void _bt_log_write_aux_d(
 		const char *const func, const char *const file, const unsigned line,
 		const bt_log_spec *const log, const int lvl, const char *const tag,
 		const char *const fmt, ...) _BT_LOG_PRINTFLIKE(7, 8);
 
-BT_HIDDEN
 void _bt_log_write(
 		const int lvl, const char *const tag,
 		const char *const fmt, ...) _BT_LOG_PRINTFLIKE(3, 4);
 
-BT_HIDDEN
 void _bt_log_write_aux(
 		const bt_log_spec *const log, const int lvl, const char *const tag,
 		const char *const fmt, ...) _BT_LOG_PRINTFLIKE(4, 5);
 
-BT_HIDDEN
 void _bt_log_write_mem_d(
 		const char *const func, const char *const file, const unsigned line,
 		const int lvl, const char *const tag,
 		const void *const d, const unsigned d_sz,
 		const char *const fmt, ...) _BT_LOG_PRINTFLIKE(8, 9);
 
-BT_HIDDEN
 void _bt_log_write_mem_aux_d(
 		const char *const func, const char *const file, const unsigned line,
 		const bt_log_spec *const log, const int lvl, const char *const tag,
 		const void *const d, const unsigned d_sz,
 		const char *const fmt, ...) _BT_LOG_PRINTFLIKE(9, 10);
 
-BT_HIDDEN
 void _bt_log_write_mem(
 		const int lvl, const char *const tag,
 		const void *const d, const unsigned d_sz,
 		const char *const fmt, ...) _BT_LOG_PRINTFLIKE(5, 6);
 
-BT_HIDDEN
 void _bt_log_write_mem_aux(
 		const bt_log_spec *const log, const int lvl, const char *const tag,
 		const void *const d, const unsigned d_sz,
@@ -996,7 +988,6 @@ extern "C" {
  */
 enum { BT_LOG_OUT_STDERR_MASK = BT_LOG_PUT_STD };
 
-BT_HIDDEN
 void bt_log_out_stderr_callback(const bt_log_message *const msg, void *arg);
 #define BT_LOG_OUT_STDERR BT_LOG_OUT_STDERR_MASK, 0, bt_log_out_stderr_callback
 
@@ -1125,7 +1116,7 @@ end:
 	extern int _level_sym
 
 #define BT_LOG_INIT_LOG_LEVEL(_level_sym, _env_var)			\
-	BT_HIDDEN int _level_sym = BT_LOG_NONE;				\
+	int _level_sym = BT_LOG_NONE;				\
 	static								\
 	void __attribute__((constructor)) _bt_log_level_ctor(void)	\
 	{								\

@@ -14,7 +14,6 @@
 #include "lib/graph/message/message.h"
 #include "lib/graph/graph.h"
 
-BT_HIDDEN
 void bt_message_init(struct bt_message *message,
 		enum bt_message_type type,
 		bt_object_release_func release,
@@ -29,6 +28,7 @@ void bt_message_init(struct bt_message *message,
 	}
 }
 
+BT_EXPORT
 enum bt_message_type bt_message_get_type(
 		const struct bt_message *message)
 {
@@ -36,18 +36,19 @@ enum bt_message_type bt_message_get_type(
 	return message->type;
 }
 
-BT_HIDDEN
 void bt_message_unlink_graph(struct bt_message *msg)
 {
 	BT_ASSERT(msg);
 	msg->graph = NULL;
 }
 
+BT_EXPORT
 void bt_message_get_ref(const struct bt_message *message)
 {
 	bt_object_get_ref(message);
 }
 
+BT_EXPORT
 void bt_message_put_ref(const struct bt_message *message)
 {
 	bt_object_put_ref(message);

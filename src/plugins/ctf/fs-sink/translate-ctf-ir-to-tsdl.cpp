@@ -776,7 +776,6 @@ static void append_stream_class(struct ctx *ctx, struct fs_sink_ctf_stream_class
     }
 }
 
-BT_HIDDEN
 void translate_trace_ctf_ir_to_tsdl(struct fs_sink_ctf_trace *trace, GString *tsdl)
 {
     struct ctx ctx = {

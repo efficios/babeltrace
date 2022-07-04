@@ -618,7 +618,6 @@ end:
     return ret;
 }
 
-BT_HIDDEN
 int ctf_trace_class_translate(bt_self_component *self_comp, bt_trace_class *ir_tc,
                               struct ctf_trace_class *tc)
 {

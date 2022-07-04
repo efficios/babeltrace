@@ -41,7 +41,6 @@ void mmap_align_ctfser(struct bt_ctfser *ctfser)
 		MAP_SHARED, ctfser->fd, ctfser->mmap_offset, ctfser->log_level);
 }
 
-BT_HIDDEN
 int _bt_ctfser_increase_cur_packet_size(struct bt_ctfser *ctfser)
 {
 	int ret;
@@ -94,7 +93,6 @@ end:
 	return ret;
 }
 
-BT_HIDDEN
 int bt_ctfser_init(struct bt_ctfser *ctfser, const char *path, int log_level)
 {
 	int ret = 0;
@@ -118,7 +116,6 @@ end:
 	return ret;
 }
 
-BT_HIDDEN
 int bt_ctfser_fini(struct bt_ctfser *ctfser)
 {
 	int ret = 0;
@@ -176,7 +173,6 @@ end:
 	return ret;
 }
 
-BT_HIDDEN
 int bt_ctfser_open_packet(struct bt_ctfser *ctfser)
 {
 	int ret = 0;
@@ -241,7 +237,6 @@ end:
 	return ret;
 }
 
-BT_HIDDEN
 void bt_ctfser_close_current_packet(struct bt_ctfser *ctfser,
 		uint64_t packet_size_bytes)
 {

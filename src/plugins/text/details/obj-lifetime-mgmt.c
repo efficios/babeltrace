@@ -67,7 +67,6 @@ end:
 	return details_tc_meta;
 }
 
-BT_HIDDEN
 bool details_need_to_write_meta_object(struct details_write_ctx *ctx,
 		const bt_trace_class *tc, const void *obj)
 {
@@ -89,7 +88,6 @@ end:
 	return need_to_write;
 }
 
-BT_HIDDEN
 void details_did_write_meta_object(struct details_write_ctx *ctx,
 		const bt_trace_class *tc, const void *obj)
 {
@@ -102,7 +100,6 @@ void details_did_write_meta_object(struct details_write_ctx *ctx,
 		GUINT_TO_POINTER(1));
 }
 
-BT_HIDDEN
 bool details_need_to_write_trace_class(struct details_write_ctx *ctx,
 		const bt_trace_class *tc)
 {
@@ -122,7 +119,6 @@ end:
 	return need_to_write;
 }
 
-BT_HIDDEN
 int details_did_write_trace_class(struct details_write_ctx *ctx,
 		const bt_trace_class *tc)
 {
@@ -169,7 +165,6 @@ end:
 }
 
 
-BT_HIDDEN
 int details_trace_unique_id(struct details_write_ctx *ctx,
 		const bt_trace *trace, uint64_t *unique_id)
 {

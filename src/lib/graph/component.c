@@ -180,6 +180,7 @@ void destroy_component(struct bt_object *obj)
 	g_free(component);
 }
 
+BT_EXPORT
 enum bt_component_class_type bt_component_get_class_type(
 		const struct bt_component *component)
 {
@@ -261,7 +262,6 @@ end:
 	return status;
 }
 
-BT_HIDDEN
 uint64_t bt_component_get_input_port_count(const struct bt_component *comp,
 		const char *api_func)
 {
@@ -269,7 +269,6 @@ uint64_t bt_component_get_input_port_count(const struct bt_component *comp,
 	return (uint64_t) comp->input_ports->len;
 }
 
-BT_HIDDEN
 uint64_t bt_component_get_output_port_count(const struct bt_component *comp,
 		const char *api_func)
 {
@@ -277,7 +276,6 @@ uint64_t bt_component_get_output_port_count(const struct bt_component *comp,
 	return (uint64_t) comp->output_ports->len;
 }
 
-BT_HIDDEN
 int bt_component_create(struct bt_component_class *component_class,
 		const char *name, bt_logging_level log_level,
 		struct bt_component **user_component)
@@ -346,12 +344,14 @@ end:
 	return ret;
 }
 
+BT_EXPORT
 const char *bt_component_get_name(const struct bt_component *component)
 {
 	BT_ASSERT_PRE_DEV_COMP_NON_NULL(component);
 	return component->name->str;
 }
 
+BT_EXPORT
 const struct bt_component_class *bt_component_borrow_class_const(
 		const struct bt_component *component)
 {
@@ -359,6 +359,7 @@ const struct bt_component_class *bt_component_borrow_class_const(
 	return component->class;
 }
 
+BT_EXPORT
 void *bt_self_component_get_data(const struct bt_self_component *self_comp)
 {
 	struct bt_component *component = (void *) self_comp;
@@ -367,6 +368,7 @@ void *bt_self_component_get_data(const struct bt_self_component *self_comp)
 	return component->user_data;
 }
 
+BT_EXPORT
 void bt_self_component_set_data(struct bt_self_component *self_comp,
 		void *data)
 {
@@ -377,7 +379,6 @@ void bt_self_component_set_data(struct bt_self_component *self_comp,
 	BT_LIB_LOGD("Set component's user data: %!+c", component);
 }
 
-BT_HIDDEN
 void bt_component_set_graph(struct bt_component *component,
 		struct bt_graph *graph)
 {
@@ -406,7 +407,6 @@ struct bt_port *borrow_port_by_name(GPtrArray *ports,
 	return ret_port;
 }
 
-BT_HIDDEN
 struct bt_port_input *bt_component_borrow_input_port_by_name(
 		struct bt_component *comp, const char *name,
 		const char *api_func)
@@ -415,7 +415,6 @@ struct bt_port_input *bt_component_borrow_input_port_by_name(
 	return (void *) borrow_port_by_name(comp->input_ports, name, api_func);
 }
 
-BT_HIDDEN
 struct bt_port_output *bt_component_borrow_output_port_by_name(
 		struct bt_component *comp, const char *name,
 		const char *api_func)
@@ -433,7 +432,6 @@ struct bt_port *borrow_port_by_index(GPtrArray *ports, uint64_t index,
 	return g_ptr_array_index(ports, index);
 }
 
-BT_HIDDEN
 struct bt_port_input *bt_component_borrow_input_port_by_index(
 		struct bt_component *comp, uint64_t index,
 		const char *api_func)
@@ -443,7 +441,6 @@ struct bt_port_input *bt_component_borrow_input_port_by_index(
 		borrow_port_by_index(comp->input_ports, index, api_func);
 }
 
-BT_HIDDEN
 struct bt_port_output *bt_component_borrow_output_port_by_index(
 		struct bt_component *comp, uint64_t index,
 		const char *api_func)
@@ -453,7 +450,6 @@ struct bt_port_output *bt_component_borrow_output_port_by_index(
 		borrow_port_by_index(comp->output_ports, index, api_func);
 }
 
-BT_HIDDEN
 enum bt_self_component_add_port_status bt_component_add_input_port(
 		struct bt_component *component, const char *name,
 		void *user_data, struct bt_port **port, const char *api_func)
@@ -470,7 +466,6 @@ enum bt_self_component_add_port_status bt_component_add_input_port(
 		BT_PORT_TYPE_INPUT, name, user_data, port, api_func);
 }
 
-BT_HIDDEN
 enum bt_self_component_add_port_status bt_component_add_output_port(
 		struct bt_component *component, const char *name,
 		void *user_data, struct bt_port **port,
@@ -488,7 +483,6 @@ enum bt_self_component_add_port_status bt_component_add_output_port(
 		BT_PORT_TYPE_OUTPUT, name, user_data, port, api_func);
 }
 
-BT_HIDDEN
 bool bt_component_port_name_is_unique(GPtrArray *ports, const char *name)
 {
 	guint i;
@@ -509,7 +503,6 @@ end:
 	return unique;
 }
 
-BT_HIDDEN
 enum bt_component_class_port_connected_method_status
 bt_component_port_connected(
 		struct bt_component *comp, struct bt_port *self_port,
@@ -600,7 +593,6 @@ bt_component_port_connected(
 	return status;
 }
 
-BT_HIDDEN
 void bt_component_add_destroy_listener(struct bt_component *component,
 		bt_component_destroy_listener_func func, void *data)
 {
@@ -616,7 +608,6 @@ void bt_component_add_destroy_listener(struct bt_component *component,
 		component, func, data);
 }
 
-BT_HIDDEN
 void bt_component_remove_destroy_listener(struct bt_component *component,
 		bt_component_destroy_listener_func func, void *data)
 {
@@ -640,6 +631,7 @@ void bt_component_remove_destroy_listener(struct bt_component *component,
 	}
 }
 
+BT_EXPORT
 bt_logging_level bt_component_get_logging_level(
 		const struct bt_component *component)
 {
@@ -647,6 +639,7 @@ bt_logging_level bt_component_get_logging_level(
 	return component->log_level;
 }
 
+BT_EXPORT
 uint64_t bt_self_component_get_graph_mip_version(
 		bt_self_component *self_component)
 {
@@ -656,11 +649,13 @@ uint64_t bt_self_component_get_graph_mip_version(
 	return bt_component_borrow_graph(comp)->mip_version;
 }
 
+BT_EXPORT
 void bt_component_get_ref(const struct bt_component *component)
 {
 	bt_object_get_ref(component);
 }
 
+BT_EXPORT
 void bt_component_put_ref(const struct bt_component *component)
 {
 	bt_object_put_ref(component);

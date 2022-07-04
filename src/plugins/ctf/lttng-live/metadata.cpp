@@ -94,7 +94,6 @@ end:
     return cc;
 }
 
-BT_HIDDEN
 enum lttng_live_iterator_status lttng_live_metadata_update(struct lttng_live_trace *trace)
 {
     struct lttng_live_session *session = trace->session;
@@ -288,7 +287,6 @@ end:
     return status;
 }
 
-BT_HIDDEN
 int lttng_live_metadata_create_stream(struct lttng_live_session *session, uint64_t ctf_trace_id,
                                       uint64_t stream_id, const char *trace_name)
 {
@@ -331,7 +329,6 @@ error:
     return -1;
 }
 
-BT_HIDDEN
 void lttng_live_metadata_fini(struct lttng_live_trace *trace)
 {
     struct lttng_live_metadata *metadata = trace->metadata;

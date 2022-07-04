@@ -13,19 +13,16 @@
 #include "fs-sink.hpp"
 #include "fs-sink-ctf-meta.hpp"
 
-BT_HIDDEN
 int try_translate_event_class_trace_ir_to_ctf_ir(struct fs_sink_comp *fs_sink,
                                                  struct fs_sink_ctf_stream_class *sc,
                                                  const bt_event_class *ir_ec,
                                                  struct fs_sink_ctf_event_class **out_ec);
 
-BT_HIDDEN
 int try_translate_stream_class_trace_ir_to_ctf_ir(struct fs_sink_comp *fs_sink,
                                                   struct fs_sink_ctf_trace *trace,
                                                   const bt_stream_class *ir_sc,
                                                   struct fs_sink_ctf_stream_class **out_sc);
 
-BT_HIDDEN
 struct fs_sink_ctf_trace *translate_trace_trace_ir_to_ctf_ir(struct fs_sink_comp *fs_sink,
                                                              const bt_trace *ir_trace);
 

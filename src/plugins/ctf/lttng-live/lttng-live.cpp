@@ -108,7 +108,6 @@ void lttng_live_stream_iterator_set_state(struct lttng_live_stream_iterator *str
                      live_stream_iter->current_inactivity_ts);                                     \
     } while (0);
 
-BT_HIDDEN
 bool lttng_live_graph_is_canceled(struct lttng_live_msg_iter *msg_iter)
 {
     bool ret;
@@ -195,7 +194,6 @@ end:
     return trace;
 }
 
-BT_HIDDEN
 struct lttng_live_trace *
 lttng_live_session_borrow_or_create_trace_by_id(struct lttng_live_session *session,
                                                 uint64_t trace_id)
@@ -214,7 +212,6 @@ end:
     return trace;
 }
 
-BT_HIDDEN
 int lttng_live_add_session(struct lttng_live_msg_iter *lttng_live_msg_iter, uint64_t session_id,
                            const char *hostname, const char *session_name)
 {
@@ -321,7 +318,6 @@ end:
     return;
 }
 
-BT_HIDDEN
 void lttng_live_msg_iter_finalize(bt_self_message_iterator *self_msg_iter)
 {
     struct lttng_live_msg_iter *lttng_live_msg_iter;
@@ -1507,7 +1503,6 @@ static inline void put_messages(bt_message_array_const msgs, uint64_t count)
     }
 }
 
-BT_HIDDEN
 bt_message_iterator_class_next_method_status
 lttng_live_msg_iter_next(bt_self_message_iterator *self_msg_it, bt_message_array_const msgs,
                          uint64_t capacity, uint64_t *count)
@@ -1784,7 +1779,6 @@ end:
     return lttng_live_msg_iter;
 }
 
-BT_HIDDEN
 bt_message_iterator_class_initialize_method_status
 lttng_live_msg_iter_init(bt_self_message_iterator *self_msg_it,
                          bt_self_message_iterator_configuration *config,
@@ -2028,7 +2022,6 @@ end:
     return status;
 }
 
-BT_HIDDEN
 bt_component_class_query_method_status lttng_live_query(bt_self_component_class_source *comp_class,
                                                         bt_private_query_executor *priv_query_exec,
                                                         const char *object, const bt_value *params,
@@ -2067,7 +2060,6 @@ static void lttng_live_component_destroy_data(struct lttng_live_component *lttng
     g_free(lttng_live);
 }
 
-BT_HIDDEN
 void lttng_live_component_finalize(bt_self_component_source *component)
 {
     lttng_live_component *data = (lttng_live_component *) bt_self_component_get_data(
@@ -2179,7 +2171,6 @@ end:
     return status;
 }
 
-BT_HIDDEN
 bt_component_class_initialize_method_status
 lttng_live_component_init(bt_self_component_source *self_comp_src,
                           bt_self_component_source_configuration *config, const bt_value *params,

@@ -20,7 +20,8 @@ void destroy_interrupter(struct bt_object *obj)
 	g_free(obj);
 }
 
-extern struct bt_interrupter *bt_interrupter_create(void)
+BT_EXPORT
+struct bt_interrupter *bt_interrupter_create(void)
 {
 	struct bt_interrupter *intr = g_new0(struct bt_interrupter, 1);
 
@@ -41,29 +42,34 @@ end:
 	return intr;
 }
 
+BT_EXPORT
 void bt_interrupter_set(struct bt_interrupter *intr)
 {
 	BT_ASSERT_PRE_INTR_NON_NULL(intr);
 	intr->is_set = true;
 }
 
+BT_EXPORT
 void bt_interrupter_reset(struct bt_interrupter *intr)
 {
 	BT_ASSERT_PRE_INTR_NON_NULL(intr);
 	intr->is_set = false;
 }
 
+BT_EXPORT
 bt_bool bt_interrupter_is_set(const struct bt_interrupter *intr)
 {
 	BT_ASSERT_PRE_INTR_NON_NULL(intr);
 	return (bt_bool) intr->is_set;
 }
 
+BT_EXPORT
 void bt_interrupter_get_ref(const struct bt_interrupter *intr)
 {
 	bt_object_get_ref(intr);
 }
 
+BT_EXPORT
 void bt_interrupter_put_ref(const struct bt_interrupter *intr)
 {
 	bt_object_put_ref(intr);

@@ -17,7 +17,6 @@
 extern "C" {
 #endif
 
-BT_HIDDEN
 extern void bt_common_assert_failed(const char *file, int line,
 		const char *func, const char *assertion)
 		__attribute__((noreturn));

@@ -26,13 +26,10 @@ struct bt_message_event {
 	struct bt_clock_snapshot *default_cs;
 };
 
-BT_HIDDEN
 struct bt_message *bt_message_event_new(struct bt_graph *graph);
 
-BT_HIDDEN
 void bt_message_event_recycle(struct bt_message *msg);
 
-BT_HIDDEN
 void bt_message_event_destroy(struct bt_message *msg);
 
 #ifdef __cplusplus

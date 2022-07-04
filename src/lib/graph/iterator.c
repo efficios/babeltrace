@@ -138,7 +138,6 @@ void bt_message_iterator_destroy(struct bt_object *obj)
 	g_free(iterator);
 }
 
-BT_HIDDEN
 void bt_message_iterator_try_finalize(
 		struct bt_message_iterator *iterator)
 {
@@ -240,7 +239,6 @@ end:
 	return;
 }
 
-BT_HIDDEN
 void bt_message_iterator_set_connection(
 		struct bt_message_iterator *iterator,
 		struct bt_connection *connection)
@@ -457,6 +455,7 @@ end:
 	return status;
 }
 
+BT_EXPORT
 bt_message_iterator_create_from_message_iterator_status
 bt_message_iterator_create_from_message_iterator(
 		struct bt_self_message_iterator *self_msg_iter,
@@ -469,6 +468,7 @@ bt_message_iterator_create_from_message_iterator(
 		input_port, message_iterator, __func__);
 }
 
+BT_EXPORT
 bt_message_iterator_create_from_sink_component_status
 bt_message_iterator_create_from_sink_component(
 		struct bt_self_component_sink *self_comp,
@@ -481,6 +481,7 @@ bt_message_iterator_create_from_sink_component(
 		input_port, message_iterator, __func__);
 }
 
+BT_EXPORT
 void *bt_self_message_iterator_get_data(
 		const struct bt_self_message_iterator *self_iterator)
 {
@@ -491,6 +492,7 @@ void *bt_self_message_iterator_get_data(
 	return iterator->user_data;
 }
 
+BT_EXPORT
 void bt_self_message_iterator_set_data(
 		struct bt_self_message_iterator *self_iterator, void *data)
 {
@@ -503,6 +505,7 @@ void bt_self_message_iterator_set_data(
 		"%!+i, user-data-addr=%p", iterator, data);
 }
 
+BT_EXPORT
 void bt_self_message_iterator_configuration_set_can_seek_forward(
 		bt_self_message_iterator_configuration *config,
 		bt_bool can_seek_forward)
@@ -824,6 +827,7 @@ call_iterator_next_method(
 	return status;
 }
 
+BT_EXPORT
 enum bt_message_iterator_next_status
 bt_message_iterator_next(
 		struct bt_message_iterator *iterator,
@@ -906,6 +910,7 @@ end:
 	return status;
 }
 
+BT_EXPORT
 struct bt_component *
 bt_message_iterator_borrow_component(
 		struct bt_message_iterator *iterator)
@@ -914,6 +919,7 @@ bt_message_iterator_borrow_component(
 	return iterator->upstream_component;
 }
 
+BT_EXPORT
 struct bt_self_component *bt_self_message_iterator_borrow_component(
 		struct bt_self_message_iterator *self_iterator)
 {
@@ -924,6 +930,7 @@ struct bt_self_component *bt_self_message_iterator_borrow_component(
 	return (void *) iterator->upstream_component;
 }
 
+BT_EXPORT
 struct bt_self_component_port_output *bt_self_message_iterator_borrow_port(
 		struct bt_self_message_iterator *self_iterator)
 {
@@ -937,6 +944,7 @@ struct bt_self_component_port_output *bt_self_message_iterator_borrow_port(
 #define CAN_SEEK_NS_FROM_ORIGIN_METHOD_NAME				\
 	"bt_message_iterator_class_can_seek_ns_from_origin_method"
 
+BT_EXPORT
 enum bt_message_iterator_can_seek_ns_from_origin_status
 bt_message_iterator_can_seek_ns_from_origin(
 		struct bt_message_iterator *iterator,
@@ -1014,6 +1022,7 @@ end:
 #define CAN_SEEK_BEGINNING_METHOD_NAME					\
 	"bt_message_iterator_class_can_seek_beginning"
 
+BT_EXPORT
 enum bt_message_iterator_can_seek_beginning_status
 bt_message_iterator_can_seek_beginning(
 		struct bt_message_iterator *iterator,
@@ -1113,6 +1122,7 @@ bool message_iterator_can_seek_beginning(
 #define SEEK_BEGINNING_METHOD_NAME					\
 	"bt_message_iterator_class_seek_beginning_method"
 
+BT_EXPORT
 enum bt_message_iterator_seek_beginning_status
 bt_message_iterator_seek_beginning(struct bt_message_iterator *iterator)
 {
@@ -1162,6 +1172,7 @@ bt_message_iterator_seek_beginning(struct bt_message_iterator *iterator)
 	return status;
 }
 
+BT_EXPORT
 bt_bool
 bt_message_iterator_can_seek_forward(
 		bt_message_iterator *iterator)
@@ -1709,6 +1720,7 @@ bool message_iterator_can_seek_ns_from_origin(
 	"bt_message_iterator_class_seek_ns_from_origin_method"
 
 
+BT_EXPORT
 enum bt_message_iterator_seek_ns_from_origin_status
 bt_message_iterator_seek_ns_from_origin(
 		struct bt_message_iterator *iterator,
@@ -1985,6 +1997,7 @@ end:
 	return status;
 }
 
+BT_EXPORT
 bt_bool bt_self_message_iterator_is_interrupted(
 		const struct bt_self_message_iterator *self_msg_iter)
 {
@@ -1995,12 +2008,14 @@ bt_bool bt_self_message_iterator_is_interrupted(
 	return (bt_bool) bt_graph_is_interrupted(iterator->graph);
 }
 
+BT_EXPORT
 void bt_message_iterator_get_ref(
 		const struct bt_message_iterator *iterator)
 {
 	bt_object_get_ref(iterator);
 }
 
+BT_EXPORT
 void bt_message_iterator_put_ref(
 		const struct bt_message_iterator *iterator)
 {

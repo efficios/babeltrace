@@ -198,7 +198,6 @@ end:
 	return ret;
 }
 
-BT_HIDDEN
 int _bt_ctf_event_common_validate(struct bt_ctf_event_common *event)
 {
 	int ret = 0;
@@ -257,7 +256,6 @@ end:
 	return ret;
 }
 
-BT_HIDDEN
 void _bt_ctf_event_common_set_is_frozen(struct bt_ctf_event_common *event,
 		bool is_frozen)
 {
@@ -294,7 +292,6 @@ void _bt_ctf_event_common_set_is_frozen(struct bt_ctf_event_common *event,
 	event->frozen = is_frozen;
 }
 
-BT_HIDDEN
 int bt_ctf_event_common_initialize(struct bt_ctf_event_common *event,
 		struct bt_ctf_event_class_common *event_class,
 		struct bt_ctf_clock_class *init_expected_clock_class,
@@ -579,6 +576,7 @@ void bt_ctf_event_destroy(struct bt_ctf_object *obj)
 	g_free(obj);
 }
 
+BT_EXPORT
 struct bt_ctf_event *bt_ctf_event_create(struct bt_ctf_event_class *event_class)
 {
 	int ret;
@@ -625,6 +623,7 @@ end:
 	return event;
 }
 
+BT_EXPORT
 struct bt_ctf_event_class *bt_ctf_event_get_class(struct bt_ctf_event *event)
 {
 	BT_CTF_ASSERT_PRE_NON_NULL(event, "Event");
@@ -639,12 +638,14 @@ struct bt_ctf_stream *bt_ctf_event_borrow_stream(struct bt_ctf_event *event)
 		bt_ctf_object_borrow_parent(&BT_CTF_TO_COMMON(event)->base);
 }
 
+BT_EXPORT
 struct bt_ctf_stream *bt_ctf_event_get_stream(struct bt_ctf_event *event)
 {
 	BT_CTF_ASSERT_PRE_NON_NULL(event, "Event");
 	return bt_ctf_object_get_ref(bt_ctf_event_borrow_stream(event));
 }
 
+BT_EXPORT
 int bt_ctf_event_set_payload(struct bt_ctf_event *event, const char *name,
 		struct bt_ctf_field *field)
 {
@@ -655,6 +656,7 @@ int bt_ctf_event_set_payload(struct bt_ctf_event *event, const char *name,
 		(void *) event->common.payload_field, name, field);
 }
 
+BT_EXPORT
 struct bt_ctf_field *bt_ctf_event_get_payload(struct bt_ctf_event *event,
 		const char *name)
 {
@@ -673,22 +675,26 @@ struct bt_ctf_field *bt_ctf_event_get_payload(struct bt_ctf_event *event,
 	return field;
 }
 
+BT_EXPORT
 struct bt_ctf_field *bt_ctf_event_get_payload_field(
 		struct bt_ctf_event *event)
 {
 	return bt_ctf_object_get_ref(bt_ctf_event_common_borrow_payload(BT_CTF_TO_COMMON(event)));
 }
 
+BT_EXPORT
 struct bt_ctf_field *bt_ctf_event_get_header(struct bt_ctf_event *event)
 {
 	return bt_ctf_object_get_ref(bt_ctf_event_common_borrow_header(BT_CTF_TO_COMMON(event)));
 }
 
+BT_EXPORT
 struct bt_ctf_field *bt_ctf_event_get_context(struct bt_ctf_event *event)
 {
 	return bt_ctf_object_get_ref(bt_ctf_event_common_borrow_context(BT_CTF_TO_COMMON(event)));
 }
 
+BT_EXPORT
 struct bt_ctf_field *bt_ctf_event_get_stream_event_context(
 		struct bt_ctf_event *event)
 {
@@ -696,7 +702,6 @@ struct bt_ctf_field *bt_ctf_event_get_stream_event_context(
 		BT_CTF_TO_COMMON(event)));
 }
 
-BT_HIDDEN
 int bt_ctf_event_serialize(struct bt_ctf_event *event,
 		struct bt_ctfser *ctfser,
 		enum bt_ctf_byte_order native_byte_order)
@@ -742,6 +747,7 @@ end:
 	return ret;
 }
 
+BT_EXPORT
 int bt_ctf_event_set_header(struct bt_ctf_event *event,
 		struct bt_ctf_field *header)
 {
@@ -814,6 +820,7 @@ int bt_ctf_event_common_set_payload(struct bt_ctf_event *event,
 	return 0;
 }
 
+BT_EXPORT
 int bt_ctf_event_set_context(struct bt_ctf_event *event,
 		struct bt_ctf_field *context)
 {
@@ -847,6 +854,7 @@ int bt_ctf_event_set_context(struct bt_ctf_event *event,
 	return 0;
 }
 
+BT_EXPORT
 int bt_ctf_event_set_stream_event_context(struct bt_ctf_event *event,
 		struct bt_ctf_field *stream_event_context)
 {

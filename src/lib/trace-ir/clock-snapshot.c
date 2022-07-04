@@ -20,7 +20,6 @@
 #include "common/assert.h"
 #include "lib/func-status.h"
 
-BT_HIDDEN
 void bt_clock_snapshot_destroy(struct bt_clock_snapshot *clock_snapshot)
 {
 	BT_ASSERT(clock_snapshot);
@@ -29,7 +28,6 @@ void bt_clock_snapshot_destroy(struct bt_clock_snapshot *clock_snapshot)
 	g_free(clock_snapshot);
 }
 
-BT_HIDDEN
 struct bt_clock_snapshot *bt_clock_snapshot_new(
 		struct bt_clock_class *clock_class)
 {
@@ -55,7 +53,6 @@ end:
 	return ret;
 }
 
-BT_HIDDEN
 struct bt_clock_snapshot *bt_clock_snapshot_create(
 		struct bt_clock_class *clock_class)
 {
@@ -79,7 +76,6 @@ end:
 	return clock_snapshot;
 }
 
-BT_HIDDEN
 void bt_clock_snapshot_recycle(struct bt_clock_snapshot *clock_snapshot)
 {
 	struct bt_clock_class *clock_class;
@@ -117,6 +113,7 @@ void bt_clock_snapshot_recycle(struct bt_clock_snapshot *clock_snapshot)
 	bt_object_put_ref(clock_class);
 }
 
+BT_EXPORT
 uint64_t bt_clock_snapshot_get_value(
 		const struct bt_clock_snapshot *clock_snapshot)
 {
@@ -125,6 +122,7 @@ uint64_t bt_clock_snapshot_get_value(
 	return clock_snapshot->value_cycles;
 }
 
+BT_EXPORT
 enum bt_clock_snapshot_get_ns_from_origin_status
 bt_clock_snapshot_get_ns_from_origin(
 		const struct bt_clock_snapshot *clock_snapshot,
@@ -153,6 +151,7 @@ end:
 	return ret;
 }
 
+BT_EXPORT
 const struct bt_clock_class *bt_clock_snapshot_borrow_clock_class_const(
 		const struct bt_clock_snapshot *clock_snapshot)
 {

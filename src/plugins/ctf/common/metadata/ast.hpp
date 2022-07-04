@@ -353,27 +353,21 @@ const char *node_type(struct ctf_node *node);
 
 struct meta_log_config;
 
-BT_HIDDEN
 struct ctf_visitor_generate_ir *
 ctf_visitor_generate_ir_create(const struct ctf_metadata_decoder_config *config);
 
 void ctf_visitor_generate_ir_destroy(struct ctf_visitor_generate_ir *visitor);
 
-BT_HIDDEN
 bt_trace_class *ctf_visitor_generate_ir_get_ir_trace_class(struct ctf_visitor_generate_ir *visitor);
 
-BT_HIDDEN
 struct ctf_trace_class *
 ctf_visitor_generate_ir_borrow_ctf_trace_class(struct ctf_visitor_generate_ir *visitor);
 
-BT_HIDDEN
 int ctf_visitor_generate_ir_visit_node(struct ctf_visitor_generate_ir *visitor,
                                        struct ctf_node *node);
 
-BT_HIDDEN
 int ctf_visitor_semantic_check(int depth, struct ctf_node *node, struct meta_log_config *log_cfg);
 
-BT_HIDDEN
 int ctf_visitor_parent_links(int depth, struct ctf_node *node, struct meta_log_config *log_cfg);
 
 static inline char *ctf_ast_concatenate_unary_strings(struct bt_list_head *head)

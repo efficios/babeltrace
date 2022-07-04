@@ -58,7 +58,6 @@ struct bt_dwarf_die {
  * @returns		Pointer to the new bt_dwarf_cu on success,
  *			NULL on failure.
  */
-BT_HIDDEN
 struct bt_dwarf_cu *bt_dwarf_cu_create(Dwarf *dwarf_info);
 
 /**
@@ -66,7 +65,6 @@ struct bt_dwarf_cu *bt_dwarf_cu_create(Dwarf *dwarf_info);
  *
  * @param cu	bt_dwarf_cu instance
  */
-BT_HIDDEN
 void bt_dwarf_cu_destroy(struct bt_dwarf_cu *cu);
 
 /**
@@ -79,7 +77,6 @@ void bt_dwarf_cu_destroy(struct bt_dwarf_cu *cu);
  * @returns	0 on success, 1 if no next CU is available,
  *		-1 on failure
  */
-BT_HIDDEN
 int bt_dwarf_cu_next(struct bt_dwarf_cu *cu);
 
 /**
@@ -90,7 +87,6 @@ int bt_dwarf_cu_next(struct bt_dwarf_cu *cu);
  * @returns	Pointer to the new bt_dwarf_die on success,
  *		NULL on failure.
  */
-BT_HIDDEN
 struct bt_dwarf_die *bt_dwarf_die_create(struct bt_dwarf_cu *cu);
 
 /**
@@ -98,7 +94,6 @@ struct bt_dwarf_die *bt_dwarf_die_create(struct bt_dwarf_cu *cu);
  *
  * @param die	bt_dwarf_die instance
  */
-BT_HIDDEN
 void bt_dwarf_die_destroy(struct bt_dwarf_die *die);
 
 /**
@@ -107,7 +102,6 @@ void bt_dwarf_die_destroy(struct bt_dwarf_die *die);
  * @param die	bt_dwarf_die instance
  * @returns	0 if the die no child, 1 otherwise
  */
-BT_HIDDEN
 int bt_dwarf_die_has_children(struct bt_dwarf_die *die);
 
 /**
@@ -118,7 +112,6 @@ int bt_dwarf_die_has_children(struct bt_dwarf_die *die);
  * @returns	0 on success, 1 if no child DIE is available,
  * 		-1 on failure
  */
-BT_HIDDEN
 int bt_dwarf_die_child(struct bt_dwarf_die *die);
 
 /**
@@ -138,7 +131,6 @@ int bt_dwarf_die_child(struct bt_dwarf_die *die);
  * @returns	0 on success, 1 if no other siblings are available, -1 on
  *		failure
  */
-BT_HIDDEN
 int bt_dwarf_die_next(struct bt_dwarf_die *die);
 
 /**
@@ -151,7 +143,6 @@ int bt_dwarf_die_next(struct bt_dwarf_die *die);
  * @param tag	Out parameter, the DIE's tag value
  * @returns	0 on success, -1 on failure.
  */
-BT_HIDDEN
 int bt_dwarf_die_get_tag(struct bt_dwarf_die *die, int *tag);
 
 /**
@@ -164,7 +155,6 @@ int bt_dwarf_die_get_tag(struct bt_dwarf_die *die, int *tag);
  * @param name	Out parameter, the DIE's name
  * @returns	0 on success, -1 on failure
  */
-BT_HIDDEN
 int bt_dwarf_die_get_name(struct bt_dwarf_die *die, char **name);
 
 /**
@@ -178,7 +168,6 @@ int bt_dwarf_die_get_name(struct bt_dwarf_die *die, char **name);
  *			callsite
  * @returns		0 on success, -1 on failure
  */
-BT_HIDDEN
 int bt_dwarf_die_get_call_file(struct bt_dwarf_die *die, char **filename);
 
 /**
@@ -192,7 +181,6 @@ int bt_dwarf_die_get_call_file(struct bt_dwarf_die *die, char **filename);
  *			subroutine's callsite
  * @returns		0 on success, -1 on failure
  */
-BT_HIDDEN
 int bt_dwarf_die_get_call_line(struct bt_dwarf_die *die,
 		uint64_t *line_no);
 
@@ -210,7 +198,6 @@ int bt_dwarf_die_get_call_line(struct bt_dwarf_die *die,
  *			false if not
  * @returns		0 on succes, -1 on failure
  */
-BT_HIDDEN
 int bt_dwarf_die_contains_addr(struct bt_dwarf_die *die, uint64_t addr,
 		bool *contains);
 

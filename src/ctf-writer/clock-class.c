@@ -26,13 +26,11 @@
 static
 void bt_ctf_clock_class_destroy(struct bt_ctf_object *obj);
 
-BT_HIDDEN
 bt_ctf_bool bt_ctf_clock_class_is_valid(struct bt_ctf_clock_class *clock_class)
 {
 	return clock_class && clock_class->name;
 }
 
-BT_HIDDEN
 int bt_ctf_clock_class_set_name(struct bt_ctf_clock_class *clock_class,
 		const char *name)
 {
@@ -95,7 +93,6 @@ end:
 	return is_valid;
 }
 
-BT_HIDDEN
 struct bt_ctf_clock_class *bt_ctf_clock_class_create(const char *name,
 		uint64_t freq)
 {
@@ -136,7 +133,6 @@ error:
 	return clock_class;
 }
 
-BT_HIDDEN
 const char *bt_ctf_clock_class_get_name(struct bt_ctf_clock_class *clock_class)
 {
 	const char *ret = NULL;
@@ -154,7 +150,6 @@ end:
 	return ret;
 }
 
-BT_HIDDEN
 const char *bt_ctf_clock_class_get_description(
 		struct bt_ctf_clock_class *clock_class)
 {
@@ -172,7 +167,6 @@ end:
 	return ret;
 }
 
-BT_HIDDEN
 int bt_ctf_clock_class_set_description(struct bt_ctf_clock_class *clock_class,
 		const char *desc)
 {
@@ -203,7 +197,6 @@ end:
 	return ret;
 }
 
-BT_HIDDEN
 uint64_t bt_ctf_clock_class_get_frequency(
 		struct bt_ctf_clock_class *clock_class)
 {
@@ -219,7 +212,6 @@ end:
 	return ret;
 }
 
-BT_HIDDEN
 int bt_ctf_clock_class_set_frequency(struct bt_ctf_clock_class *clock_class,
 		uint64_t freq)
 {
@@ -253,7 +245,6 @@ end:
 	return ret;
 }
 
-BT_HIDDEN
 uint64_t bt_ctf_clock_class_get_precision(struct bt_ctf_clock_class *clock_class)
 {
 	uint64_t ret = -1ULL;
@@ -268,7 +259,6 @@ end:
 	return ret;
 }
 
-BT_HIDDEN
 int bt_ctf_clock_class_set_precision(struct bt_ctf_clock_class *clock_class,
 		uint64_t precision)
 {
@@ -298,7 +288,6 @@ end:
 	return ret;
 }
 
-BT_HIDDEN
 int bt_ctf_clock_class_get_offset_s(struct bt_ctf_clock_class *clock_class,
 		int64_t *offset_s)
 {
@@ -318,7 +307,6 @@ end:
 	return ret;
 }
 
-BT_HIDDEN
 int bt_ctf_clock_class_set_offset_s(struct bt_ctf_clock_class *clock_class,
 		int64_t offset_s)
 {
@@ -346,7 +334,6 @@ end:
 	return ret;
 }
 
-BT_HIDDEN
 int bt_ctf_clock_class_get_offset_cycles(struct bt_ctf_clock_class *clock_class,
 		int64_t *offset)
 {
@@ -366,7 +353,6 @@ end:
 	return ret;
 }
 
-BT_HIDDEN
 int bt_ctf_clock_class_set_offset_cycles(struct bt_ctf_clock_class *clock_class,
 		int64_t offset)
 {
@@ -392,7 +378,6 @@ end:
 	return ret;
 }
 
-BT_HIDDEN
 bt_ctf_bool bt_ctf_clock_class_is_absolute(struct bt_ctf_clock_class *clock_class)
 {
 	int ret = -1;
@@ -407,7 +392,6 @@ end:
 	return ret;
 }
 
-BT_HIDDEN
 int bt_ctf_clock_class_set_is_absolute(struct bt_ctf_clock_class *clock_class,
 		bt_ctf_bool is_absolute)
 {
@@ -434,7 +418,6 @@ end:
 	return ret;
 }
 
-BT_HIDDEN
 const uint8_t *bt_ctf_clock_class_get_uuid(
 		struct bt_ctf_clock_class *clock_class)
 {
@@ -458,7 +441,6 @@ end:
 	return ret;
 }
 
-BT_HIDDEN
 int bt_ctf_clock_class_set_uuid(struct bt_ctf_clock_class *clock_class,
 		const uint8_t *uuid)
 {
@@ -489,7 +471,6 @@ end:
 	return ret;
 }
 
-BT_HIDDEN
 void bt_ctf_clock_class_freeze(struct bt_ctf_clock_class *clock_class)
 {
 	if (!clock_class || clock_class->frozen) {
@@ -521,7 +502,6 @@ void bt_ctf_clock_class_destroy(struct bt_ctf_object *obj)
 	g_free(clock_class);
 }
 
-BT_HIDDEN
 int bt_ctf_clock_class_compare(struct bt_ctf_clock_class *clock_class_a,
 		struct bt_ctf_clock_class *clock_class_b)
 {

@@ -793,7 +793,6 @@ end:
  *   }
  */
 
-BT_HIDDEN
 bt_component_class_query_method_status
 live_viewer_connection_list_sessions(struct live_viewer_connection *viewer_connection,
                                      const bt_value **user_result)
@@ -937,7 +936,6 @@ end:
     return status;
 }
 
-BT_HIDDEN
 enum lttng_live_viewer_status
 lttng_live_create_viewer_session(struct lttng_live_msg_iter *lttng_live_msg_iter)
 {
@@ -1040,7 +1038,6 @@ end:
     return status;
 }
 
-BT_HIDDEN
 enum lttng_live_viewer_status lttng_live_session_attach(struct lttng_live_session *session,
                                                         bt_self_message_iterator *self_msg_iter)
 {
@@ -1136,7 +1133,6 @@ end:
     return status;
 }
 
-BT_HIDDEN
 enum lttng_live_viewer_status lttng_live_session_detach(struct lttng_live_session *session)
 {
     struct lttng_viewer_cmd cmd;
@@ -1213,7 +1209,6 @@ end:
     return status;
 }
 
-BT_HIDDEN
 enum lttng_live_get_one_metadata_status
 lttng_live_get_one_metadata_packet(struct lttng_live_trace *trace, FILE *fp, size_t *reply_len)
 {
@@ -1371,7 +1366,6 @@ static void lttng_live_need_new_streams(struct lttng_live_msg_iter *lttng_live_m
     }
 }
 
-BT_HIDDEN
 enum lttng_live_iterator_status
 lttng_live_get_next_index(struct lttng_live_msg_iter *lttng_live_msg_iter,
                           struct lttng_live_stream_iterator *stream, struct packet_index *index)
@@ -1506,7 +1500,6 @@ end:
     return status;
 }
 
-BT_HIDDEN
 enum ctf_msg_iter_medium_status
 lttng_live_get_stream_bytes(struct lttng_live_msg_iter *lttng_live_msg_iter,
                             struct lttng_live_stream_iterator *stream, uint8_t *buf,
@@ -1629,7 +1622,6 @@ end:
 /*
  * Request new streams for a session.
  */
-BT_HIDDEN
 enum lttng_live_iterator_status
 lttng_live_session_get_new_streams(struct lttng_live_session *session,
                                    bt_self_message_iterator *self_msg_iter)
@@ -1723,7 +1715,6 @@ end:
     return status;
 }
 
-BT_HIDDEN
 enum lttng_live_viewer_status live_viewer_connection_create(
     bt_self_component *self_comp, bt_self_component_class *self_comp_class,
     bt_logging_level log_level, const char *url, bool in_query,
@@ -1789,7 +1780,6 @@ end:
     return status;
 }
 
-BT_HIDDEN
 void live_viewer_connection_destroy(struct live_viewer_connection *viewer_connection)
 {
     bt_self_component *self_comp = viewer_connection->self_comp;

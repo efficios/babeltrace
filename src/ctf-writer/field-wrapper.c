@@ -13,7 +13,6 @@
 #include "field-wrapper.h"
 #include "object.h"
 
-BT_HIDDEN
 struct bt_ctf_field_wrapper *bt_ctf_field_wrapper_new(void *data)
 {
 	struct bt_ctf_field_wrapper *field_wrapper =
@@ -34,7 +33,6 @@ end:
 	return field_wrapper;
 }
 
-BT_HIDDEN
 void bt_ctf_field_wrapper_destroy(struct bt_ctf_field_wrapper *field_wrapper)
 {
 	BT_LOGD("Destroying field wrapper: addr=%p", field_wrapper);
@@ -43,7 +41,6 @@ void bt_ctf_field_wrapper_destroy(struct bt_ctf_field_wrapper *field_wrapper)
 	g_free(field_wrapper);
 }
 
-BT_HIDDEN
 struct bt_ctf_field_wrapper *bt_ctf_field_wrapper_create(
 		struct bt_ctf_object_pool *pool, struct bt_ctf_field_type *ft)
 {

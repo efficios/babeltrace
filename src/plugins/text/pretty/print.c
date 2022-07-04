@@ -1440,7 +1440,6 @@ end:
 	return ret;
 }
 
-BT_HIDDEN
 int pretty_print_event(struct pretty_component *pretty,
 		const bt_message *event_msg)
 {
@@ -1599,7 +1598,6 @@ int print_discarded_elements_msg(struct pretty_component *pretty,
 	return ret;
 }
 
-BT_HIDDEN
 int pretty_print_discarded_items(struct pretty_component *pretty,
 		const bt_message *msg)
 {
@@ -1668,7 +1666,6 @@ int pretty_print_discarded_items(struct pretty_component *pretty,
 	return 0;
 }
 
-BT_HIDDEN
 void pretty_print_init(void)
 {
 	strcpy(color_name, bt_common_color_bold());

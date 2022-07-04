@@ -36,11 +36,11 @@ extern "C" {
 
 typedef uint8_t bt_uuid_t[BT_UUID_LEN];
 
-BT_HIDDEN void bt_uuid_generate(bt_uuid_t uuid_out);
-BT_HIDDEN void bt_uuid_to_str(const bt_uuid_t uuid_in, char *str_out);
-BT_HIDDEN int bt_uuid_from_str(const char *str_in, bt_uuid_t uuid_out);
-BT_HIDDEN int bt_uuid_compare(const bt_uuid_t uuid_a, const bt_uuid_t uuid_b);
-BT_HIDDEN void bt_uuid_copy(bt_uuid_t uuid_dest, const bt_uuid_t uuid_src);
+void bt_uuid_generate(bt_uuid_t uuid_out);
+void bt_uuid_to_str(const bt_uuid_t uuid_in, char *str_out);
+int bt_uuid_from_str(const char *str_in, bt_uuid_t uuid_out);
+int bt_uuid_compare(const bt_uuid_t uuid_a, const bt_uuid_t uuid_b);
+void bt_uuid_copy(bt_uuid_t uuid_dest, const bt_uuid_t uuid_src);
 
 #ifdef __cplusplus
 }

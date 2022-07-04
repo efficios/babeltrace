@@ -7,6 +7,7 @@
 #include "object.h"
 #include <babeltrace2-ctf-writer/object.h>
 
+BT_EXPORT
 void *bt_ctf_object_get_ref(void *obj)
 {
 	if (G_UNLIKELY(!obj)) {
@@ -19,6 +20,7 @@ end:
 	return obj;
 }
 
+BT_EXPORT
 void bt_ctf_object_put_ref(void *obj)
 {
 	if (G_UNLIKELY(!obj)) {

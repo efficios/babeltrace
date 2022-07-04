@@ -23,7 +23,6 @@ struct bt_resolve_field_path_context {
 	struct bt_field_class *event_payload;
 };
 
-BT_HIDDEN
 int bt_resolve_field_paths(struct bt_field_class *field_class,
 		struct bt_resolve_field_path_context *ctx,
 		const char *api_func);

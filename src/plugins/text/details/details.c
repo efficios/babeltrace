@@ -30,7 +30,6 @@
 #define WITH_UUID_PARAM_NAME "with-uuid"
 #define COMPACT_PARAM_NAME "compact"
 
-BT_HIDDEN
 void details_destroy_details_trace_class_meta(
 		struct details_trace_class_meta *details_tc_meta)
 {
@@ -49,7 +48,6 @@ end:
 	return;
 }
 
-BT_HIDDEN
 struct details_trace_class_meta *details_create_details_trace_class_meta(void)
 {
 	struct details_trace_class_meta *details_tc_meta =
@@ -188,7 +186,6 @@ end:
 	return details_comp;
 }
 
-BT_HIDDEN
 void details_finalize(bt_self_component_sink *comp)
 {
 	struct details_comp *details_comp;
@@ -334,7 +331,6 @@ void log_configuration(bt_self_component_sink *comp,
 	BT_COMP_LOGI("  With UUID: %d", details_comp->cfg.with_uuid);
 }
 
-BT_HIDDEN
 bt_component_class_initialize_method_status details_init(
 		bt_self_component_sink *comp,
 		bt_self_component_sink_configuration *config,
@@ -390,7 +386,6 @@ end:
 	return status;
 }
 
-BT_HIDDEN
 bt_component_class_sink_graph_is_configured_method_status
 details_graph_is_configured(bt_self_component_sink *comp)
 {
@@ -433,7 +428,6 @@ end:
 	return status;
 }
 
-BT_HIDDEN
 bt_component_class_sink_consume_method_status
 details_consume(bt_self_component_sink *comp)
 {

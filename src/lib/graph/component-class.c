@@ -156,6 +156,7 @@ end:
 	return ret;
 }
 
+BT_EXPORT
 struct bt_component_class_source *bt_component_class_source_create(
 		const char *name,
 		struct bt_message_iterator_class *message_iterator_class)
@@ -195,6 +196,7 @@ end:
 	return (void *) source_class;
 }
 
+BT_EXPORT
 struct bt_component_class_filter *bt_component_class_filter_create(
 		const char *name,
 		struct bt_message_iterator_class *message_iterator_class)
@@ -234,6 +236,7 @@ end:
 	return (void *) filter_class;
 }
 
+BT_EXPORT
 struct bt_component_class_sink *bt_component_class_sink_create(
 		const char *name, bt_component_class_sink_consume_method method)
 {
@@ -273,6 +276,7 @@ end:
 	return (void *) sink_class;
 }
 
+BT_EXPORT
 enum bt_component_class_set_method_status
 bt_component_class_source_set_get_supported_mip_versions_method(
 		struct bt_component_class_source *comp_cls,
@@ -288,6 +292,7 @@ bt_component_class_source_set_get_supported_mip_versions_method(
 	return BT_FUNC_STATUS_OK;
 }
 
+BT_EXPORT
 enum bt_component_class_set_method_status
 bt_component_class_filter_set_get_supported_mip_versions_method(
 		struct bt_component_class_filter *comp_cls,
@@ -303,6 +308,7 @@ bt_component_class_filter_set_get_supported_mip_versions_method(
 	return BT_FUNC_STATUS_OK;
 }
 
+BT_EXPORT
 enum bt_component_class_set_method_status
 bt_component_class_sink_set_get_supported_mip_versions_method(
 		struct bt_component_class_sink *comp_cls,
@@ -318,6 +324,7 @@ bt_component_class_sink_set_get_supported_mip_versions_method(
 	return BT_FUNC_STATUS_OK;
 }
 
+BT_EXPORT
 enum bt_component_class_set_method_status
 bt_component_class_source_set_initialize_method(
 		struct bt_component_class_source *comp_cls,
@@ -333,6 +340,7 @@ bt_component_class_source_set_initialize_method(
 	return BT_FUNC_STATUS_OK;
 }
 
+BT_EXPORT
 enum bt_component_class_set_method_status
 bt_component_class_filter_set_initialize_method(
 		struct bt_component_class_filter *comp_cls,
@@ -348,6 +356,7 @@ bt_component_class_filter_set_initialize_method(
 	return BT_FUNC_STATUS_OK;
 }
 
+BT_EXPORT
 enum bt_component_class_set_method_status
 bt_component_class_sink_set_initialize_method(
 		struct bt_component_class_sink *comp_cls,
@@ -363,6 +372,7 @@ bt_component_class_sink_set_initialize_method(
 	return BT_FUNC_STATUS_OK;
 }
 
+BT_EXPORT
 enum bt_component_class_set_method_status
 bt_component_class_source_set_finalize_method(
 		struct bt_component_class_source *comp_cls,
@@ -378,6 +388,7 @@ bt_component_class_source_set_finalize_method(
 	return BT_FUNC_STATUS_OK;
 }
 
+BT_EXPORT
 enum bt_component_class_set_method_status
 bt_component_class_filter_set_finalize_method(
 		struct bt_component_class_filter *comp_cls,
@@ -393,6 +404,7 @@ bt_component_class_filter_set_finalize_method(
 	return BT_FUNC_STATUS_OK;
 }
 
+BT_EXPORT
 enum bt_component_class_set_method_status
 bt_component_class_sink_set_finalize_method(
 		struct bt_component_class_sink *comp_cls,
@@ -408,6 +420,7 @@ bt_component_class_sink_set_finalize_method(
 	return BT_FUNC_STATUS_OK;
 }
 
+BT_EXPORT
 enum bt_component_class_set_method_status
 bt_component_class_source_set_query_method(
 		struct bt_component_class_source *comp_cls,
@@ -423,6 +436,7 @@ bt_component_class_source_set_query_method(
 	return BT_FUNC_STATUS_OK;
 }
 
+BT_EXPORT
 enum bt_component_class_set_method_status
 bt_component_class_filter_set_query_method(
 		struct bt_component_class_filter *comp_cls,
@@ -438,6 +452,7 @@ bt_component_class_filter_set_query_method(
 	return BT_FUNC_STATUS_OK;
 }
 
+BT_EXPORT
 enum bt_component_class_set_method_status
 bt_component_class_sink_set_query_method(
 		struct bt_component_class_sink *comp_cls,
@@ -453,6 +468,7 @@ bt_component_class_sink_set_query_method(
 	return BT_FUNC_STATUS_OK;
 }
 
+BT_EXPORT
 enum bt_component_class_set_method_status
 bt_component_class_filter_set_input_port_connected_method(
 		struct bt_component_class_filter *comp_cls,
@@ -468,6 +484,7 @@ bt_component_class_filter_set_input_port_connected_method(
 	return BT_FUNC_STATUS_OK;
 }
 
+BT_EXPORT
 enum bt_component_class_set_method_status
 bt_component_class_sink_set_input_port_connected_method(
 		struct bt_component_class_sink *comp_cls,
@@ -483,6 +500,7 @@ bt_component_class_sink_set_input_port_connected_method(
 	return BT_FUNC_STATUS_OK;
 }
 
+BT_EXPORT
 enum bt_component_class_set_method_status
 bt_component_class_source_set_output_port_connected_method(
 		struct bt_component_class_source *comp_cls,
@@ -498,6 +516,7 @@ bt_component_class_source_set_output_port_connected_method(
 	return BT_FUNC_STATUS_OK;
 }
 
+BT_EXPORT
 enum bt_component_class_set_method_status
 bt_component_class_filter_set_output_port_connected_method(
 		struct bt_component_class_filter *comp_cls,
@@ -513,6 +532,7 @@ bt_component_class_filter_set_output_port_connected_method(
 	return BT_FUNC_STATUS_OK;
 }
 
+BT_EXPORT
 enum bt_component_class_set_method_status
 bt_component_class_sink_set_graph_is_configured_method(
 		struct bt_component_class_sink *comp_cls,
@@ -528,6 +548,7 @@ bt_component_class_sink_set_graph_is_configured_method(
 	return BT_FUNC_STATUS_OK;
 }
 
+BT_EXPORT
 enum bt_component_class_set_description_status
 bt_component_class_set_description(
 		struct bt_component_class *comp_cls,
@@ -546,6 +567,7 @@ bt_component_class_set_description(
 	return BT_FUNC_STATUS_OK;
 }
 
+BT_EXPORT
 enum bt_component_class_set_help_status bt_component_class_set_help(
 		struct bt_component_class *comp_cls,
 		const char *help)
@@ -559,12 +581,14 @@ enum bt_component_class_set_help_status bt_component_class_set_help(
 	return BT_FUNC_STATUS_OK;
 }
 
+BT_EXPORT
 const char *bt_component_class_get_name(const struct bt_component_class *comp_cls)
 {
 	BT_ASSERT_PRE_DEV_COMP_CLS_NON_NULL(comp_cls);
 	return comp_cls->name->str;
 }
 
+BT_EXPORT
 enum bt_component_class_type bt_component_class_get_type(
 		const struct bt_component_class *comp_cls)
 {
@@ -572,6 +596,7 @@ enum bt_component_class_type bt_component_class_get_type(
 	return comp_cls->type;
 }
 
+BT_EXPORT
 const char *bt_component_class_get_description(
 		const struct bt_component_class *comp_cls)
 {
@@ -581,6 +606,7 @@ const char *bt_component_class_get_description(
 		comp_cls->description->str : NULL;
 }
 
+BT_EXPORT
 const char *bt_component_class_get_help(
 		const struct bt_component_class *comp_cls)
 {
@@ -589,7 +615,6 @@ const char *bt_component_class_get_help(
 		comp_cls->help->str[0] != '\0' ? comp_cls->help->str : NULL;
 }
 
-BT_HIDDEN
 void bt_component_class_add_destroy_listener(
 		struct bt_component_class *comp_cls,
 		bt_component_class_destroy_listener_func func, void *data)
@@ -605,7 +630,6 @@ void bt_component_class_add_destroy_listener(
 		"%![cc-]+C, listener-func-addr=%p", comp_cls, func);
 }
 
-BT_HIDDEN
 void _bt_component_class_freeze(const struct bt_component_class *comp_cls)
 {
 	BT_ASSERT(comp_cls);
@@ -613,48 +637,56 @@ void _bt_component_class_freeze(const struct bt_component_class *comp_cls)
 	((struct bt_component_class *) comp_cls)->frozen = true;
 }
 
+BT_EXPORT
 void bt_component_class_get_ref(
 		const struct bt_component_class *component_class)
 {
 	bt_object_get_ref(component_class);
 }
 
+BT_EXPORT
 void bt_component_class_put_ref(
 		const struct bt_component_class *component_class)
 {
 	bt_object_put_ref(component_class);
 }
 
+BT_EXPORT
 void bt_component_class_source_get_ref(
 		const struct bt_component_class_source *component_class_source)
 {
 	bt_object_get_ref(component_class_source);
 }
 
+BT_EXPORT
 void bt_component_class_source_put_ref(
 		const struct bt_component_class_source *component_class_source)
 {
 	bt_object_put_ref(component_class_source);
 }
 
+BT_EXPORT
 void bt_component_class_filter_get_ref(
 		const struct bt_component_class_filter *component_class_filter)
 {
 	bt_object_get_ref(component_class_filter);
 }
 
+BT_EXPORT
 void bt_component_class_filter_put_ref(
 		const struct bt_component_class_filter *component_class_filter)
 {
 	bt_object_put_ref(component_class_filter);
 }
 
+BT_EXPORT
 void bt_component_class_sink_get_ref(
 		const struct bt_component_class_sink *component_class_sink)
 {
 	bt_object_get_ref(component_class_sink);
 }
 
+BT_EXPORT
 void bt_component_class_sink_put_ref(
 		const struct bt_component_class_sink *component_class_sink)
 {

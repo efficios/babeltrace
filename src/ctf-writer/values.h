@@ -29,7 +29,6 @@ enum bt_ctf_value_status {
 	BT_CTF_VALUE_STATUS_OK		= 0,
 };
 
-BT_HIDDEN
 enum bt_ctf_value_status _bt_ctf_value_freeze(struct bt_ctf_value *object);
 
 #ifdef BT_DEV_MODE
@@ -63,7 +62,6 @@ enum bt_ctf_value_type {
 	BT_CTF_VALUE_TYPE_MAP =		6,
 };
 
-BT_HIDDEN
 enum bt_ctf_value_type bt_ctf_value_get_type(const struct bt_ctf_value *object);
 
 static inline
@@ -108,27 +106,20 @@ bt_ctf_bool bt_ctf_value_is_map(const struct bt_ctf_value *object)
 	return bt_ctf_value_get_type(object) == BT_CTF_VALUE_TYPE_MAP;
 }
 
-BT_HIDDEN
 enum bt_ctf_value_status bt_ctf_value_copy(struct bt_ctf_private_value **copy,
 		const struct bt_ctf_value *object);
 
-BT_HIDDEN
 bt_ctf_bool bt_ctf_value_compare(const struct bt_ctf_value *object_a,
 		const struct bt_ctf_value *object_b);
 
-BT_HIDDEN
 bt_ctf_bool bt_ctf_value_bool_get(const struct bt_ctf_value *bool_obj);
 
-BT_HIDDEN
 int64_t bt_ctf_value_integer_get(const struct bt_ctf_value *integer_obj);
 
-BT_HIDDEN
 double bt_ctf_value_real_get(const struct bt_ctf_value *real_obj);
 
-BT_HIDDEN
 const char *bt_ctf_value_string_get(const struct bt_ctf_value *string_obj);
 
-BT_HIDDEN
 uint64_t bt_ctf_value_array_get_length(const struct bt_ctf_value *array_obj);
 
 static inline
@@ -137,11 +128,9 @@ bt_ctf_bool bt_ctf_value_array_is_empty(const struct bt_ctf_value *array_obj)
 	return bt_ctf_value_array_get_length(array_obj) == 0;
 }
 
-BT_HIDDEN
 struct bt_ctf_value *bt_ctf_value_array_borrow_element_by_index(
 		const struct bt_ctf_value *array_obj, uint64_t index);
 
-BT_HIDDEN
 uint64_t bt_ctf_value_map_get_size(const struct bt_ctf_value *map_obj);
 
 static inline
@@ -150,23 +139,19 @@ bt_ctf_bool bt_ctf_value_map_is_empty(const struct bt_ctf_value *map_obj)
 	return bt_ctf_value_map_get_size(map_obj) == 0;
 }
 
-BT_HIDDEN
 struct bt_ctf_value *bt_ctf_value_map_borrow_entry_value(
 		const struct bt_ctf_value *map_obj, const char *key);
 
 typedef bt_ctf_bool (* bt_ctf_value_map_foreach_entry_cb)(const char *key,
 	struct bt_ctf_value *object, void *data);
 
-BT_HIDDEN
 enum bt_ctf_value_status bt_ctf_value_map_foreach_entry(
 		const struct bt_ctf_value *map_obj,
 		bt_ctf_value_map_foreach_entry_cb cb, void *data);
 
-BT_HIDDEN
 bt_ctf_bool bt_ctf_value_map_has_entry(const struct bt_ctf_value *map_obj,
 		const char *key);
 
-BT_HIDDEN
 enum bt_ctf_value_status bt_ctf_value_map_extend(
 		struct bt_ctf_private_value **extended_map_obj,
 		const struct bt_ctf_value *base_map_obj,
@@ -185,135 +170,103 @@ struct bt_ctf_value *bt_ctf_private_value_as_value(
 	return (void *) priv_value;
 }
 
-BT_HIDDEN
 struct bt_ctf_private_value *bt_ctf_private_value_bool_create(void);
 
-BT_HIDDEN
 struct bt_ctf_private_value *bt_ctf_private_value_bool_create_init(bt_ctf_bool val);
 
-BT_HIDDEN
 void bt_ctf_private_value_bool_set(struct bt_ctf_private_value *bool_obj,
 		bt_ctf_bool val);
 
-BT_HIDDEN
 struct bt_ctf_private_value *bt_ctf_private_value_integer_create(void);
 
-BT_HIDDEN
 struct bt_ctf_private_value *bt_ctf_private_value_integer_create_init(
 		int64_t val);
 
-BT_HIDDEN
 void bt_ctf_private_value_integer_set(
 		struct bt_ctf_private_value *integer_obj, int64_t val);
 
-BT_HIDDEN
 struct bt_ctf_private_value *bt_ctf_private_value_real_create(void);
 
-BT_HIDDEN
 struct bt_ctf_private_value *bt_ctf_private_value_real_create_init(double val);
 
-BT_HIDDEN
 void bt_ctf_private_value_real_set(
 		struct bt_ctf_private_value *real_obj, double val);
 
-BT_HIDDEN
 struct bt_ctf_private_value *bt_ctf_private_value_string_create(void);
 
-BT_HIDDEN
 struct bt_ctf_private_value *bt_ctf_private_value_string_create_init(
 		const char *val);
 
-BT_HIDDEN
 enum bt_ctf_value_status bt_ctf_private_value_string_set(
 		struct bt_ctf_private_value *string_obj,
 		const char *val);
 
-BT_HIDDEN
 struct bt_ctf_private_value *bt_ctf_private_value_array_create(void);
 
-BT_HIDDEN
 struct bt_ctf_private_value *bt_ctf_private_value_array_borrow_element_by_index(
 		const struct bt_ctf_private_value *array_obj, uint64_t index);
 
-BT_HIDDEN
 enum bt_ctf_value_status bt_ctf_private_value_array_append_element(
 		struct bt_ctf_private_value *array_obj,
 		struct bt_ctf_value *element_obj);
 
-BT_HIDDEN
 enum bt_ctf_value_status bt_ctf_private_value_array_append_bool_element(
 		struct bt_ctf_private_value *array_obj,
 		bt_ctf_bool val);
 
-BT_HIDDEN
 enum bt_ctf_value_status bt_ctf_private_value_array_append_integer_element(
 		struct bt_ctf_private_value *array_obj,
 		int64_t val);
 
-BT_HIDDEN
 enum bt_ctf_value_status bt_ctf_private_value_array_append_real_element(
 		struct bt_ctf_private_value *array_obj,
 		double val);
 
-BT_HIDDEN
 enum bt_ctf_value_status bt_ctf_private_value_array_append_string_element(
 		struct bt_ctf_private_value *array_obj, const char *val);
 
-BT_HIDDEN
 enum bt_ctf_value_status bt_ctf_private_value_array_append_empty_array_element(
 		struct bt_ctf_private_value *array_obj);
 
-BT_HIDDEN
 enum bt_ctf_value_status bt_ctf_private_value_array_append_empty_map_element(
 		struct bt_ctf_private_value *array_obj);
 
-BT_HIDDEN
 enum bt_ctf_value_status bt_ctf_private_value_array_set_element_by_index(
 		struct bt_ctf_private_value *array_obj, uint64_t index,
 		struct bt_ctf_value *element_obj);
 
-BT_HIDDEN
 struct bt_ctf_private_value *bt_ctf_private_value_map_create(void);
 
-BT_HIDDEN
 struct bt_ctf_private_value *bt_ctf_private_value_map_borrow_entry_value(
 		const struct bt_ctf_private_value *map_obj, const char *key);
 
 typedef bt_ctf_bool (* bt_ctf_private_value_map_foreach_entry_cb)(const char *key,
 		struct bt_ctf_private_value *object, void *data);
 
-BT_HIDDEN
 enum bt_ctf_value_status bt_ctf_private_value_map_foreach_entry(
 		const struct bt_ctf_private_value *map_obj,
 		bt_ctf_private_value_map_foreach_entry_cb cb, void *data);
 
-BT_HIDDEN
 enum bt_ctf_value_status bt_ctf_private_value_map_insert_entry(
 		struct bt_ctf_private_value *map_obj, const char *key,
 		struct bt_ctf_value *element_obj);
 
-BT_HIDDEN
 enum bt_ctf_value_status bt_ctf_private_value_map_insert_bool_entry(
 		struct bt_ctf_private_value *map_obj, const char *key, bt_ctf_bool val);
 
-BT_HIDDEN
 enum bt_ctf_value_status bt_ctf_private_value_map_insert_integer_entry(
 		struct bt_ctf_private_value *map_obj, const char *key, int64_t val);
 
-BT_HIDDEN
 enum bt_ctf_value_status bt_ctf_private_value_map_insert_real_entry(
 		struct bt_ctf_private_value *map_obj, const char *key, double val);
 
-BT_HIDDEN
 enum bt_ctf_value_status bt_ctf_private_value_map_insert_string_entry(
 		struct bt_ctf_private_value *map_obj, const char *key,
 		const char *val);
 
-BT_HIDDEN
 enum bt_ctf_value_status bt_ctf_private_value_map_insert_empty_array_entry(
 		struct bt_ctf_private_value *map_obj, const char *key);
 
-BT_HIDDEN
 enum bt_ctf_value_status bt_ctf_private_value_map_insert_empty_map_entry(
 		struct bt_ctf_private_value *map_obj, const char *key);
 

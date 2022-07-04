@@ -34,7 +34,6 @@ struct objstack_node
     char __attribute__((aligned(OBJSTACK_ALIGN))) data[];
 };
 
-BT_HIDDEN
 struct objstack *objstack_create(void)
 {
     struct objstack *objstack;
@@ -71,7 +70,6 @@ static void objstack_node_free(struct objstack_node *node)
     free(node);
 }
 
-BT_HIDDEN
 void objstack_destroy(struct objstack *objstack)
 {
     struct objstack_node *node, *p;
@@ -104,7 +102,6 @@ static struct objstack_node *objstack_append_node(struct objstack *objstack)
     return new_node;
 }
 
-BT_HIDDEN
 void *objstack_alloc(struct objstack *objstack, size_t len)
 {
     struct objstack_node *last_node;

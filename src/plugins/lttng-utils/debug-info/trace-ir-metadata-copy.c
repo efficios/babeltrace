@@ -22,7 +22,6 @@
 #include "trace-ir-metadata-field-class-copy.h"
 #include "utils.h"
 
-BT_HIDDEN
 enum debug_info_trace_ir_mapping_status copy_trace_class_content(
 		struct trace_ir_maps *ir_maps,
 		const bt_trace_class *in_trace_class,
@@ -202,7 +201,6 @@ end:
 	return out_clock_class;
 }
 
-BT_HIDDEN
 enum debug_info_trace_ir_mapping_status copy_stream_class_content(
 		struct trace_ir_maps *ir_maps,
 		const bt_stream_class *in_stream_class,
@@ -400,7 +398,6 @@ end:
 	return status;
 }
 
-BT_HIDDEN
 enum debug_info_trace_ir_mapping_status copy_event_class_content(
 		struct trace_ir_maps *ir_maps,
 		const bt_event_class *in_event_class,
@@ -549,7 +546,6 @@ end:
 	return status;
 }
 
-BT_HIDDEN
 enum debug_info_trace_ir_mapping_status
 copy_event_common_context_field_class_content(
 		struct trace_ir_metadata_maps *md_maps,
@@ -697,14 +693,12 @@ end:
 	return status;
 }
 
-BT_HIDDEN
 bt_field_class *create_field_class_copy(struct trace_ir_metadata_maps *md_maps,
 		const bt_field_class *in_field_class)
 {
 	return create_field_class_copy_internal(md_maps, in_field_class);
 }
 
-BT_HIDDEN
 enum debug_info_trace_ir_mapping_status copy_field_class_content(
 		struct trace_ir_metadata_maps *md_maps,
 		const bt_field_class *in_field_class,

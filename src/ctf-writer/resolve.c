@@ -1197,7 +1197,6 @@ int resolve_root_type(enum bt_ctf_scope root_scope, struct resolve_context *ctx)
 	return ret;
 }
 
-BT_HIDDEN
 int bt_ctf_resolve_types(
 		struct bt_ctf_private_value *environment,
 		struct bt_ctf_field_type_common *packet_header_type,

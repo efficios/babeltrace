@@ -34,7 +34,6 @@
 #include "visitor.h"
 #include "writer.h"
 
-BT_HIDDEN
 int bt_ctf_stream_class_common_initialize(struct bt_ctf_stream_class_common *stream_class,
 		const char *name, bt_ctf_object_release_func release_func)
 {
@@ -64,7 +63,6 @@ error:
 	return -1;
 }
 
-BT_HIDDEN
 void bt_ctf_stream_class_common_finalize(struct bt_ctf_stream_class_common *stream_class)
 {
 	BT_LOGD("Finalizing common stream class: addr=%p, name=\"%s\", id=%" PRId64,
@@ -129,7 +127,6 @@ end:
 	return;
 }
 
-BT_HIDDEN
 int bt_ctf_stream_class_common_add_event_class(
 		struct bt_ctf_stream_class_common *stream_class,
 		struct bt_ctf_event_class_common *event_class,
@@ -401,7 +398,6 @@ int visit_event_class(void *object, bt_ctf_visitor visitor,void *data)
 	return visitor(&obj, data);
 }
 
-BT_HIDDEN
 int bt_ctf_stream_class_common_visit(struct bt_ctf_stream_class_common *stream_class,
 		bt_ctf_visitor visitor, void *data)
 {
@@ -428,7 +424,6 @@ end:
 	return ret;
 }
 
-BT_HIDDEN
 int bt_ctf_stream_class_visit(struct bt_ctf_stream_class *stream_class,
 		bt_ctf_visitor visitor, void *data)
 {
@@ -436,7 +431,6 @@ int bt_ctf_stream_class_visit(struct bt_ctf_stream_class *stream_class,
 		visitor, data);
 }
 
-BT_HIDDEN
 void bt_ctf_stream_class_common_freeze(struct bt_ctf_stream_class_common *stream_class)
 {
 	if (!stream_class || stream_class->frozen) {
@@ -453,7 +447,6 @@ void bt_ctf_stream_class_common_freeze(struct bt_ctf_stream_class_common *stream
 	bt_ctf_clock_class_freeze(stream_class->clock_class);
 }
 
-BT_HIDDEN
 int bt_ctf_stream_class_common_validate_single_clock_class(
 		struct bt_ctf_stream_class_common *stream_class,
 		struct bt_ctf_clock_class **expected_clock_class)
@@ -680,6 +673,7 @@ void bt_ctf_stream_class_destroy(struct bt_ctf_object *obj)
 	g_free(stream_class);
 }
 
+BT_EXPORT
 struct bt_ctf_stream_class *bt_ctf_stream_class_create(const char *name)
 {
 	struct bt_ctf_stream_class *stream_class;
@@ -785,7 +779,6 @@ end:
 	return ret;
 }
 
-BT_HIDDEN
 int bt_ctf_stream_class_map_clock_class(
 		struct bt_ctf_stream_class *stream_class,
 		struct bt_ctf_field_type *packet_context_type,
@@ -829,6 +822,7 @@ end:
 	return ret;
 }
 
+BT_EXPORT
 struct bt_ctf_clock *bt_ctf_stream_class_get_clock(
 		struct bt_ctf_stream_class *stream_class)
 {
@@ -854,6 +848,7 @@ end:
 	return clock;
 }
 
+BT_EXPORT
 int bt_ctf_stream_class_set_clock(
 		struct bt_ctf_stream_class *stream_class,
 		struct bt_ctf_clock *clock)
@@ -894,7 +889,6 @@ end:
 	return ret;
 }
 
-BT_HIDDEN
 int bt_ctf_stream_class_serialize(struct bt_ctf_stream_class *stream_class,
 		struct metadata_context *context)
 {
@@ -1018,6 +1012,7 @@ end:
 	return ret;
 }
 
+BT_EXPORT
 struct bt_ctf_trace *bt_ctf_stream_class_get_trace(
 		struct bt_ctf_stream_class *stream_class)
 {
@@ -1025,12 +1020,14 @@ struct bt_ctf_trace *bt_ctf_stream_class_get_trace(
 		BT_CTF_TO_COMMON(stream_class)));
 }
 
+BT_EXPORT
 const char *bt_ctf_stream_class_get_name(
 		struct bt_ctf_stream_class *stream_class)
 {
 	return bt_ctf_stream_class_common_get_name(BT_CTF_TO_COMMON(stream_class));
 }
 
+BT_EXPORT
 int bt_ctf_stream_class_set_name(
 		struct bt_ctf_stream_class *stream_class, const char *name)
 {
@@ -1038,18 +1035,21 @@ int bt_ctf_stream_class_set_name(
 		name);
 }
 
+BT_EXPORT
 int64_t bt_ctf_stream_class_get_id(
 		struct bt_ctf_stream_class *stream_class)
 {
 	return bt_ctf_stream_class_common_get_id(BT_CTF_TO_COMMON(stream_class));
 }
 
+BT_EXPORT
 int bt_ctf_stream_class_set_id(
 		struct bt_ctf_stream_class *stream_class, uint64_t id)
 {
 	return bt_ctf_stream_class_common_set_id(BT_CTF_TO_COMMON(stream_class), id);
 }
 
+BT_EXPORT
 struct bt_ctf_field_type *bt_ctf_stream_class_get_packet_context_type(
 		struct bt_ctf_stream_class *stream_class)
 {
@@ -1058,6 +1058,7 @@ struct bt_ctf_field_type *bt_ctf_stream_class_get_packet_context_type(
 			BT_CTF_TO_COMMON(stream_class)));
 }
 
+BT_EXPORT
 int bt_ctf_stream_class_set_packet_context_type(
 		struct bt_ctf_stream_class *stream_class,
 		struct bt_ctf_field_type *packet_context_type)
@@ -1066,6 +1067,7 @@ int bt_ctf_stream_class_set_packet_context_type(
 		BT_CTF_TO_COMMON(stream_class), (void *) packet_context_type);
 }
 
+BT_EXPORT
 struct bt_ctf_field_type *
 bt_ctf_stream_class_get_event_header_type(
 		struct bt_ctf_stream_class *stream_class)
@@ -1075,6 +1077,7 @@ bt_ctf_stream_class_get_event_header_type(
 			BT_CTF_TO_COMMON(stream_class)));
 }
 
+BT_EXPORT
 int bt_ctf_stream_class_set_event_header_type(
 		struct bt_ctf_stream_class *stream_class,
 		struct bt_ctf_field_type *event_header_type)
@@ -1083,6 +1086,7 @@ int bt_ctf_stream_class_set_event_header_type(
 		BT_CTF_TO_COMMON(stream_class), (void *) event_header_type);
 }
 
+BT_EXPORT
 struct bt_ctf_field_type *
 bt_ctf_stream_class_get_event_context_type(
 		struct bt_ctf_stream_class *stream_class)
@@ -1092,6 +1096,7 @@ bt_ctf_stream_class_get_event_context_type(
 			BT_CTF_TO_COMMON(stream_class)));
 }
 
+BT_EXPORT
 int bt_ctf_stream_class_set_event_context_type(
 		struct bt_ctf_stream_class *stream_class,
 		struct bt_ctf_field_type *event_context_type)
@@ -1100,6 +1105,7 @@ int bt_ctf_stream_class_set_event_context_type(
 		BT_CTF_TO_COMMON(stream_class), (void *) event_context_type);
 }
 
+BT_EXPORT
 int64_t bt_ctf_stream_class_get_event_class_count(
 		struct bt_ctf_stream_class *stream_class)
 {
@@ -1107,6 +1113,7 @@ int64_t bt_ctf_stream_class_get_event_class_count(
 		BT_CTF_TO_COMMON(stream_class));
 }
 
+BT_EXPORT
 struct bt_ctf_event_class *bt_ctf_stream_class_get_event_class_by_index(
 		struct bt_ctf_stream_class *stream_class, uint64_t index)
 {
@@ -1115,6 +1122,7 @@ struct bt_ctf_event_class *bt_ctf_stream_class_get_event_class_by_index(
 			BT_CTF_TO_COMMON(stream_class), index));
 }
 
+BT_EXPORT
 struct bt_ctf_event_class *bt_ctf_stream_class_get_event_class_by_id(
 		struct bt_ctf_stream_class *stream_class, uint64_t id)
 {
@@ -1123,6 +1131,7 @@ struct bt_ctf_event_class *bt_ctf_stream_class_get_event_class_by_id(
 			BT_CTF_TO_COMMON(stream_class), id));
 }
 
+BT_EXPORT
 int bt_ctf_stream_class_add_event_class(
 		struct bt_ctf_stream_class *stream_class,
 		struct bt_ctf_event_class *event_class)

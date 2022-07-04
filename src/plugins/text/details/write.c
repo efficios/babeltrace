@@ -2530,7 +2530,6 @@ end:
 	return ret;
 }
 
-BT_HIDDEN
 int details_write_message(struct details_comp *details_comp,
 		const bt_message *msg)
 {

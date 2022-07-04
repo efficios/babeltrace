@@ -142,10 +142,8 @@ struct bt_ctf_field_common_string {
 	size_t size;
 };
 
-BT_HIDDEN
 struct bt_ctf_field_common *bt_ctf_field_common_copy(struct bt_ctf_field_common *field);
 
-BT_HIDDEN
 int bt_ctf_field_common_structure_initialize(struct bt_ctf_field_common *field,
 		struct bt_ctf_field_type_common *type,
 		bool is_shared, bt_ctf_object_release_func release_func,
@@ -153,7 +151,6 @@ int bt_ctf_field_common_structure_initialize(struct bt_ctf_field_common *field,
 		bt_ctf_field_common_create_func field_create_func,
 		GDestroyNotify field_release_func);
 
-BT_HIDDEN
 int bt_ctf_field_common_array_initialize(struct bt_ctf_field_common *field,
 		struct bt_ctf_field_type_common *type,
 		bool is_shared, bt_ctf_object_release_func release_func,
@@ -161,14 +158,12 @@ int bt_ctf_field_common_array_initialize(struct bt_ctf_field_common *field,
 		bt_ctf_field_common_create_func field_create_func,
 		GDestroyNotify field_destroy_func);
 
-BT_HIDDEN
 int bt_ctf_field_common_sequence_initialize(struct bt_ctf_field_common *field,
 		struct bt_ctf_field_type_common *type,
 		bool is_shared, bt_ctf_object_release_func release_func,
 		struct bt_ctf_field_common_methods *methods,
 		GDestroyNotify field_destroy_func);
 
-BT_HIDDEN
 int bt_ctf_field_common_variant_initialize(struct bt_ctf_field_common *field,
 		struct bt_ctf_field_type_common *type,
 		bool is_shared, bt_ctf_object_release_func release_func,
@@ -176,80 +171,58 @@ int bt_ctf_field_common_variant_initialize(struct bt_ctf_field_common *field,
 		bt_ctf_field_common_create_func field_create_func,
 		GDestroyNotify field_release_func);
 
-BT_HIDDEN
 int bt_ctf_field_common_string_initialize(struct bt_ctf_field_common *field,
 		struct bt_ctf_field_type_common *type,
 		bool is_shared, bt_ctf_object_release_func release_func,
 		struct bt_ctf_field_common_methods *methods);
 
-BT_HIDDEN
 int bt_ctf_field_common_generic_validate(struct bt_ctf_field_common *field);
 
-BT_HIDDEN
 int bt_ctf_field_common_structure_validate_recursive(struct bt_ctf_field_common *field);
 
-BT_HIDDEN
 int bt_ctf_field_common_variant_validate_recursive(struct bt_ctf_field_common *field);
 
-BT_HIDDEN
 int bt_ctf_field_common_array_validate_recursive(struct bt_ctf_field_common *field);
 
-BT_HIDDEN
 int bt_ctf_field_common_sequence_validate_recursive(struct bt_ctf_field_common *field);
 
-BT_HIDDEN
 void bt_ctf_field_common_generic_reset(struct bt_ctf_field_common *field);
 
-BT_HIDDEN
 void bt_ctf_field_common_structure_reset_recursive(struct bt_ctf_field_common *field);
 
-BT_HIDDEN
 void bt_ctf_field_common_variant_reset_recursive(struct bt_ctf_field_common *field);
 
-BT_HIDDEN
 void bt_ctf_field_common_array_reset_recursive(struct bt_ctf_field_common *field);
 
-BT_HIDDEN
 void bt_ctf_field_common_sequence_reset_recursive(struct bt_ctf_field_common *field);
 
-BT_HIDDEN
 void bt_ctf_field_common_generic_set_is_frozen(struct bt_ctf_field_common *field,
 		bool is_frozen);
 
-BT_HIDDEN
 void bt_ctf_field_common_structure_set_is_frozen_recursive(
 		struct bt_ctf_field_common *field, bool is_frozen);
 
-BT_HIDDEN
 void bt_ctf_field_common_variant_set_is_frozen_recursive(
 		struct bt_ctf_field_common *field, bool is_frozen);
 
-BT_HIDDEN
 void bt_ctf_field_common_array_set_is_frozen_recursive(
 		struct bt_ctf_field_common *field, bool is_frozen);
 
-BT_HIDDEN
 void bt_ctf_field_common_sequence_set_is_frozen_recursive(
 		struct bt_ctf_field_common *field, bool is_frozen);
 
-BT_HIDDEN
 void _bt_ctf_field_common_set_is_frozen_recursive(struct bt_ctf_field_common *field,
 		bool is_frozen);
 
-BT_HIDDEN
 bt_ctf_bool bt_ctf_field_common_generic_is_set(struct bt_ctf_field_common *field);
 
-BT_HIDDEN
 bt_ctf_bool bt_ctf_field_common_structure_is_set_recursive(
 		struct bt_ctf_field_common *field);
 
-BT_HIDDEN
 bt_ctf_bool bt_ctf_field_common_variant_is_set_recursive(struct bt_ctf_field_common *field);
 
-BT_HIDDEN
 bt_ctf_bool bt_ctf_field_common_array_is_set_recursive(struct bt_ctf_field_common *field);
 
-BT_HIDDEN
 bt_ctf_bool bt_ctf_field_common_sequence_is_set_recursive(struct bt_ctf_field_common *field);
 
 #ifdef BT_DEV_MODE
@@ -812,16 +785,13 @@ struct bt_ctf_field_variant {
 	struct bt_ctf_field_enumeration *tag;
 };
 
-BT_HIDDEN
 int bt_ctf_field_serialize_recursive(struct bt_ctf_field *field,
 		struct bt_ctfser *ctfser,
 		enum bt_ctf_byte_order native_byte_order);
 
-BT_HIDDEN
 int bt_ctf_field_structure_set_field_by_name(struct bt_ctf_field *field,
 		const char *name, struct bt_ctf_field *value);
 
-BT_HIDDEN
 struct bt_ctf_field *bt_ctf_field_enumeration_borrow_container(
 		struct bt_ctf_field *field);
 

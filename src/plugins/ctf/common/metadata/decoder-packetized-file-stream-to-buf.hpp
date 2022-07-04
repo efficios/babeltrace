@@ -12,7 +12,6 @@
 
 #include <babeltrace2/babeltrace.h>
 
-BT_HIDDEN
 int ctf_metadata_decoder_packetized_file_stream_to_buf(FILE *fp, char **buf, int byte_order,
                                                        bool *is_uuid_set, uint8_t *uuid,
                                                        bt_logging_level log_level,

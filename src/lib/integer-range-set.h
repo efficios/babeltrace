@@ -39,7 +39,6 @@ struct bt_integer_range_set {
 	bool frozen;
 };
 
-BT_HIDDEN
 void _bt_integer_range_set_freeze(const struct bt_integer_range_set *range_set);
 
 #ifdef BT_DEV_MODE
@@ -48,11 +47,9 @@ void _bt_integer_range_set_freeze(const struct bt_integer_range_set *range_set);
 # define bt_integer_range_set_freeze(_sc)
 #endif
 
-BT_HIDDEN
 bool bt_integer_range_set_unsigned_has_overlaps(
 		const struct bt_integer_range_set *range_set);
 
-BT_HIDDEN
 bool bt_integer_range_set_signed_has_overlaps(
 		const struct bt_integer_range_set *range_set);
 

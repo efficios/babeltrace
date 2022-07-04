@@ -23,7 +23,6 @@
 #define BT_CTF_ATTR_NAME_INDEX		0
 #define BT_CTF_ATTR_VALUE_INDEX		1
 
-BT_HIDDEN
 struct bt_ctf_private_value *bt_ctf_attributes_create(void)
 {
 	struct bt_ctf_private_value *attr_obj;
@@ -54,20 +53,17 @@ struct bt_ctf_private_value *bt_ctf_attributes_create(void)
 	return attr_obj;
 }
 
-BT_HIDDEN
 void bt_ctf_attributes_destroy(struct bt_ctf_private_value *attr_obj)
 {
 	BT_LOGD("Destroying attributes object: addr=%p", attr_obj);
 	bt_ctf_object_put_ref(attr_obj);
 }
 
-BT_HIDDEN
 int64_t bt_ctf_attributes_get_count(struct bt_ctf_private_value *attr_obj)
 {
 	return bt_ctf_value_array_get_length(bt_ctf_private_value_as_value(attr_obj));
 }
 
-BT_HIDDEN
 const char *bt_ctf_attributes_get_field_name(struct bt_ctf_private_value *attr_obj,
 		uint64_t index)
 {
@@ -112,7 +108,6 @@ end:
 	return ret;
 }
 
-BT_HIDDEN
 struct bt_ctf_private_value *bt_ctf_attributes_borrow_field_value(struct bt_ctf_private_value *attr_obj,
 		uint64_t index)
 {
@@ -203,7 +198,6 @@ error:
 	return value_obj;
 }
 
-BT_HIDDEN
 int bt_ctf_attributes_set_field_value(struct bt_ctf_private_value *attr_obj,
 		const char *name, struct bt_ctf_private_value *value_obj)
 {
@@ -256,7 +250,6 @@ end:
 	return ret;
 }
 
-BT_HIDDEN
 struct bt_ctf_private_value *bt_ctf_attributes_borrow_field_value_by_name(
 		struct bt_ctf_private_value *attr_obj, const char *name)
 {
@@ -288,7 +281,6 @@ end:
 	return value_obj;
 }
 
-BT_HIDDEN
 int bt_ctf_attributes_freeze(struct bt_ctf_private_value *attr_obj)
 {
 	uint64_t i;

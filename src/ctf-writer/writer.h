@@ -42,13 +42,10 @@ enum field_type_alias {
 	NR_FIELD_TYPE_ALIAS,
 };
 
-BT_HIDDEN
 struct bt_ctf_field_type *get_field_type(enum field_type_alias alias);
 
-BT_HIDDEN
 const char *bt_ctf_get_byte_order_string(enum bt_ctf_byte_order byte_order);
 
-BT_HIDDEN
 void bt_ctf_writer_freeze(struct bt_ctf_writer *writer);
 
 #endif /* BABELTRACE_CTF_WRITER_WRITER_INTERNAL_H */

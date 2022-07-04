@@ -28,6 +28,7 @@
  */
 static __thread struct bt_error *thread_error;
 
+BT_EXPORT
 const struct bt_error *bt_current_thread_take_error(void)
 {
 	struct bt_error *error = thread_error;
@@ -38,6 +39,7 @@ const struct bt_error *bt_current_thread_take_error(void)
 	return error;
 }
 
+BT_EXPORT
 void bt_current_thread_clear_error(void)
 {
 	bt_error_destroy(thread_error);
@@ -46,6 +48,7 @@ void bt_current_thread_clear_error(void)
 	thread_error = NULL;
 }
 
+BT_EXPORT
 void bt_current_thread_move_error(const struct bt_error *error)
 {
 	BT_ASSERT_PRE_ERROR_NON_NULL(error);
@@ -82,6 +85,7 @@ end:
 	return status;
 }
 
+BT_EXPORT
 enum bt_current_thread_error_append_cause_status
 bt_current_thread_error_append_cause_from_unknown(
 		const char *module_name, const char *file_name,
@@ -110,6 +114,7 @@ end:
 	return status;
 }
 
+BT_EXPORT
 enum bt_current_thread_error_append_cause_status
 bt_current_thread_error_append_cause_from_component(
 		bt_self_component *self_comp, const char *file_name,
@@ -138,6 +143,7 @@ end:
 	return status;
 }
 
+BT_EXPORT
 enum bt_current_thread_error_append_cause_status
 bt_current_thread_error_append_cause_from_component_class(
 		bt_self_component_class *self_comp_class, const char *file_name,
@@ -166,6 +172,7 @@ end:
 	return status;
 }
 
+BT_EXPORT
 enum bt_current_thread_error_append_cause_status
 bt_current_thread_error_append_cause_from_message_iterator(
 		bt_self_message_iterator *self_iter, const char *file_name,

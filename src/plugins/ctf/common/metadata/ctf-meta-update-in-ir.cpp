@@ -223,7 +223,6 @@ end:
  * variant field classes) when we reach it. Dependents can only be located
  * after the length/tag field class in the metadata tree.
  */
-BT_HIDDEN
 int ctf_trace_class_update_in_ir(struct ctf_trace_class *ctf_tc)
 {
     int ret = 0;

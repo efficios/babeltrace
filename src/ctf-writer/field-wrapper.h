@@ -20,13 +20,10 @@ struct bt_ctf_field_wrapper {
 	struct bt_ctf_field_common *field;
 };
 
-BT_HIDDEN
 struct bt_ctf_field_wrapper *bt_ctf_field_wrapper_new(void *data);
 
-BT_HIDDEN
 void bt_ctf_field_wrapper_destroy(struct bt_ctf_field_wrapper *field);
 
-BT_HIDDEN
 struct bt_ctf_field_wrapper *bt_ctf_field_wrapper_create(
 		struct bt_ctf_object_pool *pool, struct bt_ctf_field_type *ft);
 

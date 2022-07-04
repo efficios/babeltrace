@@ -226,7 +226,6 @@ struct ctf_msg_iter;
  * @returns			New CTF message iterator on
  *				success, or \c NULL on error
  */
-BT_HIDDEN
 struct ctf_msg_iter *ctf_msg_iter_create(struct ctf_trace_class *tc, size_t max_request_sz,
                                          struct ctf_msg_iter_medium_ops medops, void *medops_data,
                                          bt_logging_level log_level, bt_self_component *self_comp,
@@ -239,7 +238,6 @@ struct ctf_msg_iter *ctf_msg_iter_create(struct ctf_trace_class *tc, size_t max_
  *
  * @param msg_iter		CTF message iterator
  */
-BT_HIDDEN
 void ctf_msg_iter_destroy(struct ctf_msg_iter *msg_iter);
 
 /**
@@ -259,7 +257,6 @@ void ctf_msg_iter_destroy(struct ctf_msg_iter *msg_iter);
  *				return value is #CTF_MSG_ITER_STATUS_OK
  * @returns			One of #ctf_msg_iter_status values
  */
-BT_HIDDEN
 enum ctf_msg_iter_status ctf_msg_iter_get_next_message(struct ctf_msg_iter *msg_it,
                                                        const bt_message **message);
 
@@ -279,22 +276,18 @@ struct ctf_msg_iter_packet_properties
     } snapshots;
 };
 
-BT_HIDDEN
 enum ctf_msg_iter_status
 ctf_msg_iter_get_packet_properties(struct ctf_msg_iter *msg_it,
                                    struct ctf_msg_iter_packet_properties *props);
 
-BT_HIDDEN
 enum ctf_msg_iter_status
 ctf_msg_iter_curr_packet_first_event_clock_snapshot(struct ctf_msg_iter *msg_it,
                                                     uint64_t *first_event_cs);
 
-BT_HIDDEN
 enum ctf_msg_iter_status
 ctf_msg_iter_curr_packet_last_event_clock_snapshot(struct ctf_msg_iter *msg_it,
                                                    uint64_t *last_event_cs);
 
-BT_HIDDEN
 enum ctf_msg_iter_status ctf_msg_iter_seek(struct ctf_msg_iter *msg_it, off_t offset);
 
 /*
@@ -304,16 +297,13 @@ enum ctf_msg_iter_status ctf_msg_iter_seek(struct ctf_msg_iter *msg_it, off_t of
  * which this iterator emits after calling ctf_msg_iter_reset() is of
  * type `CTF_MESSAGE_TYPE_STREAM_BEGINNING`.
  */
-BT_HIDDEN
 void ctf_msg_iter_reset(struct ctf_msg_iter *msg_it);
 
 /*
  * Like ctf_msg_iter_reset(), but preserves stream-dependent state.
  */
-BT_HIDDEN
 void ctf_msg_iter_reset_for_next_stream_file(struct ctf_msg_iter *msg_it);
 
-BT_HIDDEN
 void ctf_msg_iter_set_dry_run(struct ctf_msg_iter *msg_it, bool val);
 
 static inline const char *ctf_msg_iter_medium_status_string(enum ctf_msg_iter_medium_status status)

@@ -14,6 +14,7 @@
 
 #include "object-pool.h"
 
+BT_EXPORT
 int bt_ctf_object_pool_initialize(struct bt_ctf_object_pool *pool,
 		bt_ctf_object_pool_new_object_func new_object_func,
 		bt_ctf_object_pool_destroy_object_func destroy_object_func,
@@ -49,6 +50,7 @@ end:
 	return ret;
 }
 
+BT_EXPORT
 void bt_ctf_object_pool_finalize(struct bt_ctf_object_pool *pool)
 {
 	uint64_t i;

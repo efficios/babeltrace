@@ -652,7 +652,6 @@ end:
 	return out_elem_fc;
 }
 
-BT_HIDDEN
 bt_field_class *create_field_class_copy_internal(
 		struct trace_ir_metadata_maps *md_maps,
 		const bt_field_class *in_field_class)
@@ -883,7 +882,6 @@ error:
 	return out_field_class;
 }
 
-BT_HIDDEN
 enum debug_info_trace_ir_mapping_status copy_field_class_content_internal(
 		struct trace_ir_metadata_maps *md_maps,
 		const bt_field_class *in_field_class,

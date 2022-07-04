@@ -22,11 +22,9 @@ struct bt_component_sink {
 	bool graph_is_configured_method_called;
 };
 
-BT_HIDDEN
 struct bt_component *bt_component_sink_create(
 		const struct bt_component_class *class);
 
-BT_HIDDEN
 void bt_component_sink_destroy(struct bt_component *component);
 
 #endif /* BABELTRACE_GRAPH_COMPONENT_SINK_INTERNAL_H */

@@ -85,6 +85,7 @@ end:
 	return ret;
 }
 
+BT_EXPORT
 struct bt_ctf_writer *bt_ctf_writer_create(const char *path)
 {
 	int ret;
@@ -158,6 +159,7 @@ error:
 	return writer;
 }
 
+BT_EXPORT
 void bt_ctf_writer_destroy(struct bt_ctf_object *obj)
 {
 	struct bt_ctf_writer *writer;
@@ -178,6 +180,7 @@ void bt_ctf_writer_destroy(struct bt_ctf_object *obj)
 	g_free(writer);
 }
 
+BT_EXPORT
 struct bt_ctf_trace *bt_ctf_writer_get_trace(struct bt_ctf_writer *writer)
 {
 	struct bt_ctf_trace *trace = NULL;
@@ -192,6 +195,7 @@ end:
 	return trace;
 }
 
+BT_EXPORT
 struct bt_ctf_stream *bt_ctf_writer_create_stream(struct bt_ctf_writer *writer,
 		struct bt_ctf_stream_class *stream_class)
 {
@@ -247,6 +251,7 @@ error:
 	return stream;
 }
 
+BT_EXPORT
 int bt_ctf_writer_add_environment_field(struct bt_ctf_writer *writer,
 		const char *name,
 		const char *value)
@@ -263,6 +268,7 @@ end:
 	return ret;
 }
 
+BT_EXPORT
 int bt_ctf_writer_add_environment_field_int64(struct bt_ctf_writer *writer,
 		const char *name, int64_t value)
 {
@@ -278,6 +284,7 @@ end:
 	return ret;
 }
 
+BT_EXPORT
 int bt_ctf_writer_add_clock(struct bt_ctf_writer *writer,
 		struct bt_ctf_clock *clock)
 {
@@ -292,6 +299,7 @@ end:
 	return ret;
 }
 
+BT_EXPORT
 char *bt_ctf_writer_get_metadata_string(struct bt_ctf_writer *writer)
 {
 	char *metadata_string = NULL;
@@ -306,6 +314,7 @@ end:
 	return metadata_string;
 }
 
+BT_EXPORT
 void bt_ctf_writer_flush_metadata(struct bt_ctf_writer *writer)
 {
 	int ret;
@@ -341,6 +350,7 @@ end:
 	g_free(metadata_string);
 }
 
+BT_EXPORT
 int bt_ctf_writer_set_byte_order(struct bt_ctf_writer *writer,
 		enum bt_ctf_byte_order byte_order)
 {
@@ -365,7 +375,6 @@ end:
 	return ret;
 }
 
-BT_HIDDEN
 void bt_ctf_writer_freeze(struct bt_ctf_writer *writer)
 {
 	writer->frozen = 1;
@@ -389,7 +398,6 @@ const unsigned int field_type_aliases_sizes[] = {
 	[FIELD_TYPE_ALIAS_UINT64_T] = 64,
 };
 
-BT_HIDDEN
 struct bt_ctf_field_type *get_field_type(enum field_type_alias alias)
 {
 	int ret;
@@ -411,7 +419,6 @@ end:
 	return field_type;
 }
 
-BT_HIDDEN
 const char *bt_ctf_get_byte_order_string(enum bt_ctf_byte_order byte_order)
 {
 	const char *string;

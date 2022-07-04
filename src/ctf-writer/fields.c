@@ -32,7 +32,6 @@
 		_name " is not an integer or an enumeration field: "	\
 		"field-addr=%p", (_field))
 
-BT_HIDDEN
 struct bt_ctf_field_common *bt_ctf_field_common_copy(struct bt_ctf_field_common *field)
 {
 	struct bt_ctf_field_common *copy = NULL;
@@ -52,7 +51,6 @@ end:
 	return copy;
 }
 
-BT_HIDDEN
 int bt_ctf_field_common_structure_initialize(struct bt_ctf_field_common *field,
 		struct bt_ctf_field_type_common *type,
 		bool is_shared, bt_ctf_object_release_func release_func,
@@ -96,7 +94,6 @@ end:
 	return ret;
 }
 
-BT_HIDDEN
 int bt_ctf_field_common_variant_initialize(struct bt_ctf_field_common *field,
 		struct bt_ctf_field_type_common *type,
 		bool is_shared, bt_ctf_object_release_func release_func,
@@ -148,7 +145,6 @@ end:
 	return ret;
 }
 
-BT_HIDDEN
 int bt_ctf_field_common_string_initialize(struct bt_ctf_field_common *field,
 		struct bt_ctf_field_type_common *type,
 		bool is_shared, bt_ctf_object_release_func release_func,
@@ -174,7 +170,6 @@ end:
 	return ret;
 }
 
-BT_HIDDEN
 int bt_ctf_field_common_array_initialize(struct bt_ctf_field_common *field,
 		struct bt_ctf_field_type_common *type,
 		bool is_shared, bt_ctf_object_release_func release_func,
@@ -218,7 +213,6 @@ end:
 	return ret;
 }
 
-BT_HIDDEN
 int bt_ctf_field_common_sequence_initialize(struct bt_ctf_field_common *field,
 		struct bt_ctf_field_type_common *type,
 		bool is_shared, bt_ctf_object_release_func release_func,
@@ -246,13 +240,11 @@ end:
 	return ret;
 }
 
-BT_HIDDEN
 int bt_ctf_field_common_generic_validate(struct bt_ctf_field_common *field)
 {
 	return (field && field->payload_set) ? 0 : -1;
 }
 
-BT_HIDDEN
 int bt_ctf_field_common_structure_validate_recursive(struct bt_ctf_field_common *field)
 {
 	int64_t i;
@@ -284,7 +276,6 @@ end:
 	return ret;
 }
 
-BT_HIDDEN
 int bt_ctf_field_common_variant_validate_recursive(struct bt_ctf_field_common *field)
 {
 	int ret = 0;
@@ -303,7 +294,6 @@ end:
 	return ret;
 }
 
-BT_HIDDEN
 int bt_ctf_field_common_array_validate_recursive(struct bt_ctf_field_common *field)
 {
 	int64_t i;
@@ -327,7 +317,6 @@ end:
 	return ret;
 }
 
-BT_HIDDEN
 int bt_ctf_field_common_sequence_validate_recursive(struct bt_ctf_field_common *field)
 {
 	int64_t i;
@@ -351,14 +340,12 @@ end:
 	return ret;
 }
 
-BT_HIDDEN
 void bt_ctf_field_common_generic_reset(struct bt_ctf_field_common *field)
 {
 	BT_ASSERT_DBG(field);
 	field->payload_set = false;
 }
 
-BT_HIDDEN
 void bt_ctf_field_common_structure_reset_recursive(struct bt_ctf_field_common *field)
 {
 	int64_t i;
@@ -382,7 +369,6 @@ void bt_ctf_field_common_structure_reset_recursive(struct bt_ctf_field_common *f
 	}
 }
 
-BT_HIDDEN
 void bt_ctf_field_common_variant_reset_recursive(struct bt_ctf_field_common *field)
 {
 	struct bt_ctf_field_common_variant *variant = BT_CTF_FROM_COMMON(field);
@@ -391,7 +377,6 @@ void bt_ctf_field_common_variant_reset_recursive(struct bt_ctf_field_common *fie
 	variant->current_field = NULL;
 }
 
-BT_HIDDEN
 void bt_ctf_field_common_array_reset_recursive(struct bt_ctf_field_common *field)
 {
 	size_t i;
@@ -414,7 +399,6 @@ void bt_ctf_field_common_array_reset_recursive(struct bt_ctf_field_common *field
 	}
 }
 
-BT_HIDDEN
 void bt_ctf_field_common_sequence_reset_recursive(struct bt_ctf_field_common *field)
 {
 	struct bt_ctf_field_common_sequence *sequence = BT_CTF_FROM_COMMON(field);
@@ -432,14 +416,12 @@ void bt_ctf_field_common_sequence_reset_recursive(struct bt_ctf_field_common *fi
 	sequence->length = 0;
 }
 
-BT_HIDDEN
 void bt_ctf_field_common_generic_set_is_frozen(struct bt_ctf_field_common *field,
 		bool is_frozen)
 {
 	field->frozen = is_frozen;
 }
 
-BT_HIDDEN
 void bt_ctf_field_common_structure_set_is_frozen_recursive(
 		struct bt_ctf_field_common *field, bool is_frozen)
 {
@@ -462,7 +444,6 @@ void bt_ctf_field_common_structure_set_is_frozen_recursive(
 	bt_ctf_field_common_generic_set_is_frozen(field, is_frozen);
 }
 
-BT_HIDDEN
 void bt_ctf_field_common_variant_set_is_frozen_recursive(
 		struct bt_ctf_field_common *field, bool is_frozen)
 {
@@ -483,7 +464,6 @@ void bt_ctf_field_common_variant_set_is_frozen_recursive(
 	bt_ctf_field_common_generic_set_is_frozen(field, is_frozen);
 }
 
-BT_HIDDEN
 void bt_ctf_field_common_array_set_is_frozen_recursive(
 		struct bt_ctf_field_common *field, bool is_frozen)
 {
@@ -505,7 +485,6 @@ void bt_ctf_field_common_array_set_is_frozen_recursive(
 	bt_ctf_field_common_generic_set_is_frozen(field, is_frozen);
 }
 
-BT_HIDDEN
 void bt_ctf_field_common_sequence_set_is_frozen_recursive(
 		struct bt_ctf_field_common *field, bool is_frozen)
 {
@@ -528,7 +507,6 @@ void bt_ctf_field_common_sequence_set_is_frozen_recursive(
 	bt_ctf_field_common_generic_set_is_frozen(field, is_frozen);
 }
 
-BT_HIDDEN
 void _bt_ctf_field_common_set_is_frozen_recursive(struct bt_ctf_field_common *field,
 		bool is_frozen)
 {
@@ -546,13 +524,11 @@ end:
 	return;
 }
 
-BT_HIDDEN
 bt_ctf_bool bt_ctf_field_common_generic_is_set(struct bt_ctf_field_common *field)
 {
 	return field && field->payload_set;
 }
 
-BT_HIDDEN
 bt_ctf_bool bt_ctf_field_common_structure_is_set_recursive(
 		struct bt_ctf_field_common *field)
 {
@@ -574,7 +550,6 @@ end:
 	return is_set;
 }
 
-BT_HIDDEN
 bt_ctf_bool bt_ctf_field_common_variant_is_set_recursive(struct bt_ctf_field_common *field)
 {
 	struct bt_ctf_field_common_variant *variant = BT_CTF_FROM_COMMON(field);
@@ -590,7 +565,6 @@ bt_ctf_bool bt_ctf_field_common_variant_is_set_recursive(struct bt_ctf_field_com
 	return is_set;
 }
 
-BT_HIDDEN
 bt_ctf_bool bt_ctf_field_common_array_is_set_recursive(struct bt_ctf_field_common *field)
 {
 	size_t i;
@@ -610,7 +584,6 @@ end:
 	return is_set;
 }
 
-BT_HIDDEN
 bt_ctf_bool bt_ctf_field_common_sequence_is_set_recursive(struct bt_ctf_field_common *field)
 {
 	size_t i;
@@ -840,7 +813,6 @@ void bt_ctf_field_string_destroy(struct bt_ctf_field *field)
 	g_free(field);
 }
 
-BT_HIDDEN
 int bt_ctf_field_serialize_recursive(struct bt_ctf_field *field,
 		struct bt_ctfser *ctfser,
 		enum bt_ctf_byte_order native_byte_order)
@@ -1121,6 +1093,7 @@ end:
 	return ret;
 }
 
+BT_EXPORT
 struct bt_ctf_field *bt_ctf_field_create(struct bt_ctf_field_type *type)
 {
 	struct bt_ctf_field *field = NULL;
@@ -1142,11 +1115,13 @@ end:
 	return field;
 }
 
+BT_EXPORT
 struct bt_ctf_field_type *bt_ctf_field_get_type(struct bt_ctf_field *field)
 {
 	return bt_ctf_object_get_ref(bt_ctf_field_common_borrow_type((void *) field));
 }
 
+BT_EXPORT
 enum bt_ctf_field_type_id bt_ctf_field_get_type_id(struct bt_ctf_field *field)
 {
 	struct bt_ctf_field_common *field_common = (void *) field;
@@ -1155,6 +1130,7 @@ enum bt_ctf_field_type_id bt_ctf_field_get_type_id(struct bt_ctf_field *field)
 	return (int) field_common->type->id;
 }
 
+BT_EXPORT
 int bt_ctf_field_sequence_set_length(struct bt_ctf_field *field,
 		struct bt_ctf_field *length_field)
 {
@@ -1182,6 +1158,7 @@ int bt_ctf_field_sequence_set_length(struct bt_ctf_field *field,
 		length, (bt_ctf_field_common_create_func) bt_ctf_field_create);
 }
 
+BT_EXPORT
 struct bt_ctf_field *bt_ctf_field_structure_get_field_by_index(
 		struct bt_ctf_field *field, uint64_t index)
 {
@@ -1189,6 +1166,7 @@ struct bt_ctf_field *bt_ctf_field_structure_get_field_by_index(
 		(void *) field, index));
 }
 
+BT_EXPORT
 struct bt_ctf_field *bt_ctf_field_structure_get_field_by_name(
 		struct bt_ctf_field *field, const char *name)
 {
@@ -1196,6 +1174,7 @@ struct bt_ctf_field *bt_ctf_field_structure_get_field_by_name(
 		(void *) field, name));
 }
 
+BT_EXPORT
 struct bt_ctf_field *bt_ctf_field_array_get_field(
 		struct bt_ctf_field *field, uint64_t index)
 {
@@ -1203,6 +1182,7 @@ struct bt_ctf_field *bt_ctf_field_array_get_field(
 		bt_ctf_field_common_array_borrow_field((void *) field, index));
 }
 
+BT_EXPORT
 struct bt_ctf_field *bt_ctf_field_sequence_get_field(
 		struct bt_ctf_field *field, uint64_t index)
 {
@@ -1210,6 +1190,7 @@ struct bt_ctf_field *bt_ctf_field_sequence_get_field(
 		bt_ctf_field_common_sequence_borrow_field((void *) field, index));
 }
 
+BT_EXPORT
 struct bt_ctf_field *bt_ctf_field_variant_get_field(struct bt_ctf_field *field,
 		struct bt_ctf_field *tag_field)
 {
@@ -1270,6 +1251,7 @@ end:
 	return current_field;
 }
 
+BT_EXPORT
 struct bt_ctf_field *bt_ctf_field_variant_get_current_field(
 		struct bt_ctf_field *variant_field)
 {
@@ -1277,7 +1259,6 @@ struct bt_ctf_field *bt_ctf_field_variant_get_current_field(
 		(void *) variant_field));
 }
 
-BT_HIDDEN
 struct bt_ctf_field *bt_ctf_field_enumeration_borrow_container(
 		struct bt_ctf_field *field)
 {
@@ -1290,12 +1271,14 @@ struct bt_ctf_field *bt_ctf_field_enumeration_borrow_container(
 	return (void *) enumeration->container;
 }
 
+BT_EXPORT
 struct bt_ctf_field *bt_ctf_field_enumeration_get_container(
 		struct bt_ctf_field *field)
 {
 	return bt_ctf_object_get_ref(bt_ctf_field_enumeration_borrow_container(field));
 }
 
+BT_EXPORT
 int bt_ctf_field_integer_signed_get_value(struct bt_ctf_field *field,
 		int64_t *value)
 {
@@ -1313,6 +1296,7 @@ int bt_ctf_field_integer_signed_get_value(struct bt_ctf_field *field,
 	return 0;
 }
 
+BT_EXPORT
 int bt_ctf_field_integer_signed_set_value(struct bt_ctf_field *field,
 		int64_t value)
 {
@@ -1336,6 +1320,7 @@ int bt_ctf_field_integer_signed_set_value(struct bt_ctf_field *field,
 	return ret;
 }
 
+BT_EXPORT
 int bt_ctf_field_integer_unsigned_get_value(struct bt_ctf_field *field,
 		uint64_t *value)
 {
@@ -1353,6 +1338,7 @@ int bt_ctf_field_integer_unsigned_get_value(struct bt_ctf_field *field,
 	return 0;
 }
 
+BT_EXPORT
 int bt_ctf_field_integer_unsigned_set_value(struct bt_ctf_field *field,
 		uint64_t value)
 {
@@ -1375,39 +1361,46 @@ int bt_ctf_field_integer_unsigned_set_value(struct bt_ctf_field *field,
 	return 0;
 }
 
+BT_EXPORT
 int bt_ctf_field_floating_point_get_value(struct bt_ctf_field *field,
 		double *value)
 {
 	return bt_ctf_field_common_floating_point_get_value((void *) field, value);
 }
 
+BT_EXPORT
 int bt_ctf_field_floating_point_set_value(struct bt_ctf_field *field,
 		double value)
 {
 	return bt_ctf_field_common_floating_point_set_value((void *) field, value);
 }
 
+BT_EXPORT
 const char *bt_ctf_field_string_get_value(struct bt_ctf_field *field)
 {
 	return bt_ctf_field_common_string_get_value((void *) field);
 }
 
+BT_EXPORT
 int bt_ctf_field_string_set_value(struct bt_ctf_field *field, const char *value)
 {
 	return bt_ctf_field_common_string_set_value((void *) field, value);
 }
 
+BT_EXPORT
 int bt_ctf_field_string_append(struct bt_ctf_field *field, const char *value)
 {
 	return bt_ctf_field_common_string_append((void *) field, value);
 }
 
+BT_EXPORT
 int bt_ctf_field_string_append_len(struct bt_ctf_field *field,
 		const char *value, unsigned int length)
 {
 	return bt_ctf_field_common_string_append_len((void *) field, value, length);
 }
 
+BT_EXPORT
 struct bt_ctf_field *bt_ctf_field_copy(struct bt_ctf_field *field)
 {
 	return (void *) bt_ctf_field_common_copy((void *) field);
@@ -1802,7 +1795,6 @@ end:
 	return ret;
 }
 
-BT_HIDDEN
 int bt_ctf_field_structure_set_field_by_name(struct bt_ctf_field *field,
 		const char *name, struct bt_ctf_field *value)
 {

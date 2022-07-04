@@ -22,7 +22,6 @@ struct bt_ctf_visitor_object {
 	void *object;
 };
 
-BT_HIDDEN
 int bt_ctf_visitor_helper(struct bt_ctf_visitor_object *root,
 		bt_ctf_child_count_accessor child_counter,
 		bt_ctf_child_accessor child_accessor,

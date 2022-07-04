@@ -81,7 +81,6 @@ struct bt_clock_class {
 	bool frozen;
 };
 
-BT_HIDDEN
 void _bt_clock_class_freeze(const struct bt_clock_class *clock_class);
 
 #ifdef BT_DEV_MODE
@@ -90,7 +89,6 @@ void _bt_clock_class_freeze(const struct bt_clock_class *clock_class);
 # define bt_clock_class_freeze(_cc)
 #endif
 
-BT_HIDDEN
 bt_bool bt_clock_class_is_valid(struct bt_clock_class *clock_class);
 
 static inline

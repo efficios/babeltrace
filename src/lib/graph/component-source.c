@@ -21,12 +21,10 @@
 #include "message/iterator.h"
 #include "lib/func-status.h"
 
-BT_HIDDEN
 void bt_component_source_destroy(struct bt_component *component)
 {
 }
 
-BT_HIDDEN
 struct bt_component *bt_component_source_create(
 		const struct bt_component_class *class)
 {
@@ -43,6 +41,7 @@ end:
 	return (void *) source;
 }
 
+BT_EXPORT
 const bt_component_class_source *
 bt_component_source_borrow_class_const(
 		const bt_component_source *component)
@@ -59,6 +58,7 @@ bt_component_source_borrow_class_const(
 	return (bt_component_class_source *) cls;
 }
 
+BT_EXPORT
 uint64_t bt_component_source_get_output_port_count(
 		const struct bt_component_source *comp)
 {
@@ -66,6 +66,7 @@ uint64_t bt_component_source_get_output_port_count(
 	return bt_component_get_output_port_count((void *) comp, __func__);
 }
 
+BT_EXPORT
 const struct bt_port_output *
 bt_component_source_borrow_output_port_by_name_const(
 		const struct bt_component_source *comp, const char *name)
@@ -78,6 +79,7 @@ bt_component_source_borrow_output_port_by_name_const(
 		__func__);
 }
 
+BT_EXPORT
 struct bt_self_component_port_output *
 bt_self_component_source_borrow_output_port_by_name(
 		struct bt_self_component_source *comp, const char *name)
@@ -90,6 +92,7 @@ bt_self_component_source_borrow_output_port_by_name(
 		(void *) comp, name, __func__);
 }
 
+BT_EXPORT
 const struct bt_port_output *
 bt_component_source_borrow_output_port_by_index_const(
 		const struct bt_component_source *comp, uint64_t index)
@@ -102,6 +105,7 @@ bt_component_source_borrow_output_port_by_index_const(
 		__func__);
 }
 
+BT_EXPORT
 struct bt_self_component_port_output *
 bt_self_component_source_borrow_output_port_by_index(
 		struct bt_self_component_source *comp, uint64_t index)
@@ -114,6 +118,7 @@ bt_self_component_source_borrow_output_port_by_index(
 		(void *) comp, index, __func__);
 }
 
+BT_EXPORT
 enum bt_self_component_add_port_status bt_self_component_source_add_output_port(
 		struct bt_self_component_source *self_comp,
 		const char *name, void *user_data,
@@ -146,12 +151,14 @@ end:
 	return status;
 }
 
+BT_EXPORT
 void bt_component_source_get_ref(
 		const struct bt_component_source *component_source)
 {
 	bt_object_get_ref(component_source);
 }
 
+BT_EXPORT
 void bt_component_source_put_ref(
 		const struct bt_component_source *component_source)
 {

@@ -261,7 +261,6 @@ static enum ctf_msg_iter_medium_status medop_seek(off_t offset, void *data)
     return ds_file_mmap(ds_file, offset);
 }
 
-BT_HIDDEN
 struct ctf_msg_iter_medium_ops ctf_fs_ds_file_medops = {
     medop_request_bytes,
     medop_seek,
@@ -390,7 +389,6 @@ end:
     return status;
 }
 
-BT_HIDDEN
 void ctf_fs_ds_group_medops_data_destroy(struct ctf_fs_ds_group_medops_data *data)
 {
     if (!data) {
@@ -849,7 +847,6 @@ error:
     goto end;
 }
 
-BT_HIDDEN
 struct ctf_fs_ds_file *ctf_fs_ds_file_create(struct ctf_fs_trace *ctf_fs_trace, bt_stream *stream,
                                              const char *path, bt_logging_level log_level)
 {
@@ -890,7 +887,6 @@ end:
     return ds_file;
 }
 
-BT_HIDDEN
 struct ctf_fs_ds_index *ctf_fs_ds_file_build_index(struct ctf_fs_ds_file *ds_file,
                                                    struct ctf_fs_ds_file_info *file_info,
                                                    struct ctf_msg_iter *msg_iter)
@@ -911,7 +907,6 @@ end:
     return index;
 }
 
-BT_HIDDEN
 struct ctf_fs_ds_index *ctf_fs_ds_index_create(bt_logging_level log_level,
                                                bt_self_component *self_comp)
 {
@@ -938,7 +933,6 @@ end:
     return index;
 }
 
-BT_HIDDEN
 void ctf_fs_ds_file_destroy(struct ctf_fs_ds_file *ds_file)
 {
     if (!ds_file) {
@@ -955,7 +949,6 @@ void ctf_fs_ds_file_destroy(struct ctf_fs_ds_file *ds_file)
     g_free(ds_file);
 }
 
-BT_HIDDEN
 void ctf_fs_ds_index_destroy(struct ctf_fs_ds_index *index)
 {
     if (!index) {

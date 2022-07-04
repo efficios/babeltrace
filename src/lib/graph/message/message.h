@@ -39,7 +39,6 @@ struct bt_message {
 	struct bt_graph *graph;
 };
 
-BT_HIDDEN
 void bt_message_init(struct bt_message *message,
 		enum bt_message_type type,
 		bt_object_release_func release,
@@ -86,7 +85,6 @@ static inline void _bt_message_freeze(struct bt_message *message)
 	message->frozen = BT_TRUE;
 }
 
-BT_HIDDEN
 void bt_message_unlink_graph(struct bt_message *msg);
 
 #ifdef BT_DEV_MODE

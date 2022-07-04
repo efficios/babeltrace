@@ -149,6 +149,7 @@ end:
 	return stream;
 }
 
+BT_EXPORT
 struct bt_stream *bt_stream_create(struct bt_stream_class *stream_class,
 		struct bt_trace *trace)
 {
@@ -165,6 +166,7 @@ struct bt_stream *bt_stream_create(struct bt_stream_class *stream_class,
 	return create_stream_with_id(stream_class, trace, id, __func__);
 }
 
+BT_EXPORT
 struct bt_stream *bt_stream_create_with_id(struct bt_stream_class *stream_class,
 		struct bt_trace *trace, uint64_t id)
 {
@@ -178,36 +180,42 @@ struct bt_stream *bt_stream_create_with_id(struct bt_stream_class *stream_class,
 	return create_stream_with_id(stream_class, trace, id, __func__);
 }
 
+BT_EXPORT
 struct bt_stream_class *bt_stream_borrow_class(struct bt_stream *stream)
 {
 	BT_ASSERT_PRE_DEV_STREAM_NON_NULL(stream);
 	return stream->class;
 }
 
+BT_EXPORT
 const struct bt_stream_class *bt_stream_borrow_class_const(
 		const struct bt_stream *stream)
 {
 	return bt_stream_borrow_class((void *) stream);
 }
 
+BT_EXPORT
 struct bt_trace *bt_stream_borrow_trace(struct bt_stream *stream)
 {
 	BT_ASSERT_PRE_DEV_STREAM_NON_NULL(stream);
 	return bt_stream_borrow_trace_inline(stream);
 }
 
+BT_EXPORT
 const struct bt_trace *bt_stream_borrow_trace_const(
 		const struct bt_stream *stream)
 {
 	return bt_stream_borrow_trace((void *) stream);
 }
 
+BT_EXPORT
 const char *bt_stream_get_name(const struct bt_stream *stream)
 {
 	BT_ASSERT_PRE_DEV_STREAM_NON_NULL(stream);
 	return stream->name.value;
 }
 
+BT_EXPORT
 enum bt_stream_set_name_status bt_stream_set_name(struct bt_stream *stream,
 		const char *name)
 {
@@ -221,13 +229,13 @@ enum bt_stream_set_name_status bt_stream_set_name(struct bt_stream *stream,
 	return BT_FUNC_STATUS_OK;
 }
 
+BT_EXPORT
 uint64_t bt_stream_get_id(const struct bt_stream *stream)
 {
 	BT_ASSERT_PRE_DEV_SC_NON_NULL(stream);
 	return stream->id;
 }
 
-BT_HIDDEN
 void _bt_stream_freeze(const struct bt_stream *stream)
 {
 	BT_ASSERT(stream);
@@ -238,6 +246,7 @@ void _bt_stream_freeze(const struct bt_stream *stream)
 	((struct bt_stream *) stream)->frozen = true;
 }
 
+BT_EXPORT
 const struct bt_value *bt_stream_borrow_user_attributes_const(
 		const struct bt_stream *stream)
 {
@@ -245,11 +254,13 @@ const struct bt_value *bt_stream_borrow_user_attributes_const(
 	return stream->user_attributes;
 }
 
+BT_EXPORT
 struct bt_value *bt_stream_borrow_user_attributes(struct bt_stream *stream)
 {
 	return (void *) bt_stream_borrow_user_attributes_const((void *) stream);
 }
 
+BT_EXPORT
 void bt_stream_set_user_attributes(struct bt_stream *stream,
 		const struct bt_value *user_attributes)
 {
@@ -262,11 +273,13 @@ void bt_stream_set_user_attributes(struct bt_stream *stream,
 	bt_object_get_ref_no_null_check(stream->user_attributes);
 }
 
+BT_EXPORT
 void bt_stream_get_ref(const struct bt_stream *stream)
 {
 	bt_object_get_ref(stream);
 }
 
+BT_EXPORT
 void bt_stream_put_ref(const struct bt_stream *stream)
 {
 	bt_object_put_ref(stream);

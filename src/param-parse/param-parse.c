@@ -553,7 +553,6 @@ end:
  *
  * Return value is owned by the caller.
  */
-BT_HIDDEN
 bt_value *bt_param_parse(const char *arg, GString *ini_error)
 {
 	/* Lexical scanner configuration */

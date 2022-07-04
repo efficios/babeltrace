@@ -77,7 +77,6 @@ struct source_location {
  *
  * @returns		0 on success, -1 on failure
  */
-BT_HIDDEN
 int bin_info_init(bt_logging_level log_level,
 		bt_self_component *self_comp);
 
@@ -96,7 +95,6 @@ int bin_info_init(bt_logging_level log_level,
  * @returns		Pointer to the new bin_info on success,
  *			NULL on failure.
  */
-BT_HIDDEN
 struct bin_info *bin_info_create(struct bt_fd_cache *fdc, const char *path,
 		uint64_t low_addr, uint64_t memsz, bool is_pic,
 		const char *debug_info_dir, const char *target_prefix,
@@ -107,7 +105,6 @@ struct bin_info *bin_info_create(struct bt_fd_cache *fdc, const char *path,
  *
  * @param bin	bin_info instance to destroy
  */
-BT_HIDDEN
 void bin_info_destroy(struct bin_info *bin);
 
 /**
@@ -119,7 +116,6 @@ void bin_info_destroy(struct bin_info *bin);
  * @param build_id_len	Length in bytes of the build_id
  * @returns		0 on success, -1 on failure
  */
-BT_HIDDEN
 int bin_info_set_build_id(struct bin_info *bin, uint8_t *build_id,
 		size_t build_id_len);
 
@@ -132,7 +128,6 @@ int bin_info_set_build_id(struct bin_info *bin, uint8_t *build_id,
  * @param crc		Checksum for the debug info file
  * @returns		0 on success, -1 on failure
  */
-BT_HIDDEN
 int bin_info_set_debug_link(struct bin_info *bin, const char *filename,
 		uint32_t crc);
 
@@ -174,7 +169,6 @@ int bin_info_has_address(struct bin_info *bin, uint64_t addr)
  * @param func_name	Out parameter, the function name.
  * @returns		0 on success, -1 on failure
  */
-BT_HIDDEN
 int bin_info_lookup_function_name(struct bin_info *bin, uint64_t addr,
 		char **func_name);
 
@@ -196,7 +190,6 @@ int bin_info_lookup_function_name(struct bin_info *bin, uint64_t addr,
  * @param src_loc	Out parameter, the source location
  * @returns		0 on success, -1 on failure
  */
-BT_HIDDEN
 int bin_info_lookup_source_location(struct bin_info *bin, uint64_t addr,
 		struct source_location **src_loc);
 /**
@@ -216,7 +209,6 @@ int bin_info_lookup_source_location(struct bin_info *bin, uint64_t addr,
  * @param bin_loc	Out parameter, the binary location
  * @returns		0 on success, -1 on failure
  */
-BT_HIDDEN
 int bin_info_get_bin_loc(struct bin_info *bin, uint64_t addr, char **bin_loc);
 
 /**
@@ -224,7 +216,6 @@ int bin_info_get_bin_loc(struct bin_info *bin, uint64_t addr, char **bin_loc);
  *
  * @param src_loc	source_location instance to destroy
  */
-BT_HIDDEN
 void source_location_destroy(struct source_location *src_loc);
 
 #endif	/* _BABELTRACE_BIN_INFO_H */

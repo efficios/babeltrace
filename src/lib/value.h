@@ -52,7 +52,6 @@ struct bt_value_map {
 	GHashTable *ght;
 };
 
-BT_HIDDEN
 void _bt_value_freeze(const struct bt_value *object);
 
 #ifdef BT_DEV_MODE

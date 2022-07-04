@@ -131,7 +131,6 @@ end:
     return;
 }
 
-BT_HIDDEN
 bt_component_class_initialize_method_status
 ctf_fs_sink_init(bt_self_component_sink *self_comp_sink,
                  bt_self_component_sink_configuration *config, const bt_value *params,
@@ -913,7 +912,6 @@ static inline void put_messages(bt_message_array_const msgs, uint64_t count)
     }
 }
 
-BT_HIDDEN
 bt_component_class_sink_consume_method_status ctf_fs_sink_consume(bt_self_component_sink *self_comp)
 {
     bt_component_class_sink_consume_method_status status =
@@ -1012,7 +1010,6 @@ end:
     return status;
 }
 
-BT_HIDDEN
 bt_component_class_sink_graph_is_configured_method_status
 ctf_fs_sink_graph_is_configured(bt_self_component_sink *self_comp)
 {
@@ -1035,7 +1032,6 @@ end:
     return status;
 }
 
-BT_HIDDEN
 void ctf_fs_sink_finalize(bt_self_component_sink *self_comp)
 {
     fs_sink_comp *fs_sink = (fs_sink_comp *) bt_self_component_get_data(

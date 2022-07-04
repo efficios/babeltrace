@@ -18,7 +18,6 @@
  * Returns whether or not stream class or event class `obj`, which
  * belongs to `tc`, needs to be written.
  */
-BT_HIDDEN
 bool details_need_to_write_meta_object(struct details_write_ctx *ctx,
 		const bt_trace_class *tc, const void *obj);
 
@@ -26,21 +25,18 @@ bool details_need_to_write_meta_object(struct details_write_ctx *ctx,
  * Marks stream class or event class `obj`, which belongs to `tc`, as
  * written.
  */
-BT_HIDDEN
 void details_did_write_meta_object(struct details_write_ctx *ctx,
 		const bt_trace_class *tc, const void *obj);
 
 /*
  * Returns whether or not trace class `tc` needs to be written.
  */
-BT_HIDDEN
 bool details_need_to_write_trace_class(struct details_write_ctx *ctx,
 		const bt_trace_class *tc);
 
 /*
  * Marks trace class `tc` as written.
  */
-BT_HIDDEN
 int details_did_write_trace_class(struct details_write_ctx *ctx,
 		const bt_trace_class *tc);
 
@@ -48,7 +44,6 @@ int details_did_write_trace_class(struct details_write_ctx *ctx,
  * Writes the unique trace ID of `trace` to `*unique_id`, allocating a
  * new unique ID if none exists.
  */
-BT_HIDDEN
 int details_trace_unique_id(struct details_write_ctx *ctx,
 		const bt_trace *trace, uint64_t *unique_id);
 

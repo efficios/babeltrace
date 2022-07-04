@@ -70,7 +70,10 @@ struct bt_ctf_value bt_ctf_value_null_instance = {
 	.frozen = BT_CTF_TRUE,
 };
 
+BT_EXPORT
 struct bt_ctf_value *const bt_ctf_value_null = &bt_ctf_value_null_instance;
+
+BT_EXPORT
 struct bt_ctf_private_value *const bt_ctf_private_value_null =
 	(void *) &bt_ctf_value_null_instance;
 
@@ -545,7 +548,6 @@ void bt_ctf_value_destroy(struct bt_ctf_object *obj)
 	g_free(value);
 }
 
-BT_HIDDEN
 enum bt_ctf_value_status _bt_ctf_value_freeze(struct bt_ctf_value *object)
 {
 	enum bt_ctf_value_status ret = BT_CTF_VALUE_STATUS_OK;
@@ -563,7 +565,6 @@ end:
 	return ret;
 }
 
-BT_HIDDEN
 enum bt_ctf_value_type bt_ctf_value_get_type(const struct bt_ctf_value *object)
 {
 	BT_CTF_ASSERT_PRE_NON_NULL(object, "Value object");
@@ -581,7 +582,6 @@ struct bt_ctf_value bt_ctf_value_create_base(enum bt_ctf_value_type type)
 	return value;
 }
 
-BT_HIDDEN
 struct bt_ctf_private_value *bt_ctf_private_value_bool_create_init(bt_ctf_bool val)
 {
 	struct bt_ctf_value_bool *bool_obj;
@@ -601,13 +601,11 @@ end:
 	return (void *) BT_CTF_VALUE_FROM_CONCRETE(bool_obj);
 }
 
-BT_HIDDEN
 struct bt_ctf_private_value *bt_ctf_private_value_bool_create(void)
 {
 	return bt_ctf_private_value_bool_create_init(BT_CTF_FALSE);
 }
 
-BT_HIDDEN
 struct bt_ctf_private_value *bt_ctf_private_value_integer_create_init(int64_t val)
 {
 	struct bt_ctf_value_integer *integer_obj;
@@ -628,13 +626,11 @@ end:
 	return (void *) BT_CTF_VALUE_FROM_CONCRETE(integer_obj);
 }
 
-BT_HIDDEN
 struct bt_ctf_private_value *bt_ctf_private_value_integer_create(void)
 {
 	return bt_ctf_private_value_integer_create_init(0);
 }
 
-BT_HIDDEN
 struct bt_ctf_private_value *bt_ctf_private_value_real_create_init(double val)
 {
 	struct bt_ctf_value_real *real_obj;
@@ -655,13 +651,11 @@ end:
 	return (void *) BT_CTF_VALUE_FROM_CONCRETE(real_obj);
 }
 
-BT_HIDDEN
 struct bt_ctf_private_value *bt_ctf_private_value_real_create(void)
 {
 	return bt_ctf_private_value_real_create_init(0.);
 }
 
-BT_HIDDEN
 struct bt_ctf_private_value *bt_ctf_private_value_string_create_init(const char *val)
 {
 	struct bt_ctf_value_string *string_obj = NULL;
@@ -694,13 +688,11 @@ end:
 	return (void *) BT_CTF_VALUE_FROM_CONCRETE(string_obj);
 }
 
-BT_HIDDEN
 struct bt_ctf_private_value *bt_ctf_private_value_string_create(void)
 {
 	return bt_ctf_private_value_string_create_init("");
 }
 
-BT_HIDDEN
 struct bt_ctf_private_value *bt_ctf_private_value_array_create(void)
 {
 	struct bt_ctf_value_array *array_obj;
@@ -729,7 +721,6 @@ end:
 	return (void *) BT_CTF_VALUE_FROM_CONCRETE(array_obj);
 }
 
-BT_HIDDEN
 struct bt_ctf_private_value *bt_ctf_private_value_map_create(void)
 {
 	struct bt_ctf_value_map *map_obj;
@@ -758,7 +749,6 @@ end:
 	return (void *) BT_CTF_VALUE_FROM_CONCRETE(map_obj);
 }
 
-BT_HIDDEN
 bt_ctf_bool bt_ctf_value_bool_get(const struct bt_ctf_value *bool_obj)
 {
 	BT_CTF_ASSERT_PRE_NON_NULL(bool_obj, "Value object");
@@ -766,7 +756,6 @@ bt_ctf_bool bt_ctf_value_bool_get(const struct bt_ctf_value *bool_obj)
 	return BT_CTF_VALUE_TO_BOOL(bool_obj)->value;
 }
 
-BT_HIDDEN
 void bt_ctf_private_value_bool_set(struct bt_ctf_private_value *bool_obj, bt_ctf_bool val)
 {
 	BT_CTF_ASSERT_PRE_NON_NULL(bool_obj, "Value object");
@@ -777,7 +766,6 @@ void bt_ctf_private_value_bool_set(struct bt_ctf_private_value *bool_obj, bt_ctf
 		bool_obj, val);
 }
 
-BT_HIDDEN
 int64_t bt_ctf_value_integer_get(const struct bt_ctf_value *integer_obj)
 {
 	BT_CTF_ASSERT_PRE_NON_NULL(integer_obj, "Value object");
@@ -785,7 +773,6 @@ int64_t bt_ctf_value_integer_get(const struct bt_ctf_value *integer_obj)
 	return BT_CTF_VALUE_TO_INTEGER(integer_obj)->value;
 }
 
-BT_HIDDEN
 void bt_ctf_private_value_integer_set(struct bt_ctf_private_value *integer_obj,
 		int64_t val)
 {
@@ -797,7 +784,6 @@ void bt_ctf_private_value_integer_set(struct bt_ctf_private_value *integer_obj,
 		integer_obj, val);
 }
 
-BT_HIDDEN
 double bt_ctf_value_real_get(const struct bt_ctf_value *real_obj)
 {
 	BT_CTF_ASSERT_PRE_NON_NULL(real_obj, "Value object");
@@ -805,7 +791,6 @@ double bt_ctf_value_real_get(const struct bt_ctf_value *real_obj)
 	return BT_CTF_VALUE_TO_REAL(real_obj)->value;
 }
 
-BT_HIDDEN
 void bt_ctf_private_value_real_set(struct bt_ctf_private_value *real_obj, double val)
 {
 	BT_CTF_ASSERT_PRE_NON_NULL(real_obj, "Value object");
@@ -816,7 +801,6 @@ void bt_ctf_private_value_real_set(struct bt_ctf_private_value *real_obj, double
 		real_obj, val);
 }
 
-BT_HIDDEN
 const char *bt_ctf_value_string_get(const struct bt_ctf_value *string_obj)
 {
 	BT_CTF_ASSERT_PRE_NON_NULL(string_obj, "Value object");
@@ -824,7 +808,6 @@ const char *bt_ctf_value_string_get(const struct bt_ctf_value *string_obj)
 	return BT_CTF_VALUE_TO_STRING(string_obj)->gstr->str;
 }
 
-BT_HIDDEN
 enum bt_ctf_value_status bt_ctf_private_value_string_set(
 		struct bt_ctf_private_value *string_obj, const char *val)
 {
@@ -837,7 +820,6 @@ enum bt_ctf_value_status bt_ctf_private_value_string_set(
 	return BT_CTF_VALUE_STATUS_OK;
 }
 
-BT_HIDDEN
 uint64_t bt_ctf_value_array_get_length(const struct bt_ctf_value *array_obj)
 {
 	BT_CTF_ASSERT_PRE_NON_NULL(array_obj, "Value object");
@@ -845,7 +827,6 @@ uint64_t bt_ctf_value_array_get_length(const struct bt_ctf_value *array_obj)
 	return (uint64_t) BT_CTF_VALUE_TO_ARRAY(array_obj)->garray->len;
 }
 
-BT_HIDDEN
 struct bt_ctf_value *bt_ctf_value_array_borrow_element_by_index(
 		const struct bt_ctf_value *array_obj,
 		uint64_t index)
@@ -860,7 +841,6 @@ struct bt_ctf_value *bt_ctf_value_array_borrow_element_by_index(
 	return g_ptr_array_index(typed_array_obj->garray, index);
 }
 
-BT_HIDDEN
 struct bt_ctf_private_value *bt_ctf_private_value_array_borrow_element_by_index(
 		const struct bt_ctf_private_value *array_obj,
 		uint64_t index)
@@ -869,7 +849,6 @@ struct bt_ctf_private_value *bt_ctf_private_value_array_borrow_element_by_index(
 		(void *) array_obj, index);
 }
 
-BT_HIDDEN
 enum bt_ctf_value_status bt_ctf_private_value_array_append_element(
 		struct bt_ctf_private_value *array_obj,
 		struct bt_ctf_value *element_obj)
@@ -889,7 +868,6 @@ enum bt_ctf_value_status bt_ctf_private_value_array_append_element(
 	return BT_CTF_VALUE_STATUS_OK;
 }
 
-BT_HIDDEN
 enum bt_ctf_value_status bt_ctf_private_value_array_append_bool_element(
 		struct bt_ctf_private_value *array_obj, bt_ctf_bool val)
 {
@@ -903,7 +881,6 @@ enum bt_ctf_value_status bt_ctf_private_value_array_append_bool_element(
 	return ret;
 }
 
-BT_HIDDEN
 enum bt_ctf_value_status bt_ctf_private_value_array_append_integer_element(
 		struct bt_ctf_private_value *array_obj, int64_t val)
 {
@@ -917,7 +894,6 @@ enum bt_ctf_value_status bt_ctf_private_value_array_append_integer_element(
 	return ret;
 }
 
-BT_HIDDEN
 enum bt_ctf_value_status bt_ctf_private_value_array_append_real_element(
 		struct bt_ctf_private_value *array_obj, double val)
 {
@@ -931,7 +907,6 @@ enum bt_ctf_value_status bt_ctf_private_value_array_append_real_element(
 	return ret;
 }
 
-BT_HIDDEN
 enum bt_ctf_value_status bt_ctf_private_value_array_append_string_element(
 		struct bt_ctf_private_value *array_obj, const char *val)
 {
@@ -945,7 +920,6 @@ enum bt_ctf_value_status bt_ctf_private_value_array_append_string_element(
 	return ret;
 }
 
-BT_HIDDEN
 enum bt_ctf_value_status bt_ctf_private_value_array_append_empty_array_element(
 		struct bt_ctf_private_value *array_obj)
 {
@@ -959,7 +933,6 @@ enum bt_ctf_value_status bt_ctf_private_value_array_append_empty_array_element(
 	return ret;
 }
 
-BT_HIDDEN
 enum bt_ctf_value_status bt_ctf_private_value_array_append_empty_map_element(
 		struct bt_ctf_private_value *array_obj)
 {
@@ -973,7 +946,6 @@ enum bt_ctf_value_status bt_ctf_private_value_array_append_empty_map_element(
 	return ret;
 }
 
-BT_HIDDEN
 enum bt_ctf_value_status bt_ctf_private_value_array_set_element_by_index(
 		struct bt_ctf_private_value *array_obj, uint64_t index,
 		struct bt_ctf_value *element_obj)
@@ -996,7 +968,6 @@ enum bt_ctf_value_status bt_ctf_private_value_array_set_element_by_index(
 	return BT_CTF_VALUE_STATUS_OK;
 }
 
-BT_HIDDEN
 uint64_t bt_ctf_value_map_get_size(const struct bt_ctf_value *map_obj)
 {
 	BT_CTF_ASSERT_PRE_NON_NULL(map_obj, "Value object");
@@ -1004,7 +975,6 @@ uint64_t bt_ctf_value_map_get_size(const struct bt_ctf_value *map_obj)
 	return (uint64_t) g_hash_table_size(BT_CTF_VALUE_TO_MAP(map_obj)->ght);
 }
 
-BT_HIDDEN
 struct bt_ctf_value *bt_ctf_value_map_borrow_entry_value(const struct bt_ctf_value *map_obj,
 		const char *key)
 {
@@ -1015,14 +985,12 @@ struct bt_ctf_value *bt_ctf_value_map_borrow_entry_value(const struct bt_ctf_val
 		GUINT_TO_POINTER(g_quark_from_string(key)));
 }
 
-BT_HIDDEN
 struct bt_ctf_private_value *bt_ctf_private_value_map_borrow_entry_value(
 		const struct bt_ctf_private_value *map_obj, const char *key)
 {
 	return (void *) bt_ctf_value_map_borrow_entry_value((void *) map_obj, key);
 }
 
-BT_HIDDEN
 bt_ctf_bool bt_ctf_value_map_has_entry(const struct bt_ctf_value *map_obj, const char *key)
 {
 	BT_CTF_ASSERT_PRE_NON_NULL(map_obj, "Value object");
@@ -1032,7 +1000,6 @@ bt_ctf_bool bt_ctf_value_map_has_entry(const struct bt_ctf_value *map_obj, const
 		GUINT_TO_POINTER(g_quark_from_string(key)));
 }
 
-BT_HIDDEN
 enum bt_ctf_value_status bt_ctf_private_value_map_insert_entry(
 		struct bt_ctf_private_value *map_obj,
 		const char *key, struct bt_ctf_value *element_obj)
@@ -1051,7 +1018,6 @@ enum bt_ctf_value_status bt_ctf_private_value_map_insert_entry(
 	return BT_CTF_VALUE_STATUS_OK;
 }
 
-BT_HIDDEN
 enum bt_ctf_value_status bt_ctf_private_value_map_insert_bool_entry(
 		struct bt_ctf_private_value *map_obj, const char *key, bt_ctf_bool val)
 {
@@ -1065,7 +1031,6 @@ enum bt_ctf_value_status bt_ctf_private_value_map_insert_bool_entry(
 	return ret;
 }
 
-BT_HIDDEN
 enum bt_ctf_value_status bt_ctf_private_value_map_insert_integer_entry(
 		struct bt_ctf_private_value *map_obj, const char *key, int64_t val)
 {
@@ -1079,7 +1044,6 @@ enum bt_ctf_value_status bt_ctf_private_value_map_insert_integer_entry(
 	return ret;
 }
 
-BT_HIDDEN
 enum bt_ctf_value_status bt_ctf_private_value_map_insert_real_entry(
 		struct bt_ctf_private_value *map_obj, const char *key, double val)
 {
@@ -1093,7 +1057,6 @@ enum bt_ctf_value_status bt_ctf_private_value_map_insert_real_entry(
 	return ret;
 }
 
-BT_HIDDEN
 enum bt_ctf_value_status bt_ctf_private_value_map_insert_string_entry(
 		struct bt_ctf_private_value *map_obj, const char *key,
 		const char *val)
@@ -1108,7 +1071,6 @@ enum bt_ctf_value_status bt_ctf_private_value_map_insert_string_entry(
 	return ret;
 }
 
-BT_HIDDEN
 enum bt_ctf_value_status bt_ctf_private_value_map_insert_empty_array_entry(
 		struct bt_ctf_private_value *map_obj, const char *key)
 {
@@ -1122,7 +1084,6 @@ enum bt_ctf_value_status bt_ctf_private_value_map_insert_empty_array_entry(
 	return ret;
 }
 
-BT_HIDDEN
 enum bt_ctf_value_status bt_ctf_private_value_map_insert_empty_map_entry(
 		struct bt_ctf_private_value *map_obj, const char *key)
 {
@@ -1136,7 +1097,6 @@ enum bt_ctf_value_status bt_ctf_private_value_map_insert_empty_map_entry(
 	return ret;
 }
 
-BT_HIDDEN
 enum bt_ctf_value_status bt_ctf_value_map_foreach_entry(const struct bt_ctf_value *map_obj,
 		bt_ctf_value_map_foreach_entry_cb cb, void *data)
 {
@@ -1165,7 +1125,6 @@ enum bt_ctf_value_status bt_ctf_value_map_foreach_entry(const struct bt_ctf_valu
 	return ret;
 }
 
-BT_HIDDEN
 enum bt_ctf_value_status bt_ctf_private_value_map_foreach_entry(
 		const struct bt_ctf_private_value *map_obj,
 		bt_ctf_private_value_map_foreach_entry_cb cb, void *data)
@@ -1221,7 +1180,6 @@ end:
 	return ret;
 }
 
-BT_HIDDEN
 enum bt_ctf_value_status bt_ctf_value_map_extend(
 		struct bt_ctf_private_value **extended_map_obj,
 		const struct bt_ctf_value *base_map_obj,
@@ -1283,7 +1241,6 @@ end:
 	return extend_data.status;
 }
 
-BT_HIDDEN
 enum bt_ctf_value_status bt_ctf_value_copy(struct bt_ctf_private_value **copy_obj,
 		const struct bt_ctf_value *object)
 {
@@ -1305,7 +1262,6 @@ enum bt_ctf_value_status bt_ctf_value_copy(struct bt_ctf_private_value **copy_ob
 	return status;
 }
 
-BT_HIDDEN
 bt_ctf_bool bt_ctf_value_compare(const struct bt_ctf_value *object_a,
 	const struct bt_ctf_value *object_b)
 {

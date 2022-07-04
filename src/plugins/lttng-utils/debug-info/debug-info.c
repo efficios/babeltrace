@@ -1756,7 +1756,6 @@ end:
 	return status;
 }
 
-BT_HIDDEN
 bt_component_class_initialize_method_status debug_info_comp_init(
 		bt_self_component_filter *self_comp_flt,
 		bt_self_component_filter_configuration *config,
@@ -1822,7 +1821,6 @@ end:
 	return status;
 }
 
-BT_HIDDEN
 void debug_info_comp_finalize(bt_self_component_filter *self_comp_flt)
 {
 	struct debug_info_component *debug_info =
@@ -1838,7 +1836,6 @@ void debug_info_comp_finalize(bt_self_component_filter *self_comp_flt)
 	destroy_debug_info_comp(debug_info);
 }
 
-BT_HIDDEN
 bt_message_iterator_class_next_method_status debug_info_msg_iter_next(
 		bt_self_message_iterator *self_msg_iter,
 		const bt_message_array_const msgs, uint64_t capacity,
@@ -1955,7 +1952,6 @@ end:
 	return;
 }
 
-BT_HIDDEN
 bt_message_iterator_class_initialize_method_status debug_info_msg_iter_init(
 		bt_self_message_iterator *self_msg_iter,
 		bt_self_message_iterator_configuration *config,
@@ -2048,7 +2044,6 @@ end:
 	return status;
 }
 
-BT_HIDDEN
 bt_message_iterator_class_can_seek_beginning_method_status
 debug_info_msg_iter_can_seek_beginning(bt_self_message_iterator *self_msg_iter,
 		bt_bool *can_seek)
@@ -2061,7 +2056,6 @@ debug_info_msg_iter_can_seek_beginning(bt_self_message_iterator *self_msg_iter,
 		debug_info_msg_iter->msg_iter, can_seek);
 }
 
-BT_HIDDEN
 bt_message_iterator_class_seek_beginning_method_status
 debug_info_msg_iter_seek_beginning(bt_self_message_iterator *self_msg_iter)
 {
@@ -2089,7 +2083,6 @@ end:
 	return status;
 }
 
-BT_HIDDEN
 void debug_info_msg_iter_finalize(bt_self_message_iterator *it)
 {
 	struct debug_info_msg_iter *debug_info_msg_iter;

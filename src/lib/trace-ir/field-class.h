@@ -227,7 +227,6 @@ struct bt_field_class_variant_with_selector_field {
 	struct bt_field_path *selector_field_path;
 };
 
-BT_HIDDEN
 void _bt_field_class_freeze(const struct bt_field_class *field_class);
 
 #ifdef BT_DEV_MODE
@@ -236,7 +235,6 @@ void _bt_field_class_freeze(const struct bt_field_class *field_class);
 # define bt_field_class_freeze(_fc)	((void) _fc)
 #endif
 
-BT_HIDDEN
 void _bt_named_field_class_freeze(const struct bt_named_field_class *named_fc);
 
 #ifdef BT_DEV_MODE
@@ -251,7 +249,6 @@ void _bt_named_field_class_freeze(const struct bt_named_field_class *named_fc);
  * are used at a single location within trace objects even if they are
  * shared objects for other purposes.
  */
-BT_HIDDEN
 void bt_field_class_make_part_of_trace_class(
 		const struct bt_field_class *field_class);
 

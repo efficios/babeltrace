@@ -14,7 +14,6 @@
 #include "debug-info.h"
 #include "utils.h"
 
-BT_HIDDEN
 const char *get_filename_from_path(const char *path)
 {
 	size_t i = strlen(path);
@@ -41,7 +40,6 @@ end:
 	return path;
 }
 
-BT_HIDDEN
 bool is_event_common_ctx_dbg_info_compatible(const bt_field_class *in_field_class,
 		const char *debug_info_field_class_name)
 {

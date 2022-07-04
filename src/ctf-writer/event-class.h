@@ -41,10 +41,8 @@ struct bt_ctf_event_class_common {
 	GString *emf_uri;
 };
 
-BT_HIDDEN
 void bt_ctf_event_class_common_freeze(struct bt_ctf_event_class_common *event_class);
 
-BT_HIDDEN
 void bt_ctf_event_class_common_set_native_byte_order(
 		struct bt_ctf_event_class_common *event_class, int byte_order);
 
@@ -59,15 +57,12 @@ struct bt_ctf_stream_class_common *bt_ctf_event_class_common_borrow_stream_class
 typedef struct bt_ctf_field_type_common *
 	(*bt_ctf_field_type_structure_create_func)(void);
 
-BT_HIDDEN
 int bt_ctf_event_class_common_initialize(struct bt_ctf_event_class_common *event_class,
 		const char *name, bt_ctf_object_release_func release_func,
 		bt_ctf_field_type_structure_create_func ft_struct_create_func);
 
-BT_HIDDEN
 void bt_ctf_event_class_common_finalize(struct bt_ctf_object *obj);
 
-BT_HIDDEN
 int bt_ctf_event_class_common_validate_single_clock_class(
 		struct bt_ctf_event_class_common *event_class,
 		struct bt_ctf_clock_class **expected_clock_class);

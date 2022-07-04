@@ -20,7 +20,6 @@
  * On macOS, we need a dummy symbol so that the linker won't
  * complain of an empty table of contents.
  */
-BT_HIDDEN
 int bt_mman_dummy_symbol;
 #endif /* __APPLE__ */
 
@@ -153,7 +152,6 @@ DWORD map_prot_flags(int prot, DWORD *dwDesiredAccess)
 	return 0;
 }
 
-BT_HIDDEN
 void *bt_mmap(void *addr, size_t length, int prot, int flags, int fd,
 		off_t offset, int log_level)
 {
@@ -254,7 +252,6 @@ error:
 	return MAP_FAILED;
 }
 
-BT_HIDDEN
 int bt_munmap(void *addr, size_t length)
 {
 	int ret = 0;
@@ -283,7 +280,6 @@ end:
 	return ret;
 }
 
-BT_HIDDEN
 size_t bt_mmap_get_offset_align_size(int log_level)
 {
 	SYSTEM_INFO sysinfo;

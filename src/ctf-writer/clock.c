@@ -25,6 +25,7 @@
 static
 void bt_ctf_clock_destroy(struct bt_ctf_object *obj);
 
+BT_EXPORT
 struct bt_ctf_clock *bt_ctf_clock_create(const char *name)
 {
 	int ret;
@@ -58,18 +59,21 @@ error:
 	return clock;
 }
 
+BT_EXPORT
 const char *bt_ctf_clock_get_name(struct bt_ctf_clock *clock)
 {
 	BT_CTF_ASSERT_PRE_NON_NULL(clock, "CTF writer clock");
 	return bt_ctf_clock_class_get_name(clock->clock_class);
 }
 
+BT_EXPORT
 const char *bt_ctf_clock_get_description(struct bt_ctf_clock *clock)
 {
 	BT_CTF_ASSERT_PRE_NON_NULL(clock, "CTF writer clock");
 	return bt_ctf_clock_class_get_description(clock->clock_class);
 }
 
+BT_EXPORT
 int bt_ctf_clock_set_description(struct bt_ctf_clock *clock, const char *desc)
 {
 	BT_CTF_ASSERT_PRE_NON_NULL(clock, "CTF writer clock");
@@ -77,12 +81,14 @@ int bt_ctf_clock_set_description(struct bt_ctf_clock *clock, const char *desc)
 		desc);
 }
 
+BT_EXPORT
 uint64_t bt_ctf_clock_get_frequency(struct bt_ctf_clock *clock)
 {
 	BT_CTF_ASSERT_PRE_NON_NULL(clock, "CTF writer clock");
 	return bt_ctf_clock_class_get_frequency(clock->clock_class);
 }
 
+BT_EXPORT
 int bt_ctf_clock_set_frequency(struct bt_ctf_clock *clock, uint64_t freq)
 {
 	BT_CTF_ASSERT_PRE_NON_NULL(clock, "CTF writer clock");
@@ -90,12 +96,14 @@ int bt_ctf_clock_set_frequency(struct bt_ctf_clock *clock, uint64_t freq)
 		freq);
 }
 
+BT_EXPORT
 uint64_t bt_ctf_clock_get_precision(struct bt_ctf_clock *clock)
 {
 	BT_CTF_ASSERT_PRE_NON_NULL(clock, "CTF writer clock");
 	return bt_ctf_clock_class_get_precision(clock->clock_class);
 }
 
+BT_EXPORT
 int bt_ctf_clock_set_precision(struct bt_ctf_clock *clock, uint64_t precision)
 {
 	BT_CTF_ASSERT_PRE_NON_NULL(clock, "CTF writer clock");
@@ -103,6 +111,7 @@ int bt_ctf_clock_set_precision(struct bt_ctf_clock *clock, uint64_t precision)
 		precision);
 }
 
+BT_EXPORT
 int bt_ctf_clock_get_offset_s(struct bt_ctf_clock *clock, int64_t *offset_s)
 {
 	BT_CTF_ASSERT_PRE_NON_NULL(clock, "CTF writer clock");
@@ -110,6 +119,7 @@ int bt_ctf_clock_get_offset_s(struct bt_ctf_clock *clock, int64_t *offset_s)
 		offset_s);
 }
 
+BT_EXPORT
 int bt_ctf_clock_set_offset_s(struct bt_ctf_clock *clock, int64_t offset_s)
 {
 	BT_CTF_ASSERT_PRE_NON_NULL(clock, "CTF writer clock");
@@ -117,6 +127,7 @@ int bt_ctf_clock_set_offset_s(struct bt_ctf_clock *clock, int64_t offset_s)
 		offset_s);
 }
 
+BT_EXPORT
 int bt_ctf_clock_get_offset(struct bt_ctf_clock *clock, int64_t *offset)
 {
 	BT_CTF_ASSERT_PRE_NON_NULL(clock, "CTF writer clock");
@@ -124,6 +135,7 @@ int bt_ctf_clock_get_offset(struct bt_ctf_clock *clock, int64_t *offset)
 		offset);
 }
 
+BT_EXPORT
 int bt_ctf_clock_set_offset(struct bt_ctf_clock *clock, int64_t offset)
 {
 	BT_CTF_ASSERT_PRE_NON_NULL(clock, "CTF writer clock");
@@ -131,12 +143,14 @@ int bt_ctf_clock_set_offset(struct bt_ctf_clock *clock, int64_t offset)
 		offset);
 }
 
+BT_EXPORT
 int bt_ctf_clock_get_is_absolute(struct bt_ctf_clock *clock)
 {
 	BT_CTF_ASSERT_PRE_NON_NULL(clock, "CTF writer clock");
 	return bt_ctf_clock_class_is_absolute(clock->clock_class);
 }
 
+BT_EXPORT
 int bt_ctf_clock_set_is_absolute(struct bt_ctf_clock *clock, int is_absolute)
 {
 	BT_CTF_ASSERT_PRE_NON_NULL(clock, "CTF writer clock");
@@ -144,18 +158,21 @@ int bt_ctf_clock_set_is_absolute(struct bt_ctf_clock *clock, int is_absolute)
 		is_absolute);
 }
 
+BT_EXPORT
 const uint8_t *bt_ctf_clock_get_uuid(struct bt_ctf_clock *clock)
 {
 	BT_CTF_ASSERT_PRE_NON_NULL(clock, "CTF writer clock");
 	return bt_ctf_clock_class_get_uuid(clock->clock_class);
 }
 
+BT_EXPORT
 int bt_ctf_clock_set_uuid(struct bt_ctf_clock *clock, const uint8_t *uuid)
 {
 	BT_CTF_ASSERT_PRE_NON_NULL(clock, "CTF writer clock");
 	return bt_ctf_clock_class_set_uuid(clock->clock_class, uuid);
 }
 
+BT_EXPORT
 int bt_ctf_clock_set_time(struct bt_ctf_clock *clock, int64_t time)
 {
 	int64_t value;
@@ -180,7 +197,6 @@ int bt_ctf_clock_set_time(struct bt_ctf_clock *clock, int64_t time)
 	return 0;
 }
 
-BT_HIDDEN
 int bt_ctf_clock_get_value(struct bt_ctf_clock *clock, uint64_t *value)
 {
 	BT_CTF_ASSERT_PRE_NON_NULL(clock, "CTF writer clock");
@@ -199,7 +215,6 @@ void bt_ctf_clock_destroy(struct bt_ctf_object *obj)
 	g_free(clock);
 }
 
-BT_HIDDEN
 void bt_ctf_clock_class_serialize(struct bt_ctf_clock_class *clock_class,
 		struct metadata_context *context)
 {

@@ -19,10 +19,8 @@
  * Return the location of a path's file (the last element of the path).
  * Returns the original path on error.
  */
-BT_HIDDEN
 const char *get_filename_from_path(const char *path);
 
-BT_HIDDEN
 bool is_event_common_ctx_dbg_info_compatible(
 		const bt_field_class *in_field_class,
 		const char *debug_info_field_class_name);

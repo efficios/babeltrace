@@ -161,22 +161,17 @@ struct fs_sink_stream
     } discarded_packets_state;
 };
 
-BT_HIDDEN
 struct fs_sink_stream *fs_sink_stream_create(struct fs_sink_trace *trace,
                                              const bt_stream *ir_stream);
 
-BT_HIDDEN
 void fs_sink_stream_destroy(struct fs_sink_stream *stream);
 
-BT_HIDDEN
 int fs_sink_stream_write_event(struct fs_sink_stream *stream, const bt_clock_snapshot *cs,
                                const bt_event *event, struct fs_sink_ctf_event_class *ec);
 
-BT_HIDDEN
 int fs_sink_stream_open_packet(struct fs_sink_stream *stream, const bt_clock_snapshot *cs,
                                const bt_packet *packet);
 
-BT_HIDDEN
 int fs_sink_stream_close_packet(struct fs_sink_stream *stream, const bt_clock_snapshot *cs);
 
 #endif /* BABELTRACE_PLUGIN_CTF_FS_SINK_FS_SINK_STREAM_H */

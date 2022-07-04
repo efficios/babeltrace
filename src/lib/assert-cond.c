@@ -53,7 +53,6 @@ GString *format_cond_id(const char *cond_type, const char *func,
 	return id;
 }
 
-BT_HIDDEN
 void bt_lib_assert_cond_failed(const char *cond_type, const char *func,
 		const char *id_suffix, const char *fmt, ...)
 {

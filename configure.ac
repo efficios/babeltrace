@@ -659,8 +659,8 @@ AE_IF_FEATURE_ENABLED([asan], [
 
 # CFLAGS from libraries (the glib ones are needed for the following sizeof
 # test).
-AM_CFLAGS="${PTHREAD_CFLAGS} ${GLIB_CFLAGS} ${ASAN_CFLAGS}"
-AM_CXXFLAGS="${PTHREAD_CFLAGS} ${GLIB_CFLAGS} ${ASAN_CXXFLAGS}"
+AM_CFLAGS="-fvisibility=hidden ${PTHREAD_CFLAGS} ${GLIB_CFLAGS} ${ASAN_CFLAGS}"
+AM_CXXFLAGS="-fvisibility=hidden -fvisibility-inlines-hidden ${PTHREAD_CFLAGS} ${GLIB_CFLAGS} ${ASAN_CXXFLAGS}"
 AM_LDFLAGS="${ASAN_LDFLAGS}"
 
 # Check that the current size_t matches the size that glib thinks it should

@@ -183,11 +183,9 @@ struct bt_message_iterator {
 	void *user_data;
 };
 
-BT_HIDDEN
 void bt_message_iterator_try_finalize(
 		struct bt_message_iterator *iterator);
 
-BT_HIDDEN
 void bt_message_iterator_set_connection(
 		struct bt_message_iterator *iterator,
 		struct bt_connection *connection);

@@ -65,6 +65,7 @@ end:
 	return;
 }
 
+BT_EXPORT
 struct bt_component_descriptor_set *bt_component_descriptor_set_create(void)
 {
 	struct bt_component_descriptor_set *comp_descr_set;
@@ -113,6 +114,7 @@ end:
 	return comp_descr_set;
 }
 
+BT_EXPORT
 enum bt_component_descriptor_set_add_descriptor_status
 bt_component_descriptor_set_add_descriptor_with_initialize_method_data(
 		struct bt_component_descriptor_set *comp_descr_set,
@@ -193,6 +195,7 @@ end:
 	return status;
 }
 
+BT_EXPORT
 enum bt_component_descriptor_set_add_descriptor_status
 bt_component_descriptor_set_add_descriptor(
 		struct bt_component_descriptor_set *comp_descr_set,
@@ -205,12 +208,14 @@ bt_component_descriptor_set_add_descriptor(
 		comp_descr_set, comp_cls, params, NULL);
 }
 
+BT_EXPORT
 void bt_component_descriptor_set_get_ref(
 		const struct bt_component_descriptor_set *comp_descr_set)
 {
 	bt_object_get_ref(comp_descr_set);
 }
 
+BT_EXPORT
 void bt_component_descriptor_set_put_ref(
 		const struct bt_component_descriptor_set *comp_descr_set)
 {

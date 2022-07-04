@@ -1672,7 +1672,6 @@ static inline enum ctf_msg_iter_status handle_state(struct ctf_msg_iter *msg_it)
     return status;
 }
 
-BT_HIDDEN
 void ctf_msg_iter_reset_for_next_stream_file(struct ctf_msg_iter *msg_it)
 {
     BT_ASSERT(msg_it);
@@ -1703,7 +1702,6 @@ void ctf_msg_iter_reset_for_next_stream_file(struct ctf_msg_iter *msg_it)
 /**
  * Resets the internal state of a CTF message iterator.
  */
-BT_HIDDEN
 void ctf_msg_iter_reset(struct ctf_msg_iter *msg_it)
 {
     ctf_msg_iter_reset_for_next_stream_file(msg_it);
@@ -2579,7 +2577,6 @@ end:
     return msg;
 }
 
-BT_HIDDEN
 struct ctf_msg_iter *ctf_msg_iter_create(struct ctf_trace_class *tc, size_t max_request_sz,
                                          struct ctf_msg_iter_medium_ops medops, void *data,
                                          bt_logging_level log_level, bt_self_component *self_comp,
@@ -2905,7 +2902,6 @@ end:
     return status;
 }
 
-BT_HIDDEN
 enum ctf_msg_iter_status ctf_msg_iter_seek(struct ctf_msg_iter *msg_it, off_t offset)
 {
     enum ctf_msg_iter_status status = CTF_MSG_ITER_STATUS_OK;
@@ -2951,7 +2947,6 @@ end:
     return status;
 }
 
-BT_HIDDEN
 enum ctf_msg_iter_status
 ctf_msg_iter_curr_packet_first_event_clock_snapshot(struct ctf_msg_iter *msg_it,
                                                     uint64_t *first_clock_snapshot)
@@ -2960,7 +2955,6 @@ ctf_msg_iter_curr_packet_first_event_clock_snapshot(struct ctf_msg_iter *msg_it,
                                             first_clock_snapshot);
 }
 
-BT_HIDDEN
 enum ctf_msg_iter_status
 ctf_msg_iter_curr_packet_last_event_clock_snapshot(struct ctf_msg_iter *msg_it,
                                                    uint64_t *last_clock_snapshot)
@@ -2969,7 +2963,6 @@ ctf_msg_iter_curr_packet_last_event_clock_snapshot(struct ctf_msg_iter *msg_it,
                                             STATE_EMIT_MSG_PACKET_END_MULTI, last_clock_snapshot);
 }
 
-BT_HIDDEN
 enum ctf_msg_iter_status
 ctf_msg_iter_get_packet_properties(struct ctf_msg_iter *msg_it,
                                    struct ctf_msg_iter_packet_properties *props)
@@ -2996,7 +2989,6 @@ end:
     return status;
 }
 
-BT_HIDDEN
 void ctf_msg_iter_set_dry_run(struct ctf_msg_iter *msg_it, bool val)
 {
     msg_it->dry_run = val;

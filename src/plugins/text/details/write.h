@@ -29,7 +29,6 @@ struct details_write_ctx {
  * Writes the message `msg` to the component's output buffer
  * (`details_comp->str`).
  */
-BT_HIDDEN
 int details_write_message(struct details_comp *details_comp,
 		const bt_message *msg);
 

@@ -143,6 +143,7 @@ void destroy_trace(struct bt_object *obj)
 	g_free(trace);
 }
 
+BT_EXPORT
 struct bt_trace *bt_trace_create(struct bt_trace_class *tc)
 {
 	struct bt_trace *trace = NULL;
@@ -209,12 +210,14 @@ end:
 	return trace;
 }
 
+BT_EXPORT
 const char *bt_trace_get_name(const struct bt_trace *trace)
 {
 	BT_ASSERT_PRE_DEV_TRACE_NON_NULL(trace);
 	return trace->name.value;
 }
 
+BT_EXPORT
 enum bt_trace_set_name_status bt_trace_set_name(struct bt_trace *trace,
 		const char *name)
 {
@@ -228,12 +231,14 @@ enum bt_trace_set_name_status bt_trace_set_name(struct bt_trace *trace,
 	return BT_FUNC_STATUS_OK;
 }
 
+BT_EXPORT
 bt_uuid bt_trace_get_uuid(const struct bt_trace *trace)
 {
 	BT_ASSERT_PRE_DEV_TRACE_NON_NULL(trace);
 	return trace->uuid.value;
 }
 
+BT_EXPORT
 void bt_trace_set_uuid(struct bt_trace *trace, bt_uuid uuid)
 {
 	BT_ASSERT_PRE_TRACE_NON_NULL(trace);
@@ -284,6 +289,7 @@ enum bt_trace_set_environment_entry_status set_environment_entry(
 	return ret;
 }
 
+BT_EXPORT
 enum bt_trace_set_environment_entry_status
 bt_trace_set_environment_entry_string(
 		struct bt_trace *trace, const char *name, const char *value)
@@ -312,6 +318,7 @@ end:
 	return ret;
 }
 
+BT_EXPORT
 enum bt_trace_set_environment_entry_status
 bt_trace_set_environment_entry_integer(
 		struct bt_trace *trace, const char *name, int64_t value)
@@ -339,12 +346,14 @@ end:
 	return ret;
 }
 
+BT_EXPORT
 uint64_t bt_trace_get_environment_entry_count(const struct bt_trace *trace)
 {
 	BT_ASSERT_PRE_DEV_TRACE_NON_NULL(trace);
 	return bt_attributes_get_count(trace->environment);
 }
 
+BT_EXPORT
 void bt_trace_borrow_environment_entry_by_index_const(
 		const struct bt_trace *trace, uint64_t index,
 		const char **name, const struct bt_value **value)
@@ -361,6 +370,7 @@ void bt_trace_borrow_environment_entry_by_index_const(
 	BT_ASSERT(*name);
 }
 
+BT_EXPORT
 const struct bt_value *bt_trace_borrow_environment_entry_value_by_name_const(
 		const struct bt_trace *trace, const char *name)
 {
@@ -370,12 +380,14 @@ const struct bt_value *bt_trace_borrow_environment_entry_value_by_name_const(
 		name);
 }
 
+BT_EXPORT
 uint64_t bt_trace_get_stream_count(const struct bt_trace *trace)
 {
 	BT_ASSERT_PRE_DEV_TRACE_NON_NULL(trace);
 	return (uint64_t) trace->streams->len;
 }
 
+BT_EXPORT
 struct bt_stream *bt_trace_borrow_stream_by_index(
 		struct bt_trace *trace, uint64_t index)
 {
@@ -384,12 +396,14 @@ struct bt_stream *bt_trace_borrow_stream_by_index(
 	return g_ptr_array_index(trace->streams, index);
 }
 
+BT_EXPORT
 const struct bt_stream *bt_trace_borrow_stream_by_index_const(
 		const struct bt_trace *trace, uint64_t index)
 {
 	return bt_trace_borrow_stream_by_index((void *) trace, index);
 }
 
+BT_EXPORT
 struct bt_stream *bt_trace_borrow_stream_by_id(struct bt_trace *trace,
 		uint64_t id)
 {
@@ -412,12 +426,14 @@ end:
 	return stream;
 }
 
+BT_EXPORT
 const struct bt_stream *bt_trace_borrow_stream_by_id_const(
 		const struct bt_trace *trace, uint64_t id)
 {
 	return bt_trace_borrow_stream_by_id((void *) trace, id);
 }
 
+BT_EXPORT
 enum bt_trace_add_listener_status bt_trace_add_destruction_listener(
 		const struct bt_trace *c_trace,
 		bt_trace_destruction_listener_func listener,
@@ -469,6 +485,7 @@ bool has_listener_id(const struct bt_trace *trace, uint64_t listener_id)
 			listener_id))->func;
 }
 
+BT_EXPORT
 enum bt_trace_remove_listener_status bt_trace_remove_destruction_listener(
 		const struct bt_trace *c_trace, bt_listener_id listener_id)
 {
@@ -494,7 +511,6 @@ enum bt_trace_remove_listener_status bt_trace_remove_destruction_listener(
 	return BT_FUNC_STATUS_OK;
 }
 
-BT_HIDDEN
 void _bt_trace_freeze(const struct bt_trace *trace)
 {
 	BT_ASSERT(trace);
@@ -507,7 +523,6 @@ void _bt_trace_freeze(const struct bt_trace *trace)
 	((struct bt_trace *) trace)->frozen = true;
 }
 
-BT_HIDDEN
 void bt_trace_add_stream(struct bt_trace *trace, struct bt_stream *stream)
 {
 	guint count = 0;
@@ -526,7 +541,6 @@ void bt_trace_add_stream(struct bt_trace *trace, struct bt_stream *stream)
 		stream->class, GUINT_TO_POINTER(count + 1));
 }
 
-BT_HIDDEN
 uint64_t bt_trace_get_automatic_stream_id(const struct bt_trace *trace,
 		const struct bt_stream_class *stream_class)
 {
@@ -544,18 +558,21 @@ uint64_t bt_trace_get_automatic_stream_id(const struct bt_trace *trace,
 	return id;
 }
 
+BT_EXPORT
 struct bt_trace_class *bt_trace_borrow_class(struct bt_trace *trace)
 {
 	BT_ASSERT_PRE_DEV_TRACE_NON_NULL(trace);
 	return trace->class;
 }
 
+BT_EXPORT
 const struct bt_trace_class *bt_trace_borrow_class_const(
 		const struct bt_trace *trace)
 {
 	return bt_trace_borrow_class((void *) trace);
 }
 
+BT_EXPORT
 const struct bt_value *bt_trace_borrow_user_attributes_const(
 		const struct bt_trace *trace)
 {
@@ -563,11 +580,13 @@ const struct bt_value *bt_trace_borrow_user_attributes_const(
 	return trace->user_attributes;
 }
 
+BT_EXPORT
 struct bt_value *bt_trace_borrow_user_attributes(struct bt_trace *trace)
 {
 	return (void *) bt_trace_borrow_user_attributes_const((void *) trace);
 }
 
+BT_EXPORT
 void bt_trace_set_user_attributes(
 		struct bt_trace *trace,
 		const struct bt_value *user_attributes)
@@ -581,11 +600,13 @@ void bt_trace_set_user_attributes(
 	bt_object_get_ref_no_null_check(trace->user_attributes);
 }
 
+BT_EXPORT
 void bt_trace_get_ref(const struct bt_trace *trace)
 {
 	bt_object_get_ref(trace);
 }
 
+BT_EXPORT
 void bt_trace_put_ref(const struct bt_trace *trace)
 {
 	bt_object_put_ref(trace);

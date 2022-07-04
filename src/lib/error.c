@@ -418,7 +418,6 @@ end:
 	return cause;
 }
 
-BT_HIDDEN
 struct bt_error *bt_error_create(void)
 {
 	struct bt_error *error;
@@ -448,7 +447,6 @@ end:
 	return error;
 }
 
-BT_HIDDEN
 void bt_error_destroy(struct bt_error *error)
 {
 	if (!error) {
@@ -466,7 +464,6 @@ end:
 	return;
 }
 
-BT_HIDDEN
 int bt_error_append_cause_from_unknown(struct bt_error *error,
 		const char *module_name, const char *file_name,
 		uint64_t line_no, const char *msg_fmt, va_list args)
@@ -497,7 +494,6 @@ end:
 	return status;
 }
 
-BT_HIDDEN
 int bt_error_append_cause_from_component(
 		struct bt_error *error, bt_self_component *self_comp,
 		const char *file_name, uint64_t line_no,
@@ -529,7 +525,6 @@ end:
 	return status;
 }
 
-BT_HIDDEN
 int bt_error_append_cause_from_component_class(
 		struct bt_error *error,
 		bt_self_component_class *self_comp_class,
@@ -562,7 +557,6 @@ end:
 	return status;
 }
 
-BT_HIDDEN
 int bt_error_append_cause_from_message_iterator(
 		struct bt_error *error, bt_self_message_iterator *self_iter,
 		const char *file_name, uint64_t line_no,
@@ -600,18 +594,21 @@ uint64_t error_cause_count(const bt_error *error)
 	return error->causes ? error->causes->len : 0;
 }
 
+BT_EXPORT
 uint64_t bt_error_get_cause_count(const bt_error *error)
 {
 	BT_ASSERT_PRE_ERROR_NON_NULL(error);
 	return error_cause_count(error);
 }
 
+BT_EXPORT
 void bt_error_release(const struct bt_error *error)
 {
 	BT_ASSERT_PRE_ERROR_NON_NULL(error);
 	bt_error_destroy((void *) error);
 }
 
+BT_EXPORT
 const struct bt_error_cause *bt_error_borrow_cause_by_index(
 		const bt_error *error, uint64_t index)
 {
@@ -620,6 +617,7 @@ const struct bt_error_cause *bt_error_borrow_cause_by_index(
 	return error->causes->pdata[index];
 }
 
+BT_EXPORT
 enum bt_error_cause_actor_type bt_error_cause_get_actor_type(
 		const struct bt_error_cause *cause)
 {
@@ -627,30 +625,35 @@ enum bt_error_cause_actor_type bt_error_cause_get_actor_type(
 	return cause->actor_type;
 }
 
+BT_EXPORT
 const char *bt_error_cause_get_message(const struct bt_error_cause *cause)
 {
 	BT_ASSERT_PRE_ERROR_CAUSE_NON_NULL(cause);
 	return cause->message->str;
 }
 
+BT_EXPORT
 const char *bt_error_cause_get_module_name(const struct bt_error_cause *cause)
 {
 	BT_ASSERT_PRE_ERROR_CAUSE_NON_NULL(cause);
 	return cause->module_name->str;
 }
 
+BT_EXPORT
 const char *bt_error_cause_get_file_name(const struct bt_error_cause *cause)
 {
 	BT_ASSERT_PRE_ERROR_CAUSE_NON_NULL(cause);
 	return cause->file_name->str;
 }
 
+BT_EXPORT
 uint64_t bt_error_cause_get_line_number(const bt_error_cause *cause)
 {
 	BT_ASSERT_PRE_ERROR_CAUSE_NON_NULL(cause);
 	return cause->line_no;
 }
 
+BT_EXPORT
 const char *bt_error_cause_component_actor_get_component_name(
 		const struct bt_error_cause *cause)
 {
@@ -663,6 +666,7 @@ const char *bt_error_cause_component_actor_get_component_name(
 	return spec_cause->comp_name->str;
 }
 
+BT_EXPORT
 bt_component_class_type bt_error_cause_component_actor_get_component_class_type(
 		const struct bt_error_cause *cause)
 {
@@ -675,6 +679,7 @@ bt_component_class_type bt_error_cause_component_actor_get_component_class_type(
 	return spec_cause->comp_class_id.type;
 }
 
+BT_EXPORT
 const char *bt_error_cause_component_actor_get_component_class_name(
 		const struct bt_error_cause *cause)
 {
@@ -687,6 +692,7 @@ const char *bt_error_cause_component_actor_get_component_class_name(
 	return spec_cause->comp_class_id.name->str;
 }
 
+BT_EXPORT
 const char *bt_error_cause_component_actor_get_plugin_name(
 		const struct bt_error_cause *cause)
 {
@@ -700,6 +706,7 @@ const char *bt_error_cause_component_actor_get_plugin_name(
 		spec_cause->comp_class_id.plugin_name->str : NULL;
 }
 
+BT_EXPORT
 bt_component_class_type
 bt_error_cause_component_class_actor_get_component_class_type(
 		const struct bt_error_cause *cause)
@@ -713,6 +720,7 @@ bt_error_cause_component_class_actor_get_component_class_type(
 	return spec_cause->comp_class_id.type;
 }
 
+BT_EXPORT
 const char *bt_error_cause_component_class_actor_get_component_class_name(
 		const struct bt_error_cause *cause)
 {
@@ -725,6 +733,7 @@ const char *bt_error_cause_component_class_actor_get_component_class_name(
 	return spec_cause->comp_class_id.name->str;
 }
 
+BT_EXPORT
 const char *bt_error_cause_component_class_actor_get_plugin_name(
 		const struct bt_error_cause *cause)
 {
@@ -738,6 +747,7 @@ const char *bt_error_cause_component_class_actor_get_plugin_name(
 		spec_cause->comp_class_id.plugin_name->str : NULL;
 }
 
+BT_EXPORT
 const char *bt_error_cause_message_iterator_actor_get_component_name(
 		const struct bt_error_cause *cause)
 {
@@ -750,6 +760,7 @@ const char *bt_error_cause_message_iterator_actor_get_component_name(
 	return spec_cause->comp_name->str;
 }
 
+BT_EXPORT
 const char *
 bt_error_cause_message_iterator_actor_get_component_output_port_name(
 		const struct bt_error_cause *cause)
@@ -763,6 +774,7 @@ bt_error_cause_message_iterator_actor_get_component_output_port_name(
 	return spec_cause->output_port_name->str;
 }
 
+BT_EXPORT
 bt_component_class_type
 bt_error_cause_message_iterator_actor_get_component_class_type(
 		const struct bt_error_cause *cause)
@@ -776,6 +788,7 @@ bt_error_cause_message_iterator_actor_get_component_class_type(
 	return spec_cause->comp_class_id.type;
 }
 
+BT_EXPORT
 const char *bt_error_cause_message_iterator_actor_get_component_class_name(
 		const struct bt_error_cause *cause)
 {
@@ -788,6 +801,7 @@ const char *bt_error_cause_message_iterator_actor_get_component_class_name(
 	return spec_cause->comp_class_id.name->str;
 }
 
+BT_EXPORT
 const char *bt_error_cause_message_iterator_actor_get_plugin_name(
 		const struct bt_error_cause *cause)
 {

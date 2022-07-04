@@ -41,7 +41,6 @@
 #define ADDR_STR_LEN 20
 #define BUILD_ID_NOTE_NAME "GNU"
 
-BT_HIDDEN
 int bin_info_init(bt_logging_level log_level, bt_self_component *self_comp)
 {
 	int ret = 0;
@@ -56,7 +55,6 @@ int bin_info_init(bt_logging_level log_level, bt_self_component *self_comp)
 	return ret;
 }
 
-BT_HIDDEN
 struct bin_info *bin_info_create(struct bt_fd_cache *fdc, const char *path,
 		uint64_t low_addr, uint64_t memsz, bool is_pic,
 		const char *debug_info_dir, const char *target_prefix,
@@ -110,7 +108,6 @@ error:
 	return NULL;
 }
 
-BT_HIDDEN
 void bin_info_destroy(struct bin_info *bin)
 {
 	if (!bin) {
@@ -349,7 +346,6 @@ error:
 	return is_matching;
 }
 
-BT_HIDDEN
 int bin_info_set_build_id(struct bin_info *bin, uint8_t *build_id,
 		size_t build_id_len)
 {
@@ -393,7 +389,6 @@ error:
 	return -1;
 }
 
-BT_HIDDEN
 int bin_info_set_debug_link(struct bin_info *bin, const char *filename,
 		uint32_t crc)
 {
@@ -719,7 +714,6 @@ end:
 	return ret;
 }
 
-BT_HIDDEN
 void source_location_destroy(struct source_location *src_loc)
 {
 	if (!src_loc) {
@@ -1091,7 +1085,6 @@ error:
 	return -1;
 }
 
-BT_HIDDEN
 int bin_info_lookup_function_name(struct bin_info *bin,
 		uint64_t addr, char **func_name)
 {
@@ -1156,7 +1149,6 @@ error:
 	return -1;
 }
 
-BT_HIDDEN
 int bin_info_get_bin_loc(struct bin_info *bin, uint64_t addr, char **bin_loc)
 {
 	gchar *_bin_loc = NULL;
@@ -1506,7 +1498,6 @@ error:
 	return -1;
 }
 
-BT_HIDDEN
 int bin_info_lookup_source_location(struct bin_info *bin, uint64_t addr,
 		struct source_location **src_loc)
 {

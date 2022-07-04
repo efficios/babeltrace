@@ -21,12 +21,10 @@
 #include "graph.h"
 #include "lib/func-status.h"
 
-BT_HIDDEN
 void bt_component_sink_destroy(struct bt_component *component)
 {
 }
 
-BT_HIDDEN
 struct bt_component *bt_component_sink_create(
 		const struct bt_component_class *class)
 {
@@ -43,6 +41,7 @@ end:
 	return (void *) sink;
 }
 
+BT_EXPORT
 const bt_component_class_sink *
 bt_component_sink_borrow_class_const(
 		const bt_component_sink *component)
@@ -59,6 +58,7 @@ bt_component_sink_borrow_class_const(
 	return (bt_component_class_sink *) cls;
 }
 
+BT_EXPORT
 uint64_t bt_component_sink_get_input_port_count(
 		const struct bt_component_sink *component)
 {
@@ -66,6 +66,7 @@ uint64_t bt_component_sink_get_input_port_count(
 	return bt_component_get_input_port_count((void *) component, __func__);
 }
 
+BT_EXPORT
 const struct bt_port_input *
 bt_component_sink_borrow_input_port_by_name_const(
 		const struct bt_component_sink *component, const char *name)
@@ -78,6 +79,7 @@ bt_component_sink_borrow_input_port_by_name_const(
 		__func__);
 }
 
+BT_EXPORT
 struct bt_self_component_port_input *
 bt_self_component_sink_borrow_input_port_by_name(
 		struct bt_self_component_sink *component, const char *name)
@@ -90,6 +92,7 @@ bt_self_component_sink_borrow_input_port_by_name(
 		(void *) component, name, __func__);
 }
 
+BT_EXPORT
 const struct bt_port_input *bt_component_sink_borrow_input_port_by_index_const(
 		const struct bt_component_sink *component, uint64_t index)
 {
@@ -101,6 +104,7 @@ const struct bt_port_input *bt_component_sink_borrow_input_port_by_index_const(
 		(void *) component, index, __func__);
 }
 
+BT_EXPORT
 struct bt_self_component_port_input *
 bt_self_component_sink_borrow_input_port_by_index(
 		struct bt_self_component_sink *component, uint64_t index)
@@ -113,6 +117,7 @@ bt_self_component_sink_borrow_input_port_by_index(
 		(void *) component, index, __func__);
 }
 
+BT_EXPORT
 enum bt_self_component_add_port_status bt_self_component_sink_add_input_port(
 		struct bt_self_component_sink *self_comp,
 		const char *name, void *user_data,
@@ -144,6 +149,7 @@ end:
 	return status;
 }
 
+BT_EXPORT
 bt_bool bt_self_component_sink_is_interrupted(
 		const struct bt_self_component_sink *self_comp)
 {
@@ -154,12 +160,14 @@ bt_bool bt_self_component_sink_is_interrupted(
 		bt_component_borrow_graph(comp));
 }
 
+BT_EXPORT
 void bt_component_sink_get_ref(
 		const struct bt_component_sink *component_sink)
 {
 	bt_object_get_ref(component_sink);
 }
 
+BT_EXPORT
 void bt_component_sink_put_ref(
 		const struct bt_component_sink *component_sink)
 {

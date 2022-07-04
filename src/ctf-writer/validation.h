@@ -64,7 +64,6 @@ struct bt_ctf_validation_output {
  *
  * All parameters are owned by the caller.
  */
-BT_HIDDEN
 int bt_ctf_validate_class_types(struct bt_ctf_private_value *environment,
 		struct bt_ctf_field_type_common *packet_header_type,
 		struct bt_ctf_field_type_common *packet_context_type,
@@ -92,7 +91,6 @@ int bt_ctf_validate_class_types(struct bt_ctf_private_value *environment,
  *
  * All parameters are owned by the caller.
  */
-BT_HIDDEN
 void bt_ctf_validation_replace_types(struct bt_ctf_trace_common *trace,
 		struct bt_ctf_stream_class_common *stream_class,
 		struct bt_ctf_event_class_common *event_class,
@@ -105,7 +103,6 @@ void bt_ctf_validation_replace_types(struct bt_ctf_trace_common *trace,
  *
  * `output` is owned by the caller and is not freed here.
  */
-BT_HIDDEN
 void bt_ctf_validation_output_put_types(
 		struct bt_ctf_validation_output *output);
 

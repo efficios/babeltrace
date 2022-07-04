@@ -73,7 +73,6 @@ end:
 	return gstr;
 }
 
-BT_HIDDEN
 GString *bt_py_common_format_tb(PyObject *py_exc_tb, int log_level)
 {
 	PyObject *traceback_module = NULL;
@@ -133,7 +132,6 @@ error:
 	return msg_buf;
 }
 
-BT_HIDDEN
 GString *bt_py_common_format_exception(PyObject *py_exc_type,
 		PyObject *py_exc_value, PyObject *py_exc_tb,
 		int log_level, bool chain)
@@ -206,7 +204,6 @@ error:
 	return msg_buf;
 }
 
-BT_HIDDEN
 GString *bt_py_common_format_current_exception(int log_level)
 {
 	GString *result;

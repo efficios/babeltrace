@@ -39,7 +39,6 @@ struct bt_trace_class {
 	bool frozen;
 };
 
-BT_HIDDEN
 void _bt_trace_class_freeze(const struct bt_trace_class *trace_class);
 
 #ifdef BT_DEV_MODE

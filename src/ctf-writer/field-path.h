@@ -31,23 +31,20 @@ struct bt_ctf_field_path {
 	GArray *indexes;
 };
 
-BT_HIDDEN
 struct bt_ctf_field_path *bt_ctf_field_path_create(void);
 
-BT_HIDDEN
 void bt_ctf_field_path_clear(struct bt_ctf_field_path *field_path);
 
-BT_HIDDEN
 struct bt_ctf_field_path *bt_ctf_field_path_copy(
 		struct bt_ctf_field_path *path);
 
-BT_HIDDEN enum bt_ctf_scope bt_ctf_field_path_get_root_scope(
+enum bt_ctf_scope bt_ctf_field_path_get_root_scope(
 		const struct bt_ctf_field_path *field_path);
 
-BT_HIDDEN int64_t bt_ctf_field_path_get_index_count(
+int64_t bt_ctf_field_path_get_index_count(
 		const struct bt_ctf_field_path *field_path);
 
-BT_HIDDEN int bt_ctf_field_path_get_index(
+int bt_ctf_field_path_get_index(
 		const struct bt_ctf_field_path *field_path, uint64_t index);
 
 #endif /* BABELTRACE_CTF_WRITER_FIELD_PATH_INTERNAL */

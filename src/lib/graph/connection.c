@@ -97,7 +97,6 @@ void parent_is_owner(struct bt_object *obj)
 	try_remove_connection_from_graph(connection);
 }
 
-BT_HIDDEN
 struct bt_connection *bt_connection_create(struct bt_graph *graph,
 		struct bt_port *upstream_port,
 		struct bt_port *downstream_port)
@@ -139,7 +138,6 @@ end:
 	return connection;
 }
 
-BT_HIDDEN
 void bt_connection_end(struct bt_connection *conn, bool try_remove_from_graph)
 {
 	struct bt_port *downstream_port = conn->downstream_port;
@@ -212,6 +210,7 @@ void bt_connection_end(struct bt_connection *conn, bool try_remove_from_graph)
 	}
 }
 
+BT_EXPORT
 const struct bt_port_output *bt_connection_borrow_upstream_port_const(
 		const struct bt_connection *connection)
 {
@@ -219,6 +218,7 @@ const struct bt_port_output *bt_connection_borrow_upstream_port_const(
 	return (void *) connection->upstream_port;
 }
 
+BT_EXPORT
 const struct bt_port_input *bt_connection_borrow_downstream_port_const(
 		const struct bt_connection *connection)
 {
@@ -226,7 +226,6 @@ const struct bt_port_input *bt_connection_borrow_downstream_port_const(
 	return (void *) connection->downstream_port;
 }
 
-BT_HIDDEN
 void bt_connection_remove_iterator(struct bt_connection *conn,
 		struct bt_message_iterator *iterator)
 {
@@ -236,11 +235,13 @@ void bt_connection_remove_iterator(struct bt_connection *conn,
 	try_remove_connection_from_graph(conn);
 }
 
+BT_EXPORT
 void bt_connection_get_ref(const struct bt_connection *connection)
 {
 	bt_object_get_ref(connection);
 }
 
+BT_EXPORT
 void bt_connection_put_ref(const struct bt_connection *connection)
 {
 	bt_object_put_ref(connection);

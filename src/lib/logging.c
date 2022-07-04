@@ -22,18 +22,22 @@
  * `LIBBABELTRACE2_INIT_LOG_LEVEL` environment variable to enable
  * logging.
  */
+BT_EXPORT
 int bt_lib_log_level = BT_LOG_NONE;
 
+BT_EXPORT
 enum bt_logging_level bt_logging_get_minimal_level(void)
 {
 	return BT_MINIMAL_LOG_LEVEL;
 }
 
+BT_EXPORT
 enum bt_logging_level bt_logging_get_global_level(void)
 {
 	return bt_lib_log_level;
 }
 
+BT_EXPORT
 void bt_logging_set_global_level(enum bt_logging_level log_level)
 {
 	bt_lib_log_level = log_level;

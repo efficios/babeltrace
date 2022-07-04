@@ -506,7 +506,6 @@ struct bt_field_path *resolve_field_path(struct bt_field_class *src_fc,
 	return find_field_class_in_ctx(tgt_fc, ctx);
 }
 
-BT_HIDDEN
 int bt_resolve_field_paths(struct bt_field_class *fc,
 		struct bt_resolve_field_path_context *ctx,
 		const char *api_func)

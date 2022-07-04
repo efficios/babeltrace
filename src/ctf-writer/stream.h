@@ -30,13 +30,11 @@ struct bt_ctf_stream_common {
 	GString *name;
 };
 
-BT_HIDDEN
 int bt_ctf_stream_common_initialize(
 		struct bt_ctf_stream_common *stream,
 		struct bt_ctf_stream_class_common *stream_class, const char *name,
 		uint64_t id, bt_ctf_object_release_func release_func);
 
-BT_HIDDEN
 void bt_ctf_stream_common_finalize(struct bt_ctf_stream_common *stream);
 
 static inline
@@ -82,7 +80,6 @@ struct bt_ctf_stream {
 	uint64_t last_ts_end;
 };
 
-BT_HIDDEN
 struct bt_ctf_stream *bt_ctf_stream_create_with_id(
 		struct bt_ctf_stream_class *stream_class,
 		const char *name, uint64_t id);

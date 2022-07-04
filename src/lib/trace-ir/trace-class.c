@@ -121,6 +121,7 @@ void destroy_trace_class(struct bt_object *obj)
 	g_free(tc);
 }
 
+BT_EXPORT
 struct bt_trace_class *bt_trace_class_create(bt_self_component *self_comp)
 {
 	struct bt_trace_class *tc = NULL;
@@ -167,6 +168,7 @@ end:
 	return tc;
 }
 
+BT_EXPORT
 enum bt_trace_class_add_listener_status bt_trace_class_add_destruction_listener(
 		const struct bt_trace_class *_tc,
 		bt_trace_class_destruction_listener_func listener,
@@ -218,6 +220,7 @@ bool has_listener_id(const struct bt_trace_class *tc, uint64_t listener_id)
 			listener_id))->func;
 }
 
+BT_EXPORT
 enum bt_trace_class_remove_listener_status bt_trace_class_remove_destruction_listener(
 		const struct bt_trace_class *_tc, bt_listener_id listener_id)
 {
@@ -243,12 +246,14 @@ enum bt_trace_class_remove_listener_status bt_trace_class_remove_destruction_lis
 	return BT_FUNC_STATUS_OK;
 }
 
+BT_EXPORT
 uint64_t bt_trace_class_get_stream_class_count(const struct bt_trace_class *tc)
 {
 	BT_ASSERT_PRE_DEV_TC_NON_NULL(tc);
 	return (uint64_t) tc->stream_classes->len;
 }
 
+BT_EXPORT
 struct bt_stream_class *bt_trace_class_borrow_stream_class_by_index(
 		struct bt_trace_class *tc, uint64_t index)
 {
@@ -257,6 +262,7 @@ struct bt_stream_class *bt_trace_class_borrow_stream_class_by_index(
 	return g_ptr_array_index(tc->stream_classes, index);
 }
 
+BT_EXPORT
 const struct bt_stream_class *
 bt_trace_class_borrow_stream_class_by_index_const(
 		const struct bt_trace_class *tc, uint64_t index)
@@ -265,6 +271,7 @@ bt_trace_class_borrow_stream_class_by_index_const(
 		(void *) tc, index);
 }
 
+BT_EXPORT
 struct bt_stream_class *bt_trace_class_borrow_stream_class_by_id(
 		struct bt_trace_class *tc, uint64_t id)
 {
@@ -287,6 +294,7 @@ end:
 	return stream_class;
 }
 
+BT_EXPORT
 const struct bt_stream_class *
 bt_trace_class_borrow_stream_class_by_id_const(
 		const struct bt_trace_class *tc, uint64_t id)
@@ -294,7 +302,6 @@ bt_trace_class_borrow_stream_class_by_id_const(
 	return bt_trace_class_borrow_stream_class_by_id((void *) tc, id);
 }
 
-BT_HIDDEN
 void _bt_trace_class_freeze(const struct bt_trace_class *tc)
 {
 	BT_ASSERT(tc);
@@ -302,12 +309,14 @@ void _bt_trace_class_freeze(const struct bt_trace_class *tc)
 	((struct bt_trace_class *) tc)->frozen = true;
 }
 
+BT_EXPORT
 bt_bool bt_trace_class_assigns_automatic_stream_class_id(const struct bt_trace_class *tc)
 {
 	BT_ASSERT_PRE_DEV_TC_NON_NULL(tc);
 	return (bt_bool) tc->assigns_automatic_stream_class_id;
 }
 
+BT_EXPORT
 void bt_trace_class_set_assigns_automatic_stream_class_id(struct bt_trace_class *tc,
 		bt_bool value)
 {
@@ -318,6 +327,7 @@ void bt_trace_class_set_assigns_automatic_stream_class_id(struct bt_trace_class 
 		"assignment property: %!+T", tc);
 }
 
+BT_EXPORT
 const struct bt_value *bt_trace_class_borrow_user_attributes_const(
 		const struct bt_trace_class *trace_class)
 {
@@ -325,6 +335,7 @@ const struct bt_value *bt_trace_class_borrow_user_attributes_const(
 	return trace_class->user_attributes;
 }
 
+BT_EXPORT
 struct bt_value *bt_trace_class_borrow_user_attributes(
 		struct bt_trace_class *trace_class)
 {
@@ -332,6 +343,7 @@ struct bt_value *bt_trace_class_borrow_user_attributes(
 		(void *) trace_class);
 }
 
+BT_EXPORT
 void bt_trace_class_set_user_attributes(struct bt_trace_class *trace_class,
 		const struct bt_value *user_attributes)
 {
@@ -344,11 +356,13 @@ void bt_trace_class_set_user_attributes(struct bt_trace_class *trace_class,
 	bt_object_get_ref_no_null_check(trace_class->user_attributes);
 }
 
+BT_EXPORT
 void bt_trace_class_get_ref(const struct bt_trace_class *trace_class)
 {
 	bt_object_get_ref(trace_class);
 }
 
+BT_EXPORT
 void bt_trace_class_put_ref(const struct bt_trace_class *trace_class)
 {
 	bt_object_put_ref(trace_class);

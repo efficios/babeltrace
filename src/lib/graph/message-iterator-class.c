@@ -18,7 +18,6 @@
 		(_msg_iter_cls), "Message iterator class",		\
 		": %!+I", (_msg_iter_cls))
 
-BT_HIDDEN
 void _bt_message_iterator_class_freeze(
 		const struct bt_message_iterator_class *msg_iter_cls)
 {
@@ -27,12 +26,14 @@ void _bt_message_iterator_class_freeze(
 	((struct bt_message_iterator_class *) msg_iter_cls)->frozen = true;
 }
 
+BT_EXPORT
 void bt_message_iterator_class_get_ref(
 		const bt_message_iterator_class *message_iterator_class)
 {
 	bt_object_get_ref(message_iterator_class);
 }
 
+BT_EXPORT
 void bt_message_iterator_class_put_ref(
 		const bt_message_iterator_class *message_iterator_class)
 {
@@ -52,6 +53,7 @@ void destroy_iterator_class(struct bt_object *obj)
 	g_free(class);
 }
 
+BT_EXPORT
 struct bt_message_iterator_class *bt_message_iterator_class_create(
 		bt_message_iterator_class_next_method next_method)
 {
@@ -77,6 +79,7 @@ end:
 	return message_iterator_class;
 }
 
+BT_EXPORT
 bt_message_iterator_class_set_method_status
 bt_message_iterator_class_set_initialize_method(
 	bt_message_iterator_class *message_iterator_class,
@@ -92,6 +95,7 @@ bt_message_iterator_class_set_initialize_method(
 	return BT_FUNC_STATUS_OK;
 }
 
+BT_EXPORT
 bt_message_iterator_class_set_method_status
 bt_message_iterator_class_set_finalize_method(
 		bt_message_iterator_class *message_iterator_class,
@@ -107,6 +111,7 @@ bt_message_iterator_class_set_finalize_method(
 	return BT_FUNC_STATUS_OK;
 }
 
+BT_EXPORT
 bt_message_iterator_class_set_method_status
 bt_message_iterator_class_set_seek_ns_from_origin_methods(
 		bt_message_iterator_class *message_iterator_class,
@@ -124,6 +129,7 @@ bt_message_iterator_class_set_seek_ns_from_origin_methods(
 	return BT_FUNC_STATUS_OK;
 }
 
+BT_EXPORT
 bt_message_iterator_class_set_method_status
 bt_message_iterator_class_set_seek_beginning_methods(
 		bt_message_iterator_class *message_iterator_class,

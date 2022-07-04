@@ -1368,7 +1368,6 @@ end:
 	return status;
 }
 
-BT_HIDDEN
 int bt_plugin_so_create_all_from_static(bool fail_on_load_error,
 		struct bt_plugin_set **plugin_set_out)
 {
@@ -1405,7 +1404,6 @@ end:
 	return status;
 }
 
-BT_HIDDEN
 int bt_plugin_so_create_all_from_file(const char *path,
 		bool fail_on_load_error, struct bt_plugin_set **plugin_set_out)
 {
@@ -1672,6 +1670,13 @@ void plugin_comp_class_destroy_listener(struct bt_component_class *comp_class,
 		"comp-cls-addr=%p", comp_class);
 }
 
+/*
+ * This function would normally not be BT_EXPORTed, but it is used by the
+ * Python plugin provider, which is conceptually part of libbabeltrace2, but
+ * implemented as a separate shared object, for modularity.  It is therefore
+ * exposed, but not part of the public ABI.
+ */
+BT_EXPORT
 void bt_plugin_so_on_add_component_class(struct bt_plugin *plugin,
 		struct bt_component_class *comp_class)
 {

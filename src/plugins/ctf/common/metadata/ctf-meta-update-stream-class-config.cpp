@@ -14,7 +14,6 @@
 
 #include "ctf-meta-visitors.hpp"
 
-BT_HIDDEN
 int ctf_trace_class_update_stream_class_config(struct ctf_trace_class *ctf_tc)
 {
     struct ctf_field_class_int *int_fc;

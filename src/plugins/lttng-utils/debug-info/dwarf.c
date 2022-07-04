@@ -12,7 +12,6 @@
 
 #include "dwarf.h"
 
-BT_HIDDEN
 struct bt_dwarf_cu *bt_dwarf_cu_create(Dwarf *dwarf_info)
 {
 	struct bt_dwarf_cu *cu;
@@ -32,13 +31,11 @@ error:
 	return NULL;
 }
 
-BT_HIDDEN
 void bt_dwarf_cu_destroy(struct bt_dwarf_cu *cu)
 {
 	g_free(cu);
 }
 
-BT_HIDDEN
 int bt_dwarf_cu_next(struct bt_dwarf_cu *cu)
 {
 	int ret;
@@ -65,7 +62,6 @@ end:
 	return ret;
 }
 
-BT_HIDDEN
 struct bt_dwarf_die *bt_dwarf_die_create(struct bt_dwarf_cu *cu)
 {
 	Dwarf_Die *dwarf_die = NULL;
@@ -103,7 +99,6 @@ error:
 	return NULL;
 }
 
-BT_HIDDEN
 void bt_dwarf_die_destroy(struct bt_dwarf_die *die)
 {
 	if (!die) {
@@ -114,13 +109,11 @@ void bt_dwarf_die_destroy(struct bt_dwarf_die *die)
 	g_free(die);
 }
 
-BT_HIDDEN
 int bt_dwarf_die_has_children(struct bt_dwarf_die *die)
 {
 	return dwarf_haschildren(die->dwarf_die);
 }
 
-BT_HIDDEN
 int bt_dwarf_die_child(struct bt_dwarf_die *die)
 {
 	int ret;
@@ -153,7 +146,6 @@ error:
 	return ret;
 }
 
-BT_HIDDEN
 int bt_dwarf_die_next(struct bt_dwarf_die *die)
 {
 	int ret;
@@ -196,7 +188,6 @@ error:
 	return ret;
 }
 
-BT_HIDDEN
 int bt_dwarf_die_get_tag(struct bt_dwarf_die *die, int *tag)
 {
 	int _tag;
@@ -217,7 +208,6 @@ error:
 	return -1;
 }
 
-BT_HIDDEN
 int bt_dwarf_die_get_name(struct bt_dwarf_die *die, char **name)
 {
 	const char *_name;
@@ -242,7 +232,6 @@ error:
 	return -1;
 }
 
-BT_HIDDEN
 int bt_dwarf_die_get_call_file(struct bt_dwarf_die *die, char **filename)
 {
 	int ret;
@@ -300,7 +289,6 @@ error:
 	return -1;
 }
 
-BT_HIDDEN
 int bt_dwarf_die_get_call_line(struct bt_dwarf_die *die,
 		uint64_t *line_no)
 {
@@ -338,7 +326,6 @@ error:
 	return -1;
 }
 
-BT_HIDDEN
 int bt_dwarf_die_contains_addr(struct bt_dwarf_die *die, uint64_t addr,
 		bool *contains)
 {

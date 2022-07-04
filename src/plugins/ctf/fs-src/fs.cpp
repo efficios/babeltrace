@@ -100,7 +100,6 @@ ctf_fs_iterator_next_one(struct ctf_fs_msg_iter_data *msg_iter_data, const bt_me
     return status;
 }
 
-BT_HIDDEN
 bt_message_iterator_class_next_method_status
 ctf_fs_iterator_next(bt_self_message_iterator *iterator, bt_message_array_const msgs,
                      uint64_t capacity, uint64_t *count)
@@ -160,7 +159,6 @@ end:
     return status;
 }
 
-BT_HIDDEN
 bt_message_iterator_class_seek_beginning_method_status
 ctf_fs_iterator_seek_beginning(bt_self_message_iterator *it)
 {
@@ -175,7 +173,6 @@ ctf_fs_iterator_seek_beginning(bt_self_message_iterator *it)
     return BT_MESSAGE_ITERATOR_CLASS_SEEK_BEGINNING_METHOD_STATUS_OK;
 }
 
-BT_HIDDEN
 void ctf_fs_iterator_finalize(bt_self_message_iterator *it)
 {
     ctf_fs_msg_iter_data_destroy(
@@ -199,7 +196,6 @@ ctf_msg_iter_medium_status_to_msg_iter_initialize_status(enum ctf_msg_iter_mediu
     bt_common_abort();
 }
 
-BT_HIDDEN
 bt_message_iterator_class_initialize_method_status
 ctf_fs_iterator_init(bt_self_message_iterator *self_msg_iter,
                      bt_self_message_iterator_configuration *config,
@@ -295,7 +291,6 @@ static void ctf_fs_trace_destroy(struct ctf_fs_trace *ctf_fs_trace)
     g_free(ctf_fs_trace);
 }
 
-BT_HIDDEN
 void ctf_fs_destroy(struct ctf_fs_component *ctf_fs)
 {
     if (!ctf_fs) {
@@ -2299,7 +2294,6 @@ end:
     return ctf_fs;
 }
 
-BT_HIDDEN
 bt_component_class_initialize_method_status
 ctf_fs_init(bt_self_component_source *self_comp_src, bt_self_component_source_configuration *config,
             const bt_value *params, __attribute__((unused)) void *init_method_data)
@@ -2316,7 +2310,6 @@ ctf_fs_init(bt_self_component_source *self_comp_src, bt_self_component_source_co
     return ret;
 }
 
-BT_HIDDEN
 bt_component_class_query_method_status ctf_fs_query(bt_self_component_class_source *comp_class,
                                                     bt_private_query_executor *priv_query_exec,
                                                     const char *object, const bt_value *params,

@@ -1103,7 +1103,6 @@ static inline enum bt_bfcr_status handle_state(struct bt_bfcr *bfcr)
     return status;
 }
 
-BT_HIDDEN
 struct bt_bfcr *bt_bfcr_create(struct bt_bfcr_cbs cbs, void *data, bt_logging_level log_level,
                                bt_self_component *self_comp)
 {
@@ -1137,7 +1136,6 @@ end:
     return bfcr;
 }
 
-BT_HIDDEN
 void bt_bfcr_destroy(struct bt_bfcr *bfcr)
 {
     if (bfcr->stack) {
@@ -1165,7 +1163,6 @@ static void update_packet_offset(struct bt_bfcr *bfcr)
     bfcr->buf.packet_offset += bfcr->buf.at;
 }
 
-BT_HIDDEN
 size_t bt_bfcr_start(struct bt_bfcr *bfcr, struct ctf_field_class *cls, const uint8_t *buf,
                      size_t offset, size_t packet_offset, size_t sz, enum bt_bfcr_status *status)
 {
@@ -1232,7 +1229,6 @@ end:
     return bfcr->buf.at;
 }
 
-BT_HIDDEN
 size_t bt_bfcr_continue(struct bt_bfcr *bfcr, const uint8_t *buf, size_t sz,
                         enum bt_bfcr_status *status)
 {
@@ -1263,7 +1259,6 @@ size_t bt_bfcr_continue(struct bt_bfcr *bfcr, const uint8_t *buf, size_t sz,
     return bfcr->buf.at;
 }
 
-BT_HIDDEN
 void bt_bfcr_set_unsigned_int_cb(struct bt_bfcr *bfcr, bt_bfcr_unsigned_int_cb_func cb)
 {
     BT_ASSERT_DBG(bfcr);

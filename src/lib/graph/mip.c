@@ -176,6 +176,7 @@ end:
  * When any component descriptor does not support MIP version 0, this
  * function returns `BT_FUNC_STATUS_NO_MATCH`.
  */
+BT_EXPORT
 enum bt_get_greatest_operative_mip_version_status
 bt_get_greatest_operative_mip_version(
 		const struct bt_component_descriptor_set *comp_descr_set,
@@ -218,6 +219,7 @@ end:
 	return status;
 }
 
+BT_EXPORT
 uint64_t bt_get_maximal_mip_version(void)
 {
 	return 0;

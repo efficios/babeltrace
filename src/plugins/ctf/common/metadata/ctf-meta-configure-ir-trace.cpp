@@ -8,7 +8,6 @@
 
 #include "ctf-meta-configure-ir-trace.hpp"
 
-BT_HIDDEN
 int ctf_trace_class_configure_ir_trace(struct ctf_trace_class *tc, bt_trace *ir_trace)
 {
     int ret = 0;

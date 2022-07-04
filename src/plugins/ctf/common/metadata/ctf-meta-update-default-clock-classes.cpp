@@ -151,7 +151,6 @@ end:
     return ret;
 }
 
-BT_HIDDEN
 int ctf_trace_class_update_default_clock_classes(struct ctf_trace_class *ctf_tc,
                                                  struct meta_log_config *log_cfg)
 {

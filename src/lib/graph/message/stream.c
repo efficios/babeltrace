@@ -99,6 +99,7 @@ end:
 	return &message->parent;
 }
 
+BT_EXPORT
 struct bt_message *bt_message_stream_beginning_create(
 		struct bt_self_message_iterator *self_msg_iter,
 		const struct bt_stream *stream)
@@ -109,6 +110,7 @@ struct bt_message *bt_message_stream_beginning_create(
 		BT_MESSAGE_TYPE_STREAM_BEGINNING, __func__);
 }
 
+BT_EXPORT
 struct bt_message *bt_message_stream_end_create(
 		struct bt_self_message_iterator *self_msg_iter,
 		const struct bt_stream *stream)
@@ -129,6 +131,7 @@ struct bt_stream *borrow_stream_message_stream(struct bt_message *message)
 	return stream_msg->stream;
 }
 
+BT_EXPORT
 struct bt_stream *bt_message_stream_beginning_borrow_stream(
 		struct bt_message *message)
 {
@@ -137,6 +140,7 @@ struct bt_stream *bt_message_stream_beginning_borrow_stream(
 	return borrow_stream_message_stream(message);
 }
 
+BT_EXPORT
 struct bt_stream *bt_message_stream_end_borrow_stream(
 		struct bt_message *message)
 {
@@ -145,6 +149,7 @@ struct bt_stream *bt_message_stream_end_borrow_stream(
 	return borrow_stream_message_stream(message);
 }
 
+BT_EXPORT
 const struct bt_stream *bt_message_stream_beginning_borrow_stream_const(
 		const struct bt_message *message)
 {
@@ -152,6 +157,7 @@ const struct bt_stream *bt_message_stream_beginning_borrow_stream_const(
 		(void *) message);
 }
 
+BT_EXPORT
 const struct bt_stream *bt_message_stream_end_borrow_stream_const(
 		const struct bt_message *message)
 {
@@ -180,6 +186,7 @@ void set_stream_default_clock_snapshot(
 		"%![msg-]+n, value=%" PRIu64, msg, raw_value);
 }
 
+BT_EXPORT
 void bt_message_stream_beginning_set_default_clock_snapshot(
 		struct bt_message *message, uint64_t raw_value)
 {
@@ -188,6 +195,7 @@ void bt_message_stream_beginning_set_default_clock_snapshot(
 	set_stream_default_clock_snapshot(message, raw_value, __func__);
 }
 
+BT_EXPORT
 void bt_message_stream_end_set_default_clock_snapshot(
 		struct bt_message *message, uint64_t raw_value)
 {
@@ -215,6 +223,7 @@ borrow_stream_message_default_clock_snapshot_const(
 	return stream_msg->default_cs_state;
 }
 
+BT_EXPORT
 enum bt_message_stream_clock_snapshot_state
 bt_message_stream_beginning_borrow_default_clock_snapshot_const(
 		const bt_message *message, const bt_clock_snapshot **snapshot)
@@ -225,6 +234,7 @@ bt_message_stream_beginning_borrow_default_clock_snapshot_const(
 		message, snapshot, __func__);
 }
 
+BT_EXPORT
 enum bt_message_stream_clock_snapshot_state
 bt_message_stream_end_borrow_default_clock_snapshot_const(
 		const bt_message *message, const bt_clock_snapshot **snapshot)
@@ -246,6 +256,7 @@ borrow_stream_message_stream_class_default_clock_class(
 	return stream_msg->stream->class->default_clock_class;
 }
 
+BT_EXPORT
 const struct bt_clock_class *
 bt_message_stream_beginning_borrow_stream_class_default_clock_class_const(
 		const struct bt_message *msg)
@@ -255,6 +266,7 @@ bt_message_stream_beginning_borrow_stream_class_default_clock_class_const(
 	return borrow_stream_message_stream_class_default_clock_class(msg);
 }
 
+BT_EXPORT
 const struct bt_clock_class *
 bt_message_stream_end_borrow_stream_class_default_clock_class_const(
 		const struct bt_message *msg)

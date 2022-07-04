@@ -30,7 +30,6 @@
 #include "attributes.h"
 #include "event-class.h"
 
-BT_HIDDEN
 void _bt_event_set_is_frozen(const struct bt_event *event, bool is_frozen)
 {
 	BT_ASSERT_DBG(event);
@@ -63,7 +62,6 @@ void _bt_event_set_is_frozen(const struct bt_event *event, bool is_frozen)
 	}
 }
 
-BT_HIDDEN
 struct bt_event *bt_event_new(struct bt_event_class *event_class)
 {
 	struct bt_event *event = NULL;
@@ -119,36 +117,42 @@ end:
 	return event;
 }
 
+BT_EXPORT
 struct bt_event_class *bt_event_borrow_class(struct bt_event *event)
 {
 	BT_ASSERT_PRE_DEV_EVENT_NON_NULL(event);
 	return event->class;
 }
 
+BT_EXPORT
 const struct bt_event_class *bt_event_borrow_class_const(
 		const struct bt_event *event)
 {
 	return bt_event_borrow_class((void *) event);
 }
 
+BT_EXPORT
 struct bt_stream *bt_event_borrow_stream(struct bt_event *event)
 {
 	BT_ASSERT_PRE_DEV_EVENT_NON_NULL(event);
 	return event->stream;
 }
 
+BT_EXPORT
 const struct bt_stream *bt_event_borrow_stream_const(
 		const struct bt_event *event)
 {
 	return bt_event_borrow_stream((void *) event);
 }
 
+BT_EXPORT
 struct bt_field *bt_event_borrow_common_context_field(struct bt_event *event)
 {
 	BT_ASSERT_PRE_DEV_EVENT_NON_NULL(event);
 	return event->common_context_field;
 }
 
+BT_EXPORT
 const struct bt_field *bt_event_borrow_common_context_field_const(
 		const struct bt_event *event)
 {
@@ -156,12 +160,14 @@ const struct bt_field *bt_event_borrow_common_context_field_const(
 	return event->common_context_field;
 }
 
+BT_EXPORT
 struct bt_field *bt_event_borrow_specific_context_field(struct bt_event *event)
 {
 	BT_ASSERT_PRE_DEV_EVENT_NON_NULL(event);
 	return event->specific_context_field;
 }
 
+BT_EXPORT
 const struct bt_field *bt_event_borrow_specific_context_field_const(
 		const struct bt_event *event)
 {
@@ -169,12 +175,14 @@ const struct bt_field *bt_event_borrow_specific_context_field_const(
 	return event->specific_context_field;
 }
 
+BT_EXPORT
 struct bt_field *bt_event_borrow_payload_field(struct bt_event *event)
 {
 	BT_ASSERT_PRE_DEV_EVENT_NON_NULL(event);
 	return event->payload_field;
 }
 
+BT_EXPORT
 const struct bt_field *bt_event_borrow_payload_field_const(
 		const struct bt_event *event)
 {
@@ -182,7 +190,6 @@ const struct bt_field *bt_event_borrow_payload_field_const(
 	return event->payload_field;
 }
 
-BT_HIDDEN
 void bt_event_destroy(struct bt_event *event)
 {
 	BT_ASSERT(event);
@@ -215,12 +222,14 @@ void bt_event_destroy(struct bt_event *event)
 	g_free(event);
 }
 
+BT_EXPORT
 struct bt_packet *bt_event_borrow_packet(struct bt_event *event)
 {
 	BT_ASSERT_PRE_DEV_EVENT_NON_NULL(event);
 	return event->packet;
 }
 
+BT_EXPORT
 const struct bt_packet *bt_event_borrow_packet_const(
 		const struct bt_event *event)
 {

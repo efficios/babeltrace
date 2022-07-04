@@ -44,10 +44,8 @@ struct bt_ctf_event_common {
 	int frozen;
 };
 
-BT_HIDDEN
 int _bt_ctf_event_common_validate(struct bt_ctf_event_common *event);
 
-BT_HIDDEN
 void _bt_ctf_event_common_set_is_frozen(struct bt_ctf_event_common *event,
 		bool is_frozen);
 
@@ -75,7 +73,6 @@ typedef void (*release_field_func_type)(void *);
 typedef void *(*create_header_field_func_type)(void *, void *);
 typedef void (*release_header_field_func_type)(void *, void *);
 
-BT_HIDDEN
 int bt_ctf_event_common_initialize(struct bt_ctf_event_common *event,
 		struct bt_ctf_event_class_common *event_class,
 		struct bt_ctf_clock_class *init_expected_clock_class,
@@ -90,7 +87,6 @@ int bt_ctf_event_common_initialize(struct bt_ctf_event_common *event,
 		create_header_field_func_type create_header_field_func,
 		release_header_field_func_type release_header_field_func);
 
-BT_HIDDEN
 int bt_ctf_event_common_set_payload(struct bt_ctf_event *event,
 		struct bt_ctf_field *payload);
 
@@ -238,11 +234,9 @@ struct bt_ctf_event_class {
 	struct bt_ctf_event_class_common common;
 };
 
-BT_HIDDEN
 int bt_ctf_event_class_serialize(struct bt_ctf_event_class *event_class,
 		struct metadata_context *context);
 
-BT_HIDDEN
 int bt_ctf_event_serialize(struct bt_ctf_event *event,
 		struct bt_ctfser *pos,
 		enum bt_ctf_byte_order native_byte_order);

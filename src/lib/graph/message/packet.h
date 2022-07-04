@@ -22,19 +22,14 @@ struct bt_message_packet {
 	struct bt_clock_snapshot *default_cs;
 };
 
-BT_HIDDEN
 void bt_message_packet_destroy(struct bt_message *msg);
 
-BT_HIDDEN
 struct bt_message *bt_message_packet_beginning_new(
 		struct bt_graph *graph);
-BT_HIDDEN
 void bt_message_packet_beginning_recycle(struct bt_message *msg);
 
-BT_HIDDEN
 struct bt_message *bt_message_packet_end_new(struct bt_graph *graph);
 
-BT_HIDDEN
 void bt_message_packet_end_recycle(struct bt_message *msg);
 
 #endif /* BABELTRACE_GRAPH_MESSAGE_PACKET_INTERNAL_H */

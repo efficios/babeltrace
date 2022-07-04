@@ -22,7 +22,6 @@
 #include "fs-sink-stream.hpp"
 #include "translate-trace-ir-to-ctf-ir.hpp"
 
-BT_HIDDEN
 void fs_sink_stream_destroy(struct fs_sink_stream *stream)
 {
     if (!stream) {
@@ -120,7 +119,6 @@ static void set_stream_file_name(struct fs_sink_stream *stream)
     stream->file_name = make_unique_stream_file_name(stream->trace, base_name);
 }
 
-BT_HIDDEN
 struct fs_sink_stream *fs_sink_stream_create(struct fs_sink_trace *trace,
                                              const bt_stream *ir_stream)
 {
@@ -430,7 +428,6 @@ end:
     return ret;
 }
 
-BT_HIDDEN
 int fs_sink_stream_write_event(struct fs_sink_stream *stream, const bt_clock_snapshot *cs,
                                const bt_event *event, struct fs_sink_ctf_event_class *ec)
 {
@@ -552,7 +549,6 @@ end:
     return ret;
 }
 
-BT_HIDDEN
 int fs_sink_stream_open_packet(struct fs_sink_stream *stream, const bt_clock_snapshot *cs,
                                const bt_packet *packet)
 {
@@ -630,7 +626,6 @@ end:
     return ret;
 }
 
-BT_HIDDEN
 int fs_sink_stream_close_packet(struct fs_sink_stream *stream, const bt_clock_snapshot *cs)
 {
     int ret;

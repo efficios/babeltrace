@@ -73,14 +73,12 @@ end:
 	return (void *) message;
 }
 
-BT_HIDDEN
 struct bt_message *bt_message_packet_beginning_new(struct bt_graph *graph)
 {
 	return new_packet_message(graph, BT_MESSAGE_TYPE_PACKET_BEGINNING,
 		(bt_object_release_func) bt_message_packet_beginning_recycle);
 }
 
-BT_HIDDEN
 struct bt_message *bt_message_packet_end_new(struct bt_graph *graph)
 {
 	return new_packet_message(graph, BT_MESSAGE_TYPE_PACKET_END,
@@ -173,6 +171,7 @@ end:
 	return (void *) message;
 }
 
+BT_EXPORT
 struct bt_message *bt_message_packet_beginning_create(
 		struct bt_self_message_iterator *self_msg_iter,
 		const struct bt_packet *packet)
@@ -186,6 +185,7 @@ struct bt_message *bt_message_packet_beginning_create(
 		&msg_iter->graph->packet_begin_msg_pool, false, 0, __func__);
 }
 
+BT_EXPORT
 struct bt_message *bt_message_packet_beginning_create_with_default_clock_snapshot(
 		struct bt_self_message_iterator *self_msg_iter,
 		const struct bt_packet *packet, uint64_t raw_value)
@@ -200,6 +200,7 @@ struct bt_message *bt_message_packet_beginning_create_with_default_clock_snapsho
 		__func__);
 }
 
+BT_EXPORT
 struct bt_message *bt_message_packet_end_create(
 		struct bt_self_message_iterator *self_msg_iter,
 		const struct bt_packet *packet)
@@ -213,6 +214,7 @@ struct bt_message *bt_message_packet_end_create(
 		&msg_iter->graph->packet_end_msg_pool, false, 0, __func__);
 }
 
+BT_EXPORT
 struct bt_message *bt_message_packet_end_create_with_default_clock_snapshot(
 		struct bt_self_message_iterator *self_msg_iter,
 		const struct bt_packet *packet, uint64_t raw_value)
@@ -227,7 +229,6 @@ struct bt_message *bt_message_packet_end_create_with_default_clock_snapshot(
 		__func__);
 }
 
-BT_HIDDEN
 void bt_message_packet_destroy(struct bt_message *msg)
 {
 	struct bt_message_packet *packet_msg = (void *) msg;
@@ -263,7 +264,6 @@ void recycle_packet_message(struct bt_message *msg, struct bt_object_pool *pool)
 	bt_object_pool_recycle_object(pool, msg);
 }
 
-BT_HIDDEN
 void bt_message_packet_beginning_recycle(struct bt_message *msg)
 {
 	BT_ASSERT(msg);
@@ -276,7 +276,6 @@ void bt_message_packet_beginning_recycle(struct bt_message *msg)
 	recycle_packet_message(msg, &msg->graph->packet_begin_msg_pool);
 }
 
-BT_HIDDEN
 void bt_message_packet_end_recycle(struct bt_message *msg)
 {
 	BT_ASSERT(msg);
@@ -289,6 +288,7 @@ void bt_message_packet_end_recycle(struct bt_message *msg)
 	recycle_packet_message(msg, &msg->graph->packet_end_msg_pool);
 }
 
+BT_EXPORT
 struct bt_packet *bt_message_packet_beginning_borrow_packet(
 		struct bt_message *message)
 {
@@ -299,6 +299,7 @@ struct bt_packet *bt_message_packet_beginning_borrow_packet(
 	return packet_msg->packet;
 }
 
+BT_EXPORT
 const struct bt_packet *bt_message_packet_beginning_borrow_packet_const(
 		const struct bt_message *message)
 {
@@ -306,6 +307,7 @@ const struct bt_packet *bt_message_packet_beginning_borrow_packet_const(
 		(void *) message);
 }
 
+BT_EXPORT
 struct bt_packet *bt_message_packet_end_borrow_packet(
 		struct bt_message *message)
 {
@@ -316,6 +318,7 @@ struct bt_packet *bt_message_packet_end_borrow_packet(
 	return packet_msg->packet;
 }
 
+BT_EXPORT
 const struct bt_packet *bt_message_packet_end_borrow_packet_const(
 		const struct bt_message *message)
 {
@@ -338,6 +341,7 @@ borrow_packet_message_default_clock_snapshot_const(
 	return packet_msg->default_cs;
 }
 
+BT_EXPORT
 const struct bt_clock_snapshot *
 bt_message_packet_beginning_borrow_default_clock_snapshot_const(
 		const struct bt_message *msg)
@@ -349,6 +353,7 @@ bt_message_packet_beginning_borrow_default_clock_snapshot_const(
 	return borrow_packet_message_default_clock_snapshot_const(msg);
 }
 
+BT_EXPORT
 const struct bt_clock_snapshot *
 bt_message_packet_end_borrow_default_clock_snapshot_const(
 		const struct bt_message *msg)
@@ -371,6 +376,7 @@ borrow_packet_message_stream_class_default_clock_class(
 	return packet_msg->packet->stream->class->default_clock_class;
 }
 
+BT_EXPORT
 const struct bt_clock_class *
 bt_message_packet_beginning_borrow_stream_class_default_clock_class_const(
 		const struct bt_message *msg)
@@ -380,6 +386,7 @@ bt_message_packet_beginning_borrow_stream_class_default_clock_class_const(
 	return borrow_packet_message_stream_class_default_clock_class(msg);
 }
 
+BT_EXPORT
 const struct bt_clock_class *
 bt_message_packet_end_borrow_stream_class_default_clock_class_const(
 		const struct bt_message *msg)

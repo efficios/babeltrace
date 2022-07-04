@@ -145,13 +145,13 @@ struct bt_param_validation_map_value_entry_descr {
 	const struct bt_param_validation_value_descr value_descr;
 };
 
-BT_EXTERN_C BT_HIDDEN
+BT_EXTERN_C
 enum bt_param_validation_status bt_param_validation_validate(
 		const bt_value *params,
 		const struct bt_param_validation_map_value_entry_descr *entries,
 		gchar **error);
 
-BT_EXTERN_C BT_HIDDEN __BT_ATTR_FORMAT_PRINTF(2, 3)
+BT_EXTERN_C __BT_ATTR_FORMAT_PRINTF(2, 3)
 enum bt_param_validation_status bt_param_validation_error(
 		struct bt_param_validation_context *ctx,
 		const char *format, ...);

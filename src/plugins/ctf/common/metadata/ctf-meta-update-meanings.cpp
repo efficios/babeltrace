@@ -162,7 +162,6 @@ end:
     return ret;
 }
 
-BT_HIDDEN
 int ctf_trace_class_update_meanings(struct ctf_trace_class *ctf_tc)
 {
     int ret = 0;

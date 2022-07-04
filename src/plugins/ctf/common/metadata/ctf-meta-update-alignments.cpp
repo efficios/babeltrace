@@ -110,7 +110,6 @@ end:
     return ret;
 }
 
-BT_HIDDEN
 int ctf_trace_class_update_alignments(struct ctf_trace_class *ctf_tc)
 {
     int ret = 0;

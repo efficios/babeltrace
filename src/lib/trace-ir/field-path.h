@@ -29,7 +29,6 @@ struct bt_field_path {
 	GArray *items;
 };
 
-BT_HIDDEN
 struct bt_field_path *bt_field_path_create(void);
 
 static inline

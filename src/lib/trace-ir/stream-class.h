@@ -57,7 +57,6 @@ struct bt_stream_class {
 	bool frozen;
 };
 
-BT_HIDDEN
 void _bt_stream_class_freeze(const struct bt_stream_class *stream_class);
 
 #ifdef BT_DEV_MODE

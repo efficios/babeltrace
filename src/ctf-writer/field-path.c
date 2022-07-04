@@ -39,7 +39,6 @@ void field_path_destroy(struct bt_ctf_object *obj)
 	g_free(field_path);
 }
 
-BT_HIDDEN
 struct bt_ctf_field_path *bt_ctf_field_path_create(void)
 {
 	struct bt_ctf_field_path *field_path = NULL;
@@ -68,7 +67,6 @@ error:
 	return NULL;
 }
 
-BT_HIDDEN
 void bt_ctf_field_path_clear(struct bt_ctf_field_path *field_path)
 {
 	if (field_path->indexes->len > 0) {
@@ -77,7 +75,6 @@ void bt_ctf_field_path_clear(struct bt_ctf_field_path *field_path)
 	}
 }
 
-BT_HIDDEN
 struct bt_ctf_field_path *bt_ctf_field_path_copy(
 		struct bt_ctf_field_path *path)
 {

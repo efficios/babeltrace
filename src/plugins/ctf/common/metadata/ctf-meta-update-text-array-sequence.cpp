@@ -95,7 +95,6 @@ end:
     return ret;
 }
 
-BT_HIDDEN
 int ctf_trace_class_update_text_array_sequence(struct ctf_trace_class *ctf_tc)
 {
     int ret = 0;

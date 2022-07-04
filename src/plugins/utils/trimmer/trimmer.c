@@ -140,7 +140,6 @@ struct trimmer_comp *create_trimmer_comp(void)
 	return g_new0(struct trimmer_comp, 1);
 }
 
-BT_HIDDEN
 void trimmer_finalize(bt_self_component_filter *self_comp)
 {
 	struct trimmer_comp *trimmer_comp =
@@ -679,7 +678,6 @@ void destroy_trimmer_iterator_stream_state(
 	g_free(sstate);
 }
 
-BT_HIDDEN
 bt_message_iterator_class_initialize_method_status trimmer_msg_iter_init(
 		bt_self_message_iterator *self_msg_iter,
 		bt_self_message_iterator_configuration *config,
@@ -1875,7 +1873,6 @@ end:
 	return status;
 }
 
-BT_HIDDEN
 bt_message_iterator_class_next_method_status trimmer_msg_iter_next(
 		bt_self_message_iterator *self_msg_iter,
 		bt_message_array_const msgs, uint64_t capacity,
@@ -1944,7 +1941,6 @@ end:
 	return status;
 }
 
-BT_HIDDEN
 void trimmer_msg_iter_finalize(bt_self_message_iterator *self_msg_iter)
 {
 	struct trimmer_iterator *trimmer_it =

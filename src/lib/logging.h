@@ -48,11 +48,6 @@ int bt_lib_log_level;
  *
  * Use one of the BT_LIB_LOG*() macros above instead of calling this
  * function directly.
- *
- * This function would normally be BT_HIDDEN, but it is used by the Python
- * plugin provider, which is conceptually part of libbabeltrace2, but
- * implemented as a separate shared object, for modularity.  It is therefore
- * exposed, but not part of the public ABI.
  */
 void bt_lib_log(const char *func, const char *file, unsigned line,
 		int lvl, const char *tag, const char *fmt, ...);
@@ -85,11 +80,6 @@ void bt_lib_log_v(const char *func, const char *file, unsigned line,
  *
  * Use one of the BT_LIB_LOG*_APPEND_CAUSE() macros above instead of
  * calling this function directly.
- *
- * This function would normally be BT_HIDDEN, but it is used by the Python
- * plugin provider, which is conceptually part of libbabeltrace2, but
- * implemented as a separate shared object, for modularity.  It is therefore
- * exposed, but not part of the ABI.
  */
 void bt_lib_maybe_log_and_append_cause(const char *func, const char *file,
 		unsigned line, int lvl, const char *tag,

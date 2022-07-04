@@ -21,14 +21,12 @@ extern "C" {
 	((type) (a) > (type) (b) ? (type) (a) : (type) (b))
 
 /*
- * BT_HIDDEN: set the hidden attribute for internal functions
- * On Windows, symbols are local unless explicitly exported,
- * see https://gcc.gnu.org/wiki/Visibility
+ * BT_EXPORT: set the visibility for exported functions.
  */
 #if defined(_WIN32) || defined(__CYGWIN__)
-#define BT_HIDDEN
+#define BT_EXPORT
 #else
-#define BT_HIDDEN __attribute__((visibility("hidden")))
+#define BT_EXPORT __attribute__((visibility("default")))
 #endif
 
 /*

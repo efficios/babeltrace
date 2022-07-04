@@ -13,16 +13,13 @@
 
 struct objstack;
 
-BT_HIDDEN
 struct objstack *objstack_create(void);
-BT_HIDDEN
 void objstack_destroy(struct objstack *objstack);
 
 /*
  * Allocate len bytes of zeroed memory.
  * Return NULL on error.
  */
-BT_HIDDEN
 void *objstack_alloc(struct objstack *objstack, size_t len);
 
 #endif /* _OBJSTACK_H */

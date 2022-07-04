@@ -341,7 +341,6 @@ lttng_live_get_stream_bytes(struct lttng_live_msg_iter *lttng_live_msg_iter,
 
 bool lttng_live_graph_is_canceled(struct lttng_live_msg_iter *msg_iter);
 
-BT_HIDDEN
 void lttng_live_stream_iterator_set_state(struct lttng_live_stream_iterator *stream_iter,
                                           enum lttng_live_stream_state new_state);
 

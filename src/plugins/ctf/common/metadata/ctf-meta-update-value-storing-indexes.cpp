@@ -120,7 +120,6 @@ end:
     return ret;
 }
 
-BT_HIDDEN
 int ctf_trace_class_update_value_storing_indexes(struct ctf_trace_class *ctf_tc)
 {
     uint64_t i;

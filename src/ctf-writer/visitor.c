@@ -12,7 +12,6 @@
 
 #include "visitor.h"
 
-BT_HIDDEN
 int bt_ctf_visitor_helper(struct bt_ctf_visitor_object *root,
 		bt_ctf_child_count_accessor child_counter,
 		bt_ctf_child_accessor child_accessor,
@@ -51,6 +50,7 @@ end:
 	return ret;
 }
 
+BT_EXPORT
 enum bt_ctf_visitor_object_type bt_ctf_visitor_object_get_type(
 		struct bt_ctf_visitor_object *object)
 {
@@ -65,6 +65,7 @@ end:
 	return ret;
 }
 
+BT_EXPORT
 void *bt_ctf_visitor_object_get_object(struct bt_ctf_visitor_object *object)
 {
 	void *ret = NULL;

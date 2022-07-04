@@ -14,12 +14,10 @@
 #include "common/macros.h"
 #include "trace-ir-mapping.h"
 
-BT_HIDDEN
 int copy_field_class_content_internal(struct trace_ir_metadata_maps *trace_ir_metadata_maps,
 		const bt_field_class *in_field_class,
 		bt_field_class *out_field_class);
 
-BT_HIDDEN
 bt_field_class *create_field_class_copy_internal(
 		struct trace_ir_metadata_maps *trace_ir_metadata_maps,
 		const bt_field_class *in_field_class);

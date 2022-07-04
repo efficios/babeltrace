@@ -19,7 +19,6 @@
  * Formats the Python traceback `py_exc_tb` using traceback.format_tb, from the
  * Python standard library, and return it as a Gstring.
  */
-BT_HIDDEN
 GString *bt_py_common_format_tb(PyObject *py_exc_tb, int log_level);
 
 /*
@@ -30,7 +29,6 @@ GString *bt_py_common_format_tb(PyObject *py_exc_tb, int log_level);
  * If `chain` is true, include all exceptions in the causality chain
  * (see parameter `chain` of Python's traceback.format_exception).
  */
-BT_HIDDEN
 GString *bt_py_common_format_exception(PyObject *py_exc_type,
 	        PyObject *py_exc_value, PyObject *py_exc_tb,
 		int log_level, bool chain);
@@ -46,7 +44,6 @@ GString *bt_py_common_format_exception(PyObject *py_exc_type,
  * This function does not modify the error indicator, that is, anything
  * that is fetched is always restored.
  */
-BT_HIDDEN
 GString *bt_py_common_format_current_exception(int log_level);
 
 #endif /* BABELTRACE_PY_COMMON_INTERNAL_H */

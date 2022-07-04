@@ -70,14 +70,11 @@ struct bt_ctf_stream_class_common {
 
 struct bt_ctf_event_class_common;
 
-BT_HIDDEN
 int bt_ctf_stream_class_common_initialize(struct bt_ctf_stream_class_common *stream_class,
 		const char *name, bt_ctf_object_release_func release_func);
 
-BT_HIDDEN
 void bt_ctf_stream_class_common_finalize(struct bt_ctf_stream_class_common *stream_class);
 
-BT_HIDDEN
 void bt_ctf_stream_class_common_freeze(struct bt_ctf_stream_class_common *stream_class);
 
 static inline
@@ -110,26 +107,21 @@ end:
 	return ret;
 }
 
-BT_HIDDEN
 void bt_ctf_stream_class_common_set_byte_order(
 		struct bt_ctf_stream_class_common *stream_class, int byte_order);
 
-BT_HIDDEN
 int bt_ctf_stream_class_common_validate_single_clock_class(
 		struct bt_ctf_stream_class_common *stream_class,
 		struct bt_ctf_clock_class **expected_clock_class);
 
-BT_HIDDEN
 int bt_ctf_stream_class_common_add_event_class(
 		struct bt_ctf_stream_class_common *stream_class,
 		struct bt_ctf_event_class_common *event_class,
 		bt_ctf_validation_flag_copy_field_type_func copy_field_type_func);
 
-BT_HIDDEN
 int bt_ctf_stream_class_common_visit(struct bt_ctf_stream_class_common *stream_class,
 		bt_ctf_visitor visitor, void *data);
 
-BT_HIDDEN
 int bt_ctf_stream_class_visit(struct bt_ctf_stream_class *stream_class,
 		bt_ctf_visitor visitor, void *data);
 
@@ -508,11 +500,9 @@ struct bt_ctf_stream_class {
 
 struct metadata_context;
 
-BT_HIDDEN
 int bt_ctf_stream_class_serialize(struct bt_ctf_stream_class *stream_class,
 		struct metadata_context *context);
 
-BT_HIDDEN
 int bt_ctf_stream_class_map_clock_class(
 		struct bt_ctf_stream_class *stream_class,
 		struct bt_ctf_field_type *packet_context_type,

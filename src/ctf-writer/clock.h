@@ -23,10 +23,8 @@ struct bt_ctf_clock {
 
 struct metadata_context;
 
-BT_HIDDEN
 int bt_ctf_clock_get_value(struct bt_ctf_clock *clock, uint64_t *value);
 
-BT_HIDDEN
 void bt_ctf_clock_class_serialize(struct bt_ctf_clock_class *clock_class,
 		struct metadata_context *context);
 

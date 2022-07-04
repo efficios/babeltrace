@@ -17,7 +17,6 @@
 #include "metadata.hpp"
 #include "../common/metadata/decoder.hpp"
 
-BT_HIDDEN
 extern bool ctf_fs_debug;
 
 struct ctf_fs_file
@@ -196,41 +195,33 @@ struct ctf_fs_msg_iter_data
     struct ctf_fs_ds_group_medops_data *msg_iter_medops_data;
 };
 
-BT_HIDDEN
 bt_component_class_initialize_method_status
 ctf_fs_init(bt_self_component_source *source, bt_self_component_source_configuration *config,
             const bt_value *params, void *init_method_data);
 
-BT_HIDDEN
 void ctf_fs_finalize(bt_self_component_source *component);
 
-BT_HIDDEN
 bt_component_class_query_method_status ctf_fs_query(bt_self_component_class_source *comp_class,
                                                     bt_private_query_executor *priv_query_exec,
                                                     const char *object, const bt_value *params,
                                                     void *method_data, const bt_value **result);
 
-BT_HIDDEN
 bt_message_iterator_class_initialize_method_status
 ctf_fs_iterator_init(bt_self_message_iterator *self_msg_iter,
                      bt_self_message_iterator_configuration *config,
                      bt_self_component_port_output *self_port);
 
-BT_HIDDEN
 void ctf_fs_iterator_finalize(bt_self_message_iterator *it);
 
-BT_HIDDEN
 bt_message_iterator_class_next_method_status
 ctf_fs_iterator_next(bt_self_message_iterator *iterator, bt_message_array_const msgs,
                      uint64_t capacity, uint64_t *count);
 
-BT_HIDDEN
 bt_message_iterator_class_seek_beginning_method_status
 ctf_fs_iterator_seek_beginning(bt_self_message_iterator *message_iterator);
 
 /* Create and initialize a new, empty ctf_fs_component. */
 
-BT_HIDDEN
 struct ctf_fs_component *ctf_fs_component_create(bt_logging_level log_level,
                                                  bt_self_component *self_comp);
 
@@ -246,7 +237,6 @@ struct ctf_fs_component *ctf_fs_component_create(bt_logging_level log_level,
  * should be set.
  */
 
-BT_HIDDEN
 int ctf_fs_component_create_ctf_fs_trace(struct ctf_fs_component *ctf_fs,
                                          const bt_value *paths_value,
                                          const bt_value *trace_name_value,
@@ -255,7 +245,6 @@ int ctf_fs_component_create_ctf_fs_trace(struct ctf_fs_component *ctf_fs,
 
 /* Free `ctf_fs` and everything it owns. */
 
-BT_HIDDEN
 void ctf_fs_destroy(struct ctf_fs_component *ctf_fs);
 
 /*
@@ -273,7 +262,6 @@ void ctf_fs_destroy(struct ctf_fs_component *ctf_fs);
  * Return true on success, false if any parameter didn't pass validation.
  */
 
-BT_HIDDEN
 bool read_src_fs_parameters(const bt_value *params, const bt_value **paths,
                             const bt_value **trace_name, struct ctf_fs_component *ctf_fs,
                             bt_self_component *self_comp, bt_self_component_class *self_comp_class);
@@ -284,7 +272,6 @@ bool read_src_fs_parameters(const bt_value *params, const bt_value **paths,
  * The result must be freed using g_free by the caller.
  */
 
-BT_HIDDEN
 gchar *ctf_fs_make_port_name(struct ctf_fs_ds_file_group *ds_file_group);
 
 #endif /* BABELTRACE_PLUGIN_CTF_FS_H */

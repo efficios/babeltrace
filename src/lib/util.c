@@ -15,6 +15,7 @@
 #include <babeltrace2/babeltrace.h>
 #include "lib/trace-ir/utils.h"
 
+BT_EXPORT
 bt_util_clock_cycles_to_ns_from_origin_status
 bt_util_clock_cycles_to_ns_from_origin(uint64_t cycles,
 		uint64_t frequency, int64_t offset_seconds,

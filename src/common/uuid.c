@@ -16,7 +16,6 @@
 /*
  * Generate a random UUID according to RFC4122, section 4.4.
  */
-BT_HIDDEN
 void bt_uuid_generate(bt_uuid_t uuid_out)
 {
 	int i;
@@ -51,7 +50,6 @@ void bt_uuid_generate(bt_uuid_t uuid_out)
 	g_rand_free(rand);
 }
 
-BT_HIDDEN
 void bt_uuid_to_str(const bt_uuid_t uuid_in, char *str_out)
 {
 	BT_ASSERT_DBG(uuid_in);
@@ -60,7 +58,6 @@ void bt_uuid_to_str(const bt_uuid_t uuid_in, char *str_out)
 	snprintf(str_out, BT_UUID_STR_LEN + 1, BT_UUID_FMT, BT_UUID_FMT_VALUES(uuid_in));
 }
 
-BT_HIDDEN
 int bt_uuid_from_str(const char *str_in, bt_uuid_t uuid_out)
 {
 	int ret = 0;
@@ -84,13 +81,11 @@ end:
 	return ret;
 }
 
-BT_HIDDEN
 int bt_uuid_compare(const bt_uuid_t uuid_a, const bt_uuid_t uuid_b)
 {
 	return memcmp(uuid_a, uuid_b, BT_UUID_LEN);
 }
 
-BT_HIDDEN
 void bt_uuid_copy(bt_uuid_t uuid_dest, const bt_uuid_t uuid_src)
 {
 	BT_ASSERT(uuid_dest);

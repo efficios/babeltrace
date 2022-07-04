@@ -16,7 +16,6 @@
 #include <glib.h>
 #include "file.hpp"
 
-BT_HIDDEN
 void ctf_fs_file_destroy(struct ctf_fs_file *file)
 {
     if (!file) {
@@ -39,7 +38,6 @@ void ctf_fs_file_destroy(struct ctf_fs_file *file)
     g_free(file);
 }
 
-BT_HIDDEN
 struct ctf_fs_file *ctf_fs_file_create(bt_logging_level log_level, bt_self_component *self_comp)
 {
     struct ctf_fs_file *file = g_new0(struct ctf_fs_file, 1);
@@ -65,7 +63,6 @@ end:
     return file;
 }
 
-BT_HIDDEN
 int ctf_fs_file_open(struct ctf_fs_file *file, const char *mode)
 {
     int ret = 0;

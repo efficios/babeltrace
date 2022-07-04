@@ -65,7 +65,6 @@ struct ctf_metadata_decoder_config
  *
  * Returns `NULL` on error.
  */
-BT_HIDDEN
 struct ctf_metadata_decoder *
 ctf_metadata_decoder_create(const struct ctf_metadata_decoder_config *config);
 
@@ -73,7 +72,6 @@ ctf_metadata_decoder_create(const struct ctf_metadata_decoder_config *config);
  * Destroys a CTF metadata decoder that you created with
  * ctf_metadata_decoder_create().
  */
-BT_HIDDEN
 void ctf_metadata_decoder_destroy(struct ctf_metadata_decoder *metadata_decoder);
 
 /*
@@ -97,7 +95,6 @@ void ctf_metadata_decoder_destroy(struct ctf_metadata_decoder *metadata_decoder)
  * If everything goes as expected, this function returns
  * `CTF_METADATA_DECODER_STATUS_OK`.
  */
-BT_HIDDEN
 enum ctf_metadata_decoder_status
 ctf_metadata_decoder_append_content(struct ctf_metadata_decoder *metadata_decoder, FILE *fp);
 
@@ -108,7 +105,6 @@ ctf_metadata_decoder_append_content(struct ctf_metadata_decoder *metadata_decode
  * Returns `NULL` if there's none yet or if the metadata decoder is not
  * configured to create trace classes.
  */
-BT_HIDDEN
 bt_trace_class *ctf_metadata_decoder_get_ir_trace_class(struct ctf_metadata_decoder *mdec);
 
 /*
@@ -117,7 +113,6 @@ bt_trace_class *ctf_metadata_decoder_get_ir_trace_class(struct ctf_metadata_deco
  * Returns `NULL` if there's none yet or if the metadata decoder is not
  * configured to create trace classes.
  */
-BT_HIDDEN
 struct ctf_trace_class *
 ctf_metadata_decoder_borrow_ctf_trace_class(struct ctf_metadata_decoder *mdec);
 
@@ -130,7 +125,6 @@ ctf_metadata_decoder_borrow_ctf_trace_class(struct ctf_metadata_decoder *mdec);
  * This function uses `log_level` and `self_comp` for logging purposes.
  * `self_comp` can be `NULL` if not available.
  */
-BT_HIDDEN
 int ctf_metadata_decoder_is_packetized(FILE *fp, bool *is_packetized, int *byte_order,
                                        bt_logging_level log_level, bt_self_component *self_comp);
 
@@ -140,14 +134,12 @@ int ctf_metadata_decoder_is_packetized(FILE *fp, bool *is_packetized, int *byte_
  *
  * Returns -1 if unknown (plain text content).
  */
-BT_HIDDEN
 int ctf_metadata_decoder_get_byte_order(struct ctf_metadata_decoder *mdec);
 
 /*
  * Returns the UUID of the decoder's metadata stream as set by the last
  * call to ctf_metadata_decoder_append_content().
  */
-BT_HIDDEN
 int ctf_metadata_decoder_get_uuid(struct ctf_metadata_decoder *mdec, bt_uuid_t uuid);
 
 /*
@@ -159,14 +151,12 @@ int ctf_metadata_decoder_get_uuid(struct ctf_metadata_decoder *mdec, bt_uuid_t u
  * * `CTF_METADATA_DECODER_STATUS_NONE`: no UUID.
  * * `CTF_METADATA_DECODER_STATUS_INCOMPLETE`: missing metadata content.
  */
-BT_HIDDEN
 enum ctf_metadata_decoder_status
 ctf_metadata_decoder_get_trace_class_uuid(struct ctf_metadata_decoder *mdec, bt_uuid_t uuid);
 
 /*
  * Returns the metadata decoder's current metadata text.
  */
-BT_HIDDEN
 const char *ctf_metadata_decoder_get_text(struct ctf_metadata_decoder *mdec);
 
 static inline bool ctf_metadata_decoder_is_packet_version_valid(unsigned int major,

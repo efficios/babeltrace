@@ -34,6 +34,7 @@ void bt_message_message_iterator_inactivity_destroy(struct bt_object *obj)
 	g_free(message);
 }
 
+BT_EXPORT
 struct bt_message *bt_message_message_iterator_inactivity_create(
 		struct bt_self_message_iterator *self_msg_iter,
 		const struct bt_clock_class *clock_class,
@@ -79,7 +80,8 @@ end:
 	return (void *) ret_msg;
 }
 
-extern const struct bt_clock_snapshot *
+BT_EXPORT
+const struct bt_clock_snapshot *
 bt_message_message_iterator_inactivity_borrow_clock_snapshot_const(
 		const bt_message *msg)
 {

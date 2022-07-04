@@ -824,7 +824,6 @@ end:
 	return ret;
 }
 
-BT_HIDDEN
 int common_muxing_compare_messages(const bt_message *left_msg,
 		const bt_message *right_msg)
 {

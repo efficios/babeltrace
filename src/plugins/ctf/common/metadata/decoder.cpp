@@ -58,7 +58,6 @@ struct packet_header
     uint8_t minor;
 } __attribute__((__packed__));
 
-BT_HIDDEN
 int ctf_metadata_decoder_is_packetized(FILE *fp, bool *is_packetized, int *byte_order,
                                        bt_logging_level log_level, bt_self_component *self_comp)
 {
@@ -92,7 +91,6 @@ end:
     return ret;
 }
 
-BT_HIDDEN
 struct ctf_metadata_decoder *
 ctf_metadata_decoder_create(const struct ctf_metadata_decoder_config *config)
 {
@@ -154,7 +152,6 @@ end:
     return mdec;
 }
 
-BT_HIDDEN
 void ctf_metadata_decoder_destroy(struct ctf_metadata_decoder *mdec)
 {
     if (!mdec) {
@@ -174,7 +171,6 @@ void ctf_metadata_decoder_destroy(struct ctf_metadata_decoder *mdec)
     g_free(mdec);
 }
 
-BT_HIDDEN
 enum ctf_metadata_decoder_status
 ctf_metadata_decoder_append_content(struct ctf_metadata_decoder *mdec, FILE *fp)
 {
@@ -362,7 +358,6 @@ end:
     return status;
 }
 
-BT_HIDDEN
 bt_trace_class *ctf_metadata_decoder_get_ir_trace_class(struct ctf_metadata_decoder *mdec)
 {
     BT_ASSERT_DBG(mdec);
@@ -370,7 +365,6 @@ bt_trace_class *ctf_metadata_decoder_get_ir_trace_class(struct ctf_metadata_deco
     return ctf_visitor_generate_ir_get_ir_trace_class(mdec->visitor);
 }
 
-BT_HIDDEN
 struct ctf_trace_class *
 ctf_metadata_decoder_borrow_ctf_trace_class(struct ctf_metadata_decoder *mdec)
 {
@@ -379,7 +373,6 @@ ctf_metadata_decoder_borrow_ctf_trace_class(struct ctf_metadata_decoder *mdec)
     return ctf_visitor_generate_ir_borrow_ctf_trace_class(mdec->visitor);
 }
 
-BT_HIDDEN
 const char *ctf_metadata_decoder_get_text(struct ctf_metadata_decoder *mdec)
 {
     BT_ASSERT_DBG(mdec);
@@ -387,14 +380,12 @@ const char *ctf_metadata_decoder_get_text(struct ctf_metadata_decoder *mdec)
     return mdec->text->str;
 }
 
-BT_HIDDEN
 int ctf_metadata_decoder_get_byte_order(struct ctf_metadata_decoder *mdec)
 {
     BT_ASSERT_DBG(mdec);
     return mdec->bo;
 }
 
-BT_HIDDEN
 int ctf_metadata_decoder_get_uuid(struct ctf_metadata_decoder *mdec, bt_uuid_t uuid)
 {
     int ret = 0;
@@ -456,7 +447,6 @@ end:
     return status;
 }
 
-BT_HIDDEN
 enum ctf_metadata_decoder_status
 ctf_metadata_decoder_get_trace_class_uuid(struct ctf_metadata_decoder *mdec, bt_uuid_t uuid)
 {

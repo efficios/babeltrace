@@ -30,7 +30,6 @@
 	BT_ASSERT_PRE_DEV_MSG_HAS_TYPE("message", (_msg), "event",	\
 		BT_MESSAGE_TYPE_EVENT)
 
-BT_HIDDEN
 struct bt_message *bt_message_event_new(
 		struct bt_graph *graph)
 {
@@ -202,6 +201,7 @@ end:
 	return (void *) message;
 }
 
+BT_EXPORT
 struct bt_message *bt_message_event_create(
 		struct bt_self_message_iterator *msg_iter,
 		const struct bt_event_class *event_class,
@@ -213,6 +213,7 @@ struct bt_message *bt_message_event_create(
 		false, 0, __func__);
 }
 
+BT_EXPORT
 struct bt_message *bt_message_event_create_with_packet(
 		struct bt_self_message_iterator *msg_iter,
 		const struct bt_event_class *event_class,
@@ -224,6 +225,7 @@ struct bt_message *bt_message_event_create_with_packet(
 		packet->stream, false, 0, __func__);
 }
 
+BT_EXPORT
 struct bt_message *bt_message_event_create_with_default_clock_snapshot(
 		struct bt_self_message_iterator *msg_iter,
 		const struct bt_event_class *event_class,
@@ -236,6 +238,7 @@ struct bt_message *bt_message_event_create_with_default_clock_snapshot(
 		true, raw_value, __func__);
 }
 
+BT_EXPORT
 struct bt_message *
 bt_message_event_create_with_packet_and_default_clock_snapshot(
 		struct bt_self_message_iterator *msg_iter,
@@ -249,7 +252,6 @@ bt_message_event_create_with_packet_and_default_clock_snapshot(
 		packet->stream, true, raw_value, __func__);
 }
 
-BT_HIDDEN
 void bt_message_event_destroy(struct bt_message *msg)
 {
 	struct bt_message_event *event_msg = (void *) msg;
@@ -270,7 +272,6 @@ void bt_message_event_destroy(struct bt_message *msg)
 	g_free(msg);
 }
 
-BT_HIDDEN
 void bt_message_event_recycle(struct bt_message *msg)
 {
 	struct bt_message_event *event_msg = (void *) msg;
@@ -316,6 +317,7 @@ struct bt_event *borrow_event(struct bt_message *message)
 	return event_message->event;
 }
 
+BT_EXPORT
 struct bt_event *bt_message_event_borrow_event(
 		struct bt_message *message)
 {
@@ -323,6 +325,7 @@ struct bt_event *bt_message_event_borrow_event(
 	return borrow_event(message);
 }
 
+BT_EXPORT
 const struct bt_event *bt_message_event_borrow_event_const(
 		const struct bt_message *message)
 {
@@ -330,6 +333,7 @@ const struct bt_event *bt_message_event_borrow_event_const(
 	return borrow_event((void *) message);
 }
 
+BT_EXPORT
 const struct bt_clock_snapshot *
 bt_message_event_borrow_default_clock_snapshot_const(
 		const struct bt_message *msg)
@@ -346,6 +350,7 @@ bt_message_event_borrow_default_clock_snapshot_const(
 	return event_msg->default_cs;
 }
 
+BT_EXPORT
 const bt_clock_class *
 bt_message_event_borrow_stream_class_default_clock_class_const(
 		const bt_message *msg)

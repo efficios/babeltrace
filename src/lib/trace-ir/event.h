@@ -53,13 +53,10 @@ struct bt_event {
 	bool frozen;
 };
 
-BT_HIDDEN
 void bt_event_destroy(struct bt_event *event);
 
-BT_HIDDEN
 struct bt_event *bt_event_new(struct bt_event_class *event_class);
 
-BT_HIDDEN
 void _bt_event_set_is_frozen(const struct bt_event *event, bool is_frozen);
 
 #ifdef BT_DEV_MODE

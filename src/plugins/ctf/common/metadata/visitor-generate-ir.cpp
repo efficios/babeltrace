@@ -4481,7 +4481,6 @@ end:
     return ret;
 }
 
-BT_HIDDEN
 struct ctf_visitor_generate_ir *
 ctf_visitor_generate_ir_create(const struct ctf_metadata_decoder_config *decoder_config)
 {
@@ -4505,13 +4504,11 @@ end:
     return ctx;
 }
 
-BT_HIDDEN
 void ctf_visitor_generate_ir_destroy(struct ctf_visitor_generate_ir *visitor)
 {
     ctx_destroy(visitor);
 }
 
-BT_HIDDEN
 bt_trace_class *ctf_visitor_generate_ir_get_ir_trace_class(struct ctf_visitor_generate_ir *ctx)
 {
     BT_ASSERT_DBG(ctx);
@@ -4523,7 +4520,6 @@ bt_trace_class *ctf_visitor_generate_ir_get_ir_trace_class(struct ctf_visitor_ge
     return ctx->trace_class;
 }
 
-BT_HIDDEN
 struct ctf_trace_class *
 ctf_visitor_generate_ir_borrow_ctf_trace_class(struct ctf_visitor_generate_ir *ctx)
 {
@@ -4532,7 +4528,6 @@ ctf_visitor_generate_ir_borrow_ctf_trace_class(struct ctf_visitor_generate_ir *c
     return ctx->ctf_tc;
 }
 
-BT_HIDDEN
 int ctf_visitor_generate_ir_visit_node(struct ctf_visitor_generate_ir *ctx, struct ctf_node *node)
 {
     int ret = 0;

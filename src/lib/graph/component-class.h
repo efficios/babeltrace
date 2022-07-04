@@ -84,11 +84,9 @@ struct bt_component_class_sink {
 	} methods;
 };
 
-BT_HIDDEN
 void bt_component_class_add_destroy_listener(struct bt_component_class *class,
 		bt_component_class_destroy_listener_func func, void *data);
 
-BT_HIDDEN
 void _bt_component_class_freeze(
 		const struct bt_component_class *component_class);
 

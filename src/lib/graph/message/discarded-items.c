@@ -224,6 +224,7 @@ borrow_discarded_items_message_end_default_clock_snapshot_const(
 #define SC_SUPPORTS_DISC_PRECOND_ID(_item_type)				\
 	"stream-class-supports-discarded-" _item_type
 
+BT_EXPORT
 struct bt_message *bt_message_discarded_events_create(
 		struct bt_self_message_iterator *message_iterator,
 		const struct bt_stream *stream)
@@ -236,6 +237,7 @@ struct bt_message *bt_message_discarded_events_create(
 		SC_SUPPORTS_DISC_PRECOND_ID("events"));
 }
 
+BT_EXPORT
 struct bt_message *bt_message_discarded_events_create_with_default_clock_snapshots(
 		struct bt_self_message_iterator *message_iterator,
 		const struct bt_stream *stream, uint64_t beginning_raw_value,
@@ -251,6 +253,7 @@ struct bt_message *bt_message_discarded_events_create_with_default_clock_snapsho
 		SC_SUPPORTS_DISC_PRECOND_ID("events"));
 }
 
+BT_EXPORT
 struct bt_stream *bt_message_discarded_events_borrow_stream(
 		struct bt_message *message)
 {
@@ -259,6 +262,7 @@ struct bt_stream *bt_message_discarded_events_borrow_stream(
 	return borrow_discarded_items_message_stream(message);
 }
 
+BT_EXPORT
 void bt_message_discarded_events_set_count(struct bt_message *message,
 		uint64_t count)
 {
@@ -269,6 +273,7 @@ void bt_message_discarded_events_set_count(struct bt_message *message,
 	set_discarded_items_message_count(message, count);
 }
 
+BT_EXPORT
 const struct bt_clock_snapshot *
 bt_message_discarded_events_borrow_beginning_default_clock_snapshot_const(
 		const struct bt_message *msg)
@@ -279,6 +284,7 @@ bt_message_discarded_events_borrow_beginning_default_clock_snapshot_const(
 		msg, __func__);
 }
 
+BT_EXPORT
 const struct bt_clock_snapshot *
 bt_message_discarded_events_borrow_end_default_clock_snapshot_const(
 		const struct bt_message *msg)
@@ -289,6 +295,7 @@ bt_message_discarded_events_borrow_end_default_clock_snapshot_const(
 		msg, __func__);
 }
 
+BT_EXPORT
 const struct bt_stream *
 bt_message_discarded_events_borrow_stream_const(const struct bt_message *message)
 {
@@ -296,6 +303,7 @@ bt_message_discarded_events_borrow_stream_const(const struct bt_message *message
 		(void *) message);
 }
 
+BT_EXPORT
 enum bt_property_availability bt_message_discarded_events_get_count(
 		const struct bt_message *message, uint64_t *count)
 {
@@ -305,6 +313,7 @@ enum bt_property_availability bt_message_discarded_events_get_count(
 	return get_discarded_items_message_count(message, count);
 }
 
+BT_EXPORT
 struct bt_message *bt_message_discarded_packets_create(
 		struct bt_self_message_iterator *message_iterator,
 		const struct bt_stream *stream)
@@ -316,6 +325,7 @@ struct bt_message *bt_message_discarded_packets_create(
 		false, 0, 0, __func__, SC_SUPPORTS_DISC_PRECOND_ID("packets"));
 }
 
+BT_EXPORT
 struct bt_message *bt_message_discarded_packets_create_with_default_clock_snapshots(
 		struct bt_self_message_iterator *message_iterator,
 		const struct bt_stream *stream, uint64_t beginning_raw_value,
@@ -331,6 +341,7 @@ struct bt_message *bt_message_discarded_packets_create_with_default_clock_snapsh
 		SC_SUPPORTS_DISC_PRECOND_ID("packets"));
 }
 
+BT_EXPORT
 struct bt_stream *bt_message_discarded_packets_borrow_stream(
 		struct bt_message *message)
 {
@@ -339,6 +350,7 @@ struct bt_stream *bt_message_discarded_packets_borrow_stream(
 	return borrow_discarded_items_message_stream(message);
 }
 
+BT_EXPORT
 void bt_message_discarded_packets_set_count(struct bt_message *message,
 		uint64_t count)
 {
@@ -349,6 +361,7 @@ void bt_message_discarded_packets_set_count(struct bt_message *message,
 	set_discarded_items_message_count(message, count);
 }
 
+BT_EXPORT
 const struct bt_clock_snapshot *
 bt_message_discarded_packets_borrow_beginning_default_clock_snapshot_const(
 		const struct bt_message *msg)
@@ -359,6 +372,7 @@ bt_message_discarded_packets_borrow_beginning_default_clock_snapshot_const(
 		msg, __func__);
 }
 
+BT_EXPORT
 const struct bt_clock_snapshot *
 bt_message_discarded_packets_borrow_end_default_clock_snapshot_const(
 		const struct bt_message *msg)
@@ -369,6 +383,7 @@ bt_message_discarded_packets_borrow_end_default_clock_snapshot_const(
 		msg, __func__);
 }
 
+BT_EXPORT
 const struct bt_stream *
 bt_message_discarded_packets_borrow_stream_const(const struct bt_message *message)
 {
@@ -376,6 +391,7 @@ bt_message_discarded_packets_borrow_stream_const(const struct bt_message *messag
 		(void *) message);
 }
 
+BT_EXPORT
 enum bt_property_availability bt_message_discarded_packets_get_count(
 		const struct bt_message *message, uint64_t *count)
 {
@@ -396,6 +412,7 @@ borrow_discarded_items_message_stream_class_default_clock_class(
 	return disc_items_msg->stream->class->default_clock_class;
 }
 
+BT_EXPORT
 const struct bt_clock_class *
 bt_message_discarded_events_borrow_stream_class_default_clock_class_const(
 		const struct bt_message *msg)
@@ -406,6 +423,7 @@ bt_message_discarded_events_borrow_stream_class_default_clock_class_const(
 		msg);
 }
 
+BT_EXPORT
 const struct bt_clock_class *
 bt_message_discarded_packets_borrow_stream_class_default_clock_class_const(
 		const struct bt_message *msg)

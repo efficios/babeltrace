@@ -35,7 +35,6 @@ struct range
     bool set = false;
 };
 
-BT_HIDDEN
 bt_component_class_query_method_status
 metadata_info_query(bt_self_component_class_source *self_comp_class_src, const bt_value *params,
                     bt_logging_level log_level, const bt_value **user_result)
@@ -296,7 +295,6 @@ end:
     return ret;
 }
 
-BT_HIDDEN
 bt_component_class_query_method_status
 trace_infos_query(bt_self_component_class_source *self_comp_class_src, const bt_value *params,
                   bt_logging_level log_level, const bt_value **user_result)
@@ -373,7 +371,6 @@ end:
     return status;
 }
 
-BT_HIDDEN
 bt_component_class_query_method_status
 support_info_query(bt_self_component_class_source *comp_class, const bt_value *params,
                    bt_logging_level log_level, const bt_value **user_result)

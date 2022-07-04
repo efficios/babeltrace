@@ -454,7 +454,6 @@ end:
     return unique_full_path;
 }
 
-BT_HIDDEN
 void fs_sink_trace_destroy(struct fs_sink_trace *trace)
 {
     GString *tsdl = NULL;
@@ -547,7 +546,6 @@ static void ir_trace_destruction_listener(const bt_trace *ir_trace, void *data)
     g_hash_table_remove(trace->fs_sink->traces, ir_trace);
 }
 
-BT_HIDDEN
 struct fs_sink_trace *fs_sink_trace_create(struct fs_sink_comp *fs_sink, const bt_trace *ir_trace)
 {
     int ret;

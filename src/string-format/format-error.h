@@ -12,14 +12,12 @@
 #include <common/macros.h>
 #include <glib.h>
 
-BT_HIDDEN
 gchar *format_bt_error_cause(
 		const bt_error_cause *error_cause,
 		unsigned int columns,
 		bt_logging_level log_level,
 		enum bt_common_color_when use_colors);
 
-BT_HIDDEN
 gchar *format_bt_error(
 		const bt_error *error,
 		unsigned int columns,

@@ -20,13 +20,10 @@ struct bt_field_wrapper {
 	struct bt_field *field;
 };
 
-BT_HIDDEN
 struct bt_field_wrapper *bt_field_wrapper_new(void *data);
 
-BT_HIDDEN
 void bt_field_wrapper_destroy(struct bt_field_wrapper *field);
 
-BT_HIDDEN
 struct bt_field_wrapper *bt_field_wrapper_create(
 		struct bt_object_pool *pool, struct bt_field_class *fc);
 

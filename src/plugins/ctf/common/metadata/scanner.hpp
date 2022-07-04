@@ -32,13 +32,10 @@ struct ctf_scanner
     struct objstack *objstack;
 };
 
-BT_HIDDEN
 struct ctf_scanner *ctf_scanner_alloc(void);
 
-BT_HIDDEN
 void ctf_scanner_free(struct ctf_scanner *scanner);
 
-BT_HIDDEN
 int ctf_scanner_append_ast(struct ctf_scanner *scanner, FILE *input);
 
 static inline struct ctf_ast *ctf_scanner_get_ast(struct ctf_scanner *scanner)
@@ -46,7 +43,6 @@ static inline struct ctf_ast *ctf_scanner_get_ast(struct ctf_scanner *scanner)
     return scanner->ast;
 }
 
-BT_HIDDEN
 int is_type(struct ctf_scanner *scanner, const char *id);
 
 #endif /* _CTF_SCANNER_H */

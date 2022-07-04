@@ -33,7 +33,6 @@
 #include "trace.h"
 #include "writer.h"
 
-BT_HIDDEN
 void bt_ctf_stream_common_finalize(struct bt_ctf_stream_common *stream)
 {
 	BT_LOGD("Finalizing common stream object: addr=%p, name=\"%s\"",
@@ -44,7 +43,6 @@ void bt_ctf_stream_common_finalize(struct bt_ctf_stream_common *stream)
 	}
 }
 
-BT_HIDDEN
 int bt_ctf_stream_common_initialize(
 		struct bt_ctf_stream_common *stream,
 		struct bt_ctf_stream_class_common *stream_class, const char *name,
@@ -1030,7 +1028,6 @@ end:
 	return ret;
 }
 
-BT_HIDDEN
 struct bt_ctf_stream *bt_ctf_stream_create_with_id(
 		struct bt_ctf_stream_class *stream_class,
 		const char *name, uint64_t id)
@@ -1161,6 +1158,7 @@ end:
 	return stream;
 }
 
+BT_EXPORT
 struct bt_ctf_stream *bt_ctf_stream_create(
 		struct bt_ctf_stream_class *stream_class,
 		const char *name, uint64_t id_param)
@@ -1169,6 +1167,7 @@ struct bt_ctf_stream *bt_ctf_stream_create(
 		name, id_param);
 }
 
+BT_EXPORT
 int bt_ctf_stream_get_discarded_events_count(
 		struct bt_ctf_stream *stream, uint64_t *count)
 {
@@ -1223,6 +1222,7 @@ end:
 	return ret;
 }
 
+BT_EXPORT
 void bt_ctf_stream_append_discarded_events(struct bt_ctf_stream *stream,
 		uint64_t event_count)
 {
@@ -1364,6 +1364,7 @@ end:
 	return ret;
 }
 
+BT_EXPORT
 int bt_ctf_stream_append_event(struct bt_ctf_stream *stream,
 		struct bt_ctf_event *event)
 {
@@ -1450,6 +1451,7 @@ error:
 	return ret;
 }
 
+BT_EXPORT
 struct bt_ctf_field *bt_ctf_stream_get_packet_context(struct bt_ctf_stream *stream)
 {
 	struct bt_ctf_field *packet_context = NULL;
@@ -1467,6 +1469,7 @@ end:
 	return packet_context;
 }
 
+BT_EXPORT
 int bt_ctf_stream_set_packet_context(struct bt_ctf_stream *stream,
 		struct bt_ctf_field *field)
 {
@@ -1503,6 +1506,7 @@ end:
 	return ret;
 }
 
+BT_EXPORT
 struct bt_ctf_field *bt_ctf_stream_get_packet_header(struct bt_ctf_stream *stream)
 {
 	struct bt_ctf_field *packet_header = NULL;
@@ -1520,6 +1524,7 @@ end:
 	return packet_header;
 }
 
+BT_EXPORT
 int bt_ctf_stream_set_packet_header(struct bt_ctf_stream *stream,
 		struct bt_ctf_field *field)
 {
@@ -1591,6 +1596,7 @@ void reset_structure_field(struct bt_ctf_field *structure, const char *name)
 	}
 }
 
+BT_EXPORT
 int bt_ctf_stream_flush(struct bt_ctf_stream *stream)
 {
 	int ret = 0;
@@ -1926,17 +1932,20 @@ int try_set_structure_field_integer(struct bt_ctf_field *structure, const char *
 	return _set_structure_field_integer(structure, name, value, BT_CTF_FALSE);
 }
 
+BT_EXPORT
 struct bt_ctf_stream_class *bt_ctf_stream_get_class(
 		struct bt_ctf_stream *stream)
 {
 	return bt_ctf_object_get_ref(bt_ctf_stream_common_borrow_class(BT_CTF_TO_COMMON(stream)));
 }
 
+BT_EXPORT
 const char *bt_ctf_stream_get_name(struct bt_ctf_stream *stream)
 {
 	return bt_ctf_stream_common_get_name(BT_CTF_TO_COMMON(stream));
 }
 
+BT_EXPORT
 int64_t bt_ctf_stream_get_id(struct bt_ctf_stream *stream)
 {
 	return bt_ctf_stream_common_get_id(BT_CTF_TO_COMMON(stream));

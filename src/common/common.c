@@ -221,20 +221,17 @@ void __attribute__((constructor)) bt_common_color_ctor(void)
 	color_codes.bg_light_gray = BT_COMMON_COLOR_BG_LIGHT_GRAY;
 }
 
-BT_HIDDEN
 const char *bt_common_get_system_plugin_path(void)
 {
 	return SYSTEM_PLUGIN_PATH;
 }
 
 #ifdef __MINGW32__
-BT_HIDDEN
 bool bt_common_is_setuid_setgid(void)
 {
 	return false;
 }
 #else /* __MINGW32__ */
-BT_HIDDEN
 bool bt_common_is_setuid_setgid(void)
 {
 	return (geteuid() != getuid() || getegid() != getgid());
@@ -280,7 +277,6 @@ end:
 }
 #endif /* __MINGW32__ */
 
-BT_HIDDEN
 char *bt_common_get_home_plugin_path(int log_level)
 {
 	char *path = NULL;
@@ -312,7 +308,6 @@ end:
 	return path;
 }
 
-BT_HIDDEN
 int bt_common_append_plugin_path_dirs(const char *paths, GPtrArray *dirs)
 {
 	int ret = 0;
@@ -396,7 +391,6 @@ end:
 	return istty;
 }
 
-BT_HIDDEN
 bool bt_common_colors_supported(void)
 {
 	static bool supports_colors = false;
@@ -452,157 +446,131 @@ end:
 	return supports_colors;
 }
 
-BT_HIDDEN
 const char *bt_common_color_reset(void)
 {
 	return bt_common_color_code_reset;
 }
 
-BT_HIDDEN
 const char *bt_common_color_bold(void)
 {
 	return bt_common_color_code_bold;
 }
 
-BT_HIDDEN
 const char *bt_common_color_fg_default(void)
 {
 	return bt_common_color_code_fg_default;
 }
 
-BT_HIDDEN
 const char *bt_common_color_fg_red(void)
 {
 	return bt_common_color_code_fg_red;
 }
 
-BT_HIDDEN
 const char *bt_common_color_fg_green(void)
 {
 	return bt_common_color_code_fg_green;
 }
 
-BT_HIDDEN
 const char *bt_common_color_fg_yellow(void)
 {
 	return bt_common_color_code_fg_yellow;
 }
 
-BT_HIDDEN
 const char *bt_common_color_fg_blue(void)
 {
 	return bt_common_color_code_fg_blue;
 }
 
-BT_HIDDEN
 const char *bt_common_color_fg_magenta(void)
 {
 	return bt_common_color_code_fg_magenta;
 }
 
-BT_HIDDEN
 const char *bt_common_color_fg_cyan(void)
 {
 	return bt_common_color_code_fg_cyan;
 }
 
-BT_HIDDEN
 const char *bt_common_color_fg_light_gray(void)
 {
 	return bt_common_color_code_fg_light_gray;
 }
 
-BT_HIDDEN
 const char *bt_common_color_fg_bright_red(void)
 {
 	return bt_common_color_code_fg_bright_red;
 }
 
-BT_HIDDEN
 const char *bt_common_color_fg_bright_green(void)
 {
 	return bt_common_color_code_fg_bright_green;
 }
 
-BT_HIDDEN
 const char *bt_common_color_fg_bright_yellow(void)
 {
 	return bt_common_color_code_fg_bright_yellow;
 }
 
-BT_HIDDEN
 const char *bt_common_color_fg_bright_blue(void)
 {
 	return bt_common_color_code_fg_bright_blue;
 }
 
-BT_HIDDEN
 const char *bt_common_color_fg_bright_magenta(void)
 {
 	return bt_common_color_code_fg_bright_magenta;
 }
 
-BT_HIDDEN
 const char *bt_common_color_fg_bright_cyan(void)
 {
 	return bt_common_color_code_fg_bright_cyan;
 }
 
-BT_HIDDEN
 const char *bt_common_color_fg_bright_light_gray(void)
 {
 	return bt_common_color_code_fg_bright_light_gray;
 }
 
-BT_HIDDEN
 const char *bt_common_color_bg_default(void)
 {
 	return bt_common_color_code_bg_default;
 }
 
-BT_HIDDEN
 const char *bt_common_color_bg_red(void)
 {
 	return bt_common_color_code_bg_red;
 }
 
-BT_HIDDEN
 const char *bt_common_color_bg_green(void)
 {
 	return bt_common_color_code_bg_green;
 }
 
-BT_HIDDEN
 const char *bt_common_color_bg_yellow(void)
 {
 	return bt_common_color_code_bg_yellow;
 }
 
-BT_HIDDEN
 const char *bt_common_color_bg_blue(void)
 {
 	return bt_common_color_code_bg_blue;
 }
 
-BT_HIDDEN
 const char *bt_common_color_bg_magenta(void)
 {
 	return bt_common_color_code_bg_magenta;
 }
 
-BT_HIDDEN
 const char *bt_common_color_bg_cyan(void)
 {
 	return bt_common_color_code_bg_cyan;
 }
 
-BT_HIDDEN
 const char *bt_common_color_bg_light_gray(void)
 {
 	return bt_common_color_code_bg_light_gray;
 }
 
-BT_HIDDEN
 void bt_common_color_get_codes(struct bt_common_color_codes *codes,
 		enum bt_common_color_when use_colors)
 {
@@ -621,7 +589,6 @@ void bt_common_color_get_codes(struct bt_common_color_codes *codes,
 	}
 }
 
-BT_HIDDEN
 GString *bt_common_string_until(const char *input, const char *escapable_chars,
 		const char *end_chars, size_t *end_pos)
 {
@@ -704,7 +671,6 @@ end:
 	return output;
 }
 
-BT_HIDDEN
 GString *bt_common_shell_quote(const char *input, bool with_single_quotes)
 {
 	GString *output = g_string_new(NULL);
@@ -760,7 +726,6 @@ end:
 	return output;
 }
 
-BT_HIDDEN
 bool bt_common_string_is_printable(const char *input)
 {
 	const char *ch;
@@ -779,7 +744,6 @@ end:
 	return printable;
 }
 
-BT_HIDDEN
 void bt_common_destroy_lttng_live_url_parts(
 		struct bt_common_lttng_live_url_parts *parts)
 {
@@ -811,7 +775,6 @@ end:
 	return;
 }
 
-BT_HIDDEN
 struct bt_common_lttng_live_url_parts bt_common_parse_lttng_live_url(
 		const char *url, char *error_buf, size_t error_buf_size)
 {
@@ -990,7 +953,6 @@ end:
 	return parts;
 }
 
-BT_HIDDEN
 void bt_common_normalize_star_glob_pattern(char *pattern)
 {
 	const char *p;
@@ -1050,7 +1012,6 @@ bool at_end_of_pattern(const char *p, const char *pattern, size_t pattern_len)
  * string length of `pattern` or `candidate` if the string is
  * null-terminated.
  */
-BT_HIDDEN
 bool bt_common_star_glob_match(const char *pattern, size_t pattern_len,
 		const char *candidate, size_t candidate_len) {
 	const char *retry_c = candidate, *retry_p = pattern, *c, *p;
@@ -1285,7 +1246,6 @@ end_of_pattern:
 }
 
 #ifdef __MINGW32__
-BT_HIDDEN
 GString *bt_common_normalize_path(const char *path, const char *wd)
 {
 	char *tmp;
@@ -1347,7 +1307,6 @@ void destroy_gstring(void *gstring)
 	(void) g_string_free(gstring, TRUE);
 }
 
-BT_HIDDEN
 GString *bt_common_normalize_path(const char *path, const char *wd)
 {
 	size_t i;
@@ -1432,7 +1391,6 @@ end:
 }
 #endif
 
-BT_HIDDEN
 size_t bt_common_get_page_size(int log_level)
 {
 	int page_size;
@@ -1707,7 +1665,6 @@ update_rw_fmt:
 	*out_fmt_ch = fmt_ch;
 }
 
-BT_HIDDEN
 void bt_common_custom_vsnprintf(char *buf, size_t buf_size,
 		char intro,
 		bt_common_handle_custom_specifier_func handle_specifier,
@@ -1751,7 +1708,6 @@ void bt_common_custom_vsnprintf(char *buf, size_t buf_size,
 	*buf_ch = '\0';
 }
 
-BT_HIDDEN
 void bt_common_custom_snprintf(char *buf, size_t buf_size,
 		char intro,
 		bt_common_handle_custom_specifier_func handle_specifier,
@@ -1764,7 +1720,6 @@ void bt_common_custom_snprintf(char *buf, size_t buf_size,
 	va_end(args);
 }
 
-BT_HIDDEN
 void bt_common_sep_digits(char *str, unsigned int digits_per_group, char sep)
 {
 	const char *rd;
@@ -1867,7 +1822,6 @@ void bt_common_sep_digits(char *str, unsigned int digits_per_group, char sep)
 	}
 }
 
-BT_HIDDEN
 GString *bt_common_fold(const char *str, unsigned int total_length,
 		unsigned int indent)
 {
@@ -1986,14 +1940,12 @@ end:
 }
 
 #ifdef __MINGW32__
-BT_HIDDEN
 int bt_common_get_term_size(unsigned int *width, unsigned int *height)
 {
 	/* Not supported on Windows yet */
 	return -1;
 }
 #else /* __MINGW32__ */
-BT_HIDDEN
 int bt_common_get_term_size(unsigned int *width, unsigned int *height)
 {
 	int ret = 0;
@@ -2017,7 +1969,6 @@ end:
 }
 #endif /* __MINGW32__ */
 
-BT_HIDDEN
 int bt_common_g_string_append_printf(GString *str, const char *fmt, ...)
 {
 	va_list ap;
@@ -2049,7 +2000,6 @@ int bt_common_g_string_append_printf(GString *str, const char *fmt, ...)
 	return print_len;
 }
 
-BT_HIDDEN
 int bt_common_append_file_content_to_g_string(GString *str, FILE *fp)
 {
 	const size_t chunk_size = 4096;
@@ -2090,7 +2040,6 @@ end:
 	return ret;
 }
 
-BT_HIDDEN
 void bt_common_abort(void)
 {
 	static const char * const exec_on_abort_env_name =

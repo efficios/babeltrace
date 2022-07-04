@@ -90,7 +90,6 @@ error:
 	return NULL;
 }
 
-BT_HIDDEN
 void pretty_finalize(bt_self_component_sink *comp)
 {
 	destroy_pretty_data(
@@ -131,7 +130,6 @@ bt_message_iterator_class_next_method_status handle_message(
 	return ret;
 }
 
-BT_HIDDEN
 bt_component_class_sink_graph_is_configured_method_status
 pretty_graph_is_configured(bt_self_component_sink *self_comp_sink)
 {
@@ -170,7 +168,6 @@ end:
 	return status;
 }
 
-BT_HIDDEN
 bt_component_class_sink_consume_method_status pretty_consume(
 		bt_self_component_sink *comp)
 {
@@ -543,7 +540,6 @@ void set_use_colors(struct pretty_component *pretty)
 	}
 }
 
-BT_HIDDEN
 bt_component_class_initialize_method_status pretty_init(
 		bt_self_component_sink *self_comp_sink,
 		bt_self_component_sink_configuration *config,

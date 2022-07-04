@@ -36,7 +36,6 @@
 #include "values.h"
 #include "writer.h"
 
-BT_HIDDEN
 void bt_ctf_event_class_common_finalize(struct bt_ctf_object *obj)
 {
 	struct bt_ctf_event_class_common *event_class;
@@ -60,7 +59,6 @@ void bt_ctf_event_class_common_finalize(struct bt_ctf_object *obj)
 	bt_ctf_object_put_ref(event_class->payload_field_type);
 }
 
-BT_HIDDEN
 int bt_ctf_event_class_common_initialize(struct bt_ctf_event_class_common *event_class,
 		const char *name, bt_ctf_object_release_func release_func,
 		bt_ctf_field_type_structure_create_func ft_struct_create_func)
@@ -99,7 +97,6 @@ error:
 	return ret;
 }
 
-BT_HIDDEN
 void bt_ctf_event_class_common_freeze(struct bt_ctf_event_class_common *event_class)
 {
 	BT_ASSERT_DBG(event_class);
@@ -118,7 +115,6 @@ void bt_ctf_event_class_common_freeze(struct bt_ctf_event_class_common *event_cl
 	bt_ctf_field_type_common_freeze(event_class->payload_field_type);
 }
 
-BT_HIDDEN
 int bt_ctf_event_class_common_validate_single_clock_class(
 		struct bt_ctf_event_class_common *event_class,
 		struct bt_ctf_clock_class **expected_clock_class)
@@ -174,6 +170,7 @@ void bt_ctf_event_class_destroy(struct bt_ctf_object *obj)
 	g_free(obj);
 }
 
+BT_EXPORT
 struct bt_ctf_event_class *bt_ctf_event_class_create(const char *name)
 {
 	struct bt_ctf_event_class *ctf_event_class = NULL;
@@ -209,28 +206,33 @@ end:
 	return ctf_event_class;
 }
 
+BT_EXPORT
 const char *bt_ctf_event_class_get_name(struct bt_ctf_event_class *event_class)
 {
 	return bt_ctf_event_class_common_get_name(BT_CTF_TO_COMMON(event_class));
 }
 
+BT_EXPORT
 int64_t bt_ctf_event_class_get_id(struct bt_ctf_event_class *event_class)
 {
 	return bt_ctf_event_class_common_get_id(BT_CTF_TO_COMMON(event_class));
 }
 
+BT_EXPORT
 int bt_ctf_event_class_set_id(struct bt_ctf_event_class *event_class,
 		uint64_t id)
 {
 	return bt_ctf_event_class_common_set_id(BT_CTF_TO_COMMON(event_class), id);
 }
 
+BT_EXPORT
 enum bt_ctf_event_class_log_level bt_ctf_event_class_get_log_level(
 		struct bt_ctf_event_class *event_class)
 {
 	return bt_ctf_event_class_common_get_log_level(BT_CTF_TO_COMMON(event_class));
 }
 
+BT_EXPORT
 int bt_ctf_event_class_set_log_level(struct bt_ctf_event_class *event_class,
 		enum bt_ctf_event_class_log_level log_level)
 {
@@ -238,12 +240,14 @@ int bt_ctf_event_class_set_log_level(struct bt_ctf_event_class *event_class,
 		log_level);
 }
 
+BT_EXPORT
 const char *bt_ctf_event_class_get_emf_uri(
 		struct bt_ctf_event_class *event_class)
 {
 	return bt_ctf_event_class_common_get_emf_uri(BT_CTF_TO_COMMON(event_class));
 }
 
+BT_EXPORT
 int bt_ctf_event_class_set_emf_uri(struct bt_ctf_event_class *event_class,
 		const char *emf_uri)
 {
@@ -251,6 +255,7 @@ int bt_ctf_event_class_set_emf_uri(struct bt_ctf_event_class *event_class,
 		emf_uri);
 }
 
+BT_EXPORT
 struct bt_ctf_stream_class *bt_ctf_event_class_get_stream_class(
 		struct bt_ctf_event_class *event_class)
 {
@@ -259,6 +264,7 @@ struct bt_ctf_stream_class *bt_ctf_event_class_get_stream_class(
 		BT_CTF_TO_COMMON(event_class)));
 }
 
+BT_EXPORT
 struct bt_ctf_field_type *bt_ctf_event_class_get_payload_field_type(
 		struct bt_ctf_event_class *event_class)
 {
@@ -266,6 +272,7 @@ struct bt_ctf_field_type *bt_ctf_event_class_get_payload_field_type(
 		BT_CTF_TO_COMMON(event_class)));
 }
 
+BT_EXPORT
 int bt_ctf_event_class_set_payload_field_type(
 		struct bt_ctf_event_class *event_class,
 		struct bt_ctf_field_type *field_type)
@@ -274,6 +281,7 @@ int bt_ctf_event_class_set_payload_field_type(
 		BT_CTF_TO_COMMON(event_class), (void *) field_type);
 }
 
+BT_EXPORT
 struct bt_ctf_field_type *bt_ctf_event_class_get_context_field_type(
 		struct bt_ctf_event_class *event_class)
 {
@@ -281,6 +289,7 @@ struct bt_ctf_field_type *bt_ctf_event_class_get_context_field_type(
 		BT_CTF_TO_COMMON(event_class)));
 }
 
+BT_EXPORT
 int bt_ctf_event_class_set_context_field_type(
 		struct bt_ctf_event_class *event_class,
 		struct bt_ctf_field_type *field_type)
@@ -289,6 +298,7 @@ int bt_ctf_event_class_set_context_field_type(
 		BT_CTF_TO_COMMON(event_class), (void *) field_type);
 }
 
+BT_EXPORT
 int bt_ctf_event_class_add_field(struct bt_ctf_event_class *event_class,
 		struct bt_ctf_field_type *type,
 		const char *name)
@@ -346,6 +356,7 @@ end:
 	return ret;
 }
 
+BT_EXPORT
 int64_t bt_ctf_event_class_get_payload_type_field_count(
 		struct bt_ctf_event_class *event_class)
 {
@@ -375,6 +386,7 @@ end:
 	return ret;
 }
 
+BT_EXPORT
 int bt_ctf_event_class_get_payload_type_field_by_index(
 		struct bt_ctf_event_class *event_class,
 		const char **field_name, struct bt_ctf_field_type **field_type,
@@ -408,6 +420,7 @@ end:
 	return ret;
 }
 
+BT_EXPORT
 struct bt_ctf_field_type *
 bt_ctf_event_class_get_payload_type_field_type_by_name(
 		struct bt_ctf_event_class *event_class, const char *name)
@@ -451,7 +464,6 @@ end:
 	return field_type;
 }
 
-BT_HIDDEN
 int bt_ctf_event_class_serialize(struct bt_ctf_event_class *event_class,
 		struct metadata_context *context)
 {
@@ -529,6 +541,7 @@ end:
 	return ret;
 }
 
+BT_EXPORT
 struct bt_ctf_field_type *bt_ctf_event_class_get_field_by_name(
 		struct bt_ctf_event_class *event_class, const char *name)
 {

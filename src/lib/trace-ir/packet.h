@@ -26,7 +26,6 @@ struct bt_packet {
 	bool frozen;
 };
 
-BT_HIDDEN
 void _bt_packet_set_is_frozen(const struct bt_packet *packet, bool is_frozen);
 
 #ifdef BT_DEV_MODE
@@ -35,13 +34,10 @@ void _bt_packet_set_is_frozen(const struct bt_packet *packet, bool is_frozen);
 # define bt_packet_set_is_frozen(_packet, _is_frozen)
 #endif /* BT_DEV_MODE */
 
-BT_HIDDEN
 struct bt_packet *bt_packet_new(struct bt_stream *stream);
 
-BT_HIDDEN
 void bt_packet_recycle(struct bt_packet *packet);
 
-BT_HIDDEN
 void bt_packet_destroy(struct bt_packet *packet);
 
 #endif /* BABELTRACE_TRACE_IR_PACKET_INTERNAL_H */

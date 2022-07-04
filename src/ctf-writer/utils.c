@@ -62,6 +62,7 @@ void trace_finalize(void)
 	}
 }
 
+BT_EXPORT
 bt_ctf_bool bt_ctf_identifier_is_valid(const char *identifier)
 {
 	bt_ctf_bool is_valid = BT_CTF_TRUE;

@@ -359,7 +359,6 @@ void destroy_dmesg_component(struct dmesg_component *dmesg_comp)
 	g_free(dmesg_comp);
 }
 
-BT_HIDDEN
 bt_component_class_initialize_method_status dmesg_init(
 		bt_self_component_source *self_comp_src,
 		bt_self_component_source_configuration *config,
@@ -437,7 +436,6 @@ end:
 	return status;
 }
 
-BT_HIDDEN
 void dmesg_finalize(bt_self_component_source *self_comp)
 {
 	destroy_dmesg_component(bt_self_component_get_data(
@@ -650,7 +648,6 @@ void destroy_dmesg_msg_iter(struct dmesg_msg_iter *dmesg_msg_iter)
 
 
 
-BT_HIDDEN
 bt_message_iterator_class_initialize_method_status dmesg_msg_iter_init(
 		bt_self_message_iterator *self_msg_iter,
 		bt_self_message_iterator_configuration *config,
@@ -701,7 +698,6 @@ end:
 	return status;
 }
 
-BT_HIDDEN
 void dmesg_msg_iter_finalize(
 		bt_self_message_iterator *priv_msg_iter)
 {
@@ -823,7 +819,6 @@ end:
 	return status;
 }
 
-BT_HIDDEN
 bt_message_iterator_class_next_method_status dmesg_msg_iter_next(
 		bt_self_message_iterator *self_msg_iter,
 		bt_message_array_const msgs, uint64_t capacity,
@@ -868,7 +863,6 @@ bt_message_iterator_class_next_method_status dmesg_msg_iter_next(
 	return status;
 }
 
-BT_HIDDEN
 bt_message_iterator_class_can_seek_beginning_method_status
 dmesg_msg_iter_can_seek_beginning(
 		bt_self_message_iterator *self_msg_iter, bt_bool *can_seek)
@@ -882,7 +876,6 @@ dmesg_msg_iter_can_seek_beginning(
 	return BT_MESSAGE_ITERATOR_CLASS_CAN_SEEK_BEGINNING_METHOD_STATUS_OK;
 }
 
-BT_HIDDEN
 bt_message_iterator_class_seek_beginning_method_status
 dmesg_msg_iter_seek_beginning(
 		bt_self_message_iterator *self_msg_iter)

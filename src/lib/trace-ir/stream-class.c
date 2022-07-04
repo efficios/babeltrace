@@ -161,6 +161,7 @@ end:
 	return stream_class;
 }
 
+BT_EXPORT
 struct bt_stream_class *bt_stream_class_create(struct bt_trace_class *tc)
 {
 	BT_ASSERT_PRE_NO_ERROR();
@@ -173,6 +174,7 @@ struct bt_stream_class *bt_stream_class_create(struct bt_trace_class *tc)
 		(uint64_t) tc->stream_classes->len);
 }
 
+BT_EXPORT
 struct bt_stream_class *bt_stream_class_create_with_id(
 		struct bt_trace_class *tc, uint64_t id)
 {
@@ -186,6 +188,7 @@ struct bt_stream_class *bt_stream_class_create_with_id(
 	return create_stream_class_with_id(tc, id);
 }
 
+BT_EXPORT
 struct bt_trace_class *bt_stream_class_borrow_trace_class(
 		struct bt_stream_class *stream_class)
 {
@@ -193,18 +196,21 @@ struct bt_trace_class *bt_stream_class_borrow_trace_class(
 	return bt_stream_class_borrow_trace_class_inline(stream_class);
 }
 
+BT_EXPORT
 const struct bt_trace_class *bt_stream_class_borrow_trace_class_const(
 		const struct bt_stream_class *stream_class)
 {
 	return bt_stream_class_borrow_trace_class((void *) stream_class);
 }
 
+BT_EXPORT
 const char *bt_stream_class_get_name(const struct bt_stream_class *stream_class)
 {
 	BT_ASSERT_PRE_DEV_SC_NON_NULL(stream_class);
 	return stream_class->name.value;
 }
 
+BT_EXPORT
 enum bt_stream_class_set_name_status bt_stream_class_set_name(
 		struct bt_stream_class *stream_class,
 		const char *name)
@@ -219,12 +225,14 @@ enum bt_stream_class_set_name_status bt_stream_class_set_name(
 	return BT_FUNC_STATUS_OK;
 }
 
+BT_EXPORT
 uint64_t bt_stream_class_get_id(const struct bt_stream_class *stream_class)
 {
 	BT_ASSERT_PRE_DEV_SC_NON_NULL(stream_class);
 	return stream_class->id;
 }
 
+BT_EXPORT
 uint64_t bt_stream_class_get_event_class_count(
 		const struct bt_stream_class *stream_class)
 {
@@ -232,6 +240,7 @@ uint64_t bt_stream_class_get_event_class_count(
 	return (uint64_t) stream_class->event_classes->len;
 }
 
+BT_EXPORT
 struct bt_event_class *bt_stream_class_borrow_event_class_by_index(
 		struct bt_stream_class *stream_class, uint64_t index)
 {
@@ -240,6 +249,7 @@ struct bt_event_class *bt_stream_class_borrow_event_class_by_index(
 	return g_ptr_array_index(stream_class->event_classes, index);
 }
 
+BT_EXPORT
 const struct bt_event_class *
 bt_stream_class_borrow_event_class_by_index_const(
 		const struct bt_stream_class *stream_class, uint64_t index)
@@ -248,6 +258,7 @@ bt_stream_class_borrow_event_class_by_index_const(
 		(void *) stream_class, index);
 }
 
+BT_EXPORT
 struct bt_event_class *bt_stream_class_borrow_event_class_by_id(
 		struct bt_stream_class *stream_class, uint64_t id)
 {
@@ -270,6 +281,7 @@ end:
 	return event_class;
 }
 
+BT_EXPORT
 const struct bt_event_class *
 bt_stream_class_borrow_event_class_by_id_const(
 		const struct bt_stream_class *stream_class, uint64_t id)
@@ -278,6 +290,7 @@ bt_stream_class_borrow_event_class_by_id_const(
 		(void *) stream_class, id);
 }
 
+BT_EXPORT
 const struct bt_field_class *
 bt_stream_class_borrow_packet_context_field_class_const(
 		const struct bt_stream_class *stream_class)
@@ -286,6 +299,7 @@ bt_stream_class_borrow_packet_context_field_class_const(
 	return stream_class->packet_context_fc;
 }
 
+BT_EXPORT
 struct bt_field_class *
 bt_stream_class_borrow_packet_context_field_class(
 		struct bt_stream_class *stream_class)
@@ -294,6 +308,7 @@ bt_stream_class_borrow_packet_context_field_class(
 	return stream_class->packet_context_fc;
 }
 
+BT_EXPORT
 enum bt_stream_class_set_field_class_status
 bt_stream_class_set_packet_context_field_class(
 		struct bt_stream_class *stream_class,
@@ -340,6 +355,7 @@ end:
 	return ret;
 }
 
+BT_EXPORT
 const struct bt_field_class *
 bt_stream_class_borrow_event_common_context_field_class_const(
 		const struct bt_stream_class *stream_class)
@@ -348,6 +364,7 @@ bt_stream_class_borrow_event_common_context_field_class_const(
 	return stream_class->event_common_context_fc;
 }
 
+BT_EXPORT
 struct bt_field_class *
 bt_stream_class_borrow_event_common_context_field_class(
 		struct bt_stream_class *stream_class)
@@ -356,6 +373,7 @@ bt_stream_class_borrow_event_common_context_field_class(
 	return stream_class->event_common_context_fc;
 }
 
+BT_EXPORT
 enum bt_stream_class_set_field_class_status
 bt_stream_class_set_event_common_context_field_class(
 		struct bt_stream_class *stream_class,
@@ -399,7 +417,6 @@ end:
 	return ret;
 }
 
-BT_HIDDEN
 void _bt_stream_class_freeze(const struct bt_stream_class *stream_class)
 {
 	/* The field classes and default clock class are already frozen */
@@ -411,6 +428,7 @@ void _bt_stream_class_freeze(const struct bt_stream_class *stream_class)
 	((struct bt_stream_class *) stream_class)->frozen = true;
 }
 
+BT_EXPORT
 enum bt_stream_class_set_default_clock_class_status
 bt_stream_class_set_default_clock_class(
 		struct bt_stream_class *stream_class,
@@ -429,6 +447,7 @@ bt_stream_class_set_default_clock_class(
 	return BT_FUNC_STATUS_OK;
 }
 
+BT_EXPORT
 struct bt_clock_class *bt_stream_class_borrow_default_clock_class(
 		struct bt_stream_class *stream_class)
 {
@@ -436,6 +455,7 @@ struct bt_clock_class *bt_stream_class_borrow_default_clock_class(
 	return stream_class->default_clock_class;
 }
 
+BT_EXPORT
 const struct bt_clock_class *bt_stream_class_borrow_default_clock_class_const(
 		const struct bt_stream_class *stream_class)
 {
@@ -443,6 +463,7 @@ const struct bt_clock_class *bt_stream_class_borrow_default_clock_class_const(
 	return stream_class->default_clock_class;
 }
 
+BT_EXPORT
 bt_bool bt_stream_class_assigns_automatic_event_class_id(
 		const struct bt_stream_class *stream_class)
 {
@@ -450,6 +471,7 @@ bt_bool bt_stream_class_assigns_automatic_event_class_id(
 	return (bt_bool) stream_class->assigns_automatic_event_class_id;
 }
 
+BT_EXPORT
 void bt_stream_class_set_assigns_automatic_event_class_id(
 		struct bt_stream_class *stream_class,
 		bt_bool value)
@@ -461,6 +483,7 @@ void bt_stream_class_set_assigns_automatic_event_class_id(
 		"assignment property: %!+S", stream_class);
 }
 
+BT_EXPORT
 bt_bool bt_stream_class_assigns_automatic_stream_id(
 		const struct bt_stream_class *stream_class)
 {
@@ -468,6 +491,7 @@ bt_bool bt_stream_class_assigns_automatic_stream_id(
 	return (bt_bool) stream_class->assigns_automatic_stream_id;
 }
 
+BT_EXPORT
 void bt_stream_class_set_supports_discarded_events(
 		struct bt_stream_class *stream_class,
 		bt_bool supports_discarded_events,
@@ -492,6 +516,7 @@ void bt_stream_class_set_supports_discarded_events(
 		"%!+S", stream_class);
 }
 
+BT_EXPORT
 bt_bool bt_stream_class_supports_discarded_events(
 		const struct bt_stream_class *stream_class)
 {
@@ -499,6 +524,7 @@ bt_bool bt_stream_class_supports_discarded_events(
 	return (bt_bool) stream_class->supports_discarded_events;
 }
 
+BT_EXPORT
 bt_bool bt_stream_class_discarded_events_have_default_clock_snapshots(
 		const struct bt_stream_class *stream_class)
 {
@@ -506,6 +532,7 @@ bt_bool bt_stream_class_discarded_events_have_default_clock_snapshots(
 	return (bt_bool) stream_class->discarded_events_have_default_clock_snapshots;
 }
 
+BT_EXPORT
 void bt_stream_class_set_supports_discarded_packets(
 		struct bt_stream_class *stream_class,
 		bt_bool supports_discarded_packets,
@@ -535,6 +562,7 @@ void bt_stream_class_set_supports_discarded_packets(
 		"%!+S", stream_class);
 }
 
+BT_EXPORT
 bt_bool bt_stream_class_supports_discarded_packets(
 		const struct bt_stream_class *stream_class)
 {
@@ -542,6 +570,7 @@ bt_bool bt_stream_class_supports_discarded_packets(
 	return (bt_bool) stream_class->supports_discarded_packets;
 }
 
+BT_EXPORT
 bt_bool bt_stream_class_discarded_packets_have_default_clock_snapshots(
 		const struct bt_stream_class *stream_class)
 {
@@ -549,6 +578,7 @@ bt_bool bt_stream_class_discarded_packets_have_default_clock_snapshots(
 	return (bt_bool) stream_class->discarded_packets_have_default_clock_snapshots;
 }
 
+BT_EXPORT
 void bt_stream_class_set_supports_packets(
 		struct bt_stream_class *stream_class,
 		bt_bool supports_packets,
@@ -586,6 +616,7 @@ void bt_stream_class_set_supports_packets(
 		stream_class);
 }
 
+BT_EXPORT
 bt_bool bt_stream_class_supports_packets(
 		const struct bt_stream_class *stream_class)
 {
@@ -593,6 +624,7 @@ bt_bool bt_stream_class_supports_packets(
 	return (bt_bool) stream_class->supports_packets;
 }
 
+BT_EXPORT
 bt_bool bt_stream_class_packets_have_beginning_default_clock_snapshot(
 		const struct bt_stream_class *stream_class)
 {
@@ -600,6 +632,7 @@ bt_bool bt_stream_class_packets_have_beginning_default_clock_snapshot(
 	return (bt_bool) stream_class->packets_have_beginning_default_clock_snapshot;
 }
 
+BT_EXPORT
 bt_bool bt_stream_class_packets_have_end_default_clock_snapshot(
 		const struct bt_stream_class *stream_class)
 {
@@ -607,6 +640,7 @@ bt_bool bt_stream_class_packets_have_end_default_clock_snapshot(
 	return (bt_bool) stream_class->packets_have_end_default_clock_snapshot;
 }
 
+BT_EXPORT
 void bt_stream_class_set_assigns_automatic_stream_id(
 		struct bt_stream_class *stream_class,
 		bt_bool value)
@@ -618,6 +652,7 @@ void bt_stream_class_set_assigns_automatic_stream_id(
 		"assignment property: %!+S", stream_class);
 }
 
+BT_EXPORT
 const struct bt_value *bt_stream_class_borrow_user_attributes_const(
 		const struct bt_stream_class *stream_class)
 {
@@ -625,6 +660,7 @@ const struct bt_value *bt_stream_class_borrow_user_attributes_const(
 	return stream_class->user_attributes;
 }
 
+BT_EXPORT
 struct bt_value *bt_stream_class_borrow_user_attributes(
 		struct bt_stream_class *stream_class)
 {
@@ -632,6 +668,7 @@ struct bt_value *bt_stream_class_borrow_user_attributes(
 		(void *) stream_class);
 }
 
+BT_EXPORT
 void bt_stream_class_set_user_attributes(
 		struct bt_stream_class *stream_class,
 		const struct bt_value *user_attributes)
@@ -645,11 +682,13 @@ void bt_stream_class_set_user_attributes(
 	bt_object_get_ref_no_null_check(stream_class->user_attributes);
 }
 
+BT_EXPORT
 void bt_stream_class_get_ref(const struct bt_stream_class *stream_class)
 {
 	bt_object_get_ref(stream_class);
 }
 
+BT_EXPORT
 void bt_stream_class_put_ref(const struct bt_stream_class *stream_class)
 {
 	bt_object_put_ref(stream_class);

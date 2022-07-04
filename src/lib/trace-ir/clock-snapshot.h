@@ -60,17 +60,13 @@ void bt_clock_snapshot_set_raw_value(struct bt_clock_snapshot *clock_snapshot,
 	bt_clock_snapshot_set(clock_snapshot);
 }
 
-BT_HIDDEN
 void bt_clock_snapshot_destroy(struct bt_clock_snapshot *clock_snapshot);
 
-BT_HIDDEN
 struct bt_clock_snapshot *bt_clock_snapshot_new(struct bt_clock_class *clock_class);
 
-BT_HIDDEN
 struct bt_clock_snapshot *bt_clock_snapshot_create(
 		struct bt_clock_class *clock_class);
 
-BT_HIDDEN
 void bt_clock_snapshot_recycle(struct bt_clock_snapshot *clock_snapshot);
 
 #endif /* BABELTRACE_TRACE_IR_CLOCK_SNAPSHOT_INTERNAL_H */

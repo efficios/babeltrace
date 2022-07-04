@@ -25,31 +25,34 @@
 #include "trace.h"
 #include "lib/func-status.h"
 
+BT_EXPORT
 struct bt_stream *bt_packet_borrow_stream(struct bt_packet *packet)
 {
 	BT_ASSERT_PRE_DEV_PACKET_NON_NULL(packet);
 	return packet->stream;
 }
 
+BT_EXPORT
 const struct bt_stream *bt_packet_borrow_stream_const(
 		const struct bt_packet *packet)
 {
 	return bt_packet_borrow_stream((void *) packet);
 }
 
+BT_EXPORT
 struct bt_field *bt_packet_borrow_context_field(struct bt_packet *packet)
 {
 	BT_ASSERT_PRE_DEV_PACKET_NON_NULL(packet);
 	return packet->context_field ? packet->context_field->field : NULL;
 }
 
+BT_EXPORT
 const struct bt_field *bt_packet_borrow_context_field_const(
 		const struct bt_packet *packet)
 {
 	return bt_packet_borrow_context_field((void *) packet);
 }
 
-BT_HIDDEN
 void _bt_packet_set_is_frozen(const struct bt_packet *packet, bool is_frozen)
 {
 	if (!packet) {
@@ -93,7 +96,6 @@ void recycle_context_field(struct bt_field_wrapper *context_field,
 		context_field);
 }
 
-BT_HIDDEN
 void bt_packet_recycle(struct bt_packet *packet)
 {
 	struct bt_stream *stream;
@@ -131,7 +133,6 @@ void bt_packet_recycle(struct bt_packet *packet)
 	bt_object_put_ref_no_null_check(&stream->base);
 }
 
-BT_HIDDEN
 void bt_packet_destroy(struct bt_packet *packet)
 {
 	BT_LIB_LOGD("Destroying packet: %!+a", packet);
@@ -153,7 +154,6 @@ void bt_packet_destroy(struct bt_packet *packet)
 	g_free(packet);
 }
 
-BT_HIDDEN
 struct bt_packet *bt_packet_new(struct bt_stream *stream)
 {
 	struct bt_packet *packet = NULL;
@@ -197,6 +197,7 @@ end:
 	return packet;
 }
 
+BT_EXPORT
 struct bt_packet *bt_packet_create(const struct bt_stream *c_stream)
 {
 	struct bt_packet *packet = NULL;
@@ -226,11 +227,13 @@ end:
 	return (void *) packet;
 }
 
+BT_EXPORT
 void bt_packet_get_ref(const struct bt_packet *packet)
 {
 	bt_object_get_ref(packet);
 }
 
+BT_EXPORT
 void bt_packet_put_ref(const struct bt_packet *packet)
 {
 	bt_object_put_ref(packet);

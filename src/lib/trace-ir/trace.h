@@ -66,7 +66,6 @@ struct bt_trace {
 	bool frozen;
 };
 
-BT_HIDDEN
 void _bt_trace_freeze(const struct bt_trace *trace);
 
 #ifdef BT_DEV_MODE
@@ -75,10 +74,8 @@ void _bt_trace_freeze(const struct bt_trace *trace);
 # define bt_trace_freeze(_trace)
 #endif
 
-BT_HIDDEN
 void bt_trace_add_stream(struct bt_trace *trace, struct bt_stream *stream);
 
-BT_HIDDEN
 uint64_t bt_trace_get_automatic_stream_id(const struct bt_trace *trace,
 		const struct bt_stream_class *stream_class);
 

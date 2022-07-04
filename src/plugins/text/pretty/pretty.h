@@ -95,33 +95,26 @@ struct pretty_component {
 	bt_self_component *self_comp;
 };
 
-BT_HIDDEN
 bt_component_class_initialize_method_status pretty_init(
 		bt_self_component_sink *component,
 		bt_self_component_sink_configuration *config,
 		const bt_value *params,
 		void *init_method_data);
 
-BT_HIDDEN
 bt_component_class_sink_consume_method_status pretty_consume(
 		bt_self_component_sink *component);
 
-BT_HIDDEN
 bt_component_class_sink_graph_is_configured_method_status pretty_graph_is_configured(
 		bt_self_component_sink *component);
 
-BT_HIDDEN
 void pretty_finalize(bt_self_component_sink *component);
 
-BT_HIDDEN
 int pretty_print_event(struct pretty_component *pretty,
 		const bt_message *event_msg);
 
-BT_HIDDEN
 int pretty_print_discarded_items(struct pretty_component *pretty,
 		const bt_message *msg);
 
-BT_HIDDEN
 void pretty_print_init(void);
 
 #endif /* BABELTRACE_PLUGIN_TEXT_PRETTY_PRETTY_H */

@@ -45,15 +45,12 @@ struct bt_connection {
 	bool notified_graph_ports_connected;
 };
 
-BT_HIDDEN
 struct bt_connection *bt_connection_create(struct bt_graph *graph,
 		struct bt_port *upstream_port,
 		struct bt_port *downstream_port);
 
-BT_HIDDEN
 void bt_connection_end(struct bt_connection *conn, bool try_remove_from_graph);
 
-BT_HIDDEN
 void bt_connection_remove_iterator(struct bt_connection *conn,
 		struct bt_message_iterator *iterator);
 

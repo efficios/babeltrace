@@ -56,6 +56,7 @@ struct bt_value bt_value_null_instance = {
 	.frozen = BT_TRUE,
 };
 
+BT_EXPORT
 struct bt_value *const bt_value_null = &bt_value_null_instance;
 
 static
@@ -521,7 +522,6 @@ void bt_value_destroy(struct bt_object *obj)
 	g_free(value);
 }
 
-BT_HIDDEN
 void _bt_value_freeze(const struct bt_value *c_object)
 {
 	const struct bt_value *object = (void *) c_object;
@@ -539,6 +539,7 @@ end:
 	return;
 }
 
+BT_EXPORT
 enum bt_value_type bt_value_get_type(const struct bt_value *object)
 {
 	BT_ASSERT_PRE_DEV_VALUE_NON_NULL(object);
@@ -556,6 +557,7 @@ struct bt_value bt_value_create_base(enum bt_value_type type)
 	return value;
 }
 
+BT_EXPORT
 struct bt_value *bt_value_bool_create_init(bt_bool val)
 {
 	struct bt_value_bool *bool_obj;
@@ -578,6 +580,7 @@ end:
 	return (void *) bool_obj;
 }
 
+BT_EXPORT
 struct bt_value *bt_value_bool_create(void)
 {
 	BT_ASSERT_PRE_NO_ERROR();
@@ -619,6 +622,7 @@ end:
 	return (void *) integer_obj;
 }
 
+BT_EXPORT
 struct bt_value *bt_value_integer_unsigned_create_init(uint64_t val)
 {
 	BT_ASSERT_PRE_NO_ERROR();
@@ -627,6 +631,7 @@ struct bt_value *bt_value_integer_unsigned_create_init(uint64_t val)
 		val);
 }
 
+BT_EXPORT
 struct bt_value *bt_value_integer_unsigned_create(void)
 {
 	BT_ASSERT_PRE_NO_ERROR();
@@ -634,6 +639,7 @@ struct bt_value *bt_value_integer_unsigned_create(void)
 	return bt_value_integer_unsigned_create_init(0);
 }
 
+BT_EXPORT
 struct bt_value *bt_value_integer_signed_create_init(int64_t val)
 {
 	BT_ASSERT_PRE_NO_ERROR();
@@ -642,6 +648,7 @@ struct bt_value *bt_value_integer_signed_create_init(int64_t val)
 		(uint64_t) val);
 }
 
+BT_EXPORT
 struct bt_value *bt_value_integer_signed_create(void)
 {
 	BT_ASSERT_PRE_NO_ERROR();
@@ -649,6 +656,7 @@ struct bt_value *bt_value_integer_signed_create(void)
 	return bt_value_integer_signed_create_init(0);
 }
 
+BT_EXPORT
 struct bt_value *bt_value_real_create_init(double val)
 {
 	struct bt_value_real *real_obj;
@@ -672,6 +680,7 @@ end:
 	return (void *) real_obj;
 }
 
+BT_EXPORT
 struct bt_value *bt_value_real_create(void)
 {
 	BT_ASSERT_PRE_NO_ERROR();
@@ -679,6 +688,7 @@ struct bt_value *bt_value_real_create(void)
 	return bt_value_real_create_init(0.);
 }
 
+BT_EXPORT
 struct bt_value *bt_value_string_create_init(const char *val)
 {
 	struct bt_value_string *string_obj = NULL;
@@ -711,6 +721,7 @@ end:
 	return (void *) string_obj;
 }
 
+BT_EXPORT
 struct bt_value *bt_value_string_create(void)
 {
 	BT_ASSERT_PRE_NO_ERROR();
@@ -718,6 +729,7 @@ struct bt_value *bt_value_string_create(void)
 	return bt_value_string_create_init("");
 }
 
+BT_EXPORT
 struct bt_value *bt_value_array_create(void)
 {
 	struct bt_value_array *array_obj;
@@ -749,6 +761,7 @@ end:
 	return (void *) array_obj;
 }
 
+BT_EXPORT
 struct bt_value *bt_value_map_create(void)
 {
 	struct bt_value_map *map_obj;
@@ -779,6 +792,7 @@ end:
 	return (void *) map_obj;
 }
 
+BT_EXPORT
 bt_bool bt_value_bool_get(const struct bt_value *bool_obj)
 {
 	BT_ASSERT_PRE_DEV_VALUE_NON_NULL(bool_obj);
@@ -786,6 +800,7 @@ bt_bool bt_value_bool_get(const struct bt_value *bool_obj)
 	return BT_VALUE_TO_BOOL(bool_obj)->value;
 }
 
+BT_EXPORT
 void bt_value_bool_set(struct bt_value *bool_obj, bt_bool val)
 {
 	BT_ASSERT_PRE_VALUE_NON_NULL(bool_obj);
@@ -795,6 +810,7 @@ void bt_value_bool_set(struct bt_value *bool_obj, bt_bool val)
 		bool_obj, val);
 }
 
+BT_EXPORT
 uint64_t bt_value_integer_unsigned_get(const struct bt_value *integer_obj)
 {
 	BT_ASSERT_PRE_DEV_VALUE_NON_NULL(integer_obj);
@@ -802,6 +818,7 @@ uint64_t bt_value_integer_unsigned_get(const struct bt_value *integer_obj)
 	return BT_VALUE_TO_INTEGER(integer_obj)->value.u;
 }
 
+BT_EXPORT
 int64_t bt_value_integer_signed_get(const struct bt_value *integer_obj)
 {
 	BT_ASSERT_PRE_DEV_VALUE_NON_NULL(integer_obj);
@@ -818,6 +835,7 @@ void set_integer_value(struct bt_value *integer_obj,
 	BT_VALUE_TO_INTEGER(integer_obj)->value.u = uval;
 }
 
+BT_EXPORT
 void bt_value_integer_unsigned_set(struct bt_value *integer_obj,
 		uint64_t val)
 {
@@ -829,6 +847,7 @@ void bt_value_integer_unsigned_set(struct bt_value *integer_obj,
 		"value-addr=%p, value=%" PRIu64, integer_obj, val);
 }
 
+BT_EXPORT
 void bt_value_integer_signed_set(struct bt_value *integer_obj,
 		int64_t val)
 {
@@ -840,6 +859,7 @@ void bt_value_integer_signed_set(struct bt_value *integer_obj,
 		"value-addr=%p, value=%" PRId64, integer_obj, val);
 }
 
+BT_EXPORT
 double bt_value_real_get(const struct bt_value *real_obj)
 {
 	BT_ASSERT_PRE_DEV_VALUE_NON_NULL(real_obj);
@@ -847,6 +867,7 @@ double bt_value_real_get(const struct bt_value *real_obj)
 	return BT_VALUE_TO_REAL(real_obj)->value;
 }
 
+BT_EXPORT
 void bt_value_real_set(struct bt_value *real_obj, double val)
 {
 	BT_ASSERT_PRE_VALUE_NON_NULL(real_obj);
@@ -857,6 +878,7 @@ void bt_value_real_set(struct bt_value *real_obj, double val)
 		real_obj, val);
 }
 
+BT_EXPORT
 const char *bt_value_string_get(const struct bt_value *string_obj)
 {
 	BT_ASSERT_PRE_DEV_VALUE_NON_NULL(string_obj);
@@ -864,6 +886,7 @@ const char *bt_value_string_get(const struct bt_value *string_obj)
 	return BT_VALUE_TO_STRING(string_obj)->gstr->str;
 }
 
+BT_EXPORT
 enum bt_value_string_set_status bt_value_string_set(
 		struct bt_value *string_obj, const char *val)
 {
@@ -877,6 +900,7 @@ enum bt_value_string_set_status bt_value_string_set(
 	return BT_FUNC_STATUS_OK;
 }
 
+BT_EXPORT
 uint64_t bt_value_array_get_length(const struct bt_value *array_obj)
 {
 	BT_ASSERT_PRE_DEV_VALUE_NON_NULL(array_obj);
@@ -884,6 +908,7 @@ uint64_t bt_value_array_get_length(const struct bt_value *array_obj)
 	return (uint64_t) BT_VALUE_TO_ARRAY(array_obj)->garray->len;
 }
 
+BT_EXPORT
 struct bt_value *bt_value_array_borrow_element_by_index(
 		struct bt_value *array_obj, uint64_t index)
 {
@@ -896,6 +921,7 @@ struct bt_value *bt_value_array_borrow_element_by_index(
 	return g_ptr_array_index(typed_array_obj->garray, index);
 }
 
+BT_EXPORT
 const struct bt_value *bt_value_array_borrow_element_by_index_const(
 		const struct bt_value *array_obj,
 		uint64_t index)
@@ -928,6 +954,7 @@ enum bt_value_array_append_element_status append_array_element(
 	return BT_FUNC_STATUS_OK;
 }
 
+BT_EXPORT
 enum bt_value_array_append_element_status bt_value_array_append_element(
 		struct bt_value *array_obj,
 		struct bt_value *element_obj)
@@ -935,6 +962,7 @@ enum bt_value_array_append_element_status bt_value_array_append_element(
 	return append_array_element(array_obj, element_obj, __func__);
 }
 
+BT_EXPORT
 enum bt_value_array_append_element_status
 bt_value_array_append_bool_element(struct bt_value *array_obj, bt_bool val)
 {
@@ -950,6 +978,7 @@ bt_value_array_append_bool_element(struct bt_value *array_obj, bt_bool val)
 	return ret;
 }
 
+BT_EXPORT
 enum bt_value_array_append_element_status
 bt_value_array_append_unsigned_integer_element(struct bt_value *array_obj,
 		uint64_t val)
@@ -966,6 +995,7 @@ bt_value_array_append_unsigned_integer_element(struct bt_value *array_obj,
 	return ret;
 }
 
+BT_EXPORT
 enum bt_value_array_append_element_status
 bt_value_array_append_signed_integer_element(struct bt_value *array_obj,
 		int64_t val)
@@ -982,6 +1012,7 @@ bt_value_array_append_signed_integer_element(struct bt_value *array_obj,
 	return ret;
 }
 
+BT_EXPORT
 enum bt_value_array_append_element_status
 bt_value_array_append_real_element(struct bt_value *array_obj, double val)
 {
@@ -997,6 +1028,7 @@ bt_value_array_append_real_element(struct bt_value *array_obj, double val)
 	return ret;
 }
 
+BT_EXPORT
 enum bt_value_array_append_element_status
 bt_value_array_append_string_element(struct bt_value *array_obj,
 		const char *val)
@@ -1013,6 +1045,7 @@ bt_value_array_append_string_element(struct bt_value *array_obj,
 	return ret;
 }
 
+BT_EXPORT
 enum bt_value_array_append_element_status
 bt_value_array_append_empty_array_element(struct bt_value *array_obj,
 		struct bt_value **element_obj)
@@ -1034,6 +1067,7 @@ bt_value_array_append_empty_array_element(struct bt_value *array_obj,
 	return ret;
 }
 
+BT_EXPORT
 enum bt_value_array_append_element_status
 bt_value_array_append_empty_map_element(struct bt_value *array_obj,
 		struct bt_value **element_obj)
@@ -1055,6 +1089,7 @@ bt_value_array_append_empty_map_element(struct bt_value *array_obj,
 	return ret;
 }
 
+BT_EXPORT
 enum bt_value_array_set_element_by_index_status
 bt_value_array_set_element_by_index(struct bt_value *array_obj, uint64_t index,
 		struct bt_value *element_obj)
@@ -1079,6 +1114,7 @@ bt_value_array_set_element_by_index(struct bt_value *array_obj, uint64_t index,
 	return BT_FUNC_STATUS_OK;
 }
 
+BT_EXPORT
 uint64_t bt_value_map_get_size(const struct bt_value *map_obj)
 {
 	BT_ASSERT_PRE_DEV_VALUE_NON_NULL(map_obj);
@@ -1086,6 +1122,7 @@ uint64_t bt_value_map_get_size(const struct bt_value *map_obj)
 	return (uint64_t) g_hash_table_size(BT_VALUE_TO_MAP(map_obj)->ght);
 }
 
+BT_EXPORT
 struct bt_value *bt_value_map_borrow_entry_value(struct bt_value *map_obj,
 		const char *key)
 {
@@ -1096,12 +1133,14 @@ struct bt_value *bt_value_map_borrow_entry_value(struct bt_value *map_obj,
 		GUINT_TO_POINTER(g_quark_from_string(key)));
 }
 
+BT_EXPORT
 const struct bt_value *bt_value_map_borrow_entry_value_const(
 		const struct bt_value *map_obj, const char *key)
 {
 	return bt_value_map_borrow_entry_value((void *) map_obj, key);
 }
 
+BT_EXPORT
 bt_bool bt_value_map_has_entry(const struct bt_value *map_obj, const char *key)
 {
 	BT_ASSERT_PRE_DEV_VALUE_NON_NULL(map_obj);
@@ -1134,6 +1173,7 @@ enum bt_value_map_insert_entry_status insert_map_value_entry(
 	return BT_FUNC_STATUS_OK;
 }
 
+BT_EXPORT
 enum bt_value_map_insert_entry_status bt_value_map_insert_entry(
 		struct bt_value *map_obj, const char *key,
 		struct bt_value *element_obj)
@@ -1141,6 +1181,7 @@ enum bt_value_map_insert_entry_status bt_value_map_insert_entry(
 	return insert_map_value_entry(map_obj, key, element_obj, __func__);
 }
 
+BT_EXPORT
 enum bt_value_map_insert_entry_status bt_value_map_insert_bool_entry(
 		struct bt_value *map_obj, const char *key, bt_bool val)
 {
@@ -1156,6 +1197,7 @@ enum bt_value_map_insert_entry_status bt_value_map_insert_bool_entry(
 	return ret;
 }
 
+BT_EXPORT
 enum bt_value_map_insert_entry_status
 bt_value_map_insert_unsigned_integer_entry(struct bt_value *map_obj,
 		const char *key, uint64_t val)
@@ -1172,6 +1214,7 @@ bt_value_map_insert_unsigned_integer_entry(struct bt_value *map_obj,
 	return ret;
 }
 
+BT_EXPORT
 enum bt_value_map_insert_entry_status
 bt_value_map_insert_signed_integer_entry(struct bt_value *map_obj,
 		const char *key, int64_t val)
@@ -1188,6 +1231,7 @@ bt_value_map_insert_signed_integer_entry(struct bt_value *map_obj,
 	return ret;
 }
 
+BT_EXPORT
 enum bt_value_map_insert_entry_status bt_value_map_insert_real_entry(
 		struct bt_value *map_obj, const char *key, double val)
 {
@@ -1203,6 +1247,7 @@ enum bt_value_map_insert_entry_status bt_value_map_insert_real_entry(
 	return ret;
 }
 
+BT_EXPORT
 enum bt_value_map_insert_entry_status bt_value_map_insert_string_entry(
 		struct bt_value *map_obj, const char *key,
 		const char *val)
@@ -1219,6 +1264,7 @@ enum bt_value_map_insert_entry_status bt_value_map_insert_string_entry(
 	return ret;
 }
 
+BT_EXPORT
 enum bt_value_map_insert_entry_status
 bt_value_map_insert_empty_array_entry(
 		struct bt_value *map_obj, const char *key,
@@ -1241,6 +1287,7 @@ bt_value_map_insert_empty_array_entry(
 	return ret;
 }
 
+BT_EXPORT
 enum bt_value_map_insert_entry_status
 bt_value_map_insert_empty_map_entry(struct bt_value *map_obj, const char *key,
 		bt_value **entry_obj)
@@ -1321,6 +1368,7 @@ enum bt_value_map_foreach_entry_status foreach_map_entry(
 	return status;
 }
 
+BT_EXPORT
 enum bt_value_map_foreach_entry_status bt_value_map_foreach_entry(
 		struct bt_value *map_obj, bt_value_map_foreach_entry_func func,
 		void *data)
@@ -1329,6 +1377,7 @@ enum bt_value_map_foreach_entry_status bt_value_map_foreach_entry(
 		"bt_value_map_foreach_entry_func");
 }
 
+BT_EXPORT
 enum bt_value_map_foreach_entry_const_status bt_value_map_foreach_entry_const(
 		const struct bt_value *map_obj,
 		bt_value_map_foreach_entry_const_func func, void *data)
@@ -1384,6 +1433,7 @@ end:
 	return status;
 }
 
+BT_EXPORT
 enum bt_value_map_extend_status bt_value_map_extend(
 		struct bt_value *base_map_obj,
 		const struct bt_value *extension_obj)
@@ -1423,6 +1473,7 @@ enum bt_value_map_extend_status bt_value_map_extend(
 	return status;
 }
 
+BT_EXPORT
 enum bt_value_copy_status bt_value_copy(const struct bt_value *object,
 		struct bt_value **copy_obj)
 {
@@ -1446,6 +1497,7 @@ enum bt_value_copy_status bt_value_copy(const struct bt_value *object,
 	return status;
 }
 
+BT_EXPORT
 bt_bool bt_value_is_equal(const struct bt_value *object_a,
 	const struct bt_value *object_b)
 {
@@ -1472,11 +1524,13 @@ end:
 	return ret;
 }
 
+BT_EXPORT
 void bt_value_get_ref(const struct bt_value *value)
 {
 	bt_object_get_ref(value);
 }
 
+BT_EXPORT
 void bt_value_put_ref(const struct bt_value *value)
 {
 	bt_object_put_ref(value);

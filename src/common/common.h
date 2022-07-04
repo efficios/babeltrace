@@ -113,14 +113,12 @@ struct bt_common_lttng_live_url_parts {
  * Checks if the current process has setuid or setgid access rights.
  * Returns `true` if so.
  */
-BT_HIDDEN
 bool bt_common_is_setuid_setgid(void);
 
 /*
  * Returns the system-wide plugin path, e.g.
  * `/usr/lib/babeltrace2/plugins`. Do not free the return value.
  */
-BT_HIDDEN
 const char *bt_common_get_system_plugin_path(void);
 
 /*
@@ -128,7 +126,6 @@ const char *bt_common_get_system_plugin_path(void);
  * `/home/user/.local/lib/babeltrace2/plugins`. You need to free the
  * return value.
  */
-BT_HIDDEN
 char *bt_common_get_home_plugin_path(int log_level);
 
 /*
@@ -136,92 +133,64 @@ char *bt_common_get_home_plugin_path(int log_level);
  * `paths` is a list of directories separated by `:`. Returns 0 on
  * success.
  */
-BT_HIDDEN
 int bt_common_append_plugin_path_dirs(const char *paths, GPtrArray *dirs);
 
 /*
  * Returns `true` if terminal color codes are supported for this
  * process.
  */
-BT_HIDDEN
 bool bt_common_colors_supported(void);
 
-BT_HIDDEN
 const char *bt_common_color_reset(void);
 
-BT_HIDDEN
 const char *bt_common_color_bold(void);
 
-BT_HIDDEN
 const char *bt_common_color_fg_default(void);
 
-BT_HIDDEN
 const char *bt_common_color_fg_red(void);
 
-BT_HIDDEN
 const char *bt_common_color_fg_green(void);
 
-BT_HIDDEN
 const char *bt_common_color_fg_yellow(void);
 
-BT_HIDDEN
 const char *bt_common_color_fg_blue(void);
 
-BT_HIDDEN
 const char *bt_common_color_fg_magenta(void);
 
-BT_HIDDEN
 const char *bt_common_color_fg_cyan(void);
 
-BT_HIDDEN
 const char *bt_common_color_fg_light_gray(void);
 
-BT_HIDDEN
 const char *bt_common_color_fg_bright_red(void);
 
-BT_HIDDEN
 const char *bt_common_color_fg_bright_green(void);
 
-BT_HIDDEN
 const char *bt_common_color_fg_bright_yellow(void);
 
-BT_HIDDEN
 const char *bt_common_color_fg_bright_blue(void);
 
-BT_HIDDEN
 const char *bt_common_color_fg_bright_magenta(void);
 
-BT_HIDDEN
 const char *bt_common_color_fg_bright_cyan(void);
 
-BT_HIDDEN
 const char *bt_common_color_fg_bright_light_gray(void);
 
-BT_HIDDEN
 const char *bt_common_color_bg_default(void);
 
-BT_HIDDEN
 const char *bt_common_color_bg_red(void);
 
-BT_HIDDEN
 const char *bt_common_color_bg_green(void);
 
-BT_HIDDEN
 const char *bt_common_color_bg_yellow(void);
 
-BT_HIDDEN
 const char *bt_common_color_bg_blue(void);
 
-BT_HIDDEN
 const char *bt_common_color_bg_magenta(void);
 
-BT_HIDDEN
 const char *bt_common_color_bg_cyan(void);
 
-BT_HIDDEN
 const char *bt_common_color_bg_light_gray(void);
 
-BT_HIDDEN
 void bt_common_color_get_codes(struct bt_common_color_codes *codes,
 		enum bt_common_color_when use_colors);
 
@@ -231,7 +200,6 @@ void bt_common_color_get_codes(struct bt_common_color_codes *codes,
  * found in `escapable_chars`, and sets `*end_pos` to the position of
  * the end (from `input`). The caller owns the returned GString.
  */
-BT_HIDDEN
 GString *bt_common_string_until(const char *input, const char *escapable_chars,
                     const char *end_chars, size_t *end_pos);
 
@@ -242,21 +210,18 @@ GString *bt_common_string_until(const char *input, const char *escapable_chars,
  * prepend and append them manually, although they are not always
  * required. The caller owns the returned GString.
  */
-BT_HIDDEN
 GString *bt_common_shell_quote(const char *input, bool with_single_quotes);
 
 /*
  * Returns `true` if `input` is a string made only of printable
  * characters.
  */
-BT_HIDDEN
 bool bt_common_string_is_printable(const char *input);
 
 /*
  * Destroys the parts of an LTTng live URL as returned by
  * bt_common_parse_lttng_live_url().
  */
-BT_HIDDEN
 void bt_common_destroy_lttng_live_url_parts(
 		struct bt_common_lttng_live_url_parts *parts);
 
@@ -266,7 +231,6 @@ void bt_common_destroy_lttng_live_url_parts(
  * up to `error_buf_size` bytes. You must destroy the returned value
  * with bt_common_destroy_lttng_live_url_parts().
  */
-BT_HIDDEN
 struct bt_common_lttng_live_url_parts bt_common_parse_lttng_live_url(
 		const char *url, char *error_buf, size_t error_buf_size);
 
@@ -274,14 +238,12 @@ struct bt_common_lttng_live_url_parts bt_common_parse_lttng_live_url(
  * Normalizes (in place) a star globbing pattern to be used with
  * bt_common_star_glob_match(). This function always succeeds.
  */
-BT_HIDDEN
 void bt_common_normalize_star_glob_pattern(char *pattern);
 
 /*
  * Returns `true` if `candidate` (of size `candidate_len`) matches
  * the star globbing pattern `pattern` (of size `pattern_len`).
  */
-BT_HIDDEN
 bool bt_common_star_glob_match(const char *pattern, size_t pattern_len,
                 const char *candidate, size_t candidate_len);
 
@@ -297,7 +259,6 @@ bool bt_common_star_glob_match(const char *pattern, size_t pattern_len,
  *
  * The caller owns the returned GString.
  */
-BT_HIDDEN
 GString *bt_common_normalize_path(const char *path, const char *wd);
 
 typedef void (* bt_common_handle_custom_specifier_func)(void *priv_data,
@@ -352,7 +313,6 @@ typedef void (* bt_common_handle_custom_specifier_func)(void *priv_data,
  * do not return error codes: they abort when there's any error (bad
  * format string, for example).
  */
-BT_HIDDEN
 void bt_common_custom_vsnprintf(char *buf, size_t buf_size,
 		char intro,
 		bt_common_handle_custom_specifier_func handle_specifier,
@@ -361,7 +321,6 @@ void bt_common_custom_vsnprintf(char *buf, size_t buf_size,
 /*
  * Variadic form of bt_common_custom_vsnprintf().
  */
-BT_HIDDEN
 void bt_common_custom_snprintf(char *buf, size_t buf_size,
 		char intro,
 		bt_common_handle_custom_specifier_func handle_specifier,
@@ -370,7 +329,6 @@ void bt_common_custom_snprintf(char *buf, size_t buf_size,
 /*
  * Returns the system page size.
  */
-BT_HIDDEN
 size_t bt_common_get_page_size(int log_level);
 
 /*
@@ -386,7 +344,6 @@ size_t bt_common_get_page_size(int log_level);
  * `strlen(str)` must not be 0. `digits_per_group` must not be 0. `sep`
  * must not be `\0`.
  */
-BT_HIDDEN
 void bt_common_sep_digits(char *str, unsigned int digits_per_group, char sep);
 
 /*
@@ -402,7 +359,6 @@ void bt_common_sep_digits(char *str, unsigned int digits_per_group, char sep);
  *
  * The returned string, on success, is owned by the caller.
  */
-BT_HIDDEN
 GString *bt_common_fold(const char *str, unsigned int total_length,
 		unsigned int indent);
 
@@ -410,7 +366,6 @@ GString *bt_common_fold(const char *str, unsigned int total_length,
  * Writes the terminal's width to `*width`, its height to `*height`,
  * and returns 0 on success, or returns -1 on error.
  */
-BT_HIDDEN
 int bt_common_get_term_size(unsigned int *width, unsigned int *height);
 
 /*
@@ -419,10 +374,8 @@ int bt_common_get_term_size(unsigned int *width, unsigned int *height);
  *
  * This function does NOT rewind `fp` once it's done or on error.
  */
-BT_HIDDEN
 int bt_common_append_file_content_to_g_string(GString *str, FILE *fp);
 
-BT_HIDDEN
 void bt_common_abort(void) __attribute__((noreturn));
 
 /*
@@ -839,7 +792,7 @@ end:
  * bt_g_string_append_printf cannot be inlined because it expects a
  * variadic argument list.
  */
-BT_HIDDEN __BT_ATTR_FORMAT_PRINTF(2, 3)
+__BT_ATTR_FORMAT_PRINTF(2, 3)
 int bt_common_g_string_append_printf(GString *str, const char *fmt, ...);
 
 static inline
