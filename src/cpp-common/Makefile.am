@@ -10,4 +10,5 @@ EXTRA_DIST = bt2 \
 	log-cfg.hpp \
 	nlohmann/json.hpp \
 	optional.hpp \
-	string_view.hpp
+	string_view.hpp \
+	uuid-view.hpp
