@@ -579,6 +579,7 @@ auto_source_discovery_internal_status auto_discover_source_for_input_as_dir_or_f
 {
 	auto_source_discovery_internal_status status;
 	GError *error = NULL;
+	GDir *dir = NULL;
 
 	if (g_file_test(input->str, G_FILE_TEST_IS_REGULAR)) {
 		/* It's a file. */
@@ -587,7 +588,6 @@ auto_source_discovery_internal_status auto_discover_source_for_input_as_dir_or_f
 			component_class_restrict, log_level, auto_disc,
 			interrupter);
 	} else if (g_file_test(input->str, G_FILE_TEST_IS_DIR)) {
-		GDir *dir;
 		const gchar *dirent;
 		gsize saved_input_len;
 		int dir_status = AUTO_SOURCE_DISCOVERY_INTERNAL_STATUS_NO_MATCH;
@@ -658,8 +658,6 @@ auto_source_discovery_internal_status auto_discover_source_for_input_as_dir_or_f
 		} while (dirent);
 
 		status = dir_status;
-
-		g_dir_close(dir);
 	} else {
 		BT_LOGD("Skipping %s, not a file or directory", input->str);
 		status = AUTO_SOURCE_DISCOVERY_INTERNAL_STATUS_NO_MATCH;
@@ -671,6 +669,9 @@ error:
 	status = AUTO_SOURCE_DISCOVERY_INTERNAL_STATUS_ERROR;
 
 end:
+	if (dir) {
+		g_dir_close(dir);
+	}
 
 	if (error) {
 		g_error_free(error);
