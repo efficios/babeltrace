@@ -7,7 +7,7 @@
 
 # Test the auto source disovery mechanism of the CLI.
 
-if [ "x${BT_TESTS_SRCDIR:-}" != "x" ]; then
+if [ -n "${BT_TESTS_SRCDIR:-}" ]; then
 	UTILSSH="$BT_TESTS_SRCDIR/utils/utils.sh"
 else
 	UTILSSH="$(dirname "$0")/../../utils/utils.sh"

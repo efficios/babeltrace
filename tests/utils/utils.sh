@@ -25,7 +25,7 @@ fi
 # We do a bit of translation to ease our life down the road for comparison.
 # Export it so that called executables can use it.
 # [1] https://en.wikipedia.org/wiki/Uname#Examples
-if [ "x${BT_TESTS_OS_TYPE:-}" = "x" ]; then
+if [ -z "${BT_TESTS_OS_TYPE:-}" ]; then
 	BT_TESTS_OS_TYPE="$(uname -s)"
 	case "$BT_TESTS_OS_TYPE" in
 	MINGW*)
@@ -48,12 +48,12 @@ fi
 export BT_TESTS_OS_TYPE
 
 # Allow overriding the source and build directories
-if [ "x${BT_TESTS_SRCDIR:-}" = "x" ]; then
+if [ -z "${BT_TESTS_SRCDIR:-}" ]; then
 	BT_TESTS_SRCDIR="$testsdir"
 fi
 export BT_TESTS_SRCDIR
 
-if [ "x${BT_TESTS_BUILDDIR:-}" = "x" ]; then
+if [ -z "${BT_TESTS_BUILDDIR:-}" ]; then
 	BT_TESTS_BUILDDIR="$testsdir"
 fi
 export BT_TESTS_BUILDDIR
@@ -66,7 +66,7 @@ if [ -f "${BT_TESTS_BUILDDIR}/utils/env.sh" ]; then
 fi
 
 # Allow overriding the babeltrace2 executables
-if [ "x${BT_TESTS_BT2_BIN:-}" = "x" ]; then
+if [ -z "${BT_TESTS_BT2_BIN:-}" ]; then
 	BT_TESTS_BT2_BIN="$BT_TESTS_BUILDDIR/../src/cli/babeltrace2"
 	if [ "$BT_TESTS_OS_TYPE" = "mingw" ]; then
 		BT_TESTS_BT2_BIN="${BT_TESTS_BT2_BIN}.exe"
@@ -78,50 +78,50 @@ export BT_TESTS_BT2_BIN
 BT_PLUGINS_PATH="${BT_TESTS_BUILDDIR}/../src/plugins"
 
 # Allow overriding the babeltrace2 plugin path
-if [ "x${BT_TESTS_BABELTRACE_PLUGIN_PATH:-}" = "x" ]; then
+if [ -z "${BT_TESTS_BABELTRACE_PLUGIN_PATH:-}" ]; then
 	BT_TESTS_BABELTRACE_PLUGIN_PATH="${BT_PLUGINS_PATH}/ctf:${BT_PLUGINS_PATH}/utils:${BT_PLUGINS_PATH}/text:${BT_PLUGINS_PATH}/lttng-utils"
 fi
 export BT_TESTS_BABELTRACE_PLUGIN_PATH
 
-if [ "x${BT_TESTS_PROVIDER_DIR:-}" = "x" ]; then
+if [ -z "${BT_TESTS_PROVIDER_DIR:-}" ]; then
 	BT_TESTS_PROVIDER_DIR="${BT_TESTS_BUILDDIR}/../src/python-plugin-provider/.libs"
 fi
 export BT_TESTS_PROVIDER_DIR
 
 # Allow overriding the babeltrace2 executables
-if [ "x${BT_TESTS_PYTHONPATH:-}" = "x" ]; then
+if [ -z "${BT_TESTS_PYTHONPATH:-}" ]; then
 	BT_TESTS_PYTHONPATH="${BT_TESTS_BUILDDIR}/../src/bindings/python/bt2/build/build_lib"
 fi
 export BT_TESTS_PYTHONPATH
 
 
 ### External Tools ###
-if [ "x${BT_TESTS_AWK_BIN:-}" = "x" ]; then
+if [ -z "${BT_TESTS_AWK_BIN:-}" ]; then
 	BT_TESTS_AWK_BIN="awk"
 fi
 export BT_TESTS_AWK_BIN
 
-if [ "x${BT_TESTS_GREP_BIN:-}" = "x" ]; then
+if [ -z "${BT_TESTS_GREP_BIN:-}" ]; then
 	BT_TESTS_GREP_BIN="grep"
 fi
 export BT_TESTS_GREP_BIN
 
-if [ "x${BT_TESTS_PYTHON_BIN:-}" = "x" ]; then
+if [ -z "${BT_TESTS_PYTHON_BIN:-}" ]; then
 	BT_TESTS_PYTHON_BIN="python3"
 fi
 export BT_TESTS_PYTHON_BIN
 
-if [ "x${BT_TESTS_PYTHON_CONFIG_BIN:-}" = "x" ]; then
+if [ -z "${BT_TESTS_PYTHON_CONFIG_BIN:-}" ]; then
 	BT_TESTS_PYTHON_CONFIG_BIN="python3-config"
 fi
 export BT_TESTS_PYTHON_CONFIG_BIN
 
-if [ "x${BT_TESTS_SED_BIN:-}" = "x" ]; then
+if [ -z "${BT_TESTS_SED_BIN:-}" ]; then
 	BT_TESTS_SED_BIN="sed"
 fi
 export BT_TESTS_SED_BIN
 
-if [ "x${BT_TESTS_CC_BIN:-}" = "x" ]; then
+if [ -z "${BT_TESTS_CC_BIN:-}" ]; then
 	BT_TESTS_CC_BIN="cc"
 fi
 export BT_TESTS_CC_BIN
@@ -129,7 +129,7 @@ export BT_TESTS_CC_BIN
 
 ### Optional features ###
 
-if [ "x${BT_TESTS_ENABLE_ASAN:-}" = "x" ]; then
+if [ -z "${BT_TESTS_ENABLE_ASAN:-}" ]; then
 	BT_TESTS_ENABLE_ASAN="0"
 fi
 export BT_TESTS_ENABLE_ASAN
@@ -142,7 +142,7 @@ BT_CTF_TRACES_PATH="${BT_TESTS_DATADIR}/ctf-traces"
 # By default, it will not source tap.sh.  If you want to output tap directly
 # from the test script, define the 'SH_TAP' variable to '1' before sourcing
 # this script.
-if [ "x${SH_TAP:-}" = x1 ]; then
+if [ "${SH_TAP:-}" = 1 ]; then
 	# shellcheck source=./tap/tap.sh
 	. "${BT_TESTS_SRCDIR}/utils/tap/tap.sh"
 fi
@@ -343,7 +343,7 @@ run_python_bt2() {
 	# leaks, so we must unfortunately disable leak detection.  Append it to
 	# existing ASAN_OPTIONS, such that we override the user's value if it
 	# contains detect_leaks=1.
-	if [ "x${BT_TESTS_ENABLE_ASAN:-}" = "x1" ]; then
+	if [ "${BT_TESTS_ENABLE_ASAN:-}" = "1" ]; then
 		lib_asan=$(${BT_TESTS_CC_BIN} -print-file-name=libasan.so)
 
 		env_args+=("LD_PRELOAD=${lib_asan}:${LD_PRELOAD:-}")
@@ -365,11 +365,11 @@ run_python_bt2_test() {
 	local test_runner_args=()
 
 	test_runner_args+=("$test_dir")
-	if [ "x${test_pattern}" != "x" ]; then
+	if [ -n "${test_pattern}" ]; then
 		test_runner_args+=("${test_pattern}")
 	fi
 
-	if test "x${BT_TESTS_COVERAGE:-}" = "x1"; then
+	if test "${BT_TESTS_COVERAGE:-}" = "1"; then
 		python_exec="check_coverage"
 	else
 		python_exec="${BT_TESTS_PYTHON_BIN}"
@@ -383,11 +383,11 @@ run_python_bt2_test() {
 
 	ret=$?
 
-	if test "x${BT_TESTS_COVERAGE_REPORT:-}" = "x1"; then
+	if test "${BT_TESTS_COVERAGE_REPORT:-}" = "1"; then
 		coverage report -m
 	fi
 
-	if test "x${BT_TESTS_COVERAGE_HTML:-}" = "x1"; then
+	if test "${BT_TESTS_COVERAGE_HTML:-}" = "1"; then
 		coverage html
 	fi
 
