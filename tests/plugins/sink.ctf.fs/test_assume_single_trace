@@ -38,7 +38,7 @@ ok "$?" "run sink.ctf.fs with assume-single-trace=true"
 
 # Check stdout.
 if [ "$BT_TESTS_OS_TYPE" = "mingw" ]; then
-	echo "Created CTF trace \`$(cygpath -m ${trace_dir})\`." > "$temp_expected_stdout"
+	echo "Created CTF trace \`$(cygpath -m "${trace_dir}")\`." > "$temp_expected_stdout"
 else
 	echo "Created CTF trace \`${trace_dir}\`." > "$temp_expected_stdout"
 fi

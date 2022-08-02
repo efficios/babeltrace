@@ -40,7 +40,8 @@ ok "$?" "run babeltrace"
 
 # Check stdout.
 if [ "$BT_TESTS_OS_TYPE" = "mingw" ]; then
-	echo "Created CTF trace \`$(cygpath -m ${temp_output_dir})\\trace\`." > "$temp_expected_stdout"
+	# shellcheck disable=SC2028
+	echo "Created CTF trace \`$(cygpath -m "${temp_output_dir}")\\trace\`." > "$temp_expected_stdout"
 else
 	echo "Created CTF trace \`${trace_dir}\`." > "$temp_expected_stdout"
 fi
