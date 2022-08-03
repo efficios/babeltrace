@@ -8,6 +8,7 @@ EXTRA_DIST = bt2 \
 	cfg-logging.hpp \
 	exc.hpp \
 	log-cfg.hpp \
+	lib-str.hpp \
 	nlohmann/json.hpp \
 	optional.hpp \
 	string_view.hpp \
