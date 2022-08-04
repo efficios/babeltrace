@@ -61,4 +61,15 @@
 		_ref;			\
 	})
 
+#if defined __clang__
+#  if __has_warning("-Wunused-but-set-variable")
+#    define BT_DIAG_IGNORE_UNUSED_BUT_SET_VARIABLE \
+	_Pragma("GCC diagnostic ignored \"-Wunused-but-set-variable\"")
+#  endif
+#endif
+
+#if !defined BT_DIAG_IGNORE_UNUSED_BUT_SET_VARIABLE
+#  define BT_DIAG_IGNORE_UNUSED_BUT_SET_VARIABLE
+#endif
+
 #endif

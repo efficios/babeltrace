@@ -46,6 +46,12 @@
 
 #include "parser-wrap.h"
 
+/*
+ * Avoid warning about "yynerrs" being unused, seen with bison 3.5.1 + clang 15
+ * on Ubuntu 20.04.
+ */
+BT_DIAG_IGNORE_UNUSED_BUT_SET_VARIABLE
+
 /* Join two lists, put "add" at the end of "head".  */
 static inline void
 _bt_list_splice_tail (struct bt_list_head *add, struct bt_list_head *head)
