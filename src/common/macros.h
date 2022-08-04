@@ -81,6 +81,17 @@ extern "C" {
 	((void) sizeof((void) (_expr1), (void) (_expr2),		\
 		(void) (_expr3), (void) (_expr4), (void) (_expr5), 0))
 
+#if defined __clang__
+#  if __has_warning("-Wunused-but-set-variable")
+#    define BT_DIAG_IGNORE_UNUSED_BUT_SET_VARIABLE \
+	_Pragma("GCC diagnostic ignored \"-Wunused-but-set-variable\"")
+#  endif
+#endif
+
+#if !defined BT_DIAG_IGNORE_UNUSED_BUT_SET_VARIABLE
+#  define BT_DIAG_IGNORE_UNUSED_BUT_SET_VARIABLE
+#endif
+
 #ifdef __cplusplus
 }
 #endif
