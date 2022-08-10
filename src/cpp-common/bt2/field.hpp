@@ -1418,7 +1418,7 @@ public:
 
     bool hasField() const noexcept
     {
-        return this->field();
+        return this->field().has_value();
     }
 
     nonstd::optional<ConstField> field() const noexcept
