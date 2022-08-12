@@ -10,6 +10,7 @@
 #ifdef __MINGW32__
 
 #include <sys/types.h>
+#include "common/macros.h"
 
 #define PROT_NONE	0x0
 #define PROT_READ	0x1
