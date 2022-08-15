@@ -26,49 +26,49 @@ session_rotation_trace_path = os.path.join(
 
 trace_10352_1 = os.path.join(
     session_rotation_trace_path,
-    'archives',
-    '20190826T155748-0400-20190826T155751-0400-1',
-    'ust',
-    'pid',
-    'hello-ust-10352-20190826-155748',
+    "a",
+    "1",
+    "ust",
+    "pid",
+    "10352",
 )
 trace_10353_1 = os.path.join(
     session_rotation_trace_path,
-    'archives',
-    '20190826T155748-0400-20190826T155751-0400-1',
-    'ust',
-    'pid',
-    'hello-ust-10353-20190826-155748',
+    "a",
+    "1",
+    "ust",
+    "pid",
+    "10353",
 )
 trace_10352_2 = os.path.join(
     session_rotation_trace_path,
-    'archives',
-    '20190826T155750-0400-20190826T155753-0400-2',
-    'ust',
-    'pid',
-    'hello-ust-10352-20190826-155748',
+    "a",
+    "2",
+    "ust",
+    "pid",
+    "10352",
 )
 trace_10353_2 = os.path.join(
     session_rotation_trace_path,
-    'archives',
-    '20190826T155750-0400-20190826T155753-0400-2',
-    'ust',
-    'pid',
-    'hello-ust-10353-20190826-155748',
+    "a",
+    "2",
+    "ust",
+    "pid",
+    "10353",
 )
 trace_10352_3 = os.path.join(
     session_rotation_trace_path,
-    '20190826T155753-0400-3',
-    'ust',
-    'pid',
-    'hello-ust-10352-20190826-155748',
+    "3",
+    "ust",
+    "pid",
+    "10352",
 )
 trace_10353_3 = os.path.join(
     session_rotation_trace_path,
-    '20190826T155753-0400-3',
-    'ust',
-    'pid',
-    'hello-ust-10353-20190826-155748',
+    "3",
+    "ust",
+    "pid",
+    "10353",
 )
 
 
