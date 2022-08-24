@@ -110,7 +110,7 @@ distill_message_iterator_initialize(
     /* Keep a link to the component's private data */
     distill_iter->distill = distill;
 
-    /* Create the uptream message iterator */
+    /* Create the upstream message iterator */
     bt_message_iterator_create_from_message_iterator(self_message_iterator,
         distill->in_port, &distill_iter->message_iterator);
 

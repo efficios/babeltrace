@@ -81,7 +81,7 @@ epitome_out_graph_is_configured(bt_self_component_sink *self_component_sink)
         bt_self_component_sink_borrow_input_port_by_index(
             self_component_sink, 0);
 
-    /* Create the uptream message iterator */
+    /* Create the upstream message iterator */
     bt_message_iterator_create_from_sink_component(self_component_sink,
         in_port, &epitome_out->message_iterator);
 
