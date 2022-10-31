@@ -21,13 +21,16 @@ AC_REQUIRE_AUX_FILE([tap-driver.sh])
 AC_USE_SYSTEM_EXTENSIONS
 AC_SYS_LARGEFILE
 AC_PROG_CC
-AC_PROG_CC_STDC
+# AC_PROG_CC_STDC was merged in AC_PROG_CC in autoconf 2.70
+m4_version_prereq([2.70], [], [AC_PROG_CC_STDC])
 
 # Checks for programs.
 AC_PROG_MAKE_SET
 LT_INIT
 AC_PROG_YACC
-AC_PROG_LEX
+# Prior to autoconf 2.70, AC_PROG_FLEX did not take an argument. This is not a
+# problem since the argument is silently ignored by older versions.
+AC_PROG_LEX([noyywrap])
 AC_PROG_MKDIR_P
 AC_PROG_LN_S
 
@@ -236,7 +239,7 @@ AC_CHECK_LIB([popt], [poptGetContext], [],
 swig_version=2.0.0
 
 AC_ARG_ENABLE([python-bindings],
-              [AC_HELP_STRING([--enable-python-bindings],
+              [AS_HELP_STRING([--enable-python-bindings],
                               [generate Python bindings])],
               [enable_python=yes], [enable_python=no])
 
@@ -276,8 +279,8 @@ AS_IF([test "x$DEFAULT_ENABLE_DEBUG_INFO" = xyes], [_enable_debug_info=yes], [_e
 # Do _not_ indent the help string below (appears in the configure --help
 # output).
 AC_ARG_ENABLE([debug-info],
-[AC_HELP_STRING([--enable-debug-info], [enable the debug info feature (default on Linux)])]
-[AC_HELP_STRING([--disable-debug-info], [disable the debug info feature (default on OS X and Solaris)])],
+[AS_HELP_STRING([--enable-debug-info], [enable the debug info feature (default on Linux)])]
+[AS_HELP_STRING([--disable-debug-info], [disable the debug info feature (default on OS X and Solaris)])],
 	[AS_IF([test "x$enableval" = xyes], [_enable_debug_info=yes], [_enable_debug_info=no])], [])
 
 AM_CONDITIONAL([ENABLE_DEBUG_INFO], [test "x$_enable_debug_info" = xyes])
