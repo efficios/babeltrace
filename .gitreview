@@ -1,0 +1,7 @@
+[gerrit]
+host=review.lttng.org
+port=29418
+project=babeltrace.git
+defaultbranch=stable-1.5
+defaultremote=review
+defaultrebase=0
