@@ -448,8 +448,17 @@ static int parse_options(int argc, char **argv)
 
 	do {
 		ipath = poptGetArg(pc);
-		if (ipath)
-			g_ptr_array_add(opt_input_paths, (gpointer) ipath);
+		if (ipath) {
+			gpointer ipath_copy = strdup(ipath);
+
+			if (!ipath_copy) {
+				perror("Failed to copy input path");
+				ret = -1;
+				goto end;
+			}
+
+			g_ptr_array_add(opt_input_paths, ipath_copy);
+		}
 	} while (ipath);
 	if (opt_input_paths->len == 0) {
 		ret = -EINVAL;
@@ -726,6 +735,12 @@ void call_plugins_hooks(void)
 	bt_ctf_metadata_hook();
 }
 
+static
+void free_ptr_array_element(gpointer ptr, gpointer user_data __attribute__((unused)))
+{
+	free(ptr);
+}
+
 int main(int argc, char **argv)
 {
 	int ret, partial_error = 0, open_success = 0;
@@ -880,6 +895,7 @@ end:
 	free(opt_output_path);
 	free(opt_debug_info_dir);
 	free(opt_debug_info_target_prefix);
+	g_ptr_array_foreach(opt_input_paths, free_ptr_array_element, NULL);
 	g_ptr_array_free(opt_input_paths, TRUE);
 	if (partial_error)
 		exit(EXIT_FAILURE);
