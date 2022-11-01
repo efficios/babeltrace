@@ -1,3 +1,9 @@
+2022-11-01 babeltrace 1.5.9 (National Calzone Day)
+	* port: disable debug-info by default on FreeBSD
+	* port: add missing includes for FreeBSD compat
+	* bindings: try importing collections.abc first for forward compatibility
+	* man: fix typo in babeltrace.1
+
 2020-02-05 babeltrace 1.5.8 (National Chocolate Fondue Day)
 	* Fix: lttng-live format: do not error out on empty streams hang up
 	* Fix: lttng-live: ctf_live_packet_seek stream hang up handling
