@@ -1,3 +1,5 @@
+2022-11-01 babeltrace 1.5.10 (National Calzone Day)
+
 2022-11-01 babeltrace 1.5.9 (National Calzone Day)
 	* port: disable debug-info by default on FreeBSD
 	* port: add missing includes for FreeBSD compat
