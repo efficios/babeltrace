@@ -1,3 +1,9 @@
+2022-11-02 babeltrace 1.5.11 (Broadcast Traffic Professionals Day)
+	* Fix: distutils removed in python 3.12
+	* Fix: use-after-free with popt 1.19
+	* configure.ac: Basic fixes for autoconf 2.70
+	* Add gerrit config for stable-1.5
+
 2022-11-01 babeltrace 1.5.10 (National Calzone Day)
 
 2022-11-01 babeltrace 1.5.9 (National Calzone Day)
