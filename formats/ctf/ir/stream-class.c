@@ -431,6 +431,20 @@ int bt_ctf_stream_class_add_event_class(
 	bt_object_set_parent(event_class, stream_class);
 
 	if (trace) {
+		if (stream_class->byte_order) {
+			/*
+			 * Set the effective byte order of all the event
+			 * class's field type now as we are about to
+			 * maybe replace some field types (with
+			 * bt_ctf_validation_replace_types()). This
+			 * allows the user to use the original field
+			 * type to create a field and still have the
+			 * correct effective byte order.
+			 */
+			bt_ctf_event_class_set_native_byte_order(event_class,
+				stream_class->byte_order);
+		}
+
 		/*
 		 * At this point we know that the function will be
 		 * successful. Therefore we can replace the event
