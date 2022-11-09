@@ -99,6 +99,14 @@ struct debug_info_source *debug_info_source_create_from_bin(struct bin_info *bin
 	struct debug_info_source *debug_info_src = NULL;
 	struct source_location *src_loc = NULL;
 
+	/*
+	 * If the build id of the binary or library does not match the one
+	 * recorded on the trace, return NULL.
+	 */
+	if (bin->build_id && !bin->file_build_id_matches) {
+		goto end;
+	}
+
 	debug_info_src = g_new0(struct debug_info_source, 1);
 
 	if (!debug_info_src) {
@@ -271,6 +279,14 @@ struct debug_info_source *proc_debug_info_sources_get_entry(
 	{
 		struct bin_info *bin = value;
 
+		/*
+		 * If the build ids in the trace and on the file don't match,
+		 * skip it.
+		 */
+		if (!bin->file_build_id_matches) {
+			continue;
+		}
+
 		if (!bin_info_has_address(value, ip)) {
 			continue;
 		}
@@ -379,7 +395,7 @@ void handle_statedump_build_id_event(struct debug_info *debug_info,
 	struct bt_definition *build_id_def = NULL;
 	struct definition_sequence *build_id_seq;
 	struct bin_info *bin = NULL;
-	int i;
+	int i, ret;
 	int64_t vpid;
 	uint64_t baddr;
 	uint8_t *build_id = NULL;
@@ -455,7 +471,11 @@ void handle_statedump_build_id_event(struct debug_info *debug_info,
 		goto end;
 	}
 
-	bin_info_set_build_id(bin, build_id, build_id_len);
+	ret = bin_info_set_build_id(bin, build_id, build_id_len);
+	if (ret) {
+		printf_verbose("Failed to set build id:  ret=%d", ret);
+		goto end;
+	}
 
 end:
 	free(build_id);
