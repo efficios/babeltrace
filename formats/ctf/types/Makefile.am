@@ -14,5 +14,4 @@ libctf_types_la_SOURCES = \
 
 libctf_types_la_LDFLAGS = $(LT_NO_UNDEFINED)
 
-libctf_types_la_LIBADD = \
-	$(top_builddir)/lib/libbabeltrace.la
+libctf_types_la_LIBADD =

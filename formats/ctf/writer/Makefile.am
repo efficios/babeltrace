@@ -6,8 +6,7 @@ libctf_writer_la_SOURCES = \
 	writer.c \
 	functor.c
 
-libctf_writer_la_LIBADD = \
-	$(top_builddir)/lib/libbabeltrace.la
+libctf_writer_la_LIBADD =
 
 libctf_writer_la_LDFLAGS = $(LT_NO_UNDEFINED)
 

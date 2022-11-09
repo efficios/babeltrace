@@ -12,9 +12,7 @@ libbabeltrace_ctf_text_la_LDFLAGS = \
 	$(LD_NO_AS_NEEDED) -version-info $(BABELTRACE_LIBRARY_VERSION) \
 	types/libctf-text-types.la
 
-libbabeltrace_ctf_text_la_LIBADD = \
-	$(top_builddir)/lib/libbabeltrace.la \
-	$(top_builddir)/formats/ctf/libbabeltrace-ctf.la
+libbabeltrace_ctf_text_la_LIBADD =
 
 if ENABLE_DEBUG_INFO
 libbabeltrace_ctf_text_la_LIBADD += $(top_builddir)/lib/libdebug-info.la

@@ -24,7 +24,7 @@ libctf_ast_la_SOURCES = ctf-visitor-xml.c \
 		ctf-visitor-semantic-validator.c \
 		ctf-visitor-generate-io-struct.c
 libctf_ast_la_LIBADD = \
-	$(top_builddir)/lib/libbabeltrace.la
+	$(top_builddir)/types/libbabeltrace_types.la
 libctf_ast_la_LDFLAGS = $(LT_NO_UNDEFINED)
 
 if BABELTRACE_BUILD_WITH_LIBUUID
