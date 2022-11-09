@@ -110,6 +110,19 @@ extern int bt_ctf_field_type_integer_set_signed(
 		struct bt_ctf_field_type *integer, int is_signed);
 
 /*
+ * bt_ctf_field_type_integer_get_base: get an integer type's base.
+ *
+ * Get an integer type's base used to pretty-print the resulting trace.
+ *
+ * @param integer Integer type.
+ *
+ * Returns the integer type's base on success, BT_CTF_INTEGER_BASE_UNKNOWN on
+ *     error.
+ */
+extern enum bt_ctf_integer_base bt_ctf_field_type_integer_get_base(
+		struct bt_ctf_field_type *integer);
+
+/*
  * bt_ctf_field_type_integer_set_base: set an integer type's base.
  *
  * Set an integer type's base used to pretty-print the resulting trace.
@@ -121,6 +134,19 @@ extern int bt_ctf_field_type_integer_set_signed(
  */
 extern int bt_ctf_field_type_integer_set_base(struct bt_ctf_field_type *integer,
 		enum bt_ctf_integer_base base);
+
+/*
+ * bt_ctf_field_type_string_get_encoding: get a string type's encoding.
+ *
+ * Get the string type's encoding.
+ *
+ * @param string_type String type.
+ *
+ * Returns the string's encoding on success, a BT_CTF_STRING_ENCODING_UNKNOWN
+ * on error.
+ */
+enum bt_ctf_string_encoding bt_ctf_field_type_string_get_encoding(
+		struct bt_ctf_field_type *string_type);
 
 /*
  * bt_ctf_field_type_integer_set_encoding: set an integer type's encoding.
