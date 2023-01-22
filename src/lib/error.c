@@ -155,8 +155,6 @@ int init_error_cause(struct bt_error_cause *cause,
 		goto end;
 	}
 
-	BT_LIB_LOGD("Initialized error cause: %!+r", cause);
-
 end:
 	return ret;
 }
