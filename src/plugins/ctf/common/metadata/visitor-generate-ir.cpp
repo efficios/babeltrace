@@ -1127,10 +1127,8 @@ static int visit_field_class_declarator(struct ctf_visitor_generate_ir *ctx,
 
     /* Find the right nested declaration if not provided */
     if (!nested_decl) {
-        struct bt_list_head *pointers =
-            &node_field_class_declarator->u.field_class_declarator.pointers;
-
-        if (node_field_class_declarator && !bt_list_empty(pointers)) {
+        if (node_field_class_declarator &&
+            !bt_list_empty(&node_field_class_declarator->u.field_class_declarator.pointers)) {
             GQuark qalias;
 
             /*
