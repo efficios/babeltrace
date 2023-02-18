@@ -14,7 +14,7 @@
 
 #include "field-path.h"
 
-#define BT_CTF_TO_COMMON(_obj)		(&(_obj)->common)
+#define BT_CTF_TO_COMMON(_obj)		((typeof(&_obj->common)) _obj)
 #define BT_CTF_FROM_COMMON(_obj)	((void *) _obj)
 
 struct bt_ctf_search_query {
