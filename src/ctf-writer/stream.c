@@ -480,7 +480,7 @@ static
 void update_clock_value(uint64_t *val, uint64_t new_val,
 		unsigned int new_val_size)
 {
-	const uint64_t pow2 = 1ULL << new_val_size;
+	const uint64_t pow2 = new_val_size == 64 ? 0 : 1ULL << new_val_size;
 	const uint64_t mask = pow2 - 1;
 	uint64_t val_masked;
 
