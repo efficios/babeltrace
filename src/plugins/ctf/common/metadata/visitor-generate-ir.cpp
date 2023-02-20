@@ -3298,21 +3298,21 @@ static int auto_map_field_to_trace_clock_class(struct ctf_visitor_generate_ir *c
                                                struct ctf_field_class *fc)
 {
     struct ctf_clock_class *clock_class_to_map_to = NULL;
-    struct ctf_field_class_int *int_fc = ctf_field_class_as_int(fc);
-    int ret = 0;
     uint64_t clock_class_count;
 
     if (!fc) {
-        goto end;
+        return 0;
     }
 
     if (fc->type != CTF_FIELD_CLASS_TYPE_INT && fc->type != CTF_FIELD_CLASS_TYPE_ENUM) {
-        goto end;
+        return 0;
     }
+
+    ctf_field_class_int *int_fc = ctf_field_class_as_int(fc);
 
     if (int_fc->mapped_clock_class) {
         /* Already mapped */
-        goto end;
+        return 0;
     }
 
     clock_class_count = ctx->ctf_tc->clock_classes->len;
@@ -3328,7 +3328,6 @@ static int auto_map_field_to_trace_clock_class(struct ctf_visitor_generate_ir *c
         BT_ASSERT(clock_class_to_map_to);
         clock_class_to_map_to->frequency = UINT64_C(1000000000);
         g_string_assign(clock_class_to_map_to->name, "default");
-        BT_ASSERT(ret == 0);
         g_ptr_array_add(ctx->ctf_tc->clock_classes, clock_class_to_map_to);
         break;
     case 1:
@@ -3346,15 +3345,13 @@ static int auto_map_field_to_trace_clock_class(struct ctf_visitor_generate_ir *c
         _BT_COMP_OR_COMP_CLASS_LOGE_APPEND_CAUSE(
             "Timestamp field found with no mapped clock class, "
             "but there's more than one clock class in the trace at this point.");
-        ret = -1;
-        goto end;
+        return -1;
     }
 
     BT_ASSERT(clock_class_to_map_to);
     int_fc->mapped_clock_class = clock_class_to_map_to;
 
-end:
-    return ret;
+    return 0;
 }
 
 static int auto_map_fields_to_trace_clock_class(struct ctf_visitor_generate_ir *ctx,

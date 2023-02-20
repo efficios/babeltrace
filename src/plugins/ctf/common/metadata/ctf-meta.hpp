@@ -871,22 +871,19 @@ static inline struct ctf_field_class_int *
 ctf_field_class_struct_borrow_member_int_field_class_by_name(
     struct ctf_field_class_struct *struct_fc, const char *name)
 {
-    struct ctf_field_class_int *int_fc = NULL;
+    ctf_field_class *member_fc =
+        ctf_field_class_struct_borrow_member_field_class_by_name(struct_fc, name);
 
-    int_fc = ctf_field_class_as_int(
-        ctf_field_class_struct_borrow_member_field_class_by_name(struct_fc, name));
-    if (!int_fc) {
-        goto end;
+    if (!member_fc) {
+        return nullptr;
     }
 
-    if (int_fc->base.base.type != CTF_FIELD_CLASS_TYPE_INT &&
-        int_fc->base.base.type != CTF_FIELD_CLASS_TYPE_ENUM) {
-        int_fc = NULL;
-        goto end;
+    if (member_fc->type != CTF_FIELD_CLASS_TYPE_INT &&
+        member_fc->type != CTF_FIELD_CLASS_TYPE_ENUM) {
+        return nullptr;
     }
 
-end:
-    return int_fc;
+    return ctf_field_class_as_int(member_fc);
 }
 
 static inline void _ctf_named_field_class_unescape_orig_name(struct ctf_named_field_class *named_fc)

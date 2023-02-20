@@ -874,8 +874,6 @@ static int validate_target_field_path(struct ctf_field_path *target_field_path,
         break;
     case CTF_FIELD_CLASS_TYPE_SEQUENCE:
     {
-        struct ctf_field_class_int *int_fc = ctf_field_class_as_int(target_fc);
-
         if (target_fc->type != CTF_FIELD_CLASS_TYPE_INT &&
             target_fc->type != CTF_FIELD_CLASS_TYPE_ENUM) {
             _BT_COMP_OR_COMP_CLASS_LOGE_APPEND_CAUSE(
@@ -885,6 +883,8 @@ static int validate_target_field_path(struct ctf_field_path *target_field_path,
             ret = -1;
             goto end;
         }
+
+        ctf_field_class_int *int_fc = ctf_field_class_as_int(target_fc);
 
         if (int_fc->is_signed) {
             _BT_COMP_OR_COMP_CLASS_LOGE_APPEND_CAUSE(

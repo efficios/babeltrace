@@ -1803,12 +1803,13 @@ static enum bt_bfcr_status bfcr_unsigned_int_cb(uint64_t value, struct ctf_field
     enum bt_bfcr_status status = BT_BFCR_STATUS_OK;
 
     bt_field *field = NULL;
-    ctf_field_class_int *int_fc = ctf_field_class_as_int(fc);
 
     BT_COMP_LOGT("Unsigned integer function called from BFCR: "
                  "msg-it-addr=%p, bfcr-addr=%p, fc-addr=%p, "
                  "fc-type=%d, fc-in-ir=%d, value=%" PRIu64,
                  msg_it, msg_it->bfcr, fc, fc->type, fc->in_ir, value);
+
+    ctf_field_class_int *int_fc = ctf_field_class_as_int(fc);
 
     if (G_LIKELY(int_fc->meaning == CTF_FIELD_CLASS_MEANING_NONE)) {
         goto update_def_clock;
@@ -1890,13 +1891,14 @@ static enum bt_bfcr_status bfcr_unsigned_int_char_cb(uint64_t value, struct ctf_
     bt_self_component *self_comp = msg_it->self_comp;
     enum bt_bfcr_status status = BT_BFCR_STATUS_OK;
     bt_field *string_field = NULL;
-    ctf_field_class_int *int_fc = ctf_field_class_as_int(fc);
     char str[2] = {'\0', '\0'};
 
     BT_COMP_LOGT("Unsigned integer character function called from BFCR: "
                  "msg-it-addr=%p, bfcr-addr=%p, fc-addr=%p, "
                  "fc-type=%d, fc-in-ir=%d, value=%" PRIu64,
                  msg_it, msg_it->bfcr, fc, fc->type, fc->in_ir, value);
+
+    ctf_field_class_int *int_fc = ctf_field_class_as_int(fc);
     BT_ASSERT_DBG(int_fc->meaning == CTF_FIELD_CLASS_MEANING_NONE);
     BT_ASSERT_DBG(!int_fc->mapped_clock_class);
     BT_ASSERT_DBG(int_fc->storing_index < 0);
@@ -1938,12 +1940,13 @@ static enum bt_bfcr_status bfcr_signed_int_cb(int64_t value, struct ctf_field_cl
     enum bt_bfcr_status status = BT_BFCR_STATUS_OK;
     bt_field *field = NULL;
     ctf_msg_iter *msg_it = (ctf_msg_iter *) data;
-    ctf_field_class_int *int_fc = ctf_field_class_as_int(fc);
 
     BT_COMP_LOGT("Signed integer function called from BFCR: "
                  "msg-it-addr=%p, bfcr-addr=%p, fc-addr=%p, "
                  "fc-type=%d, fc-in-ir=%d, value=%" PRId64,
                  msg_it, msg_it->bfcr, fc, fc->type, fc->in_ir, value);
+
+    ctf_field_class_int *int_fc = ctf_field_class_as_int(fc);
     BT_ASSERT_DBG(int_fc->meaning == CTF_FIELD_CLASS_MEANING_NONE);
 
     if (G_UNLIKELY(int_fc->storing_index >= 0)) {
