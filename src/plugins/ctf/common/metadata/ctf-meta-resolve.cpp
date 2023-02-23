@@ -645,7 +645,7 @@ static int pathstr_to_field_path(const char *pathstr, struct ctf_field_path *fie
 
     if (BT_LOG_ON_TRACE && ret == 0) {
         GString *field_path_pretty = ctf_field_path_string(field_path);
-        const char *field_path_pretty_str = field_path_pretty ? field_path_pretty->str : NULL;
+        const char *field_path_pretty_str = field_path_pretty ? field_path_pretty->str : "(null)";
 
         BT_COMP_LOGD("Found field path: path=\"%s\", field-path=\"%s\"", pathstr,
                      field_path_pretty_str);
