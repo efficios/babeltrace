@@ -117,6 +117,9 @@ WARN_CFLAGS += -Wno-null-dereference
 # code.
 WARN_CFLAGS += -Wno-deprecated-declarations
 
+# Python 3.11 + gcc 12.2.0 gave warnings of this kind in Python.h.
+WARN_CFLAGS += -Wno-redundant-decls
+
 BUILD_FLAGS=CC="$(CC)" \
 		CFLAGS="$(GLIB_CFLAGS) $(AM_CFLAGS) $(CFLAGS) $(WARN_CFLAGS)" \
 		CPPFLAGS="$(AM_CPPFLAGS) $(CPPFLAGS) -I$(srcdir)/bt2" \
