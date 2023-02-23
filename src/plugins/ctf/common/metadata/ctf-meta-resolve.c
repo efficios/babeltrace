@@ -681,7 +681,7 @@ int pathstr_to_field_path(const char *pathstr,
 	if (BT_LOG_ON_TRACE && ret == 0) {
 		GString *field_path_pretty = ctf_field_path_string(field_path);
 		const char *field_path_pretty_str =
-			field_path_pretty ? field_path_pretty->str : NULL;
+			field_path_pretty ? field_path_pretty->str : "(null)";
 
 		BT_COMP_LOGD("Found field path: path=\"%s\", field-path=\"%s\"",
 			pathstr, field_path_pretty_str);
@@ -774,9 +774,9 @@ int64_t get_field_paths_lca_index(struct ctf_field_path *field_path1,
 		GString *field_path2_pretty =
 			ctf_field_path_string(field_path2);
 		const char *field_path1_pretty_str =
-			field_path1_pretty ? field_path1_pretty->str : NULL;
+			field_path1_pretty ? field_path1_pretty->str : "(null)";
 		const char *field_path2_pretty_str =
-			field_path2_pretty ? field_path2_pretty->str : NULL;
+			field_path2_pretty ? field_path2_pretty->str : "(null)";
 
 		BT_COMP_LOGD("Finding lowest common ancestor (LCA) between two field paths: "
 			"field-path-1=\"%s\", field-path-2=\"%s\"",
