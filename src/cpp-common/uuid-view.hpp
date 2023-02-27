@@ -37,10 +37,12 @@ public:
 
     std::string string() const
     {
-        std::array<char, BT_UUID_STR_LEN> buf;
+        std::string s;
 
-        bt_uuid_to_str(_mUuid, buf.data());
-        return {buf.data(), buf.size()};
+        s.resize(BT_UUID_STR_LEN);
+        bt_uuid_to_str(_mUuid, s.data());
+
+        return s;
     }
 
     static std::size_t size() noexcept
