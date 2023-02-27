@@ -538,6 +538,16 @@ AS_IF([AE_IS_FEATURE_ENABLED([python-bindings]) || AE_IS_FEATURE_ENABLED([python
   AS_IF([test "x$have_python_dev" = xno], [
     AC_MSG_ERROR([Cannot find a suitable python-config. You can override the python-config path with the PYTHON_CONFIG environment variable.])
   ])
+
+  AX_COMPARE_VERSION(["$PYTHON_VERSION"], [ge], ["3.12"], [
+    AC_MSG_CHECKING([for python setuptools])
+    AS_IF(["$PYTHON" -c "import setuptools" 2>/dev/null], [
+      AC_MSG_RESULT([yes])
+    ], [
+      AC_MSG_RESULT([no])
+      AC_MSG_ERROR([Python >= 3.12 removed 'distutils', the 'setuptools' module needs to be installed for the selected interpreter.])
+    ])
+  ])
 ])
 
 AE_IF_FEATURE_ENABLED([python-bindings-doc],
