@@ -23,6 +23,7 @@
 #include <glib.h>
 #include <inttypes.h>
 #include <errno.h>
+#include <string>
 #include "common/common.h"
 #include "common/uuid.h"
 #include "compat/endian.h"
@@ -265,23 +266,9 @@ end:
 static GQuark get_prefixed_named_quark(struct ctf_visitor_generate_ir *ctx, char prefix,
                                        const char *name)
 {
-    GQuark qname = 0;
-
     BT_ASSERT(name);
-
-    /* Prefix character + original string + '\0' */
-    char *prname = g_new(char, strlen(name) + 2);
-    if (!prname) {
-        _BT_COMP_OR_COMP_CLASS_LOGE_APPEND_CAUSE("Failed to allocate a string.");
-        goto end;
-    }
-
-    sprintf(prname, "%c%s", prefix, name);
-    qname = g_quark_from_string(prname);
-    g_free(prname);
-
-end:
-    return qname;
+    std::string prname = std::string {prefix} + name;
+    return g_quark_from_string(prname.c_str());
 }
 
 /**

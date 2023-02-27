@@ -440,7 +440,7 @@ int set_bound_from_param(struct trimmer_comp *trimmer_comp,
 		 * Just convert it to a temporary string to handle
 		 * everything the same way.
 		 */
-		sprintf(tmp_arg, "%" PRId64, value);
+		snprintf(tmp_arg, sizeof(tmp_arg), "%" PRId64, value);
 		arg = tmp_arg;
 	} else {
 		BT_ASSERT(bt_value_is_string(param));

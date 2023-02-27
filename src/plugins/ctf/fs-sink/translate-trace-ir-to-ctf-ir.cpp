@@ -18,6 +18,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <string.h>
+#include <string>
 #include <glib.h>
 
 #include "fs-sink.hpp"
@@ -1562,17 +1563,15 @@ end:
 static void make_unique_default_clock_class_name(struct fs_sink_ctf_stream_class *sc)
 {
     unsigned int suffix = 0;
-    char buf[16];
 
-    g_string_assign(sc->default_clock_class_name, "");
-    sprintf(buf, "default");
+    std::string name = "default";
 
-    while (default_clock_class_name_exists(sc->trace, buf)) {
-        sprintf(buf, "default%u", suffix);
+    while (default_clock_class_name_exists(sc->trace, name.c_str())) {
+        name = "default" + std::to_string(suffix);
         suffix++;
     }
 
-    g_string_assign(sc->default_clock_class_name, buf);
+    g_string_assign(sc->default_clock_class_name, name.c_str());
 }
 
 static int translate_stream_class(struct fs_sink_comp *fs_sink, struct fs_sink_ctf_trace *trace,

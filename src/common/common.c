@@ -2041,7 +2041,7 @@ int bt_common_g_string_append_printf(GString *str, const char *fmt, ...)
 		/* Resize. */
 		g_string_set_size(str, len + print_len);
 		va_start(ap, fmt);
-		print_len = vsprintf(str->str + len, fmt, ap);
+		print_len = vsnprintf(str->str + len, print_len + 1, fmt, ap);
 		va_end(ap);
 	} else {
 		str->len = len + print_len;

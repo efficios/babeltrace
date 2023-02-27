@@ -57,7 +57,7 @@ void bt_uuid_to_str(const bt_uuid_t uuid_in, char *str_out)
 	BT_ASSERT_DBG(uuid_in);
 	BT_ASSERT_DBG(str_out);
 
-	sprintf(str_out, BT_UUID_FMT, BT_UUID_FMT_VALUES(uuid_in));
+	snprintf(str_out, BT_UUID_STR_LEN + 1, BT_UUID_FMT, BT_UUID_FMT_VALUES(uuid_in));
 }
 
 BT_HIDDEN
