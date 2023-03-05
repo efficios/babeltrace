@@ -121,7 +121,7 @@ AC_DEFUN([AX_PKG_SWIG],[
                                 m4_ifval([$3],[$3],[])
                         else
                                 AC_MSG_CHECKING([for SWIG library])
-                                SWIG_LIB=`$SWIG -swiglib`
+                                SWIG_LIB=`$SWIG -swiglib | tail -1`
                                 AC_MSG_RESULT([$SWIG_LIB])
                                 m4_ifval([$2],[$2],[])
                         fi
