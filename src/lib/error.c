@@ -494,7 +494,6 @@ int bt_error_append_cause_from_unknown(struct bt_error *error,
 	cause = NULL;
 
 end:
-	destroy_error_cause(cause);
 	return status;
 }
 
@@ -527,10 +526,6 @@ int bt_error_append_cause_from_component(
 	cause = NULL;
 
 end:
-	if (cause) {
-		destroy_error_cause(&cause->base);
-	}
-
 	return status;
 }
 
@@ -564,10 +559,6 @@ int bt_error_append_cause_from_component_class(
 	cause = NULL;
 
 end:
-	if (cause) {
-		destroy_error_cause(&cause->base);
-	}
-
 	return status;
 }
 
@@ -600,10 +591,6 @@ int bt_error_append_cause_from_message_iterator(
 	cause = NULL;
 
 end:
-	if (cause) {
-		destroy_error_cause(&cause->base);
-	}
-
 	return status;
 }
 
