@@ -5,12 +5,13 @@
 
 import sys
 import os
-import sysconfig
 
 if sys.version_info < (3, 12):
     from distutils.core import setup, Extension
+    import distutils.sysconfig as sysconfig
 else:
     from setuptools import setup, Extension
+    import sysconfig
 
 PY_PATH_WARN_MSG = """
 -------------------------------------WARNING------------------------------------
