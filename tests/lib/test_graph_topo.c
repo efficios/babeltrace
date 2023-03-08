@@ -358,6 +358,7 @@ void fini_test(void)
 	bt_component_class_source_put_ref(src_comp_class);
 	bt_component_class_sink_put_ref(sink_comp_class);
 	g_array_free(events, TRUE);
+	BT_MESSAGE_ITERATOR_CLASS_PUT_REF_AND_RESET(msg_iter_class);
 }
 
 static
