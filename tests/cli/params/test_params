@@ -50,9 +50,9 @@ expect_success 'unsigned integer' 'a=+0b110, b=+022, c=+22, d=+0x22' \
 expect_success 'string' 'a="avril lavigne", b=patata, c="This\"is\\escaped"' \
 	'{a=avril lavigne, b=patata, c=This"is\escaped}'
 expect_success 'float' 'a=1.234, b=17., c=.28, d=-18.28' \
-	'{a=1.234, b=17.0, c=0.28, d=-18.28}'
+	'{a=1.2340000, b=17.0000000, c=0.2800000, d=-18.2800000}'
 expect_success 'float scientific notation' 'a=10.5e6, b=10.5E6, c=10.5e-6, d=10.5E-6' \
-	'{a=10500000.0, b=10500000.0, c=1.05e-05, d=1.05e-05}'
+	'{a=10500000.0000000, b=10500000.0000000, c=0.0000105, d=0.0000105}'
 expect_success 'array' 'a=[1, [["hi",]]]' \
 	'{a=[1, [[hi]]]}'
 expect_success 'map' 'a=4,a={},b={salut="la gang",comment="ca va",oh={x=2}}' \
