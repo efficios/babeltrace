@@ -87,7 +87,6 @@ class _TraceClassConst(object._SharedObject, collections.abc.Mapping):
     # Add a listener to be called when the trace class is destroyed.
 
     def add_destruction_listener(self, listener):
-
         if not callable(listener):
             raise TypeError("'listener' parameter is not callable")
 

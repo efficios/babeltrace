@@ -91,7 +91,6 @@ class _IntegerRangeSetConst(object._SharedObject, collections.abc.Set):
             yield self._range_pycls(lower, upper)
 
     def __eq__(self, other):
-
         if not isinstance(other, _IntegerRangeSetConst):
             return False
 

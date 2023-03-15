@@ -122,7 +122,6 @@ class _PortIterator(collections.abc.Iterator):
 
 
 class _ComponentPorts(collections.abc.Mapping):
-
     # component_ptr is a bt_component_source *, bt_component_filter * or
     # bt_component_sink *.  Its type must match the type expected by the
     # functions passed as arguments.

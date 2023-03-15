@@ -45,7 +45,6 @@ class _BaseObject:
 
 
 class _UniqueObject(_BaseObject):
-
     # Create a _UniqueObject.
     #
     #   - ptr: SWIG Object, pointer to the unique object.

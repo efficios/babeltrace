@@ -13,7 +13,6 @@ import math
 def _create_field_from_ptr_template(
     object_map, ptr, owner_ptr, owner_get_ref, owner_put_ref
 ):
-
     field_class_ptr = native_bt.field_borrow_class_const(ptr)
     typeid = native_bt.field_class_get_type(field_class_ptr)
     field = object_map[typeid]._create_from_ptr_and_get_ref(

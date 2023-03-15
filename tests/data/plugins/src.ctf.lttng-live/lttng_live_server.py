@@ -901,7 +901,6 @@ def _split_metadata_sections(metadata_file_path, raw_config_sections):
         # If the next section begins at the current line, create a
         # section with the metadata we gathered so far.
         if curr_line_number >= next_section_line_number:
-
             # Flushing the metadata of the current section.
             sections.append(
                 _LttngMetadataStreamSection(
