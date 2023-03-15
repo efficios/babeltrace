@@ -32,12 +32,13 @@ def to_string(p):
         )
     elif type(p) is bt2._UnsignedIntegerValueConst:
         s = str(p) + 'u'
+    elif type(p) is bt2._RealValueConst:
+        s = '{:.7f}'.format(float(p))
     elif (
         type(p)
         in (
             bt2._StringValueConst,
             bt2._SignedIntegerValueConst,
-            bt2._RealValueConst,
             bt2._BoolValueConst,
         )
         or p is None
