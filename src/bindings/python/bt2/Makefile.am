@@ -150,7 +150,7 @@ $(builddir)/bt2/native_bt.c: $(SWIG_INTERFACE_FILES)
 -include bt2/native_bt.d
 
 install-exec-local: build-python-bindings.stamp
-	@opts="--prefix=$(prefix) --record $(INSTALLED_FILES) --verbose --no-compile $(DISTSETUPOPTS)"; \
+	@opts="--prefix=$(prefix) --exec-prefix=$(exec_prefix) --record $(INSTALLED_FILES) --verbose --no-compile $(DISTSETUPOPTS)"; \
 	if [ "$(DESTDIR)" != "" ]; then \
 		opts="$$opts --root=$(DESTDIR)"; \
 	fi; \
