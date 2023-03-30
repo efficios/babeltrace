@@ -40,7 +40,7 @@ public:
         std::string s;
 
         s.resize(BT_UUID_STR_LEN);
-        bt_uuid_to_str(_mUuid, s.data());
+        bt_uuid_to_str(_mUuid, &s[0]);
 
         return s;
     }
