@@ -15,4 +15,5 @@ EXTRA_DIST = bt2 \
 	endian.hpp \
 	make-unique.hpp \
 	safe-ops.hpp \
-	align.hpp
+	align.hpp \
+	uuid.hpp
