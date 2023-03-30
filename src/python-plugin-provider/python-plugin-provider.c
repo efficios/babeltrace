@@ -24,7 +24,6 @@
 #include <signal.h>
 #include <Python.h>
 #include <glib.h>
-#include <gmodule.h>
 
 #define PYTHON_PLUGIN_FILE_PREFIX	"bt_plugin_"
 #define PYTHON_PLUGIN_FILE_PREFIX_LEN	(sizeof(PYTHON_PLUGIN_FILE_PREFIX) - 1)
@@ -596,7 +595,7 @@ end:
 	return status;
 }
 
-G_MODULE_EXPORT
+BT_EXPORT
 int bt_plugin_python_create_all_from_file(const char *path,
 		bool fail_on_load_error, struct bt_plugin_set **plugin_set_out)
 {
