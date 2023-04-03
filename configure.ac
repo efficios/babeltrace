@@ -448,6 +448,7 @@ AE_FEATURE([Werror],[Treat compiler warnings as errors.])
 # When given, build with AddressSanitizer.
 AE_FEATURE_DEFAULT_DISABLE
 AE_FEATURE([asan],[Build with AddressSanitizer.])
+AE_FEATURE([ubsan],[Build with UndefinedBehaviorSanitizer.])
 
 ##                                          ##
 ## Check for conflicting features selection ##
@@ -655,13 +656,19 @@ AE_IF_FEATURE_ENABLED([asan], [
   ASAN_LDFLAGS="-fsanitize=address"
 ])
 
-
+# If --enable-ubsan is used...
+AE_IF_FEATURE_ENABLED([ubsan], [
+  # ... add -fsanitize=undefined to the *FLAGS variables.
+  UBSAN_CFLAGS="-fsanitize=undefined"
+  UBSAN_CXXFLAGS="-fsanitize=undefined"
+  UBSAN_LDFLAGS="-fsanitize=undefined"
+])
 
 # CFLAGS from libraries (the glib ones are needed for the following sizeof
 # test).
-AM_CFLAGS="-fvisibility=hidden ${PTHREAD_CFLAGS} ${GLIB_CFLAGS} ${ASAN_CFLAGS}"
-AM_CXXFLAGS="-fvisibility=hidden -fvisibility-inlines-hidden ${PTHREAD_CFLAGS} ${GLIB_CFLAGS} ${ASAN_CXXFLAGS}"
-AM_LDFLAGS="${ASAN_LDFLAGS}"
+AM_CFLAGS="-fvisibility=hidden ${PTHREAD_CFLAGS} ${GLIB_CFLAGS} ${ASAN_CFLAGS} ${UBSAN_CFLAGS}"
+AM_CXXFLAGS="-fvisibility=hidden -fvisibility-inlines-hidden ${PTHREAD_CFLAGS} ${GLIB_CFLAGS} ${ASAN_CXXFLAGS} ${UBSAN_CFLAGS}"
+AM_LDFLAGS="${ASAN_LDFLAGS} ${UBSAN_CFLAGS}"
 
 # Check that the current size_t matches the size that glib thinks it should
 # be. This catches problems on multi-arch where people try to do a 32-bit
