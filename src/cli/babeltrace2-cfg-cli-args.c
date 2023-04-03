@@ -147,17 +147,14 @@ void plugin_comp_cls_names(const char *arg, char **name, char **plugin,
 			*name = NULL;
 			g_string_free(gs_name, TRUE);
 		} else {
-			*name = gs_name->str;
-			g_string_free(gs_name, FALSE);
+			*name = g_string_free(gs_name, FALSE);
 		}
 	} else {
 		g_string_free(gs_name, TRUE);
 	}
 
-	*plugin = gs_plugin->str;
-	*comp_cls = gs_comp_cls->str;
-	g_string_free(gs_plugin, FALSE);
-	g_string_free(gs_comp_cls, FALSE);
+	*plugin = g_string_free(gs_plugin, FALSE);
+	*comp_cls = g_string_free(gs_comp_cls, FALSE);
 	gs_name = NULL;
 	gs_plugin = NULL;
 	gs_comp_cls = NULL;
@@ -2942,10 +2939,8 @@ int split_timerange(const char *arg, char **begin, char **end)
 
 	BT_ASSERT(begin);
 	BT_ASSERT(end);
-	*begin = g_begin->str;
-	*end = g_end->str;
-	g_string_free(g_begin, FALSE);
-	g_string_free(g_end, FALSE);
+	*begin = g_string_free(g_begin, FALSE);
+	*end = g_string_free(g_end, FALSE);
 	g_begin = NULL;
 	g_end = NULL;
 	goto end;
