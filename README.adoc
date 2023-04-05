@@ -71,7 +71,7 @@ Tools::
     ** https://www.gnu.org/software/autoconf/[GNU Autoconf]{nbsp}≥{nbsp}2.64
     ** https://www.gnu.org/software/libtool/[GNU Libtool]{nbsp}≥{nbsp}2.2
     ** https://github.com/westes/flex[flex]{nbsp}≥{nbsp}2.5.35
-    ** https://www.gnu.org/software/bison/bison.html[GNU Bison]{nbsp}≥{nbsp}2.4
+    ** https://www.gnu.org/software/bison/bison.html[GNU Bison]{nbsp}≥{nbsp}2.5
 
 Libraries::
     * A C library (for example,
