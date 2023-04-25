@@ -85,7 +85,7 @@ $ babeltrace2 query src.ctf.lttng-live sessions \
 [role="term"]
 ----
 $ babeltrace2 query src.ctf.fs metadata-info \
-                    --params='path="/path/to/trace"'
+                    --params='inputs=["/path/to/trace"]'
 ----
 ====
 
@@ -94,7 +94,7 @@ $ babeltrace2 query src.ctf.fs metadata-info \
 [role="term"]
 ----
 $ babeltrace2 query src.ctf.fs babeltrace.trace-infos \
-                    --params='path="/path/to/trace"'
+                    --params='inputs=["/path/to/trace"]'
 ----
 ====
 
