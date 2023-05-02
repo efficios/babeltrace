@@ -4,7 +4,7 @@
 #
 # Copyright (C) 2020-2022 Philippe Proulx <pproulx@efficios.com>
 
-expected_formatter_major_version=14
+expected_formatter_major_version=15
 
 # Runs the formatter, making sure it's the expected version.
 format_cpp() {
