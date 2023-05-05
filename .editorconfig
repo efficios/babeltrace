@@ -12,3 +12,7 @@ tab_width = 8
 [*.{py,hpp,cpp}]
 indent_style = space
 indent_size = 4
+
+[*.{h,c}]
+indent_style = tab
+indent_size = 8
