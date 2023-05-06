@@ -14,7 +14,8 @@
 #include "common/macros.h"
 #include "trace-ir-mapping.h"
 
-int copy_field_class_content_internal(struct trace_ir_metadata_maps *trace_ir_metadata_maps,
+enum debug_info_trace_ir_mapping_status copy_field_class_content_internal(
+		struct trace_ir_metadata_maps *trace_ir_metadata_maps,
 		const bt_field_class *in_field_class,
 		bt_field_class *out_field_class);
 
