@@ -127,8 +127,6 @@ enum bt_self_component_add_port_status bt_self_component_sink_add_input_port(
 	struct bt_port *port = NULL;
 	struct bt_component *comp = (void *) self_comp;
 
-	BT_ASSERT_PRE_NO_ERROR();
-
 	/*
 	 * bt_component_add_input_port() logs details/errors and checks
 	 * preconditions.

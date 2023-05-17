@@ -475,6 +475,7 @@ enum bt_self_component_add_port_status bt_component_add_input_port(
 		struct bt_component *component, const char *name,
 		void *user_data, struct bt_port **port, const char *api_func)
 {
+	BT_ASSERT_PRE_NO_ERROR_FROM_FUNC(api_func);
 	BT_ASSERT_PRE_COMP_NON_NULL_FROM_FUNC(api_func, component);
 	BT_ASSERT_PRE_NAME_NON_NULL_FROM_FUNC(api_func, name);
 	BT_ASSERT_PRE_FROM_FUNC(api_func, "input-port-name-is-unique",
@@ -492,6 +493,7 @@ enum bt_self_component_add_port_status bt_component_add_output_port(
 		void *user_data, struct bt_port **port,
 		const char *api_func)
 {
+	BT_ASSERT_PRE_NO_ERROR_FROM_FUNC(api_func);
 	BT_ASSERT_PRE_COMP_NON_NULL_FROM_FUNC(api_func, component);
 	BT_ASSERT_PRE_NAME_NON_NULL_FROM_FUNC(api_func, name);
 	BT_ASSERT_PRE_FROM_FUNC(api_func, "output-port-name-is-unique",

@@ -128,8 +128,6 @@ enum bt_self_component_add_port_status bt_self_component_source_add_output_port(
 	enum bt_self_component_add_port_status status;
 	struct bt_port *port = NULL;
 
-	BT_ASSERT_PRE_NO_ERROR();
-
 	/*
 	 * bt_component_add_output_port() logs details/errors and checks
 	 * preconditions.
