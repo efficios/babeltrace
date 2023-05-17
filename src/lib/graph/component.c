@@ -236,8 +236,6 @@ enum bt_self_component_add_port_status add_port(
 		"Component's graph is already configured: "
 		"%![comp-]+c, %![graph-]+g", component, graph);
 
-	// TODO: Validate that the name is not already used.
-
 	BT_LIB_LOGI("Adding port to component: %![comp-]+c, "
 		"port-type=%s, port-name=\"%s\"", component,
 		bt_port_type_string(port_type), name);
