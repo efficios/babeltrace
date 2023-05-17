@@ -450,40 +450,8 @@ struct bt_port_output *bt_component_borrow_output_port_by_index(
 		borrow_port_by_index(comp->output_ports, index, api_func);
 }
 
-enum bt_self_component_add_port_status bt_component_add_input_port(
-		struct bt_component *component, const char *name,
-		void *user_data, struct bt_port **port, const char *api_func)
-{
-	BT_ASSERT_PRE_COMP_NON_NULL_FROM_FUNC(api_func, component);
-	BT_ASSERT_PRE_NAME_NON_NULL_FROM_FUNC(api_func, name);
-	BT_ASSERT_PRE_FROM_FUNC(api_func, "input-port-name-is-unique",
-		bt_component_port_name_is_unique(component->input_ports, name),
-		"Input port name is not unique: name=\"%s\", %![comp-]c",
-		name, component);
-
-	/* add_port() logs details and checks preconditions */
-	return add_port(component, component->input_ports,
-		BT_PORT_TYPE_INPUT, name, user_data, port, api_func);
-}
-
-enum bt_self_component_add_port_status bt_component_add_output_port(
-		struct bt_component *component, const char *name,
-		void *user_data, struct bt_port **port,
-		const char *api_func)
-{
-	BT_ASSERT_PRE_COMP_NON_NULL_FROM_FUNC(api_func, component);
-	BT_ASSERT_PRE_NAME_NON_NULL_FROM_FUNC(api_func, name);
-	BT_ASSERT_PRE_FROM_FUNC(api_func, "output-port-name-is-unique",
-		bt_component_port_name_is_unique(component->output_ports, name),
-		"Output port name is not unique: name=\"%s\", %![comp-]c",
-		name, component);
-
-	/* add_port() logs details and checks preconditions */
-	return add_port(component, component->output_ports,
-		BT_PORT_TYPE_OUTPUT, name, user_data, port, api_func);
-}
-
-bool bt_component_port_name_is_unique(GPtrArray *ports, const char *name)
+static
+bool port_name_is_unique(GPtrArray *ports, const char *name)
 {
 	guint i;
 	bool unique;
@@ -501,6 +469,39 @@ bool bt_component_port_name_is_unique(GPtrArray *ports, const char *name)
 
 end:
 	return unique;
+}
+
+enum bt_self_component_add_port_status bt_component_add_input_port(
+		struct bt_component *component, const char *name,
+		void *user_data, struct bt_port **port, const char *api_func)
+{
+	BT_ASSERT_PRE_COMP_NON_NULL_FROM_FUNC(api_func, component);
+	BT_ASSERT_PRE_NAME_NON_NULL_FROM_FUNC(api_func, name);
+	BT_ASSERT_PRE_FROM_FUNC(api_func, "input-port-name-is-unique",
+		port_name_is_unique(component->input_ports, name),
+		"Input port name is not unique: name=\"%s\", %![comp-]c",
+		name, component);
+
+	/* add_port() logs details and checks preconditions */
+	return add_port(component, component->input_ports,
+		BT_PORT_TYPE_INPUT, name, user_data, port, api_func);
+}
+
+enum bt_self_component_add_port_status bt_component_add_output_port(
+		struct bt_component *component, const char *name,
+		void *user_data, struct bt_port **port,
+		const char *api_func)
+{
+	BT_ASSERT_PRE_COMP_NON_NULL_FROM_FUNC(api_func, component);
+	BT_ASSERT_PRE_NAME_NON_NULL_FROM_FUNC(api_func, name);
+	BT_ASSERT_PRE_FROM_FUNC(api_func, "output-port-name-is-unique",
+		port_name_is_unique(component->output_ports, name),
+		"Output port name is not unique: name=\"%s\", %![comp-]c",
+		name, component);
+
+	/* add_port() logs details and checks preconditions */
+	return add_port(component, component->output_ports,
+		BT_PORT_TYPE_OUTPUT, name, user_data, port, api_func);
 }
 
 enum bt_component_class_port_connected_method_status

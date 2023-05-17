@@ -22,11 +22,6 @@
 #include "component-class.h"
 #include "port.h"
 
-#define BT_ASSERT_PRE_OUTPUT_PORT_NAME_UNIQUE(comp, name) 		\
-	BT_ASSERT_PRE("output-port-is-unique",				\
-		bt_component_port_name_is_unique(comp->output_ports, name), \
-		"Output port name is not unique: name=\"%s\", %![comp-]c", name, comp);
-
 typedef void (*bt_component_destroy_listener_func)(
 		struct bt_component *class, void *data);
 
@@ -112,8 +107,6 @@ enum bt_self_component_add_port_status bt_component_add_output_port(
 		struct bt_component *component, const char *name,
 		void *user_data, struct bt_port **port,
 		const char *api_func);
-
-bool bt_component_port_name_is_unique(GPtrArray *ports, const char *name);
 
 void bt_component_remove_port(struct bt_component *component,
 		struct bt_port *port);
