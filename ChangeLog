@@ -1,3 +1,31 @@
+2023-05-23 Babeltrace 2.0.5 (World Turtle Day)
+	* bt2: honor build system compiler/linker preferences
+	* Fix: clear_string_field(): set first character to 0
+	* Fix: src.ctf.fs: Not resolving event common ctx
+	* debug-info: fix -Wenum-int-mismatch problem in copy_field_class_content_internal
+	* fix: pass exec-prefix to python bindings install
+	* fix: document proper Bison version requirement
+	* cli: use return value of g_string_free
+	* babeltrace2-query(1): erroneous parameter used in example
+	* Fix: tests: print real values in a fixed format
+	* Fix: bt2: autodisc: remove thread error while inserting status in map
+	* tests: src.ctf.fs: add test for metadata with invalid syntax
+	* tests: shorten names of session-rotation trace
+	* bt2: ignore -Wredundant-decls warning
+	* ctf: fix -Wformat-overflow error in ctf-meta-resolve.cpp
+	* ctf-writer: fix -Wformat-overflow errors in resolve.c
+	* Fix: src.text.details: use write_uint_prop_value to handle unsigned values in write_int_range
+	* Add `dev-requirements.txt` for pip
+	* Fix: src.ctf.lttng-live: consider empty metadata packet as retry
+	* Fix: ctf: wrongfully requiring CTF metadata signature for every section
+	* Fix: src.ctf.lttng-live: session closed before any metadata is received
+	* fix: obsolete warnings with autoconf >= 2.71
+	* fix: explicitly disable '-Wsuggest-attribute=format'
+	* fix: set stable branch in gitreview config
+	* Fix: ctf-writer: list of reserved keywords
+	* compiler warning cleanup: is_signed_type: compare -1 to 1
+	* Update working version to Babeltrace 2.0.5
+
 2021-02-23 Babeltrace 2.0.4 (National Banana Bread Day)
 	* Fix: macro name for "get supported mip versions method" attribute descriptor
 	* Fix: configure: support Autoconf 2.70
