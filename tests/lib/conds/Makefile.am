@@ -7,6 +7,7 @@ conds_triggers_SOURCES = \
 	utils.cpp utils.hpp
 
 conds_triggers_LDADD = \
+	$(top_builddir)/tests/lib/utils/liblib-utils.la \
 	$(top_builddir)/src/common/libbabeltrace2-common.la \
 	$(top_builddir)/src/logging/libbabeltrace2-logging.la \
 	$(top_builddir)/src/lib/libbabeltrace2.la
