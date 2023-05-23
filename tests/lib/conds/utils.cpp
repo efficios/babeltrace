@@ -10,8 +10,10 @@
 #include <assert.h>
 #include <babeltrace2/babeltrace.h>
 #include <glib.h>
+#include <iostream>
 
 #include "common/assert.h"
+#include "cpp-common/nlohmann/json.hpp"
 #include "utils.hpp"
 
 typedef void (*run_in_comp_cls_init_func)(bt_self_component *self_comp, void *user_data);
@@ -102,53 +104,32 @@ static void run_trigger(const struct cond_trigger *trigger)
     }
 }
 
-static void escape_json_string(const char *str, GString *escaped_str)
-{
-    g_string_assign(escaped_str, "");
-
-    for (const char *ch = str; *ch; ch++) {
-        if (*ch == '\\' || *ch == '"') {
-            g_string_append_c(escaped_str, '\\');
-        }
-
-        g_string_append_c(escaped_str, *ch);
-    }
-}
-
 static void list_triggers(const struct cond_trigger triggers[], size_t trigger_count)
 {
-    GString *escaped_str = g_string_new(NULL);
-    size_t i;
+    nlohmann::json trigger_array = nlohmann::json::array();
 
-    BT_ASSERT(escaped_str);
-    printf("[");
-
-    for (i = 0; i < trigger_count; i++) {
-        const struct cond_trigger *trigger = &triggers[i];
+    for (size_t i = 0; i < trigger_count; i++) {
+        nlohmann::json trigger_obj = nlohmann::json::object();
+        const cond_trigger& trigger = triggers[i];
 
         /* Condition ID */
-        escape_json_string(trigger->cond_id, escaped_str);
-        printf("{\"cond-id\":\"%s\",", escaped_str->str);
+        trigger_obj["cond-id"] = trigger.cond_id;
 
         /* Name starts with condition ID */
-        printf("\"name\":\"%s", escaped_str->str);
+        std::string name = trigger.cond_id;
 
-        if (trigger->suffix) {
-            escape_json_string(trigger->suffix, escaped_str);
-            printf("-%s", escaped_str->str);
+        if (trigger.suffix) {
+            name += '-';
+            name += trigger.suffix;
         }
 
-        printf("\"}");
-
-        if (i < trigger_count - 1) {
-            /* Comma between objects */
-            printf(",");
-        }
+        trigger_obj["name"] = std::move(name);
+        trigger_array.push_back(std::move(trigger_obj));
     }
 
-    printf("]");
-    g_string_free(escaped_str, TRUE);
-    fflush(stdout);
+    auto str = trigger_array.dump();
+    std::cout << str;
+    std::flush(std::cout);
 }
 
 void cond_main(int argc, const char *argv[], const struct cond_trigger triggers[],
