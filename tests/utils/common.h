@@ -10,8 +10,6 @@
 #ifndef _TESTS_COMMON_H
 #define _TESTS_COMMON_H
 
-struct bt_context;
-
 void recursive_rmdir(const char *path);
 
 #endif /* _TESTS_COMMON_H */
