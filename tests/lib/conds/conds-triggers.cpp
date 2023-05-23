@@ -9,66 +9,50 @@
 #include "common/assert.h"
 #include "utils.hpp"
 
-static
-void trigger_graph_mip_version(void)
+static void trigger_graph_mip_version(void)
 {
-	bt_graph_create(292);
+    bt_graph_create(292);
 }
 
-static
-bt_field_class *get_uint_fc(bt_self_component *self_comp)
+static bt_field_class *get_uint_fc(bt_self_component *self_comp)
 {
-	bt_trace_class *tc = bt_trace_class_create(self_comp);
-	bt_field_class *fc;
+    bt_trace_class *tc = bt_trace_class_create(self_comp);
+    bt_field_class *fc;
 
-	BT_ASSERT(tc);
-	fc = bt_field_class_integer_unsigned_create(tc);
-	BT_ASSERT(fc);
-	return fc;
+    BT_ASSERT(tc);
+    fc = bt_field_class_integer_unsigned_create(tc);
+    BT_ASSERT(fc);
+    return fc;
 }
 
-static
-void trigger_fc_int_set_field_value_range_n_0(bt_self_component *self_comp)
+static void trigger_fc_int_set_field_value_range_n_0(bt_self_component *self_comp)
 {
-	bt_field_class_integer_set_field_value_range(get_uint_fc(self_comp), 0);
+    bt_field_class_integer_set_field_value_range(get_uint_fc(self_comp), 0);
 }
 
-static
-void trigger_fc_int_set_field_value_range_n_gt_64(bt_self_component *self_comp)
+static void trigger_fc_int_set_field_value_range_n_gt_64(bt_self_component *self_comp)
 {
-	bt_field_class_integer_set_field_value_range(get_uint_fc(self_comp),
-		65);
+    bt_field_class_integer_set_field_value_range(get_uint_fc(self_comp), 65);
 }
 
-static
-void trigger_fc_int_set_field_value_range_null(bt_self_component *self_comp)
+static void trigger_fc_int_set_field_value_range_null(bt_self_component *self_comp)
 {
-	bt_field_class_integer_set_field_value_range(NULL, 23);
+    bt_field_class_integer_set_field_value_range(NULL, 23);
 }
 
-static
-const struct cond_trigger triggers[] = {
-	COND_TRIGGER_PRE_BASIC("pre:graph-create:valid-mip-version", NULL,
-		trigger_graph_mip_version),
-	COND_TRIGGER_PRE_RUN_IN_COMP_CLS_INIT(
-		"pre:field-class-integer-set-field-value-range:valid-n",
-		"0",
-		trigger_fc_int_set_field_value_range_n_0
-	),
-	COND_TRIGGER_PRE_RUN_IN_COMP_CLS_INIT(
-		"pre:field-class-integer-set-field-value-range:valid-n",
-		"gt-64",
-		trigger_fc_int_set_field_value_range_n_gt_64
-	),
-	COND_TRIGGER_PRE_RUN_IN_COMP_CLS_INIT(
-		"pre:field-class-integer-set-field-value-range:not-null:field-class",
-		NULL,
-		trigger_fc_int_set_field_value_range_null
-	),
+static const struct cond_trigger triggers[] = {
+    COND_TRIGGER_PRE_BASIC("pre:graph-create:valid-mip-version", NULL, trigger_graph_mip_version),
+    COND_TRIGGER_PRE_RUN_IN_COMP_CLS_INIT("pre:field-class-integer-set-field-value-range:valid-n",
+                                          "0", trigger_fc_int_set_field_value_range_n_0),
+    COND_TRIGGER_PRE_RUN_IN_COMP_CLS_INIT("pre:field-class-integer-set-field-value-range:valid-n",
+                                          "gt-64", trigger_fc_int_set_field_value_range_n_gt_64),
+    COND_TRIGGER_PRE_RUN_IN_COMP_CLS_INIT(
+        "pre:field-class-integer-set-field-value-range:not-null:field-class", NULL,
+        trigger_fc_int_set_field_value_range_null),
 };
 
 int main(int argc, const char *argv[])
 {
-	cond_main(argc, argv, triggers, sizeof(triggers) / sizeof(*triggers));
-	return 0;
+    cond_main(argc, argv, triggers, sizeof(triggers) / sizeof(*triggers));
+    return 0;
 }
