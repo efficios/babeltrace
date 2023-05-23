@@ -862,6 +862,7 @@ AC_CONFIG_FILES([
   tests/lib/Makefile
   tests/lib/test-plugin-plugins/Makefile
   tests/lib/conds/Makefile
+  tests/lib/utils/Makefile
   tests/Makefile
   tests/param-validation/Makefile
   tests/plugins/Makefile

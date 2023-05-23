@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: MIT
 
-SUBDIRS =
+SUBDIRS = utils
 
 AM_CPPFLAGS += -I$(top_srcdir)/tests/utils
 
