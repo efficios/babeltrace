@@ -7,6 +7,8 @@
 #ifndef TESTS_LIB_CONDS_UTILS_H
 #define TESTS_LIB_CONDS_UTILS_H
 
+#include <babeltrace2/babeltrace.h>
+
 enum cond_trigger_func_type
 {
     COND_TRIGGER_FUNC_TYPE_BASIC,
