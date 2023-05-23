@@ -7,7 +7,7 @@
 #include <babeltrace2/babeltrace.h>
 
 #include "common/assert.h"
-#include "utils.h"
+#include "utils.hpp"
 
 static
 void trigger_graph_mip_version(void)

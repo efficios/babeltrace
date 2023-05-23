@@ -12,7 +12,7 @@
 #include <glib.h>
 
 #include "common/assert.h"
-#include "utils.h"
+#include "utils.hpp"
 
 typedef void (* run_in_comp_cls_init_func)(
 		bt_self_component *self_comp, void *user_data);
@@ -28,7 +28,8 @@ bt_component_class_initialize_method_status comp_cls_init(
 		bt_self_component_source_configuration *conf,
 		const bt_value *params, void *init_method_data)
 {
-	struct comp_cls_init_method_data *data = init_method_data;
+	comp_cls_init_method_data *data =
+		static_cast<comp_cls_init_method_data *>(init_method_data);
 
 	/* Call user function which is expected to abort */
 	data->func(bt_self_component_source_as_self_component(self_comp),
@@ -92,7 +93,8 @@ static
 void run_in_comp_cls_init_defer(bt_self_component *self_comp,
 		void *user_data)
 {
-	cond_trigger_run_in_comp_cls_init_func user_func = user_data;
+	cond_trigger_run_in_comp_cls_init_func user_func =
+		reinterpret_cast<cond_trigger_run_in_comp_cls_init_func>(user_data);
 
 	user_func(self_comp);
 }
@@ -106,7 +108,7 @@ void run_trigger(const struct cond_trigger *trigger)
 		break;
 	case COND_TRIGGER_FUNC_TYPE_RUN_IN_COMP_CLS_INIT:
 		run_in_comp_cls_init(run_in_comp_cls_init_defer,
-			trigger->func.run_in_comp_cls_init);
+			reinterpret_cast<void *>(trigger->func.run_in_comp_cls_init));
 		break;
 	default:
 		abort();
