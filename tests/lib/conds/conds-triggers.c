@@ -10,6 +10,12 @@
 #include "utils.h"
 
 static
+void trigger_graph_mip_version(void)
+{
+	bt_graph_create(292);
+}
+
+static
 bt_field_class *get_uint_fc(bt_self_component *self_comp)
 {
 	bt_trace_class *tc = bt_trace_class_create(self_comp);
@@ -42,6 +48,8 @@ void trigger_fc_int_set_field_value_range_null(bt_self_component *self_comp)
 
 static
 const struct cond_trigger triggers[] = {
+	COND_TRIGGER_PRE_BASIC("pre:graph-create:valid-mip-version", NULL,
+		trigger_graph_mip_version),
 	COND_TRIGGER_PRE_RUN_IN_COMP_CLS_INIT(
 		"pre:field-class-integer-set-field-value-range:valid-n",
 		"0",
