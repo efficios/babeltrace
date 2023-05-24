@@ -74,6 +74,48 @@ msgIterClsNext(bt_self_message_iterator *, bt_message_array_const, uint64_t, uin
     return BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_END;
 }
 
+struct DummySinkData
+{
+    bt_message_iterator *msgIter;
+};
+
+static bt_component_class_initialize_method_status
+dummySinkInit(bt_self_component_sink * const self, bt_self_component_sink_configuration * const,
+              const bt_value * const, void * const initMethodData)
+{
+    const auto status = bt_self_component_sink_add_input_port(self, "in", NULL, nullptr);
+    BT_ASSERT(status == BT_SELF_COMPONENT_ADD_PORT_STATUS_OK);
+    bt_self_component_set_data(bt_self_component_sink_as_self_component(self), initMethodData);
+    return BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_OK;
+}
+
+static DummySinkData& dummySinkDataFromSelfCompSink(bt_self_component_sink * const self)
+{
+    return *static_cast<DummySinkData *>(
+        bt_self_component_get_data(bt_self_component_sink_as_self_component(self)));
+}
+
+static bt_component_class_sink_graph_is_configured_method_status
+dummySinkGraphIsConfigured(bt_self_component_sink *const self)
+{
+    auto& data = dummySinkDataFromSelfCompSink(self);
+    const auto port = bt_self_component_sink_borrow_input_port_by_name(self, "in");
+    BT_ASSERT(port);
+    const auto status = bt_message_iterator_create_from_sink_component(self, port, &data.msgIter);
+    BT_ASSERT(status == BT_MESSAGE_ITERATOR_CREATE_FROM_SINK_COMPONENT_STATUS_OK);
+    return BT_COMPONENT_CLASS_SINK_GRAPH_IS_CONFIGURED_METHOD_STATUS_OK;
+}
+
+static bt_component_class_sink_consume_method_status dummySinkConsume(bt_self_component_sink *const self)
+{
+    const auto& data = dummySinkDataFromSelfCompSink(self);
+    bt_message_array_const msgs;
+    uint64_t msgCount;
+    const auto status = bt_message_iterator_next(data.msgIter, &msgs, &msgCount);
+    BT_ASSERT(status == BT_MESSAGE_ITERATOR_NEXT_STATUS_END);
+    return BT_COMPONENT_CLASS_SINK_CONSUME_METHOD_STATUS_END;
+}
+
 void runIn(RunInCompClsQueryFunc compClsCtxFunc, RunInCompClsInitFunc compCtxFunc,
            RunInMsgIterClsInitFunc msgIterCtxFunc)
 {
@@ -124,6 +166,22 @@ void runIn(RunInCompClsQueryFunc compClsCtxFunc, RunInCompClsInitFunc compCtxFun
         bt_query_executor_put_ref(queryExec);
     }
 
+    /* Create a dummy sink component */
+    const auto sinkCompCls = bt_component_class_sink_create("dummy", dummySinkConsume);
+    BT_ASSERT(sinkCompCls);
+
+    {
+        const auto status =
+            bt_component_class_sink_set_initialize_method(sinkCompCls, dummySinkInit);
+        BT_ASSERT(status == BT_COMPONENT_CLASS_SET_METHOD_STATUS_OK);
+    }
+
+    {
+        const auto status = bt_component_class_sink_set_graph_is_configured_method(
+            sinkCompCls, dummySinkGraphIsConfigured);
+        BT_ASSERT(status == BT_COMPONENT_CLASS_SET_METHOD_STATUS_OK);
+    }
+
     /* Create graph */
     const auto graph = bt_graph_create(0);
 
@@ -134,33 +192,18 @@ void runIn(RunInCompClsQueryFunc compClsCtxFunc, RunInCompClsInitFunc compCtxFun
 
     {
         const auto status = bt_graph_add_source_component_with_initialize_method_data(
-            graph, srcCompCls, "whatever", NULL, &data, BT_LOGGING_LEVEL_NONE, &srcComp);
+            graph, srcCompCls, "the-source", NULL, &data, BT_LOGGING_LEVEL_NONE, &srcComp);
 
         BT_ASSERT(status == BT_GRAPH_ADD_COMPONENT_STATUS_OK);
     }
 
-    /* Find `sink.utils.dummy` component class */
-    const bt_plugin *utilsPlugin = nullptr;
-
-    {
-        const auto status =
-            bt_plugin_find("utils", BT_TRUE, BT_TRUE, BT_TRUE, BT_TRUE, BT_TRUE, &utilsPlugin);
-
-        BT_ASSERT(status == BT_PLUGIN_FIND_STATUS_OK);
-    }
-
-    /* Add `sink.utils.dummy` component */
+    /* Add dummy sink component */
     const bt_component_sink *sinkComp;
+    DummySinkData dummySinkData;
 
     {
-        const auto dummyCompCls =
-            bt_plugin_borrow_sink_component_class_by_name_const(utilsPlugin, "dummy");
-
-        BT_ASSERT(dummyCompCls);
-
-        const auto status = bt_graph_add_sink_component(graph, dummyCompCls, "the-sink", nullptr,
-                                                        BT_LOGGING_LEVEL_NONE, &sinkComp);
-
+        const auto status = bt_graph_add_sink_component_with_initialize_method_data(
+            graph, sinkCompCls, "the-sink", NULL, &dummySinkData, BT_LOGGING_LEVEL_NONE, &sinkComp);
         BT_ASSERT(status == BT_GRAPH_ADD_COMPONENT_STATUS_OK);
     }
 
@@ -185,9 +228,9 @@ void runIn(RunInCompClsQueryFunc compClsCtxFunc, RunInCompClsInitFunc compCtxFun
     BT_ASSERT(status == BT_GRAPH_RUN_STATUS_OK);
 
     /* Discard plugin and graph */
-    bt_plugin_put_ref(utilsPlugin);
     bt_graph_put_ref(graph);
     bt_component_class_source_put_ref(srcCompCls);
+    bt_component_class_sink_put_ref(sinkCompCls);
     bt_message_iterator_class_put_ref(msgIterCls);
 }
 

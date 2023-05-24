@@ -82,6 +82,7 @@ TESTS_CLI = \
 TESTS_LIB = \
 	lib/test_bt_uuid \
 	lib/test_bt_values \
+	lib/test_fields \
 	lib/test_graph_topo \
 	lib/test_remove_destruction_listener_in_destruction_listener \
 	lib/test_simple_sink \
