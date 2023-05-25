@@ -70,7 +70,7 @@ noinst_HEADERS = \
 ##
 version_verbose = $(version_verbose_@AM_V@)
 version_verbose_ = $(version_verbose_@AM_DEFAULT_V@)
-version_verbose_0 = @echo "  GEN       " $@;
+version_verbose_0 = @echo "  GEN     " $@;
 
 version.i:
 	$(version_verbose)rm -f version.i.tmp; \
