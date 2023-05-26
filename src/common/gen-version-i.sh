@@ -37,7 +37,7 @@ fi
 # starts with "v" and the tree is clean, consider this a release version and
 # overwrite the git version with an empty string in "version.i.tmp".
 if test -r "$TOP_SRCDIR/bootstrap" && test -r "$TOP_SRCDIR/.git" &&
-		test -x "$(which git 2>&1; true)"; then
+		(command -v git > /dev/null 2>&1); then
 	GIT_VERSION_STR="$(cd "$TOP_SRCDIR" && git describe --tags --dirty)"
 	GIT_CURRENT_TAG="$(cd "$TOP_SRCDIR" && (git describe --tags --exact-match --match="v[0-9]*" HEAD || true) 2> /dev/null)"
 	echo "#define BT_VERSION_GIT \"$GIT_VERSION_STR\"" > version.i.tmp
