@@ -88,7 +88,7 @@ fi
 # string or either one of extra version string change.
 if test ! -f version.i ||
 		test x"$(cat version.i.tmp)" != x"$(cat version.i)"; then
-	mv version.i.tmp version.i
+	mv -f version.i.tmp version.i
 fi
 
 rm -f version.i.tmp
