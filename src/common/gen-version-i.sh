@@ -24,7 +24,7 @@ SED=${SED:-sed}
 # Delete any stale "version.i.tmp" file.
 rm -f version.i.tmp
 
-if (test ! -f version.i && test -f "$TOP_SRCDIR/include/version.i"); then
+if test ! -f version.i && test -f "$TOP_SRCDIR/include/version.i"; then
 	cp "$TOP_SRCDIR/include/version.i" version.i
 fi
 
@@ -36,10 +36,10 @@ fi
 # And store it in "version.i.tmp", if the current commit is tagged, the tag
 # starts with "v" and the tree is clean, consider this a release version and
 # overwrite the git version with an empty string in "version.i.tmp".
-if (test -r "$TOP_SRCDIR/bootstrap" && test -r "$TOP_SRCDIR/.git") &&
-		test -x "`which git 2>&1;true`"; then
-	GIT_VERSION_STR="`cd "$TOP_SRCDIR" && git describe --tags --dirty`"
-	GIT_CURRENT_TAG="`cd "$TOP_SRCDIR" && git describe --tags --exact-match --match="v[0-9]*" HEAD || true 2> /dev/null`"
+if test -r "$TOP_SRCDIR/bootstrap" && test -r "$TOP_SRCDIR/.git" &&
+		test -x "$(which git 2>&1; true)"; then
+	GIT_VERSION_STR="$(cd "$TOP_SRCDIR" && git describe --tags --dirty)"
+	GIT_CURRENT_TAG="$(cd "$TOP_SRCDIR" && (git describe --tags --exact-match --match="v[0-9]*" HEAD || true) 2> /dev/null)"
 	echo "#define BT_VERSION_GIT \"$GIT_VERSION_STR\"" > version.i.tmp
 
 	if ! $GREP -- "-dirty" version.i.tmp > /dev/null &&
@@ -59,32 +59,35 @@ if test ! -f version.i.tmp; then
 	fi
 fi
 
-# Fetch the BT_VERSION_EXTRA_NAME define from "version/extra_version_name" and output it
-# to "version.i.tmp".
-echo "#define BT_VERSION_EXTRA_NAME \"`$SED -n '1p' "$TOP_SRCDIR/version/extra_version_name" 2> /dev/null`\"" >> version.i.tmp
+{
+	# Fetch the BT_VERSION_EXTRA_NAME define from "version/extra_version_name" and output it
+	# to "version.i.tmp".
+	echo "#define BT_VERSION_EXTRA_NAME \"$($SED -n '1p' "$TOP_SRCDIR/version/extra_version_name" 2> /dev/null)\""
 
-# Fetch the BT_VERSION_EXTRA_DESCRIPTION define from "version/extra_version_description",
-# sanitize and format it with a sed script to replace all non-alpha-numeric values
-# with "-" and join all lines by replacing "\n" with litteral string c-style "\n" and
-# output it to "version.i.tmp".
-echo "#define BT_VERSION_EXTRA_DESCRIPTION \"`$SED -E ':a ; N ; $!ba ; s/[^a-zA-Z0-9 \n\t\.,]/-/g ; s/\r{0,1}\n/\\\n/g' "$TOP_SRCDIR/version/extra_version_description" 2> /dev/null`\"" >> version.i.tmp
+	# Fetch the BT_VERSION_EXTRA_DESCRIPTION define from "version/extra_version_description",
+	# sanitize and format it with a sed script to replace all non-alpha-numeric values
+	# with "-" and join all lines by replacing "\n" with litteral string c-style "\n" and
+	# output it to "version.i.tmp".
+	echo "#define BT_VERSION_EXTRA_DESCRIPTION \"$($SED -E ':a ; N ; $!ba ; s/[^a-zA-Z0-9 \n\t\.,]/-/g ; s/\r{0,1}\n/\\n/g' "$TOP_SRCDIR/version/extra_version_description" 2> /dev/null)\""
 
-# Repeat the same logic for the "version/extra_patches" directory.
-# Data fetched from "version/extra_patches" must be sanitized and
-# formatted.
-# The data is fetched using "ls" with an ignore pattern for the README.adoc file.
-# The sanitize step uses sed with a script to replace all
-# non-alpha-numeric values, except " " (space), to "-".
-# The formatting step uses sed with a script to join all lines
-# by replacing "\n" with litteral string c-style "\n".
-echo "#define BT_VERSION_EXTRA_PATCHES \"`ls -1 "$TOP_SRCDIR/version/extra_patches" | $GREP -v '^README.adoc' | $SED -E ':a ; N ; $!ba ; s/[^a-zA-Z0-9 \n\t\.]/-/g ; s/\r{0,1}\n/\\\n/g' 2> /dev/null`\"" >> version.i.tmp
+	# Repeat the same logic for the "version/extra_patches" directory.
+	# Data fetched from "version/extra_patches" must be sanitized and
+	# formatted.
+	# The data is fetched using "find" with an ignore pattern for the README.adoc file.
+	# The sanitize step uses sed with a script to replace all
+	# non-alpha-numeric values, except " " (space), to "-".
+	# The formatting step uses sed with a script to join all lines
+	# by replacing "\n" with litteral string c-style "\n".
+	# shellcheck disable=SC2012
+	echo "#define BT_VERSION_EXTRA_PATCHES \"$(ls -1 "$TOP_SRCDIR/version/extra_patches" | $GREP -v '^README.adoc' | $SED -E ':a ; N ; $!ba ; s/[^a-zA-Z0-9 \n\t\.]/-/g ; s/\r{0,1}\n/\\n/g' 2> /dev/null)\""
+} >> version.i.tmp
 
 # If we don't have a "version.i" or we have both files (version.i, version.i.tmp)
 # and they are different, copy "version.i.tmp" over "version.i".
 # This way the dependent targets are only rebuilt when the git version
 # string or either one of extra version string change.
 if test ! -f version.i ||
-		test x"`cat version.i.tmp`" != x"`cat version.i`"; then
+		test x"$(cat version.i.tmp)" != x"$(cat version.i)"; then
 	mv version.i.tmp version.i
 fi
 
