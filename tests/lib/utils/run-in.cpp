@@ -96,7 +96,7 @@ static DummySinkData& dummySinkDataFromSelfCompSink(bt_self_component_sink * con
 }
 
 static bt_component_class_sink_graph_is_configured_method_status
-dummySinkGraphIsConfigured(bt_self_component_sink *const self)
+dummySinkGraphIsConfigured(bt_self_component_sink * const self)
 {
     auto& data = dummySinkDataFromSelfCompSink(self);
     const auto port = bt_self_component_sink_borrow_input_port_by_name(self, "in");
@@ -106,7 +106,8 @@ dummySinkGraphIsConfigured(bt_self_component_sink *const self)
     return BT_COMPONENT_CLASS_SINK_GRAPH_IS_CONFIGURED_METHOD_STATUS_OK;
 }
 
-static bt_component_class_sink_consume_method_status dummySinkConsume(bt_self_component_sink *const self)
+static bt_component_class_sink_consume_method_status
+dummySinkConsume(bt_self_component_sink * const self)
 {
     const auto& data = dummySinkDataFromSelfCompSink(self);
     bt_message_array_const msgs;
