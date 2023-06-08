@@ -3,6 +3,9 @@
 # Copyright (c) 2017 Philippe Proulx <pproulx@efficios.com>
 
 
+import abc
+
+
 class _BaseObject:
     # Ensure that the object always has _ptr set, even if it throws during
     # construction.
@@ -69,14 +72,14 @@ class _UniqueObject(_BaseObject):
 
 
 # Python object that owns a reference to a Babeltrace object.
-class _SharedObject(_BaseObject):
-
+class _SharedObject(_BaseObject, abc.ABC):
     # Get a new reference on ptr.
     #
     # This must be implemented by subclasses to work correctly with a pointer
     # of the native type they wrap.
 
     @staticmethod
+    @abc.abstractmethod
     def _get_ref(ptr):
         raise NotImplementedError
 
@@ -86,6 +89,7 @@ class _SharedObject(_BaseObject):
     # of the native type they wrap.
 
     @staticmethod
+    @abc.abstractmethod
     def _put_ref(ptr):
         raise NotImplementedError
 
