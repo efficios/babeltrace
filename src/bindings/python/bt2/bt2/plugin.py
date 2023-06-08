@@ -91,8 +91,13 @@ def find_plugin(
 
 
 class _PluginSet(object._SharedObject, collections.abc.Sequence):
-    _put_ref = staticmethod(native_bt.plugin_set_put_ref)
-    _get_ref = staticmethod(native_bt.plugin_set_get_ref)
+    @staticmethod
+    def _put_ref(ptr):
+        native_bt.plugin_set_put_ref(ptr)
+
+    @staticmethod
+    def _get_ref(ptr):
+        native_bt.plugin_set_get_ref(ptr)
 
     def __len__(self):
         count = native_bt.plugin_set_get_plugin_count(self._ptr)
@@ -232,8 +237,13 @@ class _PluginSinkComponentClasses(_PluginComponentClasses):
 
 
 class _Plugin(object._SharedObject):
-    _put_ref = staticmethod(native_bt.plugin_put_ref)
-    _get_ref = staticmethod(native_bt.plugin_get_ref)
+    @staticmethod
+    def _put_ref(ptr):
+        native_bt.plugin_put_ref(ptr)
+
+    @staticmethod
+    def _get_ref(ptr):
+        native_bt.plugin_get_ref(ptr)
 
     @property
     def name(self):

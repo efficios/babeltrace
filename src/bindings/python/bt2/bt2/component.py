@@ -58,24 +58,42 @@ class _ComponentClassConst(object._SharedObject):
 
 
 class _SourceComponentClassConst(_ComponentClassConst):
-    _get_ref = staticmethod(native_bt.component_class_source_get_ref)
-    _put_ref = staticmethod(native_bt.component_class_source_put_ref)
+    @staticmethod
+    def _get_ref(ptr):
+        native_bt.component_class_source_get_ref(ptr)
+
+    @staticmethod
+    def _put_ref(ptr):
+        native_bt.component_class_source_put_ref(ptr)
+
     _bt_as_component_class_ptr = staticmethod(
         native_bt.component_class_source_as_component_class
     )
 
 
 class _FilterComponentClassConst(_ComponentClassConst):
-    _get_ref = staticmethod(native_bt.component_class_filter_get_ref)
-    _put_ref = staticmethod(native_bt.component_class_filter_put_ref)
+    @staticmethod
+    def _get_ref(ptr):
+        native_bt.component_class_filter_get_ref(ptr)
+
+    @staticmethod
+    def _put_ref(ptr):
+        native_bt.component_class_filter_put_ref(ptr)
+
     _bt_as_component_class_ptr = staticmethod(
         native_bt.component_class_filter_as_component_class
     )
 
 
 class _SinkComponentClassConst(_ComponentClassConst):
-    _get_ref = staticmethod(native_bt.component_class_sink_get_ref)
-    _put_ref = staticmethod(native_bt.component_class_sink_put_ref)
+    @staticmethod
+    def _get_ref(ptr):
+        native_bt.component_class_sink_get_ref(ptr)
+
+    @staticmethod
+    def _put_ref(ptr):
+        native_bt.component_class_sink_put_ref(ptr)
+
     _bt_as_component_class_ptr = staticmethod(
         native_bt.component_class_sink_as_component_class
     )
@@ -219,8 +237,13 @@ class _SinkComponentConst(_ComponentConst):
 # This is analogous to _SourceComponentClassConst, but for source
 # component objects.
 class _GenericSourceComponentConst(object._SharedObject, _SourceComponentConst):
-    _get_ref = staticmethod(native_bt.component_source_get_ref)
-    _put_ref = staticmethod(native_bt.component_source_put_ref)
+    @staticmethod
+    def _get_ref(ptr):
+        native_bt.component_source_get_ref(ptr)
+
+    @staticmethod
+    def _put_ref(ptr):
+        native_bt.component_source_put_ref(ptr)
 
     @property
     def output_ports(self):
@@ -236,8 +259,13 @@ class _GenericSourceComponentConst(object._SharedObject, _SourceComponentConst):
 # This is analogous to _FilterComponentClassConst, but for filter
 # component objects.
 class _GenericFilterComponentConst(object._SharedObject, _FilterComponentConst):
-    _get_ref = staticmethod(native_bt.component_filter_get_ref)
-    _put_ref = staticmethod(native_bt.component_filter_put_ref)
+    @staticmethod
+    def _get_ref(ptr):
+        native_bt.component_filter_get_ref(ptr)
+
+    @staticmethod
+    def _put_ref(ptr):
+        native_bt.component_filter_put_ref(ptr)
 
     @property
     def output_ports(self):
@@ -263,8 +291,13 @@ class _GenericFilterComponentConst(object._SharedObject, _FilterComponentConst):
 # This is analogous to _SinkComponentClassConst, but for sink
 # component objects.
 class _GenericSinkComponentConst(object._SharedObject, _SinkComponentConst):
-    _get_ref = staticmethod(native_bt.component_sink_get_ref)
-    _put_ref = staticmethod(native_bt.component_sink_put_ref)
+    @staticmethod
+    def _get_ref(ptr):
+        native_bt.component_sink_get_ref(ptr)
+
+    @staticmethod
+    def _put_ref(ptr):
+        native_bt.component_sink_put_ref(ptr)
 
     @property
     def input_ports(self):

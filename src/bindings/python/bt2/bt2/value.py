@@ -82,8 +82,14 @@ def create_value(value):
 
 
 class _ValueConst(object._SharedObject, metaclass=abc.ABCMeta):
-    _get_ref = staticmethod(native_bt.value_get_ref)
-    _put_ref = staticmethod(native_bt.value_put_ref)
+    @staticmethod
+    def _get_ref(ptr):
+        native_bt.value_get_ref(ptr)
+
+    @staticmethod
+    def _put_ref(ptr):
+        native_bt.value_put_ref(ptr)
+
     _create_value_from_ptr = staticmethod(_create_from_const_ptr)
     _create_value_from_ptr_and_get_ref = staticmethod(
         _create_from_const_ptr_and_get_ref

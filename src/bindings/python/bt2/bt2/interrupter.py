@@ -7,8 +7,13 @@ import bt2
 
 
 class Interrupter(object._SharedObject):
-    _get_ref = staticmethod(native_bt.interrupter_get_ref)
-    _put_ref = staticmethod(native_bt.interrupter_put_ref)
+    @staticmethod
+    def _get_ref(ptr):
+        native_bt.interrupter_get_ref(ptr)
+
+    @staticmethod
+    def _put_ref(ptr):
+        native_bt.interrupter_put_ref(ptr)
 
     def __init__(self):
         ptr = native_bt.interrupter_create()

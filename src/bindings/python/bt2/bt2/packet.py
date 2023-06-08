@@ -13,8 +13,14 @@ def _bt2_stream():
 
 
 class _PacketConst(object._SharedObject):
-    _get_ref = staticmethod(native_bt.packet_get_ref)
-    _put_ref = staticmethod(native_bt.packet_put_ref)
+    @staticmethod
+    def _get_ref(ptr):
+        native_bt.packet_get_ref(ptr)
+
+    @staticmethod
+    def _put_ref(ptr):
+        native_bt.packet_put_ref(ptr)
+
     _borrow_stream_ptr = staticmethod(native_bt.packet_borrow_stream_const)
     _borrow_context_field_ptr = staticmethod(
         native_bt.packet_borrow_context_field_const

@@ -135,8 +135,14 @@ class _IntegerRangeSet(_IntegerRangeSetConst, collections.abc.MutableSet):
 
 
 class _SignedIntegerRangeSetConst(_IntegerRangeSetConst):
-    _get_ref = staticmethod(native_bt.integer_range_set_signed_get_ref)
-    _put_ref = staticmethod(native_bt.integer_range_set_signed_put_ref)
+    @staticmethod
+    def _get_ref(ptr):
+        native_bt.integer_range_set_signed_get_ref(ptr)
+
+    @staticmethod
+    def _put_ref(ptr):
+        native_bt.integer_range_set_signed_put_ref(ptr)
+
     _as_range_set_ptr = staticmethod(
         native_bt.integer_range_set_signed_as_range_set_const
     )
@@ -156,8 +162,14 @@ class SignedIntegerRangeSet(_SignedIntegerRangeSetConst, _IntegerRangeSet):
 
 
 class _UnsignedIntegerRangeSetConst(_IntegerRangeSetConst):
-    _get_ref = staticmethod(native_bt.integer_range_set_unsigned_get_ref)
-    _put_ref = staticmethod(native_bt.integer_range_set_unsigned_put_ref)
+    @staticmethod
+    def _get_ref(ptr):
+        native_bt.integer_range_set_unsigned_get_ref(ptr)
+
+    @staticmethod
+    def _put_ref(ptr):
+        native_bt.integer_range_set_unsigned_put_ref(ptr)
+
     _as_range_set_ptr = staticmethod(
         native_bt.integer_range_set_unsigned_as_range_set_const
     )

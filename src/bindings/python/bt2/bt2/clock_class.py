@@ -31,8 +31,14 @@ class ClockClassOffset:
 
 
 class _ClockClassConst(object._SharedObject):
-    _get_ref = staticmethod(native_bt.clock_class_get_ref)
-    _put_ref = staticmethod(native_bt.clock_class_put_ref)
+    @staticmethod
+    def _get_ref(ptr):
+        native_bt.clock_class_get_ref(ptr)
+
+    @staticmethod
+    def _put_ref(ptr):
+        native_bt.clock_class_put_ref(ptr)
+
     _create_value_from_ptr_and_get_ref = staticmethod(
         bt2_value._create_from_const_ptr_and_get_ref
     )

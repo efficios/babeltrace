@@ -73,8 +73,14 @@ class _TraceEnvironment(_TraceEnvironmentConst, collections.abc.MutableMapping):
 
 
 class _TraceConst(object._SharedObject, collections.abc.Mapping):
-    _get_ref = staticmethod(native_bt.trace_get_ref)
-    _put_ref = staticmethod(native_bt.trace_put_ref)
+    @staticmethod
+    def _get_ref(ptr):
+        native_bt.trace_get_ref(ptr)
+
+    @staticmethod
+    def _put_ref(ptr):
+        native_bt.trace_put_ref(ptr)
+
     _borrow_stream_ptr_by_id = staticmethod(native_bt.trace_borrow_stream_by_id_const)
     _borrow_stream_ptr_by_index = staticmethod(
         native_bt.trace_borrow_stream_by_index_const

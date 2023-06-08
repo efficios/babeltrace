@@ -23,8 +23,13 @@ def _graph_port_added_listener_from_native(
 
 
 class Graph(object._SharedObject):
-    _get_ref = staticmethod(native_bt.graph_get_ref)
-    _put_ref = staticmethod(native_bt.graph_put_ref)
+    @staticmethod
+    def _get_ref(ptr):
+        native_bt.graph_get_ref(ptr)
+
+    @staticmethod
+    def _put_ref(ptr):
+        native_bt.graph_put_ref(ptr)
 
     def __init__(self, mip_version=0):
         utils._check_uint64(mip_version)

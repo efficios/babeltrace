@@ -17,8 +17,14 @@ def _bt2_trace_class():
 
 
 class _StreamClassConst(object._SharedObject, collections.abc.Mapping):
-    _get_ref = staticmethod(native_bt.stream_class_get_ref)
-    _put_ref = staticmethod(native_bt.stream_class_put_ref)
+    @staticmethod
+    def _get_ref(ptr):
+        native_bt.stream_class_get_ref(ptr)
+
+    @staticmethod
+    def _put_ref(ptr):
+        native_bt.stream_class_put_ref(ptr)
+
     _borrow_event_class_ptr_by_id = staticmethod(
         native_bt.stream_class_borrow_event_class_by_id_const
     )
@@ -165,8 +171,14 @@ class _StreamClassConst(object._SharedObject, collections.abc.Mapping):
 
 
 class _StreamClass(_StreamClassConst):
-    _get_ref = staticmethod(native_bt.stream_class_get_ref)
-    _put_ref = staticmethod(native_bt.stream_class_put_ref)
+    @staticmethod
+    def _get_ref(ptr):
+        native_bt.stream_class_get_ref(ptr)
+
+    @staticmethod
+    def _put_ref(ptr):
+        native_bt.stream_class_put_ref(ptr)
+
     _borrow_event_class_ptr_by_id = staticmethod(
         native_bt.stream_class_borrow_event_class_by_id
     )

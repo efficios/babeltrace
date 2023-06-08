@@ -17,8 +17,14 @@ def _bt2_trace():
 
 
 class _StreamConst(bt2_object._SharedObject):
-    _get_ref = staticmethod(native_bt.stream_get_ref)
-    _put_ref = staticmethod(native_bt.stream_put_ref)
+    @staticmethod
+    def _get_ref(ptr):
+        native_bt.stream_get_ref(ptr)
+
+    @staticmethod
+    def _put_ref(ptr):
+        native_bt.stream_put_ref(ptr)
+
     _borrow_class_ptr = staticmethod(native_bt.stream_borrow_class_const)
     _borrow_user_attributes_ptr = staticmethod(
         native_bt.stream_borrow_user_attributes_const

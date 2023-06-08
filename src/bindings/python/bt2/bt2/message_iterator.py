@@ -19,8 +19,13 @@ class _MessageIterator(collections.abc.Iterator):
 
 
 class _UserComponentInputPortMessageIterator(object._SharedObject, _MessageIterator):
-    _get_ref = staticmethod(native_bt.message_iterator_get_ref)
-    _put_ref = staticmethod(native_bt.message_iterator_put_ref)
+    @staticmethod
+    def _get_ref(ptr):
+        native_bt.message_iterator_get_ref(ptr)
+
+    @staticmethod
+    def _put_ref(ptr):
+        native_bt.message_iterator_put_ref(ptr)
 
     def __init__(self, ptr):
         self._current_msgs = []

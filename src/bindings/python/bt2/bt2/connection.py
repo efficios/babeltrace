@@ -8,8 +8,13 @@ from bt2 import object as bt2_object
 
 
 class _ConnectionConst(bt2_object._SharedObject):
-    _get_ref = staticmethod(native_bt.connection_get_ref)
-    _put_ref = staticmethod(native_bt.connection_put_ref)
+    @staticmethod
+    def _get_ref(ptr):
+        native_bt.connection_get_ref(ptr)
+
+    @staticmethod
+    def _put_ref(ptr):
+        native_bt.connection_put_ref(ptr)
 
     @property
     def downstream_port(self):

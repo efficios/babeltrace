@@ -24,8 +24,14 @@ def _trace_class_destruction_listener_from_native(
 
 
 class _TraceClassConst(object._SharedObject, collections.abc.Mapping):
-    _get_ref = staticmethod(native_bt.trace_class_get_ref)
-    _put_ref = staticmethod(native_bt.trace_class_put_ref)
+    @staticmethod
+    def _get_ref(ptr):
+        native_bt.trace_class_get_ref(ptr)
+
+    @staticmethod
+    def _put_ref(ptr):
+        native_bt.trace_class_put_ref(ptr)
+
     _borrow_stream_class_ptr_by_index = staticmethod(
         native_bt.trace_class_borrow_stream_class_by_index_const
     )

@@ -30,8 +30,13 @@ class _QueryExecutorCommon:
 
 
 class QueryExecutor(object._SharedObject, _QueryExecutorCommon):
-    _get_ref = staticmethod(native_bt.query_executor_get_ref)
-    _put_ref = staticmethod(native_bt.query_executor_put_ref)
+    @staticmethod
+    def _get_ref(ptr):
+        native_bt.query_executor_get_ref(ptr)
+
+    @staticmethod
+    def _put_ref(ptr):
+        native_bt.query_executor_put_ref(ptr)
 
     def _as_query_executor_ptr(self):
         return self._ptr
