@@ -11,6 +11,7 @@
      | src/bindings/python/bt2/setup\.py$
      | src/bindings/python/bt2/bt2/native_bt\.py$
      | src/bindings/python/bt2/bt2/version\.py$
+     | tests/utils/python/local_typing\.py$
      | tests/utils/python/tap
 
   )
@@ -18,5 +19,8 @@
 
 [tool.isort]
 profile = "black"
-extend_skip_glob = ["tests/utils/python/tap"]
+extend_skip_glob = [
+    "tests/utils/python/tap",
+    "tests/utils/python/local_typing.py",
+]
 length_sort = true

@@ -92,6 +92,19 @@ This applies to:
 
 	doc/api/libbabeltrace2/*
 
+The typing Python module is provided under the terms of the Python Software
+Foundation License 2:
+
+	SPDX-License-Identifier: PSF-2.0
+
+According with:
+
+	LICENSES/PSF-2.0
+
+This applies to:
+
+	tests/utils/python/local_typing.py
+
 
 In addition, other licenses may also apply, see SPDX-License-Identifier in
 individual files.
