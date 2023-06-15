@@ -4,6 +4,7 @@
 /tests/lib/plugin
 /tests/lib/test_bt_uuid
 /tests/lib/test_bt_values
+/tests/lib/test_fields_bin
 /tests/lib/test_graph_topo
 /tests/lib/test_trace_ir_ref
 /tests/lib/test_simple_sink
