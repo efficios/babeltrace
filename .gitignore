@@ -31,6 +31,8 @@
 /src/plugins/ctf/common/metadata/parser.cpp
 /src/plugins/ctf/common/metadata/parser.hpp
 /src/plugins/ctf/common/metadata/parser.output
+/src/bindings/python/bt2/bt2.egg-info
+/src/bindings/python/bt2/dist
 /src/cli/babeltrace2
 /src/cli/babeltrace2.bin
 /src/cli/babeltrace2-log

@@ -155,12 +155,21 @@ pyinstall_verbose = $(pyinstall_verbose_@AM_V@)
 pyinstall_verbose_ = $(pyinstall_verbose_@AM_DEFAULT_V@)
 pyinstall_verbose_0 = @
 
+# For Python < 3.12, force the use of distutils even if setuptools is
+# installed. For Python >= 3.12, set the externally managed option to allow
+# installation in a directory which isn't in the current PYTHONPATH.
+if HAVE_PYTHON_312_OR_GREATER
+PY_INSTALL_OPTS = --single-version-externally-managed
+else
+export SETUPTOOLS_USE_DISTUTILS=stdlib
+endif
+
 install-exec-local: build-python-bindings.stamp
 	$(pyinstall_verbose)opts="--prefix=$(prefix) --exec-prefix=$(exec_prefix) --record $(INSTALLED_FILES) --verbose --no-compile $(DISTSETUPOPTS)"; \
 	if [ "$(DESTDIR)" != "" ]; then \
 		opts="$$opts --root=$(DESTDIR)"; \
 	fi; \
-	$(PYTHON) $(builddir)/setup.py install $$opts;
+	$(PYTHON) $(builddir)/setup.py install $(PY_INSTALL_OPTS) $$opts;
 
 clean-local:
 	rm -rf $(builddir)/build

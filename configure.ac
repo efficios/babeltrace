@@ -535,6 +535,14 @@ AS_IF([test -n "$PYTHON_CONFIG"], [have_python_dev=yes], [have_python_dev=no])
 AM_CONDITIONAL([HAVE_PYTHON], [test "x$have_python" = xyes])
 AM_CONDITIONAL([HAVE_PYTHON_DEV], [test "x$have_python_dev" = xyes])
 
+AS_IF([test "x$have_python" = xyes], [
+  AX_COMPARE_VERSION(["$PYTHON_VERSION"], [ge], ["3.12"], [
+    have_python_312_or_greater=yes
+  ])
+])
+
+AM_CONDITIONAL([HAVE_PYTHON_312_OR_GREATER], [test "x$have_python_312_or_greater" = xyes])
+
 AS_IF([AE_IS_FEATURE_ENABLED([python-bindings]) || AE_IS_FEATURE_ENABLED([python-plugins])], [
   AS_IF([test "x$have_python_dev" = xno], [
     AC_MSG_ERROR([Cannot find a suitable python-config. You can override the python-config path with the PYTHON_CONFIG environment variable.])
