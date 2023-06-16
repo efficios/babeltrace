@@ -388,25 +388,6 @@ class UserMessageIteratorTestCase(unittest.TestCase):
             def __init__(self, config, params, obj):
                 self._add_output_port("out")
 
-        class MyFilterIter(bt2._UserMessageIterator):
-            def __init__(self, port):
-                input_port = port.user_data
-                self._upstream_iter = self._create_message_iterator(input_port)
-
-            def __next__(self):
-                return next(self._upstream_iter)
-
-            def _user_seek_beginning(self):
-                self._upstream_iter.seek_beginning()
-
-            def _user_can_seek_beginning(self):
-                return self._upstream_iter.can_seek_beginning()
-
-        class MyFilter(bt2._UserFilterComponent, message_iterator_class=MyFilterIter):
-            def __init__(self, config, params, obj):
-                input_port = self._add_input_port("in")
-                self._add_output_port("out", input_port)
-
         graph = bt2.Graph()
         src = graph.add_component(MySource, "src")
         it = TestOutputPortMessageIterator(graph, src.output_ports["out"])
