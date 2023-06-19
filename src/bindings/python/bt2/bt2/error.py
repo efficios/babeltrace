@@ -219,3 +219,7 @@ class _Error(Exception, abc.Sequence):
 
     def __str__(self):
         return self._str
+
+
+class _MemoryError(_Error):
+    """Raised when an operation fails due to memory issues."""

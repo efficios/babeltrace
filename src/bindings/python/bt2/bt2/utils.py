@@ -5,6 +5,28 @@
 import bt2
 from bt2 import logging as bt2_logging
 from bt2 import native_bt
+from bt2 import error as bt2_error
+
+
+class UnknownObject(Exception):
+    """
+    Raised when a component class handles a query for an object it doesn't
+    know about.
+    """
+
+    pass
+
+
+class _OverflowError(bt2_error._Error, OverflowError):
+    pass
+
+
+class TryAgain(Exception):
+    pass
+
+
+class Stop(StopIteration):
+    pass
 
 
 def _check_bool(o):

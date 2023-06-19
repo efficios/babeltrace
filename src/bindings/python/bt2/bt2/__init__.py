@@ -8,6 +8,7 @@ import sys
 from bt2.clock_class import ClockClassOffset
 from bt2.clock_snapshot import _ClockSnapshotConst
 from bt2.clock_snapshot import _UnknownClockSnapshot
+from bt2.component import _IncompleteUserClass
 from bt2.component import _SourceComponentClassConst
 from bt2.component import _FilterComponentClassConst
 from bt2.component import _SinkComponentClassConst
@@ -24,6 +25,7 @@ from bt2.error import _ComponentErrorCause
 from bt2.error import _ComponentClassErrorCause
 from bt2.error import _MessageIteratorErrorCause
 from bt2.error import _Error
+from bt2.error import _MemoryError
 from bt2.event_class import EventClassLogLevel
 from bt2.field import _BoolField
 from bt2.field import _BitArrayField
@@ -160,6 +162,10 @@ from bt2.query_executor import QueryExecutor
 from bt2.trace_collection_message_iterator import AutoSourceComponentSpec
 from bt2.trace_collection_message_iterator import ComponentSpec
 from bt2.trace_collection_message_iterator import TraceCollectionMessageIterator
+from bt2.utils import UnknownObject
+from bt2.utils import _OverflowError
+from bt2.utils import TryAgain
+from bt2.utils import Stop
 from bt2.value import create_value
 from bt2.value import BoolValue
 from bt2.value import _IntegerValue
@@ -225,35 +231,6 @@ if (sys.version_info.major, sys.version_info.minor) != (3, 4):
 
 # remove sys module name from the package
 del sys
-
-
-class _MemoryError(_Error):
-    """Raised when an operation fails due to memory issues."""
-
-
-class UnknownObject(Exception):
-    """
-    Raised when a component class handles a query for an object it doesn't
-    know about.
-    """
-
-    pass
-
-
-class _OverflowError(_Error, OverflowError):
-    pass
-
-
-class TryAgain(Exception):
-    pass
-
-
-class Stop(StopIteration):
-    pass
-
-
-class _IncompleteUserClass(Exception):
-    pass
 
 
 def _init_and_register_exit():
