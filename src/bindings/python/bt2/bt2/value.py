@@ -2,7 +2,9 @@
 #
 # Copyright (c) 2017 Philippe Proulx <pproulx@efficios.com>
 
-from bt2 import native_bt, object, utils
+from bt2 import native_bt
+from bt2 import object as bt2_object
+from bt2 import utils as bt2_utils
 import collections.abc
 import functools
 import numbers
@@ -81,7 +83,7 @@ def create_value(value):
     )
 
 
-class _ValueConst(object._SharedObject, metaclass=abc.ABCMeta):
+class _ValueConst(bt2_object._SharedObject, metaclass=abc.ABCMeta):
     @staticmethod
     def _get_ref(ptr):
         native_bt.value_get_ref(ptr)
@@ -337,7 +339,7 @@ class _UnsignedIntegerValueConst(_IntegerValueConst):
 
 class UnsignedIntegerValue(_UnsignedIntegerValueConst, _IntegerValue):
     _NAME = "Unsigned integer"
-    _check_int_range = staticmethod(utils._check_uint64)
+    _check_int_range = staticmethod(bt2_utils._check_uint64)
     _create_default_value = staticmethod(native_bt.value_integer_unsigned_create)
     _create_value = staticmethod(native_bt.value_integer_unsigned_create_init)
     _set_value = staticmethod(native_bt.value_integer_unsigned_set)
@@ -350,7 +352,7 @@ class _SignedIntegerValueConst(_IntegerValueConst):
 
 class SignedIntegerValue(_SignedIntegerValueConst, _IntegerValue):
     _NAME = "Signed integer"
-    _check_int_range = staticmethod(utils._check_int64)
+    _check_int_range = staticmethod(bt2_utils._check_int64)
     _create_default_value = staticmethod(native_bt.value_integer_signed_create)
     _create_value = staticmethod(native_bt.value_integer_signed_create_init)
     _set_value = staticmethod(native_bt.value_integer_signed_set)
@@ -399,7 +401,7 @@ class _StringValueConst(collections.abc.Sequence, _Value):
         if isinstance(value, _StringValueConst):
             value = value._value
 
-        utils._check_str(value)
+        bt2_utils._check_str(value)
         return value
 
     @property
@@ -448,7 +450,7 @@ class StringValue(_StringValueConst, _Value):
 
     def _set_value(self, value):
         status = native_bt.value_string_set(self._ptr, self._value_to_str(value))
-        utils._handle_func_status(status)
+        bt2_utils._handle_func_status(status)
 
     value = property(fset=_set_value)
 
@@ -546,7 +548,7 @@ class ArrayValue(_ArrayValueConst, _Container, collections.abc.MutableSequence, 
             ptr = value._ptr
 
         status = native_bt.value_array_set_element_by_index(self._ptr, index, ptr)
-        utils._handle_func_status(status)
+        bt2_utils._handle_func_status(status)
 
     def append(self, value):
         value = create_value(value)
@@ -557,7 +559,7 @@ class ArrayValue(_ArrayValueConst, _Container, collections.abc.MutableSequence, 
             ptr = value._ptr
 
         status = native_bt.value_array_append_element(self._ptr, ptr)
-        utils._handle_func_status(status)
+        bt2_utils._handle_func_status(status)
 
     def __iadd__(self, iterable):
         # Python will raise a TypeError if there's anything wrong with
@@ -625,7 +627,7 @@ class _MapValueConst(_ContainerConst, collections.abc.Mapping, _ValueConst):
         return native_bt.value_map_has_entry(self._ptr, key)
 
     def _check_key_type(self, key):
-        utils._check_str(key)
+        bt2_utils._check_str(key)
 
     def _check_key(self, key):
         if key not in self:
@@ -670,7 +672,7 @@ class MapValue(_MapValueConst, _Container, collections.abc.MutableMapping, _Valu
             ptr = value._ptr
 
         status = native_bt.value_map_insert_entry(self._ptr, key, ptr)
-        utils._handle_func_status(status)
+        bt2_utils._handle_func_status(status)
 
 
 _TYPE_TO_OBJ = {

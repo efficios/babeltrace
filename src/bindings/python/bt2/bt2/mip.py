@@ -2,14 +2,15 @@
 #
 # Copyright (c) 2017 Philippe Proulx <pproulx@efficios.com>
 
-from bt2 import native_bt, utils
+from bt2 import native_bt
+from bt2 import utils as bt2_utils
 import bt2
 
 
 def get_greatest_operative_mip_version(
     component_descriptors, log_level=bt2.LoggingLevel.NONE
 ):
-    utils._check_log_level(log_level)
+    bt2_utils._check_log_level(log_level)
     comp_descr_set_ptr = native_bt.component_descriptor_set_create()
 
     if comp_descr_set_ptr is None:
@@ -32,7 +33,7 @@ def get_greatest_operative_mip_version(
             status = native_bt.bt2_component_descriptor_set_add_descriptor_with_initialize_method_data(
                 comp_descr_set_ptr, base_cc_ptr, params_ptr, descr.obj
             )
-            utils._handle_func_status(
+            bt2_utils._handle_func_status(
                 status, "cannot add descriptor to component descriptor set"
             )
 
@@ -43,7 +44,9 @@ def get_greatest_operative_mip_version(
         if status == native_bt.__BT_FUNC_STATUS_NO_MATCH:
             return None
 
-        utils._handle_func_status(status, "cannot get greatest operative MIP version")
+        bt2_utils._handle_func_status(
+            status, "cannot get greatest operative MIP version"
+        )
         return version
     finally:
         native_bt.component_descriptor_set_put_ref(comp_descr_set_ptr)

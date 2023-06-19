@@ -2,11 +2,12 @@
 #
 # Copyright (c) 2019 Philippe Proulx <pproulx@efficios.com>
 
-from bt2 import native_bt, object
+from bt2 import native_bt
+from bt2 import object as bt2_object
 import bt2
 
 
-class Interrupter(object._SharedObject):
+class Interrupter(bt2_object._SharedObject):
     @staticmethod
     def _get_ref(ptr):
         native_bt.interrupter_get_ref(ptr)

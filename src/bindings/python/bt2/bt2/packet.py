@@ -2,7 +2,8 @@
 #
 # Copyright (c) 2016-2017 Philippe Proulx <pproulx@efficios.com>
 
-from bt2 import native_bt, object
+from bt2 import native_bt
+from bt2 import object as bt2_object
 from bt2 import field as bt2_field
 
 
@@ -12,7 +13,7 @@ def _bt2_stream():
     return bt2_stream
 
 
-class _PacketConst(object._SharedObject):
+class _PacketConst(bt2_object._SharedObject):
     @staticmethod
     def _get_ref(ptr):
         native_bt.packet_get_ref(ptr)

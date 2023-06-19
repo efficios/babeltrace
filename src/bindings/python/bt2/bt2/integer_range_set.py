@@ -2,7 +2,9 @@
 #
 # Copyright (c) 2017 Philippe Proulx <pproulx@efficios.com>
 
-from bt2 import native_bt, object, utils
+from bt2 import native_bt
+from bt2 import object as bt2_object
+from bt2 import utils as bt2_utils
 import collections.abc
 import bt2
 
@@ -51,8 +53,8 @@ class _IntegerRange(_IntegerRangeConst):
 
 
 class _SignedIntegerRangeConst(_IntegerRangeConst):
-    _is_type = staticmethod(utils._is_int64)
-    _check_type = staticmethod(utils._check_int64)
+    _is_type = staticmethod(bt2_utils._is_int64)
+    _check_type = staticmethod(bt2_utils._check_int64)
 
 
 class SignedIntegerRange(_SignedIntegerRangeConst, _IntegerRange):
@@ -60,15 +62,15 @@ class SignedIntegerRange(_SignedIntegerRangeConst, _IntegerRange):
 
 
 class _UnsignedIntegerRangeConst(_IntegerRangeConst):
-    _is_type = staticmethod(utils._is_uint64)
-    _check_type = staticmethod(utils._check_uint64)
+    _is_type = staticmethod(bt2_utils._is_uint64)
+    _check_type = staticmethod(bt2_utils._check_uint64)
 
 
 class UnsignedIntegerRange(_UnsignedIntegerRangeConst, _IntegerRange):
     pass
 
 
-class _IntegerRangeSetConst(object._SharedObject, collections.abc.Set):
+class _IntegerRangeSetConst(bt2_object._SharedObject, collections.abc.Set):
     def __len__(self):
         range_set_ptr = self._as_range_set_ptr(self._ptr)
         count = native_bt.integer_range_set_get_range_count(range_set_ptr)
@@ -127,7 +129,7 @@ class _IntegerRangeSet(_IntegerRangeSetConst, collections.abc.MutableSet):
                 rg = self._range_pycls(rg[0], rg[1])
 
         status = self._add_range(self._ptr, rg.lower, rg.upper)
-        utils._handle_func_status(status, "cannot add range to range set object")
+        bt2_utils._handle_func_status(status, "cannot add range to range set object")
 
     def discard(self, rg):
         raise NotImplementedError

@@ -2,7 +2,9 @@
 #
 # Copyright (c) 2017 Philippe Proulx <pproulx@efficios.com>
 
-from bt2 import native_bt, object, utils
+from bt2 import native_bt
+from bt2 import object as bt2_object
+from bt2 import utils as bt2_utils
 from bt2 import field_class as bt2_field_class
 from bt2 import event_class as bt2_event_class
 from bt2 import clock_class as bt2_clock_class
@@ -16,7 +18,7 @@ def _bt2_trace_class():
     return bt2_trace_class
 
 
-class _StreamClassConst(object._SharedObject, collections.abc.Mapping):
+class _StreamClassConst(bt2_object._SharedObject, collections.abc.Mapping):
     @staticmethod
     def _get_ref(ptr):
         native_bt.stream_class_get_ref(ptr)
@@ -52,7 +54,7 @@ class _StreamClassConst(object._SharedObject, collections.abc.Mapping):
     _clock_class_cls = property(lambda _: bt2_clock_class._ClockClassConst)
 
     def __getitem__(self, key):
-        utils._check_int64(key)
+        bt2_utils._check_int64(key)
         ec_ptr = self._borrow_event_class_ptr_by_id(self._ptr, key)
 
         if ec_ptr is None:
@@ -236,7 +238,7 @@ class _StreamClass(_StreamClassConst):
                     "id not provided, but stream class does not assign automatic event class ids"
                 )
 
-            utils._check_uint64(id)
+            bt2_utils._check_uint64(id)
             ec_ptr = native_bt.event_class_create_with_id(self._ptr, id)
 
         event_class = bt2_event_class._EventClass._create_from_ptr(ec_ptr)
@@ -269,7 +271,7 @@ class _StreamClass(_StreamClassConst):
 
     def _name(self, name):
         status = native_bt.stream_class_set_name(self._ptr, name)
-        utils._handle_func_status(status, "cannot set stream class object's name")
+        bt2_utils._handle_func_status(status, "cannot set stream class object's name")
 
     _name = property(fset=_name)
 
@@ -306,7 +308,7 @@ class _StreamClass(_StreamClassConst):
         status = native_bt.stream_class_set_packet_context_field_class(
             self._ptr, packet_context_field_class._ptr
         )
-        utils._handle_func_status(
+        bt2_utils._handle_func_status(
             status, "cannot set stream class' packet context field class"
         )
 
@@ -315,7 +317,7 @@ class _StreamClass(_StreamClassConst):
     def _event_common_context_field_class(self, event_common_context_field_class):
         set_context_fn = native_bt.stream_class_set_event_common_context_field_class
         status = set_context_fn(self._ptr, event_common_context_field_class._ptr)
-        utils._handle_func_status(
+        bt2_utils._handle_func_status(
             status, "cannot set stream class' event context field type"
         )
 
@@ -346,12 +348,12 @@ class _StreamClass(_StreamClassConst):
     ):
         # Name
         if name is not None:
-            utils._check_str(name)
+            bt2_utils._check_str(name)
 
         # User attributes
         if user_attributes is not None:
             value = bt2_value.create_value(user_attributes)
-            utils._check_type(value, bt2_value.MapValue)
+            bt2_utils._check_type(value, bt2_value.MapValue)
 
         # Packet context field class
         if packet_context_field_class is not None:
@@ -360,30 +362,30 @@ class _StreamClass(_StreamClassConst):
                     "cannot have a packet context field class without supporting packets"
                 )
 
-            utils._check_type(
+            bt2_utils._check_type(
                 packet_context_field_class, bt2_field_class._StructureFieldClass
             )
 
         # Event common context field class
         if event_common_context_field_class is not None:
-            utils._check_type(
+            bt2_utils._check_type(
                 event_common_context_field_class, bt2_field_class._StructureFieldClass
             )
 
         # Default clock class
         if default_clock_class is not None:
-            utils._check_type(default_clock_class, bt2_clock_class._ClockClass)
+            bt2_utils._check_type(default_clock_class, bt2_clock_class._ClockClass)
 
         # Assigns automatic event class id
-        utils._check_bool(assigns_automatic_event_class_id)
+        bt2_utils._check_bool(assigns_automatic_event_class_id)
 
         # Assigns automatic stream id
-        utils._check_bool(assigns_automatic_stream_id)
+        bt2_utils._check_bool(assigns_automatic_stream_id)
 
         # Packets
-        utils._check_bool(supports_packets)
-        utils._check_bool(packets_have_beginning_default_clock_snapshot)
-        utils._check_bool(packets_have_end_default_clock_snapshot)
+        bt2_utils._check_bool(supports_packets)
+        bt2_utils._check_bool(packets_have_beginning_default_clock_snapshot)
+        bt2_utils._check_bool(packets_have_end_default_clock_snapshot)
 
         if not supports_packets:
             if packets_have_beginning_default_clock_snapshot:
@@ -396,8 +398,8 @@ class _StreamClass(_StreamClassConst):
                 )
 
         # Discarded events
-        utils._check_bool(supports_discarded_events)
-        utils._check_bool(discarded_events_have_default_clock_snapshots)
+        bt2_utils._check_bool(supports_discarded_events)
+        bt2_utils._check_bool(discarded_events_have_default_clock_snapshots)
 
         if discarded_events_have_default_clock_snapshots:
             if not supports_discarded_events:
@@ -411,8 +413,8 @@ class _StreamClass(_StreamClassConst):
                 )
 
         # Discarded packets
-        utils._check_bool(supports_discarded_packets)
-        utils._check_bool(discarded_packets_have_default_clock_snapshots)
+        bt2_utils._check_bool(supports_discarded_packets)
+        bt2_utils._check_bool(discarded_packets_have_default_clock_snapshots)
 
         if supports_discarded_packets and not supports_packets:
             raise ValueError(

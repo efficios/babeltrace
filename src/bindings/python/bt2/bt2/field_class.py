@@ -2,7 +2,9 @@
 #
 # Copyright (c) 2017 Philippe Proulx <pproulx@efficios.com>
 
-from bt2 import native_bt, object, utils
+from bt2 import native_bt
+from bt2 import object as bt2_object
+from bt2 import utils as bt2_utils
 import collections.abc
 from bt2 import field_path as bt2_field_path
 from bt2 import integer_range_set as bt2_integer_range_set
@@ -44,7 +46,7 @@ class IntegerDisplayBase:
     HEXADECIMAL = native_bt.FIELD_CLASS_INTEGER_PREFERRED_DISPLAY_BASE_HEXADECIMAL
 
 
-class _FieldClassConst(object._SharedObject):
+class _FieldClassConst(bt2_object._SharedObject):
     @staticmethod
     def _get_ref(ptr):
         native_bt.field_class_get_ref(ptr)
@@ -83,7 +85,7 @@ class _FieldClass(_FieldClassConst):
 
     def _user_attributes(self, user_attributes):
         value = bt2_value.create_value(user_attributes)
-        utils._check_type(value, bt2_value.MapValue)
+        bt2_utils._check_type(value, bt2_value.MapValue)
         native_bt.field_class_set_user_attributes(self._ptr, value._ptr)
 
     _user_attributes = property(fset=_user_attributes)
@@ -134,7 +136,7 @@ class _IntegerFieldClass(_FieldClass, _IntegerFieldClassConst):
     _field_value_range = property(fset=_field_value_range)
 
     def _preferred_display_base(self, base):
-        utils._check_uint64(base)
+        bt2_utils._check_uint64(base)
 
         if base not in (
             IntegerDisplayBase.BINARY,
@@ -245,7 +247,7 @@ class _EnumerationFieldClassConst(_IntegerFieldClassConst, collections.abc.Mappi
         self._check_int_type(value)
 
         status, labels = self._get_mapping_labels_for_value(self._ptr, value)
-        utils._handle_func_status(
+        bt2_utils._handle_func_status(
             status, "cannot get mapping labels for value {}".format(value)
         )
         return [self[label] for label in labels]
@@ -256,7 +258,7 @@ class _EnumerationFieldClassConst(_IntegerFieldClassConst, collections.abc.Mappi
             yield self._mapping_pycls(mapping_ptr).label
 
     def __getitem__(self, label):
-        utils._check_str(label)
+        bt2_utils._check_str(label)
         mapping_ptr = self._borrow_mapping_ptr_by_label(self._ptr, label)
 
         if mapping_ptr is None:
@@ -267,14 +269,14 @@ class _EnumerationFieldClassConst(_IntegerFieldClassConst, collections.abc.Mappi
 
 class _EnumerationFieldClass(_EnumerationFieldClassConst, _IntegerFieldClass):
     def add_mapping(self, label, ranges):
-        utils._check_str(label)
-        utils._check_type(ranges, self._range_set_pycls)
+        bt2_utils._check_str(label)
+        bt2_utils._check_type(ranges, self._range_set_pycls)
 
         if label in self:
             raise ValueError("duplicate mapping label '{}'".format(label))
 
         status = self._add_mapping(self._ptr, label, ranges._ptr)
-        utils._handle_func_status(
+        bt2_utils._handle_func_status(
             status, "cannot add mapping to enumeration field class object"
         )
 
@@ -299,7 +301,7 @@ class _UnsignedEnumerationFieldClassConst(
     _get_mapping_labels_for_value = staticmethod(
         native_bt.field_class_enumeration_unsigned_get_mapping_labels_for_value
     )
-    _check_int_type = staticmethod(utils._check_uint64)
+    _check_int_type = staticmethod(bt2_utils._check_uint64)
 
 
 class _UnsignedEnumerationFieldClass(
@@ -326,7 +328,7 @@ class _SignedEnumerationFieldClassConst(
     _get_mapping_labels_for_value = staticmethod(
         native_bt.field_class_enumeration_signed_get_mapping_labels_for_value
     )
-    _check_int_type = staticmethod(utils._check_int64)
+    _check_int_type = staticmethod(bt2_utils._check_int64)
 
 
 class _SignedEnumerationFieldClass(
@@ -400,7 +402,7 @@ class _StructureFieldClassMember(_StructureFieldClassMemberConst):
 
     def _user_attributes(self, user_attributes):
         value = bt2_value.create_value(user_attributes)
-        utils._check_type(value, bt2_value.MapValue)
+        bt2_utils._check_type(value, bt2_value.MapValue)
         native_bt.field_class_structure_member_set_user_attributes(
             self._ptr, value._ptr
         )
@@ -445,7 +447,7 @@ class _StructureFieldClassConst(_FieldClassConst, collections.abc.Mapping):
             yield native_bt.field_class_structure_member_get_name(member_ptr)
 
     def member_at_index(self, index):
-        utils._check_uint64(index)
+        bt2_utils._check_uint64(index)
 
         if index >= len(self):
             raise IndexError
@@ -466,8 +468,8 @@ class _StructureFieldClass(_StructureFieldClassConst, _FieldClass):
     _structure_member_field_class_pycls = property(lambda _: _StructureFieldClassMember)
 
     def append_member(self, name, field_class, user_attributes=None):
-        utils._check_str(name)
-        utils._check_type(field_class, _FieldClass)
+        bt2_utils._check_str(name)
+        bt2_utils._check_type(field_class, _FieldClass)
 
         if name in self:
             raise ValueError("duplicate member name '{}'".format(name))
@@ -481,7 +483,7 @@ class _StructureFieldClass(_StructureFieldClassConst, _FieldClass):
         status = native_bt.field_class_structure_append_member(
             self._ptr, name, field_class._ptr
         )
-        utils._handle_func_status(
+        bt2_utils._handle_func_status(
             status, "cannot append member to structure field class object"
         )
 
@@ -588,7 +590,7 @@ class _OptionWithBoolSelectorFieldClass(
     _NAME = "Option (with boolean selector)"
 
     def _selector_is_reversed(self, selector_is_reversed):
-        utils._check_bool(selector_is_reversed)
+        bt2_utils._check_bool(selector_is_reversed)
         native_bt.field_class_option_with_selector_field_bool_set_selector_is_reversed(
             self._ptr, selector_is_reversed
         )
@@ -671,7 +673,7 @@ class _VariantFieldClassOption(_VariantFieldClassOptionConst):
 
     def _user_attributes(self, user_attributes):
         value = bt2_value.create_value(user_attributes)
-        utils._check_type(value, bt2_value.MapValue)
+        bt2_utils._check_type(value, bt2_value.MapValue)
         native_bt.field_class_variant_option_set_user_attributes(self._ptr, value._ptr)
 
     _user_attributes = property(fset=_user_attributes)
@@ -776,7 +778,7 @@ class _VariantFieldClassConst(_FieldClassConst, collections.abc.Mapping):
             yield native_bt.field_class_variant_option_get_name(base_opt_ptr)
 
     def option_at_index(self, index):
-        utils._check_uint64(index)
+        bt2_utils._check_uint64(index)
 
         if index >= len(self):
             raise IndexError
@@ -807,8 +809,8 @@ class _VariantFieldClassWithoutSelector(
     _NAME = "Variant (without selector)"
 
     def append_option(self, name, field_class, user_attributes=None):
-        utils._check_str(name)
-        utils._check_type(field_class, _FieldClass)
+        bt2_utils._check_str(name)
+        bt2_utils._check_type(field_class, _FieldClass)
 
         if name in self:
             raise ValueError("duplicate option name '{}'".format(name))
@@ -822,7 +824,7 @@ class _VariantFieldClassWithoutSelector(
         status = native_bt.field_class_variant_without_selector_append_option(
             self._ptr, name, field_class._ptr
         )
-        utils._handle_func_status(
+        bt2_utils._handle_func_status(
             status, "cannot append option to variant field class object"
         )
 
@@ -857,9 +859,9 @@ class _VariantFieldClassWithIntegerSelector(
     _NAME = "Variant (with selector)"
 
     def append_option(self, name, field_class, ranges, user_attributes=None):
-        utils._check_str(name)
-        utils._check_type(field_class, _FieldClass)
-        utils._check_type(ranges, self._variant_option_pycls._range_set_pycls)
+        bt2_utils._check_str(name)
+        bt2_utils._check_type(field_class, _FieldClass)
+        bt2_utils._check_type(ranges, self._variant_option_pycls._range_set_pycls)
 
         if name in self:
             raise ValueError("duplicate option name '{}'".format(name))
@@ -876,7 +878,7 @@ class _VariantFieldClassWithIntegerSelector(
         # TODO: check overlaps (precondition of self._append_option())
 
         status = self._append_option(self._ptr, name, field_class._ptr, ranges._ptr)
-        utils._handle_func_status(
+        bt2_utils._handle_func_status(
             status, "cannot append option to variant field class object"
         )
 

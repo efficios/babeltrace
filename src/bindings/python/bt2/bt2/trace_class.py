@@ -4,7 +4,9 @@
 # Copyright (c) 2018 Francis Deslauriers <francis.deslauriers@efficios.com>
 # Copyright (c) 2019 Simon Marchi <simon.marchi@efficios.com>
 
-from bt2 import native_bt, utils, object
+from bt2 import native_bt
+from bt2 import utils as bt2_utils
+from bt2 import object as bt2_object
 from bt2 import stream_class as bt2_stream_class
 from bt2 import field_class as bt2_field_class
 from bt2 import integer_range_set as bt2_integer_range_set
@@ -23,7 +25,7 @@ def _trace_class_destruction_listener_from_native(
     handle._invalidate()
 
 
-class _TraceClassConst(object._SharedObject, collections.abc.Mapping):
+class _TraceClassConst(bt2_object._SharedObject, collections.abc.Mapping):
     @staticmethod
     def _get_ref(ptr):
         native_bt.trace_class_get_ref(ptr)
@@ -62,7 +64,7 @@ class _TraceClassConst(object._SharedObject, collections.abc.Mapping):
     # Get a stream class by stream id.
 
     def __getitem__(self, key):
-        utils._check_uint64(key)
+        bt2_utils._check_uint64(key)
 
         sc_ptr = self._borrow_stream_class_ptr_by_id(self._ptr, key)
         if sc_ptr is None:
@@ -90,7 +92,7 @@ class _TraceClassConst(object._SharedObject, collections.abc.Mapping):
         if not callable(listener):
             raise TypeError("'listener' parameter is not callable")
 
-        handle = utils._ListenerHandle(self.addr)
+        handle = bt2_utils._ListenerHandle(self.addr)
 
         listener_from_native = functools.partial(
             _trace_class_destruction_listener_from_native, listener, handle
@@ -98,7 +100,7 @@ class _TraceClassConst(object._SharedObject, collections.abc.Mapping):
 
         fn = native_bt.bt2_trace_class_add_destruction_listener
         status, listener_id = fn(self._ptr, listener_from_native)
-        utils._handle_func_status(
+        bt2_utils._handle_func_status(
             status, "cannot add destruction listener to trace class object"
         )
 
@@ -107,7 +109,7 @@ class _TraceClassConst(object._SharedObject, collections.abc.Mapping):
         return handle
 
     def remove_destruction_listener(self, listener_handle):
-        utils._check_type(listener_handle, utils._ListenerHandle)
+        bt2_utils._check_type(listener_handle, bt2_utils._ListenerHandle)
 
         if listener_handle._addr != self.addr:
             raise ValueError(
@@ -122,7 +124,7 @@ class _TraceClassConst(object._SharedObject, collections.abc.Mapping):
         status = native_bt.trace_class_remove_destruction_listener(
             self._ptr, listener_handle._listener_id
         )
-        utils._handle_func_status(status)
+        bt2_utils._handle_func_status(status)
         listener_handle._invalidate()
 
 
@@ -215,7 +217,7 @@ class _TraceClass(_TraceClassConst):
                     "id not provided, but trace class does not assign automatic stream class ids"
                 )
 
-            utils._check_uint64(id)
+            bt2_utils._check_uint64(id)
             sc_ptr = native_bt.stream_class_create_with_id(self._ptr, id)
 
         sc = bt2_stream_class._StreamClass._create_from_ptr(sc_ptr)
@@ -260,13 +262,13 @@ class _TraceClass(_TraceClassConst):
 
     def _user_attributes(self, user_attributes):
         value = bt2_value.create_value(user_attributes)
-        utils._check_type(value, bt2_value.MapValue)
+        bt2_utils._check_type(value, bt2_value.MapValue)
         native_bt.trace_class_set_user_attributes(self._ptr, value._ptr)
 
     _user_attributes = property(fset=_user_attributes)
 
     def _assigns_automatic_stream_class_id(self, auto_id):
-        utils._check_bool(auto_id)
+        bt2_utils._check_bool(auto_id)
         return native_bt.trace_class_set_assigns_automatic_stream_class_id(
             self._ptr, auto_id
         )
@@ -294,7 +296,7 @@ class _TraceClass(_TraceClassConst):
         return fc
 
     def create_bit_array_field_class(self, length, user_attributes=None):
-        utils._check_uint64(length)
+        bt2_utils._check_uint64(length)
 
         if length < 1 or length > 64:
             raise ValueError(
@@ -419,8 +421,8 @@ class _TraceClass(_TraceClassConst):
         return fc
 
     def create_static_array_field_class(self, elem_fc, length, user_attributes=None):
-        utils._check_type(elem_fc, bt2_field_class._FieldClass)
-        utils._check_uint64(length)
+        bt2_utils._check_type(elem_fc, bt2_field_class._FieldClass)
+        bt2_utils._check_uint64(length)
         ptr = native_bt.field_class_array_static_create(self._ptr, elem_fc._ptr, length)
         self._check_field_class_create_status(ptr, "static array")
         fc = bt2_field_class._StaticArrayFieldClass._create_from_ptr(ptr)
@@ -430,11 +432,11 @@ class _TraceClass(_TraceClassConst):
     def create_dynamic_array_field_class(
         self, elem_fc, length_fc=None, user_attributes=None
     ):
-        utils._check_type(elem_fc, bt2_field_class._FieldClass)
+        bt2_utils._check_type(elem_fc, bt2_field_class._FieldClass)
         length_fc_ptr = None
 
         if length_fc is not None:
-            utils._check_type(length_fc, bt2_field_class._UnsignedIntegerFieldClass)
+            bt2_utils._check_type(length_fc, bt2_field_class._UnsignedIntegerFieldClass)
             length_fc_ptr = length_fc._ptr
 
         ptr = native_bt.field_class_array_dynamic_create(
@@ -448,7 +450,7 @@ class _TraceClass(_TraceClassConst):
     def create_option_without_selector_field_class(
         self, content_fc, user_attributes=None
     ):
-        utils._check_type(content_fc, bt2_field_class._FieldClass)
+        bt2_utils._check_type(content_fc, bt2_field_class._FieldClass)
         ptr = native_bt.field_class_option_without_selector_create(
             self._ptr, content_fc._ptr
         )
@@ -460,9 +462,9 @@ class _TraceClass(_TraceClassConst):
     def create_option_with_bool_selector_field_class(
         self, content_fc, selector_fc, selector_is_reversed=False, user_attributes=None
     ):
-        utils._check_type(content_fc, bt2_field_class._FieldClass)
-        utils._check_bool(selector_is_reversed)
-        utils._check_type(selector_fc, bt2_field_class._BoolFieldClass)
+        bt2_utils._check_type(content_fc, bt2_field_class._FieldClass)
+        bt2_utils._check_bool(selector_is_reversed)
+        bt2_utils._check_type(selector_fc, bt2_field_class._BoolFieldClass)
         ptr = native_bt.field_class_option_with_selector_field_bool_create(
             self._ptr, content_fc._ptr, selector_fc._ptr
         )
@@ -475,19 +477,19 @@ class _TraceClass(_TraceClassConst):
     def create_option_with_integer_selector_field_class(
         self, content_fc, selector_fc, ranges, user_attributes=None
     ):
-        utils._check_type(content_fc, bt2_field_class._FieldClass)
-        utils._check_type(selector_fc, bt2_field_class._IntegerFieldClass)
+        bt2_utils._check_type(content_fc, bt2_field_class._FieldClass)
+        bt2_utils._check_type(selector_fc, bt2_field_class._IntegerFieldClass)
 
         if len(ranges) == 0:
             raise ValueError("integer range set is empty")
 
         if isinstance(selector_fc, bt2_field_class._UnsignedIntegerFieldClass):
-            utils._check_type(ranges, bt2_integer_range_set.UnsignedIntegerRangeSet)
+            bt2_utils._check_type(ranges, bt2_integer_range_set.UnsignedIntegerRangeSet)
             ptr = native_bt.field_class_option_with_selector_field_integer_unsigned_create(
                 self._ptr, content_fc._ptr, selector_fc._ptr, ranges._ptr
             )
         else:
-            utils._check_type(ranges, bt2_integer_range_set.SignedIntegerRangeSet)
+            bt2_utils._check_type(ranges, bt2_integer_range_set.SignedIntegerRangeSet)
             ptr = (
                 native_bt.field_class_option_with_selector_field_integer_signed_create(
                     self._ptr, content_fc._ptr, selector_fc._ptr, ranges._ptr
@@ -503,7 +505,7 @@ class _TraceClass(_TraceClassConst):
         selector_fc_ptr = None
 
         if selector_fc is not None:
-            utils._check_type(selector_fc, bt2_field_class._IntegerFieldClass)
+            bt2_utils._check_type(selector_fc, bt2_field_class._IntegerFieldClass)
             selector_fc_ptr = selector_fc._ptr
 
         ptr = native_bt.field_class_variant_create(self._ptr, selector_fc_ptr)

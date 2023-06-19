@@ -2,7 +2,9 @@
 #
 # Copyright (c) 2017 Philippe Proulx <pproulx@efficios.com>
 
-from bt2 import native_bt, object, utils
+from bt2 import native_bt
+from bt2 import object as bt2_object
+from bt2 import utils as bt2_utils
 from bt2 import field_class as bt2_field_class
 import collections.abc
 import functools
@@ -49,7 +51,7 @@ def _get_leaf_field(field):
     return field
 
 
-class _FieldConst(object._UniqueObject):
+class _FieldConst(bt2_object._UniqueObject):
     _create_field_from_ptr = staticmethod(_create_field_from_const_ptr)
     _create_field_class_from_ptr_and_get_ref = staticmethod(
         bt2_field_class._create_field_class_from_const_ptr_and_get_ref
@@ -108,7 +110,7 @@ class _BitArrayField(_BitArrayFieldConst, _Field):
     _NAME = "Bit array"
 
     def _value_as_integer(self, value):
-        utils._check_uint64(value)
+        bt2_utils._check_uint64(value)
         native_bt.field_bit_array_set_value_as_integer(self._ptr, value)
 
     value_as_integer = property(
@@ -450,7 +452,7 @@ class _EnumerationFieldConst(_IntegerFieldConst):
     @property
     def labels(self):
         status, labels = self._get_mapping_labels(self._ptr)
-        utils._handle_func_status(status, "cannot get label for enumeration field")
+        bt2_utils._handle_func_status(status, "cannot get label for enumeration field")
 
         assert labels is not None
         return labels
@@ -546,7 +548,7 @@ class _StringField(_StringFieldConst, _Field):
     def __iadd__(self, value):
         value = self._value_to_str(value)
         status = native_bt.field_string_append(self._ptr, value)
-        utils._handle_func_status(
+        bt2_utils._handle_func_status(
             status, "cannot append to string field object's value"
         )
         return self
@@ -620,7 +622,7 @@ class _StructureFieldConst(_ContainerFieldConst, collections.abc.Mapping):
         return "{{{}}}".format(", ".join(items))
 
     def __getitem__(self, key):
-        utils._check_str(key)
+        bt2_utils._check_str(key)
         field_ptr = self._borrow_member_field_ptr_by_name(self._ptr, key)
 
         if field_ptr is None:
@@ -631,7 +633,7 @@ class _StructureFieldConst(_ContainerFieldConst, collections.abc.Mapping):
         )
 
     def member_at_index(self, index):
-        utils._check_uint64(index)
+        bt2_utils._check_uint64(index)
 
         if index >= len(self):
             raise IndexError
@@ -708,7 +710,7 @@ class _OptionField(_OptionFieldConst, _Field):
     _borrow_field_ptr = staticmethod(native_bt.field_option_borrow_field)
 
     def _has_field(self, value):
-        utils._check_bool(value)
+        bt2_utils._check_bool(value)
         native_bt.field_option_set_has_field(self._ptr, value)
 
     has_field = property(fget=_OptionFieldConst.has_field.fget, fset=_has_field)
@@ -886,9 +888,9 @@ class _DynamicArrayField(_DynamicArrayFieldConst, _ArrayField, _Field):
     _NAME = "Dynamic array"
 
     def _set_length(self, length):
-        utils._check_uint64(length)
+        bt2_utils._check_uint64(length)
         status = native_bt.field_array_dynamic_set_length(self._ptr, length)
-        utils._handle_func_status(status, "cannot set dynamic array length")
+        bt2_utils._handle_func_status(status, "cannot set dynamic array length")
 
     length = property(fget=_ArrayField._get_length, fset=_set_length)
 

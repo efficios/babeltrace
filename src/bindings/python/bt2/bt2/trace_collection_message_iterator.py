@@ -2,7 +2,8 @@
 #
 # Copyright (c) 2017 Philippe Proulx <pproulx@efficios.com>
 
-from bt2 import utils, native_bt
+from bt2 import native_bt
+from bt2 import utils as bt2_utils
 import bt2
 import itertools
 from bt2 import message_iterator as bt2_message_iterator
@@ -24,7 +25,7 @@ class _BaseComponentSpec:
     # TraceCollectionMessageIterator.
     def __init__(self, params, obj, logging_level):
         if logging_level is not None:
-            utils._check_log_level(logging_level)
+            bt2_utils._check_log_level(logging_level)
 
         self._params = bt2.create_value(params)
         self._obj = obj
@@ -129,7 +130,7 @@ def _auto_discover_source_component_specs(auto_source_comp_specs, plugin_set):
     if plugin_set is None:
         plugin_set = bt2.find_plugins()
     else:
-        utils._check_type(plugin_set, bt2_plugin._PluginSet)
+        bt2_utils._check_type(plugin_set, bt2_plugin._PluginSet)
 
     res_ptr = native_bt.bt2_auto_discover_source_components(
         inputs._ptr, plugin_set._ptr
@@ -144,7 +145,7 @@ def _auto_discover_source_component_specs(auto_source_comp_specs, plugin_set):
     assert "status" in res
 
     status = res["status"]
-    utils._handle_func_status(status, "cannot auto-discover source components")
+    bt2_utils._handle_func_status(status, "cannot auto-discover source components")
 
     comp_specs = []
     comp_specs_raw = res["results"]
@@ -264,7 +265,7 @@ class TraceCollectionMessageIterator(bt2_message_iterator._MessageIterator):
         end=None,
         plugin_set=None,
     ):
-        utils._check_bool(stream_intersection_mode)
+        bt2_utils._check_bool(stream_intersection_mode)
         self._stream_intersection_mode = stream_intersection_mode
         self._begin_ns = _get_ns(begin)
         self._end_ns = _get_ns(end)

@@ -2,7 +2,9 @@
 #
 # Copyright (c) 2017 Philippe Proulx <pproulx@efficios.com>
 
-from bt2 import native_bt, object, utils
+from bt2 import native_bt
+from bt2 import object as bt2_object
+from bt2 import utils as bt2_utils
 from bt2 import field_class as bt2_field_class
 from bt2 import value as bt2_value
 
@@ -31,7 +33,7 @@ class EventClassLogLevel:
     DEBUG = native_bt.EVENT_CLASS_LOG_LEVEL_DEBUG
 
 
-class _EventClassConst(object._SharedObject):
+class _EventClassConst(bt2_object._SharedObject):
     @staticmethod
     def _get_ref(ptr):
         native_bt.event_class_get_ref(ptr)
@@ -151,7 +153,7 @@ class _EventClass(_EventClassConst):
 
     def _emf_uri(self, emf_uri):
         status = native_bt.event_class_set_emf_uri(self._ptr, emf_uri)
-        utils._handle_func_status(status, "cannot set event class object's EMF URI")
+        bt2_utils._handle_func_status(status, "cannot set event class object's EMF URI")
 
     _emf_uri = property(fset=_emf_uri)
 
@@ -159,7 +161,7 @@ class _EventClass(_EventClassConst):
         status = native_bt.event_class_set_specific_context_field_class(
             self._ptr, context_field_class._ptr
         )
-        utils._handle_func_status(
+        bt2_utils._handle_func_status(
             status, "cannot set event class object's context field class"
         )
 
@@ -169,7 +171,7 @@ class _EventClass(_EventClassConst):
         status = native_bt.event_class_set_payload_field_class(
             self._ptr, payload_field_class._ptr
         )
-        utils._handle_func_status(
+        bt2_utils._handle_func_status(
             status, "cannot set event class object's payload field class"
         )
 
@@ -185,11 +187,11 @@ class _EventClass(_EventClassConst):
         payload_field_class,
     ):
         if name is not None:
-            utils._check_str(name)
+            bt2_utils._check_str(name)
 
         if user_attributes is not None:
             value = bt2_value.create_value(user_attributes)
-            utils._check_type(value, bt2_value.MapValue)
+            bt2_utils._check_type(value, bt2_value.MapValue)
 
         if log_level is not None:
             log_levels = (
@@ -214,15 +216,17 @@ class _EventClass(_EventClassConst):
                 raise ValueError("'{}' is not a valid log level".format(log_level))
 
         if emf_uri is not None:
-            utils._check_str(emf_uri)
+            bt2_utils._check_str(emf_uri)
 
         if specific_context_field_class is not None:
-            utils._check_type(
+            bt2_utils._check_type(
                 specific_context_field_class, bt2_field_class._StructureFieldClass
             )
 
         if payload_field_class is not None:
-            utils._check_type(payload_field_class, bt2_field_class._StructureFieldClass)
+            bt2_utils._check_type(
+                payload_field_class, bt2_field_class._StructureFieldClass
+            )
 
 
 _EVENT_CLASS_LOG_LEVEL_TO_OBJ = {

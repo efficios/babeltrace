@@ -2,16 +2,18 @@
 #
 # Copyright (c) 2017 Philippe Proulx <pproulx@efficios.com>
 
-from bt2 import native_bt, object, utils
+from bt2 import native_bt
+from bt2 import object as bt2_object
+from bt2 import utils as bt2_utils
 import collections.abc
 from bt2 import component as bt2_component
 import os.path
 
 
 def find_plugins_in_path(path, recurse=True, fail_on_load_error=False):
-    utils._check_str(path)
-    utils._check_bool(recurse)
-    utils._check_bool(fail_on_load_error)
+    bt2_utils._check_str(path)
+    bt2_utils._check_bool(recurse)
+    bt2_utils._check_bool(fail_on_load_error)
     plugin_set_ptr = None
 
     if os.path.isfile(path):
@@ -28,7 +30,7 @@ def find_plugins_in_path(path, recurse=True, fail_on_load_error=False):
     if status == native_bt.__BT_FUNC_STATUS_NOT_FOUND:
         return
 
-    utils._handle_func_status(status, "failed to find plugins")
+    bt2_utils._handle_func_status(status, "failed to find plugins")
     assert plugin_set_ptr is not None
     return _PluginSet._create_from_ptr(plugin_set_ptr)
 
@@ -40,11 +42,11 @@ def find_plugins(
     find_in_static=True,
     fail_on_load_error=False,
 ):
-    utils._check_bool(find_in_std_env_var)
-    utils._check_bool(find_in_user_dir)
-    utils._check_bool(find_in_sys_dir)
-    utils._check_bool(find_in_static)
-    utils._check_bool(fail_on_load_error)
+    bt2_utils._check_bool(find_in_std_env_var)
+    bt2_utils._check_bool(find_in_user_dir)
+    bt2_utils._check_bool(find_in_sys_dir)
+    bt2_utils._check_bool(find_in_static)
+    bt2_utils._check_bool(fail_on_load_error)
     plugin_set_ptr = None
 
     status, plugin_set_ptr = native_bt.bt2_plugin_find_all(
@@ -58,7 +60,7 @@ def find_plugins(
     if status == native_bt.__BT_FUNC_STATUS_NOT_FOUND:
         return
 
-    utils._handle_func_status(status, "failed to find plugins")
+    bt2_utils._handle_func_status(status, "failed to find plugins")
     assert plugin_set_ptr is not None
     return _PluginSet._create_from_ptr(plugin_set_ptr)
 
@@ -71,8 +73,8 @@ def find_plugin(
     find_in_static=True,
     fail_on_load_error=False,
 ):
-    utils._check_str(name)
-    utils._check_bool(fail_on_load_error)
+    bt2_utils._check_str(name)
+    bt2_utils._check_bool(fail_on_load_error)
     status, ptr = native_bt.bt2_plugin_find(
         name,
         int(find_in_std_env_var),
@@ -85,12 +87,12 @@ def find_plugin(
     if status == native_bt.__BT_FUNC_STATUS_NOT_FOUND:
         return
 
-    utils._handle_func_status(status, "failed to find plugin")
+    bt2_utils._handle_func_status(status, "failed to find plugin")
     assert ptr is not None
     return _Plugin._create_from_ptr(ptr)
 
 
-class _PluginSet(object._SharedObject, collections.abc.Sequence):
+class _PluginSet(bt2_object._SharedObject, collections.abc.Sequence):
     @staticmethod
     def _put_ref(ptr):
         native_bt.plugin_set_put_ref(ptr)
@@ -105,7 +107,7 @@ class _PluginSet(object._SharedObject, collections.abc.Sequence):
         return count
 
     def __getitem__(self, index):
-        utils._check_uint64(index)
+        bt2_utils._check_uint64(index)
 
         if index >= len(self):
             raise IndexError
@@ -180,7 +182,7 @@ class _PluginComponentClasses(collections.abc.Mapping):
         self._plugin = plugin
 
     def __getitem__(self, key):
-        utils._check_str(key)
+        bt2_utils._check_str(key)
         cc_ptr = self._borrow_component_class_by_name(self._plugin._ptr, key)
 
         if cc_ptr is None:
@@ -236,7 +238,7 @@ class _PluginSinkComponentClasses(_PluginComponentClasses):
     _comp_cls_type = native_bt.COMPONENT_CLASS_TYPE_SINK
 
 
-class _Plugin(object._SharedObject):
+class _Plugin(bt2_object._SharedObject):
     @staticmethod
     def _put_ref(ptr):
         native_bt.plugin_put_ref(ptr)

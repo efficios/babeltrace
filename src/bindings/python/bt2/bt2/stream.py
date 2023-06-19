@@ -2,7 +2,8 @@
 #
 # Copyright (c) 2016-2017 Philippe Proulx <pproulx@efficios.com>
 
-from bt2 import native_bt, utils
+from bt2 import native_bt
+from bt2 import utils as bt2_utils
 from bt2 import object as bt2_object
 from bt2 import packet as bt2_packet
 from bt2 import stream_class as bt2_stream_class
@@ -89,7 +90,7 @@ class _Stream(_StreamConst):
 
     def _user_attributes(self, user_attributes):
         value = bt2_value.create_value(user_attributes)
-        utils._check_type(value, bt2_value.MapValue)
+        bt2_utils._check_type(value, bt2_value.MapValue)
         native_bt.stream_set_user_attributes(self._ptr, value._ptr)
 
     _user_attributes = property(
@@ -97,7 +98,7 @@ class _Stream(_StreamConst):
     )
 
     def _name(self, name):
-        utils._check_str(name)
+        bt2_utils._check_str(name)
         native_bt.stream_set_name(self._ptr, name)
 
     _name = property(fget=_StreamConst.name.fget, fset=_name)

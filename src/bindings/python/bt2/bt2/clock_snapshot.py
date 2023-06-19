@@ -2,14 +2,16 @@
 #
 # Copyright (c) 2017 Philippe Proulx <pproulx@efficios.com>
 
-from bt2 import native_bt, object, utils
+from bt2 import native_bt
+from bt2 import object as bt2_object
+from bt2 import utils as bt2_utils
 import numbers
 from bt2 import clock_class as bt2_clock_class
 import functools
 
 
 @functools.total_ordering
-class _ClockSnapshotConst(object._UniqueObject):
+class _ClockSnapshotConst(bt2_object._UniqueObject):
     @property
     def clock_class(self):
         cc_ptr = native_bt.clock_snapshot_borrow_clock_class_const(self._ptr)
@@ -23,7 +25,7 @@ class _ClockSnapshotConst(object._UniqueObject):
     @property
     def ns_from_origin(self):
         status, ns = native_bt.clock_snapshot_get_ns_from_origin(self._ptr)
-        utils._handle_func_status(
+        bt2_utils._handle_func_status(
             status, "cannot get clock snapshot's nanoseconds from origin"
         )
         return ns

@@ -2,7 +2,8 @@
 #
 # Copyright (c) 2017 Philippe Proulx <pproulx@efficios.com>
 
-from bt2 import native_bt, object
+from bt2 import native_bt
+from bt2 import object as bt2_object
 
 
 def _bt2_connection():
@@ -29,7 +30,7 @@ def _create_self_from_ptr_and_get_ref(ptr, port_type):
     return cls._create_from_ptr_and_get_ref(ptr)
 
 
-class _PortConst(object._SharedObject):
+class _PortConst(bt2_object._SharedObject):
     @classmethod
     def _get_ref(cls, ptr):
         ptr = cls._as_port_ptr(ptr)

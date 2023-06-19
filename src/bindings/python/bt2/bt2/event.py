@@ -2,7 +2,9 @@
 #
 # Copyright (c) 2016-2017 Philippe Proulx <pproulx@efficios.com>
 
-from bt2 import native_bt, object, utils
+from bt2 import native_bt
+from bt2 import object as bt2_object
+from bt2 import utils as bt2_utils
 from bt2 import event_class as bt2_event_class
 from bt2 import packet as bt2_packet
 from bt2 import stream as bt2_stream
@@ -10,7 +12,7 @@ from bt2 import field as bt2_field
 import collections.abc
 
 
-class _EventConst(object._UniqueObject, collections.abc.Mapping):
+class _EventConst(bt2_object._UniqueObject, collections.abc.Mapping):
     _borrow_class_ptr = staticmethod(native_bt.event_borrow_class_const)
     _borrow_packet_ptr = staticmethod(native_bt.event_borrow_packet_const)
     _borrow_stream_ptr = staticmethod(native_bt.event_borrow_stream_const)
@@ -90,7 +92,7 @@ class _EventConst(object._UniqueObject, collections.abc.Mapping):
         )
 
     def __getitem__(self, key):
-        utils._check_str(key)
+        bt2_utils._check_str(key)
         payload_field = self.payload_field
 
         if payload_field is not None and key in payload_field:

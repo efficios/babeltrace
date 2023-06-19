@@ -2,7 +2,7 @@
 #
 # Copyright (c) 2017 Philippe Proulx <pproulx@efficios.com>
 
-from bt2 import utils
+from bt2 import utils as bt2_utils
 from bt2 import component as bt2_component
 import sys
 
@@ -27,16 +27,16 @@ def register_plugin(
             "cannot find module '{}' in loaded modules".format(module_name)
         )
 
-    utils._check_str(name)
+    bt2_utils._check_str(name)
 
     if description is not None:
-        utils._check_str(description)
+        bt2_utils._check_str(description)
 
     if author is not None:
-        utils._check_str(author)
+        bt2_utils._check_str(author)
 
     if license is not None:
-        utils._check_str(license)
+        bt2_utils._check_str(license)
 
     if version is not None:
         if not _validate_version(version):

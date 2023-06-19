@@ -2,7 +2,9 @@
 #
 # Copyright (c) 2017 Philippe Proulx <pproulx@efficios.com>
 
-from bt2 import native_bt, object, utils
+from bt2 import native_bt
+from bt2 import object as bt2_object
+from bt2 import utils as bt2_utils
 from bt2 import clock_snapshot as bt2_clock_snapshot
 from bt2 import packet as bt2_packet
 from bt2 import stream as bt2_stream
@@ -14,7 +16,7 @@ def _create_from_ptr(ptr):
     return _MESSAGE_TYPE_TO_CLS[msg_type]._create_from_ptr(ptr)
 
 
-class _MessageConst(object._SharedObject):
+class _MessageConst(bt2_object._SharedObject):
     @staticmethod
     def _get_ref(ptr):
         native_bt.message_get_ref(ptr)
@@ -139,7 +141,7 @@ class _StreamMessageConst(_MessageConst, _MessageWithDefaultClockSnapshot):
 
 class _StreamMessage(_StreamMessageConst, _Message):
     def _default_clock_snapshot(self, raw_value):
-        utils._check_uint64(raw_value)
+        bt2_utils._check_uint64(raw_value)
         self._set_default_clock_snapshot(self._ptr, raw_value)
 
     _default_clock_snapshot = property(
@@ -237,7 +239,7 @@ class _DiscardedMessage(_DiscardedMessageConst, _Message):
     _stream_pycls = property(lambda _: bt2_stream._Stream)
 
     def _set_count(self, count):
-        utils._check_uint64(count)
+        bt2_utils._check_uint64(count)
 
         if count == 0:
             raise ValueError("discarded {} count is 0".format(self._item_name))

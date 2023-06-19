@@ -2,7 +2,9 @@
 #
 # Copyright (c) 2017 Philippe Proulx <pproulx@efficios.com>
 
-from bt2 import native_bt, object, utils
+from bt2 import native_bt
+from bt2 import object as bt2_object
+from bt2 import utils as bt2_utils
 from bt2 import interrupter as bt2_interrupter
 from bt2 import connection as bt2_connection
 from bt2 import component as bt2_component
@@ -22,7 +24,7 @@ def _graph_port_added_listener_from_native(
     user_listener(component, port)
 
 
-class Graph(object._SharedObject):
+class Graph(bt2_object._SharedObject):
     @staticmethod
     def _get_ref(ptr):
         native_bt.graph_get_ref(ptr)
@@ -32,7 +34,7 @@ class Graph(object._SharedObject):
         native_bt.graph_put_ref(ptr)
 
     def __init__(self, mip_version=0):
-        utils._check_uint64(mip_version)
+        bt2_utils._check_uint64(mip_version)
 
         if mip_version > bt2.get_maximal_mip_version():
             raise ValueError("unknown MIP version {}".format(mip_version))
@@ -87,8 +89,8 @@ class Graph(object._SharedObject):
                 )
             )
 
-        utils._check_str(name)
-        utils._check_log_level(logging_level)
+        bt2_utils._check_str(name)
+        bt2_utils._check_log_level(logging_level)
         base_cc_ptr = component_class._bt_component_class_ptr()
 
         if obj is not None and not native_bt.bt2_is_python_component_class(base_cc_ptr):
@@ -104,19 +106,21 @@ class Graph(object._SharedObject):
         status, comp_ptr = add_fn(
             self._ptr, cc_ptr, name, params_ptr, obj, logging_level
         )
-        utils._handle_func_status(status, "cannot add component to graph")
+        bt2_utils._handle_func_status(status, "cannot add component to graph")
         assert comp_ptr
         return bt2_component._create_component_from_const_ptr_and_get_ref(
             comp_ptr, cc_type
         )
 
     def connect_ports(self, upstream_port, downstream_port):
-        utils._check_type(upstream_port, bt2_port._OutputPortConst)
-        utils._check_type(downstream_port, bt2_port._InputPortConst)
+        bt2_utils._check_type(upstream_port, bt2_port._OutputPortConst)
+        bt2_utils._check_type(downstream_port, bt2_port._InputPortConst)
         status, conn_ptr = native_bt.graph_connect_ports(
             self._ptr, upstream_port._ptr, downstream_port._ptr
         )
-        utils._handle_func_status(status, "cannot connect component ports within graph")
+        bt2_utils._handle_func_status(
+            status, "cannot connect component ports within graph"
+        )
         assert conn_ptr
         return bt2_connection._ConnectionConst._create_from_ptr_and_get_ref(conn_ptr)
 
@@ -138,14 +142,14 @@ class Graph(object._SharedObject):
 
     def run_once(self):
         status = native_bt.graph_run_once(self._ptr)
-        utils._handle_func_status(status, "graph object could not run once")
+        bt2_utils._handle_func_status(status, "graph object could not run once")
 
     def run(self):
         status = native_bt.graph_run(self._ptr)
-        utils._handle_func_status(status, "graph object stopped running")
+        bt2_utils._handle_func_status(status, "graph object stopped running")
 
     def add_interrupter(self, interrupter):
-        utils._check_type(interrupter, bt2_interrupter.Interrupter)
+        bt2_utils._check_type(interrupter, bt2_interrupter.Interrupter)
         native_bt.graph_add_interrupter(self._ptr, interrupter._ptr)
 
     @property

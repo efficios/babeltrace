@@ -2,7 +2,9 @@
 #
 # Copyright (c) 2017 Philippe Proulx <pproulx@efficios.com>
 
-from bt2 import native_bt, object, utils
+from bt2 import native_bt
+from bt2 import object as bt2_object
+from bt2 import utils as bt2_utils
 from bt2 import interrupter as bt2_interrupter
 from bt2 import value as bt2_value
 import bt2
@@ -29,7 +31,7 @@ class _QueryExecutorCommon:
         return native_bt.query_executor_get_logging_level(self._common_ptr)
 
 
-class QueryExecutor(object._SharedObject, _QueryExecutorCommon):
+class QueryExecutor(bt2_object._SharedObject, _QueryExecutorCommon):
     @staticmethod
     def _get_ref(ptr):
         native_bt.query_executor_get_ref(ptr)
@@ -55,7 +57,7 @@ class QueryExecutor(object._SharedObject, _QueryExecutorCommon):
                 o = component_class
                 raise TypeError("'{}' is not a component class object".format(o))
 
-        utils._check_str(object_name)
+        bt2_utils._check_str(object_name)
 
         if params is None:
             params_ptr = native_bt.value_null
@@ -88,7 +90,7 @@ class QueryExecutor(object._SharedObject, _QueryExecutorCommon):
         self._method_obj = method_obj
 
     def add_interrupter(self, interrupter):
-        utils._check_type(interrupter, bt2_interrupter.Interrupter)
+        bt2_utils._check_type(interrupter, bt2_interrupter.Interrupter)
         native_bt.query_executor_add_interrupter(self._ptr, interrupter._ptr)
 
     @property
@@ -97,9 +99,11 @@ class QueryExecutor(object._SharedObject, _QueryExecutorCommon):
         return bt2_interrupter.Interrupter._create_from_ptr_and_get_ref(ptr)
 
     def _set_logging_level(self, log_level):
-        utils._check_log_level(log_level)
+        bt2_utils._check_log_level(log_level)
         status = native_bt.query_executor_set_logging_level(self._ptr, log_level)
-        utils._handle_func_status(status, "cannot set query executor's logging level")
+        bt2_utils._handle_func_status(
+            status, "cannot set query executor's logging level"
+        )
 
     logging_level = property(
         fget=_QueryExecutorCommon.logging_level, fset=_set_logging_level
@@ -112,7 +116,7 @@ class QueryExecutor(object._SharedObject, _QueryExecutorCommon):
 
     def query(self):
         status, result_ptr = native_bt.query_executor_query(self._ptr)
-        utils._handle_func_status(status, "cannot query component class")
+        bt2_utils._handle_func_status(status, "cannot query component class")
         assert result_ptr is not None
         return bt2_value._create_from_const_ptr(result_ptr)
 
