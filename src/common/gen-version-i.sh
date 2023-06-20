@@ -12,6 +12,7 @@
 # release version and set an empty git version.
 
 set -o nounset
+set -o errexit
 
 if test "${TOP_SRCDIR:-}" = ""; then
 	echo "$0: TOP_SRCDIR is not set" >&2
@@ -38,7 +39,7 @@ fi
 # overwrite the git version with an empty string in "version.i.tmp".
 if test -r "$TOP_SRCDIR/bootstrap" && test -r "$TOP_SRCDIR/.git" &&
 		(command -v git > /dev/null 2>&1); then
-	GIT_VERSION_STR="$(cd "$TOP_SRCDIR" && git describe --tags --dirty)"
+	GIT_VERSION_STR="$(cd "$TOP_SRCDIR" && (git describe --tags --dirty || true))"
 	GIT_CURRENT_TAG="$(cd "$TOP_SRCDIR" && (git describe --tags --exact-match --match="v[0-9]*" HEAD || true) 2> /dev/null)"
 	echo "#define BT_VERSION_GIT \"$GIT_VERSION_STR\"" > version.i.tmp
 
