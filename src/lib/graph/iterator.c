@@ -66,6 +66,23 @@
 		(_iter)->state == BT_MESSAGE_ITERATOR_STATE_LAST_SEEKING_RETURNED_ERROR, \
 		"Message iterator is in the wrong state: %!+i", (_iter))
 
+#ifdef BT_DEV_MODE
+struct per_stream_state
+{
+	bt_packet *cur_packet;
+};
+#endif
+
+static void
+clear_per_stream_state (struct bt_message_iterator *iterator)
+{
+#ifdef BT_DEV_MODE
+	g_hash_table_remove_all(iterator->per_stream_state);
+#else
+	BT_USE_EXPR(iterator);
+#endif
+}
+
 static inline
 void set_msg_iterator_state(struct bt_message_iterator *iterator,
 		enum bt_message_iterator_state state)
@@ -134,6 +151,10 @@ void bt_message_iterator_destroy(struct bt_object *obj)
 		g_ptr_array_free(iterator->msgs, TRUE);
 		iterator->msgs = NULL;
 	}
+
+#ifdef BT_DEV_MODE
+	g_hash_table_destroy(iterator->per_stream_state);
+#endif
 
 	g_free(iterator);
 }
@@ -341,6 +362,16 @@ int create_self_component_input_port_message_iterator(
 
 	g_ptr_array_set_size(iterator->msgs, MSG_BATCH_SIZE);
 	iterator->last_ns_from_origin = INT64_MIN;
+
+#ifdef BT_DEV_MODE
+	/* The per-stream state is only used for dev assertions right now. */
+	iterator->per_stream_state = g_hash_table_new_full(
+		g_direct_hash,
+		g_direct_equal,
+		NULL,
+		g_free);
+#endif
+
 	iterator->auto_seek.msgs = g_queue_new();
 	if (!iterator->auto_seek.msgs) {
 		BT_LIB_LOGE_APPEND_CAUSE("Failed to allocate a GQueue.");
@@ -788,12 +819,155 @@ end:
 	return result;
 }
 
+#ifdef BT_DEV_MODE
+static
+const bt_stream *get_stream_from_msg(const struct bt_message *msg)
+{
+	struct bt_stream *stream;
+
+	switch (msg->type) {
+        case BT_MESSAGE_TYPE_STREAM_BEGINNING:
+        case BT_MESSAGE_TYPE_STREAM_END:
+	{
+		struct bt_message_stream *msg_stream =
+			(struct bt_message_stream *) msg;
+		stream = msg_stream->stream;
+		break;
+	}
+        case BT_MESSAGE_TYPE_EVENT:
+	{
+		struct bt_message_event *msg_event =
+			(struct bt_message_event *) msg;
+		stream = msg_event->event->stream;
+		break;
+	}
+        case BT_MESSAGE_TYPE_PACKET_BEGINNING:
+        case BT_MESSAGE_TYPE_PACKET_END:
+	{
+		struct bt_message_packet *msg_packet =
+			(struct bt_message_packet *) msg;
+		stream = msg_packet->packet->stream;
+		break;
+	}
+        case BT_MESSAGE_TYPE_DISCARDED_EVENTS:
+        case BT_MESSAGE_TYPE_DISCARDED_PACKETS:
+	{
+		struct bt_message_discarded_items *msg_discarded =
+			(struct bt_message_discarded_items *) msg;
+		stream = msg_discarded->stream;
+		break;
+	}
+        case BT_MESSAGE_TYPE_MESSAGE_ITERATOR_INACTIVITY:
+		stream = NULL;
+		break;
+	default:
+		bt_common_abort();
+        }
+
+	return stream;
+}
+
+static
+struct per_stream_state *get_per_stream_state(
+		struct bt_message_iterator *iterator,
+		const struct bt_stream *stream)
+{
+	struct per_stream_state *state = g_hash_table_lookup(
+		iterator->per_stream_state, stream);
+
+	if (!state) {
+		state = g_new0(struct per_stream_state, 1);
+		g_hash_table_insert(iterator->per_stream_state,
+			(gpointer) stream, state);
+	}
+
+	return state;
+}
+#endif
+
+#define NEXT_METHOD_NAME	"bt_message_iterator_class_next_method"
+
+#ifdef BT_DEV_MODE
+static
+void assert_post_dev_expected_packet(struct bt_message_iterator *iterator,
+		const struct bt_message *msg)
+{
+	const bt_stream *stream = get_stream_from_msg(msg);
+	struct per_stream_state *state;
+	const bt_packet *actual_packet = NULL;
+	const bt_packet *expected_packet = NULL;
+
+	if (!stream) {
+		goto end;
+	}
+
+	state = get_per_stream_state(iterator, stream);
+
+	switch (msg->type) {
+	case BT_MESSAGE_TYPE_EVENT:
+	{
+		const struct bt_message_event *msg_event =
+			(const struct bt_message_event *) msg;
+
+		actual_packet = msg_event->event->packet;
+		expected_packet = state->cur_packet;
+		break;
+	}
+	case BT_MESSAGE_TYPE_PACKET_BEGINNING:
+	{
+		const struct bt_message_packet *msg_packet =
+			(const struct bt_message_packet *) msg;
+
+		BT_ASSERT(!state->cur_packet);
+		state->cur_packet = msg_packet->packet;
+		break;
+	}
+	case BT_MESSAGE_TYPE_PACKET_END:
+	{
+		const struct bt_message_packet *msg_packet =
+			(const struct bt_message_packet *) msg;
+
+		actual_packet = msg_packet->packet;
+		expected_packet = state->cur_packet;
+		BT_ASSERT(state->cur_packet);
+		state->cur_packet = NULL;
+		break;
+	}
+	default:
+		break;
+	}
+
+	BT_ASSERT_POST_DEV(NEXT_METHOD_NAME,
+		"message-packet-is-expected",
+		actual_packet == expected_packet,
+		"Message's packet is not expected: %![stream-]s, %![iterator-]i, "
+		"%![message-]n, %![received-packet-]a, %![expected-packet-]a",
+		stream, iterator, msg, actual_packet, expected_packet);
+
+end:
+	return;
+}
+
+static
+void assert_post_dev_next(
+		struct bt_message_iterator *iterator,
+		bt_message_iterator_class_next_method_status status,
+		bt_message_array_const msgs, uint64_t msg_count)
+{
+	if (status == BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_OK) {
+		uint64_t i;
+
+		for (i = 0; i < msg_count; i++) {
+			assert_post_dev_expected_packet(iterator, msgs[i]);
+		}
+	}
+}
+#endif
+
 /*
  * Call the `next` method of the iterator.  Do some validation on the returned
  * messages.
  */
-
-#define NEXT_METHOD_NAME	"bt_message_iterator_class_next_method"
 
 static
 enum bt_message_iterator_class_next_method_status
@@ -821,6 +995,10 @@ call_iterator_next_method(
 				*user_count),
 			"Clock snapshots are not monotonic");
 	}
+
+#ifdef BT_DEV_MODE
+	assert_post_dev_next(iterator, status, msgs, *user_count);
+#endif
 
 	BT_ASSERT_POST_DEV_NO_ERROR_IF_NO_ERROR_STATUS(NEXT_METHOD_NAME,
 		status);
@@ -1168,6 +1346,8 @@ bt_message_iterator_seek_beginning(struct bt_message_iterator *iterator)
 			"%![iter-]+i, status=%s",
 			iterator, bt_common_func_status_string(status));
 	}
+
+	clear_per_stream_state(iterator);
 
 	set_iterator_state_after_seeking(iterator, status);
 	return status;
@@ -1826,6 +2006,8 @@ bt_message_iterator_seek_ns_from_origin(
 				iterator, bt_common_func_status_string(status));
 		}
 
+		clear_per_stream_state(iterator);
+
 		switch (status) {
 		case BT_FUNC_STATUS_OK:
 			break;
@@ -1981,6 +2163,8 @@ bt_message_iterator_seek_ns_from_origin(
 			bt_common_abort();
 		}
 	}
+
+	clear_per_stream_state(iterator);
 
 	/*
 	 * The following messages returned by the next method (including

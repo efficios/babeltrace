@@ -152,6 +152,8 @@ struct bt_message_iterator {
 		bt_uuid_t uuid;
 	} clock_expectation;
 
+	BT_IF_DEV_MODE(GHashTable *per_stream_state);
+
 	/*
 	 * Data necessary for auto seek (the seek-to-beginning then fast-forward
 	 * seek strategy).

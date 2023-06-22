@@ -29,6 +29,13 @@ extern "C" {
 #define BT_EXPORT __attribute__((visibility("default")))
 #endif
 
+/* Enable `txt` if developer mode is enabled. */
+#ifdef BT_DEV_MODE
+#define BT_IF_DEV_MODE(txt) txt
+#else
+#define BT_IF_DEV_MODE(txt)
+#endif
+
 /*
  * Yield `ref`'s value while setting `ref` to NULL.
  *
