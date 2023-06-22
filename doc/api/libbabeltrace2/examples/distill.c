@@ -150,7 +150,6 @@ bool message_passes(struct distill_message_iterator *distill_iter,
 
     /* Move as is if it's not an event message */
     if (bt_message_get_type(message) != BT_MESSAGE_TYPE_EVENT) {
-        passes = false;
         goto end;
     }
 
