@@ -263,8 +263,7 @@ end:
  * @param name		Name
  * @returns		Associated GQuark, or 0 on error
  */
-static GQuark get_prefixed_named_quark(struct ctf_visitor_generate_ir *ctx, char prefix,
-                                       const char *name)
+static GQuark get_prefixed_named_quark(char prefix, const char *name)
 {
     BT_ASSERT(name);
     std::string prname = std::string {prefix} + name;
@@ -282,10 +281,9 @@ static GQuark get_prefixed_named_quark(struct ctf_visitor_generate_ir *ctx, char
  * @returns		Declaration (owned by caller if \p copy is true),
  *			or NULL if not found
  */
-static struct ctf_field_class *
-ctx_decl_scope_lookup_prefix_alias(struct ctf_visitor_generate_ir *ctx,
-                                   struct ctx_decl_scope *scope, char prefix, const char *name,
-                                   int levels, bool copy)
+static struct ctf_field_class *ctx_decl_scope_lookup_prefix_alias(struct ctx_decl_scope *scope,
+                                                                  char prefix, const char *name,
+                                                                  int levels, bool copy)
 {
     GQuark qname = 0;
     int cur_levels = 0;
@@ -294,7 +292,7 @@ ctx_decl_scope_lookup_prefix_alias(struct ctf_visitor_generate_ir *ctx,
 
     BT_ASSERT(scope);
     BT_ASSERT(name);
-    qname = get_prefixed_named_quark(ctx, prefix, name);
+    qname = get_prefixed_named_quark(prefix, name);
     if (!qname) {
         goto end;
     }
@@ -334,11 +332,10 @@ end:
  * @returns		Declaration (owned by caller if \p copy is true),
  *			or NULL if not found
  */
-static struct ctf_field_class *ctx_decl_scope_lookup_alias(struct ctf_visitor_generate_ir *ctx,
-                                                           struct ctx_decl_scope *scope,
+static struct ctf_field_class *ctx_decl_scope_lookup_alias(struct ctx_decl_scope *scope,
                                                            const char *name, int levels, bool copy)
 {
-    return ctx_decl_scope_lookup_prefix_alias(ctx, scope, _PREFIX_ALIAS, name, levels, copy);
+    return ctx_decl_scope_lookup_prefix_alias(scope, _PREFIX_ALIAS, name, levels, copy);
 }
 
 /**
@@ -351,13 +348,11 @@ static struct ctf_field_class *ctx_decl_scope_lookup_alias(struct ctf_visitor_ge
  * @returns		Declaration (owned by caller if \p copy is true),
  *			or NULL if not found
  */
-static struct ctf_field_class_enum *ctx_decl_scope_lookup_enum(struct ctf_visitor_generate_ir *ctx,
-                                                               struct ctx_decl_scope *scope,
-                                                               const char *name, int levels,
-                                                               bool copy)
+static struct ctf_field_class_enum *
+ctx_decl_scope_lookup_enum(struct ctx_decl_scope *scope, const char *name, int levels, bool copy)
 {
     return ctf_field_class_as_enum(
-        ctx_decl_scope_lookup_prefix_alias(ctx, scope, _PREFIX_ENUM, name, levels, copy));
+        ctx_decl_scope_lookup_prefix_alias(scope, _PREFIX_ENUM, name, levels, copy));
 }
 
 /**
@@ -371,11 +366,10 @@ static struct ctf_field_class_enum *ctx_decl_scope_lookup_enum(struct ctf_visito
  *			or NULL if not found
  */
 static struct ctf_field_class_struct *
-ctx_decl_scope_lookup_struct(struct ctf_visitor_generate_ir *ctx, struct ctx_decl_scope *scope,
-                             const char *name, int levels, bool copy)
+ctx_decl_scope_lookup_struct(struct ctx_decl_scope *scope, const char *name, int levels, bool copy)
 {
     return ctf_field_class_as_struct(
-        ctx_decl_scope_lookup_prefix_alias(ctx, scope, _PREFIX_STRUCT, name, levels, copy));
+        ctx_decl_scope_lookup_prefix_alias(scope, _PREFIX_STRUCT, name, levels, copy));
 }
 
 /**
@@ -389,11 +383,10 @@ ctx_decl_scope_lookup_struct(struct ctf_visitor_generate_ir *ctx, struct ctx_dec
  *			or NULL if not found
  */
 static struct ctf_field_class_variant *
-ctx_decl_scope_lookup_variant(struct ctf_visitor_generate_ir *ctx, struct ctx_decl_scope *scope,
-                              const char *name, int levels, bool copy)
+ctx_decl_scope_lookup_variant(struct ctx_decl_scope *scope, const char *name, int levels, bool copy)
 {
     return ctf_field_class_as_variant(
-        ctx_decl_scope_lookup_prefix_alias(ctx, scope, _PREFIX_VARIANT, name, levels, copy));
+        ctx_decl_scope_lookup_prefix_alias(scope, _PREFIX_VARIANT, name, levels, copy));
 }
 
 /**
@@ -405,8 +398,7 @@ ctx_decl_scope_lookup_variant(struct ctf_visitor_generate_ir *ctx, struct ctx_de
  * @param decl		Field class to register (copied)
  * @returns		0 if registration went okay, negative value otherwise
  */
-static int ctx_decl_scope_register_prefix_alias(struct ctf_visitor_generate_ir *ctx,
-                                                struct ctx_decl_scope *scope, char prefix,
+static int ctx_decl_scope_register_prefix_alias(struct ctx_decl_scope *scope, char prefix,
                                                 const char *name, struct ctf_field_class *decl)
 {
     int ret = 0;
@@ -415,14 +407,14 @@ static int ctx_decl_scope_register_prefix_alias(struct ctf_visitor_generate_ir *
     BT_ASSERT(scope);
     BT_ASSERT(name);
     BT_ASSERT(decl);
-    qname = get_prefixed_named_quark(ctx, prefix, name);
+    qname = get_prefixed_named_quark(prefix, name);
     if (!qname) {
         ret = -ENOMEM;
         goto end;
     }
 
     /* Make sure alias does not exist in local scope */
-    if (ctx_decl_scope_lookup_prefix_alias(ctx, scope, prefix, name, 1, false)) {
+    if (ctx_decl_scope_lookup_prefix_alias(scope, prefix, name, 1, false)) {
         ret = -EEXIST;
         goto end;
     }
@@ -443,11 +435,10 @@ end:
  * @param decl	Field class to register (copied)
  * @returns	0 if registration went okay, negative value otherwise
  */
-static int ctx_decl_scope_register_alias(struct ctf_visitor_generate_ir *ctx,
-                                         struct ctx_decl_scope *scope, const char *name,
+static int ctx_decl_scope_register_alias(struct ctx_decl_scope *scope, const char *name,
                                          struct ctf_field_class *decl)
 {
-    return ctx_decl_scope_register_prefix_alias(ctx, scope, _PREFIX_ALIAS, name, decl);
+    return ctx_decl_scope_register_prefix_alias(scope, _PREFIX_ALIAS, name, decl);
 }
 
 /**
@@ -458,12 +449,10 @@ static int ctx_decl_scope_register_alias(struct ctf_visitor_generate_ir *ctx,
  * @param decl	Enumeration field class to register (copied)
  * @returns	0 if registration went okay, negative value otherwise
  */
-static int ctx_decl_scope_register_enum(struct ctf_visitor_generate_ir *ctx,
-                                        struct ctx_decl_scope *scope, const char *name,
+static int ctx_decl_scope_register_enum(struct ctx_decl_scope *scope, const char *name,
                                         struct ctf_field_class_enum *decl)
 {
-    return ctx_decl_scope_register_prefix_alias(ctx, scope, _PREFIX_ENUM, name,
-                                                &decl->base.base.base);
+    return ctx_decl_scope_register_prefix_alias(scope, _PREFIX_ENUM, name, &decl->base.base.base);
 }
 
 /**
@@ -474,11 +463,10 @@ static int ctx_decl_scope_register_enum(struct ctf_visitor_generate_ir *ctx,
  * @param decl	Structure field class to register (copied)
  * @returns	0 if registration went okay, negative value otherwise
  */
-static int ctx_decl_scope_register_struct(struct ctf_visitor_generate_ir *ctx,
-                                          struct ctx_decl_scope *scope, const char *name,
+static int ctx_decl_scope_register_struct(struct ctx_decl_scope *scope, const char *name,
                                           struct ctf_field_class_struct *decl)
 {
-    return ctx_decl_scope_register_prefix_alias(ctx, scope, _PREFIX_STRUCT, name, &decl->base);
+    return ctx_decl_scope_register_prefix_alias(scope, _PREFIX_STRUCT, name, &decl->base);
 }
 
 /**
@@ -489,11 +477,10 @@ static int ctx_decl_scope_register_struct(struct ctf_visitor_generate_ir *ctx,
  * @param decl	Variant field class to register
  * @returns	0 if registration went okay, negative value otherwise
  */
-static int ctx_decl_scope_register_variant(struct ctf_visitor_generate_ir *ctx,
-                                           struct ctx_decl_scope *scope, const char *name,
+static int ctx_decl_scope_register_variant(struct ctx_decl_scope *scope, const char *name,
                                            struct ctf_field_class_variant *decl)
 {
-    return ctx_decl_scope_register_prefix_alias(ctx, scope, _PREFIX_VARIANT, name, &decl->base);
+    return ctx_decl_scope_register_prefix_alias(scope, _PREFIX_VARIANT, name, &decl->base);
 }
 
 /**
@@ -1138,8 +1125,8 @@ static int visit_field_class_declarator(struct ctf_visitor_generate_ir *ctx,
              */
             qalias =
                 create_class_alias_identifier(ctx, cls_specifier_list, node_field_class_declarator);
-            nested_decl = ctx_decl_scope_lookup_alias(ctx, ctx->current_scope,
-                                                      g_quark_to_string(qalias), -1, true);
+            nested_decl = ctx_decl_scope_lookup_alias(ctx->current_scope, g_quark_to_string(qalias),
+                                                      -1, true);
             if (!nested_decl) {
                 _BT_COMP_LOGE_APPEND_CAUSE_NODE(node_field_class_declarator,
                                                 "Cannot find class alias: name=\"%s\"",
@@ -1464,7 +1451,7 @@ static int visit_field_class_def(struct ctf_visitor_generate_ir *ctx,
             }
         }
 
-        ret = ctx_decl_scope_register_alias(ctx, ctx->current_scope, g_quark_to_string(qidentifier),
+        ret = ctx_decl_scope_register_alias(ctx->current_scope, g_quark_to_string(qidentifier),
                                             class_decl);
         if (ret) {
             _BT_COMP_LOGE_APPEND_CAUSE_NODE(iter, "Cannot register field class alias: name=\"%s\"",
@@ -1533,8 +1520,7 @@ static int visit_field_class_alias(struct ctf_visitor_generate_ir *ctx, struct c
                                 struct ctf_node, siblings);
     qalias = create_class_alias_identifier(
         ctx, alias->u.field_class_alias_name.field_class_specifier_list, node);
-    ret = ctx_decl_scope_register_alias(ctx, ctx->current_scope, g_quark_to_string(qalias),
-                                        class_decl);
+    ret = ctx_decl_scope_register_alias(ctx->current_scope, g_quark_to_string(qalias), class_decl);
     if (ret) {
         _BT_COMP_LOGE_APPEND_CAUSE_NODE(node, "Cannot register class alias: name=\"%s\"",
                                         g_quark_to_string(qalias));
@@ -1659,7 +1645,7 @@ static int visit_struct_decl(struct ctf_visitor_generate_ir *ctx, const char *na
             goto error;
         }
 
-        *struct_decl = ctx_decl_scope_lookup_struct(ctx, ctx->current_scope, name, -1, true);
+        *struct_decl = ctx_decl_scope_lookup_struct(ctx->current_scope, name, -1, true);
         if (!*struct_decl) {
             _BT_COMP_OR_COMP_CLASS_LOGE_APPEND_CAUSE(
                 "Cannot find structure field class: name=\"struct %s\"", name);
@@ -1671,7 +1657,7 @@ static int visit_struct_decl(struct ctf_visitor_generate_ir *ctx, const char *na
         uint64_t min_align_value = 0;
 
         if (name) {
-            if (ctx_decl_scope_lookup_struct(ctx, ctx->current_scope, name, 1, false)) {
+            if (ctx_decl_scope_lookup_struct(ctx->current_scope, name, 1, false)) {
                 _BT_COMP_OR_COMP_CLASS_LOGE_APPEND_CAUSE(
                     "Structure field class already declared in local scope: "
                     "name=\"struct %s\"",
@@ -1716,7 +1702,7 @@ static int visit_struct_decl(struct ctf_visitor_generate_ir *ctx, const char *na
         ctx_pop_scope(ctx);
 
         if (name) {
-            ret = ctx_decl_scope_register_struct(ctx, ctx->current_scope, name, *struct_decl);
+            ret = ctx_decl_scope_register_struct(ctx->current_scope, name, *struct_decl);
             if (ret) {
                 _BT_COMP_OR_COMP_CLASS_LOGE_APPEND_CAUSE(
                     "Cannot register structure field class in declaration scope: "
@@ -1753,8 +1739,7 @@ static int visit_variant_decl(struct ctf_visitor_generate_ir *ctx, const char *n
             goto error;
         }
 
-        untagged_variant_decl =
-            ctx_decl_scope_lookup_variant(ctx, ctx->current_scope, name, -1, true);
+        untagged_variant_decl = ctx_decl_scope_lookup_variant(ctx->current_scope, name, -1, true);
         if (!untagged_variant_decl) {
             _BT_COMP_OR_COMP_CLASS_LOGE_APPEND_CAUSE(
                 "Cannot find variant field class: name=\"variant %s\"", name);
@@ -1765,7 +1750,7 @@ static int visit_variant_decl(struct ctf_visitor_generate_ir *ctx, const char *n
         struct ctf_node *entry_node;
 
         if (name) {
-            if (ctx_decl_scope_lookup_variant(ctx, ctx->current_scope, name, 1, false)) {
+            if (ctx_decl_scope_lookup_variant(ctx->current_scope, name, 1, false)) {
                 _BT_COMP_OR_COMP_CLASS_LOGE_APPEND_CAUSE(
                     "Variant field class already declared in local scope: "
                     "name=\"variant %s\"",
@@ -1794,8 +1779,7 @@ static int visit_variant_decl(struct ctf_visitor_generate_ir *ctx, const char *n
         ctx_pop_scope(ctx);
 
         if (name) {
-            ret = ctx_decl_scope_register_variant(ctx, ctx->current_scope, name,
-                                                  untagged_variant_decl);
+            ret = ctx_decl_scope_register_variant(ctx->current_scope, name, untagged_variant_decl);
             if (ret) {
                 _BT_COMP_OR_COMP_CLASS_LOGE_APPEND_CAUSE(
                     "Cannot register variant field class in declaration scope: "
@@ -1956,7 +1940,7 @@ static int visit_enum_decl(struct ctf_visitor_generate_ir *ctx, const char *name
             goto error;
         }
 
-        *enum_decl = ctx_decl_scope_lookup_enum(ctx, ctx->current_scope, name, -1, true);
+        *enum_decl = ctx_decl_scope_lookup_enum(ctx->current_scope, name, -1, true);
         if (!*enum_decl) {
             _BT_COMP_OR_COMP_CLASS_LOGE_APPEND_CAUSE("Cannot find enumeration field class: "
                                                      "name=\"enum %s\"",
@@ -1975,7 +1959,7 @@ static int visit_enum_decl(struct ctf_visitor_generate_ir *ctx, const char *name
         };
 
         if (name) {
-            if (ctx_decl_scope_lookup_enum(ctx, ctx->current_scope, name, 1, false)) {
+            if (ctx_decl_scope_lookup_enum(ctx->current_scope, name, 1, false)) {
                 _BT_COMP_OR_COMP_CLASS_LOGE_APPEND_CAUSE(
                     "Enumeration field class already declared in local scope: "
                     "name=\"enum %s\"",
@@ -1987,7 +1971,7 @@ static int visit_enum_decl(struct ctf_visitor_generate_ir *ctx, const char *name
 
         if (!container_cls) {
             integer_decl = ctf_field_class_as_int(
-                ctx_decl_scope_lookup_alias(ctx, ctx->current_scope, "int", -1, true));
+                ctx_decl_scope_lookup_alias(ctx->current_scope, "int", -1, true));
             if (!integer_decl) {
                 _BT_COMP_OR_COMP_CLASS_LOGE_APPEND_CAUSE(
                     "Cannot find implicit `int` field class alias for enumeration field class.");
@@ -2036,7 +2020,7 @@ static int visit_enum_decl(struct ctf_visitor_generate_ir *ctx, const char *name
         }
 
         if (name) {
-            ret = ctx_decl_scope_register_enum(ctx, ctx->current_scope, name, *enum_decl);
+            ret = ctx_decl_scope_register_enum(ctx->current_scope, name, *enum_decl);
             if (ret) {
                 _BT_COMP_OR_COMP_CLASS_LOGE_APPEND_CAUSE(
                     "Cannot register enumeration field class in declaration scope: "
@@ -2075,7 +2059,7 @@ static int visit_field_class_specifier(struct ctf_visitor_generate_ir *ctx,
         goto error;
     }
 
-    *decl = ctx_decl_scope_lookup_alias(ctx, ctx->current_scope, str->str, -1, true);
+    *decl = ctx_decl_scope_lookup_alias(ctx->current_scope, str->str, -1, true);
     if (!*decl) {
         _BT_COMP_LOGE_APPEND_CAUSE_NODE(cls_specifier_list,
                                         "Cannot find field class alias: name=\"%s\"", str->str);
