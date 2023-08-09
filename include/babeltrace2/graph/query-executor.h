@@ -189,7 +189,7 @@ executor, the query method of \bt_p{component_class} receives:
     to create.
 
     Unlike the \bt_p{params} parameter of
-    the <code>bt_graph_add_*_component_*_port_added_listener()</code>
+    the <code>bt_graph_add_*_component*()</code>
     functions (see \ref api-graph), this parameter does not need to
     be a \bt_map_val.
 
