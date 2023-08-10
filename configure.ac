@@ -50,7 +50,7 @@ AC_CANONICAL_HOST
 ## Automake base setup ##
 ##                     ##
 
-AM_INIT_AUTOMAKE([1.12 foreign dist-bzip2 no-dist-gzip tar-ustar nostdinc -Wall -Wno-portability -Werror])
+AM_INIT_AUTOMAKE([1.13 foreign dist-bzip2 no-dist-gzip tar-ustar nostdinc -Wall -Wno-portability -Werror])
 AM_MAINTAINER_MODE([enable])
 
 # Enable silent rules by default
