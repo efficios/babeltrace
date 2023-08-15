@@ -1,2 +1,4 @@
 black ~= 22.0
 flake8 >= 3.8
+# Required for black 22.0, it's broken with click >= 8.1
+click < 8.1
