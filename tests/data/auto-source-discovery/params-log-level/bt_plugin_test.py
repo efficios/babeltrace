@@ -25,7 +25,7 @@ class TestIter(bt2._UserMessageIterator):
             log_level = self._component.logging_level
             stream_name = '{}: {}'.format(comp_cls_name, log_level)
         elif params['what'] == 'python-obj':
-            assert type(obj) == str or obj is None
+            assert type(obj) is str or obj is None
             stream_name = '{}: {}'.format(comp_cls_name, obj)
         else:
             assert False

@@ -158,7 +158,7 @@ def _auto_discover_source_component_specs(auto_source_comp_specs, plugin_set):
 
     res = bt2_value._create_from_ptr(res_ptr)
 
-    assert type(res) == bt2.MapValue
+    assert type(res) is bt2.MapValue
     assert 'status' in res
 
     status = res['status']
@@ -166,24 +166,24 @@ def _auto_discover_source_component_specs(auto_source_comp_specs, plugin_set):
 
     comp_specs = []
     comp_specs_raw = res['results']
-    assert type(comp_specs_raw) == bt2.ArrayValue
+    assert type(comp_specs_raw) is bt2.ArrayValue
 
     used_input_indices = set()
 
     for comp_spec_raw in comp_specs_raw:
-        assert type(comp_spec_raw) == bt2.ArrayValue
+        assert type(comp_spec_raw) is bt2.ArrayValue
         assert len(comp_spec_raw) == 4
 
         plugin_name = comp_spec_raw[0]
-        assert type(plugin_name) == bt2.StringValue
+        assert type(plugin_name) is bt2.StringValue
         plugin_name = str(plugin_name)
 
         class_name = comp_spec_raw[1]
-        assert type(class_name) == bt2.StringValue
+        assert type(class_name) is bt2.StringValue
         class_name = str(class_name)
 
         comp_inputs = comp_spec_raw[2]
-        assert type(comp_inputs) == bt2.ArrayValue
+        assert type(comp_inputs) is bt2.ArrayValue
 
         comp_orig_indices = comp_spec_raw[3]
         assert type(comp_orig_indices)
