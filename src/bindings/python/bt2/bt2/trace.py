@@ -9,7 +9,8 @@ import collections.abc
 from bt2 import value as bt2_value
 from bt2 import stream as bt2_stream
 from bt2 import stream_class as bt2_stream_class
-import bt2
+from bt2 import error as bt2_error
+
 import functools
 import uuid as uuidp
 
@@ -246,7 +247,7 @@ class _Trace(_TraceConst):
             )
 
         if stream_ptr is None:
-            raise bt2._MemoryError("cannot create stream object")
+            raise bt2_error._MemoryError("cannot create stream object")
 
         stream = bt2_stream._Stream._create_from_ptr(stream_ptr)
 

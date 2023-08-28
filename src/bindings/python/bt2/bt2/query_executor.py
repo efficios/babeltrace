@@ -7,7 +7,7 @@ from bt2 import object as bt2_object
 from bt2 import utils as bt2_utils
 from bt2 import interrupter as bt2_interrupter
 from bt2 import value as bt2_value
-import bt2
+from bt2 import error as bt2_error
 
 
 def _bt2_component():
@@ -62,7 +62,7 @@ class QueryExecutor(bt2_object._SharedObject, _QueryExecutorCommon):
         if params is None:
             params_ptr = native_bt.value_null
         else:
-            params = bt2.create_value(params)
+            params = bt2_value.create_value(params)
             params_ptr = params._ptr
 
         cc_ptr = component_class._bt_component_class_ptr()
@@ -80,7 +80,7 @@ class QueryExecutor(bt2_object._SharedObject, _QueryExecutorCommon):
         )
 
         if ptr is None:
-            raise bt2._MemoryError("cannot create query executor object")
+            raise bt2_error._MemoryError("cannot create query executor object")
 
         super().__init__(ptr)
 

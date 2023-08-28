@@ -11,7 +11,9 @@ from bt2 import component as bt2_component
 import functools
 from bt2 import port as bt2_port
 from bt2 import logging as bt2_logging
-import bt2
+from bt2 import mip as bt2_mip
+from bt2 import error as bt2_error
+from bt2 import value as bt2_value
 
 
 def _graph_port_added_listener_from_native(
@@ -36,13 +38,13 @@ class Graph(bt2_object._SharedObject):
     def __init__(self, mip_version=0):
         bt2_utils._check_uint64(mip_version)
 
-        if mip_version > bt2.get_maximal_mip_version():
+        if mip_version > bt2_mip.get_maximal_mip_version():
             raise ValueError("unknown MIP version {}".format(mip_version))
 
         ptr = native_bt.graph_create(mip_version)
 
         if ptr is None:
-            raise bt2._MemoryError("cannot create graph object")
+            raise bt2_error._MemoryError("cannot create graph object")
 
         super().__init__(ptr)
 
@@ -96,10 +98,10 @@ class Graph(bt2_object._SharedObject):
         if obj is not None and not native_bt.bt2_is_python_component_class(base_cc_ptr):
             raise ValueError("cannot pass a Python object to a non-Python component")
 
-        if params is not None and not isinstance(params, (dict, bt2.MapValue)):
+        if params is not None and not isinstance(params, (dict, bt2_value.MapValue)):
             raise TypeError("'params' parameter is not a 'dict' or a 'bt2.MapValue'.")
 
-        params = bt2.create_value(params)
+        params = bt2_value.create_value(params)
 
         params_ptr = params._ptr if params is not None else None
 
@@ -135,7 +137,7 @@ class Graph(bt2_object._SharedObject):
 
         listener_ids = fn(self._ptr, listener_from_native)
         if listener_ids is None:
-            raise bt2._Error("cannot add listener to graph object")
+            raise bt2_error._Error("cannot add listener to graph object")
 
         # keep the partial's reference
         self._listener_partials.append(listener_from_native)

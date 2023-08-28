@@ -2,7 +2,7 @@
 #
 # Copyright (c) 2017 Philippe Proulx <pproulx@efficios.com>
 
-import bt2
+
 from bt2 import logging as bt2_logging
 from bt2 import native_bt
 from bt2 import error as bt2_error
@@ -141,30 +141,30 @@ def _handle_func_status(status, msg=None):
 
     if status == native_bt.__BT_FUNC_STATUS_ERROR:
         assert msg is not None
-        raise bt2._Error(msg)
+        raise bt2_error._Error(msg)
     elif status == native_bt.__BT_FUNC_STATUS_MEMORY_ERROR:
         assert msg is not None
-        raise bt2._MemoryError(msg)
+        raise bt2_error._MemoryError(msg)
     elif status == native_bt.__BT_FUNC_STATUS_END:
         if msg is None:
-            raise bt2.Stop
+            raise Stop
         else:
-            raise bt2.Stop(msg)
+            raise Stop(msg)
     elif status == native_bt.__BT_FUNC_STATUS_AGAIN:
         if msg is None:
-            raise bt2.TryAgain
+            raise TryAgain
         else:
-            raise bt2.TryAgain(msg)
+            raise TryAgain(msg)
     elif status == native_bt.__BT_FUNC_STATUS_OVERFLOW_ERROR:
         if msg is None:
-            raise bt2._OverflowError
+            raise _OverflowError
         else:
-            raise bt2._OverflowError(msg)
+            raise _OverflowError(msg)
     elif status == native_bt.__BT_FUNC_STATUS_UNKNOWN_OBJECT:
         if msg is None:
-            raise bt2.UnknownObject
+            raise UnknownObject
         else:
-            raise bt2.UnknownObject(msg)
+            raise UnknownObject(msg)
     else:
         assert False
 

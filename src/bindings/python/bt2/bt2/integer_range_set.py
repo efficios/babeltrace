@@ -5,8 +5,8 @@
 from bt2 import native_bt
 from bt2 import object as bt2_object
 from bt2 import utils as bt2_utils
+from bt2 import error as bt2_error
 import collections.abc
-import bt2
 
 
 class _IntegerRangeConst:
@@ -111,7 +111,7 @@ class _IntegerRangeSet(_IntegerRangeSetConst, collections.abc.MutableSet):
         ptr = self._create_range_set()
 
         if ptr is None:
-            raise bt2._MemoryError("cannot create range set object")
+            raise bt2_error._MemoryError("cannot create range set object")
 
         super().__init__(ptr)
 

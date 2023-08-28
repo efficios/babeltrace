@@ -11,10 +11,10 @@ from bt2 import stream_class as bt2_stream_class
 from bt2 import field_class as bt2_field_class
 from bt2 import integer_range_set as bt2_integer_range_set
 from bt2 import trace as bt2_trace
+from bt2 import error as bt2_error
 from bt2 import value as bt2_value
 import collections.abc
 import functools
-import bt2
 
 
 def _trace_class_destruction_listener_from_native(
@@ -149,7 +149,7 @@ class _TraceClass(_TraceClassConst):
         trace_ptr = native_bt.trace_create(self._ptr)
 
         if trace_ptr is None:
-            raise bt2._MemoryError("cannot create trace class object")
+            raise bt2_error._MemoryError("cannot create trace class object")
 
         trace = bt2_trace._Trace._create_from_ptr(trace_ptr)
 
@@ -281,7 +281,9 @@ class _TraceClass(_TraceClassConst):
 
     def _check_field_class_create_status(self, ptr, type_name):
         if ptr is None:
-            raise bt2._MemoryError("cannot create {} field class".format(type_name))
+            raise bt2_error._MemoryError(
+                "cannot create {} field class".format(type_name)
+            )
 
     @staticmethod
     def _set_field_class_user_attrs(fc, user_attributes):

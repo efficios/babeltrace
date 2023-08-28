@@ -8,7 +8,7 @@ from bt2 import object as bt2_object
 from bt2 import packet as bt2_packet
 from bt2 import stream_class as bt2_stream_class
 from bt2 import value as bt2_value
-import bt2
+from bt2 import error as bt2_error
 
 
 def _bt2_trace():
@@ -84,7 +84,7 @@ class _Stream(_StreamConst):
         packet_ptr = native_bt.packet_create(self._ptr)
 
         if packet_ptr is None:
-            raise bt2._MemoryError("cannot create packet object")
+            raise bt2_error._MemoryError("cannot create packet object")
 
         return bt2_packet._Packet._create_from_ptr(packet_ptr)
 

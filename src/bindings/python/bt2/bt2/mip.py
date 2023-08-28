@@ -4,24 +4,26 @@
 
 from bt2 import native_bt
 from bt2 import utils as bt2_utils
-import bt2
+from bt2 import error as bt2_error
+from bt2 import logging as bt2_logging
+from bt2 import component_descriptor as bt2_component_descriptor
 
 
 def get_greatest_operative_mip_version(
-    component_descriptors, log_level=bt2.LoggingLevel.NONE
+    component_descriptors, log_level=bt2_logging.LoggingLevel.NONE
 ):
     bt2_utils._check_log_level(log_level)
     comp_descr_set_ptr = native_bt.component_descriptor_set_create()
 
     if comp_descr_set_ptr is None:
-        raise bt2._MemoryError("cannot create component descriptor set object")
+        raise bt2_error._MemoryError("cannot create component descriptor set object")
 
     if len(component_descriptors) == 0:
         raise ValueError("no component descriptors")
 
     try:
         for descr in component_descriptors:
-            if type(descr) is not bt2.ComponentDescriptor:
+            if type(descr) is not bt2_component_descriptor.ComponentDescriptor:
                 raise TypeError("'{}' is not a component descriptor".format(descr))
 
             base_cc_ptr = descr.component_class._bt_component_class_ptr()

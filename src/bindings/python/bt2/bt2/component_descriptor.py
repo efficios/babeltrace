@@ -4,7 +4,7 @@
 
 from bt2 import native_bt
 from bt2 import component as bt2_component
-import bt2
+from bt2 import value as bt2_value
 
 
 def _is_source_comp_cls(comp_cls):
@@ -56,7 +56,7 @@ class ComponentDescriptor:
             raise ValueError("cannot pass a Python object to a non-Python component")
 
         self._comp_cls = component_class
-        self._params = bt2.create_value(params)
+        self._params = bt2_value.create_value(params)
         self._obj = obj
 
     @property

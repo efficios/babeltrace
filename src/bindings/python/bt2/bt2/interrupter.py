@@ -4,7 +4,7 @@
 
 from bt2 import native_bt
 from bt2 import object as bt2_object
-import bt2
+from bt2 import error as bt2_error
 
 
 class Interrupter(bt2_object._SharedObject):
@@ -20,7 +20,7 @@ class Interrupter(bt2_object._SharedObject):
         ptr = native_bt.interrupter_create()
 
         if ptr is None:
-            raise bt2._MemoryError("cannot create interrupter object")
+            raise bt2_error._MemoryError("cannot create interrupter object")
 
         super().__init__(ptr)
 

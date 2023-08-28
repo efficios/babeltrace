@@ -12,7 +12,7 @@ from bt2 import event_class as bt2_event_class
 from bt2 import packet as bt2_packet
 from bt2 import port as bt2_port
 from bt2 import clock_class as bt2_clock_class
-import bt2
+from bt2 import error as bt2_error
 
 
 class _MessageIterator(collections.abc.Iterator):
@@ -167,14 +167,14 @@ class _UserMessageIterator(_MessageIterator):
         pass
 
     def __next__(self):
-        raise bt2.Stop
+        raise bt2_utils.Stop
 
     def _bt_next_from_native(self):
         # this can raise anything: it's catched by the native part
         try:
             msg = next(self)
         except StopIteration:
-            raise bt2.Stop
+            raise bt2_utils.Stop
         except Exception:
             raise
 
@@ -280,7 +280,7 @@ class _UserMessageIterator(_MessageIterator):
                 )
 
         if ptr is None:
-            raise bt2._MemoryError("cannot create event message object")
+            raise bt2_error._MemoryError("cannot create event message object")
 
         return bt2_message._EventMessage(ptr)
 
@@ -291,7 +291,7 @@ class _UserMessageIterator(_MessageIterator):
         )
 
         if ptr is None:
-            raise bt2._MemoryError("cannot create inactivity message object")
+            raise bt2_error._MemoryError("cannot create inactivity message object")
 
         return bt2_message._MessageIteratorInactivityMessage(ptr)
 
@@ -300,7 +300,9 @@ class _UserMessageIterator(_MessageIterator):
 
         ptr = native_bt.message_stream_beginning_create(self._bt_ptr, stream._ptr)
         if ptr is None:
-            raise bt2._MemoryError("cannot create stream beginning message object")
+            raise bt2_error._MemoryError(
+                "cannot create stream beginning message object"
+            )
 
         msg = bt2_message._StreamBeginningMessage(ptr)
 
@@ -314,7 +316,7 @@ class _UserMessageIterator(_MessageIterator):
 
         ptr = native_bt.message_stream_end_create(self._bt_ptr, stream._ptr)
         if ptr is None:
-            raise bt2._MemoryError("cannot create stream end message object")
+            raise bt2_error._MemoryError("cannot create stream end message object")
 
         msg = bt2_message._StreamEndMessage(ptr)
 
@@ -345,7 +347,9 @@ class _UserMessageIterator(_MessageIterator):
             ptr = native_bt.message_packet_beginning_create(self._bt_ptr, packet._ptr)
 
         if ptr is None:
-            raise bt2._MemoryError("cannot create packet beginning message object")
+            raise bt2_error._MemoryError(
+                "cannot create packet beginning message object"
+            )
 
         return bt2_message._PacketBeginningMessage(ptr)
 
@@ -371,7 +375,7 @@ class _UserMessageIterator(_MessageIterator):
             ptr = native_bt.message_packet_end_create(self._bt_ptr, packet._ptr)
 
         if ptr is None:
-            raise bt2._MemoryError("cannot create packet end message object")
+            raise bt2_error._MemoryError("cannot create packet end message object")
 
         return bt2_message._PacketEndMessage(ptr)
 
@@ -413,7 +417,7 @@ class _UserMessageIterator(_MessageIterator):
             ptr = native_bt.message_discarded_events_create(self._bt_ptr, stream._ptr)
 
         if ptr is None:
-            raise bt2._MemoryError("cannot discarded events message object")
+            raise bt2_error._MemoryError("cannot discarded events message object")
 
         msg = bt2_message._DiscardedEventsMessage(ptr)
 
@@ -460,7 +464,7 @@ class _UserMessageIterator(_MessageIterator):
             ptr = native_bt.message_discarded_packets_create(self._bt_ptr, stream._ptr)
 
         if ptr is None:
-            raise bt2._MemoryError("cannot discarded packets message object")
+            raise bt2_error._MemoryError("cannot discarded packets message object")
 
         msg = bt2_message._DiscardedPacketsMessage(ptr)
 

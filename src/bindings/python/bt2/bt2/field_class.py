@@ -8,8 +8,8 @@ from bt2 import utils as bt2_utils
 import collections.abc
 from bt2 import field_path as bt2_field_path
 from bt2 import integer_range_set as bt2_integer_range_set
+from bt2 import error as bt2_error
 from bt2 import value as bt2_value
-import bt2
 
 
 def _obj_type_from_field_class_ptr_template(type_map, ptr):
@@ -64,7 +64,7 @@ class _FieldClassConst(bt2_object._SharedObject):
 
     def _check_create_status(self, ptr):
         if ptr is None:
-            raise bt2._MemoryError(
+            raise bt2_error._MemoryError(
                 "cannot create {} field class object".format(self._NAME.lower())
             )
 
@@ -478,7 +478,7 @@ class _StructureFieldClass(_StructureFieldClassConst, _FieldClass):
 
         if user_attributes is not None:
             # check now that user attributes are valid
-            user_attributes_value = bt2.create_value(user_attributes)
+            user_attributes_value = bt2_value.create_value(user_attributes)
 
         status = native_bt.field_class_structure_append_member(
             self._ptr, name, field_class._ptr
@@ -819,7 +819,7 @@ class _VariantFieldClassWithoutSelector(
 
         if user_attributes is not None:
             # check now that user attributes are valid
-            user_attributes_value = bt2.create_value(user_attributes)
+            user_attributes_value = bt2_value.create_value(user_attributes)
 
         status = native_bt.field_class_variant_without_selector_append_option(
             self._ptr, name, field_class._ptr
@@ -873,7 +873,7 @@ class _VariantFieldClassWithIntegerSelector(
 
         if user_attributes is not None:
             # check now that user attributes are valid
-            user_attributes_value = bt2.create_value(user_attributes)
+            user_attributes_value = bt2_value.create_value(user_attributes)
 
         # TODO: check overlaps (precondition of self._append_option())
 

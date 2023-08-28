@@ -5,12 +5,12 @@
 from bt2 import native_bt
 from bt2 import object as bt2_object
 from bt2 import utils as bt2_utils
+from bt2 import error as bt2_error
 import collections.abc
 import functools
 import numbers
 import math
 import abc
-import bt2
 
 
 def _create_from_ptr_template(ptr, object_map):
@@ -102,7 +102,7 @@ class _ValueConst(bt2_object._SharedObject, metaclass=abc.ABCMeta):
 
     def _check_create_status(self, ptr):
         if ptr is None:
-            raise bt2._MemoryError(
+            raise bt2_error._MemoryError(
                 "cannot create {} value object".format(self._NAME.lower())
             )
 
