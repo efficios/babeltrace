@@ -1,6 +1,6 @@
 = babeltrace2-sink.utils.counter(7)
 :manpagetype: component class
-:revdate: 14 September 2019
+:revdate: 1 September 2023
 
 
 == NAME
@@ -54,8 +54,11 @@ the zero counts with the param:hide-zero parameter.
 
 == INITIALIZATION PARAMETERS
 
-param:hide-zero=`yes` vtype:[optional boolean]::
-    Do not print the statistics lines where the count is zero.
+param:hide-zero='VAL' vtype:[optional boolean]::
+    If 'VAL' is true, then do not print the statistics lines where the
+    count is zero.
++
+Default: false.
 
 param:step='STEP' vtype:[optional unsigned integer]::
     Print a new block of statistics every 'STEP' consumed messages

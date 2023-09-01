@@ -1,6 +1,6 @@
 = babeltrace2-filter.utils.trimmer(7)
 :manpagetype: component class
-:revdate: 14 September 2019
+:revdate: 1 September 2023
 
 
 == NAME
@@ -74,9 +74,11 @@ treats it as such.
 If you don't specify this parameter, the component discards no events
 from the beginning of the trimming time range.
 
-param:gmt=`yes` vtype:[optional boolean]::
-    Set the time zone of the param:begin and param:end parameters
-    to GMT instead of the local time zone.
+param:gmt='VAL' vtype:[optional boolean]::
+    If 'VAL' is true, then set the time zone of the param:begin and
+    param:end parameters to GMT instead of the local time zone.
++
+Default: false.
 
 
 == PORTS

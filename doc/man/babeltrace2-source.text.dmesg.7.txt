@@ -1,6 +1,6 @@
 = babeltrace2-source.text.dmesg(7)
 :manpagetype: component class
-:revdate: 14 September 2019
+:revdate: 1 September 2023
 
 
 == NAME
@@ -69,10 +69,12 @@ requires that the input kernel ring buffer lines be sorted by timestamp
 
 == INITIALIZATION PARAMETERS
 
-param:no-extract-timestamp=`yes` vtype:[optional boolean]::
-    Do :not: extract timestamps from the kernel ring buffer lines: set
-    the created event's payload's `str` field to the whole line,
-    including any timestamp prefix.
+param:no-extract-timestamp='VAL' vtype:[optional boolean]::
+    If 'VAL' is true, then do :not: extract timestamps from the kernel
+    ring buffer lines: set the created event's payload's `str` field to
+    the whole line, including any timestamp prefix.
++
+Default: false.
 
 param:path='PATH' vtype:[optional string]::
     Read the kernel ring buffer lines from the file 'PATH' instead of
