@@ -1,6 +1,6 @@
 = babeltrace2-sink.ctf.fs(7)
 :manpagetype: component class
-:revdate: 14 September 2019
+:revdate: 1 September 2023
 
 
 == NAME
@@ -194,18 +194,24 @@ until the path does not exist.
 
 == INITIALIZATION PARAMETERS
 
-param:assume-single-trace=`yes` vtype:[optional boolean]::
-    Assume that the component only receives messages related to a single
-    input trace.
+param:assume-single-trace='VAL' vtype:[optional boolean]::
+    If 'VAL' is true, then assume that the component only receives
+    messages related to a single input trace.
 +
 This parameter affects how the component builds the output trace path
 (see <<output-path,``Output path''>>).
++
+Default: false.
 
-param:ignore-discarded-events=`yes` vtype:[optional boolean]::
-    Ignore discarded events messages.
+param:ignore-discarded-events='VAL' vtype:[optional boolean]::
+    If 'VAL' is true, then ignore discarded events messages.
++
+Default: false.
 
-param:ignore-discarded-packets=`yes` vtype:[optional boolean]::
-    Ignore discarded packets messages.
+param:ignore-discarded-packets='VAL' vtype:[optional boolean]::
+    If 'VAL' is true, then ignore discarded packets messages.
++
+Default: false.
 
 param:path='PATH' vtype:[string]::
     Base output path.
@@ -213,8 +219,10 @@ param:path='PATH' vtype:[string]::
 See <<output-path,``Output path''>> to learn how the component uses this
 parameter to build the output path for a given input trace.
 
-param:quiet=`yes` vtype:[optional boolean]::
-    Do not write anything to the standard output.
+param:quiet='VAL' vtype:[optional boolean]::
+    If 'VAL' is true, then do not write anything to the standard output.
++
+Default: false.
 
 
 == PORTS

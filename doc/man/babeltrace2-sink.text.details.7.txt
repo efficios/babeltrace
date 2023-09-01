@@ -1,6 +1,6 @@
 = babeltrace2-sink.text.details(7)
 :manpagetype: component class
-:revdate: 14 September 2019
+:revdate: 1 September 2023
 
 
 == NAME
@@ -113,8 +113,8 @@ param:color=(`never` | `auto` | `always`) vtype:[optional string]::
 The `BABELTRACE_TERM_COLOR` environment variable overrides this
 parameter.
 
-param:compact=`yes` vtype:[optional boolean]::
-    Enable compact mode.
+param:compact='VAL' vtype:[optional boolean]::
+    If 'VAL' is true, then enable compact mode.
 +
 In compact mode, the component prints one line per message, omitting
 many details about messages. This is useful if you only need the time,
@@ -122,24 +122,38 @@ type, and very basic information of messages.
 +
 In compact mode, the component still prints the full metadata blocks.
 You can remove such blocks with the param:with-metadata parameter.
++
+Default: false.
 
-param:with-metadata=`no` vtype:[optional boolean]::
-    Do not print metadata blocks.
+param:with-metadata='VAL' vtype:[optional boolean]::
+    If 'VAL' is false, then do not print metadata blocks.
++
+Default: true.
 
-param:with-stream-class-name=`no` vtype:[optional boolean]::
-    Do not print stream class names.
+param:with-stream-class-name='VAL' vtype:[optional boolean]::
+    If 'VAL' is false, then do not print stream class names.
++
+Default: true.
 
-param:with-stream-name=`no` vtype:[optional boolean]::
-    Do not print stream names.
+param:with-stream-name='VAL' vtype:[optional boolean]::
+    If 'VAL' is false, then do not print stream names.
++
+Default: true.
 
-param:with-time=`no` vtype:[optional boolean]::
-    Do not print timing information.
+param:with-time='VAL' vtype:[optional boolean]::
+    If 'VAL' is false, then do not print timing information.
++
+Default: true.
 
-param:with-trace-name=`no` vtype:[optional boolean]::
-    Do not print trace names.
+param:with-trace-name='VAL' vtype:[optional boolean]::
+    If 'VAL' is false, then do not print trace names.
++
+Default: true.
 
-param:with-uuid=`no` vtype:[optional boolean]::
-    Do not print UUIDs.
+param:with-uuid='VAL' vtype:[optional boolean]::
+    If 'VAL' is false, then do not print UUIDs.
++
+Default: true.
 
 
 == PORTS

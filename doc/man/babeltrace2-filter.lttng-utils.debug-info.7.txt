@@ -1,6 +1,6 @@
 = babeltrace2-filter.lttng-utils.debug-info(7)
 :manpagetype: component class
-:revdate: 14 September 2019
+:revdate: 1 September 2023
 :compcls: compcls:filter.lttng-utils.debug-info
 :defdebuginfoname: `debug_info`
 
@@ -229,10 +229,12 @@ param:debug-info-field-name='NAME' vtype:[optional string]::
     of the created events 'NAME' instead of the default
     {defdebuginfoname}.
 
-param:full-path=`yes` vtype:[optional boolean]::
-    Use the full path when writing the executable name (`bin`) and
-    source file name (`src`) fields in the {defdebuginfoname} context
-    field of the created events.
+param:full-path='VAL' vtype:[optional boolean]::
+    If 'VAL' is true, then use the full path when writing the executable
+    name (`bin`) and source file name (`src`) fields in the
+    {defdebuginfoname} context field of the created events.
++
+Default: false.
 
 param:target-prefix='DIR' vtype:[optional string]::
     Use 'DIR' as the root directory of the target file system instead of

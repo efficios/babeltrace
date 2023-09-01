@@ -1,6 +1,6 @@
 = babeltrace2-sink.text.pretty(7)
 :manpagetype: component class
-:revdate: 14 September 2019
+:revdate: 1 September 2023
 
 
 == NAME
@@ -43,20 +43,28 @@ man:babeltrace(1) (Babeltrace~1 command-line tool).
 
 == INITIALIZATION PARAMETERS
 
-param:clock-cycles=`yes` vtype:[optional boolean]::
-    Print event times in clock cycles instead of hours, minutes,
-    seconds, and nanoseconds.
+param:clock-cycles='VAL' vtype:[optional boolean]::
+    If 'VAL' is true, then print event times in clock cycles instead of
+    hours, minutes, seconds, and nanoseconds.
++
+Default: false.
 
-param:clock-date=`yes` vtype:[optional boolean]::
-    Print event times _and_ dates.
+param:clock-date='VAL' vtype:[optional boolean]::
+    If 'VAL' is true, then print event times _and_ dates.
++
+Default: false.
 
-param:clock-gmt=`yes` vtype:[optional boolean]::
-    Print event times in the GMT time zone instead of the local time
-    zone.
+param:clock-gmt='VAL' vtype:[optional boolean]::
+    If 'VAL' is true, then print event times in the GMT time zone
+    instead of the local time zone.
++
+Default: false.
 
-param:clock-seconds=`yes` vtype:[optional boolean]::
-    Print event times in seconds instead of hours, minutes,
-    seconds, and nanoseconds.
+param:clock-seconds='VAL' vtype:[optional boolean]::
+    If 'VAL' is true, then print event times in seconds instead of
+    hours, minutes, seconds, and nanoseconds.
++
+Default: false.
 
 param:color=(`never` | `auto` | `always`) vtype:[optional string]::
     Force the terminal color support, one of:
@@ -80,52 +88,200 @@ param:field-default=(`show` | `hide`) vtype:[optional string]::
     By default, show or hide all the fields. This sets the default value
     of all the parameters which start with `field-`.
 
-param:field-emf=(`yes` | `no`) vtype:[optional boolean]::
+param:field-emf='VAL' vtype:[optional boolean]::
     Show or hide the event's Eclipse Modeling Framework URI field.
++
+Default, depending on the param:field-default parameter:
++
+--
+`show`::
+    True
 
-param:field-loglevel=(`yes` | `no`) vtype:[optional boolean]::
+`hide`::
+    False
+
+Not set::
+    False
+--
+
+param:field-loglevel='VAL' vtype:[optional boolean]::
     Show or hide the event's logging level field.
++
+Default, depending on the param:field-default parameter:
++
+--
+`show`::
+    True
 
-param:field-trace=(`yes` | `no`) vtype:[optional boolean]::
+`hide`::
+    False
+
+Not set::
+    False
+--
+
+param:field-trace='VAL' vtype:[optional boolean]::
     Show or hide the trace name field.
++
+Default, depending on the param:field-default parameter:
++
+--
+`show`::
+    True
 
-param:field-trace:domain=(`yes` | `no`) vtype:[optional boolean]::
+`hide`::
+    False
+
+Not set::
+    False
+--
+
+param:field-trace:domain='VAL' vtype:[optional boolean]::
     Show or hide the tracing domain field.
++
+Default, depending on the param:field-default parameter:
++
+--
+`show`::
+    True
 
-param:field-trace:hostname=(`yes` | `no`) vtype:[optional boolean]::
+`hide`::
+    False
+
+Not set::
+    False
+--
+
+param:field-trace:hostname='VAL' vtype:[optional boolean]::
     Show or hide the hostname field.
++
+Default, depending on the param:field-default parameter:
++
+--
+`show`::
+    True
 
-param:field-trace:procname=(`yes` | `no`) vtype:[optional boolean]::
+`hide`::
+    False
+
+Not set::
+    True
+--
+
+param:field-trace:procname='VAL' vtype:[optional boolean]::
     Show or hide the process name field.
++
+Default, depending on the param:field-default parameter:
++
+--
+`show`::
+    True
 
-param:field-trace:vpid=(`yes` | `no`) vtype:[optional boolean]::
+`hide`::
+    False
+
+Not set::
+    True
+--
+
+param:field-trace:vpid='VAL' vtype:[optional boolean]::
     Show or hide the virtual process ID field.
++
+Default, depending on the param:field-default parameter:
++
+--
+`show`::
+    True
 
-param:name-context=(`yes` | `no`) vtype:[optional boolean]::
-    Show or hide the field names in the context scopes.
+`hide`::
+    False
+
+Not set::
+    True
+--
 
 param:name-default=(`show` | `hide`) vtype:[optional string]::
     By default, show or hide all the names. This sets the
     default value of all the parameters which start with `name-`.
 
-param:name-header=(`yes` | `no`) vtype:[optional boolean]::
+param:name-header='VAL' vtype:[optional boolean]::
     Show or hide the field names in the header scopes.
++
+Default, depending on the param:name-default parameter:
++
+--
+`show`::
+    True
 
-param:name-payload=(`yes` | `no`) vtype:[optional boolean]::
+`hide`::
+    False
+
+Not set::
+    False
+--
+
+param:name-context='VAL' vtype:[optional boolean]::
+    Show or hide the field names in the context scopes.
++
+Default, depending on the param:name-default parameter:
++
+--
+`show`::
+    True
+
+`hide`::
+    False
+
+Not set::
+    True
+--
+
+param:name-payload='VAL' vtype:[optional boolean]::
     Show or hide the field names in the event payload scopes.
++
+Default, depending on the param:name-default parameter:
++
+--
+`show`::
+    True
 
-param:name-scope=(`yes` | `no`) vtype:[optional boolean]::
+`hide`::
+    False
+
+Not set::
+    True
+--
+
+param:name-scope='VAL' vtype:[optional boolean]::
     Show or hide the scope names.
++
+Default, depending on the param:name-default parameter:
++
+--
+`show`::
+    True
 
-param:no-delta=`yes` vtype:[optional boolean]::
-    Do not print the time delta between consecutive lines.
+`hide`::
+    False
+
+Not set::
+    False
+--
+
+param:no-delta='VAL' vtype:[optional boolean]::
+    If 'VAL' is true, then do not print the time delta between
+    consecutive lines.
++
+Default: false.
 
 param:path='PATH' vtype:[optional string]::
     Print the text output to the file 'PATH' instead of the standard
     output.
 
-param:verbose=`yes` vtype:[optional boolean]::
-    Turn the verbose mode on.
+param:verbose='VAL' vtype:[optional boolean]::
+    If 'VAL' if true, then turn the verbose mode on.
++
+Default: false.
 
 
 == PORTS

@@ -1,6 +1,6 @@
 = babeltrace2-source.ctf.fs(7)
 :manpagetype: component class
-:revdate: 14 September 2019
+:revdate: 1 September 2023
 
 
 == NAME
@@ -167,9 +167,12 @@ param:clock-class-offset-s='SEC' vtype:[optional signed integer]::
 You can combine this parameter with the param:clock-class-offset-ns
 parameter.
 
-param:force-clock-class-origin-unix-epoch=`yes` vtype:[optional boolean]::
-    Force the origin of all clock classes that the component creates to
-    have a Unix epoch origin, whatever the detected tracer.
+param:force-clock-class-origin-unix-epoch='VAL' vtype:[optional boolean]::
+    If 'VAL' is true, then force the origin of all clock classes that
+    the component creates to have a Unix epoch origin, whatever the
+    detected tracer.
++
+Default: false.
 
 param:inputs='DIRS' vtype:[array of strings]::
     Open and read the physical CTF traces located in 'DIRS'.
