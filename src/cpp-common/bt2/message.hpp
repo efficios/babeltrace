@@ -17,6 +17,7 @@
 #include "internal/borrowed-obj.hpp"
 #include "internal/shared-obj.hpp"
 #include "internal/utils.hpp"
+#include "cpp-common/bt2/trace-ir.hpp"
 #include "cpp-common/optional.hpp"
 #include "cpp-common/string_view.hpp"
 #include "exc.hpp"
