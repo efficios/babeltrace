@@ -728,8 +728,8 @@ static int64_t get_field_paths_lca_index(struct ctf_field_path *field_path1,
     if (BT_LOG_ON_TRACE) {
         GString *field_path1_pretty = ctf_field_path_string(field_path1);
         GString *field_path2_pretty = ctf_field_path_string(field_path2);
-        const char *field_path1_pretty_str = field_path1_pretty ? field_path1_pretty->str : NULL;
-        const char *field_path2_pretty_str = field_path2_pretty ? field_path2_pretty->str : NULL;
+        const char *field_path1_pretty_str = field_path1_pretty ? field_path1_pretty->str : "(null)";
+        const char *field_path2_pretty_str = field_path2_pretty ? field_path2_pretty->str : "(null)";
 
         BT_COMP_LOGD("Finding lowest common ancestor (LCA) between two field paths: "
                      "field-path-1=\"%s\", field-path-2=\"%s\"",
