@@ -21,6 +21,80 @@ class UnexpectedInput(RuntimeError):
     pass
 
 
+# An entry within the index of an LTTng data stream.
+class _LttngDataStreamIndexEntry:
+    def __init__(
+        self,
+        offset_bytes,
+        total_size_bits,
+        content_size_bits,
+        timestamp_begin,
+        timestamp_end,
+        events_discarded,
+        stream_class_id,
+    ):
+        self._offset_bytes = offset_bytes
+        self._total_size_bits = total_size_bits
+        self._content_size_bits = content_size_bits
+        self._timestamp_begin = timestamp_begin
+        self._timestamp_end = timestamp_end
+        self._events_discarded = events_discarded
+        self._stream_class_id = stream_class_id
+
+    @property
+    def offset_bytes(self):
+        return self._offset_bytes
+
+    @property
+    def total_size_bits(self):
+        return self._total_size_bits
+
+    @property
+    def total_size_bytes(self):
+        return self._total_size_bits // 8
+
+    @property
+    def content_size_bits(self):
+        return self._content_size_bits
+
+    @property
+    def content_size_bytes(self):
+        return self._content_size_bits // 8
+
+    @property
+    def timestamp_begin(self):
+        return self._timestamp_begin
+
+    @property
+    def timestamp_end(self):
+        return self._timestamp_end
+
+    @property
+    def events_discarded(self):
+        return self._events_discarded
+
+    @property
+    def stream_class_id(self):
+        return self._stream_class_id
+
+
+# An entry within the index of an LTTng data stream. While a stream beacon entry
+# is conceptually unrelated to an index, it is sent as a reply to a
+# LttngLiveViewerGetNextDataStreamIndexEntryCommand
+class _LttngDataStreamBeaconEntry:
+    def __init__(self, stream_class_id, timestamp):
+        self._stream_class_id = stream_class_id
+        self._timestamp = timestamp
+
+    @property
+    def timestamp(self):
+        return self._timestamp
+
+    @property
+    def stream_class_id(self):
+        return self._stream_class_id
+
+
 class _LttngLiveViewerCommand:
     def __init__(self, version):
         self._version = version
@@ -575,80 +649,6 @@ class _LttngLiveViewerProtocolCodec:
         return data
 
 
-# An entry within the index of an LTTng data stream.
-class _LttngDataStreamIndexEntry:
-    def __init__(
-        self,
-        offset_bytes,
-        total_size_bits,
-        content_size_bits,
-        timestamp_begin,
-        timestamp_end,
-        events_discarded,
-        stream_class_id,
-    ):
-        self._offset_bytes = offset_bytes
-        self._total_size_bits = total_size_bits
-        self._content_size_bits = content_size_bits
-        self._timestamp_begin = timestamp_begin
-        self._timestamp_end = timestamp_end
-        self._events_discarded = events_discarded
-        self._stream_class_id = stream_class_id
-
-    @property
-    def offset_bytes(self):
-        return self._offset_bytes
-
-    @property
-    def total_size_bits(self):
-        return self._total_size_bits
-
-    @property
-    def total_size_bytes(self):
-        return self._total_size_bits // 8
-
-    @property
-    def content_size_bits(self):
-        return self._content_size_bits
-
-    @property
-    def content_size_bytes(self):
-        return self._content_size_bits // 8
-
-    @property
-    def timestamp_begin(self):
-        return self._timestamp_begin
-
-    @property
-    def timestamp_end(self):
-        return self._timestamp_end
-
-    @property
-    def events_discarded(self):
-        return self._events_discarded
-
-    @property
-    def stream_class_id(self):
-        return self._stream_class_id
-
-
-# An entry within the index of an LTTng data stream. While a stream beacon entry
-# is conceptually unrelated to an index, it is sent as a reply to a
-# LttngLiveViewerGetNextDataStreamIndexEntryCommand
-class _LttngDataStreamBeaconEntry:
-    def __init__(self, stream_class_id, timestamp):
-        self._stream_class_id = stream_class_id
-        self._timestamp = timestamp
-
-    @property
-    def timestamp(self):
-        return self._timestamp
-
-    @property
-    def stream_class_id(self):
-        return self._stream_class_id
-
-
 def _get_entry_timestamp_begin(entry):
     if type(entry) is _LttngDataStreamBeaconEntry:
         return entry.timestamp
@@ -1117,6 +1117,39 @@ class _LttngLiveViewerSessionMetadataStreamState:
     @property
     def next_section_timestamp(self):
         return self._next_metadata_stream_section_timestamp
+
+
+# A tracing session descriptor.
+#
+# In the constructor, `traces` is a list of LTTng traces (`LttngTrace`
+# objects).
+class LttngTracingSessionDescriptor:
+    def __init__(
+        self, name, tracing_session_id, hostname, live_timer_freq, client_count, traces
+    ):
+        for trace in traces:
+            if name not in trace.path:
+                fmt = "Tracing session name must be part of every trace path (`{}` not found in `{}`)"
+                raise ValueError(fmt.format(name, trace.path))
+
+        self._traces = traces
+        stream_count = sum([len(t) + 1 for t in traces])
+        self._info = _LttngLiveViewerTracingSessionInfo(
+            tracing_session_id,
+            live_timer_freq,
+            client_count,
+            stream_count,
+            hostname,
+            name,
+        )
+
+    @property
+    def traces(self):
+        return self._traces
+
+    @property
+    def info(self):
+        return self._info
 
 
 # The state of a tracing session.
@@ -1620,39 +1653,6 @@ class LttngLiveServer:
                 tmp_port_file.name, port_filename
             )
         )
-
-
-# A tracing session descriptor.
-#
-# In the constructor, `traces` is a list of LTTng traces (`LttngTrace`
-# objects).
-class LttngTracingSessionDescriptor:
-    def __init__(
-        self, name, tracing_session_id, hostname, live_timer_freq, client_count, traces
-    ):
-        for trace in traces:
-            if name not in trace.path:
-                fmt = "Tracing session name must be part of every trace path (`{}` not found in `{}`)"
-                raise ValueError(fmt.format(name, trace.path))
-
-        self._traces = traces
-        stream_count = sum([len(t) + 1 for t in traces])
-        self._info = _LttngLiveViewerTracingSessionInfo(
-            tracing_session_id,
-            live_timer_freq,
-            client_count,
-            stream_count,
-            hostname,
-            name,
-        )
-
-    @property
-    def traces(self):
-        return self._traces
-
-    @property
-    def info(self):
-        return self._info
 
 
 def _session_descriptors_from_path(sessions_filename, trace_path_prefix):
