@@ -1948,3 +1948,10 @@ private:
 #endif // BABELTRACE_BABY_HPP
 ----
 ====
+
+== Python Usage
+
+=== Formatting
+
+All Python code must be formatted using the version of
+https://github.com/psf/black[Black] specified in `dev-requirements.txt`.
