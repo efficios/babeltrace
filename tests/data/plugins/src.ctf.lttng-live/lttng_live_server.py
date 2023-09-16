@@ -761,6 +761,11 @@ class _LttngDataStream:
         self._path = path
         filename = os.path.basename(path)
         match = re.match(r"(.*)_\d+", filename)
+        if not match:
+            raise RuntimeError(
+                "Unexpected data stream file name pattern: {}".format(filename)
+            )
+
         self._channel_name = match.group(1)
         trace_dir = os.path.dirname(path)
         index_path = os.path.join(trace_dir, "index", filename + ".idx")
@@ -853,6 +858,12 @@ def _parse_metadata_sections_config(config_sections):
             assert type(config_section) is dict
             line = config_section.get("line")
             ts = config_section.get("timestamp")
+
+            if type(line) is not int:
+                raise RuntimeError("`line` is not an integer")
+
+            if type(ts) is not int:
+                raise RuntimeError("`timestamp` is not an integer")
 
             # Sections' timestamps and lines must both be increasing.
             assert ts > last_timestamp
@@ -1075,10 +1086,6 @@ class _LttngLiveViewerSessionMetadataStreamState:
                 metadata_stream.path,
             )
         )
-
-    @property
-    def trace_session_state(self):
-        return self._trace_session_state
 
     @property
     def info(self):
@@ -1435,6 +1442,7 @@ class _LttngLiveViewerSession:
         metadata_stream_state.is_sent = True
         status = _LttngLiveViewerGetMetadataStreamDataContentReply.Status.OK
         metadata_section = metadata_stream_state.cur_section
+        assert metadata_section is not None
 
         # If we are sending an empty section, ready the next one right away.
         if len(metadata_section.data) == 0:
