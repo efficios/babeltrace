@@ -1668,6 +1668,14 @@ class LttngLiveServer:
 
         print("Listening on port {}".format(self._server_port))
 
+        for ts_descr in tracing_session_descriptors:
+            info = ts_descr.info
+            print(
+                "net://localhost:{}/host/{}/{}".format(
+                    self._server_port, info.hostname, info.name
+                )
+            )
+
         try:
             self._listen()
         finally:
