@@ -1783,7 +1783,9 @@ class LttngLiveServer:
 
     def _write_port_to_file(self, port_filename: str):
         # Write the port number to a temporary file.
-        with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_port_file:
+        with tempfile.NamedTemporaryFile(
+            mode="w", delete=False, dir=os.path.dirname(port_filename)
+        ) as tmp_port_file:
             print(self._server_port, end="", file=tmp_port_file)
 
         # Rename temporary file to real file
