@@ -214,7 +214,7 @@ test_list_sessions() {
 	local test_text="CLI prints the expected session list"
 	local cli_args_template="-i lttng-live net://localhost:@PORT@"
 	local sessions_file="$test_data_dir/list_sessions.json"
-	local server_args="--sessions-filename '$sessions_file'"
+	local server_args="'$sessions_file'"
 
 	template_expected=$(<"$test_data_dir/cli-list-sessions.expect")
 	cli_stderr="$(mktemp -t test_live_list_sessions_stderr.XXXXXX)"
@@ -250,7 +250,7 @@ test_base() {
 	local test_text="CLI attach and fetch from single-domains session - no discarded events"
 	local cli_args_template="-i lttng-live net://localhost:@PORT@/host/hostname/trace-with-index -c sink.text.details"
 	local sessions_file="$test_data_dir/base.json"
-	local server_args="--sessions-filename '$sessions_file'"
+	local server_args="'$sessions_file'"
 	local expected_stdout="${test_data_dir}/cli-base.expect"
 	local expected_stderr
 
@@ -268,7 +268,7 @@ test_multi_domains() {
 	local test_text="CLI attach and fetch from multi-domains session - discarded events"
 	local cli_args_template="-i lttng-live net://localhost:@PORT@/host/hostname/multi-domains -c sink.text.details"
 	local sessions_file="${test_data_dir}/multi_domains.json"
-	local server_args="--sessions-filename '$sessions_file'"
+	local server_args="'$sessions_file'"
 	local expected_stdout="$test_data_dir/cli-multi-domains.expect"
 	local expected_stderr
 
@@ -289,7 +289,7 @@ test_rate_limited() {
 	local test_text="CLI many requests per packet"
 	local cli_args_template="-i lttng-live net://localhost:@PORT@/host/hostname/trace-with-index -c sink.text.details"
 	local sessions_file="$test_data_dir/rate_limited.json"
-	local server_args="--max-query-data-response-size 1024 --sessions-filename '$sessions_file'"
+	local server_args="--max-query-data-response-size 1024 '$sessions_file'"
 	local expected_stdout="${test_data_dir}/cli-base.expect"
 	local expected_stderr
 
@@ -310,8 +310,8 @@ test_compare_to_ctf_fs() {
 	local cli_args_template="-i lttng-live net://localhost:@PORT@/host/hostname/multi-domains -c sink.text.details --params with-trace-name=false,with-stream-name=false"
 	local sessions_file="$test_data_dir/multi_domains.json"
 	local sessions_file_inverse="$test_data_dir/multi_domains_inverse.json"
-	local server_args="--sessions-filename '$sessions_file'"
-	local server_args_inverse="--sessions-filename '$sessions_file_inverse'"
+	local server_args="'$sessions_file'"
+	local server_args_inverse="'$sessions_file_inverse'"
 	local expected_stdout
 	local expected_stderr
 
@@ -357,7 +357,7 @@ test_inactivity_discarded_packet() {
 	local test_text="CLI attach and fetch from single-domains session - inactivity discarded packet"
 	local cli_args_template="-i lttng-live net://localhost:@PORT@/host/hostname/7_lost_between_2_with_index -c sink.text.details"
 	local sessions_file="$test_data_dir/inactivity_discarded_packet.json"
-	local server_args="--sessions-filename '$sessions_file'"
+	local server_args="'$sessions_file'"
 	local expected_stdout="$test_data_dir/inactivity_discarded_packet.expect"
 	local expected_stderr
 
@@ -383,7 +383,7 @@ test_split_metadata() {
 	local test_text="CLI attach and fetch from single-domain session - Receive metadata in two sections separated by a empty section"
 	local cli_args_template="-i lttng-live net://localhost:@PORT@/host/hostname/split_metadata -c sink.text.details"
 	local sessions_file="$test_data_dir/split_metadata.json"
-	local server_args="--sessions-filename '$sessions_file'"
+	local server_args="'$sessions_file'"
 	local expected_stdout="${test_data_dir}/split_metadata.expect"
 	local expected_stderr
 
