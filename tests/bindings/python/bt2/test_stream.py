@@ -4,12 +4,13 @@
 #
 
 import unittest
+
 import utils
-from utils import run_in_component_init
 from bt2 import trace as bt2_trace
-from bt2 import stream as bt2_stream
 from bt2 import value as bt2_value
+from bt2 import stream as bt2_stream
 from bt2 import stream_class as bt2_stream_class
+from utils import run_in_component_init
 
 
 class StreamTestCase(unittest.TestCase):

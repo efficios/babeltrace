@@ -2,10 +2,10 @@
 #
 # Copyright (c) 2017 Philippe Proulx <pproulx@efficios.com>
 
-from bt2 import native_bt
-from bt2 import utils as bt2_utils
 from bt2 import error as bt2_error
+from bt2 import utils as bt2_utils
 from bt2 import logging as bt2_logging
+from bt2 import native_bt
 from bt2 import component_descriptor as bt2_component_descriptor
 
 

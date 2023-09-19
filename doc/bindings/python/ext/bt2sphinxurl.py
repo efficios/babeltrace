@@ -33,11 +33,12 @@
 #
 #         :bt2link:`libbabeltrace2 <https://babeltrace.org/docs/v@ver@/libbabeltrace2/>`
 
-import docutils
-import docutils.utils
-import docutils.nodes
 import re
 import functools
+
+import docutils
+import docutils.nodes
+import docutils.utils
 
 
 def _bt2man_role(

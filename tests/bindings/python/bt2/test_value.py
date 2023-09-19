@@ -3,12 +3,13 @@
 # Copyright (C) 2019 EfficiOS Inc.
 #
 
-from functools import partial, partialmethod
-import operator
-import collections
-import unittest
-import math
 import copy
+import math
+import operator
+import unittest
+import collections
+from functools import partial, partialmethod
+
 import bt2
 
 

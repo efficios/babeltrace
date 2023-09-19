@@ -2,9 +2,9 @@
 #
 # Copyright (c) 2017 Philippe Proulx <pproulx@efficios.com>
 
-from bt2 import native_bt
-from bt2 import component as bt2_component
 from bt2 import value as bt2_value
+from bt2 import component as bt2_component
+from bt2 import native_bt
 
 
 def _is_source_comp_cls(comp_cls):

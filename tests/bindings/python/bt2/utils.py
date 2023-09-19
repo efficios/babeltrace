@@ -3,8 +3,9 @@
 # Copyright (C) 2019 EfficiOS Inc.
 #
 
-import bt2
 import collections.abc
+
+import bt2
 
 
 # Run callable `func` in the context of a component's __init__ method.  The

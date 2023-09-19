@@ -4,14 +4,14 @@
 #
 
 import unittest
+
 import bt2
 import utils
-from utils import TestOutputPortMessageIterator
-
 from bt2 import field as bt2_field
 from bt2 import stream as bt2_stream
 from bt2 import event_class as bt2_event_class
 from bt2 import clock_snapshot as bt2_clock_snapshot
+from utils import TestOutputPortMessageIterator
 
 
 class EventTestCase(unittest.TestCase):

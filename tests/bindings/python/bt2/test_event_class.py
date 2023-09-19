@@ -4,13 +4,13 @@
 #
 
 import unittest
+
 import bt2
-from utils import get_default_trace_class
-from bt2 import stream_class as bt2_stream_class
+from bt2 import value as bt2_value
 from bt2 import event_class as bt2_event_class
 from bt2 import field_class as bt2_field_class
-from bt2 import value as bt2_value
-from utils import TestOutputPortMessageIterator
+from bt2 import stream_class as bt2_stream_class
+from utils import TestOutputPortMessageIterator, get_default_trace_class
 
 
 def _create_const_event_class(tc, stream_class):

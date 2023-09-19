@@ -15,3 +15,8 @@
 
   )
   '''
+
+[tool.isort]
+profile = "black"
+extend_skip_glob = ["tests/utils/python/tap"]
+length_sort = true

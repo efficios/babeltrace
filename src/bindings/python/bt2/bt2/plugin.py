@@ -2,12 +2,13 @@
 #
 # Copyright (c) 2017 Philippe Proulx <pproulx@efficios.com>
 
-from bt2 import native_bt
-from bt2 import object as bt2_object
-from bt2 import utils as bt2_utils
-import collections.abc
-from bt2 import component as bt2_component
 import os.path
+import collections.abc
+
+from bt2 import utils as bt2_utils
+from bt2 import object as bt2_object
+from bt2 import component as bt2_component
+from bt2 import native_bt
 
 
 def find_plugins_in_path(path, recurse=True, fail_on_load_error=False):

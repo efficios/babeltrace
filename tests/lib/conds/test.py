@@ -2,15 +2,14 @@
 #
 # Copyright (c) 2020 Philippe Proulx <pproulx@efficios.com>
 
-import unittest
-import subprocess
-import functools
-import signal
 import os
-import os.path
 import re
 import json
-
+import signal
+import os.path
+import unittest
+import functools
+import subprocess
 
 # the `conds-triggers` program's full path
 _CONDS_TRIGGERS_PATH = os.environ["BT_TESTS_LIB_CONDS_TRIGGER_BIN"]

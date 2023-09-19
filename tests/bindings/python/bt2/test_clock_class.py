@@ -3,13 +3,14 @@
 # Copyright (C) 2019 EfficiOS Inc.
 #
 
-import unittest
 import uuid
+import unittest
+
 import bt2
 import utils
-from utils import run_in_component_init, TestOutputPortMessageIterator
 from bt2 import value as bt2_value
 from bt2 import clock_class as bt2_clock_class
+from utils import TestOutputPortMessageIterator, run_in_component_init
 
 
 class ClockClassOffsetTestCase(unittest.TestCase):

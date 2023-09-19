@@ -4,18 +4,19 @@
 #
 
 import unittest
+
 import bt2
 import utils
-from utils import TestOutputPortMessageIterator
-from bt2 import clock_snapshot as bt2_clock_snapshot
 from bt2 import event as bt2_event
-from bt2 import event_class as bt2_event_class
 from bt2 import field as bt2_field
+from bt2 import trace as bt2_trace
 from bt2 import packet as bt2_packet
 from bt2 import stream as bt2_stream
-from bt2 import stream_class as bt2_stream_class
-from bt2 import trace as bt2_trace
+from bt2 import event_class as bt2_event_class
 from bt2 import trace_class as bt2_trace_class
+from bt2 import stream_class as bt2_stream_class
+from bt2 import clock_snapshot as bt2_clock_snapshot
+from utils import TestOutputPortMessageIterator
 
 
 class AllMessagesTestCase(unittest.TestCase):

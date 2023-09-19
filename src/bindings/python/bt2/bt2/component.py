@@ -2,19 +2,20 @@
 #
 # Copyright (c) 2017 Philippe Proulx <pproulx@efficios.com>
 
-from bt2 import native_bt
-from bt2 import object as bt2_object
-from bt2 import utils as bt2_utils
-from bt2 import message_iterator as bt2_message_iterator
+import sys
 import collections.abc
-from bt2 import value as bt2_value
-from bt2 import trace_class as bt2_trace_class
-from bt2 import clock_class as bt2_clock_class
-from bt2 import query_executor as bt2_query_executor
+
 from bt2 import port as bt2_port
 from bt2 import error as bt2_error
+from bt2 import utils as bt2_utils
+from bt2 import value as bt2_value
+from bt2 import object as bt2_object
+from bt2 import native_bt
+from bt2 import clock_class as bt2_clock_class
+from bt2 import trace_class as bt2_trace_class
+from bt2 import query_executor as bt2_query_executor
+from bt2 import message_iterator as bt2_message_iterator
 from bt2 import integer_range_set as bt2_integer_range_set
-import sys
 
 
 class _IncompleteUserClass(Exception):

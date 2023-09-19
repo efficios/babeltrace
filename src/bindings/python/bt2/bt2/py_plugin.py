@@ -2,10 +2,10 @@
 #
 # Copyright (c) 2017 Philippe Proulx <pproulx@efficios.com>
 
-from bt2 import utils as bt2_utils
-from bt2 import component as bt2_component
 import sys
 
+from bt2 import utils as bt2_utils
+from bt2 import component as bt2_component
 
 # Python plugin path to `_PluginInfo` (cache)
 _plugin_infos = {}
@@ -91,9 +91,9 @@ def _try_load_plugin_module(path):
         # do not load module and create plugin info twice for this path
         return _plugin_infos[path]
 
-    import importlib.machinery
-    import inspect
     import hashlib
+    import inspect
+    import importlib.machinery
 
     if path is None:
         raise TypeError("missing path")

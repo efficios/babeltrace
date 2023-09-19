@@ -3,8 +3,9 @@
 # Copyright (C) 2019 EfficiOS Inc.
 #
 
-import bt2
 import unittest
+
+import bt2
 
 
 class InterrupterTestCase(unittest.TestCase):

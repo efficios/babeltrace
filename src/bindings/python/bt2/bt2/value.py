@@ -2,15 +2,16 @@
 #
 # Copyright (c) 2017 Philippe Proulx <pproulx@efficios.com>
 
-from bt2 import native_bt
-from bt2 import object as bt2_object
-from bt2 import utils as bt2_utils
-from bt2 import error as bt2_error
-import collections.abc
-import functools
-import numbers
-import math
 import abc
+import math
+import numbers
+import functools
+import collections.abc
+
+from bt2 import error as bt2_error
+from bt2 import utils as bt2_utils
+from bt2 import object as bt2_object
+from bt2 import native_bt
 
 
 def _create_from_ptr_template(ptr, object_map):

@@ -4,10 +4,11 @@
 #
 
 import unittest
+
 import utils
-from utils import run_in_component_init
-from bt2 import stream as bt2_stream
 from bt2 import field as bt2_field
+from bt2 import stream as bt2_stream
+from utils import run_in_component_init
 
 
 class PacketTestCase(unittest.TestCase):

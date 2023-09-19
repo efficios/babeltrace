@@ -2,11 +2,12 @@
 #
 # Copyright (c) 2017 Philippe Proulx <pproulx@efficios.com>
 
-from bt2 import native_bt
-from bt2 import object as bt2_object
+import uuid as uuidp
+
 from bt2 import utils as bt2_utils
 from bt2 import value as bt2_value
-import uuid as uuidp
+from bt2 import object as bt2_object
+from bt2 import native_bt
 
 
 class ClockClassOffset:

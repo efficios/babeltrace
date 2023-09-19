@@ -3,9 +3,10 @@
 # Copyright (C) 2019 EfficiOS Inc.
 #
 
-import unittest
-import bt2
 import re
+import unittest
+
+import bt2
 
 
 class QueryExecutorTestCase(unittest.TestCase):

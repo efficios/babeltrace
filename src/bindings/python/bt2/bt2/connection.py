@@ -2,9 +2,9 @@
 #
 # Copyright (c) 2017 Philippe Proulx <pproulx@efficios.com>
 
-from bt2 import native_bt
 from bt2 import port as bt2_port
 from bt2 import object as bt2_object
+from bt2 import native_bt
 
 
 class _ConnectionConst(bt2_object._SharedObject):

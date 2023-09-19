@@ -2,13 +2,13 @@
 #
 # Copyright (c) 2016-2017 Philippe Proulx <pproulx@efficios.com>
 
-from bt2 import native_bt
+from bt2 import error as bt2_error
 from bt2 import utils as bt2_utils
+from bt2 import value as bt2_value
 from bt2 import object as bt2_object
 from bt2 import packet as bt2_packet
+from bt2 import native_bt
 from bt2 import stream_class as bt2_stream_class
-from bt2 import value as bt2_value
-from bt2 import error as bt2_error
 
 
 def _bt2_trace():

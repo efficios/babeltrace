@@ -3,6 +3,7 @@
 # Copyright (C) 2020 EfficiOS, Inc.
 
 import unittest
+
 import bt2
 
 

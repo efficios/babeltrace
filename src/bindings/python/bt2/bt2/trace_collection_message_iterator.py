@@ -2,24 +2,24 @@
 #
 # Copyright (c) 2017 Philippe Proulx <pproulx@efficios.com>
 
-from bt2 import native_bt
-from bt2 import utils as bt2_utils
-from bt2 import logging as bt2_logging
+import numbers
+import datetime
 import itertools
-from bt2 import message_iterator as bt2_message_iterator
+from collections import namedtuple
+
+from bt2 import mip as bt2_mip
 from bt2 import port as bt2_port
-from bt2 import component as bt2_component
+from bt2 import error as bt2_error
+from bt2 import graph as bt2_graph
+from bt2 import utils as bt2_utils
 from bt2 import value as bt2_value
 from bt2 import plugin as bt2_plugin
-from bt2 import error as bt2_error
+from bt2 import logging as bt2_logging
+from bt2 import component as bt2_component
+from bt2 import native_bt
 from bt2 import query_executor as bt2_query_executor
+from bt2 import message_iterator as bt2_message_iterator
 from bt2 import component_descriptor as bt2_component_descriptor
-from bt2 import mip as bt2_mip
-from bt2 import graph as bt2_graph
-import datetime
-from collections import namedtuple
-import numbers
-
 
 # a pair of component and ComponentSpec
 _ComponentAndSpec = namedtuple("_ComponentAndSpec", ["comp", "spec"])

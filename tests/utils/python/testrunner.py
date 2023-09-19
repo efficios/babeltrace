@@ -3,11 +3,11 @@
 # Copyright (c) 2016 Philippe Proulx <pproulx@efficios.com>
 #
 
-from tap import TAPTestRunner
-import unittest
 import sys
 import argparse
+import unittest
 
+from tap import TAPTestRunner
 
 if __name__ == "__main__":
     argparser = argparse.ArgumentParser()

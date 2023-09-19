@@ -3,8 +3,9 @@
 # Copyright (C) 2019 EfficiOS Inc.
 #
 
-import bt2
 import os
+
+import bt2
 
 # This file defines source component classes to help verify the parameters an
 # log levels passed to components.  Each component creates one stream, with a

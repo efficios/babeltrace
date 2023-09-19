@@ -4,9 +4,10 @@
 #
 
 import unittest
+
 import bt2
-from bt2 import connection as bt2_connection
 from bt2 import port as bt2_port
+from bt2 import connection as bt2_connection
 
 
 class ConnectionTestCase(unittest.TestCase):

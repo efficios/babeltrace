@@ -3,10 +3,11 @@
 # Copyright (C) 2019 EfficiOS Inc.
 #
 
-import bt2
-import signal
 import os
 import time
+import signal
+
+import bt2
 
 bt2.register_plugin(__name__, "test_exit_status")
 

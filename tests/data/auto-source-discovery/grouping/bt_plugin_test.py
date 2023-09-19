@@ -3,8 +3,9 @@
 # Copyright (C) 2019 EfficiOS Inc.
 #
 
-import bt2
 import os
+
+import bt2
 
 # Source component classes in this file recognize and group inputs in
 # various ways.  One stream is created by each component, with a name

@@ -2,14 +2,15 @@
 #
 # Copyright (c) 2017 Philippe Proulx <pproulx@efficios.com>
 
-from bt2 import native_bt
-from bt2 import object as bt2_object
-from bt2 import utils as bt2_utils
 import collections.abc
+
+from bt2 import error as bt2_error
+from bt2 import utils as bt2_utils
+from bt2 import value as bt2_value
+from bt2 import object as bt2_object
+from bt2 import native_bt
 from bt2 import field_path as bt2_field_path
 from bt2 import integer_range_set as bt2_integer_range_set
-from bt2 import error as bt2_error
-from bt2 import value as bt2_value
 
 
 def _obj_type_from_field_class_ptr_template(type_map, ptr):

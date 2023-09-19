@@ -4,17 +4,18 @@
 # Copyright (c) 2018 Francis Deslauriers <francis.deslauriers@efficios.com>
 # Copyright (c) 2019 Simon Marchi <simon.marchi@efficios.com>
 
-from bt2 import native_bt
-from bt2 import utils as bt2_utils
-from bt2 import object as bt2_object
-from bt2 import stream_class as bt2_stream_class
-from bt2 import field_class as bt2_field_class
-from bt2 import integer_range_set as bt2_integer_range_set
-from bt2 import trace as bt2_trace
-from bt2 import error as bt2_error
-from bt2 import value as bt2_value
-import collections.abc
 import functools
+import collections.abc
+
+from bt2 import error as bt2_error
+from bt2 import trace as bt2_trace
+from bt2 import utils as bt2_utils
+from bt2 import value as bt2_value
+from bt2 import object as bt2_object
+from bt2 import native_bt
+from bt2 import field_class as bt2_field_class
+from bt2 import stream_class as bt2_stream_class
+from bt2 import integer_range_set as bt2_integer_range_set
 
 
 def _trace_class_destruction_listener_from_native(

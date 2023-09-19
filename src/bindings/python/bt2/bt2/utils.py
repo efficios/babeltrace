@@ -3,9 +3,9 @@
 # Copyright (c) 2017 Philippe Proulx <pproulx@efficios.com>
 
 
+from bt2 import error as bt2_error
 from bt2 import logging as bt2_logging
 from bt2 import native_bt
-from bt2 import error as bt2_error
 
 
 class UnknownObject(Exception):

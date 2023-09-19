@@ -3,12 +3,12 @@
 # Copyright (C) 2019 EfficiOS Inc.
 #
 
-import unittest
-import datetime
-import bt2
 import os
 import os.path
+import datetime
+import unittest
 
+import bt2
 
 _BT_TESTS_DATADIR = os.environ["BT_TESTS_DATADIR"]
 _BT_CTF_TRACES_PATH = os.environ["BT_CTF_TRACES_PATH"]

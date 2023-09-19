@@ -3,10 +3,10 @@
 # Copyright (C) 2019 EfficiOS Inc.
 #
 
-import bt2
 import unittest
 
-from utils import get_default_trace_class, create_const_field
+import bt2
+from utils import create_const_field, get_default_trace_class
 
 
 def get_const_signed_integer_range(int_ranges):

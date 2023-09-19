@@ -3,8 +3,9 @@
 # Copyright (c) 2018 Francis Deslauriers <francis.deslauriers@efficios.com>
 
 import collections
-from bt2 import native_bt
+
 from bt2 import object as bt2_object
+from bt2 import native_bt
 
 
 class FieldPathScope:

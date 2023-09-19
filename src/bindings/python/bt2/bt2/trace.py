@@ -2,17 +2,17 @@
 #
 # Copyright (c) 2017 Philippe Proulx <pproulx@efficios.com>
 
-from bt2 import native_bt
-from bt2 import object as bt2_object
-from bt2 import utils as bt2_utils
-import collections.abc
-from bt2 import value as bt2_value
-from bt2 import stream as bt2_stream
-from bt2 import stream_class as bt2_stream_class
-from bt2 import error as bt2_error
-
-import functools
 import uuid as uuidp
+import functools
+import collections.abc
+
+from bt2 import error as bt2_error
+from bt2 import utils as bt2_utils
+from bt2 import value as bt2_value
+from bt2 import object as bt2_object
+from bt2 import stream as bt2_stream
+from bt2 import native_bt
+from bt2 import stream_class as bt2_stream_class
 
 
 def _bt2_trace_class():

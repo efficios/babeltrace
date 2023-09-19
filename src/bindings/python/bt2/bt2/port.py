@@ -2,8 +2,8 @@
 #
 # Copyright (c) 2017 Philippe Proulx <pproulx@efficios.com>
 
-from bt2 import native_bt
 from bt2 import object as bt2_object
+from bt2 import native_bt
 
 
 def _bt2_connection():

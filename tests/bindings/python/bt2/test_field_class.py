@@ -4,10 +4,11 @@
 #
 
 import unittest
+
 import bt2
-from utils import get_default_trace_class, TestOutputPortMessageIterator
 from bt2 import value as bt2_value
 from bt2 import field_class as bt2_field_class
+from utils import TestOutputPortMessageIterator, get_default_trace_class
 
 
 def _create_stream(tc, ctx_field_classes):

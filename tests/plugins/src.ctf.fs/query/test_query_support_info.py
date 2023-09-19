@@ -3,10 +3,10 @@
 # Copyright (C) 2019 Simon Marchi <simon.marchi@efficios.com>
 #
 
-import unittest
-import bt2
 import os
+import unittest
 
+import bt2
 
 session_rotation_trace_path = os.path.join(
     os.environ["BT_CTF_TRACES_PATH"], "succeed", "session-rotation"

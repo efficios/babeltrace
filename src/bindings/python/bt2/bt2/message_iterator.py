@@ -2,17 +2,18 @@
 #
 # Copyright (c) 2017 Philippe Proulx <pproulx@efficios.com>
 
-from bt2 import native_bt
-from bt2 import object as bt2_object
-from bt2 import utils as bt2_utils
-from bt2 import message as bt2_message
 import collections.abc
-from bt2 import stream as bt2_stream
-from bt2 import event_class as bt2_event_class
-from bt2 import packet as bt2_packet
+
 from bt2 import port as bt2_port
-from bt2 import clock_class as bt2_clock_class
 from bt2 import error as bt2_error
+from bt2 import utils as bt2_utils
+from bt2 import object as bt2_object
+from bt2 import packet as bt2_packet
+from bt2 import stream as bt2_stream
+from bt2 import message as bt2_message
+from bt2 import native_bt
+from bt2 import clock_class as bt2_clock_class
+from bt2 import event_class as bt2_event_class
 
 
 class _MessageIterator(collections.abc.Iterator):

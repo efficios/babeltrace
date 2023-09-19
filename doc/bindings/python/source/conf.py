@@ -2,8 +2,9 @@
 #
 # Copyright (c) 2020 Philippe Proulx <pproulx@efficios.com>
 
-import bt2
 import re
+
+import bt2
 
 # project
 project = "Babeltrace 2 Python bindings"

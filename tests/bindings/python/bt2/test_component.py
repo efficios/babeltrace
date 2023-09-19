@@ -4,6 +4,7 @@
 #
 
 import unittest
+
 import bt2
 from bt2 import component as bt2_component
 

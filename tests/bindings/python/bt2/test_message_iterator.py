@@ -3,12 +3,13 @@
 # Copyright (C) 2019 EfficiOS Inc.
 #
 
-import unittest
-import bt2
 import sys
-from utils import TestOutputPortMessageIterator
+import unittest
+
+import bt2
 from bt2 import port as bt2_port
 from bt2 import message_iterator as bt2_message_iterator
+from utils import TestOutputPortMessageIterator
 
 
 class SimpleSink(bt2._UserSinkComponent):

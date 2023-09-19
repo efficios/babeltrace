@@ -3,10 +3,10 @@
 # Copyright (C) 2019 EfficiOS Inc.
 #
 
-import unittest
-import bt2
 import os
+import unittest
 
+import bt2
 
 _TEST_PLUGIN_PLUGINS_PATH = os.environ["BT_PLUGINS_PATH"]
 _TEST_PLUGIN_PLUGIN_EXTENSION_BY_OS = {"cygwin": "dll", "mingw": "dll"}

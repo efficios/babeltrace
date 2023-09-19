@@ -4,186 +4,199 @@
 
 import sys
 
+from bt2.mip import get_maximal_mip_version, get_greatest_operative_mip_version
+from bt2.error import (
+    ComponentClassType,
+    _Error,
+    _ErrorCause,
+    _MemoryError,
+    _ComponentErrorCause,
+    _ComponentClassErrorCause,
+    _MessageIteratorErrorCause,
+)
+from bt2.field import (
+    _BoolField,
+    _RealField,
+    _ArrayField,
+    _OptionField,
+    _StringField,
+    _IntegerField,
+    _VariantField,
+    _BitArrayField,
+    _BoolFieldConst,
+    _RealFieldConst,
+    _StructureField,
+    _ArrayFieldConst,
+    _EnumerationField,
+    _OptionFieldConst,
+    _StaticArrayField,
+    _StringFieldConst,
+    _DynamicArrayField,
+    _IntegerFieldConst,
+    _VariantFieldConst,
+    _BitArrayFieldConst,
+    _SignedIntegerField,
+    _StructureFieldConst,
+    _UnsignedIntegerField,
+    _EnumerationFieldConst,
+    _StaticArrayFieldConst,
+    _DynamicArrayFieldConst,
+    _SignedEnumerationField,
+    _SignedIntegerFieldConst,
+    _DoublePrecisionRealField,
+    _SinglePrecisionRealField,
+    _UnsignedEnumerationField,
+    _UnsignedIntegerFieldConst,
+    _SignedEnumerationFieldConst,
+    _DoublePrecisionRealFieldConst,
+    _SinglePrecisionRealFieldConst,
+    _UnsignedEnumerationFieldConst,
+)
+from bt2.graph import Graph
+from bt2.utils import Stop, TryAgain, UnknownObject, _OverflowError
+from bt2.value import (
+    MapValue,
+    BoolValue,
+    RealValue,
+    ArrayValue,
+    StringValue,
+    SignedIntegerValue,
+    UnsignedIntegerValue,
+    create_value,
+    _IntegerValue,
+    _MapValueConst,
+    _BoolValueConst,
+    _RealValueConst,
+    _ArrayValueConst,
+    _StringValueConst,
+    _IntegerValueConst,
+    _SignedIntegerValueConst,
+    _UnsignedIntegerValueConst,
+)
+from bt2.plugin import find_plugin, find_plugins, find_plugins_in_path
+from bt2.logging import (
+    LoggingLevel,
+    get_global_logging_level,
+    set_global_logging_level,
+    get_minimal_logging_level,
+)
+from bt2.message import (
+    _EventMessage,
+    _PacketEndMessage,
+    _StreamEndMessage,
+    _EventMessageConst,
+    _PacketEndMessageConst,
+    _StreamEndMessageConst,
+    _DiscardedEventsMessage,
+    _PacketBeginningMessage,
+    _StreamBeginningMessage,
+    _DiscardedPacketsMessage,
+    _DiscardedEventsMessageConst,
+    _PacketBeginningMessageConst,
+    _StreamBeginningMessageConst,
+    _DiscardedPacketsMessageConst,
+    _MessageIteratorInactivityMessage,
+    _MessageIteratorInactivityMessageConst,
+)
+from bt2.version import __version__
+from bt2.component import (
+    _UserSinkComponent,
+    _SinkComponentConst,
+    _IncompleteUserClass,
+    _UserFilterComponent,
+    _UserSourceComponent,
+    _FilterComponentConst,
+    _SourceComponentConst,
+    _SinkComponentClassConst,
+    _FilterComponentClassConst,
+    _SourceComponentClassConst,
+)
+from bt2.py_plugin import register_plugin, plugin_component_class
+from bt2.field_path import (
+    FieldPathScope,
+    _IndexFieldPathItem,
+    _CurrentArrayElementFieldPathItem,
+    _CurrentOptionContentFieldPathItem,
+)
+
 # import all public names
 from bt2.clock_class import ClockClassOffset
-from bt2.clock_snapshot import _ClockSnapshotConst
-from bt2.clock_snapshot import _UnknownClockSnapshot
-from bt2.component import _IncompleteUserClass
-from bt2.component import _SourceComponentClassConst
-from bt2.component import _FilterComponentClassConst
-from bt2.component import _SinkComponentClassConst
-from bt2.component import _SourceComponentConst
-from bt2.component import _FilterComponentConst
-from bt2.component import _SinkComponentConst
-from bt2.component import _UserSourceComponent
-from bt2.component import _UserFilterComponent
-from bt2.component import _UserSinkComponent
-from bt2.component_descriptor import ComponentDescriptor
-from bt2.error import ComponentClassType
-from bt2.error import _ErrorCause
-from bt2.error import _ComponentErrorCause
-from bt2.error import _ComponentClassErrorCause
-from bt2.error import _MessageIteratorErrorCause
-from bt2.error import _Error
-from bt2.error import _MemoryError
 from bt2.event_class import EventClassLogLevel
-from bt2.field import _BoolField
-from bt2.field import _BitArrayField
-from bt2.field import _IntegerField
-from bt2.field import _UnsignedIntegerField
-from bt2.field import _SignedIntegerField
-from bt2.field import _RealField
-from bt2.field import _SinglePrecisionRealField
-from bt2.field import _DoublePrecisionRealField
-from bt2.field import _EnumerationField
-from bt2.field import _UnsignedEnumerationField
-from bt2.field import _SignedEnumerationField
-from bt2.field import _StringField
-from bt2.field import _StructureField
-from bt2.field import _OptionField
-from bt2.field import _VariantField
-from bt2.field import _ArrayField
-from bt2.field import _StaticArrayField
-from bt2.field import _DynamicArrayField
-from bt2.field import _BoolFieldConst
-from bt2.field import _BitArrayFieldConst
-from bt2.field import _IntegerFieldConst
-from bt2.field import _UnsignedIntegerFieldConst
-from bt2.field import _SignedIntegerFieldConst
-from bt2.field import _RealFieldConst
-from bt2.field import _SinglePrecisionRealFieldConst
-from bt2.field import _DoublePrecisionRealFieldConst
-from bt2.field import _EnumerationFieldConst
-from bt2.field import _UnsignedEnumerationFieldConst
-from bt2.field import _SignedEnumerationFieldConst
-from bt2.field import _StringFieldConst
-from bt2.field import _StructureFieldConst
-from bt2.field import _OptionFieldConst
-from bt2.field import _VariantFieldConst
-from bt2.field import _ArrayFieldConst
-from bt2.field import _StaticArrayFieldConst
-from bt2.field import _DynamicArrayFieldConst
-from bt2.field_class import IntegerDisplayBase
-from bt2.field_class import _BoolFieldClass
-from bt2.field_class import _BitArrayFieldClass
-from bt2.field_class import _IntegerFieldClass
-from bt2.field_class import _UnsignedIntegerFieldClass
-from bt2.field_class import _SignedIntegerFieldClass
-from bt2.field_class import _RealFieldClass
-from bt2.field_class import _EnumerationFieldClass
-from bt2.field_class import _UnsignedEnumerationFieldClass
-from bt2.field_class import _SignedEnumerationFieldClass
-from bt2.field_class import _StringFieldClass
-from bt2.field_class import _StructureFieldClass
-from bt2.field_class import _OptionFieldClass
-from bt2.field_class import _OptionWithSelectorFieldClass
-from bt2.field_class import _OptionWithBoolSelectorFieldClass
-from bt2.field_class import _OptionWithIntegerSelectorFieldClass
-from bt2.field_class import _OptionWithUnsignedIntegerSelectorFieldClass
-from bt2.field_class import _OptionWithSignedIntegerSelectorFieldClass
-from bt2.field_class import _VariantFieldClass
-from bt2.field_class import _VariantFieldClassWithoutSelector
-from bt2.field_class import _VariantFieldClassWithIntegerSelector
-from bt2.field_class import _VariantFieldClassWithUnsignedIntegerSelector
-from bt2.field_class import _VariantFieldClassWithSignedIntegerSelector
-from bt2.field_class import _ArrayFieldClass
-from bt2.field_class import _StaticArrayFieldClass
-from bt2.field_class import _DynamicArrayFieldClass
-from bt2.field_class import _DynamicArrayWithLengthFieldFieldClass
-from bt2.field_class import _BoolFieldClassConst
-from bt2.field_class import _BitArrayFieldClassConst
-from bt2.field_class import _IntegerFieldClassConst
-from bt2.field_class import _UnsignedIntegerFieldClassConst
-from bt2.field_class import _SignedIntegerFieldClassConst
-from bt2.field_class import _RealFieldClassConst
-from bt2.field_class import _EnumerationFieldClassConst
-from bt2.field_class import _UnsignedEnumerationFieldClassConst
-from bt2.field_class import _SignedEnumerationFieldClassConst
-from bt2.field_class import _StringFieldClassConst
-from bt2.field_class import _StructureFieldClassConst
-from bt2.field_class import _OptionFieldClassConst
-from bt2.field_class import _OptionWithSelectorFieldClassConst
-from bt2.field_class import _OptionWithBoolSelectorFieldClassConst
-from bt2.field_class import _OptionWithIntegerSelectorFieldClassConst
-from bt2.field_class import _OptionWithUnsignedIntegerSelectorFieldClassConst
-from bt2.field_class import _OptionWithSignedIntegerSelectorFieldClassConst
-from bt2.field_class import _VariantFieldClassConst
-from bt2.field_class import _VariantFieldClassWithoutSelectorConst
-from bt2.field_class import _VariantFieldClassWithIntegerSelectorConst
-from bt2.field_class import _VariantFieldClassWithUnsignedIntegerSelectorConst
-from bt2.field_class import _VariantFieldClassWithSignedIntegerSelectorConst
-from bt2.field_class import _ArrayFieldClassConst
-from bt2.field_class import _StaticArrayFieldClassConst
-from bt2.field_class import _DynamicArrayFieldClassConst
-from bt2.field_class import _DynamicArrayWithLengthFieldFieldClassConst
-from bt2.field_path import FieldPathScope
-from bt2.field_path import _IndexFieldPathItem
-from bt2.field_path import _CurrentArrayElementFieldPathItem
-from bt2.field_path import _CurrentOptionContentFieldPathItem
-from bt2.graph import Graph
-from bt2.integer_range_set import SignedIntegerRange
-from bt2.integer_range_set import UnsignedIntegerRange
-from bt2.integer_range_set import SignedIntegerRangeSet
-from bt2.integer_range_set import UnsignedIntegerRangeSet
-from bt2.integer_range_set import _SignedIntegerRangeConst
-from bt2.integer_range_set import _UnsignedIntegerRangeConst
-from bt2.integer_range_set import _SignedIntegerRangeSetConst
-from bt2.integer_range_set import _UnsignedIntegerRangeSetConst
+from bt2.field_class import (
+    IntegerDisplayBase,
+    _BoolFieldClass,
+    _RealFieldClass,
+    _ArrayFieldClass,
+    _OptionFieldClass,
+    _StringFieldClass,
+    _IntegerFieldClass,
+    _VariantFieldClass,
+    _BitArrayFieldClass,
+    _BoolFieldClassConst,
+    _RealFieldClassConst,
+    _StructureFieldClass,
+    _ArrayFieldClassConst,
+    _EnumerationFieldClass,
+    _OptionFieldClassConst,
+    _StaticArrayFieldClass,
+    _StringFieldClassConst,
+    _DynamicArrayFieldClass,
+    _IntegerFieldClassConst,
+    _VariantFieldClassConst,
+    _BitArrayFieldClassConst,
+    _SignedIntegerFieldClass,
+    _StructureFieldClassConst,
+    _UnsignedIntegerFieldClass,
+    _EnumerationFieldClassConst,
+    _StaticArrayFieldClassConst,
+    _DynamicArrayFieldClassConst,
+    _SignedEnumerationFieldClass,
+    _OptionWithSelectorFieldClass,
+    _SignedIntegerFieldClassConst,
+    _UnsignedEnumerationFieldClass,
+    _UnsignedIntegerFieldClassConst,
+    _OptionWithBoolSelectorFieldClass,
+    _SignedEnumerationFieldClassConst,
+    _VariantFieldClassWithoutSelector,
+    _OptionWithSelectorFieldClassConst,
+    _UnsignedEnumerationFieldClassConst,
+    _OptionWithIntegerSelectorFieldClass,
+    _VariantFieldClassWithIntegerSelector,
+    _DynamicArrayWithLengthFieldFieldClass,
+    _OptionWithBoolSelectorFieldClassConst,
+    _VariantFieldClassWithoutSelectorConst,
+    _OptionWithIntegerSelectorFieldClassConst,
+    _OptionWithSignedIntegerSelectorFieldClass,
+    _VariantFieldClassWithIntegerSelectorConst,
+    _DynamicArrayWithLengthFieldFieldClassConst,
+    _VariantFieldClassWithSignedIntegerSelector,
+    _OptionWithUnsignedIntegerSelectorFieldClass,
+    _VariantFieldClassWithUnsignedIntegerSelector,
+    _OptionWithSignedIntegerSelectorFieldClassConst,
+    _VariantFieldClassWithSignedIntegerSelectorConst,
+    _OptionWithUnsignedIntegerSelectorFieldClassConst,
+    _VariantFieldClassWithUnsignedIntegerSelectorConst,
+)
 from bt2.interrupter import Interrupter
-from bt2.logging import LoggingLevel
-from bt2.logging import get_minimal_logging_level
-from bt2.logging import get_global_logging_level
-from bt2.logging import set_global_logging_level
-from bt2.message import _EventMessage
-from bt2.message import _PacketBeginningMessage
-from bt2.message import _PacketEndMessage
-from bt2.message import _StreamBeginningMessage
-from bt2.message import _StreamEndMessage
-from bt2.message import _MessageIteratorInactivityMessage
-from bt2.message import _DiscardedEventsMessage
-from bt2.message import _DiscardedPacketsMessage
-from bt2.message import _EventMessageConst
-from bt2.message import _PacketBeginningMessageConst
-from bt2.message import _PacketEndMessageConst
-from bt2.message import _StreamBeginningMessageConst
-from bt2.message import _StreamEndMessageConst
-from bt2.message import _MessageIteratorInactivityMessageConst
-from bt2.message import _DiscardedEventsMessageConst
-from bt2.message import _DiscardedPacketsMessageConst
-from bt2.message_iterator import _UserMessageIterator
-from bt2.mip import get_greatest_operative_mip_version
-from bt2.mip import get_maximal_mip_version
-from bt2.plugin import find_plugins_in_path
-from bt2.plugin import find_plugins
-from bt2.plugin import find_plugin
-from bt2.py_plugin import plugin_component_class
-from bt2.py_plugin import register_plugin
+from bt2.clock_snapshot import _ClockSnapshotConst, _UnknownClockSnapshot
 from bt2.query_executor import QueryExecutor
-from bt2.trace_collection_message_iterator import AutoSourceComponentSpec
-from bt2.trace_collection_message_iterator import ComponentSpec
-from bt2.trace_collection_message_iterator import TraceCollectionMessageIterator
-from bt2.utils import UnknownObject
-from bt2.utils import _OverflowError
-from bt2.utils import TryAgain
-from bt2.utils import Stop
-from bt2.value import create_value
-from bt2.value import BoolValue
-from bt2.value import _IntegerValue
-from bt2.value import UnsignedIntegerValue
-from bt2.value import SignedIntegerValue
-from bt2.value import RealValue
-from bt2.value import StringValue
-from bt2.value import ArrayValue
-from bt2.value import MapValue
-from bt2.value import _BoolValueConst
-from bt2.value import _IntegerValueConst
-from bt2.value import _UnsignedIntegerValueConst
-from bt2.value import _SignedIntegerValueConst
-from bt2.value import _RealValueConst
-from bt2.value import _StringValueConst
-from bt2.value import _ArrayValueConst
-from bt2.value import _MapValueConst
-from bt2.version import __version__
+from bt2.message_iterator import _UserMessageIterator
+from bt2.integer_range_set import (
+    SignedIntegerRange,
+    UnsignedIntegerRange,
+    SignedIntegerRangeSet,
+    UnsignedIntegerRangeSet,
+    _SignedIntegerRangeConst,
+    _UnsignedIntegerRangeConst,
+    _SignedIntegerRangeSetConst,
+    _UnsignedIntegerRangeSetConst,
+)
+from bt2.component_descriptor import ComponentDescriptor
+from bt2.trace_collection_message_iterator import (
+    ComponentSpec,
+    AutoSourceComponentSpec,
+    TraceCollectionMessageIterator,
+)
 
 if (sys.version_info.major, sys.version_info.minor) != (3, 4):
 
@@ -234,8 +247,9 @@ del sys
 
 
 def _init_and_register_exit():
-    from bt2 import native_bt
     import atexit
+
+    from bt2 import native_bt
 
     atexit.register(native_bt.bt2_exit_handler)
     native_bt.bt2_init_from_bt2()

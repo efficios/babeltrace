@@ -2,18 +2,19 @@
 #
 # Copyright (c) 2017 Philippe Proulx <pproulx@efficios.com>
 
-from bt2 import native_bt
-from bt2 import object as bt2_object
-from bt2 import utils as bt2_utils
-from bt2 import interrupter as bt2_interrupter
-from bt2 import connection as bt2_connection
-from bt2 import component as bt2_component
 import functools
-from bt2 import port as bt2_port
-from bt2 import logging as bt2_logging
+
 from bt2 import mip as bt2_mip
+from bt2 import port as bt2_port
 from bt2 import error as bt2_error
+from bt2 import utils as bt2_utils
 from bt2 import value as bt2_value
+from bt2 import object as bt2_object
+from bt2 import logging as bt2_logging
+from bt2 import component as bt2_component
+from bt2 import native_bt
+from bt2 import connection as bt2_connection
+from bt2 import interrupter as bt2_interrupter
 
 
 def _graph_port_added_listener_from_native(

@@ -3,11 +3,11 @@
 # Copyright (C) 2019 Simon Marchi <simon.marchi@efficios.com>
 #
 
-import unittest
-import bt2
 import os
 import re
+import unittest
 
+import bt2
 
 test_ctf_traces_path = os.environ["BT_CTF_TRACES_PATH"]
 

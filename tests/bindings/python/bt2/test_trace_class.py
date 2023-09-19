@@ -4,14 +4,15 @@
 #
 
 import unittest
+
+from bt2 import utils as bt2_utils
+from bt2 import trace_class as bt2_trace_class
+from bt2 import stream_class as bt2_stream_class
 from utils import (
     run_in_component_init,
     get_default_trace_class,
     get_const_stream_beginning_message,
 )
-from bt2 import stream_class as bt2_stream_class
-from bt2 import trace_class as bt2_trace_class
-from bt2 import utils as bt2_utils
 
 
 class TraceClassTestCase(unittest.TestCase):

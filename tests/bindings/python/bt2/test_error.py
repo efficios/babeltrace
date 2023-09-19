@@ -3,9 +3,10 @@
 # Copyright (C) 2019 EfficiOS Inc.
 #
 
-from bt2 import native_bt
-import bt2
 import unittest
+
+import bt2
+from bt2 import native_bt
 
 
 class FailingIter(bt2._UserMessageIterator):

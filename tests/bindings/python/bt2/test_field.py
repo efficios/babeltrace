@@ -3,16 +3,16 @@
 # Copyright (C) 2019 EfficiOS Inc.
 #
 
-from functools import partial, partialmethod
+import copy
+import math
 import operator
 import unittest
-import math
-import copy
 import itertools
 import collections
-import bt2
-from utils import get_default_trace_class, create_const_field
+from functools import partial, partialmethod
 
+import bt2
+from utils import create_const_field, get_default_trace_class
 
 _COMP_BINOPS = (operator.eq, operator.ne)
 

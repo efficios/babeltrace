@@ -2,8 +2,8 @@
 #
 # Copyright (C) 2020 Francis Deslauriers <francis.deslauriers@efficios.com>
 
-import sys
 import re
+import sys
 
 
 def main():

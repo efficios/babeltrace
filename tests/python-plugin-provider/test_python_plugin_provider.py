@@ -3,9 +3,10 @@
 # Copyright (C) 2019 EfficiOS Inc.
 #
 
-import unittest
-import bt2
 import os
+import unittest
+
+import bt2
 
 
 class PythonPluginProviderTestCase(unittest.TestCase):

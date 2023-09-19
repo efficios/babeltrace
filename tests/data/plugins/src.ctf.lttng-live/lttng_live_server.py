@@ -3,17 +3,17 @@
 # Copyright (C) 2019 Philippe Proulx <pproulx@efficios.com>
 #
 
-import argparse
-import collections.abc
-import logging
 import os
-import os.path
 import re
+import sys
+import json
 import socket
 import struct
-import sys
+import logging
+import os.path
+import argparse
 import tempfile
-import json
+import collections.abc
 from collections import namedtuple
 
 
