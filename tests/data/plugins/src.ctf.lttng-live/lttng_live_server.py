@@ -7,7 +7,6 @@
 
 import os
 import re
-import sys
 import socket
 import struct
 import logging
@@ -22,10 +21,6 @@ import tjson
 from typing import Any, Callable  # noqa: F401
 
 # isort: on
-
-
-class UnexpectedInput(RuntimeError):
-    pass
 
 
 # An entry within the index of an LTTng data stream.
@@ -569,7 +564,7 @@ class _LttngLiveViewerProtocolCodec:
                 version, tracing_session_id
             )
         else:
-            raise UnexpectedInput("Unknown command type {}".format(cmd_type))
+            raise RuntimeError("Unknown command type {}".format(cmd_type))
 
     def _pack(self, fmt: str, *args: Any):
         # Force network byte order
@@ -1398,7 +1393,7 @@ class _LttngLiveViewerSession:
 
     def _get_tracing_session_state(self, tracing_session_id: int):
         if tracing_session_id not in self._ts_states:
-            raise UnexpectedInput(
+            raise RuntimeError(
                 "Unknown tracing session ID {}".format(tracing_session_id)
             )
 
@@ -1433,7 +1428,7 @@ class _LttngLiveViewerSession:
         cmd_type = type(cmd)
 
         if cmd_type not in self._command_handlers:
-            raise UnexpectedInput(
+            raise RuntimeError(
                 "Unexpected command: cmd-cls-name={}".format(cmd.__class__.__name__)
             )
 
@@ -1448,7 +1443,7 @@ class _LttngLiveViewerSession:
         info = ts_state.tracing_session_descriptor.info
 
         if ts_state.is_attached:
-            raise UnexpectedInput(
+            raise RuntimeError(
                 "Cannot attach to tracing session `{}`: viewer is already attached".format(
                     info.name
                 )
@@ -1469,7 +1464,7 @@ class _LttngLiveViewerSession:
         info = ts_state.tracing_session_descriptor.info
 
         if not ts_state.is_attached:
-            raise UnexpectedInput(
+            raise RuntimeError(
                 "Cannot detach to tracing session `{}`: viewer is not attached".format(
                     info.name
                 )
@@ -1692,7 +1687,7 @@ class LttngLiveServer:
                 logging.info("Client closed connection.")
 
                 if data:
-                    raise UnexpectedInput(
+                    raise RuntimeError(
                         "Client closed connection after having sent {} command bytes.".format(
                             len(data)
                         )
@@ -1707,7 +1702,7 @@ class LttngLiveServer:
             try:
                 cmd = self._codec.decode(data)
             except struct.error as exc:
-                raise UnexpectedInput("Malformed command: {}".format(exc)) from exc
+                raise RuntimeError("Malformed command: {}".format(exc)) from exc
 
             if cmd is not None:
                 logging.info(
@@ -1731,7 +1726,7 @@ class LttngLiveServer:
         cmd = self._recv_command()
 
         if type(cmd) is not _LttngLiveViewerConnectCommand:
-            raise UnexpectedInput(
+            raise RuntimeError(
                 'First command is not "connect": cmd-cls-name={}'.format(
                     cmd.__class__.__name__
                 )
@@ -1931,21 +1926,14 @@ if __name__ == "__main__":
     )
 
     args = parser.parse_args(args=remaining_args)
-    try:
-        sessions_filename = args.sessions_filename  # type: str
-        trace_path_prefix = args.trace_path_prefix  # type: str | None
-        sessions = _session_descriptors_from_path(
-            sessions_filename,
-            trace_path_prefix,
-        )
+    sessions_filename = args.sessions_filename  # type: str
+    trace_path_prefix = args.trace_path_prefix  # type: str | None
+    sessions = _session_descriptors_from_path(
+        sessions_filename,
+        trace_path_prefix,
+    )
 
-        port = args.port  # type: int | None
-        port_filename = args.port_filename  # type: str
-        max_query_data_response_size = (
-            args.max_query_data_response_size
-        )  # type: int | None
-        LttngLiveServer(port, port_filename, sessions, max_query_data_response_size)
-    except UnexpectedInput as exc:
-        logging.error(str(exc))
-        print(exc, file=sys.stderr)
-        sys.exit(1)
+    port = args.port  # type: int | None
+    port_filename = args.port_filename  # type: str
+    max_query_data_response_size = args.max_query_data_response_size  # type: int | None
+    LttngLiveServer(port, port_filename, sessions, max_query_data_response_size)
