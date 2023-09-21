@@ -105,6 +105,19 @@ This applies to:
 
 	tests/utils/python/typing/typing.py
 
+The Normand Python module is provided under the terms of the
+MIT License:
+
+	SPDX-License-Identifier: MIT
+
+According with:
+
+	LICENSES/MIT
+
+This applies to:
+
+	tests/utils/python/normand.py
+
 
 In addition, other licenses may also apply, see SPDX-License-Identifier in
 individual files.
