@@ -250,7 +250,7 @@ AM_CONDITIONAL([HAVE_FLEX], [test "x$have_flex" = "xyes"])
 
 # Always check for python, we will fail later if some features require it and
 # it's unavailable.
-AM_PATH_PYTHON([3.0], [
+AM_PATH_PYTHON([3.4], [
   AE_PATH_PYTHON_MODULES([PYTHON])
 
   # pythondir is the path where extra modules are to be installed
