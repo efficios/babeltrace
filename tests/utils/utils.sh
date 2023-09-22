@@ -302,38 +302,42 @@ check_coverage() {
 	coverage run "$@"
 }
 
+# Execute a shell command in the appropriate environment to access the Python
+# test utility modules in `tests/utils/python`.
+run_python() {
+	PYTHONPATH="${BT_TESTS_SRCDIR}/utils/python${PYTHONPATH:+:}${PYTHONPATH:-}" "$@"
+}
+
 # Execute a shell command in the appropriate environment to have access to the
 # bt2 Python bindings.
 run_python_bt2() {
-	local env_args
 	local lib_asan
-
-	env_args=(
-		"BABELTRACE_PYTHON_BT2_NO_TRACEBACK=1" \
-		"BABELTRACE_PLUGIN_PATH=${BT_TESTS_BABELTRACE_PLUGIN_PATH}" \
-		"LIBBABELTRACE2_PLUGIN_PROVIDER_DIR=${BT_TESTS_PROVIDER_DIR}" \
-		"BT_TESTS_DATADIR=${BT_TESTS_DATADIR}" \
-		"BT_CTF_TRACES_PATH=${BT_CTF_TRACES_PATH}" \
-		"BT_PLUGINS_PATH=${BT_PLUGINS_PATH}" \
-		"PYTHONPATH=${BT_TESTS_PYTHONPATH}:${BT_TESTS_SRCDIR}/utils/python"
-		)
+	local -x "BABELTRACE_PYTHON_BT2_NO_TRACEBACK=1"
+	local -x "BABELTRACE_PLUGIN_PATH=${BT_TESTS_BABELTRACE_PLUGIN_PATH}"
+	local -x "LIBBABELTRACE2_PLUGIN_PROVIDER_DIR=${BT_TESTS_PROVIDER_DIR}"
+	local -x "BT_TESTS_DATADIR=${BT_TESTS_DATADIR}"
+	local -x "BT_CTF_TRACES_PATH=${BT_CTF_TRACES_PATH}"
+	local -x "BT_PLUGINS_PATH=${BT_PLUGINS_PATH}"
+	local -x "PYTHONPATH=${BT_TESTS_PYTHONPATH}${PYTHONPATH:+:}${PYTHONPATH:-}"
 
 	local main_lib_path="${BT_TESTS_BUILDDIR}/../src/lib/.libs"
 
 	# Set the library search path so the python interpreter can load libbabeltrace2
 	if [ "$BT_TESTS_OS_TYPE" = "mingw" ] || [ "$BT_TESTS_OS_TYPE" = "cygwin" ]; then
-		env_args+=("PATH=${main_lib_path}:${PATH:-}")
+		local -x PATH="${main_lib_path}${PATH:+:}${PATH:-}"
 	elif [ "$BT_TESTS_OS_TYPE" = "darwin" ]; then
-		env_args+=("DYLD_LIBRARY_PATH=${main_lib_path}:${DYLD_LIBRARY_PATH:-}")
+		local -x DYLD_LIBRARY_PATH="${main_lib_path}${DYLD_LIBRARY_PATH:+:}${DYLD_LIBRARY_PATH:-}"
 	else
-		env_args+=("LD_LIBRARY_PATH=${main_lib_path}:${LD_LIBRARY_PATH:-}")
+		local -x LD_LIBRARY_PATH="${main_lib_path}${LD_LIBRARY_PATH:+:}${LD_LIBRARY_PATH:-}"
 	fi
 
 	# On Windows, an embedded Python interpreter needs a way to locate the path
-	# to it's internal modules, set the prefix from python-config to the
+	# to its internal modules, set the prefix from python-config to the
 	# PYTHONHOME variable.
 	if [ "$BT_TESTS_OS_TYPE" = "mingw" ]; then
-		env_args+=("PYTHONHOME=$($BT_TESTS_PYTHON_CONFIG_BIN --prefix)")
+		local -x PYTHONHOME
+
+		PYTHONHOME=$($BT_TESTS_PYTHON_CONFIG_BIN --prefix)
 	fi
 
 	# If AddressSanitizer is used, we must preload libasan.so so that
@@ -345,14 +349,14 @@ run_python_bt2() {
 	# contains detect_leaks=1.
 	if [ "${BT_TESTS_ENABLE_ASAN:-}" = "1" ]; then
 		if ${BT_TESTS_CC_BIN} --version | head -n 1 | grep -q '^gcc'; then
-			lib_asan=$(${BT_TESTS_CC_BIN} -print-file-name=libasan.so)
-			env_args+=("LD_PRELOAD=${lib_asan}:${LD_PRELOAD:-}")
+			lib_asan="$(${BT_TESTS_CC_BIN} -print-file-name=libasan.so)"
+			local -x LD_PRELOAD="${lib_asan}${LD_PRELOAD:+:}${LD_PRELOAD:-}"
 		fi
 
-		env_args+=("ASAN_OPTIONS=${ASAN_OPTIONS:-},detect_leaks=0")
+		local -x  "ASAN_OPTIONS=${ASAN_OPTIONS:-}${ASAN_OPTIONS:+,}detect_leaks=0"
 	fi
 
-	env "${env_args[@]}" "$@"
+	run_python "$@"
 }
 
 # Set the environment and run python tests in the directory.
