@@ -103,7 +103,7 @@ According with:
 
 This applies to:
 
-	tests/utils/python/local_typing.py
+	tests/utils/python/typing/typing.py
 
 
 In addition, other licenses may also apply, see SPDX-License-Identifier in

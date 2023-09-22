@@ -111,6 +111,8 @@ if [ -z "${BT_TESTS_PYTHON_BIN:-}" ]; then
 fi
 export BT_TESTS_PYTHON_BIN
 
+BT_TESTS_PYTHON_VERSION=$($BT_TESTS_PYTHON_BIN -c 'import sys; print("{}.{}".format(sys.version_info.major, sys.version_info.minor))')
+
 if [ -z "${BT_TESTS_PYTHON_CONFIG_BIN:-}" ]; then
 	BT_TESTS_PYTHON_CONFIG_BIN="python3-config"
 fi
@@ -305,7 +307,15 @@ check_coverage() {
 # Execute a shell command in the appropriate environment to access the Python
 # test utility modules in `tests/utils/python`.
 run_python() {
-	PYTHONPATH="${BT_TESTS_SRCDIR}/utils/python${PYTHONPATH:+:}${PYTHONPATH:-}" "$@"
+	local our_pythonpath="${BT_TESTS_SRCDIR}/utils/python"
+
+	if [[ $BT_TESTS_PYTHON_VERSION = 3.4 ]]; then
+		# Add a local directory containing a `typing.py` to `PYTHONPATH` for
+		# Python 3.4 which doesn't offer the `typing` module.
+		our_pythonpath="$our_pythonpath:${BT_TESTS_SRCDIR}/utils/python/typing"
+	fi
+
+	PYTHONPATH="${our_pythonpath}${PYTHONPATH:+:}${PYTHONPATH:-}" "$@"
 }
 
 # Execute a shell command in the appropriate environment to have access to the
