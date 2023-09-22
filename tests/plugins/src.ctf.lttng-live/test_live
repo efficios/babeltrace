@@ -222,7 +222,6 @@ test_list_sessions() {
 	template_expected=$(<"$test_data_dir/cli-list-sessions.expect")
 	cli_stderr="$(mktemp -t test_live_list_sessions_stderr.XXXXXX)"
 	cli_stdout="$(mktemp -t test_live_list_sessions_stdout.XXXXXX)"
-	empty_file="$(mktemp -t test_live_list_sessions_empty.XXXXXX)"
 	port_file="$(mktemp -t test_live_list_sessions_server_port.XXXXXX)"
 	tmp_stdout_expected="$(mktemp -t test_live_list_sessions_stdout_expected.XXXXXX)"
 
@@ -238,12 +237,11 @@ test_list_sessions() {
 
 	bt_diff "$tmp_stdout_expected" "$cli_stdout"
 	ok $? "$test_text - stdout"
-	bt_diff "$empty_file" "$cli_stderr"
+	bt_diff "/dev/null" "$cli_stderr"
 	ok $? "$test_text - stderr"
 
 	rm -f "$cli_stderr"
 	rm -f "$cli_stdout"
-	rm -f "$empty_file"
 	rm -f "$port_file"
 	rm -f "$tmp_stdout_expected"
 }
@@ -255,15 +253,10 @@ test_base() {
 	local cli_args_template="-i lttng-live net://localhost:@PORT@/host/hostname/trace-with-index -c sink.text.details"
 	local server_args=("$test_data_dir/base.json")
 	local expected_stdout="${test_data_dir}/cli-base.expect"
-	local expected_stderr
-
-	# Empty file for stderr expected
-	expected_stderr="$(mktemp -t test_live_base_stderr_expected.XXXXXX)"
+	local expected_stderr="/dev/null"
 
 	run_test "$test_text" "$cli_args_template" "$expected_stdout" \
 		"$expected_stderr" "$trace_dir_native" "${server_args[@]}"
-
-	rm -f "$expected_stderr"
 }
 
 test_multi_domains() {
@@ -273,15 +266,10 @@ test_multi_domains() {
 	local cli_args_template="-i lttng-live net://localhost:@PORT@/host/hostname/multi-domains -c sink.text.details"
 	local server_args=("${test_data_dir}/multi_domains.json")
 	local expected_stdout="$test_data_dir/cli-multi-domains.expect"
-	local expected_stderr
-
-	# Empty file for stderr expected
-	expected_stderr="$(mktemp -t test_live_multi_domains_stderr_expected.XXXXXX)"
+	local expected_stderr="/dev/null"
 
 	run_test "$test_text" "$cli_args_template" "$expected_stdout" \
 		"$expected_stderr" "$trace_dir_native" "${server_args[@]}"
-
-	rm -f "$expected_stderr"
 }
 
 test_rate_limited() {
@@ -294,15 +282,10 @@ test_rate_limited() {
 	local cli_args_template="-i lttng-live net://localhost:@PORT@/host/hostname/trace-with-index -c sink.text.details"
 	local server_args=(--max-query-data-response-size 1024 "$test_data_dir/rate_limited.json")
 	local expected_stdout="${test_data_dir}/cli-base.expect"
-	local expected_stderr
-
-	# Empty file for stderr expected
-	expected_stderr="$(mktemp -t test_live_rate_limited_stderr_expected.XXXXXX)"
+	local expected_stderr="/dev/null"
 
 	run_test "$test_text" "$cli_args_template" "$expected_stdout" \
 		"$expected_stderr" "$trace_dir_native" "${server_args[@]}"
-
-	rm -f "$expected_stderr"
 }
 
 test_compare_to_ctf_fs() {
@@ -362,15 +345,10 @@ test_inactivity_discarded_packet() {
 	local cli_args_template="-i lttng-live net://localhost:@PORT@/host/hostname/7_lost_between_2_with_index -c sink.text.details"
 	local server_args=("$test_data_dir/inactivity_discarded_packet.json")
 	local expected_stdout="$test_data_dir/inactivity_discarded_packet.expect"
-	local expected_stderr
-
-	# Empty file for stderr expected
-	expected_stderr="$(mktemp -t test_live_inactivity_discarded_packet_stderr_expected.XXXXXX)"
+	local expected_stderr="/dev/null"
 
 	run_test "$test_text" "$cli_args_template" "$expected_stdout" \
 		"$expected_stderr" "$trace_dir_native" "${server_args[@]}"
-
-	rm -f "$expected_stderr"
 }
 
 test_split_metadata() {
@@ -388,15 +366,10 @@ test_split_metadata() {
 	local cli_args_template="-i lttng-live net://localhost:@PORT@/host/hostname/split_metadata -c sink.text.details"
 	local server_args=("$test_data_dir/split_metadata.json")
 	local expected_stdout="${test_data_dir}/split_metadata.expect"
-	local expected_stderr
-
-	# Empty file for stderr expected
-	expected_stderr="$(mktemp -t test_live_split_metadata_stderr_expected.XXXXXX)"
+	local expected_stderr="/dev/null"
 
 	run_test "$test_text" "$cli_args_template" "$expected_stdout" \
 		"$expected_stderr" "$trace_dir_native" "${server_args[@]}"
-
-	rm -f "$expected_stderr"
 }
 
 plan_tests 16
