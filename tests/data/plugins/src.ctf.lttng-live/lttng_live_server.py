@@ -1624,7 +1624,7 @@ class LttngLiveServer:
     def __init__(
         self,
         port: Optional[int],
-        port_filename: str,
+        port_filename: Optional[str],
         tracing_session_descriptors: Iterable[LttngTracingSessionDescriptor],
         max_query_data_response_size: Optional[int],
     ):
@@ -1664,7 +1664,11 @@ class LttngLiveServer:
         # Port 0: OS assigns an unused port
         serv_addr = ("localhost", port if port is not None else 0)
         self._sock.bind(serv_addr)
-        self._write_port_to_file(port_filename)
+
+        if port_filename is not None:
+            self._write_port_to_file(port_filename)
+
+        print("Listening on port {}".format(self._server_port))
 
         try:
             self._listen()
@@ -1900,7 +1904,6 @@ if __name__ == "__main__":
     parser.add_argument(
         "--port-filename",
         help="The final port file. This file is present when the server is ready to receive connection.",
-        required=True,
     )
     parser.add_argument(
         "--max-query-data-response-size",
@@ -1934,6 +1937,6 @@ if __name__ == "__main__":
     )
 
     port = args.port  # type: int | None
-    port_filename = args.port_filename  # type: str
+    port_filename = args.port_filename  # type: str | None
     max_query_data_response_size = args.max_query_data_response_size  # type: int | None
     LttngLiveServer(port, port_filename, sessions, max_query_data_response_size)
