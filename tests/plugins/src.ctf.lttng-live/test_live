@@ -55,10 +55,8 @@ lttng_live_server() {
 	local server_script="$test_data_dir/lttng_live_server.py"
 
 	# start server
-	diag "$BT_TESTS_PYTHON_BIN $server_script --port-file $port_file --trace-path-prefix $trace_dir_native $server_args"
-	echo "$server_args" | run_python xargs "$BT_TESTS_PYTHON_BIN" "$server_script" \
-		--port-file "$port_file" \
-		--trace-path-prefix "$trace_dir_native" 1>&2 &
+	diag "$BT_TESTS_PYTHON_BIN $server_script $server_args"
+	echo "$server_args" | run_python xargs "$BT_TESTS_PYTHON_BIN" "$server_script" 1>&2 &
 
 	# write PID to file
 	echo $! > "$pid_file"
@@ -82,7 +80,7 @@ kill_lttng_live_server() {
 
 get_cli_output_with_lttng_live_server() {
 	local cli_args_template="$1"
-	local sessions_file="$2"
+	local server_args="$2"
 	local cli_stdout_file="$3"
 	local cli_stderr_file="$4"
 	local port_file="$5"
@@ -93,7 +91,8 @@ get_cli_output_with_lttng_live_server() {
 	local cli_args
 	local server_pid_file
 	local server_retcode_file
-
+	
+	server_args="--port-file $port_file --trace-path-prefix \"$trace_dir_native\" $server_args"
 	server_pid_file="$(mktemp -t test_live_server_pid.XXXXXX)"
 	server_retcode_file="$(mktemp -t test_live_server_ret.XXXXX)"
 
@@ -106,7 +105,7 @@ get_cli_output_with_lttng_live_server() {
 	# lttng_live_server() writes its return code to the
 	# `$server_retcode_file` file.
 	lttng_live_server "$port_file" "$server_pid_file" \
-		"$server_retcode_file" "$sessions_file" &
+		"$server_retcode_file" "$server_args" &
 
 	# Get port number
 	i=0
