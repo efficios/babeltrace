@@ -84,7 +84,8 @@ get_cli_output_with_lttng_live_server() {
 	local cli_stdout_file="$2"
 	local cli_stderr_file="$3"
 	local port_file="$4"
-	shift 4
+	local trace_path_prefix="$5"
+	shift 5
 	local server_args=("$@")
 
 	local i
@@ -94,7 +95,7 @@ get_cli_output_with_lttng_live_server() {
 	local server_pid_file
 	local server_retcode_file
 
-	server_args+=(--port-file "$port_file" --trace-path-prefix "$trace_dir_native")
+	server_args+=(--port-file "$port_file" --trace-path-prefix "$trace_path_prefix")
 	server_pid_file="$(mktemp -t test_live_server_pid.XXXXXX)"
 	server_retcode_file="$(mktemp -t test_live_server_ret.XXXXX)"
 
@@ -176,7 +177,8 @@ run_test() {
 	local cli_args_template="$2"
 	local expected_stdout="$3"
 	local expected_stderr="$4"
-	shift 4
+	local trace_path_prefix="$5"
+	shift 5
 	local server_args=("$@")
 
 	local cli_stderr
@@ -189,7 +191,7 @@ run_test() {
 	port_file="$(mktemp -t test_live_server_port.XXXXXX)"
 
 	get_cli_output_with_lttng_live_server "$cli_args_template" "$cli_stdout" \
-		"$cli_stderr" "$port_file" "${server_args[@]}"
+		"$cli_stderr" "$port_file" "$trace_path_prefix" "${server_args[@]}"
 	port=$(<"$port_file")
 
 	bt_diff "$expected_stdout" "$cli_stdout"
@@ -225,7 +227,7 @@ test_list_sessions() {
 	tmp_stdout_expected="$(mktemp -t test_live_list_sessions_stdout_expected.XXXXXX)"
 
 	get_cli_output_with_lttng_live_server "$cli_args_template" "$cli_stdout" \
-		"$cli_stderr" "$port_file" "${server_args[@]}"
+		"$cli_stderr" "$port_file" "$trace_dir_native" "${server_args[@]}"
 	port=$(<"$port_file")
 
 	# Craft the expected output. This is necessary since the port number
@@ -259,7 +261,7 @@ test_base() {
 	expected_stderr="$(mktemp -t test_live_base_stderr_expected.XXXXXX)"
 
 	run_test "$test_text" "$cli_args_template" "$expected_stdout" \
-		"$expected_stderr" "${server_args[@]}"
+		"$expected_stderr" "$trace_dir_native" "${server_args[@]}"
 
 	rm -f "$expected_stderr"
 }
@@ -277,7 +279,7 @@ test_multi_domains() {
 	expected_stderr="$(mktemp -t test_live_multi_domains_stderr_expected.XXXXXX)"
 
 	run_test "$test_text" "$cli_args_template" "$expected_stdout" \
-		"$expected_stderr" "${server_args[@]}"
+		"$expected_stderr" "$trace_dir_native" "${server_args[@]}"
 
 	rm -f "$expected_stderr"
 }
@@ -298,7 +300,7 @@ test_rate_limited() {
 	expected_stderr="$(mktemp -t test_live_rate_limited_stderr_expected.XXXXXX)"
 
 	run_test "$test_text" "$cli_args_template" "$expected_stdout" \
-		"$expected_stderr" "${server_args[@]}"
+		"$expected_stderr" "$trace_dir_native" "${server_args[@]}"
 
 	rm -f "$expected_stderr"
 }
@@ -322,10 +324,10 @@ test_compare_to_ctf_fs() {
 	bt_remove_cr "${expected_stdout}"
 	bt_remove_cr "${expected_stderr}"
 	run_test "$test_text" "$cli_args_template" "$expected_stdout" \
-		"$expected_stderr" "${server_args[@]}"
+		"$expected_stderr" "$trace_dir_native" "${server_args[@]}"
 	diag "Inverse session order from lttng-relayd"
 	run_test "$test_text" "$cli_args_template" "$expected_stdout" \
-		"$expected_stderr" "${server_args_inverse[@]}"
+		"$expected_stderr" "$trace_dir_native" "${server_args_inverse[@]}"
 
 	rm -f "$expected_stdout"
 	rm -f "$expected_stderr"
@@ -366,7 +368,7 @@ test_inactivity_discarded_packet() {
 	expected_stderr="$(mktemp -t test_live_inactivity_discarded_packet_stderr_expected.XXXXXX)"
 
 	run_test "$test_text" "$cli_args_template" "$expected_stdout" \
-		"$expected_stderr" "${server_args[@]}"
+		"$expected_stderr" "$trace_dir_native" "${server_args[@]}"
 
 	rm -f "$expected_stderr"
 }
@@ -392,7 +394,7 @@ test_split_metadata() {
 	expected_stderr="$(mktemp -t test_live_split_metadata_stderr_expected.XXXXXX)"
 
 	run_test "$test_text" "$cli_args_template" "$expected_stdout" \
-		"$expected_stderr" "${server_args[@]}"
+		"$expected_stderr" "$trace_dir_native" "${server_args[@]}"
 
 	rm -f "$expected_stderr"
 }
