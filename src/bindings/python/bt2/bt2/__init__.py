@@ -2,7 +2,23 @@
 #
 # Copyright (c) 2017 Philippe Proulx <pproulx@efficios.com>
 
+import os
 import sys
+
+# With Python ≥ 3.8 on Windows, the DLL lookup mechanism to load native
+# modules doesn't search the `PATH` environment variable like everything
+# else on this platform.
+#
+# See <https://docs.python.org/3/whatsnew/3.8.html#bpo-36085-whatsnew>.
+#
+# Restore this behaviour by doing it manually.
+if os.name == "nt" and sys.version_info >= (3, 8):
+    for path in os.getenv("PATH", "").split(os.pathsep):
+        if os.path.exists(path) and path != ".":
+            os.add_dll_directory(path)
+
+del os
+
 
 from bt2.mip import get_maximal_mip_version, get_greatest_operative_mip_version
 from bt2.error import (
