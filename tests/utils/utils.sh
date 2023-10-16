@@ -409,3 +409,16 @@ run_python_bt2_test() {
 
 	return $ret
 }
+
+# Generate a CTF trace using `mctf.py`.
+#
+# $1: Input filename
+# $2: Base directory path for output files
+gen_mctf_trace() {
+	local input_file="$1"
+	local base_dir="$2"
+
+	diag "Running: ${BT_TESTS_PYTHON_BIN} ${BT_TESTS_SRCDIR}/utils/python/mctf.py --base-dir ${base_dir} ${input_file}"
+	"${BT_TESTS_PYTHON_BIN}" "${BT_TESTS_SRCDIR}/utils/python/mctf.py" \
+		--base-dir "${base_dir}" "${input_file}"
+}
