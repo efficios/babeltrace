@@ -598,7 +598,7 @@ static inline void _ctf_field_class_enum_destroy(struct ctf_field_class_enum *fc
 
         for (i = 0; i < fc->mappings->len; i++) {
             struct ctf_field_class_enum_mapping *mapping =
-                &g_array_index(fc->mappings, struct ctf_field_class_enum_mapping, i);
+                &bt_g_array_index(fc->mappings, struct ctf_field_class_enum_mapping, i);
 
             _ctf_field_class_enum_mapping_fini(mapping);
         }
@@ -630,7 +630,7 @@ static inline void _ctf_field_class_struct_destroy(struct ctf_field_class_struct
 
         for (i = 0; i < fc->members->len; i++) {
             struct ctf_named_field_class *named_fc =
-                &g_array_index(fc->members, struct ctf_named_field_class, i);
+                &bt_g_array_index(fc->members, struct ctf_named_field_class, i);
 
             _ctf_named_field_class_fini(named_fc);
         }
@@ -676,7 +676,7 @@ static inline void _ctf_field_class_variant_destroy(struct ctf_field_class_varia
 
         for (i = 0; i < fc->options->len; i++) {
             struct ctf_named_field_class *named_fc =
-                &g_array_index(fc->options, struct ctf_named_field_class, i);
+                &bt_g_array_index(fc->options, struct ctf_named_field_class, i);
 
             _ctf_named_field_class_fini(named_fc);
         }
@@ -738,7 +738,7 @@ ctf_field_class_enum_mapping_borrow_range_by_index(struct ctf_field_class_enum_m
 {
     BT_ASSERT_DBG(mapping);
     BT_ASSERT_DBG(index < mapping->ranges->len);
-    return &g_array_index(mapping->ranges, struct ctf_range, index);
+    return &bt_g_array_index(mapping->ranges, struct ctf_range, index);
 }
 
 static inline struct ctf_field_class_enum_mapping *
@@ -746,7 +746,7 @@ ctf_field_class_enum_borrow_mapping_by_index(struct ctf_field_class_enum *fc, ui
 {
     BT_ASSERT_DBG(fc);
     BT_ASSERT_DBG(index < fc->mappings->len);
-    return &g_array_index(fc->mappings, struct ctf_field_class_enum_mapping, index);
+    return &bt_g_array_index(fc->mappings, struct ctf_field_class_enum_mapping, index);
 }
 
 static inline struct ctf_field_class_enum_mapping *
@@ -819,7 +819,7 @@ ctf_field_class_struct_borrow_member_by_index(struct ctf_field_class_struct *fc,
 {
     BT_ASSERT_DBG(fc);
     BT_ASSERT_DBG(index < fc->members->len);
-    return &g_array_index(fc->members, struct ctf_named_field_class, index);
+    return &bt_g_array_index(fc->members, struct ctf_named_field_class, index);
 }
 
 static inline struct ctf_named_field_class *
@@ -907,7 +907,7 @@ static inline void ctf_field_class_struct_append_member(struct ctf_field_class_s
     BT_ASSERT(orig_name);
     g_array_set_size(fc->members, fc->members->len + 1);
 
-    named_fc = &g_array_index(fc->members, struct ctf_named_field_class, fc->members->len - 1);
+    named_fc = &bt_g_array_index(fc->members, struct ctf_named_field_class, fc->members->len - 1);
     _ctf_named_field_class_init(named_fc);
     g_string_assign(named_fc->orig_name, orig_name);
     _ctf_named_field_class_unescape_orig_name(named_fc);
@@ -923,7 +923,7 @@ ctf_field_class_variant_borrow_option_by_index(struct ctf_field_class_variant *f
 {
     BT_ASSERT_DBG(fc);
     BT_ASSERT_DBG(index < fc->options->len);
-    return &g_array_index(fc->options, struct ctf_named_field_class, index);
+    return &bt_g_array_index(fc->options, struct ctf_named_field_class, index);
 }
 
 static inline struct ctf_named_field_class *
@@ -954,7 +954,7 @@ ctf_field_class_variant_borrow_range_by_index(struct ctf_field_class_variant *fc
 {
     BT_ASSERT_DBG(fc);
     BT_ASSERT_DBG(index < fc->ranges->len);
-    return &g_array_index(fc->ranges, struct ctf_field_class_variant_range, index);
+    return &bt_g_array_index(fc->ranges, struct ctf_field_class_variant_range, index);
 }
 
 static inline void ctf_field_class_variant_append_option(struct ctf_field_class_variant *fc,
@@ -967,7 +967,7 @@ static inline void ctf_field_class_variant_append_option(struct ctf_field_class_
     BT_ASSERT(orig_name);
     g_array_set_size(fc->options, fc->options->len + 1);
 
-    named_fc = &g_array_index(fc->options, struct ctf_named_field_class, fc->options->len - 1);
+    named_fc = &bt_g_array_index(fc->options, struct ctf_named_field_class, fc->options->len - 1);
     _ctf_named_field_class_init(named_fc);
     g_string_assign(named_fc->orig_name, orig_name);
     _ctf_named_field_class_unescape_orig_name(named_fc);
@@ -1139,7 +1139,7 @@ static inline int64_t ctf_field_path_borrow_index_by_index(struct ctf_field_path
 {
     BT_ASSERT_DBG(fp);
     BT_ASSERT_DBG(index < fp->path->len);
-    return g_array_index(fp->path, int64_t, index);
+    return bt_g_array_index(fp->path, int64_t, index);
 }
 
 static inline void ctf_field_path_clear(struct ctf_field_path *fp)
@@ -1280,10 +1280,10 @@ _ctf_field_class_enum_copy(struct ctf_field_class_enum *fc)
         uint64_t range_i;
 
         struct ctf_field_class_enum_mapping *mapping =
-            &g_array_index(fc->mappings, struct ctf_field_class_enum_mapping, i);
+            &bt_g_array_index(fc->mappings, struct ctf_field_class_enum_mapping, i);
 
         for (range_i = 0; range_i < mapping->ranges->len; range_i++) {
-            struct ctf_range *range = &g_array_index(mapping->ranges, struct ctf_range, range_i);
+            struct ctf_range *range = &bt_g_array_index(mapping->ranges, struct ctf_range, range_i);
 
             ctf_field_class_enum_map_range(copy_fc, mapping->label->str, range->lower.u,
                                            range->upper.u);
@@ -1322,7 +1322,7 @@ _ctf_field_class_struct_copy(struct ctf_field_class_struct *fc)
 
     for (i = 0; i < fc->members->len; i++) {
         struct ctf_named_field_class *named_fc =
-            &g_array_index(fc->members, struct ctf_named_field_class, i);
+            &bt_g_array_index(fc->members, struct ctf_named_field_class, i);
 
         ctf_field_class_struct_append_member(copy_fc, named_fc->name->str,
                                              ctf_field_class_copy(named_fc->fc));
@@ -1358,7 +1358,7 @@ _ctf_field_class_variant_copy(struct ctf_field_class_variant *fc)
 
     for (i = 0; i < fc->options->len; i++) {
         struct ctf_named_field_class *named_fc =
-            &g_array_index(fc->options, struct ctf_named_field_class, i);
+            &bt_g_array_index(fc->options, struct ctf_named_field_class, i);
 
         ctf_field_class_variant_append_option(copy_fc, named_fc->name->str,
                                               ctf_field_class_copy(named_fc->fc));
@@ -1366,7 +1366,7 @@ _ctf_field_class_variant_copy(struct ctf_field_class_variant *fc)
 
     for (i = 0; i < fc->ranges->len; i++) {
         struct ctf_field_class_variant_range *range =
-            &g_array_index(fc->ranges, struct ctf_field_class_variant_range, i);
+            &bt_g_array_index(fc->ranges, struct ctf_field_class_variant_range, i);
 
         g_array_append_val(copy_fc->ranges, *range);
     }
@@ -1635,7 +1635,7 @@ static inline void ctf_trace_class_destroy(struct ctf_trace_class *tc)
 
         for (i = 0; i < tc->env_entries->len; i++) {
             struct ctf_trace_class_env_entry *entry =
-                &g_array_index(tc->env_entries, struct ctf_trace_class_env_entry, i);
+                &bt_g_array_index(tc->env_entries, struct ctf_trace_class_env_entry, i);
 
             _ctf_trace_class_env_entry_fini(entry);
         }
@@ -1656,8 +1656,8 @@ static inline void ctf_trace_class_append_env_entry(struct ctf_trace_class *tc, 
     BT_ASSERT(name);
     g_array_set_size(tc->env_entries, tc->env_entries->len + 1);
 
-    entry =
-        &g_array_index(tc->env_entries, struct ctf_trace_class_env_entry, tc->env_entries->len - 1);
+    entry = &bt_g_array_index(tc->env_entries, struct ctf_trace_class_env_entry,
+                              tc->env_entries->len - 1);
     entry->type = type;
     _ctf_trace_class_env_entry_init(entry);
     g_string_assign(entry->name, name);
@@ -1718,7 +1718,7 @@ ctf_trace_class_borrow_env_entry_by_index(struct ctf_trace_class *tc, uint64_t i
 {
     BT_ASSERT_DBG(tc);
     BT_ASSERT_DBG(index < tc->env_entries->len);
-    return &g_array_index(tc->env_entries, struct ctf_trace_class_env_entry, index);
+    return &bt_g_array_index(tc->env_entries, struct ctf_trace_class_env_entry, index);
 }
 
 static inline struct ctf_trace_class_env_entry *

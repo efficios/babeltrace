@@ -101,12 +101,12 @@ enum bt_param_validation_status bt_param_validation_error(
 
 		g_string_assign(str, "Error validating parameter `");
 
-		append_scope_to_string(str, &g_array_index(ctx->scope_stack,
+		append_scope_to_string(str, &bt_g_array_index(ctx->scope_stack,
 			struct validate_ctx_stack_element, 0), true);
 
 		for (i = 1; i < ctx->scope_stack->len; i++) {
 			append_scope_to_string(str,
-				&g_array_index(ctx->scope_stack,
+				&bt_g_array_index(ctx->scope_stack,
 					struct validate_ctx_stack_element, i), false);
 		}
 

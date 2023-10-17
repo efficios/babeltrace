@@ -460,7 +460,7 @@ int bt_plugin_so_init(struct bt_plugin *plugin,
 		/* Find the corresponding component class descriptor entry */
 		for (i = 0; i < comp_class_full_descriptors->len; i++) {
 			struct comp_class_full_descriptor *cc_full_descr =
-				&g_array_index(comp_class_full_descriptors,
+				&bt_g_array_index(comp_class_full_descriptors,
 					struct comp_class_full_descriptor, i);
 
 			if (cur_cc_descr_attr->comp_class_descriptor !=
@@ -751,7 +751,7 @@ int bt_plugin_so_init(struct bt_plugin *plugin,
 	/* Add described component classes to plugin */
 	for (i = 0; i < comp_class_full_descriptors->len; i++) {
 		struct comp_class_full_descriptor *cc_full_descr =
-			&g_array_index(comp_class_full_descriptors,
+			&bt_g_array_index(comp_class_full_descriptors,
 				struct comp_class_full_descriptor, i);
 		struct bt_component_class *comp_class = NULL;
 		struct bt_component_class_source *src_comp_class = NULL;

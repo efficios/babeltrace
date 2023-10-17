@@ -87,7 +87,7 @@ void destroy_trace(struct bt_object *obj)
 		/* Call all the trace destruction listeners */
 		for (i = 0; i < trace->destruction_listeners->len; i++) {
 			struct bt_trace_destruction_listener_elem elem =
-				g_array_index(trace->destruction_listeners,
+				bt_g_array_index(trace->destruction_listeners,
 					struct bt_trace_destruction_listener_elem, i);
 
 			if (elem.func) {
@@ -453,7 +453,7 @@ enum bt_trace_add_listener_status bt_trace_add_destruction_listener(
 	/* Find the next available spot */
 	for (i = 0; i < trace->destruction_listeners->len; i++) {
 		struct bt_trace_destruction_listener_elem elem =
-			g_array_index(trace->destruction_listeners,
+			bt_g_array_index(trace->destruction_listeners,
 				struct bt_trace_destruction_listener_elem, i);
 
 		if (!elem.func) {
@@ -480,7 +480,7 @@ static
 bool has_listener_id(const struct bt_trace *trace, uint64_t listener_id)
 {
 	BT_ASSERT(listener_id < trace->destruction_listeners->len);
-	return (&g_array_index(trace->destruction_listeners,
+	return (&bt_g_array_index(trace->destruction_listeners,
 			struct bt_trace_destruction_listener_elem,
 			listener_id))->func;
 }
@@ -498,7 +498,7 @@ enum bt_trace_remove_listener_status bt_trace_remove_destruction_listener(
 		has_listener_id(trace, listener_id),
 		"Trace has no such trace destruction listener ID: "
 		"%![trace-]+t, %" PRIu64, trace, listener_id);
-	elem = &g_array_index(trace->destruction_listeners,
+	elem = &bt_g_array_index(trace->destruction_listeners,
 			struct bt_trace_destruction_listener_elem,
 			listener_id);
 	BT_ASSERT(elem->func);

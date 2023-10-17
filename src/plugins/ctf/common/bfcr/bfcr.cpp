@@ -238,7 +238,7 @@ static int stack_push(struct stack *stack, struct ctf_field_class *base_class, s
         g_array_set_size(stack->entries, stack->size + 1);
     }
 
-    entry = &g_array_index(stack->entries, struct stack_entry, stack->size);
+    entry = &bt_g_array_index(stack->entries, struct stack_entry, stack->size);
     entry->base_class = base_class;
     entry->base_len = base_len;
     entry->index = 0;
@@ -335,7 +335,7 @@ static inline struct stack_entry *stack_top(struct stack *stack)
 {
     BT_ASSERT_DBG(stack);
     BT_ASSERT_DBG(stack_size(stack));
-    return &g_array_index(stack->entries, struct stack_entry, stack->size - 1);
+    return &bt_g_array_index(stack->entries, struct stack_entry, stack->size - 1);
 }
 
 static inline size_t available_bits(struct bt_bfcr *bfcr)

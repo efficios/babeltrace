@@ -151,7 +151,7 @@ bool has_event(struct event *event)
 	size_t i;
 
 	for (i = 0; i < events->len; i++) {
-		struct event *ev = &g_array_index(events, struct event, i);
+		struct event *ev = &bt_g_array_index(events, struct event, i);
 
 		if (compare_events(event, ev)) {
 			return true;
@@ -167,7 +167,7 @@ size_t event_pos(struct event *event)
 	size_t i;
 
 	for (i = 0; i < events->len; i++) {
-		struct event *ev = &g_array_index(events, struct event, i);
+		struct event *ev = &bt_g_array_index(events, struct event, i);
 
 		if (compare_events(event, ev)) {
 			return i;

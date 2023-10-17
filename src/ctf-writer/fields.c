@@ -163,7 +163,7 @@ int bt_ctf_field_common_string_initialize(struct bt_ctf_field_common *field,
 	}
 
 	g_array_set_size(string->buf, 1);
-	g_array_index(string->buf, char, 0) = '\0';
+	bt_g_array_index(string->buf, char, 0) = '\0';
 	BT_LOGD("Initialized common string field object: addr=%p, ft-addr=%p",
 		field, type);
 

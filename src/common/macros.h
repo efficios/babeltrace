@@ -52,6 +52,10 @@ extern "C" {
 		_ref;			\
 	})
 
+/* Wrapper for g_array_index that adds bound checking.  */
+#define bt_g_array_index(a, t, i)		\
+	g_array_index((a), t, ({ BT_ASSERT_DBG((i) < (a)->len); (i); }))
+
 /*
  * Copied from:
  * <https://stackoverflow.com/questions/37411809/how-to-elegantly-fix-this-unused-variable-warning/37412551#37412551>:

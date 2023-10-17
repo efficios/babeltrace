@@ -20,11 +20,11 @@
 #include <glib.h>
 
 #define BT_FIELD_CLASS_ENUM_MAPPING_AT_INDEX(_fc, _index)		\
-	(&g_array_index(((struct bt_field_class_enumeration *) (_fc))->mappings, \
+	(&bt_g_array_index(((struct bt_field_class_enumeration *) (_fc))->mappings, \
 		struct bt_field_class_enumeration_mapping, (_index)))
 
 #define BT_FIELD_CLASS_ENUM_MAPPING_RANGE_AT_INDEX(_mapping, _index)	\
-	(&g_array_index((_mapping)->ranges,				\
+	(&bt_g_array_index((_mapping)->ranges,				\
 		struct bt_field_class_enumeration_mapping_range, (_index)))
 
 struct bt_field_class {

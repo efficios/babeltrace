@@ -660,7 +660,7 @@ void destroy_enum_field_class_mapping(struct enum_field_class_mapping *mapping)
 static
 struct int_range *int_range_at(GArray *ranges, uint64_t index)
 {
-	return &g_array_index(ranges, struct int_range, index);
+	return &bt_g_array_index(ranges, struct int_range, index);
 }
 
 static

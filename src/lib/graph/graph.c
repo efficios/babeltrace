@@ -929,7 +929,7 @@ enum bt_graph_listener_func_status bt_graph_notify_port_added(
 
 	for (i = 0; i < listeners->len; i++) {
 		struct bt_graph_listener_port_added *listener =
-			&g_array_index(listeners,
+			&bt_g_array_index(listeners,
 				struct bt_graph_listener_port_added, i);
 
 

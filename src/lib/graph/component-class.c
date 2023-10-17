@@ -39,7 +39,7 @@ void destroy_component_class(struct bt_object *obj)
 	if (class->destroy_listeners) {
 		for (i = class->destroy_listeners->len - 1; i >= 0; i--) {
 			struct bt_component_class_destroy_listener *listener =
-				&g_array_index(class->destroy_listeners,
+				&bt_g_array_index(class->destroy_listeners,
 					struct bt_component_class_destroy_listener,
 					i);
 

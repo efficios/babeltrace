@@ -389,7 +389,7 @@ struct bt_field *create_string_field(struct bt_field_class *fc)
 	}
 
 	g_array_set_size(string_field->buf, 1);
-	g_array_index(string_field->buf, char, 0) = '\0';
+	bt_g_array_index(string_field->buf, char, 0) = '\0';
 	BT_LIB_LOGD("Created string field object: %!+f", string_field);
 
 end:
@@ -875,7 +875,7 @@ void clear_string_field(struct bt_field *field)
 
 	BT_ASSERT_DBG(field);
 	string_field->length = 0;
-	g_array_index(string_field->buf, char, 0) = '\0';
+	bt_g_array_index(string_field->buf, char, 0) = '\0';
 	bt_field_set_single(field, true);
 }
 

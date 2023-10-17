@@ -57,7 +57,7 @@ struct ctx
 static inline struct field_path_elem *cur_path_stack_at(struct ctx *ctx, uint64_t i)
 {
     BT_ASSERT(i < ctx->cur_path->len);
-    return &g_array_index(ctx->cur_path, struct field_path_elem, i);
+    return &bt_g_array_index(ctx->cur_path, struct field_path_elem, i);
 }
 
 static inline struct field_path_elem *cur_path_stack_top(struct ctx *ctx)

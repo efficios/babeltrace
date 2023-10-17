@@ -516,7 +516,7 @@ int add_structure_variant_member(GArray *members,
 
 	if (is_variant) {
 		struct bt_ctf_field_type_common_variant_choice *choice =
-			&g_array_index(members,
+			&bt_g_array_index(members,
 				struct bt_ctf_field_type_common_variant_choice,
 				members->len - 1);
 
@@ -528,7 +528,7 @@ int add_structure_variant_member(GArray *members,
 		BT_ASSERT_DBG(choice->ranges);
 	} else {
 		struct bt_ctf_field_type_common_structure_field *field =
-			&g_array_index(members,
+			&bt_g_array_index(members,
 				struct bt_ctf_field_type_common_structure_field,
 				members->len - 1);
 
@@ -2190,7 +2190,7 @@ int64_t bt_ctf_field_type_common_variant_find_choice_index(
 
 		for (range_i = 0; range_i < choice->ranges->len; range_i++) {
 			struct bt_ctf_field_type_common_variant_choice_range *range =
-				&g_array_index(
+				&bt_g_array_index(
 					choice->ranges,
 					struct bt_ctf_field_type_common_variant_choice_range,
 					range_i);

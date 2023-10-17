@@ -541,7 +541,7 @@ int relative_ptokens_to_field_path(GList *ptokens,
 			}
 
 			for (i = 0; i < tail_field_path_len; i++) {
-				int index = g_array_index(
+				int index = bt_g_array_index(
 					tail_field_path->indexes,
 					int, i);
 
@@ -709,7 +709,7 @@ struct bt_ctf_field_type_common *field_path_to_field_type(
 	for (i = 0; i < field_path->indexes->len; i++) {
 		struct bt_ctf_field_type_common *child_type;
 		int child_index =
-			g_array_index(field_path->indexes, int, i);
+			bt_g_array_index(field_path->indexes, int, i);
 
 		/* Get child field type */
 		child_type = bt_ctf_field_type_common_borrow_field_at_index(type,
@@ -827,9 +827,9 @@ int get_field_paths_lca_index(struct bt_ctf_field_path *field_path1,
 			break;
 		}
 
-		target_index = g_array_index(field_path1->indexes, int,
+		target_index = bt_g_array_index(field_path1->indexes, int,
 			lca_index);
-		ctx_index = g_array_index(field_path2->indexes, int,
+		ctx_index = bt_g_array_index(field_path2->indexes, int,
 			lca_index);
 
 		if (target_index != ctx_index) {
@@ -910,9 +910,9 @@ int validate_target_field_path(struct bt_ctf_field_path *target_field_path,
 		 * Make sure the target field path is located before the
 		 * context field path.
 		 */
-		target_index = g_array_index(target_field_path->indexes,
+		target_index = bt_g_array_index(target_field_path->indexes,
 			int, lca_index);
-		ctx_index = g_array_index(ctx_field_path->indexes,
+		ctx_index = bt_g_array_index(ctx_field_path->indexes,
 			int, lca_index);
 
 		if (target_index >= ctx_index) {

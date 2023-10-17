@@ -133,7 +133,7 @@ void destroy_component(struct bt_object *obj)
 
 	for (i = component->destroy_listeners->len - 1; i >= 0; i--) {
 		struct bt_component_destroy_listener *listener =
-			&g_array_index(component->destroy_listeners,
+			&bt_g_array_index(component->destroy_listeners,
 				struct bt_component_destroy_listener, i);
 
 		listener->func(component, listener->data);
@@ -610,7 +610,7 @@ void bt_component_remove_destroy_listener(struct bt_component *component,
 
 	for (i = 0; i < component->destroy_listeners->len; i++) {
 		struct bt_component_destroy_listener *listener =
-			&g_array_index(component->destroy_listeners,
+			&bt_g_array_index(component->destroy_listeners,
 				struct bt_component_destroy_listener, i);
 
 		if (listener->func == func && listener->data == data) {

@@ -147,7 +147,7 @@ int bt_ctf_field_path_get_index(const struct bt_ctf_field_path *field_path,
 		goto end;
 	}
 
-	ret = g_array_index(field_path->indexes, int, index);
+	ret = bt_g_array_index(field_path->indexes, int, index);
 
 end:
 	return ret;

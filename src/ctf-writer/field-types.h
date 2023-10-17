@@ -33,11 +33,11 @@
 	BT_CTF_ASSERT_PRE_HOT((_ft), (_name), ": ft-addr=%p", (_ft))
 
 #define BT_CTF_FIELD_TYPE_COMMON_STRUCTURE_FIELD_AT_INDEX(_ft, _index)	\
-	(&g_array_index(((struct bt_ctf_field_type_common_structure *) (_ft))->fields, \
+	(&bt_g_array_index(((struct bt_ctf_field_type_common_structure *) (_ft))->fields, \
 		struct bt_ctf_field_type_common_structure_field, (_index)))
 
 #define BT_CTF_FIELD_TYPE_COMMON_VARIANT_CHOICE_AT_INDEX(_ft, _index)	\
-	(&g_array_index(((struct bt_ctf_field_type_common_variant *) (_ft))->choices, \
+	(&bt_g_array_index(((struct bt_ctf_field_type_common_variant *) (_ft))->choices, \
 		struct bt_ctf_field_type_common_variant_choice, (_index)))
 
 struct bt_ctf_field_common;

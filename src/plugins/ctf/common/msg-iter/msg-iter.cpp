@@ -394,7 +394,7 @@ static void stack_push(struct stack *stack, bt_field *base)
         g_array_set_size(stack->entries, stack->size + 1);
     }
 
-    entry = &g_array_index(stack->entries, struct stack_entry, stack->size);
+    entry = &bt_g_array_index(stack->entries, struct stack_entry, stack->size);
     entry->base = base;
     entry->index = 0;
     stack->size++;
@@ -423,7 +423,7 @@ static inline struct stack_entry *stack_top(struct stack *stack)
 {
     BT_ASSERT_DBG(stack);
     BT_ASSERT_DBG(stack_size(stack));
-    return &g_array_index(stack->entries, struct stack_entry, stack->size - 1);
+    return &bt_g_array_index(stack->entries, struct stack_entry, stack->size - 1);
 }
 
 static inline bool stack_empty(struct stack *stack)
@@ -1862,7 +1862,7 @@ update_def_clock:
     }
 
     if (G_UNLIKELY(int_fc->storing_index >= 0)) {
-        g_array_index(msg_it->stored_values, uint64_t, (uint64_t) int_fc->storing_index) = value;
+        bt_g_array_index(msg_it->stored_values, uint64_t, (uint64_t) int_fc->storing_index) = value;
     }
 
     if (G_UNLIKELY(!fc->in_ir || msg_it->dry_run)) {
@@ -1948,7 +1948,7 @@ static enum bt_bfcr_status bfcr_signed_int_cb(int64_t value, struct ctf_field_cl
     BT_ASSERT_DBG(int_fc->meaning == CTF_FIELD_CLASS_MEANING_NONE);
 
     if (G_UNLIKELY(int_fc->storing_index >= 0)) {
-        g_array_index(msg_it->stored_values, uint64_t, (uint64_t) int_fc->storing_index) =
+        bt_g_array_index(msg_it->stored_values, uint64_t, (uint64_t) int_fc->storing_index) =
             (uint64_t) value;
     }
 
@@ -2191,7 +2191,8 @@ static int64_t bfcr_get_sequence_length_cb(struct ctf_field_class *fc, void *dat
     int64_t length;
     int ret;
 
-    length = (uint64_t) g_array_index(msg_it->stored_values, uint64_t, seq_fc->stored_length_index);
+    length =
+        (uint64_t) bt_g_array_index(msg_it->stored_values, uint64_t, seq_fc->stored_length_index);
 
     if (G_UNLIKELY(msg_it->dry_run)) {
         goto end;
@@ -2242,7 +2243,7 @@ bfcr_borrow_variant_selected_field_class_cb(struct ctf_field_class *fc, void *da
     } tag;
 
     /* Get variant's tag */
-    tag.u = g_array_index(msg_it->stored_values, uint64_t, var_fc->stored_tag_index);
+    tag.u = bt_g_array_index(msg_it->stored_values, uint64_t, var_fc->stored_tag_index);
 
     /*
      * Check each range to find the selected option's index.

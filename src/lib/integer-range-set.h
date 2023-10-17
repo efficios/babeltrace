@@ -17,7 +17,7 @@
 #include "object.h"
 
 #define BT_INTEGER_RANGE_SET_RANGE_AT_INDEX(_rs, _index)		\
-	(&g_array_index((_rs)->ranges, struct bt_integer_range, (_index)))
+	(&bt_g_array_index((_rs)->ranges, struct bt_integer_range, (_index)))
 
 struct bt_integer_range {
 	union {
