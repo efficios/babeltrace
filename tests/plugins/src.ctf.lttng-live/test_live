@@ -372,7 +372,28 @@ test_split_metadata() {
 		"$expected_stderr" "$trace_dir_native" "${server_args[@]}"
 }
 
-plan_tests 16
+test_stored_values() {
+	# Split metadata, where the new metadata requires additional stored
+	# value slots in CTF message iterators.
+	local test_text="split metadata requiring additionnal stored values"
+	local cli_args_template="-i lttng-live net://localhost:@PORT@/host/hostname/stored_values -c sink.text.details"
+	local server_args=("$test_data_dir/stored_values.json")
+	local expected_stdout="${test_data_dir}/stored_values.expect"
+	local expected_stderr="/dev/null"
+	local tmp_dir
+
+	tmp_dir=$(mktemp -d -t 'test_stored_value.XXXXXXX')
+
+	# Generate test trace.
+	gen_mctf_trace "${trace_dir}/live/stored_values.mctf" "$tmp_dir/stored_values"
+
+	run_test "$test_text" "$cli_args_template" "$expected_stdout" \
+		"$expected_stderr" "$tmp_dir" "${server_args[@]}"
+
+	rm -rf "$tmp_dir"
+}
+
+plan_tests 18
 
 test_list_sessions
 test_base
@@ -381,3 +402,4 @@ test_rate_limited
 test_compare_to_ctf_fs
 test_inactivity_discarded_packet
 test_split_metadata
+test_stored_values

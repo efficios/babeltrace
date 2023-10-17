@@ -1793,6 +1793,20 @@ end:
                  msg_it->default_clock_snapshot);
 }
 
+/*
+ * Ensure the message iterator's `stored_values` array is large enough to
+ * accomodate `storing_index`.
+ *
+ * We may need more slots in the array than initially allocated if more
+ * metadata arrives along the way.
+ */
+static void ensure_stored_values_size(ctf_msg_iter *msg_it, uint64_t storing_index)
+{
+    if (G_UNLIKELY(storing_index >= msg_it->stored_values->len)) {
+        g_array_set_size(msg_it->stored_values, msg_it->meta.tc->stored_value_count);
+    }
+}
+
 static enum bt_bfcr_status bfcr_unsigned_int_cb(uint64_t value, struct ctf_field_class *fc,
                                                 void *data)
 {
@@ -1862,6 +1876,7 @@ update_def_clock:
     }
 
     if (G_UNLIKELY(int_fc->storing_index >= 0)) {
+        ensure_stored_values_size(msg_it, int_fc->storing_index);
         bt_g_array_index(msg_it->stored_values, uint64_t, (uint64_t) int_fc->storing_index) = value;
     }
 
@@ -1948,6 +1963,7 @@ static enum bt_bfcr_status bfcr_signed_int_cb(int64_t value, struct ctf_field_cl
     BT_ASSERT_DBG(int_fc->meaning == CTF_FIELD_CLASS_MEANING_NONE);
 
     if (G_UNLIKELY(int_fc->storing_index >= 0)) {
+        ensure_stored_values_size(msg_it, int_fc->storing_index);
         bt_g_array_index(msg_it->stored_values, uint64_t, (uint64_t) int_fc->storing_index) =
             (uint64_t) value;
     }

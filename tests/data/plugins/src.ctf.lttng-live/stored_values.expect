@@ -1,0 +1,65 @@
+Trace class:
+  Stream class (ID 0):
+    Supports packets: Yes
+    Packets have beginning default clock snapshot: Yes
+    Packets have end default clock snapshot: Yes
+    Supports discarded events: No
+    Supports discarded packets: No
+    Default clock class:
+      Name: default
+      Frequency (Hz): 1,000,000,000
+      Precision (cycles): 0
+      Offset (s): 0
+      Offset (cycles): 0
+      Origin is Unix epoch: No
+    Event class `event1` (ID 1):
+      Payload field class: Structure (2 members):
+        len: Unsigned integer (8-bit, Base 10)
+        seq: Dynamic array (with length field) (Length field path [Event payload: 0]):
+          Element: Unsigned integer (8-bit, Base 10)
+    Event class `event2` (ID 2):
+      Payload field class: Structure (2 members):
+        len: Unsigned integer (8-bit, Base 10)
+        seq: Dynamic array (with length field) (Length field path [Event payload: 0]):
+          Element: Unsigned integer (8-bit, Base 10)
+
+[Unknown]
+{Trace 0, Stream class ID 0, Stream ID 1}
+Stream beginning:
+  Name: stream-1
+  Trace:
+    Stream (ID 1, Class ID 0)
+
+[10 cycles, 10 ns from origin]
+{Trace 0, Stream class ID 0, Stream ID 1}
+Packet beginning
+
+[10 cycles, 10 ns from origin]
+{Trace 0, Stream class ID 0, Stream ID 1}
+Event `event1` (Class ID 1):
+  Payload:
+    len: 0
+    seq: Empty
+
+[11 cycles, 11 ns from origin]
+{Trace 0, Stream class ID 0, Stream ID 1}
+Packet end
+
+[20 cycles, 20 ns from origin]
+{Trace 0, Stream class ID 0, Stream ID 1}
+Packet beginning
+
+[20 cycles, 20 ns from origin]
+{Trace 0, Stream class ID 0, Stream ID 1}
+Event `event2` (Class ID 2):
+  Payload:
+    len: 0
+    seq: Empty
+
+[21 cycles, 21 ns from origin]
+{Trace 0, Stream class ID 0, Stream ID 1}
+Packet end
+
+[Unknown]
+{Trace 0, Stream class ID 0, Stream ID 1}
+Stream end
