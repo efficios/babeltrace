@@ -712,7 +712,6 @@ class _LttngDataStreamIndex(Sequence[_LttngIndexEntryT]):
 
     def _build(self):
         self._entries = []  # type: list[_LttngIndexEntryT]
-        assert os.path.isfile(self._path)
 
         with open(self._path, "rb") as f:
             # Read header first
@@ -1019,7 +1018,6 @@ class LttngTrace(Sequence[_LttngDataStream]):
         metadata_sections_json: Optional[tjson.ArrayVal],
         beacons_json: Optional[tjson.ObjVal],
     ):
-        assert os.path.isdir(trace_dir)
         self._path = trace_dir
         self._create_metadata_stream(trace_dir, metadata_sections_json)
         self._create_data_streams(trace_dir, beacons_json)
