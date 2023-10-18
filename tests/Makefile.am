@@ -162,7 +162,8 @@ TESTS_CLI += \
 
 TESTS_PLUGINS += plugins/flt.utils.trimmer/test-trimming.sh \
 	plugins/flt.utils.muxer/succeed/test-succeed.sh \
-	plugins/sink.text.pretty/test-enum.sh
+	plugins/sink.text.pretty/test-enum.sh \
+	plugins/src.ctf.fs/field/test-field.sh
 endif
 endif
 

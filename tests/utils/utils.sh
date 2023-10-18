@@ -156,6 +156,10 @@ bt_remove_cr() {
 	"$BT_TESTS_SED_BIN" -i'' -e 's/\r//g' "$1"
 }
 
+bt_remove_cr_inline() {
+	"$BT_TESTS_SED_BIN" 's/\r//g' "$1"
+}
+
 # Run the Babeltrace CLI, redirecting stdout and stderr to specified files.
 #
 #   $1: file to redirect stdout to
@@ -195,9 +199,7 @@ bt_diff() {
 	# Strip any \r present due to Windows (\n -> \r\n).
 	# "diff --string-trailing-cr" is not used since it is not present on
 	# Solaris.
-	bt_remove_cr "$actual_file"
-
-	diff -u "$expected_file" "$actual_file" 1>&2
+	diff -u <(bt_remove_cr_inline "$expected_file") <(bt_remove_cr_inline "$actual_file") 1>&2
 
 	return $?
 }

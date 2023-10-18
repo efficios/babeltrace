@@ -9,4 +9,5 @@ dist_check_SCRIPTS = \
 	query/test_query_support_info.py \
 	query/test-query-trace-info.sh \
 	query/test_query_trace_info.py \
-	test-deterministic-ordering.sh
+	test-deterministic-ordering.sh \
+	field/test-field.sh
