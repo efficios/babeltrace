@@ -380,6 +380,14 @@ class UserMessageIteratorTestCase(unittest.TestCase):
     # This verifies that we are not missing an incref of Py_None, making the
     # refcount of Py_None reach 0.
     def test_try_again_many_times(self):
+        # Starting with Python 3.12, `None` is immortal: its reference
+        # count operations are no-op. Skip this test in that case.
+        before = sys.getrefcount(None)
+        dummy = None  # noqa: F841
+
+        if before == sys.getrefcount(None):
+            raise unittest.SkipTest("`None` is immortal")
+
         class MyIter(bt2._UserMessageIterator):
             def __next__(self):
                 raise bt2.TryAgain
