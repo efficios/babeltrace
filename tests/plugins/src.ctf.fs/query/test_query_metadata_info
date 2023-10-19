@@ -78,6 +78,8 @@ test_non_existent_trace_dir() {
 	rm -f "${stdout_file}" "${stderr_file}"
 }
 
-plan_tests 5
+plan_tests 7
 test_query_metadata_info succeed1
 test_non_existent_trace_dir
+test_query_metadata_info lf-metadata
+test_query_metadata_info crlf-metadata
