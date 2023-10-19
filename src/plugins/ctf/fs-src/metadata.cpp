@@ -24,7 +24,8 @@
 #include "metadata.hpp"
 #include "../common/metadata/decoder.hpp"
 
-FILE *ctf_fs_metadata_open_file(const char *trace_path)
+FILE *ctf_fs_metadata_open_file(const char *trace_path, bt_logging_level log_level,
+                                bt_self_component_class *comp_class)
 {
     GString *metadata_path;
     FILE *fp = NULL;
@@ -36,7 +37,13 @@ FILE *ctf_fs_metadata_open_file(const char *trace_path)
 
     g_string_append(metadata_path, G_DIR_SEPARATOR_S CTF_FS_METADATA_FILENAME);
     fp = fopen(metadata_path->str, "rb");
+    if (!fp) {
+        BT_COMP_CLASS_LOGE_APPEND_CAUSE_ERRNO(comp_class, "Failed to open metadata file",
+                                              ": path=\"%s\"", metadata_path->str);
+    }
+
     g_string_free(metadata_path, TRUE);
+
 end:
     return fp;
 }

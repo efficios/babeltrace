@@ -87,7 +87,7 @@ metadata_info_query(bt_self_component_class_source *self_comp_class_src, const b
     path = bt_value_string_get(path_value);
 
     BT_ASSERT(path);
-    metadata_fp = ctf_fs_metadata_open_file(path);
+    metadata_fp = ctf_fs_metadata_open_file(path, log_level, self_comp_class);
     if (!metadata_fp) {
         BT_COMP_CLASS_LOGE_APPEND_CAUSE(self_comp_class, "Cannot open trace metadata: path=\"%s\".",
                                         path);

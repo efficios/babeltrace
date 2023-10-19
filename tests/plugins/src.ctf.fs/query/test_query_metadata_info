@@ -50,5 +50,34 @@ test_query_metadata_info() {
 	rm -f "$temp_stdout_output_file" "$temp_stderr_output_file"
 }
 
-plan_tests 1
+test_non_existent_trace_dir() {
+	local empty_dir
+	local stdout_file
+	local stderr_file
+	local query
+
+	empty_dir=$(mktemp -d)
+	stdout_file="$(mktemp -t actual_stdout.XXXXXX)"
+	stderr_file="$(mktemp -t actual_stderr.XXXXXX)"
+	query=("query" "src.ctf.fs" "metadata-info" "--params" "path=\"$empty_dir\"")
+
+	bt_cli "$stdout_file" "$stderr_file" \
+		"${query[@]}"
+	isnt $? 0 "non existent trace dir: babeltrace exits with an error"
+
+	bt_diff "/dev/null" "${stdout_file}"
+	ok $? "non existent trace dir: babeltrace produces the expected stdout"
+
+	grep --silent "^CAUSED BY " "${stderr_file}"
+	ok $? "non existent trace dir: babeltrace produces an error stack"
+
+	grep --silent "Failed to open metadata file: No such file or directory: path=\".*metadata\"" \
+		"${stderr_file}"
+	ok $? "non existent trace dir: babeltrace produces the expected error message"
+
+	rm -f "${stdout_file}" "${stderr_file}"
+}
+
+plan_tests 5
 test_query_metadata_info succeed1
+test_non_existent_trace_dir
