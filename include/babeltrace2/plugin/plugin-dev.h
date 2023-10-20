@@ -44,6 +44,15 @@
 #define _BT_HIDDEN __attribute__((visibility("hidden")))
 #endif
 
+/*
+ * _BT_EXPORT: set the visibility for exported functions.
+ */
+#if defined(_WIN32) || defined(__CYGWIN__)
+#define _BT_EXPORT
+#else
+#define _BT_EXPORT __attribute__((visibility("default")))
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -352,35 +361,35 @@ other <code>BT_PLUGIN*()</code> macro.
 	_BT_HIDDEN extern struct __bt_plugin_component_class_descriptor_attribute const *__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTES_BEGIN_SYMBOL __BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTES_BEGIN_EXTRA; \
 	_BT_HIDDEN extern struct __bt_plugin_component_class_descriptor_attribute const *__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTES_END_SYMBOL __BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTES_END_EXTRA; \
 	\
-	struct __bt_plugin_descriptor const * const *__bt_get_begin_section_plugin_descriptors(void) \
+	_BT_EXPORT struct __bt_plugin_descriptor const * const *__bt_get_begin_section_plugin_descriptors(void) \
 	{ \
 		return &__BT_PLUGIN_DESCRIPTOR_BEGIN_SYMBOL; \
 	} \
-	struct __bt_plugin_descriptor const * const *__bt_get_end_section_plugin_descriptors(void) \
+	_BT_EXPORT struct __bt_plugin_descriptor const * const *__bt_get_end_section_plugin_descriptors(void) \
 	{ \
 		return &__BT_PLUGIN_DESCRIPTOR_END_SYMBOL; \
 	} \
-	struct __bt_plugin_descriptor_attribute const * const *__bt_get_begin_section_plugin_descriptor_attributes(void) \
+	_BT_EXPORT struct __bt_plugin_descriptor_attribute const * const *__bt_get_begin_section_plugin_descriptor_attributes(void) \
 	{ \
 		return &__BT_PLUGIN_DESCRIPTOR_ATTRIBUTES_BEGIN_SYMBOL; \
 	} \
-	struct __bt_plugin_descriptor_attribute const * const *__bt_get_end_section_plugin_descriptor_attributes(void) \
+	_BT_EXPORT struct __bt_plugin_descriptor_attribute const * const *__bt_get_end_section_plugin_descriptor_attributes(void) \
 	{ \
 		return &__BT_PLUGIN_DESCRIPTOR_ATTRIBUTES_END_SYMBOL; \
 	} \
-	struct __bt_plugin_component_class_descriptor const * const *__bt_get_begin_section_component_class_descriptors(void) \
+	_BT_EXPORT struct __bt_plugin_component_class_descriptor const * const *__bt_get_begin_section_component_class_descriptors(void) \
 	{ \
 		return &__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_BEGIN_SYMBOL; \
 	} \
-	struct __bt_plugin_component_class_descriptor const * const *__bt_get_end_section_component_class_descriptors(void) \
+	_BT_EXPORT struct __bt_plugin_component_class_descriptor const * const *__bt_get_end_section_component_class_descriptors(void) \
 	{ \
 		return &__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_END_SYMBOL; \
 	} \
-	struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_begin_section_component_class_descriptor_attributes(void) \
+	_BT_EXPORT struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_begin_section_component_class_descriptor_attributes(void) \
 	{ \
 		return &__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTES_BEGIN_SYMBOL; \
 	} \
-	struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_end_section_component_class_descriptor_attributes(void) \
+	_BT_EXPORT struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_end_section_component_class_descriptor_attributes(void) \
 	{ \
 		return &__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTES_END_SYMBOL; \
 	}
