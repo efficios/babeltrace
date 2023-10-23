@@ -153,7 +153,7 @@ fi
 # Remove CR characters in file "$1".
 
 bt_remove_cr() {
-	"$BT_TESTS_SED_BIN" -i 's/\r//g' "$1"
+	"$BT_TESTS_SED_BIN" -i'' -e 's/\r//g' "$1"
 }
 
 # Run the Babeltrace CLI, redirecting stdout and stderr to specified files.
