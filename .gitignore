@@ -27,6 +27,7 @@
 .deps
 *.bkp
 *.trs
+.dirstamp
 /src/plugins/ctf/common/metadata/lexer.cpp
 /src/plugins/ctf/common/metadata/parser.cpp
 /src/plugins/ctf/common/metadata/parser.hpp

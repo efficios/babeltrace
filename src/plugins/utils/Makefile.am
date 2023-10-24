@@ -1,20 +1,26 @@
 # SPDX-License-Identifier: MIT
 
-SUBDIRS = dummy muxer counter trimmer
-
 plugindir = "$(BABELTRACE_PLUGINS_DIR)"
 plugin_LTLIBRARIES = babeltrace-plugin-utils.la
 
-babeltrace_plugin_utils_la_SOURCES = plugin.c
+babeltrace_plugin_utils_la_SOURCES = \
+	counter/counter.c \
+	counter/counter.h \
+	dummy/dummy.c \
+	dummy/dummy.h \
+	muxer/muxer.c \
+	muxer/muxer.h \
+	trimmer/trimmer.c \
+	trimmer/trimmer.h \
+	plugin.c
+
 babeltrace_plugin_utils_la_LDFLAGS = \
 	$(AM_LDFLAGS) \
 	$(LT_NO_UNDEFINED) \
 	-avoid-version -module $(LD_NOTEXT)
+
 babeltrace_plugin_utils_la_LIBADD = \
-	dummy/libbabeltrace2-plugin-dummy-cc.la \
-	muxer/libbabeltrace2-plugin-muxer.la \
-	counter/libbabeltrace2-plugin-counter-cc.la \
-	trimmer/libbabeltrace2-plugin-trimmer.la
+	$(top_builddir)/src/plugins/common/muxing/libbabeltrace2-plugins-common-muxing.la
 
 if !ENABLE_BUILT_IN_PLUGINS
 babeltrace_plugin_utils_la_LIBADD += \
