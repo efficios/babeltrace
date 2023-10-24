@@ -843,10 +843,7 @@ AC_CONFIG_FILES([
   src/plugins/ctf/Makefile
   src/plugins/lttng-utils/Makefile
   src/plugins/Makefile
-  src/plugins/text/dmesg/Makefile
   src/plugins/text/Makefile
-  src/plugins/text/pretty/Makefile
-  src/plugins/text/details/Makefile
   src/plugins/utils/Makefile
   src/py-common/Makefile
   src/python-plugin-provider/Makefile

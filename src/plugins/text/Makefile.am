@@ -1,20 +1,29 @@
 # SPDX-License-Identifier: MIT
 
-SUBDIRS = pretty dmesg details
-
 plugindir = "$(BABELTRACE_PLUGINS_DIR)"
 plugin_LTLIBRARIES = babeltrace-plugin-text.la
 
-babeltrace_plugin_text_la_SOURCES = plugin.c
+babeltrace_plugin_text_la_SOURCES = \
+	details/colors.h \
+	details/details.c \
+	details/details.h \
+	details/obj-lifetime-mgmt.c \
+	details/obj-lifetime-mgmt.h \
+	details/write.c \
+	details/write.h \
+	dmesg/dmesg.c \
+	dmesg/dmesg.h \
+	pretty/pretty.c \
+	pretty/pretty.h \
+	pretty/print.c \
+	plugin.c
+
 babeltrace_plugin_text_la_LDFLAGS = \
 	$(AM_LDFLAGS) \
 	$(LT_NO_UNDEFINED) \
 	-avoid-version -module $(LD_NOTEXT)
 
-babeltrace_plugin_text_la_LIBADD = \
-	pretty/libbabeltrace2-plugin-text-pretty-cc.la \
-	dmesg/libbabeltrace2-plugin-text-dmesg-cc.la \
-	details/libbabeltrace2-plugin-text-details-cc.la
+babeltrace_plugin_text_la_LIBADD =
 
 if !ENABLE_BUILT_IN_PLUGINS
 babeltrace_plugin_text_la_LIBADD += \
