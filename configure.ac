@@ -50,7 +50,7 @@ AC_CANONICAL_HOST
 ## Automake base setup ##
 ##                     ##
 
-AM_INIT_AUTOMAKE([1.13 foreign dist-bzip2 no-dist-gzip tar-ustar nostdinc -Wall -Wno-portability -Werror])
+AM_INIT_AUTOMAKE([1.13 foreign dist-bzip2 no-dist-gzip tar-ustar nostdinc subdir-objects -Wall -Wno-portability -Werror])
 AM_MAINTAINER_MODE([enable])
 
 # Enable silent rules by default
@@ -841,13 +841,7 @@ AC_CONFIG_FILES([
   src/plugins/common/Makefile
   src/plugins/common/muxing/Makefile
   src/plugins/common/param-validation/Makefile
-  src/plugins/ctf/common/bfcr/Makefile
-  src/plugins/ctf/common/Makefile
   src/plugins/ctf/common/metadata/Makefile
-  src/plugins/ctf/common/msg-iter/Makefile
-  src/plugins/ctf/fs-sink/Makefile
-  src/plugins/ctf/fs-src/Makefile
-  src/plugins/ctf/lttng-live/Makefile
   src/plugins/ctf/Makefile
   src/plugins/lttng-utils/debug-info/Makefile
   src/plugins/lttng-utils/Makefile
