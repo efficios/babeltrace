@@ -841,7 +841,6 @@ AC_CONFIG_FILES([
   src/plugins/common/Makefile
   src/plugins/ctf/common/metadata/Makefile
   src/plugins/ctf/Makefile
-  src/plugins/lttng-utils/debug-info/Makefile
   src/plugins/lttng-utils/Makefile
   src/plugins/Makefile
   src/plugins/text/dmesg/Makefile

@@ -1,15 +1,5 @@
 # SPDX-License-Identifier: MIT
 
-SUBDIRS =
-
-babeltrace_plugin_lttng_utils_la_LIBADD =
-
-if ENABLE_DEBUG_INFO
-SUBDIRS += debug-info
-babeltrace_plugin_lttng_utils_la_LIBADD += \
-	debug-info/libdebug-info.la
-endif
-
 plugindir = "$(BABELTRACE_PLUGINS_DIR)"
 plugin_LTLIBRARIES = babeltrace-plugin-lttng-utils.la
 
@@ -21,6 +11,38 @@ babeltrace_plugin_lttng_utils_la_LDFLAGS = \
 	$(LT_NO_UNDEFINED) \
 	-avoid-version -module $(LD_NOTEXT) \
 	$(ELFUTILS_LIBS)
+
+babeltrace_plugin_lttng_utils_la_LIBADD =
+
+if ENABLE_DEBUG_INFO
+noinst_LTLIBRARIES = debug-info/libdebug-info.la
+
+debug_info_libdebug_info_la_SOURCES = \
+	debug-info/bin-info.c \
+	debug-info/bin-info.h \
+	debug-info/crc32.c \
+	debug-info/crc32.h \
+	debug-info/debug-info.c \
+	debug-info/debug-info.h \
+	debug-info/dwarf.c \
+	debug-info/dwarf.h \
+	debug-info/trace-ir-data-copy.c \
+	debug-info/trace-ir-data-copy.h \
+	debug-info/trace-ir-mapping.c \
+	debug-info/trace-ir-mapping.h \
+	debug-info/trace-ir-metadata-copy.c \
+	debug-info/trace-ir-metadata-copy.h \
+	debug-info/trace-ir-metadata-field-class-copy.c \
+	debug-info/trace-ir-metadata-field-class-copy.h \
+	debug-info/utils.c \
+	debug-info/utils.h
+
+debug_info_libdebug_info_la_LIBADD = \
+	$(top_builddir)/src/fd-cache/libbabeltrace2-fd-cache.la
+
+babeltrace_plugin_lttng_utils_la_LIBADD += \
+	debug-info/libdebug-info.la
+endif
 
 if !ENABLE_BUILT_IN_PLUGINS
 babeltrace_plugin_lttng_utils_la_LIBADD += \
