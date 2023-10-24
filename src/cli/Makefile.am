@@ -57,14 +57,14 @@ EXTRA_babeltrace2_bin_DEPENDENCIES =
 # directly).
 babeltrace2_bin_LDADD = \
 	$(top_builddir)/src/argpar/libargpar.la \
-	$(top_builddir)/src/autodisc/libbabeltrace2-autodisc.la \
-	$(top_builddir)/src/param-parse/libbabeltrace2-param-parse.la \
-	$(top_builddir)/src/string-format/libbabeltrace2-string-format.la \
+	$(top_builddir)/src/autodisc/libautodisc.la \
+	$(top_builddir)/src/param-parse/libparam-parse.la \
+	$(top_builddir)/src/string-format/libstring-format.la \
 	$(top_builddir)/src/lib/libbabeltrace2.la \
 	$(top_builddir)/src/compat/libcompat.la \
 	$(top_builddir)/src/common/libbabeltrace2-common.la \
-	$(top_builddir)/src/logging/libbabeltrace2-logging.la \
-	$(top_builddir)/src/ctfser/libbabeltrace2-ctfser.la
+	$(top_builddir)/src/logging/liblogging.la \
+	$(top_builddir)/src/ctfser/libctfser.la
 
 if ENABLE_BUILT_IN_PLUGINS
 # Takes a plugin name and outputs the needed LDFLAGS to embed it.

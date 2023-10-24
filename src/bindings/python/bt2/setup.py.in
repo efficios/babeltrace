@@ -119,11 +119,11 @@ def main():
         sources=["bt2/native_bt.c", "@srcdir@/bt2/logging.c"],
         libraries=["babeltrace2", "glib-2.0"],
         extra_objects=[
-            "@top_builddir@/src/autodisc/.libs/libbabeltrace2-autodisc.a",
-            "@top_builddir@/src/logging/.libs/libbabeltrace2-logging.a",
+            "@top_builddir@/src/autodisc/.libs/libautodisc.a",
+            "@top_builddir@/src/logging/.libs/liblogging.a",
             "@top_builddir@/src/common/.libs/libbabeltrace2-common.a",
-            "@top_builddir@/src/py-common/.libs/libbabeltrace2-py-common.a",
-            "@top_builddir@/src/string-format/.libs/libbabeltrace2-string-format.a",
+            "@top_builddir@/src/py-common/.libs/libpy-common.a",
+            "@top_builddir@/src/string-format/.libs/libstring-format.a",
         ],
     )
 

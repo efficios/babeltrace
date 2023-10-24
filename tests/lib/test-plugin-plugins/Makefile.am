@@ -11,7 +11,7 @@ plugin_minimal_la_LDFLAGS = \
 plugin_minimal_la_LIBADD = \
 	$(top_builddir)/src/lib/libbabeltrace2.la \
 	$(top_builddir)/src/common/libbabeltrace2-common.la \
-	$(top_builddir)/src/logging/libbabeltrace2-logging.la
+	$(top_builddir)/src/logging/liblogging.la
 
 # source/filter/sink plugin
 plugin_sfs_la_SOURCES = sfs.c
@@ -22,4 +22,4 @@ plugin_sfs_la_LDFLAGS = \
 plugin_sfs_la_LIBADD = \
 	$(top_builddir)/src/lib/libbabeltrace2.la \
 	$(top_builddir)/src/common/libbabeltrace2-common.la \
-	$(top_builddir)/src/logging/libbabeltrace2-logging.la
+	$(top_builddir)/src/logging/liblogging.la

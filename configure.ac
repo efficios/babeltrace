@@ -814,8 +814,6 @@ AC_CONFIG_FILES([
   doc/man/Makefile
   include/Makefile
   Makefile
-  src/argpar/Makefile
-  src/autodisc/Makefile
   src/babeltrace2-ctf-writer.pc
   src/babeltrace2.pc
   src/bindings/Makefile
@@ -825,18 +823,6 @@ AC_CONFIG_FILES([
   src/bindings/python/Makefile
   src/cli/Makefile
   src/common/Makefile
-  src/cpp-common/Makefile
-  src/compat/Makefile
-  src/ctfser/Makefile
-  src/ctf-writer/Makefile
-  src/fd-cache/Makefile
-  src/lib/graph/Makefile
-  src/lib/graph/message/Makefile
-  src/lib/Makefile
-  src/lib/plugin/Makefile
-  src/lib/prio-heap/Makefile
-  src/lib/trace-ir/Makefile
-  src/logging/Makefile
   src/Makefile
   src/plugins/common/Makefile
   src/plugins/ctf/common/metadata/Makefile
@@ -845,10 +831,6 @@ AC_CONFIG_FILES([
   src/plugins/Makefile
   src/plugins/text/Makefile
   src/plugins/utils/Makefile
-  src/py-common/Makefile
-  src/python-plugin-provider/Makefile
-  src/param-parse/Makefile
-  src/string-format/Makefile
   tests/bitfield/Makefile
   tests/ctf-writer/Makefile
   tests/lib/Makefile

@@ -10,7 +10,7 @@ ctf_writer_LDADD = \
 	$(top_builddir)/tests/utils/libtestcommon.la \
 	$(top_builddir)/src/ctf-writer/libbabeltrace2-ctf-writer.la \
 	$(top_builddir)/src/common/libbabeltrace2-common.la \
-	$(top_builddir)/src/logging/libbabeltrace2-logging.la
+	$(top_builddir)/src/logging/liblogging.la
 
 
 dist_check_SCRIPTS = test_ctf_writer

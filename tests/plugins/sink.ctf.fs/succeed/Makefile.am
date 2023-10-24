@@ -6,7 +6,7 @@ dist_check_SCRIPTS = test_succeed
 GEN_TRACE_LDADD = \
 	$(top_builddir)/src/ctf-writer/libbabeltrace2-ctf-writer.la \
 	$(top_builddir)/src/common/libbabeltrace2-common.la \
-	$(top_builddir)/src/logging/libbabeltrace2-logging.la
+	$(top_builddir)/src/logging/liblogging.la
 
 gen_trace_float_SOURCES = gen-trace-float.c
 gen_trace_float_LDADD = $(GEN_TRACE_LDADD)
