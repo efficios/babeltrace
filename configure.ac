@@ -803,12 +803,9 @@ program_transform_name="s&babeltrace2\.bin&babeltrace2&;$program_transform_name"
 AC_SUBST(program_transform_name)
 
 AC_CONFIG_FILES([
-  doc/api/Makefile
   doc/api/libbabeltrace2/Doxyfile
   doc/api/libbabeltrace2/Makefile
-  doc/bindings/Makefile
   doc/bindings/python/Makefile
-  doc/contributing-images/Makefile
   doc/Makefile
   doc/man/asciidoc-attrs.conf
   doc/man/Makefile
