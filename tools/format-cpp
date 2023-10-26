@@ -35,7 +35,7 @@ format_cpp() {
 		! -wholename '*/cpp-common/optional.hpp' \
 		! -wholename '*/cpp-common/string_view.hpp' \
 		! -wholename '*/cpp-common/nlohmann/json.hpp' \
-		-print0 | xargs -P"$(nproc)" -n1 -0 "${formatter[@]}"
+		-print0 | xargs -P"$(nproc)" -n1 -t -0 "${formatter[@]}"
 }
 
 if [[ -n "$FORMATTER" ]]; then
