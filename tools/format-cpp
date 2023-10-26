@@ -47,6 +47,8 @@ format_cpp() {
 		! -path '*/src/cpp-common/optional.hpp' \
 		! -path '*/src/cpp-common/string_view.hpp' \
 		! -path '*/src/cpp-common/nlohmann/json.hpp' \
+		! -path '*/src/plugins/ctf/common/metadata/parser.*' \
+		! -path '*/src/plugins/ctf/common/metadata/lexer.*' \
 		-print0 | xargs -P"$(nproc)" -n1 -t -0 "${formatter[@]}"
 }
 
