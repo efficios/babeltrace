@@ -8,14 +8,11 @@ expected_formatter_major_version=15
 
 # Runs the formatter, making sure it's the expected version.
 format_cpp() {
-	local formatter=$1
+	local formatter=("$@")
 	local version
 
-	version=$($formatter --version)
-
-        # shellcheck disable=SC2181
-	if (($? != 0)); then
-		echo "Cannot execute \`$formatter --version\`." >&2
+	if ! version=$("${formatter[@]}" --version); then
+		echo "Cannot execute \`${formatter[*]} --version\`." >&2
 		return 1
 	fi
 
@@ -34,25 +31,23 @@ format_cpp() {
 
 	# Using xargs to fail as soon as the formatter fails (`-exec`
 	# won't stop if its subprocess fails).
-	#
-	# shellcheck disable=SC2086
 	find "$root_dir" \( -name '*.cpp' -o -name '*.hpp' \) \
 		! -wholename '*/cpp-common/optional.hpp' \
 		! -wholename '*/cpp-common/string_view.hpp' \
 		! -wholename '*/cpp-common/nlohmann/json.hpp' \
-		-print0 | xargs -P$(nproc) -n1 -0 $formatter
+		-print0 | xargs -P"$(nproc)" -n1 -0 "${formatter[@]}"
 }
 
 if [[ -n "$FORMATTER" ]]; then
 	# Try using environment-provided formatter
-	formatter=$FORMATTER
+	read -ra formatter <<< "$FORMATTER"
 elif command -v clang-format-$expected_formatter_major_version &> /dev/null; then
 	# Try using the expected version of clang-format
-	formatter="clang-format-$expected_formatter_major_version -i"
+	formatter=("clang-format-$expected_formatter_major_version" -i)
 else
 	# Try using `clang-format` as is
-	formatter='clang-format -i'
+	formatter=(clang-format -i)
 fi
 
 # Try to format files
-format_cpp "$formatter"
+format_cpp "${formatter[@]}"
