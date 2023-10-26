@@ -1683,11 +1683,17 @@ To automatically format all the project's {cpp} files, run:
 $ ./tools/format-cpp
 ----
 
+Pass a directory path to only format the {cpp} files it contains:
+
+----
+$ ./tools/format-cpp ./src/cli
+----
+
 Use the `FORMATTER` environment variable to override the default
 formatter (`clang-format{nbsp}-i`):
 
 ----
-$ FORMATTER='clang-format-10 -i' ./tools/format-cpp
+$ FORMATTER='my-clang-format-15 -i' ./tools/format-cpp
 ----
 
 ==== Naming

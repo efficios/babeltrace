@@ -2,12 +2,22 @@
 #
 # SPDX-License-Identifier: GPL-2.0-only
 #
-# Copyright (C) 2020-2022 Philippe Proulx <pproulx@efficios.com>
+# Copyright (C) 2020-2023 Philippe Proulx <pproulx@efficios.com>
 
 expected_formatter_major_version=15
 
-# Runs the formatter, making sure it's the expected version.
+# Runs the formatter, returning 1 if it's not the expected version.
+#
+# Argument 1:
+#     Starting directory.
+#
+# Remaining arguments:
+#     Formatter command.
 format_cpp() {
+	local root_dir=$1
+
+	shift
+
 	local formatter=("$@")
 	local version
 
@@ -28,19 +38,19 @@ format_cpp() {
 		return 1
 	fi
 
-	local root_dir
-
-	root_dir="$(dirname "${BASH_SOURCE[0]}")/.."
-
-	# Using xargs to fail as soon as the formatter fails (`-exec`
+	# Using xargs(1) to fail as soon as the formatter fails (`-exec`
 	# won't stop if its subprocess fails).
-	find "$root_dir" \( -name '*.cpp' -o -name '*.hpp' \) \
-		! -wholename '*/cpp-common/optional.hpp' \
-		! -wholename '*/cpp-common/string_view.hpp' \
-		! -wholename '*/cpp-common/nlohmann/json.hpp' \
+	#
+	# We want an absolute starting directory because find(1) excludes
+	# files in specific subdirectories.
+	find "$(realpath "$root_dir")" \( -name '*.cpp' -o -name '*.hpp' \) \
+		! -path '*/src/cpp-common/optional.hpp' \
+		! -path '*/src/cpp-common/string_view.hpp' \
+		! -path '*/src/cpp-common/nlohmann/json.hpp' \
 		-print0 | xargs -P"$(nproc)" -n1 -t -0 "${formatter[@]}"
 }
 
+# Choose formatter
 if [[ -n "$FORMATTER" ]]; then
 	# Try using environment-provided formatter
 	read -ra formatter <<< "$FORMATTER"
@@ -52,5 +62,18 @@ else
 	formatter=(clang-format -i)
 fi
 
+# Choose root directory
+if (($# == 1)); then
+	root_dir=$1
+
+	if [[ ! -d "$root_dir" ]]; then
+		echo "\`$root_dir\`: expecting an existing directory." >& 2
+		exit 1
+	fi
+else
+	# Default: root of the project, processing all C++ files
+	root_dir="$(dirname "${BASH_SOURCE[0]}")/.."
+fi
+
 # Try to format files
-format_cpp "${formatter[@]}"
+format_cpp "$root_dir" "${formatter[@]}"
