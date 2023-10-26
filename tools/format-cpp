@@ -17,11 +17,14 @@ format_cpp() {
 	fi
 
 	if [[ "$version" != *"clang-format version $expected_formatter_major_version"* ]]; then
-		echo "Expecting clang-format $expected_formatter_major_version." >&2
-		echo >&2
-		echo Got: >&2
-		echo >&2
-		echo "$version" >&2
+		{
+			echo "Expecting clang-format $expected_formatter_major_version."
+			echo
+			echo Got:
+			echo
+			echo "$version"
+		} >& 2
+
 		return 1
 	fi
 
