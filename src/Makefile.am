@@ -25,6 +25,7 @@ noinst_HEADERS = \
 	cpp-common/bt2/integer-range-set.hpp \
 	cpp-common/bt2/internal/utils.hpp \
 	cpp-common/bt2/logging.hpp \
+	cpp-common/bt2/message-array.hpp \
 	cpp-common/bt2/message.hpp \
 	cpp-common/bt2/shared-object.hpp \
 	cpp-common/bt2/raw-value-proxy.hpp \
