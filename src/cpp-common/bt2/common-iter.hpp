@@ -88,6 +88,7 @@ private:
     ContainerT _mContainer;
     uint64_t _mIdx;
 };
+
 } /* namespace bt2 */
 
 #endif /* BABELTRACE_CPP_COMMON_BT2_COMMON_ITER_HPP */
