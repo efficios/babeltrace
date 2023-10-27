@@ -20,7 +20,6 @@
 #include "shared-object.hpp"
 
 namespace bt2 {
-
 namespace internal {
 
 template <typename LibObjT>

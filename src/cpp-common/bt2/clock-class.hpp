@@ -24,7 +24,6 @@
 #include "value.hpp"
 
 namespace bt2 {
-
 namespace internal {
 
 struct ClockClassRefFuncs final

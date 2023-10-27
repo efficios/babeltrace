@@ -15,7 +15,6 @@
 #include "borrowed-object.hpp"
 
 namespace bt2 {
-
 namespace internal {
 
 template <typename ValueT>
