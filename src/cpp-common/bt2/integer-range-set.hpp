@@ -13,7 +13,7 @@
 #include <babeltrace2/babeltrace.h>
 
 #include "borrowed-object.hpp"
-#include "common-iter.hpp"
+#include "common-iterator.hpp"
 #include "exc.hpp"
 #include "integer-range.hpp"
 #include "internal/utils.hpp"

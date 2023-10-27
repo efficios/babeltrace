@@ -17,7 +17,7 @@
 #include "cpp-common/string_view.hpp"
 
 #include "borrowed-object.hpp"
-#include "common-iter.hpp"
+#include "common-iterator.hpp"
 #include "exc.hpp"
 #include "field-path.hpp"
 #include "integer-range-set.hpp"

@@ -14,7 +14,7 @@
 #include "common/assert.h"
 
 #include "borrowed-object.hpp"
-#include "common-iter.hpp"
+#include "common-iterator.hpp"
 #include "shared-object.hpp"
 
 namespace bt2 {
