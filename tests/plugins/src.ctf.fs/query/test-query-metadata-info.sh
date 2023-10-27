@@ -76,6 +76,7 @@ test_non_existent_trace_dir() {
 	ok $? "non existent trace dir: babeltrace produces the expected error message"
 
 	rm -f "${stdout_file}" "${stderr_file}"
+	rmdir "${empty_dir}"
 }
 
 plan_tests 7
