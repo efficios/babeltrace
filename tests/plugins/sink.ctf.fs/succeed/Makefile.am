@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: MIT
 
-dist_check_SCRIPTS = test_succeed
+dist_check_SCRIPTS = test-succeed.sh
 
 # CTF trace generators
 GEN_TRACE_LDADD = \

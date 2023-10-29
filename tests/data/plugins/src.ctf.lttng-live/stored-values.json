@@ -1,0 +1,25 @@
+[
+    {
+        "name": "stored-values",
+        "id": 2,
+        "hostname": "hostname",
+        "live-timer-freq": 1,
+        "client-count": 0,
+        "traces": [
+            {
+                "path": "stored-values",
+                "metadata-sections": [
+                    {
+                        "line": 1,
+                        "timestamp": 1
+                    },
+                    "empty",
+                    {
+                        "line": 37,
+                        "timestamp": 20
+                    }
+                ]
+            }
+        ]
+    }
+]

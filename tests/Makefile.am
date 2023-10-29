@@ -13,6 +13,7 @@ EXTRA_DIST = $(srcdir)/data \
 	     bindings/python/bt2/.coveragerc
 
 dist_check_SCRIPTS = \
+	bindings/python/bt2/test-python-bt2.sh \
 	bindings/python/bt2/test_clock_class.py \
 	bindings/python/bt2/test_component_class.py \
 	bindings/python/bt2/test_component.py \
@@ -30,7 +31,6 @@ dist_check_SCRIPTS = \
 	bindings/python/bt2/test_packet.py \
 	bindings/python/bt2/test_plugin.py \
 	bindings/python/bt2/test_port.py \
-	bindings/python/bt2/test_python_bt2 \
 	bindings/python/bt2/test_query_executor.py \
 	bindings/python/bt2/test_stream_class.py \
 	bindings/python/bt2/test_stream.py \
@@ -38,134 +38,134 @@ dist_check_SCRIPTS = \
 	bindings/python/bt2/test_trace.py \
 	bindings/python/bt2/test_value.py \
 	bindings/python/bt2/utils.py \
-	cli/convert/test_auto_source_discovery_grouping \
-	cli/convert/test_auto_source_discovery_params \
-	cli/convert/test_auto_source_discovery_log_level \
-	cli/convert/test_convert_args \
-	cli/list-plugins/test_list_plugins \
-	cli/params/test_params \
-	cli/query/test_query \
-	cli/test_exit_status \
-	cli/test_help \
-	cli/test_intersection \
-	cli/test_output_ctf_metadata \
-	cli/test_output_path_ctf_non_lttng_trace \
-	cli/test_packet_seq_num \
-	cli/test_trace_copy \
-	cli/test_trace_read \
-	cli/test_trimmer \
-	plugins/sink.text.details/succeed/test_succeed \
-	plugins/sink.text.pretty/test_enum \
+	cli/convert/test-auto-source-discovery-grouping.sh \
+	cli/convert/test-auto-source-discovery-params.sh \
+	cli/convert/test-auto-source-discovery-log-level.sh \
+	cli/convert/test-convert-args.sh \
+	cli/list-plugins/test-list-plugins.sh \
+	cli/params/test-params.sh \
+	cli/query/test-query.sh \
+	cli/test-exit-status.sh \
+	cli/test-help.sh \
+	cli/test-intersection.sh \
+	cli/test-output-ctf-metadata.sh \
+	cli/test-output-path-ctf-non-lttng-trace.sh \
+	cli/test-packet-seq-num.sh \
+	cli/test-trace-copy.sh \
+	cli/test-trace-read.sh \
+	cli/test-trimmer.sh \
+	plugins/sink.text.details/succeed/test-succeed.sh \
+	plugins/sink.text.pretty/test-enum.sh \
 	plugins/sink.text.pretty/test_pretty.py \
-	plugins/sink.text.pretty/test_pretty_python \
-	plugins/src.ctf.lttng-live/test_live \
+	plugins/sink.text.pretty/test-pretty-python.sh \
+	plugins/src.ctf.lttng-live/test-live.sh \
 	python-plugin-provider/bt_plugin_test_python_plugin_provider.py \
-	python-plugin-provider/test_python_plugin_provider \
+	python-plugin-provider/test-python-plugin-provider.sh \
 	python-plugin-provider/test_python_plugin_provider.py
 
 TESTS_BINDINGS =
 
 if ENABLE_PYTHON_BINDINGS
-TESTS_BINDINGS += bindings/python/bt2/test_python_bt2
+TESTS_BINDINGS += bindings/python/bt2/test-python-bt2.sh
 endif
 
 TESTS_CLI = \
-	cli/convert/test_convert_args \
-	cli/test_help \
-	cli/test_intersection \
-	cli/test_output_ctf_metadata \
-	cli/test_output_path_ctf_non_lttng_trace \
-	cli/test_packet_seq_num \
-	cli/test_trace_copy \
-	cli/test_trace_read \
-	cli/test_trimmer
+	cli/convert/test-convert-args.sh \
+	cli/test-help.sh \
+	cli/test-intersection.sh \
+	cli/test-output-ctf-metadata.sh \
+	cli/test-output-path-ctf-non-lttng-trace.sh \
+	cli/test-packet-seq-num.sh \
+	cli/test-trace-copy.sh \
+	cli/test-trace-read.sh \
+	cli/test-trimmer.sh
 
 TESTS_LIB = \
-	lib/test_bt_uuid \
-	lib/test_bt_values \
-	lib/test_fields \
-	lib/test_graph_topo \
-	lib/test_remove_destruction_listener_in_destruction_listener \
-	lib/test_simple_sink \
-	lib/test_trace_ir_ref
+	lib/test-bt-uuid \
+	lib/test-bt-values \
+	lib/test-fields.sh \
+	lib/test-graph-topo \
+	lib/test-remove-destruction-listener-in-destruction-listener \
+	lib/test-simple-sink \
+	lib/test-trace-ir-ref
 
 TESTS_BITFIELD = \
-	bitfield/test_bitfield
+	bitfield/test-bitfield
 
 TESTS_CTF_WRITER = \
-	ctf-writer/test_ctf_writer
+	ctf-writer/test-ctf-writer.sh
 
 if !ENABLE_BUILT_IN_PLUGINS
-TESTS_LIB += lib/test_plugin
+TESTS_LIB += lib/test-plugin.sh
 endif
 
 TESTS_PLUGINS = \
-	plugins/src.ctf.fs/fail/test_fail \
-	plugins/src.ctf.fs/succeed/test_succeed \
-	plugins/src.ctf.fs/test_deterministic_ordering \
-	plugins/sink.ctf.fs/succeed/test_succeed \
-	plugins/sink.text.details/succeed/test_succeed
+	plugins/src.ctf.fs/fail/test-fail.sh \
+	plugins/src.ctf.fs/succeed/test-succeed.sh \
+	plugins/src.ctf.fs/test-deterministic-ordering.sh \
+	plugins/sink.ctf.fs/succeed/test-succeed.sh \
+	plugins/sink.text.details/succeed/test-succeed.sh
 
 if !ENABLE_BUILT_IN_PLUGINS
 if ENABLE_PYTHON_BINDINGS
-TESTS_PLUGINS += plugins/src.ctf.fs/query/test_query_support_info
-TESTS_PLUGINS += plugins/src.ctf.fs/query/test_query_trace_info
-TESTS_PLUGINS += plugins/src.ctf.fs/query/test_query_metadata_info
-TESTS_PLUGINS += plugins/sink.ctf.fs/test_assume_single_trace
-TESTS_PLUGINS += plugins/sink.ctf.fs/test_stream_names
+TESTS_PLUGINS += plugins/src.ctf.fs/query/test-query-support-info.sh
+TESTS_PLUGINS += plugins/src.ctf.fs/query/test-query-trace-info.sh
+TESTS_PLUGINS += plugins/src.ctf.fs/query/test-query-metadata-info.sh
+TESTS_PLUGINS += plugins/sink.ctf.fs/test-assume-single-trace.sh
+TESTS_PLUGINS += plugins/sink.ctf.fs/test-stream-names.sh
 endif
 endif
 
 if ENABLE_DEBUG_INFO
 TESTS_PLUGINS += \
-	plugins/flt.lttng-utils.debug-info/test_dwarf_i386-linux-gnu \
-	plugins/flt.lttng-utils.debug-info/test_dwarf_powerpc-linux-gnu \
-	plugins/flt.lttng-utils.debug-info/test_dwarf_powerpc64le-linux-gnu \
-	plugins/flt.lttng-utils.debug-info/test_dwarf_x86_64-linux-gnu \
-	plugins/flt.lttng-utils.debug-info/test_bin_info_i386-linux-gnu \
-	plugins/flt.lttng-utils.debug-info/test_bin_info_powerpc-linux-gnu \
-	plugins/flt.lttng-utils.debug-info/test_bin_info_powerpc64le-linux-gnu \
-	plugins/flt.lttng-utils.debug-info/test_bin_info_x86_64-linux-gnu
+	plugins/flt.lttng-utils.debug-info/test-dwarf-i386-linux-gnu.sh \
+	plugins/flt.lttng-utils.debug-info/test-dwarf-powerpc-linux-gnu.sh \
+	plugins/flt.lttng-utils.debug-info/test-dwarf-powerpc64le-linux-gnu.sh \
+	plugins/flt.lttng-utils.debug-info/test-dwarf-x86-64-linux-gnu.sh \
+	plugins/flt.lttng-utils.debug-info/test-bin-info-i386-linux-gnu.sh \
+	plugins/flt.lttng-utils.debug-info/test-bin-info-powerpc-linux-gnu.sh \
+	plugins/flt.lttng-utils.debug-info/test-bin-info-powerpc64le-linux-gnu.sh \
+	plugins/flt.lttng-utils.debug-info/test-bin-info-x86-64-linux-gnu.sh
 endif
 
 if ENABLE_PYTHON_PLUGINS
 if ENABLE_PYTHON_BINDINGS
 TESTS_CLI += \
-	cli/convert/test_auto_source_discovery_grouping \
-	cli/convert/test_auto_source_discovery_log_level \
-	cli/convert/test_auto_source_discovery_params \
-	cli/list-plugins/test_list_plugins \
-	cli/params/test_params \
-	cli/query/test_query \
-	cli/test_exit_status
+	cli/convert/test-auto-source-discovery-grouping.sh \
+	cli/convert/test-auto-source-discovery-log-level.sh \
+	cli/convert/test-auto-source-discovery-params.sh \
+	cli/list-plugins/test-list-plugins.sh \
+	cli/params/test-params.sh \
+	cli/query/test-query.sh \
+	cli/test-exit-status.sh
 
-TESTS_PLUGINS += plugins/flt.utils.trimmer/test_trimming \
-	plugins/flt.utils.muxer/succeed/test_succeed \
-	plugins/sink.text.pretty/test_enum
+TESTS_PLUGINS += plugins/flt.utils.trimmer/test-trimming.sh \
+	plugins/flt.utils.muxer/succeed/test-succeed.sh \
+	plugins/sink.text.pretty/test-enum.sh
 endif
 endif
 
 if HAVE_PYTHON
-TESTS_PLUGINS += plugins/src.ctf.lttng-live/test_live
+TESTS_PLUGINS += plugins/src.ctf.lttng-live/test-live.sh
 
 if DEV_MODE
-TESTS_LIB += lib/conds/test_conds
+TESTS_LIB += lib/conds/test-conds.sh
 endif
 endif
 
 TESTS_PYTHON_PLUGIN_PROVIDER =
 
 if ENABLE_PYTHON_PLUGINS
-TESTS_PYTHON_PLUGIN_PROVIDER += python-plugin-provider/test_python_plugin_provider
-TESTS_PLUGINS += plugins/sink.text.pretty/test_pretty_python
+TESTS_PYTHON_PLUGIN_PROVIDER += python-plugin-provider/test-python-plugin-provider.sh
+TESTS_PLUGINS += plugins/sink.text.pretty/test-pretty-python.sh
 if ENABLE_DEBUG_INFO
 TESTS_PLUGINS += \
-	plugins/flt.lttng-utils.debug-info/test_succeed
+	plugins/flt.lttng-utils.debug-info/test-succeed.sh
 endif
 endif
 
 TESTS_PARAM_VALIDATION = \
-	param-validation/test_param_validation
+	param-validation/test-param-validation
 
 LOG_DRIVER_FLAGS = --merge --comments
 LOG_DRIVER = env AM_TAP_AWK='$(AWK)' \

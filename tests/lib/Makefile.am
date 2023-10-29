@@ -34,22 +34,22 @@ test_remove_destruction_listener_in_destruction_listener_LDADD = \
 	$(top_builddir)/src/lib/libbabeltrace2.la
 
 noinst_PROGRAMS = \
-	test_bt_uuid \
-	test_bt_values \
-	test_graph_topo \
-	test_fields_bin \
-	test_remove_destruction_listener_in_destruction_listener \
-	test_simple_sink \
-	test_trace_ir_ref
+	test-bt-uuid \
+	test-bt-values \
+	test-graph-topo \
+	test-fields-bin \
+	test-remove-destruction-listener-in-destruction-listener \
+	test-simple-sink \
+	test-trace-ir-ref
 
-test_bt_values_SOURCES = test_bt_values.c
-test_fields_bin_SOURCES = test_fields_bin.cpp
-test_simple_sink_SOURCES = test_simple_sink.c
-test_bt_uuid_SOURCES = test_bt_uuid.c
-test_trace_ir_ref_SOURCES = test_trace_ir_ref.c
-test_graph_topo_SOURCES = test_graph_topo.c
+test_bt_values_SOURCES = test-bt-values.c
+test_fields_bin_SOURCES = test-fields-bin.cpp
+test_simple_sink_SOURCES = test-simple-sink.c
+test_bt_uuid_SOURCES = test-bt-uuid.c
+test_trace_ir_ref_SOURCES = test-trace-ir-ref.c
+test_graph_topo_SOURCES = test-graph-topo.c
 test_remove_destruction_listener_in_destruction_listener_SOURCES = \
-	test_remove_destruction_listener_in_destruction_listener.c
+	test-remove-destruction-listener-in-destruction-listener.c
 
 if !ENABLE_BUILT_IN_PLUGINS
 noinst_PROGRAMS += plugin
@@ -59,7 +59,7 @@ plugin_SOURCES = plugin.c
 SUBDIRS += test-plugin-plugins
 endif
 
-dist_check_SCRIPTS = test_plugin test_fields
+dist_check_SCRIPTS = test-plugin.sh test-fields.sh
 
 if HAVE_PYTHON
 if DEV_MODE

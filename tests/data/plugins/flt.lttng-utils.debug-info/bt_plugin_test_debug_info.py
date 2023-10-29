@@ -7,7 +7,7 @@ import math
 
 import bt2
 
-bt2.register_plugin(__name__, "test_debug_info")
+bt2.register_plugin(__name__, "test-debug-info")
 
 
 class CompleteIter(bt2._UserMessageIterator):

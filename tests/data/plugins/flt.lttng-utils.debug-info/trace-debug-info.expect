@@ -89,7 +89,7 @@ Event `lttng_ust_statedump:bin_info` (Class ID 0):
   Payload:
     baddr: 0x7f09:b7f9:8000
     memsz: 2,114,208
-    path: /libhello_so
+    path: /libhello-so
     is_pic: 1
     has_build_id: 1
     has_debug_link: 0
@@ -101,7 +101,7 @@ Event `my_provider:my_first_tracepoint` (Class ID 1):
     vpid: 9746
     ip: 0x7f09:b7f9:a349
     debug_info:
-      bin: libhello_so+0x2349
+      bin: libhello-so+0x2349
       func: foo+0xd2
       src: libhello.c:35
   Payload:
@@ -115,7 +115,7 @@ Event `my_provider:my_first_tracepoint` (Class ID 1):
     vpid: 9746
     ip: 0x7f09:b7f9:a448
     debug_info:
-      bin: libhello_so+0x2448
+      bin: libhello-so+0x2448
       func: bar+0xd2
       src: libhello.c:41
   Payload:

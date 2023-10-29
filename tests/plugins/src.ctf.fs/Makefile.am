@@ -3,10 +3,10 @@
 SUBDIRS = succeed
 
 dist_check_SCRIPTS = \
-	fail/test_fail \
-	query/test_query_metadata_info \
-	query/test_query_support_info \
+	fail/test-fail.sh \
+	query/test-query-metadata-info.sh \
+	query/test-query-support-info.sh \
 	query/test_query_support_info.py \
-	query/test_query_trace_info \
+	query/test-query-trace-info.sh \
 	query/test_query_trace_info.py \
-	test_deterministic_ordering
+	test-deterministic-ordering.sh

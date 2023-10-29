@@ -228,8 +228,8 @@ bt_diff_cli() {
 	local ret_stdout
 	local ret_stderr
 
-	temp_stdout_output_file="$(mktemp -t actual_stdout.XXXXXX)"
-	temp_stderr_output_file="$(mktemp -t actual_stderr.XXXXXX)"
+	temp_stdout_output_file="$(mktemp -t actual-stdout.XXXXXX)"
+	temp_stderr_output_file="$(mktemp -t actual-stderr.XXXXXX)"
 
 	# Run the CLI to get a detailed file.
 	bt_cli "$temp_stdout_output_file" "$temp_stderr_output_file" "${args[@]}"

@@ -1,0 +1,27 @@
+[
+    {
+       "name": "split-metadata",
+        "id": 0,
+        "hostname": "hostname",
+        "live-timer-freq": 1,
+        "client-count": 0,
+        "traces": [
+            {
+                "path": "live/split-metadata/",
+                "beacons": {
+                },
+                "metadata-sections": [
+                  {
+                    "line": 1,
+                    "timestamp": 443073474574097
+                  },
+                  "empty",
+                  {
+                    "line": 112,
+                    "timestamp": 443087407631276
+                  }
+                ]
+            }
+        ]
+    }
+]

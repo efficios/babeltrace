@@ -432,18 +432,18 @@ class DiffInactivityMsgCs:
 
 
 TEST_CASES = {
-    "diff_trace_name": DiffTraceName,
-    "diff_event_class_name": DiffEventClassName,
-    "diff_event_class_id": DiffEventClassId,
-    "diff_stream_name": DiffStreamName,
-    "diff_stream_no_name": DiffStreamNoName,
-    "diff_stream_id": DiffStreamId,
-    "diff_stream_class_id": DiffStreamClassId,
-    "diff_stream_class_name": DiffStreamClassName,
-    "diff_stream_class_no_name": DiffStreamClassNoName,
-    "diff_inactivity_msg_cs": DiffInactivityMsgCs,
-    "basic_timestamp_ordering": BasicTimestampOrdering,
-    "multi_iter_ordering": MultiIterOrdering,
+    "diff-trace-name": DiffTraceName,
+    "diff-event-class-name": DiffEventClassName,
+    "diff-event-class-id": DiffEventClassId,
+    "diff-stream-name": DiffStreamName,
+    "diff-stream-no-name": DiffStreamNoName,
+    "diff-stream-id": DiffStreamId,
+    "diff-stream-class-id": DiffStreamClassId,
+    "diff-stream-class-name": DiffStreamClassName,
+    "diff-stream-class-no-name": DiffStreamClassNoName,
+    "diff-inactivity-msg-cs": DiffInactivityMsgCs,
+    "basic-timestamp-ordering": BasicTimestampOrdering,
+    "multi-iter-ordering": MultiIterOrdering,
 }
 
 bt2.register_plugin(__name__, "test-muxer")

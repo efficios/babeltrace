@@ -14,4 +14,4 @@ conds_triggers_LDADD = \
 
 noinst_PROGRAMS = conds-triggers
 
-dist_check_SCRIPTS = test_conds test.py
+dist_check_SCRIPTS = test-conds.sh test.py

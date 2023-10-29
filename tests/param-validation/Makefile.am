@@ -2,8 +2,8 @@
 
 AM_CPPFLAGS += -I$(top_srcdir)/tests/utils
 
-noinst_PROGRAMS = test_param_validation
-test_param_validation_SOURCES = test_param_validation.c
+noinst_PROGRAMS = test-param-validation
+test_param_validation_SOURCES = test-param-validation.c
 test_param_validation_LDADD = \
 	$(top_builddir)/src/param-parse/libparam-parse.la \
 	$(top_builddir)/src/plugins/common/param-validation/libbabeltrace2-param-validation.la \

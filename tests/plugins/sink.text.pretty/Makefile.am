@@ -1,3 +1,3 @@
 dist_check_SCRIPTS = \
-	test_pretty_python \
-	test_enum
+	test-pretty-python.sh \
+	test-enum.sh
