@@ -7,6 +7,7 @@
 
 import os
 import re
+import time
 import socket
 import struct
 import logging
@@ -1788,13 +1789,41 @@ class LttngLiveServer:
         ) as tmp_port_file:
             print(self._server_port, end="", file=tmp_port_file)
 
-        # Rename temporary file to real file
-        os.replace(tmp_port_file.name, port_filename)
-        logging.info(
-            'Renamed port file: src-path="{}", dst-path="{}"'.format(
-                tmp_port_file.name, port_filename
-            )
-        )
+        # Rename temporary file to real file.
+        #
+        # For unknown reasons, on Windows, moving the port file from its
+        # temporary location to its final location (where the user of
+        # the server expects it to appear) may raise a `PermissionError`
+        # exception.
+        #
+        # We suppose it's possible that something in the Windows kernel
+        # hasn't completely finished using the file when we try to move
+        # it.
+        #
+        # Use a wait-and-retry scheme as a (bad) workaround.
+        num_attempts = 5
+        retry_delay_s = 1
+
+        for attempt in reversed(range(num_attempts)):
+            try:
+                os.replace(tmp_port_file.name, port_filename)
+                logging.info(
+                    'Renamed port file: src-path="{}", dst-path="{}"'.format(
+                        tmp_port_file.name, port_filename
+                    )
+                )
+                return
+            except PermissionError:
+                logging.info(
+                    'Permission error while attempting to rename port file; retrying in {} second: src-path="{}", dst-path="{}"'.format(
+                        retry_delay_s, tmp_port_file.name, port_filename
+                    )
+                )
+
+                if attempt == 0:
+                    raise
+
+                time.sleep(retry_delay_s)
 
 
 def _session_descriptors_from_path(
