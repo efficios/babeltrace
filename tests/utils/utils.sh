@@ -309,7 +309,7 @@ check_coverage() {
 run_python() {
 	local our_pythonpath="${BT_TESTS_SRCDIR}/utils/python"
 
-	if [[ $BT_TESTS_PYTHON_VERSION = 3.4 ]]; then
+	if [[ $BT_TESTS_PYTHON_VERSION =~ 3.[45] ]]; then
 		# Add a local directory containing a `typing.py` to `PYTHONPATH` for
 		# Python 3.4 which doesn't offer the `typing` module.
 		our_pythonpath="$our_pythonpath:${BT_TESTS_SRCDIR}/utils/python/typing"
