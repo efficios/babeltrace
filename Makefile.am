@@ -26,5 +26,5 @@ EXTRA_DIST = \
 	LICENSES/LGPL-2.1 \
 	LICENSES/MIT \
 	std-ext-lib.txt \
-	tools/format-cpp \
+	tools/format-cpp.sh \
 	version
