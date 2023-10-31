@@ -9,7 +9,7 @@
 
 #define BT_LOG_OUTPUT_LEVEL ctf_plugin_metadata_log_level
 #define BT_LOG_TAG "PLUGIN/CTF/META/PARSER"
-#include "logging.hpp"
+#include "plugins/ctf/common/metadata/logging.hpp"
 
 #include <stdio.h>
 #include <ctype.h>
@@ -22,11 +22,11 @@
 #include <inttypes.h>
 #include "common/list.h"
 #include "common/assert.h"
-#include "scanner.hpp"
-#include "ast.hpp"
-#include "objstack.hpp"
+#include "plugins/ctf/common/metadata/scanner.hpp"
+#include "plugins/ctf/common/metadata/ast.hpp"
+#include "plugins/ctf/common/metadata/objstack.hpp"
 
-#include "parser-wrap.hpp"
+#include "plugins/ctf/common/metadata/parser-wrap.hpp"
 
 /*
  * Avoid warning about "yynerrs" being unused, seen with bison 3.5.1 + clang 15

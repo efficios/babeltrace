@@ -5,9 +5,11 @@
 SUBDIRS = \
 	common \
 	. \
-	plugins \
-	cli \
-	bindings
+	cli
+
+if ENABLE_PYTHON_BINDINGS
+SUBDIRS += bindings/python/bt2
+endif
 
 noinst_HEADERS = \
 	cpp-common/bt2/clock-class.hpp \
@@ -62,6 +64,10 @@ noinst_LTLIBRARIES = \
 	fd-cache/libfd-cache.la \
 	logging/liblogging.la \
 	param-parse/libparam-parse.la \
+	plugins/common/muxing/libmuxing.la \
+	plugins/common/param-validation/libparam-validation.la \
+	plugins/ctf/common/metadata/libctf-ast.la \
+	plugins/ctf/common/metadata/libctf-parser.la \
 	string-format/libstring-format.la
 
 argpar_libargpar_la_SOURCES = \
@@ -113,6 +119,119 @@ string_format_libstring_format_la_SOURCES = \
 	string-format/format-error.c \
 	string-format/format-error.h
 
+plugins_common_muxing_libmuxing_la_SOURCES = \
+	plugins/common/muxing/muxing.c \
+	plugins/common/muxing/muxing.h
+
+plugins_common_param_validation_libparam_validation_la_SOURCES = \
+	plugins/common/param-validation/param-validation.c \
+	plugins/common/param-validation/param-validation.h
+
+# Set flags for the Bison based metadata parser
+#  -t : instrument the parser
+#  -d : produce a header
+#  -v : verbose
+#  -Wno-yacc : disable POSIX Yacc incompatibilities warnings
+AM_YFLAGS = \
+	-t -d -v -Wno-yacc
+
+plugins_ctf_common_metadata_libctf_parser_la_SOURCES = \
+	plugins/ctf/common/metadata/lexer.lpp \
+	plugins/ctf/common/metadata/parser.ypp \
+	plugins/ctf/common/metadata/objstack.cpp
+
+# scanner-symbols.h is included to prefix generated yy_* symbols with bt_.
+plugins_ctf_common_metadata_libctf_parser_la_CPPFLAGS = \
+	$(AM_CPPFLAGS) \
+	-include $(srcdir)/plugins/ctf/common/metadata/scanner-symbols.hpp
+
+# This library contains (mostly) generated code, silence some warnings that it
+# produces.
+plugins_ctf_common_metadata_libctf_parser_la_CXXFLAGS = \
+	$(AM_CXXFLAGS) \
+	-Wno-unused-function \
+	-Wno-null-dereference \
+	-Wno-missing-field-initializers \
+	-Wno-unused-parameter
+
+plugins_ctf_common_metadata_libctf_ast_la_SOURCES = \
+	plugins/ctf/common/metadata/visitor-generate-ir.cpp \
+	plugins/ctf/common/metadata/visitor-semantic-validator.cpp \
+	plugins/ctf/common/metadata/visitor-parent-links.cpp \
+	plugins/ctf/common/metadata/ast.hpp \
+	plugins/ctf/common/metadata/objstack.hpp \
+	plugins/ctf/common/metadata/parser.hpp \
+	plugins/ctf/common/metadata/parser-wrap.hpp \
+	plugins/ctf/common/metadata/scanner.hpp \
+	plugins/ctf/common/metadata/scanner-symbols.hpp \
+	plugins/ctf/common/metadata/decoder.cpp \
+	plugins/ctf/common/metadata/decoder.hpp \
+	plugins/ctf/common/metadata/decoder-packetized-file-stream-to-buf.cpp \
+	plugins/ctf/common/metadata/decoder-packetized-file-stream-to-buf.hpp \
+	plugins/ctf/common/metadata/logging.cpp \
+	plugins/ctf/common/metadata/logging.hpp \
+	plugins/ctf/common/metadata/ctf-meta.hpp \
+	plugins/ctf/common/metadata/ctf-meta-visitors.hpp \
+	plugins/ctf/common/metadata/ctf-meta-validate.cpp \
+	plugins/ctf/common/metadata/ctf-meta-update-meanings.cpp \
+	plugins/ctf/common/metadata/ctf-meta-update-in-ir.cpp \
+	plugins/ctf/common/metadata/ctf-meta-update-default-clock-classes.cpp \
+	plugins/ctf/common/metadata/ctf-meta-update-text-array-sequence.cpp \
+	plugins/ctf/common/metadata/ctf-meta-update-alignments.cpp \
+	plugins/ctf/common/metadata/ctf-meta-update-value-storing-indexes.cpp \
+	plugins/ctf/common/metadata/ctf-meta-update-stream-class-config.cpp \
+	plugins/ctf/common/metadata/ctf-meta-warn-meaningless-header-fields.cpp \
+	plugins/ctf/common/metadata/ctf-meta-translate.cpp \
+	plugins/ctf/common/metadata/ctf-meta-resolve.cpp \
+	plugins/ctf/common/metadata/ctf-meta-configure-ir-trace.cpp \
+	plugins/ctf/common/metadata/ctf-meta-configure-ir-trace.hpp
+
+if BABELTRACE_BUILD_WITH_MINGW
+plugins_ctf_common_metadata_libctf_ast_la_LIBADD = -lintl -liconv -lole32
+endif
+
+BUILT_SOURCES = \
+	plugins/ctf/common/metadata/parser.hpp
+
+# Start with empty files to clean
+CLEANFILES =
+ALL_LOCAL =
+
+if HAVE_BISON
+# We have bison: we can clean the generated parser files
+CLEANFILES += \
+	plugins/ctf/common/metadata/parser.cpp \
+	plugins/ctf/common/metadata/parser.hpp \
+	plugins/ctf/common/metadata/parser.output
+else # HAVE_BISON
+# Create target used to stop the build if we want to build the parser,
+# but we don't have the necessary tool to do so
+plugins/ctf/common/metadata/parser.cpp plugins/ctf/common/metadata/parser.hpp: plugins/ctf/common/metadata/parser.ypp
+	@echo "Error: Cannot build target because bison is missing."
+	@echo "Make sure bison is installed and run the configure script again."
+	@false
+
+ALL_LOCAL += \
+	plugins/ctf/common/metadata/parser.cpp \
+	plugins/ctf/common/metadata/parser.hpp
+endif # HAVE_BISON
+
+if HAVE_FLEX
+# We have flex: we can clean the generated lexer files
+CLEANFILES += plugins/ctf/common/metadata/lexer.cpp
+else # HAVE_FLEX
+# Create target used to stop the build if we want to build the lexer,
+# but we don't have the necessary tool to do so
+plugins/ctf/common/metadata/lexer.cpp: plugins/ctf/common/metadata/lexer.lpp
+	@echo "Error: Cannot build target because flex is missing."
+	@echo "Make sure flex is installed and run the configure script again."
+	@false
+
+ALL_LOCAL += plugins/ctf/common/metadata/lexer.cpp
+endif # HAVE_FLEX
+
+all-local: $(ALL_LOCAL)
+
 if ENABLE_PYTHON_COMMON_DEPS
 noinst_LTLIBRARIES += py-common/libpy-common.la
 
@@ -125,6 +244,35 @@ py_common_libpy_common_la_CPPFLAGS = \
 	$(PYTHON_INCLUDE)
 
 endif # ENABLE_PYTHON_COMMON_DEPS
+
+if ENABLE_DEBUG_INFO
+noinst_LTLIBRARIES += plugins/lttng-utils/debug-info/libdebug-info.la
+
+plugins_lttng_utils_debug_info_libdebug_info_la_SOURCES = \
+	plugins/lttng-utils/debug-info/bin-info.c \
+	plugins/lttng-utils/debug-info/bin-info.h \
+	plugins/lttng-utils/debug-info/crc32.c \
+	plugins/lttng-utils/debug-info/crc32.h \
+	plugins/lttng-utils/debug-info/debug-info.c \
+	plugins/lttng-utils/debug-info/debug-info.h \
+	plugins/lttng-utils/debug-info/dwarf.c \
+	plugins/lttng-utils/debug-info/dwarf.h \
+	plugins/lttng-utils/debug-info/trace-ir-data-copy.c \
+	plugins/lttng-utils/debug-info/trace-ir-data-copy.h \
+	plugins/lttng-utils/debug-info/trace-ir-mapping.c \
+	plugins/lttng-utils/debug-info/trace-ir-mapping.h \
+	plugins/lttng-utils/debug-info/trace-ir-metadata-copy.c \
+	plugins/lttng-utils/debug-info/trace-ir-metadata-copy.h \
+	plugins/lttng-utils/debug-info/trace-ir-metadata-field-class-copy.c \
+	plugins/lttng-utils/debug-info/trace-ir-metadata-field-class-copy.h \
+	plugins/lttng-utils/debug-info/utils.c \
+	plugins/lttng-utils/debug-info/utils.h
+
+plugins_lttng_utils_debug_info_libdebug_info_la_LIBADD = \
+	fd-cache/libfd-cache.la
+
+endif # ENABLE_DEBUG_INFO
+
 
 #
 # Public libraries
@@ -346,3 +494,163 @@ python_plugin_provider_babeltrace2_python_plugin_provider_la_LIBADD += \
 	lib/libbabeltrace2.la
 endif
 endif # ENABLE_PYTHON_PLUGINS
+
+#
+# Plugins
+#
+
+plugindir = "$(BABELTRACE_PLUGINS_DIR)"
+plugin_LTLIBRARIES = \
+	plugins/ctf/babeltrace-plugin-ctf.la \
+	plugins/text/babeltrace-plugin-text.la \
+	plugins/utils/babeltrace-plugin-utils.la
+
+
+# utils plugin
+plugins_utils_babeltrace_plugin_utils_la_SOURCES = \
+	plugins/utils/counter/counter.c \
+	plugins/utils/counter/counter.h \
+	plugins/utils/dummy/dummy.c \
+	plugins/utils/dummy/dummy.h \
+	plugins/utils/muxer/muxer.c \
+	plugins/utils/muxer/muxer.h \
+	plugins/utils/trimmer/trimmer.c \
+	plugins/utils/trimmer/trimmer.h \
+	plugins/utils/plugin.c
+
+plugins_utils_babeltrace_plugin_utils_la_LDFLAGS = \
+	$(AM_LDFLAGS) \
+	$(LT_NO_UNDEFINED) \
+	-avoid-version -module $(LD_NOTEXT)
+
+plugins_utils_babeltrace_plugin_utils_la_LIBADD = \
+	plugins/common/muxing/libmuxing.la
+
+if !ENABLE_BUILT_IN_PLUGINS
+plugins_utils_babeltrace_plugin_utils_la_LIBADD += \
+	lib/libbabeltrace2.la \
+	common/libbabeltrace2-common.la \
+	logging/liblogging.la \
+	plugins/common/param-validation/libparam-validation.la
+endif
+
+# ctf plugin
+plugins_ctf_babeltrace_plugin_ctf_la_SOURCES = \
+	plugins/ctf/common/bfcr/bfcr.cpp \
+	plugins/ctf/common/bfcr/bfcr.hpp \
+	plugins/ctf/common/msg-iter/msg-iter.cpp \
+	plugins/ctf/common/msg-iter/msg-iter.hpp \
+	plugins/ctf/common/print.hpp \
+	plugins/ctf/fs-sink/fs-sink.cpp \
+	plugins/ctf/fs-sink/fs-sink-ctf-meta.hpp \
+	plugins/ctf/fs-sink/fs-sink.hpp \
+	plugins/ctf/fs-sink/fs-sink-stream.cpp \
+	plugins/ctf/fs-sink/fs-sink-stream.hpp \
+	plugins/ctf/fs-sink/fs-sink-trace.cpp \
+	plugins/ctf/fs-sink/fs-sink-trace.hpp \
+	plugins/ctf/fs-sink/translate-ctf-ir-to-tsdl.cpp \
+	plugins/ctf/fs-sink/translate-ctf-ir-to-tsdl.hpp \
+	plugins/ctf/fs-sink/translate-trace-ir-to-ctf-ir.cpp \
+	plugins/ctf/fs-sink/translate-trace-ir-to-ctf-ir.hpp \
+	plugins/ctf/fs-src/data-stream-file.cpp \
+	plugins/ctf/fs-src/data-stream-file.hpp \
+	plugins/ctf/fs-src/file.cpp \
+	plugins/ctf/fs-src/file.hpp \
+	plugins/ctf/fs-src/fs.cpp \
+	plugins/ctf/fs-src/fs.hpp \
+	plugins/ctf/fs-src/lttng-index.hpp \
+	plugins/ctf/fs-src/metadata.cpp \
+	plugins/ctf/fs-src/metadata.hpp \
+	plugins/ctf/fs-src/query.cpp \
+	plugins/ctf/fs-src/query.hpp \
+	plugins/ctf/lttng-live/data-stream.cpp \
+	plugins/ctf/lttng-live/data-stream.hpp \
+	plugins/ctf/lttng-live/lttng-live.cpp \
+	plugins/ctf/lttng-live/lttng-live.hpp \
+	plugins/ctf/lttng-live/lttng-viewer-abi.hpp \
+	plugins/ctf/lttng-live/metadata.cpp \
+	plugins/ctf/lttng-live/metadata.hpp \
+	plugins/ctf/lttng-live/viewer-connection.cpp \
+	plugins/ctf/lttng-live/viewer-connection.hpp \
+	plugins/ctf/plugin.cpp
+
+plugins_ctf_babeltrace_plugin_ctf_la_LDFLAGS = \
+	$(AM_LDFLAGS) \
+	$(LT_NO_UNDEFINED) \
+	-avoid-version -module $(LD_NOTEXT)
+
+plugins_ctf_babeltrace_plugin_ctf_la_LIBADD = \
+	plugins/ctf/common/metadata/libctf-parser.la \
+	plugins/ctf/common/metadata/libctf-ast.la \
+	plugins/common/param-validation/libparam-validation.la
+
+if BABELTRACE_BUILD_WITH_MINGW
+plugins_ctf_babeltrace_plugin_ctf_la_LIBADD += -lws2_32
+endif
+
+if !ENABLE_BUILT_IN_PLUGINS
+plugins_ctf_babeltrace_plugin_ctf_la_LIBADD += \
+	lib/libbabeltrace2.la \
+	logging/liblogging.la \
+	plugins/common/muxing/libmuxing.la \
+	common/libbabeltrace2-common.la \
+	ctfser/libctfser.la
+endif
+
+# text plugin
+plugins_text_babeltrace_plugin_text_la_SOURCES = \
+	plugins/text/details/colors.h \
+	plugins/text/details/details.c \
+	plugins/text/details/details.h \
+	plugins/text/details/obj-lifetime-mgmt.c \
+	plugins/text/details/obj-lifetime-mgmt.h \
+	plugins/text/details/write.c \
+	plugins/text/details/write.h \
+	plugins/text/dmesg/dmesg.c \
+	plugins/text/dmesg/dmesg.h \
+	plugins/text/pretty/pretty.c \
+	plugins/text/pretty/pretty.h \
+	plugins/text/pretty/print.c \
+	plugins/text/plugin.c
+
+plugins_text_babeltrace_plugin_text_la_LDFLAGS = \
+	$(AM_LDFLAGS) \
+	$(LT_NO_UNDEFINED) \
+	-avoid-version -module $(LD_NOTEXT)
+
+plugins_text_babeltrace_plugin_text_la_LIBADD =
+
+if !ENABLE_BUILT_IN_PLUGINS
+plugins_text_babeltrace_plugin_text_la_LIBADD += \
+	lib/libbabeltrace2.la \
+	common/libbabeltrace2-common.la \
+	logging/liblogging.la \
+	compat/libcompat.la \
+	plugins/common/param-validation/libparam-validation.la
+endif
+
+# lttng-utils plugin
+if ENABLE_DEBUG_INFO
+plugin_LTLIBRARIES += \
+	plugins/lttng-utils/babeltrace-plugin-lttng-utils.la
+
+plugins_lttng_utils_babeltrace_plugin_lttng_utils_la_SOURCES = \
+	plugins/lttng-utils/plugin.c
+
+plugins_lttng_utils_babeltrace_plugin_lttng_utils_la_LDFLAGS = \
+	$(AM_LDFLAGS) \
+	$(LT_NO_UNDEFINED) \
+	-avoid-version -module $(LD_NOTEXT) \
+	$(ELFUTILS_LIBS)
+
+plugins_lttng_utils_babeltrace_plugin_lttng_utils_la_LIBADD = \
+	plugins/lttng-utils/debug-info/libdebug-info.la
+
+if !ENABLE_BUILT_IN_PLUGINS
+plugins_lttng_utils_babeltrace_plugin_lttng_utils_la_LIBADD += \
+	lib/libbabeltrace2.la \
+	common/libbabeltrace2-common.la \
+	logging/liblogging.la \
+	plugins/common/param-validation/libparam-validation.la
+endif # !ENABLE_BUILT_IN_PLUGINS
+endif # ENABLE_DEBUG_INFO

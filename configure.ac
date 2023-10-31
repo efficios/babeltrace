@@ -814,21 +814,12 @@ AC_CONFIG_FILES([
   Makefile
   src/babeltrace2-ctf-writer.pc
   src/babeltrace2.pc
-  src/bindings/Makefile
   src/bindings/python/bt2/bt2/version.py
   src/bindings/python/bt2/Makefile
   src/bindings/python/bt2/setup.py
-  src/bindings/python/Makefile
   src/cli/Makefile
   src/common/Makefile
   src/Makefile
-  src/plugins/common/Makefile
-  src/plugins/ctf/common/metadata/Makefile
-  src/plugins/ctf/Makefile
-  src/plugins/lttng-utils/Makefile
-  src/plugins/Makefile
-  src/plugins/text/Makefile
-  src/plugins/utils/Makefile
   tests/bitfield/Makefile
   tests/ctf-writer/Makefile
   tests/lib/Makefile
