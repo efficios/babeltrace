@@ -26,12 +26,12 @@ namespace internal {
 
 struct MessageRefFuncs final
 {
-    static void get(const bt_message * const libObjPtr)
+    static void get(const bt_message * const libObjPtr) noexcept
     {
         bt_message_get_ref(libObjPtr);
     }
 
-    static void put(const bt_message * const libObjPtr)
+    static void put(const bt_message * const libObjPtr) noexcept
     {
         bt_message_put_ref(libObjPtr);
     }

@@ -28,12 +28,12 @@ namespace internal {
 
 struct ClockClassRefFuncs final
 {
-    static void get(const bt_clock_class * const libObjPtr)
+    static void get(const bt_clock_class * const libObjPtr) noexcept
     {
         bt_clock_class_get_ref(libObjPtr);
     }
 
-    static void put(const bt_clock_class * const libObjPtr)
+    static void put(const bt_clock_class * const libObjPtr) noexcept
     {
         bt_clock_class_put_ref(libObjPtr);
     }

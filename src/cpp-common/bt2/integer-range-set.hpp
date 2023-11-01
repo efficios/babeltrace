@@ -28,12 +28,12 @@ struct IntegerRangeSetRefFuncs;
 template <>
 struct IntegerRangeSetRefFuncs<const bt_integer_range_set_unsigned> final
 {
-    static void get(const bt_integer_range_set_unsigned * const libObjPtr)
+    static void get(const bt_integer_range_set_unsigned * const libObjPtr) noexcept
     {
         bt_integer_range_set_unsigned_get_ref(libObjPtr);
     }
 
-    static void put(const bt_integer_range_set_unsigned * const libObjPtr)
+    static void put(const bt_integer_range_set_unsigned * const libObjPtr) noexcept
     {
         bt_integer_range_set_unsigned_put_ref(libObjPtr);
     }
@@ -42,12 +42,12 @@ struct IntegerRangeSetRefFuncs<const bt_integer_range_set_unsigned> final
 template <>
 struct IntegerRangeSetRefFuncs<const bt_integer_range_set_signed> final
 {
-    static void get(const bt_integer_range_set_signed * const libObjPtr)
+    static void get(const bt_integer_range_set_signed * const libObjPtr) noexcept
     {
         bt_integer_range_set_signed_get_ref(libObjPtr);
     }
 
-    static void put(const bt_integer_range_set_signed * const libObjPtr)
+    static void put(const bt_integer_range_set_signed * const libObjPtr) noexcept
     {
         bt_integer_range_set_signed_put_ref(libObjPtr);
     }

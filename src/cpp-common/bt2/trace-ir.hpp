@@ -261,12 +261,12 @@ struct TypeDescr<ConstEvent> : public EventTypeDescr
 
 struct PacketRefFuncs final
 {
-    static void get(const bt_packet * const libObjPtr)
+    static void get(const bt_packet * const libObjPtr) noexcept
     {
         bt_packet_get_ref(libObjPtr);
     }
 
-    static void put(const bt_packet * const libObjPtr)
+    static void put(const bt_packet * const libObjPtr) noexcept
     {
         bt_packet_put_ref(libObjPtr);
     }
@@ -425,12 +425,12 @@ namespace internal {
 
 struct StreamRefFuncs final
 {
-    static void get(const bt_stream * const libObjPtr)
+    static void get(const bt_stream * const libObjPtr) noexcept
     {
         bt_stream_get_ref(libObjPtr);
     }
 
-    static void put(const bt_stream * const libObjPtr)
+    static void put(const bt_stream * const libObjPtr) noexcept
     {
         bt_stream_put_ref(libObjPtr);
     }
@@ -643,12 +643,12 @@ namespace internal {
 
 struct TraceRefFuncs final
 {
-    static void get(const bt_trace * const libObjPtr)
+    static void get(const bt_trace * const libObjPtr) noexcept
     {
         bt_trace_get_ref(libObjPtr);
     }
 
-    static void put(const bt_trace * const libObjPtr)
+    static void put(const bt_trace * const libObjPtr) noexcept
     {
         bt_trace_put_ref(libObjPtr);
     }
@@ -980,12 +980,12 @@ namespace internal {
 
 struct EventClassRefFuncs final
 {
-    static void get(const bt_event_class * const libObjPtr)
+    static void get(const bt_event_class * const libObjPtr) noexcept
     {
         bt_event_class_get_ref(libObjPtr);
     }
 
-    static void put(const bt_event_class * const libObjPtr)
+    static void put(const bt_event_class * const libObjPtr) noexcept
     {
         bt_event_class_put_ref(libObjPtr);
     }
@@ -1320,12 +1320,12 @@ namespace internal {
 
 struct StreamClassRefFuncs final
 {
-    static void get(const bt_stream_class * const libObjPtr)
+    static void get(const bt_stream_class * const libObjPtr) noexcept
     {
         bt_stream_class_get_ref(libObjPtr);
     }
 
-    static void put(const bt_stream_class * const libObjPtr)
+    static void put(const bt_stream_class * const libObjPtr) noexcept
     {
         bt_stream_class_put_ref(libObjPtr);
     }
@@ -1855,12 +1855,12 @@ namespace internal {
 
 struct TraceClassRefFuncs final
 {
-    static void get(const bt_trace_class * const libObjPtr)
+    static void get(const bt_trace_class * const libObjPtr) noexcept
     {
         bt_trace_class_get_ref(libObjPtr);
     }
 
-    static void put(const bt_trace_class * const libObjPtr)
+    static void put(const bt_trace_class * const libObjPtr) noexcept
     {
         bt_trace_class_put_ref(libObjPtr);
     }

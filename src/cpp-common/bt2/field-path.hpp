@@ -111,12 +111,12 @@ namespace internal {
 
 struct FieldPathRefFuncs final
 {
-    static void get(const bt_field_path * const libObjPtr)
+    static void get(const bt_field_path * const libObjPtr) noexcept
     {
         bt_field_path_get_ref(libObjPtr);
     }
 
-    static void put(const bt_field_path * const libObjPtr)
+    static void put(const bt_field_path * const libObjPtr) noexcept
     {
         bt_field_path_put_ref(libObjPtr);
     }

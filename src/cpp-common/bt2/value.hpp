@@ -29,12 +29,12 @@ namespace internal {
 
 struct ValueRefFuncs final
 {
-    static void get(const bt_value * const libObjPtr)
+    static void get(const bt_value * const libObjPtr) noexcept
     {
         bt_value_get_ref(libObjPtr);
     }
 
-    static void put(const bt_value * const libObjPtr)
+    static void put(const bt_value * const libObjPtr) noexcept
     {
         bt_value_put_ref(libObjPtr);
     }

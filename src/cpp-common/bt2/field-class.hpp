@@ -30,12 +30,12 @@ namespace internal {
 
 struct FieldClassRefFuncs final
 {
-    static void get(const bt_field_class * const libObjPtr)
+    static void get(const bt_field_class * const libObjPtr) noexcept
     {
         bt_field_class_get_ref(libObjPtr);
     }
 
-    static void put(const bt_field_class * const libObjPtr)
+    static void put(const bt_field_class * const libObjPtr) noexcept
     {
         bt_field_class_put_ref(libObjPtr);
     }
