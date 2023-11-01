@@ -14,6 +14,7 @@ namespace bt2 {
 using Error = bt2_common::Error;
 using OverflowError = bt2_common::OverflowError;
 using MemoryError = bt2_common::MemoryError;
+using TryAgain = bt2_common::TryAgain;
 
 } /* namespace bt2 */
 
