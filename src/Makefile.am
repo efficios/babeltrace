@@ -17,6 +17,7 @@ noinst_HEADERS = \
 	cpp-common/bt2/borrowed-object.hpp \
 	cpp-common/bt2/clock-class.hpp \
 	cpp-common/bt2/clock-snapshot.hpp \
+	cpp-common/bt2/component-port.hpp \
 	cpp-common/bt2/exc.hpp \
 	cpp-common/bt2/field-class.hpp \
 	cpp-common/bt2/field.hpp \
