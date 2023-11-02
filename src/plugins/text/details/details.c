@@ -198,9 +198,7 @@ void details_finalize(bt_self_component_sink *comp)
 }
 
 static
-void configure_bool_opt(
-		struct details_comp *details_comp __attribute__((unused)),
-		const bt_value *params, const char *param_name,
+void configure_bool_opt(const bt_value *params, const char *param_name,
 		bool default_value, bool *opt_value)
 {
 	const bt_value *value;
@@ -271,39 +269,36 @@ bt_component_class_initialize_method_status configure_details_comp(
 	}
 
 	/* With metadata objects? */
-	configure_bool_opt(details_comp, params, WITH_METADATA_PARAM_NAME,
-		true, &details_comp->cfg.with_meta);
+	configure_bool_opt(params, WITH_METADATA_PARAM_NAME, true,
+		&details_comp->cfg.with_meta);
 
 	/* With data objects? */
-	configure_bool_opt(details_comp, params, WITH_DATA_PARAM_NAME,
-		true, &details_comp->cfg.with_data);
+	configure_bool_opt(params, WITH_DATA_PARAM_NAME, true,
+		&details_comp->cfg.with_data);
 
 	/* Compact? */
-	configure_bool_opt(details_comp, params, COMPACT_PARAM_NAME,
-		false, &details_comp->cfg.compact);
+	configure_bool_opt(params, COMPACT_PARAM_NAME, false,
+		&details_comp->cfg.compact);
 
 	/* With time? */
-	configure_bool_opt(details_comp, params, WITH_TIME_PARAM_NAME,
-		true, &details_comp->cfg.with_time);
+	configure_bool_opt(params, WITH_TIME_PARAM_NAME, true,
+		&details_comp->cfg.with_time);
 
 	/* With trace name? */
-	configure_bool_opt(details_comp, params,
-		WITH_TRACE_NAME_PARAM_NAME,
-		true, &details_comp->cfg.with_trace_name);
+	configure_bool_opt(params, WITH_TRACE_NAME_PARAM_NAME, true,
+		&details_comp->cfg.with_trace_name);
 
 	/* With stream class name? */
-	configure_bool_opt(details_comp, params,
-		WITH_STREAM_CLASS_NAME_PARAM_NAME,
-		true, &details_comp->cfg.with_stream_class_name);
+	configure_bool_opt(params, WITH_STREAM_CLASS_NAME_PARAM_NAME, true,
+		&details_comp->cfg.with_stream_class_name);
 
 	/* With stream name? */
-	configure_bool_opt(details_comp, params,
-		WITH_STREAM_NAME_PARAM_NAME,
-		true, &details_comp->cfg.with_stream_name);
+	configure_bool_opt(params, WITH_STREAM_NAME_PARAM_NAME, true,
+		&details_comp->cfg.with_stream_name);
 
 	/* With UUID? */
-	configure_bool_opt(details_comp, params,
-		WITH_UUID_PARAM_NAME, true, &details_comp->cfg.with_uuid);
+	configure_bool_opt(params, WITH_UUID_PARAM_NAME, true,
+		&details_comp->cfg.with_uuid);
 
 	status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_OK;
 	goto end;
