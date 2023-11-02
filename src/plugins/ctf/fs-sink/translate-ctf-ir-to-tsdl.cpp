@@ -287,7 +287,7 @@ static void append_float_field_class(struct ctx *ctx, struct fs_sink_ctf_field_c
                            mant_dig, exp_dig, fc->base.base.alignment);
 }
 
-static void append_string_field_class(struct ctx *ctx, struct fs_sink_ctf_field_class_string *)
+static void append_string_field_class(struct ctx *ctx)
 {
     g_string_append(ctx->tsdl, "string { encoding = UTF8; }");
 }
@@ -489,7 +489,7 @@ static void append_field_class(struct ctx *ctx, struct fs_sink_ctf_field_class *
         append_float_field_class(ctx, fs_sink_ctf_field_class_as_float(fc));
         break;
     case FS_SINK_CTF_FIELD_CLASS_TYPE_STRING:
-        append_string_field_class(ctx, fs_sink_ctf_field_class_as_string(fc));
+        append_string_field_class(ctx);
         break;
     case FS_SINK_CTF_FIELD_CLASS_TYPE_STRUCT:
         append_struct_field_class(ctx, fs_sink_ctf_field_class_as_struct(fc));
