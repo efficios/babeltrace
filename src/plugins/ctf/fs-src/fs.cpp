@@ -401,7 +401,7 @@ gchar *ctf_fs_make_port_name(struct ctf_fs_ds_file_group *ds_file_group)
     return g_string_free(name, FALSE);
 }
 
-static int create_one_port_for_trace(struct ctf_fs_component *ctf_fs, struct ctf_fs_trace *,
+static int create_one_port_for_trace(struct ctf_fs_component *ctf_fs,
                                      struct ctf_fs_ds_file_group *ds_file_group,
                                      bt_self_component_source *self_comp_src)
 {
@@ -459,7 +459,7 @@ static int create_ports_for_trace(struct ctf_fs_component *ctf_fs,
         struct ctf_fs_ds_file_group *ds_file_group =
             (struct ctf_fs_ds_file_group *) g_ptr_array_index(ctf_fs_trace->ds_file_groups, i);
 
-        ret = create_one_port_for_trace(ctf_fs, ctf_fs_trace, ds_file_group, self_comp_src);
+        ret = create_one_port_for_trace(ctf_fs, ds_file_group, self_comp_src);
         if (ret) {
             BT_COMP_LOGE_APPEND_CAUSE(self_comp, "Cannot create output port.");
             goto end;
