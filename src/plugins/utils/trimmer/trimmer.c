@@ -425,7 +425,6 @@ end:
  */
 static
 int set_bound_from_param(struct trimmer_comp *trimmer_comp,
-		const char *param_name __attribute__((unused)),
 		const bt_value *param,
 		struct trimmer_bound *bound, bool is_gmt)
 {
@@ -552,7 +551,7 @@ bt_component_class_initialize_method_status init_trimmer_comp_from_params(
 
         value = bt_value_map_borrow_entry_value_const(params, "begin");
 	if (value) {
-		if (set_bound_from_param(trimmer_comp, "begin", value,
+		if (set_bound_from_param(trimmer_comp, value,
 				&trimmer_comp->begin, trimmer_comp->is_gmt)) {
 			/* set_bound_from_param() logs errors */
 			status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_ERROR;
@@ -565,7 +564,7 @@ bt_component_class_initialize_method_status init_trimmer_comp_from_params(
 
         value = bt_value_map_borrow_entry_value_const(params, "end");
 	if (value) {
-		if (set_bound_from_param(trimmer_comp, "end", value,
+		if (set_bound_from_param(trimmer_comp, value,
 				&trimmer_comp->end, trimmer_comp->is_gmt)) {
 			/* set_bound_from_param() logs errors */
 			status = BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_ERROR;
