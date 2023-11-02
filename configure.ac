@@ -818,7 +818,6 @@ AC_CONFIG_FILES([
   src/bindings/python/bt2/Makefile
   src/bindings/python/bt2/setup.py
   src/cli/Makefile
-  src/common/Makefile
   src/Makefile
   tests/bitfield/Makefile
   tests/ctf-writer/Makefile

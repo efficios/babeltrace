@@ -62,7 +62,7 @@ babeltrace2_bin_LDADD = \
 	$(top_builddir)/src/string-format/libstring-format.la \
 	$(top_builddir)/src/lib/libbabeltrace2.la \
 	$(top_builddir)/src/compat/libcompat.la \
-	$(top_builddir)/src/common/libbabeltrace2-common.la \
+	$(top_builddir)/src/common/libcommon.la \
 	$(top_builddir)/src/logging/liblogging.la \
 	$(top_builddir)/src/ctfser/libctfser.la
 

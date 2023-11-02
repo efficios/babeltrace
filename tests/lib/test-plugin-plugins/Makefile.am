@@ -10,7 +10,7 @@ plugin_minimal_la_LDFLAGS = \
 	-rpath / -avoid-version -module $(LD_NOTEXT)
 plugin_minimal_la_LIBADD = \
 	$(top_builddir)/src/lib/libbabeltrace2.la \
-	$(top_builddir)/src/common/libbabeltrace2-common.la \
+	$(top_builddir)/src/common/libcommon.la \
 	$(top_builddir)/src/logging/liblogging.la
 
 # source/filter/sink plugin
@@ -21,5 +21,5 @@ plugin_sfs_la_LDFLAGS = \
 	-rpath / -avoid-version -module $(LD_NOTEXT)
 plugin_sfs_la_LIBADD = \
 	$(top_builddir)/src/lib/libbabeltrace2.la \
-	$(top_builddir)/src/common/libbabeltrace2-common.la \
+	$(top_builddir)/src/common/libcommon.la \
 	$(top_builddir)/src/logging/liblogging.la

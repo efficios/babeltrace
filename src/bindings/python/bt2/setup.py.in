@@ -121,7 +121,7 @@ def main():
         extra_objects=[
             "@top_builddir@/src/autodisc/.libs/libautodisc.a",
             "@top_builddir@/src/logging/.libs/liblogging.a",
-            "@top_builddir@/src/common/.libs/libbabeltrace2-common.a",
+            "@top_builddir@/src/common/.libs/libcommon.a",
             "@top_builddir@/src/py-common/.libs/libpy-common.a",
             "@top_builddir@/src/string-format/.libs/libstring-format.a",
         ],

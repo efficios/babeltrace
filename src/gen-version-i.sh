@@ -23,10 +23,10 @@ GREP=${GREP:-grep}
 SED=${SED:-sed}
 
 # Delete any stale "version.i.tmp" file.
-rm -f version.i.tmp
+rm -f common/version.i.tmp
 
-if test ! -f version.i && test -f "$TOP_SRCDIR/include/version.i"; then
-	cp "$TOP_SRCDIR/include/version.i" version.i
+if test ! -f common/version.i && test -f "$TOP_SRCDIR/include/version.i"; then
+	cp "$TOP_SRCDIR/include/version.i" common/version.i
 fi
 
 # If "bootstrap" and ".git" exists in the top source directory and the git
@@ -44,22 +44,22 @@ if test -r "$TOP_SRCDIR/bootstrap" && test -r "$TOP_SRCDIR/.git" &&
 		(command -v git > /dev/null 2>&1); then
 	GIT_VERSION_STR="$(cd "$TOP_SRCDIR" && git describe --always --tags --dirty --abbrev=12)"
 	GIT_CURRENT_TAG="$(cd "$TOP_SRCDIR" && (git describe --tags --exact-match --match="v[0-9]*" HEAD || true) 2> /dev/null)"
-	echo "#define BT_VERSION_GIT \"$GIT_VERSION_STR\"" > version.i.tmp
+	echo "#define BT_VERSION_GIT \"$GIT_VERSION_STR\"" > common/version.i.tmp
 
-	if ! $GREP -- "-dirty" version.i.tmp > /dev/null &&
+	if ! $GREP -- "-dirty" common/version.i.tmp > /dev/null &&
 			test "x$GIT_CURRENT_TAG" != "x"; then
-		echo "#define BT_VERSION_GIT \"\"" > version.i.tmp
+		echo "#define BT_VERSION_GIT \"\"" > common/version.i.tmp
 	fi
 fi
 
 # If we don't have a "version.i.tmp" nor a "version.i", generate an empty
 # string as a failover. If a "version.i" is present, for example when building
 # from a distribution tarball, get the git_version using grep.
-if test ! -f version.i.tmp; then
-	if test -f version.i; then
-		$GREP "^#define \bBT_VERSION_GIT\b.*" version.i > version.i.tmp
+if test ! -f common/version.i.tmp; then
+	if test -f common/version.i; then
+		$GREP "^#define \bBT_VERSION_GIT\b.*" common/version.i > common/version.i.tmp
 	else
-		echo '#define BT_VERSION_GIT ""' > version.i.tmp
+		echo '#define BT_VERSION_GIT ""' > common/version.i.tmp
 	fi
 fi
 
@@ -84,15 +84,15 @@ fi
 	# by replacing "\n" with litteral string c-style "\n".
 	# shellcheck disable=SC2012
 	echo "#define BT_VERSION_EXTRA_PATCHES \"$(ls -1 "$TOP_SRCDIR/version/extra_patches" | $GREP -v '^README.adoc' | $SED -E ':a ; N ; $!ba ; s/[^a-zA-Z0-9 \n\t\.]/-/g ; s/\r{0,1}\n/\\n/g' 2> /dev/null)\""
-} >> version.i.tmp
+} >> common/version.i.tmp
 
 # If we don't have a "version.i" or we have both files (version.i, version.i.tmp)
 # and they are different, copy "version.i.tmp" over "version.i".
 # This way the dependent targets are only rebuilt when the git version
 # string or either one of extra version string change.
-if test ! -f version.i ||
-		test x"$(cat version.i.tmp)" != x"$(cat version.i)"; then
-	mv -f version.i.tmp version.i
+if test ! -f common/version.i ||
+		test x"$(cat common/version.i.tmp)" != x"$(cat common/version.i)"; then
+	mv -f common/version.i.tmp common/version.i
 fi
 
-rm -f version.i.tmp
+rm -f common/version.i.tmp

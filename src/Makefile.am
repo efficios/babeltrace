@@ -1,9 +1,8 @@
 # SPDX-License-Identifier: MIT
 
-# Build 'common' first to ensure 'version.h' is generated before any
-# compilation.
+# Build the current dir containing the library and plugins before the cli and
+# bindings.
 SUBDIRS = \
-	common \
 	. \
 	cli
 
@@ -12,6 +11,13 @@ SUBDIRS += bindings/python/bt2
 endif
 
 noinst_HEADERS = \
+	common/align.h \
+	common/list.h \
+	common/macros.h \
+	common/mmap-align.h \
+	common/safe.h \
+	common/version.h \
+	common/version.i \
 	cpp-common/bt2/clock-class.hpp \
 	cpp-common/bt2/clock-snapshot.hpp \
 	cpp-common/bt2/common-iter.hpp \
@@ -52,6 +58,39 @@ noinst_HEADERS = \
 	cpp-common/uuid-view.hpp \
 	cpp-common/vector.hpp
 
+## This target generates an include file that contains the git version
+## string of the current branch, it must be continuously updated when
+## we build in the git repo and shipped in dist tarballs to reflect the
+## status of the tree when it was generated. If the tree is clean and
+## the current commit is a tag starting with "v", consider this a
+## release version and set an empty git version.
+
+version_verbose = $(version_verbose_@AM_V@)
+version_verbose_ = $(version_verbose_@AM_DEFAULT_V@)
+version_verbose_0 = @echo "  GEN     " $@;
+
+common/version.i:
+	$(version_verbose)GREP=$(GREP) SED=$(SED) TOP_SRCDIR="$(top_srcdir)" $(SHELL) $(srcdir)/gen-version-i.sh
+
+dist_noinst_SCRIPTS = gen-version-i.sh
+
+# Ensure version.i is generated before any code is built.
+BUILT_SOURCES = common/version.i
+
+##
+## version.i is defined as a .PHONY target even if it's a real file,
+## we want the target to be re-run on every make.
+##
+.PHONY: common/version.i
+
+CLEANFILES = common/version.i.tmp
+
+##
+## Only clean "version.i" on dist-clean, we need to keep it on regular
+## clean when it's part of a dist tarball.
+##
+DISTCLEANFILES = common/version.i
+
 #
 # Convenience libraries
 #
@@ -59,6 +98,7 @@ noinst_HEADERS = \
 noinst_LTLIBRARIES = \
 	argpar/libargpar.la \
 	autodisc/libautodisc.la \
+	common/libcommon.la \
 	compat/libcompat.la \
 	ctfser/libctfser.la \
 	fd-cache/libfd-cache.la \
@@ -70,6 +110,7 @@ noinst_LTLIBRARIES = \
 	plugins/ctf/common/metadata/libctf-parser.la \
 	string-format/libstring-format.la
 
+
 argpar_libargpar_la_SOURCES = \
 	argpar/argpar.c \
 	argpar/argpar.h
@@ -77,6 +118,18 @@ argpar_libargpar_la_SOURCES = \
 autodisc_libautodisc_la_SOURCES = \
 	autodisc/autodisc.c \
 	autodisc/autodisc.h
+
+common_libcommon_la_SOURCES = \
+	common/assert.c \
+	common/assert.h \
+	common/common.c \
+	common/common.h \
+	common/uuid.c \
+	common/uuid.h
+
+common_libcommon_la_CPPFLAGS = \
+	$(AM_CPPFLAGS) \
+	-DBABELTRACE_PLUGINS_DIR=\"$(BABELTRACE_PLUGINS_DIR)\"
 
 compat_libcompat_la_SOURCES = \
 	compat/bitfield.h \
@@ -190,11 +243,9 @@ if BABELTRACE_BUILD_WITH_MINGW
 plugins_ctf_common_metadata_libctf_ast_la_LIBADD = -lintl -liconv -lole32
 endif
 
-BUILT_SOURCES = \
+BUILT_SOURCES += \
 	plugins/ctf/common/metadata/parser.hpp
 
-# Start with empty files to clean
-CLEANFILES =
 ALL_LOCAL =
 
 if HAVE_BISON
@@ -394,7 +445,7 @@ lib_libbabeltrace2_la_CPPFLAGS = \
 
 lib_libbabeltrace2_la_LIBADD = \
 	logging/liblogging.la \
-	common/libbabeltrace2-common.la \
+	common/libcommon.la \
 	compat/libcompat.la
 
 ctf_writer_libbabeltrace2_ctf_writer_la_SOURCES = \
@@ -451,7 +502,7 @@ ctf_writer_libbabeltrace2_ctf_writer_la_LDFLAGS = \
 
 ctf_writer_libbabeltrace2_ctf_writer_la_LIBADD = \
 	logging/liblogging.la \
-	common/libbabeltrace2-common.la \
+	common/libcommon.la \
 	ctfser/libctfser.la \
 	compat/libcompat.la
 
@@ -489,7 +540,7 @@ python_plugin_provider_babeltrace2_python_plugin_provider_la_LIBADD =
 if !ENABLE_BUILT_IN_PLUGINS
 python_plugin_provider_babeltrace2_python_plugin_provider_la_LIBADD += \
 	logging/liblogging.la \
-	common/libbabeltrace2-common.la \
+	common/libcommon.la \
 	py-common/libpy-common.la \
 	lib/libbabeltrace2.la
 endif
@@ -529,7 +580,7 @@ plugins_utils_babeltrace_plugin_utils_la_LIBADD = \
 if !ENABLE_BUILT_IN_PLUGINS
 plugins_utils_babeltrace_plugin_utils_la_LIBADD += \
 	lib/libbabeltrace2.la \
-	common/libbabeltrace2-common.la \
+	common/libcommon.la \
 	logging/liblogging.la \
 	plugins/common/param-validation/libparam-validation.la
 endif
@@ -593,7 +644,7 @@ plugins_ctf_babeltrace_plugin_ctf_la_LIBADD += \
 	lib/libbabeltrace2.la \
 	logging/liblogging.la \
 	plugins/common/muxing/libmuxing.la \
-	common/libbabeltrace2-common.la \
+	common/libcommon.la \
 	ctfser/libctfser.la
 endif
 
@@ -623,7 +674,7 @@ plugins_text_babeltrace_plugin_text_la_LIBADD =
 if !ENABLE_BUILT_IN_PLUGINS
 plugins_text_babeltrace_plugin_text_la_LIBADD += \
 	lib/libbabeltrace2.la \
-	common/libbabeltrace2-common.la \
+	common/libcommon.la \
 	logging/liblogging.la \
 	compat/libcompat.la \
 	plugins/common/param-validation/libparam-validation.la
@@ -649,7 +700,7 @@ plugins_lttng_utils_babeltrace_plugin_lttng_utils_la_LIBADD = \
 if !ENABLE_BUILT_IN_PLUGINS
 plugins_lttng_utils_babeltrace_plugin_lttng_utils_la_LIBADD += \
 	lib/libbabeltrace2.la \
-	common/libbabeltrace2-common.la \
+	common/libcommon.la \
 	logging/liblogging.la \
 	plugins/common/param-validation/libparam-validation.la
 endif # !ENABLE_BUILT_IN_PLUGINS
