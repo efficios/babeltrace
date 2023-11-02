@@ -720,8 +720,7 @@ end:
     return ret;
 }
 
-static int live_get_msg_ts_ns(struct lttng_live_stream_iterator *,
-                              struct lttng_live_msg_iter *lttng_live_msg_iter,
+static int live_get_msg_ts_ns(struct lttng_live_msg_iter *lttng_live_msg_iter,
                               const bt_message *msg, int64_t last_msg_ts_ns, int64_t *ts_ns)
 {
     const bt_clock_snapshot *clock_snapshot = NULL;
@@ -1282,8 +1281,8 @@ next_stream_iterator_for_trace(struct lttng_live_msg_iter *lttng_live_msg_iter,
              * Get the timestamp in nanoseconds from origin of this
              * messsage.
              */
-            live_get_msg_ts_ns(stream_iter, lttng_live_msg_iter, msg,
-                               lttng_live_msg_iter->last_msg_ts_ns, &curr_msg_ts_ns);
+            live_get_msg_ts_ns(lttng_live_msg_iter, msg, lttng_live_msg_iter->last_msg_ts_ns,
+                               &curr_msg_ts_ns);
 
             /*
              * Check if the message of the current live stream
@@ -1781,8 +1780,7 @@ end:
 
 bt_message_iterator_class_initialize_method_status
 lttng_live_msg_iter_init(bt_self_message_iterator *self_msg_it,
-                         bt_self_message_iterator_configuration *,
-                         bt_self_component_port_output *)
+                         bt_self_message_iterator_configuration *, bt_self_component_port_output *)
 {
     bt_message_iterator_class_initialize_method_status status;
     struct lttng_live_component *lttng_live;
@@ -2173,8 +2171,7 @@ end:
 
 bt_component_class_initialize_method_status
 lttng_live_component_init(bt_self_component_source *self_comp_src,
-                          bt_self_component_source_configuration *, const bt_value *params,
-                          void *)
+                          bt_self_component_source_configuration *, const bt_value *params, void *)
 {
     struct lttng_live_component *lttng_live;
     bt_component_class_initialize_method_status ret;
