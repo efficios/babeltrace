@@ -829,7 +829,6 @@ int64_t bt_value_integer_signed_get(const struct bt_value *integer_obj)
 
 static inline
 void set_integer_value(struct bt_value *integer_obj,
-		enum bt_value_type expected_type __attribute__((unused)),
 		uint64_t uval,
 		const char *api_func)
 {
@@ -843,8 +842,7 @@ void bt_value_integer_unsigned_set(struct bt_value *integer_obj,
 {
 	BT_ASSERT_PRE_VALUE_NON_NULL(integer_obj);
 	BT_ASSERT_PRE_VALUE_IS_UNSIGNED_INT(integer_obj);
-	set_integer_value(integer_obj, BT_VALUE_TYPE_UNSIGNED_INTEGER, val,
-		__func__);
+	set_integer_value(integer_obj, val, __func__);
 	BT_LOGT("Set unsigned integer value's raw value: "
 		"value-addr=%p, value=%" PRIu64, integer_obj, val);
 }
@@ -855,8 +853,7 @@ void bt_value_integer_signed_set(struct bt_value *integer_obj,
 {
 	BT_ASSERT_PRE_VALUE_NON_NULL(integer_obj);
 	BT_ASSERT_PRE_VALUE_IS_SIGNED_INT(integer_obj);
-	set_integer_value(integer_obj, BT_VALUE_TYPE_SIGNED_INTEGER,
-		(uint64_t) val, __func__);
+	set_integer_value(integer_obj, (uint64_t) val, __func__);
 	BT_LOGT("Set signed integer value's raw value: "
 		"value-addr=%p, value=%" PRId64, integer_obj, val);
 }
