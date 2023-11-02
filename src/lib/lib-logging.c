@@ -114,8 +114,8 @@ static inline void format_clock_snapshot(char **buf_ch, bool extended,
 static inline void format_field_path(char **buf_ch, bool extended,
 		const char *prefix, const struct bt_field_path *field_path);
 
-static inline void format_object(char **buf_ch, bool extended __attribute__((unused)),
-		const char *prefix, const struct bt_object *obj)
+static inline void format_object(char **buf_ch, const char *prefix,
+		const struct bt_object *obj)
 {
 	BUF_APPEND(", %sref-count=%llu", prefix, obj->ref_count);
 }
@@ -125,8 +125,8 @@ static inline void format_uuid(char **buf_ch, bt_uuid uuid)
 	BUF_APPEND("\"" BT_UUID_FMT "\"", BT_UUID_FMT_VALUES(uuid));
 }
 
-static inline void format_object_pool(char **buf_ch, bool extended __attribute__((unused)),
-		const char *prefix, const struct bt_object_pool *pool)
+static inline void format_object_pool(char **buf_ch, const char *prefix,
+		const struct bt_object_pool *pool)
 {
 	BUF_APPEND(", %ssize=%zu", PRFIELD(pool->size));
 
@@ -135,8 +135,7 @@ static inline void format_object_pool(char **buf_ch, bool extended __attribute__
 	}
 }
 
-static inline void format_integer_field_class(char **buf_ch,
-		bool extended __attribute__((unused)), const char *prefix,
+static inline void format_integer_field_class(char **buf_ch, const char *prefix,
 		const struct bt_field_class *field_class)
 {
 	const struct bt_field_class_integer *int_fc =
@@ -147,8 +146,7 @@ static inline void format_integer_field_class(char **buf_ch,
 		PRFIELD(bt_common_field_class_integer_preferred_display_base_string(int_fc->base)));
 }
 
-static inline void format_array_field_class(char **buf_ch,
-		bool extended __attribute__((unused)), const char *prefix,
+static inline void format_array_field_class(char **buf_ch, const char *prefix,
 		const struct bt_field_class *field_class)
 {
 	const struct bt_field_class_array *array_fc =
@@ -187,7 +185,7 @@ static inline void format_field_class(char **buf_ch, bool extended,
 	case BT_FIELD_CLASS_TYPE_UNSIGNED_INTEGER:
 	case BT_FIELD_CLASS_TYPE_SIGNED_INTEGER:
 	{
-		format_integer_field_class(buf_ch, extended, prefix, field_class);
+		format_integer_field_class(buf_ch, prefix, field_class);
 		break;
 	}
 	case BT_FIELD_CLASS_TYPE_UNSIGNED_ENUMERATION:
@@ -196,7 +194,7 @@ static inline void format_field_class(char **buf_ch, bool extended,
 		const struct bt_field_class_enumeration *enum_fc =
 			(const void *) field_class;
 
-		format_integer_field_class(buf_ch, extended, prefix, field_class);
+		format_integer_field_class(buf_ch, prefix, field_class);
 		BUF_APPEND(", %smapping-count=%u",
 			PRFIELD(enum_fc->mappings->len));
 		break;
@@ -218,7 +216,7 @@ static inline void format_field_class(char **buf_ch, bool extended,
 		const struct bt_field_class_array_static *array_fc =
 			(const void *) field_class;
 
-		format_array_field_class(buf_ch, extended, prefix, field_class);
+		format_array_field_class(buf_ch, prefix, field_class);
 		BUF_APPEND(", %slength=%" PRIu64, PRFIELD(array_fc->length));
 		break;
 	}
@@ -228,7 +226,7 @@ static inline void format_field_class(char **buf_ch, bool extended,
 		const struct bt_field_class_array_dynamic *array_fc =
 			(const void *) field_class;
 
-		format_array_field_class(buf_ch, extended, prefix, field_class);
+		format_array_field_class(buf_ch, prefix, field_class);
 
 		if (array_fc->length_fc) {
 			SET_TMP_PREFIX("length-fc-");
@@ -588,7 +586,7 @@ static inline void format_stream_class(char **buf_ch, bool extended,
 	SET_TMP_PREFIX("trace-class-");
 	format_trace_class(buf_ch, false, tmp_prefix, trace_class);
 	SET_TMP_PREFIX("pcf-pool-");
-	format_object_pool(buf_ch, extended, tmp_prefix,
+	format_object_pool(buf_ch, tmp_prefix,
 		&stream_class->packet_context_field_pool);
 }
 
@@ -644,8 +642,7 @@ static inline void format_event_class(char **buf_ch, bool extended,
 	SET_TMP_PREFIX("trace-class-");
 	format_trace_class(buf_ch, false, tmp_prefix, trace_class);
 	SET_TMP_PREFIX("event-pool-");
-	format_object_pool(buf_ch, extended, tmp_prefix,
-		&event_class->event_pool);
+	format_object_pool(buf_ch, tmp_prefix, &event_class->event_pool);
 }
 
 static inline void format_stream(char **buf_ch, bool extended,
@@ -688,7 +685,7 @@ static inline void format_stream(char **buf_ch, bool extended,
 	}
 
 	SET_TMP_PREFIX("packet-pool-");
-	format_object_pool(buf_ch, extended, tmp_prefix, &stream->packet_pool);
+	format_object_pool(buf_ch, tmp_prefix, &stream->packet_pool);
 }
 
 static inline void format_packet(char **buf_ch, bool extended,
@@ -816,8 +813,7 @@ static inline void format_clock_class(char **buf_ch, bool extended,
 		PRFIELD(clock_class->base_offset.value_ns));
 
 	SET_TMP_PREFIX("cs-pool-");
-	format_object_pool(buf_ch, extended, tmp_prefix,
-		&clock_class->cs_pool);
+	format_object_pool(buf_ch, tmp_prefix, &clock_class->cs_pool);
 }
 
 static inline void format_clock_snapshot(char **buf_ch, bool extended,
@@ -843,9 +839,8 @@ static inline void format_clock_snapshot(char **buf_ch, bool extended,
 	}
 }
 
-static inline void format_interrupter(char **buf_ch,
-		bool extended __attribute__((unused)),
-		const char *prefix, const struct bt_interrupter *intr)
+static inline void format_interrupter(char **buf_ch, const char *prefix,
+		const struct bt_interrupter *intr)
 {
 	BUF_APPEND(", %sis-set=%d", PRFIELD(intr->is_set));
 }
@@ -1174,23 +1169,11 @@ static inline void format_graph(char **buf_ch, bool extended,
 	}
 
 	SET_TMP_PREFIX("en-pool-");
-	format_object_pool(buf_ch, extended, tmp_prefix,
-		&graph->event_msg_pool);
+	format_object_pool(buf_ch, tmp_prefix, &graph->event_msg_pool);
 	SET_TMP_PREFIX("pbn-pool-");
-	format_object_pool(buf_ch, extended, tmp_prefix,
-		&graph->packet_begin_msg_pool);
+	format_object_pool(buf_ch, tmp_prefix, &graph->packet_begin_msg_pool);
 	SET_TMP_PREFIX("pen-pool-");
-	format_object_pool(buf_ch, extended, tmp_prefix,
-		&graph->packet_end_msg_pool);
-}
-
-static inline void format_message_iterator_class(
-		char **buf_ch __attribute__((unused)),
-		bool extended __attribute__((unused)),
-		const char *prefix __attribute__((unused)),
-		const struct bt_message_iterator_class *iterator_class __attribute__((unused)))
-{
-	/* Empty, the address is automatically printed. */
+	format_object_pool(buf_ch, tmp_prefix, &graph->packet_end_msg_pool);
 }
 
 static inline void format_message_iterator(char **buf_ch,
@@ -1445,7 +1428,7 @@ static inline void handle_conversion_specifier_bt(
 		format_message(buf_ch, extended, prefix, obj);
 		break;
 	case 'I':
-		format_message_iterator_class(buf_ch, extended, prefix, obj);
+		/* Empty, the address is automatically printed. */
 		break;
 	case 'i':
 		format_message_iterator(buf_ch, extended, prefix, obj);
@@ -1469,13 +1452,13 @@ static inline void handle_conversion_specifier_bt(
 		format_graph(buf_ch, extended, prefix, obj);
 		break;
 	case 'z':
-		format_interrupter(buf_ch, extended, prefix, obj);
+		format_interrupter(buf_ch, prefix, obj);
 		break;
 	case 'o':
-		format_object_pool(buf_ch, extended, prefix, obj);
+		format_object_pool(buf_ch, prefix, obj);
 		break;
 	case 'O':
-		format_object(buf_ch, extended, prefix, obj);
+		format_object(buf_ch, prefix, obj);
 		break;
 	case 'r':
 		format_error_cause(buf_ch, extended, prefix, obj);
