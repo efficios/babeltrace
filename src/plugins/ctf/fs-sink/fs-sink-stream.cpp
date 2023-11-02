@@ -228,9 +228,7 @@ static inline int write_float_field(struct fs_sink_stream *stream,
     return ret;
 }
 
-static inline int write_string_field(struct fs_sink_stream *stream,
-                                     struct fs_sink_ctf_field_class_string *,
-                                     const bt_field *field)
+static inline int write_string_field(struct fs_sink_stream *stream, const bt_field *field)
 {
     return bt_ctfser_write_string(&stream->ctfser, bt_field_string_get_value(field));
 }
@@ -377,7 +375,7 @@ static int write_field(struct fs_sink_stream *stream, struct fs_sink_ctf_field_c
         ret = write_float_field(stream, fs_sink_ctf_field_class_as_float(fc), field);
         break;
     case FS_SINK_CTF_FIELD_CLASS_TYPE_STRING:
-        ret = write_string_field(stream, fs_sink_ctf_field_class_as_string(fc), field);
+        ret = write_string_field(stream, field);
         break;
     case FS_SINK_CTF_FIELD_CLASS_TYPE_STRUCT:
         ret = write_struct_field(stream, fs_sink_ctf_field_class_as_struct(fc), field, true);
