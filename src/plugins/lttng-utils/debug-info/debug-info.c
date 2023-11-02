@@ -1510,9 +1510,7 @@ end:
 }
 
 static
-bt_message *handle_msg_iterator_inactivity(
-		struct debug_info_msg_iter *debug_it __attribute__((unused)),
-		const bt_message *in_message)
+bt_message *handle_msg_iterator_inactivity(const bt_message *in_message)
 {
 	/*
 	 * This message type can be forwarded directly because it does
@@ -1665,7 +1663,7 @@ const bt_message *handle_message(struct debug_info_msg_iter *debug_it,
 		out_message = handle_stream_end_message(debug_it, in_message);
 		break;
 	case BT_MESSAGE_TYPE_MESSAGE_ITERATOR_INACTIVITY:
-		out_message = handle_msg_iterator_inactivity(debug_it, in_message);
+		out_message = handle_msg_iterator_inactivity(in_message);
 		break;
 	case BT_MESSAGE_TYPE_DISCARDED_EVENTS:
 		out_message = handle_discarded_events_message(debug_it, in_message);
