@@ -22,8 +22,7 @@ struct bt_component_sink {
 	bool graph_is_configured_method_called;
 };
 
-struct bt_component *bt_component_sink_create(
-		const struct bt_component_class *class);
+struct bt_component *bt_component_sink_create(void);
 
 void bt_component_sink_destroy(struct bt_component *component);
 

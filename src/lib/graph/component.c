@@ -34,8 +34,7 @@
 #include "lib/func-status.h"
 
 static
-struct bt_component * (* const component_create_funcs[])(
-		const struct bt_component_class *) = {
+struct bt_component * (* const component_create_funcs[])(void) = {
 	[BT_COMPONENT_CLASS_TYPE_SOURCE] = bt_component_source_create,
 	[BT_COMPONENT_CLASS_TYPE_SINK] = bt_component_sink_create,
 	[BT_COMPONENT_CLASS_TYPE_FILTER] = bt_component_filter_create,
@@ -317,7 +316,7 @@ int bt_component_create(struct bt_component_class *component_class,
 	BT_LIB_LOGI("Creating empty component from component class: %![cc-]+C, "
 		"comp-name=\"%s\", log-level=%s", component_class, name,
 		bt_common_logging_level_string(log_level));
-	component = component_create_funcs[type](component_class);
+	component = component_create_funcs[type]();
 	if (!component) {
 		BT_LIB_LOGE_APPEND_CAUSE(
 			"Cannot create specific component object.");
