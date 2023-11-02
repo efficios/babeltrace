@@ -125,7 +125,7 @@ static enum ctf_msg_iter_medium_status ds_file_mmap(struct ctf_fs_ds_file *ds_fi
     BT_ASSERT(ds_file->mmap_len > 0);
 
     ds_file->mmap_addr =
-        bt_mmap((void *) 0, ds_file->mmap_len, PROT_READ, MAP_PRIVATE, fileno(ds_file->file->fp),
+        bt_mmap(ds_file->mmap_len, PROT_READ, MAP_PRIVATE, fileno(ds_file->file->fp),
                 ds_file->mmap_offset_in_file, ds_file->log_level);
     if (ds_file->mmap_addr == MAP_FAILED) {
         BT_COMP_LOGE("Cannot memory-map address (size %zu) of file \"%s\" (%p) at offset %jd: %s",

@@ -152,8 +152,8 @@ DWORD map_prot_flags(int prot, DWORD *dwDesiredAccess)
 	return 0;
 }
 
-void *bt_mmap(void *addr __attribute__((unused)), size_t length, int prot,
-		int flags, int fd, off_t offset, int log_level)
+void *bt_mmap(size_t length, int prot, int flags, int fd, off_t offset,
+		int log_level)
 {
 	struct mmap_mapping *mapping = NULL;
 	void *mapping_addr;

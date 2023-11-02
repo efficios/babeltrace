@@ -58,7 +58,7 @@ struct mmap_align_data *mmap_align(size_t length, int prot,
 	 * boundary.
 	 */
 	mma->page_aligned_length = BT_ALIGN(length + offset - page_aligned_offset, page_size);
-	mma->page_aligned_addr = bt_mmap(NULL, mma->page_aligned_length,
+	mma->page_aligned_addr = bt_mmap(mma->page_aligned_length,
 		prot, flags, fd, page_aligned_offset, log_level);
 	if (mma->page_aligned_addr == MAP_FAILED) {
 		free(mma);
