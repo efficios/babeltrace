@@ -326,8 +326,7 @@ static void ctf_fs_trace_destroy_notifier(void *data)
     ctf_fs_trace_destroy(trace);
 }
 
-struct ctf_fs_component *ctf_fs_component_create(bt_logging_level log_level,
-                                                 bt_self_component *)
+struct ctf_fs_component *ctf_fs_component_create(bt_logging_level log_level)
 {
     struct ctf_fs_component *ctf_fs;
 
@@ -402,8 +401,7 @@ gchar *ctf_fs_make_port_name(struct ctf_fs_ds_file_group *ds_file_group)
     return g_string_free(name, FALSE);
 }
 
-static int create_one_port_for_trace(struct ctf_fs_component *ctf_fs,
-                                     struct ctf_fs_trace *,
+static int create_one_port_for_trace(struct ctf_fs_component *ctf_fs, struct ctf_fs_trace *,
                                      struct ctf_fs_ds_file_group *ds_file_group,
                                      bt_self_component_source *self_comp_src)
 {
@@ -2258,7 +2256,7 @@ static struct ctf_fs_component *ctf_fs_create(const bt_value *params,
     bt_self_component *self_comp = bt_self_component_source_as_self_component(self_comp_src);
 
     ctf_fs = ctf_fs_component_create(
-        bt_component_get_logging_level(bt_self_component_as_component(self_comp)), self_comp);
+        bt_component_get_logging_level(bt_self_component_as_component(self_comp)));
     if (!ctf_fs) {
         goto error;
     }
@@ -2294,9 +2292,9 @@ end:
     return ctf_fs;
 }
 
-bt_component_class_initialize_method_status
-ctf_fs_init(bt_self_component_source *self_comp_src, bt_self_component_source_configuration *,
-            const bt_value *params, void *)
+bt_component_class_initialize_method_status ctf_fs_init(bt_self_component_source *self_comp_src,
+                                                        bt_self_component_source_configuration *,
+                                                        const bt_value *params, void *)
 {
     struct ctf_fs_component *ctf_fs;
     bt_component_class_initialize_method_status ret =

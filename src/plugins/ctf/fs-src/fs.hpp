@@ -222,8 +222,7 @@ ctf_fs_iterator_seek_beginning(bt_self_message_iterator *message_iterator);
 
 /* Create and initialize a new, empty ctf_fs_component. */
 
-struct ctf_fs_component *ctf_fs_component_create(bt_logging_level log_level,
-                                                 bt_self_component *self_comp);
+struct ctf_fs_component *ctf_fs_component_create(bt_logging_level log_level);
 
 /*
  * Create one `struct ctf_fs_trace` from one trace, or multiple traces sharing

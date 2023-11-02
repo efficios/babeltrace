@@ -338,7 +338,7 @@ trace_infos_query(bt_self_component_class_source *self_comp_class_src, const bt_
         goto error;
     }
 
-    ctf_fs = ctf_fs_component_create(log_level, NULL);
+    ctf_fs = ctf_fs_component_create(log_level);
     if (!ctf_fs) {
         goto error;
     }
