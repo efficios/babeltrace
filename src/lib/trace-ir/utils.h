@@ -79,8 +79,6 @@ end:
 
 static inline
 int bt_util_ns_from_origin_inline(int64_t base_offset_ns,
-		int64_t offset_seconds __attribute__((unused)),
-		uint64_t offset_cycles __attribute__((unused)),
 		uint64_t frequency, uint64_t value, int64_t *ns_from_origin)
 {
 	int ret = 0;
@@ -136,7 +134,6 @@ int bt_util_ns_from_origin_clock_class(const struct bt_clock_class *clock_class,
 	}
 
 	ret = bt_util_ns_from_origin_inline(clock_class->base_offset.value_ns,
-		clock_class->offset_seconds, clock_class->offset_cycles,
 		clock_class->frequency, value, ns_from_origin);
 
 end:
