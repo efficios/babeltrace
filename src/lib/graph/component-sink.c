@@ -21,11 +21,6 @@
 #include "graph.h"
 #include "lib/func-status.h"
 
-void bt_component_sink_destroy(
-		struct bt_component *component __attribute__((unused)))
-{
-}
-
 struct bt_component *bt_component_sink_create(void)
 {
 	struct bt_component_sink *sink = NULL;

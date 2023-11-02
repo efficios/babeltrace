@@ -41,13 +41,6 @@ struct bt_component * (* const component_create_funcs[])(void) = {
 };
 
 static
-void (*component_destroy_funcs[])(struct bt_component *) = {
-	[BT_COMPONENT_CLASS_TYPE_SOURCE] = bt_component_source_destroy,
-	[BT_COMPONENT_CLASS_TYPE_SINK] = bt_component_sink_destroy,
-	[BT_COMPONENT_CLASS_TYPE_FILTER] = bt_component_filter_destroy,
-};
-
-static
 void finalize_component(struct bt_component *comp)
 {
 	typedef void (*method_t)(void *);
@@ -145,11 +138,6 @@ void destroy_component(struct bt_object *obj)
 	 */
 	if (component->initialized) {
 		finalize_component(component);
-	}
-
-	if (component->destroy) {
-		BT_LOGD_STR("Destroying type-specific data.");
-		component->destroy(component);
 	}
 
 	if (component->input_ports) {
@@ -327,7 +315,6 @@ int bt_component_create(struct bt_component_class *component_class,
 	bt_object_init_shared_with_parent(&component->base, destroy_component);
 	component->class = component_class;
 	bt_object_get_ref_no_null_check(component->class);
-	component->destroy = component_destroy_funcs[type];
 	component->name = g_string_new(name);
 	if (!component->name) {
 		BT_LIB_LOGE_APPEND_CAUSE("Failed to allocate one GString.");

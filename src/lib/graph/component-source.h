@@ -19,6 +19,4 @@ struct bt_component_source {
 
 struct bt_component *bt_component_source_create(void);
 
-void bt_component_source_destroy(struct bt_component *component);
-
 #endif /* BABELTRACE_GRAPH_COMPONENT_SOURCE_INTERNAL_H */

@@ -38,12 +38,6 @@ struct bt_component {
 	GString *name;
 	bt_logging_level log_level;
 
-	/*
-	 * Internal destroy function specific to a source, filter, or
-	 * sink component object.
-	 */
-	void (*destroy)(struct bt_component *);
-
 	/* User-defined data */
 	void *user_data;
 

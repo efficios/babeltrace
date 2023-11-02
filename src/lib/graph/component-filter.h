@@ -20,6 +20,4 @@ struct bt_component_filter {
 
 struct bt_component *bt_component_filter_create(void);
 
-void bt_component_filter_destroy(struct bt_component *component);
-
 #endif /* BABELTRACE_GRAPH_COMPONENT_FILTER_INTERNAL_H */

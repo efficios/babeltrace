@@ -24,6 +24,4 @@ struct bt_component_sink {
 
 struct bt_component *bt_component_sink_create(void);
 
-void bt_component_sink_destroy(struct bt_component *component);
-
 #endif /* BABELTRACE_GRAPH_COMPONENT_SINK_INTERNAL_H */
