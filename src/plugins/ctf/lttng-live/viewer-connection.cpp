@@ -1013,8 +1013,7 @@ static enum lttng_live_viewer_status receive_streams(struct lttng_live_session *
         if (stream.metadata_flag) {
             BT_COMP_LOGI("    metadata stream %" PRIu64 " : %s/%s", stream_id, stream.path_name,
                          stream.channel_name);
-            if (lttng_live_metadata_create_stream(session, ctf_trace_id, stream_id,
-                                                  stream.path_name)) {
+            if (lttng_live_metadata_create_stream(session, ctf_trace_id, stream_id)) {
                 BT_COMP_LOGE_APPEND_CAUSE(self_comp, "Error creating metadata stream");
                 status = LTTNG_LIVE_VIEWER_STATUS_ERROR;
                 goto end;
