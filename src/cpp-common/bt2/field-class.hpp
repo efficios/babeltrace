@@ -163,29 +163,6 @@ enum class FieldClassType
 template <typename LibObjT>
 class CommonFieldClass : public BorrowedObject<LibObjT>
 {
-    /* Allow appendMember() to call `fc.libObjPtr()` */
-    friend class CommonStructureFieldClass<bt_field_class>;
-
-    /* Allow appendOption() to call `fc.libObjPtr()` */
-    friend class CommonVariantWithoutSelectorFieldClass<bt_field_class>;
-
-    friend class CommonVariantWithIntegerSelectorFieldClass<
-        bt_field_class,
-        ConstVariantWithIntegerSelectorFieldClassOption<
-            const bt_field_class_variant_with_selector_field_integer_unsigned_option>>;
-
-    friend class CommonVariantWithIntegerSelectorFieldClass<
-        bt_field_class,
-        ConstVariantWithIntegerSelectorFieldClassOption<
-            const bt_field_class_variant_with_selector_field_integer_signed_option>>;
-
-    /* Allow *FieldClass() to call `fc.libObjPtr()` */
-    friend class CommonEventClass<bt_event_class>;
-    friend class CommonStreamClass<bt_stream_class>;
-
-    /* Allow create*FieldClass() to call `fc.libObjPtr()` */
-    friend class CommonTraceClass<bt_trace_class>;
-
 private:
     using typename BorrowedObject<LibObjT>::_ThisBorrowedObject;
 

@@ -23,8 +23,8 @@ namespace bt2 {
  * `LibObjT` is the direct libbabeltrace2 object type, for example
  * `bt_stream_class` or `const bt_value`.
  *
- * Methods of a derived class can call libObjPtr() to access the
- * libbabeltrace2 object pointer.
+ * The user of a borrowed object, including methods of a derived class,
+ * can call libObjPtr() to access the libbabeltrace2 object pointer.
  */
 template <typename LibObjT>
 class BorrowedObject

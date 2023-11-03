@@ -82,44 +82,8 @@ enum class ValueType
 };
 
 template <typename LibObjT>
-class CommonClockClass;
-
-template <typename LibObjT>
-class CommonFieldClass;
-
-template <typename LibObjT>
-class CommonTraceClass;
-
-template <typename LibObjT>
-class CommonStreamClass;
-
-template <typename LibObjT>
-class CommonEventClass;
-
-template <typename LibObjT>
-class CommonStream;
-
-template <typename LibObjT>
 class CommonValue : public BorrowedObject<LibObjT>
 {
-    /* Allow append() to call `val.libObjPtr()` */
-    friend class CommonArrayValue<bt_value>;
-
-    /* Allow insert() to call `val.libObjPtr()` */
-    friend class CommonMapValue<bt_value>;
-
-    /* Allow userAttributes() to call `val.libObjPtr()` */
-    friend class CommonClockClass<bt_clock_class>;
-    friend class CommonFieldClass<bt_field_class>;
-    friend class CommonTraceClass<bt_trace_class>;
-    friend class CommonStreamClass<bt_stream_class>;
-    friend class CommonEventClass<bt_event_class>;
-    friend class CommonStream<bt_stream>;
-
-    /* Allow operator==() to call `other.libObjPtr()` */
-    friend class CommonValue<bt_value>;
-    friend class CommonValue<const bt_value>;
-
 private:
     using typename BorrowedObject<LibObjT>::_ThisBorrowedObject;
 

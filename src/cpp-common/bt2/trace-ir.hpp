@@ -633,9 +633,6 @@ struct CommonTraceSpec<const bt_trace> final
 template <typename LibObjT>
 class CommonTrace final : public BorrowedObject<LibObjT>
 {
-    /* Allow instantiate() to call `trace.libObjPtr()` */
-    friend class CommonStreamClass<bt_stream_class>;
-
 private:
     using typename BorrowedObject<LibObjT>::_ThisBorrowedObject;
     using typename BorrowedObject<LibObjT>::_LibObjPtr;
