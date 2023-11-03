@@ -101,8 +101,7 @@ private:
 public:
     using Shared = SharedObject<_ThisCommonClockClass, LibObjT, internal::ClockClassRefFuncs>;
 
-    using UserAttributes =
-        typename std::conditional<std::is_const<LibObjT>::value, ConstMapValue, MapValue>::type;
+    using UserAttributes = internal::DepUserAttrs<LibObjT>;
 
     explicit CommonClockClass(const _LibObjPtr libObjPtr) noexcept : _ThisBorrowedObject {libObjPtr}
     {

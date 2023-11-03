@@ -230,10 +230,7 @@ class CommonStreamBeginningMessage final : public CommonMessage<LibObjT>
 private:
     using typename CommonMessage<LibObjT>::_LibObjPtr;
     using typename CommonMessage<LibObjT>::_ThisCommonMessage;
-
-    using _Stream =
-        typename std::conditional<std::is_const<LibObjT>::value, CommonStream<const bt_stream>,
-                                  CommonStream<bt_stream>>::type;
+    using _Stream = internal::DepStream<LibObjT>;
 
 public:
     using Shared = SharedMessage<CommonStreamBeginningMessage<LibObjT>, LibObjT>;
@@ -348,10 +345,7 @@ class CommonStreamEndMessage final : public CommonMessage<LibObjT>
 private:
     using typename CommonMessage<LibObjT>::_LibObjPtr;
     using typename CommonMessage<LibObjT>::_ThisCommonMessage;
-
-    using _Stream =
-        typename std::conditional<std::is_const<LibObjT>::value, CommonStream<const bt_stream>,
-                                  CommonStream<bt_stream>>::type;
+    using _Stream = internal::DepStream<LibObjT>;
 
 public:
     using Shared = SharedMessage<CommonStreamEndMessage<LibObjT>, LibObjT>;
@@ -465,10 +459,7 @@ class CommonPacketBeginningMessage final : public CommonMessage<LibObjT>
 private:
     using typename CommonMessage<LibObjT>::_LibObjPtr;
     using typename CommonMessage<LibObjT>::_ThisCommonMessage;
-
-    using _Packet =
-        typename std::conditional<std::is_const<LibObjT>::value, CommonPacket<const bt_packet>,
-                                  CommonPacket<bt_packet>>::type;
+    using _Packet = internal::DepPacket<LibObjT>;
 
 public:
     using Shared = SharedMessage<CommonPacketBeginningMessage<LibObjT>, LibObjT>;
@@ -578,10 +569,7 @@ class CommonPacketEndMessage final : public CommonMessage<LibObjT>
 private:
     using typename CommonMessage<LibObjT>::_LibObjPtr;
     using typename CommonMessage<LibObjT>::_ThisCommonMessage;
-
-    using _Packet =
-        typename std::conditional<std::is_const<LibObjT>::value, CommonPacket<const bt_packet>,
-                                  CommonPacket<bt_packet>>::type;
+    using _Packet = internal::DepPacket<LibObjT>;
 
 public:
     using Shared = SharedMessage<CommonPacketEndMessage<LibObjT>, LibObjT>;
@@ -690,10 +678,7 @@ class CommonEventMessage final : public CommonMessage<LibObjT>
 private:
     using typename CommonMessage<LibObjT>::_LibObjPtr;
     using typename CommonMessage<LibObjT>::_ThisCommonMessage;
-
-    using _Event =
-        typename std::conditional<std::is_const<LibObjT>::value, CommonEvent<const bt_event>,
-                                  CommonEvent<bt_event>>::type;
+    using _Event = internal::DepType<LibObjT, CommonEvent<bt_event>, CommonEvent<const bt_event>>;
 
 public:
     using Shared = SharedMessage<CommonEventMessage<LibObjT>, LibObjT>;
@@ -793,10 +778,7 @@ class CommonDiscardedEventsMessage final : public CommonMessage<LibObjT>
 private:
     using typename CommonMessage<LibObjT>::_LibObjPtr;
     using typename CommonMessage<LibObjT>::_ThisCommonMessage;
-
-    using _Stream =
-        typename std::conditional<std::is_const<LibObjT>::value, CommonStream<const bt_stream>,
-                                  CommonStream<bt_stream>>::type;
+    using _Stream = internal::DepStream<LibObjT>;
 
 public:
     using Shared = SharedMessage<CommonDiscardedEventsMessage<LibObjT>, LibObjT>;
@@ -927,10 +909,7 @@ class CommonDiscardedPacketsMessage final : public CommonMessage<LibObjT>
 private:
     using typename CommonMessage<LibObjT>::_LibObjPtr;
     using typename CommonMessage<LibObjT>::_ThisCommonMessage;
-
-    using _Stream =
-        typename std::conditional<std::is_const<LibObjT>::value, CommonStream<const bt_stream>,
-                                  CommonStream<bt_stream>>::type;
+    using _Stream = internal::DepStream<LibObjT>;
 
 public:
     using Shared = SharedMessage<CommonDiscardedPacketsMessage<LibObjT>, LibObjT>;

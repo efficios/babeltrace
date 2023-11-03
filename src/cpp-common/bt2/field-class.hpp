@@ -172,9 +172,7 @@ protected:
 
 public:
     using Shared = SharedFieldClass<CommonFieldClass<LibObjT>, LibObjT>;
-
-    using UserAttributes =
-        typename std::conditional<std::is_const<LibObjT>::value, ConstMapValue, MapValue>::type;
+    using UserAttributes = internal::DepUserAttrs<LibObjT>;
 
     explicit CommonFieldClass(const _LibObjPtr libObjPtr) noexcept : _ThisBorrowedObject {libObjPtr}
     {
@@ -998,13 +996,10 @@ class CommonStructureFieldClassMember final : public BorrowedObject<LibObjT>
 private:
     using typename BorrowedObject<LibObjT>::_LibObjPtr;
     using typename BorrowedObject<LibObjT>::_ThisBorrowedObject;
-
-    using _FieldClass =
-        typename std::conditional<std::is_const<LibObjT>::value, ConstFieldClass, FieldClass>::type;
+    using _FieldClass = internal::DepFc<LibObjT>;
 
 public:
-    using UserAttributes =
-        typename std::conditional<std::is_const<LibObjT>::value, ConstMapValue, MapValue>::type;
+    using UserAttributes = internal::DepUserAttrs<LibObjT>;
 
     explicit CommonStructureFieldClassMember(const _LibObjPtr libObjPtr) noexcept :
         _ThisBorrowedObject {libObjPtr}
@@ -1131,9 +1126,9 @@ private:
 
 public:
     using Shared = SharedFieldClass<CommonStructureFieldClass<LibObjT>, LibObjT>;
+
     using Member =
-        typename std::conditional<std::is_const<LibObjT>::value, ConstStructureFieldClassMember,
-                                  StructureFieldClassMember>::type;
+        internal::DepType<LibObjT, StructureFieldClassMember, ConstStructureFieldClassMember>;
 
     using Iterator = CommonIterator<CommonStructureFieldClass<LibObjT>, Member>;
 
@@ -1274,9 +1269,7 @@ class CommonArrayFieldClass : public CommonFieldClass<LibObjT>
 {
 private:
     using typename CommonFieldClass<LibObjT>::_ThisCommonFieldClass;
-
-    using _FieldClass =
-        typename std::conditional<std::is_const<LibObjT>::value, ConstFieldClass, FieldClass>::type;
+    using _FieldClass = internal::DepFc<LibObjT>;
 
 protected:
     using typename CommonFieldClass<LibObjT>::_LibObjPtr;
@@ -1517,9 +1510,7 @@ class CommonOptionFieldClass : public CommonFieldClass<LibObjT>
 {
 private:
     using typename CommonFieldClass<LibObjT>::_ThisCommonFieldClass;
-
-    using _FieldClass =
-        typename std::conditional<std::is_const<LibObjT>::value, ConstFieldClass, FieldClass>::type;
+    using _FieldClass = internal::DepFc<LibObjT>;
 
 protected:
     using typename CommonFieldClass<LibObjT>::_LibObjPtr;
@@ -1909,13 +1900,10 @@ class CommonVariantFieldClassOption : public BorrowedObject<LibObjT>
 private:
     using typename BorrowedObject<LibObjT>::_ThisBorrowedObject;
     using typename BorrowedObject<LibObjT>::_LibObjPtr;
-
-    using _FieldClass =
-        typename std::conditional<std::is_const<LibObjT>::value, ConstFieldClass, FieldClass>::type;
+    using _FieldClass = internal::DepFc<LibObjT>;
 
 public:
-    using UserAttributes =
-        typename std::conditional<std::is_const<LibObjT>::value, ConstMapValue, MapValue>::type;
+    using UserAttributes = internal::DepUserAttrs<LibObjT>;
 
     explicit CommonVariantFieldClassOption(const _LibObjPtr libObjPtr) noexcept :
         _ThisBorrowedObject {libObjPtr}
@@ -2167,8 +2155,7 @@ public:
     using Shared = SharedFieldClass<CommonVariantFieldClass<LibObjT>, LibObjT>;
 
     using Option =
-        typename std::conditional<std::is_const<LibObjT>::value, ConstVariantFieldClassOption,
-                                  VariantFieldClassOption>::type;
+        internal::DepType<LibObjT, VariantFieldClassOption, ConstVariantFieldClassOption>;
 
     using Iterator = CommonIterator<CommonVariantFieldClass, Option>;
 

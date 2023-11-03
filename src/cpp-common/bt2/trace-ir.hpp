@@ -121,6 +121,9 @@ struct CommonEventSpec<const bt_event> final
     }
 };
 
+template <typename LibObjT>
+using DepStructField = DepType<LibObjT, StructureField, ConstStructureField>;
+
 } /* namespace internal */
 
 template <typename LibObjT>
@@ -130,22 +133,13 @@ private:
     using typename BorrowedObject<LibObjT>::_ThisBorrowedObject;
     using typename BorrowedObject<LibObjT>::_LibObjPtr;
     using _Spec = internal::CommonEventSpec<LibObjT>;
-
-    using _Packet =
-        typename std::conditional<std::is_const<LibObjT>::value, CommonPacket<const bt_packet>,
-                                  CommonPacket<bt_packet>>::type;
-
-    using _Stream =
-        typename std::conditional<std::is_const<LibObjT>::value, CommonStream<const bt_stream>,
-                                  CommonStream<bt_stream>>::type;
-
-    using _StructureField = typename std::conditional<std::is_const<LibObjT>::value,
-                                                      ConstStructureField, StructureField>::type;
+    using _Packet = internal::DepPacket<LibObjT>;
+    using _Stream = internal::DepStream<LibObjT>;
+    using _StructureField = internal::DepStructField<LibObjT>;
 
 public:
-    using Class = typename std::conditional<std::is_const<LibObjT>::value,
-                                            CommonEventClass<const bt_event_class>,
-                                            CommonEventClass<bt_event_class>>::type;
+    using Class = internal::DepType<LibObjT, CommonEventClass<bt_event_class>,
+                                    CommonEventClass<const bt_event_class>>;
 
     explicit CommonEvent(const _LibObjPtr libObjPtr) noexcept : _ThisBorrowedObject {libObjPtr}
     {
@@ -283,13 +277,8 @@ private:
     using typename BorrowedObject<LibObjT>::_LibObjPtr;
     using _Spec = internal::CommonPacketSpec<LibObjT>;
     using _ThisCommonPacket = CommonPacket<LibObjT>;
-
-    using _Stream =
-        typename std::conditional<std::is_const<LibObjT>::value, CommonStream<const bt_stream>,
-                                  CommonStream<bt_stream>>::type;
-
-    using _StructureField = typename std::conditional<std::is_const<LibObjT>::value,
-                                                      ConstStructureField, StructureField>::type;
+    using _Stream = internal::DepStream<LibObjT>;
+    using _StructureField = internal::DepStructField<LibObjT>;
 
 public:
     using Shared = SharedObject<_ThisCommonPacket, LibObjT, internal::PacketRefFuncs>;
@@ -438,20 +427,14 @@ private:
     using typename BorrowedObject<LibObjT>::_LibObjPtr;
     using _Spec = internal::CommonStreamSpec<LibObjT>;
     using _ThisCommonStream = CommonStream<LibObjT>;
-
-    using _Trace =
-        typename std::conditional<std::is_const<LibObjT>::value, CommonTrace<const bt_trace>,
-                                  CommonTrace<bt_trace>>::type;
+    using _Trace = internal::DepType<LibObjT, CommonTrace<bt_trace>, CommonTrace<const bt_trace>>;
 
 public:
     using Shared = SharedObject<_ThisCommonStream, LibObjT, internal::StreamRefFuncs>;
+    using UserAttributes = internal::DepUserAttrs<LibObjT>;
 
-    using Class = typename std::conditional<std::is_const<LibObjT>::value,
-                                            CommonStreamClass<const bt_stream_class>,
-                                            CommonStreamClass<bt_stream_class>>::type;
-
-    using UserAttributes =
-        typename std::conditional<std::is_const<LibObjT>::value, ConstMapValue, MapValue>::type;
+    using Class = internal::DepType<LibObjT, CommonStreamClass<bt_stream_class>,
+                                    CommonStreamClass<const bt_stream_class>>;
 
     explicit CommonStream(const _LibObjPtr libObjPtr) noexcept : _ThisBorrowedObject {libObjPtr}
     {
@@ -653,20 +636,14 @@ private:
     using typename BorrowedObject<LibObjT>::_LibObjPtr;
     using _Spec = internal::CommonTraceSpec<LibObjT>;
     using _ThisCommonTrace = CommonTrace<LibObjT>;
-
-    using _Stream =
-        typename std::conditional<std::is_const<LibObjT>::value, CommonStream<const bt_stream>,
-                                  CommonStream<bt_stream>>::type;
+    using _Stream = internal::DepStream<LibObjT>;
 
 public:
     using Shared = SharedObject<_ThisCommonTrace, LibObjT, internal::TraceRefFuncs>;
+    using UserAttributes = internal::DepUserAttrs<LibObjT>;
 
-    using Class = typename std::conditional<std::is_const<LibObjT>::value,
-                                            CommonTraceClass<const bt_trace_class>,
-                                            CommonTraceClass<bt_trace_class>>::type;
-
-    using UserAttributes =
-        typename std::conditional<std::is_const<LibObjT>::value, ConstMapValue, MapValue>::type;
+    using Class = internal::DepType<LibObjT, CommonTraceClass<bt_trace_class>,
+                                    CommonTraceClass<const bt_trace_class>>;
 
     struct ConstEnvironmentEntry
     {
@@ -952,6 +929,9 @@ struct CommonEventClassSpec<const bt_event_class> final
     }
 };
 
+template <typename LibObjT>
+using DepStructFc = DepType<LibObjT, StructureFieldClass, ConstStructureFieldClass>;
+
 } /* namespace internal */
 
 template <typename LibObjT>
@@ -962,20 +942,15 @@ private:
     using typename BorrowedObject<LibObjT>::_LibObjPtr;
     using _Spec = internal::CommonEventClassSpec<LibObjT>;
     using _ThisCommonEventClass = CommonEventClass<LibObjT>;
+    using _StructureFieldClass = internal::DepStructFc<LibObjT>;
 
-    using _StreamClass = typename std::conditional<std::is_const<LibObjT>::value,
-                                                   CommonStreamClass<const bt_stream_class>,
-                                                   CommonStreamClass<bt_stream_class>>::type;
-
-    using _StructureFieldClass =
-        typename std::conditional<std::is_const<LibObjT>::value, ConstStructureFieldClass,
-                                  StructureFieldClass>::type;
+    using _StreamClass = internal::DepType<LibObjT, CommonStreamClass<bt_stream_class>,
+                                           CommonStreamClass<const bt_stream_class>>;
 
 public:
     using Shared = SharedObject<_ThisCommonEventClass, LibObjT, internal::EventClassRefFuncs>;
 
-    using UserAttributes =
-        typename std::conditional<std::is_const<LibObjT>::value, ConstMapValue, MapValue>::type;
+    using UserAttributes = internal::DepUserAttrs<LibObjT>;
 
     enum class LogLevel
     {
@@ -1307,27 +1282,20 @@ private:
     using typename BorrowedObject<LibObjT>::_LibObjPtr;
     using _Spec = internal::CommonStreamClassSpec<LibObjT>;
     using _ThisCommonStreamClass = CommonStreamClass<LibObjT>;
+    using _StructureFieldClass = internal::DepStructFc<LibObjT>;
 
-    using _TraceClass = typename std::conditional<std::is_const<LibObjT>::value,
-                                                  CommonTraceClass<const bt_trace_class>,
-                                                  CommonTraceClass<bt_trace_class>>::type;
+    using _TraceClass = internal::DepType<LibObjT, CommonTraceClass<bt_trace_class>,
+                                          CommonTraceClass<const bt_trace_class>>;
 
-    using _EventClass = typename std::conditional<std::is_const<LibObjT>::value,
-                                                  CommonEventClass<const bt_event_class>,
-                                                  CommonEventClass<bt_event_class>>::type;
+    using _EventClass = internal::DepType<LibObjT, CommonEventClass<bt_event_class>,
+                                          CommonEventClass<const bt_event_class>>;
 
-    using _StructureFieldClass =
-        typename std::conditional<std::is_const<LibObjT>::value, ConstStructureFieldClass,
-                                  StructureFieldClass>::type;
-
-    using _ClockClass =
-        typename std::conditional<std::is_const<LibObjT>::value, ConstClockClass, ClockClass>::type;
+    using _ClockClass = internal::DepType<LibObjT, ClockClass, ConstClockClass>;
 
 public:
     using Shared = SharedObject<_ThisCommonStreamClass, LibObjT, internal::StreamClassRefFuncs>;
 
-    using UserAttributes =
-        typename std::conditional<std::is_const<LibObjT>::value, ConstMapValue, MapValue>::type;
+    using UserAttributes = internal::DepUserAttrs<LibObjT>;
 
     explicit CommonStreamClass(const _LibObjPtr libObjPtr) noexcept :
         _ThisBorrowedObject {libObjPtr}
@@ -1753,15 +1721,13 @@ private:
     using _Spec = internal::CommonTraceClassSpec<LibObjT>;
     using _ThisCommonTraceClass = CommonTraceClass<LibObjT>;
 
-    using _StreamClass = typename std::conditional<std::is_const<LibObjT>::value,
-                                                   CommonStreamClass<const bt_stream_class>,
-                                                   CommonStreamClass<bt_stream_class>>::type;
+    using _StreamClass = internal::DepType<LibObjT, CommonStreamClass<bt_stream_class>,
+                                           CommonStreamClass<const bt_stream_class>>;
 
 public:
     using Shared = SharedObject<_ThisCommonTraceClass, LibObjT, internal::TraceClassRefFuncs>;
 
-    using UserAttributes =
-        typename std::conditional<std::is_const<LibObjT>::value, ConstMapValue, MapValue>::type;
+    using UserAttributes = internal::DepUserAttrs<LibObjT>;
 
     explicit CommonTraceClass(const _LibObjPtr libObjPtr) noexcept : _ThisBorrowedObject {libObjPtr}
     {

@@ -102,8 +102,7 @@ protected:
     using _ThisCommonField = CommonField<LibObjT>;
 
 public:
-    using Class =
-        typename std::conditional<std::is_const<LibObjT>::value, ConstFieldClass, FieldClass>::type;
+    using Class = internal::DepFc<LibObjT>;
 
     explicit CommonField(const _LibObjPtr libObjPtr) noexcept : _ThisBorrowedObject {libObjPtr}
     {
@@ -333,8 +332,7 @@ private:
     using typename CommonField<LibObjT>::_ThisCommonField;
 
 public:
-    using Class = typename std::conditional<std::is_const<LibObjT>::value, ConstBitArrayFieldClass,
-                                            BitArrayFieldClass>::type;
+    using Class = internal::DepType<LibObjT, BitArrayFieldClass, ConstBitArrayFieldClass>;
 
     explicit CommonBitArrayField(const _LibObjPtr libObjPtr) noexcept : _ThisCommonField {libObjPtr}
     {
@@ -426,9 +424,7 @@ protected:
 
 public:
     using Value = std::uint64_t;
-
-    using Class = typename std::conditional<std::is_const<LibObjT>::value, ConstIntegerFieldClass,
-                                            IntegerFieldClass>::type;
+    using Class = internal::DepType<LibObjT, IntegerFieldClass, ConstIntegerFieldClass>;
 
     explicit CommonUnsignedIntegerField(const _LibObjPtr libObjPtr) noexcept :
         _ThisCommonField {libObjPtr}
@@ -515,9 +511,7 @@ protected:
 
 public:
     using Value = std::int64_t;
-
-    using Class = typename std::conditional<std::is_const<LibObjT>::value, ConstIntegerFieldClass,
-                                            IntegerFieldClass>::type;
+    using Class = internal::DepType<LibObjT, IntegerFieldClass, ConstIntegerFieldClass>;
 
     explicit CommonSignedIntegerField(const _LibObjPtr libObjPtr) noexcept :
         _ThisCommonField {libObjPtr}
@@ -631,9 +625,8 @@ private:
     using typename CommonField<LibObjT>::_LibObjPtr;
 
 public:
-    using Class =
-        typename std::conditional<std::is_const<LibObjT>::value, ConstUnsignedEnumerationFieldClass,
-                                  UnsignedEnumerationFieldClass>::type;
+    using Class = internal::DepType<LibObjT, UnsignedEnumerationFieldClass,
+                                    ConstUnsignedEnumerationFieldClass>;
 
     explicit CommonUnsignedEnumerationField(const _LibObjPtr libObjPtr) noexcept :
         _ThisCommonUnsignedIntegerField {libObjPtr}
@@ -715,8 +708,7 @@ private:
 
 public:
     using Class =
-        typename std::conditional<std::is_const<LibObjT>::value, ConstSignedEnumerationFieldClass,
-                                  SignedEnumerationFieldClass>::type;
+        internal::DepType<LibObjT, SignedEnumerationFieldClass, ConstSignedEnumerationFieldClass>;
 
     explicit CommonSignedEnumerationField(const _LibObjPtr libObjPtr) noexcept :
         _ThisCommonSignedIntegerField {libObjPtr}
@@ -1094,8 +1086,7 @@ private:
     using _Spec = internal::CommonStructureFieldSpec<LibObjT>;
 
 public:
-    using Class = typename std::conditional<std::is_const<LibObjT>::value, ConstStructureFieldClass,
-                                            StructureFieldClass>::type;
+    using Class = internal::DepType<LibObjT, StructureFieldClass, ConstStructureFieldClass>;
 
     explicit CommonStructureField(const _LibObjPtr libObjPtr) noexcept :
         _ThisCommonField {libObjPtr}
@@ -1213,8 +1204,7 @@ protected:
     using _ThisCommonArrayField = CommonArrayField<LibObjT>;
 
 public:
-    using Class = typename std::conditional<std::is_const<LibObjT>::value, ConstArrayFieldClass,
-                                            ArrayFieldClass>::type;
+    using Class = internal::DepType<LibObjT, ArrayFieldClass, ConstArrayFieldClass>;
 
     explicit CommonArrayField(const _LibObjPtr libObjPtr) noexcept : _ThisCommonField {libObjPtr}
     {
@@ -1383,8 +1373,7 @@ private:
     using _Spec = internal::CommonOptionFieldSpec<LibObjT>;
 
 public:
-    using Class = typename std::conditional<std::is_const<LibObjT>::value, ConstOptionFieldClass,
-                                            OptionFieldClass>::type;
+    using Class = internal::DepType<LibObjT, OptionFieldClass, ConstOptionFieldClass>;
 
     explicit CommonOptionField(const _LibObjPtr libObjPtr) noexcept : _ThisCommonField {libObjPtr}
     {
@@ -1493,8 +1482,7 @@ private:
     using _Spec = internal::CommonVariantFieldSpec<LibObjT>;
 
 public:
-    using Class = typename std::conditional<std::is_const<LibObjT>::value, ConstVariantFieldClass,
-                                            VariantFieldClass>::type;
+    using Class = internal::DepType<LibObjT, VariantFieldClass, ConstVariantFieldClass>;
 
     explicit CommonVariantField(const _LibObjPtr libObjPtr) noexcept : _ThisCommonField {libObjPtr}
     {
