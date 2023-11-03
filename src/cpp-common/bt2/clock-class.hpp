@@ -121,6 +121,11 @@ public:
         return *this;
     }
 
+    CommonClockClass<const bt_clock_class> asConst() const noexcept
+    {
+        return CommonClockClass<const bt_clock_class> {*this};
+    }
+
     void frequency(const std::uint64_t frequency) const noexcept
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");

@@ -107,6 +107,11 @@ public:
         return *this;
     }
 
+    CommonMessage<const bt_message> asConst() const noexcept
+    {
+        return CommonMessage<const bt_message> {*this};
+    }
+
     MessageType type() const noexcept
     {
         return static_cast<MessageType>(bt_message_get_type(this->libObjPtr()));
@@ -253,6 +258,11 @@ public:
         return *this;
     }
 
+    CommonStreamBeginningMessage<const bt_message> asConst() const noexcept
+    {
+        return CommonStreamBeginningMessage<const bt_message> {*this};
+    }
+
     _Stream stream() const noexcept
     {
         return _Stream {
@@ -363,6 +373,11 @@ public:
     {
         _ThisCommonMessage::operator=(val);
         return *this;
+    }
+
+    CommonStreamEndMessage<const bt_message> asConst() const noexcept
+    {
+        return CommonStreamEndMessage<const bt_message> {*this};
     }
 
     _Stream stream() const noexcept
@@ -476,6 +491,11 @@ public:
         return *this;
     }
 
+    CommonPacketBeginningMessage<const bt_message> asConst() const noexcept
+    {
+        return CommonPacketBeginningMessage<const bt_message> {*this};
+    }
+
     _Packet packet() const noexcept
     {
         return _Packet {
@@ -583,6 +603,11 @@ public:
         return *this;
     }
 
+    CommonPacketEndMessage<const bt_message> asConst() const noexcept
+    {
+        return CommonPacketEndMessage<const bt_message> {*this};
+    }
+
     _Packet packet() const noexcept
     {
         return _Packet {internal::CommonPacketEndMessageSpec<LibObjT>::packet(this->libObjPtr())};
@@ -688,6 +713,11 @@ public:
         return *this;
     }
 
+    CommonEventMessage<const bt_message> asConst() const noexcept
+    {
+        return CommonEventMessage<const bt_message> {*this};
+    }
+
     _Event event() const noexcept
     {
         return _Event {internal::CommonEventMessageSpec<LibObjT>::event(this->libObjPtr())};
@@ -785,6 +815,11 @@ public:
     {
         _ThisCommonMessage::operator=(val);
         return *this;
+    }
+
+    CommonDiscardedEventsMessage<const bt_message> asConst() const noexcept
+    {
+        return CommonDiscardedEventsMessage<const bt_message> {*this};
     }
 
     _Stream stream() const noexcept
@@ -915,6 +950,11 @@ public:
         return *this;
     }
 
+    CommonDiscardedPacketsMessage<const bt_message> asConst() const noexcept
+    {
+        return CommonDiscardedPacketsMessage<const bt_message> {*this};
+    }
+
     _Stream stream() const noexcept
     {
         return _Stream {
@@ -1015,6 +1055,11 @@ public:
     {
         _ThisCommonMessage::operator=(val);
         return *this;
+    }
+
+    CommonMessageIteratorInactivityMessage<const bt_message> asConst() const noexcept
+    {
+        return CommonMessageIteratorInactivityMessage<const bt_message> {*this};
     }
 
     ConstClockSnapshot clockSnapshot() const noexcept

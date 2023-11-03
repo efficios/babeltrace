@@ -192,6 +192,11 @@ public:
         return *this;
     }
 
+    CommonFieldClass<const bt_field_class> asConst() const noexcept
+    {
+        return CommonFieldClass<const bt_field_class> {*this};
+    }
+
     FieldClassType type() const noexcept
     {
         return static_cast<FieldClassType>(bt_field_class_get_type(this->libObjPtr()));
@@ -476,6 +481,11 @@ public:
         return *this;
     }
 
+    CommonBitArrayFieldClass<const bt_field_class> asConst() const noexcept
+    {
+        return CommonBitArrayFieldClass<const bt_field_class> {*this};
+    }
+
     std::uint64_t length() const noexcept
     {
         return bt_field_class_bit_array_get_length(this->libObjPtr());
@@ -548,6 +558,11 @@ public:
     {
         _ThisCommonFieldClass::operator=(fc);
         return *this;
+    }
+
+    CommonIntegerFieldClass<const bt_field_class> asConst() const noexcept
+    {
+        return CommonIntegerFieldClass<const bt_field_class> {*this};
     }
 
     void fieldValueRange(const std::uint64_t n) const noexcept
@@ -785,6 +800,11 @@ public:
         return *this;
     }
 
+    CommonBaseEnumerationFieldClass<const bt_field_class> asConst() const noexcept
+    {
+        return CommonBaseEnumerationFieldClass<const bt_field_class> {*this};
+    }
+
     std::uint64_t length() const noexcept
     {
         return bt_field_class_enumeration_get_mapping_count(this->libObjPtr());
@@ -1004,6 +1024,11 @@ public:
         return *this;
     }
 
+    CommonStructureFieldClassMember<const bt_field_class_structure_member> asConst() const noexcept
+    {
+        return CommonStructureFieldClassMember<const bt_field_class_structure_member> {*this};
+    }
+
     bpstd::string_view name() const noexcept
     {
         return bt_field_class_structure_member_get_name(this->libObjPtr());
@@ -1126,6 +1151,11 @@ public:
     {
         _ThisCommonFieldClass::operator=(fc);
         return *this;
+    }
+
+    CommonStructureFieldClass<const bt_field_class> asConst() const noexcept
+    {
+        return CommonStructureFieldClass<const bt_field_class> {*this};
     }
 
     void appendMember(const char * const name, const FieldClass fc) const
@@ -1270,6 +1300,11 @@ public:
         return *this;
     }
 
+    CommonArrayFieldClass<const bt_field_class> asConst() const noexcept
+    {
+        return CommonArrayFieldClass<const bt_field_class> {*this};
+    }
+
     _FieldClass elementFieldClass() const noexcept
     {
         return _FieldClass {
@@ -1335,6 +1370,11 @@ public:
         return *this;
     }
 
+    CommonStaticArrayFieldClass<const bt_field_class> asConst() const noexcept
+    {
+        return CommonStaticArrayFieldClass<const bt_field_class> {*this};
+    }
+
     std::uint64_t length() const noexcept
     {
         return bt_field_class_array_static_get_length(this->libObjPtr());
@@ -1398,6 +1438,11 @@ public:
     {
         _ThisCommonArrayFieldClass::operator=(fc);
         return *this;
+    }
+
+    CommonDynamicArrayWithLengthFieldClass<const bt_field_class> asConst() const noexcept
+    {
+        return CommonDynamicArrayWithLengthFieldClass<const bt_field_class> {*this};
     }
 
     ConstFieldPath lengthFieldPath() const noexcept
@@ -1498,6 +1543,11 @@ public:
         return *this;
     }
 
+    CommonOptionFieldClass<const bt_field_class> asConst() const noexcept
+    {
+        return CommonOptionFieldClass<const bt_field_class> {*this};
+    }
+
     _FieldClass fieldClass() const noexcept
     {
         return _FieldClass {
@@ -1567,6 +1617,11 @@ public:
         return *this;
     }
 
+    CommonOptionWithSelectorFieldClass<const bt_field_class> asConst() const noexcept
+    {
+        return CommonOptionWithSelectorFieldClass<const bt_field_class> {*this};
+    }
+
     ConstFieldPath selectorFieldPath() const noexcept
     {
         return ConstFieldPath {
@@ -1634,6 +1689,11 @@ public:
     {
         _ThisCommonOptionWithSelectorFieldClass::operator=(fc);
         return *this;
+    }
+
+    CommonOptionWithBoolSelectorFieldClass<const bt_field_class> asConst() const noexcept
+    {
+        return CommonOptionWithBoolSelectorFieldClass<const bt_field_class> {*this};
     }
 
     bool selectorIsReversed() const noexcept
@@ -1870,6 +1930,11 @@ public:
     {
         _ThisBorrowedObject::operator=(fc);
         return *this;
+    }
+
+    CommonVariantFieldClassOption<const bt_field_class_variant_option> asConst() const noexcept
+    {
+        return CommonVariantFieldClassOption<const bt_field_class_variant_option> {*this};
     }
 
     nonstd::optional<bpstd::string_view> name() const noexcept
@@ -2121,6 +2186,11 @@ public:
         return *this;
     }
 
+    CommonVariantFieldClass<const bt_field_class> asConst() const noexcept
+    {
+        return CommonVariantFieldClass<const bt_field_class> {*this};
+    }
+
     std::uint64_t length() const noexcept
     {
         return bt_field_class_variant_get_option_count(this->libObjPtr());
@@ -2217,6 +2287,11 @@ public:
     {
         _ThisCommonVariantFieldClass::operator=(fc);
         return *this;
+    }
+
+    CommonVariantWithoutSelectorFieldClass<const bt_field_class> asConst() const noexcept
+    {
+        return CommonVariantWithoutSelectorFieldClass<const bt_field_class> {*this};
     }
 
     void appendOption(const char * const name, const FieldClass fc) const
@@ -2364,6 +2439,11 @@ public:
     {
         _ThisCommonVariantFieldClass::operator=(fc);
         return *this;
+    }
+
+    CommonVariantWithSelectorFieldClass<const bt_field_class> asConst() const noexcept
+    {
+        return CommonVariantWithSelectorFieldClass<const bt_field_class> {*this};
     }
 
     ConstFieldPath selectorFieldPath() const noexcept

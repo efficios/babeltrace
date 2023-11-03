@@ -121,6 +121,11 @@ public:
         return *this;
     }
 
+    CommonField<const bt_field> asConst() const noexcept
+    {
+        return CommonField<const bt_field> {*this};
+    }
+
     FieldClassType classType() const noexcept
     {
         return static_cast<FieldClassType>(bt_field_get_class_type(this->libObjPtr()));
@@ -273,6 +278,11 @@ public:
         return *this;
     }
 
+    CommonBoolField<const bt_field> asConst() const noexcept
+    {
+        return CommonBoolField<const bt_field> {*this};
+    }
+
     CommonBoolField<LibObjT> operator=(const Value val) const noexcept
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
@@ -342,6 +352,11 @@ public:
     {
         _ThisCommonField::operator=(val);
         return *this;
+    }
+
+    CommonBitArrayField<const bt_field> asConst() const noexcept
+    {
+        return CommonBitArrayField<const bt_field> {*this};
     }
 
     ConstBitArrayFieldClass cls() const noexcept
@@ -434,6 +449,11 @@ public:
         return *this;
     }
 
+    CommonUnsignedIntegerField<const bt_field> asConst() const noexcept
+    {
+        return CommonUnsignedIntegerField<const bt_field> {*this};
+    }
+
     Class cls() const noexcept
     {
         return Class {internal::CommonFieldSpec<LibObjT>::cls(this->libObjPtr())};
@@ -515,6 +535,11 @@ public:
     {
         _ThisCommonField::operator=(val);
         return *this;
+    }
+
+    CommonSignedIntegerField<const bt_field> asConst() const noexcept
+    {
+        return CommonSignedIntegerField<const bt_field> {*this};
     }
 
     Class cls() const noexcept
@@ -628,6 +653,11 @@ public:
         return *this;
     }
 
+    CommonUnsignedEnumerationField<const bt_field> asConst() const noexcept
+    {
+        return CommonUnsignedEnumerationField<const bt_field> {*this};
+    }
+
     using CommonUnsignedIntegerField<LibObjT>::operator=;
 
     Class cls() const noexcept
@@ -703,6 +733,11 @@ public:
     {
         _ThisCommonSignedIntegerField::operator=(val);
         return *this;
+    }
+
+    CommonSignedEnumerationField<const bt_field> asConst() const noexcept
+    {
+        return CommonSignedEnumerationField<const bt_field> {*this};
     }
 
     using CommonSignedIntegerField<LibObjT>::operator=;
@@ -781,6 +816,11 @@ public:
         return *this;
     }
 
+    CommonSinglePrecisionRealField<const bt_field> asConst() const noexcept
+    {
+        return CommonSinglePrecisionRealField<const bt_field> {*this};
+    }
+
     CommonSinglePrecisionRealField<LibObjT> operator=(const Value val) const noexcept
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
@@ -854,6 +894,11 @@ public:
         return *this;
     }
 
+    CommonDoublePrecisionRealField<const bt_field> asConst() const noexcept
+    {
+        return CommonDoublePrecisionRealField<const bt_field> {*this};
+    }
+
     CommonDoublePrecisionRealField<LibObjT> operator=(const Value val) const noexcept
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
@@ -919,6 +964,11 @@ public:
     {
         _ThisCommonField::operator=(val);
         return *this;
+    }
+
+    CommonStringField<const bt_field> asConst() const noexcept
+    {
+        return CommonStringField<const bt_field> {*this};
     }
 
     CommonStringField<LibObjT> operator=(const char * const val) const
@@ -1058,6 +1108,11 @@ public:
         return *this;
     }
 
+    CommonStructureField<const bt_field> asConst() const noexcept
+    {
+        return CommonStructureField<const bt_field> {*this};
+    }
+
     Class cls() const noexcept
     {
         return Class {internal::CommonFieldSpec<LibObjT>::cls(this->libObjPtr())};
@@ -1170,6 +1225,11 @@ public:
         return *this;
     }
 
+    CommonArrayField<const bt_field> asConst() const noexcept
+    {
+        return CommonArrayField<const bt_field> {*this};
+    }
+
     Class cls() const noexcept
     {
         return Class {internal::CommonFieldSpec<LibObjT>::cls(this->libObjPtr())};
@@ -1235,6 +1295,11 @@ public:
     {
         _ThisCommonArrayField::operator=(val);
         return *this;
+    }
+
+    CommonDynamicArrayField<const bt_field> asConst() const noexcept
+    {
+        return CommonDynamicArrayField<const bt_field> {*this};
     }
 
     std::uint64_t length() const noexcept
@@ -1327,6 +1392,11 @@ public:
     {
         _ThisCommonField::operator=(val);
         return *this;
+    }
+
+    CommonOptionField<const bt_field> asConst() const noexcept
+    {
+        return CommonOptionField<const bt_field> {*this};
     }
 
     Class cls() const noexcept
@@ -1431,6 +1501,11 @@ public:
     {
         _ThisCommonField::operator=(val);
         return *this;
+    }
+
+    CommonVariantField<const bt_field> asConst() const noexcept
+    {
+        return CommonVariantField<const bt_field> {*this};
     }
 
     Class cls() const noexcept

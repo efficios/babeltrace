@@ -179,6 +179,11 @@ public:
         return *this;
     }
 
+    _ConstLibObjT asConst() const noexcept
+    {
+        return _ConstLibObjT {*this};
+    }
+
     template <typename OtherLibObjT>
     bool operator==(const CommonIntegerRangeSet<OtherLibObjT> other) const noexcept
     {

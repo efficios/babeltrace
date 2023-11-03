@@ -110,6 +110,11 @@ public:
         return *this;
     }
 
+    CommonValue<const bt_value> asConst() const noexcept
+    {
+        return CommonValue<const bt_value> {*this};
+    }
+
     ValueType type() const noexcept
     {
         return static_cast<ValueType>(bt_value_get_type(this->libObjPtr()));
@@ -247,6 +252,11 @@ public:
         return *this;
     }
 
+    CommonNullValue<const bt_value> asConst() const noexcept
+    {
+        return CommonNullValue<const bt_value> {*this};
+    }
+
     Shared shared() const noexcept
     {
         return Shared::createWithRef(*this);
@@ -310,6 +320,11 @@ public:
     {
         _ThisCommonValue::operator=(val);
         return *this;
+    }
+
+    CommonBoolValue<const bt_value> asConst() const noexcept
+    {
+        return CommonBoolValue<const bt_value> {*this};
     }
 
     CommonBoolValue<LibObjT> operator=(const Value rawVal) const noexcept
@@ -400,6 +415,11 @@ public:
         return *this;
     }
 
+    CommonUnsignedIntegerValue<const bt_value> asConst() const noexcept
+    {
+        return CommonUnsignedIntegerValue<const bt_value> {*this};
+    }
+
     CommonUnsignedIntegerValue<LibObjT> operator=(const Value rawVal) const noexcept
     {
         bt_value_integer_unsigned_set(this->libObjPtr(), rawVal);
@@ -484,6 +504,11 @@ public:
         return *this;
     }
 
+    CommonSignedIntegerValue<const bt_value> asConst() const noexcept
+    {
+        return CommonSignedIntegerValue<const bt_value> {*this};
+    }
+
     CommonSignedIntegerValue<LibObjT> operator=(const Value rawVal) const noexcept
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
@@ -565,6 +590,11 @@ public:
     {
         _ThisCommonValue::operator=(val);
         return *this;
+    }
+
+    CommonRealValue<const bt_value> asConst() const noexcept
+    {
+        return CommonRealValue<const bt_value> {*this};
     }
 
     CommonRealValue<LibObjT> operator=(const Value rawVal) const noexcept
@@ -652,6 +682,11 @@ public:
     {
         _ThisCommonValue::operator=(val);
         return *this;
+    }
+
+    CommonStringValue<const bt_value> asConst() const noexcept
+    {
+        return CommonStringValue<const bt_value> {*this};
     }
 
     CommonStringValue<LibObjT> operator=(const char * const rawVal) const
@@ -764,6 +799,11 @@ public:
     {
         _ThisCommonValue::operator=(val);
         return *this;
+    }
+
+    CommonArrayValue<const bt_value> asConst() const noexcept
+    {
+        return CommonArrayValue<const bt_value> {*this};
     }
 
     std::uint64_t length() const noexcept
@@ -1062,6 +1102,11 @@ public:
     {
         _ThisCommonValue::operator=(val);
         return *this;
+    }
+
+    CommonMapValue<const bt_value> asConst() const noexcept
+    {
+        return CommonMapValue<const bt_value> {*this};
     }
 
     std::uint64_t length() const noexcept

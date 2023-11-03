@@ -163,6 +163,11 @@ public:
         return *this;
     }
 
+    CommonEvent<const bt_event> asConst() const noexcept
+    {
+        return CommonEvent<const bt_event> {*this};
+    }
+
     Class cls() const noexcept;
     _Stream stream() const noexcept;
     nonstd::optional<_Packet> packet() const noexcept;
@@ -303,6 +308,11 @@ public:
     {
         _ThisBorrowedObject::operator=(packet);
         return *this;
+    }
+
+    CommonPacket<const bt_packet> asConst() const noexcept
+    {
+        return CommonPacket<const bt_packet> {*this};
     }
 
     _Stream stream() const noexcept;
@@ -457,6 +467,11 @@ public:
     {
         _ThisBorrowedObject::operator=(stream);
         return *this;
+    }
+
+    CommonStream<const bt_stream> asConst() const noexcept
+    {
+        return CommonStream<const bt_stream> {*this};
     }
 
     Packet::Shared createPacket() const
@@ -673,6 +688,11 @@ public:
     {
         _ThisBorrowedObject::operator=(trace);
         return *this;
+    }
+
+    CommonTrace<const bt_trace> asConst() const noexcept
+    {
+        return CommonTrace<const bt_trace> {*this};
     }
 
     Class cls() const noexcept;
@@ -991,6 +1011,11 @@ public:
     {
         _ThisBorrowedObject::operator=(eventClass);
         return *this;
+    }
+
+    CommonEventClass<const bt_event_class> asConst() const noexcept
+    {
+        return CommonEventClass<const bt_event_class> {*this};
     }
 
     _StreamClass streamClass() const noexcept;
@@ -1320,6 +1345,11 @@ public:
     {
         _ThisBorrowedObject::operator=(streamClass);
         return *this;
+    }
+
+    CommonStreamClass<const bt_stream_class> asConst() const noexcept
+    {
+        return CommonStreamClass<const bt_stream_class> {*this};
     }
 
     Stream::Shared instantiate(const Trace trace) const
@@ -1734,6 +1764,11 @@ public:
     {
         _ThisBorrowedObject::operator=(traceClass);
         return *this;
+    }
+
+    CommonTraceClass<const bt_trace_class> asConst() const noexcept
+    {
+        return CommonTraceClass<const bt_trace_class> {*this};
     }
 
     Trace::Shared instantiate() const
