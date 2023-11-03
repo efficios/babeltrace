@@ -64,12 +64,12 @@ public:
         return !(*this == other);
     }
 
-    reference operator*() noexcept
+    reference operator*() const noexcept
     {
         return *_mCurrVal;
     }
 
-    pointer operator->() noexcept
+    pointer operator->() const noexcept
     {
         return &(*_mCurrVal);
     }

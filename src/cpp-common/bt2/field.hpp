@@ -126,12 +126,7 @@ public:
         return static_cast<FieldClassType>(bt_field_get_class_type(this->libObjPtr()));
     }
 
-    ConstFieldClass cls() const noexcept
-    {
-        return ConstFieldClass {internal::CommonFieldSpec<const bt_field>::cls(this->libObjPtr())};
-    }
-
-    Class cls() noexcept
+    Class cls() const noexcept
     {
         return Class {internal::CommonFieldSpec<LibObjT>::cls(this->libObjPtr())};
     }
@@ -278,7 +273,7 @@ public:
         return *this;
     }
 
-    CommonBoolField<LibObjT>& operator=(const Value val) noexcept
+    CommonBoolField<LibObjT> operator=(const Value val) const noexcept
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
@@ -360,7 +355,7 @@ public:
         return Class {internal::CommonFieldSpec<LibObjT>::cls(this->libObjPtr())};
     }
 
-    CommonBitArrayField<LibObjT>& operator=(const std::uint64_t bits) noexcept
+    CommonBitArrayField<LibObjT> operator=(const std::uint64_t bits) const noexcept
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
@@ -439,18 +434,12 @@ public:
         return *this;
     }
 
-    ConstIntegerFieldClass cls() const noexcept
-    {
-        return ConstIntegerFieldClass {
-            internal::CommonFieldSpec<const bt_field>::cls(this->libObjPtr())};
-    }
-
-    Class cls() noexcept
+    Class cls() const noexcept
     {
         return Class {internal::CommonFieldSpec<LibObjT>::cls(this->libObjPtr())};
     }
 
-    CommonUnsignedIntegerField<LibObjT>& operator=(const Value val) noexcept
+    CommonUnsignedIntegerField<LibObjT> operator=(const Value val) const noexcept
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
@@ -528,18 +517,12 @@ public:
         return *this;
     }
 
-    ConstIntegerFieldClass cls() const noexcept
-    {
-        return ConstIntegerFieldClass {
-            internal::CommonFieldSpec<const bt_field>::cls(this->libObjPtr())};
-    }
-
-    Class cls() noexcept
+    Class cls() const noexcept
     {
         return Class {internal::CommonFieldSpec<LibObjT>::cls(this->libObjPtr())};
     }
 
-    CommonSignedIntegerField<LibObjT>& operator=(const Value val) noexcept
+    CommonSignedIntegerField<LibObjT> operator=(const Value val) const noexcept
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
@@ -645,15 +628,9 @@ public:
         return *this;
     }
 
-    ConstUnsignedEnumerationFieldClass cls() const noexcept
-    {
-        return ConstUnsignedEnumerationFieldClass {
-            internal::CommonFieldSpec<const bt_field>::cls(this->libObjPtr())};
-    }
-
     using CommonUnsignedIntegerField<LibObjT>::operator=;
 
-    Class cls() noexcept
+    Class cls() const noexcept
     {
         return Class {internal::CommonFieldSpec<LibObjT>::cls(this->libObjPtr())};
     }
@@ -730,13 +707,7 @@ public:
 
     using CommonSignedIntegerField<LibObjT>::operator=;
 
-    ConstSignedEnumerationFieldClass cls() const noexcept
-    {
-        return ConstSignedEnumerationFieldClass {
-            internal::CommonFieldSpec<const bt_field>::cls(this->libObjPtr())};
-    }
-
-    Class cls() noexcept
+    Class cls() const noexcept
     {
         return Class {internal::CommonFieldSpec<LibObjT>::cls(this->libObjPtr())};
     }
@@ -810,7 +781,7 @@ public:
         return *this;
     }
 
-    CommonSinglePrecisionRealField<LibObjT>& operator=(const Value val) noexcept
+    CommonSinglePrecisionRealField<LibObjT> operator=(const Value val) const noexcept
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
@@ -883,7 +854,7 @@ public:
         return *this;
     }
 
-    CommonDoublePrecisionRealField<LibObjT>& operator=(const Value val) noexcept
+    CommonDoublePrecisionRealField<LibObjT> operator=(const Value val) const noexcept
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
@@ -950,7 +921,7 @@ public:
         return *this;
     }
 
-    CommonStringField<LibObjT>& operator=(const char * const val)
+    CommonStringField<LibObjT> operator=(const char * const val) const
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
@@ -963,12 +934,12 @@ public:
         return *this;
     }
 
-    CommonStringField<LibObjT>& operator=(const std::string& val)
+    CommonStringField<LibObjT> operator=(const std::string& val) const
     {
         return *this = val.data();
     }
 
-    void append(const char * const begin, const std::uint64_t len)
+    void append(const char * const begin, const std::uint64_t len) const
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
@@ -979,12 +950,12 @@ public:
         }
     }
 
-    void append(const std::string& val)
+    void append(const std::string& val) const
     {
         this->append(val.data(), val.size());
     }
 
-    void clear() noexcept
+    void clear() const noexcept
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
@@ -1087,13 +1058,7 @@ public:
         return *this;
     }
 
-    ConstStructureFieldClass cls() const noexcept
-    {
-        return ConstStructureFieldClass {
-            internal::CommonFieldSpec<const bt_field>::cls(this->libObjPtr())};
-    }
-
-    Class cls() noexcept
+    Class cls() const noexcept
     {
         return Class {internal::CommonFieldSpec<LibObjT>::cls(this->libObjPtr())};
     }
@@ -1103,36 +1068,12 @@ public:
         return this->cls().size();
     }
 
-    ConstField operator[](const std::uint64_t index) const noexcept
-    {
-        return ConstField {internal::CommonStructureFieldSpec<const bt_field>::memberFieldByIndex(
-            this->libObjPtr(), index)};
-    }
-
-    CommonField<LibObjT> operator[](const std::uint64_t index) noexcept
+    CommonField<LibObjT> operator[](const std::uint64_t index) const noexcept
     {
         return CommonField<LibObjT> {_Spec::memberFieldByIndex(this->libObjPtr(), index)};
     }
 
-    nonstd::optional<ConstField> operator[](const char * const name) const noexcept
-    {
-        const auto libObjPtr =
-            internal::CommonStructureFieldSpec<const bt_field>::memberFieldByName(this->libObjPtr(),
-                                                                                  name);
-
-        if (libObjPtr) {
-            return ConstField {libObjPtr};
-        }
-
-        return nonstd::nullopt;
-    }
-
-    nonstd::optional<ConstField> operator[](const std::string& name) const noexcept
-    {
-        return (*this)[name.data()];
-    }
-
-    nonstd::optional<CommonField<LibObjT>> operator[](const char * const name) noexcept
+    nonstd::optional<CommonField<LibObjT>> operator[](const char * const name) const noexcept
     {
         const auto libObjPtr = _Spec::memberFieldByName(this->libObjPtr(), name);
 
@@ -1143,7 +1084,7 @@ public:
         return nonstd::nullopt;
     }
 
-    nonstd::optional<CommonField<LibObjT>> operator[](const std::string& name) noexcept
+    nonstd::optional<CommonField<LibObjT>> operator[](const std::string& name) const noexcept
     {
         return (*this)[name.data()];
     }
@@ -1229,13 +1170,7 @@ public:
         return *this;
     }
 
-    ConstArrayFieldClass cls() const noexcept
-    {
-        return ConstArrayFieldClass {
-            internal::CommonFieldSpec<const bt_field>::cls(this->libObjPtr())};
-    }
-
-    Class cls() noexcept
+    Class cls() const noexcept
     {
         return Class {internal::CommonFieldSpec<LibObjT>::cls(this->libObjPtr())};
     }
@@ -1245,13 +1180,7 @@ public:
         return bt_field_array_get_length(this->libObjPtr());
     }
 
-    ConstField operator[](const std::uint64_t index) const noexcept
-    {
-        return ConstField {internal::CommonArrayFieldSpec<const bt_field>::elementFieldByIndex(
-            this->libObjPtr(), index)};
-    }
-
-    CommonField<LibObjT> operator[](const std::uint64_t index) noexcept
+    CommonField<LibObjT> operator[](const std::uint64_t index) const noexcept
     {
         return CommonField<LibObjT> {_Spec::elementFieldByIndex(this->libObjPtr(), index)};
     }
@@ -1313,7 +1242,7 @@ public:
         return _ThisCommonArrayField::length();
     }
 
-    void length(const std::uint64_t length)
+    void length(const std::uint64_t length) const
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
@@ -1400,18 +1329,12 @@ public:
         return *this;
     }
 
-    ConstOptionFieldClass cls() const noexcept
-    {
-        return ConstOptionFieldClass {
-            internal::CommonFieldSpec<const bt_field>::cls(this->libObjPtr())};
-    }
-
-    Class cls() noexcept
+    Class cls() const noexcept
     {
         return Class {internal::CommonFieldSpec<LibObjT>::cls(this->libObjPtr())};
     }
 
-    void hasField(const bool hasField) noexcept
+    void hasField(const bool hasField) const noexcept
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
@@ -1423,19 +1346,7 @@ public:
         return this->field().has_value();
     }
 
-    nonstd::optional<ConstField> field() const noexcept
-    {
-        const auto libObjPtr =
-            internal::CommonOptionFieldSpec<const bt_field>::field(this->libObjPtr());
-
-        if (libObjPtr) {
-            return ConstField {libObjPtr};
-        }
-
-        return nonstd::nullopt;
-    }
-
-    nonstd::optional<CommonField<LibObjT>> field() noexcept
+    nonstd::optional<CommonField<LibObjT>> field() const noexcept
     {
         const auto libObjPtr = _Spec::field(this->libObjPtr());
 
@@ -1522,31 +1433,19 @@ public:
         return *this;
     }
 
-    ConstVariantFieldClass cls() const noexcept
-    {
-        return ConstVariantFieldClass {
-            internal::CommonFieldSpec<const bt_field>::cls(this->libObjPtr())};
-    }
-
-    Class cls() noexcept
+    Class cls() const noexcept
     {
         return Class {internal::CommonFieldSpec<LibObjT>::cls(this->libObjPtr())};
     }
 
-    void selectOption(const std::uint64_t index) noexcept
+    void selectOption(const std::uint64_t index) const noexcept
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
         static_cast<void>(bt_field_variant_select_option_by_index(this->libObjPtr(), index));
     }
 
-    ConstField selectedOptionField() const noexcept
-    {
-        return ConstField {internal::CommonVariantFieldSpec<const bt_field>::selectedOptionField(
-            this->libObjPtr())};
-    }
-
-    CommonField<LibObjT> selectedOptionField() noexcept
+    CommonField<LibObjT> selectedOptionField() const noexcept
     {
         return CommonField<LibObjT> {_Spec::selectedOptionField(this->libObjPtr())};
     }

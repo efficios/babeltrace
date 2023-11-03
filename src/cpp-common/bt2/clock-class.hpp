@@ -121,7 +121,7 @@ public:
         return *this;
     }
 
-    void frequency(const std::uint64_t frequency) noexcept
+    void frequency(const std::uint64_t frequency) const noexcept
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
@@ -133,7 +133,7 @@ public:
         return bt_clock_class_get_frequency(this->libObjPtr());
     }
 
-    void offset(const ClockClassOffset& offset) noexcept
+    void offset(const ClockClassOffset& offset) const noexcept
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
@@ -149,7 +149,7 @@ public:
         return ClockClassOffset {seconds, cycles};
     }
 
-    void precision(const std::uint64_t precision) noexcept
+    void precision(const std::uint64_t precision) const noexcept
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
@@ -161,7 +161,7 @@ public:
         return bt_clock_class_get_precision(this->libObjPtr());
     }
 
-    void originIsUnixEpoch(const bool originIsUnixEpoch) noexcept
+    void originIsUnixEpoch(const bool originIsUnixEpoch) const noexcept
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
@@ -174,7 +174,7 @@ public:
         return static_cast<bool>(bt_clock_class_origin_is_unix_epoch(this->libObjPtr()));
     }
 
-    void name(const char * const name)
+    void name(const char * const name) const
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
@@ -185,7 +185,7 @@ public:
         }
     }
 
-    void name(const std::string& name)
+    void name(const std::string& name) const
     {
         this->name(name.data());
     }
@@ -201,7 +201,7 @@ public:
         return nonstd::nullopt;
     }
 
-    void description(const char * const description)
+    void description(const char * const description) const
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
@@ -212,7 +212,7 @@ public:
         }
     }
 
-    void description(const std::string& description)
+    void description(const std::string& description) const
     {
         this->description(description.data());
     }
@@ -228,7 +228,7 @@ public:
         return nonstd::nullopt;
     }
 
-    void uuid(const std::uint8_t * const uuid) noexcept
+    void uuid(const std::uint8_t * const uuid) const noexcept
     {
         bt_clock_class_set_uuid(this->libObjPtr(), uuid);
     }
@@ -245,20 +245,14 @@ public:
     }
 
     template <typename LibValT>
-    void userAttributes(const CommonMapValue<LibValT> userAttrs)
+    void userAttributes(const CommonMapValue<LibValT> userAttrs) const
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
         bt_clock_class_set_user_attributes(this->libObjPtr(), userAttrs.libObjPtr());
     }
 
-    ConstMapValue userAttributes() const noexcept
-    {
-        return ConstMapValue {internal::CommonClockClassSpec<const bt_clock_class>::userAttributes(
-            this->libObjPtr())};
-    }
-
-    UserAttributes userAttributes() noexcept
+    UserAttributes userAttributes() const noexcept
     {
         return UserAttributes {
             internal::CommonClockClassSpec<LibObjT>::userAttributes(this->libObjPtr())};

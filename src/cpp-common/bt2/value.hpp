@@ -348,7 +348,7 @@ public:
         return *this;
     }
 
-    CommonBoolValue<LibObjT>& operator=(const Value rawVal) noexcept
+    CommonBoolValue<LibObjT> operator=(const Value rawVal) const noexcept
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
@@ -436,7 +436,7 @@ public:
         return *this;
     }
 
-    CommonUnsignedIntegerValue<LibObjT>& operator=(const Value rawVal) noexcept
+    CommonUnsignedIntegerValue<LibObjT> operator=(const Value rawVal) const noexcept
     {
         bt_value_integer_unsigned_set(this->libObjPtr(), rawVal);
         return *this;
@@ -513,14 +513,14 @@ public:
     }
 
     template <typename OtherLibObjT>
-    CommonSignedIntegerValue<LibObjT>&
+    CommonSignedIntegerValue<LibObjT>
     operator=(const CommonSignedIntegerValue<OtherLibObjT> val) noexcept
     {
         _ThisCommonValue::operator=(val);
         return *this;
     }
 
-    CommonSignedIntegerValue<LibObjT>& operator=(const Value rawVal) noexcept
+    CommonSignedIntegerValue<LibObjT> operator=(const Value rawVal) const noexcept
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
@@ -603,7 +603,7 @@ public:
         return *this;
     }
 
-    CommonRealValue<LibObjT>& operator=(const Value rawVal) noexcept
+    CommonRealValue<LibObjT> operator=(const Value rawVal) const noexcept
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
@@ -690,7 +690,7 @@ public:
         return *this;
     }
 
-    CommonStringValue<LibObjT>& operator=(const char * const rawVal)
+    CommonStringValue<LibObjT> operator=(const char * const rawVal) const
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
@@ -703,7 +703,7 @@ public:
         return *this;
     }
 
-    CommonStringValue<LibObjT>& operator=(const std::string& rawVal) noexcept
+    CommonStringValue<LibObjT> operator=(const std::string& rawVal) const noexcept
     {
         return *this = rawVal.data();
     }
@@ -828,19 +828,13 @@ public:
         return this->length() == 0;
     }
 
-    ConstValue operator[](const std::uint64_t index) const noexcept
-    {
-        return ConstValue {internal::CommonArrayValueSpec<const bt_value>::elementByIndex(
-            this->libObjPtr(), index)};
-    }
-
-    CommonValue<LibObjT> operator[](const std::uint64_t index) noexcept
+    CommonValue<LibObjT> operator[](const std::uint64_t index) const noexcept
     {
         return CommonValue<LibObjT> {
             internal::CommonArrayValueSpec<LibObjT>::elementByIndex(this->libObjPtr(), index)};
     }
 
-    void append(const Value val)
+    void append(const Value val) const
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
@@ -849,7 +843,7 @@ public:
         this->_handleAppendLibStatus(status);
     }
 
-    void append(const bool rawVal)
+    void append(const bool rawVal) const
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
@@ -859,7 +853,7 @@ public:
         this->_handleAppendLibStatus(status);
     }
 
-    void append(const std::uint64_t rawVal)
+    void append(const std::uint64_t rawVal) const
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
@@ -869,7 +863,7 @@ public:
         this->_handleAppendLibStatus(status);
     }
 
-    void append(const std::int64_t rawVal)
+    void append(const std::int64_t rawVal) const
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
@@ -878,7 +872,7 @@ public:
         this->_handleAppendLibStatus(status);
     }
 
-    void append(const double rawVal)
+    void append(const double rawVal) const
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
@@ -887,7 +881,7 @@ public:
         this->_handleAppendLibStatus(status);
     }
 
-    void append(const char * const rawVal)
+    void append(const char * const rawVal) const
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
@@ -896,45 +890,45 @@ public:
         this->_handleAppendLibStatus(status);
     }
 
-    void append(const std::string& rawVal)
+    void append(const std::string& rawVal) const
     {
         this->append(rawVal.data());
     }
 
-    CommonArrayValue<bt_value> appendEmptyArray();
-    CommonMapValue<bt_value> appendEmptyMap();
+    CommonArrayValue<bt_value> appendEmptyArray() const;
+    CommonMapValue<bt_value> appendEmptyMap() const;
 
-    void operator+=(const Value val)
+    void operator+=(const Value val) const
     {
         this->append(val);
     }
 
-    void operator+=(const bool rawVal)
+    void operator+=(const bool rawVal) const
     {
         this->append(rawVal);
     }
 
-    void operator+=(const std::uint64_t rawVal)
+    void operator+=(const std::uint64_t rawVal) const
     {
         this->append(rawVal);
     }
 
-    void operator+=(const std::int64_t rawVal)
+    void operator+=(const std::int64_t rawVal) const
     {
         this->append(rawVal);
     }
 
-    void operator+=(const double rawVal)
+    void operator+=(const double rawVal) const
     {
         this->append(rawVal);
     }
 
-    void operator+=(const char * const rawVal)
+    void operator+=(const char * const rawVal) const
     {
         this->append(rawVal);
     }
 
-    void operator+=(const std::string& rawVal)
+    void operator+=(const std::string& rawVal) const
     {
         this->append(rawVal);
     }
@@ -1122,24 +1116,7 @@ public:
         return this->size() == 0;
     }
 
-    nonstd::optional<ConstValue> operator[](const char * const key) const noexcept
-    {
-        const auto libObjPtr =
-            internal::CommonMapValueSpec<const bt_value>::entryByKey(this->libObjPtr(), key);
-
-        if (!libObjPtr) {
-            return nonstd::nullopt;
-        }
-
-        return ConstValue {libObjPtr};
-    }
-
-    nonstd::optional<ConstValue> operator[](const std::string& key) const noexcept
-    {
-        return (*this)[key.data()];
-    }
-
-    nonstd::optional<CommonValue<LibObjT>> operator[](const char * const key) noexcept
+    nonstd::optional<CommonValue<LibObjT>> operator[](const char * const key) const noexcept
     {
         const auto libObjPtr =
             internal::CommonMapValueSpec<LibObjT>::entryByKey(this->libObjPtr(), key);
@@ -1151,7 +1128,7 @@ public:
         return CommonValue<LibObjT> {libObjPtr};
     }
 
-    nonstd::optional<CommonValue<LibObjT>> operator[](const std::string& key) noexcept
+    nonstd::optional<CommonValue<LibObjT>> operator[](const std::string& key) const noexcept
     {
         return (*this)[key.data()];
     }
@@ -1166,7 +1143,7 @@ public:
         return this->hasEntry(key.data());
     }
 
-    void insert(const char * const key, const Value val)
+    void insert(const char * const key, const Value val) const
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
@@ -1175,12 +1152,12 @@ public:
         this->_handleInsertLibStatus(status);
     }
 
-    void insert(const std::string& key, const Value val)
+    void insert(const std::string& key, const Value val) const
     {
         this->insert(key.data(), val);
     }
 
-    void insert(const char * const key, const bool rawVal)
+    void insert(const char * const key, const bool rawVal) const
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
@@ -1190,12 +1167,12 @@ public:
         this->_handleInsertLibStatus(status);
     }
 
-    void insert(const std::string& key, const bool rawVal)
+    void insert(const std::string& key, const bool rawVal) const
     {
         this->insert(key.data(), rawVal);
     }
 
-    void insert(const char * const key, const std::uint64_t rawVal)
+    void insert(const char * const key, const std::uint64_t rawVal) const
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
@@ -1205,12 +1182,12 @@ public:
         this->_handleInsertLibStatus(status);
     }
 
-    void insert(const std::string& key, const std::uint64_t rawVal)
+    void insert(const std::string& key, const std::uint64_t rawVal) const
     {
         this->insert(key.data(), rawVal);
     }
 
-    void insert(const char * const key, const std::int64_t rawVal)
+    void insert(const char * const key, const std::int64_t rawVal) const
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
@@ -1220,12 +1197,12 @@ public:
         this->_handleInsertLibStatus(status);
     }
 
-    void insert(const std::string& key, const std::int64_t rawVal)
+    void insert(const std::string& key, const std::int64_t rawVal) const
     {
         this->insert(key.data(), rawVal);
     }
 
-    void insert(const char * const key, const double rawVal)
+    void insert(const char * const key, const double rawVal) const
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
@@ -1234,12 +1211,12 @@ public:
         this->_handleInsertLibStatus(status);
     }
 
-    void insert(const std::string& key, const double rawVal)
+    void insert(const std::string& key, const double rawVal) const
     {
         this->insert(key.data(), rawVal);
     }
 
-    void insert(const char * const key, const char * const rawVal)
+    void insert(const char * const key, const char * const rawVal) const
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
@@ -1248,32 +1225,27 @@ public:
         this->_handleInsertLibStatus(status);
     }
 
-    void insert(const char * const key, const std::string& rawVal)
+    void insert(const char * const key, const std::string& rawVal) const
     {
         this->insert(key, rawVal.data());
     }
 
-    void insert(const std::string& key, const char * const rawVal)
+    void insert(const std::string& key, const char * const rawVal) const
     {
         this->insert(key.data(), rawVal);
     }
 
-    void insert(const std::string& key, const std::string& rawVal)
+    void insert(const std::string& key, const std::string& rawVal) const
     {
         this->insert(key.data(), rawVal.data());
     }
 
-    CommonArrayValue<bt_value> insertEmptyArray(const char *key);
-    CommonArrayValue<bt_value> insertEmptyArray(const std::string& key);
-    CommonMapValue<bt_value> insertEmptyMap(const char *key);
-    CommonMapValue<bt_value> insertEmptyMap(const std::string& key);
+    CommonArrayValue<bt_value> insertEmptyArray(const char *key) const;
+    CommonArrayValue<bt_value> insertEmptyArray(const std::string& key) const;
+    CommonMapValue<bt_value> insertEmptyMap(const char *key) const;
+    CommonMapValue<bt_value> insertEmptyMap(const std::string& key) const;
 
-    void forEach(const internal::CommonMapValueForEachUserFunc<ConstValue>& func) const
-    {
-        internal::CommonMapValueSpec<const bt_value>::forEach(this->libObjPtr(), func);
-    }
-
-    void forEach(const internal::CommonMapValueForEachUserFunc<CommonValue<LibObjT>>& func)
+    void forEach(const internal::CommonMapValueForEachUserFunc<CommonValue<LibObjT>>& func) const
     {
         internal::CommonMapValueSpec<LibObjT>::forEach(this->libObjPtr(), func);
     }
@@ -1372,7 +1344,7 @@ CommonMapValue<LibObjT> CommonValue<LibObjT>::asMap() const noexcept
 }
 
 template <typename LibObjT>
-ArrayValue CommonArrayValue<LibObjT>::appendEmptyArray()
+ArrayValue CommonArrayValue<LibObjT>::appendEmptyArray() const
 {
     static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
@@ -1384,7 +1356,7 @@ ArrayValue CommonArrayValue<LibObjT>::appendEmptyArray()
 }
 
 template <typename LibObjT>
-MapValue CommonArrayValue<LibObjT>::appendEmptyMap()
+MapValue CommonArrayValue<LibObjT>::appendEmptyMap() const
 {
     static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
@@ -1396,7 +1368,7 @@ MapValue CommonArrayValue<LibObjT>::appendEmptyMap()
 }
 
 template <typename LibObjT>
-ArrayValue CommonMapValue<LibObjT>::insertEmptyArray(const char * const key)
+ArrayValue CommonMapValue<LibObjT>::insertEmptyArray(const char * const key) const
 {
     static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
@@ -1408,13 +1380,13 @@ ArrayValue CommonMapValue<LibObjT>::insertEmptyArray(const char * const key)
 }
 
 template <typename LibObjT>
-ArrayValue CommonMapValue<LibObjT>::insertEmptyArray(const std::string& key)
+ArrayValue CommonMapValue<LibObjT>::insertEmptyArray(const std::string& key) const
 {
     return this->insertEmptyArray(key.data());
 }
 
 template <typename LibObjT>
-MapValue CommonMapValue<LibObjT>::insertEmptyMap(const char * const key)
+MapValue CommonMapValue<LibObjT>::insertEmptyMap(const char * const key) const
 {
     static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
@@ -1426,7 +1398,7 @@ MapValue CommonMapValue<LibObjT>::insertEmptyMap(const char * const key)
 }
 
 template <typename LibObjT>
-MapValue CommonMapValue<LibObjT>::insertEmptyMap(const std::string& key)
+MapValue CommonMapValue<LibObjT>::insertEmptyMap(const std::string& key) const
 {
     return this->insertEmptyMap(key.data());
 }

@@ -253,19 +253,13 @@ public:
         return *this;
     }
 
-    ConstStream stream() const noexcept
-    {
-        return ConstStream {internal::CommonStreamBeginningMessageSpec<const bt_message>::stream(
-            this->libObjPtr())};
-    }
-
-    _Stream stream() noexcept
+    _Stream stream() const noexcept
     {
         return _Stream {
             internal::CommonStreamBeginningMessageSpec<LibObjT>::stream(this->libObjPtr())};
     }
 
-    void defaultClockSnapshot(const std::uint64_t val) noexcept
+    void defaultClockSnapshot(const std::uint64_t val) const noexcept
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
@@ -371,18 +365,12 @@ public:
         return *this;
     }
 
-    ConstStream stream() const noexcept
-    {
-        return ConstStream {
-            internal::CommonStreamEndMessageSpec<const bt_message>::stream(this->libObjPtr())};
-    }
-
-    _Stream stream() noexcept
+    _Stream stream() const noexcept
     {
         return _Stream {internal::CommonStreamEndMessageSpec<LibObjT>::stream(this->libObjPtr())};
     }
 
-    void defaultClockSnapshot(const std::uint64_t val) noexcept
+    void defaultClockSnapshot(const std::uint64_t val) const noexcept
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
@@ -488,19 +476,13 @@ public:
         return *this;
     }
 
-    ConstPacket packet() const noexcept
-    {
-        return ConstPacket {internal::CommonPacketBeginningMessageSpec<const bt_message>::packet(
-            this->libObjPtr())};
-    }
-
-    _Packet packet() noexcept
+    _Packet packet() const noexcept
     {
         return _Packet {
             internal::CommonPacketBeginningMessageSpec<LibObjT>::packet(this->libObjPtr())};
     }
 
-    void defaultClockSnapshot(const std::uint64_t val) noexcept
+    void defaultClockSnapshot(const std::uint64_t val) const noexcept
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
@@ -601,18 +583,12 @@ public:
         return *this;
     }
 
-    ConstPacket packet() const noexcept
-    {
-        return ConstPacket {
-            internal::CommonPacketEndMessageSpec<const bt_message>::packet(this->libObjPtr())};
-    }
-
-    _Packet packet() noexcept
+    _Packet packet() const noexcept
     {
         return _Packet {internal::CommonPacketEndMessageSpec<LibObjT>::packet(this->libObjPtr())};
     }
 
-    void defaultClockSnapshot(const std::uint64_t val) noexcept
+    void defaultClockSnapshot(const std::uint64_t val) const noexcept
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
@@ -712,13 +688,7 @@ public:
         return *this;
     }
 
-    ConstEvent event() const noexcept
-    {
-        return ConstEvent {
-            internal::CommonEventMessageSpec<const bt_message>::event(this->libObjPtr())};
-    }
-
-    _Event event() noexcept
+    _Event event() const noexcept
     {
         return _Event {internal::CommonEventMessageSpec<LibObjT>::event(this->libObjPtr())};
     }
@@ -817,13 +787,7 @@ public:
         return *this;
     }
 
-    ConstStream stream() const noexcept
-    {
-        return ConstStream {internal::CommonDiscardedEventsMessageSpec<const bt_message>::stream(
-            this->libObjPtr())};
-    }
-
-    _Stream stream() noexcept
+    _Stream stream() const noexcept
     {
         return _Stream {
             internal::CommonDiscardedEventsMessageSpec<LibObjT>::stream(this->libObjPtr())};
@@ -846,7 +810,7 @@ public:
         return ConstClockSnapshot {libObjPtr};
     }
 
-    void count(const std::uint64_t count) noexcept
+    void count(const std::uint64_t count) const noexcept
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
@@ -951,13 +915,7 @@ public:
         return *this;
     }
 
-    ConstStream stream() const noexcept
-    {
-        return ConstStream {internal::CommonDiscardedPacketsMessageSpec<const bt_message>::stream(
-            this->libObjPtr())};
-    }
-
-    _Stream stream() noexcept
+    _Stream stream() const noexcept
     {
         return _Stream {
             internal::CommonDiscardedPacketsMessageSpec<LibObjT>::stream(this->libObjPtr())};
@@ -980,7 +938,7 @@ public:
         return ConstClockSnapshot {libObjPtr};
     }
 
-    void count(const std::uint64_t count) noexcept
+    void count(const std::uint64_t count) const noexcept
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 

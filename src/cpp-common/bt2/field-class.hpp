@@ -421,20 +421,14 @@ public:
     asVariantWithSignedIntegerSelector() const noexcept;
 
     template <typename LibValT>
-    void userAttributes(const CommonMapValue<LibValT> userAttrs)
+    void userAttributes(const CommonMapValue<LibValT> userAttrs) const
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
         bt_field_class_set_user_attributes(this->libObjPtr(), userAttrs.libObjPtr());
     }
 
-    ConstMapValue userAttributes() const noexcept
-    {
-        return ConstMapValue {internal::CommonFieldClassSpec<const bt_field_class>::userAttributes(
-            this->libObjPtr())};
-    }
-
-    UserAttributes userAttributes() noexcept
+    UserAttributes userAttributes() const noexcept
     {
         return UserAttributes {
             internal::CommonFieldClassSpec<LibObjT>::userAttributes(this->libObjPtr())};
@@ -579,7 +573,7 @@ public:
         return *this;
     }
 
-    void fieldValueRange(const std::uint64_t n) noexcept
+    void fieldValueRange(const std::uint64_t n) const noexcept
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
@@ -591,7 +585,7 @@ public:
         return bt_field_class_integer_get_field_value_range(this->libObjPtr());
     }
 
-    void preferredDisplayBase(const DisplayBase base) noexcept
+    void preferredDisplayBase(const DisplayBase base) const noexcept
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
@@ -882,7 +876,7 @@ public:
         return (*this)[label.data()];
     }
 
-    void addMapping(const char * const label, const typename Mapping::RangeSet ranges)
+    void addMapping(const char * const label, const typename Mapping::RangeSet ranges) const
     {
         const auto status = internal::CommonEnumerationFieldClassSpec<MappingT>::addMapping(
             this->libObjPtr(), label, ranges.libObjPtr());
@@ -892,7 +886,7 @@ public:
         }
     }
 
-    void addMapping(const std::string& label, const typename Mapping::RangeSet ranges)
+    void addMapping(const std::string& label, const typename Mapping::RangeSet ranges) const
     {
         this->addMapping(label.data(), ranges);
     }
@@ -1038,20 +1032,14 @@ public:
         return bt_field_class_structure_member_get_name(this->libObjPtr());
     }
 
-    ConstFieldClass fieldClass() const noexcept
-    {
-        return ConstFieldClass {internal::CommonStructureFieldClassMemberSpec<
-            const bt_field_class_structure_member>::fieldClass(this->libObjPtr())};
-    }
-
-    _FieldClass fieldClass() noexcept
+    _FieldClass fieldClass() const noexcept
     {
         return _FieldClass {
             internal::CommonStructureFieldClassMemberSpec<LibObjT>::fieldClass(this->libObjPtr())};
     }
 
     template <typename LibValT>
-    void userAttributes(const CommonMapValue<LibValT> userAttrs)
+    void userAttributes(const CommonMapValue<LibValT> userAttrs) const
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
@@ -1059,13 +1047,7 @@ public:
                                                             userAttrs.libObjPtr());
     }
 
-    ConstMapValue userAttributes() const noexcept
-    {
-        return ConstMapValue {internal::CommonStructureFieldClassMemberSpec<
-            const bt_field_class_structure_member>::userAttributes(this->libObjPtr())};
-    }
-
-    UserAttributes userAttributes() noexcept
+    UserAttributes userAttributes() const noexcept
     {
         return UserAttributes {
             internal::CommonStructureFieldClassMemberSpec<LibObjT>::userAttributes(
@@ -1169,7 +1151,7 @@ public:
         return *this;
     }
 
-    void appendMember(const char * const name, const FieldClass fc)
+    void appendMember(const char * const name, const FieldClass fc) const
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
@@ -1181,7 +1163,7 @@ public:
         }
     }
 
-    void appendMember(const std::string& name, const FieldClass fc)
+    void appendMember(const std::string& name, const FieldClass fc) const
     {
         this->appendMember(name.data(), fc);
     }
@@ -1201,40 +1183,13 @@ public:
         return Iterator {*this, this->size()};
     }
 
-    ConstStructureFieldClassMember operator[](const std::uint64_t index) const noexcept
-    {
-        return ConstStructureFieldClassMember {
-            internal::CommonStructureFieldClassSpec<const bt_field_class>::memberByIndex(
-                this->libObjPtr(), index)};
-    }
-
-    Member operator[](const std::uint64_t index) noexcept
+    Member operator[](const std::uint64_t index) const noexcept
     {
         return Member {internal::CommonStructureFieldClassSpec<LibObjT>::memberByIndex(
             this->libObjPtr(), index)};
     }
 
-    nonstd::optional<ConstStructureFieldClassMember>
-    operator[](const char * const name) const noexcept
-    {
-        const auto libObjPtr =
-            internal::CommonStructureFieldClassSpec<const bt_field_class>::memberByName(
-                this->libObjPtr(), name);
-
-        if (libObjPtr) {
-            return ConstStructureFieldClassMember {libObjPtr};
-        }
-
-        return nonstd::nullopt;
-    }
-
-    nonstd::optional<ConstStructureFieldClassMember>
-    operator[](const std::string& name) const noexcept
-    {
-        return (*this)[name.data()];
-    }
-
-    nonstd::optional<Member> operator[](const char * const name) noexcept
+    nonstd::optional<Member> operator[](const char * const name) const noexcept
     {
         const auto libObjPtr =
             internal::CommonStructureFieldClassSpec<LibObjT>::memberByName(this->libObjPtr(), name);
@@ -1246,7 +1201,7 @@ public:
         return nonstd::nullopt;
     }
 
-    nonstd::optional<Member> operator[](const std::string& name) noexcept
+    nonstd::optional<Member> operator[](const std::string& name) const noexcept
     {
         return (*this)[name.data()];
     }
@@ -1338,14 +1293,7 @@ public:
         return *this;
     }
 
-    ConstFieldClass elementFieldClass() const noexcept
-    {
-        return ConstFieldClass {
-            internal::CommonArrayFieldClassSpec<const bt_field_class>::elementFieldClass(
-                this->libObjPtr())};
-    }
-
-    _FieldClass elementFieldClass() noexcept
+    _FieldClass elementFieldClass() const noexcept
     {
         return _FieldClass {
             internal::CommonArrayFieldClassSpec<LibObjT>::elementFieldClass(this->libObjPtr())};
@@ -1573,14 +1521,7 @@ public:
         return *this;
     }
 
-    ConstFieldClass fieldClass() const noexcept
-    {
-        return ConstFieldClass {
-            internal::CommonOptionFieldClassSpec<const bt_field_class>::fieldClass(
-                this->libObjPtr())};
-    }
-
-    _FieldClass fieldClass() noexcept
+    _FieldClass fieldClass() const noexcept
     {
         return _FieldClass {
             internal::CommonOptionFieldClassSpec<LibObjT>::fieldClass(this->libObjPtr())};
@@ -1965,33 +1906,21 @@ public:
         return nonstd::nullopt;
     }
 
-    ConstFieldClass fieldClass() const noexcept
-    {
-        return ConstFieldClass {internal::CommonVariantFieldClassOptionSpec<
-            const bt_field_class_variant_option>::fieldClass(this->libObjPtr())};
-    }
-
-    _FieldClass fieldClass() noexcept
+    _FieldClass fieldClass() const noexcept
     {
         return _FieldClass {
             internal::CommonVariantFieldClassOptionSpec<LibObjT>::fieldClass(this->libObjPtr())};
     }
 
     template <typename LibValT>
-    void userAttributes(const CommonMapValue<LibValT> userAttrs)
+    void userAttributes(const CommonMapValue<LibValT> userAttrs) const
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
         bt_field_class_variant_option_set_user_attributes(this->libObjPtr(), userAttrs.libObjPtr());
     }
 
-    ConstMapValue userAttributes() const noexcept
-    {
-        return ConstMapValue {internal::CommonVariantFieldClassOptionSpec<
-            const bt_field_class_variant_option>::userAttributes(this->libObjPtr())};
-    }
-
-    UserAttributes userAttributes() noexcept
+    UserAttributes userAttributes() const noexcept
     {
         return UserAttributes {internal::CommonVariantFieldClassOptionSpec<LibObjT>::userAttributes(
             this->libObjPtr())};
@@ -2230,40 +2159,13 @@ public:
         return Iterator {*this, this->size()};
     }
 
-    ConstVariantFieldClassOption operator[](const std::uint64_t index) const noexcept
-    {
-        return ConstVariantFieldClassOption {
-            internal::CommonVariantFieldClassSpec<const bt_field_class>::optionByIndex(
-                this->libObjPtr(), index)};
-    }
-
-    Option operator[](const std::uint64_t index) noexcept
+    Option operator[](const std::uint64_t index) const noexcept
     {
         return Option {internal::CommonVariantFieldClassSpec<LibObjT>::optionByIndex(
             this->libObjPtr(), index)};
     }
 
-    nonstd::optional<ConstVariantFieldClassOption>
-    operator[](const char * const name) const noexcept
-    {
-        const auto libObjPtr =
-            internal::CommonVariantFieldClassSpec<const bt_field_class>::optionByName(
-                this->libObjPtr(), name);
-
-        if (libObjPtr) {
-            return ConstVariantFieldClassOption {libObjPtr};
-        }
-
-        return nonstd::nullopt;
-    }
-
-    nonstd::optional<ConstVariantFieldClassOption>
-    operator[](const std::string& name) const noexcept
-    {
-        return (*this)[name.data()];
-    }
-
-    nonstd::optional<Option> operator[](const char * const name) noexcept
+    nonstd::optional<Option> operator[](const char * const name) const noexcept
     {
         const auto libObjPtr =
             internal::CommonVariantFieldClassSpec<LibObjT>::optionByName(this->libObjPtr(), name);
@@ -2275,7 +2177,7 @@ public:
         return nonstd::nullopt;
     }
 
-    nonstd::optional<Option> operator[](const std::string& name) noexcept
+    nonstd::optional<Option> operator[](const std::string& name) const noexcept
     {
         return (*this)[name.data()];
     }
@@ -2340,7 +2242,7 @@ public:
         return *this;
     }
 
-    void appendOption(const char * const name, const FieldClass fc)
+    void appendOption(const char * const name, const FieldClass fc) const
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
@@ -2353,7 +2255,7 @@ public:
         }
     }
 
-    void appendOption(const nonstd::optional<std::string>& name, const FieldClass fc)
+    void appendOption(const nonstd::optional<std::string>& name, const FieldClass fc) const
     {
         this->appendOption(name ? name->data() : nullptr, fc);
     }
@@ -2567,7 +2469,7 @@ public:
     }
 
     void appendOption(const char * const name, const FieldClass fc,
-                      const typename Option::RangeSet ranges)
+                      const typename Option::RangeSet ranges) const
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
@@ -2581,7 +2483,7 @@ public:
     }
 
     void appendOption(const nonstd::optional<std::string>& name, const FieldClass fc,
-                      const typename Option::RangeSet ranges)
+                      const typename Option::RangeSet ranges) const
     {
         this->appendOption(name ? name->data() : nullptr, fc, ranges);
     }

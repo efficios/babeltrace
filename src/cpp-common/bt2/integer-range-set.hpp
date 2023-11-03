@@ -220,7 +220,7 @@ public:
         return !(*this == other);
     }
 
-    void addRange(const Value lower, const Value upper)
+    void addRange(const Value lower, const Value upper) const
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
