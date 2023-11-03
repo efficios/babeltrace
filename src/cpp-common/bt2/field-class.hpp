@@ -421,7 +421,7 @@ public:
     asVariantWithSignedIntegerSelector() const noexcept;
 
     template <typename LibValT>
-    void userAttributes(const CommonMapValue<LibValT> userAttrs) const
+    void userAttributes(const CommonMapValue<LibValT> userAttrs) const noexcept
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
@@ -1039,7 +1039,7 @@ public:
     }
 
     template <typename LibValT>
-    void userAttributes(const CommonMapValue<LibValT> userAttrs) const
+    void userAttributes(const CommonMapValue<LibValT> userAttrs) const noexcept
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
@@ -1913,7 +1913,7 @@ public:
     }
 
     template <typename LibValT>
-    void userAttributes(const CommonMapValue<LibValT> userAttrs) const
+    void userAttributes(const CommonMapValue<LibValT> userAttrs) const noexcept
     {
         static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
 
