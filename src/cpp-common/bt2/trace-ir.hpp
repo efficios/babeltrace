@@ -720,7 +720,7 @@ public:
         return nonstd::nullopt;
     }
 
-    std::uint64_t size() const noexcept
+    std::uint64_t length() const noexcept
     {
         return bt_trace_get_stream_count(this->libObjPtr());
     }
@@ -1514,7 +1514,7 @@ public:
         return nonstd::nullopt;
     }
 
-    std::uint64_t size() const noexcept
+    std::uint64_t length() const noexcept
     {
         return bt_stream_class_get_event_class_count(this->libObjPtr());
     }
@@ -1996,7 +1996,7 @@ public:
             bt_trace_class_assigns_automatic_stream_class_id(this->libObjPtr()));
     }
 
-    std::uint64_t size() const noexcept
+    std::uint64_t length() const noexcept
     {
         return bt_trace_class_get_stream_class_count(this->libObjPtr());
     }

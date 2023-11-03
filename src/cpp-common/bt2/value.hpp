@@ -771,12 +771,6 @@ public:
         return bt_value_array_get_length(this->libObjPtr());
     }
 
-    /* Required by the `CommonIterator` template class */
-    std::uint64_t size() const noexcept
-    {
-        return this->length();
-    }
-
     Iterator begin() const noexcept
     {
         return Iterator {*this, 0};
@@ -1070,14 +1064,14 @@ public:
         return *this;
     }
 
-    std::uint64_t size() const noexcept
+    std::uint64_t length() const noexcept
     {
         return bt_value_map_get_size(this->libObjPtr());
     }
 
     bool isEmpty() const noexcept
     {
-        return this->size() == 0;
+        return this->length() == 0;
     }
 
     nonstd::optional<CommonValue<LibObjT>> operator[](const char * const key) const noexcept

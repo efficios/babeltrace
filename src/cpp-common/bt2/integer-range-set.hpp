@@ -60,7 +60,7 @@ struct CommonIntegerRangeSetSpec;
 template <>
 struct CommonIntegerRangeSetSpec<const bt_integer_range_set_unsigned> final
 {
-    static std::uint64_t size(const bt_integer_range_set_unsigned * const libRangePtr) noexcept
+    static std::uint64_t length(const bt_integer_range_set_unsigned * const libRangePtr) noexcept
     {
         return bt_integer_range_set_get_range_count(
             bt_integer_range_set_unsigned_as_range_set_const(libRangePtr));
@@ -97,7 +97,7 @@ struct CommonIntegerRangeSetSpec<const bt_integer_range_set_unsigned> final
 template <>
 struct CommonIntegerRangeSetSpec<const bt_integer_range_set_signed> final
 {
-    static std::uint64_t size(const bt_integer_range_set_signed * const libRangePtr) noexcept
+    static std::uint64_t length(const bt_integer_range_set_signed * const libRangePtr) noexcept
     {
         return bt_integer_range_set_get_range_count(
             bt_integer_range_set_signed_as_range_set_const(libRangePtr));
@@ -202,9 +202,9 @@ public:
         }
     }
 
-    std::uint64_t size() const noexcept
+    std::uint64_t length() const noexcept
     {
-        return _Spec::size(this->libObjPtr());
+        return _Spec::length(this->libObjPtr());
     }
 
     Range operator[](const std::uint64_t index) const noexcept
@@ -219,7 +219,7 @@ public:
 
     Iterator end() const noexcept
     {
-        return Iterator {*this, this->size()};
+        return Iterator {*this, this->length()};
     }
 
     Shared shared() const noexcept

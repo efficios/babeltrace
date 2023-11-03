@@ -158,7 +158,7 @@ public:
         return static_cast<Scope>(bt_field_path_get_root_scope(this->libObjPtr()));
     }
 
-    std::uint64_t size() const noexcept
+    std::uint64_t length() const noexcept
     {
         return bt_field_path_get_item_count(this->libObjPtr());
     }
@@ -176,7 +176,7 @@ public:
 
     Iterator end() const noexcept
     {
-        return Iterator {*this, this->size()};
+        return Iterator {*this, this->length()};
     }
 
     Shared shared() const noexcept

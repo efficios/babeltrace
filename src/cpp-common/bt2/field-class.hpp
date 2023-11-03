@@ -785,7 +785,7 @@ public:
         return *this;
     }
 
-    std::uint64_t size() const noexcept
+    std::uint64_t length() const noexcept
     {
         return bt_field_class_enumeration_get_mapping_count(this->libObjPtr());
     }
@@ -875,7 +875,7 @@ public:
 
     Iterator end() const noexcept
     {
-        return Iterator {*this, this->size()};
+        return Iterator {*this, this->length()};
     }
 
     Shared shared() const noexcept
@@ -1145,7 +1145,7 @@ public:
         this->appendMember(name.data(), fc);
     }
 
-    std::uint64_t size() const noexcept
+    std::uint64_t length() const noexcept
     {
         return bt_field_class_structure_get_member_count(this->libObjPtr());
     }
@@ -1157,7 +1157,7 @@ public:
 
     Iterator end() const noexcept
     {
-        return Iterator {*this, this->size()};
+        return Iterator {*this, this->length()};
     }
 
     Member operator[](const std::uint64_t index) const noexcept
@@ -2121,7 +2121,7 @@ public:
         return *this;
     }
 
-    std::uint64_t size() const noexcept
+    std::uint64_t length() const noexcept
     {
         return bt_field_class_variant_get_option_count(this->libObjPtr());
     }
@@ -2133,7 +2133,7 @@ public:
 
     Iterator end() const noexcept
     {
-        return Iterator {*this, this->size()};
+        return Iterator {*this, this->length()};
     }
 
     Option operator[](const std::uint64_t index) const noexcept
@@ -2472,7 +2472,7 @@ public:
 
     Iterator end() const noexcept
     {
-        return Iterator {*this, this->size()};
+        return Iterator {*this, this->length()};
     }
 
     Shared shared() const noexcept

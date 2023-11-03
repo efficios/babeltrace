@@ -77,7 +77,7 @@ public:
 private:
     void _updateCurrentValue() noexcept
     {
-        if (_mIdx < _mContainer.size()) {
+        if (_mIdx < _mContainer.length()) {
             _mCurrVal = _mContainer[_mIdx];
         } else {
             _mCurrVal = nonstd::nullopt;

@@ -570,7 +570,7 @@ public:
     explicit EnumerationFieldClassMappingLabels(
         const bt_field_class_enumeration_mapping_label_array labels, const std::uint64_t size) :
         _mLabels {labels},
-        _mSize {size}
+        _mLen {size}
     {
     }
 
@@ -580,9 +580,9 @@ public:
     EnumerationFieldClassMappingLabels&
     operator=(const EnumerationFieldClassMappingLabels&) noexcept = default;
 
-    std::uint64_t size() const noexcept
+    std::uint64_t length() const noexcept
     {
-        return _mSize;
+        return _mLen;
     }
 
     bpstd::string_view operator[](const std::uint64_t index) const noexcept
@@ -592,7 +592,7 @@ public:
 
 private:
     bt_field_class_enumeration_mapping_label_array _mLabels;
-    std::uint64_t _mSize;
+    std::uint64_t _mLen;
 };
 
 template <typename LibObjT>
@@ -1063,9 +1063,9 @@ public:
         return Class {internal::CommonFieldSpec<LibObjT>::cls(this->libObjPtr())};
     }
 
-    std::uint64_t size() const noexcept
+    std::uint64_t length() const noexcept
     {
-        return this->cls().size();
+        return this->cls().length();
     }
 
     CommonField<LibObjT> operator[](const std::uint64_t index) const noexcept
