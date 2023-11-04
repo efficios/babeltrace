@@ -39,6 +39,7 @@ noinst_HEADERS = \
 	cpp-common/bt2/trace-ir.hpp \
 	cpp-common/bt2/type-traits.hpp \
 	cpp-common/bt2/value.hpp \
+	cpp-common/bt2/wrap.hpp \
 	cpp-common/align.hpp \
 	cpp-common/cfg-error-reporting.hpp \
 	cpp-common/cfg-error-reporting-throw.hpp \
