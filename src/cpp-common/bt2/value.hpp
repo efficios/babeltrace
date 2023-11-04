@@ -409,9 +409,6 @@ public:
     CommonUnsignedIntegerValue<LibObjT>&
     operator=(const CommonUnsignedIntegerValue<OtherLibObjT> val) noexcept
     {
-        static_assert(!std::is_const<LibObjT>::value,
-                      "Not available with `bt2::ConstUnsignedIntegerValue`.");
-
         _ThisCommonValue::operator=(val);
         return *this;
     }
@@ -423,6 +420,9 @@ public:
 
     CommonUnsignedIntegerValue<LibObjT> operator=(const Value rawVal) const noexcept
     {
+        static_assert(!std::is_const<LibObjT>::value,
+                      "Not available with `bt2::ConstUnsignedIntegerValue`.");
+
         bt_value_integer_unsigned_set(this->libObjPtr(), rawVal);
         return *this;
     }
