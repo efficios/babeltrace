@@ -276,12 +276,11 @@ private:
     using typename BorrowedObject<LibObjT>::_ThisBorrowedObject;
     using typename BorrowedObject<LibObjT>::_LibObjPtr;
     using _Spec = internal::CommonPacketSpec<LibObjT>;
-    using _ThisCommonPacket = CommonPacket<LibObjT>;
     using _Stream = internal::DepStream<LibObjT>;
     using _StructureField = internal::DepStructField<LibObjT>;
 
 public:
-    using Shared = SharedObject<_ThisCommonPacket, LibObjT, internal::PacketRefFuncs>;
+    using Shared = SharedObject<CommonPacket, LibObjT, internal::PacketRefFuncs>;
 
     explicit CommonPacket(const _LibObjPtr libObjPtr) noexcept : _ThisBorrowedObject {libObjPtr}
     {
@@ -293,7 +292,7 @@ public:
     }
 
     template <typename OtherLibObjT>
-    _ThisCommonPacket& operator=(const CommonPacket<OtherLibObjT> packet) noexcept
+    CommonPacket& operator=(const CommonPacket<OtherLibObjT> packet) noexcept
     {
         _ThisBorrowedObject::operator=(packet);
         return *this;
@@ -426,11 +425,10 @@ private:
     using typename BorrowedObject<LibObjT>::_ThisBorrowedObject;
     using typename BorrowedObject<LibObjT>::_LibObjPtr;
     using _Spec = internal::CommonStreamSpec<LibObjT>;
-    using _ThisCommonStream = CommonStream<LibObjT>;
     using _Trace = internal::DepType<LibObjT, CommonTrace<bt_trace>, CommonTrace<const bt_trace>>;
 
 public:
-    using Shared = SharedObject<_ThisCommonStream, LibObjT, internal::StreamRefFuncs>;
+    using Shared = SharedObject<CommonStream, LibObjT, internal::StreamRefFuncs>;
     using UserAttributes = internal::DepUserAttrs<LibObjT>;
 
     using Class = internal::DepType<LibObjT, CommonStreamClass<bt_stream_class>,
@@ -446,7 +444,7 @@ public:
     }
 
     template <typename OtherLibObjT>
-    _ThisCommonStream& operator=(const CommonStream<OtherLibObjT> stream) noexcept
+    CommonStream& operator=(const CommonStream<OtherLibObjT> stream) noexcept
     {
         _ThisBorrowedObject::operator=(stream);
         return *this;
@@ -635,11 +633,10 @@ private:
     using typename BorrowedObject<LibObjT>::_ThisBorrowedObject;
     using typename BorrowedObject<LibObjT>::_LibObjPtr;
     using _Spec = internal::CommonTraceSpec<LibObjT>;
-    using _ThisCommonTrace = CommonTrace<LibObjT>;
     using _Stream = internal::DepStream<LibObjT>;
 
 public:
-    using Shared = SharedObject<_ThisCommonTrace, LibObjT, internal::TraceRefFuncs>;
+    using Shared = SharedObject<CommonTrace, LibObjT, internal::TraceRefFuncs>;
     using UserAttributes = internal::DepUserAttrs<LibObjT>;
 
     using Class = internal::DepType<LibObjT, CommonTraceClass<bt_trace_class>,
@@ -661,7 +658,7 @@ public:
     }
 
     template <typename OtherLibObjT>
-    _ThisCommonTrace& operator=(const CommonTrace<OtherLibObjT> trace) noexcept
+    CommonTrace& operator=(const CommonTrace<OtherLibObjT> trace) noexcept
     {
         _ThisBorrowedObject::operator=(trace);
         return *this;
@@ -941,15 +938,13 @@ private:
     using typename BorrowedObject<LibObjT>::_ThisBorrowedObject;
     using typename BorrowedObject<LibObjT>::_LibObjPtr;
     using _Spec = internal::CommonEventClassSpec<LibObjT>;
-    using _ThisCommonEventClass = CommonEventClass<LibObjT>;
     using _StructureFieldClass = internal::DepStructFc<LibObjT>;
 
     using _StreamClass = internal::DepType<LibObjT, CommonStreamClass<bt_stream_class>,
                                            CommonStreamClass<const bt_stream_class>>;
 
 public:
-    using Shared = SharedObject<_ThisCommonEventClass, LibObjT, internal::EventClassRefFuncs>;
-
+    using Shared = SharedObject<CommonEventClass, LibObjT, internal::EventClassRefFuncs>;
     using UserAttributes = internal::DepUserAttrs<LibObjT>;
 
     enum class LogLevel
@@ -982,7 +977,7 @@ public:
     }
 
     template <typename OtherLibObjT>
-    _ThisCommonEventClass& operator=(const CommonEventClass<OtherLibObjT> eventClass) noexcept
+    CommonEventClass& operator=(const CommonEventClass<OtherLibObjT> eventClass) noexcept
     {
         _ThisBorrowedObject::operator=(eventClass);
         return *this;
@@ -1281,7 +1276,6 @@ private:
     using typename BorrowedObject<LibObjT>::_ThisBorrowedObject;
     using typename BorrowedObject<LibObjT>::_LibObjPtr;
     using _Spec = internal::CommonStreamClassSpec<LibObjT>;
-    using _ThisCommonStreamClass = CommonStreamClass<LibObjT>;
     using _StructureFieldClass = internal::DepStructFc<LibObjT>;
 
     using _TraceClass = internal::DepType<LibObjT, CommonTraceClass<bt_trace_class>,
@@ -1293,8 +1287,7 @@ private:
     using _ClockClass = internal::DepType<LibObjT, ClockClass, ConstClockClass>;
 
 public:
-    using Shared = SharedObject<_ThisCommonStreamClass, LibObjT, internal::StreamClassRefFuncs>;
-
+    using Shared = SharedObject<CommonStreamClass, LibObjT, internal::StreamClassRefFuncs>;
     using UserAttributes = internal::DepUserAttrs<LibObjT>;
 
     explicit CommonStreamClass(const _LibObjPtr libObjPtr) noexcept :
@@ -1309,7 +1302,7 @@ public:
     }
 
     template <typename OtherLibObjT>
-    _ThisCommonStreamClass& operator=(const CommonStreamClass<OtherLibObjT> streamClass) noexcept
+    CommonStreamClass& operator=(const CommonStreamClass<OtherLibObjT> streamClass) noexcept
     {
         _ThisBorrowedObject::operator=(streamClass);
         return *this;
@@ -1719,14 +1712,12 @@ private:
     using typename BorrowedObject<LibObjT>::_ThisBorrowedObject;
     using typename BorrowedObject<LibObjT>::_LibObjPtr;
     using _Spec = internal::CommonTraceClassSpec<LibObjT>;
-    using _ThisCommonTraceClass = CommonTraceClass<LibObjT>;
 
     using _StreamClass = internal::DepType<LibObjT, CommonStreamClass<bt_stream_class>,
                                            CommonStreamClass<const bt_stream_class>>;
 
 public:
-    using Shared = SharedObject<_ThisCommonTraceClass, LibObjT, internal::TraceClassRefFuncs>;
-
+    using Shared = SharedObject<CommonTraceClass, LibObjT, internal::TraceClassRefFuncs>;
     using UserAttributes = internal::DepUserAttrs<LibObjT>;
 
     explicit CommonTraceClass(const _LibObjPtr libObjPtr) noexcept : _ThisBorrowedObject {libObjPtr}
@@ -1740,7 +1731,7 @@ public:
     }
 
     template <typename OtherLibObjT>
-    _ThisCommonTraceClass& operator=(const CommonTraceClass<OtherLibObjT> traceClass) noexcept
+    CommonTraceClass& operator=(const CommonTraceClass<OtherLibObjT> traceClass) noexcept
     {
         _ThisBorrowedObject::operator=(traceClass);
         return *this;

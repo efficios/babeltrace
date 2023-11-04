@@ -96,11 +96,9 @@ class CommonClockClass final : public BorrowedObject<LibObjT>
 private:
     using typename BorrowedObject<LibObjT>::_ThisBorrowedObject;
     using typename BorrowedObject<LibObjT>::_LibObjPtr;
-    using _ThisCommonClockClass = CommonClockClass<LibObjT>;
 
 public:
-    using Shared = SharedObject<_ThisCommonClockClass, LibObjT, internal::ClockClassRefFuncs>;
-
+    using Shared = SharedObject<CommonClockClass, LibObjT, internal::ClockClassRefFuncs>;
     using UserAttributes = internal::DepUserAttrs<LibObjT>;
 
     explicit CommonClockClass(const _LibObjPtr libObjPtr) noexcept : _ThisBorrowedObject {libObjPtr}
@@ -114,7 +112,7 @@ public:
     }
 
     template <typename OtherLibObjT>
-    _ThisCommonClockClass& operator=(const CommonClockClass<OtherLibObjT> clkClass) noexcept
+    CommonClockClass& operator=(const CommonClockClass<OtherLibObjT> clkClass) noexcept
     {
         _ThisBorrowedObject::operator=(clkClass);
         return *this;

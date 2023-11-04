@@ -822,10 +822,9 @@ class CommonEnumerationFieldClass final : public CommonBaseEnumerationFieldClass
 private:
     using typename CommonFieldClass<LibObjT>::_LibObjPtr;
     using typename CommonBaseEnumerationFieldClass<LibObjT>::_ThisCommonBaseEnumerationFieldClass;
-    using _ThisCommonEnumerationFieldClass = CommonEnumerationFieldClass<LibObjT, MappingT>;
 
 public:
-    using Shared = SharedFieldClass<_ThisCommonEnumerationFieldClass, LibObjT>;
+    using Shared = SharedFieldClass<CommonEnumerationFieldClass, LibObjT>;
     using Iterator = BorrowedObjectIterator<CommonEnumerationFieldClass>;
     using Mapping = MappingT;
 
@@ -838,7 +837,7 @@ public:
     template <typename OtherLibObjT>
     CommonEnumerationFieldClass(
         const CommonEnumerationFieldClass<OtherLibObjT, MappingT> fc) noexcept :
-        _ThisCommonEnumerationFieldClass {fc}
+        CommonEnumerationFieldClass {fc}
     {
     }
 
@@ -846,7 +845,7 @@ public:
     CommonEnumerationFieldClass&
     operator=(const CommonEnumerationFieldClass<OtherLibObjT, MappingT> fc) noexcept
     {
-        _ThisCommonEnumerationFieldClass::operator=(fc);
+        CommonEnumerationFieldClass::operator=(fc);
         return *this;
     }
 
@@ -1765,12 +1764,8 @@ private:
     using typename CommonOptionWithSelectorFieldClass<
         LibObjT>::_ThisCommonOptionWithSelectorFieldClass;
 
-    using _ThisCommonOptionWithIntegerSelectorFieldClass =
-        CommonOptionWithIntegerSelectorFieldClass<LibObjT, RangeSetT>;
-
 public:
-    using Shared = SharedFieldClass<_ThisCommonOptionWithIntegerSelectorFieldClass, LibObjT>;
-
+    using Shared = SharedFieldClass<CommonOptionWithIntegerSelectorFieldClass, LibObjT>;
     using RangeSet = RangeSetT;
 
     explicit CommonOptionWithIntegerSelectorFieldClass(const _LibObjPtr libObjPtr) noexcept :
@@ -2462,14 +2457,11 @@ private:
     using typename CommonVariantWithSelectorFieldClass<
         LibObjT>::_ThisCommonVariantWithSelectorFieldClass;
     using typename CommonFieldClass<LibObjT>::_LibObjPtr;
-    using _ThisCommonVariantWithIntegerSelectorFieldClass =
-        CommonVariantWithIntegerSelectorFieldClass<LibObjT, OptionT>;
 
     using _Spec = internal::CommonVariantWithIntegerSelectorFieldClassSpec<OptionT>;
 
 public:
-    using Shared = SharedFieldClass<_ThisCommonVariantWithIntegerSelectorFieldClass, LibObjT>;
-
+    using Shared = SharedFieldClass<CommonVariantWithIntegerSelectorFieldClass, LibObjT>;
     using Option = OptionT;
 
     using Iterator =

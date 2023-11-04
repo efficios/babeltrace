@@ -70,7 +70,6 @@ class ConstIntegerRange final : public BorrowedObject<LibObjT>
 private:
     using typename BorrowedObject<LibObjT>::_ThisBorrowedObject;
     using typename BorrowedObject<LibObjT>::_LibObjPtr;
-    using _ThisConstIntegerRange = ConstIntegerRange<LibObjT>;
 
 public:
     using Value =
@@ -83,23 +82,23 @@ public:
     {
     }
 
-    ConstIntegerRange(const _ThisConstIntegerRange& range) noexcept : _ThisBorrowedObject {range}
+    ConstIntegerRange(const ConstIntegerRange& range) noexcept : _ThisBorrowedObject {range}
     {
     }
 
-    _ThisConstIntegerRange& operator=(const _ThisConstIntegerRange& range) noexcept
+    ConstIntegerRange& operator=(const ConstIntegerRange& range) noexcept
     {
         _ThisBorrowedObject::operator=(range);
         return *this;
     }
 
-    bool operator==(const _ThisConstIntegerRange& other) const noexcept
+    bool operator==(const ConstIntegerRange& other) const noexcept
     {
         return internal::ConstIntegerRangeSpec<LibObjT>::isEqual(this->libObjPtr(),
                                                                  other.libObjPtr());
     }
 
-    bool operator!=(const _ThisConstIntegerRange& other) const noexcept
+    bool operator!=(const ConstIntegerRange& other) const noexcept
     {
         return !(*this == other);
     }

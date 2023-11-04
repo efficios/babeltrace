@@ -138,12 +138,11 @@ private:
     using typename BorrowedObject<LibObjT>::_ThisBorrowedObject;
     using typename BorrowedObject<LibObjT>::_LibObjPtr;
     using _ConstLibObjT = typename std::add_const<LibObjT>::type;
-    using _RefFuncs = internal::IntegerRangeSetRefFuncs<_ConstLibObjT>;
     using _Spec = internal::CommonIntegerRangeSetSpec<_ConstLibObjT>;
-    using _ThisCommonIntegerRangeSet = CommonIntegerRangeSet<LibObjT>;
 
 public:
-    using Shared = SharedObject<_ThisCommonIntegerRangeSet, LibObjT, _RefFuncs>;
+    using Shared = SharedObject<CommonIntegerRangeSet, LibObjT,
+                                internal::IntegerRangeSetRefFuncs<_ConstLibObjT>>;
 
     using Range = typename std::conditional<
         std::is_same<_ConstLibObjT, const bt_integer_range_set_unsigned>::value,
@@ -172,8 +171,7 @@ public:
     }
 
     template <typename OtherLibObjT>
-    _ThisCommonIntegerRangeSet&
-    operator=(const CommonIntegerRangeSet<OtherLibObjT> rangeSet) noexcept
+    CommonIntegerRangeSet& operator=(const CommonIntegerRangeSet<OtherLibObjT> rangeSet) noexcept
     {
         _ThisBorrowedObject::operator=(rangeSet);
         return *this;
