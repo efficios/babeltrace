@@ -177,6 +177,99 @@ public:
         return !(*this == other);
     }
 
+    CommonValue<LibObjT> operator=(const bool rawVal) const noexcept
+    {
+        this->asBool() = rawVal;
+        return *this;
+    }
+
+    CommonValue<LibObjT> operator=(const std::uint64_t rawVal) const noexcept
+    {
+        this->asUnsignedInteger() = rawVal;
+        return *this;
+    }
+
+    CommonValue<LibObjT> operator=(const std::int64_t rawVal) const noexcept
+    {
+        this->asSignedInteger() = rawVal;
+        return *this;
+    }
+
+    CommonValue<LibObjT> operator=(const double rawVal) const noexcept
+    {
+        this->asReal() = rawVal;
+        return *this;
+    }
+
+    CommonValue<LibObjT> operator=(const char * const rawVal) const noexcept
+    {
+        this->asString() = rawVal;
+        return *this;
+    }
+
+    CommonValue<LibObjT> operator=(const std::string& rawVal) const noexcept
+    {
+        this->asString() = rawVal;
+        return *this;
+    }
+
+    std::uint64_t arrayLength() const noexcept
+    {
+        return this->asArray().length();
+    }
+
+    bool arrayIsEmpty() const noexcept
+    {
+        return this->asArray().isEmpty();
+    }
+
+    CommonValue<LibObjT> operator[](const std::uint64_t index) const noexcept
+    {
+        return this->asArray()[index];
+    }
+
+    template <typename T>
+    void append(T&& elem) const
+    {
+        this->asArray().append(std::forward<T>(elem));
+    }
+
+    CommonArrayValue<bt_value> appendEmptyArray() const;
+    CommonMapValue<bt_value> appendEmptyMap() const;
+
+    std::uint64_t mapLength() const noexcept
+    {
+        return this->asMap().length();
+    }
+
+    bool mapIsEmpty() const noexcept
+    {
+        return this->asMap().isEmpty();
+    }
+
+    template <typename KeyT>
+    nonstd::optional<CommonValue<LibObjT>> operator[](KeyT&& key) const noexcept
+    {
+        return this->asMap()[std::forward<KeyT>(key)];
+    }
+
+    template <typename KeyT>
+    bool hasEntry(KeyT&& key) const noexcept
+    {
+        return this->asMap().hasEntry(std::forward<KeyT>(key));
+    }
+
+    template <typename KeyT, typename ValT>
+    void insert(KeyT&& key, ValT&& val) const
+    {
+        this->asMap().insert(std::forward<KeyT>(key), std::forward<ValT>(val));
+    }
+
+    CommonArrayValue<bt_value> insertEmptyArray(const char *key) const;
+    CommonArrayValue<bt_value> insertEmptyArray(const std::string& key) const;
+    CommonMapValue<bt_value> insertEmptyMap(const char *key) const;
+    CommonMapValue<bt_value> insertEmptyMap(const std::string& key) const;
+
     Shared shared() const noexcept
     {
         return Shared::createWithRef(*this);
@@ -1292,6 +1385,42 @@ struct TypeDescr<ConstMapValue> : public MapValueTypeDescr
 };
 
 } /* namespace internal */
+
+template <typename LibObjT>
+ArrayValue CommonValue<LibObjT>::appendEmptyArray() const
+{
+    return this->asArray().appendEmptyArray();
+}
+
+template <typename LibObjT>
+MapValue CommonValue<LibObjT>::appendEmptyMap() const
+{
+    return this->asArray().appendEmptyMap();
+}
+
+template <typename LibObjT>
+ArrayValue CommonValue<LibObjT>::insertEmptyArray(const char * const key) const
+{
+    return this->asMap().insertEmptyArray(key);
+}
+
+template <typename LibObjT>
+ArrayValue CommonValue<LibObjT>::insertEmptyArray(const std::string& key) const
+{
+    return this->asMap().insertEmptyArray(key);
+}
+
+template <typename LibObjT>
+MapValue CommonValue<LibObjT>::insertEmptyMap(const char * const key) const
+{
+    return this->asMap().insertEmptyMap(key);
+}
+
+template <typename LibObjT>
+MapValue CommonValue<LibObjT>::insertEmptyMap(const std::string& key) const
+{
+    return this->asMap().insertEmptyMap(key);
+}
 
 template <typename LibObjT>
 CommonNullValue<LibObjT> CommonValue<LibObjT>::asNull() const noexcept
