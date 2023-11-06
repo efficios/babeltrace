@@ -32,6 +32,7 @@ noinst_HEADERS = \
 	cpp-common/bt2/shared-object.hpp \
 	cpp-common/bt2/raw-value-proxy.hpp \
 	cpp-common/bt2/self-component-port.hpp \
+	cpp-common/bt2/self-message-iterator-configuration.hpp \
 	cpp-common/bt2/self-message-iterator.hpp \
 	cpp-common/bt2/trace-ir.hpp \
 	cpp-common/bt2/type-traits.hpp \
