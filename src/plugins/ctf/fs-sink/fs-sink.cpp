@@ -131,10 +131,9 @@ end:
     return;
 }
 
-bt_component_class_initialize_method_status
-ctf_fs_sink_init(bt_self_component_sink *self_comp_sink,
-                 bt_self_component_sink_configuration *, const bt_value *params,
-                 void *)
+bt_component_class_initialize_method_status ctf_fs_sink_init(bt_self_component_sink *self_comp_sink,
+                                                             bt_self_component_sink_configuration *,
+                                                             const bt_value *params, void *)
 {
     bt_component_class_initialize_method_status status;
     bt_self_component_add_port_status add_port_status;

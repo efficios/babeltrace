@@ -29,8 +29,7 @@
 static int _ctf_visitor_semantic_check(int depth, struct ctf_node *node,
                                        struct meta_log_config *log_cfg);
 
-static int ctf_visitor_unary_expression(int, struct ctf_node *node,
-                                        struct meta_log_config *log_cfg)
+static int ctf_visitor_unary_expression(int, struct ctf_node *node, struct meta_log_config *log_cfg)
 {
     struct ctf_node *iter;
     int is_ctf_exp = 0, is_ctf_exp_left = 0;

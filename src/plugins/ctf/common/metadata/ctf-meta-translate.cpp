@@ -139,8 +139,7 @@ static inline bt_field_class *ctf_field_class_string_to_ir(struct ctx *ctx,
 
 static inline void translate_struct_field_class_members(struct ctx *ctx,
                                                         struct ctf_field_class_struct *fc,
-                                                        bt_field_class *ir_fc,
-                                                        bool,
+                                                        bt_field_class *ir_fc, bool,
                                                         struct ctf_field_class_struct *)
 {
     uint64_t i;
