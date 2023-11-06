@@ -67,7 +67,7 @@ test_packet_end() {
 		"$succeed_trace_dir/$name" "${details_comp[@]}" \
 		"${details_args[@]}"
 
-	"$BT_TESTS_GREP_BIN" "Packet end" "$temp_stdout_output_file" > "$temp_greped_stdout_output_file"
+	bt_grep "Packet end" "$temp_stdout_output_file" > "$temp_greped_stdout_output_file"
 
 	bt_diff "$expected_stdout" "$temp_greped_stdout_output_file"
 	ret_stdout=$?

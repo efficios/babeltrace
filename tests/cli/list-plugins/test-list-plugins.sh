@@ -31,7 +31,7 @@ bt_cli "$stdout_file" "$stderr_file" \
 ok "$?" "exit code is 0"
 
 # Extract the section about our custom this-is-a-plugin Python plugin.
-grep --after-context=11 '^this-is-a-plugin:$' "${stdout_file}" > "${grep_stdout_file}"
+bt_grep --after-context=11 '^this-is-a-plugin:$' "${stdout_file}" > "${grep_stdout_file}"
 ok "$?" "entry for this-is-a-plugin is present"
 
 if [ "$BT_TESTS_OS_TYPE" = "mingw" ]; then

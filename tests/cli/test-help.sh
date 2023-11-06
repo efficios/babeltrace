@@ -32,7 +32,7 @@ is_empty()
 bt_cli "${stdout}" "${stderr}" help ctf
 ok $? "help ctf plugin exit status"
 
-grep --silent 'Description: CTF input and output' "${stdout}"
+bt_grep --silent 'Description: CTF input and output' "${stdout}"
 ok $? "help ctf plugin expected output"
 
 is_empty "${stderr}"
@@ -42,7 +42,7 @@ ok $? "help ctf plugin produces no error"
 bt_cli "${stdout}" "${stderr}" help src.ctf.fs
 ok $? "help src.ctf.fs component class exit status"
 
-grep --silent 'Description: Read CTF traces from the file system.' "${stdout}"
+bt_grep --silent 'Description: Read CTF traces from the file system.' "${stdout}"
 ok $? "help src.ctf.fs component class expected output"
 
 is_empty "${stderr}"
@@ -52,7 +52,7 @@ ok $? "help src.ctf.fs component class produces no error"
 bt_cli "${stdout}" "${stderr}" help
 isnt $? 0 "help without parameter exit status"
 
-grep --silent "Missing plugin name or component class descriptor." "${stderr}"
+bt_grep --silent "Missing plugin name or component class descriptor." "${stderr}"
 ok $? "help without parameter produces expected error"
 
 is_empty "${stdout}"
@@ -62,7 +62,7 @@ ok $? "help without parameter produces no output"
 bt_cli "${stdout}" "${stderr}" help ctf fs
 isnt $? 0  "help with too many parameters exit status"
 
-grep --silent "Extraneous command-line argument specified to \`help\` command:" "${stderr}"
+bt_grep --silent "Extraneous command-line argument specified to \`help\` command:" "${stderr}"
 ok $? "help with too many parameters produces expected error"
 
 is_empty "${stdout}"
@@ -72,7 +72,7 @@ ok $? "help with too many parameters produces no output"
 bt_cli "${stdout}" "${stderr}" help zigotos
 isnt $? 0 "help with unknown plugin name"
 
-grep --silent 'Cannot find plugin: plugin-name="zigotos"' "${stderr}"
+bt_grep --silent 'Cannot find plugin: plugin-name="zigotos"' "${stderr}"
 ok $? "help with unknown plugin name produces expected error"
 
 is_empty "${stdout}"
@@ -82,17 +82,17 @@ ok $? "help with unknown plugin name produces no output"
 bt_cli "${stdout}" "${stderr}" help src.ctf.bob
 isnt $? 0 "help with unknown component class name"
 
-grep --silent 'Cannot find component class: plugin-name="ctf", comp-cls-name="bob", comp-cls-type=SOURCE' "${stderr}"
+bt_grep --silent 'Cannot find component class: plugin-name="ctf", comp-cls-name="bob", comp-cls-type=SOURCE' "${stderr}"
 ok $? "help with unknown component class name produces expected error"
 
-grep --silent 'Description: CTF input and output' "${stdout}"
+bt_grep --silent 'Description: CTF input and output' "${stdout}"
 ok $? "help with unknown component class name prints plugin help"
 
 # Test with unknown component class plugin
 bt_cli "${stdout}" "${stderr}" help src.bob.fs
 isnt $? 0 "help with unknown component class plugin"
 
-grep --silent 'Cannot find plugin: plugin-name="bob"' "${stderr}"
+bt_grep --silent 'Cannot find plugin: plugin-name="bob"' "${stderr}"
 ok $? "help with unknown component class plugin produces expected error"
 
 is_empty "${stdout}"

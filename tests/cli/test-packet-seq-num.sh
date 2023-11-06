@@ -25,7 +25,7 @@ test_no_lost() {
 
 	"${BT_TESTS_BT2_BIN}" "$trace" >/dev/null 2>&1
 	ok $? "Trace parses"
-	"${BT_TESTS_BT2_BIN}" "$trace" 2>&1 >/dev/null | "${BT_TESTS_GREP_BIN}" "\[warning\] Tracer lost"
+	"${BT_TESTS_BT2_BIN}" "$trace" 2>&1 >/dev/null | bt_grep "\[warning\] Tracer lost"
 	if test $? = 0; then
 		fail 1 "Should not find any lost events"
 	else
@@ -44,9 +44,9 @@ test_lost() {
 	# WARNING: Tracer discarded 2 trace packets between ....
 	# WARNING: Tracer discarded 3 trace packets between ....
 	# into "2,3" and make sure it matches the expected result
-	"${BT_TESTS_BT2_BIN}" "$trace" 2>&1 >/dev/null | "${BT_TESTS_GREP_BIN}" "WARNING: Tracer discarded" \
+	"${BT_TESTS_BT2_BIN}" "$trace" 2>&1 >/dev/null | bt_grep "WARNING: Tracer discarded" \
 		| cut -d" " -f4 | tr "\n" "," | "${BT_TESTS_SED_BIN}" "s/.$//" | \
-		"${BT_TESTS_GREP_BIN}" "$expectedcountstr" >/dev/null
+		bt_grep "$expectedcountstr" >/dev/null
 	ok $? "Lost events string matches $expectedcountstr"
 
 }

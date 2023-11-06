@@ -58,10 +58,10 @@ expect_failure() {
 
 	# Ensure that a CLI error stack is printed (and that babeltrace doesn't
 	# abort before that).
-	grep --silent "^ERROR: " "${stderr_file}"
+	bt_grep --silent "^ERROR: " "${stderr_file}"
 	ok $? "${test_name}: babeltrace produces an error stack"
 
-	grep --silent "${expected_str}" "${stderr_file}"
+	bt_grep --silent "${expected_str}" "${stderr_file}"
 	ok "$?" "${test_name}: expect \`${expected_str}\` error message on stderr"
 }
 

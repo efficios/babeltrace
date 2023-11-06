@@ -41,10 +41,10 @@ test_fail() {
 	# even if Babeltrace aborts (e.g. hits an assert).  Check that the
 	# Babeltrace CLI finishes gracefully by checking that the error stream
 	# contains an error stack printed by the CLI.
-	grep --silent "^CAUSED BY " "${stderr_file}"
+	bt_grep --silent "^CAUSED BY " "${stderr_file}"
 	ok $? "Trace ${name}: babeltrace produces an error stack"
 
-	grep --silent "${expected_error_msg}" "${stderr_file}"
+	bt_grep --silent "${expected_error_msg}" "${stderr_file}"
 	ok $? "Trace ${name}: babeltrace produces the expected error message"
 }
 

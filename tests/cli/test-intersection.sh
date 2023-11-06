@@ -58,7 +58,7 @@ test_intersect_fails() {
 	bt_cli "${stdout}" "${stderr}" --stream-intersection "${trace}"
 	isnt "$?" 0 "run with --stream-intersection fails"
 
-	grep --silent "${expected_error_message}" "${stderr}"
+	bt_grep --silent "${expected_error_message}" "${stderr}"
 	ok $? "stderr contains expected error message"
 }
 

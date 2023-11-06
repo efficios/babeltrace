@@ -48,7 +48,7 @@ for path in "${SUCCESS_TRACES[@]}"; do
 	# duplicate timestamps in the output.
 	# If there are, we have to sort the text output to make sure it is
 	# always the same.
-	head -1 "${text_output1}" | "${BT_TESTS_GREP_BIN}" "^\[" >/dev/null
+	head -1 "${text_output1}" | bt_grep "^\[" >/dev/null
 	if test $? = 0; then
 		# shellcheck disable=SC2016
 		uniq_ts_cnt="$("${BT_TESTS_AWK_BIN}" '{ print $1 }' < "${text_output1}" | sort | uniq | wc -l)"

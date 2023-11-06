@@ -57,7 +57,7 @@ test_bt_convert_fails() {
 	ok $? "$what: nothing is printed on stdout"
 
 	# Check for expected error string in stderr.
-	grep --quiet --fixed-strings -e "$expected_error_str" "$tmp_stderr"
+	bt_grep --quiet --fixed-strings -e "$expected_error_str" "$tmp_stderr"
 	local status=$?
 	ok "$status" "$what: expected error message"
 	if [ "$status" -ne 0 ]; then

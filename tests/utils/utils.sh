@@ -297,6 +297,10 @@ bt_diff_details_ctf_gen_single() {
 	return $ret
 }
 
+# Run the grep binary configured for the tests.
+bt_grep() {
+	"$BT_TESTS_GREP_BIN" "$@"
+}
 
 ### Functions ###
 
@@ -358,7 +362,7 @@ run_python_bt2() {
 	# existing ASAN_OPTIONS, such that we override the user's value if it
 	# contains detect_leaks=1.
 	if [ "${BT_TESTS_ENABLE_ASAN:-}" = "1" ]; then
-		if ${BT_TESTS_CC_BIN} --version | head -n 1 | grep -q '^gcc'; then
+		if ${BT_TESTS_CC_BIN} --version | head -n 1 | bt_grep -q '^gcc'; then
 			lib_asan="$(${BT_TESTS_CC_BIN} -print-file-name=libasan.so)"
 			local -x LD_PRELOAD="${lib_asan}${LD_PRELOAD:+:}${LD_PRELOAD:-}"
 		fi
