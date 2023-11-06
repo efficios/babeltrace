@@ -27,4 +27,5 @@ EXTRA_DIST = \
 	LICENSES/MIT \
 	std-ext-lib.txt \
 	tools/format-cpp.sh \
+	tools/lint-py.sh \
 	version
