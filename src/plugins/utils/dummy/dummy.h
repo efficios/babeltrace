@@ -11,6 +11,10 @@
 #include <babeltrace2/babeltrace.h>
 #include "common/macros.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct dummy {
 	bt_message_iterator *msg_iter;
 };
@@ -27,5 +31,9 @@ bt_component_class_sink_graph_is_configured_method_status dummy_graph_is_configu
 
 bt_component_class_sink_consume_method_status dummy_consume(
 		bt_self_component_sink *component);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* BABELTRACE_PLUGINS_UTILS_DUMMY_H */

@@ -12,6 +12,10 @@
 #include "common/macros.h"
 #include <babeltrace2/babeltrace.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void trimmer_finalize(bt_self_component_filter *self_comp);
 
 bt_component_class_initialize_method_status trimmer_init(
@@ -30,5 +34,9 @@ bt_message_iterator_class_next_method_status trimmer_msg_iter_next(
 		uint64_t *count);
 
 void trimmer_msg_iter_finalize(bt_self_message_iterator *self_msg_iter);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* BABELTRACE_PLUGINS_UTILS_TRIMMER_H */

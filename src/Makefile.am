@@ -594,11 +594,15 @@ plugins_utils_babeltrace_plugin_utils_la_SOURCES = \
 	plugins/utils/counter/counter.h \
 	plugins/utils/dummy/dummy.c \
 	plugins/utils/dummy/dummy.h \
-	plugins/utils/muxer/muxer.c \
-	plugins/utils/muxer/muxer.h \
+	plugins/utils/muxer/comp.cpp \
+	plugins/utils/muxer/comp.hpp \
+	plugins/utils/muxer/msg-iter.cpp \
+	plugins/utils/muxer/msg-iter.hpp \
+	plugins/utils/muxer/upstream-msg-iter.cpp \
+	plugins/utils/muxer/upstream-msg-iter.hpp \
 	plugins/utils/trimmer/trimmer.c \
 	plugins/utils/trimmer/trimmer.h \
-	plugins/utils/plugin.c
+	plugins/utils/plugin.cpp
 
 plugins_utils_babeltrace_plugin_utils_la_LDFLAGS = \
 	$(AM_LDFLAGS) \
@@ -612,6 +616,7 @@ if !ENABLE_BUILT_IN_PLUGINS
 plugins_utils_babeltrace_plugin_utils_la_LIBADD += \
 	lib/libbabeltrace2.la \
 	common/libcommon.la \
+	cpp-common/vendor/fmt/libfmt.la \
 	logging/liblogging.la \
 	plugins/common/param-validation/libparam-validation.la
 endif

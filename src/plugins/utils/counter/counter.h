@@ -13,6 +13,10 @@
 #include <stdint.h>
 #include "common/macros.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct counter {
 	bt_message_iterator *msg_iter;
 	struct {
@@ -45,5 +49,9 @@ bt_component_class_sink_graph_is_configured_method_status counter_graph_is_confi
 		bt_self_component_sink *component);
 
 bt_component_class_sink_consume_method_status counter_consume(bt_self_component_sink *component);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* BABELTRACE_PLUGINS_UTILS_COUNTER_H */
