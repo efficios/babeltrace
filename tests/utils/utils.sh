@@ -302,6 +302,29 @@ bt_grep() {
 	"$BT_TESTS_GREP_BIN" "$@"
 }
 
+# ok() with the test name `$3` on the result of bt_grep() matching the
+# pattern `$1` within the file `$2`.
+bt_grep_ok() {
+	local pattern=$1
+	local file=$2
+	local test_name=$3
+
+	bt_grep --silent "$pattern" "$file"
+
+	local ret=$?
+
+	if ! ok $ret "$test_name"; then
+		{
+			echo "Pattern \`$pattern\` doesn't match the contents of \`$file\`:"
+			echo '--- 8< ---'
+			cat "$file"
+			echo '--- >8 ---'
+		} >&2
+	fi
+
+	return $ret
+}
+
 ### Functions ###
 
 check_coverage() {

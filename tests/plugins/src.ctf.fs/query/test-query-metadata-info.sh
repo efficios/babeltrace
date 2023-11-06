@@ -68,12 +68,15 @@ test_non_existent_trace_dir() {
 	bt_diff "/dev/null" "${stdout_file}"
 	ok $? "non existent trace dir: babeltrace produces the expected stdout"
 
-	bt_grep --silent "^CAUSED BY " "${stderr_file}"
-	ok $? "non existent trace dir: babeltrace produces an error stack"
+	bt_grep_ok \
+		"^CAUSED BY " \
+		"${stderr_file}" \
+		"non existent trace dir: babeltrace produces an error stack"
 
-	bt_grep --silent "Failed to open metadata file: No such file or directory: path=\".*metadata\"" \
-		"${stderr_file}"
-	ok $? "non existent trace dir: babeltrace produces the expected error message"
+	bt_grep_ok \
+		"Failed to open metadata file: No such file or directory: path=\".*metadata\"" \
+		"$stderr_file" \
+		"non existent trace dir: babeltrace produces the expected error message"
 
 	rm -f "${stdout_file}" "${stderr_file}"
 	rmdir "${empty_dir}"

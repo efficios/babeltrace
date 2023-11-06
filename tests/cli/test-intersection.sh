@@ -58,8 +58,10 @@ test_intersect_fails() {
 	bt_cli "${stdout}" "${stderr}" --stream-intersection "${trace}"
 	isnt "$?" 0 "run with --stream-intersection fails"
 
-	bt_grep --silent "${expected_error_message}" "${stderr}"
-	ok $? "stderr contains expected error message"
+	bt_grep_ok \
+		"${expected_error_message}" \
+		"${stderr}" \
+		"stderr contains expected error message"
 }
 
 diag "Test the stream intersection feature"

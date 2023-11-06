@@ -66,11 +66,15 @@ expect_failure() {
 		-c src.ctf.fs -p "inputs=[${inputs}]"
 	isnt 0 "$?" "${test_name}: exit status is not 0"
 
-	bt_grep --silent "^ERROR: " "${stderr_file}"
-	ok "$?" "${test_name}: error stack is produced"
+	bt_grep_ok \
+		"^ERROR: " \
+		"${stderr_file}" \
+		"${test_name}: error stack is produced"
 
-	bt_grep --silent "No event class with ID of event class ID to use in stream class" "${stderr_file}"
-	ok "$?" "${test_name}: expected error message is present"
+	bt_grep_ok \
+		"No event class with ID of event class ID to use in stream class" \
+		"$stderr_file" \
+		"$test_name: expected error message is present"
 }
 
 expect_success() {

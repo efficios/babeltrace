@@ -39,8 +39,10 @@ ok "$?" "expected components are instantiated with expected inputs"
 
 # Check that expected warning is printed.
 # shellcheck disable=SC2016
-bt_grep -q 'No trace was found based on input `some_other_non_opt`' "$stderr_actual_file"
-ok "$?" "warning is printed"
+bt_grep_ok \
+	'No trace was found based on input `some_other_non_opt`' \
+	"$stderr_actual_file" \
+	"warning is printed"
 
 rm -f "$stdout_actual_file"
 rm -f "$stderr_actual_file"
