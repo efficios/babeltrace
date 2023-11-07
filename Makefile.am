@@ -33,4 +33,5 @@ EXTRA_DIST = \
 	std-ext-lib.txt \
 	tools/format-cpp.sh \
 	tools/lint-py.sh \
+	tools/shellcheck.sh \
 	version
