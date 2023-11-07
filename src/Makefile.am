@@ -11,13 +11,6 @@ SUBDIRS += bindings/python/bt2
 endif
 
 noinst_HEADERS = \
-	common/align.h \
-	common/list.h \
-	common/macros.h \
-	common/mmap-align.h \
-	common/safe.h \
-	common/version.h \
-	common/version.i \
 	cpp-common/bt2/clock-class.hpp \
 	cpp-common/bt2/clock-snapshot.hpp \
 	cpp-common/bt2/common-iter.hpp \
@@ -120,12 +113,19 @@ autodisc_libautodisc_la_SOURCES = \
 	autodisc/autodisc.h
 
 common_libcommon_la_SOURCES = \
+	common/align.h \
 	common/assert.c \
 	common/assert.h \
 	common/common.c \
 	common/common.h \
+	common/list.h \
+	common/macros.h \
+	common/mmap-align.h \
+	common/safe.h \
 	common/uuid.c \
-	common/uuid.h
+	common/uuid.h \
+	common/version.h \
+	common/version.i
 
 common_libcommon_la_CPPFLAGS = \
 	$(AM_CPPFLAGS) \
