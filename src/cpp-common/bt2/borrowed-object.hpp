@@ -84,7 +84,7 @@ protected:
      */
     explicit BorrowedObject(const _LibObjPtr libObjPtr) noexcept : _mLibObjPtr {libObjPtr}
     {
-        BT_ASSERT(libObjPtr);
+        BT_ASSERT_DBG(libObjPtr);
     }
 
     /* Default copy operations */
